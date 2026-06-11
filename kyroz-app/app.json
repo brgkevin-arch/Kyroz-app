@@ -23,7 +23,6 @@
       ]
     },
     "web": {
-      "baseUrl": "/Kyroz-app",
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
@@ -38,6 +37,9 @@
         }
       ]
     ],
+    "experiments": {
+      "baseUrl": "/Kyroz-app"
+    },
     "extra": {
       "router": {},
       "eas": {
