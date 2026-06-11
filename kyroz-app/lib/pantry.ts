@@ -176,7 +176,7 @@ export interface Coverage {
   ratio: number;          // have / total
 }
 
-export function recipeCoverage(recipe: Recipe, items: PantryItem[]): Coverage {
+function recipeCoverage(recipe: Recipe, items: PantryItem[]): Coverage {
   let have = 0;
   let total = 0;
   const missing: Ingredient[] = [];

@@ -6,11 +6,11 @@
 // Paliers célébrés. 7 est LE palier du North Star (% d'utilisateurs à 7 jours
 // consécutifs dans les 14 premiers jours) ; 3 récompense tôt pour amorcer
 // l'habitude, les suivants entretiennent la rétention longue.
-export const STREAK_MILESTONES = [3, 7, 14, 30, 60, 100] as const;
+const STREAK_MILESTONES = [3, 7, 14, 30, 60, 100] as const;
 
 // Fenêtre du chaînon visuel : on affiche toujours une « semaine » de 7 points.
 // Les 7 premiers jours (la fenêtre North Star) se remplissent donc 1→7.
-export const CHAIN_WINDOW = 7;
+const CHAIN_WINDOW = 7;
 
 /** Le prochain palier que l'utilisateur cherche à atteindre. */
 export function nextMilestone(streak: number): number {

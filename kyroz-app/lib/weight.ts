@@ -14,7 +14,7 @@ export interface WeightEntry {
 }
 
 export const WEIGHT_KEY = '@kyroz:weights';
-export const CHECKIN_DAYS = 7;
+const CHECKIN_DAYS = 7;
 
 // Cadence → intervalle en jours. Pilote le rappel de check-in (écran Plan).
 export const WEIGH_IN_INTERVALS: Record<WeighInFrequency, number> = {

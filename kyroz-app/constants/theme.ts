@@ -132,8 +132,6 @@ export const Type = {
   overline: { fontSize: 11, fontWeight: '700' as const, letterSpacing: 1 },
 } as const;
 
-export const Themes = { light, dark };
-
 /** Hook principal : renvoie la palette active selon le réglage système. */
 export function useTheme(): ThemePalette {
   const scheme = useColorScheme();

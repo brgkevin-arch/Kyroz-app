@@ -11,7 +11,7 @@ export type ReminderSlot = 'off' | 'morning' | 'midday' | 'evening';
 // Les notifications locales ne sont pas supportées sur le web par expo-notifications.
 export const remindersSupported = Platform.OS !== 'web';
 
-export const REMINDER_TIME: Record<Exclude<ReminderSlot, 'off'>, { hour: number; minute: number }> = {
+const REMINDER_TIME: Record<Exclude<ReminderSlot, 'off'>, { hour: number; minute: number }> = {
   morning: { hour: 8, minute: 0 },
   midday: { hour: 12, minute: 0 },
   evening: { hour: 18, minute: 30 },
@@ -36,7 +36,7 @@ if (remindersSupported) {
 }
 
 /** Demande (ou relit) la permission de notifier. `false` si refusée/indispo. */
-export async function ensurePermission(): Promise<boolean> {
+async function ensurePermission(): Promise<boolean> {
   if (!remindersSupported) return false;
   const current = await Notifications.getPermissionsAsync();
   if (current.granted) return true;

@@ -34,7 +34,7 @@ export function calculateBMR(
 }
 
 // Multiplicateur d'activité dérivé du nombre de séances/semaine (plus concret)
-export function activityMultiplier(trainingDaysPerWeek: number): number {
+function activityMultiplier(trainingDaysPerWeek: number): number {
   if (trainingDaysPerWeek <= 0) return 1.2;
   if (trainingDaysPerWeek <= 2) return 1.375;
   if (trainingDaysPerWeek <= 4) return 1.55;
