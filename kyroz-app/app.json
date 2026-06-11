@@ -1,0 +1,38 @@
+{
+  "expo": {
+    "name": "Kyroz",
+    "slug": "kyroz-app",
+    "scheme": "kyroz",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-status-bar",
+      "expo-notifications",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Kyroz accède à tes photos pour enregistrer tes photos de progression (elles restent sur ton téléphone).",
+          "cameraPermission": "Kyroz utilise l'appareil photo pour tes photos de progression (elles restent sur ton téléphone)."
+        }
+      ]
+    ]
+  }
+}

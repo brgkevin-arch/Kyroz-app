@@ -1,0 +1,31 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "landing",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "3000", "--directory", "landing"],
+      "port": 3000
+    },
+    {
+      "name": "kyroz-web",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["expo", "start", "--web", "--port", "8081", "--clear"],
+      "port": 8081,
+      "cwd": "kyroz-app"
+    },
+    {
+      "name": "kyroz-verify",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["expo", "start", "--web", "--port", "8090"],
+      "port": 8090,
+      "cwd": "kyroz-app"
+    },
+    {
+      "name": "mockups",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "3002", "--directory", "mockups"],
+      "port": 3002
+    }
+  ]
+}

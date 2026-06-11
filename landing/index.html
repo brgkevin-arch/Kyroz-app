@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kyroz — Ton plan nutrition. Automatique. Précis. Efficace.</title>
+  <meta name="description" content="Kyroz génère ton plan repas 7 jours, macro-précis, avec les recettes et la liste de courses. Tu exécutes. Tu progresses." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --black: #0a0a0a;
+      --black-2: #111111;
+      --black-3: #1a1a1a;
+      --border: rgba(255,255,255,0.08);
+      --border-light: rgba(255,255,255,0.14);
+      --white: #ffffff;
+      --white-60: rgba(255,255,255,0.6);
+      --white-40: rgba(255,255,255,0.4);
+      --white-20: rgba(255,255,255,0.2);
+      --white-10: rgba(255,255,255,0.1);
+      --white-06: rgba(255,255,255,0.06);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--black);
+      color: var(--white);
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 40px;
+      background: rgba(10,10,10,0.8);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: var(--white);
+      text-decoration: none;
+    }
+
+    .nav-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 22px;
+      background: var(--white);
+      color: var(--black);
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: opacity 0.15s;
+    }
+
+    .nav-cta:hover { opacity: 0.88; }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 140px 24px 100px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -20%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 700px;
+      height: 700px;
+      background: radial-gradient(circle, rgba(255,255,255,0.04) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 16px;
+      background: var(--white-06);
+      border: 1px solid var(--border-light);
+      border-radius: 100px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--white-60);
+      margin-bottom: 36px;
+      letter-spacing: 0.01em;
+    }
+
+    .hero-badge span {
+      width: 6px; height: 6px;
+      background: #fff;
+      border-radius: 50%;
+      opacity: 0.5;
+    }
+
+    .hero-title {
+      font-size: clamp(44px, 7vw, 88px);
+      font-weight: 900;
+      line-height: 1.0;
+      letter-spacing: -0.03em;
+      max-width: 900px;
+      margin-bottom: 28px;
+    }
+
+    .hero-title em {
+      font-style: normal;
+      color: var(--white-40);
+    }
+
+    .hero-subtitle {
+      font-size: clamp(17px, 2vw, 20px);
+      font-weight: 400;
+      color: var(--white-60);
+      max-width: 520px;
+      line-height: 1.65;
+      margin-bottom: 52px;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 18px 40px;
+      background: var(--white);
+      color: var(--black);
+      font-size: 16px;
+      font-weight: 700;
+      border-radius: 12px;
+      text-decoration: none;
+      transition: transform 0.15s, opacity 0.15s;
+      letter-spacing: -0.01em;
+    }
+
+    .btn-primary:hover { transform: translateY(-1px); opacity: 0.92; }
+
+    .btn-primary svg { width: 18px; height: 18px; }
+
+    .hero-note {
+      font-size: 13px;
+      color: var(--white-40);
+      font-weight: 400;
+    }
+
+    /* ── SOCIAL PROOF ── */
+    .social-proof {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 32px;
+      padding: 32px 24px;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .proof-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .proof-number {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+
+    .proof-label {
+      font-size: 13px;
+      color: var(--white-40);
+      font-weight: 400;
+    }
+
+    .proof-divider {
+      width: 1px;
+      height: 40px;
+      background: var(--border-light);
+    }
+
+    /* ── SECTIONS ── */
+    section {
+      padding: 120px 24px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .section-label {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--white-40);
+      margin-bottom: 20px;
+    }
+
+    .section-title {
+      font-size: clamp(32px, 4vw, 52px);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      margin-bottom: 20px;
+    }
+
+    .section-subtitle {
+      font-size: 18px;
+      color: var(--white-60);
+      line-height: 1.65;
+      max-width: 540px;
+    }
+
+    /* ── PROBLEM ── */
+    .problem-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2px;
+      margin-top: 64px;
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    .problem-card {
+      padding: 40px;
+      background: var(--black-2);
+    }
+
+    .problem-card:first-child { border-radius: 16px 0 0 0; }
+    .problem-card:nth-child(2) { border-radius: 0 16px 0 0; }
+    .problem-card:nth-child(3) { border-radius: 0 0 0 16px; }
+    .problem-card:last-child { border-radius: 0 0 16px 0; }
+
+    .problem-icon {
+      font-size: 28px;
+      margin-bottom: 20px;
+      display: block;
+    }
+
+    .problem-card h3 {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      letter-spacing: -0.02em;
+    }
+
+    .problem-card p {
+      font-size: 15px;
+      color: var(--white-60);
+      line-height: 1.6;
+    }
+
+    /* ── SOLUTION / FEATURES ── */
+    .features-list {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      margin-top: 64px;
+    }
+
+    .feature-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2px;
+    }
+
+    .feature-card {
+      background: var(--black-2);
+      padding: 52px 48px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .feature-card.full { grid-column: 1 / -1; }
+
+    .feature-card:first-child { border-radius: 16px 16px 0 0; }
+
+    .feature-number {
+      font-size: 72px;
+      font-weight: 900;
+      letter-spacing: -0.05em;
+      color: var(--white-06);
+      position: absolute;
+      top: 24px;
+      right: 32px;
+      line-height: 1;
+      user-select: none;
+    }
+
+    .feature-card h3 {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 14px;
+    }
+
+    .feature-card p {
+      font-size: 16px;
+      color: var(--white-60);
+      line-height: 1.65;
+      max-width: 380px;
+    }
+
+    .feature-tag {
+      display: inline-block;
+      padding: 5px 12px;
+      background: var(--white-10);
+      border-radius: 100px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--white-60);
+      margin-bottom: 20px;
+    }
+
+    /* ── HOW IT WORKS ── */
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+      margin-top: 64px;
+    }
+
+    .step {
+      background: var(--black-2);
+      padding: 48px 40px;
+    }
+
+    .step:first-child { border-radius: 16px 0 0 16px; }
+    .step:last-child { border-radius: 0 16px 16px 0; }
+
+    .step-num {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--white-40);
+      letter-spacing: 0.1em;
+      margin-bottom: 28px;
+    }
+
+    .step h3 {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 12px;
+    }
+
+    .step p {
+      font-size: 15px;
+      color: var(--white-60);
+      line-height: 1.6;
+    }
+
+    /* ── PRICING ── */
+    #pricing {
+      max-width: 1100px;
+    }
+
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-top: 64px;
+      align-items: start;
+    }
+
+    .pricing-card {
+      background: var(--black-2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 36px 32px;
+      position: relative;
+      transition: border-color 0.2s;
+    }
+
+    .pricing-card:hover { border-color: var(--border-light); }
+
+    .pricing-card.featured {
+      background: var(--white);
+      border-color: var(--white);
+      color: var(--black);
+    }
+
+    .pricing-card.featured .price-period,
+    .pricing-card.featured .price-desc,
+    .pricing-card.featured .feature-item { color: rgba(0,0,0,0.55); }
+
+    .pricing-card.featured .feature-item::before { color: rgba(0,0,0,0.3); }
+
+    .pricing-badge {
+      display: inline-block;
+      padding: 5px 12px;
+      background: var(--black);
+      color: var(--white);
+      font-size: 11px;
+      font-weight: 700;
+      border-radius: 100px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+    }
+
+    .pricing-badge.subtle {
+      background: var(--white-10);
+      color: var(--white-40);
+    }
+
+    .price-label {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--white-40);
+      margin-bottom: 16px;
+    }
+
+    .pricing-card.featured .price-label { color: rgba(0,0,0,0.45); }
+
+    .price-amount {
+      font-size: 52px;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .price-period {
+      font-size: 15px;
+      color: var(--white-40);
+      margin-bottom: 8px;
+    }
+
+    .price-desc {
+      font-size: 13px;
+      color: var(--white-40);
+      margin-bottom: 32px;
+      line-height: 1.5;
+    }
+
+    .feature-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+
+    .feature-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 14px;
+      color: var(--white-60);
+      line-height: 1.4;
+    }
+
+    .feature-item::before {
+      content: '✓';
+      color: var(--white-40);
+      font-weight: 700;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .btn-pricing {
+      display: block;
+      width: 100%;
+      padding: 15px 24px;
+      text-align: center;
+      font-size: 15px;
+      font-weight: 700;
+      border-radius: 10px;
+      text-decoration: none;
+      transition: opacity 0.15s;
+      letter-spacing: -0.01em;
+    }
+
+    .btn-pricing:hover { opacity: 0.85; }
+
+    .pricing-card:not(.featured) .btn-pricing {
+      background: var(--white-10);
+      color: var(--white);
+    }
+
+    .pricing-card.featured .btn-pricing {
+      background: var(--black);
+      color: var(--white);
+    }
+
+    /* ── DISCLAIMER ── */
+    .disclaimer {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 24px 80px;
+    }
+
+    .disclaimer-box {
+      background: var(--black-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px 28px;
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+
+    .disclaimer-icon {
+      font-size: 18px;
+      flex-shrink: 0;
+      opacity: 0.5;
+      margin-top: 1px;
+    }
+
+    .disclaimer-text {
+      font-size: 13px;
+      color: var(--white-40);
+      line-height: 1.65;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .footer-logo {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--white);
+      text-decoration: none;
+      letter-spacing: -0.03em;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 28px;
+    }
+
+    .footer-links a {
+      font-size: 13px;
+      color: var(--white-40);
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+
+    .footer-links a:hover { color: var(--white); }
+
+    .footer-copy {
+      font-size: 13px;
+      color: var(--white-40);
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      nav { padding: 16px 20px; }
+
+      .hero { padding: 120px 20px 80px; }
+
+      .social-proof {
+        gap: 20px;
+        flex-wrap: wrap;
+      }
+
+      .problem-grid,
+      .feature-row,
+      .steps,
+      .pricing-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .problem-card:first-child { border-radius: 16px 16px 0 0; }
+      .problem-card:nth-child(2) { border-radius: 0; }
+      .problem-card:nth-child(3) { border-radius: 0; }
+      .problem-card:last-child { border-radius: 0 0 16px 16px; }
+
+      .step:first-child { border-radius: 16px 16px 0 0; }
+      .step:last-child { border-radius: 0 0 16px 16px; }
+      .step:not(:first-child):not(:last-child) { border-radius: 0; }
+
+      section { padding: 80px 20px; }
+
+      footer {
+        flex-direction: column;
+        gap: 20px;
+        text-align: center;
+        padding: 32px 20px;
+      }
+
+      .footer-links { flex-wrap: wrap; justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a class="nav-logo" href="#">Kyroz</a>
+    <a class="nav-cta" href="#pricing">
+      Précommander
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M5 12h14M12 5l7 7-7 7"/>
+      </svg>
+    </a>
+  </nav>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-badge">
+      <span></span>
+      Accès anticipé ouvert — places limitées
+    </div>
+    <h1 class="hero-title">
+      Ton plan nutrition.<br />
+      <em>Automatique.</em><br />
+      Précis. Efficace.
+    </h1>
+    <p class="hero-subtitle">
+      Kyroz génère ton plan repas 7 jours, macro-précis,
+      avec les recettes et la liste de courses.
+      Tu exécutes. Tu progresses.
+    </p>
+    <div class="hero-actions">
+      <a class="btn-primary" href="#pricing">
+        Accéder en avant-première
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
+      </a>
+      <p class="hero-note">Satisfait ou remboursé — 14 jours</p>
+    </div>
+  </div>
+
+  <!-- SOCIAL PROOF -->
+  <div class="social-proof">
+    <div class="proof-item">
+      <span class="proof-number">7j</span>
+      <span class="proof-label">Plan complet généré</span>
+    </div>
+    <div class="proof-divider"></div>
+    <div class="proof-item">
+      <span class="proof-number">&lt;15 min</span>
+      <span class="proof-label">Par recette</span>
+    </div>
+    <div class="proof-divider"></div>
+    <div class="proof-item">
+      <span class="proof-number">100%</span>
+      <span class="proof-label">Macro-précis</span>
+    </div>
+    <div class="proof-divider"></div>
+    <div class="proof-item">
+      <span class="proof-number">0</span>
+      <span class="proof-label">Effort de planification</span>
+    </div>
+  </div>
+
+  <!-- PROBLEM -->
+  <section id="probleme">
+    <p class="section-label">Le problème</p>
+    <h2 class="section-title">Tu sais quoi faire.<br />C'est le quotidien qui tue le plan.</h2>
+    <p class="section-subtitle">
+      La volonté n'est pas le problème. La friction logistique, si.
+    </p>
+    <div class="problem-grid">
+      <div class="problem-card">
+        <span class="problem-icon">🧠</span>
+        <h3>Quoi manger ce soir ?</h3>
+        <p>Décider chaque repas sans dépasser les macros, c'est une charge mentale quotidienne qui finit par s'effondrer.</p>
+      </div>
+      <div class="problem-card">
+        <span class="problem-icon">🛒</span>
+        <h3>Quoi acheter au supermarché ?</h3>
+        <p>Sans liste précise, tu achètes à l'instinct. Et à l'instinct, le plan part en fumée dès le jeudi.</p>
+      </div>
+      <div class="problem-card">
+        <span class="problem-icon">⏱</span>
+        <h3>Je n'ai pas le temps de cuisiner.</h3>
+        <p>Les recettes bodybuilding prennent 45 minutes. En semaine, c'est irréaliste. Donc tu commandes.</p>
+      </div>
+      <div class="problem-card">
+        <span class="problem-icon">📉</span>
+        <h3>Tracker après avoir mangé,<br />c'est constater l'échec.</h3>
+        <p>La plupart des apps te donnent des données. Kyroz te donne un plan. Tu sais quoi manger avant même d'ouvrir le frigo.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SOLUTION -->
+  <section id="solution" style="padding-top: 0;">
+    <p class="section-label">La solution</p>
+    <h2 class="section-title">Un système.<br />Pas une app de tracking.</h2>
+    <p class="section-subtitle">
+      Ton profil en entrée. Un plan macro-précis, des recettes et une liste de courses en sortie.
+      C'est tout ce dont tu as besoin.
+    </p>
+
+    <div class="features-list">
+      <div class="feature-card full" style="border-radius: 16px 16px 0 0;">
+        <span class="feature-number">01</span>
+        <span class="feature-tag">Core feature</span>
+        <h3>Plan repas 7 jours généré automatiquement</h3>
+        <p>Tu renseignes ton poids, ton objectif, tes contraintes. Kyroz calcule ton TDEE, répartit les macros sur 7 jours et génère un plan cohérent — petit-déjeuner, déjeuner, dîner, collation. Zéro décision à prendre.</p>
+      </div>
+      <div class="feature-row">
+        <div class="feature-card" style="border-radius: 0;">
+          <span class="feature-number">02</span>
+          <span class="feature-tag">Recettes</span>
+          <h3>Recettes françaises &lt;15 min</h3>
+          <p>Chaque repas est une recette validée, testée, adaptée à la cuisine française. Pas des salades tristes. Pas des bowls Instagram. Du vrai food qui tient au corps.</p>
+        </div>
+        <div class="feature-card" style="border-radius: 0;">
+          <span class="feature-number">03</span>
+          <span class="feature-tag">Courses</span>
+          <h3>Liste de courses générée</h3>
+          <p>Une liste consolidée pour la semaine entière, triée par rayons. Tu arrives au supermarché, tu suis la liste. Tu repars en 20 minutes avec exactement ce qu'il faut.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section id="comment" style="padding-top: 0;">
+    <p class="section-label">Comment ça marche</p>
+    <h2 class="section-title">Trois étapes.<br />Puis tu exécutes.</h2>
+    <div class="steps">
+      <div class="step">
+        <p class="step-num">01 —</p>
+        <h3>Ton profil</h3>
+        <p>Poids, taille, niveau d'activité, objectif (sèche ou prise de masse), allergies. 3 minutes chrono.</p>
+      </div>
+      <div class="step">
+        <p class="step-num">02 —</p>
+        <h3>Kyroz génère</h3>
+        <p>L'algorithme calcule tes besoins caloriques, répartit les macros et sélectionne les recettes. En moins d'une seconde.</p>
+      </div>
+      <div class="step">
+        <p class="step-num">03 —</p>
+        <h3>Tu exécutes</h3>
+        <p>Plan affiché. Liste de courses prête. Recettes disponibles. Tu n'as plus qu'à cuisiner et manger.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING -->
+  <section id="pricing">
+    <p class="section-label">Tarifs</p>
+    <h2 class="section-title">Un accès.<br />Plusieurs formules.</h2>
+    <p class="section-subtitle">Accès anticipé — prix bloqué à vie pour les premiers inscrits.</p>
+
+    <div class="pricing-grid">
+
+      <!-- MENSUEL -->
+      <div class="pricing-card">
+        <span class="pricing-badge subtle">Mensuel</span>
+        <p class="price-label">Par mois</p>
+        <p class="price-amount">4,99€</p>
+        <p class="price-period">/mois</p>
+        <p class="price-desc">Sans engagement.<br />Résilie quand tu veux.</p>
+        <ul class="feature-list">
+          <li class="feature-item">Génération plan 7 jours</li>
+          <li class="feature-item">Recettes &lt;15 min</li>
+          <li class="feature-item">Liste de courses</li>
+          <li class="feature-item">Streak tracker</li>
+        </ul>
+        <a class="btn-pricing" href="#" onclick="handleCheckout('monthly'); return false;">
+          Commencer
+        </a>
+      </div>
+
+      <!-- ANNUEL — FEATURED -->
+      <div class="pricing-card featured">
+        <span class="pricing-badge">⭐ Recommandé</span>
+        <p class="price-label">Par an</p>
+        <p class="price-amount">44,99€</p>
+        <p class="price-period">/an</p>
+        <p class="price-desc">Soit 3,75€/mois.<br />Économise 25% vs mensuel.</p>
+        <ul class="feature-list">
+          <li class="feature-item">Génération plan 7 jours</li>
+          <li class="feature-item">Recettes &lt;15 min</li>
+          <li class="feature-item">Liste de courses</li>
+          <li class="feature-item">Streak tracker</li>
+          <li class="feature-item">Nouvelles recettes en priorité</li>
+        </ul>
+        <a class="btn-pricing" href="#" onclick="handleCheckout('annual'); return false;">
+          Choisir l'annuel
+        </a>
+      </div>
+
+      <!-- LIFETIME -->
+      <div class="pricing-card">
+        <span class="pricing-badge subtle">Lifetime</span>
+        <p class="price-label">Une seule fois</p>
+        <p class="price-amount">79€</p>
+        <p class="price-period">paiement unique</p>
+        <p class="price-desc">Accès à vie.<br />Prix early adopter — limité.</p>
+        <ul class="feature-list">
+          <li class="feature-item">Génération plan 7 jours</li>
+          <li class="feature-item">Recettes &lt;15 min</li>
+          <li class="feature-item">Liste de courses</li>
+          <li class="feature-item">Streak tracker</li>
+          <li class="feature-item">Nouvelles recettes en priorité</li>
+          <li class="feature-item">Accès bêta fermée</li>
+        </ul>
+        <a class="btn-pricing" href="#" onclick="handleCheckout('lifetime'); return false;">
+          Accès à vie
+        </a>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- DISCLAIMER -->
+  <div class="disclaimer">
+    <div class="disclaimer-box">
+      <span class="disclaimer-icon">⚕️</span>
+      <p class="disclaimer-text">
+        <strong>Information de santé</strong> — Kyroz est conçu pour des adultes en bonne santé souhaitant optimiser leur nutrition sportive. Ces informations ne remplacent pas l'avis d'un médecin ou d'un diététicien-nutritionniste. En cas de pathologie, de grossesse ou si vous avez moins de 16 ans, consultez un professionnel de santé avant d'utiliser le service.
+      </p>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <a class="footer-logo" href="#">Kyroz</a>
+    <div class="footer-links">
+      <a href="#">Mentions légales</a>
+      <a href="#">Politique de confidentialité</a>
+      <a href="#">CGU</a>
+      <a href="mailto:contact@kyroz.fr">Contact</a>
+    </div>
+    <p class="footer-copy">© 2026 Kyroz</p>
+  </footer>
+
+  <script>
+    // Remplace ces URLs par tes vrais liens Stripe Payment Links
+    const STRIPE_LINKS = {
+      monthly:  'https://buy.stripe.com/REMPLACER_MENSUEL',
+      annual:   'https://buy.stripe.com/REMPLACER_ANNUEL',
+      lifetime: 'https://buy.stripe.com/REMPLACER_LIFETIME',
+    };
+
+    function handleCheckout(plan) {
+      const url = STRIPE_LINKS[plan];
+      if (url.includes('REMPLACER')) {
+        alert('Lien Stripe à configurer pour : ' + plan);
+        return;
+      }
+      window.location.href = url;
+    }
+  </script>
+
+</body>
+</html>
