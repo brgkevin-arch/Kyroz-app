@@ -32,8 +32,10 @@ export function formatQuantity(name: string, quantity: number, unit: string = 'g
   if (unit === 'ml') return quantity >= 1000 ? `${frnum(quantity / 1000)} L` : `${Math.round(quantity)} ml`;
   if (unit === 'pièce' || unit === 'pc') return `${frnum(quantity)} pc`;
 
-  // Aliments naturellement comptés à l'unité
-  const egg = n.includes('œuf') || n.includes('oeuf');
+  // Aliments naturellement comptés à l'unité.
+  // ⚠️ « bœuf » contient « œuf » → on exclut explicitement, sinon le steak haché
+  // se retrouve compté en œufs dans les courses.
+  const egg = (n.includes('œuf') || n.includes('oeuf')) && !n.includes('bœuf') && !n.includes('boeuf');
   if (egg && n.includes('blanc')) return countStr(quantity / 33, "blanc d'œuf", "blancs d'œuf");
   if (egg) return countStr(quantity / 55, 'œuf', 'œufs');
   if (n.includes('banane')) return countStr(quantity / 120, 'banane', 'bananes');

@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme, Radius, cardShadow } from '../constants/theme';
 import { Meal } from '../lib/types';
 
@@ -10,11 +11,12 @@ const MEAL_LABELS: Record<string, string> = {
   snack: 'Collation',
 };
 
-export function MealCard({ meal, onPress }: { meal: Meal; onPress?: () => void }) {
+export function MealCard({ meal, onPress, onCook }: { meal: Meal; onPress?: () => void; onCook?: () => void }) {
   const t = useTheme();
   const eaten = meal.status === 'eaten';
   const skipped = meal.status === 'skipped';
   const muted = eaten || skipped;
+  const planned = !eaten && !skipped;
   return (
     <TouchableOpacity
       onPress={onPress}
@@ -42,6 +44,18 @@ export function MealCard({ meal, onPress }: { meal: Meal; onPress?: () => void }
           <Pill v={meal.macros.fat_g} u="L" c={t.fat} cu={t.textQuaternary} />
         </View>
       )}
+
+      {/* Action rapide directement sur le plan (sans ouvrir la fiche) */}
+      {planned && onCook && (
+        <TouchableOpacity
+          onPress={onCook}
+          activeOpacity={0.85}
+          style={[styles.cookBtn, { backgroundColor: t.accent }]}
+        >
+          <Ionicons name="restaurant" size={15} color={t.onAccent} />
+          <Text style={[styles.cookTxt, { color: t.onAccent }]}>J'ai cuisiné</Text>
+        </TouchableOpacity>
+      )}
     </TouchableOpacity>
   );
 }
@@ -65,4 +79,6 @@ const styles = StyleSheet.create({
   pill: { flexDirection: 'row', gap: 3, alignItems: 'baseline' },
   pillV: { fontSize: 14, fontWeight: '700' },
   pillU: { fontSize: 11 },
+  cookBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, marginTop: 14, paddingVertical: 11, borderRadius: Radius.md },
+  cookTxt: { fontSize: 14, fontWeight: '700' },
 });

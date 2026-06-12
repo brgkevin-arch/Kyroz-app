@@ -125,7 +125,7 @@ export default function Onboarding() {
   const [dislikes, setDislikes] = useState<string[]>([]);
   const [maxPrep, setMaxPrep] = useState(15);
   const [variety, setVariety] = useState<VarietyPreference>('balanced');
-  const [planWeekdays, setPlanWeekdays] = useState<number[]>([1, 2, 3, 4, 5, 6, 0]); // tous par défaut
+  const [planWeekdays, setPlanWeekdays] = useState<number[]>([]); // rien coché par défaut → l'user sélectionne (noir = off, blanc = on)
   const [meals, setMeals] = useState<MealType[]>(['breakfast', 'lunch', 'dinner', 'snack']);
   const [emphasis, setEmphasis] = useState<MealEmphasis>('even');
 

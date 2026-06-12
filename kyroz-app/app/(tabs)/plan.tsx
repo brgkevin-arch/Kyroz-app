@@ -427,7 +427,7 @@ export default function PlanScreen() {
             {/* Meals */}
             <SectionLabel t={t}>Repas du jour</SectionLabel>
             <View style={{ gap: 10 }}>
-              {dayMeals.map((m) => <MealCard key={m.id} meal={m} onPress={() => setSelectedMeal(m)} />)}
+              {dayMeals.map((m) => <MealCard key={m.id} meal={m} onPress={() => setSelectedMeal(m)} onCook={() => cookMeal(m)} />)}
             </View>
 
             <View style={{ marginTop: 6 }}>

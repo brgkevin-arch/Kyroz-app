@@ -16,7 +16,6 @@ export interface PantryItem {
 }
 
 export const PANTRY_KEY = '@kyroz:pantry';
-const SHOPPING_KEY = '@kyroz:shopping';
 
 // Condiments toujours supposés disponibles : on les ignore pour la couverture
 // et on ne les déduit pas (sel, huile, épices…).
@@ -122,30 +121,9 @@ export function removeItem(items: PantryItem[], name: string, unit: string): Pan
   return items.filter((i) => !(norm(i.name) === norm(name) && i.unit === unit));
 }
 
-/** Ajoute les articles d'une liste de courses au garde-manger (hors condiments). */
-export function seedFromShopping(items: PantryItem[], shopping: ShoppingItem[]): PantryItem[] {
-  let res = items;
-  for (const s of shopping) {
-    if (isStaple(s.name)) continue; // sel, huile, épices… : tout le monde en a
-    res = addOrMerge(res, { name: s.name, quantity: s.quantity, unit: s.unit, category: s.category });
-  }
-  return res;
-}
-
 /** Garde-manger visible : on masque les condiments universels. */
 export function visiblePantry(items: PantryItem[]): PantryItem[] {
   return items.filter((i) => !isStaple(i.name));
-}
-
-export async function loadShoppingItems(): Promise<ShoppingItem[] | null> {
-  const raw = await AsyncStorage.getItem(SHOPPING_KEY);
-  if (!raw) return null;
-  try {
-    const list = JSON.parse(raw);
-    return Array.isArray(list.items) ? (list.items as ShoppingItem[]) : null;
-  } catch {
-    return null;
-  }
 }
 
 /** Déduit du garde-manger les ingrédients d'une recette cuisinée (× portions). */

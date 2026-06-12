@@ -89,7 +89,8 @@
       "Bash(python3 -)",
       "Bash(sips -g pixelWidth -g pixelHeight \"kyroz-app/assets/bodyfat/_source/female-models.png\")",
       "Bash(ls -1 *.png)",
-      "Bash(ls -1 kyroz-app/assets/bodyfat/_source/)"
+      "Bash(ls -1 kyroz-app/assets/bodyfat/_source/)",
+      "Bash(curl -s \"https://brgkevin-arch.github.io/Kyroz-app/\")"
     ]
   }
 }

@@ -8,6 +8,8 @@ import { useTheme, ThemePalette, Radius, Spacing, cardShadow } from '../../const
 import { MealPlan, ShoppingItem, ShoppingList } from '../../lib/types';
 import { buildShoppingList } from '../../lib/shoppingList';
 import { formatQuantity } from '../../lib/units';
+import { loadPantry, savePantry, addOrMerge, removeItem, isStaple } from '../../lib/pantry';
+import { pushPantry } from '../../lib/sync';
 
 const PLAN_KEY = '@kyroz:plan';
 const LIST_KEY = '@kyroz:shopping';
@@ -52,7 +54,22 @@ export default function CoursesScreen() {
   };
 
   const persist = async (l: ShoppingList) => { setList(l); await AsyncStorage.setItem(LIST_KEY, JSON.stringify(l)); };
-  const toggle = (name: string) => list && persist({ ...list, items: list.items.map((i) => i.name === name ? { ...i, checked: !i.checked } : i) });
+
+  // Cocher un article = « je l'ai acheté » → il part DIRECTEMENT au frigo.
+  // Décocher = retour en arrière → on le retire du frigo. (Plus d'étape d'import.)
+  const toggle = async (item: ShoppingItem) => {
+    if (!list) return;
+    const willCheck = !item.checked;
+    await persist({ ...list, items: list.items.map((i) => (i.name === item.name ? { ...i, checked: willCheck } : i)) });
+    if (isStaple(item.name)) return; // sel, huile, épices… : pas dans le frigo
+    const pantry = await loadPantry();
+    const next = willCheck
+      ? addOrMerge(pantry, { name: item.name, quantity: item.quantity, unit: item.unit, category: item.category })
+      : removeItem(pantry, item.name, item.unit);
+    await savePantry(next);
+    pushPantry(next);
+  };
+
   const reset = () => list && persist({ ...list, items: list.items.map((i) => ({ ...i, checked: false })) });
   const onRefresh = useCallback(async () => { setRefreshing(true); await AsyncStorage.removeItem(LIST_KEY); await load(); setRefreshing(false); }, []);
 
@@ -114,6 +131,8 @@ export default function CoursesScreen() {
         )}
       </View>
 
+      <Text style={s.hint}>Coche un article → il part direct dans ton frigo 🧊</Text>
+
       <SectionList
         sections={sections}
         keyExtractor={(item) => item.name}
@@ -129,7 +148,7 @@ export default function CoursesScreen() {
           </View>
         )}
         renderItem={({ item }) => (
-          <TouchableOpacity style={[s.row, cardShadow(t)]} onPress={() => toggle(item.name)} activeOpacity={0.7}>
+          <TouchableOpacity style={[s.row, cardShadow(t)]} onPress={() => toggle(item)} activeOpacity={0.7}>
             <View style={[s.box, { borderColor: item.checked ? t.accent : t.lineStrong, backgroundColor: item.checked ? t.accent : 'transparent' }]}>
               {item.checked && <Ionicons name="checkmark" size={15} color={t.onAccent} />}
             </View>
@@ -163,6 +182,7 @@ function makeStyles(t: ThemePalette) {
     ctrl: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 13, paddingVertical: 8, borderRadius: Radius.pill, backgroundColor: t.fill, borderWidth: 1, borderColor: t.line },
     ctrlOn: { backgroundColor: t.accent, borderColor: t.accent },
     ctrlTxt: { color: t.textSecondary, fontSize: 13, fontWeight: '600' },
+    hint: { color: t.textTertiary, fontSize: 12, paddingHorizontal: Spacing.xl, paddingTop: 12 },
 
     list: { paddingHorizontal: Spacing.xl, paddingBottom: 120, paddingTop: 4 },
     section: { flexDirection: 'row', alignItems: 'center', gap: 7, marginTop: 22, marginBottom: 10 },

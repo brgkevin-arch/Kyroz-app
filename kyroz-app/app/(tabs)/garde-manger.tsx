@@ -13,7 +13,7 @@ import { pushPantry } from '../../lib/sync';
 import {
   PantryItem, PantryCategory, Coverage,
   loadPantry, savePantry, addOrMerge, removeItem, categorize,
-  seedFromShopping, loadShoppingItems, deductRecipe, cookableRecipes, visiblePantry,
+  deductRecipe, cookableRecipes, visiblePantry,
 } from '../../lib/pantry';
 
 const CATEGORY_ORDER: PantryCategory[] = ['viandes', 'légumes', 'féculents', 'laitiers', 'autres'];
@@ -30,7 +30,6 @@ export default function GardeMangerScreen() {
   const s = useMemo(() => makeStyles(t), [t]);
 
   const [items, setItems] = useState<PantryItem[]>([]);
-  const [hasShopping, setHasShopping] = useState(false);
   const [view, setView] = useState<ViewMode>('stock');
   const [showAdd, setShowAdd] = useState(false);
   const [editItem, setEditItem] = useState<PantryItem | null>(null);
@@ -47,19 +46,12 @@ export default function GardeMangerScreen() {
 
   const refresh = useCallback(async () => {
     setItems(await loadPantry());
-    setHasShopping(!!(await loadShoppingItems()));
   }, []);
 
   useFocusEffect(useCallback(() => { refresh(); }, [refresh]));
 
   const persist = async (next: PantryItem[]) => { setItems(next); await savePantry(next); pushPantry(next); };
   const flashToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 2400); };
-
-  const seed = async () => {
-    const shopping = await loadShoppingItems();
-    if (!shopping) return;
-    await persist(seedFromShopping(items, shopping));
-  };
 
   const addManual = async () => {
     const q = parseFloat(qty);
@@ -142,9 +134,8 @@ export default function GardeMangerScreen() {
               <Ionicons name="file-tray-full-outline" size={30} color={t.textSecondary} />
             </View>
             <Text style={s.emptyTitle}>Ton garde-manger est vide</Text>
-            <Text style={s.emptySub}>Ajoute ce que tu as déjà, ou importe ta liste de courses d'un coup.</Text>
+            <Text style={s.emptySub}>Ajoute ce que tu as déjà — ou coche tes articles dans l'onglet Courses, ils arrivent ici automatiquement.</Text>
             <View style={{ height: 8 }} />
-            {hasShopping && <PrimaryButton t={t} label="Importer mes courses" onPress={seed} />}
             <TouchableOpacity onPress={() => setShowAdd(true)} style={s.ghostBtn} activeOpacity={0.8}>
               <Text style={s.ghostTxt}>Ajouter un aliment</Text>
             </TouchableOpacity>
@@ -204,10 +195,7 @@ export default function GardeMangerScreen() {
           <>
             <View style={s.invHeader}>
               <Text style={s.invHint}>Touche une quantité pour la modifier.</Text>
-              <View style={{ flexDirection: 'row', gap: 14 }}>
-                {hasShopping && <TouchableOpacity onPress={seed}><Text style={s.link}>Importer courses</Text></TouchableOpacity>}
-                <TouchableOpacity onPress={clearAll}><Text style={[s.link, { color: t.danger }]}>Vider</Text></TouchableOpacity>
-              </View>
+              <TouchableOpacity onPress={clearAll}><Text style={[s.link, { color: t.danger }]}>Vider</Text></TouchableOpacity>
             </View>
 
             {grouped.map((g) => (
