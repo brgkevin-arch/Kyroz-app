@@ -8,7 +8,7 @@
 
 ## Rappel projet (1 ligne)
 
-App mobile React Native (Expo Router, SDK 56) de plans repas macro-précis pour hommes 18–35 pratiquant de sport. **Phase 2 — MVP du core loop en cours.**
+App mobile React Native (Expo Router, SDK 56) de plans repas macro-précis pour hommes 18–35 pratiquant de sport. **Phase 2 — core loop en place + déployé en web (GitHub Pages), itérations UX/qualité en cours.**
 
 ---
 
@@ -117,8 +117,9 @@ OUTPUT         → Plan + liste de courses + recettes
 - [x] Liste de courses
 - [x] Frigo / garde-manger
 - [x] Favoris recettes
-- [ ] Streak tracker (7 jours consécutifs)
-- [ ] Sync cloud Supabase
+- [x] Streak tracker (7 jours consécutifs)
+- [x] Sync cloud Supabase
+- [x] Recaler ma journée (re-plan instantané)
 - [ ] Monétisation features avancées (freemium)
 
 ### Features INTERDITES (scope creep)
@@ -199,13 +200,3 @@ Profil (poids, objectif, régime) = **données de santé** au sens RGPD.
 ---
 
 *Spec stable. Mettre à jour uniquement quand une décision de fond change.*
-
-## graphify
-
-This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships.
-
-Rules:
-- For codebase questions, first run `graphify query "<question>"` when graphify-out/graph.json exists. Use `graphify path "<A>" "<B>"` for relationships and `graphify explain "<concept>"` for focused concepts. These return a scoped subgraph, usually much smaller than GRAPH_REPORT.md or raw grep output.
-- If graphify-out/wiki/index.md exists, use it for broad navigation instead of raw source browsing.
-- Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context.
-- After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost).

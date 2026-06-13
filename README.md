@@ -8,18 +8,22 @@ Ouvre simplement ce lien dans le navigateur de ton téléphone — rien à insta
 
 > **https://brgkevin-arch.github.io/Kyroz-app/**
 
-*(Le lien devient actif une fois le dépôt publié sur GitHub et GitHub Pages activé — voir ci-dessous.)*
-
 Crée un compte (email) à l'arrivée, complète l'onboarding, et le plan se génère tout seul.
 
-## 💻 Lancer en local (pour développer)
+> Pour publier une mise à jour : dans **GitHub Desktop**, **Commit** puis **Push** → le site se redéploie tout seul (~2 min). Ne jamais cliquer « Re-run all jobs » dans Actions (ça rejoue une vieille version).
+
+## 💻 Lancer en local
 
 ```bash
-cd kyroz-app
+cd "kyroz-app"
 npm install
-npm run web      # ouvre la version web sur http://localhost:8081
-npm test         # lance les tests unitaires (vitest)
+npm run web      # version web → http://localhost:8081 (hot reload)
+npm run ios      # simulateur iOS (rendu le plus fidèle, nécessite Xcode)
+npm test         # tests unitaires (vitest)
 ```
+
+Pour arrêter : `Ctrl + C` dans le terminal. Page blanche / cache : `npx expo start --web --clear`.
+Les variables Supabase vivent dans `kyroz-app/.env.local` (non versionné, c'est normal).
 
 ## Structure
 
