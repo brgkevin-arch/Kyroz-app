@@ -24,6 +24,7 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [consent, setConsent] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
@@ -31,12 +32,20 @@ export default function LoginScreen() {
 
   const submit = async () => {
     if (!canSubmit || busy) return;
-    setBusy(true); setError(null);
+    setBusy(true); setError(null); setNotice(null);
     const res = mode === 'signin'
       ? await signIn(email, password)
       : await signUp(email, password, consent);
     setBusy(false);
     if (res.error) { setError(translate(res.error)); return; }
+    // Inscription sans session = confirmation email à valider → on explique
+    // plutôt que de renvoyer sur un formulaire vide (l'utilisateur croirait à un bug).
+    if ('needsConfirmation' in res && res.needsConfirmation) {
+      setMode('signin');
+      setPassword('');
+      setNotice('Compte créé ! Vérifie ta boîte mail pour confirmer ton adresse, puis connecte-toi.');
+      return;
+    }
     router.replace('/'); // l'index route ensuite selon session + profil
   };
 
@@ -54,7 +63,7 @@ export default function LoginScreen() {
             t={t}
             options={[{ label: 'Inscription', value: 'signup' }, { label: 'Connexion', value: 'signin' }]}
             value={mode}
-            onChange={(m) => { setMode(m as Mode); setError(null); }}
+            onChange={(m) => { setMode(m as Mode); setError(null); setNotice(null); }}
           />
 
           <View style={{ height: 18 }} />
@@ -82,6 +91,7 @@ export default function LoginScreen() {
           )}
 
           {error && <Text style={s.error}>{error}</Text>}
+          {notice && <Text style={s.notice}>{notice}</Text>}
 
           <View style={{ height: 10 }} />
           <PrimaryButton
@@ -120,6 +130,7 @@ function makeStyles(t: ThemePalette) {
     check: { width: 24, height: 24, borderRadius: 8, borderWidth: 2, alignItems: 'center', justifyContent: 'center', marginTop: 1 },
     consentTxt: { flex: 1, color: t.textTertiary, fontSize: 13, lineHeight: 19 },
     error: { color: t.danger, fontSize: 14, fontWeight: '600', textAlign: 'center', marginTop: 16 },
+    notice: { color: t.accent, fontSize: 14, fontWeight: '600', textAlign: 'center', marginTop: 16, lineHeight: 20 },
     social: { color: t.textTertiary, fontSize: 12, textAlign: 'center', marginTop: 18 },
     disclaimer: { color: t.textQuaternary, fontSize: 11, lineHeight: 16, textAlign: 'center', marginTop: 14 },
   });

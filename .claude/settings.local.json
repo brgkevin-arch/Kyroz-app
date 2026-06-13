@@ -94,7 +94,10 @@
       "Bash(curl -s -o /dev/null -w \"shell HTTP %{http_code}\\\\n\" --max-time 180 \"http://localhost:8090/\")",
       "Bash(git checkout *)",
       "Bash(graphify index *)",
-      "Bash(graphify --help)"
+      "Bash(graphify --help)",
+      "Bash(ls lib/__tests__/ test/)",
+      "Bash(grep -rln \"streak\\\\|Streak\" lib/__tests__/ test/)",
+      "Bash(grep -rln \"TZ\\\\|timezone\\\\|toISOString\\\\|localStamp\" lib/__tests__/ test/)"
     ]
   }
 }

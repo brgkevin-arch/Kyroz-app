@@ -7,8 +7,9 @@ import { BODY_FAT_MIN, BODY_FAT_MAX } from '../lib/tdee';
 
 // ── Sélecteur de masse grasse ────────────────────────────────────────────────
 // 6 niveaux de corpulence (valeurs sexuées, calées sur les chartes visuelles de
-// % de masse grasse) + saisie manuelle du % exact. Optionnel : si rien n'est
-// choisi, le calcul retombe sur Mifflin-St Jeor.
+// % de masse grasse) OU saisie manuelle du % exact si l'utilisateur le connaît.
+// OBLIGATOIRE : l'onboarding bloque tant qu'aucune valeur n'est choisie (le TDEE
+// précis repose dessus — Katch-McArdle plutôt que Mifflin).
 //
 // 6 rendus 3D détourés par sexe (assets/bodyfat), une image par niveau.
 
@@ -108,7 +109,7 @@ export function BodyFatPicker({ t, sex, value, onChange }: Props) {
 
       {value != null && (
         <TouchableOpacity onPress={() => onChange(undefined)} activeOpacity={0.7} style={styles.clear}>
-          <Text style={{ color: t.textTertiary, fontSize: 13, fontWeight: '600' }}>Effacer · je ne sais pas</Text>
+          <Text style={{ color: t.textTertiary, fontSize: 13, fontWeight: '600' }}>Effacer ma sélection</Text>
         </TouchableOpacity>
       )}
     </View>

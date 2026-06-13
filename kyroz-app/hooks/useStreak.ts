@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Streak } from '../lib/types';
 import { pushStreak } from '../lib/sync';
 import { isMilestone } from '../lib/streak';
+import { localStamp } from '../lib/weight';
 
 const STREAK_KEY = '@kyroz:streak';
 
@@ -12,8 +13,11 @@ const DEFAULT_STREAK: Streak = {
   last_active_date: '',
 };
 
+// Date 'YYYY-MM-DD' en heure LOCALE (jamais toISOString/UTC — voir lib/weight.ts).
+// Sinon, en France (UTC+1/+2), toute activité après ~22h locale était comptée
+// comme le lendemain → série cassée alors que l'utilisateur était présent chaque jour.
 function dayStamp(offsetDays = 0): string {
-  return new Date(Date.now() + offsetDays * 86400000).toISOString().split('T')[0];
+  return localStamp(new Date(Date.now() + offsetDays * 86400000));
 }
 
 // Verrou module-level : sérialise TOUS les markActiveToday (toutes instances du

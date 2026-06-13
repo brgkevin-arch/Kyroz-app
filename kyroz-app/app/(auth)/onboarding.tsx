@@ -109,6 +109,7 @@ export default function Onboarding() {
 
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
+  const [hint, setHint] = useState<string | null>(null); // message affiché si on tente d'avancer sans tout remplir
 
   // État formulaire
   const [firstName, setFirstName] = useState('');
@@ -164,12 +165,26 @@ export default function Onboarding() {
     ? macrosPercent(tdee, goal, wN, sex, bodyFat, carbRatio, proteinPerKg)
     : autoMacros;
 
+  // Pourquoi on ne peut pas avancer (message affiché au tap sur « Continuer »).
+  const blockReason = (): string | null => {
+    if (step === 1 && !step1Valid) {
+      if (bodyFat == null)
+        return 'On a besoin de ta masse grasse pour te calculer le plan le plus juste possible — choisis la silhouette la plus proche de toi, ou saisis ton % si tu le connais.';
+      return 'Remplis ton prénom, âge, poids et taille pour continuer.';
+    }
+    if (step === 2 && !step2Valid) return 'Indique combien de fois par semaine tu t\'entraînes.';
+    if (step === 7 && !step7Valid) return 'Choisis au moins un jour et un repas.';
+    return null;
+  };
+
   const next = () => {
-    if (!canProceed) return;
+    if (saving) return;
+    if (!canProceed) { setHint(blockReason()); return; }
+    setHint(null);
     if (step < TOTAL_STEPS) setStep(step + 1);
     else finish();
   };
-  const back = () => step > 1 && setStep(step - 1);
+  const back = () => { if (step > 1) { setHint(null); setStep(step - 1); } };
 
   const finish = async () => {
     const err = validateProfile(sex, ageN, finalMacros.target_kcal);
@@ -236,11 +251,6 @@ export default function Onboarding() {
               Indispensable pour un plan vraiment adapté : deux personnes du même poids n'ont pas les mêmes besoins. Choisis la silhouette la plus proche de toi.
             </Text>
             <BodyFatPicker t={t} sex={sex} value={bodyFat} onChange={setBodyFat} />
-            {bodyFat == null && (
-              <Text style={[s.sub, { marginTop: -4, color: t.warning }]}>
-                Sélectionne une silhouette (ou saisis ton %) pour continuer.
-              </Text>
-            )}
           </View>
         )}
 
@@ -393,7 +403,8 @@ export default function Onboarding() {
       </ScrollView>
 
       <View style={s.footer}>
-        <PrimaryButton t={t} label={step === TOTAL_STEPS ? 'Générer mon plan' : 'Continuer'} onPress={next} disabled={!canProceed} loading={saving} />
+        {hint && !canProceed && <Text style={s.hint}>{hint}</Text>}
+        <PrimaryButton t={t} label={step === TOTAL_STEPS ? 'Générer mon plan' : 'Continuer'} onPress={next} loading={saving} />
       </View>
     </SafeAreaView>
   );
@@ -429,6 +440,7 @@ function makeStyles(t: ThemePalette) {
     daysRow: { flexDirection: 'row', gap: 8, justifyContent: 'space-between' },
     dayCircle: { flex: 1, height: 52, borderRadius: 14, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
     footer: { padding: Spacing.xl, paddingTop: 8, backgroundColor: t.bg, borderTopWidth: 1, borderTopColor: t.line },
+    hint: { color: t.warning, fontSize: 13, lineHeight: 18, fontWeight: '600', marginBottom: 10, textAlign: 'center' },
     disclaimer: { color: t.textTertiary, fontSize: 11, lineHeight: 16, textAlign: 'center', marginTop: 4 },
   });
 }

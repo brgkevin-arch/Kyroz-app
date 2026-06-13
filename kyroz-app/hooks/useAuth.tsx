@@ -7,7 +7,10 @@ interface AuthValue {
   session: Session | null;
   ready: boolean; // session connue ET hydratation cloud terminée
   signIn: (email: string, password: string) => Promise<{ error?: string }>;
-  signUp: (email: string, password: string, consent: boolean) => Promise<{ error?: string }>;
+  // needsConfirmation : inscription OK mais aucune session ouverte (confirmation
+  // email activée côté Supabase) → l'appelant doit afficher « vérifie ta boîte mail »
+  // plutôt que de rediriger vers un écran de login vide (l'utilisateur croit que ça a planté).
+  signUp: (email: string, password: string, consent: boolean) => Promise<{ error?: string; needsConfirmation?: boolean }>;
   signOut: () => Promise<void>;
 }
 
@@ -55,7 +58,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
       } catch {}
     }
-    return {};
+    // Pas de session = confirmation email requise (réglage Supabase). On le signale
+    // pour que l'UI explique au lieu de rediriger dans le vide.
+    return { needsConfirmation: !data.session };
   };
 
   const signOut = async () => { await supabase.auth.signOut(); };
