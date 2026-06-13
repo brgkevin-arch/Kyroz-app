@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
-  WeightEntry, loadWeights, saveWeights, upsertEntry, removeEntry, latest, checkinDue, lastDelta, todayStamp, frequencyDays,
+  WeightEntry, loadWeights, saveWeights, upsertEntry, removeEntry, latest, checkinDue, lastDelta, todayStamp, frequencyDays, DEFAULT_WEIGH_IN_FREQUENCY,
 } from '../lib/weight';
 import { recalcProfile } from '../lib/tdee';
 import { useProfile } from './useProfile';
 import { pushWeights } from '../lib/sync';
+import { applyWeighInReminder } from '../lib/notifications';
 
 // Photos de progression : RGPD → LOCAL ONLY, jamais poussées au cloud. Stockées
 // séparément des points de poids (qui, eux, sont synchronisés). Map date → URI.
@@ -35,6 +36,13 @@ export function useWeightLog() {
   useEffect(() => {
     AsyncStorage.getItem(PHOTOS_KEY).then((raw) => { if (raw) setPhotos(JSON.parse(raw)); });
   }, []);
+
+  // (Ré)arme le rappel de pesée dès que les données sont prêtes et à chaque
+  // nouvelle pesée ou changement de cadence. No-op sur web / sans permission.
+  useEffect(() => {
+    if (!ready || !profile) return;
+    applyWeighInReminder(profile.weigh_in_frequency ?? DEFAULT_WEIGH_IN_FREQUENCY, latest(entries)?.date ?? null);
+  }, [ready, profile?.weigh_in_frequency, entries]);
 
   // Attache/retire une photo à une date (local-only, jamais synchronisée).
   const setPhoto = useCallback(async (date: string, uri: string | null) => {

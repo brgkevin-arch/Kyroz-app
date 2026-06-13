@@ -1,6 +1,6 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert,
+  View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Animated, Easing,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -21,8 +21,10 @@ import {
 import { MacroSplit } from '../../components/MacroSplit';
 import { useProfile } from '../../hooks/useProfile';
 import { saveFirstName } from '../../lib/profileName';
+import { useReminder } from '../../hooks/useReminder';
+import { ReminderSlot, remindersSupported } from '../../lib/notifications';
 
-const TOTAL_STEPS = 8;
+const TOTAL_STEPS = 10;
 
 const GOALS: { value: Goal; sub: string }[] = [
   { value: 'cut_aggressive', sub: 'Perdre du gras vite, déficit marqué' },
@@ -106,6 +108,7 @@ export default function Onboarding() {
   const s = useMemo(() => makeStyles(t), [t]);
   const router = useRouter();
   const { saveProfile } = useProfile();
+  const { slot: reminderSlot, choose: chooseReminder, busy: reminderBusy } = useReminder();
 
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
@@ -136,15 +139,21 @@ export default function Onboarding() {
   useEffect(() => { setProteinPerKg(recommendedProteinPerKg(goal)); }, [goal]);
 
   const ageN = parseInt(age), wN = parseFloat(weight), hN = parseFloat(height);
-  const step1Valid = firstName.trim().length > 0 && ageN >= 16 && ageN <= 100 && wN >= 40 && wN <= 250 && hN >= 120 && hN <= 230 && bodyFat != null;
-  const step2Valid = trainingDays != null;
-  const step7Valid = planWeekdays.length >= 1 && meals.length >= 1;
+  // Étapes à validation requise (les autres sont libres) :
+  const firstNameValid = firstName.trim().length > 0;                                    // étape 1 — prénom
+  const basicsValid = ageN >= 16 && ageN <= 100 && wN >= 40 && wN <= 250 && hN >= 120 && hN <= 230; // étape 2 — infos
+  const bodyFatValid = bodyFat != null;                                                   // étape 3 — masse grasse
+  const trainingValid = trainingDays != null;                                             // étape 4 — activité
+  const mealsValid = planWeekdays.length >= 1 && meals.length >= 1;                        // étape 9 — jours + repas
+  const profileReady = basicsValid && bodyFatValid; // suffisant pour les calculs TDEE/macros
 
   const canProceed =
-    (step === 1 && step1Valid) ||
-    (step === 2 && step2Valid) ||
-    (step === 7 && step7Valid) ||
-    ![1, 2, 7].includes(step);
+    (step === 1 && firstNameValid) ||
+    (step === 2 && basicsValid) ||
+    (step === 3 && bodyFatValid) ||
+    (step === 4 && trainingValid) ||
+    (step === 9 && mealsValid) ||
+    ![1, 2, 3, 4, 9].includes(step);
 
   const toggle = <T,>(arr: T[], v: T, set: (x: T[]) => void) =>
     set(arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
@@ -159,21 +168,20 @@ export default function Onboarding() {
   const emphasisOpts = EMPHASIS_OPTS.filter((e) => e.val === 'even' || meals.includes(e.val as MealType));
 
   // Calculs dérivés
-  const tdee = step1Valid ? calculateTDEE(sex, wN, hN, ageN, trainingDays ?? 0, bodyFat) : 0;
-  const autoMacros = step1Valid ? calculateMacros(tdee, goal, wN, sex, bodyFat) : { target_kcal: 0, protein_g: 0, carbs_g: 0, fat_g: 0 };
-  const finalMacros = macroMode === 'percent' && step1Valid
+  const tdee = profileReady ? calculateTDEE(sex, wN, hN, ageN, trainingDays ?? 0, bodyFat) : 0;
+  const autoMacros = profileReady ? calculateMacros(tdee, goal, wN, sex, bodyFat) : { target_kcal: 0, protein_g: 0, carbs_g: 0, fat_g: 0 };
+  const finalMacros = macroMode === 'percent' && profileReady
     ? macrosPercent(tdee, goal, wN, sex, bodyFat, carbRatio, proteinPerKg)
     : autoMacros;
 
   // Pourquoi on ne peut pas avancer (message affiché au tap sur « Continuer »).
   const blockReason = (): string | null => {
-    if (step === 1 && !step1Valid) {
-      if (bodyFat == null)
-        return 'On a besoin de ta masse grasse pour te calculer le plan le plus juste possible — choisis la silhouette la plus proche de toi, ou saisis ton % si tu le connais.';
-      return 'Remplis ton prénom, âge, poids et taille pour continuer.';
-    }
-    if (step === 2 && !step2Valid) return 'Indique combien de fois par semaine tu t\'entraînes.';
-    if (step === 7 && !step7Valid) return 'Choisis au moins un jour et un repas.';
+    if (step === 1 && !firstNameValid) return 'Dis-nous comment t\'appeler pour commencer 🙂';
+    if (step === 2 && !basicsValid) return 'Remplis ton âge, ton poids et ta taille pour continuer.';
+    if (step === 3 && !bodyFatValid)
+      return 'On a besoin de ta masse grasse pour te calculer le plan le plus juste possible — choisis la silhouette la plus proche de toi, ou saisis ton % si tu le connais.';
+    if (step === 4 && !trainingValid) return 'Indique combien de fois par semaine tu t\'entraînes.';
+    if (step === 9 && !mealsValid) return 'Choisis au moins un jour et un repas.';
     return null;
   };
 
@@ -234,27 +242,32 @@ export default function Onboarding() {
       </View>
 
       <ScrollView contentContainerStyle={s.content} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-        <SectionLabel t={t}>ÉTAPE {step} / {TOTAL_STEPS}</SectionLabel>
+        {step > 1 && <SectionLabel t={t}>ÉTAPE {step - 1} / {TOTAL_STEPS - 1}</SectionLabel>}
 
-        {step === 1 && (
+        {step === 1 && <NameStep t={t} value={firstName} onChange={setFirstName} />}
+
+        {step === 2 && (
           <View style={s.block}>
             <Text style={s.title}>Tes infos de base</Text>
             <Text style={s.sub}>Pour calculer ton métabolisme et tes macros au plus juste.</Text>
-            <Field t={t} label="Ton prénom" value={firstName} onChangeText={setFirstName} placeholder="Kévin" autoCapitalize="words" />
             <Segmented t={t} options={[{ label: 'Homme', value: 'male' }, { label: 'Femme', value: 'female' }]} value={sex} onChange={setSex} />
             <Field t={t} label="Âge" suffix="ans" value={age} onChangeText={setAge} placeholder="25" keyboardType="number-pad" />
             <Field t={t} label="Poids" suffix="kg" value={weight} onChangeText={setWeight} placeholder="80" keyboardType="decimal-pad" />
             <Field t={t} label="Taille" suffix="cm" value={height} onChangeText={setHeight} placeholder="178" keyboardType="number-pad" />
+          </View>
+        )}
 
-            <SectionLabel t={t}>Masse grasse</SectionLabel>
-            <Text style={[s.sub, { marginTop: -8 }]}>
-              Indispensable pour un plan vraiment adapté : deux personnes du même poids n'ont pas les mêmes besoins. Choisis la silhouette la plus proche de toi.
+        {step === 3 && (
+          <View style={s.block}>
+            <Text style={s.title}>Ta masse grasse</Text>
+            <Text style={s.sub}>
+              Indispensable pour un plan vraiment adapté : deux personnes du même poids n'ont pas les mêmes besoins. Choisis la silhouette la plus proche de toi, ou saisis ton % si tu le connais.
             </Text>
             <BodyFatPicker t={t} sex={sex} value={bodyFat} onChange={setBodyFat} />
           </View>
         )}
 
-        {step === 2 && (
+        {step === 4 && (
           <View style={s.block}>
             <Text style={s.title}>Ton activité</Text>
             <Text style={s.sub}>Combien de séances de sport par semaine ?</Text>
@@ -266,7 +279,7 @@ export default function Onboarding() {
           </View>
         )}
 
-        {step === 3 && (
+        {step === 5 && (
           <View style={s.block}>
             <Text style={s.title}>Ton objectif</Text>
             <Text style={s.sub}>Le plan sera calibré précisément pour ça.</Text>
@@ -278,7 +291,7 @@ export default function Onboarding() {
           </View>
         )}
 
-        {step === 4 && (
+        {step === 6 && (
           <View style={s.block}>
             <Text style={s.title}>Tes macros</Text>
             <Text style={s.sub}>On les calcule pour toi, ou tu choisis ta répartition (les grammes suivent ton poids).</Text>
@@ -301,7 +314,7 @@ export default function Onboarding() {
           </View>
         )}
 
-        {step === 5 && (
+        {step === 7 && (
           <View style={s.block}>
             <Text style={s.title}>Tes préférences</Text>
             <Text style={s.sub}>Pour des recettes qui te ressemblent vraiment.</Text>
@@ -336,7 +349,7 @@ export default function Onboarding() {
           </View>
         )}
 
-        {step === 6 && (
+        {step === 8 && (
           <View style={s.block}>
             <Text style={s.title}>Variété des repas</Text>
             <Text style={s.sub}>Tu préfères la routine ou la diversité ?</Text>
@@ -348,7 +361,7 @@ export default function Onboarding() {
           </View>
         )}
 
-        {step === 7 && (
+        {step === 9 && (
           <View style={s.block}>
             <Text style={s.title}>Tes jours de plan</Text>
             <Text style={s.sub}>Choisis les jours où tu veux suivre ton plan.</Text>
@@ -382,7 +395,7 @@ export default function Onboarding() {
           </View>
         )}
 
-        {step === 8 && (
+        {step === 10 && (
           <View style={s.block}>
             <Text style={s.title}>Ton plan nutritionnel</Text>
             <Text style={s.sub}>Voici ce qu'on a préparé pour toi.</Text>
@@ -397,6 +410,41 @@ export default function Onboarding() {
               <Sep t={t} />
               <RecapRow t={t} label="Plan" value={`${planWeekdays.length} jours · ${meals.length} repas`} />
             </Card>
+
+            {/* Rappel quotidien (spec §5) — proposé dès l'onboarding : c'est le levier
+                #1 de rétention (revenir chaque jour = série 7 jours = North Star). */}
+            <SectionLabel t={t}>UN RAPPEL CHAQUE JOUR ?</SectionLabel>
+            <Text style={[s.sub, { marginTop: -8 }]}>
+              Un petit coup de pouce quotidien pour consulter ton plan et ne pas casser ta série.
+            </Text>
+            <Segmented<ReminderSlot>
+              t={t}
+              value={reminderSlot}
+              onChange={async (v) => {
+                if (reminderBusy) return;
+                const ok = await chooseReminder(v);
+                if (!ok && v !== 'off') {
+                  Alert.alert(
+                    remindersSupported ? 'Notifications désactivées' : 'Indisponible sur le web',
+                    remindersSupported
+                      ? 'Active les notifications de Kyroz dans les réglages de ton téléphone pour recevoir le rappel.'
+                      : 'Le rappel quotidien fonctionne sur l’app mobile (iOS/Android). Tu pourras l’activer là-bas.',
+                  );
+                }
+              }}
+              options={[
+                { label: 'Aucun', value: 'off' },
+                { label: 'Matin', value: 'morning' },
+                { label: 'Midi', value: 'midday' },
+                { label: 'Soir', value: 'evening' },
+              ]}
+            />
+            <Text style={[s.sub, { marginTop: -8, fontSize: 12 }]}>
+              {reminderSlot === 'off'
+                ? 'Modifiable à tout moment dans ton profil.'
+                : `Chaque jour à ${reminderSlot === 'morning' ? '8h00' : reminderSlot === 'midday' ? '12h00' : '18h30'}. Tu peux le changer dans ton profil.`}
+            </Text>
+
             <Text style={s.disclaimer}>{DISCLAIMER}</Text>
           </View>
         )}
@@ -411,6 +459,39 @@ export default function Onboarding() {
 }
 
 // ── Sous-composants ──────────────────────────────────────────────────────────
+
+// Écran d'accueil : la toute première chose que voit l'utilisateur. Entrée animée
+// (fondu + montée du titre, puis apparition du champ) → première impression soignée.
+function NameStep({ t, value, onChange }: { t: ThemePalette; value: string; onChange: (s: string) => void }) {
+  const fade = useRef(new Animated.Value(0)).current;   // opacité du bloc titre
+  const lift = useRef(new Animated.Value(22)).current;  // léger glissement vers le haut
+  const field = useRef(new Animated.Value(0)).current;  // apparition différée du champ
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fade, { toValue: 1, duration: 550, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+      Animated.timing(lift, { toValue: 0, duration: 550, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+      Animated.timing(field, { toValue: 1, duration: 500, delay: 320, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+    ]).start();
+  }, [fade, lift, field]);
+
+  const enter = { opacity: fade, transform: [{ translateY: lift }] };
+
+  return (
+    <View style={{ paddingTop: 36, gap: 14 }}>
+      <Animated.Text style={[{ fontSize: 44 }, enter]}>👋</Animated.Text>
+      <Animated.Text style={[{ color: t.text, fontSize: 32, fontWeight: '800', letterSpacing: -1, lineHeight: 38 }, enter]}>
+        Bienvenue sur Kyroz
+      </Animated.Text>
+      <Animated.Text style={[{ color: t.textSecondary, fontSize: 16, lineHeight: 23 }, enter]}>
+        On va te bâtir un plan nutrition sur-mesure en moins d'une minute. D'abord, comment on t'appelle ?
+      </Animated.Text>
+      <Animated.View style={{ opacity: field, marginTop: 8 }}>
+        <Field t={t} label="Ton prénom" value={value} onChangeText={onChange} placeholder="Kévin" autoCapitalize="words" autoFocus />
+      </Animated.View>
+    </View>
+  );
+}
 
 function RecapRow({ t, label, value, color, strong }: { t: ThemePalette; label: string; value: string; color?: string; strong?: boolean }) {
   return (

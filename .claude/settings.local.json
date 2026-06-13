@@ -97,7 +97,8 @@
       "Bash(graphify --help)",
       "Bash(ls lib/__tests__/ test/)",
       "Bash(grep -rln \"streak\\\\|Streak\" lib/__tests__/ test/)",
-      "Bash(grep -rln \"TZ\\\\|timezone\\\\|toISOString\\\\|localStamp\" lib/__tests__/ test/)"
+      "Bash(grep -rln \"TZ\\\\|timezone\\\\|toISOString\\\\|localStamp\" lib/__tests__/ test/)",
+      "Bash(graphify query *)"
     ]
   }
 }

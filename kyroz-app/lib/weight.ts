@@ -37,6 +37,23 @@ export function frequencyDays(freq?: WeighInFrequency): number {
   return WEIGH_IN_INTERVALS[freq ?? DEFAULT_WEIGH_IN_FREQUENCY];
 }
 
+/**
+ * Prochaine échéance de pesée (Date, heure locale), à 9h00 : dernière pesée +
+ * cadence. Si l'échéance est déjà passée (pesée en retard), vise le prochain
+ * créneau de 9h (aujourd'hui si avant 9h, sinon demain). Sert à programmer la
+ * notification de rappel de pesée (lib/notifications.ts).
+ */
+export function nextWeighInAt(lastStamp: string | null, freq?: WeighInFrequency, now: Date = new Date()): Date {
+  const due = new Date(lastStamp ? Date.parse(lastStamp + 'T00:00:00') : now.getTime());
+  due.setDate(due.getDate() + frequencyDays(freq));
+  due.setHours(9, 0, 0, 0);
+  if (due.getTime() > now.getTime()) return due;
+  const next = new Date(now);
+  next.setHours(9, 0, 0, 0);
+  if (next.getTime() <= now.getTime()) next.setDate(next.getDate() + 1);
+  return next;
+}
+
 // Date au format 'YYYY-MM-DD' en heure LOCALE (surtout pas toISOString, qui
 // convertit en UTC et peut décaler d'un jour selon le fuseau → dates incohérentes
 // entre le sélecteur, le seed et le tri).

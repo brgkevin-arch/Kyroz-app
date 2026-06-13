@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   localStamp, todayStamp, upsertEntry, removeEntry, latest, checkinDue, lastDelta,
-  loadWeights, saveWeights, frequencyDays, WEIGH_IN_INTERVALS, WeightEntry,
+  loadWeights, saveWeights, frequencyDays, nextWeighInAt, WEIGH_IN_INTERVALS, WeightEntry,
 } from '../weight';
 
 const day = (offset: number) => {
@@ -88,6 +88,38 @@ describe('checkinDue (cadence configurable)', () => {
     expect(checkinDue(at('2026-05-15'), '2026-05-16', 1)).toBe(true);  // quotidien : J+1
     expect(checkinDue(at('2026-05-15'), '2026-06-13', 30)).toBe(false); // mensuel : J+29
     expect(checkinDue(at('2026-05-15'), '2026-06-14', 30)).toBe(true);  // mensuel : J+30
+  });
+});
+
+describe('nextWeighInAt (programmation de la notif de pesée)', () => {
+  const at9 = (d: Date) => d.getHours() === 9 && d.getMinutes() === 0;
+
+  it('échéance normale : dernière pesée + cadence, à 9h locale', () => {
+    const now = new Date(2026, 4, 15, 10, 0, 0);            // 15 mai, 10h
+    const r = nextWeighInAt('2026-05-15', 'weekly', now);
+    expect(localStamp(r)).toBe('2026-05-22');               // +7 jours
+    expect(at9(r)).toBe(true);
+  });
+
+  it('en retard, avant 9h → aujourd\'hui 9h', () => {
+    const now = new Date(2026, 5, 13, 7, 0, 0);             // 13 juin, 7h
+    const r = nextWeighInAt('2026-01-01', 'weekly', now);   // échéance jan. = passée
+    expect(localStamp(r)).toBe('2026-06-13');
+    expect(at9(r)).toBe(true);
+  });
+
+  it('en retard, après 9h → demain 9h', () => {
+    const now = new Date(2026, 5, 13, 14, 0, 0);            // 13 juin, 14h
+    const r = nextWeighInAt('2026-01-01', 'monthly', now);
+    expect(localStamp(r)).toBe('2026-06-14');
+    expect(at9(r)).toBe(true);
+  });
+
+  it('sans historique : repart de maintenant + cadence', () => {
+    const now = new Date(2026, 5, 13, 7, 0, 0);
+    const r = nextWeighInAt(null, 'daily', now);
+    expect(localStamp(r)).toBe('2026-06-14');               // now + 1 jour
+    expect(at9(r)).toBe(true);
   });
 });
 

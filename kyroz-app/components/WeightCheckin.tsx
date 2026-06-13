@@ -8,6 +8,7 @@ import { useWeightLog } from '../hooks/useWeightLog';
 import { useProfile } from '../hooks/useProfile';
 import { pickProgressPhoto, cameraAvailable, PhotoSource } from '../lib/photos';
 import { todayStamp, localStamp, DEFAULT_WEIGH_IN_FREQUENCY, WEIGH_IN_LABELS } from '../lib/weight';
+import { applyWeighInReminder } from '../lib/notifications';
 import { WeighInFrequency } from '../lib/types';
 
 interface Props {
@@ -43,7 +44,11 @@ export function WeightCheckin({ t, onClose, dragHandlers }: Props) {
   };
   const { profile, saveProfile } = useProfile();
   const freq: WeighInFrequency = profile?.weigh_in_frequency ?? DEFAULT_WEIGH_IN_FREQUENCY;
-  const setFreq = (f: WeighInFrequency) => { if (profile) saveProfile({ ...profile, weigh_in_frequency: f }); };
+  const setFreq = (f: WeighInFrequency) => {
+    if (!profile) return;
+    saveProfile({ ...profile, weigh_in_frequency: f });
+    applyWeighInReminder(f, last?.date ?? null); // ré-arme la notif sur la nouvelle cadence
+  };
   const [date, setDate] = useState(todayStamp());
   const [val, setVal] = useState('');
   const [note, setNote] = useState('');
