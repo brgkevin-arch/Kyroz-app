@@ -224,4 +224,5 @@ create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
 
--- ✅ Terminé. Tables : profiles, meal_plans, streaks, favorites, pantry (RLS activée).
+-- ✅ Terminé. Tables : profiles, meal_plans, streaks, favorites, pantry,
+--    weight_logs, recipe_overrides (RLS activée sur toutes).

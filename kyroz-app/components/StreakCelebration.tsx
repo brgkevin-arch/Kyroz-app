@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Modal, View, Text, StyleSheet, Animated, TouchableWithoutFeedback } from 'react-native';
+import { Modal, View, Text, StyleSheet, Animated, Pressable } from 'react-native';
 import { useTheme, Radius, Spacing } from '../constants/theme';
 import { PrimaryButton } from './ui';
 import { celebrationCopy } from '../lib/streak';
@@ -35,24 +35,22 @@ export function StreakCelebration({ milestone, onClose }: Props) {
 
   return (
     <Modal visible transparent animationType="fade" onRequestClose={onClose}>
-      <TouchableWithoutFeedback onPress={onClose}>
-        <View style={styles.root}>
-          <TouchableWithoutFeedback>
-            <Animated.View
-              style={[
-                styles.card,
-                { backgroundColor: t.card, borderColor: t.line, opacity, transform: [{ scale }] },
-              ]}
-            >
-              <Text style={styles.emoji}>{copy.emoji}</Text>
-              <Text style={[styles.title, { color: t.text }]}>{copy.title}</Text>
-              <Text style={[styles.body, { color: t.textSecondary }]}>{copy.body}</Text>
-              <View style={{ height: 8 }} />
-              <PrimaryButton t={t} label="Continuer" onPress={onClose} />
-            </Animated.View>
-          </TouchableWithoutFeedback>
-        </View>
-      </TouchableWithoutFeedback>
+      <View style={styles.root}>
+        {/* Fond tapable pour fermer ; la carte au-dessus absorbe ses propres taps. */}
+        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
+        <Animated.View
+          style={[
+            styles.card,
+            { backgroundColor: t.card, borderColor: t.line, opacity, transform: [{ scale }] },
+          ]}
+        >
+          <Text style={styles.emoji}>{copy.emoji}</Text>
+          <Text style={[styles.title, { color: t.text }]}>{copy.title}</Text>
+          <Text style={[styles.body, { color: t.textSecondary }]}>{copy.body}</Text>
+          <View style={{ height: 8 }} />
+          <PrimaryButton t={t} label="Continuer" onPress={onClose} />
+        </Animated.View>
+      </View>
     </Modal>
   );
 }

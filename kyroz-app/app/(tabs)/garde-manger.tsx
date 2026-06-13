@@ -225,7 +225,7 @@ export default function GardeMangerScreen() {
 
       {/* Toast « cuisiné » */}
       {toast && (
-        <View style={s.toast} pointerEvents="none">
+        <View style={[s.toast, { pointerEvents: 'none' }]}>
           <Text style={s.toastTxt}>{toast}</Text>
         </View>
       )}

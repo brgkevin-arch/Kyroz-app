@@ -474,7 +474,7 @@ export default function PlanScreen() {
 
       {/* Toast « cuisiné » */}
       {cookedNote && (
-        <View style={s.toast} pointerEvents="none">
+        <View style={[s.toast, { pointerEvents: 'none' }]}>
           <Text style={s.toastTxt}>{cookedNote}</Text>
         </View>
       )}

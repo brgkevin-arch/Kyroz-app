@@ -1,4 +1,4 @@
-import { useColorScheme } from 'react-native';
+import { useColorScheme, Platform } from 'react-native';
 
 // ── Système de thème adaptatif Kyroz ─────────────────────────────────────────
 // Clair + sombre, suit le réglage système. Accent monochrome (premium, Apple-like).
@@ -143,6 +143,11 @@ export function cardShadow(t: ThemePalette) {
   if (t.scheme === 'dark') {
     return { borderWidth: 1, borderColor: t.line };
   }
+  // Web : boxShadow (les props shadow* y sont dépréciées par react-native-web).
+  if (Platform.OS === 'web') {
+    return { borderWidth: 0, boxShadow: '0px 4px 14px rgba(0,0,0,0.06)' };
+  }
+  // Natif : shadow* (iOS) + elevation (Android).
   return {
     borderWidth: 0,
     shadowColor: '#000',
