@@ -21,14 +21,15 @@ import { useProfile } from '../../hooks/useProfile';
 import { useStreak } from '../../hooks/useStreak';
 import { useWeightLog } from '../../hooks/useWeightLog';
 import { usePlanCheckin } from '../../hooks/usePlanCheckin';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { generateMealPlan } from '../../lib/generatePlan';
 import { profileSignature, swapMeal, computeDailyTotals, rebalanceDay, resetTracking } from '../../lib/planEngine';
 import { todayStamp } from '../../lib/weight';
 import { mealFiberG, dailyFiberTarget } from '../../lib/fiber';
 import { getRecipeById, getBaseRecipe } from '../../lib/recipes';
 import { useRecipeOverrides } from '../../hooks/useRecipeOverrides';
-import { loadPantry, savePantry, deductRecipe } from '../../lib/pantry';
+import { loadPantry, savePantry, deductRecipe, recipeCoverage, PantryItem } from '../../lib/pantry';
+import { loadFirstName } from '../../lib/profileName';
 import { Macros, Meal, MealPlan, MealStatus, Recipe } from '../../lib/types';
 
 const PLAN_KEY = '@kyroz:plan';
@@ -81,6 +82,8 @@ export default function PlanScreen() {
   const [editingRecipe, setEditingRecipe] = useState<Meal['recipe'] | null>(null);
 
   const [plan, setPlan] = useState<MealPlan | null>(null);
+  const [pantry, setPantry] = useState<PantryItem[]>([]);
+  const [firstName, setFirstName] = useState('');
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [selectedDay, setSelectedDay] = useState(1);
@@ -91,6 +94,11 @@ export default function PlanScreen() {
   const autoTried = React.useRef(false);
 
   useEffect(() => { load(); }, []);
+  useEffect(() => { loadFirstName().then(setFirstName); }, []);
+
+  // Garde-manger : rechargé à chaque fois qu'on revient sur l'onglet Plan, pour
+  // refléter ce qui a été coché dans Courses (synchro plan ↔ frigo).
+  useFocusEffect(useCallback(() => { loadPantry().then(setPantry); }, []));
 
   // Première arrivée (depuis l'onboarding) : génère automatiquement le plan
   useEffect(() => {
@@ -231,7 +239,9 @@ export default function PlanScreen() {
   // garde-manger, recale les repas restants, compte pour la série.
   const cookMeal = async (meal: Meal) => {
     const items = await loadPantry();
-    await savePantry(deductRecipe(items, meal.recipe, meal.portions));
+    const next = deductRecipe(items, meal.recipe, meal.portions);
+    await savePantry(next);
+    setPantry(next);
     await setMealStatus(meal, 'eaten', meal.macros);
     await markActiveToday(); // manger selon le plan = adhésion réelle
     setSelectedMeal(null);
@@ -341,7 +351,7 @@ export default function PlanScreen() {
         <View style={s.header}>
           <View>
             <Text style={s.date}>{todayLabel.toUpperCase()}</Text>
-            <Text style={s.h1}>Ton plan</Text>
+            <Text style={s.h1}>{firstName ? `Salut ${firstName} 👋` : 'Ton plan'}</Text>
           </View>
           <View style={s.streak}>
             <Text style={{ fontSize: 15 }}>🔥</Text>
@@ -427,7 +437,20 @@ export default function PlanScreen() {
             {/* Meals */}
             <SectionLabel t={t}>Repas du jour</SectionLabel>
             <View style={{ gap: 10 }}>
-              {dayMeals.map((m) => <MealCard key={m.id} meal={m} onPress={() => setSelectedMeal(m)} onCook={() => cookMeal(m)} />)}
+              {dayMeals.map((m) => {
+                const fridgeTracked = pantry.length > 0;
+                const missing = fridgeTracked ? recipeCoverage(m.recipe, pantry).missing.map((i) => i.name) : undefined;
+                return (
+                  <MealCard
+                    key={m.id}
+                    meal={m}
+                    onPress={() => setSelectedMeal(m)}
+                    onCook={() => cookMeal(m)}
+                    missing={missing}
+                    fridgeTracked={fridgeTracked}
+                  />
+                );
+              })}
             </View>
 
             <View style={{ marginTop: 6 }}>

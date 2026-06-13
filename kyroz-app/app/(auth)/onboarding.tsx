@@ -20,6 +20,7 @@ import {
 } from '../../lib/tdee';
 import { MacroSplit } from '../../components/MacroSplit';
 import { useProfile } from '../../hooks/useProfile';
+import { saveFirstName } from '../../lib/profileName';
 
 const TOTAL_STEPS = 8;
 
@@ -110,12 +111,13 @@ export default function Onboarding() {
   const [saving, setSaving] = useState(false);
 
   // État formulaire
+  const [firstName, setFirstName] = useState('');
   const [sex, setSex] = useState<Sex>('male');
   const [age, setAge] = useState('');
   const [weight, setWeight] = useState('');
   const [height, setHeight] = useState('');
   const [bodyFat, setBodyFat] = useState<number | undefined>(undefined);
-  const [trainingDays, setTrainingDays] = useState(4);
+  const [trainingDays, setTrainingDays] = useState<number | null>(null); // rien coché par défaut → l'user choisit
   const [goal, setGoal] = useState<Goal>('cut');
   const [macroMode, setMacroMode] = useState<'auto' | 'percent'>('auto');
   const [carbRatio, setCarbRatio] = useState(DEFAULT_CARB_RATIO);
@@ -133,13 +135,15 @@ export default function Onboarding() {
   useEffect(() => { setProteinPerKg(recommendedProteinPerKg(goal)); }, [goal]);
 
   const ageN = parseInt(age), wN = parseFloat(weight), hN = parseFloat(height);
-  const step1Valid = ageN >= 16 && ageN <= 100 && wN >= 40 && wN <= 250 && hN >= 120 && hN <= 230 && bodyFat != null;
+  const step1Valid = firstName.trim().length > 0 && ageN >= 16 && ageN <= 100 && wN >= 40 && wN <= 250 && hN >= 120 && hN <= 230 && bodyFat != null;
+  const step2Valid = trainingDays != null;
   const step7Valid = planWeekdays.length >= 1 && meals.length >= 1;
 
   const canProceed =
     (step === 1 && step1Valid) ||
+    (step === 2 && step2Valid) ||
     (step === 7 && step7Valid) ||
-    ![1, 7].includes(step);
+    ![1, 2, 7].includes(step);
 
   const toggle = <T,>(arr: T[], v: T, set: (x: T[]) => void) =>
     set(arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
@@ -154,7 +158,7 @@ export default function Onboarding() {
   const emphasisOpts = EMPHASIS_OPTS.filter((e) => e.val === 'even' || meals.includes(e.val as MealType));
 
   // Calculs dérivés
-  const tdee = step1Valid ? calculateTDEE(sex, wN, hN, ageN, trainingDays, bodyFat) : 0;
+  const tdee = step1Valid ? calculateTDEE(sex, wN, hN, ageN, trainingDays ?? 0, bodyFat) : 0;
   const autoMacros = step1Valid ? calculateMacros(tdee, goal, wN, sex, bodyFat) : { target_kcal: 0, protein_g: 0, carbs_g: 0, fat_g: 0 };
   const finalMacros = macroMode === 'percent' && step1Valid
     ? macrosPercent(tdee, goal, wN, sex, bodyFat, carbRatio, proteinPerKg)
@@ -175,8 +179,8 @@ export default function Onboarding() {
       id: `user-${Date.now()}`,
       sex, age: ageN, weight_kg: wN, height_cm: hN,
       body_fat_pct: bodyFat,
-      activity_level: activityFromDays(trainingDays),
-      training_days_per_week: trainingDays,
+      activity_level: activityFromDays(trainingDays ?? 0),
+      training_days_per_week: trainingDays ?? 0,
       goal,
       macro_mode: macroMode,
       carb_ratio: macroMode === 'percent' ? carbRatio : undefined,
@@ -196,6 +200,7 @@ export default function Onboarding() {
       preferred_proteins: proteins.map((p) => p.toLowerCase()),
       max_prep_time_min: maxPrep,
     };
+    await saveFirstName(firstName);
     await saveProfile(profile);
     setSaving(false);
     router.replace('/(tabs)/plan');
@@ -220,6 +225,7 @@ export default function Onboarding() {
           <View style={s.block}>
             <Text style={s.title}>Tes infos de base</Text>
             <Text style={s.sub}>Pour calculer ton métabolisme et tes macros au plus juste.</Text>
+            <Field t={t} label="Ton prénom" value={firstName} onChangeText={setFirstName} placeholder="Kévin" autoCapitalize="words" />
             <Segmented t={t} options={[{ label: 'Homme', value: 'male' }, { label: 'Femme', value: 'female' }]} value={sex} onChange={setSex} />
             <Field t={t} label="Âge" suffix="ans" value={age} onChangeText={setAge} placeholder="25" keyboardType="number-pad" />
             <Field t={t} label="Poids" suffix="kg" value={weight} onChangeText={setWeight} placeholder="80" keyboardType="decimal-pad" />

@@ -11,12 +11,21 @@ const MEAL_LABELS: Record<string, string> = {
   snack: 'Collation',
 };
 
-export function MealCard({ meal, onPress, onCook }: { meal: Meal; onPress?: () => void; onCook?: () => void }) {
+export function MealCard({
+  meal, onPress, onCook, missing, fridgeTracked,
+}: {
+  meal: Meal;
+  onPress?: () => void;
+  onCook?: () => void;
+  missing?: string[];        // ingrédients absents du frigo (undefined si frigo non suivi)
+  fridgeTracked?: boolean;   // le frigo contient au moins 1 article
+}) {
   const t = useTheme();
   const eaten = meal.status === 'eaten';
   const skipped = meal.status === 'skipped';
   const muted = eaten || skipped;
   const planned = !eaten && !skipped;
+  const lacks = (missing?.length ?? 0) > 0;
   return (
     <TouchableOpacity
       onPress={onPress}
@@ -45,15 +54,33 @@ export function MealCard({ meal, onPress, onCook }: { meal: Meal; onPress?: () =
         </View>
       )}
 
-      {/* Action rapide directement sur le plan (sans ouvrir la fiche) */}
+      {/* Synchro frigo (uniquement si l'user suit son garde-manger) — informatif,
+          jamais bloquant : « J'ai cuisiné » reste toujours cliquable. */}
+      {planned && fridgeTracked && (
+        lacks ? (
+          <Text style={[styles.fridge, { color: t.warning }]} numberOfLines={1}>
+            🛒 Il te manque : {missing!.join(', ')}
+          </Text>
+        ) : (
+          <Text style={[styles.fridge, { color: t.success }]}>✓ Tout est dans ton frigo</Text>
+        )
+      )}
+
+      {/* Action rapide directement sur le plan (sans ouvrir la fiche). Style
+          secondaire (contour) quand il manque des ingrédients. */}
       {planned && onCook && (
         <TouchableOpacity
           onPress={onCook}
           activeOpacity={0.85}
-          style={[styles.cookBtn, { backgroundColor: t.accent }]}
+          style={[
+            styles.cookBtn,
+            lacks
+              ? { borderWidth: 1.5, borderColor: t.lineStrong }
+              : { backgroundColor: t.accent },
+          ]}
         >
-          <Ionicons name="restaurant" size={15} color={t.onAccent} />
-          <Text style={[styles.cookTxt, { color: t.onAccent }]}>J'ai cuisiné</Text>
+          <Ionicons name="restaurant" size={15} color={lacks ? t.text : t.onAccent} />
+          <Text style={[styles.cookTxt, { color: lacks ? t.text : t.onAccent }]}>J'ai cuisiné</Text>
         </TouchableOpacity>
       )}
     </TouchableOpacity>
@@ -79,6 +106,7 @@ const styles = StyleSheet.create({
   pill: { flexDirection: 'row', gap: 3, alignItems: 'baseline' },
   pillV: { fontSize: 14, fontWeight: '700' },
   pillU: { fontSize: 11 },
-  cookBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, marginTop: 14, paddingVertical: 11, borderRadius: Radius.md },
+  fridge: { fontSize: 12, fontWeight: '600', marginTop: 12 },
+  cookBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, marginTop: 10, paddingVertical: 11, borderRadius: Radius.md },
   cookTxt: { fontSize: 14, fontWeight: '700' },
 });

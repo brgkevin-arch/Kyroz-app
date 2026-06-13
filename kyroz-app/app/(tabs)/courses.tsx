@@ -70,6 +70,22 @@ export default function CoursesScreen() {
     pushPantry(next);
   };
 
+  // Tout cocher = tout est acheté → tous les articles (non-condiments) filent au
+  // frigo d'un coup, puis on coche toute la liste.
+  const checkAll = async () => {
+    if (!list) return;
+    const toAdd = list.items.filter((i) => !i.checked && !isStaple(i.name));
+    if (toAdd.length) {
+      let pantry = await loadPantry();
+      for (const it of toAdd) {
+        pantry = addOrMerge(pantry, { name: it.name, quantity: it.quantity, unit: it.unit, category: it.category });
+      }
+      await savePantry(pantry);
+      pushPantry(pantry);
+    }
+    await persist({ ...list, items: list.items.map((i) => ({ ...i, checked: true })) });
+  };
+
   const reset = () => list && persist({ ...list, items: list.items.map((i) => ({ ...i, checked: false })) });
   const onRefresh = useCallback(async () => { setRefreshing(true); await AsyncStorage.removeItem(LIST_KEY); await load(); setRefreshing(false); }, []);
 
@@ -109,7 +125,7 @@ export default function CoursesScreen() {
       {/* En-tête + progression */}
       <View style={s.header}>
         <View style={{ flex: 1 }}>
-          <Text style={s.h1}>Courses</Text>
+          <Text style={s.h1}>Liste de courses</Text>
           <Text style={s.sub}>{done ? 'Tout est coché 🎉' : `${remaining} restant${remaining > 1 ? 's' : ''} sur ${total}`}</Text>
         </View>
         <Text style={s.counter}>{checked}<Text style={s.counterTot}>/{total}</Text></Text>
@@ -119,6 +135,12 @@ export default function CoursesScreen() {
 
       {/* Contrôles */}
       <View style={s.controls}>
+        {remaining > 0 && (
+          <TouchableOpacity style={s.ctrl} onPress={checkAll} activeOpacity={0.8}>
+            <Ionicons name="checkmark-done-outline" size={15} color={t.textSecondary} />
+            <Text style={s.ctrlTxt}>Tout cocher</Text>
+          </TouchableOpacity>
+        )}
         <TouchableOpacity style={[s.ctrl, hideChecked && s.ctrlOn]} onPress={() => setHideChecked((v) => !v)} activeOpacity={0.8}>
           <Ionicons name={hideChecked ? 'eye-off-outline' : 'eye-outline'} size={15} color={hideChecked ? t.onAccent : t.textSecondary} />
           <Text style={[s.ctrlTxt, hideChecked && { color: t.onAccent }]}>Masquer cochés</Text>
@@ -178,7 +200,7 @@ function makeStyles(t: ThemePalette) {
     track: { height: 5, backgroundColor: t.fill, marginHorizontal: Spacing.xl, borderRadius: 3, overflow: 'hidden' },
     fill: { height: 5, borderRadius: 3 },
 
-    controls: { flexDirection: 'row', gap: 8, paddingHorizontal: Spacing.xl, paddingTop: 14, paddingBottom: 2 },
+    controls: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: Spacing.xl, paddingTop: 14, paddingBottom: 2 },
     ctrl: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 13, paddingVertical: 8, borderRadius: Radius.pill, backgroundColor: t.fill, borderWidth: 1, borderColor: t.line },
     ctrlOn: { backgroundColor: t.accent, borderColor: t.accent },
     ctrlTxt: { color: t.textSecondary, fontSize: 13, fontWeight: '600' },

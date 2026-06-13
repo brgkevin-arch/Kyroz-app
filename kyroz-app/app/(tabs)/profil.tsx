@@ -198,6 +198,7 @@ export default function ProfilScreen() {
         </Text>
 
         <Text style={s.disclaimer}>{DISCLAIMER}</Text>
+        <TouchableOpacity style={s.logoutBtn} onPress={signOut} activeOpacity={0.8}><Text style={s.logoutTxt}>Se déconnecter</Text></TouchableOpacity>
         <TouchableOpacity style={s.delBtn} onPress={() => setConfirmDelete(true)}><Text style={s.delTxt}>Supprimer mon compte</Text></TouchableOpacity>
       </ScrollView>
 
@@ -433,7 +434,9 @@ function makeStyles(t: ThemePalette) {
     tdeeV: { color: t.text, fontSize: 16, fontWeight: '700' },
     reminderHint: { color: t.textTertiary, fontSize: 12, lineHeight: 16, marginTop: -8 },
     disclaimer: { color: t.textTertiary, fontSize: 11, lineHeight: 16, textAlign: 'center' },
-    delBtn: { alignItems: 'center', paddingVertical: 8 },
+    logoutBtn: { alignItems: 'center', justifyContent: 'center', paddingVertical: 14, marginTop: 8, borderRadius: Radius.md, borderWidth: 1.5, borderColor: t.lineStrong },
+    logoutTxt: { color: t.text, fontSize: 15, fontWeight: '700' },
+    delBtn: { alignItems: 'center', paddingVertical: 12, marginTop: 4 },
     delTxt: { color: t.danger, fontSize: 13 },
   });
 }
