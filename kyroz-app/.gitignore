@@ -39,3 +39,7 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# QA Playwright artifacts (jeton auth + binaires lourds)
+test/qa/session.json
+test/video/

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Modal, View, StyleSheet, Animated, PanResponder, Dimensions,
-  TouchableWithoutFeedback, Platform,
+  Pressable, Platform,
 } from 'react-native';
 import { useTheme, Radius } from '../constants/theme';
 
@@ -68,9 +68,9 @@ export function Sheet({ visible, onClose, children }: Props) {
   return (
     <Modal visible={render} transparent animationType="none" onRequestClose={onClose}>
       <View style={styles.root}>
-        <TouchableWithoutFeedback onPress={onClose}>
+        <Pressable style={StyleSheet.absoluteFill} onPress={onClose}>
           <Animated.View style={[styles.backdrop, { opacity: backdrop }]} />
-        </TouchableWithoutFeedback>
+        </Pressable>
 
         <Animated.View
           style={[

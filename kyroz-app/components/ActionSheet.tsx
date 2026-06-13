@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  Modal, View, StyleSheet, Animated, PanResponder, TouchableWithoutFeedback,
+  Modal, View, StyleSheet, Animated, PanResponder, Pressable,
 } from 'react-native';
 import { useTheme } from '../constants/theme';
 
@@ -56,9 +56,9 @@ export function ActionSheet({ visible, onClose, children }: Props) {
   return (
     <Modal visible={render} transparent animationType="none" onRequestClose={onClose}>
       <View style={styles.root}>
-        <TouchableWithoutFeedback onPress={onClose}>
+        <Pressable style={StyleSheet.absoluteFill} onPress={onClose}>
           <Animated.View style={[styles.backdrop, { opacity: backdrop }]} />
-        </TouchableWithoutFeedback>
+        </Pressable>
 
         <Animated.View
           {...pan.panHandlers}
