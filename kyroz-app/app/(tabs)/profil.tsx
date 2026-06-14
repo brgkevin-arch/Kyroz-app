@@ -82,7 +82,7 @@ const EMPHASIS_LABELS: Record<MealEmphasis, string> = {
 // Délègue à la source unique (lib/tdee) — même calcul partout (profil + check-in).
 const withRecalc = recalcProfile;
 
-type EditorKey = 'info' | 'goal' | 'macros' | 'prefs' | 'meals';
+type EditorKey = 'info' | 'sports' | 'goal' | 'macros' | 'prefs' | 'meals';
 
 export default function ProfilScreen() {
   const t = useTheme();
@@ -139,6 +139,7 @@ export default function ProfilScreen() {
         <SectionLabel t={t}>RÉGLAGES</SectionLabel>
         <View style={[s.menu, cardShadow(t)]}>
           <MenuRow t={t} icon="person-outline" label="Informations" value={`${SEX_LABELS[profile.sex]} · ${profile.age} ans · ${profile.weight_kg} kg${profile.body_fat_pct != null ? ` · ${profile.body_fat_pct}% MG` : ''}`} onPress={() => setEditor('info')} />
+          <MenuRow t={t} icon="barbell-outline" label="Sports" value={profile.sports?.length ? `${profile.sports.length} sport${profile.sports.length > 1 ? 's' : ''}` : 'Aucun'} onPress={() => setEditor('sports')} />
           <MenuRow t={t} icon="flag-outline" label="Objectif" value={goalLabel(profile.goal)} onPress={() => setEditor('goal')} />
           <MenuRow t={t} icon="flame-outline" label="Calories & macros" value={profile.macro_mode === 'manual' ? 'Manuelles' : 'Calculées'} onPress={() => setEditor('macros')} />
           <MenuRow t={t} icon="restaurant-outline" label="Préférences alimentaires" value={profile.dietary_restrictions.length || profile.disliked_foods.length ? 'Personnalisées' : 'Aucune'} onPress={() => setEditor('prefs')} />
@@ -203,6 +204,7 @@ export default function ProfilScreen() {
       {/* Feuilles d'édition */}
       <Sheet visible={editor !== null} onClose={() => setEditor(null)}>
         {editor === 'info' && <InfoEditor t={t} profile={profile} onSave={save} />}
+        {editor === 'sports' && <SportsProfileEditor t={t} profile={profile} onSave={save} />}
         {editor === 'goal' && <GoalEditor t={t} profile={profile} onSave={save} />}
         {editor === 'macros' && <MacroEditor t={t} profile={profile} onSave={save} />}
         {editor === 'prefs' && <PrefEditor t={t} profile={profile} onSave={save} />}
@@ -284,12 +286,12 @@ function InfoEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
   const [age, setAge] = useState(String(profile.age));
   const [weight, setWeight] = useState(String(profile.weight_kg));
   const [height, setHeight] = useState(String(profile.height_cm));
-  const [sports, setSports] = useState<SportSession[]>(profile.sports ?? []);
   const [bodyFat, setBodyFat] = useState<number | undefined>(profile.body_fat_pct);
   const aN = parseInt(age), wN = parseFloat(weight), hN = parseFloat(height);
   const valid = aN >= 16 && aN <= 100 && wN >= 40 && wN <= 250 && hN >= 120 && hN <= 230;
-  const trainingDaysEq = Math.min(totalSessionsPerWeek(sports), 7);
-  const submit = () => onSave(withRecalc({ ...profile, sex, age: aN, weight_kg: wN, height_cm: hN, body_fat_pct: bodyFat, sports, training_days_per_week: trainingDaysEq, activity_level: activityFromDays(trainingDaysEq) }));
+  // Les sports vivent dans leur propre éditeur — on préserve `...profile` (donc
+  // `sports`), et withRecalc recalcule le TDEE avec le nouveau poids/%MG.
+  const submit = () => onSave(withRecalc({ ...profile, sex, age: aN, weight_kg: wN, height_cm: hN, body_fat_pct: bodyFat }));
   return (
     <EditorShell t={t} title="Informations" onSave={submit} canSave={valid} dragHandlers={dragHandlers}>
       <Segmented t={t} options={[{ label: 'Homme', value: 'male' }, { label: 'Femme', value: 'female' }]} value={sex} onChange={setSex} />
@@ -298,8 +300,18 @@ function InfoEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
       <Field t={t} label="Taille" suffix="cm" value={height} onChangeText={setHeight} keyboardType="number-pad" />
       <SectionLabel t={t}>Masse grasse (optionnel)</SectionLabel>
       <BodyFatPicker t={t} sex={sex} value={bodyFat} onChange={setBodyFat} />
-      <SectionLabel t={t}>Tes sports</SectionLabel>
-      <SportsEditor sports={sports} weight={valid ? wN : undefined} onChange={setSports} />
+    </EditorShell>
+  );
+}
+
+function SportsProfileEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
+  const [sports, setSports] = useState<SportSession[]>(profile.sports ?? []);
+  const trainingDaysEq = Math.min(totalSessionsPerWeek(sports), 7);
+  const submit = () => onSave(withRecalc({ ...profile, sports, training_days_per_week: trainingDaysEq, activity_level: activityFromDays(trainingDaysEq) }));
+  return (
+    <EditorShell t={t} title="Sports" onSave={submit} dragHandlers={dragHandlers}>
+      <Text style={{ color: t.textSecondary, fontSize: 13, lineHeight: 18, marginBottom: 4 }}>Tes sports servent à estimer tes calories dépensées. Plus c'est précis, plus ton plan l'est.</Text>
+      <SportsEditor sports={sports} weight={profile.weight_kg} onChange={setSports} />
     </EditorShell>
   );
 }
