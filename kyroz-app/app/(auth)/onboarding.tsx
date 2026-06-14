@@ -13,11 +13,13 @@ import {
 } from '../../components/ui';
 import { BodyFatPicker } from '../../components/BodyFatPicker';
 import {
-  ActivityLevel, DietaryRestriction, Goal, MEAL_ORDER, MealEmphasis, MealType, Sex, UserProfile, VarietyPreference,
+  ActivityLevel, DietaryRestriction, Goal, MEAL_ORDER, MealEmphasis, MealType, Sex, SportSession, UserProfile, VarietyPreference,
 } from '../../lib/types';
 import {
   calculateTDEE, calculateMacros, validateProfile, goalLabel, macrosPercent, DEFAULT_CARB_RATIO, recommendedProteinPerKg,
 } from '../../lib/tdee';
+import { totalSessionsPerWeek } from '../../lib/sport';
+import SportsEditor from '../../components/SportsEditor';
 import { MacroSplit } from '../../components/MacroSplit';
 import { useProfile } from '../../hooks/useProfile';
 import { saveFirstName } from '../../lib/profileName';
@@ -33,14 +35,6 @@ const GOALS: { value: Goal; sub: string }[] = [
   { value: 'maintain', sub: 'Stabiliser poids et composition' },
   { value: 'lean_bulk', sub: 'Prendre du muscle avec un surplus propre' },
   { value: 'bulk', sub: 'Maximiser la prise de masse' },
-];
-
-const TRAINING_OPTIONS = [
-  { label: 'Aucune', days: 0 },
-  { label: '1–2 / sem', days: 2 },
-  { label: '3–4 / sem', days: 4 },
-  { label: '5–6 / sem', days: 6 },
-  { label: '7+ / sem', days: 7 },
 ];
 
 const RESTRICTIONS: { label: string; value: DietaryRestriction }[] = [
@@ -121,7 +115,8 @@ export default function Onboarding() {
   const [weight, setWeight] = useState('');
   const [height, setHeight] = useState('');
   const [bodyFat, setBodyFat] = useState<number | undefined>(undefined);
-  const [trainingDays, setTrainingDays] = useState<number | null>(null); // rien coché par défaut → l'user choisit
+  const [sports, setSports] = useState<SportSession[]>([]);
+  const [noSport, setNoSport] = useState(false); // « je ne fais pas de sport » → calcul base seule
   const [goal, setGoal] = useState<Goal>('cut');
   const [macroMode, setMacroMode] = useState<'auto' | 'percent'>('auto');
   const [carbRatio, setCarbRatio] = useState(DEFAULT_CARB_RATIO);
@@ -143,7 +138,8 @@ export default function Onboarding() {
   const firstNameValid = firstName.trim().length > 0;                                    // étape 1 — prénom
   const basicsValid = ageN >= 16 && ageN <= 100 && wN >= 40 && wN <= 250 && hN >= 120 && hN <= 230; // étape 2 — infos
   const bodyFatValid = bodyFat != null;                                                   // étape 3 — masse grasse
-  const trainingValid = trainingDays != null;                                             // étape 4 — activité
+  const trainingValid = noSport || sports.length >= 1;                                     // étape 4 — activité (sports ou « aucun »)
+  const trainingDaysEq = noSport ? 0 : Math.min(totalSessionsPerWeek(sports), 7);          // repli legacy (activity_level / training_days)
   const mealsValid = planWeekdays.length >= 1 && meals.length >= 1;                        // étape 9 — jours + repas
   const profileReady = basicsValid && bodyFatValid; // suffisant pour les calculs TDEE/macros
 
@@ -168,7 +164,7 @@ export default function Onboarding() {
   const emphasisOpts = EMPHASIS_OPTS.filter((e) => e.val === 'even' || meals.includes(e.val as MealType));
 
   // Calculs dérivés
-  const tdee = profileReady ? calculateTDEE(sex, wN, hN, ageN, trainingDays ?? 0, bodyFat) : 0;
+  const tdee = profileReady ? calculateTDEE(sex, wN, hN, ageN, trainingDaysEq, bodyFat, noSport ? [] : sports) : 0;
   const autoMacros = profileReady ? calculateMacros(tdee, goal, wN, sex, bodyFat) : { target_kcal: 0, protein_g: 0, carbs_g: 0, fat_g: 0 };
   const finalMacros = macroMode === 'percent' && profileReady
     ? macrosPercent(tdee, goal, wN, sex, bodyFat, carbRatio, proteinPerKg)
@@ -180,7 +176,7 @@ export default function Onboarding() {
     if (step === 2 && !basicsValid) return 'Remplis ton âge, ton poids et ta taille pour continuer.';
     if (step === 3 && !bodyFatValid)
       return 'On a besoin de ta masse grasse pour te calculer le plan le plus juste possible — choisis la silhouette la plus proche de toi, ou saisis ton % si tu le connais.';
-    if (step === 4 && !trainingValid) return 'Indique combien de fois par semaine tu t\'entraînes.';
+    if (step === 4 && !trainingValid) return 'Choisis au moins un sport, ou indique que tu n\'en fais pas.';
     if (step === 9 && !mealsValid) return 'Choisis au moins un jour et un repas.';
     return null;
   };
@@ -202,8 +198,9 @@ export default function Onboarding() {
       id: `user-${Date.now()}`,
       sex, age: ageN, weight_kg: wN, height_cm: hN,
       body_fat_pct: bodyFat,
-      activity_level: activityFromDays(trainingDays ?? 0),
-      training_days_per_week: trainingDays ?? 0,
+      activity_level: activityFromDays(trainingDaysEq),
+      training_days_per_week: trainingDaysEq,
+      sports: noSport ? [] : sports,
       goal,
       macro_mode: macroMode,
       carb_ratio: macroMode === 'percent' ? carbRatio : undefined,
@@ -270,12 +267,17 @@ export default function Onboarding() {
         {step === 4 && (
           <View style={s.block}>
             <Text style={s.title}>Ton activité</Text>
-            <Text style={s.sub}>Combien de séances de sport par semaine ?</Text>
-            <View style={s.wrap}>
-              {TRAINING_OPTIONS.map((o) => (
-                <Chip key={o.days} t={t} label={o.label} selected={trainingDays === o.days} onPress={() => setTrainingDays(o.days)} />
-              ))}
-            </View>
+            <Text style={s.sub}>Quels sports pratiques-tu, et à quelle fréquence ? On en déduit tes calories dépensées pour un plan plus juste.</Text>
+            <SportsEditor
+              sports={sports}
+              weight={profileReady ? wN : undefined}
+              onChange={(next) => { setSports(next); if (next.length) setNoSport(false); }}
+            />
+            <Chip
+              t={t} label="Je ne fais pas de sport"
+              selected={noSport}
+              onPress={() => { const v = !noSport; setNoSport(v); if (v) setSports([]); }}
+            />
           </View>
         )}
 

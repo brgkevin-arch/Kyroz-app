@@ -28,6 +28,7 @@ create table if not exists public.profiles (
   body_fat_pct numeric check (body_fat_pct is null or (body_fat_pct >= 3 and body_fat_pct <= 60)),
   activity_level text,
   training_days_per_week int,
+  sports jsonb not null default '[]',   -- [{type, sessions_per_week, minutes_per_session}] → TDEE précis (MET)
 
   -- Objectif & macros
   goal text,
@@ -78,6 +79,9 @@ alter table public.profiles
 alter table public.profiles
   add column if not exists weigh_in_frequency text
   check (weigh_in_frequency is null or weigh_in_frequency in ('daily','weekly','biweekly','monthly'));
+
+alter table public.profiles
+  add column if not exists sports jsonb not null default '[]';
 
 -- Autorise le nouveau mode 'percent' sur les bases existantes.
 alter table public.profiles drop constraint if exists profiles_macro_mode_check;
