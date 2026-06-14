@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach } from 'vitest';
-import { buildLocalPlan, computeDailyTotals, profileSignature, swapMeal, computeDistribution, rebalanceDay, effectiveMacros, resetTracking } from '../planEngine';
+import { buildLocalPlan, computeDailyTotals, profileSignature, swapMeal, computeDistribution, rebalanceDay, adaptDayOptions, effectiveMacros, resetTracking } from '../planEngine';
 import { setRecipeOverrides, RECIPES_PLACEHOLDER } from '../recipes';
 import { makeProfile } from './helpers';
 
@@ -250,5 +250,49 @@ describe('computeDistribution', () => {
     const even = computeDistribution(['breakfast', 'lunch', 'dinner'], 'even');
     const dinner = computeDistribution(['breakfast', 'lunch', 'dinner'], 'dinner');
     expect(dinner.dinner).toBeGreaterThan(even.dinner);
+  });
+});
+
+describe('adaptDayOptions (hors-plan, morceau 4)', () => {
+  const setup = () => {
+    const p = makeProfile({ plan_days: 1, meals: ['breakfast', 'lunch', 'dinner', 'snack'] });
+    let plan = buildLocalPlan(p, 0);
+    // Écart hors plan de 500 kcal sur le jour 1.
+    plan = { ...plan, day_extras: { 1: { kcal: 500, protein_g: 0, carbs_g: 0, fat_g: 0 } } };
+    return { p, plan };
+  };
+  const day1 = (plan: any) => plan.meals.filter((m: any) => m.day === 1);
+  const mealOf = (plan: any, type: string) => day1(plan).find((m: any) => m.meal_type === type);
+
+  it('à 14h : 3 options (collation + dîner restent)', () => {
+    const { p, plan } = setup();
+    const opts = adaptDayOptions(p, plan, 1, 14);
+    expect(opts.map((o) => o.key)).toEqual(['spread', 'skip_snack', 'focus_dinner']);
+  });
+
+  it('« sauter la collation » marque bien la collation skipped', () => {
+    const { p, plan } = setup();
+    const skip = adaptDayOptions(p, plan, 1, 14).find((o) => o.key === 'skip_snack')!;
+    expect(mealOf(skip.plan, 'snack').status).toBe('skipped');
+  });
+
+  it('« ajuster le dîner » ne touche pas la collation', () => {
+    const { p, plan } = setup();
+    const before = mealOf(plan, 'snack').portions;
+    const focus = adaptDayOptions(p, plan, 1, 14).find((o) => o.key === 'focus_dinner')!;
+    expect(mealOf(focus.plan, 'snack').portions).toBe(before);
+  });
+
+  it('absorbe l\'écart : le total réparti descend sous le « sans rien faire »', () => {
+    const { p, plan } = setup();
+    const mealsKcal = day1(plan).reduce((s: number, m: any) => s + m.macros.kcal, 0);
+    const nothing = mealsKcal + 500; // si on ne touchait à rien
+    const spread = adaptDayOptions(p, plan, 1, 14).find((o) => o.key === 'spread')!;
+    expect(spread.dayKcal).toBeLessThan(nothing);
+  });
+
+  it('le soir tard : plus aucune option', () => {
+    const { p, plan } = setup();
+    expect(adaptDayOptions(p, plan, 1, 23)).toHaveLength(0);
   });
 });

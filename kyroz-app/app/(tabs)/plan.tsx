@@ -24,9 +24,8 @@ import { useWeightLog } from '../../hooks/useWeightLog';
 import { usePlanCheckin } from '../../hooks/usePlanCheckin';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { generateMealPlan } from '../../lib/generatePlan';
-import { profileSignature, swapMeal, computeDailyTotals, rebalanceDay, resetTracking } from '../../lib/planEngine';
+import { profileSignature, swapMeal, computeDailyTotals, rebalanceDay, resetTracking, adaptDayOptions, AdaptOption } from '../../lib/planEngine';
 import { kcalMargin } from '../../lib/foods';
-import { remainingMealLabels } from '../../lib/mealtime';
 import { todayStamp } from '../../lib/weight';
 import { mealFiberG, dailyFiberTarget } from '../../lib/fiber';
 import { getRecipeById, getBaseRecipe } from '../../lib/recipes';
@@ -281,16 +280,15 @@ export default function PlanScreen() {
     setAdaptPrompt(kcal); // → propose la réadaptation
   };
 
-  // « Oui, réadapte » : recale les repas restants pour absorber l'écart.
-  const acceptAdapt = async () => {
-    if (!plan || !profile) { setAdaptPrompt(null); return; }
-    const rebalanced = rebalanceDay(profile, { ...plan, tracking_date: todayStamp() }, selectedDay);
-    await persistPlan(rebalanced, false);
+  // Applique une option d'adaptation choisie (répartir / sauter collation / dîner).
+  const applyAdapt = async (opt: AdaptOption) => {
+    if (!plan) { setAdaptPrompt(null); return; }
+    await persistPlan({ ...opt.plan, tracking_date: todayStamp() }, false);
     setAdaptPrompt(null);
-    toast('Repas restants réadaptés 👊');
+    toast('Journée réadaptée 👊');
   };
   // « Non, je garde mon plan » : on ne touche à rien, l'écart reste compté à part.
-  const declineAdapt = () => { setAdaptPrompt(null); toast('Ok, on garde ton plan 😏'); };
+  const declineAdapt = () => { setAdaptPrompt(null); toast('Ok, on garde ton plan 😎'); };
 
   // « Remplacer ce repas » : échange UN repas contre une alternative équivalente.
   const swapSelectedMeal = async () => {
@@ -561,23 +559,42 @@ export default function PlanScreen() {
           +{adaptPrompt ?? 0} kcal assumées, c'est noté 😎
         </Text>
         {(() => {
-          const left = remainingMealLabels(dayMeals, new Date().getHours());
+          const opts = (plan && profile) ? adaptDayOptions(profile, plan, selectedDay, new Date().getHours()) : [];
+          if (opts.length === 0) {
+            return (
+              <>
+                <Text style={{ color: t.textSecondary, fontSize: 14, lineHeight: 20 }}>
+                  Tes repas du jour sont déjà passés — il n'y a plus rien à réadapter. On garde tout tel quel.
+                </Text>
+                <TouchableOpacity onPress={declineAdapt} style={{ alignItems: 'center', paddingVertical: 10 }}>
+                  <Text style={{ color: t.textSecondary, fontSize: 15, fontWeight: '600' }}>Compris</Text>
+                </TouchableOpacity>
+              </>
+            );
+          }
           return (
-            <Text style={{ color: t.textSecondary, fontSize: 14, lineHeight: 20 }}>
-              {left.length > 0
-                ? `Il te reste ${left.join(' et ')} aujourd'hui. On les réadapte (mêmes recettes) pour rester dans ta cible ? Sinon, on ne touche à rien.`
-                : 'Tes repas du jour sont déjà passés — il n\'y a plus rien à réadapter. On garde tout tel quel.'}
-            </Text>
+            <>
+              <Text style={{ color: t.textSecondary, fontSize: 14, lineHeight: 20 }}>
+                Comment tu veux rentrer dans ta cible ? Tes protéines restent pleines dans tous les cas.
+              </Text>
+              {opts.map((o) => (
+                <TouchableOpacity
+                  key={o.key} onPress={() => applyAdapt(o)} activeOpacity={0.85}
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 12, borderWidth: 1, borderColor: t.line, borderRadius: 14, padding: 14 }}
+                >
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ color: t.text, fontSize: 15, fontWeight: '700' }}>{o.label}</Text>
+                    <Text style={{ color: t.textTertiary, fontSize: 12, marginTop: 2 }}>{o.detail}</Text>
+                  </View>
+                  <Text style={{ color: t.text, fontSize: 14, fontWeight: '700' }}>≈ {o.dayKcal.toLocaleString('fr-FR')}</Text>
+                </TouchableOpacity>
+              ))}
+              <TouchableOpacity onPress={declineAdapt} style={{ alignItems: 'center', paddingVertical: 10 }}>
+                <Text style={{ color: t.textSecondary, fontSize: 15, fontWeight: '600' }}>Non, je garde mon plan</Text>
+              </TouchableOpacity>
+            </>
           );
         })()}
-        {remainingMealLabels(dayMeals, new Date().getHours()).length > 0 && (
-          <PrimaryButton t={t} label="Oui, réadapte ma journée" onPress={acceptAdapt} />
-        )}
-        <TouchableOpacity onPress={declineAdapt} style={{ alignItems: 'center', paddingVertical: 10 }}>
-          <Text style={{ color: t.textSecondary, fontSize: 15, fontWeight: '600' }}>
-            {remainingMealLabels(dayMeals, new Date().getHours()).length > 0 ? 'Non, je garde mon plan' : 'Compris'}
-          </Text>
-        </TouchableOpacity>
       </ActionSheet>
 
       {/* Check-in poids hebdo */}
