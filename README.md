@@ -1,6 +1,6 @@
 # Kyroz
 
-App mobile (React Native / Expo Router) de plans repas macro-précis pour hommes 18–35 pratiquant du sport. Le cœur (génération de plan 7 jours, recettes, liste de courses) tourne 100 % en local, sans clé API.
+App mobile (React Native / Expo Router) de plans repas macro-précis pour pratiquant de sport. Le cœur (génération de plan 7 jours, recettes, liste de courses) tourne 100 % en local, sans clé API.
 
 ## 🧪 Tester l'app (pour un testeur)
 
