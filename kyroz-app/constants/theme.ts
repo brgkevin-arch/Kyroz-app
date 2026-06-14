@@ -1,4 +1,6 @@
+import { useSyncExternalStore } from 'react';
 import { useColorScheme, Platform } from 'react-native';
+import { getThemeMode, subscribeThemeMode } from '../lib/themeMode';
 
 // ── Système de thème adaptatif Kyroz ─────────────────────────────────────────
 // Clair + sombre, suit le réglage système. Accent monochrome (premium, Apple-like).
@@ -132,9 +134,11 @@ export const Type = {
   overline: { fontSize: 11, fontWeight: '700' as const, letterSpacing: 1 },
 } as const;
 
-/** Hook principal : renvoie la palette active selon le réglage système. */
+/** Hook principal : renvoie la palette active selon la préférence (ou le système). */
 export function useTheme(): ThemePalette {
-  const scheme = useColorScheme();
+  const system = useColorScheme();
+  const mode = useSyncExternalStore(subscribeThemeMode, getThemeMode, getThemeMode);
+  const scheme = mode === 'system' ? system : mode;
   return scheme === 'light' ? light : dark; // défaut sombre (premium)
 }
 

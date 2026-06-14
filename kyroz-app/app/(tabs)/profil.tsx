@@ -1,10 +1,12 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Platform, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { useTheme, ThemePalette, Radius, Spacing, cardShadow } from '../../constants/theme';
+import { ThemeMode, useThemeMode, setThemeMode } from '../../lib/themeMode';
 import { DISCLAIMER } from '../../constants/legal';
 import { CIQUAL_ATTRIBUTION } from '../../lib/foods';
 import { Card, PrimaryButton, Chip, OptionCard, Field, SectionLabel, Segmented } from '../../components/ui';
@@ -93,6 +95,7 @@ export default function ProfilScreen() {
   const { slot, choose, busy } = useReminder();
   const { enabled: checkinEnabled, setEnabled: setCheckinEnabled } = usePlanCheckin();
   const { signOut } = useAuth();
+  const themeMode = useThemeMode();
   const router = useRouter();
   const [editor, setEditor] = useState<EditorKey | null>(null);
   const [weighIn, setWeighIn] = useState(false);
@@ -117,6 +120,18 @@ export default function ProfilScreen() {
     setConfirmDelete(false);
     router.replace('/(auth)/login');
   };
+
+  // Contact support : ouvre le client mail. Si rien ne peut l'ouvrir (web sans
+  // client mail), on copie l'adresse dans une alerte plutôt que d'échouer en silence.
+  const SUPPORT_EMAIL = 'support@kyroz.app';
+  const contactSupport = async () => {
+    const url = `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent('Kyroz — aide')}`;
+    const ok = await Linking.canOpenURL(url).catch(() => false);
+    if (ok) Linking.openURL(url);
+    else Alert.alert('Nous contacter', SUPPORT_EMAIL);
+  };
+
+  const appVersion = Constants.expoConfig?.version ?? '1.0.0';
 
   if (!profile) return null;
 
@@ -202,6 +217,28 @@ export default function ProfilScreen() {
             : 'On ne te proposera plus d’ajuster ton plan.'}
         </Text>
 
+        {/* Paramètres de l'application — préférences générales */}
+        <SectionLabel t={t}>APPLICATION</SectionLabel>
+        <Text style={s.settingLabel}>Apparence</Text>
+        <Segmented<ThemeMode>
+          t={t}
+          value={themeMode}
+          onChange={setThemeMode}
+          options={[
+            { label: 'Système', value: 'system' },
+            { label: 'Clair', value: 'light' },
+            { label: 'Sombre', value: 'dark' },
+          ]}
+        />
+        <Text style={s.reminderHint}>
+          {themeMode === 'system' ? 'Suit le réglage clair/sombre de ton téléphone.' : `Thème ${themeMode === 'light' ? 'clair' : 'sombre'} forcé.`}
+        </Text>
+
+        <View style={[s.menu, cardShadow(t)]}>
+          <MenuRow t={t} icon="mail-outline" label="Aide & contact" value={SUPPORT_EMAIL} onPress={contactSupport} />
+          <MenuRow t={t} icon="information-circle-outline" label="Version" value={appVersion} onPress={() => {}} readonly last />
+        </View>
+
         <TouchableOpacity style={s.logoutBtn} onPress={doLogout} activeOpacity={0.8}><Text style={s.logoutTxt}>Se déconnecter</Text></TouchableOpacity>
         <TouchableOpacity style={s.delBtn} onPress={() => setConfirmDelete(true)}><Text style={s.delTxt}>Supprimer mon compte</Text></TouchableOpacity>
 
@@ -244,16 +281,16 @@ export default function ProfilScreen() {
 }
 
 // ── Lignes / boîtes ──────────────────────────────────────────────────────────
-function MenuRow({ t, icon, label, value, onPress, last }: { t: ThemePalette; icon: any; label: string; value: string; onPress: () => void; last?: boolean }) {
+function MenuRow({ t, icon, label, value, onPress, last, readonly }: { t: ThemePalette; icon: any; label: string; value: string; onPress: () => void; last?: boolean; readonly?: boolean }) {
   return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.7}
+    <TouchableOpacity onPress={onPress} activeOpacity={readonly ? 1 : 0.7} disabled={readonly}
       style={[{ flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 16 }, !last && { borderBottomWidth: 1, borderBottomColor: t.line }]}>
       <Ionicons name={icon} size={20} color={t.textSecondary} />
       <View style={{ flex: 1 }}>
         <Text style={{ color: t.text, fontSize: 15, fontWeight: '600' }}>{label}</Text>
         <Text style={{ color: t.textTertiary, fontSize: 13, marginTop: 2 }} numberOfLines={1}>{value}</Text>
       </View>
-      <Ionicons name="chevron-forward" size={18} color={t.textQuaternary} />
+      {!readonly && <Ionicons name="chevron-forward" size={18} color={t.textQuaternary} />}
     </TouchableOpacity>
   );
 }
@@ -450,6 +487,7 @@ function makeStyles(t: ThemePalette) {
     tdeeL: { color: t.textSecondary, fontSize: 13 },
     tdeeV: { color: t.text, fontSize: 16, fontWeight: '700' },
     reminderHint: { color: t.textTertiary, fontSize: 12, lineHeight: 16, marginTop: -8 },
+    settingLabel: { color: t.text, fontSize: 15, fontWeight: '600', marginBottom: -8 },
     disclaimer: { color: t.textTertiary, fontSize: 11, lineHeight: 16, textAlign: 'center' },
     logoutBtn: { alignItems: 'center', justifyContent: 'center', paddingVertical: 14, marginTop: 8, borderRadius: Radius.md, borderWidth: 1.5, borderColor: t.lineStrong },
     logoutTxt: { color: t.text, fontSize: 15, fontWeight: '700' },
