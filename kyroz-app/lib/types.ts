@@ -121,18 +121,14 @@ export interface Ingredient {
 // Aliment de la base nutritionnelle (valeurs pour 100 g — approche « moyenne »,
 // alignées Ciqual/ANSES). `food_id` d'un Ingredient pointe ici.
 export interface Food {
-  id: string;             // 'ciqual-XXXXX' ou 'kyroz-xxx'
+  id: string;             // 'ciqual-XXXXX'
   name_fr: string;
-  category: FoodCategory;
+  category: string;       // groupe alimentaire Ciqual (libre)
   per100g: Macros;        // kcal / protéines / glucides / lipides pour 100 g
-  // Incertitude relative (%) de l'énergie selon les marques — sert à afficher une
-  // marge honnête sur le total du jour (Phase 3). Défaut appliqué si absent.
+  // Incertitude relative (%) de l'énergie selon les sources — sert à afficher une
+  // marge honnête sur le total du jour (Phase 3b). Défaut appliqué si absent.
   uncertainty_pct?: number;
 }
-
-export type FoodCategory =
-  | 'viande' | 'poisson' | 'oeuf_laitier' | 'legumineuse' | 'feculent'
-  | 'legume' | 'fruit' | 'oleagineux' | 'matiere_grasse' | 'sucre' | 'autre';
 
 export interface Recipe {
   id: string;
