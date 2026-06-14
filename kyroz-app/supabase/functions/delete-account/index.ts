@@ -5,7 +5,7 @@
 // clé `service_role` (admin), qui ne doit JAMAIS vivre dans l'app cliente.
 // La fonction tourne côté serveur Supabase, avec la clé secrète auto-injectée.
 //
-// Les données (profiles, streaks, favorites, pantry, meal_plans) sont effacées
+// Les données (profiles, streaks, favorites, pantry, weight_logs, recipe_overrides) sont effacées
 // AUTOMATIQUEMENT par cascade (FK `on delete cascade` du schéma).
 //
 // Déploiement (au choix) :
