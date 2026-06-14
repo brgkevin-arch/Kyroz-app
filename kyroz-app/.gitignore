@@ -40,6 +40,8 @@ yarn-error.*
 /ios
 /android
 
-# QA Playwright artifacts (jeton auth + binaires lourds)
+# QA Playwright : on garde les scripts (*.mjs), on ignore les sorties générées
 test/qa/session.json
 test/video/
+test/qa/*.png
+test/qa/report*.json
