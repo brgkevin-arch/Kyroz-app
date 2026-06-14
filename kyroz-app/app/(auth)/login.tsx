@@ -17,7 +17,7 @@ export default function LoginScreen() {
   const t = useTheme();
   const s = useMemo(() => makeStyles(t), [t]);
   const router = useRouter();
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, signInGuest } = useAuth();
 
   const [mode, setMode] = useState<Mode>('signup');
   const [email, setEmail] = useState('');
@@ -47,6 +47,18 @@ export default function LoginScreen() {
       return;
     }
     router.replace('/'); // l'index route ensuite selon session + profil
+  };
+
+  const guest = async () => {
+    if (busy) return;
+    setBusy(true); setError(null); setNotice(null);
+    const res = await signInGuest();
+    setBusy(false);
+    if (res.error) {
+      setError('Connexion invité indisponible. Active l\'auth anonyme dans Supabase (Authentication → Providers → Anonymous).');
+      return;
+    }
+    router.replace('/'); // session anonyme ouverte → l'index route vers l'onboarding
   };
 
   return (
@@ -103,6 +115,16 @@ export default function LoginScreen() {
           />
 
           <Text style={s.social}>Connexion Apple & Google bientôt — avec l'app iOS.</Text>
+
+          <View style={s.guestRow}>
+            <View style={s.guestLine} />
+            <Text style={s.guestOr}>ou</Text>
+            <View style={s.guestLine} />
+          </View>
+          <TouchableOpacity onPress={guest} disabled={busy} activeOpacity={0.7} testID="guest-login">
+            <Text style={s.guest}>Continuer en invité</Text>
+          </TouchableOpacity>
+
           <Text style={s.disclaimer}>{DISCLAIMER}</Text>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -132,6 +154,10 @@ function makeStyles(t: ThemePalette) {
     error: { color: t.danger, fontSize: 14, fontWeight: '600', textAlign: 'center', marginTop: 16 },
     notice: { color: t.accent, fontSize: 14, fontWeight: '600', textAlign: 'center', marginTop: 16, lineHeight: 20 },
     social: { color: t.textTertiary, fontSize: 12, textAlign: 'center', marginTop: 18 },
-    disclaimer: { color: t.textQuaternary, fontSize: 11, lineHeight: 16, textAlign: 'center', marginTop: 14 },
+    guestRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 22 },
+    guestLine: { flex: 1, height: 1, backgroundColor: t.line },
+    guestOr: { color: t.textTertiary, fontSize: 12 },
+    guest: { color: t.textSecondary, fontSize: 15, fontWeight: '700', textAlign: 'center', marginTop: 16 },
+    disclaimer: { color: t.textQuaternary, fontSize: 11, lineHeight: 16, textAlign: 'center', marginTop: 20 },
   });
 }

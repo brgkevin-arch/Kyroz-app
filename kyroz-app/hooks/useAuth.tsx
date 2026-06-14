@@ -11,6 +11,10 @@ interface AuthValue {
   // email activée côté Supabase) → l'appelant doit afficher « vérifie ta boîte mail »
   // plutôt que de rediriger vers un écran de login vide (l'utilisateur croit que ça a planté).
   signUp: (email: string, password: string, consent: boolean) => Promise<{ error?: string; needsConfirmation?: boolean }>;
+  // Connexion « invité » (anonyme Supabase) : vraie session sans email/mot de passe,
+  // pour tester rapidement le parcours (manuel + Playwright). Nécessite l'auth
+  // anonyme activée dans le dashboard Supabase (Authentication → Providers → Anonymous).
+  signInGuest: () => Promise<{ error?: string }>;
   signOut: () => Promise<void>;
 }
 
@@ -63,9 +67,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { needsConfirmation: !data.session };
   };
 
+  const signInGuest: AuthValue['signInGuest'] = async () => {
+    const { error } = await supabase.auth.signInAnonymously();
+    return error ? { error: error.message } : {};
+  };
+
   const signOut = async () => { await supabase.auth.signOut(); };
 
-  const value: AuthValue = { session, ready: authChecked && hydrated, signIn, signUp, signOut };
+  const value: AuthValue = { session, ready: authChecked && hydrated, signIn, signUp, signInGuest, signOut };
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
