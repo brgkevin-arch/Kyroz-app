@@ -26,6 +26,7 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { generateMealPlan } from '../../lib/generatePlan';
 import { profileSignature, swapMeal, computeDailyTotals, rebalanceDay, resetTracking } from '../../lib/planEngine';
 import { kcalMargin } from '../../lib/foods';
+import { remainingMealLabels } from '../../lib/mealtime';
 import { todayStamp } from '../../lib/weight';
 import { mealFiberG, dailyFiberTarget } from '../../lib/fiber';
 import { getRecipeById, getBaseRecipe } from '../../lib/recipes';
@@ -559,12 +560,23 @@ export default function PlanScreen() {
         <Text style={{ color: t.text, fontSize: 20, fontWeight: '800', letterSpacing: -0.4 }}>
           +{adaptPrompt ?? 0} kcal assumées, c'est noté 😎
         </Text>
-        <Text style={{ color: t.textSecondary, fontSize: 14, lineHeight: 20 }}>
-          On réadapte tes repas encore à venir (mêmes recettes) pour rester dans ta cible du jour ? Sinon, on ne touche à rien.
-        </Text>
-        <PrimaryButton t={t} label="Oui, réadapte ma journée" onPress={acceptAdapt} />
+        {(() => {
+          const left = remainingMealLabels(dayMeals, new Date().getHours());
+          return (
+            <Text style={{ color: t.textSecondary, fontSize: 14, lineHeight: 20 }}>
+              {left.length > 0
+                ? `Il te reste ${left.join(' et ')} aujourd'hui. On les réadapte (mêmes recettes) pour rester dans ta cible ? Sinon, on ne touche à rien.`
+                : 'Tes repas du jour sont déjà passés — il n\'y a plus rien à réadapter. On garde tout tel quel.'}
+            </Text>
+          );
+        })()}
+        {remainingMealLabels(dayMeals, new Date().getHours()).length > 0 && (
+          <PrimaryButton t={t} label="Oui, réadapte ma journée" onPress={acceptAdapt} />
+        )}
         <TouchableOpacity onPress={declineAdapt} style={{ alignItems: 'center', paddingVertical: 10 }}>
-          <Text style={{ color: t.textSecondary, fontSize: 15, fontWeight: '600' }}>Non, je garde mon plan</Text>
+          <Text style={{ color: t.textSecondary, fontSize: 15, fontWeight: '600' }}>
+            {remainingMealLabels(dayMeals, new Date().getHours()).length > 0 ? 'Non, je garde mon plan' : 'Compris'}
+          </Text>
         </TouchableOpacity>
       </ActionSheet>
 
