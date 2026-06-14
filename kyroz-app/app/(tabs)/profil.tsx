@@ -100,6 +100,10 @@ export default function ProfilScreen() {
 
   const save = async (updated: UserProfile) => { await saveProfile(updated); setEditor(null); };
 
+  // Déconnexion : couper la session NE redirige pas tout seul l'écran déjà monté
+  // (expo-router ne re-route que l'index). On navigue donc explicitement vers le login.
+  const doLogout = async () => { await signOut(); router.replace('/(auth)/login'); };
+
   // Droit à l'effacement (RGPD §12) : données serveur + locales + déconnexion.
   const doDelete = async () => {
     setDeleting(true);
@@ -197,7 +201,7 @@ export default function ProfilScreen() {
         </Text>
 
         <Text style={s.disclaimer}>{DISCLAIMER}</Text>
-        <TouchableOpacity style={s.logoutBtn} onPress={signOut} activeOpacity={0.8}><Text style={s.logoutTxt}>Se déconnecter</Text></TouchableOpacity>
+        <TouchableOpacity style={s.logoutBtn} onPress={doLogout} activeOpacity={0.8}><Text style={s.logoutTxt}>Se déconnecter</Text></TouchableOpacity>
         <TouchableOpacity style={s.delBtn} onPress={() => setConfirmDelete(true)}><Text style={s.delTxt}>Supprimer mon compte</Text></TouchableOpacity>
       </ScrollView>
 
