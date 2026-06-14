@@ -10,6 +10,7 @@ import { PrimaryButton, Chip, Field, SectionLabel, Segmented } from '../../compo
 import { ActionSheet } from '../../components/ActionSheet';
 import { formatQuantity, toBaseUnit } from '../../lib/units';
 import { pushPantry } from '../../lib/sync';
+import { searchFoods } from '../../lib/foods';
 import {
   PantryItem, PantryCategory, Coverage,
   loadPantry, savePantry, addOrMerge, removeItem, categorize,
@@ -40,6 +41,7 @@ export default function GardeMangerScreen() {
   const [name, setName] = useState('');
   const [qty, setQty] = useState('');
   const [unit, setUnit] = useState('g');
+  const [sugDismissed, setSugDismissed] = useState(false); // masque les suggestions après choix
   // Formulaire d'édition
   const [editQty, setEditQty] = useState('');
   const [editUnit, setEditUnit] = useState('g');
@@ -58,7 +60,7 @@ export default function GardeMangerScreen() {
     if (!name.trim() || !(q > 0)) return;
     const base = toBaseUnit(q, unit);
     await persist(addOrMerge(items, { name: name.trim(), quantity: base.quantity, unit: base.unit, category: categorize(name) }));
-    setName(''); setQty(''); setUnit('g'); setShowAdd(false);
+    setName(''); setQty(''); setUnit('g'); setSugDismissed(false); setShowAdd(false);
   };
 
   const openEdit = (it: PantryItem) => {
@@ -233,7 +235,24 @@ export default function GardeMangerScreen() {
       {/* Ajout d'un aliment */}
       <ActionSheet visible={showAdd} onClose={() => setShowAdd(false)}>
         <Text style={s.sheetTitle}>Ajouter un aliment</Text>
-        <Field t={t} label="Nom" value={name} onChangeText={setName} placeholder="Blanc de poulet" autoFocus />
+        <Field t={t} label="Nom" value={name} onChangeText={(v) => { setName(v); setSugDismissed(false); }} placeholder="Blanc de poulet" autoFocus />
+        {name.trim().length >= 2 && !sugDismissed && (() => {
+          const sug = searchFoods(name, 5);
+          if (sug.length === 0) return null;
+          return (
+            <View style={{ borderWidth: 1, borderColor: t.line, borderRadius: 10, overflow: 'hidden' }}>
+              {sug.map((f) => (
+                <TouchableOpacity
+                  key={f.id} activeOpacity={0.7}
+                  onPress={() => { setName(f.name_fr); setSugDismissed(true); }}
+                  style={{ paddingHorizontal: 14, paddingVertical: 11, borderBottomWidth: 1, borderBottomColor: t.line }}
+                >
+                  <Text style={{ color: t.text, fontSize: 14 }} numberOfLines={1}>{f.name_fr}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          );
+        })()}
         <Field t={t} label="Quantité" suffix={unit} value={qty} onChangeText={setQty} placeholder="500" keyboardType="decimal-pad" />
         <View style={s.unitRow}>
           {UNITS.map((u) => <Chip key={u} t={t} label={u} selected={unit === u} onPress={() => setUnit(u)} />)}
