@@ -1,6 +1,7 @@
-import { DietaryRestriction, Macros, Meal, MEAL_ORDER, MealEmphasis, MealPlan, MealType, Recipe, UserProfile, VarietyPreference } from './types';
+import { DietaryRestriction, Macros, Meal, MEAL_ORDER, MealEmphasis, MealPlan, MealStatus, MealType, Recipe, UserProfile, VarietyPreference } from './types';
 import { getEffectiveRecipes } from './recipes';
 import { recipeFiberPerPortion, isFiberFocusGoal } from './fiber';
+import { remainingMeals, MEAL_LABEL } from './mealtime';
 
 // ── Moteur de génération de plan local ──────────────────────────────────────
 // Respecte : nombre de jours, repas/jour, variété, préférences alimentaires.
@@ -496,42 +497,49 @@ export function swapMeal(profile: UserProfile, plan: MealPlan, meal: Meal): Meal
  * les repas restants tombent à la portion minimale (la fonction de score choisit
  * naturellement la plus petite portion quand la cible restante est ~0).
  */
-export function rebalanceDay(profile: UserProfile, plan: MealPlan, day: number): MealPlan {
+/**
+ * Cœur paramétrable du recalage. Ajuste les PORTIONS des repas dont l'id est dans
+ * `adjustIds` pour faire retomber le total du jour sur la cible, en tenant compte :
+ *  - du consommé verrouillé (repas mangés + extras hors plan) ;
+ *  - des repas planifiés MAIS NON ajustables (ex. « on ne touche qu'au dîner ») →
+ *    comptés au consommé à leurs macros actuelles (ils ne bougent pas) ;
+ *  - des repas de `skipIds` → passés en `skipped` (ne comptent pas, budget reporté).
+ * La cible protéines reste pleine : les repas ajustés se densifient en protéines.
+ */
+function rebalanceCore(
+  profile: UserProfile, plan: MealPlan, day: number,
+  adjustIds: Set<string>, skipIds: Set<string>,
+): MealPlan {
   const dayMeals = plan.meals.filter((m) => m.day === day);
   if (dayMeals.length === 0) return plan;
 
-  // Répartition du jour sur les repas réellement présents, avec l'emphase profil.
   const types = MEAL_ORDER.filter((mt) => dayMeals.some((m) => m.meal_type === mt));
   const rawEmphasis = profile.meal_emphasis ?? 'even';
   const emphasis = rawEmphasis !== 'even' && !types.includes(rawEmphasis as MealType) ? 'even' : rawEmphasis;
   const dist = computeDistribution(types, emphasis);
 
-  // Consommé verrouillé : repas mangés + extras hors plan du jour.
+  const isAdjustable = (m: Meal) => adjustIds.has(m.id) && (m.status ?? 'planned') === 'planned' && !skipIds.has(m.id);
+
+  // Consommé = mangés + extras + planifiés-mais-figés (non ajustables, non sautés).
   const consumed = { kcal: 0, protein: 0, fat: 0 };
   for (const m of dayMeals) {
-    if (m.status === 'eaten') {
-      const em = m.locked_macros ?? m.macros;
-      consumed.kcal += em.kcal; consumed.protein += em.protein_g; consumed.fat += em.fat_g;
-    }
+    if (isAdjustable(m) || skipIds.has(m.id) || m.status === 'skipped') continue;
+    const em = m.status === 'eaten' ? (m.locked_macros ?? m.macros) : m.macros;
+    consumed.kcal += em.kcal; consumed.protein += em.protein_g; consumed.fat += em.fat_g;
   }
   const extra = plan.day_extras?.[day];
   if (extra) { consumed.kcal += extra.kcal; consumed.protein += extra.protein_g; consumed.fat += extra.fat_g; }
 
-  // Budget restant pour les repas encore planifiés (jamais négatif).
   let remKcal = Math.max(profile.target_kcal - consumed.kcal, 0);
   let remProt = Math.max(profile.target_protein_g - consumed.protein, 0);
   let remFat = Math.max(profile.target_fat_g - consumed.fat, 0);
 
-  // Poids cumulé des repas à recaler (pour le prorata + report).
-  const plannedTypes = dayMeals
-    .filter((m) => (m.status ?? 'planned') === 'planned')
-    .map((m) => m.meal_type);
-  let remWeight = plannedTypes.reduce((s, mt) => s + dist[mt], 0) || 1;
+  const adjustMeals = dayMeals.filter(isAdjustable);
+  let remWeight = adjustMeals.reduce((s, m) => s + dist[m.meal_type], 0) || 1;
 
   const updates = new Map<string, Meal>();
-  // On parcourt dans l'ordre canonique pour un report stable.
   for (const mt of MEAL_ORDER) {
-    const meal = dayMeals.find((m) => m.meal_type === mt && (m.status ?? 'planned') === 'planned');
+    const meal = adjustMeals.find((m) => m.meal_type === mt);
     if (!meal) continue;
     const weight = dist[mt];
     const target: MealTarget = {
@@ -550,8 +558,81 @@ export function rebalanceDay(profile: UserProfile, plan: MealPlan, day: number):
     remWeight -= weight;
   }
 
-  const meals = plan.meals.map((m) => updates.get(m.id) ?? m);
+  const meals = plan.meals.map((m) => {
+    if (updates.has(m.id)) return updates.get(m.id)!;
+    if (skipIds.has(m.id)) return { ...m, status: 'skipped' as MealStatus };
+    return m;
+  });
   return { ...plan, meals, total_macros_per_day: computeDailyTotals(meals, plan.days, plan.day_extras) };
+}
+
+export function rebalanceDay(profile: UserProfile, plan: MealPlan, day: number): MealPlan {
+  const dayMeals = plan.meals.filter((m) => m.day === day);
+  // Comportement historique : ajuste TOUS les repas encore planifiés du jour.
+  const adjustIds = new Set(dayMeals.filter((m) => (m.status ?? 'planned') === 'planned').map((m) => m.id));
+  return rebalanceCore(profile, plan, day, adjustIds, new Set());
+}
+
+// ── Adaptation à OPTIONS après un écart hors plan (morceau 4) ────────────────
+export type AdaptOption = {
+  key: 'spread' | 'skip_snack' | 'focus_dinner';
+  label: string;
+  detail: string;
+  plan: MealPlan;
+  dayKcal: number;   // total du jour résultant (preview)
+};
+
+/**
+ * Propose plusieurs façons d'absorber un écart, selon les repas ENCORE À VENIR
+ * (heure + statut, cf. mealtime). Chaque option renvoie un plan prêt à appliquer.
+ * Vide si plus aucun repas à venir (rien à adapter).
+ */
+export function adaptDayOptions(
+  profile: UserProfile, plan: MealPlan, day: number, nowHour: number,
+): AdaptOption[] {
+  const dayMeals = plan.meals.filter((m) => m.day === day);
+  const upcoming = remainingMeals(dayMeals, nowHour);
+  if (upcoming.length === 0) return [];
+
+  const allIds = new Set(upcoming.map((m) => m.id));
+  const dayKcalOf = (p: MealPlan) => Math.round(p.total_macros_per_day[day - 1]?.kcal ?? 0);
+  const options: AdaptOption[] = [];
+
+  // 1. Répartir sur tous les repas restants.
+  const spread = rebalanceCore(profile, plan, day, allIds, new Set());
+  options.push({
+    key: 'spread',
+    label: 'Répartir sur mes repas restants',
+    detail: upcoming.map((m) => MEAL_LABEL[m.meal_type]).join(' + ') + ' ajustés',
+    plan: spread, dayKcal: dayKcalOf(spread),
+  });
+
+  // 2. Sauter la collation → les autres restants prennent le relais (protéines pleines).
+  const snack = upcoming.find((m) => m.meal_type === 'snack');
+  if (snack && upcoming.length >= 2) {
+    const rest = new Set(upcoming.filter((m) => m.id !== snack.id).map((m) => m.id));
+    const skipped = rebalanceCore(profile, plan, day, rest, new Set([snack.id]));
+    options.push({
+      key: 'skip_snack',
+      label: 'Sauter la collation',
+      detail: 'le reste se densifie en protéines',
+      plan: skipped, dayKcal: dayKcalOf(skipped),
+    });
+  }
+
+  // 3. Ajuster surtout le dîner → les autres repas restants ne bougent pas.
+  const dinner = upcoming.find((m) => m.meal_type === 'dinner');
+  if (dinner && upcoming.length >= 2) {
+    const focused = rebalanceCore(profile, plan, day, new Set([dinner.id]), new Set());
+    options.push({
+      key: 'focus_dinner',
+      label: 'Ajuster surtout le dîner',
+      detail: 'tes autres repas ne bougent pas',
+      plan: focused, dayKcal: dayKcalOf(focused),
+    });
+  }
+
+  return options;
 }
 
 /**
