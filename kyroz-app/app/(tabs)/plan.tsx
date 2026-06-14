@@ -451,7 +451,7 @@ export default function PlanScreen() {
                   <View style={s.extraRow}>
                     <Text style={{ color: t.textSecondary, fontSize: 13 }}>
                       {(dayMacros.kcal - dayExtraKcal).toLocaleString('fr-FR')} plan
-                      <Text style={{ color: t.text, fontWeight: '700' }}>{` + ${dayExtraKcal} plaisir 😏`}</Text>
+                      <Text style={{ color: t.text, fontWeight: '700' }}>{` + ${dayExtraKcal} kcal assumées 😎`}</Text>
                     </Text>
                     <TouchableOpacity onPress={clearOffPlan} hitSlop={8}>
                       <Text style={{ color: t.textTertiary, fontSize: 13, fontWeight: '700' }}>Retirer</Text>
@@ -557,7 +557,7 @@ export default function PlanScreen() {
       {/* Consentement : on ne réadapte le plan que si l'utilisateur le demande */}
       <ActionSheet visible={adaptPrompt !== null} onClose={declineAdapt}>
         <Text style={{ color: t.text, fontSize: 20, fontWeight: '800', letterSpacing: -0.4 }}>
-          +{adaptPrompt ?? 0} kcal plaisir, c'est noté 😏
+          +{adaptPrompt ?? 0} kcal assumées, c'est noté 😎
         </Text>
         <Text style={{ color: t.textSecondary, fontSize: 14, lineHeight: 20 }}>
           On réadapte tes repas encore à venir (mêmes recettes) pour rester dans ta cible du jour ? Sinon, on ne touche à rien.
