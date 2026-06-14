@@ -31,9 +31,11 @@
 ## Data / thème / qualité
 - **Fibres** (`lib/fiber.ts`) : estimées par mot-clé → g/100 g. ⚠️ Pool pauvre en fibres → vrai levier = ajouter des recettes (légumineuses/légumes/complets).
 - **Sync** (`lib/sync.ts`) : profil **colonne par colonne** (`PROFILE_COLS` + migrations idempotentes `supabase/schema.sql`) → ajouter un champ profil synchronisé = nouvelle colonne + migration. Tables profiles/streaks/favorites/pantry/weight_logs/recipe_overrides. Edge Function `delete-account`.
-- **Thème** (`constants/theme.ts`) : adaptatif clair/sombre, accent monochrome, pas de couleur en dur (`useTheme()` + `makeStyles(t)`).
+  - ⚠️ **Piège (corrigé 2026-06-14)** : modifier `schema.sql` n'applique RIEN au projet Supabase live. `weight_logs` + `recipe_overrides` y manquaient → **404** (suivi du poids + recettes perso ne syncaient pas, invisible car AsyncStorage local prend le relais). **Après tout ajout de table/colonne : coller le SQL dans Supabase → SQL Editor → Run.** Les migrations ciblées vivent désormais dans `supabase/migrations/` (idempotentes).
+- **Thème** (`constants/theme.ts`) : adaptatif clair/sombre, accent monochrome, pas de couleur en dur (`useTheme()` + `makeStyles(t)`). `cardShadow` → `boxShadow` sur web / `shadow*`+`elevation` natif (warnings RN-web nettoyés 2026-06-14, avec `pointerEvents` en style et `TouchableWithoutFeedback`→`Pressable`).
 - **Recettes** : 50 (`lib/recipes.ts`), `validated_by_dietitian: false`. Fix `formatQuantity` : « bœuf » contenait « œuf » → était compté en œufs (corrigé + test).
-- **Tests** : **88 / 8 fichiers** (`npm test`) — garde-fous §6, masse maigre, mode percent, fuseau, déterminisme, recalage du jour, fibres, courses→frigo, units (régression bœuf), intégrité 50 recettes. **Error Boundary** global (`app/_layout.tsx`).
+- **Tests** : **88 / 8 fichiers** (`npm test`, vitest) — garde-fous §6, masse maigre, mode percent, fuseau, déterminisme, recalage du jour, fibres, courses→frigo, units (régression bœuf), intégrité 50 recettes. **Error Boundary** global (`app/_layout.tsx`).
+- **QA E2E Playwright** (`@playwright/test` devDep) : scripts dans `test/` (`walkthrough*.mjs` = parcours headed + vidéo ; `qa-full/qa-deep/qa-settings.mjs` = couverture login+onglets+réglages ; `qa/verify-*.mjs` = non-régression). Web RN garde tous les onglets montés dans le DOM → se fier aux **captures**, pas au dump texte. Login non automatisable (pas de saisie de mot de passe) → connexion manuelle puis session réutilisée via `test/qa/session.json` (gitignored, contient un jeton auth). Sorties générées (PNG, rapports, vidéos) gitignored.
 
 ## RESTE (Phase 2)
 - **Validation diététicienne** : dossier `kyroz-app/VALIDATION-RECETTES.md` prêt → faire valider, puis `validated_by_dietitian` à `true` recette par recette.
