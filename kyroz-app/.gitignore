@@ -45,3 +45,6 @@ test/qa/session.json
 test/video/
 test/qa/*.png
 test/qa/report*.json
+
+# Source brute Ciqual (ANSES) — convertie en lib/foods.generated.ts, pas commitée (lourde)
+data/ciqual/

@@ -6,6 +6,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { useTheme, ThemePalette, Radius, Spacing, cardShadow } from '../../constants/theme';
 import { DISCLAIMER } from '../../constants/legal';
+import { CIQUAL_ATTRIBUTION } from '../../lib/foods';
 import { Card, PrimaryButton, Chip, OptionCard, Field, SectionLabel, Segmented } from '../../components/ui';
 import { Sheet } from '../../components/Sheet';
 import { ActionSheet } from '../../components/ActionSheet';
@@ -201,6 +202,7 @@ export default function ProfilScreen() {
         </Text>
 
         <Text style={s.disclaimer}>{DISCLAIMER}</Text>
+        <Text style={s.disclaimer}>{CIQUAL_ATTRIBUTION}</Text>
         <TouchableOpacity style={s.logoutBtn} onPress={doLogout} activeOpacity={0.8}><Text style={s.logoutTxt}>Se déconnecter</Text></TouchableOpacity>
         <TouchableOpacity style={s.delBtn} onPress={() => setConfirmDelete(true)}><Text style={s.delTxt}>Supprimer mon compte</Text></TouchableOpacity>
       </ScrollView>
