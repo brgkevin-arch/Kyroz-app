@@ -12,6 +12,16 @@ import { CIQUAL_FOODS } from './foods.generated';
 // marge honnête du total du jour (Phase 3b).
 const DEFAULT_UNCERTAINTY_PCT = 10;
 
+// Marge appliquée au TOTAL d'une journée. Plus basse que l'incertitude d'un seul
+// aliment (10%) car, sur plusieurs aliments indépendants, les écarts se compensent
+// partiellement. 7% = honnête sans être anxiogène (~±140 kcal sur 2000).
+export const DAILY_KCAL_MARGIN_PCT = 7;
+
+/** Marge ± honnête (kcal) sur un total journalier — on assume que ce sont des moyennes. */
+export function kcalMargin(totalKcal: number): number {
+  return Math.round(Math.max(0, totalKcal) * (DAILY_KCAL_MARGIN_PCT / 100));
+}
+
 // Mention légale obligatoire (Licence Ouverte 2.0 : attribution de la source,
 // sans dénaturation ni suggestion d'endossement). À afficher dans l'app.
 export const CIQUAL_ATTRIBUTION =

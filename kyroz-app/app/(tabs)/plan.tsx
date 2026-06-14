@@ -24,6 +24,7 @@ import { usePlanCheckin } from '../../hooks/usePlanCheckin';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { generateMealPlan } from '../../lib/generatePlan';
 import { profileSignature, swapMeal, computeDailyTotals, rebalanceDay, resetTracking } from '../../lib/planEngine';
+import { kcalMargin } from '../../lib/foods';
 import { todayStamp } from '../../lib/weight';
 import { mealFiberG, dailyFiberTarget } from '../../lib/fiber';
 import { getRecipeById, getBaseRecipe } from '../../lib/recipes';
@@ -419,6 +420,7 @@ export default function PlanScreen() {
                 <View style={{ height: 10 }} />
                 <MacroBar {...dayMacros} targetKcal={profile?.target_kcal} />
                 {profile && <TargetDelta t={t} actual={dayMacros.kcal} target={profile.target_kcal} />}
+                <MarginNote t={t} kcal={dayMacros.kcal} />
                 {profile && <FiberRow t={t} actual={dayFiber} target={fiberTarget} />}
                 {dayExtraKcal > 0 && (
                   <View style={s.extraRow}>
@@ -555,6 +557,16 @@ function TargetDelta({ t, actual, target }: { t: ThemePalette; actual: number; t
       <Text style={{ color: t.textTertiary, fontSize: 13 }}>Objectif {target.toLocaleString('fr-FR')} kcal</Text>
       <Text style={{ color, fontSize: 13, fontWeight: '700' }}>{onTarget ? '✓ Dans la cible' : `${sign}${delta} kcal`}</Text>
     </View>
+  );
+}
+
+function MarginNote({ t, kcal }: { t: ThemePalette; kcal: number }) {
+  const margin = kcalMargin(kcal);
+  if (kcal <= 0 || margin <= 0) return null;
+  return (
+    <Text style={{ color: t.textTertiary, fontSize: 12, marginTop: 8, lineHeight: 16 }}>
+      ≈ {(kcal - margin).toLocaleString('fr-FR')}–{(kcal + margin).toLocaleString('fr-FR')} kcal · valeurs moyennes, marge ± {margin}
+    </Text>
   );
 }
 
