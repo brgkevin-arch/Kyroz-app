@@ -98,7 +98,11 @@
       "Bash(ls lib/__tests__/ test/)",
       "Bash(grep -rln \"streak\\\\|Streak\" lib/__tests__/ test/)",
       "Bash(grep -rln \"TZ\\\\|timezone\\\\|toISOString\\\\|localStamp\" lib/__tests__/ test/)",
-      "Bash(graphify query *)"
+      "Bash(graphify query *)",
+      "Bash(grep -i playwright package.json)",
+      "Bash(npx playwright *)",
+      "Bash(which playwright *)",
+      "Bash(ls node_modules/.bin/playwright)"
     ]
   }
 }
