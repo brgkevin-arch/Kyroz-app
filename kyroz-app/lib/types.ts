@@ -13,6 +13,25 @@ export type Goal =
 
 export type ActivityLevel = 'sedentary' | 'light' | 'moderate' | 'active' | 'very_active';
 
+// Sports suivis pour estimer la dépense énergétique (méthode MET, cf. lib/sport.ts).
+export type SportType =
+  | 'musculation'
+  | 'course'
+  | 'velo'
+  | 'natation'
+  | 'football'
+  | 'hiit_crossfit'
+  | 'sports_combat'
+  | 'tennis_padel'
+  | 'basket'
+  | 'marche_rapide';
+
+export interface SportSession {
+  type: SportType;
+  sessions_per_week: number;    // nb de séances/semaine
+  minutes_per_session: number;  // durée moyenne d'une séance (min)
+}
+
 export type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
 
 // Ordre canonique des repas dans la journée — source unique de vérité
@@ -60,6 +79,7 @@ export interface UserProfile {
   // Activité
   activity_level: ActivityLevel;
   training_days_per_week: number;
+  sports?: SportSession[];      // sports renseignés → TDEE précis (MET). Vide = calcul legacy (multiplicateur).
 
   // Objectif
   goal: Goal;

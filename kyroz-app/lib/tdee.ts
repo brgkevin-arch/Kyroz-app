@@ -1,4 +1,5 @@
-import { Goal, Sex, UserProfile } from './types';
+import { Goal, Sex, SportSession, UserProfile } from './types';
+import { exerciseKcalPerDay } from './sport';
 
 // ── Calculs nutritionnels ────────────────────────────────────────────────────
 
@@ -33,7 +34,9 @@ export function calculateBMR(
   return Math.round(base + (sex === 'male' ? 5 : -161));
 }
 
-// Multiplicateur d'activité dérivé du nombre de séances/semaine (plus concret)
+// Multiplicateur d'activité dérivé du nombre de séances/semaine (méthode LEGACY,
+// repli pour les profils sans sports renseignés). Fourre-tout : ne distingue pas
+// le type de sport (un yoga et un CrossFit comptent pareil).
 function activityMultiplier(trainingDaysPerWeek: number): number {
   if (trainingDaysPerWeek <= 0) return 1.2;
   if (trainingDaysPerWeek <= 2) return 1.375;
@@ -42,15 +45,28 @@ function activityMultiplier(trainingDaysPerWeek: number): number {
   return 1.9;
 }
 
+// Facteur « vie quotidienne hors sport » (NEAT) appliqué au BMR quand on calcule
+// la dépense sport À PART via les MET. 1.3 ≈ entre sédentaire (1.2, boulot assis)
+// et légèrement actif (1.375), le sport étant ajouté ensuite — pas de double comptage.
+export const NEAT_BASE_PAL = 1.3;
+
+// TDEE = métabolisme de base × activité.
+// • Si des `sports` sont renseignés → méthode précise : BMR × NEAT + dépense sport
+//   (MET) moyennée par jour. Le type ET la durée des sports comptent.
+// • Sinon → repli legacy sur le multiplicateur par nombre de séances.
 export function calculateTDEE(
   sex: Sex,
   weight_kg: number,
   height_cm: number,
   age: number,
   trainingDaysPerWeek: number,
-  bodyFatPct?: number
+  bodyFatPct?: number,
+  sports?: SportSession[]
 ): number {
   const bmr = calculateBMR(sex, weight_kg, height_cm, age, bodyFatPct);
+  if (sports?.length) {
+    return Math.round(bmr * NEAT_BASE_PAL + exerciseKcalPerDay(sports, weight_kg));
+  }
   return Math.round(bmr * activityMultiplier(trainingDaysPerWeek));
 }
 
@@ -140,7 +156,7 @@ export function macrosPercent(
 // tenant compte du % de masse grasse. Source unique utilisée par le profil ET le
 // check-in poids (un nouveau poids → TDEE/macros/plan recalculés automatiquement).
 export function recalcProfile(p: UserProfile): UserProfile {
-  const tdee = calculateTDEE(p.sex, p.weight_kg, p.height_cm, p.age, p.training_days_per_week, p.body_fat_pct);
+  const tdee = calculateTDEE(p.sex, p.weight_kg, p.height_cm, p.age, p.training_days_per_week, p.body_fat_pct, p.sports);
   if (p.macro_mode === 'auto') {
     const m = calculateMacros(tdee, p.goal, p.weight_kg, p.sex, p.body_fat_pct);
     return { ...p, tdee_kcal: tdee, target_kcal: m.target_kcal, target_protein_g: m.protein_g, target_carbs_g: m.carbs_g, target_fat_g: m.fat_g };

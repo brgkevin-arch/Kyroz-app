@@ -2,8 +2,9 @@ import { describe, it, expect } from 'vitest';
 import {
   calculateBMR, calculateTDEE, calculateMacros, macrosPercent, recalcProfile,
   leanBodyMass, validateProfile, recommendedProteinPerKg, kcalFromMacros,
-  MIN_KCAL, MIN_AGE, DEFAULT_CARB_RATIO,
+  MIN_KCAL, MIN_AGE, DEFAULT_CARB_RATIO, NEAT_BASE_PAL,
 } from '../tdee';
+import { exerciseKcalPerDay } from '../sport';
 import { makeProfile } from './helpers';
 
 describe('BMR', () => {
@@ -26,10 +27,32 @@ describe('BMR', () => {
 });
 
 describe('TDEE', () => {
-  it('multiplicateur selon les séances/semaine', () => {
+  it('multiplicateur selon les séances/semaine (legacy, sans sports)', () => {
     expect(calculateTDEE('male', 90, 180, 30, 0)).toBe(Math.round(1880 * 1.2));
     expect(calculateTDEE('male', 90, 180, 30, 4)).toBe(Math.round(1880 * 1.55));
     expect(calculateTDEE('male', 90, 180, 30, 7)).toBe(Math.round(1880 * 1.9));
+  });
+
+  it('méthode MET quand des sports sont renseignés : BMR×1.3 + dépense sport/jour', () => {
+    // BMR 1880 (Mifflin). 4× muscu 60 min @90kg.
+    const perDay = exerciseKcalPerDay(
+      [{ type: 'musculation', sessions_per_week: 4, minutes_per_session: 60 }], 90,
+    );
+    expect(calculateTDEE('male', 90, 180, 30, 4, undefined,
+      [{ type: 'musculation', sessions_per_week: 4, minutes_per_session: 60 }],
+    )).toBe(Math.round(1880 * NEAT_BASE_PAL + perDay));
+  });
+
+  it('non-régression : sports vide/undefined → repli legacy à l\'identique', () => {
+    expect(calculateTDEE('male', 90, 180, 30, 4, undefined, [])).toBe(Math.round(1880 * 1.55));
+    expect(calculateTDEE('male', 90, 180, 30, 4, undefined, undefined)).toBe(Math.round(1880 * 1.55));
+  });
+
+  it('recalcProfile utilise les sports du profil', () => {
+    const p = makeProfile({ sports: [{ type: 'course', sessions_per_week: 3, minutes_per_session: 45 }] });
+    const bmr = calculateBMR(p.sex, p.weight_kg, p.height_cm, p.age, p.body_fat_pct);
+    const perDay = exerciseKcalPerDay(p.sports, p.weight_kg);
+    expect(recalcProfile(p).tdee_kcal).toBe(Math.round(bmr * NEAT_BASE_PAL + perDay));
   });
 });
 

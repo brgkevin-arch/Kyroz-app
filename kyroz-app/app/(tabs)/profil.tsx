@@ -24,15 +24,13 @@ import {
   calculateTDEE, calculateMacros, goalLabel, validateProfile, recalcProfile, macrosPercent, DEFAULT_CARB_RATIO, recommendedProteinPerKg,
 } from '../../lib/tdee';
 import {
-  ActivityLevel, DietaryRestriction, Goal, MEAL_ORDER, MealEmphasis, MealType, Sex, UserProfile, VarietyPreference,
+  ActivityLevel, DietaryRestriction, Goal, MEAL_ORDER, MealEmphasis, MealType, Sex, SportSession, UserProfile, VarietyPreference,
 } from '../../lib/types';
+import { totalSessionsPerWeek } from '../../lib/sport';
+import SportsEditor from '../../components/SportsEditor';
 
 // ── Options ──────────────────────────────────────────────────────────────────
 const GOALS: Goal[] = ['cut_aggressive', 'cut', 'recomp', 'maintain', 'lean_bulk', 'bulk'];
-const TRAINING_OPTIONS = [
-  { label: 'Aucune', days: 0 }, { label: '1–2', days: 2 }, { label: '3–4', days: 4 },
-  { label: '5–6', days: 6 }, { label: '7+', days: 7 },
-];
 const RESTRICTIONS: { label: string; value: DietaryRestriction }[] = [
   { label: 'Végétarien', value: 'vegetarian' }, { label: 'Pescétarien', value: 'pescatarian' },
   { label: 'Sans porc', value: 'no_pork' }, { label: 'Sans lactose', value: 'lactose_free' },
@@ -286,11 +284,12 @@ function InfoEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
   const [age, setAge] = useState(String(profile.age));
   const [weight, setWeight] = useState(String(profile.weight_kg));
   const [height, setHeight] = useState(String(profile.height_cm));
-  const [trainingDays, setTrainingDays] = useState(profile.training_days_per_week);
+  const [sports, setSports] = useState<SportSession[]>(profile.sports ?? []);
   const [bodyFat, setBodyFat] = useState<number | undefined>(profile.body_fat_pct);
   const aN = parseInt(age), wN = parseFloat(weight), hN = parseFloat(height);
   const valid = aN >= 16 && aN <= 100 && wN >= 40 && wN <= 250 && hN >= 120 && hN <= 230;
-  const submit = () => onSave(withRecalc({ ...profile, sex, age: aN, weight_kg: wN, height_cm: hN, body_fat_pct: bodyFat, training_days_per_week: trainingDays, activity_level: activityFromDays(trainingDays) }));
+  const trainingDaysEq = Math.min(totalSessionsPerWeek(sports), 7);
+  const submit = () => onSave(withRecalc({ ...profile, sex, age: aN, weight_kg: wN, height_cm: hN, body_fat_pct: bodyFat, sports, training_days_per_week: trainingDaysEq, activity_level: activityFromDays(trainingDaysEq) }));
   return (
     <EditorShell t={t} title="Informations" onSave={submit} canSave={valid} dragHandlers={dragHandlers}>
       <Segmented t={t} options={[{ label: 'Homme', value: 'male' }, { label: 'Femme', value: 'female' }]} value={sex} onChange={setSex} />
@@ -299,10 +298,8 @@ function InfoEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
       <Field t={t} label="Taille" suffix="cm" value={height} onChangeText={setHeight} keyboardType="number-pad" />
       <SectionLabel t={t}>Masse grasse (optionnel)</SectionLabel>
       <BodyFatPicker t={t} sex={sex} value={bodyFat} onChange={setBodyFat} />
-      <SectionLabel t={t}>Séances / semaine</SectionLabel>
-      <View style={styles.wrap}>
-        {TRAINING_OPTIONS.map((o) => <Chip key={o.days} t={t} label={o.label} selected={trainingDays === o.days} onPress={() => setTrainingDays(o.days)} />)}
-      </View>
+      <SectionLabel t={t}>Tes sports</SectionLabel>
+      <SportsEditor sports={sports} weight={valid ? wN : undefined} onChange={setSports} />
     </EditorShell>
   );
 }
@@ -323,7 +320,7 @@ function MacroEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
   const [carbRatio, setCarbRatio] = useState(profile.carb_ratio ?? DEFAULT_CARB_RATIO);
   const [proteinPerKg, setProteinPerKg] = useState(profile.protein_per_kg ?? recommendedProteinPerKg(profile.goal));
 
-  const tdee = calculateTDEE(profile.sex, profile.weight_kg, profile.height_cm, profile.age, profile.training_days_per_week, profile.body_fat_pct);
+  const tdee = calculateTDEE(profile.sex, profile.weight_kg, profile.height_cm, profile.age, profile.training_days_per_week, profile.body_fat_pct, profile.sports);
   const auto = calculateMacros(tdee, profile.goal, profile.weight_kg, profile.sex, profile.body_fat_pct);
 
   const submit = () => {
