@@ -201,10 +201,11 @@ export default function ProfilScreen() {
             : 'On ne te proposera plus d’ajuster ton plan.'}
         </Text>
 
-        <Text style={s.disclaimer}>{DISCLAIMER}</Text>
-        <Text style={s.disclaimer}>{CIQUAL_ATTRIBUTION}</Text>
         <TouchableOpacity style={s.logoutBtn} onPress={doLogout} activeOpacity={0.8}><Text style={s.logoutTxt}>Se déconnecter</Text></TouchableOpacity>
         <TouchableOpacity style={s.delBtn} onPress={() => setConfirmDelete(true)}><Text style={s.delTxt}>Supprimer mon compte</Text></TouchableOpacity>
+
+        <Text style={s.disclaimer}>{DISCLAIMER}</Text>
+        <Text style={s.disclaimer}>{CIQUAL_ATTRIBUTION}</Text>
       </ScrollView>
 
       {/* Feuilles d'édition */}
