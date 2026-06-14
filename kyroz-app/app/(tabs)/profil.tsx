@@ -185,6 +185,7 @@ export default function ProfilScreen() {
           {slot === 'off'
             ? 'Un rappel par jour pour ne pas casser ta série.'
             : `Chaque jour à ${slot === 'morning' ? '8h00' : slot === 'midday' ? '12h00' : '18h30'}.`}
+          {!remindersSupported && slot !== 'off' ? ' La notif arrive sur l’app mobile (pas sur le web).' : ''}
         </Text>
 
         {/* Propositions d'ajustement du plan (le check-in « ton plan te convient ? ») */}

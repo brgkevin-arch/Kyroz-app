@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { ReminderSlot, applyReminder } from '../lib/notifications';
+import { ReminderSlot, applyReminder, remindersSupported } from '../lib/notifications';
 
 const KEY = '@kyroz:reminder';
 
@@ -19,16 +19,21 @@ export function useReminder() {
     });
   }, []);
 
-  // Choisit un créneau. Si la permission est refusée (ou web), on retombe
-  // proprement sur 'off' et on le reflète dans l'UI. Renvoie le succès réel.
+  // Choisit un créneau.
+  //  • Natif : on programme la notif ; si la permission est refusée → 'off'.
+  //  • Web : pas de notif possible, mais on GARDE la préférence (elle s'activera
+  //    sur l'app mobile) au lieu de retomber bêtement sur « Aucun ».
   const choose = useCallback(async (next: ReminderSlot) => {
     setBusy(true);
-    const ok = await applyReminder(next);
-    const effective: ReminderSlot = ok ? next : 'off';
+    let effective: ReminderSlot = next;
+    if (remindersSupported) {
+      const ok = await applyReminder(next);
+      effective = ok ? next : 'off';
+    }
     setSlot(effective);
     await AsyncStorage.setItem(KEY, effective);
     setBusy(false);
-    return ok;
+    return effective !== 'off';
   }, []);
 
   return { slot, choose, busy };
