@@ -16,6 +16,7 @@ import { StreakCelebration } from '../../components/StreakCelebration';
 import { WeightCheckin } from '../../components/WeightCheckin';
 import { PlanCheckin } from '../../components/PlanCheckin';
 import { OffPlanSheet } from '../../components/OffPlanSheet';
+import { ActionSheet } from '../../components/ActionSheet';
 import { PrimaryButton, SectionLabel } from '../../components/ui';
 import { useProfile } from '../../hooks/useProfile';
 import { useStreak } from '../../hooks/useStreak';
@@ -91,6 +92,7 @@ export default function PlanScreen() {
   const [selectedMeal, setSelectedMeal] = useState<Meal | null>(null);
   const [cookedNote, setCookedNote] = useState<string | null>(null);
   const [offPlanOpen, setOffPlanOpen] = useState(false);
+  const [adaptPrompt, setAdaptPrompt] = useState<number | null>(null); // kcal de l'écart en attente de décision Oui/Non
   const [refreshing, setRefreshing] = useState(false);
   const autoTried = React.useRef(false);
 
@@ -261,15 +263,33 @@ export default function PlanScreen() {
     await setMealStatus(meal, undefined);
   };
 
-  // « J'ai mangé hors plan » : ajoute des kcal au consommé du jour et recale.
+  // « J'ai mangé hors plan » : on ENREGISTRE l'écart (compté à part dans le total)
+  // SANS toucher au plan, puis on PROPOSE de réadapter (Oui/Non). Avant, ça recalait
+  // tout seul — désormais on demande d'abord (le plan ne change que sur accord).
   const logOffPlan = async (kcal: number) => {
     if (!plan || !profile) return;
     const extra: Macros = { kcal, protein_g: 0, carbs_g: 0, fat_g: 0 };
     const day_extras = { ...(plan.day_extras ?? {}), [selectedDay]: extra };
-    const rebalanced = rebalanceDay(profile, { ...plan, day_extras, tracking_date: todayStamp() }, selectedDay);
-    await persistPlan(rebalanced, false);
-    toast(`+${kcal} kcal pris en compte — journée recalée`);
+    const updated: MealPlan = {
+      ...plan,
+      day_extras,
+      tracking_date: todayStamp(),
+      total_macros_per_day: computeDailyTotals(plan.meals, plan.days, day_extras),
+    };
+    await persistPlan(updated, false);
+    setAdaptPrompt(kcal); // → propose la réadaptation
   };
+
+  // « Oui, réadapte » : recale les repas restants pour absorber l'écart.
+  const acceptAdapt = async () => {
+    if (!plan || !profile) { setAdaptPrompt(null); return; }
+    const rebalanced = rebalanceDay(profile, { ...plan, tracking_date: todayStamp() }, selectedDay);
+    await persistPlan(rebalanced, false);
+    setAdaptPrompt(null);
+    toast('Repas restants réadaptés 👊');
+  };
+  // « Non, je garde mon plan » : on ne touche à rien, l'écart reste compté à part.
+  const declineAdapt = () => { setAdaptPrompt(null); toast('Ok, on garde ton plan 😏'); };
 
   // « Remplacer ce repas » : échange UN repas contre une alternative équivalente.
   const swapSelectedMeal = async () => {
@@ -291,13 +311,18 @@ export default function PlanScreen() {
   const fiberTarget = profile ? dailyFiberTarget(profile) : 0;
   const dayExtraKcal = plan?.day_extras?.[selectedDay]?.kcal ?? 0;
 
-  // Retire l'écart hors plan du jour et recale.
+  // Retire l'écart hors plan du jour. Cohérent avec le nouveau principe « on ne
+  // touche au plan que sur demande » : on recompte juste le total, sans recaler.
   const clearOffPlan = async () => {
     if (!plan || !profile) return;
     const day_extras = { ...(plan.day_extras ?? {}) };
     delete day_extras[selectedDay];
-    const rebalanced = rebalanceDay(profile, { ...plan, day_extras }, selectedDay);
-    await persistPlan(rebalanced, false);
+    const updated: MealPlan = {
+      ...plan,
+      day_extras,
+      total_macros_per_day: computeDailyTotals(plan.meals, plan.days, day_extras),
+    };
+    await persistPlan(updated, false);
   };
 
   const todayLabel = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
@@ -424,9 +449,12 @@ export default function PlanScreen() {
                 {profile && <FiberRow t={t} actual={dayFiber} target={fiberTarget} />}
                 {dayExtraKcal > 0 && (
                   <View style={s.extraRow}>
-                    <Text style={{ color: t.textTertiary, fontSize: 13 }}>🍔 Hors plan +{dayExtraKcal} kcal</Text>
+                    <Text style={{ color: t.textSecondary, fontSize: 13 }}>
+                      {(dayMacros.kcal - dayExtraKcal).toLocaleString('fr-FR')} plan
+                      <Text style={{ color: t.text, fontWeight: '700' }}>{` + ${dayExtraKcal} plaisir 😏`}</Text>
+                    </Text>
                     <TouchableOpacity onPress={clearOffPlan} hitSlop={8}>
-                      <Text style={{ color: t.text, fontSize: 13, fontWeight: '700' }}>Retirer</Text>
+                      <Text style={{ color: t.textTertiary, fontSize: 13, fontWeight: '700' }}>Retirer</Text>
                     </TouchableOpacity>
                   </View>
                 )}
@@ -521,10 +549,24 @@ export default function PlanScreen() {
       {/* Célébration quand un palier de série est franchi (3/7/14…) */}
       <StreakCelebration milestone={celebration} onClose={clearCelebration} />
 
-      {/* « J'ai mangé hors plan » → recalage du jour */}
+      {/* « J'ai mangé hors plan » → enregistre l'écart, puis propose de réadapter */}
       <Sheet visible={offPlanOpen} onClose={() => setOffPlanOpen(false)}>
         <OffPlanSheet t={t} onLog={logOffPlan} onClose={() => setOffPlanOpen(false)} />
       </Sheet>
+
+      {/* Consentement : on ne réadapte le plan que si l'utilisateur le demande */}
+      <ActionSheet visible={adaptPrompt !== null} onClose={declineAdapt}>
+        <Text style={{ color: t.text, fontSize: 20, fontWeight: '800', letterSpacing: -0.4 }}>
+          +{adaptPrompt ?? 0} kcal plaisir, c'est noté 😏
+        </Text>
+        <Text style={{ color: t.textSecondary, fontSize: 14, lineHeight: 20 }}>
+          On réadapte tes repas encore à venir (mêmes recettes) pour rester dans ta cible du jour ? Sinon, on ne touche à rien.
+        </Text>
+        <PrimaryButton t={t} label="Oui, réadapte ma journée" onPress={acceptAdapt} />
+        <TouchableOpacity onPress={declineAdapt} style={{ alignItems: 'center', paddingVertical: 10 }}>
+          <Text style={{ color: t.textSecondary, fontSize: 15, fontWeight: '600' }}>Non, je garde mon plan</Text>
+        </TouchableOpacity>
+      </ActionSheet>
 
       {/* Check-in poids hebdo */}
       <Sheet visible={weighIn} onClose={() => setWeighIn(false)}>
