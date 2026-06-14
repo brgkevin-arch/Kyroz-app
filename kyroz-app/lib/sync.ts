@@ -189,7 +189,6 @@ export async function deleteAccount(): Promise<{ error?: string }> {
 export async function deleteCloudData(): Promise<void> {
   const uid = await currentUserId(); if (!uid) return;
   try {
-    await supabase.from('meal_plans').delete().eq('user_id', uid);
     await supabase.from('favorites').delete().eq('user_id', uid);
     await supabase.from('pantry').delete().eq('user_id', uid);
     await supabase.from('weight_logs').delete().eq('user_id', uid);

@@ -84,18 +84,11 @@ alter table public.profiles drop constraint if exists profiles_macro_mode_check;
 alter table public.profiles
   add constraint profiles_macro_mode_check check (macro_mode in ('auto','percent','manual'));
 
--- ── 2. PLANS REPAS (plan complet stocké en JSON) ────────────────────────────
-create table if not exists public.meal_plans (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
-  week_start_date date,
-  generated_at timestamptz not null default now(),
-  days int,
-  profile_sig text,
-  data jsonb not null,
-  created_at timestamptz not null default now()
-);
-create index if not exists meal_plans_user_idx on public.meal_plans(user_id, generated_at desc);
+-- ── 2. (RETIRÉ) PLANS REPAS ─────────────────────────────────────────────────
+-- Le plan est DÉTERMINISTE (régénéré à la volée depuis le profil + ENGINE_VERSION),
+-- jamais stocké côté serveur → pas de table `meal_plans`. La table existait au
+-- schéma mais n'était jamais écrite (seulement supprimée au cleanup). Retirée le
+-- 2026-06-14. Migration de drop : supabase/migrations/2026-06-14_drop_meal_plans.sql
 
 -- ── 3. STREAKS (North Star : 7 jours consécutifs) ───────────────────────────
 create table if not exists public.streaks (
@@ -138,13 +131,12 @@ create table if not exists public.recipe_overrides (
 -- ── PERMISSIONS : seul un utilisateur authentifié accède aux tables ─────────
 grant usage on schema public to anon, authenticated;
 grant select, insert, update, delete on
-  public.profiles, public.meal_plans, public.streaks, public.favorites,
+  public.profiles, public.streaks, public.favorites,
   public.pantry, public.weight_logs, public.recipe_overrides
   to authenticated;
 
 -- ── ROW LEVEL SECURITY ──────────────────────────────────────────────────────
 alter table public.profiles         enable row level security;
-alter table public.meal_plans       enable row level security;
 alter table public.streaks          enable row level security;
 alter table public.favorites        enable row level security;
 alter table public.pantry           enable row level security;
@@ -157,10 +149,6 @@ create policy "profiles_rw_own" on public.profiles
   for all using (auth.uid() = id) with check (auth.uid() = id);
 
 -- tables avec user_id : accès uniquement à ses propres lignes
-drop policy if exists "meal_plans_rw_own" on public.meal_plans;
-create policy "meal_plans_rw_own" on public.meal_plans
-  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
-
 drop policy if exists "streaks_rw_own" on public.streaks;
 create policy "streaks_rw_own" on public.streaks
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
@@ -224,5 +212,5 @@ create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
 
--- ✅ Terminé. Tables : profiles, meal_plans, streaks, favorites, pantry,
+-- ✅ Terminé. Tables : profiles, streaks, favorites, pantry,
 --    weight_logs, recipe_overrides (RLS activée sur toutes).

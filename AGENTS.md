@@ -34,7 +34,7 @@
   - ⚠️ **Piège (corrigé 2026-06-14)** : modifier `schema.sql` n'applique RIEN au projet Supabase live. `weight_logs` + `recipe_overrides` y manquaient → **404** (suivi du poids + recettes perso ne syncaient pas, invisible car AsyncStorage local prend le relais). **Après tout ajout de table/colonne : coller le SQL dans Supabase → SQL Editor → Run.** Les migrations ciblées vivent désormais dans `supabase/migrations/` (idempotentes).
 - **Thème** (`constants/theme.ts`) : adaptatif clair/sombre, accent monochrome, pas de couleur en dur (`useTheme()` + `makeStyles(t)`). `cardShadow` → `boxShadow` sur web / `shadow*`+`elevation` natif (warnings RN-web nettoyés 2026-06-14, avec `pointerEvents` en style et `TouchableWithoutFeedback`→`Pressable`).
 - **Recettes** : 50 (`lib/recipes.ts`), `validated_by_dietitian: false`. Fix `formatQuantity` : « bœuf » contenait « œuf » → était compté en œufs (corrigé + test).
-- **Tests** : **88 / 8 fichiers** (`npm test`, vitest) — garde-fous §6, masse maigre, mode percent, fuseau, déterminisme, recalage du jour, fibres, courses→frigo, units (régression bœuf), intégrité 50 recettes. **Error Boundary** global (`app/_layout.tsx`).
+- **Tests** : **92 / 8 fichiers** (`npm test`, vitest) — garde-fous §6, masse maigre, mode percent, fuseau, déterminisme, recalage du jour, fibres, courses→frigo, units (régression bœuf), intégrité 50 recettes. **Error Boundary** global (`app/_layout.tsx`).
 - **QA E2E Playwright** (`@playwright/test` devDep) : scripts dans `test/` (`walkthrough*.mjs` = parcours headed + vidéo ; `qa-full/qa-deep/qa-settings.mjs` = couverture login+onglets+réglages ; `qa/verify-*.mjs` = non-régression). Web RN garde tous les onglets montés dans le DOM → se fier aux **captures**, pas au dump texte. Login non automatisable (pas de saisie de mot de passe) → connexion manuelle puis session réutilisée via `test/qa/session.json` (gitignored, contient un jeton auth). Sorties générées (PNG, rapports, vidéos) gitignored.
 
 ## RESTE (Phase 2)
@@ -42,7 +42,7 @@
 - **Recettes riches en fibres** à ajouter (cf. ci-dessus).
 - **Photos cloud / premium** : MVP local existe ; reste Supabase Storage + consentement RGPD + gating premium.
 - **Monétisation** : `kyroz-app/MONETISATION.md` (en attente : prix + périmètre gratuit/payant).
-- Optionnel : table `meal_plans` au schéma mais jamais écrite (plan déterministe) — documenter ou retirer.
+- ~~table `meal_plans`~~ **retirée 2026-06-14** : jamais écrite (plan déterministe). Hors de `schema.sql` + `lib/sync.ts` ; drop prod via `supabase/migrations/2026-06-14_drop_meal_plans.sql` (à exécuter dans SQL Editor).
 
 ## Garde-fous PARTOUT (CLAUDE.md §6)
 Min 1500 kcal/j ♂ / 1200 ♀ ; pas < 16 ans ; disclaimer affiché ; fallback plan (jamais d'erreur vide).
