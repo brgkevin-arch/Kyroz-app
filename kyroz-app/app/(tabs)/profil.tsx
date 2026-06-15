@@ -23,6 +23,7 @@ import { usePlanCheckin } from '../../hooks/usePlanCheckin';
 import { useAuth } from '../../hooks/useAuth';
 import { ReminderSlot, remindersSupported } from '../../lib/notifications';
 import { deleteAccount, deleteCloudData } from '../../lib/sync';
+import { exportMyData } from '../../lib/exportData';
 import {
   calculateTDEE, calculateMacros, goalLabel, validateProfile, recalcProfile, macrosPercent, DEFAULT_CARB_RATIO, recommendedProteinPerKg,
 } from '../../lib/tdee';
@@ -106,7 +107,18 @@ export default function ProfilScreen() {
 
   // Déconnexion : couper la session NE redirige pas tout seul l'écran déjà monté
   // (expo-router ne re-route que l'index). On navigue donc explicitement vers le login.
-  const doLogout = async () => { await signOut(); router.replace('/(auth)/login'); };
+  const doLogout = async () => {
+    await signOut();
+    // Sécurité : sur web, AsyncStorage = localStorage et survivrait à la
+    // déconnexion (données de santé + session lisibles sur un poste partagé).
+    // On purge tout SAUF les préférences d'appareil non personnelles.
+    const KEEP = new Set(['@kyroz:theme', '@kyroz:reminder']);
+    const keys = await AsyncStorage.getAllKeys();
+    const toRemove = keys.filter((k) => !KEEP.has(k));
+    if (toRemove.length) await AsyncStorage.multiRemove(toRemove);
+    await clearProfile();
+    router.replace('/(auth)/login');
+  };
 
   // Droit à l'effacement (RGPD §12) : données serveur + locales + déconnexion.
   const doDelete = async () => {
@@ -132,6 +144,13 @@ export default function ProfilScreen() {
   };
 
   const appVersion = Constants.expoConfig?.version ?? '1.0.0';
+
+  // Droit à la portabilité (RGPD art. 20) : exporter toutes ses données.
+  const doExport = async () => {
+    const res = await exportMyData();
+    if (!res.ok) { Alert.alert('Export', 'Impossible d’exporter tes données pour le moment.'); return; }
+    if (res.method === 'download') Alert.alert('Export terminé', 'Tes données ont été téléchargées (kyroz-mes-donnees.json).');
+  };
 
   if (!profile) return null;
 
@@ -236,6 +255,8 @@ export default function ProfilScreen() {
 
         <View style={[s.menu, cardShadow(t)]}>
           <MenuRow t={t} icon="mail-outline" label="Aide & contact" value={SUPPORT_EMAIL} onPress={contactSupport} />
+          <MenuRow t={t} icon="download-outline" label="Exporter mes données" value="Télécharger tout (RGPD)" onPress={doExport} />
+          <MenuRow t={t} icon="shield-checkmark-outline" label="Confidentialité & CGU" value="RGPD, données de santé" onPress={() => router.push('/legal')} />
           <MenuRow t={t} icon="information-circle-outline" label="Version" value={appVersion} onPress={() => {}} readonly last />
         </View>
 
