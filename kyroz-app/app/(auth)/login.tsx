@@ -134,6 +134,9 @@ export default function LoginScreen() {
           )}
 
           <Text style={s.disclaimer}>{DISCLAIMER}</Text>
+          <TouchableOpacity onPress={() => router.push('/legal')} activeOpacity={0.7}>
+            <Text style={s.legalLink}>Politique de confidentialité & CGU</Text>
+          </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -167,5 +170,6 @@ function makeStyles(t: ThemePalette) {
     guestOr: { color: t.textTertiary, fontSize: 12 },
     guest: { color: t.textSecondary, fontSize: 15, fontWeight: '700', textAlign: 'center', marginTop: 16 },
     disclaimer: { color: t.textQuaternary, fontSize: 11, lineHeight: 16, textAlign: 'center', marginTop: 20 },
+    legalLink: { color: t.textTertiary, fontSize: 12, fontWeight: '600', textAlign: 'center', marginTop: 10, textDecorationLine: 'underline' },
   });
 }

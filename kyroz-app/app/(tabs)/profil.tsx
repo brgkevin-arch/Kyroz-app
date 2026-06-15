@@ -247,6 +247,7 @@ export default function ProfilScreen() {
 
         <View style={[s.menu, cardShadow(t)]}>
           <MenuRow t={t} icon="mail-outline" label="Aide & contact" value={SUPPORT_EMAIL} onPress={contactSupport} />
+          <MenuRow t={t} icon="shield-checkmark-outline" label="Confidentialité & CGU" value="RGPD, données de santé" onPress={() => router.push('/legal')} />
           <MenuRow t={t} icon="information-circle-outline" label="Version" value={appVersion} onPress={() => {}} readonly last />
         </View>
 
