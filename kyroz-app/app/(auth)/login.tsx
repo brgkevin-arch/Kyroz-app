@@ -116,14 +116,22 @@ export default function LoginScreen() {
 
           <Text style={s.social}>Connexion Apple & Google bientôt — avec l'app iOS.</Text>
 
-          <View style={s.guestRow}>
-            <View style={s.guestLine} />
-            <Text style={s.guestOr}>ou</Text>
-            <View style={s.guestLine} />
-          </View>
-          <TouchableOpacity onPress={guest} disabled={busy} activeOpacity={0.7} testID="guest-login">
-            <Text style={s.guest}>Continuer en invité</Text>
-          </TouchableOpacity>
+          {/* Connexion invité : outil de test (manuel + Playwright). Masquée en
+              PROD pour fermer le vecteur d'abus (création anonyme de comptes en
+              masse — cf. audit sécu). __DEV__ = vrai en dev, faux après
+              `expo export` → invisible sur le web public déployé. */}
+          {__DEV__ && (
+            <>
+              <View style={s.guestRow}>
+                <View style={s.guestLine} />
+                <Text style={s.guestOr}>ou</Text>
+                <View style={s.guestLine} />
+              </View>
+              <TouchableOpacity onPress={guest} disabled={busy} activeOpacity={0.7} testID="guest-login">
+                <Text style={s.guest}>Continuer en invité</Text>
+              </TouchableOpacity>
+            </>
+          )}
 
           <Text style={s.disclaimer}>{DISCLAIMER}</Text>
         </ScrollView>
