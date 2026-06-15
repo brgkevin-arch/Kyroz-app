@@ -38,7 +38,7 @@ function norm(name: string): string {
 // Un article du garde-manger correspond-il à un ingrédient de recette ?
 // Tolère ligatures (œ↔oe), accents, singulier/pluriel et libellés partiels —
 // ex. « oeufs » saisi à la main ↔ « Œufs entiers » d'une recette.
-function matches(pantryName: string, ingredientName: string): boolean {
+export function matches(pantryName: string, ingredientName: string): boolean {
   const a = norm(pantryName);
   const b = norm(ingredientName);
   return a === b || a.includes(b) || b.includes(a);

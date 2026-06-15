@@ -45,8 +45,13 @@ export default function CoursesScreen() {
     const planRaw = await AsyncStorage.getItem(PLAN_KEY);
     if (planRaw) {
       const plan: MealPlan = JSON.parse(planRaw);
-      const l = buildShoppingList(plan);
-      await AsyncStorage.setItem(LIST_KEY, JSON.stringify(l));
+      const pantry = await loadPantry();           // ne proposer que ce qui manque
+      const l = buildShoppingList(plan, pantry);
+      // Ne pas mettre en cache une liste vide (tout couvert) : sinon l'onglet
+      // resterait bloqué sur « rien à acheter » même après avoir vidé le frigo.
+      // Sans cache, load() la reconstruit à chaque focus et les articles
+      // réapparaissent dès que le garde-manger se dépeuple.
+      if (l.items.length > 0) await AsyncStorage.setItem(LIST_KEY, JSON.stringify(l));
       setList(l);
     } else {
       setList(null);
@@ -90,14 +95,20 @@ export default function CoursesScreen() {
   const onRefresh = useCallback(async () => { setRefreshing(true); await AsyncStorage.removeItem(LIST_KEY); await load(); setRefreshing(false); }, []);
 
   if (!list || list.items.length === 0) {
+    // Deux cas distincts : aucun plan (list null) vs tout déjà au frigo (list vide).
+    const covered = !!list && list.items.length === 0;
     return (
       <SafeAreaView style={s.safe} edges={['top']}>
         <View style={s.center}>
           <View style={[s.emptyIcon, { backgroundColor: t.fill }]}>
-            <Ionicons name="cart-outline" size={30} color={t.textSecondary} />
+            <Ionicons name={covered ? 'checkmark-done-outline' : 'cart-outline'} size={30} color={covered ? t.success : t.textSecondary} />
           </View>
-          <Text style={s.emptyT}>Aucune liste</Text>
-          <Text style={s.emptyS}>Génère un plan repas et ta liste de courses apparaît ici, triée par rayon.</Text>
+          <Text style={s.emptyT}>{covered ? 'Rien à acheter 🎉' : 'Aucune liste'}</Text>
+          <Text style={s.emptyS}>
+            {covered
+              ? 'Ton garde-manger couvre déjà tout le plan de la semaine. La liste réapparaîtra dès qu\'il te manquera quelque chose.'
+              : 'Génère un plan repas et ta liste de courses apparaît ici, triée par rayon.'}
+          </Text>
         </View>
       </SafeAreaView>
     );
