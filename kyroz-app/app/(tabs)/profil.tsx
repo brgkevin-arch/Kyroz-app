@@ -106,7 +106,18 @@ export default function ProfilScreen() {
 
   // Déconnexion : couper la session NE redirige pas tout seul l'écran déjà monté
   // (expo-router ne re-route que l'index). On navigue donc explicitement vers le login.
-  const doLogout = async () => { await signOut(); router.replace('/(auth)/login'); };
+  const doLogout = async () => {
+    await signOut();
+    // Sécurité : sur web, AsyncStorage = localStorage et survivrait à la
+    // déconnexion (données de santé + session lisibles sur un poste partagé).
+    // On purge tout SAUF les préférences d'appareil non personnelles.
+    const KEEP = new Set(['@kyroz:theme', '@kyroz:reminder']);
+    const keys = await AsyncStorage.getAllKeys();
+    const toRemove = keys.filter((k) => !KEEP.has(k));
+    if (toRemove.length) await AsyncStorage.multiRemove(toRemove);
+    await clearProfile();
+    router.replace('/(auth)/login');
+  };
 
   // Droit à l'effacement (RGPD §12) : données serveur + locales + déconnexion.
   const doDelete = async () => {

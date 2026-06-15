@@ -6,6 +6,14 @@ import { goalLabel } from './tdee';
 
 // Mode gratuit par défaut : génération locale.
 // L'API Claude n'est utilisée QUE si une vraie clé est configurée.
+//
+// ⚠️ SÉCURITÉ — NE JAMAIS mettre une vraie clé Anthropic dans cette variable
+// pour un build WEB/public. Toute variable EXPO_PUBLIC_* est inlinée EN CLAIR
+// dans le bundle JS servi sur GitHub Pages → clé volée + facturation détournée.
+// Si la génération IA doit être activée, la déporter derrière une Edge Function
+// Supabase (clé en variable SERVEUR, comme supabase/functions/delete-account),
+// jamais côté client. Le garde HAS_VALID_KEY ci-dessous ne protège PAS la clé,
+// il évite seulement un appel sans clé valide.
 const API_KEY = process.env.EXPO_PUBLIC_ANTHROPIC_API_KEY ?? '';
 const HAS_VALID_KEY = API_KEY.startsWith('sk-ant-');
 

@@ -11,6 +11,7 @@
 - Freemium large : core loop 100 % gratuit, sans clé API.
 - Génération **LOCALE** (`lib/planEngine.ts`) principale ; API Claude (`lib/generatePlan.ts`) seulement si `EXPO_PUBLIC_ANTHROPIC_API_KEY`, sinon fallback local auto.
 - Supabase = auth + sync best-effort (offline-first, RLS stricte). Plan non synchronisé (déterministe) ; photos LOCAL-ONLY (RGPD).
+- ⚠️ **Sécurité clé Anthropic** : NE JAMAIS définir `EXPO_PUBLIC_ANTHROPIC_API_KEY` avec une vraie clé pour un build web public (inlinée en clair dans le bundle GitHub Pages). Si l'IA est réactivée → Edge Function Supabase (clé serveur), pas côté client.
 
 ## Core loop & moteur
 - **Onboarding** (`app/(auth)/onboarding.tsx`, 8 étapes) : prénom (1er, requis, local-only `lib/profileName.ts`) → infos de base + **%MG requis** (`BodyFatPicker`, 6 rendus 3D `assets/bodyfat/{male,female}-N.png`, sources dans `_source/`) → **sports** (`SportsEditor` : type + fréquence + durée, ou « je ne fais pas de sport ») → objectif → macros → préférences → jours+repas → récap. ⚠️ Jours du plan **décochés par défaut** (noir = off, blanc = on). Auto-génère le plan à l'arrivée.
