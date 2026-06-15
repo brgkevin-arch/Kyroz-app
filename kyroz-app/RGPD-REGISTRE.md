@@ -10,8 +10,8 @@
 | Nom | Kévin Berger |
 | Statut | Entrepreneur individuel (micro-entreprise) |
 | SIREN | **[À COMPLÉTER — 9 chiffres]** |
-| Adresse | **[À COMPLÉTER]** |
-| Contact / DPO | dpo@kyrozz.app |
+| Adresse | 2 rue du moulin, 64570 Arette |
+| Contact / DPO | dpo@kyroz.app |
 
 > Pas de délégué à la protection des données (DPO) formellement désigné : non obligatoire à ce stade
 > (traitement non « à grande échelle » au sens de l'art. 37). Le contact RGPD ci-dessus fait office de point d'entrée.
@@ -47,10 +47,11 @@
 
 ---
 
-## À faire / points ouverts (côté responsable)
+## Suivi des actions (côté responsable)
 
-- [ ] Compléter SIREN + adresse (ci-dessus et dans `constants/legal.ts`).
-- [ ] Confirmer l'adresse DPO (`dpo@kyrozz.app` — vérifier l'orthographe du domaine).
-- [ ] Accepter le **DPA (Data Processing Agreement)** de Supabase et confirmer la **région UE** du projet.
-- [ ] Activer la 2FA sur le compte Supabase (seul accès en clair aux données).
+- [x] **DPA Supabase** accepté et signé le 2026-06-15 (données de santé déclarées en catégorie spéciale, rôle Controller). PDF conservé hors dépôt.
+- [x] **Région UE** confirmée (`eu-central-1`, Frankfurt).
+- [x] **2FA** activée sur le compte Supabase.
+- [x] Adresse + email DPO renseignés (2 rue du moulin, 64570 Arette · dpo@kyroz.app).
+- [ ] **Compléter le SIREN** (9 chiffres) ici et dans `constants/legal.ts` (objet `LEGAL`).
 - [ ] (Idéal) Relecture du texte légal par un juriste avant lancement à grande échelle.
