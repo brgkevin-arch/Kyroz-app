@@ -1,17 +1,42 @@
 # Refonte recettes + adaptRecipe (scaling par ingrédient) + soft-matching — Design
 
-> Date : 2026-06-16 · Statut : validé (en attente de `recettes-kyroz-100.json` pour `writing-plans`)
-> Contexte : remplacement des 50 recettes placeholder par les recettes « spécial
-> recomposition » du fondateur (fichier `recettes-kyroz-100.json` ≈ 100 recettes
-> + bloc `config`). Le scaling de portion global est remplacé par l'algorithme
-> **`adaptRecipe`** (fourni par le fondateur) : scaling ciblé par macro, plancher
-> protéique, bornes par rôle. Branché SUR le moteur de macros existant de l'app
-> (un seul cerveau macro).
+> Date : 2026-06-16 · Statut : **validé, données reçues — prêt pour `writing-plans`**
+> Contexte : remplacement des 50 recettes placeholder par les **100 recettes**
+> « spécial recomposition » du fondateur (`recettes-kyroz-100.json` : 20 petit-déj
+> + 20 collations + 60 repas + `ingredients_reference` + `config`). Le scaling de
+> portion global est remplacé par l'algorithme **`adaptRecipe`** (fourni par le
+> fondateur) : scaling ciblé par macro, plancher protéique, bornes par rôle.
+> Branché SUR le moteur de macros existant de l'app (un seul cerveau macro).
+
+## Validation du lot de 100 (faite avant implémentation)
+
+- **Cohérence macros↔ingrédients** : échantillon (12, extrêmes inclus) → kcal &
+  protéines à **<1 %**. Seuls écarts >2 % = arrondi sur glucides quasi-nuls
+  (plats d'œufs). → test automatique `±2 %` sur les 100 à l'implémentation.
+- **Couverture régimes** (trous des 10 comblés) : sans-lactose petit-déj 6+,
+  sans-gluten petit-déj 3 (point le plus mince), collations bien couvertes.
+- **`adaptRecipe` + config réel** : chaque recette a une taille mini/maxi
+  (plancher protéique `min=1.0` + bornes + `abs_max_qty`). Petits profils →
+  grosses recettes débordent (`over_target_kcal`) ; gros profils → petites
+  recettes n'atteignent pas (`under_target_kcal`) ; basse densité → `prot<`.
+  **Tous correctement flagués** → confirme que la SÉLECTION doit s'appuyer sur
+  les flags (taille recette ↔ besoin). Pool de 100 = toujours de quoi servir.
+
+## Corrections de données validées (à appliquer à l'ingestion)
+
+- **rep57 (Chili dinde)** : n'a aucune source de gras (4 g lipides → glucides qui
+  explosent après adaptation). → **ajouter `huile_olive` 8 g** (`macro_role: fat`,
+  `scalable: true`) et recalculer ses macros.
+- **`recomp_flag: 'low_protein_density'`** ajouté à **rep10, rep14, rep29, rep54**
+  (densité protéique ~3,9–4,6 g/100 kcal, comme le Dahl rep03 déjà flagué).
+- **Invariant testé** : chaque `repas_complet` doit avoir ≥1 ingrédient
+  `macro_role: 'fat'` (sinon l'algo n'a pas d'axe lipides → glucides qui débordent).
 
 ## Décisions cadrées (brainstorming)
 
-1. **Pool** : remplacement TOTAL. Le fichier `recettes-kyroz-100.json` (≈100
-   recettes + `config`) sera fourni → `writing-plans` à sa réception.
+1. **Pool** : remplacement TOTAL par les 100 recettes (`recettes-kyroz-100.json`,
+   reçu & validé). Source = ce JSON (bytes exacts à committer comme asset ; ma
+   transcription sera validée par le test de cohérence `±2 %`).
 2. **Matching besoin** : **soft-matching** — tags Objectif/Sport orientent le
    choix de recette à macros équivalentes (jamais filtre dur).
 3. **Scaling** : **`adaptRecipe`** du fondateur, tel quel (par ingrédient).
