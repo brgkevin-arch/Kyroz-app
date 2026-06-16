@@ -1,5 +1,10 @@
 // Texte légal / sécurité affiché à l'onboarding, dans les paramètres et sur chaque
 // plan (CLAUDE.md §6). Source UNIQUE pour ne jamais laisser diverger les copies.
+//
+// ⚠️ MIROIR STATIQUE : `public/legal.html` reprend le même contenu (politique +
+// CGU) pour offrir une URL publique servie en 200 (App Store / partage), car le
+// web est exporté en SPA et /legal renverrait un statut 404. Si tu modifies le
+// texte ici, mets aussi À JOUR `public/legal.html`.
 export const DISCLAIMER =
   "Kyroz est conçu pour des adultes en bonne santé. Ces informations ne remplacent pas l'avis d'un médecin ou diététicien-nutritionniste.";
 
