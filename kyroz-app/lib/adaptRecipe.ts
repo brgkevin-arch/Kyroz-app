@@ -1,11 +1,17 @@
 import { AdaptFlag, Goal, Ingredient, Macros, Recipe, SportSession, RecipeObjective, RecipeSport } from './types';
 import { RECIPE_CONFIG, RECIPE_INGREDIENTS, macrosForRefIngredients } from './recipeData';
 
+/**
+ * Cible d'UN repas, en GRAMMES — fournie par le moteur de l'app (un seul cerveau
+ * macro : `buildLocalPlan`/`rebalanceCore` répartissent les cibles du profil sur
+ * les repas). adaptRecipe NE CALCULE AUCUNE CIBLE : il ajuste les quantités pour
+ * atteindre ces grammes sans casser le plancher protéique.
+ */
 export interface AdaptTarget {
   kcalMeal: number;
   proteinMeal: number;
-  split: { carb: number; fat: number };
-  deficit: boolean;
+  carbMeal: number;
+  fatMeal: number;
 }
 export interface AdaptResult {
   ingredients: Ingredient[]; // copie de recipe.ingredients avec quantity_g ajusté
@@ -15,7 +21,6 @@ export interface AdaptResult {
 
 const per100 = (ref: string) => RECIPE_INGREDIENTS[ref]?.per100g ?? { kcal: 0, protein_g: 0, carbs_g: 0, fat_g: 0 };
 const proteinPer100 = (ref: string) => per100(ref).protein_g;
-const kcalPer100 = (ref: string) => per100(ref).kcal;
 const roundStep = (q: number, step: number) => Math.max(0, Math.round(q / step) * step);
 
 /** Bornes [min,max] d'un ingrédient = facteurs de rôle × qty de base, plafonné par abs_max_qty. */
@@ -31,9 +36,10 @@ function bounds(ing: Ingredient) {
 }
 
 /**
- * Algorithme du fondateur (scaling ciblé macro, plancher protéique). `split` et
- * `deficit` sont fournis par l'appelant (bridge vers les cibles du profil) ;
- * le reste des réglages vient de RECIPE_CONFIG.
+ * Scaling par ingrédient vers une cible repas EN GRAMMES (kcal/protéines/glucides
+ * /lipides), fournie par le moteur de l'app. Plancher protéique (`kp≥1`), légumes
+ * /aromates fixes, glucides et lipides visés en grammes (pas de split/déficit :
+ * les cibles viennent déjà du profil). Le reste des réglages vient de RECIPE_CONFIG.
  */
 export function adaptRecipe(recipe: Recipe, target: AdaptTarget): AdaptResult {
   const cfg = RECIPE_CONFIG;
@@ -82,33 +88,29 @@ export function adaptRecipe(recipe: Recipe, target: AdaptTarget): AdaptResult {
     const b = bounds(i);
     out.set(i, Math.min(Math.max(i.quantity_g * kp, b.min), b.max));
   }
-  const anchorM = macrosOf(anchors);
 
-  // 3. kcal restantes
-  const remaining = target.kcalMeal - fixedM.kcal - anchorM.kcal;
-
-  // 4. Répartition carb/fat selon le split
+  // 3. Viser carbMeal et fatMeal en GRAMMES (cibles fournies par le moteur). Chaque
+  //    bucket est scalé pour combler le manque vs ce qu'apportent déjà les autres
+  //    ingrédients (fixes + ancre + autre bucket) → glucides/lipides montent OU
+  //    descendent vers la cible, sans heuristique de déficit (la cible la porte déjà).
   const carbBucket = fills.filter((i) => ['carb', 'fruit', 'dairy'].includes(i.macro_role as string));
   const fatBucket = fills.filter((i) => i.macro_role === 'fat');
-  const scaleBucket = (bucket: Ingredient[], kcalTarget: number, maxFactor: number | null) => {
-    const baseK = bucket.reduce((s, i) => s + (kcalPer100(i.ref!) * i.quantity_g) / 100, 0);
-    if (baseK <= 0) return;
-    let factor = kcalTarget / baseK;
-    if (maxFactor != null) factor = Math.min(factor, maxFactor);
+  const scaleToMacro = (bucket: Ingredient[], key: 'carbs_g' | 'fat_g', targetTotal: number) => {
+    const baseBucket = bucket.reduce((s, i) => s + (per100(i.ref!)[key] * i.quantity_g) / 100, 0);
+    if (baseBucket <= 0) return;
+    const bucketNow = bucket.reduce((s, i) => s + (per100(i.ref!)[key] * out.get(i)!) / 100, 0);
+    const otherNow = macrosOf(items)[key] - bucketNow; // tout sauf ce bucket, au qty courant
+    const need = Math.max(0, targetTotal - otherNow);
+    const factor = need / baseBucket;
     for (const i of bucket) {
       const b = bounds(i);
       out.set(i, Math.min(Math.max(i.quantity_g * factor, b.min), b.max));
     }
   };
-  let carbShare = remaining * target.split.carb;
-  let fatShare = remaining * target.split.fat;
-  if (carbBucket.length === 0) { fatShare += carbShare; carbShare = 0; }
-  if (fatBucket.length === 0) { carbShare += fatShare; fatShare = 0; }
-  scaleBucket(carbBucket, Math.max(0, carbShare), null);
-  const fatCap = target.deficit && cfg.no_fat_increase_in_deficit !== false ? 1.0 : null;
-  scaleBucket(fatBucket, Math.max(0, fatShare), fatCap);
+  scaleToMacro(carbBucket, 'carbs_g', target.carbMeal);
+  scaleToMacro(fatBucket, 'fat_g', target.fatMeal);
 
-  // 4.5 Récupération protéique (remonte les ancres dans leurs bornes si sous le plancher)
+  // 3.5 Récupération protéique (remonte les ancres dans leurs bornes si sous le plancher)
   const totalProtein = () => items.reduce((s, i) => s + (proteinPer100(i.ref!) * out.get(i)!) / 100, 0);
   if (anchors.length) {
     let need = target.proteinMeal - totalProtein();
@@ -136,6 +138,8 @@ export function adaptRecipe(recipe: Recipe, target: AdaptTarget): AdaptResult {
   if (macros.protein_g < target.proteinMeal * cfg.protein_floor_tolerance) flags.push('protein_below_target');
   if (macros.kcal > target.kcalMeal * 1.12) flags.push('over_target_kcal');
   if (macros.kcal < target.kcalMeal * 0.88) flags.push('under_target_kcal');
+  if (target.fatMeal > 0 && macros.fat_g < target.fatMeal * 0.85) flags.push('fat_below_target');
+  if (target.carbMeal > 0 && macros.carbs_g < target.carbMeal * 0.85) flags.push('carbs_below_target');
 
   return { ingredients: items, macros, flags };
 }

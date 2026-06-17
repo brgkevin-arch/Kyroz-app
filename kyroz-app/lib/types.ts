@@ -74,7 +74,13 @@ export type RecipeObjective = 'cut' | 'maintain' | 'bulk';
 export type RecipeSport = 'muscu' | 'endurance' | 'combats';
 
 // Faisabilité d'une recette adaptée à une cible repas (cf. adaptRecipe).
-export type AdaptFlag = 'protein_below_target' | 'over_target_kcal' | 'under_target_kcal' | 'no_protein_anchor';
+export type AdaptFlag =
+  | 'protein_below_target'
+  | 'over_target_kcal'
+  | 'under_target_kcal'
+  | 'fat_below_target'
+  | 'carbs_below_target'
+  | 'no_protein_anchor';
 
 export interface UserProfile {
   id: string;

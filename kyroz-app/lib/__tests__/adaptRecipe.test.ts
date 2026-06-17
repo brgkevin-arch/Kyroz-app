@@ -14,7 +14,7 @@ const poulet: Recipe = {
   ],
   steps: ['...'], tags: ['lunch', 'dinner'], validated_by_dietitian: false,
 };
-const target = { kcalMeal: 600, proteinMeal: 50, split: { carb: 0.6, fat: 0.4 }, deficit: false };
+const target = { kcalMeal: 600, proteinMeal: 50, carbMeal: 65, fatMeal: 18 };
 
 describe('adaptRecipe', () => {
   it('garde les ingrédients non-scalables (légumes) fixes', () => {
@@ -38,7 +38,7 @@ describe('adaptRecipe', () => {
     expect(p.quantity_g).toBeGreaterThanOrEqual(180);
   });
   it('flag under_target_kcal quand la recette ne peut pas atteindre une grosse cible', () => {
-    const res = adaptRecipe(poulet, { ...target, kcalMeal: 1400, proteinMeal: 60 });
+    const res = adaptRecipe(poulet, { kcalMeal: 1400, proteinMeal: 90, carbMeal: 175, fatMeal: 47 });
     expect(res.flags).toContain('under_target_kcal');
   });
   it('recette sans ref (override perso / legacy) : rend les macros de base inchangées', () => {

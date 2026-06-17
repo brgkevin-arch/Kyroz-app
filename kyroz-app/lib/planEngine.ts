@@ -3,7 +3,6 @@ import { getEffectiveRecipes } from './recipes';
 import { recipeFiberPerPortion, isFiberFocusGoal } from './fiber';
 import { remainingMeals, MEAL_LABEL } from './mealtime';
 import { adaptRecipe, AdaptTarget, goalToObjectives, sportsToBuckets, needMatch } from './adaptRecipe';
-import { RECIPE_CONFIG } from './recipeData';
 
 // ── Moteur de génération de plan local ──────────────────────────────────────
 // Respecte : nombre de jours, repas/jour, variété, préférences alimentaires.
@@ -73,28 +72,51 @@ function seededRank(seed: number, id: string): number {
   return h >>> 0;
 }
 
-// ── Bridge cibles profil → adaptRecipe (un seul cerveau macro) ───────────────
-// Split carb/fat visé par adaptRecipe = déduit des cibles du profil (respecte le
-// mode percent) ; repli config si le profil n'a pas de ratios.
-function profileSplit(profile: UserProfile): { carb: number; fat: number } {
+// ── Cible repas (le moteur = seul cerveau macro) ─────────────────────────────
+// Ratio carb:fat (en fraction des kcal NON protéiques) déduit des cibles du profil
+// (respecte le mode percent). Sert UNIQUEMENT à convertir un budget kcal en grammes
+// de glucides/lipides — il vit dans le moteur, pas dans adaptRecipe.
+function carbFatRatio(profile: UserProfile): { carb: number; fat: number } {
   const carbK = 4 * (profile.target_carbs_g || 0);
   const fatK = 9 * (profile.target_fat_g || 0);
   if (carbK + fatK > 0) return { carb: carbK / (carbK + fatK), fat: fatK / (carbK + fatK) };
-  const fr: Record<string, 'perte_de_gras' | 'maintien' | 'prise_de_masse'> = {
-    cut_aggressive: 'perte_de_gras', cut: 'perte_de_gras', recomp: 'perte_de_gras',
-    maintain: 'maintien', lean_bulk: 'prise_de_masse', bulk: 'prise_de_masse',
-  };
-  return RECIPE_CONFIG.objective_profiles[fr[profile.goal]].carb_fat_split;
+  return { carb: 0.55, fat: 0.45 }; // repli neutre (profil sans ratio)
 }
-const inDeficit = (p: UserProfile) => (p.target_kcal || 0) < (p.tdee_kcal || 0);
+
+/**
+ * Cible repas EN GRAMMES à partir d'un budget restant (kcal + protéines), du poids
+ * du repas et du ratio carb:fat du profil. Les protéines sont prioritaires (pleines) ;
+ * les glucides/lipides sont déduits des kcal NON protéiques → un écart hors-plan
+ * exprimé en kcal est absorbé (les repas restants rétrécissent pour tenir la cible).
+ */
+function mealTarget(
+  remKcal: number, remProt: number, weight: number, remWeight: number,
+  ratio: { carb: number; fat: number },
+): AdaptTarget {
+  const share = remWeight > 0 ? weight / remWeight : 0;
+  const kcalMeal = Math.max(remKcal, 0) * share;
+  const proteinMeal = Math.max(remProt, 0) * share;
+  const nonProtKcal = Math.max(kcalMeal - 4 * proteinMeal, 0);
+  return {
+    kcalMeal,
+    proteinMeal,
+    carbMeal: (nonProtKcal * ratio.carb) / 4,
+    fatMeal: (nonProtKcal * ratio.fat) / 9,
+  };
+}
 
 // Score de fit d'une recette adaptée vs la cible repas (plus petit = meilleur).
+// La cible (kcal/protéines/glucides/lipides en grammes) vient du moteur ; le score
+// privilégie les recettes qui atteignent kcal + protéines, puis les bons axes
+// glucides/lipides (une recette sans axe gras est pénalisée pour une cible grasse).
 function fitScore(macros: Macros, target: AdaptTarget, flags: AdaptFlag[]): number {
   const kcalDev = Math.abs(macros.kcal - target.kcalMeal) / Math.max(target.kcalMeal, 1);
   let s = kcalDev;
   if (flags.includes('under_target_kcal')) s += 1;
   if (flags.includes('over_target_kcal')) s += 1;
   if (flags.includes('protein_below_target')) s += 1.2;
+  if (flags.includes('fat_below_target')) s += 0.4;
+  if (flags.includes('carbs_below_target')) s += 0.4;
   if (flags.includes('no_protein_anchor')) s += 0.5;
   return s;
 }
@@ -359,11 +381,10 @@ export function buildLocalPlan(profile: UserProfile, seed: number = 0): MealPlan
   const variety = profile.variety ?? 'balanced';
   const fiberStrong = isFiberFocusGoal(profile.goal); // sèche → fibres prioritaires
 
-  // Bridge vers les cibles du profil (un seul cerveau macro) + soft-matching.
+  // Soft-matching objectif/sport + ratio carb:fat du profil (le moteur = seul cerveau).
   const objectives = goalToObjectives(profile.goal);
   const sportBuckets = sportsToBuckets(profile.sports);
-  const split = profileSplit(profile);
-  const deficit = inDeficit(profile);
+  const ratio = carbFatRatio(profile);
 
   const pools: Record<string, Recipe[]> = {};
   const relaxed: Record<string, boolean> = {};
@@ -396,13 +417,10 @@ export function buildLocalPlan(profile: UserProfile, seed: number = 0): MealPlan
     mealTypes.forEach((mealType) => {
       const weight = distribution[mealType];
 
-      // Cible du repas = part du budget restant au prorata du poids du repas.
-      // Le fat n'est plus une cible directe : adaptRecipe le pilote via `split`.
-      const target: AdaptTarget = {
-        kcalMeal: (Math.max(remainingKcal, 0) * weight) / remainingWeight,
-        proteinMeal: (Math.max(remainingProtein, 0) * weight) / remainingWeight,
-        split, deficit,
-      };
+      // Cible du repas (EN GRAMMES) = part du budget restant (kcal + protéines) au
+      // prorata du poids ; glucides/lipides déduits via le ratio du profil. Report
+      // de budget → le total du jour reste serré malgré les arrondis/bornes.
+      const target = mealTarget(remainingKcal, remainingProtein, weight, remainingWeight, ratio);
 
       const choice = selectMealAdapted(
         pools[mealType], target, usage, variety, preferredIds, objectives, sportBuckets, seed, fiberStrong,
@@ -449,12 +467,13 @@ export function swapMeal(profile: UserProfile, plan: MealPlan, meal: Meal): Meal
   const pool = poolFor(meal.meal_type, profile).filter((r) => r.id !== meal.recipe.id);
   if (pool.length === 0) return plan; // aucune alternative possible
 
-  // Cible = les macros actuelles du repas → l'alternative est adaptée pour rester
-  // dans le même budget (kcal/protéines), fat piloté par le split du profil.
+  // Cible = les macros actuelles du repas (en grammes) → l'alternative est adaptée
+  // pour rester dans le même budget kcal/protéines/glucides/lipides.
   const target: AdaptTarget = {
     kcalMeal: meal.macros.kcal,
     proteinMeal: meal.macros.protein_g,
-    split: profileSplit(profile), deficit: inDeficit(profile),
+    carbMeal: meal.macros.carbs_g,
+    fatMeal: meal.macros.fat_g,
   };
 
   const ranked = pool
@@ -518,6 +537,8 @@ function rebalanceCore(
   const isAdjustable = (m: Meal) => adjustIds.has(m.id) && (m.status ?? 'planned') === 'planned' && !skipIds.has(m.id);
 
   // Consommé = mangés + extras + planifiés-mais-figés (non ajustables, non sautés).
+  // On suit kcal + protéines : les glucides/lipides restants sont DÉDUITS du budget
+  // kcal restant (via le ratio), ce qui absorbe un écart hors-plan exprimé en kcal.
   const consumed = { kcal: 0, protein: 0 };
   for (const m of dayMeals) {
     if (isAdjustable(m) || skipIds.has(m.id) || m.status === 'skipped') continue;
@@ -530,8 +551,7 @@ function rebalanceCore(
   let remKcal = Math.max(profile.target_kcal - consumed.kcal, 0);
   let remProt = Math.max(profile.target_protein_g - consumed.protein, 0);
 
-  const split = profileSplit(profile);
-  const deficit = inDeficit(profile);
+  const ratio = carbFatRatio(profile);
   const adjustMeals = dayMeals.filter(isAdjustable);
   let remWeight = adjustMeals.reduce((s, m) => s + dist[m.meal_type], 0) || 1;
 
@@ -540,13 +560,9 @@ function rebalanceCore(
     const meal = adjustMeals.find((m) => m.meal_type === mt);
     if (!meal) continue;
     const weight = dist[mt];
-    // Même cible/scaling par ingrédient que buildLocalPlan → recalage = simple
-    // re-adaptation de la MÊME recette vers la cible restante (fat via split).
-    const target: AdaptTarget = {
-      kcalMeal: (Math.max(remKcal, 0) * weight) / remWeight,
-      proteinMeal: (Math.max(remProt, 0) * weight) / remWeight,
-      split, deficit,
-    };
+    // Même cible/scaling que buildLocalPlan → recalage = re-adaptation de la MÊME
+    // recette vers la cible restante (kcal/prot pleins, gluc/lip via ratio).
+    const target = mealTarget(remKcal, remProt, weight, remWeight, ratio);
     const a = adaptRecipe(meal.recipe, target);
     updates.set(meal.id, {
       ...meal, portions: 1, macros: a.macros,
