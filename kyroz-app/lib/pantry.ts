@@ -126,15 +126,18 @@ export function visiblePantry(items: PantryItem[]): PantryItem[] {
   return items.filter((i) => !isStaple(i.name));
 }
 
-/** Déduit du garde-manger les ingrédients d'une recette cuisinée (× portions). */
-export function deductRecipe(items: PantryItem[], recipe: Recipe, portions: number): PantryItem[] {
+/** Déduit du garde-manger une liste d'ingrédients DÉJÀ mis à l'échelle (quantités
+ *  effectives d'un repas — adaptées par ingrédient ou recette×portions). */
+export function deductIngredients(
+  items: PantryItem[],
+  used: { name: string; quantity_g: number; unit?: string }[],
+): PantryItem[] {
   let res = [...items];
-  for (const ing of recipe.ingredients) {
-    if (isStaple(ing.name)) continue;
-    const idx = res.findIndex((i) => matches(i.name, ing.name));
+  for (const u of used) {
+    if (isStaple(u.name)) continue;
+    const idx = res.findIndex((i) => matches(i.name, u.name));
     if (idx < 0) continue;
-    const used = ing.quantity_g * portions;
-    const remaining = res[idx].quantity - used;
+    const remaining = res[idx].quantity - u.quantity_g;
     if (remaining > 1) {
       res[idx] = { ...res[idx], quantity: Math.round(remaining) };
     } else {
@@ -142,6 +145,14 @@ export function deductRecipe(items: PantryItem[], recipe: Recipe, portions: numb
     }
   }
   return res;
+}
+
+/** Déduit du garde-manger les ingrédients d'une recette cuisinée (× portions). */
+export function deductRecipe(items: PantryItem[], recipe: Recipe, portions: number): PantryItem[] {
+  return deductIngredients(
+    items,
+    recipe.ingredients.map((i) => ({ name: i.name, quantity_g: i.quantity_g * portions, unit: i.unit })),
+  );
 }
 
 // ── Couverture / recettes réalisables ────────────────────────────────────────

@@ -24,13 +24,13 @@ import { useWeightLog } from '../../hooks/useWeightLog';
 import { usePlanCheckin } from '../../hooks/usePlanCheckin';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { generateMealPlan } from '../../lib/generatePlan';
-import { profileSignature, swapMeal, computeDailyTotals, rebalanceDay, resetTracking, adaptDayOptions, AdaptOption } from '../../lib/planEngine';
+import { profileSignature, swapMeal, computeDailyTotals, rebalanceDay, resetTracking, adaptDayOptions, AdaptOption, mealIngredients } from '../../lib/planEngine';
 import { kcalMargin } from '../../lib/foods';
 import { todayStamp } from '../../lib/weight';
 import { mealFiberG, dailyFiberTarget } from '../../lib/fiber';
 import { getRecipeById, getBaseRecipe } from '../../lib/recipes';
 import { useRecipeOverrides } from '../../hooks/useRecipeOverrides';
-import { loadPantry, savePantry, deductRecipe, recipeCoverage, PantryItem } from '../../lib/pantry';
+import { loadPantry, savePantry, deductIngredients, recipeCoverage, PantryItem } from '../../lib/pantry';
 import { loadFirstName } from '../../lib/profileName';
 import { Macros, Meal, MealPlan, MealStatus, Recipe } from '../../lib/types';
 
@@ -242,7 +242,7 @@ export default function PlanScreen() {
   // garde-manger, recale les repas restants, compte pour la série.
   const cookMeal = async (meal: Meal) => {
     const items = await loadPantry();
-    const next = deductRecipe(items, meal.recipe, meal.portions);
+    const next = deductIngredients(items, mealIngredients(meal));
     await savePantry(next);
     setPantry(next);
     await setMealStatus(meal, 'eaten', meal.macros);
