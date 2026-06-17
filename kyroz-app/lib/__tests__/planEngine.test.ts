@@ -77,6 +77,58 @@ describe('buildLocalPlan (cœur du core loop)', () => {
   });
 });
 
+describe('buildLocalPlan + adaptRecipe (scaling par ingrédient)', () => {
+  it('produit un plan complet avec quantités adaptées par repas', () => {
+    const plan = buildLocalPlan(makeProfile({ plan_days: 1 }), 0);
+    expect(plan.meals).toHaveLength(4); // 1 jour × 4 repas
+    for (const m of plan.meals) {
+      expect(m.adapted_ingredients, m.id).toBeTruthy();
+      expect(m.adapted_ingredients!.length).toBeGreaterThan(0);
+      expect(m.macros.kcal).toBeGreaterThan(0);
+      expect(m.portions).toBe(1);
+    }
+  });
+
+  it('total du jour proche de la cible kcal (±12%)', () => {
+    const p = makeProfile({ plan_days: 1 });
+    const plan = buildLocalPlan(p, 0);
+    const dayKcal = plan.total_macros_per_day[0].kcal;
+    expect(Math.abs(dayKcal - p.target_kcal) / p.target_kcal).toBeLessThan(0.12);
+  });
+
+  it('respecte les restrictions (végétarien) via restrictions_ok ou repli signalé', () => {
+    const plan = buildLocalPlan(makeProfile({ dietary_restrictions: ['vegetarian'] }), 0);
+    for (const m of plan.meals)
+      expect(m.restriction_relaxed || m.recipe.restrictions_ok?.includes('vegetarian'), m.recipe.id).toBeTruthy();
+  });
+
+  it('soft-matching combats : plan complet, sans erreur', () => {
+    const plan = buildLocalPlan(makeProfile({
+      goal: 'cut', sports: [{ type: 'sports_combat', sessions_per_week: 3, minutes_per_session: 90 }],
+      target_kcal: 2000, target_protein_g: 170, target_carbs_g: 180, target_fat_g: 60, plan_days: 1,
+    }), 0);
+    expect(plan.meals).toHaveLength(4);
+  });
+});
+
+describe('swap / rebalance via adaptRecipe', () => {
+  it('rebalanceDay garde adapted_ingredients sur les repas ajustés', () => {
+    const p = makeProfile({ plan_days: 1 });
+    const plan = buildLocalPlan(p, 0);
+    const out = rebalanceDay(p, plan, 1);
+    for (const m of out.meals) expect(m.adapted_ingredients, m.id).toBeTruthy();
+  });
+  it('swapMeal change de recette et fournit des quantités adaptées', () => {
+    const p = makeProfile({ plan_days: 1 });
+    const plan = buildLocalPlan(p, 0);
+    const target = plan.meals[1];
+    const out = swapMeal(p, plan, target);
+    const newMeal = out.meals.find((m) => m.id === target.id)!;
+    expect(newMeal.adapted_ingredients).toBeTruthy();
+    expect(newMeal.portions).toBe(1);
+  });
+});
+
 describe('computeDailyTotals', () => {
   it('somme exacte des macros des repas du jour', () => {
     const p = makeProfile({ plan_days: 2 });

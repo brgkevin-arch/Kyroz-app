@@ -1,7 +1,9 @@
-import { DietaryRestriction, Macros, Meal, MEAL_ORDER, MealEmphasis, MealPlan, MealStatus, MealType, Recipe, UserProfile, VarietyPreference } from './types';
+import { AdaptFlag, DietaryRestriction, Ingredient, Macros, Meal, MEAL_ORDER, MealEmphasis, MealPlan, MealStatus, MealType, Recipe, RecipeObjective, RecipeSport, UserProfile, VarietyPreference } from './types';
 import { getEffectiveRecipes } from './recipes';
 import { recipeFiberPerPortion, isFiberFocusGoal } from './fiber';
 import { remainingMeals, MEAL_LABEL } from './mealtime';
+import { adaptRecipe, AdaptTarget, goalToObjectives, sportsToBuckets, needMatch } from './adaptRecipe';
+import { RECIPE_CONFIG } from './recipeData';
 
 // ── Moteur de génération de plan local ──────────────────────────────────────
 // Respecte : nombre de jours, repas/jour, variété, préférences alimentaires.
@@ -48,38 +50,6 @@ export function computeDistribution(meals: MealType[], emphasis: MealEmphasis): 
   return dist;
 }
 
-const MIN_PORTION = 0.5;
-const MAX_PORTION = 3;
-const PORTION_STEP = 0.25;
-
-// Grille de portions admissibles : [0.5, 0.75, …, 3]
-const PORTION_STEPS: number[] = (() => {
-  const steps: number[] = [];
-  for (let p = MIN_PORTION; p <= MAX_PORTION + 1e-9; p += PORTION_STEP) {
-    steps.push(Math.round(p * 100) / 100);
-  }
-  return steps;
-})();
-
-// Score d'écart : pénalité kcal asymétrique (« deadband ») + pénalité protéines.
-//
-// Les calories sont le contrat quotidien : tant que l'écart kcal du repas reste
-// dans la bande KCAL_DEADBAND, il coûte peu (pente W_KCAL_IN) → ce sont les
-// protéines qui pilotent le choix de recette (vers la plus pauvre en protéines
-// quand il faut en limiter). Au-delà, un mur raide (W_KCAL_OUT) ramène les kcal
-// dans la cible, même quand la cible protéines est hors d'atteinte avec le pool
-// (mieux vaut alors un excès de protéines, sans danger, qu'un écart calorique
-// qui casse l'objectif de poids).
-const KCAL_DEADBAND = 0.06; // ±6 % de la part kcal du repas : zone « gratuite »
-const SCORE_W_KCAL_IN = 1; // pente douce dans la bande (laisse parler les prot.)
-const SCORE_W_KCAL_OUT = 30; // mur raide hors bande (protège les calories)
-const SCORE_W_PROTEIN = 1.2; // protéines : priorité (muscle)
-// Lipides : on les pilote AUSSI, sinon le moteur tape kcal+prot avec des recettes
-// très grasses (3 plats d'œufs → 179 g de lipides…). En contraignant kcal + prot +
-// lipides, les glucides (= reste) sont mécaniquement cadrés eux aussi. Poids un peu
-// plus doux que les protéines : on corrige les excès sans rigidifier le choix.
-const SCORE_W_FAT = 0.9;
-
 // Variété : parmi les recettes quasi-équivalentes côté macros (score à « bande »
 // du meilleur), on privilégie la moins utilisée de la semaine. La bande reste
 // étroite pour ne jamais sacrifier la précision ; « max » l'élargit un peu.
@@ -103,6 +73,32 @@ function seededRank(seed: number, id: string): number {
   return h >>> 0;
 }
 
+// ── Bridge cibles profil → adaptRecipe (un seul cerveau macro) ───────────────
+// Split carb/fat visé par adaptRecipe = déduit des cibles du profil (respecte le
+// mode percent) ; repli config si le profil n'a pas de ratios.
+function profileSplit(profile: UserProfile): { carb: number; fat: number } {
+  const carbK = 4 * (profile.target_carbs_g || 0);
+  const fatK = 9 * (profile.target_fat_g || 0);
+  if (carbK + fatK > 0) return { carb: carbK / (carbK + fatK), fat: fatK / (carbK + fatK) };
+  const fr: Record<string, 'perte_de_gras' | 'maintien' | 'prise_de_masse'> = {
+    cut_aggressive: 'perte_de_gras', cut: 'perte_de_gras', recomp: 'perte_de_gras',
+    maintain: 'maintien', lean_bulk: 'prise_de_masse', bulk: 'prise_de_masse',
+  };
+  return RECIPE_CONFIG.objective_profiles[fr[profile.goal]].carb_fat_split;
+}
+const inDeficit = (p: UserProfile) => (p.target_kcal || 0) < (p.tdee_kcal || 0);
+
+// Score de fit d'une recette adaptée vs la cible repas (plus petit = meilleur).
+function fitScore(macros: Macros, target: AdaptTarget, flags: AdaptFlag[]): number {
+  const kcalDev = Math.abs(macros.kcal - target.kcalMeal) / Math.max(target.kcalMeal, 1);
+  let s = kcalDev;
+  if (flags.includes('under_target_kcal')) s += 1;
+  if (flags.includes('over_target_kcal')) s += 1;
+  if (flags.includes('protein_below_target')) s += 1.2;
+  if (flags.includes('no_protein_anchor')) s += 0.5;
+  return s;
+}
+
 // Mots-clés exclus par régime
 const RESTRICTION_BLOCKLIST: Record<DietaryRestriction, string[]> = {
   vegetarian: ['poulet', 'boeuf', 'bœuf', 'steak', 'saumon', 'thon', 'jambon', 'porc', 'dinde', 'poisson', 'cabillaud', 'crevette'],
@@ -123,9 +119,14 @@ function recipeAllowed(recipe: Recipe, profile: UserProfile): boolean {
   // Temps de prépa (repli pour profils legacy sans le champ)
   if (recipe.prep_time_min > (profile.max_prep_time_min ?? 60)) return false;
 
-  // Régimes
+  // Régimes : restrictions_ok autoritaire si présent (recettes Kyroz), sinon repli
+  // mots-clés (recettes legacy/overrides sans classification diététique).
   for (const r of profile.dietary_restrictions ?? []) {
-    if (RESTRICTION_BLOCKLIST[r].some((kw) => text.includes(kw))) return false;
+    if (recipe.restrictions_ok) {
+      if (!recipe.restrictions_ok.includes(r)) return false;
+    } else if (RESTRICTION_BLOCKLIST[r].some((kw) => text.includes(kw))) {
+      return false;
+    }
   }
 
   // Aliments évités
@@ -138,13 +139,21 @@ function recipeAllowed(recipe: Recipe, profile: UserProfile): boolean {
 }
 
 function poolFor(mealType: MealType, profile: UserProfile): Recipe[] {
+  return poolForWithFlag(mealType, profile).pool;
+}
+
+/**
+ * Pool pour un repas + drapeau `relaxed` : true quand aucune recette ne respecte
+ * le régime/les préférences et qu'on a dû retomber sur le pool complet (repli
+ * honnête, signalé à l'UI plutôt que de servir un régime non garanti en silence).
+ */
+function poolForWithFlag(mealType: MealType, profile: UserProfile): { pool: Recipe[]; relaxed: boolean } {
   const recipes = getEffectiveRecipes();
   const all = recipes.filter((r) => r.tags.includes(mealType));
   const filtered = all.filter((r) => recipeAllowed(r, profile));
-  // Fallback : ne jamais renvoyer un pool vide (sinon plan incomplet)
-  if (filtered.length > 0) return filtered;
-  if (all.length > 0) return all;
-  return recipes;
+  if (filtered.length > 0) return { pool: filtered, relaxed: false };
+  if (all.length > 0) return { pool: all, relaxed: true };
+  return { pool: recipes, relaxed: true };
 }
 
 // Mots-clés par source de protéine préférée. Sert UNIQUEMENT de départage à
@@ -172,83 +181,56 @@ function preferredRecipeIds(profile: UserProfile): Set<string> {
   return ids;
 }
 
-interface MealChoice {
+interface AdaptedChoice {
   recipe: Recipe;
-  portion: number;
+  ingredients: Ingredient[];
   macros: Macros;
-  score: number;
-  fiber: number; // fibres estimées (g) du repas — sert de départage souple
-}
-
-interface MealTarget {
-  kcal: number;
-  protein: number;
-  fat: number;
-  kcalScale: number;
-  proteinScale: number;
-  fatScale: number;
+  flags: AdaptFlag[];
+  score: number;   // fit macro (plus petit = meilleur)
+  fiber: number;   // fibres approximatives (départage)
+  preferred: boolean; // matche une protéine préférée
+  need: number;    // soft-match objectif + sport (0–2)
 }
 
 /**
- * Écart relatif pondéré (kcal + protéines + lipides) entre des macros et une cible
- * repas. Normalisé par une échelle stable (part fixe de la cible du jour) pour
- * rester comparable même quand le budget restant tombe à zéro.
+ * Choisit une recette pour un repas en l'ADAPTANT par ingrédient (adaptRecipe) à
+ * la cible macro du repas, puis départage les quasi-ex æquo. Remplace l'ancienne
+ * grille de portions : chaque recette est scalée vers la cible, on score par les
+ * flags + l'écart kcal résiduel, et on départage par préférence > besoin (objectif
+ * /sport) > fibres/variété > seed.
+ *  - repetitive (seed 0) : meilleur fit strict → même séquence chaque jour.
+ *  - balanced / max : recette la moins utilisée (bande plus large en « max »).
  */
-function deviationScore(macros: Macros, target: MealTarget): number {
-  const kcalDev = (macros.kcal - target.kcal) / target.kcalScale;
-  const protDev = (macros.protein_g - target.protein) / target.proteinScale;
-  const fatDev = (macros.fat_g - target.fat) / target.fatScale;
-  const kcalOver = Math.max(0, Math.abs(kcalDev) - KCAL_DEADBAND);
-  const kcalPenalty =
-    SCORE_W_KCAL_IN * kcalDev * kcalDev + SCORE_W_KCAL_OUT * kcalOver * kcalOver;
-  return kcalPenalty + SCORE_W_PROTEIN * protDev * protDev + SCORE_W_FAT * fatDev * fatDev;
-}
-
-/** Meilleure portion (grille 0.25) d'une recette pour une cible repas donnée. */
-function bestPortionFor(recipe: Recipe, target: MealTarget): MealChoice {
-  let best: MealChoice | null = null;
-  const fiberPerPortion = recipeFiberPerPortion(recipe);
-  for (const portion of PORTION_STEPS) {
-    const macros = scaleMacros(recipe.macros_per_portion, portion);
-    const score = deviationScore(macros, target);
-    if (best === null || score < best.score) {
-      best = { recipe, portion, macros, score, fiber: fiberPerPortion * portion };
-    }
-  }
-  // PORTION_STEPS n'est jamais vide → best est toujours défini.
-  return best as MealChoice;
-}
-
-/**
- * Choisit (recette, portion) pour un repas : meilleur ajustement macro d'abord,
- * puis la préférence de variété départage les quasi-ex æquo.
- *  - repetitive : pas d'étalement → même séquence chaque jour.
- *  - balanced / max : recette la moins utilisée de la semaine (bande plus large
- *    en « max » pour accepter un léger surcoût macro en échange de diversité).
- */
-function selectMeal(
+function selectMealAdapted(
   pool: Recipe[],
-  target: MealTarget,
+  target: AdaptTarget,
   usage: Record<string, number>,
   variety: VarietyPreference,
   preferredIds: Set<string>,
+  objectives: RecipeObjective[],
+  sportBuckets: RecipeSport[],
   seed: number,
   fiberStrong: boolean
-): MealChoice {
-  const candidates = pool
-    .map((r) => bestPortionFor(r, target))
+): AdaptedChoice {
+  const candidates: AdaptedChoice[] = pool
+    .map((r) => {
+      const a = adaptRecipe(r, target);
+      return {
+        recipe: r, ingredients: a.ingredients, macros: a.macros, flags: a.flags,
+        score: fitScore(a.macros, target, a.flags),
+        fiber: recipeFiberPerPortion(r),
+        preferred: preferredIds.has(r.id),
+        need: needMatch(r, objectives, sportBuckets),
+      };
+    })
     .sort((a, b) => a.score - b.score || a.recipe.id.localeCompare(b.recipe.id));
 
   // Plan canonique répétitif (seed 0) : meilleur score strict, jours identiques.
   if (variety === 'repetitive' && seed === 0) return candidates[0];
 
   const minScore = candidates[0].score;
-  // En sèche, on élargit un peu la bande de départage : plus de candidats quasi-
-  // équivalents → les fibres ont davantage de marge pour orienter le choix.
   const band = (variety === 'max' ? TIE_BAND_MAX : TIE_BAND_BALANCED) + (fiberStrong ? FIBER_BAND_BONUS : 0);
 
-  // Pool de choix : bande macro étroite par défaut (précision). En reroll, on
-  // élargit (borné) pour avoir de quoi varier → un nouveau plan à chaque clic.
   let pickable = candidates.filter((c) => c.score <= minScore + band);
   if (seed !== 0) {
     let wide = candidates.filter((c) => c.score <= minScore + VARIANT_BAND);
@@ -256,16 +238,14 @@ function selectMeal(
     pickable = wide.slice(0, VARIANT_POOL);
   }
 
-  // Bonus fibres : à macros quasi-équivalentes, on penche vers le repas le plus
-  // riche en fibres. Seuil de 1 g pour ne départager que sur un écart réel.
-  const fiberCmp = (a: MealChoice, b: MealChoice) => (b.fiber - a.fiber > 1 ? 1 : a.fiber - b.fiber > 1 ? -1 : 0);
+  const fiberCmp = (a: AdaptedChoice, b: AdaptedChoice) => (b.fiber - a.fiber > 1 ? 1 : a.fiber - b.fiber > 1 ? -1 : 0);
 
   pickable.sort((a, b) => {
-    // 1) Protéines préférées d'abord.
-    const pa = preferredIds.has(a.recipe.id) ? 0 : 1;
-    const pb = preferredIds.has(b.recipe.id) ? 0 : 1;
-    if (pa !== pb) return pa - pb;
-    // 1bis) En sèche, les fibres priment sur la variété (satiété).
+    // 1) Protéines préférées d'abord (signal explicite de l'utilisateur).
+    if (a.preferred !== b.preferred) return a.preferred ? -1 : 1;
+    // 1bis) Besoin : recette taguée pour l'objectif/sport (soft-matching).
+    if (a.need !== b.need) return b.need - a.need;
+    // 1ter) En sèche, les fibres priment sur la variété (satiété).
     if (fiberStrong) { const f = fiberCmp(a, b); if (f !== 0) return f; }
     // 2) Variété intra-semaine : la recette la moins utilisée (sauf en répétitif).
     if (variety !== 'repetitive') {
@@ -286,15 +266,6 @@ function selectMeal(
   });
 
   return pickable[0];
-}
-
-function scaleMacros(base: Macros, factor: number): Macros {
-  return {
-    kcal: Math.round(base.kcal * factor),
-    protein_g: Math.round(base.protein_g * factor),
-    carbs_g: Math.round(base.carbs_g * factor),
-    fat_g: Math.round(base.fat_g * factor),
-  };
 }
 
 /**
@@ -343,7 +314,7 @@ export function computeDailyTotals(
 // Version du moteur de génération : à incrémenter quand le scoring/sélection
 // change, pour que les plans EN CACHE se régénèrent automatiquement (la signature
 // change → l'auto-refresh de l'écran Plan rejoue la génération). v2 = lipides cadrés.
-const ENGINE_VERSION = 3; // v3 = départage fibres
+const ENGINE_VERSION = 4; // v4 = adaptRecipe (scaling par ingrédient) + soft-matching
 
 export function profileSignature(p: UserProfile): string {
   return JSON.stringify({
@@ -374,8 +345,19 @@ export function buildLocalPlan(profile: UserProfile, seed: number = 0): MealPlan
   const variety = profile.variety ?? 'balanced';
   const fiberStrong = isFiberFocusGoal(profile.goal); // sèche → fibres prioritaires
 
+  // Bridge vers les cibles du profil (un seul cerveau macro) + soft-matching.
+  const objectives = goalToObjectives(profile.goal);
+  const sportBuckets = sportsToBuckets(profile.sports);
+  const split = profileSplit(profile);
+  const deficit = inDeficit(profile);
+
   const pools: Record<string, Recipe[]> = {};
-  for (const mt of mealTypes) pools[mt] = poolFor(mt, profile);
+  const relaxed: Record<string, boolean> = {};
+  for (const mt of mealTypes) {
+    const pf = poolForWithFlag(mt, profile);
+    pools[mt] = pf.pool;
+    relaxed[mt] = pf.relaxed;
+  }
 
   // Recettes correspondant aux protéines préférées (départage à macro égale).
   const preferredIds = preferredRecipeIds(profile);
@@ -395,29 +377,26 @@ export function buildLocalPlan(profile: UserProfile, seed: number = 0): MealPlan
     // ne peut jamais affamer les kcal des repas suivants.
     let remainingKcal = profile.target_kcal;
     let remainingProtein = profile.target_protein_g;
-    let remainingFat = profile.target_fat_g;
     let remainingWeight = totalWeight;
 
     mealTypes.forEach((mealType) => {
       const weight = distribution[mealType];
 
       // Cible du repas = part du budget restant au prorata du poids du repas.
-      const target: MealTarget = {
-        kcal: (Math.max(remainingKcal, 0) * weight) / remainingWeight,
-        protein: (Math.max(remainingProtein, 0) * weight) / remainingWeight,
-        fat: (Math.max(remainingFat, 0) * weight) / remainingWeight,
-        // Normalisateurs stables (part fixe de la cible du jour, pas du reliquat).
-        kcalScale: Math.max(profile.target_kcal * weight, 1),
-        proteinScale: Math.max(profile.target_protein_g * weight, 1),
-        fatScale: Math.max(profile.target_fat_g * weight, 1),
+      // Le fat n'est plus une cible directe : adaptRecipe le pilote via `split`.
+      const target: AdaptTarget = {
+        kcalMeal: (Math.max(remainingKcal, 0) * weight) / remainingWeight,
+        proteinMeal: (Math.max(remainingProtein, 0) * weight) / remainingWeight,
+        split, deficit,
       };
 
-      const choice = selectMeal(pools[mealType], target, usage, variety, preferredIds, seed, fiberStrong);
+      const choice = selectMealAdapted(
+        pools[mealType], target, usage, variety, preferredIds, objectives, sportBuckets, seed, fiberStrong,
+      );
 
       usage[choice.recipe.id] = (usage[choice.recipe.id] ?? 0) + 1;
       remainingKcal -= choice.macros.kcal;
       remainingProtein -= choice.macros.protein_g;
-      remainingFat -= choice.macros.fat_g;
       remainingWeight -= weight;
 
       meals.push({
@@ -425,8 +404,11 @@ export function buildLocalPlan(profile: UserProfile, seed: number = 0): MealPlan
         day: d,
         meal_type: mealType,
         recipe: choice.recipe,
-        portions: choice.portion,
+        portions: 1,
         macros: choice.macros,
+        adapted_ingredients: choice.ingredients,
+        adapt_flags: choice.flags.length ? choice.flags : undefined,
+        restriction_relaxed: relaxed[mealType] || undefined,
       });
     });
   }
@@ -453,27 +435,28 @@ export function swapMeal(profile: UserProfile, plan: MealPlan, meal: Meal): Meal
   const pool = poolFor(meal.meal_type, profile).filter((r) => r.id !== meal.recipe.id);
   if (pool.length === 0) return plan; // aucune alternative possible
 
-  const target: MealTarget = {
-    kcal: meal.macros.kcal,
-    protein: meal.macros.protein_g,
-    fat: meal.macros.fat_g,
-    kcalScale: Math.max(meal.macros.kcal, 1),
-    proteinScale: Math.max(meal.macros.protein_g, 1),
-    fatScale: Math.max(meal.macros.fat_g, 1),
+  // Cible = les macros actuelles du repas → l'alternative est adaptée pour rester
+  // dans le même budget (kcal/protéines), fat piloté par le split du profil.
+  const target: AdaptTarget = {
+    kcalMeal: meal.macros.kcal,
+    proteinMeal: meal.macros.protein_g,
+    split: profileSplit(profile), deficit: inDeficit(profile),
   };
 
   const ranked = pool
-    .map((r) => bestPortionFor(r, target))
-    .sort((a, b) => a.score - b.score);
+    .map((r) => { const a = adaptRecipe(r, target); return { r, a, score: fitScore(a.macros, target, a.flags) }; })
+    .sort((x, y) => x.score - y.score);
 
   const top = ranked.slice(0, Math.min(VARIANT_MIN, ranked.length));
-  const choice = top[Math.floor(Math.random() * top.length)];
+  const pick = top[Math.floor(Math.random() * top.length)];
 
   const newMeal: Meal = {
     ...meal,
-    recipe: choice.recipe,
-    portions: choice.portion,
-    macros: choice.macros,
+    recipe: pick.r,
+    portions: 1,
+    macros: pick.a.macros,
+    adapted_ingredients: pick.a.ingredients,
+    adapt_flags: pick.a.flags.length ? pick.a.flags : undefined,
   };
   const meals = plan.meals.map((m) => (m.id === meal.id ? newMeal : m));
   return { ...plan, meals, total_macros_per_day: computeDailyTotals(meals, plan.days, plan.day_extras) };
@@ -521,19 +504,20 @@ function rebalanceCore(
   const isAdjustable = (m: Meal) => adjustIds.has(m.id) && (m.status ?? 'planned') === 'planned' && !skipIds.has(m.id);
 
   // Consommé = mangés + extras + planifiés-mais-figés (non ajustables, non sautés).
-  const consumed = { kcal: 0, protein: 0, fat: 0 };
+  const consumed = { kcal: 0, protein: 0 };
   for (const m of dayMeals) {
     if (isAdjustable(m) || skipIds.has(m.id) || m.status === 'skipped') continue;
     const em = m.status === 'eaten' ? (m.locked_macros ?? m.macros) : m.macros;
-    consumed.kcal += em.kcal; consumed.protein += em.protein_g; consumed.fat += em.fat_g;
+    consumed.kcal += em.kcal; consumed.protein += em.protein_g;
   }
   const extra = plan.day_extras?.[day];
-  if (extra) { consumed.kcal += extra.kcal; consumed.protein += extra.protein_g; consumed.fat += extra.fat_g; }
+  if (extra) { consumed.kcal += extra.kcal; consumed.protein += extra.protein_g; }
 
   let remKcal = Math.max(profile.target_kcal - consumed.kcal, 0);
   let remProt = Math.max(profile.target_protein_g - consumed.protein, 0);
-  let remFat = Math.max(profile.target_fat_g - consumed.fat, 0);
 
+  const split = profileSplit(profile);
+  const deficit = inDeficit(profile);
   const adjustMeals = dayMeals.filter(isAdjustable);
   let remWeight = adjustMeals.reduce((s, m) => s + dist[m.meal_type], 0) || 1;
 
@@ -542,19 +526,20 @@ function rebalanceCore(
     const meal = adjustMeals.find((m) => m.meal_type === mt);
     if (!meal) continue;
     const weight = dist[mt];
-    const target: MealTarget = {
-      kcal: (remKcal * weight) / remWeight,
-      protein: (remProt * weight) / remWeight,
-      fat: (remFat * weight) / remWeight,
-      kcalScale: Math.max(profile.target_kcal * weight, 1),
-      proteinScale: Math.max(profile.target_protein_g * weight, 1),
-      fatScale: Math.max(profile.target_fat_g * weight, 1),
+    // Même cible/scaling par ingrédient que buildLocalPlan → recalage = simple
+    // re-adaptation de la MÊME recette vers la cible restante (fat via split).
+    const target: AdaptTarget = {
+      kcalMeal: (Math.max(remKcal, 0) * weight) / remWeight,
+      proteinMeal: (Math.max(remProt, 0) * weight) / remWeight,
+      split, deficit,
     };
-    const choice = bestPortionFor(meal.recipe, target);
-    updates.set(meal.id, { ...meal, portions: choice.portion, macros: choice.macros });
-    remKcal -= choice.macros.kcal;
-    remProt -= choice.macros.protein_g;
-    remFat -= choice.macros.fat_g;
+    const a = adaptRecipe(meal.recipe, target);
+    updates.set(meal.id, {
+      ...meal, portions: 1, macros: a.macros,
+      adapted_ingredients: a.ingredients, adapt_flags: a.flags.length ? a.flags : undefined,
+    });
+    remKcal -= a.macros.kcal;
+    remProt -= a.macros.protein_g;
     remWeight -= weight;
   }
 

@@ -41,6 +41,16 @@ describe('adaptRecipe', () => {
     const res = adaptRecipe(poulet, { ...target, kcalMeal: 1400, proteinMeal: 60 });
     expect(res.flags).toContain('under_target_kcal');
   });
+  it('recette sans ref (override perso / legacy) : rend les macros de base inchangées', () => {
+    const legacy: Recipe = {
+      ...poulet, id: 't_legacy',
+      macros_per_portion: { kcal: 400, protein_g: 30, carbs_g: 40, fat_g: 12 },
+      ingredients: [{ name: 'Truc maison', quantity_g: 200, food_id: 'ciqual-1' }],
+    };
+    const res = adaptRecipe(legacy, target);
+    expect(res.macros).toEqual(legacy.macros_per_portion);
+    expect(res.ingredients[0].quantity_g).toBe(200);
+  });
 });
 
 describe('mappings besoin', () => {

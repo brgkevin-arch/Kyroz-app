@@ -39,6 +39,14 @@ export function adaptRecipe(recipe: Recipe, target: AdaptTarget): AdaptResult {
   const cfg = RECIPE_CONFIG;
   const flags: AdaptFlag[] = [];
   const items = recipe.ingredients.map((i) => ({ ...i })); // copie mutable
+
+  // Recettes non liées à la table d'ingrédients (overrides perso avec food_id, ou
+  // legacy sans ref) : pas de scaling par ingrédient possible → on rend la recette
+  // telle quelle (macros de base, portions gérées par l'appelant via portions=1).
+  if (!items.some((i) => i.ref && RECIPE_INGREDIENTS[i.ref])) {
+    return { ingredients: items, macros: { ...recipe.macros_per_portion }, flags };
+  }
+
   const out = new Map<Ingredient, number>(items.map((i) => [i, i.quantity_g]));
 
   // Buckets
