@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { adaptRecipe, goalToObjectives, sportsToBuckets, needMatch } from '../adaptRecipe';
-import { Recipe } from '../types';
+import { adaptRecipe, goalToObjectives, sportsToBuckets, needMatch, FLAG_AUDIENCE } from '../adaptRecipe';
+import { AdaptFlag, Recipe } from '../types';
 
 // Recette de test minimale (refs réels de la table).
 const poulet: Recipe = {
@@ -30,6 +30,11 @@ describe('adaptRecipe', () => {
     const res = adaptRecipe(poulet, target);
     const calc = res.macros.protein_g * 4 + res.macros.carbs_g * 4 + res.macros.fat_g * 9;
     expect(Math.abs(calc - res.macros.kcal) / res.macros.kcal).toBeLessThan(0.12);
+  });
+  it('gap = atteint − cible (signé), cohérent avec macros et target', () => {
+    const res = adaptRecipe(poulet, target);
+    expect(res.gap.protein_g).toBe(res.macros.protein_g - Math.round(target.proteinMeal));
+    expect(res.gap.carbs_g).toBe(res.macros.carbs_g - Math.round(target.carbMeal));
   });
   it('ne réduit jamais la protéine sous la recette de base (plancher recomp)', () => {
     // cible protéines basse → l'ancre poulet reste ≥ sa qty de base
@@ -65,6 +70,16 @@ describe('adaptRecipe', () => {
     const res = adaptRecipe(mixte, target);
     expect(res.macros).toEqual(mixte.macros_per_portion); // base, pas de scaling partiel
     expect(res.ingredients.map((i) => i.quantity_g)).toEqual([180, 200]); // quantités inchangées
+  });
+});
+
+describe('FLAG_AUDIENCE', () => {
+  it('classe protein/kcal en user, fat/carbs en selection, no_protein_anchor en dev', () => {
+    const all: AdaptFlag[] = ['protein_below_target', 'over_target_kcal', 'under_target_kcal', 'fat_below_target', 'carbs_below_target', 'no_protein_anchor'];
+    for (const f of all) expect(FLAG_AUDIENCE[f], f).toBeDefined();
+    expect(FLAG_AUDIENCE.protein_below_target).toBe('user');
+    expect(FLAG_AUDIENCE.fat_below_target).toBe('selection');
+    expect(FLAG_AUDIENCE.no_protein_anchor).toBe('dev');
   });
 });
 

@@ -16,8 +16,24 @@ export interface AdaptTarget {
 export interface AdaptResult {
   ingredients: Ingredient[]; // copie de recipe.ingredients avec quantity_g ajusté
   macros: Macros;
+  gap: Macros;       // atteint − cible (signé). Négatif = il manque ce nombre (ex. gap.protein_g = -8 → 8 g sous la cible).
   flags: AdaptFlag[];
 }
+
+/**
+ * Public de chaque flag — évite d'afficher des signaux techniques à l'utilisateur.
+ *  'user'      → affichable sur la fiche (actionnable par la personne)
+ *  'selection' → signal pour le départage/score (futur macroFit) ; ne pas alarmer
+ *  'dev'       → bug de données ; logguer, ne doit jamais atteindre la prod
+ */
+export const FLAG_AUDIENCE: Record<AdaptFlag, 'user' | 'selection' | 'dev'> = {
+  protein_below_target: 'user',
+  under_target_kcal: 'user',
+  over_target_kcal: 'user',
+  fat_below_target: 'selection',
+  carbs_below_target: 'selection',
+  no_protein_anchor: 'dev',
+};
 
 const per100 = (ref: string) => RECIPE_INGREDIENTS[ref]?.per100g ?? { kcal: 0, protein_g: 0, carbs_g: 0, fat_g: 0 };
 const proteinPer100 = (ref: string) => per100(ref).protein_g;
@@ -46,13 +62,22 @@ export function adaptRecipe(recipe: Recipe, target: AdaptTarget): AdaptResult {
   const flags: AdaptFlag[] = [];
   const items = recipe.ingredients.map((i) => ({ ...i })); // copie mutable
 
+  // gap = atteint − cible (signé), arrondi sur la cible (cohérent avec l'affichage).
+  const gapOf = (mac: Macros): Macros => ({
+    kcal: mac.kcal - Math.round(target.kcalMeal),
+    protein_g: mac.protein_g - Math.round(target.proteinMeal),
+    carbs_g: mac.carbs_g - Math.round(target.carbMeal),
+    fat_g: mac.fat_g - Math.round(target.fatMeal),
+  });
+
   // Scaling par ingrédient possible UNIQUEMENT si TOUS les ingrédients sont liés à
   // la table (ref résoluble). Sinon — override perso (food_id sans ref), legacy, ou
   // recette MIXTE (un ingrédient custom sans ref) — `macrosForRefIngredients`
   // ignorerait l'ingrédient sans ref → macros sous-comptées. On rend alors la recette
   // telle quelle (macros de base, portions gérées par l'appelant via portions=1).
   if (!items.every((i) => i.ref && RECIPE_INGREDIENTS[i.ref])) {
-    return { ingredients: items, macros: { ...recipe.macros_per_portion }, flags };
+    const macros = { ...recipe.macros_per_portion };
+    return { ingredients: items, macros, gap: gapOf(macros), flags };
   }
 
   const out = new Map<Ingredient, number>(items.map((i) => [i, i.quantity_g]));
@@ -143,7 +168,7 @@ export function adaptRecipe(recipe: Recipe, target: AdaptTarget): AdaptResult {
   if (target.fatMeal > 0 && macros.fat_g < target.fatMeal * 0.85) flags.push('fat_below_target');
   if (target.carbMeal > 0 && macros.carbs_g < target.carbMeal * 0.85) flags.push('carbs_below_target');
 
-  return { ingredients: items, macros, flags };
+  return { ingredients: items, macros, gap: gapOf(macros), flags };
 }
 
 // ── Mappings « besoin » (soft-matching) ──────────────────────────────────────

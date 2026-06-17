@@ -10,6 +10,10 @@ describe('recipeData', () => {
       for (const ing of r.ingredients)
         expect(RECIPE_INGREDIENTS[ing.ref], `${r.id}:${ing.ref}`).toBeDefined();
   });
+  it('garde-fou : base_servings === 1 sur toutes les recettes', () => {
+    // adaptRecipe + le mapping des macros supposent 1 portion par recette.
+    for (const r of RAW_RECIPES) expect(r.base_servings, r.id).toBe(1);
+  });
   it('config expose les champs utilisés par adaptRecipe', () => {
     expect(RECIPE_CONFIG.rounding_step_g).toBeGreaterThan(0);
     expect(RECIPE_CONFIG.protein_floor_tolerance).toBeGreaterThan(0);

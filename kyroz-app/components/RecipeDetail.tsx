@@ -8,13 +8,15 @@ import { formatQuantity } from '../lib/units';
 import { mealFiberG, mealFiberFromIngredients } from '../lib/fiber';
 import { Recipe, MealStatus, Macros, AdaptFlag } from '../lib/types';
 import { OBJ_LABEL, SPORT_LABEL } from '../lib/recipeLabels';
+import { FLAG_AUDIENCE } from '../lib/adaptRecipe';
 
 interface Props {
   recipe: Recipe;
   portions?: number;          // affiche le repas à l'échelle de sa portion
   adaptedIngredients?: { name: string; quantity_g: number; unit?: string }[]; // si fourni → affiché tel quel
   adaptedMacros?: Macros;     // si fourni → remplace recipe.macros_per_portion × portions
-  adaptFlags?: AdaptFlag[];   // avertissements (sous/au-dessus cible)
+  adaptFlags?: AdaptFlag[];   // faisabilité ; on n'affiche que les flags « user »
+  adaptGap?: Macros;          // atteint − cible (signé) → « +Xg » pour protein_below_target
   restrictionRelaxed?: boolean; // bandeau « régime non garanti »
   onClose: () => void;
   onCook?: () => void;        // si fourni, affiche « J'ai mangé / cuisiné »
@@ -27,12 +29,31 @@ interface Props {
   dragHandlers?: any;         // injecté par <Sheet> : rend l'en-tête glissable
 }
 
-export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adaptedMacros, adaptFlags, restrictionRelaxed, onClose, onCook, onSkip, onResetStatus, status, onSwap, onEdit, custom, dragHandlers }: Props) {
+export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adaptedMacros, adaptFlags, adaptGap, restrictionRelaxed, onClose, onCook, onSkip, onResetStatus, status, onSwap, onEdit, custom, dragHandlers }: Props) {
   const t = useTheme();
   const s = useMemo(() => makeStyles(t), [t]);
   const { isFavorite, toggle } = useFavorites();
   const fav = isFavorite(recipe.id);
   const f = portions;
+
+  // Avertissements : seulement les flags « user » (les 'selection'/'dev' ne s'affichent
+  // pas), protéines en priorité avec l'écart en grammes (« ~Xg sous ta cible »).
+  const userFlags = (adaptFlags ?? []).filter((fl) => FLAG_AUDIENCE[fl] === 'user');
+  const orderedFlags = [
+    ...userFlags.filter((fl) => fl === 'protein_below_target'),
+    ...userFlags.filter((fl) => fl !== 'protein_below_target'),
+  ];
+  const flagMsg = (fl: AdaptFlag): string => {
+    if (fl === 'protein_below_target') {
+      const miss = adaptGap ? Math.max(0, -Math.round(adaptGap.protein_g)) : 0;
+      return miss > 0
+        ? `⚠️ ~${miss} g de protéines sous ta cible — ajoute un side protéiné.`
+        : '⚠️ Repas un peu pauvre en protéines.';
+    }
+    if (fl === 'under_target_kcal') return 'ℹ️ Repas un peu en dessous de ta cible.';
+    if (fl === 'over_target_kcal') return 'ℹ️ Repas un peu au-dessus de ta cible.';
+    return '';
+  };
 
   // Valeurs adaptées (scaling par ingrédient) si fournies, sinon recette × portions.
   const macros = adaptedMacros ?? {
@@ -86,8 +107,7 @@ export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adapted
         {restrictionRelaxed && (
           <Text style={s.warn}>⚠️ Aucune recette adaptée à ton régime pour ce repas — option standard.</Text>
         )}
-        {adaptFlags?.includes('under_target_kcal') && <Text style={s.warn}>ℹ️ Repas un peu en dessous de ta cible.</Text>}
-        {adaptFlags?.includes('over_target_kcal') && <Text style={s.warn}>ℹ️ Repas un peu au-dessus de ta cible.</Text>}
+        {orderedFlags.map((fl) => <Text key={fl} style={s.warn}>{flagMsg(fl)}</Text>)}
 
         <View style={[s.macros, cardShadow(t)]}>
           <Big t={t} v={macros.kcal} l="kcal" />

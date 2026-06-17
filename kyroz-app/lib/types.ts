@@ -184,6 +184,7 @@ export interface Meal {
   locked_macros?: Macros;    // macros RÉELLEMENT consommées si ≠ macros (mangé hors plan / portion modifiée)
   adapted_ingredients?: Ingredient[]; // quantités ajustées (source de vérité affichage/courses)
   adapt_flags?: AdaptFlag[];          // faisabilité de l'adaptation
+  adapt_gap?: Macros;                 // atteint − cible (signé) ; alimente l'affichage « +Xg »
   restriction_relaxed?: boolean;      // repli régime : recette servie hors restriction
 }
 

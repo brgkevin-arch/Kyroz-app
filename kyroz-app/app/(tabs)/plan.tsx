@@ -531,6 +531,7 @@ export default function PlanScreen() {
             adaptedIngredients={selectedMeal.adapted_ingredients}
             adaptedMacros={selectedMeal.adapted_ingredients ? selectedMeal.macros : undefined}
             adaptFlags={selectedMeal.adapt_flags}
+            adaptGap={selectedMeal.adapt_gap}
             restrictionRelaxed={selectedMeal.restriction_relaxed}
             custom={isCustom(selectedMeal.recipe.id)}
             status={selectedMeal.status}

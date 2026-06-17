@@ -207,6 +207,7 @@ interface AdaptedChoice {
   recipe: Recipe;
   ingredients: Ingredient[];
   macros: Macros;
+  gap: Macros;     // atteint − cible (signé)
   flags: AdaptFlag[];
   score: number;   // fit macro (plus petit = meilleur)
   fiber: number;   // fibres approximatives (départage)
@@ -238,7 +239,7 @@ function selectMealAdapted(
     .map((r) => {
       const a = adaptRecipe(r, target);
       return {
-        recipe: r, ingredients: a.ingredients, macros: a.macros, flags: a.flags,
+        recipe: r, ingredients: a.ingredients, macros: a.macros, gap: a.gap, flags: a.flags,
         score: fitScore(a.macros, target, a.flags),
         fiber: recipeFiberPerPortion(r),
         preferred: preferredIds.has(r.id),
@@ -440,6 +441,7 @@ export function buildLocalPlan(profile: UserProfile, seed: number = 0): MealPlan
         macros: choice.macros,
         adapted_ingredients: choice.ingredients,
         adapt_flags: choice.flags.length ? choice.flags : undefined,
+        adapt_gap: choice.gap,
         restriction_relaxed: relaxed[mealType] || undefined,
       });
     });
@@ -490,6 +492,7 @@ export function swapMeal(profile: UserProfile, plan: MealPlan, meal: Meal): Meal
     macros: pick.a.macros,
     adapted_ingredients: pick.a.ingredients,
     adapt_flags: pick.a.flags.length ? pick.a.flags : undefined,
+    adapt_gap: pick.a.gap,
   };
   const meals = plan.meals.map((m) => (m.id === meal.id ? newMeal : m));
   return { ...plan, meals, total_macros_per_day: computeDailyTotals(meals, plan.days, plan.day_extras) };
@@ -566,7 +569,7 @@ function rebalanceCore(
     const a = adaptRecipe(meal.recipe, target);
     updates.set(meal.id, {
       ...meal, portions: 1, macros: a.macros,
-      adapted_ingredients: a.ingredients, adapt_flags: a.flags.length ? a.flags : undefined,
+      adapted_ingredients: a.ingredients, adapt_flags: a.flags.length ? a.flags : undefined, adapt_gap: a.gap,
     });
     remKcal -= a.macros.kcal;
     remProt -= a.macros.protein_g;
