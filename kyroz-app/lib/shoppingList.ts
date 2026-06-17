@@ -1,5 +1,6 @@
 import { MealPlan, ShoppingItem, ShoppingList } from './types';
 import { isStaple, categorize, matches, PantryItem } from './pantry';
+import { mealIngredients } from './planEngine';
 
 // Construit la liste de courses agrégée d'un plan.
 // - Les condiments universels (sel, huile, citron, épices…) sont exclus :
@@ -13,11 +14,12 @@ export function buildShoppingList(plan: MealPlan, pantry: PantryItem[] = []): Sh
   const aggregated: Map<string, { name: string; quantity: number; unit: string }> = new Map();
 
   for (const meal of plan.meals) {
-    for (const ingredient of meal.recipe.ingredients) {
+    // Quantités EFFECTIVES (adaptées par ingrédient si présentes, sinon recette×portions).
+    for (const ingredient of mealIngredients(meal)) {
       if (isStaple(ingredient.name)) continue;
       const key = ingredient.name.toLowerCase();
       const existing = aggregated.get(key);
-      const qty = ingredient.quantity_g * meal.portions;
+      const qty = ingredient.quantity_g;
       if (existing) existing.quantity += qty;
       else aggregated.set(key, { name: key, quantity: qty, unit: ingredient.unit ?? 'g' });
     }

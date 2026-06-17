@@ -35,6 +35,14 @@ describe('buildShoppingList — sans garde-manger', () => {
     expect(find(l, 'Poulet')?.quantity).toBe(400); // 200 × 2 portions
     expect(find(l, 'Sel')).toBeUndefined();        // staple exclu
   });
+
+  it('agrège depuis adapted_ingredients quand présent (et ignore recipe×portions)', () => {
+    const p = plan([{ name: 'Riz basmati', quantity_g: 80, ref: 'riz_basmati' }]);
+    // Le repas porte des quantités adaptées (140 g) → c'est ce qui doit compter.
+    p.meals[0].adapted_ingredients = [{ name: 'Riz basmati', quantity_g: 140, ref: 'riz_basmati' }];
+    const l = buildShoppingList(p);
+    expect(find(l, 'Riz basmati')?.quantity).toBe(140);
+  });
 });
 
 describe('buildShoppingList — soustraction du garde-manger', () => {
