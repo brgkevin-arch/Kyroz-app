@@ -84,14 +84,19 @@ export function calculateTDEE(
   return Math.round(bmr * activityMultiplier(trainingDaysPerWeek));
 }
 
-// Ajustement calorique + ratio protéines selon l'objectif
-const GOAL_CONFIG: Record<Goal, { kcalDelta: number; proteinPerKg: number; label: string }> = {
-  cut_aggressive: { kcalDelta: -500, proteinPerKg: 2.4, label: 'Sèche rapide' },
-  cut:            { kcalDelta: -300, proteinPerKg: 2.2, label: 'Sèche progressive' },
-  recomp:         { kcalDelta: -150, proteinPerKg: 2.2, label: 'Recomposition' },
-  maintain:       { kcalDelta: 0,    proteinPerKg: 1.8, label: 'Maintien' },
-  lean_bulk:      { kcalDelta: 200,  proteinPerKg: 2.0, label: 'Prise de masse propre' },
-  bulk:           { kcalDelta: 400,  proteinPerKg: 1.8, label: 'Prise de masse' },
+// Ajustement calorique + protéines selon l'objectif.
+//  - proteinPerKg    : coefficient appliqué à la MASSE MAIGRE (réf. fitness usuelle).
+//  - floorPerKgBody  : plancher appliqué au POIDS DE CORPS (cf. proteinTarget).
+const GOAL_CONFIG: Record<
+  Goal,
+  { kcalDelta: number; proteinPerKg: number; floorPerKgBody: number; label: string }
+> = {
+  cut_aggressive: { kcalDelta: -500, proteinPerKg: 2.4, floorPerKgBody: 2.0, label: 'Sèche rapide' },
+  cut:            { kcalDelta: -300, proteinPerKg: 2.2, floorPerKgBody: 1.9, label: 'Sèche progressive' },
+  recomp:         { kcalDelta: -150, proteinPerKg: 2.2, floorPerKgBody: 1.8, label: 'Recomposition' },
+  maintain:       { kcalDelta: 0,    proteinPerKg: 1.8, floorPerKgBody: 1.6, label: 'Maintien' },
+  lean_bulk:      { kcalDelta: 200,  proteinPerKg: 2.0, floorPerKgBody: 1.6, label: 'Prise de masse propre' },
+  bulk:           { kcalDelta: 400,  proteinPerKg: 1.8, floorPerKgBody: 1.6, label: 'Prise de masse' },
 };
 
 export function goalLabel(goal: Goal): string {
@@ -104,6 +109,34 @@ export function recommendedProteinPerKg(goal: Goal): number {
   return GOAL_CONFIG[goal].proteinPerKg;
 }
 
+/**
+ * Cible protéique (g) — calage MASSE MAIGRE avec PLANCHER en g/kg de corps.
+ *
+ * Nominal  : masse_maigre × coef (on ne « nourrit » pas le gras).
+ * Plancher : poids × plancher_corps — garantit un minimum par kg de corps, car
+ *            le calage masse maigre sous-dose les %MG élevés (g/kg corps chute),
+ *            ce qui est dangereux en déficit (perte musculaire).
+ * On prend le MAX des deux → amélioration STRICTE et monotone : jamais moins
+ * qu'avant, relevé uniquement pour les %MG élevés. Sans %MG connu, masse maigre
+ * = poids et coef ≥ plancher → le plancher est inopérant (aucune régression).
+ *
+ * Seuil de bascule (= %MG au-delà duquel le plancher prend le relais) =
+ * 1 − plancher/coef :  sèche rapide 17 % · sèche prog. 14 % · recomp 18 % ·
+ * maintien 11 % · masse propre 20 % · masse 11 %.
+ *
+ * ⚠️ coef ET plancher PROVISOIRES — à valider par la diététicienne (règle de
+ * validation contenu du projet). Le plancher est le vrai correctif du problème
+ * « 1,8 g/kg corps en sèche à %MG élevé = trop bas ».
+ */
+export function proteinTarget(goal: Goal, weight_kg: number, bodyFatPct?: number): number {
+  const cfg = GOAL_CONFIG[goal];
+  const leanKg =
+    typeof bodyFatPct === 'number' && bodyFatPct > 0
+      ? leanBodyMass(weight_kg, bodyFatPct)
+      : weight_kg;
+  return Math.round(Math.max(leanKg * cfg.proteinPerKg, weight_kg * cfg.floorPerKgBody));
+}
+
 export function calculateMacros(
   tdee: number,
   goal: Goal,
@@ -114,13 +147,8 @@ export function calculateMacros(
   const cfg = GOAL_CONFIG[goal];
   const target_kcal = Math.max(tdee + cfg.kcalDelta, MIN_KCAL[sex]);
 
-  // Protéines calées sur la MASSE MAIGRE si le % de masse grasse est connu :
-  // on ne « nourrit » pas la masse grasse. Le coefficient g/kg s'applique alors
-  // à la masse maigre (réf. fitness usuelle), sinon au poids total (repli).
-  const proteinBasisKg = (typeof bodyFatPct === 'number' && bodyFatPct > 0)
-    ? leanBodyMass(weight_kg, bodyFatPct)
-    : weight_kg;
-  const protein_g = Math.round(proteinBasisKg * cfg.proteinPerKg);
+  // Protéines : calage masse maigre AVEC plancher en g/kg de corps (cf. proteinTarget).
+  const protein_g = proteinTarget(goal, weight_kg, bodyFatPct);
   const fat_g = Math.round((target_kcal * 0.25) / 9);
 
   const remaining = target_kcal - protein_g * 4 - fat_g * 9;

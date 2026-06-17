@@ -65,12 +65,22 @@ describe('calculateMacros (mode auto)', () => {
     expect(f.target_kcal).toBe(MIN_KCAL.female);
   });
 
-  it('protéines sur la masse maigre quand %MG connu', () => {
+  it('protéines : calage masse maigre AVEC plancher g/kg de corps', () => {
     const tdee = 2914;
+    // Sans %MG : base = poids, coef (2.2) ≥ plancher (1.9) → plancher inopérant.
     const noBf = calculateMacros(tdee, 'cut', 90, 'male');
+    expect(noBf.protein_g).toBe(Math.round(90 * 2.2)); // 198 (inchangé)
+
+    // %MG élevé (20 % > seuil de bascule 13,6 %) : le plancher 1,9 g/kg de corps
+    // prend le relais. Sans lui : 72 × 2.2 = 158 (1,76 g/kg corps → trop bas en sèche).
     const bf20 = calculateMacros(tdee, 'cut', 90, 'male', 20);
-    expect(noBf.protein_g).toBe(Math.round(90 * 2.2));        // poids total
-    expect(bf20.protein_g).toBe(Math.round(90 * 0.8 * 2.2));  // LBM 72 kg
+    expect(bf20.protein_g).toBe(Math.round(90 * 1.9));            // 171 (plancher)
+    expect(bf20.protein_g).toBeGreaterThan(Math.round(90 * 0.8 * 2.2)); // > ancien (buggé)
+
+    // Profil sec (10 % < seuil) : le calage masse maigre reste dominant (amélioration
+    // monotone — le plancher ne baisse jamais un profil déjà bien dosé).
+    const bf10 = calculateMacros(tdee, 'cut', 90, 'male', 10);
+    expect(bf10.protein_g).toBe(Math.round(90 * 0.9 * 2.2)); // 178 (lean-mass gagne)
   });
 
   it('kcal des macros ≈ kcal cible (cohérence 4/4/9)', () => {
