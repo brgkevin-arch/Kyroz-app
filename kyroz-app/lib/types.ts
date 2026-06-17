@@ -66,6 +66,16 @@ export interface Macros {
   fat_g: number;
 }
 
+// Rôle macro d'un ingrédient (pilote le scaling par ingrédient — cf. adaptRecipe).
+export type MacroRole = 'protein' | 'carb' | 'fat' | 'dairy' | 'vegetable' | 'fruit' | 'flavor';
+
+// Tags « besoin » des recettes (soft-matching).
+export type RecipeObjective = 'cut' | 'maintain' | 'bulk';
+export type RecipeSport = 'muscu' | 'endurance' | 'combats';
+
+// Faisabilité d'une recette adaptée à une cible repas (cf. adaptRecipe).
+export type AdaptFlag = 'protein_below_target' | 'over_target_kcal' | 'under_target_kcal' | 'no_protein_anchor';
+
 export interface UserProfile {
   id: string;
 
@@ -116,6 +126,9 @@ export interface Ingredient {
   quantity_g: number;
   unit?: string;
   food_id?: string;   // → Food de la base (lib/foods.ts) ; permet de recalculer les macros depuis les ingrédients
+  ref?: string;            // → RECIPE_INGREDIENTS (clé d'ingrédient des recettes Kyroz)
+  macro_role?: MacroRole;  // rôle pour le scaling par ingrédient
+  scalable?: boolean;      // false = quantité fixe (légumes, aromates)
 }
 
 // Aliment de la base nutritionnelle (valeurs pour 100 g — approche « moyenne »,
@@ -141,6 +154,11 @@ export interface Recipe {
   tags: string[];                       // meal types
   restrictions_ok?: DietaryRestriction[]; // régimes compatibles
   validated_by_dietitian: boolean;
+  objectives?: RecipeObjective[];   // tag « Objectif »
+  sports?: RecipeSport[];           // tag « Sport »
+  rest_day_ok?: boolean;            // tag « récup jour off » (stocké, non utilisé)
+  why_fr?: string;                  // « Pourquoi », affiché
+  recomp_flag?: string;             // ex. 'low_protein_density'
 }
 
 // Suivi d'adhésion au plan (feature « recaler ma journée ») :
@@ -158,6 +176,9 @@ export interface Meal {
   macros: Macros;
   status?: MealStatus;       // absent = planned
   locked_macros?: Macros;    // macros RÉELLEMENT consommées si ≠ macros (mangé hors plan / portion modifiée)
+  adapted_ingredients?: Ingredient[]; // quantités ajustées (source de vérité affichage/courses)
+  adapt_flags?: AdaptFlag[];          // faisabilité de l'adaptation
+  restriction_relaxed?: boolean;      // repli régime : recette servie hors restriction
 }
 
 export interface MealPlan {

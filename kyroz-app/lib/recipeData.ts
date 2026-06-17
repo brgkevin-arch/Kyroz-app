@@ -38,7 +38,8 @@ export interface RecipeConfig {
   protein_floor_tolerance: number;
   no_fat_increase_in_deficit?: boolean;
 }
-export const RECIPE_CONFIG: RecipeConfig = raw.config as RecipeConfig;
+// JSON infère les bornes [min,max] en number[] ; on passe par unknown pour le tuple.
+export const RECIPE_CONFIG: RecipeConfig = raw.config as unknown as RecipeConfig;
 
 // ── Recettes brutes (forme JSON, non mappée) ─────────────────────────────────
 export interface RawIngredient { ref: string; qty: number; macro_role: MacroRole; scalable: boolean }
