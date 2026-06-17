@@ -27,7 +27,7 @@ import { generateMealPlan } from '../../lib/generatePlan';
 import { profileSignature, swapMeal, computeDailyTotals, rebalanceDay, resetTracking, adaptDayOptions, AdaptOption, mealIngredients } from '../../lib/planEngine';
 import { kcalMargin } from '../../lib/foods';
 import { todayStamp } from '../../lib/weight';
-import { mealFiberG, dailyFiberTarget } from '../../lib/fiber';
+import { mealFiberFromIngredients, dailyFiberTarget } from '../../lib/fiber';
 import { getRecipeById, getBaseRecipe } from '../../lib/recipes';
 import { useRecipeOverrides } from '../../hooks/useRecipeOverrides';
 import { loadPantry, savePantry, deductIngredients, recipeCoverage, PantryItem } from '../../lib/pantry';
@@ -319,7 +319,8 @@ export default function PlanScreen() {
   const dayMeals = plan?.meals.filter((m) => m.day === selectedDay) ?? [];
   const dayMacros = plan?.total_macros_per_day[selectedDay - 1];
   // Fibres : seuls les repas non sautés comptent (un repas sauté n'est pas mangé).
-  const dayFiber = dayMeals.reduce((s, m) => (m.status === 'skipped' ? s : s + mealFiberG(m.recipe, m.portions)), 0);
+  // Estimées depuis les quantités EFFECTIVES (adaptées par ingrédient si présentes).
+  const dayFiber = dayMeals.reduce((s, m) => (m.status === 'skipped' ? s : s + mealFiberFromIngredients(mealIngredients(m))), 0);
   const fiberTarget = profile ? dailyFiberTarget(profile) : 0;
   const dayExtraKcal = plan?.day_extras?.[selectedDay]?.kcal ?? 0;
 

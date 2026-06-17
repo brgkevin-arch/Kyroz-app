@@ -76,6 +76,17 @@ export function mealFiberG(recipe: Recipe, portions: number): number {
   return Math.round(recipeFiberPerPortion(recipe) * portions);
 }
 
+/** Fibres estimées (g, arrondi) d'une liste d'ingrédients DÉJÀ mis à l'échelle
+ *  (quantités effectives d'un repas — adaptées par ingrédient). Pas de division
+ *  par portions : les quantités sont déjà celles réellement servies. */
+export function mealFiberFromIngredients(ingredients: { name: string; quantity_g: number }[]): number {
+  const total = ingredients.reduce(
+    (s, i) => s + (i.quantity_g / 100) * fiberForIngredientName(i.name),
+    0,
+  );
+  return Math.round(total);
+}
+
 // ── Cible journalière ────────────────────────────────────────────────────────
 // Standard : 14 g / 1000 kcal. En sèche, la satiété prime → on renforce à 16.
 // Borné [25, 50] g (plancher santé / plafond confort digestif).

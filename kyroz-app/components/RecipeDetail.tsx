@@ -5,7 +5,7 @@ import { useTheme, ThemePalette, Radius, Spacing, cardShadow } from '../constant
 import { PrimaryButton } from './ui';
 import { useFavorites } from '../hooks/useFavorites';
 import { formatQuantity } from '../lib/units';
-import { mealFiberG } from '../lib/fiber';
+import { mealFiberG, mealFiberFromIngredients } from '../lib/fiber';
 import { Recipe, MealStatus, Macros, AdaptFlag } from '../lib/types';
 import { OBJ_LABEL, SPORT_LABEL } from '../lib/recipeLabels';
 
@@ -95,7 +95,7 @@ export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adapted
           <Big t={t} v={macros.carbs_g} l="Glucides" u="g" c={t.carbs} />
           <Big t={t} v={macros.fat_g} l="Lipides" u="g" c={t.fat} />
         </View>
-        <Text style={s.fiber}>🌾 ~{mealFiberG(recipe, f)} g de fibres (estimé)</Text>
+        <Text style={s.fiber}>🌾 ~{adaptedIngredients ? mealFiberFromIngredients(adaptedIngredients) : mealFiberG(recipe, f)} g de fibres (estimé)</Text>
 
         {recipe.why_fr && <Text style={s.why}>{recipe.why_fr}</Text>}
 

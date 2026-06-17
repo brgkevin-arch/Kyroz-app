@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { recipeFiberPerPortion, mealFiberG, dailyFiberTarget, isFiberFocusGoal } from '../fiber';
+import { recipeFiberPerPortion, mealFiberG, mealFiberFromIngredients, dailyFiberTarget, isFiberFocusGoal } from '../fiber';
 import { RECIPES_PLACEHOLDER } from '../recipes';
 import { makeProfile } from './helpers';
 import { Recipe, Ingredient } from '../types';
@@ -39,6 +39,12 @@ describe('estimation fibres', () => {
     const r = recipe([{ name: 'Pois chiches cuits', quantity_g: 150 }]); // 1.5*7 = 10.5
     expect(mealFiberG(r, 1)).toBe(11);
     expect(mealFiberG(r, 2)).toBe(21);
+  });
+
+  it('mealFiberFromIngredients : depuis des quantités déjà mises à l\'échelle', () => {
+    // 200 g de pois chiches (7 g/100) = 14 g ; quantités effectives, pas de /portions.
+    expect(mealFiberFromIngredients([{ name: 'Pois chiches cuits', quantity_g: 200 }])).toBe(14);
+    expect(mealFiberFromIngredients([{ name: 'Filet de poulet', quantity_g: 180 }])).toBe(0);
   });
 });
 
