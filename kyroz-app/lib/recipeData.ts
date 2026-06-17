@@ -25,18 +25,10 @@ export const RECIPE_INGREDIENTS: Record<string, RecipeIngredientRef> = Object.fr
 
 // ── Config d'adaptation ──────────────────────────────────────────────────────
 export type ObjectiveFr = 'perte_de_gras' | 'maintien' | 'prise_de_masse';
-export interface ObjectiveProfile {
-  protein_g_per_kg: number;
-  carb_fat_split: { carb: number; fat: number };
-  calorie_modifier: number;
-}
 export interface RecipeConfig {
-  objective_profiles: Record<ObjectiveFr, ObjectiveProfile>;
-  meal_weights: Record<string, number>;
   scaling_factors_by_role: Partial<Record<MacroRole, [number, number]>>;
   rounding_step_g: number;
   protein_floor_tolerance: number;
-  no_fat_increase_in_deficit?: boolean;
 }
 // JSON infère les bornes [min,max] en number[] ; on passe par unknown pour le tuple.
 export const RECIPE_CONFIG: RecipeConfig = raw.config as unknown as RecipeConfig;

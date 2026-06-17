@@ -6,9 +6,6 @@ import { RECIPES } from './recipeMap';
 // à valider avant prod.
 export { RECIPES };
 
-// Compat : certains modules/tests historiques importaient RECIPES_PLACEHOLDER.
-export const RECIPES_PLACEHOLDER = RECIPES;
-
 // ── Overrides perso (recettes éditées par l'utilisateur) ─────────────────────
 // Registre module-level : la base reste figée (RECIPES), l'utilisateur peut
 // remplacer une recette par SA version. Le moteur, le garde-manger et les écrans

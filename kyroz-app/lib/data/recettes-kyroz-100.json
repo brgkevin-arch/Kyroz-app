@@ -225,12 +225,6 @@
     { "id": "rep60", "name": "Gros bowl gainer bœuf – riz – avocat – œuf", "category": "repas_complet", "tags": { "objectif": ["prise_de_masse"], "recup_jour_repos": false, "sport": ["muscu", "combats"], "temps_min": 30 }, "base_servings": 1, "ingredients": [ { "ref": "boeuf_5", "qty": 180, "macro_role": "protein", "scalable": true }, { "ref": "riz_basmati", "qty": 100, "macro_role": "carb", "scalable": true }, { "ref": "avocat", "qty": 50, "macro_role": "fat", "scalable": true }, { "ref": "oeuf_entier", "qty": 50, "macro_role": "protein", "scalable": true }, { "ref": "haricots_rouges", "qty": 80, "macro_role": "protein", "scalable": true }, { "ref": "huile_olive", "qty": 8, "macro_role": "fat", "scalable": true } ], "instructions": ["Cuis le riz.", "Saisis le bœuf + œuf au plat.", "Dresse avec avocat et haricots."], "why": "Muscu/combats prise de masse : bowl très calorique, triple protéine pour le bulk.", "macros_per_serving": { "kcal": 925, "protein": 59, "carbs": 95, "fat": 31 } }
   ],
   "config": {
-    "objective_profiles": {
-      "perte_de_gras": { "protein_g_per_kg": 2.2, "carb_fat_split": { "carb": 0.5, "fat": 0.5 }, "calorie_modifier": 0.8 },
-      "maintien": { "protein_g_per_kg": 1.8, "carb_fat_split": { "carb": 0.55, "fat": 0.45 }, "calorie_modifier": 1.0 },
-      "prise_de_masse": { "protein_g_per_kg": 1.9, "carb_fat_split": { "carb": 0.65, "fat": 0.35 }, "calorie_modifier": 1.1 }
-    },
-    "meal_weights": { "petit_dej": 0.25, "collation": 0.125, "repas_complet": 0.3 },
     "scaling_factors_by_role": {
       "protein": [1.0, 1.7],
       "carb": [0.5, 1.8],
@@ -239,7 +233,6 @@
       "fruit": [0.5, 1.6]
     },
     "rounding_step_g": 5,
-    "protein_floor_tolerance": 0.95,
-    "no_fat_increase_in_deficit": true
+    "protein_floor_tolerance": 0.95
   }
 }

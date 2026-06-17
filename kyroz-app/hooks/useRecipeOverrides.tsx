@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Recipe } from '../lib/types';
-import { RECIPES_PLACEHOLDER, setRecipeOverrides } from '../lib/recipes';
+import { RECIPES, setRecipeOverrides } from '../lib/recipes';
 import { pushRecipeOverrides } from '../lib/sync';
 
 // Recettes personnalisées par l'utilisateur. Deux rôles :
@@ -58,7 +58,7 @@ export function RecipeOverridesProvider({ children }: { children: React.ReactNod
   }, [persist]);
 
   const recipes = useMemo(
-    () => RECIPES_PLACEHOLDER.map((r) => overrides[r.id] ?? r),
+    () => RECIPES.map((r) => overrides[r.id] ?? r),
     [overrides],
   );
 

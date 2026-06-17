@@ -1,6 +1,6 @@
 import { describe, it, expect, afterEach } from 'vitest';
 import { buildLocalPlan, computeDailyTotals, profileSignature, swapMeal, computeDistribution, rebalanceDay, adaptDayOptions, effectiveMacros, resetTracking, mealIngredients, reAdaptMealRecipe } from '../planEngine';
-import { setRecipeOverrides, RECIPES_PLACEHOLDER } from '../recipes';
+import { setRecipeOverrides, RECIPES } from '../recipes';
 import { makeProfile } from './helpers';
 
 afterEach(() => setRecipeOverrides({}));
@@ -379,7 +379,7 @@ describe('reAdaptMealRecipe (override perso → cohérence immédiate)', () => {
     const plan = buildLocalPlan(p, 0);
     const meal = plan.meals.find((m) => m.adapted_ingredients?.length)!;
     // Une autre recette du même type, à refs résolubles (recettes Kyroz).
-    const other = RECIPES_PLACEHOLDER.find(
+    const other = RECIPES.find(
       (r) => r.id !== meal.recipe.id && r.tags.includes(meal.meal_type) && r.ingredients.every((i) => i.ref),
     )!;
 
@@ -397,7 +397,7 @@ describe('reAdaptMealRecipe (override perso → cohérence immédiate)', () => {
   it('repas legacy (sans ingrédients adaptés) : scale les macros de base × portions', () => {
     const p = makeProfile();
     const meal = buildLocalPlan(p, 0).meals[0];
-    const other = RECIPES_PLACEHOLDER.find((r) => r.id !== meal.recipe.id)!;
+    const other = RECIPES.find((r) => r.id !== meal.recipe.id)!;
     const legacy = { ...meal, adapted_ingredients: undefined, portions: 2 };
 
     const re = reAdaptMealRecipe(legacy, other);

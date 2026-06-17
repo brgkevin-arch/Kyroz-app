@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { recipeFiberPerPortion, mealFiberG, mealFiberFromIngredients, dailyFiberTarget, isFiberFocusGoal } from '../fiber';
-import { RECIPES_PLACEHOLDER } from '../recipes';
+import { RECIPES } from '../recipes';
 import { makeProfile } from './helpers';
 import { Recipe, Ingredient } from '../types';
 
@@ -67,14 +67,14 @@ describe('cible journalière', () => {
 
 describe('intégration base de recettes', () => {
   it('chaque recette a une estimation finie ≥ 0', () => {
-    for (const r of RECIPES_PLACEHOLDER) {
+    for (const r of RECIPES) {
       const f = recipeFiberPerPortion(r);
       expect(Number.isFinite(f), r.id).toBe(true);
       expect(f, r.id).toBeGreaterThanOrEqual(0);
     }
   });
   it('les recettes à légumes/féculents complets ont des fibres > 0', () => {
-    const withVeg = RECIPES_PLACEHOLDER.filter((r) =>
+    const withVeg = RECIPES.filter((r) =>
       r.ingredients.some((i) => /brocoli|épinard|salade|pois chiche|haricot|avoine|complet|patate douce|quinoa/i.test(i.name))
     );
     expect(withVeg.length).toBeGreaterThan(5);
