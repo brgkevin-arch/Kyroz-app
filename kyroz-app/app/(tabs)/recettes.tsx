@@ -10,6 +10,7 @@ import { useFavorites } from '../../hooks/useFavorites';
 import { useRecipeOverrides } from '../../hooks/useRecipeOverrides';
 import { getBaseRecipe } from '../../lib/recipes';
 import { Recipe } from '../../lib/types';
+import { OBJ_LABEL, SPORT_LABEL } from '../../lib/recipeLabels';
 
 const TAGS = ['Tout', 'fav', 'breakfast', 'lunch', 'dinner', 'snack'];
 const TAG_LABELS: Record<string, string> = {
@@ -117,6 +118,12 @@ export default function RecettesScreen() {
                 <M v={item.macros_per_portion.carbs_g} u="G" c={t.carbs} cu={t.textQuaternary} />
                 <M v={item.macros_per_portion.fat_g} u="L" c={t.fat} cu={t.textQuaternary} />
               </View>
+              {(item.objectives?.length || item.sports?.length) ? (
+                <View style={s.rTagRow}>
+                  {item.objectives?.map((o) => <Text key={o} style={s.rTag}>{OBJ_LABEL[o]}</Text>)}
+                  {item.sports?.map((sp) => <Text key={sp} style={s.rTag}>{SPORT_LABEL[sp]}</Text>)}
+                </View>
+              ) : null}
             </TouchableOpacity>
           );
         }}
@@ -186,6 +193,8 @@ function makeStyles(t: ThemePalette) {
     rTime: { color: t.textQuaternary, fontSize: 12 },
     heart: { padding: 2 },
     rMacros: { flexDirection: 'row', gap: 14 },
+    rTagRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+    rTag: { backgroundColor: t.fill, color: t.textSecondary, fontSize: 10, fontWeight: '600', paddingHorizontal: 8, paddingVertical: 3, borderRadius: Radius.pill, overflow: 'hidden' },
     empty: { alignItems: 'center', gap: 10, paddingTop: 60 },
     emptyTxt: { color: t.textTertiary, fontSize: 14 },
   });
