@@ -16,7 +16,7 @@ import {
   ActivityLevel, DietaryRestriction, Goal, MEAL_ORDER, MealEmphasis, MealType, Sex, SportSession, UserProfile, VarietyPreference,
 } from '../../lib/types';
 import {
-  calculateTDEE, calculateMacros, validateProfile, goalLabel, macrosPercent, DEFAULT_CARB_RATIO, recommendedProteinPerKg,
+  calculateTDEE, calculateMacros, validateProfile, goalLabel, macrosPercent, DEFAULT_CARB_RATIO, recommendedProteinPerKg, recalcProfile,
 } from '../../lib/tdee';
 import { totalSessionsPerWeek } from '../../lib/sport';
 import SportsEditor from '../../components/SportsEditor';
@@ -191,10 +191,10 @@ export default function Onboarding() {
   const back = () => { if (step > 1) { setHint(null); setStep(step - 1); } };
 
   const finish = async () => {
-    const err = validateProfile(sex, ageN, finalMacros.target_kcal);
-    if (err) { Alert.alert('Attention', err); return; }
-    setSaving(true);
-    const profile: UserProfile = {
+    // Profil « brut » (inputs uniquement). recalcProfile est l'UNIQUE producteur
+    // de tdee_kcal + macros — pas de calcul en ligne parallèle ici (cohérence
+    // garantie avec le check-in poids et les éditeurs du profil).
+    const draft: UserProfile = {
       id: `user-${Date.now()}`,
       sex, age: ageN, weight_kg: wN, height_cm: hN,
       body_fat_pct: bodyFat,
@@ -205,11 +205,7 @@ export default function Onboarding() {
       macro_mode: macroMode,
       carb_ratio: macroMode === 'percent' ? carbRatio : undefined,
       protein_per_kg: macroMode === 'percent' ? proteinPerKg : undefined,
-      tdee_kcal: tdee,
-      target_kcal: finalMacros.target_kcal,
-      target_protein_g: finalMacros.protein_g,
-      target_carbs_g: finalMacros.carbs_g,
-      target_fat_g: finalMacros.fat_g,
+      tdee_kcal: 0, target_kcal: 0, target_protein_g: 0, target_carbs_g: 0, target_fat_g: 0,
       plan_days: planWeekdays.length,
       plan_weekdays: orderedWeekdays(planWeekdays),
       meals: orderedMeals(meals),
@@ -220,6 +216,10 @@ export default function Onboarding() {
       preferred_proteins: proteins.map((p) => p.toLowerCase()),
       max_prep_time_min: maxPrep,
     };
+    const profile = recalcProfile(draft); // ← source unique du TDEE et des macros
+    const err = validateProfile(sex, ageN, profile.target_kcal);
+    if (err) { Alert.alert('Attention', err); return; }
+    setSaving(true);
     await saveFirstName(firstName);
     await saveProfile(profile);
     setSaving(false);

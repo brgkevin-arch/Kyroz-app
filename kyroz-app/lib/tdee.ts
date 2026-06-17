@@ -50,10 +50,24 @@ function activityMultiplier(trainingDaysPerWeek: number): number {
 // et légèrement actif (1.375), le sport étant ajouté ensuite — pas de double comptage.
 export const NEAT_BASE_PAL = 1.3;
 
-// TDEE = métabolisme de base × activité.
-// • Si des `sports` sont renseignés → méthode précise : BMR × NEAT + dépense sport
-//   (MET) moyennée par jour. Le type ET la durée des sports comptent.
-// • Sinon → repli legacy sur le multiplicateur par nombre de séances.
+// TDEE (maintenance) = métabolisme de base × activité.
+//
+// RÈGLE DE SÉLECTION DE MÉTHODE — unique, et fonction du PROFIL SEUL :
+//   • BMR : Katch-McArdle si `bodyFatPct` fourni, sinon Mifflin-St Jeor (cf. calculateBMR).
+//   • Activité : méthode MET si `sports` non vide (BMR × NEAT + dépense sport/jour) ;
+//     sinon multiplicateur legacy selon le nb de séances (`activityMultiplier`).
+//
+// Cette fonction est l'UNIQUE source de calcul du TDEE, et `recalcProfile` en est
+// l'UNIQUE producteur de la valeur stockée `tdee_kcal`. Tout écran lit la valeur
+// stockée — aucun ne recalcule par un chemin parallèle.
+//
+// ⚠️ Les deux entrées d'activité (`trainingDaysEq` et `sports`) sont REDONDANTES :
+// pour un profil cohérent issu de l'onboarding, `training_days_per_week` vaut
+// toujours `totalSessionsPerWeek(sports)` (ou 0). Si un profil arrive avec
+// `sports` vidé mais `training_days_per_week` > 0 (ex. perte au round-trip cloud),
+// la méthode bascule silencieusement MET → multiplicateur et le TDEE saute.
+// Cette incohérence d'état est une frontière SYNCHRO (hors périmètre ici), pas un
+// bug de ce calcul : à corriger côté persistance, pas en dénaturant la règle.
 export function calculateTDEE(
   sex: Sex,
   weight_kg: number,

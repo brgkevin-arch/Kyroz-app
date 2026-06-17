@@ -3,6 +3,7 @@ import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme, ThemePalette, Radius, Spacing, cardShadow } from '../../constants/theme';
 import { DISCLAIMER } from '../../constants/legal';
@@ -18,6 +19,7 @@ import { PlanCheckin } from '../../components/PlanCheckin';
 import { OffPlanSheet } from '../../components/OffPlanSheet';
 import { ActionSheet } from '../../components/ActionSheet';
 import { PrimaryButton, SectionLabel } from '../../components/ui';
+import { useTourTarget, useTour, hasSeenTour, TourStep } from '../../components/GuidedTour';
 import { useProfile } from '../../hooks/useProfile';
 import { useStreak } from '../../hooks/useStreak';
 import { useWeightLog } from '../../hooks/useWeightLog';
@@ -38,6 +40,36 @@ const PLAN_KEY = '@kyroz:plan';
 const LIST_KEY = '@kyroz:shopping';
 const SEED_KEY = '@kyroz:planSeed';
 const WD = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
+
+// Visite guidée de l'onglet Plan (pilote). Les bulles ne s'affichent que la 1re
+// fois (mémorisé), et sont rejouables via le « ? » de l'en-tête.
+const PLAN_TOUR: TourStep[] = [
+  {
+    targetId: 'plan-days',
+    title: 'Navigue dans ta semaine',
+    text: "Tes 7 jours de plan. Touche un jour pour voir ses repas — celui en surbrillance est affiché en dessous.",
+  },
+  {
+    targetId: 'plan-macros',
+    title: 'Tes cibles du jour',
+    text: "Tes calories visées et la répartition protéines / glucides / lipides. La barre se remplit à mesure que tu marques tes repas comme cuisinés.",
+  },
+  {
+    targetId: 'plan-offplan',
+    title: 'Mangé hors plan ?',
+    text: "Ajoute un écart ici : Kyroz recale automatiquement les repas restants pour absorber les calories en plus, sans casser ton objectif.",
+  },
+  {
+    targetId: 'plan-meal',
+    title: 'Ouvre une recette',
+    text: "Touche un repas pour voir ses ingrédients ajustés à tes macros, ses badges d'adaptation, et le bouton « Échanger ce repas » si tu veux autre chose.",
+  },
+  {
+    targetId: 'plan-cook',
+    title: 'Marque-le comme cuisiné',
+    text: "Quand tu as préparé un plat, tape « J'ai cuisiné » : les ingrédients se déduisent de ton frigo et ta journée se recale toute seule.",
+  },
+];
 
 // Nb de jours du profil ramené dans [1, 7].
 const clampDays = (n?: number) => Math.min(Math.max(n ?? 0, 1), 7);
@@ -69,6 +101,7 @@ export default function PlanScreen() {
   const s = useMemo(() => makeStyles(t), [t]);
   const { profile, saveProfile } = useProfile();
   const router = useRouter();
+  const { startTour } = useTour();
   const { streak, markActiveToday, celebration, clearCelebration } = useStreak();
   const { due: weighInDue } = useWeightLog();
   const [weighIn, setWeighIn] = useState(false);
@@ -89,9 +122,25 @@ export default function PlanScreen() {
   const [adaptPrompt, setAdaptPrompt] = useState<number | null>(null); // kcal de l'écart en attente de décision Oui/Non
   const [refreshing, setRefreshing] = useState(false);
   const autoTried = React.useRef(false);
+  const tourTried = React.useRef(false);
+  const scrollRef = React.useRef<ScrollView>(null);
+  // Cibles de la visite guidée (ref directe sur l'élément → spotlight aligné).
+  const daysRef = useTourTarget('plan-days');
+  const macrosRef = useTourTarget('plan-macros');
+  const offplanRef = useTourTarget('plan-offplan');
 
   useEffect(() => { load(); }, []);
   useEffect(() => { loadFirstName().then(setFirstName); }, []);
+
+  // Visite guidée : au 1er affichage d'un plan, on lance le tour s'il n'a jamais
+  // été vu. Petit délai pour laisser la mise en page (et le ScrollView) se poser.
+  useEffect(() => {
+    if (loading || !plan || tourTried.current) return;
+    tourTried.current = true;
+    hasSeenTour('plan').then((seen) => {
+      if (!seen) setTimeout(() => startTour('plan', PLAN_TOUR, { scrollRef }), 650);
+    });
+  }, [loading, plan, startTour]);
 
   // Garde-manger : rechargé à chaque fois qu'on revient sur l'onglet Plan, pour
   // refléter ce qui a été coché dans Courses (synchro plan ↔ frigo).
@@ -305,6 +354,8 @@ export default function PlanScreen() {
 
   const dayMeals = plan?.meals.filter((m) => m.day === selectedDay) ?? [];
   const dayMacros = plan?.total_macros_per_day[selectedDay - 1];
+  const isRestDay = dayMeals.some((m) => m.rest_day);
+  const restDayNums = new Set((plan?.meals ?? []).filter((m) => m.rest_day).map((m) => m.day));
   // Fibres : seuls les repas non sautés comptent (un repas sauté n'est pas mangé).
   // Estimées depuis les quantités EFFECTIVES (adaptées par ingrédient si présentes).
   const dayFiber = dayMeals.reduce((s, m) => (m.status === 'skipped' ? s : s + mealFiberFromIngredients(mealIngredients(m))), 0);
@@ -369,6 +420,7 @@ export default function PlanScreen() {
   return (
     <SafeAreaView style={s.safe} edges={['top']}>
       <ScrollView
+        ref={scrollRef}
         contentContainerStyle={s.content}
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={t.textTertiary} />}
@@ -379,9 +431,16 @@ export default function PlanScreen() {
             <Text style={s.date}>{todayLabel.toUpperCase()}</Text>
             <Text style={s.h1}>{firstName ? `Salut ${firstName} 👋` : 'Ton plan'}</Text>
           </View>
-          <View style={s.streak}>
-            <Text style={{ fontSize: 15 }}>🔥</Text>
-            <Text style={s.streakN}>{streak.current_streak_days}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+            {plan && (
+              <TouchableOpacity onPress={() => startTour('plan', PLAN_TOUR, { scrollRef })} hitSlop={8} activeOpacity={0.7}>
+                <Ionicons name="help-circle-outline" size={24} color={t.textTertiary} />
+              </TouchableOpacity>
+            )}
+            <View style={s.streak}>
+              <Text style={{ fontSize: 15 }}>🔥</Text>
+              <Text style={s.streakN}>{streak.current_streak_days}</Text>
+            </View>
           </View>
         </View>
 
@@ -425,7 +484,7 @@ export default function PlanScreen() {
             )}
 
             {/* Day strip — réparti sur toute la largeur, tous les jours conservés */}
-            <View style={s.days}>
+            <View ref={daysRef} style={s.days}>
               {Array.from({ length: plan.days }).map((_, i) => {
                 const n = i + 1; const on = selectedDay === n; const meta = dayMeta(i);
                 return (
@@ -433,6 +492,7 @@ export default function PlanScreen() {
                     style={[s.day, { backgroundColor: on ? t.accent : t.card, borderColor: on ? t.accent : t.line }]}>
                     <Text style={[s.dayWd, { color: on ? t.onAccent : t.textTertiary }]}>{meta.wd}</Text>
                     <Text style={[s.dayNum, { color: on ? t.onAccent : t.textSecondary }]}>{meta.num}</Text>
+                    <Text style={{ fontSize: 9, height: 12, lineHeight: 12 }}>{restDayNums.has(n) ? '🛌' : ''}</Text>
                   </TouchableOpacity>
                 );
               })}
@@ -440,8 +500,13 @@ export default function PlanScreen() {
 
             {/* Summary */}
             {dayMacros && (
-              <View style={[s.card, cardShadow(t)]}>
+              <View ref={macrosRef} style={[s.card, cardShadow(t)]}>
                 <SectionLabel t={t}>Jour {selectedDay}</SectionLabel>
+                {isRestDay && (
+                  <Text style={{ color: t.textSecondary, fontSize: 12, fontWeight: '600', marginTop: 4 }}>
+                    🛌 Jour de repos · glucides réduits, lipides relevés (mêmes kcal)
+                  </Text>
+                )}
                 <View style={{ height: 10 }} />
                 <MacroBar {...dayMacros} targetKcal={profile?.target_kcal} />
                 {profile && <TargetDelta t={t} actual={dayMacros.kcal} target={profile.target_kcal} />}
@@ -458,7 +523,7 @@ export default function PlanScreen() {
                     </TouchableOpacity>
                   </View>
                 )}
-                <TouchableOpacity onPress={() => setOffPlanOpen(true)} activeOpacity={0.7} style={s.offPlanBtn}>
+                <TouchableOpacity ref={offplanRef} onPress={() => setOffPlanOpen(true)} activeOpacity={0.7} style={s.offPlanBtn}>
                   <Text style={s.offPlanTxt}>+ J'ai mangé hors plan</Text>
                 </TouchableOpacity>
               </View>
@@ -467,7 +532,7 @@ export default function PlanScreen() {
             {/* Meals */}
             <SectionLabel t={t}>Repas du jour</SectionLabel>
             <View style={{ gap: 10 }}>
-              {dayMeals.map((m) => {
+              {dayMeals.map((m, i) => {
                 const fridgeTracked = pantry.length > 0;
                 const missing = fridgeTracked ? recipeCoverage(m.recipe, pantry).missing.map((i) => i.name) : undefined;
                 return (
@@ -478,6 +543,8 @@ export default function PlanScreen() {
                     onCook={() => cookMeal(m)}
                     missing={missing}
                     fridgeTracked={fridgeTracked}
+                    tourId={i === 0 ? 'plan-meal' : undefined}
+                    cookTourId={i === 0 ? 'plan-cook' : undefined}
                   />
                 );
               })}

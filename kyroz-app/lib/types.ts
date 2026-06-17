@@ -186,6 +186,7 @@ export interface Meal {
   adapt_flags?: AdaptFlag[];          // faisabilité de l'adaptation
   adapt_gap?: Macros;                 // atteint − cible (signé) ; alimente l'affichage « +Xg »
   restriction_relaxed?: boolean;      // repli régime : recette servie hors restriction
+  rest_day?: boolean;                 // jour de repos (carb-cycling : glucides ↓ / lipides ↑)
 }
 
 export interface MealPlan {

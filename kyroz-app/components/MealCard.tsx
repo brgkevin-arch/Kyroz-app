@@ -1,8 +1,9 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useTheme, Radius, cardShadow } from '../constants/theme';
+import { useTheme, Radius, cardShadow, ThemePalette } from '../constants/theme';
 import { Meal } from '../lib/types';
+import { useTourTarget } from './GuidedTour';
 
 const MEAL_LABELS: Record<string, string> = {
   breakfast: 'Petit-déjeuner',
@@ -12,15 +13,19 @@ const MEAL_LABELS: Record<string, string> = {
 };
 
 export function MealCard({
-  meal, onPress, onCook, missing, fridgeTracked,
+  meal, onPress, onCook, missing, fridgeTracked, tourId, cookTourId,
 }: {
   meal: Meal;
   onPress?: () => void;
   onCook?: () => void;
   missing?: string[];        // ingrédients absents du frigo (undefined si frigo non suivi)
   fridgeTracked?: boolean;   // le frigo contient au moins 1 article
+  tourId?: string;           // si fourni : rend la carte ciblable par la visite guidée
+  cookTourId?: string;       // si fourni : rend le bouton « J'ai cuisiné » ciblable par la visite guidée
 }) {
   const t = useTheme();
+  const rootRef = useTourTarget(tourId);
+  const cookRef = useTourTarget(cookTourId);
   const eaten = meal.status === 'eaten';
   const skipped = meal.status === 'skipped';
   const muted = eaten || skipped;
@@ -28,6 +33,7 @@ export function MealCard({
   const lacks = (missing?.length ?? 0) > 0;
   return (
     <TouchableOpacity
+      ref={rootRef}
       onPress={onPress}
       activeOpacity={0.85}
       style={[{ backgroundColor: t.card, borderRadius: Radius.lg, padding: 18, opacity: muted ? 0.6 : 1 }, cardShadow(t)]}
@@ -69,20 +75,29 @@ export function MealCard({
       {/* Action rapide directement sur le plan (sans ouvrir la fiche). Style
           secondaire (contour) quand il manque des ingrédients. */}
       {planned && onCook && (
-        <TouchableOpacity
-          onPress={onCook}
-          activeOpacity={0.85}
-          style={[
-            styles.cookBtn,
-            lacks
-              ? { borderWidth: 1.5, borderColor: t.lineStrong }
-              : { backgroundColor: t.accent },
-          ]}
-        >
-          <Ionicons name="restaurant" size={15} color={lacks ? t.text : t.onAccent} />
-          <Text style={[styles.cookTxt, { color: lacks ? t.text : t.onAccent }]}>J'ai cuisiné</Text>
-        </TouchableOpacity>
+        <CookButton t={t} onCook={onCook} lacks={lacks} cookRef={cookRef} />
       )}
+    </TouchableOpacity>
+  );
+}
+
+// Bouton « J'ai cuisiné ». La ref (cookRef) est posée directement dessus pour
+// que la visite guidée épouse exactement le bouton (sur la 1re carte du jour).
+function CookButton({ t, onCook, lacks, cookRef }: { t: ThemePalette; onCook: () => void; lacks: boolean; cookRef?: React.Ref<any> }) {
+  return (
+    <TouchableOpacity
+      ref={cookRef}
+      onPress={onCook}
+      activeOpacity={0.85}
+      style={[
+        styles.cookBtn,
+        lacks
+          ? { borderWidth: 1.5, borderColor: t.lineStrong }
+          : { backgroundColor: t.accent },
+      ]}
+    >
+      <Ionicons name="restaurant" size={15} color={lacks ? t.text : t.onAccent} />
+      <Text style={[styles.cookTxt, { color: lacks ? t.text : t.onAccent }]}>J'ai cuisiné</Text>
     </TouchableOpacity>
   );
 }

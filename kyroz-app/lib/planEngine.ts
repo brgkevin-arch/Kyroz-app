@@ -105,6 +105,40 @@ function mealTarget(
   };
 }
 
+// ── Cyclage glucidique : jours actifs vs jours de repos ──────────────────────
+// Les jours SANS entraînement, on garde les MÊMES kcal et les MÊMES protéines
+// (plancher protéique quotidien), mais on décale une part des kcal NON protéiques
+// des glucides vers les lipides : moins de glucides quand on ne s'entraîne pas,
+// énergie préservée (carb-cycling isocalorique léger). Les jours d'entraînement
+// gardent le ratio du profil. Décalage exprimé en points de la fraction non-prot.
+const REST_DAY_CARB_TO_FAT_SHIFT = 0.12;
+
+function restDayRatio(ratio: { carb: number; fat: number }): { carb: number; fat: number } {
+  const shift = Math.min(REST_DAY_CARB_TO_FAT_SHIFT, ratio.carb);
+  return { carb: ratio.carb - shift, fat: ratio.fat + shift };
+}
+
+/**
+ * Jours de REPOS du plan (numéros 1-based), déduits du nombre de jours
+ * d'entraînement/semaine du profil. Les jours de repos sont répartis le plus
+ * uniformément possible (on ne « colle » pas les jours off). Déterministe.
+ *  - entraînement ≥ nb de jours → aucun repos ; entraînement ≤ 0 → tous repos.
+ */
+export function restDaySet(days: number, trainingDaysPerWeek: number): Set<number> {
+  const set = new Set<number>();
+  const train = Math.max(0, Math.round(trainingDaysPerWeek || 0));
+  const rest = Math.max(0, Math.min(days, days - train));
+  if (rest <= 0) return set;
+  if (rest >= days) { for (let d = 1; d <= days; d++) set.add(d); return set; }
+  for (let i = 0; i < rest; i++) {
+    let d = Math.min(days, Math.max(1, Math.round((days * (i + 0.5)) / rest)));
+    while (set.has(d) && d < days) d++;       // collisions d'arrondi → glisse vers le haut
+    while (set.has(d) && d > 1) d--;           // puis vers le bas si besoin
+    set.add(d);
+  }
+  return set;
+}
+
 // Score de fit d'une recette adaptée vs la cible repas (plus petit = meilleur).
 // La cible (kcal/protéines/glucides/lipides en grammes) vient du moteur ; le score
 // privilégie les recettes qui atteignent kcal + protéines, puis les bons axes
@@ -213,6 +247,7 @@ interface AdaptedChoice {
   fiber: number;   // fibres approximatives (départage)
   preferred: boolean; // matche une protéine préférée
   need: number;    // soft-match objectif + sport (0–2)
+  restOk: boolean; // recette adaptée à un jour de repos (rest_day_ok)
 }
 
 /**
@@ -233,7 +268,8 @@ function selectMealAdapted(
   objectives: RecipeObjective[],
   sportBuckets: RecipeSport[],
   seed: number,
-  fiberStrong: boolean
+  fiberStrong: boolean,
+  restDay: boolean
 ): AdaptedChoice {
   const candidates: AdaptedChoice[] = pool
     .map((r) => {
@@ -244,6 +280,7 @@ function selectMealAdapted(
         fiber: recipeFiberPerPortion(r),
         preferred: preferredIds.has(r.id),
         need: needMatch(r, objectives, sportBuckets),
+        restOk: r.rest_day_ok === true,
       };
     })
     .sort((a, b) => a.score - b.score || a.recipe.id.localeCompare(b.recipe.id));
@@ -268,6 +305,8 @@ function selectMealAdapted(
     if (a.preferred !== b.preferred) return a.preferred ? -1 : 1;
     // 1bis) Besoin : recette taguée pour l'objectif/sport (soft-matching).
     if (a.need !== b.need) return b.need - a.need;
+    // 1quater) Jour de repos : nudge vers les recettes adaptées « jour off ».
+    if (restDay && a.restOk !== b.restOk) return a.restOk ? -1 : 1;
     // 1ter) En sèche, les fibres priment sur la variété (satiété).
     if (fiberStrong) { const f = fiberCmp(a, b); if (f !== 0) return f; }
     // 2) Variété intra-semaine : la recette la moins utilisée (sauf en répétitif).
@@ -351,7 +390,7 @@ export function computeDailyTotals(
 // Version du moteur de génération : à incrémenter quand le scoring/sélection
 // change, pour que les plans EN CACHE se régénèrent automatiquement (la signature
 // change → l'auto-refresh de l'écran Plan rejoue la génération). v2 = lipides cadrés.
-const ENGINE_VERSION = 4; // v4 = adaptRecipe (scaling par ingrédient) + soft-matching
+const ENGINE_VERSION = 5; // v5 = carb-cycling jours actifs/repos (rest_day)
 
 export function profileSignature(p: UserProfile): string {
   return JSON.stringify({
@@ -386,6 +425,8 @@ export function buildLocalPlan(profile: UserProfile, seed: number = 0): MealPlan
   const objectives = goalToObjectives(profile.goal);
   const sportBuckets = sportsToBuckets(profile.sports);
   const ratio = carbFatRatio(profile);
+  // Jours de repos (déduits des jours d'entraînement) → carb-cycling + recettes « jour off ».
+  const restDays = restDaySet(days, profile.training_days_per_week);
 
   const pools: Record<string, Recipe[]> = {};
   const relaxed: Record<string, boolean> = {};
@@ -414,17 +455,20 @@ export function buildLocalPlan(profile: UserProfile, seed: number = 0): MealPlan
     let remainingKcal = profile.target_kcal;
     let remainingProtein = profile.target_protein_g;
     let remainingWeight = totalWeight;
+    // Jour de repos → glucides ↓ / lipides ↑ (mêmes kcal + protéines).
+    const isRest = restDays.has(d);
+    const dayRatio = isRest ? restDayRatio(ratio) : ratio;
 
     mealTypes.forEach((mealType) => {
       const weight = distribution[mealType];
 
       // Cible du repas (EN GRAMMES) = part du budget restant (kcal + protéines) au
-      // prorata du poids ; glucides/lipides déduits via le ratio du profil. Report
+      // prorata du poids ; glucides/lipides déduits via le ratio du jour. Report
       // de budget → le total du jour reste serré malgré les arrondis/bornes.
-      const target = mealTarget(remainingKcal, remainingProtein, weight, remainingWeight, ratio);
+      const target = mealTarget(remainingKcal, remainingProtein, weight, remainingWeight, dayRatio);
 
       const choice = selectMealAdapted(
-        pools[mealType], target, usage, variety, preferredIds, objectives, sportBuckets, seed, fiberStrong,
+        pools[mealType], target, usage, variety, preferredIds, objectives, sportBuckets, seed, fiberStrong, isRest,
       );
 
       usage[choice.recipe.id] = (usage[choice.recipe.id] ?? 0) + 1;
@@ -443,6 +487,7 @@ export function buildLocalPlan(profile: UserProfile, seed: number = 0): MealPlan
         adapt_flags: choice.flags.length ? choice.flags : undefined,
         adapt_gap: choice.gap,
         restriction_relaxed: relaxed[mealType] || undefined,
+        rest_day: isRest || undefined,
       });
     });
   }
@@ -595,7 +640,10 @@ function rebalanceCore(
   let remKcal = Math.max(profile.target_kcal - consumed.kcal, 0);
   let remProt = Math.max(profile.target_protein_g - consumed.protein, 0);
 
-  const ratio = carbFatRatio(profile);
+  // Cohérence carb-cycling : si le jour est marqué « repos », on recale avec le
+  // même ratio glucides/lipides décalé qu'à la génération.
+  const isRestDay = dayMeals.some((m) => m.rest_day === true);
+  const ratio = isRestDay ? restDayRatio(carbFatRatio(profile)) : carbFatRatio(profile);
   const adjustMeals = dayMeals.filter(isAdjustable);
   let remWeight = adjustMeals.reduce((s, m) => s + dist[m.meal_type], 0) || 1;
 

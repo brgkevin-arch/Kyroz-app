@@ -8,6 +8,7 @@ import { AuthProvider } from '../hooks/useAuth';
 import { ProfileProvider } from '../hooks/useProfile';
 import { RecipeOverridesProvider } from '../hooks/useRecipeOverrides';
 import { ErrorBoundary } from '../components/ErrorBoundary';
+import { TourProvider } from '../components/GuidedTour';
 
 export default function RootLayout() {
   const t = useTheme();
@@ -18,13 +19,15 @@ export default function RootLayout() {
       <AuthProvider>
         <ProfileProvider>
           <RecipeOverridesProvider>
-            <StatusBar style={t.scheme === 'dark' ? 'light' : 'dark'} />
-            <Stack
-              screenOptions={{
-                headerShown: false,
-                contentStyle: { backgroundColor: t.bg },
-              }}
-            />
+            <TourProvider>
+              <StatusBar style={t.scheme === 'dark' ? 'light' : 'dark'} />
+              <Stack
+                screenOptions={{
+                  headerShown: false,
+                  contentStyle: { backgroundColor: t.bg },
+                }}
+              />
+            </TourProvider>
           </RecipeOverridesProvider>
         </ProfileProvider>
       </AuthProvider>

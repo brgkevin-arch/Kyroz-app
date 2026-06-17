@@ -4,7 +4,7 @@ import {
   leanBodyMass, validateProfile, recommendedProteinPerKg, kcalFromMacros,
   MIN_KCAL, MIN_AGE, DEFAULT_CARB_RATIO, NEAT_BASE_PAL,
 } from '../tdee';
-import { exerciseKcalPerDay } from '../sport';
+import { exerciseKcalPerDay, totalSessionsPerWeek } from '../sport';
 import { makeProfile } from './helpers';
 
 describe('BMR', () => {
@@ -159,5 +159,58 @@ describe('recommendedProteinPerKg', () => {
     expect(recommendedProteinPerKg('cut_aggressive')).toBe(2.4);
     expect(recommendedProteinPerKg('cut')).toBe(2.2);
     expect(recommendedProteinPerKg('maintain')).toBe(1.8);
+  });
+});
+
+// Verrou « une seule valeur de TDEE, un seul chemin, déterministe » (work-order).
+describe('Unicité & stabilité du TDEE', () => {
+  it('recalcProfile est déterministe et idempotent (auto, %MG, sports, percent)', () => {
+    const variants = [
+      makeProfile(),
+      makeProfile({ body_fat_pct: 18 }),
+      makeProfile({ sports: [{ type: 'musculation', sessions_per_week: 3, minutes_per_session: 60 }] }),
+      makeProfile({ macro_mode: 'percent', carb_ratio: 50, protein_per_kg: 2.0 }),
+    ];
+    for (const p of variants) {
+      const once = recalcProfile(p);
+      const twice = recalcProfile(once);
+      expect(Number.isFinite(once.tdee_kcal)).toBe(true);
+      expect(twice.tdee_kcal).toBe(once.tdee_kcal);
+      expect(twice.target_kcal).toBe(once.target_kcal);
+      expect(twice.target_protein_g).toBe(once.target_protein_g);
+    }
+  });
+
+  it('onboarding ≡ recalc : la valeur stockée = toute recompute ultérieure', () => {
+    // L'onboarding construit le profil avec training_days = totalSessionsPerWeek(sports)
+    // PUIS passe par recalcProfile (producteur unique). Une recompute ultérieure
+    // (check-in poids, éditeur profil) doit donner EXACTEMENT le même TDEE.
+    const sports = [{ type: 'course' as const, sessions_per_week: 3, minutes_per_session: 45 }];
+    const draft = makeProfile({
+      sports, training_days_per_week: totalSessionsPerWeek(sports),
+      body_fat_pct: 20, tdee_kcal: 0, target_kcal: 0,
+    });
+    const stored = recalcProfile(draft);   // onboarding
+    const later = recalcProfile(stored);   // check-in / éditeur
+    expect(stored.tdee_kcal).toBeGreaterThan(0);
+    expect(later.tdee_kcal).toBe(stored.tdee_kcal);
+  });
+
+  it('sélection de méthode = fonction du profil seul (MET si sports, multiplicateur sinon)', () => {
+    const bmr = calculateBMR('male', 90, 180, 30); // Mifflin (pas de %MG)
+    const sansSport = recalcProfile(makeProfile({ sports: [], training_days_per_week: 3 }));
+    expect(sansSport.tdee_kcal).toBe(Math.round(bmr * 1.55)); // multiplicateur 3–4 j
+    const avecSport = recalcProfile(makeProfile({ sports: [{ type: 'musculation', sessions_per_week: 3, minutes_per_session: 60 }] }));
+    expect(avecSport.tdee_kcal).toBe(Math.round(bmr * NEAT_BASE_PAL + exerciseKcalPerDay(avecSport.sports, 90))); // MET
+  });
+
+  it('FRONTIÈRE SYNCHRO (documentée, hors périmètre) : sports perdus + training_days conservé → bascule de méthode', () => {
+    // Cet état (sports=[] ET training_days>0) n'est JAMAIS produit par l'UI locale :
+    // il vient d'une persistance corrompue/partielle (round-trip cloud). On le
+    // verrouille pour rendre la bascule VISIBLE. À corriger côté SYNC, pas ici.
+    const sports = [{ type: 'musculation' as const, sessions_per_week: 3, minutes_per_session: 60 }];
+    const coherent = recalcProfile(makeProfile({ sports, training_days_per_week: totalSessionsPerWeek(sports) }));
+    const corrupted = recalcProfile({ ...coherent, sports: [] }); // training_days reste > 0
+    expect(corrupted.tdee_kcal).not.toBe(coherent.tdee_kcal); // ← signature de la frontière C
   });
 });

@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach } from 'vitest';
-import { buildLocalPlan, computeDailyTotals, profileSignature, swapMeal, computeDistribution, rebalanceDay, adaptDayOptions, effectiveMacros, resetTracking, mealIngredients, reAdaptMealRecipe } from '../planEngine';
+import { buildLocalPlan, computeDailyTotals, profileSignature, swapMeal, computeDistribution, rebalanceDay, adaptDayOptions, effectiveMacros, resetTracking, mealIngredients, reAdaptMealRecipe, restDaySet } from '../planEngine';
 import { setRecipeOverrides, RECIPES } from '../recipes';
 import { makeProfile } from './helpers';
 
@@ -404,5 +404,50 @@ describe('reAdaptMealRecipe (override perso → cohérence immédiate)', () => {
     expect(re.recipe.id).toBe(other.id);
     expect(re.adapted_ingredients).toBeUndefined();
     expect(re.macros.kcal).toBe(Math.round(other.macros_per_portion.kcal * 2));
+  });
+});
+
+describe('carb-cycling jours actifs / repos', () => {
+  it('restDaySet : déduit et répartit les jours de repos', () => {
+    expect(restDaySet(7, 7).size).toBe(0);   // entraînement tous les jours → 0 repos
+    expect(restDaySet(5, 9).size).toBe(0);   // entraînement ≥ jours → 0 repos
+    expect(restDaySet(7, 0).size).toBe(7);   // aucun entraînement → tous repos
+    expect(restDaySet(7, 4).size).toBe(3);   // 7 jours, 4 d'entraînement → 3 repos
+    expect(restDaySet(6, 2).size).toBe(4);
+    // étalés (pas tous collés) : au moins un jour actif entre deux repos sur 7/4
+    const rd = [...restDaySet(7, 4)].sort((a, b) => a - b);
+    expect(rd[0]).toBeGreaterThanOrEqual(1);
+    expect(rd[rd.length - 1]).toBeLessThanOrEqual(7);
+  });
+
+  it('jour de repos : glucides ↓, lipides ↑, mêmes kcal + protéines (isocalorique)', () => {
+    const p = makeProfile({ training_days_per_week: 2, plan_days: 6, meals: ['breakfast', 'lunch', 'dinner', 'snack'] });
+    const plan = buildLocalPlan(p, 0);
+    const totals = computeDailyTotals(plan.meals, plan.days);
+    const restNums = new Set(plan.meals.filter((m) => m.rest_day).map((m) => m.day));
+    expect(restNums.size).toBeGreaterThan(0);
+    expect(restNums.size).toBeLessThan(plan.days); // il reste des jours actifs
+
+    const avg = (sel: (t: typeof totals[number]) => number, rest: boolean) => {
+      const ds = totals.filter((_, i) => rest === restNums.has(i + 1));
+      return ds.reduce((s, t) => s + sel(t), 0) / ds.length;
+    };
+    expect(avg((t) => t.carbs_g, true)).toBeLessThan(avg((t) => t.carbs_g, false));     // glucides ↓
+    expect(avg((t) => t.fat_g, true)).toBeGreaterThan(avg((t) => t.fat_g, false));      // lipides ↑
+    // isocalorique : kcal & protéines comparables repos vs actif
+    expect(Math.abs(avg((t) => t.kcal, true) - avg((t) => t.kcal, false)) / avg((t) => t.kcal, false)).toBeLessThan(0.08);
+    expect(Math.abs(avg((t) => t.protein_g, true) - avg((t) => t.protein_g, false)) / avg((t) => t.protein_g, false)).toBeLessThan(0.15);
+  });
+
+  it('aucun jour de repos si on s’entraîne autant que le nombre de jours du plan', () => {
+    const plan = buildLocalPlan(makeProfile({ training_days_per_week: 7, plan_days: 5 }), 0);
+    expect(plan.meals.every((m) => !m.rest_day)).toBe(true);
+  });
+
+  it('déterministe avec le carb-cycling', () => {
+    const p = makeProfile({ training_days_per_week: 3, plan_days: 6 });
+    const sig = (pl: ReturnType<typeof buildLocalPlan>) =>
+      pl.meals.map((m) => `${m.id}:${m.recipe.id}:${m.rest_day ? 'R' : 'A'}:${m.macros.carbs_g},${m.macros.fat_g}`).join('|');
+    expect(sig(buildLocalPlan(p, 0))).toBe(sig(buildLocalPlan(p, 0)));
   });
 });
