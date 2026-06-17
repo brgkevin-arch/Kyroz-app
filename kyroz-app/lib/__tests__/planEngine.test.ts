@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach } from 'vitest';
-import { buildLocalPlan, computeDailyTotals, profileSignature, swapMeal, computeDistribution, rebalanceDay, adaptDayOptions, effectiveMacros, resetTracking } from '../planEngine';
+import { buildLocalPlan, computeDailyTotals, profileSignature, swapMeal, computeDistribution, rebalanceDay, adaptDayOptions, effectiveMacros, resetTracking, mealIngredients } from '../planEngine';
 import { setRecipeOverrides, RECIPES_PLACEHOLDER } from '../recipes';
 import { makeProfile } from './helpers';
 
@@ -108,6 +108,30 @@ describe('buildLocalPlan + adaptRecipe (scaling par ingrédient)', () => {
       target_kcal: 2000, target_protein_g: 170, target_carbs_g: 180, target_fat_g: 60, plan_days: 1,
     }), 0);
     expect(plan.meals).toHaveLength(4);
+  });
+});
+
+describe('mealIngredients (quantités effectives)', () => {
+  it('renvoie les quantités adaptées si présentes, sinon recipe×portions', () => {
+    const p = makeProfile({ plan_days: 1 });
+    const plan = buildLocalPlan(p, 0);
+    const m = plan.meals[0];
+    const ings = mealIngredients(m);
+    expect(ings.length).toBe(m.recipe.ingredients.length);
+    expect(ings[0]).toHaveProperty('quantity_g');
+    expect(ings[0]).toHaveProperty('name');
+    // adapté = ce que porte le repas
+    expect(ings[0].quantity_g).toBe(m.adapted_ingredients![0].quantity_g);
+  });
+  it('repli recipe×portions quand pas d\'adapted_ingredients (plan legacy)', () => {
+    const legacy: any = {
+      id: 'm', day: 1, meal_type: 'lunch', portions: 2,
+      recipe: { id: 'r', name_fr: 'X', prep_time_min: 10, portions: 1,
+        macros_per_portion: { kcal: 0, protein_g: 0, carbs_g: 0, fat_g: 0 },
+        ingredients: [{ name: 'Riz', quantity_g: 80 }], steps: [], tags: ['lunch'], validated_by_dietitian: false },
+      macros: { kcal: 0, protein_g: 0, carbs_g: 0, fat_g: 0 },
+    };
+    expect(mealIngredients(legacy)[0].quantity_g).toBe(160);
   });
 });
 

@@ -280,6 +280,20 @@ export function effectiveMacros(meal: Meal): Macros {
   return meal.macros;
 }
 
+/** Ingrédients EFFECTIFS d'un repas (noms + quantités) : adaptés si présents,
+ *  sinon repli sur la recette × portions (plans en cache d'avant la refonte). */
+export function mealIngredients(meal: Meal): { name: string; quantity_g: number; unit: string; ref?: string }[] {
+  if (meal.adapted_ingredients?.length) {
+    return meal.adapted_ingredients.map((i) => ({
+      name: i.name, quantity_g: i.quantity_g, unit: i.unit ?? 'g', ref: i.ref,
+    }));
+  }
+  const f = meal.portions ?? 1;
+  return meal.recipe.ingredients.map((i) => ({
+    name: i.name, quantity_g: i.quantity_g * f, unit: i.unit ?? 'g', ref: i.ref,
+  }));
+}
+
 export function computeDailyTotals(
   meals: Meal[],
   days: number,
