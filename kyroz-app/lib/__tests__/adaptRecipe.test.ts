@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { adaptRecipe, goalToObjectives, sportsToBuckets, needMatch, FLAG_AUDIENCE } from '../adaptRecipe';
+import { macrosForRefIngredients } from '../recipeData';
 import { AdaptFlag, Recipe } from '../types';
 
 // Recette de test minimale (refs réels de la table).
@@ -41,6 +42,27 @@ describe('adaptRecipe', () => {
     const res = adaptRecipe(poulet, { ...target, proteinMeal: 10 });
     const p = res.ingredients.find((i) => i.ref === 'poulet_filet')!;
     expect(p.quantity_g).toBeGreaterThanOrEqual(180);
+  });
+  it('plancher protéique TOTAL : recette multi-source (whey+lait+avoine) ne tombe pas sous la base', () => {
+    // La protéine de ce porridge vient de l'ANCRE (whey) ET des fills (lait, avoine).
+    // Cible volontairement basse en protéines ET en glucides : sans plancher sur la
+    // protéine TOTALE, scaleToMacro réduirait lait+avoine pour viser les glucides et
+    // la protéine du repas tomberait sous la recette de base. On exige ≥ base.
+    const porridge: Recipe = {
+      id: 't_porridge', name_fr: 'Porridge protéiné', prep_time_min: 10, portions: 1,
+      macros_per_portion: { kcal: 0, protein_g: 0, carbs_g: 0, fat_g: 0 }, // recompute depuis refs
+      ingredients: [
+        { name: 'Whey', quantity_g: 30, ref: 'whey', macro_role: 'protein', scalable: true },
+        { name: 'Lait demi-écrémé', quantity_g: 250, ref: 'lait_demi_ecreme', macro_role: 'dairy', scalable: true },
+        { name: "Flocons d'avoine", quantity_g: 70, ref: 'flocons_avoine', macro_role: 'carb', scalable: true },
+      ],
+      steps: ['...'], tags: ['breakfast'], validated_by_dietitian: false,
+    };
+    const base = macrosForRefIngredients([
+      { ref: 'whey', qty: 30 }, { ref: 'lait_demi_ecreme', qty: 250 }, { ref: 'flocons_avoine', qty: 70 },
+    ]);
+    const res = adaptRecipe(porridge, { kcalMeal: 320, proteinMeal: 18, carbMeal: 22, fatMeal: 6 });
+    expect(res.macros.protein_g).toBeGreaterThanOrEqual(Math.round(base.protein_g) - 1);
   });
   it('flag under_target_kcal quand la recette ne peut pas atteindre une grosse cible', () => {
     const res = adaptRecipe(poulet, { kcalMeal: 1400, proteinMeal: 90, carbMeal: 175, fatMeal: 47 });

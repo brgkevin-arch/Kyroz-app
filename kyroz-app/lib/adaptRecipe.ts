@@ -137,10 +137,18 @@ export function adaptRecipe(recipe: Recipe, target: AdaptTarget): AdaptResult {
   scaleToMacro(carbBucket, 'carbs_g', target.carbMeal);
   scaleToMacro(fatBucket, 'fat_g', target.fatMeal);
 
-  // 3.5 Récupération protéique (remonte les ancres dans leurs bornes si sous le plancher)
+  // 3.5 Récupération protéique : on remonte les ancres tant que la protéine TOTALE
+  //     du repas est sous le PLANCHER = max(cible repas, protéine de la recette de
+  //     BASE). Le plancher « base » honore l'invariant recomp « jamais sous la
+  //     recette » même quand un fill porteur de protéine (lait, flocons, yaourt) a
+  //     été réduit pour viser une cible glucides basse : on substitue alors de la
+  //     protéine d'ancre (pauvre en glucides) plutôt que de laisser filer la
+  //     protéine du repas. `i.quantity_g` vaut encore la base ici (arrondi en §5).
+  const baseProtein = items.reduce((s, i) => s + (proteinPer100(i.ref!) * i.quantity_g) / 100, 0);
+  const proteinFloor = Math.max(target.proteinMeal, baseProtein);
   const totalProtein = () => items.reduce((s, i) => s + (proteinPer100(i.ref!) * out.get(i)!) / 100, 0);
   if (anchors.length) {
-    let need = target.proteinMeal - totalProtein();
+    let need = proteinFloor - totalProtein();
     for (const i of anchors) {
       if (need <= 0) break;
       const b = bounds(i);
