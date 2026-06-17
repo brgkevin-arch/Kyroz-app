@@ -121,6 +121,22 @@ export function removeItem(items: PantryItem[], name: string, unit: string): Pan
   return items.filter((i) => !(norm(i.name) === norm(name) && i.unit === unit));
 }
 
+/** Inverse de addOrMerge : retire `qty` du stock d'un article sans passer sous 0,
+ *  et ne supprime l'entrée que si elle atteint 0. Décocher un article de courses
+ *  ne doit effacer que ce que le cochage avait ajouté, pas le stock déjà saisi à
+ *  la main. */
+export function subtractQuantity(items: PantryItem[], name: string, unit: string, qty: number): PantryItem[] {
+  const idx = items.findIndex((i) => norm(i.name) === norm(name) && i.unit === unit);
+  if (idx < 0) return items;
+  const remaining = items[idx].quantity - qty;
+  if (remaining > 0) {
+    const copy = [...items];
+    copy[idx] = { ...copy[idx], quantity: remaining };
+    return copy;
+  }
+  return items.filter((_, i) => i !== idx);
+}
+
 /** Garde-manger visible : on masque les condiments universels. */
 export function visiblePantry(items: PantryItem[]): PantryItem[] {
   return items.filter((i) => !isStaple(i.name));

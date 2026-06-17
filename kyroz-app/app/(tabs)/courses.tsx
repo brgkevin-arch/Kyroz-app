@@ -8,7 +8,7 @@ import { useTheme, ThemePalette, Radius, Spacing, cardShadow } from '../../const
 import { MealPlan, ShoppingItem, ShoppingList } from '../../lib/types';
 import { buildShoppingList } from '../../lib/shoppingList';
 import { formatQuantity } from '../../lib/units';
-import { loadPantry, savePantry, addOrMerge, removeItem, isStaple } from '../../lib/pantry';
+import { loadPantry, savePantry, addOrMerge, subtractQuantity, isStaple } from '../../lib/pantry';
 import { pushPantry } from '../../lib/sync';
 
 const PLAN_KEY = '@kyroz:plan';
@@ -61,7 +61,9 @@ export default function CoursesScreen() {
   const persist = async (l: ShoppingList) => { setList(l); await AsyncStorage.setItem(LIST_KEY, JSON.stringify(l)); };
 
   // Cocher un article = « je l'ai acheté » → il part DIRECTEMENT au frigo.
-  // Décocher = retour en arrière → on le retire du frigo. (Plus d'étape d'import.)
+  // Décocher = retour en arrière → on retire SEULEMENT la quantité que le cochage
+  // avait ajoutée (et on ne supprime l'entrée que si elle retombe à 0), pour ne
+  // pas effacer le stock déjà saisi à la main. (Plus d'étape d'import.)
   const toggle = async (item: ShoppingItem) => {
     if (!list) return;
     const willCheck = !item.checked;
@@ -70,7 +72,7 @@ export default function CoursesScreen() {
     const pantry = await loadPantry();
     const next = willCheck
       ? addOrMerge(pantry, { name: item.name, quantity: item.quantity, unit: item.unit, category: item.category })
-      : removeItem(pantry, item.name, item.unit);
+      : subtractQuantity(pantry, item.name, item.unit, item.quantity);
     await savePantry(next);
     pushPantry(next);
   };

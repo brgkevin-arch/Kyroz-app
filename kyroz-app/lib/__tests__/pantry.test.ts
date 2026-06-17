@@ -1,14 +1,15 @@
 import { describe, it, expect } from 'vitest';
-import { isStaple, categorize, addOrMerge, removeItem, deductRecipe, PantryItem } from '../pantry';
+import { isStaple, categorize, addOrMerge, subtractQuantity, deductRecipe, PantryItem } from '../pantry';
 import { Recipe, ShoppingItem } from '../types';
 
 // Reproduit la logique du toggle de l'écran Courses (courses.tsx) : cocher un
-// article l'envoie au frigo, décocher l'en retire, les condiments sont ignorés.
+// article l'ajoute au frigo, décocher retire SEULEMENT la quantité ajoutée (le
+// stock saisi à la main est préservé), les condiments sont ignorés.
 function applyCheck(pantry: PantryItem[], item: ShoppingItem, willCheck: boolean): PantryItem[] {
   if (isStaple(item.name)) return pantry;
   return willCheck
     ? addOrMerge(pantry, { name: item.name, quantity: item.quantity, unit: item.unit, category: item.category })
-    : removeItem(pantry, item.name, item.unit);
+    : subtractQuantity(pantry, item.name, item.unit, item.quantity);
 }
 
 const shopItem = (over: Partial<ShoppingItem> = {}): ShoppingItem => ({
@@ -26,6 +27,15 @@ describe('Courses → Frigo (cocher = ajouter, décocher = retirer)', () => {
     const stocked = applyCheck([], shopItem(), true);
     const after = applyCheck(stocked, shopItem(), false);
     expect(after).toHaveLength(0);
+  });
+
+  it('décocher préserve le stock pré-existant (200 g + 300 g cochés → 500 g, puis décoché → 200 g)', () => {
+    const stock: PantryItem[] = [{ name: 'Poulet', quantity: 200, unit: 'g', category: 'viandes' }];
+    const stocked = applyCheck(stock, shopItem({ quantity: 300 }), true);
+    expect(stocked[0].quantity).toBe(500);
+    const after = applyCheck(stocked, shopItem({ quantity: 300 }), false);
+    expect(after).toHaveLength(1);
+    expect(after[0].quantity).toBe(200); // on ne retire que les 300 g du cochage
   });
 
   it('un même article coché 2 fois cumule les quantités', () => {
@@ -72,5 +82,48 @@ describe('« J’ai cuisiné » → déduction du frigo (deductRecipe)', () => {
     const pantry: PantryItem[] = [{ name: 'Poulet', quantity: 150, unit: 'g', category: 'viandes' }];
     const after = deductRecipe(pantry, recipe(), 1);
     expect(after.find((i) => i.name === 'Poulet')).toBeUndefined();
+  });
+});
+
+describe('subtractQuantity (décochage symétrique de addOrMerge)', () => {
+  const poulet = (q: number): PantryItem => ({ name: 'Poulet', quantity: q, unit: 'g', category: 'viandes' });
+
+  it('décrémente la quantité sans toucher au reste de l’article', () => {
+    const after = subtractQuantity([poulet(500)], 'Poulet', 'g', 300);
+    expect(after).toHaveLength(1);
+    expect(after[0]).toMatchObject({ name: 'Poulet', quantity: 200, unit: 'g', category: 'viandes' });
+  });
+
+  it('supprime l’entrée quand la quantité atteint exactement 0', () => {
+    expect(subtractQuantity([poulet(300)], 'Poulet', 'g', 300)).toHaveLength(0);
+  });
+
+  it('ne descend jamais sous 0 : si on retire plus que le stock, l’entrée disparaît', () => {
+    const after = subtractQuantity([poulet(100)], 'Poulet', 'g', 300);
+    expect(after).toHaveLength(0); // jamais de quantité négative
+  });
+
+  it('laisse le garde-manger intact si l’article est absent', () => {
+    const before = [poulet(200)];
+    const after = subtractQuantity(before, 'Riz', 'g', 50);
+    expect(after).toEqual(before);
+  });
+
+  it('n’affecte pas un article de même nom mais d’unité différente', () => {
+    const before: PantryItem[] = [{ name: 'Œufs', quantity: 6, unit: 'pièce', category: 'laitiers' }];
+    const after = subtractQuantity(before, 'Œufs', 'g', 50); // unité 'g' ≠ 'pièce'
+    expect(after).toEqual(before);
+  });
+
+  it('matche malgré accents/casse/ligature (norm, comme addOrMerge)', () => {
+    const before: PantryItem[] = [{ name: 'Œufs', quantity: 12, unit: 'pièce', category: 'laitiers' }];
+    const after = subtractQuantity(before, 'OEUFS', 'pièce', 4); // « OEUFS » ↔ « Œufs » via norm
+    expect(after[0].quantity).toBe(8);
+  });
+
+  it('est pur : ne mute pas le tableau d’origine', () => {
+    const before = [poulet(500)];
+    subtractQuantity(before, 'Poulet', 'g', 300);
+    expect(before[0].quantity).toBe(500);
   });
 });
