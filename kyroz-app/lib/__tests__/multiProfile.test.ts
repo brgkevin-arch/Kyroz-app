@@ -82,6 +82,17 @@ function planSig(p: ReturnType<typeof buildLocalPlan>): string {
 
 const dayDev = (got: number, target: number) => Math.abs(got - target) / Math.max(target, 1);
 
+// Bande de cible A2 — asymétrique, référencée au DELTA énergétique visé (TDEE − cible).
+// Côté DANGEREUX = celui qui érode le delta (débordement en déficit, manque en surplus).
+// Borne dangereuse = max(15 % du delta, plancher absolu) : le plancher domine pour les
+// petits deltas (recomp), où la quantification des recettes ne permet pas plus fin —
+// quelques dizaines de kcal restent un écart minime. Attrape le bug du brief (+13 %
+// = ~290 kcal mangeant le déficit) sans punir le bruit d'arrondi des petits deltas.
+const DANGER_FRAC_OF_DELTA = 0.15;
+const MAX_DANGER_KCAL = 90;  // plancher de faisabilité (mesuré : pire jour réel = 58 kcal)
+const SAFE_DEV = 0.15;       // côté sûr : backstop lâche en fraction de la cible
+const DELTA_DEADBAND = 40;   // |delta| ≤ 40 → maintien (bande symétrique)
+
 describe('Stress-test 20 profils (10 H + 10 F) — cohérence bout-en-bout', () => {
   it.each(ALL)('$label : garde-fous + macros cohérentes', (c) => {
     const { label, ...over } = c;
@@ -118,19 +129,28 @@ describe('Stress-test 20 profils (10 H + 10 F) — cohérence bout-en-bout', () 
     }
   });
 
-  it.each(ALL)('$label : totaux jour proches de la cible (kcal ±15%, pas de bombe de gras)', (c) => {
+  it.each(ALL)('$label : bande asymétrique (côté dangereux serré) + protéines ≥ plancher [B+A2 conjoint]', (c) => {
     const { label, ...over } = c;
     const p = recalcProfile(makeProfile(over));
     const plan = buildLocalPlan(p);
     const totals = computeDailyTotals(plan.meals, plan.days);
 
+    // Sens de l'objectif et borne dangereuse (référencée au delta visé).
+    const delta = (p.tdee_kcal ?? 0) - p.target_kcal;     // >0 déficit, <0 surplus
+    const dir = delta > DELTA_DEADBAND ? 1 : delta < -DELTA_DEADBAND ? -1 : 0;
+    const dangerCap = Math.max(DANGER_FRAC_OF_DELTA * Math.abs(delta), MAX_DANGER_KCAL);
+
     for (let d = 0; d < totals.length; d++) {
       const t = totals[d];
-      // kcal du jour dans une bande raisonnable autour de la cible
-      expect(dayDev(t.kcal, p.target_kcal), `${label} J${d + 1} kcal=${t.kcal}/${p.target_kcal}`).toBeLessThanOrEqual(0.15);
-      // Protéines : jamais affamées (plancher) — au moins 85% de la cible
-      expect(t.protein_g, `${label} J${d + 1} prot=${t.protein_g}/${p.target_protein_g}`).toBeGreaterThanOrEqual(p.target_protein_g * 0.85);
-      // Pas de bombe de gras : part calorique des lipides ≤ 50% du jour
+      const dev = t.kcal - p.target_kcal;                 // signé
+      const danger = dir > 0 ? Math.max(dev, 0) : dir < 0 ? Math.max(-dev, 0) : Math.abs(dev);
+      // CÔTÉ DANGEREUX serré : c'est le bug A2 (le réalisé qui mange le déficit/surplus).
+      expect(danger, `${label} J${d + 1} danger=${Math.round(danger)}kcal>cap${Math.round(dangerCap)} (${t.kcal}/${p.target_kcal})`).toBeLessThanOrEqual(dangerCap);
+      // CÔTÉ SÛR : backstop lâche (ne jamais sous/sur-manger grossièrement non plus).
+      expect(dayDev(t.kcal, p.target_kcal), `${label} J${d + 1} dev`).toBeLessThanOrEqual(SAFE_DEV);
+      // JOINT avec B : protéines jamais affamées (plancher) — ≥ 90% de la cible.
+      expect(t.protein_g, `${label} J${d + 1} prot=${t.protein_g}/${p.target_protein_g}`).toBeGreaterThanOrEqual(p.target_protein_g * 0.9);
+      // Pas de bombe de gras : part calorique des lipides ≤ 50% du jour.
       const fatShare = (t.fat_g * 9) / Math.max(t.kcal, 1);
       expect(fatShare, `${label} J${d + 1} fatShare=${fatShare.toFixed(2)}`).toBeLessThanOrEqual(0.5);
     }
@@ -226,6 +246,8 @@ describe('Rapport agrégé (déviations empiriques)', () => {
     let maxKcalDev = 0;
     let minProtRatio = Infinity;
     let maxFatShare = 0;
+    let worstDangerPctDelta = 0; // pire érosion CÔTÉ DANGEREUX, en % du delta visé
+    let worstDangerKcal = 0;     // … en kcal absolus (pire JOUR, pas moyenne)
     for (const c of ALL) {
       const { label, ...over } = c;
       const p = recalcProfile(makeProfile(over));
@@ -241,14 +263,30 @@ describe('Rapport agrégé (déviations empiriques)', () => {
       maxKcalDev = Math.max(maxKcalDev, kcalDev);
       minProtRatio = Math.min(minProtRatio, protRatio);
       maxFatShare = Math.max(maxFatShare, fatShare);
+
+      // Côté dangereux référencé au delta (A2) : débordement en déficit, manque en surplus.
+      const delta = (p.tdee_kcal ?? 0) - p.target_kcal; // >0 déficit, <0 surplus
+      const dir = delta > 40 ? 1 : delta < -40 ? -1 : 0;
+      let dKcal = 0;
+      for (const t of totals) {
+        const over_ = t.kcal - p.target_kcal; // signé
+        const danger = dir > 0 ? Math.max(over_, 0) : dir < 0 ? Math.max(-over_, 0) : Math.abs(over_);
+        dKcal = Math.max(dKcal, danger);
+      }
+      const dPct = dKcal / Math.max(Math.abs(delta), 1);
+      if (dir !== 0) { worstDangerKcal = Math.max(worstDangerKcal, dKcal); worstDangerPctDelta = Math.max(worstDangerPctDelta, dPct); }
+
+      const dirTag = dir > 0 ? 'déf' : dir < 0 ? 'sur' : 'mtn';
       rows.push(
         `${label.padEnd(34)} cible ${String(p.target_kcal).padStart(4)}kcal/${String(p.target_protein_g).padStart(3)}P` +
-        ` → réel ${String(kcal).padStart(4)}kcal (${(kcalDev * 100).toFixed(1).padStart(4)}%) / ${String(prot).padStart(3)}P (${(protRatio * 100).toFixed(0)}%) / gras ${(fatShare * 100).toFixed(0)}%`,
+        ` → réel ${String(kcal).padStart(4)}kcal (${(kcalDev * 100).toFixed(1).padStart(4)}%) / ${String(prot).padStart(3)}P (${(protRatio * 100).toFixed(0)}%) / gras ${(fatShare * 100).toFixed(0)}%` +
+        ` | Δ${dirTag} ${String(Math.round(delta)).padStart(4)} · danger/j ${String(Math.round(dKcal)).padStart(3)}kcal (${(dPct * 100).toFixed(0).padStart(3)}% Δ)`,
       );
     }
     // eslint-disable-next-line no-console
     console.log('\n' + rows.join('\n') +
-      `\n\nMAX écart kcal: ${(maxKcalDev * 100).toFixed(1)}%  |  MIN ratio protéines: ${(minProtRatio * 100).toFixed(0)}%  |  MAX part gras: ${(maxFatShare * 100).toFixed(0)}%`);
+      `\n\nMAX écart kcal (moy): ${(maxKcalDev * 100).toFixed(1)}%  |  MIN ratio protéines: ${(minProtRatio * 100).toFixed(0)}%  |  MAX part gras: ${(maxFatShare * 100).toFixed(0)}%` +
+      `\nPIRE érosion côté dangereux (jour): ${Math.round(worstDangerKcal)} kcal = ${(worstDangerPctDelta * 100).toFixed(0)}% du delta visé`);
     expect(rows).toHaveLength(20);
   });
 });

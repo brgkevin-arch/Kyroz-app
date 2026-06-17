@@ -1,9 +1,26 @@
 import { describe, it, expect, afterEach } from 'vitest';
-import { buildLocalPlan, computeDailyTotals, profileSignature, swapMeal, computeDistribution, rebalanceDay, adaptDayOptions, effectiveMacros, resetTracking, mealIngredients, reAdaptMealRecipe, restDaySet } from '../planEngine';
+import { buildLocalPlan, computeDailyTotals, profileSignature, swapMeal, computeDistribution, rebalanceDay, adaptDayOptions, effectiveMacros, resetTracking, mealIngredients, reAdaptMealRecipe, restDaySet, goalDirection } from '../planEngine';
 import { setRecipeOverrides, RECIPES } from '../recipes';
 import { makeProfile } from './helpers';
 
 afterEach(() => setRecipeOverrides({}));
+
+describe('goalDirection + fit asymétrique (A2)', () => {
+  it('déficit → +1, surplus → −1, maintien → 0 (deadband ±40)', () => {
+    expect(goalDirection(makeProfile({ tdee_kcal: 2500, target_kcal: 2200 }))).toBe(1);  // sèche
+    expect(goalDirection(makeProfile({ tdee_kcal: 2500, target_kcal: 2900 }))).toBe(-1); // prise de masse
+    expect(goalDirection(makeProfile({ tdee_kcal: 2500, target_kcal: 2500 }))).toBe(0);  // maintien
+    expect(goalDirection(makeProfile({ tdee_kcal: 2500, target_kcal: 2475 }))).toBe(0);  // dans le deadband
+  });
+
+  it('sèche : le réalisé ne déborde pas la cible côté dangereux (anti-bug A2)', () => {
+    const p = makeProfile({ tdee_kcal: 1900, target_kcal: 1600, target_protein_g: 130, target_carbs_g: 150, target_fat_g: 45 });
+    const cap = Math.max(0.15 * (p.tdee_kcal - p.target_kcal), 90);
+    for (const day of buildLocalPlan(p, 0).total_macros_per_day) {
+      expect(day.kcal - p.target_kcal, `débordement=${day.kcal - p.target_kcal}kcal`).toBeLessThanOrEqual(cap);
+    }
+  });
+});
 
 describe('buildLocalPlan (cœur du core loop)', () => {
   it('respecte jours et repas du profil — JAMAIS de plan vide (garde-fou §6)', () => {

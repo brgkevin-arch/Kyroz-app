@@ -139,15 +139,36 @@ export function restDaySet(days: number, trainingDaysPerWeek: number): Set<numbe
   return set;
 }
 
+/**
+ * Sens de l'objectif pour l'asymétrie de fit (A2), déduit de l'écart TDEE − cible :
+ *   +1 = DÉFICIT (sèche/recomp) → le DÉBORDEMENT kcal érode le déficit (danger).
+ *   -1 = SURPLUS (prise de masse) → le MANQUE kcal érode le surplus (danger).
+ *    0 = MAINTIEN → symétrique (comportement historique).
+ * Deadband ±40 kcal : anti-flapping autour du maintien.
+ */
+export function goalDirection(profile: UserProfile): number {
+  const delta = (profile.tdee_kcal || 0) - (profile.target_kcal || 0);
+  if (delta > 40) return 1;
+  if (delta < -40) return -1;
+  return 0;
+}
+
 // Score de fit d'une recette adaptée vs la cible repas (plus petit = meilleur).
 // La cible (kcal/protéines/glucides/lipides en grammes) vient du moteur ; le score
 // privilégie les recettes qui atteignent kcal + protéines, puis les bons axes
 // glucides/lipides (une recette sans axe gras est pénalisée pour une cible grasse).
-function fitScore(macros: Macros, target: AdaptTarget, flags: AdaptFlag[]): number {
-  const kcalDev = Math.abs(macros.kcal - target.kcalMeal) / Math.max(target.kcalMeal, 1);
-  let s = kcalDev;
-  if (flags.includes('under_target_kcal')) s += 1;
-  if (flags.includes('over_target_kcal')) s += 1;
+//
+// ASYMÉTRIE A2 : l'écart kcal du CÔTÉ DANGEREUX (débordement en sèche, manque en
+// prise de masse) est compté ~2× et son flag pénalisé plus lourd. La sélection
+// penche donc vers le côté sûr ET le côté dangereux sort plus vite de la bande de
+// variété (« coller à la cible prime sur la variété » côté risque). Maintien
+// (goalDir 0) → strictement le comportement symétrique d'avant.
+function fitScore(macros: Macros, target: AdaptTarget, flags: AdaptFlag[], goalDir: number): number {
+  const dev = (macros.kcal - target.kcalMeal) / Math.max(target.kcalMeal, 1); // signé
+  const dangerous = goalDir > 0 ? Math.max(dev, 0) : goalDir < 0 ? Math.max(-dev, 0) : 0;
+  let s = Math.abs(dev) + dangerous; // côté dangereux ~2×
+  if (flags.includes('under_target_kcal')) s += goalDir < 0 ? 1.6 : 1;
+  if (flags.includes('over_target_kcal')) s += goalDir > 0 ? 1.6 : 1;
   if (flags.includes('protein_below_target')) s += 1.2;
   if (flags.includes('fat_below_target')) s += 0.4;
   if (flags.includes('carbs_below_target')) s += 0.4;
@@ -269,14 +290,15 @@ function selectMealAdapted(
   sportBuckets: RecipeSport[],
   seed: number,
   fiberStrong: boolean,
-  restDay: boolean
+  restDay: boolean,
+  goalDir: number
 ): AdaptedChoice {
   const candidates: AdaptedChoice[] = pool
     .map((r) => {
       const a = adaptRecipe(r, target);
       return {
         recipe: r, ingredients: a.ingredients, macros: a.macros, gap: a.gap, flags: a.flags,
-        score: fitScore(a.macros, target, a.flags),
+        score: fitScore(a.macros, target, a.flags, goalDir),
         fiber: recipeFiberPerPortion(r),
         preferred: preferredIds.has(r.id),
         need: needMatch(r, objectives, sportBuckets),
@@ -390,7 +412,7 @@ export function computeDailyTotals(
 // Version du moteur de génération : à incrémenter quand le scoring/sélection
 // change, pour que les plans EN CACHE se régénèrent automatiquement (la signature
 // change → l'auto-refresh de l'écran Plan rejoue la génération). v2 = lipides cadrés.
-const ENGINE_VERSION = 5; // v5 = carb-cycling jours actifs/repos (rest_day)
+const ENGINE_VERSION = 6; // v6 = fit asymétrique selon l'objectif (A2 : anti-débordement en sèche)
 
 export function profileSignature(p: UserProfile): string {
   return JSON.stringify({
@@ -425,6 +447,9 @@ export function buildLocalPlan(profile: UserProfile, seed: number = 0): MealPlan
   const objectives = goalToObjectives(profile.goal);
   const sportBuckets = sportsToBuckets(profile.sports);
   const ratio = carbFatRatio(profile);
+  // Sens de l'objectif → asymétrie de fit (A2) : éviter le débordement en sèche,
+  // le manque en prise de masse. Calculé une fois pour tout le plan.
+  const goalDir = goalDirection(profile);
   // Jours de repos (déduits des jours d'entraînement) → carb-cycling + recettes « jour off ».
   const restDays = restDaySet(days, profile.training_days_per_week);
 
@@ -468,7 +493,7 @@ export function buildLocalPlan(profile: UserProfile, seed: number = 0): MealPlan
       const target = mealTarget(remainingKcal, remainingProtein, weight, remainingWeight, dayRatio);
 
       const choice = selectMealAdapted(
-        pools[mealType], target, usage, variety, preferredIds, objectives, sportBuckets, seed, fiberStrong, isRest,
+        pools[mealType], target, usage, variety, preferredIds, objectives, sportBuckets, seed, fiberStrong, isRest, goalDir,
       );
 
       usage[choice.recipe.id] = (usage[choice.recipe.id] ?? 0) + 1;
@@ -523,8 +548,9 @@ export function swapMeal(profile: UserProfile, plan: MealPlan, meal: Meal): Meal
     fatMeal: meal.macros.fat_g,
   };
 
+  const goalDir = goalDirection(profile);
   const ranked = pool
-    .map((r) => { const a = adaptRecipe(r, target); return { r, a, score: fitScore(a.macros, target, a.flags) }; })
+    .map((r) => { const a = adaptRecipe(r, target); return { r, a, score: fitScore(a.macros, target, a.flags, goalDir) }; })
     .sort((x, y) => x.score - y.score);
 
   const top = ranked.slice(0, Math.min(VARIANT_MIN, ranked.length));
