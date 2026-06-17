@@ -93,7 +93,21 @@ export default function CoursesScreen() {
     await persist({ ...list, items: list.items.map((i) => ({ ...i, checked: true })) });
   };
 
-  const reset = () => list && persist({ ...list, items: list.items.map((i) => ({ ...i, checked: false })) });
+  // Tout décocher = annuler les achats → on RETIRE du frigo les quantités des
+  // articles cochés (symétrie avec checkAll/toggle ; subtractQuantity borne à 0 et
+  // ne touche que ce que le cochage avait ajouté → aucune perte de stock saisi à la
+  // main), puis on décoche toute la liste.
+  const reset = async () => {
+    if (!list) return;
+    const toRemove = list.items.filter((i) => i.checked && !isStaple(i.name));
+    if (toRemove.length) {
+      let pantry = await loadPantry();
+      for (const it of toRemove) pantry = subtractQuantity(pantry, it.name, it.unit, it.quantity);
+      await savePantry(pantry);
+      pushPantry(pantry);
+    }
+    await persist({ ...list, items: list.items.map((i) => ({ ...i, checked: false })) });
+  };
   const onRefresh = useCallback(async () => { setRefreshing(true); await AsyncStorage.removeItem(LIST_KEY); await load(); setRefreshing(false); }, []);
 
   if (!list || list.items.length === 0) {
