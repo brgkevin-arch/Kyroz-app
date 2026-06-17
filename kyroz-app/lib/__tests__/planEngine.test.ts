@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach } from 'vitest';
-import { buildLocalPlan, computeDailyTotals, profileSignature, swapMeal, computeDistribution, rebalanceDay, adaptDayOptions, effectiveMacros, resetTracking, mealIngredients } from '../planEngine';
+import { buildLocalPlan, computeDailyTotals, profileSignature, swapMeal, computeDistribution, rebalanceDay, adaptDayOptions, effectiveMacros, resetTracking, mealIngredients, reAdaptMealRecipe } from '../planEngine';
 import { setRecipeOverrides, RECIPES_PLACEHOLDER } from '../recipes';
 import { makeProfile } from './helpers';
 
@@ -370,5 +370,39 @@ describe('adaptDayOptions (hors-plan, morceau 4)', () => {
   it('le soir tard : plus aucune option', () => {
     const { p, plan } = setup();
     expect(adaptDayOptions(p, plan, 1, 23)).toHaveLength(0);
+  });
+});
+
+describe('reAdaptMealRecipe (override perso → cohérence immédiate)', () => {
+  it('repas adapté : ré-dérive ingrédients + macros vers la NOUVELLE recette', () => {
+    const p = makeProfile();
+    const plan = buildLocalPlan(p, 0);
+    const meal = plan.meals.find((m) => m.adapted_ingredients?.length)!;
+    // Une autre recette du même type, à refs résolubles (recettes Kyroz).
+    const other = RECIPES_PLACEHOLDER.find(
+      (r) => r.id !== meal.recipe.id && r.tags.includes(meal.meal_type) && r.ingredients.every((i) => i.ref),
+    )!;
+
+    const re = reAdaptMealRecipe(meal, other);
+    expect(re.recipe.id).toBe(other.id);
+    // Les ingrédients adaptés sont ceux de la NOUVELLE recette (plus de quantités périmées).
+    expect(new Set(re.adapted_ingredients!.map((i) => i.ref)))
+      .toEqual(new Set(other.ingredients.map((i) => i.ref)));
+    // Macros recalculées depuis les grammes (kcal ≈ 4P+4C+9F).
+    const calc = re.macros.protein_g * 4 + re.macros.carbs_g * 4 + re.macros.fat_g * 9;
+    expect(Math.abs(calc - re.macros.kcal) / re.macros.kcal).toBeLessThan(0.13);
+    expect(re.macros.kcal).toBeGreaterThan(0);
+  });
+
+  it('repas legacy (sans ingrédients adaptés) : scale les macros de base × portions', () => {
+    const p = makeProfile();
+    const meal = buildLocalPlan(p, 0).meals[0];
+    const other = RECIPES_PLACEHOLDER.find((r) => r.id !== meal.recipe.id)!;
+    const legacy = { ...meal, adapted_ingredients: undefined, portions: 2 };
+
+    const re = reAdaptMealRecipe(legacy, other);
+    expect(re.recipe.id).toBe(other.id);
+    expect(re.adapted_ingredients).toBeUndefined();
+    expect(re.macros.kcal).toBe(Math.round(other.macros_per_portion.kcal * 2));
   });
 });

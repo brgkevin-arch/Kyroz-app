@@ -499,6 +499,47 @@ export function swapMeal(profile: UserProfile, plan: MealPlan, meal: Meal): Meal
 }
 
 /**
+ * Ré-applique une recette (override perso) à UN repas en CONSERVANT son budget
+ * macro. Repas adapté (scaling par ingrédient) → on ré-adapte la nouvelle recette
+ * à ses macros courantes (comme swapMeal) : ingrédients + macros redeviennent
+ * cohérents avec la recette affichée immédiatement, sans attendre le recalage
+ * (sinon courses/frigo/fibres, qui lisent `adapted_ingredients`, garderaient les
+ * quantités de l'ANCIENNE recette). Repli legacy (plan en cache d'avant la refonte,
+ * sans ingrédients adaptés) → on scale les macros de base × portions.
+ */
+export function reAdaptMealRecipe(meal: Meal, recipe: Recipe): Meal {
+  if (meal.adapted_ingredients) {
+    const target: AdaptTarget = {
+      kcalMeal: meal.macros.kcal,
+      proteinMeal: meal.macros.protein_g,
+      carbMeal: meal.macros.carbs_g,
+      fatMeal: meal.macros.fat_g,
+    };
+    const a = adaptRecipe(recipe, target);
+    return {
+      ...meal,
+      recipe,
+      portions: 1,
+      macros: a.macros,
+      adapted_ingredients: a.ingredients,
+      adapt_flags: a.flags.length ? a.flags : undefined,
+      adapt_gap: a.gap,
+    };
+  }
+  const f = meal.portions ?? 1;
+  return {
+    ...meal,
+    recipe,
+    macros: {
+      kcal: Math.round(recipe.macros_per_portion.kcal * f),
+      protein_g: Math.round(recipe.macros_per_portion.protein_g * f),
+      carbs_g: Math.round(recipe.macros_per_portion.carbs_g * f),
+      fat_g: Math.round(recipe.macros_per_portion.fat_g * f),
+    },
+  };
+}
+
+/**
  * « Recaler ma journée » — le cœur du re-plan instantané.
  *
  * Quand un repas est sauté, mangé, ou qu'un écart hors plan est déclaré, on

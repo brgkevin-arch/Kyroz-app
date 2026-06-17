@@ -24,7 +24,7 @@ import { useWeightLog } from '../../hooks/useWeightLog';
 import { usePlanCheckin } from '../../hooks/usePlanCheckin';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { generateMealPlan } from '../../lib/generatePlan';
-import { profileSignature, swapMeal, computeDailyTotals, rebalanceDay, resetTracking, adaptDayOptions, AdaptOption, mealIngredients } from '../../lib/planEngine';
+import { profileSignature, swapMeal, computeDailyTotals, rebalanceDay, resetTracking, adaptDayOptions, AdaptOption, mealIngredients, reAdaptMealRecipe } from '../../lib/planEngine';
 import { kcalMargin } from '../../lib/foods';
 import { todayStamp } from '../../lib/weight';
 import { mealFiberFromIngredients, dailyFiberTarget } from '../../lib/fiber';
@@ -42,12 +42,6 @@ const WD = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
 // Nb de jours du profil ramené dans [1, 7].
 const clampDays = (n?: number) => Math.min(Math.max(n ?? 0, 1), 7);
 
-const scaleMacros = (m: Macros, p: number): Macros => ({
-  kcal: Math.round(m.kcal * p),
-  protein_g: Math.round(m.protein_g * p),
-  carbs_g: Math.round(m.carbs_g * p),
-  fat_g: Math.round(m.fat_g * p),
-});
 
 // Égalité « de contenu » sur les champs qu'une personnalisation peut changer
 // (évite de réécrire le plan à chaque montage quand rien n'a bougé).
@@ -159,11 +153,10 @@ export default function PlanScreen() {
         const eff = getRecipeById(m.recipe.id);
         if (eff && !sameRecipe(eff, m.recipe)) {
           changed = true;
-          // Repas adapté (scaling par ingrédient) : garder macros + adapted_ingredients
-          // (la re-adaptation se fait au recalage / nouvelle journée). Sinon, legacy.
-          return m.adapted_ingredients
-            ? { ...m, recipe: eff }
-            : { ...m, recipe: eff, macros: scaleMacros(eff.macros_per_portion, m.portions) };
+          // Ré-adapte la recette au budget macro courant du repas → ingrédients +
+          // macros cohérents avec la recette affichée tout de suite (courses/frigo
+          // /fibres lisent adapted_ingredients). Repli legacy géré dans le helper.
+          return reAdaptMealRecipe(m, eff);
         }
         return m;
       });
@@ -307,13 +300,7 @@ export default function PlanScreen() {
   // Met la fiche ouverte à jour après personnalisation (le plan, lui, est
   // répercuté par l'effet sur `overrides`).
   const applyRecipeToSelected = (r: Recipe) => {
-    setSelectedMeal((m) =>
-      m
-        ? m.adapted_ingredients
-          ? { ...m, recipe: r } // garder macros + quantités adaptées
-          : { ...m, recipe: r, macros: scaleMacros(r.macros_per_portion, m.portions) }
-        : m,
-    );
+    setSelectedMeal((m) => (m ? reAdaptMealRecipe(m, r) : m));
   };
 
   const dayMeals = plan?.meals.filter((m) => m.day === selectedDay) ?? [];
