@@ -187,7 +187,7 @@ export default function ProfilScreen() {
 
         {/* TDEE */}
         <View style={[s.tdee, cardShadow(t)]}>
-          <Text style={s.tdeeL}>TDEE (dépense énergétique)</Text>
+          <Text style={s.tdeeL}>Dépense estimée · maintenance (TDEE)</Text>
           <Text style={s.tdeeV}>{profile.tdee_kcal} kcal</Text>
         </View>
 

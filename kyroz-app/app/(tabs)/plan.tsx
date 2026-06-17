@@ -361,6 +361,10 @@ export default function PlanScreen() {
   const dayFiber = dayMeals.reduce((s, m) => (m.status === 'skipped' ? s : s + mealFiberFromIngredients(mealIngredients(m))), 0);
   const fiberTarget = profile ? dailyFiberTarget(profile) : 0;
   const dayExtraKcal = plan?.day_extras?.[selectedDay]?.kcal ?? 0;
+  // Déjà consommé aujourd'hui (repas mangés verrouillés + écarts hors-plan) → « restant ».
+  const consumedDayKcal = (plan?.meals ?? [])
+    .filter((m) => m.day === selectedDay && m.status === 'eaten')
+    .reduce((s, m) => s + (m.locked_macros ?? m.macros).kcal, 0) + dayExtraKcal;
 
   // Retire l'écart hors plan du jour. Cohérent avec le nouveau principe « on ne
   // touche au plan que sur demande » : on recompte juste le total, sans recaler.
@@ -508,8 +512,14 @@ export default function PlanScreen() {
                   </Text>
                 )}
                 <View style={{ height: 10 }} />
-                <MacroBar {...dayMacros} targetKcal={profile?.target_kcal} />
-                {profile && <TargetDelta t={t} actual={dayMacros.kcal} target={profile.target_kcal} />}
+                <MacroBar
+                  protein_g={dayMacros.protein_g}
+                  carbs_g={dayMacros.carbs_g}
+                  fat_g={dayMacros.fat_g}
+                  targetKcal={profile?.target_kcal ?? dayMacros.kcal}
+                  plannedKcal={dayMacros.kcal}
+                  consumedKcal={consumedDayKcal}
+                />
                 <MarginNote t={t} kcal={dayMacros.kcal} />
                 {profile && <FiberRow t={t} actual={dayFiber} target={fiberTarget} />}
                 {dayExtraKcal > 0 && (
@@ -688,19 +698,6 @@ export default function PlanScreen() {
         />
       </Sheet>
     </SafeAreaView>
-  );
-}
-
-function TargetDelta({ t, actual, target }: { t: ThemePalette; actual: number; target: number }) {
-  const delta = actual - target;
-  const onTarget = Math.abs(delta) <= 100;
-  const color = onTarget ? t.success : t.warning;
-  const sign = delta > 0 ? '+' : '';
-  return (
-    <View style={[styles.target, { borderTopColor: t.line }]}>
-      <Text style={{ color: t.textTertiary, fontSize: 13 }}>Objectif {target.toLocaleString('fr-FR')} kcal</Text>
-      <Text style={{ color, fontSize: 13, fontWeight: '700' }}>{onTarget ? '✓ Dans la cible' : `${sign}${delta} kcal`}</Text>
-    </View>
   );
 }
 
