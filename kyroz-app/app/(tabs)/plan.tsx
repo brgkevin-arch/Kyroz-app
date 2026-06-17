@@ -159,7 +159,11 @@ export default function PlanScreen() {
         const eff = getRecipeById(m.recipe.id);
         if (eff && !sameRecipe(eff, m.recipe)) {
           changed = true;
-          return { ...m, recipe: eff, macros: scaleMacros(eff.macros_per_portion, m.portions) };
+          // Repas adapté (scaling par ingrédient) : garder macros + adapted_ingredients
+          // (la re-adaptation se fait au recalage / nouvelle journée). Sinon, legacy.
+          return m.adapted_ingredients
+            ? { ...m, recipe: eff }
+            : { ...m, recipe: eff, macros: scaleMacros(eff.macros_per_portion, m.portions) };
         }
         return m;
       });
@@ -295,12 +299,21 @@ export default function PlanScreen() {
     if (!plan || !profile || !selectedMeal) return;
     const newPlan = swapMeal(profile, plan, selectedMeal);
     await persistPlan(newPlan);
+    // Rafraîchit la fiche ouverte avec la nouvelle recette + quantités/macros adaptées.
+    const swapped = newPlan.meals.find((m) => m.id === selectedMeal.id);
+    if (swapped) setSelectedMeal(swapped);
   };
 
   // Met la fiche ouverte à jour après personnalisation (le plan, lui, est
   // répercuté par l'effet sur `overrides`).
   const applyRecipeToSelected = (r: Recipe) => {
-    setSelectedMeal((m) => (m ? { ...m, recipe: r, macros: scaleMacros(r.macros_per_portion, m.portions) } : m));
+    setSelectedMeal((m) =>
+      m
+        ? m.adapted_ingredients
+          ? { ...m, recipe: r } // garder macros + quantités adaptées
+          : { ...m, recipe: r, macros: scaleMacros(r.macros_per_portion, m.portions) }
+        : m,
+    );
   };
 
   const dayMeals = plan?.meals.filter((m) => m.day === selectedDay) ?? [];
@@ -514,6 +527,10 @@ export default function PlanScreen() {
           <RecipeDetail
             recipe={selectedMeal.recipe}
             portions={selectedMeal.portions}
+            adaptedIngredients={selectedMeal.adapted_ingredients}
+            adaptedMacros={selectedMeal.adapted_ingredients ? selectedMeal.macros : undefined}
+            adaptFlags={selectedMeal.adapt_flags}
+            restrictionRelaxed={selectedMeal.restriction_relaxed}
             custom={isCustom(selectedMeal.recipe.id)}
             status={selectedMeal.status}
             onEdit={() => setEditingRecipe(selectedMeal.recipe)}

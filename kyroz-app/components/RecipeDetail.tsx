@@ -6,11 +6,16 @@ import { PrimaryButton } from './ui';
 import { useFavorites } from '../hooks/useFavorites';
 import { formatQuantity } from '../lib/units';
 import { mealFiberG } from '../lib/fiber';
-import { Recipe, MealStatus } from '../lib/types';
+import { Recipe, MealStatus, Macros, AdaptFlag } from '../lib/types';
+import { OBJ_LABEL, SPORT_LABEL } from '../lib/recipeLabels';
 
 interface Props {
   recipe: Recipe;
   portions?: number;          // affiche le repas à l'échelle de sa portion
+  adaptedIngredients?: { name: string; quantity_g: number; unit?: string }[]; // si fourni → affiché tel quel
+  adaptedMacros?: Macros;     // si fourni → remplace recipe.macros_per_portion × portions
+  adaptFlags?: AdaptFlag[];   // avertissements (sous/au-dessus cible)
+  restrictionRelaxed?: boolean; // bandeau « régime non garanti »
   onClose: () => void;
   onCook?: () => void;        // si fourni, affiche « J'ai mangé / cuisiné »
   onSkip?: () => void;        // si fourni, affiche « Je l'ai sauté »
@@ -22,19 +27,21 @@ interface Props {
   dragHandlers?: any;         // injecté par <Sheet> : rend l'en-tête glissable
 }
 
-export function RecipeDetail({ recipe, portions = 1, onClose, onCook, onSkip, onResetStatus, status, onSwap, onEdit, custom, dragHandlers }: Props) {
+export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adaptedMacros, adaptFlags, restrictionRelaxed, onClose, onCook, onSkip, onResetStatus, status, onSwap, onEdit, custom, dragHandlers }: Props) {
   const t = useTheme();
   const s = useMemo(() => makeStyles(t), [t]);
   const { isFavorite, toggle } = useFavorites();
   const fav = isFavorite(recipe.id);
   const f = portions;
 
-  const macros = {
+  // Valeurs adaptées (scaling par ingrédient) si fournies, sinon recette × portions.
+  const macros = adaptedMacros ?? {
     kcal: Math.round(recipe.macros_per_portion.kcal * f),
     protein_g: Math.round(recipe.macros_per_portion.protein_g * f),
     carbs_g: Math.round(recipe.macros_per_portion.carbs_g * f),
     fat_g: Math.round(recipe.macros_per_portion.fat_g * f),
   };
+  const ings = adaptedIngredients ?? recipe.ingredients.map((i) => ({ name: i.name, quantity_g: i.quantity_g * f, unit: i.unit }));
 
   return (
     <View style={s.safe}>
@@ -69,6 +76,19 @@ export function RecipeDetail({ recipe, portions = 1, onClose, onCook, onSkip, on
           <Text style={s.metaTxt}>🍽 {f === 1 ? '1 portion' : `${f} portions`}</Text>
         </View>
 
+        {(recipe.objectives?.length || recipe.sports?.length) ? (
+          <View style={s.tagRow}>
+            {recipe.objectives?.map((o) => <Text key={o} style={s.tag}>{OBJ_LABEL[o]}</Text>)}
+            {recipe.sports?.map((sp) => <Text key={sp} style={s.tag}>{SPORT_LABEL[sp]}</Text>)}
+          </View>
+        ) : null}
+
+        {restrictionRelaxed && (
+          <Text style={s.warn}>⚠️ Aucune recette adaptée à ton régime pour ce repas — option standard.</Text>
+        )}
+        {adaptFlags?.includes('under_target_kcal') && <Text style={s.warn}>ℹ️ Repas un peu en dessous de ta cible.</Text>}
+        {adaptFlags?.includes('over_target_kcal') && <Text style={s.warn}>ℹ️ Repas un peu au-dessus de ta cible.</Text>}
+
         <View style={[s.macros, cardShadow(t)]}>
           <Big t={t} v={macros.kcal} l="kcal" />
           <Big t={t} v={macros.protein_g} l="Protéines" u="g" c={t.protein} />
@@ -77,11 +97,13 @@ export function RecipeDetail({ recipe, portions = 1, onClose, onCook, onSkip, on
         </View>
         <Text style={s.fiber}>🌾 ~{mealFiberG(recipe, f)} g de fibres (estimé)</Text>
 
+        {recipe.why_fr && <Text style={s.why}>{recipe.why_fr}</Text>}
+
         <Text style={s.section}>INGRÉDIENTS</Text>
-        {recipe.ingredients.map((ing, i) => (
+        {ings.map((ing, i) => (
           <View key={i} style={s.ing}>
             <Text style={s.ingName}>{ing.name}</Text>
-            <Text style={s.ingQty}>{formatQuantity(ing.name, ing.quantity_g * f, ing.unit ?? 'g')}</Text>
+            <Text style={s.ingQty}>{formatQuantity(ing.name, ing.quantity_g, ing.unit ?? 'g')}</Text>
           </View>
         ))}
 
@@ -150,6 +172,10 @@ function makeStyles(t: ThemePalette) {
     close: { width: 36, height: 36, borderRadius: 18, backgroundColor: t.fill, alignItems: 'center', justifyContent: 'center' },
     meta: { flexDirection: 'row', gap: 16 },
     metaTxt: { color: t.textSecondary, fontSize: 14 },
+    tagRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: -8 },
+    tag: { backgroundColor: t.fill, color: t.textSecondary, fontSize: 11, fontWeight: '600', paddingHorizontal: 9, paddingVertical: 4, borderRadius: Radius.pill, overflow: 'hidden' },
+    warn: { color: t.warning, fontSize: 13, marginTop: -8 },
+    why: { color: t.textSecondary, fontSize: 14, fontStyle: 'italic', lineHeight: 20, marginTop: -8 },
     macros: { flexDirection: 'row', backgroundColor: t.card, borderRadius: Radius.md, padding: 16, justifyContent: 'space-around' },
     fiber: { color: t.textTertiary, fontSize: 13, marginTop: -8 },
     section: { color: t.textTertiary, fontSize: 12, fontWeight: '700', letterSpacing: 0.5 },
