@@ -51,6 +51,21 @@ describe('adaptRecipe', () => {
     expect(res.macros).toEqual(legacy.macros_per_portion);
     expect(res.ingredients[0].quantity_g).toBe(200);
   });
+  it('recette MIXTE (un ingrédient sans ref) : repli macros de base, pas de sous-comptage', () => {
+    // Override perso : un ingrédient Kyroz (ref) + un ajout custom (food_id sans ref).
+    // Sans le repli, l'ingrédient custom serait ignoré au recompte → macros fausses.
+    const mixte: Recipe = {
+      ...poulet, id: 't_mixte',
+      macros_per_portion: { kcal: 800, protein_g: 60, carbs_g: 90, fat_g: 20 },
+      ingredients: [
+        { name: 'Filet de poulet', quantity_g: 180, ref: 'poulet_filet', macro_role: 'protein', scalable: true },
+        { name: 'Pâte maison', quantity_g: 200, food_id: 'ciqual-x', macro_role: 'carb', scalable: true },
+      ],
+    };
+    const res = adaptRecipe(mixte, target);
+    expect(res.macros).toEqual(mixte.macros_per_portion); // base, pas de scaling partiel
+    expect(res.ingredients.map((i) => i.quantity_g)).toEqual([180, 200]); // quantités inchangées
+  });
 });
 
 describe('mappings besoin', () => {

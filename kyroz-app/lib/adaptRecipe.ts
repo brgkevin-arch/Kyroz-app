@@ -46,10 +46,12 @@ export function adaptRecipe(recipe: Recipe, target: AdaptTarget): AdaptResult {
   const flags: AdaptFlag[] = [];
   const items = recipe.ingredients.map((i) => ({ ...i })); // copie mutable
 
-  // Recettes non liées à la table d'ingrédients (overrides perso avec food_id, ou
-  // legacy sans ref) : pas de scaling par ingrédient possible → on rend la recette
+  // Scaling par ingrédient possible UNIQUEMENT si TOUS les ingrédients sont liés à
+  // la table (ref résoluble). Sinon — override perso (food_id sans ref), legacy, ou
+  // recette MIXTE (un ingrédient custom sans ref) — `macrosForRefIngredients`
+  // ignorerait l'ingrédient sans ref → macros sous-comptées. On rend alors la recette
   // telle quelle (macros de base, portions gérées par l'appelant via portions=1).
-  if (!items.some((i) => i.ref && RECIPE_INGREDIENTS[i.ref])) {
+  if (!items.every((i) => i.ref && RECIPE_INGREDIENTS[i.ref])) {
     return { ingredients: items, macros: { ...recipe.macros_per_portion }, flags };
   }
 
