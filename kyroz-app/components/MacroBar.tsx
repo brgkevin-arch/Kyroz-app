@@ -11,10 +11,10 @@ interface MacroBarProps {
   consumedKcal?: number;   // déjà consommé (mangé + hors-plan) ; 0/absent = rien mangé encore
 }
 
-// Affichage A1 : un seul chiffre héros = la CIBLE, partout. Le réalisé (plan du
-// jour) et le RESTANT sont visibles mais explicitement étiquetés — jamais pris
-// pour « tes calories ». Au réveil → la cible ; en cours de journée → le restant
-// (barre de progression du consommé). Le TDEE n'apparaît pas ici (écran Réglages).
+// Affichage : le chiffre HÉROS = le TOTAL RÉEL du plan du jour (ce qu'on mange
+// vraiment), pas la cible figée — la cible reste affichée juste en dessous, en
+// référence, avec l'écart (✓ dans la cible / ±X). En cours de journée → barre de
+// progression du consommé vers ce total. Le TDEE n'apparaît pas ici (Réglages).
 export function MacroBar({ protein_g, carbs_g, fat_g, targetKcal, plannedKcal, consumedKcal }: MacroBarProps) {
   const t = useTheme();
   const total = protein_g * 4 + carbs_g * 4 + fat_g * 9;
@@ -24,8 +24,8 @@ export function MacroBar({ protein_g, carbs_g, fat_g, targetKcal, plannedKcal, c
 
   const consumed = consumedKcal ?? 0;
   const tracking = consumed > 0;
-  const remaining = Math.max(0, targetKcal - consumed);
-  const progress = targetKcal > 0 ? Math.min(1, consumed / targetKcal) : 0;
+  const remaining = Math.max(0, plannedKcal - consumed);
+  const progress = plannedKcal > 0 ? Math.min(1, consumed / plannedKcal) : 0;
 
   const planDelta = plannedKcal - targetKcal;
   const onTarget = Math.abs(planDelta) <= 100;
@@ -33,17 +33,20 @@ export function MacroBar({ protein_g, carbs_g, fat_g, targetKcal, plannedKcal, c
 
   return (
     <View style={{ gap: 12 }}>
-      {/* Héros = la cible */}
+      {/* Héros = le total RÉEL du plan du jour, cible en référence juste dessous */}
       <View>
-        <Text style={[styles.heroLabel, { color: t.textTertiary }]}>Ta cible</Text>
+        <Text style={[styles.heroLabel, { color: t.textTertiary }]}>Plan du jour</Text>
         <View style={styles.kcalRow}>
-          <Text style={[styles.kcal, { color: t.text }]}>{targetKcal.toLocaleString('fr-FR')}</Text>
+          <Text style={[styles.kcal, { color: t.text }]}>{plannedKcal.toLocaleString('fr-FR')}</Text>
           <Text style={[styles.kcalSub, { color: t.textTertiary }]}> kcal</Text>
         </View>
+        <Text style={[styles.cibleRef, { color: onTarget ? t.success : t.warning }]}>
+          Cible {targetKcal.toLocaleString('fr-FR')} kcal · {onTarget ? '✓ dans la cible' : `${sign}${planDelta}`}
+        </Text>
       </View>
 
-      {/* En cours de journée → restant + progression ; sinon → plan du jour vs cible */}
-      {tracking ? (
+      {/* En cours de journée → progression du consommé vers le total du jour */}
+      {tracking && (
         <View style={{ gap: 6 }}>
           <View style={styles.progressTrack}>
             <View style={{ flex: progress, backgroundColor: t.accent, borderRadius: 4 }} />
@@ -53,13 +56,6 @@ export function MacroBar({ protein_g, carbs_g, fat_g, targetKcal, plannedKcal, c
             Consommé {consumed.toLocaleString('fr-FR')} · <Text style={{ color: t.text, fontWeight: '700' }}>reste {remaining.toLocaleString('fr-FR')} kcal</Text>
           </Text>
         </View>
-      ) : (
-        <Text style={[styles.statusTxt, { color: t.textSecondary }]}>
-          Plan du jour {plannedKcal.toLocaleString('fr-FR')} kcal ·{' '}
-          <Text style={{ color: onTarget ? t.success : t.warning, fontWeight: '700' }}>
-            {onTarget ? '✓ dans la cible' : `${sign}${planDelta} kcal`}
-          </Text>
-        </Text>
       )}
 
       {/* Composition macro du jour */}
@@ -92,6 +88,7 @@ const styles = StyleSheet.create({
   kcalRow: { flexDirection: 'row', alignItems: 'baseline' },
   kcal: { fontSize: 40, fontWeight: '800', letterSpacing: -1.5 },
   kcalSub: { fontSize: 15 },
+  cibleRef: { fontSize: 13, fontWeight: '600', marginTop: 2 },
   statusTxt: { fontSize: 13 },
   progressTrack: { flexDirection: 'row', height: 7, borderRadius: 4, backgroundColor: 'rgba(127,127,127,0.18)', overflow: 'hidden' },
   bar: { flexDirection: 'row', height: 7, gap: 3 },

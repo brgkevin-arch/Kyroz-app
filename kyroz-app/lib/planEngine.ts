@@ -412,7 +412,7 @@ export function computeDailyTotals(
 // Version du moteur de génération : à incrémenter quand le scoring/sélection
 // change, pour que les plans EN CACHE se régénèrent automatiquement (la signature
 // change → l'auto-refresh de l'écran Plan rejoue la génération). v2 = lipides cadrés.
-const ENGINE_VERSION = 8; // v8 = repas fixes gérés par l'user (soustraits du budget)
+const ENGINE_VERSION = 9; // v9 = resserrage du total du jour (tightenDay : water-filling) → écart jour-à-jour ↓
 
 export function profileSignature(p: UserProfile): string {
   return JSON.stringify({
@@ -422,6 +422,48 @@ export function profileSignature(p: UserProfile): string {
     r: p.dietary_restrictions, dl: p.disliked_foods, pp: p.preferred_proteins,
     tp: p.max_prep_time_min, fm: p.fixed_meals ?? null,
   });
+}
+
+// Resserre le TOTAL du jour sur le budget : ré-adapte les MÊMES recettes déjà
+// choisies (variété préservée — on ne change pas de plat), en redistribuant le
+// reliquat des repas SATURÉS vers ceux qui ont encore de la marge. Water-filling
+// par itérations pondérées aux kcal COURANTES : un repas qui ne bouge plus (capé)
+// pèse moins au tour suivant → son reliquat coule vers les autres. No-op si déjà
+// dans la cible (cas du plan canonique seed 0). Borné à 4 itérations.
+const TIGHTEN_TOL_KCAL = 25;
+function tightenDay(dayMeals: Meal[], budgetKcal: number, budgetProtein: number, ratio: { carb: number; fat: number }): void {
+  if (dayMeals.length === 0) return;
+  const distBefore = Math.abs(budgetKcal - dayMeals.reduce((s, m) => s + m.macros.kcal, 0));
+  if (distBefore <= TIGHTEN_TOL_KCAL) return; // déjà dans la cible (plan canonique)
+
+  // Sauvegarde pour pouvoir ANNULER : le scaling par ingrédient est discret
+  // (arrondis), donc une ré-adaptation peut, sur certains repas, dégrader le total.
+  const snap = dayMeals.map((m) => ({ macros: m.macros, ai: m.adapted_ingredients, fl: m.adapt_flags, gap: m.adapt_gap }));
+
+  for (let iter = 0; iter < 4; iter++) {
+    const sumK = dayMeals.reduce((s, m) => s + m.macros.kcal, 0);
+    if (Math.abs(budgetKcal - sumK) <= TIGHTEN_TOL_KCAL) break;
+    let remK = budgetKcal, remP = budgetProtein, remW = sumK || 1;
+    let moved = false;
+    for (const m of dayMeals) {
+      const w = m.macros.kcal; // poids = kcal courantes ; un repas saturé pèse moins au tour suivant
+      const target = mealTarget(remK, remP, w, remW, ratio);
+      const a = adaptRecipe(m.recipe, target);
+      if (Math.abs(a.macros.kcal - m.macros.kcal) > 2) moved = true;
+      m.macros = a.macros;
+      m.adapted_ingredients = a.ingredients;
+      m.adapt_flags = a.flags.length ? a.flags : undefined;
+      m.adapt_gap = a.gap;
+      remK -= a.macros.kcal; remP -= a.macros.protein_g; remW -= w;
+    }
+    if (!moved) break; // tout est capé → on ne peut pas faire mieux
+  }
+
+  // Garde-fou « jamais pire » : si le resserrage n'a pas rapproché le total, on annule.
+  const distAfter = Math.abs(budgetKcal - dayMeals.reduce((s, m) => s + m.macros.kcal, 0));
+  if (distAfter >= distBefore) {
+    dayMeals.forEach((m, i) => { m.macros = snap[i].macros; m.adapted_ingredients = snap[i].ai; m.adapt_flags = snap[i].fl; m.adapt_gap = snap[i].gap; });
+  }
 }
 
 /** Construit le Meal VERROUILLÉ d'un repas fixe (géré par l'user) pour un jour donné. */
@@ -522,10 +564,11 @@ export function buildLocalPlan(profile: UserProfile, seed: number = 0): MealPlan
 
     // Parcours dans l'ordre canonique : les repas fixes sont injectés verrouillés,
     // les autres planifiés sur le budget restant (report de budget de repas en repas).
+    const dayMeals: Meal[] = [];
     for (const mealType of allMealTypes) {
       const fm = fixedMeals[mealType];
       if (fm) {
-        meals.push(fixedMealToMeal(fm, d, mealType, isRest));
+        dayMeals.push(fixedMealToMeal(fm, d, mealType, isRest));
         continue;
       }
       const weight = distribution[mealType];
@@ -544,7 +587,7 @@ export function buildLocalPlan(profile: UserProfile, seed: number = 0): MealPlan
       remainingProtein -= choice.macros.protein_g;
       remainingWeight -= weight;
 
-      meals.push({
+      dayMeals.push({
         id: `${d}-${mealType}`,
         day: d,
         meal_type: mealType,
@@ -558,6 +601,17 @@ export function buildLocalPlan(profile: UserProfile, seed: number = 0): MealPlan
         rest_day: isRest || undefined,
       });
     }
+
+    // Resserrage final du total du jour (water-filling sur les repas PLANIFIÉS, pas
+    // les fixes) : surtout utile en reroll / pool contraint où la variété fait
+    // déborder/manquer le total. No-op si déjà dans la cible.
+    tightenDay(
+      dayMeals.filter((m) => !m.fixed),
+      Math.max(profile.target_kcal - fixedDailyKcal, 0),
+      Math.max(profile.target_protein_g - fixedDailyProtein, 0),
+      dayRatio,
+    );
+    meals.push(...dayMeals);
   }
 
   return {
