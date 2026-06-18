@@ -554,9 +554,9 @@ export default function PlanScreen() {
                   <MealCard
                     key={m.id}
                     meal={m}
-                    onPress={() => setSelectedMeal(m)}
-                    onCook={() => cookMeal(m)}
-                    missing={missing}
+                    onPress={m.fixed ? undefined : () => setSelectedMeal(m)}
+                    onCook={m.fixed ? undefined : () => cookMeal(m)}
+                    missing={m.fixed ? undefined : missing}
                     fridgeTracked={fridgeTracked}
                     tourId={i === 0 ? 'plan-meal' : undefined}
                     cookTourId={i === 0 ? 'plan-cook' : undefined}

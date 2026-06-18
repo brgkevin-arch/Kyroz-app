@@ -116,6 +116,7 @@ export interface UserProfile {
   meals: MealType[];            // repas choisis (petit-déj/midi/dîner/collation)
   meal_emphasis: MealEmphasis;  // repas mis en avant (portion plus grosse)
   variety: VarietyPreference;
+  fixed_meals?: FixedMeals;     // repas que l'user gère lui-même → soustraits du budget (cf. FixedMeal)
 
   // Préférences alimentaires
   dietary_restrictions: DietaryRestriction[];
@@ -136,6 +137,19 @@ export interface Ingredient {
   macro_role?: MacroRole;  // rôle pour le scaling par ingrédient
   scalable?: boolean;      // false = quantité fixe (légumes, aromates)
 }
+
+// Repas que l'utilisateur GÈRE lui-même (petit-déj/collation récurrents) : déclaré
+// UNE fois, ses macros sont soustraites du budget du jour, et Kyroz cale les repas
+// restants autour. Jamais re-saisi (≠ hors-plan). Cf. planEngine (soustraction) +
+// écran Plan (carte verrouillée comptée dans le total).
+export interface FixedMeal {
+  label: string;               // nom donné par l'utilisateur (« Mon shaker + flocons »)
+  macros: Macros;              // macros déclarées (comptées dans le total du jour)
+  source: 'food' | 'recipe' | 'estimate' | 'custom';
+  ingredients?: Ingredient[];  // optionnel : si défini via recherche d'aliments / recette
+}
+// Repas fixes par type de repas (un seul par créneau, même chaque jour en v1).
+export type FixedMeals = Partial<Record<MealType, FixedMeal>>;
 
 // Aliment de la base nutritionnelle (valeurs pour 100 g — approche « moyenne »,
 // alignées Ciqual/ANSES). `food_id` d'un Ingredient pointe ici.
@@ -191,6 +205,7 @@ export interface Meal {
   adapt_gap?: Macros;                 // atteint − cible (signé) ; alimente l'affichage « +Xg »
   restriction_relaxed?: boolean;      // repli régime : recette servie hors restriction
   rest_day?: boolean;                 // jour de repos (carb-cycling : glucides ↓ / lipides ↑)
+  fixed?: boolean;                    // repas géré par l'user (FixedMeal) : verrouillé, non planifié/swappé/recalé
 }
 
 export interface MealPlan {

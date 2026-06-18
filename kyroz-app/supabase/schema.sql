@@ -53,6 +53,7 @@ create table if not exists public.profiles (
   disliked_foods text[] not null default '{}',
   preferred_proteins text[] not null default '{}',
   max_prep_time_min int,
+  fixed_meals jsonb, -- repas gérés par l'user (type → {label,macros,source,ingredients?})
 
   -- RGPD : consentement explicite à la collecte des données de santé (spec §12)
   consent_health_data boolean not null default false,

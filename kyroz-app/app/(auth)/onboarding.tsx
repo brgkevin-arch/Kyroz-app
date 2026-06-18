@@ -12,8 +12,10 @@ import {
   Card, PrimaryButton, Chip, OptionCard, Field, SectionLabel, Segmented,
 } from '../../components/ui';
 import { BodyFatPicker } from '../../components/BodyFatPicker';
+import { Sheet } from '../../components/Sheet';
+import { FixedMealSheet } from '../../components/FixedMealSheet';
 import {
-  ActivityLevel, DietaryRestriction, Goal, MEAL_ORDER, MealEmphasis, MealType, Sex, SportSession, UserProfile, VarietyPreference,
+  ActivityLevel, DietaryRestriction, FixedMeals, Goal, MEAL_ORDER, MealEmphasis, MealType, Sex, SportSession, UserProfile, VarietyPreference,
 } from '../../lib/types';
 import {
   calculateTDEE, calculateMacros, validateProfile, goalLabel, macrosPercent, DEFAULT_CARB_RATIO, recommendedProteinPerKg, recalcProfile,
@@ -129,6 +131,8 @@ export default function Onboarding() {
   const [planWeekdays, setPlanWeekdays] = useState<number[]>([]); // rien coché par défaut → l'user sélectionne (noir = off, blanc = on)
   const [meals, setMeals] = useState<MealType[]>(['breakfast', 'lunch', 'dinner', 'snack']);
   const [emphasis, setEmphasis] = useState<MealEmphasis>('even');
+  const [fixedMeals, setFixedMeals] = useState<FixedMeals>({});      // repas que l'user gère lui-même
+  const [definingMeal, setDefiningMeal] = useState<MealType | null>(null);
 
   // La protéine conseillée dépend de l'objectif → on aligne le défaut quand il change.
   useEffect(() => { setProteinPerKg(recommendedProteinPerKg(goal)); }, [goal]);
@@ -159,7 +163,9 @@ export default function Onboarding() {
     const next = meals.includes(v) ? meals.filter((x) => x !== v) : [...meals, v];
     setMeals(next);
     if (emphasis !== 'even' && !next.includes(emphasis as MealType)) setEmphasis('even');
+    if (!next.includes(v)) setFixedMeals((prev) => { if (!prev[v]) return prev; const n = { ...prev }; delete n[v]; return n; });
   };
+  const mealLabel = (mt: MealType) => MEAL_OPTS.find((o) => o.val === mt)?.label ?? mt;
   // L'emphase n'est proposée que pour les repas réellement sélectionnés
   const emphasisOpts = EMPHASIS_OPTS.filter((e) => e.val === 'even' || meals.includes(e.val as MealType));
 
@@ -211,6 +217,11 @@ export default function Onboarding() {
       meals: orderedMeals(meals),
       meal_emphasis: emphasis,
       variety,
+      fixed_meals: (() => {
+        const cleaned: FixedMeals = {};
+        for (const mt of orderedMeals(meals)) if (fixedMeals[mt]) cleaned[mt] = fixedMeals[mt];
+        return Object.keys(cleaned).length ? cleaned : undefined;
+      })(),
       dietary_restrictions: restrictions,
       disliked_foods: dislikes,
       preferred_proteins: proteins.map((p) => p.toLowerCase()),
@@ -388,6 +399,36 @@ export default function Onboarding() {
             </View>
             {meals.length === 0 && <Text style={[s.sub, { marginTop: -4 }]}>Sélectionne au moins 1 repas.</Text>}
 
+            <SectionLabel t={t}>Tu gères déjà certains repas ?</SectionLabel>
+            <Text style={[s.sub, { marginTop: -4 }]}>
+              Si tu manges toujours la même chose (petit-déj, collation…), dis-le une fois : Kyroz le compte et cale tes autres repas autour.
+            </Text>
+            <View style={{ gap: 8 }}>
+              {orderedMeals(meals).map((mt) => {
+                const fm = fixedMeals[mt];
+                return (
+                  <View key={mt} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: t.fill, borderRadius: 12, padding: 14 }}>
+                    <View style={{ flex: 1, paddingRight: 10 }}>
+                      <Text style={{ color: t.text, fontSize: 14, fontWeight: '700' }}>{mealLabel(mt)}</Text>
+                      <Text style={{ color: fm ? t.textSecondary : t.textTertiary, fontSize: 12, marginTop: 3 }} numberOfLines={1}>
+                        {fm ? `🔒 ${fm.label} · ${fm.macros.kcal} kcal` : 'Kyroz le planifie'}
+                      </Text>
+                    </View>
+                    <View style={{ flexDirection: 'row', gap: 16, alignItems: 'center' }}>
+                      {fm && (
+                        <TouchableOpacity onPress={() => setFixedMeals((prev) => { const n = { ...prev }; delete n[mt]; return n; })} hitSlop={8}>
+                          <Text style={{ color: t.textTertiary, fontSize: 13, fontWeight: '700' }}>Retirer</Text>
+                        </TouchableOpacity>
+                      )}
+                      <TouchableOpacity onPress={() => setDefiningMeal(mt)} hitSlop={8}>
+                        <Text style={{ color: t.accent, fontSize: 13, fontWeight: '700' }}>{fm ? 'Modifier' : 'Je gère'}</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                );
+              })}
+            </View>
+
             <SectionLabel t={t}>Tu manges plus à quel moment ?</SectionLabel>
             <View style={s.wrap}>
               {emphasisOpts.map((e) => (
@@ -456,6 +497,17 @@ export default function Onboarding() {
         {hint && !canProceed && <Text style={s.hint}>{hint}</Text>}
         <PrimaryButton t={t} label={step === TOTAL_STEPS ? 'Générer mon plan' : 'Continuer'} onPress={next} loading={saving} />
       </View>
+
+      {/* Définition d'un repas géré par l'user (petit-déj/collation récurrent). */}
+      <Sheet visible={!!definingMeal} onClose={() => setDefiningMeal(null)}>
+        {definingMeal ? (
+          <FixedMealSheet
+            t={t} mealType={definingMeal} initial={fixedMeals[definingMeal]}
+            onSave={(fm) => setFixedMeals((prev) => ({ ...prev, [definingMeal]: fm }))}
+            onClose={() => setDefiningMeal(null)}
+          />
+        ) : <View />}
+      </Sheet>
     </SafeAreaView>
   );
 }

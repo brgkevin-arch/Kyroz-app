@@ -29,10 +29,11 @@ import {
   calculateTDEE, calculateMacros, goalLabel, validateProfile, recalcProfile, macrosPercent, DEFAULT_CARB_RATIO, recommendedProteinPerKg,
 } from '../../lib/tdee';
 import {
-  ActivityLevel, DietaryRestriction, Goal, MEAL_ORDER, MealEmphasis, MealType, Sex, SportSession, UserProfile, VarietyPreference,
+  ActivityLevel, DietaryRestriction, FixedMeals, Goal, MEAL_ORDER, MealEmphasis, MealType, Sex, SportSession, UserProfile, VarietyPreference,
 } from '../../lib/types';
 import { totalSessionsPerWeek } from '../../lib/sport';
 import SportsEditor from '../../components/SportsEditor';
+import { FixedMealSheet } from '../../components/FixedMealSheet';
 
 // ── Options ──────────────────────────────────────────────────────────────────
 const GOALS: Goal[] = ['cut_aggressive', 'cut', 'recomp', 'maintain', 'lean_bulk', 'bulk'];
@@ -474,14 +475,40 @@ function MealsEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
   const [meals, setMeals] = useState<MealType[]>(profile.meals ?? ['breakfast', 'lunch', 'dinner', 'snack']);
   const [emphasis, setEmphasis] = useState<MealEmphasis>(profile.meal_emphasis ?? 'even');
   const [variety, setVariety] = useState<VarietyPreference>(profile.variety);
+  const [fixedMeals, setFixedMeals] = useState<FixedMeals>(profile.fixed_meals ?? {});
+  const [definingMeal, setDefiningMeal] = useState<MealType | null>(null);
   const togDay = (v: number) => setWeekdays((arr) => arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
   const togMeal = (v: MealType) => {
     const next = meals.includes(v) ? meals.filter((x) => x !== v) : [...meals, v];
     setMeals(next);
     if (emphasis !== 'even' && !next.includes(emphasis as MealType)) setEmphasis('even');
+    // Déselectionner un repas retire aussi sa version « je gère ».
+    if (!next.includes(v)) setFixedMeals((prev) => { if (!prev[v]) return prev; const n = { ...prev }; delete n[v]; return n; });
   };
+  const removeFixed = (mt: MealType) => setFixedMeals((prev) => { const n = { ...prev }; delete n[mt]; return n; });
+  const mealLabel = (mt: MealType) => MEAL_OPTS.find((o) => o.val === mt)?.label ?? mt;
   const emphasisOpts = EMPHASIS_OPTS.filter((e) => e.val === 'even' || meals.includes(e.val as MealType));
-  const submit = () => onSave({ ...profile, plan_weekdays: orderedWeekdays(weekdays), plan_days: weekdays.length, meals: orderedMeals(meals), meal_emphasis: emphasis, variety });
+  const submit = () => {
+    const cleaned: FixedMeals = {};
+    for (const mt of orderedMeals(meals)) if (fixedMeals[mt]) cleaned[mt] = fixedMeals[mt];
+    onSave({
+      ...profile, plan_weekdays: orderedWeekdays(weekdays), plan_days: weekdays.length,
+      meals: orderedMeals(meals), meal_emphasis: emphasis, variety,
+      fixed_meals: Object.keys(cleaned).length ? cleaned : undefined,
+    });
+  };
+
+  // Sous-vue : définir le repas géré par l'user (remplace l'éditeur le temps de la saisie).
+  if (definingMeal) {
+    return (
+      <FixedMealSheet
+        t={t} mealType={definingMeal} initial={fixedMeals[definingMeal]}
+        onSave={(fm) => setFixedMeals((prev) => ({ ...prev, [definingMeal]: fm }))}
+        onClose={() => setDefiningMeal(null)} dragHandlers={dragHandlers}
+      />
+    );
+  }
+
   return (
     <EditorShell t={t} title="Paramètres des repas" onSave={submit} canSave={weekdays.length >= 1 && meals.length >= 1} dragHandlers={dragHandlers}>
       <SectionLabel t={t}>Jours du plan</SectionLabel>
@@ -489,6 +516,37 @@ function MealsEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
       <SectionLabel t={t}>Repas inclus</SectionLabel>
       <View style={styles.wrap}>{MEAL_OPTS.map((m) => <Chip key={m.val} t={t} label={m.label} selected={meals.includes(m.val)} onPress={() => togMeal(m.val)} />)}</View>
       {meals.length === 0 && <Text style={{ color: t.danger, fontSize: 12 }}>Sélectionne au moins 1 repas.</Text>}
+
+      <SectionLabel t={t}>Repas que tu gères toi-même</SectionLabel>
+      <Text style={{ color: t.textTertiary, fontSize: 12, lineHeight: 17, marginTop: -8 }}>
+        Définis-les une fois : Kyroz les compte dans ton total et cale tes autres repas autour, sans te les redemander chaque jour.
+      </Text>
+      <View style={{ gap: 8 }}>
+        {orderedMeals(meals).map((mt) => {
+          const fm = fixedMeals[mt];
+          return (
+            <View key={mt} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: t.card, borderRadius: Radius.md, padding: 14 }}>
+              <View style={{ flex: 1, paddingRight: 10 }}>
+                <Text style={{ color: t.text, fontSize: 14, fontWeight: '700' }}>{mealLabel(mt)}</Text>
+                <Text style={{ color: fm ? t.textSecondary : t.textTertiary, fontSize: 12, marginTop: 3 }} numberOfLines={1}>
+                  {fm ? `🔒 ${fm.label} · ${fm.macros.kcal} kcal` : 'Kyroz le planifie'}
+                </Text>
+              </View>
+              <View style={{ flexDirection: 'row', gap: 16, alignItems: 'center' }}>
+                {fm && (
+                  <TouchableOpacity onPress={() => removeFixed(mt)} hitSlop={8}>
+                    <Text style={{ color: t.textTertiary, fontSize: 13, fontWeight: '700' }}>Retirer</Text>
+                  </TouchableOpacity>
+                )}
+                <TouchableOpacity onPress={() => setDefiningMeal(mt)} hitSlop={8}>
+                  <Text style={{ color: t.accent, fontSize: 13, fontWeight: '700' }}>{fm ? 'Modifier' : 'Je gère'}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          );
+        })}
+      </View>
+
       <SectionLabel t={t}>Tu manges plus à quel moment ?</SectionLabel>
       <View style={styles.wrap}>{emphasisOpts.map((e) => <Chip key={e.val} t={t} label={e.label} selected={emphasis === e.val} onPress={() => setEmphasis(e.val)} />)}</View>
       <SectionLabel t={t}>Variété</SectionLabel>

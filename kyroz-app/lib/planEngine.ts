@@ -1,4 +1,4 @@
-import { AdaptFlag, DietaryRestriction, Ingredient, Macros, Meal, MEAL_ORDER, MealEmphasis, MealPlan, MealStatus, MealType, Recipe, RecipeObjective, RecipeSport, UserProfile, VarietyPreference } from './types';
+import { AdaptFlag, DietaryRestriction, FixedMeal, Ingredient, Macros, Meal, MEAL_ORDER, MealEmphasis, MealPlan, MealStatus, MealType, Recipe, RecipeObjective, RecipeSport, UserProfile, VarietyPreference } from './types';
 import { getEffectiveRecipes } from './recipes';
 import { recipeFiberPerPortion, isFiberFocusGoal } from './fiber';
 import { remainingMeals, MEAL_LABEL } from './mealtime';
@@ -412,7 +412,7 @@ export function computeDailyTotals(
 // Version du moteur de génération : à incrémenter quand le scoring/sélection
 // change, pour que les plans EN CACHE se régénèrent automatiquement (la signature
 // change → l'auto-refresh de l'écran Plan rejoue la génération). v2 = lipides cadrés.
-const ENGINE_VERSION = 7; // v7 = macros recettes sourcées Ciqual (fusion des deux bases)
+const ENGINE_VERSION = 8; // v8 = repas fixes gérés par l'user (soustraits du budget)
 
 export function profileSignature(p: UserProfile): string {
   return JSON.stringify({
@@ -420,8 +420,34 @@ export function profileSignature(p: UserProfile): string {
     k: p.target_kcal, pr: p.target_protein_g, c: p.target_carbs_g, f: p.target_fat_g,
     d: p.plan_days, m: p.meals, e: p.meal_emphasis, v: p.variety,
     r: p.dietary_restrictions, dl: p.disliked_foods, pp: p.preferred_proteins,
-    tp: p.max_prep_time_min,
+    tp: p.max_prep_time_min, fm: p.fixed_meals ?? null,
   });
+}
+
+/** Construit le Meal VERROUILLÉ d'un repas fixe (géré par l'user) pour un jour donné. */
+function fixedMealToMeal(fm: FixedMeal, day: number, mealType: MealType, isRest: boolean): Meal {
+  const recipe: Recipe = {
+    id: `fixed-${mealType}`,
+    name_fr: fm.label,
+    prep_time_min: 0,
+    portions: 1,
+    macros_per_portion: fm.macros,
+    ingredients: fm.ingredients ?? [],
+    steps: [],
+    tags: [mealType],
+    validated_by_dietitian: false,
+  };
+  return {
+    id: `${day}-${mealType}`,
+    day,
+    meal_type: mealType,
+    recipe,
+    portions: 1,
+    macros: fm.macros,
+    adapted_ingredients: fm.ingredients?.length ? fm.ingredients : undefined,
+    rest_day: isRest || undefined,
+    fixed: true,
+  };
 }
 
 export function buildLocalPlan(profile: UserProfile, seed: number = 0): MealPlan {
@@ -432,13 +458,19 @@ export function buildLocalPlan(profile: UserProfile, seed: number = 0): MealPlan
   const selected = Array.isArray(profile.meals) && profile.meals.length > 0
     ? profile.meals
     : (['breakfast', 'lunch', 'dinner', 'snack'] as MealType[]);
-  const mealTypes = MEAL_ORDER.filter((m) => selected.includes(m));
+  const allMealTypes = MEAL_ORDER.filter((m) => selected.includes(m));
 
-  // Garde : l'emphase doit porter sur un repas réellement sélectionné, sinon
-  // elle serait silencieusement sans effet → on retombe sur « équilibré ».
+  // Repas fixes (gérés par l'user) vs repas planifiés par Kyroz : les fixes sont
+  // injectés tels quels et leur budget soustrait ; seuls les `plannedTypes` sont générés.
+  const fixedMeals = profile.fixed_meals ?? {};
+  const fixedTypes = allMealTypes.filter((mt) => fixedMeals[mt]);
+  const plannedTypes = allMealTypes.filter((mt) => !fixedMeals[mt]);
+
+  // Garde : l'emphase doit porter sur un repas réellement PLANIFIÉ (un repas fixe
+  // n'est pas mis à l'échelle), sinon elle serait sans effet → repli « équilibré ».
   const rawEmphasis = profile.meal_emphasis ?? 'even';
-  const emphasis = rawEmphasis !== 'even' && !mealTypes.includes(rawEmphasis as MealType) ? 'even' : rawEmphasis;
-  const distribution = computeDistribution(mealTypes, emphasis);
+  const emphasis = rawEmphasis !== 'even' && !plannedTypes.includes(rawEmphasis as MealType) ? 'even' : rawEmphasis;
+  const distribution = computeDistribution(plannedTypes, emphasis);
 
   const variety = profile.variety ?? 'balanced';
   const fiberStrong = isFiberFocusGoal(profile.goal); // sèche → fibres prioritaires
@@ -455,7 +487,7 @@ export function buildLocalPlan(profile: UserProfile, seed: number = 0): MealPlan
 
   const pools: Record<string, Recipe[]> = {};
   const relaxed: Record<string, boolean> = {};
-  for (const mt of mealTypes) {
+  for (const mt of plannedTypes) {
     const pf = poolForWithFlag(mt, profile);
     pools[mt] = pf.pool;
     relaxed[mt] = pf.relaxed;
@@ -464,8 +496,11 @@ export function buildLocalPlan(profile: UserProfile, seed: number = 0): MealPlan
   // Recettes correspondant aux protéines préférées (départage à macro égale).
   const preferredIds = preferredRecipeIds(profile);
 
-  // Somme des poids des repas actifs (= 1 sur les distributions, mais robuste).
-  const totalWeight = mealTypes.reduce((s, mt) => s + distribution[mt], 0) || 1;
+  // Somme des poids des repas planifiés (= 1 sur les distributions, mais robuste).
+  const totalWeight = plannedTypes.reduce((s, mt) => s + distribution[mt], 0) || 1;
+  // Budget consommé par les repas fixes (identiques chaque jour) → retiré de la cible.
+  const fixedDailyKcal = fixedTypes.reduce((s, mt) => s + fixedMeals[mt]!.macros.kcal, 0);
+  const fixedDailyProtein = fixedTypes.reduce((s, mt) => s + fixedMeals[mt]!.macros.protein_g, 0);
 
   const meals: Meal[] = [];
   // Compteur d'utilisation sur la semaine pour étaler les recettes (variété).
@@ -477,14 +512,22 @@ export function buildLocalPlan(profile: UserProfile, seed: number = 0): MealPlan
     // dernier repas absorbe le reliquat et resserre le total du jour). Grâce au
     // « deadband » kcal, un budget protéines vidé par des recettes trop riches
     // ne peut jamais affamer les kcal des repas suivants.
-    let remainingKcal = profile.target_kcal;
-    let remainingProtein = profile.target_protein_g;
+    // Budget du jour APRÈS retrait des repas fixes (gérés par l'user).
+    let remainingKcal = Math.max(profile.target_kcal - fixedDailyKcal, 0);
+    let remainingProtein = Math.max(profile.target_protein_g - fixedDailyProtein, 0);
     let remainingWeight = totalWeight;
     // Jour de repos → glucides ↓ / lipides ↑ (mêmes kcal + protéines).
     const isRest = restDays.has(d);
     const dayRatio = isRest ? restDayRatio(ratio) : ratio;
 
-    mealTypes.forEach((mealType) => {
+    // Parcours dans l'ordre canonique : les repas fixes sont injectés verrouillés,
+    // les autres planifiés sur le budget restant (report de budget de repas en repas).
+    for (const mealType of allMealTypes) {
+      const fm = fixedMeals[mealType];
+      if (fm) {
+        meals.push(fixedMealToMeal(fm, d, mealType, isRest));
+        continue;
+      }
       const weight = distribution[mealType];
 
       // Cible du repas (EN GRAMMES) = part du budget restant (kcal + protéines) au
@@ -514,7 +557,7 @@ export function buildLocalPlan(profile: UserProfile, seed: number = 0): MealPlan
         restriction_relaxed: relaxed[mealType] || undefined,
         rest_day: isRest || undefined,
       });
-    });
+    }
   }
 
   return {
@@ -536,6 +579,7 @@ export function buildLocalPlan(profile: UserProfile, seed: number = 0): MealPlan
  * chose » à chaque appui, sans dégrader l'équilibre du jour.
  */
 export function swapMeal(profile: UserProfile, plan: MealPlan, meal: Meal): MealPlan {
+  if (meal.fixed) return plan; // un repas géré par l'user ne se swappe pas
   const pool = poolFor(meal.meal_type, profile).filter((r) => r.id !== meal.recipe.id);
   if (pool.length === 0) return plan; // aucune alternative possible
 
@@ -702,7 +746,8 @@ function rebalanceCore(
 export function rebalanceDay(profile: UserProfile, plan: MealPlan, day: number): MealPlan {
   const dayMeals = plan.meals.filter((m) => m.day === day);
   // Comportement historique : ajuste TOUS les repas encore planifiés du jour.
-  const adjustIds = new Set(dayMeals.filter((m) => (m.status ?? 'planned') === 'planned').map((m) => m.id));
+  // Les repas fixes (gérés par l'user) ne sont JAMAIS recalés → exclus.
+  const adjustIds = new Set(dayMeals.filter((m) => !m.fixed && (m.status ?? 'planned') === 'planned').map((m) => m.id));
   return rebalanceCore(profile, plan, day, adjustIds, new Set());
 }
 
@@ -724,7 +769,8 @@ export function adaptDayOptions(
   profile: UserProfile, plan: MealPlan, day: number, nowHour: number,
 ): AdaptOption[] {
   const dayMeals = plan.meals.filter((m) => m.day === day);
-  const upcoming = remainingMeals(dayMeals, nowHour);
+  // Repas fixes exclus : ils ne se recalent pas (l'user les gère).
+  const upcoming = remainingMeals(dayMeals, nowHour).filter((m) => !m.fixed);
   if (upcoming.length === 0) return [];
 
   const allIds = new Set(upcoming.map((m) => m.id));

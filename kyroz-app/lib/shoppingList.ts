@@ -14,6 +14,7 @@ export function buildShoppingList(plan: MealPlan, pantry: PantryItem[] = []): Sh
   const aggregated: Map<string, { name: string; quantity: number; unit: string }> = new Map();
 
   for (const meal of plan.meals) {
+    if (meal.fixed) continue; // repas géré par l'user → il achète/prépare lui-même
     // Quantités EFFECTIVES (adaptées par ingrédient si présentes, sinon recette×portions).
     for (const ingredient of mealIngredients(meal)) {
       if (isStaple(ingredient.name)) continue;

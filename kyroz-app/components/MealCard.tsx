@@ -26,10 +26,11 @@ export function MealCard({
   const t = useTheme();
   const rootRef = useTourTarget(tourId);
   const cookRef = useTourTarget(cookTourId);
+  const isFixed = meal.fixed === true;
   const eaten = meal.status === 'eaten';
   const skipped = meal.status === 'skipped';
   const muted = eaten || skipped;
-  const planned = !eaten && !skipped;
+  const planned = !eaten && !skipped && !isFixed; // un repas fixe n'est ni cuisiné ni recalé par Kyroz
   const lacks = (missing?.length ?? 0) > 0;
   return (
     <TouchableOpacity
@@ -40,7 +41,9 @@ export function MealCard({
     >
       <View style={styles.top}>
         <Text style={[styles.type, { color: t.textTertiary }]}>{MEAL_LABELS[meal.meal_type]?.toUpperCase()}</Text>
-        {eaten ? (
+        {isFixed ? (
+          <Text style={[styles.tag, { color: t.textSecondary }]}>🔒 Tu gères</Text>
+        ) : eaten ? (
           <Text style={[styles.tag, { color: t.success }]}>✓ Mangé</Text>
         ) : skipped ? (
           <Text style={[styles.tag, { color: t.textTertiary }]}>⊘ Sauté</Text>
@@ -51,6 +54,9 @@ export function MealCard({
       <Text style={[styles.name, { color: t.text, textDecorationLine: skipped ? 'line-through' : 'none' }]}>
         {meal.recipe.name_fr}
       </Text>
+      {isFixed && (
+        <Text style={[styles.fixedNote, { color: t.textTertiary }]}>Tu gères ce repas — compté dans ton total</Text>
+      )}
       {!skipped && (
         <View style={styles.macros}>
           <Pill v={meal.macros.kcal} u="kcal" c={t.textSecondary} cu={t.textQuaternary} />
@@ -122,6 +128,7 @@ const styles = StyleSheet.create({
   pillV: { fontSize: 14, fontWeight: '700' },
   pillU: { fontSize: 11 },
   fridge: { fontSize: 12, fontWeight: '600', marginTop: 12 },
+  fixedNote: { fontSize: 12, marginTop: 6 },
   cookBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, marginTop: 10, paddingVertical: 11, borderRadius: Radius.md },
   cookTxt: { fontSize: 14, fontWeight: '700' },
 });
