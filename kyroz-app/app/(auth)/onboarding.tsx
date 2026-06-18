@@ -41,6 +41,7 @@ const GOALS: { value: Goal; sub: string }[] = [
 
 const RESTRICTIONS: { label: string; value: DietaryRestriction }[] = [
   { label: 'Végétarien', value: 'vegetarian' },
+  { label: 'Vegan', value: 'vegan' },
   { label: 'Pescétarien', value: 'pescatarian' },
   { label: 'Sans porc', value: 'no_pork' },
   { label: 'Sans lactose', value: 'lactose_free' },

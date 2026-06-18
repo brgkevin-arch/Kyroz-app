@@ -180,6 +180,15 @@ function fitScore(macros: Macros, target: AdaptTarget, flags: AdaptFlag[], goalD
 // Mots-clés exclus par régime
 const RESTRICTION_BLOCKLIST: Record<DietaryRestriction, string[]> = {
   vegetarian: ['poulet', 'boeuf', 'bœuf', 'steak', 'saumon', 'thon', 'jambon', 'porc', 'dinde', 'poisson', 'cabillaud', 'crevette'],
+  // vegan = végétarien + œufs + laitiers + miel. Mots-clés laitiers ciblés pour ne
+  // PAS bloquer les alternatives végétales (lait d'amande/coco, yaourt de soja, beurre de cacahuète).
+  vegan: [
+    'poulet', 'boeuf', 'bœuf', 'steak', 'jambon', 'porc', 'dinde', 'lardon', 'bacon', 'viande',
+    'saumon', 'thon', 'poisson', 'cabillaud', 'crevette', 'maquereau', 'sardine',
+    'œuf', 'oeuf', 'miel',
+    'skyr', 'whey', 'fromage', 'mozzarella', 'feta', 'parmesan', 'cottage', 'yaourt grec',
+    'lait demi', 'lait entier', 'lait écrémé',
+  ],
   pescatarian: ['poulet', 'boeuf', 'bœuf', 'steak', 'jambon', 'porc', 'dinde'],
   no_pork: ['porc', 'jambon', 'lardon', 'bacon'],
   lactose_free: ['lait', 'fromage', 'yaourt'],

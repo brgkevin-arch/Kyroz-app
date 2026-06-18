@@ -38,7 +38,8 @@ import { FixedMealSheet } from '../../components/FixedMealSheet';
 // ── Options ──────────────────────────────────────────────────────────────────
 const GOALS: Goal[] = ['cut_aggressive', 'cut', 'recomp', 'maintain', 'lean_bulk', 'bulk'];
 const RESTRICTIONS: { label: string; value: DietaryRestriction }[] = [
-  { label: 'Végétarien', value: 'vegetarian' }, { label: 'Pescétarien', value: 'pescatarian' },
+  { label: 'Végétarien', value: 'vegetarian' }, { label: 'Vegan', value: 'vegan' },
+  { label: 'Pescétarien', value: 'pescatarian' },
   { label: 'Sans porc', value: 'no_pork' }, { label: 'Sans lactose', value: 'lactose_free' },
   { label: 'Sans gluten', value: 'gluten_free' },
 ];
@@ -61,7 +62,7 @@ const VARIETY: { value: VarietyPreference; title: string; sub: string }[] = [
 const SEX_LABELS: Record<Sex, string> = { male: 'Homme', female: 'Femme' };
 const VARIETY_LABELS: Record<VarietyPreference, string> = { repetitive: 'Répétitif', balanced: 'Équilibré', max: 'Variété max' };
 const RESTRICTION_LABELS: Record<DietaryRestriction, string> = {
-  vegetarian: 'Végétarien', pescatarian: 'Pescétarien', no_pork: 'Sans porc', lactose_free: 'Sans lactose', gluten_free: 'Sans gluten',
+  vegetarian: 'Végétarien', vegan: 'Vegan', pescatarian: 'Pescétarien', no_pork: 'Sans porc', lactose_free: 'Sans lactose', gluten_free: 'Sans gluten',
 };
 
 function activityFromDays(d: number): ActivityLevel {

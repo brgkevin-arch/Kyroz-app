@@ -7,3 +7,6 @@ node_modules/
 
 # Fichiers Ciqual (ANSES) déposés à la racine — gardés en local, hors git
 /Table Ciqual*
+
+# Index graphify généré (régénérable via `graphify update .`) — local, hors git
+graphify-out/
