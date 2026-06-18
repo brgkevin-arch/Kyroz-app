@@ -30,6 +30,13 @@ const CATEGORY_ICON: Record<ShoppingItem['category'], any> = {
 };
 const CATEGORY_ORDER: ShoppingItem['category'][] = ['viandes', 'légumes', 'féculents', 'laitiers', 'autres'];
 
+type CoursesSection = {
+  cat: ShoppingItem['category'];
+  title: string;
+  left: number;
+  data: ShoppingItem[];
+};
+
 export default function CoursesScreen() {
   const t = useTheme();
   const s = useMemo(() => makeStyles(t), [t]);
@@ -137,7 +144,7 @@ export default function CoursesScreen() {
   const pct = total ? (checked / total) * 100 : 0;
 
   // Tri : non cochés d'abord, cochés en bas. Option « masquer cochés ».
-  const sections = CATEGORY_ORDER
+  const sections: CoursesSection[] = CATEGORY_ORDER
     .map((cat) => {
       let data = list.items.filter((i) => i.category === cat);
       if (hideChecked) data = data.filter((i) => !i.checked);
@@ -182,7 +189,7 @@ export default function CoursesScreen() {
 
       <Text style={s.hint}>Coche un article → il part direct dans ton frigo 🧊</Text>
 
-      <SectionList
+      <SectionList<ShoppingItem, CoursesSection>
         sections={sections}
         keyExtractor={(item) => item.name}
         contentContainerStyle={s.list}
@@ -191,9 +198,9 @@ export default function CoursesScreen() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={t.textTertiary} />}
         renderSectionHeader={({ section }) => (
           <View style={s.section}>
-            <Ionicons name={CATEGORY_ICON[(section as any).cat as ShoppingItem['category']]} size={14} color={t.textTertiary} />
+            <Ionicons name={CATEGORY_ICON[section.cat]} size={14} color={t.textTertiary} />
             <Text style={s.sectionTxt}>{section.title.toUpperCase()}</Text>
-            {(section as any).left > 0 && <Text style={s.sectionCount}>{(section as any).left}</Text>}
+            {section.left > 0 && <Text style={s.sectionCount}>{section.left}</Text>}
           </View>
         )}
         renderItem={({ item }) => (
