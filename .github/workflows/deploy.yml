@@ -1,0 +1,47 @@
+name: Deploy to GitHub Pages
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: kyroz-app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm ci
+      - run: npx expo export -p web
+        env:
+          EXPO_PUBLIC_SUPABASE_URL: https://rgdjsdnqlmfkourrhijv.supabase.co
+          EXPO_PUBLIC_SUPABASE_ANON_KEY: sb_publishable_2DI5q7hJ9w7bpUFcEYGV1w_KiWMLt_L
+      # Expo génère la page en lang="en" (mode SPA, +html.tsx ignoré). On force le
+      # français + on désactive la traduction auto, sinon les navigateurs traduisent
+      # les faux-amis (« pain complet » → « douleur complète », « sèche » → « sèche-cheveux »).
+      - run: |
+          sed -i 's|<html lang="en">|<html lang="fr" translate="no">|' dist/index.html
+          sed -i 's|<head>|<head><meta name="google" content="notranslate" />|' dist/index.html
+      - run: cp dist/index.html dist/404.html
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: kyroz-app/dist
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
