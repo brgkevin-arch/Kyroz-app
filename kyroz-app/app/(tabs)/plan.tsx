@@ -28,7 +28,6 @@ import { usePlanCheckin } from '../../hooks/usePlanCheckin';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { generateMealPlan } from '../../lib/generatePlan';
 import { profileSignature, swapMeal, computeDailyTotals, rebalanceDay, resetTracking, adaptDayOptions, AdaptOption, mealIngredients, reAdaptMealRecipe } from '../../lib/planEngine';
-import { kcalMargin } from '../../lib/foods';
 import { todayStamp } from '../../lib/weight';
 import { mealFiberFromIngredients, dailyFiberTarget } from '../../lib/fiber';
 import { getRecipeById, getBaseRecipe } from '../../lib/recipes';
@@ -707,11 +706,13 @@ export default function PlanScreen() {
 }
 
 function MarginNote({ t, kcal }: { t: ThemePalette; kcal: number }) {
-  const margin = kcalMargin(kcal);
-  if (kcal <= 0 || margin <= 0) return null;
+  if (kcal <= 0) return null;
+  // Note d'honnêteté discrète : les valeurs alimentaires sont des moyennes (Ciqual),
+  // pas une pesée au gramme près. On n'affiche plus la fourchette ± (donnait
+  // l'impression que le plan était imprécis ; cf. retour fondateur 2026-06-18).
   return (
     <Text style={{ color: t.textTertiary, fontSize: 12, marginTop: 8, lineHeight: 16 }}>
-      ≈ {(kcal - margin).toLocaleString('fr-FR')}–{(kcal + margin).toLocaleString('fr-FR')} kcal · valeurs moyennes, marge ± {margin}
+      Valeurs estimées (moyennes alimentaires)
     </Text>
   );
 }

@@ -3,6 +3,7 @@ import { getEffectiveRecipes } from './recipes';
 import { recipeFiberPerPortion, isFiberFocusGoal } from './fiber';
 import { remainingMeals, MEAL_LABEL } from './mealtime';
 import { adaptRecipe, AdaptTarget, goalToObjectives, sportsToBuckets, needMatch } from './adaptRecipe';
+import { MIN_KCAL } from './tdee';
 
 // ── Moteur de génération de plan local ──────────────────────────────────────
 // Respecte : nombre de jours, repas/jour, variété, préférences alimentaires.
@@ -412,7 +413,7 @@ export function computeDailyTotals(
 // Version du moteur de génération : à incrémenter quand le scoring/sélection
 // change, pour que les plans EN CACHE se régénèrent automatiquement (la signature
 // change → l'auto-refresh de l'écran Plan rejoue la génération). v2 = lipides cadrés.
-const ENGINE_VERSION = 9; // v9 = resserrage du total du jour (tightenDay : water-filling) → écart jour-à-jour ↓
+const ENGINE_VERSION = 10; // v10 = lissage hebdo des kcal (±50/jour, reliquat reporté → cible hebdo)
 
 export function profileSignature(p: UserProfile): string {
   return JSON.stringify({
@@ -431,6 +432,9 @@ export function profileSignature(p: UserProfile): string {
 // pèse moins au tour suivant → son reliquat coule vers les autres. No-op si déjà
 // dans la cible (cas du plan canonique seed 0). Borné à 4 itérations.
 const TIGHTEN_TOL_KCAL = 25;
+// Lissage hebdo : déviation kcal max autorisée pour UN jour autour de la cible
+// quotidienne (le reliquat est rattrapé sur les jours suivants → cible hebdo tenue).
+const DAILY_SMOOTH_CAP = 50;
 function tightenDay(dayMeals: Meal[], budgetKcal: number, budgetProtein: number, ratio: { carb: number; fat: number }): void {
   if (dayMeals.length === 0) return;
   const distBefore = Math.abs(budgetKcal - dayMeals.reduce((s, m) => s + m.macros.kcal, 0));
@@ -547,6 +551,8 @@ export function buildLocalPlan(profile: UserProfile, seed: number = 0): MealPlan
   const meals: Meal[] = [];
   // Compteur d'utilisation sur la semaine pour étaler les recettes (variété).
   const usage: Record<string, number> = {};
+  // Reliquat calorique reporté de jour en jour → la semaine converge vers days×cible.
+  let weekDeficitKcal = 0;
 
   for (let d = 1; d <= days; d++) {
     // Budgets kcal/protéines du jour : reportés de repas en repas → auto-
@@ -554,8 +560,16 @@ export function buildLocalPlan(profile: UserProfile, seed: number = 0): MealPlan
     // dernier repas absorbe le reliquat et resserre le total du jour). Grâce au
     // « deadband » kcal, un budget protéines vidé par des recettes trop riches
     // ne peut jamais affamer les kcal des repas suivants.
+    // Lissage hebdo des CALORIES : cible du jour = cible quotidienne + une part du
+    // reliquat accumulé (jours précédents sous/au-dessus), bornée à ±DAILY_SMOOTH_CAP
+    // → un jour bridé est rattrapé par les suivants, la SEMAINE tombe sur days×cible.
+    // Les PROTÉINES ne se lissent PAS (plancher quotidien). Garde-fou §6 : jamais < MIN.
+    const remainingDays = days - d + 1;
+    const smooth = Math.max(-DAILY_SMOOTH_CAP, Math.min(DAILY_SMOOTH_CAP, weekDeficitKcal / remainingDays));
+    const dayCibleKcal = Math.max(profile.target_kcal + smooth, MIN_KCAL[profile.sex]);
+
     // Budget du jour APRÈS retrait des repas fixes (gérés par l'user).
-    let remainingKcal = Math.max(profile.target_kcal - fixedDailyKcal, 0);
+    let remainingKcal = Math.max(dayCibleKcal - fixedDailyKcal, 0);
     let remainingProtein = Math.max(profile.target_protein_g - fixedDailyProtein, 0);
     let remainingWeight = totalWeight;
     // Jour de repos → glucides ↓ / lipides ↑ (mêmes kcal + protéines).
@@ -607,11 +621,17 @@ export function buildLocalPlan(profile: UserProfile, seed: number = 0): MealPlan
     // déborder/manquer le total. No-op si déjà dans la cible.
     tightenDay(
       dayMeals.filter((m) => !m.fixed),
-      Math.max(profile.target_kcal - fixedDailyKcal, 0),
+      Math.max(dayCibleKcal - fixedDailyKcal, 0),
       Math.max(profile.target_protein_g - fixedDailyProtein, 0),
       dayRatio,
     );
     meals.push(...dayMeals);
+
+    // Reliquat reporté sur la semaine : (cible quotidienne − total réel du jour).
+    // Jour qui manque (pool bridé) → déficit positif → jours suivants visent un peu
+    // plus haut (borné ±DAILY_SMOOTH_CAP) ; s'auto-annule dès qu'un jour rattrape.
+    const dayActualKcal = dayMeals.reduce((s, m) => s + m.macros.kcal, 0);
+    weekDeficitKcal += profile.target_kcal - dayActualKcal;
   }
 
   return {
