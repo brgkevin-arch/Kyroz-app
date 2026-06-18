@@ -7,6 +7,20 @@
 
 ---
 
+## ✅ Statut — RÉSOLU (2026-06-18)
+
+Tous les points de ce brief sont traités (commits sur `main`) :
+
+- **B** — protéines trop basses en sèche → plancher g/kg de **poids de corps** (`proteinTarget` = `max(masse_maigre × coef, poids × plancher)`), `lib/tdee.ts`, commit `1f85ebf`. ⚠️ valeurs à valider par la diététicienne.
+- **A2** — le réalisé déborde la cible → `fitScore` **asymétrique selon l'objectif** (pénalise le débordement en sèche / le manque en prise de masse) + stress-test resserré conjoint, commit `fb1e360`. Mesuré : pire débordement sèche **6,8 % → 3,8 %**.
+- **A1** — « 3 calories » → la **CIBLE est le chiffre héros partout** ; TDEE / réalisé / restant explicitement étiquetés, commit `905feb2`.
+- **A3** — plan pas régénéré quand la cible change → **déjà en place** (`profileSignature` inclut les cibles + auto-refresh de l'écran Plan), aucun correctif nécessaire.
+- **C** — la synchro cloud écrase le local → **garde-fou anti-écrasement** : flag « dirty » + push qui lit `{ error }` + `decideProfileHydration` (un local non poussé n'est jamais écrasé), `lib/syncGuard.ts`, commit `d70ac80`.
+
+Le détail ci-dessous reste la référence de la discussion d'origine.
+
+---
+
 ## 0. TL;DR
 
 Trois symptômes, trois causes distinctes :
