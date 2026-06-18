@@ -2,5 +2,8 @@
 node_modules/
 .env
 
+# Config Claude Code locale (par machine, chemins absolus, ne doit pas être versionnée)
+.claude/settings.local.json
+
 # Fichiers Ciqual (ANSES) déposés à la racine — gardés en local, hors git
 /Table Ciqual*
