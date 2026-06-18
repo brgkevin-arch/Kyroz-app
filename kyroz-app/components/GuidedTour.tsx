@@ -133,13 +133,23 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
     }
     const sv = scrollRef.current?.current;
     if (sv && node && typeof node.measureLayout === 'function') {
-      const handle = typeof sv.getScrollableNode === 'function' ? sv.getScrollableNode() : sv;
-      node.measureLayout(
-        handle,
-        (_x: number, y: number) => { sv.scrollTo({ y: Math.max(0, y - 120), animated: true }); setTimeout(done, 260); },
-        () => done(),
-      );
-      return;
+      // Nœud de référence pour measureLayout. La nouvelle architecture (Fabric)
+      // exige une *instance hôte* native (ReactNativeElement) : getNativeScrollRef()
+      // la renvoie, alors que getScrollableNode() ne renvoie qu'un node-handle
+      // numérique → « measureLayout must be called with a ref to a native component ».
+      const handle = typeof sv.getNativeScrollRef === 'function'
+        ? sv.getNativeScrollRef()
+        : typeof sv.getScrollableNode === 'function'
+          ? sv.getScrollableNode()
+          : sv;
+      if (handle) {
+        node.measureLayout(
+          handle,
+          (_x: number, y: number) => { sv.scrollTo({ y: Math.max(0, y - 120), animated: true }); setTimeout(done, 260); },
+          () => done(),
+        );
+        return;
+      }
     }
     done();
   };
