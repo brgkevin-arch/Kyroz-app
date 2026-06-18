@@ -30,8 +30,9 @@ yarn-error.*
 .DS_Store
 *.pem
 
-# local env files
-.env*.local
+# local env files — jamais committer de secrets (garder uniquement un éventuel .env.example)
+.env*
+!.env.example
 
 # typescript
 *.tsbuildinfo
@@ -47,4 +48,5 @@ test/qa/*.png
 test/qa/report*.json
 
 # Source brute Ciqual (ANSES) — convertie en lib/foods.generated.ts, pas commitée (lourde)
-data/ciqual/
+# Casse insensible (APFS local vs FS sensible à la casse en CI Linux)
+[Dd]ata/[Cc]iqual/
