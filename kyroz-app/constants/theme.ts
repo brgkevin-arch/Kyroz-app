@@ -27,6 +27,7 @@ export interface ThemePalette {
   // Accent monochrome (CTA, état actif)
   accent: string;        // fond du bouton principal / jour actif
   onAccent: string;      // texte sur accent
+  onDanger: string;      // texte sur fond danger (blanc dans les deux thèmes)
 
   // Macros
   protein: string;
@@ -60,6 +61,7 @@ const dark: ThemePalette = {
 
   accent: '#FFFFFF',
   onAccent: '#000000',
+  onDanger: '#FFFFFF',
 
   protein: '#9FB8E6',
   carbs: '#E3CD93',
@@ -90,6 +92,7 @@ const light: ThemePalette = {
 
   accent: '#1C1C1E',
   onAccent: '#FFFFFF',
+  onDanger: '#FFFFFF',
 
   protein: '#3B7BE0',
   carbs: '#D7901C',

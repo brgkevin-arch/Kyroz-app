@@ -291,7 +291,7 @@ export default function ProfilScreen() {
         <View style={{ height: 6 }} />
         <TouchableOpacity onPress={doDelete} disabled={deleting} activeOpacity={0.85}
           style={{ backgroundColor: t.danger, borderRadius: Radius.md, paddingVertical: 17, alignItems: 'center', opacity: deleting ? 0.6 : 1 }}>
-          <Text style={{ color: '#fff', fontSize: 17, fontWeight: '700' }}>{deleting ? 'Suppression…' : 'Supprimer définitivement'}</Text>
+          <Text style={{ color: t.onDanger, fontSize: 17, fontWeight: '700' }}>{deleting ? 'Suppression…' : 'Supprimer définitivement'}</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => setConfirmDelete(false)} style={{ alignItems: 'center', paddingVertical: 6 }}>
           <Text style={{ color: t.textSecondary, fontSize: 15, fontWeight: '600' }}>Annuler</Text>

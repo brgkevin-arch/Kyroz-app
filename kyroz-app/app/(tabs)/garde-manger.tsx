@@ -285,7 +285,7 @@ export default function GardeMangerScreen() {
           onPress={() => { confirm?.onYes(); setConfirm(null); }}
           style={[s.confirmBtn, { backgroundColor: confirm?.danger ? t.danger : t.accent }]}
         >
-          <Text style={[s.confirmBtnTxt, { color: confirm?.danger ? '#fff' : t.onAccent }]}>{confirm?.cta}</Text>
+          <Text style={[s.confirmBtnTxt, { color: confirm?.danger ? t.onDanger : t.onAccent }]}>{confirm?.cta}</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => setConfirm(null)} style={s.cancel}><Text style={s.cancelTxt}>Annuler</Text></TouchableOpacity>
       </ActionSheet>

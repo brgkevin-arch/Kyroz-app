@@ -14,14 +14,21 @@ export { RECIPES };
 // pour que la génération (fonction pure, hors React) voie les overrides.
 
 let recipeOverrides: Record<string, Recipe> = {};
+// Cache de la liste effective : recalculée uniquement quand les overrides changent.
+// La génération de plan appelle getEffectiveRecipes() plusieurs fois par run.
+let effectiveCache: Recipe[] | null = null;
 
 export function setRecipeOverrides(map: Record<string, Recipe> | null | undefined): void {
   recipeOverrides = map ?? {};
+  effectiveCache = null;
 }
 
 /** Liste effective : chaque recette de base remplacée par sa version perso si elle existe. */
 export function getEffectiveRecipes(): Recipe[] {
-  return RECIPES.map((r) => recipeOverrides[r.id] ?? r);
+  if (effectiveCache === null) {
+    effectiveCache = RECIPES.map((r) => recipeOverrides[r.id] ?? r);
+  }
+  return effectiveCache;
 }
 
 /** Recette effective par id (override prioritaire). */

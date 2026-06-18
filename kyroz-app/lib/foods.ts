@@ -8,12 +8,8 @@ import { CIQUAL_FOODS } from './foods.generated';
 // officiel par scripts/convert-ciqual.py → lib/foods.generated.ts (ne pas éditer
 // à la main). ~3300 aliments courants en France.
 
-// Incertitude relative par défaut (%) de l'énergie selon les sources — pour la
-// marge honnête du total du jour (Phase 3b).
-const DEFAULT_UNCERTAINTY_PCT = 10;
-
 // Marge appliquée au TOTAL d'une journée. Plus basse que l'incertitude d'un seul
-// aliment (10%) car, sur plusieurs aliments indépendants, les écarts se compensent
+// aliment (~10%) car, sur plusieurs aliments indépendants, les écarts se compensent
 // partiellement. 7% = honnête sans être anxiogène (~±140 kcal sur 2000).
 export const DAILY_KCAL_MARGIN_PCT = 7;
 
@@ -140,5 +136,3 @@ function roundMacros(m: Macros): Macros {
     fat_g: Math.round(m.fat_g),
   };
 }
-
-export { DEFAULT_UNCERTAINTY_PCT };

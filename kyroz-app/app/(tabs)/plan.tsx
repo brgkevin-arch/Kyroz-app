@@ -725,7 +725,6 @@ function FiberRow({ t, actual, target }: { t: ThemePalette; actual: number; targ
 }
 
 const styles = StyleSheet.create({
-  target: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 16, paddingTop: 16, borderTopWidth: 1 },
   fiber: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 10 },
 });
 
