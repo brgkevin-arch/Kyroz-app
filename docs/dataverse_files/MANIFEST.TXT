@@ -1,0 +1,8 @@
+alim_2025_11_03.xml (text/xml) 1581031 bytes.
+compo_2025_11_03.xml (text/xml) 69243149 bytes.
+const_2025_11_03.xml (text/xml) 17955 bytes.
+sources_2025_11_03.xml (text/xml) 871783 bytes.
+alim_grp_2025_11_03.xml (text/xml) 80421 bytes.
+Table Ciqual 2025_FR_2025_11_03.xls (application/vnd.ms-excel) 4489728 bytes.
+Table Ciqual 2025_FR_2025_11_03.xlsx (application/vnd.openxmlformats-officedocument.spreadsheetml.sheet) 1541998 bytes.
+Table Ciqual 2025 doc FR_2025_11_19.pdf (application/pdf) 4236848 bytes.
