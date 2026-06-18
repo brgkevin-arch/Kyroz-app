@@ -412,7 +412,7 @@ export function computeDailyTotals(
 // Version du moteur de génération : à incrémenter quand le scoring/sélection
 // change, pour que les plans EN CACHE se régénèrent automatiquement (la signature
 // change → l'auto-refresh de l'écran Plan rejoue la génération). v2 = lipides cadrés.
-const ENGINE_VERSION = 6; // v6 = fit asymétrique selon l'objectif (A2 : anti-débordement en sèche)
+const ENGINE_VERSION = 7; // v7 = macros recettes sourcées Ciqual (fusion des deux bases)
 
 export function profileSignature(p: UserProfile): string {
   return JSON.stringify({

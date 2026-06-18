@@ -1,5 +1,6 @@
 import { Food, Ingredient, Macros } from './types';
 import { CIQUAL_FOODS } from './foods.generated';
+import { applyCuration } from './foods.curation';
 
 // ── Base d'aliments (approche A : valeur moyenne par aliment, /100 g) ─────────
 //
@@ -21,10 +22,12 @@ export function kcalMargin(totalKcal: number): number {
 // Mention légale obligatoire (Licence Ouverte 2.0 : attribution de la source,
 // sans dénaturation ni suggestion d'endossement). À afficher dans l'app.
 export const CIQUAL_ATTRIBUTION =
-  'Données nutritionnelles calculées à partir de la Table Ciqual® 2025 (ANSES), ' +
-  'réutilisée sous Licence Ouverte 2.0 (Etalab). L’ANSES n’endosse pas Kyroz.';
+  'Données nutritionnelles issues de la Table Ciqual® 2025 (ANSES), réutilisée sous ' +
+  'Licence Ouverte 2.0 (Etalab). Certaines entrées sont ajoutées ou ajustées par Kyroz ' +
+  'et ne proviennent pas de l’ANSES. L’ANSES n’endosse pas Kyroz.';
 
-export const FOODS: Food[] = CIQUAL_FOODS;
+// Base d'aliments effective = Ciqual brut (ANSES) + curation Kyroz (cf. foods.curation.ts).
+export const FOODS: Food[] = applyCuration(CIQUAL_FOODS);
 
 // Index par id pour les recherches O(1).
 const BY_ID: Map<string, Food> = new Map(FOODS.map((f) => [f.id, f]));

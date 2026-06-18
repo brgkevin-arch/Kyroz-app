@@ -140,13 +140,17 @@ export interface Ingredient {
 // Aliment de la base nutritionnelle (valeurs pour 100 g — approche « moyenne »,
 // alignées Ciqual/ANSES). `food_id` d'un Ingredient pointe ici.
 export interface Food {
-  id: string;             // 'ciqual-XXXXX'
+  id: string;             // 'ciqual-XXXXX' (ANSES) | 'kyroz-XXX' (ajout Kyroz)
   name_fr: string;
   category: string;       // groupe alimentaire Ciqual (libre)
   per100g: Macros;        // kcal / protéines / glucides / lipides pour 100 g
   // Incertitude relative (%) de l'énergie selon les sources — sert à afficher une
   // marge honnête sur le total du jour (Phase 3b). Défaut appliqué si absent.
   uncertainty_pct?: number;
+  // Provenance de la valeur. Absent/'ciqual' = donnée officielle ANSES (intacte) ;
+  // 'kyroz' = ajout ou correction Kyroz (cf. lib/foods.curation.ts) — pour rester
+  // honnête sur la source (Licence Ouverte 2.0 : pas de dénaturation des données ANSES).
+  source?: 'ciqual' | 'kyroz';
 }
 
 export interface Recipe {

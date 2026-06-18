@@ -1,26 +1,41 @@
 import { Macros, MacroRole } from './types';
 import raw from './data/recettes-kyroz-100.json';
+import { findFood } from './foods';
+import { REF_FOOD_ID } from './recipeFoodMap';
 
 // ── Table d'ingrédients (rôle = type Food, valeurs /100 g) ────────────────────
-// Source : recettes-kyroz-100.json (estimations CIQUAL — à remplacer par le CSV
-// officiel avant prod). Le JSON utilise {kcal,protein,carbs,fat} ; on convertit
-// vers Macros interne {kcal,protein_g,carbs_g,fat_g}.
+// Macros : SOURCÉES CIQUAL quand l'ingrédient est mappé (lib/recipeFoodMap.ts) →
+// source de vérité unique partagée avec la recherche d'aliments. Repli sur la
+// valeur manuelle du JSON pour les `ref` non mappés (composites/suppléments).
+// Le JSON utilise {kcal,protein,carbs,fat} ; on convertit vers Macros interne.
 export interface RecipeIngredientRef {
   name: string;
   unit: 'g' | 'ml';
   basis?: 'dry' | 'raw';
   per100g: Macros;
   abs_max_qty?: number;
+  food_id?: string; // → aliment Ciqual quand les macros viennent de la base (cf. recipeFoodMap)
 }
 
 type Per100 = { kcal: number; protein: number; carbs: number; fat: number };
 const toMacros = (p: Per100): Macros => ({ kcal: p.kcal, protein_g: p.protein, carbs_g: p.carbs, fat_g: p.fat });
 
 export const RECIPE_INGREDIENTS: Record<string, RecipeIngredientRef> = Object.fromEntries(
-  Object.entries(raw.ingredients_reference as Record<string, any>).map(([k, v]) => [
-    k,
-    { name: v.name, unit: v.unit, basis: v.basis, per100g: toMacros(v.per_100), abs_max_qty: v.abs_max_qty },
-  ]),
+  Object.entries(raw.ingredients_reference as Record<string, any>).map(([k, v]) => {
+    // Mappé sur Ciqual → on prend les macros officielles ; sinon valeur manuelle.
+    const food = REF_FOOD_ID[k] ? findFood(REF_FOOD_ID[k]) : undefined;
+    return [
+      k,
+      {
+        name: v.name,
+        unit: v.unit,
+        basis: v.basis,
+        per100g: food ? food.per100g : toMacros(v.per_100),
+        abs_max_qty: v.abs_max_qty,
+        food_id: food ? REF_FOOD_ID[k] : undefined,
+      },
+    ];
+  }),
 );
 
 // ── Config d'adaptation ──────────────────────────────────────────────────────

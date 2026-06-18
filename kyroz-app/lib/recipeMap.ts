@@ -1,5 +1,5 @@
 import { Recipe, RecipeObjective, MealType } from './types';
-import { RAW_RECIPES, RECIPE_INGREDIENTS, ObjectiveFr } from './recipeData';
+import { RAW_RECIPES, RECIPE_INGREDIENTS, ObjectiveFr, macrosForRefIngredients } from './recipeData';
 import { restrictionsOkFor } from './recipeDiet';
 
 const OBJ_FR_TO_INTERNAL: Record<ObjectiveFr, RecipeObjective> = {
@@ -18,16 +18,21 @@ export const RECIPES: Recipe[] = RAW_RECIPES.map((raw) => {
     macro_role: i.macro_role,
     scalable: i.scalable,
   }));
+  // Macros DÉRIVÉES des ingrédients résolus (Ciqual quand mappé) ÷ portions →
+  // source de vérité unique. `macros_per_serving` du JSON ne sert plus que de
+  // garde-fou de régression (cf. recipeMap.test).
+  const bs = raw.base_servings || 1;
+  const total = macrosForRefIngredients(raw.ingredients.map((i) => ({ ref: i.ref, qty: i.qty })));
   return {
     id: raw.id,
     name_fr: raw.name,
     prep_time_min: raw.tags.temps_min,
     portions: raw.base_servings,
     macros_per_portion: {
-      kcal: raw.macros_per_serving.kcal,
-      protein_g: raw.macros_per_serving.protein,
-      carbs_g: raw.macros_per_serving.carbs,
-      fat_g: raw.macros_per_serving.fat,
+      kcal: Math.round(total.kcal / bs),
+      protein_g: Math.round(total.protein_g / bs),
+      carbs_g: Math.round(total.carbs_g / bs),
+      fat_g: Math.round(total.fat_g / bs),
     },
     ingredients,
     steps: raw.instructions,
