@@ -3,6 +3,7 @@ import { supabase } from './supabase';
 import { Recipe, Streak, UserProfile } from './types';
 import { PantryItem } from './pantry';
 import { WeightEntry } from './weight';
+import { decideProfileHydration, PROFILE_PENDING_KEY } from './syncGuard';
 
 // ── Synchro AsyncStorage ⇄ Supabase ──────────────────────────────────────────
 // Principe : le local reste la copie de travail (offline-first), le cloud est un
@@ -46,11 +47,34 @@ async function currentUserId(): Promise<string | null> {
   return data.session?.user?.id ?? null;
 }
 
+// ── Garde-fou anti-écrasement du profil (problème C) ─────────────────────────
+// On marque le profil « dirty » à chaque écriture locale ; le flag n'est levé que
+// par un push RÉELLEMENT réussi. Tant qu'il est dirty, le cloud ne peut pas
+// l'écraser à l'hydratation (cf. decideProfileHydration dans syncGuard.ts).
+export async function markProfileDirty(): Promise<void> {
+  try { await AsyncStorage.setItem(PROFILE_PENDING_KEY, '1'); } catch {}
+}
+export async function clearProfileDirty(): Promise<void> {
+  try { await AsyncStorage.removeItem(PROFILE_PENDING_KEY); } catch {}
+}
+async function isProfileDirty(): Promise<boolean> {
+  try { return (await AsyncStorage.getItem(PROFILE_PENDING_KEY)) === '1'; } catch { return false; }
+}
+
 // ── Pushs (appelés après chaque écriture locale, fire-and-forget) ────────────
 
-export async function pushProfile(p: UserProfile): Promise<void> {
-  const uid = await currentUserId(); if (!uid) return;
-  try { await supabase.from('profiles').upsert(profileToRow(p, uid)); } catch {}
+// Renvoie true SEULEMENT si le cloud a réellement accepté l'écriture. Le client
+// Supabase ne lève PAS d'exception sur une erreur SQL (ex. 400/PGRST204, colonne
+// manquante) : il renvoie { error }. On le lit → un push rejeté laisse le profil
+// « dirty » au lieu de faire croire à tort que la synchro a réussi.
+export async function pushProfile(p: UserProfile): Promise<boolean> {
+  const uid = await currentUserId(); if (!uid) return false;
+  try {
+    const { error } = await supabase.from('profiles').upsert(profileToRow(p, uid));
+    if (error) return false;
+    await clearProfileDirty();
+    return true;
+  } catch { return false; }
 }
 
 export async function pushStreak(s: Streak): Promise<void> {
@@ -93,15 +117,21 @@ export async function pushRecipeOverrides(overrides: Record<string, Recipe>): Pr
 // ── Hydratation à la connexion ───────────────────────────────────────────────
 
 export async function hydrateFromCloud(uid: string): Promise<void> {
-  // PROFIL
+  // PROFIL — garde-fou : un local non confirmé poussé (dirty) n'est JAMAIS écrasé
+  // par le cloud (sinon un push rejeté en silence = onboarding/édition perdus).
   try {
     const { data: row } = await supabase.from('profiles').select('*').eq('id', uid).maybeSingle();
     const raw = await AsyncStorage.getItem(PROFILE_KEY);
     const local: UserProfile | null = raw ? JSON.parse(raw) : null;
-    if (row && row.sex) {
+    const action = decideProfileHydration({
+      hasCloud: !!(row && row.sex),
+      hasLocal: !!local,
+      localDirty: await isProfileDirty(),
+    });
+    if (action === 'pull_cloud') {
       await AsyncStorage.setItem(PROFILE_KEY, JSON.stringify(rowToProfile(row, uid)));
-    } else if (local) {
-      await supabase.from('profiles').upsert(profileToRow(local, uid));
+    } else if (local && (action === 'keep_local' || action === 'push_local')) {
+      await pushProfile(local); // (re)pousse le local ; lève le flag si succès
     }
   } catch {}
 

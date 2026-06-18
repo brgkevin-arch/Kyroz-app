@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { UserProfile } from '../lib/types';
 import { useAuth } from './useAuth';
-import { pushProfile } from '../lib/sync';
+import { pushProfile, markProfileDirty, clearProfileDirty } from '../lib/sync';
 
 const PROFILE_KEY = '@kyroz:profile';
 
@@ -38,12 +38,14 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
   const saveProfile = useCallback(async (p: UserProfile) => {
     setProfile(p);
     await AsyncStorage.setItem(PROFILE_KEY, JSON.stringify(p));
-    pushProfile(p); // miroir cloud (best-effort)
+    await markProfileDirty(); // local non encore confirmé poussé → protégé de l'écrasement cloud
+    pushProfile(p); // miroir cloud (best-effort) ; lève le flag si le push réussit
   }, []);
 
   const clearProfile = useCallback(async () => {
     setProfile(null);
     await AsyncStorage.removeItem(PROFILE_KEY);
+    await clearProfileDirty();
   }, []);
 
   return React.createElement(
