@@ -16,6 +16,7 @@ import { StreakProgress } from '../../components/StreakProgress';
 import { BodyFatPicker } from '../../components/BodyFatPicker';
 import { MacroSplit } from '../../components/MacroSplit';
 import { WeightCheckin } from '../../components/WeightCheckin';
+import { useHydrationEnabled } from '../../components/HydrationBar';
 import { useProfile } from '../../hooks/useProfile';
 import { useStreak } from '../../hooks/useStreak';
 import { useReminder } from '../../hooks/useReminder';
@@ -97,6 +98,7 @@ export default function ProfilScreen() {
   const { enabled: checkinEnabled, setEnabled: setCheckinEnabled } = usePlanCheckin();
   const { signOut } = useAuth();
   const themeMode = useThemeMode();
+  const [hydrationOn, setHydrationOn] = useHydrationEnabled();
   const router = useRouter();
   const [editor, setEditor] = useState<EditorKey | null>(null);
   const [weighIn, setWeighIn] = useState(false);
@@ -251,6 +253,19 @@ export default function ProfilScreen() {
         />
         <Text style={s.reminderHint}>
           {themeMode === 'system' ? 'Suit le réglage clair/sombre de ton téléphone.' : `Thème ${themeMode === 'light' ? 'clair' : 'sombre'} forcé.`}
+        </Text>
+
+        <Text style={s.settingLabel}>Suivi d'hydratation</Text>
+        <Segmented<'on' | 'off'>
+          t={t}
+          value={hydrationOn ? 'on' : 'off'}
+          onChange={(v) => setHydrationOn(v === 'on')}
+          options={[{ label: 'Affiché', value: 'on' }, { label: 'Masqué', value: 'off' }]}
+        />
+        <Text style={s.reminderHint}>
+          {hydrationOn
+            ? 'Une mini-barre de suivi d’hydratation s’affiche au-dessus de tes repas du jour.'
+            : 'La barre d’hydratation est masquée.'}
         </Text>
 
         <View style={[s.menu, cardShadow(t)]}>

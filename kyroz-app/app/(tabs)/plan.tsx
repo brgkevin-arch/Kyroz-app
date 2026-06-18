@@ -19,6 +19,7 @@ import { PlanCheckin } from '../../components/PlanCheckin';
 import { OffPlanSheet } from '../../components/OffPlanSheet';
 import { ActionSheet } from '../../components/ActionSheet';
 import { PrimaryButton, SectionLabel } from '../../components/ui';
+import { HydrationBar, useHydrationEnabled } from '../../components/HydrationBar';
 import { useTourTarget, useTour, hasSeenTour, TourStep } from '../../components/GuidedTour';
 import { useProfile } from '../../hooks/useProfile';
 import { useStreak } from '../../hooks/useStreak';
@@ -101,6 +102,7 @@ export default function PlanScreen() {
   const s = useMemo(() => makeStyles(t), [t]);
   const { profile, saveProfile } = useProfile();
   const router = useRouter();
+  const [hydrationEnabled] = useHydrationEnabled(); // réglage Profil : afficher/masquer la barre
   const { startTour } = useTour();
   const { streak, markActiveToday, celebration, clearCelebration } = useStreak();
   const { due: weighInDue } = useWeightLog();
@@ -538,6 +540,9 @@ export default function PlanScreen() {
                 </TouchableOpacity>
               </View>
             )}
+
+            {/* Suivi d'hydratation (feature test — voir components/HydrationBar.tsx) */}
+            {hydrationEnabled && <HydrationBar />}
 
             {/* Meals */}
             <SectionLabel t={t}>Repas du jour</SectionLabel>
