@@ -147,6 +147,15 @@ alter table public.pantry           enable row level security;
 alter table public.weight_logs      enable row level security;
 alter table public.recipe_overrides enable row level security;
 
+-- FORCE : applique la RLS même au propriétaire de la table (defense-in-depth,
+-- données de santé). Voir migration 2026-06-18_force_rls.sql.
+alter table public.profiles         force row level security;
+alter table public.streaks          force row level security;
+alter table public.favorites        force row level security;
+alter table public.pantry           force row level security;
+alter table public.weight_logs      force row level security;
+alter table public.recipe_overrides force row level security;
+
 -- profiles : la clé primaire EST l'uid
 drop policy if exists "profiles_rw_own" on public.profiles;
 create policy "profiles_rw_own" on public.profiles
