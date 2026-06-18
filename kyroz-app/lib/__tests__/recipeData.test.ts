@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { RECIPE_INGREDIENTS, RECIPE_CONFIG, RAW_RECIPES, macrosForRefIngredients } from '../recipeData';
 
 describe('recipeData', () => {
-  it('charge 100 recettes brutes', () => {
-    expect(RAW_RECIPES).toHaveLength(100);
+  it('charge 264 recettes brutes', () => {
+    expect(RAW_RECIPES).toHaveLength(264);
   });
   it('chaque ingrédient de chaque recette a un ref existant dans la table', () => {
     for (const r of RAW_RECIPES)

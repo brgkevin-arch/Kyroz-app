@@ -33,10 +33,11 @@ export const REF_FOOD_ID: Record<string, string> = {
   tortilla_complete: 'ciqual-7815',
   // Matières grasses / oléagineux / sucres
   avocat: 'ciqual-13004', huile_olive: 'ciqual-17270', lait_coco: 'ciqual-18041',
+  lait_amande: 'ciqual-18107', // boisson à l'amande nature sans sucres (cf. lait_coco déjà mappé)
   graines_chia: 'ciqual-15047', beurre_cacahuete: 'ciqual-15202', amandes: 'ciqual-15041',
   noix: 'ciqual-15005', noisettes: 'ciqual-15004', olives: 'ciqual-13186',
   chocolat_noir: 'ciqual-31074', miel: 'ciqual-31008', sirop_erable: 'ciqual-31034',
-  datte: 'ciqual-13011',
+  dattes: 'ciqual-13011', // « Datte, chair et peau, sans noyau, sèche » = dattes dénoyautées
   // Fruits (basis cru)
   banane: 'ciqual-13005', mangue: 'ciqual-13025', ananas: 'ciqual-13002', kiwi: 'ciqual-13021',
   pomme: 'ciqual-13039', myrtilles: 'ciqual-13028', framboises: 'ciqual-13015',
