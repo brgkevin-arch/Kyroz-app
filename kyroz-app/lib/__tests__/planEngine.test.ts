@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach } from 'vitest';
-import { buildLocalPlan, computeDailyTotals, profileSignature, swapMeal, computeDistribution, rebalanceDay, adaptDayOptions, effectiveMacros, resetTracking, mealIngredients, reAdaptMealRecipe, restDaySet, goalDirection } from '../planEngine';
+import { buildLocalPlan, computeDailyTotals, profileSignature, swapMeal, computeDistribution, rebalanceDay, adaptDayOptions, effectiveMacros, resetTracking, mealIngredients, reAdaptMealRecipe, restDaySet, restDaysForProfile, goalDirection } from '../planEngine';
 import { setRecipeOverrides, RECIPES } from '../recipes';
 import { makeProfile } from './helpers';
 
@@ -466,5 +466,42 @@ describe('carb-cycling jours actifs / repos', () => {
     const sig = (pl: ReturnType<typeof buildLocalPlan>) =>
       pl.meals.map((m) => `${m.id}:${m.recipe.id}:${m.rest_day ? 'R' : 'A'}:${m.macros.carbs_g},${m.macros.fat_g}`).join('|');
     expect(sig(buildLocalPlan(p, 0))).toBe(sig(buildLocalPlan(p, 0)));
+  });
+});
+
+describe('jours de repos choisis par l’utilisateur (rest_weekdays)', () => {
+  it('rest_weekdays absent → repli sur la déduction auto', () => {
+    const p = makeProfile({ plan_days: 5, plan_weekdays: [1, 2, 3, 4, 5], training_days_per_week: 4 });
+    expect([...restDaysForProfile(p, 5)].sort()).toEqual([...restDaySet(5, 4)].sort());
+  });
+
+  it('rest_weekdays mappe les jours de semaine sur les index du plan', () => {
+    // plan lun→ven ; repos = lundi (idx 1) + vendredi (idx 5)
+    const p = makeProfile({ plan_days: 5, plan_weekdays: [1, 2, 3, 4, 5], rest_weekdays: [1, 5] });
+    expect([...restDaysForProfile(p, 5)].sort((a, b) => a - b)).toEqual([1, 5]);
+  });
+
+  it('rest_weekdays = [] → aucun jour de repos même sans entraînement', () => {
+    const p = makeProfile({ plan_days: 7, plan_weekdays: [1, 2, 3, 4, 5, 6, 0], training_days_per_week: 0, rest_weekdays: [] });
+    expect(restDaysForProfile(p, 7).size).toBe(0);
+  });
+
+  it('un jour de repos hors du plan est ignoré', () => {
+    // plan lun→ven, repos demandé le dimanche (0) → non planifié → ignoré
+    const p = makeProfile({ plan_days: 5, plan_weekdays: [1, 2, 3, 4, 5], rest_weekdays: [0] });
+    expect(restDaysForProfile(p, 5).size).toBe(0);
+  });
+
+  it('buildLocalPlan applique les jours de repos choisis', () => {
+    const p = makeProfile({ plan_days: 7, plan_weekdays: [1, 2, 3, 4, 5, 6, 0], rest_weekdays: [6, 0] });
+    const plan = buildLocalPlan(p, 0);
+    const rest = new Set(plan.meals.filter((m) => m.rest_day).map((m) => m.day));
+    expect([...rest].sort((a, b) => a - b)).toEqual([6, 7]); // sam = idx 6, dim = idx 7
+  });
+
+  it('rest_weekdays entre dans la signature du plan (régénère au changement)', () => {
+    const base = makeProfile({ plan_days: 5, plan_weekdays: [1, 2, 3, 4, 5] });
+    expect(profileSignature({ ...base, rest_weekdays: [1] }))
+      .not.toBe(profileSignature({ ...base, rest_weekdays: [2] }));
   });
 });
