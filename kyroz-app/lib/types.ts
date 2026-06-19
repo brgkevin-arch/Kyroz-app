@@ -58,7 +58,8 @@ export type DietaryRestriction =
   | 'no_pork'
   | 'lactose_free'
   | 'gluten_free'
-  | 'vegan';
+  | 'vegan'
+  | 'halal';
 
 export interface Macros {
   kcal: number;

@@ -1,15 +1,18 @@
 import { DietaryRestriction } from './types';
 
-const ALL: DietaryRestriction[] = ['vegetarian', 'pescatarian', 'no_pork', 'lactose_free', 'gluten_free', 'vegan'];
+const ALL: DietaryRestriction[] = ['vegetarian', 'pescatarian', 'no_pork', 'lactose_free', 'gluten_free', 'vegan', 'halal'];
 
 // Pour chaque ref, la liste des restrictions qu'il EMPÊCHE (incompatibilités).
 // Tout ref absent d'ici = compatible avec tout (légumes, fruits, huile…).
 // Règle vegan : tout produit animal (viande, poisson, œuf, laitier, miel) viole 'vegan'.
+// Règle halal : seul le PORC/la charcuterie violent 'halal' ici (le catalogue n'a ni
+// alcool ni gélatine). On assume la viande non-porc sourcée halal par l'utilisateur —
+// on ne certifie pas l'abattage, on exclut les ingrédients interdits.
 const VIOLATIONS: Record<string, DietaryRestriction[]> = {
   // viandes terrestres → pas végé, pas pesc, pas vegan
   poulet_filet: ['vegetarian', 'pescatarian', 'vegan'], dinde_escalope: ['vegetarian', 'pescatarian', 'vegan'],
   boeuf_5: ['vegetarian', 'pescatarian', 'vegan'], boeuf_bavette: ['vegetarian', 'pescatarian', 'vegan'],
-  porc_filet: ['vegetarian', 'pescatarian', 'no_pork', 'vegan'], jambon_blanc: ['vegetarian', 'pescatarian', 'no_pork', 'vegan'],
+  porc_filet: ['vegetarian', 'pescatarian', 'no_pork', 'vegan', 'halal'], jambon_blanc: ['vegetarian', 'pescatarian', 'no_pork', 'vegan', 'halal'],
   // poissons / fruits de mer → pas végé, pas vegan (pesc OK)
   saumon: ['vegetarian', 'vegan'], saumon_fume: ['vegetarian', 'vegan'], cabillaud: ['vegetarian', 'vegan'], thon_frais: ['vegetarian', 'vegan'],
   thon_naturel: ['vegetarian', 'vegan'], maquereau: ['vegetarian', 'vegan'], sardines: ['vegetarian', 'vegan'], crevettes: ['vegetarian', 'vegan'],

@@ -83,6 +83,16 @@ describe('buildLocalPlan (cœur du core loop)', () => {
     }
   });
 
+  it('filtre halal (ni porc ni charcuterie)', () => {
+    const p = makeProfile({ dietary_restrictions: ['halal'] });
+    const plan = buildLocalPlan(p, 0);
+    const banned = ['porc', 'jambon', 'lardon', 'bacon'];
+    for (const meal of plan.meals) {
+      const txt = meal.recipe.ingredients.map((i) => i.name.toLowerCase()).join(' ');
+      for (const kw of banned) expect(txt, meal.recipe.name_fr).not.toContain(kw);
+    }
+  });
+
   it('utilise les recettes personnalisées (overrides) à la génération', () => {
     const p = makeProfile();
     const before = buildLocalPlan(p, 0);
