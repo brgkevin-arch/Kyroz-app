@@ -33,6 +33,7 @@ import {
 } from '../../lib/types';
 import { totalSessionsPerWeek } from '../../lib/sport';
 import { restDaySet } from '../../lib/planEngine';
+import { getRecipeById } from '../../lib/recipes';
 import SportsEditor from '../../components/SportsEditor';
 import { FixedMealSheet } from '../../components/FixedMealSheet';
 
@@ -121,6 +122,23 @@ export default function ProfilScreen() {
 
   const save = async (updated: UserProfile) => { await saveProfile(updated); setEditor(null); };
 
+  // « Régénérer mon plan » : escape hatch discret (le bouton « Nouveau plan » de
+  // l'écran Plan a été retiré au profit de l'ajustement recette-par-recette). On
+  // pose un drapeau consommé au focus de l'écran Plan (REROLL_KEY), puis on y va.
+  const regenPlan = () => {
+    Alert.alert(
+      'Régénérer tout ton plan ?',
+      'Kyroz reconstruit une semaine complète de repas (tes 👍/👎 et préférences sont gardés).',
+      [
+        { text: 'Annuler', style: 'cancel' },
+        {
+          text: 'Régénérer', style: 'destructive',
+          onPress: async () => { await AsyncStorage.setItem('@kyroz:planReroll', '1'); router.push('/(tabs)/plan'); },
+        },
+      ],
+    );
+  };
+
   // Déconnexion : couper la session NE redirige pas tout seul l'écran déjà monté
   // (expo-router ne re-route que l'index). On navigue donc explicitement vers le login.
   const doLogout = async () => {
@@ -197,8 +215,9 @@ export default function ProfilScreen() {
           <MenuRow t={t} icon="barbell-outline" label="Sports" value={profile.sports?.length ? `${profile.sports.length} sport${profile.sports.length > 1 ? 's' : ''}` : 'Aucun'} onPress={() => setEditor('sports')} />
           <MenuRow t={t} icon="flag-outline" label="Objectif" value={goalLabel(profile.goal)} onPress={() => setEditor('goal')} />
           <MenuRow t={t} icon="flame-outline" label="Calories & macros" value={profile.macro_mode === 'manual' ? 'Manuelles' : 'Calculées'} onPress={() => setEditor('macros')} />
-          <MenuRow t={t} icon="restaurant-outline" label="Préférences alimentaires" value={profile.dietary_restrictions.length || profile.disliked_foods.length ? 'Personnalisées' : 'Aucune'} onPress={() => setEditor('prefs')} />
-          <MenuRow t={t} icon="calendar-outline" label="Paramètres des repas" value={`${profile.plan_days} j · ${(profile.meals?.length || 4)} repas · ${EMPHASIS_LABELS[profile.meal_emphasis ?? 'even']}`} onPress={() => setEditor('meals')} last />
+          <MenuRow t={t} icon="restaurant-outline" label="Préférences alimentaires" value={profile.dietary_restrictions.length || profile.disliked_foods.length || profile.hidden_recipes?.length ? 'Personnalisées' : 'Aucune'} onPress={() => setEditor('prefs')} />
+          <MenuRow t={t} icon="calendar-outline" label="Paramètres des repas" value={`${profile.plan_days} j · ${(profile.meals?.length || 4)} repas · ${EMPHASIS_LABELS[profile.meal_emphasis ?? 'even']}`} onPress={() => setEditor('meals')} />
+          <MenuRow t={t} icon="refresh-outline" label="Régénérer mon plan" value="Repartir de zéro" onPress={regenPlan} last />
         </View>
 
         {/* TDEE */}
@@ -474,8 +493,11 @@ function PrefEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
   const [proteins, setProteins] = useState<string[]>(profile.preferred_proteins);
   const [dislikes, setDislikes] = useState<string[]>(profile.disliked_foods);
   const [maxPrep, setMaxPrep] = useState(profile.max_prep_time_min);
+  // Recettes masquées (👎) : on retire l'id pour la ré-afficher (rien n'est définitif).
+  const [hidden, setHidden] = useState<string[]>(profile.hidden_recipes ?? []);
+  const hiddenNamed = hidden.map((id) => ({ id, name: getRecipeById(id)?.name_fr ?? 'Recette' }));
   const tog = <T,>(arr: T[], v: T, set: (x: T[]) => void) => set(arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
-  const submit = () => onSave({ ...profile, dietary_restrictions: restrictions, preferred_proteins: proteins, disliked_foods: dislikes, max_prep_time_min: maxPrep });
+  const submit = () => onSave({ ...profile, dietary_restrictions: restrictions, preferred_proteins: proteins, disliked_foods: dislikes, max_prep_time_min: maxPrep, hidden_recipes: hidden });
   return (
     <EditorShell t={t} title="Préférences" onSave={submit} dragHandlers={dragHandlers}>
       <SectionLabel t={t}>Régime</SectionLabel>
@@ -484,6 +506,15 @@ function PrefEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
       <View style={styles.wrap}>{PROTEINS.map((p) => <Chip key={p} t={t} label={p} selected={proteins.includes(p.toLowerCase())} onPress={() => tog(proteins, p.toLowerCase(), setProteins)} />)}</View>
       <SectionLabel t={t}>Aliments à éviter</SectionLabel>
       <View style={styles.wrap}>{DISLIKE_CHIPS.map((d) => <Chip key={d.kw} t={t} label={d.label} selected={dislikes.includes(d.kw)} onPress={() => tog(dislikes, d.kw, setDislikes)} />)}</View>
+      {hiddenNamed.length > 0 && (
+        <>
+          <SectionLabel t={t}>Recettes masquées ({hiddenNamed.length})</SectionLabel>
+          <Text style={{ color: t.textTertiary, fontSize: 12, lineHeight: 17, marginTop: -8 }}>
+            Les recettes que tu as marquées « j'aime pas ». Touche-en une pour la réafficher.
+          </Text>
+          <View style={styles.wrap}>{hiddenNamed.map((r) => <Chip key={r.id} t={t} label={`${r.name}  ✕`} selected onPress={() => tog(hidden, r.id, setHidden)} />)}</View>
+        </>
+      )}
       <SectionLabel t={t}>Temps de prépa max</SectionLabel>
       <View style={styles.wrap}>{PREP_OPTIONS.map((p) => <Chip key={p} t={t} label={`${p} min`} selected={maxPrep === p} onPress={() => setMaxPrep(p)} />)}</View>
     </EditorShell>

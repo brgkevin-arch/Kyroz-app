@@ -17,17 +17,20 @@ import { StreakCelebration } from '../../components/StreakCelebration';
 import { WeightCheckin } from '../../components/WeightCheckin';
 import { PlanCheckin } from '../../components/PlanCheckin';
 import { OffPlanSheet } from '../../components/OffPlanSheet';
+import { DislikeSheet } from '../../components/DislikeSheet';
 import { ActionSheet } from '../../components/ActionSheet';
 import { PrimaryButton, SectionLabel } from '../../components/ui';
 import { HydrationBar, useHydrationEnabled } from '../../components/HydrationBar';
 import { useTourTarget, useTour, hasSeenTour, TourStep } from '../../components/GuidedTour';
 import { useProfile } from '../../hooks/useProfile';
+import { useFavorites } from '../../hooks/useFavorites';
 import { useStreak } from '../../hooks/useStreak';
 import { useWeightLog } from '../../hooks/useWeightLog';
 import { usePlanCheckin } from '../../hooks/usePlanCheckin';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { generateMealPlan } from '../../lib/generatePlan';
-import { profileSignature, swapMeal, computeDailyTotals, rebalanceDay, resetTracking, adaptDayOptions, AdaptOption, mealIngredients, reAdaptMealRecipe } from '../../lib/planEngine';
+import { profileSignature, swapMeal, computeDailyTotals, rebalanceDay, resetTracking, adaptDayOptions, AdaptOption, mealIngredients, reAdaptMealRecipe, mealPoolSize } from '../../lib/planEngine';
+import { DISLIKE_THRESHOLD, dislikeCandidates, applyDislikedIngredient } from '../../lib/dislike';
 import { todayStamp } from '../../lib/weight';
 import { mealFiberFromIngredients, dailyFiberTarget } from '../../lib/fiber';
 import { getRecipeById, getBaseRecipe } from '../../lib/recipes';
@@ -39,6 +42,9 @@ import { Macros, Meal, MealPlan, MealStatus, Recipe } from '../../lib/types';
 const PLAN_KEY = '@kyroz:plan';
 const LIST_KEY = '@kyroz:shopping';
 const SEED_KEY = '@kyroz:planSeed';
+// Drapeau posé par Profil (« Régénérer mon plan ») → l'écran Plan rejoue une
+// génération « reroll » au prochain focus. Découple les deux écrans sans prop.
+const REROLL_KEY = '@kyroz:planReroll';
 const WD = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
 
 // Visite guidée de l'onglet Plan (pilote). Les bulles ne s'affichent que la 1re
@@ -100,6 +106,7 @@ export default function PlanScreen() {
   const t = useTheme();
   const s = useMemo(() => makeStyles(t), [t]);
   const { profile, saveProfile } = useProfile();
+  const { favorites } = useFavorites();
   const router = useRouter();
   const [hydrationEnabled] = useHydrationEnabled(); // réglage Profil : afficher/masquer la barre
   const { startTour } = useTour();
@@ -118,6 +125,9 @@ export default function PlanScreen() {
   const [generating, setGenerating] = useState(false);
   const [selectedDay, setSelectedDay] = useState(1);
   const [selectedMeal, setSelectedMeal] = useState<Meal | null>(null);
+  // Élicitation « quel ingrédient tu n'aimes pas ? » : non-null = feuille ouverte
+  // avec ces candidats (déclenchée par un 👎 qui vide trop le pool d'un repas).
+  const [dislikeElicit, setDislikeElicit] = useState<{ label: string; kw: string; count: number }[] | null>(null);
   const [cookedNote, setCookedNote] = useState<string | null>(null);
   const [offPlanOpen, setOffPlanOpen] = useState(false);
   const [adaptPrompt, setAdaptPrompt] = useState<number | null>(null); // kcal de l'écart en attente de décision Oui/Non
@@ -260,6 +270,14 @@ export default function PlanScreen() {
 
   const onRefresh = useCallback(async () => { setRefreshing(true); await load(); setRefreshing(false); }, []);
 
+  // « Régénérer mon plan » depuis Profil : le drapeau est posé là-bas, on le
+  // consomme au focus de l'écran Plan et on rejoue une génération « reroll ».
+  useFocusEffect(useCallback(() => {
+    AsyncStorage.getItem(REROLL_KEY).then((v) => {
+      if (v === '1') { AsyncStorage.removeItem(REROLL_KEY); generate(true); }
+    });
+  }, [profile]));
+
   const toast = (msg: string) => { setCookedNote(msg); setTimeout(() => setCookedNote(null), 2600); };
 
   // Persiste un plan modifié + invalide les courses (portions/repas changés) et
@@ -337,14 +355,52 @@ export default function PlanScreen() {
   // « Non, je garde mon plan » : on ne touche à rien, l'écart reste compté à part.
   const declineAdapt = () => { setAdaptPrompt(null); toast('Ok, on garde ton plan 😎'); };
 
-  // « Remplacer ce repas » : échange UN repas contre une alternative équivalente.
+  // « Remplacer ce repas » : échange UN repas contre une alternative équivalente,
+  // en privilégiant les recettes aimées (👍 favoris) à fit comparable.
   const swapSelectedMeal = async () => {
     if (!plan || !profile || !selectedMeal) return;
-    const newPlan = swapMeal(profile, plan, selectedMeal);
+    const newPlan = swapMeal(profile, plan, selectedMeal, favorites);
     await persistPlan(newPlan);
     // Rafraîchit la fiche ouverte avec la nouvelle recette + quantités/macros adaptées.
     const swapped = newPlan.meals.find((m) => m.id === selectedMeal.id);
     if (swapped) setSelectedMeal(swapped);
+  };
+
+  // « J'aime pas » (👎) : masque la recette (souple, réversible), change ce repas
+  // pour autre chose, et — si masquer vide trop le pool du repas — demande quel
+  // ingrédient gêne plutôt que de laisser le moteur ré-afficher le 👎 (cf. dislike.ts).
+  const dislikeSelectedMeal = async () => {
+    if (!plan || !profile || !selectedMeal) return;
+    const meal = selectedMeal;
+    const hidden = profile.hidden_recipes ?? [];
+    const nextHidden = hidden.includes(meal.recipe.id) ? hidden : [...hidden, meal.recipe.id];
+    const nextProfile = { ...profile, hidden_recipes: nextHidden };
+    // Change ce repas (le moteur exclut désormais la recette masquée) + biais favoris.
+    const newPlan = swapMeal(nextProfile, plan, meal, favorites);
+    await saveProfile(nextProfile); // persiste le 👎 (hors signature → ne régénère pas tout)
+    await persistPlan(newPlan, false);
+    // Seuil bas → on demande l'ingrédient gênant (pile au moment du 👎).
+    if (mealPoolSize(nextProfile, meal.meal_type) < DISLIKE_THRESHOLD) {
+      const candidates = dislikeCandidates(nextProfile);
+      if (candidates.length > 0) {
+        setSelectedMeal(null);
+        setDislikeElicit(candidates);
+        return;
+      }
+    }
+    const swapped = newPlan.meals.find((m) => m.id === meal.id);
+    setSelectedMeal(swapped ?? null);
+    toast('Noté 👎 — on te change ça');
+  };
+
+  // L'utilisateur a nommé l'ingrédient gênant : on l'évite partout (disliked_foods,
+  // → régénère le plan via la signature) et on ré-affiche les plats masqués sans cet
+  // ingrédient (« ceux-là, tu peux les aimer »).
+  const applyDislikeIngredient = async (kw: string) => {
+    if (!profile) return;
+    await saveProfile(applyDislikedIngredient(profile, kw));
+    setDislikeElicit(null);
+    toast('Compris — on évite ça et on te ramène le reste 👌');
   };
 
   // Met la fiche ouverte à jour après personnalisation (le plan, lui, est
@@ -564,9 +620,15 @@ export default function PlanScreen() {
               })}
             </View>
 
-            <View style={{ marginTop: 6 }}>
-              <PrimaryButton t={t} label="↻  Nouveau plan" onPress={() => generate(true)} loading={generating} />
-            </View>
+            {/* Plus de bouton « Nouveau plan » : on ajuste recette par recette (👍/👎/
+                changer dans la fiche). Régénérer toute la semaine reste possible,
+                discrètement, depuis Profil. Indicateur visible seulement pendant. */}
+            {generating && (
+              <View style={s.regenHint}>
+                <ActivityIndicator color={t.textTertiary} />
+                <Text style={s.regenHintTxt}>Nouveau plan en route…</Text>
+              </View>
+            )}
           </>
         ) : (
           <View style={s.empty}>
@@ -609,6 +671,19 @@ export default function PlanScreen() {
             onSkip={() => skipMeal(selectedMeal)}
             onResetStatus={() => resetMealStatus(selectedMeal)}
             onSwap={swapSelectedMeal}
+            onDislike={dislikeSelectedMeal}
+          />
+        )}
+      </Sheet>
+
+      {/* « C'est quoi qui te gêne ? » — déclenchée par un 👎 qui vide trop le pool */}
+      <Sheet visible={!!dislikeElicit} onClose={() => setDislikeElicit(null)}>
+        {dislikeElicit && (
+          <DislikeSheet
+            t={t}
+            candidates={dislikeElicit}
+            onPick={applyDislikeIngredient}
+            onClose={() => setDislikeElicit(null)}
           />
         )}
       </Sheet>
@@ -762,6 +837,8 @@ function makeStyles(t: ThemePalette) {
     emptyIcon: { width: 72, height: 72, borderRadius: 24, alignItems: 'center', justifyContent: 'center', marginBottom: 6 },
     emptyTitle: { color: t.text, fontSize: 22, fontWeight: '800', letterSpacing: -0.5 },
     emptySub: { color: t.textSecondary, fontSize: 15, textAlign: 'center', lineHeight: 21, paddingHorizontal: 10 },
+    regenHint: { marginTop: 6, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+    regenHintTxt: { color: t.textTertiary, fontSize: 13, fontWeight: '600' },
     disclaimer: { color: t.textTertiary, fontSize: 11, lineHeight: 16, textAlign: 'center' },
     toast: { position: 'absolute', left: 20, right: 20, bottom: 28, backgroundColor: t.accent, borderRadius: Radius.md, paddingVertical: 14, paddingHorizontal: 18, alignItems: 'center' },
     toastTxt: { color: t.onAccent, fontSize: 14, fontWeight: '700' },

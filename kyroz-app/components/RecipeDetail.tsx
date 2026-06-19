@@ -24,12 +24,13 @@ interface Props {
   onResetStatus?: () => void; // si fourni + statut posé, affiche « Annuler »
   status?: MealStatus;        // suivi d'adhésion (eaten/skipped) → état affiché
   onSwap?: () => void;        // si fourni, affiche « Remplacer ce repas »
+  onDislike?: () => void;     // si fourni, affiche le bouton « j'aime pas » (👎) → masque + change
   onEdit?: () => void;        // si fourni, affiche le bouton « personnaliser »
   custom?: boolean;           // recette déjà personnalisée → badge
   dragHandlers?: any;         // injecté par <Sheet> : rend l'en-tête glissable
 }
 
-export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adaptedMacros, adaptFlags, adaptGap, restrictionRelaxed, onClose, onCook, onSkip, onResetStatus, status, onSwap, onEdit, custom, dragHandlers }: Props) {
+export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adaptedMacros, adaptFlags, adaptGap, restrictionRelaxed, onClose, onCook, onSkip, onResetStatus, status, onSwap, onDislike, onEdit, custom, dragHandlers }: Props) {
   const t = useTheme();
   const s = useMemo(() => makeStyles(t), [t]);
   const { isFavorite, toggle } = useFavorites();
@@ -83,9 +84,14 @@ export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adapted
                 <Ionicons name="create-outline" size={18} color={t.textSecondary} />
               </TouchableOpacity>
             )}
-            <TouchableOpacity onPress={() => toggle(recipe.id)} style={s.close}>
+            <TouchableOpacity onPress={() => toggle(recipe.id)} style={s.close} accessibilityLabel="J'aime cette recette">
               <Ionicons name={fav ? 'heart' : 'heart-outline'} size={18} color={fav ? t.text : t.textSecondary} />
             </TouchableOpacity>
+            {onDislike && (
+              <TouchableOpacity onPress={onDislike} style={s.close} accessibilityLabel="Je n'aime pas — changer">
+                <Ionicons name="thumbs-down-outline" size={17} color={t.textSecondary} />
+              </TouchableOpacity>
+            )}
             <TouchableOpacity onPress={onClose} style={s.close}>
               <Ionicons name="close" size={18} color={t.textSecondary} />
             </TouchableOpacity>

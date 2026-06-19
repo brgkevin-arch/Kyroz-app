@@ -28,6 +28,7 @@ const PROFILE_COLS = [
   'goal', 'macro_mode', 'carb_ratio', 'protein_per_kg', 'tdee_kcal', 'target_kcal', 'target_protein_g', 'target_carbs_g',
   'target_fat_g', 'plan_days', 'plan_weekdays', 'rest_weekdays', 'meals', 'meal_emphasis', 'variety',
   'dietary_restrictions', 'disliked_foods', 'preferred_proteins', 'max_prep_time_min',
+  'hidden_recipes',
   'weigh_in_frequency', 'fixed_meals',
 ] as const;
 

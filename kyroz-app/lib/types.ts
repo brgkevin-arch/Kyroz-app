@@ -126,9 +126,16 @@ export interface UserProfile {
 
   // Préférences alimentaires
   dietary_restrictions: DietaryRestriction[];
-  disliked_foods: string[];     // mots-clés d'ingrédients à éviter
+  disliked_foods: string[];     // mots-clés d'ingrédients à éviter (filtre DUR)
   preferred_proteins: string[]; // sources de protéines préférées
   max_prep_time_min: number;    // temps de prépa max par repas
+  // Recettes « j'aime pas » (👎) : masquées des plans et des swaps, mais filtre SOUPLE
+  //   — jamais un bannissement définitif (cf. lib/dislike.ts + élicitation d'ingrédient).
+  //   - undefined → aucune recette masquée (profils créés avant la feature).
+  //   - [id,…]    → ces recettes ne sont plus proposées (réversible dans Profil).
+  // Volontairement HORS profileSignature : un 👎 change UN repas (swap), il ne
+  // régénère pas toute la semaine (cf. planEngine.profileSignature).
+  hidden_recipes?: string[];
 
   // Suivi du poids
   weigh_in_frequency?: WeighInFrequency; // cadence de pesée (défaut: weekly)
