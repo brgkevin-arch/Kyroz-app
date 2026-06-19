@@ -422,7 +422,7 @@ export function computeDailyTotals(
 // Version du moteur de génération : à incrémenter quand le scoring/sélection
 // change, pour que les plans EN CACHE se régénèrent automatiquement (la signature
 // change → l'auto-refresh de l'écran Plan rejoue la génération). v2 = lipides cadrés.
-const ENGINE_VERSION = 10; // v10 = lissage hebdo des kcal (±50/jour, reliquat reporté → cible hebdo)
+const ENGINE_VERSION = 11; // v11 = catalogue 264 + légumineuses en SEC (régénère pour exposer les 164 nouvelles recettes)
 
 export function profileSignature(p: UserProfile): string {
   return JSON.stringify({

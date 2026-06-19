@@ -21,10 +21,14 @@ export const REF_FOOD_ID: Record<string, string> = {
   oeuf_entier: 'ciqual-22000', blanc_oeuf: 'ciqual-22001', fromage_blanc_0: 'ciqual-19644',
   yaourt_grec: 'ciqual-19860', feta: 'ciqual-12060', mozzarella: 'ciqual-19590',
   parmesan: 'ciqual-12120', lait_demi_ecreme: 'ciqual-19033',
-  // Végétal protéiné
+  // Végétal protéiné — ⚠️ légumineuses en SEC (l'utilisateur pèse à sec, comme riz/pâtes)
   tofu_ferme: 'ciqual-20904', tofu_soyeux: 'ciqual-20906', tempeh: 'ciqual-20917',
-  seitan: 'ciqual-25598', lentilles_vertes: 'ciqual-20587', lentilles_corail: 'ciqual-20535',
-  pois_chiches: 'ciqual-20532', haricots_rouges: 'ciqual-20524',
+  seitan: 'ciqual-25598', lentilles_vertes: 'ciqual-20585', lentilles_corail: 'ciqual-20535',
+  pois_chiches: 'ciqual-20516', haricots_rouges: 'ciqual-20525', // « …, sec »
+  // Nouvelles légumineuses / pseudo-céréales sèches (2026-06-20)
+  haricots_blancs: 'ciqual-20501', feves: 'ciqual-20518', pois_casses: 'ciqual-20515',
+  sarrasin: 'ciqual-9380', chataigne: 'ciqual-15024', // châtaigne crue
+  // (soja_texture, haricots_noirs, millet : pas d'entrée Ciqual sèche propre → valeur manuelle JSON)
   // Féculents (basis sec/cru)
   riz_basmati: 'ciqual-9119', riz_complet: 'ciqual-9102', flocons_avoine: 'ciqual-32140',
   quinoa: 'ciqual-9340', patate_douce: 'ciqual-4101', pomme_de_terre: 'ciqual-4008',
