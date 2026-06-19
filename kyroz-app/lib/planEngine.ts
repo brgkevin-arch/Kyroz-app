@@ -211,6 +211,10 @@ const RESTRICTION_BLOCKLIST: Record<DietaryRestriction, string[]> = {
   no_pork: ['porc', 'jambon', 'lardon', 'bacon'],
   lactose_free: ['lait', 'fromage', 'yaourt'],
   gluten_free: ['pâtes', 'pain', 'blé', 'semoule', 'avoine'],
+  // halal : porc + charcuterie + gélatine (souvent porcine). On évite « vin » (→ faux
+  // positif « vinaigre ») et l'alcool, absents du catalogue ; ce repli ne sert que pour
+  // les recettes custom sans classification. La viande non-porc est supposée halal.
+  halal: ['porc', 'jambon', 'lardon', 'bacon', 'saucisson', 'chorizo', 'gélatine', 'gelatine'],
 };
 
 function ingredientText(recipe: Recipe): string {

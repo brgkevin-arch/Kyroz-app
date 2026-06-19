@@ -12,6 +12,7 @@ import {
   Card, PrimaryButton, Chip, OptionCard, Field, SectionLabel, Segmented,
 } from '../../components/ui';
 import { BodyFatPicker } from '../../components/BodyFatPicker';
+import { DislikedFoodsField } from '../../components/DislikedFoodsField';
 import { Sheet } from '../../components/Sheet';
 import { FixedMealSheet } from '../../components/FixedMealSheet';
 import {
@@ -43,22 +44,13 @@ const RESTRICTIONS: { label: string; value: DietaryRestriction }[] = [
   { label: 'Végétarien', value: 'vegetarian' },
   { label: 'Vegan', value: 'vegan' },
   { label: 'Pescétarien', value: 'pescatarian' },
+  { label: 'Halal', value: 'halal' },
   { label: 'Sans porc', value: 'no_pork' },
   { label: 'Sans lactose', value: 'lactose_free' },
   { label: 'Sans gluten', value: 'gluten_free' },
 ];
 
 const PROTEINS = ['Poulet', 'Bœuf', 'Poisson', 'Œufs', 'Whey', 'Végétal'];
-
-const DISLIKE_CHIPS: { label: string; kw: string }[] = [
-  { label: 'Saumon', kw: 'saumon' },
-  { label: 'Thon', kw: 'thon' },
-  { label: 'Œufs', kw: 'œuf' },
-  { label: 'Brocolis', kw: 'brocolis' },
-  { label: 'Avocat', kw: 'avocat' },
-  { label: 'Quinoa', kw: 'quinoa' },
-  { label: 'Patate douce', kw: 'patate douce' },
-];
 
 const PREP_OPTIONS = [10, 15, 20, 30];
 
@@ -347,12 +339,7 @@ export default function Onboarding() {
               ))}
             </View>
 
-            <SectionLabel t={t}>Aliments à éviter</SectionLabel>
-            <View style={s.wrap}>
-              {DISLIKE_CHIPS.map((d) => (
-                <Chip key={d.kw} t={t} label={d.label} selected={dislikes.includes(d.kw)} onPress={() => toggle(dislikes, d.kw, setDislikes)} />
-              ))}
-            </View>
+            <DislikedFoodsField t={t} value={dislikes} onChange={setDislikes} />
 
             <SectionLabel t={t}>Temps de prépa max</SectionLabel>
             <View style={s.wrap}>

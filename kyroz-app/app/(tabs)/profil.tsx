@@ -14,6 +14,7 @@ import { Sheet } from '../../components/Sheet';
 import { ActionSheet } from '../../components/ActionSheet';
 import { StreakProgress } from '../../components/StreakProgress';
 import { BodyFatPicker } from '../../components/BodyFatPicker';
+import { DislikedFoodsField } from '../../components/DislikedFoodsField';
 import { MacroSplit } from '../../components/MacroSplit';
 import { WeightCheckin } from '../../components/WeightCheckin';
 import { useHydrationEnabled } from '../../components/HydrationBar';
@@ -41,16 +42,11 @@ import { FixedMealSheet } from '../../components/FixedMealSheet';
 const GOALS: Goal[] = ['cut_aggressive', 'cut', 'recomp', 'maintain', 'lean_bulk', 'bulk'];
 const RESTRICTIONS: { label: string; value: DietaryRestriction }[] = [
   { label: 'Végétarien', value: 'vegetarian' }, { label: 'Vegan', value: 'vegan' },
-  { label: 'Pescétarien', value: 'pescatarian' },
+  { label: 'Pescétarien', value: 'pescatarian' }, { label: 'Halal', value: 'halal' },
   { label: 'Sans porc', value: 'no_pork' }, { label: 'Sans lactose', value: 'lactose_free' },
   { label: 'Sans gluten', value: 'gluten_free' },
 ];
 const PROTEINS = ['Poulet', 'Bœuf', 'Poisson', 'Œufs', 'Whey', 'Végétal'];
-const DISLIKE_CHIPS = [
-  { label: 'Saumon', kw: 'saumon' }, { label: 'Thon', kw: 'thon' }, { label: 'Œufs', kw: 'œuf' },
-  { label: 'Brocolis', kw: 'brocolis' }, { label: 'Avocat', kw: 'avocat' }, { label: 'Quinoa', kw: 'quinoa' },
-  { label: 'Patate douce', kw: 'patate douce' },
-];
 const PREP_OPTIONS = [10, 15, 20, 30];
 const WEEKDAY_OPTS = [
   { label: 'Lun', val: 1 }, { label: 'Mar', val: 2 }, { label: 'Mer', val: 3 }, { label: 'Jeu', val: 4 },
@@ -64,7 +60,7 @@ const VARIETY: { value: VarietyPreference; title: string; sub: string }[] = [
 const SEX_LABELS: Record<Sex, string> = { male: 'Homme', female: 'Femme' };
 const VARIETY_LABELS: Record<VarietyPreference, string> = { repetitive: 'Répétitif', balanced: 'Équilibré', max: 'Variété max' };
 const RESTRICTION_LABELS: Record<DietaryRestriction, string> = {
-  vegetarian: 'Végétarien', vegan: 'Vegan', pescatarian: 'Pescétarien', no_pork: 'Sans porc', lactose_free: 'Sans lactose', gluten_free: 'Sans gluten',
+  vegetarian: 'Végétarien', vegan: 'Vegan', pescatarian: 'Pescétarien', halal: 'Halal', no_pork: 'Sans porc', lactose_free: 'Sans lactose', gluten_free: 'Sans gluten',
 };
 
 function activityFromDays(d: number): ActivityLevel {
@@ -504,8 +500,7 @@ function PrefEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
       <View style={styles.wrap}>{RESTRICTIONS.map((r) => <Chip key={r.value} t={t} label={r.label} selected={restrictions.includes(r.value)} onPress={() => tog(restrictions, r.value, setRestrictions)} />)}</View>
       <SectionLabel t={t}>Protéines préférées</SectionLabel>
       <View style={styles.wrap}>{PROTEINS.map((p) => <Chip key={p} t={t} label={p} selected={proteins.includes(p.toLowerCase())} onPress={() => tog(proteins, p.toLowerCase(), setProteins)} />)}</View>
-      <SectionLabel t={t}>Aliments à éviter</SectionLabel>
-      <View style={styles.wrap}>{DISLIKE_CHIPS.map((d) => <Chip key={d.kw} t={t} label={d.label} selected={dislikes.includes(d.kw)} onPress={() => tog(dislikes, d.kw, setDislikes)} />)}</View>
+      <DislikedFoodsField t={t} value={dislikes} onChange={setDislikes} />
       {hiddenNamed.length > 0 && (
         <>
           <SectionLabel t={t}>Recettes masquées ({hiddenNamed.length})</SectionLabel>
