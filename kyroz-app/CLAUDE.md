@@ -45,6 +45,7 @@ user_profiles
       activity_level, training_days_per_week, goal,
       macro_mode (auto|percent), carb_ratio, protein_per_kg,
       dietary_restrictions[], disliked_foods[], preferred_proteins[],
+      hidden_recipes[] (recettes « j'aime pas » 👎 — masquées, SOUPLE/réversible),
       max_prep_time_min, weigh_in_frequency, tdee_kcal,
       macros (target_kcal/protein/carbs/fat)
 
