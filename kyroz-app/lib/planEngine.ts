@@ -248,17 +248,39 @@ function poolFor(mealType: MealType, profile: UserProfile): Recipe[] {
 }
 
 /**
- * Pool pour un repas + drapeau `relaxed` : true quand aucune recette ne respecte
- * le régime/les préférences et qu'on a dû retomber sur le pool complet (repli
- * honnête, signalé à l'UI plutôt que de servir un régime non garanti en silence).
+ * Pool pour un repas + drapeau `relaxed`. Deux soustractions EMPILÉES, dans cet
+ * ordre de dureté :
+ *   ① Régime + aliments évités (recipeAllowed) = MUR DUR. Jamais relâché tant
+ *      qu'il reste ≥1 recette compatible : un végétarien ne voit QUE du végé.
+ *   ② Recettes « j'aime pas » (hidden_recipes) = SOUPLE. Retirées du pool, mais
+ *      si elles le VIDENT, on les ré-affiche (rien n'est banni définitivement) —
+ *      le régime, lui, tient toujours. C'est l'élicitation d'ingrédient (UI) qui
+ *      doit intervenir AVANT ce repli pour transformer les 👎 en vraie préférence.
+ * `relaxed` = true UNIQUEMENT quand le RÉGIME a dû céder (cas légitime : aucune
+ * recette compatible au catalogue) — pas quand on ré-affiche des 👎.
  */
 function poolForWithFlag(mealType: MealType, profile: UserProfile): { pool: Recipe[]; relaxed: boolean } {
   const recipes = getEffectiveRecipes();
   const all = recipes.filter((r) => r.tags.includes(mealType));
-  const filtered = all.filter((r) => recipeAllowed(r, profile));
-  if (filtered.length > 0) return { pool: filtered, relaxed: false };
-  if (all.length > 0) return { pool: all, relaxed: true };
+  const dietOk = all.filter((r) => recipeAllowed(r, profile)); // ① mur dur
+  const hidden = new Set(profile.hidden_recipes ?? []);
+  const visible = dietOk.filter((r) => !hidden.has(r.id));      // ② moins les 👎
+  if (visible.length > 0) return { pool: visible, relaxed: false };
+  if (dietOk.length > 0) return { pool: dietOk, relaxed: false };  // ② trop de 👎 → on les ré-affiche (régime intact)
+  if (all.length > 0) return { pool: all, relaxed: true };          // ① dernier recours : régime non garanti
   return { pool: recipes, relaxed: true };
+}
+
+/**
+ * Nb de recettes RÉELLEMENT proposables pour un repas (régime OK + non masquées).
+ * Sert au déclenchement de l'élicitation d'ingrédient (seuil bas, cf. lib/dislike.ts) :
+ * quand un 👎 fait passer ce compte sous le seuil, l'UI demande quel ingrédient gêne.
+ */
+export function mealPoolSize(profile: UserProfile, mealType: MealType): number {
+  const hidden = new Set(profile.hidden_recipes ?? []);
+  return getEffectiveRecipes().filter(
+    (r) => r.tags.includes(mealType) && recipeAllowed(r, profile) && !hidden.has(r.id)
+  ).length;
 }
 
 // Mots-clés par source de protéine préférée. Sert UNIQUEMENT de départage à
@@ -443,6 +465,11 @@ export function computeDailyTotals(
 const ENGINE_VERSION = 11; // v11 = catalogue 264 + légumineuses en SEC (régénère pour exposer les 164 nouvelles recettes)
 
 export function profileSignature(p: UserProfile): string {
+  // NB : `hidden_recipes` (👎) est VOLONTAIREMENT absent. Un 👎 remplace UN repas
+  // (swap ciblé), il ne doit pas périmer tout le plan → on ne le met pas dans la
+  // signature. Les futures générations l'excluent quand même (cf. poolForWithFlag).
+  // `disliked_foods`, lui, EST inclus : un ingrédient évité est une vraie préférence
+  // → le plan se régénère (et ré-affiche les plats sans cet ingrédient).
   return JSON.stringify({
     ev: ENGINE_VERSION,
     k: p.target_kcal, pr: p.target_protein_g, c: p.target_carbs_g, f: p.target_fat_g,
@@ -680,8 +707,12 @@ export function buildLocalPlan(profile: UserProfile, seed: number = 0): MealPlan
  * mêmes macros (kcal/protéines) que le repas actuel, sans toucher au reste du
  * plan. On choisit au hasard parmi les meilleures alternatives → effet « autre
  * chose » à chaque appui, sans dégrader l'équilibre du jour.
+ *
+ * Le pool exclut déjà les recettes masquées (👎, via poolFor) ; `favoriteIds`
+ * permet en plus de PRIVILÉGIER les recettes aimées (👍) à fit comparable —
+ * c'est le « changer de recette → l'algo propose en fonction de tes goûts ».
  */
-export function swapMeal(profile: UserProfile, plan: MealPlan, meal: Meal): MealPlan {
+export function swapMeal(profile: UserProfile, plan: MealPlan, meal: Meal, favoriteIds?: Iterable<string>): MealPlan {
   if (meal.fixed) return plan; // un repas géré par l'user ne se swappe pas
   const pool = poolFor(meal.meal_type, profile).filter((r) => r.id !== meal.recipe.id);
   if (pool.length === 0) return plan; // aucune alternative possible
@@ -701,7 +732,13 @@ export function swapMeal(profile: UserProfile, plan: MealPlan, meal: Meal): Meal
     .sort((x, y) => x.score - y.score);
 
   const top = ranked.slice(0, Math.min(VARIANT_MIN, ranked.length));
-  const pick = top[Math.floor(Math.random() * top.length)];
+  // Biais favoris : si certaines des meilleures alternatives sont des 👍, on tire
+  // parmi celles-là — le fit macro reste garanti (elles SONT dans le top), on ne
+  // fait que pencher vers ce que l'user aime. Sinon, tirage normal dans le top.
+  const favs = favoriteIds ? new Set(favoriteIds) : null;
+  const likedTop = favs ? top.filter((c) => favs.has(c.r.id)) : [];
+  const choices = likedTop.length > 0 ? likedTop : top;
+  const pick = choices[Math.floor(Math.random() * choices.length)];
 
   const newMeal: Meal = {
     ...meal,
