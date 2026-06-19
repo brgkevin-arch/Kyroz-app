@@ -357,31 +357,34 @@
       "name": "Lentilles vertes cuites",
       "unit": "g",
       "per_100": {
-        "kcal": 116,
-        "protein": 9,
-        "carbs": 17,
-        "fat": 0.4
-      }
+        "kcal": 327,
+        "protein": 25.1,
+        "carbs": 44.5,
+        "fat": 1.8
+      },
+      "basis": "dry"
     },
     "pois_chiches": {
       "name": "Pois chiches cuits (égouttés)",
       "unit": "g",
       "per_100": {
-        "kcal": 140,
-        "protein": 8,
-        "carbs": 18,
-        "fat": 2.5
-      }
+        "kcal": 350,
+        "protein": 20.5,
+        "carbs": 47.5,
+        "fat": 6.0
+      },
+      "basis": "dry"
     },
     "haricots_rouges": {
       "name": "Haricots rouges cuits",
       "unit": "g",
       "per_100": {
-        "kcal": 127,
-        "protein": 8,
-        "carbs": 20,
-        "fat": 0.5
-      }
+        "kcal": 314,
+        "protein": 22.5,
+        "carbs": 46.1,
+        "fat": 1.1
+      },
+      "basis": "dry"
     },
     "edamame": {
       "name": "Edamame",
@@ -2393,7 +2396,7 @@
         },
         {
           "ref": "pois_chiches",
-          "qty": 80,
+          "qty": 30,
           "macro_role": "protein",
           "scalable": true
         },
@@ -2417,10 +2420,10 @@
       ],
       "why": "Muscu/combats maintien : plat complet protéiné, double protéine animale + végétale.",
       "macros_per_serving": {
-        "kcal": 565,
-        "protein": 32,
-        "carbs": 45,
-        "fat": 26
+        "kcal": 544,
+        "protein": 31.4,
+        "carbs": 41.2,
+        "fat": 25.9
       }
     },
     {
@@ -3029,7 +3032,7 @@
       "ingredients": [
         {
           "ref": "pois_chiches",
-          "qty": 100,
+          "qty": 40,
           "macro_role": "protein",
           "scalable": true
         },
@@ -3058,10 +3061,10 @@
       ],
       "why": "Endurance perte de gras : protéines végétales + fibres, rassasiant et léger.",
       "macros_per_serving": {
-        "kcal": 375,
+        "kcal": 360,
         "protein": 12,
-        "carbs": 45,
-        "fat": 14
+        "carbs": 43.7,
+        "fat": 13.5
       }
     },
     {
@@ -3823,7 +3826,7 @@
         },
         {
           "ref": "pois_chiches",
-          "qty": 100,
+          "qty": 40,
           "macro_role": "protein",
           "scalable": true
         },
@@ -3847,10 +3850,10 @@
       ],
       "why": "Endurance/combats perte de gras : meilleur profil recomp, poisson maigre + légumineuse.",
       "macros_per_serving": {
-        "kcal": 590,
-        "protein": 49,
-        "carbs": 63,
-        "fat": 13
+        "kcal": 584,
+        "protein": 49.6,
+        "carbs": 61.2,
+        "fat": 12.8
       }
     },
     {
@@ -4049,7 +4052,7 @@
       "ingredients": [
         {
           "ref": "pois_chiches",
-          "qty": 200,
+          "qty": 80,
           "macro_role": "protein",
           "scalable": true
         },
@@ -4085,10 +4088,10 @@
       ],
       "why": "Endurance perte de gras : végétal riche en fibres, réconfortant et économique.",
       "macros_per_serving": {
-        "kcal": 640,
-        "protein": 25,
-        "carbs": 85,
-        "fat": 19
+        "kcal": 646,
+        "protein": 25.2,
+        "carbs": 89.8,
+        "fat": 17.4
       },
       "recomp_flag": "low_protein_density"
     },
@@ -4283,7 +4286,7 @@
       "ingredients": [
         {
           "ref": "haricots_rouges",
-          "qty": 200,
+          "qty": 80,
           "macro_role": "protein",
           "scalable": true
         },
@@ -4325,10 +4328,10 @@
       ],
       "why": "Endurance perte de gras : végétal très rassasiant, riche en fibres.",
       "macros_per_serving": {
-        "kcal": 580,
-        "protein": 24,
-        "carbs": 96,
-        "fat": 8
+        "kcal": 584,
+        "protein": 25.6,
+        "carbs": 93.2,
+        "fat": 8.2
       },
       "recomp_flag": "low_protein_density"
     },
@@ -4485,7 +4488,7 @@
         },
         {
           "ref": "pois_chiches",
-          "qty": 60,
+          "qty": 25,
           "macro_role": "protein",
           "scalable": true
         },
@@ -4509,10 +4512,10 @@
       ],
       "why": "Endurance maintien : bowl végétal complet, double protéine végétale.",
       "macros_per_serving": {
-        "kcal": 615,
-        "protein": 40,
-        "carbs": 56,
-        "fat": 26
+        "kcal": 640,
+        "protein": 35.3,
+        "carbs": 57.6,
+        "fat": 26.5
       }
     },
     {
@@ -5197,7 +5200,7 @@
       "ingredients": [
         {
           "ref": "pois_chiches",
-          "qty": 200,
+          "qty": 80,
           "macro_role": "protein",
           "scalable": true
         },
@@ -5239,10 +5242,10 @@
       ],
       "why": "Endurance perte de gras : protéines végétales, méditerranéen, fibres.",
       "macros_per_serving": {
-        "kcal": 675,
-        "protein": 29,
-        "carbs": 83,
-        "fat": 21
+        "kcal": 673,
+        "protein": 29.7,
+        "carbs": 82.4,
+        "fat": 21.1
       },
       "recomp_flag": "low_protein_density"
     },
@@ -5440,7 +5443,7 @@
         },
         {
           "ref": "haricots_rouges",
-          "qty": 120,
+          "qty": 50,
           "macro_role": "protein",
           "scalable": true
         },
@@ -5470,10 +5473,10 @@
       ],
       "why": "Combats/muscu prise de masse : double protéine, fer élevé, dense.",
       "macros_per_serving": {
-        "kcal": 695,
-        "protein": 47,
-        "carbs": 82,
-        "fat": 17
+        "kcal": 688,
+        "protein": 49.7,
+        "carbs": 81.2,
+        "fat": 16.1
       }
     },
     {
@@ -5501,7 +5504,7 @@
         },
         {
           "ref": "lentilles_vertes",
-          "qty": 200,
+          "qty": 70,
           "macro_role": "protein",
           "scalable": true
         },
@@ -5525,10 +5528,10 @@
       ],
       "why": "Endurance/muscu maintien : oméga-3 + fer végétal, récup complète.",
       "macros_per_serving": {
-        "kcal": 605,
-        "protein": 50,
-        "carbs": 35,
-        "fat": 26
+        "kcal": 590,
+        "protein": 50.5,
+        "carbs": 33.6,
+        "fat": 25.2
       }
     },
     {
@@ -5697,7 +5700,7 @@
         },
         {
           "ref": "pois_chiches",
-          "qty": 60,
+          "qty": 25,
           "macro_role": "protein",
           "scalable": true
         },
@@ -5715,10 +5718,10 @@
       ],
       "why": "Endurance/muscu maintien : complet, parfumé, double protéine.",
       "macros_per_serving": {
-        "kcal": 695,
-        "protein": 55,
-        "carbs": 76,
-        "fat": 15
+        "kcal": 667,
+        "protein": 56.2,
+        "carbs": 73.7,
+        "fat": 13.8
       }
     },
     {
@@ -5982,7 +5985,7 @@
         },
         {
           "ref": "haricots_rouges",
-          "qty": 100,
+          "qty": 40,
           "macro_role": "protein",
           "scalable": true
         },
@@ -6018,10 +6021,10 @@
       ],
       "why": "Muscu/combats prise de masse : dense, double protéine, fer élevé.",
       "macros_per_serving": {
-        "kcal": 700,
-        "protein": 48,
-        "carbs": 84,
-        "fat": 16
+        "kcal": 711,
+        "protein": 49.3,
+        "carbs": 83.3,
+        "fat": 17.7
       }
     },
     {
@@ -6526,7 +6529,7 @@
         },
         {
           "ref": "lentilles_vertes",
-          "qty": 200,
+          "qty": 70,
           "macro_role": "protein",
           "scalable": true
         },
@@ -6550,10 +6553,10 @@
       ],
       "why": "Endurance perte de gras : poisson maigre + fer végétal, jour off.",
       "macros_per_serving": {
-        "kcal": 480,
-        "protein": 52,
-        "carbs": 39,
-        "fat": 10
+        "kcal": 469,
+        "protein": 51.5,
+        "carbs": 36.2,
+        "fat": 10.6
       }
     },
     {
@@ -6704,7 +6707,7 @@
         },
         {
           "ref": "pois_chiches",
-          "qty": 120,
+          "qty": 50,
           "macro_role": "protein",
           "scalable": true
         },
@@ -6734,10 +6737,10 @@
       ],
       "why": "Endurance maintien : végétarien complet, double protéine, fibres.",
       "macros_per_serving": {
-        "kcal": 615,
-        "protein": 28,
-        "carbs": 73,
-        "fat": 21
+        "kcal": 609,
+        "protein": 28.7,
+        "carbs": 68.5,
+        "fat": 21.3
       },
       "recomp_flag": "low_protein_density"
     },
@@ -6889,7 +6892,7 @@
         },
         {
           "ref": "haricots_rouges",
-          "qty": 100,
+          "qty": 40,
           "macro_role": "protein",
           "scalable": true
         },
@@ -6925,10 +6928,10 @@
       ],
       "why": "Muscu/combats perte de gras : double protéine maigre, fibres, rassasiant.",
       "macros_per_serving": {
-        "kcal": 637,
-        "protein": 58,
-        "carbs": 70,
-        "fat": 12
+        "kcal": 631,
+        "protein": 57.8,
+        "carbs": 67.9,
+        "fat": 12.1
       }
     },
     {
@@ -7095,7 +7098,7 @@
         },
         {
           "ref": "haricots_rouges",
-          "qty": 80,
+          "qty": 30,
           "macro_role": "protein",
           "scalable": true
         },
@@ -7113,10 +7116,10 @@
       ],
       "why": "Muscu/combats prise de masse : bowl très calorique, triple protéine pour le bulk.",
       "macros_per_serving": {
-        "kcal": 925,
-        "protein": 59,
-        "carbs": 95,
-        "fat": 31
+        "kcal": 923,
+        "protein": 60.5,
+        "carbs": 92.8,
+        "fat": 32.4
       }
     },
     {
@@ -7281,10 +7284,10 @@
       ],
       "why": "Vegan & sans gluten : porridge complet pour endurance, IG modéré.",
       "macros_per_serving": {
-        "kcal": 377,
-        "protein": 22.6,
-        "carbs": 51.6,
-        "fat": 7.7
+        "kcal": 379,
+        "protein": 22.8,
+        "carbs": 49.2,
+        "fat": 7.9
       }
     },
     {
@@ -8341,10 +8344,10 @@
       ],
       "why": "Végétarien complet : double source protéique pour le muscle.",
       "macros_per_serving": {
-        "kcal": 419,
-        "protein": 21,
-        "carbs": 42.3,
-        "fat": 17.2
+        "kcal": 510,
+        "protein": 26.6,
+        "carbs": 55.3,
+        "fat": 18.5
       }
     },
     {
@@ -9341,10 +9344,10 @@
       ],
       "why": "Vegan combats : satiété élevée, peu calorique, fibres.",
       "macros_per_serving": {
-        "kcal": 254,
-        "protein": 8.0,
-        "carbs": 36.4,
-        "fat": 7.1
+        "kcal": 368,
+        "protein": 14.9,
+        "carbs": 52.6,
+        "fat": 8.8
       }
     },
     {
@@ -9525,10 +9528,10 @@
       ],
       "why": "Vegan : en-cas croustillant riche en protéines et fibres.",
       "macros_per_serving": {
-        "kcal": 127,
-        "protein": 4,
-        "carbs": 9,
-        "fat": 7.6
+        "kcal": 264,
+        "protein": 12.3,
+        "carbs": 28.5,
+        "fat": 9.6
       }
     },
     {
@@ -10591,10 +10594,10 @@
       ],
       "why": "Vegan combats : plat complet équilibré, double protéine végétale.",
       "macros_per_serving": {
-        "kcal": 781,
-        "protein": 43.0,
-        "carbs": 91.1,
-        "fat": 23.1
+        "kcal": 773,
+        "protein": 39.3,
+        "carbs": 92.2,
+        "fat": 23.6
       }
     },
     {
@@ -11113,10 +11116,10 @@
       ],
       "why": "Végétarien méditerranéen : protéines végétales + feta, sans gluten.",
       "macros_per_serving": {
-        "kcal": 540,
-        "protein": 16.4,
-        "carbs": 74.5,
-        "fat": 18.2
+        "kcal": 677,
+        "protein": 24.7,
+        "carbs": 94,
+        "fat": 20.2
       }
     },
     {
@@ -11287,10 +11290,10 @@
       ],
       "why": "Vegan & sans gluten : triple protéine végétale, riche en fibres.",
       "macros_per_serving": {
-        "kcal": 728,
-        "protein": 38.5,
-        "carbs": 93.1,
-        "fat": 18.0
+        "kcal": 738,
+        "protein": 38.4,
+        "carbs": 87.4,
+        "fat": 21.5
       }
     },
     {
@@ -11341,10 +11344,10 @@
       ],
       "why": "Vegan jour repos sans gluten : sarrasin rustique + tempeh.",
       "macros_per_serving": {
-        "kcal": 659,
-        "protein": 43.4,
-        "carbs": 67.5,
-        "fat": 27.2
+        "kcal": 618,
+        "protein": 36.9,
+        "carbs": 67.6,
+        "fat": 18.2
       }
     },
     {
@@ -11395,10 +11398,10 @@
       ],
       "why": "Pescatarien sans gluten : oméga-3 + glucides lents du sarrasin.",
       "macros_per_serving": {
-        "kcal": 634,
-        "protein": 40.6,
-        "carbs": 58.0,
-        "fat": 26.7
+        "kcal": 639,
+        "protein": 41.9,
+        "carbs": 56,
+        "fat": 26.4
       }
     },
     {
@@ -11455,10 +11458,10 @@
       ],
       "why": "Vegan endurance sans gluten : capacité protéique haute, crémeux.",
       "macros_per_serving": {
-        "kcal": 728,
-        "protein": 39.1,
-        "carbs": 99.1,
-        "fat": 17.4
+        "kcal": 727,
+        "protein": 39.8,
+        "carbs": 100.5,
+        "fat": 17
       }
     },
     {
@@ -11628,10 +11631,10 @@
       ],
       "why": "Vegan combats sans gluten : haricots blancs = capacité protéique élevée.",
       "macros_per_serving": {
-        "kcal": 716,
-        "protein": 40.4,
-        "carbs": 94.3,
-        "fat": 14.4
+        "kcal": 689,
+        "protein": 41.3,
+        "carbs": 89.7,
+        "fat": 14
       }
     },
     {
@@ -11909,9 +11912,9 @@
       ],
       "why": "Vegan combats sans gluten : très haute capacité protéique.",
       "macros_per_serving": {
-        "kcal": 616,
-        "protein": 41.2,
-        "carbs": 86.0,
+        "kcal": 597,
+        "protein": 40.9,
+        "carbs": 81.8,
         "fat": 8.3
       }
     },
@@ -12161,10 +12164,10 @@
       ],
       "why": "Vegan combats sans gluten : protéines complètes, plat réconfortant.",
       "macros_per_serving": {
-        "kcal": 584,
-        "protein": 31.8,
-        "carbs": 84.7,
-        "fat": 10.2
+        "kcal": 728,
+        "protein": 41.8,
+        "carbs": 107.9,
+        "fat": 10.3
       }
     },
     {
@@ -12221,10 +12224,10 @@
       ],
       "why": "Vegan endurance sans gluten : glucides patate + capacité protéique.",
       "macros_per_serving": {
-        "kcal": 450,
-        "protein": 29.7,
-        "carbs": 50.2,
-        "fat": 12.3
+        "kcal": 610,
+        "protein": 39.3,
+        "carbs": 72.9,
+        "fat": 14.6
       }
     },
     {
@@ -12287,10 +12290,10 @@
       ],
       "why": "Vegan combats : soupe-repas rassasiante, protéines végétales.",
       "macros_per_serving": {
-        "kcal": 606,
-        "protein": 36.2,
-        "carbs": 78.0,
-        "fat": 11.3
+        "kcal": 569,
+        "protein": 37.8,
+        "carbs": 71.4,
+        "fat": 10.4
       }
     },
     {
@@ -12413,9 +12416,9 @@
       ],
       "why": "Vegan endurance : pois cassés protéinés + glucides du boulgour.",
       "macros_per_serving": {
-        "kcal": 682,
-        "protein": 38.3,
-        "carbs": 99.3,
+        "kcal": 676,
+        "protein": 39.3,
+        "carbs": 91.6,
         "fat": 10.7
       }
     },
@@ -12473,10 +12476,10 @@
       ],
       "why": "Vegan muscu sans gluten : fèves = excellente densité protéique.",
       "macros_per_serving": {
-        "kcal": 680,
-        "protein": 38.4,
-        "carbs": 103.3,
-        "fat": 10.4
+        "kcal": 652,
+        "protein": 38.3,
+        "carbs": 92.4,
+        "fat": 9.7
       }
     },
     {
@@ -12533,10 +12536,10 @@
       ],
       "why": "Végétarien sans gluten : froid, protéiné, fibres et fraîcheur.",
       "macros_per_serving": {
-        "kcal": 309,
-        "protein": 15.2,
-        "carbs": 18.6,
-        "fat": 18.1
+        "kcal": 471,
+        "protein": 27.2,
+        "carbs": 41.2,
+        "fat": 19
       }
     },
     {
@@ -12593,10 +12596,10 @@
       ],
       "why": "Muscu sans gluten : double protéine animale + végétale, capacité haute.",
       "macros_per_serving": {
-        "kcal": 674,
-        "protein": 51.2,
-        "carbs": 82.2,
-        "fat": 11.7
+        "kcal": 657,
+        "protein": 50.6,
+        "carbs": 81.6,
+        "fat": 11
       }
     },
     {
@@ -12653,10 +12656,10 @@
       ],
       "why": "Vegan endurance : levantin protéiné, glucides du boulgour.",
       "macros_per_serving": {
-        "kcal": 500,
-        "protein": 24.6,
-        "carbs": 66.9,
-        "fat": 11.6
+        "kcal": 682,
+        "protein": 35.6,
+        "carbs": 92.9,
+        "fat": 14.2
       }
     },
     {
@@ -12719,10 +12722,10 @@
       ],
       "why": "Vegan combats : velouté-repas dense en protéines, peu de lipides.",
       "macros_per_serving": {
-        "kcal": 595,
-        "protein": 28.5,
-        "carbs": 74.7,
-        "fat": 16.1
+        "kcal": 585,
+        "protein": 29.6,
+        "carbs": 67.2,
+        "fat": 16.3
       }
     },
     {
@@ -12953,10 +12956,10 @@
       ],
       "why": "Végétarien sans gluten : galette bretonne protéinée.",
       "macros_per_serving": {
-        "kcal": 548,
-        "protein": 31.6,
-        "carbs": 50.8,
-        "fat": 24.4
+        "kcal": 547,
+        "protein": 30.6,
+        "carbs": 49.2,
+        "fat": 24.5
       }
     },
     {
@@ -13073,10 +13076,10 @@
       ],
       "why": "Vegan endurance : falafels protéinés, glucides du wrap.",
       "macros_per_serving": {
-        "kcal": 573,
-        "protein": 28.9,
-        "carbs": 70.1,
-        "fat": 17.4
+        "kcal": 767,
+        "protein": 40.6,
+        "carbs": 97.7,
+        "fat": 20.2
       }
     },
     {
@@ -13247,10 +13250,10 @@
       ],
       "why": "Vegan endurance : taboulé enrichi en protéines, froid.",
       "macros_per_serving": {
-        "kcal": 521,
-        "protein": 24.9,
-        "carbs": 75.1,
-        "fat": 11.5
+        "kcal": 680,
+        "protein": 34.6,
+        "carbs": 97.8,
+        "fat": 13.8
       }
     },
     {
@@ -13313,10 +13316,10 @@
       ],
       "why": "Muscu : couscous complet, double protéine, capacité haute.",
       "macros_per_serving": {
-        "kcal": 732,
-        "protein": 54.0,
-        "carbs": 89.6,
-        "fat": 14.1
+        "kcal": 703,
+        "protein": 54.9,
+        "carbs": 83.9,
+        "fat": 13.4
       }
     },
     {
@@ -13553,10 +13556,10 @@
       ],
       "why": "Vegan endurance : couscous complet, capacité protéique élevée.",
       "macros_per_serving": {
-        "kcal": 601,
-        "protein": 33.9,
-        "carbs": 84.4,
-        "fat": 11.7
+        "kcal": 738,
+        "protein": 42.1,
+        "carbs": 103.9,
+        "fat": 13.7
       }
     },
     {
@@ -14003,10 +14006,10 @@
       ],
       "why": "Végétarien : plat mijoté riche en protéines, glucides du pain.",
       "macros_per_serving": {
-        "kcal": 514,
-        "protein": 29.5,
-        "carbs": 38.6,
-        "fat": 24.6
+        "kcal": 628,
+        "protein": 36.4,
+        "carbs": 54.8,
+        "fat": 26.2
       }
     },
     {
@@ -14469,10 +14472,10 @@
       ],
       "why": "Végétarien combats : salade levantine fraîche et protéinée.",
       "macros_per_serving": {
-        "kcal": 488,
-        "protein": 18.4,
-        "carbs": 52.8,
-        "fat": 19.8
+        "kcal": 648,
+        "protein": 28.1,
+        "carbs": 75.5,
+        "fat": 22.2
       }
     },
     {
@@ -14529,10 +14532,10 @@
       ],
       "why": "Pescatarien sans gluten : protéiné, oméga-3, sans cuisson de poisson.",
       "macros_per_serving": {
-        "kcal": 337,
-        "protein": 25.8,
-        "carbs": 19.6,
-        "fat": 15.4
+        "kcal": 498,
+        "protein": 37.8,
+        "carbs": 42.2,
+        "fat": 16.4
       }
     },
     {
@@ -14589,10 +14592,10 @@
       ],
       "why": "Pescatarien sans gluten : salade express, double protéine rassasiante.",
       "macros_per_serving": {
-        "kcal": 478,
-        "protein": 43.0,
-        "carbs": 42.2,
-        "fat": 10.4
+        "kcal": 490,
+        "protein": 46.4,
+        "carbs": 40.4,
+        "fat": 13.2
       }
     },
     {
@@ -14763,10 +14766,10 @@
       ],
       "why": "Vegan & sans gluten : porridge énergétique, ancre protéique végétale.",
       "macros_per_serving": {
-        "kcal": 466,
-        "protein": 32.5,
-        "carbs": 61.0,
-        "fat": 10.8
+        "kcal": 480,
+        "protein": 30.4,
+        "carbs": 61.4,
+        "fat": 11.9
       }
     },
     {
@@ -15695,10 +15698,10 @@
       ],
       "why": "Vegan & sans gluten : énergie dense transportable, ancre protéique.",
       "macros_per_serving": {
-        "kcal": 441,
-        "protein": 26.1,
-        "carbs": 56.9,
-        "fat": 12.1
+        "kcal": 457,
+        "protein": 23.9,
+        "carbs": 58.1,
+        "fat": 12.8
       }
     },
     {
@@ -16285,10 +16288,10 @@
       ],
       "why": "Vegan combats & sans gluten : ragoût rustique, capacité protéique élevée.",
       "macros_per_serving": {
-        "kcal": 691,
-        "protein": 37.4,
-        "carbs": 100.8,
-        "fat": 10.7
+        "kcal": 672,
+        "protein": 38.9,
+        "carbs": 95.8,
+        "fat": 10.2
       }
     },
     {
@@ -16345,10 +16348,10 @@
       ],
       "why": "Vegan & sans gluten : umami du tofu + champignons, ancre protéique haute.",
       "macros_per_serving": {
-        "kcal": 692,
-        "protein": 47.4,
-        "carbs": 63.8,
-        "fat": 27.1
+        "kcal": 705,
+        "protein": 43.6,
+        "carbs": 64.4,
+        "fat": 28.5
       }
     }
   ],

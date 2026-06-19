@@ -10,3 +10,6 @@ node_modules/
 
 # Index graphify généré (régénérable via `graphify update .`) — local, hors git
 graphify-out/
+
+# Livrables/scratch archivés — local, hors git
+/_archive/
