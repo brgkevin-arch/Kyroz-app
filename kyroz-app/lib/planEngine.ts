@@ -141,6 +141,24 @@ export function restDaySet(days: number, trainingDaysPerWeek: number): Set<numbe
 }
 
 /**
+ * Jours de REPOS effectifs d'un plan (numéros 1-based), pour un profil donné.
+ *  - `rest_weekdays` défini (même []) → l'user a CHOISI ses jours : on mappe ces
+ *    jours de semaine (getDay) sur les index du plan via `plan_weekdays`.
+ *  - `rest_weekdays` absent → repli historique : déduction auto depuis le nb de
+ *    jours d'entraînement (répartis uniformément). Déterministe dans les deux cas.
+ */
+export function restDaysForProfile(profile: UserProfile, days: number): Set<number> {
+  if (Array.isArray(profile.rest_weekdays)) {
+    const wd = profile.plan_weekdays ?? [];
+    const chosen = profile.rest_weekdays;
+    const set = new Set<number>();
+    for (let i = 0; i < days; i++) if (chosen.includes(wd[i])) set.add(i + 1);
+    return set;
+  }
+  return restDaySet(days, profile.training_days_per_week);
+}
+
+/**
  * Sens de l'objectif pour l'asymétrie de fit (A2), déduit de l'écart TDEE − cible :
  *   +1 = DÉFICIT (sèche/recomp) → le DÉBORDEMENT kcal érode le déficit (danger).
  *   -1 = SURPLUS (prise de masse) → le MANQUE kcal érode le surplus (danger).
@@ -429,6 +447,7 @@ export function profileSignature(p: UserProfile): string {
     ev: ENGINE_VERSION,
     k: p.target_kcal, pr: p.target_protein_g, c: p.target_carbs_g, f: p.target_fat_g,
     d: p.plan_days, m: p.meals, e: p.meal_emphasis, v: p.variety,
+    rw: p.rest_weekdays ?? null, td: p.training_days_per_week, pw: p.plan_weekdays,
     r: p.dietary_restrictions, dl: p.disliked_foods, pp: p.preferred_proteins,
     tp: p.max_prep_time_min, fm: p.fixed_meals ?? null,
   });
@@ -537,8 +556,9 @@ export function buildLocalPlan(profile: UserProfile, seed: number = 0): MealPlan
   // Sens de l'objectif → asymétrie de fit (A2) : éviter le débordement en sèche,
   // le manque en prise de masse. Calculé une fois pour tout le plan.
   const goalDir = goalDirection(profile);
-  // Jours de repos (déduits des jours d'entraînement) → carb-cycling + recettes « jour off ».
-  const restDays = restDaySet(days, profile.training_days_per_week);
+  // Jours de repos → carb-cycling + recettes « jour off ». Choisis par l'user
+  // (rest_weekdays) sinon déduits auto du nb de jours d'entraînement.
+  const restDays = restDaysForProfile(profile, days);
 
   const pools: Record<string, Recipe[]> = {};
   const relaxed: Record<string, boolean> = {};

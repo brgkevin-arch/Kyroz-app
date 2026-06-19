@@ -32,6 +32,7 @@ import {
   ActivityLevel, DietaryRestriction, FixedMeals, Goal, MEAL_ORDER, MealEmphasis, MealType, Sex, SportSession, UserProfile, VarietyPreference,
 } from '../../lib/types';
 import { totalSessionsPerWeek } from '../../lib/sport';
+import { restDaySet } from '../../lib/planEngine';
 import SportsEditor from '../../components/SportsEditor';
 import { FixedMealSheet } from '../../components/FixedMealSheet';
 
@@ -70,6 +71,17 @@ function activityFromDays(d: number): ActivityLevel {
 }
 function orderedWeekdays(sel: number[]): number[] {
   return WEEKDAY_OPTS.map((o) => o.val).filter((v) => sel.includes(v));
+}
+// Jours de repos pré-cochés à l'ouverture d'un éditeur : choix explicite de l'user
+// (rest_weekdays) si présent, sinon mapping des jours de repos AUTO (déduits du nb
+// d'entraînements) sur les jours de semaine du plan → enregistrer sans rien changer
+// ne modifie pas le plan.
+function effectiveRestWeekdays(profile: UserProfile): number[] {
+  if (Array.isArray(profile.rest_weekdays)) return orderedWeekdays(profile.rest_weekdays);
+  const wd = profile.plan_weekdays ?? [];
+  const days = wd.length || Math.min(Math.max(profile.plan_days ?? 7, 1), 7);
+  const idx = restDaySet(days, profile.training_days_per_week); // index 1..days
+  return orderedWeekdays([...idx].map((d) => wd[d - 1]).filter((v): v is number => v !== undefined));
 }
 const MEAL_OPTS: { label: string; val: MealType }[] = [
   { label: 'Petit-déj', val: 'breakfast' }, { label: 'Déjeuner', val: 'lunch' },
@@ -389,12 +401,19 @@ function InfoEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
 
 function SportsProfileEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
   const [sports, setSports] = useState<SportSession[]>(profile.sports ?? []);
+  const [restDays, setRestDays] = useState<number[]>(effectiveRestWeekdays(profile));
+  const planWeekdays = profile.plan_weekdays ?? [];
+  const togRestDay = (v: number) => setRestDays((arr) => arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
   const trainingDaysEq = Math.min(totalSessionsPerWeek(sports), 7);
-  const submit = () => onSave(withRecalc({ ...profile, sports, training_days_per_week: trainingDaysEq, activity_level: activityFromDays(trainingDaysEq) }));
+  const submit = () => onSave(withRecalc({
+    ...profile, sports, training_days_per_week: trainingDaysEq, activity_level: activityFromDays(trainingDaysEq),
+    rest_weekdays: orderedWeekdays(restDays.filter((d) => !planWeekdays.length || planWeekdays.includes(d))),
+  }));
   return (
     <EditorShell t={t} title="Sports" onSave={submit} dragHandlers={dragHandlers}>
       <Text style={{ color: t.textSecondary, fontSize: 13, lineHeight: 18, marginBottom: 4 }}>Tes sports servent à estimer tes calories dépensées. Plus c'est précis, plus ton plan l'est.</Text>
       <SportsEditor sports={sports} weight={profile.weight_kg} onChange={setSports} />
+      <RestDaysPicker t={t} available={planWeekdays} value={restDays} onToggle={togRestDay} />
     </EditorShell>
   );
 }
@@ -471,14 +490,39 @@ function PrefEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
   );
 }
 
+// Sélecteur de jours de repos, partagé par les éditeurs Repas et Sports.
+// `available` = jours de semaine du plan (on ne se repose que sur un jour planifié) ;
+// vide → on propose les 7 jours (repli profils sans jours définis).
+function RestDaysPicker({ t, available, value, onToggle }: { t: ThemePalette; available: number[]; value: number[]; onToggle: (v: number) => void }) {
+  const opts = available.length ? WEEKDAY_OPTS.filter((o) => available.includes(o.val)) : WEEKDAY_OPTS;
+  return (
+    <>
+      <SectionLabel t={t}>Jours de repos</SectionLabel>
+      <Text style={{ color: t.textTertiary, fontSize: 12, lineHeight: 17, marginTop: -8 }}>
+        Tes jours sans entraînement : Kyroz baisse un peu les glucides et monte les lipides (mêmes calories) et privilégie les recettes « récup ».
+      </Text>
+      <View style={styles.wrap}>
+        {opts.map((d) => <Chip key={d.val} t={t} label={d.label} selected={value.includes(d.val)} onPress={() => onToggle(d.val)} />)}
+      </View>
+    </>
+  );
+}
+
 function MealsEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
   const [weekdays, setWeekdays] = useState<number[]>(profile.plan_weekdays ?? [1, 2, 3, 4, 5, 6, 0]);
+  const [restDays, setRestDays] = useState<number[]>(effectiveRestWeekdays(profile));
   const [meals, setMeals] = useState<MealType[]>(profile.meals ?? ['breakfast', 'lunch', 'dinner', 'snack']);
   const [emphasis, setEmphasis] = useState<MealEmphasis>(profile.meal_emphasis ?? 'even');
   const [variety, setVariety] = useState<VarietyPreference>(profile.variety);
   const [fixedMeals, setFixedMeals] = useState<FixedMeals>(profile.fixed_meals ?? {});
   const [definingMeal, setDefiningMeal] = useState<MealType | null>(null);
-  const togDay = (v: number) => setWeekdays((arr) => arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
+  // Retirer un jour du plan le retire aussi des jours de repos (un repos doit être un jour planifié).
+  const togDay = (v: number) => {
+    const removing = weekdays.includes(v);
+    setWeekdays((arr) => removing ? arr.filter((x) => x !== v) : [...arr, v]);
+    if (removing) setRestDays((arr) => arr.filter((x) => x !== v));
+  };
+  const togRestDay = (v: number) => setRestDays((arr) => arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
   const togMeal = (v: MealType) => {
     const next = meals.includes(v) ? meals.filter((x) => x !== v) : [...meals, v];
     setMeals(next);
@@ -494,6 +538,7 @@ function MealsEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
     for (const mt of orderedMeals(meals)) if (fixedMeals[mt]) cleaned[mt] = fixedMeals[mt];
     onSave({
       ...profile, plan_weekdays: orderedWeekdays(weekdays), plan_days: weekdays.length,
+      rest_weekdays: orderedWeekdays(restDays.filter((d) => weekdays.includes(d))),
       meals: orderedMeals(meals), meal_emphasis: emphasis, variety,
       fixed_meals: Object.keys(cleaned).length ? cleaned : undefined,
     });
@@ -514,6 +559,7 @@ function MealsEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
     <EditorShell t={t} title="Paramètres des repas" onSave={submit} canSave={weekdays.length >= 1 && meals.length >= 1} dragHandlers={dragHandlers}>
       <SectionLabel t={t}>Jours du plan</SectionLabel>
       <View style={styles.wrap}>{WEEKDAY_OPTS.map((d) => <Chip key={d.val} t={t} label={d.label} selected={weekdays.includes(d.val)} onPress={() => togDay(d.val)} />)}</View>
+      <RestDaysPicker t={t} available={weekdays} value={restDays} onToggle={togRestDay} />
       <SectionLabel t={t}>Repas inclus</SectionLabel>
       <View style={styles.wrap}>{MEAL_OPTS.map((m) => <Chip key={m.val} t={t} label={m.label} selected={meals.includes(m.val)} onPress={() => togMeal(m.val)} />)}</View>
       {meals.length === 0 && <Text style={{ color: t.danger, fontSize: 12 }}>Sélectionne au moins 1 repas.</Text>}

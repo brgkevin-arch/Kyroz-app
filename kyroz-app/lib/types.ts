@@ -114,6 +114,11 @@ export interface UserProfile {
   // Préférences plan
   plan_days: number;            // 1–7 (= plan_weekdays.length)
   plan_weekdays: number[];      // jours choisis, format getDay() : 0=Dim … 6=Sam
+  // Jours de REPOS choisis explicitement (format getDay() : 0=Dim … 6=Sam).
+  //  - undefined → déduits auto du nb de jours d'entraînement (restDaySet, legacy).
+  //  - [] → l'user a choisi AUCUN jour de repos (tous actifs).
+  //  - [n,…] → ces jours de semaine sont des jours de repos (carb-cycling).
+  rest_weekdays?: number[];
   meals: MealType[];            // repas choisis (petit-déj/midi/dîner/collation)
   meal_emphasis: MealEmphasis;  // repas mis en avant (portion plus grosse)
   variety: VarietyPreference;
