@@ -355,42 +355,47 @@ export default function PlanScreen() {
   // « Non, je garde mon plan » : on ne touche à rien, l'écart reste compté à part.
   const declineAdapt = () => { setAdaptPrompt(null); toast('Ok, on garde ton plan 😎'); };
 
-  // « Remplacer ce repas » : échange UN repas contre une alternative équivalente,
-  // en privilégiant les recettes aimées (👍 favoris) à fit comparable.
-  const swapSelectedMeal = async () => {
-    if (!plan || !profile || !selectedMeal) return;
-    const newPlan = swapMeal(profile, plan, selectedMeal, favorites);
-    await persistPlan(newPlan);
-    // Rafraîchit la fiche ouverte avec la nouvelle recette + quantités/macros adaptées.
-    const swapped = newPlan.meals.find((m) => m.id === selectedMeal.id);
-    if (swapped) setSelectedMeal(swapped);
+  // Cœur du « changer de recette » (carte ET fiche) : échange UN repas contre une
+  // alternative équivalente, en privilégiant les recettes aimées (👍) à fit comparable.
+  const swapMealCore = async (meal: Meal) => {
+    if (!plan || !profile) return;
+    await persistPlan(swapMeal(profile, plan, meal, favorites)); // resync la fiche si ouverte
   };
 
-  // « J'aime pas » (👎) : masque la recette (souple, réversible), change ce repas
-  // pour autre chose, et — si masquer vide trop le pool du repas — demande quel
-  // ingrédient gêne plutôt que de laisser le moteur ré-afficher le 👎 (cf. dislike.ts).
-  const dislikeSelectedMeal = async () => {
-    if (!plan || !profile || !selectedMeal) return;
-    const meal = selectedMeal;
+  // Cœur du « j'aime pas » (👎, carte ET fiche) : masque la recette (souple,
+  // réversible), change ce repas, et — si masquer vide trop le pool — demande quel
+  // ingrédient gêne (cf. dislike.ts). Renvoie le repas remplacé, 'elicit' si on a
+  // ouvert la question d'ingrédient, ou null. Ne touche PAS à selectedMeal (l'appelant gère).
+  const dislikeMealCore = async (meal: Meal): Promise<Meal | 'elicit' | null> => {
+    if (!plan || !profile) return null;
     const hidden = profile.hidden_recipes ?? [];
     const nextHidden = hidden.includes(meal.recipe.id) ? hidden : [...hidden, meal.recipe.id];
     const nextProfile = { ...profile, hidden_recipes: nextHidden };
-    // Change ce repas (le moteur exclut désormais la recette masquée) + biais favoris.
     const newPlan = swapMeal(nextProfile, plan, meal, favorites);
     await saveProfile(nextProfile); // persiste le 👎 (hors signature → ne régénère pas tout)
     await persistPlan(newPlan, false);
-    // Seuil bas → on demande l'ingrédient gênant (pile au moment du 👎).
     if (mealPoolSize(nextProfile, meal.meal_type) < DISLIKE_THRESHOLD) {
       const candidates = dislikeCandidates(nextProfile);
-      if (candidates.length > 0) {
-        setSelectedMeal(null);
-        setDislikeElicit(candidates);
-        return;
-      }
+      if (candidates.length > 0) { setDislikeElicit(candidates); return 'elicit'; }
     }
-    const swapped = newPlan.meals.find((m) => m.id === meal.id);
-    setSelectedMeal(swapped ?? null);
+    return newPlan.meals.find((m) => m.id === meal.id) ?? null;
+  };
+
+  // ── Actions depuis la FICHE ouverte (rafraîchissent/ferment la fiche) ──────
+  const swapSelectedMeal = async () => { if (selectedMeal) await swapMealCore(selectedMeal); };
+  const dislikeSelectedMeal = async () => {
+    if (!selectedMeal) return;
+    const r = await dislikeMealCore(selectedMeal);
+    if (r === 'elicit') { setSelectedMeal(null); return; }
+    setSelectedMeal(r);
     toast('Noté 👎 — on te change ça');
+  };
+
+  // ── Actions directement sur la CARTE (fiche fermée → on ne touche pas selectedMeal) ──
+  const reloadMealOnCard = async (meal: Meal) => { await swapMealCore(meal); toast('Recette changée 🔄'); };
+  const dislikeMealOnCard = async (meal: Meal) => {
+    const r = await dislikeMealCore(meal);
+    if (r !== 'elicit') toast('Noté 👎 — on te change ça');
   };
 
   // L'utilisateur a nommé l'ingrédient gênant : on l'évite partout (disliked_foods,
@@ -611,6 +616,8 @@ export default function PlanScreen() {
                     meal={m}
                     onPress={m.fixed ? undefined : () => setSelectedMeal(m)}
                     onCook={m.fixed ? undefined : () => cookMeal(m)}
+                    onReload={m.fixed ? undefined : () => reloadMealOnCard(m)}
+                    onDislike={m.fixed ? undefined : () => dislikeMealOnCard(m)}
                     missing={m.fixed ? undefined : missing}
                     fridgeTracked={fridgeTracked}
                     tourId={i === 0 ? 'plan-meal' : undefined}

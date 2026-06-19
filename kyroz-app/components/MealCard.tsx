@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme, Radius, cardShadow, ThemePalette } from '../constants/theme';
 import { Meal } from '../lib/types';
 import { useTourTarget } from './GuidedTour';
+import { useFavorites } from '../hooks/useFavorites';
 
 const MEAL_LABELS: Record<string, string> = {
   breakfast: 'Petit-déjeuner',
@@ -13,11 +14,13 @@ const MEAL_LABELS: Record<string, string> = {
 };
 
 export function MealCard({
-  meal, onPress, onCook, missing, fridgeTracked, tourId, cookTourId,
+  meal, onPress, onCook, onReload, onDislike, missing, fridgeTracked, tourId, cookTourId,
 }: {
   meal: Meal;
   onPress?: () => void;
   onCook?: () => void;
+  onReload?: () => void;     // 🔄 changer cette recette (sans ouvrir la fiche)
+  onDislike?: () => void;    // 👎 je n'aime pas → masque + change
   missing?: string[];        // ingrédients absents du frigo (undefined si frigo non suivi)
   fridgeTracked?: boolean;   // le frigo contient au moins 1 article
   tourId?: string;           // si fourni : rend la carte ciblable par la visite guidée
@@ -26,6 +29,8 @@ export function MealCard({
   const t = useTheme();
   const rootRef = useTourTarget(tourId);
   const cookRef = useTourTarget(cookTourId);
+  const { isFavorite, toggle } = useFavorites();
+  const fav = isFavorite(meal.recipe.id);
   const isFixed = meal.fixed === true;
   const eaten = meal.status === 'eaten';
   const skipped = meal.status === 'skipped';
@@ -78,11 +83,26 @@ export function MealCard({
         )
       )}
 
-      {/* Action rapide directement sur le plan (sans ouvrir la fiche). Style
-          secondaire (contour) quand il manque des ingrédients. */}
-      {planned && onCook && (
-        <CookButton t={t} onCook={onCook} lacks={lacks} cookRef={cookRef} />
+      {/* Actions rapides directement sur le plan (sans ouvrir la fiche) :
+          « J'ai cuisiné » compact + favori (👍) / j'aime pas (👎) / changer (🔄).
+          Bouton cuisiné en contour quand il manque des ingrédients. */}
+      {planned && (onCook || onReload || onDislike) && (
+        <View style={styles.actions}>
+          {onCook && <CookButton t={t} onCook={onCook} lacks={lacks} cookRef={cookRef} />}
+          <ActionIcon t={t} name={fav ? 'heart' : 'heart-outline'} active={fav} onPress={() => toggle(meal.recipe.id)} label="J'aime cette recette" />
+          {onDislike && <ActionIcon t={t} name="thumbs-down-outline" onPress={onDislike} label="Je n'aime pas — changer" />}
+          {onReload && <ActionIcon t={t} name="refresh" onPress={onReload} label="Changer de recette" />}
+        </View>
       )}
+    </TouchableOpacity>
+  );
+}
+
+// Bouton-icône d'action (favori / j'aime pas / changer), aligné sur le bouton cuisiné.
+function ActionIcon({ t, name, active, onPress, label }: { t: ThemePalette; name: keyof typeof Ionicons.glyphMap; active?: boolean; onPress: () => void; label: string }) {
+  return (
+    <TouchableOpacity onPress={onPress} activeOpacity={0.7} accessibilityLabel={label} style={[styles.iconBtn, { backgroundColor: t.fill }]}>
+      <Ionicons name={name} size={18} color={active ? t.text : t.textSecondary} />
     </TouchableOpacity>
   );
 }
@@ -129,6 +149,8 @@ const styles = StyleSheet.create({
   pillU: { fontSize: 11 },
   fridge: { fontSize: 12, fontWeight: '600', marginTop: 12 },
   fixedNote: { fontSize: 12, marginTop: 6 },
-  cookBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, marginTop: 10, paddingVertical: 11, borderRadius: Radius.md },
+  actions: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12 },
+  cookBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, height: 44, paddingHorizontal: 12, borderRadius: Radius.md },
   cookTxt: { fontSize: 14, fontWeight: '700' },
+  iconBtn: { width: 44, height: 44, borderRadius: Radius.md, alignItems: 'center', justifyContent: 'center' },
 });
