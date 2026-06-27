@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image, ImageSourcePropType } from 'react-native';
 import { ThemePalette, Radius } from '../constants/theme';
 import { Field } from './ui';
@@ -63,6 +63,15 @@ interface Props {
 export function BodyFatPicker({ t, sex, value, onChange }: Props) {
   const levels = LEVELS[sex];
 
+  // Texte LOCAL du champ « % exact ». On NE clampe pas le MIN pendant la frappe
+  // (sinon taper « 23 » passe par « 2 » → clampé à BODY_FAT_MIN=3 → « 33 »). Le
+  // clamp MIN n'est appliqué qu'au blur. La synchro depuis `value` permet au tap
+  // d'une silhouette (ou à « Effacer ») de remplir/vider le champ.
+  const [pctText, setPctText] = useState(value != null ? String(value) : '');
+  useEffect(() => {
+    setPctText(value != null ? String(value) : '');
+  }, [value]);
+
   return (
     <View style={{ gap: 12 }}>
       <View style={styles.grid}>
@@ -97,12 +106,23 @@ export function BodyFatPicker({ t, sex, value, onChange }: Props) {
         label="Ou saisis ton % exact (si tu le connais)"
         suffix="%"
         keyboardType="decimal-pad"
-        value={value != null ? String(value) : ''}
+        value={pctText}
         onChangeText={(txt) => {
-          const n = parseFloat(txt.replace(',', '.'));
+          setPctText(txt);
           if (!txt) return onChange(undefined);
+          const n = parseFloat(txt.replace(',', '.'));
           if (Number.isNaN(n)) return;
-          onChange(Math.min(Math.max(n, BODY_FAT_MIN), BODY_FAT_MAX));
+          // Pendant la frappe : seul le clamp MAX (évite l'absurde) ; le MIN
+          // est appliqué au blur pour ne pas casser la saisie progressive.
+          onChange(Math.min(n, BODY_FAT_MAX));
+        }}
+        onEndEditing={() => {
+          if (!pctText) return;
+          const n = parseFloat(pctText.replace(',', '.'));
+          if (Number.isNaN(n)) { onChange(undefined); setPctText(''); return; }
+          const clamped = Math.min(Math.max(n, BODY_FAT_MIN), BODY_FAT_MAX);
+          onChange(clamped);
+          setPctText(String(clamped));
         }}
         placeholder="ex. 18"
       />

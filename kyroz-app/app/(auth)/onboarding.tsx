@@ -13,10 +13,8 @@ import {
 } from '../../components/ui';
 import { BodyFatPicker } from '../../components/BodyFatPicker';
 import { DislikedFoodsField } from '../../components/DislikedFoodsField';
-import { Sheet } from '../../components/Sheet';
-import { FixedMealSheet } from '../../components/FixedMealSheet';
 import {
-  ActivityLevel, DietaryRestriction, FixedMeals, Goal, MEAL_ORDER, MealEmphasis, MealType, Sex, SportSession, UserProfile, VarietyPreference,
+  ActivityLevel, DietaryRestriction, Goal, MEAL_ORDER, MealType, Sex, SportSession, UserProfile, VarietyPreference,
 } from '../../lib/types';
 import {
   calculateTDEE, calculateMacros, validateProfile, goalLabel, recalcProfile,
@@ -78,10 +76,6 @@ const MEAL_OPTS: { label: string; val: MealType }[] = [
 function orderedMeals(selected: MealType[]): MealType[] {
   return MEAL_ORDER.filter((m) => selected.includes(m));
 }
-const EMPHASIS_OPTS: { label: string; val: MealEmphasis }[] = [
-  { label: 'Équilibré', val: 'even' }, { label: 'Plus le matin', val: 'breakfast' },
-  { label: 'Plus le midi', val: 'lunch' }, { label: 'Plus le soir', val: 'dinner' },
-];
 
 function activityFromDays(d: number): ActivityLevel {
   if (d <= 0) return 'sedentary';
@@ -118,10 +112,8 @@ export default function Onboarding() {
   const [maxPrep, setMaxPrep] = useState(15);
   const [variety, setVariety] = useState<VarietyPreference>('balanced');
   const [planWeekdays, setPlanWeekdays] = useState<number[]>([]); // rien coché par défaut → l'user sélectionne (noir = off, blanc = on)
+  const [restWeekdays, setRestWeekdays] = useState<number[]>([]);  // jours de repos (sous-ensemble des jours du plan) → carb-cycling
   const [meals, setMeals] = useState<MealType[]>(['breakfast', 'lunch', 'dinner', 'snack']);
-  const [emphasis, setEmphasis] = useState<MealEmphasis>('even');
-  const [fixedMeals, setFixedMeals] = useState<FixedMeals>({});      // repas que l'user gère lui-même
-  const [definingMeal, setDefiningMeal] = useState<MealType | null>(null);
 
   const ageN = parseInt(age), wN = parseFloat(weight), hN = parseFloat(height);
   // Étapes à validation requise (les autres sont libres) :
@@ -144,16 +136,18 @@ export default function Onboarding() {
   const toggle = <T,>(arr: T[], v: T, set: (x: T[]) => void) =>
     set(arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
 
-  // Toggle d'un repas : si on retire le repas mis en avant, on remet « équilibré »
-  const toggleMeal = (v: MealType) => {
-    const next = meals.includes(v) ? meals.filter((x) => x !== v) : [...meals, v];
-    setMeals(next);
-    if (emphasis !== 'even' && !next.includes(emphasis as MealType)) setEmphasis('even');
-    if (!next.includes(v)) setFixedMeals((prev) => { if (!prev[v]) return prev; const n = { ...prev }; delete n[v]; return n; });
+  const toggleMeal = (v: MealType) =>
+    setMeals((arr) => arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
+
+  // Toggle d'un jour du plan : le retirer le retire aussi des jours de repos
+  // (un jour de repos doit rester un jour planifié).
+  const togglePlanDay = (v: number) => {
+    const removing = planWeekdays.includes(v);
+    setPlanWeekdays((arr) => removing ? arr.filter((x) => x !== v) : [...arr, v]);
+    if (removing) setRestWeekdays((arr) => arr.filter((x) => x !== v));
   };
-  const mealLabel = (mt: MealType) => MEAL_OPTS.find((o) => o.val === mt)?.label ?? mt;
-  // L'emphase n'est proposée que pour les repas réellement sélectionnés
-  const emphasisOpts = EMPHASIS_OPTS.filter((e) => e.val === 'even' || meals.includes(e.val as MealType));
+  const toggleRestDay = (v: number) =>
+    setRestWeekdays((arr) => arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
 
   // Calculs dérivés — macros TOUJOURS calculées (auto) à l'onboarding ; l'ajustement
   // perso en % vit dans le profil (éditeur Calories & macros), pas ici.
@@ -196,14 +190,14 @@ export default function Onboarding() {
       tdee_kcal: 0, target_kcal: 0, target_protein_g: 0, target_carbs_g: 0, target_fat_g: 0,
       plan_days: planWeekdays.length,
       plan_weekdays: orderedWeekdays(planWeekdays),
+      // Jours de repos choisis (sous-ensemble des jours du plan) → carb-cycling.
+      // On filtre par sécurité contre planWeekdays. Repas fixes + emphase se règlent
+      // dans le profil (MealsEditor) ; l'onboarding pose les valeurs neutres.
+      rest_weekdays: orderedWeekdays(restWeekdays.filter((d) => planWeekdays.includes(d))),
       meals: orderedMeals(meals),
-      meal_emphasis: emphasis,
+      meal_emphasis: 'even',
       variety,
-      fixed_meals: (() => {
-        const cleaned: FixedMeals = {};
-        for (const mt of orderedMeals(meals)) if (fixedMeals[mt]) cleaned[mt] = fixedMeals[mt];
-        return Object.keys(cleaned).length ? cleaned : undefined;
-      })(),
+      fixed_meals: undefined,
       dietary_restrictions: restrictions,
       disliked_foods: dislikes,
       preferred_proteins: proteins.map((p) => p.toLowerCase()),
@@ -332,7 +326,7 @@ export default function Onboarding() {
               {WEEKDAY_OPTS.map((d) => {
                 const on = planWeekdays.includes(d.val);
                 return (
-                  <TouchableOpacity key={d.val} onPress={() => toggle(planWeekdays, d.val, setPlanWeekdays)} activeOpacity={0.8}
+                  <TouchableOpacity key={d.val} onPress={() => togglePlanDay(d.val)} activeOpacity={0.8}
                     style={[s.dayCircle, { backgroundColor: on ? t.accent : t.fill, borderColor: on ? t.accent : t.line }]}>
                     <Text style={{ color: on ? t.onAccent : t.textTertiary, fontWeight: '700', fontSize: 13 }}>{d.label}</Text>
                   </TouchableOpacity>
@@ -341,6 +335,20 @@ export default function Onboarding() {
             </View>
             <Text style={[s.sub, { marginTop: -4 }]}>{planWeekdays.length} jour{planWeekdays.length > 1 ? 's' : ''} par semaine</Text>
 
+            {/* Jours de repos = sous-ensemble des jours du plan → carb-cycling. */}
+            <SectionLabel t={t}>Jours de repos</SectionLabel>
+            <Text style={[s.sub, { marginTop: -8, fontSize: 12 }]}>
+              Tes jours sans entraînement : Kyroz baisse un peu les glucides et monte les lipides (mêmes calories) et privilégie les recettes « récup ».
+            </Text>
+            <View style={s.wrap}>
+              {(planWeekdays.length ? WEEKDAY_OPTS.filter((o) => planWeekdays.includes(o.val)) : []).map((d) => (
+                <Chip key={d.val} t={t} label={d.label} selected={restWeekdays.includes(d.val)} onPress={() => toggleRestDay(d.val)} />
+              ))}
+            </View>
+            {planWeekdays.length === 0 && (
+              <Text style={[s.sub, { marginTop: -4, fontSize: 12 }]}>Choisis d'abord tes jours de plan ci-dessus.</Text>
+            )}
+
             <SectionLabel t={t}>Repas inclus</SectionLabel>
             <View style={s.wrap}>
               {MEAL_OPTS.map((m) => (
@@ -348,43 +356,6 @@ export default function Onboarding() {
               ))}
             </View>
             {meals.length === 0 && <Text style={[s.sub, { marginTop: -4 }]}>Sélectionne au moins 1 repas.</Text>}
-
-            <SectionLabel t={t}>Tu gères déjà certains repas ?</SectionLabel>
-            <Text style={[s.sub, { marginTop: -4 }]}>
-              Si tu manges toujours la même chose (petit-déj, collation…), dis-le une fois : Kyroz le compte et cale tes autres repas autour.
-            </Text>
-            <View style={{ gap: 8 }}>
-              {orderedMeals(meals).map((mt) => {
-                const fm = fixedMeals[mt];
-                return (
-                  <View key={mt} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: t.fill, borderRadius: 12, padding: 14 }}>
-                    <View style={{ flex: 1, paddingRight: 10 }}>
-                      <Text style={{ color: t.text, fontSize: 14, fontWeight: '700' }}>{mealLabel(mt)}</Text>
-                      <Text style={{ color: fm ? t.textSecondary : t.textTertiary, fontSize: 12, marginTop: 3 }} numberOfLines={1}>
-                        {fm ? `🔒 ${fm.label} · ${fm.macros.kcal} kcal` : 'Kyroz le planifie'}
-                      </Text>
-                    </View>
-                    <View style={{ flexDirection: 'row', gap: 16, alignItems: 'center' }}>
-                      {fm && (
-                        <TouchableOpacity onPress={() => setFixedMeals((prev) => { const n = { ...prev }; delete n[mt]; return n; })} hitSlop={8}>
-                          <Text style={{ color: t.textTertiary, fontSize: 13, fontWeight: '700' }}>Retirer</Text>
-                        </TouchableOpacity>
-                      )}
-                      <TouchableOpacity onPress={() => setDefiningMeal(mt)} hitSlop={8}>
-                        <Text style={{ color: t.accent, fontSize: 13, fontWeight: '700' }}>{fm ? 'Modifier' : 'Je gère'}</Text>
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                );
-              })}
-            </View>
-
-            <SectionLabel t={t}>Tu manges plus à quel moment ?</SectionLabel>
-            <View style={s.wrap}>
-              {emphasisOpts.map((e) => (
-                <Chip key={e.val} t={t} label={e.label} selected={emphasis === e.val} onPress={() => setEmphasis(e.val)} />
-              ))}
-            </View>
           </View>
         )}
 
@@ -447,17 +418,6 @@ export default function Onboarding() {
         {hint && !canProceed && <Text style={s.hint}>{hint}</Text>}
         <PrimaryButton t={t} label={step === TOTAL_STEPS ? 'Générer mon plan' : 'Continuer'} onPress={next} loading={saving} />
       </View>
-
-      {/* Définition d'un repas géré par l'user (petit-déj/collation récurrent). */}
-      <Sheet visible={!!definingMeal} onClose={() => setDefiningMeal(null)}>
-        {definingMeal ? (
-          <FixedMealSheet
-            t={t} mealType={definingMeal} initial={fixedMeals[definingMeal]}
-            onSave={(fm) => setFixedMeals((prev) => ({ ...prev, [definingMeal]: fm }))}
-            onClose={() => setDefiningMeal(null)}
-          />
-        ) : <View />}
-      </Sheet>
     </SafeAreaView>
   );
 }
