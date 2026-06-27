@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { ThemePalette, Radius, Spacing, cardShadow } from '../constants/theme';
 import { Streak } from '../lib/types';
-import { chainProgress, streakMessage } from '../lib/streak';
+import { chainProgress, streakMessage, nextMilestone, nextFreezeRecharge } from '../lib/streak';
 
 // ── Chaînon de 7 jours ───────────────────────────────────────────────────────
 // Visualise la progression vers l'objectif 7 jours (North Star). Monochrome,
@@ -26,6 +26,16 @@ function Chain({ t, filled, total }: { t: ThemePalette; filled: number; total: n
   );
 }
 
+// Colonne de stat (valeur + libellé) pour la rangée du bas de la carte.
+function Stat({ t, value, label }: { t: ThemePalette; value: string; label: string }) {
+  return (
+    <View style={styles.stat}>
+      <Text style={[styles.statValue, { color: t.text }]} numberOfLines={1}>{value}</Text>
+      <Text style={[styles.statLabel, { color: t.textTertiary }]} numberOfLines={1}>{label}</Text>
+    </View>
+  );
+}
+
 interface Props {
   t: ThemePalette;
   streak: Streak;
@@ -42,6 +52,8 @@ export function StreakProgress({ t, streak, variant = 'strip' }: Props) {
   const message = streakMessage(streak.current_streak_days);
 
   if (variant === 'card') {
+    const shieldReady = streak.freeze_available !== false;
+    const next = nextMilestone(streak.current_streak_days);
     return (
       <View style={[styles.card, { backgroundColor: t.card }, cardShadow(t)]}>
         <View style={styles.cardMain}>
@@ -51,8 +63,21 @@ export function StreakProgress({ t, streak, variant = 'strip' }: Props) {
         </View>
         <Chain t={t} filled={filled} total={total} />
         <Text style={[styles.message, { color: t.textSecondary }]}>{message}</Text>
-        <Text style={[styles.record, { color: t.textTertiary }]}>
-          Record : {streak.longest_streak_days} jour{streak.longest_streak_days > 1 ? 's' : ''}
+
+        {/* Rangée de stats : remplit la carte sur toute la largeur + statut du bouclier. */}
+        <View style={[styles.statsRow, { borderTopColor: t.line }]}>
+          <Stat t={t} value={`${streak.longest_streak_days} j`} label="Record" />
+          <View style={[styles.vsep, { backgroundColor: t.line }]} />
+          <Stat t={t} value={`${next} j`} label="Prochain palier" />
+          <View style={[styles.vsep, { backgroundColor: t.line }]} />
+          <Stat
+            t={t}
+            value={shieldReady ? '🛡️ Prêt' : `à ${nextFreezeRecharge(streak.current_streak_days)} j`}
+            label="Bouclier"
+          />
+        </View>
+        <Text style={[styles.shieldNote, { color: t.textTertiary }]}>
+          🛡️ Le bouclier pardonne un jour manqué — il se recharge tous les 7 jours.
         </Text>
       </View>
     );
@@ -88,6 +113,12 @@ const styles = StyleSheet.create({
   cardNum: { fontSize: 52, fontWeight: '900', letterSpacing: -2 },
   cardLbl: { fontSize: 15 },
 
+  statsRow: { flexDirection: 'row', alignItems: 'center', alignSelf: 'stretch', marginTop: 6, paddingTop: 16, borderTopWidth: 1 },
+  stat: { flex: 1, alignItems: 'center', gap: 3 },
+  statValue: { fontSize: 16, fontWeight: '800', letterSpacing: -0.3 },
+  statLabel: { fontSize: 11, fontWeight: '600' },
+  vsep: { width: 1, height: 30, opacity: 0.7 },
+  shieldNote: { fontSize: 11, lineHeight: 15, textAlign: 'center', marginTop: 2 },
+
   message: { fontSize: 13, fontWeight: '600', textAlign: 'center' },
-  record: { fontSize: 13 },
 });

@@ -1,7 +1,12 @@
+import { Streak } from './types';
+
 // ── Logique du streak (North Star : 7 jours consécutifs) ─────────────────────
 // Source unique de vérité pour : paliers à célébrer, progression visuelle vers
 // le prochain palier, et microcopie de motivation. Séparée du hook (état) et de
 // l'UI (rendu) pour rester testable et réutilisable plan ⇄ profil.
+
+// Recharge du bouclier : tous les 7 jours de série (1 gel pardonné par semaine).
+const FREEZE_RECHARGE = 7;
 
 // Paliers célébrés. 7 est LE palier du North Star (% d'utilisateurs à 7 jours
 // consécutifs dans les 14 premiers jours) ; 3 récompense tôt pour amorcer
@@ -65,4 +70,59 @@ export function celebrationCopy(n: number): { emoji: string; title: string; body
     default:
       return { emoji: '👑', title: `${n} jours d’affilée`, body: 'Une régularité hors norme. Respect.' };
   }
+}
+
+// ── Bouclier de série (gel d'un jour manqué) ─────────────────────────────────
+
+export interface StreakStep {
+  streak: Streak;
+  froze: boolean;                  // un jour manqué vient d'être pardonné (gel)
+  reachedMilestone: number | null; // palier franchi à célébrer (jamais sur un gel)
+}
+
+/** Prochain palier de 7 jours où le bouclier se rechargera (pour la microcopie UI). */
+export function nextFreezeRecharge(streakDays: number): number {
+  return Math.ceil((streakDays + 1) / FREEZE_RECHARGE) * FREEZE_RECHARGE;
+}
+
+/**
+ * Applique un jour d'activité à la série, avec « bouclier » :
+ *  - actif hier → +1 (continue) ; le bouclier se recharge à chaque palier de 7.
+ *  - exactement 1 jour manqué + bouclier dispo → série PRÉSERVÉE (gel), bouclier
+ *    consommé (`froze = true`).
+ *  - sinon (≥2 jours manqués, ou 1 jour sans bouclier) → reset à 1, bouclier neuf.
+ * `today/yesterday/dayBefore` = stamps 'YYYY-MM-DD' en heure LOCALE (cf. lib/weight.ts).
+ * Pur & déterministe → testable. Renvoie la MÊME référence `streak` si déjà compté
+ * aujourd'hui (permet à l'appelant de court-circuiter l'écriture).
+ */
+export function advanceStreak(current: Streak, today: string, yesterday: string, dayBefore: string): StreakStep {
+  if (current.last_active_date === today) {
+    return { streak: current, froze: false, reachedMilestone: null }; // déjà compté
+  }
+  const freezeAvail = current.freeze_available !== false; // undefined = dispo
+
+  let newCount: number;
+  let froze = false;
+  let freeze: boolean;
+
+  if (current.last_active_date === yesterday) {
+    newCount = current.current_streak_days + 1;
+    freeze = freezeAvail || newCount % FREEZE_RECHARGE === 0; // recharge au palier 7
+  } else if (current.last_active_date === dayBefore && freezeAvail && current.current_streak_days > 0) {
+    newCount = current.current_streak_days; // série gelée → préservée telle quelle
+    froze = true;
+    freeze = false;                         // bouclier consommé
+  } else {
+    newCount = 1;                           // série cassée → reset
+    freeze = true;                          // nouveau départ protégé
+  }
+
+  const streak: Streak = {
+    current_streak_days: newCount,
+    longest_streak_days: Math.max(newCount, current.longest_streak_days),
+    last_active_date: today,
+    freeze_available: freeze,
+  };
+  // Pas de célébration sur un gel (le compteur n'a pas avancé → on ne re-fête pas).
+  return { streak, froze, reachedMilestone: !froze && isMilestone(newCount) ? newCount : null };
 }
