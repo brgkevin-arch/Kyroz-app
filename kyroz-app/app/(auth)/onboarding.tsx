@@ -7,9 +7,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useTheme, ThemePalette, Spacing } from '../../constants/theme';
-import { DISCLAIMER } from '../../constants/legal';
 import {
-  Card, PrimaryButton, Chip, OptionCard, Field, SectionLabel, Segmented,
+  PrimaryButton, Chip, OptionCard, Field, SectionLabel, Segmented,
 } from '../../components/ui';
 import { BodyFatPicker } from '../../components/BodyFatPicker';
 import { DislikedFoodsField } from '../../components/DislikedFoodsField';
@@ -17,16 +16,14 @@ import {
   ActivityLevel, DietaryRestriction, Goal, MEAL_ORDER, MealType, Sex, SportSession, UserProfile, VarietyPreference,
 } from '../../lib/types';
 import {
-  calculateTDEE, calculateMacros, validateProfile, goalLabel, recalcProfile,
+  validateProfile, goalLabel, recalcProfile,
 } from '../../lib/tdee';
 import { totalSessionsPerWeek } from '../../lib/sport';
 import SportsEditor from '../../components/SportsEditor';
 import { useProfile } from '../../hooks/useProfile';
 import { saveFirstName } from '../../lib/profileName';
-import { useReminder } from '../../hooks/useReminder';
-import { ReminderSlot, remindersSupported } from '../../lib/notifications';
 
-const TOTAL_STEPS = 8;
+const TOTAL_STEPS = 7;
 
 const GOALS: { value: Goal; sub: string }[] = [
   { value: 'cut_aggressive', sub: 'Perdre du gras vite, déficit marqué' },
@@ -90,7 +87,6 @@ export default function Onboarding() {
   const s = useMemo(() => makeStyles(t), [t]);
   const router = useRouter();
   const { saveProfile } = useProfile();
-  const { slot: reminderSlot, choose: chooseReminder, busy: reminderBusy } = useReminder();
 
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
@@ -149,10 +145,8 @@ export default function Onboarding() {
   const toggleRestDay = (v: number) =>
     setRestWeekdays((arr) => arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
 
-  // Calculs dérivés — macros TOUJOURS calculées (auto) à l'onboarding ; l'ajustement
-  // perso en % vit dans le profil (éditeur Calories & macros), pas ici.
-  const tdee = profileReady ? calculateTDEE(sex, wN, hN, ageN, trainingDaysEq, bodyFat, noSport ? [] : sports) : 0;
-  const autoMacros = profileReady ? calculateMacros(tdee, goal, wN, sex, bodyFat) : { target_kcal: 0, protein_g: 0, carbs_g: 0, fat_g: 0 };
+  // Les macros (auto) sont calculées par recalcProfile au finish ; plus de calcul
+  // en ligne ici depuis la suppression de l'étape récap (le reveal du 1er plan les affiche).
 
   // Pourquoi on ne peut pas avancer (message affiché au tap sur « Continuer »).
   const blockReason = (): string | null => {
@@ -358,60 +352,9 @@ export default function Onboarding() {
             {meals.length === 0 && <Text style={[s.sub, { marginTop: -4 }]}>Sélectionne au moins 1 repas.</Text>}
           </View>
         )}
-
-        {step === 8 && (
-          <View style={s.block}>
-            <Text style={s.title}>Ton plan nutritionnel</Text>
-            <Text style={s.sub}>Voici ce qu'on a préparé pour toi.</Text>
-            <Card t={t} style={{ gap: 12 }}>
-              <RecapRow t={t} label="Objectif" value={goalLabel(goal)} />
-              {bodyFat != null && <RecapRow t={t} label="Masse grasse" value={`${bodyFat} %`} />}
-              <RecapRow t={t} label="Calories / jour" value={`${autoMacros.target_kcal} kcal`} strong />
-              <Sep t={t} />
-              <RecapRow t={t} label="Protéines" value={`${autoMacros.protein_g} g`} color={t.protein} />
-              <RecapRow t={t} label="Glucides" value={`${autoMacros.carbs_g} g`} color={t.carbs} />
-              <RecapRow t={t} label="Lipides" value={`${autoMacros.fat_g} g`} color={t.fat} />
-              <Sep t={t} />
-              <RecapRow t={t} label="Plan" value={`${planWeekdays.length} jours · ${meals.length} repas`} />
-            </Card>
-
-            {/* Rappel quotidien (spec §5) — proposé dès l'onboarding : c'est le levier
-                #1 de rétention (revenir chaque jour = série 7 jours = North Star). */}
-            <SectionLabel t={t}>UN RAPPEL CHAQUE JOUR ?</SectionLabel>
-            <Text style={[s.sub, { marginTop: -8 }]}>
-              Un petit coup de pouce quotidien pour consulter ton plan et ne pas casser ta série.
-            </Text>
-            <Segmented<ReminderSlot>
-              t={t}
-              value={reminderSlot}
-              onChange={async (v) => {
-                if (reminderBusy) return;
-                const ok = await chooseReminder(v);
-                if (!ok && v !== 'off') {
-                  Alert.alert(
-                    remindersSupported ? 'Notifications désactivées' : 'Indisponible sur le web',
-                    remindersSupported
-                      ? 'Active les notifications de Kyroz dans les réglages de ton téléphone pour recevoir le rappel.'
-                      : 'Le rappel quotidien fonctionne sur l’app mobile (iOS/Android). Tu pourras l’activer là-bas.',
-                  );
-                }
-              }}
-              options={[
-                { label: 'Aucun', value: 'off' },
-                { label: 'Matin', value: 'morning' },
-                { label: 'Midi', value: 'midday' },
-                { label: 'Soir', value: 'evening' },
-              ]}
-            />
-            <Text style={[s.sub, { marginTop: -8, fontSize: 12 }]}>
-              {reminderSlot === 'off'
-                ? 'Modifiable à tout moment dans ton profil.'
-                : `Chaque jour à ${reminderSlot === 'morning' ? '8h00' : reminderSlot === 'midday' ? '12h00' : '18h30'}. Tu peux le changer dans ton profil.`}
-            </Text>
-
-            <Text style={s.disclaimer}>{DISCLAIMER}</Text>
-          </View>
-        )}
+        {/* L'étape « récap » a été supprimée (2026-06-20) : le récap + le rappel
+            quotidien + le disclaimer vivent désormais dans le reveal du 1er plan
+            (components/FirstPlanReveal.tsx), affiché à l'arrivée sur l'écran Plan. */}
       </ScrollView>
 
       <View style={s.footer}>
@@ -455,19 +398,6 @@ function NameStep({ t, value, onChange }: { t: ThemePalette; value: string; onCh
       </Animated.View>
     </View>
   );
-}
-
-function RecapRow({ t, label, value, color, strong }: { t: ThemePalette; label: string; value: string; color?: string; strong?: boolean }) {
-  return (
-    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-      <Text style={{ color: t.textSecondary, fontSize: 14 }}>{label}</Text>
-      <Text style={{ color: color ?? t.text, fontSize: strong ? 18 : 15, fontWeight: '700' }}>{value}</Text>
-    </View>
-  );
-}
-
-function Sep({ t }: { t: ThemePalette }) {
-  return <View style={{ height: 1, backgroundColor: t.line }} />;
 }
 
 function makeStyles(t: ThemePalette) {
