@@ -28,7 +28,7 @@ App mobile React Native (Expo Router, SDK 56) de plans repas macro-précis pour 
 | Persistance locale | AsyncStorage (clés \`@kyroz:*\`) | En place |
 | Backend / Auth | **Supabase** (région EU) — création de compte email + suppression de compte (RGPD) | Auth OK |
 | Base nutritionnelle | Ciqual (ANSES) primaire + Open Food Facts secondaire | Cible |
-| Analytics | PostHog (cloud EU) | Plus tard |
+| Analytics | PostHog (cloud EU) | **Câblé (dormant)** — `lib/analytics.ts`, consent-gated RGPD ; s'active en posant `EXPO_PUBLIC_POSTHOG_KEY` |
 
 > Avant SDK : lire https://docs.expo.dev/versions/v56.0.0/ — Expo a changé.
 

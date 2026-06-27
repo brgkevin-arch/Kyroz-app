@@ -22,6 +22,7 @@ import { totalSessionsPerWeek } from '../../lib/sport';
 import SportsEditor from '../../components/SportsEditor';
 import { useProfile } from '../../hooks/useProfile';
 import { saveFirstName } from '../../lib/profileName';
+import { capture, Events } from '../../lib/analytics';
 
 const TOTAL_STEPS = 7;
 
@@ -87,6 +88,9 @@ export default function Onboarding() {
   const s = useMemo(() => makeStyles(t), [t]);
   const router = useRouter();
   const { saveProfile } = useProfile();
+
+  // Analytics : début du tunnel (no-op tant que non consenti/configuré).
+  useEffect(() => { capture(Events.onboardingStarted); }, []);
 
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
@@ -203,6 +207,10 @@ export default function Onboarding() {
     setSaving(true);
     await saveFirstName(firstName);
     await saveProfile(profile);
+    capture(Events.onboardingCompleted, {
+      goal, plan_days: planWeekdays.length, meals: meals.length,
+      restrictions: restrictions.length, has_sport: !noSport,
+    });
     setSaving(false);
     router.replace('/(tabs)/plan');
   };

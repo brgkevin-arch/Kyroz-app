@@ -18,6 +18,7 @@ import { DislikedFoodsField } from '../../components/DislikedFoodsField';
 import { MacroSplit } from '../../components/MacroSplit';
 import { WeightCheckin } from '../../components/WeightCheckin';
 import { useHydrationEnabled } from '../../components/HydrationBar';
+import { useAnalyticsConsent } from '../../hooks/useAnalyticsConsent';
 import { useProfile } from '../../hooks/useProfile';
 import { useStreak } from '../../hooks/useStreak';
 import { useReminder } from '../../hooks/useReminder';
@@ -110,6 +111,7 @@ export default function ProfilScreen() {
   const { signOut } = useAuth();
   const themeMode = useThemeMode();
   const [hydrationOn, setHydrationOn] = useHydrationEnabled();
+  const { consent: analyticsConsent, choose: chooseConsent } = useAnalyticsConsent();
   const router = useRouter();
   const [editor, setEditor] = useState<EditorKey | null>(null);
   const [weighIn, setWeighIn] = useState(false);
@@ -295,6 +297,20 @@ export default function ProfilScreen() {
           {hydrationOn
             ? 'Une mini-barre de suivi d’hydratation s’affiche au-dessus de tes repas du jour.'
             : 'La barre d’hydratation est masquée.'}
+        </Text>
+
+        {/* Consentement analytics (RGPD) — opt-in, modifiable à tout moment */}
+        <Text style={s.settingLabel}>Statistiques d'usage</Text>
+        <Segmented<'on' | 'off'>
+          t={t}
+          value={analyticsConsent === 'granted' ? 'on' : 'off'}
+          onChange={(v) => chooseConsent(v === 'on' ? 'granted' : 'denied')}
+          options={[{ label: 'Partagées', value: 'on' }, { label: 'Non', value: 'off' }]}
+        />
+        <Text style={s.reminderHint}>
+          {analyticsConsent === 'granted'
+            ? 'Tu partages des stats d’usage anonymes (jamais ton nom ni tes données perso) pour aider à améliorer Kyroz.'
+            : 'Aucune statistique d’usage n’est partagée.'}
         </Text>
 
         <View style={[s.menu, cardShadow(t)]}>
