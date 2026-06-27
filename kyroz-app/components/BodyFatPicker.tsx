@@ -116,7 +116,9 @@ export function BodyFatPicker({ t, sex, value, onChange }: Props) {
           // est appliqué au blur pour ne pas casser la saisie progressive.
           onChange(Math.min(n, BODY_FAT_MAX));
         }}
-        onEndEditing={() => {
+        // ⚠️ `onBlur` et NON `onEndEditing` : react-native-web ne câble PAS
+        // onEndEditing (no-op sur le web déployé) — seul onBlur est appelé au blur.
+        onBlur={() => {
           if (!pctText) return;
           const n = parseFloat(pctText.replace(',', '.'));
           if (Number.isNaN(n)) { onChange(undefined); setPctText(''); return; }
