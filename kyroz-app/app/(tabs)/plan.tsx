@@ -22,6 +22,7 @@ import { DislikeSheet } from '../../components/DislikeSheet';
 import { ActionSheet } from '../../components/ActionSheet';
 import { PrimaryButton, SectionLabel } from '../../components/ui';
 import { HydrationBar, useHydrationEnabled } from '../../components/HydrationBar';
+import { AnalyticsConsentBanner } from '../../components/AnalyticsConsentBanner';
 import { useTourTarget, useTour, hasSeenTour, TourStep } from '../../components/GuidedTour';
 import { useProfile } from '../../hooks/useProfile';
 import { useFavorites } from '../../hooks/useFavorites';
@@ -38,6 +39,7 @@ import { getRecipeById, getBaseRecipe } from '../../lib/recipes';
 import { useRecipeOverrides } from '../../hooks/useRecipeOverrides';
 import { loadPantry, savePantry, deductIngredients, recipeCoverage, PantryItem } from '../../lib/pantry';
 import { loadFirstName } from '../../lib/profileName';
+import { capture, Events } from '../../lib/analytics';
 import { Macros, Meal, MealPlan, MealStatus, Recipe } from '../../lib/types';
 
 const PLAN_KEY = '@kyroz:plan';
@@ -176,7 +178,10 @@ export default function PlanScreen() {
   // North Star (jours d'usage consécutifs) : un utilisateur actif qui OUVRE son
   // plan compte pour la journée — qu'il régénère ou non. C'est l'usage qu'on
   // veut récompenser (suivre son plan), pas le fait de cliquer « Nouveau plan ».
-  useEffect(() => { if (profile) markActiveToday(); }, [profile]);
+  useEffect(() => { if (profile) { markActiveToday(); capture(Events.planOpened); } }, [profile]);
+
+  // Analytics : palier de série franchi (3/7/14…) — no-op tant que non consenti.
+  useEffect(() => { if (celebration) capture(Events.streakMilestone, { days: celebration }); }, [celebration]);
 
   // Auto-refresh : dès qu'un réglage qui affecte le plan change (jours, repas,
   // macros, objectif, régime…), on régénère automatiquement — plus besoin de
@@ -282,6 +287,7 @@ export default function PlanScreen() {
       if (!reroll && !(await AsyncStorage.getItem(FIRST_PLAN_KEY))) {
         await AsyncStorage.setItem(FIRST_PLAN_KEY, '1');
         setShowReveal(true);
+        capture(Events.firstPlanViewed);
       }
       setPlan(p);
       await markActiveToday();
@@ -302,7 +308,7 @@ export default function PlanScreen() {
 
   // Bouclier de série : un jour manqué vient d'être pardonné → on rassure l'utilisateur.
   useEffect(() => {
-    if (froze) { toast('🛡️ Série protégée — un jour manqué pardonné. Reviens demain 👊'); clearFroze(); }
+    if (froze) { toast('🛡️ Série protégée — un jour manqué pardonné. Reviens demain 👊'); capture(Events.streakFrozen); clearFroze(); }
   }, [froze]);
 
   // Persiste un plan modifié + invalide les courses (portions/repas changés) et
@@ -337,6 +343,7 @@ export default function PlanScreen() {
     setPantry(next);
     await setMealStatus(meal, 'eaten', meal.macros);
     await markActiveToday(); // manger selon le plan = adhésion réelle
+    capture(Events.mealCooked, { meal_type: meal.meal_type });
     setSelectedMeal(null);
     toast('✓ Mangé — journée recalée 👊');
   };
@@ -537,6 +544,9 @@ export default function PlanScreen() {
 
         {/* Progression vers l'objectif 7 jours (North Star) */}
         <StreakProgress t={t} streak={streak} variant="strip" />
+
+        {/* Consentement analytics (RGPD) — prompt une fois, post-onboarding */}
+        <AnalyticsConsentBanner />
 
         {/* Check-in poids hebdo : ramène l'utilisateur + garde le plan juste dans le temps */}
         {weighInDue && (
