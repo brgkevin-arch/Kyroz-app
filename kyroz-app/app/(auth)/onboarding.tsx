@@ -19,17 +19,16 @@ import {
   ActivityLevel, DietaryRestriction, FixedMeals, Goal, MEAL_ORDER, MealEmphasis, MealType, Sex, SportSession, UserProfile, VarietyPreference,
 } from '../../lib/types';
 import {
-  calculateTDEE, calculateMacros, validateProfile, goalLabel, macrosPercent, DEFAULT_CARB_RATIO, recommendedProteinPerKg, recalcProfile,
+  calculateTDEE, calculateMacros, validateProfile, goalLabel, recalcProfile,
 } from '../../lib/tdee';
 import { totalSessionsPerWeek } from '../../lib/sport';
 import SportsEditor from '../../components/SportsEditor';
-import { MacroSplit } from '../../components/MacroSplit';
 import { useProfile } from '../../hooks/useProfile';
 import { saveFirstName } from '../../lib/profileName';
 import { useReminder } from '../../hooks/useReminder';
 import { ReminderSlot, remindersSupported } from '../../lib/notifications';
 
-const TOTAL_STEPS = 10;
+const TOTAL_STEPS = 9;
 
 const GOALS: { value: Goal; sub: string }[] = [
   { value: 'cut_aggressive', sub: 'Perdre du gras vite, déficit marqué' },
@@ -113,9 +112,6 @@ export default function Onboarding() {
   const [sports, setSports] = useState<SportSession[]>([]);
   const [noSport, setNoSport] = useState(false); // « je ne fais pas de sport » → calcul base seule
   const [goal, setGoal] = useState<Goal>('cut');
-  const [macroMode, setMacroMode] = useState<'auto' | 'percent'>('auto');
-  const [carbRatio, setCarbRatio] = useState(DEFAULT_CARB_RATIO);
-  const [proteinPerKg, setProteinPerKg] = useState(recommendedProteinPerKg('cut'));
   const [restrictions, setRestrictions] = useState<DietaryRestriction[]>([]);
   const [proteins, setProteins] = useState<string[]>([]);
   const [dislikes, setDislikes] = useState<string[]>([]);
@@ -127,9 +123,6 @@ export default function Onboarding() {
   const [fixedMeals, setFixedMeals] = useState<FixedMeals>({});      // repas que l'user gère lui-même
   const [definingMeal, setDefiningMeal] = useState<MealType | null>(null);
 
-  // La protéine conseillée dépend de l'objectif → on aligne le défaut quand il change.
-  useEffect(() => { setProteinPerKg(recommendedProteinPerKg(goal)); }, [goal]);
-
   const ageN = parseInt(age), wN = parseFloat(weight), hN = parseFloat(height);
   // Étapes à validation requise (les autres sont libres) :
   const firstNameValid = firstName.trim().length > 0;                                    // étape 1 — prénom
@@ -137,7 +130,7 @@ export default function Onboarding() {
   const bodyFatValid = bodyFat != null;                                                   // étape 3 — masse grasse
   const trainingValid = noSport || sports.length >= 1;                                     // étape 4 — activité (sports ou « aucun »)
   const trainingDaysEq = noSport ? 0 : Math.min(totalSessionsPerWeek(sports), 7);          // repli legacy (activity_level / training_days)
-  const mealsValid = planWeekdays.length >= 1 && meals.length >= 1;                        // étape 9 — jours + repas
+  const mealsValid = planWeekdays.length >= 1 && meals.length >= 1;                        // étape 8 — jours + repas
   const profileReady = basicsValid && bodyFatValid; // suffisant pour les calculs TDEE/macros
 
   const canProceed =
@@ -145,8 +138,8 @@ export default function Onboarding() {
     (step === 2 && basicsValid) ||
     (step === 3 && bodyFatValid) ||
     (step === 4 && trainingValid) ||
-    (step === 9 && mealsValid) ||
-    ![1, 2, 3, 4, 9].includes(step);
+    (step === 8 && mealsValid) ||
+    ![1, 2, 3, 4, 8].includes(step);
 
   const toggle = <T,>(arr: T[], v: T, set: (x: T[]) => void) =>
     set(arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
@@ -162,12 +155,10 @@ export default function Onboarding() {
   // L'emphase n'est proposée que pour les repas réellement sélectionnés
   const emphasisOpts = EMPHASIS_OPTS.filter((e) => e.val === 'even' || meals.includes(e.val as MealType));
 
-  // Calculs dérivés
+  // Calculs dérivés — macros TOUJOURS calculées (auto) à l'onboarding ; l'ajustement
+  // perso en % vit dans le profil (éditeur Calories & macros), pas ici.
   const tdee = profileReady ? calculateTDEE(sex, wN, hN, ageN, trainingDaysEq, bodyFat, noSport ? [] : sports) : 0;
   const autoMacros = profileReady ? calculateMacros(tdee, goal, wN, sex, bodyFat) : { target_kcal: 0, protein_g: 0, carbs_g: 0, fat_g: 0 };
-  const finalMacros = macroMode === 'percent' && profileReady
-    ? macrosPercent(tdee, goal, wN, sex, bodyFat, carbRatio, proteinPerKg)
-    : autoMacros;
 
   // Pourquoi on ne peut pas avancer (message affiché au tap sur « Continuer »).
   const blockReason = (): string | null => {
@@ -176,7 +167,7 @@ export default function Onboarding() {
     if (step === 3 && !bodyFatValid)
       return 'On a besoin de ta masse grasse pour te calculer le plan le plus juste possible — choisis la silhouette la plus proche de toi, ou saisis ton % si tu le connais.';
     if (step === 4 && !trainingValid) return 'Choisis au moins un sport, ou indique que tu n\'en fais pas.';
-    if (step === 9 && !mealsValid) return 'Choisis au moins un jour et un repas.';
+    if (step === 8 && !mealsValid) return 'Choisis au moins un jour et un repas.';
     return null;
   };
 
@@ -201,9 +192,7 @@ export default function Onboarding() {
       training_days_per_week: trainingDaysEq,
       sports: noSport ? [] : sports,
       goal,
-      macro_mode: macroMode,
-      carb_ratio: macroMode === 'percent' ? carbRatio : undefined,
-      protein_per_kg: macroMode === 'percent' ? proteinPerKg : undefined,
+      macro_mode: 'auto', // onboarding = macros calculées ; le mode « perso % » se règle dans le profil
       tdee_kcal: 0, target_kcal: 0, target_protein_g: 0, target_carbs_g: 0, target_fat_g: 0,
       plan_days: planWeekdays.length,
       plan_weekdays: orderedWeekdays(planWeekdays),
@@ -299,29 +288,6 @@ export default function Onboarding() {
 
         {step === 6 && (
           <View style={s.block}>
-            <Text style={s.title}>Tes macros</Text>
-            <Text style={s.sub}>On les calcule pour toi, ou tu choisis ta répartition (les grammes suivent ton poids).</Text>
-            <Segmented t={t} options={[{ label: 'Calculées', value: 'auto' }, { label: 'Perso %', value: 'percent' }]} value={macroMode} onChange={setMacroMode} />
-            {macroMode === 'auto' ? (
-              <Card t={t} style={{ gap: 12 }}>
-                <RecapRow t={t} label="Objectif calorique" value={`${autoMacros.target_kcal} kcal`} strong />
-                <Sep t={t} />
-                <RecapRow t={t} label="Protéines" value={`${autoMacros.protein_g} g`} color={t.protein} />
-                <RecapRow t={t} label="Glucides" value={`${autoMacros.carbs_g} g`} color={t.carbs} />
-                <RecapRow t={t} label="Lipides" value={`${autoMacros.fat_g} g`} color={t.fat} />
-              </Card>
-            ) : (
-              <MacroSplit
-                t={t} tdee={tdee} goal={goal} weight={wN} sex={sex}
-                bodyFat={bodyFat} carbRatio={carbRatio} proteinPerKg={proteinPerKg}
-                onCarbChange={setCarbRatio} onProteinChange={setProteinPerKg}
-              />
-            )}
-          </View>
-        )}
-
-        {step === 7 && (
-          <View style={s.block}>
             <Text style={s.title}>Tes préférences</Text>
             <Text style={s.sub}>Pour des recettes qui te ressemblent vraiment.</Text>
 
@@ -350,7 +316,7 @@ export default function Onboarding() {
           </View>
         )}
 
-        {step === 8 && (
+        {step === 7 && (
           <View style={s.block}>
             <Text style={s.title}>Variété des repas</Text>
             <Text style={s.sub}>Tu préfères la routine ou la diversité ?</Text>
@@ -362,7 +328,7 @@ export default function Onboarding() {
           </View>
         )}
 
-        {step === 9 && (
+        {step === 8 && (
           <View style={s.block}>
             <Text style={s.title}>Tes jours de plan</Text>
             <Text style={s.sub}>Choisis les jours où tu veux suivre ton plan.</Text>
@@ -426,18 +392,18 @@ export default function Onboarding() {
           </View>
         )}
 
-        {step === 10 && (
+        {step === 9 && (
           <View style={s.block}>
             <Text style={s.title}>Ton plan nutritionnel</Text>
             <Text style={s.sub}>Voici ce qu'on a préparé pour toi.</Text>
             <Card t={t} style={{ gap: 12 }}>
               <RecapRow t={t} label="Objectif" value={goalLabel(goal)} />
               {bodyFat != null && <RecapRow t={t} label="Masse grasse" value={`${bodyFat} %`} />}
-              <RecapRow t={t} label="Calories / jour" value={`${finalMacros.target_kcal} kcal`} strong />
+              <RecapRow t={t} label="Calories / jour" value={`${autoMacros.target_kcal} kcal`} strong />
               <Sep t={t} />
-              <RecapRow t={t} label="Protéines" value={`${finalMacros.protein_g} g`} color={t.protein} />
-              <RecapRow t={t} label="Glucides" value={`${finalMacros.carbs_g} g`} color={t.carbs} />
-              <RecapRow t={t} label="Lipides" value={`${finalMacros.fat_g} g`} color={t.fat} />
+              <RecapRow t={t} label="Protéines" value={`${autoMacros.protein_g} g`} color={t.protein} />
+              <RecapRow t={t} label="Glucides" value={`${autoMacros.carbs_g} g`} color={t.carbs} />
+              <RecapRow t={t} label="Lipides" value={`${autoMacros.fat_g} g`} color={t.fat} />
               <Sep t={t} />
               <RecapRow t={t} label="Plan" value={`${planWeekdays.length} jours · ${meals.length} repas`} />
             </Card>
