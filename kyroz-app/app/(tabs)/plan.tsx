@@ -14,6 +14,7 @@ import { RecipeEditor } from '../../components/RecipeEditor';
 import { Sheet } from '../../components/Sheet';
 import { StreakProgress } from '../../components/StreakProgress';
 import { StreakCelebration } from '../../components/StreakCelebration';
+import { FirstPlanReveal } from '../../components/FirstPlanReveal';
 import { WeightCheckin } from '../../components/WeightCheckin';
 import { PlanCheckin } from '../../components/PlanCheckin';
 import { OffPlanSheet } from '../../components/OffPlanSheet';
@@ -45,6 +46,10 @@ const SEED_KEY = '@kyroz:planSeed';
 // Drapeau posé par Profil (« Régénérer mon plan ») → l'écran Plan rejoue une
 // génération « reroll » au prochain focus. Découple les deux écrans sans prop.
 const REROLL_KEY = '@kyroz:planReroll';
+// Reveal du 1er plan (J1) : posé après la toute première génération (depuis
+// l'onboarding) → l'overlay ne s'affiche QU'UNE fois. Backfillé pour les profils
+// qui ont déjà un plan (ne pas le montrer aux utilisateurs existants).
+const FIRST_PLAN_KEY = '@kyroz:firstPlanSeen';
 const WD = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
 
 // Visite guidée de l'onglet Plan (pilote). Les bulles ne s'affichent que la 1re
@@ -132,6 +137,7 @@ export default function PlanScreen() {
   const [offPlanOpen, setOffPlanOpen] = useState(false);
   const [adaptPrompt, setAdaptPrompt] = useState<number | null>(null); // kcal de l'écart en attente de décision Oui/Non
   const [refreshing, setRefreshing] = useState(false);
+  const [showReveal, setShowReveal] = useState(false); // overlay « 1er plan prêt » (J1)
   const autoTried = React.useRef(false);
   const tourTried = React.useRef(false);
   const scrollRef = React.useRef<ScrollView>(null);
@@ -146,12 +152,14 @@ export default function PlanScreen() {
   // Visite guidée : au 1er affichage d'un plan, on lance le tour s'il n'a jamais
   // été vu. Petit délai pour laisser la mise en page (et le ScrollView) se poser.
   useEffect(() => {
-    if (loading || !plan || tourTried.current) return;
+    // Le reveal du 1er plan passe AVANT le tour : tant qu'il est affiché, on
+    // n'arme pas le tour (tourTried reste false) → il démarre à sa fermeture.
+    if (loading || !plan || tourTried.current || showReveal) return;
     tourTried.current = true;
     hasSeenTour('plan').then((seen) => {
       if (!seen) setTimeout(() => startTour('plan', PLAN_TOUR, { scrollRef }), 650);
     });
-  }, [loading, plan, startTour]);
+  }, [loading, plan, startTour, showReveal]);
 
   // Garde-manger : rechargé à chaque fois qu'on revient sur l'onglet Plan, pour
   // refléter ce qui a été coché dans Courses (synchro plan ↔ frigo).
@@ -242,7 +250,12 @@ export default function PlanScreen() {
 
   const load = async () => {
     const raw = await AsyncStorage.getItem(PLAN_KEY);
-    if (raw) setPlan(JSON.parse(raw));
+    if (raw) {
+      setPlan(JSON.parse(raw));
+      // Un plan existe déjà → utilisateur NON nouveau : on marque le reveal comme vu
+      // (il ne doit s'afficher qu'aux vrais primo-arrivants depuis l'onboarding).
+      AsyncStorage.setItem(FIRST_PLAN_KEY, '1');
+    }
     setLoading(false);
   };
 
@@ -263,6 +276,13 @@ export default function PlanScreen() {
       const p = await generateMealPlan(profile, seed);
       await AsyncStorage.setItem(PLAN_KEY, JSON.stringify(p));
       await AsyncStorage.removeItem(LIST_KEY);
+      // Reveal J1 : seulement à la 1re génération (pas un reroll) et jamais revu.
+      // setShowReveal AVANT setPlan → le tour guidé ne s'arme pas tant que le
+      // reveal est ouvert (cf. effet du tour).
+      if (!reroll && !(await AsyncStorage.getItem(FIRST_PLAN_KEY))) {
+        await AsyncStorage.setItem(FIRST_PLAN_KEY, '1');
+        setShowReveal(true);
+      }
       setPlan(p);
       await markActiveToday();
     } finally { setGenerating(false); }
@@ -713,6 +733,17 @@ export default function PlanScreen() {
           />
         )}
       </Sheet>
+
+      {/* Reveal du 1er plan (J1) : une seule fois, avant la visite guidée */}
+      {profile && (
+        <FirstPlanReveal
+          visible={showReveal}
+          profile={profile}
+          firstName={firstName}
+          previewMeals={plan ? plan.meals.filter((m) => m.day === 1).slice(0, 4) : []}
+          onClose={() => setShowReveal(false)}
+        />
+      )}
 
       {/* Célébration quand un palier de série est franchi (3/7/14…) */}
       <StreakCelebration milestone={celebration} onClose={clearCelebration} />
