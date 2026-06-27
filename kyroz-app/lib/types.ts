@@ -257,4 +257,8 @@ export interface Streak {
   current_streak_days: number;
   longest_streak_days: number;
   last_active_date: string;
+  // « Bouclier de série » : pardonne UN jour manqué (gel), se recharge tous les
+  // 7 jours. LOCAL-ONLY (pas synchronisé, pas de colonne Supabase). undefined =
+  // dispo (rétro-compat : les profils existants démarrent protégés).
+  freeze_available?: boolean;
 }

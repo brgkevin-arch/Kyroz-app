@@ -115,7 +115,7 @@ export default function PlanScreen() {
   const router = useRouter();
   const [hydrationEnabled] = useHydrationEnabled(); // réglage Profil : afficher/masquer la barre
   const { startTour } = useTour();
-  const { streak, markActiveToday, celebration, clearCelebration } = useStreak();
+  const { streak, markActiveToday, celebration, clearCelebration, froze, clearFroze } = useStreak();
   const { due: weighInDue } = useWeightLog();
   const [weighIn, setWeighIn] = useState(false);
   const { due: checkinDue, snooze: snoozeCheckin, optOutForever: optOutCheckin } = usePlanCheckin();
@@ -299,6 +299,11 @@ export default function PlanScreen() {
   }, [profile]));
 
   const toast = (msg: string) => { setCookedNote(msg); setTimeout(() => setCookedNote(null), 2600); };
+
+  // Bouclier de série : un jour manqué vient d'être pardonné → on rassure l'utilisateur.
+  useEffect(() => {
+    if (froze) { toast('🛡️ Série protégée — un jour manqué pardonné. Reviens demain 👊'); clearFroze(); }
+  }, [froze]);
 
   // Persiste un plan modifié + invalide les courses (portions/repas changés) et
   // resynchronise la fiche repas ouverte si besoin.

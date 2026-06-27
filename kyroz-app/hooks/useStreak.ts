@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Streak } from '../lib/types';
 import { pushStreak } from '../lib/sync';
-import { isMilestone } from '../lib/streak';
+import { advanceStreak, StreakStep } from '../lib/streak';
 import { localStamp } from '../lib/weight';
 
 const STREAK_KEY = '@kyroz:streak';
@@ -11,6 +11,7 @@ const DEFAULT_STREAK: Streak = {
   current_streak_days: 0,
   longest_streak_days: 0,
   last_active_date: '',
+  freeze_available: true,
 };
 
 // Date 'YYYY-MM-DD' en heure LOCALE (jamais toISOString/UTC — voir lib/weight.ts).
@@ -26,38 +27,27 @@ function dayStamp(offsetDays = 0): string {
 // écrive → double incrément, et le streak afficherait 2 dès le jour 1.
 let markChain: Promise<Streak> = Promise.resolve(DEFAULT_STREAK);
 
-// Section critique sérialisée : lit le storage frais, applique la règle de série,
-// écrit, et signale si un palier vient d'être franchi.
-async function doMark(): Promise<{ streak: Streak; reachedMilestone: number | null }> {
+// Section critique sérialisée : lit le storage frais, applique la règle de série
+// (avec bouclier), écrit si ça a changé, et signale palier / gel.
+async function doMark(): Promise<StreakStep> {
   const raw = await AsyncStorage.getItem(STREAK_KEY);
   const current: Streak = raw ? JSON.parse(raw) : DEFAULT_STREAK;
 
-  const today = dayStamp(0);
-  const yesterday = dayStamp(-1);
+  const step = advanceStreak(current, dayStamp(0), dayStamp(-1), dayStamp(-2));
 
-  if (current.last_active_date === today) {
-    return { streak: current, reachedMilestone: null }; // déjà compté aujourd'hui
+  if (step.streak !== current) { // référence inchangée = déjà compté aujourd'hui → pas d'écriture
+    await AsyncStorage.setItem(STREAK_KEY, JSON.stringify(step.streak));
+    pushStreak(step.streak); // miroir cloud (best-effort ; freeze_available non poussé = local-only)
   }
-
-  const continues = current.last_active_date === yesterday;
-  const newCount = continues ? current.current_streak_days + 1 : 1;
-
-  const updated: Streak = {
-    current_streak_days: newCount,
-    longest_streak_days: Math.max(newCount, current.longest_streak_days),
-    last_active_date: today,
-  };
-
-  await AsyncStorage.setItem(STREAK_KEY, JSON.stringify(updated));
-  pushStreak(updated); // miroir cloud (best-effort)
-
-  return { streak: updated, reachedMilestone: isMilestone(newCount) ? newCount : null };
+  return step;
 }
 
 export function useStreak() {
   const [streak, setStreak] = useState<Streak>(DEFAULT_STREAK);
   // Palier franchi à l'instant (3/7/14…), à célébrer puis effacer.
   const [celebration, setCelebration] = useState<number | null>(null);
+  // Un jour manqué vient d'être pardonné (gel) → l'appelant affiche une note.
+  const [froze, setFroze] = useState(false);
 
   useEffect(() => {
     AsyncStorage.getItem(STREAK_KEY).then((raw) => {
@@ -70,12 +60,14 @@ export function useStreak() {
     // (même jour) et court-circuitera proprement.
     const run = markChain.then(() => doMark());
     markChain = run.then((r) => r.streak, () => DEFAULT_STREAK);
-    const { streak: next, reachedMilestone } = await run;
+    const { streak: next, reachedMilestone, froze: didFreeze } = await run;
     setStreak(next);
     if (reachedMilestone) setCelebration(reachedMilestone);
+    if (didFreeze) setFroze(true);
   }, []);
 
   const clearCelebration = useCallback(() => setCelebration(null), []);
+  const clearFroze = useCallback(() => setFroze(false), []);
 
-  return { streak, markActiveToday, celebration, clearCelebration };
+  return { streak, markActiveToday, celebration, clearCelebration, froze, clearFroze };
 }
