@@ -28,7 +28,7 @@ import { saveFirstName } from '../../lib/profileName';
 import { useReminder } from '../../hooks/useReminder';
 import { ReminderSlot, remindersSupported } from '../../lib/notifications';
 
-const TOTAL_STEPS = 9;
+const TOTAL_STEPS = 8;
 
 const GOALS: { value: Goal; sub: string }[] = [
   { value: 'cut_aggressive', sub: 'Perdre du gras vite, déficit marqué' },
@@ -130,7 +130,7 @@ export default function Onboarding() {
   const bodyFatValid = bodyFat != null;                                                   // étape 3 — masse grasse
   const trainingValid = noSport || sports.length >= 1;                                     // étape 4 — activité (sports ou « aucun »)
   const trainingDaysEq = noSport ? 0 : Math.min(totalSessionsPerWeek(sports), 7);          // repli legacy (activity_level / training_days)
-  const mealsValid = planWeekdays.length >= 1 && meals.length >= 1;                        // étape 8 — jours + repas
+  const mealsValid = planWeekdays.length >= 1 && meals.length >= 1;                        // étape 7 — jours + repas
   const profileReady = basicsValid && bodyFatValid; // suffisant pour les calculs TDEE/macros
 
   const canProceed =
@@ -138,8 +138,8 @@ export default function Onboarding() {
     (step === 2 && basicsValid) ||
     (step === 3 && bodyFatValid) ||
     (step === 4 && trainingValid) ||
-    (step === 8 && mealsValid) ||
-    ![1, 2, 3, 4, 8].includes(step);
+    (step === 7 && mealsValid) ||
+    ![1, 2, 3, 4, 7].includes(step);
 
   const toggle = <T,>(arr: T[], v: T, set: (x: T[]) => void) =>
     set(arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
@@ -167,7 +167,7 @@ export default function Onboarding() {
     if (step === 3 && !bodyFatValid)
       return 'On a besoin de ta masse grasse pour te calculer le plan le plus juste possible — choisis la silhouette la plus proche de toi, ou saisis ton % si tu le connais.';
     if (step === 4 && !trainingValid) return 'Choisis au moins un sport, ou indique que tu n\'en fais pas.';
-    if (step === 8 && !mealsValid) return 'Choisis au moins un jour et un repas.';
+    if (step === 7 && !mealsValid) return 'Choisis au moins un jour et un repas.';
     return null;
   };
 
@@ -313,13 +313,9 @@ export default function Onboarding() {
                 <Chip key={p} t={t} label={`${p} min`} selected={maxPrep === p} onPress={() => setMaxPrep(p)} />
               ))}
             </View>
-          </View>
-        )}
 
-        {step === 7 && (
-          <View style={s.block}>
-            <Text style={s.title}>Variété des repas</Text>
-            <Text style={s.sub}>Tu préfères la routine ou la diversité ?</Text>
+            <SectionLabel t={t}>Variété des repas</SectionLabel>
+            <Text style={[s.sub, { marginTop: -4 }]}>Tu préfères la routine ou la diversité ?</Text>
             <View style={{ gap: 10 }}>
               {VARIETY.map((v) => (
                 <OptionCard key={v.value} t={t} title={v.title} subtitle={v.sub} selected={variety === v.value} onPress={() => setVariety(v.value)} />
@@ -328,7 +324,7 @@ export default function Onboarding() {
           </View>
         )}
 
-        {step === 8 && (
+        {step === 7 && (
           <View style={s.block}>
             <Text style={s.title}>Tes jours de plan</Text>
             <Text style={s.sub}>Choisis les jours où tu veux suivre ton plan.</Text>
@@ -392,7 +388,7 @@ export default function Onboarding() {
           </View>
         )}
 
-        {step === 9 && (
+        {step === 8 && (
           <View style={s.block}>
             <Text style={s.title}>Ton plan nutritionnel</Text>
             <Text style={s.sub}>Voici ce qu'on a préparé pour toi.</Text>
