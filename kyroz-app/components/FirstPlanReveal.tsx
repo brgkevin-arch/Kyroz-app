@@ -1,16 +1,13 @@
 import React, { useEffect, useRef } from 'react';
-import { Modal, View, Text, StyleSheet, Animated, ScrollView, Alert } from 'react-native';
+import { Modal, View, Text, StyleSheet, Animated, ScrollView } from 'react-native';
 import { useTheme, Radius, Spacing, ThemePalette } from '../constants/theme';
-import { PrimaryButton, SectionLabel, Segmented } from './ui';
+import { PrimaryButton, SectionLabel } from './ui';
 import { goalLabel } from '../lib/tdee';
 import { Meal, UserProfile } from '../lib/types';
-import { useReminder } from '../hooks/useReminder';
-import { ReminderSlot, remindersSupported } from '../lib/notifications';
 import { DISCLAIMER } from '../constants/legal';
 
 const MEAL_EMOJI: Record<string, string> = { breakfast: '🍳', lunch: '🍗', dinner: '🍽️', snack: '🥤' };
 const MEAL_LABEL: Record<string, string> = { breakfast: 'Petit-déj', lunch: 'Déjeuner', dinner: 'Dîner', snack: 'Collation' };
-const SLOT_TIME: Record<string, string> = { morning: '8h00', midday: '12h00', evening: '18h30' };
 
 interface Props {
   visible: boolean;
@@ -23,14 +20,13 @@ interface Props {
 /**
  * Reveal du 1er plan (J1) : moment de révélation après l'onboarding. Met en avant
  * ce qui est NOUVEAU — la vraie semaine de repas calée sur les cibles — et absorbe
- * le récap + le rappel quotidien + le disclaimer (l'étape « récap » de l'onboarding
- * a été supprimée, redondante). Affiché UNE seule fois (flag `@kyroz:firstPlanSeen`),
- * puis laisse place à la visite guidée.
+ * le récap + le disclaimer (l'étape « récap » de l'onboarding a été supprimée,
+ * redondante). Le RAPPEL QUOTIDIEN, lui, vit uniquement dans le Profil → Réglages.
+ * Affiché UNE seule fois (flag `@kyroz:firstPlanSeen`), puis laisse place à la visite guidée.
  */
 export function FirstPlanReveal({ visible, profile, firstName, previewMeals, onClose }: Props) {
   const t = useTheme();
   const s = makeStyles(t);
-  const { slot, choose, busy } = useReminder();
   const scale = useRef(new Animated.Value(0.9)).current;
   const opacity = useRef(new Animated.Value(0)).current;
 
@@ -46,19 +42,6 @@ export function FirstPlanReveal({ visible, profile, firstName, previewMeals, onC
   }, [visible]);
 
   if (!visible) return null;
-
-  const pickReminder = async (v: ReminderSlot) => {
-    if (busy) return;
-    const ok = await choose(v);
-    if (!ok && v !== 'off') {
-      Alert.alert(
-        remindersSupported ? 'Notifications désactivées' : 'Indisponible sur le web',
-        remindersSupported
-          ? 'Active les notifications de Kyroz dans les réglages de ton téléphone pour recevoir le rappel.'
-          : 'Le rappel quotidien fonctionne sur l’app mobile (iOS/Android). Tu pourras l’activer là-bas.',
-      );
-    }
-  };
 
   return (
     <Modal visible transparent animationType="fade" onRequestClose={onClose}>
@@ -92,30 +75,6 @@ export function FirstPlanReveal({ visible, profile, firstName, previewMeals, onC
                 </View>
               </View>
             )}
-
-            {/* Rappel quotidien (déplacé ici depuis l'étape récap supprimée) — levier
-                rétention #1 : revenir chaque jour = série = North Star. */}
-            <View style={s.section}>
-              <SectionLabel t={t}>Un rappel chaque jour ?</SectionLabel>
-              <Text style={[s.sub, { marginTop: -2, textAlign: 'left' }]}>
-                Un petit coup de pouce quotidien pour consulter ton plan et ne pas casser ta série.
-              </Text>
-              <View style={{ height: 8 }} />
-              <Segmented<ReminderSlot>
-                t={t}
-                value={slot}
-                onChange={pickReminder}
-                options={[
-                  { label: 'Aucun', value: 'off' },
-                  { label: 'Matin', value: 'morning' },
-                  { label: 'Midi', value: 'midday' },
-                  { label: 'Soir', value: 'evening' },
-                ]}
-              />
-              <Text style={s.hint}>
-                {slot === 'off' ? 'Modifiable à tout moment dans ton profil.' : `Chaque jour à ${SLOT_TIME[slot]}. Modifiable dans ton profil.`}
-              </Text>
-            </View>
 
             <View style={{ height: 18 }} />
             <PrimaryButton t={t} label="Voir mon plan 👊" onPress={onClose} />
@@ -154,7 +113,6 @@ function makeStyles(t: ThemePalette) {
     mealType: { color: t.textTertiary, fontSize: 11, fontWeight: '600' },
     mealName: { color: t.text, fontSize: 14, fontWeight: '600', marginTop: 1 },
     mealKcal: { color: t.textSecondary, fontSize: 12, fontWeight: '700' },
-    hint: { color: t.textTertiary, fontSize: 12, lineHeight: 16, marginTop: 8 },
     disclaimer: { color: t.textTertiary, fontSize: 11, lineHeight: 16, textAlign: 'center', marginTop: 18 },
   });
 }
