@@ -1,10 +1,10 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Platform, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { useTheme, ThemePalette, Radius, Spacing, cardShadow } from '../../constants/theme';
 import { ThemeMode, useThemeMode, setThemeMode } from '../../lib/themeMode';
 import { DISCLAIMER } from '../../constants/legal';
@@ -120,6 +120,14 @@ export default function ProfilScreen() {
 
   const save = async (updated: UserProfile) => { await saveProfile(updated); setEditor(null); };
 
+  // Deep-link depuis l'écran Plan (« Personnaliser ma répartition ») : ouvre direct
+  // l'éditeur demandé au focus, via un drapeau (même principe que REROLL_KEY).
+  useFocusEffect(useCallback(() => {
+    AsyncStorage.getItem('@kyroz:openEditor').then((v) => {
+      if (v) { AsyncStorage.removeItem('@kyroz:openEditor'); setEditor(v as EditorKey); }
+    });
+  }, []));
+
   // « Régénérer mon plan » : escape hatch discret (le bouton « Nouveau plan » de
   // l'écran Plan a été retiré au profit de l'ajustement recette-par-recette). On
   // pose un drapeau consommé au focus de l'écran Plan (REROLL_KEY), puis on y va.
@@ -212,7 +220,7 @@ export default function ProfilScreen() {
           <MenuRow t={t} icon="person-outline" label="Informations" value={`${SEX_LABELS[profile.sex]} · ${profile.age} ans · ${profile.weight_kg} kg${profile.body_fat_pct != null ? ` · ${profile.body_fat_pct}% MG` : ''}`} onPress={() => setEditor('info')} />
           <MenuRow t={t} icon="barbell-outline" label="Sports" value={profile.sports?.length ? `${profile.sports.length} sport${profile.sports.length > 1 ? 's' : ''}` : 'Aucun'} onPress={() => setEditor('sports')} />
           <MenuRow t={t} icon="flag-outline" label="Objectif" value={goalLabel(profile.goal)} onPress={() => setEditor('goal')} />
-          <MenuRow t={t} icon="flame-outline" label="Calories & macros" value={profile.macro_mode === 'manual' ? 'Manuelles' : 'Calculées'} onPress={() => setEditor('macros')} />
+          <MenuRow t={t} icon="flame-outline" label="Calories & macros" value={profile.macro_mode === 'percent' ? 'Perso %' : 'Calculées'} onPress={() => setEditor('macros')} />
           <MenuRow t={t} icon="restaurant-outline" label="Préférences alimentaires" value={profile.dietary_restrictions.length || profile.disliked_foods.length || profile.hidden_recipes?.length ? 'Personnalisées' : 'Aucune'} onPress={() => setEditor('prefs')} />
           <MenuRow t={t} icon="calendar-outline" label="Paramètres des repas" value={`${profile.plan_days} j · ${(profile.meals?.length || 4)} repas · ${EMPHASIS_LABELS[profile.meal_emphasis ?? 'even']}`} onPress={() => setEditor('meals')} />
           <MenuRow t={t} icon="refresh-outline" label="Régénérer mon plan" value="Repartir de zéro" onPress={regenPlan} last />
