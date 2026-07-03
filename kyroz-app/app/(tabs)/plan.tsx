@@ -619,6 +619,15 @@ export default function PlanScreen() {
                 />
                 <MarginNote t={t} kcal={dayMacros.kcal} />
                 {profile && <FiberRow t={t} actual={dayFiber} target={fiberTarget} />}
+                {/* Découvrabilité de la perso macros (le fork a été retiré de l'onboarding) :
+                    deep-link vers l'éditeur « Calories & macros » du Profil. */}
+                <TouchableOpacity
+                  onPress={async () => { await AsyncStorage.setItem('@kyroz:openEditor', 'macros'); router.push('/(tabs)/profil'); }}
+                  activeOpacity={0.7}
+                  style={{ marginTop: 12, alignSelf: 'flex-start' }}
+                >
+                  <Text style={{ color: t.accent, fontSize: 13, fontWeight: '700' }}>⚙️ Personnaliser ma répartition (%)</Text>
+                </TouchableOpacity>
                 {dayExtraKcal > 0 && (
                   <View style={s.extraRow}>
                     <Text style={{ color: t.textSecondary, fontSize: 13 }}>
