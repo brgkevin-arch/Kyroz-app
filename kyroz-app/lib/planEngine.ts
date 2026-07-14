@@ -466,7 +466,7 @@ export function computeDailyTotals(
 // Version du moteur de génération : à incrémenter quand le scoring/sélection
 // change, pour que les plans EN CACHE se régénèrent automatiquement (la signature
 // change → l'auto-refresh de l'écran Plan rejoue la génération). v2 = lipides cadrés.
-const ENGINE_VERSION = 11; // v11 = catalogue 264 + légumineuses en SEC (régénère pour exposer les 164 nouvelles recettes)
+const ENGINE_VERSION = 12; // v12 = 13 composites mappés Ciqual (pâtes/nouilles/polenta/pesto/cacao… : 74 recettes bougent de ~1%)
 
 export function profileSignature(p: UserProfile): string {
   // NB : `hidden_recipes` (👎) est VOLONTAIREMENT absent. Un 👎 remplace UN repas

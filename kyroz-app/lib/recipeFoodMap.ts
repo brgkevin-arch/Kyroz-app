@@ -4,12 +4,22 @@
 // de la base Ciqual curée (cf. lib/foods.ts / foods.curation.ts). Quand un `ref`
 // est mappé ici, ses macros viennent de Ciqual (source de vérité unique) → « une
 // seule banane partout ». Les `ref` ABSENTS de cette table gardent leur valeur
-// manuelle du JSON (recettes-kyroz-100.json) : composites et suppléments sans
-// équivalent Ciqual propre (whey, skyr, pesto, mélanges, crème de soja, etc.).
+// manuelle du JSON (recettes-kyroz-100.json).
 //
 // ⚠️ Mapping VÉRIFIÉ À LA MAIN (état cru/sec/cuit respecté). Ne pas auto-générer :
 // le recoupement de noms se fait piéger (« maquereau » → « groseille à maquereau »).
 // Les ids `ciqual-XXXX` = `alim_code` ANSES, stables d'une régénération à l'autre.
+//
+// ── Les 14 `ref` qui restent en valeur MANUELLE (2026-07-14) ────────────────────
+// Règle appliquée : on ne mappe QUE si l'entrée Ciqual est SANS AMBIGUÏTÉ le même
+// aliment. « À peu près pareil » = on garde la valeur manuelle (mieux vaut une
+// estimation assumée qu'un faux aliment officiel).
+//   • Absents de Ciqual : cottage_cheese, edamame, yaourt_soja, yaourt_soja_proteine.
+//   • Compléments/produits Kyroz : whey, skyr, proteine_vegetale.
+//   • Pas d'entrée SÈCHE propre (Ciqual n'a que la forme cuite/réhydratée) :
+//     soja_texture (PST), haricots_noirs, millet (Ciqual n'a que la FARINE de millet).
+//   • Produit voisin mais distinct : levure_maltee (Ciqual n'a que la levure de BIÈRE).
+//   • Composites/mélanges par construction : fruits_rouges, legumes_wok, ratatouille.
 export const REF_FOOD_ID: Record<string, string> = {
   // Viandes / poissons (basis cru)
   poulet_filet: 'ciqual-36017', dinde_escalope: 'ciqual-36304', boeuf_5: 'ciqual-6250',
@@ -35,6 +45,13 @@ export const REF_FOOD_ID: Record<string, string> = {
   pain_complet: 'ciqual-7110', pain_seigle: 'ciqual-7125', boulgour: 'ciqual-9690',
   semoule_couscous: 'ciqual-9610', galette_riz: 'ciqual-7352', pain_pita_complet: 'ciqual-7180',
   tortilla_complete: 'ciqual-7815',
+  // Pâtes / nouilles / polenta — entrées Ciqual « crues/sèches » (basis=dry respecté ; 2026-07-14)
+  pates_semoule: 'ciqual-9810',      // « Pâtes sèches, standard, crues »
+  pates_completes: 'ciqual-9870',    // « Pâtes sèches, au blé complet, crues »
+  nouilles_completes: 'ciqual-9870', // même pâte de blé complet (Ciqual n'a pas d'entrée « nouilles » complètes ;
+                                     // PAS 9863 « nouilles asiatiques au blé et aux ŒUFS » → fausserait le végétalien)
+  nouilles_riz: 'ciqual-9900',       // « Vermicelles de riz sèches, crues » (corrige la protéine sous-estimée : 3 → 7,4 g)
+  polenta: 'ciqual-9614',            // « Polenta ou semoule de maïs, précuite, à cuire »
   // Matières grasses / oléagineux / sucres
   avocat: 'ciqual-13004', huile_olive: 'ciqual-17270', lait_coco: 'ciqual-18041',
   lait_amande: 'ciqual-18107', // boisson à l'amande nature sans sucres (cf. lait_coco déjà mappé)
@@ -42,9 +59,15 @@ export const REF_FOOD_ID: Record<string, string> = {
   noix: 'ciqual-15005', noisettes: 'ciqual-15004', olives: 'ciqual-13186',
   chocolat_noir: 'ciqual-31074', miel: 'ciqual-31008', sirop_erable: 'ciqual-31034',
   dattes: 'ciqual-13011', // « Datte, chair et peau, sans noyau, sèche » = dattes dénoyautées
+  graines_courge: 'ciqual-15064',  // « Courge, graine, séchée » — ⚠️ PAS « courge butternut » (le piège de l'auto-matching)
+  beurre_amande: 'ciqual-15041',   // purée d'amande = amandes broyées, macros identiques (Ciqual n'a pas d'entrée dédiée)
+  pesto: 'ciqual-11179',           // « Sauce pesto, préemballée »
+  creme_soja: 'ciqual-11214',      // « Préparation culinaire à base de soja, type "crème de soja" »
+  cacao_poudre: 'ciqual-18100',    // « Cacao, sans sucres ajoutés, poudre soluble »
   // Fruits (basis cru)
   banane: 'ciqual-13005', mangue: 'ciqual-13025', ananas: 'ciqual-13002', kiwi: 'ciqual-13021',
   pomme: 'ciqual-13039', myrtilles: 'ciqual-13028', framboises: 'ciqual-13015',
+  raisins: 'ciqual-13395', // « Raisin cru (aliment moyen) » — ⚠️ PAS « Raisin sec » (322 kcal vs 71)
   // Légumes
   brocoli: 'ciqual-20057', epinards: 'ciqual-20059', courgette: 'ciqual-20020',
   poivron: 'ciqual-20041', tomate: 'ciqual-20276', oignon: 'ciqual-20034',
@@ -52,4 +75,5 @@ export const REF_FOOD_ID: Record<string, string> = {
   salade_verte: 'ciqual-25604', concombre: 'ciqual-20019', roquette: 'ciqual-20217',
   betterave: 'ciqual-20003', champignons: 'ciqual-20056', haricots_verts: 'ciqual-20061',
   mais: 'ciqual-20066', petits_pois: 'ciqual-20036', sauce_soja: 'ciqual-11104',
+  tomate_concassee: 'ciqual-20169', // « Tomate, chair, appertisée » (NON égouttée — la concassée garde son jus)
 };
