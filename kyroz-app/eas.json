@@ -1,0 +1,37 @@
+{
+  "cli": {
+    "version": ">= 12.0.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "channel": "development"
+    },
+    "preview": {
+      "distribution": "internal",
+      "channel": "preview",
+      "ios": { "simulator": true },
+      "android": { "buildType": "apk" }
+    },
+    "production": {
+      "channel": "production",
+      "autoIncrement": true,
+      "android": { "buildType": "app-bundle" }
+    }
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "//": "appleId / ascAppId / appleTeamId à remplir APRÈS création du compte Apple Developer (99 €/an).",
+        "//2": "Ne JAMAIS committer d'App Store Connect API key ici : la référencer via une variable d'env EAS."
+      },
+      "android": {
+        "//": "serviceAccountKeyPath à remplir APRÈS création du compte Google Play (25 € une fois).",
+        "//2": "La clé de service Google est un SECRET : la stocker dans les secrets EAS, jamais dans le repo.",
+        "track": "internal"
+      }
+    }
+  }
+}

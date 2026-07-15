@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { RECIPES } from '../recipeMap';
-import { RAW_RECIPES, macrosForRefIngredients } from '../recipeData';
+import { RAW_RECIPES, RECIPE_INGREDIENTS, macrosForRefIngredients } from '../recipeData';
 
 describe('recipeMap (JSON → Recipe)', () => {
   it('mappe les 264 recettes', () => expect(RECIPES).toHaveLength(264));
@@ -71,5 +71,49 @@ describe('recipeMap (JSON → Recipe)', () => {
   it('couverture petit-déj sans lactose ≥ 3 (trou des 10 comblé)', () => {
     const pdLacto = RECIPES.filter((r) => r.tags.includes('breakfast') && r.restrictions_ok?.includes('lactose_free'));
     expect(pdLacto.length).toBeGreaterThanOrEqual(3);
+  });
+
+  // La recette AFFICHÉE doit être la recette SERVIE. `adaptRecipe` écrête toute
+  // quantité à `abs_max_qty` : si la quantité de BASE dépasse déjà ce plafond, le
+  // moteur en sert moins que ce que la fiche annonce, et les courses suivent la
+  // quantité écrêtée → l'app ment. Vu en vrai sur col04 (80 g de dattes servis 60,
+  // soit 57 kcal d'écart entre la recette écrite et la recette servie).
+  it('aucune quantité de base ne dépasse son abs_max_qty', () => {
+    const depassements: string[] = [];
+    for (const r of RECIPES) {
+      for (const i of r.ingredients) {
+        const cap = i.ref ? RECIPE_INGREDIENTS[i.ref]?.abs_max_qty : undefined;
+        if (cap && i.quantity_g > cap) depassements.push(`${r.id}/${i.ref} : ${i.quantity_g} > ${cap}`);
+      }
+    }
+    expect(depassements, `base > plafond :\n  ${depassements.join('\n  ')}`).toEqual([]);
+  });
+
+  // Les ingrédients `flavor` / `vegetable` sont TOUJOURS figés par le moteur
+  // (adaptRecipe : role === 'flavor' || role === 'vegetable' → jamais scalé). Un
+  // `scalable: true` sur eux est donc un mensonge inerte : la donnée doit refléter
+  // la réalité, sinon un futur refactor du moteur qui lit `scalable` changerait le
+  // comportement en silence.
+  it('aucun ingrédient flavor/vegetable marqué scalable:true', () => {
+    const menteurs: string[] = [];
+    for (const r of RECIPES) {
+      for (const i of r.ingredients) {
+        if ((i.macro_role === 'flavor' || i.macro_role === 'vegetable') && i.scalable === true) {
+          menteurs.push(`${r.id}/${i.ref} (${i.macro_role})`);
+        }
+      }
+    }
+    expect(menteurs, `flavor/vegetable scalable:true :\n  ${menteurs.join('\n  ')}`).toEqual([]);
+  });
+
+  // L'utilisateur pèse les féculents/légumineuses au poids SEC (basis:'dry', comme
+  // le riz). Un nom qui dit « cuits » / « égouttés » ferait peser le POIDS CUIT
+  // (~3× trop) → macros fausses. Le nom doit être neutre (« Pois chiches »), la
+  // pesée sèche suivant la convention riz/pâtes.
+  it('aucun ingrédient basis:dry nommé « cuit » / « égoutté »', () => {
+    const incoherents = Object.entries(RECIPE_INGREDIENTS)
+      .filter(([, v]) => v.basis === 'dry' && /cuit|cuite|égoutt/i.test(v.name))
+      .map(([ref, v]) => `${ref} = « ${v.name} »`);
+    expect(incoherents, `nom cuit/égoutté sur poids sec :\n  ${incoherents.join('\n  ')}`).toEqual([]);
   });
 });

@@ -8,7 +8,8 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "app.kyroz.mobile"
     },
     "android": {
       "adaptiveIcon": {
@@ -18,9 +19,8 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "permissions": [
-        "android.permission.RECORD_AUDIO"
-      ]
+      "permissions": [],
+      "package": "app.kyroz.mobile"
     },
     "web": {
       "favicon": "./assets/favicon.png"

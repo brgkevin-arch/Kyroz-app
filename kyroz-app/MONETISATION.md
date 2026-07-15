@@ -17,18 +17,36 @@ core tuerait le North Star — donc interdit.
 
 ## Découpage recommandé
 
-| Capacité | Gratuit | **Kyroz+** (payant) |
-|---|---|---|
-| Génération plan 7 j macro-précis | ✅ | ✅ |
-| Recettes + macros + courses + garde-manger | ✅ | ✅ |
-| Favoris + streak + rappel quotidien | ✅ | ✅ |
-| Régénérer / remplacer un repas | ✅ (illimité) | ✅ |
-| **Historique des plans** (semaines passées) | semaine en cours | ✅ illimité |
-| **Recettes personnalisées** (ajouter les siennes) | — | ✅ |
-| **Base de recettes étendue** (validées) | 50 | ✅ +100 |
-| **Ajustement auto des macros au poids** (check-in hebdo, recalcul TDEE/macros à mesure que le poids évolue — algorithme, *pas* un coach IA) | — | ✅ |
-| **Export liste de courses** (PDF / impression / Notes) | — | ✅ |
-| **Modes objectifs avancés** (jours de recharge, carb cycling) | — | ✅ |
+> ## ⚠️ CE DÉCOUPAGE A VIEILLI — à relire avant de décider (constaté 2026-07-14)
+>
+> Ce doc a été écrit quand ces features n'existaient pas. Depuis, **elles ont été
+> construites et livrées GRATUITEMENT**. Les remettre derrière un paywall
+> reviendrait à **retirer aux utilisateurs ce qu'ils ont déjà** — le plus sûr moyen
+> de casser la confiance et le North Star. À traiter comme acquis-gratuit :
+>
+> - **Carb cycling / jours de repos** → livré (`rest_weekdays`, moteur v5+).
+> - **Ajustement des macros au poids** → livré (`recalcProfile` + check-in poids).
+> - **Recettes personnalisées** → livré (`RecipeEditor` + table `recipe_overrides`).
+> - **« Base étendue : 50 → +100 »** → sans objet : le catalogue est à **264 recettes**,
+>   toutes gratuites. Le rationner *a posteriori* serait une régression.
+>
+> **Restent réellement monétisables** (non construits) : historique des plans,
+> export de la liste de courses, et tout ce qui reste à inventer.
+> **La vraie question n'est donc plus « que bloquer ? » mais « que CONSTRUIRE qui
+> vaille 5 € ? »** — le catalogue gratuit est déjà généreux.
+
+| Capacité | Gratuit | **Kyroz+** (payant) | État réel |
+|---|---|---|---|
+| Génération plan 7 j macro-précis | ✅ | ✅ | livré |
+| Recettes + macros + courses + garde-manger | ✅ | ✅ | livré |
+| Favoris + streak + rappel quotidien | ✅ | ✅ | livré |
+| Régénérer / remplacer un repas | ✅ (illimité) | ✅ | livré |
+| **Historique des plans** (semaines passées) | semaine en cours | ✅ illimité | **non construit** → monétisable |
+| **Export liste de courses** (PDF / impression / Notes) | — | ✅ | **non construit** → monétisable |
+| ~~Recettes personnalisées~~ | ✅ | — | ⚠️ **déjà livré gratuit** |
+| ~~Base de recettes étendue (50 / +100)~~ | ✅ 264 | — | ⚠️ **sans objet** (264 recettes, gratuites) |
+| ~~Ajustement auto des macros au poids~~ | ✅ | — | ⚠️ **déjà livré gratuit** |
+| ~~Modes objectifs avancés (carb cycling)~~ | ✅ | — | ⚠️ **déjà livré gratuit** |
 
 ### Ce qu'on NE met PAS derrière le paywall (et pourquoi)
 - **Sync cloud multi-appareils** : déjà construite et perçue comme un dû ; la
@@ -50,8 +68,13 @@ core tuerait le North Star — donc interdit.
 - Garde-fou : un flag `is_premium` (dérivé de l'abonnement) gate les features
   avancées côté app ; le gratuit reste fonctionnel hors-ligne sans vérification.
 
-## Décisions à trancher (toi)
-1. Valides-tu le découpage gratuit / Kyroz+ ci-dessus ?
-2. La feature « ajustement auto des macros au poids » est la plus différenciante
-   mais demande un **log de poids** (nouvel écran). On la garde en tête de liste ?
-3. Tarif 4,99 €/mois — ok, ou tu vises plus haut/bas ?
+## Décisions à trancher (toi) — mises à jour 2026-07-14
+
+1. **Acceptes-tu que les 4 features barrées ci-dessus restent gratuites ?**
+   (Recommandé : oui. Elles sont livrées ; les reprendre coûterait plus cher en
+   confiance que ce qu'elles rapporteraient.)
+2. **Que construit-on qui vaille 5 € ?** Le paywall n'a plus que 2 candidats déjà
+   identifiés (historique des plans, export courses) et aucun n'est un « waouh ».
+   C'est la vraie question ouverte : sans réponse, il n'y a pas de Kyroz+.
+3. **Tarif** 4,99 €/mois — ok, ou tu vises plus haut/bas ? (À ne trancher qu'une
+   fois le point 2 résolu : le prix découle de la valeur, pas l'inverse.)

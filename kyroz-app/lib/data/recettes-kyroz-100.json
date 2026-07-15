@@ -354,7 +354,7 @@
       "basis": "dry"
     },
     "lentilles_vertes": {
-      "name": "Lentilles vertes cuites",
+      "name": "Lentilles vertes",
       "unit": "g",
       "per_100": {
         "kcal": 327,
@@ -365,7 +365,7 @@
       "basis": "dry"
     },
     "pois_chiches": {
-      "name": "Pois chiches cuits (égouttés)",
+      "name": "Pois chiches",
       "unit": "g",
       "per_100": {
         "kcal": 350,
@@ -376,7 +376,7 @@
       "basis": "dry"
     },
     "haricots_rouges": {
-      "name": "Haricots rouges cuits",
+      "name": "Haricots rouges",
       "unit": "g",
       "per_100": {
         "kcal": 314,
@@ -1565,7 +1565,7 @@
           "ref": "miel",
           "qty": 10,
           "macro_role": "flavor",
-          "scalable": true
+          "scalable": false
         }
       ],
       "instructions": [
@@ -1734,7 +1734,7 @@
           "ref": "cacao_poudre",
           "qty": 10,
           "macro_role": "flavor",
-          "scalable": true
+          "scalable": false
         },
         {
           "ref": "beurre_cacahuete",
@@ -1800,7 +1800,7 @@
           "ref": "miel",
           "qty": 10,
           "macro_role": "flavor",
-          "scalable": true
+          "scalable": false
         },
         {
           "ref": "pomme",
@@ -1940,7 +1940,7 @@
           "ref": "sirop_erable",
           "qty": 10,
           "macro_role": "flavor",
-          "scalable": true
+          "scalable": false
         }
       ],
       "instructions": [
@@ -2465,7 +2465,7 @@
           "ref": "miel",
           "qty": 10,
           "macro_role": "flavor",
-          "scalable": true
+          "scalable": false
         }
       ],
       "instructions": [
@@ -2593,7 +2593,7 @@
       "ingredients": [
         {
           "ref": "dattes",
-          "qty": 80,
+          "qty": 60,
           "macro_role": "fruit",
           "scalable": true
         },
@@ -2613,7 +2613,7 @@
           "ref": "cacao_poudre",
           "qty": 10,
           "macro_role": "flavor",
-          "scalable": true
+          "scalable": false
         },
         {
           "ref": "proteine_vegetale",
@@ -2786,7 +2786,7 @@
           "ref": "miel",
           "qty": 5,
           "macro_role": "flavor",
-          "scalable": true
+          "scalable": false
         }
       ],
       "instructions": [
@@ -2833,13 +2833,13 @@
           "ref": "cacao_poudre",
           "qty": 8,
           "macro_role": "flavor",
-          "scalable": true
+          "scalable": false
         },
         {
           "ref": "miel",
           "qty": 5,
           "macro_role": "flavor",
-          "scalable": true
+          "scalable": false
         }
       ],
       "instructions": [
@@ -2987,7 +2987,7 @@
           "ref": "miel",
           "qty": 15,
           "macro_role": "flavor",
-          "scalable": true
+          "scalable": false
         },
         {
           "ref": "lait_amande",
@@ -3200,7 +3200,7 @@
           "ref": "miel",
           "qty": 20,
           "macro_role": "flavor",
-          "scalable": true
+          "scalable": false
         },
         {
           "ref": "beurre_cacahuete",
@@ -3255,7 +3255,7 @@
           "ref": "sauce_soja",
           "qty": 10,
           "macro_role": "flavor",
-          "scalable": true
+          "scalable": false
         }
       ],
       "instructions": [
@@ -3472,7 +3472,7 @@
           "ref": "miel",
           "qty": 10,
           "macro_role": "flavor",
-          "scalable": true
+          "scalable": false
         },
         {
           "ref": "proteine_vegetale",
@@ -3717,7 +3717,7 @@
           "ref": "sauce_soja",
           "qty": 15,
           "macro_role": "flavor",
-          "scalable": true
+          "scalable": false
         }
       ],
       "instructions": [
@@ -4375,7 +4375,7 @@
           "ref": "sauce_soja",
           "qty": 15,
           "macro_role": "flavor",
-          "scalable": true
+          "scalable": false
         },
         {
           "ref": "huile_olive",
@@ -4685,7 +4685,7 @@
           "ref": "sauce_soja",
           "qty": 15,
           "macro_role": "flavor",
-          "scalable": true
+          "scalable": false
         },
         {
           "ref": "avocat",
@@ -4936,7 +4936,7 @@
           "ref": "sauce_soja",
           "qty": 10,
           "macro_role": "flavor",
-          "scalable": true
+          "scalable": false
         }
       ],
       "instructions": [
@@ -5104,7 +5104,7 @@
           "ref": "sauce_soja",
           "qty": 15,
           "macro_role": "flavor",
-          "scalable": true
+          "scalable": false
         }
       ],
       "instructions": [
@@ -5574,7 +5574,7 @@
           "ref": "sauce_soja",
           "qty": 15,
           "macro_role": "flavor",
-          "scalable": true
+          "scalable": false
         },
         {
           "ref": "huile_olive",
@@ -6305,7 +6305,7 @@
           "ref": "sauce_soja",
           "qty": 15,
           "macro_role": "flavor",
-          "scalable": true
+          "scalable": false
         }
       ],
       "instructions": [
@@ -6482,7 +6482,7 @@
           "ref": "sauce_soja",
           "qty": 15,
           "macro_role": "flavor",
-          "scalable": true
+          "scalable": false
         },
         {
           "ref": "huile_olive",
@@ -6972,13 +6972,13 @@
           "ref": "sauce_soja",
           "qty": 15,
           "macro_role": "flavor",
-          "scalable": true
+          "scalable": false
         },
         {
           "ref": "miel",
           "qty": 10,
           "macro_role": "flavor",
-          "scalable": true
+          "scalable": false
         },
         {
           "ref": "huile_olive",
