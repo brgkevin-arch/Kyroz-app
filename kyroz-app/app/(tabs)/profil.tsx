@@ -175,7 +175,7 @@ export default function ProfilScreen() {
 
   // Contact support : ouvre le client mail. Si rien ne peut l'ouvrir (web sans
   // client mail), on copie l'adresse dans une alerte plutôt que d'échouer en silence.
-  const SUPPORT_EMAIL = 'support@kyroz.app';
+  const SUPPORT_EMAIL = 'contact@kyroz.app';
   const contactSupport = async () => {
     const url = `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent('Kyroz — aide')}`;
     const ok = await Linking.canOpenURL(url).catch(() => false);

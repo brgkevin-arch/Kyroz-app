@@ -12,11 +12,11 @@ Le responsable du traitement de tes données est :
 
 - **[Nom / Raison sociale]** — [ex. Kévin [Nom], entrepreneur individuel] ou [SAS Kyroz, SIREN n° XXX]
 - **Adresse** : [Adresse postale]
-- **Contact** : [ton-email@exemple.com]
+- **Contact** : contact@kyroz.app
 
 **Délégué à la protection des données (DPO)** : au lancement, le contact pour toute question relative à tes données est :
 
-- **Email** : dpo@kyroz.app *(ou [ton-email@exemple.com])*
+- **Email** : contact@kyroz.app
 
 ---
 
@@ -92,7 +92,7 @@ Conformément au RGPD, tu disposes des droits suivants :
 - **Droit de retrait du consentement** : retirer ton consentement à tout moment, sans affecter la licéité des traitements effectués avant ce retrait.
 - **Droit de réclamation** : introduire une réclamation auprès de la **CNIL** (Commission Nationale de l'Informatique et des Libertés), autorité de contrôle française — [www.cnil.fr](https://www.cnil.fr).
 
-Pour exercer ces droits, contacte-nous à : **dpo@kyroz.app** *(ou [ton-email@exemple.com])*.
+Pour exercer ces droits, contacte-nous à : **contact@kyroz.app**.
 
 ---
 
@@ -113,4 +113,4 @@ Cette politique peut être mise à jour. Toute modification substantielle te ser
 Pour toute question concernant cette politique ou tes données personnelles :
 
 **[Nom / Raison sociale]**
-Email : dpo@kyroz.app *(ou [ton-email@exemple.com])*
+Email : contact@kyroz.app

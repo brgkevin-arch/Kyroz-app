@@ -11,7 +11,7 @@
 | Statut | Entrepreneur individuel (micro-entreprise) |
 | SIREN | **[À COMPLÉTER — 9 chiffres]** |
 | Adresse | 2 rue du moulin, 64570 Arette |
-| Contact / DPO | dpo@kyroz.app |
+| Contact / DPO | contact@kyroz.app |
 
 > Pas de délégué à la protection des données (DPO) formellement désigné : non obligatoire à ce stade
 > (traitement non « à grande échelle » au sens de l'art. 37). Le contact RGPD ci-dessus fait office de point d'entrée.
@@ -52,6 +52,6 @@
 - [x] **DPA Supabase** accepté et signé le 2026-06-15 (données de santé déclarées en catégorie spéciale, rôle Controller). PDF conservé hors dépôt.
 - [x] **Région UE** confirmée (`eu-central-1`, Frankfurt).
 - [x] **2FA** activée sur le compte Supabase.
-- [x] Adresse + email DPO renseignés (2 rue du moulin, 64570 Arette · dpo@kyroz.app).
+- [x] Adresse + email de contact renseignés (2 rue du moulin, 64570 Arette · contact@kyroz.app).
 - [ ] **Compléter le SIREN** (9 chiffres) ici et dans `constants/legal.ts` (objet `LEGAL`).
 - [ ] (Idéal) Relecture du texte légal par un juriste avant lancement à grande échelle.
