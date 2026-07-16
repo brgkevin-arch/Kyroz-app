@@ -44,7 +44,7 @@ export const REF_FOOD_ID: Record<string, string> = {
   quinoa: 'ciqual-9340', patate_douce: 'ciqual-4101', pomme_de_terre: 'ciqual-4008',
   pain_complet: 'ciqual-7110', pain_seigle: 'ciqual-7125', boulgour: 'ciqual-9690',
   semoule_couscous: 'ciqual-9610', galette_riz: 'ciqual-7352', pain_pita_complet: 'ciqual-7180',
-  tortilla_complete: 'ciqual-7815',
+  tortilla_complete: 'ciqual-7815', chapelure: 'ciqual-7500', // « Chapelure » (blé → gluten, cf. recipeDiet)
   // Pâtes / nouilles / polenta — entrées Ciqual « crues/sèches » (basis=dry respecté ; 2026-07-14)
   pates_semoule: 'ciqual-9810',      // « Pâtes sèches, standard, crues »
   pates_completes: 'ciqual-9870',    // « Pâtes sèches, au blé complet, crues »

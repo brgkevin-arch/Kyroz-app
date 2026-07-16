@@ -46,7 +46,7 @@ fibres, pas le recalcul). On ne signale que les écarts > 10 %.
 | pescétarien | 56 | 53 | 105 |
 | sans porc | 57 | 54 | 150 |
 | sans lactose | 33 | 32 | 132 |
-| sans gluten | 22 | 34 | 101 |
+| sans gluten | 22 | 34 | 100 |
 | végétalien | 26 | 29 | 52 |
 | halal | 57 | 54 | 150 |
 
@@ -125,7 +125,7 @@ fibres, pas le recalcul). On ne signale que les écarts > 10 %.
 | rep29 | Pois chiches rôtis – boulgour – feta | Repas | 30’ | 673 | 30 | 82 | 21 | perte de gras, maintien | ☐ | |
 | rep30 | Dinde – patate douce – épinards | Repas | 25’ | 502 | 49 | 46 | 11 | maintien, perte de gras | ☐ | |
 | rep31 | Pâtes – poulet – pesto – tomates | Repas | 20’ | 596 | 50 | 70 | 11 | prise de masse | ☐ | |
-| rep32 | Cabillaud pané maison – purée – petits pois | Repas | 30’ | 545 | 46 | 54 | 13 | maintien | ☐ | |
+| rep32 | Cabillaud pané maison – purée – petits pois | Repas | 30’ | 636 | 49 | 73 | 13 | maintien | ☐ | |
 | rep33 | Bœuf – haricots rouges – riz (cajun) | Repas | 25’ | 688 | 50 | 81 | 16 | prise de masse | ☐ | |
 | rep34 | Saumon – lentilles vertes – épinards | Repas | 25’ | 590 | 50 | 34 | 25 | maintien | ☐ | |
 | rep35 | Tofu mariné – nouilles soba – brocoli | Repas | 20’ | 624 | 37 | 56 | 24 | perte de gras, maintien | ☐ | |
@@ -1620,14 +1620,15 @@ fibres, pas le recalcul). On ne signale que les écarts > 10 %.
 
 - **Type** : Repas · **Préparation** : 30 min
 - **Objectif** : maintien · **Sport** : muscu
-- **Régimes compatibles** : pescétarien, sans porc, sans lactose, sans gluten, halal
-- **Macros / portion (base)** : 545 kcal · 46 g protéines · 54 g glucides · 13 g lipides
+- **Régimes compatibles** : pescétarien, sans porc, sans lactose, halal
+- **Macros / portion (base)** : 636 kcal · 49 g protéines · 73 g glucides · 13 g lipides
 - **Ingrédients** :
   - Dos de cabillaud — 180 g *(pesé cru)*
   - Pomme de terre — 250 g *(pesé cru)*
   - Petits pois — 100 g — quantité fixe
   - Œuf entier — 30 g
   - Huile d'olive — 8 g
+  - Chapelure — 25 g — quantité fixe
 - **Préparation** :
   1. Pane le cabillaud (œuf + chapelure).
   2. Cuis 12 min au four.

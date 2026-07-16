@@ -29,6 +29,7 @@ const VIOLATIONS: Record<string, DietaryRestriction[]> = {
   pates_completes: ['gluten_free'], pates_semoule: ['gluten_free'], nouilles_completes: ['gluten_free'],
   boulgour: ['gluten_free'], semoule_couscous: ['gluten_free'], tortilla_complete: ['gluten_free'],
   pain_pita_complet: ['gluten_free'], seitan: ['gluten_free'], sauce_soja: ['gluten_free'],
+  chapelure: ['gluten_free'], // panure de blé → un cabillaud pané n'est PAS sans gluten
   // note : tofu/tempeh/quinoa/riz/maïs/polenta/nouilles_riz/galette_riz = sans gluten ;
   // lait_amande/lait_coco/creme_soja = NON laitiers (compatibles lactose_free).
 };

@@ -1222,6 +1222,17 @@
         "carbs": 36,
         "fat": 2
       }
+    },
+    "chapelure": {
+      "name": "Chapelure",
+      "unit": "g",
+      "per_100": {
+        "kcal": 365,
+        "protein": 9.4,
+        "carbs": 74.3,
+        "fat": 1.6
+      },
+      "abs_max_qty": 40
     }
   },
   "recipes": [
@@ -5403,6 +5414,12 @@
           "qty": 8,
           "macro_role": "fat",
           "scalable": true
+        },
+        {
+          "ref": "chapelure",
+          "qty": 25,
+          "macro_role": "carb",
+          "scalable": false
         }
       ],
       "instructions": [
@@ -5412,9 +5429,9 @@
       ],
       "why": "Muscu maintien : version saine du fish and chips, protéine maigre.",
       "macros_per_serving": {
-        "kcal": 540,
-        "protein": 46,
-        "carbs": 54,
+        "kcal": 636,
+        "protein": 49,
+        "carbs": 73,
         "fat": 13
       }
     },

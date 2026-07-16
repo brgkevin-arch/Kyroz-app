@@ -68,6 +68,15 @@ describe('recipeMap (JSON → Recipe)', () => {
     expect(dahl.restrictions_ok).toEqual(expect.arrayContaining(['vegetarian', 'gluten_free', 'lactose_free']));
   });
 
+  // Régression sécurité-régime : le cabillaud PANÉ (chapelure de blé) ne doit
+  // JAMAIS ressortir « sans gluten » — un cœliaque pourrait se le voir servir.
+  // La chapelure est listée + déclarée gluten dans recipeDiet → le tag tombe seul.
+  it('rep32 (cabillaud pané) n’est PAS gluten_free et compte la chapelure', () => {
+    const r = RECIPES.find((x) => x.id === 'rep32')!;
+    expect(r.restrictions_ok).not.toContain('gluten_free');
+    expect(r.ingredients.some((i) => i.ref === 'chapelure')).toBe(true);
+  });
+
   it('couverture petit-déj sans lactose ≥ 3 (trou des 10 comblé)', () => {
     const pdLacto = RECIPES.filter((r) => r.tags.includes('breakfast') && r.restrictions_ok?.includes('lactose_free'));
     expect(pdLacto.length).toBeGreaterThanOrEqual(3);
