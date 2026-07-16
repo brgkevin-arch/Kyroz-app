@@ -10,6 +10,7 @@ import { useTheme, ThemePalette, Spacing, Radius } from '../../constants/theme';
 import { Field, PrimaryButton, Segmented } from '../../components/ui';
 import { useAuth } from '../../hooks/useAuth';
 import { DISCLAIMER } from '../../constants/legal';
+import { isReviewLogin } from '../../lib/reviewAccess';
 
 type Mode = 'signin' | 'signup';
 
@@ -32,6 +33,12 @@ export default function LoginScreen() {
 
   const submit = async () => {
     if (!canSubmit || busy) return;
+    // Accès reviewer store : identifiants sentinelle + code secret du build
+    // (EXPO_PUBLIC_REVIEW_CODE) → session invité, sans confirmation e-mail. Inerte
+    // si le code n'est pas posé (web public) → cf. lib/reviewAccess + STORE-RELEASE.
+    if (mode === 'signin' && isReviewLogin(email, password, process.env.EXPO_PUBLIC_REVIEW_CODE)) {
+      return guest();
+    }
     setBusy(true); setError(null); setNotice(null);
     const res = mode === 'signin'
       ? await signIn(email, password)

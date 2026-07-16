@@ -19,7 +19,7 @@
 | Textes de fiche (FR), réponses confidentialité, classification | ✅ ci-dessous (§3–6) |
 | **Comptes développeur Apple + Google** | ⛔ **toi** (§1) |
 | **Screenshots + feature graphic** | ⛔ **toi** (§7) |
-| **Compte de test pour le reviewer** | ⛔ **toi** (§9 — piège classique) |
+| Accès reviewer (code) | ✅ code — toi : poser le secret au build (§9) |
 | **Lancer le build EAS** | ⛔ **toi** (§8) |
 
 ---
@@ -199,13 +199,25 @@ eas submit --platform android --latest    # 1re fois : créer l'app dans Play Co
 
 ## 9. Checklist finale avant « Submit for review »
 
-- [ ] ⚠️ **Compte de test pour le reviewer Apple.** Le bouton « Continuer en invité »
-      est **masqué en production** (`__DEV__`), et créer un compte demande une
-      confirmation e-mail. **Le reviewer Apple sera bloqué au login.** → Crée un
-      **compte de démo** (e-mail + mot de passe, profil déjà rempli) et mets les
-      identifiants dans **App Review Information → Sign-In required**. (Idem note de
-      test côté Google.) *Alternative : je peux exposer un accès de review dédié dans
-      le build — dis-moi si tu préfères ça.*
+- [x] ⚠️ **Accès reviewer — RÉGLÉ EN CODE (2026-07-17).** Un accès invité est
+      déverrouillé par un **code secret posé au build** (`EXPO_PUBLIC_REVIEW_CODE`),
+      inerte partout ailleurs (le web public ne le pose pas → reste fermé). Le
+      reviewer se connecte « normalement ». **À faire par toi avant le build natif :**
+      1. **Vérifie l'auth anonyme Supabase** activée (Authentication → Providers →
+         Anonymous) — déjà le cas (Playwright s'en sert).
+      2. **Pose le code au build**, hors repo (secret EAS) :
+         ```bash
+         eas env:create --name EXPO_PUBLIC_REVIEW_CODE --value "<un-code-long-aléatoire>" \
+           --environment production --visibility sensitive
+         ```
+         *(ou variable d'env du profil `production` au moment du build).*
+      3. **Dans les notes de review** (Apple : App Review Information → Sign-In
+         required ; Google : instructions de test), indique :
+         > Mode **Connexion** · e-mail : `review@kyroz.app` · mot de passe : `<le code posé>`
+      Le reviewer entre ces identifiants et « Se connecter » → session invité, sans
+      confirmation e-mail. **Ne mets JAMAIS ce code dans le repo** ni dans
+      `deploy.yml` (sinon le web rouvrirait l'accès anonyme). Implémentation :
+      `lib/reviewAccess.ts` (+ test `reviewAccess.test.ts` : « fermé si pas de code »).
 - [ ] Disclaimer santé visible (déjà le cas).
 - [ ] URL de confidentialité renvoie 200 (déjà le cas).
 - [ ] Screenshots aux bonnes dimensions uploadés (§7).
@@ -221,10 +233,8 @@ eas submit --platform android --latest    # 1re fois : créer l'app dans Play Co
 - Passer `supportsTablet` à `false` (retire l'exigence iPad).
 - Générer des **captures de cadrage** depuis la version web (pour préparer tes
   screenshots).
-- Ajouter un **accès de review** propre (compte démo pré-rempli, ou bouton invité
-  visible seulement pour un identifiant de test) — plus sûr que de bricoler `__DEV__`.
-- Rédiger la **note pour le reviewer** (parcours guidé + identifiants) une fois le
-  compte de démo créé.
+- Rédiger la **note complète pour le reviewer** (parcours guidé pas à pas + les
+  identifiants du §9) — dès que tu as choisi le code.
 
 *Playbook préparé le 2026-07-17. Config technique prête ; le chemin critique = comptes
 développeur (§1) + compte de test reviewer (§9).*
