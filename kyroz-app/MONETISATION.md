@@ -62,6 +62,13 @@ core tuerait le North Star — donc interdit.
 - Pas de pub, pas de revente de données (RGPD — données de santé, spec §7).
 
 ## Implémentation (à ne lancer qu'APRÈS validation du découpage)
+
+> **▶ Prévu en session dédiée (« faire les Stripe », fondateur, 2026-07-17).**
+> ⚠️ Ne PAS coder le paiement avant d'avoir répondu au **point 2 ci-dessous**
+> (« que construit-on qui vaille 5 € ? »). Brancher Stripe/RevenueCat sur un
+> paywall vide = plomberie pour rien. L'ordre : (1) décider la valeur premium →
+> (2) la construire → (3) alors seulement le paiement.
+
 - Le schéma Supabase a déjà `profiles.stripe_customer_id` → prêt pour Stripe.
 - Recommandation technique : **RevenueCat** (gère App Store / Play Store + Stripe,
   reçus, restauration d'achat) plutôt que Stripe seul sur mobile.
