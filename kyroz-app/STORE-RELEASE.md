@@ -233,8 +233,48 @@ eas submit --platform android --latest    # 1re fois : créer l'app dans Play Co
 - Passer `supportsTablet` à `false` (retire l'exigence iPad).
 - Générer des **captures de cadrage** depuis la version web (pour préparer tes
   screenshots).
-- Rédiger la **note complète pour le reviewer** (parcours guidé pas à pas + les
-  identifiants du §9) — dès que tu as choisi le code.
+
+---
+
+## 11. Note pour le reviewer (à coller dans App Store Connect + Play Console)
+
+> Rédigée en anglais (les reviewers ne lisent pas forcément le français) avec les
+> libellés FR des boutons entre guillemets. **Remplace `<CODE_EAS>` par le code que
+> tu as posé dans `EXPO_PUBLIC_REVIEW_CODE`** (⚠️ ne PAS committer le vrai code ici —
+> ce fichier est dans le repo public). Colle-la dans :
+> - **Apple** : App Store Connect → ta version → *App Review Information* → *Notes* +
+>   coche *Sign-In required* et mets l'e-mail/mot de passe dans les champs dédiés.
+> - **Google** : Play Console → *App content* → *App access* → *All functionality
+>   requires access* → fournis les identifiants + colle les instructions.
+
+```
+DEMO ACCESS
+The app opens on a sign-in screen. Use the demo access below to review the full app.
+
+On the login screen:
+1. Tap the "Connexion" tab (right tab = "Sign in").
+2. Email:    review@kyroz.app
+3. Password: <CODE_EAS>
+4. Tap "Se connecter" ("Sign in").
+→ This opens a guest session and goes straight to onboarding.
+
+WALKTHROUGH (~2 min)
+- Onboarding: first name → basic info + body-fat picker → sports → goal →
+  preferences (diet) → plan days + meals. Tap "Générer mon plan" ("Generate my plan").
+- Meal plan ("Plan" tab): each day's meals with precise macros.
+- Tap any meal to open the recipe, adjusted quantities and macros.
+- Other tabs: "Courses" (shopping list), "Recettes" (recipes), "Profil" (settings +
+  account deletion).
+
+NOTES
+- App language is French; theme is dark.
+- No payment, no ads. Works offline.
+- Health disclaimer shown in-app: Kyroz is for healthy adults and does not replace
+  medical or dietitian advice. Users under 16 are blocked during onboarding.
+- Data (email, profile) is stored in the EU (Supabase). Users can delete their
+  account and data in-app (Profil → delete account). Progress photos never leave
+  the device.
+```
 
 *Playbook préparé le 2026-07-17. Config technique prête ; le chemin critique = comptes
 développeur (§1) + compte de test reviewer (§9).*
