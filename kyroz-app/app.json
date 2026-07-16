@@ -35,6 +35,15 @@
           "photosPermission": "Kyroz accède à tes photos pour enregistrer tes photos de progression (elles restent sur ton téléphone).",
           "cameraPermission": "Kyroz utilise l'appareil photo pour tes photos de progression (elles restent sur ton téléphone)."
         }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#000000"
+        }
       ]
     ],
     "experiments": {
