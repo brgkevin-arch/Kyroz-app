@@ -49,7 +49,7 @@
 ## Conformité RGPD
 - **Fait (code)** : consentement explicite horodaté à l'inscription ; droit à l'effacement (compte + cascade + purge locale à la déconnexion ET suppression) ; **droit à la portabilité** (export JSON, `lib/exportData.ts`) ; **politique de confidentialité + CGU** (`constants/legal.ts` → écran in-app `/legal` + page statique 200 `public/legal.html` pour stores/partage, liés login + profil) ; isolation RLS (vérifiée en prod) ; aucun SDK de tracking (partage IA Supabase = Disabled) ; photos local-only. **Registre** : `kyroz-app/RGPD-REGISTRE.md`. Coordonnées : Kévin Berger, micro-entreprise, 2 rue du moulin 64570 Arette, `contact@kyroz.app`.
 - **Fait (fondateur, hors code) — 2026-06-15/16** : DPA Supabase signé (données de santé déclarées, rôle Controller) ; région UE confirmée (`eu-central-1` Frankfurt) ; 2FA activée ; e-mail unifié sur l'adresse publique unique `contact@kyroz.app` (+ perso `brgkevin@kyroz.app`), en cours de migration Cloudflare Email Routing → iCloud+ Domaine perso (2026-07-15).
-- **Reste** : **renseigner le SIREN** (placeholder `[À COMPLÉTER]` dans `constants/legal.ts` objet `LEGAL`, `public/legal.html`, `RGPD-REGISTRE.md`) ; relecture juriste idéale. Cf. [[rgpd-placeholders-a-completer]].
+- ~~**Reste** : renseigner le SIREN~~ **FAIT 2026-07-16** : SIREN `106386162` (Luhn OK) renseigné dans `constants/legal.ts` (objet `LEGAL`), `public/legal.html` (miroir) et `RGPD-REGISTRE.md`. Reste : relecture juriste idéale (non bloquante). Cf. [[rgpd-placeholders-a-completer]].
 
 ## RESTE (Phase 2)
 - **▶ REPRISE DE SESSION — état au 2026-07-03.** Tout ce qui suit est **livré, testé (363 tests), mergé sur `main` et déployé**. Rien en cours, arbre git propre.
@@ -69,7 +69,7 @@
 - **P0.4 — « Supprimer mon compte » jamais testé en prod.** L'Edge Function `delete-account` est codée ; **rien ne prouve qu'elle est déployée**. Le bouton est dans l'app → si elle échoue = **non-conformité RGPD sur données de santé**. → Test réel de bout en bout.
 
 #### ⚖️ P1 — Conformité EN RETARD (l'app est publique) — **~½ journée**
-- **P1.1 — 🔴 CONFIRMÉ : le SIREN s'affiche en `[À COMPLÉTER]` EN CLAIR** dans la politique de confidentialité **en ligne** : `public/legal.html:39`, `constants/legal.ts:19`, `RGPD-REGISTRE.md:12`. Mentions légales invalides + motif de rejet store. → 5 min une fois le n° en main.
+- ~~**P1.1 — 🔴 le SIREN s'affiche en `[À COMPLÉTER]` EN CLAIR**~~ **RÉSOLU 2026-07-16** : SIREN `106386162` renseigné (`public/legal.html:39`, `constants/legal.ts:19`, `RGPD-REGISTRE.md:12`). Mentions légales désormais valides.
 - **P1.2 — 🔴 CONFIRMÉ : AUCUN hard block grossesse / allaitement / pathologie dans le CODE.** Recherche exhaustive : **zéro occurrence** de `enceinte|grossesse|allaitante|pathologie|diabet` dans `lib/`, `app/`, `components/`. Seul l'âge < 16 est bloqué (`validateProfile`). Or **CLAUDE.md §6 exige un « hard block dans le code »** — l'exclusion n'existe aujourd'hui QUE dans le texte des CGU. Une femme enceinte ou un diabétique peut créer un compte et recevoir un plan macro-précis. **→ Risque juridique le plus concret du projet.** Fix : écran de dépistage bloquant à l'onboarding.
 - **P1.3 — Permission micro `RECORD_AUDIO`** déclarée dans `app.json` alors qu'aucun son n'est enregistré → questions automatiques à la revue Google Play + déclaration de confidentialité fausse. → Retirer.
 

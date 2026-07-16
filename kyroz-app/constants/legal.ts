@@ -9,14 +9,14 @@ export const DISCLAIMER =
   "Kyroz est conçu pour des adultes en bonne santé. Ces informations ne remplacent pas l'avis d'un médecin ou diététicien-nutritionniste.";
 
 // ── Identité du responsable de traitement ───────────────────────────────────
-// ⚠️ À COMPLÉTER par le fondateur : SIREN + adresse (obligatoires pour identifier
-// le responsable de traitement — RGPD art. 13 / mentions légales). Tout est
-// regroupé ici : ne pas dupliquer ailleurs.
+// Identité du responsable de traitement (RGPD art. 13 / mentions légales). Tout
+// est regroupé ici : ne pas dupliquer ailleurs. Le miroir statique
+// `public/legal.html` doit être tenu à jour à la main en parallèle.
 export const LEGAL = {
   appName: 'Kyroz',
   controllerName: 'Kévin Berger',
   controllerStatus: 'Entrepreneur individuel (micro-entreprise)',
-  siren: '[À COMPLÉTER — n° SIREN à 9 chiffres]',
+  siren: '106386162',
   address: '2 rue du moulin, 64570 Arette',
   dpoEmail: 'contact@kyroz.app',
   supportEmail: 'contact@kyroz.app',

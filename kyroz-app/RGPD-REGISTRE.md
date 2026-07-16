@@ -9,7 +9,7 @@
 |---|---|
 | Nom | Kévin Berger |
 | Statut | Entrepreneur individuel (micro-entreprise) |
-| SIREN | **[À COMPLÉTER — 9 chiffres]** |
+| SIREN | **106386162** |
 | Adresse | 2 rue du moulin, 64570 Arette |
 | Contact / DPO | contact@kyroz.app |
 
@@ -53,5 +53,5 @@
 - [x] **Région UE** confirmée (`eu-central-1`, Frankfurt).
 - [x] **2FA** activée sur le compte Supabase.
 - [x] Adresse + email de contact renseignés (2 rue du moulin, 64570 Arette · contact@kyroz.app).
-- [ ] **Compléter le SIREN** (9 chiffres) ici et dans `constants/legal.ts` (objet `LEGAL`).
+- [x] **SIREN complété** (106386162) ici, dans `constants/legal.ts` (objet `LEGAL`) et `public/legal.html`.
 - [ ] (Idéal) Relecture du texte légal par un juriste avant lancement à grande échelle.
