@@ -51,11 +51,9 @@ Sans ces deux comptes, rien ne peut être soumis. Le reste (§2–7) peut se pr�
 | Thème | Sombre (splash + UI) |
 | Orientation | Portrait |
 
-> **Décision à prendre — iPad.** `app.json` a `supportsTablet: true`. Conséquence :
-> **Apple exige des screenshots iPad** en plus de l'iPhone, et testera la mise en
-> page tablette. Kyroz est pensé **téléphone d'abord**. Reco : passer à
-> `supportsTablet: false` pour le 1er lancement (moins de friction). **Dis-le-moi,
-> je le change en 10 s.**
+> **Décision iPad — TRANCHÉE 2026-07-21 : `supportsTablet: false`.** L'app cible le
+> téléphone d'abord → plus d'exigence de screenshots iPad chez Apple, moins de
+> friction en review. (Réactivable plus tard si une version tablette est voulue.)
 
 ---
 
@@ -199,6 +197,10 @@ eas submit --platform android --latest    # 1re fois : créer l'app dans Play Co
 
 ## 9. Checklist finale avant « Submit for review »
 
+- [ ] **Migrations Supabase + test suppression de compte** → suivre
+      `supabase/RUNBOOK-PROD.md` (coller `migrations/2026-07-21_pending_all.sql`,
+      vérifier une écriture réelle, tester « Supprimer mon compte » de bout en bout).
+      ⚠️ Invérifiable depuis le repo — **seul toi peux le confirmer**.
 - [x] ⚠️ **Accès reviewer — RÉGLÉ EN CODE (2026-07-17).** Un accès invité est
       déverrouillé par un **code secret posé au build** (`EXPO_PUBLIC_REVIEW_CODE`),
       inerte partout ailleurs (le web public ne le pose pas → reste fermé). Le
@@ -222,7 +224,7 @@ eas submit --platform android --latest    # 1re fois : créer l'app dans Play Co
 - [ ] URL de confidentialité renvoie 200 (déjà le cas).
 - [ ] Screenshots aux bonnes dimensions uploadés (§7).
 - [ ] Formulaires confidentialité remplis (§4).
-- [ ] Décision iPad tranchée (§2).
+- [x] Décision iPad tranchée (§2) — `supportsTablet: false` (2026-07-21).
 - [ ] Pas d'allégation médicale dans la fiche (§5).
 - [ ] (Android) Testeurs recrutés pour la période de 14 jours si compte perso (§1).
 

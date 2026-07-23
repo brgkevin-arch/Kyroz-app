@@ -10,15 +10,17 @@
     {
       "name": "kyroz-web",
       "runtimeExecutable": "npx",
-      "runtimeArgs": ["expo", "start", "--web", "--port", "8081", "--clear"],
-      "port": 8081,
+      "runtimeArgs": ["expo", "start", "--web", "--port", "8090", "--clear"],
+      "port": 8090,
+      "autoPort": false,
       "cwd": "kyroz-app"
     },
     {
       "name": "kyroz-verify",
       "runtimeExecutable": "npx",
-      "runtimeArgs": ["expo", "start", "--web", "--port", "8090"],
-      "port": 8090,
+      "runtimeArgs": ["expo", "start", "--web", "--port", "8095"],
+      "port": 8095,
+      "autoPort": false,
       "cwd": "kyroz-app"
     },
     {
