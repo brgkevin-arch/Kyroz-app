@@ -23,6 +23,8 @@ import SportsEditor from '../../components/SportsEditor';
 import { useProfile } from '../../hooks/useProfile';
 import { saveFirstName } from '../../lib/profileName';
 import { capture, Events } from '../../lib/analytics';
+import HealthScreening from '../../components/HealthScreening';
+import { hasPassedScreening } from '../../lib/healthScreening';
 
 const TOTAL_STEPS = 7;
 
@@ -91,6 +93,11 @@ export default function Onboarding() {
 
   // Analytics : début du tunnel (no-op tant que non consenti/configuré).
   useEffect(() => { capture(Events.onboardingStarted); }, []);
+
+  // Dépistage santé bloquant (CLAUDE.md §6). null = flag pas encore lu ; false =
+  // à faire (on affiche le portail avant l'assistant) ; true = passé.
+  const [screened, setScreened] = useState<boolean | null>(null);
+  useEffect(() => { hasPassedScreening().then(setScreened); }, []);
 
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
@@ -214,6 +221,11 @@ export default function Onboarding() {
     setSaving(false);
     router.replace('/(tabs)/plan');
   };
+
+  // Portail de dépistage santé : tant qu'il n'est pas passé, il remplace l'assistant.
+  // (Placé APRÈS tous les hooks → règles React respectées.)
+  if (screened === null) return null; // lecture du flag (AsyncStorage, quasi instantané)
+  if (!screened) return <HealthScreening onPass={() => setScreened(true)} />;
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'bottom']}>
