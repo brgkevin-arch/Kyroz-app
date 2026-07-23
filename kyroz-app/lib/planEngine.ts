@@ -57,6 +57,13 @@ const TIE_BAND_BALANCED = 0.01;
 const TIE_BAND_MAX = 0.022;
 // En sèche, marge supplémentaire de la bande pour laisser les fibres choisir.
 const FIBER_BAND_BONUS = 0.014;
+// Pénalité de score par utilisation d'une recette dans la semaine (rotation). Choisi
+// nettement > à la bande la plus large (0.036) pour qu'UNE utilisation suffise à sortir
+// une recette de la bande → rotation dès le lendemain. Ne dégrade PAS la précision :
+// le total du jour est recollé par tightenDay + lissage hebdo (écart kcal/jour mesuré
+// ~1 % à travers le balayage 0→0.09). Les recettes à flag (≥ 0.4) restent hors bande.
+// Cf. selectMealAdapted. Balayage 2026-07-23 : variété semaine ~×2 vs 0, précision plate.
+const VARIETY_STEP = 0.06;
 
 // Reroll (« Nouveau plan ») : pour produire un plan DIFFÉRENT à chaque clic, on
 // élargit le pool de choix (borné) et on décale la sélection avec un `seed`. Le
@@ -364,12 +371,25 @@ function selectMealAdapted(
   // Plan canonique répétitif (seed 0) : meilleur score strict, jours identiques.
   if (variety === 'repetitive' && seed === 0) return candidates[0];
 
-  const minScore = candidates[0].score;
+  // Rotation intra-semaine par SCORE EFFECTIF : une recette déjà servie voit son
+  // score monter de `VARIETY_STEP` par utilisation (son fit réel est inchangé) → elle
+  // sort de la bande et cède la place à une recette fraîche de qualité comparable.
+  // Fix variété 2026-07-23 : avant, `usage` n'était qu'un départage ENFOUI sous les
+  // fibres (en sèche) et le besoin objectif/sport — clés ABSOLUES → la même recette
+  // « la meilleure sur cet axe » revenait 7 j/7 (petit-déj 2/7 avec 78 recettes). En
+  // repliant `usage` dans le score, les nudges fibres/objectif restent mais ne peuvent
+  // plus monopoliser : ils choisissent la qualité au 1er passage, la rotation reprend
+  // ensuite. `repetitive` (plan canonique voulu statique) : pas de pénalité.
+  const step = variety === 'repetitive' ? 0 : VARIETY_STEP;
+  const effOf = (c: AdaptedChoice) => c.score + step * (usage[c.recipe.id] ?? 0);
+  candidates.sort((a, b) => effOf(a) - effOf(b) || a.recipe.id.localeCompare(b.recipe.id));
+
+  const minEff = effOf(candidates[0]);
   const band = (variety === 'max' ? TIE_BAND_MAX : TIE_BAND_BALANCED) + (fiberStrong ? FIBER_BAND_BONUS : 0);
 
-  let pickable = candidates.filter((c) => c.score <= minScore + band);
+  let pickable = candidates.filter((c) => effOf(c) <= minEff + band);
   if (seed !== 0) {
-    let wide = candidates.filter((c) => c.score <= minScore + VARIANT_BAND);
+    let wide = candidates.filter((c) => effOf(c) <= minEff + VARIANT_BAND);
     if (wide.length < VARIANT_MIN) wide = candidates.slice(0, VARIANT_MIN);
     pickable = wide.slice(0, VARIANT_POOL);
   }
@@ -383,24 +403,17 @@ function selectMealAdapted(
     if (a.need !== b.need) return b.need - a.need;
     // 1quater) Jour de repos : nudge vers les recettes adaptées « jour off ».
     if (restDay && a.restOk !== b.restOk) return a.restOk ? -1 : 1;
-    // 1ter) En sèche, les fibres priment sur la variété (satiété).
-    if (fiberStrong) { const f = fiberCmp(a, b); if (f !== 0) return f; }
-    // 2) Variété intra-semaine : la recette la moins utilisée (sauf en répétitif).
-    if (variety !== 'repetitive') {
-      const ua = usage[a.recipe.id] ?? 0;
-      const ub = usage[b.recipe.id] ?? 0;
-      if (ua !== ub) return ua - ub;
-    }
-    // 2bis) Hors sèche : départage fibres après la variété (nudge plus doux).
-    if (!fiberStrong) { const f = fiberCmp(a, b); if (f !== 0) return f; }
-    // 3) Décalage par seed : départage variable d'un reroll à l'autre.
+    // 1ter) Fibres : nudge satiété (en sèche surtout). La rotation ne dépend plus de
+    // cette clé — elle vit dans le score effectif → plus de monopole d'une recette.
+    { const f = fiberCmp(a, b); if (f !== 0) return f; }
+    // 2) Décalage par seed : départage variable d'un reroll à l'autre.
     if (seed !== 0) {
       const ra = seededRank(seed, a.recipe.id);
       const rb = seededRank(seed, b.recipe.id);
       if (ra !== rb) return ra - rb;
     }
-    // 4) Sinon le meilleur score, puis déterminisme total.
-    return a.score - b.score || a.recipe.id.localeCompare(b.recipe.id);
+    // 3) Sinon le meilleur score EFFECTIF (moins utilisé d'abord), puis déterminisme.
+    return effOf(a) - effOf(b) || a.recipe.id.localeCompare(b.recipe.id);
   });
 
   return pickable[0];
@@ -466,7 +479,7 @@ export function computeDailyTotals(
 // Version du moteur de génération : à incrémenter quand le scoring/sélection
 // change, pour que les plans EN CACHE se régénèrent automatiquement (la signature
 // change → l'auto-refresh de l'écran Plan rejoue la génération). v2 = lipides cadrés.
-const ENGINE_VERSION = 15; // v15 = catalogue 314 (+50 recettes sans gluten, 2026-07-22) — régénère les plans en cache
+const ENGINE_VERSION = 16; // v16 = fix variété (rotation par score effectif ; petit-déj 2→7/7 distincts) — régénère les plans en cache
 
 export function profileSignature(p: UserProfile): string {
   // NB : `hidden_recipes` (👎) est VOLONTAIREMENT absent. Un 👎 remplace UN repas

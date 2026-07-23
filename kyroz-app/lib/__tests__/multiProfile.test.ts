@@ -123,9 +123,15 @@ describe('Stress-test 20 profils (10 H + 10 F) — cohérence bout-en-bout', () 
     for (const m of plan.meals) {
       expect(m.macros.kcal, `${label} ${m.id} kcal>0`).toBeGreaterThan(0);
       expect(m.adapted_ingredients?.length, `${label} ${m.id} ingr`).toBeGreaterThan(0);
-      // Macros du repas recalculées depuis les grammes : kcal ≈ 4P+4C+9F
+      // Macros du repas recalculées depuis les grammes : kcal ≈ 4P+4C+9F. Tolérance
+      // 15 % car Atwater strict (4/4/9) SOUS-estime les recettes riches en FIBRES —
+      // le kcal Ciqual compte l'énergie des fibres, pas ce recalcul. Plafond mesuré
+      // sur ~12 k repas adaptés : 13,3 % (col39 « pudding chia », borné par abs_max_qty ;
+      // amplifié vs sa base 7,8 % car l'adaptation gonfle la part de chia). Un vrai
+      // défaut de macros serait à 25 %+. Cf. fix variété 2026-07-23 (rotation surface
+      // désormais ces recettes fibreuses) et P3.1 (fiber.ts encore aveugle au chia).
       const calc = m.macros.protein_g * 4 + m.macros.carbs_g * 4 + m.macros.fat_g * 9;
-      expect(dayDev(calc, m.macros.kcal), `${label} ${m.id} recompute`).toBeLessThan(0.13);
+      expect(dayDev(calc, m.macros.kcal), `${label} ${m.id} recompute`).toBeLessThan(0.15);
     }
   });
 
