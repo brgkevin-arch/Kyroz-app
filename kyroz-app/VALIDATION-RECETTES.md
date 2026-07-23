@@ -1,7 +1,7 @@
 # Kyroz — Dossier de validation diététicienne
 
 > ⚠️ **Fichier GÉNÉRÉ** — ne pas éditer à la main. Régénérer : `npm run gen:validation`.
-> Source de vérité = `lib/data/recettes-kyroz-100.json` → `lib/recipeMap.ts`.
+> Source de vérité = `Recette/recettes-kyroz.json` → `lib/recipeMap.ts`.
 >
 > **But** : faire valider les recettes par une diététicienne-nutritionniste diplômée avant
 > mise en production (CLAUDE.md §6). Tant que la validation n'est pas faite, le champ
@@ -10,7 +10,7 @@
 > **Comment l’utiliser** : cocher chaque recette (colonne *OK ?*), noter les remarques, puis
 > basculer `validated_by_dietitian` à `true` recette par recette.
 
-**Nombre de recettes : 264**
+**Nombre de recettes : 314**
 
 ## À lire avant de juger les quantités
 
@@ -31,24 +31,25 @@ kcal (Ciqual) vs recalcul Atwater (protéines ×4 + glucides ×4 + lipides ×9).
 Un écart **positif** est normal sur les recettes riches en fibres (Ciqual compte l’énergie des
 fibres, pas le recalcul). On ne signale que les écarts > 10 %.
 
-1 recette(s) avec un écart > 10 % — à confirmer par la diététicienne :
+2 recette(s) avec un écart > 10 % — à confirmer par la diététicienne :
 
 | ID | Recette | kcal (Ciqual) | kcal (Atwater) | Écart | Cause probable |
 |---|---|---|---|---|---|
+| pd72 | Pudding chia – yaourt soja – kiwi | 262 | 233 | 11 % | fibres (légumineuses / céréales complètes) |
 | rep112 | Soupe pois cassés – croûtons – graines | 592 | 532 | 10 % | fibres (légumineuses / céréales complètes) |
 
 ## Couverture par régime
 
 | Régime | Petit-déj | Collations | Repas |
 |---|---|---|---|
-| *(sans restriction)* | 58 | 54 | 152 |
-| végétarien | 54 | 53 | 68 |
-| pescétarien | 56 | 53 | 105 |
-| sans porc | 57 | 54 | 150 |
-| sans lactose | 33 | 32 | 132 |
-| sans gluten | 22 | 34 | 100 |
-| végétalien | 26 | 29 | 52 |
-| halal | 57 | 54 | 150 |
+| *(sans restriction)* | 78 | 66 | 170 |
+| végétarien | 74 | 65 | 73 |
+| pescétarien | 76 | 65 | 115 |
+| sans porc | 77 | 66 | 166 |
+| sans lactose | 41 | 39 | 146 |
+| sans gluten | 42 | 46 | 118 |
+| végétalien | 33 | 36 | 57 |
+| halal | 77 | 66 | 166 |
 
 ## Tableau de synthèse
 
@@ -318,6 +319,56 @@ fibres, pas le recalcul). On ne signale que les écarts > 10 %.
 | rep150 | Riz – tempeh – légumes wok – coco | Repas | 22’ | 667 | 34 | 78 | 20 | maintien, prise de masse | ☐ | |
 | rep151 | Polenta – ragoût haricots blancs – PST | Repas | 30’ | 658 | 39 | 95 | 11 | maintien, prise de masse | ☐ | |
 | rep152 | Sarrasin – tofu grillé – champignons – levure | Repas | 22’ | 705 | 44 | 64 | 29 | maintien, prise de masse | ☐ | |
+| pd59 | Polenta crémeuse – lait – miel – noisettes | Petit-déj | 12’ | 544 | 35 | 68 | 14 | maintien, prise de masse | ☐ | |
+| pd60 | Polenta – lait amande – cacao – banane | Petit-déj | 12’ | 495 | 28 | 67 | 12 | maintien, prise de masse | ☐ | |
+| pd61 | Polenta – fromage blanc – fruits rouges | Petit-déj | 12’ | 377 | 20 | 53 | 8 | perte de gras, maintien | ☐ | |
+| pd62 | Porridge châtaigne – lait amande – pomme | Petit-déj | 12’ | 581 | 25 | 72 | 18 | maintien, prise de masse | ☐ | |
+| pd63 | Bowl châtaigne – skyr – chocolat noir | Petit-déj | 8’ | 473 | 24 | 68 | 8 | maintien, prise de masse | ☐ | |
+| pd64 | Riz au lait – whey vanille – framboises | Petit-déj | 20’ | 484 | 34 | 72 | 6 | maintien, prise de masse | ☐ | |
+| pd65 | Riz au lait coco – mangue – chia | Petit-déj | 20’ | 602 | 28 | 74 | 20 | maintien, prise de masse | ☐ | |
+| pd66 | Pancakes sarrasin – œuf – myrtilles | Petit-déj | 15’ | 493 | 31 | 61 | 12 | maintien, prise de masse | ☐ | |
+| pd67 | Pancakes sarrasin vegan – banane – cacahuète | Petit-déj | 15’ | 543 | 32 | 64 | 17 | maintien, prise de masse | ☐ | |
+| pd68 | Pancakes banane – œuf – sans farine | Petit-déj | 10’ | 403 | 32 | 30 | 16 | perte de gras, maintien | ☐ | |
+| pd69 | Porridge quinoa – skyr – myrtilles | Petit-déj | 15’ | 432 | 30 | 49 | 10 | perte de gras, maintien | ☐ | |
+| pd70 | Porridge millet – whey – pomme – cannelle | Petit-déj | 15’ | 545 | 35 | 68 | 15 | maintien, prise de masse | ☐ | |
+| pd71 | Porridge sarrasin – cottage – poire | Petit-déj | 15’ | 494 | 30 | 54 | 15 | perte de gras, maintien | ☐ | |
+| pd72 | Pudding chia – yaourt soja – kiwi | Petit-déj | 5’ | 262 | 19 | 19 | 9 | perte de gras | ☐ | |
+| pd73 | Bowl skyr – châtaigne – raisins | Petit-déj | 5’ | 433 | 26 | 55 | 9 | perte de gras, maintien | ☐ | |
+| pd74 | Smoothie bowl skyr – fruits rouges – graines | Petit-déj | 5’ | 286 | 28 | 18 | 10 | perte de gras | ☐ | |
+| pd75 | Bowl yaourt soja – banane – amande | Petit-déj | 4’ | 377 | 25 | 30 | 16 | maintien, prise de masse | ☐ | |
+| pd76 | Œufs brouillés – polenta grillée – tomate | Petit-déj | 15’ | 502 | 26 | 47 | 23 | perte de gras, maintien | ☐ | |
+| pd77 | Tofu brouillé – pomme de terre – champignons | Petit-déj | 18’ | 511 | 35 | 34 | 24 | perte de gras, maintien | ☐ | |
+| pd78 | Omelette – patate douce – épinards – feta | Petit-déj | 18’ | 488 | 29 | 25 | 29 | perte de gras, maintien | ☐ | |
+| col55 | Galettes de riz – skyr – myrtilles | Collation | 3’ | 262 | 22 | 38 | 1 | perte de gras | ☐ | |
+| col56 | Galettes de riz – purée châtaigne – noisettes | Collation | 4’ | 445 | 18 | 63 | 11 | maintien | ☐ | |
+| col57 | Galettes de riz – cottage – concombre | Collation | 4’ | 283 | 21 | 30 | 8 | perte de gras | ☐ | |
+| col58 | Boules châtaigne – cacao – amande | Collation | 10’ | 429 | 22 | 48 | 13 | maintien | ☐ | |
+| col59 | Energy balls riz soufflé – dattes – cacahuète | Collation | 10’ | 463 | 22 | 61 | 13 | maintien, prise de masse | ☐ | |
+| col60 | Skyr – châtaigne – cannelle | Collation | 3’ | 347 | 24 | 41 | 7 | perte de gras, maintien | ☐ | |
+| col61 | Shake whey – riz soufflé – banane | Collation | 4’ | 388 | 35 | 49 | 6 | maintien, prise de masse | ☐ | |
+| col62 | Yaourt soja – polenta croustillante – érable | Collation | 8’ | 374 | 21 | 46 | 12 | maintien | ☐ | |
+| col63 | Fromage blanc – mangue – graines courge | Collation | 3’ | 234 | 19 | 22 | 7 | perte de gras | ☐ | |
+| col64 | Pois chiches rôtis – paprika | Collation | 25’ | 281 | 13 | 31 | 10 | perte de gras, maintien | ☐ | |
+| col65 | Edamame – citron – piment | Collation | 6’ | 236 | 18 | 14 | 12 | perte de gras | ☐ | |
+| col66 | Mousse tofu soyeux – framboises | Collation | 8’ | 207 | 23 | 9 | 7 | perte de gras | ☐ | |
+| rep153 | Risotto – poulet – champignons – parmesan | Repas | 30’ | 652 | 52 | 69 | 18 | maintien, prise de masse | ☐ | |
+| rep154 | Risotto – crevettes – courgette – citron | Repas | 30’ | 515 | 40 | 65 | 10 | perte de gras, maintien | ☐ | |
+| rep155 | Risotto vegan – PST – petits pois – levure | Repas | 30’ | 647 | 40 | 97 | 10 | maintien, prise de masse | ☐ | |
+| rep156 | Paella express – poulet – crevettes – poivron | Repas | 30’ | 673 | 59 | 79 | 12 | maintien, prise de masse | ☐ | |
+| rep157 | Gratin pommes de terre – jambon – mozzarella | Repas | 45’ | 545 | 40 | 43 | 22 | maintien, prise de masse | ☐ | |
+| rep158 | Rösti pommes de terre – saumon – aneth | Repas | 25’ | 558 | 39 | 39 | 26 | maintien, prise de masse | ☐ | |
+| rep159 | Curry pommes de terre – pois chiches – épinards | Repas | 30’ | 644 | 37 | 79 | 16 | maintien, prise de masse | ☐ | |
+| rep160 | Salade tiède pommes de terre – thon – haricots verts | Repas | 25’ | 537 | 49 | 37 | 19 | perte de gras, maintien | ☐ | |
+| rep161 | Polenta gratinée – ragoût de bœuf – tomate | Repas | 35’ | 639 | 46 | 60 | 23 | maintien, prise de masse | ☐ | |
+| rep162 | Polenta grillée – tempeh – ratatouille | Repas | 30’ | 621 | 33 | 72 | 18 | maintien, prise de masse | ☐ | |
+| rep163 | Polenta crémeuse – cabillaud – épinards | Repas | 25’ | 434 | 42 | 48 | 8 | perte de gras | ☐ | |
+| rep164 | Bo bun – nouilles de riz – bœuf – crudités | Repas | 25’ | 639 | 40 | 79 | 17 | maintien, prise de masse | ☐ | |
+| rep165 | Soupe pho – nouilles de riz – poulet – herbes | Repas | 30’ | 555 | 45 | 70 | 9 | perte de gras, maintien | ☐ | |
+| rep166 | Nouilles de riz – tempeh – curry rouge – coco | Repas | 22’ | 735 | 35 | 94 | 20 | maintien, prise de masse | ☐ | |
+| rep167 | Galettes sarrasin – jambon – champignons | Repas | 22’ | 606 | 47 | 50 | 23 | perte de gras, maintien | ☐ | |
+| rep168 | Millet – saumon – brocoli – citron | Repas | 25’ | 666 | 42 | 61 | 29 | maintien, prise de masse | ☐ | |
+| rep169 | Quinoa – dinde – patate douce – amandes | Repas | 28’ | 688 | 57 | 72 | 16 | maintien, prise de masse | ☐ | |
+| rep170 | Sarrasin – haricots blancs – tomate – olives | Repas | 28’ | 703 | 46 | 100 | 10 | maintien, prise de masse | ☐ | |
 
 ## Détail des recettes
 
@@ -5020,5 +5071,867 @@ fibres, pas le recalcul). On ne signale que les écarts > 10 %.
   1. Cuire le sarrasin.
   2. Griller le tofu, poêler les champignons, parsemer de levure maltée.
 - **Pourquoi** : Vegan & sans gluten : umami du tofu + champignons, ancre protéique haute.
+- **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
+
+### pd59 — Polenta crémeuse – lait – miel – noisettes
+
+- **Type** : Petit-déj · **Préparation** : 12 min
+- **Objectif** : maintien, prise de masse · **Sport** : endurance
+- **Régimes compatibles** : végétarien, pescétarien, sans porc, sans gluten, halal
+- **Macros / portion (base)** : 544 kcal · 35 g protéines · 68 g glucides · 14 g lipides
+- **Ingrédients** :
+  - Polenta — 60 g *(pesé sec)*
+  - Lait demi-écrémé — 220 ml
+  - Whey (neutre/vanille) — 25 g
+  - Miel — 12 g
+  - Noisettes — 15 g
+- **Préparation** :
+  1. Cuire la polenta dans le lait 8 min en remuant.
+  2. Hors du feu incorporer la whey, napper de miel et noisettes.
+- **Pourquoi** : Sans gluten : alternative crémeuse au porridge d'avoine, capacité protéique.
+- **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
+
+### pd60 — Polenta – lait amande – cacao – banane
+
+- **Type** : Petit-déj · **Préparation** : 12 min
+- **Objectif** : maintien, prise de masse · **Sport** : endurance
+- **Régimes compatibles** : végétarien, pescétarien, sans porc, sans lactose, sans gluten, végétalien, halal
+- **Macros / portion (base)** : 495 kcal · 28 g protéines · 67 g glucides · 12 g lipides
+- **Ingrédients** :
+  - Polenta — 60 g *(pesé sec)*
+  - Lait d'amande — 220 ml
+  - Protéine végétale (pois/soja) — 25 g
+  - Cacao maigre en poudre — 8 g — quantité fixe
+  - Banane — 90 g
+- **Préparation** :
+  1. Cuire la polenta dans le lait d'amande 8 min.
+  2. Incorporer protéine et cacao, garnir de banane.
+- **Pourquoi** : Vegan & sans gluten : porridge de maïs chocolaté, énergie durable.
+- **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
+
+### pd61 — Polenta – fromage blanc – fruits rouges
+
+- **Type** : Petit-déj · **Préparation** : 12 min
+- **Objectif** : perte de gras, maintien · **Sport** : muscu
+- **Régimes compatibles** : végétarien, pescétarien, sans porc, sans gluten, halal
+- **Macros / portion (base)** : 377 kcal · 20 g protéines · 53 g glucides · 8 g lipides
+- **Ingrédients** :
+  - Polenta — 50 g *(pesé sec)*
+  - Fromage blanc 0% — 180 g
+  - Fruits rouges (mélange) — 80 g
+  - Amandes — 12 g
+- **Préparation** :
+  1. Cuire la polenta à l'eau 8 min, laisser tiédir.
+  2. Mélanger au fromage blanc, garnir fruits rouges et amandes.
+- **Pourquoi** : Sans gluten : sèche, densité protéique haute pour peu de calories.
+- **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
+
+### pd62 — Porridge châtaigne – lait amande – pomme
+
+- **Type** : Petit-déj · **Préparation** : 12 min
+- **Objectif** : maintien, prise de masse · **Sport** : endurance · adaptée jour de repos
+- **Régimes compatibles** : végétarien, pescétarien, sans porc, sans lactose, sans gluten, végétalien, halal
+- **Macros / portion (base)** : 581 kcal · 25 g protéines · 72 g glucides · 18 g lipides
+- **Ingrédients** :
+  - Châtaigne — 150 g
+  - Protéine végétale (pois/soja) — 25 g
+  - Lait d'amande — 200 ml
+  - Pomme — 100 g
+  - Noisettes — 12 g
+- **Préparation** :
+  1. Écraser les châtaignes cuites dans le lait d'amande chaud.
+  2. Incorporer la protéine, garnir de pomme et noisettes.
+- **Pourquoi** : Vegan & sans gluten : châtaigne douce, glucides lents pour jour repos.
+- **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
+
+### pd63 — Bowl châtaigne – skyr – chocolat noir
+
+- **Type** : Petit-déj · **Préparation** : 8 min
+- **Objectif** : maintien, prise de masse · **Sport** : muscu
+- **Régimes compatibles** : végétarien, pescétarien, sans porc, sans gluten, halal
+- **Macros / portion (base)** : 473 kcal · 24 g protéines · 68 g glucides · 8 g lipides
+- **Ingrédients** :
+  - Châtaigne — 120 g
+  - Skyr nature — 180 g
+  - Chocolat noir 70% — 12 g
+  - Banane — 70 g
+- **Préparation** :
+  1. Écraser grossièrement les châtaignes.
+  2. Mélanger au skyr, garnir de banane et chocolat râpé.
+- **Pourquoi** : Sans gluten : automnal et protéiné, glucides de la châtaigne.
+- **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
+
+### pd64 — Riz au lait – whey vanille – framboises
+
+- **Type** : Petit-déj · **Préparation** : 20 min
+- **Objectif** : maintien, prise de masse · **Sport** : muscu
+- **Régimes compatibles** : végétarien, pescétarien, sans porc, sans gluten, halal
+- **Macros / portion (base)** : 484 kcal · 34 g protéines · 72 g glucides · 6 g lipides
+- **Ingrédients** :
+  - Riz basmati — 70 g *(pesé sec)*
+  - Lait demi-écrémé — 220 ml
+  - Whey (neutre/vanille) — 25 g
+  - Framboises — 80 g
+- **Préparation** :
+  1. Cuire le riz dans le lait 18 min à feu doux.
+  2. Hors du feu incorporer la whey, garnir de framboises.
+- **Pourquoi** : Sans gluten : riz au lait protéiné, réconfortant et calorique.
+- **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
+
+### pd65 — Riz au lait coco – mangue – chia
+
+- **Type** : Petit-déj · **Préparation** : 20 min
+- **Objectif** : maintien, prise de masse · **Sport** : endurance · adaptée jour de repos
+- **Régimes compatibles** : végétarien, pescétarien, sans porc, sans lactose, sans gluten, végétalien, halal
+- **Macros / portion (base)** : 602 kcal · 28 g protéines · 74 g glucides · 20 g lipides
+- **Ingrédients** :
+  - Riz basmati — 70 g *(pesé sec)*
+  - Lait d'amande — 200 ml
+  - Protéine végétale (pois/soja) — 25 g
+  - Lait de coco — 40 ml
+  - Mangue — 90 g
+  - Graines de chia — 10 g
+- **Préparation** :
+  1. Cuire le riz dans le lait d'amande 18 min.
+  2. Ajouter coco et protéine, garnir mangue et chia.
+- **Pourquoi** : Vegan & sans gluten : version tropicale, lipides pour la satiété.
+- **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
+
+### pd66 — Pancakes sarrasin – œuf – myrtilles
+
+- **Type** : Petit-déj · **Préparation** : 15 min
+- **Objectif** : maintien, prise de masse · **Sport** : muscu
+- **Régimes compatibles** : végétarien, pescétarien, sans porc, sans gluten, halal
+- **Macros / portion (base)** : 493 kcal · 31 g protéines · 61 g glucides · 12 g lipides
+- **Ingrédients** :
+  - Sarrasin — 60 g *(pesé sec)*
+  - Œuf entier — 100 g
+  - Skyr nature — 90 g
+  - Myrtilles — 80 g
+  - Sirop d'érable — 12 g
+- **Préparation** :
+  1. Mixer farine de sarrasin, œufs et skyr en pâte lisse.
+  2. Cuire en pancakes, napper de sirop et myrtilles.
+- **Pourquoi** : Sans gluten : pancakes protéinés, glucides du sarrasin.
+- **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
+
+### pd67 — Pancakes sarrasin vegan – banane – cacahuète
+
+- **Type** : Petit-déj · **Préparation** : 15 min
+- **Objectif** : maintien, prise de masse · **Sport** : endurance
+- **Régimes compatibles** : végétarien, pescétarien, sans porc, sans lactose, sans gluten, végétalien, halal
+- **Macros / portion (base)** : 543 kcal · 32 g protéines · 64 g glucides · 17 g lipides
+- **Ingrédients** :
+  - Sarrasin — 60 g *(pesé sec)*
+  - Protéine végétale (pois/soja) — 25 g
+  - Lait d'amande — 150 ml
+  - Banane — 90 g
+  - Beurre de cacahuète — 15 g
+- **Préparation** :
+  1. Mixer sarrasin, protéine, lait d'amande et demi-banane.
+  2. Cuire en pancakes, napper de beurre de cacahuète.
+- **Pourquoi** : Vegan & sans gluten : pancakes énergétiques avant un effort long.
+- **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
+
+### pd68 — Pancakes banane – œuf – sans farine
+
+- **Type** : Petit-déj · **Préparation** : 10 min
+- **Objectif** : perte de gras, maintien · **Sport** : muscu
+- **Régimes compatibles** : végétarien, pescétarien, sans porc, sans gluten, halal
+- **Macros / portion (base)** : 403 kcal · 32 g protéines · 30 g glucides · 16 g lipides
+- **Ingrédients** :
+  - Œuf entier — 150 g
+  - Banane — 110 g
+  - Skyr nature — 100 g
+  - Framboises — 70 g
+- **Préparation** :
+  1. Écraser la banane, mélanger aux œufs battus et au skyr.
+  2. Cuire en petits pancakes, garnir de framboises.
+- **Pourquoi** : Sans gluten sans farine : 3 ingrédients, très protéiné.
+- **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
+
+### pd69 — Porridge quinoa – skyr – myrtilles
+
+- **Type** : Petit-déj · **Préparation** : 15 min
+- **Objectif** : perte de gras, maintien · **Sport** : muscu
+- **Régimes compatibles** : végétarien, pescétarien, sans porc, sans gluten, halal
+- **Macros / portion (base)** : 432 kcal · 30 g protéines · 49 g glucides · 10 g lipides
+- **Ingrédients** :
+  - Quinoa — 55 g *(pesé sec)*
+  - Skyr nature — 180 g
+  - Myrtilles — 80 g
+  - Amandes — 12 g
+- **Préparation** :
+  1. Cuire le quinoa 12 min, laisser tiédir.
+  2. Mélanger au skyr, garnir myrtilles et amandes.
+- **Pourquoi** : Sans gluten : quinoa = protéines complètes, satiété longue.
+- **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
+
+### pd70 — Porridge millet – whey – pomme – cannelle
+
+- **Type** : Petit-déj · **Préparation** : 15 min
+- **Objectif** : maintien, prise de masse · **Sport** : muscu
+- **Régimes compatibles** : végétarien, pescétarien, sans porc, sans gluten, halal
+- **Macros / portion (base)** : 545 kcal · 35 g protéines · 68 g glucides · 15 g lipides
+- **Ingrédients** :
+  - Millet — 60 g *(pesé sec)*
+  - Lait demi-écrémé — 200 ml
+  - Whey (neutre/vanille) — 25 g
+  - Pomme — 100 g
+  - Noix — 12 g
+- **Préparation** :
+  1. Cuire le millet dans le lait 12 min.
+  2. Hors du feu incorporer la whey, ajouter pomme et cannelle.
+- **Pourquoi** : Sans gluten : porridge chaud protéiné, alternative à l'avoine.
+- **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
+
+### pd71 — Porridge sarrasin – cottage – poire
+
+- **Type** : Petit-déj · **Préparation** : 15 min
+- **Objectif** : perte de gras, maintien · **Sport** : endurance
+- **Régimes compatibles** : végétarien, pescétarien, sans porc, sans gluten, halal
+- **Macros / portion (base)** : 494 kcal · 30 g protéines · 54 g glucides · 15 g lipides
+- **Ingrédients** :
+  - Sarrasin — 55 g *(pesé sec)*
+  - Cottage cheese — 170 g
+  - Pomme — 100 g
+  - Graines de courge — 12 g
+- **Préparation** :
+  1. Cuire le sarrasin 12 min.
+  2. Mélanger au cottage cheese, garnir de fruit et graines.
+- **Pourquoi** : Sans gluten : rustique et protéiné, faible en gras.
+- **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
+
+### pd72 — Pudding chia – yaourt soja – kiwi
+
+- **Type** : Petit-déj · **Préparation** : 5 min
+- **Objectif** : perte de gras · **Sport** : endurance
+- **Régimes compatibles** : végétarien, pescétarien, sans porc, sans lactose, sans gluten, végétalien, halal
+- **Macros / portion (base)** : 262 kcal · 19 g protéines · 19 g glucides · 9 g lipides
+- **Ingrédients** :
+  - Graines de chia — 20 g
+  - Yaourt de soja protéiné — 170 g
+  - Kiwi — 100 g
+- **Préparation** :
+  1. Mélanger chia et yaourt de soja, reposer 4 h.
+  2. Garnir de kiwi.
+- **Pourquoi** : Vegan & sans gluten : léger, oméga-3 et protéines.
+- **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
+
+### pd73 — Bowl skyr – châtaigne – raisins
+
+- **Type** : Petit-déj · **Préparation** : 5 min
+- **Objectif** : perte de gras, maintien · **Sport** : muscu
+- **Régimes compatibles** : végétarien, pescétarien, sans porc, sans gluten, halal
+- **Macros / portion (base)** : 433 kcal · 26 g protéines · 55 g glucides · 9 g lipides
+- **Ingrédients** :
+  - Skyr nature — 200 g
+  - Châtaigne — 100 g
+  - Raisins — 60 g
+  - Noisettes — 12 g
+- **Préparation** :
+  1. Émietter les châtaignes cuites.
+  2. Mélanger au skyr, ajouter raisins et noisettes.
+- **Pourquoi** : Sans gluten : très protéiné, glucides doux de la châtaigne.
+- **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
+
+### pd74 — Smoothie bowl skyr – fruits rouges – graines
+
+- **Type** : Petit-déj · **Préparation** : 5 min
+- **Objectif** : perte de gras · **Sport** : muscu
+- **Régimes compatibles** : végétarien, pescétarien, sans porc, sans gluten, halal
+- **Macros / portion (base)** : 286 kcal · 28 g protéines · 18 g glucides · 10 g lipides
+- **Ingrédients** :
+  - Skyr nature — 200 g
+  - Fruits rouges (mélange) — 100 g
+  - Lait d'amande — 100 ml
+  - Graines de courge — 12 g
+- **Préparation** :
+  1. Mixer skyr, fruits rouges et lait d'amande.
+  2. Verser, garnir de graines de courge.
+- **Pourquoi** : Sans gluten : sèche, protéines maigres et volume.
+- **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
+
+### pd75 — Bowl yaourt soja – banane – amande
+
+- **Type** : Petit-déj · **Préparation** : 4 min
+- **Objectif** : maintien, prise de masse · **Sport** : endurance
+- **Régimes compatibles** : végétarien, pescétarien, sans porc, sans lactose, sans gluten, végétalien, halal
+- **Macros / portion (base)** : 377 kcal · 25 g protéines · 30 g glucides · 16 g lipides
+- **Ingrédients** :
+  - Yaourt de soja protéiné — 200 g
+  - Banane — 100 g
+  - Beurre d'amande — 18 g
+  - Graines de chia — 10 g
+- **Préparation** :
+  1. Verser le yaourt de soja.
+  2. Garnir de banane, beurre d'amande et chia.
+- **Pourquoi** : Vegan & sans gluten : dense en énergie, ancre protéique végétale.
+- **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
+
+### pd76 — Œufs brouillés – polenta grillée – tomate
+
+- **Type** : Petit-déj · **Préparation** : 15 min
+- **Objectif** : perte de gras, maintien · **Sport** : muscu
+- **Régimes compatibles** : végétarien, pescétarien, sans porc, sans lactose, sans gluten, halal
+- **Macros / portion (base)** : 502 kcal · 26 g protéines · 47 g glucides · 23 g lipides
+- **Ingrédients** :
+  - Œuf entier — 160 g
+  - Polenta — 60 g *(pesé sec)*
+  - Tomate — 80 g — quantité fixe
+  - Huile d'olive — 6 g
+- **Préparation** :
+  1. Griller des tranches de polenta refroidie.
+  2. Brouiller les œufs, servir avec la polenta et la tomate.
+- **Pourquoi** : Sans gluten : brunch salé protéiné, remplace le pain grillé.
+- **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
+
+### pd77 — Tofu brouillé – pomme de terre – champignons
+
+- **Type** : Petit-déj · **Préparation** : 18 min
+- **Objectif** : perte de gras, maintien · **Sport** : muscu
+- **Régimes compatibles** : végétarien, pescétarien, sans porc, sans lactose, sans gluten, végétalien, halal
+- **Macros / portion (base)** : 511 kcal · 35 g protéines · 34 g glucides · 24 g lipides
+- **Ingrédients** :
+  - Tofu ferme — 190 g
+  - Pomme de terre — 150 g *(pesé cru)*
+  - Champignons — 100 g — quantité fixe
+  - Huile d'olive — 7 g
+  - Levure maltée — 8 g — quantité fixe
+- **Préparation** :
+  1. Rissoler les pommes de terre en dés.
+  2. Émietter le tofu, poêler avec champignons et levure maltée.
+- **Pourquoi** : Vegan & sans gluten : petit-déj salé très protéiné, sans œuf.
+- **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
+
+### pd78 — Omelette – patate douce – épinards – feta
+
+- **Type** : Petit-déj · **Préparation** : 18 min
+- **Objectif** : perte de gras, maintien · **Sport** : muscu
+- **Régimes compatibles** : végétarien, pescétarien, sans porc, sans gluten, halal
+- **Macros / portion (base)** : 488 kcal · 29 g protéines · 25 g glucides · 29 g lipides
+- **Ingrédients** :
+  - Œuf entier — 160 g
+  - Patate douce — 130 g *(pesé cru)*
+  - Épinards frais — 70 g — quantité fixe
+  - Feta — 30 g
+  - Huile d'olive — 6 g
+- **Préparation** :
+  1. Rôtir la patate douce en dés.
+  2. Cuire l'omelette avec épinards, patate et feta émiettée.
+- **Pourquoi** : Sans gluten : omelette complète, double protéine.
+- **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
+
+### col55 — Galettes de riz – skyr – myrtilles
+
+- **Type** : Collation · **Préparation** : 3 min
+- **Objectif** : perte de gras · **Sport** : muscu
+- **Régimes compatibles** : végétarien, pescétarien, sans porc, sans gluten, halal
+- **Macros / portion (base)** : 262 kcal · 22 g protéines · 38 g glucides · 1 g lipides
+- **Ingrédients** :
+  - Galette de riz soufflé — 30 g
+  - Skyr nature — 170 g
+  - Myrtilles — 70 g
+- **Préparation** :
+  1. Tartiner le skyr sur les galettes.
+  2. Garnir de myrtilles.
+- **Pourquoi** : Sans gluten : sèche, protéines maigres et croquant.
+- **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
+
+### col56 — Galettes de riz – purée châtaigne – noisettes
+
+- **Type** : Collation · **Préparation** : 4 min
+- **Objectif** : maintien · **Sport** : endurance
+- **Régimes compatibles** : végétarien, pescétarien, sans porc, sans lactose, sans gluten, végétalien, halal
+- **Macros / portion (base)** : 445 kcal · 18 g protéines · 63 g glucides · 11 g lipides
+- **Ingrédients** :
+  - Galette de riz soufflé — 30 g
+  - Châtaigne — 90 g
+  - Yaourt de soja protéiné — 130 g
+  - Noisettes — 12 g
+- **Préparation** :
+  1. Écraser les châtaignes en purée.
+  2. Tartiner sur les galettes, parsemer de noisettes, servir avec le yaourt.
+- **Pourquoi** : Vegan & sans gluten : en-cas doux, glucides pour l'endurance.
+- **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
+
+### col57 — Galettes de riz – cottage – concombre
+
+- **Type** : Collation · **Préparation** : 4 min
+- **Objectif** : perte de gras · **Sport** : combats
+- **Régimes compatibles** : végétarien, pescétarien, sans porc, sans gluten, halal
+- **Macros / portion (base)** : 283 kcal · 21 g protéines · 30 g glucides · 8 g lipides
+- **Ingrédients** :
+  - Galette de riz soufflé — 30 g
+  - Cottage cheese — 160 g
+  - Concombre — 70 g — quantité fixe
+- **Préparation** :
+  1. Tartiner le cottage sur les galettes.
+  2. Déposer concombre, poivre et herbes.
+- **Pourquoi** : Sans gluten combats : rassasiant, très peu calorique.
+- **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
+
+### col58 — Boules châtaigne – cacao – amande
+
+- **Type** : Collation · **Préparation** : 10 min
+- **Objectif** : maintien · **Sport** : endurance
+- **Régimes compatibles** : végétarien, pescétarien, sans porc, sans lactose, sans gluten, végétalien, halal
+- **Macros / portion (base)** : 429 kcal · 22 g protéines · 48 g glucides · 13 g lipides
+- **Ingrédients** :
+  - Châtaigne — 120 g
+  - Protéine végétale (pois/soja) — 20 g
+  - Cacao maigre en poudre — 8 g — quantité fixe
+  - Beurre d'amande — 15 g
+- **Préparation** :
+  1. Mixer châtaignes, protéine et cacao.
+  2. Lier au beurre d'amande, former des boules, réfrigérer.
+- **Pourquoi** : Vegan & sans gluten : barre maison sans avoine ni céréale.
+- **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
+
+### col59 — Energy balls riz soufflé – dattes – cacahuète
+
+- **Type** : Collation · **Préparation** : 10 min
+- **Objectif** : maintien, prise de masse · **Sport** : endurance
+- **Régimes compatibles** : végétarien, pescétarien, sans porc, sans lactose, sans gluten, végétalien, halal
+- **Macros / portion (base)** : 463 kcal · 22 g protéines · 61 g glucides · 13 g lipides
+- **Ingrédients** :
+  - Galette de riz soufflé — 30 g
+  - Dattes dénoyautées — 50 g
+  - Beurre de cacahuète — 20 g
+  - Protéine végétale (pois/soja) — 20 g
+- **Préparation** :
+  1. Émietter les galettes de riz, mixer avec dattes et protéine.
+  2. Lier au beurre de cacahuète, former des boules.
+- **Pourquoi** : Vegan & sans gluten : énergie transportable pour l'endurance.
+- **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
+
+### col60 — Skyr – châtaigne – cannelle
+
+- **Type** : Collation · **Préparation** : 3 min
+- **Objectif** : perte de gras, maintien · **Sport** : muscu
+- **Régimes compatibles** : végétarien, pescétarien, sans porc, sans gluten, halal
+- **Macros / portion (base)** : 347 kcal · 24 g protéines · 41 g glucides · 7 g lipides
+- **Ingrédients** :
+  - Skyr nature — 180 g
+  - Châtaigne — 90 g
+  - Amandes — 10 g
+- **Préparation** :
+  1. Émietter les châtaignes dans le skyr.
+  2. Saupoudrer de cannelle, ajouter les amandes.
+- **Pourquoi** : Sans gluten : protéines lentes + glucides doux.
+- **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
+
+### col61 — Shake whey – riz soufflé – banane
+
+- **Type** : Collation · **Préparation** : 4 min
+- **Objectif** : maintien, prise de masse · **Sport** : muscu
+- **Régimes compatibles** : végétarien, pescétarien, sans porc, sans gluten, halal
+- **Macros / portion (base)** : 388 kcal · 35 g protéines · 49 g glucides · 6 g lipides
+- **Ingrédients** :
+  - Whey (neutre/vanille) — 30 g
+  - Banane — 100 g
+  - Lait demi-écrémé — 230 ml
+  - Galette de riz soufflé — 20 g
+- **Préparation** :
+  1. Mixer whey, banane et lait.
+  2. Émietter la galette de riz dessus.
+- **Pourquoi** : Sans gluten : shake post-training avec glucides rapides.
+- **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
+
+### col62 — Yaourt soja – polenta croustillante – érable
+
+- **Type** : Collation · **Préparation** : 8 min
+- **Objectif** : maintien · **Sport** : endurance
+- **Régimes compatibles** : végétarien, pescétarien, sans porc, sans lactose, sans gluten, végétalien, halal
+- **Macros / portion (base)** : 374 kcal · 21 g protéines · 46 g glucides · 12 g lipides
+- **Ingrédients** :
+  - Yaourt de soja protéiné — 180 g
+  - Polenta — 40 g *(pesé sec)*
+  - Sirop d'érable — 12 g
+  - Noix — 12 g
+- **Préparation** :
+  1. Griller des dés de polenta jusqu'à croustillance.
+  2. Servir sur le yaourt de soja avec sirop et noix.
+- **Pourquoi** : Vegan & sans gluten : texture croustillante, ancre protéique.
+- **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
+
+### col63 — Fromage blanc – mangue – graines courge
+
+- **Type** : Collation · **Préparation** : 3 min
+- **Objectif** : perte de gras · **Sport** : muscu
+- **Régimes compatibles** : végétarien, pescétarien, sans porc, sans gluten, halal
+- **Macros / portion (base)** : 234 kcal · 19 g protéines · 22 g glucides · 7 g lipides
+- **Ingrédients** :
+  - Fromage blanc 0% — 200 g
+  - Mangue — 90 g
+  - Graines de courge — 12 g
+- **Préparation** :
+  1. Mélanger fromage blanc et mangue en dés.
+  2. Parsemer de graines de courge.
+- **Pourquoi** : Sans gluten : sèche, très protéiné et frais.
+- **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
+
+### col64 — Pois chiches rôtis – paprika
+
+- **Type** : Collation · **Préparation** : 25 min
+- **Objectif** : perte de gras, maintien · **Sport** : combats
+- **Régimes compatibles** : végétarien, pescétarien, sans porc, sans lactose, sans gluten, végétalien, halal
+- **Macros / portion (base)** : 281 kcal · 13 g protéines · 31 g glucides · 10 g lipides
+- **Ingrédients** :
+  - Pois chiches — 65 g *(pesé sec)*
+  - Huile d'olive — 6 g
+- **Préparation** :
+  1. Sécher les pois chiches cuits, enrober d'huile et de paprika.
+  2. Rôtir 22 min à 200°C.
+- **Pourquoi** : Vegan & sans gluten : croquant, protéines et fibres.
+- **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
+
+### col65 — Edamame – citron – piment
+
+- **Type** : Collation · **Préparation** : 6 min
+- **Objectif** : perte de gras · **Sport** : combats
+- **Régimes compatibles** : végétarien, pescétarien, sans porc, sans lactose, sans gluten, végétalien, halal
+- **Macros / portion (base)** : 236 kcal · 18 g protéines · 14 g glucides · 12 g lipides
+- **Ingrédients** :
+  - Edamame — 160 g
+  - Huile d'olive — 4 g
+- **Préparation** :
+  1. Cuire les edamame vapeur 5 min.
+  2. Assaisonner citron, piment et sel.
+- **Pourquoi** : Vegan & sans gluten combats : protéines pures, volume, peu calorique.
+- **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
+
+### col66 — Mousse tofu soyeux – framboises
+
+- **Type** : Collation · **Préparation** : 8 min
+- **Objectif** : perte de gras · **Sport** : muscu
+- **Régimes compatibles** : végétarien, pescétarien, sans porc, sans lactose, sans gluten, végétalien, halal
+- **Macros / portion (base)** : 207 kcal · 23 g protéines · 9 g glucides · 7 g lipides
+- **Ingrédients** :
+  - Tofu soyeux — 170 g
+  - Protéine végétale (pois/soja) — 20 g
+  - Framboises — 80 g
+- **Préparation** :
+  1. Mixer tofu soyeux et protéine jusqu'à texture mousseuse.
+  2. Garnir de framboises, réfrigérer 1 h.
+- **Pourquoi** : Vegan & sans gluten : dessert protéiné très léger.
+- **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
+
+### rep153 — Risotto – poulet – champignons – parmesan
+
+- **Type** : Repas · **Préparation** : 30 min
+- **Objectif** : maintien, prise de masse · **Sport** : muscu
+- **Régimes compatibles** : sans porc, sans gluten, halal
+- **Macros / portion (base)** : 652 kcal · 52 g protéines · 69 g glucides · 18 g lipides
+- **Ingrédients** :
+  - Riz basmati — 85 g *(pesé sec)*
+  - Filet de poulet — 160 g *(pesé cru)*
+  - Champignons — 110 g — quantité fixe
+  - Parmesan — 20 g
+  - Huile d'olive — 8 g
+- **Préparation** :
+  1. Nacrer le riz, mouiller au bouillon louche par louche.
+  2. Ajouter poulet et champignons poêlés, finir au parmesan.
+- **Pourquoi** : Sans gluten : risotto protéiné, capacité élevée pour la masse.
+- **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
+
+### rep154 — Risotto – crevettes – courgette – citron
+
+- **Type** : Repas · **Préparation** : 30 min
+- **Objectif** : perte de gras, maintien · **Sport** : muscu
+- **Régimes compatibles** : pescétarien, sans porc, sans lactose, sans gluten, halal
+- **Macros / portion (base)** : 515 kcal · 40 g protéines · 65 g glucides · 10 g lipides
+- **Ingrédients** :
+  - Riz basmati — 80 g *(pesé sec)*
+  - Crevettes cuites — 160 g
+  - Courgette — 100 g — quantité fixe
+  - Huile d'olive — 8 g
+- **Préparation** :
+  1. Nacrer le riz, mouiller au bouillon progressivement.
+  2. Ajouter crevettes et courgette, finir au citron.
+- **Pourquoi** : Pescatarien sans gluten : protéiné, lipides maîtrisés.
+- **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
+
+### rep155 — Risotto vegan – PST – petits pois – levure
+
+- **Type** : Repas · **Préparation** : 30 min
+- **Objectif** : maintien, prise de masse · **Sport** : muscu
+- **Régimes compatibles** : végétarien, pescétarien, sans porc, sans lactose, sans gluten, végétalien, halal
+- **Macros / portion (base)** : 647 kcal · 40 g protéines · 97 g glucides · 10 g lipides
+- **Ingrédients** :
+  - Riz basmati — 85 g *(pesé sec)*
+  - Protéine de soja texturée (PST) — 45 g *(pesé sec)*
+  - Petits pois — 90 g — quantité fixe
+  - Crème de soja — 50 ml
+  - Levure maltée — 10 g — quantité fixe
+- **Préparation** :
+  1. Nacrer le riz, mouiller au bouillon.
+  2. Ajouter la PST réhydratée et les petits pois, finir crème de soja et levure.
+- **Pourquoi** : Vegan & sans gluten : risotto crémeux sans laitier, forte capacité protéique.
+- **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
+
+### rep156 — Paella express – poulet – crevettes – poivron
+
+- **Type** : Repas · **Préparation** : 30 min
+- **Objectif** : maintien, prise de masse · **Sport** : muscu
+- **Régimes compatibles** : sans porc, sans lactose, sans gluten, halal
+- **Macros / portion (base)** : 673 kcal · 59 g protéines · 79 g glucides · 12 g lipides
+- **Ingrédients** :
+  - Riz basmati — 85 g *(pesé sec)*
+  - Filet de poulet — 130 g *(pesé cru)*
+  - Crevettes cuites — 90 g
+  - Poivron — 100 g — quantité fixe
+  - Petits pois — 60 g — quantité fixe
+  - Huile d'olive — 8 g
+- **Préparation** :
+  1. Saisir poulet et crevettes, réserver.
+  2. Cuire le riz au bouillon safrané avec poivron et petits pois, remettre les protéines.
+- **Pourquoi** : Sans gluten : plat unique convivial, double protéine, capacité haute.
+- **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
+
+### rep157 — Gratin pommes de terre – jambon – mozzarella
+
+- **Type** : Repas · **Préparation** : 45 min
+- **Objectif** : maintien, prise de masse · **Sport** : muscu · adaptée jour de repos
+- **Régimes compatibles** : sans gluten
+- **Macros / portion (base)** : 545 kcal · 40 g protéines · 43 g glucides · 22 g lipides
+- **Ingrédients** :
+  - Pomme de terre — 250 g *(pesé cru)*
+  - Jambon blanc — 120 g
+  - Mozzarella light — 50 g
+  - Crème de soja — 60 ml
+- **Préparation** :
+  1. Émincer les pommes de terre, disposer en couches avec le jambon.
+  2. Napper de crème de soja, couvrir de mozzarella, cuire 35 min à 180°C.
+- **Pourquoi** : Sans gluten jour repos : gratin réconfortant, protéines et calcium.
+- **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
+
+### rep158 — Rösti pommes de terre – saumon – aneth
+
+- **Type** : Repas · **Préparation** : 25 min
+- **Objectif** : maintien, prise de masse · **Sport** : muscu
+- **Régimes compatibles** : pescétarien, sans porc, sans gluten, halal
+- **Macros / portion (base)** : 558 kcal · 39 g protéines · 39 g glucides · 26 g lipides
+- **Ingrédients** :
+  - Pomme de terre — 220 g *(pesé cru)*
+  - Pavé de saumon — 140 g *(pesé cru)*
+  - Fromage blanc 0% — 60 g
+  - Huile d'olive — 8 g
+  - Roquette — 40 g — quantité fixe
+- **Préparation** :
+  1. Râper les pommes de terre, former des rösti, dorer à la poêle.
+  2. Servir avec le saumon, la sauce fromage blanc-aneth et la roquette.
+- **Pourquoi** : Pescatarien sans gluten : oméga-3, glucides, sauce légère.
+- **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
+
+### rep159 — Curry pommes de terre – pois chiches – épinards
+
+- **Type** : Repas · **Préparation** : 30 min
+- **Objectif** : maintien, prise de masse · **Sport** : endurance
+- **Régimes compatibles** : végétarien, pescétarien, sans porc, sans lactose, sans gluten, végétalien, halal
+- **Macros / portion (base)** : 644 kcal · 37 g protéines · 79 g glucides · 16 g lipides
+- **Ingrédients** :
+  - Pomme de terre — 200 g *(pesé cru)*
+  - Pois chiches — 70 g *(pesé sec)*
+  - Protéine de soja texturée (PST) — 30 g *(pesé sec)*
+  - Épinards frais — 80 g — quantité fixe
+  - Lait de coco — 55 ml
+- **Préparation** :
+  1. Mijoter pommes de terre, pois chiches et PST au curry 20 min.
+  2. Ajouter épinards et lait de coco.
+- **Pourquoi** : Vegan & sans gluten : curry complet, capacité protéique élevée.
+- **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
+
+### rep160 — Salade tiède pommes de terre – thon – haricots verts
+
+- **Type** : Repas · **Préparation** : 25 min
+- **Objectif** : perte de gras, maintien · **Sport** : combats
+- **Régimes compatibles** : pescétarien, sans porc, sans lactose, sans gluten, halal
+- **Macros / portion (base)** : 537 kcal · 49 g protéines · 37 g glucides · 19 g lipides
+- **Ingrédients** :
+  - Pomme de terre — 200 g *(pesé cru)*
+  - Thon au naturel (conserve) — 130 g
+  - Haricots verts — 110 g — quantité fixe
+  - Œuf entier — 60 g
+  - Huile d'olive — 8 g
+- **Préparation** :
+  1. Cuire pommes de terre et haricots verts.
+  2. Assembler tiède avec thon, œuf dur et vinaigrette.
+- **Pourquoi** : Pescatarien sans gluten combats : niçoise complète, protéinée.
+- **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
+
+### rep161 — Polenta gratinée – ragoût de bœuf – tomate
+
+- **Type** : Repas · **Préparation** : 35 min
+- **Objectif** : maintien, prise de masse · **Sport** : muscu · adaptée jour de repos
+- **Régimes compatibles** : sans porc, sans gluten, halal
+- **Macros / portion (base)** : 639 kcal · 46 g protéines · 60 g glucides · 23 g lipides
+- **Ingrédients** :
+  - Polenta — 75 g *(pesé sec)*
+  - Bœuf haché 5% MG — 150 g *(pesé cru)*
+  - Tomate concassée — 120 g — quantité fixe
+  - Parmesan — 20 g
+  - Huile d'olive — 8 g
+- **Préparation** :
+  1. Cuire la polenta, étaler et laisser prendre.
+  2. Mijoter le bœuf à la tomate, napper la polenta, gratiner au parmesan.
+- **Pourquoi** : Sans gluten jour repos : plat mijoté riche en fer, capacité haute.
+- **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
+
+### rep162 — Polenta grillée – tempeh – ratatouille
+
+- **Type** : Repas · **Préparation** : 30 min
+- **Objectif** : maintien, prise de masse · **Sport** : endurance
+- **Régimes compatibles** : végétarien, pescétarien, sans porc, sans lactose, sans gluten, végétalien, halal
+- **Macros / portion (base)** : 621 kcal · 33 g protéines · 72 g glucides · 18 g lipides
+- **Ingrédients** :
+  - Polenta — 70 g *(pesé sec)*
+  - Tempeh — 160 g
+  - Ratatouille de légumes — 150 g — quantité fixe
+  - Huile d'olive — 8 g
+- **Préparation** :
+  1. Cuire la polenta, laisser prendre, griller en tranches.
+  2. Poêler le tempeh, servir avec la ratatouille.
+- **Pourquoi** : Vegan & sans gluten : tempeh très protéiné, méditerranéen.
+- **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
+
+### rep163 — Polenta crémeuse – cabillaud – épinards
+
+- **Type** : Repas · **Préparation** : 25 min
+- **Objectif** : perte de gras · **Sport** : muscu
+- **Régimes compatibles** : pescétarien, sans porc, sans lactose, sans gluten, halal
+- **Macros / portion (base)** : 434 kcal · 42 g protéines · 48 g glucides · 8 g lipides
+- **Ingrédients** :
+  - Polenta — 60 g *(pesé sec)*
+  - Dos de cabillaud — 190 g *(pesé cru)*
+  - Épinards frais — 100 g — quantité fixe
+  - Huile d'olive — 5 g
+- **Préparation** :
+  1. Cuire la polenta crémeuse.
+  2. Poêler le cabillaud, servir sur la polenta avec les épinards.
+- **Pourquoi** : Sèche pescatarienne sans gluten : poisson maigre, très protéiné.
+- **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
+
+### rep164 — Bo bun – nouilles de riz – bœuf – crudités
+
+- **Type** : Repas · **Préparation** : 25 min
+- **Objectif** : maintien, prise de masse · **Sport** : combats
+- **Régimes compatibles** : sans porc, sans lactose, sans gluten, halal
+- **Macros / portion (base)** : 639 kcal · 40 g protéines · 79 g glucides · 17 g lipides
+- **Ingrédients** :
+  - Nouilles de riz — 90 g *(pesé sec)*
+  - Bavette de bœuf — 140 g *(pesé cru)*
+  - Carotte — 70 g — quantité fixe
+  - Salade verte — 50 g — quantité fixe
+  - Beurre de cacahuète — 15 g
+- **Préparation** :
+  1. Cuire les nouilles, refroidir.
+  2. Saisir le bœuf mariné, dresser avec crudités et sauce cacahuète.
+- **Pourquoi** : Sans gluten combats : plat frais et complet, pas trop lourd.
+- **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
+
+### rep165 — Soupe pho – nouilles de riz – poulet – herbes
+
+- **Type** : Repas · **Préparation** : 30 min
+- **Objectif** : perte de gras, maintien · **Sport** : endurance
+- **Régimes compatibles** : sans porc, sans lactose, sans gluten, halal
+- **Macros / portion (base)** : 555 kcal · 45 g protéines · 70 g glucides · 9 g lipides
+- **Ingrédients** :
+  - Nouilles de riz — 80 g *(pesé sec)*
+  - Filet de poulet — 160 g *(pesé cru)*
+  - Mélange wok (poivron/brocoli/carotte) — 110 g — quantité fixe
+  - Huile d'olive — 6 g
+- **Préparation** :
+  1. Préparer un bouillon aromatique (gingembre, badiane).
+  2. Cuire les nouilles, ajouter poulet émincé, légumes et herbes fraîches.
+- **Pourquoi** : Sans gluten : soupe-repas légère et protéinée, hydratante.
+- **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
+
+### rep166 — Nouilles de riz – tempeh – curry rouge – coco
+
+- **Type** : Repas · **Préparation** : 22 min
+- **Objectif** : maintien, prise de masse · **Sport** : endurance
+- **Régimes compatibles** : végétarien, pescétarien, sans porc, sans lactose, sans gluten, végétalien, halal
+- **Macros / portion (base)** : 735 kcal · 35 g protéines · 94 g glucides · 20 g lipides
+- **Ingrédients** :
+  - Nouilles de riz — 90 g *(pesé sec)*
+  - Tempeh — 160 g
+  - Mélange wok (poivron/brocoli/carotte) — 120 g — quantité fixe
+  - Lait de coco — 60 ml
+- **Préparation** :
+  1. Cuire les nouilles.
+  2. Sauter le tempeh au curry rouge, ajouter légumes et lait de coco.
+- **Pourquoi** : Vegan & sans gluten : sauté crémeux, forte capacité protéique.
+- **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
+
+### rep167 — Galettes sarrasin – jambon – champignons
+
+- **Type** : Repas · **Préparation** : 22 min
+- **Objectif** : perte de gras, maintien · **Sport** : muscu
+- **Régimes compatibles** : sans lactose, sans gluten
+- **Macros / portion (base)** : 606 kcal · 47 g protéines · 50 g glucides · 23 g lipides
+- **Ingrédients** :
+  - Sarrasin — 70 g *(pesé sec)*
+  - Jambon blanc — 110 g
+  - Œuf entier — 100 g
+  - Champignons — 100 g — quantité fixe
+  - Huile d'olive — 7 g
+- **Préparation** :
+  1. Préparer la pâte à galette de sarrasin, cuire.
+  2. Garnir de jambon, œuf et champignons poêlés.
+- **Pourquoi** : Sans gluten : galette complète bretonne, double protéine.
+- **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
+
+### rep168 — Millet – saumon – brocoli – citron
+
+- **Type** : Repas · **Préparation** : 25 min
+- **Objectif** : maintien, prise de masse · **Sport** : muscu · adaptée jour de repos
+- **Régimes compatibles** : pescétarien, sans porc, sans lactose, sans gluten, halal
+- **Macros / portion (base)** : 666 kcal · 42 g protéines · 61 g glucides · 29 g lipides
+- **Ingrédients** :
+  - Millet — 80 g *(pesé sec)*
+  - Pavé de saumon — 145 g *(pesé cru)*
+  - Brocoli — 110 g — quantité fixe
+  - Huile d'olive — 7 g
+- **Préparation** :
+  1. Cuire le millet 12 min.
+  2. Rôtir le saumon et le brocoli, dresser au citron.
+- **Pourquoi** : Pescatarien sans gluten jour repos : oméga-3 et glucides lents.
+- **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
+
+### rep169 — Quinoa – dinde – patate douce – amandes
+
+- **Type** : Repas · **Préparation** : 28 min
+- **Objectif** : maintien, prise de masse · **Sport** : muscu
+- **Régimes compatibles** : sans porc, sans lactose, sans gluten, halal
+- **Macros / portion (base)** : 688 kcal · 57 g protéines · 72 g glucides · 16 g lipides
+- **Ingrédients** :
+  - Quinoa — 80 g *(pesé sec)*
+  - Escalope de dinde — 165 g *(pesé cru)*
+  - Patate douce — 130 g *(pesé cru)*
+  - Épinards frais — 70 g — quantité fixe
+  - Amandes — 15 g
+- **Préparation** :
+  1. Cuire le quinoa, rôtir la patate douce.
+  2. Poêler la dinde, assembler avec épinards et amandes.
+- **Pourquoi** : Sans gluten : double féculent, capacité élevée pour la masse.
+- **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
+
+### rep170 — Sarrasin – haricots blancs – tomate – olives
+
+- **Type** : Repas · **Préparation** : 28 min
+- **Objectif** : maintien, prise de masse · **Sport** : combats
+- **Régimes compatibles** : végétarien, pescétarien, sans porc, sans lactose, sans gluten, végétalien, halal
+- **Macros / portion (base)** : 703 kcal · 46 g protéines · 100 g glucides · 10 g lipides
+- **Ingrédients** :
+  - Sarrasin — 80 g *(pesé sec)*
+  - Haricots blancs — 75 g *(pesé sec)*
+  - Protéine de soja texturée (PST) — 30 g *(pesé sec)*
+  - Tomate concassée — 110 g — quantité fixe
+  - Olives — 30 g
+- **Préparation** :
+  1. Cuire le sarrasin.
+  2. Mijoter haricots blancs + PST avec tomate et olives.
+- **Pourquoi** : Vegan & sans gluten combats : rustique, capacité protéique élevée.
 - **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
 

@@ -1,7 +1,7 @@
 import { Recipe } from './types';
 import { RECIPES } from './recipeMap';
 
-// Base de recettes Kyroz (100), mappée depuis lib/data/recettes-kyroz-100.json
+// Base de recettes Kyroz (314), mappée depuis Recette/recettes-kyroz.json
 // (cf. lib/recipeData.ts + lib/recipeMap.ts). validated_by_dietitian: false —
 // à valider avant prod.
 export { RECIPES };

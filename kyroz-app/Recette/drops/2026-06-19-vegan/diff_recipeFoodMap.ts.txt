@@ -1,0 +1,15 @@
+// lib/recipeFoodMap.ts — propositions de mapping Ciqual pour les NOUVEAUX ingrédients
+// ⚠️ alim_code À VÉRIFIER À LA MAIN avant prod (ne pas deviner par ressemblance de nom).
+// Si non vérifié, laisser l'ingrédient en valeur manuelle JSON (déjà fournie dans le fragment).
+//
+//   soja_texture      -> 'ciqual-XXXX'  // "Protéine de soja texturée, sèche" — À VÉRIFIER
+//   haricots_blancs   -> 'ciqual-XXXX'  // "Haricot blanc sec, cru" — À VÉRIFIER
+//   haricots_noirs    -> 'ciqual-XXXX'  // "Haricot noir sec, cru" — À VÉRIFIER
+//   feves             -> 'ciqual-XXXX'  // "Fève sèche, crue" — À VÉRIFIER
+//   pois_casses       -> 'ciqual-XXXX'  // "Pois cassé sec, cru" — À VÉRIFIER
+//   sarrasin          -> 'ciqual-XXXX'  // "Sarrasin, grain entier, cru" — À VÉRIFIER
+//   millet            -> 'ciqual-XXXX'  // "Millet, cru" — À VÉRIFIER
+//   chataigne         -> 'ciqual-XXXX'  // "Châtaigne, cuite" — À VÉRIFIER
+//
+// Restent en valeur manuelle JSON (pas d'équivalent Ciqual propre / produits "Kyroz") :
+//   yaourt_soja, yaourt_soja_proteine, levure_maltee

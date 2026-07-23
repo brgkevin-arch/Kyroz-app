@@ -4,7 +4,7 @@
 // de la base Ciqual curée (cf. lib/foods.ts / foods.curation.ts). Quand un `ref`
 // est mappé ici, ses macros viennent de Ciqual (source de vérité unique) → « une
 // seule banane partout ». Les `ref` ABSENTS de cette table gardent leur valeur
-// manuelle du JSON (recettes-kyroz-100.json).
+// manuelle du JSON (Recette/recettes-kyroz.json).
 //
 // ⚠️ Mapping VÉRIFIÉ À LA MAIN (état cru/sec/cuit respecté). Ne pas auto-générer :
 // le recoupement de noms se fait piéger (« maquereau » → « groseille à maquereau »).

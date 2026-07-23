@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import raw from '../data/recettes-kyroz-100.json';
+import raw from '../../Recette/recettes-kyroz.json';
 import { REF_FOOD_ID } from '../recipeFoodMap';
 import { findFood } from '../foods';
 

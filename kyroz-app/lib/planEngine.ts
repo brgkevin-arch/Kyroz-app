@@ -466,7 +466,7 @@ export function computeDailyTotals(
 // Version du moteur de génération : à incrémenter quand le scoring/sélection
 // change, pour que les plans EN CACHE se régénèrent automatiquement (la signature
 // change → l'auto-refresh de l'écran Plan rejoue la génération). v2 = lipides cadrés.
-const ENGINE_VERSION = 14; // v14 = rep32 : chapelure ajoutée (macros comptées + n'est plus « sans gluten ») — régénère les plans en cache
+const ENGINE_VERSION = 15; // v15 = catalogue 314 (+50 recettes sans gluten, 2026-07-22) — régénère les plans en cache
 
 export function profileSignature(p: UserProfile): string {
   // NB : `hidden_recipes` (👎) est VOLONTAIREMENT absent. Un 👎 remplace UN repas

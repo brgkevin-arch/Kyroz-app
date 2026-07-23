@@ -1,0 +1,45 @@
+// lib/recipeDiet.ts — AJOUTS pour le régime vegan
+//
+// (1) Ajouter 'vegan' à la liste ALL :
+const ALL: DietaryRestriction[] = [
+  'vegetarian', 'pescatarian', 'no_pork', 'lactose_free', 'gluten_free', 'vegan',
+];
+//
+// (2) Ajouter 'vegan' aux violations de TOUS les ingrédients animaux.
+//     Concrètement, ajouter 'vegan' au tableau de violations de chacun de ces refs :
+//     (toutes les viandes, poissons/fruits de mer, oeufs, laitiers + whey, miel)
+//
+//     refs concernés :
+//       - poulet_filet
+//       - dinde_escalope
+//       - boeuf_5
+//       - boeuf_bavette
+//       - porc_filet
+//       - jambon_blanc
+//       - saumon
+//       - saumon_fume
+//       - cabillaud
+//       - thon_frais
+//       - thon_naturel
+//       - maquereau
+//       - sardines
+//       - crevettes
+//       - oeuf_entier
+//       - blanc_oeuf
+//       - skyr
+//       - fromage_blanc_0
+//       - yaourt_grec
+//       - cottage_cheese
+//       - whey
+//       - lait_demi_ecreme
+//       - mozzarella
+//       - feta
+//       - parmesan
+//       - miel
+//
+// (3) Les NOUVEAUX ingrédients ajoutés (PST, haricots blancs/noirs, fèves, pois cassés,
+//     yaourt de soja, yaourt de soja protéiné, levure maltée, sarrasin, millet, châtaigne)
+//     ne contraignent AUCUN régime (tous vegan-OK, sans gluten, sans lactose).
+//     => aucune entrée à ajouter dans VIOLATIONS pour eux.
+//
+// Rappel sécurité : une recette vegan est automatiquement lactose_free (aucun laitier).

@@ -34,7 +34,7 @@ const p = (s = '') => L.push(s);
 p('# Kyroz — Dossier de validation diététicienne');
 p();
 p('> ⚠️ **Fichier GÉNÉRÉ** — ne pas éditer à la main. Régénérer : `npm run gen:validation`.');
-p('> Source de vérité = `lib/data/recettes-kyroz-100.json` → `lib/recipeMap.ts`.');
+p('> Source de vérité = `Recette/recettes-kyroz.json` → `lib/recipeMap.ts`.');
 p('>');
 p('> **But** : faire valider les recettes par une diététicienne-nutritionniste diplômée avant');
 p("> mise en production (CLAUDE.md §6). Tant que la validation n'est pas faite, le champ");

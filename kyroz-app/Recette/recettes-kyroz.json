@@ -1,7 +1,7 @@
 {
   "_meta": {
     "version": "2.0",
-    "count": 264,
+    "count": 314,
     "source_macros": "Estimations alignées CIQUAL/ANSES. Remplacer par le CSV officiel CIQUAL avant prod.",
     "precision": "±5-10%.",
     "poids_basis": "basis=dry -> poids cru/sec ; basis=raw -> viande/poisson cru. Garder la cohérence cru/cuit.",
@@ -16369,6 +16369,2767 @@
         "protein": 43.6,
         "carbs": 64.4,
         "fat": 28.5
+      }
+    },
+    {
+      "id": "pd59",
+      "name": "Polenta crémeuse – lait – miel – noisettes",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "endurance"
+        ],
+        "temps_min": 12
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "polenta",
+          "qty": 60,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "lait_demi_ecreme",
+          "qty": 220,
+          "macro_role": "dairy",
+          "scalable": true
+        },
+        {
+          "ref": "whey",
+          "qty": 25,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "miel",
+          "qty": 12,
+          "macro_role": "fruit",
+          "scalable": true
+        },
+        {
+          "ref": "noisettes",
+          "qty": 15,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Cuire la polenta dans le lait 8 min en remuant.",
+        "Hors du feu incorporer la whey, napper de miel et noisettes."
+      ],
+      "why": "Sans gluten : alternative crémeuse au porridge d'avoine, capacité protéique.",
+      "macros_per_serving": {
+        "kcal": 550,
+        "protein": 33.1,
+        "carbs": 70.0,
+        "fat": 15.1
+      }
+    },
+    {
+      "id": "pd60",
+      "name": "Polenta – lait amande – cacao – banane",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "endurance"
+        ],
+        "temps_min": 12
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "polenta",
+          "qty": 60,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "lait_amande",
+          "qty": 220,
+          "macro_role": "dairy",
+          "scalable": true
+        },
+        {
+          "ref": "proteine_vegetale",
+          "qty": 25,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "cacao_poudre",
+          "qty": 8,
+          "macro_role": "flavor",
+          "scalable": false
+        },
+        {
+          "ref": "banane",
+          "qty": 90,
+          "macro_role": "fruit",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Cuire la polenta dans le lait d'amande 8 min.",
+        "Incorporer protéine et cacao, garnir de banane."
+      ],
+      "why": "Vegan & sans gluten : porridge de maïs chocolaté, énergie durable.",
+      "macros_per_serving": {
+        "kcal": 472,
+        "protein": 28.6,
+        "carbs": 73.8,
+        "fat": 5.7
+      }
+    },
+    {
+      "id": "pd61",
+      "name": "Polenta – fromage blanc – fruits rouges",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 12
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "polenta",
+          "qty": 50,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "fromage_blanc_0",
+          "qty": 180,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "fruits_rouges",
+          "qty": 80,
+          "macro_role": "fruit",
+          "scalable": true
+        },
+        {
+          "ref": "amandes",
+          "qty": 12,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Cuire la polenta à l'eau 8 min, laisser tiédir.",
+        "Mélanger au fromage blanc, garnir fruits rouges et amandes."
+      ],
+      "why": "Sans gluten : sèche, densité protéique haute pour peu de calories.",
+      "macros_per_serving": {
+        "kcal": 380,
+        "protein": 21.7,
+        "carbs": 53.2,
+        "fat": 7.8
+      }
+    },
+    {
+      "id": "pd62",
+      "name": "Porridge châtaigne – lait amande – pomme",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "recup_jour_repos": true,
+        "sport": [
+          "endurance"
+        ],
+        "temps_min": 12
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "chataigne",
+          "qty": 150,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "proteine_vegetale",
+          "qty": 25,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "lait_amande",
+          "qty": 200,
+          "macro_role": "dairy",
+          "scalable": true
+        },
+        {
+          "ref": "pomme",
+          "qty": 100,
+          "macro_role": "fruit",
+          "scalable": true
+        },
+        {
+          "ref": "noisettes",
+          "qty": 12,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Écraser les châtaignes cuites dans le lait d'amande chaud.",
+        "Incorporer la protéine, garnir de pomme et noisettes."
+      ],
+      "why": "Vegan & sans gluten : châtaigne douce, glucides lents pour jour repos.",
+      "macros_per_serving": {
+        "kcal": 543,
+        "protein": 27.6,
+        "carbs": 74.1,
+        "fat": 14.0
+      }
+    },
+    {
+      "id": "pd63",
+      "name": "Bowl châtaigne – skyr – chocolat noir",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 8
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "chataigne",
+          "qty": 120,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "skyr",
+          "qty": 180,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "chocolat_noir",
+          "qty": 12,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "banane",
+          "qty": 70,
+          "macro_role": "fruit",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Écraser grossièrement les châtaignes.",
+        "Mélanger au skyr, garnir de banane et chocolat râpé."
+      ],
+      "why": "Sans gluten : automnal et protéiné, glucides de la châtaigne.",
+      "macros_per_serving": {
+        "kcal": 454,
+        "protein": 25.2,
+        "carbs": 68.0,
+        "fat": 8.0
+      }
+    },
+    {
+      "id": "pd64",
+      "name": "Riz au lait – whey vanille – framboises",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 20
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "riz_basmati",
+          "qty": 70,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "lait_demi_ecreme",
+          "qty": 220,
+          "macro_role": "dairy",
+          "scalable": true
+        },
+        {
+          "ref": "whey",
+          "qty": 25,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "framboises",
+          "qty": 80,
+          "macro_role": "fruit",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Cuire le riz dans le lait 18 min à feu doux.",
+        "Hors du feu incorporer la whey, garnir de framboises."
+      ],
+      "why": "Sans gluten : riz au lait protéiné, réconfortant et calorique.",
+      "macros_per_serving": {
+        "kcal": 483,
+        "protein": 31.9,
+        "carbs": 71.2,
+        "fat": 5.9
+      }
+    },
+    {
+      "id": "pd65",
+      "name": "Riz au lait coco – mangue – chia",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "recup_jour_repos": true,
+        "sport": [
+          "endurance"
+        ],
+        "temps_min": 20
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "riz_basmati",
+          "qty": 70,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "lait_amande",
+          "qty": 200,
+          "macro_role": "dairy",
+          "scalable": true
+        },
+        {
+          "ref": "proteine_vegetale",
+          "qty": 25,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "lait_coco",
+          "qty": 40,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "mangue",
+          "qty": 90,
+          "macro_role": "fruit",
+          "scalable": true
+        },
+        {
+          "ref": "graines_chia",
+          "qty": 10,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Cuire le riz dans le lait d'amande 18 min.",
+        "Ajouter coco et protéine, garnir mangue et chia."
+      ],
+      "why": "Vegan & sans gluten : version tropicale, lipides pour la satiété.",
+      "macros_per_serving": {
+        "kcal": 570,
+        "protein": 29.1,
+        "carbs": 76.4,
+        "fat": 15.3
+      }
+    },
+    {
+      "id": "pd66",
+      "name": "Pancakes sarrasin – œuf – myrtilles",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 15
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "sarrasin",
+          "qty": 60,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "oeuf_entier",
+          "qty": 100,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "skyr",
+          "qty": 90,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "myrtilles",
+          "qty": 80,
+          "macro_role": "fruit",
+          "scalable": true
+        },
+        {
+          "ref": "sirop_erable",
+          "qty": 12,
+          "macro_role": "fruit",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Mixer farine de sarrasin, œufs et skyr en pâte lisse.",
+        "Cuire en pancakes, napper de sirop et myrtilles."
+      ],
+      "why": "Sans gluten : pancakes protéinés, glucides du sarrasin.",
+      "macros_per_serving": {
+        "kcal": 486,
+        "protein": 31.3,
+        "carbs": 63.7,
+        "fat": 12.2
+      }
+    },
+    {
+      "id": "pd67",
+      "name": "Pancakes sarrasin vegan – banane – cacahuète",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "endurance"
+        ],
+        "temps_min": 15
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "sarrasin",
+          "qty": 60,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "proteine_vegetale",
+          "qty": 25,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "lait_amande",
+          "qty": 150,
+          "macro_role": "dairy",
+          "scalable": true
+        },
+        {
+          "ref": "banane",
+          "qty": 90,
+          "macro_role": "fruit",
+          "scalable": true
+        },
+        {
+          "ref": "beurre_cacahuete",
+          "qty": 15,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Mixer sarrasin, protéine, lait d'amande et demi-banane.",
+        "Cuire en pancakes, napper de beurre de cacahuète."
+      ],
+      "why": "Vegan & sans gluten : pancakes énergétiques avant un effort long.",
+      "macros_per_serving": {
+        "kcal": 511,
+        "protein": 33.4,
+        "carbs": 67.5,
+        "fat": 12.5
+      }
+    },
+    {
+      "id": "pd68",
+      "name": "Pancakes banane – œuf – sans farine",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 10
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "oeuf_entier",
+          "qty": 150,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "banane",
+          "qty": 110,
+          "macro_role": "fruit",
+          "scalable": true
+        },
+        {
+          "ref": "skyr",
+          "qty": 100,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "framboises",
+          "qty": 70,
+          "macro_role": "fruit",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Écraser la banane, mélanger aux œufs battus et au skyr.",
+        "Cuire en petits pancakes, garnir de framboises."
+      ],
+      "why": "Sans gluten sans farine : 3 ingrédients, très protéiné.",
+      "macros_per_serving": {
+        "kcal": 413,
+        "protein": 32.7,
+        "carbs": 30.2,
+        "fat": 15.9
+      }
+    },
+    {
+      "id": "pd69",
+      "name": "Porridge quinoa – skyr – myrtilles",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 15
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "quinoa",
+          "qty": 55,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "skyr",
+          "qty": 180,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "myrtilles",
+          "qty": 80,
+          "macro_role": "fruit",
+          "scalable": true
+        },
+        {
+          "ref": "amandes",
+          "qty": 12,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Cuire le quinoa 12 min, laisser tiédir.",
+        "Mélanger au skyr, garnir myrtilles et amandes."
+      ],
+      "why": "Sans gluten : quinoa = protéines complètes, satiété longue.",
+      "macros_per_serving": {
+        "kcal": 432,
+        "protein": 30.6,
+        "carbs": 51.5,
+        "fat": 10.3
+      }
+    },
+    {
+      "id": "pd70",
+      "name": "Porridge millet – whey – pomme – cannelle",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 15
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "millet",
+          "qty": 60,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "lait_demi_ecreme",
+          "qty": 200,
+          "macro_role": "dairy",
+          "scalable": true
+        },
+        {
+          "ref": "whey",
+          "qty": 25,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "pomme",
+          "qty": 100,
+          "macro_role": "fruit",
+          "scalable": true
+        },
+        {
+          "ref": "noix",
+          "qty": 12,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Cuire le millet dans le lait 12 min.",
+        "Hors du feu incorporer la whey, ajouter pomme et cannelle."
+      ],
+      "why": "Sans gluten : porridge chaud protéiné, alternative à l'avoine.",
+      "macros_per_serving": {
+        "kcal": 538,
+        "protein": 34.0,
+        "carbs": 68.2,
+        "fat": 15.1
+      }
+    },
+    {
+      "id": "pd71",
+      "name": "Porridge sarrasin – cottage – poire",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "endurance"
+        ],
+        "temps_min": 15
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "sarrasin",
+          "qty": 55,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "cottage_cheese",
+          "qty": 170,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "pomme",
+          "qty": 100,
+          "macro_role": "fruit",
+          "scalable": true
+        },
+        {
+          "ref": "graines_courge",
+          "qty": 12,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Cuire le sarrasin 12 min.",
+        "Mélanger au cottage cheese, garnir de fruit et graines."
+      ],
+      "why": "Sans gluten : rustique et protéiné, faible en gras.",
+      "macros_per_serving": {
+        "kcal": 478,
+        "protein": 29.2,
+        "carbs": 56.9,
+        "fat": 14.0
+      }
+    },
+    {
+      "id": "pd72",
+      "name": "Pudding chia – yaourt soja – kiwi",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "endurance"
+        ],
+        "temps_min": 5
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "graines_chia",
+          "qty": 20,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "yaourt_soja_proteine",
+          "qty": 170,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "kiwi",
+          "qty": 100,
+          "macro_role": "fruit",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Mélanger chia et yaourt de soja, reposer 4 h.",
+        "Garnir de kiwi."
+      ],
+      "why": "Vegan & sans gluten : léger, oméga-3 et protéines.",
+      "macros_per_serving": {
+        "kcal": 268,
+        "protein": 19.7,
+        "carbs": 22.4,
+        "fat": 9.2
+      }
+    },
+    {
+      "id": "pd73",
+      "name": "Bowl skyr – châtaigne – raisins",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 5
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "skyr",
+          "qty": 200,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "chataigne",
+          "qty": 100,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "raisins",
+          "qty": 60,
+          "macro_role": "fruit",
+          "scalable": true
+        },
+        {
+          "ref": "noisettes",
+          "qty": 12,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Émietter les châtaignes cuites.",
+        "Mélanger au skyr, ajouter raisins et noisettes."
+      ],
+      "why": "Sans gluten : très protéiné, glucides doux de la châtaigne.",
+      "macros_per_serving": {
+        "kcal": 421,
+        "protein": 27.2,
+        "carbs": 55.0,
+        "fat": 9.8
+      }
+    },
+    {
+      "id": "pd74",
+      "name": "Smoothie bowl skyr – fruits rouges – graines",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 5
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "skyr",
+          "qty": 200,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "fruits_rouges",
+          "qty": 100,
+          "macro_role": "fruit",
+          "scalable": true
+        },
+        {
+          "ref": "lait_amande",
+          "qty": 100,
+          "macro_role": "dairy",
+          "scalable": true
+        },
+        {
+          "ref": "graines_courge",
+          "qty": 12,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Mixer skyr, fruits rouges et lait d'amande.",
+        "Verser, garnir de graines de courge."
+      ],
+      "why": "Sans gluten : sèche, protéines maigres et volume.",
+      "macros_per_serving": {
+        "kcal": 261,
+        "protein": 26.5,
+        "carbs": 20.3,
+        "fat": 7.3
+      }
+    },
+    {
+      "id": "pd75",
+      "name": "Bowl yaourt soja – banane – amande",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "endurance"
+        ],
+        "temps_min": 4
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "yaourt_soja_proteine",
+          "qty": 200,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "banane",
+          "qty": 100,
+          "macro_role": "fruit",
+          "scalable": true
+        },
+        {
+          "ref": "beurre_amande",
+          "qty": 18,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "graines_chia",
+          "qty": 10,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Verser le yaourt de soja.",
+        "Garnir de banane, beurre d'amande et chia."
+      ],
+      "why": "Vegan & sans gluten : dense en énergie, ancre protéique végétale.",
+      "macros_per_serving": {
+        "kcal": 380,
+        "protein": 24.7,
+        "carbs": 31.3,
+        "fat": 16.3
+      }
+    },
+    {
+      "id": "pd76",
+      "name": "Œufs brouillés – polenta grillée – tomate",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 15
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "oeuf_entier",
+          "qty": 160,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "polenta",
+          "qty": 60,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "tomate",
+          "qty": 80,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "huile_olive",
+          "qty": 6,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Griller des tranches de polenta refroidie.",
+        "Brouiller les œufs, servir avec la polenta et la tomate."
+      ],
+      "why": "Sans gluten : brunch salé protéiné, remplace le pain grillé.",
+      "macros_per_serving": {
+        "kcal": 516,
+        "protein": 26.3,
+        "carbs": 50.0,
+        "fat": 23.1
+      }
+    },
+    {
+      "id": "pd77",
+      "name": "Tofu brouillé – pomme de terre – champignons",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 18
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "tofu_ferme",
+          "qty": 190,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "pomme_de_terre",
+          "qty": 150,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "champignons",
+          "qty": 100,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "huile_olive",
+          "qty": 7,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "levure_maltee",
+          "qty": 8,
+          "macro_role": "flavor",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Rissoler les pommes de terre en dés.",
+        "Émietter le tofu, poêler avec champignons et levure maltée."
+      ],
+      "why": "Vegan & sans gluten : petit-déj salé très protéiné, sans œuf.",
+      "macros_per_serving": {
+        "kcal": 508,
+        "protein": 38.5,
+        "carbs": 33.1,
+        "fat": 23.1
+      }
+    },
+    {
+      "id": "pd78",
+      "name": "Omelette – patate douce – épinards – feta",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 18
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "oeuf_entier",
+          "qty": 160,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "patate_douce",
+          "qty": 130,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "epinards",
+          "qty": 70,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "feta",
+          "qty": 30,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "huile_olive",
+          "qty": 6,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Rôtir la patate douce en dés.",
+        "Cuire l'omelette avec épinards, patate et feta émiettée."
+      ],
+      "why": "Sans gluten : omelette complète, double protéine.",
+      "macros_per_serving": {
+        "kcal": 497,
+        "protein": 29.0,
+        "carbs": 27.8,
+        "fat": 28.7
+      }
+    },
+    {
+      "id": "col55",
+      "name": "Galettes de riz – skyr – myrtilles",
+      "category": "collation",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 3
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "galette_riz",
+          "qty": 30,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "skyr",
+          "qty": 170,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "myrtilles",
+          "qty": 70,
+          "macro_role": "fruit",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Tartiner le skyr sur les galettes.",
+        "Garnir de myrtilles."
+      ],
+      "why": "Sans gluten : sèche, protéines maigres et croquant.",
+      "macros_per_serving": {
+        "kcal": 256,
+        "protein": 21.6,
+        "carbs": 39.5,
+        "fat": 1.4
+      }
+    },
+    {
+      "id": "col56",
+      "name": "Galettes de riz – purée châtaigne – noisettes",
+      "category": "collation",
+      "tags": {
+        "objectif": [
+          "maintien"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "endurance"
+        ],
+        "temps_min": 4
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "galette_riz",
+          "qty": 30,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "chataigne",
+          "qty": 90,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "yaourt_soja_proteine",
+          "qty": 130,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "noisettes",
+          "qty": 12,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Écraser les châtaignes en purée.",
+        "Tartiner sur les galettes, parsemer de noisettes, servir avec le yaourt."
+      ],
+      "why": "Vegan & sans gluten : en-cas doux, glucides pour l'endurance.",
+      "macros_per_serving": {
+        "kcal": 440,
+        "protein": 18.6,
+        "carbs": 62.7,
+        "fat": 12.0
+      }
+    },
+    {
+      "id": "col57",
+      "name": "Galettes de riz – cottage – concombre",
+      "category": "collation",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "combats"
+        ],
+        "temps_min": 4
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "galette_riz",
+          "qty": 30,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "cottage_cheese",
+          "qty": 160,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "concombre",
+          "qty": 70,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Tartiner le cottage sur les galettes.",
+        "Déposer concombre, poivre et herbes."
+      ],
+      "why": "Sans gluten combats : rassasiant, très peu calorique.",
+      "macros_per_serving": {
+        "kcal": 281,
+        "protein": 20.4,
+        "carbs": 30.5,
+        "fat": 7.4
+      }
+    },
+    {
+      "id": "col58",
+      "name": "Boules châtaigne – cacao – amande",
+      "category": "collation",
+      "tags": {
+        "objectif": [
+          "maintien"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "endurance"
+        ],
+        "temps_min": 10
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "chataigne",
+          "qty": 120,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "proteine_vegetale",
+          "qty": 20,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "cacao_poudre",
+          "qty": 8,
+          "macro_role": "flavor",
+          "scalable": false
+        },
+        {
+          "ref": "beurre_amande",
+          "qty": 15,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Mixer châtaignes, protéine et cacao.",
+        "Lier au beurre d'amande, former des boules, réfrigérer."
+      ],
+      "why": "Vegan & sans gluten : barre maison sans avoine ni céréale.",
+      "macros_per_serving": {
+        "kcal": 411,
+        "protein": 24.4,
+        "carbs": 47.5,
+        "fat": 12.5
+      }
+    },
+    {
+      "id": "col59",
+      "name": "Energy balls riz soufflé – dattes – cacahuète",
+      "category": "collation",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "endurance"
+        ],
+        "temps_min": 10
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "galette_riz",
+          "qty": 30,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "dattes",
+          "qty": 50,
+          "macro_role": "fruit",
+          "scalable": true
+        },
+        {
+          "ref": "beurre_cacahuete",
+          "qty": 20,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "proteine_vegetale",
+          "qty": 20,
+          "macro_role": "protein",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Émietter les galettes de riz, mixer avec dattes et protéine.",
+        "Lier au beurre de cacahuète, former des boules."
+      ],
+      "why": "Vegan & sans gluten : énergie transportable pour l'endurance.",
+      "macros_per_serving": {
+        "kcal": 450,
+        "protein": 24.6,
+        "carbs": 60.2,
+        "fat": 12.1
+      }
+    },
+    {
+      "id": "col60",
+      "name": "Skyr – châtaigne – cannelle",
+      "category": "collation",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 3
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "skyr",
+          "qty": 180,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "chataigne",
+          "qty": 90,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "amandes",
+          "qty": 10,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Émietter les châtaignes dans le skyr.",
+        "Saupoudrer de cannelle, ajouter les amandes."
+      ],
+      "why": "Sans gluten : protéines lentes + glucides doux.",
+      "macros_per_serving": {
+        "kcal": 333,
+        "protein": 24.6,
+        "carbs": 40.1,
+        "fat": 7.5
+      }
+    },
+    {
+      "id": "col61",
+      "name": "Shake whey – riz soufflé – banane",
+      "category": "collation",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 4
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "whey",
+          "qty": 30,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "banane",
+          "qty": 100,
+          "macro_role": "fruit",
+          "scalable": true
+        },
+        {
+          "ref": "lait_demi_ecreme",
+          "qty": 230,
+          "macro_role": "dairy",
+          "scalable": true
+        },
+        {
+          "ref": "galette_riz",
+          "qty": 20,
+          "macro_role": "carb",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Mixer whey, banane et lait.",
+        "Émietter la galette de riz dessus."
+      ],
+      "why": "Sans gluten : shake post-training avec glucides rapides.",
+      "macros_per_serving": {
+        "kcal": 386,
+        "protein": 32.9,
+        "carbs": 49.6,
+        "fat": 6.4
+      }
+    },
+    {
+      "id": "col62",
+      "name": "Yaourt soja – polenta croustillante – érable",
+      "category": "collation",
+      "tags": {
+        "objectif": [
+          "maintien"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "endurance"
+        ],
+        "temps_min": 8
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "yaourt_soja_proteine",
+          "qty": 180,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "polenta",
+          "qty": 40,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "sirop_erable",
+          "qty": 12,
+          "macro_role": "fruit",
+          "scalable": true
+        },
+        {
+          "ref": "noix",
+          "qty": 12,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Griller des dés de polenta jusqu'à croustillance.",
+        "Servir sur le yaourt de soja avec sirop et noix."
+      ],
+      "why": "Vegan & sans gluten : texture croustillante, ancre protéique.",
+      "macros_per_serving": {
+        "kcal": 375,
+        "protein": 21.2,
+        "carbs": 47.3,
+        "fat": 11.1
+      }
+    },
+    {
+      "id": "col63",
+      "name": "Fromage blanc – mangue – graines courge",
+      "category": "collation",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 3
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "fromage_blanc_0",
+          "qty": 200,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "mangue",
+          "qty": 90,
+          "macro_role": "fruit",
+          "scalable": true
+        },
+        {
+          "ref": "graines_courge",
+          "qty": 12,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Mélanger fromage blanc et mangue en dés.",
+        "Parsemer de graines de courge."
+      ],
+      "why": "Sans gluten : sèche, très protéiné et frais.",
+      "macros_per_serving": {
+        "kcal": 215,
+        "protein": 19.7,
+        "carbs": 21.9,
+        "fat": 6.2
+      }
+    },
+    {
+      "id": "col64",
+      "name": "Pois chiches rôtis – paprika",
+      "category": "collation",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "combats"
+        ],
+        "temps_min": 25
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "pois_chiches",
+          "qty": 65,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "huile_olive",
+          "qty": 6,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Sécher les pois chiches cuits, enrober d'huile et de paprika.",
+        "Rôtir 22 min à 200°C."
+      ],
+      "why": "Vegan & sans gluten : croquant, protéines et fibres.",
+      "macros_per_serving": {
+        "kcal": 291,
+        "protein": 12.3,
+        "carbs": 31.9,
+        "fat": 9.9
+      }
+    },
+    {
+      "id": "col65",
+      "name": "Edamame – citron – piment",
+      "category": "collation",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "combats"
+        ],
+        "temps_min": 6
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "edamame",
+          "qty": 160,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "huile_olive",
+          "qty": 4,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Cuire les edamame vapeur 5 min.",
+        "Assaisonner citron, piment et sel."
+      ],
+      "why": "Vegan & sans gluten combats : protéines pures, volume, peu calorique.",
+      "macros_per_serving": {
+        "kcal": 231,
+        "protein": 17.6,
+        "carbs": 14.4,
+        "fat": 12.0
+      }
+    },
+    {
+      "id": "col66",
+      "name": "Mousse tofu soyeux – framboises",
+      "category": "collation",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 8
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "tofu_soyeux",
+          "qty": 170,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "proteine_vegetale",
+          "qty": 20,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "framboises",
+          "qty": 80,
+          "macro_role": "fruit",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Mixer tofu soyeux et protéine jusqu'à texture mousseuse.",
+        "Garnir de framboises, réfrigérer 1 h."
+      ],
+      "why": "Vegan & sans gluten : dessert protéiné très léger.",
+      "macros_per_serving": {
+        "kcal": 210,
+        "protein": 27.2,
+        "carbs": 6.7,
+        "fat": 6.6
+      }
+    },
+    {
+      "id": "rep153",
+      "name": "Risotto – poulet – champignons – parmesan",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 30
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "riz_basmati",
+          "qty": 85,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "poulet_filet",
+          "qty": 160,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "champignons",
+          "qty": 110,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "parmesan",
+          "qty": 20,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "huile_olive",
+          "qty": 8,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Nacrer le riz, mouiller au bouillon louche par louche.",
+        "Ajouter poulet et champignons poêlés, finir au parmesan."
+      ],
+      "why": "Sans gluten : risotto protéiné, capacité élevée pour la masse.",
+      "macros_per_serving": {
+        "kcal": 656,
+        "protein": 53.3,
+        "carbs": 67.4,
+        "fat": 17.6
+      }
+    },
+    {
+      "id": "rep154",
+      "name": "Risotto – crevettes – courgette – citron",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 30
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "riz_basmati",
+          "qty": 80,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "crevettes",
+          "qty": 160,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "courgette",
+          "qty": 100,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "huile_olive",
+          "qty": 8,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Nacrer le riz, mouiller au bouillon progressivement.",
+        "Ajouter crevettes et courgette, finir au citron."
+      ],
+      "why": "Pescatarien sans gluten : protéiné, lipides maîtrisés.",
+      "macros_per_serving": {
+        "kcal": 505,
+        "protein": 35.6,
+        "carbs": 64.4,
+        "fat": 10.4
+      }
+    },
+    {
+      "id": "rep155",
+      "name": "Risotto vegan – PST – petits pois – levure",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 30
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "riz_basmati",
+          "qty": 85,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "soja_texture",
+          "qty": 45,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "petits_pois",
+          "qty": 90,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "creme_soja",
+          "qty": 50,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "levure_maltee",
+          "qty": 10,
+          "macro_role": "flavor",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Nacrer le riz, mouiller au bouillon.",
+        "Ajouter la PST réhydratée et les petits pois, finir crème de soja et levure."
+      ],
+      "why": "Vegan & sans gluten : risotto crémeux sans laitier, forte capacité protéique.",
+      "macros_per_serving": {
+        "kcal": 650,
+        "protein": 40.4,
+        "carbs": 94.7,
+        "fat": 10.3
+      }
+    },
+    {
+      "id": "rep156",
+      "name": "Paella express – poulet – crevettes – poivron",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 30
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "riz_basmati",
+          "qty": 85,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "poulet_filet",
+          "qty": 130,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "crevettes",
+          "qty": 90,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "poivron",
+          "qty": 100,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "petits_pois",
+          "qty": 60,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "huile_olive",
+          "qty": 8,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Saisir poulet et crevettes, réserver.",
+        "Cuire le riz au bouillon safrané avec poivron et petits pois, remettre les protéines."
+      ],
+      "why": "Sans gluten : plat unique convivial, double protéine, capacité haute.",
+      "macros_per_serving": {
+        "kcal": 673,
+        "protein": 56.0,
+        "carbs": 78.9,
+        "fat": 12.6
+      }
+    },
+    {
+      "id": "rep157",
+      "name": "Gratin pommes de terre – jambon – mozzarella",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "recup_jour_repos": true,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 45
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "pomme_de_terre",
+          "qty": 250,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "jambon_blanc",
+          "qty": 120,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "mozzarella",
+          "qty": 50,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "creme_soja",
+          "qty": 60,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Émincer les pommes de terre, disposer en couches avec le jambon.",
+        "Napper de crème de soja, couvrir de mozzarella, cuire 35 min à 180°C."
+      ],
+      "why": "Sans gluten jour repos : gratin réconfortant, protéines et calcium.",
+      "macros_per_serving": {
+        "kcal": 577,
+        "protein": 38.6,
+        "carbs": 46.5,
+        "fat": 24.8
+      }
+    },
+    {
+      "id": "rep158",
+      "name": "Rösti pommes de terre – saumon – aneth",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 25
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "pomme_de_terre",
+          "qty": 220,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "saumon",
+          "qty": 140,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "fromage_blanc_0",
+          "qty": 60,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "huile_olive",
+          "qty": 8,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "roquette",
+          "qty": 40,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Râper les pommes de terre, former des rösti, dorer à la poêle.",
+        "Servir avec le saumon, la sauce fromage blanc-aneth et la roquette."
+      ],
+      "why": "Pescatarien sans gluten : oméga-3, glucides, sauce légère.",
+      "macros_per_serving": {
+        "kcal": 566,
+        "protein": 38.2,
+        "carbs": 40.6,
+        "fat": 26.8
+      }
+    },
+    {
+      "id": "rep159",
+      "name": "Curry pommes de terre – pois chiches – épinards",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "endurance"
+        ],
+        "temps_min": 30
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "pomme_de_terre",
+          "qty": 200,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "pois_chiches",
+          "qty": 70,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "soja_texture",
+          "qty": 30,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "epinards",
+          "qty": 80,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "lait_coco",
+          "qty": 55,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Mijoter pommes de terre, pois chiches et PST au curry 20 min.",
+        "Ajouter épinards et lait de coco."
+      ],
+      "why": "Vegan & sans gluten : curry complet, capacité protéique élevée.",
+      "macros_per_serving": {
+        "kcal": 647,
+        "protein": 36.3,
+        "carbs": 79.8,
+        "fat": 16.0
+      }
+    },
+    {
+      "id": "rep160",
+      "name": "Salade tiède pommes de terre – thon – haricots verts",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "combats"
+        ],
+        "temps_min": 25
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "pomme_de_terre",
+          "qty": 200,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "thon_naturel",
+          "qty": 130,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "haricots_verts",
+          "qty": 110,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "oeuf_entier",
+          "qty": 60,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "huile_olive",
+          "qty": 8,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Cuire pommes de terre et haricots verts.",
+        "Assembler tiède avec thon, œuf dur et vinaigrette."
+      ],
+      "why": "Pescatarien sans gluten combats : niçoise complète, protéinée.",
+      "macros_per_serving": {
+        "kcal": 496,
+        "protein": 46.3,
+        "carbs": 39.8,
+        "fat": 15.7
+      }
+    },
+    {
+      "id": "rep161",
+      "name": "Polenta gratinée – ragoût de bœuf – tomate",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "recup_jour_repos": true,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 35
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "polenta",
+          "qty": 75,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "boeuf_5",
+          "qty": 150,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "tomate_concassee",
+          "qty": 120,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "parmesan",
+          "qty": 20,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "huile_olive",
+          "qty": 8,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Cuire la polenta, étaler et laisser prendre.",
+        "Mijoter le bœuf à la tomate, napper la polenta, gratiner au parmesan."
+      ],
+      "why": "Sans gluten jour repos : plat mijoté riche en fer, capacité haute.",
+      "macros_per_serving": {
+        "kcal": 664,
+        "protein": 46.5,
+        "carbs": 64.5,
+        "fat": 22.6
+      }
+    },
+    {
+      "id": "rep162",
+      "name": "Polenta grillée – tempeh – ratatouille",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "endurance"
+        ],
+        "temps_min": 30
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "polenta",
+          "qty": 70,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "tempeh",
+          "qty": 160,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "ratatouille",
+          "qty": 150,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "huile_olive",
+          "qty": 8,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Cuire la polenta, laisser prendre, griller en tranches.",
+        "Poêler le tempeh, servir avec la ratatouille."
+      ],
+      "why": "Vegan & sans gluten : tempeh très protéiné, méditerranéen.",
+      "macros_per_serving": {
+        "kcal": 703,
+        "protein": 39.4,
+        "carbs": 74.8,
+        "fat": 30.4
+      }
+    },
+    {
+      "id": "rep163",
+      "name": "Polenta crémeuse – cabillaud – épinards",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 25
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "polenta",
+          "qty": 60,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "cabillaud",
+          "qty": 190,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "epinards",
+          "qty": 100,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "huile_olive",
+          "qty": 5,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Cuire la polenta crémeuse.",
+        "Poêler le cabillaud, servir sur la polenta avec les épinards."
+      ],
+      "why": "Sèche pescatarienne sans gluten : poisson maigre, très protéiné.",
+      "macros_per_serving": {
+        "kcal": 436,
+        "protein": 41.9,
+        "carbs": 47.8,
+        "fat": 7.6
+      }
+    },
+    {
+      "id": "rep164",
+      "name": "Bo bun – nouilles de riz – bœuf – crudités",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "combats"
+        ],
+        "temps_min": 25
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "nouilles_riz",
+          "qty": 90,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "boeuf_bavette",
+          "qty": 140,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "carotte",
+          "qty": 70,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "salade_verte",
+          "qty": 50,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "beurre_cacahuete",
+          "qty": 15,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Cuire les nouilles, refroidir.",
+        "Saisir le bœuf mariné, dresser avec crudités et sauce cacahuète."
+      ],
+      "why": "Sans gluten combats : plat frais et complet, pas trop lourd.",
+      "macros_per_serving": {
+        "kcal": 695,
+        "protein": 46.9,
+        "carbs": 84.5,
+        "fat": 19.4
+      }
+    },
+    {
+      "id": "rep165",
+      "name": "Soupe pho – nouilles de riz – poulet – herbes",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "endurance"
+        ],
+        "temps_min": 30
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "nouilles_riz",
+          "qty": 80,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "poulet_filet",
+          "qty": 160,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "legumes_wok",
+          "qty": 110,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "huile_olive",
+          "qty": 6,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Préparer un bouillon aromatique (gingembre, badiane).",
+        "Cuire les nouilles, ajouter poulet émincé, légumes et herbes fraîches."
+      ],
+      "why": "Sans gluten : soupe-repas légère et protéinée, hydratante.",
+      "macros_per_serving": {
+        "kcal": 568,
+        "protein": 43.8,
+        "carbs": 73.8,
+        "fat": 9.9
+      }
+    },
+    {
+      "id": "rep166",
+      "name": "Nouilles de riz – tempeh – curry rouge – coco",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "endurance"
+        ],
+        "temps_min": 22
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "nouilles_riz",
+          "qty": 90,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "tempeh",
+          "qty": 160,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "legumes_wok",
+          "qty": 120,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "lait_coco",
+          "qty": 60,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Cuire les nouilles.",
+        "Sauter le tempeh au curry rouge, ajouter légumes et lait de coco."
+      ],
+      "why": "Vegan & sans gluten : sauté crémeux, forte capacité protéique.",
+      "macros_per_serving": {
+        "kcal": 796,
+        "protein": 41.0,
+        "carbs": 95.8,
+        "fat": 30.4
+      }
+    },
+    {
+      "id": "rep167",
+      "name": "Galettes sarrasin – jambon – champignons",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 22
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "sarrasin",
+          "qty": 70,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "jambon_blanc",
+          "qty": 110,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "oeuf_entier",
+          "qty": 100,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "champignons",
+          "qty": 100,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "huile_olive",
+          "qty": 7,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Préparer la pâte à galette de sarrasin, cuire.",
+        "Garnir de jambon, œuf et champignons poêlés."
+      ],
+      "why": "Sans gluten : galette complète bretonne, double protéine.",
+      "macros_per_serving": {
+        "kcal": 607,
+        "protein": 46.0,
+        "carbs": 51.6,
+        "fat": 23.8
+      }
+    },
+    {
+      "id": "rep168",
+      "name": "Millet – saumon – brocoli – citron",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "recup_jour_repos": true,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 25
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "millet",
+          "qty": 80,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "saumon",
+          "qty": 145,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "brocoli",
+          "qty": 110,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "huile_olive",
+          "qty": 7,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Cuire le millet 12 min.",
+        "Rôtir le saumon et le brocoli, dresser au citron."
+      ],
+      "why": "Pescatarien sans gluten jour repos : oméga-3 et glucides lents.",
+      "macros_per_serving": {
+        "kcal": 678,
+        "protein": 40.9,
+        "carbs": 62.8,
+        "fat": 29.5
+      }
+    },
+    {
+      "id": "rep169",
+      "name": "Quinoa – dinde – patate douce – amandes",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 28
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "quinoa",
+          "qty": 80,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "dinde_escalope",
+          "qty": 165,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "patate_douce",
+          "qty": 130,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "epinards",
+          "qty": 70,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "amandes",
+          "qty": 15,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Cuire le quinoa, rôtir la patate douce.",
+        "Poêler la dinde, assembler avec épinards et amandes."
+      ],
+      "why": "Sans gluten : double féculent, capacité élevée pour la masse.",
+      "macros_per_serving": {
+        "kcal": 704,
+        "protein": 57.9,
+        "carbs": 77.0,
+        "fat": 15.6
+      }
+    },
+    {
+      "id": "rep170",
+      "name": "Sarrasin – haricots blancs – tomate – olives",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "combats"
+        ],
+        "temps_min": 28
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "sarrasin",
+          "qty": 80,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "haricots_blancs",
+          "qty": 75,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "soja_texture",
+          "qty": 30,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "tomate_concassee",
+          "qty": 110,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "olives",
+          "qty": 30,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Cuire le sarrasin.",
+        "Mijoter haricots blancs + PST avec tomate et olives."
+      ],
+      "why": "Vegan & sans gluten combats : rustique, capacité protéique élevée.",
+      "macros_per_serving": {
+        "kcal": 711,
+        "protein": 43.7,
+        "carbs": 105.3,
+        "fat": 8.7
       }
     }
   ],

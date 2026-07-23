@@ -1,0 +1,9 @@
+// lib/types.ts — AJOUT du régime vegan
+// Remplacer la définition de DietaryRestriction par :
+export type DietaryRestriction =
+  | 'vegetarian'
+  | 'pescatarian'
+  | 'no_pork'
+  | 'lactose_free'
+  | 'gluten_free'
+  | 'vegan'; // ← AJOUT

@@ -1,5 +1,5 @@
 import { Macros, MacroRole } from './types';
-import raw from './data/recettes-kyroz-100.json';
+import raw from '../Recette/recettes-kyroz.json';
 import { findFood } from './foods';
 import { REF_FOOD_ID } from './recipeFoodMap';
 
