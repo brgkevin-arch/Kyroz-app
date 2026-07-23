@@ -36,6 +36,12 @@ Le schéma peut être bon mais le push casser ailleurs. On vérifie de bout en b
 
 ## 3. Tester « Supprimer mon compte » de bout en bout (point 3)
 
+> ✅ **VÉRIFIÉ EN PROD LE 2026-07-23** (test end-to-end sur la vraie Supabase) :
+> `POST functions/v1/delete-account` → **200 `{"success":true}`** (déployée) ;
+> ancien jeton → **403** (ligne `auth.users` supprimée) ; toutes les tables du
+> compte retombent à **0** (cascade OK). RGPD droit à l'effacement prouvé.
+> Ci-dessous = procédure de re-test manuel si besoin.
+
 L'Edge Function `delete-account` est codée + `on delete cascade` est en place au schéma
 (vérifié). Il reste à prouver qu'elle est **déployée et fonctionnelle**.
 

@@ -197,10 +197,11 @@ eas submit --platform android --latest    # 1re fois : créer l'app dans Play Co
 
 ## 9. Checklist finale avant « Submit for review »
 
-- [ ] **Migrations Supabase + test suppression de compte** → suivre
-      `supabase/RUNBOOK-PROD.md` (coller `migrations/2026-07-21_pending_all.sql`,
-      vérifier une écriture réelle, tester « Supprimer mon compte » de bout en bout).
-      ⚠️ Invérifiable depuis le repo — **seul toi peux le confirmer**.
+- [x] **Migrations Supabase appliquées + vérifiées (2026-07-23)** : 30/30 colonnes
+      profil présentes, RLS forcé sur les 6 tables (`migrations/2026-07-21_pending_all.sql`).
+- [x] **Suppression de compte testée de bout en bout (2026-07-23)** : `delete-account`
+      déployée (200 `{"success":true}`), ligne `auth.users` + toutes les données
+      effacées (cascade). RGPD droit à l'effacement prouvé. Cf. `supabase/RUNBOOK-PROD.md` §3.
 - [x] ⚠️ **Accès reviewer — RÉGLÉ EN CODE (2026-07-17).** Un accès invité est
       déverrouillé par un **code secret posé au build** (`EXPO_PUBLIC_REVIEW_CODE`),
       inerte partout ailleurs (le web public ne le pose pas → reste fermé). Le
