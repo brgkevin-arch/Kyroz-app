@@ -1,7 +1,10 @@
-import { Tabs } from 'expo-router';
+import { Tabs, Redirect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Platform, ColorValue } from 'react-native';
 import { useTheme } from '../../constants/theme';
+import { useAuth } from '../../hooks/useAuth';
+import { useProfile } from '../../hooks/useProfile';
+import Splash from '../../components/Splash';
 
 type IconName = keyof typeof Ionicons.glyphMap;
 
@@ -13,6 +16,19 @@ function makeIcon(name: IconName, nameFocused: IconName) {
 
 export default function TabLayout() {
   const t = useTheme();
+  const { session, ready } = useAuth();
+  const { profile, loading } = useProfile();
+
+  // Garde d'entrée des onglets — MÊME logique que app/index.tsx.
+  // Indispensable : on n'arrive pas toujours par `/`. Un raccourci d'écran
+  // d'accueil, un deep link ou un lien partagé ouvre DIRECTEMENT une tab
+  // (ex. `/profil`) et court-circuiterait sinon le garde de l'index → l'écran
+  // se rendait vide (`profil.tsx` fait `if (!profile) return null`) = page
+  // blanche avec juste la barre d'onglets. Constaté sur iPhone (2026-07-21).
+  if (!ready || loading) return <Splash />;
+  if (!session) return <Redirect href="/(auth)/login" />;
+  if (!profile) return <Redirect href="/(auth)/onboarding" />;
+
   return (
     <Tabs
       screenOptions={{
