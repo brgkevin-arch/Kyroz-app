@@ -48,6 +48,36 @@ describe('estimation fibres', () => {
   });
 });
 
+describe('source Ciqual par ref / food_id (fix P3.1 2026-07-23)', () => {
+  // AVANT : « chia » n'était PAS dans FIBER_TABLE → compté 0 g. Le ref résout
+  // maintenant la vraie valeur Ciqual (graines_chia → ciqual-15047 = 34,4 g/100 g).
+  it('ref mappé Ciqual : le chia n\'est plus à 0 g', () => {
+    const viaName = recipeFiberPerPortion(recipe([{ name: 'Graines de chia', quantity_g: 20 }]));
+    const viaRef = recipeFiberPerPortion(recipe([{ name: 'Graines de chia', quantity_g: 20, ref: 'graines_chia' }]));
+    expect(viaName).toBe(0);                 // repli mot-clé : chia absent → 0 (l'ancien bug)
+    expect(viaRef).toBeCloseTo(6.88, 2);     // 20 g × 34,4/100 = 6,88 g (Ciqual)
+  });
+
+  it('ref prime sur le nom ; framboises comptées', () => {
+    // framboises → ciqual-13015 = 4,3 g/100 g.
+    expect(recipeFiberPerPortion(recipe([{ name: 'Framboises', quantity_g: 100, ref: 'framboises' }]))).toBeCloseTo(4.3, 2);
+  });
+
+  it('ref non mappé : valeur manuelle REF_FIBER_MANUAL (PST sèche)', () => {
+    // soja_texture n'a pas de food_id → REF_FIBER_MANUAL = 15 g/100 g.
+    expect(recipeFiberPerPortion(recipe([{ name: 'PST', quantity_g: 50, ref: 'soja_texture' }]))).toBeCloseTo(7.5, 2);
+  });
+
+  it('food_id direct (recette perso liée à Ciqual)', () => {
+    expect(mealFiberFromIngredients([{ name: 'x', quantity_g: 100, food_id: 'ciqual-15047' }])).toBe(34);
+  });
+
+  it('catalogue : plus AUCUNE recette à ~0 g de fibres', () => {
+    const zero = RECIPES.filter((r) => recipeFiberPerPortion(r) < 0.05);
+    expect(zero.map((r) => r.id)).toEqual([]);
+  });
+});
+
 describe('cible journalière', () => {
   it('renforcée en sèche (16 vs 14 g / 1000 kcal)', () => {
     expect(dailyFiberTarget(makeProfile({ goal: 'cut', target_kcal: 2500 }))).toBe(40);

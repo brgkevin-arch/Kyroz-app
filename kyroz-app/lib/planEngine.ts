@@ -433,15 +433,15 @@ export function effectiveMacros(meal: Meal): Macros {
 
 /** Ingrédients EFFECTIFS d'un repas (noms + quantités) : adaptés si présents,
  *  sinon repli sur la recette × portions (plans en cache d'avant la refonte). */
-export function mealIngredients(meal: Meal): { name: string; quantity_g: number; unit: string; ref?: string }[] {
+export function mealIngredients(meal: Meal): { name: string; quantity_g: number; unit: string; ref?: string; food_id?: string }[] {
   if (meal.adapted_ingredients?.length) {
     return meal.adapted_ingredients.map((i) => ({
-      name: i.name, quantity_g: i.quantity_g, unit: i.unit ?? 'g', ref: i.ref,
+      name: i.name, quantity_g: i.quantity_g, unit: i.unit ?? 'g', ref: i.ref, food_id: i.food_id,
     }));
   }
   const f = meal.portions ?? 1;
   return meal.recipe.ingredients.map((i) => ({
-    name: i.name, quantity_g: i.quantity_g * f, unit: i.unit ?? 'g', ref: i.ref,
+    name: i.name, quantity_g: i.quantity_g * f, unit: i.unit ?? 'g', ref: i.ref, food_id: i.food_id,
   }));
 }
 
@@ -479,7 +479,7 @@ export function computeDailyTotals(
 // Version du moteur de génération : à incrémenter quand le scoring/sélection
 // change, pour que les plans EN CACHE se régénèrent automatiquement (la signature
 // change → l'auto-refresh de l'écran Plan rejoue la génération). v2 = lipides cadrés.
-const ENGINE_VERSION = 16; // v16 = fix variété (rotation par score effectif ; petit-déj 2→7/7 distincts) — régénère les plans en cache
+const ENGINE_VERSION = 17; // v17 = fibres sourcées Ciqual (fix mesure P3.1 ; alimente le nudge fibres en sèche) — régénère les plans en cache
 
 export function profileSignature(p: UserProfile): string {
   // NB : `hidden_recipes` (👎) est VOLONTAIREMENT absent. Un 👎 remplace UN repas

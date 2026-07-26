@@ -77,3 +77,19 @@ export const REF_FOOD_ID: Record<string, string> = {
   mais: 'ciqual-20066', petits_pois: 'ciqual-20036', sauce_soja: 'ciqual-11104',
   tomate_concassee: 'ciqual-20169', // « Tomate, chair, appertisée » (NON égouttée — la concassée garde son jus)
 };
+
+// ── Fibres (g/100 g) des 14 `ref` NON mappés à Ciqual ─────────────────────────
+// Pour les ref mappés, les fibres viennent de la colonne Ciqual (cf. Food.fiber_g,
+// résolu dans recipeData). Les 14 ci-dessous n'ont pas de food_id → valeur MANUELLE,
+// estimée sur l'aliment Ciqual le plus proche (fibres = nudge/affichage, pas une macro
+// énergétique → une approximation assumée suffit). Tout ref absent d'ici ET non mappé
+// = 0 g. Garder aligné avec la liste des non-mappés (recipeData / REF_FOOD_ID).
+export const REF_FIBER_MANUAL: Record<string, number> = {
+  whey: 0, skyr: 0, cottage_cheese: 0,            // laitiers / protéines : ~0 fibre
+  yaourt_soja: 0.6, yaourt_soja_proteine: 0.6,    // yaourts de soja : très peu
+  proteine_vegetale: 5.5,                         // poudre protéinée pois/soja
+  soja_texture: 15, haricots_noirs: 15.5,         // PST & haricots noirs SECS : très fibreux
+  edamame: 5, millet: 3.5,                         // fève de soja / millet
+  levure_maltee: 20,                              // levure maltée : très riche
+  fruits_rouges: 4, legumes_wok: 2.5, ratatouille: 2, // mélanges (moyenne des composants)
+};

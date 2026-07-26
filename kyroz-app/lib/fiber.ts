@@ -1,17 +1,21 @@
 import { Recipe, UserProfile, Goal } from './types';
+import { RECIPE_INGREDIENTS } from './recipeData';
+import { findFood } from './foods';
 
-// ── Estimation des fibres ────────────────────────────────────────────────────
-// On n'a pas de base nutritionnelle câblée (Ciqual = cible, pas encore branchée).
-// On ESTIME donc les fibres d'une recette à partir de ses ingrédients, via une
-// table « mot-clé → g de fibres / 100 g » (valeurs de référence type Ciqual).
-// Approximatif mais réel et maintenable : calculé à la volée, jamais stocké, donc
-// reste juste même si l'utilisateur personnalise une recette.
-//
-// Tout ce qui n'est pas dans la table (viandes, œufs, laitiers, huile, whey,
-// miel, sucre, épices…) = 0 g de fibres.
+// ── Fibres des recettes ──────────────────────────────────────────────────────
+// SOURCE DE VÉRITÉ = la base Ciqual (colonne « Fibres alimentaires », Food.fiber_g),
+// comme les autres macros. Résolution par ingrédient, dans l'ordre :
+//   1. `ref` → RECIPE_INGREDIENTS[ref].fiber_per100g (Ciqual si mappé, sinon manuel
+//      REF_FIBER_MANUAL) — le cas des 314 recettes de base ;
+//   2. `food_id` → findFood(food_id).fiber_g — recettes perso (RecipeEditor lie à Ciqual) ;
+//   3. repli mot-clé sur le NOM (`FIBER_TABLE`) — seulement pour un ingrédient custom
+//      saisi au nom seul, sans ref ni food_id (legacy / cas résiduel).
+// Calculé à la volée, jamais stocké → reste juste même si l'utilisateur personnalise.
+// (Avant 2026-07-23 : tout passait par le mot-clé — 34 entrées → chia, framboises,
+//  noix, légumineuses… comptés à 0 g. Bug de MESURE corrigé, cf. P3.1.)
 
-// Table triée par longueur de mot-clé décroissante → on prend la correspondance
-// la PLUS SPÉCIFIQUE (« riz complet » avant « riz », « pâtes complètes » avant « pâtes »).
+// Repli mot-clé (nom → g/100 g), trié par longueur décroissante → correspondance la
+// PLUS SPÉCIFIQUE. Ne sert plus que d'ultime repli (ingrédient au nom seul).
 const FIBER_TABLE: { kw: string; g: number }[] = [
   { kw: "flocons d'avoine", g: 10 },
   { kw: 'beurre de cacahuète', g: 6 },
@@ -55,15 +59,28 @@ function fiberForIngredientName(name: string): number {
   return 0;
 }
 
+/** Fibres (g/100 g) d'un ingrédient : ref (Ciqual/manuel) → food_id (Ciqual) → nom. */
+function fiberPer100(ing: { ref?: string; food_id?: string; name: string }): number {
+  if (ing.ref) {
+    const r = RECIPE_INGREDIENTS[ing.ref];
+    if (r) return r.fiber_per100g;
+  }
+  if (ing.food_id) {
+    const f = findFood(ing.food_id);
+    if (f) return f.fiber_g ?? 0;
+  }
+  return fiberForIngredientName(ing.name);
+}
+
 // Cache par référence de recette (un override = nouvel objet → recalcul propre).
 const cache = new WeakMap<Recipe, number>();
 
-/** Fibres estimées (g) pour UNE portion de la recette. */
+/** Fibres (g) pour UNE portion de la recette — sourcées Ciqual par ingrédient. */
 export function recipeFiberPerPortion(recipe: Recipe): number {
   const hit = cache.get(recipe);
   if (hit !== undefined) return hit;
   const total = recipe.ingredients.reduce(
-    (s, i) => s + (i.quantity_g / 100) * fiberForIngredientName(i.name),
+    (s, i) => s + (i.quantity_g / 100) * fiberPer100(i),
     0
   );
   const perPortion = total / Math.max(recipe.portions, 1);
@@ -79,9 +96,11 @@ export function mealFiberG(recipe: Recipe, portions: number): number {
 /** Fibres estimées (g, arrondi) d'une liste d'ingrédients DÉJÀ mis à l'échelle
  *  (quantités effectives d'un repas — adaptées par ingrédient). Pas de division
  *  par portions : les quantités sont déjà celles réellement servies. */
-export function mealFiberFromIngredients(ingredients: { name: string; quantity_g: number }[]): number {
+export function mealFiberFromIngredients(
+  ingredients: { name: string; quantity_g: number; ref?: string; food_id?: string }[],
+): number {
   const total = ingredients.reduce(
-    (s, i) => s + (i.quantity_g / 100) * fiberForIngredientName(i.name),
+    (s, i) => s + (i.quantity_g / 100) * fiberPer100(i),
     0,
   );
   return Math.round(total);

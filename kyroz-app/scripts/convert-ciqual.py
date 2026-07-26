@@ -27,6 +27,7 @@ COL = {
     'prot2': 15,     # Protéines, N x 6.25 (repli)
     'gluc': 16,      # Glucides (g/100 g)
     'lip': 17,       # Lipides (g/100 g)
+    'fib': 26,       # Fibres alimentaires (g/100 g)
 }
 
 
@@ -99,6 +100,7 @@ def main():
             prot = clean(vals.get(COL['prot2']))
         gluc = clean(vals.get(COL['gluc']))
         lip = clean(vals.get(COL['lip']))
+        fib = clean(vals.get(COL['fib']))
         code = norm_text(vals.get(COL['code']))
         name = norm_text(vals.get(COL['nom']))
         grp = norm_text(vals.get(COL['grp'])) or 'autre'
@@ -113,6 +115,7 @@ def main():
             'p': round(prot or 0, 1),
             'c': round(gluc or 0, 1),
             'f': round(lip or 0, 1),
+            'fib': None if fib is None else round(fib, 1),  # None = non déterminé par Ciqual
         })
 
     foods.sort(key=lambda x: x['name'].lower())
@@ -126,9 +129,10 @@ def main():
         'export const CIQUAL_FOODS: Food[] = [',
     ]
     for x in foods:
+        fib = '' if x['fib'] is None else ', fiber_g: %s' % x['fib']
         lines.append(
-            '  { id: %s, name_fr: %s, category: %s, per100g: { kcal: %d, protein_g: %s, carbs_g: %s, fat_g: %s } },'
-            % (ts_str(x['id']), ts_str(x['name']), ts_str(x['cat']), x['kcal'], x['p'], x['c'], x['f'])
+            '  { id: %s, name_fr: %s, category: %s, per100g: { kcal: %d, protein_g: %s, carbs_g: %s, fat_g: %s }%s },'
+            % (ts_str(x['id']), ts_str(x['name']), ts_str(x['cat']), x['kcal'], x['p'], x['c'], x['f'], fib)
         )
     lines.append('];')
     lines.append('')

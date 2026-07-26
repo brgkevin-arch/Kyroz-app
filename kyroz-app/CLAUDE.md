@@ -58,8 +58,8 @@ meals
 recipes (base propriétaire Kyroz)
   └── id, name_fr, prep_time_min, macros_per_portion (kcal/protein/carbs/fat),
       ingredients[], steps[], tags[], validated_by_dietitian (bool)
-  └── fibres : ESTIMÉES à la volée depuis les ingrédients (lib/fiber.ts), pas
-      stockées — en attendant une vraie base (Ciqual/OFF).
+  └── fibres : calculées à la volée depuis les ingrédients (lib/fiber.ts),
+      SOURCÉES Ciqual (Food.fiber_g) par ref/food_id, pas stockées.
 
 shopping_lists
   └── id, plan_id, user_id, items[]

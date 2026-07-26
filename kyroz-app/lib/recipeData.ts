@@ -1,7 +1,7 @@
 import { Macros, MacroRole } from './types';
 import raw from '../Recette/recettes-kyroz.json';
 import { findFood } from './foods';
-import { REF_FOOD_ID } from './recipeFoodMap';
+import { REF_FOOD_ID, REF_FIBER_MANUAL } from './recipeFoodMap';
 
 // ── Table d'ingrédients (rôle = type Food, valeurs /100 g) ────────────────────
 // Macros : SOURCÉES CIQUAL quand l'ingrédient est mappé (lib/recipeFoodMap.ts) →
@@ -13,6 +13,7 @@ export interface RecipeIngredientRef {
   unit: 'g' | 'ml';
   basis?: 'dry' | 'raw';
   per100g: Macros;
+  fiber_per100g: number; // fibres g/100 g — Ciqual (mappé) ou REF_FIBER_MANUAL (non mappé)
   abs_max_qty?: number;
   food_id?: string; // → aliment Ciqual quand les macros viennent de la base (cf. recipeFoodMap)
 }
@@ -31,6 +32,8 @@ export const RECIPE_INGREDIENTS: Record<string, RecipeIngredientRef> = Object.fr
         unit: v.unit,
         basis: v.basis,
         per100g: food ? food.per100g : toMacros(v.per_100),
+        // Fibres : Ciqual quand mappé (fiber_g ; undefined ANSES → 0), sinon manuel.
+        fiber_per100g: food ? (food.fiber_g ?? 0) : (REF_FIBER_MANUAL[k] ?? 0),
         abs_max_qty: v.abs_max_qty,
         food_id: food ? REF_FOOD_ID[k] : undefined,
       },

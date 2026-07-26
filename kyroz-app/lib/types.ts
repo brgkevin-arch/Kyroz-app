@@ -172,6 +172,10 @@ export interface Food {
   name_fr: string;
   category: string;       // groupe alimentaire Ciqual (libre)
   per100g: Macros;        // kcal / protéines / glucides / lipides pour 100 g
+  // Fibres alimentaires (g / 100 g), colonne Ciqual dédiée. Hors `per100g` car les
+  // fibres ne sont PAS une macro énergétique du contrat Macros (kcal/P/G/L partout).
+  // `undefined` = non déterminé par Ciqual (~1 % des aliments, composites) → traité 0.
+  fiber_g?: number;
   // Incertitude relative (%) de l'énergie selon les sources — sert à afficher une
   // marge honnête sur le total du jour (Phase 3b). Défaut appliqué si absent.
   uncertainty_pct?: number;

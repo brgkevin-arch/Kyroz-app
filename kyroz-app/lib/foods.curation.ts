@@ -67,6 +67,7 @@ export const DEFAULT_CURATION: CurationConfig = {
       name_fr: 'Whey (poudre, neutre/vanille)',
       category: 'produits laitiers',
       per100g: { kcal: 380, protein_g: 80, carbs_g: 8, fat_g: 6 },
+      fiber_g: 0,
       source: 'kyroz',
     },
     {
@@ -74,6 +75,7 @@ export const DEFAULT_CURATION: CurationConfig = {
       name_fr: 'Skyr nature',
       category: 'produits laitiers',
       per100g: { kcal: 63, protein_g: 11, carbs_g: 4, fat_g: 0.2 },
+      fiber_g: 0,
       source: 'kyroz',
     },
   ],
