@@ -22,6 +22,12 @@ jobs:
         with:
           node-version: 24
       - run: npm ci
+      # Filet de sécurité : rien ne se déploie si le typecheck ou les tests cassent
+      # (le job `deploy` dépend de `build`). Placé AVANT l'export = échec rapide.
+      - name: Typecheck (tsc)
+        run: npx tsc --noEmit
+      - name: Tests (vitest)
+        run: npm test
       - run: npx expo export -p web
         env:
           EXPO_PUBLIC_SUPABASE_URL: https://rgdjsdnqlmfkourrhijv.supabase.co
