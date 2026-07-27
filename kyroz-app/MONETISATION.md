@@ -11,10 +11,11 @@
 > 3. **📸 Transformation** — photos avant/après (local-only).
 >
 > **Restent à faire** (prochaine session dédiée) : la **banque de calories** (4ᵉ pilier, le
-> fidélisant — touche le moteur) + le **paiement RevenueCat** et le **gating `is_premium`**
-> (la feature est fonctionnelle mais GRATUITE tant que le paiement n'est pas câblé).
-> **Tarif reco** : 4,99 €/mois · 39,99 €/an. Le reste du doc ci-dessous = archive de la
-> réflexion qui a mené à cette décision.
+> fidélisant — touche le moteur) + le **paywall**. **Paiement TRANCHÉ = achat in-app via les
+> stores (Apple App Store + Google Play), emballé par RevenueCat** — PAS Stripe seul (les
+> stores refusent Stripe pour les abos numériques). Puis **gating `is_premium`** (la feature
+> est fonctionnelle mais GRATUITE tant que le paywall n'est pas câblé).
+> **Tarif** : 4,99 €/mois · 39,99 €/an. Le reste du doc ci-dessous = archive de la réflexion.
 
 > Statut historique : **proposition à valider** (décision produit non tranchée — CLAUDE.md §1).
 > Rien n'est codé : ce doc sert à trancher le découpage gratuit / payant avant
@@ -77,27 +78,31 @@ core tuerait le North Star — donc interdit.
   large). Kyroz+ se déclenche sur l'intention (clic sur une feature avancée).
 - Pas de pub, pas de revente de données (RGPD — données de santé, spec §7).
 
-## Implémentation (à ne lancer qu'APRÈS validation du découpage)
+## Implémentation — paywall (prochain chantier CODE)
 
-> **▶ Prévu en session dédiée (« faire les Stripe », fondateur, 2026-07-17).**
-> ⚠️ Ne PAS coder le paiement avant d'avoir répondu au **point 2 ci-dessous**
-> (« que construit-on qui vaille 5 € ? »). Brancher Stripe/RevenueCat sur un
-> paywall vide = plomberie pour rien. L'ordre : (1) décider la valeur premium →
-> (2) la construire → (3) alors seulement le paiement.
+> **▶ La valeur premium est construite (Kyroz+ livré + déployé) ; le paywall reste à coder.**
+> C'est le seul morceau monétisation encore en code. Ordre respecté : (1) valeur tranchée →
+> (2) construite ✅ → (3) paiement = maintenant.
 
-- Le schéma Supabase a déjà `profiles.stripe_customer_id` → prêt pour Stripe.
-- Recommandation technique : **RevenueCat** (gère App Store / Play Store + Stripe,
-  reçus, restauration d'achat) plutôt que Stripe seul sur mobile.
-- Garde-fou : un flag `is_premium` (dérivé de l'abonnement) gate les features
-  avancées côté app ; le gratuit reste fonctionnel hors-ligne sans vérification.
+- **Canal de paiement TRANCHÉ (fondateur) : achat in-app via les stores** — **Apple App Store
+  (In-App Purchase) + Google Play (Billing)**. On passe par **RevenueCat**, qui emballe les
+  deux stores (reçus + restauration d'achat + entitlements). ⚠️ **Pas de Stripe seul sur
+  mobile** : Apple/Google le refusent pour les abonnements numériques (motif de rejet).
+- À faire au câblage : ajouter le SDK `react-native-purchases`, créer les produits
+  d'abonnement (mensuel + annuel) dans **App Store Connect** ET **Play Console**.
+- **Gating** : un flag `is_premium` (dérivé de l'**entitlement** RevenueCat) verrouille les
+  features Kyroz+ ; le gratuit reste fonctionnel hors-ligne sans vérification.
+- `profiles.stripe_customer_id` (schéma) = vestige — RevenueCat porte l'entitlement ; à
+  garder ou renommer au moment du câblage (non bloquant).
 
-## Décisions à trancher (toi) — mises à jour 2026-07-14
+## Décisions TRANCHÉES (2026-07-27) — plus rien en attente côté produit
 
-1. **Acceptes-tu que les 4 features barrées ci-dessus restent gratuites ?**
-   (Recommandé : oui. Elles sont livrées ; les reprendre coûterait plus cher en
-   confiance que ce qu'elles rapporteraient.)
-2. **Que construit-on qui vaille 5 € ?** Le paywall n'a plus que 2 candidats déjà
-   identifiés (historique des plans, export courses) et aucun n'est un « waouh ».
-   C'est la vraie question ouverte : sans réponse, il n'y a pas de Kyroz+.
-3. **Tarif** 4,99 €/mois — ok, ou tu vises plus haut/bas ? (À ne trancher qu'une
-   fois le point 2 résolu : le prix découle de la valeur, pas l'inverse.)
+1. **Valeur premium** = Kyroz+ « piloter son objectif dans le temps » (objectif daté +
+   trajectoire + transformation) — **construite + déployée** (+ banque de calories à venir).
+2. **Les 4 features déjà livrées restent GRATUITES** (carb cycling, recalc macros au poids,
+   recettes perso, catalogue 264) : les reprendre casserait la confiance et le North Star.
+3. **Paiement = achat in-app Apple App Store + Google Play, via RevenueCat** (pas Stripe seul).
+4. **Tarif** = 4,99 €/mois · 39,99 €/an (ajustable au moment du câblage, mais c'est le plan retenu).
+
+→ Reste UNIQUEMENT à **coder** : le **paywall** (RevenueCat + `is_premium`) et la **banque de
+calories**. Plus aucune décision produit en suspens.
