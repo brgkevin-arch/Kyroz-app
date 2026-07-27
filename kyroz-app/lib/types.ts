@@ -51,6 +51,17 @@ export type VarietyPreference = 'repetitive' | 'balanced' | 'max';
 // Cadence de pesée choisie par l'utilisateur (pilote le rappel de check-in).
 export type WeighInFrequency = 'daily' | 'weekly' | 'biweekly' | 'monthly';
 
+// Objectif DATÉ (feature premium « Kyroz+ ») : atteindre un poids à une date.
+// Pilote la cible calorique dans le temps (cf. lib/datedGoal.ts) au rythme le plus
+// rapide MAIS sûr. `start_*` fige le point de départ → trajectoire idéale + « suis-je
+// sur la bonne pente ». Dates au format 'YYYY-MM-DD' (heure LOCALE, cf. localStamp).
+export interface GoalTarget {
+  target_weight_kg: number;
+  target_date: string;
+  start_weight_kg: number;
+  start_date: string;
+}
+
 // Restrictions alimentaires (régime / interdits)
 export type DietaryRestriction =
   | 'vegetarian'
@@ -101,6 +112,9 @@ export interface UserProfile {
 
   // Objectif
   goal: Goal;
+  // Objectif daté (premium) : cible poids + date. Absent = aucun objectif daté →
+  // la cible calorique suit le delta figé de `goal` (comportement historique).
+  goal_target?: GoalTarget;
 
   // Macros (auto = calculées, percent = ratio choisi, manual = legacy)
   macro_mode: MacroMode;

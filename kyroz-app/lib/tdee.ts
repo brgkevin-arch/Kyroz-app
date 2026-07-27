@@ -1,5 +1,7 @@
 import { Goal, Sex, SportSession, UserProfile } from './types';
 import { exerciseKcalPerDay } from './sport';
+import { datedGoalKcalDelta } from './datedGoal';
+import { todayStamp } from './weight';
 
 // ── Calculs nutritionnels ────────────────────────────────────────────────────
 
@@ -137,15 +139,20 @@ export function proteinTarget(goal: Goal, weight_kg: number, bodyFatPct?: number
   return Math.round(Math.max(leanKg * cfg.proteinPerKg, weight_kg * cfg.floorPerKgBody));
 }
 
+// `kcalDeltaOverride` (signé) : si fourni, REMPLACE le delta figé de l'objectif —
+// c'est le point d'entrée de l'objectif daté (cf. lib/datedGoal.ts). Le plancher
+// MIN_KCAL (§6) reste appliqué en aval, donc la sécurité est préservée.
 export function calculateMacros(
   tdee: number,
   goal: Goal,
   weight_kg: number,
   sex: Sex,
-  bodyFatPct?: number
+  bodyFatPct?: number,
+  kcalDeltaOverride?: number
 ): { target_kcal: number; protein_g: number; carbs_g: number; fat_g: number } {
   const cfg = GOAL_CONFIG[goal];
-  const target_kcal = Math.max(tdee + cfg.kcalDelta, MIN_KCAL[sex]);
+  const kcalDelta = typeof kcalDeltaOverride === 'number' ? kcalDeltaOverride : cfg.kcalDelta;
+  const target_kcal = Math.max(tdee + kcalDelta, MIN_KCAL[sex]);
 
   // Protéines : calage masse maigre AVEC plancher en g/kg de corps (cf. proteinTarget).
   const protein_g = proteinTarget(goal, weight_kg, bodyFatPct);
@@ -175,10 +182,12 @@ export function macrosPercent(
   sex: Sex,
   bodyFatPct: number | undefined,
   carbRatio: number,
-  proteinPerKg?: number
+  proteinPerKg?: number,
+  kcalDeltaOverride?: number
 ): { target_kcal: number; protein_g: number; carbs_g: number; fat_g: number } {
   const cfg = GOAL_CONFIG[goal];
-  const target_kcal = Math.max(tdee + cfg.kcalDelta, MIN_KCAL[sex]);
+  const kcalDelta = typeof kcalDeltaOverride === 'number' ? kcalDeltaOverride : cfg.kcalDelta;
+  const target_kcal = Math.max(tdee + kcalDelta, MIN_KCAL[sex]);
 
   const proteinBasisKg = (typeof bodyFatPct === 'number' && bodyFatPct > 0)
     ? leanBodyMass(weight_kg, bodyFatPct)
@@ -197,14 +206,17 @@ export function macrosPercent(
 // Recalcule un profil complet : TDEE (toujours) + macros (si mode auto), en
 // tenant compte du % de masse grasse. Source unique utilisée par le profil ET le
 // check-in poids (un nouveau poids → TDEE/macros/plan recalculés automatiquement).
-export function recalcProfile(p: UserProfile): UserProfile {
+export function recalcProfile(p: UserProfile, today: string = todayStamp()): UserProfile {
   const tdee = calculateTDEE(p.sex, p.weight_kg, p.height_cm, p.age, p.training_days_per_week, p.body_fat_pct, p.sports);
+  // Objectif daté (premium) : le delta calorique suit la trajectoire vers le poids
+  // cible plutôt que le delta figé de l'objectif. `undefined` → comportement normal.
+  const datedDelta = datedGoalKcalDelta(p.goal_target, p.weight_kg, today) ?? undefined;
   if (p.macro_mode === 'auto') {
-    const m = calculateMacros(tdee, p.goal, p.weight_kg, p.sex, p.body_fat_pct);
+    const m = calculateMacros(tdee, p.goal, p.weight_kg, p.sex, p.body_fat_pct, datedDelta);
     return { ...p, tdee_kcal: tdee, target_kcal: m.target_kcal, target_protein_g: m.protein_g, target_carbs_g: m.carbs_g, target_fat_g: m.fat_g };
   }
   if (p.macro_mode === 'percent') {
-    const m = macrosPercent(tdee, p.goal, p.weight_kg, p.sex, p.body_fat_pct, p.carb_ratio ?? DEFAULT_CARB_RATIO, p.protein_per_kg);
+    const m = macrosPercent(tdee, p.goal, p.weight_kg, p.sex, p.body_fat_pct, p.carb_ratio ?? DEFAULT_CARB_RATIO, p.protein_per_kg, datedDelta);
     return { ...p, tdee_kcal: tdee, target_kcal: m.target_kcal, target_protein_g: m.protein_g, target_carbs_g: m.carbs_g, target_fat_g: m.fat_g };
   }
   // legacy 'manual' : grammes figés, on met juste à jour le TDEE

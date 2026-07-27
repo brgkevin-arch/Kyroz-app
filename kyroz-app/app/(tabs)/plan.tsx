@@ -23,6 +23,7 @@ import { ActionSheet } from '../../components/ActionSheet';
 import { PrimaryButton, SectionLabel } from '../../components/ui';
 import { HydrationBar, useHydrationEnabled } from '../../components/HydrationBar';
 import { AnalyticsConsentBanner } from '../../components/AnalyticsConsentBanner';
+import { DatedGoalCard } from '../../components/DatedGoalCard';
 import { useTourTarget, useTour, hasSeenTour, TourStep } from '../../components/GuidedTour';
 import { useProfile } from '../../hooks/useProfile';
 import { useFavorites } from '../../hooks/useFavorites';
@@ -643,6 +644,16 @@ export default function PlanScreen() {
                   <Text style={s.offPlanTxt}>+ J'ai mangé hors plan</Text>
                 </TouchableOpacity>
               </View>
+            )}
+
+            {/* Objectif daté (premium) — la trajectoire dans le geste quotidien.
+                Ne s'affiche que s'il est posé ; tap = deep-link vers son éditeur. */}
+            {profile?.goal_target && (
+              <DatedGoalCard
+                t={t}
+                profile={profile}
+                onPress={async () => { await AsyncStorage.setItem('@kyroz:openEditor', 'dated_goal'); router.push('/(tabs)/profil'); }}
+              />
             )}
 
             {/* Suivi d'hydratation (feature test — voir components/HydrationBar.tsx) */}

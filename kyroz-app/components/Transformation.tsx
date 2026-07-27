@@ -1,0 +1,106 @@
+import React from 'react';
+import { View, Text, Image } from 'react-native';
+import { ThemePalette, Radius } from '../constants/theme';
+import { WeightEntry, todayStamp } from '../lib/weight';
+import { GoalTarget } from '../lib/types';
+import { trackStatus } from '../lib/datedGoal';
+
+// ── Module « Transformation » (premium « Kyroz+ ») ───────────────────────────
+// La PREUVE que l'objectif daté avance : le verdict de pente (courbe réelle vs
+// trajectoire idéale) et la comparaison avant/après.
+// RGPD : les photos restent LOCAL-ONLY (cf. lib/photos.ts) — rien n'est uploadé ici.
+
+const frDate = (iso: string) =>
+  new Date(iso + 'T00:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
+
+// Largeur max de la paire avant/après (≈ une largeur de téléphone) : borne la
+// hauteur des photos sur les écrans larges du web déployé.
+const PHOTO_ROW_MAX_WIDTH = 420;
+
+/**
+ * Verdict d'avancement — pensé pour RASSURER, pas mettre la pression (North Star).
+ * Jamais d'alarme : « en retard » devient un constat neutre, et on rappelle TOUJOURS
+ * que la pente est un repère et que Kyroz réajuste les calories tout seul. On met en
+ * avant l'acquis (kg déjà pris/perdus), pas l'écart à la ligne.
+ */
+export function TrackVerdict({ t, goalTarget, currentWeightKg }: {
+  t: ThemePalette; goalTarget: GoalTarget; currentWeightKg: number;
+}) {
+  const st = trackStatus(goalTarget, currentWeightKg, todayStamp());
+  if (!st) return null;
+
+  const losing = goalTarget.target_weight_kg < goalTarget.start_weight_kg;
+  // Progrès DANS LE BON SENS depuis le départ (positif = tu avances).
+  const progress = Math.round((goalTarget.start_weight_kg - currentWeightKg) * (losing ? 1 : -1) * 10) / 10;
+
+  const headline =
+    st.state === 'ahead' ? { txt: '🔥 En avance sur ton objectif', color: t.success }
+    : st.state === 'on_track' ? { txt: '✓ Dans ta zone', color: t.success }
+    : { txt: losing ? 'Ça descend à ton rythme' : 'Ça monte à ton rythme', color: t.text };
+
+  return (
+    <View style={{ backgroundColor: t.fill, borderRadius: Radius.md, padding: 12, gap: 4 }}>
+      <Text style={{ color: headline.color, fontSize: 14, fontWeight: '700' }}>{headline.txt}</Text>
+      {progress > 0 && (
+        <Text style={{ color: t.textSecondary, fontSize: 12.5, lineHeight: 18 }}>
+          Depuis le départ : {losing ? '-' : '+'}{Math.abs(progress)} kg 💪
+        </Text>
+      )}
+      <Text style={{ color: t.textTertiary, fontSize: 12, lineHeight: 17 }}>
+        La pente est un repère, pas une règle — à chaque pesée, Kyroz réajuste tes calories pour viser {goalTarget.target_weight_kg} kg le {frDate(goalTarget.target_date)}.
+      </Text>
+    </View>
+  );
+}
+
+/** Comparaison avant / après : 1re et dernière photo, avec l'écart de poids. */
+export function PhotoCompare({ t, photos, entries }: {
+  t: ThemePalette; photos: Record<string, string>; entries: WeightEntry[];
+}) {
+  const dates = Object.keys(photos).filter((d) => photos[d]).sort();
+  if (dates.length < 2) return null;
+
+  const firstD = dates[0];
+  const lastD = dates[dates.length - 1];
+  const weightOf = (d: string) => entries.find((e) => e.date === d)?.weight_kg;
+  const w1 = weightOf(firstD);
+  const w2 = weightOf(lastD);
+  const delta = w1 != null && w2 != null ? Math.round((w2 - w1) * 10) / 10 : null;
+
+  return (
+    <View style={{ gap: 8 }}>
+      {/* Plafond de largeur : sans lui, sur le web (écran large) deux colonnes en
+          ratio 3/4 donnent des photos de 800 px de haut. Sur mobile, sans effet. */}
+      <View style={{ flexDirection: 'row', gap: 10, width: '100%', maxWidth: PHOTO_ROW_MAX_WIDTH }}>
+        <Shot t={t} uri={photos[firstD]} label="Avant" date={firstD} kg={w1} />
+        <Shot t={t} uri={photos[lastD]} label="Après" date={lastD} kg={w2} />
+      </View>
+      {delta != null && (
+        <Text style={{ color: t.text, fontSize: 14, fontWeight: '700' }}>
+          {delta > 0 ? '+' : ''}{delta} kg entre les deux photos
+        </Text>
+      )}
+      <Text style={{ color: t.textTertiary, fontSize: 11 }}>
+        🔒 Tes photos restent sur ton téléphone, jamais envoyées.
+      </Text>
+    </View>
+  );
+}
+
+function Shot({ t, uri, label, date, kg }: {
+  t: ThemePalette; uri: string; label: string; date: string; kg?: number;
+}) {
+  return (
+    <View style={{ flex: 1, gap: 6 }}>
+      <Image
+        source={{ uri }}
+        style={{ width: '100%', aspectRatio: 3 / 4, borderRadius: Radius.md, backgroundColor: t.fill }}
+        resizeMode="cover"
+      />
+      <Text style={{ color: t.text, fontSize: 13, fontWeight: '700' }}>{label}</Text>
+      <Text style={{ color: t.textSecondary, fontSize: 12 }}>
+        {frDate(date)}{kg != null ? ` · ${kg} kg` : ''}
+      </Text>
+    </View>
+  );
+}

@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { ThemePalette, Radius, Spacing } from '../constants/theme';
 import { Field, PrimaryButton, SectionLabel, Segmented } from './ui';
 import { WeightChart } from './WeightChart';
+import { TrackVerdict, PhotoCompare } from './Transformation';
 import { useWeightLog } from '../hooks/useWeightLog';
 import { useProfile } from '../hooks/useProfile';
 import { pickProgressPhoto, cameraAvailable, PhotoSource } from '../lib/photos';
@@ -246,7 +247,18 @@ export function WeightCheckin({ t, onClose, dragHandlers }: Props) {
         )}
 
         <SectionLabel t={t}>Évolution</SectionLabel>
-        <WeightChart t={t} entries={entries} width={width} />
+        <WeightChart t={t} entries={entries} width={width} goalTarget={profile?.goal_target} />
+        {profile?.goal_target && (
+          <TrackVerdict t={t} goalTarget={profile.goal_target} currentWeightKg={profile.weight_kg} />
+        )}
+
+        {/* Transformation : la preuve visuelle (photos LOCAL-ONLY, cf. lib/photos.ts) */}
+        {Object.keys(photos).filter((d) => photos[d]).length >= 2 && (
+          <>
+            <SectionLabel t={t}>Transformation</SectionLabel>
+            <PhotoCompare t={t} photos={photos} entries={entries} />
+          </>
+        )}
 
         {/* Cadence de pesée choisie par l'utilisateur → pilote le rappel de check-in */}
         <SectionLabel t={t}>Rappel de pesée</SectionLabel>

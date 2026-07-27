@@ -28,10 +28,13 @@ import { ReminderSlot, remindersSupported } from '../../lib/notifications';
 import { deleteAccount, deleteCloudData } from '../../lib/sync';
 import { exportMyData } from '../../lib/exportData';
 import {
-  calculateTDEE, calculateMacros, goalLabel, validateProfile, recalcProfile, macrosPercent, DEFAULT_CARB_RATIO, recommendedProteinPerKg,
+  calculateTDEE, calculateMacros, goalLabel, validateProfile, recalcProfile, macrosPercent, DEFAULT_CARB_RATIO, recommendedProteinPerKg, MIN_KCAL,
 } from '../../lib/tdee';
+import { datedGoalStatus, datedGoalKcalDelta, addDaysStamp, daysBetween } from '../../lib/datedGoal';
+import { DatedGoalCard, formatFR } from '../../components/DatedGoalCard';
+import { todayStamp } from '../../lib/weight';
 import {
-  ActivityLevel, DietaryRestriction, FixedMeals, Goal, MEAL_ORDER, MealEmphasis, MealType, Sex, SportSession, UserProfile, VarietyPreference,
+  ActivityLevel, DietaryRestriction, FixedMeals, Goal, GoalTarget, MEAL_ORDER, MealEmphasis, MealType, Sex, SportSession, UserProfile, VarietyPreference,
 } from '../../lib/types';
 import { totalSessionsPerWeek } from '../../lib/sport';
 import { restDaySet } from '../../lib/planEngine';
@@ -99,7 +102,14 @@ const EMPHASIS_LABELS: Record<MealEmphasis, string> = {
 // Délègue à la source unique (lib/tdee) — même calcul partout (profil + check-in).
 const withRecalc = recalcProfile;
 
-type EditorKey = 'info' | 'sports' | 'goal' | 'macros' | 'prefs' | 'meals';
+type EditorKey = 'info' | 'sports' | 'goal' | 'dated_goal' | 'macros' | 'prefs' | 'meals';
+
+// Objectif daté : horizons proposés (semaines) — évite un date-picker (lourd sur
+// web) et cadre l'UX sur « dans N semaines » ; la date exacte est dérivée + affichée.
+const HORIZONS = [4, 8, 12, 16, 24];
+function closestHorizon(weeks: number): number {
+  return HORIZONS.reduce((best, h) => (Math.abs(h - weeks) < Math.abs(best - weeks) ? h : best), HORIZONS[0]);
+}
 
 export default function ProfilScreen() {
   const t = useTheme();
@@ -205,6 +215,9 @@ export default function ProfilScreen() {
           <MenuRow t={t} icon="trending-down-outline" label="Suivi du poids" value={`${profile.weight_kg} kg`} onPress={() => setWeighIn(true)} last />
         </View>
 
+        {/* Objectif daté (premium) — suivi de trajectoire quand il est posé */}
+        {profile.goal_target && <DatedGoalCard t={t} profile={profile} onPress={() => setEditor('dated_goal')} />}
+
         {/* Macros cibles (affichage) */}
         <SectionLabel t={t}>MACROS CIBLES / JOUR</SectionLabel>
         <View style={s.grid}>
@@ -220,6 +233,7 @@ export default function ProfilScreen() {
           <MenuRow t={t} icon="person-outline" label="Informations" value={`${SEX_LABELS[profile.sex]} · ${profile.age} ans · ${profile.weight_kg} kg${profile.body_fat_pct != null ? ` · ${profile.body_fat_pct}% MG` : ''}`} onPress={() => setEditor('info')} />
           <MenuRow t={t} icon="barbell-outline" label="Sports" value={profile.sports?.length ? `${profile.sports.length} sport${profile.sports.length > 1 ? 's' : ''}` : 'Aucun'} onPress={() => setEditor('sports')} />
           <MenuRow t={t} icon="flag-outline" label="Objectif" value={goalLabel(profile.goal)} onPress={() => setEditor('goal')} />
+          <MenuRow t={t} icon="rocket-outline" label="Objectif daté" value={profile.goal_target ? `${profile.goal_target.target_weight_kg} kg · ${formatFR(profile.goal_target.target_date)}` : 'Aucun'} onPress={() => setEditor('dated_goal')} />
           <MenuRow t={t} icon="flame-outline" label="Calories & macros" value={profile.macro_mode === 'percent' ? 'Perso %' : 'Calculées'} onPress={() => setEditor('macros')} />
           <MenuRow t={t} icon="restaurant-outline" label="Préférences alimentaires" value={profile.dietary_restrictions.length || profile.disliked_foods.length || profile.hidden_recipes?.length ? 'Personnalisées' : 'Aucune'} onPress={() => setEditor('prefs')} />
           <MenuRow t={t} icon="calendar-outline" label="Paramètres des repas" value={`${profile.plan_days} j · ${(profile.meals?.length || 4)} repas · ${EMPHASIS_LABELS[profile.meal_emphasis ?? 'even']}`} onPress={() => setEditor('meals')} />
@@ -340,6 +354,7 @@ export default function ProfilScreen() {
         {editor === 'info' && <InfoEditor t={t} profile={profile} onSave={save} />}
         {editor === 'sports' && <SportsProfileEditor t={t} profile={profile} onSave={save} />}
         {editor === 'goal' && <GoalEditor t={t} profile={profile} onSave={save} />}
+        {editor === 'dated_goal' && <DatedGoalEditor t={t} profile={profile} onSave={save} />}
         {editor === 'macros' && <MacroEditor t={t} profile={profile} onSave={save} />}
         {editor === 'prefs' && <PrefEditor t={t} profile={profile} onSave={save} />}
         {editor === 'meals' && <MealsEditor t={t} profile={profile} onSave={save} />}
@@ -467,6 +482,89 @@ function GoalEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
   );
 }
 
+function DatedGoalEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
+  const today = todayStamp();
+  const existing = profile.goal_target;
+  const [targetWeight, setTargetWeight] = useState(
+    String(existing?.target_weight_kg ?? Math.max(40, Math.round(profile.weight_kg) - 4)),
+  );
+  const [weeks, setWeeks] = useState<number>(
+    existing ? closestHorizon(Math.max(1, Math.round(daysBetween(today, existing.target_date) / 7))) : 8,
+  );
+  // L'horizon est un ARRONDI de l'échéance stockée (7,9 sem → « 8 sem »). Tant que
+  // l'user n'a pas touché aux puces, on garde la date EXACTE enregistrée : ré-ouvrir
+  // et enregistrer sans rien changer ne doit pas décaler l'échéance (même principe
+  // que RestDaysPicker).
+  const [horizonTouched, setHorizonTouched] = useState(false);
+  const pickWeeks = (h: number) => { setWeeks(h); setHorizonTouched(true); };
+
+  const twN = parseFloat(targetWeight.replace(',', '.'));
+  const validWeight = twN >= 40 && twN <= 250;
+  const targetDate = existing && !horizonTouched ? existing.target_date : addDaysStamp(today, weeks * 7);
+  const provisional: GoalTarget | undefined = validWeight
+    ? { target_weight_kg: twN, target_date: targetDate, start_weight_kg: profile.weight_kg, start_date: existing?.start_date ?? today }
+    : undefined;
+  const status = datedGoalStatus(provisional, profile.weight_kg, today);
+
+  const tdee = calculateTDEE(profile.sex, profile.weight_kg, profile.height_cm, profile.age, profile.training_days_per_week, profile.body_fat_pct, profile.sports);
+  const preview = status ? calculateMacros(tdee, profile.goal, profile.weight_kg, profile.sex, profile.body_fat_pct, status.dailyKcalDelta) : null;
+  const kcalDelta = preview ? preview.target_kcal - tdee : 0;
+  const gapKg = status ? Math.round(Math.abs(status.currentWeightKg - status.targetWeightKg) * 10) / 10 : 0;
+  const dirLabel = status?.direction === 'gain' ? 'Prendre' : status?.direction === 'maintain' ? 'Maintenir' : 'Perdre';
+
+  const submit = () => { if (provisional) onSave(withRecalc({ ...profile, goal_target: provisional })); };
+  const remove = () => onSave(withRecalc({ ...profile, goal_target: undefined }));
+
+  return (
+    <EditorShell t={t} title="Objectif daté" onSave={submit} canSave={validWeight} dragHandlers={dragHandlers}>
+      <Text style={{ color: t.textSecondary, fontSize: 13, lineHeight: 18 }}>
+        Fixe un poids et une échéance : Kyroz ajuste tes calories jour après jour pour t'y amener au rythme le plus rapide — mais sûr.
+      </Text>
+
+      <Field t={t} label="Poids cible" suffix="kg" value={targetWeight} onChangeText={setTargetWeight} keyboardType="decimal-pad" />
+
+      <SectionLabel t={t}>Échéance</SectionLabel>
+      <View style={styles.wrap}>
+        {HORIZONS.map((h) => <Chip key={h} t={t} label={`${h} sem`} selected={weeks === h} onPress={() => pickWeeks(h)} />)}
+      </View>
+      <Text style={{ color: t.textSecondary, fontSize: 13 }}>Cible le {formatFR(targetDate)}.</Text>
+
+      {status && preview && (
+        <Card t={t} style={{ gap: 12 }}>
+          <Row t={t} l="Trajectoire" v={status.direction === 'maintain' ? dirLabel : `${dirLabel} ${gapKg} kg`} strong />
+          {status.direction !== 'maintain' && <Row t={t} l="Rythme sûr" v={`${Math.abs(status.safeWeeklyKg)} kg / sem`} />}
+          <Row t={t} l="Calories ajustées" v={`${preview.target_kcal} kcal/j`} strong />
+          <Row t={t} l="vs maintenance" v={`${kcalDelta >= 0 ? '+' : ''}${kcalDelta} kcal/j`} c={kcalDelta < 0 ? t.carbs : t.protein} />
+        </Card>
+      )}
+
+      {status?.clamped && (
+        <Card t={t}>
+          <Text style={{ color: t.text, fontSize: 13, lineHeight: 19 }}>
+            Objectif ambitieux : au rythme le plus sûr tu atteins {status.targetWeightKg} kg vers le {formatFR(status.projectedDate)}, un peu après ta date. Kyroz garde le rythme sûr — jamais sous {MIN_KCAL[profile.sex]} kcal/jour.
+          </Text>
+        </Card>
+      )}
+      {status && !status.clamped && status.direction !== 'maintain' && (
+        <Text style={{ color: t.textSecondary, fontSize: 12, lineHeight: 17 }}>
+          Rythme sûr, dans les clous de ta date. Jamais sous {MIN_KCAL[profile.sex]} kcal/jour.
+        </Text>
+      )}
+      {status?.direction === 'maintain' && (
+        <Text style={{ color: t.textSecondary, fontSize: 12, lineHeight: 17 }}>
+          Tu es déjà à ton poids cible : Kyroz vise le maintien.
+        </Text>
+      )}
+
+      {existing && (
+        <TouchableOpacity onPress={remove} style={{ alignItems: 'center', paddingVertical: 10 }}>
+          <Text style={{ color: t.danger, fontSize: 15, fontWeight: '600' }}>Retirer l'objectif daté</Text>
+        </TouchableOpacity>
+      )}
+    </EditorShell>
+  );
+}
+
 function MacroEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
   // 'manual' (legacy) est ramené sur 'percent' : on ne propose plus les grammes fixes.
   const [mode, setMode] = useState<'auto' | 'percent'>(profile.macro_mode === 'auto' ? 'auto' : 'percent');
@@ -474,13 +572,15 @@ function MacroEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
   const [proteinPerKg, setProteinPerKg] = useState(profile.protein_per_kg ?? recommendedProteinPerKg(profile.goal));
 
   const tdee = calculateTDEE(profile.sex, profile.weight_kg, profile.height_cm, profile.age, profile.training_days_per_week, profile.body_fat_pct, profile.sports);
-  const auto = calculateMacros(tdee, profile.goal, profile.weight_kg, profile.sex, profile.body_fat_pct);
+  // Objectif daté actif → le delta calorique daté prime (même cerveau macro que recalcProfile).
+  const datedDelta = datedGoalKcalDelta(profile.goal_target, profile.weight_kg, todayStamp()) ?? undefined;
+  const auto = calculateMacros(tdee, profile.goal, profile.weight_kg, profile.sex, profile.body_fat_pct, datedDelta);
 
   const submit = () => {
     if (mode === 'auto') {
       onSave({ ...profile, macro_mode: 'auto', target_kcal: auto.target_kcal, target_protein_g: auto.protein_g, target_carbs_g: auto.carbs_g, target_fat_g: auto.fat_g });
     } else {
-      const m = macrosPercent(tdee, profile.goal, profile.weight_kg, profile.sex, profile.body_fat_pct, carbRatio, proteinPerKg);
+      const m = macrosPercent(tdee, profile.goal, profile.weight_kg, profile.sex, profile.body_fat_pct, carbRatio, proteinPerKg, datedDelta);
       const err = validateProfile(profile.sex, profile.age, m.target_kcal); // garde-fou §11
       if (err) { Alert.alert('Attention', err); return; }
       onSave({ ...profile, macro_mode: 'percent', carb_ratio: carbRatio, protein_per_kg: proteinPerKg, target_kcal: m.target_kcal, target_protein_g: m.protein_g, target_carbs_g: m.carbs_g, target_fat_g: m.fat_g });

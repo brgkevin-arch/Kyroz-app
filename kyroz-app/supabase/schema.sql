@@ -32,6 +32,7 @@ create table if not exists public.profiles (
 
   -- Objectif & macros
   goal text,
+  goal_target jsonb, -- objectif daté premium : {target_weight_kg,target_date,start_weight_kg,start_date}. NULL = aucun
   macro_mode text check (macro_mode in ('auto','percent','manual')),
   carb_ratio int check (carb_ratio is null or (carb_ratio >= 0 and carb_ratio <= 100)),
   protein_per_kg numeric check (protein_per_kg is null or (protein_per_kg >= 1 and protein_per_kg <= 4)),
@@ -84,6 +85,9 @@ alter table public.profiles
 
 alter table public.profiles
   add column if not exists sports jsonb not null default '[]';
+
+alter table public.profiles
+  add column if not exists goal_target jsonb;
 
 -- Autorise le nouveau mode 'percent' sur les bases existantes.
 alter table public.profiles drop constraint if exists profiles_macro_mode_check;
