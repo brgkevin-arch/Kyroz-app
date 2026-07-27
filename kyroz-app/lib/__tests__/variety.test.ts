@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { makeProfile } from './helpers';
 import { recalcProfile } from '../tdee';
-import { buildLocalPlan } from '../planEngine';
+import { buildLocalPlan, mealIngredients } from '../planEngine';
+import { mealFiberFromIngredients, dailyFiberTarget } from '../fiber';
 import { UserProfile } from '../types';
 
 // Régression du fix variété 2026-07-23 (P3.5). AVANT : `usage` (rotation intra-semaine)
@@ -43,6 +44,27 @@ describe('variété intra-semaine (P3.5)', () => {
     for (let d = 0; d < 7; d++) {
       const dev = Math.abs(dayK[d] - p.target_kcal) / p.target_kcal;
       expect(dev, `jour ${d + 1} écart kcal`).toBeLessThan(0.08);
+    }
+  });
+
+  it('biais fibres en sèche (P3.2) : un plan de sèche vise haut en fibres', () => {
+    // Le pool a la fibre (plafond GF ~81 g/j) ; le biais oriente la SÉLECTION vers le
+    // haut en sèche. Sans le biais, ce même profil tournait à ~35 g/j (échouerait).
+    const { p, meals } = plan7({ goal: 'cut', sex: 'male' });
+    const days = Array.from({ length: 7 }, () => 0);
+    for (const m of meals) days[m.day - 1] += mealFiberFromIngredients(mealIngredients(m));
+    const avg = days.reduce((a, b) => a + b, 0) / 7;
+    expect(avg, `fibres/jour moy (cible ${dailyFiberTarget(p)})`).toBeGreaterThanOrEqual(40);
+  });
+
+  it('biais fibres : le maintien N\'est PAS gonflé (gate sèche uniquement)', () => {
+    // Témoin : même gabarit en maintien → le biais fibres ne s'applique pas (goal ≠ cut).
+    // On vérifie surtout que la précision kcal reste serrée (pas de sur-sélection fibres).
+    const { p, meals } = plan7({ goal: 'maintain', sex: 'male' });
+    const dayK = Array.from({ length: 7 }, () => 0);
+    for (const m of meals) dayK[m.day - 1] += m.macros.kcal;
+    for (let d = 0; d < 7; d++) {
+      expect(Math.abs(dayK[d] - p.target_kcal) / p.target_kcal, `maintien jour ${d + 1}`).toBeLessThan(0.08);
     }
   });
 

@@ -57,6 +57,10 @@ const TIE_BAND_BALANCED = 0.01;
 const TIE_BAND_MAX = 0.022;
 // En sèche, marge supplémentaire de la bande pour laisser les fibres choisir.
 const FIBER_BAND_BONUS = 0.014;
+// Poids du biais fibres dans le score effectif EN SÈCHE (cf. selectMealAdapted).
+// Chaque g de fibre/portion retranche FIBER_SELECT_W au score → recette plus fibreuse
+// préférée. 0.005 lève la sèche de ~32 à ~40 g/j (à la cible) sans coût de précision.
+const FIBER_SELECT_W = 0.005;
 // Pénalité de score par utilisation d'une recette dans la semaine (rotation). Choisi
 // nettement > à la bande la plus large (0.036) pour qu'UNE utilisation suffise à sortir
 // une recette de la bande → rotation dès le lendemain. Ne dégrade PAS la précision :
@@ -380,8 +384,17 @@ function selectMealAdapted(
   // repliant `usage` dans le score, les nudges fibres/objectif restent mais ne peuvent
   // plus monopoliser : ils choisissent la qualité au 1er passage, la rotation reprend
   // ensuite. `repetitive` (plan canonique voulu statique) : pas de pénalité.
+  // Biais fibres EN SÈCHE (`fiberStrong` = cut/cut_aggressive) : la fibre par portion
+  // baisse le score effectif → les recettes plus fibreuses entrent dans la bande et
+  // sont préférées. Corrige le trou mesuré (P3.2/2026-07-23 : sèche ~32 g/j vs cible
+  // ~42) qui n'était PAS un manque de catalogue (plafond du pool GF ~81 g/j) mais un
+  // défaut de SÉLECTION — le moteur choisissait autour de la médiane. `FIBER_SELECT_W`
+  // calibré au balayage : à 0.005 la sèche passe à ~40 g (précision jour intacte <1 %,
+  // variété quasi inchangée) ; au-delà de ~0.015 → surdose (>55 g) + variété qui chute.
+  // Hors sèche : 0 (le maintien/la prise de masse ne sont pas touchés).
   const step = variety === 'repetitive' ? 0 : VARIETY_STEP;
-  const effOf = (c: AdaptedChoice) => c.score + step * (usage[c.recipe.id] ?? 0);
+  const fiberW = fiberStrong ? FIBER_SELECT_W : 0;
+  const effOf = (c: AdaptedChoice) => c.score - fiberW * c.fiber + step * (usage[c.recipe.id] ?? 0);
   candidates.sort((a, b) => effOf(a) - effOf(b) || a.recipe.id.localeCompare(b.recipe.id));
 
   const minEff = effOf(candidates[0]);
@@ -479,7 +492,7 @@ export function computeDailyTotals(
 // Version du moteur de génération : à incrémenter quand le scoring/sélection
 // change, pour que les plans EN CACHE se régénèrent automatiquement (la signature
 // change → l'auto-refresh de l'écran Plan rejoue la génération). v2 = lipides cadrés.
-const ENGINE_VERSION = 17; // v17 = fibres sourcées Ciqual (fix mesure P3.1 ; alimente le nudge fibres en sèche) — régénère les plans en cache
+const ENGINE_VERSION = 18; // v18 = biais fibres en sèche à la sélection (P3.2 : sèche ~32→40 g/j) — régénère les plans en cache
 
 export function profileSignature(p: UserProfile): string {
   // NB : `hidden_recipes` (👎) est VOLONTAIREMENT absent. Un 👎 remplace UN repas
