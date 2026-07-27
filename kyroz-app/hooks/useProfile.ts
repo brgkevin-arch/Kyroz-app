@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { UserProfile } from '../lib/types';
 import { useAuth } from './useAuth';
 import { pushProfile, markProfileDirty, clearProfileDirty } from '../lib/sync';
+import { normalizeProfileActivity } from '../lib/syncGuard';
 
 const PROFILE_KEY = '@kyroz:profile';
 
@@ -29,7 +30,9 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
     let alive = true;
     AsyncStorage.getItem(PROFILE_KEY).then((raw) => {
       if (!alive) return;
-      setProfile(raw ? JSON.parse(raw) : null);
+      // fix P3.3 : `sports` fait foi → recale le compteur de séances au chargement,
+      // pour que le TDEE ne puisse pas basculer sur un état incohérent hérité.
+      setProfile(raw ? normalizeProfileActivity(JSON.parse(raw)) : null);
       setLoading(false);
     });
     return () => { alive = false; };

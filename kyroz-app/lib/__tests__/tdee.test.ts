@@ -5,6 +5,7 @@ import {
   MIN_KCAL, MIN_AGE, DEFAULT_CARB_RATIO, NEAT_BASE_PAL,
 } from '../tdee';
 import { exerciseKcalPerDay, totalSessionsPerWeek } from '../sport';
+import { normalizeProfileActivity, reconcileCloudSports } from '../syncGuard';
 import { makeProfile } from './helpers';
 
 describe('BMR', () => {
@@ -222,5 +223,19 @@ describe('Unicité & stabilité du TDEE', () => {
     const coherent = recalcProfile(makeProfile({ sports, training_days_per_week: totalSessionsPerWeek(sports) }));
     const corrupted = recalcProfile({ ...coherent, sports: [] }); // training_days reste > 0
     expect(corrupted.tdee_kcal).not.toBe(coherent.tdee_kcal); // ← signature de la frontière C
+  });
+
+  it('P3.3 RÉSOLU : la couche sync referme la frontière → plus de saut de TDEE', () => {
+    // Même scénario que ci-dessus, mais en passant par la normalisation de
+    // persistance (fix P3.3). Une ligne cloud dégradée (sports perdu) hydratée
+    // par-dessus un local sain ne fait PLUS basculer la méthode : sports préservé
+    // puis compteur recalé → le TDEE reste identique au profil cohérent.
+    const sports = [{ type: 'musculation' as const, sessions_per_week: 3, minutes_per_session: 60 }];
+    const coherent = recalcProfile(makeProfile({ sports, training_days_per_week: totalSessionsPerWeek(sports) }));
+    const cloudDegrade = { ...coherent, sports: [] }; // ligne cloud partielle : sports vidé
+    const healed = recalcProfile(
+      normalizeProfileActivity(reconcileCloudSports(cloudDegrade, coherent))!
+    );
+    expect(healed.tdee_kcal).toBe(coherent.tdee_kcal); // ← le saut est neutralisé
   });
 });

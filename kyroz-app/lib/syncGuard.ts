@@ -1,3 +1,6 @@
+import { UserProfile } from './types';
+import { totalSessionsPerWeek } from './sport';
+
 // Garde-fou anti-écrasement du profil (problème C) — logique PURE, sans aucune
 // dépendance runtime (Supabase / AsyncStorage), donc testable isolément.
 //
@@ -27,4 +30,42 @@ export function decideProfileHydration(a: {
   if (a.hasCloud) return 'pull_cloud';
   if (a.hasLocal) return 'push_local';
   return 'noop';
+}
+
+// ── Cohérence sports ↔ training_days_per_week (fix P3.3 « TDEE qui saute ») ────
+//
+// `sports` (séances détaillées → TDEE précis par MET) et `training_days_per_week`
+// (compteur → repli legacy par multiplicateur) encodent la MÊME info deux fois.
+// `calculateTDEE` choisit sa méthode selon `sports` : rempli → MET, vide → legacy.
+// S'ils DIVERGENT (ex. `sports` perdu au round-trip cloud, compteur > 0), la
+// méthode bascule en silence → le TDEE de maintenance saute sans rien à l'écran.
+// On rend les deux INCAPABLES de diverger, `sports` faisant FOI.
+
+const hasSports = (p: any): boolean => Array.isArray(p?.sports) && p.sports.length > 0;
+
+// `sports` = source de vérité : s'il est renseigné, on en DÉRIVE toujours le
+// compteur de séances → les deux entrées d'activité ne peuvent plus se contredire,
+// donc la méthode de calcul du TDEE ne bascule plus toute seule. À appliquer à
+// CHAQUE chargement de profil (hydratation cloud + lecture locale).
+// NB : `sports` vide + compteur > 0 est laissé TEL QUEL — c'est le profil legacy
+// légitime (jamais eu de séances détaillées), pas la divergence qu'on corrige.
+export function normalizeProfileActivity<T extends Partial<UserProfile>>(p: T | null): T | null {
+  if (!p || !hasSports(p)) return p;
+  const derived = totalSessionsPerWeek(p.sports);
+  if (p.training_days_per_week === derived) return p;
+  return { ...p, training_days_per_week: derived };
+}
+
+// À l'hydratation « pull_cloud » : un `sports` absent/vide côté cloud (ligne
+// ancienne ou partielle) NE DOIT PAS effacer un `sports` local renseigné. Champ
+// absent = « pas d'info », ≠ « zéro séance » : c'est précisément cette perte qui
+// faisait sauter le TDEE. On préserve alors les séances locales dans le profil tiré.
+export function reconcileCloudSports<T extends Partial<UserProfile>>(
+  cloud: T,
+  local: Partial<UserProfile> | null
+): T {
+  if (!hasSports(cloud) && hasSports(local)) {
+    return { ...cloud, sports: local!.sports };
+  }
+  return cloud;
 }

@@ -3,7 +3,7 @@ import { supabase } from './supabase';
 import { Recipe, Streak, UserProfile } from './types';
 import { PantryItem } from './pantry';
 import { WeightEntry } from './weight';
-import { decideProfileHydration, PROFILE_PENDING_KEY } from './syncGuard';
+import { decideProfileHydration, normalizeProfileActivity, reconcileCloudSports, PROFILE_PENDING_KEY } from './syncGuard';
 
 // ── Synchro AsyncStorage ⇄ Supabase ──────────────────────────────────────────
 // Principe : le local reste la copie de travail (offline-first), le cloud est un
@@ -130,7 +130,10 @@ export async function hydrateFromCloud(uid: string): Promise<void> {
       localDirty: await isProfileDirty(),
     });
     if (action === 'pull_cloud') {
-      await AsyncStorage.setItem(PROFILE_KEY, JSON.stringify(rowToProfile(row, uid)));
+      // fix P3.3 : ne pas laisser un `sports` cloud vide effacer les séances locales
+      // (sinon le TDEE bascule MET → multiplicateur), puis recaler le compteur.
+      const cloud = reconcileCloudSports(rowToProfile(row, uid), local);
+      await AsyncStorage.setItem(PROFILE_KEY, JSON.stringify(normalizeProfileActivity(cloud)));
     } else if (local && (action === 'keep_local' || action === 'push_local')) {
       await pushProfile(local); // (re)pousse le local ; lève le flag si succès
     }
