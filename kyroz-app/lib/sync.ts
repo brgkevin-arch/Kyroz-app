@@ -24,6 +24,8 @@ const OVERRIDES_KEY = '@kyroz:recipeOverrides';
 // Colonnes du profil partagées entre l'app et la table `profiles`.
 const PROFILE_COLS = [
   'sex', 'age', 'weight_kg', 'height_cm', 'body_fat_pct', 'activity_level', 'training_days_per_week',
+  // Plancher d'énergie disponible (P0.1) — migration 2026-07-28_profiles_energy_availability.sql
+  'is_post_menopausal', 'low_ea_weeks',
   'sports',
   'goal', 'goal_target', 'macro_mode', 'carb_ratio', 'protein_per_kg', 'tdee_kcal', 'target_kcal', 'target_protein_g', 'target_carbs_g',
   'target_fat_g', 'plan_days', 'plan_weekdays', 'rest_weekdays', 'meals', 'meal_emphasis', 'variety',

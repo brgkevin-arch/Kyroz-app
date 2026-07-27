@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, Image, ImageSourcePropType } 
 import { ThemePalette, Radius } from '../constants/theme';
 import { Field } from './ui';
 import { Sex } from '../lib/types';
-import { BODY_FAT_MIN, BODY_FAT_MAX } from '../lib/tdee';
+import { bodyFatBounds } from '../lib/safety';
 
 // ── Sélecteur de masse grasse ────────────────────────────────────────────────
 // 6 niveaux de corpulence (valeurs sexuées, calées sur les chartes visuelles de
@@ -62,9 +62,12 @@ interface Props {
 
 export function BodyFatPicker({ t, sex, value, onChange }: Props) {
   const levels = LEVELS[sex];
+  // Bornes PAR SEXE : 3 % est sous le gras essentiel masculin et impossible chez
+  // une femme (~12 % de gras essentiel). L'ancienne borne unique 3–60 était fausse.
+  const [BF_MIN, BF_MAX] = bodyFatBounds(sex);
 
   // Texte LOCAL du champ « % exact ». On NE clampe pas le MIN pendant la frappe
-  // (sinon taper « 23 » passe par « 2 » → clampé à BODY_FAT_MIN=3 → « 33 »). Le
+  // (sinon taper « 23 » passe par « 2 » → clampé au minimum → « 33 »). Le
   // clamp MIN n'est appliqué qu'au blur. La synchro depuis `value` permet au tap
   // d'une silhouette (ou à « Effacer ») de remplir/vider le champ.
   const [pctText, setPctText] = useState(value != null ? String(value) : '');
@@ -114,7 +117,7 @@ export function BodyFatPicker({ t, sex, value, onChange }: Props) {
           if (Number.isNaN(n)) return;
           // Pendant la frappe : seul le clamp MAX (évite l'absurde) ; le MIN
           // est appliqué au blur pour ne pas casser la saisie progressive.
-          onChange(Math.min(n, BODY_FAT_MAX));
+          onChange(Math.min(n, BF_MAX));
         }}
         // ⚠️ `onBlur` et NON `onEndEditing` : react-native-web ne câble PAS
         // onEndEditing (no-op sur le web déployé) — seul onBlur est appelé au blur.
@@ -122,7 +125,7 @@ export function BodyFatPicker({ t, sex, value, onChange }: Props) {
           if (!pctText) return;
           const n = parseFloat(pctText.replace(',', '.'));
           if (Number.isNaN(n)) { onChange(undefined); setPctText(''); return; }
-          const clamped = Math.min(Math.max(n, BODY_FAT_MIN), BODY_FAT_MAX);
+          const clamped = Math.min(Math.max(n, BF_MIN), BF_MAX);
           onChange(clamped);
           setPctText(String(clamped));
         }}

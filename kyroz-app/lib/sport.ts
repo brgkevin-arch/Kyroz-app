@@ -81,6 +81,21 @@ export function totalSessionsPerWeek(sports: SportSession[] | undefined): number
   return sports.reduce((n, s) => n + clamp(s.sessions_per_week ?? 0, 0, MAX_SESSIONS_PER_WEEK), 0);
 }
 
+/**
+ * Volume d'entraînement hebdomadaire déclaré (minutes). Sert au contrôle
+ * d'éligibilité (cf. lib/safety.ts) : au-delà de 20 h/semaine, la saisie n'est pas
+ * plausible et produirait un budget calorique absurde.
+ * Volontairement calculé sur les valeurs BRUTES saisies (pas les clamps de calcul) :
+ * on veut détecter une saisie aberrante, pas la masquer.
+ */
+export function totalWeeklyTrainingMinutes(sports: SportSession[] | undefined): number {
+  if (!sports?.length) return 0;
+  return sports.reduce(
+    (n, s) => n + Math.max(0, s.sessions_per_week ?? 0) * Math.max(0, s.minutes_per_session ?? 0),
+    0,
+  );
+}
+
 function clamp(v: number, lo: number, hi: number): number {
   return Math.min(Math.max(v, lo), hi);
 }

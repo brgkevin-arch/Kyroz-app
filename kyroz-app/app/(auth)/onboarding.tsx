@@ -11,6 +11,9 @@ import {
   PrimaryButton, Chip, OptionCard, Field, SectionLabel, Segmented,
 } from '../../components/ui';
 import { BodyFatPicker } from '../../components/BodyFatPicker';
+import {
+  AGE_BOUNDS, WEIGHT_BOUNDS, HEIGHT_BOUNDS, checkEligibility, eligibilityMessage,
+} from '../../lib/safety';
 import { DislikedFoodsField } from '../../components/DislikedFoodsField';
 import {
   ActivityLevel, DietaryRestriction, Goal, MEAL_ORDER, MealType, Sex, SportSession, UserProfile, VarietyPreference,
@@ -125,7 +128,13 @@ export default function Onboarding() {
   const ageN = parseInt(age), wN = parseFloat(weight), hN = parseFloat(height);
   // Étapes à validation requise (les autres sont libres) :
   const firstNameValid = firstName.trim().length > 0;                                    // étape 1 — prénom
-  const basicsValid = ageN >= 16 && ageN <= 100 && wN >= 40 && wN <= 250 && hN >= 120 && hN <= 230; // étape 2 — infos
+  // Bornes de saisie (P0.4). L'âge minimum est passé de 16 à 18 ans : Mifflin-St Jeor
+  // n'est pas validée sous 19 ans, et un moteur de déficit calorique n'a pas à être
+  // servi à un mineur (sécurité ET conformité). Cf. lib/safety.ts.
+  const basicsValid =
+    ageN >= AGE_BOUNDS[0] && ageN <= AGE_BOUNDS[1] &&
+    wN >= WEIGHT_BOUNDS[0] && wN <= WEIGHT_BOUNDS[1] &&
+    hN >= HEIGHT_BOUNDS[0] && hN <= HEIGHT_BOUNDS[1]; // étape 2 — infos
   const bodyFatValid = bodyFat != null;                                                   // étape 3 — masse grasse
   const trainingValid = noSport || sports.length >= 1;                                     // étape 4 — activité (sports ou « aucun »)
   const trainingDaysEq = noSport ? 0 : Math.min(totalSessionsPerWeek(sports), 7);          // repli legacy (activity_level / training_days)
@@ -162,7 +171,10 @@ export default function Onboarding() {
   // Pourquoi on ne peut pas avancer (message affiché au tap sur « Continuer »).
   const blockReason = (): string | null => {
     if (step === 1 && !firstNameValid) return 'Dis-nous comment t\'appeler pour commencer 🙂';
-    if (step === 2 && !basicsValid) return 'Remplis ton âge, ton poids et ta taille pour continuer.';
+    if (step === 2 && !basicsValid) {
+      if (ageN >= 1 && ageN < AGE_BOUNDS[0]) return `Kyroz est réservé aux ${AGE_BOUNDS[0]} ans et plus.`;
+      return 'Remplis ton âge, ton poids et ta taille pour continuer.';
+    }
     if (step === 3 && !bodyFatValid)
       return 'On a besoin de ta masse grasse pour te calculer le plan le plus juste possible — choisis la silhouette la plus proche de toi, ou saisis ton % si tu le connais.';
     if (step === 4 && !trainingValid) return 'Choisis au moins un sport, ou indique que tu n\'en fais pas.';
@@ -209,6 +221,11 @@ export default function Onboarding() {
       max_prep_time_min: maxPrep,
     };
     const profile = recalcProfile(draft); // ← source unique du TDEE et des macros
+    // Éligibilité (P0.4) : mineur, IMC de départ, volume d'entraînement. La grossesse
+    // et l'allaitement sont déjà bloqués en amont par le portail de dépistage santé
+    // (lib/healthScreening.ts) — on ne duplique pas le champ dans le profil.
+    const blocked = eligibilityMessage(checkEligibility(profile));
+    if (blocked) { Alert.alert('Attention', blocked); return; }
     const err = validateProfile(sex, ageN, profile.target_kcal);
     if (err) { Alert.alert('Attention', err); return; }
     setSaving(true);

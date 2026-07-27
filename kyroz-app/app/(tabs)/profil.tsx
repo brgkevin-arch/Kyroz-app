@@ -28,8 +28,9 @@ import { ReminderSlot, remindersSupported } from '../../lib/notifications';
 import { deleteAccount, deleteCloudData } from '../../lib/sync';
 import { exportMyData } from '../../lib/exportData';
 import {
-  calculateTDEE, calculateMacros, goalLabel, validateProfile, recalcProfile, macrosPercent, DEFAULT_CARB_RATIO, recommendedProteinPerKg, MIN_KCAL,
+  calculateTDEE, computePlan, goalLabel, validateProfile, recalcProfile, DEFAULT_CARB_RATIO, recommendedProteinPerKg,
 } from '../../lib/tdee';
+import { lowEaWeeksInWindow } from '../../lib/safety';
 import { datedGoalStatus, datedGoalKcalDelta, addDaysStamp, daysBetween } from '../../lib/datedGoal';
 import { DatedGoalCard, formatFR } from '../../components/DatedGoalCard';
 import { todayStamp } from '../../lib/weight';
@@ -504,10 +505,15 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
   const provisional: GoalTarget | undefined = validWeight
     ? { target_weight_kg: twN, target_date: targetDate, start_weight_kg: profile.weight_kg, start_date: existing?.start_date ?? today }
     : undefined;
-  const status = datedGoalStatus(provisional, profile.weight_kg, today);
-
   const tdee = calculateTDEE(profile.sex, profile.weight_kg, profile.height_cm, profile.age, profile.training_days_per_week, profile.body_fat_pct, profile.sports);
-  const preview = status ? calculateMacros(tdee, profile.goal, profile.weight_kg, profile.sex, profile.body_fat_pct, status.dailyKcalDelta) : null;
+  const status = datedGoalStatus(provisional, profile, today, tdee);
+
+  // Aperçu calculé par le PRODUCTEUR UNIQUE (computePlan) et non par un chemin
+  // parallèle : ce que la carte annonce est exactement ce qui sera enregistré,
+  // plancher de sécurité compris.
+  const previewPlan = provisional ? computePlan({ ...profile, goal_target: provisional }, today) : null;
+  const preview = previewPlan?.profile ?? null;
+  const floored = previewPlan?.flags.includes('FLOOR_APPLIED') ?? false;
   const kcalDelta = preview ? preview.target_kcal - tdee : 0;
   const gapKg = status ? Math.round(Math.abs(status.currentWeightKg - status.targetWeightKg) * 10) / 10 : 0;
   const dirLabel = status?.direction === 'gain' ? 'Prendre' : status?.direction === 'maintain' ? 'Maintenir' : 'Perdre';
@@ -538,17 +544,31 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
         </Card>
       )}
 
-      {status?.clamped && (
+      {status?.directionMismatch && (
         <Card t={t}>
           <Text style={{ color: t.text, fontSize: 13, lineHeight: 19 }}>
-            Objectif ambitieux : au rythme le plus sûr tu atteins {status.targetWeightKg} kg vers le {formatFR(status.projectedDate)}, un peu après ta date. Kyroz garde le rythme sûr — jamais sous {MIN_KCAL[profile.sex]} kcal/jour.
+            Ce poids cible va dans le sens inverse de ton objectif « {goalLabel(profile.goal)} ». Kyroz ne pilote pas tes calories tant que les deux ne concordent pas.
           </Text>
         </Card>
       )}
-      {status && !status.clamped && status.direction !== 'maintain' && (
+      {status?.clamped && !status.directionMismatch && (
+        <Card t={t}>
+          <Text style={{ color: t.text, fontSize: 13, lineHeight: 19 }}>
+            Objectif ambitieux : au rythme le plus sûr tu atteins {status.targetWeightKg} kg vers le {formatFR(status.projectedDate)}, un peu après ta date. Kyroz garde le rythme sûr.
+          </Text>
+        </Card>
+      )}
+      {status && !status.clamped && !status.directionMismatch && status.direction !== 'maintain' && (
         <Text style={{ color: t.textSecondary, fontSize: 12, lineHeight: 17 }}>
-          Rythme sûr, dans les clous de ta date. Jamais sous {MIN_KCAL[profile.sex]} kcal/jour.
+          Rythme sûr, dans les clous de ta date.
         </Text>
+      )}
+      {floored && preview && (
+        <Card t={t}>
+          <Text style={{ color: t.text, fontSize: 13, lineHeight: 19 }}>
+            Ton plancher de sécurité est à {preview.target_kcal} kcal/jour : en dessous, ton corps n'a plus assez d'énergie pour fonctionner correctement. Plus tu t'entraînes, plus ce plancher monte — c'est normal, l'énergie de tes séances ne compte pas comme énergie disponible. Ta date sera décalée plutôt que ton apport écrasé.
+          </Text>
+        </Card>
       )}
       {status?.direction === 'maintain' && (
         <Text style={{ color: t.textSecondary, fontSize: 12, lineHeight: 17 }}>
@@ -571,19 +591,26 @@ function MacroEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
   const [carbRatio, setCarbRatio] = useState(profile.carb_ratio ?? DEFAULT_CARB_RATIO);
   const [proteinPerKg, setProteinPerKg] = useState(profile.protein_per_kg ?? recommendedProteinPerKg(profile.goal));
 
+  const today = todayStamp();
   const tdee = calculateTDEE(profile.sex, profile.weight_kg, profile.height_cm, profile.age, profile.training_days_per_week, profile.body_fat_pct, profile.sports);
   // Objectif daté actif → le delta calorique daté prime (même cerveau macro que recalcProfile).
-  const datedDelta = datedGoalKcalDelta(profile.goal_target, profile.weight_kg, todayStamp()) ?? undefined;
-  const auto = calculateMacros(tdee, profile.goal, profile.weight_kg, profile.sex, profile.body_fat_pct, datedDelta);
+  const datedDelta = datedGoalKcalDelta(profile.goal_target, profile, today, tdee) ?? undefined;
+  const lowEaWeeks = lowEaWeeksInWindow(profile.low_ea_weeks, today);
+  // Aperçu par le producteur unique : ce qui s'affiche = ce qui sera enregistré.
+  const auto = computePlan({ ...profile, macro_mode: 'auto' }, today).profile;
 
   const submit = () => {
+    // `withRecalc` dans les deux branches : recalcProfile reste le SEUL producteur
+    // des valeurs stockées (plancher de sécurité + registre d'énergie disponible
+    // compris). En mode 'percent' il recalcule depuis carb_ratio/protein_per_kg,
+    // donc il reproduit exactement ce que l'aperçu affiche.
     if (mode === 'auto') {
-      onSave({ ...profile, macro_mode: 'auto', target_kcal: auto.target_kcal, target_protein_g: auto.protein_g, target_carbs_g: auto.carbs_g, target_fat_g: auto.fat_g });
+      onSave(withRecalc({ ...profile, macro_mode: 'auto' }));
     } else {
-      const m = macrosPercent(tdee, profile.goal, profile.weight_kg, profile.sex, profile.body_fat_pct, carbRatio, proteinPerKg, datedDelta);
-      const err = validateProfile(profile.sex, profile.age, m.target_kcal); // garde-fou §11
+      const next = withRecalc({ ...profile, macro_mode: 'percent', carb_ratio: carbRatio, protein_per_kg: proteinPerKg });
+      const err = validateProfile(profile.sex, profile.age, next.target_kcal); // garde-fou §6
       if (err) { Alert.alert('Attention', err); return; }
-      onSave({ ...profile, macro_mode: 'percent', carb_ratio: carbRatio, protein_per_kg: proteinPerKg, target_kcal: m.target_kcal, target_protein_g: m.protein_g, target_carbs_g: m.carbs_g, target_fat_g: m.fat_g });
+      onSave(next);
     }
   };
 
@@ -593,14 +620,15 @@ function MacroEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
       {mode === 'auto' ? (
         <Card t={t} style={{ gap: 12 }}>
           <Row t={t} l="Objectif calorique" v={`${auto.target_kcal} kcal`} strong />
-          <Row t={t} l="Protéines" v={`${auto.protein_g} g`} c={t.protein} />
-          <Row t={t} l="Glucides" v={`${auto.carbs_g} g`} c={t.carbs} />
-          <Row t={t} l="Lipides" v={`${auto.fat_g} g`} c={t.fat} />
+          <Row t={t} l="Protéines" v={`${auto.target_protein_g} g`} c={t.protein} />
+          <Row t={t} l="Glucides" v={`${auto.target_carbs_g} g`} c={t.carbs} />
+          <Row t={t} l="Lipides" v={`${auto.target_fat_g} g`} c={t.fat} />
         </Card>
       ) : (
         <MacroSplit
-          t={t} tdee={tdee} goal={profile.goal} weight={profile.weight_kg} sex={profile.sex}
-          bodyFat={profile.body_fat_pct} carbRatio={carbRatio} proteinPerKg={proteinPerKg}
+          t={t} tdee={tdee} goal={profile.goal} body={profile}
+          carbRatio={carbRatio} proteinPerKg={proteinPerKg}
+          kcalDeltaOverride={datedDelta} lowEaWeeks={lowEaWeeks}
           onCarbChange={setCarbRatio} onProteinChange={setProteinPerKg}
         />
       )}

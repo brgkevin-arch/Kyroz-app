@@ -143,10 +143,23 @@ OUTPUT         → Plan + liste de courses + recettes
 - Adaptation recettes selon préférences
 
 ### Bloqué (hard block)
-- Plans < 1500 kcal/jour (homme) / < 1200 kcal/jour (femme)
+- **Plans sous le plancher d'énergie disponible** — `lib/safety.ts::safetyFloorKcal`.
+  Plancher = `max(BMR, 30 kcal/kg de masse maigre + dépense sportive, 1500 H / 1200 F)`.
+  Le 1500/1200 reste comme **filet absolu**, il n'est plus le plancher principal :
+  il autorisait 1200 kcal à une femme de 65 kg s'entraînant 5×/semaine, dont le
+  minimum physiologique est ~1863. Aucun chemin de code ne le contourne, mode
+  `manual` compris. Au-delà de 12 semaines cumulées en zone basse (30–35 kcal/kg
+  de masse maigre), le plancher remonte progressivement vers 35 chez la femme non
+  ménopausée — le produit ne bloque pas, il force une sortie de déficit.
+- Déficit **> 25 % du TDEE** (`lib/datedGoal.ts::MAX_DEFICIT_TDEE_RATIO`)
 - Pathologies (diabète, IRC, cardio)
 - Femmes enceintes / allaitantes
-- Utilisateurs < 16 ans (bloquer à l'onboarding)
+- **Utilisateurs < 18 ans** (bloquer à l'onboarding) — relevé de 16 à 18 le
+  2026-07-28 : Mifflin-St Jeor n'est pas validée sous 19 ans, et servir un moteur
+  de déficit calorique à un mineur est un risque de conformité App Store autant
+  que de sécurité. Source unique : `lib/safety.ts::MIN_AGE`.
+- IMC de départ < 18,5 avec un objectif de sèche ; poids cible hors plage saine ;
+  volume d'entraînement > 20 h/semaine (`lib/safety.ts::checkEligibility`)
 
 ### Disclaimer obligatoire (UI)
 > *"Kyroz est conçu pour des adultes en bonne santé. Ces informations ne remplacent pas l'avis d'un médecin ou diététicien-nutritionniste."*
