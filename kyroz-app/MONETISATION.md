@@ -1,6 +1,22 @@
 # Kyroz — Proposition de monétisation freemium
 
-> Statut : **proposition à valider** (décision produit non tranchée — CLAUDE.md §1).
+> ## ✅ TRANCHÉ + CONSTRUIT (2026-07-27) — la valeur premium existe
+> La question ouverte de ce doc (« que construit-on qui vaille 5 € ? ») est **répondue
+> et LIVRÉE + DÉPLOYÉE** (`5a4fc63`). **Kyroz+ = « piloter son objectif dans le temps »**,
+> en 3 piliers (cf. AGENTS.md, session Kyroz+ 2026-07-27) :
+> 1. **🎯 Objectif daté** — poids cible + date → trajectoire calorique au rythme le plus
+>    rapide mais sûr (le « coffre » : le gratuit donne les clés, le premium le contenu).
+> 2. **📈 Trajectoire + réassurance** — zone ombrée sur la courbe (pas une ligne à suivre :
+>    anti-charge-mentale), verdict jamais alarmant, « Kyroz réajuste tes calories tout seul ».
+> 3. **📸 Transformation** — photos avant/après (local-only).
+>
+> **Restent à faire** (prochaine session dédiée) : la **banque de calories** (4ᵉ pilier, le
+> fidélisant — touche le moteur) + le **paiement RevenueCat** et le **gating `is_premium`**
+> (la feature est fonctionnelle mais GRATUITE tant que le paiement n'est pas câblé).
+> **Tarif reco** : 4,99 €/mois · 39,99 €/an. Le reste du doc ci-dessous = archive de la
+> réflexion qui a mené à cette décision.
+
+> Statut historique : **proposition à valider** (décision produit non tranchée — CLAUDE.md §1).
 > Rien n'est codé : ce doc sert à trancher le découpage gratuit / payant avant
 > toute implémentation de paywall.
 
