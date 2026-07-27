@@ -117,6 +117,11 @@ export interface UserProfile {
   // Femme ménopausée : lève la remontée progressive du plancher d'énergie disponible
   // (le risque de perturbation ovulatoire ne s'applique plus). `undefined` = traité
   // comme NON ménopausée → le défaut protège (cf. lib/safety.ts).
+  // ⚠️ INERTE et LOCAL-ONLY (décision 2026-07-28 : « on laisse de côté la ménopause »).
+  // Aucune UI ne le renseigne, il est HORS PROFILE_COLS → aucune colonne Supabase,
+  // aucune migration (même parti pris que Streak.freeze_available). Le moteur le lit
+  // déjà : quand la question sera rédigée, il suffira d'ajouter la colonne + la ligne
+  // dans PROFILE_COLS, sans toucher au calcul.
   is_post_menopausal?: boolean;
   // Semaines passées en zone d'énergie disponible basse (30–35 kcal/kg de masse
   // maigre), stockées comme lundis 'YYYY-MM-DD' sur une fenêtre glissante de 12 mois.

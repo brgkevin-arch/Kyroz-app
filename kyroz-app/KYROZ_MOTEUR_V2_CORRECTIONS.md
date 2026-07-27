@@ -153,6 +153,17 @@ choisis intacts).
 **Persistance.** `low_ea_weeks` est stocké comme une LISTE de lundis
 (`'YYYY-MM-DD'`) et non comme un entier — c'est ce qui rend la fenêtre glissante
 et l'idempotence possibles. Purgée au-delà de 12 mois, donc bornée à 52 entrées.
+Une seule colonne Supabase à ajouter (`low_ea_weeks jsonb`).
+
+**Ménopause laissée de côté (décision fondateur 2026-07-28).**
+`is_post_menopausal` existe côté TypeScript et le moteur le lit, mais il est
+**inerte et LOCAL-ONLY** : aucune UI ne le pose, il est hors `PROFILE_COLS`, donc
+aucune colonne Supabase et aucune migration (même parti pris que
+`Streak.freeze_available`). Conséquence assumée : **toutes les femmes sont
+traitées comme non ménopausées**, c'est-à-dire le défaut protecteur — la remontée
+du plancher après 12 semaines s'applique à toutes. Pour l'activer plus tard :
+rédiger la question d'onboarding, ajouter la colonne + la ligne dans
+`PROFILE_COLS` ; le calcul n'a pas à bouger.
 
 **Piège d'implémentation (verrouillé par un test).** L'appartenance à la zone basse
 doit se décider sur le plan **non escaladé** (plancher EA 30). Sinon le plancher
@@ -571,9 +582,10 @@ pas » en coupant toujours plus est mal conçu → `CALIBRATION_NEEDS_REVIEW`.
   macros », le mécanisme pousse à la rigidité alimentaire sur un public déjà exposé ;
   si c'est « avoir loggé », il est bénin. Le choix est comportemental, pas technique,
   et il doit être tranché avant le lancement.
-- Champ `is_post_menopausal` : la colonne existe et le moteur la lit, mais **aucune
-  UI ne la renseigne**. Toutes les femmes sont donc traitées comme non ménopausées
-  (le défaut protecteur). À poser dans le profil quand la question sera rédigée.
+- Champ `is_post_menopausal` : **laissé de côté** (décision fondateur 2026-07-28).
+  Inerte, local-only, aucune colonne Supabase. Toutes les femmes sont traitées
+  comme non ménopausées — le défaut protecteur. À poser dans le profil quand la
+  question sera rédigée.
 
 ---
 
