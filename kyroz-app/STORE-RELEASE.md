@@ -51,9 +51,17 @@ Sans ces deux comptes, rien ne peut être soumis. Le reste (§2–7) peut se pr�
 | Thème | Sombre (splash + UI) |
 | Orientation | Portrait |
 
-> **Décision iPad — TRANCHÉE 2026-07-21 : `supportsTablet: false`.** L'app cible le
-> téléphone d'abord → plus d'exigence de screenshots iPad chez Apple, moins de
-> friction en review. (Réactivable plus tard si une version tablette est voulue.)
+> **Décision iPad — RÉVISÉE 2026-07-27 : ON SUPPORTE LA TABLETTE.** Usage produit
+> concret : cuisiner avec la recette sous les yeux sur sa tablette (aligné North Star,
+> moins de friction au moment de cuisiner). **Chantier prévu (autre session, non fait) :**
+> repasser `app.json > ios.supportsTablet: true`, adapter la mise en page tablette (au
+> minimum l'écran recette/cuisine : largeur max, lisibilité, cibles tactiles ; envisager
+> le **paysage** pour la cuisine — aujourd'hui portrait-only), puis tester le rendu iPad.
+> ⚠️ **Conséquences review** : dès `supportsTablet:true`, Apple **EXIGE des screenshots
+> iPad** (13" iPad Pro) ET **teste réellement la mise en page tablette** (plus le simple
+> mode compatibilité) → la version tablette doit être soignée avant soumission.
+> Tant que le chantier n'est pas fait, `supportsTablet` reste `false` (ne pas soumettre
+> `true` sans layout tablette prêt = rejet assuré).
 
 ---
 
@@ -158,7 +166,10 @@ pas l'avis d'un médecin ou d'un diététicien-nutritionniste.
 
 - **Screenshots iPhone 6.7"** (1290×2796) : **min 1, jusqu'à 10**. Montre les écrans
   forts : (1) plan du jour, (2) une recette + macros, (3) liste de courses,
-  (4) onboarding/objectif, (5) série. *(iPad requis seulement si `supportsTablet:true` — cf. §2.)*
+  (4) onboarding/objectif, (5) série.
+- **Screenshots iPad 13"** (2048×2732) : **requis** dès que le chantier tablette est fait
+  (`supportsTablet:true`, cf. §2). Montre notamment l'écran recette en cuisine. Tant que
+  le chantier n'est pas fait et que `supportsTablet` reste `false`, pas de screenshots iPad.
 - **Google Play** : min **2 screenshots** téléphone + un **feature graphic 1024×500**
   (bannière — à faire sur Canva/Figma) + l'icône 512×512 (déjà en asset).
 - **Comment capturer** : lance l'app (simulateur iOS, ou la version web pour le
@@ -225,7 +236,9 @@ eas submit --platform android --latest    # 1re fois : créer l'app dans Play Co
 - [ ] URL de confidentialité renvoie 200 (déjà le cas).
 - [ ] Screenshots aux bonnes dimensions uploadés (§7).
 - [ ] Formulaires confidentialité remplis (§4).
-- [x] Décision iPad tranchée (§2) — `supportsTablet: false` (2026-07-21).
+- [ ] **Support tablette** (décidé 2026-07-27, §2) : chantier `supportsTablet:true` +
+      layout tablette + screenshots iPad 13" — À FAIRE avant de soumettre en `true`.
+      Tant que non fait, rester en `false` pour ne pas bloquer une soumission iPhone-only.
 - [ ] Pas d'allégation médicale dans la fiche (§5).
 - [ ] (Android) Testeurs recrutés pour la période de 14 jours si compte perso (§1).
 
