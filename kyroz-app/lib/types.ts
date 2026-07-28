@@ -101,9 +101,34 @@ export type PlanFlag =
   | 'FLOOR_APPLIED'              // le plancher de sécurité mord → l'objectif daté devient inatteignable
   | 'LOW_EA_WARNING'             // énergie disponible sous l'optimum (zone 30–35 kcal/kg de masse maigre)
   | 'LOW_EA_BUDGET_EXCEEDED'     // > 12 semaines cumulées en zone basse → le plancher remonte
+  | 'UNDERWEIGHT_NO_DEFICIT'     // IMC < 18,5 → déficit annulé, plan ramené à la maintenance
   | 'MACRO_BUDGET_OVERFLOW'      // protéines + lipides dépassent le budget du jour
   | 'CARBS_BELOW_TRAINING_FLOOR' // glucides < 3 g/kg un jour de séance
   | 'GOAL_DIRECTION_MISMATCH';   // le poids cible contredit la famille de l'objectif
+
+/**
+ * Registre d'exposition à l'énergie disponible basse (cf. lib/safety.ts).
+ *
+ * `since` est ce qui rend le compteur honnête : le plan servi reste EN VIGUEUR
+ * entre deux ouvertures de l'app, donc les semaines écoulées comptent même sans
+ * recalcul. Sans lui, le registre comptait des ENREGISTREMENTS et non des
+ * semaines vécues — une pesée mensuelle « payait » 7 semaines là où une pesée
+ * hebdomadaire en payait 26, pour exactement le même comportement.
+ */
+export interface LowEaRegistry {
+  /** Lundis 'YYYY-MM-DD' des semaines comptées, purgés au-delà de 12 mois. */
+  weeks: string[];
+  /** Début de l'exposition EN COURS ('YYYY-MM-DD'), ou null si le plan servi n'est plus restrictif. */
+  since: string | null;
+}
+
+/**
+ * Forme STOCKÉE du registre. Le tableau nu est la forme legacy livrée le
+ * 2026-07-28 (P0.1) : elle est encore LUE, plus jamais écrite. La colonne
+ * Supabase étant `jsonb`, faire évoluer la charge utile n'a demandé AUCUNE
+ * migration — donc aucun risque de désynchronisation app/schéma (PGRST204).
+ */
+export type LowEaRegistryStored = string[] | LowEaRegistry;
 
 export interface UserProfile {
   id: string;
@@ -123,10 +148,12 @@ export interface UserProfile {
   // déjà : quand la question sera rédigée, il suffira d'ajouter la colonne + la ligne
   // dans PROFILE_COLS, sans toucher au calcul.
   is_post_menopausal?: boolean;
-  // Semaines passées en zone d'énergie disponible basse (30–35 kcal/kg de masse
-  // maigre), stockées comme lundis 'YYYY-MM-DD' sur une fenêtre glissante de 12 mois.
-  // CUMULÉ, pas consécutif : une pause d'une semaine ne remet pas le compteur à zéro.
-  low_ea_weeks?: string[];
+  // Registre d'exposition à l'énergie disponible basse (30–35 kcal/kg de masse
+  // maigre), sur une fenêtre glissante de 12 mois. CUMULÉ, pas consécutif : une
+  // pause d'une semaine ne remet pas le compteur à zéro. Le nom reste `low_ea_weeks`
+  // (colonne Supabase `jsonb` inchangée) alors que la charge utile a évolué vers
+  // `LowEaRegistry` — cf. lib/safety.ts.
+  low_ea_weeks?: LowEaRegistryStored;
 
   // Activité
   activity_level: ActivityLevel;

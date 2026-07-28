@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import {
-  EA_HARD_FLOOR, EA_OPTIMAL, LOW_EA_BUDGET_WEEKS, MIN_KCAL, MIN_AGE,
-  bodyFatBounds, checkEligibility, effectiveEaPerKgFfm, energyAvailability,
-  fatFreeMassKg, lowEaWeeksInWindow, recordLowEaWeek, resolvedBodyFatPct,
-  safetyFloorKcal, weekStartStamp,
+  EA_HARD_FLOOR, EA_OPTIMAL, LOW_EA_BUDGET_WEEKS, MIN_KCAL, MIN_AGE, UNDERWEIGHT_BMI,
+  bmiOf, bodyFatBounds, checkEligibility, deficitBlocked, effectiveEaPerKgFfm, energyAvailability,
+  fatFreeMassKg, lowEaWeeksForFloor, lowEaWeeksInWindow, markLowEaWeek, readLowEaRegistry,
+  resolvedBodyFatPct, safetyFloorKcal, settleLowEaExposure, weekStartStamp,
 } from '../safety';
 import { calculateBMR, calculateMacros, computePlan, macrosPercent, proteinTarget, recalcProfile, PROTEIN_MAX_PER_KG_FFM } from '../tdee';
 import { datedGoalStatus, maxWeeklyLossPct, MAX_DEFICIT_TDEE_RATIO, KCAL_PER_KG_FAT, KCAL_PER_KG_GAIN } from '../datedGoal';
@@ -76,17 +76,20 @@ describe('P0.1 — plancher d\'énergie disponible', () => {
   });
 
   it('le compteur est CUMULÉ sur 12 mois, pas consécutif : une pause ne remet pas à zéro', () => {
-    let h = recordLowEaWeek(undefined, '2026-01-05');
-    h = recordLowEaWeek(h, '2026-01-12');
-    // semaine du 19/01 sautée (hors zone)
-    h = recordLowEaWeek(h, '2026-01-26');
+    // Trois épisodes distincts : la semaine du 19/01 est hors zone, donc l'exposition
+    // se referme (`since` à null) et ne se rattrape pas — mais les semaines vécues
+    // avant restent au compteur.
+    let h = markLowEaWeek(readLowEaRegistry(undefined), '2026-01-05', true);
+    h = markLowEaWeek(h, '2026-01-12', true);
+    h = markLowEaWeek(h, '2026-01-19', false);
+    h = markLowEaWeek(settleLowEaExposure(h, '2026-01-26'), '2026-01-26', true);
     expect(lowEaWeeksInWindow(h, '2026-02-02')).toBe(3);
   });
 
   it('l\'enregistrement est idempotent dans la semaine et purge au-delà de 12 mois', () => {
-    const once = recordLowEaWeek(undefined, '2026-07-21');
-    const twice = recordLowEaWeek(once, '2026-07-23'); // même semaine
-    expect(twice).toBe(once);                            // même référence → aucun changement
+    const once = markLowEaWeek(readLowEaRegistry(undefined), '2026-07-21', true);
+    const twice = markLowEaWeek(once, '2026-07-23', true); // même semaine
+    expect(twice).toBe(once);                              // même référence → aucun changement
     expect(lowEaWeeksInWindow(once, '2026-07-23')).toBe(1);
     // Une semaine vieille de plus de 12 mois sort de la fenêtre.
     expect(lowEaWeeksInWindow(['2025-01-06'], '2026-07-21')).toBe(0);
@@ -100,7 +103,7 @@ describe('P0.1 — plancher d\'énergie disponible', () => {
       training_days_per_week: 4,
     }), TODAY);
     const ea = energyAvailability(p, p.target_kcal, exerciseKcalPerDay(p.sports, 62));
-    if (ea < EA_OPTIMAL) expect(p.low_ea_weeks).toContain(weekStartStamp(TODAY));
+    if (ea < EA_OPTIMAL) expect(readLowEaRegistry(p.low_ea_weeks).weeks).toContain(weekStartStamp(TODAY));
   });
 
   it('AUCUN chemin de code ne contourne le plancher — mode manual compris', () => {
@@ -203,10 +206,11 @@ describe('P0.1 — plancher d\'énergie disponible', () => {
 
   it('RÉGRESSION : une semaine devenue « future » n\'est plus détruite du registre', () => {
     // L'horloge peut reculer légitimement (vol vers l'ouest un lundi, fuseau +13 → -11).
-    // `recordLowEaWeek` réécrit l'historique : purger aurait effacé une exposition
+    // Le registre est RÉÉCRIT à chaque recalcul : purger aurait effacé une exposition
     // réelle, définitivement, et l'aurait propagée au cloud.
-    const kept = recordLowEaWeek(['2026-06-01', '2026-06-08', '2026-07-27'], '2026-07-26');
-    expect(kept).toContain('2026-07-27');              // conservée, plus détruite
+    const settled = settleLowEaExposure(['2026-06-01', '2026-06-08', '2026-07-27'], '2026-07-26');
+    const kept = markLowEaWeek(settled, '2026-07-26', true);
+    expect(kept.weeks).toContain('2026-07-27');        // conservée, plus détruite
     // Comptées : les deux semaines de juin + la semaine courante que l'appel vient
     // d'ajouter. La semaine future, elle, reste hors comptage.
     expect(lowEaWeeksInWindow(kept, '2026-07-26')).toBe(3);
@@ -451,6 +455,198 @@ describe('P0 — invariants permanents', () => {
 });
 
 // ═════════════════════════════════════════════════════════════════════════════
+// P0.5 — le registre compte des semaines VÉCUES, pas des enregistrements.
+// ═════════════════════════════════════════════════════════════════════════════
+
+describe('P0.5 — exposition mesurée en temps réel, pas en nombre de recalculs', () => {
+  // Femme 70 kg, 28 % de MG, sans sport : TDEE 1751, plancher 1512 → sèche servie
+  // à 1512 kcal, EA exactement 30. Chaque semaine compte tant que ça dure.
+  const dieter = makeProfile({
+    sex: 'female', age: 30, weight_kg: 70, height_cm: 168, body_fat_pct: 28,
+    goal: 'cut', macro_mode: 'auto', training_days_per_week: 0, sports: [],
+  });
+
+  const runFor = (stepDays: number, weeks: number) => {
+    let p: UserProfile = dieter;
+    for (let d = 0; d <= weeks * 7; d += stepDays) p = recalcProfile(p, addDaysStamp(TODAY, d));
+    return lowEaWeeksInWindow(p.low_ea_weeks, addDaysStamp(TODAY, weeks * 7));
+  };
+
+  it('LE DÉFAUT : même comportement ⇒ même compteur, quelle que soit la fréquence d\'ouverture', () => {
+    // 12 semaines de sèche identique, vécues de deux façons : pesée hebdomadaire
+    // (13 recalculs) et pesée mensuelle (4 recalculs). La v1 comptait les
+    // ENREGISTREMENTS → 13 contre 4, soit une protection RED-S divisée par trois
+    // pour la seule raison qu'on ouvrait l'app moins souvent.
+    const weekly = runFor(7, 12);
+    const monthly = runFor(28, 12);
+    expect(weekly).toBe(13);
+    expect(monthly).toBe(weekly);
+  });
+
+  it('le plancher qui en découle est donc identique lui aussi', () => {
+    // 24 semaines : au-delà du budget de 12, l'escalade dépend directement du
+    // compteur. C'est là que l'écart se payait en kcal.
+    const at = (stepDays: number) => {
+      let p: UserProfile = dieter;
+      for (let d = 0; d <= 24 * 7; d += stepDays) p = recalcProfile(p, addDaysStamp(TODAY, d));
+      return p.target_kcal;
+    };
+    expect(at(28)).toBe(at(7));
+  });
+
+  it('une VRAIE pause n\'est pas facturée : `since` retombe dès qu\'un plan non restrictif est servi', () => {
+    let p = recalcProfile(dieter, TODAY);                                   // sèche → compte
+    p = recalcProfile({ ...p, goal: 'maintain' }, addDaysStamp(TODAY, 7));  // sortie de déficit
+    const far = addDaysStamp(TODAY, 7 * 20);
+    p = recalcProfile(p, far);
+    // Deux semaines vécues en restriction, pas vingt : le rattrapage ne couvre que
+    // les périodes où le plan servi creusait réellement.
+    expect(lowEaWeeksInWindow(p.low_ea_weeks, far)).toBe(2);
+    expect(readLowEaRegistry(p.low_ea_weeks).since).toBeNull();
+  });
+
+  it('le rattrapage est borné à la fenêtre de 12 mois (et à un `since` aberrant)', () => {
+    const reg = settleLowEaExposure({ weeks: [], since: '2019-01-01' }, TODAY);
+    expect(reg.weeks.length).toBeLessThanOrEqual(53);
+    expect(lowEaWeeksInWindow(reg, TODAY)).toBeGreaterThan(50);
+  });
+
+  it('la forme legacy (tableau nu) est encore lue et se migre sans perte', () => {
+    const legacy = ['2026-06-01', '2026-06-08'];
+    expect(readLowEaRegistry(legacy)).toEqual({ weeks: legacy, since: null });
+    expect(lowEaWeeksInWindow(legacy, TODAY)).toBe(2);
+    const p = recalcProfile({ ...dieter, low_ea_weeks: legacy }, TODAY);
+    expect(readLowEaRegistry(p.low_ea_weeks).weeks).toEqual(expect.arrayContaining(legacy));
+  });
+
+  it('un profil sans exposition ne persiste rien (pas de champ vide qui traîne)', () => {
+    const p = recalcProfile(makeProfile({ sex: 'female', goal: 'maintain' }), TODAY);
+    expect(p.low_ea_weeks).toBeUndefined();
+  });
+
+  it('l\'aperçu des écrans utilise le MÊME compteur que le moteur', () => {
+    // `lowEaWeeksForFloor` est le point d'entrée unique : un écran qui appellerait
+    // `lowEaWeeksBefore` sans solder afficherait un plan que le moteur n'enregistrera pas.
+    const stored = { weeks: [weekStartStamp(addDaysStamp(TODAY, -70))], since: addDaysStamp(TODAY, -70) };
+    expect(lowEaWeeksForFloor(stored, TODAY)).toBe(10); // 10 semaines écoulées, la courante exclue
+  });
+});
+
+// ═════════════════════════════════════════════════════════════════════════════
+// P0.6 — insuffisance pondérale ATTEINTE en cours de route (dérive).
+// ═════════════════════════════════════════════════════════════════════════════
+
+describe('P0.6 — la sèche s\'arrête quand le poids passe sous la plage de référence', () => {
+  // 49 kg pour 1 m 68 → IMC 17,4. `checkEligibility` l'aurait refusée à l'INSCRIPTION ;
+  // le point du correctif est qu'elle y est ARRIVÉE, sans jamais repasser de porte.
+  const drifted = makeProfile({
+    sex: 'female', age: 28, weight_kg: 49, height_cm: 168,
+    goal: 'cut', macro_mode: 'auto', training_days_per_week: 0, sports: [],
+  });
+
+  it('sous IMC 18,5, le plan cesse de creuser et revient exactement à la maintenance', () => {
+    expect(bmiOf(drifted)).toBeLessThan(UNDERWEIGHT_BMI);
+    expect(deficitBlocked(drifted)).toBe(true);
+    const { profile, flags } = computePlan(drifted, TODAY);
+    expect(profile.target_kcal).toBe(profile.tdee_kcal); // maintenance, jamais un surplus
+    expect(flags).toContain('UNDERWEIGHT_NO_DEFICIT');
+  });
+
+  it('LE DÉFAUT : une sèche qui va trop loin se neutralise d\'elle-même', () => {
+    // Elle démarre à IMC 19,8 (éligible) et perd 0,4 kg/semaine en tenant son suivi.
+    // Avant le correctif, le moteur continuait de prescrire un déficit indéfiniment :
+    // le plancher d'énergie autorise précisément la zone 30–35, donc RIEN ne
+    // l'arrêtait. Le danger ne touchait que celles qui suivaient le plan à la lettre.
+    let crossed = false;
+    for (let w = 0; w < 30; w++) {
+      const weight_kg = Math.round((56 - 0.4 * w) * 10) / 10;
+      const { profile } = computePlan({ ...drifted, weight_kg }, addDaysStamp(TODAY, 7 * w));
+      if (bmiOf(profile) < UNDERWEIGHT_BMI) {
+        crossed = true;
+        expect(profile.target_kcal, `semaine ${w} (${weight_kg} kg)`).toBe(profile.tdee_kcal);
+      } else {
+        expect(profile.target_kcal, `semaine ${w} (${weight_kg} kg)`).toBeLessThan(profile.tdee_kcal);
+      }
+    }
+    expect(crossed).toBe(true);
+  });
+
+  it('la recomposition compte comme un déficit (−150 kcal reste un déficit)', () => {
+    expect(computePlan({ ...drifted, goal: 'recomp' }, TODAY).flags).toContain('UNDERWEIGHT_NO_DEFICIT');
+  });
+
+  it('AUCUN chemin ne contourne le plafond — modes percent et manual compris', () => {
+    const percent = computePlan({ ...drifted, macro_mode: 'percent', carb_ratio: 55, protein_per_kg: 2.2 }, TODAY);
+    expect(percent.profile.target_kcal).toBe(percent.profile.tdee_kcal);
+    expect(percent.flags).toContain('UNDERWEIGHT_NO_DEFICIT');
+
+    const manual = computePlan({
+      ...drifted, macro_mode: 'manual', target_protein_g: 100, target_carbs_g: 80, target_fat_g: 35,
+    }, TODAY);
+    expect(manual.profile.target_kcal).toBeGreaterThanOrEqual(manual.profile.tdee_kcal);
+    expect(manual.flags).toContain('UNDERWEIGHT_NO_DEFICIT');
+  });
+
+  it('n\'invente AUCUN drapeau quand rien n\'est contraint (maintien, prise)', () => {
+    for (const goal of ['maintain', 'lean_bulk', 'bulk'] as const) {
+      const { profile, flags } = computePlan({ ...drifted, goal }, TODAY);
+      expect(flags, goal).not.toContain('UNDERWEIGHT_NO_DEFICIT');
+      expect(profile.target_kcal, goal).toBeGreaterThanOrEqual(profile.tdee_kcal);
+    }
+  });
+
+  it('l\'objectif daté ne pilote plus aucune PERTE, mais continue de piloter une PRISE', () => {
+    const losing: GoalTarget = {
+      target_weight_kg: 45, target_date: addDaysStamp(TODAY, 70), start_weight_kg: 56, start_date: TODAY,
+    };
+    const s = datedGoalStatus(losing, drifted, TODAY, 1487)!;
+    expect(s.underweightBlocked).toBe(true);
+    expect(s.dailyKcalDelta).toBe(0);
+    expect(s.safeWeeklyKg).toBe(0);
+    expect(s.reachableByDate).toBe(false); // la carte ne peut plus annoncer une date
+
+    const gaining: GoalTarget = {
+      target_weight_kg: 55, target_date: addDaysStamp(TODAY, 140), start_weight_kg: 49, start_date: TODAY,
+    };
+    const g = datedGoalStatus(gaining, { ...drifted, goal: 'lean_bulk' }, TODAY, 1487)!;
+    expect(g.underweightBlocked).toBe(false);
+    expect(g.dailyKcalDelta).toBeGreaterThan(0);
+  });
+
+  it('poser un objectif daté ne fait PAS disparaître l\'avertissement du profil', () => {
+    // Piège d'interaction : l'objectif daté ramène la demande à 0 AVANT le plancher,
+    // qui n'a alors plus rien à refuser. L'écran devenait muet exactement pour la
+    // personne qui poursuit activement une perte de poids en insuffisance pondérale.
+    const withGoal = {
+      ...drifted,
+      goal_target: {
+        target_weight_kg: 45, target_date: addDaysStamp(TODAY, 70), start_weight_kg: 56, start_date: TODAY,
+      } as GoalTarget,
+    };
+    const { profile, flags } = computePlan(withGoal, TODAY);
+    expect(flags).toContain('UNDERWEIGHT_NO_DEFICIT');
+    expect(flags.filter((f) => f === 'UNDERWEIGHT_NO_DEFICIT')).toHaveLength(1); // jamais en double
+    expect(profile.target_kcal).toBe(profile.tdee_kcal);
+  });
+
+  it('un IMC juste au-dessus du seuil n\'est PAS bridé (le garde-fou ne déborde pas)', () => {
+    const ok = { ...drifted, weight_kg: 53 }; // IMC 18,8
+    expect(deficitBlocked(ok)).toBe(false);
+    const { profile, flags } = computePlan(ok, TODAY);
+    expect(profile.target_kcal).toBeLessThan(profile.tdee_kcal);
+    expect(flags).not.toContain('UNDERWEIGHT_NO_DEFICIT');
+  });
+
+  it('l\'entrée et la dérive partagent le MÊME prédicat (aucune divergence possible)', () => {
+    expect(checkEligibility(drifted)).toContain('UNDERWEIGHT_CUT_BLOCKED');
+    expect(deficitBlocked(drifted)).toBe(true);
+    const ok = { ...drifted, weight_kg: 53 };
+    expect(checkEligibility(ok)).toEqual([]);
+    expect(deficitBlocked(ok)).toBe(false);
+  });
+});
+
+// ═════════════════════════════════════════════════════════════════════════════
 // Régressions issues de l'audit adverse (2026-07-28) — angles synchro,
 // objectif daté, macros et appelants.
 // ═════════════════════════════════════════════════════════════════════════════
@@ -460,13 +656,23 @@ describe('Audit — synchro, objectif daté, macros', () => {
     // Même classe de bug que P3.3 (`sports`) : `low_ea_weeks` est le second champ
     // CUMULATIF du profil, non re-dérivable. Une colonne NULL (ligne antérieure à
     // la migration) écrasait 22 semaines, soit ~210 kcal/j de protection perdus.
-    const local = makeProfile({ low_ea_weeks: ['2026-05-04', '2026-05-11', '2026-05-18'] });
+    const local = makeProfile({ low_ea_weeks: { weeks: ['2026-05-04', '2026-05-11', '2026-05-18'], since: '2026-05-04' } });
     const cloud = makeProfile({ low_ea_weeks: undefined });
     expect(reconcileCloudLowEaWeeks(cloud, local).low_ea_weeks).toEqual(local.low_ea_weeks);
     // Fusion par UNION : sur deux appareils, chacun détient une part de l'exposition.
-    const other = makeProfile({ low_ea_weeks: ['2026-05-11', '2026-06-01'] });
-    expect(reconcileCloudLowEaWeeks(other, local).low_ea_weeks)
-      .toEqual(['2026-05-04', '2026-05-11', '2026-05-18', '2026-06-01']);
+    const other = makeProfile({ low_ea_weeks: { weeks: ['2026-05-11', '2026-06-01'], since: '2026-05-25' } });
+    expect(reconcileCloudLowEaWeeks(other, local).low_ea_weeks).toEqual({
+      weeks: ['2026-05-04', '2026-05-11', '2026-05-18', '2026-06-01'],
+      // `since` : la PLUS ANCIENNE des deux. Retenir la plus récente amputerait le
+      // rattrapage de tout l'intervalle que l'autre appareil avait déjà vu commencer.
+      since: '2026-05-04',
+    });
+    // La forme legacy (tableau nu) côté cloud ne fait perdre ni les semaines ni le `since` local.
+    const legacyCloud = makeProfile({ low_ea_weeks: ['2026-06-08'] });
+    expect(reconcileCloudLowEaWeeks(legacyCloud, local).low_ea_weeks).toEqual({
+      weeks: ['2026-05-04', '2026-05-11', '2026-05-18', '2026-06-08'],
+      since: '2026-05-04',
+    });
   });
 
   it('un TDEE inexploitable (0, NaN) ne casse plus le plafond de déficit', () => {

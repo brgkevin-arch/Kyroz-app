@@ -46,9 +46,13 @@ export function DatedGoalCard({ t, profile, onPress }: { t: ThemePalette; profil
           <View style={{ width: `${Math.round(progress * 100)}%`, height: '100%', backgroundColor: t.text }} />
         </View>
         <Text style={{ color: t.textSecondary, fontSize: 12 }}>
-          {status.direction === 'maintain'
-            ? 'Poids cible atteint · maintien'
-            : `Cible le ${formatFR(gt.target_date)} · ${Math.abs(status.safeWeeklyKg)} kg/sem`}
+          {/* `underweightBlocked` d'abord : le rythme y vaut 0 par sécurité, et
+              « 0 kg/sem » sans motif se lit comme un plan cassé. */}
+          {status.underweightBlocked
+            ? 'Plan ramené au maintien · poids sous la plage de référence'
+            : status.direction === 'maintain'
+              ? 'Poids cible atteint · maintien'
+              : `Cible le ${formatFR(gt.target_date)} · ${Math.abs(status.safeWeeklyKg)} kg/sem`}
         </Text>
       </Card>
     </TouchableOpacity>

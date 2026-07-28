@@ -1,11 +1,12 @@
 import { Goal, PlanFlag, Sex, SportSession, UserProfile } from './types';
 import { exerciseKcalPerDay } from './sport';
-import { datedGoalKcalDelta, goalDirectionMismatch } from './datedGoal';
+import { datedGoalStatus, goalDirectionMismatch } from './datedGoal';
 import { todayStamp } from './weight';
 import {
   BodyInput, MIN_AGE, MIN_KCAL, EA_OPTIMAL, LOW_EA_BUDGET_WEEKS, countsAsLowEaWeek,
-  bodyFatBounds, clamp, energyAvailability, fatFreeMassKg, isFemaleAtRisk,
-  lowEaWeeksBefore, recordLowEaWeek, safetyFloorKcal,
+  bodyFatBounds, clamp, collapseLowEaRegistry, deficitBlocked, energyAvailability,
+  fatFreeMassKg, isFemaleAtRisk, lowEaWeeksBefore, markLowEaWeek, safetyFloorKcal,
+  settleLowEaExposure,
 } from './safety';
 
 // ── Calculs nutritionnels ────────────────────────────────────────────────────
@@ -178,7 +179,23 @@ function floorAndFlags(body: MacroBody, tdee: number, requestedKcal: number, opt
   const lowEaWeeks = opts.lowEaWeeks ?? 0;
   const bmr = calculateBMR(body.sex, body.weight_kg, body.height_cm, body.age, body.body_fat_pct);
   // `tdee` plafonne la composante EA : le plancher ne doit jamais imposer un surplus.
-  const floor_kcal = safetyFloorKcal(body, bmr, sportKcalPerDay, lowEaWeeks, tdee);
+  const baseFloor = safetyFloorKcal(body, bmr, sportKcalPerDay, lowEaWeeks, tdee);
+
+  // ── Dérive sous l'insuffisance pondérale ──────────────────────────────────
+  // L'éligibilité garde les portes d'entrée, elle ne voit pas le temps passer :
+  // qui commence à IMC 19 et descend à 17,8 continuait de recevoir un déficit.
+  // Sous IMC 18,5, le plancher monte donc à la MAINTENANCE — le plan cesse de
+  // creuser, sans jamais basculer en surplus (ce serait prescrire une prise de
+  // poids à quelqu'un qui a demandé une sèche : c'est son objectif à changer,
+  // pas au moteur de le faire à sa place).
+  //
+  // Conditionné à un déficit RÉELLEMENT demandé : sinon un objectif « maintien »
+  // à IMC 18 verrait son plancher rejoindre sa cible, et le drapeau FLOOR_APPLIED
+  // se lèverait pour un plan que rien ne contraint.
+  const maintenance = Number.isFinite(tdee) && tdee > 0 ? Math.round(tdee) : 0;
+  const deficitRequested = maintenance > 0 && requestedKcal < maintenance;
+  const underweightCapped = deficitRequested && deficitBlocked(body);
+  const floor_kcal = underweightCapped ? Math.max(baseFloor, maintenance) : baseFloor;
 
   const target_kcal = Math.max(requestedKcal, floor_kcal);
 
@@ -188,6 +205,7 @@ function floorAndFlags(body: MacroBody, tdee: number, requestedKcal: number, opt
   // faux au recalcul suivant et l'avertissement disparaissait — alors que le plan
   // sert toujours exactement le plancher. On teste l'état, pas la transition.
   if (target_kcal <= floor_kcal) flags.push('FLOOR_APPLIED');
+  if (underweightCapped) flags.push('UNDERWEIGHT_NO_DEFICIT');
   const ea = energyAvailability(body, target_kcal, sportKcalPerDay);
   if (ea < EA_OPTIMAL) flags.push('LOW_EA_WARNING');
   if (isFemaleAtRisk(body) && lowEaWeeks > LOW_EA_BUDGET_WEEKS) flags.push('LOW_EA_BUDGET_EXCEEDED');
@@ -298,15 +316,23 @@ export function computePlan(p: UserProfile, today: string = todayStamp()): Compu
 
   // Objectif daté (premium) : le delta calorique suit la trajectoire vers le poids
   // cible plutôt que le delta figé de l'objectif. `undefined` → comportement normal.
-  const datedDelta = datedGoalKcalDelta(p.goal_target, p, today, tdee) ?? undefined;
+  // On garde le STATUT et pas seulement le delta : c'est lui qui sait POURQUOI le
+  // pilotage s'est arrêté, information que le delta (0) a déjà perdue.
+  const datedStatus = datedGoalStatus(p.goal_target, p, today, tdee);
+  const datedDelta = datedStatus?.active ? datedStatus.dailyKcalDelta : undefined;
   const kcalDelta = datedDelta ?? GOAL_CONFIG[p.goal].kcalDelta;
 
   // ── Registre d'exposition en zone d'énergie disponible basse ───────────────
-  // Le plancher du jour se calcule sur les semaines ANTÉRIEURES uniquement
-  // (cf. lowEaWeeksBefore) : la semaine courante ne peut pas influencer le
-  // plancher qui sert ensuite à décider si elle compte. C'est ce qui rend le
-  // calcul idempotent ET permet au registre de se vider.
-  const lowEaWeeks = lowEaWeeksBefore(p.low_ea_weeks, today);
+  // 1. On SOLDE d'abord les semaines écoulées depuis le début de l'exposition en
+  //    cours : le plan servi restait en vigueur entre deux ouvertures de l'app,
+  //    donc ces semaines ont bien été vécues (cf. settleLowEaExposure). Sans ça,
+  //    le compteur mesurait la fréquence des recalculs, pas la durée du régime.
+  // 2. Le plancher du jour se calcule ensuite sur les semaines ANTÉRIEURES
+  //    uniquement (cf. lowEaWeeksBefore) : la semaine courante ne peut pas
+  //    influencer le plancher qui sert à décider si elle compte. C'est ce qui rend
+  //    le calcul idempotent ET permet au registre de se vider.
+  const settled = settleLowEaExposure(p.low_ea_weeks, today);
+  const lowEaWeeks = lowEaWeeksBefore(settled, today);
   const opts: MacroOptions = { kcalDeltaOverride: kcalDelta, sportKcalPerDay, lowEaWeeks };
 
   let m: MacroPlan;
@@ -353,25 +379,37 @@ export function computePlan(p: UserProfile, today: string = todayStamp()): Compu
     m = { target_kcal: served, floor_kcal: r.floor_kcal, flags, protein_g: p.target_protein_g, carbs_g, fat_g: p.target_fat_g };
   }
 
-  // ── Enregistrement de la semaine ──────────────────────────────────────────
+  // ── Clôture du registre ───────────────────────────────────────────────────
   // Jugé sur la cible RÉELLEMENT SERVIE (`m.target_kcal`), et non sur une cible
   // virtuelle : une utilisatrice que l'escalade a ramenée à sa maintenance ne
-  // subit plus AUCUNE restriction, donc sa semaine ne doit plus compter. Sinon
-  // le compteur saturait et la verrouillait à « déficit zéro » à vie — la sortie
-  // de déficit comptait elle-même comme du déficit.
+  // subit plus AUCUNE restriction, donc sa semaine ne doit plus compter — et
+  // `since` retombe à null, ce qui arrête le décompte du temps écoulé. Sinon le
+  // compteur saturait et la verrouillait à « déficit zéro » à vie : la sortie de
+  // déficit comptait elle-même comme du déficit.
   // On n'historise que pour les femmes : seule population dont le plancher remonte
   // (cf. safety.effectiveEaPerKgFfm). Toutes les femmes, ménopausées comprises —
   // sinon basculer le champ ferait perdre l'historique.
-  const low_ea_weeks = (p.sex === 'female' && countsAsLowEaWeek(p, m.target_kcal, tdee, sportKcalPerDay))
-    ? recordLowEaWeek(p.low_ea_weeks, today)
+  const low_ea_weeks = p.sex === 'female'
+    ? collapseLowEaRegistry(
+        markLowEaWeek(settled, today, countsAsLowEaWeek(p, m.target_kcal, tdee, sportKcalPerDay)),
+      )
     : p.low_ea_weeks;
 
   const flags = [...m.flags];
-  // Poids cible incohérent avec la famille d'objectif : `datedGoalKcalDelta` renvoie
+  // Poids cible incohérent avec la famille d'objectif : le pilotage daté renvoie
   // alors 0 (pas de pilotage). On requalifie ici pour que l'UI puisse le DIRE, plutôt
   // que d'afficher un « maintien » que l'utilisateur n'a pas demandé.
   if (p.goal_target && goalDirectionMismatch(p.goal, p.goal_target.target_weight_kg - p.weight_kg)) {
     flags.push('GOAL_DIRECTION_MISMATCH');
+  }
+  // Même raisonnement pour l'insuffisance pondérale : un objectif daté ramène la
+  // demande à 0 AVANT le plancher, qui n'a donc plus rien à refuser et ne lève pas
+  // le drapeau. Le déficit a pourtant bien été demandé, puis refusé — simplement
+  // un cran plus haut. Sans cette ligne, poser un objectif daté faisait DISPARAÎTRE
+  // l'avertissement du profil : l'écran devenait muet précisément pour la personne
+  // qui poursuit activement une perte de poids en insuffisance pondérale.
+  if (datedStatus?.underweightBlocked && !flags.includes('UNDERWEIGHT_NO_DEFICIT')) {
+    flags.push('UNDERWEIGHT_NO_DEFICIT');
   }
 
   return {

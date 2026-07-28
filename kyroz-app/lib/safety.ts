@@ -1,11 +1,21 @@
-import { Goal, GoalTarget, Sex, SportSession } from './types';
+import { Goal, GoalTarget, LowEaRegistry, LowEaRegistryStored, Sex, SportSession } from './types';
 import { totalWeeklyTrainingMinutes } from './sport';
 
-// Écart en jours entre deux stamps 'YYYY-MM-DD'. Dupliqué (petitement) depuis
-// datedGoal.ts À DESSEIN : `datedGoal` dépend de `safety` (bornes de rythme), donc
-// l'import inverse créerait un cycle. Trois lignes valent mieux qu'un cycle.
+// Arithmétique de dates 'YYYY-MM-DD'. Dupliquée (petitement) depuis datedGoal.ts
+// À DESSEIN : `datedGoal` dépend de `safety` (bornes de rythme), donc l'import
+// inverse créerait un cycle. Quelques lignes valent mieux qu'un cycle.
 function dayDiff(a: string, b: string): number {
   return Math.round((Date.parse(b + 'T00:00:00') - Date.parse(a + 'T00:00:00')) / 86400000);
+}
+function stampOf(d: Date): string {
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${d.getFullYear()}-${m}-${day}`;
+}
+function addDays(stamp: string, days: number): string {
+  const d = new Date(Date.parse(stamp + 'T00:00:00'));
+  d.setDate(d.getDate() + days);
+  return stampOf(d);
 }
 
 // ── Garde-fous de sécurité du moteur (PR 1 / P0) ─────────────────────────────
@@ -180,30 +190,131 @@ export function energyAvailability(b: BodyInput, targetKcal: number, sportKcalPe
   return ffm > 0 ? (targetKcal - sportKcalPerDay) / ffm : 0;
 }
 
-// ── Compteur d'exposition en zone basse (fenêtre glissante 12 mois) ──────────
+// ── Registre d'exposition en zone basse (fenêtre glissante 12 mois) ──────────
 //
-// Stocké comme une LISTE de semaines (lundi de la semaine, 'YYYY-MM-DD') et non
-// comme un entier : le compteur est CUMULÉ sur 12 mois glissants, pas consécutif
-// — sinon une pause d'une semaine remettrait tout à zéro et le garde-fou ne
-// servirait à rien. La liste est purgée au-delà de la fenêtre, donc bornée
-// (52 entrées max).
+// Le registre répond à UNE question : combien de semaines cette personne a-t-elle
+// PASSÉES en restriction sous l'énergie disponible optimale, sur les 12 derniers
+// mois ? Cumulé et non consécutif — sinon une pause d'une semaine remettrait tout
+// à zéro et le garde-fou ne servirait à rien.
+//
+// ⚠️ LA V1 RÉPONDAIT FAUX. Elle estampillait la semaine du RECALCUL : elle comptait
+// donc des enregistrements, pas des semaines vécues. Deux femmes au comportement
+// identique — six mois de sèche à EA 32 — obtenaient 26 semaines si elles se
+// pesaient chaque semaine et 7 si elles se pesaient chaque mois. Soit ~221 kcal/jour
+// de protection en moins pour la seconde, uniquement parce qu'elle ouvrait l'app
+// moins souvent. Un garde-fou qui récompense la négligence n'est pas un garde-fou.
+//
+// D'où `since` : le plan servi reste EN VIGUEUR entre deux ouvertures. Tant qu'il
+// est restrictif, chaque semaine ÉCOULÉE compte, recalcul ou pas — c'est ce que
+// fait `settleLowEaExposure`, appelé AVANT le plancher. `since` retombe à null dès
+// qu'un plan non restrictif est servi, donc une vraie pause n'est jamais facturée.
 
 /** Lundi de la semaine contenant `stamp` ('YYYY-MM-DD', heure locale). */
 export function weekStartStamp(stamp: string): string {
   const d = new Date(Date.parse(stamp + 'T00:00:00'));
   const dow = (d.getDay() + 6) % 7; // 0 = lundi
   d.setDate(d.getDate() - dow);
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
+  return stampOf(d);
+}
+
+/** Registre vide — aucune exposition, aucune en cours. */
+export const EMPTY_LOW_EA_REGISTRY: LowEaRegistry = { weeks: [], since: null };
+
+/**
+ * Lit la forme STOCKÉE, quelle que soit sa génération.
+ *
+ * Le tableau nu est la forme legacy (P0.1, livrée le 2026-07-28) : elle ne porte
+ * pas de `since`, donc on la relit comme « aucune exposition en cours ». La chaîne
+ * se ré-ouvre au premier recalcul suivant ; au pire on sous-compte l'écart depuis
+ * le dernier recalcul en v1, soit quelques jours pour les seuls comptes créés dans
+ * cette fenêtre-là. Sous-compter à la migration est le sens acceptable de l'erreur.
+ */
+export function readLowEaRegistry(stored: LowEaRegistryStored | undefined | null): LowEaRegistry {
+  if (Array.isArray(stored)) return { weeks: [...stored], since: null };
+  if (stored && Array.isArray(stored.weeks)) {
+    return { weeks: [...stored.weeks], since: typeof stored.since === 'string' ? stored.since : null };
+  }
+  return { weeks: [], since: null };
+}
+
+// Purge des semaines sorties de la fenêtre → le registre reste borné (~52 entrées).
+// `age < 0` (semaine dans le FUTUR) est CONSERVÉ, pas purgé : l'horloge peut reculer
+// légitimement (vol vers l'ouest un lundi, fuseau +13 → -11, réglage manuel de la
+// date). Purger détruirait définitivement une exposition réelle, et le profil purgé
+// repart au cloud. Le comptage, lui, ignore déjà les stamps futurs.
+function pruneWeeks(weeks: string[], today: string): string[] {
+  return weeks.filter((w) => {
+    const age = dayDiff(w, today);
+    return Number.isFinite(age) && age <= LOW_EA_WINDOW_DAYS;
+  });
+}
+
+// Garde-fou de boucle : la fenêtre fait 52 semaines, on ne remonte jamais plus loin.
+// Protège d'un `since` corrompu (date 1970) qui ferait tourner le rattrapage 2 700 fois.
+const MAX_BACKFILL_WEEKS = 60;
+
+/**
+ * Solde l'exposition ÉCOULÉE depuis `since`, avant tout calcul de plancher.
+ *
+ * C'est l'inversion de la v1 : au lieu d'estampiller l'instant du recalcul, on
+ * inscrit toutes les semaines pendant lesquelles un plan restrictif était en
+ * vigueur. Le résultat ne dépend plus de la fréquence d'ouverture de l'app.
+ *
+ * Appelée AVANT le plancher, jamais après : les semaines soldées sont de
+ * l'HISTOIRE (elles ont eu lieu, quel que soit le plan qu'on s'apprête à servir),
+ * et `lowEaWeeksBefore` exclut de toute façon la semaine courante — donc le calcul
+ * du jour reste idempotent.
+ */
+export function settleLowEaExposure(
+  stored: LowEaRegistryStored | undefined | null, today: string,
+): LowEaRegistry {
+  const reg = readLowEaRegistry(stored);
+  const weeks = new Set(pruneWeeks(reg.weeks, today));
+  if (reg.since) {
+    const current = weekStartStamp(today);
+    // On ne rattrape que dans la fenêtre : au-delà, les semaines sortiraient
+    // aussitôt du comptage. Sans ce recalage, un `since` vieux de trois ans
+    // épuisait le garde-fou de boucle AVANT d'atteindre les semaines qui comptent.
+    const windowStart = weekStartStamp(addDays(today, -LOW_EA_WINDOW_DAYS));
+    let w = weekStartStamp(reg.since);
+    if (dayDiff(w, windowStart) > 0) w = windowStart;
+    for (let i = 0; i <= MAX_BACKFILL_WEEKS && dayDiff(w, current) >= 0; i++) {
+      if (dayDiff(w, today) <= LOW_EA_WINDOW_DAYS) weeks.add(w);
+      w = addDays(w, 7);
+    }
+  }
+  return { weeks: [...weeks].sort(), since: reg.since };
+}
+
+/**
+ * Clôt le recalcul : ouvre l'exposition si le plan SERVI est restrictif, la ferme
+ * sinon. `since` n'est jamais réinitialisé tant que la chaîne tient — c'est lui
+ * qui permettra au prochain rattrapage de couvrir tout l'intervalle.
+ *
+ * Renvoie la même référence si rien ne change → recalculer sans nouvelle donnée ne
+ * modifie pas le profil (et ne le marque donc pas « à pousser »).
+ */
+export function markLowEaWeek(reg: LowEaRegistry, today: string, isLowEa: boolean): LowEaRegistry {
+  if (!isLowEa) return reg.since === null ? reg : { ...reg, since: null };
+  const week = weekStartStamp(today);
+  const weeks = reg.weeks.includes(week) ? reg.weeks : [...reg.weeks, week].sort();
+  const since = reg.since ?? today;
+  return weeks === reg.weeks && since === reg.since ? reg : { weeks, since };
+}
+
+/** Registre sans aucune information → `undefined`, pour ne rien persister d'inutile. */
+export function collapseLowEaRegistry(reg: LowEaRegistry): LowEaRegistry | undefined {
+  return reg.weeks.length || reg.since ? reg : undefined;
 }
 
 /** Semaines passées en zone basse sur les 12 derniers mois. */
-export function lowEaWeeksInWindow(history: string[] | undefined, today: string): number {
-  if (!history?.length) return 0;
+export function lowEaWeeksInWindow(
+  stored: LowEaRegistryStored | undefined | null, today: string,
+): number {
+  const { weeks } = readLowEaRegistry(stored);
+  if (!weeks.length) return 0;
   const seen = new Set<string>();
-  for (const w of history) {
+  for (const w of weeks) {
     const age = dayDiff(w, today);
     if (age >= 0 && age <= LOW_EA_WINDOW_DAYS) seen.add(w);
   }
@@ -217,38 +328,30 @@ export function lowEaWeeksInWindow(history: string[] | undefined, today: string)
  * la semaine en cours ne doit pas influencer le plancher qui sert à décider si
  * elle compte. Deux bénéfices, tous deux verrouillés par des tests :
  *  1. Idempotence — recalculer deux fois le même jour donne le même plancher,
- *     que la semaine ait été enregistrée entre-temps ou non.
+ *     que la semaine ait été enregistrée (ou soldée) entre-temps ou non.
  *  2. Le registre peut se VIDER. En jugeant la restriction sur la cible
  *     réellement servie, une utilisatrice ramenée à sa maintenance par l'escalade
  *     cesse d'accumuler des semaines, et les anciennes sortent de la fenêtre.
  *     Sans cela elle restait verrouillée à « déficit zéro » à vie.
  */
-export function lowEaWeeksBefore(history: string[] | undefined, today: string): number {
-  if (!history?.length) return 0;
+export function lowEaWeeksBefore(
+  stored: LowEaRegistryStored | undefined | null, today: string,
+): number {
+  const { weeks } = readLowEaRegistry(stored);
+  if (!weeks.length) return 0;
   const current = weekStartStamp(today);
-  return lowEaWeeksInWindow(history.filter((w) => w !== current), today);
+  return lowEaWeeksInWindow(weeks.filter((w) => w !== current), today);
 }
 
 /**
- * Enregistre la semaine courante comme « passée en zone basse ». Idempotent (une
- * semaine ne compte qu'une fois, quel que soit le nombre de recalculs) et purgeant
- * (les semaines sorties de la fenêtre disparaissent). Renvoie la même référence si
- * rien ne change → recalculer sans nouvelle donnée ne modifie pas le profil.
+ * Compteur qui pilote le plancher : exposition soldée, PUIS semaines antérieures.
+ * Point d'entrée unique — tout écran qui prévisualise un plan doit passer par ici,
+ * sinon son aperçu diverge de ce que `computePlan` enregistrera.
  */
-export function recordLowEaWeek(history: string[] | undefined, today: string): string[] {
-  const week = weekStartStamp(today);
-  const kept = (history ?? []).filter((w) => {
-    const age = dayDiff(w, today);
-    // `age < 0` (semaine dans le FUTUR) est CONSERVÉ, pas purgé : l'horloge peut
-    // reculer légitimement (vol vers l'ouest un lundi, fuseau +13 → -11, réglage
-    // manuel de la date). Purger détruirait définitivement une exposition réelle,
-    // et le profil purgé repart au cloud. Le comptage, lui, l'ignore déjà.
-    return Number.isFinite(age) && age <= LOW_EA_WINDOW_DAYS;
-  });
-  if (kept.includes(week)) {
-    return kept.length === (history?.length ?? 0) ? (history as string[]) : kept;
-  }
-  return [...kept, week].sort();
+export function lowEaWeeksForFloor(
+  stored: LowEaRegistryStored | undefined | null, today: string,
+): number {
+  return lowEaWeeksBefore(settleLowEaExposure(stored, today), today);
 }
 
 // ── Éligibilité ──────────────────────────────────────────────────────────────
@@ -274,9 +377,38 @@ export const WEIGHT_BOUNDS: [number, number] = [30, 300];
 export const HEIGHT_BOUNDS: [number, number] = [120, 230];
 export const MAX_WEEKLY_TRAINING_MIN = 20 * 60;
 
+/**
+ * Seuil d'insuffisance pondérale (OMS, adulte). Sert DEUX fois, à deux moments
+ * différents de la vie d'un compte — c'est tout l'objet du correctif :
+ *  • à l'ENTRÉE, `checkEligibility` refuse d'ouvrir une sèche en dessous ;
+ *  • pendant la SÈCHE, `deficitBlocked` annule le déficit dès qu'on y descend.
+ */
+export const UNDERWEIGHT_BMI = 18.5;
+
 // Plage d'IMC cible acceptable pour un objectif daté.
-export const TARGET_BMI_MIN = 18.5;
+export const TARGET_BMI_MIN = UNDERWEIGHT_BMI;
 export const TARGET_BMI_MAX = 30;
+
+/**
+ * Le corps est-il, AUJOURD'HUI, hors d'état de supporter un déficit ?
+ *
+ * L'éligibilité garde les portes d'ENTRÉE ; elle ne voit pas le temps passer.
+ * Quelqu'un qui commence sa sèche à IMC 19 et descend à 17,8 en dix semaines
+ * franchissait le seuil sans que rien ne bouge : le moteur continuait de servir
+ * un déficit, et le seul garde-fou restant (le plancher d'énergie) autorise
+ * précisément un déficit tant qu'on reste au-dessus de 30 kcal/kg de masse maigre.
+ * Il n'existait donc AUCUN mécanisme pour arrêter une sèche qui va trop loin —
+ * la faille la plus dangereuse du moteur, parce qu'elle ne se déclenche que chez
+ * les personnes qui suivent le plan le plus assidûment.
+ *
+ * Vérifié à CHAQUE calcul, dans `floorAndFlags` : le plancher monte alors à la
+ * maintenance. Pas de blocage de l'app, pas de surplus imposé — le plan cesse
+ * simplement de creuser, et l'UI dit pourquoi.
+ */
+export function deficitBlocked(b: Pick<BodyInput, 'weight_kg' | 'height_cm'>): boolean {
+  const bmi = bmiOf(b);
+  return bmi > 0 && bmi < UNDERWEIGHT_BMI;
+}
 
 export interface EligibilityInput extends BodyInput {
   goal: Goal;
@@ -295,8 +427,10 @@ export function checkEligibility(p: EligibilityInput, dated?: GoalTarget): Eligi
   if (p.age < MIN_AGE) blocks.push('MINOR');
   if (p.pregnant_or_breastfeeding) blocks.push('PREGNANCY_OR_NURSING');
 
+  // Même prédicat que le moteur (`deficitBlocked`) : le refus à l'entrée et
+  // l'annulation du déficit en cours de route ne peuvent pas diverger.
   const isCut = p.goal === 'cut' || p.goal === 'cut_aggressive';
-  if (isCut && bmiOf(p) < TARGET_BMI_MIN) blocks.push('UNDERWEIGHT_CUT_BLOCKED');
+  if (isCut && deficitBlocked(p)) blocks.push('UNDERWEIGHT_CUT_BLOCKED');
 
   if (dated) {
     const m = p.height_cm / 100;
