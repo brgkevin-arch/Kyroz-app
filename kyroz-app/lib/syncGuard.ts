@@ -57,6 +57,25 @@ export function normalizeProfileActivity<T extends Partial<UserProfile>>(p: T | 
   return { ...p, training_days_per_week: derived };
 }
 
+// ── Fusion des deux sèches (2026-07-29) ─────────────────────────────────────
+//
+// `cut_aggressive` n'est plus proposé par l'UI : mesuré sur 2268 profils, il
+// servait exactement les mêmes calories que `cut` (0 % d'écart dès que le %MG est
+// déclaré, 1 à 16 kcal/j quand il est estimé — du bruit). Le plancher de sécurité
+// absorbait tout l'écart entre −300 et −500 kcal/j. C'était un choix fantôme.
+//
+// On NORMALISE au chargement plutôt que de laisser un objectif orphelin en base :
+// sinon ces comptes gardent à vie un objectif qu'aucun écran ne sait plus afficher
+// ni resélectionner — la situation exacte de `macro_mode: 'manual'`, qui traîne
+// depuis. Le seul effet mesurable est protéique (2,4 → 2,2 g/kg, soit ~14 g de
+// moins compensés en glucides à calories identiques) : les deux valeurs sont dans
+// la fourchette de la littérature, et le clamp [1,6 ; 2,6] g/kg de masse maigre
+// s'applique de la même façon. Aucune calorie ne bouge, donc aucun ENGINE_REV.
+export function normalizeGoal<T extends Partial<UserProfile>>(p: T | null): T | null {
+  if (!p || p.goal !== 'cut_aggressive') return p;
+  return { ...p, goal: 'cut' };
+}
+
 // À l'hydratation « pull_cloud » : un `sports` absent/vide côté cloud (ligne
 // ancienne ou partielle) NE DOIT PAS effacer un `sports` local renseigné. Champ
 // absent = « pas d'info », ≠ « zéro séance » : c'est précisément cette perte qui

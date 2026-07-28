@@ -31,8 +31,10 @@ import { hasPassedScreening } from '../../lib/healthScreening';
 
 const TOTAL_STEPS = 7;
 
+// `cut_aggressive` retiré le 2026-07-29 : il servait le MÊME plan que `cut` (le
+// plancher de sécurité absorbait l'écart), donc le choix était fantôme. La vitesse
+// se pilote par l'objectif daté. Cf. lib/syncGuard.ts::normalizeGoal.
 const GOALS: { value: Goal; sub: string }[] = [
-  { value: 'cut_aggressive', sub: 'Perdre du gras vite, déficit marqué' },
   { value: 'cut', sub: 'Perdre du gras en gardant le muscle' },
   { value: 'recomp', sub: 'Affiner et prendre du muscle en parallèle' },
   { value: 'maintain', sub: 'Stabiliser poids et composition' },

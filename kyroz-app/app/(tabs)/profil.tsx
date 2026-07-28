@@ -48,7 +48,10 @@ import SportsEditor from '../../components/SportsEditor';
 import { FixedMealSheet } from '../../components/FixedMealSheet';
 
 // ── Options ──────────────────────────────────────────────────────────────────
-const GOALS: Goal[] = ['cut_aggressive', 'cut', 'recomp', 'maintain', 'lean_bulk', 'bulk'];
+// `cut_aggressive` retiré le 2026-07-29 (cf. lib/syncGuard.ts::normalizeGoal) : il
+// servait le même plan que `cut`. La vitesse se pilote par l'objectif daté.
+const GOALS: Goal[] = ['cut', 'recomp', 'maintain', 'lean_bulk', 'bulk'];
+const CUT_GOALS: Goal[] = ['cut', 'recomp'];
 const RESTRICTIONS: { label: string; value: DietaryRestriction }[] = [
   { label: 'Végétarien', value: 'vegetarian' }, { label: 'Vegan', value: 'vegan' },
   { label: 'Pescétarien', value: 'pescatarian' }, { label: 'Halal', value: 'halal' },
@@ -590,6 +593,17 @@ function GoalEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
   return (
     <EditorShell t={t} title="Objectif" onSave={submit} canSave={!blockMsg} dragHandlers={dragHandlers}>
       {GOALS.map((g) => <OptionCard key={g} t={t} title={goalLabel(g)} selected={goal === g} onPress={() => setGoal(g)} />)}
+      {/* « Sèche rapide » a été retiré parce qu'il servait le même plan que « Sèche » :
+          le plancher de sécurité absorbait l'écart. Plutôt que de laisser croire à un
+          choix de rythme qui n'existait pas, on renvoie vers le seul mécanisme qui
+          sache dire honnêtement si un rythme est tenable — l'objectif daté. */}
+      {CUT_GOALS.includes(goal) && !blockMsg && (
+        <Card t={t}>
+          <Text style={{ color: t.textSecondary, fontSize: 13, lineHeight: 19 }}>
+            Tu veux aller plus vite ? Le rythme se règle avec un objectif daté : tu poses un poids et une date, et Kyroz te dit franchement si c'est tenable — plutôt que de creuser un déficit que ton corps refusera.
+          </Text>
+        </Card>
+      )}
       {blockMsg && (
         <Card t={t}>
           <Text style={{ color: t.danger, fontSize: 13, lineHeight: 19, fontWeight: '600' }}>{blockMsg}</Text>
