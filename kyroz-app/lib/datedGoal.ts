@@ -1,6 +1,6 @@
 import { localStamp } from './weight';
 import { Goal, GoalTarget } from './types';
-import { BodyInput, clamp, resolvedBodyFatPct } from './safety';
+import { BodyInput, clamp, deficitBlocked, resolvedBodyFatPct } from './safety';
 
 // ── Objectif daté (feature premium « Kyroz+ ») ───────────────────────────────
 // « Les clés ET le coffre » : le core gratuit donne un bon plan ; l'objectif daté
@@ -70,6 +70,7 @@ export interface DatedGoalStatus {
   clamped: boolean;          // true = objectif trop rapide pour la date (rythme bridé)
   deficitCapped: boolean;    // true = le plafond des 25 % du TDEE a mordu
   directionMismatch: boolean; // true = poids cible incohérent avec l'objectif → pas de pilotage
+  underweightBlocked: boolean; // true = IMC < 18,5 → aucune perte pilotée (cf. safety.deficitBlocked)
   projectedDate: string;     // date réelle d'atteinte AU RYTHME RÉELLEMENT APPLIQUÉ
   reachableByDate: boolean;  // false = tu y arrives après ta date
   dailyKcalDelta: number;    // signé, alimente le cerveau macro (recalcProfile)
@@ -129,6 +130,7 @@ export function datedGoalStatus(
       clamped: false,
       deficitCapped: false,
       directionMismatch: false,
+      underweightBlocked: false,
       projectedDate: target.target_date,
       reachableByDate: true,
       dailyKcalDelta: 0,
@@ -136,6 +138,29 @@ export function datedGoalStatus(
   }
 
   const requiredWeeklyKg = diff / weeksRemaining; // signé — le rythme qu'il FAUDRAIT
+
+  // Insuffisance pondérale ATTEINTE EN COURS DE ROUTE : on ne pilote plus aucune
+  // perte, quelle que soit la date visée. Le refus à la création de l'objectif
+  // (checkEligibility) ne protège que l'instant de la saisie ; ici c'est le poids
+  // d'AUJOURD'HUI qui décide, à chaque recalcul. Cohérent avec le moteur, qui
+  // remonte le plancher à la maintenance dans le même cas (cf. tdee.floorAndFlags) :
+  // sans ce garde-fou, la carte annonçait « 0,5 kg/sem, atteignable le 12 sept. »
+  // au-dessus d'un plan qui ne creusait plus du tout.
+  if (direction === 'lose' && deficitBlocked(p)) {
+    return {
+      ...base,
+      active: true,
+      requiredWeeklyKg: round1(requiredWeeklyKg),
+      safeWeeklyKg: 0,
+      clamped: false,
+      deficitCapped: false,
+      directionMismatch: false,
+      underweightBlocked: true,
+      projectedDate: target.target_date,
+      reachableByDate: false,
+      dailyKcalDelta: 0,
+    };
+  }
 
   // Cohérence signe/objectif : un `bulk` dont la cible est sous le poids actuel ne
   // doit pas basculer silencieusement en déficit. On signale et on ne pilote plus.
@@ -148,6 +173,7 @@ export function datedGoalStatus(
       clamped: false,
       deficitCapped: false,
       directionMismatch: true,
+      underweightBlocked: false,
       projectedDate: target.target_date,
       reachableByDate: false,
       dailyKcalDelta: 0,
@@ -209,6 +235,7 @@ export function datedGoalStatus(
     clamped,
     deficitCapped,
     directionMismatch: false,
+    underweightBlocked: false,
     projectedDate,
     reachableByDate,
     dailyKcalDelta,

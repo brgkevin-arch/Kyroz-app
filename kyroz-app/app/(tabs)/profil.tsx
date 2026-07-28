@@ -28,10 +28,10 @@ import { ReminderSlot, remindersSupported } from '../../lib/notifications';
 import { deleteAccount, deleteCloudData } from '../../lib/sync';
 import { exportMyData } from '../../lib/exportData';
 import {
-  calculateTDEE, computePlan, goalLabel, validateProfile, recalcProfile, DEFAULT_CARB_RATIO, recommendedProteinPerKg,
+  calculateTDEE, computePlan, goalLabel, planFlags, validateProfile, recalcProfile, DEFAULT_CARB_RATIO, recommendedProteinPerKg,
 } from '../../lib/tdee';
 import {
-  lowEaWeeksBefore, checkEligibility, eligibilityMessage,
+  lowEaWeeksForFloor, checkEligibility, eligibilityMessage,
   AGE_BOUNDS, WEIGHT_BOUNDS, HEIGHT_BOUNDS,
 } from '../../lib/safety';
 import { datedGoalStatus, datedGoalKcalDelta, addDaysStamp, daysBetween } from '../../lib/datedGoal';
@@ -208,6 +208,12 @@ export default function ProfilScreen() {
 
   if (!profile) return null;
 
+  // Dérive sous IMC 18,5 : le moteur a ramené le plan à la maintenance. On le DIT,
+  // sinon les calories remontent sans explication et la personne continue de croire
+  // qu'elle sèche. Le verdict vient du producteur unique (planFlags → computePlan) :
+  // aucun seuil n'est réécrit ici, l'écran ne fait que rendre visible sa décision.
+  const underweightCapped = planFlags(profile).includes('UNDERWEIGHT_NO_DEFICIT');
+
   return (
     <SafeAreaView style={s.safe} edges={['top']}>
       <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
@@ -221,6 +227,19 @@ export default function ProfilScreen() {
 
         {/* Objectif daté (premium) — suivi de trajectoire quand il est posé */}
         {profile.goal_target && <DatedGoalCard t={t} profile={profile} onPress={() => setEditor('dated_goal')} />}
+
+        {/* Sécurité : plan ramené au maintien parce que le poids est descendu trop bas.
+            Ton informatif et non alarmant (anti charge mentale) : on explique et on
+            offre l'action, on ne dramatise pas et on ne bloque rien. */}
+        {underweightCapped && (
+          <TouchableOpacity activeOpacity={0.85} onPress={() => setEditor('goal')}>
+            <Card t={t}>
+              <Text style={{ color: t.text, fontSize: 13, lineHeight: 19 }}>
+                Ton poids est descendu sous la plage de référence pour ta taille. Kyroz a ramené ton plan à ta maintenance : plus de déficit tant que tu es dans cette zone. Tu n'as rien à faire dans l'immédiat — touche ici quand tu veux choisir un autre objectif.
+              </Text>
+            </Card>
+          </TouchableOpacity>
+        )}
 
         {/* Macros cibles (affichage) */}
         <SectionLabel t={t}>MACROS CIBLES / JOUR</SectionLabel>
@@ -610,6 +629,12 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
           </Text>
         </Card>
       )}
+      {/* NB : pas de branche « insuffisance pondérale » ici. Quand l'utilisatrice
+          passe sous IMC 18,5, toute cible en PERTE est déjà refusée en amont par
+          `goalBlockMsg` (sèche interdite, ou IMC cible hors plage — une cible plus
+          basse que son poids ne peut pas être au-dessus du seuil). L'état est
+          annoncé sur les surfaces qui, elles, restent visibles : la carte de suivi
+          (DatedGoalCard) et l'avertissement en tête du profil. */}
       {!goalBlockMsg && status?.clamped && !status.directionMismatch && (
         <Card t={t}>
           <Text style={{ color: t.text, fontSize: 13, lineHeight: 19 }}>
@@ -658,7 +683,7 @@ function MacroEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
   const tdee = calculateTDEE(profile.sex, profile.weight_kg, profile.height_cm, profile.age, profile.training_days_per_week, profile.body_fat_pct, profile.sports);
   // Objectif daté actif → le delta calorique daté prime (même cerveau macro que recalcProfile).
   const datedDelta = datedGoalKcalDelta(profile.goal_target, profile, today, tdee) ?? undefined;
-  const lowEaWeeks = lowEaWeeksBefore(profile.low_ea_weeks, today); // même compteur que computePlan
+  const lowEaWeeks = lowEaWeeksForFloor(profile.low_ea_weeks, today); // même compteur que computePlan
   // Aperçu par le producteur unique : ce qui s'affiche = ce qui sera enregistré.
   const auto = computePlan({ ...profile, macro_mode: 'auto' }, today).profile;
 

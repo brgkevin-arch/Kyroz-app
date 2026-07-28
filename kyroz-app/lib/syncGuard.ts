@@ -1,5 +1,6 @@
 import { UserProfile } from './types';
 import { totalSessionsPerWeek } from './sport';
+import { readLowEaRegistry } from './safety';
 
 // Garde-fou anti-écrasement du profil (problème C) — logique PURE, sans aucune
 // dépendance runtime (Supabase / AsyncStorage), donc testable isolément.
@@ -89,10 +90,18 @@ export function reconcileCloudLowEaWeeks<T extends Partial<UserProfile>>(
   cloud: T,
   local: Partial<UserProfile> | null
 ): T {
-  const a = Array.isArray(cloud?.low_ea_weeks) ? cloud.low_ea_weeks : [];
-  const b = Array.isArray(local?.low_ea_weeks) ? local!.low_ea_weeks! : [];
-  if (!b.length) return cloud;
-  const merged = [...new Set([...a, ...b])].sort();
-  if (merged.length === a.length) return cloud;
-  return { ...cloud, low_ea_weeks: merged };
+  const a = readLowEaRegistry(cloud?.low_ea_weeks);
+  const b = readLowEaRegistry(local?.low_ea_weeks);
+  if (!b.weeks.length && !b.since) return cloud;
+
+  const weeks = [...new Set([...a.weeks, ...b.weeks])].sort();
+  // `since` : on garde la PLUS ANCIENNE des deux dates. Chaque appareil ne connaît
+  // que l'exposition qu'il a vue commencer ; retenir la plus récente amputerait le
+  // rattrapage de tout l'intervalle antérieur. Même arbitrage que l'union des
+  // semaines : perdre de l'exposition réelle est une dégradation de sécurité, en
+  // compter deux fois est impossible (ce sont des dates, dédupliquées).
+  const since = a.since && b.since ? (a.since < b.since ? a.since : b.since) : (a.since ?? b.since);
+
+  if (weeks.length === a.weeks.length && since === a.since) return cloud;
+  return { ...cloud, low_ea_weeks: { weeks, since } };
 }

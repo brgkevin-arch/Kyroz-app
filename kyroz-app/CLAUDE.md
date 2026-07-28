@@ -151,6 +151,15 @@ OUTPUT         → Plan + liste de courses + recettes
   `manual` compris. Au-delà de 12 semaines cumulées en zone basse (30–35 kcal/kg
   de masse maigre), le plancher remonte progressivement vers 35 chez la femme non
   ménopausée — le produit ne bloque pas, il force une sortie de déficit.
+  Le compteur mesure des semaines **VÉCUES** et non des recalculs (`since` +
+  `settleLowEaExposure`) : la protection ne peut pas dépendre de la fréquence à
+  laquelle l'utilisatrice ouvre l'app.
+- **Tout déficit sous IMC 18,5** — `lib/safety.ts::deficitBlocked`, appliqué à
+  CHAQUE calcul dans `tdee.ts::floorAndFlags` : le plancher monte à la maintenance
+  (jamais au-dessus — on ne prescrit pas une prise de poids à qui a demandé une
+  sèche). L'éligibilité ne garde que les portes d'ENTRÉE ; sans ce contrôle,
+  quelqu'un qui commence à IMC 19 et descend à 17,8 continuait de recevoir un
+  déficit indéfiniment. Même seuil et même prédicat que `checkEligibility`.
 - Déficit **> 25 % du TDEE** (`lib/datedGoal.ts::MAX_DEFICIT_TDEE_RATIO`)
 - Pathologies (diabète, IRC, cardio)
 - Femmes enceintes / allaitantes

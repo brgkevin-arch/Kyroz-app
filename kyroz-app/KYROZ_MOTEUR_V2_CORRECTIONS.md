@@ -40,13 +40,83 @@ l'éditeur d'objectif daté est exactement ce que `submit` enregistre ·
 `pregnant_or_breastfeeding` non renseigné n'est pas un trou (le portail
 `healthScreening` bloque en amont).
 
-**Décision produit encore ouverte** — le registre compte les semaines où le profil
-a été **ré-enregistré**, pas les semaines vécues : `recalcProfile` n'est appelé
-qu'au chargement de l'app, à l'édition du profil et à la pesée. Deux femmes au
-comportement identique sur 26 semaines de sèche obtiennent 26 semaines comptées si
-elles se pèsent chaque semaine, 7 si elles se pèsent chaque mois — soit ~221 kcal/j
-de protection RED-S en moins pour la seconde. Rattraper les semaines écoulées
-supposerait ce qui s'est passé entre deux ouvertures. À trancher avant le lancement.
+---
+
+## P0.5 et P0.6 — les deux points laissés ouverts (livrés le 2026-07-28)
+
+### P0.5 — le registre comptait des enregistrements, pas des semaines vécues
+
+`recalcProfile` n'est appelé qu'au chargement de l'app, à l'édition du profil et à
+la pesée : le registre estampillait donc l'instant du recalcul. Deux femmes au
+comportement identique sur 26 semaines de sèche obtenaient 26 semaines comptées si
+elles se pesaient chaque semaine, 7 si elles se pesaient chaque mois — soit
+~221 kcal/j de protection RED-S en moins pour la seconde. **Un garde-fou qui
+récompense la négligence n'est pas un garde-fou.**
+
+La solution ne demande de supposer *rien* de ce qui s'est passé entre deux
+ouvertures : le plan servi **reste en vigueur**. S'il était restrictif, les semaines
+écoulées ont bien été vécues en restriction. On stocke donc le début de l'exposition
+en cours (`since`) et on **solde** l'intervalle avant tout calcul de plancher.
+
+```
+low_ea_weeks : string[]  →  { weeks: string[]; since: string | null }
+```
+
+Ordre imposé dans `computePlan`, et il n'est pas négociable :
+**solder → plancher → servir → clore**. Solder AVANT le plancher parce que les
+semaines soldées sont de l'histoire (elles ont eu lieu quel que soit le plan qu'on
+s'apprête à servir) ; `lowEaWeeksBefore` continue d'exclure la semaine courante,
+donc l'idempotence tient. `markLowEaWeek` remet `since` à `null` dès qu'un plan non
+restrictif est servi → **une vraie pause n'est jamais facturée**, et le registre
+peut toujours se vider.
+
+**Aucune migration.** La colonne est `jsonb` : on a fait évoluer la charge utile, pas
+le schéma. Zéro couplage app/base, donc zéro fenêtre PGRST204 à la mise en ligne —
+le mode de panne qui avait déjà mordu sur le P0. La forme legacy (tableau nu) reste
+lue par `readLowEaRegistry`, plus jamais écrite ; elle se relit sans `since`, donc
+au pire on sous-compte les quelques jours écoulés depuis le dernier recalcul en v1.
+Sous-compter à la migration est le sens acceptable de l'erreur.
+
+Garde-fous : rattrapage borné à la fenêtre de 12 mois (un `since` corrompu ne fait
+pas tourner la boucle 2 700 fois), purge au-delà de 12 mois, semaines « futures »
+conservées (l'horloge peut reculer). `lowEaWeeksForFloor` est le **point d'entrée
+unique** de tout aperçu d'écran : sans lui, un aperçu afficherait un plan que
+`computePlan` n'enregistrera pas.
+
+### P0.6 — l'éligibilité garde les portes d'entrée, pas le temps qui passe
+
+Quelqu'un qui commence sa sèche à IMC 19 et descend à 17,8 en dix semaines
+franchissait le seuil sans que rien ne bouge. `checkEligibility` n'est interrogée
+qu'à la saisie ; et le seul garde-fou restant — le plancher d'énergie — **autorise**
+précisément un déficit tant qu'on reste au-dessus de 30 kcal/kg de masse maigre. Il
+n'existait donc aucun mécanisme pour arrêter une sèche qui va trop loin.
+
+C'est la faille la plus dangereuse du moteur, pour une raison précise : elle ne se
+déclenche que chez les personnes qui **suivent le plan le plus assidûment**.
+
+`deficitBlocked(body)` — même seuil et même prédicat que `checkEligibility`, source
+unique — est évalué à chaque calcul dans `floorAndFlags`. Sous IMC 18,5 le plancher
+monte à la **maintenance**. Jamais au-dessus : imposer un surplus reviendrait à
+prescrire une prise de poids à quelqu'un qui a demandé une sèche, ce qui est son
+objectif à changer, pas au moteur de le faire à sa place. Le plan cesse simplement
+de creuser, et l'UI dit pourquoi (`UNDERWEIGHT_NO_DEFICIT`).
+
+Conditionné à un déficit **réellement demandé** : sinon un objectif « maintien » à
+IMC 18 verrait son plancher rejoindre sa cible et lèverait `FLOOR_APPLIED` pour un
+plan que rien ne contraint.
+
+Côté objectif daté, `DatedGoalStatus.underweightBlocked` arrête le pilotage de la
+perte (la **prise** reste pilotée — c'est le sens qu'on veut). ⚠️ **Piège
+d'interaction, verrouillé par test** : l'objectif daté ramène la demande à 0 *avant*
+le plancher, qui n'a alors plus rien à refuser et ne lève pas le drapeau. Sans
+requalification dans `computePlan`, poser un objectif daté faisait **disparaître**
+l'avertissement — précisément pour la personne qui poursuit activement une perte de
+poids en insuffisance pondérale.
+
+Surfaces : carte en tête du profil (tapable → éditeur d'Objectif) et `DatedGoalCard`
+sur Plan + Profil. Pas de branche dans l'éditeur d'objectif daté : `goalBlockMsg` y
+refuse déjà toute cible en perte quand on est sous 18,5 (une cible plus basse que
+son poids ne peut pas être au-dessus du seuil) — la branche serait morte, vérifié.
 
 ---
 
@@ -58,6 +128,8 @@ supposerait ce qui s'est passé entre deux ouvertures. À trancher avant le lanc
 | **P0.2** | Logique protéines (poids ajusté) | Bug logique — bloquant |
 | **P0.3** | Déficit plafonné en % du TDEE | Sécurité — bloquant |
 | **P0.4** | Éligibilité et bornes d'entrée | Sécurité + conformité — bloquant |
+| **P0.5** | Registre en semaines vécues (`since`) | Sécurité — livré |
+| **P0.6** | Dérive sous IMC 18,5 en cours de sèche | Sécurité — livré |
 | **P1.1** | Chemin de calcul TDEE unique | Cohérence |
 | **P1.2** | MET net (`MET − 1`) + table révisée | Justesse |
 | **P1.3** | Retrait de Katch-McArdle | Justesse |
@@ -185,6 +257,10 @@ choisis intacts).
 (`'YYYY-MM-DD'`) et non comme un entier — c'est ce qui rend la fenêtre glissante
 et l'idempotence possibles. Purgée au-delà de 12 mois, donc bornée à 52 entrées.
 Une seule colonne Supabase à ajouter (`low_ea_weeks jsonb`).
+⚠️ **Amendé par P0.5** : la charge utile est devenue
+`{ weeks: string[]; since: string | null }` — le tableau nu ci-dessus reste lu mais
+n'est plus écrit, et le `since` est ce qui fait compter des semaines VÉCUES plutôt
+que des recalculs. Colonne `jsonb` inchangée, donc pas de seconde migration.
 
 **Ménopause laissée de côté (décision fondateur 2026-07-28).**
 `is_post_menopausal` existe côté TypeScript et le moteur le lit, mais il est

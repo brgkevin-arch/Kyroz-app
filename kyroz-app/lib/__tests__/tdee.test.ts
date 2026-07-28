@@ -64,12 +64,24 @@ describe('TDEE', () => {
 
 describe('calculateMacros (mode auto)', () => {
   it('respecte le filet absolu 1500/1200 sur un gabarit léger (garde-fou §6)', () => {
-    // Gabarit léger : le plancher d'énergie disponible (30 × masse maigre) tombe
-    // sous le filet absolu → c'est lui qui protège. Cf. lib/safety.ts (P0.1).
-    const m = calculateMacros(1600, 'cut_aggressive', makeProfile({ weight_kg: 50, height_cm: 170 }));
+    // Gabarit léger MAIS éligible (IMC 20,2 / 18,8) : le plancher d'énergie
+    // disponible (30 × masse maigre) tombe sous le filet absolu → c'est lui qui
+    // protège. Cf. lib/safety.ts (P0.1).
+    //
+    // Les gabarits d'origine (50 kg/1 m 70, 45 kg/1 m 60) étaient en réalité sous
+    // IMC 18,5 : depuis P0.6 leur plan est ramené à la maintenance AVANT que le
+    // filet absolu n'ait son mot à dire — ils ne testaient donc plus ce qu'ils
+    // annonçaient. Le cas est vérifié à part, juste en dessous.
+    const m = calculateMacros(1900, 'cut_aggressive', makeProfile({ weight_kg: 55, height_cm: 165 }));
     expect(m.target_kcal).toBe(MIN_KCAL.male);
-    const f = calculateMacros(1200, 'cut_aggressive', makeProfile({ sex: 'female', weight_kg: 45, height_cm: 160 }));
+    const f = calculateMacros(1500, 'cut_aggressive', makeProfile({ sex: 'female', weight_kg: 48, height_cm: 160 }));
     expect(f.target_kcal).toBe(MIN_KCAL.female);
+  });
+
+  it('sous IMC 18,5, le filet absolu ne sert même plus : retour à la maintenance (P0.6)', () => {
+    const m = calculateMacros(1600, 'cut_aggressive', makeProfile({ weight_kg: 50, height_cm: 170 }));
+    expect(m.target_kcal).toBe(1600);                     // maintenance, pas 1500
+    expect(m.flags).toContain('UNDERWEIGHT_NO_DEFICIT');
   });
 
   it('protéines : base POIDS AJUSTÉ, bornée en g/kg de masse maigre (P0.2)', () => {
