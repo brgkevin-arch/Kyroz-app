@@ -6,11 +6,35 @@ import {
 import { SportSession } from '../types';
 
 describe('sessionKcal (formule MET)', () => {
-  it('kcal/min = MET × 3.5 × poids / 200, multiplié par la durée', () => {
-    // musculation MET 5.0, 82 kg, 60 min → 5×3.5×82/200 × 60 = 430.5
-    expect(sessionKcal('musculation', 82, 60)).toBeCloseTo(430.5, 1);
-    // course MET 9.8, 70 kg, 30 min → 9.8×3.5×70/200 × 30 = 360.15
-    expect(sessionKcal('course', 70, 30)).toBeCloseTo(360.15, 1);
+  it('P1.2 — kcal/min = (MET − 1) × 3.5 × poids / 200 : on crédite le MET NET', () => {
+    // Le TDEE vaut `BMR × NEAT + sport` : le premier terme couvre déjà les 24 h de
+    // la journée, séance comprise. Créditer le MET BRUT facturait donc deux fois
+    // l'heure d'entraînement — une fois au repos, une fois à l'effort.
+    // musculation MET 5.0 → net 4.0, 82 kg, 60 min → 4×3.5×82/200 × 60 = 344.4
+    expect(sessionKcal('musculation', 82, 60)).toBeCloseTo(344.4, 1);
+    // course MET 9.8 → net 8.8, 70 kg, 30 min → 8.8×3.5×70/200 × 30 = 323.4
+    expect(sessionKcal('course', 70, 30)).toBeCloseTo(323.4, 1);
+  });
+
+  it('P1.2 — le double comptage retiré vaut 0,0025 × poids × minutes HEBDO par jour', () => {
+    // Par séance : 1 MET × 3.5 × poids / 200 par minute = 0,0175 × poids × minutes.
+    const brut = (met: number, kg: number, min: number) => (met * 3.5 * kg / 200) * min;
+    expect(brut(5.0, 82, 60) - sessionKcal('musculation', 82, 60)).toBeCloseTo(0.0175 * 82 * 60, 6);
+    expect(brut(9.8, 70, 30) - sessionKcal('course', 70, 30)).toBeCloseTo(0.0175 * 70 * 30, 6);
+    // Ramené au JOUR (semaine / 7), c'est la formule de l'audit : 0,0025 × poids ×
+    // minutes hebdo — soit 38 à 58 kcal/j sur les profils mesurés.
+    const minutesHebdo = 4 * 60;
+    const sports = [{ type: 'musculation' as const, sessions_per_week: 4, minutes_per_session: 60 }];
+    const brutParJour = Math.round(brut(5.0, 82, 60) * 4) / 7;
+    expect(brutParJour - exerciseKcalPerDay(sports, 82)).toBeCloseTo(0.0025 * 82 * minutesHebdo, 0);
+  });
+
+  it('P1.2 — reste positif, y compris pour le sport le moins intense de la table', () => {
+    const minMet = Math.min(...Object.values(SPORT_MET));
+    expect(minMet).toBeGreaterThan(1); // sinon le MET net serait nul ou négatif
+    for (const type of Object.keys(SPORT_MET) as (keyof typeof SPORT_MET)[]) {
+      expect(sessionKcal(type, 60, 60), type).toBeGreaterThan(0);
+    }
   });
 
   it('clampe la durée aux bornes [15, 180] min', () => {

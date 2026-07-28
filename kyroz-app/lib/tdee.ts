@@ -1,4 +1,4 @@
-import { Goal, PlanFlag, Sex, SportSession, UserProfile } from './types';
+import { EngineNotice, Goal, NeatLevel, PlanFlag, Sex, SportSession, UserProfile } from './types';
 import { exerciseKcalPerDay } from './sport';
 import { datedGoalStatus, goalDirectionMismatch, MAX_DEFICIT_TDEE_RATIO } from './datedGoal';
 import { todayStamp } from './weight';
@@ -42,49 +42,100 @@ export function calculateBMR(
   return Math.round(base + (sex === 'male' ? 5 : -161));
 }
 
-// Multiplicateur d'activité dérivé du nombre de séances/semaine (méthode LEGACY,
-// repli pour les profils sans sports renseignés). Fourre-tout : ne distingue pas
-// le type de sport (un yoga et un CrossFit comptent pareil).
-function activityMultiplier(trainingDaysPerWeek: number): number {
-  if (trainingDaysPerWeek <= 0) return 1.2;
-  if (trainingDaysPerWeek <= 2) return 1.375;
-  if (trainingDaysPerWeek <= 4) return 1.55;
-  if (trainingDaysPerWeek <= 6) return 1.725;
-  return 1.9;
+// ── NEAT : la vie quotidienne HORS sport ─────────────────────────────────────
+//
+// Facteur appliqué au BMR pour couvrir tout ce qui n'est pas une séance. Le sport
+// est chiffré à part par les MET nets (cf. lib/sport.ts), donc la table s'arrête à
+// 1,45 : les 1,50 / 1,65 des tables classiques sont des niveaux « exercice inclus »
+// et recouvriraient une dépense déjà comptée.
+export const NEAT_PAL: Record<NeatLevel, number> = {
+  desk: 1.20,
+  light: 1.28,
+  active: 1.36,
+  physical: 1.45,
+};
+
+/**
+ * Défaut quand la question n'a pas été posée — et c'est le cas de la grande
+ * majorité des profils, la question vivant dans le profil et pas à l'onboarding.
+ * Ce défaut EST donc la valeur servie en pratique : ce n'est pas un détail.
+ *
+ * 1,20 et pas 1,30/1,35, parce que l'erreur n'est pas symétrique :
+ *  • sur-estimer le NEAT → la personne mange à sa maintenance en croyant sécher.
+ *    Échec SILENCIEUX, indétectable autrement qu'en ne perdant rien pendant des
+ *    semaines. Mesuré : 1,35 efface 61 à 87 % du déficit d'un profil sédentaire
+ *    (H 30 ans, 85 kg : −216 → −28 kcal/j) et transforme la sèche d'une femme de
+ *    95 kg à 45 %MG en prise (+12 kcal/j).
+ *  • sous-estimer → la personne perd un peu plus vite que prévu. VISIBLE sur la
+ *    balance, rattrapé par le suivi de trajectoire, et borné par le plancher de
+ *    sécurité qui, lui, ne bouge pas.
+ *
+ * C'est aussi la continuité stricte avec le jugement déjà encodé par l'ancien
+ * multiplicateur legacy à 0 séance (1,2).
+ */
+export const DEFAULT_NEAT_LEVEL: NeatLevel = 'desk';
+
+/** Facteur NEAT d'un profil. Tolérant : une valeur inconnue retombe sur le défaut. */
+export function neatPal(level?: NeatLevel | null): number {
+  return (level && NEAT_PAL[level]) || NEAT_PAL[DEFAULT_NEAT_LEVEL];
 }
 
-// Facteur « vie quotidienne hors sport » (NEAT) appliqué au BMR quand on calcule
-// la dépense sport À PART via les MET. 1.3 ≈ entre sédentaire (1.2, boulot assis)
-// et légèrement actif (1.375), le sport étant ajouté ensuite — pas de double comptage.
-export const NEAT_BASE_PAL = 1.3;
+// Libellés affichés (FR) — SOURCE UNIQUE, comme SPORT_LABEL pour les sports.
+// Formulés sur la JOURNÉE et jamais sur le sport : « souvent debout » n'a rien à
+// voir avec « je m'entraîne souvent », et confondre les deux ferait compter
+// l'entraînement une seconde fois.
+export const NEAT_ORDER: NeatLevel[] = ['desk', 'light', 'active', 'physical'];
 
-// TDEE (maintenance) = métabolisme de base × activité.
-//
-// RÈGLE DE SÉLECTION DE MÉTHODE — unique, et fonction du PROFIL SEUL :
-//   • BMR : Katch-McArdle si `bodyFatPct` fourni, sinon Mifflin-St Jeor (cf. calculateBMR).
-//   • Activité : méthode MET si `sports` non vide (BMR × NEAT + dépense sport/jour) ;
-//     sinon multiplicateur legacy selon le nb de séances (`activityMultiplier`).
-//
-// Cette fonction est l'UNIQUE source de calcul du TDEE, et `recalcProfile` en est
-// l'UNIQUE producteur de la valeur stockée `tdee_kcal`. Tout écran lit la valeur
-// stockée — aucun ne recalcule par un chemin parallèle.
-//
-// ⚠️ Les deux entrées d'activité (`trainingDaysEq` et `sports`) sont REDONDANTES :
-// la cohérence est garantie côté persistance (cf. lib/syncGuard.ts, fix P3.3).
-export function calculateTDEE(
-  sex: Sex,
-  weight_kg: number,
-  height_cm: number,
-  age: number,
-  trainingDaysPerWeek: number,
-  bodyFatPct?: number,
-  sports?: SportSession[]
-): number {
-  const bmr = calculateBMR(sex, weight_kg, height_cm, age, bodyFatPct);
-  if (sports?.length) {
-    return Math.round(bmr * NEAT_BASE_PAL + exerciseKcalPerDay(sports, weight_kg));
-  }
-  return Math.round(bmr * activityMultiplier(trainingDaysPerWeek));
+export const NEAT_LABEL: Record<NeatLevel, string> = {
+  desk: 'Assis presque toute la journée',
+  light: 'Assis, mais je bouge régulièrement',
+  active: 'Debout et en mouvement une bonne partie du temps',
+  physical: 'Métier physique',
+};
+
+export const NEAT_HINT: Record<NeatLevel, string> = {
+  desk: 'Bureau, télétravail, longs trajets en voiture',
+  light: 'Bureau avec déplacements, courses, ménage',
+  active: 'Commerce, soins, enseignement, service',
+  physical: 'BTP, manutention, agriculture, déménagement',
+};
+
+/** Entrées du TDEE. `UserProfile` le satisfait — d'où l'appel `calculateTDEE(profile)`. */
+export type TdeeBody = {
+  sex: Sex;
+  weight_kg: number;
+  height_cm: number;
+  age: number;
+  body_fat_pct?: number;
+  sports?: SportSession[];
+  neat_level?: NeatLevel;
+};
+
+/**
+ * TDEE (maintenance) — CHEMIN UNIQUE : `BMR × NEAT + dépense sportive/jour`.
+ *
+ * Il y avait auparavant DEUX méthodes, choisies selon que `sports` était rempli ou
+ * non : MET si oui, multiplicateur par nombre de séances si non. Le basculement
+ * créait une marche d'escalier absurde — mesuré sur 360 profils, déclarer UNE
+ * séance de 15 minutes de marche rapide (le minimum saisissable) faisait bondir le
+ * TDEE de +116 à +245 kcal/jour, +181 en médiane, POSITIF dans 100 % des cas. La
+ * méthode legacy avait en outre ses propres marches (+311 kcal entre 2 et 3
+ * séances). Ce n'était pas un problème de comptes anciens : c'était une
+ * discontinuité vivante, sur tous les comptes.
+ *
+ * Le chemin unique est continu par construction : une séance de plus ajoute
+ * exactement ce qu'elle coûte, et `training_days_per_week` ne pilote plus rien ici
+ * (il reste utile aux jours de repos et à la génération du plan).
+ *
+ * BMR : Katch-McArdle si `body_fat_pct` est fourni, sinon Mifflin-St Jeor.
+ *
+ * Cette fonction est l'UNIQUE source de calcul du TDEE, et `recalcProfile` en est
+ * l'UNIQUE producteur de la valeur stockée `tdee_kcal`. Tout écran lit la valeur
+ * stockée — aucun ne recalcule par un chemin parallèle.
+ */
+export function calculateTDEE(b: TdeeBody): number {
+  const bmr = calculateBMR(b.sex, b.weight_kg, b.height_cm, b.age, b.body_fat_pct);
+  return Math.round(bmr * neatPal(b.neat_level) + exerciseKcalPerDay(b.sports, b.weight_kg));
 }
 
 // Ajustement calorique + protéines selon l'objectif.
@@ -369,6 +420,43 @@ export function macrosPercent(
   return { target_kcal, protein_g, carbs_g, fat_g, floor_kcal, flags };
 }
 
+// ── Révision du moteur et avertissement one-shot ─────────────────────────────
+//
+// Une correction du moteur déplace la cible de gens qui n'ont rien demandé. C'est
+// légitime (une cible fausse reste fausse), mais un budget qui bouge de plusieurs
+// centaines de kcal sans un mot, c'est la confiance dans le produit qui part.
+//
+// On horodate donc la révision qui a produit les cibles stockées, et au premier
+// recalcul sous une nouvelle révision on compare l'ancienne cible SERVIE à la
+// nouvelle. Au-delà du seuil, on dépose un avertissement à afficher une fois.
+
+/** Révision des profils calculés AVANT l'existence du champ (MET brut + multiplicateur legacy). */
+export const ENGINE_REV_LEGACY = 1;
+
+/** Révision courante — à INCRÉMENTER à chaque correction qui déplace les cibles. */
+export const ENGINE_REV = 2;
+
+/**
+ * Seuil d'affichage (kcal/j, en valeur absolue). En dessous, l'écart tient dans le
+ * bruit d'une pesée ou d'un arrondi et une notification ferait plus de mal que de
+ * bien — on ne va pas alarmer quelqu'un pour 40 kcal.
+ */
+export const ENGINE_NOTICE_MIN_DELTA = 100;
+
+/**
+ * Avertissement à déposer, ou `undefined` s'il n'y a rien à dire.
+ *
+ * `prevTarget` vaut 0 sur un profil neuf (onboarding : les cibles n'existent pas
+ * encore) → aucun avertissement, on ne va pas expliquer un changement à quelqu'un
+ * qui n'a jamais vu l'ancienne valeur.
+ */
+function engineNoticeFor(prevRev: number | undefined, prevTarget: number, nextTarget: number): EngineNotice | undefined {
+  if ((prevRev ?? ENGINE_REV_LEGACY) === ENGINE_REV) return undefined;
+  if (!(prevTarget > 0) || !(nextTarget > 0)) return undefined;
+  if (Math.abs(nextTarget - prevTarget) < ENGINE_NOTICE_MIN_DELTA) return undefined;
+  return { rev: ENGINE_REV, from: prevTarget, to: nextTarget };
+}
+
 // ── Producteur unique du profil calculé ──────────────────────────────────────
 
 export interface ComputedPlan {
@@ -384,9 +472,7 @@ export interface ComputedPlan {
  * Déterministe : la date du jour est un PARAMÈTRE, jamais une horloge implicite.
  */
 export function computePlan(p: UserProfile, today: string = todayStamp()): ComputedPlan {
-  const tdee = calculateTDEE(
-    p.sex, p.weight_kg, p.height_cm, p.age, p.training_days_per_week, p.body_fat_pct, p.sports,
-  );
+  const tdee = calculateTDEE(p);
   const sportKcalPerDay = exerciseKcalPerDay(p.sports, p.weight_kg);
   const bmr = calculateBMR(p.sex, p.weight_kg, p.height_cm, p.age, p.body_fat_pct);
 
@@ -503,6 +589,15 @@ export function computePlan(p: UserProfile, today: string = todayStamp()): Compu
     flags.push('UNDERWEIGHT_NO_DEFICIT');
   }
 
+  // ── Révision du moteur ────────────────────────────────────────────────────
+  // Comparé à la cible STOCKÉE, donc à ce que la personne avait réellement sous les
+  // yeux. Un avertissement déjà déposé n'est pas écrasé tant qu'il n'a pas été lu
+  // (`dismissEngineNotice`) : le profil est recalculé à chaque ouverture d'app, et
+  // dès le deuxième passage `p.target_kcal` vaut déjà la NOUVELLE valeur — l'écart
+  // serait alors nul et le message s'effacerait avant d'avoir été vu.
+  const engine_notice = p.engine_notice
+    ?? engineNoticeFor(p.engine_rev, p.target_kcal, m.target_kcal);
+
   return {
     profile: {
       ...p,
@@ -512,10 +607,24 @@ export function computePlan(p: UserProfile, today: string = todayStamp()): Compu
       target_protein_g: m.protein_g,
       target_carbs_g: m.carbs_g,
       target_fat_g: m.fat_g,
+      engine_rev: ENGINE_REV,
+      ...(engine_notice ? { engine_notice } : {}),
     },
     flags,
     floor_kcal: m.floor_kcal,
   };
+}
+
+/**
+ * Marque l'avertissement de révision comme lu. Rendu explicite (et pas un simple
+ * `{...p, engine_notice: undefined}` inline) parce que la clé doit être RETIRÉE et
+ * pas seulement mise à `undefined` : `JSON.stringify` élide les `undefined`, donc
+ * la comparaison anti-réécriture de `useProfile` ne verrait aucun changement et
+ * l'avertissement reviendrait à la prochaine ouverture.
+ */
+export function dismissEngineNotice(p: UserProfile): UserProfile {
+  const { engine_notice, ...rest } = p;
+  return { ...rest, engine_rev: ENGINE_REV } as UserProfile;
 }
 
 /** Profil recalculé (API historique). */

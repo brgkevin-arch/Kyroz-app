@@ -29,6 +29,7 @@ import { deleteAccount, deleteCloudData } from '../../lib/sync';
 import { exportMyData } from '../../lib/exportData';
 import {
   calculateTDEE, computePlan, goalLabel, planFlags, validateProfile, recalcProfile, DEFAULT_CARB_RATIO, recommendedProteinPerKg,
+  DEFAULT_NEAT_LEVEL, NEAT_ORDER, NEAT_LABEL, NEAT_HINT, dismissEngineNotice,
 } from '../../lib/tdee';
 import {
   lowEaWeeksForFloor, checkEligibility, eligibilityMessage,
@@ -38,7 +39,7 @@ import { datedGoalStatus, datedGoalKcalDelta, addDaysStamp, daysBetween } from '
 import { DatedGoalCard, formatFR } from '../../components/DatedGoalCard';
 import { todayStamp } from '../../lib/weight';
 import {
-  ActivityLevel, DietaryRestriction, FixedMeals, Goal, GoalTarget, MEAL_ORDER, MealEmphasis, MealType, Sex, SportSession, UserProfile, VarietyPreference,
+  ActivityLevel, DietaryRestriction, EngineNotice, FixedMeals, Goal, GoalTarget, MEAL_ORDER, MealEmphasis, MealType, NeatLevel, Sex, SportSession, UserProfile, VarietyPreference,
 } from '../../lib/types';
 import { totalSessionsPerWeek } from '../../lib/sport';
 import { restDaySet } from '../../lib/planEngine';
@@ -225,6 +226,15 @@ export default function ProfilScreen() {
           <MenuRow t={t} icon="trending-down-outline" label="Suivi du poids" value={`${profile.weight_kg} kg`} onPress={() => setWeighIn(true)} last />
         </View>
 
+        {/* Révision du moteur : la cible a bougé sans que l'utilisateur touche à rien.
+            On l'explique UNE fois, factuellement, avec l'action qui permet d'affiner —
+            plutôt que de laisser découvrir un budget différent sans un mot. */}
+        {profile.engine_notice && (
+          <EngineNoticeCard t={t} notice={profile.engine_notice}
+            onAdjust={() => { saveProfile(dismissEngineNotice(profile)); setEditor('sports'); }}
+            onDismiss={() => saveProfile(dismissEngineNotice(profile))} />
+        )}
+
         {/* Objectif daté (premium) — suivi de trajectoire quand il est posé */}
         {profile.goal_target && <DatedGoalCard t={t} profile={profile} onPress={() => setEditor('dated_goal')} />}
 
@@ -254,7 +264,7 @@ export default function ProfilScreen() {
         <SectionLabel t={t}>RÉGLAGES</SectionLabel>
         <View style={[s.menu, cardShadow(t)]}>
           <MenuRow t={t} icon="person-outline" label="Informations" value={`${SEX_LABELS[profile.sex]} · ${profile.age} ans · ${profile.weight_kg} kg${profile.body_fat_pct != null ? ` · ${profile.body_fat_pct}% MG` : ''}`} onPress={() => setEditor('info')} />
-          <MenuRow t={t} icon="barbell-outline" label="Sports" value={profile.sports?.length ? `${profile.sports.length} sport${profile.sports.length > 1 ? 's' : ''}` : 'Aucun'} onPress={() => setEditor('sports')} />
+          <MenuRow t={t} icon="barbell-outline" label="Sport & activité" value={`${profile.sports?.length ? `${profile.sports.length} sport${profile.sports.length > 1 ? 's' : ''}` : 'Aucun sport'} · ${NEAT_LABEL[profile.neat_level ?? DEFAULT_NEAT_LEVEL].toLowerCase()}`} onPress={() => setEditor('sports')} />
           <MenuRow t={t} icon="flag-outline" label="Objectif" value={goalLabel(profile.goal)} onPress={() => setEditor('goal')} />
           <MenuRow t={t} icon="rocket-outline" label="Objectif daté" value={profile.goal_target ? `${profile.goal_target.target_weight_kg} kg · ${formatFR(profile.goal_target.target_date)}` : 'Aucun'} onPress={() => setEditor('dated_goal')} />
           <MenuRow t={t} icon="flame-outline" label="Calories & macros" value={profile.macro_mode === 'percent' ? 'Perso %' : 'Calculées'} onPress={() => setEditor('macros')} />
@@ -506,18 +516,63 @@ function InfoEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
   );
 }
 
+/**
+ * Avertissement one-shot de révision du moteur.
+ *
+ * Ton informatif, jamais alarmant (anti charge mentale) : on donne le chiffre, la
+ * raison en une phrase, et la seule action utile — affiner son activité. Pas de
+ * « attention », pas de rouge : rien n'est cassé, c'est un calcul qui s'est corrigé.
+ */
+function EngineNoticeCard({ t, notice, onAdjust, onDismiss }: {
+  t: ThemePalette; notice: EngineNotice; onAdjust: () => void; onDismiss: () => void;
+}) {
+  const delta = notice.to - notice.from;
+  return (
+    <Card t={t}>
+      <Text style={{ color: t.text, fontSize: 13, lineHeight: 19 }}>
+        Ton budget est passé de {notice.from} à {notice.to} kcal/jour ({delta > 0 ? '+' : ''}{delta}). Kyroz a corrigé deux choses : tes séances étaient comptées en double avec ta dépense de repos, et le niveau d'activité de tes journées était supposé au lieu d'être demandé.
+      </Text>
+      <Text style={{ color: t.textSecondary, fontSize: 13, lineHeight: 19, marginTop: 8 }}>
+        Par défaut, Kyroz part de journées plutôt assises. Si les tiennes sont plus actives, dis-le — ton budget remontera.
+      </Text>
+      <View style={{ flexDirection: 'row', gap: 10, marginTop: 14 }}>
+        <TouchableOpacity onPress={onAdjust} activeOpacity={0.85} style={{ flex: 1, backgroundColor: t.accent, borderRadius: Radius.sm, paddingVertical: 11, alignItems: 'center' }}>
+          <Text style={{ color: t.onAccent, fontSize: 14, fontWeight: '700' }}>Régler mon activité</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={onDismiss} activeOpacity={0.85} style={{ flex: 1, borderRadius: Radius.sm, paddingVertical: 11, alignItems: 'center', borderWidth: 1, borderColor: t.lineStrong }}>
+          <Text style={{ color: t.text, fontSize: 14, fontWeight: '600' }}>C'est noté</Text>
+        </TouchableOpacity>
+      </View>
+    </Card>
+  );
+}
+
 function SportsProfileEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
   const [sports, setSports] = useState<SportSession[]>(profile.sports ?? []);
+  const [neat, setNeat] = useState<NeatLevel>(profile.neat_level ?? DEFAULT_NEAT_LEVEL);
   const [restDays, setRestDays] = useState<number[]>(effectiveRestWeekdays(profile));
   const planWeekdays = profile.plan_weekdays ?? [];
   const togRestDay = (v: number) => setRestDays((arr) => arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
   const trainingDaysEq = Math.min(totalSessionsPerWeek(sports), 7);
   const submit = () => onSave(withRecalc({
-    ...profile, sports, training_days_per_week: trainingDaysEq, activity_level: activityFromDays(trainingDaysEq),
+    ...profile, sports, neat_level: neat,
+    training_days_per_week: trainingDaysEq, activity_level: activityFromDays(trainingDaysEq),
     rest_weekdays: orderedWeekdays(restDays.filter((d) => !planWeekdays.length || planWeekdays.includes(d))),
   }));
   return (
-    <EditorShell t={t} title="Sports" onSave={submit} dragHandlers={dragHandlers}>
+    <EditorShell t={t} title="Sport & activité" onSave={submit} dragHandlers={dragHandlers}>
+      {/* Le NEAT vient EN PREMIER : c'est la base sur laquelle le sport s'ajoute, et
+          l'ordre inverse invite à répondre « je suis actif » en pensant à ses séances
+          — qui sont déjà comptées juste en dessous. */}
+      <SectionLabel t={t}>TES JOURNÉES, HORS SPORT</SectionLabel>
+      <Text style={{ color: t.textSecondary, fontSize: 13, lineHeight: 18, marginBottom: 4 }}>
+        Ce que tu dépenses sans y penser : boulot, trajets, courses. Ne compte pas tes séances ici, elles sont comptées juste en dessous.
+      </Text>
+      {NEAT_ORDER.map((lvl) => (
+        <OptionCard key={lvl} t={t} title={NEAT_LABEL[lvl]} subtitle={NEAT_HINT[lvl]} selected={neat === lvl} onPress={() => setNeat(lvl)} />
+      ))}
+
+      <SectionLabel t={t}>TES SÉANCES</SectionLabel>
       <Text style={{ color: t.textSecondary, fontSize: 13, lineHeight: 18, marginBottom: 4 }}>Tes sports servent à estimer tes calories dépensées. Plus c'est précis, plus ton plan l'est.</Text>
       <SportsEditor sports={sports} weight={profile.weight_kg} onChange={setSports} />
       <RestDaysPicker t={t} available={planWeekdays} value={restDays} onToggle={togRestDay} />
@@ -566,7 +621,7 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
   const provisional: GoalTarget | undefined = validWeight
     ? { target_weight_kg: twN, target_date: targetDate, start_weight_kg: profile.weight_kg, start_date: existing?.start_date ?? today }
     : undefined;
-  const tdee = calculateTDEE(profile.sex, profile.weight_kg, profile.height_cm, profile.age, profile.training_days_per_week, profile.body_fat_pct, profile.sports);
+  const tdee = calculateTDEE(profile);
 
   // Aperçu calculé par le PRODUCTEUR UNIQUE (computePlan) et non par un chemin
   // parallèle : ce que la carte annonce est exactement ce qui sera enregistré,
@@ -703,7 +758,7 @@ function MacroEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
   const [proteinPerKg, setProteinPerKg] = useState(profile.protein_per_kg ?? recommendedProteinPerKg(profile.goal));
 
   const today = todayStamp();
-  const tdee = calculateTDEE(profile.sex, profile.weight_kg, profile.height_cm, profile.age, profile.training_days_per_week, profile.body_fat_pct, profile.sports);
+  const tdee = calculateTDEE(profile);
   // Objectif daté actif → le delta calorique daté prime (même cerveau macro que recalcProfile).
   const datedDelta = datedGoalKcalDelta(profile.goal_target, profile, today, tdee) ?? undefined;
   const lowEaWeeks = lowEaWeeksForFloor(profile.low_ea_weeks, today); // même compteur que computePlan

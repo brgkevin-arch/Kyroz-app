@@ -42,7 +42,10 @@ users
 
 user_profiles
   └── user_id, sex, age, weight_kg, height_cm, body_fat_pct,
-      activity_level, training_days_per_week, goal,
+      activity_level, training_days_per_week (n'alimentent plus le TDEE — cf. §6),
+      neat_level (vie quotidienne hors sport → facteur NEAT du TDEE),
+      engine_rev, engine_notice (révision du moteur + avertissement one-shot),
+      goal,
       goal_target (premium : objectif daté {target_weight_kg,target_date,start_weight_kg,start_date} — pilote la cible calorique dans le temps, cf. lib/datedGoal.ts),
       macro_mode (auto|percent), carb_ratio, protein_per_kg,
       dietary_restrictions[], disliked_foods[], preferred_proteins[],
@@ -141,6 +144,33 @@ OUTPUT         → Plan + liste de courses + recettes
 - Plans repas pour adultes en bonne santé
 - Calcul TDEE, macros, portions
 - Adaptation recettes selon préférences
+
+### Calcul du TDEE — une seule formule (`lib/tdee.ts::calculateTDEE`)
+
+`TDEE = BMR × NEAT + dépense sportive/jour`, **pour tous les profils sans exception**.
+
+- **BMR** : Katch-McArdle si le %MG est connu, sinon Mifflin-St Jeor.
+- **NEAT** (`neat_level`) : la vie quotidienne **hors sport** — `desk` 1,20 / `light` 1,28 /
+  `active` 1,36 / `physical` 1,45. La table s'arrête à 1,45 : au-delà, les niveaux
+  classiques (1,50, 1,65) sont « exercice inclus » et recouvriraient les MET.
+  Le défaut est **`desk` = 1,20** et ce n'est pas un réglage cosmétique — la question
+  vivant dans le profil et non à l'onboarding, ce défaut EST la valeur servie à la
+  plupart des gens. Sur-estimer le NEAT fait manger à sa maintenance en croyant
+  sécher (échec silencieux) ; sous-estimer fait perdre un peu plus vite, ce qui se
+  voit sur la balance et reste borné par le plancher de sécurité.
+- **Sport** : méthode MET **NETTE** — `(MET − 1) × 3,5 × poids / 200 × minutes`. Le
+  `− 1` retire le métabolisme de repos déjà compté par `BMR × NEAT` pendant l'heure
+  de séance. C'est aussi la définition de l'EEE utilisée par le calcul d'énergie
+  disponible RED-S.
+
+Il n'y a plus de multiplicateur par nombre de séances : `training_days_per_week` ne
+pilote plus le TDEE (il reste utilisé pour les jours de repos et la génération du
+plan). Le double chemin produisait une discontinuité — déclarer une séance de
+15 minutes de marche faisait bondir le TDEE de +181 kcal/jour en médiane.
+
+Toute correction qui déplace les cibles doit incrémenter `ENGINE_REV` : un
+avertissement one-shot (`engine_notice`) explique alors le changement à
+l'utilisateur au-delà de 100 kcal/jour d'écart.
 
 ### Bloqué (hard block)
 - **Plans sous le plancher d'énergie disponible** — `lib/safety.ts::safetyFloorKcal`.

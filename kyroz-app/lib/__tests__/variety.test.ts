@@ -49,12 +49,26 @@ describe('variété intra-semaine (P3.5)', () => {
 
   it('biais fibres en sèche (P3.2) : un plan de sèche vise haut en fibres', () => {
     // Le pool a la fibre (plafond GF ~81 g/j) ; le biais oriente la SÉLECTION vers le
-    // haut en sèche. Sans le biais, ce même profil tournait à ~35 g/j (échouerait).
-    const { p, meals } = plan7({ goal: 'cut', sex: 'male' });
-    const days = Array.from({ length: 7 }, () => 0);
-    for (const m of meals) days[m.day - 1] += mealFiberFromIngredients(mealIngredients(m));
-    const avg = days.reduce((a, b) => a + b, 0) / 7;
-    expect(avg, `fibres/jour moy (cible ${dailyFiberTarget(p)})`).toBeGreaterThanOrEqual(40);
+    // haut en sèche.
+    //
+    // Mesuré en DENSITÉ (g/1000 kcal) et non en grammes bruts : le seuil absolu de 40 g
+    // qui verrouillait ce test mesurait en réalité la TAILLE DU BUDGET autant que le
+    // biais — l'étape 3 du moteur (MET nets + NEAT) a fait baisser la cible de ~200 kcal
+    // et le test est tombé alors que le biais fonctionnait toujours. La densité est
+    // invariante au budget ; c'est elle que le biais pilote réellement.
+    const dens = (goal: 'cut' | 'maintain') => {
+      const { p, meals } = plan7({ goal, sex: 'male' });
+      const days = Array.from({ length: 7 }, () => 0);
+      for (const m of meals) days[m.day - 1] += mealFiberFromIngredients(mealIngredients(m));
+      const avg = days.reduce((a, b) => a + b, 0) / 7;
+      return { avg, target: dailyFiberTarget(p), per1000: avg / (p.target_kcal / 1000) };
+    };
+    const cut = dens('cut');
+    // 1. Exigence absolue : le plan de sèche COUVRE la cible fibres du profil.
+    expect(cut.avg, `fibres/jour moy (cible ${cut.target})`).toBeGreaterThanOrEqual(cut.target);
+    // 2. Le biais EXISTE : à budget normalisé, la sèche est plus dense que le maintien
+    //    (mesuré 18,3 vs 15,5 g/1000 kcal). Sans le nudge, les deux seraient égaux.
+    expect(cut.per1000, 'densité fibres sèche vs maintien').toBeGreaterThan(dens('maintain').per1000 * 1.08);
   });
 
   it('biais fibres : le maintien N\'est PAS gonflé (gate sèche uniquement)', () => {

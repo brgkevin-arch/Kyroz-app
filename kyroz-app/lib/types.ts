@@ -13,6 +13,35 @@ export type Goal =
 
 export type ActivityLevel = 'sedentary' | 'light' | 'moderate' | 'active' | 'very_active';
 
+/**
+ * Activité de la vie quotidienne HORS sport (NEAT — Non-Exercise Activity
+ * Thermogenesis) : boulot, déplacements, courses, ménage, enfants.
+ *
+ * C'est la seule entrée d'activité du TDEE avec les séances : le sport est chiffré
+ * à part par les MET (cf. lib/sport.ts), donc ce niveau ne doit JAMAIS englober
+ * l'entraînement — sans quoi il serait compté deux fois. C'est pourquoi la table
+ * s'arrête à 1,45 (métier physique) : les 1,50/1,65 des tables classiques sont des
+ * niveaux « exercice inclus », inutilisables ici.
+ */
+export type NeatLevel =
+  | 'desk'      // assis toute la journée (bureau, télétravail, conduite)
+  | 'light'     // assis mais debout/en déplacement par intermittence
+  | 'active'    // souvent debout, marche beaucoup (commerce, soins, enseignement)
+  | 'physical'; // métier physique (BTP, manutention, restauration)
+
+/**
+ * Avertissement UNIQUE émis quand une révision du moteur déplace la cible
+ * calorique de l'utilisateur. Persisté (donc synchronisé) plutôt que local : un
+ * budget qui bouge de plusieurs centaines de kcal sans explication, c'est la
+ * confiance dans le produit qui part — et il ne doit être expliqué qu'UNE fois,
+ * pas une fois par appareil.
+ */
+export interface EngineNotice {
+  rev: number;   // révision du moteur à l'origine du changement
+  from: number;  // cible servie AVANT (kcal/j)
+  to: number;    // cible servie APRÈS (kcal/j)
+}
+
 // Sports suivis pour estimer la dépense énergétique (méthode MET, cf. lib/sport.ts).
 export type SportType =
   | 'musculation'
@@ -156,9 +185,19 @@ export interface UserProfile {
   low_ea_weeks?: LowEaRegistryStored;
 
   // Activité
+  // ⚠️ `activity_level` et `training_days_per_week` ne servent PLUS au TDEE depuis
+  // l'étape 3 (chemin unique `BMR × NEAT + MET`, cf. lib/tdee.ts) : le compteur de
+  // séances reste utilisé pour les jours de repos / la génération du plan, et
+  // `activity_level` n'est plus qu'un libellé historique conservé en base.
   activity_level: ActivityLevel;
   training_days_per_week: number;
-  sports?: SportSession[];      // sports renseignés → TDEE précis (MET). Vide = calcul legacy (multiplicateur).
+  sports?: SportSession[];      // séances déclarées → dépense sportive chiffrée par MET (lib/sport.ts)
+  // Vie quotidienne hors sport. `undefined` → traité comme 'desk' (1,20) : c'est le
+  // défaut qui ne peut pas inventer un déficit qui n'existe pas. Sur-estimer le NEAT
+  // efface la sèche EN SILENCE (mesuré : 61 à 87 % du déficit à 1,35) ; sous-estimer
+  // se voit sur la balance et se corrige. Question posée dans le profil (éditeur
+  // « Sports & activité »), volontairement PAS à l'onboarding — friction.
+  neat_level?: NeatLevel;
 
   // Objectif
   goal: Goal;
@@ -204,6 +243,14 @@ export interface UserProfile {
 
   // Suivi du poids
   weigh_in_frequency?: WeighInFrequency; // cadence de pesée (défaut: weekly)
+
+  // ── Révision du moteur ────────────────────────────────────────────────────
+  // Révision qui a produit les cibles stockées. `undefined` = profil calculé avant
+  // que le champ existe (cf. ENGINE_REV_LEGACY dans lib/tdee.ts).
+  engine_rev?: number;
+  // Avertissement one-shot en attente d'affichage. Effacé quand l'utilisateur
+  // l'a lu — synchronisé, donc lu une seule fois tous appareils confondus.
+  engine_notice?: EngineNotice;
 }
 
 export interface Ingredient {

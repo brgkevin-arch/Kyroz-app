@@ -3,7 +3,7 @@ import { supabase } from './supabase';
 import { Recipe, Streak, UserProfile } from './types';
 import { PantryItem } from './pantry';
 import { WeightEntry } from './weight';
-import { decideProfileHydration, normalizeProfileActivity, reconcileCloudSports, reconcileCloudLowEaWeeks, PROFILE_PENDING_KEY } from './syncGuard';
+import { decideProfileHydration, normalizeProfileActivity, reconcileCloudSports, reconcileCloudLowEaWeeks, reconcileCloudNeat, PROFILE_PENDING_KEY } from './syncGuard';
 
 // ── Synchro AsyncStorage ⇄ Supabase ──────────────────────────────────────────
 // Principe : le local reste la copie de travail (offline-first), le cloud est un
@@ -34,7 +34,17 @@ const PROFILE_COLS = [
   'dietary_restrictions', 'disliked_foods', 'preferred_proteins', 'max_prep_time_min',
   'hidden_recipes',
   'weigh_in_frequency', 'fixed_meals',
+  // Étape 3 du moteur — migration 2026-07-28_profiles_neat_engine_rev.sql.
+  'neat_level', 'engine_rev', 'engine_notice',
 ] as const;
+
+// Colonnes de la DERNIÈRE migration. Si elle n'a pas encore été jouée côté Supabase,
+// Postgres rejette l'upsert ENTIER (PGRST204 « column does not exist ») : ce n'est
+// pas le champ manquant qu'on perd, c'est TOUT le profil qui cesse de se
+// synchroniser, en silence. Ce mode de panne s'est produit trois fois.
+// Le filet ci-dessous n'excuse pas de jouer la migration AVANT de déployer — il
+// transforme juste « synchro morte » en « tout passe sauf ces champs-là ».
+const PROFILE_COLS_LAST_MIGRATION: string[] = ['neat_level', 'engine_rev', 'engine_notice'];
 
 function profileToRow(p: UserProfile, uid: string): Record<string, any> {
   const row: Record<string, any> = { id: uid };
@@ -76,7 +86,14 @@ export async function pushProfile(p: UserProfile): Promise<boolean> {
   const uid = await currentUserId(); if (!uid) return false;
   try {
     const { error } = await supabase.from('profiles').upsert(profileToRow(p, uid));
-    if (error) return false;
+    if (!error) { await clearProfileDirty(); return true; }
+    // Rejet possible parce que la migration la plus récente n'est pas encore jouée.
+    // On retente SANS ses colonnes : mieux vaut un profil synchronisé à un champ
+    // près qu'un profil qui ne se synchronise plus du tout (cf. PROFILE_COLS_LAST_MIGRATION).
+    const row = profileToRow(p, uid);
+    for (const c of PROFILE_COLS_LAST_MIGRATION) delete row[c];
+    const retry = await supabase.from('profiles').upsert(row);
+    if (retry.error) return false;
     await clearProfileDirty();
     return true;
   } catch { return false; }
@@ -137,7 +154,10 @@ export async function hydrateFromCloud(uid: string): Promise<void> {
       // fix P3.3 (sports) + P0.1 (registre d'énergie basse) : une ligne cloud partielle
       // ne doit effacer NI les séances NI l'historique d'exposition — deux champs
       // cumulatifs, non re-dérivables depuis le reste du profil.
-      const cloud = reconcileCloudLowEaWeeks(reconcileCloudSports(rowToProfile(row, uid), local), local);
+      const cloud = reconcileCloudNeat(
+        reconcileCloudLowEaWeeks(reconcileCloudSports(rowToProfile(row, uid), local), local),
+        local,
+      );
       await AsyncStorage.setItem(PROFILE_KEY, JSON.stringify(normalizeProfileActivity(cloud)));
     } else if (local && (action === 'keep_local' || action === 'push_local')) {
       await pushProfile(local); // (re)pousse le local ; lève le flag si succès
