@@ -6,6 +6,11 @@
 > NEAT) : les tableaux de NEAT et le panel d'impact sur 12 profils y sont chiffrés.
 >
 > Les décisions déjà prises sont dans AGENTS.md ; ce document est la MESURE, pas la décision.
+>
+> ✅ **L'étape 3 a été livrée le 2026-07-28** (P1.2 MET nets + P1.1 chemin unique + NEAT
+> paramétrable + `engine_rev`). Ce document reste la trace des mesures qui l'ont
+> arbitrée — en particulier le tableau NEAT, qui est la raison pour laquelle
+> `desk = 1,20` est le défaut. Ne pas le relire comme un reste-à-faire.
 
 ---
 

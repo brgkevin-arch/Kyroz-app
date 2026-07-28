@@ -41,7 +41,12 @@ create table if not exists public.profiles (
   activity_level text,
   training_days_per_week int,
   low_ea_weeks jsonb, -- registre d'exposition à l'énergie disponible basse (plancher P0.1). NULL = aucun historique
-  sports jsonb not null default '[]',   -- [{type, sessions_per_week, minutes_per_session}] → TDEE précis (MET)
+  sports jsonb not null default '[]',   -- [{type, sessions_per_week, minutes_per_session}] → dépense sportive (MET nets)
+  -- Vie quotidienne HORS sport : 'desk'|'light'|'active'|'physical' → 1,20/1,28/1,36/1,45.
+  -- SANS contrainte d'énumération À DESSEIN : une valeur ajoutée côté app avant sa
+  -- migration ferait rejeter l'upsert ENTIER, donc perdre tout le profil. Le client
+  -- borne à la lecture (lib/tdee.ts::neatPal). NULL = question non posée → 'desk'.
+  neat_level text,
 
   -- Objectif & macros
   goal text,
@@ -70,6 +75,12 @@ create table if not exists public.profiles (
   max_prep_time_min int,
   hidden_recipes text[], -- ids de recettes masquées (👎). NULL/'{}' = aucune ; SOUPLE, réversible
   fixed_meals jsonb, -- repas gérés par l'user (type → {label,macros,source,ingredients?})
+
+  -- Révision du moteur ayant produit les cibles ci-dessus, et avertissement one-shot
+  -- déposé quand une révision déplace la cible de ≥ 100 kcal/j (cf. lib/tdee.ts).
+  -- Synchronisés pour que l'explication soit lue UNE fois, pas une par appareil.
+  engine_rev int,
+  engine_notice jsonb,
 
   -- RGPD : consentement explicite à la collecte des données de santé (spec §12)
   consent_health_data boolean not null default false,
@@ -102,6 +113,16 @@ alter table public.profiles
 
 alter table public.profiles
   add column if not exists goal_target jsonb;
+
+-- Étape 3 du moteur (cf. migrations/2026-07-28_profiles_neat_engine_rev.sql)
+alter table public.profiles
+  add column if not exists neat_level text;
+
+alter table public.profiles
+  add column if not exists engine_rev int;
+
+alter table public.profiles
+  add column if not exists engine_notice jsonb;
 
 -- Autorise le nouveau mode 'percent' sur les bases existantes.
 alter table public.profiles drop constraint if exists profiles_macro_mode_check;

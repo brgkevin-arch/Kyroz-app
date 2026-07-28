@@ -14,7 +14,7 @@
 | PR | Contenu | État |
 |---|---|---|
 | **PR 1** | P0.1 → P0.4 — sécurité | ✅ **Livré + audité** (branche `fix/moteur-p0-securite`, 2026-07-28) |
-| PR 2 | P1.1 → P1.6 — cohérence et justesse | À faire |
+| PR 2 | P1.1 → P1.6 — cohérence et justesse | ✅ **Livré** (étapes 1-2 puis 3, 2026-07-28) — **sauf P1.3, reporté en P2**. ⚠️ La spec avait tort sur plusieurs points : lire les encadrés « LIVRÉ » de chaque section, pas le corps. |
 | PR 3 | P2.1 → P2.2 — fonctionnalités manquantes | À faire |
 
 ### Audit adverse du P0 (2026-07-28)
@@ -503,6 +503,37 @@ plancher, aucun `NaN`/`Infinity`, `4P+4G+9L ≈ budget` à moins de 1 %, idempot
 
 ## P1.1 — Chemin de calcul TDEE unique
 
+> ### ✅ LIVRÉ 2026-07-28 — mais PAS comme écrit ci-dessous. Lire ceci d'abord.
+>
+> Le diagnostic est bon, **trois prescriptions sont dangereuses ou inutiles** :
+>
+> 1. **Le défaut NEAT à `light` (1,35) est REJETÉ.** C'est le vrai danger de tout P1,
+>    et il n'est pas dans le diagnostic. Mesuré, à physiologie constante : 1,35 efface
+>    **61 à 87 % du déficit** d'un sédentaire (H 30 ans / 85 kg : −216 → **−28** kcal/j)
+>    et transforme la sèche d'une F de 95 kg à 45 %MG en **prise** (+12 kcal/j). Même
+>    1,30 en efface 45 à 64 %. Livré avec **`desk` = 1,20 par défaut** — le jugement
+>    déjà encodé par l'ancien `activityMultiplier(0)`.
+> 2. **La table est ramenée à `1,20 / 1,28 / 1,36 / 1,45`.** 1,50 et 1,65 sont des
+>    niveaux « exercice inclus » : ils recouvriraient les MET déjà comptés à part.
+> 3. **Pas de question à l'onboarding** (friction contre la North Star) : la question
+>    vit dans Profil → « Sport & activité ».
+> 4. **Pas de séances synthétiques** (`SYNTHETIC_MET`). Inventer 6,0 MET × 60 min pour
+>    un profil legacy fabrique une dépense que personne n'a déclarée — et gonfle son
+>    plancher EA au passage (l'encadré ⚠️ de cette section le pressentait). Le chemin
+>    unique suffit : sans séance chiffrable, le TDEE vaut `BMR × NEAT`.
+> 5. **La décroissance temporelle est HORS PÉRIMÈTRE** : aucun journal d'entraînement
+>    n'existe (aucune clé AsyncStorage, `SportSession` sans date). Prescrire −248 kcal/j
+>    à quelqu'un qui s'entraîne mais ne logge pas serait une régression, pas un
+>    correctif. C'est une feature.
+>
+> ⚠️ **Le fait qui justifie l'item n'est pas celui du tableau ci-dessous.** Le vrai
+> défaut est une **discontinuité vivante** : déclarer 1 séance de 15 min de marche
+> (le minimum saisissable) faisait bondir le TDEE de **+116 à +245 kcal/j** (médiane
+> +181, positif dans 100 % des 360 profils balayés). Ce n'est pas un sujet de comptes
+> legacy — ça touchait tous les comptes vivants.
+>
+> Livré : `calculateTDEE(profile)` = `BMR × neatPal(neat_level) + exerciseKcalPerDay`.
+
 **Problème.** Les méthodes A (MET) et B (multiplicateur) ne sont pas commensurables.
 A sous-estime B de 200–260 kcal systématiquement. Deux utilisateurs identiques
 obtiennent des budgets différents selon leur parcours d'onboarding.
@@ -547,6 +578,26 @@ séance n'est loggée depuis 14 jours, décroître linéairement la charge créd
 > vérifier sur les 20 profils du stress-test avant merge.
 
 ## P1.2 — MET net
+
+> ### ✅ LIVRÉ 2026-07-28 — le `MET − 1` SEUL. Les trois ajouts sont rejetés.
+>
+> - **Musculation 5,0 → 4,0 : NON.** 4,0 ne correspond à aucune ligne du Compendium,
+>   et le motif invoqué (repos inter-séries) est déjà traité — en partie — par le
+>   `MET − 1` lui-même. Empiler les deux corrige deux fois le même phénomène.
+> - **Facteur 0,85 pour les 60+ : NON.** L'arithmétique contredit sa propre
+>   justification : `2,7 / 3,5 = 0,771`, pas 0,85. Et ce serait une falaise le jour de
+>   l'anniversaire, sur une population hors cible.
+> - **`clamp(minutes, 5, 240)` : NON.** Les bornes de saisie restent **15–180**, comme
+>   la spec le prescrit elle-même ailleurs.
+> - **Amplitude réelle : −38 à −58 kcal/j**, pas les « −62 à −169 » annoncés — ce
+>   chiffre incluait la musculation à 4,0.
+> - ➕ **Bénéfice non anticipé** : la dépense nette EST la définition de l'EEE du
+>   calcul d'énergie disponible RED-S. La marge d'EA au plancher passe de 30,7–30,8 à
+>   **30,00 exact** — elle était partiellement fictive. La collision avec P0.1 est
+>   donc réelle mais bien plus petite qu'annoncé (0,7–0,8 kcal/kg de masse maigre,
+>   pas 1,3–2,5), le plancher baissant exactement du même Δ que le TDEE.
+>
+> Livré : `lib/sport.ts::RESTING_MET` + `sessionKcal` sur `max(0, MET − 1)`.
 
 **Problème.** `MET × 3,5 × poids / 200` donne la dépense **brute**, métabolisme de
 repos inclus. Or `BMR × NEAT` couvre déjà les 24 h. On recompte le repos pendant la

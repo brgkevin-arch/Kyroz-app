@@ -9,6 +9,8 @@ import { SportSession, SportType } from './types';
 // d'exhaustivité, juste de quoi rendre le TDEE crédible sans friction.
 //
 // kcal/min = MET × 3.5 × poids(kg) / 200   (formule standard ACSM)
+//
+// ⚠️ On applique le MET **NET** (MET − 1), pas le MET brut — cf. RESTING_MET.
 
 export const SPORT_MET: Record<SportType, number> = {
   musculation: 5.0,
@@ -48,11 +50,34 @@ export const MIN_SESSION_MIN = 15;
 export const MAX_SESSION_MIN = 180;
 export const MAX_SESSIONS_PER_WEEK = 14;
 
+/**
+ * Coût métabolique de repos, déjà compté ailleurs (1 MET ≈ métabolisme assis).
+ *
+ * Le TDEE vaut `BMR × NEAT + dépense sport` : le premier terme couvre DÉJÀ les
+ * 24 heures de la journée, séance comprise. Créditer le MET brut d'une séance
+ * revient donc à facturer deux fois l'heure passée à s'entraîner — une fois au
+ * repos dans le NEAT, une fois à l'effort dans les MET. On ne crédite que le
+ * SURPLUS d'énergie dû à l'effort : `(MET − 1)`.
+ *
+ * Double bénéfice : la dépense d'exercice ainsi obtenue est la définition même de
+ * l'EEE (Exercise Energy Expenditure) du calcul d'énergie disponible RED-S —
+ * `EA = (apports − EEE) / masse maigre` se mesure sur la dépense NETTE. Le plancher
+ * de sécurité mesurait donc jusqu'ici une marge d'EA légèrement fictive (30,7–30,8
+ * au lieu de 30,0 exact).
+ *
+ * Amplitude mesurée : −38 à −58 kcal/jour sur la cible servie (`Δ = 0,0025 × poids
+ * × minutes hebdo`). Volontairement SEUL : ni musculation ramenée à 4,0 (valeur
+ * d'aucune ligne du Compendium, et qui traiterait une deuxième fois une partie du
+ * même phénomène), ni correction 60+ (2,7/3,5 = 0,771 et non 0,85 : l'arithmétique
+ * contredit sa propre justification, et crée une falaise à l'anniversaire).
+ */
+export const RESTING_MET = 1;
+
 /** Calories dépensées en une séance d'un sport donné, pour un poids donné. */
 export function sessionKcal(type: SportType, weight_kg: number, minutes: number): number {
-  const met = SPORT_MET[type] ?? 0;
+  const netMet = Math.max(0, (SPORT_MET[type] ?? 0) - RESTING_MET);
   const mins = clamp(minutes, MIN_SESSION_MIN, MAX_SESSION_MIN);
-  return (met * 3.5 * weight_kg / 200) * mins;
+  return (netMet * 3.5 * weight_kg / 200) * mins;
 }
 
 /**

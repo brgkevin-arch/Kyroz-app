@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   calculateBMR, calculateTDEE, calculateMacros, macrosPercent, recalcProfile,
   leanBodyMass, validateProfile, recommendedProteinPerKg, kcalFromMacros,
-  MIN_KCAL, MIN_AGE, DEFAULT_CARB_RATIO, NEAT_BASE_PAL, proteinTarget,
+  MIN_KCAL, MIN_AGE, DEFAULT_CARB_RATIO, NEAT_PAL, neatPal, proteinTarget,
   computePlan,
 } from '../tdee';
 import { fatFreeMassKg } from '../safety';
@@ -33,32 +33,61 @@ describe('BMR', () => {
 });
 
 describe('TDEE', () => {
-  it('multiplicateur selon les séances/semaine (legacy, sans sports)', () => {
-    expect(calculateTDEE('male', 90, 180, 30, 0)).toBe(Math.round(1880 * 1.2));
-    expect(calculateTDEE('male', 90, 180, 30, 4)).toBe(Math.round(1880 * 1.55));
-    expect(calculateTDEE('male', 90, 180, 30, 7)).toBe(Math.round(1880 * 1.9));
+  const H = { sex: 'male' as const, weight_kg: 90, height_cm: 180, age: 30 };
+
+  it('chemin UNIQUE : BMR × NEAT + dépense sport, quel que soit le profil', () => {
+    // BMR 1880 (Mifflin). Sans sport : le NEAT seul.
+    expect(calculateTDEE(H)).toBe(Math.round(1880 * NEAT_PAL.desk));
+    const sports = [{ type: 'musculation' as const, sessions_per_week: 4, minutes_per_session: 60 }];
+    const perDay = exerciseKcalPerDay(sports, 90);
+    expect(calculateTDEE({ ...H, sports })).toBe(Math.round(1880 * NEAT_PAL.desk + perDay));
   });
 
-  it('méthode MET quand des sports sont renseignés : BMR×1.3 + dépense sport/jour', () => {
-    // BMR 1880 (Mifflin). 4× muscu 60 min @90kg.
-    const perDay = exerciseKcalPerDay(
-      [{ type: 'musculation', sessions_per_week: 4, minutes_per_session: 60 }], 90,
-    );
-    expect(calculateTDEE('male', 90, 180, 30, 4, undefined,
-      [{ type: 'musculation', sessions_per_week: 4, minutes_per_session: 60 }],
-    )).toBe(Math.round(1880 * NEAT_BASE_PAL + perDay));
+  it('le niveau NEAT pilote la base, pas le nombre de séances', () => {
+    expect(calculateTDEE({ ...H, neat_level: 'desk' })).toBe(Math.round(1880 * 1.20));
+    expect(calculateTDEE({ ...H, neat_level: 'light' })).toBe(Math.round(1880 * 1.28));
+    expect(calculateTDEE({ ...H, neat_level: 'active' })).toBe(Math.round(1880 * 1.36));
+    expect(calculateTDEE({ ...H, neat_level: 'physical' })).toBe(Math.round(1880 * 1.45));
   });
 
-  it('non-régression : sports vide/undefined → repli legacy à l\'identique', () => {
-    expect(calculateTDEE('male', 90, 180, 30, 4, undefined, [])).toBe(Math.round(1880 * 1.55));
-    expect(calculateTDEE('male', 90, 180, 30, 4, undefined, undefined)).toBe(Math.round(1880 * 1.55));
+  it('NEAT absent ou inconnu → défaut « bureau » (1,20), jamais un surplus inventé', () => {
+    expect(neatPal(undefined)).toBe(1.20);
+    expect(neatPal(null)).toBe(1.20);
+    expect(neatPal('zumba' as any)).toBe(1.20);
+    // Un défaut plus haut (1,30/1,35) effacerait 45 à 87 % du déficit d'un sédentaire.
+    expect(NEAT_PAL.desk).toBeLessThan(1.3);
   });
 
-  it('recalcProfile utilise les sports du profil', () => {
-    const p = makeProfile({ sports: [{ type: 'course', sessions_per_week: 3, minutes_per_session: 45 }] });
+  it('P1.1 — plus de marche d\'escalier : déclarer 15 min de marche ne fait pas bondir le TDEE', () => {
+    // Avant l'étape 3, cocher UNE séance de 15 min (le minimum saisissable) faisait
+    // basculer de `BMR × multiplicateur legacy` vers `BMR × 1,3 + MET` : +116 à +245
+    // kcal/jour, positif dans 100 % des cas mesurés. Le saut doit maintenant valoir
+    // exactement ce que coûte la séance — c'est-à-dire presque rien.
+    const sansSport = calculateTDEE(H);
+    const uneMarche = calculateTDEE({
+      ...H, sports: [{ type: 'marche_rapide', sessions_per_week: 1, minutes_per_session: 15 }],
+    });
+    expect(uneMarche - sansSport).toBeLessThan(15);
+    expect(uneMarche).toBeGreaterThanOrEqual(sansSport);
+  });
+
+  it('P1.1 — continuité : chaque séance ajoutée coûte le même incrément', () => {
+    const at = (n: number) => calculateTDEE({
+      ...H, sports: [{ type: 'musculation', sessions_per_week: n, minutes_per_session: 60 }],
+    });
+    const pas = [1, 2, 3, 4, 5, 6, 7].map((n) => at(n) - at(n - 1 || 0));
+    // Les marches legacy valaient +311 kcal entre 2 et 3 séances, puis 0 entre 3 et 4.
+    for (const p of pas.slice(1)) expect(Math.abs(p - pas[1])).toBeLessThanOrEqual(1);
+  });
+
+  it('recalcProfile utilise les sports ET le NEAT du profil', () => {
+    const p = makeProfile({
+      sports: [{ type: 'course', sessions_per_week: 3, minutes_per_session: 45 }],
+      neat_level: 'active',
+    });
     const bmr = calculateBMR(p.sex, p.weight_kg, p.height_cm, p.age, p.body_fat_pct);
     const perDay = exerciseKcalPerDay(p.sports, p.weight_kg);
-    expect(recalcProfile(p).tdee_kcal).toBe(Math.round(bmr * NEAT_BASE_PAL + perDay));
+    expect(recalcProfile(p).tdee_kcal).toBe(Math.round(bmr * NEAT_PAL.active + perDay));
   });
 });
 
@@ -247,12 +276,17 @@ describe('Unicité & stabilité du TDEE', () => {
     expect(later.tdee_kcal).toBe(stored.tdee_kcal);
   });
 
-  it('sélection de méthode = fonction du profil seul (MET si sports, multiplicateur sinon)', () => {
+  it('P1.1 — UNE seule formule : `training_days_per_week` ne pilote plus le TDEE', () => {
     const bmr = calculateBMR('male', 90, 180, 30); // Mifflin (pas de %MG)
-    const sansSport = recalcProfile(makeProfile({ sports: [], training_days_per_week: 3 }));
-    expect(sansSport.tdee_kcal).toBe(Math.round(bmr * 1.55)); // multiplicateur 3–4 j
+    // Il y avait deux méthodes choisies selon que `sports` était rempli : c'est
+    // exactement ce qui produisait la marche d'escalier. Sans séance, le TDEE ne
+    // dépend plus que du NEAT — le compteur de séances peut valoir n'importe quoi.
+    for (const days of [0, 3, 7]) {
+      const p = recalcProfile(makeProfile({ sports: [], training_days_per_week: days }));
+      expect(p.tdee_kcal, `training_days=${days}`).toBe(Math.round(bmr * NEAT_PAL.desk));
+    }
     const avecSport = recalcProfile(makeProfile({ sports: [{ type: 'musculation', sessions_per_week: 3, minutes_per_session: 60 }] }));
-    expect(avecSport.tdee_kcal).toBe(Math.round(bmr * NEAT_BASE_PAL + exerciseKcalPerDay(avecSport.sports, 90))); // MET
+    expect(avecSport.tdee_kcal).toBe(Math.round(bmr * NEAT_PAL.desk + exerciseKcalPerDay(avecSport.sports, 90)));
   });
 
   it('FRONTIÈRE SYNCHRO (documentée, hors périmètre) : sports perdus + training_days conservé → bascule de méthode', () => {
