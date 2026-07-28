@@ -34,12 +34,12 @@ describe('helpers de date', () => {
 
 describe('datedGoalStatus — trajectoire', () => {
   it('renvoie null sans objectif', () => {
-    expect(datedGoalStatus(undefined, BODY80, TODAY, TDEE)).toBeNull();
+    expect(datedGoalStatus(undefined, BODY80, TODAY, TDEE, null)).toBeNull();
     expect(datedGoalKcalDelta(undefined, BODY80, TODAY, TDEE)).toBeNull();
   });
 
   it('sèche douce : rythme non bridé, déficit modéré', () => {
-    const s = datedGoalStatus(target(76, 12), BODY80, TODAY, TDEE)!;
+    const s = datedGoalStatus(target(76, 12), BODY80, TODAY, TDEE, null)!;
     expect(s.active).toBe(true);
     expect(s.direction).toBe('lose');
     expect(s.clamped).toBe(false);
@@ -51,7 +51,7 @@ describe('datedGoalStatus — trajectoire', () => {
   });
 
   it('sèche trop rapide : rythme bridé au plafond sûr (modulé par l adiposité)', () => {
-    const s = datedGoalStatus(target(70, 4), BODY80, TODAY, TDEE)!;
+    const s = datedGoalStatus(target(70, 4), BODY80, TODAY, TDEE, null)!;
     expect(s.clamped).toBe(true);
     // %MG estimé ~20 % → ni sec ni très gras → plafond 0,75 %/sem = -0,6 kg/sem
     expect(maxWeeklyLossPct(BODY80)).toBe(0.75);
@@ -64,7 +64,7 @@ describe('datedGoalStatus — trajectoire', () => {
   });
 
   it('prise trop rapide : bridée au plafond sûr (0,5 %/sem)', () => {
-    const s = datedGoalStatus(target(78, 8, 70), BODY70, TODAY, 2700)!;
+    const s = datedGoalStatus(target(78, 8, 70), BODY70, TODAY, 2700, null)!;
     expect(s.direction).toBe('gain');
     expect(s.clamped).toBe(true);
     // plafond = +0,5 % de 70 = +0,35 kg/sem. Le kg PRIS coûte 5000 kcal (tissu mixte,
@@ -75,7 +75,7 @@ describe('datedGoalStatus — trajectoire', () => {
   });
 
   it('poids déjà atteint : maintien, delta 0, actif', () => {
-    const s = datedGoalStatus(target(80.1, 8), BODY80, TODAY, TDEE)!;
+    const s = datedGoalStatus(target(80.1, 8), BODY80, TODAY, TDEE, null)!;
     expect(s.direction).toBe('maintain');
     expect(s.dailyKcalDelta).toBe(0);
     expect(s.active).toBe(true);
@@ -83,7 +83,7 @@ describe('datedGoalStatus — trajectoire', () => {
 
   it('échéance passée : inactif, aucun pilotage', () => {
     const past: GoalTarget = { target_weight_kg: 74, target_date: addDaysStamp(TODAY, -7), start_weight_kg: 80, start_date: addDaysStamp(TODAY, -90) };
-    const s = datedGoalStatus(past, BODY80, TODAY, TDEE)!;
+    const s = datedGoalStatus(past, BODY80, TODAY, TDEE, null)!;
     expect(s.active).toBe(false);
     expect(datedGoalKcalDelta(past, BODY80, TODAY, TDEE)).toBeNull();
   });

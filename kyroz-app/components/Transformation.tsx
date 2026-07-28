@@ -23,18 +23,26 @@ const PHOTO_ROW_MAX_WIDTH = 420;
  * que la pente est un repère et que Kyroz réajuste les calories tout seul. On met en
  * avant l'acquis (kg déjà pris/perdus), pas l'écart à la ligne.
  */
-export function TrackVerdict({ t, goalTarget, currentWeightKg }: {
+export function TrackVerdict({ t, goalTarget, currentWeightKg, paused = false }: {
   t: ThemePalette; goalTarget: GoalTarget; currentWeightKg: number;
+  /** Le moteur ne pilote plus la trajectoire (insuffisance pondérale, sens contradictoire). */
+  paused?: boolean;
 }) {
-  const st = trackStatus(goalTarget, currentWeightKg, todayStamp());
+  const st = trackStatus(goalTarget, currentWeightKg, todayStamp(), paused);
   if (!st) return null;
 
   const losing = goalTarget.target_weight_kg < goalTarget.start_weight_kg;
   // Progrès DANS LE BON SENS depuis le départ (positif = tu avances).
   const progress = Math.round((goalTarget.start_weight_kg - currentWeightKg) * (losing ? 1 : -1) * 10) / 10;
 
+  // `paused` : le plan est bloqué à la maintenance, donc le poids ne PEUT plus
+  // descendre — mais la trajectoire idéale, elle, continuait de descendre. On
+  // affichait « en retard » à quelqu'un à qui l'app venait d'interdire tout déficit.
+  // Reprocher un retard qu'on impose soi-même est exactement la charge mentale
+  // qu'on refuse : ici on constate la pause, on ne juge rien.
   const headline =
-    st.state === 'ahead' ? { txt: '🔥 En avance sur ton objectif', color: t.success }
+    st.state === 'paused' ? { txt: 'Suivi en pause', color: t.text }
+    : st.state === 'ahead' ? { txt: '🔥 En avance sur ton objectif', color: t.success }
     : st.state === 'on_track' ? { txt: '✓ Dans ta zone', color: t.success }
     : { txt: losing ? 'Ça descend à ton rythme' : 'Ça monte à ton rythme', color: t.text };
 
@@ -47,7 +55,9 @@ export function TrackVerdict({ t, goalTarget, currentWeightKg }: {
         </Text>
       )}
       <Text style={{ color: t.textTertiary, fontSize: 12, lineHeight: 17 }}>
-        La pente est un repère, pas une règle — à chaque pesée, Kyroz réajuste tes calories pour viser {goalTarget.target_weight_kg} kg le {frDate(goalTarget.target_date)}.
+        {st.state === 'paused'
+          ? 'Kyroz ne pilote plus cette trajectoire pour le moment — ton plan est au maintien. Ton objectif reste enregistré.'
+          : `La pente est un repère, pas une règle — à chaque pesée, Kyroz réajuste tes calories pour viser ${goalTarget.target_weight_kg} kg le ${frDate(goalTarget.target_date)}.`}
       </Text>
     </View>
   );

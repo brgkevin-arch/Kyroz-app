@@ -220,12 +220,14 @@ Le compteur se calcule **en cumulé sur 12 mois glissants, pas en consécutif** 
 sinon une pause d'une semaine remet tout à zéro et le garde-fou ne sert à rien.
 
 ```ts
-const LOW_EA_BUDGET_WEEKS = 12;
 const EA_HARD_FLOOR = 30;
 const EA_OPTIMAL = 35;
+const LOW_EA_BUDGET_WEEKS = 12;
+const LOW_EA_STEP_PER_WEEK = 0.5;
+const MIN_KCAL: Record<Sex, number> = { male: 1500, female: 1200 };
 
-function isFemaleAtRisk(p: BodyInput): boolean {
-  return p.sex === 'female' && !p.is_post_menopausal;
+function isFemaleAtRisk(b: BodyInput): boolean {
+  return b.sex === 'female' && !b.is_post_menopausal;
 }
 
 /**
@@ -233,20 +235,35 @@ function isFemaleAtRisk(p: BodyInput): boolean {
  * calculé depuis l'historique et la date passée en paramètre, jamais depuis
  * une horloge implicite.
  */
-function effectiveEaPerKgFfm(p: BodyInput, weeksInLowEa: number): number {
-  if (!isFemaleAtRisk(p)) return EA_HARD_FLOOR;
+function effectiveEaPerKgFfm(b: BodyInput, weeksInLowEa: number): number {
+  if (!isFemaleAtRisk(b)) return EA_HARD_FLOOR;
   const overrun = Math.max(0, weeksInLowEa - LOW_EA_BUDGET_WEEKS);
-  return Math.min(EA_OPTIMAL, EA_HARD_FLOOR + overrun * 0.5);
+  return Math.min(EA_OPTIMAL, EA_HARD_FLOOR + overrun * LOW_EA_STEP_PER_WEEK);
 }
 
 export function safetyFloorKcal(
-  p: BodyInput, bmr: number, sportKcalPerDay: number, weeksInLowEa: number,
+  b: BodyInput,
+  bmr: number,
+  sportKcalPerDay: number,
+  weeksInLowEa: number,
+  maintenanceKcal: number,
 ): number {
-  const eaFloor = effectiveEaPerKgFfm(p, weeksInLowEa) * fatFreeMassKg(p) + sportKcalPerDay;
-  const absoluteFloor = p.sex === 'male' ? 1500 : 1200;
-  return Math.round(Math.max(bmr, eaFloor, absoluteFloor));
+  const eaFloor = effectiveEaPerKgFfm(b, weeksInLowEa) * fatFreeMassKg(b) + sportKcalPerDay;
+  const cappedEaFloor = Math.min(eaFloor, maintenanceKcal);
+  return Math.round(Math.max(bmr, cappedEaFloor, MIN_KCAL[b.sex]));
 }
 ```
+
+⚠️ **Le 5ᵉ paramètre `maintenanceKcal` n'est pas décoratif — c'est lui qui empêche le
+plancher de prescrire un SURPLUS.** Sans le `Math.min(eaFloor, maintenanceKcal)`, une
+femme dont l'EA de maintenance est naturellement sous 35 (cas courant, pas cas limite :
+125 kg, 36 % de MG, sédentaire → EA 31,5) voyait le plancher escaladé dépasser son TDEE
+de **+282 kcal/jour**, soit ~1,3 kg de prise par mois prescrits par le garde-fou
+lui-même — le défaut trouvé à l'audit adverse. Le BMR et le filet absolu (1500/1200),
+eux, ne sont **pas** plafonnés : ils restent des minima durs, car si le TDEE tombe sous
+eux, c'est l'estimation de dépense qui est fausse, pas le besoin physiologique.
+Ré-implémenter depuis cette spec sans ce `Math.min` réintroduit le défaut à l'identique.
+Source de vérité : `lib/safety.ts::safetyFloorKcal`.
 
 **Intégration.** Ce plancher est appliqué **en aval de tout** — y compris de la
 calibration P2.2 et du cyclage P2.1. Aucun chemin de code ne peut le contourner,

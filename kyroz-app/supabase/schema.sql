@@ -14,6 +14,12 @@
 -- ════════════════════════════════════════════════════════════════════════════
 
 -- ── 1. PROFILS (1:1 avec auth.users) ────────────────────────────────────────
+-- ⚠️ INVARIANT : toute colonne listée dans `PROFILE_COLS` (lib/sync.ts) DOIT exister
+-- ici. Une base recréée depuis ce seul fichier avec une colonne manquante ne lève
+-- aucune exception : le push profil retombe en 400/PGRST204, le client Supabase
+-- renvoie { error } sans throw → le profil reste « dirty » et la synchro cloud est
+-- morte en silence. `low_ea_weeks` et `hidden_recipes` manquaient (audit 2026-07-28,
+-- ils n'existaient que dans supabase/migrations/) — d'où ce rappel.
 create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   email text,
@@ -22,12 +28,19 @@ create table if not exists public.profiles (
 
   -- Données de base
   sex text check (sex in ('male','female')),
-  age int check (age is null or (age >= 16 and age <= 100)), -- garde-fou §11
+  age int check (age is null or (age >= 16 and age <= 100)),
+  -- ⚠️ 16, PAS 18, À DESSEIN. L'âge minimum PRODUIT est 18 (lib/safety.ts::MIN_AGE,
+  -- relevé le 2026-07-28) et il est appliqué côté client (onboarding + éditeur Infos).
+  -- Resserrer cette contrainte à 18 ferait rejeter les lignes des comptes de 16-17 ans
+  -- créés AVANT le relèvement, à leur prochaine écriture — l'upsert du profil est
+  -- global, donc ils perdraient toute synchro cloud en silence. Un filet de dernier
+  -- recours ne doit pas casser ce qu'il attrape.
   weight_kg numeric,
   height_cm numeric,
-  body_fat_pct numeric check (body_fat_pct is null or (body_fat_pct >= 3 and body_fat_pct <= 60)),
+  body_fat_pct numeric check (body_fat_pct is null or (body_fat_pct >= 3 and body_fat_pct <= 65)),
   activity_level text,
   training_days_per_week int,
+  low_ea_weeks jsonb, -- registre d'exposition à l'énergie disponible basse (plancher P0.1). NULL = aucun historique
   sports jsonb not null default '[]',   -- [{type, sessions_per_week, minutes_per_session}] → TDEE précis (MET)
 
   -- Objectif & macros
@@ -55,6 +68,7 @@ create table if not exists public.profiles (
   disliked_foods text[] not null default '{}',
   preferred_proteins text[] not null default '{}',
   max_prep_time_min int,
+  hidden_recipes text[], -- ids de recettes masquées (👎). NULL/'{}' = aucune ; SOUPLE, réversible
   fixed_meals jsonb, -- repas gérés par l'user (type → {label,macros,source,ingredients?})
 
   -- RGPD : consentement explicite à la collecte des données de santé (spec §12)
@@ -69,7 +83,7 @@ create table if not exists public.profiles (
 -- (create table if not exists ci-dessus ne modifie pas une table existante).
 alter table public.profiles
   add column if not exists body_fat_pct numeric
-  check (body_fat_pct is null or (body_fat_pct >= 3 and body_fat_pct <= 60));
+  check (body_fat_pct is null or (body_fat_pct >= 3 and body_fat_pct <= 65));
 
 alter table public.profiles
   add column if not exists carb_ratio int

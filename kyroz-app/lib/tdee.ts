@@ -1,6 +1,6 @@
 import { Goal, PlanFlag, Sex, SportSession, UserProfile } from './types';
 import { exerciseKcalPerDay } from './sport';
-import { datedGoalStatus, goalDirectionMismatch } from './datedGoal';
+import { datedGoalStatus, goalDirectionMismatch, MAX_DEFICIT_TDEE_RATIO } from './datedGoal';
 import { todayStamp } from './weight';
 import {
   BodyInput, MIN_AGE, MIN_KCAL, EA_OPTIMAL, LOW_EA_BUDGET_WEEKS, countsAsLowEaWeek,
@@ -141,6 +141,35 @@ export function proteinTarget(body: BodyInput, goal: Goal): number {
 // entre jours relève du cyclage, hors périmètre de cette PR).
 export const CARB_TRAINING_FLOOR_PER_KG = 3;
 
+// ── Plancher lipidique (P1.4) ────────────────────────────────────────────────
+//
+// Indexé sur la MASSE MAIGRE, pas sur le poids de corps. La spec proposait
+// 0,5 g/kg de poids ; ç'aurait été refaire à l'identique l'erreur que P0.2 vient de
+// corriger sur les protéines — chez une femme de 125 kg à 52 % de masse grasse, ça
+// donne 1,42 g/kg de masse maigre et jusqu'à 42,6 % des calories en lipides, prélevés
+// sur les glucides. Le tissu adipeux n'a pas de besoin lipidique ; la masse maigre si.
+//
+// 0,8 g/kg de masse maigre ne mord AUCUN profil sain en mode auto (les 25 % de kcal y
+// suffisent déjà) : le trou réel est le mode « Perso % », où l'utilisateur peut pousser
+// les glucides jusqu'à ne laisser que 0,22 g/kg — 6,6 % des calories, sous le seuil de
+// carence (hormones stéroïdiennes, vitamines liposolubles).
+export const FAT_MIN_PER_KG_FFM = 0.8;
+
+/**
+ * Cible lipidique (g) : la part calorique habituelle, relevée au plancher
+ * physiologique, et BORNÉE PAR LE BUDGET.
+ *
+ * Le bornage n'est pas décoratif : sur les gabarits où le plancher de sécurité est
+ * plafonné à la maintenance, `FAT_MIN_PER_KG_FFM × masse maigre` peut dépasser la
+ * cible entière — on servirait alors un budget négatif en glucides ET en protéines.
+ * Un plancher qui rend le plan infaisable n'est plus un plancher.
+ */
+export function fatTargetG(targetKcal: number, body: BodyInput, share: number = 0.25): number {
+  const fromShare = (targetKcal * share) / 9;
+  const floor = FAT_MIN_PER_KG_FFM * fatFreeMassKg(body);
+  return Math.round(Math.min(Math.max(fromShare, floor), targetKcal / 9));
+}
+
 /** Glucides sous le plancher « jour de séance » ? Partagé par les trois modes. */
 function isTrainingCarbShort(carbs_g: number, weight_kg: number): boolean {
   return carbs_g < CARB_TRAINING_FLOOR_PER_KG * weight_kg;
@@ -195,7 +224,21 @@ function floorAndFlags(body: MacroBody, tdee: number, requestedKcal: number, opt
   const maintenance = Number.isFinite(tdee) && tdee > 0 ? Math.round(tdee) : 0;
   const deficitRequested = maintenance > 0 && requestedKcal < maintenance;
   const underweightCapped = deficitRequested && deficitBlocked(body);
-  const floor_kcal = underweightCapped ? Math.max(baseFloor, maintenance) : baseFloor;
+
+  // ── Plafond de déficit à 25 % du TDEE, sur TOUS les chemins ────────────────
+  // CLAUDE.md §6 le range parmi les hard blocks, mais il n'était appliqué que sur
+  // le chemin « objectif daté » (datedGoal.MAX_DEFICIT_TDEE_RATIO). Les deltas figés
+  // de GOAL_CONFIG n'étaient plafonnés par rien : mesuré, une femme de 55 ans, 60 kg,
+  // 4 séances, en « sèche rapide » recevait 28 % de déficit sans le moindre drapeau.
+  // Un plafond de déficit EST un plancher calorique — il rejoint donc naturellement
+  // les autres, et ne peut par construction pas créer de surplus (75 % < 100 %).
+  const deficitCapFloor = maintenance > 0 ? Math.round(maintenance * (1 - MAX_DEFICIT_TDEE_RATIO)) : 0;
+
+  const floor_kcal = Math.max(
+    baseFloor,
+    deficitCapFloor,
+    underweightCapped ? maintenance : 0,
+  );
 
   const target_kcal = Math.max(requestedKcal, floor_kcal);
 
@@ -236,7 +279,7 @@ export function calculateMacros(
   const { target_kcal, floor_kcal, flags } = floorAndFlags(body, tdee, tdee + kcalDelta, opts);
 
   const protein_g = proteinTarget(body, goal);
-  const fat_g = Math.round((target_kcal * 0.25) / 9);
+  const fat_g = fatTargetG(target_kcal, body);
   const carbs_g = carbsFromRemaining(target_kcal - protein_g * 4 - fat_g * 9, body, opts, flags);
 
   return { target_kcal, protein_g, carbs_g, fat_g, floor_kcal, flags };
@@ -251,6 +294,29 @@ export function kcalFromMacros(protein_g: number, carbs_g: number, fat_g: number
 // mais protéines et répartition glucides/lipides sont pilotées par l'utilisateur
 // (bornes de saisie côté UI). Le plancher de sécurité s'applique de la même façon.
 export const DEFAULT_CARB_RATIO = 55; // % glucides des calories non-protéiques
+
+// Bornes du curseur « Perso % » — SOURCE UNIQUE, lue par l'écran ET par le moteur.
+//
+// Le maximum descend de 90 à 75 (P1.4). À 90, le plan servait 19 g de lipides, soit
+// 7,3 % des calories ; à 100 (valeur que la base acceptait et que le moteur clampait
+// à 100, pas à la borne de l'écran), il servait ZÉRO gramme de lipides sans lever le
+// moindre drapeau. 75 laisse 18,5 % des calories en lipides — au-dessus du seuil de
+// carence, et toujours largement « low carb » pour qui le veut.
+export const CARB_RATIO_MIN = 10;
+export const CARB_RATIO_MAX = 75;
+
+/**
+ * `carb_ratio` ramené dans les bornes, À LA LECTURE.
+ *
+ * Une constante d'écran ne migre aucun compte : `carb_ratio` est PERSISTÉ (et
+ * synchronisé), donc quelqu'un qui a enregistré 90 avant ce correctif garderait
+ * 19 g de lipides pour toujours si on se contentait d'abaisser le maximum du
+ * curseur. C'est le même raisonnement que pour le plancher rétroactif du P0.
+ */
+export function clampCarbRatio(v: number | undefined | null): number {
+  if (typeof v !== 'number' || !Number.isFinite(v)) return DEFAULT_CARB_RATIO;
+  return clamp(Math.round(v), CARB_RATIO_MIN, CARB_RATIO_MAX);
+}
 
 export function macrosPercent(
   tdee: number,
@@ -281,9 +347,19 @@ export function macrosPercent(
   const remaining = target_kcal - protein_g * 4;
   if (remaining < 0) flags.push('MACRO_BUDGET_OVERFLOW');
   const usable = Math.max(0, remaining);
-  const ratio = clamp(carbRatio, 0, 100) / 100;
-  const carbs_g = Math.max(0, Math.round((usable * ratio) / 4));
-  const fat_g = Math.round((usable * (1 - ratio)) / 9);
+  const ratio = clampCarbRatio(carbRatio) / 100;
+
+  // Les lipides d'abord, plancher physiologique compris (P1.4) : c'est ICI que le
+  // trou était, pas en mode auto. Le curseur pouvait laisser 12 à 20 g de lipides
+  // (6,6 % des calories) sur des profils parfaitement ordinaires, et `carb_ratio`
+  // étant PERSISTÉ, abaisser la borne de l'écran n'aurait rien changé aux comptes
+  // qui stockent déjà 90 — d'où le clamp à la lecture (cf. syncGuard).
+  //
+  // Les glucides sont ensuite le RELIQUAT et non une part indépendante : relever les
+  // lipides sans les recalculer faisait dépasser le budget de +13,5 %. En mode auto
+  // les glucides jouaient déjà ce rôle, ce chemin-ci ne le faisait pas.
+  const fat_g = fatTargetG(usable, body, 1 - ratio);
+  const carbs_g = Math.max(0, Math.round((usable - fat_g * 9) / 4));
 
   const isTrainingDay = opts.isTrainingDay ?? true;
   if (isTrainingDay && isTrainingCarbShort(carbs_g, body.weight_kg)) {
@@ -314,14 +390,6 @@ export function computePlan(p: UserProfile, today: string = todayStamp()): Compu
   const sportKcalPerDay = exerciseKcalPerDay(p.sports, p.weight_kg);
   const bmr = calculateBMR(p.sex, p.weight_kg, p.height_cm, p.age, p.body_fat_pct);
 
-  // Objectif daté (premium) : le delta calorique suit la trajectoire vers le poids
-  // cible plutôt que le delta figé de l'objectif. `undefined` → comportement normal.
-  // On garde le STATUT et pas seulement le delta : c'est lui qui sait POURQUOI le
-  // pilotage s'est arrêté, information que le delta (0) a déjà perdue.
-  const datedStatus = datedGoalStatus(p.goal_target, p, today, tdee);
-  const datedDelta = datedStatus?.active ? datedStatus.dailyKcalDelta : undefined;
-  const kcalDelta = datedDelta ?? GOAL_CONFIG[p.goal].kcalDelta;
-
   // ── Registre d'exposition en zone d'énergie disponible basse ───────────────
   // 1. On SOLDE d'abord les semaines écoulées depuis le début de l'exposition en
   //    cours : le plan servi restait en vigueur entre deux ouvertures de l'app,
@@ -333,13 +401,36 @@ export function computePlan(p: UserProfile, today: string = todayStamp()): Compu
   //    le calcul idempotent ET permet au registre de se vider.
   const settled = settleLowEaExposure(p.low_ea_weeks, today);
   const lowEaWeeks = lowEaWeeksBefore(settled, today);
+
+  // Plancher de BASE — calculé ICI, avant la trajectoire datée (P1.6).
+  // Il ne dépend que du corps, du BMR, de la dépense sportive et du TDEE : jamais de
+  // la cible. Aucune circularité, donc, à le connaître avant de projeter une date.
+  // (`floorAndFlags` le recalcule à l'identique — fonction pure, mêmes entrées : on
+  // préfère cette redondance à un paramètre de plus sur l'API publique des macros.)
+  const baseFloor = safetyFloorKcal(p, bmr, sportKcalPerDay, lowEaWeeks, tdee);
+
+  // Objectif daté (premium) : le delta calorique suit la trajectoire vers le poids
+  // cible plutôt que le delta figé de l'objectif. `undefined` → comportement normal.
+  // On garde le STATUT et pas seulement le delta : c'est lui qui sait POURQUOI le
+  // pilotage s'est arrêté, information que le delta (0) a déjà perdue.
+  //
+  // `null` en mode `manual` : la cible y vient des grammes saisis, pas de
+  // `tdee + delta` — la correction de plancher y donnerait le signe inverse.
+  const datedStatus = datedGoalStatus(
+    p.goal_target, p, today, tdee, p.macro_mode === 'manual' ? null : baseFloor,
+  );
+  const datedDelta = datedStatus?.active ? datedStatus.dailyKcalDelta : undefined;
+  const kcalDelta = datedDelta ?? GOAL_CONFIG[p.goal].kcalDelta;
+
   const opts: MacroOptions = { kcalDeltaOverride: kcalDelta, sportKcalPerDay, lowEaWeeks };
 
   let m: MacroPlan;
   if (p.macro_mode === 'auto') {
     m = calculateMacros(tdee, p.goal, p, opts);
   } else if (p.macro_mode === 'percent') {
-    m = macrosPercent(tdee, p.goal, p, p.carb_ratio ?? DEFAULT_CARB_RATIO, {
+    // `clampCarbRatio` et pas `?? DEFAULT` : une valeur PERSISTÉE hors bornes (90,
+    // ou 100 que la base accepte) doit être ramenée, pas servie telle quelle.
+    m = macrosPercent(tdee, p.goal, p, clampCarbRatio(p.carb_ratio), {
       ...opts, proteinPerKg: p.protein_per_kg,
     });
   } else {
@@ -435,6 +526,18 @@ export function recalcProfile(p: UserProfile, today: string = todayStamp()): Use
 /** Drapeaux de sécurité du plan courant — à afficher, jamais à persister. */
 export function planFlags(p: UserProfile, today: string = todayStamp()): PlanFlag[] {
   return computePlan(p, today).flags;
+}
+
+/**
+ * Plancher de sécurité du plan courant, par le PRODUCTEUR UNIQUE.
+ *
+ * Existe pour que les écrans puissent alimenter `datedGoalStatus` (P1.6) sans
+ * reconstruire le plancher par un chemin parallèle — recalculer BMR + dépense
+ * sportive + registre à la main dans un composant est exactement le genre de
+ * duplication qui finit par diverger en silence.
+ */
+export function planFloorKcal(p: UserProfile, today: string = todayStamp()): number {
+  return computePlan(p, today).floor_kcal;
 }
 
 // Validation garde-fous

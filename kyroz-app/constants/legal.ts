@@ -98,7 +98,7 @@ export const PRIVACY_POLICY: LegalSection[] = [
   {
     title: '10. Mineurs',
     paragraphs: [
-      "Kyroz est réservé aux personnes âgées de 16 ans et plus. Aucun compte ne peut être créé en deçà de cet âge.",
+      "Kyroz est réservé aux personnes âgées de 18 ans et plus. Aucun compte ne peut être créé en deçà de cet âge.",
     ],
   },
   {
@@ -133,7 +133,7 @@ export const TERMS_OF_USE: LegalSection[] = [
   {
     title: '4. Compte',
     paragraphs: [
-      "Vous vous engagez à fournir des informations exactes et à avoir au moins 16 ans. Vous êtes responsable de la confidentialité de vos identifiants.",
+      "Vous vous engagez à fournir des informations exactes et à avoir au moins 18 ans. Vous êtes responsable de la confidentialité de vos identifiants.",
     ],
   },
   {

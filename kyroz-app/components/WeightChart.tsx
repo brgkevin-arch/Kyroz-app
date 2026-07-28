@@ -4,7 +4,7 @@ import Svg, { Polyline, Polygon, Circle, Line, Text as SvgText } from 'react-nat
 import { ThemePalette } from '../constants/theme';
 import { WeightEntry } from '../lib/weight';
 import { GoalTarget } from '../lib/types';
-import { daysBetween, TRACK_TOLERANCE_KG } from '../lib/datedGoal';
+import { daysBetween, TRACK_TOLERANCE_KG, zoneHalfWidthKg } from '../lib/datedGoal';
 
 // Mini-courbe de poids (vectorielle). Temps de gauche (ancien) à droite (récent).
 // ⚠️ Les bornes kg (min/max) sont des repères d'ÉCHELLE : elles annotent les
@@ -71,12 +71,18 @@ export function WeightChart({ t, entries, width, height = 130, goalTarget }: Pro
   const x = (stamp: string) => padX + (daysBetween(startStamp, stamp) / totalDays) * (chartW - 2 * padX);
 
   // Domaine poids : inclut la ZONE (cible ± tolérance), sinon le couloir sortirait du cadre.
-  const ZONE = TRACK_TOLERANCE_KG;
+  //
+  // La demi-largeur est PROPORTIONNELLE au gabarit (P1.5) et donc différente aux deux
+  // extrémités : le couloir s'effile légèrement quand on maigrit, s'évase quand on
+  // prend. ±1 kg fixe valait 2 % du poids à 50 kg contre 0,8 % à 120 — la personne
+  // dont le bruit de balance pèse le plus lourd était jugée le plus strictement.
+  const zoneStart = goalTarget ? zoneHalfWidthKg(goalTarget.start_weight_kg) : TRACK_TOLERANCE_KG;
+  const zoneEnd = goalTarget ? zoneHalfWidthKg(goalTarget.target_weight_kg) : TRACK_TOLERANCE_KG;
   const weights = data.map((e) => e.weight_kg);
   const allW = goalTarget
     ? [...weights,
-       goalTarget.start_weight_kg + ZONE, goalTarget.start_weight_kg - ZONE,
-       goalTarget.target_weight_kg + ZONE, goalTarget.target_weight_kg - ZONE]
+       goalTarget.start_weight_kg + zoneStart, goalTarget.start_weight_kg - zoneStart,
+       goalTarget.target_weight_kg + zoneEnd, goalTarget.target_weight_kg - zoneEnd]
     : weights;
   const min = Math.min(...allW);
   const max = Math.max(...allW);
@@ -99,10 +105,10 @@ export function WeightChart({ t, entries, width, height = 130, goalTarget }: Pro
         {goalTarget && (
           <Polygon
             points={[
-              `${x(goalTarget.start_date)},${y(goalTarget.start_weight_kg + ZONE)}`,
-              `${x(goalTarget.target_date)},${y(goalTarget.target_weight_kg + ZONE)}`,
-              `${x(goalTarget.target_date)},${y(goalTarget.target_weight_kg - ZONE)}`,
-              `${x(goalTarget.start_date)},${y(goalTarget.start_weight_kg - ZONE)}`,
+              `${x(goalTarget.start_date)},${y(goalTarget.start_weight_kg + zoneStart)}`,
+              `${x(goalTarget.target_date)},${y(goalTarget.target_weight_kg + zoneEnd)}`,
+              `${x(goalTarget.target_date)},${y(goalTarget.target_weight_kg - zoneEnd)}`,
+              `${x(goalTarget.start_date)},${y(goalTarget.start_weight_kg - zoneStart)}`,
             ].join(' ')}
             fill={t.success} fillOpacity={0.13} stroke="none"
           />

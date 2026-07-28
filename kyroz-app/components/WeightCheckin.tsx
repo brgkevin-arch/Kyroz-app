@@ -5,6 +5,7 @@ import { ThemePalette, Radius, Spacing } from '../constants/theme';
 import { Field, PrimaryButton, SectionLabel, Segmented } from './ui';
 import { WeightChart } from './WeightChart';
 import { TrackVerdict, PhotoCompare } from './Transformation';
+import { planFlags } from '../lib/tdee';
 import { useWeightLog } from '../hooks/useWeightLog';
 import { useProfile } from '../hooks/useProfile';
 import { pickProgressPhoto, cameraAvailable, PhotoSource } from '../lib/photos';
@@ -249,7 +250,15 @@ export function WeightCheckin({ t, onClose, dragHandlers }: Props) {
         <SectionLabel t={t}>Évolution</SectionLabel>
         <WeightChart t={t} entries={entries} width={width} goalTarget={profile?.goal_target} />
         {profile?.goal_target && (
-          <TrackVerdict t={t} goalTarget={profile.goal_target} currentWeightKg={profile.weight_kg} />
+          // `paused` vient du PRODUCTEUR UNIQUE : quand le moteur a cessé de piloter
+          // la trajectoire (insuffisance pondérale, poids cible à contresens), la
+          // ligne idéale continue de descendre alors que le plan est au maintien —
+          // sans ce drapeau on affichait « en retard » à quelqu'un à qui l'app venait
+          // d'interdire tout déficit.
+          <TrackVerdict
+            t={t} goalTarget={profile.goal_target} currentWeightKg={profile.weight_kg}
+            paused={planFlags(profile).some((f) => f === 'UNDERWEIGHT_NO_DEFICIT' || f === 'GOAL_DIRECTION_MISMATCH')}
+          />
         )}
 
         {/* Transformation : la preuve visuelle (photos LOCAL-ONLY, cf. lib/photos.ts) */}

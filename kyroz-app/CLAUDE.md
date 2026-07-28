@@ -144,7 +144,12 @@ OUTPUT         → Plan + liste de courses + recettes
 
 ### Bloqué (hard block)
 - **Plans sous le plancher d'énergie disponible** — `lib/safety.ts::safetyFloorKcal`.
-  Plancher = `max(BMR, 30 kcal/kg de masse maigre + dépense sportive, 1500 H / 1200 F)`.
+  Plancher = `max(BMR, min(30 kcal/kg de masse maigre + dépense sportive, TDEE), 1500 H / 1200 F)`.
+  ⚠️ La composante énergie disponible est **plafonnée à la maintenance** : un plancher
+  de sécurité empêche un déficit excessif, il n'impose **jamais** un surplus. Sans ce
+  plafond, l'escalade prescrivait +282 kcal/jour à une femme de 125 kg. Le BMR et le
+  filet absolu, eux, restent des minima durs (si le TDEE tombe sous eux, c'est
+  l'estimation de dépense qui est fausse, pas le besoin physiologique).
   Le 1500/1200 reste comme **filet absolu**, il n'est plus le plancher principal :
   il autorisait 1200 kcal à une femme de 65 kg s'entraînant 5×/semaine, dont le
   minimum physiologique est ~1863. Aucun chemin de code ne le contourne, mode
@@ -160,7 +165,18 @@ OUTPUT         → Plan + liste de courses + recettes
   sèche). L'éligibilité ne garde que les portes d'ENTRÉE ; sans ce contrôle,
   quelqu'un qui commence à IMC 19 et descend à 17,8 continuait de recevoir un
   déficit indéfiniment. Même seuil et même prédicat que `checkEligibility`.
-- Déficit **> 25 % du TDEE** (`lib/datedGoal.ts::MAX_DEFICIT_TDEE_RATIO`)
+- Déficit **> 25 % du TDEE** (`lib/datedGoal.ts::MAX_DEFICIT_TDEE_RATIO`) — appliqué
+  sur **TOUS** les chemins depuis le 2026-07-28, y compris les deltas figés de
+  `GOAL_CONFIG` : il ne concernait auparavant que l'objectif daté, et « sèche rapide »
+  servait 28 % de déficit à une femme de 60 kg sans le moindre drapeau. C'est un
+  plancher calorique de plus (75 % du TDEE), il ne peut donc pas créer de surplus.
+- **Lipides sous le seuil de carence** — `lib/tdee.ts::fatTargetG`, plancher à
+  0,8 g/kg de **masse maigre** (pas de poids de corps : le tissu adipeux n'a pas de
+  besoin lipidique — même raisonnement que les protéines). Borné par le budget du
+  jour, donc un plan reste toujours faisable. Le mode « Perso % » descendait à 6,6 %
+  des calories en lipides ; son curseur est plafonné à 75 % de glucides et
+  `carb_ratio` est **clampé à la lecture** (une borne d'écran ne migre aucun compte
+  déjà enregistré).
 - Pathologies (diabète, IRC, cardio)
 - Femmes enceintes / allaitantes
 - **Utilisateurs < 18 ans** (bloquer à l'onboarding) — relevé de 16 à 18 le
