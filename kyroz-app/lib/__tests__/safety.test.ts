@@ -31,7 +31,7 @@ describe('P0.1 — plancher d\'énergie disponible', () => {
   it('plancher = 30 × masse maigre + dépense sportive', () => {
     const ffm = fatFreeMassKg(female65); // 65 × 0,75 = 48,75
     expect(ffm).toBeCloseTo(48.75, 5);
-    const floor = safetyFloorKcal(female65, calculateBMR('female', 65, 168, 30, 25), 400, 0);
+    const floor = safetyFloorKcal(female65, calculateBMR('female', 65, 168, 30, 25), 400, 0, 99999);
     expect(floor).toBe(Math.round(EA_HARD_FLOOR * 48.75 + 400)); // 1863
   });
 
@@ -49,13 +49,13 @@ describe('P0.1 — plancher d\'énergie disponible', () => {
     const bmr = calculateBMR('female', 42, 150, 30);
     const eaFloor = EA_HARD_FLOOR * fatFreeMassKg(tiny);
     expect(eaFloor).toBeLessThan(MIN_KCAL.female);        // le plancher EA seul serait insuffisant
-    expect(safetyFloorKcal(tiny, bmr, 0, 0)).toBeGreaterThanOrEqual(MIN_KCAL.female);
+    expect(safetyFloorKcal(tiny, bmr, 0, 0, 99999)).toBeGreaterThanOrEqual(MIN_KCAL.female);
   });
 
   it('le plancher n\'est jamais sous le métabolisme de base', () => {
     const p = makeProfile({ sex: 'male', weight_kg: 70, height_cm: 190, age: 20, body_fat_pct: 6 });
     const bmr = calculateBMR('male', 70, 190, 20, 6);
-    expect(safetyFloorKcal(p, bmr, 0, 0)).toBeGreaterThanOrEqual(bmr);
+    expect(safetyFloorKcal(p, bmr, 0, 0, 99999)).toBeGreaterThanOrEqual(bmr);
   });
 
   it('le seuil EA est de 30 pour TOUS tant que le budget de 12 semaines tient', () => {
@@ -114,6 +114,60 @@ describe('P0.1 — plancher d\'énergie disponible', () => {
     expect(profile.target_protein_g).toBe(150);
     expect(profile.target_fat_g).toBe(40);
     expect(profile.target_carbs_g).toBeGreaterThan(50);
+  });
+
+  // ── Régressions trouvées à l'audit adverse du 2026-07-28 ──────────────────
+  // Le garde-fou s'était retourné contre l'utilisatrice : l'escalade du plancher
+  // finissait par PRESCRIRE UN SURPLUS. Ces trois tests sont la clôture du défaut.
+
+  it('RÉGRESSION : le plancher ne prescrit JAMAIS un surplus', () => {
+    // Femme 125 kg, 36 % de MG, sédentaire : son EA de MAINTENANCE vaut déjà 31,5,
+    // donc sous l'optimum de 35 sans qu'elle fasse le moindre régime.
+    const heavy = makeProfile({
+      sex: 'female', age: 35, weight_kg: 125, height_cm: 170, body_fat_pct: 36,
+      training_days_per_week: 0, sports: [], macro_mode: 'auto',
+    });
+    // 30 semaines déjà au compteur → seuil escaladé à 35, soit 35 × 80 = 2800 kcal,
+    // très au-dessus de son TDEE (2518). Le plafond de maintenance doit mordre.
+    const history = Array.from({ length: 30 }, (_, i) => weekStartStamp(addDaysStamp(TODAY, -7 * (i + 1))));
+    for (const goal of ['maintain', 'cut', 'cut_aggressive'] as const) {
+      const { profile, floor_kcal } = computePlan({ ...heavy, goal, low_ea_weeks: history }, TODAY);
+      expect(floor_kcal, goal).toBeLessThanOrEqual(profile.tdee_kcal);
+      expect(profile.target_kcal, goal).toBeLessThanOrEqual(profile.tdee_kcal);
+    }
+  });
+
+  it('RÉGRESSION : au MAINTIEN, aucune semaine n\'est comptée (pas de restriction, pas de risque)', () => {
+    // Le budget RED-S modélise une RESTRICTION prolongée. Une énergie disponible
+    // naturellement basse à la maintenance n'est pas un régime : la compter faisait
+    // monter le plancher semaine après semaine jusqu'au surplus forcé.
+    let prof = makeProfile({
+      sex: 'female', age: 35, weight_kg: 125, height_cm: 170, body_fat_pct: 36,
+      goal: 'maintain', training_days_per_week: 0, sports: [], macro_mode: 'auto', low_ea_weeks: [],
+    });
+    for (let w = 0; w < 26; w++) prof = recalcProfile(prof, addDaysStamp(TODAY, 7 * w));
+    expect(lowEaWeeksInWindow(prof.low_ea_weeks, addDaysStamp(TODAY, 7 * 25))).toBe(0);
+    expect(prof.target_kcal).toBe(prof.tdee_kcal); // maintien = maintien, semaine après semaine
+  });
+
+  it('RÉGRESSION : en sèche prolongée, l\'escalade converge vers la maintenance et s\'y arrête', () => {
+    let prof = makeProfile({
+      sex: 'female', age: 30, weight_kg: 70, height_cm: 168, body_fat_pct: 28,
+      goal: 'cut', training_days_per_week: 0, sports: [], macro_mode: 'auto', low_ea_weeks: [],
+    });
+    const tdee = prof.tdee_kcal;
+    const serie: number[] = [];
+    for (let w = 0; w < 30; w++) {
+      prof = recalcProfile(prof, addDaysStamp(TODAY, 7 * w));
+      serie.push(prof.target_kcal);
+    }
+    // Monotone croissante (le déficit se referme), jamais au-dessus de la maintenance.
+    for (let i = 1; i < serie.length; i++) expect(serie[i]).toBeGreaterThanOrEqual(serie[i - 1]);
+    expect(Math.max(...serie)).toBeLessThanOrEqual(recalcProfile(prof, TODAY).tdee_kcal);
+    // Le déficit initial existait bien, et il a fini par se refermer : c'est une
+    // sortie de déficit forcée, pas un blocage ni un surplus.
+    expect(serie[0]).toBeLessThan(tdee);
+    expect(serie[serie.length - 1]).toBeGreaterThan(serie[0]);
   });
 
   it('lève FLOOR_APPLIED quand le plancher mord', () => {

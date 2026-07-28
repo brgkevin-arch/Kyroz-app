@@ -3,7 +3,7 @@ import { exerciseKcalPerDay } from './sport';
 import { datedGoalKcalDelta, goalDirectionMismatch } from './datedGoal';
 import { todayStamp } from './weight';
 import {
-  BodyInput, MIN_AGE, MIN_KCAL, EA_OPTIMAL, LOW_EA_BUDGET_WEEKS,
+  BodyInput, MIN_AGE, MIN_KCAL, EA_OPTIMAL, LOW_EA_BUDGET_WEEKS, countsAsLowEaWeek,
   bodyFatBounds, clamp, energyAvailability, fatFreeMassKg, isFemaleAtRisk,
   lowEaWeeksInWindow, recordLowEaWeek, safetyFloorKcal,
 } from './safety';
@@ -165,7 +165,8 @@ function floorAndFlags(body: MacroBody, tdee: number, kcalDelta: number, opts: M
   const sportKcalPerDay = opts.sportKcalPerDay ?? exerciseKcalPerDay(body.sports, body.weight_kg);
   const lowEaWeeks = opts.lowEaWeeks ?? 0;
   const bmr = calculateBMR(body.sex, body.weight_kg, body.height_cm, body.age, body.body_fat_pct);
-  const floor_kcal = safetyFloorKcal(body, bmr, sportKcalPerDay, lowEaWeeks);
+  // `tdee` plafonne la composante EA : le plancher ne doit jamais imposer un surplus.
+  const floor_kcal = safetyFloorKcal(body, bmr, sportKcalPerDay, lowEaWeeks, tdee);
 
   const requested = tdee + kcalDelta;
   const target_kcal = Math.max(requested, floor_kcal);
@@ -290,13 +291,16 @@ export function computePlan(p: UserProfile, today: string = todayStamp()): Compu
   // donc sur une grandeur qui ne dépend PAS du compteur. Sans cela, le plancher
   // dépendrait du compteur qui dépendrait du plancher : recalculer deux fois de
   // suite changerait le résultat (perte d'idempotence).
-  const baseFloor = safetyFloorKcal(p, bmr, sportKcalPerDay, 0);
-  const baseTarget = Math.max(tdee + kcalDelta, baseFloor);
-  const inLowZone = energyAvailability(p, baseTarget, sportKcalPerDay) < EA_OPTIMAL;
+  const baseFloor = safetyFloorKcal(p, bmr, sportKcalPerDay, 0, tdee);
+  // Cible non escaladée du mode courant. En `manual`, c'est la valeur RÉELLEMENT
+  // servie qu'il faut juger, pas une cible auto que l'utilisateur ne verra jamais.
+  const baseTarget = p.macro_mode === 'manual'
+    ? Math.max(p.target_kcal, baseFloor)
+    : Math.max(tdee + kcalDelta, baseFloor);
   // On n'historise que pour les femmes : c'est la seule population dont le plancher
   // remonte (cf. safety.effectiveEaPerKgFfm). Toutes les femmes, ménopausées
   // comprises — sinon basculer le champ ferait perdre l'historique.
-  const low_ea_weeks = (p.sex === 'female' && inLowZone)
+  const low_ea_weeks = (p.sex === 'female' && countsAsLowEaWeek(p, baseTarget, tdee, sportKcalPerDay))
     ? recordLowEaWeek(p.low_ea_weeks, today)
     : p.low_ea_weeks;
   const lowEaWeeks = lowEaWeeksInWindow(low_ea_weeks, today);
@@ -314,7 +318,7 @@ export function computePlan(p: UserProfile, today: string = todayStamp()): Compu
     // legacy 'manual' : grammes figés — MAIS le plancher de sécurité s'applique
     // quand même (aucun chemin de code excepté). Le manque est comblé en glucides,
     // les protéines et lipides choisis restent intacts.
-    const floor_kcal = safetyFloorKcal(p, bmr, sportKcalPerDay, lowEaWeeks);
+    const floor_kcal = safetyFloorKcal(p, bmr, sportKcalPerDay, lowEaWeeks, tdee);
     const flags: PlanFlag[] = [];
     let target_kcal = p.target_kcal;
     let carbs_g = p.target_carbs_g;

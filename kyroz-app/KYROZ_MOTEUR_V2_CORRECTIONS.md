@@ -165,10 +165,42 @@ du plancher après 12 semaines s'applique à toutes. Pour l'activer plus tard :
 rédiger la question d'onboarding, ajouter la colonne + la ligne dans
 `PROFILE_COLS` ; le calcul n'a pas à bouger.
 
-**Piège d'implémentation (verrouillé par un test).** L'appartenance à la zone basse
-doit se décider sur le plan **non escaladé** (plancher EA 30). Sinon le plancher
-dépend du compteur qui dépend du plancher : recalculer deux fois de suite change le
-résultat, et l'idempotence saute.
+**Piège d'implémentation nº 1 (verrouillé par un test).** L'appartenance à la zone
+basse doit se décider sur le plan **non escaladé** (plancher EA 30). Sinon le
+plancher dépend du compteur qui dépend du plancher : recalculer deux fois de suite
+change le résultat, et l'idempotence saute.
+
+**Piège d'implémentation nº 2 — le garde-fou qui se retourne (trouvé à l'audit
+adverse du 2026-07-28, corrigé).** La première implémentation comptait une semaine
+dès que l'énergie disponible passait sous 35, **sans vérifier qu'il y avait un
+déficit**. Or beaucoup de gens sont naturellement sous 35 kcal/kg de masse maigre à
+leur *maintenance* : une femme de 125 kg à 36 % de MG, sédentaire, a une EA de
+maintenance de 31,5. Elle accumulait donc des semaines **sans faire le moindre
+régime**, et après 16 semaines le plancher escaladé dépassait son TDEE :
+
+```
+  s 0  seuil=30  plancher=2400  cible=2518  (TDEE 2518) →   maintien
+  s16  seuil=32,5 plancher=2600 cible=2600  (TDEE 2518) →  +82 kcal
+  s24  seuil=35   plancher=2800 cible=2800  (TDEE 2518) → +282 kcal  ⚠️ SURPLUS FORCÉ
+```
+
+Soit ~1,3 kg de prise de poids par mois **prescrits par le mécanisme de sécurité
+lui-même**, sur une utilisatrice qui n'avait rien demandé. Et le compteur ne se
+libérait jamais, la zone étant jugée sur un plan structurellement sous 35.
+
+Deux garde-fous, tous deux nécessaires :
+
+1. **Une semaine ne compte que s'il y a DÉFICIT** (`countsAsLowEaWeek`). Le budget
+   RED-S modélise une restriction prolongée, pas une énergie disponible basse en
+   soi. Sans déficit, il n'y a rien à budgéter.
+2. **Le plancher ne peut jamais dépasser la maintenance** (`safetyFloorKcal` prend
+   désormais le TDEE et plafonne la composante EA avec). Invariant structurel : un
+   plancher de sécurité empêche un déficit excessif, il n'impose **jamais** un
+   surplus. Le BMR et le filet absolu restent, eux, des minima durs.
+
+Après correctif, l'escalade fait exactement ce qui était spécifié — elle **converge
+vers la maintenance et s'y arrête** : c'est une sortie de déficit forcée, pas une
+prise de poids forcée.
 
 **Drapeaux.** `FLOOR_APPLIED` quand le plancher mord (l'objectif daté devient
 mécaniquement inatteignable — l'UI doit le dire, cf. P1.6). `LOW_EA_WARNING` à
@@ -310,6 +342,13 @@ inconditionnelle : viser la dénutrition n'est jamais valide.
 par un portail de dépistage santé bloquant à l'onboarding (`lib/healthScreening.ts`
 + `components/HealthScreening.tsx`). On ne duplique pas le champ dans le profil :
 `checkEligibility` accepte le drapeau en entrée, le blocage reste en amont.
+
+**Défaut trouvé à l'audit adverse (corrigé).** `checkEligibility` n'était appelée
+qu'à la fin de l'onboarding. L'**éditeur d'objectif daté du profil** ne l'interrogeait
+pas : un homme de 85 kg / 1 m 80 pouvait viser **40 kg (IMC 12,3)** et le plan était
+produit sans broncher — la seule barrière était la borne de saisie `40 ≤ poids ≤ 250`,
+qui est syntaxique, pas physiologique. L'éditeur appelle désormais `checkEligibility`
+avec la cible provisoire, affiche le motif et désactive l'enregistrement.
 
 **Bornes de saisie** appliquées à l'onboarding : âge 18–100, poids 30–300 kg,
 taille 120–230 cm, masse grasse selon `bodyFatBounds(sex)`, total d'entraînement

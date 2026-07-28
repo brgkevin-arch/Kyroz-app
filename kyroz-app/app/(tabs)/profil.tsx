@@ -30,7 +30,7 @@ import { exportMyData } from '../../lib/exportData';
 import {
   calculateTDEE, computePlan, goalLabel, validateProfile, recalcProfile, DEFAULT_CARB_RATIO, recommendedProteinPerKg,
 } from '../../lib/tdee';
-import { lowEaWeeksInWindow } from '../../lib/safety';
+import { lowEaWeeksInWindow, checkEligibility, eligibilityMessage } from '../../lib/safety';
 import { datedGoalStatus, datedGoalKcalDelta, addDaysStamp, daysBetween } from '../../lib/datedGoal';
 import { DatedGoalCard, formatFR } from '../../components/DatedGoalCard';
 import { todayStamp } from '../../lib/weight';
@@ -518,11 +518,20 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
   const gapKg = status ? Math.round(Math.abs(status.currentWeightKg - status.targetWeightKg) * 10) / 10 : 0;
   const dirLabel = status?.direction === 'gain' ? 'Prendre' : status?.direction === 'maintain' ? 'Maintenir' : 'Perdre';
 
-  const submit = () => { if (provisional) onSave(withRecalc({ ...profile, goal_target: provisional })); };
+  // Éligibilité de la CIBLE (P0.4). `validWeight` ne borne que la saisie (40–250 kg) :
+  // un poids syntaxiquement valide peut rester physiologiquement absurde (40 kg pour
+  // 1 m 80 = IMC 12,3). Sans cet appel, `checkEligibility` existait mais n'était
+  // interrogée qu'à l'onboarding — l'éditeur laissait passer n'importe quelle cible.
+  const goalBlockMsg = provisional ? eligibilityMessage(checkEligibility(profile, provisional)) : null;
+
+  const submit = () => {
+    if (!provisional || goalBlockMsg) return;
+    onSave(withRecalc({ ...profile, goal_target: provisional }));
+  };
   const remove = () => onSave(withRecalc({ ...profile, goal_target: undefined }));
 
   return (
-    <EditorShell t={t} title="Objectif daté" onSave={submit} canSave={validWeight} dragHandlers={dragHandlers}>
+    <EditorShell t={t} title="Objectif daté" onSave={submit} canSave={validWeight && !goalBlockMsg} dragHandlers={dragHandlers}>
       <Text style={{ color: t.textSecondary, fontSize: 13, lineHeight: 18 }}>
         Fixe un poids et une échéance : Kyroz ajuste tes calories jour après jour pour t'y amener au rythme le plus rapide — mais sûr.
       </Text>
@@ -544,7 +553,12 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
         </Card>
       )}
 
-      {status?.directionMismatch && (
+      {goalBlockMsg && (
+        <Card t={t}>
+          <Text style={{ color: t.danger, fontSize: 13, lineHeight: 19, fontWeight: '600' }}>{goalBlockMsg}</Text>
+        </Card>
+      )}
+      {!goalBlockMsg && status?.directionMismatch && (
         <Card t={t}>
           <Text style={{ color: t.text, fontSize: 13, lineHeight: 19 }}>
             Ce poids cible va dans le sens inverse de ton objectif « {goalLabel(profile.goal)} ». Kyroz ne pilote pas tes calories tant que les deux ne concordent pas.

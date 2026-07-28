@@ -135,15 +135,43 @@ export function effectiveEaPerKgFfm(b: BodyInput, weeksInLowEa: number): number 
  * physiologiquement juste et parfaitement contre-intuitif côté utilisateur
  * (« je m'entraîne plus, l'app me fait manger plus alors que je veux maigrir ») :
  * l'UI doit l'expliquer au moment exact où le budget remonte.
+ *
+ * `maintenanceKcal` (TDEE) PLAFONNE la composante énergie disponible. INVARIANT
+ * STRUCTUREL : un plancher de sécurité sert à empêcher un déficit excessif, JAMAIS
+ * à imposer un surplus. Sans ce plafond, une femme dont l'EA de maintenance est
+ * naturellement sous 35 (cas courant : 125 kg, 36 % de MG, sédentaire → EA 31,5)
+ * voyait le plancher escaladé dépasser son TDEE de +282 kcal/jour, soit ~1,3 kg
+ * de prise par mois prescrits par le garde-fou lui-même. Le BMR et le filet
+ * absolu, eux, restent des minima DURS : si le TDEE tombe sous eux, c'est
+ * l'estimation de dépense qui est fausse, pas le besoin physiologique.
  */
 export function safetyFloorKcal(
   b: BodyInput,
   bmr: number,
   sportKcalPerDay: number,
   weeksInLowEa: number,
+  maintenanceKcal: number,
 ): number {
   const eaFloor = effectiveEaPerKgFfm(b, weeksInLowEa) * fatFreeMassKg(b) + sportKcalPerDay;
-  return Math.round(Math.max(bmr, eaFloor, MIN_KCAL[b.sex]));
+  const cappedEaFloor = Math.min(eaFloor, maintenanceKcal);
+  return Math.round(Math.max(bmr, cappedEaFloor, MIN_KCAL[b.sex]));
+}
+
+/**
+ * Cette semaine compte-t-elle dans le budget d'exposition à l'énergie disponible
+ * basse ? Deux conditions CUMULATIVES.
+ *
+ * Le déficit est la condition la moins évidente et la plus importante : le budget
+ * RED-S modélise une RESTRICTION prolongée, pas une énergie disponible basse en
+ * soi. Beaucoup de gens sont naturellement sous 35 kcal/kg de masse maigre à leur
+ * maintenance — les compter revenait à sanctionner quelqu'un qui ne fait aucun
+ * régime, et à faire monter son plancher jusqu'au surplus.
+ */
+export function countsAsLowEaWeek(
+  b: BodyInput, targetKcal: number, maintenanceKcal: number, sportKcalPerDay: number,
+): boolean {
+  const inDeficit = targetKcal < maintenanceKcal - 1e-6;
+  return inDeficit && energyAvailability(b, targetKcal, sportKcalPerDay) < EA_OPTIMAL;
 }
 
 /** Énergie disponible (kcal/kg de masse maigre) d'un plan donné. */
