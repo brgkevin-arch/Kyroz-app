@@ -26,6 +26,20 @@ persistance, mathématiques de l'objectif daté, protéines & macros, appelants 
 mode « Perso % » qui annulait le correctif protéique, le plancher non rétroactif).
 Détail dans les sections concernées ci-dessous, et dans `AGENTS.md`.
 
+**Vérifié SAIN par l'audit — ne pas ré-auditer.** `weekStartStamp` est cohérent
+avec `localStamp` (heure locale, jamais `toISOString`) et correct aux deux bascules
+d'heure d'été 2026 · idempotence des modes `auto` et `percent` vérifiée sur 3 456
+profils (sexe × mode × objectif × poids × %MG × semaines) · croissance du registre
+bornée à 53 entrées après 400 jours de recalcul quotidien · doublons neutralisés
+par le `Set` de `lowEaWeeksInWindow` · stamps invalides exclus proprement (NaN) ·
+poids nul → pas de division par zéro · monotonie du plancher vs semaines ·
+cohérence `4P+4G+9L` vs `target_kcal` ≤ 2 kcal en auto, ≤ 4 en percent · grammes
+négatifs impossibles · `MacroSplit` reçoit bien la même dépense sportive que le
+producteur · `withRecalc` dans MacroEditor n'écrase aucun réglage · l'aperçu de
+l'éditeur d'objectif daté est exactement ce que `submit` enregistre ·
+`pregnant_or_breastfeeding` non renseigné n'est pas un trou (le portail
+`healthScreening` bloque en amont).
+
 **Décision produit encore ouverte** — le registre compte les semaines où le profil
 a été **ré-enregistré**, pas les semaines vécues : `recalcProfile` n'est appelé
 qu'au chargement de l'app, à l'édition du profil et à la pesée. Deux femmes au
