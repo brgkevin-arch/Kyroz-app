@@ -75,6 +75,17 @@ export function BodyFatPicker({ t, sex, value, onChange }: Props) {
     setPctText(value != null ? String(value) : '');
   }, [value]);
 
+  // Le sexe est ÉDITABLE dans « Informations » : un %MG parfaitement valide chez
+  // l'homme (10 %, première silhouette) est sous le gras essentiel féminin (12 %).
+  // Sans re-borner au changement de sexe, on stockait une valeur hors borne
+  // physiologique — précisément celle que P0.4 vient d'introduire — et elle
+  // alimentait `leanBodyMass`/Katch-McArdle avant d'être affichée à l'utilisateur.
+  useEffect(() => {
+    if (value == null) return;
+    const clamped = Math.min(Math.max(value, BF_MIN), BF_MAX);
+    if (clamped !== value) onChange(clamped);
+  }, [sex]); // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
     <View style={{ gap: 12 }}>
       <View style={styles.grid}>

@@ -325,6 +325,16 @@ export function computePlan(p: UserProfile, today: string = todayStamp()): Compu
     // être relevé au plancher lors d'un calcul précédent, et repartir de lui
     // faisait un cliquet (la cible ne redescendait plus quand le plancher baissait,
     // par exemple après une perte de poids).
+    //
+    // ⚠️ LIMITE CONNUE, assumée : la recharge en glucides est PERSISTÉE dans les
+    // grammes, et rien ne distingue ensuite les grammes de l'utilisateur des
+    // nôtres. Si le plancher baisse plus tard (perte de poids, volume sportif
+    // réduit, registre d'énergie basse qui se vide), la cible reste au niveau
+    // atteint. L'écart va toujours dans le sens de MANGER PLUS, jamais moins, et
+    // `macro_mode: 'manual'` n'est plus proposé par l'UI (onboarding force 'auto',
+    // l'éditeur n'offre que 'auto'|'percent') : seuls des comptes historiques sont
+    // concernés. Le corriger proprement demanderait de stocker les grammes
+    // d'origine à part — à faire si ce mode redevient accessible.
     const manualKcal = kcalFromMacros(p.target_protein_g, p.target_carbs_g, p.target_fat_g);
     const r = floorAndFlags(p, tdee, manualKcal, opts);
     const carbs_g = p.target_carbs_g + Math.max(0, Math.round((r.target_kcal - manualKcal) / 4));

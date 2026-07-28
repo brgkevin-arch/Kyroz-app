@@ -13,9 +13,26 @@
 
 | PR | Contenu | État |
 |---|---|---|
-| **PR 1** | P0.1 → P0.4 — sécurité | ✅ **Livré** (branche `fix/moteur-p0-securite`, 2026-07-28) |
+| **PR 1** | P0.1 → P0.4 — sécurité | ✅ **Livré + audité** (branche `fix/moteur-p0-securite`, 2026-07-28) |
 | PR 2 | P1.1 → P1.6 — cohérence et justesse | À faire |
 | PR 3 | P2.1 → P2.2 — fonctionnalités manquantes | À faire |
+
+### Audit adverse du P0 (2026-07-28)
+
+Cinq angles indépendants sur le code livré : plancher & registre, synchro &
+persistance, mathématiques de l'objectif daté, protéines & macros, appelants & UI.
+**11 défauts trouvés et corrigés**, dont plusieurs sur les correctifs P0 eux-mêmes
+(le garde-fou qui prescrivait un surplus, le registre qui ne se vidait jamais, le
+mode « Perso % » qui annulait le correctif protéique, le plancher non rétroactif).
+Détail dans les sections concernées ci-dessous, et dans `AGENTS.md`.
+
+**Décision produit encore ouverte** — le registre compte les semaines où le profil
+a été **ré-enregistré**, pas les semaines vécues : `recalcProfile` n'est appelé
+qu'au chargement de l'app, à l'édition du profil et à la pesée. Deux femmes au
+comportement identique sur 26 semaines de sèche obtiennent 26 semaines comptées si
+elles se pèsent chaque semaine, 7 si elles se pèsent chaque mois — soit ~221 kcal/j
+de protection RED-S en moins pour la seconde. Rattraper les semaines écoulées
+supposerait ce qui s'est passé entre deux ouvertures. À trancher avant le lancement.
 
 ---
 

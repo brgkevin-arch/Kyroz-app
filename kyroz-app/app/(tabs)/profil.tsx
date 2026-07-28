@@ -451,7 +451,14 @@ function InfoEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
     aN >= AGE_BOUNDS[0] && aN <= AGE_BOUNDS[1] &&
     wN >= WEIGHT_BOUNDS[0] && wN <= WEIGHT_BOUNDS[1] &&
     hN >= HEIGHT_BOUNDS[0] && hN <= HEIGHT_BOUNDS[1];
-  const blockMsg = inBounds ? eligibilityMessage(checkEligibility(draft, profile.goal_target)) : null;
+  // Un blocage ne doit empêcher l'enregistrement QUE si cet écran permet d'y
+  // remédier. L'âge se corrige ici (donc bloquant) ; un objectif incompatible avec
+  // le poids se corrige dans l'éditeur d'Objectif — bloquer ici enfermerait
+  // l'utilisatrice, qui ne pourrait plus rectifier sa taille ni son âge. On le
+  // signale sans verrouiller, en pointant vers le bon écran.
+  const blocks = inBounds ? checkEligibility(draft, profile.goal_target) : [];
+  const blockMsg = blocks.includes('MINOR') ? eligibilityMessage(['MINOR']) : null;
+  const warnMsg = blockMsg ? null : eligibilityMessage(blocks);
   const valid = inBounds && !blockMsg;
   // Les sports vivent dans leur propre éditeur — on préserve `...profile` (donc
   // `sports`), et withRecalc recalcule le TDEE avec le nouveau poids/%MG.
@@ -461,6 +468,13 @@ function InfoEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
       {blockMsg && (
         <Card t={t}>
           <Text style={{ color: t.danger, fontSize: 13, lineHeight: 19, fontWeight: '600' }}>{blockMsg}</Text>
+        </Card>
+      )}
+      {warnMsg && (
+        <Card t={t}>
+          <Text style={{ color: t.warning, fontSize: 13, lineHeight: 19 }}>
+            {warnMsg} Tu peux le changer dans « Objectif ».
+          </Text>
         </Card>
       )}
       <Segmented t={t} options={[{ label: 'Homme', value: 'male' }, { label: 'Femme', value: 'female' }]} value={sex} onChange={setSex} />
