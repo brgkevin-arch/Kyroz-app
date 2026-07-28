@@ -30,7 +30,10 @@ import { exportMyData } from '../../lib/exportData';
 import {
   calculateTDEE, computePlan, goalLabel, validateProfile, recalcProfile, DEFAULT_CARB_RATIO, recommendedProteinPerKg,
 } from '../../lib/tdee';
-import { lowEaWeeksInWindow, checkEligibility, eligibilityMessage } from '../../lib/safety';
+import {
+  lowEaWeeksBefore, checkEligibility, eligibilityMessage,
+  AGE_BOUNDS, WEIGHT_BOUNDS, HEIGHT_BOUNDS,
+} from '../../lib/safety';
 import { datedGoalStatus, datedGoalKcalDelta, addDaysStamp, daysBetween } from '../../lib/datedGoal';
 import { DatedGoalCard, formatFR } from '../../components/DatedGoalCard';
 import { todayStamp } from '../../lib/weight';
@@ -438,12 +441,28 @@ function InfoEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
   const [height, setHeight] = useState(String(profile.height_cm));
   const [bodyFat, setBodyFat] = useState<number | undefined>(profile.body_fat_pct);
   const aN = parseInt(age), wN = parseFloat(weight), hN = parseFloat(height);
-  const valid = aN >= 16 && aN <= 100 && wN >= 40 && wN <= 250 && hN >= 120 && hN <= 230;
+  // Bornes tirées de lib/safety.ts, PAS réécrites en dur : elles divergeaient de
+  // l'onboarding (16 ans ici contre 18 là-bas — le relèvement MIN_AGE n'avait été
+  // câblé que côté onboarding, donc on pouvait saisir 18 puis repasser à 16 ici ;
+  // et 40–250 kg contre 30–300, ce qui verrouillait l'écran pour un profil onboardé
+  // hors de cette plage : bouton « Enregistrer » désactivé en permanence).
+  const draft = { ...profile, sex, age: aN, weight_kg: wN, height_cm: hN, body_fat_pct: bodyFat };
+  const inBounds =
+    aN >= AGE_BOUNDS[0] && aN <= AGE_BOUNDS[1] &&
+    wN >= WEIGHT_BOUNDS[0] && wN <= WEIGHT_BOUNDS[1] &&
+    hN >= HEIGHT_BOUNDS[0] && hN <= HEIGHT_BOUNDS[1];
+  const blockMsg = inBounds ? eligibilityMessage(checkEligibility(draft, profile.goal_target)) : null;
+  const valid = inBounds && !blockMsg;
   // Les sports vivent dans leur propre éditeur — on préserve `...profile` (donc
   // `sports`), et withRecalc recalcule le TDEE avec le nouveau poids/%MG.
-  const submit = () => onSave(withRecalc({ ...profile, sex, age: aN, weight_kg: wN, height_cm: hN, body_fat_pct: bodyFat }));
+  const submit = () => { if (valid) onSave(withRecalc(draft)); };
   return (
     <EditorShell t={t} title="Informations" onSave={submit} canSave={valid} dragHandlers={dragHandlers}>
+      {blockMsg && (
+        <Card t={t}>
+          <Text style={{ color: t.danger, fontSize: 13, lineHeight: 19, fontWeight: '600' }}>{blockMsg}</Text>
+        </Card>
+      )}
       <Segmented t={t} options={[{ label: 'Homme', value: 'male' }, { label: 'Femme', value: 'female' }]} value={sex} onChange={setSex} />
       <Field t={t} label="Âge" suffix="ans" value={age} onChangeText={setAge} keyboardType="number-pad" />
       <Field t={t} label="Poids" suffix="kg" value={weight} onChangeText={setWeight} keyboardType="decimal-pad" />
@@ -475,10 +494,19 @@ function SportsProfileEditor({ t, profile, onSave, dragHandlers }: EditorProps) 
 
 function GoalEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
   const [goal, setGoal] = useState<Goal>(profile.goal);
-  const submit = () => onSave(withRecalc({ ...profile, goal }));
+  // L'éligibilité était branchée sur l'onboarding et l'objectif daté seulement :
+  // une personne en insuffisance pondérale se voyait refuser la sèche à l'inscription
+  // mais pouvait l'activer depuis cet écran.
+  const blockMsg = eligibilityMessage(checkEligibility({ ...profile, goal }, profile.goal_target));
+  const submit = () => { if (!blockMsg) onSave(withRecalc({ ...profile, goal })); };
   return (
-    <EditorShell t={t} title="Objectif" onSave={submit} dragHandlers={dragHandlers}>
+    <EditorShell t={t} title="Objectif" onSave={submit} canSave={!blockMsg} dragHandlers={dragHandlers}>
       {GOALS.map((g) => <OptionCard key={g} t={t} title={goalLabel(g)} selected={goal === g} onPress={() => setGoal(g)} />)}
+      {blockMsg && (
+        <Card t={t}>
+          <Text style={{ color: t.danger, fontSize: 13, lineHeight: 19, fontWeight: '600' }}>{blockMsg}</Text>
+        </Card>
+      )}
     </EditorShell>
   );
 }
@@ -616,7 +644,7 @@ function MacroEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
   const tdee = calculateTDEE(profile.sex, profile.weight_kg, profile.height_cm, profile.age, profile.training_days_per_week, profile.body_fat_pct, profile.sports);
   // Objectif daté actif → le delta calorique daté prime (même cerveau macro que recalcProfile).
   const datedDelta = datedGoalKcalDelta(profile.goal_target, profile, today, tdee) ?? undefined;
-  const lowEaWeeks = lowEaWeeksInWindow(profile.low_ea_weeks, today);
+  const lowEaWeeks = lowEaWeeksBefore(profile.low_ea_weeks, today); // même compteur que computePlan
   // Aperçu par le producteur unique : ce qui s'affiche = ce qui sera enregistré.
   const auto = computePlan({ ...profile, macro_mode: 'auto' }, today).profile;
 

@@ -5,9 +5,10 @@ import {
   fatFreeMassKg, lowEaWeeksInWindow, recordLowEaWeek, resolvedBodyFatPct,
   safetyFloorKcal, weekStartStamp,
 } from '../safety';
-import { calculateBMR, calculateMacros, computePlan, proteinTarget, recalcProfile, PROTEIN_MAX_PER_KG_FFM } from '../tdee';
+import { calculateBMR, calculateMacros, computePlan, macrosPercent, proteinTarget, recalcProfile, PROTEIN_MAX_PER_KG_FFM } from '../tdee';
 import { datedGoalStatus, maxWeeklyLossPct, MAX_DEFICIT_TDEE_RATIO, KCAL_PER_KG_FAT, KCAL_PER_KG_GAIN } from '../datedGoal';
 import { exerciseKcalPerDay } from '../sport';
+import { reconcileCloudLowEaWeeks } from '../syncGuard';
 import { addDaysStamp } from '../datedGoal';
 import { makeProfile } from './helpers';
 import { GoalTarget, UserProfile } from '../types';
@@ -107,7 +108,9 @@ describe('P0.1 — plancher d\'énergie disponible', () => {
       macro_mode: 'manual', target_kcal: 1200, target_protein_g: 150, target_carbs_g: 50, target_fat_g: 40,
     });
     const { profile, floor_kcal, flags } = computePlan(manual, TODAY);
-    expect(profile.target_kcal).toBe(floor_kcal);
+    // Au plancher à un gramme de glucides près (la recharge est quantifiée).
+    expect(profile.target_kcal).toBeGreaterThanOrEqual(floor_kcal);
+    expect(profile.target_kcal - floor_kcal).toBeLessThan(4);
     expect(profile.target_kcal).toBeGreaterThan(1200);
     expect(flags).toContain('FLOOR_APPLIED');
     // Le manque est comblé en glucides : protéines et lipides choisis restent intacts.
@@ -168,6 +171,45 @@ describe('P0.1 — plancher d\'énergie disponible', () => {
     // sortie de déficit forcée, pas un blocage ni un surplus.
     expect(serie[0]).toBeLessThan(tdee);
     expect(serie[serie.length - 1]).toBeGreaterThan(serie[0]);
+  });
+
+  // ── Régressions trouvées à l'audit adverse nº 2 (2026-07-28) ──────────────
+
+  it('RÉGRESSION : le registre se VIDE une fois ramenée à la maintenance', () => {
+    // La restriction se jugeait sur une cible virtuelle non escaladée : une fois
+    // l'escalade arrivée au plafond de maintenance, l'utilisatrice ne subissait
+    // plus AUCUN déficit mais sa semaine continuait d'être comptée. Le compteur
+    // saturait et la verrouillait à « déficit zéro » à vie.
+    let prof = makeProfile({
+      sex: 'female', age: 35, weight_kg: 135, height_cm: 168, body_fat_pct: 45,
+      goal: 'cut', macro_mode: 'auto', low_ea_weeks: [],
+      sports: [{ type: 'musculation', sessions_per_week: 3, minutes_per_session: 60 }],
+      training_days_per_week: 3,
+    });
+    for (let w = 0; w < 40; w++) prof = recalcProfile(prof, addDaysStamp(TODAY, 7 * w));
+    const last = addDaysStamp(TODAY, 7 * 39);
+    // Servie à la maintenance → plus de restriction → le compteur cesse de croître
+    // et redescend à mesure que les anciennes semaines sortent de la fenêtre.
+    expect(prof.target_kcal).toBe(prof.tdee_kcal);
+    expect(lowEaWeeksInWindow(prof.low_ea_weeks, last)).toBeLessThan(40);
+    // Une fois la fenêtre de 12 mois écoulée, les anciennes semaines ont disparu :
+    // le plancher redescend à 30, un déficit redevient possible, et le cycle
+    // recommence proprement (au plus la semaine courante fraîchement comptée).
+    const far = addDaysStamp(TODAY, 7 * 39 + 400);
+    const after = recalcProfile(prof, far);
+    expect(lowEaWeeksInWindow(after.low_ea_weeks, far)).toBeLessThanOrEqual(1);
+    expect(after.target_kcal).toBeLessThan(after.tdee_kcal); // elle peut de nouveau sécher
+  });
+
+  it('RÉGRESSION : une semaine devenue « future » n\'est plus détruite du registre', () => {
+    // L'horloge peut reculer légitimement (vol vers l'ouest un lundi, fuseau +13 → -11).
+    // `recordLowEaWeek` réécrit l'historique : purger aurait effacé une exposition
+    // réelle, définitivement, et l'aurait propagée au cloud.
+    const kept = recordLowEaWeek(['2026-06-01', '2026-06-08', '2026-07-27'], '2026-07-26');
+    expect(kept).toContain('2026-07-27');              // conservée, plus détruite
+    // Comptées : les deux semaines de juin + la semaine courante que l'appel vient
+    // d'ajouter. La semaine future, elle, reste hors comptage.
+    expect(lowEaWeeksInWindow(kept, '2026-07-26')).toBe(3);
   });
 
   it('lève FLOOR_APPLIED quand le plancher mord', () => {
@@ -405,5 +447,69 @@ describe('P0 — invariants permanents', () => {
     // 20 semaines cumulées → seuil à 34, donc un plancher plus haut qu'à 0 semaine.
     const fresh = recalcProfile({ ...p, low_ea_weeks: [] }, TODAY);
     expect(once.target_kcal).toBeGreaterThan(fresh.target_kcal);
+  });
+});
+
+// ═════════════════════════════════════════════════════════════════════════════
+// Régressions issues de l'audit adverse (2026-07-28) — angles synchro,
+// objectif daté, macros et appelants.
+// ═════════════════════════════════════════════════════════════════════════════
+
+describe('Audit — synchro, objectif daté, macros', () => {
+  it('une ligne cloud sans registre n\'efface plus l\'historique local', () => {
+    // Même classe de bug que P3.3 (`sports`) : `low_ea_weeks` est le second champ
+    // CUMULATIF du profil, non re-dérivable. Une colonne NULL (ligne antérieure à
+    // la migration) écrasait 22 semaines, soit ~210 kcal/j de protection perdus.
+    const local = makeProfile({ low_ea_weeks: ['2026-05-04', '2026-05-11', '2026-05-18'] });
+    const cloud = makeProfile({ low_ea_weeks: undefined });
+    expect(reconcileCloudLowEaWeeks(cloud, local).low_ea_weeks).toEqual(local.low_ea_weeks);
+    // Fusion par UNION : sur deux appareils, chacun détient une part de l'exposition.
+    const other = makeProfile({ low_ea_weeks: ['2026-05-11', '2026-06-01'] });
+    expect(reconcileCloudLowEaWeeks(other, local).low_ea_weeks)
+      .toEqual(['2026-05-04', '2026-05-11', '2026-05-18', '2026-06-01']);
+  });
+
+  it('un TDEE inexploitable (0, NaN) ne casse plus le plafond de déficit', () => {
+    // `tdee_kcal` vaut littéralement 0 sur un profil fraîchement construit, et les
+    // écrans passent la valeur STOCKÉE. Avec 0, `-Math.round(0.25*0)` donnait `-0` :
+    // tout le déficit était annulé ET l'objectif déclaré atteignable (car -0 === 0).
+    const body = makeProfile({ sex: 'male', age: 30, weight_kg: 85, height_cm: 180, goal: 'cut' });
+    const gt: GoalTarget = {
+      target_weight_kg: 75, target_date: addDaysStamp(TODAY, 180), start_weight_kg: 85, start_date: TODAY,
+    };
+    const ref = datedGoalStatus(gt, body, TODAY, 2600)!;
+    for (const bad of [0, NaN, undefined as unknown as number, -100]) {
+      const s = datedGoalStatus(gt, body, TODAY, bad)!;
+      expect(s.dailyKcalDelta, `tdee=${bad}`).toBeLessThan(0);           // le déficit survit
+      expect(s.dailyKcalDelta, `tdee=${bad}`).toBe(ref.dailyKcalDelta);  // seul le plafond des 25 % saute
+      expect(s.deficitCapped, `tdee=${bad}`).toBe(false);
+      expect(Number.isFinite(s.dailyKcalDelta)).toBe(true);
+    }
+  });
+
+  it('la dernière semaine ne déclare plus « objectif ambitieux » un objectif sûr', () => {
+    // Le garde-fou de division (`Math.max(1, weeksRemaining)`) ralentissait
+    // mécaniquement le rythme sous 7 jours restants, ce qui levait `clamped` et
+    // annonçait « tu y arriveras après ta date » pour un écart parfaitement tenable.
+    const body = makeProfile({ sex: 'male', age: 30, weight_kg: 85, height_cm: 180, goal: 'cut' });
+    const near: GoalTarget = {
+      target_weight_kg: 84.69, target_date: addDaysStamp(TODAY, 6), start_weight_kg: 85, start_date: TODAY,
+    };
+    const s = datedGoalStatus(near, body, TODAY, 2600)!;
+    expect(s.clamped).toBe(false);
+    expect(s.reachableByDate).toBe(true);
+  });
+
+  it('le mode « Perso % » n\'annule plus le correctif protéique', () => {
+    // L'UI pré-remplit toujours `protein_per_kg` : ce chemin est celui de TOUS les
+    // utilisateurs en « Perso % ». Il prenait le POIDS DE CORPS brut quand le %MG
+    // n'était pas déclaré → 3,81 g/kg de masse maigre, le sur-dosage que P0.2 corrige.
+    const f90 = makeProfile({ sex: 'female', age: 35, weight_kg: 90, height_cm: 165, goal: 'cut' });
+    const ffm = fatFreeMassKg(f90);
+    for (const gPerKg of [1.2, 2.2, 3.0]) {
+      const m = macrosPercent(2100, 'cut', f90, 55, { proteinPerKg: gPerKg });
+      expect(m.protein_g / ffm, `${gPerKg} g/kg`).toBeCloseTo(gPerKg, 1);
+      expect(m.protein_g / ffm, `${gPerKg} g/kg`).toBeLessThanOrEqual(3.05);
+    }
   });
 });

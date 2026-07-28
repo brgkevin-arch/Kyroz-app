@@ -211,6 +211,25 @@ export function lowEaWeeksInWindow(history: string[] | undefined, today: string)
 }
 
 /**
+ * Semaines en zone basse AVANT la semaine courante.
+ *
+ * C'est CE compteur qui pilote le plancher du jour, jamais `lowEaWeeksInWindow` :
+ * la semaine en cours ne doit pas influencer le plancher qui sert à décider si
+ * elle compte. Deux bénéfices, tous deux verrouillés par des tests :
+ *  1. Idempotence — recalculer deux fois le même jour donne le même plancher,
+ *     que la semaine ait été enregistrée entre-temps ou non.
+ *  2. Le registre peut se VIDER. En jugeant la restriction sur la cible
+ *     réellement servie, une utilisatrice ramenée à sa maintenance par l'escalade
+ *     cesse d'accumuler des semaines, et les anciennes sortent de la fenêtre.
+ *     Sans cela elle restait verrouillée à « déficit zéro » à vie.
+ */
+export function lowEaWeeksBefore(history: string[] | undefined, today: string): number {
+  if (!history?.length) return 0;
+  const current = weekStartStamp(today);
+  return lowEaWeeksInWindow(history.filter((w) => w !== current), today);
+}
+
+/**
  * Enregistre la semaine courante comme « passée en zone basse ». Idempotent (une
  * semaine ne compte qu'une fois, quel que soit le nombre de recalculs) et purgeant
  * (les semaines sorties de la fenêtre disparaissent). Renvoie la même référence si
@@ -220,7 +239,11 @@ export function recordLowEaWeek(history: string[] | undefined, today: string): s
   const week = weekStartStamp(today);
   const kept = (history ?? []).filter((w) => {
     const age = dayDiff(w, today);
-    return age >= 0 && age <= LOW_EA_WINDOW_DAYS;
+    // `age < 0` (semaine dans le FUTUR) est CONSERVÉ, pas purgé : l'horloge peut
+    // reculer légitimement (vol vers l'ouest un lundi, fuseau +13 → -11, réglage
+    // manuel de la date). Purger détruirait définitivement une exposition réelle,
+    // et le profil purgé repart au cloud. Le comptage, lui, l'ignore déjà.
+    return Number.isFinite(age) && age <= LOW_EA_WINDOW_DAYS;
   });
   if (kept.includes(week)) {
     return kept.length === (history?.length ?? 0) ? (history as string[]) : kept;

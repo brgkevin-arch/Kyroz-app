@@ -167,20 +167,39 @@ export function datedGoalStatus(
   const rawDelta = Math.round((safeWeeklyKg * kcalPerKg) / 7);
 
   // Plafond DUR : jamais plus de 25 % du TDEE en déficit.
-  const maxDeficit = -Math.round(MAX_DEFICIT_TDEE_RATIO * tdee);
+  //
+  // Le TDEE doit être EXPLOITABLE. `tdee_kcal` vaut littéralement 0 sur un profil
+  // fraîchement construit (onboarding) et les écrans passent la valeur STOCKÉE :
+  // avec 0, `-Math.round(0.25 * 0)` donne `-0`, ce qui annulait la TOTALITÉ du
+  // déficit tout en déclarant l'objectif atteignable (car `-0 === 0` en JS).
+  // Avec NaN, la comparaison était toujours fausse et le plafond disparaissait
+  // en silence. Sans TDEE fiable, on s'en remet au seul plafond de rythme.
+  const tdeeUsable = Number.isFinite(tdee) && tdee > 0;
+  const maxDeficit = tdeeUsable ? -Math.round(MAX_DEFICIT_TDEE_RATIO * tdee) : -Infinity;
   const deficitCapped = rawDelta < maxDeficit;
   const dailyKcalDelta = deficitCapped ? maxDeficit : rawDelta;
 
-  // « Bridé » se juge sur les RYTHMES, avant l'arrondi au kcal près : sinon un
-  // objectif parfaitement tenable serait signalé comme bridé pour un demi-kcal.
-  const clamped = Math.abs(safeWeeklyKg - requiredWeeklyKg) > 1e-6 || deficitCapped;
+  // « Bridé » = un plafond de SÉCURITÉ a mordu. On compare au rythme LISSÉ, pas au
+  // rythme requis brut : sinon le garde-fou de division de la dernière semaine
+  // (`Math.max(1, weeksRemaining)`) suffisait à déclarer « objectif ambitieux, tu y
+  // arriveras après ta date » un objectif parfaitement sûr — à J-6 pour 0,31 kg
+  // restants, alors que le même écart huit jours plus tôt passait « dans les clous ».
+  // Et l'arrondi au kcal près ne doit pas suffire à lever le drapeau.
+  const rateCapped = Math.abs(safeWeeklyKg - pacedWeeklyKg) > 1e-6;
+  const clamped = rateCapped || deficitCapped;
 
   // Rythme RÉELLEMENT appliqué après tous les plafonds → c'est lui qui doit dater
   // la projection, sinon l'UI affiche deux chiffres qui se contredisent.
   const appliedWeeklyKg = (dailyKcalDelta * 7) / kcalPerKg;
-  const weeksNeeded = appliedWeeklyKg !== 0 ? diff / appliedWeeklyKg : weeksRemaining;
-  const projectedDate = addDaysStamp(today, weeksNeeded * 7);
-  const reachableByDate = weeksNeeded <= weeksRemaining + 1e-6;
+  // `!== 0` laissait passer `-0` (produit par un TDEE nul) et faisait retomber sur
+  // `weeksRemaining`, donc « atteignable » alors que le rythme servi était nul.
+  const weeksNeeded = Math.abs(appliedWeeklyKg) > 1e-9 ? diff / appliedWeeklyKg : Infinity;
+  const projectedDate = Number.isFinite(weeksNeeded)
+    ? addDaysStamp(today, weeksNeeded * 7)
+    : target.target_date;
+  // Rien n'a été bridé pour raison de sécurité ⇒ la date tient, quelle que soit la
+  // dilution interne du dernier septième de semaine.
+  const reachableByDate = !clamped || weeksNeeded <= weeksRemaining + 1e-6;
 
   return {
     ...base,

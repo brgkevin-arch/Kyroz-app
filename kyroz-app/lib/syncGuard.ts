@@ -69,3 +69,30 @@ export function reconcileCloudSports<T extends Partial<UserProfile>>(
   }
   return cloud;
 }
+
+/**
+ * Même classe de problème que `sports`, pour le registre d'énergie disponible basse.
+ *
+ * `low_ea_weeks` est, avec `sports`, le SEUL champ CUMULATIF du profil : tous les
+ * autres sont des réglages que l'utilisateur peut ressaisir, celui-là est un
+ * historique d'exposition sur 12 mois qui ne peut PAS être reconstruit. Une ligne
+ * cloud antérieure à la migration (colonne NULL) écrasait 22 semaines d'historique
+ * local — soit ~210 kcal/jour de protection RED-S perdus d'un coup, et 12 nouvelles
+ * semaines à accumuler avant que le plancher ne recommence à remonter.
+ *
+ * On fusionne par UNION plutôt que « le local gagne » : sur deux appareils, chacun
+ * détient une partie de l'exposition réelle. Perdre une semaine vécue est une
+ * dégradation de sécurité ; en compter une deux fois est impossible (ce sont des
+ * dates, dédupliquées par le Set).
+ */
+export function reconcileCloudLowEaWeeks<T extends Partial<UserProfile>>(
+  cloud: T,
+  local: Partial<UserProfile> | null
+): T {
+  const a = Array.isArray(cloud?.low_ea_weeks) ? cloud.low_ea_weeks : [];
+  const b = Array.isArray(local?.low_ea_weeks) ? local!.low_ea_weeks! : [];
+  if (!b.length) return cloud;
+  const merged = [...new Set([...a, ...b])].sort();
+  if (merged.length === a.length) return cloud;
+  return { ...cloud, low_ea_weeks: merged };
+}

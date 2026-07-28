@@ -5,7 +5,7 @@ import { todayStamp } from './weight';
 import {
   BodyInput, MIN_AGE, MIN_KCAL, EA_OPTIMAL, LOW_EA_BUDGET_WEEKS, countsAsLowEaWeek,
   bodyFatBounds, clamp, energyAvailability, fatFreeMassKg, isFemaleAtRisk,
-  lowEaWeeksInWindow, recordLowEaWeek, safetyFloorKcal,
+  lowEaWeeksBefore, recordLowEaWeek, safetyFloorKcal,
 } from './safety';
 
 // ── Calculs nutritionnels ────────────────────────────────────────────────────
@@ -140,6 +140,11 @@ export function proteinTarget(body: BodyInput, goal: Goal): number {
 // entre jours relève du cyclage, hors périmètre de cette PR).
 export const CARB_TRAINING_FLOOR_PER_KG = 3;
 
+/** Glucides sous le plancher « jour de séance » ? Partagé par les trois modes. */
+function isTrainingCarbShort(carbs_g: number, weight_kg: number): boolean {
+  return carbs_g < CARB_TRAINING_FLOOR_PER_KG * weight_kg;
+}
+
 export interface MacroPlan {
   target_kcal: number;
   protein_g: number;
@@ -160,20 +165,29 @@ export interface MacroOptions {
   isTrainingDay?: boolean;
 }
 
-/** Plancher + drapeaux communs aux deux modes de calcul. */
-function floorAndFlags(body: MacroBody, tdee: number, kcalDelta: number, opts: MacroOptions) {
+/**
+ * Plancher + drapeaux communs à TOUS les modes de calcul — `manual` compris, qui
+ * construisait auparavant ses drapeaux à la main et n'émettait donc jamais
+ * LOW_EA_BUDGET_EXCEEDED ni CARBS_BELOW_TRAINING_FLOOR.
+ *
+ * `requestedKcal` = la cible AVANT plancher : `tdee + delta` en auto/percent,
+ * l'énergie des grammes saisis en manual.
+ */
+function floorAndFlags(body: MacroBody, tdee: number, requestedKcal: number, opts: MacroOptions) {
   const sportKcalPerDay = opts.sportKcalPerDay ?? exerciseKcalPerDay(body.sports, body.weight_kg);
   const lowEaWeeks = opts.lowEaWeeks ?? 0;
   const bmr = calculateBMR(body.sex, body.weight_kg, body.height_cm, body.age, body.body_fat_pct);
   // `tdee` plafonne la composante EA : le plancher ne doit jamais imposer un surplus.
   const floor_kcal = safetyFloorKcal(body, bmr, sportKcalPerDay, lowEaWeeks, tdee);
 
-  const requested = tdee + kcalDelta;
-  const target_kcal = Math.max(requested, floor_kcal);
+  const target_kcal = Math.max(requestedKcal, floor_kcal);
 
   const flags: PlanFlag[] = [];
-  // Le plancher a mordu → la trajectoire demandée n'est plus tenable telle quelle.
-  if (target_kcal > requested) flags.push('FLOOR_APPLIED');
+  // Le plancher est CONTRAIGNANT (et pas seulement « a mordu au premier calcul ») :
+  // en mode manual la correction est persistée, donc `target > requested` devient
+  // faux au recalcul suivant et l'avertissement disparaissait — alors que le plan
+  // sert toujours exactement le plancher. On teste l'état, pas la transition.
+  if (target_kcal <= floor_kcal) flags.push('FLOOR_APPLIED');
   const ea = energyAvailability(body, target_kcal, sportKcalPerDay);
   if (ea < EA_OPTIMAL) flags.push('LOW_EA_WARNING');
   if (isFemaleAtRisk(body) && lowEaWeeks > LOW_EA_BUDGET_WEEKS) flags.push('LOW_EA_BUDGET_EXCEEDED');
@@ -188,7 +202,7 @@ function carbsFromRemaining(
   const carbs = Math.round(remainingKcal / 4);
   if (carbs < 0) flags.push('MACRO_BUDGET_OVERFLOW');
   const isTrainingDay = opts.isTrainingDay ?? true;
-  if (isTrainingDay && carbs < CARB_TRAINING_FLOOR_PER_KG * body.weight_kg) {
+  if (isTrainingDay && isTrainingCarbShort(carbs, body.weight_kg)) {
     flags.push('CARBS_BELOW_TRAINING_FLOOR');
   }
   return Math.max(0, carbs);
@@ -201,7 +215,7 @@ export function calculateMacros(
   opts: MacroOptions = {},
 ): MacroPlan {
   const kcalDelta = opts.kcalDeltaOverride ?? GOAL_CONFIG[goal].kcalDelta;
-  const { target_kcal, floor_kcal, flags } = floorAndFlags(body, tdee, kcalDelta, opts);
+  const { target_kcal, floor_kcal, flags } = floorAndFlags(body, tdee, tdee + kcalDelta, opts);
 
   const protein_g = proteinTarget(body, goal);
   const fat_g = Math.round((target_kcal * 0.25) / 9);
@@ -229,20 +243,21 @@ export function macrosPercent(
 ): MacroPlan {
   const cfg = GOAL_CONFIG[goal];
   const kcalDelta = opts.kcalDeltaOverride ?? cfg.kcalDelta;
-  const { target_kcal, floor_kcal, flags } = floorAndFlags(body, tdee, kcalDelta, opts);
+  const { target_kcal, floor_kcal, flags } = floorAndFlags(body, tdee, tdee + kcalDelta, opts);
 
-  // Protéines. SANS réglage explicite → exactement la cible du mode auto (poids
-  // ajusté + clamp, cf. proteinTarget) : les deux modes ne doivent pas diverger
-  // sur leur valeur par défaut. AVEC un g/kg saisi, c'est un choix explicite de
-  // l'utilisateur (borné par le stepper de l'UI) : on le respecte, appliqué à la
-  // masse maigre si le %MG est déclaré, sinon au poids de corps — c'est ce que
-  // l'étiquette du champ annonce.
+  // Protéines. SANS réglage explicite → exactement la cible du mode auto.
+  //
+  // AVEC un g/kg saisi, la base est TOUJOURS la MASSE MAIGRE — estimée par
+  // Deurenberg quand le %MG n'est pas déclaré, jamais le poids de corps brut.
+  // Prendre le poids brut annulait purement et simplement le correctif P0.2 :
+  // l'UI pré-remplit toujours `protein_per_kg`, donc ce chemin est celui de TOUS
+  // les utilisateurs en « Perso % », et une femme de 90 kg sans %MG déclaré
+  // passait de 135 g (auto) à 198 g, soit 3,81 g/kg de masse maigre — exactement
+  // le sur-dosage que P0.2 corrigeait. Au maximum du stepper (3,0 g/kg), la base
+  // masse maigre garde le résultat dans la fourchette haute défendable
+  // (Helms 2014 : 2,3–3,1 g/kg de masse maigre en sèche).
   const protein_g = (typeof opts.proteinPerKg === 'number' && opts.proteinPerKg > 0)
-    ? Math.round(
-        ((typeof body.body_fat_pct === 'number' && body.body_fat_pct > 0)
-          ? leanBodyMass(body.sex, body.weight_kg, body.body_fat_pct)
-          : body.weight_kg) * opts.proteinPerKg,
-      )
+    ? Math.round(fatFreeMassKg(body) * opts.proteinPerKg)
     : proteinTarget(body, goal);
 
   const remaining = target_kcal - protein_g * 4;
@@ -253,7 +268,7 @@ export function macrosPercent(
   const fat_g = Math.round((usable * (1 - ratio)) / 9);
 
   const isTrainingDay = opts.isTrainingDay ?? true;
-  if (isTrainingDay && carbs_g < CARB_TRAINING_FLOOR_PER_KG * body.weight_kg) {
+  if (isTrainingDay && isTrainingCarbShort(carbs_g, body.weight_kg)) {
     flags.push('CARBS_BELOW_TRAINING_FLOOR');
   }
 
@@ -287,24 +302,11 @@ export function computePlan(p: UserProfile, today: string = todayStamp()): Compu
   const kcalDelta = datedDelta ?? GOAL_CONFIG[p.goal].kcalDelta;
 
   // ── Registre d'exposition en zone d'énergie disponible basse ───────────────
-  // L'appartenance à la zone se décide sur le plan NON ESCALADÉ (plancher EA 30),
-  // donc sur une grandeur qui ne dépend PAS du compteur. Sans cela, le plancher
-  // dépendrait du compteur qui dépendrait du plancher : recalculer deux fois de
-  // suite changerait le résultat (perte d'idempotence).
-  const baseFloor = safetyFloorKcal(p, bmr, sportKcalPerDay, 0, tdee);
-  // Cible non escaladée du mode courant. En `manual`, c'est la valeur RÉELLEMENT
-  // servie qu'il faut juger, pas une cible auto que l'utilisateur ne verra jamais.
-  const baseTarget = p.macro_mode === 'manual'
-    ? Math.max(p.target_kcal, baseFloor)
-    : Math.max(tdee + kcalDelta, baseFloor);
-  // On n'historise que pour les femmes : c'est la seule population dont le plancher
-  // remonte (cf. safety.effectiveEaPerKgFfm). Toutes les femmes, ménopausées
-  // comprises — sinon basculer le champ ferait perdre l'historique.
-  const low_ea_weeks = (p.sex === 'female' && countsAsLowEaWeek(p, baseTarget, tdee, sportKcalPerDay))
-    ? recordLowEaWeek(p.low_ea_weeks, today)
-    : p.low_ea_weeks;
-  const lowEaWeeks = lowEaWeeksInWindow(low_ea_weeks, today);
-
+  // Le plancher du jour se calcule sur les semaines ANTÉRIEURES uniquement
+  // (cf. lowEaWeeksBefore) : la semaine courante ne peut pas influencer le
+  // plancher qui sert ensuite à décider si elle compte. C'est ce qui rend le
+  // calcul idempotent ET permet au registre de se vider.
+  const lowEaWeeks = lowEaWeeksBefore(p.low_ea_weeks, today);
   const opts: MacroOptions = { kcalDeltaOverride: kcalDelta, sportKcalPerDay, lowEaWeeks };
 
   let m: MacroPlan;
@@ -316,20 +318,43 @@ export function computePlan(p: UserProfile, today: string = todayStamp()): Compu
     });
   } else {
     // legacy 'manual' : grammes figés — MAIS le plancher de sécurité s'applique
-    // quand même (aucun chemin de code excepté). Le manque est comblé en glucides,
-    // les protéines et lipides choisis restent intacts.
-    const floor_kcal = safetyFloorKcal(p, bmr, sportKcalPerDay, lowEaWeeks, tdee);
-    const flags: PlanFlag[] = [];
-    let target_kcal = p.target_kcal;
-    let carbs_g = p.target_carbs_g;
-    if (target_kcal < floor_kcal) {
-      carbs_g += Math.round((floor_kcal - target_kcal) / 4);
-      target_kcal = floor_kcal;
-      flags.push('FLOOR_APPLIED');
+    // quand même (aucun chemin de code excepté), et par le MÊME chemin que les
+    // autres modes, donc avec le même jeu de drapeaux.
+    //
+    // La demande se dérive des GRAMMES, jamais de `p.target_kcal` : celui-ci a pu
+    // être relevé au plancher lors d'un calcul précédent, et repartir de lui
+    // faisait un cliquet (la cible ne redescendait plus quand le plancher baissait,
+    // par exemple après une perte de poids).
+    const manualKcal = kcalFromMacros(p.target_protein_g, p.target_carbs_g, p.target_fat_g);
+    const r = floorAndFlags(p, tdee, manualKcal, opts);
+    const carbs_g = p.target_carbs_g + Math.max(0, Math.round((r.target_kcal - manualKcal) / 4));
+    // La cible SERVIE est l'énergie des grammes servis, pas une valeur parallèle :
+    // la recharge en glucides est arrondie au gramme, donc les deux divergeaient
+    // d'un kcal et le calcul n'était plus idempotent d'un passage à l'autre.
+    const served = Math.max(r.floor_kcal, kcalFromMacros(p.target_protein_g, carbs_g, p.target_fat_g));
+    // « Au plancher » à un gramme de glucides près (4 kcal) : la recharge est
+    // quantifiée au gramme, donc l'égalité stricte serait instable d'un calcul à
+    // l'autre — et le drapeau clignoterait.
+    const flags: PlanFlag[] = r.flags.filter((f) => f !== 'FLOOR_APPLIED');
+    if (served - r.floor_kcal < 4) flags.push('FLOOR_APPLIED');
+    if ((opts.isTrainingDay ?? true) && isTrainingCarbShort(carbs_g, p.weight_kg)) {
+      flags.push('CARBS_BELOW_TRAINING_FLOOR');
     }
-    if (energyAvailability(p, target_kcal, sportKcalPerDay) < EA_OPTIMAL) flags.push('LOW_EA_WARNING');
-    m = { target_kcal, protein_g: p.target_protein_g, carbs_g, fat_g: p.target_fat_g, floor_kcal, flags };
+    m = { target_kcal: served, floor_kcal: r.floor_kcal, flags, protein_g: p.target_protein_g, carbs_g, fat_g: p.target_fat_g };
   }
+
+  // ── Enregistrement de la semaine ──────────────────────────────────────────
+  // Jugé sur la cible RÉELLEMENT SERVIE (`m.target_kcal`), et non sur une cible
+  // virtuelle : une utilisatrice que l'escalade a ramenée à sa maintenance ne
+  // subit plus AUCUNE restriction, donc sa semaine ne doit plus compter. Sinon
+  // le compteur saturait et la verrouillait à « déficit zéro » à vie — la sortie
+  // de déficit comptait elle-même comme du déficit.
+  // On n'historise que pour les femmes : seule population dont le plancher remonte
+  // (cf. safety.effectiveEaPerKgFfm). Toutes les femmes, ménopausées comprises —
+  // sinon basculer le champ ferait perdre l'historique.
+  const low_ea_weeks = (p.sex === 'female' && countsAsLowEaWeek(p, m.target_kcal, tdee, sportKcalPerDay))
+    ? recordLowEaWeek(p.low_ea_weeks, today)
+    : p.low_ea_weeks;
 
   const flags = [...m.flags];
   // Poids cible incohérent avec la famille d'objectif : `datedGoalKcalDelta` renvoie

@@ -35,7 +35,9 @@ export function MacroSplit({
   const fatRatio = 100 - carbRatio;
   const reco = recommendedProteinPerKg(goal);
   const bodyFat = body.body_fat_pct;
-  const proteinBasis = bodyFat != null ? 'ta masse maigre' : 'ton poids';
+  // La base est TOUJOURS la masse maigre depuis P0.2 — estimée quand le %MG
+  // n'est pas déclaré. L'étiquette doit dire ce que le calcul fait réellement.
+  const proteinBasis = bodyFat != null ? 'ta masse maigre' : 'ta masse maigre estimée';
   const floored = m.flags.includes('FLOOR_APPLIED');
 
   return (

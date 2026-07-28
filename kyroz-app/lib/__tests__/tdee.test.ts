@@ -3,6 +3,7 @@ import {
   calculateBMR, calculateTDEE, calculateMacros, macrosPercent, recalcProfile,
   leanBodyMass, validateProfile, recommendedProteinPerKg, kcalFromMacros,
   MIN_KCAL, MIN_AGE, DEFAULT_CARB_RATIO, NEAT_BASE_PAL, proteinTarget,
+  computePlan,
 } from '../tdee';
 import { fatFreeMassKg } from '../safety';
 import { exerciseKcalPerDay, totalSessionsPerWeek } from '../sport';
@@ -114,8 +115,11 @@ describe('macrosPercent (mode Perso %)', () => {
   it('protéine ajustable (g/kg) avec rééquilibrage à kcal constant', () => {
     const lo = macrosPercent(2914, 'cut', makeProfile(), 55, { proteinPerKg: 1.8 });
     const hi = macrosPercent(2914, 'cut', makeProfile(), 55, { proteinPerKg: 2.6 });
-    expect(lo.protein_g).toBe(Math.round(90 * 1.8));
-    expect(hi.protein_g).toBe(Math.round(90 * 2.6));
+    // Base = MASSE MAIGRE (estimée si le %MG n'est pas déclaré), jamais le poids
+    // de corps brut : sinon le mode « Perso % » annulait le correctif P0.2.
+    const ffm = fatFreeMassKg(makeProfile());
+    expect(lo.protein_g).toBe(Math.round(ffm * 1.8));
+    expect(hi.protein_g).toBe(Math.round(ffm * 2.6));
     expect(lo.target_kcal).toBe(hi.target_kcal); // kcal inchangé
     expect(hi.carbs_g).toBeLessThan(lo.carbs_g); // le reste s'ajuste
   });
@@ -137,7 +141,7 @@ describe('recalcProfile', () => {
 
   it('percent : utilise carb_ratio + protein_per_kg du profil', () => {
     const p = recalcProfile(makeProfile({ macro_mode: 'percent', carb_ratio: 40, protein_per_kg: 2.0 }));
-    expect(p.target_protein_g).toBe(Math.round(90 * 2.0));
+    expect(p.target_protein_g).toBe(Math.round(fatFreeMassKg(makeProfile()) * 2.0));
     const rest = p.target_kcal - p.target_protein_g * 4;
     expect(p.target_carbs_g * 4 / rest).toBeCloseTo(0.4, 1);
   });
@@ -149,12 +153,30 @@ describe('recalcProfile', () => {
     expect(p.target_carbs_g * 4 / rest).toBeCloseTo(DEFAULT_CARB_RATIO / 100, 1);
   });
 
-  it('manual (legacy) : grammes figés, TDEE seul mis à jour', () => {
+  it('manual (legacy) : les GRAMMES font foi, TDEE et plancher recalculés', () => {
     const base = makeProfile({ macro_mode: 'manual', target_protein_g: 123, target_kcal: 2000 });
     const p = recalcProfile({ ...base, weight_kg: 70 });
+    // Protéines et lipides choisis : intacts.
     expect(p.target_protein_g).toBe(123);
-    expect(p.target_kcal).toBe(2000);
+    expect(p.target_fat_g).toBe(base.target_fat_g);
+    // `target_kcal` se DÉRIVE des grammes (et non de l'ancien `target_kcal` stocké,
+    // qui faisait cliquet : la cible ne redescendait plus quand le plancher baissait).
+    const fromGrams = kcalFromMacros(p.target_protein_g, p.target_carbs_g, p.target_fat_g);
+    expect(Math.abs(p.target_kcal - fromGrams)).toBeLessThanOrEqual(4);
     expect(p.tdee_kcal).not.toBe(base.tdee_kcal);
+  });
+
+  it('manual : idempotent — pas de cliquet sur la cible ni de drapeau qui disparaît', () => {
+    const base = makeProfile({
+      sex: 'female', weight_kg: 62, height_cm: 165, body_fat_pct: 24, macro_mode: 'manual',
+      target_kcal: 1250, target_protein_g: 120, target_carbs_g: 100, target_fat_g: 35,
+    });
+    const one = computePlan(base, '2026-07-21');
+    const two = computePlan(one.profile, '2026-07-21');
+    expect(two.profile.target_kcal).toBe(one.profile.target_kcal);
+    expect(two.profile.target_carbs_g).toBe(one.profile.target_carbs_g);
+    expect(two.flags).toEqual(one.flags);            // FLOOR_APPLIED ne s'évapore plus
+    expect(one.flags).toContain('FLOOR_APPLIED');
   });
 });
 
