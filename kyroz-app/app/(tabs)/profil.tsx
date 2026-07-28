@@ -544,18 +544,21 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
       </View>
       <Text style={{ color: t.textSecondary, fontSize: 13 }}>Cible le {formatFR(targetDate)}.</Text>
 
-      {status && preview && (
+      {/* Cible refusée → on affiche le motif SEUL. Montrer une trajectoire crédible
+          (« Perdre 48 kg · 1982 kcal/j ») au-dessus d'un refus revient à valider
+          visuellement un objectif qu'on rejette la ligne d'après. */}
+      {goalBlockMsg && (
+        <Card t={t}>
+          <Text style={{ color: t.danger, fontSize: 13, lineHeight: 19, fontWeight: '600' }}>{goalBlockMsg}</Text>
+        </Card>
+      )}
+
+      {!goalBlockMsg && status && preview && (
         <Card t={t} style={{ gap: 12 }}>
           <Row t={t} l="Trajectoire" v={status.direction === 'maintain' ? dirLabel : `${dirLabel} ${gapKg} kg`} strong />
           {status.direction !== 'maintain' && <Row t={t} l="Rythme sûr" v={`${Math.abs(status.safeWeeklyKg)} kg / sem`} />}
           <Row t={t} l="Calories ajustées" v={`${preview.target_kcal} kcal/j`} strong />
           <Row t={t} l="vs maintenance" v={`${kcalDelta >= 0 ? '+' : ''}${kcalDelta} kcal/j`} c={kcalDelta < 0 ? t.carbs : t.protein} />
-        </Card>
-      )}
-
-      {goalBlockMsg && (
-        <Card t={t}>
-          <Text style={{ color: t.danger, fontSize: 13, lineHeight: 19, fontWeight: '600' }}>{goalBlockMsg}</Text>
         </Card>
       )}
       {!goalBlockMsg && status?.directionMismatch && (
@@ -565,26 +568,30 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
           </Text>
         </Card>
       )}
-      {status?.clamped && !status.directionMismatch && (
+      {!goalBlockMsg && status?.clamped && !status.directionMismatch && (
         <Card t={t}>
           <Text style={{ color: t.text, fontSize: 13, lineHeight: 19 }}>
             Objectif ambitieux : au rythme le plus sûr tu atteins {status.targetWeightKg} kg vers le {formatFR(status.projectedDate)}, un peu après ta date. Kyroz garde le rythme sûr.
           </Text>
         </Card>
       )}
-      {status && !status.clamped && !status.directionMismatch && status.direction !== 'maintain' && (
+      {/* `!floored` : le plancher de sécurité décale la date sans que `clamped` le
+          sache (il ne juge que le RYTHME). Sans cette condition, on rassurait
+          « dans les clous de ta date » juste au-dessus du message qui annonce
+          l'inverse. La projection réellement corrigée est du ressort de P1.6. */}
+      {!goalBlockMsg && status && !status.clamped && !status.directionMismatch && !floored && status.direction !== 'maintain' && (
         <Text style={{ color: t.textSecondary, fontSize: 12, lineHeight: 17 }}>
           Rythme sûr, dans les clous de ta date.
         </Text>
       )}
-      {floored && preview && (
+      {!goalBlockMsg && floored && preview && (
         <Card t={t}>
           <Text style={{ color: t.text, fontSize: 13, lineHeight: 19 }}>
             Ton plancher de sécurité est à {preview.target_kcal} kcal/jour : en dessous, ton corps n'a plus assez d'énergie pour fonctionner correctement. Plus tu t'entraînes, plus ce plancher monte — c'est normal, l'énergie de tes séances ne compte pas comme énergie disponible. Ta date sera décalée plutôt que ton apport écrasé.
           </Text>
         </Card>
       )}
-      {status?.direction === 'maintain' && (
+      {!goalBlockMsg && status?.direction === 'maintain' && (
         <Text style={{ color: t.textSecondary, fontSize: 12, lineHeight: 17 }}>
           Tu es déjà à ton poids cible : Kyroz vise le maintien.
         </Text>
