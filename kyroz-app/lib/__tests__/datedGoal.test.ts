@@ -2,10 +2,18 @@ import { describe, it, expect } from 'vitest';
 import {
   datedGoalStatus, datedGoalKcalDelta, addDaysStamp, daysBetween,
   idealWeightAt, trackStatus, TRACK_TOLERANCE_KG,
-  KCAL_PER_KG, MAX_LOSS_RATE_PCT, MAX_GAIN_RATE_PCT,
+  KCAL_PER_KG_FAT, KCAL_PER_KG_GAIN, MAX_GAIN_RATE_PCT, maxWeeklyLossPct,
 } from '../datedGoal';
-import { calculateMacros, calculateTDEE, recalcProfile, MIN_KCAL } from '../tdee';
+import { calculateMacros, computePlan, recalcProfile, MIN_KCAL } from '../tdee';
+import { makeProfile } from './helpers';
 import { GoalTarget, UserProfile } from '../types';
+
+// Corps de référence pour la trajectoire. `recomp` est volontairement NEUTRE :
+// aucun sens d'objectif n'est imposé, donc aucun GOAL_DIRECTION_MISMATCH ne vient
+// parasiter les tests de rythme (cf. P0.3).
+const BODY80 = makeProfile({ sex: 'male', age: 30, weight_kg: 80, height_cm: 180, goal: 'recomp' });
+const BODY70 = makeProfile({ sex: 'male', age: 30, weight_kg: 70, height_cm: 180, goal: 'recomp' });
+const TDEE = 2914; // assez haut pour que le plafond des 25 % ne morde pas ici
 
 const TODAY = '2026-07-21';
 const inWeeks = (n: number) => addDaysStamp(TODAY, n * 7);
@@ -26,46 +34,48 @@ describe('helpers de date', () => {
 
 describe('datedGoalStatus — trajectoire', () => {
   it('renvoie null sans objectif', () => {
-    expect(datedGoalStatus(undefined, 80, TODAY)).toBeNull();
-    expect(datedGoalKcalDelta(undefined, 80, TODAY)).toBeNull();
+    expect(datedGoalStatus(undefined, BODY80, TODAY, TDEE)).toBeNull();
+    expect(datedGoalKcalDelta(undefined, BODY80, TODAY, TDEE)).toBeNull();
   });
 
   it('sèche douce : rythme non bridé, déficit modéré', () => {
-    const s = datedGoalStatus(target(76, 12), 80, TODAY)!;
+    const s = datedGoalStatus(target(76, 12), BODY80, TODAY, TDEE)!;
     expect(s.active).toBe(true);
     expect(s.direction).toBe('lose');
     expect(s.clamped).toBe(false);
+    expect(s.deficitCapped).toBe(false);
     // -4 kg sur 12 sem = -0,333 kg/sem → -0,333*7700/7 ≈ -367 kcal/j
-    expect(s.dailyKcalDelta).toBe(Math.round((-4 / 12) * KCAL_PER_KG / 7));
+    expect(s.dailyKcalDelta).toBe(Math.round((-4 / 12) * KCAL_PER_KG_FAT / 7));
     expect(s.dailyKcalDelta).toBeLessThan(0);
     expect(s.reachableByDate).toBe(true);
   });
 
-  it('sèche trop rapide : rythme bridé au plafond sûr (1 %/sem)', () => {
-    const s = datedGoalStatus(target(70, 4), 80, TODAY)!;
+  it('sèche trop rapide : rythme bridé au plafond sûr (modulé par l adiposité)', () => {
+    const s = datedGoalStatus(target(70, 4), BODY80, TODAY, TDEE)!;
     expect(s.clamped).toBe(true);
-    // plafond = -1 % de 80 = -0,8 kg/sem
-    const cap = -(MAX_LOSS_RATE_PCT / 100) * 80;
-    expect(s.safeWeeklyKg).toBeCloseTo(cap, 5);
-    expect(s.dailyKcalDelta).toBe(Math.round(cap * KCAL_PER_KG / 7)); // -880
+    // %MG estimé ~20 % → ni sec ni très gras → plafond 0,75 %/sem = -0,6 kg/sem
+    expect(maxWeeklyLossPct(BODY80)).toBe(0.75);
+    const cap = -(maxWeeklyLossPct(BODY80) / 100) * 80;
+    expect(s.safeWeeklyKg).toBeCloseTo(cap, 1);
+    expect(s.dailyKcalDelta).toBe(Math.round(cap * KCAL_PER_KG_FAT / 7)); // -660
     // au rythme sûr, l'atteinte tombe APRÈS la date visée
     expect(s.reachableByDate).toBe(false);
     expect(daysBetween(TODAY, s.projectedDate)).toBeGreaterThan(daysBetween(TODAY, s.targetDate));
   });
 
   it('prise trop rapide : bridée au plafond sûr (0,5 %/sem)', () => {
-    const s = datedGoalStatus(target(78, 8, 70), 70, TODAY)!;
+    const s = datedGoalStatus(target(78, 8, 70), BODY70, TODAY, 2700)!;
     expect(s.direction).toBe('gain');
     expect(s.clamped).toBe(true);
-    // plafond = +0,5 % de 70 = +0,35 kg/sem → le delta calorique suit la valeur PRÉCISE
-    // (safeWeeklyKg affiché est arrondi à 0,1, donc on teste le delta, pas l'arrondi).
+    // plafond = +0,5 % de 70 = +0,35 kg/sem. Le kg PRIS coûte 5000 kcal (tissu mixte,
+    // muscle très hydraté) et non 7700 : appliquer 7700 sur-prescrirait le surplus.
     const cap = (MAX_GAIN_RATE_PCT / 100) * 70;
-    expect(s.dailyKcalDelta).toBe(Math.round(cap * KCAL_PER_KG / 7)); // +385
+    expect(s.dailyKcalDelta).toBe(Math.round(cap * KCAL_PER_KG_GAIN / 7)); // +250
     expect(s.dailyKcalDelta).toBeGreaterThan(0);
   });
 
   it('poids déjà atteint : maintien, delta 0, actif', () => {
-    const s = datedGoalStatus(target(80.1, 8), 80, TODAY)!;
+    const s = datedGoalStatus(target(80.1, 8), BODY80, TODAY, TDEE)!;
     expect(s.direction).toBe('maintain');
     expect(s.dailyKcalDelta).toBe(0);
     expect(s.active).toBe(true);
@@ -73,9 +83,9 @@ describe('datedGoalStatus — trajectoire', () => {
 
   it('échéance passée : inactif, aucun pilotage', () => {
     const past: GoalTarget = { target_weight_kg: 74, target_date: addDaysStamp(TODAY, -7), start_weight_kg: 80, start_date: addDaysStamp(TODAY, -90) };
-    const s = datedGoalStatus(past, 80, TODAY)!;
+    const s = datedGoalStatus(past, BODY80, TODAY, TDEE)!;
     expect(s.active).toBe(false);
-    expect(datedGoalKcalDelta(past, 80, TODAY)).toBeNull();
+    expect(datedGoalKcalDelta(past, BODY80, TODAY, TDEE)).toBeNull();
   });
 });
 
@@ -119,13 +129,10 @@ describe('trajectoire idéale & verdict de pente (module Transformation)', () =>
 });
 
 describe('intégration cerveau macro (recalcProfile / calculateMacros)', () => {
-  const base: UserProfile = {
-    id: 'u', sex: 'male', age: 30, weight_kg: 80, height_cm: 180,
-    activity_level: 'moderate', training_days_per_week: 4, goal: 'maintain',
-    macro_mode: 'auto', tdee_kcal: 0, target_kcal: 0, target_protein_g: 0, target_carbs_g: 0, target_fat_g: 0,
-    plan_days: 7, plan_weekdays: [1, 2, 3, 4, 5, 6, 0], meals: ['breakfast', 'lunch', 'dinner', 'snack'],
-    meal_emphasis: 'even', variety: 'balanced', dietary_restrictions: [], disliked_foods: [], preferred_proteins: [], max_prep_time_min: 30,
-  };
+  const base: UserProfile = makeProfile({
+    sex: 'male', age: 30, weight_kg: 80, height_cm: 180, training_days_per_week: 4,
+    goal: 'maintain', tdee_kcal: 0, target_kcal: 0,
+  });
 
   it('sans objectif daté : comportement historique inchangé (goal maintain → cible = TDEE)', () => {
     const p = recalcProfile(base, TODAY);
@@ -134,21 +141,25 @@ describe('intégration cerveau macro (recalcProfile / calculateMacros)', () => {
 
   it('objectif daté en sèche : la cible calorique baisse sous le TDEE', () => {
     const p = recalcProfile({ ...base, goal_target: target(74, 12) }, TODAY);
-    const expectedDelta = datedGoalKcalDelta(target(74, 12), 80, TODAY)!;
+    const expectedDelta = datedGoalKcalDelta(target(74, 12), base, TODAY, p.tdee_kcal)!;
+    const { floor_kcal } = computePlan({ ...base, goal_target: target(74, 12) }, TODAY);
     expect(expectedDelta).toBeLessThan(0);
-    expect(p.target_kcal).toBe(Math.max(p.tdee_kcal + expectedDelta, MIN_KCAL.male));
+    expect(p.target_kcal).toBe(Math.max(p.tdee_kcal + expectedDelta, floor_kcal));
     expect(p.target_kcal).toBeLessThan(p.tdee_kcal);
   });
 
-  it('le plancher de sécurité MIN_KCAL prime sur un override extrême', () => {
-    // override -5000 → target clampé au plancher, jamais en-dessous (§6)
-    const m = calculateMacros(2000, 'cut', 80, 'male', undefined, -5000);
-    expect(m.target_kcal).toBe(MIN_KCAL.male);
+  it('le plancher de sécurité prime sur un override extrême (§6 + P0.1)', () => {
+    // override -5000 → la cible est ramenée AU PLANCHER, jamais en dessous, et le
+    // plancher réel (énergie disponible) est au-dessus du filet absolu 1500.
+    const m = calculateMacros(2000, 'cut', base, { kcalDeltaOverride: -5000 });
+    expect(m.target_kcal).toBe(m.floor_kcal);
+    expect(m.target_kcal).toBeGreaterThan(MIN_KCAL.male);
+    expect(m.flags).toContain('FLOOR_APPLIED');
   });
 
-  it('un rythme sûr ne peut pas descendre la cible sous le plancher pour un TDEE normal', () => {
-    const tdee = calculateTDEE('male', 80, 180, 30, 4);
-    const delta = datedGoalKcalDelta(target(60, 4), 80, TODAY)!; // objectif extrême → bridé -880
-    expect(Math.max(tdee + delta, MIN_KCAL.male)).toBeGreaterThan(MIN_KCAL.male);
+  it('un objectif extrême est bridé par le rythme ET par le plafond des 25 % du TDEE', () => {
+    const p = recalcProfile({ ...base, goal_target: target(60, 4) }, TODAY);
+    expect(p.target_kcal).toBeGreaterThan(MIN_KCAL.male);
+    expect(p.tdee_kcal - p.target_kcal).toBeLessThanOrEqual(Math.round(0.25 * p.tdee_kcal));
   });
 });

@@ -22,7 +22,9 @@ export function formatFR(stamp: string): string {
 export function DatedGoalCard({ t, profile, onPress }: { t: ThemePalette; profile: UserProfile; onPress: () => void }) {
   const gt = profile.goal_target;
   if (!gt) return null;
-  const status = datedGoalStatus(gt, profile.weight_kg, todayStamp());
+  // `tdee_kcal` est la valeur STOCKÉE, produite par recalcProfile : on ne recalcule
+  // pas ici (chemin parallèle interdit). Elle sert au plafond de déficit (25 % du TDEE).
+  const status = datedGoalStatus(gt, profile, todayStamp(), profile.tdee_kcal);
   if (!status) return null;
 
   // Progression départ → actuel → cible (marche dans les deux sens : perte ET prise).

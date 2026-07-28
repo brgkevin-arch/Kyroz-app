@@ -3,7 +3,7 @@ import { supabase } from './supabase';
 import { Recipe, Streak, UserProfile } from './types';
 import { PantryItem } from './pantry';
 import { WeightEntry } from './weight';
-import { decideProfileHydration, normalizeProfileActivity, reconcileCloudSports, PROFILE_PENDING_KEY } from './syncGuard';
+import { decideProfileHydration, normalizeProfileActivity, reconcileCloudSports, reconcileCloudLowEaWeeks, PROFILE_PENDING_KEY } from './syncGuard';
 
 // ── Synchro AsyncStorage ⇄ Supabase ──────────────────────────────────────────
 // Principe : le local reste la copie de travail (offline-first), le cloud est un
@@ -24,6 +24,10 @@ const OVERRIDES_KEY = '@kyroz:recipeOverrides';
 // Colonnes du profil partagées entre l'app et la table `profiles`.
 const PROFILE_COLS = [
   'sex', 'age', 'weight_kg', 'height_cm', 'body_fat_pct', 'activity_level', 'training_days_per_week',
+  // Plancher d'énergie disponible (P0.1) — migration 2026-07-28_profiles_energy_availability.sql.
+  // `is_post_menopausal` est VOLONTAIREMENT absent : LOCAL-ONLY et inerte tant que
+  // l'onboarding ne pose pas la question (même parti pris que Streak.freeze_available).
+  'low_ea_weeks',
   'sports',
   'goal', 'goal_target', 'macro_mode', 'carb_ratio', 'protein_per_kg', 'tdee_kcal', 'target_kcal', 'target_protein_g', 'target_carbs_g',
   'target_fat_g', 'plan_days', 'plan_weekdays', 'rest_weekdays', 'meals', 'meal_emphasis', 'variety',
@@ -130,9 +134,10 @@ export async function hydrateFromCloud(uid: string): Promise<void> {
       localDirty: await isProfileDirty(),
     });
     if (action === 'pull_cloud') {
-      // fix P3.3 : ne pas laisser un `sports` cloud vide effacer les séances locales
-      // (sinon le TDEE bascule MET → multiplicateur), puis recaler le compteur.
-      const cloud = reconcileCloudSports(rowToProfile(row, uid), local);
+      // fix P3.3 (sports) + P0.1 (registre d'énergie basse) : une ligne cloud partielle
+      // ne doit effacer NI les séances NI l'historique d'exposition — deux champs
+      // cumulatifs, non re-dérivables depuis le reste du profil.
+      const cloud = reconcileCloudLowEaWeeks(reconcileCloudSports(rowToProfile(row, uid), local), local);
       await AsyncStorage.setItem(PROFILE_KEY, JSON.stringify(normalizeProfileActivity(cloud)));
     } else if (local && (action === 'keep_local' || action === 'push_local')) {
       await pushProfile(local); // (re)pousse le local ; lève le flag si succès

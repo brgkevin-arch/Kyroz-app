@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemePalette, Radius, cardShadow } from '../constants/theme';
-import { Goal, Sex } from '../lib/types';
-import { macrosPercent, recommendedProteinPerKg, goalLabel } from '../lib/tdee';
+import { Goal } from '../lib/types';
+import { MacroBody, macrosPercent, recommendedProteinPerKg, goalLabel } from '../lib/tdee';
 
 // Mode « Perso % » (option B, contrôle total) :
 //  • protéines réglables en g/kg (avec repère conseillé selon l'objectif),
@@ -16,22 +16,29 @@ interface Props {
   t: ThemePalette;
   tdee: number;
   goal: Goal;
-  weight: number;
-  sex: Sex;
-  bodyFat?: number;
+  body: MacroBody;
   carbRatio: number;
   proteinPerKg: number;
+  /** Delta calorique de l'objectif daté, s'il est actif. */
+  kcalDeltaOverride?: number;
+  /** Semaines déjà passées en zone d'énergie disponible basse (plancher escaladé). */
+  lowEaWeeks?: number;
   onCarbChange: (v: number) => void;
   onProteinChange: (v: number) => void;
 }
 
 export function MacroSplit({
-  t, tdee, goal, weight, sex, bodyFat, carbRatio, proteinPerKg, onCarbChange, onProteinChange,
+  t, tdee, goal, body, carbRatio, proteinPerKg, kcalDeltaOverride, lowEaWeeks,
+  onCarbChange, onProteinChange,
 }: Props) {
-  const m = macrosPercent(tdee, goal, weight, sex, bodyFat, carbRatio, proteinPerKg);
+  const m = macrosPercent(tdee, goal, body, carbRatio, { proteinPerKg, kcalDeltaOverride, lowEaWeeks });
   const fatRatio = 100 - carbRatio;
   const reco = recommendedProteinPerKg(goal);
-  const proteinBasis = bodyFat != null ? 'ta masse maigre' : 'ton poids';
+  const bodyFat = body.body_fat_pct;
+  // La base est TOUJOURS la masse maigre depuis P0.2 — estimée quand le %MG
+  // n'est pas déclaré. L'étiquette doit dire ce que le calcul fait réellement.
+  const proteinBasis = bodyFat != null ? 'ta masse maigre' : 'ta masse maigre estimée';
+  const floored = m.flags.includes('FLOOR_APPLIED');
 
   return (
     <View style={{ gap: 14 }}>
@@ -61,6 +68,11 @@ export function MacroSplit({
       {/* Aperçu live des grammes */}
       <View style={[styles.preview, cardShadow(t), { backgroundColor: t.card }]}>
         <Row t={t} l="Objectif calorique" v={`${m.target_kcal} kcal`} strong />
+        {floored && (
+          <Text style={[styles.note, { color: t.warning }]}>
+            Plancher de sécurité atteint : Kyroz ne descend pas sous {m.floor_kcal} kcal/jour pour ton gabarit et ton volume d'entraînement.
+          </Text>
+        )}
         <View style={[styles.sep, { backgroundColor: t.line }]} />
         <Row t={t} l="Protéines" v={`${m.protein_g} g`} c={t.protein} />
         <Row t={t} l="Glucides" v={`${m.carbs_g} g`} c={t.carbs} />

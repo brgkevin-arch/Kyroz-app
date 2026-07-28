@@ -2,8 +2,10 @@ import { describe, it, expect } from 'vitest';
 import {
   calculateBMR, calculateTDEE, calculateMacros, macrosPercent, recalcProfile,
   leanBodyMass, validateProfile, recommendedProteinPerKg, kcalFromMacros,
-  MIN_KCAL, MIN_AGE, DEFAULT_CARB_RATIO, NEAT_BASE_PAL,
+  MIN_KCAL, MIN_AGE, DEFAULT_CARB_RATIO, NEAT_BASE_PAL, proteinTarget,
+  computePlan,
 } from '../tdee';
+import { fatFreeMassKg } from '../safety';
 import { exerciseKcalPerDay, totalSessionsPerWeek } from '../sport';
 import { normalizeProfileActivity, reconcileCloudSports } from '../syncGuard';
 import { makeProfile } from './helpers';
@@ -21,9 +23,12 @@ describe('BMR', () => {
     expect(calculateBMR('female', 90, 180, 30, 15)).toBe(2022);
   });
 
-  it('clamp du %MG aberrant (3–60)', () => {
-    expect(leanBodyMass(90, 80)).toBeCloseTo(36); // clampé à 60%
-    expect(leanBodyMass(90, 1)).toBeCloseTo(90 * 0.97); // clampé à 3%
+  it('clamp du %MG aberrant, PAR SEXE (P0.4)', () => {
+    expect(leanBodyMass('male', 90, 80)).toBeCloseTo(36);        // clampé à 60 %
+    expect(leanBodyMass('male', 90, 1)).toBeCloseTo(90 * 0.95);  // clampé à 5 % (gras essentiel)
+    // 3 % est impossible chez une femme : borne basse à 12 %.
+    expect(leanBodyMass('female', 90, 3)).toBeCloseTo(90 * 0.88);
+    expect(leanBodyMass('female', 90, 80)).toBeCloseTo(90 * 0.35); // clampé à 65 %
   });
 });
 
@@ -58,34 +63,35 @@ describe('TDEE', () => {
 });
 
 describe('calculateMacros (mode auto)', () => {
-  it('respecte le plancher kcal (garde-fou §6)', () => {
-    // TDEE très bas + sèche agressive → ne descend jamais sous MIN_KCAL
-    const m = calculateMacros(1600, 'cut_aggressive', 50, 'male');
+  it('respecte le filet absolu 1500/1200 sur un gabarit léger (garde-fou §6)', () => {
+    // Gabarit léger : le plancher d'énergie disponible (30 × masse maigre) tombe
+    // sous le filet absolu → c'est lui qui protège. Cf. lib/safety.ts (P0.1).
+    const m = calculateMacros(1600, 'cut_aggressive', makeProfile({ weight_kg: 50, height_cm: 170 }));
     expect(m.target_kcal).toBe(MIN_KCAL.male);
-    const f = calculateMacros(1200, 'cut_aggressive', 45, 'female');
+    const f = calculateMacros(1200, 'cut_aggressive', makeProfile({ sex: 'female', weight_kg: 45, height_cm: 160 }));
     expect(f.target_kcal).toBe(MIN_KCAL.female);
   });
 
-  it('protéines : calage masse maigre AVEC plancher g/kg de corps', () => {
+  it('protéines : base POIDS AJUSTÉ, bornée en g/kg de masse maigre (P0.2)', () => {
     const tdee = 2914;
-    // Sans %MG : base = poids, coef (2.2) ≥ plancher (1.9) → plancher inopérant.
-    const noBf = calculateMacros(tdee, 'cut', 90, 'male');
-    expect(noBf.protein_g).toBe(Math.round(90 * 2.2)); // 198 (inchangé)
+    // Sans %MG déclaré, la masse maigre est ESTIMÉE (Deurenberg) — elle n'est plus
+    // assimilée au poids de corps, qui sur-dosait les gabarits gras.
+    const noBf = calculateMacros(tdee, 'cut', makeProfile());
+    expect(noBf.protein_g).toBe(proteinTarget(makeProfile(), 'cut')); // 162
+    expect(noBf.protein_g).toBeLessThan(Math.round(90 * 2.2));        // < 198 (ancien calcul)
 
-    // %MG élevé (20 % > seuil de bascule 13,6 %) : le plancher 1,9 g/kg de corps
-    // prend le relais. Sans lui : 72 × 2.2 = 158 (1,76 g/kg corps → trop bas en sèche).
-    const bf20 = calculateMacros(tdee, 'cut', 90, 'male', 20);
-    expect(bf20.protein_g).toBe(Math.round(90 * 1.9));            // 171 (plancher)
-    expect(bf20.protein_g).toBeGreaterThan(Math.round(90 * 0.8 * 2.2)); // > ancien (buggé)
-
-    // Profil sec (10 % < seuil) : le calage masse maigre reste dominant (amélioration
-    // monotone — le plancher ne baisse jamais un profil déjà bien dosé).
-    const bf10 = calculateMacros(tdee, 'cut', 90, 'male', 10);
-    expect(bf10.protein_g).toBe(Math.round(90 * 0.9 * 2.2)); // 178 (lean-mass gagne)
+    // Plus le sujet est sec, plus la cible monte — monotone, sans jamais dépasser
+    // 2,6 g/kg de masse maigre.
+    const bf20 = calculateMacros(tdee, 'cut', makeProfile({ body_fat_pct: 20 }));
+    const bf10 = calculateMacros(tdee, 'cut', makeProfile({ body_fat_pct: 10 }));
+    expect(bf20.protein_g).toBe(168);
+    expect(bf10.protein_g).toBe(183);
+    expect(bf10.protein_g).toBeGreaterThan(bf20.protein_g);
+    expect(bf10.protein_g / fatFreeMassKg(makeProfile({ body_fat_pct: 10 }))).toBeLessThanOrEqual(2.61);
   });
 
   it('kcal des macros ≈ kcal cible (cohérence 4/4/9)', () => {
-    const m = calculateMacros(2914, 'cut', 90, 'male');
+    const m = calculateMacros(2914, 'cut', makeProfile());
     expect(Math.abs(kcalFromMacros(m.protein_g, m.carbs_g, m.fat_g) - m.target_kcal)).toBeLessThan(20);
   });
 });
@@ -93,30 +99,33 @@ describe('calculateMacros (mode auto)', () => {
 describe('macrosPercent (mode Perso %)', () => {
   it('kcal et protéines identiques au mode auto (suivent le poids)', () => {
     const tdee = 2914;
-    const auto = calculateMacros(tdee, 'cut', 90, 'male');
-    const pct = macrosPercent(tdee, 'cut', 90, 'male', undefined, 55);
+    const auto = calculateMacros(tdee, 'cut', makeProfile());
+    const pct = macrosPercent(tdee, 'cut', makeProfile(), 55);
     expect(pct.target_kcal).toBe(auto.target_kcal);
     expect(pct.protein_g).toBe(auto.protein_g);
   });
 
   it('répartit le reste selon le ratio glucides/lipides', () => {
-    const m = macrosPercent(2914, 'cut', 90, 'male', undefined, 55);
+    const m = macrosPercent(2914, 'cut', makeProfile(), 55);
     const rest = m.target_kcal - m.protein_g * 4;
     expect(m.carbs_g * 4 / rest).toBeCloseTo(0.55, 1);
     expect(m.fat_g * 9 / rest).toBeCloseTo(0.45, 1);
   });
 
   it('protéine ajustable (g/kg) avec rééquilibrage à kcal constant', () => {
-    const lo = macrosPercent(2914, 'cut', 90, 'male', undefined, 55, 1.8);
-    const hi = macrosPercent(2914, 'cut', 90, 'male', undefined, 55, 2.6);
-    expect(lo.protein_g).toBe(Math.round(90 * 1.8));
-    expect(hi.protein_g).toBe(Math.round(90 * 2.6));
+    const lo = macrosPercent(2914, 'cut', makeProfile(), 55, { proteinPerKg: 1.8 });
+    const hi = macrosPercent(2914, 'cut', makeProfile(), 55, { proteinPerKg: 2.6 });
+    // Base = MASSE MAIGRE (estimée si le %MG n'est pas déclaré), jamais le poids
+    // de corps brut : sinon le mode « Perso % » annulait le correctif P0.2.
+    const ffm = fatFreeMassKg(makeProfile());
+    expect(lo.protein_g).toBe(Math.round(ffm * 1.8));
+    expect(hi.protein_g).toBe(Math.round(ffm * 2.6));
     expect(lo.target_kcal).toBe(hi.target_kcal); // kcal inchangé
     expect(hi.carbs_g).toBeLessThan(lo.carbs_g); // le reste s'ajuste
   });
 
   it('ratio clampé 0–100, jamais de grammes négatifs', () => {
-    const m = macrosPercent(2914, 'cut', 90, 'male', undefined, 150);
+    const m = macrosPercent(2914, 'cut', makeProfile(), 150);
     expect(m.fat_g).toBeGreaterThanOrEqual(0);
     expect(m.carbs_g).toBeGreaterThanOrEqual(0);
   });
@@ -132,30 +141,49 @@ describe('recalcProfile', () => {
 
   it('percent : utilise carb_ratio + protein_per_kg du profil', () => {
     const p = recalcProfile(makeProfile({ macro_mode: 'percent', carb_ratio: 40, protein_per_kg: 2.0 }));
-    expect(p.target_protein_g).toBe(Math.round(90 * 2.0));
+    expect(p.target_protein_g).toBe(Math.round(fatFreeMassKg(makeProfile()) * 2.0));
     const rest = p.target_kcal - p.target_protein_g * 4;
     expect(p.target_carbs_g * 4 / rest).toBeCloseTo(0.4, 1);
   });
 
-  it('percent sans réglages : retombe sur les défauts', () => {
+  it('percent sans réglages : protéines identiques au mode auto (pas de divergence)', () => {
     const p = recalcProfile(makeProfile({ macro_mode: 'percent' }));
-    expect(p.target_protein_g).toBe(Math.round(90 * recommendedProteinPerKg('cut')));
+    expect(p.target_protein_g).toBe(proteinTarget(makeProfile(), 'cut'));
     const rest = p.target_kcal - p.target_protein_g * 4;
     expect(p.target_carbs_g * 4 / rest).toBeCloseTo(DEFAULT_CARB_RATIO / 100, 1);
   });
 
-  it('manual (legacy) : grammes figés, TDEE seul mis à jour', () => {
+  it('manual (legacy) : les GRAMMES font foi, TDEE et plancher recalculés', () => {
     const base = makeProfile({ macro_mode: 'manual', target_protein_g: 123, target_kcal: 2000 });
     const p = recalcProfile({ ...base, weight_kg: 70 });
+    // Protéines et lipides choisis : intacts.
     expect(p.target_protein_g).toBe(123);
-    expect(p.target_kcal).toBe(2000);
+    expect(p.target_fat_g).toBe(base.target_fat_g);
+    // `target_kcal` se DÉRIVE des grammes (et non de l'ancien `target_kcal` stocké,
+    // qui faisait cliquet : la cible ne redescendait plus quand le plancher baissait).
+    const fromGrams = kcalFromMacros(p.target_protein_g, p.target_carbs_g, p.target_fat_g);
+    expect(Math.abs(p.target_kcal - fromGrams)).toBeLessThanOrEqual(4);
     expect(p.tdee_kcal).not.toBe(base.tdee_kcal);
+  });
+
+  it('manual : idempotent — pas de cliquet sur la cible ni de drapeau qui disparaît', () => {
+    const base = makeProfile({
+      sex: 'female', weight_kg: 62, height_cm: 165, body_fat_pct: 24, macro_mode: 'manual',
+      target_kcal: 1250, target_protein_g: 120, target_carbs_g: 100, target_fat_g: 35,
+    });
+    const one = computePlan(base, '2026-07-21');
+    const two = computePlan(one.profile, '2026-07-21');
+    expect(two.profile.target_kcal).toBe(one.profile.target_kcal);
+    expect(two.profile.target_carbs_g).toBe(one.profile.target_carbs_g);
+    expect(two.flags).toEqual(one.flags);            // FLOOR_APPLIED ne s'évapore plus
+    expect(one.flags).toContain('FLOOR_APPLIED');
   });
 });
 
 describe('validateProfile (garde-fous §6)', () => {
-  it('bloque < 16 ans', () => {
-    expect(validateProfile('male', MIN_AGE - 1, 2000)).toMatch(/16 ans/);
+  it('bloque les mineurs (18 ans — relevé de 16 en P0.4)', () => {
+    expect(MIN_AGE).toBe(18);
+    expect(validateProfile('male', MIN_AGE - 1, 2000)).toMatch(/18 ans/);
     expect(validateProfile('male', MIN_AGE, 2000)).toBeNull();
   });
   it('bloque sous le plancher kcal', () => {

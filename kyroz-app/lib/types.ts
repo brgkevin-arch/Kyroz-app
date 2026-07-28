@@ -95,6 +95,16 @@ export type AdaptFlag =
   | 'carbs_below_target'
   | 'no_protein_anchor';
 
+// Signaux de sécurité levés par le moteur (cf. lib/safety.ts + lib/tdee.ts).
+// Calculés à la volée, JAMAIS persistés : ce sont des verdicts sur le plan courant.
+export type PlanFlag =
+  | 'FLOOR_APPLIED'              // le plancher de sécurité mord → l'objectif daté devient inatteignable
+  | 'LOW_EA_WARNING'             // énergie disponible sous l'optimum (zone 30–35 kcal/kg de masse maigre)
+  | 'LOW_EA_BUDGET_EXCEEDED'     // > 12 semaines cumulées en zone basse → le plancher remonte
+  | 'MACRO_BUDGET_OVERFLOW'      // protéines + lipides dépassent le budget du jour
+  | 'CARBS_BELOW_TRAINING_FLOOR' // glucides < 3 g/kg un jour de séance
+  | 'GOAL_DIRECTION_MISMATCH';   // le poids cible contredit la famille de l'objectif
+
 export interface UserProfile {
   id: string;
 
@@ -104,6 +114,19 @@ export interface UserProfile {
   weight_kg: number;
   height_cm: number;
   body_fat_pct?: number;        // % de masse grasse (optionnel) → BMR Katch-McArdle
+  // Femme ménopausée : lève la remontée progressive du plancher d'énergie disponible
+  // (le risque de perturbation ovulatoire ne s'applique plus). `undefined` = traité
+  // comme NON ménopausée → le défaut protège (cf. lib/safety.ts).
+  // ⚠️ INERTE et LOCAL-ONLY (décision 2026-07-28 : « on laisse de côté la ménopause »).
+  // Aucune UI ne le renseigne, il est HORS PROFILE_COLS → aucune colonne Supabase,
+  // aucune migration (même parti pris que Streak.freeze_available). Le moteur le lit
+  // déjà : quand la question sera rédigée, il suffira d'ajouter la colonne + la ligne
+  // dans PROFILE_COLS, sans toucher au calcul.
+  is_post_menopausal?: boolean;
+  // Semaines passées en zone d'énergie disponible basse (30–35 kcal/kg de masse
+  // maigre), stockées comme lundis 'YYYY-MM-DD' sur une fenêtre glissante de 12 mois.
+  // CUMULÉ, pas consécutif : une pause d'une semaine ne remet pas le compteur à zéro.
+  low_ea_weeks?: string[];
 
   // Activité
   activity_level: ActivityLevel;

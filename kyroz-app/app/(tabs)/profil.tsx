@@ -28,8 +28,12 @@ import { ReminderSlot, remindersSupported } from '../../lib/notifications';
 import { deleteAccount, deleteCloudData } from '../../lib/sync';
 import { exportMyData } from '../../lib/exportData';
 import {
-  calculateTDEE, calculateMacros, goalLabel, validateProfile, recalcProfile, macrosPercent, DEFAULT_CARB_RATIO, recommendedProteinPerKg, MIN_KCAL,
+  calculateTDEE, computePlan, goalLabel, validateProfile, recalcProfile, DEFAULT_CARB_RATIO, recommendedProteinPerKg,
 } from '../../lib/tdee';
+import {
+  lowEaWeeksBefore, checkEligibility, eligibilityMessage,
+  AGE_BOUNDS, WEIGHT_BOUNDS, HEIGHT_BOUNDS,
+} from '../../lib/safety';
 import { datedGoalStatus, datedGoalKcalDelta, addDaysStamp, daysBetween } from '../../lib/datedGoal';
 import { DatedGoalCard, formatFR } from '../../components/DatedGoalCard';
 import { todayStamp } from '../../lib/weight';
@@ -437,12 +441,42 @@ function InfoEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
   const [height, setHeight] = useState(String(profile.height_cm));
   const [bodyFat, setBodyFat] = useState<number | undefined>(profile.body_fat_pct);
   const aN = parseInt(age), wN = parseFloat(weight), hN = parseFloat(height);
-  const valid = aN >= 16 && aN <= 100 && wN >= 40 && wN <= 250 && hN >= 120 && hN <= 230;
+  // Bornes tirées de lib/safety.ts, PAS réécrites en dur : elles divergeaient de
+  // l'onboarding (16 ans ici contre 18 là-bas — le relèvement MIN_AGE n'avait été
+  // câblé que côté onboarding, donc on pouvait saisir 18 puis repasser à 16 ici ;
+  // et 40–250 kg contre 30–300, ce qui verrouillait l'écran pour un profil onboardé
+  // hors de cette plage : bouton « Enregistrer » désactivé en permanence).
+  const draft = { ...profile, sex, age: aN, weight_kg: wN, height_cm: hN, body_fat_pct: bodyFat };
+  const inBounds =
+    aN >= AGE_BOUNDS[0] && aN <= AGE_BOUNDS[1] &&
+    wN >= WEIGHT_BOUNDS[0] && wN <= WEIGHT_BOUNDS[1] &&
+    hN >= HEIGHT_BOUNDS[0] && hN <= HEIGHT_BOUNDS[1];
+  // Un blocage ne doit empêcher l'enregistrement QUE si cet écran permet d'y
+  // remédier. L'âge se corrige ici (donc bloquant) ; un objectif incompatible avec
+  // le poids se corrige dans l'éditeur d'Objectif — bloquer ici enfermerait
+  // l'utilisatrice, qui ne pourrait plus rectifier sa taille ni son âge. On le
+  // signale sans verrouiller, en pointant vers le bon écran.
+  const blocks = inBounds ? checkEligibility(draft, profile.goal_target) : [];
+  const blockMsg = blocks.includes('MINOR') ? eligibilityMessage(['MINOR']) : null;
+  const warnMsg = blockMsg ? null : eligibilityMessage(blocks);
+  const valid = inBounds && !blockMsg;
   // Les sports vivent dans leur propre éditeur — on préserve `...profile` (donc
   // `sports`), et withRecalc recalcule le TDEE avec le nouveau poids/%MG.
-  const submit = () => onSave(withRecalc({ ...profile, sex, age: aN, weight_kg: wN, height_cm: hN, body_fat_pct: bodyFat }));
+  const submit = () => { if (valid) onSave(withRecalc(draft)); };
   return (
     <EditorShell t={t} title="Informations" onSave={submit} canSave={valid} dragHandlers={dragHandlers}>
+      {blockMsg && (
+        <Card t={t}>
+          <Text style={{ color: t.danger, fontSize: 13, lineHeight: 19, fontWeight: '600' }}>{blockMsg}</Text>
+        </Card>
+      )}
+      {warnMsg && (
+        <Card t={t}>
+          <Text style={{ color: t.warning, fontSize: 13, lineHeight: 19 }}>
+            {warnMsg} Tu peux le changer dans « Objectif ».
+          </Text>
+        </Card>
+      )}
       <Segmented t={t} options={[{ label: 'Homme', value: 'male' }, { label: 'Femme', value: 'female' }]} value={sex} onChange={setSex} />
       <Field t={t} label="Âge" suffix="ans" value={age} onChangeText={setAge} keyboardType="number-pad" />
       <Field t={t} label="Poids" suffix="kg" value={weight} onChangeText={setWeight} keyboardType="decimal-pad" />
@@ -474,10 +508,19 @@ function SportsProfileEditor({ t, profile, onSave, dragHandlers }: EditorProps) 
 
 function GoalEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
   const [goal, setGoal] = useState<Goal>(profile.goal);
-  const submit = () => onSave(withRecalc({ ...profile, goal }));
+  // L'éligibilité était branchée sur l'onboarding et l'objectif daté seulement :
+  // une personne en insuffisance pondérale se voyait refuser la sèche à l'inscription
+  // mais pouvait l'activer depuis cet écran.
+  const blockMsg = eligibilityMessage(checkEligibility({ ...profile, goal }, profile.goal_target));
+  const submit = () => { if (!blockMsg) onSave(withRecalc({ ...profile, goal })); };
   return (
-    <EditorShell t={t} title="Objectif" onSave={submit} dragHandlers={dragHandlers}>
+    <EditorShell t={t} title="Objectif" onSave={submit} canSave={!blockMsg} dragHandlers={dragHandlers}>
       {GOALS.map((g) => <OptionCard key={g} t={t} title={goalLabel(g)} selected={goal === g} onPress={() => setGoal(g)} />)}
+      {blockMsg && (
+        <Card t={t}>
+          <Text style={{ color: t.danger, fontSize: 13, lineHeight: 19, fontWeight: '600' }}>{blockMsg}</Text>
+        </Card>
+      )}
     </EditorShell>
   );
 }
@@ -504,19 +547,33 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
   const provisional: GoalTarget | undefined = validWeight
     ? { target_weight_kg: twN, target_date: targetDate, start_weight_kg: profile.weight_kg, start_date: existing?.start_date ?? today }
     : undefined;
-  const status = datedGoalStatus(provisional, profile.weight_kg, today);
-
   const tdee = calculateTDEE(profile.sex, profile.weight_kg, profile.height_cm, profile.age, profile.training_days_per_week, profile.body_fat_pct, profile.sports);
-  const preview = status ? calculateMacros(tdee, profile.goal, profile.weight_kg, profile.sex, profile.body_fat_pct, status.dailyKcalDelta) : null;
+  const status = datedGoalStatus(provisional, profile, today, tdee);
+
+  // Aperçu calculé par le PRODUCTEUR UNIQUE (computePlan) et non par un chemin
+  // parallèle : ce que la carte annonce est exactement ce qui sera enregistré,
+  // plancher de sécurité compris.
+  const previewPlan = provisional ? computePlan({ ...profile, goal_target: provisional }, today) : null;
+  const preview = previewPlan?.profile ?? null;
+  const floored = previewPlan?.flags.includes('FLOOR_APPLIED') ?? false;
   const kcalDelta = preview ? preview.target_kcal - tdee : 0;
   const gapKg = status ? Math.round(Math.abs(status.currentWeightKg - status.targetWeightKg) * 10) / 10 : 0;
   const dirLabel = status?.direction === 'gain' ? 'Prendre' : status?.direction === 'maintain' ? 'Maintenir' : 'Perdre';
 
-  const submit = () => { if (provisional) onSave(withRecalc({ ...profile, goal_target: provisional })); };
+  // Éligibilité de la CIBLE (P0.4). `validWeight` ne borne que la saisie (40–250 kg) :
+  // un poids syntaxiquement valide peut rester physiologiquement absurde (40 kg pour
+  // 1 m 80 = IMC 12,3). Sans cet appel, `checkEligibility` existait mais n'était
+  // interrogée qu'à l'onboarding — l'éditeur laissait passer n'importe quelle cible.
+  const goalBlockMsg = provisional ? eligibilityMessage(checkEligibility(profile, provisional)) : null;
+
+  const submit = () => {
+    if (!provisional || goalBlockMsg) return;
+    onSave(withRecalc({ ...profile, goal_target: provisional }));
+  };
   const remove = () => onSave(withRecalc({ ...profile, goal_target: undefined }));
 
   return (
-    <EditorShell t={t} title="Objectif daté" onSave={submit} canSave={validWeight} dragHandlers={dragHandlers}>
+    <EditorShell t={t} title="Objectif daté" onSave={submit} canSave={validWeight && !goalBlockMsg} dragHandlers={dragHandlers}>
       <Text style={{ color: t.textSecondary, fontSize: 13, lineHeight: 18 }}>
         Fixe un poids et une échéance : Kyroz ajuste tes calories jour après jour pour t'y amener au rythme le plus rapide — mais sûr.
       </Text>
@@ -529,7 +586,16 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
       </View>
       <Text style={{ color: t.textSecondary, fontSize: 13 }}>Cible le {formatFR(targetDate)}.</Text>
 
-      {status && preview && (
+      {/* Cible refusée → on affiche le motif SEUL. Montrer une trajectoire crédible
+          (« Perdre 48 kg · 1982 kcal/j ») au-dessus d'un refus revient à valider
+          visuellement un objectif qu'on rejette la ligne d'après. */}
+      {goalBlockMsg && (
+        <Card t={t}>
+          <Text style={{ color: t.danger, fontSize: 13, lineHeight: 19, fontWeight: '600' }}>{goalBlockMsg}</Text>
+        </Card>
+      )}
+
+      {!goalBlockMsg && status && preview && (
         <Card t={t} style={{ gap: 12 }}>
           <Row t={t} l="Trajectoire" v={status.direction === 'maintain' ? dirLabel : `${dirLabel} ${gapKg} kg`} strong />
           {status.direction !== 'maintain' && <Row t={t} l="Rythme sûr" v={`${Math.abs(status.safeWeeklyKg)} kg / sem`} />}
@@ -537,20 +603,37 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
           <Row t={t} l="vs maintenance" v={`${kcalDelta >= 0 ? '+' : ''}${kcalDelta} kcal/j`} c={kcalDelta < 0 ? t.carbs : t.protein} />
         </Card>
       )}
-
-      {status?.clamped && (
+      {!goalBlockMsg && status?.directionMismatch && (
         <Card t={t}>
           <Text style={{ color: t.text, fontSize: 13, lineHeight: 19 }}>
-            Objectif ambitieux : au rythme le plus sûr tu atteins {status.targetWeightKg} kg vers le {formatFR(status.projectedDate)}, un peu après ta date. Kyroz garde le rythme sûr — jamais sous {MIN_KCAL[profile.sex]} kcal/jour.
+            Ce poids cible va dans le sens inverse de ton objectif « {goalLabel(profile.goal)} ». Kyroz ne pilote pas tes calories tant que les deux ne concordent pas.
           </Text>
         </Card>
       )}
-      {status && !status.clamped && status.direction !== 'maintain' && (
+      {!goalBlockMsg && status?.clamped && !status.directionMismatch && (
+        <Card t={t}>
+          <Text style={{ color: t.text, fontSize: 13, lineHeight: 19 }}>
+            Objectif ambitieux : au rythme le plus sûr tu atteins {status.targetWeightKg} kg vers le {formatFR(status.projectedDate)}, un peu après ta date. Kyroz garde le rythme sûr.
+          </Text>
+        </Card>
+      )}
+      {/* `!floored` : le plancher de sécurité décale la date sans que `clamped` le
+          sache (il ne juge que le RYTHME). Sans cette condition, on rassurait
+          « dans les clous de ta date » juste au-dessus du message qui annonce
+          l'inverse. La projection réellement corrigée est du ressort de P1.6. */}
+      {!goalBlockMsg && status && !status.clamped && !status.directionMismatch && !floored && status.direction !== 'maintain' && (
         <Text style={{ color: t.textSecondary, fontSize: 12, lineHeight: 17 }}>
-          Rythme sûr, dans les clous de ta date. Jamais sous {MIN_KCAL[profile.sex]} kcal/jour.
+          Rythme sûr, dans les clous de ta date.
         </Text>
       )}
-      {status?.direction === 'maintain' && (
+      {!goalBlockMsg && floored && preview && (
+        <Card t={t}>
+          <Text style={{ color: t.text, fontSize: 13, lineHeight: 19 }}>
+            Ton plancher de sécurité est à {preview.target_kcal} kcal/jour : en dessous, ton corps n'a plus assez d'énergie pour fonctionner correctement. Plus tu t'entraînes, plus ce plancher monte — c'est normal, l'énergie de tes séances ne compte pas comme énergie disponible. Ta date sera décalée plutôt que ton apport écrasé.
+          </Text>
+        </Card>
+      )}
+      {!goalBlockMsg && status?.direction === 'maintain' && (
         <Text style={{ color: t.textSecondary, fontSize: 12, lineHeight: 17 }}>
           Tu es déjà à ton poids cible : Kyroz vise le maintien.
         </Text>
@@ -571,19 +654,26 @@ function MacroEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
   const [carbRatio, setCarbRatio] = useState(profile.carb_ratio ?? DEFAULT_CARB_RATIO);
   const [proteinPerKg, setProteinPerKg] = useState(profile.protein_per_kg ?? recommendedProteinPerKg(profile.goal));
 
+  const today = todayStamp();
   const tdee = calculateTDEE(profile.sex, profile.weight_kg, profile.height_cm, profile.age, profile.training_days_per_week, profile.body_fat_pct, profile.sports);
   // Objectif daté actif → le delta calorique daté prime (même cerveau macro que recalcProfile).
-  const datedDelta = datedGoalKcalDelta(profile.goal_target, profile.weight_kg, todayStamp()) ?? undefined;
-  const auto = calculateMacros(tdee, profile.goal, profile.weight_kg, profile.sex, profile.body_fat_pct, datedDelta);
+  const datedDelta = datedGoalKcalDelta(profile.goal_target, profile, today, tdee) ?? undefined;
+  const lowEaWeeks = lowEaWeeksBefore(profile.low_ea_weeks, today); // même compteur que computePlan
+  // Aperçu par le producteur unique : ce qui s'affiche = ce qui sera enregistré.
+  const auto = computePlan({ ...profile, macro_mode: 'auto' }, today).profile;
 
   const submit = () => {
+    // `withRecalc` dans les deux branches : recalcProfile reste le SEUL producteur
+    // des valeurs stockées (plancher de sécurité + registre d'énergie disponible
+    // compris). En mode 'percent' il recalcule depuis carb_ratio/protein_per_kg,
+    // donc il reproduit exactement ce que l'aperçu affiche.
     if (mode === 'auto') {
-      onSave({ ...profile, macro_mode: 'auto', target_kcal: auto.target_kcal, target_protein_g: auto.protein_g, target_carbs_g: auto.carbs_g, target_fat_g: auto.fat_g });
+      onSave(withRecalc({ ...profile, macro_mode: 'auto' }));
     } else {
-      const m = macrosPercent(tdee, profile.goal, profile.weight_kg, profile.sex, profile.body_fat_pct, carbRatio, proteinPerKg, datedDelta);
-      const err = validateProfile(profile.sex, profile.age, m.target_kcal); // garde-fou §11
+      const next = withRecalc({ ...profile, macro_mode: 'percent', carb_ratio: carbRatio, protein_per_kg: proteinPerKg });
+      const err = validateProfile(profile.sex, profile.age, next.target_kcal); // garde-fou §6
       if (err) { Alert.alert('Attention', err); return; }
-      onSave({ ...profile, macro_mode: 'percent', carb_ratio: carbRatio, protein_per_kg: proteinPerKg, target_kcal: m.target_kcal, target_protein_g: m.protein_g, target_carbs_g: m.carbs_g, target_fat_g: m.fat_g });
+      onSave(next);
     }
   };
 
@@ -593,14 +683,15 @@ function MacroEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
       {mode === 'auto' ? (
         <Card t={t} style={{ gap: 12 }}>
           <Row t={t} l="Objectif calorique" v={`${auto.target_kcal} kcal`} strong />
-          <Row t={t} l="Protéines" v={`${auto.protein_g} g`} c={t.protein} />
-          <Row t={t} l="Glucides" v={`${auto.carbs_g} g`} c={t.carbs} />
-          <Row t={t} l="Lipides" v={`${auto.fat_g} g`} c={t.fat} />
+          <Row t={t} l="Protéines" v={`${auto.target_protein_g} g`} c={t.protein} />
+          <Row t={t} l="Glucides" v={`${auto.target_carbs_g} g`} c={t.carbs} />
+          <Row t={t} l="Lipides" v={`${auto.target_fat_g} g`} c={t.fat} />
         </Card>
       ) : (
         <MacroSplit
-          t={t} tdee={tdee} goal={profile.goal} weight={profile.weight_kg} sex={profile.sex}
-          bodyFat={profile.body_fat_pct} carbRatio={carbRatio} proteinPerKg={proteinPerKg}
+          t={t} tdee={tdee} goal={profile.goal} body={profile}
+          carbRatio={carbRatio} proteinPerKg={proteinPerKg}
+          kcalDeltaOverride={datedDelta} lowEaWeeks={lowEaWeeks}
           onCarbChange={setCarbRatio} onProteinChange={setProteinPerKg}
         />
       )}
