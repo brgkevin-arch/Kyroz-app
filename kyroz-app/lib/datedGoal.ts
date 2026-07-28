@@ -69,12 +69,22 @@ export interface DatedGoalStatus {
   safeWeeklyKg: number;      // signé, plafonné au rythme sûr ET au plafond de déficit
   clamped: boolean;          // true = objectif trop rapide pour la date (rythme bridé)
   deficitCapped: boolean;    // true = le plafond des 25 % du TDEE a mordu
+  floorCapped: boolean;      // true = le plancher de sécurité rogne le déficit (P1.6)
   directionMismatch: boolean; // true = poids cible incohérent avec l'objectif → pas de pilotage
   underweightBlocked: boolean; // true = IMC < 18,5 → aucune perte pilotée (cf. safety.deficitBlocked)
-  projectedDate: string;     // date réelle d'atteinte AU RYTHME RÉELLEMENT APPLIQUÉ
+  projectable: boolean;      // false = aucune date d'atteinte crédible (rythme nul, inversé ou > 5 ans)
+  projectedDate: string;     // date réelle d'atteinte AU RYTHME RÉELLEMENT SERVI (cf. projectable)
   reachableByDate: boolean;  // false = tu y arrives après ta date
   dailyKcalDelta: number;    // signé, alimente le cerveau macro (recalcProfile)
 }
+
+/**
+ * Au-delà de cet horizon, une date d'atteinte n'est plus une information mais un
+ * artefact : un rythme servi de 0,04 kg/semaine projette poliment une date en 2048.
+ * On préfère dire « pas atteignable au rythme sûr » que d'afficher un chiffre faux
+ * avec l'aplomb d'un chiffre juste.
+ */
+export const MAX_PROJECTION_WEEKS = 260; // 5 ans
 
 /** Profil minimal requis pour piloter un objectif daté. `UserProfile` le satisfait. */
 export type GoalBody = BodyInput & { goal: Goal };
@@ -102,6 +112,19 @@ export function datedGoalStatus(
   p: GoalBody,
   today: string,
   tdee: number,
+  /**
+   * Plancher de sécurité du plan (cf. safety.safetyFloorKcal), OBLIGATOIRE — P1.6.
+   *
+   * `null` signifie explicitement « aucune correction de plancher applicable ici » :
+   * c'est le cas du mode `manual` (la cible y vient des grammes saisis, pas de
+   * `tdee + delta`, donc la formule donnerait le signe inverse) et des appelants qui
+   * ne veulent que le delta calorique (`datedGoalKcalDelta`, insensible au plancher).
+   *
+   * Ce paramètre n'est PAS optionnel à dessein : quand il l'était, `DatedGoalCard`
+   * compilait sans lui et continuait d'annoncer une date fausse de 32 jours en
+   * médiane, jusqu'à 724 au pire. Un oubli devait devenir une erreur de compilation.
+   */
+  floorKcal: number | null,
 ): DatedGoalStatus | null {
   if (!target) return null;
 
@@ -129,8 +152,10 @@ export function datedGoalStatus(
       safeWeeklyKg: 0,
       clamped: false,
       deficitCapped: false,
+      floorCapped: false,
       directionMismatch: false,
       underweightBlocked: false,
+      projectable: true,
       projectedDate: target.target_date,
       reachableByDate: true,
       dailyKcalDelta: 0,
@@ -154,8 +179,10 @@ export function datedGoalStatus(
       safeWeeklyKg: 0,
       clamped: false,
       deficitCapped: false,
+      floorCapped: false,
       directionMismatch: false,
       underweightBlocked: true,
+      projectable: false,
       projectedDate: target.target_date,
       reachableByDate: false,
       dailyKcalDelta: 0,
@@ -172,8 +199,10 @@ export function datedGoalStatus(
       safeWeeklyKg: 0,
       clamped: false,
       deficitCapped: false,
+      floorCapped: false,
       directionMismatch: true,
       underweightBlocked: false,
+      projectable: false,
       projectedDate: target.target_date,
       reachableByDate: false,
       dailyKcalDelta: 0,
@@ -214,18 +243,43 @@ export function datedGoalStatus(
   const rateCapped = Math.abs(safeWeeklyKg - pacedWeeklyKg) > 1e-6;
   const clamped = rateCapped || deficitCapped;
 
-  // Rythme RÉELLEMENT appliqué après tous les plafonds → c'est lui qui doit dater
-  // la projection, sinon l'UI affiche deux chiffres qui se contredisent.
-  const appliedWeeklyKg = (dailyKcalDelta * 7) / kcalPerKg;
-  // `!== 0` laissait passer `-0` (produit par un TDEE nul) et faisait retomber sur
-  // `weeksRemaining`, donc « atteignable » alors que le rythme servi était nul.
-  const weeksNeeded = Math.abs(appliedWeeklyKg) > 1e-9 ? diff / appliedWeeklyKg : Infinity;
-  const projectedDate = Number.isFinite(weeksNeeded)
-    ? addDaysStamp(today, weeksNeeded * 7)
-    : target.target_date;
-  // Rien n'a été bridé pour raison de sécurité ⇒ la date tient, quelle que soit la
-  // dilution interne du dernier septième de semaine.
-  const reachableByDate = !clamped || weeksNeeded <= weeksRemaining + 1e-6;
+  // ── Plancher de sécurité (P1.6) ───────────────────────────────────────────
+  //
+  // `dailyKcalDelta` est le delta DEMANDÉ. La cible réellement servie, elle, est
+  // relevée au plancher d'énergie disponible en aval (cf. tdee.floorAndFlags) —
+  // et jusqu'ici personne ne le disait à la projection. Résultat mesuré sur une
+  // grille de 1344 objectifs : écart médian de 32 jours entre la date annoncée et
+  // la date réelle, 89 au 90ᵉ centile, 724 au pire, et 655 objectifs déclarés
+  // « atteignable » à tort. Les plus touchés ne sont pas une niche : ce sont les
+  // hommes sédentaires, dont le plancher (BMR) est proche de leur maintenance.
+  //
+  // Le plancher ne dépend PAS de la cible (il se calcule sur le corps, le BMR, la
+  // dépense sportive et le TDEE) : aucune circularité, il peut donc être calculé
+  // avant d'entrer ici. Ce bloc ne change AUCUNE calorie servie — il aligne
+  // seulement ce qu'on annonce sur ce qu'on sert.
+  const floorUsable = floorKcal != null && Number.isFinite(floorKcal) && tdeeUsable;
+  const servedDelta = floorUsable ? Math.max(tdee + dailyKcalDelta, floorKcal!) - tdee : dailyKcalDelta;
+  const floorCapped = servedDelta > dailyKcalDelta + 1e-6;
+
+  // Rythme RÉELLEMENT servi, après tous les plafonds ET le plancher → c'est lui qui
+  // doit dater la projection, sinon l'UI affiche deux chiffres qui se contredisent.
+  const appliedWeeklyKg = (servedDelta * 7) / kcalPerKg;
+
+  // Trois gardes, chacun pour un mode d'échec observé :
+  //  1. rythme nul — `!== 0` laissait passer `-0` (produit par un TDEE nul) et
+  //     faisait retomber sur `weeksRemaining`, donc « atteignable » à rythme zéro ;
+  //  2. rythme INVERSÉ — un plancher au-dessus de la maintenance (BMR mal estimé,
+  //     filet absolu sur un très petit gabarit) prescrit un surplus à quelqu'un qui
+  //     veut perdre : `diff / applied` redevient positif et la date paraît crédible ;
+  //  3. horizon — 0,04 kg/semaine passe les deux gardes précédents et projette une
+  //     date en 2048, positive et finie.
+  const movesTowardTarget = Math.abs(appliedWeeklyKg) > 1e-9 && Math.sign(appliedWeeklyKg) === Math.sign(diff);
+  const weeksNeeded = movesTowardTarget ? diff / appliedWeeklyKg : Infinity;
+  const projectable = Number.isFinite(weeksNeeded) && weeksNeeded <= MAX_PROJECTION_WEEKS;
+  const projectedDate = projectable ? addDaysStamp(today, weeksNeeded * 7) : target.target_date;
+  // Rien n'a été bridé ni relevé pour raison de sécurité ⇒ la date tient, quelle que
+  // soit la dilution interne du dernier septième de semaine.
+  const reachableByDate = (!clamped && !floorCapped) || (projectable && weeksNeeded <= weeksRemaining + 1e-6);
 
   return {
     ...base,
@@ -234,8 +288,10 @@ export function datedGoalStatus(
     safeWeeklyKg: round1(appliedWeeklyKg),
     clamped,
     deficitCapped,
+    floorCapped,
     directionMismatch: false,
     underweightBlocked: false,
+    projectable,
     projectedDate,
     reachableByDate,
     dailyKcalDelta,
@@ -256,7 +312,7 @@ export function idealWeightAt(target: GoalTarget, stamp: string): number {
   return target.start_weight_kg + (target.target_weight_kg - target.start_weight_kg) * (elapsed / total);
 }
 
-export type TrackState = 'ahead' | 'on_track' | 'behind';
+export type TrackState = 'ahead' | 'on_track' | 'behind' | 'paused';
 
 export interface TrackStatus {
   idealNowKg: number;  // où tu devrais être aujourd'hui
@@ -264,28 +320,55 @@ export interface TrackStatus {
   state: TrackState;
 }
 
-// Demi-largeur de la ZONE « sur la pente ». Volontairement LARGE (±1 kg) : le poids
-// fluctue de 1-2 kg/jour (eau, sel, glycogène) — une tolérance étroite transformerait
-// du bruit de balance en « échec » et créerait de la charge mentale (anti-North Star).
-// On préfère rassurer : tant qu'on est dans le couloir, c'est bon.
+// Demi-largeur PLANCHER de la ZONE « sur la pente ». Volontairement LARGE (±1 kg) :
+// le poids fluctue de 1-2 kg/jour (eau, sel, glycogène) — une tolérance étroite
+// transformerait du bruit de balance en « échec » et créerait de la charge mentale
+// (anti-North Star). On préfère rassurer : tant qu'on est dans le couloir, c'est bon.
 export const TRACK_TOLERANCE_KG = 1.0;
+
+// Part du poids de corps servant de demi-largeur au-dessus du plancher (P1.5).
+export const TRACK_TOLERANCE_PCT = 1.5;
+
+/**
+ * Demi-largeur de la zone, PROPORTIONNELLE au gabarit.
+ *
+ * ±1 kg fixe ne veut pas dire la même chose selon le corps : c'est 2 % du poids à
+ * 50 kg et 0,8 % à 120 kg. La personne la plus légère — celle dont le bruit de
+ * balance pèse le plus lourd en relatif — se voyait donc juger avec la tolérance la
+ * plus stricte. On garde 1 kg comme PLANCHER (en dessous de ~67 kg, le bruit absolu
+ * ne diminue pas proportionnellement) et on élargit au-delà.
+ */
+export function zoneHalfWidthKg(weightKg: number): number {
+  const w = Number.isFinite(weightKg) ? weightKg : 0;
+  return Math.max(TRACK_TOLERANCE_KG, (TRACK_TOLERANCE_PCT / 100) * w);
+}
 
 /**
  * Verdict d'avancement vs la trajectoire idéale. `behind` dépend du SENS de
  * l'objectif : en sèche, être au-dessus de l'idéal = en retard ; en prise, c'est
  * l'inverse. Renvoie null sans objectif.
+ *
+ * `paused` : le moteur ne pilote PLUS la trajectoire (insuffisance pondérale, ou
+ * poids cible qui contredit l'objectif). Sans cet état, `idealWeightAt` continuait
+ * de descendre pendant que le plan, lui, était bloqué à la maintenance — on
+ * affichait « en retard, +5 kg » à quelqu'un à qui l'app venait précisément
+ * d'interdire tout déficit. Reprocher un retard qu'on a soi-même imposé est la
+ * définition exacte de la charge mentale qu'on refuse.
  */
 export function trackStatus(
   target: GoalTarget | undefined | null,
   currentWeightKg: number,
   today: string,
+  /** Le pilotage est-il suspendu ? (cf. DatedGoalStatus.underweightBlocked / directionMismatch) */
+  paused: boolean = false,
 ): TrackStatus | null {
   if (!target) return null;
   const idealNow = idealWeightAt(target, today);
   const delta = currentWeightKg - idealNow;
+  if (paused) return { idealNowKg: round1(idealNow), deltaKg: round1(delta), state: 'paused' };
   const losing = target.target_weight_kg < target.start_weight_kg;
   let state: TrackState = 'on_track';
-  if (Math.abs(delta) > TRACK_TOLERANCE_KG) {
+  if (Math.abs(delta) > zoneHalfWidthKg(currentWeightKg)) {
     state = (losing ? delta > 0 : delta < 0) ? 'behind' : 'ahead';
   }
   return { idealNowKg: round1(idealNow), deltaKg: round1(delta), state };
@@ -301,6 +384,9 @@ export function datedGoalKcalDelta(
   today: string,
   tdee: number,
 ): number | null {
-  const s = datedGoalStatus(target, p, today, tdee);
+  // `null` : le delta DEMANDÉ est par construction insensible au plancher (qui
+  // s'applique en aval, dans floorAndFlags). Passer un plancher ici ne changerait
+  // rien à la valeur renvoyée — seulement la projection, dont cet appelant se moque.
+  const s = datedGoalStatus(target, p, today, tdee, null);
   return s && s.active ? s.dailyKcalDelta : null;
 }

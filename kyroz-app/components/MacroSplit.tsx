@@ -3,14 +3,16 @@ import { View, Text, StyleSheet, TouchableOpacity, TextInput } from 'react-nativ
 import { Ionicons } from '@expo/vector-icons';
 import { ThemePalette, Radius, cardShadow } from '../constants/theme';
 import { Goal } from '../lib/types';
-import { MacroBody, macrosPercent, recommendedProteinPerKg, goalLabel } from '../lib/tdee';
+import { MacroBody, macrosPercent, recommendedProteinPerKg, goalLabel, CARB_RATIO_MIN, CARB_RATIO_MAX } from '../lib/tdee';
 
 // Mode « Perso % » (option B, contrôle total) :
 //  • protéines réglables en g/kg (avec repère conseillé selon l'objectif),
 //  • glucides/lipides répartis au % près sur l'énergie restante.
 // Les grammes s'affichent en direct et suivent le poids.
 const PROT_MIN = 1.2, PROT_MAX = 3.0;
-const CARB_MIN = 10, CARB_MAX = 90;
+// Bornes tirées du moteur (source unique) : les réécrire ici les ferait diverger,
+// et c'est le moteur qui décide — il clampe désormais aussi à la LECTURE (P1.4).
+const CARB_MIN = CARB_RATIO_MIN, CARB_MAX = CARB_RATIO_MAX;
 
 interface Props {
   t: ThemePalette;

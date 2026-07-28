@@ -293,7 +293,7 @@ describe('P0.3 — déficit plafonné en pourcentage du TDEE', () => {
   });
 
   it('signale que le plafond a mordu', () => {
-    const s = datedGoalStatus(dated(100, 4), male120, TODAY, 3379)!;
+    const s = datedGoalStatus(dated(100, 4), male120, TODAY, 3379, null)!;
     expect(s.deficitCapped).toBe(true);
     expect(s.dailyKcalDelta).toBe(-Math.round(MAX_DEFICIT_TDEE_RATIO * 3379));
   });
@@ -312,7 +312,7 @@ describe('P0.3 — déficit plafonné en pourcentage du TDEE', () => {
     const body = makeProfile({ sex: 'male', age: 30, weight_kg: 70, height_cm: 180, goal: 'lean_bulk' });
     const s = datedGoalStatus(
       { target_weight_kg: 78, target_date: addDaysStamp(TODAY, 56), start_weight_kg: 70, start_date: TODAY },
-      body, TODAY, 2700,
+      body, TODAY, 2700, null,
     )!;
     expect(s.dailyKcalDelta).toBe(Math.round((0.35 * KCAL_PER_KG_GAIN) / 7)); // +250, pas +385
   });
@@ -323,7 +323,7 @@ describe('P0.3 — déficit plafonné en pourcentage du TDEE', () => {
         target_weight_kg: 114, target_date: addDaysStamp(TODAY, days),
         start_weight_kg: 120, start_date: TODAY,
       };
-      const s = datedGoalStatus(gt, male120, TODAY, 3379)!;
+      const s = datedGoalStatus(gt, male120, TODAY, 3379, null)!;
       expect(Number.isFinite(s.dailyKcalDelta)).toBe(true);
       expect(Number.isFinite(s.safeWeeklyKg)).toBe(true);
       const p = recalcProfile({ ...male120, goal_target: gt }, TODAY);
@@ -337,14 +337,14 @@ describe('P0.3 — déficit plafonné en pourcentage du TDEE', () => {
     const gt: GoalTarget = {
       target_weight_kg: 72, target_date: addDaysStamp(TODAY, 84), start_weight_kg: 80, start_date: TODAY,
     };
-    const s = datedGoalStatus(gt, bulk, TODAY, 2800)!;
+    const s = datedGoalStatus(gt, bulk, TODAY, 2800, null)!;
     expect(s.directionMismatch).toBe(true);
     expect(s.dailyKcalDelta).toBe(0);
     expect(computePlan({ ...bulk, goal_target: gt }, TODAY).flags).toContain('GOAL_DIRECTION_MISMATCH');
   });
 
   it('la projection suit le rythme RÉELLEMENT appliqué, pas le rythme théorique', () => {
-    const s = datedGoalStatus(dated(100, 4), male120, TODAY, 3379)!;
+    const s = datedGoalStatus(dated(100, 4), male120, TODAY, 3379, null)!;
     expect(s.reachableByDate).toBe(false);
     // safeWeeklyKg reflète le delta plafonné, pas le plafond de rythme brut
     // (affiché arrondi à 0,1 kg → on compare à cette précision).
@@ -599,7 +599,7 @@ describe('P0.6 — la sèche s\'arrête quand le poids passe sous la plage de r�
     const losing: GoalTarget = {
       target_weight_kg: 45, target_date: addDaysStamp(TODAY, 70), start_weight_kg: 56, start_date: TODAY,
     };
-    const s = datedGoalStatus(losing, drifted, TODAY, 1487)!;
+    const s = datedGoalStatus(losing, drifted, TODAY, 1487, null)!;
     expect(s.underweightBlocked).toBe(true);
     expect(s.dailyKcalDelta).toBe(0);
     expect(s.safeWeeklyKg).toBe(0);
@@ -608,7 +608,7 @@ describe('P0.6 — la sèche s\'arrête quand le poids passe sous la plage de r�
     const gaining: GoalTarget = {
       target_weight_kg: 55, target_date: addDaysStamp(TODAY, 140), start_weight_kg: 49, start_date: TODAY,
     };
-    const g = datedGoalStatus(gaining, { ...drifted, goal: 'lean_bulk' }, TODAY, 1487)!;
+    const g = datedGoalStatus(gaining, { ...drifted, goal: 'lean_bulk' }, TODAY, 1487, null)!;
     expect(g.underweightBlocked).toBe(false);
     expect(g.dailyKcalDelta).toBeGreaterThan(0);
   });
@@ -683,9 +683,9 @@ describe('Audit — synchro, objectif daté, macros', () => {
     const gt: GoalTarget = {
       target_weight_kg: 75, target_date: addDaysStamp(TODAY, 180), start_weight_kg: 85, start_date: TODAY,
     };
-    const ref = datedGoalStatus(gt, body, TODAY, 2600)!;
+    const ref = datedGoalStatus(gt, body, TODAY, 2600, null)!;
     for (const bad of [0, NaN, undefined as unknown as number, -100]) {
-      const s = datedGoalStatus(gt, body, TODAY, bad)!;
+      const s = datedGoalStatus(gt, body, TODAY, bad, null)!;
       expect(s.dailyKcalDelta, `tdee=${bad}`).toBeLessThan(0);           // le déficit survit
       expect(s.dailyKcalDelta, `tdee=${bad}`).toBe(ref.dailyKcalDelta);  // seul le plafond des 25 % saute
       expect(s.deficitCapped, `tdee=${bad}`).toBe(false);
@@ -701,7 +701,7 @@ describe('Audit — synchro, objectif daté, macros', () => {
     const near: GoalTarget = {
       target_weight_kg: 84.69, target_date: addDaysStamp(TODAY, 6), start_weight_kg: 85, start_date: TODAY,
     };
-    const s = datedGoalStatus(near, body, TODAY, 2600)!;
+    const s = datedGoalStatus(near, body, TODAY, 2600, null)!;
     expect(s.clamped).toBe(false);
     expect(s.reachableByDate).toBe(true);
   });

@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { ThemePalette } from '../constants/theme';
 import { Card } from './ui';
 import { datedGoalStatus } from '../lib/datedGoal';
+import { planFloorKcal } from '../lib/tdee';
 import { todayStamp } from '../lib/weight';
 import { UserProfile } from '../lib/types';
 
@@ -24,7 +25,11 @@ export function DatedGoalCard({ t, profile, onPress }: { t: ThemePalette; profil
   if (!gt) return null;
   // `tdee_kcal` est la valeur STOCKÉE, produite par recalcProfile : on ne recalcule
   // pas ici (chemin parallèle interdit). Elle sert au plafond de déficit (25 % du TDEE).
-  const status = datedGoalStatus(gt, profile, todayStamp(), profile.tdee_kcal);
+  // Le plancher vient du même producteur unique (P1.6) : sans lui, cette carte
+  // annonçait un rythme jusqu'à 2,3× trop rapide et une date fausse de 32 jours en
+  // médiane, parce qu'elle datait le rythme DEMANDÉ et non le rythme SERVI.
+  const today = todayStamp();
+  const status = datedGoalStatus(gt, profile, today, profile.tdee_kcal, planFloorKcal(profile, today));
   if (!status) return null;
 
   // Progression départ → actuel → cible (marche dans les deux sens : perte ET prise).
@@ -52,7 +57,15 @@ export function DatedGoalCard({ t, profile, onPress }: { t: ThemePalette; profil
             ? 'Plan ramené au maintien · poids sous la plage de référence'
             : status.direction === 'maintain'
               ? 'Poids cible atteint · maintien'
-              : `Cible le ${formatFR(gt.target_date)} · ${Math.abs(status.safeWeeklyKg)} kg/sem`}
+              // Date RÉELLE au rythme servi (P1.6) : annoncer `gt.target_date` quand le
+              // plancher rogne le déficit affichait une échéance fausse de 32 jours en
+              // médiane. Et sans projection crédible, on ne donne pas de date du tout
+              // plutôt qu'un chiffre inventé.
+              : status.reachableByDate
+                ? `Cible le ${formatFR(gt.target_date)} · ${Math.abs(status.safeWeeklyKg)} kg/sem`
+                : status.projectable
+                  ? `Plutôt le ${formatFR(status.projectedDate)} · ${Math.abs(status.safeWeeklyKg)} kg/sem`
+                  : 'Rythme sûr atteint · cette date n\'est pas tenable'}
         </Text>
       </Card>
     </TouchableOpacity>

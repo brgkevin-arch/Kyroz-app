@@ -5,7 +5,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // chroniques sont EXCLUS (un plan macro auto-généré ne peut pas s'y substituer). Le
 // blocage vit ici (logique pure + persistance, testé), dans components/HealthScreening.tsx
 // (l'écran-portail) et app/(auth)/onboarding.tsx (qui affiche le portail avant l'assistant).
-// Le hard block « < 16 ans » et « < MIN_KCAL » reste, lui, dans lib/tdee.ts (validateProfile).
+// Le hard block d'âge (lib/safety.ts::MIN_AGE, relevé à 18 ans le 2026-07-28) et
+// « < MIN_KCAL » restent, eux, dans lib/tdee.ts (validateProfile).
 
 export const SCREENING_KEY = '@kyroz:healthScreening';
 

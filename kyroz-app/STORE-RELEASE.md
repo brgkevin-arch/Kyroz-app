@@ -147,8 +147,29 @@ pas l'avis d'un médecin ou d'un diététicien-nutritionniste.
   + exigences de preuves.
 - Recettes : `validated_by_dietitian = false` aujourd'hui. On ne prétend donc
   **pas** de validation par un professionnel — cohérent, ne l'écris pas dans la fiche.
-- Hard-blocks déjà en place (min 1500/1200 kcal, pas de <16 ans, pas de pathologie/
-  grossesse) : c'est ce qui te protège en review.
+- **Hard-blocks déjà en place** : c'est ce qui te protège en review. Chacun est dans le
+  code, appliqué à CHAQUE calcul (mode `manual` compris) — pas seulement dans la doc :
+  - **Âge minimum 18 ans**, bloqué à l'inscription (`lib/safety.ts::MIN_AGE`). Relevé
+    de 16 à 18 le 2026-07-28 : Mifflin-St Jeor n'est pas validée sous 19 ans, et servir
+    un moteur de déficit calorique à un mineur est un risque de conformité autant que
+    de sécurité.
+  - **Portail de dépistage santé AVANT l'onboarding** (`components/HealthScreening.tsx`) :
+    grossesse/allaitement et pathologie chronique suivie (diabète, maladie rénale ou
+    cardiaque, trouble du comportement alimentaire) → cul-de-sac, renvoi vers un
+    professionnel de santé. Aucun plan n'est généré.
+  - **Plancher d'énergie disponible** (`lib/safety.ts::safetyFloorKcal`) :
+    `max(BMR, 30 kcal/kg de masse maigre + dépense sportive, 1500 H / 1200 F)`. Le
+    1500/1200 n'est plus que le **filet absolu** — il autorisait 1200 kcal à une femme
+    de 65 kg s'entraînant 5×/semaine, dont le minimum physiologique est ~1863. Au-delà
+    de 12 semaines cumulées en zone basse, le plancher remonte vers 35 kcal/kg chez la
+    femme non ménopausée : l'app ne bloque pas, elle force une sortie de déficit.
+  - **Tout déficit annulé sous IMC 18,5** (`lib/safety.ts::deficitBlocked`) : le plancher
+    monte à la maintenance. Le contrôle est *pendant* la sèche, pas seulement à l'entrée
+    — quelqu'un qui commence à IMC 19 et descend à 17,8 cesse de recevoir un déficit.
+  - **Déficit plafonné à 25 % du TDEE** (`lib/datedGoal.ts::MAX_DEFICIT_TDEE_RATIO`), et
+    éligibilité refusée pour une sèche démarrée sous IMC 18,5, un poids cible hors plage
+    saine, ou plus de 20 h d'entraînement hebdomadaires déclarées
+    (`lib/safety.ts::checkEligibility`).
 
 ---
 
@@ -157,8 +178,22 @@ pas l'avis d'un médecin ou d'un diététicien-nutritionniste.
 - Réponds au questionnaire **honnêtement** : pas de violence, pas de contenu sexuel,
   pas de jeu d'argent. Thème = **gestion du poids / régime**.
 - Attendu : **Apple 12+** (référence au poids/régime), **Google PEGI 3 / « Tout
-  public »** avec la mention diététique. L'app **bloque déjà les <16 ans** à
-  l'inscription — cohérent avec un classement 12+.
+  public »** avec la mention diététique. L'app **bloque déjà les <18 ans** à
+  l'inscription (`lib/safety.ts::MIN_AGE`).
+
+> ### ⚠️ À arbitrer (décision fondateur) — classement 12+ vs blocage à 18 ans
+> L'âge minimum est passé de 16 à **18 ans** le 2026-07-28. Le « cohérent avec un
+> classement 12+ » qui figurait ici avant cette date ne tient plus : une fiche classée
+> 12+ est proposée à des 12–17 ans que l'app refuse ensuite à l'inscription — décalage
+> fiche ↔ produit, mauvaise première expérience, et angle d'attaque possible en review.
+> Deux options, à trancher **avant** de remplir le questionnaire :
+> - **Aligner la fiche sur le produit** — monter le classement (Apple 17+, Google
+>   « Adultes uniquement ») pour que la fiche dise la même chose que le blocage.
+> - **Garder 12+ / PEGI 3** et considérer que le blocage in-app fait le travail — dans
+>   ce cas, écrire explicitement l'âge minimum 18 ans dans la note au reviewer (§11),
+>   pour ne pas se le faire opposer comme une incohérence.
+>
+> Non tranché ici : c'est un arbitrage visibilité ↔ cohérence, pas une question technique.
 
 ---
 
@@ -286,7 +321,7 @@ NOTES
 - App language is French; theme is dark.
 - No payment, no ads. Works offline.
 - Health disclaimer shown in-app: Kyroz is for healthy adults and does not replace
-  medical or dietitian advice. Users under 16 are blocked during onboarding.
+  medical or dietitian advice. Users under 18 are blocked during onboarding.
 - Data (email, profile) is stored in the EU (Supabase). Users can delete their
   account and data in-app (Profil → delete account). Progress photos never leave
   the device.

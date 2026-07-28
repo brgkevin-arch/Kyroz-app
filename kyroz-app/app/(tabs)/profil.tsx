@@ -567,12 +567,14 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
     ? { target_weight_kg: twN, target_date: targetDate, start_weight_kg: profile.weight_kg, start_date: existing?.start_date ?? today }
     : undefined;
   const tdee = calculateTDEE(profile.sex, profile.weight_kg, profile.height_cm, profile.age, profile.training_days_per_week, profile.body_fat_pct, profile.sports);
-  const status = datedGoalStatus(provisional, profile, today, tdee);
 
   // Aperçu calculé par le PRODUCTEUR UNIQUE (computePlan) et non par un chemin
   // parallèle : ce que la carte annonce est exactement ce qui sera enregistré,
   // plancher de sécurité compris.
   const previewPlan = provisional ? computePlan({ ...profile, goal_target: provisional }, today) : null;
+  // Le plancher de l'APERÇU (pas celui du profil actuel) alimente la projection :
+  // c'est la cible qu'on s'apprête à enregistrer qui doit dater l'échéance (P1.6).
+  const status = datedGoalStatus(provisional, profile, today, tdee, previewPlan?.floor_kcal ?? null);
   const preview = previewPlan?.profile ?? null;
   const floored = previewPlan?.flags.includes('FLOOR_APPLIED') ?? false;
   const kcalDelta = preview ? preview.target_kcal - tdee : 0;
@@ -635,10 +637,28 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
           basse que son poids ne peut pas être au-dessus du seuil). L'état est
           annoncé sur les surfaces qui, elles, restent visibles : la carte de suivi
           (DatedGoalCard) et l'avertissement en tête du profil. */}
-      {!goalBlockMsg && status?.clamped && !status.directionMismatch && (
+      {/* « Objectif ambitieux » = un plafond de RYTHME a mordu. On ne dit plus
+          « un peu après ta date » : l'écart médian mesuré est de 32 jours, 89 au
+          90ᵉ centile. Un adverbe qui minimise un trimestre est un mensonge poli. */}
+      {!goalBlockMsg && status?.clamped && !status.directionMismatch && !status.floorCapped && (
         <Card t={t}>
           <Text style={{ color: t.text, fontSize: 13, lineHeight: 19 }}>
-            Objectif ambitieux : au rythme le plus sûr tu atteins {status.targetWeightKg} kg vers le {formatFR(status.projectedDate)}, un peu après ta date. Kyroz garde le rythme sûr.
+            Objectif ambitieux : au rythme le plus sûr tu atteins {status.targetWeightKg} kg
+            {status.projectable ? ` vers le ${formatFR(status.projectedDate)}` : ' plus tard que prévu'}, après ta date. Kyroz garde le rythme sûr.
+          </Text>
+        </Card>
+      )}
+      {/* Le PLANCHER qui mord n'est pas une ambition mal calibrée, c'est une contrainte
+          physiologique : message distinct, et on propose la correction en un geste
+          plutôt que de laisser l'utilisateur deviner quelle date serait tenable. */}
+      {!goalBlockMsg && status?.floorCapped && !status.directionMismatch && preview && (
+        <Card t={t}>
+          <Text style={{ color: t.text, fontSize: 13, lineHeight: 19 }}>
+            {status.projectable ? (
+              <>Ton plan ne peut pas descendre sous {preview.target_kcal} kcal/jour en sécurité — c'est ton plancher, pas un réglage. À ce rythme tu atteins {status.targetWeightKg} kg vers le {formatFR(status.projectedDate)}. Tu peux viser cette date-là, ou choisir un poids cible plus proche : Kyroz ne creusera pas davantage.</>
+            ) : (
+              <>Ton plan ne peut pas descendre sous {preview.target_kcal} kcal/jour en sécurité — c'est ton plancher, pas un réglage. À ce rythme, ce poids cible n'est pas atteignable quelle que soit la date. Choisis une cible plus proche, ou laisse le temps faire : ton poids qui baisse fera baisser le plancher avec lui.</>
+            )}
           </Text>
         </Card>
       )}
@@ -646,15 +666,18 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
           sache (il ne juge que le RYTHME). Sans cette condition, on rassurait
           « dans les clous de ta date » juste au-dessus du message qui annonce
           l'inverse. La projection réellement corrigée est du ressort de P1.6. */}
-      {!goalBlockMsg && status && !status.clamped && !status.directionMismatch && !floored && status.direction !== 'maintain' && (
+      {!goalBlockMsg && status && status.reachableByDate && !status.directionMismatch && status.direction !== 'maintain' && (
         <Text style={{ color: t.textSecondary, fontSize: 12, lineHeight: 17 }}>
           Rythme sûr, dans les clous de ta date.
         </Text>
       )}
-      {!goalBlockMsg && floored && preview && (
+      {/* Le plancher mord SANS rogner la trajectoire (objectif déjà atteignable) :
+          on explique le mécanisme, sans annoncer de décalage — il n'y en a pas.
+          `!floorCapped` évite le doublon avec la carte ci-dessus. */}
+      {!goalBlockMsg && floored && preview && !status?.floorCapped && (
         <Card t={t}>
           <Text style={{ color: t.text, fontSize: 13, lineHeight: 19 }}>
-            Ton plancher de sécurité est à {preview.target_kcal} kcal/jour : en dessous, ton corps n'a plus assez d'énergie pour fonctionner correctement. Plus tu t'entraînes, plus ce plancher monte — c'est normal, l'énergie de tes séances ne compte pas comme énergie disponible. Ta date sera décalée plutôt que ton apport écrasé.
+            Ton plancher de sécurité est à {preview.target_kcal} kcal/jour : en dessous, ton corps n'a plus assez d'énergie pour fonctionner correctement. Plus tu t'entraînes, plus ce plancher monte — c'est normal, l'énergie de tes séances ne compte pas comme énergie disponible.
           </Text>
         </Card>
       )}
