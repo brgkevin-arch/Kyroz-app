@@ -29,7 +29,7 @@ import { deleteAccount, deleteCloudData } from '../../lib/sync';
 import { exportMyData } from '../../lib/exportData';
 import {
   calculateTDEE, computePlan, goalLabel, planFlags, validateProfile, recalcProfile, DEFAULT_CARB_RATIO, recommendedProteinPerKg,
-  DEFAULT_NEAT_LEVEL, NEAT_ORDER, NEAT_LABEL, NEAT_HINT, dismissEngineNotice,
+  DEFAULT_NEAT_LEVEL, NEAT_ORDER, NEAT_LABEL, NEAT_HINT, NEAT_SHORT, dismissEngineNotice,
 } from '../../lib/tdee';
 import {
   lowEaWeeksForFloor, checkEligibility, eligibilityMessage,
@@ -267,7 +267,7 @@ export default function ProfilScreen() {
         <SectionLabel t={t}>RÉGLAGES</SectionLabel>
         <View style={[s.menu, cardShadow(t)]}>
           <MenuRow t={t} icon="person-outline" label="Informations" value={`${SEX_LABELS[profile.sex]} · ${profile.age} ans · ${profile.weight_kg} kg${profile.body_fat_pct != null ? ` · ${profile.body_fat_pct}% MG` : ''}`} onPress={() => setEditor('info')} />
-          <MenuRow t={t} icon="barbell-outline" label="Sport & activité" value={`${profile.sports?.length ? `${profile.sports.length} sport${profile.sports.length > 1 ? 's' : ''}` : 'Aucun sport'} · ${NEAT_LABEL[profile.neat_level ?? DEFAULT_NEAT_LEVEL].toLowerCase()}`} onPress={() => setEditor('sports')} />
+          <MenuRow t={t} icon="barbell-outline" label="Sport & activité" value={`${profile.sports?.length ? `${profile.sports.length} sport${profile.sports.length > 1 ? 's' : ''}` : 'Aucun sport'} · ${NEAT_SHORT[profile.neat_level ?? DEFAULT_NEAT_LEVEL]}`} onPress={() => setEditor('sports')} />
           <MenuRow t={t} icon="flag-outline" label="Objectif" value={goalLabel(profile.goal)} onPress={() => setEditor('goal')} />
           <MenuRow t={t} icon="rocket-outline" label="Objectif daté" value={profile.goal_target ? `${profile.goal_target.target_weight_kg} kg · ${formatFR(profile.goal_target.target_date)}` : 'Aucun'} onPress={() => setEditor('dated_goal')} />
           <MenuRow t={t} icon="flame-outline" label="Calories & macros" value={profile.macro_mode === 'percent' ? 'Perso %' : 'Calculées'} onPress={() => setEditor('macros')} />

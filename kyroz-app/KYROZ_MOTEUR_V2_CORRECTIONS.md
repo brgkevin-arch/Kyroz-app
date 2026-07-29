@@ -15,7 +15,7 @@
 |---|---|---|
 | **PR 1** | P0.1 → P0.4 — sécurité | ✅ **Livré + audité** (branche `fix/moteur-p0-securite`, 2026-07-28) |
 | PR 2 | P1.1 → P1.6 — cohérence et justesse | ✅ **Livré** (étapes 1-2 puis 3, 2026-07-28) — **sauf P1.3, reporté en P2**. ⚠️ La spec avait tort sur plusieurs points : lire les encadrés « LIVRÉ » de chaque section, pas le corps. |
-| PR 3 | P2.1 → P2.2 — fonctionnalités manquantes | À faire |
+| PR 3 | P2.1 → P2.2 — fonctionnalités manquantes | 🚫 **NE PAS CONSTRUIRE** — audit du 2026-07-29 : **les deux items sont rejetés**, motifs dans les sections. ⚠️ **Le corps de P2.1 et P2.2 ci-dessous est la SPEC D'ORIGINE, conservée pour mémoire, pas une consigne.** Ce qui reste vraiment ouvert : le diagnostic en lecture seule extrait de P2.2, et P1.3. |
 
 ### Audit adverse du P0 (2026-07-28)
 
@@ -703,7 +703,23 @@ avec le plancher EA.)*
 
 # PR 3 — P2 : fonctionnalités manquantes
 
+> 🚫 **AUDIT DU 2026-07-29 — AUCUN des deux items ne part en développement.**
+> 7 agents, mesures refaites sur le moteur réel (pas sur cette spec). Workflow
+> rejouable : `.claude/workflows/audit-p2-kyroz.js`. Verdict détaillé dans
+> `AGENTS.md`.
+>
+> **Tout ce qui suit dans cette section est la spec d'ORIGINE, gardée pour mémoire.
+> Ce n'est pas une consigne.** Lire d'abord l'encadré de rejet de chaque item.
+
 ## P2.1 — Cyclage jours repos / jours sport
+
+> 🚫 **REJETÉ.** Le moteur cycle DÉJÀ (`restDayRatio`, isocalorique) et lisse DÉJÀ
+> la semaine (`DAILY_SMOOTH_CAP`). Surtout : **le plancher de sécurité est quotidien
+> et additif** — quand il mord, il ne reste aucun degré de liberté à répartir. Les
+> `ALPHA` et `MAX_DAY_RATIO = 1,35` de la spec sont **arithmétiquement incompatibles**
+> avec lui (le ratio des planchers seuls vaut déjà 2,30 sur volume concentré) : aucune
+> implémentation soignée ne les sauve. Et le « plancher lipidique 0,5 g/kg de poids »
+> proposé plus bas est la **4ᵉ tentative** de défaire ce que P0.2 puis P1.4 ont corrigé.
 
 `kcal_sport_par_jour = kcal_semaine / 7` lisse tout : le moteur ne différencie pas
 les jours. Le déficit se raisonne en **budget hebdomadaire**, réparti proportionnellement
@@ -740,6 +756,14 @@ séance, ne pas casser le déficit : reprendre du budget sur les jours de repos 
 lever `CARBS_BELOW_TRAINING_FLOOR`.
 
 ## P2.2 — Calibration empirique (facteur `k`)
+
+> 🚫 **REJETÉ COMME CORRECTEUR, GARDÉ COMME DIAGNOSTIC.** `k` et `neat_level`
+> achètent exactement la même grandeur : deux curseurs pour un seul réglage, dont
+> un invisible, qui déplacerait le budget calorique tous les 14 jours sans que
+> personne ne l'ait demandé. **Le CONSTAT est juste** — le moteur ne mesure jamais
+> son écart au réel — donc ce qui reste à livrer est un affichage en **LECTURE
+> SEULE** dans Transformation (« tu perds 0,45 kg/sem, on tablait sur 0,30 »),
+> **jamais dans `computePlan`**. Pas de migration, pas d'`ENGINE_REV`.
 
 Le moteur ne mesure jamais son propre écart à la réalité. Stocker un **coefficient
 adimensionnel**, jamais un TDEE absolu : `k` capture l'écart individuel et reste
