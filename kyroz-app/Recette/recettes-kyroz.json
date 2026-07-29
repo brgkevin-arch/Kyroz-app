@@ -10,7 +10,7 @@
       "scalable": "true = quantité ajustable par l'algo ; false = fixe (légumes)"
     },
     "priorite_sport": "Muscu prioritaire, puis Endurance, peu de Combats (cf. distribution).",
-    "corrections_kyroz": "rep57 +8g huile_olive (équilibre lipidique). | 2026-07-29 : sauce_soja déclarée dans rep05/rep46/rep80 (citée en instruction, invisible du dérivé régime) ; levure_maltee + falafel + pesto ajoutés à recipeDiet.VIOLATIONS ; why de rep80/pd52/pd77/rep152/rep155 : « sans gluten » retiré (devenu faux) ; +9 ingrédients (légumineuses prêtes à consommer, tofu fumé, falafel, tahini, boisson soja, pain/wrap sans gluten). recomp_flag SUPPRIMÉ (champ mort : aucun code ne le lisait, et il marquait 5 recettes quand ~40 avaient une densité protéique équivalente ou pire). | yaourt_grec DÉMAPPÉ de ciqual-19860 (« yaourt à la grecque » = dessert à 3 g de protéines, pas un grec égoutté à 9 g) → valeur manuelle, comme skyr ; nom précisé « égoutté (type Fage) » ; macro_role dairy→protein sur pd10/col07/col17, où le yaourt est la seule source de protéines. | 8 recettes sans ancre protéine (pd02/pd06/pd08/pd15/col01/col03/col13/col19) : le laitier qui porte 58 à 89 % de leurs protéines passe de dairy à protein.",
+    "corrections_kyroz": "rep57 +8g huile_olive (équilibre lipidique). | 2026-07-29 : sauce_soja déclarée dans rep05/rep46/rep80 (citée en instruction, invisible du dérivé régime) ; levure_maltee + falafel + pesto ajoutés à recipeDiet.VIOLATIONS ; why de rep80/pd52/pd77/rep152/rep155 : « sans gluten » retiré (devenu faux) ; +9 ingrédients (légumineuses prêtes à consommer, tofu fumé, falafel, tahini, boisson soja, pain/wrap sans gluten). recomp_flag SUPPRIMÉ (champ mort : aucun code ne le lisait, et il marquait 5 recettes quand ~40 avaient une densité protéique équivalente ou pire). | yaourt_grec DÉMAPPÉ de ciqual-19860 (« yaourt à la grecque » = dessert à 3 g de protéines, pas un grec égoutté à 9 g) → valeur manuelle, comme skyr ; nom précisé « égoutté (type Fage) » ; macro_role dairy→protein sur pd10/col07/col17, où le yaourt est la seule source de protéines. | 8 recettes sans ancre protéine (pd02/pd06/pd08/pd15/col01/col03/col13/col19) : le laitier qui porte 58 à 89 % de leurs protéines passe de dairy à protein. | Nettoyage des doublons 2026-07-29 : 7 clones stricts et 2 noms identiques différenciés (rep37 tajine aux olives, rep64 papillote, rep165 pho sans mélange wok, col64 houmous, col50/col65 edamame distincts, pd38 tartine de seigle, col45 pudding framboise) — aucune suppression.",
     "waves": {
       "role": "Vague de livraison d'origine de chaque recette (champ `wave`). Rétro-rempli le 2026-07-29 depuis les dossiers de Recette/drops/ ; « fondation » = le lot initial, antérieur aux drops.",
       "valeurs": {
@@ -5854,7 +5854,7 @@
     },
     {
       "id": "rep37",
-      "name": "Tajine poulet – semoule – légumes",
+      "name": "Tajine de poulet – olives – semoule",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -5884,21 +5884,21 @@
         },
         {
           "ref": "courgette",
-          "qty": 100,
+          "qty": 110,
           "macro_role": "vegetable",
           "scalable": false
         },
         {
-          "ref": "carotte",
-          "qty": 80,
+          "ref": "tomate_concassee",
+          "qty": 90,
           "macro_role": "vegetable",
           "scalable": false
         },
         {
-          "ref": "pois_chiches",
+          "ref": "olives",
           "qty": 25,
-          "macro_role": "protein",
-          "scalable": true
+          "macro_role": "flavor",
+          "scalable": false
         },
         {
           "ref": "huile_olive",
@@ -5908,16 +5908,20 @@
         }
       ],
       "instructions": [
-        "Mijote poulet + légumes + épices 20 min.",
-        "Prépare la semoule.",
-        "Assemble."
+        "Coupe le blanc de poulet en gros cubes de 3 cm, sale et poivre.",
+        "Fais chauffer l'huile dans une cocotte à feu moyen-vif, puis saisis les cubes 4 minutes en les retournant : ils doivent être colorés sur toutes les faces.",
+        "Ajoute la courgette en demi-rondelles épaisses et laisse-la revenir 3 minutes.",
+        "Verse la tomate concassée, ajoute tes épices (cumin, coriandre, gingembre, une pincée de cannelle), couvre et laisse mijoter 15 minutes à feu doux : la sauce doit épaissir et napper le poulet.",
+        "Pendant ce temps, verse la semoule dans un saladier, couvre-la d'un volume égal d'eau bouillante salée, filme et laisse gonfler 5 minutes, puis égraine à la fourchette.",
+        "Ajoute les olives au tajine sur les 2 dernières minutes pour qu'elles ne rendent pas leur amertume.",
+        "Dresse la semoule en dôme et verse le tajine dessus avec sa sauce."
       ],
-      "why": "Endurance/muscu maintien : complet, parfumé, double protéine.",
+      "why": "Muscu/endurance maintien : mijoté parfumé, protéines maigres et glucides lents.",
       "macros_per_serving": {
-        "kcal": 667,
-        "protein": 56.2,
-        "carbs": 73.7,
-        "fat": 13.8
+        "kcal": 648.9,
+        "protein": 51.4,
+        "carbs": 64.6,
+        "fat": 17.7
       },
       "wave": "fondation"
     },
@@ -8318,7 +8322,7 @@
     },
     {
       "id": "pd38",
-      "name": "Oeufs brouillés – avocat – pain complet",
+      "name": "Tartine de seigle – œufs brouillés – tomate",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -8346,28 +8350,32 @@
           "scalable": true
         },
         {
-          "ref": "pain_complet",
+          "ref": "pain_seigle",
           "qty": 70,
           "macro_role": "carb",
           "scalable": true
         },
         {
-          "ref": "roquette",
-          "qty": 30,
+          "ref": "tomate",
+          "qty": 80,
           "macro_role": "vegetable",
           "scalable": false
         }
       ],
       "instructions": [
-        "Brouiller les œufs doucement.",
-        "Servir sur pain complet avec avocat écrasé et roquette."
+        "Casse les œufs dans un bol, sale, poivre et bats-les à la fourchette juste assez pour mélanger les jaunes et les blancs.",
+        "Fais griller les tranches de pain de seigle jusqu'à ce qu'elles soient fermes sous le doigt.",
+        "Écrase l'avocat à la fourchette avec une pincée de sel, en gardant des morceaux.",
+        "Verse les œufs dans une poêle froide, mets sur feu DOUX et remue sans arrêt à la spatule 3 à 4 minutes : retire du feu quand ils sont encore brillants et crémeux, ils finissent de cuire hors du feu.",
+        "Coupe la tomate en rondelles fines et sale-les légèrement.",
+        "Tartine le pain d'avocat, dépose les œufs brouillés dessus, couronne de rondelles de tomate et donne un tour de moulin."
       ],
-      "why": "Jour repos : lipides de qualité (œuf + avocat), satiété durable.",
+      "why": "Jour repos : lipides de qualité, satiété durable.",
       "macros_per_serving": {
-        "kcal": 496,
-        "protein": 27.8,
-        "carbs": 34.6,
-        "fat": 26.3
+        "kcal": 488.9,
+        "protein": 25.2,
+        "carbs": 35.4,
+        "fat": 24.9
       },
       "wave": "2026-06-19-vegan"
     },
@@ -10135,7 +10143,7 @@
     },
     {
       "id": "rep64",
-      "name": "Pâtes – saumon – épinards – crème soja",
+      "name": "Boulgour – thon – tomate – roquette",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -10151,40 +10159,50 @@
       "base_servings": 1,
       "ingredients": [
         {
-          "ref": "pates_completes",
+          "ref": "boulgour",
           "qty": 90,
           "macro_role": "carb",
           "scalable": true
         },
         {
-          "ref": "saumon",
-          "qty": 140,
+          "ref": "thon_naturel",
+          "qty": 130,
           "macro_role": "protein",
           "scalable": true
         },
         {
-          "ref": "epinards",
-          "qty": 80,
+          "ref": "tomate_concassee",
+          "qty": 120,
           "macro_role": "vegetable",
           "scalable": false
         },
         {
-          "ref": "creme_soja",
-          "qty": 60,
+          "ref": "roquette",
+          "qty": 30,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "huile_olive",
+          "qty": 10,
           "macro_role": "fat",
           "scalable": true
         }
       ],
       "instructions": [
-        "Cuire les pâtes.",
-        "Saisir le saumon, ajouter épinards et crème de soja, mélanger."
+        "Verse le boulgour dans un saladier, couvre-le d'une fois et demie son volume d'eau bouillante salée, filme et laisse gonfler 10 minutes, puis égraine à la fourchette.",
+        "Pendant ce temps, chauffe l'huile dans une poêle à feu moyen et fais-y blondir une gousse d'ail écrasée 1 minute, sans la laisser brunir.",
+        "Verse la tomate concassée, sale, poivre, ajoute une pincée d'origan et laisse réduire 6 minutes : la sauce doit être épaisse, plus du tout liquide.",
+        "Égoutte le thon et défais-le en gros morceaux à la fourchette, puis incorpore-le hors du feu pour qu'il ne se dessèche pas.",
+        "Mélange le boulgour à la sauce tiède et rectifie le sel.",
+        "Sers dans un bol et couronne de roquette fraîche, qui doit rester crue et croquante."
       ],
-      "why": "Pescatarien jour repos : oméga-3, crémeux, capacité élevée.",
+      "why": "Pescatarien : salade tiède express, très protéinée.",
       "macros_per_serving": {
-        "kcal": 721,
-        "protein": 43.8,
-        "carbs": 61.1,
-        "fat": 31.0
+        "kcal": 599.3,
+        "protein": 46.9,
+        "carbs": 69.6,
+        "fat": 13.2
       },
       "wave": "2026-06-19-vegan"
     },
@@ -15883,7 +15901,7 @@
     },
     {
       "id": "col45",
-      "name": "Pudding chia – mangue – coco",
+      "name": "Pudding chia – banane – amande",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -15910,22 +15928,31 @@
           "scalable": true
         },
         {
-          "ref": "mangue",
-          "qty": 80,
+          "ref": "banane",
+          "qty": 100,
           "macro_role": "fruit",
+          "scalable": true
+        },
+        {
+          "ref": "lait_amande",
+          "qty": 70,
+          "macro_role": "fat",
           "scalable": true
         }
       ],
       "instructions": [
-        "Mélanger chia et yaourt de soja, reposer 3 h.",
-        "Garnir de mangue."
+        "Verse le yaourt de soja et le lait d'amande dans un bocal, mélange bien au fouet pour qu'il ne reste aucun grumeau.",
+        "Ajoute les graines de chia et remue 30 secondes, puis attends 5 minutes et remue une seconde fois : c'est ce deuxième mélange qui empêche les graines de s'agglomérer au fond.",
+        "Ferme le bocal et laisse prendre au moins 3 heures au réfrigérateur — la texture doit être celle d'un flan souple.",
+        "Au moment de servir, écrase la moitié de la banane à la fourchette et incorpore-la au pudding.",
+        "Coupe le reste en rondelles et dispose-les sur le dessus."
       ],
-      "why": "Vegan & sans gluten : oméga-3 et protéines, peu calorique.",
+      "why": "Vegan & sans gluten : oméga-3, protéines et glucides doux.",
       "macros_per_serving": {
-        "kcal": 234,
-        "protein": 17.2,
-        "carbs": 18.6,
-        "fat": 8.2
+        "kcal": 292.5,
+        "protein": 18.0,
+        "carbs": 29.5,
+        "fat": 8.9
       },
       "wave": "2026-06-19-vegan"
     },
@@ -16143,7 +16170,7 @@
     },
     {
       "id": "col50",
-      "name": "Edamame grillés – sésame – piment",
+      "name": "Edamame poêlés – maïs – graines de courge",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -16159,27 +16186,42 @@
       "ingredients": [
         {
           "ref": "edamame",
-          "qty": 150,
+          "qty": 120,
           "macro_role": "protein",
           "scalable": true
         },
         {
+          "ref": "mais",
+          "qty": 40,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "graines_courge",
+          "qty": 10,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
           "ref": "huile_olive",
-          "qty": 5,
+          "qty": 3,
           "macro_role": "fat",
           "scalable": true
         }
       ],
       "instructions": [
-        "Griller les edamame avec un filet d'huile.",
-        "Saupoudrer sésame et piment."
+        "Fais décongeler les edamame écossés 2 minutes à l'eau bouillante, puis égoutte-les soigneusement : l'eau résiduelle empêcherait la coloration.",
+        "Chauffe l'huile dans une poêle à feu vif jusqu'à ce qu'elle soit brillante.",
+        "Jette les edamame et le maïs égoutté, laisse-les colorer 3 minutes sans remuer, puis mélange une fois : des taches dorées doivent apparaître.",
+        "Ajoute les graines de courge, sale, poivre et poursuis 1 minute pour les torréfier.",
+        "Sers tiède, dans un bol, avec un tour de moulin."
       ],
-      "why": "Vegan & sans gluten : protéines pures, volume, très peu calorique.",
+      "why": "Vegan & sans gluten : croquant, protéines végétales et volume.",
       "macros_per_serving": {
-        "kcal": 228,
-        "protein": 16.5,
-        "carbs": 13.5,
-        "fat": 12.5
+        "kcal": 271.4,
+        "protein": 17.4,
+        "carbs": 18.7,
+        "fat": 14.4
       },
       "wave": "2026-06-19-vegan"
     },
@@ -18368,7 +18410,7 @@
     },
     {
       "id": "col64",
-      "name": "Pois chiches rôtis – paprika",
+      "name": "Houmous de haricots blancs – bâtonnets de carotte",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -18379,39 +18421,55 @@
         "sport": [
           "combats"
         ],
-        "temps_min": 25
+        "temps_min": 8
       },
       "base_servings": 1,
       "ingredients": [
         {
-          "ref": "pois_chiches",
-          "qty": 65,
+          "ref": "haricots_blancs",
+          "qty": 50,
           "macro_role": "protein",
           "scalable": true
         },
         {
-          "ref": "huile_olive",
-          "qty": 6,
+          "ref": "tahini",
+          "qty": 10,
           "macro_role": "fat",
           "scalable": true
+        },
+        {
+          "ref": "huile_olive",
+          "qty": 2,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "carotte",
+          "qty": 80,
+          "macro_role": "vegetable",
+          "scalable": false
         }
       ],
       "instructions": [
-        "Sécher les pois chiches cuits, enrober d'huile et de paprika.",
-        "Rôtir 22 min à 200°C."
+        "Fais tremper les haricots blancs la veille, puis cuis-les 45 minutes à l'eau non salée jusqu'à ce qu'ils s'écrasent entre deux doigts (ou pars de haricots déjà cuits et rincés).",
+        "Égoutte-les en réservant deux cuillères à soupe d'eau de cuisson.",
+        "Mets les haricots dans un mixeur avec le tahini, l'huile, une gousse d'ail, le jus d'un demi-citron, du sel et une pincée de cumin.",
+        "Mixe 1 minute en ajoutant l'eau réservée cuillère par cuillère, jusqu'à obtenir une crème lisse qui retombe lentement du fouet.",
+        "Épluche la carotte et taille-la en bâtonnets de la longueur d'un doigt.",
+        "Verse le houmous dans un bol, creuse un puits au dos de la cuillère et verse-y un filet d'huile."
       ],
-      "why": "Vegan & sans gluten : croquant, protéines et fibres.",
+      "why": "Vegan : en-cas protéiné et rassasiant, à préparer d'avance.",
       "macros_per_serving": {
-        "kcal": 291,
-        "protein": 12.3,
-        "carbs": 31.9,
-        "fat": 9.9
+        "kcal": 276.4,
+        "protein": 12.9,
+        "carbs": 30.0,
+        "fat": 8.2
       },
       "wave": "2026-07-22-sans-gluten"
     },
     {
       "id": "col65",
-      "name": "Edamame – citron – piment",
+      "name": "Salade d'edamame – concombre – tomate",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -18427,9 +18485,21 @@
       "ingredients": [
         {
           "ref": "edamame",
-          "qty": 160,
+          "qty": 140,
           "macro_role": "protein",
           "scalable": true
+        },
+        {
+          "ref": "concombre",
+          "qty": 110,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "tomate",
+          "qty": 90,
+          "macro_role": "vegetable",
+          "scalable": false
         },
         {
           "ref": "huile_olive",
@@ -18439,15 +18509,18 @@
         }
       ],
       "instructions": [
-        "Cuire les edamame vapeur 5 min.",
-        "Assaisonner citron, piment et sel."
+        "Plonge les edamame écossés 3 minutes dans de l'eau bouillante salée, puis rafraîchis-les sous l'eau froide pour fixer leur couleur.",
+        "Coupe le concombre en deux dans la longueur, retire les graines à la cuillère, puis taille-le en demi-lunes de 5 mm.",
+        "Coupe les tomates en quartiers, puis chaque quartier en deux.",
+        "Réunis le tout dans un saladier, assaisonne d'huile, de sel, de poivre et du jus d'un demi-citron.",
+        "Mélange délicatement et laisse reposer 5 minutes au frais avant de servir : le concombre rend un peu de jus qui fait la sauce."
       ],
-      "why": "Vegan & sans gluten combats : protéines pures, volume, peu calorique.",
+      "why": "Vegan & sans gluten : fraîche, protéinée, à emporter.",
       "macros_per_serving": {
-        "kcal": 231,
-        "protein": 17.6,
-        "carbs": 14.4,
-        "fat": 12.0
+        "kcal": 240.4,
+        "protein": 16.9,
+        "carbs": 17.5,
+        "fat": 11.3
       },
       "wave": "2026-07-22-sans-gluten"
     },
@@ -19214,7 +19287,7 @@
     },
     {
       "id": "rep165",
-      "name": "Soupe pho – nouilles de riz – poulet – herbes",
+      "name": "Soupe pho – nouilles de riz – poulet",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -19230,40 +19303,57 @@
       "base_servings": 1,
       "ingredients": [
         {
-          "ref": "nouilles_riz",
-          "qty": 80,
-          "macro_role": "carb",
-          "scalable": true
-        },
-        {
           "ref": "poulet_filet",
           "qty": 160,
           "macro_role": "protein",
           "scalable": true
         },
         {
-          "ref": "legumes_wok",
-          "qty": 110,
+          "ref": "nouilles_riz",
+          "qty": 80,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "oignon",
+          "qty": 60,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "carotte",
+          "qty": 70,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "epinards",
+          "qty": 50,
           "macro_role": "vegetable",
           "scalable": false
         },
         {
           "ref": "huile_olive",
-          "qty": 6,
+          "qty": 12,
           "macro_role": "fat",
           "scalable": true
         }
       ],
       "instructions": [
-        "Préparer un bouillon aromatique (gingembre, badiane).",
-        "Cuire les nouilles, ajouter poulet émincé, légumes et herbes fraîches."
+        "Coupe l'oignon en deux et fais-le colorer à sec dans une casserole à feu vif, face coupée contre le fond, 3 minutes : c'est ce qui donne au bouillon son goût de pho.",
+        "Couvre d'un litre d'eau, ajoute la carotte en tronçons, un morceau de gingembre écrasé, une étoile de badiane et un bâton de cannelle. Porte à frémissement et laisse infuser 15 minutes à découvert.",
+        "Pendant ce temps, émince le blanc de poulet en lamelles très fines, en biais.",
+        "Filtre le bouillon, remets-le à frémir, plonge les lamelles de poulet 3 minutes : elles blanchissent et ne doivent plus être roses.",
+        "Fais tremper les nouilles de riz 4 minutes dans de l'eau bouillante hors du feu, puis égoutte-les.",
+        "Répartis les nouilles au fond d'un grand bol, pose le poulet dessus, ajoute les épinards crus et verse le bouillon brûlant : les épinards tombent tout seuls.",
+        "Termine par le filet d'huile et une poignée d'herbes fraîches si tu en as."
       ],
       "why": "Sans gluten : soupe-repas légère et protéinée, hydratante.",
       "macros_per_serving": {
-        "kcal": 568,
-        "protein": 43.8,
-        "carbs": 73.8,
-        "fat": 9.9
+        "kcal": 650.3,
+        "protein": 41.9,
+        "carbs": 77.6,
+        "fat": 16.8
       },
       "wave": "2026-07-22-sans-gluten"
     },

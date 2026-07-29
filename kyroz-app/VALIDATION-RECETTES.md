@@ -131,7 +131,7 @@ fibres, pas le recalcul). On ne signale que les écarts > 10 %.
 | rep34 | Saumon – lentilles vertes – épinards | Repas | 25’ | 590 | 50 | 34 | 25 | maintien | ☐ | |
 | rep35 | Tofu mariné – nouilles soba – brocoli | Repas | 20’ | 624 | 37 | 56 | 24 | perte de gras, maintien | ☐ | |
 | rep36 | Tortilla pommes de terre – jambon | Repas | 25’ | 546 | 39 | 27 | 30 | maintien | ☐ | |
-| rep37 | Tajine poulet – semoule – légumes | Repas | 30’ | 667 | 56 | 74 | 14 | maintien, prise de masse | ☐ | |
+| rep37 | Tajine de poulet – olives – semoule | Repas | 30’ | 624 | 52 | 61 | 17 | maintien, prise de masse | ☐ | |
 | rep38 | Thon frais grillé – riz – haricots verts | Repas | 20’ | 645 | 51 | 66 | 18 | perte de gras, maintien | ☐ | |
 | rep39 | Curry poulet – lait de coco – riz | Repas | 30’ | 661 | 48 | 71 | 19 | prise de masse | ☐ | |
 | rep40 | Salade composée poulet – quinoa – avocat – feta | Repas | 15’ | 586 | 49 | 39 | 23 | maintien | ☐ | |
@@ -172,7 +172,7 @@ fibres, pas le recalcul). On ne signale que les écarts > 10 %.
 | pd35 | Tofu brouillé – épinards – pain complet | Petit-déj | 12’ | 513 | 36 | 35 | 23 | perte de gras, maintien | ☐ | |
 | pd36 | Pancakes avoine – banane – oeuf | Petit-déj | 12’ | 514 | 29 | 62 | 15 | maintien, prise de masse | ☐ | |
 | pd37 | Omelette blanc d'oeuf – tomate – pain seigle | Petit-déj | 10’ | 301 | 31 | 30 | 6 | perte de gras | ☐ | |
-| pd38 | Oeufs brouillés – avocat – pain complet | Petit-déj | 10’ | 504 | 27 | 30 | 28 | maintien, prise de masse | ☐ | |
+| pd38 | Tartine de seigle – œufs brouillés – tomate | Petit-déj | 10’ | 528 | 26 | 39 | 28 | maintien, prise de masse | ☐ | |
 | pd39 | Pancakes protéinés – myrtilles | Petit-déj | 12’ | 402 | 43 | 40 | 6 | maintien, prise de masse | ☐ | |
 | pd40 | Tartines pain complet – cottage – saumon fumé | Petit-déj | 6’ | 400 | 33 | 34 | 13 | perte de gras, maintien | ☐ | |
 | pd41 | Tartines beurre cacahuète – banane – chia | Petit-déj | 5’ | 505 | 24 | 60 | 16 | maintien, prise de masse | ☐ | |
@@ -206,7 +206,7 @@ fibres, pas le recalcul). On ne signale que les écarts > 10 %.
 | rep61 | Pâtes complètes – poulet – pesto – roquette | Repas | 20’ | 597 | 50 | 63 | 14 | maintien, prise de masse | ☐ | |
 | rep62 | Pâtes – steak haché 5% – sauce tomate | Repas | 22’ | 638 | 46 | 73 | 17 | maintien, prise de masse | ☐ | |
 | rep63 | Pâtes – thon – citron – câpres | Repas | 15’ | 558 | 43 | 60 | 15 | perte de gras, maintien | ☐ | |
-| rep64 | Pâtes – saumon – épinards – crème soja | Repas | 20’ | 706 | 43 | 65 | 28 | maintien, prise de masse | ☐ | |
+| rep64 | Boulgour – thon – tomate – roquette | Repas | 20’ | 624 | 48 | 64 | 17 | maintien, prise de masse | ☐ | |
 | rep65 | Pâtes – tofu – curry – lait coco | Repas | 22’ | 778 | 43 | 75 | 31 | maintien, prise de masse | ☐ | |
 | rep66 | Pâtes – lentilles – tomate – basilic | Repas | 22’ | 681 | 41 | 95 | 11 | maintien, prise de masse | ☐ | |
 | rep67 | Nouilles de riz – poulet – légumes wok | Repas | 18’ | 601 | 44 | 78 | 11 | perte de gras, maintien | ☐ | |
@@ -303,12 +303,12 @@ fibres, pas le recalcul). On ne signale que les écarts > 10 %.
 | pd56 | Galettes de riz – cacahuète – banane – yaourt soja | Petit-déj | 5’ | 445 | 20 | 58 | 14 | maintien, prise de masse | ☐ | |
 | pd57 | Porridge millet – framboises – noisettes | Petit-déj | 12’ | 428 | 23 | 55 | 12 | perte de gras, maintien | ☐ | |
 | pd58 | Bowl quinoa – fruits rouges – amandes – coco | Petit-déj | 15’ | 468 | 25 | 50 | 16 | perte de gras, maintien | ☐ | |
-| col45 | Pudding chia – mangue – coco | Collation | 5’ | 236 | 17 | 19 | 8 | perte de gras | ☐ | |
+| col45 | Pudding chia – banane – amande | Collation | 5’ | 292 | 18 | 28 | 11 | perte de gras | ☐ | |
 | col46 | Shake protéine pois – banane – cacao | Collation | 3’ | 324 | 28 | 25 | 12 | maintien, prise de masse | ☐ | |
 | col47 | Yaourt soja protéiné – myrtilles – amandes | Collation | 3’ | 239 | 19 | 17 | 9 | perte de gras | ☐ | |
 | col48 | Energy balls dattes – cacahuète – sarrasin | Collation | 10’ | 457 | 24 | 58 | 13 | maintien, prise de masse | ☐ | |
 | col49 | Galettes de riz – beurre amande – chocolat noir | Collation | 3’ | 377 | 18 | 33 | 18 | maintien | ☐ | |
-| col50 | Edamame grillés – sésame – piment | Collation | 8’ | 232 | 17 | 14 | 12 | perte de gras | ☐ | |
+| col50 | Edamame poêlés – maïs – graines de courge | Collation | 8’ | 281 | 17 | 19 | 15 | perte de gras | ☐ | |
 | col51 | Smoothie soja – ananas – chia | Collation | 3’ | 195 | 15 | 18 | 6 | perte de gras | ☐ | |
 | col52 | Mousse tofu soyeux – cacao – sirop érable | Collation | 8’ | 229 | 24 | 13 | 8 | perte de gras, maintien | ☐ | |
 | col53 | Banane – beurre cacahuète – graines courge | Collation | 3’ | 378 | 20 | 31 | 19 | maintien, prise de masse | ☐ | |
@@ -348,8 +348,8 @@ fibres, pas le recalcul). On ne signale que les écarts > 10 %.
 | col61 | Shake whey – riz soufflé – banane | Collation | 4’ | 388 | 35 | 49 | 6 | maintien, prise de masse | ☐ | |
 | col62 | Yaourt soja – polenta croustillante – érable | Collation | 8’ | 374 | 21 | 46 | 12 | maintien | ☐ | |
 | col63 | Fromage blanc – mangue – graines courge | Collation | 3’ | 234 | 19 | 22 | 7 | perte de gras | ☐ | |
-| col64 | Pois chiches rôtis – paprika | Collation | 25’ | 281 | 13 | 31 | 10 | perte de gras, maintien | ☐ | |
-| col65 | Edamame – citron – piment | Collation | 6’ | 236 | 18 | 14 | 12 | perte de gras | ☐ | |
+| col64 | Houmous de haricots blancs – bâtonnets de carotte | Collation | 8’ | 259 | 14 | 27 | 8 | perte de gras, maintien | ☐ | |
+| col65 | Salade d'edamame – concombre – tomate | Collation | 6’ | 246 | 17 | 19 | 12 | perte de gras | ☐ | |
 | col66 | Mousse tofu soyeux – framboises | Collation | 8’ | 207 | 23 | 9 | 7 | perte de gras | ☐ | |
 | rep153 | Risotto – poulet – champignons – parmesan | Repas | 30’ | 652 | 52 | 69 | 18 | maintien, prise de masse | ☐ | |
 | rep154 | Risotto – crevettes – courgette – citron | Repas | 30’ | 515 | 40 | 65 | 10 | perte de gras, maintien | ☐ | |
@@ -363,7 +363,7 @@ fibres, pas le recalcul). On ne signale que les écarts > 10 %.
 | rep162 | Polenta grillée – tempeh – ratatouille | Repas | 30’ | 621 | 33 | 72 | 18 | maintien, prise de masse | ☐ | |
 | rep163 | Polenta crémeuse – cabillaud – épinards | Repas | 25’ | 434 | 42 | 48 | 8 | perte de gras | ☐ | |
 | rep164 | Bo bun – nouilles de riz – bœuf – crudités | Repas | 25’ | 639 | 40 | 79 | 17 | maintien, prise de masse | ☐ | |
-| rep165 | Soupe pho – nouilles de riz – poulet – herbes | Repas | 30’ | 555 | 45 | 70 | 9 | perte de gras, maintien | ☐ | |
+| rep165 | Soupe pho – nouilles de riz – poulet | Repas | 30’ | 637 | 46 | 73 | 16 | perte de gras, maintien | ☐ | |
 | rep166 | Nouilles de riz – tempeh – curry rouge – coco | Repas | 22’ | 735 | 35 | 94 | 20 | maintien, prise de masse | ☐ | |
 | rep167 | Galettes sarrasin – jambon – champignons | Repas | 22’ | 606 | 47 | 50 | 23 | perte de gras, maintien | ☐ | |
 | rep168 | Millet – saumon – brocoli – citron | Repas | 25’ | 666 | 42 | 61 | 29 | maintien, prise de masse | ☐ | |
@@ -1763,24 +1763,28 @@ fibres, pas le recalcul). On ne signale que les écarts > 10 %.
 - **Pourquoi** : Muscu maintien : protéines + glucides, se mange chaud ou froid.
 - **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
 
-### rep37 — Tajine poulet – semoule – légumes
+### rep37 — Tajine de poulet – olives – semoule
 
 - **Type** : Repas · **Préparation** : 30 min
 - **Objectif** : maintien, prise de masse · **Sport** : endurance, muscu
 - **Régimes compatibles** : sans porc, sans lactose, halal
-- **Macros / portion (base)** : 667 kcal · 56 g protéines · 74 g glucides · 14 g lipides
+- **Macros / portion (base)** : 624 kcal · 52 g protéines · 61 g glucides · 17 g lipides
 - **Ingrédients** :
   - Filet de poulet — 170 g *(pesé cru)*
   - Semoule de couscous — 80 g *(pesé sec)*
-  - Courgette — 100 g — quantité fixe
-  - Carotte — 80 g — quantité fixe
-  - Pois chiches — 25 g *(pesé sec)*
+  - Courgette — 110 g — quantité fixe
+  - Tomate concassée — 90 g — quantité fixe
+  - Olives — 25 g — quantité fixe
   - Huile d'olive — 8 g
 - **Préparation** :
-  1. Mijote poulet + légumes + épices 20 min.
-  2. Prépare la semoule.
-  3. Assemble.
-- **Pourquoi** : Endurance/muscu maintien : complet, parfumé, double protéine.
+  1. Coupe le blanc de poulet en gros cubes de 3 cm, sale et poivre.
+  2. Fais chauffer l'huile dans une cocotte à feu moyen-vif, puis saisis les cubes 4 minutes en les retournant : ils doivent être colorés sur toutes les faces.
+  3. Ajoute la courgette en demi-rondelles épaisses et laisse-la revenir 3 minutes.
+  4. Verse la tomate concassée, ajoute tes épices (cumin, coriandre, gingembre, une pincée de cannelle), couvre et laisse mijoter 15 minutes à feu doux : la sauce doit épaissir et napper le poulet.
+  5. Pendant ce temps, verse la semoule dans un saladier, couvre-la d'un volume égal d'eau bouillante salée, filme et laisse gonfler 5 minutes, puis égraine à la fourchette.
+  6. Ajoute les olives au tajine sur les 2 dernières minutes pour qu'elles ne rendent pas leur amertume.
+  7. Dresse la semoule en dôme et verse le tajine dessus avec sa sauce.
+- **Pourquoi** : Muscu/endurance maintien : mijoté parfumé, protéines maigres et glucides lents.
 - **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
 
 ### rep38 — Thon frais grillé – riz – haricots verts
@@ -2515,21 +2519,25 @@ fibres, pas le recalcul). On ne signale que les écarts > 10 %.
 - **Pourquoi** : Sèche : très haute protéine, lipides minimaux.
 - **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
 
-### pd38 — Oeufs brouillés – avocat – pain complet
+### pd38 — Tartine de seigle – œufs brouillés – tomate
 
 - **Type** : Petit-déj · **Préparation** : 10 min
 - **Objectif** : maintien, prise de masse · **Sport** : muscu · adaptée jour de repos
 - **Régimes compatibles** : végétarien, pescétarien, sans porc, sans lactose, halal
-- **Macros / portion (base)** : 504 kcal · 27 g protéines · 30 g glucides · 28 g lipides
+- **Macros / portion (base)** : 528 kcal · 26 g protéines · 39 g glucides · 28 g lipides
 - **Ingrédients** :
   - Œuf entier — 150 g
   - Avocat — 60 g
-  - Pain complet — 70 g
-  - Roquette — 30 g — quantité fixe
+  - Pain de seigle — 70 g
+  - Tomate — 80 g — quantité fixe
 - **Préparation** :
-  1. Brouiller les œufs doucement.
-  2. Servir sur pain complet avec avocat écrasé et roquette.
-- **Pourquoi** : Jour repos : lipides de qualité (œuf + avocat), satiété durable.
+  1. Casse les œufs dans un bol, sale, poivre et bats-les à la fourchette juste assez pour mélanger les jaunes et les blancs.
+  2. Fais griller les tranches de pain de seigle jusqu'à ce qu'elles soient fermes sous le doigt.
+  3. Écrase l'avocat à la fourchette avec une pincée de sel, en gardant des morceaux.
+  4. Verse les œufs dans une poêle froide, mets sur feu DOUX et remue sans arrêt à la spatule 3 à 4 minutes : retire du feu quand ils sont encore brillants et crémeux, ils finissent de cuire hors du feu.
+  5. Coupe la tomate en rondelles fines et sale-les légèrement.
+  6. Tartine le pain d'avocat, dépose les œufs brouillés dessus, couronne de rondelles de tomate et donne un tour de moulin.
+- **Pourquoi** : Jour repos : lipides de qualité, satiété durable.
 - **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
 
 ### pd39 — Pancakes protéinés – myrtilles
@@ -3086,21 +3094,26 @@ fibres, pas le recalcul). On ne signale que les écarts > 10 %.
 - **Pourquoi** : Pescatarien rapide, protéiné, glucides pour l'endurance.
 - **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
 
-### rep64 — Pâtes – saumon – épinards – crème soja
+### rep64 — Boulgour – thon – tomate – roquette
 
 - **Type** : Repas · **Préparation** : 20 min
 - **Objectif** : maintien, prise de masse · **Sport** : muscu · adaptée jour de repos
 - **Régimes compatibles** : pescétarien, sans porc, sans lactose, halal
-- **Macros / portion (base)** : 706 kcal · 43 g protéines · 65 g glucides · 28 g lipides
+- **Macros / portion (base)** : 624 kcal · 48 g protéines · 64 g glucides · 17 g lipides
 - **Ingrédients** :
-  - Pâtes complètes — 90 g *(pesé sec)*
-  - Pavé de saumon — 140 g *(pesé cru)*
-  - Épinards frais — 80 g — quantité fixe
-  - Crème de soja — 60 ml
+  - Boulgour — 90 g *(pesé sec)*
+  - Thon au naturel (conserve) — 130 g
+  - Tomate concassée — 120 g — quantité fixe
+  - Roquette — 30 g — quantité fixe
+  - Huile d'olive — 10 g
 - **Préparation** :
-  1. Cuire les pâtes.
-  2. Saisir le saumon, ajouter épinards et crème de soja, mélanger.
-- **Pourquoi** : Pescatarien jour repos : oméga-3, crémeux, capacité élevée.
+  1. Verse le boulgour dans un saladier, couvre-le d'une fois et demie son volume d'eau bouillante salée, filme et laisse gonfler 10 minutes, puis égraine à la fourchette.
+  2. Pendant ce temps, chauffe l'huile dans une poêle à feu moyen et fais-y blondir une gousse d'ail écrasée 1 minute, sans la laisser brunir.
+  3. Verse la tomate concassée, sale, poivre, ajoute une pincée d'origan et laisse réduire 6 minutes : la sauce doit être épaisse, plus du tout liquide.
+  4. Égoutte le thon et défais-le en gros morceaux à la fourchette, puis incorpore-le hors du feu pour qu'il ne se dessèche pas.
+  5. Mélange le boulgour à la sauce tiède et rectifie le sel.
+  6. Sers dans un bol et couronne de roquette fraîche, qui doit rester crue et croquante.
+- **Pourquoi** : Pescatarien : salade tiède express, très protéinée.
 - **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
 
 ### rep65 — Pâtes – tofu – curry – lait coco
@@ -4805,20 +4818,24 @@ fibres, pas le recalcul). On ne signale que les écarts > 10 %.
 - **Pourquoi** : Vegan & sans gluten : bowl complet, protéines complètes du quinoa.
 - **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
 
-### col45 — Pudding chia – mangue – coco
+### col45 — Pudding chia – banane – amande
 
 - **Type** : Collation · **Préparation** : 5 min
 - **Objectif** : perte de gras · **Sport** : endurance
 - **Régimes compatibles** : végétarien, pescétarien, sans porc, sans lactose, sans gluten, végétalien, halal
-- **Macros / portion (base)** : 236 kcal · 17 g protéines · 19 g glucides · 8 g lipides
+- **Macros / portion (base)** : 292 kcal · 18 g protéines · 28 g glucides · 11 g lipides
 - **Ingrédients** :
   - Graines de chia — 18 g
   - Yaourt de soja protéiné — 150 g
-  - Mangue — 80 g
+  - Banane — 100 g
+  - Lait d'amande — 70 ml
 - **Préparation** :
-  1. Mélanger chia et yaourt de soja, reposer 3 h.
-  2. Garnir de mangue.
-- **Pourquoi** : Vegan & sans gluten : oméga-3 et protéines, peu calorique.
+  1. Verse le yaourt de soja et le lait d'amande dans un bocal, mélange bien au fouet pour qu'il ne reste aucun grumeau.
+  2. Ajoute les graines de chia et remue 30 secondes, puis attends 5 minutes et remue une seconde fois : c'est ce deuxième mélange qui empêche les graines de s'agglomérer au fond.
+  3. Ferme le bocal et laisse prendre au moins 3 heures au réfrigérateur — la texture doit être celle d'un flan souple.
+  4. Au moment de servir, écrase la moitié de la banane à la fourchette et incorpore-la au pudding.
+  5. Coupe le reste en rondelles et dispose-les sur le dessus.
+- **Pourquoi** : Vegan & sans gluten : oméga-3, protéines et glucides doux.
 - **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
 
 ### col46 — Shake protéine pois – banane – cacao
@@ -4888,19 +4905,24 @@ fibres, pas le recalcul). On ne signale que les écarts > 10 %.
 - **Pourquoi** : Vegan & sans gluten : en-cas gourmand + ancre protéique.
 - **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
 
-### col50 — Edamame grillés – sésame – piment
+### col50 — Edamame poêlés – maïs – graines de courge
 
 - **Type** : Collation · **Préparation** : 8 min
 - **Objectif** : perte de gras · **Sport** : combats
 - **Régimes compatibles** : végétarien, pescétarien, sans porc, sans lactose, sans gluten, végétalien, halal
-- **Macros / portion (base)** : 232 kcal · 17 g protéines · 14 g glucides · 12 g lipides
+- **Macros / portion (base)** : 281 kcal · 17 g protéines · 19 g glucides · 15 g lipides
 - **Ingrédients** :
-  - Edamame — 150 g
-  - Huile d'olive — 5 g
+  - Edamame — 120 g
+  - Maïs — 40 g — quantité fixe
+  - Graines de courge — 10 g
+  - Huile d'olive — 3 g
 - **Préparation** :
-  1. Griller les edamame avec un filet d'huile.
-  2. Saupoudrer sésame et piment.
-- **Pourquoi** : Vegan & sans gluten : protéines pures, volume, très peu calorique.
+  1. Fais décongeler les edamame écossés 2 minutes à l'eau bouillante, puis égoutte-les soigneusement : l'eau résiduelle empêcherait la coloration.
+  2. Chauffe l'huile dans une poêle à feu vif jusqu'à ce qu'elle soit brillante.
+  3. Jette les edamame et le maïs égoutté, laisse-les colorer 3 minutes sans remuer, puis mélange une fois : des taches dorées doivent apparaître.
+  4. Ajoute les graines de courge, sale, poivre et poursuis 1 minute pour les torréfier.
+  5. Sers tiède, dans un bol, avec un tour de moulin.
+- **Pourquoi** : Vegan & sans gluten : croquant, protéines végétales et volume.
 - **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
 
 ### col51 — Smoothie soja – ananas – chia
@@ -5574,34 +5596,45 @@ fibres, pas le recalcul). On ne signale que les écarts > 10 %.
 - **Pourquoi** : Sans gluten : sèche, très protéiné et frais.
 - **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
 
-### col64 — Pois chiches rôtis – paprika
+### col64 — Houmous de haricots blancs – bâtonnets de carotte
 
-- **Type** : Collation · **Préparation** : 25 min
+- **Type** : Collation · **Préparation** : 8 min
 - **Objectif** : perte de gras, maintien · **Sport** : combats
 - **Régimes compatibles** : végétarien, pescétarien, sans porc, sans lactose, sans gluten, végétalien, halal
-- **Macros / portion (base)** : 281 kcal · 13 g protéines · 31 g glucides · 10 g lipides
+- **Macros / portion (base)** : 259 kcal · 14 g protéines · 27 g glucides · 8 g lipides
 - **Ingrédients** :
-  - Pois chiches — 65 g *(pesé sec)*
-  - Huile d'olive — 6 g
+  - Haricots blancs — 50 g *(pesé sec)*
+  - Purée de sésame (tahini) — 10 g
+  - Huile d'olive — 2 g
+  - Carotte — 80 g — quantité fixe
 - **Préparation** :
-  1. Sécher les pois chiches cuits, enrober d'huile et de paprika.
-  2. Rôtir 22 min à 200°C.
-- **Pourquoi** : Vegan & sans gluten : croquant, protéines et fibres.
+  1. Fais tremper les haricots blancs la veille, puis cuis-les 45 minutes à l'eau non salée jusqu'à ce qu'ils s'écrasent entre deux doigts (ou pars de haricots déjà cuits et rincés).
+  2. Égoutte-les en réservant deux cuillères à soupe d'eau de cuisson.
+  3. Mets les haricots dans un mixeur avec le tahini, l'huile, une gousse d'ail, le jus d'un demi-citron, du sel et une pincée de cumin.
+  4. Mixe 1 minute en ajoutant l'eau réservée cuillère par cuillère, jusqu'à obtenir une crème lisse qui retombe lentement du fouet.
+  5. Épluche la carotte et taille-la en bâtonnets de la longueur d'un doigt.
+  6. Verse le houmous dans un bol, creuse un puits au dos de la cuillère et verse-y un filet d'huile.
+- **Pourquoi** : Vegan : en-cas protéiné et rassasiant, à préparer d'avance.
 - **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
 
-### col65 — Edamame – citron – piment
+### col65 — Salade d'edamame – concombre – tomate
 
 - **Type** : Collation · **Préparation** : 6 min
 - **Objectif** : perte de gras · **Sport** : combats
 - **Régimes compatibles** : végétarien, pescétarien, sans porc, sans lactose, sans gluten, végétalien, halal
-- **Macros / portion (base)** : 236 kcal · 18 g protéines · 14 g glucides · 12 g lipides
+- **Macros / portion (base)** : 246 kcal · 17 g protéines · 19 g glucides · 12 g lipides
 - **Ingrédients** :
-  - Edamame — 160 g
+  - Edamame — 140 g
+  - Concombre — 110 g — quantité fixe
+  - Tomate — 90 g — quantité fixe
   - Huile d'olive — 4 g
 - **Préparation** :
-  1. Cuire les edamame vapeur 5 min.
-  2. Assaisonner citron, piment et sel.
-- **Pourquoi** : Vegan & sans gluten combats : protéines pures, volume, peu calorique.
+  1. Plonge les edamame écossés 3 minutes dans de l'eau bouillante salée, puis rafraîchis-les sous l'eau froide pour fixer leur couleur.
+  2. Coupe le concombre en deux dans la longueur, retire les graines à la cuillère, puis taille-le en demi-lunes de 5 mm.
+  3. Coupe les tomates en quartiers, puis chaque quartier en deux.
+  4. Réunis le tout dans un saladier, assaisonne d'huile, de sel, de poivre et du jus d'un demi-citron.
+  5. Mélange délicatement et laisse reposer 5 minutes au frais avant de servir : le concombre rend un peu de jus qui fait la sauce.
+- **Pourquoi** : Vegan & sans gluten : fraîche, protéinée, à emporter.
 - **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
 
 ### col66 — Mousse tofu soyeux – framboises
@@ -5833,20 +5866,27 @@ fibres, pas le recalcul). On ne signale que les écarts > 10 %.
 - **Pourquoi** : Sans gluten combats : plat frais et complet, pas trop lourd.
 - **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
 
-### rep165 — Soupe pho – nouilles de riz – poulet – herbes
+### rep165 — Soupe pho – nouilles de riz – poulet
 
 - **Type** : Repas · **Préparation** : 30 min
 - **Objectif** : perte de gras, maintien · **Sport** : endurance
 - **Régimes compatibles** : sans porc, sans lactose, sans gluten, halal
-- **Macros / portion (base)** : 555 kcal · 45 g protéines · 70 g glucides · 9 g lipides
+- **Macros / portion (base)** : 637 kcal · 46 g protéines · 73 g glucides · 16 g lipides
 - **Ingrédients** :
-  - Nouilles de riz — 80 g *(pesé sec)*
   - Filet de poulet — 160 g *(pesé cru)*
-  - Mélange wok (poivron/brocoli/carotte) — 110 g — quantité fixe
-  - Huile d'olive — 6 g
+  - Nouilles de riz — 80 g *(pesé sec)*
+  - Oignon — 60 g — quantité fixe
+  - Carotte — 70 g — quantité fixe
+  - Épinards frais — 50 g — quantité fixe
+  - Huile d'olive — 12 g
 - **Préparation** :
-  1. Préparer un bouillon aromatique (gingembre, badiane).
-  2. Cuire les nouilles, ajouter poulet émincé, légumes et herbes fraîches.
+  1. Coupe l'oignon en deux et fais-le colorer à sec dans une casserole à feu vif, face coupée contre le fond, 3 minutes : c'est ce qui donne au bouillon son goût de pho.
+  2. Couvre d'un litre d'eau, ajoute la carotte en tronçons, un morceau de gingembre écrasé, une étoile de badiane et un bâton de cannelle. Porte à frémissement et laisse infuser 15 minutes à découvert.
+  3. Pendant ce temps, émince le blanc de poulet en lamelles très fines, en biais.
+  4. Filtre le bouillon, remets-le à frémir, plonge les lamelles de poulet 3 minutes : elles blanchissent et ne doivent plus être roses.
+  5. Fais tremper les nouilles de riz 4 minutes dans de l'eau bouillante hors du feu, puis égoutte-les.
+  6. Répartis les nouilles au fond d'un grand bol, pose le poulet dessus, ajoute les épinards crus et verse le bouillon brûlant : les épinards tombent tout seuls.
+  7. Termine par le filet d'huile et une poignée d'herbes fraîches si tu en as.
 - **Pourquoi** : Sans gluten : soupe-repas légère et protéinée, hydratante.
 - **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
 
