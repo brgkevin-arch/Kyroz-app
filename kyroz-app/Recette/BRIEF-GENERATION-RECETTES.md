@@ -3,7 +3,7 @@
 Document auto-portant. Le rédacteur n'a pas besoin de connaître Kyroz ni d'accéder au dépôt.
 Tout ce qui est nécessaire (schéma, ingrédients autorisés, invariants, volumes) est ici.
 
-Date : 2026-07-29 · Catalogue de référence : 314 recettes · Vague demandée : **80 recettes**.
+Date : 2026-07-29 · Catalogue de référence : 314 recettes · Vague demandée : **30 recettes**.
 
 ---
 
@@ -18,11 +18,14 @@ d'adaptation redimensionne chaque ingrédient marqué `scalable` dans des bornes
 repas, pour tomber sur la cible du créneau. Une recette n'est donc pas un plat, c'est une
 **enveloppe** : elle doit pouvoir couvrir un gabarit de 65 kg en sèche comme un 100 kg en prise de
 masse. Si son enveloppe est trop étroite, le moteur la marque « hors cible » et la déclasse — elle
-existe dans le catalogue sans jamais être servie. C'est aujourd'hui le cas de 46 % du catalogue.
+existe dans le catalogue sans jamais être servie. C'est aujourd'hui le cas de **38 %** du
+catalogue — 118 recettes sur 314, mesurées contre les 9 cibles réalistes (65 / 80 / 100 kg × sèche,
+maintien, prise de masse) avec le ratio glucides:lipides que le moteur calcule réellement.
 
 Public : hommes 18–35 pratiquant du sport, cuisine du quotidien, pas de gastronomie. Ton produit
-sobre, jamais moralisateur, aucune promesse de santé. Contrainte forte : le temps de préparation
-est un filtre dur, et l'utilisateur peut le régler à 10, 15, 20 ou 30 minutes.
+sobre, jamais moralisateur, aucune promesse de santé. Le temps de préparation est **affiché** sur
+chaque fiche mais ne filtre plus rien depuis le 2026-07-29 : écris des recettes réalistes, sans
+chercher à tenir sous un seuil.
 
 ---
 
@@ -138,7 +141,7 @@ champ `instructions` change :
 ```
 
 Chaque étape porte une action, une durée ou un repère visuel, et un geste précis. C'est le standard
-attendu pour les 80 recettes.
+attendu pour les 30 recettes.
 
 ### Plages d'ids à utiliser
 
@@ -147,13 +150,9 @@ et sans doublon.
 
 | Bloc | Catégorie | ids à produire | Volume |
 |---|---|---|---|
-| B1 | repas_complet | `rep171` → `rep184` | 14 |
-| B2 | repas_complet | `rep185` → `rep202` | 18 |
-| B3 | repas_complet | `rep203` → `rep214` | 12 |
-| B4 | repas_complet | `rep215` → `rep228` | 14 |
-| B5 | repas_complet | `rep229` → `rep240` | 12 |
-| B6 | petit_dej | `pd79` → `pd88` | 10 |
-| B7 | collation | aucun | 0 |
+| B1 | petit_dej | `pd79` → `pd88` | 10 |
+| B2 | repas_complet | `rep171` → `rep184` | 14 |
+| B3 | collation | `col67` → `col72` | 6 |
 
 Format des ids : `pd` + 2 chiffres, `col` + 2 chiffres, `rep` + 3 chiffres. Pas de zéro de tête
 supplémentaire (`rep171`, pas `rep0171`).
@@ -403,10 +402,10 @@ autre `ref`. Aucune action n'est requise du rédacteur.
 | `haricots_rouges_conserve` | ciqual-20524 « Haricot rouge, appertisé, égoutté » | B1, B2 |
 | `tofu_fume` | ciqual-20912 « Tofu fumé, préemballé » | B1, B2 |
 | `falafel` | ciqual-25590 « Falafel ou boulette de pois-chiche et/ou fève, préemballé » — classé **gluten-violant** (liant blé sur la plupart des références industrielles) | B1 |
-| `tahini` | ciqual-15203 « Tahin ou purée de sésame » | B2, B4, B5 |
-| `boisson_soja` | ciqual-18900 « Boisson au soja, nature, non enrichie » | B6 |
-| `pain_sans_gluten` | ciqual-7130 « Pain sans gluten, préemballé » | B2, B3, B4 |
-| `wrap_sans_gluten` | valeur manuelle calquée sur ciqual-7813 (tortilla de maïs) — Ciqual n'a aucune entrée « tortilla sans gluten » certifiée | B2, B3, B4 |
+| `tahini` | ciqual-15203 « Tahin ou purée de sésame » | B1, B2 |
+| `boisson_soja` | ciqual-18900 « Boisson au soja, nature, non enrichie » | B1 |
+| `pain_sans_gluten` | ciqual-7130 « Pain sans gluten, préemballé » | B1, B2 |
+| `wrap_sans_gluten` | valeur manuelle calquée sur ciqual-7813 (tortilla de maïs) — Ciqual n'a aucune entrée « tortilla sans gluten » certifiée | B2 |
 
 Ce qu'ils débloquent, et qu'il faut donc réellement exploiter :
 
@@ -464,8 +463,13 @@ Il en découle :
 - **Ancre grasse obligatoire** : au moins un ingrédient en `macro_role: "fat"` **et**
   `scalable: true`, portant **au moins 12 g de lipides** à la quantité de base. Mesure : 34 des 314
   recettes n'ont aucune ancre grasse, et **aucune** d'entre elles n'est servie proprement sur les
-  trois objectifs. Le manque de lipides est le premier motif de rejet du catalogue (133 des 170
-  repas complets sur la cible prise de masse).
+  trois objectifs.
+  ⚠️ Ne pas sur-corriger pour autant. Sur les repas réellement servis, le motif de rejet dominant
+  est le **manque de glucides** (`carbs_below_target`, 414 occurrences) et non le manque de gras
+  (`fat_below_target`, 157). L'inverse avait été écrit ici : il venait d'un script d'audit qui
+  figeait le partage glucides:lipides de la cible à 55/45, alors que le moteur le dérive du profil
+  et qu'il vaut 65/35 en sèche, 68/32 au maintien, 69/31 en prise de masse. L'ancre grasse est un
+  plancher de faisabilité, pas une cible à viser haut.
 - **`macro_role` `flavor` ou `vegetable` ⇒ `scalable: false`**, systématiquement.
 - **Le plafond calorique doit venir des glucides**, jamais du gras : les ancres grasses sont
   bloquées bas par `abs_max_qty` (huile d'olive 25 g, beurres et amandes 40 g, graines de chia 35 g,
@@ -495,10 +499,15 @@ régression.
   54 des 64 recettes actuelles qui chiffrent une durée.
 - **Aucune durée écrite dans `instructions` ne peut dépasser `temps_min`.** Trois recettes se
   contredisent aujourd'hui (« Rôtir 20 min » pour un `temps_min` de 10).
-- **Aucun repos, marinade ou réfrigération supérieur au plafond du bloc.** Onze recettes actuelles
-  déclarent 5 à 10 minutes alors qu'elles exigent 3 heures à une nuit au frais : elles franchissent
-  le filtre le plus strict et sont servies le jour même. Le schéma n'a **pas** de champ pour le
-  repos long : donc pas de recette à repos long dans cette vague.
+- **Aucun repos, marinade ou réfrigération de plus de 10 minutes.** Onze recettes actuelles
+  déclarent 5 à 10 minutes alors qu'elles exigent 3 heures à une nuit au frais. Le schéma n'a
+  **pas** de champ pour le repos long, donc pas de recette à repos long dans cette vague : un plan
+  affiché le matin doit pouvoir être cuisiné le jour même.
+- `temps_min` **ne filtre plus rien** depuis le 2026-07-29 (le curseur a été retiré du produit) : il
+  est affiché sur la fiche et la carte du repas, c'est tout. Conséquence pour toi : n'ajuste pas un
+  temps pour « passer sous un seuil ». Écris la durée vraie. Le catalogue actuel plafonne à 30
+  minutes pour 311 recettes sur 314, précisément parce qu'il a été écrit pour tenir sous le curseur
+  — une recette de 35 ou 40 minutes est désormais parfaitement acceptable si elle en vaut la peine.
 
 ### 4.6 Instructions fermées sur la liste d'ingrédients
 
@@ -611,240 +620,169 @@ sur un repas complet, 27 g sur un petit-déjeuner** — d'où les planchers prot
 
 ## 5. Les blocs à produire
 
-Vue d'ensemble. Les enveloppes sont **impératives** : c'est ce qui distingue cette vague des
-précédentes, dont 46 % des recettes ne sont jamais servies proprement.
+**30 recettes.** Ce chiffre a été divisé par deux et demi le 2026-07-29, après une mesure de
+contrôle : le découpage précédent commandait 80 recettes sur cinq blocs de temps, en s'appuyant sur
+deux constats qui se sont révélés faux.
 
-| Bloc | Vol. | ids | Catégorie | `temps_min` | Contrainte ingrédient | kcal base | P base | C base | F base |
-|---|---|---|---|---|---|---|---|---|---|
-| B1 | 14 | rep171–184 | repas_complet | ≤ 10, zéro cuisson | 7 végétal + 7 animal | 680–740 | 32–34 | 90–105 | 18–22 |
-| B2 | 18 | rep185–202 | repas_complet | 11–15 | vegan, ≥12 sans gluten | 680–740 | 32–34 | 90–105 | 18–22 |
-| B3 | 12 | rep203–214 | repas_complet | 11–15 | animal, ≥8 GF, ≥8 sans lactose | 680–740 | 32–34 | 90–105 | 18–22 |
-| B4 | 14 | rep215–228 | repas_complet | 16–20 | vegan, ≥10 sans gluten | 680–740 | 32–34 | 90–105 | 18–22 |
-| B5 | 12 | rep229–240 | repas_complet | ≤ 30 | vegan capacité haute, ≥6 GF | 720–780 | 32–34 | 100–115 | 22–26 |
-| B6 | 10 | pd79–88 | petit_dej | ≤ 15 | vegan, ≥6 sans gluten | 540–580 | 26–27 | 70–80 | 16–18 |
-| B7 | 0 | — | collation | — | **bloc délibérément vide** | — | — | — | — |
+### Ce qui a changé, et pourquoi il faut le savoir avant d'écrire
 
-Les protéines de base sont des **planchers** (facteur minimum 1,0). Au-dessus de la fourchette, la
-recette exclut les gabarits légers ; en dessous, le facteur maximum 1,7 n'atteint pas la cible d'un
-100 kg en sèche.
+**1. Le curseur « temps de prépa » n'existe plus.** Il filtrait durement les recettes et vidait le
+pool : au réglage par défaut, un végétarien n'avait aucun repas complet compatible. Il a été retiré
+du produit. Le temps n'est donc plus un axe de découpage — il reste une information affichée, et
+une recette rapide garde sa valeur d'usage, mais elle ne débloque plus rien.
 
-**Pourquoi on ne découpe pas par régime.** Les régimes sont emboîtés :
+**2. Le catalogue n'est pas « structurellement trop maigre ».** Ce diagnostic venait d'un script
+d'audit qui figeait le partage glucides/lipides de la cible à 55/45. Le moteur, lui, le dérive des
+cibles du profil : il vaut en réalité **65/35 en sèche, 68/32 au maintien, 69/31 en prise de
+masse**. Avec 10 à 14 points de lipides en trop dans la cible de contrôle, toutes les recettes
+paraissaient manquer de gras. Sur les repas réellement servis, le flag dominant est
+`carbs_below_target` (414 occurrences) et non `fat_below_target` (157). **Écris des recettes plus
+riches en glucides, pas plus grasses.**
+
+### Le trou réel, mesuré sur ce que le moteur sert
+
+Méthode : `buildLocalPlan` sur 3 gabarits (65 / 80 / 100 kg, homme, 4 séances de musculation),
+4 semaines de plans (4 seeds), variété maximale. On compte les recettes **distinctes réellement
+servies** par créneau sur ces 4 semaines. Un créneau en bonne santé en montre 20 et plus.
+
+| Profil | petit-déj | midi | soir | collation |
+|---|---|---|---|---|
+| aucune restriction · maintien | 21 | 29 | 30 | 22 |
+| végétarien · maintien | 21 | 26 | 25 | 24 |
+| vegan · prise de masse | **11** | 23 | 23 | 20 |
+| sans gluten · prise de masse | **10** | 24 | 25 | 24 |
+| vegan + sans gluten · prise de masse | **9** | 17 | 21 | 21 |
+| vegan + sans gluten · **sèche** | **12** | **11** | **11** | **11** |
+
+Tout le reste du catalogue est au-dessus de 15, et **aucun profil ne reçoit un seul repas hors
+régime**. Il ne reste donc que deux poches :
+
+- le **petit-déjeuner en prise de masse** dès qu'on écarte les produits laitiers ou le gluten
+  (9 à 11 recettes sur 4 semaines) ;
+- **vegan + sans gluten en sèche**, sur les quatre créneaux à la fois (11 à 12).
+
+### Vue d'ensemble
+
+| Bloc | Vol. | ids | Catégorie | Contrainte ingrédient | kcal base | P base | C base | F base |
+|---|---|---|---|---|---|---|---|---|
+| B1 | 10 | pd79–88 | petit_dej | vegan, dont ≥ 7 sans gluten | 680–740 | 28–32 | 92–105 | 18–22 |
+| B2 | 14 | rep171–184 | repas_complet | vegan **et** sans gluten | 640–700 | 44–48 | 72–85 | 16–20 |
+| B3 | 6 | col67–72 | collation | vegan **et** sans gluten | 260–300 | 17–20 | 28–36 | 7–10 |
+
+Ces enveloppes ne sont pas des moyennes inventées : ce sont les cibles que l'application calcule
+elle-même pour le gabarit médian (homme 80 kg, 180 cm, 30 ans, 4 séances de musculation, 4 repas
+par jour). Le moteur monte et descend depuis cette base — facteur 1,0 à 1,7 sur la protéine, 0,5 à
+1,8 sur les glucides, 0,5 à 1,5 sur le gras. Écrire la base sur le gabarit médian, c'est garantir
+que les gabarits légers et lourds restent atteignables des deux côtés.
+
+Cibles réelles de référence, pour situer :
+
+| Créneau | Objectif | 65 kg | 80 kg | 100 kg |
+|---|---|---|---|---|
+| petit-déj | prise de masse | 655 kcal · 27 P · 96 C · 18 L | 712 · 32 · 101 · 20 | 787 · 37 · 110 · 22 |
+| midi | sèche | 580 · 40 · 68 · 16 | 671 · 48 · 79 · 18 | 768 · 55 · 88 · 21 |
+| collation | sèche | 237 · 17 · 28 · 7 | 274 · 19 · 32 · 8 | 314 · 23 · 36 · 9 |
+
+**Pourquoi tout est vegan + sans gluten.** Les régimes sont emboîtés :
 `vegan ⊂ végétarien ⊂ pescatarien ⊂ no_pork = halal`. Une recette vegan remplit donc 6 des
-7 régimes d'un coup, et vegan + sans gluten les remplit tous les 7. Écrire un « bloc halal » ne
-rapporterait rien (309 des 314 recettes sont déjà compatibles halal) et un « bloc pescatarien »
-serait un clone du bloc omnivore. Le vrai axe manquant est le **temps croisé à la catégorie**.
+7 régimes d'un coup, et vegan + sans gluten les remplit **tous les 7**. Écrire un « bloc halal »
+ne rapporterait rien — 309 des 314 recettes le sont déjà — et un « bloc pescatarien » serait un
+clone du bloc omnivore. Les 30 recettes de cette vague profitent donc à **tous** les utilisateurs,
+sans exception, tout en bouchant les seules poches mesurées.
 
 ---
 
-### B1 — Repas complets ≤ 10 min, zéro cuisson (assemblage pur)
+### B1 — Petits-déjeuners de prise de masse, végétaux
 
-**Volume 14** · ids `rep171` → `rep184` · lunch + dinner · 7 végétal (vegan) + 7 animal.
+**10 recettes, `pd79` → `pd88`, catégorie `petit_dej`.**
 
-**Pourquoi.** Le cran 10 minutes du curseur est un désert pour tout le monde : 2 repas complets sur
-170, et 0 pour végétarien, vegan, sans gluten et végétarien + sans gluten. Le pool réellement
-utilisable (recettes qui atteignent la cible sans aucun défaut) y vaut 4 / 3 / 1 recettes en
-sèche / maintien / prise de masse, pour un plancher nécessaire de 14. Ce cran n'est pas théorique :
-un bouton « Recettes plus rapides » du bilan hebdomadaire y descend en un clic, sans garde-fou, et
-trois régimes sur neuf tombent alors à un pool de zéro.
+Le trou : 9 à 11 recettes distinctes sur 4 semaines pour un vegan, un sans-gluten ou les deux, en
+prise de masse. C'est le créneau le plus pauvre de tout le catalogue.
 
-**Contraintes**
-
-- `temps_min` ≤ 10, temps total. **Aucune cuisson**, aucun repos ou réfrigération de plus de
-  10 minutes. Assemblage, conserve, cru, produits prêts à consommer.
-- Ancre protéine `macro_role: "protein"` + `scalable: true`, 32–34 g de protéines de base.
-- Ancre grasse `macro_role: "fat"` + `scalable: true`, ≥ 12 g de lipides.
-- **Sous-lot végétal (7)** : vegan strict, dont **≥ 5 aussi sans gluten** (donc sans
-  `pain_complet`, `pain_pita_complet`, `tortilla_complete`, `pates_*`, `nouilles_completes`,
-  `boulgour`, `semoule_couscous`, `seitan`, `chapelure`, `flocons_avoine`, `sauce_soja`).
-- **Sous-lot animal (7)** : ≥ 4 sans gluten et ≥ 4 sans lactose.
-- Les refs « conserve » de §3.2 sont **obligatoires** pour toute légumineuse de ce bloc : les
-  8 légumineuses existantes sont `basis: dry` et ne sont pas achetables pour un plat de 10 minutes.
-- **Ne pas repartir sur le format wrap / pita / tartine** : 7 des 13 repas complets ≤ 15 min
-  existants sont déjà un wrap, un pita ou une tartine.
-
-**Ne pas refaire** : rep49, rep52, rep13, rep115, rep144, rep143, rep84, rep63, rep46, rep40,
-rep18, rep113, rep117, rep05, col12, col37, col41, col64.
+- **Vegan strict** (donc automatiquement sans lactose, végétarien, pescatarien, halal), dont
+  **au moins 7 aussi sans gluten**.
+- Ancre protéine végétale `macro_role: 'protein'` + `scalable: true` — **jamais `dairy`**. Le rôle
+  `dairy` s'échelonne de 0,6 à 1,6 et perd le plancher protéique ; `protein` va de 1,0 à 1,7 et le
+  garde. Huit recettes du catalogue portaient cette erreur, elle a été corrigée le 2026-07-29 : ne
+  pas la réintroduire.
+- Ancre grasse `macro_role: 'fat'` + `scalable: true` obligatoire, portant au moins 12 g de lipides.
+- Ancres protéiques disponibles : `proteine_vegetale` (P 73), `yaourt_soja_proteine` (P 9),
+  `soja_texture` (P 52, plafond 70 g), `tofu_ferme` (P 16), `tofu_fume` (P 14,9), `edamame` (P 11).
+  `boisson_soja` (P 3,2) remplace `lait_amande` (P 0,5) dès qu'il faut une base liquide.
+- Sous-lot sans gluten : `flocons_avoine` **interdit** — c'est le socle de 36 recettes existantes.
+  Autorisés : `sarrasin`, `millet`, `quinoa`, `polenta`, `galette_riz`, `chataigne`, `patate_douce`,
+  `pain_sans_gluten`. `levure_maltee` est désormais classée gluten-violante : hors de ce sous-lot.
+- **Format** : 6 recettes du catalogue partagent déjà le triplet (petit_dej, whey, flocons d'avoine)
+  et 6 autres (petit_dej, yaourt de soja protéiné, sans féculent). Le cliquet anti-doublons refusera
+  un porridge ou un pudding de plus. Vise le **salé** (tofu brouillé, galette, tartinable), les
+  pancakes, les bowls chauds sans avoine.
+- Aucun repos au froid supérieur à 10 minutes : six recettes déclarent 5 minutes pour 4 heures à
+  une nuit de repos (pd02, pd31, pd34, pd47, pd54, pd72). Ne pas reproduire.
 
 ---
 
-### B2 — Repas complets 11–15 min, végétal (vegan)
+### B2 — Repas complets vegan et sans gluten
 
-**Volume 18** · ids `rep185` → `rep202` · vegan strict, dont **≥ 12 aussi sans gluten**.
+**14 recettes, `rep171` → `rep184`, catégorie `repas_complet`.**
 
-**Pourquoi.** C'est le trou bloquant du catalogue. Au **réglage par défaut de l'application
-(15 minutes)**, un végétarien comme un vegan a **zéro** repas complet compatible sur 170, contre 13
-sans restriction. Le filtre cède alors et sert des plats hors régime : mesuré, 12 à 14 des 28 repas
-de la semaine contiennent viande ou poisson chez un végétarien, et dépassent le temps demandé de
-+9 à +30 minutes. Pool réellement utilisable à ce cran : 0 / 0 / 0 pour végétarien, vegan et
-vegan + sans gluten, pour un plancher de 14.
+Le trou : un utilisateur vegan **et** sans gluten en sèche ne voit que 11 plats principaux
+distincts sur 4 semaines, midi et soir confondus. C'est la seule case du catalogue où la
+répétition devient visible — une même recette y revient jusqu'à 4 fois dans la semaine.
 
-**Contraintes**
-
-- `temps_min` ≤ 15, temps total. Aucune cuisson non surveillée de plus de 10 minutes, aucun repos
-  au froid.
-- Ancre protéine végétale `scalable`. Densités disponibles (g de protéines pour 100 kcal) :
-  `seitan` 17,9 (mais gluten) · `soja_texture` 15,1 (plafond 70 g) · `tofu_ferme` 12,3 ·
-  `tempeh` 10,0 · `yaourt_soja_proteine` 13,8 · `proteine_vegetale` 19,1 · `edamame` 8,8 ·
-  `lentilles_vertes` 7,7 · `pois_chiches` 5,9 · `haricots_blancs` 6,3.
-- Ancre grasse végétale `scalable` ≥ 12 g : `huile_olive`, `avocat`, `beurre_cacahuete`,
-  `beurre_amande`, `amandes`, `noix`, `noisettes`, `graines_courge`, `graines_chia`, `lait_coco`,
-  `creme_soja`, `olives` et `tahini`.
-- Sous-lot sans gluten (≥ 12) : exclut `flocons_avoine`, `pain_complet`, `pain_seigle`,
-  `pates_completes`, `pates_semoule`, `nouilles_completes`, `boulgour`, `semoule_couscous`,
-  `tortilla_complete`, `pain_pita_complet`, `seitan`, `sauce_soja`, `chapelure`, `levure_maltee`.
-  `pain_sans_gluten` / `wrap_sans_gluten` débloquent les formats rapides.
-- Formats à privilégier : bowls froids, salades de légumineuses en conserve, wraps sans cuisson,
-  nouilles de riz (5 min), poêlées de tofu fumé, assiettes tofu / edamame.
-- **Couples interdits** (déjà saturés) : `tofu_ferme` + `riz_basmati`, `tempeh` + `riz_complet`.
-
-**Ne pas refaire** : rep05, rep25, rep80, rep124, rep50, rep104, rep147, rep41, rep114, rep65,
-rep140, rep60, rep92, rep07, rep79, rep126, rep152, rep155, rep131, rep77, rep103, rep58, rep72,
-rep97, rep128.
+- **Vegan strict ET sans gluten**, sans exception sur les 14. Cette double contrainte remplit les
+  7 régimes de `restrictions_ok` d'un coup.
+- Enveloppe centrée sur la **sèche** (base 640–700 kcal, 44–48 g de protéines), mais la recette doit
+  rester atteignable au maintien et en prise de masse par le seul jeu des facteurs : glucides ×1,8
+  sans plafond sur les féculents, gras ×1,5.
+- Ancre protéine végétale `protein` + `scalable`, ancre grasse `fat` + `scalable` ≥ 12 g.
+- Féculents autorisés : `riz_basmati`, `riz_complet`, `nouilles_riz`, `quinoa`, `polenta`,
+  `sarrasin`, `millet`, `patate_douce`, `pomme_de_terre`, `chataigne`, `mais`, `galette_riz`,
+  `pain_sans_gluten`, `wrap_sans_gluten`.
+  **Interdits** : avoine, pain de blé, pâtes, boulgour, semoule, tortilla de blé, pita, `seitan`,
+  `sauce_soja`, `chapelure`, `levure_maltee`.
+- **Diversifier les ancres.** Ne pas renforcer `soja_texture` (30 recettes),
+  `yaourt_soja_proteine` (29), `proteine_vegetale` (28), `pois_chiches` (24). Privilégier
+  `tofu_soyeux` (4), `lentilles_vertes` (4), `pois_casses` (2), `feves` (1), `haricots_noirs` (5),
+  `haricots_blancs` (5), `lentilles_corail` (5), `tofu_fume` (0), `falafel` (0).
+- **Légumineuses : version prête à consommer.** `pois_chiches_conserve`, `lentilles_cuites`,
+  `haricots_rouges_conserve` — le poids écrit est le poids acheté. Les versions `basis: dry`
+  feraient afficher un poids SEC en liste de courses.
+- Couples déjà saturés, interdits : `tofu_ferme` + `riz_basmati`, `tempeh` + `riz_complet`.
+- Chaque recette apporte au moins 8 g de fibres par portion : en sèche le moteur applique un biais
+  fibres à la sélection, c'est un levier gratuit pour être choisie.
 
 ---
 
-### B3 — Repas complets 11–15 min, animal (volaille / poisson / œuf)
+### B3 — Collations vegan et sans gluten
 
-**Volume 12** · ids `rep203` → `rep214` · **≥ 8 sans gluten** et **≥ 8 sans lactose**.
+**6 recettes, `col67` → `col72`, catégorie `collation`.**
 
-**Pourquoi.** Les 13 repas complets ≤ 15 min existants ne tiennent pas la cible : pool réellement
-utilisable de 4 / 3 / 1 seulement, et 2 / 2 / 1 en sans gluten. Ils sont en plus très concentrés :
-7 des 13 sont un wrap, un pita ou une tartine, et 4 reposent sur du thon. Conséquence mesurée :
-4 à 5 plats principaux distincts sur 14 créneaux hebdomadaires, et dans le cas sans lactose à
-10 minutes, **le même plat servi 14 fois dans la semaine, midi et soir**.
+Ce bloc est un **revirement assumé**. Le découpage précédent décidait explicitement de n'écrire
+aucune collation, sur la foi d'un comptage de pools qui donnait 8 à 13 recettes propres partout.
+La mesure sur ce que le moteur sert vraiment dit autre chose : un vegan sans gluten en sèche ne
+voit que **11 collations distinctes sur 4 semaines**, et un vegan sans gluten 12.
 
-**Contraintes**
-
-- `temps_min` ≤ 15. Formats à cuisson courte : poêle 5–8 min, plancha, conserve, cru.
-- Densités des ancres animales (g de protéines pour 100 kcal) : `blanc_oeuf` 22,7 ·
-  `cabillaud` 22,5 · `thon_naturel` 22,4 · `dinde_escalope` 21,8 · `crevettes` 21,2 ·
-  `poulet_filet` 19,0 · `thon_frais` 16,0 · `boeuf_5` 15,3 · `boeuf_bavette` 15,3 ·
-  `saumon_fume` 13,9 · `sardines` 13,9 · `saumon` 9,6 · `maquereau` 9,3 · `oeuf_entier` 8,8.
-- **Diversifier les ancres sous-exploitées** : `maquereau` (1 recette), `thon_frais` (1),
-  `sardines` (2), `mozzarella` (2), `crevettes` (6), `dinde_escalope` (9). **Ne pas renforcer**
-  `poulet_filet` (29) ni `oeuf_entier` (35).
-- **Aucune ref protéine ne peut porter plus de 3 des 12 recettes du bloc.**
-- Sous-lot sans lactose (≥ 8) : pas de `skyr`, `fromage_blanc_0`, `cottage_cheese`, `whey`,
-  `lait_demi_ecreme`, `mozzarella`, `feta`, `parmesan`.
-- Interdits : `porc_filet` et `jambon_blanc` (seuls refs cassant halal et no_pork).
-- **Pas de wrap, pita ni tartine** (format déjà saturé, cf. B1).
-
-**Ne pas refaire** : rep13, rep18, rep40, rep46, rep49, rep52, rep63, rep84, rep113, rep115,
-rep117, rep143, rep144, rep119, rep123, rep23, rep92, rep167, rep116.
+- **Vegan strict ET sans gluten**, sur les 6.
+- Enveloppe serrée : 260–300 kcal de base, 17–20 g de protéines. Une collation de sèche qui déborde
+  n'est pas une collation — 32 des 66 collations existantes dépassent la cible.
+- Densité protéique **≥ 6 g pour 100 kcal**. Sept collations existantes taguées perte de gras
+  tombent sous 5 : c'est le défaut le plus fréquent du créneau.
+- Ancre protéine `protein` + `scalable` obligatoire.
+- **Formats déjà saturés**, interdits : edamame nature (3 recettes au même set d'ingrédients),
+  pois chiches rôtis (2), energy balls dattes-avoine-cacahuète (2), barres avoine-protéine (2),
+  pudding de chia (plusieurs). Huit collations partagent déjà le triplet
+  (collation, yaourt de soja protéiné, sans féculent).
 
 ---
 
-### B4 — Repas complets 16–20 min, végétal + sans gluten
+### Ce qu'on n'écrit PAS
 
-**Volume 14** · ids `rep215` → `rep228` · vegan strict, dont **≥ 10 aussi sans gluten** ·
-priorité sèche et maintien.
-
-**Pourquoi.** Le cran 20 minutes est le premier cran vivable, et il reste sous le plancher pour
-tout ce qui est végétal. Pool réellement utilisable à 20 minutes (sèche / maintien / prise de
-masse) : vegan 5 / 6 / 2, végétarien 5 / 10 / 5, vegan + sans gluten 2 / 4 / 2, sans gluten
-8 / 12 / 6 — pour un plancher de 14.
-
-**Contraintes**
-
-- `temps_min` entre 16 et 20, cuisson comprise. Une cuisson non surveillée est autorisée si sa
-  durée rentre dans `temps_min`.
-- Sous-lot sans gluten (≥ 10) : féculents autorisés `riz_basmati`, `riz_complet`, `nouilles_riz`,
-  `quinoa`, `polenta`, `sarrasin`, `millet`, `patate_douce`, `pomme_de_terre`, `chataigne`,
-  `mais`, `galette_riz`.
-- **Diversifier les ancres protéiques sous-utilisées** : `tofu_soyeux` (4 recettes),
-  `lentilles_vertes` (4), `pois_casses` (2), `feves` (1), `haricots_noirs` (5),
-  `haricots_blancs` (5), `lentilles_corail` (5). **Ne pas renforcer** `soja_texture` (30),
-  `yaourt_soja_proteine` (29), `proteine_vegetale` (28), `pois_chiches` (24).
-- **Diversifier les féculents** : `millet` (8), `sarrasin` (12), `chataigne` (6), `polenta` (14)
-  sont sous-exploités face à `riz_basmati` (34) et `flocons_avoine` (36).
-- Viser **≥ 8 g de fibres par portion** : en sèche le moteur applique un biais favorable aux
-  recettes fibreuses, c'est un levier de sélection gratuit.
-
-**Ne pas refaire** : rep25, rep80, rep50, rep104, rep124, rep147, rep41, rep114, rep65, rep140,
-rep60, rep92, rep07, rep79, rep152, rep155, rep131, rep126, rep77, rep103, rep87, rep61, rep31.
-
----
-
-### B5 — Repas complets « prise de masse » ≤ 30 min, végétal
-
-**Volume 12** · ids `rep229` → `rep240` · vegan strict, dont **≥ 6 aussi sans gluten** ·
-capacité 870 à 962 kcal par portion adaptée.
-
-**Pourquoi.** La prise de masse est l'objectif le plus mal servi du catalogue, et le végétal y est
-le pire : pool utilisable de 7 recettes en vegan et 6 en vegan + sans gluten, pour un plancher de
-14. Les motifs de rejet dominants à cette cible sont « lipides sous la cible » (133 des 170 repas
-complets) et « calories sous la cible » (74 sur 170) : le catalogue est structurellement trop
-maigre et trop petit pour nourrir un surplus. À pool identique, la sèche donne 49 recettes propres
-contre 18 en prise de masse — un facteur 2,7.
-
-**Contraintes**
-
-- **Capacité haute obligatoire** : l'enveloppe maximale (tous les ingrédients `scalable` à leur
-  facteur maximum, plafonds absolus inclus) doit atteindre **≥ 962 kcal**. À vérifier recette par
-  recette, par le calcul, pas à l'estime.
-- Le plafond vient des **glucides** (facteur max 1,8, aucun plafond absolu sur les féculents).
-  Glucides de base 100–115 g, kcal de base 720–780 — plus haut que les autres blocs pour que 1,8×
-  atteigne 962 sans forcer.
-- Lipides de base 22–26 g dont **≥ 14 g sur l'ancre grasse scalable**. Rappel : l'ancre grasse ne
-  peut pas porter le plafond (plafonds absolus de §4.2).
-- Protéines de base 32–34 g — ne pas monter plus haut, sinon la recette exclut les gabarits légers.
-- Repos long interdit ; `temps_min` ≤ 30, temps total.
-- **Aucune recette du bloc ne partage plus de 3 `ref` avec une autre recette du bloc.**
-
-**Ne pas refaire** : rep124, rep126, rep152, rep155, rep50, rep104, rep147, rep41, rep114, rep65,
-rep140, rep60, rep92, rep07, rep79, rep77, rep103, rep131, rep25, rep80, rep58, rep97.
-
----
-
-### B6 — Petits-déjeuners « prise de masse », végétal
-
-**Volume 10** · ids `pd79` → `pd88` · vegan strict (couvre automatiquement sans lactose,
-végétarien, pescatarien, no_pork, halal), dont **≥ 6 aussi sans gluten**.
-
-**Pourquoi.** Le petit-déjeuner est le seul autre créneau qui justifie un bloc, et uniquement en
-prise de masse. Pool utilisable à la cible petit-déj prise de masse : vegan 3, vegan + sans gluten
-2, sans gluten 4, sans lactose 5, pour un plancher de 7. L'omnivore y est à 11 : **aucun
-petit-déjeuner omnivore n'est nécessaire**. À l'inverse, écrire des petits-déjeuners « pour la
-variété » ne sert à rien — la diversité perçue au petit-déjeuner est plafonnée par le moteur, pas
-par le catalogue (7 à 11 recettes distinctes sur 4 régénérations, que le pool fasse 26 ou 78).
-
-**Contraintes**
-
-- **Capacité haute obligatoire** : enveloppe maximale **≥ 787 kcal**. Deux petits-déjeuners taggés
-  prise de masse plafonnent aujourd'hui à 600 kcal et ne peuvent physiquement pas honorer le
-  créneau.
-- Protéines de base 26–27 g (plancher), kcal de base 540–580, glucides 70–80 g, lipides 16–18 g
-  dont ≥ 12 g sur une ancre grasse scalable.
-- Ancre protéine végétale en `macro_role: "protein"` — **jamais `"dairy"`**.
-- `boisson_soja` remplace `lait_amande` dès qu'il faut une base liquide protéinée.
-- Sous-lot sans gluten (≥ 6) : `flocons_avoine` interdit — c'est le socle de 36 recettes.
-  Autorisés : `sarrasin`, `millet`, `quinoa`, `polenta`, `galette_riz`, `chataigne`,
-  `patate_douce`.
-- `temps_min` ≤ 15, **aucun repos** : les overnight oats et puddings de chia existants déclarent
-  5 minutes pour 4 heures à une nuit de repos. Interdits ici.
-- **Ne pas repartir sur le format porridge / pudding / overnight** : 6 recettes partagent déjà le
-  triplet (petit-déj, whey, flocons d'avoine) et 6 autres le triplet (petit-déj,
-  yaourt de soja protéiné, aucun féculent). Privilégier le salé (tofu brouillé, galette,
-  tartinable), les pancakes, les bowls chauds hors avoine.
-
-**Ne pas refaire** : pd34, pd75, pd54, pd39, pd19, pd21, pd09, pd45, pd67, pd16, pd35, pd52, pd77,
-pd02, pd31, pd47, pd72, pd53, pd68, pd66, pd43, pd23, pd10, pd30.
-
----
-
-### B7 — Collations : bloc vide, décision explicite
-
-**Volume 0.** Ne produire **aucune** collation dans cette vague.
-
-**Pourquoi.** Déficit nul mesuré dans les 48 cas testés (8 régimes × 3 objectifs × 2 crans de
-temps) : 8 à 13 collations utilisables par cas, pour un plancher de 7, y compris dans les
-situations les plus contraintes (vegan 9 / 9 / 11, vegan + sans gluten 9 / 8 / 9). Le temps n'est
-pas un frein non plus : 63 des 66 collations sont à ≤ 10 minutes. Et la diversité perçue y est
-plafonnée par le moteur comme au petit-déjeuner. Ajouter des collations serait du poids mort
-mesurable : 34 des 66 existantes (52 %) ne sont déjà servies proprement dans aucun cas réaliste.
-
-Le vrai chantier collations est un chantier de **correction de tags**, pas d'écriture, et il ne
-fait pas partie de cette commande.
+| | Pourquoi |
+|---|---|
+| Recettes rapides (≤ 10 ou ≤ 15 min) | Le curseur temps a été retiré du produit : le temps ne débloque plus aucun pool. Une recette rapide reste bienvenue, ce n'est plus une commande. |
+| Recettes animales | Aucune poche mesurée. Le profil sans restriction voit 21 à 30 recettes distinctes par créneau. |
+| Bloc halal, bloc pescatarien | 309 et 256 recettes sur 314 sont déjà compatibles. Ce serait du doublon pur. |
+| Petits-déj de sèche ou de maintien | 17 à 25 recettes distinctes selon le profil : au-dessus du seuil. |
 
 ---
 
@@ -931,32 +869,39 @@ Reprise fidèle de `kyroz-app/Recette/README.md`. À exécuter dans cet ordre, b
 | 9 | `npx tsc --noEmit` | — |
 | 10 | `npx tsx scripts/gen-validation-recettes.ts` → régénère le dossier diététicienne | `VALIDATION-RECETTES.md` |
 
-Comptes attendus après merge complet : **394 recettes** — 88 petits-déjeuners, 66 collations,
-240 repas complets.
+Comptes attendus après merge complet : **344 recettes** — 88 petits-déjeuners, 72 collations,
+184 repas complets.
 
 ### 7.3 Ordre de livraison recommandé
 
-**B1 et B3 en premier** (19 recettes animales rapides), puis B2, B4, B6, B5. Raison : 54 des
-80 recettes de la vague sont végétales alors que la cible est « hommes 18–35 pratiquant du sport ».
-C'est ce que la mesure impose — les trous sont là — mais le catalogue ne doit pas être **perçu**
-comme vegan. Contre-mesures : formats carnés-compatibles (bowls, wraps, poêlées, salades
-composées), noms sans marqueur identitaire, `why` sobre sans revendication de régime, et livraison
-des blocs animaux en tête.
+**B2 en premier** (14 repas complets), puis B1, puis B3. B2 bouche la seule case où la répétition
+est aujourd'hui visible pour l'utilisateur — un vegan sans gluten en sèche voit la même recette
+jusqu'à quatre fois dans la semaine.
+
+Les 30 recettes sont végétales, alors que la cible déclarée est « hommes 18–35 pratiquant du
+sport ». C'est un choix assumé du fondateur, pas une concession : le végétal est un argument de
+vente, et une recette vegan sans gluten profite aux **7** régimes à la fois. Le catalogue ne doit
+pour autant pas être *perçu* comme vegan — d'où les contre-mesures de forme, qui restent
+obligatoires : formats carnés-compatibles (bowls, wraps, poêlées, salades composées), noms sans
+marqueur identitaire, `why` sobre sans revendication de régime écrite en dur.
 
 ---
 
 ## 8. À trancher avant de lancer la génération
 
-Quatre décisions bloquent ou modifient la commande. Aucune ne peut être prise par le rédacteur.
+Les quatre décisions ouvertes sont **toutes tranchées**. Cette section est conservée comme
+journal : elle dit pourquoi la commande a la forme qu'elle a.
 
-1. **Ordre correctif / vague.** Un correctif propose de passer le réglage de temps par défaut de
-   15 à 20 minutes. S'il est appliqué en parallèle de cette vague, B2 et B3 (30 recettes) gardent
-   leur valeur — les crans 10 et 15 restent atteignables en un clic — mais perdent leur urgence.
-   Trancher l'ordre avant de lancer, pas les deux à l'aveugle.
+1. ~~**Ordre correctif du curseur temps / vague.**~~ **Tranché le 2026-07-29 : le curseur est
+   supprimé**, pas relevé. Il filtrait durement les recettes et vidait le pool — au réglage par
+   défaut, un végétarien n'avait aucun repas complet compatible et recevait de la viande, le test
+   du temps vivant dans le même prédicat que celui du régime. C'est cette décision qui a fait
+   passer la vague de 80 à 30 recettes : le temps n'est plus un axe de découpage. Il sera peut-être
+   réintroduit quand le catalogue sera plus fourni, en préférence pondérée, jamais en filtre dur.
 
 2. ~~**Les 9 refs à créer.**~~ **Tranché le 2026-07-29 : ils sont créés** (§3.2), mappés sur
    Ciqual et intégrés à la table des régimes. Les trois légumineuses prêtes à consommer,
-   `pain_sans_gluten` et `boisson_soja` sont disponibles ; B1, B2 et B6 ne sont plus bloqués.
+   `pain_sans_gluten` et `boisson_soja` sont disponibles ; aucun bloc n'est bloqué.
    Point reporté et non tranché : `tahini` introduit le **sésame**, allergène qu'aucun champ du
    schéma ne porte — l'ajout d'un axe allergène reste un chantier ouvert.
 
