@@ -37,8 +37,8 @@ Une recette = un objet JSON. **Aucun champ en plus, aucun champ en moins.**
   "category": "repas_complet",      // ENUM STRICT : "petit_dej" | "collation" | "repas_complet"
   "tags": {
     "objectif": ["maintien"],       // ENUM : "perte_de_gras" | "maintien" | "prise_de_masse" (1 à 2 valeurs)
-    "recup_jour_repos": false,      // booléen, règle de calcul en §4.12
-    "sport": ["muscu"],             // ENUM : "muscu" | "endurance" ("combats" INTERDIT, cf. §4.13)
+    "recup_jour_repos": false,      // booléen, règle de calcul en §4.8
+    "sport": ["muscu"],             // ENUM : "muscu" | "endurance" ("combats" INTERDIT, cf. §4.9)
     "temps_min": 15                 // entier, temps TOTAL de cuisine, cuisson comprise
   },
   "base_servings": 1,               // TOUJOURS 1, sans exception
@@ -108,9 +108,29 @@ Ce sont des exemples de **format**, pas de contenu à imiter.
 }
 ```
 
-Deux défauts à ne pas copier depuis ces exemples : `pd01` porte `recup_jour_repos: true` alors
-qu'elle est à 52,8 % de ses kcal en glucides (contre-directionnel, cf. §4.12) ; `rep113` n'a que
-deux légumes non scalables et une enveloppe grasse portée par un seul avocat.
+Trois défauts à ne pas copier depuis ces exemples : `pd01` porte `recup_jour_repos: true` alors
+qu'elle est à 52,8 % de ses kcal en glucides (contre-directionnel, cf. §4.8) ; `rep113` n'a que
+deux légumes non scalables et une enveloppe grasse portée par un seul avocat ; et **surtout, leurs
+`instructions` sont beaucoup trop courtes** — c'est le défaut principal du catalogue actuel et il
+ne doit pas être reproduit (cf. §4.6bis).
+
+Voici `rep113` réécrite au niveau de détail attendu. Mêmes ingrédients, même `temps_min` — seul le
+champ `instructions` change :
+
+```json
+  "instructions": [
+    "Émince le filet de poulet en lanières d'environ 1 cm, sale et poivre.",
+    "Fais chauffer une poêle à feu vif sans matière grasse ajoutée, puis saisis les lanières 3 à 4 minutes en les retournant à mi-cuisson : elles doivent être dorées et ne plus être roses au centre. Réserve.",
+    "Pendant ce temps, coupe la tomate en rondelles fines et lave la salade.",
+    "Écrase l'avocat à la fourchette dans un bol avec une pincée de sel, jusqu'à obtenir une texture grossière.",
+    "Passe la tortilla 20 secondes à la poêle chaude pour l'assouplir : elle roulera sans casser.",
+    "Étale l'avocat écrasé sur la tortilla en laissant 2 cm de bord libre, répartis le poulet, la salade et la tomate au centre.",
+    "Rabats les deux côtés vers l'intérieur, puis roule fermement en partant du bord le plus proche. Coupe en deux en biais."
+  ]
+```
+
+Chaque étape porte une action, une durée ou un repère visuel, et un geste précis. C'est le standard
+attendu pour les 80 recettes.
 
 ### Plages d'ids à utiliser
 
