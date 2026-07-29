@@ -461,6 +461,38 @@ Refs les plus employés dans cette catégorie — à ne PAS renforcer :
 - `nouilles_riz` (carb) — déjà dans 12 recettes
 - `saumon` (protein) — déjà dans 12 recettes
 
+### Ancres encore OUVERTES — c'est là qu'il faut aller
+
+Dire ce qui est interdit sans dire ce qui reste libre envoie dans un mur. Voici les ancres
+protéiques par ordre de **disponibilité** : « couples saturés » = combinaisons déjà fermées pour
+cette ancre, « places libres » = combinaisons (ancre × féculent) encore utilisables.
+
+| Ancre protéine | Couples saturés | Places libres |
+|---|---|---|
+| `dinde_escalope` | — | 29 |
+| `boeuf_5` | — | 29 |
+| `porc_filet` | — | 29 |
+| `jambon_blanc` | — | 29 |
+| `saumon` | — | 29 |
+| `saumon_fume` | — | 29 |
+| `thon_frais` | — | 29 |
+| `maquereau` | — | 29 |
+| `sardines` | — | 29 |
+| `blanc_oeuf` | — | 29 |
+| `skyr` | — | 29 |
+| `fromage_blanc_0` | — | 29 |
+| `yaourt_grec` | — | 29 |
+| `cottage_cheese` | — | 29 |
+| `whey` | — | 29 |
+| `mozzarella` | — | 29 |
+| `feta` | — | 29 |
+| `parmesan` | — | 29 |
+
+**Refs JAMAIS employés en `repas_complet`** — terrain entièrement vierge, aucun risque de
+doublon :
+
+`banane` · `beurre_amande` · `boisson_soja` · `cacao_poudre` · `chataigne` · `chocolat_noir` · `dattes` · `falafel` · `flocons_avoine` · `framboises` · `fruits_rouges` · `galette_riz` · `graines_chia` · `haricots_rouges_conserve` · `kiwi` · `lait_amande` · `lait_demi_ecreme` · `lentilles_cuites` · `mangue` · `myrtilles` · `noisettes` · `noix` · `pain_sans_gluten` · `pain_seigle` · `pois_chiches_conserve` · `pomme` · `porc_filet` · `proteine_vegetale` · `raisins` · `sirop_erable` · `skyr` · `tahini` · `tofu_fume` · `whey` · `wrap_sans_gluten` · `yaourt_soja`
+
 ### Diversité de format
 
 Au plus **3 recettes** de ce lot peuvent partager le même format de service : wrap/pita/tartine,
@@ -468,7 +500,189 @@ bowl, poêlée, salade, porridge/pudding, galette/pancake, soupe.
 
 ---
 
-## 8. Avant de répondre — auto-contrôle
+## 8. Annexe — les 170 recettes `repas_complet` déjà au catalogue
+
+**Tu as besoin de cette table pour respecter R1 et R2**, qui portent sur l'ensemble ENTIER des refs
+et pas seulement sur le couple protéine × féculent. Vérifie chacune de tes recettes contre elle.
+
+Refs les plus fréquents sur ce créneau (à éviter de renforcer) : `huile_olive` 119 · `riz_basmati` 31 · `tomate_concassee` 30 · `soja_texture` 30 · `poulet_filet` 29 · `epinards` 19 · `lait_coco` 19 · `oeuf_entier` 18 · `pois_chiches` 17 · `patate_douce` 16 · `riz_complet` 16 · `tofu_ferme` 15 · `quinoa` 15 · `avocat` 15 · `oignon` 14 · `courgette` 14 · `pomme_de_terre` 14 · `tomate` 14 · `poivron` 13 · `brocoli` 12 · `saumon` 12 · `legumes_wok` 12 · `sauce_soja` 12 · `mais` 12 · `nouilles_riz` 12 · `cabillaud` 11 · `salade_verte` 11 · `boeuf_5` 10 · `pates_completes` 10 · `carotte` 10 · `boulgour` 9 · `haricots_rouges` 9 · `thon_naturel` 9 · `polenta` 9 · `champignons` 9 · `roquette` 8 · `haricots_verts` 7 · `tortilla_complete` 7 · `dinde_escalope` 7 · `ratatouille` 7 · `concombre` 7 · `tempeh` 7 · `parmesan` 7 · `feta` 7 · `crevettes` 6 · `petits_pois` 6 · `sarrasin` 6 · `lentilles_corail` 5 · `boeuf_bavette` 5 · `edamame` 5 · `pain_complet` 5 · `semoule_couscous` 5 · `haricots_noirs` 5 · `haricots_blancs` 5
+
+| id | ensemble de refs |
+|---|---|
+| rep01 | `poulet_filet` · `riz_basmati` · `brocoli` · `huile_olive` |
+| rep02 | `saumon` · `patate_douce` · `epinards` · `huile_olive` |
+| rep03 | `lentilles_corail` · `lait_coco` · `riz_basmati` · `tomate_concassee` · `oignon` · `huile_olive` |
+| rep04 | `boeuf_5` · `nouilles_completes` · `legumes_wok` · `huile_olive` · `sauce_soja` |
+| rep05 | `tofu_ferme` · `quinoa` · `courgette` · `poivron` · `huile_olive` · `sauce_soja` |
+| rep06 | `cabillaud` · `boulgour` · `pois_chiches` · `courgette` · `huile_olive` |
+| rep07 | `poulet_filet` · `patate_douce` · `haricots_verts` · `huile_olive` |
+| rep08 | `pates_completes` · `boeuf_5` · `tomate_concassee` · `oignon` · `huile_olive` |
+| rep09 | `poulet_filet` · `riz_complet` · `avocat` · `mais` · `poivron` |
+| rep10 | `pois_chiches` · `epinards` · `tomate_concassee` · `lait_coco` · `riz_basmati` |
+| rep11 | `boeuf_bavette` · `pomme_de_terre` · `salade_verte` · `huile_olive` |
+| rep12 | `saumon` · `quinoa` · `asperges` · `huile_olive` |
+| rep13 | `tortilla_complete` · `poulet_filet` · `salade_verte` · `tomate` · `cottage_cheese` |
+| rep14 | `haricots_rouges` · `mais` · `tomate_concassee` · `poivron` · `riz_basmati` · `huile_olive` |
+| rep15 | `dinde_escalope` · `nouilles_riz` · `legumes_wok` · `sauce_soja` · `huile_olive` |
+| rep16 | `cabillaud` · `pomme_de_terre` · `ratatouille` · `huile_olive` |
+| rep17 | `tofu_ferme` · `quinoa` · `betterave` · `pois_chiches` · `huile_olive` · `roquette` |
+| rep18 | `oeuf_entier` · `poulet_filet` · `epinards` · `mozzarella` · `huile_olive` |
+| rep19 | `pates_completes` · `thon_naturel` · `tomate_concassee` · `olives` · `huile_olive` |
+| rep20 | `saumon` · `riz_basmati` · `edamame` · `concombre` · `sauce_soja` · `avocat` |
+| rep21 | `poulet_filet` · `riz_basmati` · `yaourt_grec` · `tomate_concassee` · `huile_olive` |
+| rep22 | `lentilles_corail` · `carotte` · `oignon` · `tomate_concassee` · `pain_complet` · `huile_olive` |
+| rep23 | `boeuf_5` · `patate_douce` · `brocoli` · `huile_olive` |
+| rep24 | `crevettes` · `nouilles_riz` · `legumes_wok` · `beurre_cacahuete` · `sauce_soja` |
+| rep25 | `tempeh` · `riz_complet` · `chou_fleur` · `huile_olive` |
+| rep26 | `maquereau` · `pomme_de_terre` · `salade_verte` · `huile_olive` |
+| rep27 | `poulet_filet` · `riz_basmati` · `legumes_wok` · `amandes` · `sauce_soja` |
+| rep28 | `polenta` · `ratatouille` · `oeuf_entier` · `parmesan` · `huile_olive` |
+| rep29 | `pois_chiches` · `boulgour` · `courgette` · `tomate` · `feta` · `huile_olive` |
+| rep30 | `dinde_escalope` · `patate_douce` · `epinards` · `huile_olive` |
+| rep31 | `pates_semoule` · `poulet_filet` · `pesto` · `tomate` |
+| rep32 | `cabillaud` · `pomme_de_terre` · `petits_pois` · `oeuf_entier` · `huile_olive` · `chapelure` |
+| rep33 | `boeuf_5` · `haricots_rouges` · `riz_basmati` · `poivron` · `huile_olive` |
+| rep34 | `saumon` · `lentilles_vertes` · `epinards` · `huile_olive` |
+| rep35 | `tofu_ferme` · `nouilles_completes` · `brocoli` · `sauce_soja` · `huile_olive` |
+| rep36 | `oeuf_entier` · `pomme_de_terre` · `jambon_blanc` · `oignon` · `huile_olive` |
+| rep37 | `poulet_filet` · `semoule_couscous` · `courgette` · `tomate_concassee` · `olives` · `huile_olive` |
+| rep38 | `thon_frais` · `riz_basmati` · `haricots_verts` · `huile_olive` |
+| rep39 | `poulet_filet` · `lait_coco` · `riz_basmati` · `poivron` · `oignon` |
+| rep40 | `poulet_filet` · `quinoa` · `avocat` · `feta` · `salade_verte` · `tomate` |
+| rep41 | `seitan` · `patate_douce` · `brocoli` · `huile_olive` |
+| rep42 | `boeuf_5` · `haricots_rouges` · `mais` · `riz_basmati` · `tomate` · `avocat` |
+| rep43 | `cabillaud` · `quinoa` · `courgette` · `huile_olive` |
+| rep44 | `pates_completes` · `saumon` · `epinards` · `creme_soja` |
+| rep45 | `dinde_escalope` · `courgette` · `feta` · `boulgour` · `huile_olive` |
+| rep46 | `riz_basmati` · `oeuf_entier` · `petits_pois` · `jambon_blanc` · `huile_olive` · `sauce_soja` |
+| rep47 | `tofu_soyeux` · `nouilles_riz` · `edamame` · `legumes_wok` · `sauce_soja` |
+| rep48 | `poulet_filet` · `polenta` · `champignons` · `parmesan` · `huile_olive` |
+| rep49 | `sardines` · `pain_complet` · `tomate` · `salade_verte` · `huile_olive` |
+| rep50 | `tempeh` · `riz_basmati` · `brocoli` · `sauce_soja` · `huile_olive` |
+| rep51 | `cabillaud` · `lentilles_vertes` · `tomate_concassee` · `huile_olive` |
+| rep52 | `tortilla_complete` · `thon_naturel` · `salade_verte` · `tomate` · `cottage_cheese` |
+| rep53 | `boeuf_bavette` · `pomme_de_terre` · `carotte` · `champignons` · `huile_olive` |
+| rep54 | `patate_douce` · `pois_chiches` · `oeuf_entier` · `epinards` · `huile_olive` |
+| rep55 | `saumon` · `riz_complet` · `brocoli` · `huile_olive` · `graines_courge` |
+| rep56 | `poulet_filet` · `pates_completes` · `courgette` · `parmesan` · `huile_olive` |
+| rep57 | `dinde_escalope` · `haricots_rouges` · `riz_basmati` · `tomate_concassee` · `poivron` · `huile_olive` |
+| rep58 | `tofu_ferme` · `riz_basmati` · `haricots_verts` · `sauce_soja` · `miel` · `huile_olive` |
+| rep59 | `cabillaud` · `patate_douce` · `asperges` · `huile_olive` |
+| rep60 | `boeuf_5` · `riz_basmati` · `avocat` · `oeuf_entier` · `haricots_rouges` · `huile_olive` |
+| rep61 | `pates_completes` · `poulet_filet` · `pesto` · `roquette` |
+| rep62 | `pates_semoule` · `boeuf_5` · `tomate_concassee` · `oignon` · `huile_olive` |
+| rep63 | `pates_completes` · `thon_naturel` · `tomate` · `huile_olive` |
+| rep64 | `boulgour` · `thon_naturel` · `tomate_concassee` · `roquette` · `huile_olive` |
+| rep65 | `pates_completes` · `tofu_ferme` · `lait_coco` · `poivron` · `levure_maltee` |
+| rep66 | `pates_completes` · `lentilles_corail` · `soja_texture` · `tomate_concassee` · `oignon` · `huile_olive` |
+| rep67 | `nouilles_riz` · `poulet_filet` · `legumes_wok` · `huile_olive` |
+| rep68 | `nouilles_riz` · `tofu_ferme` · `brocoli` · `lait_coco` |
+| rep69 | `pates_completes` · `crevettes` · `courgette` · `huile_olive` |
+| rep70 | `pates_semoule` · `seitan` · `tomate_concassee` · `olives` · `oignon` |
+| rep71 | `nouilles_riz` · `boeuf_bavette` · `poivron` · `lait_coco` |
+| rep72 | `pates_completes` · `tofu_soyeux` · `tofu_ferme` · `epinards` · `huile_olive` |
+| rep73 | `riz_complet` · `poulet_filet` · `brocoli` · `huile_olive` |
+| rep74 | `riz_basmati` · `saumon` · `avocat` · `edamame` · `concombre` |
+| rep75 | `riz_basmati` · `cabillaud` · `haricots_verts` · `huile_olive` |
+| rep76 | `riz_complet` · `tofu_ferme` · `haricots_rouges` · `tomate_concassee` · `lait_coco` |
+| rep77 | `riz_complet` · `soja_texture` · `tomate_concassee` · `mais` · `huile_olive` |
+| rep78 | `riz_basmati` · `dinde_escalope` · `petits_pois` · `lait_coco` |
+| rep79 | `riz_complet` · `thon_naturel` · `poivron` · `tomate_concassee` · `huile_olive` |
+| rep80 | `riz_complet` · `tempeh` · `chou_fleur` · `huile_olive` · `sauce_soja` |
+| rep81 | `riz_basmati` · `oeuf_entier` · `legumes_wok` · `huile_olive` |
+| rep82 | `riz_complet` · `haricots_noirs` · `soja_texture` · `mais` · `avocat` |
+| rep83 | `riz_basmati` · `poulet_filet` · `ananas` · `poivron` · `huile_olive` |
+| rep84 | `riz_complet` · `sardines` · `tomate` · `oignon` · `huile_olive` |
+| rep85 | `riz_basmati` · `pois_chiches` · `feta` · `concombre` · `huile_olive` |
+| rep86 | `riz_basmati` · `crevettes` · `legumes_wok` · `lait_coco` |
+| rep87 | `quinoa` · `poulet_filet` · `courgette` · `pesto` |
+| rep88 | `quinoa` · `pois_chiches` · `soja_texture` · `avocat` · `betterave` · `roquette` |
+| rep89 | `sarrasin` · `tempeh` · `champignons` · `huile_olive` |
+| rep90 | `sarrasin` · `saumon` · `asperges` · `huile_olive` |
+| rep91 | `millet` · `pois_chiches` · `soja_texture` · `epinards` · `lait_coco` |
+| rep92 | `quinoa` · `cabillaud` · `ratatouille` · `huile_olive` |
+| rep93 | `millet` · `dinde_escalope` · `petits_pois` · `carotte` · `huile_olive` |
+| rep94 | `quinoa` · `haricots_blancs` · `soja_texture` · `tomate_concassee` · `huile_olive` |
+| rep95 | `patate_douce` · `poulet_filet` · `brocoli` · `huile_olive` |
+| rep96 | `pomme_de_terre` · `boeuf_5` · `haricots_verts` · `huile_olive` |
+| rep97 | `patate_douce` · `tofu_ferme` · `epinards` · `lait_coco` |
+| rep98 | `pomme_de_terre` · `cabillaud` · `haricots_verts` · `huile_olive` |
+| rep99 | `patate_douce` · `soja_texture` · `haricots_rouges` · `tomate_concassee` · `mais` · `huile_olive` |
+| rep100 | `pomme_de_terre` · `saumon` · `asperges` · `huile_olive` · `yaourt_grec` |
+| rep101 | `lentilles_corail` · `soja_texture` · `riz_basmati` · `epinards` · `lait_coco` · `oignon` |
+| rep102 | `lentilles_corail` · `soja_texture` · `riz_complet` · `tomate_concassee` · `lait_coco` |
+| rep103 | `haricots_rouges` · `soja_texture` · `riz_complet` · `tomate_concassee` · `mais` · `huile_olive` |
+| rep104 | `pois_chiches` · `soja_texture` · `patate_douce` · `tomate_concassee` · `lait_coco` |
+| rep105 | `haricots_blancs` · `soja_texture` · `carotte` · `tomate_concassee` · `huile_olive` · `pain_complet` |
+| rep106 | `haricots_noirs` · `soja_texture` · `riz_complet` · `oignon` · `huile_olive` |
+| rep107 | `pois_casses` · `soja_texture` · `boulgour` · `carotte` · `roquette` · `huile_olive` |
+| rep108 | `feves` · `soja_texture` · `riz_basmati` · `tomate_concassee` · `lait_coco` |
+| rep109 | `lentilles_vertes` · `feta` · `tomate` · `concombre` · `huile_olive` |
+| rep110 | `riz_complet` · `poulet_filet` · `haricots_rouges` · `tomate_concassee` · `huile_olive` |
+| rep111 | `pois_chiches` · `boulgour` · `soja_texture` · `poivron` · `huile_olive` |
+| rep112 | `pois_casses` · `carotte` · `oignon` · `huile_olive` · `pain_complet` · `graines_courge` |
+| rep113 | `tortilla_complete` · `poulet_filet` · `avocat` · `salade_verte` · `tomate` |
+| rep114 | `tortilla_complete` · `soja_texture` · `haricots_noirs` · `mais` · `avocat` |
+| rep115 | `tortilla_complete` · `thon_naturel` · `fromage_blanc_0` · `salade_verte` · `concombre` |
+| rep116 | `sarrasin` · `oeuf_entier` · `champignons` · `huile_olive` |
+| rep117 | `pain_pita_complet` · `poulet_filet` · `yaourt_grec` · `concombre` · `huile_olive` |
+| rep118 | `tortilla_complete` · `pois_chiches` · `soja_texture` · `salade_verte` · `huile_olive` |
+| rep119 | `tortilla_complete` · `cabillaud` · `chou_fleur` · `avocat` |
+| rep120 | `pain_pita_complet` · `soja_texture` · `yaourt_soja_proteine` · `tomate` · `huile_olive` |
+| rep121 | `semoule_couscous` · `pois_chiches` · `soja_texture` · `tomate` · `huile_olive` |
+| rep122 | `semoule_couscous` · `poulet_filet` · `pois_chiches` · `carotte` · `courgette` · `huile_olive` |
+| rep123 | `boulgour` · `boeuf_5` · `ratatouille` · `huile_olive` · `yaourt_grec` |
+| rep124 | `semoule_couscous` · `tofu_ferme` · `soja_texture` · `ratatouille` · `huile_olive` |
+| rep125 | `boulgour` · `saumon` · `courgette` · `huile_olive` |
+| rep126 | `semoule_couscous` · `pois_chiches` · `soja_texture` · `carotte` · `courgette` · `huile_olive` |
+| rep127 | `polenta` · `poulet_filet` · `champignons` · `huile_olive` |
+| rep128 | `polenta` · `tofu_ferme` · `ratatouille` · `huile_olive` |
+| rep129 | `nouilles_riz` · `tofu_ferme` · `legumes_wok` · `beurre_cacahuete` |
+| rep130 | `nouilles_riz` · `boeuf_bavette` · `brocoli` · `huile_olive` |
+| rep131 | `polenta` · `soja_texture` · `tomate_concassee` · `parmesan` · `huile_olive` |
+| rep132 | `nouilles_riz` · `crevettes` · `legumes_wok` · `lait_coco` |
+| rep133 | `oeuf_entier` · `pomme_de_terre` · `epinards` · `huile_olive` |
+| rep134 | `oeuf_entier` · `pois_chiches` · `tomate_concassee` · `poivron` · `pain_complet` · `huile_olive` |
+| rep135 | `oeuf_entier` · `feta` · `courgette` · `quinoa` · `huile_olive` |
+| rep136 | `oeuf_entier` · `patate_douce` · `epinards` · `creme_soja` |
+| rep137 | `blanc_oeuf` · `oeuf_entier` · `champignons` · `riz_basmati` · `huile_olive` |
+| rep138 | `oeuf_entier` · `patate_douce` · `avocat` · `mais` |
+| rep139 | `quinoa` · `poulet_filet` · `salade_verte` · `parmesan` · `huile_olive` |
+| rep140 | `riz_basmati` · `thon_naturel` · `oeuf_entier` · `mais` · `huile_olive` |
+| rep141 | `quinoa` · `tofu_ferme` · `edamame` · `avocat` · `roquette` |
+| rep142 | `boulgour` · `pois_chiches` · `feta` · `concombre` · `huile_olive` |
+| rep143 | `lentilles_vertes` · `saumon_fume` · `betterave` · `roquette` · `huile_olive` |
+| rep144 | `haricots_blancs` · `thon_naturel` · `tomate` · `oignon` · `huile_olive` |
+| rep145 | `quinoa` · `haricots_noirs` · `soja_texture` · `mais` · `avocat` |
+| rep146 | `patate_douce` · `poulet_filet` · `epinards` · `graines_courge` · `huile_olive` |
+| rep147 | `riz_complet` · `soja_texture` · `edamame` · `brocoli` · `huile_olive` |
+| rep148 | `quinoa` · `tofu_ferme` · `epinards` · `beurre_cacahuete` |
+| rep149 | `patate_douce` · `haricots_noirs` · `soja_texture` · `mais` · `avocat` |
+| rep150 | `riz_complet` · `tempeh` · `legumes_wok` · `lait_coco` |
+| rep151 | `polenta` · `haricots_blancs` · `soja_texture` · `tomate_concassee` · `huile_olive` |
+| rep152 | `sarrasin` · `tofu_ferme` · `champignons` · `huile_olive` · `levure_maltee` |
+| rep153 | `riz_basmati` · `poulet_filet` · `champignons` · `parmesan` · `huile_olive` |
+| rep154 | `riz_basmati` · `crevettes` · `courgette` · `huile_olive` |
+| rep155 | `riz_basmati` · `soja_texture` · `petits_pois` · `creme_soja` · `levure_maltee` |
+| rep156 | `riz_basmati` · `poulet_filet` · `crevettes` · `poivron` · `petits_pois` · `huile_olive` |
+| rep157 | `pomme_de_terre` · `jambon_blanc` · `mozzarella` · `creme_soja` |
+| rep158 | `pomme_de_terre` · `saumon` · `fromage_blanc_0` · `huile_olive` · `roquette` |
+| rep159 | `pomme_de_terre` · `pois_chiches` · `soja_texture` · `epinards` · `lait_coco` |
+| rep160 | `pomme_de_terre` · `thon_naturel` · `haricots_verts` · `oeuf_entier` · `huile_olive` |
+| rep161 | `polenta` · `boeuf_5` · `tomate_concassee` · `parmesan` · `huile_olive` |
+| rep162 | `polenta` · `tempeh` · `ratatouille` · `huile_olive` |
+| rep163 | `polenta` · `cabillaud` · `epinards` · `huile_olive` |
+| rep164 | `nouilles_riz` · `boeuf_bavette` · `carotte` · `salade_verte` · `beurre_cacahuete` |
+| rep165 | `poulet_filet` · `nouilles_riz` · `oignon` · `carotte` · `epinards` · `huile_olive` |
+| rep166 | `nouilles_riz` · `tempeh` · `legumes_wok` · `lait_coco` |
+| rep167 | `sarrasin` · `jambon_blanc` · `oeuf_entier` · `champignons` · `huile_olive` |
+| rep168 | `millet` · `saumon` · `brocoli` · `huile_olive` |
+| rep169 | `quinoa` · `dinde_escalope` · `patate_douce` · `epinards` · `amandes` |
+| rep170 | `sarrasin` · `haricots_blancs` · `soja_texture` · `tomate_concassee` · `olives` |
+
+---
+
+## 9. Avant de répondre — auto-contrôle
 
 Passe cette liste sur **chaque** recette. Ce sont les erreurs réellement constatées sur les vagues
 précédentes.

@@ -73,7 +73,7 @@ const LOTS: Lot[] = [
       '⚠️ **La règle des 12 g de lipides ne s\'applique PAS ici.** 12 g de lipides valent 108 kcal, soit 70 % d\'une collation de 150 kcal. L\'ancre grasse reste obligatoire, elle est simplement petite.',
       '⚠️ **N\'essaie PAS d\'atteindre 6 g de protéines pour 100 kcal.** C\'est cette règle qui a rendu les 66 collations actuelles inutilisables. La collation est servie en dernier, le plancher protéique de la journée est déjà couvert par les trois repas : la cible résiduelle réelle est de **1 à 18 g**. Vise 5 à 7 g/100 kcal sans t\'y contraindre.',
       '**Le volume vient du fruit ou d\'un féculent léger**, jamais de la protéine.',
-      'Formats à viser : fruit + laitage maigre, fruit + oléagineux, tartine simple, compote-fromage blanc, crudités + tartinable, petite salade de fruits protéinée.',
+      '⚠️ **« Fruit + laitage maigre » est FERMÉ** : `skyr`, `fromage_blanc_0`, `cottage_cheese` et `yaourt_grec` sont tous saturés en « sans féculent » et en « avec flocons d\'avoine ». Ne pars pas de là. Formats ouverts : **salé** (une collation carnée — le catalogue n\'en compte AUCUNE), tartine ou galette garnie, crudités + tartinable, `yaourt_nature` ou `petit_suisse` (zéro recette), ou un laitage saturé RÉHABILITÉ par un féculent léger (galette de riz, châtaigne, pain sans gluten).',
     ],
   },
   ...[1, 2, 3, 4].map((n): Lot => ({
@@ -152,6 +152,55 @@ function tripletsSatures(cat: Recette['category']): { cle: string; n: number; id
 }
 
 const fmt = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(1));
+
+/**
+ * Ensembles de refs COMPLETS des recettes existantes de la catégorie.
+ * Indispensable : les règles R1 (Jaccard ≥ 0,60) et R2 (> 3 refs communs) portent sur
+ * l'ensemble ENTIER, pas seulement sur le couple protéine × féculent. Sans cette table
+ * le rédacteur ne peut pas les respecter — il devine, et le contrôle rejette au retour.
+ */
+function tableEnsembles(cat: Recette['category']): string {
+  const l = RECIPES.filter((r) => r.category === cat)
+    .map((r) => `| ${r.id} | ${r.ingredients.map((i) => `\`${i.ref}\``).join(' · ')} |`);
+  return ['| id | ensemble de refs |', '|---|---|', ...l].join('\n');
+}
+
+/** Fréquence de chaque ref sur la catégorie, et refs jamais employés (terrain vierge). */
+function frequences(cat: Recette['category']): { chauds: string; vierges: string[] } {
+  const f: Record<string, number> = {};
+  for (const r of RECIPES) if (r.category === cat) for (const i of r.ingredients) f[i.ref] = (f[i.ref] ?? 0) + 1;
+  const chauds = Object.entries(f).filter(([, n]) => n >= 5).sort((a, b) => b[1] - a[1])
+    .map(([k, n]) => `\`${k}\` ${n}`).join(' · ');
+  const vierges = Object.keys(REFS).filter((k) => !f[k]).sort();
+  return { chauds, vierges };
+}
+
+/**
+ * Couples (protéine × féculent) encore DISPONIBLES — ceux à 0 ou 1 occurrence.
+ * C'est le complément indispensable de la liste des saturés : dire ce qui est interdit
+ * sans dire ce qui reste ouvert envoie le rédacteur dans un mur invisible. C'est
+ * exactement l'erreur qu'avait la première version de ce générateur, dont les « formats
+ * à viser » pointaient tous sur des couples déjà saturés.
+ */
+function couplesOuverts(cat: Recette['category']): { proteine: string; libre: number; occupe: number }[] {
+  const m = new Map<string, number>();
+  for (const r of RECIPES.filter((x) => x.category === cat)) {
+    const p = r.ingredients.filter((i) => i.macro_role === 'protein').map((i) => i.ref).sort().join('+') || '∅';
+    const c = r.ingredients.filter((i) => i.macro_role === 'carb').map((i) => i.ref).sort().join('+') || 'sans féculent';
+    m.set(`${p} × ${c}`, (m.get(`${p} × ${c}`) ?? 0) + 1);
+  }
+  // Ancres protéiques crédibles : ≥ 7 g de protéines aux 100, employées ou non.
+  const ancres = Object.keys(REFS).filter((k) => REFS[k].per_100.protein >= 7);
+  const feculents = ['sans féculent', ...Object.keys(REFS).filter((k) => {
+    const p = REFS[k].per_100;
+    return p.carbs >= 20 && p.protein < 15;
+  })];
+  return ancres.map((a) => {
+    const libre = feculents.filter((f) => (m.get(`${a} × ${f}`) ?? 0) < 2).length;
+    const occupe = [...m.entries()].filter(([k, n]) => k.startsWith(`${a} ×`) && n >= 2).length;
+    return { proteine: a, libre, occupe };
+  }).filter((x) => x.libre > 0).sort((a, b) => a.occupe - b.occupe || b.libre - a.libre);
+}
 
 function tableRefs(refs: string[], cat: Recette['category']): string {
   const lignes = refs.map((ref) => {
@@ -467,6 +516,21 @@ ${refs.map((r) => ({ r, n: usage(r, lot.categorie), role: roleDominant(r) }))
     .sort((a, b) => b.n - a.n).slice(0, 15)
     .map((x) => `- \`${x.r}\` (${x.role}) — déjà dans ${x.n} recettes`).join('\n')}
 
+### Ancres encore OUVERTES — c'est là qu'il faut aller
+
+Dire ce qui est interdit sans dire ce qui reste libre envoie dans un mur. Voici les ancres
+protéiques par ordre de **disponibilité** : « couples saturés » = combinaisons déjà fermées pour
+cette ancre, « places libres » = combinaisons (ancre × féculent) encore utilisables.
+
+| Ancre protéine | Couples saturés | Places libres |
+|---|---|---|
+${couplesOuverts(lot.categorie).slice(0, 18).map((x) => `| \`${x.proteine}\` | ${x.occupe || '—'} | ${x.libre} |`).join('\n')}
+
+**Refs JAMAIS employés en \`${lot.categorie}\`** — terrain entièrement vierge, aucun risque de
+doublon :
+
+${frequences(lot.categorie).vierges.map((v) => `\`${v}\``).join(' · ')}
+
 ### Diversité de format
 
 Au plus **3 recettes** de ce lot peuvent partager le même format de service : wrap/pita/tartine,
@@ -474,7 +538,18 @@ bowl, poêlée, salade, porridge/pudding, galette/pancake, soupe.
 
 ---
 
-## 8. Avant de répondre — auto-contrôle
+## 8. Annexe — les ${RECIPES.filter((r) => r.category === lot.categorie).length} recettes \`${lot.categorie}\` déjà au catalogue
+
+**Tu as besoin de cette table pour respecter R1 et R2**, qui portent sur l'ensemble ENTIER des refs
+et pas seulement sur le couple protéine × féculent. Vérifie chacune de tes recettes contre elle.
+
+Refs les plus fréquents sur ce créneau (à éviter de renforcer) : ${frequences(lot.categorie).chauds}
+
+${tableEnsembles(lot.categorie)}
+
+---
+
+## 9. Avant de répondre — auto-contrôle
 
 Passe cette liste sur **chaque** recette. Ce sont les erreurs réellement constatées sur les vagues
 précédentes.
