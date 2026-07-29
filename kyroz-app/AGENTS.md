@@ -195,3 +195,36 @@
 
 ## Garde-fous PARTOUT (CLAUDE.md §6)
 Plancher = énergie disponible (30 kcal/kg de masse maigre + sport, **plafonné au TDEE**), filet absolu 1500 ♂ / 1200 ♀ ; déficit ≤ 25 % du TDEE **sur tous les chemins** ; plancher lipidique 0,8 g/kg de masse maigre ; **pas < 18 ans** (`lib/safety.ts::MIN_AGE`) ; déficit annulé sous IMC 18,5 ; disclaimer affiché ; fallback plan (jamais d'erreur vide).
+
+## Catalogue de recettes — vague de 113 (2026-07-30)
+
+Branche `feature/vague-recettes-80`, commit `5f41066`, **non mergé**. Brief :
+`Recette/BRIEF-GENERATION-RECETTES.md`. Commande opérationnelle : `Recette/lots/*.md`, générés par
+`npm run gen:lots`.
+
+**Deux erreurs de mesure trouvées et corrigées, à ne pas refaire :**
+1. Un comptage de variété **agrégé sur trois gabarits** annonçait 21 à 30 recettes distinctes par
+   créneau. Un utilisateur n'a qu'un gabarit : le vrai chiffre est **11 à 13**, pour tous les
+   régimes. Ne jamais agréger ce qu'un utilisateur voit séparément.
+2. Les 9 profils de contrôle étaient **tous masculins**. L'ancre protéine a un facteur minimum de
+   **1,00** — elle ne descend jamais sous la base — donc un catalogue écrit sur un homme de 80 kg
+   pose un plancher au-dessus de la moitié basse de la population. Mesuré : **0 collation sur 66**
+   servable à une femme de 55 kg en sèche, **48 sur 66** ne servant aucun profil féminin, jusqu'à
+   **+128 kcal/j** servis au-dessus de la cible (44 % du déficit effacé).
+
+C'est la même famille d'erreur que le partage glucides/lipides figé à 55/45 : **mesurer sur une
+réplique des formules du moteur.** `scripts/mesure-couverture.ts` appelle `buildLocalPlan` puis
+`adaptRecipe` et ne recopie rien — c'est la référence, y compris pour le §4.11 du brief.
+
+**Ce que la mesure impose à l'écriture** : protéine de base BASSE, féculent HAUT. poulet 100 g +
+riz 90 g (554 kcal / 33 P) sert 12 profils sur 12 ; le même à 160 g de poulet et 40 g de riz en
+sert 6. Et la collation est le RESTE du budget, pas un shaker : cible protéique résiduelle de 1 à
+18 g quand le catalogue est à 21,6 g de médiane.
+
+**Outillage** (`npm run …`) : `gen:lots` · `check:doublons -- <f>` · `check:enveloppe -- <f>`
+(règle R8, sort en code 1) · `mesure:couverture`. `check:enveloppe` a attrapé une erreur dans le
+brief lui-même — une enveloppe commandée mais infaisable ; s'en servir AVANT de figer une consigne.
+
+**Point ouvert** : la vague ajoute, elle ne répare pas. Les 48 collations invendables aux femmes
+restent dans le catalogue. Le chantier se mesure maintenant en une commande.
+
