@@ -29,10 +29,10 @@ import { deleteAccount, deleteCloudData } from '../../lib/sync';
 import { exportMyData } from '../../lib/exportData';
 import {
   calculateTDEE, computePlan, goalLabel, planFlags, validateProfile, recalcProfile, DEFAULT_CARB_RATIO, recommendedProteinPerKg,
-  DEFAULT_NEAT_LEVEL, NEAT_ORDER, NEAT_LABEL, NEAT_HINT, dismissEngineNotice,
+  DEFAULT_NEAT_LEVEL, NEAT_ORDER, NEAT_LABEL, NEAT_HINT, NEAT_SHORT, dismissEngineNotice,
 } from '../../lib/tdee';
 import {
-  lowEaWeeksForFloor, checkEligibility, eligibilityMessage,
+  lowEaWeeksForFloor, checkEligibility, eligibilityMessage, LowEaEscalation,
   AGE_BOUNDS, WEIGHT_BOUNDS, HEIGHT_BOUNDS,
 } from '../../lib/safety';
 import { datedGoalStatus, datedGoalKcalDelta, addDaysStamp, daysBetween } from '../../lib/datedGoal';
@@ -215,7 +215,12 @@ export default function ProfilScreen() {
   // sinon les calories remontent sans explication et la personne continue de croire
   // qu'elle sèche. Le verdict vient du producteur unique (planFlags → computePlan) :
   // aucun seuil n'est réécrit ici, l'écran ne fait que rendre visible sa décision.
-  const underweightCapped = planFlags(profile).includes('UNDERWEIGHT_NO_DEFICIT');
+  // UN SEUL appel au producteur : `planFlags` recalculait déjà tout le plan pour n'en
+  // garder que les drapeaux, et la remontée d'énergie disponible a besoin du même
+  // calcul. Deux appels, c'était deux vérités possibles à un instant de bascule.
+  const plan = computePlan(profile);
+  const underweightCapped = plan.flags.includes('UNDERWEIGHT_NO_DEFICIT');
+  const lowEaRise = plan.low_ea_escalation;
 
   return (
     <SafeAreaView style={s.safe} edges={['top']}>
@@ -253,6 +258,13 @@ export default function ProfilScreen() {
           </TouchableOpacity>
         )}
 
+        {/* Sortie de déficit après un long séjour en énergie disponible basse.
+            SANS cette carte, la cible remonte de ~23 kcal/j chaque semaine pendant
+            dix semaines sans un mot — une sèche dont les calories augmentent toutes
+            les semaines, ce qui se lit comme une app qui déraille. On explique, on
+            chiffre SUR SON CORPS, et on promet une fin (la remontée est bornée). */}
+        {lowEaRise && <LowEaRiseCard t={t} rise={lowEaRise} onPress={() => setEditor('goal')} />}
+
         {/* Macros cibles (affichage) */}
         <SectionLabel t={t}>MACROS CIBLES / JOUR</SectionLabel>
         <View style={s.grid}>
@@ -266,7 +278,7 @@ export default function ProfilScreen() {
         <SectionLabel t={t}>RÉGLAGES</SectionLabel>
         <View style={[s.menu, cardShadow(t)]}>
           <MenuRow t={t} icon="person-outline" label="Informations" value={`${SEX_LABELS[profile.sex]} · ${profile.age} ans · ${profile.weight_kg} kg${profile.body_fat_pct != null ? ` · ${profile.body_fat_pct}% MG` : ''}`} onPress={() => setEditor('info')} />
-          <MenuRow t={t} icon="barbell-outline" label="Sport & activité" value={`${profile.sports?.length ? `${profile.sports.length} sport${profile.sports.length > 1 ? 's' : ''}` : 'Aucun sport'} · ${NEAT_LABEL[profile.neat_level ?? DEFAULT_NEAT_LEVEL].toLowerCase()}`} onPress={() => setEditor('sports')} />
+          <MenuRow t={t} icon="barbell-outline" label="Sport & activité" value={`${profile.sports?.length ? `${profile.sports.length} sport${profile.sports.length > 1 ? 's' : ''}` : 'Aucun sport'} · ${NEAT_SHORT[profile.neat_level ?? DEFAULT_NEAT_LEVEL]}`} onPress={() => setEditor('sports')} />
           <MenuRow t={t} icon="flag-outline" label="Objectif" value={goalLabel(profile.goal)} onPress={() => setEditor('goal')} />
           <MenuRow t={t} icon="rocket-outline" label="Objectif daté" value={profile.goal_target ? `${profile.goal_target.target_weight_kg} kg · ${formatFR(profile.goal_target.target_date)}` : 'Aucun'} onPress={() => setEditor('dated_goal')} />
           <MenuRow t={t} icon="flame-outline" label="Calories & macros" value={profile.macro_mode === 'percent' ? 'Perso %' : 'Calculées'} onPress={() => setEditor('macros')} />
@@ -515,6 +527,44 @@ function InfoEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
       <SectionLabel t={t}>Masse grasse (optionnel)</SectionLabel>
       <BodyFatPicker t={t} sex={sex} value={bodyFat} onChange={setBodyFat} />
     </EditorShell>
+  );
+}
+
+/**
+ * Sortie progressive de déficit après un long séjour en énergie disponible basse.
+ *
+ * ⚠️ Ce n'est PAS un avertissement — rien n'est cassé et la personne n'a rien fait
+ * de mal. C'est l'explication d'un mouvement du moteur qui, sans elle, est
+ * indétectable : sa cible monte de quelques dizaines de kcal chaque semaine alors
+ * qu'elle est en sèche. Le ton suit la règle anti charge mentale — le moteur porte
+ * la charge, elle n'a rien à faire.
+ *
+ * Deux états, parce que la remontée est BORNÉE (30 → 35 kcal/kg, dix crans) :
+ * pendant, on annonce le rythme et la fin ; une fois au plafond, dire « ta cible
+ * remonte » serait faux — elle a cessé de monter, et c'est le déficit qui n'existe
+ * plus. À ce moment-là la seule chose utile est de proposer de changer d'objectif.
+ */
+function LowEaRiseCard({ t, rise, onPress }: {
+  t: ThemePalette; rise: LowEaEscalation; onPress: () => void;
+}) {
+  const enCours = rise.weeksToPlateau > 0;
+  return (
+    <TouchableOpacity activeOpacity={0.85} onPress={onPress}>
+      <Card t={t}>
+        <Text style={{ color: t.text, fontSize: 15, fontWeight: '700', marginBottom: 6 }}>
+          {enCours ? '🛡️ Ta cible remonte, c\'est voulu' : '🛡️ Kyroz a mis ta sèche en pause'}
+        </Text>
+        {enCours ? (
+          <Text style={{ color: t.text, fontSize: 13, lineHeight: 19 }}>
+            Tu sèches depuis plus de 3 mois. Pour protéger ton énergie sur la durée, Kyroz remonte doucement tes calories — environ {rise.weeklyKcal} kcal par semaine, encore {rise.weeksToPlateau} semaine{rise.weeksToPlateau > 1 ? 's' : ''}. Tu n'as rien à changer.
+          </Text>
+        ) : (
+          <Text style={{ color: t.text, fontSize: 13, lineHeight: 19 }}>
+            Après un long déficit, Kyroz t'a ramenée à un niveau qui protège ton énergie : tes calories ne baisseront plus tant que tu restes ici. Tu n'as rien à faire dans l'immédiat — touche ici quand tu veux choisir un autre objectif.
+          </Text>
+        )}
+      </Card>
+    </TouchableOpacity>
   );
 }
 

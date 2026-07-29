@@ -135,6 +135,32 @@ export type AdaptFlag =
 
 // Signaux de sécurité levés par le moteur (cf. lib/safety.ts + lib/tdee.ts).
 // Calculés à la volée, JAMAIS persistés : ce sont des verdicts sur le plan courant.
+//
+// ⚠️ TOUS LES DRAPEAUX N'ONT PAS VOCATION À ÊTRE AFFICHÉS — décision du 2026-07-29,
+// prise sur mesure (10 080 profils) et non par principe. Un drapeau qui se lève sur
+// un quart de la population sans que la personne ait le moindre levier n'est pas de
+// l'information, c'est de l'inquiétude. Avant d'en câbler un, MESURER sa fréquence.
+//
+//   drapeau                      tir      affiché ?
+//   FLOOR_APPLIED                 5,0 %   oui (objectif daté, aperçu, macros)
+//   UNDERWEIGHT_NO_DEFICIT        rare    oui (carte Profil)
+//   GOAL_DIRECTION_MISMATCH       rare    oui (check-in poids)
+//   LOW_EA_BUDGET_EXCEEDED        →100 %  oui (carte Profil, depuis 2026-07-29)
+//   LOW_EA_WARNING               33,9 %   NON, volontairement
+//   CARBS_BELOW_TRAINING_FLOOR   10,2 %   NON, volontairement
+//   MACRO_BUDGET_OVERFLOW         0,0 %   NON, volontairement
+//
+// • `LOW_EA_WARNING` — 80,4 % des sèches, 85,7 % des hommes sportifs en sèche. Mais
+//   mesuré sur les 10 080 profils, l'énergie disponible servie n'est JAMAIS sous 30 :
+//   le plancher garantit le seuil dur de l'IOC. Le drapeau ne signale donc que « tu
+//   es dans la zone 30–35 », où le moteur protège déjà et où l'utilisateur n'a rien
+//   à faire. Le câbler = alarme permanente sans levier. Reste utile EN INTERNE : il
+//   alimente le registre d'exposition (`countsAsLowEaWeek`), qui lui a des effets.
+// • `CARBS_BELOW_TRAINING_FLOOR` — 27,4 % des sèches, manque médian 30 g. En déficit,
+//   le budget est le budget : aucun levier en mode auto. Décision fondateur : muet.
+// • `MACRO_BUDGET_OVERFLOW` — 0 sur 10 080. C'est un canari d'ingénierie (il signale
+//   un état qui ne devrait pas exister), pas un message. S'il se lève un jour, c'est
+//   un bug à corriger, pas une information à servir.
 export type PlanFlag =
   | 'FLOOR_APPLIED'              // le plancher de sécurité mord → l'objectif daté devient inatteignable
   | 'LOW_EA_WARNING'             // énergie disponible sous l'optimum (zone 30–35 kcal/kg de masse maigre)

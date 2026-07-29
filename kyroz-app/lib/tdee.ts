@@ -6,7 +6,7 @@ import {
   BodyInput, MIN_AGE, MIN_KCAL, EA_OPTIMAL, LOW_EA_BUDGET_WEEKS, countsAsLowEaWeek,
   bodyFatBounds, clamp, collapseLowEaRegistry, deficitBlocked, energyAvailability,
   fatFreeMassKg, isFemaleAtRisk, lowEaWeeksBefore, markLowEaWeek, safetyFloorKcal,
-  settleLowEaExposure,
+  settleLowEaExposure, lowEaEscalation, LowEaEscalation,
 } from './safety';
 
 // ── Calculs nutritionnels ────────────────────────────────────────────────────
@@ -86,18 +86,82 @@ export function neatPal(level?: NeatLevel | null): number {
 // l'entraînement une seconde fois.
 export const NEAT_ORDER: NeatLevel[] = ['desk', 'light', 'active', 'physical'];
 
+/**
+ * ⚠️ CE N'EST PAS DE LA COSMÉTIQUE — c'est le réglage le plus lourd de l'app.
+ *
+ * Mesuré sur 800 profils (2 sexes × 5 âges × 5 %MG × 4 profils sportifs × 4
+ * objectifs), un SEUL cran ajoute 126 à 165 kcal/j de maintenance (médiane 142) ;
+ * `desk` → `physical` vaut +405 kcal/j sur la cible servie. Et surtout, en sèche :
+ *
+ *   niveau     déficit réel servi     plancher de sécurité actif
+ *   desk       −180 kcal/j            200/200  (100 %)
+ *   light      −300 kcal/j              0/200
+ *   active     −300 kcal/j              0/200
+ *   physical   −300 kcal/j              0/200
+ *
+ * Autrement dit : le plancher de sécurité n'est CONTRAIGNANT qu'au cran `desk`.
+ * Monter d'un seul cran le fait disparaître pour la totalité des profils mesurés
+ * et rend l'intégralité du déficit demandé. Ce clic-là n'est pas un détail de
+ * formulaire, c'est le garde-fou.
+ *
+ * Nuance qui compte pour lire les chiffres : sur un profil DÉJÀ retenu par le
+ * plancher, passer `desk` → `light` ne déplace la cible que de ~15 kcal (mesuré
+ * 14 sur H 30 ans / 85 kg / 4× muscu). Ce n'est pas rassurant, c'est l'inverse :
+ * la cible bouge peu parce que le plancher la tenait, et ce qui double vraiment
+ * c'est le DÉFICIT réel — de −167 à −300 kcal/j sur ce même profil.
+ *
+ * D'où la règle de rédaction : ANCRAGE VÉRIFIABLE, JAMAIS D'ADJECTIF FLATTEUR.
+ * Chaque niveau se reconnaît à un fait (le métier, la posture de la journée) que
+ * la personne n'a pas à s'auto-évaluer. Les versions précédentes échouaient sur
+ * les deux tableaux :
+ *  • « Assis, mais je bouge régulièrement » est la réponse modeste et raisonnable
+ *    que presque personne ne refuse — alors que « Assis presque toute la journée »
+ *    se lit comme un reproche.
+ *  • pire, l'indication de ce niveau était « Bureau avec déplacements, courses,
+ *    ménage » : les courses et le ménage, c'est TOUT LE MONDE. Le texte invitait
+ *    littéralement un employé de bureau à monter d'un cran, soit +130 kcal/j et la
+ *    fin du plancher. La mention est donc désormais rattachée EXPLICITEMENT au
+ *    niveau 1, où elle coupe l'inflation au lieu de la nourrir.
+ *
+ * L'ancrage retenu est le métier / la posture, et pas le nombre de pas : un
+ * compteur de pas inclut les séances de course (~6 000 pas pour une seule), soit
+ * exactement le double-comptage sport/NEAT que toute cette table existe pour
+ * éviter.
+ *
+ * Ce qu'on NE fait PAS : afficher les kcal de chaque niveau sous l'option. Ça
+ * transformerait une question factuelle (« c'est quoi tes journées ? ») en choix
+ * de résultat (« je prends lequel pour manger plus ? »).
+ */
 export const NEAT_LABEL: Record<NeatLevel, string> = {
-  desk: 'Assis presque toute la journée',
-  light: 'Assis, mais je bouge régulièrement',
-  active: 'Debout et en mouvement une bonne partie du temps',
-  physical: 'Métier physique',
+  desk: 'Assis la majeure partie de la journée',
+  light: 'Assis, mais souvent en déplacement',
+  active: 'Debout ou en marche la majeure partie de la journée',
+  physical: 'Travail physique : porter, pousser, monter',
 };
 
 export const NEAT_HINT: Record<NeatLevel, string> = {
-  desk: 'Bureau, télétravail, longs trajets en voiture',
-  light: 'Bureau avec déplacements, courses, ménage',
-  active: 'Commerce, soins, enseignement, service',
-  physical: 'BTP, manutention, agriculture, déménagement',
+  desk: 'Bureau, télétravail, conduite, études. Les courses et le ménage ne changent rien : c\'est ici.',
+  light: 'Tu changes de lieu plusieurs fois par jour : visites, chantiers, réunions, rendez-vous.',
+  active: 'Commerce, soins, enseignement, restauration.',
+  physical: 'BTP, manutention, agriculture, déménagement.',
+};
+
+/**
+ * Forme courte pour les résumés d'une ligne (ligne « Sport & activité » du profil),
+ * où le libellé complet — qui est une OPTION de question, pas une étiquette — passe
+ * à la ligne ou se fait tronquer. Même contenu, jamais un autre sens.
+ *
+ * La ligne est en `numberOfLines={1}` et le résumé est PRÉFIXÉ par le nombre de
+ * sports : le budget réel est donc `NEAT_SHORT` + « Aucun sport · », soit ~36
+ * caractères à l'écran (mesuré à 375 pt). Une première version à 32 caractères
+ * (« journées assises, en déplacement ») s'affichait « …en dépl… » : d'où la borne
+ * du test, qui garde une marge pour le préfixe le plus long.
+ */
+export const NEAT_SHORT: Record<NeatLevel, string> = {
+  desk: 'journées assises',
+  light: 'assis, en déplacement',
+  active: 'journées debout',
+  physical: 'travail physique',
 };
 
 /** Entrées du TDEE. `UserProfile` le satisfait — d'où l'appel `calculateTDEE(profile)`. */
@@ -483,6 +547,14 @@ export interface ComputedPlan {
   profile: UserProfile;
   flags: PlanFlag[];
   floor_kcal: number;
+  /**
+   * De quoi EXPLIQUER une cible qui remonte toute seule, ou `undefined` s'il n'y a
+   * rien à dire. Exposé ici et pas recalculé par l'écran : le nombre de semaines en
+   * zone basse dépend du solde de l'exposition (`settleLowEaExposure`) et de la
+   * fenêtre antérieure (`lowEaWeeksBefore`), deux étapes que l'UI referait
+   * forcément de travers. Producteur unique, comme pour les drapeaux.
+   */
+  low_ea_escalation?: LowEaEscalation;
 }
 
 /**
@@ -618,6 +690,8 @@ export function computePlan(p: UserProfile, today: string = todayStamp()): Compu
   const engine_notice = p.engine_notice
     ?? engineNoticeFor(p.engine_rev, p.target_kcal, m.target_kcal);
 
+  const escalation = lowEaEscalation(p, lowEaWeeks) ?? undefined;
+
   return {
     profile: {
       ...p,
@@ -632,6 +706,10 @@ export function computePlan(p: UserProfile, today: string = todayStamp()): Compu
     },
     flags,
     floor_kcal: m.floor_kcal,
+    // `lowEaWeeks` et pas le registre brut : c'est le décompte ANTÉRIEUR, celui qui
+    // a réellement servi à calculer le plancher du jour. Expliquer une remontée avec
+    // un autre nombre que celui qui l'a produite serait une seconde source de vérité.
+    ...(escalation ? { low_ea_escalation: escalation } : {}),
   };
 }
 
