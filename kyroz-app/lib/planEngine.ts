@@ -232,12 +232,21 @@ function ingredientText(recipe: Recipe): string {
   return recipe.ingredients.map((i) => i.name.toLowerCase()).join(' ');
 }
 
-/** Une recette est-elle compatible avec le profil ? */
+/**
+ * Une recette est-elle compatible avec le profil ?
+ *
+ * ⚠️ Le TEMPS DE PRÉPARATION ne filtre plus rien depuis le 2026-07-29. Il vivait ici,
+ * dans le même prédicat que le régime, donc quand le curseur vidait le pool le repli
+ * lâchait les deux d'un coup : un végétarien recevait de la viande parce qu'il avait
+ * demandé 15 minutes. Et il les vidait vraiment — au réglage par défaut (15 min), un
+ * végétarien avait ZÉRO repas complet compatible sur 170, et un profil sans
+ * restriction en avait 13. Comme 311 des 314 recettes tiennent déjà sous 30 minutes,
+ * le pire cas sans filtre est un plat de 30 minutes : on échangeait un inconfort borné
+ * contre une trahison qui ne l'était pas. `temps_min` reste AFFICHÉ sur chaque fiche.
+ * Le curseur sera peut-être réintroduit — en préférence pondérée, jamais en filtre dur.
+ */
 function recipeAllowed(recipe: Recipe, profile: UserProfile): boolean {
   const text = ingredientText(recipe);
-
-  // Temps de prépa (repli pour profils legacy sans le champ)
-  if (recipe.prep_time_min > (profile.max_prep_time_min ?? 60)) return false;
 
   // Régimes : restrictions_ok autoritaire si présent (recettes Kyroz), sinon repli
   // mots-clés (recettes legacy/overrides sans classification diététique).
@@ -497,7 +506,7 @@ export function computeDailyTotals(
 // Version du moteur de génération : à incrémenter quand le scoring/sélection
 // change, pour que les plans EN CACHE se régénèrent automatiquement (la signature
 // change → l'auto-refresh de l'écran Plan rejoue la génération). v2 = lipides cadrés.
-const ENGINE_VERSION = 21; // v21 = yaourt_grec démappé (protéines servies +200 %) + ancre protéine sur pd10/col07/col17 ; v20 = rest_day_ok retiré du départage ; v19 = correctifs régime
+const ENGINE_VERSION = 22; // v22 = le temps de prépa ne filtre plus les recettes (le pool ne peut plus être vidé, donc le repli ne lâche plus le régime) ; v21 = yaourt_grec démappé ; v20 = rest_day_ok retiré du départage ; v19 = correctifs régime
 
 export function profileSignature(p: UserProfile): string {
   // NB : `hidden_recipes` (👎) est VOLONTAIREMENT absent. Un 👎 remplace UN repas
@@ -511,7 +520,9 @@ export function profileSignature(p: UserProfile): string {
     d: p.plan_days, m: p.meals, e: p.meal_emphasis, v: p.variety,
     rw: p.rest_weekdays ?? null, td: p.training_days_per_week, pw: p.plan_weekdays,
     r: p.dietary_restrictions, dl: p.disliked_foods, pp: p.preferred_proteins,
-    tp: p.max_prep_time_min, fm: p.fixed_meals ?? null,
+    // `max_prep_time_min` retiré de la signature le 2026-07-29 : il ne filtre plus rien,
+    // le garder ferait régénérer un plan identique à chaque changement de la valeur.
+    fm: p.fixed_meals ?? null,
   });
 }
 

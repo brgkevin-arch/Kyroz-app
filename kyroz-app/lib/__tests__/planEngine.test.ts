@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach } from 'vitest';
-import { buildLocalPlan, computeDailyTotals, profileSignature, swapMeal, computeDistribution, rebalanceDay, adaptDayOptions, effectiveMacros, resetTracking, mealIngredients, reAdaptMealRecipe, restDaySet, restDaysForProfile, goalDirection } from '../planEngine';
+import { buildLocalPlan, mealPoolSize, computeDailyTotals, profileSignature, swapMeal, computeDistribution, rebalanceDay, adaptDayOptions, effectiveMacros, resetTracking, mealIngredients, reAdaptMealRecipe, restDaySet, restDaysForProfile, goalDirection } from '../planEngine';
 import { setRecipeOverrides, RECIPES } from '../recipes';
 import { makeProfile } from './helpers';
 
@@ -464,6 +464,20 @@ describe('carb-cycling jours actifs / repos', () => {
     // isocalorique : kcal & protéines comparables repos vs actif
     expect(Math.abs(avg((t) => t.kcal, true) - avg((t) => t.kcal, false)) / avg((t) => t.kcal, false)).toBeLessThan(0.08);
     expect(Math.abs(avg((t) => t.protein_g, true) - avg((t) => t.protein_g, false)) / avg((t) => t.protein_g, false)).toBeLessThan(0.15);
+  });
+
+  it('le temps de prépa ne filtre plus : le pool ne bouge pas et le régime tient', () => {
+    // Le filtre vivait dans le même prédicat que le régime : quand le curseur vidait le
+    // pool, le repli lâchait les DEUX. Mesuré avant le retrait : au réglage par défaut
+    // (15 min), un végétarien avait ZÉRO repas complet et recevait de la viande.
+    for (const mt of ['breakfast', 'lunch', 'dinner', 'snack'] as const) {
+      expect(mealPoolSize(makeProfile({ max_prep_time_min: 10 }), mt))
+        .toBe(mealPoolSize(makeProfile({ max_prep_time_min: 30 }), mt));
+    }
+    const vege = makeProfile({ dietary_restrictions: ['vegetarian'], max_prep_time_min: 10, plan_days: 7, plan_weekdays: [1, 2, 3, 4, 5, 6, 0] });
+    const plan = buildLocalPlan(vege, 0);
+    const horsRegime = plan.meals.filter((m) => !m.recipe.restrictions_ok?.includes('vegetarian'));
+    expect(horsRegime.map((m) => m.recipe.name_fr), 'aucun repas ne doit sortir du régime').toEqual([]);
   });
 
   it('aucun jour de repos si on s’entraîne autant que le nombre de jours du plan', () => {

@@ -7,7 +7,6 @@ interface Props {
   t: ThemePalette;
   onSatisfied: () => void;       // 👍 tout va bien
   onMoreVariety: () => void;     // trop répétitif → variété max
-  onLessPrep: () => void;        // recettes trop longues → moins de prépa
   onNewPlan: () => void;         // juste régénérer
   onAdjustInProfile: () => void; // objectif/macros → renvoi vers Profil
   onOptOut: () => void;          // ne plus me demander
@@ -15,7 +14,7 @@ interface Props {
 }
 
 export function PlanCheckin({
-  t, onSatisfied, onMoreVariety, onLessPrep, onNewPlan, onAdjustInProfile, onOptOut, dragHandlers,
+  t, onSatisfied, onMoreVariety, onNewPlan, onAdjustInProfile, onOptOut, dragHandlers,
 }: Props) {
   const s = useMemo(() => makeStyles(t), [t]);
 
@@ -44,7 +43,6 @@ export function PlanCheckin({
       <View style={s.body}>
         <Row icon="checkmark-circle-outline" label="Oui, il me va bien" sub="On continue comme ça" onPress={onSatisfied} primary />
         <Row icon="shuffle-outline" label="Trop répétitif" sub="Passer en variété maximale" onPress={onMoreVariety} />
-        <Row icon="time-outline" label="Les recettes sont trop longues" sub="Réduire le temps de préparation" onPress={onLessPrep} />
         <Row icon="flag-outline" label="Je veux changer d'objectif ou mes macros" sub="Ouvre les réglages du profil" onPress={onAdjustInProfile} />
         <Row icon="refresh-outline" label="Juste un nouveau plan" sub="Régénérer pour cette semaine" onPress={onNewPlan} />
 

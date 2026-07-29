@@ -241,7 +241,13 @@ export interface UserProfile {
   dietary_restrictions: DietaryRestriction[];
   disliked_foods: string[];     // mots-clés d'ingrédients à éviter (filtre DUR)
   preferred_proteins: string[]; // sources de protéines préférées
-  max_prep_time_min: number;    // temps de prépa max par repas
+  // Temps de prépa max par repas. ⚠️ INERTE depuis le 2026-07-29 : plus aucune UI ne le
+  // règle, il ne filtre plus les recettes et il est sorti de `profileSignature`. Conservé
+  // dans le type et dans PROFILE_COLS pour ne PAS effacer la valeur des comptes déjà
+  // enregistrés — même parti pris que `activity_level`. Le curseur sera peut-être remis
+  // quand le catalogue sera assez fourni, mais en préférence pondérée, jamais en filtre
+  // dur (cf. le commentaire de `recipeAllowed` dans lib/planEngine.ts).
+  max_prep_time_min?: number;
   // Recettes « j'aime pas » (👎) : masquées des plans et des swaps, mais filtre SOUPLE
   //   — jamais un bannissement définitif (cf. lib/dislike.ts + élicitation d'ingrédient).
   //   - undefined → aucune recette masquée (profils créés avant la feature).

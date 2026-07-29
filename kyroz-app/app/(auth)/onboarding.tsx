@@ -54,7 +54,6 @@ const RESTRICTIONS: { label: string; value: DietaryRestriction }[] = [
 
 const PROTEINS = ['Poulet', 'Bœuf', 'Poisson', 'Œufs', 'Whey', 'Végétal'];
 
-const PREP_OPTIONS = [10, 15, 20, 30];
 
 const VARIETY: { value: VarietyPreference; title: string; sub: string }[] = [
   { value: 'repetitive', title: 'Répétitif', sub: "J'aime manger souvent les mêmes choses" },
@@ -121,7 +120,6 @@ export default function Onboarding() {
   const [restrictions, setRestrictions] = useState<DietaryRestriction[]>([]);
   const [proteins, setProteins] = useState<string[]>([]);
   const [dislikes, setDislikes] = useState<string[]>([]);
-  const [maxPrep, setMaxPrep] = useState(15);
   const [variety, setVariety] = useState<VarietyPreference>('balanced');
   const [planWeekdays, setPlanWeekdays] = useState<number[]>([]); // rien coché par défaut → l'user sélectionne (noir = off, blanc = on)
   const [restWeekdays, setRestWeekdays] = useState<number[]>([]);  // jours de repos (sous-ensemble des jours du plan) → carb-cycling
@@ -220,7 +218,6 @@ export default function Onboarding() {
       dietary_restrictions: restrictions,
       disliked_foods: dislikes,
       preferred_proteins: proteins.map((p) => p.toLowerCase()),
-      max_prep_time_min: maxPrep,
     };
     const profile = recalcProfile(draft); // ← source unique du TDEE et des macros
     // Éligibilité (P0.4) : mineur, IMC de départ, volume d'entraînement. La grossesse
@@ -333,13 +330,6 @@ export default function Onboarding() {
             </View>
 
             <DislikedFoodsField t={t} value={dislikes} onChange={setDislikes} />
-
-            <SectionLabel t={t}>Temps de prépa max</SectionLabel>
-            <View style={s.wrap}>
-              {PREP_OPTIONS.map((p) => (
-                <Chip key={p} t={t} label={`${p} min`} selected={maxPrep === p} onPress={() => setMaxPrep(p)} />
-              ))}
-            </View>
 
             <SectionLabel t={t}>Variété des repas</SectionLabel>
             <Text style={[s.sub, { marginTop: -4 }]}>Tu préfères la routine ou la diversité ?</Text>

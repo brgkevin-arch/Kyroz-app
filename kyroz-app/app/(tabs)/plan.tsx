@@ -502,12 +502,12 @@ export default function PlanScreen() {
   );
 
   // ── Actions du check-in « ton plan te convient ? » ─────────────────────────
-  // Les tweaks (variété, prépa) changent la signature du profil → le plan se
-  // régénère tout seul via l'effet d'auto-refresh.
-  const lowerPrep = (cur: number) => (cur > 20 ? 20 : cur > 15 ? 15 : 10);
+  // Les tweaks (variété) changent la signature du profil → le plan se régénère tout
+  // seul via l'effet d'auto-refresh. L'option « recettes trop longues » a disparu avec
+  // le filtre de temps le 2026-07-29 : elle abaissait le curseur d'un cran sans le
+  // moindre garde-fou et pouvait, en un clic, faire tomber le pool de repas à 0.
   const checkinSatisfied = () => { snoozeCheckin(); setCheckinOpen(false); toast('Parfait, on continue 👊'); };
   const checkinMoreVariety = () => { if (profile) saveProfile({ ...profile, variety: 'max' }); snoozeCheckin(); setCheckinOpen(false); toast('Variété au max — nouveau plan en route'); };
-  const checkinLessPrep = () => { if (profile) saveProfile({ ...profile, max_prep_time_min: lowerPrep(profile.max_prep_time_min) }); snoozeCheckin(); setCheckinOpen(false); toast('Recettes plus rapides — nouveau plan en route'); };
   const checkinNewPlan = () => { snoozeCheckin(); setCheckinOpen(false); generate(true); };
   const checkinAdjustProfile = () => { snoozeCheckin(); setCheckinOpen(false); router.push('/(tabs)/profil'); };
   const checkinOptOut = () => { optOutCheckin(); setCheckinOpen(false); toast('Ok. Réactivable dans Profil.'); };
@@ -843,7 +843,6 @@ export default function PlanScreen() {
           t={t}
           onSatisfied={checkinSatisfied}
           onMoreVariety={checkinMoreVariety}
-          onLessPrep={checkinLessPrep}
           onNewPlan={checkinNewPlan}
           onAdjustInProfile={checkinAdjustProfile}
           onOptOut={checkinOptOut}

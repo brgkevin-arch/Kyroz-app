@@ -59,7 +59,6 @@ const RESTRICTIONS: { label: string; value: DietaryRestriction }[] = [
   { label: 'Sans gluten', value: 'gluten_free' },
 ];
 const PROTEINS = ['Poulet', 'Bœuf', 'Poisson', 'Œufs', 'Whey', 'Végétal'];
-const PREP_OPTIONS = [10, 15, 20, 30];
 const WEEKDAY_OPTS = [
   { label: 'Lun', val: 1 }, { label: 'Mar', val: 2 }, { label: 'Mer', val: 3 }, { label: 'Jeu', val: 4 },
   { label: 'Ven', val: 5 }, { label: 'Sam', val: 6 }, { label: 'Dim', val: 0 },
@@ -820,12 +819,11 @@ function PrefEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
   const [restrictions, setRestrictions] = useState<DietaryRestriction[]>(profile.dietary_restrictions);
   const [proteins, setProteins] = useState<string[]>(profile.preferred_proteins);
   const [dislikes, setDislikes] = useState<string[]>(profile.disliked_foods);
-  const [maxPrep, setMaxPrep] = useState(profile.max_prep_time_min);
   // Recettes masquées (👎) : on retire l'id pour la ré-afficher (rien n'est définitif).
   const [hidden, setHidden] = useState<string[]>(profile.hidden_recipes ?? []);
   const hiddenNamed = hidden.map((id) => ({ id, name: getRecipeById(id)?.name_fr ?? 'Recette' }));
   const tog = <T,>(arr: T[], v: T, set: (x: T[]) => void) => set(arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
-  const submit = () => onSave({ ...profile, dietary_restrictions: restrictions, preferred_proteins: proteins, disliked_foods: dislikes, max_prep_time_min: maxPrep, hidden_recipes: hidden });
+  const submit = () => onSave({ ...profile, dietary_restrictions: restrictions, preferred_proteins: proteins, disliked_foods: dislikes, hidden_recipes: hidden });
   return (
     <EditorShell t={t} title="Préférences" onSave={submit} dragHandlers={dragHandlers}>
       <SectionLabel t={t}>Régime</SectionLabel>
@@ -842,8 +840,6 @@ function PrefEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
           <View style={styles.wrap}>{hiddenNamed.map((r) => <Chip key={r.id} t={t} label={`${r.name}  ✕`} selected onPress={() => tog(hidden, r.id, setHidden)} />)}</View>
         </>
       )}
-      <SectionLabel t={t}>Temps de prépa max</SectionLabel>
-      <View style={styles.wrap}>{PREP_OPTIONS.map((p) => <Chip key={p} t={t} label={`${p} min`} selected={maxPrep === p} onPress={() => setMaxPrep(p)} />)}</View>
     </EditorShell>
   );
 }

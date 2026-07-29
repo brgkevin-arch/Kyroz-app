@@ -6,8 +6,11 @@ import { makeProfile } from './helpers';
 
 afterEach(() => setRecipeOverrides({}));
 
-// Recettes « midi » faisables avec le profil de test (prépa ≤ 30 min, sans régime).
-const lunchIds = () => RECIPES.filter((r) => r.tags.includes('lunch') && r.prep_time_min <= 30).map((r) => r.id);
+// Recettes « midi » faisables avec le profil de test (sans régime déclaré).
+// Le filtre `prep_time_min <= 30` a sauté le 2026-07-29 avec le curseur temps : il
+// recopiait ici la condition du moteur, et l'oublier laissait 3 recettes (rep53, rep157,
+// rep161) hors de `hidden` — le swap tombait dessus au lieu de l'unique alternative.
+const lunchIds = () => RECIPES.filter((r) => r.tags.includes('lunch')).map((r) => r.id);
 
 describe('hidden_recipes (👎) — masquage souple', () => {
   it('un plan ne propose jamais une recette masquée', () => {
