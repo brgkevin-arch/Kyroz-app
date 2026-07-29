@@ -22,6 +22,10 @@ const VIOLATIONS: Record<string, DietaryRestriction[]> = {
   skyr: ['lactose_free', 'vegan'], fromage_blanc_0: ['lactose_free', 'vegan'], yaourt_grec: ['lactose_free', 'vegan'],
   cottage_cheese: ['lactose_free', 'vegan'], whey: ['lactose_free', 'vegan'], lait_demi_ecreme: ['lactose_free', 'vegan'],
   mozzarella: ['lactose_free', 'vegan'], feta: ['lactose_free', 'vegan'], parmesan: ['lactose_free', 'vegan'],
+  // pesto → mappé sur « Sauce pesto, préemballée » (ciqual-11179), qui est une sauce au
+  // FROMAGE. Même traitement que parmesan/feta : casse lactose_free et vegan, pas
+  // vegetarian (la question de la présure animale se tranche pour les trois d'un coup).
+  pesto: ['lactose_free', 'vegan'],
   // miel → produit de la ruche : pas vegan (végétarien/pescatarien OK)
   miel: ['vegan'],
   // gluten → pas sans gluten (avoine = non certifiée ; sauce soja = blé ; seitan = blé mais végétal)
@@ -30,8 +34,17 @@ const VIOLATIONS: Record<string, DietaryRestriction[]> = {
   boulgour: ['gluten_free'], semoule_couscous: ['gluten_free'], tortilla_complete: ['gluten_free'],
   pain_pita_complet: ['gluten_free'], seitan: ['gluten_free'], sauce_soja: ['gluten_free'],
   chapelure: ['gluten_free'], // panure de blé → un cabillaud pané n'est PAS sans gluten
+  // levure maltée : le malt est de l'ORGE. Les marques varient (mélasse de betterave
+  // chez certaines), donc c'est incertain — et sur le gluten l'incertitude se tranche
+  // en excluant, comme pour l'avoine non certifiée : un faux négatif retire une recette,
+  // un faux positif sert du gluten à un cœliaque.
+  levure_maltee: ['gluten_free'],
+  // falafel prêt à consommer : liant à la farine de blé sur la plupart des références
+  // industrielles. Même arbitrage prudent que ci-dessus.
+  falafel: ['gluten_free'],
   // note : tofu/tempeh/quinoa/riz/maïs/polenta/nouilles_riz/galette_riz = sans gluten ;
-  // lait_amande/lait_coco/creme_soja = NON laitiers (compatibles lactose_free).
+  // lait_amande/lait_coco/creme_soja/boisson_soja = NON laitiers (compatibles lactose_free) ;
+  // tahini = sésame → allergène, mais aucun des 7 régimes ne l'exclut (cf. champ allergènes, absent).
 };
 
 /** Régimes compatibles avec un ensemble de refs (= aucun ref ne les viole). */

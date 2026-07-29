@@ -10,7 +10,7 @@
       "scalable": "true = quantité ajustable par l'algo ; false = fixe (légumes)"
     },
     "priorite_sport": "Muscu prioritaire, puis Endurance, peu de Combats (cf. distribution).",
-    "corrections_kyroz": "rep57 +8g huile_olive (équilibre lipidique) ; recomp_flag ajouté à rep10/rep14/rep29/rep54 (densité protéique basse, comme rep03)."
+    "corrections_kyroz": "rep57 +8g huile_olive (équilibre lipidique) ; recomp_flag ajouté à rep10/rep14/rep29/rep54 (densité protéique basse, comme rep03). | 2026-07-29 : sauce_soja déclarée dans rep05/rep46/rep80 (citée en instruction, invisible du dérivé régime) ; levure_maltee + falafel + pesto ajoutés à recipeDiet.VIOLATIONS ; why de rep80/pd52/pd77/rep152/rep155 : « sans gluten » retiré (devenu faux) ; +9 ingrédients (légumineuses prêtes à consommer, tofu fumé, falafel, tahini, boisson soja, pain/wrap sans gluten)."
   },
   "enums": {
     "category": [
@@ -1233,6 +1233,98 @@
         "fat": 1.6
       },
       "abs_max_qty": 40
+    },
+    "pois_chiches_conserve": {
+      "name": "Pois chiches (conserve, égouttés)",
+      "unit": "g",
+      "per_100": {
+        "kcal": 122,
+        "protein": 6.7,
+        "carbs": 15.0,
+        "fat": 2.7
+      }
+    },
+    "lentilles_cuites": {
+      "name": "Lentilles cuites (conserve ou sachet)",
+      "unit": "g",
+      "per_100": {
+        "kcal": 125,
+        "protein": 10.1,
+        "carbs": 16.2,
+        "fat": 0.6
+      }
+    },
+    "haricots_rouges_conserve": {
+      "name": "Haricots rouges (conserve, égouttés)",
+      "unit": "g",
+      "per_100": {
+        "kcal": 108,
+        "protein": 8.3,
+        "carbs": 13.0,
+        "fat": 1.0
+      }
+    },
+    "tofu_fume": {
+      "name": "Tofu fumé",
+      "unit": "g",
+      "per_100": {
+        "kcal": 164,
+        "protein": 14.9,
+        "carbs": 2.9,
+        "fat": 9.5
+      }
+    },
+    "falafel": {
+      "name": "Falafel prêt à consommer",
+      "unit": "g",
+      "per_100": {
+        "kcal": 211,
+        "protein": 7.4,
+        "carbs": 17.7,
+        "fat": 10.8
+      },
+      "abs_max_qty": 200
+    },
+    "tahini": {
+      "name": "Purée de sésame (tahini)",
+      "unit": "g",
+      "per_100": {
+        "kcal": 631,
+        "protein": 17.7,
+        "carbs": 13.8,
+        "fat": 53.4
+      },
+      "abs_max_qty": 40
+    },
+    "boisson_soja": {
+      "name": "Boisson au soja nature",
+      "unit": "ml",
+      "per_100": {
+        "kcal": 42,
+        "protein": 3.2,
+        "carbs": 1.9,
+        "fat": 2.1
+      }
+    },
+    "pain_sans_gluten": {
+      "name": "Pain sans gluten",
+      "unit": "g",
+      "per_100": {
+        "kcal": 249,
+        "protein": 4.6,
+        "carbs": 37.1,
+        "fat": 6.6
+      }
+    },
+    "wrap_sans_gluten": {
+      "name": "Wrap / tortilla sans gluten",
+      "unit": "g",
+      "per_100": {
+        "kcal": 316,
+        "protein": 6.1,
+        "carbs": 58.0,
+        "fat": 5.6
+      }
     }
   },
   "recipes": [
@@ -3790,6 +3882,12 @@
           "qty": 5,
           "macro_role": "fat",
           "scalable": true
+        },
+        {
+          "ref": "sauce_soja",
+          "qty": 10,
+          "macro_role": "flavor",
+          "scalable": false
         }
       ],
       "instructions": [
@@ -6261,6 +6359,12 @@
           "qty": 8,
           "macro_role": "fat",
           "scalable": true
+        },
+        {
+          "ref": "sauce_soja",
+          "qty": 10,
+          "macro_role": "flavor",
+          "scalable": false
         }
       ],
       "instructions": [
@@ -10831,13 +10935,19 @@
           "qty": 7,
           "macro_role": "fat",
           "scalable": true
+        },
+        {
+          "ref": "sauce_soja",
+          "qty": 10,
+          "macro_role": "flavor",
+          "scalable": false
         }
       ],
       "instructions": [
         "Cuire le riz, rôtir le chou-fleur.",
         "Laquer le tempeh à la sauce soja-érable, dresser."
       ],
-      "why": "Vegan & sans gluten : tempeh fermenté très protéiné.",
+      "why": "Vegan : tempeh fermenté très protéiné, laqué à la sauce soja.",
       "macros_per_serving": {
         "kcal": 658,
         "protein": 38.7,
@@ -15176,7 +15286,7 @@
         "Rôtir la patate douce en dés.",
         "Émietter le tofu, poêler avec épinards et levure maltée."
       ],
-      "why": "Vegan & sans gluten salé : brunch protéiné, sans œuf ni pain.",
+      "why": "Vegan salé : brunch protéiné, sans œuf ni pain.",
       "macros_per_serving": {
         "kcal": 469,
         "protein": 35.1,
@@ -16363,7 +16473,7 @@
         "Cuire le sarrasin.",
         "Griller le tofu, poêler les champignons, parsemer de levure maltée."
       ],
-      "why": "Vegan & sans gluten : umami du tofu + champignons, ancre protéique haute.",
+      "why": "Vegan : umami du tofu + champignons, ancre protéique haute.",
       "macros_per_serving": {
         "kcal": 705,
         "protein": 43.6,
@@ -17435,7 +17545,7 @@
         "Rissoler les pommes de terre en dés.",
         "Émietter le tofu, poêler avec champignons et levure maltée."
       ],
-      "why": "Vegan & sans gluten : petit-déj salé très protéiné, sans œuf.",
+      "why": "Vegan : petit-déj salé très protéiné, sans œuf.",
       "macros_per_serving": {
         "kcal": 508,
         "protein": 38.5,
@@ -18255,7 +18365,7 @@
         "Nacrer le riz, mouiller au bouillon.",
         "Ajouter la PST réhydratée et les petits pois, finir crème de soja et levure."
       ],
-      "why": "Vegan & sans gluten : risotto crémeux sans laitier, forte capacité protéique.",
+      "why": "Vegan : risotto crémeux sans laitier, forte capacité protéique.",
       "macros_per_serving": {
         "kcal": 650,
         "protein": 40.4,

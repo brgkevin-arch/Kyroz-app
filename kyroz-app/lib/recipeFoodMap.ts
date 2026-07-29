@@ -10,7 +10,7 @@
 // le recoupement de noms se fait piéger (« maquereau » → « groseille à maquereau »).
 // Les ids `ciqual-XXXX` = `alim_code` ANSES, stables d'une régénération à l'autre.
 //
-// ── Les 14 `ref` qui restent en valeur MANUELLE (2026-07-14) ────────────────────
+// ── Les 15 `ref` qui restent en valeur MANUELLE (2026-07-29) ────────────────────
 // Règle appliquée : on ne mappe QUE si l'entrée Ciqual est SANS AMBIGUÏTÉ le même
 // aliment. « À peu près pareil » = on garde la valeur manuelle (mieux vaut une
 // estimation assumée qu'un faux aliment officiel).
@@ -20,6 +20,8 @@
 //     soja_texture (PST), haricots_noirs, millet (Ciqual n'a que la FARINE de millet).
 //   • Produit voisin mais distinct : levure_maltee (Ciqual n'a que la levure de BIÈRE).
 //   • Composites/mélanges par construction : fruits_rouges, legumes_wok, ratatouille.
+//   • Pas d'entrée « sans gluten » : wrap_sans_gluten (Ciqual n'a qu'une tortilla de MAÏS,
+//     qui n'est pas garantie sans blé — on ne mappe pas un « à peu près » sur du gluten).
 export const REF_FOOD_ID: Record<string, string> = {
   // Viandes / poissons (basis cru)
   poulet_filet: 'ciqual-36017', dinde_escalope: 'ciqual-36304', boeuf_5: 'ciqual-6250',
@@ -39,12 +41,27 @@ export const REF_FOOD_ID: Record<string, string> = {
   haricots_blancs: 'ciqual-20501', feves: 'ciqual-20518', pois_casses: 'ciqual-20515',
   sarrasin: 'ciqual-9380', chataigne: 'ciqual-15024', // châtaigne crue
   // (soja_texture, haricots_noirs, millet : pas d'entrée Ciqual sèche propre → valeur manuelle JSON)
+  // Végétal protéiné PRÊT À CONSOMMER (2026-07-29) — poids servi = poids acheté, à l'inverse
+  // des entrées sèches ci-dessus. Sans elles, une recette de 10 min aux pois chiches affichait
+  // le poids SEC en liste de courses : non achetable pour un plat sans trempage ni cuisson.
+  pois_chiches_conserve: 'ciqual-20532',    // « Pois chiche, appertisé, égoutté »
+  haricots_rouges_conserve: 'ciqual-20524', // « Haricot rouge, appertisé, égoutté »
+  lentilles_cuites: 'ciqual-20360',         // « Lentille, bouillie/cuite à l'eau (aliment moyen) » — Ciqual
+                                            // n'a AUCUNE entrée appertisée pour la lentille, d'où le ref
+                                            // nommé « cuites » (conserve ou sachet) et non « conserve ».
+  tofu_fume: 'ciqual-20912',                // « Tofu fumé, préemballé »
+  falafel: 'ciqual-25590',                  // « Falafel ou boulette de pois-chiche et/ou fève, préemballé »
   // Féculents (basis sec/cru)
   riz_basmati: 'ciqual-9119', riz_complet: 'ciqual-9102', flocons_avoine: 'ciqual-32140',
   quinoa: 'ciqual-9340', patate_douce: 'ciqual-4101', pomme_de_terre: 'ciqual-4008',
   pain_complet: 'ciqual-7110', pain_seigle: 'ciqual-7125', boulgour: 'ciqual-9690',
   semoule_couscous: 'ciqual-9610', galette_riz: 'ciqual-7352', pain_pita_complet: 'ciqual-7180',
   tortilla_complete: 'ciqual-7815', chapelure: 'ciqual-7500', // « Chapelure » (blé → gluten, cf. recipeDiet)
+  pain_sans_gluten: 'ciqual-7130', // « Pain sans gluten, préemballé » — il n'existait AUCUN pain
+                                   // sans gluten au catalogue : c'est la cause directe du pool
+                                   // sans-gluten à 6 repas complets sur 170 au réglage 15 min.
+  // (wrap_sans_gluten : Ciqual n'a pas d'entrée « tortilla sans gluten » — seulement une tortilla
+  //  de maïs qui n'est PAS garantie sans blé → valeur manuelle JSON, calquée sur ciqual-7813.)
   // Pâtes / nouilles / polenta — entrées Ciqual « crues/sèches » (basis=dry respecté ; 2026-07-14)
   pates_semoule: 'ciqual-9810',      // « Pâtes sèches, standard, crues »
   pates_completes: 'ciqual-9870',    // « Pâtes sèches, au blé complet, crues »
@@ -64,6 +81,10 @@ export const REF_FOOD_ID: Record<string, string> = {
   pesto: 'ciqual-11179',           // « Sauce pesto, préemballée »
   creme_soja: 'ciqual-11214',      // « Préparation culinaire à base de soja, type "crème de soja" »
   cacao_poudre: 'ciqual-18100',    // « Cacao, sans sucres ajoutés, poudre soluble »
+  tahini: 'ciqual-15203',          // « Tahin ou purée de sésame » — ⚠️ introduit le SÉSAME, allergène
+                                   // qu'aucun champ ne porte aujourd'hui (cf. recipeDiet, note de fin)
+  boisson_soja: 'ciqual-18900',    // « Boisson au soja, nature, non enrichie, préemballée » — PAS
+                                   // l'aliment moyen 18113, qui mélange les versions sucrées/aromatisées
   // Fruits (basis cru)
   banane: 'ciqual-13005', mangue: 'ciqual-13025', ananas: 'ciqual-13002', kiwi: 'ciqual-13021',
   pomme: 'ciqual-13039', myrtilles: 'ciqual-13028', framboises: 'ciqual-13015',
@@ -78,7 +99,7 @@ export const REF_FOOD_ID: Record<string, string> = {
   tomate_concassee: 'ciqual-20169', // « Tomate, chair, appertisée » (NON égouttée — la concassée garde son jus)
 };
 
-// ── Fibres (g/100 g) des 14 `ref` NON mappés à Ciqual ─────────────────────────
+// ── Fibres (g/100 g) des 15 `ref` NON mappés à Ciqual ─────────────────────────
 // Pour les ref mappés, les fibres viennent de la colonne Ciqual (cf. Food.fiber_g,
 // résolu dans recipeData). Les 14 ci-dessous n'ont pas de food_id → valeur MANUELLE,
 // estimée sur l'aliment Ciqual le plus proche (fibres = nudge/affichage, pas une macro
@@ -92,4 +113,5 @@ export const REF_FIBER_MANUAL: Record<string, number> = {
   edamame: 5, millet: 3.5,                         // fève de soja / millet
   levure_maltee: 20,                              // levure maltée : très riche
   fruits_rouges: 4, legumes_wok: 2.5, ratatouille: 2, // mélanges (moyenne des composants)
+  wrap_sans_gluten: 3.6,                          // calqué sur la tortilla de maïs (ciqual-7813)
 };

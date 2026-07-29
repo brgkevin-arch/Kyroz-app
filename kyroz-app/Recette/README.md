@@ -39,6 +39,12 @@ Les fichiers de `drops/` sont de la matière première : on en extrait, on ne le
 ## Conventions de contenu
 
 - Poids **SEC** pour féculents et légumineuses, **CRU** pour viandes/poissons (`basis`).
+  Exception assumée : les refs `*_conserve` / `lentilles_cuites` sont **prêts à consommer**
+  (`basis` absent) — une recette de moins de 15 min à base de légumineuse DOIT les utiliser,
+  sinon la liste de courses affiche un poids sec pour un plat sans trempage.
+- Un ingrédient cité dans `instructions` mais absent de `ingredients[]` est **invisible du
+  dérivé régime et de la liste de courses**. Trois recettes citaient une sauce soja non
+  déclarée et revendiquaient le sans gluten (corrigé le 2026-07-29). Sel/poivre/herbes exceptés.
 - Aucune allégation santé dans `name` / `why` ; `validated_by_dietitian` reste `false` tant que
   la validation diététicienne n'est pas faite (CLAUDE.md §6).
 - Une recette a besoin d'une **ancre protéine `scalable`** pour que le moteur puisse l'adapter.

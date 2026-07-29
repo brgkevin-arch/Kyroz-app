@@ -46,8 +46,8 @@ fibres, pas le recalcul). On ne signale que les écarts > 10 %.
 | végétarien | 74 | 65 | 73 |
 | pescétarien | 76 | 65 | 115 |
 | sans porc | 77 | 66 | 166 |
-| sans lactose | 41 | 39 | 146 |
-| sans gluten | 42 | 46 | 118 |
+| sans lactose | 41 | 39 | 143 |
+| sans gluten | 40 | 46 | 113 |
 | végétalien | 33 | 36 | 57 |
 | halal | 77 | 66 | 166 |
 
@@ -99,7 +99,7 @@ fibres, pas le recalcul). On ne signale que les écarts > 10 %.
 | rep02 | Saumon – patate douce – épinards | Repas | 30’ | 586 | 39 | 47 | 24 | maintien | ☐ | |
 | rep03 | Dahl de lentilles corail – riz | Repas | 30’ | 675 | 33 | 86 | 18 | perte de gras | ☐ | |
 | rep04 | Bœuf 5% – wok – nouilles complètes | Repas | 20’ | 598 | 45 | 58 | 19 | prise de masse | ☐ | |
-| rep05 | Tofu – quinoa – légumes | Repas | 25’ | 520 | 30 | 45 | 22 | perte de gras | ☐ | |
+| rep05 | Tofu – quinoa – légumes | Repas | 25’ | 524 | 31 | 45 | 22 | perte de gras | ☐ | |
 | rep06 | Cabillaud – boulgour – pois chiches – courgettes | Repas | 25’ | 584 | 50 | 61 | 13 | perte de gras, maintien | ☐ | |
 | rep07 | Poulet – patates douces rôties – haricots verts | Repas | 30’ | 538 | 49 | 49 | 13 | prise de masse, maintien | ☐ | |
 | rep08 | Pâtes complètes bolognaise bœuf 5% | Repas | 25’ | 639 | 46 | 70 | 18 | prise de masse, maintien | ☐ | |
@@ -140,7 +140,7 @@ fibres, pas le recalcul). On ne signale que les écarts > 10 %.
 | rep43 | Cabillaud – quinoa – courgettes – citron | Repas | 25’ | 459 | 43 | 38 | 13 | perte de gras | ☐ | |
 | rep44 | Pâtes complètes saumon – épinards – crème de soja | Repas | 20’ | 656 | 41 | 64 | 24 | prise de masse, maintien | ☐ | |
 | rep45 | Boulettes de dinde – courgettes – feta | Repas | 25’ | 556 | 56 | 37 | 19 | perte de gras, maintien | ☐ | |
-| rep46 | Riz sauté œufs – petits pois – jambon | Repas | 15’ | 695 | 39 | 74 | 26 | maintien | ☐ | |
+| rep46 | Riz sauté œufs – petits pois – jambon | Repas | 15’ | 699 | 40 | 74 | 26 | maintien | ☐ | |
 | rep47 | Soupe miso – tofu – nouilles – edamame | Repas | 20’ | 451 | 23 | 66 | 9 | perte de gras, maintien | ☐ | |
 | rep48 | Poulet rôti – polenta crémeuse – champignons | Repas | 30’ | 608 | 55 | 55 | 17 | prise de masse, maintien | ☐ | |
 | rep49 | Sardines – pain complet – salade de tomate | Repas | 10’ | 534 | 41 | 29 | 27 | maintien | ☐ | |
@@ -222,7 +222,7 @@ fibres, pas le recalcul). On ne signale que les écarts > 10 %.
 | rep77 | Bowl riz – PST bolognaise – maïs | Repas | 22’ | 615 | 35 | 87 | 12 | maintien, prise de masse | ☐ | |
 | rep78 | Riz basmati – dinde – curry – petits pois | Repas | 22’ | 644 | 49 | 80 | 13 | maintien, prise de masse | ☐ | |
 | rep79 | Riz – thon – poivron – sauce tomate | Repas | 18’ | 561 | 42 | 64 | 14 | perte de gras, maintien | ☐ | |
-| rep80 | Bowl riz – tempeh laqué – chou-fleur | Repas | 22’ | 608 | 32 | 71 | 17 | maintien, prise de masse | ☐ | |
+| rep80 | Bowl riz – tempeh laqué – chou-fleur | Repas | 22’ | 612 | 33 | 72 | 17 | maintien, prise de masse | ☐ | |
 | rep81 | Riz – œufs – légumes wok (cantonais) | Repas | 18’ | 607 | 27 | 73 | 23 | perte de gras, maintien | ☐ | |
 | rep82 | Riz – haricots noirs – maïs – avocat | Repas | 18’ | 773 | 36 | 105 | 17 | maintien, prise de masse | ☐ | |
 | rep83 | Riz – poulet – ananas – cajou | Repas | 20’ | 597 | 44 | 79 | 11 | maintien, prise de masse | ☐ | |
@@ -1162,14 +1162,15 @@ fibres, pas le recalcul). On ne signale que les écarts > 10 %.
 
 - **Type** : Repas · **Préparation** : 25 min
 - **Objectif** : perte de gras · **Sport** : combats, endurance
-- **Régimes compatibles** : végétarien, pescétarien, sans porc, sans lactose, sans gluten, végétalien, halal
-- **Macros / portion (base)** : 520 kcal · 30 g protéines · 45 g glucides · 22 g lipides
+- **Régimes compatibles** : végétarien, pescétarien, sans porc, sans lactose, végétalien, halal
+- **Macros / portion (base)** : 524 kcal · 31 g protéines · 45 g glucides · 22 g lipides
 - **Ingrédients** :
   - Tofu ferme — 150 g
   - Quinoa — 60 g *(pesé sec)*
   - Courgette — 100 g — quantité fixe
   - Poivron — 100 g — quantité fixe
   - Huile d'olive — 5 g
+  - Sauce soja — 10 ml — quantité fixe
 - **Préparation** :
   1. Cuis le quinoa.
   2. Dore le tofu en dés.
@@ -1653,7 +1654,7 @@ fibres, pas le recalcul). On ne signale que les écarts > 10 %.
 
 - **Type** : Repas · **Préparation** : 20 min
 - **Objectif** : prise de masse · **Sport** : muscu
-- **Régimes compatibles** : sans porc, sans lactose, halal
+- **Régimes compatibles** : sans porc, halal
 - **Macros / portion (base)** : 596 kcal · 50 g protéines · 70 g glucides · 11 g lipides
 - **Ingrédients** :
   - Pâtes (semoule) — 90 g *(pesé sec)*
@@ -1936,14 +1937,15 @@ fibres, pas le recalcul). On ne signale que les écarts > 10 %.
 
 - **Type** : Repas · **Préparation** : 15 min
 - **Objectif** : maintien · **Sport** : muscu
-- **Régimes compatibles** : sans lactose, sans gluten
-- **Macros / portion (base)** : 695 kcal · 39 g protéines · 74 g glucides · 26 g lipides
+- **Régimes compatibles** : sans lactose
+- **Macros / portion (base)** : 699 kcal · 40 g protéines · 74 g glucides · 26 g lipides
 - **Ingrédients** :
   - Riz basmati — 80 g *(pesé sec)*
   - Œuf entier — 150 g
   - Petits pois — 80 g — quantité fixe
   - Jambon blanc — 50 g
   - Huile d'olive — 8 g
+  - Sauce soja — 10 ml — quantité fixe
 - **Préparation** :
   1. Cuis le riz à l'avance.
   2. Saisis œufs + jambon + petits pois.
@@ -3036,7 +3038,7 @@ fibres, pas le recalcul). On ne signale que les écarts > 10 %.
 
 - **Type** : Repas · **Préparation** : 20 min
 - **Objectif** : maintien, prise de masse · **Sport** : muscu
-- **Régimes compatibles** : sans porc, sans lactose, halal
+- **Régimes compatibles** : sans porc, halal
 - **Macros / portion (base)** : 597 kcal · 50 g protéines · 63 g glucides · 14 g lipides
 - **Ingrédients** :
   - Pâtes complètes — 90 g *(pesé sec)*
@@ -3369,17 +3371,18 @@ fibres, pas le recalcul). On ne signale que les écarts > 10 %.
 
 - **Type** : Repas · **Préparation** : 22 min
 - **Objectif** : maintien, prise de masse · **Sport** : muscu
-- **Régimes compatibles** : végétarien, pescétarien, sans porc, sans lactose, sans gluten, végétalien, halal
-- **Macros / portion (base)** : 608 kcal · 32 g protéines · 71 g glucides · 17 g lipides
+- **Régimes compatibles** : végétarien, pescétarien, sans porc, sans lactose, végétalien, halal
+- **Macros / portion (base)** : 612 kcal · 33 g protéines · 72 g glucides · 17 g lipides
 - **Ingrédients** :
   - Riz complet — 80 g *(pesé sec)*
   - Tempeh — 150 g
   - Chou-fleur — 120 g — quantité fixe
   - Huile d'olive — 7 g
+  - Sauce soja — 10 ml — quantité fixe
 - **Préparation** :
   1. Cuire le riz, rôtir le chou-fleur.
   2. Laquer le tempeh à la sauce soja-érable, dresser.
-- **Pourquoi** : Vegan & sans gluten : tempeh fermenté très protéiné.
+- **Pourquoi** : Vegan : tempeh fermenté très protéiné, laqué à la sauce soja.
 - **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
 
 ### rep81 — Riz – œufs – légumes wok (cantonais)
@@ -3492,7 +3495,7 @@ fibres, pas le recalcul). On ne signale que les écarts > 10 %.
 
 - **Type** : Repas · **Préparation** : 22 min
 - **Objectif** : maintien, prise de masse · **Sport** : muscu
-- **Régimes compatibles** : sans porc, sans lactose, sans gluten, halal
+- **Régimes compatibles** : sans porc, sans gluten, halal
 - **Macros / portion (base)** : 553 kcal · 50 g protéines · 50 g glucides · 15 g lipides
 - **Ingrédients** :
   - Quinoa — 80 g *(pesé sec)*
@@ -4684,7 +4687,7 @@ fibres, pas le recalcul). On ne signale que les écarts > 10 %.
 
 - **Type** : Petit-déj · **Préparation** : 18 min
 - **Objectif** : perte de gras, maintien · **Sport** : muscu
-- **Régimes compatibles** : végétarien, pescétarien, sans porc, sans lactose, sans gluten, végétalien, halal
+- **Régimes compatibles** : végétarien, pescétarien, sans porc, sans lactose, végétalien, halal
 - **Macros / portion (base)** : 470 kcal · 32 g protéines · 31 g glucides · 22 g lipides
 - **Ingrédients** :
   - Tofu ferme — 180 g
@@ -4695,7 +4698,7 @@ fibres, pas le recalcul). On ne signale que les écarts > 10 %.
 - **Préparation** :
   1. Rôtir la patate douce en dés.
   2. Émietter le tofu, poêler avec épinards et levure maltée.
-- **Pourquoi** : Vegan & sans gluten salé : brunch protéiné, sans œuf ni pain.
+- **Pourquoi** : Vegan salé : brunch protéiné, sans œuf ni pain.
 - **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
 
 ### pd53 — Bowl yaourt soja protéiné – kiwi – graines courge
@@ -5059,7 +5062,7 @@ fibres, pas le recalcul). On ne signale que les écarts > 10 %.
 
 - **Type** : Repas · **Préparation** : 22 min
 - **Objectif** : maintien, prise de masse · **Sport** : muscu · adaptée jour de repos
-- **Régimes compatibles** : végétarien, pescétarien, sans porc, sans lactose, sans gluten, végétalien, halal
+- **Régimes compatibles** : végétarien, pescétarien, sans porc, sans lactose, végétalien, halal
 - **Macros / portion (base)** : 705 kcal · 44 g protéines · 64 g glucides · 29 g lipides
 - **Ingrédients** :
   - Sarrasin — 80 g *(pesé sec)*
@@ -5070,7 +5073,7 @@ fibres, pas le recalcul). On ne signale que les écarts > 10 %.
 - **Préparation** :
   1. Cuire le sarrasin.
   2. Griller le tofu, poêler les champignons, parsemer de levure maltée.
-- **Pourquoi** : Vegan & sans gluten : umami du tofu + champignons, ancre protéique haute.
+- **Pourquoi** : Vegan : umami du tofu + champignons, ancre protéique haute.
 - **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
 
 ### pd59 — Polenta crémeuse – lait – miel – noisettes
@@ -5390,7 +5393,7 @@ fibres, pas le recalcul). On ne signale que les écarts > 10 %.
 
 - **Type** : Petit-déj · **Préparation** : 18 min
 - **Objectif** : perte de gras, maintien · **Sport** : muscu
-- **Régimes compatibles** : végétarien, pescétarien, sans porc, sans lactose, sans gluten, végétalien, halal
+- **Régimes compatibles** : végétarien, pescétarien, sans porc, sans lactose, végétalien, halal
 - **Macros / portion (base)** : 511 kcal · 35 g protéines · 34 g glucides · 24 g lipides
 - **Ingrédients** :
   - Tofu ferme — 190 g
@@ -5401,7 +5404,7 @@ fibres, pas le recalcul). On ne signale que les écarts > 10 %.
 - **Préparation** :
   1. Rissoler les pommes de terre en dés.
   2. Émietter le tofu, poêler avec champignons et levure maltée.
-- **Pourquoi** : Vegan & sans gluten : petit-déj salé très protéiné, sans œuf.
+- **Pourquoi** : Vegan : petit-déj salé très protéiné, sans œuf.
 - **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
 
 ### pd78 — Omelette – patate douce – épinards – feta
@@ -5656,7 +5659,7 @@ fibres, pas le recalcul). On ne signale que les écarts > 10 %.
 
 - **Type** : Repas · **Préparation** : 30 min
 - **Objectif** : maintien, prise de masse · **Sport** : muscu
-- **Régimes compatibles** : végétarien, pescétarien, sans porc, sans lactose, sans gluten, végétalien, halal
+- **Régimes compatibles** : végétarien, pescétarien, sans porc, sans lactose, végétalien, halal
 - **Macros / portion (base)** : 647 kcal · 40 g protéines · 97 g glucides · 10 g lipides
 - **Ingrédients** :
   - Riz basmati — 85 g *(pesé sec)*
@@ -5667,7 +5670,7 @@ fibres, pas le recalcul). On ne signale que les écarts > 10 %.
 - **Préparation** :
   1. Nacrer le riz, mouiller au bouillon.
   2. Ajouter la PST réhydratée et les petits pois, finir crème de soja et levure.
-- **Pourquoi** : Vegan & sans gluten : risotto crémeux sans laitier, forte capacité protéique.
+- **Pourquoi** : Vegan : risotto crémeux sans laitier, forte capacité protéique.
 - **Validée** : ☐ Oui  ☐ Non  ·  **Remarques** : _________________________________
 
 ### rep156 — Paella express – poulet – crevettes – poivron

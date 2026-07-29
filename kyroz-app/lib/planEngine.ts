@@ -492,7 +492,7 @@ export function computeDailyTotals(
 // Version du moteur de génération : à incrémenter quand le scoring/sélection
 // change, pour que les plans EN CACHE se régénèrent automatiquement (la signature
 // change → l'auto-refresh de l'écran Plan rejoue la génération). v2 = lipides cadrés.
-const ENGINE_VERSION = 18; // v18 = biais fibres en sèche à la sélection (P3.2 : sèche ~32→40 g/j) — régénère les plans en cache
+const ENGINE_VERSION = 19; // v19 = correctifs régime (levure_maltee/falafel → gluten, pesto → lactose, sauce_soja déclarée) : des recettes changent de restrictions_ok, les plans en cache doivent être rejoués
 
 export function profileSignature(p: UserProfile): string {
   // NB : `hidden_recipes` (👎) est VOLONTAIREMENT absent. Un 👎 remplace UN repas
