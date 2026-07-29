@@ -800,6 +800,15 @@ Vérifié en construisant les deux familles et en les passant à `adaptRecipe` :
 | format standard | fromage blanc 0 % 200 g + fruits rouges 80 g + noix 12 g | 221 kcal · 17 P | 7/12 |
 | format standard | œuf 100 g + avocat 50 g + tomate 80 g | 256 kcal · 14 P | 6/12 |
 
+⚠️ **Ces compositions démontrent que l'enveloppe est atteignable — elles ne sont PAS à recopier.**
+Trois des quatre tombent sur un couple protéine × féculent déjà saturé (`skyr × sans féculent` et
+`fromage_blanc_0 × sans féculent` portent chacun 2 recettes) et seraient rejetées par R4. **Tous** les
+laitages maigres du catalogue sont saturés sur ce créneau — `cottage_cheese` et `yaourt_grec`
+compris ; seuls `yaourt_nature` et `petit_suisse` sont libres. Et **aucune des 66 collations n'est
+carnée**. Les couples réellement disponibles sont **calculés** dans chaque fichier de
+`Recette/lots/`, jamais listés à la main ici : c'est précisément la liste écrite à la main qui avait
+produit l'erreur.
+
 **Union des deux familles : 12/12.** C'est le seul assemblage qui y arrive, et il exige des
 recettes très petites que le catalogue ne contient pas du tout aujourd'hui.
 
