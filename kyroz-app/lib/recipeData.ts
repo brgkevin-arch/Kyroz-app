@@ -59,6 +59,13 @@ export interface RawRecipe {
   tags: { objectif: ObjectiveFr[]; recup_jour_repos: boolean; sport: ('muscu'|'endurance'|'combats')[]; temps_min: number };
   ingredients: RawIngredient[]; instructions: string[]; why: string;
   macros_per_serving: Per100;
+  // Vague de livraison d'origine. Rétro-rempli le 2026-07-29 depuis Recette/drops/ :
+  // 'fondation' (100), '2026-06-19-vegan' (164), '2026-07-22-sans-gluten' (50). Toute
+  // nouvelle vague reprend le NOM DU DOSSIER de son drop. Sert à comparer les lots entre
+  // eux — sans lui, impossible d'expliquer pourquoi un tag est à 43 % sur un lot et à
+  // 12 % sur le suivant. Donnée de PROVENANCE : elle ne remonte pas jusqu'au Recipe
+  // applicatif, aucun écran ni aucun moteur ne la lit.
+  wave: string;
 }
 export const RAW_RECIPES: RawRecipe[] = raw.recipes as RawRecipe[];
 

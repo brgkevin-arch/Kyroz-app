@@ -10,7 +10,16 @@
       "scalable": "true = quantité ajustable par l'algo ; false = fixe (légumes)"
     },
     "priorite_sport": "Muscu prioritaire, puis Endurance, peu de Combats (cf. distribution).",
-    "corrections_kyroz": "rep57 +8g huile_olive (équilibre lipidique). | 2026-07-29 : sauce_soja déclarée dans rep05/rep46/rep80 (citée en instruction, invisible du dérivé régime) ; levure_maltee + falafel + pesto ajoutés à recipeDiet.VIOLATIONS ; why de rep80/pd52/pd77/rep152/rep155 : « sans gluten » retiré (devenu faux) ; +9 ingrédients (légumineuses prêtes à consommer, tofu fumé, falafel, tahini, boisson soja, pain/wrap sans gluten). recomp_flag SUPPRIMÉ (champ mort : aucun code ne le lisait, et il marquait 5 recettes quand ~40 avaient une densité protéique équivalente ou pire)."
+    "corrections_kyroz": "rep57 +8g huile_olive (équilibre lipidique). | 2026-07-29 : sauce_soja déclarée dans rep05/rep46/rep80 (citée en instruction, invisible du dérivé régime) ; levure_maltee + falafel + pesto ajoutés à recipeDiet.VIOLATIONS ; why de rep80/pd52/pd77/rep152/rep155 : « sans gluten » retiré (devenu faux) ; +9 ingrédients (légumineuses prêtes à consommer, tofu fumé, falafel, tahini, boisson soja, pain/wrap sans gluten). recomp_flag SUPPRIMÉ (champ mort : aucun code ne le lisait, et il marquait 5 recettes quand ~40 avaient une densité protéique équivalente ou pire).",
+    "waves": {
+      "role": "Vague de livraison d'origine de chaque recette (champ `wave`). Rétro-rempli le 2026-07-29 depuis les dossiers de Recette/drops/ ; « fondation » = le lot initial, antérieur aux drops.",
+      "valeurs": {
+        "fondation": 100,
+        "2026-06-19-vegan": 164,
+        "2026-07-22-sans-gluten": 50
+      },
+      "convention": "Toute nouvelle vague reprend le NOM DU DOSSIER de son drop (AAAA-MM-JJ-<bloc>), pour qu'on retrouve la matière première d'une recette sans fouiller l'historique git."
+    }
   },
   "enums": {
     "category": [
@@ -1388,7 +1397,8 @@
         "protein": 43,
         "carbs": 83,
         "fat": 11
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "pd02",
@@ -1449,7 +1459,8 @@
         "protein": 29,
         "carbs": 52,
         "fat": 11
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "pd03",
@@ -1510,7 +1521,8 @@
         "protein": 38,
         "carbs": 62,
         "fat": 11
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "pd04",
@@ -1566,7 +1578,8 @@
         "protein": 29,
         "carbs": 2,
         "fat": 21
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "pd05",
@@ -1620,7 +1633,8 @@
         "protein": 27,
         "carbs": 31,
         "fat": 23
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "pd06",
@@ -1682,7 +1696,8 @@
         "protein": 30,
         "carbs": 42,
         "fat": 11
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "pd07",
@@ -1748,7 +1763,8 @@
         "protein": 24,
         "carbs": 52,
         "fat": 6
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "pd08",
@@ -1803,7 +1819,8 @@
         "protein": 18,
         "carbs": 37,
         "fat": 11
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "pd09",
@@ -1869,7 +1886,8 @@
         "protein": 48,
         "carbs": 75,
         "fat": 20
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "pd10",
@@ -1929,7 +1947,8 @@
         "protein": 23,
         "carbs": 44,
         "fat": 25
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "pd11",
@@ -1990,7 +2009,8 @@
         "protein": 32,
         "carbs": 3,
         "fat": 17
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "pd12",
@@ -2057,7 +2077,8 @@
         "protein": 36,
         "carbs": 56,
         "fat": 14
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "pd13",
@@ -2112,7 +2133,8 @@
         "protein": 33,
         "carbs": 33,
         "fat": 15
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "pd14",
@@ -2172,7 +2194,8 @@
         "protein": 43,
         "carbs": 64,
         "fat": 20
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "pd15",
@@ -2226,7 +2249,8 @@
         "protein": 27,
         "carbs": 45,
         "fat": 11
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "pd16",
@@ -2281,7 +2305,8 @@
         "protein": 30,
         "carbs": 27,
         "fat": 18
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "pd17",
@@ -2341,7 +2366,8 @@
         "protein": 27,
         "carbs": 53,
         "fat": 12
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "pd18",
@@ -2394,7 +2420,8 @@
         "protein": 28,
         "carbs": 38,
         "fat": 10
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "pd19",
@@ -2459,7 +2486,8 @@
         "protein": 56,
         "carbs": 96,
         "fat": 21
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "pd20",
@@ -2527,7 +2555,8 @@
         "protein": 31.4,
         "carbs": 41.2,
         "fat": 25.9
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "col01",
@@ -2581,7 +2610,8 @@
         "protein": 24,
         "carbs": 33,
         "fat": 10
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "col02",
@@ -2628,7 +2658,8 @@
         "protein": 35,
         "carbs": 40,
         "fat": 7
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "col03",
@@ -2676,7 +2707,8 @@
         "protein": 25,
         "carbs": 20,
         "fat": 18
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "col04",
@@ -2736,7 +2768,8 @@
         "protein": 32,
         "carbs": 92,
         "fat": 22
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "col05",
@@ -2784,7 +2817,8 @@
         "protein": 13,
         "carbs": 51,
         "fat": 14
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "col06",
@@ -2848,7 +2882,8 @@
         "protein": 33,
         "carbs": 69,
         "fat": 17
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "col07",
@@ -2902,7 +2937,8 @@
         "protein": 18,
         "carbs": 22,
         "fat": 17
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "col08",
@@ -2955,7 +2991,8 @@
         "protein": 38,
         "carbs": 17,
         "fat": 3
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "col09",
@@ -3010,7 +3047,8 @@
         "protein": 24,
         "carbs": 27,
         "fat": 4
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "col10",
@@ -3056,7 +3094,8 @@
         "protein": 7,
         "carbs": 21,
         "fat": 19
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "col11",
@@ -3114,7 +3153,8 @@
         "protein": 31,
         "carbs": 65,
         "fat": 7
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "col12",
@@ -3168,7 +3208,8 @@
         "protein": 12,
         "carbs": 43.7,
         "fat": 13.5
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "col13",
@@ -3221,7 +3262,8 @@
         "protein": 30,
         "carbs": 41,
         "fat": 8
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "col14",
@@ -3269,7 +3311,8 @@
         "protein": 14,
         "carbs": 4,
         "fat": 17
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "col15",
@@ -3329,7 +3372,8 @@
         "protein": 38,
         "carbs": 58,
         "fat": 16
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "col16",
@@ -3371,7 +3415,8 @@
         "protein": 17,
         "carbs": 14,
         "fat": 8
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "col17",
@@ -3423,7 +3468,8 @@
         "protein": 23,
         "carbs": 28,
         "fat": 25
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "col18",
@@ -3481,7 +3527,8 @@
         "protein": 22,
         "carbs": 37,
         "fat": 5
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "col19",
@@ -3535,7 +3582,8 @@
         "protein": 20,
         "carbs": 28,
         "fat": 10
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "col20",
@@ -3595,7 +3643,8 @@
         "protein": 18,
         "carbs": 25,
         "fat": 13
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "rep01",
@@ -3650,7 +3699,8 @@
         "protein": 53,
         "carbs": 70,
         "fat": 16
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "rep02",
@@ -3705,7 +3755,8 @@
         "protein": 38,
         "carbs": 52,
         "fat": 25
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "rep03",
@@ -3772,7 +3823,8 @@
         "protein": 30,
         "carbs": 92,
         "fat": 20
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "rep04",
@@ -3833,7 +3885,8 @@
         "protein": 44,
         "carbs": 56,
         "fat": 20
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "rep05",
@@ -3900,7 +3953,8 @@
         "protein": 35,
         "carbs": 44,
         "fat": 21
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "rep06",
@@ -3962,7 +4016,8 @@
         "protein": 49.6,
         "carbs": 61.2,
         "fat": 12.8
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "rep07",
@@ -4017,7 +4072,8 @@
         "protein": 48,
         "carbs": 56,
         "fat": 15
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "rep08",
@@ -4079,7 +4135,8 @@
         "protein": 46,
         "carbs": 67,
         "fat": 18
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "rep09",
@@ -4139,7 +4196,8 @@
         "protein": 47,
         "carbs": 80,
         "fat": 15
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "rep10",
@@ -4200,7 +4258,8 @@
         "protein": 25.2,
         "carbs": 89.8,
         "fat": 17.4
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "rep11",
@@ -4256,7 +4315,8 @@
         "protein": 45,
         "carbs": 43,
         "fat": 21
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "rep12",
@@ -4311,7 +4371,8 @@
         "protein": 44,
         "carbs": 44,
         "fat": 29
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "rep13",
@@ -4372,7 +4433,8 @@
         "protein": 45,
         "carbs": 38,
         "fat": 11
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "rep14",
@@ -4439,7 +4501,8 @@
         "protein": 25.6,
         "carbs": 93.2,
         "fat": 8.2
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "rep15",
@@ -4501,7 +4564,8 @@
         "protein": 49,
         "carbs": 70,
         "fat": 12
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "rep16",
@@ -4556,7 +4620,8 @@
         "protein": 40,
         "carbs": 52,
         "fat": 12
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "rep17",
@@ -4622,7 +4687,8 @@
         "protein": 35.3,
         "carbs": 57.6,
         "fat": 26.5
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "rep18",
@@ -4682,7 +4748,8 @@
         "protein": 52,
         "carbs": 3,
         "fat": 30
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "rep19",
@@ -4743,7 +4810,8 @@
         "protein": 45,
         "carbs": 64,
         "fat": 12
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "rep20",
@@ -4811,7 +4879,8 @@
         "protein": 47,
         "carbs": 72,
         "fat": 30
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "rep21",
@@ -4872,7 +4941,8 @@
         "protein": 54,
         "carbs": 70,
         "fat": 18
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "rep22",
@@ -4939,7 +5009,8 @@
         "protein": 26,
         "carbs": 80,
         "fat": 8
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "rep23",
@@ -4994,7 +5065,8 @@
         "protein": 40,
         "carbs": 56,
         "fat": 16
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "rep24",
@@ -5056,7 +5128,8 @@
         "protein": 41,
         "carbs": 70,
         "fat": 11
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "rep25",
@@ -5110,7 +5183,8 @@
         "protein": 37,
         "carbs": 73,
         "fat": 29
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "rep26",
@@ -5164,7 +5238,8 @@
         "protein": 34,
         "carbs": 43,
         "fat": 26
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "rep27",
@@ -5224,7 +5299,8 @@
         "protein": 53,
         "carbs": 75,
         "fat": 16
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "rep28",
@@ -5285,7 +5361,8 @@
         "protein": 25,
         "carbs": 54,
         "fat": 25
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "rep29",
@@ -5352,7 +5429,8 @@
         "protein": 29.7,
         "carbs": 82.4,
         "fat": 21.1
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "rep30",
@@ -5407,7 +5485,8 @@
         "protein": 50,
         "carbs": 51,
         "fat": 11
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "rep31",
@@ -5461,7 +5540,8 @@
         "protein": 49,
         "carbs": 69,
         "fat": 15
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "rep32",
@@ -5527,7 +5607,8 @@
         "protein": 49,
         "carbs": 73,
         "fat": 13
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "rep33",
@@ -5588,7 +5669,8 @@
         "protein": 49.7,
         "carbs": 81.2,
         "fat": 16.1
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "rep34",
@@ -5643,7 +5725,8 @@
         "protein": 50.5,
         "carbs": 33.6,
         "fat": 25.2
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "rep35",
@@ -5705,7 +5788,8 @@
         "protein": 41,
         "carbs": 58,
         "fat": 23
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "rep36",
@@ -5765,7 +5849,8 @@
         "protein": 39,
         "carbs": 31,
         "fat": 29
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "rep37",
@@ -5833,7 +5918,8 @@
         "protein": 56.2,
         "carbs": 73.7,
         "fat": 13.8
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "rep38",
@@ -5888,7 +5974,8 @@
         "protein": 49,
         "carbs": 61,
         "fat": 18
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "rep39",
@@ -5948,7 +6035,8 @@
         "protein": 48,
         "carbs": 72,
         "fat": 22
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "rep40",
@@ -6014,7 +6102,8 @@
         "protein": 50,
         "carbs": 39,
         "fat": 21
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "rep41",
@@ -6069,7 +6158,8 @@
         "protein": 46,
         "carbs": 62,
         "fat": 14
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "rep42",
@@ -6136,7 +6226,8 @@
         "protein": 49.3,
         "carbs": 83.3,
         "fat": 17.7
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "rep43",
@@ -6191,7 +6282,8 @@
         "protein": 43,
         "carbs": 39,
         "fat": 13
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "rep44",
@@ -6246,7 +6338,8 @@
         "protein": 41,
         "carbs": 58,
         "fat": 26
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "rep45",
@@ -6308,7 +6401,8 @@
         "protein": 56,
         "carbs": 39,
         "fat": 18
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "rep46",
@@ -6374,7 +6468,8 @@
         "protein": 39,
         "carbs": 73,
         "fat": 25
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "rep47",
@@ -6436,7 +6531,8 @@
         "protein": 21,
         "carbs": 69,
         "fat": 9
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "rep48",
@@ -6497,7 +6593,8 @@
         "protein": 57,
         "carbs": 53,
         "fat": 18
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "rep49",
@@ -6557,7 +6654,8 @@
         "protein": 44,
         "carbs": 32,
         "fat": 20
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "rep50",
@@ -6619,7 +6717,8 @@
         "protein": 43,
         "carbs": 86,
         "fat": 27
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "rep51",
@@ -6674,7 +6773,8 @@
         "protein": 51.5,
         "carbs": 36.2,
         "fat": 10.6
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "rep52",
@@ -6736,7 +6836,8 @@
         "protein": 39,
         "carbs": 38,
         "fat": 8
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "rep53",
@@ -6797,7 +6898,8 @@
         "protein": 50,
         "carbs": 50,
         "fat": 20
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "rep54",
@@ -6858,7 +6960,8 @@
         "protein": 28.7,
         "carbs": 68.5,
         "fat": 21.3
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "rep55",
@@ -6920,7 +7023,8 @@
         "protein": 44,
         "carbs": 71,
         "fat": 32
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "rep56",
@@ -6980,7 +7084,8 @@
         "protein": 60,
         "carbs": 59,
         "fat": 20
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "rep57",
@@ -7048,7 +7153,8 @@
         "protein": 57.8,
         "carbs": 67.9,
         "fat": 12.1
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "rep58",
@@ -7114,7 +7220,8 @@
         "protein": 34,
         "carbs": 73,
         "fat": 22
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "rep59",
@@ -7169,7 +7276,8 @@
         "protein": 40,
         "carbs": 53,
         "fat": 7
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "rep60",
@@ -7236,7 +7344,8 @@
         "protein": 60.5,
         "carbs": 92.8,
         "fat": 32.4
-      }
+      },
+      "wave": "fondation"
     },
     {
       "id": "pd21",
@@ -7296,7 +7405,8 @@
         "protein": 42.9,
         "carbs": 71.8,
         "fat": 17.6
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "pd22",
@@ -7350,7 +7460,8 @@
         "protein": 22.4,
         "carbs": 43.1,
         "fat": 12.1
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "pd23",
@@ -7404,7 +7515,8 @@
         "protein": 22.8,
         "carbs": 49.2,
         "fat": 7.9
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "pd24",
@@ -7458,7 +7570,8 @@
         "protein": 28.4,
         "carbs": 58.0,
         "fat": 16.0
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "pd25",
@@ -7518,7 +7631,8 @@
         "protein": 42.5,
         "carbs": 56.5,
         "fat": 20.1
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "pd26",
@@ -7572,7 +7686,8 @@
         "protein": 29.4,
         "carbs": 30.6,
         "fat": 9.3
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "pd27",
@@ -7626,7 +7741,8 @@
         "protein": 32.5,
         "carbs": 52.8,
         "fat": 14.5
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "pd28",
@@ -7680,7 +7796,8 @@
         "protein": 23.3,
         "carbs": 44.8,
         "fat": 11.2
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "pd29",
@@ -7734,7 +7851,8 @@
         "protein": 30.1,
         "carbs": 37.6,
         "fat": 16.9
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "pd30",
@@ -7788,7 +7906,8 @@
         "protein": 25.5,
         "carbs": 45.0,
         "fat": 22.6
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "pd31",
@@ -7842,7 +7961,8 @@
         "protein": 24.1,
         "carbs": 49.4,
         "fat": 10.5
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "pd32",
@@ -7896,7 +8016,8 @@
         "protein": 28.0,
         "carbs": 51.8,
         "fat": 13.6
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "pd33",
@@ -7955,7 +8076,8 @@
         "protein": 31.6,
         "carbs": 43.1,
         "fat": 9.4
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "pd34",
@@ -8015,7 +8137,8 @@
         "protein": 28.3,
         "carbs": 27.4,
         "fat": 12.8
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "pd35",
@@ -8075,7 +8198,8 @@
         "protein": 38.7,
         "carbs": 34.2,
         "fat": 22.9
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "pd36",
@@ -8135,7 +8259,8 @@
         "protein": 30.6,
         "carbs": 63.7,
         "fat": 14.6
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "pd37",
@@ -8188,7 +8313,8 @@
         "protein": 31.0,
         "carbs": 26.9,
         "fat": 6.3
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "pd38",
@@ -8242,7 +8368,8 @@
         "protein": 27.8,
         "carbs": 34.6,
         "fat": 26.3
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "pd39",
@@ -8296,7 +8423,8 @@
         "protein": 42.8,
         "carbs": 42.8,
         "fat": 5.8
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "pd40",
@@ -8350,7 +8478,8 @@
         "protein": 33.0,
         "carbs": 36.1,
         "fat": 12.9
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "pd41",
@@ -8404,7 +8533,8 @@
         "protein": 25.3,
         "carbs": 61.8,
         "fat": 17.0
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "pd42",
@@ -8464,7 +8594,8 @@
         "protein": 26.6,
         "carbs": 55.3,
         "fat": 18.5
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "pd43",
@@ -8518,7 +8649,8 @@
         "protein": 24.0,
         "carbs": 46.1,
         "fat": 11.9
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "pd44",
@@ -8571,7 +8703,8 @@
         "protein": 20.4,
         "carbs": 51.6,
         "fat": 7.3
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "col21",
@@ -8625,7 +8758,8 @@
         "protein": 35.6,
         "carbs": 34.2,
         "fat": 13.6
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "col22",
@@ -8679,7 +8813,8 @@
         "protein": 37.6,
         "carbs": 39.6,
         "fat": 9.5
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "col23",
@@ -8733,7 +8868,8 @@
         "protein": 27.9,
         "carbs": 17.8,
         "fat": 7.8
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "col24",
@@ -8787,7 +8923,8 @@
         "protein": 26.8,
         "carbs": 25.5,
         "fat": 12.2
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "col25",
@@ -8840,7 +8977,8 @@
         "protein": 19.5,
         "carbs": 19.0,
         "fat": 3.0
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "col26",
@@ -8894,7 +9032,8 @@
         "protein": 22.8,
         "carbs": 31.9,
         "fat": 10.9
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "col27",
@@ -8941,7 +9080,8 @@
         "protein": 22.9,
         "carbs": 17.4,
         "fat": 7.0
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "col28",
@@ -8988,7 +9128,8 @@
         "protein": 18.6,
         "carbs": 15.2,
         "fat": 8.5
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "col29",
@@ -9036,7 +9177,8 @@
         "protein": 20.5,
         "carbs": 23.7,
         "fat": 7.3
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "col30",
@@ -9084,7 +9226,8 @@
         "protein": 20.3,
         "carbs": 18.7,
         "fat": 19.1
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "col31",
@@ -9138,7 +9281,8 @@
         "protein": 27.4,
         "carbs": 59.9,
         "fat": 14.0
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "col32",
@@ -9198,7 +9342,8 @@
         "protein": 31.6,
         "carbs": 56.0,
         "fat": 19.1
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "col33",
@@ -9257,7 +9402,8 @@
         "protein": 29.7,
         "carbs": 54.5,
         "fat": 9.3
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "col34",
@@ -9311,7 +9457,8 @@
         "protein": 29.6,
         "carbs": 41.0,
         "fat": 14.7
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "col35",
@@ -9364,7 +9511,8 @@
         "protein": 18.4,
         "carbs": 47.9,
         "fat": 13.9
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "col36",
@@ -9411,7 +9559,8 @@
         "protein": 17.2,
         "carbs": 30.0,
         "fat": 6.2
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "col37",
@@ -9464,7 +9613,8 @@
         "protein": 14.9,
         "carbs": 52.6,
         "fat": 8.8
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "col38",
@@ -9518,7 +9668,8 @@
         "protein": 19.2,
         "carbs": 25.2,
         "fat": 20.6
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "col39",
@@ -9565,7 +9716,8 @@
         "protein": 18.7,
         "carbs": 12.8,
         "fat": 8.0
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "col40",
@@ -9606,7 +9758,8 @@
         "protein": 16.5,
         "carbs": 13.5,
         "fat": 11.5
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "col41",
@@ -9648,7 +9801,8 @@
         "protein": 12.3,
         "carbs": 28.5,
         "fat": 9.6
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "col42",
@@ -9702,7 +9856,8 @@
         "protein": 23.0,
         "carbs": 29.2,
         "fat": 16.8
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "col43",
@@ -9756,7 +9911,8 @@
         "protein": 18.1,
         "carbs": 32.8,
         "fat": 17.2
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "col44",
@@ -9803,7 +9959,8 @@
         "protein": 23.2,
         "carbs": 17.5,
         "fat": 12.7
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep61",
@@ -9857,7 +10014,8 @@
         "protein": 50.8,
         "carbs": 60.8,
         "fat": 17.0
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep62",
@@ -9917,7 +10075,8 @@
         "protein": 44.5,
         "carbs": 74.0,
         "fat": 17.2
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep63",
@@ -9971,7 +10130,8 @@
         "protein": 41.8,
         "carbs": 57.6,
         "fat": 11.5
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep64",
@@ -10025,7 +10185,8 @@
         "protein": 43.8,
         "carbs": 61.1,
         "fat": 31.0
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep65",
@@ -10085,7 +10246,8 @@
         "protein": 47.7,
         "carbs": 71.9,
         "fat": 30.9
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep66",
@@ -10151,7 +10313,8 @@
         "protein": 40.0,
         "carbs": 98.7,
         "fat": 11.8
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep67",
@@ -10205,7 +10368,8 @@
         "protein": 42.3,
         "carbs": 82.8,
         "fat": 11.8
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep68",
@@ -10259,7 +10423,8 @@
         "protein": 39.2,
         "carbs": 85.1,
         "fat": 26.8
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep69",
@@ -10313,7 +10478,8 @@
         "protein": 39.2,
         "carbs": 57.2,
         "fat": 11.9
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep70",
@@ -10373,7 +10539,8 @@
         "protein": 45.8,
         "carbs": 79.5,
         "fat": 8.8
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep71",
@@ -10427,7 +10594,8 @@
         "protein": 43.8,
         "carbs": 82.2,
         "fat": 23.9
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep72",
@@ -10487,7 +10655,8 @@
         "protein": 37.4,
         "carbs": 59.5,
         "fat": 20.9
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep73",
@@ -10541,7 +10710,8 @@
         "protein": 48.9,
         "carbs": 63.2,
         "fat": 12.9
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep74",
@@ -10601,7 +10771,8 @@
         "protein": 40.1,
         "carbs": 74.7,
         "fat": 29.5
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep75",
@@ -10654,7 +10825,8 @@
         "protein": 39.5,
         "carbs": 60.6,
         "fat": 7.9
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep76",
@@ -10714,7 +10886,8 @@
         "protein": 39.3,
         "carbs": 92.2,
         "fat": 23.6
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep77",
@@ -10774,7 +10947,8 @@
         "protein": 36.0,
         "carbs": 89.0,
         "fat": 11.8
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep78",
@@ -10828,7 +11002,8 @@
         "protein": 49.4,
         "carbs": 76.6,
         "fat": 13.2
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep79",
@@ -10888,7 +11063,8 @@
         "protein": 41.1,
         "carbs": 68.4,
         "fat": 9.8
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep80",
@@ -10948,7 +11124,8 @@
         "protein": 38.7,
         "carbs": 72.5,
         "fat": 25.9
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep81",
@@ -11002,7 +11179,8 @@
         "protein": 27.8,
         "carbs": 74.2,
         "fat": 22.9
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep82",
@@ -11062,7 +11240,8 @@
         "protein": 37.6,
         "carbs": 107.0,
         "fat": 13.1
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep83",
@@ -11122,7 +11301,8 @@
         "protein": 44.0,
         "carbs": 80.7,
         "fat": 11.0
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep84",
@@ -11182,7 +11362,8 @@
         "protein": 36.1,
         "carbs": 61.0,
         "fat": 20.3
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep85",
@@ -11242,7 +11423,8 @@
         "protein": 24.7,
         "carbs": 94,
         "fat": 20.2
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep86",
@@ -11296,7 +11478,8 @@
         "protein": 36.2,
         "carbs": 74.1,
         "fat": 14.3
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep87",
@@ -11350,7 +11533,8 @@
         "protein": 50.2,
         "carbs": 52.8,
         "fat": 17.3
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep88",
@@ -11416,7 +11600,8 @@
         "protein": 38.4,
         "carbs": 87.4,
         "fat": 21.5
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep89",
@@ -11470,7 +11655,8 @@
         "protein": 36.9,
         "carbs": 67.6,
         "fat": 18.2
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep90",
@@ -11524,7 +11710,8 @@
         "protein": 41.9,
         "carbs": 56,
         "fat": 26.4
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep91",
@@ -11584,7 +11771,8 @@
         "protein": 39.8,
         "carbs": 100.5,
         "fat": 17
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep92",
@@ -11637,7 +11825,8 @@
         "protein": 44.0,
         "carbs": 52.4,
         "fat": 14.2
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep93",
@@ -11697,7 +11886,8 @@
         "protein": 51.2,
         "carbs": 71.5,
         "fat": 13.0
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep94",
@@ -11757,7 +11947,8 @@
         "protein": 41.3,
         "carbs": 89.7,
         "fat": 14
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep95",
@@ -11811,7 +12002,8 @@
         "protein": 46.5,
         "carbs": 58.8,
         "fat": 12.2
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep96",
@@ -11865,7 +12057,8 @@
         "protein": 39.5,
         "carbs": 55.3,
         "fat": 16.0
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep97",
@@ -11919,7 +12112,8 @@
         "protein": 37.8,
         "carbs": 46.5,
         "fat": 27.3
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep98",
@@ -11972,7 +12166,8 @@
         "protein": 38.2,
         "carbs": 39.0,
         "fat": 6.7
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep99",
@@ -12038,7 +12233,8 @@
         "protein": 40.9,
         "carbs": 81.8,
         "fat": 8.3
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep100",
@@ -12098,7 +12294,8 @@
         "protein": 39.6,
         "carbs": 38.4,
         "fat": 26.5
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep101",
@@ -12164,7 +12361,8 @@
         "protein": 40.9,
         "carbs": 107.6,
         "fat": 12.6
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep102",
@@ -12224,7 +12422,8 @@
         "protein": 40.3,
         "carbs": 101.3,
         "fat": 11.8
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep103",
@@ -12290,7 +12489,8 @@
         "protein": 41.8,
         "carbs": 107.9,
         "fat": 10.3
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep104",
@@ -12350,7 +12550,8 @@
         "protein": 39.3,
         "carbs": 72.9,
         "fat": 14.6
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep105",
@@ -12416,7 +12617,8 @@
         "protein": 37.8,
         "carbs": 71.4,
         "fat": 10.4
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep106",
@@ -12476,7 +12678,8 @@
         "protein": 39.3,
         "carbs": 101.4,
         "fat": 10.3
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep107",
@@ -12542,7 +12745,8 @@
         "protein": 39.3,
         "carbs": 91.6,
         "fat": 10.7
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep108",
@@ -12602,7 +12806,8 @@
         "protein": 38.3,
         "carbs": 92.4,
         "fat": 9.7
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep109",
@@ -12662,7 +12867,8 @@
         "protein": 27.2,
         "carbs": 41.2,
         "fat": 19
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep110",
@@ -12722,7 +12928,8 @@
         "protein": 50.6,
         "carbs": 81.6,
         "fat": 11
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep111",
@@ -12782,7 +12989,8 @@
         "protein": 35.6,
         "carbs": 92.9,
         "fat": 14.2
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep112",
@@ -12848,7 +13056,8 @@
         "protein": 29.6,
         "carbs": 67.2,
         "fat": 16.3
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep113",
@@ -12908,7 +13117,8 @@
         "protein": 40.6,
         "carbs": 43.6,
         "fat": 16.1
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep114",
@@ -12968,7 +13178,8 @@
         "protein": 46.2,
         "carbs": 93.0,
         "fat": 15.8
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep115",
@@ -13028,7 +13239,8 @@
         "protein": 42.1,
         "carbs": 44.0,
         "fat": 7.1
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep116",
@@ -13082,7 +13294,8 @@
         "protein": 30.6,
         "carbs": 49.2,
         "fat": 24.5
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep117",
@@ -13142,7 +13355,8 @@
         "protein": 47.5,
         "carbs": 43.6,
         "fat": 13.5
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep118",
@@ -13202,7 +13416,8 @@
         "protein": 40.6,
         "carbs": 97.7,
         "fat": 20.2
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep119",
@@ -13256,7 +13471,8 @@
         "protein": 35.9,
         "carbs": 43.9,
         "fat": 14.4
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep120",
@@ -13316,7 +13532,8 @@
         "protein": 41.4,
         "carbs": 71.7,
         "fat": 10.7
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep121",
@@ -13376,7 +13593,8 @@
         "protein": 34.6,
         "carbs": 97.8,
         "fat": 13.8
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep122",
@@ -13442,7 +13660,8 @@
         "protein": 54.9,
         "carbs": 83.9,
         "fat": 13.4
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep123",
@@ -13502,7 +13721,8 @@
         "protein": 44.1,
         "carbs": 65.2,
         "fat": 19.7
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep124",
@@ -13562,7 +13782,8 @@
         "protein": 48.4,
         "carbs": 74.4,
         "fat": 25.8
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep125",
@@ -13616,7 +13837,8 @@
         "protein": 38.0,
         "carbs": 58.0,
         "fat": 25.7
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep126",
@@ -13682,7 +13904,8 @@
         "protein": 42.1,
         "carbs": 103.9,
         "fat": 13.7
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep127",
@@ -13736,7 +13959,8 @@
         "protein": 45.4,
         "carbs": 55.6,
         "fat": 12.6
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep128",
@@ -13790,7 +14014,8 @@
         "protein": 38.9,
         "carbs": 67.8,
         "fat": 28.6
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep129",
@@ -13844,7 +14069,8 @@
         "protein": 39.3,
         "carbs": 88.6,
         "fat": 24.2
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep130",
@@ -13898,7 +14124,8 @@
         "protein": 44.6,
         "carbs": 79.6,
         "fat": 20.0
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep131",
@@ -13958,7 +14185,8 @@
         "protein": 38.0,
         "carbs": 74.1,
         "fat": 13.5
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep132",
@@ -14012,7 +14240,8 @@
         "protein": 35.8,
         "carbs": 84.3,
         "fat": 12.3
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep133",
@@ -14066,7 +14295,8 @@
         "protein": 28.7,
         "carbs": 27.2,
         "fat": 25.5
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep134",
@@ -14132,7 +14362,8 @@
         "protein": 36.4,
         "carbs": 54.8,
         "fat": 26.2
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep135",
@@ -14192,7 +14423,8 @@
         "protein": 33.3,
         "carbs": 34.1,
         "fat": 32.7
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep136",
@@ -14246,7 +14478,8 @@
         "protein": 25.3,
         "carbs": 32.8,
         "fat": 22.3
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep137",
@@ -14305,7 +14538,8 @@
         "protein": 35.7,
         "carbs": 49.4,
         "fat": 10.1
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep138",
@@ -14358,7 +14592,8 @@
         "protein": 24.4,
         "carbs": 40.5,
         "fat": 24.9
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep139",
@@ -14418,7 +14653,8 @@
         "protein": 51.4,
         "carbs": 38.1,
         "fat": 18.1
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep140",
@@ -14478,7 +14714,8 @@
         "protein": 44.7,
         "carbs": 64.7,
         "fat": 19.3
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep141",
@@ -14538,7 +14775,8 @@
         "protein": 41.1,
         "carbs": 54.4,
         "fat": 28.5
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep142",
@@ -14598,7 +14836,8 @@
         "protein": 28.1,
         "carbs": 75.5,
         "fat": 22.2
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep143",
@@ -14658,7 +14897,8 @@
         "protein": 37.8,
         "carbs": 42.2,
         "fat": 16.4
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep144",
@@ -14718,7 +14958,8 @@
         "protein": 46.4,
         "carbs": 40.4,
         "fat": 13.2
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep145",
@@ -14778,7 +15019,8 @@
         "protein": 37.9,
         "carbs": 93.7,
         "fat": 15.3
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep146",
@@ -14838,7 +15080,8 @@
         "protein": 43.8,
         "carbs": 31.9,
         "fat": 15.0
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "pd45",
@@ -14892,7 +15135,8 @@
         "protein": 30.4,
         "carbs": 61.4,
         "fat": 11.9
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "pd46",
@@ -14952,7 +15196,8 @@
         "protein": 30.0,
         "carbs": 71.8,
         "fat": 6.8
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "pd47",
@@ -15006,7 +15251,8 @@
         "protein": 18.9,
         "carbs": 21.2,
         "fat": 13.0
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "pd48",
@@ -15059,7 +15305,8 @@
         "protein": 22.8,
         "carbs": 29.1,
         "fat": 11.5
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "pd49",
@@ -15113,7 +15360,8 @@
         "protein": 28.2,
         "carbs": 13.5,
         "fat": 8.0
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "pd50",
@@ -15167,7 +15415,8 @@
         "protein": 24.7,
         "carbs": 55.8,
         "fat": 12.4
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "pd51",
@@ -15227,7 +15476,8 @@
         "protein": 29.3,
         "carbs": 82.5,
         "fat": 10.6
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "pd52",
@@ -15287,7 +15537,8 @@
         "protein": 35.1,
         "carbs": 31.2,
         "fat": 21.2
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "pd53",
@@ -15334,7 +15585,8 @@
         "protein": 22.0,
         "carbs": 23.3,
         "fat": 8.9
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "pd54",
@@ -15400,7 +15652,8 @@
         "protein": 30.3,
         "carbs": 28.8,
         "fat": 18.4
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "pd55",
@@ -15454,7 +15707,8 @@
         "protein": 19.7,
         "carbs": 23.5,
         "fat": 13.7
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "pd56",
@@ -15508,7 +15762,8 @@
         "protein": 21.0,
         "carbs": 58.0,
         "fat": 13.4
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "pd57",
@@ -15562,7 +15817,8 @@
         "protein": 22.9,
         "carbs": 54.6,
         "fat": 12.4
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "pd58",
@@ -15622,7 +15878,8 @@
         "protein": 25.6,
         "carbs": 50.8,
         "fat": 16.5
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "col45",
@@ -15669,7 +15926,8 @@
         "protein": 17.2,
         "carbs": 18.6,
         "fat": 8.2
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "col46",
@@ -15723,7 +15981,8 @@
         "protein": 28.1,
         "carbs": 30.2,
         "fat": 5.4
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "col47",
@@ -15770,7 +16029,8 @@
         "protein": 19.3,
         "carbs": 17.4,
         "fat": 9.3
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "col48",
@@ -15824,7 +16084,8 @@
         "protein": 23.9,
         "carbs": 58.1,
         "fat": 12.8
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "col49",
@@ -15877,7 +16138,8 @@
         "protein": 17.9,
         "carbs": 35.2,
         "fat": 17.6
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "col50",
@@ -15918,7 +16180,8 @@
         "protein": 16.5,
         "carbs": 13.5,
         "fat": 12.5
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "col51",
@@ -15965,7 +16228,8 @@
         "protein": 15.7,
         "carbs": 18.8,
         "fat": 5.5
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "col52",
@@ -16019,7 +16283,8 @@
         "protein": 27.0,
         "carbs": 12.0,
         "fat": 6.6
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "col53",
@@ -16073,7 +16338,8 @@
         "protein": 20.1,
         "carbs": 30.5,
         "fat": 17.5
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "col54",
@@ -16126,7 +16392,8 @@
         "protein": 15.6,
         "carbs": 21.3,
         "fat": 12.4
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep147",
@@ -16186,7 +16453,8 @@
         "protein": 41.8,
         "carbs": 82.8,
         "fat": 12.9
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep148",
@@ -16240,7 +16508,8 @@
         "protein": 48.0,
         "carbs": 56.6,
         "fat": 30.1
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep149",
@@ -16300,7 +16569,8 @@
         "protein": 36.2,
         "carbs": 84.5,
         "fat": 11.2
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep150",
@@ -16354,7 +16624,8 @@
         "protein": 41.8,
         "carbs": 78.3,
         "fat": 30.0
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep151",
@@ -16414,7 +16685,8 @@
         "protein": 38.9,
         "carbs": 95.8,
         "fat": 10.2
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "rep152",
@@ -16474,7 +16746,8 @@
         "protein": 43.6,
         "carbs": 64.4,
         "fat": 28.5
-      }
+      },
+      "wave": "2026-06-19-vegan"
     },
     {
       "id": "pd59",
@@ -16534,7 +16807,8 @@
         "protein": 33.1,
         "carbs": 70.0,
         "fat": 15.1
-      }
+      },
+      "wave": "2026-07-22-sans-gluten"
     },
     {
       "id": "pd60",
@@ -16594,7 +16868,8 @@
         "protein": 28.6,
         "carbs": 73.8,
         "fat": 5.7
-      }
+      },
+      "wave": "2026-07-22-sans-gluten"
     },
     {
       "id": "pd61",
@@ -16648,7 +16923,8 @@
         "protein": 21.7,
         "carbs": 53.2,
         "fat": 7.8
-      }
+      },
+      "wave": "2026-07-22-sans-gluten"
     },
     {
       "id": "pd62",
@@ -16708,7 +16984,8 @@
         "protein": 27.6,
         "carbs": 74.1,
         "fat": 14.0
-      }
+      },
+      "wave": "2026-07-22-sans-gluten"
     },
     {
       "id": "pd63",
@@ -16762,7 +17039,8 @@
         "protein": 25.2,
         "carbs": 68.0,
         "fat": 8.0
-      }
+      },
+      "wave": "2026-07-22-sans-gluten"
     },
     {
       "id": "pd64",
@@ -16816,7 +17094,8 @@
         "protein": 31.9,
         "carbs": 71.2,
         "fat": 5.9
-      }
+      },
+      "wave": "2026-07-22-sans-gluten"
     },
     {
       "id": "pd65",
@@ -16882,7 +17161,8 @@
         "protein": 29.1,
         "carbs": 76.4,
         "fat": 15.3
-      }
+      },
+      "wave": "2026-07-22-sans-gluten"
     },
     {
       "id": "pd66",
@@ -16942,7 +17222,8 @@
         "protein": 31.3,
         "carbs": 63.7,
         "fat": 12.2
-      }
+      },
+      "wave": "2026-07-22-sans-gluten"
     },
     {
       "id": "pd67",
@@ -17002,7 +17283,8 @@
         "protein": 33.4,
         "carbs": 67.5,
         "fat": 12.5
-      }
+      },
+      "wave": "2026-07-22-sans-gluten"
     },
     {
       "id": "pd68",
@@ -17056,7 +17338,8 @@
         "protein": 32.7,
         "carbs": 30.2,
         "fat": 15.9
-      }
+      },
+      "wave": "2026-07-22-sans-gluten"
     },
     {
       "id": "pd69",
@@ -17110,7 +17393,8 @@
         "protein": 30.6,
         "carbs": 51.5,
         "fat": 10.3
-      }
+      },
+      "wave": "2026-07-22-sans-gluten"
     },
     {
       "id": "pd70",
@@ -17170,7 +17454,8 @@
         "protein": 34.0,
         "carbs": 68.2,
         "fat": 15.1
-      }
+      },
+      "wave": "2026-07-22-sans-gluten"
     },
     {
       "id": "pd71",
@@ -17224,7 +17509,8 @@
         "protein": 29.2,
         "carbs": 56.9,
         "fat": 14.0
-      }
+      },
+      "wave": "2026-07-22-sans-gluten"
     },
     {
       "id": "pd72",
@@ -17271,7 +17557,8 @@
         "protein": 19.7,
         "carbs": 22.4,
         "fat": 9.2
-      }
+      },
+      "wave": "2026-07-22-sans-gluten"
     },
     {
       "id": "pd73",
@@ -17325,7 +17612,8 @@
         "protein": 27.2,
         "carbs": 55.0,
         "fat": 9.8
-      }
+      },
+      "wave": "2026-07-22-sans-gluten"
     },
     {
       "id": "pd74",
@@ -17378,7 +17666,8 @@
         "protein": 26.5,
         "carbs": 20.3,
         "fat": 7.3
-      }
+      },
+      "wave": "2026-07-22-sans-gluten"
     },
     {
       "id": "pd75",
@@ -17432,7 +17721,8 @@
         "protein": 24.7,
         "carbs": 31.3,
         "fat": 16.3
-      }
+      },
+      "wave": "2026-07-22-sans-gluten"
     },
     {
       "id": "pd76",
@@ -17486,7 +17776,8 @@
         "protein": 26.3,
         "carbs": 50.0,
         "fat": 23.1
-      }
+      },
+      "wave": "2026-07-22-sans-gluten"
     },
     {
       "id": "pd77",
@@ -17546,7 +17837,8 @@
         "protein": 38.5,
         "carbs": 33.1,
         "fat": 23.1
-      }
+      },
+      "wave": "2026-07-22-sans-gluten"
     },
     {
       "id": "pd78",
@@ -17606,7 +17898,8 @@
         "protein": 29.0,
         "carbs": 27.8,
         "fat": 28.7
-      }
+      },
+      "wave": "2026-07-22-sans-gluten"
     },
     {
       "id": "col55",
@@ -17653,7 +17946,8 @@
         "protein": 21.6,
         "carbs": 39.5,
         "fat": 1.4
-      }
+      },
+      "wave": "2026-07-22-sans-gluten"
     },
     {
       "id": "col56",
@@ -17706,7 +18000,8 @@
         "protein": 18.6,
         "carbs": 62.7,
         "fat": 12.0
-      }
+      },
+      "wave": "2026-07-22-sans-gluten"
     },
     {
       "id": "col57",
@@ -17753,7 +18048,8 @@
         "protein": 20.4,
         "carbs": 30.5,
         "fat": 7.4
-      }
+      },
+      "wave": "2026-07-22-sans-gluten"
     },
     {
       "id": "col58",
@@ -17806,7 +18102,8 @@
         "protein": 24.4,
         "carbs": 47.5,
         "fat": 12.5
-      }
+      },
+      "wave": "2026-07-22-sans-gluten"
     },
     {
       "id": "col59",
@@ -17860,7 +18157,8 @@
         "protein": 24.6,
         "carbs": 60.2,
         "fat": 12.1
-      }
+      },
+      "wave": "2026-07-22-sans-gluten"
     },
     {
       "id": "col60",
@@ -17908,7 +18206,8 @@
         "protein": 24.6,
         "carbs": 40.1,
         "fat": 7.5
-      }
+      },
+      "wave": "2026-07-22-sans-gluten"
     },
     {
       "id": "col61",
@@ -17962,7 +18261,8 @@
         "protein": 32.9,
         "carbs": 49.6,
         "fat": 6.4
-      }
+      },
+      "wave": "2026-07-22-sans-gluten"
     },
     {
       "id": "col62",
@@ -18015,7 +18315,8 @@
         "protein": 21.2,
         "carbs": 47.3,
         "fat": 11.1
-      }
+      },
+      "wave": "2026-07-22-sans-gluten"
     },
     {
       "id": "col63",
@@ -18062,7 +18363,8 @@
         "protein": 19.7,
         "carbs": 21.9,
         "fat": 6.2
-      }
+      },
+      "wave": "2026-07-22-sans-gluten"
     },
     {
       "id": "col64",
@@ -18104,7 +18406,8 @@
         "protein": 12.3,
         "carbs": 31.9,
         "fat": 9.9
-      }
+      },
+      "wave": "2026-07-22-sans-gluten"
     },
     {
       "id": "col65",
@@ -18145,7 +18448,8 @@
         "protein": 17.6,
         "carbs": 14.4,
         "fat": 12.0
-      }
+      },
+      "wave": "2026-07-22-sans-gluten"
     },
     {
       "id": "col66",
@@ -18192,7 +18496,8 @@
         "protein": 27.2,
         "carbs": 6.7,
         "fat": 6.6
-      }
+      },
+      "wave": "2026-07-22-sans-gluten"
     },
     {
       "id": "rep153",
@@ -18252,7 +18557,8 @@
         "protein": 53.3,
         "carbs": 67.4,
         "fat": 17.6
-      }
+      },
+      "wave": "2026-07-22-sans-gluten"
     },
     {
       "id": "rep154",
@@ -18306,7 +18612,8 @@
         "protein": 35.6,
         "carbs": 64.4,
         "fat": 10.4
-      }
+      },
+      "wave": "2026-07-22-sans-gluten"
     },
     {
       "id": "rep155",
@@ -18366,7 +18673,8 @@
         "protein": 40.4,
         "carbs": 94.7,
         "fat": 10.3
-      }
+      },
+      "wave": "2026-07-22-sans-gluten"
     },
     {
       "id": "rep156",
@@ -18432,7 +18740,8 @@
         "protein": 56.0,
         "carbs": 78.9,
         "fat": 12.6
-      }
+      },
+      "wave": "2026-07-22-sans-gluten"
     },
     {
       "id": "rep157",
@@ -18486,7 +18795,8 @@
         "protein": 38.6,
         "carbs": 46.5,
         "fat": 24.8
-      }
+      },
+      "wave": "2026-07-22-sans-gluten"
     },
     {
       "id": "rep158",
@@ -18546,7 +18856,8 @@
         "protein": 38.2,
         "carbs": 40.6,
         "fat": 26.8
-      }
+      },
+      "wave": "2026-07-22-sans-gluten"
     },
     {
       "id": "rep159",
@@ -18606,7 +18917,8 @@
         "protein": 36.3,
         "carbs": 79.8,
         "fat": 16.0
-      }
+      },
+      "wave": "2026-07-22-sans-gluten"
     },
     {
       "id": "rep160",
@@ -18666,7 +18978,8 @@
         "protein": 46.3,
         "carbs": 39.8,
         "fat": 15.7
-      }
+      },
+      "wave": "2026-07-22-sans-gluten"
     },
     {
       "id": "rep161",
@@ -18726,7 +19039,8 @@
         "protein": 46.5,
         "carbs": 64.5,
         "fat": 22.6
-      }
+      },
+      "wave": "2026-07-22-sans-gluten"
     },
     {
       "id": "rep162",
@@ -18780,7 +19094,8 @@
         "protein": 39.4,
         "carbs": 74.8,
         "fat": 30.4
-      }
+      },
+      "wave": "2026-07-22-sans-gluten"
     },
     {
       "id": "rep163",
@@ -18833,7 +19148,8 @@
         "protein": 41.9,
         "carbs": 47.8,
         "fat": 7.6
-      }
+      },
+      "wave": "2026-07-22-sans-gluten"
     },
     {
       "id": "rep164",
@@ -18893,7 +19209,8 @@
         "protein": 46.9,
         "carbs": 84.5,
         "fat": 19.4
-      }
+      },
+      "wave": "2026-07-22-sans-gluten"
     },
     {
       "id": "rep165",
@@ -18947,7 +19264,8 @@
         "protein": 43.8,
         "carbs": 73.8,
         "fat": 9.9
-      }
+      },
+      "wave": "2026-07-22-sans-gluten"
     },
     {
       "id": "rep166",
@@ -19001,7 +19319,8 @@
         "protein": 41.0,
         "carbs": 95.8,
         "fat": 30.4
-      }
+      },
+      "wave": "2026-07-22-sans-gluten"
     },
     {
       "id": "rep167",
@@ -19061,7 +19380,8 @@
         "protein": 46.0,
         "carbs": 51.6,
         "fat": 23.8
-      }
+      },
+      "wave": "2026-07-22-sans-gluten"
     },
     {
       "id": "rep168",
@@ -19115,7 +19435,8 @@
         "protein": 40.9,
         "carbs": 62.8,
         "fat": 29.5
-      }
+      },
+      "wave": "2026-07-22-sans-gluten"
     },
     {
       "id": "rep169",
@@ -19175,7 +19496,8 @@
         "protein": 57.9,
         "carbs": 77.0,
         "fat": 15.6
-      }
+      },
+      "wave": "2026-07-22-sans-gluten"
     },
     {
       "id": "rep170",
@@ -19235,7 +19557,8 @@
         "protein": 43.7,
         "carbs": 105.3,
         "fat": 8.7
-      }
+      },
+      "wave": "2026-07-22-sans-gluten"
     }
   ],
   "config": {

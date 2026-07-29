@@ -20,7 +20,8 @@ Les fichiers de `drops/` sont de la matière première : on en extrait, on ne le
    code 1 s'il trouve un clone. Une recette rejetée est **réécrite**, pas retouchée : une
    correction locale déplace le clone au lieu de le supprimer.
 1. **`recettes-kyroz.json`** → concaténer dans `recipes[]` (ids : `pdNN` / `colNN` / `repNNN`, suite continue),
-   mettre `_meta.count` à jour.
+   mettre `_meta.count` à jour, et **renseigner `wave`** sur chaque recette avec le nom du dossier
+   du drop (cf. `_meta.waves`) — un test échoue si une recette n'en porte pas.
 2. **Ingrédient inconnu** → l'ajouter à `ingredients_reference` (`name`, `unit`, `per_100`, `basis`, `abs_max_qty`), puis :
    - `lib/recipeFoodMap.ts` → mapping Ciqual **vérifié à la main** (règle : on ne mappe que si l'entrée
      ANSES est SANS AMBIGUÏTÉ le même aliment ; sinon on garde la valeur manuelle, assumée) ;

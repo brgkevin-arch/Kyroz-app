@@ -49,13 +49,21 @@ Une recette = un objet JSON. **Aucun champ en plus, aucun champ en moins.**
   ],
   "instructions": ["...", "..."],   // 4 à 7 étapes DÉTAILLÉES et exécutables — cf. §4.6bis
   "why": "...",                     // 1 phrase sobre, aucune allégation santé, aucun régime revendiqué
-  "macros_per_serving": { "kcal": 495, "protein": 40.6, "carbs": 43.6, "fat": 16.1 }
+  "macros_per_serving": { "kcal": 495, "protein": 40.6, "carbs": 43.6, "fat": 16.1 },
+  "wave": "2026-08-01-b1-assemblage"  // nom du DOSSIER de livraison, cf. §7.1
 }
 ```
 
 Champs à **ne pas** produire : `restrictions_ok` (dérivé par le code depuis les `ref`),
 `recomp_flag` (champ supprimé le 2026-07-29), `validated_by_dietitian`,
 `temps_actif_min`, `repos_prealable_min` (pas encore au schéma).
+
+**`wave` est obligatoire** depuis le 2026-07-29 : c'est la vague de livraison d'origine de la
+recette, et sa valeur est **exactement le nom du dossier** dans lequel le lot est livré. Les
+314 recettes existantes portent `fondation` (100), `2026-06-19-vegan` (164) et
+`2026-07-22-sans-gluten` (50). Sans ce champ, on ne peut pas comparer un lot au précédent : c'est
+ce qui a empêché d'expliquer pourquoi `recup_jour_repos` était posé sur 43 % du premier lot et
+12 % du second. Un test échoue si une recette n'en porte pas.
 
 ### Deux exemples réels, copiés du catalogue live
 
@@ -955,7 +963,7 @@ Quatre décisions bloquent ou modifient la commande. Aucune ne peut être prise 
    de contenu. Pour le rédacteur, `recup_jour_repos` se remplit donc par la règle mécanique du
    §4.8 et rien d'autre — ne pas y consacrer de réflexion éditoriale.
 
-4. **Champ `wave` / `batch`.** Ajouter un champ de traçabilité de vague sur chaque recette (et le
-   renseigner rétroactivement pour le lot fondateur de 100 et le lot des 214 suivantes) demande une
-   modification du schéma et du code de chargement. Sans lui, la vague suivante ne saura pas contre
-   quoi se comparer. À décider maintenant : le brief l'exclut pour l'instant du format de sortie.
+4. ~~**Champ `wave` / `batch`.**~~ **Tranché le 2026-07-29 : ajouté.** Le champ `wave` est
+   obligatoire au format de sortie (§2) et les 314 recettes existantes ont été rétro-remplies
+   depuis les dossiers de `Recette/drops/` — `fondation` 100, `2026-06-19-vegan` 164,
+   `2026-07-22-sans-gluten` 50. Un test vérifie que chaque recette en porte un.
