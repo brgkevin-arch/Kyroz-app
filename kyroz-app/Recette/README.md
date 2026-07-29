@@ -15,6 +15,10 @@ Les fichiers de `drops/` sont de la matière première : on en extrait, on ne le
 
 ## Ajouter des recettes — la chaîne complète
 
+0. **`npm run check:doublons -- <chemin/du/drop.json>`** → AVANT de concaténer quoi que ce soit.
+   Le script confronte le lot au catalogue live et les recettes du lot entre elles, et sort en
+   code 1 s'il trouve un clone. Une recette rejetée est **réécrite**, pas retouchée : une
+   correction locale déplace le clone au lieu de le supprimer.
 1. **`recettes-kyroz.json`** → concaténer dans `recipes[]` (ids : `pdNN` / `colNN` / `repNNN`, suite continue),
    mettre `_meta.count` à jour.
 2. **Ingrédient inconnu** → l'ajouter à `ingredients_reference` (`name`, `unit`, `per_100`, `basis`, `abs_max_qty`), puis :
@@ -25,7 +29,7 @@ Les fichiers de `drops/` sont de la matière première : on en extrait, on ne le
 3. **Compteurs de test** : `recipeMap.test.ts`, `recipes.test.ts`, `recipeData.test.ts` (`toHaveLength(N)`).
 4. **`ENGINE_VERSION`** (`lib/planEngine.ts`) → +1, sinon les plans en cache ignorent les nouvelles recettes.
 5. `npm test` puis `npx tsc --noEmit`.
-6. `npx tsx scripts/gen-validation-recettes.ts` → régénère `VALIDATION-RECETTES.md` (dossier diététicienne).
+6. `npm run gen:validation` → régénère `VALIDATION-RECETTES.md` (dossier diététicienne).
 
 ## Invariants vérifiés par les tests
 
@@ -35,6 +39,9 @@ Les fichiers de `drops/` sont de la matière première : on en extrait, on ne le
 - Pas de nom « cuit/égoutté » sur un ingrédient `basis: dry` — **on pèse SEC** (convention riz/pâtes).
 - `macros_per_serving` = **garde-fou de régression ±30 %** (repère indépendant), pas une source :
   les vraies macros sont **dérivées des ingrédients** par `recipeMap`. Ne pas le re-baseliner sans raison.
+- **Similarité** (`doublons.test.ts`) : cliquet sur les paires trop proches — Jaccard des `ref`,
+  refs communs, triplet (catégorie, protéine, féculent), noms. Les compteurs actuels sont des
+  plafonds : une vague qui les fait monter casse `npm test`. Les baisser après nettoyage est attendu.
 
 ## Conventions de contenu
 

@@ -858,10 +858,25 @@ ne se voyaient pas les unes les autres. Les règles suivantes s'appliquent **ava
 macros et avant toute relecture. Une recette rejetée est **réécrite**, jamais corrigée à la marge —
 une correction locale déplace le clone au lieu de le supprimer.
 
-**Le contrôle doit être un script, pas une relecture.** Livrer avec la vague un script qui sort la
-liste des paires en violation avec, pour chacune, le Jaccard, le nombre de refs communs et le
-triplet. Une règle qui n'est pas exécutée sera oubliée à la vague suivante : c'est exactement ce
-qui s'est passé, le README du dossier ne contient aujourd'hui aucun invariant de similarité.
+**Le contrôle est un script, pas une relecture — et il existe.** Une règle qui n'est pas exécutée
+est oubliée à la vague suivante : c'est exactement ce qui s'est passé. R1, R2, R4, R5 et R7 sont
+donc implémentées dans `kyroz-app/scripts/check-doublons.ts`.
+
+```bash
+npx tsx scripts/check-doublons.ts Recette/drops/2026-XX-XX-bloc/recettes.json
+```
+
+Le script confronte le lot au catalogue live **et les recettes du lot entre elles**, sort la liste
+des paires en violation (avec le Jaccard, les refs communs et le triplet), et **retourne 1** si le
+lot en contient une. Sans argument, il audite le catalogue existant sans échouer.
+
+Un test verrouille l'ensemble (`lib/__tests__/doublons.test.ts`) : les compteurs actuels
+— R1 92, R2 78, R4 17, R5 22, R7 0 — sont des **plafonds**. Ils peuvent descendre après un
+nettoyage ; toute vague qui les fait monter casse `npm test`.
+
+R3, R6, R8 et R9 restent des règles de rédaction, non automatisées : R8 demande de faire tourner
+`adaptRecipe` sur 9 profils, R6 et R9 supposent de connaître le découpage en blocs. Elles se
+vérifient à la relecture du lot, bloc par bloc.
 
 ---
 

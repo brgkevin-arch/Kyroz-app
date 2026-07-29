@@ -41,7 +41,8 @@
     "test:watch": "vitest",
     "predeploy": "npx expo export -p web",
     "deploy": "gh-pages -d dist",
-    "gen:validation": "tsx scripts/gen-validation-recettes.ts"
+    "gen:validation": "npx tsx scripts/gen-validation-recettes.ts",
+    "check:doublons": "npx tsx scripts/check-doublons.ts"
   },
   "private": true,
   "homepage": "https://brgkevin-arch.github.io/Kyroz-app"
