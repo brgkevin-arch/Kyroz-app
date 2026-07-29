@@ -1,5 +1,5 @@
 import { EngineNotice, Goal, NeatLevel, PlanFlag, Sex, SportSession, UserProfile } from './types';
-import { exerciseKcalPerDay } from './sport';
+import { exerciseKcalPerDay, totalSessionsPerWeek } from './sport';
 import { datedGoalStatus, goalDirectionMismatch, MAX_DEFICIT_TDEE_RATIO } from './datedGoal';
 import { todayStamp } from './weight';
 import {
@@ -140,8 +140,14 @@ export function calculateTDEE(b: TdeeBody): number {
 
 // Ajustement calorique + protéines selon l'objectif.
 const GOAL_CONFIG: Record<Goal, { kcalDelta: number; proteinPerKg: number; label: string }> = {
+  // `cut_aggressive` : LEGACY, plus proposé par l'UI (cf. syncGuard::normalizeGoal).
+  // Conservé ici parce que des profils l'ont encore en base au moment où ils sont
+  // lus — la normalisation les referme sur `cut`, mais le calcul doit rester
+  // possible pour ne jamais crasher sur une ligne cloud non encore normalisée.
   cut_aggressive: { kcalDelta: -500, proteinPerKg: 2.4, label: 'Sèche rapide' },
-  cut:            { kcalDelta: -300, proteinPerKg: 2.2, label: 'Sèche progressive' },
+  // « Sèche progressive » → « Sèche » : il n'y en a plus qu'une, et l'adjectif
+  // n'oppose plus rien. Le rythme se règle par l'objectif daté.
+  cut:            { kcalDelta: -300, proteinPerKg: 2.2, label: 'Sèche' },
   recomp:         { kcalDelta: -150, proteinPerKg: 2.2, label: 'Recomposition' },
   maintain:       { kcalDelta: 0,    proteinPerKg: 1.8, label: 'Maintien' },
   lean_bulk:      { kcalDelta: 200,  proteinPerKg: 2.0, label: 'Prise de masse propre' },
@@ -242,8 +248,22 @@ export interface MacroOptions {
   sportKcalPerDay?: number;
   /** Semaines déjà passées en zone d'énergie disponible basse (fenêtre 12 mois). */
   lowEaWeeks?: number;
-  /** Jour de séance ? Pilote le seuil d'alerte glucides. Défaut : true. */
+  /**
+   * Jour de séance ? Pilote le seuil d'alerte glucides (3 g/kg).
+   *
+   * Défaut : DÉRIVÉ des séances déclarées, et non `true`. Le défaut à `true` levait
+   * `CARBS_BELOW_TRAINING_FLOOR` sur des profils à ZÉRO séance (mesuré : H 70 kg
+   * sédentaire, 189 g de glucides pour un seuil « jour de séance » à 210 g) — un
+   * avertissement de qualité d'entraînement servi à quelqu'un qui ne s'entraîne pas.
+   * Inoffensif tant que le drapeau n'est affiché nulle part ; à corriger AVANT de
+   * le câbler, sinon c'est l'alarme absurde qui part en production.
+   */
   isTrainingDay?: boolean;
+}
+
+/** Un profil sans aucune séance déclarée n'a pas de « jour de séance ». */
+function defaultIsTrainingDay(body: MacroBody): boolean {
+  return totalSessionsPerWeek(body.sports) > 0;
 }
 
 /**
@@ -313,7 +333,7 @@ function carbsFromRemaining(
 ): number {
   const carbs = Math.round(remainingKcal / 4);
   if (carbs < 0) flags.push('MACRO_BUDGET_OVERFLOW');
-  const isTrainingDay = opts.isTrainingDay ?? true;
+  const isTrainingDay = opts.isTrainingDay ?? defaultIsTrainingDay(body);
   if (isTrainingDay && isTrainingCarbShort(carbs, body.weight_kg)) {
     flags.push('CARBS_BELOW_TRAINING_FLOOR');
   }
@@ -412,7 +432,7 @@ export function macrosPercent(
   const fat_g = fatTargetG(usable, body, 1 - ratio);
   const carbs_g = Math.max(0, Math.round((usable - fat_g * 9) / 4));
 
-  const isTrainingDay = opts.isTrainingDay ?? true;
+  const isTrainingDay = opts.isTrainingDay ?? defaultIsTrainingDay(body);
   if (isTrainingDay && isTrainingCarbShort(carbs_g, body.weight_kg)) {
     flags.push('CARBS_BELOW_TRAINING_FLOOR');
   }
@@ -550,7 +570,7 @@ export function computePlan(p: UserProfile, today: string = todayStamp()): Compu
     // l'autre — et le drapeau clignoterait.
     const flags: PlanFlag[] = r.flags.filter((f) => f !== 'FLOOR_APPLIED');
     if (served - r.floor_kcal < 4) flags.push('FLOOR_APPLIED');
-    if ((opts.isTrainingDay ?? true) && isTrainingCarbShort(carbs_g, p.weight_kg)) {
+    if ((opts.isTrainingDay ?? defaultIsTrainingDay(p)) && isTrainingCarbShort(carbs_g, p.weight_kg)) {
       flags.push('CARBS_BELOW_TRAINING_FLOOR');
     }
     m = { target_kcal: served, floor_kcal: r.floor_kcal, flags, protein_g: p.target_protein_g, carbs_g, fat_g: p.target_fat_g };

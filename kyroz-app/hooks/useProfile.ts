@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { UserProfile } from '../lib/types';
 import { useAuth } from './useAuth';
 import { pushProfile, markProfileDirty, clearProfileDirty } from '../lib/sync';
-import { normalizeProfileActivity } from '../lib/syncGuard';
+import { normalizeGoal, normalizeProfileActivity } from '../lib/syncGuard';
 import { recalcProfile } from '../lib/tdee';
 
 const PROFILE_KEY = '@kyroz:profile';
@@ -33,7 +33,10 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
       if (!alive) return;
       // fix P3.3 : `sports` fait foi → recale le compteur de séances au chargement,
       // pour que le TDEE ne puisse pas basculer sur un état incohérent hérité.
-      const stored = raw ? normalizeProfileActivity(JSON.parse(raw)) : null;
+      // `normalizeGoal` : `cut_aggressive` n'est plus proposé (il servait le même
+      // plan que `cut`) → on le referme ici, sinon ces comptes gardent un objectif
+      // qu'aucun écran ne sait plus afficher.
+      const stored = raw ? normalizeGoal(normalizeProfileActivity(JSON.parse(raw))) : null;
       // fix P0.1 : le plancher de sécurité doit être RÉTROACTIF. Les cibles étaient
       // figées en base et ne repassaient par `safetyFloorKcal` qu'à la prochaine
       // édition ou pesée : un profil dormant continuait d'être servi à 1200 kcal

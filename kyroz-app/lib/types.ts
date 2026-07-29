@@ -4,8 +4,17 @@ export type Sex = 'male' | 'female';
 
 // Objectifs étendus (du déficit agressif au surplus)
 export type Goal =
-  | 'cut_aggressive'   // sèche rapide
-  | 'cut'              // sèche progressive
+  // ⚠️ LEGACY, plus proposé par l'UI depuis le 2026-07-29 — voir `normalizeGoal`.
+  // Mesuré sur 2268 profils : il servait EXACTEMENT les mêmes calories que `cut`
+  // (0 % d'écart dès que le %MG est déclaré ; 1 à 16 kcal/j quand il est estimé).
+  // Le plancher de sécurité absorbe la différence entre −300 et −500 kcal/j, donc
+  // le choix était un choix fantôme : l'utilisateur cochait « rapide », y
+  // réfléchissait, et recevait le plan de « sèche ». La vitesse se pilote
+  // désormais par l'objectif DATÉ, seul mécanisme qui sache dire honnêtement si
+  // le rythme demandé est tenable (cf. lib/datedGoal.ts, P1.6).
+  // Conservé dans le type et dans GOAL_CONFIG : des profils l'ont en base.
+  | 'cut_aggressive'   // sèche rapide (legacy)
+  | 'cut'              // sèche
   | 'recomp'           // recomposition
   | 'maintain'         // maintien
   | 'lean_bulk'        // prise de masse propre

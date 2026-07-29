@@ -137,8 +137,25 @@ export function effectiveEaPerKgFfm(b: BodyInput, weeksInLowEa: number): number 
 }
 
 /**
- * Plancher calorique RÉEL de la journée. Aucun chemin de code ne doit produire une
- * cible sans passer par ici — mode `manual` compris.
+ * Plancher calorique du plan. Aucun chemin de code ne doit produire une cible sans
+ * passer par ici — mode `manual` compris.
+ *
+ * ⚠️ L'ÉNERGIE DISPONIBLE EST UNE MOYENNE HEBDOMADAIRE, PAS UNE CONTRAINTE
+ * QUOTIDIENNE (décision fondateur, 2026-07-29). Ce commentaire disait auparavant
+ * « plancher RÉEL de la journée », ce qui était faux : `sportKcalPerDay` est la
+ * dépense LISSÉE (semaine / 7), donc le jour de séance l'EA réellement servie est
+ * plus basse que le seuil. Mesuré sur 378 profils par volume : 94 à 98 % des
+ * profils sportifs sont sous 30 le jour de leur séance (moyenne 24,8–28,7,
+ * minimum 23,4), et AUCUN sous 20. Le risque RED-S est chronique, pas journalier :
+ * la moyenne est le bon cadre, et l'écart quotidien à volume normal est modéré et
+ * systématique, pas un pic dangereux.
+ *
+ * ⚠️ CE QUI N'EST PAS COUVERT PAR CE CHOIX : le volume CONCENTRÉ (une très grosse
+ * séance par semaine). Mesuré : `course 1×120` → 100 % des profils sous EA 20 le
+ * jour de la séance, moyenne 8,1, minimum 2,3 — et l'EA devient négative à 1×180.
+ * Ce n'est pas au plancher de rattraper ça (il ne sait pas quel jour porte quelle
+ * séance) : c'est une saisie que le moteur ne sait pas honorer, à traiter par un
+ * contrôle de plausibilité à la saisie. Non fait à ce jour.
  *
  * `sportKcalPerDay` est la dépense d'exercice moyenne : l'EA la soustrait de
  * l'apport, donc le plancher MONTE avec le volume d'entraînement. C'est
