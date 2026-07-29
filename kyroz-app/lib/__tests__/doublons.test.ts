@@ -14,9 +14,17 @@ import { findViolations, nameKey, norm, type CheckRecipe } from '../../scripts/c
 //
 // Baisser un plafond après un nettoyage est ATTENDU. Le remonter demande une
 // justification écrite dans le commit.
-// R4 : 17 → 15 le 2026-07-29, en passant pd10/col07/col17 de `dairy` à `protein` sur
-// leur yaourt (le cliquet se resserre quand le catalogue s'améliore — c'est attendu).
-const PLAFOND = { R1: 92, R2: 78, R4: 15, R5: 22, R7: 0 } as const;
+// R4, journal des mouvements — c'est le seul plafond qui a bougé :
+//   17 → 15  en passant pd10/col07/col17 de `dairy` à `protein` sur leur yaourt.
+//   15 → 16  en rendant son ancre protéine à pd02/pd06/pd08/pd15/col01/col03/col13/col19.
+// La HAUSSE est assumée et ce n'est pas une régression : la duplication existait déjà,
+// elle était masquée par un rôle faux. pd02 et pd06 portaient un skyr en `dairy` alors
+// qu'il fait 58 à 74 % de leurs protéines ; une fois corrigé, elles rejoignent le triplet
+// (petit_dej, skyr, flocons_avoine) que pd26 et pd27 occupaient déjà. Le cliquet ne dit
+// pas « tu as cassé quelque chose », il dit « voilà ce que le catalogue est vraiment ».
+// Les collisions ainsi révélées — skyr+avoine ×4, fromage_blanc+avoine ×3 — sont de vrais
+// quasi-doublons à nettoyer, et la prochaine vague ne doit surtout pas les reproduire.
+const PLAFOND = { R1: 92, R2: 78, R4: 16, R5: 22, R7: 0 } as const;
 
 const RECIPES = (raw as { recipes: unknown[] }).recipes as CheckRecipe[];
 

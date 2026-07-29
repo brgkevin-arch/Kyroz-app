@@ -506,7 +506,7 @@ export function computeDailyTotals(
 // Version du moteur de génération : à incrémenter quand le scoring/sélection
 // change, pour que les plans EN CACHE se régénèrent automatiquement (la signature
 // change → l'auto-refresh de l'écran Plan rejoue la génération). v2 = lipides cadrés.
-const ENGINE_VERSION = 22; // v22 = le temps de prépa ne filtre plus les recettes (le pool ne peut plus être vidé, donc le repli ne lâche plus le régime) ; v21 = yaourt_grec démappé ; v20 = rest_day_ok retiré du départage ; v19 = correctifs régime
+const ENGINE_VERSION = 23; // v23 = ancre protéine rendue à 8 recettes (laitier dairy→protein) ; v22 = le temps de prépa ne filtre plus ; v21 = yaourt_grec démappé ; v20 = rest_day_ok retiré du départage
 
 export function profileSignature(p: UserProfile): string {
   // NB : `hidden_recipes` (👎) est VOLONTAIREMENT absent. Un 👎 remplace UN repas
