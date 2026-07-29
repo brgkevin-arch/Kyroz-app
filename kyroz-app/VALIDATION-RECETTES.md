@@ -64,7 +64,7 @@ fibres, pas le recalcul). On ne signale que les écarts > 10 %.
 | pd07 | Smoothie bowl mangue – épinards – protéine | Petit-déj | 6’ | 389 | 24 | 49 | 9 | maintien | ☐ | |
 | pd08 | Tartines seigle – cottage cheese – tomate | Petit-déj | 6’ | 359 | 19 | 42 | 11 | perte de gras, maintien | ☐ | |
 | pd09 | Porridge chocolat – cacao – beurre de cacahuète | Petit-déj | 8’ | 697 | 47 | 75 | 21 | prise de masse | ☐ | |
-| pd10 | Yaourt grec – noix – miel – pomme | Petit-déj | 4’ | 484 | 10 | 42 | 28 | maintien | ☐ | |
+| pd10 | Yaourt grec – noix – miel – pomme | Petit-déj | 4’ | 508 | 22 | 43 | 26 | maintien | ☐ | |
 | pd11 | Omelette blancs – épinards – feta | Petit-déj | 12’ | 303 | 32 | 4 | 17 | perte de gras | ☐ | |
 | pd12 | Pain perdu protéiné | Petit-déj | 15’ | 489 | 36 | 51 | 14 | prise de masse, maintien | ☐ | |
 | pd13 | Wrap petit-déj œuf – dinde – poivron | Petit-déj | 12’ | 411 | 32 | 34 | 15 | maintien | ☐ | |
@@ -81,7 +81,7 @@ fibres, pas le recalcul). On ne signale que les écarts > 10 %.
 | col04 | Energy balls dattes – avoine – cacahuète | Collation | 15’ | 665 | 30 | 76 | 23 | prise de masse | ☐ | |
 | col05 | Tartine pain complet – cacahuète – banane | Collation | 4’ | 389 | 12 | 49 | 14 | prise de masse | ☐ | |
 | col06 | Smoothie protéiné végétal cacahuète – datte | Collation | 5’ | 599 | 33 | 63 | 23 | prise de masse | ☐ | |
-| col07 | Yaourt grec – myrtilles – chia | Collation | 3’ | 306 | 8 | 20 | 19 | perte de gras, maintien | ☐ | |
+| col07 | Yaourt grec – myrtilles – chia | Collation | 3’ | 327 | 19 | 21 | 17 | perte de gras, maintien | ☐ | |
 | col08 | Mousse fromage blanc – cacao – whey | Collation | 4’ | 243 | 36 | 17 | 3 | perte de gras | ☐ | |
 | col09 | Galettes de riz – fromage frais – dinde | Collation | 4’ | 245 | 24 | 26 | 4 | perte de gras, maintien | ☐ | |
 | col10 | Amandes – chocolat noir – pomme | Collation | 1’ | 311 | 7 | 20 | 20 | maintien | ☐ | |
@@ -91,7 +91,7 @@ fibres, pas le recalcul). On ne signale que les écarts > 10 %.
 | col14 | Œufs durs – avocat – tomate | Collation | 10’ | 256 | 14 | 3 | 21 | perte de gras | ☐ | |
 | col15 | Barre avoine – whey – miel maison | Collation | 20’ | 549 | 36 | 59 | 17 | prise de masse | ☐ | |
 | col16 | Edamame vapeur – sauce soja | Collation | 6’ | 192 | 17 | 14 | 8 | perte de gras, maintien | ☐ | |
-| col17 | Yaourt grec – raisins – noisettes | Collation | 3’ | 403 | 11 | 27 | 27 | maintien | ☐ | |
+| col17 | Yaourt grec – raisins – noisettes | Collation | 3’ | 427 | 23 | 27 | 24 | maintien | ☐ | |
 | col18 | Smoothie vert kiwi – épinards – protéine | Collation | 5’ | 327 | 24 | 32 | 11 | perte de gras | ☐ | |
 | col19 | Cottage cheese – pain de seigle – concombre | Collation | 4’ | 314 | 21 | 32 | 10 | perte de gras, maintien | ☐ | |
 | col20 | Pudding chia – fruits rouges | Collation | 5’ | 339 | 19 | 21 | 17 | maintien | ☐ | |
@@ -115,7 +115,7 @@ fibres, pas le recalcul). On ne signale que les écarts > 10 %.
 | rep18 | Omelette géante poulet – mozzarella – épinards | Repas | 15’ | 501 | 51 | 2 | 31 | perte de gras | ☐ | |
 | rep19 | Pâtes thon – tomate – olives | Repas | 20’ | 605 | 45 | 66 | 16 | maintien | ☐ | |
 | rep20 | Poke bowl saumon – riz – edamame | Repas | 20’ | 768 | 47 | 72 | 31 | prise de masse, maintien | ☐ | |
-| rep21 | Poulet tikka – riz basmati – yaourt | Repas | 30’ | 636 | 51 | 69 | 17 | prise de masse, maintien | ☐ | |
+| rep21 | Poulet tikka – riz basmati – yaourt | Repas | 30’ | 643 | 54 | 69 | 16 | prise de masse, maintien | ☐ | |
 | rep22 | Soupe de lentilles – légumes – pain complet | Repas | 30’ | 497 | 29 | 68 | 8 | perte de gras, maintien | ☐ | |
 | rep23 | Steak haché 5% – purée patate douce – brocoli | Repas | 25’ | 517 | 41 | 46 | 16 | prise de masse, maintien | ☐ | |
 | rep24 | Crevettes sautées – nouilles – légumes (pad thaï light) | Repas | 20’ | 546 | 43 | 68 | 10 | perte de gras, maintien | ☐ | |
@@ -164,7 +164,7 @@ fibres, pas le recalcul). On ne signale que les écarts > 10 %.
 | pd27 | Bowl skyr – beurre d'amande – banane | Petit-déj | 5’ | 479 | 32 | 51 | 14 | maintien, prise de masse | ☐ | |
 | pd28 | Fromage blanc – muesli – pomme râpée | Petit-déj | 6’ | 383 | 21 | 44 | 12 | perte de gras, maintien | ☐ | |
 | pd29 | Cottage cheese – ananas – graines de courge | Petit-déj | 5’ | 451 | 30 | 36 | 19 | perte de gras, maintien | ☐ | |
-| pd30 | Yaourt grec – miel – noix | Petit-déj | 5’ | 510 | 12 | 44 | 30 | maintien, prise de masse | ☐ | |
+| pd30 | Yaourt grec – miel – noix | Petit-déj | 5’ | 534 | 24 | 44 | 27 | maintien, prise de masse | ☐ | |
 | pd31 | Overnight oats soja – chia – fruits rouges | Petit-déj | 5’ | 413 | 23 | 49 | 11 | perte de gras, maintien | ☐ | |
 | pd32 | Bowl yaourt soja – granola – banane | Petit-déj | 5’ | 453 | 27 | 51 | 14 | maintien, prise de masse | ☐ | |
 | pd33 | Smoothie bowl protéine pois – mangue – coco | Petit-déj | 6’ | 428 | 30 | 40 | 15 | maintien | ☐ | |
@@ -188,7 +188,7 @@ fibres, pas le recalcul). On ne signale que les écarts > 10 %.
 | col27 | Skyr – myrtilles – amandes | Collation | 3’ | 236 | 23 | 17 | 7 | perte de gras | ☐ | |
 | col28 | Fromage blanc – fruits rouges – noix | Collation | 3’ | 221 | 17 | 16 | 9 | perte de gras | ☐ | |
 | col29 | Cottage cheese – concombre – pain complet | Collation | 4’ | 251 | 20 | 23 | 7 | perte de gras, maintien | ☐ | |
-| col30 | Yaourt grec – miel – noisettes | Collation | 3’ | 341 | 8 | 18 | 25 | maintien, prise de masse | ☐ | |
+| col30 | Yaourt grec – miel – noisettes | Collation | 3’ | 365 | 20 | 19 | 23 | maintien, prise de masse | ☐ | |
 | col31 | Energy balls dattes – cacahuète – avoine | Collation | 10’ | 496 | 24 | 61 | 15 | maintien, prise de masse | ☐ | |
 | col32 | Barre avoine – chocolat noir – amandes | Collation | 10’ | 550 | 29 | 56 | 21 | maintien, prise de masse | ☐ | |
 | col33 | Boules cacao – chia – coco | Collation | 10’ | 457 | 27 | 54 | 11 | maintien | ☐ | |
@@ -200,7 +200,7 @@ fibres, pas le recalcul). On ne signale que les écarts > 10 %.
 | col39 | Pudding chia – framboises | Collation | 5’ | 217 | 19 | 13 | 8 | perte de gras | ☐ | |
 | col40 | Edamame vapeur – sel | Collation | 6’ | 223 | 17 | 14 | 11 | perte de gras | ☐ | |
 | col41 | Pois chiches rôtis épicés | Collation | 10’ | 264 | 12 | 29 | 10 | perte de gras, maintien | ☐ | |
-| col42 | Yaourt grec – granola – framboises | Collation | 4’ | 393 | 12 | 29 | 23 | perte de gras, maintien | ☐ | |
+| col42 | Yaourt grec – granola – framboises | Collation | 4’ | 414 | 22 | 29 | 21 | perte de gras, maintien | ☐ | |
 | col43 | Banane – beurre cacahuète – chocolat noir | Collation | 3’ | 374 | 18 | 33 | 18 | maintien, prise de masse | ☐ | |
 | col44 | Cottage – ananas – graines de courge | Collation | 3’ | 297 | 24 | 17 | 14 | perte de gras | ☐ | |
 | rep61 | Pâtes complètes – poulet – pesto – roquette | Repas | 20’ | 597 | 50 | 63 | 14 | maintien, prise de masse | ☐ | |
@@ -242,7 +242,7 @@ fibres, pas le recalcul). On ne signale que les écarts > 10 %.
 | rep97 | Patate douce – tofu – épinards – coco | Repas | 28’ | 597 | 34 | 45 | 28 | maintien, prise de masse | ☐ | |
 | rep98 | Pomme de terre – cabillaud – haricots verts | Repas | 28’ | 376 | 38 | 37 | 6 | perte de gras | ☐ | |
 | rep99 | Patate douce – PST chili – maïs | Repas | 28’ | 590 | 41 | 80 | 8 | maintien, prise de masse | ☐ | |
-| rep100 | Pomme de terre – saumon – asperges – yaourt | Repas | 28’ | 562 | 37 | 37 | 28 | maintien, prise de masse | ☐ | |
+| rep100 | Pomme de terre – saumon – asperges – yaourt | Repas | 28’ | 569 | 41 | 37 | 27 | maintien, prise de masse | ☐ | |
 | rep101 | Dahl lentilles corail – riz – épinards | Repas | 25’ | 736 | 44 | 105 | 11 | maintien, prise de masse | ☐ | |
 | rep102 | Dahl lentilles – PST – riz complet | Repas | 25’ | 681 | 42 | 96 | 11 | maintien, prise de masse | ☐ | |
 | rep103 | Chili sin carne – haricots rouges – riz | Repas | 28’ | 720 | 42 | 106 | 11 | maintien, prise de masse | ☐ | |
@@ -259,13 +259,13 @@ fibres, pas le recalcul). On ne signale que les écarts > 10 %.
 | rep114 | Tacos PST – haricots noirs – maïs | Repas | 18’ | 785 | 46 | 95 | 19 | maintien, prise de masse | ☐ | |
 | rep115 | Wrap thon – crudités – fromage blanc | Repas | 12’ | 471 | 44 | 47 | 11 | perte de gras, maintien | ☐ | |
 | rep116 | Galettes sarrasin – œuf – champignons | Repas | 18’ | 547 | 31 | 49 | 24 | perte de gras, maintien | ☐ | |
-| rep117 | Pita poulet – tzatziki – salade | Repas | 15’ | 481 | 43 | 43 | 13 | perte de gras, maintien | ☐ | |
+| rep117 | Pita poulet – tzatziki – salade | Repas | 15’ | 488 | 47 | 43 | 13 | perte de gras, maintien | ☐ | |
 | rep118 | Wrap falafel – houmous – crudités | Repas | 22’ | 767 | 41 | 98 | 20 | maintien, prise de masse | ☐ | |
 | rep119 | Tacos poisson – chou – citron vert | Repas | 18’ | 493 | 36 | 44 | 18 | perte de gras, maintien | ☐ | |
 | rep120 | Pita PST shawarma – sauce soja – légumes | Repas | 18’ | 538 | 40 | 71 | 9 | maintien, prise de masse | ☐ | |
 | rep121 | Taboulé protéiné – pois chiches – menthe | Repas | 18’ | 680 | 35 | 98 | 14 | perte de gras, maintien | ☐ | |
 | rep122 | Couscous poulet – légumes – pois chiches | Repas | 30’ | 703 | 55 | 84 | 13 | maintien, prise de masse | ☐ | |
-| rep123 | Boulgour – bœuf – ratatouille – yaourt | Repas | 25’ | 607 | 43 | 61 | 19 | maintien, prise de masse | ☐ | |
+| rep123 | Boulgour – bœuf – ratatouille – yaourt | Repas | 25’ | 613 | 46 | 61 | 18 | maintien, prise de masse | ☐ | |
 | rep124 | Semoule – tofu façon merguez – légumes | Repas | 25’ | 719 | 45 | 73 | 25 | maintien, prise de masse | ☐ | |
 | rep125 | Boulgour – saumon – courgette – citron | Repas | 22’ | 619 | 39 | 54 | 25 | maintien, prise de masse | ☐ | |
 | rep126 | Couscous végétal – pois chiches – PST | Repas | 28’ | 738 | 42 | 104 | 14 | maintien, prise de masse | ☐ | |
@@ -547,9 +547,9 @@ fibres, pas le recalcul). On ne signale que les écarts > 10 %.
 - **Type** : Petit-déj · **Préparation** : 4 min
 - **Objectif** : maintien · **Sport** : muscu · adaptée jour de repos
 - **Régimes compatibles** : végétarien, pescétarien, sans porc, halal
-- **Macros / portion (base)** : 484 kcal · 10 g protéines · 42 g glucides · 28 g lipides
+- **Macros / portion (base)** : 508 kcal · 22 g protéines · 43 g glucides · 26 g lipides
 - **Ingrédients** :
-  - Yaourt grec — 200 g
+  - Yaourt grec égoutté (type Fage) — 200 g
   - Noix — 15 g
   - Miel — 10 g — quantité fixe
   - Pomme — 120 g
@@ -852,9 +852,9 @@ fibres, pas le recalcul). On ne signale que les écarts > 10 %.
 - **Type** : Collation · **Préparation** : 3 min
 - **Objectif** : perte de gras, maintien · **Sport** : muscu · adaptée jour de repos
 - **Régimes compatibles** : végétarien, pescétarien, sans porc, sans gluten, halal
-- **Macros / portion (base)** : 306 kcal · 8 g protéines · 20 g glucides · 19 g lipides
+- **Macros / portion (base)** : 327 kcal · 19 g protéines · 21 g glucides · 17 g lipides
 - **Ingrédients** :
-  - Yaourt grec — 170 g
+  - Yaourt grec égoutté (type Fage) — 170 g
   - Myrtilles — 80 g
   - Graines de chia — 15 g
   - Miel — 5 g — quantité fixe
@@ -1019,9 +1019,9 @@ fibres, pas le recalcul). On ne signale que les écarts > 10 %.
 - **Type** : Collation · **Préparation** : 3 min
 - **Objectif** : maintien · **Sport** : endurance · adaptée jour de repos
 - **Régimes compatibles** : végétarien, pescétarien, sans porc, halal
-- **Macros / portion (base)** : 403 kcal · 11 g protéines · 27 g glucides · 27 g lipides
+- **Macros / portion (base)** : 427 kcal · 23 g protéines · 27 g glucides · 24 g lipides
 - **Ingrédients** :
-  - Yaourt grec — 200 g
+  - Yaourt grec égoutté (type Fage) — 200 g
   - Raisins — 40 g
   - Noisettes — 15 g
   - Flocons d'avoine — 20 g *(pesé sec)*
@@ -1467,11 +1467,11 @@ fibres, pas le recalcul). On ne signale que les écarts > 10 %.
 - **Type** : Repas · **Préparation** : 30 min
 - **Objectif** : prise de masse, maintien · **Sport** : muscu
 - **Régimes compatibles** : sans porc, sans gluten, halal
-- **Macros / portion (base)** : 636 kcal · 51 g protéines · 69 g glucides · 17 g lipides
+- **Macros / portion (base)** : 643 kcal · 54 g protéines · 69 g glucides · 16 g lipides
 - **Ingrédients** :
   - Filet de poulet — 180 g *(pesé cru)*
   - Riz basmati — 80 g *(pesé sec)*
-  - Yaourt grec — 60 g
+  - Yaourt grec égoutté (type Fage) — 60 g
   - Tomate concassée — 100 g — quantité fixe
   - Huile d'olive — 8 g
 - **Préparation** :
@@ -2380,9 +2380,9 @@ fibres, pas le recalcul). On ne signale que les écarts > 10 %.
 - **Type** : Petit-déj · **Préparation** : 5 min
 - **Objectif** : maintien, prise de masse · **Sport** : muscu · adaptée jour de repos
 - **Régimes compatibles** : végétarien, pescétarien, sans porc, halal
-- **Macros / portion (base)** : 510 kcal · 12 g protéines · 44 g glucides · 30 g lipides
+- **Macros / portion (base)** : 534 kcal · 24 g protéines · 44 g glucides · 27 g lipides
 - **Ingrédients** :
-  - Yaourt grec — 200 g
+  - Yaourt grec égoutté (type Fage) — 200 g
   - Flocons d'avoine — 40 g *(pesé sec)*
   - Miel — 15 g
   - Noix — 15 g
@@ -2790,9 +2790,9 @@ fibres, pas le recalcul). On ne signale que les écarts > 10 %.
 - **Type** : Collation · **Préparation** : 3 min
 - **Objectif** : maintien, prise de masse · **Sport** : muscu · adaptée jour de repos
 - **Régimes compatibles** : végétarien, pescétarien, sans porc, sans gluten, halal
-- **Macros / portion (base)** : 341 kcal · 8 g protéines · 18 g glucides · 25 g lipides
+- **Macros / portion (base)** : 365 kcal · 20 g protéines · 19 g glucides · 23 g lipides
 - **Ingrédients** :
-  - Yaourt grec — 200 g
+  - Yaourt grec égoutté (type Fage) — 200 g
   - Miel — 12 g
   - Noisettes — 15 g
 - **Préparation** :
@@ -2989,9 +2989,9 @@ fibres, pas le recalcul). On ne signale que les écarts > 10 %.
 - **Type** : Collation · **Préparation** : 4 min
 - **Objectif** : perte de gras, maintien · **Sport** : muscu
 - **Régimes compatibles** : végétarien, pescétarien, sans porc, halal
-- **Macros / portion (base)** : 393 kcal · 12 g protéines · 29 g glucides · 23 g lipides
+- **Macros / portion (base)** : 414 kcal · 22 g protéines · 29 g glucides · 21 g lipides
 - **Ingrédients** :
-  - Yaourt grec — 180 g
+  - Yaourt grec égoutté (type Fage) — 180 g
   - Flocons d'avoine — 30 g *(pesé sec)*
   - Framboises — 70 g
   - Amandes — 10 g
@@ -3724,13 +3724,13 @@ fibres, pas le recalcul). On ne signale que les écarts > 10 %.
 - **Type** : Repas · **Préparation** : 28 min
 - **Objectif** : maintien, prise de masse · **Sport** : muscu · adaptée jour de repos
 - **Régimes compatibles** : pescétarien, sans porc, sans gluten, halal
-- **Macros / portion (base)** : 562 kcal · 37 g protéines · 37 g glucides · 28 g lipides
+- **Macros / portion (base)** : 569 kcal · 41 g protéines · 37 g glucides · 27 g lipides
 - **Ingrédients** :
   - Pomme de terre — 200 g *(pesé cru)*
   - Pavé de saumon — 140 g *(pesé cru)*
   - Asperges — 100 g — quantité fixe
   - Huile d'olive — 5 g
-  - Yaourt grec — 60 g
+  - Yaourt grec égoutté (type Fage) — 60 g
 - **Préparation** :
   1. Cuire pommes de terre et asperges.
   2. Rôtir le saumon, servir avec sauce yaourt-aneth.
@@ -4034,11 +4034,11 @@ fibres, pas le recalcul). On ne signale que les écarts > 10 %.
 - **Type** : Repas · **Préparation** : 15 min
 - **Objectif** : perte de gras, maintien · **Sport** : muscu
 - **Régimes compatibles** : sans porc, halal
-- **Macros / portion (base)** : 481 kcal · 43 g protéines · 43 g glucides · 13 g lipides
+- **Macros / portion (base)** : 488 kcal · 47 g protéines · 43 g glucides · 13 g lipides
 - **Ingrédients** :
   - Pain pita complet — 80 g
   - Filet de poulet — 150 g *(pesé cru)*
-  - Yaourt grec — 60 g
+  - Yaourt grec égoutté (type Fage) — 60 g
   - Concombre — 60 g — quantité fixe
   - Huile d'olive — 5 g
 - **Préparation** :
@@ -4142,13 +4142,13 @@ fibres, pas le recalcul). On ne signale que les écarts > 10 %.
 - **Type** : Repas · **Préparation** : 25 min
 - **Objectif** : maintien, prise de masse · **Sport** : combats
 - **Régimes compatibles** : sans porc, halal
-- **Macros / portion (base)** : 607 kcal · 43 g protéines · 61 g glucides · 19 g lipides
+- **Macros / portion (base)** : 613 kcal · 46 g protéines · 61 g glucides · 18 g lipides
 - **Ingrédients** :
   - Boulgour — 80 g *(pesé sec)*
   - Bœuf haché 5% MG — 140 g *(pesé cru)*
   - Ratatouille de légumes — 120 g — quantité fixe
   - Huile d'olive — 6 g
-  - Yaourt grec — 50 g
+  - Yaourt grec égoutté (type Fage) — 50 g
 - **Préparation** :
   1. Cuire le boulgour.
   2. Poêler le bœuf, servir avec ratatouille et yaourt.

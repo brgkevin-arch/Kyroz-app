@@ -10,7 +10,7 @@
       "scalable": "true = quantité ajustable par l'algo ; false = fixe (légumes)"
     },
     "priorite_sport": "Muscu prioritaire, puis Endurance, peu de Combats (cf. distribution).",
-    "corrections_kyroz": "rep57 +8g huile_olive (équilibre lipidique). | 2026-07-29 : sauce_soja déclarée dans rep05/rep46/rep80 (citée en instruction, invisible du dérivé régime) ; levure_maltee + falafel + pesto ajoutés à recipeDiet.VIOLATIONS ; why de rep80/pd52/pd77/rep152/rep155 : « sans gluten » retiré (devenu faux) ; +9 ingrédients (légumineuses prêtes à consommer, tofu fumé, falafel, tahini, boisson soja, pain/wrap sans gluten). recomp_flag SUPPRIMÉ (champ mort : aucun code ne le lisait, et il marquait 5 recettes quand ~40 avaient une densité protéique équivalente ou pire).",
+    "corrections_kyroz": "rep57 +8g huile_olive (équilibre lipidique). | 2026-07-29 : sauce_soja déclarée dans rep05/rep46/rep80 (citée en instruction, invisible du dérivé régime) ; levure_maltee + falafel + pesto ajoutés à recipeDiet.VIOLATIONS ; why de rep80/pd52/pd77/rep152/rep155 : « sans gluten » retiré (devenu faux) ; +9 ingrédients (légumineuses prêtes à consommer, tofu fumé, falafel, tahini, boisson soja, pain/wrap sans gluten). recomp_flag SUPPRIMÉ (champ mort : aucun code ne le lisait, et il marquait 5 recettes quand ~40 avaient une densité protéique équivalente ou pire). | yaourt_grec DÉMAPPÉ de ciqual-19860 (« yaourt à la grecque » = dessert à 3 g de protéines, pas un grec égoutté à 9 g) → valeur manuelle, comme skyr ; nom précisé « égoutté (type Fage) » ; macro_role dairy→protein sur pd10/col07/col17, où le yaourt est la seule source de protéines.",
     "waves": {
       "role": "Vague de livraison d'origine de chaque recette (champ `wave`). Rétro-rempli le 2026-07-29 depuis les dossiers de Recette/drops/ ; « fondation » = le lot initial, antérieur aux drops.",
       "valeurs": {
@@ -238,7 +238,7 @@
       }
     },
     "yaourt_grec": {
-      "name": "Yaourt grec",
+      "name": "Yaourt grec égoutté (type Fage)",
       "unit": "g",
       "per_100": {
         "kcal": 115,
@@ -1908,7 +1908,7 @@
         {
           "ref": "yaourt_grec",
           "qty": 200,
-          "macro_role": "dairy",
+          "macro_role": "protein",
           "scalable": true
         },
         {
@@ -2905,7 +2905,7 @@
         {
           "ref": "yaourt_grec",
           "qty": 170,
-          "macro_role": "dairy",
+          "macro_role": "protein",
           "scalable": true
         },
         {
@@ -3437,7 +3437,7 @@
         {
           "ref": "yaourt_grec",
           "qty": 200,
-          "macro_role": "dairy",
+          "macro_role": "protein",
           "scalable": true
         },
         {

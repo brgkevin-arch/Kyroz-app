@@ -10,12 +10,20 @@
 // le recoupement de noms se fait piéger (« maquereau » → « groseille à maquereau »).
 // Les ids `ciqual-XXXX` = `alim_code` ANSES, stables d'une régénération à l'autre.
 //
-// ── Les 15 `ref` qui restent en valeur MANUELLE (2026-07-29) ────────────────────
+// ── Les 16 `ref` qui restent en valeur MANUELLE (2026-07-29) ────────────────────
 // Règle appliquée : on ne mappe QUE si l'entrée Ciqual est SANS AMBIGUÏTÉ le même
 // aliment. « À peu près pareil » = on garde la valeur manuelle (mieux vaut une
 // estimation assumée qu'un faux aliment officiel).
 //   • Absents de Ciqual : cottage_cheese, edamame, yaourt_soja, yaourt_soja_proteine.
 //   • Compléments/produits Kyroz : whey, skyr, proteine_vegetale.
+//   • Produit voisin mais distinct — yaourt_grec : DÉMAPPÉ le 2026-07-29. Il pointait sur
+//     ciqual-19860 « Yaourt à la grecque nature », qui est le DESSERT français : 3 g de
+//     protéines et 8,2 g de lipides pour 100 g. Le `ref` désigne un yaourt grec ÉGOUTTÉ
+//     (type Fage), 9 g de protéines — un autre produit. Le mapping servait donc 55 à 60 %
+//     de protéines en moins que la fiche n'en annonçait sur 6 recettes. Ciqual n'a ni
+//     yaourt égoutté ni skyr : on garde la valeur manuelle, comme pour skyr, plutôt qu'un
+//     faux aliment officiel. Le nom affiché dit maintenant « égoutté » pour que
+//     l'utilisateur achète le bon pot.
 //   • Pas d'entrée SÈCHE propre (Ciqual n'a que la forme cuite/réhydratée) :
 //     soja_texture (PST), haricots_noirs, millet (Ciqual n'a que la FARINE de millet).
 //   • Produit voisin mais distinct : levure_maltee (Ciqual n'a que la levure de BIÈRE).
@@ -31,8 +39,9 @@ export const REF_FOOD_ID: Record<string, string> = {
   sardines: 'ciqual-26034', crevettes: 'ciqual-10007',
   // Œufs / produits laitiers
   oeuf_entier: 'ciqual-22000', blanc_oeuf: 'ciqual-22001', fromage_blanc_0: 'ciqual-19644',
-  yaourt_grec: 'ciqual-19860', feta: 'ciqual-12060', mozzarella: 'ciqual-19590',
+  feta: 'ciqual-12060', mozzarella: 'ciqual-19590',
   parmesan: 'ciqual-12120', lait_demi_ecreme: 'ciqual-19033',
+  // (yaourt_grec : DÉMAPPÉ le 2026-07-29 — voir la liste des valeurs manuelles ci-dessus.)
   // Végétal protéiné — ⚠️ légumineuses en SEC (l'utilisateur pèse à sec, comme riz/pâtes)
   tofu_ferme: 'ciqual-20904', tofu_soyeux: 'ciqual-20906', tempeh: 'ciqual-20917',
   seitan: 'ciqual-25598', lentilles_vertes: 'ciqual-20585', lentilles_corail: 'ciqual-20535',
@@ -106,7 +115,7 @@ export const REF_FOOD_ID: Record<string, string> = {
 // énergétique → une approximation assumée suffit). Tout ref absent d'ici ET non mappé
 // = 0 g. Garder aligné avec la liste des non-mappés (recipeData / REF_FOOD_ID).
 export const REF_FIBER_MANUAL: Record<string, number> = {
-  whey: 0, skyr: 0, cottage_cheese: 0,            // laitiers / protéines : ~0 fibre
+  whey: 0, skyr: 0, cottage_cheese: 0, yaourt_grec: 0, // laitiers / protéines : ~0 fibre
   yaourt_soja: 0.6, yaourt_soja_proteine: 0.6,    // yaourts de soja : très peu
   proteine_vegetale: 5.5,                         // poudre protéinée pois/soja
   soja_texture: 15, haricots_noirs: 15.5,         // PST & haricots noirs SECS : très fibreux

@@ -216,7 +216,7 @@ l'utilisent, c'est l'indicateur de saturation à surveiller.
 |---|---|---|---|---|---|---|---|---|---|---|
 | `skyr` | Skyr nature | g | — | — | 63 | 11 | 4 | 0.2 | 17 | lactose, vegan |
 | `fromage_blanc_0` | Fromage blanc 0% | g | — | — | 47 | 8 | 4 | 0.2 | 9 | lactose, vegan |
-| `yaourt_grec` | Yaourt grec | g | — | — | 115 | 9 | 4 | 7 | 10 | lactose, vegan |
+| `yaourt_grec` | Yaourt grec égoutté (type Fage) | g | — | — | 115 | 9 | 4 | 7 | 10 | lactose, vegan |
 | `cottage_cheese` | Cottage cheese | g | — | — | 98 | 11 | 3 | 4.3 | 14 | lactose, vegan |
 | `whey` | Whey (neutre/vanille) | g | — | 60 | 377 | 80 | 7 | 5 | 21 | lactose, vegan |
 | `lait_demi_ecreme` | Lait demi-écrémé | ml | — | — | 46 | 3.3 | 4.8 | 1.6 | 15 | lactose, vegan |
@@ -375,7 +375,6 @@ l'utilisent, c'est l'indicateur de saturation à surveiller.
 |---|---|---|
 | `porc_filet` | Seul ref à casser `halal` ET `no_pork`, 0 usage actuel | Dégrade 309/314 recettes compatibles halal |
 | `jambon_blanc` | Idem (porc) | Idem |
-| `yaourt_grec` | Mal mappé : la base ANSES retenue donne 3 g de protéines/100 g contre 9 déclarés | Macros servies fausses de −50 % en protéines |
 
 `sauce_soja`, `pesto` et `levure_maltee` restent autorisés, mais **jamais dans un sous-lot qui doit
 sortir sans gluten** (`sauce_soja`, `levure_maltee`) **ni sans lactose** (`pesto`). Leurs entrées de
@@ -383,6 +382,10 @@ la table des régimes ont été corrigées le 2026-07-29 : elles disent maintena
 recette qui les emploie sortira légitimement du pool concerné. `sauce_soja` doit en outre toujours
 être **déclaré dans `ingredients[]`** : trois recettes le citaient en instruction sans le déclarer,
 ce qui leur faisait revendiquer le sans gluten à tort — c'est corrigé, ne pas reproduire.
+
+`yaourt_grec` est de nouveau utilisable : il pointait sur « Yaourt à la grecque nature » (le DESSERT
+français, 3 g de protéines pour 8 g de lipides), il porte maintenant sa valeur assumée de yaourt
+ÉGOUTTÉ (9 g de protéines). Le nom affiché le dit — la recette doit faire acheter le bon pot.
 
 `yaourt_soja` (50 kcal, P4) existe mais n'est utilisé nulle part : préférer `yaourt_soja_proteine`
 (65 kcal, P9) dès qu'il s'agit d'une ancre protéique.

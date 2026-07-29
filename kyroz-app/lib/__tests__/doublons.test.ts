@@ -14,7 +14,9 @@ import { findViolations, nameKey, norm, type CheckRecipe } from '../../scripts/c
 //
 // Baisser un plafond après un nettoyage est ATTENDU. Le remonter demande une
 // justification écrite dans le commit.
-const PLAFOND = { R1: 92, R2: 78, R4: 17, R5: 22, R7: 0 } as const;
+// R4 : 17 → 15 le 2026-07-29, en passant pd10/col07/col17 de `dairy` à `protein` sur
+// leur yaourt (le cliquet se resserre quand le catalogue s'améliore — c'est attendu).
+const PLAFOND = { R1: 92, R2: 78, R4: 15, R5: 22, R7: 0 } as const;
 
 const RECIPES = (raw as { recipes: unknown[] }).recipes as CheckRecipe[];
 

@@ -497,7 +497,7 @@ export function computeDailyTotals(
 // Version du moteur de génération : à incrémenter quand le scoring/sélection
 // change, pour que les plans EN CACHE se régénèrent automatiquement (la signature
 // change → l'auto-refresh de l'écran Plan rejoue la génération). v2 = lipides cadrés.
-const ENGINE_VERSION = 20; // v20 = rest_day_ok retiré du départage (le jour de repos agit sur la CIBLE, pas sur le choix) ; v19 = correctifs régime (levure_maltee/falafel → gluten, pesto → lactose, sauce_soja déclarée)
+const ENGINE_VERSION = 21; // v21 = yaourt_grec démappé (protéines servies +200 %) + ancre protéine sur pd10/col07/col17 ; v20 = rest_day_ok retiré du départage ; v19 = correctifs régime
 
 export function profileSignature(p: UserProfile): string {
   // NB : `hidden_recipes` (👎) est VOLONTAIREMENT absent. Un 👎 remplace UN repas
