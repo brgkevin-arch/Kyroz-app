@@ -477,6 +477,35 @@ describe('carb-cycling jours actifs / repos', () => {
       pl.meals.map((m) => `${m.id}:${m.recipe.id}:${m.rest_day ? 'R' : 'A'}:${m.macros.carbs_g},${m.macros.fat_g}`).join('|');
     expect(sig(buildLocalPlan(p, 0))).toBe(sig(buildLocalPlan(p, 0)));
   });
+
+  // Décision 2026-07-29 : le jour de repos agit sur la CIBLE (restDayRatio) puis sur
+  // l'adaptation des quantités — jamais sur le CHOIX de la recette. Le tag `rest_day_ok`
+  // pilotait un départage qui déplaçait 30 à 36 % des repas des jours de repos, alors
+  // qu'un tiers du catalogue le portait à contre-sens. Ce test échoue si la clé revient.
+  it('rest_day_ok n’influence PAS la sélection : inverser le tag ne change pas le plan', () => {
+    const p = makeProfile({ training_days_per_week: 3, plan_days: 7, plan_weekdays: [1, 2, 3, 4, 5, 6, 0] });
+    const sig = (pl: ReturnType<typeof buildLocalPlan>) => pl.meals.map((m) => `${m.id}:${m.recipe.id}`).join('|');
+
+    const avant = sig(buildLocalPlan(p, 0));
+    expect(RECIPES.some((r) => r.rest_day_ok === true), 'le catalogue doit porter le tag pour que le test ait un sens').toBe(true);
+    // Tag inversé sur TOUT le catalogue : si la sélection le lisait, le plan bougerait.
+    setRecipeOverrides(Object.fromEntries(RECIPES.map((r) => [r.id, { ...r, rest_day_ok: !r.rest_day_ok }])));
+    expect(sig(buildLocalPlan(p, 0))).toBe(avant);
+  });
+
+  it('le jour de repos déplace bien les macros (le mécanisme qui remplace le tag)', () => {
+    const p = makeProfile({ training_days_per_week: 3, plan_days: 7, plan_weekdays: [1, 2, 3, 4, 5, 6, 0] });
+    const plan = buildLocalPlan(p, 0);
+    const totals = plan.total_macros_per_day;
+    const restDays = restDaysForProfile(p, 7);
+    const moy = (repos: boolean, pick: (t: (typeof totals)[number]) => number) => {
+      const idx = totals.map((_, i) => i).filter((i) => restDays.has(i + 1) === repos);
+      return idx.reduce((s, i) => s + pick(totals[i]), 0) / idx.length;
+    };
+    expect(restDays.size, 'le profil doit avoir des jours de repos').toBeGreaterThan(0);
+    expect(moy(true, (t) => t.carbs_g)).toBeLessThan(moy(false, (t) => t.carbs_g));
+    expect(moy(true, (t) => t.fat_g)).toBeGreaterThan(moy(false, (t) => t.fat_g));
+  });
 });
 
 describe('jours de repos choisis par l’utilisateur (rest_weekdays)', () => {

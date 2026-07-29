@@ -333,7 +333,6 @@ interface AdaptedChoice {
   fiber: number;   // fibres approximatives (départage)
   preferred: boolean; // matche une protéine préférée
   need: number;    // soft-match objectif + sport (0–2)
-  restOk: boolean; // recette adaptée à un jour de repos (rest_day_ok)
 }
 
 /**
@@ -344,6 +343,15 @@ interface AdaptedChoice {
  * /sport) > fibres/variété > seed.
  *  - repetitive (seed 0) : meilleur fit strict → même séquence chaque jour.
  *  - balanced / max : recette la moins utilisée (bande plus large en « max »).
+ *
+ * ⚠️ Le jour de repos ne joue PLUS ici (décision 2026-07-29). Il agit en AMONT, sur
+ * la CIBLE : `restDayRatio` déplace 12 points de la fraction non protéique des
+ * glucides vers les lipides, à calories et protéines constantes, et `adaptRecipe`
+ * ajuste ensuite les quantités de chaque recette vers cette cible. Le tag
+ * `rest_day_ok` faisait doublon avec ce mécanisme tout en déplaçant 30 à 36 % des
+ * repas des jours de repos — alors qu'un tiers du catalogue le portait à
+ * contre-sens (8 recettes taguées « jour off » dépassent 50 % de kcal glucidiques).
+ * Un tag de contenu ne peut pas arbitrer mieux que le moteur qui, lui, mesure.
  */
 function selectMealAdapted(
   pool: Recipe[],
@@ -355,7 +363,6 @@ function selectMealAdapted(
   sportBuckets: RecipeSport[],
   seed: number,
   fiberStrong: boolean,
-  restDay: boolean,
   goalDir: number
 ): AdaptedChoice {
   const candidates: AdaptedChoice[] = pool
@@ -367,7 +374,6 @@ function selectMealAdapted(
         fiber: recipeFiberPerPortion(r),
         preferred: preferredIds.has(r.id),
         need: needMatch(r, objectives, sportBuckets),
-        restOk: r.rest_day_ok === true,
       };
     })
     .sort((a, b) => a.score - b.score || a.recipe.id.localeCompare(b.recipe.id));
@@ -414,8 +420,7 @@ function selectMealAdapted(
     if (a.preferred !== b.preferred) return a.preferred ? -1 : 1;
     // 1bis) Besoin : recette taguée pour l'objectif/sport (soft-matching).
     if (a.need !== b.need) return b.need - a.need;
-    // 1quater) Jour de repos : nudge vers les recettes adaptées « jour off ».
-    if (restDay && a.restOk !== b.restOk) return a.restOk ? -1 : 1;
+    // (plus de départage `rest_day_ok` ici — cf. le commentaire de selectMealAdapted.)
     // 1ter) Fibres : nudge satiété (en sèche surtout). La rotation ne dépend plus de
     // cette clé — elle vit dans le score effectif → plus de monopole d'une recette.
     { const f = fiberCmp(a, b); if (f !== 0) return f; }
@@ -492,7 +497,7 @@ export function computeDailyTotals(
 // Version du moteur de génération : à incrémenter quand le scoring/sélection
 // change, pour que les plans EN CACHE se régénèrent automatiquement (la signature
 // change → l'auto-refresh de l'écran Plan rejoue la génération). v2 = lipides cadrés.
-const ENGINE_VERSION = 19; // v19 = correctifs régime (levure_maltee/falafel → gluten, pesto → lactose, sauce_soja déclarée) : des recettes changent de restrictions_ok, les plans en cache doivent être rejoués
+const ENGINE_VERSION = 20; // v20 = rest_day_ok retiré du départage (le jour de repos agit sur la CIBLE, pas sur le choix) ; v19 = correctifs régime (levure_maltee/falafel → gluten, pesto → lactose, sauce_soja déclarée)
 
 export function profileSignature(p: UserProfile): string {
   // NB : `hidden_recipes` (👎) est VOLONTAIREMENT absent. Un 👎 remplace UN repas
@@ -679,7 +684,7 @@ export function buildLocalPlan(profile: UserProfile, seed: number = 0): MealPlan
       const target = mealTarget(remainingKcal, remainingProtein, weight, remainingWeight, dayRatio);
 
       const choice = selectMealAdapted(
-        pools[mealType], target, usage, variety, preferredIds, objectives, sportBuckets, seed, fiberStrong, isRest, goalDir,
+        pools[mealType], target, usage, variety, preferredIds, objectives, sportBuckets, seed, fiberStrong, goalDir,
       );
 
       usage[choice.recipe.id] = (usage[choice.recipe.id] ?? 0) + 1;

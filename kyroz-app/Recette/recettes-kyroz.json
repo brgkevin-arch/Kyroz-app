@@ -10,7 +10,7 @@
       "scalable": "true = quantité ajustable par l'algo ; false = fixe (légumes)"
     },
     "priorite_sport": "Muscu prioritaire, puis Endurance, peu de Combats (cf. distribution).",
-    "corrections_kyroz": "rep57 +8g huile_olive (équilibre lipidique) ; recomp_flag ajouté à rep10/rep14/rep29/rep54 (densité protéique basse, comme rep03). | 2026-07-29 : sauce_soja déclarée dans rep05/rep46/rep80 (citée en instruction, invisible du dérivé régime) ; levure_maltee + falafel + pesto ajoutés à recipeDiet.VIOLATIONS ; why de rep80/pd52/pd77/rep152/rep155 : « sans gluten » retiré (devenu faux) ; +9 ingrédients (légumineuses prêtes à consommer, tofu fumé, falafel, tahini, boisson soja, pain/wrap sans gluten)."
+    "corrections_kyroz": "rep57 +8g huile_olive (équilibre lipidique). | 2026-07-29 : sauce_soja déclarée dans rep05/rep46/rep80 (citée en instruction, invisible du dérivé régime) ; levure_maltee + falafel + pesto ajoutés à recipeDiet.VIOLATIONS ; why de rep80/pd52/pd77/rep152/rep155 : « sans gluten » retiré (devenu faux) ; +9 ingrédients (légumineuses prêtes à consommer, tofu fumé, falafel, tahini, boisson soja, pain/wrap sans gluten). recomp_flag SUPPRIMÉ (champ mort : aucun code ne le lisait, et il marquait 5 recettes quand ~40 avaient une densité protéique équivalente ou pire)."
   },
   "enums": {
     "category": [
@@ -3772,8 +3772,7 @@
         "protein": 30,
         "carbs": 92,
         "fat": 20
-      },
-      "recomp_flag": "low_protein_density"
+      }
     },
     {
       "id": "rep04",
@@ -4201,8 +4200,7 @@
         "protein": 25.2,
         "carbs": 89.8,
         "fat": 17.4
-      },
-      "recomp_flag": "low_protein_density"
+      }
     },
     {
       "id": "rep11",
@@ -4441,8 +4439,7 @@
         "protein": 25.6,
         "carbs": 93.2,
         "fat": 8.2
-      },
-      "recomp_flag": "low_protein_density"
+      }
     },
     {
       "id": "rep15",
@@ -5355,8 +5352,7 @@
         "protein": 29.7,
         "carbs": 82.4,
         "fat": 21.1
-      },
-      "recomp_flag": "low_protein_density"
+      }
     },
     {
       "id": "rep30",
@@ -6862,8 +6858,7 @@
         "protein": 28.7,
         "carbs": 68.5,
         "fat": 21.3
-      },
-      "recomp_flag": "low_protein_density"
+      }
     },
     {
       "id": "rep55",

@@ -54,7 +54,7 @@ Une recette = un objet JSON. **Aucun champ en plus, aucun champ en moins.**
 ```
 
 Champs à **ne pas** produire : `restrictions_ok` (dérivé par le code depuis les `ref`),
-`recomp_flag` (champ mort, en cours de suppression), `validated_by_dietitian`,
+`recomp_flag` (champ supprimé le 2026-07-29), `validated_by_dietitian`,
 `temps_actif_min`, `repos_prealable_min` (pas encore au schéma).
 
 ### Deux exemples réels, copiés du catalogue live

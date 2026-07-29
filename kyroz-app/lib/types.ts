@@ -318,9 +318,14 @@ export interface Recipe {
   validated_by_dietitian: boolean;
   objectives?: RecipeObjective[];   // tag « Objectif »
   sports?: RecipeSport[];           // tag « Sport »
-  rest_day_ok?: boolean;            // tag « récup jour off » (stocké, non utilisé)
+  // Tag « récup jour off ». STOCKÉ, PLUS LU PAR LE MOTEUR depuis le 2026-07-29 : le jour
+  // de repos se joue sur la CIBLE (restDayRatio dans planEngine) puis sur l'adaptation des
+  // quantités, pas sur le choix de la recette. Le commentaire précédent disait déjà « non
+  // utilisé » alors que le champ pilotait un départage — c'est maintenant vrai, et un test
+  // le verrouille (planEngine.test.ts). Conservé en données : le catalogue le porte encore
+  // et la fiche pourra l'afficher un jour, mais aucun code de sélection ne le lit.
+  rest_day_ok?: boolean;
   why_fr?: string;                  // « Pourquoi », affiché
-  recomp_flag?: string;             // ex. 'low_protein_density'
 }
 
 // Suivi d'adhésion au plan (feature « recaler ma journée ») :

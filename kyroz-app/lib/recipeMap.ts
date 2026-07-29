@@ -42,7 +42,6 @@ export const RECIPES: Recipe[] = RAW_RECIPES.map((raw) => {
     sports: raw.tags.sport,
     rest_day_ok: raw.tags.recup_jour_repos,
     why_fr: raw.why,
-    recomp_flag: raw.recomp_flag,
     validated_by_dietitian: false,
   };
 });

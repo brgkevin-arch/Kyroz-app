@@ -58,7 +58,7 @@ export interface RawRecipe {
   base_servings: number;
   tags: { objectif: ObjectiveFr[]; recup_jour_repos: boolean; sport: ('muscu'|'endurance'|'combats')[]; temps_min: number };
   ingredients: RawIngredient[]; instructions: string[]; why: string;
-  macros_per_serving: Per100; recomp_flag?: string;
+  macros_per_serving: Per100;
 }
 export const RAW_RECIPES: RawRecipe[] = raw.recipes as RawRecipe[];
 
