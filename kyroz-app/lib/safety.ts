@@ -137,6 +137,51 @@ export function effectiveEaPerKgFfm(b: BodyInput, weeksInLowEa: number): number 
 }
 
 /**
+ * Ce que la remontée du plancher fait VIVRE à la personne, en langage d'écran.
+ *
+ * ⚠️ Sans ça, la sortie de déficit est SILENCIEUSE — et c'est le défaut le plus
+ * grave qu'il restait au moteur. Mesuré sur une femme de 62 kg, 26 %MG, 4 séances,
+ * en sèche : à partir de la **semaine 14**, sa cible monte de **23 kcal/jour chaque
+ * semaine, dix semaines de suite, +230 kcal/j au total**, sans qu'aucun écran ne
+ * dise un mot. Elle est en sèche et ses calories augmentent toutes les semaines :
+ * de son point de vue, l'app dérive. C'est exactement le bug P3.3 (« le TDEE saute
+ * tout seul »), qui était classé 🔴 — sauf que celui-ci n'est pas un accident de
+ * synchronisation, il est GARANTI par construction pour toute femme qui reste en
+ * zone basse plus de 12 semaines. L'homme équivalent, lui, ne bouge pas d'un kcal
+ * (seul le plancher féminin remonte, cf. `isFemaleAtRisk`).
+ *
+ * Renvoie `null` quand il n'y a rien à raconter : homme, ménopause déclarée, ou
+ * budget non dépassé. La remontée est BORNÉE — dix crans de 0,5 kcal/kg pour aller
+ * de 30 à 35 — d'où `weeksToPlateau`, qui permet à l'écran de promettre une fin.
+ */
+export type LowEaEscalation = {
+  /** Semaines de dépassement du budget — chacune vaut un cran de plancher. */
+  weeksOverBudget: number;
+  /** Ce que la remontée ajoute à la cible CHAQUE semaine, en kcal/jour, pour CE corps. */
+  weeklyKcal: number;
+  /** Semaines restantes avant le plafond. 0 = la remontée est terminée. */
+  weeksToPlateau: number;
+  /** Seuil d'énergie disponible effectif du moment (kcal/kg de masse maigre). */
+  eaPerKgFfm: number;
+};
+
+export function lowEaEscalation(b: BodyInput, weeksInLowEa: number): LowEaEscalation | null {
+  if (!isFemaleAtRisk(b)) return null;
+  const weeksOverBudget = Math.max(0, weeksInLowEa - LOW_EA_BUDGET_WEEKS);
+  if (weeksOverBudget === 0) return null;
+  const eaPerKgFfm = effectiveEaPerKgFfm(b, weeksInLowEa);
+  return {
+    weeksOverBudget,
+    // Calculé sur SA masse maigre, jamais une constante d'écran : le pas est de
+    // 0,5 kcal/kg, donc 23 kcal/j pour 46 kg de masse maigre et 33 pour 66 kg.
+    // Annoncer un chiffre rond identique pour tout le monde serait un mensonge.
+    weeklyKcal: Math.round(LOW_EA_STEP_PER_WEEK * fatFreeMassKg(b)),
+    weeksToPlateau: Math.ceil((EA_OPTIMAL - eaPerKgFfm) / LOW_EA_STEP_PER_WEEK),
+    eaPerKgFfm,
+  };
+}
+
+/**
  * Plancher calorique du plan. Aucun chemin de code ne doit produire une cible sans
  * passer par ici — mode `manual` compris.
  *

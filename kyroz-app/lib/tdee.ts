@@ -6,7 +6,7 @@ import {
   BodyInput, MIN_AGE, MIN_KCAL, EA_OPTIMAL, LOW_EA_BUDGET_WEEKS, countsAsLowEaWeek,
   bodyFatBounds, clamp, collapseLowEaRegistry, deficitBlocked, energyAvailability,
   fatFreeMassKg, isFemaleAtRisk, lowEaWeeksBefore, markLowEaWeek, safetyFloorKcal,
-  settleLowEaExposure,
+  settleLowEaExposure, lowEaEscalation, LowEaEscalation,
 } from './safety';
 
 // ── Calculs nutritionnels ────────────────────────────────────────────────────
@@ -547,6 +547,14 @@ export interface ComputedPlan {
   profile: UserProfile;
   flags: PlanFlag[];
   floor_kcal: number;
+  /**
+   * De quoi EXPLIQUER une cible qui remonte toute seule, ou `undefined` s'il n'y a
+   * rien à dire. Exposé ici et pas recalculé par l'écran : le nombre de semaines en
+   * zone basse dépend du solde de l'exposition (`settleLowEaExposure`) et de la
+   * fenêtre antérieure (`lowEaWeeksBefore`), deux étapes que l'UI referait
+   * forcément de travers. Producteur unique, comme pour les drapeaux.
+   */
+  low_ea_escalation?: LowEaEscalation;
 }
 
 /**
@@ -682,6 +690,8 @@ export function computePlan(p: UserProfile, today: string = todayStamp()): Compu
   const engine_notice = p.engine_notice
     ?? engineNoticeFor(p.engine_rev, p.target_kcal, m.target_kcal);
 
+  const escalation = lowEaEscalation(p, lowEaWeeks) ?? undefined;
+
   return {
     profile: {
       ...p,
@@ -696,6 +706,10 @@ export function computePlan(p: UserProfile, today: string = todayStamp()): Compu
     },
     flags,
     floor_kcal: m.floor_kcal,
+    // `lowEaWeeks` et pas le registre brut : c'est le décompte ANTÉRIEUR, celui qui
+    // a réellement servi à calculer le plancher du jour. Expliquer une remontée avec
+    // un autre nombre que celui qui l'a produite serait une seconde source de vérité.
+    ...(escalation ? { low_ea_escalation: escalation } : {}),
   };
 }
 
