@@ -8,7 +8,7 @@
 
 ## Rappel projet (1 ligne)
 
-App mobile React Native (Expo Router, SDK 56) de plans repas macro-précis pour hommes 18–35 pratiquant de sport. **Phase 2 — core loop en place + déployé en web (GitHub Pages), itérations UX/qualité en cours.**
+App mobile React Native (Expo Router, SDK 56) de plans repas macro-précis pour **hommes ET femmes de 18 à 50 ans** pratiquant du sport. *(Élargi le 2026-07-30 — la cible déclarée était « hommes 18–35 », ce qui ne correspondait plus au produit : les garde-fous féminins — plancher d'énergie disponible, escalade de zone basse — et la borne protéine 0,5 existent précisément pour servir les gabarits légers.)* **Phase 2 — core loop en place + déployé en web (GitHub Pages), itérations UX/qualité en cours.**
 
 ---
 
@@ -323,10 +323,17 @@ Profil (poids, objectif, régime) = **données de santé** au sens RGPD.
   14 premiers. Si une implémentation ne le sert pas, le dire.
 - **Le fondateur est solo et non-développeur.** Répondre en français, clair, avec des
   analogies ou des schémas quand ça aide. Ne pas noyer une décision sous du jargon.
-- **Tout suivi doit RASSURER, jamais mettre la pression.** Objectif, progression,
-  adhérence : une **zone**, pas une ligne au pixel près ; aucun signal alarmant ; le pire
-  cas reste neutre. Le message de fond est « le moteur porte la charge », pas
-  « tu es en retard ». C'est un choix produit, pas une préférence de ton — une app de
+- **Ne pas le rassurer — le rendre capable de comprendre vite.** Dit par lui le
+  2026-07-30 : *« je n'ai pas besoin d'être rassuré, juste de comprendre facilement »*.
+  Donc : pas de « ne t'inquiète pas », pas de « tu peux passer à autre chose », pas de
+  préambule qui amortit une mauvaise nouvelle. Un problème s'annonce à la première ligne,
+  avec son ampleur et ce qu'on fait. Le confort ne l'intéresse pas, la clarté oui.
+  ⚠️ **À ne pas confondre avec la règle produit ci-dessous**, qui concerne l'utilisateur
+  final dans l'app, pas la conversation avec le fondateur.
+- **RÈGLE PRODUIT — tout suivi affiché à l'UTILISATEUR doit rassurer, jamais mettre la
+  pression.** Objectif, progression, adhérence : une **zone**, pas une ligne au pixel
+  près ; aucun signal alarmant ; le pire cas reste neutre. Le message de fond est « le
+  moteur porte la charge », pas « tu es en retard ». C'est un choix produit — une app de
   nutrition anxiogène perd l'utilisateur, donc le North Star.
 - **Mesurer sur le moteur, jamais sur une réplique de ses formules.** Cette erreur a
   produit **trois** conclusions fausses (partage glucides/lipides figé à 55/45 ; « le
