@@ -145,15 +145,38 @@ describe('pushProfile — le mode de panne « migration non jouée » est nommé
     expect(out).toContain('profil');
   });
 
-  it('erreur d’une autre nature : PAS d’hypothèse migration, et le retry est signalé comme vain', async () => {
+  it('erreur d’une autre nature : PAS d’hypothèse migration, et AUCUNE nouvelle tentative', async () => {
     state.errors['profiles.upsert'] = RESEAU;
 
-    await pushProfile(profile());
+    await expect(pushProfile(profile())).resolves.toBe(false);
 
     const out = logged();
     expect(out).not.toContain('MIGRATION NON JOUÉE');
     expect(out).toContain('Network request failed');
     expect(out).toContain("n'est PAS une colonne manquante");
+    // Le retry ne vise QUE la colonne manquante : sur une panne réseau il refaisait un
+    // appel voué au même échec. Un seul upsert, donc.
+    expect(state.calls.filter((c) => c.table === 'profiles' && c.op === 'upsert')).toHaveLength(1);
+  });
+
+  it('colonne manquante : la nouvelle tentative a bien lieu (2 upserts)', async () => {
+    state.errors['profiles.upsert'] = PGRST204;
+
+    await expect(pushProfile(profile())).resolves.toBe(false);
+
+    expect(state.calls.filter((c) => c.table === 'profiles' && c.op === 'upsert')).toHaveLength(2);
+  });
+
+  it('le retry conditionnel ne change NI la valeur de retour NI le drapeau « sale »', async () => {
+    // C'est la garantie du changement : seul un appel réseau inutile disparaît.
+    for (const err of [RESEAU, PGRST204]) {
+      await AsyncStorage.clear();
+      await markProfileDirty();
+      state.errors['profiles.upsert'] = err;
+
+      await expect(pushProfile(profile())).resolves.toBe(false);
+      expect(await AsyncStorage.getItem('@kyroz:profilePending')).toBe('1');
+    }
   });
 
   it('retry réussi : l’écriture PARTIELLE est annoncée, colonnes nommées', async () => {
