@@ -125,10 +125,28 @@ produit en suspens — il ne reste qu'à coder.
   ET teste réellement la mise en page. Soumettre `true` sans layout prêt = rejet.
   `supportsTablet` **reste `false`** d'ici là, ce qui permet une soumission iPhone-only
   entre-temps.
-- **C2 · 🧑 Comptes et visuels.** Apple (99 €/an, validation d'identité 1–4 semaines) +
-  Google Play (25 €, ⚠️ compte perso post-2023 = 12–20 testeurs pendant 14 jours avant la
-  prod) · screenshots + feature graphic · poser le secret `EXPO_PUBLIC_REVIEW_CODE` ·
-  lancer `eas build` / `eas submit`. Tout le reste est prêt en code (`STORE-RELEASE.md`).
+- **C2 · Comptes et visuels — ✅ LARGEMENT FAIT le 2026-07-30.**
+  Apple (compte + contrat de vente actif + fiche + 2 abonnements tarifés) · Google Play
+  (compte payé, site validé, fiche créée) · **visuels générés** (`npm run store:assets` :
+  5 captures 1424×2532 + feature graphic 1024×500, aux specs) · **2 builds Android**
+  (`versionCode` 2 puis 3 ; **prendre le 3**, le 2 est antérieur au correctif de
+  permissions). Restent, côté fondateur :
+  - 🧑 **Build iOS** — `npx eas-cli build --platform ios --profile production`, **depuis
+    SON terminal** : EAS doit s'authentifier chez Apple (identifiant + double
+    authentification), ce qu'un assistant ne fait pas à sa place. ⚡ **iOS n'a PAS la
+    règle des 12 testeurs** → c'est probablement le chemin le plus RAPIDE pour être en
+    ligne, TestFlight distribuant immédiatement en interne.
+  - 🧑 **Recruter 12 testeurs Android** + créer le Google Groupe. C'est le chemin
+    critique côté Google : les 14 jours ne démarrent qu'une fois les testeurs inscrits.
+  - 🧑 **Compléter la fiche Play** (textes §3, formulaire Sécurité des données §4) —
+    Google refuse de publier, **même en test fermé**, tant qu'elle est incomplète.
+  - 🤖 **Abonnements Google** : `kyroz_plus` + forfaits `monthly` / `annual`. Le menu
+    Monétisation ne s'ouvre qu'après dépôt d'un build.
+- **C4 · 🧑 Décision : mises à jour OTA (`expo-updates`) ?** Le build a signalé que
+  `eas.json` déclare des canaux alors que le paquet n'est PAS installé — les canaux sont
+  donc **inertes**. Sans OTA, corriger une faute de frappe impose un nouveau build ET une
+  nouvelle revue du store. Avec, les correctifs JS partent en minutes. C'est une
+  dépendance de plus dans le core loop : décision produit, pas installation à la volée.
 - **C3 · 🧑 Classement d'âge : ADULTES UNIQUEMENT** — *tranché le 2026-07-30.*
   Apple 17+ · Google « Adultes uniquement », pour coller au blocage 18 ans de l'app.
   Répondre au questionnaire de façon à **atteindre** ce classement (le thème « gestion du

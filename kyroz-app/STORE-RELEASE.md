@@ -337,6 +337,25 @@ pas l'avis d'un médecin ou d'un diététicien-nutritionniste.
 
 ---
 
+> ## ⚠️ CE PLAYBOOK PLAÇAIT LE BUILD TROP TARD — corrigé le 2026-07-30
+> Le build figurait en étape 8 sur 11, **après** les comptes développeur. C'est faux
+> pour Android : **un build Android n'a JAMAIS eu besoin du compte Google Play.** EAS
+> génère la clé de signature ; le compte ne sert qu'à *déposer*, pas à *fabriquer*.
+> Il aurait pu tourner dès le 2026-07-15, jour de création d'`eas.json`.
+>
+> **Ce que ce report a coûté, mesuré :** `eas.json` était invalide depuis sa création
+> (pseudo-commentaires `//`) et bloquait TOUT build — quinze jours sans que rien ne le
+> signale, parce que ni les tests, ni `tsc`, ni le déploiement web ne touchent cette
+> couche. Et `RECORD_AUDIO` + `SYSTEM_ALERT_WINDOW` dormaient dans le manifeste,
+> indétectables depuis `app.json` : seul un `prebuild` les montre. Le backlog les
+> soupçonnait depuis le 2026-07-03 sans pouvoir trancher.
+>
+> **Règle : un build est un TEST, pas une étape finale.** Il contrôle la validité de la
+> config EAS, la fusion du manifeste et la compatibilité des modules natifs — une couche
+> que rien d'autre ne vérifie. Le lancer tôt, même sans intention de publier.
+> *(iOS, lui, a une vraie dépendance : les certificats de distribution exigent le compte
+> Apple payant.)*
+
 ## 8. Build & soumission (commandes)
 
 > ### ⚠️ `eas.json` n'accepte PAS de commentaires — appris à la dure le 2026-07-30
