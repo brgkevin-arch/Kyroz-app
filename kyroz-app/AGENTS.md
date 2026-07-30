@@ -91,21 +91,35 @@ ne couvre que les 7 régimes. Décision reportée depuis le 2026-07-29.
 féculent ×8, poulet+riz basmati ×5). Ils se règlent **en écrivant ailleurs**, pas en réécrivant
 l'existant — le cliquet de `doublons.test.ts` les tient à leur niveau actuel.
 
-### 5. DÉCISION PRODUIT EN ATTENTE — l'écrasement des 5 domaines non protégés
+### 5. ✅ TRANCHÉ + LIVRÉ (2026-07-30) — l'écrasement des domaines non protégés
 
-Ouverte le 2026-07-30, explicitement mise hors périmètre du chantier `sync.ts` par le
-fondateur : **c'est une décision produit, pas un bug à corriger au passage.**
+Le fondateur a délégué l'arbitrage. La réponse n'est **pas** « fusionner partout » : ce
+serait un contresens sur deux des cinq domaines.
 
-À l'hydratation, seul le **profil** est protégé (drapeau « sale »). Les cinq autres — série,
-favoris, garde-manger, **poids**, recettes perso — sont écrasés par le cloud dès qu'il a une
-ligne NON VIDE. Un cloud vide, lui, n'efface jamais rien : l'exposition réelle n'est pas la
-réinstallation, c'est le **multi-appareils** (le second à se connecter perd ses données).
+**Critère retenu — HISTORIQUE ou ÉTAT COURANT ?**
+- *Historique* (on ajoute, on ne retire presque jamais) → **fusion**. Perdre de la donnée
+  accumulée est irréversible.
+- *État courant* (retirer est une action normale) → **écrasement CONSERVÉ**. Sans horodatage
+  par élément ni pierre tombale, une union rend la **suppression impossible** : le retrait ne
+  « prendrait » jamais entre appareils. C'est un défaut PERMANENT, là où une perte se répare
+  en refaisant le geste.
 
-Le cas le plus discutable est le **journal de poids** : remplacement en bloc, sans
-déduplication par date, alors que `low_ea_weeks` — donnée cumulative de même nature — est
-fusionnée par UNION (`syncGuard::reconcileCloudLowEaWeeks`). C'est l'asymétrie qui est
-douteuse, pas l'écrasement en soi. Tout est décrit et testé dans `lib/__tests__/sync.test.ts`
-(marqueurs `// SUSPECT:`) : la décision peut être prise sur des faits.
+| Domaine | Décision | Raison |
+|---|---|---|
+| **Poids** | **fusion par date**, local prioritaire à date égale | Historique cumulatif, même nature que `low_ea_weeks` déjà fusionné par union. L'asymétrie était l'incohérence. |
+| **Série** | **fusion** : record = max, série en cours = appareil le plus récent, `freeze_available` préservé | L'écrasement ramenait une série de 9 jours à 3 à cause d'un appareil en retard |
+| **Recettes perso** | **fusion par identifiant**, local prioritaire | Une recette éditée est du travail ; une réinitialisation se refait en un tap |
+| **Favoris** | **écrasement conservé** | L'union ferait revenir un favori retiré, à chaque connexion, sans fin |
+| **Garde-manger** | **écrasement conservé** | C'est un STOCK : fusionner ressusciterait des aliments consommés et ferait acheter faux |
+
+Les fusions vivent dans `lib/syncGuard.ts` (`mergeWeightEntries`, `mergeStreak`,
+`mergeRecipeOverrides`) — pures, **idempotentes** (testé : l'hydratation tourne à chaque
+connexion, une fusion qui dérive serait invisible pendant des semaines). Le résultat fusionné
+est **repoussé au cloud** quand il apporte quelque chose, sinon les deux appareils
+continueraient de s'écraser mutuellement ; aucun push si la fusion n'ajoute rien.
+
+Deux `// SUSPECT:` de la phase C sont **résolus** par ce chantier (`freeze_available` effacé,
+poids remplacé en bloc) et leurs tests sont devenus des non-régressions.
 
 ## État de `lib/sync.ts` — sous filet depuis le 2026-07-30
 

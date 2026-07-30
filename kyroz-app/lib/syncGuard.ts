@@ -142,3 +142,99 @@ export function reconcileCloudLowEaWeeks<T extends Partial<UserProfile>>(
   if (weeks.length === a.weeks.length && since === a.since) return cloud;
   return { ...cloud, low_ea_weeks: { weeks, since } };
 }
+
+// ── Fusions à l'hydratation (2026-07-30) ─────────────────────────────────────
+//
+// Avant : les cinq domaines hors profil étaient ÉCRASÉS par le cloud dès qu'il avait
+// une ligne non vide. Sur deux appareils, le second à se connecter perdait ses données.
+//
+// La décision n'est PAS « fusionner partout » — ce serait un contresens sur deux d'entre
+// eux. Le critère retenu : **la donnée est-elle un HISTORIQUE (on ajoute, on ne retire
+// presque jamais) ou un ÉTAT COURANT (retirer est une action normale) ?**
+//
+//   • Historique → fusion. Perdre une donnée accumulée est irréversible.
+//   • État courant → écrasement CONSERVÉ. Fusionner un état ressusciterait ce que
+//     l'utilisateur vient d'enlever, et le retrait ne « prendrait » jamais entre
+//     appareils. Sans horodatage par élément ni pierres tombales, une union rend la
+//     suppression IMPOSSIBLE — c'est un défaut permanent, là où une perte se répare
+//     en refaisant le geste.
+//
+// D'où : poids, série et recettes perso fusionnent ; favoris et garde-manger non
+// (cf. le commentaire de chaque bloc dans sync.ts).
+//
+// Toutes ces fonctions sont PURES — même contrat que les réconciliateurs ci-dessus.
+
+/**
+ * Journal de poids : UNION par date, le LOCAL gagne en cas de collision.
+ *
+ * C'est un historique cumulatif, de même nature que `low_ea_weeks` — qui est déjà
+ * fusionné par union juste au-dessus. Les traiter différemment était l'incohérence :
+ * perdre trois mois de pesées parce qu'un second téléphone s'est connecté n'est pas
+ * réparable, la courbe de poids est la mémoire du produit.
+ *
+ * Le local gagne sur une date déjà présente : c'est l'appareil que la personne a en
+ * main, donc la valeur la plus probablement corrigée (`upsertEntry` remplace par date).
+ *
+ * ⚠️ Limite assumée : une pesée SUPPRIMÉE ici mais encore présente au cloud reviendra
+ * une fois (pas de pierre tombale). Le geste de correction est à refaire ; c'est un
+ * prix très inférieur à la perte de l'historique.
+ */
+export function mergeWeightEntries(
+  cloud: WeightEntryLike[] | null | undefined,
+  local: WeightEntryLike[] | null | undefined,
+): WeightEntryLike[] {
+  const byDate = new Map<string, WeightEntryLike>();
+  for (const e of cloud ?? []) if (e?.date) byDate.set(e.date, e);
+  for (const e of local ?? []) if (e?.date) byDate.set(e.date, e); // le local écrase
+  return [...byDate.values()].sort((a, b) => a.date.localeCompare(b.date));
+}
+
+export interface WeightEntryLike { date: string; weight_kg: number; note?: string }
+
+/**
+ * Série : le record est le MAXIMUM des deux, la série en cours vient de l'appareil dont
+ * la dernière activité est la PLUS RÉCENTE.
+ *
+ * L'écrasement pur pouvait ramener une série de 30 jours à 3 parce qu'un vieux
+ * téléphone détenait la ligne cloud. Prendre la dernière activité la plus récente ne
+ * peut pas inventer de série : c'est la seule des deux qui décrit le présent. Et le
+ * record ne redescend plus, ce qui est sa définition.
+ *
+ * `freeze_available` (le « bouclier », LOCAL-ONLY) est PRÉSERVÉ : il était effacé à
+ * chaque hydratation parce que l'objet était reconstruit avec trois champs.
+ */
+export function mergeStreak<T extends StreakLike>(cloud: T | null | undefined, local: T | null | undefined): T | null {
+  if (!cloud) return local ?? null;
+  if (!local) return cloud;
+  const recent = (local.last_active_date ?? '') >= (cloud.last_active_date ?? '') ? local : cloud;
+  return {
+    ...recent,
+    current_streak_days: recent.current_streak_days,
+    longest_streak_days: Math.max(local.longest_streak_days ?? 0, cloud.longest_streak_days ?? 0),
+    last_active_date: recent.last_active_date,
+    // Local-only : jamais au cloud, donc jamais écrasable par lui.
+    ...(local.freeze_available !== undefined ? { freeze_available: local.freeze_available } : {}),
+  };
+}
+
+export interface StreakLike {
+  current_streak_days: number;
+  longest_streak_days: number;
+  last_active_date: string;
+  freeze_available?: boolean;
+}
+
+/**
+ * Recettes personnalisées : UNION par identifiant, le LOCAL gagne.
+ *
+ * Une recette éditée à la main est du TRAVAIL de l'utilisateur — la perdre parce qu'un
+ * autre appareil s'est connecté est le pire des cas. Réinitialiser une recette
+ * (retirer sa clé) est en revanche un geste d'un tap : si une réinitialisation faite
+ * ailleurs revient une fois, elle se refait. L'asymétrie tranche.
+ */
+export function mergeRecipeOverrides<T>(
+  cloud: Record<string, T> | null | undefined,
+  local: Record<string, T> | null | undefined,
+): Record<string, T> {
+  return { ...(cloud ?? {}), ...(local ?? {}) };
+}
