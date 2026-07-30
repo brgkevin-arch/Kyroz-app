@@ -72,12 +72,17 @@ qu'ils étaient périmés.
 
 ### 🔴 A — En retard ou cassé en silence
 
-- **A1 · 🧑 Confirmer une écriture RÉELLE en prod.** Le schéma est aligné (30/30 colonnes,
-  RLS forcée sur les 6 tables, vérifié le 2026-07-21), mais personne n'a encore prouvé
-  qu'une modification atterrit vraiment dans `profiles`. Changer une préférence dans
-  l'app → vérifier la ligne côté Supabase. Mode d'emploi : `supabase/RUNBOOK-PROD.md` §2.
-  ⚠️ Ce mode de panne (migration non jouée → sync morte **en silence**, AsyncStorage
-  masque tout) s'est produit **trois fois**.
+- ~~**A1 · Confirmer une écriture RÉELLE en prod**~~ ✅ **PROUVÉ le 2026-07-31, par
+  mesure contre la prod** (REST + clé anonyme, aucun accès dashboard nécessaire) :
+  les **37 colonnes** de `PROFILE_COLS` demandées en une requête → `200` · écriture
+  d'un profil complet → `200` · relecture → valeurs intactes, **JSONB compris**
+  (`calorie_bank`, `goal_target`, `low_ea_weeks`, `fixed_meals`) · modification
+  (80 → 79 kg, banque 600 → 450) → relue à 79 / 450 · RLS authentifiée → **1 seule
+  ligne visible**, la sienne. La synchro écrit, relit et cloisonne.
+  Toutes les migrations sont donc jouées, `2026-07-30_profiles_calorie_bank.sql`
+  comprise. **Preuve + mode d'emploi reproductible : `supabase/JOURNAL-MIGRATIONS.md`.**
+  ⚠️ **À purger** : la vérification a ouvert une session invité (`205132cb…`). Sa ligne
+  `profiles` est supprimée ; la ligne `auth.users` demande le dashboard.
 - ~~**A2 · Vérifier `RECORD_AUDIO`**~~ ✅ **RÉSOLU le 2026-07-30 — et le soupçon était FONDÉ.**
   `npx expo prebuild -p android` puis lecture du manifeste : `RECORD_AUDIO` **y était bien**,
   alors qu'elle n'apparaît nulle part dans `app.json`. Confirmation que `android.permissions: []`
@@ -231,13 +236,18 @@ produit en suspens — il ne reste qu'à coder.
   moteur local, mais embarque le SDK Anthropic dans le bundle. **Reco : le supprimer**
   (~120 lignes mortes + piège de sécurité — une clé posée là serait inlinée **en clair**
   dans le bundle public). Si l'IA revient : Edge Function Supabase, jamais côté client.
-- **E2 · Journal des migrations appliquées** (checklist datée dans `supabase/`).
-  C'est la cause racine de A1 : personne ne peut dire ce qui tourne réellement en prod.
-- **E3 · 🧑 Trancher le compte invité.** Le bouton est masqué en prod, mais si le provider
-  « Anonymous » reste activé côté Supabase, **l'endpoint reste ouvert** (création de comptes
-  en masse). Le CAPTCHA Turnstile est provisionné mais non branché. Arbitrage : laisser +
-  rate-limit, ou brancher le CAPTCHA. ⚠️ Les parcours Playwright en dépendent — et le
-  rate-limit se rencontre pour de vrai (429 `over_request_rate_limit` observé le 2026-07-30).
+- ~~**E2 · Journal des migrations appliquées**~~ ✅ **CRÉÉ le 2026-07-31** :
+  `supabase/JOURNAL-MIGRATIONS.md`. Il ne liste pas des intentions — il consigne un
+  ÉTAT VÉRIFIÉ et la commande d'une ligne qui permet de le re-vérifier sans dashboard
+  (une colonne absente fait répondre `400` à PostgREST, présente `200`).
+- **E3 · 🧑 Trancher le compte invité — LE DOUTE EST LEVÉ, le provider EST OUVERT.**
+  Mesuré le 2026-07-31 : `POST /auth/v1/signup` avec un corps VIDE, sans
+  authentification et sans CAPTCHA, renvoie une session valide. Le bouton masqué en
+  prod ne protège donc rien — c'est l'endpoint qui est ouvert, et c'est exactement le
+  vecteur de création de comptes en masse. Reste l'arbitrage, inchangé : laisser +
+  rate-limit, brancher le CAPTCHA Turnstile (déjà provisionné), ou couper le provider.
+  ⚠️ Les parcours Playwright en dépendent, et le rate-limit se rencontre pour de vrai
+  (429 `over_request_rate_limit` observé le 2026-07-30).
 - **E4 · 🤖 Nettoyages.** Supprimer `kcalMargin()` (code mort) · déplacer les clés Supabase
   du workflow vers les **secrets GitHub** + créer un `.env.example`.
   ✅ *Le recomptage Ciqual réclamé ici est **FAIT** (2026-07-30)* : les chiffres qui se
