@@ -3,7 +3,21 @@ import { supabase } from './supabase';
 import { Recipe, Streak, UserProfile } from './types';
 import { PantryItem } from './pantry';
 import { WeightEntry } from './weight';
-import { decideProfileHydration, normalizeGoal, normalizeProfileActivity, reconcileCloudSports, reconcileCloudLowEaWeeks, reconcileCloudNeat, PROFILE_PENDING_KEY } from './syncGuard';
+import { decideProfileHydration, normalizeGoal, normalizeProfileActivity, reconcileCloudSports, reconcileCloudLowEaWeeks, reconcileCloudNeat, mergeWeightEntries, mergeStreak, mergeRecipeOverrides, PROFILE_PENDING_KEY } from './syncGuard';
+
+/** La fusion a-t-elle produit autre chose que ce que le cloud détenait ? */
+const differs = (a: unknown, b: unknown): boolean => JSON.stringify(a) !== JSON.stringify(b);
+
+/**
+ * Idem pour la série, mais sur les SEULS champs synchronisés : `freeze_available` est
+ * local-only, donc sa présence dans l'objet fusionné ne justifie pas un push.
+ */
+function syncedStreakChanged(cloud: Streak, merged: Streak): boolean {
+  return differs(
+    [cloud.current_streak_days, cloud.longest_streak_days, cloud.last_active_date],
+    [merged.current_streak_days, merged.longest_streak_days, merged.last_active_date],
+  );
+}
 
 // ── Synchro AsyncStorage ⇄ Supabase ──────────────────────────────────────────
 // Principe : le local reste la copie de travail (offline-first), le cloud est un
@@ -298,23 +312,37 @@ export async function hydrateFromCloud(uid: string): Promise<void> {
     }
   } catch {}
 
-  // STREAK
+  // STREAK — FUSION (record = max, série en cours = appareil le plus récent).
   try {
     const { data: row } = await supabase.from('streaks').select('*').eq('user_id', uid).maybeSingle();
     const raw = await AsyncStorage.getItem(STREAK_KEY);
     const local: Streak | null = raw ? JSON.parse(raw) : null;
     if (row && row.last_active_date) {
-      await AsyncStorage.setItem(STREAK_KEY, JSON.stringify({
+      const cloud: Streak = {
         current_streak_days: row.current_streak_days,
         longest_streak_days: row.longest_streak_days,
         last_active_date: row.last_active_date,
-      }));
+      };
+      const merged = mergeStreak(cloud, local);
+      if (merged) {
+        await AsyncStorage.setItem(STREAK_KEY, JSON.stringify(merged));
+        // Convergence : sans ce push, l'appareil d'en face garderait sa version et
+        // écraserait à son tour. On ne pousse que si la fusion apporte quelque chose.
+        if (syncedStreakChanged(cloud, merged)) await pushStreak(merged);
+      }
     } else if (local) {
       await pushStreak(local);
     }
   } catch {}
 
-  // FAVORIS
+  // FAVORIS — écrasement CONSERVÉ, à dessein (décision 2026-07-30).
+  //
+  // Fusionner par union serait le contresens : un favori RETIRÉ sur cet appareil est
+  // toujours présent au cloud, donc l'union le ferait revenir — à chaque connexion, sans
+  // fin. Retirer un favori ne « prendrait » jamais entre deux appareils. Sans horodatage
+  // par élément ni pierre tombale, l'union rend la suppression IMPOSSIBLE : c'est un
+  // défaut PERMANENT, là où l'écrasement fait perdre une liste qui se refait en quelques
+  // taps. On garde donc le moins mauvais des deux.
   try {
     const { data: rows } = await supabase.from('favorites').select('recipe_id').eq('user_id', uid);
     const raw = await AsyncStorage.getItem(FAV_KEY);
@@ -326,7 +354,13 @@ export async function hydrateFromCloud(uid: string): Promise<void> {
     }
   } catch {}
 
-  // GARDE-MANGER
+  // GARDE-MANGER — écrasement CONSERVÉ, à dessein (décision 2026-07-30).
+  //
+  // C'est un STOCK, pas un historique : les quantités sont décrémentées à chaque plat
+  // cuisiné (`pantry.deductRecipe`). Une union ferait réapparaître les ingrédients déjà
+  // consommés sur cet appareil, et additionner les quantités inventerait des aliments
+  // qui ne sont pas dans le placard — la liste de courses en découlant, on ferait
+  // acheter faux. Fusionner un état de stock est activement FAUX, pas seulement discutable.
   try {
     const { data: row } = await supabase.from('pantry').select('items').eq('user_id', uid).maybeSingle();
     const raw = await AsyncStorage.getItem(PANTRY_KEY);
@@ -338,25 +372,31 @@ export async function hydrateFromCloud(uid: string): Promise<void> {
     }
   } catch {}
 
-  // SUIVI DU POIDS
+  // SUIVI DU POIDS — FUSION par date (historique cumulatif, cf. syncGuard).
   try {
     const { data: row } = await supabase.from('weight_logs').select('entries').eq('user_id', uid).maybeSingle();
     const raw = await AsyncStorage.getItem(WEIGHT_KEY);
     const local: WeightEntry[] = raw ? JSON.parse(raw) : [];
-    if (row && Array.isArray(row.entries) && row.entries.length) {
-      await AsyncStorage.setItem(WEIGHT_KEY, JSON.stringify(row.entries));
+    const cloud: WeightEntry[] = row && Array.isArray(row.entries) ? row.entries : [];
+    if (cloud.length) {
+      const merged = mergeWeightEntries(cloud, local) as WeightEntry[];
+      await AsyncStorage.setItem(WEIGHT_KEY, JSON.stringify(merged));
+      if (differs(merged, cloud)) await pushWeights(merged); // convergence
     } else if (local.length) {
       await pushWeights(local);
     }
   } catch {}
 
-  // OVERRIDES DE RECETTES (recettes personnalisées)
+  // RECETTES PERSONNALISÉES — FUSION par identifiant (du travail de l'utilisateur).
   try {
     const { data: row } = await supabase.from('recipe_overrides').select('overrides').eq('user_id', uid).maybeSingle();
     const raw = await AsyncStorage.getItem(OVERRIDES_KEY);
     const local: Record<string, Recipe> = raw ? JSON.parse(raw) : {};
-    if (row && row.overrides && Object.keys(row.overrides).length) {
-      await AsyncStorage.setItem(OVERRIDES_KEY, JSON.stringify(row.overrides));
+    const cloud: Record<string, Recipe> = row?.overrides ?? {};
+    if (Object.keys(cloud).length) {
+      const merged = mergeRecipeOverrides(cloud, local);
+      await AsyncStorage.setItem(OVERRIDES_KEY, JSON.stringify(merged));
+      if (differs(merged, cloud)) await pushRecipeOverrides(merged); // convergence
     } else if (Object.keys(local).length) {
       await pushRecipeOverrides(local);
     }

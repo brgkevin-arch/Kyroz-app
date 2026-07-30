@@ -243,46 +243,69 @@ describe('hydratation des 5 autres domaines — 3 états du cloud chacun', () =>
       local: { current_streak_days: 9, longest_streak_days: 9, last_active_date: '2026-07-29' },
       cloudPlein: { current_streak_days: 3, longest_streak_days: 5, last_active_date: '2026-07-28' },
       cloudVide: { current_streak_days: 0, longest_streak_days: 0, last_active_date: null },
-      attenduSiCloudPlein: (v: any) => expect(v.current_streak_days).toBe(3),
+      fusionne: true,
+      // Fusion : la dernière activité locale (29) est plus récente que celle du cloud
+      // (28), donc la série EN COURS est celle du local ; le record est le max des deux.
+      attenduSiCloudPlein: (v: any) => {
+        expect(v.current_streak_days).toBe(9);
+        expect(v.longest_streak_days).toBe(9);
+        expect(v.last_active_date).toBe('2026-07-29');
+      },
       attenduSiLocalGarde: (v: any) => expect(v.current_streak_days).toBe(9),
+      attenduSiLocalVide: (v: any) => expect(v.current_streak_days).toBe(3),
     },
     {
       nom: 'favoris', table: 'favorites', key: FAV_KEY, pushOp: 'insert',
       local: ['rep1', 'rep2'],
       cloudPlein: [{ recipe_id: 'rep9' }],
       cloudVide: [],
+      fusionne: false, // état courant : l'union rendrait le retrait impossible
       attenduSiCloudPlein: (v: any) => expect(v).toEqual(['rep9']),
       attenduSiLocalGarde: (v: any) => expect(v).toEqual(['rep1', 'rep2']),
+      attenduSiLocalVide: (v: any) => expect(v).toEqual(['rep9']),
     },
     {
       nom: 'garde-manger', table: 'pantry', key: PANTRY_KEY, pushOp: 'upsert',
       local: [{ name: 'riz', quantity: 500, unit: 'g', category: 'epicerie' }],
       cloudPlein: { items: [{ name: 'avoine', quantity: 1000, unit: 'g', category: 'epicerie' }] },
       cloudVide: { items: [] },
+      fusionne: false, // stock : fusionner inventerait des aliments absents du placard
       attenduSiCloudPlein: (v: any) => expect(v[0].name).toBe('avoine'),
       attenduSiLocalGarde: (v: any) => expect(v[0].name).toBe('riz'),
+      attenduSiLocalVide: (v: any) => expect(v[0].name).toBe('avoine'),
     },
     {
       nom: 'poids', table: 'weight_logs', key: WEIGHT_KEY, pushOp: 'upsert',
       local: [{ date: '2026-07-01', weight_kg: 80 }, { date: '2026-07-15', weight_kg: 79 }],
       cloudPlein: { entries: [{ date: '2026-06-01', weight_kg: 84 }] },
       cloudVide: { entries: [] },
-      attenduSiCloudPlein: (v: any) => expect(v).toHaveLength(1),
+      fusionne: true,
+      // Fusion par date : les 3 pesées coexistent, triées.
+      attenduSiCloudPlein: (v: any) => {
+        expect(v.map((e: any) => e.date)).toEqual(['2026-06-01', '2026-07-01', '2026-07-15']);
+      },
       attenduSiLocalGarde: (v: any) => expect(v).toHaveLength(2),
+      attenduSiLocalVide: (v: any) => expect(v.map((e: any) => e.date)).toEqual(['2026-06-01']),
     },
     {
       nom: 'recettes perso', table: 'recipe_overrides', key: OVERRIDES_KEY, pushOp: 'upsert',
       local: { rep1: { id: 'rep1', name_fr: 'local' } },
       cloudPlein: { overrides: { rep9: { id: 'rep9', name_fr: 'cloud' } } },
       cloudVide: { overrides: {} },
-      attenduSiCloudPlein: (v: any) => expect(Object.keys(v)).toEqual(['rep9']),
+      fusionne: true,
+      // Fusion par identifiant : les deux recettes personnalisées coexistent.
+      attenduSiCloudPlein: (v: any) => expect(Object.keys(v).sort()).toEqual(['rep1', 'rep9']),
       attenduSiLocalGarde: (v: any) => expect(Object.keys(v)).toEqual(['rep1']),
+      attenduSiLocalVide: (v: any) => expect(Object.keys(v)).toEqual(['rep9']),
     },
   ];
 
   for (const d of domains) {
     describe(d.nom, () => {
-      it('cloud NON VIDE + local peuplé → ÉCRASEMENT PUR du local (aucune fusion)', async () => {
+      const titre = d.fusionne
+        ? 'cloud NON VIDE + local peuplé → FUSION (rien n’est perdu)'
+        : 'cloud NON VIDE + local peuplé → ÉCRASEMENT du local, À DESSEIN';
+      it(titre, async () => {
         await write(d.key, d.local);
         state.rows[d.table] = d.cloudPlein;
 
@@ -315,18 +338,17 @@ describe('hydratation des 5 autres domaines — 3 états du cloud chacun', () =>
 
         await hydrateFromCloud('user-1');
 
-        d.attenduSiCloudPlein(await read(d.key));
+        // Sans rien en local, fusionner ou écraser donne le même résultat : le cloud.
+        d.attenduSiLocalVide(await read(d.key));
       });
     });
   }
 
-  // SUSPECT: l'hydratation de la série reconstruit l'objet avec TROIS champs
-  // seulement (sync.ts:173-177). `freeze_available` — le « bouclier de série », qui
-  // pardonne un jour manqué — est LOCAL-ONLY et n'est donc pas dans la ligne cloud :
-  // il est effacé à chaque pull. Conséquence pour l'utilisateur : son gel disparaît
-  // en se reconnectant. `undefined` valant « dispo » (rétro-compat), l'effet va dans
-  // le sens FAVORABLE (il récupère un gel) — c'est ce qui rend le défaut invisible.
-  it('SUSPECT — freeze_available (local-only) est effacé par l’hydratation de la série', async () => {
+  // RÉSOLU le 2026-07-30 (était : SUSPECT). L'hydratation reconstruisait l'objet avec
+  // TROIS champs, donc `freeze_available` — le « bouclier de série », LOCAL-ONLY —
+  // était effacé à chaque pull : le gel disparaissait en se reconnectant.
+  // `mergeStreak` le préserve désormais. Test conservé en non-régression.
+  it('freeze_available (local-only) SURVIT à l’hydratation de la série', async () => {
     await write(STREAK_KEY, {
       current_streak_days: 9, longest_streak_days: 9,
       last_active_date: '2026-07-29', freeze_available: false,
@@ -335,18 +357,38 @@ describe('hydratation des 5 autres domaines — 3 états du cloud chacun', () =>
 
     await hydrateFromCloud('user-1');
 
-    const got = await read(STREAK_KEY);
-    expect(Object.keys(got).sort()).toEqual(['current_streak_days', 'last_active_date', 'longest_streak_days']);
-    expect(got.freeze_available).toBeUndefined();
+    expect((await read(STREAK_KEY)).freeze_available).toBe(false);
   });
 
-  // SUSPECT: remplacement EN BLOC, aucune déduplication par date, alors que le
-  // journal de poids est un historique cumulatif — comme `low_ea_weeks`, qui lui est
-  // fusionné par UNION (syncGuard::reconcileCloudLowEaWeeks). Sur deux appareils,
-  // chacun détient une partie des pesées réelles ; ici le second à se connecter perd
-  // les siennes. Le traitement asymétrique de deux données de même nature est ce qui
-  // rend ce point douteux, pas l'écrasement en lui-même.
-  it('SUSPECT — le journal de poids est remplacé en bloc, sans fusion par date', async () => {
+  it('la série ne redescend plus à cause d’un appareil en retard', async () => {
+    // Le vrai scénario : un vieux téléphone détient la ligne cloud et ramenait une
+    // série de 9 jours à 3.
+    await write(STREAK_KEY, { current_streak_days: 9, longest_streak_days: 9, last_active_date: '2026-07-29' });
+    state.rows.streaks = { current_streak_days: 3, longest_streak_days: 5, last_active_date: '2026-07-28' };
+
+    await hydrateFromCloud('user-1');
+
+    const got = await read(STREAK_KEY);
+    expect(got.current_streak_days).toBe(9);
+    expect(got.longest_streak_days).toBe(9); // record = max des deux
+  });
+
+  it('mais un cloud PLUS RÉCENT que le local fait foi (pas de « le local gagne » aveugle)', async () => {
+    await write(STREAK_KEY, { current_streak_days: 2, longest_streak_days: 4, last_active_date: '2026-07-20' });
+    state.rows.streaks = { current_streak_days: 11, longest_streak_days: 11, last_active_date: '2026-07-29' };
+
+    await hydrateFromCloud('user-1');
+
+    const got = await read(STREAK_KEY);
+    expect(got.current_streak_days).toBe(11);
+    expect(got.last_active_date).toBe('2026-07-29');
+  });
+
+  // RÉSOLU le 2026-07-30 (était : SUSPECT). Le journal était remplacé EN BLOC, sans
+  // déduplication par date, alors que c'est un historique cumulatif — exactement comme
+  // `low_ea_weeks`, qui lui était déjà fusionné par UNION. C'était l'asymétrie entre
+  // deux données de même nature qui rendait le point intenable.
+  it('le journal de poids FUSIONNE par date — plus aucune pesée perdue', async () => {
     await write(WEIGHT_KEY, [
       { date: '2026-07-01', weight_kg: 80 },
       { date: '2026-07-15', weight_kg: 79 },
@@ -356,8 +398,35 @@ describe('hydratation des 5 autres domaines — 3 états du cloud chacun', () =>
     await hydrateFromCloud('user-1');
 
     const got = await read(WEIGHT_KEY);
-    expect(got).toEqual([{ date: '2026-06-01', weight_kg: 84 }]);
-    expect(got.some((e: any) => e.date === '2026-07-15')).toBe(false);
+    expect(got.map((e: any) => e.date)).toEqual(['2026-06-01', '2026-07-01', '2026-07-15']);
+  });
+
+  it('sur une même date, la valeur LOCALE l’emporte (correction saisie ici)', async () => {
+    await write(WEIGHT_KEY, [{ date: '2026-07-01', weight_kg: 79.4 }]);
+    state.rows.weight_logs = { entries: [{ date: '2026-07-01', weight_kg: 84 }] };
+
+    await hydrateFromCloud('user-1');
+
+    expect((await read(WEIGHT_KEY))[0].weight_kg).toBe(79.4);
+  });
+
+  it('la fusion est REPOUSSÉE au cloud — sinon l’autre appareil réécraserait', async () => {
+    await write(WEIGHT_KEY, [{ date: '2026-07-15', weight_kg: 79 }]);
+    state.rows.weight_logs = { entries: [{ date: '2026-06-01', weight_kg: 84 }] };
+
+    await hydrateFromCloud('user-1');
+
+    const push = state.calls.find((c) => c.table === 'weight_logs' && c.op === 'upsert');
+    expect(push?.payload.entries.map((e: any) => e.date)).toEqual(['2026-06-01', '2026-07-15']);
+  });
+
+  it('rien de neuf à apporter → aucun push inutile', async () => {
+    await write(WEIGHT_KEY, [{ date: '2026-06-01', weight_kg: 84 }]);
+    state.rows.weight_logs = { entries: [{ date: '2026-06-01', weight_kg: 84 }] };
+
+    await hydrateFromCloud('user-1');
+
+    expect(opsOn('weight_logs')).not.toContain('upsert');
   });
 
   it('une panne sur un domaine n’empêche pas les suivants (chaque bloc a son try/catch)', async () => {
