@@ -222,8 +222,21 @@ l'utilisateur au-delà de 100 kcal/jour d'écart.
 Afficher : onboarding J1, paramètres, chaque plan généré.
 
 ### Validation contenu
-- Prompts de génération IA (si API utilisée) revus par diététicienne diplômée avant prod
-- Recettes : \`validated_by_dietitian\` à passer à \`true\` après validation (actuellement \`false\`)
+
+🚫 **La validation par une diététicienne est ÉCARTÉE (décision fondateur, 2026-07-29).**
+Ce n'est pas un retard à rattraper, c'est un choix. **Ne plus la remonter** comme
+prérequis, ni dans un bilan, ni dans une recommandation de chantier.
+
+Ce que la décision ne fait PAS disparaître, et qui reste vrai :
+- \`validated_by_dietitian\` reste \`false\` en dur (\`lib/recipeMap.ts\`) → **aucun écran
+  ne doit prétendre le contraire**, et la revue App Store est sévère sur les
+  allégations santé. Le disclaimer ci-dessus est donc d'autant plus obligatoire.
+- Les coefficients protéiques de \`GOAL_CONFIG\` se déclarent « PROVISOIRES » dans le
+  code en attendant un tiers qui ne viendra pas → soit retirer la mention, soit
+  l'assumer explicitement, mais ne pas laisser le code annoncer une attente vide.
+
+Historique : ces deux lignes exigeaient « prompts revus par diététicienne diplômée
+avant prod » et « \`validated_by_dietitian\` à passer à \`true\` après validation ».
 
 ---
 
