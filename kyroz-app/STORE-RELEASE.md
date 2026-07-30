@@ -45,6 +45,21 @@ Sans ces deux comptes, rien ne peut être soumis. Le reste (§2–7) peut se pr�
 
 ### 1-bis. Créer les abonnements Kyroz+ (ordre IMPOSÉ)
 
+> ## ✅ CÔTÉ APPLE : TERMINÉ (2026-07-30)
+> Bundle ID enregistré · fiche d'app créée · Paid Applications Agreement **Actif**
+> (compte bancaire + W-8BEN actifs) · groupe `Kyroz+` et les deux abonnements créés
+> et tarifés. Reste la **capture de review**, impossible avant que le paywall existe —
+> les produits restent en « Métadonnées manquantes », ce qui n'empêche NI RevenueCat
+> NI les tests sandbox.
+>
+> ⚠️ **À surveiller** : la conformité **DSA** était « En cours de vérification ».
+> Tant qu'elle n'est pas validée, **aucune distribution dans l'UE** — donc pas en
+> France. Ça bloque la publication, pas seulement les abonnements.
+>
+> ℹ️ Redevances en **USD** sur un compte bancaire en **EUR** (Revolut Bank UAB) :
+> chaque versement subira une conversion. Changer la devise exige un autre compte →
+> **laissé tel quel volontairement**, à rouvrir quand il y aura du revenu réel.
+
 Les produits d'abonnement ne peuvent pas être créés dans le vide : il faut d'abord
 un identifiant enregistré, puis une fiche d'app. Dans cet ordre, sinon le menu
 « Abonnements » n'apparaît tout simplement pas.
