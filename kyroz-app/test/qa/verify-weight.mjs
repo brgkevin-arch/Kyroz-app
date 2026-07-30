@@ -1,8 +1,15 @@
+// Sonde ciblée : l'enregistrement d'un poids doit écrire dans weight_logs sans 404.
+// Usage : node test/qa/verify-weight.mjs
+
 import { chromium } from 'playwright';
-const SHOT = '/Users/kevinberger/Kyroz Code/kyroz-app/test/qa';
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+import {
+  SHOT, PHONE, sleep, ensureDirs, open, tap, bootToPlan, goToProfil, closeSheet, neutralizeFirstRun,
+} from '../_harness.mjs';
+
+ensureDirs();
 const browser = await chromium.launch({ headless: true });
-const context = await browser.newContext({ viewport: { width: 430, height: 932 }, storageState: `${SHOT}/session.json` });
+const context = await browser.newContext({ viewport: PHONE });
+await neutralizeFirstRun(context);
 const page = await context.newPage();
 
 const wl = [];
@@ -11,25 +18,27 @@ page.on('response', (r) => {
   if (u.includes('weight_logs') || u.includes('recipe_overrides')) wl.push(`${r.status()} ${r.request().method()} ${u.replace(/\?.*/, '')}`);
 });
 
-await page.goto('http://localhost:8081', { waitUntil: 'load' });
-await sleep(3000);
+await open(page);
+await bootToPlan(page); // le script exigeait une session.json créée à la main
 
-const tap = async (l) => { const e = page.getByText(l, { exact: false }).last(); if (await e.isVisible({ timeout: 1500 }).catch(()=>false)) { await e.click().catch(()=>{}); return true; } return false; };
+await goToProfil(page);
+await tap(page, 'Suivi du poids', { timeout: 3000 });
+await sleep(1500);
 
-await tap('Profil'); await sleep(1500);
-await tap('Suivi du poids'); await sleep(1500);
-
-// set a weight value then save
-const input = page.locator('input').first();
-await input.click().catch(()=>{});
-await input.fill('85').catch(()=>{});
+// Placeholder dynamique (dernier poids connu, sinon « 80 ») → repéré par sa forme.
+const kg = page.getByPlaceholder(/^\d+([.,]\d+)?$/).first();
+await kg.fill('85').catch(() => {});
 await sleep(500);
-await tap('Enregistrer'); await sleep(2500);
+await tap(page, 'Enregistrer', { exact: true, which: 'last', timeout: 2000 });
+await sleep(2500);
 
-await page.screenshot({ path: `${SHOT}/F-weight-after-save.png` }).catch(()=>{});
-await context.close(); await browser.close();
+await page.screenshot({ path: `${SHOT}/F-weight-after-save.png` }).catch(() => {});
+await closeSheet(page);
+await context.close();
+await browser.close();
 
-console.log('=== weight_logs / recipe_overrides traffic ===');
-console.log([...new Set(wl)].join('\n') || 'no calls captured');
+console.log('=== trafic weight_logs / recipe_overrides ===');
+console.log([...new Set(wl)].join('\n') || 'aucun appel capturé');
 const had404 = wl.some((x) => x.startsWith('404'));
-console.log('\nRESULT: ' + (had404 ? '❌ still 404' : '✅ no 404 — fix worked'));
+console.log('\nRÉSULTAT : ' + (had404 ? '❌ toujours un 404' : '✅ aucun 404'));
+process.exitCode = had404 ? 1 : 0;

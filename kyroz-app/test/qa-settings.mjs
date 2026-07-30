@@ -1,43 +1,55 @@
-import { chromium } from 'playwright';
-const SHOT = '/Users/kevinberger/Kyroz Code/kyroz-app/test/qa';
-const STATE = `${SHOT}/session.json`;
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+// QA ciblée : les sous-écrans de réglages du Profil, en captures avant/après scroll.
+//
+// Ce script exigeait un test/qa/session.json déjà présent (créé à la main par
+// qa-deep) et plantait sec sinon. Il amorce désormais sa propre session invité.
+//
+// Usage : node test/qa-settings.mjs
 
-const browser = await chromium.launch({ headless: false, slowMo: 150 });
-const context = await browser.newContext({ viewport: { width: 430, height: 932 }, storageState: STATE });
+import { chromium } from 'playwright';
+import { existsSync } from 'node:fs';
+import { SHOT, STATE, PHONE, HEADLESS, sleep, ensureDirs, open, tap, bootToPlan, closeSheet, goToProfil, neutralizeFirstRun } from './_harness.mjs';
+
+ensureDirs();
+
+const browser = await chromium.launch({ headless: HEADLESS, slowMo: 150 });
+const haveState = existsSync(STATE);
+const context = await browser.newContext({ viewport: PHONE, storageState: haveState ? STATE : undefined });
+await neutralizeFirstRun(context);
 const page = await context.newPage();
+
 const fails = [];
 page.on('response', (r) => { if (r.status() >= 400) fails.push(`${r.status()} ${r.request().method()} ${r.url().replace(/\?.*/, '')}`); });
 
-await page.goto('http://localhost:8081', { waitUntil: 'load' });
-await sleep(2500);
-
-const tab = async (label) => { const e = page.getByText(label, { exact: false }).last(); if (await e.isVisible({ timeout: 1500 }).catch(() => false)) { await e.click().catch(() => {}); return true; } return false; };
 const snap = async (n) => { await page.screenshot({ path: `${SHOT}/${n}.png` }).catch(() => {}); console.log('shot: ' + n); };
+
+await open(page);
+
+const onPlan = await bootToPlan(page);
+console.log(onPlan ? 'session prête' : 'ATTENTION : écran Plan jamais atteint');
+if (!haveState) await context.storageState({ path: STATE });
+await sleep(1200);
 
 const subs = [
   ['Objectif', 'objectif'],
+  ['Sport & activité', 'sport'],
   ['Calories & macros', 'macros'],
   ['Préférences alimentaires', 'preferences'],
   ['Paramètres des repas', 'repas'],
 ];
 for (const [label, key] of subs) {
-  await tab('Profil'); await sleep(1200);
-  // scroll the profil list a touch so the row is on-screen
-  await page.mouse.wheel(0, 250); await sleep(500);
-  const row = page.getByText(label, { exact: false }).first();
-  if (await row.isVisible({ timeout: 1500 }).catch(() => false)) {
-    await row.click().catch(() => {});
+  await goToProfil(page);
+  if (await tap(page, label, { exact: true, timeout: 3000 })) {
     await sleep(1600);
     await snap('E-' + key);
     for (let i = 0; i < 2; i++) { await page.mouse.wheel(0, 500); await sleep(500); }
     await snap('E-' + key + '-scrolled');
-    await page.keyboard.press('Escape').catch(() => {});
-    await sleep(900);
+    await closeSheet(page); // ce sont des Sheet, pas des routes : goBack() ne ferme rien
   } else {
-    console.log('NOT FOUND: ' + label);
+    console.log('INTROUVABLE : ' + label);
   }
 }
-await context.close(); await browser.close();
-console.log('fails: ' + ([...new Set(fails)].join(' | ') || 'none'));
+
+await context.close();
+await browser.close();
+console.log('échecs : ' + ([...new Set(fails)].join(' | ') || 'aucun'));
 console.log('DONE');
