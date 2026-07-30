@@ -22,12 +22,16 @@ moteur (lib/safety.ts, lib/datedGoal.ts, lib/sport.ts n'existaient pas), et il p
 calculateTDEE() à une ligne fausse. C'est documenté dans AGENTS.md. Grep et lis les fichiers.
 
 ## Documents
-- \`KYROZ_MOTEUR_V2_CORRECTIONS.md\` — LA SPEC. Section « PR 3 — P2 ». ⚠️ Elle a déjà eu
+- \`docs/archive/2026-07-29-moteur-v2-corrections.md\` (ARCHIVÉ le 2026-07-30, ex-racine
+  \`KYROZ_MOTEUR_V2_CORRECTIONS.md\`) — LA SPEC. Section « PR 3 — P2 ». ⚠️ Elle a déjà eu
   TORT trois fois sur P1 (P1.5 faisait mathématiquement l'inverse de ce qu'elle prétendait,
   P1.1 justifiait l'item par un fait faux, P1.3 était une régression de sécurité). Traite-la
   comme une hypothèse à vérifier, jamais comme une vérité.
 - \`AGENTS.md\` — état réel du build.
-- \`AUDIT-P1-MESURES.md\` — les mesures qui ont arbitré P1. Même méthode attendue ici.
+- \`docs/archive/2026-07-28-audit-p1-mesures.md\` (ARCHIVÉ le 2026-07-30, ex-racine
+  \`AUDIT-P1-MESURES.md\`) — les mesures qui ont arbitré P1. Même méthode attendue ici.
+- \`docs/INVENTAIRE-CODE-2026-07-30.md\` — photo factuelle du code au 2026-07-30
+  (duplications de logique, points d'écriture, zones risquées). Mesurée, pas rédigée.
 - \`CLAUDE.md\` §6 — les garde-fous, qui sont NON NÉGOCIABLES.
 
 ## Ce qui vient d'être livré (2026-07-28, étape 3 de P1) — à intégrer à ton raisonnement

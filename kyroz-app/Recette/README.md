@@ -72,7 +72,11 @@ fichiers de `lots/` en sont la projection opérationnelle.
 3. **Compteurs de test** : `recipeMap.test.ts`, `recipes.test.ts`, `recipeData.test.ts` (`toHaveLength(N)`).
 4. **`ENGINE_VERSION`** (`lib/planEngine.ts`) → +1, sinon les plans en cache ignorent les nouvelles recettes.
 5. `npm test` puis `npx tsc --noEmit`.
-6. `npm run gen:validation` → régénère `VALIDATION-RECETTES.md` (dossier diététicienne).
+6. `npm run mesure:couverture` → vérité terrain sur 12 profils (règle R8), et
+   `npm run check:doublons`. **Ce sont les deux seuls contrôles de catalogue.**
+   *(L'ancienne étape « `npm run gen:validation` → dossier diététicienne » a disparu le
+   2026-07-30 : la validation diététicienne est écartée (`CLAUDE.md` §6), le script est
+   supprimé et le dossier figé dans `docs/archive/2026-07-29-validation-recettes.md`.)*
 
 ## Invariants vérifiés par les tests
 
