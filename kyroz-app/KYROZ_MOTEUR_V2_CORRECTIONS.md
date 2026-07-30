@@ -9,12 +9,35 @@
 > **Méthode :** trois PR successives, dans l'ordre P0 → P1 → P2. Ne pas fusionner.
 > Chaque PR doit passer sa propre section de tests avant la suivante.
 
+> 🛑 **CE DOCUMENT EST DEVENU UN DOCUMENT D'HISTOIRE — lire ceci avant de s'y fier
+> (constat du 2026-07-29, 18 agents, 85 points mesurés en exécutant le moteur).**
+>
+> **59 des 85 points de la spécification d'origine divergent du code servi.** Les
+> corrections décrites ici ont été livrées, et c'est précisément ce qui a rendu la
+> spec périmée. Un correctif écrit « fidèlement au brief » RÉINTRODUIRAIT des bugs.
+>
+> Les sept pièges vérifiés, à connaître avant de toucher au moteur :
+> | la spec dit | le code fait | conséquence si on rejoue la spec |
+> |---|---|---|
+> | NEAT fixe `× 1,3` | `NEAT_PAL` 1,20–1,45, déclaré ; défaut **1,20** | +170 kcal/j de trop (médiane) |
+> | MET **bruts** | MET **nets** (`MET − 1`) | l'heure d'entraînement facturée deux fois |
+> | plancher = 1500/1200 | **cinq** planchers ; l'énergie disponible gagne 80,3 % du temps | cible fausse sur 24,2 % des profils |
+> | 7 700 kcal/kg partout | 7 700 en perte, **5 000 en prise** | surplus sur-prescrit de +78 kcal/j |
+> | perte max **1 %/sem** | 0,5 / 0,75 / **1,25** selon l'adiposité (0 occurrence de 1,0) | **régression de sécurité** chez les sujets minces |
+> | protéines `max(MM × g/kg, poids × plancher)` | poids ajusté + clamp 1,6–2,6 g/kg de masse maigre | ne reproduit que **2,3 %** des valeurs servies |
+> | zone ±1 kg fixe | `max(1,0 ; 1,5 % du poids)` | plate sous 66,6 kg, proportionnelle au-delà |
+>
+> **Le corps de ce document reste la spec D'ORIGINE, conservée pour mémoire.** Les
+> encadrés « LIVRÉ » / « REJETÉ » de chaque section portent la vérité ; le texte
+> autour raconte l'intention de départ. En cas de doute : **mesurer, pas relire.**
+> Bilan complet et catégories dans `AGENTS.md` (bloc « BILAN — le brief d'origine »).
+
 ## État
 
 | PR | Contenu | État |
 |---|---|---|
 | **PR 1** | P0.1 → P0.4 — sécurité | ✅ **Livré + audité** (branche `fix/moteur-p0-securite`, 2026-07-28) |
-| PR 2 | P1.1 → P1.6 — cohérence et justesse | ✅ **Livré** (étapes 1-2 puis 3, 2026-07-28) — **sauf P1.3, reporté en P2**. ⚠️ La spec avait tort sur plusieurs points : lire les encadrés « LIVRÉ » de chaque section, pas le corps. |
+| PR 2 | P1.1 → P1.6 — cohérence et justesse | ✅ **Livré** (étapes 1-2 puis 3, 2026-07-28) — **sauf P1.3, JAMAIS implémenté et sa falaise est vivante en production** : le tap « Effacer ma sélection » du %MG déplace la cible de ≥ 100 kcal/j chez **38 %** des profils et **éteint `FLOOR_APPLIED` dans 6,6 %** des cas (mesuré 2026-07-29, cf. l'encadré de la section). ⚠️ La spec avait tort sur plusieurs points : lire les encadrés « LIVRÉ » de chaque section, pas le corps. |
 | PR 3 | P2.1 → P2.2 — fonctionnalités manquantes | 🚫 **NE PAS CONSTRUIRE** — audit du 2026-07-29 : **les deux items sont rejetés**, motifs dans les sections. ⚠️ **Le corps de P2.1 et P2.2 ci-dessous est la SPEC D'ORIGINE, conservée pour mémoire, pas une consigne.** Ce qui reste vraiment ouvert : le diagnostic en lecture seule extrait de P2.2, et P1.3. |
 
 ### Audit adverse du P0 (2026-07-28)
@@ -624,6 +647,34 @@ export const MET = {
 3,5 pour cette tranche : appliquer `p.age >= 60 ? 0.85 : 1.0`.
 
 ## P1.3 — Retrait de Katch-McArdle
+
+> ⏳ **JAMAIS IMPLÉMENTÉ, et la falaise est VIVANTE EN PRODUCTION** (mesuré le
+> 2026-07-29). `lib/tdee.ts` contient toujours les deux branches.
+>
+> **Ce que ça produit, mesuré sur 50 240 profils plausibles** : le geste « Effacer
+> ma sélection » du %MG déplace la cible de **100 kcal/j ou plus chez 38 % d'entre
+> eux** (médiane 78, max 363), sans qu'aucun paramètre corporel n'ait changé — et
+> **le drapeau `FLOOR_APPLIED` s'éteint dans 6,6 % des cas**, donc le garde-fou
+> disparaît de l'écran sur un tap. La falaise est BIDIRECTIONNELLE : le signe du
+> saut s'inverse autour d'un point de bascule qui dépend du corps.
+>
+> ⚠️ **Conséquence que la spec ne voit pas, et qui change l'arbitrage** : Katch
+> n'est pas la branche d'exception, c'est **la branche de 100 % des comptes**. Le %MG
+> est une étape BLOQUANTE de l'onboarding (`app/(auth)/onboarding.tsx`), donc tout
+> profil créé par l'app y passe. Et comme Katch n'a **aucun terme d'âge**, le moteur
+> est age-aveugle pour tout le monde : vérifié deux fois, **288/288 corps, cibles
+> identiques de 18 à 90 ans, écart 0 kcal**. Un homme de 90 ans et un de 18 ans, même
+> corps, reçoivent le même plan au kcal près.
+>
+> **Ce n'est pas automatiquement un défaut** : l'effet de l'âge sur le métabolisme
+> passe largement par la perte de masse maigre, que Katch mesure directement. Le vrai
+> problème est ailleurs — ce %MG n'est pas mesuré, il est **choisi sur des
+> silhouettes** (`BodyFatPicker`). On fait donc reposer toute la sensibilité à l'âge
+> sur une estimation à l'œil. C'est ça qu'il faut trancher, pas « Katch ou Mifflin ».
+>
+> ⚠️ Le motif de report écrit ci-dessous a déjà été corrigé une fois (il citait un
+> test « au ROUGE » qui était vert et un −84 kcal/j qui ne se reproduisait pas, tous
+> deux mesurés sur le moteur d'AVANT l'étape 3). Ne pas le rejouer sans remesurer.
 
 **Problème.** Le %BF est déclaré par l'utilisateur. Les méthodes instrumentées grand
 public sous-estiment déjà d'environ 4–5 points face au DXA, avec un biais

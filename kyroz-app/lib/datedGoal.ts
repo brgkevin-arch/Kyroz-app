@@ -333,10 +333,21 @@ export const TRACK_TOLERANCE_PCT = 1.5;
  * Demi-largeur de la zone, PROPORTIONNELLE au gabarit.
  *
  * ±1 kg fixe ne veut pas dire la même chose selon le corps : c'est 2 % du poids à
- * 50 kg et 0,8 % à 120 kg. La personne la plus légère — celle dont le bruit de
- * balance pèse le plus lourd en relatif — se voyait donc juger avec la tolérance la
- * plus stricte. On garde 1 kg comme PLANCHER (en dessous de ~67 kg, le bruit absolu
- * ne diminue pas proportionnellement) et on élargit au-delà.
+ * 50 kg et 0,8 % à 120 kg. C'est donc le gabarit **LOURD** qui était jugé le plus
+ * strictement en relatif — et c'est lui que ce correctif desserre.
+ *
+ * ⚠️ Le commentaire précédent affirmait l'inverse (« la personne la plus légère […]
+ * se voyait juger avec la tolérance la plus stricte ») en citant ces mêmes nombres,
+ * qui le contredisent. Corrigé le 2026-07-29. Ce qui est VRAI et mesuré :
+ *   45 kg → 1,000 kg (2,22 %)  ·  66,6 kg → 1,000 kg (1,50 %)
+ *   90 kg → 1,350 kg (1,50 %)  ·   120 kg → 1,800 kg (1,50 %)
+ * La demi-largeur est PLATE jusqu'à ~67 kg : sous ce poids, la personne garde
+ * exactement l'ancienne tolérance, ce correctif ne change rien pour elle.
+ *
+ * On garde 1 kg comme PLANCHER parce que le bruit de balance (eau, glycogène,
+ * contenu digestif) ne diminue PAS proportionnellement au poids : un corps de 45 kg
+ * fluctue presque autant en absolu qu'un corps de 65 kg. C'est ça, la vraie raison
+ * du plancher — pas une correction d'iniquité envers les gabarits légers.
  */
 export function zoneHalfWidthKg(weightKg: number): number {
   const w = Number.isFinite(weightKg) ? weightKg : 0;
