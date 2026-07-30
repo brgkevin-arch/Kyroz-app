@@ -53,3 +53,9 @@ passe par `_harness.mjs`.
 2. **Supabase plafonne la création d'invités** (429 `over_request_rate_limit`, par
    heure et par IP). Enchaîner les passes fait échouer des personas *sans que l'app
    ait quoi que ce soit à se reprocher* — `qa-full` le nomme explicitement.
+
+   Chaque persona coûte un invité. Pour tenir dans le quota, `qa-full` accepte un
+   filtre : `node test/qa-full.mjs H1 H2` puis `node test/qa-full.mjs F`.
+   Réutiliser **un seul** invité pour les quatre ne marcherait pas : un contexte
+   neuf n'a pas de profil local, `hydrateFromCloud` fait alors `pull_cloud` et le
+   persona suivant hériterait du profil du précédent en sautant l'onboarding.
