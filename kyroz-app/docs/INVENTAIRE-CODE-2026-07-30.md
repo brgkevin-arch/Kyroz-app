@@ -277,12 +277,14 @@ Deux clés servent de **canal inter-écrans** plutôt que de données :
 `@kyroz:openEditor` (`plan.tsx:626,655` → `profil.tsx:144`) et `@kyroz:planReroll`
 (`profil.tsx:159` → `plan.tsx:304`).
 
-### 4.2 Supabase — 7 tables, écritures concentrées
+### 4.2 Supabase — 6 tables, écritures concentrées
 
 **`lib/sync.ts` détient toutes les écritures de données**, une fonction par domaine :
 `pushProfile:88,95` · `pushStreak:105` · `pushFavorites:117,119` (delete-puis-insert) ·
 `pushPantry:126` · `pushWeights:131` · `pushRecipeOverrides:136` ·
-`deleteCloudData:252-257` (les 7 tables).
+`deleteCloudData:255-260` (les 6 tables : `favorites`, `pantry`, `weight_logs`,
+`recipe_overrides`, `streaks`, `profiles` — `meal_plans` a été supprimée par la
+migration `2026-06-14_drop_meal_plans.sql`).
 
 **Une seule écriture Supabase vit hors de `sync.ts` :** `hooks/useAuth.tsx:58` écrit
 `profiles` à l'inscription pour y déposer le consentement RGPD (`consent_health_data`,
@@ -315,8 +317,10 @@ uniquement depuis `hooks/useAuth.tsx:43` à la connexion.
 
 « Sale » = écriture locale non encore confirmée poussée (`markProfileDirty` en
 `hooks/useProfile.ts:55,66`, levé seulement par un push réussi). **Le profil est le seul
-domaine protégé par ce drapeau** : les six autres sont écrasés par le cloud à
-l'hydratation s'il a une ligne (`lib/sync.ts:169-227`).
+domaine protégé par ce drapeau** : les **cinq** autres (série, favoris, garde-manger,
+poids, recettes perso) sont écrasés par le cloud à l'hydratation dès qu'il a une ligne
+NON VIDE (`lib/sync.ts:169-227`). Un cloud vide, lui, n'efface jamais le local : chaque
+domaine retombe alors sur un push du local.
 
 **Jamais synchronisé, par décision :** le plan (déterministe depuis le profil), les
 photos de progression (local-only, RGPD), `is_post_menopausal` et
