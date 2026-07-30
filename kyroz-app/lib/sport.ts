@@ -5,7 +5,7 @@ import { SportSession, SportType } from './types';
 // MET = Metabolic Equivalent of Task : coût énergétique d'une activité rapporté
 // au repos (1 MET ≈ métabolisme assis). Valeurs issues du Compendium of Physical
 // Activities, à intensité « modérée à soutenue » — cohérentes avec notre cible
-// (hommes 18–35 actifs). On reste volontairement sur ~10 sports courants : pas
+// (hommes et femmes de 18 à 50 ans, actifs). On reste sur ~10 sports courants : pas
 // d'exhaustivité, juste de quoi rendre le TDEE crédible sans friction.
 //
 // kcal/min = MET × 3.5 × poids(kg) / 200   (formule standard ACSM)

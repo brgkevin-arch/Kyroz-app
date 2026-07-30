@@ -71,7 +71,7 @@ core tuerait le North Star — donc interdit.
 - **Le streak et le rappel** : ce sont les moteurs du North Star. Gratuits.
 - **Le 1er plan et la fenêtre 14 j** : intouchables.
 
-## Tarif recommandé (marché FR, cible hommes 18–35)
+## Tarif recommandé (marché FR, cible hommes et femmes 18–50)
 
 - **4,99 €/mois** ou **39,99 €/an** (−33 %, ancre la formule annuelle).
 - **Essai** : pas d'essai chronométré agressif. Le gratuit EST l'essai (freemium
