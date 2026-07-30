@@ -36,37 +36,31 @@ App mobile React Native (Expo Router, SDK 56) de plans repas macro-précis pour 
 
 ## 3. Architecture données
 
+> ⚠️ **Corrigé le 2026-07-30.** Cette section décrivait six tables qui n'existent pas
+> (`users`, `user_profiles`, `meal_plans`, `meals`, `recipes`, `shopping_lists`) —
+> `meal_plans` a été supprimée par migration le 2026-06-14, les autres n'ont jamais
+> été créées. Vérifié contre `supabase/migrations/*.sql` **et** contre les `from('…')`
+> du code. Ce qui suit distingue désormais ce qui est **en base** de ce qui ne l'est pas.
+
+### Tables Supabase — les 6 qui existent réellement
+
 \`\`\`
-users
-  └── id, email, created_at
-
-user_profiles
-  └── user_id, sex, age, weight_kg, height_cm, body_fat_pct,
-      activity_level, training_days_per_week (n'alimentent plus le TDEE — cf. §6),
-      neat_level (vie quotidienne hors sport → facteur NEAT du TDEE),
-      engine_rev, engine_notice (révision du moteur + avertissement one-shot),
-      goal,
-      goal_target (premium : objectif daté {target_weight_kg,target_date,start_weight_kg,start_date} — pilote la cible calorique dans le temps, cf. lib/datedGoal.ts),
-      macro_mode (auto|percent), carb_ratio, protein_per_kg,
-      dietary_restrictions[], disliked_foods[], preferred_proteins[],
-      hidden_recipes[] (recettes « j'aime pas » 👎 — masquées, SOUPLE/réversible),
-      max_prep_time_min, weigh_in_frequency, tdee_kcal,
-      macros (target_kcal/protein/carbs/fat)
-
-meal_plans
-  └── id, user_id, week_start_date, generated_at, status
-
-meals
-  └── id, plan_id, day (1–7), meal_type, recipe_id, portions
-
-recipes (base propriétaire Kyroz)
-  └── id, name_fr, prep_time_min, macros_per_portion (kcal/protein/carbs/fat),
-      ingredients[], steps[], tags[], validated_by_dietitian (bool)
-  └── fibres : calculées à la volée depuis les ingrédients (lib/fiber.ts),
-      SOURCÉES Ciqual (Food.fiber_g) par ref/food_id, pas stockées.
-
-shopping_lists
-  └── id, plan_id, user_id, items[]
+profiles                        ← s'appelle « profiles », PAS « user_profiles »
+  └── id (= auth.users.id) + 35 colonnes synchronisées.
+      ⚠️ NE PAS recopier la liste ici : elle a divergé deux fois.
+      Source unique = `PROFILE_COLS` (lib/sync.ts), VERROUILLÉE contre le SQL
+      par `lib/__tests__/profileCols.test.ts` — une colonne ajoutée en migration
+      sans être ajoutée au code fait rougir un test.
+      Les groupes : corps (sex, age, weight_kg, height_cm, body_fat_pct,
+      activity_level, training_days_per_week, neat_level, low_ea_weeks, sports) ·
+      objectif (goal, goal_target, engine_rev, engine_notice) ·
+      macros (macro_mode, carb_ratio, protein_per_kg, tdee_kcal, target_*) ·
+      plan (plan_days, plan_weekdays, rest_weekdays, meals, meal_emphasis,
+      variety, fixed_meals, max_prep_time_min, weigh_in_frequency) ·
+      goûts (dietary_restrictions, disliked_foods, preferred_proteins,
+      hidden_recipes — « j'aime pas » 👎, masquées, SOUPLE/réversible).
+      LOCAL-ONLY volontaire : `is_post_menopausal` (l'onboarding ne pose pas
+      la question → inerte tant qu'elle n'est pas posée).
 
 streaks
   └── user_id, current_streak_days, longest_streak_days, last_active_date
@@ -83,6 +77,17 @@ weight_logs (suivi du poids)
 recipe_overrides (recettes personnalisées par l'utilisateur)
   └── user_id, overrides (jsonb : recipe_id → Recipe)
 \`\`\`
+
+### Ce qui n'est PAS en base — et pourquoi
+
+| Donnée | Où elle vit | Pourquoi pas en base |
+|---|---|---|
+| **Le compte** (id, e-mail) | `auth.users`, schéma géré par Supabase | on ne double pas la table d'auth ; `profiles.id` la référence |
+| **Le plan de la semaine** | AsyncStorage `@kyroz:plan` | **déterministe** : re-dérivable du profil + du catalogue. `meal_plans` a été supprimée le 2026-06-14 pour cette raison |
+| **Les repas du plan** | dans l'objet plan ci-dessus | idem — jamais eu de table `meals` |
+| **La liste de courses** | recalculée à la volée depuis le plan moins le garde-manger | idem — jamais eu de table `shopping_lists` |
+| **Le catalogue de recettes** | `Recette/recettes-kyroz.json` → `lib/recipeMap.ts`, embarqué dans le bundle | il est le même pour tout le monde ; le servir depuis le réseau ajouterait une latence pour zéro bénéfice. Les fibres sont calculées à la volée (`lib/fiber.ts`), sourcées Ciqual par `ref`/`food_id`, jamais stockées |
+| **Les photos de progression** | AsyncStorage, l'appareil uniquement | donnée de santé sensible (RGPD) — décision explicite, cf. §7 |
 
 > **Persistance** : AsyncStorage local (source de travail, offline-first) **+ miroir
 > Supabase câblé** (sync best-effort par utilisateur, RLS stricte — voir `lib/sync.ts`).
