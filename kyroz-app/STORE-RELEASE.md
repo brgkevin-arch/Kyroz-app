@@ -66,7 +66,25 @@ un identifiant enregistré, puis une fiche d'app. Dans cet ordre, sinon le menu
    | Product ID | Nom de référence | Durée | Prix |
    |---|---|---|---|
    | `kyroz_plus_monthly` | Kyroz+ mensuel | 1 mois | 4,99 € |
-   | `kyroz_plus_yearly` | Kyroz+ annuel | 1 an | 39,99 € |
+   | `kyroz_plus_yearly` | Kyroz+ annuel | 1 an | 39,99 € d'avance **ou 3,99 €/mois** |
+
+   ⚠️ **L'annuel a DEUX modes de paiement** (créés le 2026-07-30) : Apple demande un
+   « prix avec facturation à l'avance » ET un « prix mensuel » avec engagement 12 mois.
+   Le paywall devra donc présenter **trois** formules, pas deux :
+
+   | Formule | Sur un an | vs mensuel | Engagement |
+   |---|---|---|---|
+   | Mensuel | 59,88 € | — | aucun |
+   | Annuel payé au mois (3,99 €) | 47,88 € | −20 % | 12 mois |
+   | Annuel payé d'avance | 39,99 € | −33 % | 12 mois |
+
+   Le piège évité : Apple proposait **4,99 €/mois** par défaut, soit 59,88 € sur
+   l'année — exactement le prix du mensuel sans engagement, mais en enfermant le
+   client 12 mois. Strictement défavorable, et le genre de détail qui produit des
+   remboursements. La contrainte d'Apple est : total ∈ [prix d'avance ; 1,5 × prix
+   d'avance], donc ici entre 39,99 € et 59,98 €.
+   ℹ️ La facturation mensuelle avec engagement n'est **pas disponible** à Singapour
+   ni aux États-Unis — ces marchés ne verront que le paiement d'avance.
 
    ⚠️ **Les `Product ID` doivent être identiques au caractère près côté Google et
    dans RevenueCat.** C'est la source d'erreur n°1 : un `_yearly` écrit `_annual`
