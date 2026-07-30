@@ -177,23 +177,27 @@ pas l'avis d'un médecin ou d'un diététicien-nutritionniste.
 
 - Réponds au questionnaire **honnêtement** : pas de violence, pas de contenu sexuel,
   pas de jeu d'argent. Thème = **gestion du poids / régime**.
-- Attendu : **Apple 12+** (référence au poids/régime), **Google PEGI 3 / « Tout
-  public »** avec la mention diététique. L'app **bloque déjà les <18 ans** à
-  l'inscription (`lib/safety.ts::MIN_AGE`).
+- L'app **bloque déjà les <18 ans** à l'inscription (`lib/safety.ts::MIN_AGE`).
 
-> ### ⚠️ À arbitrer (décision fondateur) — classement 12+ vs blocage à 18 ans
-> L'âge minimum est passé de 16 à **18 ans** le 2026-07-28. Le « cohérent avec un
-> classement 12+ » qui figurait ici avant cette date ne tient plus : une fiche classée
-> 12+ est proposée à des 12–17 ans que l'app refuse ensuite à l'inscription — décalage
-> fiche ↔ produit, mauvaise première expérience, et angle d'attaque possible en review.
-> Deux options, à trancher **avant** de remplir le questionnaire :
-> - **Aligner la fiche sur le produit** — monter le classement (Apple 17+, Google
->   « Adultes uniquement ») pour que la fiche dise la même chose que le blocage.
-> - **Garder 12+ / PEGI 3** et considérer que le blocage in-app fait le travail — dans
->   ce cas, écrire explicitement l'âge minimum 18 ans dans la note au reviewer (§11),
->   pour ne pas se le faire opposer comme une incohérence.
+> ### ✅ TRANCHÉ le 2026-07-30 (décision fondateur) — **adultes uniquement**
+> **À viser : Apple 17+ · Google « Adultes uniquement ».** La fiche dit désormais la
+> même chose que le produit.
 >
-> Non tranché ici : c'est un arbitrage visibilité ↔ cohérence, pas une question technique.
+> **Pourquoi.** L'âge minimum est passé de 16 à 18 ans le 2026-07-28. Une fiche classée
+> 12+ aurait été proposée à des 12–17 ans que l'app refuse ensuite à l'inscription :
+> décalage fiche ↔ produit, mauvaise première expérience, et angle d'attaque en review.
+> L'option écartée (garder 12+ et compter sur le blocage in-app) gagnait un peu de
+> visibilité au prix de cette incohérence.
+>
+> **Ce que ça implique concrètement :**
+> - Répondre au questionnaire de façon à **atteindre** ce classement — ne pas se
+>   contenter de ce qu'il produit spontanément (le thème « gestion du poids » seul
+>   donne 12+ chez Apple). Chercher les items qui portent le classement adulte.
+> - **Coût assumé : moins de visibilité.** Un classement adulte réduit l'exposition
+>   dans certains classements et rayons, et sur les comptes avec contrôle parental.
+>   C'est le prix de la cohérence, et il a été accepté en connaissance de cause.
+> - Mentionner quand même l'âge minimum 18 ans dans la note au reviewer (§11) :
+>   ça n'est plus une rustine, mais ça reste ce qui explique le classement.
 
 ---
 
