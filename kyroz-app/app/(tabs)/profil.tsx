@@ -1091,6 +1091,8 @@ function CalorieBankEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
     });
   };
   const courant = jour !== null ? (bank[String(jour)] ?? 0) : 0;
+  // Marge réellement empruntable par jour. <= 0 → la cible est au plancher.
+  const marge = profile.target_kcal - bankFloorKcal(profile);
 
   return (
     <EditorShell t={t} title="Banque de calories" onSave={() => onSave({ ...profile, calorie_bank: Object.keys(bank).length ? bank : undefined })} dragHandlers={dragHandlers}>
@@ -1099,6 +1101,31 @@ function CalorieBankEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
         jours de la semaine. Tes protéines ne bougent pas, et aucun jour ne descend sous
         ton plancher de sécurité.
       </Text>
+
+      {marge <= 0 && (
+        // Cas limite qui ne devrait PAS arriver : la cible vaut déjà le métabolisme
+        // de base, donc aucun jour ne peut descendre. Ce n'est pas un défaut de la
+        // banque — c'est que le profil lui-même est au bout de ce qui est possible.
+        // Le dire, plutôt que laisser la personne cliquer sur une feature inerte :
+        // dans les faits, c'est presque toujours une donnée fausse (masse grasse
+        // saisie de travers) ou un objectif qui ne convient pas à ce gabarit.
+        <Card t={t}>
+          <Text style={{ color: t.text, fontSize: 15, fontWeight: '700', marginBottom: 6 }}>
+            Ta cible est déjà à ton minimum
+          </Text>
+          <Text style={{ color: t.textSecondary, fontSize: 13, lineHeight: 19 }}>
+            Tes {profile.target_kcal} kcal/jour correspondent à ton métabolisme de base :
+            l'énergie que ton corps dépense au repos. On ne descend pas en dessous, même
+            un seul jour — la banque n'a donc rien à emprunter sur ta semaine.
+            {'\n\n'}
+            Si tu comptais sécher, ça vaut le coup de vérifier deux choses : ta{' '}
+            <Text style={{ fontWeight: '700' }}>masse grasse</Text> et ton{' '}
+            <Text style={{ fontWeight: '700' }}>poids</Text> dans « Informations » (une
+            erreur de saisie suffit), et ton objectif — à ce gabarit, un maintien te fera
+            souvent plus de bien qu'un déficit.
+          </Text>
+        </Card>
+      )}
 
       <SectionLabel t={t}>Le jour concerné</SectionLabel>
       <View style={styles.wrap}>
