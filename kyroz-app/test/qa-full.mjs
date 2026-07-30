@@ -11,7 +11,8 @@
 // plus. Ils sont désormais lus dans le profil persisté (@kyroz:profile) : valeurs
 // exactes, pas de scraping de pixels.
 //
-// Usage : node test/qa-full.mjs
+// Usage : node test/qa-full.mjs            (les 4 personas)
+//         node test/qa-full.mjs F          (un sous-ensemble — cf. plus bas)
 
 import { chromium } from 'playwright';
 import { writeFileSync } from 'node:fs';
@@ -79,6 +80,29 @@ const PERSONAS = [
   { key: 'F1-femme-recomp', name: 'Léa', sex: 'female', age: 29, weight: 60, height: 166, bodyFat: 22, goal: 'recomp' },
   { key: 'F2-femme-maint', name: 'Sophie', sex: 'female', age: 33, weight: 75, height: 168, bodyFat: 32, goal: 'maintain' },
 ];
+
+// Chaque persona consomme UNE création d'invité, et Supabase les plafonne par
+// heure et par IP : une passe complète peut donc se faire refuser la moitié des
+// profils sans que l'app y soit pour quoi que ce soit. D'où ce filtre — on scinde
+// la passe en deux moitiés plutôt que d'attendre que le quota retombe.
+//
+//   node test/qa-full.mjs H1 H2       → seulement les deux hommes
+//   node test/qa-full.mjs F           → les deux femmes
+//
+// Réutiliser UN SEUL invité pour les quatre ne marcherait pas : `hydrateFromCloud`
+// ferait « pull_cloud » (contexte neuf = pas de profil local) et le persona
+// suivant hériterait du profil du précédent, sautant l'onboarding.
+const filtres = process.argv.slice(2);
+const SELECTION = filtres.length
+  ? PERSONAS.filter((p) => filtres.some((f) => p.key.toLowerCase().startsWith(f.toLowerCase())))
+  : PERSONAS;
+if (!SELECTION.length) {
+  console.error(`Aucun persona ne correspond à « ${filtres.join(' ')} ». Disponibles : ${PERSONAS.map((p) => p.key).join(', ')}`);
+  process.exit(2);
+}
+if (SELECTION.length < PERSONAS.length) {
+  log(`Sélection : ${SELECTION.map((p) => p.key).join(', ')} (${PERSONAS.length - SELECTION.length} persona(s) écarté(s))`);
+}
 
 // ════════ PHASE A : QA de l'écran de login (indépendant du persona) ════════
 log('\n########## PHASE A : ÉCRAN DE LOGIN ##########');
@@ -152,7 +176,7 @@ async function runPersona(p) {
   await ctx.close();
 }
 
-for (const p of PERSONAS) await runPersona(p);
+for (const p of SELECTION) await runPersona(p);
 
 await browser.close();
 writeFileSync(`${SHOT}/report.json`, JSON.stringify(report, null, 2));
