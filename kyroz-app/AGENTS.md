@@ -90,12 +90,17 @@ qu'ils étaient périmés.
 La valeur premium est **construite et déployée** (objectif daté). Plus aucune décision
 produit en suspens — il ne reste qu'à coder.
 
-- **B1 · 🤖 Banque de calories** (le pilier fidélisant) : laisser choisir un écart un jour
-  donné (« resto samedi +600 »), **compensé sur la semaine**, protéines pleines, jamais
-  sous `MIN_KCAL`. ⚠️ **Touche le moteur** (`buildLocalPlan`) — c'est une extension du
-  lissage hebdo existant (`weekDeficitKcal` / `DAILY_SMOOTH_CAP`). Piste : un offset par
-  jour stocké au profil, comme `goal_target`, lu dans le calcul de `dayCibleKcal`.
-  À faire avec soin : CLAUDE.md dit core loop avant tout.
+- ~~**B1 · Banque de calories**~~ ✅ **LIVRÉE le 2026-07-30.** « Resto samedi +600 » :
+  l'écart est repris sur les autres jours du plan, la SEMAINE garde son total.
+  `lib/calorieBank.ts` (pur, 23 tests) + câblage `buildLocalPlan` + éditeur dans le
+  Profil. Protéines pleines tous les jours, aucun jour sous le plancher.
+  ⚠️ **MIGRATION À JOUER** : `supabase/migrations/2026-07-30_profiles_calorie_bank.sql`.
+  ⚠️ **Limite mesurée, à connaître** : le plancher journalier de la banque est
+  `max(BMR, filet absolu)` et NON le plancher d'énergie disponible — avec ce dernier,
+  la marge empruntable était **nulle pour tout profil en déficit** (chez Marc, 82 kg,
+  plancher EA 2165 = cible 2165). Justification dans la doc de `bankFloorKcal`. Reste
+  que pour un profil dont la cible EST son BMR (Camille, 55 kg : 1285 = 1285), la
+  banque ne peut rien emprunter — c'est correct, et l'écran le dit sans alarmer.
 - **B2 · 🤖 Paywall RevenueCat** → dériver `is_premium` et gater objectif daté, banque,
   transformation. Aujourd'hui **tout est gratuit**, le verrou n'est pas posé.
   Tarif retenu : 4,99 €/mois · 39,99 €/an.

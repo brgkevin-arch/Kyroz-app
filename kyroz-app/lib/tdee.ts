@@ -392,30 +392,32 @@ function floorAndFlags(body: MacroBody, tdee: number, requestedKcal: number, opt
 }
 
 /**
- * Plancher de sécurité PERSONNALISÉ, calculé pour le MOTEUR — déterministe, sans date.
+ * Plancher JOURNALIER pour la BANQUE DE CALORIES — `max(BMR, filet absolu)`.
  *
- * `buildLocalPlan(profile, seed)` ne reçoit pas de date et doit rester déterministe
- * (même profil → même plan). Or l'escalade « zone basse » dépend du temps qui passe.
- * On prend donc `weeks.length` du registre brut plutôt que le décompte fenêtré de
- * `lowEaWeeksBefore` : c'est un **majorant** du nombre de semaines exposées, donc un
- * plancher **≥** au vrai. L'écart va toujours vers PLUS de protection, jamais moins.
+ * ⚠️ Décision de sécurité, à lire avant de la changer.
  *
- * ⚠️ Pourquoi ce n'est pas `MIN_KCAL` : le filet absolu (1500 ♂ / 1200 ♀) n'est plus
- * le plancher principal depuis le 2026-07-28 — il autorisait 1200 kcal à une femme de
- * 65 kg s'entraînant 5×/semaine, dont le minimum physiologique est ~1863 (CLAUDE.md §6).
- * Tout mécanisme qui pousse un jour VERS LE BAS (aujourd'hui : la banque de calories)
- * doit se borner ici, pas sur le filet.
+ * `engineFloorKcal` ne convient PAS ici, et le mesurer l'a prouvé : chez un profil
+ * en déficit, la cible EST le plancher (c'est lui qui mord). Marc, 82 kg, 12 % MG :
+ * plancher 2165 = cible 2165 → marge empruntable **nulle**. La banque n'aurait
+ * jamais rien pu compenser pour personne en sèche, c'est-à-dire pour son public.
  *
- * ⚠️ Volontairement NON stocké au profil : une valeur dérivée recopiée en base finit
- * par diverger de sa source — c'est exactement le bug P3.3 (`sports` vs
- * `training_days_per_week`). On la recalcule, c'est pur et instantané.
+ * La sortie est écrite dans CLAUDE.md §6 : *« Le BMR et le filet absolu, eux,
+ * restent des minima DURS »*. La composante **énergie disponible** (30 kcal/kg de
+ * masse maigre) est une notion de **moyenne soutenue** — c'est d'ailleurs pour ça
+ * que le produit la compte en SEMAINES (`low_ea_weeks`), pas en jours.
+ *
+ * Or la banque conserve le total de la SEMAINE par construction : l'exposition
+ * hebdomadaire à l'énergie disponible est donc **inchangée**. Ce qui doit rester
+ * infranchissable au jour le jour, c'est le métabolisme de base et le filet absolu.
+ * C'est exactement ce que renvoie cette fonction.
+ *
+ * Ce que ça NE fait PAS : autoriser un déficit plus creux. La cible quotidienne du
+ * profil ne bouge pas, `low_ea_weeks` continue de compter sur elle, et un jour
+ * emprunté est un jour rendu ailleurs dans la même semaine.
  */
-export function engineFloorKcal(p: UserProfile): number {
+export function bankFloorKcal(p: UserProfile): number {
   const bmr = calculateBMR(p.sex, p.weight_kg, p.height_cm, p.age, p.body_fat_pct);
-  const sportKcalPerDay = exerciseKcalPerDay(p.sports, p.weight_kg);
-  const weeksInLowEa = readLowEaRegistry(p.low_ea_weeks).weeks.length;
-  const tdee = Number.isFinite(p.tdee_kcal) && p.tdee_kcal > 0 ? p.tdee_kcal : bmr;
-  return safetyFloorKcal(p, bmr, sportKcalPerDay, weeksInLowEa, tdee);
+  return Math.round(Math.max(bmr, MIN_KCAL[p.sex]));
 }
 
 /** Glucides = reliquat. Ne les écrase JAMAIS à zéro en silence : on signale. */

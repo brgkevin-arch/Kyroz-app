@@ -3,7 +3,7 @@ import { getEffectiveRecipes } from './recipes';
 import { recipeFiberPerPortion, isFiberFocusGoal } from './fiber';
 import { remainingMeals, MEAL_LABEL } from './mealtime';
 import { adaptRecipe, AdaptTarget, goalToObjectives, sportsToBuckets, needMatch } from './adaptRecipe';
-import { MIN_KCAL, engineFloorKcal } from './tdee';
+import { MIN_KCAL, bankFloorKcal } from './tdee';
 import { bankedDailyTargets, offsetsForPlan } from './calorieBank';
 
 // ── Moteur de génération de plan local ──────────────────────────────────────
@@ -654,7 +654,7 @@ export function buildLocalPlan(profile: UserProfile, seed: number = 0): MealPlan
     // +305 kcal/jour sur un profil en sèche SANS banque, ce qui cassait
     // l'asymétrie A2. La banque ne doit contraindre que la COMPENSATION (vers le
     // bas), jamais relever la cible de qui n'a rien demandé.
-    floorKcal: Math.min(engineFloorKcal(profile), profile.target_kcal),
+    floorKcal: Math.min(bankFloorKcal(profile), profile.target_kcal),
   });
 
   const pools: Record<string, Recipe[]> = {};

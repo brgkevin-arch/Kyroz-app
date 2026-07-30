@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { bankedDailyTargets, totalOffset } from '../calorieBank';
+import { bankFloorKcal } from '../tdee';
 
 /** Cible et plancher d'un profil masculin courant (82 kg, sèche). */
 const BASE = 2165;
@@ -137,5 +138,44 @@ describe('totalOffset', () => {
   it('somme les écarts des jours DANS le plan seulement', () => {
     expect(totalOffset({ 1: 100, 6: 600, 7: 900 }, 6)).toBe(700);
     expect(totalOffset({}, 7)).toBe(0);
+  });
+});
+
+describe('bankFloorKcal — le plancher JOURNALIER de la banque', () => {
+  const prof = (o: Record<string, unknown>) =>
+    ({ sports: [], low_ea_weeks: undefined, ...o }) as unknown as Parameters<typeof bankFloorKcal>[0];
+
+  it('vaut max(BMR, filet absolu) — et PAS le plancher d’énergie disponible', () => {
+    // Marc, 82 kg, 12 % MG → masse maigre 72,2 kg → BMR Katch-McArdle ≈ 1929.
+    // Le plancher EA (30 × 72,2 = 2165) vaut EXACTEMENT sa cible : s'en servir
+    // laisserait 0 kcal empruntable. Mesuré le 2026-07-30, c'est ce qui rendait
+    // la banque inutile pour tout profil en déficit. Cf. la doc de bankFloorKcal.
+    const marc = prof({ sex: 'male', age: 28, weight_kg: 82, height_cm: 180, body_fat_pct: 12, tdee_kcal: 2315, target_kcal: 2165 });
+    const f = bankFloorKcal(marc);
+    expect(f).toBe(1929);
+    expect(2165 - f).toBeGreaterThan(200); // il reste de quoi emprunter
+  });
+
+  it('ne descend jamais sous le filet absolu (1500 ♂ / 1200 ♀)', () => {
+    // Gabarit minuscule : le BMR passe sous le filet, c'est le filet qui tient.
+    const f = bankFloorKcal(prof({ sex: 'female', age: 25, weight_kg: 40, height_cm: 150, body_fat_pct: 20, tdee_kcal: 1300, target_kcal: 1200 }));
+    expect(f).toBeGreaterThanOrEqual(1200);
+  });
+
+  it('un profil dont la cible EST son BMR ne peut rien emprunter — et c’est correct', () => {
+    // Camille, 55 kg, 23 % MG : BMR = cible = 1285. On ne mange pas sous son BMR,
+    // même un jour. La banque est alors inerte, et l'écran le dit.
+    const camille = prof({ sex: 'female', age: 30, weight_kg: 55, height_cm: 165, body_fat_pct: 23, tdee_kcal: 1542, target_kcal: 1285 });
+    expect(bankFloorKcal(camille)).toBe(1285);
+    const r = bankedDailyTargets({
+      days: 7, baseTargetKcal: 1285, offsets: { 6: 600 },
+      floorKcal: Math.min(bankFloorKcal(camille), 1285),
+    });
+    expect(r.uncompensatedKcal).toBe(600);
+  });
+
+  it('déterministe et sans date : deux appels donnent le même plancher', () => {
+    const p = prof({ sex: 'male', age: 35, weight_kg: 98, height_cm: 178, body_fat_pct: 24, tdee_kcal: 2375, target_kcal: 2575 });
+    expect(bankFloorKcal(p)).toBe(bankFloorKcal(p));
   });
 });
