@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { ThemePalette } from '../constants/theme';
 import { Card } from './ui';
 import { datedGoalStatus } from '../lib/datedGoal';
-import { planFloorKcal } from '../lib/tdee';
+import { planFloorKcal, makeWeeklyProjector } from '../lib/tdee';
 import { todayStamp } from '../lib/weight';
 import { UserProfile } from '../lib/types';
 
@@ -29,7 +29,12 @@ export function DatedGoalCard({ t, profile, onPress }: { t: ThemePalette; profil
   // annonçait un rythme jusqu'à 2,3× trop rapide et une date fausse de 32 jours en
   // médiane, parce qu'elle datait le rythme DEMANDÉ et non le rythme SERVI.
   const today = todayStamp();
-  const status = datedGoalStatus(gt, profile, today, profile.tdee_kcal, planFloorKcal(profile, today));
+  // Le projecteur rend la date HONNÊTE : elle est simulée semaine par semaine sur le
+  // moteur, TDEE qui baisse et escalade de zone basse comprises. Sans lui, cette
+  // carte annonçait une date trop précoce de 182 à 1032 jours en sèche féminine.
+  const status = datedGoalStatus(
+    gt, profile, today, profile.tdee_kcal, planFloorKcal(profile, today), makeWeeklyProjector(profile),
+  );
   if (!status) return null;
 
   // Progression départ → actuel → cible (marche dans les deux sens : perte ET prise).

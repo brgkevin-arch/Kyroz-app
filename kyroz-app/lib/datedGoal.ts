@@ -1,6 +1,9 @@
 import { localStamp } from './weight';
-import { Goal, GoalTarget } from './types';
-import { BodyInput, clamp, deficitBlocked, resolvedBodyFatPct } from './safety';
+import { Goal, GoalTarget, LowEaRegistryStored } from './types';
+import {
+  BodyInput, clamp, countsAsLowEaWeek, deficitBlocked, readLowEaRegistry,
+  resolvedBodyFatPct, weekStartStamp, LOW_EA_WINDOW_DAYS,
+} from './safety';
 
 // ── Objectif daté (feature premium « Kyroz+ ») ───────────────────────────────
 // « Les clés ET le coffre » : le core gratuit donne un bon plan ; l'objectif daté
@@ -87,7 +90,25 @@ export interface DatedGoalStatus {
 export const MAX_PROJECTION_WEEKS = 260; // 5 ans
 
 /** Profil minimal requis pour piloter un objectif daté. `UserProfile` le satisfait. */
-export type GoalBody = BodyInput & { goal: Goal };
+export type GoalBody = BodyInput & { goal: Goal; low_ea_weeks?: LowEaRegistryStored };
+
+/** Ce que le moteur SERVIRAIT à un corps donné, une date donnée. Cf. `WeeklyProjector`. */
+export interface WeekPoint {
+  tdeeKcal: number;
+  targetKcal: number;
+  sportKcalPerDay: number;
+}
+
+/**
+ * Projecteur de trajectoire — fourni par `tdee.ts::makeWeeklyProjector`.
+ *
+ * ⚠️ POURQUOI UNE INJECTION plutôt qu'un import : `tdee.ts` importe déjà ce module
+ * (il lui demande le delta calorique). L'import inverse ferait un cycle. Le
+ * projecteur est donc passé en paramètre, et son implémentation appelle
+ * `datedGoalStatus` avec `project = null` — sans récursion possible, puisque c'est
+ * la présence d'un projecteur qui déclenche la simulation.
+ */
+export type WeeklyProjector = (weightKg: number, stamp: string, lowEaWeeks: number) => WeekPoint;
 
 // Différence en jours entre deux stamps 'YYYY-MM-DD' (heure LOCALE, cf. weight.ts).
 export function daysBetween(a: string, b: string): number {
@@ -101,6 +122,87 @@ export function addDaysStamp(stamp: string, days: number): string {
   return localStamp(d);
 }
 const round1 = (n: number) => Math.round(n * 10) / 10;
+
+/** Rythme hebdo (kg, signé) impliqué par une cible servie. Sens → coût du kg. */
+function weeklyKgFor(point: WeekPoint): number {
+  const daily = point.targetKcal - point.tdeeKcal; // < 0 = déficit
+  return (daily * 7) / (daily >= 0 ? KCAL_PER_KG_GAIN : KCAL_PER_KG_FAT);
+}
+
+/** Sous ce rythme, la trajectoire est à l'arrêt (1,4 kcal/j) : pas de date. */
+const STALLED_KG_PER_WEEK = 0.0005;
+
+/**
+ * Semaines réellement nécessaires pour atteindre le poids cible — PAR SIMULATION.
+ *
+ * ⚠️ Remplace une division par un rythme CONSTANT, qui mentait. Mesuré le
+ * 2026-07-31 par simulation sur le moteur, en suivi parfait :
+ *
+ *   H 80 → 74 : annoncé J+206, réel J+203   (−3 j)
+ *   H 95 → 85 : annoncé J+397, réel J+392   (−5 j)
+ *   F 65 → 58 : annoncé J+189, réel J+371   (+182 j)
+ *   F 80 → 70 : annoncé J+263, réel J+1295  (+1032 j — soit 2030 au lieu de 2027)
+ *
+ * Deux mécanismes que la division ignorait, tous deux GARANTIS par construction :
+ *  1. le TDEE baisse avec le poids → le déficit servi rétrécit à mesure qu'on perd ;
+ *  2. l'escalade de zone basse (`safety.effectiveEaPerKgFfm`) relève le plancher à
+ *     partir de la 13ᵉ semaine chez la femme non ménopausée. Chez la F 80, le
+ *     déficit servi tombe de 285 à 34 kcal/j entre la semaine 13 et la 26 : la
+ *     trajectoire s'aplatit, et la carte continuait d'annoncer la pente initiale.
+ *
+ * On rejoue donc le moteur semaine par semaine (`project`), en tenant le registre
+ * de zone basse comme il le sera vraiment — semaines STOCKÉES qui sortent de la
+ * fenêtre glissante comprises. Coût : au pire 260 tours d'arithmétique pure.
+ *
+ * Renvoie `Infinity` si la trajectoire s'arrête, s'inverse, ou dépasse l'horizon.
+ */
+function weeksToTargetSimulated(
+  p: GoalBody, target: GoalTarget, today: string, project: WeeklyProjector,
+): number {
+  // Semaines de zone basse DÉJÀ vécues, avec leur date : elles sortent de la
+  // fenêtre de 12 mois au fil de la simulation, comme dans la vraie vie.
+  // Un SET, pas deux listes concaténées : la semaine en cours figure déjà dans le
+  // registre stocké (le dernier recalcul l'y a écrite), et la simulation la
+  // réinscrit — la compter deux fois avançait l'escalade d'une semaine.
+  const semaines = new Set(readLowEaRegistry(p.low_ea_weeks).weeks);
+  const compteur = (stamp: string) => {
+    let n = 0;
+    for (const w of semaines) {
+      const age = daysBetween(w, stamp);
+      if (age >= 0 && age <= LOW_EA_WINDOW_DAYS) n++;
+    }
+    return n;
+  };
+
+  let poids = p.weight_kg;
+  for (let semaine = 0; semaine < MAX_PROJECTION_WEEKS; semaine++) {
+    const stamp = addDaysStamp(today, semaine * 7);
+    // La semaine COURANTE ne compte pas dans son propre plancher (idempotence,
+    // cf. safety.lowEaWeeksBefore) : on mesure sur les semaines antérieures.
+    const reste = target.target_weight_kg - poids;
+    // ARRIVÉ. Le moteur lui-même considère l'objectif atteint à MAINTAIN_EPS_KG
+    // près et bascule en maintien (delta 0) : viser le poids au gramme faisait donc
+    // caler la simulation sur les 300 derniers grammes — rythme nul, « pas de date »
+    // annoncée sur des objectifs parfaitement tenables (mesuré : H 80 → 77 kg).
+    if (Math.abs(reste) <= MAINTAIN_EPS_KG) return semaine;
+
+    const point = project(poids, stamp, compteur(stamp));
+    const rythme = weeklyKgFor(point);
+
+    if (Math.abs(rythme) < STALLED_KG_PER_WEEK) return Infinity;   // à l'arrêt
+    if (Math.sign(rythme) !== Math.sign(reste)) return Infinity;   // s'éloigne
+    // Franchi DANS la semaine → date exacte par interpolation. La cible utile est
+    // le bord de la zone de maintien, cohérente avec le test d'arrivée ci-dessus.
+    const utile = reste - Math.sign(reste) * MAINTAIN_EPS_KG;
+    if (Math.abs(rythme) >= Math.abs(utile)) return semaine + utile / rythme;
+
+    if (countsAsLowEaWeek({ ...p, weight_kg: poids }, point.targetKcal, point.tdeeKcal, point.sportKcalPerDay)) {
+      semaines.add(weekStartStamp(stamp));
+    }
+    poids += rythme;
+  }
+  return Infinity; // au-delà de l'horizon : on ne donne pas de date
+}
 
 /**
  * Trajectoire d'un objectif daté à partir du poids ACTUEL et de la date du jour.
@@ -125,6 +227,21 @@ export function datedGoalStatus(
    * médiane, jusqu'à 724 au pire. Un oubli devait devenir une erreur de compilation.
    */
   floorKcal: number | null,
+  /**
+   * Projecteur de trajectoire (cf. `WeeklyProjector`), OBLIGATOIRE — 2026-07-31.
+   *
+   * `null` signifie explicitement « je ne veux QUE le delta calorique, pas la
+   * date » : c'est le cas de `computePlan` et de `datedGoalKcalDelta`, et c'est ce
+   * que passe le projecteur lui-même (ce qui exclut toute récursion). Avec `null`,
+   * les champs de projection retombent sur l'ancien calcul linéaire — donc trop
+   * optimiste chez la femme : AUCUN écran ne doit lire une date obtenue ainsi.
+   *
+   * Paramètre NON optionnel à dessein, comme `floorKcal` avant lui : quand
+   * `floorKcal` l'était, `DatedGoalCard` compilait sans lui et annonçait une date
+   * fausse de 32 jours en médiane pendant des semaines. Un oubli doit être une
+   * erreur de compilation.
+   */
+  project: WeeklyProjector | null,
 ): DatedGoalStatus | null {
   if (!target) return null;
 
@@ -274,12 +391,22 @@ export function datedGoalStatus(
   //  3. horizon — 0,04 kg/semaine passe les deux gardes précédents et projette une
   //     date en 2048, positive et finie.
   const movesTowardTarget = Math.abs(appliedWeeklyKg) > 1e-9 && Math.sign(appliedWeeklyKg) === Math.sign(diff);
-  const weeksNeeded = movesTowardTarget ? diff / appliedWeeklyKg : Infinity;
+  // Avec un projecteur : la trajectoire est SIMULÉE semaine par semaine (le TDEE
+  // baisse, l'escalade de zone basse mord — cf. weeksToTargetSimulated). Sans lui,
+  // repli linéaire, réservé aux appelants qui n'utilisent pas la date.
+  const weeksNeeded = project
+    ? weeksToTargetSimulated(p, target, today, project)
+    : (movesTowardTarget ? diff / appliedWeeklyKg : Infinity);
   const projectable = Number.isFinite(weeksNeeded) && weeksNeeded <= MAX_PROJECTION_WEEKS;
   const projectedDate = projectable ? addDaysStamp(today, weeksNeeded * 7) : target.target_date;
-  // Rien n'a été bridé ni relevé pour raison de sécurité ⇒ la date tient, quelle que
-  // soit la dilution interne du dernier septième de semaine.
-  const reachableByDate = (!clamped && !floorCapped) || (projectable && weeksNeeded <= weeksRemaining + 1e-6);
+  // Avec projecteur : SEULE la simulation décide. Le raccourci « rien n'a été bridé
+  // AUJOURD'HUI ⇒ la date tient » était précisément le mensonge — chez la femme,
+  // l'escalade de zone basse ne mord qu'à la 13ᵉ semaine, donc rien n'est bridé le
+  // jour où l'on promet la date. Tolérance d'un jour : la simulation avance par pas
+  // d'une semaine, on ne va pas refuser une date pour un arrondi de discrétisation.
+  const reachableByDate = project
+    ? projectable && weeksNeeded <= weeksRemaining + 1 / 7
+    : (!clamped && !floorCapped) || (projectable && weeksNeeded <= weeksRemaining + 1e-6);
 
   return {
     ...base,
@@ -398,6 +525,6 @@ export function datedGoalKcalDelta(
   // `null` : le delta DEMANDÉ est par construction insensible au plancher (qui
   // s'applique en aval, dans floorAndFlags). Passer un plancher ici ne changerait
   // rien à la valeur renvoyée — seulement la projection, dont cet appelant se moque.
-  const s = datedGoalStatus(target, p, today, tdee, null);
+  const s = datedGoalStatus(target, p, today, tdee, null, null);
   return s && s.active ? s.dailyKcalDelta : null;
 }

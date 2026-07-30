@@ -31,7 +31,7 @@ import { exportMyData } from '../../lib/exportData';
 import {
   calculateTDEE, computePlan, goalLabel, planFlags, validateProfile, recalcProfile, DEFAULT_CARB_RATIO, recommendedProteinPerKg,
   DEFAULT_NEAT_LEVEL, NEAT_ORDER, NEAT_LABEL, NEAT_HINT, NEAT_SHORT, dismissEngineNotice,
-  bankFloorKcal,
+  bankFloorKcal, makeWeeklyProjector,
 } from '../../lib/tdee';
 import {
   lowEaWeeksForFloor, checkEligibility, eligibilityMessage, LowEaEscalation,
@@ -696,7 +696,12 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
   const previewPlan = provisional ? computePlan({ ...profile, goal_target: provisional }, today) : null;
   // Le plancher de l'APERÇU (pas celui du profil actuel) alimente la projection :
   // c'est la cible qu'on s'apprête à enregistrer qui doit dater l'échéance (P1.6).
-  const status = datedGoalStatus(provisional, profile, today, tdee, previewPlan?.floor_kcal ?? null);
+  // Projecteur bâti sur le profil TEL QU'IL SERA ENREGISTRÉ (objectif provisoire
+  // compris) : la date annoncée dans l'éditeur doit être celle qu'on servira.
+  const status = datedGoalStatus(
+    provisional, profile, today, tdee, previewPlan?.floor_kcal ?? null,
+    provisional ? makeWeeklyProjector({ ...profile, goal_target: provisional }) : null,
+  );
   const preview = previewPlan?.profile ?? null;
   const floored = previewPlan?.flags.includes('FLOOR_APPLIED') ?? false;
   const kcalDelta = preview ? preview.target_kcal - tdee : 0;

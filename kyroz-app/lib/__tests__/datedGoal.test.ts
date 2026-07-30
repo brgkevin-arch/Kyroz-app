@@ -4,7 +4,8 @@ import {
   idealWeightAt, trackStatus, TRACK_TOLERANCE_KG,
   KCAL_PER_KG_FAT, KCAL_PER_KG_GAIN, MAX_GAIN_RATE_PCT, maxWeeklyLossPct,
 } from '../datedGoal';
-import { calculateMacros, computePlan, recalcProfile, MIN_KCAL } from '../tdee';
+import { calculateMacros, computePlan, recalcProfile, MIN_KCAL, planFloorKcal, makeWeeklyProjector } from '../tdee';
+import { lowEaWeeksForFloor } from '../safety';
 import { makeProfile } from './helpers';
 import { GoalTarget, UserProfile } from '../types';
 
@@ -34,12 +35,12 @@ describe('helpers de date', () => {
 
 describe('datedGoalStatus — trajectoire', () => {
   it('renvoie null sans objectif', () => {
-    expect(datedGoalStatus(undefined, BODY80, TODAY, TDEE, null)).toBeNull();
+    expect(datedGoalStatus(undefined, BODY80, TODAY, TDEE, null, null)).toBeNull();
     expect(datedGoalKcalDelta(undefined, BODY80, TODAY, TDEE)).toBeNull();
   });
 
   it('sèche douce : rythme non bridé, déficit modéré', () => {
-    const s = datedGoalStatus(target(76, 12), BODY80, TODAY, TDEE, null)!;
+    const s = datedGoalStatus(target(76, 12), BODY80, TODAY, TDEE, null, null)!;
     expect(s.active).toBe(true);
     expect(s.direction).toBe('lose');
     expect(s.clamped).toBe(false);
@@ -51,7 +52,7 @@ describe('datedGoalStatus — trajectoire', () => {
   });
 
   it('sèche trop rapide : rythme bridé au plafond sûr (modulé par l adiposité)', () => {
-    const s = datedGoalStatus(target(70, 4), BODY80, TODAY, TDEE, null)!;
+    const s = datedGoalStatus(target(70, 4), BODY80, TODAY, TDEE, null, null)!;
     expect(s.clamped).toBe(true);
     // %MG estimé ~20 % → ni sec ni très gras → plafond 0,75 %/sem = -0,6 kg/sem
     expect(maxWeeklyLossPct(BODY80)).toBe(0.75);
@@ -64,7 +65,7 @@ describe('datedGoalStatus — trajectoire', () => {
   });
 
   it('prise trop rapide : bridée au plafond sûr (0,5 %/sem)', () => {
-    const s = datedGoalStatus(target(78, 8, 70), BODY70, TODAY, 2700, null)!;
+    const s = datedGoalStatus(target(78, 8, 70), BODY70, TODAY, 2700, null, null)!;
     expect(s.direction).toBe('gain');
     expect(s.clamped).toBe(true);
     // plafond = +0,5 % de 70 = +0,35 kg/sem. Le kg PRIS coûte 5000 kcal (tissu mixte,
@@ -75,7 +76,7 @@ describe('datedGoalStatus — trajectoire', () => {
   });
 
   it('poids déjà atteint : maintien, delta 0, actif', () => {
-    const s = datedGoalStatus(target(80.1, 8), BODY80, TODAY, TDEE, null)!;
+    const s = datedGoalStatus(target(80.1, 8), BODY80, TODAY, TDEE, null, null)!;
     expect(s.direction).toBe('maintain');
     expect(s.dailyKcalDelta).toBe(0);
     expect(s.active).toBe(true);
@@ -83,7 +84,7 @@ describe('datedGoalStatus — trajectoire', () => {
 
   it('échéance passée : inactif, aucun pilotage', () => {
     const past: GoalTarget = { target_weight_kg: 74, target_date: addDaysStamp(TODAY, -7), start_weight_kg: 80, start_date: addDaysStamp(TODAY, -90) };
-    const s = datedGoalStatus(past, BODY80, TODAY, TDEE, null)!;
+    const s = datedGoalStatus(past, BODY80, TODAY, TDEE, null, null)!;
     expect(s.active).toBe(false);
     expect(datedGoalKcalDelta(past, BODY80, TODAY, TDEE)).toBeNull();
   });
@@ -161,5 +162,131 @@ describe('intégration cerveau macro (recalcProfile / calculateMacros)', () => {
     const p = recalcProfile({ ...base, goal_target: target(60, 4) }, TODAY);
     expect(p.target_kcal).toBeGreaterThan(MIN_KCAL.male);
     expect(p.tdee_kcal - p.target_kcal).toBeLessThanOrEqual(Math.round(0.25 * p.tdee_kcal));
+  });
+});
+
+// ═════════════════════════════════════════════════════════════════════════════
+// A3 — la DATE annoncée doit être celle que le moteur tiendra (2026-07-31).
+//
+// La projection divisait l'écart par le rythme du PREMIER JOUR. Mesuré en suivi
+// parfait, l'annonce était fausse de +182 jours (F 65 → 58) à +1032 jours
+// (F 80 → 70 : 2027 annoncé, 2030 réel) : ni la baisse du TDEE avec le poids, ni
+// l'escalade de zone basse — qui ne mord qu'à la 13ᵉ semaine, donc JAMAIS le jour
+// où l'on promet la date — n'y figuraient. Elle simule désormais semaine par
+// semaine, sur le moteur lui-même.
+// ═════════════════════════════════════════════════════════════════════════════
+
+describe('A3 — projection simulée : plus de date flatteuse', () => {
+  const JOUR = '2026-07-31';
+  const corps = (o: Partial<UserProfile>): UserProfile => recalcProfile(makeProfile({
+    age: 30, neat_level: 'desk', training_days_per_week: 4,
+    sports: [{ type: 'musculation', sessions_per_week: 4, minutes_per_session: 60 }],
+    goal: 'cut', plan_days: 7, plan_weekdays: [1, 2, 3, 4, 5, 6, 0], ...o,
+  }), JOUR);
+  const objectif = (p: UserProfile, cibleKg: number, semaines: number): GoalTarget => ({
+    start_weight_kg: p.weight_kg, start_date: JOUR,
+    target_weight_kg: cibleKg, target_date: addDaysStamp(JOUR, semaines * 7),
+  });
+  /** Les deux projections d'un même objectif : simulée (écrans) et linéaire (repli). */
+  const deuxDates = (p0: UserProfile, cibleKg: number, semaines: number) => {
+    const gt = objectif(p0, cibleKg, semaines);
+    const p: UserProfile = { ...p0, goal_target: gt };
+    const floor = planFloorKcal(p, JOUR);
+    return {
+      gt,
+      sim: datedGoalStatus(gt, p, JOUR, p.tdee_kcal, floor, makeWeeklyProjector(p))!,
+      lin: datedGoalStatus(gt, p, JOUR, p.tdee_kcal, floor, null)!,
+    };
+  };
+
+  it('INVARIANT — le projecteur sert exactement la cible de computePlan', () => {
+    // Les deux ne doivent pas pouvoir diverger : le projecteur est le sous-ensemble
+    // « calories » de computePlan, pas une seconde implémentation du moteur.
+    for (const o of [
+      { sex: 'female' as const, weight_kg: 65, height_cm: 167, goal: 'cut' as const },
+      { sex: 'male' as const, weight_kg: 80, height_cm: 180, goal: 'cut' as const },
+      { sex: 'male' as const, weight_kg: 95, height_cm: 183, goal: 'bulk' as const },
+      { sex: 'female' as const, weight_kg: 70, height_cm: 168, goal: 'maintain' as const },
+    ]) {
+      const p = corps(o);
+      const point = makeWeeklyProjector(p)(p.weight_kg, JOUR, lowEaWeeksForFloor(p.low_ea_weeks, JOUR));
+      const attendu = computePlan(p, JOUR).profile;
+      expect(point.targetKcal, `${o.sex} ${o.weight_kg}`).toBe(attendu.target_kcal);
+      expect(point.tdeeKcal, `${o.sex} ${o.weight_kg}`).toBe(attendu.tdee_kcal);
+    }
+  });
+
+  it('femme en sèche : la date recule de PLUS D\'UN AN vs l\'ancien calcul', () => {
+    // F 80 → 70 kg en 24 semaines. L'escalade de zone basse écrase le déficit servi
+    // (285 → 34 kcal/j entre S13 et S26) : la vraie date est en 2029, pas en 2027.
+    const { sim, lin } = deuxDates(corps({ sex: 'female', weight_kg: 80, height_cm: 170, age: 35 }), 70, 24);
+    expect(sim.projectable).toBe(true);
+    expect(daysBetween(lin.projectedDate, sim.projectedDate)).toBeGreaterThan(365);
+    expect(sim.reachableByDate).toBe(false);
+  });
+
+  it('homme en sèche : la correction ne le déplace quasiment pas', () => {
+    // Pas d'escalade chez l'homme : seule la baisse du TDEE joue, elle est lente.
+    const { sim, lin } = deuxDates(corps({ sex: 'male', weight_kg: 80, height_cm: 180 }), 74, 12);
+    expect(Math.abs(daysBetween(lin.projectedDate, sim.projectedDate))).toBeLessThan(30);
+  });
+
+  it('LE BUG DE FOND — « rien n\'est bridé aujourd\'hui » ne vaut plus promesse', () => {
+    // F 65 → 62 kg en 30 semaines : aucun plafond ne mord le jour de la saisie,
+    // donc l'ancien calcul concluait « atteignable » — alors que l'escalade, elle,
+    // arrive à la 13ᵉ semaine et fera glisser la date. C'est exactement le mensonge.
+    const { sim, lin } = deuxDates(corps({ sex: 'female', weight_kg: 65, height_cm: 167 }), 62, 30);
+    expect(sim.clamped).toBe(false);
+    expect(sim.floorCapped).toBe(false);
+    expect(lin.reachableByDate).toBe(true);   // l'ancien calcul promettait…
+    expect(sim.reachableByDate).toBe(false);  // …la simulation, non.
+    expect(daysBetween(sim.targetDate, sim.projectedDate)).toBeGreaterThan(0);
+  });
+
+  it('un objectif RÉELLEMENT tenable reste annoncé tenable', () => {
+    // Le correctif ne doit pas rendre le produit pessimiste par principe : sans quoi
+    // on remplacerait un mensonge par un autre.
+    const { sim } = deuxDates(corps({ sex: 'male', weight_kg: 80, height_cm: 180 }), 77, 30);
+    expect(sim.reachableByDate).toBe(true);
+    expect(sim.projectable).toBe(true);
+    expect(daysBetween(sim.projectedDate, sim.targetDate)).toBeGreaterThanOrEqual(0);
+  });
+
+  it('prise de masse : projetée au coût du kg GAGNÉ, et tenable', () => {
+    const p = corps({ sex: 'male', weight_kg: 70, height_cm: 178, age: 27, goal: 'lean_bulk' });
+    const { sim } = deuxDates(p, 76, 20);
+    expect(sim.direction).toBe('gain');
+    expect(sim.reachableByDate).toBe(true);
+  });
+
+  it('la zone de maintien vaut arrivée (sinon les 300 derniers grammes calent)', () => {
+    // Le moteur bascule en maintien à MAINTAIN_EPS_KG près : viser le poids au
+    // gramme faisait annoncer « pas de date » sur des objectifs parfaitement sains.
+    const { sim } = deuxDates(corps({ sex: 'male', weight_kg: 80, height_cm: 180 }), 79.9, 8);
+    expect(sim.projectable).toBe(true);
+  });
+
+  it('déterministe, et borné en temps (le core loop reste sous la seconde)', () => {
+    const p0 = corps({ sex: 'female', weight_kg: 80, height_cm: 170, age: 35 });
+    const a = deuxDates(p0, 70, 24).sim;
+    const b = deuxDates(p0, 70, 24).sim;
+    expect(a.projectedDate).toBe(b.projectedDate);
+    const t0 = Date.now();
+    for (let i = 0; i < 30; i++) deuxDates(p0, 70, 24);
+    expect(Date.now() - t0).toBeLessThan(1000);
+  });
+
+  it('DISPLAY-ONLY — la projection ne déplace AUCUNE calorie', () => {
+    // Le correctif corrige ce qu'on ANNONCE, pas ce qu'on sert. Si le delta bougeait,
+    // ce serait une modification de plan déguisée en correctif d'affichage — et il
+    // faudrait incrémenter ENGINE_REV pour prévenir l'utilisateur.
+    for (const o of [
+      { sex: 'female' as const, weight_kg: 80, height_cm: 170, age: 35 },
+      { sex: 'male' as const, weight_kg: 80, height_cm: 180 },
+    ]) {
+      const { sim, lin } = deuxDates(corps(o), o.weight_kg - 6, 20);
+      expect(sim.dailyKcalDelta).toBe(lin.dailyKcalDelta);
+      expect(sim.safeWeeklyKg).toBe(lin.safeWeeklyKg);
+    }
   });
 });
