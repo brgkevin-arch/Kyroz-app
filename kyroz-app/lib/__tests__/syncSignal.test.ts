@@ -45,6 +45,7 @@ function builder(table: string) {
   b.insert = record('insert');
   b.delete = record('delete');
   b.eq = record('eq');
+  b.not = record('not');
   b.maybeSingle = () => Promise.resolve(result);
   b.then = (res: any, rej: any) => Promise.resolve(result).then(res, rej);
   return b;
@@ -221,7 +222,7 @@ describe('les cinq pushs muets ont retrouvé une voix', () => {
     { nom: 'garde-manger', libelle: 'garde-manger', key: 'pantry.upsert', run: () => pushPantry([]) },
     { nom: 'poids', libelle: 'suivi du poids', key: 'weight_logs.upsert', run: () => pushWeights([]) },
     { nom: 'recettes perso', libelle: 'recettes personnalisées', key: 'recipe_overrides.upsert', run: () => pushRecipeOverrides({}) },
-    { nom: 'favoris', libelle: 'favoris', key: 'favorites.insert', run: () => pushFavorites(['rep1']) },
+    { nom: 'favoris', libelle: 'favoris', key: 'favorites.upsert', run: () => pushFavorites(['rep1']) },
   ];
 
   for (const c of cas) {
@@ -241,14 +242,22 @@ describe('les cinq pushs muets ont retrouvé une voix', () => {
     });
   }
 
-  it('favoris : la fenêtre de PERTE est nommée explicitement', async () => {
-    state.errors['favorites.insert'] = RESEAU;
+  it('favoris : un échec d’écriture dit que RIEN n’a été retiré', async () => {
+    state.errors['favorites.upsert'] = RESEAU;
 
     await pushFavorites(['rep1', 'rep2']);
 
     const out = logged();
-    expect(out).toContain('PERTE CÔTÉ CLOUD');
-    expect(out).toContain('la prochaine connexion les repoussera');
+    expect(out).toContain('Aucun retrait tenté');
+    expect(out).toContain("rien n'est perdu");
+  });
+
+  it('favoris : un échec de RETRAIT dit que la conséquence est bornée', async () => {
+    state.errors['favorites.delete'] = RESEAU;
+
+    await pushFavorites(['rep1']);
+
+    expect(logged()).toContain('Aucune perte');
   });
 });
 
@@ -265,13 +274,25 @@ describe('effacement RGPD — un effacement incomplet ne passe plus inaperçu', 
     expect(out).toContain('SUBSISTER');
   });
 
-  it('une exception : l’interruption de la séquence est dite', async () => {
+  it('une exception : la table fautive est nommée, et un récapitulatif conclut', async () => {
     state.throws.add('recipe_overrides.delete');
 
     await deleteCloudData();
 
-    expect(logged()).toContain('Séquence INTERROMPUE');
-    expect(logged()).toContain('RGPD');
+    const out = logged();
+    expect(out).toContain('recipe_overrides');
+    expect(out).toContain('effacement RGPD INCOMPLET');
+    expect(out).toContain('1/6');
+    expect(out).toContain('Les autres ont bien été effacées');
+  });
+
+  it('plusieurs tables en échec : le récapitulatif les compte toutes', async () => {
+    state.errors['pantry.delete'] = RESEAU;
+    state.throws.add('streaks.delete');
+
+    await deleteCloudData();
+
+    expect(logged()).toContain('2/6');
   });
 
   it('effacement complet → silence', async () => {
