@@ -36,7 +36,6 @@
   >   « Pending », **aucun abonnement ne peut être créé ni vendu** — même app
   >   publiée. C'est LUI qui bloque Kyroz+, pas l'adhésion.
 - **Google Play Console** — 25 € une fois — https://play.google.com/console/signup
-- **Google Play Console** — 25 € une fois — https://play.google.com/console/signup
   - ⚠️ **Piège délai** : depuis nov. 2023, un **compte personnel** neuf doit faire
     tester l'app par **au moins 12–20 testeurs pendant 14 jours** avant de pouvoir
     passer en production. **À anticiper** (recrute tes testeurs tôt). Un compte
