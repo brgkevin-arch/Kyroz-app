@@ -115,8 +115,13 @@ qu'ils étaient périmés.
   « rien n'est bridé AUJOURD'HUI ⇒ la date tient ». L'escalade ne mordant qu'à la
   13ᵉ semaine, c'était précisément le mensonge. **DISPLAY-ONLY** : aucune calorie
   servie ne bouge, donc pas de bump d'`ENGINE_REV`. 9 tests.
-  ⚠️ **Non vérifié à l'écran** : la carte exige une session connectée + un objectif
-  daté ; validé par tests, typage et mesure, pas par un rendu.
+  ✅ **VÉRIFIÉ À L'ÉCRAN le 2026-07-31** (session locale du fondateur, profil F 80 kg
+  → 70 kg au 15/01/2027, plan servi AU PLANCHER, déficit 182 kcal/j) : l'ancien calcul
+  annonçait *« Plutôt le 27 septembre 2027 »* ; l'écran affiche désormais *« Rythme sûr
+  atteint · cette date n'est pas tenable »*. Et c'est exact — simulée, sa trajectoire
+  **s'arrête à 77,4 kg vers la semaine 20** (l'escalade annule le déficit) : elle
+  n'atteint jamais 70 kg. L'ancienne version donnait une date pour un poids que le
+  moteur n'aurait jamais servi.
 - ~~**A4 · La sortie de zone basse ne se relâche jamais**~~ ✅ **TRAITÉ le 2026-07-31 —
   et mon diagnostic était À MOITIÉ FAUX.** Ce qui était réel : le décompte dépendait
   d'un ARRONDI. Le plancher escaladé vaut `seuil × masse maigre + sport`, donc au
@@ -281,9 +286,12 @@ produit en suspens — il ne reste qu'à coder.
   La barre affichait déjà l'écart (« Cible 2 104 · −214 ») en couleur d'alerte, sans
   un mot. `SousCibleNote` explique la cause réelle (les portions restantes sont à
   leur maximum) et referme sans mise en pression. Même seuil que la barre.
-  ⚠️ **Non vérifié à l'écran** (E8 comme E9) : les deux écrans exigent une session
-  Supabase, et la connexion invité ne répond pas en local. Validé par typage, tests
-  et mesure moteur — pas par un rendu.
+  ✅ **VÉRIFIÉS À L'ÉCRAN le 2026-07-31** (session locale du fondateur, cible 2112) :
+  écart de +1000 kcal → *« Une seule journée ne peut pas tout reprendre… »* avec
+  « reprend 510 / 575 / 120 kcal » sous chaque option (la meilleure reste 413 au-dessus,
+  et l'écran ne le cache plus) · journée à 1435 kcal → *« Ta journée s'arrête 677 kcal
+  sous ta cible : les portions de tes repas ne peuvent pas monter plus haut. Une journée
+  sous la cible ne compromet rien. »* Plan du fondateur restauré après vérification.
 - **E6 · 🤖 Hors-plan : seules les kcal sont enregistrées**, pas le nom de l'aliment
   (« +450 kcal », pas « une pizza ») → aucun historique d'écarts possible.
 - **E7 · 🤖 Deep links web → HTTP 404** (le rendu est bon, le statut est faux).
