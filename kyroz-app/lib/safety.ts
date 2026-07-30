@@ -230,6 +230,29 @@ export function safetyFloorKcal(
 }
 
 /**
+ * Marge sous l'optimum en deçà de laquelle une semaine ne compte PLUS comme
+ * restriction. Un demi-cran d'escalade (0,5 kcal/kg de masse maigre par semaine).
+ *
+ * ⚠️ SANS ELLE, LA PROTECTION NE SE RELÂCHE JAMAIS — et c'est structurel, pas un
+ * cas limite. Le plancher escaladé vaut `seuil effectif × masse maigre + sport` :
+ * quand l'escalade atteint son plafond, l'énergie disponible servie vaut donc
+ * EXACTEMENT `EA_OPTIMAL`. Un test `< 35` sur cette valeur-là ne décide plus rien
+ * de physiologique, il décide de l'arrondi au kcal du plancher.
+ *
+ * Mesuré sur 130 semaines (F 80 kg, sèche, suivi parfait) : l'EA servie oscillait
+ * entre 34,99 et 35,01, le compteur saturait à ~46 semaines et n'en redescendait
+ * plus, le déficit restait bloqué à 34 kcal/jour — 8 kg en deux ans et demi. La
+ * documentation de `lowEaWeeksBefore` promet pourtant l'inverse : *« sans cela elle
+ * restait verrouillée à déficit zéro à vie »*. Le registre pouvait se vider en
+ * théorie ; en pratique la vanne ne s'ouvrait pas.
+ *
+ * Ce que la marge NE fait PAS : desserrer la zone à risque. Elle ne retire du
+ * décompte que la bande 34,75–35, c'est-à-dire l'optimum lui-même — à comparer aux
+ * 30 kcal/kg du seuil de risque clinique, cinq crans plus bas.
+ */
+export const EA_COUNT_TOLERANCE = LOW_EA_STEP_PER_WEEK / 2;
+
+/**
  * Cette semaine compte-t-elle dans le budget d'exposition à l'énergie disponible
  * basse ? Deux conditions CUMULATIVES.
  *
@@ -238,12 +261,17 @@ export function safetyFloorKcal(
  * soi. Beaucoup de gens sont naturellement sous 35 kcal/kg de masse maigre à leur
  * maintenance — les compter revenait à sanctionner quelqu'un qui ne fait aucun
  * régime, et à faire monter son plancher jusqu'au surplus.
+ *
+ * Le seuil est `EA_OPTIMAL` MOINS une marge : un plan servi À l'optimum n'est pas
+ * « sous l'optimum », et c'est précisément là que l'escalade dépose les gens
+ * qu'elle a fait sortir du déficit (cf. `EA_COUNT_TOLERANCE`).
  */
 export function countsAsLowEaWeek(
   b: BodyInput, targetKcal: number, maintenanceKcal: number, sportKcalPerDay: number,
 ): boolean {
   const inDeficit = targetKcal < maintenanceKcal - 1e-6;
-  return inDeficit && energyAvailability(b, targetKcal, sportKcalPerDay) < EA_OPTIMAL;
+  return inDeficit
+    && energyAvailability(b, targetKcal, sportKcalPerDay) < EA_OPTIMAL - EA_COUNT_TOLERANCE;
 }
 
 /** Énergie disponible (kcal/kg de masse maigre) d'un plan donné. */
@@ -395,6 +423,23 @@ export function lowEaWeeksInWindow(
  *     réellement servie, une utilisatrice ramenée à sa maintenance par l'escalade
  *     cesse d'accumuler des semaines, et les anciennes sortent de la fenêtre.
  *     Sans cela elle restait verrouillée à « déficit zéro » à vie.
+ *
+ * ⚠️ CE QUE LE POINT 2 NE PROMET PAS — mesuré le 2026-07-31, parce qu'il a été lu
+ * comme une promesse qu'il ne tient pas. Le registre ne se vide QUE si la
+ * restriction cesse pour de bon. Or l'escalade ne ramène pas à la maintenance :
+ * elle dépose la personne À l'optimum, où subsiste un déficit résiduel (34 à
+ * 59 kcal/jour, mesuré sur une femme de 80 kg suivie 130 semaines). Ces semaines-là
+ * comptent encore, le décompte se stabilise autour de 21–23, et le plancher reste à
+ * son plafond. Autrement dit : après un long séjour en zone basse, la personne est
+ * tenue à l'énergie disponible optimale, durablement et PAR CONSTRUCTION. Elle
+ * continue de perdre, lentement (80 → 71 kg en 130 semaines) — elle n'est pas
+ * arrêtée, elle est bridée.
+ *
+ * Ne pas « corriger » ça sans mesurer. Exiger un déficit MINIMAL pour qu'une
+ * semaine compte (essayé : 5 % de la maintenance) vide bien le registre, mais
+ * supprime le point fixe : la cible se met à osciller et l'écran d'escalade ne peut
+ * plus promettre de fin à la remontée. Quatre tests de `sortie-deficit-ea.test.ts`
+ * tombent — et ces tests-là défendent une phrase affichée à l'utilisatrice.
  */
 export function lowEaWeeksBefore(
   stored: LowEaRegistryStored | undefined | null, today: string,

@@ -112,14 +112,26 @@ qu'ils étaient périmés.
   servie ne bouge, donc pas de bump d'`ENGINE_REV`. 9 tests.
   ⚠️ **Non vérifié à l'écran** : la carte exige une session connectée + un objectif
   daté ; validé par tests, typage et mesure, pas par un rendu.
-- **A4 · 🤖 La sortie de zone basse ne se relâche jamais.** Le code affirme que le
-  registre peut se vider, *« sinon elle restait verrouillée à déficit zéro à vie »*.
-  Mesuré sur 130 semaines (F 80, sèche) : il ne se vide pas. L'escalade pose l'énergie
-  disponible à **34,99** — un centième sous le seuil de 35 qui arrêterait le décompte
-  (`safety.ts::countsAsLowEaWeek` compte toute semaine dont le déficit dépasse 1e-6).
-  Le compteur sature à ~46 semaines et n'en redescend plus : déficit bloqué à 34 kcal/j
-  pendant 2,5 ans, soit 8 kg en 130 semaines. **Correctif : une tolérance** (EA < 34,75,
-  ou déficit > ~2 % du TDEE) au lieu d'une comparaison au seuil exact.
+- ~~**A4 · La sortie de zone basse ne se relâche jamais**~~ ✅ **TRAITÉ le 2026-07-31 —
+  et mon diagnostic était À MOITIÉ FAUX.** Ce qui était réel : le décompte dépendait
+  d'un ARRONDI. Le plancher escaladé vaut `seuil × masse maigre + sport`, donc au
+  plafond l'énergie disponible servie vaut exactement 35 ; un test `< 35` dessus ne
+  décidait plus rien de physiologique, il décidait de l'arrondi au kcal du plancher
+  (mesuré : EA oscillant entre 34,99 et 35,01, compteur saturé à ~46 semaines).
+  Corrigé par une marge d'un demi-cran d'escalade (`EA_COUNT_TOLERANCE`) : le
+  compteur se stabilise à 21–23, le déficit résiduel passe de 34 à 34–59 kcal/j.
+  **Ce qui était FAUX dans mon constat : le « verrou à vie ».** Après un long séjour
+  en zone basse, la personne est tenue à l'énergie disponible OPTIMALE, durablement
+  et par construction — mais elle continue de perdre (80 → 71 kg sur 130 semaines),
+  elle n'est pas arrêtée. C'est la protection qui s'applique, pas un accident.
+  ⚠️ **Piège mesuré, à ne pas retenter** : forcer le registre à se vider en exigeant
+  un déficit minimal pour qu'une semaine compte (essayé à 5 % de la maintenance)
+  fonctionne — et **casse quatre tests de `sortie-deficit-ea.test.ts`**. Le point
+  fixe disparaît, la cible se met à osciller, et l'écran d'escalade ne peut plus
+  promettre de fin à la remontée. Or cette promesse est AFFICHÉE à l'utilisatrice.
+  La stabilité du plateau est load-bearing : ne pas la sacrifier pour vider un
+  compteur. La doc de `lowEaWeeksBefore`, qui laissait croire l'inverse, est
+  corrigée sur place. 5 tests.
 
 ### 🎯 B — Les deux briques Kyroz+ qui restent
 

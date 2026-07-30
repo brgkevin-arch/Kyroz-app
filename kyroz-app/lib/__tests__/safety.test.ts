@@ -4,6 +4,7 @@ import {
   bmiOf, bodyFatBounds, checkEligibility, deficitBlocked, effectiveEaPerKgFfm, energyAvailability,
   fatFreeMassKg, lowEaWeeksForFloor, lowEaWeeksInWindow, markLowEaWeek, readLowEaRegistry,
   resolvedBodyFatPct, safetyFloorKcal, settleLowEaExposure, weekStartStamp,
+  countsAsLowEaWeek, EA_COUNT_TOLERANCE, LOW_EA_STEP_PER_WEEK,
 } from '../safety';
 import { calculateBMR, calculateMacros, computePlan, macrosPercent, proteinTarget, recalcProfile, PROTEIN_MAX_PER_KG_FFM } from '../tdee';
 import { datedGoalStatus, maxWeeklyLossPct, MAX_DEFICIT_TDEE_RATIO, KCAL_PER_KG_FAT, KCAL_PER_KG_GAIN } from '../datedGoal';
@@ -717,5 +718,55 @@ describe('Audit — synchro, objectif daté, macros', () => {
       expect(m.protein_g / ffm, `${gPerKg} g/kg`).toBeCloseTo(gPerKg, 1);
       expect(m.protein_g / ffm, `${gPerKg} g/kg`).toBeLessThanOrEqual(3.05);
     }
+  });
+});
+
+
+// ═════════════════════════════════════════════════════════════════════════════
+// A4 — une semaine servie À l'optimum n'est pas une semaine SOUS l'optimum.
+//
+// Le plancher escaladé vaut `seuil × masse maigre + sport` : au plafond, l'énergie
+// disponible servie vaut donc EXACTEMENT 35. Un test `< 35` dessus ne décidait plus
+// rien de physiologique — il décidait de l'arrondi au kcal du plancher. Mesuré sur
+// 130 semaines (F 80 kg) : l'EA oscillait entre 34,99 et 35,01, et le compteur
+// saturait à ~46 semaines au lieu de se stabiliser.
+// ═════════════════════════════════════════════════════════════════════════════
+
+describe('A4 — le décompte de zone basse ne dépend plus d\'un arrondi', () => {
+  const elle = { sex: 'female' as const, age: 32, weight_kg: 62, height_cm: 166, body_fat_pct: 26 };
+  const ffm = fatFreeMassKg(elle);
+  const sport = 250;
+  /** Cible dont l'énergie disponible vaut exactement `ea`. */
+  const cibleA = (ea: number) => ea * ffm + sport;
+
+  it('la marge vaut un DEMI-CRAN d\'escalade — ancrée, pas choisie au hasard', () => {
+    expect(EA_COUNT_TOLERANCE).toBe(LOW_EA_STEP_PER_WEEK / 2);
+    expect(EA_COUNT_TOLERANCE).toBeLessThan(EA_OPTIMAL - EA_HARD_FLOOR); // très loin du seuil de risque
+  });
+
+  it('servie PILE à l\'optimum : ne compte pas — c\'est là que l\'escalade dépose', () => {
+    const cible = cibleA(EA_OPTIMAL);
+    expect(energyAvailability(elle, cible, sport)).toBeCloseTo(EA_OPTIMAL, 6);
+    expect(countsAsLowEaWeek(elle, cible, cible + 40, sport)).toBe(false);
+  });
+
+  it('un arrondi d\'un kcal ne peut plus faire basculer le verdict', () => {
+    // ±1 kcal autour de l'optimum : avant, ces deux plans-là donnaient deux réponses.
+    for (const delta of [-1, 0, 1]) {
+      const cible = cibleA(EA_OPTIMAL) + delta;
+      expect(countsAsLowEaWeek(elle, cible, cible + 40, sport), `${delta} kcal`).toBe(false);
+    }
+  });
+
+  it('la ZONE À RISQUE compte toujours — la protection n\'est pas desserrée', () => {
+    for (const ea of [EA_HARD_FLOOR - 2, EA_HARD_FLOOR, 32, 34]) {
+      const cible = cibleA(ea);
+      expect(countsAsLowEaWeek(elle, cible, cible + 300, sport), `EA ${ea}`).toBe(true);
+    }
+  });
+
+  it('sans déficit, rien ne compte, quelle que soit l\'énergie disponible', () => {
+    const cible = cibleA(31);
+    expect(countsAsLowEaWeek(elle, cible, cible, sport)).toBe(false); // à sa maintenance
   });
 });
