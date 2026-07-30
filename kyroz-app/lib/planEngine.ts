@@ -1004,12 +1004,42 @@ export function rebalanceDay(profile: UserProfile, plan: MealPlan, day: number):
 }
 
 // ── Adaptation à OPTIONS après un écart hors plan (morceau 4) ────────────────
+/**
+ * « Dans la cible » — tolérance d'AFFICHAGE, en kcal, SOURCE UNIQUE.
+ *
+ * Vaut pour la barre du jour (`MacroBar`) comme pour les options d'adaptation :
+ * les deux se suivent à l'écran, et un seuil différent de chaque côté ferait dire
+ * à l'un « on n'y arrive pas » pendant que l'autre affiche « ✓ dans la cible ».
+ * 100 kcal, c'est l'ordre de grandeur de l'imprécision des tables alimentaires —
+ * annoncer un reliquat de 6 kcal comme un échec serait une alarme pour du bruit,
+ * et la règle produit est claire : le pire cas reste neutre, jamais anxiogène.
+ */
+export const ON_TARGET_TOLERANCE_KCAL = 100;
+
 export type AdaptOption = {
   key: 'spread' | 'skip_snack' | 'focus_dinner';
   label: string;
   detail: string;
   plan: MealPlan;
   dayKcal: number;   // total du jour résultant (preview)
+  /**
+   * Ce que cette option REPREND réellement (kcal), vs ne rien adapter du tout.
+   * Positif = le plan a rétréci d'autant.
+   */
+  absorbedKcal: number;
+  /**
+   * Ce qui RESTE au-dessus de la cible du jour après adaptation. 0 = rentré dans
+   * la cible.
+   *
+   * ⚠️ Existe parce que l'écran promettait « rentrer dans ta cible » sans jamais
+   * vérifier qu'il y arrivait. Mesuré le 2026-07-31, écart déclaré le matin, à la
+   * meilleure option : `F 55 kg (cible 1342) : +200→+18 · +300→+63 · +600→+318 ·
+   * +800→+518` contre `H 80 kg (cible 2104) : +200→+6 · +300→+21 · +600→+41`.
+   * Chez l'homme le recalage absorbe vraiment ; chez un petit gabarit il sature
+   * vite — physiquement normal, on ne peut pas dé-manger. Ce qui n'allait pas,
+   * c'est que l'écran n'en disait rien.
+   */
+  overTargetKcal: number;
 };
 
 /**
@@ -1026,7 +1056,25 @@ export function adaptDayOptions(
   if (upcoming.length === 0) return [];
 
   const allIds = new Set(upcoming.map((m) => m.id));
-  const dayKcalOf = (p: MealPlan) => Math.round(p.total_macros_per_day[day - 1]?.kcal ?? 0);
+  // Recalculé depuis les repas + les écarts, PAS lu dans `total_macros_per_day` :
+  // ce tableau est un cache, et un appelant qui oublie de le rafraîchir après avoir
+  // posé un écart faisait lire une journée d'avant l'écart — donc « reprend 0 kcal »
+  // sur toutes les options. Le contrat implicite est remplacé par un calcul.
+  const dayKcalOf = (p: MealPlan) =>
+    Math.round(computeDailyTotals(p.meals, p.days, p.day_extras)[day - 1]?.kcal ?? 0);
+  // Référence : ce que ferait la journée si on n'adaptait RIEN. C'est par rapport à
+  // elle qu'une option « reprend » des calories — et par rapport à la cible du jour
+  // (banque comprise) qu'il en reste, ou non, au-dessus.
+  const sansRienFaire = dayKcalOf(plan);
+  const cibleDuJour = dayTargetKcal(profile, plan.days, day);
+  const chiffrer = (p: MealPlan): Pick<AdaptOption, 'dayKcal' | 'absorbedKcal' | 'overTargetKcal'> => {
+    const dayKcal = dayKcalOf(p);
+    return {
+      dayKcal,
+      absorbedKcal: Math.max(0, sansRienFaire - dayKcal),
+      overTargetKcal: Math.max(0, dayKcal - cibleDuJour),
+    };
+  };
   const options: AdaptOption[] = [];
 
   // 1. Répartir sur tous les repas restants.
@@ -1035,7 +1083,7 @@ export function adaptDayOptions(
     key: 'spread',
     label: 'Répartir sur mes repas restants',
     detail: upcoming.map((m) => MEAL_LABEL[m.meal_type]).join(' + ') + ' ajustés',
-    plan: spread, dayKcal: dayKcalOf(spread),
+    plan: spread, ...chiffrer(spread),
   });
 
   // 2. Sauter la collation → les autres restants prennent le relais (protéines pleines).
@@ -1047,7 +1095,7 @@ export function adaptDayOptions(
       key: 'skip_snack',
       label: 'Sauter la collation',
       detail: 'le reste se densifie en protéines',
-      plan: skipped, dayKcal: dayKcalOf(skipped),
+      plan: skipped, ...chiffrer(skipped),
     });
   }
 
@@ -1059,7 +1107,7 @@ export function adaptDayOptions(
       key: 'focus_dinner',
       label: 'Ajuster surtout le dîner',
       detail: 'tes autres repas ne bougent pas',
-      plan: focused, dayKcal: dayKcalOf(focused),
+      plan: focused, ...chiffrer(focused),
     });
   }
 

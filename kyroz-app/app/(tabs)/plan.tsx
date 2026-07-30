@@ -32,7 +32,7 @@ import { useWeightLog } from '../../hooks/useWeightLog';
 import { usePlanCheckin } from '../../hooks/usePlanCheckin';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { generateMealPlan } from '../../lib/generatePlan';
-import { profileSignature, swapMeal, computeDailyTotals, rebalanceDay, resetTracking, adaptDayOptions, AdaptOption, mealIngredients, reAdaptMealRecipe, mealPoolSize, dayTargetKcal } from '../../lib/planEngine';
+import { profileSignature, swapMeal, computeDailyTotals, rebalanceDay, resetTracking, adaptDayOptions, AdaptOption, mealIngredients, reAdaptMealRecipe, mealPoolSize, dayTargetKcal, ON_TARGET_TOLERANCE_KCAL } from '../../lib/planEngine';
 import { DISLIKE_THRESHOLD, dislikeCandidates, applyDislikedIngredient } from '../../lib/dislike';
 import { todayStamp } from '../../lib/weight';
 import { mealFiberFromIngredients, dailyFiberTarget } from '../../lib/fiber';
@@ -623,6 +623,7 @@ export default function PlanScreen() {
                   consumedKcal={consumedDayKcal}
                 />
                 <MarginNote t={t} kcal={dayMacros.kcal} />
+                <SousCibleNote t={t} manque={(dayTarget ?? dayMacros.kcal) - dayMacros.kcal} />
                 {profile && <FiberRow t={t} actual={dayFiber} target={fiberTarget} />}
                 {/* Découvrabilité de la perso macros (le fork a été retiré de l'onboarding) :
                     deep-link vers l'éditeur « Calories & macros » du Profil. */}
@@ -811,10 +812,19 @@ export default function PlanScreen() {
               </>
             );
           }
+          // Aucune option ne rentre dans la cible ? On le DIT. L'écran promettait
+          // « rentrer dans ta cible » sans jamais vérifier qu'il y arrivait : sur un
+          // petit gabarit, la meilleure option restait 318 kcal au-dessus après un
+          // écart de +600 (mesuré). On ne peut pas dé-manger — mais on peut arrêter
+          // de faire semblant. Formulé sans alarme : ce qui est repris est mis en
+          // avant, le reste est présenté comme sans conséquence, parce qu'il l'est.
+          const rentreDansLaCible = opts.some((o) => o.overTargetKcal <= ON_TARGET_TOLERANCE_KCAL);
           return (
             <>
               <Text style={{ color: t.textSecondary, fontSize: 14, lineHeight: 20 }}>
-                Comment tu veux rentrer dans ta cible ? Tes protéines restent pleines dans tous les cas.
+                {rentreDansLaCible
+                  ? 'Comment tu veux rentrer dans ta cible ? Tes protéines restent pleines dans tous les cas.'
+                  : 'Une seule journée ne peut pas tout reprendre — tes repas restants ont une taille minimale. Voilà ce qu\'on peut faire aujourd\'hui ; le reste ne se rattrape pas, et une journée ne fait pas ta semaine. Tes protéines restent pleines dans tous les cas.'}
               </Text>
               {opts.map((o) => (
                 <TouchableOpacity
@@ -825,7 +835,17 @@ export default function PlanScreen() {
                     <Text style={{ color: t.text, fontSize: 15, fontWeight: '700' }}>{o.label}</Text>
                     <Text style={{ color: t.textTertiary, fontSize: 12, marginTop: 2 }}>{o.detail}</Text>
                   </View>
-                  <Text style={{ color: t.text, fontSize: 14, fontWeight: '700' }}>≈ {o.dayKcal.toLocaleString('fr-FR')}</Text>
+                  <View style={{ alignItems: 'flex-end' }}>
+                    <Text style={{ color: t.text, fontSize: 14, fontWeight: '700' }}>≈ {o.dayKcal.toLocaleString('fr-FR')}</Text>
+                    {/* Le chiffre qui compte pour la personne : ce que l'option REPREND.
+                        On n'affiche pas le reliquat option par option — ce serait trois
+                        rappels de retard sur le même écran (règle produit : rassurer). */}
+                    {o.absorbedKcal > 0 && (
+                      <Text style={{ color: t.textTertiary, fontSize: 11, marginTop: 2 }}>
+                        reprend {o.absorbedKcal.toLocaleString('fr-FR')} kcal
+                      </Text>
+                    )}
+                  </View>
                 </TouchableOpacity>
               ))}
               <TouchableOpacity onPress={declineAdapt} style={{ alignItems: 'center', paddingVertical: 10 }}>
@@ -853,6 +873,29 @@ export default function PlanScreen() {
         />
       </Sheet>
     </SafeAreaView>
+  );
+}
+
+/**
+ * Un jour qui n'atteint PAS sa cible, expliqué — et sans mise en pression.
+ *
+ * ⚠️ La barre affichait déjà l'écart (« Cible 2 104 kcal · −214 ») en couleur
+ * d'alerte, sans un mot d'explication. Mesuré le 2026-07-31 : sur 20 combinaisons
+ * profil × repas sauté, 19 tiennent dans ±90 kcal, mais une décroche — H 80 kg,
+ * déjeuner sauté, la journée finit à 1890/2104 kcal et 132/149 g de protéines,
+ * parce que les repas restants butent sur leur portion maximale. Ce n'est pas une
+ * erreur de calcul, c'est une limite physique du catalogue : elle se DIT.
+ *
+ * Seuil à 100 kcal = celui de la barre (`MacroBar.onTarget`), pour que les deux ne
+ * puissent pas se contredire à l'écran.
+ */
+function SousCibleNote({ t, manque }: { t: ThemePalette; manque: number }) {
+  if (manque <= ON_TARGET_TOLERANCE_KCAL) return null;
+  return (
+    <Text style={{ color: t.textTertiary, fontSize: 12, lineHeight: 17, marginTop: 8 }}>
+      Ta journée s'arrête {Math.round(manque).toLocaleString('fr-FR')} kcal sous ta cible : les portions de tes repas
+      ne peuvent pas monter plus haut. Une journée sous la cible ne compromet rien.
+    </Text>
   );
 }
 

@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach } from 'vitest';
-import { buildLocalPlan, mealPoolSize, computeDailyTotals, profileSignature, swapMeal, computeDistribution, rebalanceDay, adaptDayOptions, effectiveMacros, resetTracking, mealIngredients, reAdaptMealRecipe, restDaySet, restDaysForProfile, goalDirection, dayTargetKcal } from '../planEngine';
+import { buildLocalPlan, mealPoolSize, computeDailyTotals, profileSignature, swapMeal, computeDistribution, rebalanceDay, adaptDayOptions, effectiveMacros, resetTracking, mealIngredients, reAdaptMealRecipe, restDaySet, restDaysForProfile, goalDirection, dayTargetKcal, ON_TARGET_TOLERANCE_KCAL } from '../planEngine';
 import { setRecipeOverrides, RECIPES } from '../recipes';
 import { makeProfile } from './helpers';
 
@@ -664,5 +664,77 @@ describe('banque de calories — elle SURVIT au recalage (bug mesuré le 2026-07
     for (const jour of kcal(resetTracking(q, plan))) {
       expect(Math.abs(jour - q.target_kcal)).toBeLessThan(90);
     }
+  });
+});
+
+describe('E8 — l\'écart hors plan : ce qu\'on reprend, et ce qui reste', () => {
+  // L'écran promettait « rentrer dans ta cible » sans vérifier qu'il y arrivait.
+  // On ne peut pas dé-manger : sur un petit gabarit, la meilleure option restait
+  // 318 kcal au-dessus après un écart de +600 (mesuré le 2026-07-31). Le moteur
+  // expose désormais les deux chiffres pour que l'écran puisse le DIRE.
+  const petiteFemme = makeProfile({
+    sex: 'female', weight_kg: 55, height_cm: 162, age: 30, goal: 'cut',
+    tdee_kcal: 1642, target_kcal: 1342, target_protein_g: 97, target_carbs_g: 150, target_fat_g: 45,
+  });
+  const grandHomme = makeProfile({ tdee_kcal: 2404, target_kcal: 2104, target_protein_g: 149 });
+
+  /** Petit-déj mangé, puis un écart hors plan déclaré dans la matinée. */
+  const matinAvecEcart = (p: Parameters<typeof buildLocalPlan>[0], ecart: number) => {
+    const plan0 = buildLocalPlan(p, 0);
+    const bf = plan0.meals.find((m) => m.day === 1 && m.meal_type === 'breakfast')!;
+    // Comme en production (`plan.tsx::logOffPlan`) : les totaux sont recalculés avec
+    // l'écart. C'est ce que l'utilisateur a sous les yeux au moment du choix.
+    const meals = plan0.meals.map((m) => (m.id === bf.id ? { ...m, status: 'eaten' as const, locked_macros: m.macros } : m));
+    const day_extras = { 1: { kcal: ecart, protein_g: 10, carbs_g: 40, fat_g: 15 } };
+    return { ...plan0, meals, day_extras, total_macros_per_day: computeDailyTotals(meals, plan0.days, day_extras) };
+  };
+
+  it('un petit écart RENTRE dans la cible — et le dit', () => {
+    // Le verdict d'écran se lit à la tolérance commune (100 kcal), pas à zéro :
+    // annoncer « on n'y arrive pas » pour un reliquat de 6 kcal serait une alarme
+    // pour du bruit, pendant que la barre juste dessous affiche « ✓ dans la cible ».
+    for (const ecart of [100, 200, 400]) {
+      const opts = adaptDayOptions(grandHomme, matinAvecEcart(grandHomme, ecart), 1, 10);
+      expect(opts.length, `+${ecart}`).toBeGreaterThan(0);
+      expect(opts.some((o) => o.overTargetKcal <= ON_TARGET_TOLERANCE_KCAL), `+${ecart}`).toBe(true);
+    }
+  });
+
+  it('la tolérance est la MÊME que celle de la barre du jour (source unique)', () => {
+    expect(ON_TARGET_TOLERANCE_KCAL).toBe(100);
+  });
+
+  it('un GROS écart sur un petit gabarit ne rentre pas — et ça se voit', () => {
+    const opts = adaptDayOptions(petiteFemme, matinAvecEcart(petiteFemme, 800), 1, 10);
+    expect(opts.length).toBeGreaterThan(0);
+    // Aucune option n'approche la cible : c'est ce test qui change le texte affiché.
+    expect(opts.every((o) => o.overTargetKcal > ON_TARGET_TOLERANCE_KCAL)).toBe(true);
+    // …mais chacune reprend RÉELLEMENT quelque chose : on a de quoi montrer un
+    // chiffre utile plutôt qu'un reproche.
+    expect(opts.some((o) => o.absorbedKcal > 50)).toBe(true);
+  });
+
+  it('« reprend X » est exact : c\'est l\'écart au plan non adapté', () => {
+    const plan = matinAvecEcart(grandHomme, 400);
+    const avant = Math.round(plan.total_macros_per_day[0].kcal);
+    for (const o of adaptDayOptions(grandHomme, plan, 1, 10)) {
+      expect(o.absorbedKcal, o.key).toBe(Math.max(0, avant - o.dayKcal));
+      expect(o.overTargetKcal, o.key).toBe(Math.max(0, o.dayKcal - grandHomme.target_kcal));
+    }
+  });
+
+  it('le reliquat se mesure sur la cible DU JOUR, banque comprise', () => {
+    // Un jour « resto +600 » a une cible plus haute : un écart hors plan ne doit pas
+    // s'y lire comme un dépassement de la cible plate (cf. dayTargetKcal).
+    const p = { ...grandHomme, calorie_bank: { '3': 600 } }; // mercredi = jour 3
+    const plan = buildLocalPlan(p, 0);
+    const bf = plan.meals.find((m) => m.day === 3 && m.meal_type === 'breakfast')!;
+    const mealsJ3 = plan.meals.map((m) => (m.id === bf.id ? { ...m, status: 'eaten' as const, locked_macros: m.macros } : m));
+    const extrasJ3 = { 3: { kcal: 200, protein_g: 5, carbs_g: 20, fat_g: 8 } };
+    const avecEcart = { ...plan, meals: mealsJ3, day_extras: extrasJ3, total_macros_per_day: computeDailyTotals(mealsJ3, plan.days, extrasJ3) };
+    const opts = adaptDayOptions(p, avecEcart, 3, 10);
+    const plate = adaptDayOptions({ ...p, calorie_bank: undefined }, avecEcart, 3, 10);
+    // Même journée, même écart : mesuré contre la cible haute, il reste moins à reprendre.
+    expect(opts[0].overTargetKcal).toBeLessThan(plate[0].overTargetKcal);
   });
 });
