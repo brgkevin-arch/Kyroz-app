@@ -46,6 +46,8 @@ test/qa/session.json
 test/video/
 test/qa/*.png
 test/qa/report*.json
+# Visuels de fiche store : régénérables (npm run store:assets), lourds, jamais importés par le code
+test/store/*.png
 
 # Source brute Ciqual (ANSES) — convertie en lib/foods.generated.ts, pas commitée (lourde)
 # Casse insensible (APFS local vs FS sensible à la casse en CI Linux)
