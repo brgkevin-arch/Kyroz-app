@@ -2,6 +2,24 @@
 
 > Spec stable → `CLAUDE.md`. Ici = état d'avancement + pièges. Tenir à jour en fin de session.
 
+## État du dépôt — remis à plat le 2026-07-30
+
+**Une seule branche, un seul worktree, arbre de travail propre.** `main` = `origin/main` = `30b0c19`.
+Les 9 branches de travail étaient toutes intégralement mergées : supprimées en local et sur le
+distant, ainsi que les worktrees `Kyroz_Code-neat` et `Kyroz_Code-recettes` (≈ 1,5 Go de
+`node_modules` libérés). `origin/gh-pages` est l'artefact de déploiement — **ne jamais y toucher**.
+
+SHA conservés au cas où une branche devrait être ressuscitée (`git branch <nom> <sha>`) :
+`audit/brief-etat` 0aec5ac · `chore/email-contact-unifie` 1e1c683 · `docs/maj-apres-audit` f6523df ·
+`feature/vague-recettes-80` 1b7e367 · `fix/drapeaux-muets` 6cc2510 · `fix/libelles-neat` 9ffe195 ·
+`fix/moteur-p0-securite` fe3a13d · `fix/moteur-p05-p06` 0f3b873 · `fix/moteur-p1-etapes-1-2` 353e1d8.
+
+Reste un `stash@{0}` (« edition-kevin-vague-100-superseded-par-113 ») : une ligne du brief éditée
+par le fondateur, **entièrement réalisée** par la vague de 113. C'est son contenu, à lui de la jeter.
+
+⚠️ **Le fondateur veut repartir d'une base saine.** Si plusieurs sessions travaillent à nouveau en
+parallèle, recréer des worktrees — mais les nettoyer en fin de chantier, pas les laisser.
+
 ## Setup & déploiement
 - Expo Router (file-based), SDK 56, TS strict. Lancer : `npm run web` (8081) / `npm run ios`. Tests : `npm test` (vitest). Preview agent : port **8090** (pas 8081, occupé par le fondateur).
 - **En ligne** : web sur GitHub Pages → https://brgkevin-arch.github.io/Kyroz-app/ (repo public `brgkevin-arch/Kyroz-app`, auto-deploy `deploy.yml` à chaque push `main`). Le fondateur publie via **GitHub Desktop** (Commit→Push), pas le terminal.
