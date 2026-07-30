@@ -52,7 +52,9 @@ un identifiant enregistré, puis une fiche d'app. Dans cet ordre, sinon le menu
 1. **Enregistrer le Bundle ID** — developer.apple.com → *Certificates, IDs & Profiles*
    → *Identifiers* → **+** → *App IDs* → *App*. Bundle ID = **`app.kyroz.mobile`**
    (exactement celui d'`app.json` — une faute de frappe ici se paie par un rejet à
-   la soumission). Cocher la capability **In-App Purchase**.
+   la soumission). Cocher **In-App Purchase** et **Sign in with Apple** (cf. §2 :
+   la seconde est anticipée, elle n'ajoute rien au binaire aujourd'hui). **Ne PAS**
+   cocher Push Notifications — les rappels sont locaux.
 2. **Créer la fiche d'app** — App Store Connect → *Apps* → **+** → *New App*.
    Plateforme iOS · Nom **Kyroz** · Langue principale Français · Bundle ID celui du
    dessus · SKU libre (ex. `kyroz-ios-001`).
@@ -90,11 +92,27 @@ un identifiant enregistré, puis une fiche d'app. Dans cet ordre, sinon le menu
 | Champ | Valeur |
 |---|---|
 | Nom | Kyroz |
-| Bundle iOS / package Android | `app.kyroz.mobile` |
+| Bundle iOS / package Android | `app.kyroz.mobile` — ✅ **confirmé le 2026-07-30, ne pas rouvrir** |
 | Version | 1.0.0 |
 | EAS projectId | `28dc4c7e-cace-4fa2-80ba-7b503804d18e` (owner `kevinberger`) |
 | Thème | Sombre (splash + UI) |
 | Orientation | Portrait |
+
+> **Pourquoi `app.kyroz.mobile`, et pourquoi c'est figé.** `app.kyroz` = le domaine
+> `kyroz.app` écrit à l'envers (seule chose que tu possèdes de façon unique au monde) ;
+> `mobile` = quelle app, par opposition au site. Alternatives descriptives envisagées
+> puis ÉCARTÉES (`plan`, `macros`, `nutrition`) : l'identifiant est **irréversible dès
+> la première publication**, et un segment descriptif peut devenir faux si le produit
+> s'élargit — `mobile`, lui, ne peut pas. Il n'est de toute façon **jamais visible par
+> l'utilisateur** (les deep links passent par le scheme `kyroz://`, réglage séparé).
+>
+> **Capabilities de l'App ID** : `In-App Purchase` (Kyroz+) et `Sign in with Apple`.
+> ⚠️ Cette dernière est cochée **par anticipation** : la capability du portail
+> n'ajoute RIEN au binaire, l'entitlement vient d'`app.json > ios.usesAppleSignIn`,
+> aujourd'hui absent. Elle deviendra **obligatoire** le jour où la connexion Google
+> arrive (guideline 4.8 : proposer un login tiers impose une option équivalente).
+> **Push Notifications : NON** — le rappel quotidien est une notification LOCALE
+> (`scheduleNotificationAsync`), aucun serveur n'envoie rien.
 
 > **Décision iPad — RÉVISÉE 2026-07-27 : ON SUPPORTE LA TABLETTE.** Usage produit
 > concret : cuisiner avec la recette sous les yeux sur sa tablette (aligné North Star,
