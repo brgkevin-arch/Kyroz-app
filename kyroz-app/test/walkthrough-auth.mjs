@@ -1,51 +1,48 @@
+// Vidéo de parcours APRÈS connexion, en fouillant chaque onglet.
+//
+// Ce script attendait un login MANUEL pendant 3 minutes (« WAITING_FOR_LOGIN »),
+// donc il ne tournait jamais sans un humain devant l'écran. Il passe désormais par
+// la connexion invité, comme les autres.
+//
+// Usage : node test/walkthrough-auth.mjs
+
 import { chromium } from 'playwright';
-import { mkdirSync } from 'fs';
+import { VIDEO, PHONE, TABS, HEADLESS, sleep, ensureDirs, open, tap, bootToPlan, neutralizeFirstRun } from './_harness.mjs';
 
-const OUT = '/Users/kevinberger/Kyroz Code/kyroz-app/test/video';
-mkdirSync(OUT, { recursive: true });
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+ensureDirs();
 
-const browser = await chromium.launch({ headless: false, slowMo: 200 });
+const browser = await chromium.launch({ headless: HEADLESS, slowMo: 200 });
 const context = await browser.newContext({
-  viewport: { width: 430, height: 932 },
-  recordVideo: { dir: OUT, size: { width: 430, height: 932 } },
+  viewport: PHONE,
+  recordVideo: { dir: VIDEO, size: PHONE },
 });
+await neutralizeFirstRun(context);
 const page = await context.newPage();
 
-await page.goto('http://localhost:8081', { waitUntil: 'load' });
-await sleep(2000);
+const errors = [];
+page.on('pageerror', (e) => errors.push(e.message));
 
-// --- Wait for the USER to log in by hand in the headed window ---
-// We consider login done when a tab bar label (e.g. "Plan") becomes visible,
-// or when the login form's "Mot de passe" field disappears.
-console.log('WAITING_FOR_LOGIN');
-const start = Date.now();
-const TIMEOUT = 180000; // 3 min for the user to authenticate
-let loggedIn = false;
-while (Date.now() - start < TIMEOUT) {
-  const onPlan = await page.getByText('Plan', { exact: false }).first().isVisible().catch(() => false);
-  const stillLogin = await page.getByText('Mot de passe', { exact: false }).first().isVisible().catch(() => false);
-  if (onPlan && !stillLogin) { loggedIn = true; break; }
-  await sleep(1500);
-}
-console.log(loggedIn ? 'LOGIN_DETECTED' : 'LOGIN_TIMEOUT');
-await sleep(2000);
+await open(page);
 
-// --- Walk the core loop ---
-const tabs = ['Plan', 'Courses', 'Recettes', 'Garde-manger', 'Frigo', 'Profil'];
-for (const label of tabs) {
-  const el = page.getByText(label, { exact: false }).last();
-  try {
-    if (await el.isVisible({ timeout: 800 })) {
-      await el.click({ timeout: 1500 });
-      await sleep(1800);
-      for (let i = 0; i < 2; i++) { await page.mouse.wheel(0, 450); await sleep(900); }
-      await page.mouse.wheel(0, -900); await sleep(700);
-    }
-  } catch { /* skip missing tab */ }
+const onPlan = await bootToPlan(page);
+console.log(onPlan ? 'LOGIN_OK' : 'LOGIN_FAILED');
+await sleep(1500);
+
+for (const label of TABS) {
+  if (await tap(page, label, { which: 'last', timeout: 1200 })) {
+    await sleep(1800);
+    for (let i = 0; i < 2; i++) { await page.mouse.wheel(0, 450); await sleep(900); }
+    await page.mouse.wheel(0, -900);
+    await sleep(700);
+  } else {
+    console.log('onglet introuvable : ' + label);
+  }
 }
 
 await sleep(1500);
-await context.close(); // flush video
+await context.close(); // vide le tampon vidéo
 await browser.close();
+
+console.log('pageErrors: ' + (errors.join(' | ') || 'none'));
+console.log('video -> ' + VIDEO);
 console.log('DONE');

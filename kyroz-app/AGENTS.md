@@ -44,6 +44,33 @@ par le fondateur, **entièrement réalisée** par la vague de 113. C'est son con
 ⚠️ **Le fondateur veut repartir d'une base saine.** Si plusieurs sessions travaillent à nouveau en
 parallèle, recréer des worktrees — mais les nettoyer en fin de chantier, pas les laisser.
 
+## Parcours Playwright — remis d'aplomb le 2026-07-30
+
+Les 7 scripts de `test/` étaient **tous cassés** depuis mi-juin et personne ne l'avait vu :
+chacun recopiait les mêmes faits volatils. Ils partagent désormais `test/_harness.mjs`, et
+aucun script appelant ne contient plus de chemin, de port ni de libellé d'écran.
+
+Ce qui les avait tués, au-delà du chemin `/Users/kevinberger/Kyroz Code/` (espace au lieu de
+`Kyroz_Code`) et du port 8081 → 8090 :
+
+| Cause | Effet |
+|---|---|
+| Onboarding passé de 10 à 7 étapes (récap supprimé le 2026-06-20) | les personas se perdaient dès l'étape 6 |
+| Portail de dépistage santé intercalé avant l'étape 1 | l'assistant n'était jamais atteint |
+| Visite guidée + carte de consentement analytics à l'arrivée sur le plan | tous les clics interceptés → chaque écran déclaré « introuvable » |
+| Sous-écrans du Profil = `Sheet`, pas des routes | `page.goBack()` ne ferme rien, blocage sur la 1re feuille |
+| `walkthrough-auth` et `qa-deep` attendaient un login MANUEL de 3 min | ne tournaient jamais sans humain → connexion invité |
+
+**Deux pièges qui faisaient mentir les rapports**, corrigés :
+`getByText('Plan')` est insensible à la casse (« Générer mon plan » le satisfait) → la preuve
+retenue est le plan **persisté** ; et Supabase plafonne la création d'invités
+(429 `over_request_rate_limit`, par heure et par IP) → `qa-full` le nomme au lieu d'afficher
+des champs vides qui se lisent comme une app cassée.
+
+Lancement : `npm run qa:full` · `qa:deep` · `qa:settings` · `qa:walkthrough`
+(`KYROZ_URL`, `KYROZ_HEADLESS=1`). Détail dans [test/README.md](test/README.md).
+Prérequis une fois : `npx playwright install chromium`.
+
 ## Chantiers ouverts — par ordre de rentabilité
 
 ### 1. ✅ RÉPARÉ (2026-07-30) — la borne basse de l'ancre protéine

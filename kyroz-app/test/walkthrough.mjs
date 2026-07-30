@@ -1,47 +1,43 @@
+// Vidéo de parcours : onboarding invité puis tour des onglets.
+// Usage : node test/walkthrough.mjs        (KYROZ_HEADLESS=1 pour une passe muette)
+
 import { chromium } from 'playwright';
-import { mkdirSync } from 'fs';
+import { VIDEO, PHONE, TABS, HEADLESS, sleep, ensureDirs, open, tap, bootToPlan, neutralizeFirstRun } from './_harness.mjs';
 
-const OUT = '/Users/kevinberger/Kyroz Code/kyroz-app/test/video';
-mkdirSync(OUT, { recursive: true });
+ensureDirs();
 
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-
-const browser = await chromium.launch({ headless: false, slowMo: 250 });
+const browser = await chromium.launch({ headless: HEADLESS, slowMo: 250 });
 const context = await browser.newContext({
-  viewport: { width: 430, height: 932 }, // phone-ish portrait
-  recordVideo: { dir: OUT, size: { width: 430, height: 932 } },
+  viewport: PHONE,
+  recordVideo: { dir: VIDEO, size: PHONE },
 });
+await neutralizeFirstRun(context);
 const page = await context.newPage();
 
 const logs = [];
 page.on('console', (m) => logs.push(`[${m.type()}] ${m.text()}`));
 page.on('pageerror', (e) => logs.push(`[pageerror] ${e.message}`));
 
-await page.goto('http://localhost:8081', { waitUntil: 'load' });
-await page.waitForLoadState('networkidle').catch(() => {});
-await sleep(2500);
+await open(page);
 
-// Try to walk through the bottom tabs if present (Plan, Courses, Frigo, etc.)
-const tabLabels = ['Plan', 'Courses', 'Frigo', 'Recettes', 'Favoris', 'Profil', 'Réglages', 'Paramètres'];
-for (const label of tabLabels) {
-  const el = page.getByText(label, { exact: false }).first();
-  try {
-    if (await el.isVisible({ timeout: 800 })) {
-      await el.click({ timeout: 1500 });
-      await sleep(1800);
-    }
-  } catch { /* tab not present, skip */ }
-}
+// Avant, ce script partait de l'écran de login et cliquait dans le vide : sans
+// session, aucun onglet n'existe. Il filme désormais un vrai parcours.
+const onPlan = await bootToPlan(page);
+console.log(onPlan ? 'PLAN_REACHED' : 'PLAN_NOT_REACHED');
 
-// Scroll the main view a bit to show content
-for (let i = 0; i < 3; i++) {
-  await page.mouse.wheel(0, 400);
-  await sleep(900);
+for (const label of TABS) {
+  if (await tap(page, label, { which: 'last', timeout: 1200 })) {
+    await sleep(1800);
+    for (let i = 0; i < 3; i++) { await page.mouse.wheel(0, 400); await sleep(700); }
+    await page.mouse.wheel(0, -1200);
+    await sleep(700);
+  }
 }
 
 await sleep(1500);
-await context.close(); // flush video
+await context.close(); // vide le tampon vidéo
 await browser.close();
 
 console.log('LOGS:\n' + logs.slice(0, 40).join('\n'));
+console.log('video -> ' + VIDEO);
 console.log('DONE');
