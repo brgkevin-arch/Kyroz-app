@@ -46,76 +46,73 @@ parallèle, recréer des worktrees — mais les nettoyer en fin de chantier, pas
 
 ## Chantiers ouverts — par ordre de rentabilité
 
-### 1. RÉPARER le catalogue ⭐ — ⚠️ LE REMÈDE PRESCRIT CI-DESSOUS EST FAUX (mesuré 2026-07-30)
+### 1. ✅ RÉPARÉ (2026-07-30) — la borne basse de l'ancre protéine
 
-> **Lire ceci avant d'appliquer quoi que ce soit de la section suivante.** Le diagnostic
-> (« la cause est l'ancre protéine ») est JUSTE. Le remède prescrit (« baisser la `qty` de
-> l'ancre dans les recettes ») est **mesurément FAUX**, et le vrai levier est ailleurs.
->
-> **Pourquoi le remède échoue.** `adaptRecipe.ts:46-47` : `min = qty_base × facteur[0]` et
-> `max = qty_base × facteur[1]`. Les bornes sont PROPORTIONNELLES à la quantité écrite —
-> baisser la base **rétrécit la plage des deux côtés**, elle ne la décale pas vers le bas.
-> Le haut est donc perdu. Appliqué aux 138 recettes concernées (script écrit, exécuté,
-> puis jeté) : +464 profils servis, mais le plan d'un profil à 240 g de protéines tombe
-> **18,5 % sous sa cible protéique**, et `multiProfile.test.ts` le refuse à juste titre.
-> **Et le chiffre phare ne bouge pas** : F 55 sèche reste à 0/66 collations.
->
-> **Le vrai levier — une décision PRODUIT, pas une correction.** Le plancher est posé
-> TROIS fois : `config.scaling_factors_by_role.protein = [1, 1.7]`, `adaptRecipe.ts:113`
-> (`kp = Math.max(1.0, kp)`) et `adaptRecipe.ts:148` (`Math.max(target.proteinMeal,
-> baseProtein)`). Glucides et lipides sont à `[0.5, …]` ; la protéine est la seule à ne
-> pas pouvoir descendre. Ce plancher signifie *« ce plat ne servira jamais moins de
-> protéine que ce que l'auteur a tapé »* — sans rapport avec le besoin de la personne. Le
-> garde-fou utile existe déjà et il est relatif à la CIBLE : `protein_floor_tolerance:
-> 0.95`.
->
-> **Mesuré, en ne changeant que la borne basse (aucune recette touchée) :**
->
-> | borne basse protéine | F 55 sèche : pdj / repas / collations | effet global |
-> |---|---|---|
-> | `1.0` — aujourd'hui | 38/78 · 23/170 · **0/66** | — |
-> | `0.75` | 54/78 · 64/170 · **9/66** | gros gains chez les femmes |
-> | `0.5` + les 2 planchers du code relâchés | 55/78 · 91/170 · **18/66** | F 65 maintien : repas 50 → 151 |
->
-> Coût dans les deux cas : les plus gros profils perdent un peu (H 110 masse : repas
-> 85 → 78), et **deux tests délibérés tombent** — `adaptRecipe.test.ts` « plancher
-> recomp ». Ils ne sont pas un obstacle à contourner : ils encodent la promesse de
-> recomposition de Kyroz. **Les relâcher est un arbitrage produit à trancher par le
-> fondateur, pas une correction technique.** Ne pas supprimer ces tests pour faire passer
-> un changement.
->
-> **Découverte annexe, indépendante du plancher** : la cible collation d'une F 55 sèche
-> est de **130 kcal** (la plus basse des 12 profils, la suivante est à 176). La collation
-> la plus légère du catalogue plafonne à **118 kcal**, et **1 seule sur 66** peut passer
-> sous 130. Même avec le plancher supprimé, ce créneau restera étroit : il manque des
-> collations LÉGÈRES (~130 kcal). C'est une commande de rédaction, pas un réglage.
+**Décision du fondateur : borne basse `protein` = 0,5.** Prise sur mesures, pas sur avis.
 
-### 1-bis. Le constat d'origine (diagnostic valide, remède à ignorer)
+**Ce qui a changé — 3 lignes, AUCUNE recette touchée :**
+- `Recette/recettes-kyroz.json` → `config.scaling_factors_by_role.protein` : `[1, 1.7]` → **`[0.5, 1.7]`** ;
+- `lib/adaptRecipe.ts` → le clamp `kp = Math.max(1.0, kp)` suit désormais la config ;
+- `lib/adaptRecipe.ts` → `proteinFloor` = la **cible du repas**, et non plus `max(cible, recette de base)`.
 
-La vague de 113 **ajoute** des recettes servables ; elle ne corrige aucune des existantes. État
-mesuré le 2026-07-30 sur les 12 profils (`npm run mesure:couverture`) :
+Le plancher disait *« ce plat ne servira jamais moins de protéine que ce que l'auteur a
+tapé »* — sans rapport avec le besoin de la personne servie, et posé **trois fois**. Le
+garde-fou utile reste : `protein_floor_tolerance` (0,95), relatif à la **cible**, qui lève
+`protein_below_target`. La borne HAUTE est inchangée (1,7×) : on a ouvert le bas, pas touché
+au haut.
 
-| | Constat |
-|---|---|
-| Collations ne servant **aucun** profil féminin | **48 / 66** |
-| Collations servables à une femme de 55 kg en sèche | **0 / 66** |
-| Collations servables à l'homme médian (80 kg, maintien) | 15 / 66 |
-| Repas complets servables à une femme de 55 kg en sèche | 23 / 170 |
-| Recettes atteignant le seuil R8 de 8/12 | pdj **32/78** · repas **45/170** · collations **0/66** |
+**Résultat mesuré** (`npm run mesure:couverture`), recettes servables :
 
-**La réparation est une transformation NUMÉRIQUE, pas une réécriture éditoriale** — c'est ce qui la
-rend faisable. La cause unique est l'ancre protéine, dont le facteur de scaling minimum est **1,00** :
-la quantité écrite est un plancher définitif. Baisser la `qty` de l'ancre protéine (et monter celle
-du féculent) déplace mécaniquement le score R8, sans toucher au nom, aux instructions ni aux
-ingrédients. Donc : scriptable, mesurable avant/après, et sans risque de créer des doublons —
-la composition ne change pas.
+| profil | petit-déj | repas complet | collations |
+|---|---|---|---|
+| **F 55 sèche** | 38 → **55** | 23 → **91** | **0 → 18** |
+| F 60 maintien | 42 → 50 | 41 → **145** | 2 → 21 |
+| F 65 sèche | 41 → 54 | 48 → 95 | 1 → 23 |
+| F 65 maintien | 40 → 55 | 50 → **151** | 2 → 28 |
+| F 70 masse | 51 → 52 | 119 → 135 | 12 → 19 |
+| F 80 sèche | 38 → 41 | 84 → 97 | 13 → 26 |
+| H 65 sèche | 44 → 45 | 92 → 105 | 14 → 28 |
+| H 70 maintien | 49 → 55 | 128 → 153 | 10 → 25 |
+| H 80 sèche | 38 → 39 | 111 → 112 | 27 → 36 |
+| H 80 maintien | 57 → 58 | 141 → 138 | 15 → 31 |
+| H 95 masse | 37 → 38 | 105 → 97 | 18 → 23 |
+| H 110 masse | 35 → 32 | 85 → 78 | 15 → 21 |
 
-Ordre de marche suggéré : cibler d'abord les collations (le créneau est à 0 pour un profil réel),
-mesurer, puis les repas complets. `macros_per_serving` doit être recalculé à chaque fois, et
-`ENGINE_VERSION` incrémenté (sinon les plans en cache ignorent la correction).
+⚠️ **Le coût, assumé** : les trois plus gros profils perdent un peu de choix (H 110 masse :
+repas 85 → 78, petit-déj 35 → 32). Le moteur dispose de plus de latitude vers le bas et
+n'est plus forcé de remonter les ancres, donc certaines recettes ratent la cible HAUTE.
+Vérifié en revanche sur le plan servi : F 55 sèche **et** H 110 masse atteignent leur cible
+kcal et protéines à **0 % d'écart**.
 
-⚠️ Piège : ne PAS baisser la protéine sur les recettes déjà à 8/12 ou plus — on casserait ce qui
-marche. Mesurer par recette, pas en masse.
+`ENGINE_VERSION` 24 → **25** (sinon les plans en cache continueraient de servir l'ancien
+plancher). Pas de `ENGINE_REV` : les cibles caloriques et macro ne bougent pas, donc aucun
+avertissement utilisateur n'est dû.
+
+**Deux tests ont été RÉÉCRITS, pas supprimés** (`adaptRecipe.test.ts`) : ils encodaient
+l'ancienne règle « jamais sous la recette écrite » et encodent maintenant la nouvelle
+« jamais sous la CIBLE ». Un test de plus vérifie que le haut n'a pas bougé.
+
+### 1-bis. Ce qu'il reste à faire sur le catalogue — une commande de RÉDACTION
+
+Le levier moteur est épuisé. Le créneau qui reste étroit ne se règle pas par un réglage :
+
+**Il manque des collations LÉGÈRES.** La cible collation d'une F 55 sèche est de **130 kcal**
+(la plus basse des 12 profils ; la suivante est à 176). La collation la plus légère du
+catalogue plafonne à **118 kcal**, et **1 seule sur 66** peut passer sous 130. C'est
+pourquoi ce profil reste à 18/66 malgré la réparation.
+
+⛔ **Remède à NE PAS rejouer** : baisser la `qty` de l'ancre dans les recettes. Mesuré et
+jeté le 2026-07-30. `adaptRecipe.ts:46-47` pose `min` ET `max` proportionnels à la quantité
+écrite : baisser la base **rétrécit la plage des deux côtés** au lieu de la décaler. Appliqué
+aux 138 recettes concernées, le plan d'un profil à 240 g de protéines tombait **18,5 % sous
+sa cible** — et le chiffre phare ne bougeait pas (F 55 sèche restait à 0/66).
+
+
+> *Le constat d'origine (2026-07-30, avant réparation) est conservé ici pour mémoire :
+> 48 collations sur 66 ne servaient aucun profil féminin, 0 sur 66 une femme de 55 kg en
+> sèche, et les seuils R8 étaient à pdj 32/78 · repas 45/170 · collations 0/66. La cause
+> identifiée — l'ancre protéine — était la bonne ; le remède alors prescrit (réécrire les
+> `qty` du catalogue) était faux, cf. l'encadré ⛔ ci-dessus.*
 
 ### 2. Vérifier le lot B2 de collations généré par le fondateur
 

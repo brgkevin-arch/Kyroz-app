@@ -110,7 +110,13 @@ export function adaptRecipe(recipe: Recipe, target: AdaptTarget): AdaptResult {
   const baseAnchorProtein = anchors.reduce((s, i) => s + (proteinPer100(i.ref!) * i.quantity_g) / 100, 0);
   const targetAnchorProtein = target.proteinMeal - fixedM.protein_g - baseFillProtein;
   let kp = baseAnchorProtein > 0 ? targetAnchorProtein / baseAnchorProtein : 1;
-  kp = Math.max(1.0, kp);
+  // Borne basse de l'ancre = celle du RÔLE (décision fondateur 2026-07-30, passée de
+  // 1,0 à 0,5). Elle valait 1,0 en dur : la quantité ÉCRITE était un plancher
+  // définitif, donc un plat ne pouvait jamais servir moins de protéine que ce que
+  // l'auteur avait tapé — sans rapport avec le besoin de la personne servie.
+  // Le garde-fou utile reste, et il est relatif à la CIBLE : `protein_floor_tolerance`
+  // lève `protein_below_target` sous 95 % de la cible du repas.
+  kp = Math.max(cfg.scaling_factors_by_role.protein?.[0] ?? 1, kp);
   for (const i of anchors) {
     const b = bounds(i);
     out.set(i, Math.min(Math.max(i.quantity_g * kp, b.min), b.max));
@@ -144,8 +150,11 @@ export function adaptRecipe(recipe: Recipe, target: AdaptTarget): AdaptResult {
   //     été réduit pour viser une cible glucides basse : on substitue alors de la
   //     protéine d'ancre (pauvre en glucides) plutôt que de laisser filer la
   //     protéine du repas. `i.quantity_g` vaut encore la base ici (arrondi en §5).
-  const baseProtein = items.reduce((s, i) => s + (proteinPer100(i.ref!) * i.quantity_g) / 100, 0);
-  const proteinFloor = Math.max(target.proteinMeal, baseProtein);
+  // Plancher de récupération = la CIBLE du repas, et plus `max(cible, recette de base)`
+  // (décision fondateur 2026-07-30). Le terme `baseProtein` remontait les ancres
+  // jusqu'à la quantité écrite même quand la personne avait besoin de moins : c'était
+  // le même plancher que ci-dessus, posé une seconde fois.
+  const proteinFloor = target.proteinMeal;
   const totalProtein = () => items.reduce((s, i) => s + (proteinPer100(i.ref!) * out.get(i)!) / 100, 0);
   if (anchors.length) {
     let need = proteinFloor - totalProtein();
