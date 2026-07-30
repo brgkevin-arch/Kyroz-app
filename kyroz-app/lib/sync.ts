@@ -137,6 +137,10 @@ function profileToRow(p: UserProfile, uid: string): Record<string, any> {
 function rowToProfile(row: any, uid: string): UserProfile {
   const p: Record<string, any> = { id: uid };
   for (const c of PROFILE_COLS) p[c] = row[c];
+  // LU mais jamais poussé : `created_at` appartient au serveur. C'est l'ancre du
+  // grand-père du paywall (lib/premium.ts) — un horodatage local aurait été remis
+  // à zéro par une réinstallation, un drapeau local se serait recopié par la synchro.
+  if (typeof row?.created_at === 'string') p.created_at = row.created_at;
   return p as UserProfile;
 }
 

@@ -268,6 +268,13 @@ export interface UserProfile {
    * Clé en STRING : c'est du jsonb côté Supabase, `JSON.parse` rend des clés string.
    */
   calorie_bank?: Record<string, number>;
+  /**
+   * Date de création du compte, posée par le SERVEUR (profiles.created_at).
+   * LECTURE SEULE — volontairement ABSENTE de PROFILE_COLS : elle appartient à
+   * Postgres, la pousser permettrait de la réécrire. Elle sert d'ancre au
+   * grand-père du paywall (cf. lib/premium.ts), donc elle doit être infalsifiable.
+   */
+  created_at?: string;
   meals: MealType[];            // repas choisis (petit-déj/midi/dîner/collation)
   meal_emphasis: MealEmphasis;  // repas mis en avant (portion plus grosse)
   variety: VarietyPreference;
