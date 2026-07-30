@@ -95,6 +95,31 @@ qu'ils étaient périmés.
   progression). Ne pas retirer ces deux dernières : elles cassent le choix de photo sur
   Android ≤ 12.
 
+- **A3 · 🤖 L'objectif daté annonce une date que le moteur ne tiendra pas, chez la femme.**
+  *Mesuré le 2026-07-31 par simulation semaine par semaine SUR le moteur (suivi parfait) :*
+
+  | cas | date annoncée | date réelle | écart |
+  |---|---|---|---|
+  | H 80 → 74 | J+206 | J+203 | −3 j ✅ |
+  | H 95 → 85 | J+397 | J+392 | −5 j ✅ |
+  | F 65 → 58 | J+189 | J+371 | **+182 j** |
+  | F 80 → 70 | J+263 | J+1295 | **+1032 j** |
+
+  Cause : `datedGoal.ts` projette en divisant par un rythme CONSTANT, alors que le TDEE
+  baisse avec le poids et surtout que l'escalade zone basse démarre à la 13ᵉ semaine —
+  chez la F 80, le déficit servi tombe de **285 à 34 kcal/j entre S13 et S26**. La carte
+  continue d'annoncer comme si de rien n'était. C'est la promesse vendue par Kyroz+.
+  **Correctif : remplacer la division par une simulation semaine par semaine** (les
+  fonctions sont déjà pures, ~60 itérations, < 1 ms). Arbitrage produit à poser avant.
+- **A4 · 🤖 La sortie de zone basse ne se relâche jamais.** Le code affirme que le
+  registre peut se vider, *« sinon elle restait verrouillée à déficit zéro à vie »*.
+  Mesuré sur 130 semaines (F 80, sèche) : il ne se vide pas. L'escalade pose l'énergie
+  disponible à **34,99** — un centième sous le seuil de 35 qui arrêterait le décompte
+  (`safety.ts::countsAsLowEaWeek` compte toute semaine dont le déficit dépasse 1e-6).
+  Le compteur sature à ~46 semaines et n'en redescend plus : déficit bloqué à 34 kcal/j
+  pendant 2,5 ans, soit 8 kg en 130 semaines. **Correctif : une tolérance** (EA < 34,75,
+  ou déficit > ~2 % du TDEE) au lieu d'une comparaison au seuil exact.
+
 ### 🎯 B — Les deux briques Kyroz+ qui restent
 
 La valeur premium est **construite et déployée** (objectif daté). Plus aucune décision
@@ -111,6 +136,15 @@ produit en suspens — il ne reste qu'à coder.
   plancher EA 2165 = cible 2165). Justification dans la doc de `bankFloorKcal`. Reste
   que pour un profil dont la cible EST son BMR (Camille, 55 kg : 1285 = 1285), la
   banque ne peut rien emprunter — c'est correct, et l'écran le dit sans alarmer.
+  ⚠️ **Elle était NEUTRALISÉE en pratique — corrigé le 2026-07-31.** La banque
+  n'était calculée que dans `buildLocalPlan` ; tout le reste lisait la cible PLATE
+  et effaçait l'écart déclaré. Deux chemins le déclenchaient sans action volontaire :
+  `resetTracking` (premier lancement d'un nouveau jour) et `rebalanceDay` (chaque
+  « j'ai mangé » / « sauté »). Mesuré, « mercredi +500 » : après recalage il restait
+  **+61 sur 500**, après reset la banque avait disparu. Correctif = source unique
+  `bankedTargets` / `dayTargetKcal`, utilisée aussi par l'écran Plan (qui affichait
+  le jour « resto » comme un dépassement). 4 tests. **Leçon : une cible du jour ne
+  se recalcule pas à deux endroits.**
 - **B2 · 🤖 Paywall RevenueCat** → dériver `is_premium` et gater objectif daté, banque,
   transformation. Aujourd'hui **tout est gratuit**, le verrou n'est pas posé.
   Tarif retenu : 4,99 €/mois · 39,99 €/an.
@@ -202,6 +236,19 @@ produit en suspens — il ne reste qu'à coder.
   automatique (données OFF = contributions libres, qualité inégale). §2 corrigé et
   documenté : un aliment manquant s'ajoute à `ingredients_reference` avec ses macros
   /100 g, mappé Ciqual si un équivalent propre existe.
+- **E8 · 🤖 « Comment tu veux rentrer dans ta cible ? » promet l'impossible aux petits
+  gabarits.** Écart déclaré le matin → meilleure option proposée, mesuré le 2026-07-31 :
+  `F 55 (cible 1342) : +200→+18 · +300→+63 · +600→+318 · +800→+518` contre
+  `H 80 (cible 2104) : +200→+6 · +300→+21 · +600→+41 · +800→+176`. Chez l'homme le
+  recalage absorbe vraiment ; chez la femme de 55 kg il sature vite — normal, on ne peut
+  pas dé-manger. Mais l'écran (`plan.tsx`, ActionSheet) titre « rentrer dans ta cible »
+  et affiche « ≈ 1 960 » sans dire que c'est au-dessus. **Deux sorties** : reformuler
+  quand aucune option n'atteint la cible, ou — cohérent avec le produit — étaler le
+  reliquat sur la semaine via le mécanisme de la banque. Décision produit.
+- **E9 · 🤖 Un repas sauté peut laisser un trou muet.** Sur 20 combinaisons profil ×
+  repas, 19 tiennent dans ±90 kcal. Une décroche : **H 80, déjeuner sauté → 1890/2104
+  kcal (−214) et 132/149 g de protéines (−17)**, les recettes restantes butant sur leurs
+  bornes de portion. Pas une erreur de calcul ; rien ne le signale à l'écran.
 - **E6 · 🤖 Hors-plan : seules les kcal sont enregistrées**, pas le nom de l'aliment
   (« +450 kcal », pas « une pizza ») → aucun historique d'écarts possible.
 - **E7 · 🤖 Deep links web → HTTP 404** (le rendu est bon, le statut est faux).
