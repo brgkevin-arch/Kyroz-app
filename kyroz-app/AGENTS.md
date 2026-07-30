@@ -46,7 +46,51 @@ parallèle, recréer des worktrees — mais les nettoyer en fin de chantier, pas
 
 ## Chantiers ouverts — par ordre de rentabilité
 
-### 1. RÉPARER le catalogue, pas seulement l'agrandir ⭐ le plus rentable
+### 1. RÉPARER le catalogue ⭐ — ⚠️ LE REMÈDE PRESCRIT CI-DESSOUS EST FAUX (mesuré 2026-07-30)
+
+> **Lire ceci avant d'appliquer quoi que ce soit de la section suivante.** Le diagnostic
+> (« la cause est l'ancre protéine ») est JUSTE. Le remède prescrit (« baisser la `qty` de
+> l'ancre dans les recettes ») est **mesurément FAUX**, et le vrai levier est ailleurs.
+>
+> **Pourquoi le remède échoue.** `adaptRecipe.ts:46-47` : `min = qty_base × facteur[0]` et
+> `max = qty_base × facteur[1]`. Les bornes sont PROPORTIONNELLES à la quantité écrite —
+> baisser la base **rétrécit la plage des deux côtés**, elle ne la décale pas vers le bas.
+> Le haut est donc perdu. Appliqué aux 138 recettes concernées (script écrit, exécuté,
+> puis jeté) : +464 profils servis, mais le plan d'un profil à 240 g de protéines tombe
+> **18,5 % sous sa cible protéique**, et `multiProfile.test.ts` le refuse à juste titre.
+> **Et le chiffre phare ne bouge pas** : F 55 sèche reste à 0/66 collations.
+>
+> **Le vrai levier — une décision PRODUIT, pas une correction.** Le plancher est posé
+> TROIS fois : `config.scaling_factors_by_role.protein = [1, 1.7]`, `adaptRecipe.ts:113`
+> (`kp = Math.max(1.0, kp)`) et `adaptRecipe.ts:148` (`Math.max(target.proteinMeal,
+> baseProtein)`). Glucides et lipides sont à `[0.5, …]` ; la protéine est la seule à ne
+> pas pouvoir descendre. Ce plancher signifie *« ce plat ne servira jamais moins de
+> protéine que ce que l'auteur a tapé »* — sans rapport avec le besoin de la personne. Le
+> garde-fou utile existe déjà et il est relatif à la CIBLE : `protein_floor_tolerance:
+> 0.95`.
+>
+> **Mesuré, en ne changeant que la borne basse (aucune recette touchée) :**
+>
+> | borne basse protéine | F 55 sèche : pdj / repas / collations | effet global |
+> |---|---|---|
+> | `1.0` — aujourd'hui | 38/78 · 23/170 · **0/66** | — |
+> | `0.75` | 54/78 · 64/170 · **9/66** | gros gains chez les femmes |
+> | `0.5` + les 2 planchers du code relâchés | 55/78 · 91/170 · **18/66** | F 65 maintien : repas 50 → 151 |
+>
+> Coût dans les deux cas : les plus gros profils perdent un peu (H 110 masse : repas
+> 85 → 78), et **deux tests délibérés tombent** — `adaptRecipe.test.ts` « plancher
+> recomp ». Ils ne sont pas un obstacle à contourner : ils encodent la promesse de
+> recomposition de Kyroz. **Les relâcher est un arbitrage produit à trancher par le
+> fondateur, pas une correction technique.** Ne pas supprimer ces tests pour faire passer
+> un changement.
+>
+> **Découverte annexe, indépendante du plancher** : la cible collation d'une F 55 sèche
+> est de **130 kcal** (la plus basse des 12 profils, la suivante est à 176). La collation
+> la plus légère du catalogue plafonne à **118 kcal**, et **1 seule sur 66** peut passer
+> sous 130. Même avec le plancher supprimé, ce créneau restera étroit : il manque des
+> collations LÉGÈRES (~130 kcal). C'est une commande de rédaction, pas un réglage.
+
+### 1-bis. Le constat d'origine (diagnostic valide, remède à ignorer)
 
 La vague de 113 **ajoute** des recettes servables ; elle ne corrige aucune des existantes. État
 mesuré le 2026-07-30 sur les 12 profils (`npm run mesure:couverture`) :
