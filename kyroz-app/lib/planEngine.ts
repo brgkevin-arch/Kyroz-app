@@ -4,7 +4,7 @@ import { recipeFiberPerPortion, isFiberFocusGoal } from './fiber';
 import { remainingMeals, MEAL_LABEL } from './mealtime';
 import { adaptRecipe, AdaptTarget, goalToObjectives, sportsToBuckets, needMatch } from './adaptRecipe';
 import { MIN_KCAL, bankFloorKcal } from './tdee';
-import { bankedDailyTargets, offsetsForPlan } from './calorieBank';
+import { bankedDailyTargets, offsetsForPlan, BankResult } from './calorieBank';
 
 // ── Moteur de génération de plan local ──────────────────────────────────────
 // Respecte : nombre de jours, repas/jour, variété, préférences alimentaires.
@@ -576,6 +576,40 @@ function tightenDay(dayMeals: Meal[], budgetKcal: number, budgetProtein: number,
   }
 }
 
+/**
+ * Cibles caloriques du plan APRÈS banque de calories — SOURCE UNIQUE.
+ *
+ * ⚠️ Existe parce que la banque était calculée UNIQUEMENT dans `buildLocalPlan`.
+ * Tout le reste du produit lisait `profile.target_kcal`, la cible PLATE, et
+ * effaçait donc la banque sans le dire. Mesuré (H 80 kg, « samedi +600 ») :
+ *   plan généré      2005 2010 2015 1995 2010 [2690] 2005  → semaine 14 730 (juste)
+ *   après recalage   2105 2105 2110 2100 2140 [2210] 2090  → semaine 14 860
+ * Le samedi ne portait plus que +106 au lieu de +600, et les six jours de
+ * compensation étaient remontés à la cible pleine. Deux chemins déclenchaient ça
+ * en permanence, sans action volontaire de l'utilisateur : `resetTracking` (au
+ * premier lancement d'un nouveau jour) et `rebalanceDay` (à chaque « j'ai mangé »
+ * ou « sauté »). La feature ne fonctionnait donc qu'à l'instant de la génération.
+ *
+ * `days` vient du PLAN et non du profil quand un plan existe : les écarts sont
+ * indexés sur les jours du plan (cf. `offsetsForPlan`), pas sur un réglage qui a
+ * pu changer depuis.
+ */
+export function bankedTargets(profile: UserProfile, days: number): BankResult {
+  return bankedDailyTargets({
+    days,
+    baseTargetKcal: profile.target_kcal,
+    offsets: offsetsForPlan(profile.calorie_bank, profile.plan_weekdays, days),
+    // Même bornage qu'à la génération : la banque ne contraint que la
+    // COMPENSATION (vers le bas), elle ne relève jamais la cible.
+    floorKcal: Math.min(bankFloorKcal(profile), profile.target_kcal),
+  });
+}
+
+/** Cible calorique d'UN jour du plan (1-based), banque comprise. */
+export function dayTargetKcal(profile: UserProfile, days: number, day: number): number {
+  return bankedTargets(profile, days).targets[day - 1] ?? profile.target_kcal;
+}
+
 /** Construit le Meal VERROUILLÉ d'un repas fixe (géré par l'user) pour un jour donné. */
 function fixedMealToMeal(fm: FixedMeal, day: number, mealType: MealType, isRest: boolean): Meal {
   const recipe: Recipe = {
@@ -643,19 +677,13 @@ export function buildLocalPlan(profile: UserProfile, seed: number = 0): MealPlan
   // Sans banque, `targets` vaut la cible normale partout : comportement inchangé.
   // Le plancher de compensation est le plancher PERSONNALISÉ, pas le filet absolu
   // MIN_KCAL — c'est le seul mécanisme qui pousse un jour vers le bas (cf. §6).
-  const bank = bankedDailyTargets({
-    days,
-    baseTargetKcal: profile.target_kcal,
-    offsets: offsetsForPlan(profile.calorie_bank, profile.plan_weekdays, days),
-    // ⚠️ Borné à la cible du profil, et ce n'est pas une précaution cosmétique.
-    // `profile.target_kcal` est DÉJÀ passé par `floorAndFlags` : le plancher y est
-    // appliqué. Le repasser ici sans borne fait REMONTER la cible de tous les jours
-    // dès que le plancher recalculé dépasse la cible enregistrée — mesuré à
-    // +305 kcal/jour sur un profil en sèche SANS banque, ce qui cassait
-    // l'asymétrie A2. La banque ne doit contraindre que la COMPENSATION (vers le
-    // bas), jamais relever la cible de qui n'a rien demandé.
-    floorKcal: Math.min(bankFloorKcal(profile), profile.target_kcal),
-  });
+  // ⚠️ Le plancher passé à la banque est borné à la cible du profil, et ce n'est
+  // pas une précaution cosmétique (cf. `bankedTargets`) : `profile.target_kcal` est
+  // DÉJÀ passé par `floorAndFlags`. Le repasser sans borne fait REMONTER la cible de
+  // tous les jours dès que le plancher recalculé dépasse la cible enregistrée —
+  // mesuré à +305 kcal/jour sur un profil en sèche SANS banque, ce qui cassait
+  // l'asymétrie A2.
+  const bank = bankedTargets(profile, days);
 
   const pools: Record<string, Recipe[]> = {};
   const relaxed: Record<string, boolean> = {};
@@ -926,7 +954,12 @@ function rebalanceCore(
   const extra = plan.day_extras?.[day];
   if (extra) { consumed.kcal += extra.kcal; consumed.protein += extra.protein_g; }
 
-  let remKcal = Math.max(profile.target_kcal - consumed.kcal, 0);
+  // Cible du jour = celle de la BANQUE (= `profile.target_kcal` s'il n'y a pas de
+  // banque). Lire la cible plate ici effaçait l'écart déclaré à chaque recalage —
+  // c'est-à-dire à chaque « j'ai mangé » et à chaque nouveau jour (cf. bankedTargets).
+  // Les PROTÉINES, elles, gardent leur cible pleine : la banque ne les touche jamais.
+  const dayKcalTarget = dayTargetKcal(profile, plan.days, day);
+  let remKcal = Math.max(dayKcalTarget - consumed.kcal, 0);
   let remProt = Math.max(profile.target_protein_g - consumed.protein, 0);
 
   // Cohérence carb-cycling : si le jour est marqué « repos », on recale avec le

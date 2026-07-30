@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach } from 'vitest';
-import { buildLocalPlan, mealPoolSize, computeDailyTotals, profileSignature, swapMeal, computeDistribution, rebalanceDay, adaptDayOptions, effectiveMacros, resetTracking, mealIngredients, reAdaptMealRecipe, restDaySet, restDaysForProfile, goalDirection } from '../planEngine';
+import { buildLocalPlan, mealPoolSize, computeDailyTotals, profileSignature, swapMeal, computeDistribution, rebalanceDay, adaptDayOptions, effectiveMacros, resetTracking, mealIngredients, reAdaptMealRecipe, restDaySet, restDaysForProfile, goalDirection, dayTargetKcal } from '../planEngine';
 import { setRecipeOverrides, RECIPES } from '../recipes';
 import { makeProfile } from './helpers';
 
@@ -617,5 +617,52 @@ describe('banque de calories (Kyroz+) — « resto samedi » à travers le moteu
     const p = makeProfile({ calorie_bank: { '3': 500 } });
     expect(buildLocalPlan(p, 0).meals.map((m) => m.recipe.id))
       .toEqual(buildLocalPlan(p, 0).meals.map((m) => m.recipe.id));
+  });
+});
+
+describe('banque de calories — elle SURVIT au recalage (bug mesuré le 2026-07-31)', () => {
+  // La banque n'était calculée QUE dans buildLocalPlan. Tout le reste lisait la
+  // cible PLATE (`profile.target_kcal`), donc chaque recalage effaçait l'écart
+  // déclaré. Et le recalage n'est pas un geste rare : `resetTracking` part tout
+  // seul au premier lancement d'un nouveau jour, `rebalanceDay` à chaque
+  // « j'ai mangé » / « sauté ». La feature ne vivait qu'à l'instant de la génération.
+  const p = makeProfile({ calorie_bank: { '3': 500 } }); // mercredi = jour 3 du plan
+  const kcal = (plan: ReturnType<typeof buildLocalPlan>) =>
+    plan.total_macros_per_day.map((d) => Math.round(d.kcal));
+
+  it('dayTargetKcal expose la cible DU JOUR, banque comprise', () => {
+    expect(dayTargetKcal(p, 5, 3)).toBeGreaterThan(p.target_kcal + 400); // le jour « resto »
+    expect(dayTargetKcal(p, 5, 1)).toBeLessThan(p.target_kcal);          // un jour qui compense
+    // Sans banque, c'est exactement la cible du profil — aucune régression.
+    expect(dayTargetKcal(makeProfile(), 5, 3)).toBe(makeProfile().target_kcal);
+  });
+
+  it('rebalanceDay ne rabote PAS le jour de l’écart sur la cible plate', () => {
+    const plan = buildLocalPlan(p, 0);
+    const avant = kcal(plan)[2];
+    const apres = kcal(rebalanceDay(p, plan, 3))[2];
+    // Avant le correctif : 2690 → 2210, l'utilisateur perdait 480 des 500 déclarés.
+    expect(Math.abs(apres - avant), `avant=${avant} après=${apres}`).toBeLessThan(80);
+    expect(apres).toBeGreaterThan(p.target_kcal + 400);
+  });
+
+  it('resetTracking (nouveau jour) ne remonte pas les jours de compensation', () => {
+    const plan = buildLocalPlan(p, 0);
+    const avant = kcal(plan);
+    const apres = kcal(resetTracking(p, plan));
+    const somme = (a: number[]) => a.reduce((s, x) => s + x, 0);
+    // La SEMAINE garde son total : c'est tout le contrat de la banque.
+    expect(Math.abs(somme(apres) - somme(avant))).toBeLessThan(0.02 * somme(avant));
+    for (let i = 0; i < avant.length; i++) {
+      expect(Math.abs(apres[i] - avant[i]), `jour ${i + 1}`).toBeLessThan(90);
+    }
+  });
+
+  it('sans banque, recalage et reset restent inchangés (non-régression)', () => {
+    const q = makeProfile();
+    const plan = buildLocalPlan(q, 0);
+    for (const jour of kcal(resetTracking(q, plan))) {
+      expect(Math.abs(jour - q.target_kcal)).toBeLessThan(90);
+    }
   });
 });

@@ -32,7 +32,7 @@ import { useWeightLog } from '../../hooks/useWeightLog';
 import { usePlanCheckin } from '../../hooks/usePlanCheckin';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { generateMealPlan } from '../../lib/generatePlan';
-import { profileSignature, swapMeal, computeDailyTotals, rebalanceDay, resetTracking, adaptDayOptions, AdaptOption, mealIngredients, reAdaptMealRecipe, mealPoolSize } from '../../lib/planEngine';
+import { profileSignature, swapMeal, computeDailyTotals, rebalanceDay, resetTracking, adaptDayOptions, AdaptOption, mealIngredients, reAdaptMealRecipe, mealPoolSize, dayTargetKcal } from '../../lib/planEngine';
 import { DISLIKE_THRESHOLD, dislikeCandidates, applyDislikedIngredient } from '../../lib/dislike';
 import { todayStamp } from '../../lib/weight';
 import { mealFiberFromIngredients, dailyFiberTarget } from '../../lib/fiber';
@@ -449,6 +449,10 @@ export default function PlanScreen() {
 
   const dayMeals = plan?.meals.filter((m) => m.day === selectedDay) ?? [];
   const dayMacros = plan?.total_macros_per_day[selectedDay - 1];
+  // Cible DU JOUR, banque de calories comprise (= la cible du profil s'il n'y a pas
+  // de banque). Avec la cible plate, un jour déclaré « resto +600 » s'affichait comme
+  // 600 kcal de dépassement — alors que c'est exactement ce que l'utilisateur a demandé.
+  const dayTarget = (plan && profile) ? dayTargetKcal(profile, plan.days, selectedDay) : profile?.target_kcal;
   const isRestDay = dayMeals.some((m) => m.rest_day);
   const restDayNums = new Set((plan?.meals ?? []).filter((m) => m.rest_day).map((m) => m.day));
   // Fibres : seuls les repas non sautés comptent (un repas sauté n'est pas mangé).
@@ -614,7 +618,7 @@ export default function PlanScreen() {
                   protein_g={dayMacros.protein_g}
                   carbs_g={dayMacros.carbs_g}
                   fat_g={dayMacros.fat_g}
-                  targetKcal={profile?.target_kcal ?? dayMacros.kcal}
+                  targetKcal={dayTarget ?? dayMacros.kcal}
                   plannedKcal={dayMacros.kcal}
                   consumedKcal={consumedDayKcal}
                 />
