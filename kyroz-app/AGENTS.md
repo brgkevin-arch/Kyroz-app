@@ -91,6 +91,46 @@ ne couvre que les 7 régimes. Décision reportée depuis le 2026-07-29.
 féculent ×8, poulet+riz basmati ×5). Ils se règlent **en écrivant ailleurs**, pas en réécrivant
 l'existant — le cliquet de `doublons.test.ts` les tient à leur niveau actuel.
 
+### 5. DÉCISION PRODUIT EN ATTENTE — l'écrasement des 5 domaines non protégés
+
+Ouverte le 2026-07-30, explicitement mise hors périmètre du chantier `sync.ts` par le
+fondateur : **c'est une décision produit, pas un bug à corriger au passage.**
+
+À l'hydratation, seul le **profil** est protégé (drapeau « sale »). Les cinq autres — série,
+favoris, garde-manger, **poids**, recettes perso — sont écrasés par le cloud dès qu'il a une
+ligne NON VIDE. Un cloud vide, lui, n'efface jamais rien : l'exposition réelle n'est pas la
+réinstallation, c'est le **multi-appareils** (le second à se connecter perd ses données).
+
+Le cas le plus discutable est le **journal de poids** : remplacement en bloc, sans
+déduplication par date, alors que `low_ea_weeks` — donnée cumulative de même nature — est
+fusionnée par UNION (`syncGuard::reconcileCloudLowEaWeeks`). C'est l'asymétrie qui est
+douteuse, pas l'écrasement en soi. Tout est décrit et testé dans `lib/__tests__/sync.test.ts`
+(marqueurs `// SUSPECT:`) : la décision peut être prise sur des faits.
+
+## État de `lib/sync.ts` — sous filet depuis le 2026-07-30
+
+Le module qui peut faire perdre des données à un utilisateur avait **0 test** sur 259 lignes.
+
+- **`lib/__tests__/profileCols.test.ts`** — VERROU : `PROFILE_COLS` comparé au schéma SQL réel
+  du dépôt. Toute colonne ajoutée au schéma fait échouer la suite jusqu'à ce que quelqu'un
+  tranche entre « synchronisée » et « exclue, pour telle raison ». Ferme le mode de panne
+  « migration non jouée → synchro morte en silence », survenu **trois fois**. Verrou explicite
+  sur `consent_health_data`/`consent_at` (portée juridique, cf. `CLAUDE.md` §7).
+- **`lib/__tests__/sync.test.ts`** — 47 tests de CARACTÉRISATION. Décrivent l'existant, y
+  compris ce qui est douteux (6 marqueurs `// SUSPECT:`). ⚠️ Un test d'ici qui rougit n'est pas
+  forcément une régression : lire le `// SUSPECT:`.
+- **`lib/__tests__/syncSignal.test.ts`** — 29 tests : l'échec est-il audible, et le flux de
+  contrôle est-il resté identique.
+- **Le signal** (`sync.ts::warnSyncFailure`) : les échecs de push étaient totalement muets
+  (aucun `console` dans le dépôt). Ils nomment maintenant le domaine, et **isolent** le cas
+  « colonne inconnue côté serveur » (`PGRST204`/`42703`) des autres erreurs — il signifie
+  « migration non jouée en production », pas « hoquet réseau ». Best-effort inchangé : aucune
+  valeur de retour ni flux modifié, aucun retry ajouté. Chemin normal = **silence**.
+
+Restent NON traités, par décision : l'écrasement des 5 domaines (chantier 5 ci-dessus), la
+fenêtre delete-puis-insert des favoris, et l'interruption silencieuse de `deleteCloudData`
+(désormais journalisée, mais toujours sans reprise).
+
 ## Setup & déploiement
 - Expo Router (file-based), SDK 56, TS strict. Lancer : `npm run web` (8081) / `npm run ios`. Tests : `npm test` (vitest). Preview agent : port **8090** (pas 8081, occupé par le fondateur).
 - **En ligne** : web sur GitHub Pages → https://brgkevin-arch.github.io/Kyroz-app/ (repo public `brgkevin-arch/Kyroz-app`, auto-deploy `deploy.yml` à chaque push `main`). Le fondateur publie via **GitHub Desktop** (Commit→Push), pas le terminal.
