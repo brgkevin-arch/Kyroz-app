@@ -1,6 +1,8 @@
 import { EngineNotice, Goal, NeatLevel, PlanFlag, Sex, SportSession, UserProfile } from './types';
 import { exerciseKcalPerDay, totalSessionsPerWeek } from './sport';
-import { datedGoalStatus, goalDirectionMismatch, MAX_DEFICIT_TDEE_RATIO } from './datedGoal';
+import {
+  datedGoalStatus, goalDirectionMismatch, MAX_DEFICIT_TDEE_RATIO, WeekPoint, WeeklyProjector,
+} from './datedGoal';
 import { todayStamp } from './weight';
 import {
   BodyInput, MIN_AGE, MIN_KCAL, EA_OPTIMAL, LOW_EA_BUDGET_WEEKS, countsAsLowEaWeek,
@@ -533,6 +535,57 @@ export function macrosPercent(
   return { target_kcal, protein_g, carbs_g, fat_g, floor_kcal, flags };
 }
 
+// ── Projecteur de trajectoire (alimente la date de l'objectif daté) ──────────
+
+/**
+ * Cible SERVIE par le moteur pour un corps donné, à une date donnée — sans les
+ * macros. C'est le strict sous-ensemble « calories » de `computePlan`, et il suit
+ * exactement le même chemin : mêmes formules, même plancher, même arbitrage entre
+ * delta daté et delta d'objectif. Un test verrouille l'égalité avec `computePlan`
+ * sur le poids du jour, pour que les deux ne puissent pas diverger en silence.
+ *
+ * Sert à SIMULER l'avenir, semaine par semaine : c'est ce qui permet à l'objectif
+ * daté d'annoncer la date que le moteur tiendra réellement, au lieu d'extrapoler la
+ * pente du premier jour (cf. `datedGoal.weeksToTargetSimulated`).
+ */
+function servedTargetAt(
+  p: UserProfile, weightKg: number, stamp: string, lowEaWeeks: number,
+): WeekPoint {
+  const body: UserProfile = { ...p, weight_kg: weightKg };
+  const tdee = calculateTDEE(body);
+  const sportKcalPerDay = exerciseKcalPerDay(p.sports, weightKg);
+  const bmr = calculateBMR(body.sex, weightKg, body.height_cm, body.age, body.body_fat_pct);
+  const baseFloor = safetyFloorKcal(body, bmr, sportKcalPerDay, lowEaWeeks, tdee);
+
+  // `project: null` → aucune récursion : c'est la présence d'un projecteur qui
+  // déclenche la simulation, et on n'en passe pas ici.
+  const dated = datedGoalStatus(
+    p.goal_target, body, stamp, tdee, p.macro_mode === 'manual' ? null : baseFloor, null,
+  );
+  const kcalDelta = dated?.active ? dated.dailyKcalDelta : GOAL_CONFIG[p.goal].kcalDelta;
+
+  // En mode `manual`, la cible vient des GRAMMES saisis, pas de `tdee + delta`
+  // (cf. computePlan). Le plancher s'y applique de la même façon.
+  const requested = p.macro_mode === 'manual'
+    ? kcalFromMacros(p.target_protein_g, p.target_carbs_g, p.target_fat_g)
+    : tdee + kcalDelta;
+
+  const { target_kcal } = floorAndFlags(body, tdee, requested, { sportKcalPerDay, lowEaWeeks });
+  return { tdeeKcal: tdee, targetKcal: target_kcal, sportKcalPerDay };
+}
+
+/**
+ * Projecteur à injecter dans `datedGoalStatus` pour obtenir une date HONNÊTE.
+ *
+ * Tout écran qui affiche une date d'atteinte doit le passer. Sans lui, la date est
+ * une extrapolation linéaire de la pente du jour — fausse de 182 à 1032 jours chez
+ * la femme en sèche (mesuré le 2026-07-31), parce que ni la baisse du TDEE avec le
+ * poids ni l'escalade de zone basse n'y figurent.
+ */
+export function makeWeeklyProjector(p: UserProfile): WeeklyProjector {
+  return (weightKg, stamp, lowEaWeeks) => servedTargetAt(p, weightKg, stamp, lowEaWeeks);
+}
+
 // ── Révision du moteur et avertissement one-shot ─────────────────────────────
 //
 // Une correction du moteur déplace la cible de gens qui n'ont rien demandé. C'est
@@ -623,8 +676,12 @@ export function computePlan(p: UserProfile, today: string = todayStamp()): Compu
   //
   // `null` en mode `manual` : la cible y vient des grammes saisis, pas de
   // `tdee + delta` — la correction de plancher y donnerait le signe inverse.
+  // `project: null` : `computePlan` n'a besoin QUE du delta calorique. Simuler
+  // 260 semaines à chaque recalcul (donc à chaque ouverture d'écran) serait payer
+  // une projection que personne ne lit ici — les écrans qui affichent une date
+  // appellent `datedGoalStatus` eux-mêmes, avec `makeWeeklyProjector`.
   const datedStatus = datedGoalStatus(
-    p.goal_target, p, today, tdee, p.macro_mode === 'manual' ? null : baseFloor,
+    p.goal_target, p, today, tdee, p.macro_mode === 'manual' ? null : baseFloor, null,
   );
   const datedDelta = datedStatus?.active ? datedStatus.dailyKcalDelta : undefined;
   const kcalDelta = datedDelta ?? GOAL_CONFIG[p.goal].kcalDelta;

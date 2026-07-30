@@ -95,22 +95,23 @@ qu'ils étaient périmés.
   progression). Ne pas retirer ces deux dernières : elles cassent le choix de photo sur
   Android ≤ 12.
 
-- **A3 · 🤖 L'objectif daté annonce une date que le moteur ne tiendra pas, chez la femme.**
-  *Mesuré le 2026-07-31 par simulation semaine par semaine SUR le moteur (suivi parfait) :*
-
-  | cas | date annoncée | date réelle | écart |
-  |---|---|---|---|
-  | H 80 → 74 | J+206 | J+203 | −3 j ✅ |
-  | H 95 → 85 | J+397 | J+392 | −5 j ✅ |
-  | F 65 → 58 | J+189 | J+371 | **+182 j** |
-  | F 80 → 70 | J+263 | J+1295 | **+1032 j** |
-
-  Cause : `datedGoal.ts` projette en divisant par un rythme CONSTANT, alors que le TDEE
-  baisse avec le poids et surtout que l'escalade zone basse démarre à la 13ᵉ semaine —
-  chez la F 80, le déficit servi tombe de **285 à 34 kcal/j entre S13 et S26**. La carte
-  continue d'annoncer comme si de rien n'était. C'est la promesse vendue par Kyroz+.
-  **Correctif : remplacer la division par une simulation semaine par semaine** (les
-  fonctions sont déjà pures, ~60 itérations, < 1 ms). Arbitrage produit à poser avant.
+- ~~**A3 · L'objectif daté annonce une date que le moteur ne tiendra pas**~~ ✅ **CORRIGÉ
+  le 2026-07-31** — *« pas de mensonge dans Kyroz » (fondateur).* La projection
+  divisait l'écart par le rythme du PREMIER JOUR, en ignorant deux mécanismes
+  garantis : la baisse du TDEE avec le poids, et l'escalade de zone basse (13ᵉ
+  semaine, femme non ménopausée). Mesuré en suivi parfait — annoncé vs réel :
+  H 80→74 J+206/J+203 · H 95→85 J+397/J+392 · **F 65→58 J+189/J+371 (+182 j)** ·
+  **F 80→70 J+263/J+1295 (+1032 j, 2027 annoncé pour 2030 réel)**.
+  Elle SIMULE désormais semaine par semaine, en rejouant le moteur
+  (`datedGoal.weeksToTargetSimulated` + `tdee.makeWeeklyProjector`, injecté pour
+  éviter le cycle d'imports). Après : **−1 à −7 jours** contre une simulation de
+  référence écrite séparément, sur des horizons de 71 à 1239 jours.
+  ⚠️ Le vrai piège corrigé au passage : `reachableByDate` se contentait de
+  « rien n'est bridé AUJOURD'HUI ⇒ la date tient ». L'escalade ne mordant qu'à la
+  13ᵉ semaine, c'était précisément le mensonge. **DISPLAY-ONLY** : aucune calorie
+  servie ne bouge, donc pas de bump d'`ENGINE_REV`. 9 tests.
+  ⚠️ **Non vérifié à l'écran** : la carte exige une session connectée + un objectif
+  daté ; validé par tests, typage et mesure, pas par un rendu.
 - **A4 · 🤖 La sortie de zone basse ne se relâche jamais.** Le code affirme que le
   registre peut se vider, *« sinon elle restait verrouillée à déficit zéro à vie »*.
   Mesuré sur 130 semaines (F 80, sèche) : il ne se vide pas. L'escalade pose l'énergie

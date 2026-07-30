@@ -37,8 +37,8 @@ describe('P1.6 — projection au rythme servi, pas au rythme demandé', () => {
     const tdee = computePlan({ ...sedentary, goal_target: gt }, TODAY).profile.tdee_kcal;
     const floor = planFloorKcal({ ...sedentary, goal_target: gt }, TODAY);
 
-    const sansPlancher = datedGoalStatus(gt, sedentary, TODAY, tdee, null)!;
-    const avecPlancher = datedGoalStatus(gt, sedentary, TODAY, tdee, floor)!;
+    const sansPlancher = datedGoalStatus(gt, sedentary, TODAY, tdee, null, null)!;
+    const avecPlancher = datedGoalStatus(gt, sedentary, TODAY, tdee, floor, null)!;
 
     // Le plancher mord : le déficit servi est plus petit que le déficit demandé.
     expect(avecPlancher.floorCapped).toBe(true);
@@ -65,7 +65,7 @@ describe('P1.6 — projection au rythme servi, pas au rythme demandé', () => {
       training_days_per_week: 0, sports: [], macro_mode: 'auto',
     });
     // Sous IMC 18,5 → pilotage suspendu (P0.6), donc aucune projection.
-    const s = datedGoalStatus(dated(45, 10, 56), atFloor, TODAY, 1487, 1487)!;
+    const s = datedGoalStatus(dated(45, 10, 56), atFloor, TODAY, 1487, 1487, null)!;
     expect(s.underweightBlocked).toBe(true);
     expect(s.projectable).toBe(false);
     expect(s.reachableByDate).toBe(false);
@@ -75,7 +75,7 @@ describe('P1.6 — projection au rythme servi, pas au rythme demandé', () => {
     // Plancher > TDEE (BMR mal estimé, filet absolu sur un très petit gabarit) :
     // le plan prescrit un SURPLUS à quelqu'un qui veut perdre. `diff / applied`
     // redevient positif et la date paraissait parfaitement crédible.
-    const s = datedGoalStatus(dated(80, 12), sedentary, TODAY, 2200, 2600)!;
+    const s = datedGoalStatus(dated(80, 12), sedentary, TODAY, 2200, 2600, null)!;
     expect(s.floorCapped).toBe(true);
     expect(s.safeWeeklyKg).toBeGreaterThan(0);   // on prend du poids…
     expect(s.projectable).toBe(false);           // …donc aucune date vers 80 kg
@@ -84,7 +84,7 @@ describe('P1.6 — projection au rythme servi, pas au rythme demandé', () => {
 
   it('GARDE 3 — un rythme minuscule ne projette pas une date en 2048', () => {
     // Déficit servi de ~7 kcal/j → 0,006 kg/semaine : positif, fini, et absurde.
-    const s = datedGoalStatus(dated(80, 12), sedentary, TODAY, 2200, 2193)!;
+    const s = datedGoalStatus(dated(80, 12), sedentary, TODAY, 2200, 2193, null)!;
     expect(s.floorCapped).toBe(true);
     expect(s.projectable).toBe(false);
     expect(MAX_PROJECTION_WEEKS).toBe(260); // 5 ans
@@ -107,7 +107,7 @@ describe('P1.6 — projection au rythme servi, pas au rythme demandé', () => {
     const gt = dated(88, 12); // objectif doux, largement au-dessus du plancher
     const tdee = computePlan({ ...sedentary, goal_target: gt }, TODAY).profile.tdee_kcal;
     const floor = planFloorKcal({ ...sedentary, goal_target: gt }, TODAY);
-    const s = datedGoalStatus(gt, sedentary, TODAY, tdee, floor)!;
+    const s = datedGoalStatus(gt, sedentary, TODAY, tdee, floor, null)!;
     if (!s.floorCapped) {
       expect(s.reachableByDate).toBe(true);
       expect(s.projectable).toBe(true);
@@ -117,7 +117,7 @@ describe('P1.6 — projection au rythme servi, pas au rythme demandé', () => {
   it('reste robuste à un TDEE inexploitable (0, NaN, négatif)', () => {
     const gt = dated(83.7, 12);
     for (const bad of [0, NaN, -100]) {
-      const s = datedGoalStatus(gt, sedentary, TODAY, bad, 1800)!;
+      const s = datedGoalStatus(gt, sedentary, TODAY, bad, 1800, null)!;
       expect(Number.isFinite(s.dailyKcalDelta), String(bad)).toBe(true);
       expect(s.floorCapped, String(bad)).toBe(false); // pas de TDEE → pas de correction
     }
