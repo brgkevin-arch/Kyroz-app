@@ -5,8 +5,14 @@ node_modules/
 # Config Claude Code locale (par machine, chemins absolus, ne doit pas être versionnée)
 .claude/settings.local.json
 
-# Fichiers Ciqual (ANSES) déposés à la racine — gardés en local, hors git
+# Source brute Ciqual (ANSES) — 78 Mo, gardée en LOCAL, hors git.
+# Elle était committée dans docs/dataverse_files/ alors que kyroz-app/.gitignore
+# l'excluait déjà sous Data/Ciqual/ : deux copies sur le disque, une seule utile.
+# Ce qui est versionné, c'est le RÉSULTAT de la conversion (lib/foods.generated.ts),
+# régénérable par kyroz-app/scripts/convert-ciqual.py.
 /Table Ciqual*
+docs/Table Ciqual*
+docs/dataverse_files/
 
 # Index graphify généré (régénérable via `graphify update .`) — local, hors git
 graphify-out/

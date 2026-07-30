@@ -1086,7 +1086,12 @@ Reprise fidèle de `kyroz-app/Recette/README.md`. À exécuter dans cet ordre, b
 | 7 | Incrémenter `ENGINE_VERSION` (+1), sinon les plans en cache ignorent les nouvelles recettes | `lib/planEngine.ts` |
 | 8 | `npm test` | — |
 | 9 | `npx tsc --noEmit` | — |
-| 10 | `npx tsx scripts/gen-validation-recettes.ts` → régénère le dossier diététicienne | `VALIDATION-RECETTES.md` |
+| 10 | `npm run mesure:couverture` + `npm run check:doublons` → contrôle du catalogue | — |
+
+> L'étape 10 était « régénérer le dossier diététicienne ». Supprimée le 2026-07-30 :
+> la validation diététicienne est écartée (`CLAUDE.md` §6), le script `gen-validation-recettes.ts`
+> et l'entrée `gen:validation` n'existent plus, et le dossier est figé dans
+> `docs/archive/2026-07-29-validation-recettes.md`.
 
 Comptes attendus après merge complet : **427 recettes** — 98 petits-déjeuners, 79 collations,
 250 repas complets.
