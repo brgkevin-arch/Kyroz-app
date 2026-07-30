@@ -82,7 +82,7 @@ de ton profil : objectif (sèche, maintien, prise de masse), sport, préférence
 régime. Pas de blabla : un plan crédible dès le premier jour.
 
 • Plan 7 jours généré automatiquement, ajusté à tes calories et tes protéines
-• 264 recettes, adaptées à ton régime (végétarien, vegan, sans gluten, sans
+• 314 recettes, adaptées à ton régime (végétarien, vegan, sans gluten, sans
   lactose, sans porc, halal, pescétarien)
 • Quantités ajustées automatiquement pour tomber sur tes macros
 • Liste de courses (qui déduit ce que tu as déjà) + garde-manger
