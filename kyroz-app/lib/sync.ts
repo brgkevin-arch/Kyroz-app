@@ -136,6 +136,31 @@ function rowToProfile(row: any, uid: string): UserProfile {
   return p as UserProfile;
 }
 
+/**
+ * Champs du profil LOCAL qui ne correspondent à aucune colonne synchronisée.
+ *
+ * `rowToProfile` reconstruit le profil à partir des seules `PROFILE_COLS`, donc tout
+ * champ local-only disparaissait à chaque `pull_cloud` — silencieusement, et sans le
+ * réconciliateur dont bénéficient `sports`, `neat_level` et `low_ea_weeks`.
+ *
+ * Le cas réel est `is_post_menopausal` : LOCAL-ONLY par décision (2026-07-28), il pilote
+ * le plancher d'énergie disponible des femmes non ménopausées
+ * (`safety.ts::isFemaleAtRisk`). Le perdre RELÂCHE une protection de sécurité. Il est
+ * inerte tant que l'onboarding ne pose pas la question — il cessera de l'être.
+ *
+ * Un champ local-only ne peut par définition pas être contredit par le cloud : le
+ * conserver ne peut donc jamais écraser une valeur distante plus fraîche.
+ */
+function localOnlyProfileFields(local: UserProfile | null): Record<string, unknown> {
+  if (!local) return {};
+  const synchronises = new Set<string>([...PROFILE_COLS, 'id']);
+  const restants: Record<string, unknown> = {};
+  for (const [cle, valeur] of Object.entries(local)) {
+    if (!synchronises.has(cle)) restants[cle] = valeur;
+  }
+  return restants;
+}
+
 async function currentUserId(): Promise<string | null> {
   const { data } = await supabase.auth.getSession();
   return data.session?.user?.id ?? null;
@@ -201,21 +226,32 @@ export async function pushProfile(p: UserProfile): Promise<boolean> {
       );
       return false;
     }
-    await clearProfileDirty();
     // Le retry a réussi, donc l'écriture a été PARTIELLE : les colonnes ci-dessous ne
-    // sont jamais arrivées au serveur, et le profil vient d'être déclaré « propre »,
-    // ce qui lui retire sa protection anti-écrasement à la prochaine hydratation.
-    // `neat_level` est repêché par syncGuard::reconcileCloudNeat ; `engine_rev` et
-    // `engine_notice` n'ont AUCUN réconciliateur et retombent à « legacy ».
-    // On ne répare pas, on cesse de le taire.
+    // sont jamais arrivées au serveur.
+    //
+    // Le profil reste donc « à pousser » (2026-07-30). Il était auparavant déclaré
+    // « propre » ici, ce qui lui retirait sa protection anti-écrasement : à
+    // l'hydratation suivante, `decideProfileHydration` renvoyait `pull_cloud` et la
+    // ligne cloud INCOMPLÈTE revenait écraser le local. `neat_level` était repêché par
+    // `reconcileCloudNeat`, mais `engine_rev` et `engine_notice` n'ont aucun
+    // réconciliateur : la révision du moteur retombait silencieusement à « legacy ».
+    //
+    // Le garder sale a exactement l'effet voulu : le local (complet) gagne à
+    // l'hydratation, et le push se retentera à chaque enregistrement — jusqu'à ce que
+    // la migration soit jouée, moment où il passera enfin en entier.
+    //
+    // On renvoie `false` : le contrat de cette fonction est « true SEULEMENT si le
+    // cloud a réellement accepté l'écriture ». Une écriture amputée de trois colonnes
+    // ne l'a pas été. (Aucun appelant ne lit ce retour — vérifié — donc le changement
+    // se limite à rendre la valeur honnête.)
     try {
       console.warn(
         `${LOG_PREFIX} profil synchronisé PARTIELLEMENT — colonnes NON écrites : ` +
-          `${PROFILE_COLS_LAST_MIGRATION.join(', ')}. Le profil est marqué « propre » ` +
-          'alors que ces champs manquent au serveur : jouer la migration en production.',
+          `${PROFILE_COLS_LAST_MIGRATION.join(', ')}. Le profil reste marqué « à pousser » ` +
+          '(donc protégé de l\'écrasement cloud) : jouer la migration en production.',
       );
     } catch {}
-    return true;
+    return false;
   } catch (e) {
     warnSyncFailure('profil (exception)', e, 'Le profil reste marqué « à pousser ».');
     return false;
@@ -239,25 +275,48 @@ export async function pushStreak(s: Streak): Promise<void> {
   } catch (e) { warnSyncFailure('série (exception)', e); }
 }
 
+/**
+ * Favoris : ÉCRIRE D'ABORD, RETIRER ENSUITE (2026-07-30).
+ *
+ * L'ordre inverse — `delete` puis `insert`, sans transaction — ouvrait une fenêtre de
+ * PERTE : un insert en échec après un delete réussi laissait les favoris du cloud
+ * effacés, et son résultat n'était même pas lu.
+ *
+ * Ici la liste cloud n'est JAMAIS vide à un instant donné : l'`upsert` (la table a pour
+ * clé primaire `(user_id, recipe_id)`, donc pas de migration nécessaire) ajoute les
+ * favoris courants, puis le `delete` ne retire que ceux qui n'y sont plus. Si cette
+ * seconde étape échoue, le pire est un favori en TROP — visible, corrigeable d'un tap —
+ * là où l'ancien ordre pouvait vider la liste.
+ */
 export async function pushFavorites(ids: string[]): Promise<void> {
   const uid = await currentUserId(); if (!uid) return;
-  // ⚠️ `delete` puis `insert` SANS transaction. Si l'insert échoue après un delete
-  // réussi, les favoris du cloud sont effacés et rien ne les restaure dans la foulée.
-  // On ne corrige pas la fenêtre ici (pas de retry, pas de transaction : hors
-  // périmètre) — on la rend visible, parce que le résultat de l'insert n'était même
-  // pas lu. Atténuation réelle : le LOCAL est intact, donc la prochaine hydratation
-  // trouvera un cloud vide et repoussera la liste locale.
-  const perte = '⚠️ PERTE CÔTÉ CLOUD : les favoris ont été supprimés puis NON réinsérés (pas de transaction). Le local est intact ; la prochaine connexion les repoussera.';
   try {
-    const del = await supabase.from('favorites').delete().eq('user_id', uid);
-    if (del.error) warnSyncFailure('favoris (suppression préalable)', del.error);
-    if (ids.length) {
-      const ins = await supabase
-        .from('favorites')
-        .insert(ids.map((recipe_id) => ({ user_id: uid, recipe_id })));
-      if (ins.error) warnSyncFailure('favoris (réinsertion)', ins.error, perte);
+    if (!ids.length) {
+      // Aucun favori : le vidage complet est ici la sémantique voulue, pas un accident.
+      const vide = await supabase.from('favorites').delete().eq('user_id', uid);
+      if (vide.error) warnSyncFailure('favoris (vidage)', vide.error);
+      return;
     }
-  } catch (e) { warnSyncFailure('favoris (exception)', e, perte); }
+    const up = await supabase
+      .from('favorites')
+      .upsert(ids.map((recipe_id) => ({ user_id: uid, recipe_id })));
+    if (up.error) {
+      // On s'arrête là : retirer sans avoir réussi à écrire recréerait exactement la
+      // fenêtre qu'on vient de fermer.
+      warnSyncFailure('favoris (écriture)', up.error, 'Aucun retrait tenté : le cloud garde son état précédent, rien n\'est perdu.');
+      return;
+    }
+    // Les identifiants viennent de notre propre catalogue (`lib/recipeMap.ts`), donc
+    // alphanumériques. Un identifiant exotique ferait échouer ce filtre → journalisé,
+    // et le pire reste un favori obsolète au cloud.
+    const liste = `(${ids.map((i) => `"${i}"`).join(',')})`;
+    const del = await supabase.from('favorites').delete().eq('user_id', uid).not('recipe_id', 'in', liste);
+    if (del.error) {
+      warnSyncFailure('favoris (retrait des anciens)', del.error, 'Conséquence bornée : un favori retiré peut rester au cloud. Aucune perte.');
+    }
+  } catch (e) {
+    warnSyncFailure('favoris (exception)', e, 'Conséquence bornée : le cloud garde son état précédent ou un favori en trop. Aucune perte.');
+  }
 }
 
 export async function pushPantry(items: PantryItem[]): Promise<void> {
@@ -306,7 +365,13 @@ export async function hydrateFromCloud(uid: string): Promise<void> {
         reconcileCloudLowEaWeeks(reconcileCloudSports(rowToProfile(row, uid), local), local),
         local,
       );
-      await AsyncStorage.setItem(PROFILE_KEY, JSON.stringify(normalizeGoal(normalizeProfileActivity(cloud))));
+      // Les champs local-only d'abord, la ligne cloud PAR-DESSUS : le cloud reste
+      // maître de tout ce qu'il connaît, et seuls les champs qu'il ne porte pas
+      // survivent (cf. localOnlyProfileFields).
+      await AsyncStorage.setItem(PROFILE_KEY, JSON.stringify({
+        ...localOnlyProfileFields(local),
+        ...normalizeGoal(normalizeProfileActivity(cloud)),
+      }));
     } else if (local && (action === 'keep_local' || action === 'push_local')) {
       await pushProfile(local); // (re)pousse le local ; lève le flag si succès
     }
@@ -429,26 +494,47 @@ export async function deleteAccount(): Promise<{ error?: string }> {
 const RGPD_WARN =
   '⚠️ RGPD : des données de SANTÉ peuvent SUBSISTER au serveur. L\'effacement demandé par l\'utilisateur n\'est PAS complet.';
 
+/**
+ * Ordre d'effacement : `profiles` en DERNIER — c'est la ligne qui porte l'identité, et
+ * la garder jusqu'au bout laisse une trace exploitable si une table intermédiaire
+ * résiste.
+ */
+const CLOUD_TABLES: ReadonlyArray<readonly [table: string, col: string]> = [
+  ['favorites', 'user_id'],
+  ['pantry', 'user_id'],
+  ['weight_logs', 'user_id'],
+  ['recipe_overrides', 'user_id'],
+  ['streaks', 'user_id'],
+  ['profiles', 'id'],
+] as const;
+
+/**
+ * Effacement des données serveur — repli du droit à l'effacement RGPD.
+ *
+ * Chaque table a désormais SON try/catch : un échec sur l'une n'empêche plus les
+ * suivantes d'être tentées (2026-07-30). Avant, une exception au 3ᵉ effacement laissait
+ * les 3 derniers NON tentés, et la fonction renvoyait normalement — l'appelant croyait
+ * l'effacement fait. Effacer 5 tables sur 6 vaut mieux que 2, et le récapitulatif final
+ * nomme précisément ce qui a résisté.
+ */
 export async function deleteCloudData(): Promise<void> {
   const uid = await currentUserId(); if (!uid) return;
-  try {
-    const fav = await supabase.from('favorites').delete().eq('user_id', uid);
-    if (fav.error) warnSyncFailure('effacement favorites', fav.error, RGPD_WARN);
-    const pan = await supabase.from('pantry').delete().eq('user_id', uid);
-    if (pan.error) warnSyncFailure('effacement pantry', pan.error, RGPD_WARN);
-    const wei = await supabase.from('weight_logs').delete().eq('user_id', uid);
-    if (wei.error) warnSyncFailure('effacement weight_logs', wei.error, RGPD_WARN);
-    const ovr = await supabase.from('recipe_overrides').delete().eq('user_id', uid);
-    if (ovr.error) warnSyncFailure('effacement recipe_overrides', ovr.error, RGPD_WARN);
-    const str = await supabase.from('streaks').delete().eq('user_id', uid);
-    if (str.error) warnSyncFailure('effacement streaks', str.error, RGPD_WARN);
-    const pro = await supabase.from('profiles').delete().eq('id', uid);
-    if (pro.error) warnSyncFailure('effacement profiles', pro.error, RGPD_WARN);
-  } catch (e) {
-    warnSyncFailure(
-      'effacement des données cloud (exception)',
-      e,
-      `Séquence INTERROMPUE : les tables suivant celle en échec n'ont PAS été tentées. ${RGPD_WARN}`,
-    );
+  const echecs: string[] = [];
+  for (const [table, col] of CLOUD_TABLES) {
+    try {
+      const { error } = await supabase.from(table).delete().eq(col, uid);
+      if (error) { echecs.push(table); warnSyncFailure(`effacement ${table}`, error, RGPD_WARN); }
+    } catch (e) {
+      echecs.push(table);
+      warnSyncFailure(`effacement ${table} (exception)`, e, RGPD_WARN);
+    }
+  }
+  if (echecs.length) {
+    try {
+      console.warn(
+        `${LOG_PREFIX} effacement RGPD INCOMPLET — ${echecs.length}/${CLOUD_TABLES.length} ` +
+          `table(s) ont résisté : ${echecs.join(', ')}. Les autres ont bien été effacées. ${RGPD_WARN}`,
+      );
+    } catch {}
   }
 }

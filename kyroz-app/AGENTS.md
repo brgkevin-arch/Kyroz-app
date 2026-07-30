@@ -146,9 +146,18 @@ Le module qui peut faire perdre des données à un utilisateur avait **0 test** 
   « migration non jouée en production », pas « hoquet réseau ». Best-effort inchangé : aucune
   valeur de retour ni flux modifié, aucun retry ajouté. Chemin normal = **silence**.
 
-Restent NON traités, par décision : l'écrasement des 5 domaines (chantier 5 ci-dessus), la
-fenêtre delete-puis-insert des favoris, et l'interruption silencieuse de `deleteCloudData`
-(désormais journalisée, mais toujours sans reprise).
+**Les 6 `// SUSPECT:` de la caractérisation sont tous RÉSOLUS (2026-07-30)** et leurs tests
+sont devenus des non-régressions. Les trois derniers, corrigés après les fusions :
+
+| Défaut | Correctif |
+|---|---|
+| `pushFavorites` : `delete` puis `insert` = fenêtre de perte si l'insert échoue | **Ordre inversé** : `upsert` (clé primaire `(user_id, recipe_id)`, aucune migration) puis `delete` de ce qui n'est plus favori. La liste cloud n'est jamais vide ; un échec ne coûte au pire qu'un favori en trop |
+| `deleteCloudData` : un échec laissait les tables suivantes NON tentées | **Un try/catch par table** : les 6 sont toujours tentées, et un récapitulatif nomme celles qui ont résisté (`n/6`) |
+| `pull_cloud` effaçait les champs local-only du profil | **`localOnlyProfileFields`** : les champs hors `PROFILE_COLS` survivent, le cloud restant maître de toutes les colonnes qu'il porte. Sauve `is_post_menopausal`, qui pilote le plancher d'énergie des femmes non ménopausées |
+| Écriture partielle (retry réussi) : profil déclaré « propre » | **Il reste « à pousser »** et `pushProfile` renvoie `false` : la protection anti-écrasement est conservée, le push se retente jusqu'à ce que la migration soit jouée |
+
+Reste volontairement en l'état : l'écrasement des favoris et du garde-manger (chantier 5 —
+c'est une décision, pas un défaut).
 
 ## Setup & déploiement
 - Expo Router (file-based), SDK 56, TS strict. Lancer : `npm run web` (8081) / `npm run ios`. Tests : `npm test` (vitest). Preview agent : port **8090** (pas 8081, occupé par le fondateur).

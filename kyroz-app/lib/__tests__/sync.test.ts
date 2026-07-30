@@ -58,6 +58,7 @@ function builder(table: string) {
   b.insert = record('insert');
   b.delete = record('delete');
   b.eq = record('eq');
+  b.not = record('not');
   b.maybeSingle = () => {
     state.calls.push({ table, op: 'maybeSingle' });
     return Promise.resolve(result);
@@ -215,21 +216,29 @@ describe('hydratation du profil — les 4 branches telles qu’orchestrées par 
     expect(got.low_ea_weeks.weeks).toContain('2026-07-06'); // reconcileCloudLowEaWeeks (union)
   });
 
-  // SUSPECT: `rowToProfile` ne recopie que PROFILE_COLS. Tout champ du profil LOCAL
-  // qui n'est pas une colonne synchronisée est donc PERDU à chaque pull_cloud —
-  // silencieusement, et sans réconciliation comme en ont sports/neat/low_ea.
-  // `is_post_menopausal` est le cas réel : LOCAL-ONLY par décision (2026-07-28), il
-  // pilote le plancher d'énergie disponible des femmes non ménopausées
-  // (safety.ts::isFemaleAtRisk). Le perdre RELÂCHE une protection de sécurité.
-  // Aujourd'hui inerte : l'onboarding ne pose pas encore la question, donc le champ
-  // est toujours undefined. Il cessera de l'être le jour où elle sera posée.
-  it('SUSPECT — un champ local-only hors PROFILE_COLS est perdu au pull_cloud', async () => {
+  // RÉSOLU le 2026-07-30 (était : SUSPECT). `rowToProfile` ne recopie que PROFILE_COLS,
+  // donc tout champ local-only du profil disparaissait à chaque pull_cloud — sans le
+  // réconciliateur dont bénéficient sports/neat/low_ea. Cas réel : is_post_menopausal,
+  // qui pilote le plancher d'énergie des femmes non ménopausées
+  // (safety.ts::isFemaleAtRisk) : le perdre RELÂCHAIT une protection de sécurité.
+  it('un champ local-only hors PROFILE_COLS SURVIT au pull_cloud', async () => {
     await write(PROFILE_KEY, profile({ is_post_menopausal: true } as any));
     state.rows.profiles = cloudRow();
 
     await hydrateFromCloud('user-1');
 
-    expect((await read(PROFILE_KEY)).is_post_menopausal).toBeUndefined();
+    expect((await read(PROFILE_KEY)).is_post_menopausal).toBe(true);
+  });
+
+  it('mais le cloud reste maître de TOUTES les colonnes qu’il porte', async () => {
+    await write(PROFILE_KEY, profile({ weight_kg: 80, is_post_menopausal: true } as any));
+    state.rows.profiles = cloudRow({ weight_kg: 90 });
+
+    await hydrateFromCloud('user-1');
+
+    const got = await read(PROFILE_KEY);
+    expect(got.weight_kg).toBe(90);          // colonne synchronisée → le cloud gagne
+    expect(got.is_post_menopausal).toBe(true); // hors schéma → préservé
   });
 });
 
@@ -255,7 +264,7 @@ describe('hydratation des 5 autres domaines — 3 états du cloud chacun', () =>
       attenduSiLocalVide: (v: any) => expect(v.current_streak_days).toBe(3),
     },
     {
-      nom: 'favoris', table: 'favorites', key: FAV_KEY, pushOp: 'insert',
+      nom: 'favoris', table: 'favorites', key: FAV_KEY, pushOp: 'upsert',
       local: ['rep1', 'rep2'],
       cloudPlein: [{ recipe_id: 'rep9' }],
       cloudVide: [],
@@ -500,19 +509,15 @@ describe('pushProfile — drapeau « sale » et retry', () => {
     }
   });
 
-  // SUSPECT: c'est LE cas qui compte. Quand la 1re tentative échoue et que le retry
-  // passe, `clearProfileDirty()` s'exécute (sync.ts:97) alors que l'écriture a été
-  // PARTIELLE : neat_level / engine_rev / engine_notice ne sont jamais arrivés au
-  // serveur. Le profil est déclaré « propre », donc il PERD sa protection
-  // anti-écrasement : à la prochaine hydratation, decideProfileHydration renvoie
-  // pull_cloud et la ligne cloud incomplète revient.
-  // Atténuation vérifiée : `neat_level` est repêché par reconcileCloudNeat. En
-  // revanche `engine_rev` et `engine_notice` n'ont AUCUN réconciliateur — engine_rev
-  // retombe silencieusement à « legacy ». Impact borné aujourd'hui (engineNoticeFor
-  // exige un écart > 100 kcal, absent juste après un pull correct), donc incohérence
-  // latente et non panne visible. C'est le mode de panne « migration non jouée » qui
-  // s'est produit trois fois : la phase D doit le rendre BRUYANT.
-  it('SUSPECT — retry réussi après échec : le profil est déclaré propre malgré une écriture partielle', async () => {
+  // RÉSOLU le 2026-07-30 (était : SUSPECT, et c'était LE cas qui comptait).
+  // Quand la 1re tentative échoue et que le retry passe, l'écriture est PARTIELLE :
+  // neat_level / engine_rev / engine_notice ne sont jamais arrivés au serveur. Le
+  // profil était alors déclaré « propre », ce qui lui retirait sa protection
+  // anti-écrasement — à l'hydratation suivante la ligne cloud INCOMPLÈTE revenait, et
+  // engine_rev retombait silencieusement à « legacy » (aucun réconciliateur, à la
+  // différence de neat_level). Il reste désormais « à pousser », donc protégé, et se
+  // retentera jusqu'à ce que la migration soit jouée.
+  it('retry réussi après échec : le profil reste SALE (écriture partielle)', async () => {
     await markProfileDirty();
     let n = 0;
     const orig = state.calls.push.bind(state.calls);
@@ -527,9 +532,21 @@ describe('pushProfile — drapeau « sale » et retry', () => {
     const ok = await pushProfile(profile({ neat_level: 'active', engine_rev: 2 } as any));
     state.calls.push = orig as any;
 
-    expect(ok).toBe(true);        // succès annoncé…
-    expect(await dirty()).toBe(false); // …et protection retirée…
-    // …alors que 3 colonnes n'ont pas été écrites. Aucun signal, nulle part.
+    expect(ok).toBe(false);           // une écriture amputée n'est pas un succès
+    expect(await dirty()).toBe(true); // …et la protection anti-écrasement est conservée
+  });
+
+  it('le local complet gagne à l’hydratation suivante après une écriture partielle', async () => {
+    // La conséquence concrète : la ligne cloud incomplète ne peut plus revenir.
+    await write(PROFILE_KEY, profile({ neat_level: 'active', engine_rev: 2 } as any));
+    await markProfileDirty();
+    state.rows.profiles = cloudRow({ neat_level: null, engine_rev: null });
+
+    await hydrateFromCloud('user-1');
+
+    const got = await read(PROFILE_KEY);
+    expect(got.neat_level).toBe('active');
+    expect(got.engine_rev).toBe(2);
   });
 
   it('clearProfileDirty / markProfileDirty pilotent bien la clé', async () => {
@@ -542,11 +559,19 @@ describe('pushProfile — drapeau « sale » et retry', () => {
 
 // ─────────────────────────────────────────────────────────────────────────────
 describe('pushFavorites — delete puis insert', () => {
-  it('ordre respecté : delete AVANT insert', async () => {
+  it('ordre INVERSÉ le 2026-07-30 : on ÉCRIT avant de retirer', async () => {
     await pushFavorites(['rep1', 'rep2']);
 
     const ops = opsOn('favorites');
-    expect(ops.indexOf('delete')).toBeLessThan(ops.indexOf('insert'));
+    // upsert d'abord : la liste cloud n'est jamais vide à un instant donné.
+    expect(ops.indexOf('upsert')).toBeLessThan(ops.indexOf('delete'));
+  });
+
+  it('le retrait ne vise QUE les favoris qui ne sont plus dans la liste', async () => {
+    await pushFavorites(['rep1', 'rep2']);
+
+    const filtre = state.calls.find((c) => c.table === 'favorites' && c.op === 'not');
+    expect(filtre?.payload).toBe('recipe_id');
   });
 
   it('liste vide → delete seul, aucun insert', async () => {
@@ -556,27 +581,31 @@ describe('pushFavorites — delete puis insert', () => {
     expect(opsOn('favorites')).not.toContain('insert');
   });
 
-  // SUSPECT: fenêtre de PERTE DE DONNÉES. `delete` puis `insert` sans transaction :
-  // si l'insert échoue après un delete réussi, les favoris CLOUD sont effacés et rien
-  // ne les restaure. Le résultat de l'insert n'est même pas lu (sync.ts:118-120), donc
-  // la fonction renvoie normalement. Atténuation réelle : le local n'est pas touché,
-  // donc la prochaine hydratation trouvera un cloud vide et repoussera le local — la
-  // perte est réparée au prochain démarrage, pas immédiatement, et seulement si
-  // l'appareil qui détient les favoris se reconnecte avant les autres.
-  it('SUSPECT — insert en erreur après delete réussi : le cloud est vidé, sans signal', async () => {
-    state.errors['favorites.insert'] = { message: 'insert refusé' };
+  // RÉSOLU le 2026-07-30 (était : SUSPECT). L'ordre delete-puis-insert ouvrait une
+  // fenêtre de PERTE : un insert en échec après un delete réussi laissait les favoris
+  // cloud effacés. En écrivant d'abord, un échec d'écriture ne retire plus rien.
+  it('écriture en erreur → AUCUN retrait tenté, le cloud garde son état', async () => {
+    state.errors['favorites.upsert'] = { message: 'upsert refusé' };
 
     await expect(pushFavorites(['rep1', 'rep2'])).resolves.toBeUndefined();
 
-    expect(opsOn('favorites')).toEqual(['delete', 'eq', 'insert']);
+    expect(opsOn('favorites')).not.toContain('delete');
   });
 
-  it('SUSPECT — insert qui JETTE après delete réussi : même perte, exception avalée', async () => {
-    state.throws.add('favorites.insert');
+  it('écriture qui JETTE → aucun retrait non plus', async () => {
+    state.throws.add('favorites.upsert');
 
     await expect(pushFavorites(['rep1'])).resolves.toBeUndefined();
 
-    expect(opsOn('favorites')).toContain('delete');
+    expect(opsOn('favorites')).not.toContain('delete');
+  });
+
+  it('retrait en erreur → conséquence bornée : un favori en trop, jamais une perte', async () => {
+    state.errors['favorites.delete'] = { message: 'delete refusé' };
+
+    await expect(pushFavorites(['rep1'])).resolves.toBeUndefined();
+
+    expect(opsOn('favorites')).toContain('upsert'); // l'écriture, elle, a bien eu lieu
   });
 
   it('sans session → aucun delete (le cloud n’est pas touché)', async () => {
@@ -607,19 +636,27 @@ describe('suppression de compte (RGPD)', () => {
     expect(state.calls.find((c) => c.table === 'profiles' && c.op === 'eq')?.payload).toBe('id');
   });
 
-  // SUSPECT: aucune des 6 suppressions n'est vérifiée, et le `catch {}` avale tout.
-  // Si la 3e échoue, les 3 dernières ne sont même pas tentées et la fonction renvoie
-  // normalement : l'appelant (profil.tsx:184, repli du droit à l'effacement RGPD)
-  // croit l'effacement fait. Des données de SANTÉ peuvent rester au serveur sans
-  // qu'aucun signal ne l'indique.
-  it('SUSPECT — une suppression qui jette interrompt les suivantes, en silence', async () => {
+  // RÉSOLU le 2026-07-30 (était : SUSPECT). Un échec au 3e effacement laissait les 3
+  // derniers NON TENTÉS, et la fonction renvoyait normalement — alors qu'elle sert de
+  // repli au droit à l'effacement RGPD. Chaque table a maintenant son propre try/catch.
+  it('une suppression qui jette n’empêche plus les suivantes', async () => {
     state.throws.add('weight_logs.delete');
 
     await expect(deleteCloudData()).resolves.toBeUndefined();
 
     const tables = state.calls.filter((c) => c.op === 'delete').map((c) => c.table);
-    expect(tables).toEqual(['favorites', 'pantry', 'weight_logs']); // les 3 dernières sautent
-    expect(tables).not.toContain('profiles');
+    expect(tables).toEqual([
+      'favorites', 'pantry', 'weight_logs', 'recipe_overrides', 'streaks', 'profiles',
+    ]);
+  });
+
+  it('une suppression en ERREUR n’empêche pas non plus les suivantes', async () => {
+    state.errors['pantry.delete'] = { message: 'RLS' };
+
+    await deleteCloudData();
+
+    const tables = state.calls.filter((c) => c.op === 'delete').map((c) => c.table);
+    expect(tables).toHaveLength(6);
   });
 
   it('deleteAccount passe par l’Edge Function et remonte son erreur', async () => {
