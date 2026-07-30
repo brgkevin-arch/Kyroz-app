@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useTheme } from '../constants/theme';
+import { ON_TARGET_TOLERANCE_KCAL } from '../lib/planEngine';
 
 interface MacroBarProps {
   protein_g: number;
@@ -28,7 +29,7 @@ export function MacroBar({ protein_g, carbs_g, fat_g, targetKcal, plannedKcal, c
   const progress = plannedKcal > 0 ? Math.min(1, consumed / plannedKcal) : 0;
 
   const planDelta = plannedKcal - targetKcal;
-  const onTarget = Math.abs(planDelta) <= 100;
+  const onTarget = Math.abs(planDelta) <= ON_TARGET_TOLERANCE_KCAL;
   const sign = planDelta > 0 ? '+' : '';
 
   return (

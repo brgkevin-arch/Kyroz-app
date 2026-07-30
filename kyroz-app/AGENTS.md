@@ -249,19 +249,31 @@ produit en suspens — il ne reste qu'à coder.
   automatique (données OFF = contributions libres, qualité inégale). §2 corrigé et
   documenté : un aliment manquant s'ajoute à `ingredients_reference` avec ses macros
   /100 g, mappé Ciqual si un équivalent propre existe.
-- **E8 · 🤖 « Comment tu veux rentrer dans ta cible ? » promet l'impossible aux petits
-  gabarits.** Écart déclaré le matin → meilleure option proposée, mesuré le 2026-07-31 :
-  `F 55 (cible 1342) : +200→+18 · +300→+63 · +600→+318 · +800→+518` contre
-  `H 80 (cible 2104) : +200→+6 · +300→+21 · +600→+41 · +800→+176`. Chez l'homme le
-  recalage absorbe vraiment ; chez la femme de 55 kg il sature vite — normal, on ne peut
-  pas dé-manger. Mais l'écran (`plan.tsx`, ActionSheet) titre « rentrer dans ta cible »
-  et affiche « ≈ 1 960 » sans dire que c'est au-dessus. **Deux sorties** : reformuler
-  quand aucune option n'atteint la cible, ou — cohérent avec le produit — étaler le
-  reliquat sur la semaine via le mécanisme de la banque. Décision produit.
-- **E9 · 🤖 Un repas sauté peut laisser un trou muet.** Sur 20 combinaisons profil ×
-  repas, 19 tiennent dans ±90 kcal. Une décroche : **H 80, déjeuner sauté → 1890/2104
-  kcal (−214) et 132/149 g de protéines (−17)**, les recettes restantes butant sur leurs
-  bornes de portion. Pas une erreur de calcul ; rien ne le signale à l'écran.
+- ~~**E8 · « rentrer dans ta cible » promet l'impossible aux petits gabarits**~~ ✅
+  **CORRIGÉ le 2026-07-31.** ⚖️ *Arbitrage tranché en session : on REFORMULE, on
+  n'étale pas le reliquat sur la semaine.* Étaler, c'est exactement la banque de
+  calories — une brique **Kyroz+** (cf. `MONETISATION.md`) : la donner gratuitement
+  aux écarts non planifiés viderait le paywall qui reste à poser (B2). Et faire
+  bouger les cibles des jours suivants sur un événement non planifié est un rayon
+  d'action large juste avant la sortie. Ça reste la bonne extension premium plus tard.
+  `adaptDayOptions` expose désormais `absorbedKcal` (ce que l'option REPREND) et
+  `overTargetKcal` (ce qui reste au-dessus). Quand aucune option n'approche la cible,
+  l'écran le dit — sans alarme : ce qui est repris est mis en avant, le reste est
+  présenté comme sans conséquence, *parce qu'il l'est*.
+  ⚠️ **Seuil = `ON_TARGET_TOLERANCE_KCAL` (100), SOURCE UNIQUE** partagée avec
+  `MacroBar` : à zéro, l'écran annonçait « on n'y arrive pas » pour un reliquat de
+  **6 kcal** pendant que la barre juste dessous affichait « ✓ dans la cible ». Deux
+  seuils = deux écrans qui se contredisent.
+  ⚠️ Corrigé au passage : `adaptDayOptions` lisait le CACHE `total_macros_per_day`
+  pour sa référence. Un appelant qui oublie de le rafraîchir après un écart faisait
+  afficher « reprend 0 kcal » partout. La référence est recalculée. 5 tests.
+- ~~**E9 · Un repas sauté peut laisser un trou muet**~~ ✅ **CORRIGÉ le 2026-07-31.**
+  La barre affichait déjà l'écart (« Cible 2 104 · −214 ») en couleur d'alerte, sans
+  un mot. `SousCibleNote` explique la cause réelle (les portions restantes sont à
+  leur maximum) et referme sans mise en pression. Même seuil que la barre.
+  ⚠️ **Non vérifié à l'écran** (E8 comme E9) : les deux écrans exigent une session
+  Supabase, et la connexion invité ne répond pas en local. Validé par typage, tests
+  et mesure moteur — pas par un rendu.
 - **E6 · 🤖 Hors-plan : seules les kcal sont enregistrées**, pas le nom de l'aliment
   (« +450 kcal », pas « une pizza ») → aucun historique d'écarts possible.
 - **E7 · 🤖 Deep links web → HTTP 404** (le rendu est bon, le statut est faux).
