@@ -13,12 +13,43 @@ Recette/
 ⚠️ `recettes-kyroz.json` est **importé par le code** (`lib/recipeData.ts`, `lib/__tests__/recipeFoodMap.test.ts`).
 Les fichiers de `drops/` sont de la matière première : on en extrait, on ne les branche jamais.
 
+## Commander des recettes — les fichiers à transmettre
+
+Les briefs par lot vivent dans `Recette/lots/` et sont **générés**, pas écrits à la main :
+
+```bash
+npm run gen:lots            # les 6 lots
+npm run gen:lots -- b2      # un seul
+```
+
+Chaque fichier est autonome : format de sortie, refs autorisés avec leurs macros, règles, formats
+déjà saturés, auto-contrôle. On en donne **un par conversation**, dans l'ordre `b2`, `b1-lot1` à
+`b1-lot4`, `b3`. **Après le merge d'un lot, régénérer les suivants** — ils verront ce que le lot
+précédent a consommé, et c'est ce contrôle croisé qui manquait aux vagues d'avant.
+
+La spécification complète et son raisonnement restent dans `BRIEF-GENERATION-RECETTES.md` ; les
+fichiers de `lots/` en sont la projection opérationnelle.
+
 ## Ajouter des recettes — la chaîne complète
 
-0. **`npm run check:doublons -- <chemin/du/drop.json>`** → AVANT de concaténer quoi que ce soit.
-   Le script confronte le lot au catalogue live et les recettes du lot entre elles, et sort en
-   code 1 s'il trouve un clone. Une recette rejetée est **réécrite**, pas retouchée : une
-   correction locale déplace le clone au lieu de le supprimer.
+0. **Deux contrôles AVANT de concaténer quoi que ce soit.** Les deux sortent en code 1 si le lot est
+   mauvais. Une recette rejetée est **réécrite**, pas retouchée : une correction locale déplace le
+   problème au lieu de le supprimer.
+   - `npm run check:doublons -- <drop.json>` → confronte le lot au catalogue live **et** les
+     recettes du lot entre elles (Jaccard, refs communs, triplet structurel, noms).
+   - `npm run check:enveloppe -- <drop.json>` → règle R8 : chaque recette est adaptée **par le
+     moteur** sur les 12 profils de référence, **6 femmes et 6 hommes**. C'est le contrôle qui
+     manquait le plus longtemps, et son absence coûte cher : mesuré le 2026-07-29, **48 des 66
+     collations du catalogue ne servent aucun profil féminin**, et **aucune** n'est servable à une
+     femme de 55 kg en sèche. Un catalogue peut être valide, cohérent, sans un seul doublon — et
+     invendable à la moitié de ses utilisateurs.
+   - `npm run mesure:couverture` (sans argument) → état du catalogue live, à relancer après merge.
+
+   ⚠️ **Ces scripts appellent `buildLocalPlan` et `adaptRecipe`, ils ne recopient aucune formule.**
+   Deux audits successifs se sont trompés pour l'avoir oublié : l'un figeait le partage
+   glucides/lipides à 55/45 (le simple repli de `carbFatRatio`), l'autre agrégeait la variété sur
+   trois gabarits alors qu'un utilisateur n'en a qu'un. Ne jamais réimplémenter le moteur pour le
+   mesurer.
 1. **`recettes-kyroz.json`** → concaténer dans `recipes[]` (ids : `pdNN` / `colNN` / `repNNN`, suite continue),
    mettre `_meta.count` à jour, et **renseigner `wave`** sur chaque recette avec le nom du dossier
    du drop (cf. `_meta.waves`) — un test échoue si une recette n'en porte pas.
