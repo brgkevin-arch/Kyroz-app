@@ -27,10 +27,28 @@ App mobile React Native (Expo Router, SDK 56) de plans repas macro-précis pour 
 | Génération repas (option) | API Claude (\`lib/generatePlan.ts\`) — uniquement si \`EXPO_PUBLIC_ANTHROPIC_API_KEY\` définie, sinon fallback local auto | Optionnel |
 | Persistance locale | AsyncStorage (clés \`@kyroz:*\`) | En place |
 | Backend / Auth | **Supabase** (région EU) — création de compte email + suppression de compte (RGPD) | Auth OK |
-| Base nutritionnelle | Ciqual (ANSES) primaire + Open Food Facts secondaire | Cible |
+| Base nutritionnelle | **Ciqual (ANSES) + table maison** — voir la note ci-dessous | En place |
 | Analytics | PostHog (cloud EU) | **Câblé (dormant)** — `lib/analytics.ts`, consent-gated RGPD ; s'active en posant `EXPO_PUBLIC_POSTHOG_KEY` |
 
 > Avant SDK : lire https://docs.expo.dev/versions/v56.0.0/ — Expo a changé.
+
+> **Base nutritionnelle — corrigé le 2026-07-30.** Cette ligne annonçait « Ciqual primaire
+> + **Open Food Facts** secondaire », en statut « Cible ». Open Food Facts **n'a jamais été
+> branché** : zéro ligne de code, zéro appel. La réalité, mesurée : sur **123 ingrédients**
+> de recette, **107 sont sourcés Ciqual** (`lib/recipeFoodMap.ts::REF_FOOD_ID` → base ANSES
+> convertie dans `lib/foods.generated.ts`) et **16 sont saisis à la main** dans
+> `Recette/recettes-kyroz.json > ingredients_reference` — ceux que Ciqual ne couvre pas
+> proprement : `whey`, `skyr`, `yaourt_grec`, `cottage_cheese`, `proteine_vegetale`,
+> `soja_texture`, `yaourt_soja`, `yaourt_soja_proteine`, `levure_maltee`, `edamame`,
+> `haricots_noirs`, `millet`, `wrap_sans_gluten`, et trois mélanges (`legumes_wok`,
+> `ratatouille`, `fruits_rouges`).
+>
+> **Décision fondateur (2026-07-30) : les ajouts futurs se font À LA MAIN.** Pas de source
+> tierce automatique. Open Food Facts reste envisageable un jour pour les produits de
+> marque, mais **ce n'est pas la voie retenue** — ses données sont des contributions libres,
+> de qualité inégale, et le catalogue est un produit, pas un annuaire. Concrètement : un
+> aliment qui manque s'ajoute à `ingredients_reference` avec ses macros /100 g, et il est
+> mappé Ciqual si un équivalent propre existe.
 
 ---
 
@@ -286,7 +304,7 @@ Profil (poids, objectif, régime) = **données de santé** au sens RGPD.
 | Composants React Native | PascalCase (\`MealCard.tsx\`) |
 | Fonctions utilitaires | camelCase (\`calculateTDEE.ts\`) |
 | Constantes | SCREAMING_SNAKE (\`MAX_KCAL_PER_DAY\`) |
-| Tables Supabase | snake_case (\`meal_plans\`) |
+| Tables Supabase | snake_case (\`weight_logs\`) |
 | Branches Git | \`feature/nom-court\`, \`fix/nom-court\` |
 | Commits | \`feat:\`, \`fix:\`, \`chore:\`, \`refactor:\` |
 
@@ -294,9 +312,63 @@ Profil (poids, objectif, régime) = **données de santé** au sens RGPD.
 
 ## 10. Style de travail attendu
 
-- **Décisions tranchées** : pas de "ça dépend" sans proposition concrète
-- **North Star en tête** : % utilisateurs avec 7 jours consécutifs d'usage dans les 14 premiers jours. Si une implémentation ne le sert pas, le dire.
-- **Mettre à jour AGENTS.md** en fin de session (état du build), jamais laisser diverger de la réalité du code.
+> Les règles ci-dessous étaient **orales** jusqu'au 2026-07-30. Elles ne survivaient que
+> dans la mémoire d'une seule session — une autre session, ou un autre outil, les ignorait
+> et refaisait les mêmes erreurs. Elles sont écrites ici pour cette raison.
+
+### Fond
+
+- **Décisions tranchées** : pas de « ça dépend » sans proposition concrète.
+- **North Star en tête** : % d'utilisateurs avec 7 jours consécutifs d'usage dans les
+  14 premiers. Si une implémentation ne le sert pas, le dire.
+- **Le fondateur est solo et non-développeur.** Répondre en français, clair, avec des
+  analogies ou des schémas quand ça aide. Ne pas noyer une décision sous du jargon.
+- **Tout suivi doit RASSURER, jamais mettre la pression.** Objectif, progression,
+  adhérence : une **zone**, pas une ligne au pixel près ; aucun signal alarmant ; le pire
+  cas reste neutre. Le message de fond est « le moteur porte la charge », pas
+  « tu es en retard ». C'est un choix produit, pas une préférence de ton — une app de
+  nutrition anxiogène perd l'utilisateur, donc le North Star.
+- **Mesurer sur le moteur, jamais sur une réplique de ses formules.** Cette erreur a
+  produit **trois** conclusions fausses (partage glucides/lipides figé à 55/45 ; « le
+  catalogue est trop maigre » ; « 21 à 30 recettes distinctes » alors qu'un utilisateur
+  n'en voit que 11 à 13). Un script d'audit doit appeler `buildLocalPlan` / `adaptRecipe`,
+  pas recopier leurs calculs. Corollaire : **ne jamais agréger ce qu'un utilisateur voit
+  séparément**, et vérifier qu'un panel de contrôle n'est pas tout masculin.
+- **Un tag posé à la main n'arbitre pas mieux qu'un moteur qui mesure.** Devant le choix,
+  garder le mécanisme qui calcule, jeter l'étiquette.
+
+### Exécution
+
+- **« go », « fais », « merge » = exécuter sans revenir demander.** Le fondateur tranche,
+  puis attend le résultat, pas une confirmation de plus.
+- **Flux git** : branche → merge dans `main` → push. Ne jamais committer sur `main`
+  directement, ne jamais forcer l'historique.
+- **Ne committer QUE son propre travail.** Un fichier que je n'ai pas produit ne se
+  versionne pas : je le signale au fondateur, il décide. (Un `git add <dossier>` aveugle
+  a déjà emporté des fichiers qui n'étaient pas les miens.)
+- **Plusieurs sessions en parallèle → worktree.** Deux sessions dans le même dépôt se
+  marchent dessus ; s'isoler dans un worktree, et le nettoyer en fin de chantier.
+- **Rappeler la migration Supabase** quand un changement en demande une : le schéma n'est
+  pas auto-appliqué, et une migration non jouée tue la synchro **en silence** (§3).
+- **Mettre à jour `AGENTS.md`** en fin de session, dans la liste unique. Ne jamais laisser
+  le doc diverger du code, et ne jamais créer une deuxième liste de tâches.
+
+---
+
+## 11. Pièges connus (redécouverts au moins une fois chacun)
+
+- **`onEndEditing` est un no-op sur react-native-web.** Pour normaliser ou borner une
+  saisie en fin de frappe, utiliser **`onBlur`**. Le bug « %MG saisi 23 → enregistré 33 »
+  venait de là.
+- **Le portail de dépistage santé et la visite guidée interceptent les clics.** Tout script
+  qui pilote l'app doit les neutraliser d'abord, sinon il conclut que les écrans sont
+  « introuvables » alors qu'il n'a jamais pu quitter le Plan (cf. `test/README.md`).
+- **Supabase plafonne la création de comptes invités** (429 `over_request_rate_limit`, par
+  heure et par IP). Enchaîner les passes de test fait échouer des parcours **sans que l'app
+  ait quoi que ce soit à se reprocher**.
+- **Les sous-écrans du Profil sont des `Sheet`, pas des routes** : `goBack()` ne les ferme
+  pas, il faut cliquer le fond.
+- **Build natif iOS** : `npx expo run:ios` (CocoaPods via brew).
 
 ---
 

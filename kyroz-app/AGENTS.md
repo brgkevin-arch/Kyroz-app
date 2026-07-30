@@ -141,6 +141,9 @@ produit en suspens — il ne reste qu'à coder.
 - **D7 · 🤖 Pool vegan mince.** Petit-déj vegan 33/78, repas vegan 57/170 ; en vegan +
   sèche le pool ne laisse qu'un petit-déj viable. C'est le seul cas où **ajouter des
   recettes** est la bonne réponse. À re-mesurer après la vague de 113.
+  ⚠️ **Motif = SERVICE, pas marketing** (fondateur, 2026-07-30) : le végétal est **un
+  régime supporté parmi 7, sans emphase**. On sert correctement les utilisateurs vegan
+  déjà là ; on ne présente Kyroz comme une app vegan **nulle part**.
 
 ### 🧹 E — Dette technique
 
@@ -156,12 +159,16 @@ produit en suspens — il ne reste qu'à coder.
   rate-limit, ou brancher le CAPTCHA. ⚠️ Les parcours Playwright en dépendent — et le
   rate-limit se rencontre pour de vrai (429 `over_request_rate_limit` observé le 2026-07-30).
 - **E4 · 🤖 Nettoyages.** Supprimer `kcalMargin()` (code mort) · déplacer les clés Supabase
-  du workflow vers les **secrets GitHub** + créer un `.env.example` · **recompter** les
-  chiffres de mapping Ciqual de ce doc, qui se contredisent (« 86/113 », « 81/102 »,
-  « 21 composites ») — ne pas s'y fier, recompter avant d'agir.
-- **E5 · 🤖 « Open Food Facts » n'a JAMAIS été branché** alors que `CLAUDE.md` §2 l'annonce
-  comme source secondaire. Soit on le branche, soit la ligne doit dire **« Ciqual seul »**.
-  À trancher avec le fondateur.
+  du workflow vers les **secrets GitHub** + créer un `.env.example`.
+  ✅ *Le recomptage Ciqual réclamé ici est **FAIT** (2026-07-30)* : les chiffres qui se
+  contredisaient (« 86/113 », « 99/113 », « 81/102 ») sont tous périmés. Mesure autoritaire,
+  via le module lui-même : **123 ingrédients, 107 sourcés Ciqual, 16 saisis à la main**.
+- ~~**E5 · Open Food Facts**~~ ✅ **TRANCHÉ le 2026-07-30.** La ligne de `CLAUDE.md` §2
+  annonçait OFF en source secondaire : **il n'a jamais été branché**, zéro ligne de code.
+  Décision : **les ajouts d'aliments se font À LA MAIN**, pas via une source tierce
+  automatique (données OFF = contributions libres, qualité inégale). §2 corrigé et
+  documenté : un aliment manquant s'ajoute à `ingredients_reference` avec ses macros
+  /100 g, mappé Ciqual si un équivalent propre existe.
 - **E6 · 🤖 Hors-plan : seules les kcal sont enregistrées**, pas le nom de l'aliment
   (« +450 kcal », pas « une pizza ») → aucun historique d'écarts possible.
 - **E7 · 🤖 Deep links web → HTTP 404** (le rendu est bon, le statut est faux).
