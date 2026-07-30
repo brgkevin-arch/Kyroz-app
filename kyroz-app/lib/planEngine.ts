@@ -3,7 +3,8 @@ import { getEffectiveRecipes } from './recipes';
 import { recipeFiberPerPortion, isFiberFocusGoal } from './fiber';
 import { remainingMeals, MEAL_LABEL } from './mealtime';
 import { adaptRecipe, AdaptTarget, goalToObjectives, sportsToBuckets, needMatch } from './adaptRecipe';
-import { MIN_KCAL } from './tdee';
+import { MIN_KCAL, bankFloorKcal } from './tdee';
+import { bankedDailyTargets, offsetsForPlan } from './calorieBank';
 
 // ── Moteur de génération de plan local ──────────────────────────────────────
 // Respecte : nombre de jours, repas/jour, variété, préférences alimentaires.
@@ -506,7 +507,7 @@ export function computeDailyTotals(
 // Version du moteur de génération : à incrémenter quand le scoring/sélection
 // change, pour que les plans EN CACHE se régénèrent automatiquement (la signature
 // change → l'auto-refresh de l'écran Plan rejoue la génération). v2 = lipides cadrés.
-const ENGINE_VERSION = 25; // v25 = borne basse de l'ancre protéine 1,0 → 0,5 (les plans en cache servaient l'ancien plancher) ; v24 = 9 recettes différenciées (nettoyage des doublons : composition modifiée) ; v23 = ancre protéine rendue à 8 recettes ; v22 = le temps de prépa ne filtre plus ; v21 = yaourt_grec démappé
+const ENGINE_VERSION = 26; // v26 = banque de calories (les plans en cache ignoraient les écarts déclarés) ; v25 = borne basse de l'ancre protéine 1,0 → 0,5 (les plans en cache servaient l'ancien plancher) ; v24 = 9 recettes différenciées (nettoyage des doublons : composition modifiée) ; v23 = ancre protéine rendue à 8 recettes ; v22 = le temps de prépa ne filtre plus ; v21 = yaourt_grec démappé
 
 export function profileSignature(p: UserProfile): string {
   // NB : `hidden_recipes` (👎) est VOLONTAIREMENT absent. Un 👎 remplace UN repas
@@ -523,6 +524,10 @@ export function profileSignature(p: UserProfile): string {
     // `max_prep_time_min` retiré de la signature le 2026-07-29 : il ne filtre plus rien,
     // le garder ferait régénérer un plan identique à chaque changement de la valeur.
     fm: p.fixed_meals ?? null,
+    // Banque de calories : elle déplace des kcal entre les jours → le plan en cache
+    // ne correspond plus dès qu'elle change. Sans ça, déclarer « resto samedi »
+    // n'aurait aucun effet visible tant que rien d'autre ne périme le plan.
+    cb: p.calorie_bank ?? null,
   });
 }
 
@@ -633,6 +638,25 @@ export function buildLocalPlan(profile: UserProfile, seed: number = 0): MealPlan
   // (rest_weekdays) sinon déduits auto du nb de jours d'entraînement.
   const restDays = restDaysForProfile(profile, days);
 
+  // BANQUE DE CALORIES (Kyroz+) : un écart déclaré sur un jour (« resto samedi »)
+  // est repris sur les AUTRES jours du plan → la SEMAINE garde son total.
+  // Sans banque, `targets` vaut la cible normale partout : comportement inchangé.
+  // Le plancher de compensation est le plancher PERSONNALISÉ, pas le filet absolu
+  // MIN_KCAL — c'est le seul mécanisme qui pousse un jour vers le bas (cf. §6).
+  const bank = bankedDailyTargets({
+    days,
+    baseTargetKcal: profile.target_kcal,
+    offsets: offsetsForPlan(profile.calorie_bank, profile.plan_weekdays, days),
+    // ⚠️ Borné à la cible du profil, et ce n'est pas une précaution cosmétique.
+    // `profile.target_kcal` est DÉJÀ passé par `floorAndFlags` : le plancher y est
+    // appliqué. Le repasser ici sans borne fait REMONTER la cible de tous les jours
+    // dès que le plancher recalculé dépasse la cible enregistrée — mesuré à
+    // +305 kcal/jour sur un profil en sèche SANS banque, ce qui cassait
+    // l'asymétrie A2. La banque ne doit contraindre que la COMPENSATION (vers le
+    // bas), jamais relever la cible de qui n'a rien demandé.
+    floorKcal: Math.min(bankFloorKcal(profile), profile.target_kcal),
+  });
+
   const pools: Record<string, Recipe[]> = {};
   const relaxed: Record<string, boolean> = {};
   for (const mt of plannedTypes) {
@@ -666,9 +690,14 @@ export function buildLocalPlan(profile: UserProfile, seed: number = 0): MealPlan
     // reliquat accumulé (jours précédents sous/au-dessus), bornée à ±DAILY_SMOOTH_CAP
     // → un jour bridé est rattrapé par les suivants, la SEMAINE tombe sur days×cible.
     // Les PROTÉINES ne se lissent PAS (plancher quotidien). Garde-fou §6 : jamais < MIN.
+    // `cibleDuJour` = la cible du jour APRÈS banque de calories (= target_kcal
+    // partout s'il n'y a pas de banque). Le lissage ci-dessous corrige la dérive
+    // d'ARRONDI autour d'elle ; il ne doit pas la combattre — d'où le fait que le
+    // reliquat se mesure contre elle, et non contre la cible plate (plus bas).
+    const cibleDuJour = bank.targets[d - 1] ?? profile.target_kcal;
     const remainingDays = days - d + 1;
     const smooth = Math.max(-DAILY_SMOOTH_CAP, Math.min(DAILY_SMOOTH_CAP, weekDeficitKcal / remainingDays));
-    const dayCibleKcal = Math.max(profile.target_kcal + smooth, MIN_KCAL[profile.sex]);
+    const dayCibleKcal = Math.max(cibleDuJour + smooth, MIN_KCAL[profile.sex]);
 
     // Budget du jour APRÈS retrait des repas fixes (gérés par l'user).
     let remainingKcal = Math.max(dayCibleKcal - fixedDailyKcal, 0);
@@ -729,11 +758,15 @@ export function buildLocalPlan(profile: UserProfile, seed: number = 0): MealPlan
     );
     meals.push(...dayMeals);
 
-    // Reliquat reporté sur la semaine : (cible quotidienne − total réel du jour).
+    // Reliquat reporté sur la semaine : (cible DU JOUR − total réel du jour).
     // Jour qui manque (pool bridé) → déficit positif → jours suivants visent un peu
     // plus haut (borné ±DAILY_SMOOTH_CAP) ; s'auto-annule dès qu'un jour rattrape.
+    // ⚠️ Mesuré contre `cibleDuJour` et NON contre `profile.target_kcal` : sinon un
+    // jour de banque à +600 se lirait comme « 600 kcal de trop » et le lissage
+    // passerait la semaine à les reprendre — en doublon de la compensation déjà
+    // faite par la banque, qui les a reprises une première fois.
     const dayActualKcal = dayMeals.reduce((s, m) => s + m.macros.kcal, 0);
-    weekDeficitKcal += profile.target_kcal - dayActualKcal;
+    weekDeficitKcal += cibleDuJour - dayActualKcal;
   }
 
   return {

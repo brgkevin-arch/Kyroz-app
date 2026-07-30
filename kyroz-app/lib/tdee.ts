@@ -6,7 +6,7 @@ import {
   BodyInput, MIN_AGE, MIN_KCAL, EA_OPTIMAL, LOW_EA_BUDGET_WEEKS, countsAsLowEaWeek,
   bodyFatBounds, clamp, collapseLowEaRegistry, deficitBlocked, energyAvailability,
   fatFreeMassKg, isFemaleAtRisk, lowEaWeeksBefore, markLowEaWeek, safetyFloorKcal,
-  settleLowEaExposure, lowEaEscalation, LowEaEscalation,
+  settleLowEaExposure, lowEaEscalation, LowEaEscalation, readLowEaRegistry,
 } from './safety';
 
 // ── Calculs nutritionnels ────────────────────────────────────────────────────
@@ -389,6 +389,35 @@ function floorAndFlags(body: MacroBody, tdee: number, requestedKcal: number, opt
   if (isFemaleAtRisk(body) && lowEaWeeks > LOW_EA_BUDGET_WEEKS) flags.push('LOW_EA_BUDGET_EXCEEDED');
 
   return { target_kcal, floor_kcal, flags, sportKcalPerDay };
+}
+
+/**
+ * Plancher JOURNALIER pour la BANQUE DE CALORIES — `max(BMR, filet absolu)`.
+ *
+ * ⚠️ Décision de sécurité, à lire avant de la changer.
+ *
+ * `engineFloorKcal` ne convient PAS ici, et le mesurer l'a prouvé : chez un profil
+ * en déficit, la cible EST le plancher (c'est lui qui mord). Marc, 82 kg, 12 % MG :
+ * plancher 2165 = cible 2165 → marge empruntable **nulle**. La banque n'aurait
+ * jamais rien pu compenser pour personne en sèche, c'est-à-dire pour son public.
+ *
+ * La sortie est écrite dans CLAUDE.md §6 : *« Le BMR et le filet absolu, eux,
+ * restent des minima DURS »*. La composante **énergie disponible** (30 kcal/kg de
+ * masse maigre) est une notion de **moyenne soutenue** — c'est d'ailleurs pour ça
+ * que le produit la compte en SEMAINES (`low_ea_weeks`), pas en jours.
+ *
+ * Or la banque conserve le total de la SEMAINE par construction : l'exposition
+ * hebdomadaire à l'énergie disponible est donc **inchangée**. Ce qui doit rester
+ * infranchissable au jour le jour, c'est le métabolisme de base et le filet absolu.
+ * C'est exactement ce que renvoie cette fonction.
+ *
+ * Ce que ça NE fait PAS : autoriser un déficit plus creux. La cible quotidienne du
+ * profil ne bouge pas, `low_ea_weeks` continue de compter sur elle, et un jour
+ * emprunté est un jour rendu ailleurs dans la même semaine.
+ */
+export function bankFloorKcal(p: UserProfile): number {
+  const bmr = calculateBMR(p.sex, p.weight_kg, p.height_cm, p.age, p.body_fat_pct);
+  return Math.round(Math.max(bmr, MIN_KCAL[p.sex]));
 }
 
 /** Glucides = reliquat. Ne les écrase JAMAIS à zéro en silence : on signale. */

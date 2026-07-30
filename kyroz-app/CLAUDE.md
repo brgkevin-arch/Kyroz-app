@@ -148,6 +148,7 @@ OUTPUT         → Plan + liste de courses + recettes
 - [x] Streak tracker (7 jours consécutifs)
 - [x] Sync cloud Supabase
 - [x] Recaler ma journée (re-plan instantané)
+- [x] Banque de calories (« resto samedi » compensé sur la semaine — `lib/calorieBank.ts`)
 - [ ] Monétisation features avancées (freemium)
 
 ### Features INTERDITES (scope creep)

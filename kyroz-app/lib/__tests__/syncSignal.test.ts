@@ -73,6 +73,7 @@ import {
   pushStreak,
   pushWeights,
   unknownColumnOf,
+  PROFILE_COLS_LAST_MIGRATION,
 } from '../sync';
 import type { Streak, UserProfile } from '../types';
 
@@ -196,7 +197,8 @@ describe('pushProfile — le mode de panne « migration non jouée » est nommé
 
     const out = logged();
     expect(out).toContain('PARTIELLEMENT');
-    for (const c of ['neat_level', 'engine_rev', 'engine_notice']) expect(out).toContain(c);
+    // Liste LUE à la source (cf. même correction dans sync.test.ts).
+    for (const c of PROFILE_COLS_LAST_MIGRATION) expect(out).toContain(c);
     expect(out).toContain('jouer la migration');
   });
 

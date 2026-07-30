@@ -53,6 +53,8 @@ export const PROFILE_COLS = [
   'dietary_restrictions', 'disliked_foods', 'preferred_proteins', 'max_prep_time_min',
   'hidden_recipes',
   'weigh_in_frequency', 'fixed_meals',
+  // Banque de calories (Kyroz+) — migration 2026-07-30_profiles_calorie_bank.sql.
+  'calorie_bank',
   // Étape 3 du moteur — migration 2026-07-28_profiles_neat_engine_rev.sql.
   'neat_level', 'engine_rev', 'engine_notice',
 ] as const;
@@ -63,7 +65,9 @@ export const PROFILE_COLS = [
 // synchroniser, en silence. Ce mode de panne s'est produit trois fois.
 // Le filet ci-dessous n'excuse pas de jouer la migration AVANT de déployer — il
 // transforme juste « synchro morte » en « tout passe sauf ces champs-là ».
-const PROFILE_COLS_LAST_MIGRATION: string[] = ['neat_level', 'engine_rev', 'engine_notice'];
+// Exporté pour que les TESTS lisent cette liste au lieu de la recopier : une
+// nouvelle migration ne doit pas faire rougir un test qui décrit l'ancienne.
+export const PROFILE_COLS_LAST_MIGRATION: string[] = ['calorie_bank'];
 
 // ── Signal d'échec de synchro ────────────────────────────────────────────────
 //

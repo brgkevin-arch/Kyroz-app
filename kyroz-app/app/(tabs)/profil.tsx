@@ -10,6 +10,7 @@ import { ThemeMode, useThemeMode, setThemeMode } from '../../lib/themeMode';
 import { DISCLAIMER } from '../../constants/legal';
 import { CIQUAL_ATTRIBUTION } from '../../lib/foods';
 import { Card, PrimaryButton, Chip, OptionCard, Field, SectionLabel, Segmented } from '../../components/ui';
+import { bankedDailyTargets, offsetsForPlan } from '../../lib/calorieBank';
 import { Sheet } from '../../components/Sheet';
 import { ActionSheet } from '../../components/ActionSheet';
 import { StreakProgress } from '../../components/StreakProgress';
@@ -30,6 +31,7 @@ import { exportMyData } from '../../lib/exportData';
 import {
   calculateTDEE, computePlan, goalLabel, planFlags, validateProfile, recalcProfile, DEFAULT_CARB_RATIO, recommendedProteinPerKg,
   DEFAULT_NEAT_LEVEL, NEAT_ORDER, NEAT_LABEL, NEAT_HINT, NEAT_SHORT, dismissEngineNotice,
+  bankFloorKcal,
 } from '../../lib/tdee';
 import {
   lowEaWeeksForFloor, checkEligibility, eligibilityMessage, LowEaEscalation,
@@ -109,7 +111,7 @@ const EMPHASIS_LABELS: Record<MealEmphasis, string> = {
 // Délègue à la source unique (lib/tdee) — même calcul partout (profil + check-in).
 const withRecalc = recalcProfile;
 
-type EditorKey = 'info' | 'sports' | 'goal' | 'dated_goal' | 'macros' | 'prefs' | 'meals';
+type EditorKey = 'info' | 'sports' | 'goal' | 'dated_goal' | 'macros' | 'prefs' | 'meals' | 'calorie_bank';
 
 // Objectif daté : horizons proposés (semaines) — évite un date-picker (lourd sur
 // web) et cadre l'UX sur « dans N semaines » ; la date exacte est dérivée + affichée.
@@ -284,6 +286,7 @@ export default function ProfilScreen() {
           <MenuRow t={t} icon="flame-outline" label="Calories & macros" value={profile.macro_mode === 'percent' ? 'Perso %' : 'Calculées'} onPress={() => setEditor('macros')} />
           <MenuRow t={t} icon="restaurant-outline" label="Préférences alimentaires" value={profile.dietary_restrictions.length || profile.disliked_foods.length || profile.hidden_recipes?.length ? 'Personnalisées' : 'Aucune'} onPress={() => setEditor('prefs')} />
           <MenuRow t={t} icon="calendar-outline" label="Paramètres des repas" value={`${profile.plan_days} j · ${(profile.meals?.length || 4)} repas · ${EMPHASIS_LABELS[profile.meal_emphasis ?? 'even']}`} onPress={() => setEditor('meals')} />
+          <MenuRow t={t} icon="wallet-outline" label="Banque de calories" value={bankResume(profile)} onPress={() => setEditor('calorie_bank')} />
           <MenuRow t={t} icon="refresh-outline" label="Régénérer mon plan" value="Repartir de zéro" onPress={regenPlan} last />
         </View>
 
@@ -405,6 +408,7 @@ export default function ProfilScreen() {
         {editor === 'macros' && <MacroEditor t={t} profile={profile} onSave={save} />}
         {editor === 'prefs' && <PrefEditor t={t} profile={profile} onSave={save} />}
         {editor === 'meals' && <MealsEditor t={t} profile={profile} onSave={save} />}
+        {editor === 'calorie_bank' && <CalorieBankEditor t={t} profile={profile} onSave={save} />}
       </Sheet>
 
       {/* Suivi du poids */}
@@ -1039,4 +1043,130 @@ function makeStyles(t: ThemePalette) {
     delBtn: { alignItems: 'center', paddingVertical: 12, marginTop: 4 },
     delTxt: { color: t.danger, fontSize: 13 },
   });
+}
+
+// ── Banque de calories (Kyroz+) ──────────────────────────────────────────────
+// « Resto samedi » : l'utilisateur déclare un écart sur un jour, Kyroz le reprend
+// sur les autres jours du plan. Le calcul vit dans lib/calorieBank.ts ; ici on ne
+// fait que le montrer et l'éditer.
+//
+// TON : la règle produit anti-charge-mentale s'applique (CLAUDE.md §10). Ce
+// module sert à s'autoriser un écart SANS culpabiliser — donc on annonce ce qui
+// est repris, on ne reproche rien, et le pire cas reste une phrase neutre.
+
+/** Résumé d'une ligne de menu : « Samedi +600 » / « Aucun écart ». */
+function bankResume(p: UserProfile): string {
+  const bank = p.calorie_bank ?? {};
+  const jours = WEEKDAY_OPTS.filter((o) => bank[String(o.val)]);
+  if (!jours.length) return 'Aucun écart prévu';
+  return jours
+    .map((o) => `${o.label} ${bank[String(o.val)]! > 0 ? '+' : ''}${bank[String(o.val)]}`)
+    .join(' · ');
+}
+
+const BANK_PRESETS = [200, 400, 600, 900];
+
+function CalorieBankEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
+  const [bank, setBank] = useState<Record<string, number>>(profile.calorie_bank ?? {});
+  const [jour, setJour] = useState<number | null>(null);
+
+  // Seuls les jours DU PLAN peuvent porter un écart : un écart posé ailleurs ne
+  // serait jamais servi (cf. offsetsForPlan).
+  const joursDuPlan = WEEKDAY_OPTS.filter((o) => (profile.plan_weekdays ?? []).includes(o.val));
+  const days = Math.max(1, Math.min(profile.plan_days ?? joursDuPlan.length, 7));
+
+  const apercu = bankedDailyTargets({
+    days,
+    baseTargetKcal: profile.target_kcal,
+    offsets: offsetsForPlan(bank, profile.plan_weekdays, days),
+    floorKcal: Math.min(bankFloorKcal(profile), profile.target_kcal),
+  });
+
+  const set = (val: number, kcal: number | null) => {
+    setBank((prev) => {
+      const n = { ...prev };
+      if (kcal === null || kcal === 0) delete n[String(val)];
+      else n[String(val)] = kcal;
+      return n;
+    });
+  };
+  const courant = jour !== null ? (bank[String(jour)] ?? 0) : 0;
+
+  return (
+    <EditorShell t={t} title="Banque de calories" onSave={() => onSave({ ...profile, calorie_bank: Object.keys(bank).length ? bank : undefined })} dragHandlers={dragHandlers}>
+      <Text style={{ color: t.textSecondary, fontSize: 14, lineHeight: 20 }}>
+        Un resto, un anniversaire ? Dis-le à Kyroz : il répartit l'écart sur tes autres
+        jours de la semaine. Tes protéines ne bougent pas, et aucun jour ne descend sous
+        ton plancher de sécurité.
+      </Text>
+
+      <SectionLabel t={t}>Le jour concerné</SectionLabel>
+      <View style={styles.wrap}>
+        {joursDuPlan.map((o) => (
+          <Chip
+            key={o.val} t={t}
+            label={bank[String(o.val)] ? `${o.label} ${bank[String(o.val)]! > 0 ? '+' : ''}${bank[String(o.val)]}` : o.label}
+            selected={jour === o.val}
+            onPress={() => setJour(jour === o.val ? null : o.val)}
+          />
+        ))}
+      </View>
+      {joursDuPlan.length === 0 && (
+        <Text style={{ color: t.textTertiary, fontSize: 13 }}>
+          Choisis d'abord tes jours de plan dans « Paramètres des repas ».
+        </Text>
+      )}
+
+      {jour !== null && (
+        <>
+          <SectionLabel t={t}>Combien en plus ce jour-là ?</SectionLabel>
+          <View style={styles.wrap}>
+            {BANK_PRESETS.map((k) => (
+              <Chip key={k} t={t} label={`+${k}`} selected={courant === k} onPress={() => set(jour, k)} />
+            ))}
+            <Chip t={t} label="Aucun" selected={courant === 0} onPress={() => set(jour, null)} />
+          </View>
+          <Field
+            t={t} label="Ou une valeur précise" suffix="kcal"
+            value={courant ? String(courant) : ''}
+            placeholder="600"
+            keyboardType="numbers-and-punctuation"
+            // onBlur et NON onEndEditing : ce dernier est un no-op sur react-native-web
+            // (CLAUDE.md §11 — c'est le bug « %MG 23 → 33 »).
+            onChangeText={(v) => {
+              const n = parseInt(v.replace(/[^\d-]/g, ''), 10);
+              set(jour, Number.isFinite(n) ? n : null);
+            }}
+          />
+        </>
+      )}
+
+      <SectionLabel t={t}>Ta semaine après répartition</SectionLabel>
+      <Card t={t}>
+        {apercu.targets.map((kcal, i) => {
+          const wd = (profile.plan_weekdays ?? [])[i];
+          const label = WEEKDAY_OPTS.find((o) => o.val === wd)?.label ?? `J${i + 1}`;
+          const ecart = kcal - profile.target_kcal;
+          return (
+            <View key={i} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 7 }}>
+              <Text style={{ color: t.textSecondary, fontSize: 14 }}>{label}</Text>
+              <Text style={{ color: ecart === 0 ? t.textSecondary : t.text, fontSize: 14, fontWeight: ecart === 0 ? '500' : '700' }}>
+                {kcal} kcal{ecart !== 0 ? `  (${ecart > 0 ? '+' : ''}${ecart})` : ''}
+              </Text>
+            </View>
+          );
+        })}
+      </Card>
+
+      {apercu.uncompensatedKcal > 0 && (
+        // Ni alarme ni reproche : un fait, et ce que ça implique. On ne masque pas
+        // l'écart non repris — l'avaler en silence serait un mensonge (§10).
+        <Text style={{ color: t.textSecondary, fontSize: 13, lineHeight: 19 }}>
+          Sur cette semaine, {apercu.uncompensatedKcal} kcal ne peuvent pas être reprises :
+          les autres jours sont déjà à ton plancher de sécurité. Ta semaine finira un peu
+          au-dessus de sa cible, et c'est très bien — le plancher passe avant.
+        </Text>
+      )}
+    </EditorShell>
+  );
 }

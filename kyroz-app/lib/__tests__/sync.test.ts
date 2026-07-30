@@ -95,6 +95,7 @@ import {
   markProfileDirty,
   pushFavorites,
   pushProfile,
+  PROFILE_COLS_LAST_MIGRATION,
 } from '../sync';
 import { PROFILE_PENDING_KEY } from '../syncGuard';
 import type { UserProfile } from '../types';
@@ -504,7 +505,10 @@ describe('pushProfile — drapeau « sale » et retry', () => {
     state.calls.push = orig as any;
 
     expect(Object.keys(rows[0])).toContain('neat_level');
-    for (const c of ['neat_level', 'engine_rev', 'engine_notice']) {
+    // Liste LUE à la source, jamais recopiée : une nouvelle migration ne doit pas
+    // faire rougir un test qui décrivait l'ancienne (arrivé le 2026-07-30).
+    for (const c of PROFILE_COLS_LAST_MIGRATION) {
+      expect(Object.keys(rows[0])).toContain(c);
       expect(Object.keys(rows[1])).not.toContain(c);
     }
   });
