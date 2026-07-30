@@ -258,6 +258,16 @@ export interface UserProfile {
   //  - [] → l'user a choisi AUCUN jour de repos (tous actifs).
   //  - [n,…] → ces jours de semaine sont des jours de repos (carb-cycling).
   rest_weekdays?: number[];
+  /**
+   * BANQUE DE CALORIES (Kyroz+) — écart calorique déclaré sur un jour de semaine
+   * (format getDay() : « 6 » = samedi), compensé sur les AUTRES jours du plan.
+   * Ex. `{ "6": 600 }` = « resto samedi soir ». Valeur négative = mettre de côté.
+   *
+   * Les protéines ne bougent JAMAIS (plancher quotidien, §6), et aucun jour ne
+   * descend sous le plancher personnalisé — cf. `lib/calorieBank.ts`.
+   * Clé en STRING : c'est du jsonb côté Supabase, `JSON.parse` rend des clés string.
+   */
+  calorie_bank?: Record<string, number>;
   meals: MealType[];            // repas choisis (petit-déj/midi/dîner/collation)
   meal_emphasis: MealEmphasis;  // repas mis en avant (portion plus grosse)
   variety: VarietyPreference;

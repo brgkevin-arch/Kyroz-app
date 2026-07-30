@@ -6,7 +6,7 @@ import {
   BodyInput, MIN_AGE, MIN_KCAL, EA_OPTIMAL, LOW_EA_BUDGET_WEEKS, countsAsLowEaWeek,
   bodyFatBounds, clamp, collapseLowEaRegistry, deficitBlocked, energyAvailability,
   fatFreeMassKg, isFemaleAtRisk, lowEaWeeksBefore, markLowEaWeek, safetyFloorKcal,
-  settleLowEaExposure, lowEaEscalation, LowEaEscalation,
+  settleLowEaExposure, lowEaEscalation, LowEaEscalation, readLowEaRegistry,
 } from './safety';
 
 // ── Calculs nutritionnels ────────────────────────────────────────────────────
@@ -389,6 +389,33 @@ function floorAndFlags(body: MacroBody, tdee: number, requestedKcal: number, opt
   if (isFemaleAtRisk(body) && lowEaWeeks > LOW_EA_BUDGET_WEEKS) flags.push('LOW_EA_BUDGET_EXCEEDED');
 
   return { target_kcal, floor_kcal, flags, sportKcalPerDay };
+}
+
+/**
+ * Plancher de sécurité PERSONNALISÉ, calculé pour le MOTEUR — déterministe, sans date.
+ *
+ * `buildLocalPlan(profile, seed)` ne reçoit pas de date et doit rester déterministe
+ * (même profil → même plan). Or l'escalade « zone basse » dépend du temps qui passe.
+ * On prend donc `weeks.length` du registre brut plutôt que le décompte fenêtré de
+ * `lowEaWeeksBefore` : c'est un **majorant** du nombre de semaines exposées, donc un
+ * plancher **≥** au vrai. L'écart va toujours vers PLUS de protection, jamais moins.
+ *
+ * ⚠️ Pourquoi ce n'est pas `MIN_KCAL` : le filet absolu (1500 ♂ / 1200 ♀) n'est plus
+ * le plancher principal depuis le 2026-07-28 — il autorisait 1200 kcal à une femme de
+ * 65 kg s'entraînant 5×/semaine, dont le minimum physiologique est ~1863 (CLAUDE.md §6).
+ * Tout mécanisme qui pousse un jour VERS LE BAS (aujourd'hui : la banque de calories)
+ * doit se borner ici, pas sur le filet.
+ *
+ * ⚠️ Volontairement NON stocké au profil : une valeur dérivée recopiée en base finit
+ * par diverger de sa source — c'est exactement le bug P3.3 (`sports` vs
+ * `training_days_per_week`). On la recalcule, c'est pur et instantané.
+ */
+export function engineFloorKcal(p: UserProfile): number {
+  const bmr = calculateBMR(p.sex, p.weight_kg, p.height_cm, p.age, p.body_fat_pct);
+  const sportKcalPerDay = exerciseKcalPerDay(p.sports, p.weight_kg);
+  const weeksInLowEa = readLowEaRegistry(p.low_ea_weeks).weeks.length;
+  const tdee = Number.isFinite(p.tdee_kcal) && p.tdee_kcal > 0 ? p.tdee_kcal : bmr;
+  return safetyFloorKcal(p, bmr, sportKcalPerDay, weeksInLowEa, tdee);
 }
 
 /** Glucides = reliquat. Ne les écrase JAMAIS à zéro en silence : on signale. */

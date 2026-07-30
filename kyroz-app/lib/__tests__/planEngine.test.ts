@@ -558,3 +558,64 @@ describe('jours de repos choisis par l’utilisateur (rest_weekdays)', () => {
       .not.toBe(profileSignature({ ...base, rest_weekdays: [2] }));
   });
 });
+
+describe('banque de calories (Kyroz+) — « resto samedi » à travers le moteur', () => {
+  // plan_weekdays par défaut = [1,2,3,4,5] (lun→ven) sur 5 jours.
+  // Un écart posé sur le MERCREDI (getDay 3) tombe donc sur le jour 3 du plan.
+  const kcalParJour = (p: Parameters<typeof buildLocalPlan>[0]) =>
+    buildLocalPlan(p, 0).total_macros_per_day.map((d) => d.kcal);
+
+  it('sans banque, le plan est INCHANGÉ (aucune régression pour qui n’en a pas)', () => {
+    const p = makeProfile();
+    const sans = buildLocalPlan(p, 0);
+    const vide = buildLocalPlan({ ...p, calorie_bank: {} }, 0);
+    expect(vide.total_macros_per_day).toEqual(sans.total_macros_per_day);
+  });
+
+  it('un écart posé sur un jour HORS du plan est ignoré (samedi, plan lun→ven)', () => {
+    const p = makeProfile();
+    const ref = kcalParJour(p);
+    expect(kcalParJour({ ...p, calorie_bank: { '6': 600 } })).toEqual(ref);
+  });
+
+  it('« +500 mercredi » : le mercredi monte nettement au-dessus des autres jours', () => {
+    const p = makeProfile();
+    const avec = kcalParJour({ ...p, calorie_bank: { '3': 500 } });
+    const autres = avec.filter((_, i) => i !== 2);
+    const moyenneAutres = autres.reduce((s, k) => s + k, 0) / autres.length;
+    expect(avec[2] - moyenneAutres).toBeGreaterThan(400);
+  });
+
+  it('la SEMAINE ne dérive pas : le total reste proche du total sans banque', () => {
+    const p = makeProfile();
+    const somme = (a: number[]) => a.reduce((s, k) => s + k, 0);
+    const sans = somme(kcalParJour(p));
+    const avec = somme(kcalParJour({ ...p, calorie_bank: { '3': 500 } }));
+    // Tolérance : la grille de portions ne tombe jamais au kcal près.
+    expect(Math.abs(avec - sans)).toBeLessThan(0.04 * sans);
+  });
+
+  it('les PROTÉINES ne se lissent pas — plancher quotidien intact (§6)', () => {
+    const p = makeProfile();
+    const sans = buildLocalPlan(p, 0).total_macros_per_day.map((d) => d.protein_g);
+    const avec = buildLocalPlan({ ...p, calorie_bank: { '3': 500 } }, 0)
+      .total_macros_per_day.map((d) => d.protein_g);
+    for (let i = 0; i < sans.length; i++) {
+      expect(Math.abs(avec[i] - sans[i]), `jour ${i + 1}`).toBeLessThan(0.12 * sans[i]);
+    }
+  });
+
+  it('un écart ÉNORME ne fait descendre aucun jour sous le filet absolu', () => {
+    const p = makeProfile();
+    for (const kcal of buildLocalPlan({ ...p, calorie_bank: { '3': 4000 } }, 0)
+      .total_macros_per_day.map((d) => d.kcal)) {
+      expect(kcal).toBeGreaterThan(1000);
+    }
+  });
+
+  it('reste DÉTERMINISTE avec une banque (même profil → même plan)', () => {
+    const p = makeProfile({ calorie_bank: { '3': 500 } });
+    expect(buildLocalPlan(p, 0).meals.map((m) => m.recipe.id))
+      .toEqual(buildLocalPlan(p, 0).meals.map((m) => m.recipe.id));
+  });
+});
