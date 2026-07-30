@@ -20,6 +20,53 @@ par le fondateur, **entièrement réalisée** par la vague de 113. C'est son con
 ⚠️ **Le fondateur veut repartir d'une base saine.** Si plusieurs sessions travaillent à nouveau en
 parallèle, recréer des worktrees — mais les nettoyer en fin de chantier, pas les laisser.
 
+## Chantiers ouverts — par ordre de rentabilité
+
+### 1. RÉPARER le catalogue, pas seulement l'agrandir ⭐ le plus rentable
+
+La vague de 113 **ajoute** des recettes servables ; elle ne corrige aucune des existantes. État
+mesuré le 2026-07-30 sur les 12 profils (`npm run mesure:couverture`) :
+
+| | Constat |
+|---|---|
+| Collations ne servant **aucun** profil féminin | **48 / 66** |
+| Collations servables à une femme de 55 kg en sèche | **0 / 66** |
+| Collations servables à l'homme médian (80 kg, maintien) | 15 / 66 |
+| Repas complets servables à une femme de 55 kg en sèche | 23 / 170 |
+| Recettes atteignant le seuil R8 de 8/12 | pdj **32/78** · repas **45/170** · collations **0/66** |
+
+**La réparation est une transformation NUMÉRIQUE, pas une réécriture éditoriale** — c'est ce qui la
+rend faisable. La cause unique est l'ancre protéine, dont le facteur de scaling minimum est **1,00** :
+la quantité écrite est un plancher définitif. Baisser la `qty` de l'ancre protéine (et monter celle
+du féculent) déplace mécaniquement le score R8, sans toucher au nom, aux instructions ni aux
+ingrédients. Donc : scriptable, mesurable avant/après, et sans risque de créer des doublons —
+la composition ne change pas.
+
+Ordre de marche suggéré : cibler d'abord les collations (le créneau est à 0 pour un profil réel),
+mesurer, puis les repas complets. `macros_per_serving` doit être recalculé à chaque fois, et
+`ENGINE_VERSION` incrémenté (sinon les plans en cache ignorent la correction).
+
+⚠️ Piège : ne PAS baisser la protéine sur les recettes déjà à 8/12 ou plus — on casserait ce qui
+marche. Mesurer par recette, pas en masse.
+
+### 2. Vérifier le lot B2 de collations généré par le fondateur
+
+Un JSON de 13 collations a été produit via Claude chat le 2026-07-30 mais **jamais passé aux
+contrôles**. Il a été écrit AVANT le correctif sur les formats fermés : les collations bâties sur
+`skyr`, `fromage_blanc_0`, `cottage_cheese` ou `yaourt_grec` sans féculent tomberont sur la règle
+des triplets (R4). Souvent réparable en ajoutant un féculent léger, qui libère le couple.
+
+### 3. Axe allergène — jamais tranché
+
+`tahini` introduit le **sésame** et aucun champ du schéma ne porte les allergènes. `restrictions_ok`
+ne couvre que les 7 régimes. Décision reportée depuis le 2026-07-29.
+
+### 4. Les groupes R4 saturés qui restent
+
+16 groupes de quasi-doublons de composition subsistent (whey+avoine ×6, yaourt de soja sans
+féculent ×8, poulet+riz basmati ×5). Ils se règlent **en écrivant ailleurs**, pas en réécrivant
+l'existant — le cliquet de `doublons.test.ts` les tient à leur niveau actuel.
+
 ## Setup & déploiement
 - Expo Router (file-based), SDK 56, TS strict. Lancer : `npm run web` (8081) / `npm run ios`. Tests : `npm test` (vitest). Preview agent : port **8090** (pas 8081, occupé par le fondateur).
 - **En ligne** : web sur GitHub Pages → https://brgkevin-arch.github.io/Kyroz-app/ (repo public `brgkevin-arch/Kyroz-app`, auto-deploy `deploy.yml` à chaque push `main`). Le fondateur publie via **GitHub Desktop** (Commit→Push), pas le terminal.
