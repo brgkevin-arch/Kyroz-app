@@ -78,12 +78,22 @@ qu'ils étaient périmés.
   l'app → vérifier la ligne côté Supabase. Mode d'emploi : `supabase/RUNBOOK-PROD.md` §2.
   ⚠️ Ce mode de panne (migration non jouée → sync morte **en silence**, AsyncStorage
   masque tout) s'est produit **trois fois**.
-- **A2 · 🤖 Vérifier `RECORD_AUDIO` dans le manifeste Android.** Elle n'est plus déclarée
-  dans `app.json`, **ce qui ne prouve rien** : `expo-image-picker` peut la réintroduire par
-  fusion de manifeste. `npx expo prebuild -p android` puis lire
-  `android/app/src/main/AndroidManifest.xml`. Si elle y est, la neutraliser
-  (`tools:node="remove"`). Tant que ce n'est pas fait, le risque de revue Google Play
-  reste ouvert.
+- ~~**A2 · Vérifier `RECORD_AUDIO`**~~ ✅ **RÉSOLU le 2026-07-30 — et le soupçon était FONDÉ.**
+  `npx expo prebuild -p android` puis lecture du manifeste : `RECORD_AUDIO` **y était bien**,
+  alors qu'elle n'apparaît nulle part dans `app.json`. Confirmation que `android.permissions: []`
+  ne prouve rien — la liste est additive, les plugins ajoutent les leurs à la fusion.
+  **Une seconde permission a été trouvée au passage** : `SYSTEM_ALERT_WINDOW`
+  (« afficher par-dessus les autres apps »), présente dans le manifeste de RELEASE alors
+  qu'elle n'a de sens que dans celui de **debug**, où elle figure déjà (menu dev de React
+  Native). Google Play lui applique une politique dédiée.
+  **Correction, à deux niveaux** : `microphonePermission: false` sur le plugin
+  `expo-image-picker` (coupe le micro à la source), + `android.blockedPermissions` comme
+  filet contre ce que la fusion réintroduirait. Vérifié : les deux portent désormais
+  `tools:node="remove"` dans le manifeste généré.
+  ⚠️ **Le manifeste final ne garde que le nécessaire** : `INTERNET`, `VIBRATE` (rappel
+  quotidien), `READ`/`WRITE_EXTERNAL_STORAGE` plafonnées à maxSdk 32 (photos de
+  progression). Ne pas retirer ces deux dernières : elles cassent le choix de photo sur
+  Android ≤ 12.
 
 ### 🎯 B — Les deux briques Kyroz+ qui restent
 

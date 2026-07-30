@@ -20,7 +20,11 @@
       },
       "predictiveBackGestureEnabled": false,
       "permissions": [],
-      "package": "app.kyroz.mobile"
+      "package": "app.kyroz.mobile",
+      "blockedPermissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.SYSTEM_ALERT_WINDOW"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -33,7 +37,8 @@
         "expo-image-picker",
         {
           "photosPermission": "Kyroz accède à tes photos pour enregistrer tes photos de progression (elles restent sur ton téléphone).",
-          "cameraPermission": "Kyroz utilise l'appareil photo pour tes photos de progression (elles restent sur ton téléphone)."
+          "cameraPermission": "Kyroz utilise l'appareil photo pour tes photos de progression (elles restent sur ton téléphone).",
+          "microphonePermission": false
         }
       ],
       [
