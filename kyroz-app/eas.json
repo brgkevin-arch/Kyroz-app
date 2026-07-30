@@ -23,13 +23,8 @@
   },
   "submit": {
     "production": {
-      "ios": {
-        "//": "appleId / ascAppId / appleTeamId à remplir APRÈS création du compte Apple Developer (99 €/an).",
-        "//2": "Ne JAMAIS committer d'App Store Connect API key ici : la référencer via une variable d'env EAS."
-      },
+      "ios": {},
       "android": {
-        "//": "serviceAccountKeyPath à remplir APRÈS création du compte Google Play (25 € une fois).",
-        "//2": "La clé de service Google est un SECRET : la stocker dans les secrets EAS, jamais dans le repo.",
         "track": "internal"
       }
     }

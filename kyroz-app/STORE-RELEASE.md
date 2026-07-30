@@ -339,6 +339,20 @@ pas l'avis d'un médecin ou d'un diététicien-nutritionniste.
 
 ## 8. Build & soumission (commandes)
 
+> ### ⚠️ `eas.json` n'accepte PAS de commentaires — appris à la dure le 2026-07-30
+> Le fichier portait des clés `"//"` en guise de commentaires dans la section `submit`.
+> Le JSON ne supporte pas les commentaires, et le schéma d'EAS les **rejette** :
+> `« submit.production.android.// is not allowed »` → le build s'arrête avant même de
+> démarrer. Elles ont été retirées ; leur contenu est repris ici, à sa place.
+>
+> **À remplir dans `eas.json > submit.production` au moment de la première soumission :**
+> - **iOS** — `appleId`, `ascAppId`, `appleTeamId` (Team ID = `8F2ZSM5NSY`).
+> - **Android** — `serviceAccountKeyPath`, la clé de service Google Play.
+>
+> 🔒 **Ni la clé App Store Connect ni la clé de service Google ne doivent être
+> commitées.** Ce sont des secrets : les stocker dans les **secrets EAS** et les
+> référencer par variable d'environnement. Une clé dans le dépôt est une clé publiée.
+
 ```bash
 # 1. Outil EAS (une fois)
 npm i -g eas-cli        # ou préfixer les commandes par: npx eas-cli@latest
