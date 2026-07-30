@@ -141,7 +141,7 @@ que par la banque de calories, chantier séparé). `profiles.stripe_customer_id`
 1. **Valeur premium** = Kyroz+ « piloter son objectif dans le temps » (objectif daté +
    trajectoire + transformation) — **construite + déployée** (+ banque de calories à venir).
 2. **Les 4 features déjà livrées restent GRATUITES** (carb cycling, recalc macros au poids,
-   recettes perso, catalogue 264) : les reprendre casserait la confiance et le North Star.
+   recettes perso, catalogue 314) : les reprendre casserait la confiance et le North Star.
 3. **Paiement = achat in-app Apple App Store + Google Play, via RevenueCat** (pas Stripe seul).
 4. **Tarif** = 4,99 €/mois · 39,99 €/an (ajustable au moment du câblage, mais c'est le plan retenu).
 
