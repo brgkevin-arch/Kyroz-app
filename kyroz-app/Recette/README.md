@@ -2,9 +2,15 @@
 
 ```
 Recette/
-├── recettes-kyroz.json   ← LE CATALOGUE LIVE (importé par lib/recipeData.ts) — 314 recettes
-├── README.md             ← ce fichier
-└── drops/                ← livraisons brutes reçues (archives, JAMAIS importées par le code)
+├── recettes-kyroz.json          ← LE CATALOGUE LIVE (importé par lib/recipeData.ts) — 314 recettes
+├── README.md                    ← ce fichier
+├── BRIEF-GENERATION-RECETTES.md ← la SPEC : mesures, enveloppes, raisonnement. Ne pas transmettre tel quel.
+├── lots/                        ← la COMMANDE, générée (npm run gen:lots). Un fichier = une conversation.
+│   ├── b2.md                    (13 collations, col67–col79)
+│   ├── b1-lot1.md … b1-lot4.md  (80 repas complets, rep171–rep250)
+│   ├── b3.md                    (20 petits-déjeuners, pd79–pd98)
+│   └── annexe-collations-existantes.md
+└── drops/                       ← livraisons brutes REÇUES (archives, JAMAIS importées par le code)
     ├── 2026-06-16-refonte-adaptrecipe/
     ├── 2026-06-19-vegan/            (+164 recettes, mergé)
     └── 2026-07-22-sans-gluten/      (+50 recettes GF, mergé)
@@ -12,6 +18,11 @@ Recette/
 
 ⚠️ `recettes-kyroz.json` est **importé par le code** (`lib/recipeData.ts`, `lib/__tests__/recipeFoodMap.test.ts`).
 Les fichiers de `drops/` sont de la matière première : on en extrait, on ne les branche jamais.
+
+⚠️ **`lots/` est GÉNÉRÉ — ne jamais l'éditer à la main.** Toute correction va dans
+`scripts/gen-brief-lot.ts`, puis on régénère. C'est ce qui garantit que les refs, les macros et les
+formats saturés collent au catalogue : la première version de ces fichiers listait des « formats à
+viser » écrits à la main qui pointaient tous sur des couples déjà saturés.
 
 ## Commander des recettes — les fichiers à transmettre
 

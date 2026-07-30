@@ -213,7 +213,7 @@ Plancher = énergie disponible (30 kcal/kg de masse maigre + sport, **plafonné 
 
 ## Catalogue de recettes — vague de 113 (2026-07-30)
 
-Branche `feature/vague-recettes-80`, commit `5f41066`, **non mergé**. Brief :
+**Mergé sur `main` et déployé le 2026-07-30** (`c6e4e42`). Brief :
 `Recette/BRIEF-GENERATION-RECETTES.md`. Commande opérationnelle : `Recette/lots/*.md`, générés par
 `npm run gen:lots`.
 
