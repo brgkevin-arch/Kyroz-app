@@ -134,12 +134,25 @@ OUTPUT         → Plan + liste de courses + recettes
 
 ### Features INTERDITES (scope creep)
 - ❌ Social / partage
-- ❌ Gamification avancée (badges, leaderboard)
+- ❌ Gamification **de compétition** : badges, points, classements, leaderboard
 - ❌ Scan code-barres
 - ❌ Intégration wearables
 - ❌ Coach IA conversationnel
 - ❌ Contenu éducatif / articles
 - ❌ Notifications push avancées (sauf rappel quotidien simple)
+
+> **Nuance sur la gamification — assouplie le 2026-07-30 (décision fondateur).**
+> La règle disait « gamification avancée » sans dire où passait la frontière, et
+> elle a servi à refuser d'office des mécaniques de rétention parfaitement saines.
+> Ce qui est interdit, c'est la **compétition et la collection** : badges, points,
+> classements, comparaison aux autres. Ce qui est **autorisé** : les mécaniques
+> sobres qui servent directement le North Star (7 jours consécutifs) et qui
+> **rassurent au lieu de mettre la pression** — la série elle-même, et son gel
+> d'un jour manqué (`advanceStreak`), en font partie et sont **déjà livrés**.
+>
+> Test à appliquer en cas de doute : *est-ce que ça compare l'utilisateur à
+> quelqu'un d'autre, ou est-ce que ça l'aide à ne pas décrocher ?* Le second
+> passe. Ne pas refuser sans avoir posé la question.
 
 ---
 
