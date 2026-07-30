@@ -35,7 +35,31 @@
   >   tes coordonnées **bancaires** et **fiscales**, et tant qu'il est en
   >   « Pending », **aucun abonnement ne peut être créé ni vendu** — même app
   >   publiée. C'est LUI qui bloque Kyroz+, pas l'adhésion.
-- **Google Play Console** — 25 € une fois — https://play.google.com/console/signup
+- ✅ **Google Play Console — FAIT (2026-07-30).** Compte payé, téléphone vérifié,
+  site `kyroz.app` validé via Google Search Console (propriété **Domaine**, même
+  compte Google que la console — sinon la demande de validation part vers un autre
+  propriétaire et on tourne en rond).
+  > ### 🚫 COMPTE **PERSONNEL** ASSUMÉ — décision fondateur 2026-07-30, ne pas rouvrir
+  > Le passage en compte **organisation** a été étudié puis **abandonné**, et la raison
+  > n'est pas la paresse : elle est dans le registre. Fiche INPI de l'entreprise —
+  > **forme juridique « Entrepreneur individuel »**, **dénomination « Kévin BERGER »**,
+  > adresse `2 RUE du Moulin 64570 Arette`, nom **commercial** « Kyroz ».
+  >
+  > Les deux bénéfices attendus s'effondrent sur cette fiche :
+  > - ❌ « l'adresse perso ne sera plus publiée » — l'adresse de l'entreprise **EST** le
+  >   domicile. Perso ou organisation, c'est la même qui s'affiche.
+  > - ❌ « le nom affiché sera celui de la structure » — la dénomination légale **EST**
+  >   le nom du fondateur. « Kyroz » n'est qu'un nom commercial.
+  >
+  > Ne restait que l'exemption des 12 testeurs, pour 1 à 2 semaines de D-U-N-S et un
+  > risque de refus réel : **Apple exclut explicitement l'entreprise individuelle** de
+  > ses comptes organisation (« must be recognized as a legal entity… DBAs, fictitious
+  > businesses, trade names are not accepted »), et rien ne garantit que Google soit
+  > plus souple. Le test fermé, lui, est **certain** et démarre tout de suite.
+  >
+  > 💡 **Si l'adresse publiée devient un problème**, le levier n'est ni Apple ni Google :
+  > c'est une **domiciliation** d'entreprise (quelques €/mois), qui change ce qui est
+  > publié PARTOUT — INPI, stores, mentions légales. Décision d'entreprise, pas d'app.
   - ⚠️ **Piège délai** : depuis nov. 2023, un **compte personnel** neuf doit faire
     tester l'app par **au moins 12–20 testeurs pendant 14 jours** avant de pouvoir
     passer en production. **À anticiper** (recrute tes testeurs tôt). Un compte
