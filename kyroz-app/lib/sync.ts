@@ -22,7 +22,12 @@ const WEIGHT_KEY = '@kyroz:weights';
 const OVERRIDES_KEY = '@kyroz:recipeOverrides';
 
 // Colonnes du profil partagées entre l'app et la table `profiles`.
-const PROFILE_COLS = [
+//
+// `export` pour le VERROU de `lib/__tests__/profileCols.test.ts` uniquement : ce test
+// compare cette liste au schéma SQL réel du dépôt, et échoue si une colonne y est
+// absente ou si une colonne du schéma n'est ni synchronisée ni exclue explicitement.
+// Aucun autre module ne l'importe — c'est un point d'observation, pas une API.
+export const PROFILE_COLS = [
   'sex', 'age', 'weight_kg', 'height_cm', 'body_fat_pct', 'activity_level', 'training_days_per_week',
   // Plancher d'énergie disponible (P0.1) — migration 2026-07-28_profiles_energy_availability.sql.
   // `is_post_menopausal` est VOLONTAIREMENT absent : LOCAL-ONLY et inerte tant que
