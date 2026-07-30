@@ -26,10 +26,16 @@
 
 ## 1. Comptes développeur (bloquant — argent + identité, prévoir des délais)
 
-- **Apple Developer Program** — 99 €/an — https://developer.apple.com/programs/
-  - Compte individuel : Apple vérifie ton **identité** (pièce d'identité). Compte
-    micro-entreprise possible mais demande un **numéro D-U-N-S** (gratuit, ~1–2 sem
-    de délai). Le plus rapide pour démarrer = **compte individuel**.
+- ✅ **Apple Developer Program — FAIT (2026-07-30).** Compte ouvert et payé.
+  > ⚠️ **Payer les 99 € n'autorise PAS encore à vendre.** Ce sont deux choses
+  > distinctes, et c'est le piège classique :
+  > - les **99 €/an** = l'adhésion, qui permet de *publier* une app ;
+  > - le **Paid Applications Agreement** (App Store Connect → *Business* →
+  >   *Agreements*) = le contrat de vente, qui permet d'*encaisser*. Il réclame
+  >   tes coordonnées **bancaires** et **fiscales**, et tant qu'il est en
+  >   « Pending », **aucun abonnement ne peut être créé ni vendu** — même app
+  >   publiée. C'est LUI qui bloque Kyroz+, pas l'adhésion.
+- **Google Play Console** — 25 € une fois — https://play.google.com/console/signup
 - **Google Play Console** — 25 € une fois — https://play.google.com/console/signup
   - ⚠️ **Piège délai** : depuis nov. 2023, un **compte personnel** neuf doit faire
     tester l'app par **au moins 12–20 testeurs pendant 14 jours** avant de pouvoir
@@ -37,6 +43,46 @@
     **organisation** (entreprise) n'a pas cette contrainte.
 
 Sans ces deux comptes, rien ne peut être soumis. Le reste (§2–7) peut se préparer en parallèle.
+
+### 1-bis. Créer les abonnements Kyroz+ (ordre IMPOSÉ)
+
+Les produits d'abonnement ne peuvent pas être créés dans le vide : il faut d'abord
+un identifiant enregistré, puis une fiche d'app. Dans cet ordre, sinon le menu
+« Abonnements » n'apparaît tout simplement pas.
+
+1. **Enregistrer le Bundle ID** — developer.apple.com → *Certificates, IDs & Profiles*
+   → *Identifiers* → **+** → *App IDs* → *App*. Bundle ID = **`app.kyroz.mobile`**
+   (exactement celui d'`app.json` — une faute de frappe ici se paie par un rejet à
+   la soumission). Cocher la capability **In-App Purchase**.
+2. **Créer la fiche d'app** — App Store Connect → *Apps* → **+** → *New App*.
+   Plateforme iOS · Nom **Kyroz** · Langue principale Français · Bundle ID celui du
+   dessus · SKU libre (ex. `kyroz-ios-001`).
+3. **Signer le Paid Applications Agreement** s'il ne l'est pas (cf. encadré ci-dessus).
+   **Tant qu'il est « Pending », l'étape 4 est impossible.**
+4. **Groupe d'abonnement puis produits** — fiche de l'app → *Monetization* →
+   *Subscriptions* → créer un groupe nommé **Kyroz+**, puis dedans :
+
+   | Product ID | Nom de référence | Durée | Prix |
+   |---|---|---|---|
+   | `kyroz_plus_monthly` | Kyroz+ mensuel | 1 mois | 4,99 € |
+   | `kyroz_plus_yearly` | Kyroz+ annuel | 1 an | 39,99 € |
+
+   ⚠️ **Les `Product ID` doivent être identiques au caractère près côté Google et
+   dans RevenueCat.** C'est la source d'erreur n°1 : un `_yearly` écrit `_annual`
+   d'un côté et l'achat échoue en silence à l'exécution.
+   Chaque produit réclame en plus un **nom affiché** + une **description** localisés
+   FR, et une **capture d'écran de review** (l'écran de paywall — donc à produire
+   après le câblage, ou une maquette provisoire).
+5. **Google Play Console** → *Monétisation* → *Abonnements* : créer **un** abonnement
+   `kyroz_plus` avec **deux base plans** (mensuel / annuel), mêmes prix.
+6. **RevenueCat** → nouveau projet → rattacher l'app iOS **et** l'app Android →
+   mapper les produits store → **1 entitlement nommé exactement `premium`** +
+   **1 offering** contenant les deux packages. Récupérer les 2 clés SDK publiques
+   (`appl_…` et `goog_…`) — publiques par conception, transmissibles sans risque.
+
+À la fin de l'étape 6, il reste **une seule fonction à écrire** côté code :
+`useEntitlement()` dans `hooks/usePremium.ts`. Tout le reste est déjà en place
+(cf. `lib/premium.ts`, grand-père des comptes existants).
 
 ---
 
