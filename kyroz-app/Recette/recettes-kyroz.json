@@ -19654,7 +19654,7 @@
   "config": {
     "scaling_factors_by_role": {
       "protein": [
-        1.0,
+        0.5,
         1.7
       ],
       "carb": [

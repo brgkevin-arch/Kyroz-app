@@ -1,7 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import { adaptRecipe, goalToObjectives, sportsToBuckets, needMatch, FLAG_AUDIENCE } from '../adaptRecipe';
-import { macrosForRefIngredients } from '../recipeData';
+import { RECIPE_CONFIG, macrosForRefIngredients } from '../recipeData';
 import { AdaptFlag, Recipe } from '../types';
+
+/** Bornes [min,max] du rôle protéine, lues depuis la config du catalogue. */
+const BORNES_PROT = RECIPE_CONFIG.scaling_factors_by_role.protein!;
 
 // Recette de test minimale (refs réels de la table).
 const poulet: Recipe = {
@@ -37,17 +40,42 @@ describe('adaptRecipe', () => {
     expect(res.gap.protein_g).toBe(res.macros.protein_g - Math.round(target.proteinMeal));
     expect(res.gap.carbs_g).toBe(res.macros.carbs_g - Math.round(target.carbMeal));
   });
-  it('ne réduit jamais la protéine sous la recette de base (plancher recomp)', () => {
-    // cible protéines basse → l'ancre poulet reste ≥ sa qty de base
+  // ⚠️ RÈGLE CHANGÉE le 2026-07-30 — décision produit du fondateur, pas une correction.
+  //
+  // AVANT : la quantité ÉCRITE de l'ancre était un plancher définitif (`kp >= 1.0`), donc
+  // un plat ne servait JAMAIS moins de protéine que ce que l'auteur avait tapé. Ce test
+  // exigeait `>= 180 g` de poulet même pour une cible de 10 g de protéines.
+  //
+  // POURQUOI ÇA A CHANGÉ : ce plancher n'avait aucun rapport avec le besoin de la
+  // personne servie, et il rendait le catalogue inutilisable pour les profils légers —
+  // mesuré, une femme de 55 kg en sèche avait 0 collation servable sur 66. La borne
+  // basse du rôle `protein` est passée de 1,0 à 0,5, comme les glucides et les lipides.
+  //
+  // CE QUI PROTÈGE ENCORE : `protein_floor_tolerance` (0,95), relatif à la CIBLE du
+  // repas et non à ce qu'un rédacteur a écrit — cf. le test suivant.
+  it('l’ancre descend jusqu’à sa borne de rôle quand la cible est basse (plus de plancher « recette écrite »)', () => {
     const res = adaptRecipe(poulet, { ...target, proteinMeal: 10 });
     const p = res.ingredients.find((i) => i.ref === 'poulet_filet')!;
-    expect(p.quantity_g).toBeGreaterThanOrEqual(180);
+    const borneBasse = 180 * BORNES_PROT[0];
+
+    expect(p.quantity_g).toBeGreaterThanOrEqual(borneBasse); // la borne de rôle tient
+    expect(p.quantity_g).toBeLessThan(180);                  // le plancher d'avant a bien sauté
   });
-  it('plancher protéique TOTAL : recette multi-source (whey+lait+avoine) ne tombe pas sous la base', () => {
+
+  it('mais l’ancre remonte toujours quand la cible protéique est HAUTE', () => {
+    // Le relâchement ouvre le bas, il ne touche pas le haut : la borne max reste 1,7×.
+    const res = adaptRecipe(poulet, { ...target, proteinMeal: 70 });
+    const p = res.ingredients.find((i) => i.ref === 'poulet_filet')!;
+
+    expect(p.quantity_g).toBeGreaterThan(180);
+    expect(p.quantity_g).toBeLessThanOrEqual(180 * BORNES_PROT[1]);
+  });
+  it('plancher protéique TOTAL : la recette multi-source suit la CIBLE, pas la recette écrite', () => {
     // La protéine de ce porridge vient de l'ANCRE (whey) ET des fills (lait, avoine).
-    // Cible volontairement basse en protéines ET en glucides : sans plancher sur la
-    // protéine TOTALE, scaleToMacro réduirait lait+avoine pour viser les glucides et
-    // la protéine du repas tomberait sous la recette de base. On exige ≥ base.
+    // Cible volontairement basse en protéines ET en glucides : la récupération
+    // protéique doit ramener le total à la CIBLE, sans le sur-remonter jusqu'à la
+    // recette écrite (ce que faisait `Math.max(target.proteinMeal, baseProtein)`
+    // jusqu'au 2026-07-30).
     const porridge: Recipe = {
       id: 't_porridge', name_fr: 'Porridge protéiné', prep_time_min: 10, portions: 1,
       macros_per_portion: { kcal: 0, protein_g: 0, carbs_g: 0, fat_g: 0 }, // recompute depuis refs
@@ -61,8 +89,19 @@ describe('adaptRecipe', () => {
     const base = macrosForRefIngredients([
       { ref: 'whey', qty: 30 }, { ref: 'lait_demi_ecreme', qty: 250 }, { ref: 'flocons_avoine', qty: 70 },
     ]);
-    const res = adaptRecipe(porridge, { kcalMeal: 320, proteinMeal: 18, carbMeal: 22, fatMeal: 6 });
-    expect(res.macros.protein_g).toBeGreaterThanOrEqual(Math.round(base.protein_g) - 1);
+    const cible = { kcalMeal: 320, proteinMeal: 18, carbMeal: 22, fatMeal: 6 };
+    const res = adaptRecipe(porridge, cible);
+
+    // Le plancher est désormais la CIBLE du repas, plus la recette de base : c'est ce
+    // que `protein_floor_tolerance` (0,95) mesure, et c'est le seul seuil qui décrit un
+    // besoin réel. Servir 39 g de protéines à quelqu'un qui en a besoin de 18 n'était
+    // pas une sécurité, c'était un dépassement.
+    expect(res.macros.protein_g).toBeGreaterThanOrEqual(
+      cible.proteinMeal * RECIPE_CONFIG.protein_floor_tolerance,
+    );
+    expect(res.flags).not.toContain('protein_below_target');
+    // Et le plancher « recette écrite » a bien disparu : on sert moins que la base.
+    expect(res.macros.protein_g).toBeLessThan(Math.round(base.protein_g));
   });
   it('flag under_target_kcal quand la recette ne peut pas atteindre une grosse cible', () => {
     const res = adaptRecipe(poulet, { kcalMeal: 1400, proteinMeal: 90, carbMeal: 175, fatMeal: 47 });
