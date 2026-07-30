@@ -152,19 +152,29 @@ export async function pushProfile(p: UserProfile): Promise<boolean> {
   try {
     const { error } = await supabase.from('profiles').upsert(profileToRow(p, uid));
     if (!error) { await clearProfileDirty(); return true; }
-    // Rejet possible parce que la migration la plus récente n'est pas encore jouée.
-    // On retente SANS ses colonnes : mieux vaut un profil synchronisé à un champ
-    // près qu'un profil qui ne se synchronise plus du tout (cf. PROFILE_COLS_LAST_MIGRATION).
+    // Le retry ne vise QUE le rejet « colonne inconnue côté serveur » (migration pas
+    // encore jouée) : mieux vaut un profil synchronisé à trois champs près qu'un profil
+    // qui ne se synchronise plus du tout (cf. PROFILE_COLS_LAST_MIGRATION).
     //
-    // ⚠️ Le retry est INCONDITIONNEL : il se déclenche sur n'importe quel échec, y
-    // compris une panne réseau ou un refus RLS, cas où retirer trois colonnes ne peut
-    // rien changer. On ne modifie pas ce flux ici (best-effort inchangé), on le DIT.
+    // Il était auparavant INCONDITIONNEL, donc il se déclenchait aussi sur une panne
+    // réseau ou un refus RLS — cas où retirer trois colonnes ne peut rien changer : on
+    // refaisait un appel voué au même échec, et le « retry » ne voulait plus rien dire.
+    // On sort donc tôt sur toute autre cause. La valeur de retour est la même (`false`)
+    // et le profil reste « à pousser » dans les deux cas : ce qui change, c'est un
+    // appel réseau inutile en moins et un log qui dit la vraie cause.
+    const missingColumn = unknownColumnOf(error);
+    if (!missingColumn) {
+      warnSyncFailure(
+        'profil',
+        error,
+        'Aucune nouvelle tentative : la cause n\'est PAS une colonne manquante, retirer des colonnes n\'y changerait rien. Le profil reste marqué « à pousser » et se retentera au prochain enregistrement.',
+      );
+      return false;
+    }
     warnSyncFailure(
       'profil (1re tentative)',
       error,
-      unknownColumnOf(error)
-        ? `Nouvelle tentative sans les colonnes de la dernière migration (${PROFILE_COLS_LAST_MIGRATION.join(', ')}).`
-        : `Nouvelle tentative sans ${PROFILE_COLS_LAST_MIGRATION.join(', ')} — mais la cause n'est PAS une colonne manquante, ce retry a donc peu de chances d'aider.`,
+      `Nouvelle tentative sans les colonnes de la dernière migration (${PROFILE_COLS_LAST_MIGRATION.join(', ')}).`,
     );
     const row = profileToRow(p, uid);
     for (const c of PROFILE_COLS_LAST_MIGRATION) delete row[c];

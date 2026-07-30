@@ -121,6 +121,11 @@ Le module qui peut faire perdre des données à un utilisateur avait **0 test** 
   forcément une régression : lire le `// SUSPECT:`.
 - **`lib/__tests__/syncSignal.test.ts`** — 29 tests : l'échec est-il audible, et le flux de
   contrôle est-il resté identique.
+- **Le retry de `pushProfile` est CONDITIONNEL** (2026-07-30) : il ne se déclenche plus que
+  sur « colonne inconnue côté serveur » (`unknownColumnOf`). Il était inconditionnel, donc une
+  panne réseau ou un refus RLS déclenchait un second appel voué au même échec — et le mot
+  « retry » ne voulait plus rien dire. Valeur de retour et drapeau « sale » **inchangés** dans
+  les deux cas (testé) : ce qui disparaît, c'est un appel réseau inutile.
 - **Le signal** (`sync.ts::warnSyncFailure`) : les échecs de push étaient totalement muets
   (aucun `console` dans le dépôt). Ils nomment maintenant le domaine, et **isolent** le cas
   « colonne inconnue côté serveur » (`PGRST204`/`42703`) des autres erreurs — il signifie
