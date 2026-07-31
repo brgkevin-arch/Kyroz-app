@@ -229,6 +229,55 @@ qu'ils étaient périmés.
   homme même corps → aucun repère ; note de plancher rendue sur les deux).
   752 tests verts, `tsc` propre.
 
+- **A7 · 🧑 DÉCISION EN ATTENTE — le déficit demandé n'est JAMAIS servi au NEAT
+  `desk`.** *Soulevé par le fondateur le 2026-07-31. Sa prémisse a été vérifiée et
+  elle est même plus large qu'il ne la posait. Rien n'a été changé : sa consigne
+  était conditionnelle (« si le 1,20 vient d'une table, passe-le à 1,30 ») et la
+  condition est FAUSSE — le 1,20 vient d'une calibration empirique
+  (`docs/archive/2026-07-28-audit-p1-mesures.md`), qui avait mesuré puis REJETÉ
+  le 1,30.*
+
+  **Mesuré** (0 séance, sèche, −300 demandés) : le déficit demandé n'est servi à
+  AUCUNE masse maigre, de 30 à 80 kg.
+
+  | profil | TDEE | demandé | plancher EA | servi | déficit réel |
+  |---|---|---|---|---|---|
+  | H 60 kg · 15 %MG | 1766 | 1466 | 1530 | 1530 | −236 |
+  | H 80 kg · 25 %MG | 1999 | 1699 | 1800 | 1800 | −199 |
+  | H 100 kg · 35 %MG | 2129 | 1829 | 1950 | 1950 | −179 |
+  | F 60 kg · 25 %MG | 1610 | 1310 | 1350 | 1350 | −260 |
+  | F 80 kg · 35 %MG | 1792 | 1492 | 1560 | 1560 | −232 |
+
+  Le point de bascule est exactement `FFM ≤ 35,3 kg` (`144 ≥ 4,08 × FFM`) : au-delà
+  c'est le plancher EA qui mord, en deçà `MIN_KCAL`. Au cran `light` (1,28), les
+  5 profils reçoivent les −300 entiers.
+
+  **Pourquoi ce n'est pas une contradiction avec la calibration** : elle mesurait
+  « combien de déficit reste-t-il face au moteur legacy », pas « la demande est-elle
+  servie ». Deux questions différentes — la seconde n'avait jamais été posée.
+
+  **Trouvaille liée, non tranchée : l'effet thermique des aliments n'est nulle part.**
+  Zéro occurrence dans le code et dans la spec. Les valeurs 1,20–1,45 sont empruntées
+  aux PAL classiques, qui sont des multiplicateurs CORPS ENTIER incluant le TEF. Or
+  `tdee.ts` documente la table comme « la vie quotidienne HORS sport », sport compté
+  à part par les MET. Lu ainsi, il manque ~10 % de l'apport (≈200 kcal/j à 2000 kcal),
+  ce qui SOUS-estime le TDEE et aggrave le problème ci-dessus. C'est un meilleur
+  argument pour relever le multiplicateur qu'un 1,30 arbitraire.
+
+  ⚠️ Toute option retenue déplace la cible de TOUS les comptes sédentaires →
+  incrémenter `ENGINE_REV` et prévoir l'avertissement one-shot.
+
+- **A8 · 🧑 À TRANCHER — `UserProfile.clamp` n'a pas encore de lecteur.**
+  Livré le 2026-07-31 à la demande du fondateur (champ additif, `recalcProfile`
+  garde sa signature). L'écran Profil appelle déjà `computePlan`, donc il lit
+  `plan.clamp` et non `profile.clamp` : le champ stocké attend son premier
+  consommateur — un écran qui ne calcule pas de plan.
+  **Coût mesuré** : à la première ouverture après déploiement, ~18 % des comptes
+  voient leur profil réécrit en local, marqué `dirty` et poussé une fois. La ligne
+  poussée est IDENTIQUE (`clamp` absent de `PROFILE_COLS`), donc c'est un push à
+  vide, one-shot et idempotent ensuite. Soit un écran l'utilise, soit on retire le
+  champ — c'est une ligne.
+
 ### 🎯 B — Les deux briques Kyroz+ qui restent
 
 La valeur premium est **construite et déployée** (objectif daté). Plus aucune décision
