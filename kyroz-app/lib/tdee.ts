@@ -1,4 +1,4 @@
-import { EngineNotice, Goal, NeatLevel, PlanFlag, Sex, SportSession, UserProfile } from './types';
+import { ClampInfo, EngineNotice, FloorSource, Goal, NeatLevel, PlanFlag, Sex, SportSession, UserProfile } from './types';
 import { exerciseKcalPerDay, totalSessionsPerWeek } from './sport';
 import {
   datedGoalStatus, goalDirectionMismatch, MAX_DEFICIT_TDEE_RATIO, WeekPoint, WeeklyProjector,
@@ -366,11 +366,10 @@ function defaultIsTrainingDay(body: MacroBody): boolean {
  * `requestedKcal` = la cible AVANT plancher : `tdee + delta` en auto/percent,
  * l'énergie des grammes saisis en manual.
  */
-/**
- * Qui a fixé le plancher. Les trois premiers viennent de `safety.safetyFloorBreakdown`
- * (minima physiologiques), les deux derniers sont propres au moteur.
- */
-export type FloorSource = SafetyFloorSource | 'deficit_cap' | 'underweight_maintenance';
+// `FloorSource` a déménagé dans types.ts : `UserProfile.clamp` le porte, et le
+// déclarer ici créerait un cycle d'imports. Ré-exporté pour les appelants
+// historiques du moteur, qui l'importent de ce fichier.
+export type { FloorSource, ClampInfo };
 
 /**
  * Trace EXPLICITE d'un clamp : ce qui était demandé, ce qui est servi, l'écart, et
@@ -388,11 +387,19 @@ export interface ClampRecord {
   servedKcal: number;
   /** Le plancher retenu (le `max` de tous les candidats). */
   floorKcal: number;
-  /** `servedKcal − requestedKcal`, donc ≥ 0. Vaut 0 quand rien n'a mordu. */
+  /**
+   * De combien la cible a été REMONTÉE à CE calcul-ci (≥ 0). Peut valoir 0 alors
+   * que le plancher contraint : en mode manual la correction est persistée dans les
+   * grammes, donc la demande finit par valoir exactement le plancher.
+   */
   clampedByKcal: number;
-  clamped: boolean;
-  /** Le plancher qui a gagné, ou `null` si la demande est servie telle quelle. */
-  source: FloorSource | null;
+  /**
+   * Le plancher CONTRAINT-IL la cible ? État, pas transition — c'est le prédicat de
+   * `FLOOR_APPLIED`, et c'est lui qu'un écran doit utiliser pour décider d'afficher.
+   */
+  floorBinding: boolean;
+  /** Le plancher qui définit `floorKcal`. Toujours renseigné. */
+  source: FloorSource;
   /** Tous les candidats, y compris les perdants — c'est ce qui rend la trace auditable. */
   candidates: Record<FloorSource, number>;
 }
@@ -455,23 +462,30 @@ function floorAndFlags(body: MacroBody, tdee: number, requestedKcal: number, opt
   const ORDRE: FloorSource[] = [
     'underweight_maintenance', 'bmr', 'energy_availability', 'deficit_cap', 'min_kcal',
   ];
-  const clamped = target_kcal > requestedKcal;
+  // ⚠️ `floorBinding` teste un ÉTAT (« le plancher contraint la cible »), PAS une
+  // transition (« la cible a été remontée à ce calcul-ci »). La distinction est le
+  // piège n°1 de ce fichier : en mode manual la correction est PERSISTÉE dans les
+  // grammes, donc dès le recalcul suivant `served === requested` alors que le plan
+  // sert toujours exactement le plancher. Un écran branché sur la transition
+  // deviendrait muet précisément là où la cible cesse de réagir aux réglages.
+  // `clampedByKcal` porte la transition, et lui seul.
+  const floorBinding = target_kcal <= floor_kcal;
+  // `source` suit l'ÉTAT elle aussi : elle nomme le candidat qui DÉFINIT le
+  // plancher, qu'il ait remonté la cible ou non. La renvoyer à `null` hors
+  // transition ferait tomber les écrans dans leur branche par défaut et leur ferait
+  // nommer le mauvais plancher — un mensonge affiché, pas une imprécision.
   const clamp: ClampRecord = {
     requestedKcal: Math.round(requestedKcal),
     servedKcal: target_kcal,
     floorKcal: floor_kcal,
-    clampedByKcal: clamped ? target_kcal - Math.round(requestedKcal) : 0,
-    clamped,
-    source: clamped ? (ORDRE.find((k) => candidates[k] === floor_kcal) ?? null) : null,
+    clampedByKcal: Math.max(0, target_kcal - Math.round(requestedKcal)),
+    floorBinding,
+    source: ORDRE.find((k) => candidates[k] === floor_kcal) ?? 'bmr',
     candidates,
   };
 
   const flags: PlanFlag[] = [];
-  // Le plancher est CONTRAIGNANT (et pas seulement « a mordu au premier calcul ») :
-  // en mode manual la correction est persistée, donc `target > requested` devient
-  // faux au recalcul suivant et l'avertissement disparaissait — alors que le plan
-  // sert toujours exactement le plancher. On teste l'état, pas la transition.
-  if (target_kcal <= floor_kcal) flags.push('FLOOR_APPLIED');
+  if (floorBinding) flags.push('FLOOR_APPLIED');
   if (underweightCapped) flags.push('UNDERWEIGHT_NO_DEFICIT');
   const ea = energyAvailability(body, target_kcal, sportKcalPerDay);
   if (ea < EA_OPTIMAL) flags.push('LOW_EA_WARNING');
@@ -839,7 +853,8 @@ export function computePlan(p: UserProfile, today: string = todayStamp()): Compu
     // quantifiée au gramme, donc l'égalité stricte serait instable d'un calcul à
     // l'autre — et le drapeau clignoterait.
     const flags: PlanFlag[] = r.flags.filter((f) => f !== 'FLOOR_APPLIED');
-    if (served - r.floor_kcal < 4) flags.push('FLOOR_APPLIED');
+    const floorBinding = served - r.floor_kcal < 4;
+    if (floorBinding) flags.push('FLOOR_APPLIED');
     if ((opts.isTrainingDay ?? defaultIsTrainingDay(p)) && isTrainingCarbShort(carbs_g, p.weight_kg)) {
       flags.push('CARBS_BELOW_TRAINING_FLOOR');
     }
@@ -851,8 +866,11 @@ export function computePlan(p: UserProfile, today: string = todayStamp()): Compu
       ...r.clamp,
       servedKcal: served,
       clampedByKcal: Math.max(0, served - r.clamp.requestedKcal),
-      clamped: served > r.clamp.requestedKcal,
-      source: served > r.clamp.requestedKcal ? r.clamp.source : null,
+      // Le MÊME prédicat que `FLOOR_APPLIED` ci-dessus, tolérance au gramme comprise :
+      // deux tests différents pour la même question, c'est la garantie qu'un écran
+      // finira par contredire un drapeau. `source` est conservée telle quelle — elle
+      // décrit le plancher, qui ne dépend pas de la façon dont la cible l'a rejoint.
+      floorBinding,
     };
     m = { target_kcal: served, floor_kcal: r.floor_kcal, flags, protein_g: p.target_protein_g, carbs_g, fat_g: p.target_fat_g, clamp: clampManuel };
   }
@@ -899,11 +917,36 @@ export function computePlan(p: UserProfile, today: string = todayStamp()): Compu
   const engine_notice = p.engine_notice
     ?? engineNoticeFor(p.engine_rev, p.target_kcal, m.target_kcal);
 
+  // ── Trace du plancher, déposée SUR LE PROFIL ──────────────────────────────
+  // Version allégée de `m.clamp` : les candidats perdants servent au diagnostic
+  // (ils restent sur `ComputedPlan`), pas au stockage — inutile de persister cinq
+  // nombres pour en afficher deux, et ils redeviendraient faux si le corps change
+  // sans qu'un recalcul les rafraîchisse.
+  // `undefined` quand le plancher ne contraint pas : l'ABSENCE porte le sens « la
+  // demande est servie », un objet à zéro ne le dirait pas et ferait grossir le
+  // profil stocké. Même prédicat que `FLOOR_APPLIED`, donc le champ stocké et le
+  // drapeau ne peuvent pas se contredire.
+  const clampInfo: ClampInfo | undefined = m.clamp.floorBinding
+    ? {
+        source: m.clamp.source,
+        floorKcal: m.clamp.floorKcal,
+        requestedKcal: m.clamp.requestedKcal,
+        servedKcal: m.clamp.servedKcal,
+        clampedByKcal: m.clamp.clampedByKcal,
+      }
+    : undefined;
+  // ⚠️ La clé doit être RETIRÉE du profil précédent avant d'être éventuellement
+  // reposée : `{ ...p }` reconduirait la trace de l'avant-dernier calcul quand plus
+  // rien ne mord, et l'écran afficherait « ta cible est ton plancher » sur un plan
+  // qui sert exactement ce qui était demandé. Même raison que `dismissEngineNotice` :
+  // mettre la clé à `undefined` ne suffit pas, `JSON.stringify` l'élide.
+  const { clamp: _clampPrecedent, ...profilSansClamp } = p;
+
   const escalation = lowEaEscalation(p, lowEaWeeks) ?? undefined;
 
   return {
     profile: {
-      ...p,
+      ...profilSansClamp,
       low_ea_weeks,
       tdee_kcal: tdee,
       target_kcal: m.target_kcal,
@@ -912,6 +955,11 @@ export function computePlan(p: UserProfile, today: string = todayStamp()): Compu
       target_fat_g: m.fat_g,
       engine_rev: ENGINE_REV,
       ...(engine_notice ? { engine_notice } : {}),
+      // Étalée conditionnellement, comme `engine_notice` : la clé doit être RETIRÉE
+      // et pas mise à `undefined`. `JSON.stringify` élide les `undefined`, donc la
+      // comparaison anti-réécriture de `useProfile` ne verrait aucun changement et
+      // un profil qui SORT du plancher garderait sa trace périmée à l'écran.
+      ...(clampInfo ? { clamp: clampInfo } : {}),
     },
     flags,
     floor_kcal: m.floor_kcal,

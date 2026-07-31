@@ -155,6 +155,14 @@ describe('PROFILE_COLS ↔ schéma SQL', () => {
   });
 
   // ── Test 2 — le garde-fou central : partitionnement exhaustif et explicite ─
+  it('`clamp` est LOCAL-ONLY et ne doit jamais partir en base', () => {
+    // `UserProfile.clamp` est DÉRIVÉ (réécrit à chaque computePlan). Le pousser
+    // ferait rejeter l'upsert ENTIER — aucune migration ne crée cette colonne, et
+    // il ne faut pas en créer une : le moteur la reconstruit à chaque ouverture.
+    expect(PROFILE_COLS as readonly string[]).not.toContain('clamp');
+    expect(serverColumns().has('clamp')).toBe(false);
+  });
+
   it('schéma = PROFILE_COLS ∪ DELIBERATELY_EXCLUDED, exactement', () => {
     const server = [...serverColumns()].sort();
     const accounted = [...new Set([...PROFILE_COLS, ...Object.keys(DELIBERATELY_EXCLUDED)])].sort();

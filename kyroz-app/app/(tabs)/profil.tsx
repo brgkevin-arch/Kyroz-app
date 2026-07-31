@@ -228,10 +228,17 @@ export default function ProfilScreen() {
   // Conséquence mesurée : deux profils dont seule la composition diffère peuvent
   // afficher la MÊME cible (le plancher vaut 30 kcal/kg de masse maigre, identique
   // aux deux sexes), et l'écran laissait croire à un moteur qui ne calcule rien.
-  // On explique la contrainte réelle plutôt que de laisser deviner.
   // Exclu quand l'insuffisance pondérale a déjà sa propre carte au-dessus : deux
   // messages pour une même cause se contrediraient à l'œil.
-  const flooredTarget = plan.flags.includes('FLOOR_APPLIED') && !underweightCapped;
+  //
+  // ⚠️ DEUX lectures distinctes, et les confondre a déjà cassé cet écran :
+  //  • `floorBinding` (= le prédicat de FLOOR_APPLIED) décide de l'AFFICHAGE. Tester
+  //    `clampedByKcal > 0` à la place testerait une TRANSITION : en mode manual la
+  //    correction est persistée dans les grammes, donc la note ne s'afficherait
+  //    JAMAIS sur ces comptes — précisément ceux dont la cible ne bouge plus.
+  //  • `source` choisit le TEXTE. Chaque plancher a une raison et un avenir
+  //    différents ; en nommer un pour un autre est un mensonge, pas une nuance.
+  const clamp = plan.clamp.floorBinding && !underweightCapped ? plan.clamp : null;
 
   return (
     <SafeAreaView style={s.safe} edges={['top']}>
@@ -286,11 +293,20 @@ export default function ProfilScreen() {
         </View>
 
         {/* Ton informatif, pas alarmant : c'est une borne qui protège, pas un échec.
-            On dit d'où vient le chiffre ET qu'il bougera — sinon une cible qui ne
-            réagit plus aux réglages se lit comme un moteur en panne. */}
-        {flooredTarget && (
+            On dit d'où vient le chiffre ET s'il bougera — sinon une cible qui ne
+            réagit plus aux réglages se lit comme un moteur en panne. Le texte suit
+            le plancher NOMMÉ (clamp.source) : chacun a une raison et un avenir
+            différents, et les confondre serait mentir sur l'un des trois. */}
+        {clamp && (
           <Text style={s.floorNote}>
-            Ces {profile.target_kcal} kcal, c'est ton <Text style={{ fontWeight: '700' }}>plancher de sécurité</Text> — pas le résultat de ton déficit. Kyroz ne descend pas plus bas : en dessous, il ne te resterait plus assez d'énergie une fois tes séances payées. Il est calculé sur ta masse maigre, donc il baissera avec elle.
+            Ces {clamp.servedKcal} kcal, c'est ton <Text style={{ fontWeight: '700' }}>plancher de sécurité</Text> — pas le résultat de ton déficit{clamp.clampedByKcal > 0 ? `, qui demandait ${clamp.requestedKcal}` : ''}. Kyroz ne descend pas plus bas :{' '}
+            {clamp.source === 'energy_availability'
+              ? 'en dessous, il ne te resterait plus assez d\'énergie une fois tes séances payées. Il est calculé sur ta masse maigre, donc il baissera avec elle.'
+              : clamp.source === 'bmr'
+                ? 'c\'est ce que ton corps dépense au repos, avant le moindre mouvement. Aucun plan ne passe sous cette ligne.'
+                : clamp.source === 'min_kcal'
+                  ? 'c\'est le minimum absolu de Kyroz, tous gabarits confondus. Il ne bougera pas avec ton poids.'
+                  : 'c\'est le déficit maximum que Kyroz s\'autorise — un quart de ta dépense, pas davantage. Il suivra ta dépense si elle change.'}
           </Text>
         )}
 
