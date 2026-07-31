@@ -578,8 +578,21 @@ produit en suspens — il ne reste qu'à coder.
   et l'écran ne le cache plus) · journée à 1435 kcal → *« Ta journée s'arrête 677 kcal
   sous ta cible : les portions de tes repas ne peuvent pas monter plus haut. Une journée
   sous la cible ne compromet rien. »* Plan du fondateur restauré après vérification.
-- **E6 · 🤖 Hors-plan : seules les kcal sont enregistrées**, pas le nom de l'aliment
-  (« +450 kcal », pas « une pizza ») → aucun historique d'écarts possible.
+- **E6 · 🤖 Hors-plan : seules les kcal sont enregistrées** (« +450 kcal », pas « une
+  pizza »). *Tracé le 2026-07-31 : le nom EXISTE au moment de la saisie et il est jeté.*
+  `OffPlanSheet` connaît `picked.name_fr` (mode « chercher un aliment ») ou le libellé
+  du chip (mode « estimer vite »), mais sa prop est `onLog: (kcal: number) => void`.
+  Le stockage est `plan.day_extras[jour]` = un simple `Macros`.
+  ⚠️ **Deux chantiers, pas un — ne pas les confondre :**
+  1. **Garder le libellé** (petit) : `onLog(kcal, libellé)` + un champ additif sur le
+     plan + l'afficher dans la ligne « + 450 kcal assumées 😎 ». Lecteur immédiat, donc
+     pas de champ orphelin (cf. le piège A8).
+  2. **L'historique des écarts** (le vrai objectif de cette entrée) : **impossible par
+     le 1 seul**. Le plan n'est PAS synchronisé et se régénère (`CLAUDE.md` §3 : il est
+     déterministe, re-dérivable) — tout ce qui vit dedans est éphémère. Un historique
+     demande un journal persistant à part, sur le modèle de `weight_logs`, donc une
+     clé de stockage + probablement une table Supabase + une migration.
+  ➡️ Faire le 1 ne « fait » pas E6. Le 2 est une petite feature, pas de la dette.
 - **E7 · 🤖 Deep links web → HTTP 404** (le rendu est bon, le statut est faux).
   Mauvais SEO. Contournement en place. **Faible priorité.**
 
