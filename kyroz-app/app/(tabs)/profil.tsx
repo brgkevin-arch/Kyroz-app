@@ -529,7 +529,9 @@ function InfoEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
       <Field t={t} label="Poids" suffix="kg" value={weight} onChangeText={setWeight} keyboardType="decimal-pad" />
       <Field t={t} label="Taille" suffix="cm" value={height} onChangeText={setHeight} keyboardType="number-pad" />
       <SectionLabel t={t}>Masse grasse (optionnel)</SectionLabel>
-      <BodyFatPicker t={t} sex={sex} value={bodyFat} onChange={setBodyFat} />
+      {/* `draft` : le repère de plausibilité chiffre l'impact sur le corps EN COURS
+          d'édition, pas sur le profil enregistré. */}
+      <BodyFatPicker t={t} sex={sex} value={bodyFat} onChange={setBodyFat} body={draft} />
     </EditorShell>
   );
 }

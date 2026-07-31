@@ -43,6 +43,35 @@ export function bodyFatBounds(sex: Sex): [number, number] {
   return sex === 'male' ? [5, 60] : [12, 65];
 }
 
+/**
+ * Sous ce % de masse grasse, la valeur SAISIE À LA MAIN est atypique au point de
+ * mériter un repère à l'écran — pas un blocage, la valeur reste physiologiquement
+ * possible (athlètes, compétition).
+ *
+ * ⚠️ POURQUOI ÇA COMPTE : le %MG est le second réglage le plus lourd de l'app après
+ * le NEAT, et c'est un chiffre que presque personne ne connaît vraiment. Katch-McArdle
+ * ne lit QUE la masse maigre — mesuré sur une femme de 80 kg / 1 m 70 / 35 ans,
+ * saisir 20 % au lieu des 36 % estimés fait passer la cible de 1731 à 2112 kcal :
+ * **+381 kcal/jour, le déficit disparaît en entier**. Elle mange à sa maintenance en
+ * croyant sécher et ne le découvre qu'après des semaines sur la balance — exactement
+ * le mode d'échec silencieux que le défaut NEAT `desk` existe pour éviter.
+ * Le sens de l'erreur n'est pas symétrique : SOUS-estimer son %MG gonfle la masse
+ * maigre donc la dépense (échec muet) ; la SUR-estimer creuse le déficit, ce qui se
+ * voit sur la balance et reste tenu par le plancher de sécurité. D'où un repère sur
+ * la borne BASSE seulement.
+ *
+ * Les seuils sont ceux de la silhouette la plus MAIGRE du sélecteur (18 % chez la
+ * femme, 10 % chez l'homme) : ainsi le repère ne peut JAMAIS se déclencher sur un
+ * simple tap d'illustration — uniquement sur un chiffre tapé sous toute la charte.
+ * Les tenir alignés est verrouillé par un test.
+ */
+export const ATYPICAL_BF_BELOW: Record<Sex, number> = { female: 18, male: 10 };
+
+/** Un %MG saisi à la main sous la charte des silhouettes ? (repère, pas blocage) */
+export function isAtypicalBodyFat(sex: Sex, pct: number | undefined | null): boolean {
+  return typeof pct === 'number' && Number.isFinite(pct) && pct < ATYPICAL_BF_BELOW[sex];
+}
+
 /** Entrées corporelles minimales — `UserProfile` les satisfait structurellement. */
 export interface BodyInput {
   sex: Sex;

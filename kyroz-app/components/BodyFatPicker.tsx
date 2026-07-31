@@ -3,7 +3,8 @@ import { View, Text, TouchableOpacity, StyleSheet, Image, ImageSourcePropType } 
 import { ThemePalette, Radius } from '../constants/theme';
 import { Field } from './ui';
 import { Sex } from '../lib/types';
-import { bodyFatBounds } from '../lib/safety';
+import { bodyFatBounds, isAtypicalBodyFat } from '../lib/safety';
+import { bodyFatTdeeImpact, TdeeBody } from '../lib/tdee';
 
 // ── Sélecteur de masse grasse ────────────────────────────────────────────────
 // 6 niveaux de corpulence (valeurs sexuées, calées sur les chartes visuelles de
@@ -58,9 +59,15 @@ interface Props {
   sex: Sex;
   value?: number;
   onChange: (pct: number | undefined) => void;
+  /**
+   * Corps connu à cet instant (poids, taille, âge…), pour chiffrer ce qu'un %MG
+   * atypique change sur la dépense estimée. Absent → le repère s'affiche sans le
+   * chiffre : à l'onboarding, le poids peut ne pas être saisi.
+   */
+  body?: TdeeBody;
 }
 
-export function BodyFatPicker({ t, sex, value, onChange }: Props) {
+export function BodyFatPicker({ t, sex, value, onChange, body }: Props) {
   const levels = LEVELS[sex];
   // Bornes PAR SEXE : 3 % est sous le gras essentiel masculin et impossible chez
   // une femme (~12 % de gras essentiel). L'ancienne borne unique 3–60 était fausse.
@@ -85,6 +92,12 @@ export function BodyFatPicker({ t, sex, value, onChange }: Props) {
     const clamped = Math.min(Math.max(value, BF_MIN), BF_MAX);
     if (clamped !== value) onChange(clamped);
   }, [sex]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Chiffré sur la MAINTENANCE (cf. bodyFatTdeeImpact) : à l'étape 3 de l'onboarding,
+  // ni l'objectif ni les séances ne sont connus, donc la cible n'existe pas encore.
+  const impactKcal = (body && value != null && body.weight_kg > 0 && isAtypicalBodyFat(sex, value))
+    ? bodyFatTdeeImpact({ ...body, sex }, value)
+    : null;
 
   return (
     <View style={{ gap: 12 }}>
@@ -143,6 +156,24 @@ export function BodyFatPicker({ t, sex, value, onChange }: Props) {
         placeholder="ex. 18"
       />
 
+      {/* Repère de plausibilité — cf. safety.isAtypicalBodyFat. Ne peut se déclencher
+          QUE sur une saisie manuelle : le seuil est la silhouette la plus maigre de la
+          charte, donc un tap d'illustration ne le lève jamais. On informe, on ne bloque
+          pas : ces valeurs existent (athlètes), elles sont juste rarement exactes quand
+          elles sont estimées au jugé. */}
+      {isAtypicalBodyFat(sex, value) && (
+        <View style={[styles.note, { borderColor: t.warning, backgroundColor: t.card }]}>
+          <Text style={{ color: t.text, fontSize: 13, fontWeight: '700', marginBottom: 2 }}>
+            {value} %, c'est un niveau d'athlète de compétition
+          </Text>
+          <Text style={{ color: t.textSecondary, fontSize: 12, lineHeight: 17 }}>
+            {impactKcal != null
+              ? `Ce chiffre relève ta dépense estimée de ${impactKcal} kcal/jour — autant de déficit en moins si tu te trompes. En cas de doute, la silhouette la plus proche sera plus juste.`
+              : 'En cas de doute, la silhouette la plus proche sera plus juste : le moteur estime alors ta masse grasse, et une estimation vaut mieux qu\'un chiffre faux.'}
+          </Text>
+        </View>
+      )}
+
       {value != null && (
         <TouchableOpacity onPress={() => onChange(undefined)} activeOpacity={0.7} style={styles.clear}>
           <Text style={{ color: t.textTertiary, fontSize: 13, fontWeight: '600' }}>Effacer ma sélection</Text>
@@ -169,4 +200,5 @@ const styles = StyleSheet.create({
   pct: { fontSize: 17, fontWeight: '800', letterSpacing: -0.3 },
   desc: { fontSize: 12, lineHeight: 16, textAlign: 'center' },
   clear: { alignSelf: 'flex-start', paddingVertical: 2 },
+  note: { borderWidth: 1, borderRadius: Radius.md, paddingVertical: 10, paddingHorizontal: 12 },
 });

@@ -277,7 +277,13 @@ export default function Onboarding() {
             <Text style={s.sub}>
               Indispensable pour un plan vraiment adapté : deux personnes du même poids n'ont pas les mêmes besoins. Choisis la silhouette la plus proche de toi, ou saisis ton % si tu le connais.
             </Text>
-            <BodyFatPicker t={t} sex={sex} value={bodyFat} onChange={setBodyFat} />
+            {/* Le corps est déjà saisi à l'étape 2 → le repère de plausibilité peut
+                chiffrer l'impact. Les séances (étape 4) ne comptent pas ici : elles
+                s'ajoutent au TDEE sans dépendre du %MG. */}
+            <BodyFatPicker
+              t={t} sex={sex} value={bodyFat} onChange={setBodyFat}
+              body={{ sex, age: ageN, weight_kg: wN, height_cm: hN }}
+            />
           </View>
         )}
 
