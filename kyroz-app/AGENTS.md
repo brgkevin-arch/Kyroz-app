@@ -167,10 +167,10 @@ qu'ils étaient périmés.
   30 semaines, déficit servi : femme `S1:182 S16:98 S20:0` (77,4 kg) · homme
   `S1:182 S16:191 S20:193` (74,8 kg). Seule elle subit l'escalade RED-S.
 
-- **A6 · 🧑🤖 OUVERT — le sexe n'a AUCUN effet sur le TDEE ni les macros quand le %MG
-  est déclaré.** *Soulevé par le fondateur le 2026-07-31, et il ne se satisfait PAS de
-  la réponse « c'est le comportement attendu ». À traiter comme un chantier, pas comme
-  une explication à re-servir.*
+- ~~**A6 · le sexe n'a AUCUN effet sur le TDEE ni les macros quand le %MG est
+  déclaré**~~ ✅ **TRANCHÉ ET LIVRÉ le 2026-07-31.** Soulevé par le fondateur, qui a
+  refusé la réponse « c'est le comportement attendu ». **Il avait raison de la
+  refuser — mais la cause n'était pas celle qu'on croyait.**
 
   **Le fait, mesuré** (80 kg · 170 cm · 35 ans · 4× muscu · sèche · %MG 20 déclaré) :
 
@@ -179,21 +179,55 @@ qu'ils étaient périmés.
   | femme | 64,0 kg | 1752 | 2294 | 2112 | P150/G245/L59 |
   | homme | 64,0 kg | 1752 | 2294 | 2112 | P150/G245/L59 |
 
-  Plan strictement identique, recette par recette. Cause : `calculateBMR` passe en
-  **Katch-McArdle** dès que `body_fat_pct` est renseigné, et cette formule
-  (`370 + 21,6 × masse maigre`) ne contient aucun terme de sexe. Sans %MG déclaré,
-  Mifflin reprend la main et l'écart réapparaît (1731 F contre 1990 H).
+  **La vraie cause, mesurée : la cible n'est pas pilotée par le TDEE, c'est le
+  PLANCHER.** `2112 = EA_HARD_FLOOR (30) × 64 kg de masse maigre + sport`, et
+  `safety.ts` dit explicitement *« kcal/kg de masse maigre — plancher dur, les deux
+  sexes »*. La formule de BMR n'y est pour rien : à masse maigre égale, le plancher
+  est égal, donc la cible aussi. `calculateBMR` bascule bien en Katch-McArdle (sans
+  terme de sexe) dès qu'un %MG est saisi, mais ce n'est que le second verrou.
 
-  **Ce qui différencie encore les deux profils** : uniquement les garde-fous —
-  escalade RED-S (elle seule), `MIN_KCAL` 1500/1200, bornes de %MG. Mesuré sur
-  30 semaines de sèche : femme `S1:182 S16:98 S20:0` → 77,4 kg ; homme
-  `S1:182 S16:191 S20:193` → 74,8 kg.
+  **Les trois options ont été mesurées en patchant le moteur** (`lib/tdee.ts`
+  temporairement modifié, puis restauré — jamais sur une réplique) :
 
-  **La décision à prendre** (aucune n'est tranchée) : garder Katch-McArdle tel quel
-  (position standard : à masse maigre égale, la dépense est proche) · introduire un
-  terme de sexe même quand le %MG est connu · ou combiner Katch-McArdle et Mifflin.
-  ⚠️ Toute option retenue **déplace les cibles de tous les comptes ayant un %MG
-  déclaré** → incrémenter `ENGINE_REV` et prévoir l'avertissement one-shot.
+  | option | BMR F/H | TDEE F/H | **cible F/H** |
+  |---|---|---|---|
+  | A — Katch-McArdle (actuel) | 1752 / 1752 | 2102 / 2102 | **1920 / 1920** |
+  | C — moyenne Katch + Mifflin | 1639 / 1722 | 1967 / 2066 | **1920 / 1920** |
+  | B — Mifflin toujours | 1527 / 1693 | 1832 / 2032 | **1832 / 1920** |
+
+  *(sans sport dans ce jeu de mesure ; avec les 4 séances, 1920 devient 2112)*
+
+  - **C ne résout rien** : le TDEE bouge de 99 kcal, la cible ne bouge pas d'un kcal
+    — le plancher la reprend. Un `ENGINE_REV` pour rien.
+  - **B est strictement pire** : sous Mifflin, le BMR de la femme vaut **1527 à 20 %
+    de MG comme à 30 %**. On échangerait « le sexe ne change rien » contre « le %MG
+    ne change plus rien », sur la variable la plus lourde du moteur.
+  - → **A conservé. Aucune formule touchée, aucun `ENGINE_REV`, aucune cible déplacée.**
+
+  **Ce qui a été corrigé à la place** (c'est là qu'était le vrai défaut) :
+
+  1. **Repère de MASSE MAIGRE** (`safety.FFMI_ATYPICAL_ABOVE`, 21 F / 25 H) —
+     `ATYPICAL_BF_BELOW` est un seuil PLAT qui ne regarde que le pourcentage : muet
+     sur 20 % chez une femme (20 > 18) alors que ce chiffre annonce **64 kg de masse
+     maigre, FFMI 22,1**, au-dessus du plafond naturel féminin. Le nouveau repère est
+     sexué par construction et attrape exactement le cas du fondateur. Les deux
+     coexistent (`safety.bodyFatConcern`, source unique) : ils attrapent deux
+     improbabilités différentes. ⚠️ À la différence de l'ancien, celui-ci PEUT se
+     lever sur un tap de silhouette — c'est voulu, un chiffre improbable l'est autant
+     tapé que choisi.
+  2. **La cible dit maintenant quand elle EST le plancher** (`profil.tsx`,
+     `FLOOR_APPLIED`) — le drapeau existait mais n'était affiché que dans l'éditeur
+     « Perso % » et l'objectif daté. Sur l'écran principal, une cible bloquée au
+     plancher ne réagissait plus aux réglages **sans un mot**, ce qui se lit comme un
+     moteur en panne. C'est ce silence qui a produit la question.
+
+  ℹ️ Le sexe agit toujours, mais **dans le temps** (escalade RED-S, `MIN_KCAL`,
+  bornes de %MG). Mesuré sur 30 semaines de sèche : femme `S1:182 S16:98 S20:0` →
+  77,4 kg ; homme `S1:182 S16:191 S20:193` → 74,8 kg.
+
+  Vérifié à l'écran (femme → repère « 64 kg de masse maigre / +270 kcal/jour » ;
+  homme même corps → aucun repère ; note de plancher rendue sur les deux).
+  752 tests verts, `tsc` propre.
 
 ### 🎯 B — Les deux briques Kyroz+ qui restent
 

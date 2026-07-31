@@ -5,7 +5,7 @@ import {
   fatFreeMassKg, lowEaWeeksForFloor, lowEaWeeksInWindow, markLowEaWeek, readLowEaRegistry,
   resolvedBodyFatPct, safetyFloorKcal, settleLowEaExposure, weekStartStamp,
   countsAsLowEaWeek, EA_COUNT_TOLERANCE, LOW_EA_STEP_PER_WEEK,
-  ATYPICAL_BF_BELOW, isAtypicalBodyFat,
+  ATYPICAL_BF_BELOW, isAtypicalBodyFat, bodyFatConcern,
 } from '../safety';
 import { readFileSync } from 'node:fs';
 import { calculateBMR, calculateMacros, computePlan, macrosPercent, proteinTarget, recalcProfile, PROTEIN_MAX_PER_KG_FFM, bodyFatTdeeImpact } from '../tdee';
@@ -818,5 +818,53 @@ describe('repère de plausibilité du %MG saisi (2026-07-31)', () => {
       sports: [{ type: 'musculation', sessions_per_week: 4, minutes_per_session: 60 }],
     }), TODAY).target_kcal;
     expect(impact).toBeLessThan(cible(20) - cible(undefined));
+  });
+});
+
+describe('repère de MASSE MAIGRE — le trou que le seuil plat laissait (A6, 2026-07-31)', () => {
+  // Le cas qui l'a révélé : le fondateur compare deux profils identiques sauf le
+  // sexe, %MG 20 déclaré, et obtient EXACTEMENT les mêmes macros. Katch-McArdle ne
+  // lit que la masse maigre et n'a pas de terme de sexe ; le plancher d'énergie
+  // disponible vaut 30 kcal/kg de masse maigre pour les deux sexes. À masse maigre
+  // égale, tout est donc égal — le vrai défaut est en AMONT : rien ne disait que
+  // 64 kg de masse maigre chez une femme de 1 m 70 sort du plausible.
+  const corps = { age: 35, weight_kg: 80, height_cm: 170 };
+
+  it('attrape le cas du fondateur, que le seuil plat laissait passer', () => {
+    expect(isAtypicalBodyFat('female', 20)).toBe(false);          // muet : 20 > 18
+    expect(bodyFatConcern('female', 20, corps)).toBe('lean_mass'); // FFMI 22,1 > 21
+  });
+
+  it('est bien SEXUÉ : le même corps ne dit rien chez l\'homme', () => {
+    // 64 kg de masse maigre à 1 m 70, c'est un homme entraîné banal.
+    expect(bodyFatConcern('male', 20, corps)).toBe(null);
+  });
+
+  it('ne crie pas au loup sur les gabarits ordinaires', () => {
+    expect(bodyFatConcern('female', 28, corps)).toBe(null);                                  // silhouette du milieu
+    expect(bodyFatConcern('female', 25, { age: 28, weight_kg: 65, height_cm: 165 })).toBe(null);
+    expect(bodyFatConcern('male', 15, { age: 30, weight_kg: 90, height_cm: 180 })).toBe(null);
+  });
+
+  it('sans corps saisi, seul le seuil plat parle — et il parle encore', () => {
+    expect(bodyFatConcern('female', 20, undefined)).toBe(null);
+    expect(bodyFatConcern('female', 15, undefined)).toBe('below_chart');
+    expect(bodyFatConcern('male', 8, { age: 30, weight_kg: 70, height_cm: 180 })).toBe('below_chart');
+  });
+
+  it('ne déplace AUCUNE cible : c\'est un repère, pas une formule', () => {
+    const cible = (sex: 'male' | 'female') => recalcProfile(makeProfile({
+      ...corps, sex, body_fat_pct: 20, goal: 'cut', macro_mode: 'auto',
+    }), TODAY).target_kcal;
+    // Le constat d'origine, verrouillé tel quel : on ne l'a PAS corrigé par la
+    // formule (mesuré, aucune variante n'améliorait sans casser autre chose).
+    expect(cible('female')).toBe(cible('male'));
+  });
+
+  it('rien à signaler sur une valeur absente ou absurde', () => {
+    expect(bodyFatConcern('female', undefined, corps)).toBe(null);
+    expect(bodyFatConcern('female', NaN, corps)).toBe(null);
+    expect(bodyFatConcern('female', 0, corps)).toBe(null);
+    expect(bodyFatConcern('female', 20, { ...corps, height_cm: 0 })).toBe(null);
   });
 });

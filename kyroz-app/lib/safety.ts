@@ -72,6 +72,55 @@ export function isAtypicalBodyFat(sex: Sex, pct: number | undefined | null): boo
   return typeof pct === 'number' && Number.isFinite(pct) && pct < ATYPICAL_BF_BELOW[sex];
 }
 
+/**
+ * Plafond d'indice de masse maigre (FFMI = masse maigre / taille²) au-delà duquel
+ * la MASSE MAIGRE qu'implique le %MG saisi sort du plausible pour le sexe.
+ *
+ * ⚠️ POURQUOI CE SECOND REPÈRE EXISTE — c'est le trou par lequel un %MG faux passait.
+ * `ATYPICAL_BF_BELOW` est un seuil PLAT : il ne regarde que le pourcentage, jamais
+ * les kilos qu'il produit. Mesuré sur le cas qui l'a révélé — 80 kg, 1 m 70, 20 % de
+ * MG — le seuil plat ne dit rien (20 > 18) alors que le chiffre implique **64 kg de
+ * masse maigre, FFMI 22,1**. Chez l'homme c'est un gabarit entraîné banal ; chez la
+ * femme c'est au-dessus du plafond naturel. Le seuil plat était donc muet
+ * précisément là où le %MG saisi était le plus improbable.
+ *
+ * Les valeurs (21 chez la femme, 25 chez l'homme) sont les plafonds naturels
+ * usuellement cités : au-delà, on est hors de la population que Kyroz sert.
+ *
+ * Ce repère ne bloque rien et ne déplace AUCUNE cible : il ne change pas une
+ * formule, donc pas de `ENGINE_REV`. Il informe avant que le chiffre ne serve.
+ */
+export const FFMI_ATYPICAL_ABOVE: Record<Sex, number> = { female: 21, male: 25 };
+
+/** Indice de masse maigre — même lecture que l'IMC, mais sur la seule masse maigre. */
+export function leanMassIndex(b: BodyInput): number {
+  const m = b.height_cm / 100;
+  return m > 0 ? fatFreeMassKg(b) / (m * m) : 0;
+}
+
+/**
+ * Ce que l'écran doit signaler sur un %MG saisi — `null` = rien à dire.
+ *
+ * SOURCE UNIQUE des deux repères : ils attrapent deux improbabilités différentes et
+ * aucun ne remplace l'autre. `lean_mass` demande le corps (poids + taille) et n'est
+ * donc évaluable qu'une fois ces champs saisis ; il PRIME quand il est calculable,
+ * parce qu'il porte un chiffre concret (des kilos) là où l'autre n'a qu'un rang.
+ */
+export type BodyFatConcern = 'below_chart' | 'lean_mass';
+
+export function bodyFatConcern(
+  sex: Sex,
+  pct: number | undefined | null,
+  body?: Pick<BodyInput, 'age' | 'weight_kg' | 'height_cm'>,
+): BodyFatConcern | null {
+  if (typeof pct !== 'number' || !Number.isFinite(pct) || pct <= 0) return null;
+  if (body && body.weight_kg > 0 && body.height_cm > 0) {
+    const lmi = leanMassIndex({ ...body, sex, body_fat_pct: pct });
+    if (lmi > FFMI_ATYPICAL_ABOVE[sex]) return 'lean_mass';
+  }
+  return isAtypicalBodyFat(sex, pct) ? 'below_chart' : null;
+}
+
 /** Entrées corporelles minimales — `UserProfile` les satisfait structurellement. */
 export interface BodyInput {
   sex: Sex;
