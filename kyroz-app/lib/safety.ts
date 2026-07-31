@@ -310,6 +310,20 @@ export function lowEaEscalation(
   // c'est bien ce qui s'est passé ce jour-là.
   const weeklyKcal = Math.max(0, cible(weeksInLowEa) - cible(weeksInLowEa - 1));
 
+  // ⚠️ SANS CETTE GARDE, la carte annonce « environ 0 kcal par semaine, encore
+  // 9 semaines » — mesuré sur 12 % des cartes émises, dont 7 560 où la cible servie
+  // atteint déjà le TDEE. Le plancher escaladé peut rester SOUS un autre plancher
+  // (le BMR, typiquement, chez un gabarit léger) : il monte, la cible ne bouge pas,
+  // et l'écran promet une remontée qui n'a pas lieu. C'est le mensonge que cette
+  // fonction existe pour empêcher, retourné dans l'autre sens.
+  //
+  // Conditionnée à `weeksToPlateau > 0`, et pas plus large : AU PLATEAU la hausse
+  // vaut 0 elle aussi, mais la carte n'y annonce plus de remontée — elle dit « ta
+  // sèche est en pause, tes calories ne baisseront plus ». Ce message-là est vrai
+  // et utile ; le supprimer serait rendre le moteur muet au moment où il vient
+  // d'arrêter le déficit.
+  if (weeklyKcal === 0 && weeksToPlateau > 0) return null;
+
   return { weeksOverBudget, weeklyKcal, weeksToPlateau, eaPerKgFfm };
 }
 

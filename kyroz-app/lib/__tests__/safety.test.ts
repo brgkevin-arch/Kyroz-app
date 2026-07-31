@@ -887,6 +887,15 @@ describe('trace du clamp — quel plancher a gagné, et de combien (2026-07-31)'
   // ci-dessus n'est PLUS retenu par le plancher (c'est l'objet du relèvement, et
   // c'est verrouillé par le test « le cas d'origine reçoit maintenant… » plus bas).
   // Celui-ci mord encore : gabarit léger, gros volume, %MG très bas.
+  //
+  // POURQUOI `cut_aggressive`, un objectif qu'aucun compte VIVANT ne porte
+  // (`normalizeGoal` le referme sur `cut` à la lecture) : c'est le seul moyen de
+  // faire mordre `energy_availability` sur un corps plausible. Mesuré après le
+  // relèvement, sur 10 800 profils `cut` : ce plancher ne mord plus que 80 fois, et
+  // uniquement sur des corps absurdes (IMC 52 à 8 % de MG). C'est le RÉSULTAT
+  // recherché, pas un trou de couverture — et les planchers atteignables en
+  // production restent exercés par les tests `min_kcal` et `underweight_*`
+  // ci-dessous, sur des objectifs `cut` ordinaires.
   const contraint = {
     sex: 'male' as const, age: 30, weight_kg: 42, height_cm: 150, body_fat_pct: 8,
     goal: 'cut_aggressive' as const, macro_mode: 'auto' as const, neat_level: 'desk' as const,

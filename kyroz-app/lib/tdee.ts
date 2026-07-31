@@ -113,8 +113,12 @@ export const NEAT_ORDER: NeatLevel[] = ['desk', 'light', 'active', 'physical'];
  * ⚠️ CE N'EST PAS DE LA COSMÉTIQUE — c'est le réglage le plus lourd de l'app.
  *
  * Mesuré sur 800 profils (2 sexes × 5 âges × 5 %MG × 4 profils sportifs × 4
- * objectifs), un SEUL cran ajoute 126 à 165 kcal/j de maintenance (médiane 142) ;
- * `desk` → `physical` vaut +405 kcal/j sur la cible servie. Et surtout, en sèche :
+ * objectifs), un SEUL cran ajoutait 126 à 165 kcal/j de maintenance (médiane 142) et
+ * `desk` → `physical` valait +405 kcal/j. ⚠️ CHIFFRES DE L'ANCIENNE TABLE : depuis
+ * le resserrement du 2026-07-31 (pas de 0,05 au lieu de 0,08), un cran vaut ~90 kcal/j
+ * et l'amplitude totale 0,15 × BMR — soit 270 kcal/j sur un BMR de 1800, pas 450.
+ * Ils sont conservés parce que le RAISONNEMENT qu'ils portent n'a pas changé ; ne
+ * pas les citer comme valeurs courantes. En sèche, sur l'ancienne table :
  *
  *   niveau     déficit réel servi     plancher de sécurité actif
  *   desk       −180 kcal/j            200/200  (100 %)
@@ -769,10 +773,13 @@ export const ENGINE_NOTICE_MIN_DELTA = 100;
  * qui n'a jamais vu l'ancienne valeur.
  */
 function engineNoticeFor(prevRev: number | undefined, prevTarget: number, nextTarget: number): EngineNotice | undefined {
-  if ((prevRev ?? ENGINE_REV_LEGACY) === ENGINE_REV) return undefined;
+  const depuis = prevRev ?? ENGINE_REV_LEGACY;
+  if (depuis === ENGINE_REV) return undefined;
   if (!(prevTarget > 0) || !(nextTarget > 0)) return undefined;
   if (Math.abs(nextTarget - prevTarget) < ENGINE_NOTICE_MIN_DELTA) return undefined;
-  return { rev: ENGINE_REV, from: prevTarget, to: nextTarget };
+  // `fromRev` est indispensable à l'écran : `rev` seul dit où l'on ARRIVE, jamais
+  // d'où l'on vient — or c'est le trajet qui doit être expliqué.
+  return { rev: ENGINE_REV, from: prevTarget, to: nextTarget, fromRev: depuis };
 }
 
 // ── Producteur unique du profil calculé ──────────────────────────────────────
@@ -946,8 +953,21 @@ export function computePlan(p: UserProfile, today: string = todayStamp()): Compu
   // (`dismissEngineNotice`) : le profil est recalculé à chaque ouverture d'app, et
   // dès le deuxième passage `p.target_kcal` vaut déjà la NOUVELLE valeur — l'écart
   // serait alors nul et le message s'effacerait avant d'avoir été vu.
-  const engine_notice = p.engine_notice
-    ?? engineNoticeFor(p.engine_rev, p.target_kcal, m.target_kcal);
+  // ⚠️ CHAÎNAGE, et non « le premier arrivé gagne ». Un avertissement NON LU appartient
+  // à une bascule précédente : le garder tel quel ferait avaler la nouvelle, et
+  // l'écran afficherait les chiffres de l'ancienne transition alors que le moteur
+  // sert déjà la nouvelle valeur — un mensonge à l'écran, et la seule explication
+  // que cette personne verra jamais du changement le plus récent.
+  // On fusionne : `from` reste le point de départ le plus ANCIEN (ce que la personne
+  // avait réellement sous les yeux), `to` devient la valeur servie aujourd'hui.
+  const nouvelleNotice = engineNoticeFor(p.engine_rev, p.target_kcal, m.target_kcal);
+  const engine_notice = p.engine_notice && nouvelleNotice
+    ? {
+        ...nouvelleNotice,
+        from: p.engine_notice.from,
+        fromRev: p.engine_notice.fromRev ?? p.engine_notice.rev,
+      }
+    : (p.engine_notice ?? nouvelleNotice);
 
   // ── Trace du plancher, déposée SUR LE PROFIL ──────────────────────────────
   // Version allégée de `m.clamp` : les candidats perdants servent au diagnostic

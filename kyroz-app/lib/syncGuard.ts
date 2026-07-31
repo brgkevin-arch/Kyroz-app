@@ -94,8 +94,9 @@ export function reconcileCloudSports<T extends Partial<UserProfile>>(
  * Même classe de problème que `sports`, pour le niveau d'activité quotidienne.
  *
  * `neat_level` multiplie le BMR : le perdre ne dégrade pas un détail d'affichage,
- * ça déplace le TDEE de plusieurs centaines de kcal (1,45 → défaut 1,20 sur un BMR
- * de 1800 = −450 kcal/jour). Une ligne cloud antérieure à la migration a la colonne
+ * ça déplace le TDEE de plusieurs centaines de kcal (1,45 → défaut 1,30 sur un BMR
+ * de 1800 = −270 kcal/jour ; c'était −450 avant le relèvement de la table le
+ * 2026-07-31). Une ligne cloud antérieure à la migration a la colonne
  * absente ou NULL ; « absent » veut dire « pas d'info », pas « bureau ».
  */
 export function reconcileCloudNeat<T extends Partial<UserProfile>>(

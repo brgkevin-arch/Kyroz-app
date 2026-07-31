@@ -27,8 +27,12 @@ const planAt = (neat: NeatLevel) => computePlan({ ...cas, neat_level: neat }, TO
 
 describe('enjeu du réglage — ce que la rédaction protège', () => {
   it('un cran reste significatif, mais ne fait plus basculer le plan', () => {
-    // ⚠️ SEUIL ABAISSÉ DE 100 À 60 LE 2026-07-31 — un choix, pas un assouplissement
-    // pour faire passer la suite. La table est passée d'un pas de 0,08 à un pas de
+    // ⚠️ SEUIL ABAISSÉ DE 100 À 80 LE 2026-07-31 — un choix, pas un assouplissement
+    // pour faire passer la suite. 80 et non 60 : la mesure donne 92 sur les trois
+    // crans de ce gabarit, donc une bande [80, 150) laisse 13 % de marge sous la
+    // valeur réelle au lieu de 53 %. Un seuil trop lâche laisserait passer un
+    // resserrement futur de la table sans que rien ne rougisse.
+    // La table est passée d'un pas de 0,08 à un pas de
     // 0,05 (1,30 / 1,35 / 1,40 / 1,45) : elle devait rester MONOTONE après le
     // relèvement de `desk` à 1,30, sans franchir le plafond de 1,45 au-delà duquel
     // les niveaux classiques incluent l'exercice déjà compté par les MET.
@@ -36,7 +40,7 @@ describe('enjeu du réglage — ce que la rédaction protège', () => {
     for (let i = 0; i < NEAT_ORDER.length - 1; i++) {
       const a = NEAT_ORDER[i], b = NEAT_ORDER[i + 1];
       const delta = planAt(b).profile.tdee_kcal - planAt(a).profile.tdee_kcal;
-      expect(delta, `${a} → ${b}`).toBeGreaterThanOrEqual(60);
+      expect(delta, `${a} → ${b}`).toBeGreaterThanOrEqual(80);
       // …et l'écart reste BORNÉ : un cran ne doit jamais peser autant qu'un objectif
       // entier (les deltas de GOAL_CONFIG vont de −300 à +400).
       expect(delta, `${a} → ${b}`).toBeLessThan(150);
