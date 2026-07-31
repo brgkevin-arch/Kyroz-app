@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, Image, ImageSourcePropType } 
 import { ThemePalette, Radius } from '../constants/theme';
 import { Field } from './ui';
 import { Sex } from '../lib/types';
-import { bodyFatBounds, isAtypicalBodyFat } from '../lib/safety';
+import { bodyFatBounds, bodyFatConcern, fatFreeMassKg } from '../lib/safety';
 import { bodyFatTdeeImpact, TdeeBody } from '../lib/tdee';
 
 // ── Sélecteur de masse grasse ────────────────────────────────────────────────
@@ -93,10 +93,20 @@ export function BodyFatPicker({ t, sex, value, onChange, body }: Props) {
     if (clamped !== value) onChange(clamped);
   }, [sex]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Deux repères, une seule source (`safety.bodyFatConcern`) : le %MG sous la charte
+  // des silhouettes, et la masse maigre que ce %MG implique. Le second attrape ce que
+  // le premier laisse passer — 20 % chez une femme de 80 kg / 1 m 70 ne franchit aucun
+  // seuil plat, mais annonce 64 kg de masse maigre (FFMI 22,1), hors plafond féminin.
+  const concern = bodyFatConcern(sex, value, body?.weight_kg ? { ...body } : undefined);
+
   // Chiffré sur la MAINTENANCE (cf. bodyFatTdeeImpact) : à l'étape 3 de l'onboarding,
   // ni l'objectif ni les séances ne sont connus, donc la cible n'existe pas encore.
-  const impactKcal = (body && value != null && body.weight_kg > 0 && isAtypicalBodyFat(sex, value))
+  const impactKcal = (body && value != null && body.weight_kg > 0 && concern)
     ? bodyFatTdeeImpact({ ...body, sex }, value)
+    : null;
+
+  const leanKg = (body && value != null && body.weight_kg > 0)
+    ? Math.round(fatFreeMassKg({ ...body, sex, body_fat_pct: value }))
     : null;
 
   return (
@@ -156,20 +166,25 @@ export function BodyFatPicker({ t, sex, value, onChange, body }: Props) {
         placeholder="ex. 18"
       />
 
-      {/* Repère de plausibilité — cf. safety.isAtypicalBodyFat. Ne peut se déclencher
-          QUE sur une saisie manuelle : le seuil est la silhouette la plus maigre de la
-          charte, donc un tap d'illustration ne le lève jamais. On informe, on ne bloque
-          pas : ces valeurs existent (athlètes), elles sont juste rarement exactes quand
-          elles sont estimées au jugé. */}
-      {isAtypicalBodyFat(sex, value) && (
+      {/* Repères de plausibilité — cf. safety.bodyFatConcern. On informe, on ne bloque
+          pas : ces valeurs existent, elles sont juste rarement exactes au jugé.
+          ⚠️ `below_chart` ne peut venir que d'une saisie manuelle (son seuil EST la
+          silhouette la plus maigre). `lean_mass`, lui, PEUT se lever sur un tap — et
+          c'est voulu : taper « très athlétique » à 80 kg pour 1 m 70 annonce une masse
+          maigre hors plafond, que ce soit tapé ou choisi ne change rien au chiffre. */}
+      {concern && (
         <View style={[styles.note, { borderColor: t.warning, backgroundColor: t.card }]}>
           <Text style={{ color: t.text, fontSize: 13, fontWeight: '700', marginBottom: 2 }}>
-            {value} %, c'est un niveau d'athlète de compétition
+            {concern === 'lean_mass' && leanKg != null
+              ? `Ce chiffre annonce ${leanKg} kg de masse maigre`
+              : `${value} %, c'est un niveau d'athlète de compétition`}
           </Text>
           <Text style={{ color: t.textSecondary, fontSize: 12, lineHeight: 17 }}>
-            {impactKcal != null
-              ? `Ce chiffre relève ta dépense estimée de ${impactKcal} kcal/jour — autant de déficit en moins si tu te trompes. En cas de doute, la silhouette la plus proche sera plus juste.`
-              : 'En cas de doute, la silhouette la plus proche sera plus juste : le moteur estime alors ta masse grasse, et une estimation vaut mieux qu\'un chiffre faux.'}
+            {concern === 'lean_mass'
+              ? `C'est au-dessus de ce que porte la quasi-totalité des ${sex === 'female' ? 'femmes' : 'hommes'} de ta taille. Kyroz calcule ta dépense sur cette masse${impactKcal != null && impactKcal > 0 ? `, et la relève de ${impactKcal} kcal/jour` : ''} — autant de déficit en moins si le % est trop bas. La silhouette la plus proche sera plus juste.`
+              : impactKcal != null && impactKcal > 0
+                ? `Ce chiffre relève ta dépense estimée de ${impactKcal} kcal/jour — autant de déficit en moins si tu te trompes. En cas de doute, la silhouette la plus proche sera plus juste.`
+                : 'En cas de doute, la silhouette la plus proche sera plus juste : le moteur estime alors ta masse grasse, et une estimation vaut mieux qu\'un chiffre faux.'}
           </Text>
         </View>
       )}

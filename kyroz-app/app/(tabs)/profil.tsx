@@ -224,6 +224,15 @@ export default function ProfilScreen() {
   const underweightCapped = plan.flags.includes('UNDERWEIGHT_NO_DEFICIT');
   const lowEaRise = plan.low_ea_escalation;
 
+  // La cible affichée EST le plancher de sécurité, et rien ne le disait ici.
+  // Conséquence mesurée : deux profils dont seule la composition diffère peuvent
+  // afficher la MÊME cible (le plancher vaut 30 kcal/kg de masse maigre, identique
+  // aux deux sexes), et l'écran laissait croire à un moteur qui ne calcule rien.
+  // On explique la contrainte réelle plutôt que de laisser deviner.
+  // Exclu quand l'insuffisance pondérale a déjà sa propre carte au-dessus : deux
+  // messages pour une même cause se contrediraient à l'œil.
+  const flooredTarget = plan.flags.includes('FLOOR_APPLIED') && !underweightCapped;
+
   return (
     <SafeAreaView style={s.safe} edges={['top']}>
       <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
@@ -275,6 +284,15 @@ export default function ProfilScreen() {
           <Box t={t} v={profile.target_carbs_g} l="Glucides" u="g" c={t.carbs} />
           <Box t={t} v={profile.target_fat_g} l="Lipides" u="g" c={t.fat} />
         </View>
+
+        {/* Ton informatif, pas alarmant : c'est une borne qui protège, pas un échec.
+            On dit d'où vient le chiffre ET qu'il bougera — sinon une cible qui ne
+            réagit plus aux réglages se lit comme un moteur en panne. */}
+        {flooredTarget && (
+          <Text style={s.floorNote}>
+            Ces {profile.target_kcal} kcal, c'est ton <Text style={{ fontWeight: '700' }}>plancher de sécurité</Text> — pas le résultat de ton déficit. Kyroz ne descend pas plus bas : en dessous, il ne te resterait plus assez d'énergie une fois tes séances payées. Il est calculé sur ta masse maigre, donc il baissera avec elle.
+          </Text>
+        )}
 
         {/* Réglages — édition par catégorie */}
         <SectionLabel t={t}>RÉGLAGES</SectionLabel>
@@ -1040,6 +1058,7 @@ function makeStyles(t: ThemePalette) {
     grid: { flexDirection: 'row', gap: 8 },
     menu: { backgroundColor: t.card, borderRadius: Radius.lg, paddingHorizontal: Spacing.xl },
     tdee: { backgroundColor: t.card, borderRadius: Radius.md, padding: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    floorNote: { color: t.textSecondary, fontSize: 12, lineHeight: 17, marginTop: -4 },
     tdeeL: { color: t.textSecondary, fontSize: 13 },
     tdeeV: { color: t.text, fontSize: 16, fontWeight: '700' },
     reminderHint: { color: t.textTertiary, fontSize: 12, lineHeight: 16, marginTop: -8 },
