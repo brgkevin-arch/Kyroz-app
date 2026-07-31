@@ -302,9 +302,52 @@ export function safetyFloorKcal(
   weeksInLowEa: number,
   maintenanceKcal: number,
 ): number {
+  return safetyFloorBreakdown(b, bmr, sportKcalPerDay, weeksInLowEa, maintenanceKcal).floorKcal;
+}
+
+/** Quel des trois minima physiologiques a fixé le plancher. */
+export type SafetyFloorSource = 'bmr' | 'energy_availability' | 'min_kcal';
+
+export interface SafetyFloorBreakdown {
+  /** Les trois candidats, arrondis, tels qu'ils entrent dans le `max`. */
+  candidates: Record<SafetyFloorSource, number>;
+  /** Celui qui a gagné. En cas d'égalité : bmr > energy_availability > min_kcal. */
+  source: SafetyFloorSource;
+  floorKcal: number;
+}
+
+/**
+ * Le plancher, mais en montrant son travail.
+ *
+ * ⚠️ `safetyFloorKcal` en DÉRIVE (elle ne recalcule rien) : le nombre servi et le
+ * nombre expliqué ne peuvent donc pas diverger. C'était le mode d'échec à éviter —
+ * une explication qui se recalcule à côté finit toujours par mentir d'un kcal, et
+ * un kcal d'écart suffit à faire dire à l'écran l'inverse de ce que le plan sert.
+ */
+export function safetyFloorBreakdown(
+  b: BodyInput,
+  bmr: number,
+  sportKcalPerDay: number,
+  weeksInLowEa: number,
+  maintenanceKcal: number,
+): SafetyFloorBreakdown {
   const eaFloor = effectiveEaPerKgFfm(b, weeksInLowEa) * fatFreeMassKg(b) + sportKcalPerDay;
-  const cappedEaFloor = Math.min(eaFloor, maintenanceKcal);
-  return Math.round(Math.max(bmr, cappedEaFloor, MIN_KCAL[b.sex]));
+  // Le plafond à la maintenance fait partie du candidat, pas d'un post-traitement :
+  // sinon `candidates.energy_availability` annoncerait une valeur qui n'a jamais
+  // concouru (cf. l'invariant « jamais de surplus » ci-dessus).
+  const candidates: Record<SafetyFloorSource, number> = {
+    bmr: Math.round(bmr),
+    energy_availability: Math.round(Math.min(eaFloor, maintenanceKcal)),
+    min_kcal: MIN_KCAL[b.sex],
+  };
+  const floorKcal = Math.max(candidates.bmr, candidates.energy_availability, candidates.min_kcal);
+  // Ordre de départage FIXE — un `max` ne dit pas qui a gagné quand deux valeurs
+  // sont égales, et l'écran a besoin d'une réponse stable d'un recalcul à l'autre.
+  const source: SafetyFloorSource =
+    candidates.bmr === floorKcal ? 'bmr'
+      : candidates.energy_availability === floorKcal ? 'energy_availability'
+        : 'min_kcal';
+  return { candidates, source, floorKcal };
 }
 
 /**

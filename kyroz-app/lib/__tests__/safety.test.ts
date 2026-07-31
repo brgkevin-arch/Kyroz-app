@@ -868,3 +868,70 @@ describe('repère de MASSE MAIGRE — le trou que le seuil plat laissait (A6, 20
     expect(bodyFatConcern('female', 20, { ...corps, height_cm: 0 })).toBe(null);
   });
 });
+
+describe('trace du clamp — quel plancher a gagné, et de combien (2026-07-31)', () => {
+  // « On sert 2112 pour une demande à 1994 sans aucune trace. » FLOOR_APPLIED disait
+  // QU'un plancher mordait, jamais LEQUEL ni DE COMBIEN.
+  const corps = {
+    age: 35, weight_kg: 80, height_cm: 170, body_fat_pct: 20,
+    goal: 'cut' as const, macro_mode: 'auto' as const, neat_level: 'desk' as const,
+    training_days_per_week: 4,
+    sports: [{ type: 'musculation' as const, sessions_per_week: 4, minutes_per_session: 60 }],
+  };
+
+  it('nomme le plancher retenu et chiffre l\'écart', () => {
+    const { clamp, floor_kcal, profile } = computePlan(makeProfile({ ...corps, sex: 'female' }), TODAY);
+    expect(clamp.requestedKcal).toBe(1994);          // 2294 − 300 (GOAL_CONFIG.cut)
+    expect(clamp.servedKcal).toBe(2112);
+    expect(clamp.clampedByKcal).toBe(118);           // l'écart, plus jamais silencieux
+    expect(clamp.clamped).toBe(true);
+    expect(clamp.source).toBe('energy_availability'); // ← ce que le booléen ne disait pas
+    // Cohérence avec ce que le moteur sert VRAIMENT (pas une seconde vérité).
+    expect(clamp.servedKcal).toBe(profile.target_kcal);
+    expect(clamp.floorKcal).toBe(floor_kcal);
+    expect(clamp.clampedByKcal).toBe(clamp.servedKcal - clamp.requestedKcal);
+  });
+
+  it('expose TOUS les candidats, y compris les perdants', () => {
+    const { clamp } = computePlan(makeProfile({ ...corps, sex: 'female' }), TODAY);
+    expect(clamp.candidates).toEqual({
+      bmr: 1752,
+      energy_availability: 2112,      // 30 × 64 kg de masse maigre + 192 de sport
+      min_kcal: 1200,
+      deficit_cap: 1721,              // 75 % du TDEE
+      underweight_maintenance: 0,
+    });
+    // Le gagnant EST le max des candidats — la trace ne peut pas désigner un perdant.
+    expect(Math.max(...Object.values(clamp.candidates))).toBe(clamp.floorKcal);
+    expect(clamp.candidates[clamp.source!]).toBe(clamp.floorKcal);
+  });
+
+  it('quand rien ne mord, la source est null et l\'écart nul', () => {
+    // Maintien : aucun déficit demandé, donc aucun plancher à opposer.
+    const { clamp } = computePlan(makeProfile({ ...corps, sex: 'male', goal: 'maintain' }), TODAY);
+    expect(clamp.clamped).toBe(false);
+    expect(clamp.source).toBeNull();
+    expect(clamp.clampedByKcal).toBe(0);
+    expect(clamp.servedKcal).toBe(clamp.requestedKcal);
+  });
+
+  it('sait nommer un AUTRE plancher que l\'énergie disponible', () => {
+    // Gabarit léger : 30 × masse maigre tombe sous le filet absolu, c'est lui qui gagne.
+    const { clamp } = computePlan(makeProfile({
+      sex: 'female', age: 30, weight_kg: 42, height_cm: 150,
+      goal: 'cut', macro_mode: 'auto', training_days_per_week: 0, sports: [],
+    }), TODAY);
+    expect(clamp.source).toBe('min_kcal');
+    expect(clamp.servedKcal).toBe(MIN_KCAL.female);
+  });
+
+  it('la trace reste vraie en mode manual (recharge glucides arrondie au gramme)', () => {
+    const { clamp, profile } = computePlan(makeProfile({
+      ...corps, sex: 'female', macro_mode: 'manual',
+      target_kcal: 1200, target_protein_g: 150, target_carbs_g: 50, target_fat_g: 40,
+    }), TODAY);
+    expect(clamp.servedKcal).toBe(profile.target_kcal);   // le nombre servi, pas un autre
+    expect(clamp.clampedByKcal).toBe(clamp.servedKcal - clamp.requestedKcal);
+    expect(clamp.source).toBe('energy_availability');
+  });
+});

@@ -9,6 +9,7 @@ import {
   bodyFatBounds, clamp, collapseLowEaRegistry, deficitBlocked, energyAvailability,
   fatFreeMassKg, isFemaleAtRisk, lowEaWeeksBefore, markLowEaWeek, safetyFloorKcal,
   settleLowEaExposure, lowEaEscalation, LowEaEscalation, readLowEaRegistry,
+  safetyFloorBreakdown, SafetyFloorSource,
 } from './safety';
 
 // ── Calculs nutritionnels ────────────────────────────────────────────────────
@@ -264,32 +265,55 @@ export function proteinTarget(body: BodyInput, goal: Goal): number {
 // entre jours relève du cyclage, hors périmètre de cette PR).
 export const CARB_TRAINING_FLOOR_PER_KG = 3;
 
-// ── Plancher lipidique (P1.4) ────────────────────────────────────────────────
+// ── Plancher lipidique ───────────────────────────────────────────────────────
 //
-// Indexé sur la MASSE MAIGRE, pas sur le poids de corps. La spec proposait
-// 0,5 g/kg de poids ; ç'aurait été refaire à l'identique l'erreur que P0.2 vient de
-// corriger sur les protéines — chez une femme de 125 kg à 52 % de masse grasse, ça
-// donne 1,42 g/kg de masse maigre et jusqu'à 42,6 % des calories en lipides, prélevés
-// sur les glucides. Le tissu adipeux n'a pas de besoin lipidique ; la masse maigre si.
+// ⚠️ BASE CHANGÉE LE 2026-07-31 (décision fondateur) : 0,8 g/kg de POIDS DE CORPS,
+// là où P1.4 l'avait indexé sur la masse maigre. Ce n'est pas un ajustement de
+// constante, c'est un changement de nature — à lire avant de le refaire dans un
+// sens ou dans l'autre.
 //
-// 0,8 g/kg de masse maigre ne mord AUCUN profil sain en mode auto (les 25 % de kcal y
-// suffisent déjà) : le trou réel est le mode « Perso % », où l'utilisateur peut pousser
-// les glucides jusqu'à ne laisser que 0,22 g/kg — 6,6 % des calories, sous le seuil de
-// carence (hormones stéroïdiennes, vitamines liposolubles).
-export const FAT_MIN_PER_KG_FFM = 0.8;
+// Ce que P1.4 avait mesuré et qui reste vrai : le tissu adipeux n'a pas de besoin
+// lipidique, la masse maigre si. Indexer sur le poids donne donc un plancher
+// D'AUTANT PLUS HAUT que la personne est grasse, ce qui est l'inverse du besoin.
+//
+// Effet mesuré du changement, en sèche, 4 séances (avant → après) :
+//
+//   profil                  lipides      % des kcal    glucides
+//   H 80 kg / 20 %MG        59 → 64 g    25 → 27 %     245 → 234 g
+//   F 80 kg / 35 %MG        49 → 64 g    25 → 33 %     198 → 164 g
+//   H 100 kg / 35 %MG       61 → 80 g    25 → 33 %     248 → 206 g
+//   F 125 kg / 52 %MG       58 → 100 g   25 → 43 %     239 → 144 g
+//
+// Deux conséquences à connaître :
+//  1. Le plancher devient CONTRAIGNANT sur tous les profils mesurés (les lipides
+//     servis valent exactement le plancher) : il ne borne plus la part calorique,
+//     il la FIXE. En mode « Perso % », le curseur glucides de l'utilisateur est
+//     donc écrasé — 75 % demandés donnent le même résultat que le mode auto.
+//  2. `CARBS_BELOW_TRAINING_FLOOR` passe de 3 profils sur 6 à 6 sur 6.
+//
+// Le bornage au budget (cf. `fatTargetG`) reste la seule protection contre un plan
+// infaisable, et il compte maintenant beaucoup plus qu'avant.
+export const FAT_MIN_PER_KG_BW = 0.8;
+
+/** @deprecated Nom historique — la base n'est plus la masse maigre. Alias conservé
+ *  le temps que les tests P1.4 soient relus ; ne plus l'utiliser dans du code neuf. */
+export const FAT_MIN_PER_KG_FFM = FAT_MIN_PER_KG_BW;
 
 /**
  * Cible lipidique (g) : la part calorique habituelle, relevée au plancher
  * physiologique, et BORNÉE PAR LE BUDGET.
  *
  * Le bornage n'est pas décoratif : sur les gabarits où le plancher de sécurité est
- * plafonné à la maintenance, `FAT_MIN_PER_KG_FFM × masse maigre` peut dépasser la
- * cible entière — on servirait alors un budget négatif en glucides ET en protéines.
- * Un plancher qui rend le plan infaisable n'est plus un plancher.
+ * plafonné à la maintenance, `FAT_MIN_PER_KG_BW × poids` peut dépasser la cible
+ * entière — on servirait alors un budget négatif en glucides ET en protéines. Un
+ * plancher qui rend le plan infaisable n'est plus un plancher. Depuis le passage à
+ * la base POIDS DE CORPS, ce bornage mord plus souvent : c'est lui qui empêche une
+ * personne de 125 kg de se voir prescrire 100 g de lipides sur un budget qui n'en
+ * a pas les moyens.
  */
 export function fatTargetG(targetKcal: number, body: BodyInput, share: number = 0.25): number {
   const fromShare = (targetKcal * share) / 9;
-  const floor = FAT_MIN_PER_KG_FFM * fatFreeMassKg(body);
+  const floor = FAT_MIN_PER_KG_BW * body.weight_kg;
   return Math.round(Math.min(Math.max(fromShare, floor), targetKcal / 9));
 }
 
@@ -305,6 +329,8 @@ export interface MacroPlan {
   fat_g: number;
   floor_kcal: number;   // plancher de sécurité appliqué (cf. safetyFloorKcal)
   flags: PlanFlag[];
+  /** Trace explicite du clamp : quel plancher a gagné, et de combien il a remonté. */
+  clamp: ClampRecord;
 }
 
 export interface MacroOptions {
@@ -340,6 +366,37 @@ function defaultIsTrainingDay(body: MacroBody): boolean {
  * `requestedKcal` = la cible AVANT plancher : `tdee + delta` en auto/percent,
  * l'énergie des grammes saisis en manual.
  */
+/**
+ * Qui a fixé le plancher. Les trois premiers viennent de `safety.safetyFloorBreakdown`
+ * (minima physiologiques), les deux derniers sont propres au moteur.
+ */
+export type FloorSource = SafetyFloorSource | 'deficit_cap' | 'underweight_maintenance';
+
+/**
+ * Trace EXPLICITE d'un clamp : ce qui était demandé, ce qui est servi, l'écart, et
+ * NOMMÉMENT le plancher qui a gagné — avec tous les candidats pour l'audit.
+ *
+ * Volontairement pas un booléen : `FLOOR_APPLIED` existait déjà et ne suffit pas.
+ * Il dit qu'un plancher mord ; il ne permet ni d'écrire « ta cible est remontée de
+ * 118 kcal parce que ton énergie disponible tomberait sous 30 kcal/kg », ni de
+ * diagnostiquer sans rejouer le calcul à la main.
+ */
+export interface ClampRecord {
+  /** Cible AVANT plancher : `tdee + delta` en auto/percent, l'énergie des grammes en manual. */
+  requestedKcal: number;
+  /** Cible réellement servie. */
+  servedKcal: number;
+  /** Le plancher retenu (le `max` de tous les candidats). */
+  floorKcal: number;
+  /** `servedKcal − requestedKcal`, donc ≥ 0. Vaut 0 quand rien n'a mordu. */
+  clampedByKcal: number;
+  clamped: boolean;
+  /** Le plancher qui a gagné, ou `null` si la demande est servie telle quelle. */
+  source: FloorSource | null;
+  /** Tous les candidats, y compris les perdants — c'est ce qui rend la trace auditable. */
+  candidates: Record<FloorSource, number>;
+}
+
 function floorAndFlags(body: MacroBody, tdee: number, requestedKcal: number, opts: MacroOptions) {
   const sportKcalPerDay = opts.sportKcalPerDay ?? exerciseKcalPerDay(body.sports, body.weight_kg);
   const lowEaWeeks = opts.lowEaWeeks ?? 0;
@@ -379,6 +436,36 @@ function floorAndFlags(body: MacroBody, tdee: number, requestedKcal: number, opt
 
   const target_kcal = Math.max(requestedKcal, floor_kcal);
 
+  // ── Trace du clamp ────────────────────────────────────────────────────────
+  // Le moteur servait 2112 pour une demande à 1994 sans laisser la moindre trace :
+  // `FLOOR_APPLIED` dit QU'un plancher a mordu, jamais LEQUEL ni DE COMBIEN. Un
+  // booléen ne permet ni d'expliquer à l'utilisateur, ni de diagnostiquer.
+  // Les candidats sortent du producteur (`safetyFloorBreakdown`) — ils ne sont pas
+  // recalculés ici, donc la trace ne peut pas diverger du nombre servi.
+  const breakdown = safetyFloorBreakdown(body, bmr, sportKcalPerDay, lowEaWeeks, tdee);
+  const candidates: Record<FloorSource, number> = {
+    ...breakdown.candidates,
+    deficit_cap: deficitCapFloor,
+    underweight_maintenance: underweightCapped ? maintenance : 0,
+  };
+  // Même ordre de départage que `safetyFloorBreakdown`, prolongé aux deux plafonds
+  // propres au moteur. `underweight_maintenance` passe en premier : quand il mord,
+  // c'est LUI qu'il faut nommer (le plan est ramené à la maintenance), même si un
+  // autre candidat atteint la même valeur.
+  const ORDRE: FloorSource[] = [
+    'underweight_maintenance', 'bmr', 'energy_availability', 'deficit_cap', 'min_kcal',
+  ];
+  const clamped = target_kcal > requestedKcal;
+  const clamp: ClampRecord = {
+    requestedKcal: Math.round(requestedKcal),
+    servedKcal: target_kcal,
+    floorKcal: floor_kcal,
+    clampedByKcal: clamped ? target_kcal - Math.round(requestedKcal) : 0,
+    clamped,
+    source: clamped ? (ORDRE.find((k) => candidates[k] === floor_kcal) ?? null) : null,
+    candidates,
+  };
+
   const flags: PlanFlag[] = [];
   // Le plancher est CONTRAIGNANT (et pas seulement « a mordu au premier calcul ») :
   // en mode manual la correction est persistée, donc `target > requested` devient
@@ -390,7 +477,7 @@ function floorAndFlags(body: MacroBody, tdee: number, requestedKcal: number, opt
   if (ea < EA_OPTIMAL) flags.push('LOW_EA_WARNING');
   if (isFemaleAtRisk(body) && lowEaWeeks > LOW_EA_BUDGET_WEEKS) flags.push('LOW_EA_BUDGET_EXCEEDED');
 
-  return { target_kcal, floor_kcal, flags, sportKcalPerDay };
+  return { target_kcal, floor_kcal, flags, sportKcalPerDay, clamp };
 }
 
 /**
@@ -442,13 +529,13 @@ export function calculateMacros(
   opts: MacroOptions = {},
 ): MacroPlan {
   const kcalDelta = opts.kcalDeltaOverride ?? GOAL_CONFIG[goal].kcalDelta;
-  const { target_kcal, floor_kcal, flags } = floorAndFlags(body, tdee, tdee + kcalDelta, opts);
+  const { target_kcal, floor_kcal, flags, clamp } = floorAndFlags(body, tdee, tdee + kcalDelta, opts);
 
   const protein_g = proteinTarget(body, goal);
   const fat_g = fatTargetG(target_kcal, body);
   const carbs_g = carbsFromRemaining(target_kcal - protein_g * 4 - fat_g * 9, body, opts, flags);
 
-  return { target_kcal, protein_g, carbs_g, fat_g, floor_kcal, flags };
+  return { target_kcal, protein_g, carbs_g, fat_g, floor_kcal, flags, clamp };
 }
 
 // Recalcule les kcal à partir de macros saisies manuellement
@@ -493,7 +580,7 @@ export function macrosPercent(
 ): MacroPlan {
   const cfg = GOAL_CONFIG[goal];
   const kcalDelta = opts.kcalDeltaOverride ?? cfg.kcalDelta;
-  const { target_kcal, floor_kcal, flags } = floorAndFlags(body, tdee, tdee + kcalDelta, opts);
+  const { target_kcal, floor_kcal, flags, clamp } = floorAndFlags(body, tdee, tdee + kcalDelta, opts);
 
   // Protéines. SANS réglage explicite → exactement la cible du mode auto.
   //
@@ -532,7 +619,7 @@ export function macrosPercent(
     flags.push('CARBS_BELOW_TRAINING_FLOOR');
   }
 
-  return { target_kcal, protein_g, carbs_g, fat_g, floor_kcal, flags };
+  return { target_kcal, protein_g, carbs_g, fat_g, floor_kcal, flags, clamp };
 }
 
 /**
@@ -649,6 +736,12 @@ export interface ComputedPlan {
   flags: PlanFlag[];
   floor_kcal: number;
   /**
+   * Pourquoi la cible servie n'est pas celle qui était demandée. Producteur unique :
+   * l'écran ne redéduit RIEN (il ne peut pas — il faudrait rejouer les cinq
+   * candidats), il lit `clamp.source` et `clamp.clampedByKcal`.
+   */
+  clamp: ClampRecord;
+  /**
    * De quoi EXPLIQUER une cible qui remonte toute seule, ou `undefined` s'il n'y a
    * rien à dire. Exposé ici et pas recalculé par l'écran : le nombre de semaines en
    * zone basse dépend du solde de l'exposition (`settleLowEaExposure`) et de la
@@ -750,7 +843,18 @@ export function computePlan(p: UserProfile, today: string = todayStamp()): Compu
     if ((opts.isTrainingDay ?? defaultIsTrainingDay(p)) && isTrainingCarbShort(carbs_g, p.weight_kg)) {
       flags.push('CARBS_BELOW_TRAINING_FLOOR');
     }
-    m = { target_kcal: served, floor_kcal: r.floor_kcal, flags, protein_g: p.target_protein_g, carbs_g, fat_g: p.target_fat_g };
+    // La trace suit la cible SERVIE, pas celle qu'aurait donnée le clamp brut : en
+    // manual, la recharge en glucides est arrondie au gramme, donc `served` peut
+    // dépasser `r.target_kcal` de quelques kcal. Annoncer l'autre nombre ferait
+    // mentir l'écart affiché.
+    const clampManuel: ClampRecord = {
+      ...r.clamp,
+      servedKcal: served,
+      clampedByKcal: Math.max(0, served - r.clamp.requestedKcal),
+      clamped: served > r.clamp.requestedKcal,
+      source: served > r.clamp.requestedKcal ? r.clamp.source : null,
+    };
+    m = { target_kcal: served, floor_kcal: r.floor_kcal, flags, protein_g: p.target_protein_g, carbs_g, fat_g: p.target_fat_g, clamp: clampManuel };
   }
 
   // ── Clôture du registre ───────────────────────────────────────────────────
@@ -811,6 +915,7 @@ export function computePlan(p: UserProfile, today: string = todayStamp()): Compu
     },
     flags,
     floor_kcal: m.floor_kcal,
+    clamp: m.clamp,
     // `lowEaWeeks` et pas le registre brut : c'est le décompte ANTÉRIEUR, celui qui
     // a réellement servi à calculer le plancher du jour. Expliquer une remontée avec
     // un autre nombre que celui qui l'a produite serait une seconde source de vérité.
