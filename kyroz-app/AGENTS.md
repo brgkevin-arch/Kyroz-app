@@ -407,8 +407,21 @@ produit en suspens — il ne reste qu'à coder.
 ### 🍽 D — Catalogue
 
 - **D1 · 🤖 Commande de rédaction : collations légères** *(raisonnement : Journal §1-bis)*. Le vrai trou du catalogue.
-  Une seule collation sur 66 tient sous ~130 kcal, alors que c'est exactement ce dont a
-  besoin un petit gabarit en sèche. Écrire AILLEURS, ne pas réécrire l'existant.
+  **CONFIRMÉ ET AGGRAVÉ, remesuré le 2026-07-31 sur les 66 collations du catalogue :**
+
+  | seuil | collations sous ce seuil |
+  |---|---|
+  | ≤ 130 kcal/portion | **0** |
+  | ≤ 180 kcal/portion | **0** |
+  | ≤ 200 kcal/portion | 3 |
+  | ≤ 250 kcal/portion | 14 |
+
+  La plus légère du catalogue est à **192 kcal** (*Edamame vapeur – sauce soja*).
+  L'entrée disait « une seule tient sous ~130 kcal » : en base de recette, il n'y en a
+  **aucune**. Le scaling ne descend qu'à ×0,55 environ, donc même la plus légère ne peut
+  pas atteindre les ~115 kcal que vise une femme de 55 kg en sèche.
+  🎯 **Consigne chiffrée pour la rédaction** : viser **110–160 kcal en base**, avec
+  protéine ≥ 12 g. Écrire AILLEURS, ne pas réécrire l'existant.
 - **D2 · 🤖 Vérifier le lot B2** (13 collations générées par le fondateur, *Journal §2*) avant merge :
   `check:doublons`, `check:enveloppe`, `mesure:couverture`.
 - **D3 · 🧑 Axe allergène — jamais tranché** *(Journal §3)*. Le `tahini` introduit le sésame et **aucun
@@ -436,13 +449,27 @@ produit en suspens — il ne reste qu'à coder.
   recette bâtie sur 8 g d'huile plafonne à 12 g. C'est un garde-fou culinaire
   volontaire (une portion ne devient pas 24 g d'huile), pas un défaut.
   ➡️ **Ce que la mesure a réellement trouvé est ailleurs et plus sérieux : A9.**
-- **D6 · Les 48 collations invendables aux profils féminins restent dans le catalogue.**
-  La vague de 113 **ajoute**, elle ne répare pas. La borne protéine 0,5 (2026-07-30) en
-  rend une partie servable — **à re-mesurer** avec `npm run mesure:couverture` avant de
-  décider s'il reste quelque chose à faire.
-- **D7 · 🤖 Pool vegan mince.** Petit-déj vegan 33/78, repas vegan 57/170 ; en vegan +
-  sèche le pool ne laisse qu'un petit-déj viable. C'est le seul cas où **ajouter des
-  recettes** est la bonne réponse. À re-mesurer après la vague de 113.
+- **D6 · Collations invendables aux petits gabarits — ✅ RE-MESURÉ le 2026-07-31, rien
+  n'a bougé, et c'est normal.** `npm run mesure:couverture` (POOL SERVABLE, règle R8
+  jouée sur `adaptRecipe`) : **F 55 sèche = 16/66 collations servables**, F 65 sèche
+  19/66, F 70 masse 19/66, F 60 maintien 21/66. Soit ~50 collations hors d'atteinte du
+  plus petit gabarit — l'ordre de grandeur des « 48 » d'origine.
+  **La vague de 113 n'y a rien changé parce qu'elle n'a ajouté AUCUNE collation** : le
+  catalogue en compte toujours 66 (78 petits-déj, 170 repas complets). Il n'y a donc
+  rien à décider ici : **D6 et D1 sont le même problème**, et D1 est la réponse.
+- **D7 · 🤖 Pool vegan — RE-MESURÉ le 2026-07-31 : les ratios sont INCHANGÉS, mais la
+  conclusion de l'entrée était fausse.**
+  Pool par créneau (champ `restrictions_ok`, celui que lit le moteur) :
+  petit-déj **33/78** vegan · midi et soir **57/170** · collations **36/66**.
+  Identique à ce qui était écrit : **la vague de 113 n'a ajouté aucune recette vegan.**
+  ❌ En revanche « en vegan + sèche le pool ne laisse qu'un petit-déj viable » est
+  **faux**. Ce qui compte n'est pas le ratio du pool mais ce qu'un utilisateur VOIT :
+  sur 4 semaines, les profils vegan reçoivent **8 à 14 petits-déj distincts**
+  (F 55 sèche : 10 · F 65 sèche : 8 · H 80 sèche : 7 · F 60 maintien : 14).
+  🎯 **Le vrai point mince est ailleurs et il est étroit** : c'est **vegan + sans
+  gluten sur les petits gabarits en sèche** — F 55 sèche n'y voit que **3 midis
+  distincts** sur 4 semaines, et F 80 sèche vegan que **4 soirs distincts**. C'est
+  cette case-là qu'il faut viser, pas « du vegan » en général.
   ⚠️ **Motif = SERVICE, pas marketing** (fondateur, 2026-07-30) : le végétal est **un
   régime supporté parmi 7, sans emphase**. On sert correctement les utilisateurs vegan
   déjà là ; on ne présente Kyroz comme une app vegan **nulle part**.
