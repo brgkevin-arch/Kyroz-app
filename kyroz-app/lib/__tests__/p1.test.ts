@@ -5,7 +5,7 @@ import {
 } from '../datedGoal';
 import {
   computePlan, macrosPercent, calculateMacros, fatTargetG, clampCarbRatio,
-  FAT_MIN_PER_KG_FFM, CARB_RATIO_MAX, CARB_RATIO_MIN, planFloorKcal,
+  FAT_MIN_PER_KG_BW, CARB_RATIO_MAX, CARB_RATIO_MIN, planFloorKcal,
 } from '../tdee';
 import { fatFreeMassKg } from '../safety';
 import { makeProfile } from './helpers';
@@ -169,42 +169,54 @@ describe('P1.5 — zone proportionnelle au gabarit', () => {
 });
 
 // ═════════════════════════════════════════════════════════════════════════════
-// P1.4 — plancher lipidique, indexé sur la MASSE MAIGRE.
+// Plancher lipidique — indexé sur le POIDS DE CORPS depuis le 2026-07-31.
+//
+// HISTORIQUE, à ne pas perdre : P1.4 l'avait délibérément indexé sur la MASSE
+// MAIGRE, au motif que le tissu adipeux n'a pas de besoin lipidique. Le fondateur
+// a tranché pour le poids de corps le 2026-07-31. Les tests ci-dessous verrouillent
+// donc la NOUVELLE base ET chiffrent ce que le changement coûte, pour qu'un futur
+// retour en arrière se fasse en connaissance de cause plutôt qu'au jugé.
 // ═════════════════════════════════════════════════════════════════════════════
 
-describe('P1.4 — plancher lipidique', () => {
+describe('plancher lipidique (base poids de corps)', () => {
   const body = makeProfile({ sex: 'male', age: 30, weight_kg: 80, height_cm: 178, body_fat_pct: 18 });
 
-  it('la base est la masse maigre, pas le poids de corps (même erreur que P0.2 évitée)', () => {
-    // F 125 kg à 52 %MG : base POIDS → 63 g de lipides (31,5 % des kcal) au prix de
-    // 30 g de glucides. Base MASSE MAIGRE → le plancher ne mord même pas.
+  it('la base est le POIDS DE CORPS', () => {
+    expect(fatTargetG(1200, body)).toBe(Math.round(FAT_MIN_PER_KG_BW * body.weight_kg));
+    // Deux corps de même poids et de compositions opposées reçoivent le MÊME
+    // plancher : c'est la conséquence directe du choix de base.
+    const gras = makeProfile({ sex: 'male', age: 30, weight_kg: 80, height_cm: 178, body_fat_pct: 35 });
+    expect(fatTargetG(1200, gras)).toBe(fatTargetG(1200, body));
+  });
+
+  it('CE QUE LE CHANGEMENT COÛTE — mesuré sur le profil le plus exposé', () => {
+    // F 125 kg à 52 %MG : 60 kg de masse maigre, donc 65 kg de tissu adipeux.
     const heavy = makeProfile({ sex: 'female', age: 40, weight_kg: 125, height_cm: 160, body_fat_pct: 52 });
-    const ffm = fatFreeMassKg(heavy); // 60 kg
-    const floorFfm = FAT_MIN_PER_KG_FFM * ffm;
-    const floorBodyWeight = 0.5 * heavy.weight_kg;
-    expect(floorFfm).toBeLessThan(floorBodyWeight);
-    // À 1800 kcal, la part de 25 % (50 g) dépasse déjà le plancher masse maigre.
-    expect(fatTargetG(1800, heavy)).toBe(Math.round((1800 * 0.25) / 9));
+    const ancien = Math.round(0.8 * fatFreeMassKg(heavy));   // 48 g — base masse maigre
+    const actuel = fatTargetG(2100, heavy);                  // 100 g — base poids
+    expect(ancien).toBe(48);
+    expect(actuel).toBe(100);
+    // 43 % des calories en lipides, contre 25 % avant. Les glucides paient.
+    expect((actuel * 9) / 2100).toBeGreaterThan(0.42);
   });
 
-  it('ne mord aucun profil sain en mode auto — le trou était ailleurs', () => {
-    const m = calculateMacros(2400, 'cut', body);
-    expect(m.fat_g).toBe(Math.round((m.target_kcal * 0.25) / 9));
+  it('le plancher devient CONTRAIGNANT en mode auto (il ne l\'était pas avant)', () => {
+    // Avant : la part de 25 % suffisait et le plancher ne mordait sur aucun profil
+    // sain. Maintenant il fixe les lipides dès que le budget est serré.
+    const m = calculateMacros(1800, 'cut', body);
+    expect(m.fat_g).toBe(Math.round(FAT_MIN_PER_KG_BW * body.weight_kg));
+    expect(m.fat_g).toBeGreaterThan(Math.round((m.target_kcal * 0.25) / 9));
   });
 
-  it('LE VRAI TROU : le mode « Perso % » descendait sous le seuil de carence', () => {
-    // Au maximum du curseur, l'ancien calcul servait la seule part de répartition —
-    // 12 à 20 g de lipides sur des profils ordinaires, sous le seuil de carence
+  it('couvre toujours le trou du mode « Perso % » (seuil de carence)', () => {
+    // La raison d'être du plancher n'a pas changé : au maximum du curseur, le calcul
+    // par part seule servait 12 à 20 g de lipides, sous le seuil de carence
     // (hormones stéroïdiennes, vitamines liposolubles).
     const m = macrosPercent(2400, 'cut', body, CARB_RATIO_MAX, { proteinPerKg: 2.2 });
-    const plancher = Math.round(FAT_MIN_PER_KG_FFM * fatFreeMassKg(body));
+    const plancher = Math.round(FAT_MIN_PER_KG_BW * body.weight_kg);
     const partSeule = Math.round(((m.target_kcal - m.protein_g * 4) * (1 - CARB_RATIO_MAX / 100)) / 9);
-
-    // Le test ne vaut que si le plancher MORD réellement sur ce profil — sinon il
-    // passerait aussi avec l'ancien code et ne verrouillerait rien.
     expect(partSeule).toBeLessThan(plancher);
     expect(m.fat_g).toBe(plancher);
-    expect(m.fat_g).toBeGreaterThan(partSeule);
   });
 
   it('à 90 (ancien maximum, encore stocké en base), le trou était béant', () => {

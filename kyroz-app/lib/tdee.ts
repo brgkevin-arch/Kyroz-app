@@ -265,32 +265,55 @@ export function proteinTarget(body: BodyInput, goal: Goal): number {
 // entre jours relève du cyclage, hors périmètre de cette PR).
 export const CARB_TRAINING_FLOOR_PER_KG = 3;
 
-// ── Plancher lipidique (P1.4) ────────────────────────────────────────────────
+// ── Plancher lipidique ───────────────────────────────────────────────────────
 //
-// Indexé sur la MASSE MAIGRE, pas sur le poids de corps. La spec proposait
-// 0,5 g/kg de poids ; ç'aurait été refaire à l'identique l'erreur que P0.2 vient de
-// corriger sur les protéines — chez une femme de 125 kg à 52 % de masse grasse, ça
-// donne 1,42 g/kg de masse maigre et jusqu'à 42,6 % des calories en lipides, prélevés
-// sur les glucides. Le tissu adipeux n'a pas de besoin lipidique ; la masse maigre si.
+// ⚠️ BASE CHANGÉE LE 2026-07-31 (décision fondateur) : 0,8 g/kg de POIDS DE CORPS,
+// là où P1.4 l'avait indexé sur la masse maigre. Ce n'est pas un ajustement de
+// constante, c'est un changement de nature — à lire avant de le refaire dans un
+// sens ou dans l'autre.
 //
-// 0,8 g/kg de masse maigre ne mord AUCUN profil sain en mode auto (les 25 % de kcal y
-// suffisent déjà) : le trou réel est le mode « Perso % », où l'utilisateur peut pousser
-// les glucides jusqu'à ne laisser que 0,22 g/kg — 6,6 % des calories, sous le seuil de
-// carence (hormones stéroïdiennes, vitamines liposolubles).
-export const FAT_MIN_PER_KG_FFM = 0.8;
+// Ce que P1.4 avait mesuré et qui reste vrai : le tissu adipeux n'a pas de besoin
+// lipidique, la masse maigre si. Indexer sur le poids donne donc un plancher
+// D'AUTANT PLUS HAUT que la personne est grasse, ce qui est l'inverse du besoin.
+//
+// Effet mesuré du changement, en sèche, 4 séances (avant → après) :
+//
+//   profil                  lipides      % des kcal    glucides
+//   H 80 kg / 20 %MG        59 → 64 g    25 → 27 %     245 → 234 g
+//   F 80 kg / 35 %MG        49 → 64 g    25 → 33 %     198 → 164 g
+//   H 100 kg / 35 %MG       61 → 80 g    25 → 33 %     248 → 206 g
+//   F 125 kg / 52 %MG       58 → 100 g   25 → 43 %     239 → 144 g
+//
+// Deux conséquences à connaître :
+//  1. Le plancher devient CONTRAIGNANT sur tous les profils mesurés (les lipides
+//     servis valent exactement le plancher) : il ne borne plus la part calorique,
+//     il la FIXE. En mode « Perso % », le curseur glucides de l'utilisateur est
+//     donc écrasé — 75 % demandés donnent le même résultat que le mode auto.
+//  2. `CARBS_BELOW_TRAINING_FLOOR` passe de 3 profils sur 6 à 6 sur 6.
+//
+// Le bornage au budget (cf. `fatTargetG`) reste la seule protection contre un plan
+// infaisable, et il compte maintenant beaucoup plus qu'avant.
+export const FAT_MIN_PER_KG_BW = 0.8;
+
+/** @deprecated Nom historique — la base n'est plus la masse maigre. Alias conservé
+ *  le temps que les tests P1.4 soient relus ; ne plus l'utiliser dans du code neuf. */
+export const FAT_MIN_PER_KG_FFM = FAT_MIN_PER_KG_BW;
 
 /**
  * Cible lipidique (g) : la part calorique habituelle, relevée au plancher
  * physiologique, et BORNÉE PAR LE BUDGET.
  *
  * Le bornage n'est pas décoratif : sur les gabarits où le plancher de sécurité est
- * plafonné à la maintenance, `FAT_MIN_PER_KG_FFM × masse maigre` peut dépasser la
- * cible entière — on servirait alors un budget négatif en glucides ET en protéines.
- * Un plancher qui rend le plan infaisable n'est plus un plancher.
+ * plafonné à la maintenance, `FAT_MIN_PER_KG_BW × poids` peut dépasser la cible
+ * entière — on servirait alors un budget négatif en glucides ET en protéines. Un
+ * plancher qui rend le plan infaisable n'est plus un plancher. Depuis le passage à
+ * la base POIDS DE CORPS, ce bornage mord plus souvent : c'est lui qui empêche une
+ * personne de 125 kg de se voir prescrire 100 g de lipides sur un budget qui n'en
+ * a pas les moyens.
  */
 export function fatTargetG(targetKcal: number, body: BodyInput, share: number = 0.25): number {
   const fromShare = (targetKcal * share) / 9;
-  const floor = FAT_MIN_PER_KG_FFM * fatFreeMassKg(body);
+  const floor = FAT_MIN_PER_KG_BW * body.weight_kg;
   return Math.round(Math.min(Math.max(fromShare, floor), targetKcal / 9));
 }
 

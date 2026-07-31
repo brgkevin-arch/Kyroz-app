@@ -238,9 +238,18 @@ l'utilisateur au-delà de 100 kcal/jour d'écart.
   servait 28 % de déficit à une femme de 60 kg sans le moindre drapeau. C'est un
   plancher calorique de plus (75 % du TDEE), il ne peut donc pas créer de surplus.
 - **Lipides sous le seuil de carence** — `lib/tdee.ts::fatTargetG`, plancher à
-  0,8 g/kg de **masse maigre** (pas de poids de corps : le tissu adipeux n'a pas de
-  besoin lipidique — même raisonnement que les protéines). Borné par le budget du
-  jour, donc un plan reste toujours faisable. Le mode « Perso % » descendait à 6,6 %
+  0,8 g/kg de **poids de corps** (`FAT_MIN_PER_KG_BW`). Borné par le budget du
+  jour, donc un plan reste toujours faisable.
+  ⚠️ **Base changée le 2026-07-31 (décision fondateur).** Elle était la **masse
+  maigre**, au motif que le tissu adipeux n'a pas de besoin lipidique — même
+  raisonnement que les protéines, qui elles gardent la base masse maigre. Ce qui
+  change, mesuré en sèche : le plancher devient **contraignant sur tous les profils
+  testés** (il ne borne plus la part calorique, il la fixe — donc en « Perso % » le
+  curseur glucides de l'utilisateur est écrasé), et `CARBS_BELOW_TRAINING_FLOOR`
+  passe de 3 profils sur 6 à 6 sur 6. Cas le plus exposé, F 125 kg à 52 % de MG :
+  48 → 100 g de lipides, soit **25 % → 43 % des calories**, prélevés sur les
+  glucides (239 → 144 g). Le bornage au budget est désormais la seule protection
+  contre un plan infaisable. Le mode « Perso % » descendait à 6,6 %
   des calories en lipides ; son curseur est plafonné à 75 % de glucides et
   `carb_ratio` est **clampé à la lecture** (une borne d'écran ne migre aucun compte
   déjà enregistré).
