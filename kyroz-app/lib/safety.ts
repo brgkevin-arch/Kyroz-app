@@ -1,4 +1,4 @@
-import { Goal, GoalTarget, LowEaRegistry, LowEaRegistryStored, Sex, SportSession } from './types';
+import { FloorSource, Goal, GoalTarget, LowEaRegistry, LowEaRegistryStored, Sex, SportSession } from './types';
 import { totalWeeklyTrainingMinutes } from './sport';
 
 // Arithmétique de dates 'YYYY-MM-DD'. Dupliquée (petitement) depuis datedGoal.ts
@@ -305,8 +305,18 @@ export function safetyFloorKcal(
   return safetyFloorBreakdown(b, bmr, sportKcalPerDay, weeksInLowEa, maintenanceKcal).floorKcal;
 }
 
-/** Quel des trois minima physiologiques a fixé le plancher. */
-export type SafetyFloorSource = 'bmr' | 'energy_availability' | 'min_kcal';
+/**
+ * Quel des trois minima physiologiques a fixé le plancher.
+ *
+ * Sous-ensemble DÉRIVÉ de `FloorSource` (types.ts) et non une seconde liste : les
+ * deux autres sources (`deficit_cap`, `underweight_maintenance`) sont des plafonds
+ * du moteur, pas des minima physiologiques, et n'ont rien à faire ici. `Extract`
+ * garantit qu'un renommage côté types casse la compilation au lieu de laisser
+ * diverger silencieusement deux unions de chaînes.
+ */
+export type SafetyFloorSource = Extract<
+  FloorSource, 'bmr' | 'energy_availability' | 'min_kcal'
+>;
 
 export interface SafetyFloorBreakdown {
   /** Les trois candidats, arrondis, tels qu'ils entrent dans le `max`. */

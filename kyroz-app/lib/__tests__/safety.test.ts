@@ -884,7 +884,7 @@ describe('trace du clamp — quel plancher a gagné, et de combien (2026-07-31)'
     expect(clamp.requestedKcal).toBe(1994);          // 2294 − 300 (GOAL_CONFIG.cut)
     expect(clamp.servedKcal).toBe(2112);
     expect(clamp.clampedByKcal).toBe(118);           // l'écart, plus jamais silencieux
-    expect(clamp.clamped).toBe(true);
+    expect(clamp.floorBinding).toBe(true);
     expect(clamp.source).toBe('energy_availability'); // ← ce que le booléen ne disait pas
     // Cohérence avec ce que le moteur sert VRAIMENT (pas une seconde vérité).
     expect(clamp.servedKcal).toBe(profile.target_kcal);
@@ -903,16 +903,17 @@ describe('trace du clamp — quel plancher a gagné, et de combien (2026-07-31)'
     });
     // Le gagnant EST le max des candidats — la trace ne peut pas désigner un perdant.
     expect(Math.max(...Object.values(clamp.candidates))).toBe(clamp.floorKcal);
-    expect(clamp.candidates[clamp.source!]).toBe(clamp.floorKcal);
+    expect(clamp.candidates[clamp.source]).toBe(clamp.floorKcal);
   });
 
   it('quand rien ne mord, la source est null et l\'écart nul', () => {
     // Maintien : aucun déficit demandé, donc aucun plancher à opposer.
     const { clamp } = computePlan(makeProfile({ ...corps, sex: 'male', goal: 'maintain' }), TODAY);
-    expect(clamp.clamped).toBe(false);
-    expect(clamp.source).toBeNull();
+    expect(clamp.floorBinding).toBe(false);
     expect(clamp.clampedByKcal).toBe(0);
     expect(clamp.servedKcal).toBe(clamp.requestedKcal);
+    // `source` reste renseignée : elle décrit le plancher, pas la transition.
+    expect(clamp.source).toBe('energy_availability');
   });
 
   it('sait nommer un AUTRE plancher que l\'énergie disponible', () => {
@@ -933,5 +934,121 @@ describe('trace du clamp — quel plancher a gagné, et de combien (2026-07-31)'
     expect(clamp.servedKcal).toBe(profile.target_kcal);   // le nombre servi, pas un autre
     expect(clamp.clampedByKcal).toBe(clamp.servedKcal - clamp.requestedKcal);
     expect(clamp.source).toBe('energy_availability');
+  });
+});
+
+describe('UserProfile.clamp — la trace stockée sur le profil (2026-07-31)', () => {
+  const corps = {
+    age: 35, weight_kg: 80, height_cm: 170, body_fat_pct: 20,
+    goal: 'cut' as const, macro_mode: 'auto' as const, neat_level: 'desk' as const,
+    training_days_per_week: 4,
+    sports: [{ type: 'musculation' as const, sessions_per_week: 4, minutes_per_session: 60 }],
+  };
+
+  it('est déposée sur le profil, allégée, et cohérente avec la cible servie', () => {
+    const p = recalcProfile(makeProfile({ ...corps, sex: 'female' }), TODAY);
+    expect(p.clamp).toEqual({
+      source: 'energy_availability',
+      floorKcal: 2112,
+      requestedKcal: 1994,
+      servedKcal: 2112,
+      clampedByKcal: 118,
+    });
+    expect(p.clamp!.servedKcal).toBe(p.target_kcal);
+    // Allégée : les candidats perdants restent sur ComputedPlan, pas sur le profil.
+    expect(p.clamp).not.toHaveProperty('candidates');
+  });
+
+  it('ABSENTE quand la demande est servie — l\'absence porte le sens', () => {
+    const p = recalcProfile(makeProfile({ ...corps, sex: 'male', goal: 'maintain' }), TODAY);
+    expect(p.clamp).toBeUndefined();
+    expect('clamp' in p).toBe(false);   // la clé est RETIRÉE, pas mise à undefined
+  });
+
+  it('RÉGRESSION : une trace périmée ne survit pas à la sortie du plancher', () => {
+    // Le piège : `{ ...p }` reconduit `clamp` quand plus rien ne mord. L'écran
+    // afficherait alors « ta cible est ton plancher » sur un plan non contraint.
+    const contraint = recalcProfile(makeProfile({ ...corps, sex: 'female' }), TODAY);
+    expect(contraint.clamp).toBeDefined();
+    // Le même profil repasse en maintien : plus aucun plancher ne mord.
+    const libere = recalcProfile({ ...contraint, goal: 'maintain' }, TODAY);
+    expect(libere.clamp).toBeUndefined();
+    expect('clamp' in libere).toBe(false);
+    // …et JSON.stringify ne doit plus voir la clé (c'est ce que compare useProfile).
+    expect(JSON.stringify(libere)).not.toContain('"clamp"');
+  });
+
+  it('est IDEMPOTENTE : recalculer deux fois ne change rien', () => {
+    const un = recalcProfile(makeProfile({ ...corps, sex: 'female' }), TODAY);
+    const deux = recalcProfile(un, TODAY);
+    expect(JSON.stringify(deux.clamp)).toBe(JSON.stringify(un.clamp));
+    expect(JSON.stringify(deux)).toBe(JSON.stringify(un));   // aucune boucle d'écriture
+  });
+});
+
+describe('RÉGRESSION — état vs transition : le mode manual (revue adverse 2026-07-31)', () => {
+  // Une revue adverse a trouvé ceci, et quatre réfutateurs indépendants ont échoué à
+  // l'écarter. Brancher l'écran sur « la cible a été REMONTÉE » au lieu de « le
+  // plancher CONTRAINT » rendait la note muette exactement là où elle sert : en mode
+  // manual la correction est PERSISTÉE dans les grammes, donc dès le calcul suivant
+  // la demande vaut le plancher et la transition disparaît — alors que la cible est
+  // toujours collée au plancher et ne réagit plus à aucun réglage.
+  // C'est le piège déjà documenté sur FLOOR_APPLIED, ré-ouvert côté écran.
+  const legacy = makeProfile({
+    sex: 'female', age: 30, weight_kg: 60, height_cm: 165, body_fat_pct: 25,
+    goal: 'cut', macro_mode: 'manual',
+    target_protein_g: 100, target_carbs_g: 100, target_fat_g: 40, target_kcal: 1160,
+    training_days_per_week: 4,
+    sports: [{ type: 'course', sessions_per_week: 4, minutes_per_session: 60 }],
+  });
+
+  it('le plancher reste CONTRAIGNANT à travers les recalculs, la transition non', () => {
+    const un = computePlan(legacy, TODAY);
+    const deux = computePlan(un.profile, TODAY);
+    const trois = computePlan(deux.profile, TODAY);
+
+    // La transition s'éteint dès le 2e passage — c'est normal et attendu.
+    expect(un.clamp.clampedByKcal).toBeGreaterThan(0);
+    expect(deux.clamp.clampedByKcal).toBe(0);
+
+    // …mais l'ÉTAT ne bouge pas : c'est lui qui pilote l'affichage.
+    for (const r of [un, deux, trois]) {
+      expect(r.clamp.floorBinding).toBe(true);
+      expect(r.flags).toContain('FLOOR_APPLIED');
+      // Un seul prédicat pour une seule question : l'écran ne peut pas contredire
+      // le drapeau, quel que soit le mode de macros.
+      expect(r.clamp.floorBinding).toBe(r.flags.includes('FLOOR_APPLIED'));
+      // …et le plancher reste NOMMÉ, sinon l'écran tomberait dans sa branche par
+      // défaut et annoncerait le mauvais plancher (mensonge, pas imprécision).
+      expect(r.clamp.source).toBe('energy_availability');
+      expect(r.profile.clamp?.source).toBe('energy_availability');
+    }
+  });
+
+  it('`source` est renseignée même sans clamp, et désigne toujours le bon candidat', () => {
+    for (const goal of ['cut', 'maintain', 'lean_bulk', 'bulk'] as const) {
+      const { clamp } = computePlan(makeProfile({
+        sex: 'male', age: 35, weight_kg: 80, height_cm: 178, body_fat_pct: 20,
+        goal, macro_mode: 'auto', training_days_per_week: 0, sports: [],
+      }), TODAY);
+      expect(clamp.source, goal).toBeTruthy();
+      expect(clamp.candidates[clamp.source], goal).toBe(clamp.floorKcal);
+      expect(Math.max(...Object.values(clamp.candidates)), goal).toBe(clamp.floorKcal);
+    }
+  });
+
+  it('INVARIANT : la trace stockée est présente exactement quand FLOOR_APPLIED', () => {
+    const cas = [
+      { sex: 'female' as const, weight_kg: 80, height_cm: 170, body_fat_pct: 20, goal: 'cut' as const },
+      { sex: 'male' as const, weight_kg: 80, height_cm: 178, body_fat_pct: 20, goal: 'maintain' as const },
+      { sex: 'female' as const, weight_kg: 42, height_cm: 150, goal: 'cut' as const },
+      { sex: 'male' as const, weight_kg: 60, height_cm: 180, goal: 'cut_aggressive' as const },
+      { sex: 'male' as const, weight_kg: 110, height_cm: 175, body_fat_pct: 35, goal: 'bulk' as const },
+    ];
+    for (const c of cas) {
+      const r = computePlan(makeProfile({ age: 35, macro_mode: 'auto', training_days_per_week: 0, sports: [], ...c }), TODAY);
+      expect(!!r.profile.clamp, JSON.stringify(c)).toBe(r.flags.includes('FLOOR_APPLIED'));
+      if (r.profile.clamp) expect(r.profile.clamp.servedKcal).toBe(r.profile.target_kcal);
+    }
   });
 });
