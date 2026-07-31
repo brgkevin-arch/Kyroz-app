@@ -333,6 +333,10 @@ qu'ils étaient périmés.
   👁 **Invisible pour l'utilisateur** : `MacroBar` n'affiche aucune cible lipides, et
   `fat_below_target` est classé `'selection'` (« ne pas alarmer »). Personne ne le
   voit — ce qui est justement pourquoi ça a tenu jusqu'ici.
+  ✅ **CONTRE-VÉRIFIÉ par une seconde méthode** : au lieu de lire le cache
+  `total_macros_per_day`, on additionne les lipides des repas servis. Les deux méthodes
+  donnent **exactement les mêmes comptes** (56/56, 56/56, 0/56) avec un écart de **0 g**.
+  Le chiffre ne vient donc pas d'un cache périmé — piège déjà rencontré sur E8.
   🔬 **A9 RÉSISTE au relèvement du NEAT (A7).** Question posée immédiatement : puisque
   monter `desk` de 1,20 à 1,30 relève le TDEE, la cible lipides ne décollerait-elle pas
   du plancher toute seule ? **Non.** Mesuré sur `recalcProfile`, H 80 kg, les 4 crans de
@@ -413,7 +417,11 @@ produit en suspens — il ne reste qu'à coder.
     Monétisation ne s'ouvre qu'après dépôt d'un build.
 - **C4 · 🧑 Décision : mises à jour OTA (`expo-updates`) ?** Le build a signalé que
   `eas.json` déclare des canaux alors que le paquet n'est PAS installé — les canaux sont
-  donc **inertes**. Sans OTA, corriger une faute de frappe impose un nouveau build ET une
+  donc **inertes**. *Confirmé le 2026-07-31* : `expo-updates` est absent de
+  `package.json` ET de `node_modules` (même en transitif) ; `eas.json` déclare bien
+  3 canaux (`development`, `preview`, `production`) ; et `app.json` n'a **ni**
+  `runtimeVersion` **ni** bloc `updates`, tous deux nécessaires. Il ne manque donc pas
+  « juste le paquet » : c'est une installation en 3 points. Sans OTA, corriger une faute de frappe impose un nouveau build ET une
   nouvelle revue du store. Avec, les correctifs JS partent en minutes. C'est une
   dépendance de plus dans le core loop : décision produit, pas installation à la volée.
 - **C3 · 🧑 Classement d'âge : ADULTES UNIQUEMENT** — *tranché le 2026-07-30.*
@@ -612,6 +620,15 @@ produit en suspens — il ne reste qu'à coder.
   ➡️ Faire le 1 ne « fait » pas E6. Le 2 est une petite feature, pas de la dette.
 - **E7 · 🤖 Deep links web → HTTP 404** (le rendu est bon, le statut est faux).
   Mauvais SEO. Contournement en place. **Faible priorité.**
+  *Cause identifiée le 2026-07-31* : `app.json > expo.web` ne contient qu'un `favicon`,
+  donc `output` vaut son défaut **`"single"`** — une seule page, toutes les routes
+  servies par le repli `404.html` (que `deploy.yml` fabrique en copiant `index.html`).
+  GitHub Pages renvoie donc un vrai 404 avec le bon contenu.
+  ⚠️ **Le correctif propre existe mais n'est PAS anodin** : `"output": "static"`
+  pré-rend chaque route en HTML → vrais 200. Mais le rendu statique exécute les écrans
+  hors navigateur : tout module qui touche `localStorage`/AsyncStorage au chargement
+  casse le build. À ne tenter que sur une branche, avec l'export vérifié route par
+  route — pas la veille d'une sortie store.
 
 ### 🚫 F — Volontairement reporté : NE PAS RELANCER
 
