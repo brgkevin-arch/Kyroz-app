@@ -420,10 +420,26 @@ produit en suspens — il ne reste qu'à coder.
   L'entrée disait « une seule tient sous ~130 kcal » : en base de recette, il n'y en a
   **aucune**. Le scaling ne descend qu'à ×0,55 environ, donc même la plus légère ne peut
   pas atteindre les ~115 kcal que vise une femme de 55 kg en sèche.
-  🎯 **Consigne chiffrée pour la rédaction** : viser **110–160 kcal en base**, avec
-  protéine ≥ 12 g. Écrire AILLEURS, ne pas réécrire l'existant.
-- **D2 · 🤖 Vérifier le lot B2** (13 collations générées par le fondateur, *Journal §2*) avant merge :
-  `check:doublons`, `check:enveloppe`, `mesure:couverture`.
+  ✅ **LA COMMANDE EST DÉJÀ ÉCRITE ET VISE JUSTE : `Recette/lots/b2.md`.** Ne pas en
+  rédiger une autre. Elle impose 9 « petits formats » à **120–185 kcal / 8–12 g de
+  protéines**, dont **au moins 2 à 115 kcal**, et elle a déjà identifié la cause
+  racine : *« n'essaie PAS d'atteindre 6 g de protéines pour 100 kcal — c'est cette
+  règle qui a rendu les 66 collations actuelles inutilisables »*.
+  ⚠️ **Piège pour la prochaine session** : la réponse intuitive (« une collation légère
+  doit être très protéinée ») est exactement l'erreur d'origine. À 130 kcal, 12 g de
+  protéines font 9 g/100 kcal — le double de ce que la commande prescrit. La collation
+  est servie EN DERNIER, le plancher protéique du jour est déjà couvert par les trois
+  repas ; la cible résiduelle réelle est de 1 à 18 g. **Suivre `b2.md`, pas son
+  intuition.** ➡️ D1 et D2 sont donc la même chaîne : le fondateur génère, je vérifie.
+- **D2 · 🧑 PUIS 🤖 — le lot B2 n'est pas encore généré.** *Vérifié le 2026-07-31 :
+  `Recette/lots/b2.md` est la **commande**, pas la livraison ; `Recette/drops/` ne
+  contient que les 3 lots déjà fusionnés (juin/juillet). Il n'y a donc rien à vérifier
+  aujourd'hui.* Le marquage 🤖 laissait croire le contraire.
+  🧑 **Étape bloquante = toi** : générer les 13 collations `col67`→`col79` à partir de
+  `b2.md` (lot autonome, aucun accès au code nécessaire), et déposer le JSON dans
+  `Recette/drops/`. 🤖 Ensuite je vérifie : `check:doublons`, `check:enveloppe`,
+  `mesure:couverture`. **C'est le chantier catalogue le plus rentable** — il ferme D1
+  et D6 d'un coup.
 - **D3 · 🧑 Axe allergène — jamais tranché** *(Journal §3)*. Le `tahini` introduit le sésame et **aucun
   champ ne le porte**. Décision produit : ajoute-t-on un axe allergène au modèle, ou
   reste-t-on sur la saisie libre ?
