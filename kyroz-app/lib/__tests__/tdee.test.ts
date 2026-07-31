@@ -2,7 +2,8 @@ import { describe, it, expect } from 'vitest';
 import {
   calculateBMR, calculateTDEE, calculateMacros, macrosPercent, recalcProfile,
   leanBodyMass, validateProfile, recommendedProteinPerKg, kcalFromMacros,
-  MIN_KCAL, MIN_AGE, DEFAULT_CARB_RATIO, NEAT_PAL, neatPal, proteinTarget,
+  MIN_KCAL, MIN_AGE, DEFAULT_CARB_RATIO, NEAT_PAL, neatPal, proteinTarget, DEFAULT_NEAT_LEVEL,
+  ENGINE_REV,
   computePlan,
 } from '../tdee';
 import { fatFreeMassKg } from '../safety';
@@ -44,18 +45,26 @@ describe('TDEE', () => {
   });
 
   it('le niveau NEAT pilote la base, pas le nombre de séances', () => {
-    expect(calculateTDEE({ ...H, neat_level: 'desk' })).toBe(Math.round(1880 * 1.20));
-    expect(calculateTDEE({ ...H, neat_level: 'light' })).toBe(Math.round(1880 * 1.28));
-    expect(calculateTDEE({ ...H, neat_level: 'active' })).toBe(Math.round(1880 * 1.36));
+    // Table relevée le 2026-07-31 (cf. NEAT_PAL) : 1,30 / 1,35 / 1,40 / 1,45.
+    expect(calculateTDEE({ ...H, neat_level: 'desk' })).toBe(Math.round(1880 * 1.30));
+    expect(calculateTDEE({ ...H, neat_level: 'light' })).toBe(Math.round(1880 * 1.35));
+    expect(calculateTDEE({ ...H, neat_level: 'active' })).toBe(Math.round(1880 * 1.40));
     expect(calculateTDEE({ ...H, neat_level: 'physical' })).toBe(Math.round(1880 * 1.45));
   });
 
-  it('NEAT absent ou inconnu → défaut « bureau » (1,20), jamais un surplus inventé', () => {
-    expect(neatPal(undefined)).toBe(1.20);
-    expect(neatPal(null)).toBe(1.20);
-    expect(neatPal('zumba' as any)).toBe(1.20);
-    // Un défaut plus haut (1,30/1,35) effacerait 45 à 87 % du déficit d'un sédentaire.
-    expect(NEAT_PAL.desk).toBeLessThan(1.3);
+  it('NEAT absent ou inconnu → défaut « bureau », jamais un surplus inventé', () => {
+    expect(neatPal(undefined)).toBe(NEAT_PAL.desk);
+    expect(neatPal(null)).toBe(NEAT_PAL.desk);
+    expect(neatPal('zumba' as any)).toBe(NEAT_PAL.desk);
+    // ⚠️ L'assertion `NEAT_PAL.desk < 1.3` est TOMBÉE le 2026-07-31 : c'est
+    // précisément la valeur qui a été relevée. Ce qu'elle protégeait vraiment —
+    // « le défaut ne doit pas inventer de dépense » — est reformulé en invariant
+    // de STRUCTURE, qui survivra au prochain réglage de la table :
+    //  · le défaut est le cran le PLUS BAS (aucune dépense supposée en trop) ;
+    //  · la table reste sous 1,50, seuil au-delà duquel les niveaux classiques
+    //    incluent l'exercice, déjà compté à part par les MET nets.
+    expect(NEAT_PAL[DEFAULT_NEAT_LEVEL]).toBe(Math.min(...Object.values(NEAT_PAL)));
+    expect(Math.max(...Object.values(NEAT_PAL))).toBeLessThan(1.5);
   });
 
   it('P1.1 — plus de marche d\'escalier : déclarer 15 min de marche ne fait pas bondir le TDEE', () => {
@@ -311,5 +320,69 @@ describe('Unicité & stabilité du TDEE', () => {
       normalizeProfileActivity(reconcileCloudSports(cloudDegrade, coherent))!
     );
     expect(healed.tdee_kcal).toBe(coherent.tdee_kcal); // ← le saut est neutralisé
+  });
+});
+
+describe('avertissement one-shot — le TRAJET, pas seulement l\'arrivée (2026-07-31)', () => {
+  const TODAY_N = '2026-07-31';
+
+  it('BLOQUANT — un compte LEGACY porte sa révision d\'origine dans la notice', () => {
+    // `engineNoticeFor` estampillait toujours `rev: ENGINE_REV`. Un compte dormant
+    // depuis la rev 1 traverse PLUSIEURS corrections d'un coup et voit sa cible
+    // BAISSER (séances comptées en double), mais recevait le texte de la rev 3
+    // (« Kyroz sous-estimait ta dépense ») au-dessus d'un delta négatif.
+    // Mesuré sur le profil de référence du dépôt : −470 kcal.
+    const legacy = recalcProfile(makeProfile({ engine_rev: 1 }), TODAY_N);
+    expect(legacy.engine_notice).toBeDefined();
+    expect(legacy.engine_notice!.fromRev, 'la notice doit dire D\'OÙ elle vient').toBe(1);
+    expect(legacy.engine_notice!.rev).toBe(ENGINE_REV);
+    // Et le cas qui rendait le texte mensonger est bien celui-là : ça BAISSE.
+    expect(legacy.engine_notice!.to).toBeLessThan(legacy.engine_notice!.from);
+  });
+
+  it('un compte rev 2 porte fromRev 2 — c\'est lui qui voit son budget MONTER', () => {
+    const p = recalcProfile(makeProfile({
+      sex: 'male', age: 35, weight_kg: 100, height_cm: 180, body_fat_pct: 25,
+      goal: 'maintain', macro_mode: 'auto', neat_level: 'desk',
+      training_days_per_week: 0, sports: [],
+      engine_rev: 2, tdee_kcal: 2388, target_kcal: 2388,
+    }), TODAY_N);
+    expect(p.engine_notice!.fromRev).toBe(2);
+    expect(p.engine_notice!.to).toBeGreaterThan(p.engine_notice!.from);
+  });
+
+  it('aucune notice quand le profil est déjà à la révision courante', () => {
+    const p = recalcProfile(makeProfile({ engine_rev: ENGINE_REV }), TODAY_N);
+    expect(p.engine_notice).toBeUndefined();
+  });
+});
+
+describe('BLOQUANT — un avertissement non lu n\'avale pas la bascule suivante', () => {
+  it('les deux transitions se CHAÎNENT : from le plus ancien, to le plus récent', () => {
+    // Scénario : quelqu'un a reçu l'avertissement de la rev 2 et ne l'a pas encore
+    // lu quand la rev 3 arrive. `p.engine_notice ?? …` gardait l'ancien, donc :
+    //  · l'écran affichait les chiffres de l'ANCIENNE transition alors que le moteur
+    //    servait déjà la nouvelle valeur ;
+    //  · l'explication de la rev 3 n'était JAMAIS produite pour cette personne.
+    const nonLu = { rev: 2, from: 2900, to: 2400, fromRev: 1 };
+    const p = recalcProfile(makeProfile({
+      sex: 'male', age: 35, weight_kg: 100, height_cm: 180, body_fat_pct: 25,
+      goal: 'maintain', macro_mode: 'auto', neat_level: 'desk',
+      training_days_per_week: 0, sports: [],
+      engine_rev: 2, tdee_kcal: 2388, target_kcal: 2388,
+      engine_notice: nonLu,
+    }), '2026-07-31');
+
+    const n = p.engine_notice!;
+    expect(n.rev, 'la notice doit porter la révision COURANTE').toBe(ENGINE_REV);
+    expect(n.from, 'le point de départ reste celui qu\'elle avait sous les yeux').toBe(2900);
+    expect(n.to, 'l\'arrivée est ce qui est SERVI aujourd\'hui').toBe(p.target_kcal);
+    expect(n.fromRev, 'l\'origine du trajet remonte à la plus ancienne').toBe(1);
+  });
+
+  it('un avertissement non lu SANS nouvelle bascule reste intact', () => {
+    const nonLu = { rev: ENGINE_REV, from: 2900, to: 2400, fromRev: 2 };
+    const p = recalcProfile(makeProfile({ engine_rev: ENGINE_REV, engine_notice: nonLu }), '2026-07-31');
+    expect(p.engine_notice).toEqual(nonLu);
   });
 });

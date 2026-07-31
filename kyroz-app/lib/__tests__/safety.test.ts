@@ -811,13 +811,18 @@ describe('repère de plausibilité du %MG saisi (2026-07-31)', () => {
     const impact = bodyFatTdeeImpact(corps, 20);
     // Positif : sous-estimer son %MG fait monter la dépense estimée.
     expect(impact).toBeGreaterThan(200);
-    // …et il sous-annonce l'effet sur la CIBLE (le plancher suit la masse maigre) :
-    // c'est voulu, on ne gonfle pas le chiffre pour impressionner.
+    // …et il n'EXAGÈRE jamais l'effet sur la CIBLE : c'est le point qui compte, on
+    // ne gonfle pas le chiffre pour impressionner.
+    // ⚠️ `<` est devenu `<=` le 2026-07-31 : avant le relèvement NEAT, le plancher
+    // retenait la cible et l'écart de cible DÉPASSAIT l'écart de dépense (293 > 270).
+    // Maintenant que la cible est libre, les deux coïncident exactement — l'écart de
+    // cible EST l'écart de dépense, à l'arrondi près. L'annonce reste donc juste,
+    // elle a simplement cessé d'être conservatrice.
     const cible = (bf?: number) => recalcProfile(makeProfile({
       ...corps, body_fat_pct: bf, goal: 'cut', macro_mode: 'auto',
       sports: [{ type: 'musculation', sessions_per_week: 4, minutes_per_session: 60 }],
     }), TODAY).target_kcal;
-    expect(impact).toBeLessThan(cible(20) - cible(undefined));
+    expect(impact).toBeLessThanOrEqual(cible(20) - cible(undefined));
   });
 });
 
@@ -878,18 +883,49 @@ describe('trace du clamp — quel plancher a gagné, et de combien (2026-07-31)'
     training_days_per_week: 4,
     sports: [{ type: 'musculation' as const, sessions_per_week: 4, minutes_per_session: 60 }],
   };
+  // ⚠️ Gabarit du clamp changé le 2026-07-31 : après le relèvement NEAT, le profil
+  // ci-dessus n'est PLUS retenu par le plancher (c'est l'objet du relèvement, et
+  // c'est verrouillé par le test « le cas d'origine reçoit maintenant… » plus bas).
+  // Celui-ci mord encore : gabarit léger, gros volume, %MG très bas.
+  //
+  // POURQUOI `cut_aggressive`, un objectif qu'aucun compte VIVANT ne porte
+  // (`normalizeGoal` le referme sur `cut` à la lecture) : c'est le seul moyen de
+  // faire mordre `energy_availability` sur un corps plausible. Mesuré après le
+  // relèvement, sur 10 800 profils `cut` : ce plancher ne mord plus que 80 fois, et
+  // uniquement sur des corps absurdes (IMC 52 à 8 % de MG). C'est le RÉSULTAT
+  // recherché, pas un trou de couverture — et les planchers atteignables en
+  // production restent exercés par les tests `min_kcal` et `underweight_*`
+  // ci-dessous, sur des objectifs `cut` ordinaires.
+  const contraint = {
+    sex: 'male' as const, age: 30, weight_kg: 42, height_cm: 150, body_fat_pct: 8,
+    goal: 'cut_aggressive' as const, macro_mode: 'auto' as const, neat_level: 'desk' as const,
+    training_days_per_week: 7,
+    sports: [{ type: 'course' as const, sessions_per_week: 7, minutes_per_session: 60 }],
+  };
 
   it('nomme le plancher retenu et chiffre l\'écart', () => {
-    const { clamp, floor_kcal, profile } = computePlan(makeProfile({ ...corps, sex: 'female' }), TODAY);
-    expect(clamp.requestedKcal).toBe(1994);          // 2294 − 300 (GOAL_CONFIG.cut)
-    expect(clamp.servedKcal).toBe(2112);
-    expect(clamp.clampedByKcal).toBe(118);           // l'écart, plus jamais silencieux
+    const { clamp, floor_kcal, profile } = computePlan(makeProfile(contraint), TODAY);
     expect(clamp.floorBinding).toBe(true);
     expect(clamp.source).toBe('energy_availability'); // ← ce que le booléen ne disait pas
+    expect(clamp.clampedByKcal).toBeGreaterThan(0);   // l'écart, plus jamais silencieux
     // Cohérence avec ce que le moteur sert VRAIMENT (pas une seconde vérité).
     expect(clamp.servedKcal).toBe(profile.target_kcal);
     expect(clamp.floorKcal).toBe(floor_kcal);
+    expect(clamp.servedKcal).toBe(clamp.floorKcal);
     expect(clamp.clampedByKcal).toBe(clamp.servedKcal - clamp.requestedKcal);
+  });
+
+  it('LE CAS D\'ORIGINE reçoit maintenant son déficit ENTIER', () => {
+    // C'est le profil qui avait fait remonter le sujet : « on sert 2112 pour une
+    // demande à 1994 ». Depuis le relèvement de `desk` à 1,30, la demande passe à
+    // 2170 et le plancher (2112) ne la rattrape plus.
+    const { clamp, profile } = computePlan(makeProfile({ ...corps, sex: 'female' }), TODAY);
+    expect(clamp.floorBinding).toBe(false);
+    expect(clamp.clampedByKcal).toBe(0);
+    expect(profile.target_kcal - profile.tdee_kcal).toBe(-300);  // les −300 promis, servis
+    // Le plancher n'a pas disparu : il est juste passé SOUS la cible.
+    expect(clamp.candidates.energy_availability).toBe(2112);
+    expect(clamp.floorKcal).toBeLessThan(profile.target_kcal);
   });
 
   it('expose TOUS les candidats, y compris les perdants', () => {
@@ -898,7 +934,7 @@ describe('trace du clamp — quel plancher a gagné, et de combien (2026-07-31)'
       bmr: 1752,
       energy_availability: 2112,      // 30 × 64 kg de masse maigre + 192 de sport
       min_kcal: 1200,
-      deficit_cap: 1721,              // 75 % du TDEE
+      deficit_cap: 1853,              // 75 % du TDEE (2470 depuis le relèvement NEAT)
       underweight_maintenance: 0,
     });
     // Le gagnant EST le max des candidats — la trace ne peut pas désigner un perdant.
@@ -938,23 +974,22 @@ describe('trace du clamp — quel plancher a gagné, et de combien (2026-07-31)'
 });
 
 describe('UserProfile.clamp — la trace stockée sur le profil (2026-07-31)', () => {
+  // ⚠️ Gabarit changé le 2026-07-31 : après le relèvement NEAT, le profil qui avait
+  // fait naître ce champ n'est plus retenu par le plancher. Celui-ci l'est encore.
   const corps = {
-    age: 35, weight_kg: 80, height_cm: 170, body_fat_pct: 20,
-    goal: 'cut' as const, macro_mode: 'auto' as const, neat_level: 'desk' as const,
-    training_days_per_week: 4,
-    sports: [{ type: 'musculation' as const, sessions_per_week: 4, minutes_per_session: 60 }],
+    age: 30, weight_kg: 42, height_cm: 150, body_fat_pct: 8,
+    goal: 'cut_aggressive' as const, macro_mode: 'auto' as const, neat_level: 'desk' as const,
+    training_days_per_week: 7,
+    sports: [{ type: 'course' as const, sessions_per_week: 7, minutes_per_session: 60 }],
   };
 
   it('est déposée sur le profil, allégée, et cohérente avec la cible servie', () => {
-    const p = recalcProfile(makeProfile({ ...corps, sex: 'female' }), TODAY);
-    expect(p.clamp).toEqual({
-      source: 'energy_availability',
-      floorKcal: 2112,
-      requestedKcal: 1994,
-      servedKcal: 2112,
-      clampedByKcal: 118,
-    });
+    const p = recalcProfile(makeProfile({ ...corps, sex: 'male' }), TODAY);
+    expect(p.clamp).toBeDefined();
+    expect(p.clamp!.source).toBe('energy_availability');
     expect(p.clamp!.servedKcal).toBe(p.target_kcal);
+    expect(p.clamp!.floorKcal).toBe(p.clamp!.servedKcal);
+    expect(p.clamp!.clampedByKcal).toBe(p.clamp!.servedKcal - p.clamp!.requestedKcal);
     // Allégée : les candidats perdants restent sur ComputedPlan, pas sur le profil.
     expect(p.clamp).not.toHaveProperty('candidates');
   });
@@ -968,7 +1003,7 @@ describe('UserProfile.clamp — la trace stockée sur le profil (2026-07-31)', (
   it('RÉGRESSION : une trace périmée ne survit pas à la sortie du plancher', () => {
     // Le piège : `{ ...p }` reconduit `clamp` quand plus rien ne mord. L'écran
     // afficherait alors « ta cible est ton plancher » sur un plan non contraint.
-    const contraint = recalcProfile(makeProfile({ ...corps, sex: 'female' }), TODAY);
+    const contraint = recalcProfile(makeProfile({ ...corps, sex: 'male' }), TODAY);
     expect(contraint.clamp).toBeDefined();
     // Le même profil repasse en maintien : plus aucun plancher ne mord.
     const libere = recalcProfile({ ...contraint, goal: 'maintain' }, TODAY);
@@ -979,7 +1014,7 @@ describe('UserProfile.clamp — la trace stockée sur le profil (2026-07-31)', (
   });
 
   it('est IDEMPOTENTE : recalculer deux fois ne change rien', () => {
-    const un = recalcProfile(makeProfile({ ...corps, sex: 'female' }), TODAY);
+    const un = recalcProfile(makeProfile({ ...corps, sex: 'male' }), TODAY);
     const deux = recalcProfile(un, TODAY);
     expect(JSON.stringify(deux.clamp)).toBe(JSON.stringify(un.clamp));
     expect(JSON.stringify(deux)).toBe(JSON.stringify(un));   // aucune boucle d'écriture
