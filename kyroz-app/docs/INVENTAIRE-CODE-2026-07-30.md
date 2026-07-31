@@ -74,7 +74,7 @@
 | `sport.ts` | MET par sport, kcal nettes par séance / semaine / jour |
 | `planEngine.ts` (1 017 l) | **Le moteur de plan** : distribution par repas, jours de repos, cyclage glucidique, sélection + adaptation, swap, rééquilibrage, totaux du jour |
 | `adaptRecipe.ts` | Scaling **par ingrédient** d'une recette vers une cible macro repas → ingrédients ajustés + drapeaux + écart |
-| `generatePlan.ts` | Générateur via API Claude — **optionnel**, actif seulement si `EXPO_PUBLIC_ANTHROPIC_API_KEY` est posée |
+| ~~`generatePlan.ts`~~ | ⚠️ **PÉRIMÉ — fichier SUPPRIMÉ le 2026-07-31** (AGENTS.md E1). Il n'y a plus qu'un seul chemin de génération, `planEngine.ts`. |
 
 **Catalogue de recettes (chaîne linéaire, pas un doublon)**
 
@@ -207,9 +207,9 @@ ligne, alors que `lib/tdee.ts:424` `kcalFromMacros` existe et est utilisé aille
 - Aucun écran ne calcule de poids cible : tout passe par `lib/datedGoal.ts`.
 - Aucune couleur en dur hors `constants/theme.ts` ; aucun texte légal dupliqué hors
   `constants/legal.ts`.
-- `lib/planEngine.ts` et `lib/generatePlan.ts` produisent tous deux un `MealPlan` mais
-  ne sont **pas** un doublon : le second n'existe que si une clé API est posée
-  (revendication `CLAUDE.md` §2, vérifiée dans le code).
+- ~~`lib/planEngine.ts` et `lib/generatePlan.ts` produisent tous deux un `MealPlan`~~
+  ⚠️ **PÉRIMÉ le 2026-07-31** : `generatePlan.ts` est supprimé, la question du doublon
+  ne se pose plus. `planEngine.ts` est le seul producteur de `MealPlan`.
 
 ---
 
@@ -342,7 +342,8 @@ photos de progression (local-only, RGPD), `is_post_menopausal` et
 des tests transverses (`multiProfile`, `p1`, `p1-etape3`, `sortie-deficit-ea`,
 `doublons`, `variety`, `dayTotalTightness`).
 
-**Sans test dédié :** `sync.ts` (259 l, tout le miroir cloud), `generatePlan.ts`,
+**Sans test dédié :** `sync.ts` (259 l, tout le miroir cloud), ~~`generatePlan.ts`~~
+*(supprimé le 2026-07-31)*,
 `notifications.ts`, `analytics.ts`, `exportData.ts`, `photos.ts`, `themeMode.ts`,
 `profileName.ts`, `foods.curation.ts`, `recipeLabels.ts`.
 `types.ts` et `foods.generated.ts` n'en ont pas besoin (types purs / données générées).

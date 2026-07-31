@@ -8,7 +8,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // où la clé est posée, ça s'allume — toujours gated par le consentement.
 //
 // La clé PostHog (`phc_…`) est un token d'INGESTION write-only, conçu pour être
-// PUBLIC côté client → OK qu'elle soit inlinée dans le bundle web (cf. generatePlan).
+// PUBLIC côté client → OK qu'elle soit inlinée dans le bundle web (cf. `.env.example`).
 // Hôte EU (`eu.i.posthog.com`) → données stockées en Europe (RGPD).
 
 const POSTHOG_KEY = process.env.EXPO_PUBLIC_POSTHOG_KEY ?? '';

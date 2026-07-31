@@ -31,8 +31,7 @@ import { useStreak } from '../../hooks/useStreak';
 import { useWeightLog } from '../../hooks/useWeightLog';
 import { usePlanCheckin } from '../../hooks/usePlanCheckin';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { generateMealPlan } from '../../lib/generatePlan';
-import { profileSignature, swapMeal, computeDailyTotals, rebalanceDay, resetTracking, adaptDayOptions, AdaptOption, mealIngredients, reAdaptMealRecipe, mealPoolSize, dayTargetKcal, ON_TARGET_TOLERANCE_KCAL } from '../../lib/planEngine';
+import { buildLocalPlan, profileSignature, swapMeal, computeDailyTotals, rebalanceDay, resetTracking, adaptDayOptions, AdaptOption, mealIngredients, reAdaptMealRecipe, mealPoolSize, dayTargetKcal, ON_TARGET_TOLERANCE_KCAL } from '../../lib/planEngine';
 import { DISLIKE_THRESHOLD, dislikeCandidates, applyDislikedIngredient } from '../../lib/dislike';
 import { todayStamp } from '../../lib/weight';
 import { mealFiberFromIngredients, dailyFiberTarget } from '../../lib/fiber';
@@ -279,7 +278,13 @@ export default function PlanScreen() {
       } else {
         await AsyncStorage.setItem(SEED_KEY, '0');
       }
-      const p = await generateMealPlan(profile, seed);
+      // Pause de transition VOLONTAIRE, pas une attente réseau : le moteur local
+      // génère un plan 7 jours en ~8 ms (mesuré), donc sans elle le plan apparaît
+      // avant que l'utilisateur ait vu que quelque chose se passait. Elle vivait
+      // dans `generatePlan.ts` (supprimé le 2026-07-31 avec le chemin IA) où elle
+      // était étiquetée « UX : transition fluide ». La retirer = décision d'UX.
+      await new Promise((r) => setTimeout(r, 600));
+      const p = buildLocalPlan(profile, seed);
       await AsyncStorage.setItem(PLAN_KEY, JSON.stringify(p));
       await AsyncStorage.removeItem(LIST_KEY);
       // Reveal J1 : seulement à la 1re génération (pas un reroll) et jamais revu.

@@ -23,12 +23,21 @@ App mobile React Native (Expo Router, SDK 56) de plans repas macro-précis pour 
 | Couche | Choix | État |
 |---|---|---|
 | Mobile | **React Native (Expo Router, SDK 56)**, TypeScript strict | En place |
-| Génération repas | **Moteur LOCAL** (\`lib/planEngine.ts\`) — macro-précis, 0 clé API | Moteur principal |
-| Génération repas (option) | API Claude (\`lib/generatePlan.ts\`) — uniquement si \`EXPO_PUBLIC_ANTHROPIC_API_KEY\` définie, sinon fallback local auto | Optionnel |
+| Génération repas | **Moteur LOCAL** (\`lib/planEngine.ts\`) — macro-précis, 0 clé API, **seul chemin** | Moteur unique |
 | Persistance locale | AsyncStorage (clés \`@kyroz:*\`) | En place |
 | Backend / Auth | **Supabase** (région EU) — création de compte email + suppression de compte (RGPD) | Auth OK |
 | Base nutritionnelle | **Ciqual (ANSES) + table maison** — voir la note ci-dessous | En place |
 | Analytics | PostHog (cloud EU) | **Câblé (dormant)** — `lib/analytics.ts`, consent-gated RGPD ; s'active en posant `EXPO_PUBLIC_POSTHOG_KEY` |
+
+> **Le chemin de génération par IA a été SUPPRIMÉ le 2026-07-31.** `lib/generatePlan.ts`
+> proposait un appel à l'API Claude « si `EXPO_PUBLIC_ANTHROPIC_API_KEY` est définie ».
+> Cette clé n'a jamais été posée : le code n'a donc **jamais tourné en production**, mais
+> le SDK Anthropic, lui, était bel et bien **embarqué dans le bundle web public** —
+> mesuré sur le bundle déployé : 35 occurrences, le prompt système et la chaîne
+> `sk-ant-` servis à chaque visiteur. Suppression = **−224 Ko (−6,6 %)** sur le bundle
+> et un piège de sécurité en moins (une clé posée là aurait été inlinée EN CLAIR).
+> **Si la génération IA revient un jour : Edge Function Supabase, clé côté SERVEUR,
+> jamais côté client** (modèle : `supabase/functions/delete-account`).
 
 > Avant SDK : lire https://docs.expo.dev/versions/v56.0.0/ — Expo a changé.
 
