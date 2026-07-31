@@ -167,6 +167,34 @@ qu'ils étaient périmés.
   30 semaines, déficit servi : femme `S1:182 S16:98 S20:0` (77,4 kg) · homme
   `S1:182 S16:191 S20:193` (74,8 kg). Seule elle subit l'escalade RED-S.
 
+- **A6 · 🧑🤖 OUVERT — le sexe n'a AUCUN effet sur le TDEE ni les macros quand le %MG
+  est déclaré.** *Soulevé par le fondateur le 2026-07-31, et il ne se satisfait PAS de
+  la réponse « c'est le comportement attendu ». À traiter comme un chantier, pas comme
+  une explication à re-servir.*
+
+  **Le fait, mesuré** (80 kg · 170 cm · 35 ans · 4× muscu · sèche · %MG 20 déclaré) :
+
+  | | masse maigre | BMR | TDEE | cible | macros |
+  |---|---|---|---|---|---|
+  | femme | 64,0 kg | 1752 | 2294 | 2112 | P150/G245/L59 |
+  | homme | 64,0 kg | 1752 | 2294 | 2112 | P150/G245/L59 |
+
+  Plan strictement identique, recette par recette. Cause : `calculateBMR` passe en
+  **Katch-McArdle** dès que `body_fat_pct` est renseigné, et cette formule
+  (`370 + 21,6 × masse maigre`) ne contient aucun terme de sexe. Sans %MG déclaré,
+  Mifflin reprend la main et l'écart réapparaît (1731 F contre 1990 H).
+
+  **Ce qui différencie encore les deux profils** : uniquement les garde-fous —
+  escalade RED-S (elle seule), `MIN_KCAL` 1500/1200, bornes de %MG. Mesuré sur
+  30 semaines de sèche : femme `S1:182 S16:98 S20:0` → 77,4 kg ; homme
+  `S1:182 S16:191 S20:193` → 74,8 kg.
+
+  **La décision à prendre** (aucune n'est tranchée) : garder Katch-McArdle tel quel
+  (position standard : à masse maigre égale, la dépense est proche) · introduire un
+  terme de sexe même quand le %MG est connu · ou combiner Katch-McArdle et Mifflin.
+  ⚠️ Toute option retenue **déplace les cibles de tous les comptes ayant un %MG
+  déclaré** → incrémenter `ENGINE_REV` et prévoir l'avertissement one-shot.
+
 ### 🎯 B — Les deux briques Kyroz+ qui restent
 
 La valeur premium est **construite et déployée** (objectif daté). Plus aucune décision
