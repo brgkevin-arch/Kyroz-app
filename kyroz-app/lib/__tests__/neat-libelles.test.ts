@@ -9,9 +9,10 @@ import { NeatLevel } from '../types';
 //
 // On ne teste pas ici de l'orthographe : on verrouille le RAPPORT entre ce que la
 // question fait dire à l'utilisateur et ce que le moteur en fait. Un cran de NEAT
-// vaut 130 à 160 kcal/j et fait disparaître le plancher de sécurité (cf. le bloc
-// de documentation de NEAT_LABEL) : la rédaction de ces quatre lignes EST une
-// pièce du moteur de sécurité, pas de l'habillage.
+// vaut ~90 kcal/j depuis le resserrement de la table (2026-07-31 : 1,30 / 1,35 /
+// 1,40 / 1,45, contre 1,20 / 1,28 / 1,36 / 1,45) : la rédaction de ces quatre
+// lignes reste une pièce du moteur, pas de l'habillage — simplement moins
+// tranchante qu'avant, ce qui est le bénéfice recherché.
 
 const TODAY = '2026-07-28';
 
@@ -25,32 +26,39 @@ const cas = makeProfile({
 const planAt = (neat: NeatLevel) => computePlan({ ...cas, neat_level: neat }, TODAY);
 
 describe('enjeu du réglage — ce que la rédaction protège', () => {
-  it('un seul cran déplace la maintenance d\'au moins 100 kcal/j', () => {
-    // Sur le TDEE et non sur la cible : la cible peut être RETENUE par le plancher,
-    // auquel cas elle bouge peu (14 kcal ici entre desk et light) alors que l'effet
-    // NEAT, lui, est entier. Mesurer la cible ici sous-estimerait l'enjeu au moment
-    // précis où il est le plus grand — c'est le déficit qui absorbe la différence,
-    // et c'est l'objet du test suivant.
-    //
-    // Si ce test tombe, ce n'est pas lui qu'il faut corriger : c'est que NEAT_PAL a
-    // été retouché, donc que l'enjeu documenté au-dessus des libellés a changé.
+  it('un cran reste significatif, mais ne fait plus basculer le plan', () => {
+    // ⚠️ SEUIL ABAISSÉ DE 100 À 60 LE 2026-07-31 — un choix, pas un assouplissement
+    // pour faire passer la suite. La table est passée d'un pas de 0,08 à un pas de
+    // 0,05 (1,30 / 1,35 / 1,40 / 1,45) : elle devait rester MONOTONE après le
+    // relèvement de `desk` à 1,30, sans franchir le plafond de 1,45 au-delà duquel
+    // les niveaux classiques incluent l'exercice déjà compté par les MET.
+    // Conséquence VOULUE : se tromper d'un cran coûte deux fois moins cher qu'avant.
     for (let i = 0; i < NEAT_ORDER.length - 1; i++) {
       const a = NEAT_ORDER[i], b = NEAT_ORDER[i + 1];
       const delta = planAt(b).profile.tdee_kcal - planAt(a).profile.tdee_kcal;
-      expect(delta, `${a} → ${b}`).toBeGreaterThanOrEqual(100);
+      expect(delta, `${a} → ${b}`).toBeGreaterThanOrEqual(60);
+      // …et l'écart reste BORNÉ : un cran ne doit jamais peser autant qu'un objectif
+      // entier (les deltas de GOAL_CONFIG vont de −300 à +400).
+      expect(delta, `${a} → ${b}`).toBeLessThan(150);
     }
   });
 
-  it('le plancher de sécurité n\'est CONTRAIGNANT qu\'au premier cran', () => {
-    // C'est LA raison d'être de l'ancrage vérifiable : monter d'un cran ne fait pas
-    // qu'ajouter des calories, ça retire le garde-fou. Le libellé du cran 1 ne doit
-    // donc jamais se lire comme un reproche qu'on cherche à fuir.
-    expect(planAt('desk').flags).toContain('FLOOR_APPLIED');
-    expect(planAt('light').flags).not.toContain('FLOOR_APPLIED');
-    // Et le déficit servi passe bien de « rogné par le plancher » à « intégral ».
+  it('le plancher ne tient plus lieu de cible, à AUCUN cran', () => {
+    // ⚠️ CE TEST AFFIRME MAINTENANT L'INVERSE DE CE QU'IL AFFIRMAIT, et c'est la
+    // raison d'être du relèvement de `desk`. Avant : `desk` était le seul cran où
+    // le plancher mordait, et le déficit y était rogné (−180 au lieu de −300).
+    // Mesuré ensuite : à 1,20 le déficit demandé n'était servi À AUCUNE masse maigre
+    // (de 30 à 80 kg) — le garde-fou tenait lieu de cible pour la majorité des
+    // comptes, et « sèche = −300 kcal/j » était une promesse jamais tenue.
     const deficit = (n: NeatLevel) => planAt(n).profile.target_kcal - planAt(n).profile.tdee_kcal;
-    expect(deficit('desk')).toBeGreaterThan(deficit('light'));
-    expect(deficit('light')).toBe(-300);
+    for (const n of NEAT_ORDER) {
+      expect(planAt(n).flags, n).not.toContain('FLOOR_APPLIED');
+      expect(deficit(n), n).toBe(-300);   // l'objectif demandé, servi en entier
+      // Le plancher n'a pas disparu : il reste SOUS la cible, prêt à mordre si le
+      // corps change. Ce n'est pas un garde-fou retiré, c'est un garde-fou qui
+      // cesse d'être la valeur par défaut.
+      expect(planAt(n).floor_kcal, n).toBeLessThan(planAt(n).profile.target_kcal);
+    }
   });
 
   it('le défaut servi est bien le cran le plus prudent', () => {

@@ -619,13 +619,27 @@ function EngineNoticeCard({ t, notice, onAdjust, onDismiss }: {
   t: ThemePalette; notice: EngineNotice; onAdjust: () => void; onDismiss: () => void;
 }) {
   const delta = notice.to - notice.from;
+  // ⚠️ Le texte est SPÉCIFIQUE À LA RÉVISION. Servir l'explication de la rev 2 à
+  // quelqu'un dont la cible a bougé pour une autre raison serait un mensonge, pas
+  // une approximation — et c'est le seul message que cette personne verra jamais
+  // sur le sujet. Une révision qui déplace les cibles doit ajouter son cas ici.
+  // ⚠️ Formulation NEUTRE quant à l'objectif. La première version disait « la sèche
+  // que tu avais demandée n'était pas servie en entier » — vrai pour un déficit,
+  // FAUX pour un maintien ou une prise de masse, à qui la carte est pourtant servie
+  // aussi (leur budget bouge tout autant). Vu à l'écran sur un profil « maintien ».
+  const explication = notice.rev >= 3
+    ? 'Kyroz sous-estimait la dépense d\'une journée plutôt assise : ton budget part maintenant d\'une estimation plus juste.'
+    : 'Kyroz a corrigé deux choses : tes séances étaient comptées en double avec ta dépense de repos, et le niveau d\'activité de tes journées était supposé au lieu d\'être demandé.';
+  const suite = notice.rev >= 3
+    ? 'Ce budget correspond maintenant à des journées plutôt assises. Si les tiennes sont plus actives, dis-le — il remontera encore.'
+    : 'Par défaut, Kyroz part de journées plutôt assises. Si les tiennes sont plus actives, dis-le — ton budget remontera.';
   return (
     <Card t={t}>
       <Text style={{ color: t.text, fontSize: 13, lineHeight: 19 }}>
-        Ton budget est passé de {notice.from} à {notice.to} kcal/jour ({delta > 0 ? '+' : ''}{delta}). Kyroz a corrigé deux choses : tes séances étaient comptées en double avec ta dépense de repos, et le niveau d'activité de tes journées était supposé au lieu d'être demandé.
+        Ton budget est passé de {notice.from} à {notice.to} kcal/jour ({delta > 0 ? '+' : ''}{delta}). {explication}
       </Text>
       <Text style={{ color: t.textSecondary, fontSize: 13, lineHeight: 19, marginTop: 8 }}>
-        Par défaut, Kyroz part de journées plutôt assises. Si les tiennes sont plus actives, dis-le — ton budget remontera.
+        {suite}
       </Text>
       <View style={{ flexDirection: 'row', gap: 10, marginTop: 14 }}>
         <TouchableOpacity onPress={onAdjust} activeOpacity={0.85} style={{ flex: 1, backgroundColor: t.accent, borderRadius: Radius.sm, paddingVertical: 11, alignItems: 'center' }}>

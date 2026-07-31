@@ -14,10 +14,22 @@ import { Goal } from '../types';
 const T = '2026-07-28';
 
 describe('le choix était fantôme — c\'est CE fait qui justifie la fusion', () => {
-  it('les deux objectifs servaient les mêmes calories, %MG déclaré', () => {
-    // 0 % d'écart mesuré sur 1764 profils à %MG déclaré. On en fige quelques-uns :
-    // si un jour ce test rougit, c'est que le plancher a changé — et alors la
-    // question de rouvrir un objectif « rapide » se repose légitimement.
+  it('les deux objectifs ne servent PLUS les mêmes calories (relèvement NEAT)', () => {
+    // ⚠️ CE TEST A CHANGÉ DE SENS LE 2026-07-31, et il l'avait lui-même prévu :
+    // « si un jour ce test rougit, c'est que le plancher a changé — et alors la
+    // question de rouvrir un objectif "rapide" se repose légitimement. »
+    // C'est arrivé. Le relèvement de `desk` à 1,30 décolle la cible du plancher,
+    // donc les deltas de GOAL_CONFIG (−300 vs −500) reprennent la parole.
+    //
+    // Écart mesuré aujourd'hui : 51 à 92 kcal/j selon le gabarit. Le plancher
+    // absorbe encore l'essentiel des 200 kcal d'écart nominal, mais plus tout.
+    //
+    // LA FUSION N'EST PAS REMISE EN CAUSE POUR AUTANT — elle ne tient plus au même
+    // argument, et c'est ce qu'il faut retenir : `normalizeGoal` (syncGuard) referme
+    // `cut_aggressive` sur `cut` À LA LECTURE, donc AUCUN compte vivant ne peut
+    // recevoir ce plan ; l'UI ne le propose plus ; et la vitesse se pilote par
+    // l'objectif DATÉ, seul mécanisme qui sache dire si le rythme est tenable.
+    // Rouvrir un « rapide » est une décision produit, consignée dans AGENTS.md.
     const cas = [
       { sex: 'male' as const, weight_kg: 85, height_cm: 178, age: 30, body_fat_pct: 20 },
       { sex: 'male' as const, weight_kg: 75, height_cm: 175, age: 25, body_fat_pct: 12 },
@@ -27,9 +39,18 @@ describe('le choix était fantôme — c\'est CE fait qui justifie la fusion', (
     for (const c of cas) {
       const lent = computePlan(makeProfile({ ...c, goal: 'cut', sports: [] }), T);
       const rapide = computePlan(makeProfile({ ...c, goal: 'cut_aggressive', sports: [] }), T);
-      expect(rapide.profile.target_kcal, `${c.sex} ${c.weight_kg}kg`).toBe(lent.profile.target_kcal);
-      // Et c'est bien le plancher qui l'explique, pas un hasard d'arrondi.
-      expect(lent.flags).toContain('FLOOR_APPLIED');
+      const ecart = lent.profile.target_kcal - rapide.profile.target_kcal;
+      // Un écart RÉEL, mais très inférieur aux 200 kcal nominaux : le plancher
+      // continue d'en absorber la plus grande part.
+      expect(ecart, `${c.sex} ${c.weight_kg}kg`).toBeGreaterThan(0);
+      expect(ecart, `${c.sex} ${c.weight_kg}kg`).toBeLessThan(200);
+      // « Sèche » n'est plus retenue par le plancher — c'est tout l'objet du
+      // relèvement — tandis que « rapide » l'est encore, ce qui borne les dégâts
+      // d'un objectif legacy qu'aucun compte vivant ne peut plus atteindre.
+      expect(lent.flags, `${c.sex} ${c.weight_kg}kg`).not.toContain('FLOOR_APPLIED');
+      expect(rapide.flags, `${c.sex} ${c.weight_kg}kg`).toContain('FLOOR_APPLIED');
+      // Le garde-fou qui compte VRAIMENT : `cut_aggressive` est inatteignable.
+      expect(normalizeGoal({ goal: 'cut_aggressive' as const })!.goal).toBe('cut');
     }
   });
 
@@ -94,12 +115,17 @@ describe('isTrainingDay — un profil sans séance n\'a pas de jour de séance',
   });
 
   it('il reste levé quand des séances SONT déclarées', () => {
+    // ⚠️ GABARIT CHANGÉ le 2026-07-31 : le H 70 kg d'origine reçoit désormais 222 g
+    // de glucides (contre 189 avant le relèvement NEAT), donc au-dessus du seuil de
+    // 210 — il ne pouvait plus exercer le drapeau, et le test serait devenu vert
+    // pour une mauvaise raison. Gabarit trouvé par balayage, pas au jugé.
+    // Au passage : la fréquence du drapeau en sèche baisse de 27,4 % à 21,1 %.
     const p = makeProfile({
-      sex: 'male', weight_kg: 70, height_cm: 175, age: 30, goal: 'cut',
+      sex: 'male', weight_kg: 60, height_cm: 160, age: 30, goal: 'cut', body_fat_pct: 30,
       sports: [{ type: 'marche_rapide', sessions_per_week: 3, minutes_per_session: 45 }],
     });
     const { profile, flags } = computePlan(p, T);
-    expect(profile.target_carbs_g).toBeLessThan(3 * 70);
+    expect(profile.target_carbs_g).toBeLessThan(3 * 60);
     expect(flags).toContain('CARBS_BELOW_TRAINING_FLOOR');
   });
 
@@ -109,21 +135,27 @@ describe('isTrainingDay — un profil sans séance n\'a pas de jour de séance',
     // dont le moteur de plan aura besoin le jour où il distinguera les jours de
     // repos (cf. restDaysForProfile). On vérifie les deux sens de la surcharge.
     // `recalcProfile` et non la valeur du fixture : `makeProfile` porte un
-    // `tdee_kcal` figé de 2914, qui n'a rien à voir avec ce gabarit de 70 kg.
-    const body = recalcProfile(makeProfile({ sex: 'male', weight_kg: 70, height_cm: 175, age: 30, sports: [] }), T);
+    // `tdee_kcal` figé de 2914, qui n'a rien à voir avec ce gabarit.
+    // ⚠️ Gabarit changé le 2026-07-31 (60 kg / 30 %MG au lieu de 70 kg) : après le
+    // relèvement NEAT, le H 70 kg reçoit 222 g de glucides pour un seuil à 210, donc
+    // la PRÉCONDITION du test (« la condition de grammes est remplie ») n'était plus
+    // vraie. Le test serait passé au vert sans rien vérifier du tout.
+    const CORPS = { sex: 'male' as const, weight_kg: 60, height_cm: 160, age: 30, body_fat_pct: 30 };
+    const SEUIL = 3 * CORPS.weight_kg;
+    const body = recalcProfile(makeProfile({ ...CORPS, sports: [] }), T);
 
     // Sans séance déclarée, mais l'appelant affirme que c'est un jour de séance :
     const force = calculateMacros(body.tdee_kcal, 'cut', body, { isTrainingDay: true });
-    expect(force.carbs_g).toBeLessThan(3 * 70);
+    expect(force.carbs_g).toBeLessThan(SEUIL);
     expect(force.flags).toContain('CARBS_BELOW_TRAINING_FLOOR');
 
     // Avec des séances déclarées, mais l'appelant affirme que c'est un jour off :
     const avecSport = recalcProfile(makeProfile({
-      sex: 'male', weight_kg: 70, height_cm: 175, age: 30,
+      ...CORPS,
       sports: [{ type: 'marche_rapide', sessions_per_week: 3, minutes_per_session: 45 }],
     }), T);
     const off = calculateMacros(avecSport.tdee_kcal, 'cut', avecSport, { isTrainingDay: false });
-    expect(off.carbs_g).toBeLessThan(3 * 70);
+    expect(off.carbs_g).toBeLessThan(SEUIL);
     expect(off.flags).not.toContain('CARBS_BELOW_TRAINING_FLOOR');
   });
 });

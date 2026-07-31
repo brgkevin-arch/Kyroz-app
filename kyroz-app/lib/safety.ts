@@ -243,20 +243,74 @@ export type LowEaEscalation = {
   eaPerKgFfm: number;
 };
 
-export function lowEaEscalation(b: BodyInput, weeksInLowEa: number): LowEaEscalation | null {
+/**
+ * `served` / `requested` / `maintenance` : la cible RÉELLEMENT servie cette semaine,
+ * celle qui était demandée avant plancher, et le TDEE. Facultatifs pour ne pas
+ * casser les appelants de test, mais `computePlan` les passe TOUJOURS.
+ *
+ * ⚠️ POURQUOI ILS SONT NÉCESSAIRES (défaut trouvé le 2026-07-31, en relevant le
+ * NEAT). Cette fonction annonçait `0,5 × masse maigre` dès que le budget était
+ * dépassé, sans regarder si le plancher escaladé PILOTE la cible. Tant que la cible
+ * était collée au plancher — ce qui était le cas de presque tout le monde à
+ * `desk` 1,20 — l'annonce était juste par accident. Avec un TDEE plus haut, la
+ * cible passe AU-DESSUS du plancher : le plancher monte, la cible ne bouge pas, et
+ * l'écran promettait +23 kcal/j par semaine à quelqu'un dont le budget était figé.
+ * Mesuré à la semaine 14 : 23 kcal d'écart entre annoncé et vécu.
+ *
+ * On renvoie donc la hausse EXACTE : ce que la cible servie vaudra la semaine
+ * prochaine, moins ce qu'elle vaut aujourd'hui. Zéro → `null`, il n'y a rien à
+ * expliquer tant que rien ne bouge.
+ */
+export function lowEaEscalation(
+  b: BodyInput,
+  weeksInLowEa: number,
+  served?: {
+    requestedKcal: number;
+    sportKcalPerDay: number;
+    maintenanceKcal: number;
+    bmr: number;
+    /** Les planchers du MOTEUR (plafond de déficit, insuffisance pondérale) : ils ne
+     *  varient pas d'une semaine à l'autre, mais s'ils dominent, la cible ne bouge
+     *  pas non plus — les omettre annoncerait une hausse qui n'aura pas lieu. */
+    extraFloorKcal: number;
+  },
+): LowEaEscalation | null {
   if (!isFemaleAtRisk(b)) return null;
   const weeksOverBudget = Math.max(0, weeksInLowEa - LOW_EA_BUDGET_WEEKS);
   if (weeksOverBudget === 0) return null;
   const eaPerKgFfm = effectiveEaPerKgFfm(b, weeksInLowEa);
-  return {
-    weeksOverBudget,
-    // Calculé sur SA masse maigre, jamais une constante d'écran : le pas est de
-    // 0,5 kcal/kg, donc 23 kcal/j pour 46 kg de masse maigre et 33 pour 66 kg.
-    // Annoncer un chiffre rond identique pour tout le monde serait un mensonge.
-    weeklyKcal: Math.round(LOW_EA_STEP_PER_WEEK * fatFreeMassKg(b)),
-    weeksToPlateau: Math.ceil((EA_OPTIMAL - eaPerKgFfm) / LOW_EA_STEP_PER_WEEK),
-    eaPerKgFfm,
-  };
+  const weeksToPlateau = Math.ceil((EA_OPTIMAL - eaPerKgFfm) / LOW_EA_STEP_PER_WEEK);
+
+  // Le pas THÉORIQUE, calculé sur SA masse maigre et jamais sur une constante
+  // d'écran : 0,5 kcal/kg, donc 23 kcal/j pour 46 kg de masse maigre et 33 pour 66.
+  const pasTheorique = Math.round(LOW_EA_STEP_PER_WEEK * fatFreeMassKg(b));
+  if (!served) {   // appelants historiques (tests unitaires) : pas théorique
+    return { weeksOverBudget, weeklyKcal: pasTheorique, weeksToPlateau, eaPerKgFfm };
+  }
+
+  // La hausse VÉCUE : la différence entre les deux cibles servies, celle de cette
+  // semaine et celle de la suivante. On REJOUE la décision du moteur au lieu de la
+  // réimplémenter — `safetyFloorBreakdown` est la même fonction que celle qui a
+  // produit le plancher servi, donc l'annonce ne peut pas dériver du calcul.
+  const plancher = (semaines: number) => Math.max(
+    safetyFloorBreakdown(b, served.bmr, served.sportKcalPerDay, semaines, served.maintenanceKcal).floorKcal,
+    served.extraFloorKcal,
+  );
+  const cible = (semaines: number) => Math.max(served.requestedKcal, plancher(semaines));
+
+  // Tant que le plancher passe SOUS la demande, il monte sans emmener la cible :
+  // il n'y a rien à expliquer, et une carte qui parlerait serait le mensonge qu'on
+  // vient de corriger. Elle réapparaîtra d'elle-même quand le plancher rattrapera.
+  if (cible(weeksInLowEa) <= served.requestedKcal) return null;
+
+  // Hausse REGARDÉE EN ARRIÈRE : celle qui a produit la cible d'aujourd'hui, donc
+  // celle que la personne a effectivement vue bouger. C'est le nombre qu'elle peut
+  // vérifier, pas une projection. En régime établi il vaut exactement le pas
+  // théorique ; la semaine où le plancher franchit la demande, il vaut moins — et
+  // c'est bien ce qui s'est passé ce jour-là.
+  const weeklyKcal = Math.max(0, cible(weeksInLowEa) - cible(weeksInLowEa - 1));
+
+  return { weeksOverBudget, weeklyKcal, weeksToPlateau, eaPerKgFfm };
 }
 
 /**

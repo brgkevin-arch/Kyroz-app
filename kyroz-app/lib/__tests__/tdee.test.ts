@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   calculateBMR, calculateTDEE, calculateMacros, macrosPercent, recalcProfile,
   leanBodyMass, validateProfile, recommendedProteinPerKg, kcalFromMacros,
-  MIN_KCAL, MIN_AGE, DEFAULT_CARB_RATIO, NEAT_PAL, neatPal, proteinTarget,
+  MIN_KCAL, MIN_AGE, DEFAULT_CARB_RATIO, NEAT_PAL, neatPal, proteinTarget, DEFAULT_NEAT_LEVEL,
   computePlan,
 } from '../tdee';
 import { fatFreeMassKg } from '../safety';
@@ -44,18 +44,26 @@ describe('TDEE', () => {
   });
 
   it('le niveau NEAT pilote la base, pas le nombre de séances', () => {
-    expect(calculateTDEE({ ...H, neat_level: 'desk' })).toBe(Math.round(1880 * 1.20));
-    expect(calculateTDEE({ ...H, neat_level: 'light' })).toBe(Math.round(1880 * 1.28));
-    expect(calculateTDEE({ ...H, neat_level: 'active' })).toBe(Math.round(1880 * 1.36));
+    // Table relevée le 2026-07-31 (cf. NEAT_PAL) : 1,30 / 1,35 / 1,40 / 1,45.
+    expect(calculateTDEE({ ...H, neat_level: 'desk' })).toBe(Math.round(1880 * 1.30));
+    expect(calculateTDEE({ ...H, neat_level: 'light' })).toBe(Math.round(1880 * 1.35));
+    expect(calculateTDEE({ ...H, neat_level: 'active' })).toBe(Math.round(1880 * 1.40));
     expect(calculateTDEE({ ...H, neat_level: 'physical' })).toBe(Math.round(1880 * 1.45));
   });
 
-  it('NEAT absent ou inconnu → défaut « bureau » (1,20), jamais un surplus inventé', () => {
-    expect(neatPal(undefined)).toBe(1.20);
-    expect(neatPal(null)).toBe(1.20);
-    expect(neatPal('zumba' as any)).toBe(1.20);
-    // Un défaut plus haut (1,30/1,35) effacerait 45 à 87 % du déficit d'un sédentaire.
-    expect(NEAT_PAL.desk).toBeLessThan(1.3);
+  it('NEAT absent ou inconnu → défaut « bureau », jamais un surplus inventé', () => {
+    expect(neatPal(undefined)).toBe(NEAT_PAL.desk);
+    expect(neatPal(null)).toBe(NEAT_PAL.desk);
+    expect(neatPal('zumba' as any)).toBe(NEAT_PAL.desk);
+    // ⚠️ L'assertion `NEAT_PAL.desk < 1.3` est TOMBÉE le 2026-07-31 : c'est
+    // précisément la valeur qui a été relevée. Ce qu'elle protégeait vraiment —
+    // « le défaut ne doit pas inventer de dépense » — est reformulé en invariant
+    // de STRUCTURE, qui survivra au prochain réglage de la table :
+    //  · le défaut est le cran le PLUS BAS (aucune dépense supposée en trop) ;
+    //  · la table reste sous 1,50, seuil au-delà duquel les niveaux classiques
+    //    incluent l'exercice, déjà compté à part par les MET nets.
+    expect(NEAT_PAL[DEFAULT_NEAT_LEVEL]).toBe(Math.min(...Object.values(NEAT_PAL)));
+    expect(Math.max(...Object.values(NEAT_PAL))).toBeLessThan(1.5);
   });
 
   it('P1.1 — plus de marche d\'escalier : déclarer 15 min de marche ne fait pas bondir le TDEE', () => {

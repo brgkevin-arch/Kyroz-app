@@ -187,14 +187,31 @@ OUTPUT         → Plan + liste de courses + recettes
 `TDEE = BMR × NEAT + dépense sportive/jour`, **pour tous les profils sans exception**.
 
 - **BMR** : Katch-McArdle si le %MG est connu, sinon Mifflin-St Jeor.
-- **NEAT** (`neat_level`) : la vie quotidienne **hors sport** — `desk` 1,20 / `light` 1,28 /
-  `active` 1,36 / `physical` 1,45. La table s'arrête à 1,45 : au-delà, les niveaux
+- **NEAT** (`neat_level`) : la vie quotidienne **hors sport** — `desk` 1,30 / `light` 1,35 /
+  `active` 1,40 / `physical` 1,45. La table s'arrête à 1,45 : au-delà, les niveaux
   classiques (1,50, 1,65) sont « exercice inclus » et recouvriraient les MET.
-  Le défaut est **`desk` = 1,20** et ce n'est pas un réglage cosmétique — la question
+  Le défaut est **`desk` = 1,30** et ce n'est pas un réglage cosmétique — la question
   vivant dans le profil et non à l'onboarding, ce défaut EST la valeur servie à la
-  plupart des gens. Sur-estimer le NEAT fait manger à sa maintenance en croyant
-  sécher (échec silencieux) ; sous-estimer fait perdre un peu plus vite, ce qui se
-  voit sur la balance et reste borné par le plancher de sécurité.
+  plupart des gens.
+  ⚠️ **Relevé de 1,20 à 1,30 le 2026-07-31 (décision fondateur), `ENGINE_REV` 2 → 3.**
+  Le motif d'origine du 1,20 — sur-estimer le NEAT fait manger à sa maintenance en
+  croyant sécher, échec silencieux — reste vrai, mais il répondait à une autre
+  question. **Mesuré : à 1,20, le déficit demandé n'était servi à AUCUNE masse
+  maigre** (de 30 à 80 kg) ; le plancher d'énergie disponible le rattrapait toujours.
+  Point de bascule `FFM ≤ 35,3 kg` : au-delà c'est le plancher EA, en deçà `MIN_KCAL`.
+  « Sèche = −300 kcal/j » était donc une promesse tenue pour personne — c'est le
+  chiffre qu'il fallait corriger, pas l'habillage. Sur 27 648 profils : cible servie
+  médiane **+77 kcal/j** (max +239, aucune baisse), plancher contraignant **16 % → 9 %**,
+  déficit plein réellement servi en sèche **59 % → 81 %**.
+  **Risque assumé** : sur un objectif de MAINTIEN la hausse est répercutée en entier
+  (médiane +84 kcal/j) — si l'estimation est trop haute, ces personnes mangent
+  au-dessus de leur dépense, et c'est silencieux. Contrepoids : 1,20 est sous le
+  plancher physiologique d'un adulte libre de ses mouvements (la FAO ne descend pas
+  sous 1,40 pour un mode de vie sédentaire), et Kyroz comptant le sport à part, il
+  n'y a aucun risque de double-comptage à 1,30.
+  La table est **resserrée** (pas de 0,05 au lieu de 0,08) pour rester monotone sous
+  le plafond de 1,45 : un cran vaut désormais ~90 kcal/j au lieu de ~140, donc se
+  tromper d'un cran coûte deux fois moins cher.
 - **Sport** : méthode MET **NETTE** — `(MET − 1) × 3,5 × poids / 200 × minutes`. Le
   `− 1` retire le métabolisme de repos déjà compté par `BMR × NEAT` pendant l'heure
   de séance. C'est aussi la définition de l'EEE utilisée par le calcul d'énergie

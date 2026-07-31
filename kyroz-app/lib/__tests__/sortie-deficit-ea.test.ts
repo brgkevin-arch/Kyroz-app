@@ -109,7 +109,16 @@ describe('qui reçoit l\'explication', () => {
 });
 
 describe('cohérence avec le producteur unique', () => {
-  it('computePlan n\'expose l\'explication QUE quand le drapeau est levé', () => {
+  it('une explication implique toujours le drapeau — mais plus l\'inverse', () => {
+    // ⚠️ ÉQUIVALENCE DEVENUE IMPLICATION LE 2026-07-31, et ce n'est pas un
+    // relâchement : les deux signaux ont cessé de dire la même chose.
+    //  · `LOW_EA_BUDGET_EXCEEDED` est un fait sur l'EXPOSITION : plus de 12 semaines
+    //    cumulées en zone basse. Il reste levé quoi qu'il arrive au plan.
+    //  · l'escalade est un fait sur le PLAN : « ta cible monte ». Depuis le
+    //    relèvement NEAT, la cible peut passer au-dessus du plancher escaladé — le
+    //    plancher monte alors sans l'emmener, et il n'y a rien à expliquer.
+    // Annoncer une remontée qui n'a pas lieu était précisément le mensonge corrigé
+    // ce jour-là (mesuré : 23 kcal/j annoncés, 0 vécu, à la semaine 14).
     const suivi: { flags: string[]; escalade: unknown }[] = [];
     let p: UserProfile = ELLE;
     for (let i = 0; i < 24; i++) {
@@ -118,9 +127,13 @@ describe('cohérence avec le producteur unique', () => {
       p = r.profile;
     }
     for (const [i, s] of suivi.entries()) {
-      expect(Boolean(s.escalade), `semaine ${i + 1}`)
-        .toBe(s.flags.includes('LOW_EA_BUDGET_EXCEEDED'));
+      if (s.escalade) {
+        expect(s.flags, `semaine ${i + 1}`).toContain('LOW_EA_BUDGET_EXCEEDED');
+      }
     }
+    // Le sens qui compte est bien exercé : l'explication FINIT par arriver, elle
+    // n'a pas simplement disparu du parcours.
+    expect(suivi.some((s) => s.escalade), 'l\'explication doit se déclencher').toBe(true);
   });
 
   it('le décompte annoncé est celui qui a servi à calculer le plancher', () => {
