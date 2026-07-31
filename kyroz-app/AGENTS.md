@@ -316,6 +316,22 @@ qu'ils étaient périmés.
   👁 **Invisible pour l'utilisateur** : `MacroBar` n'affiche aucune cible lipides, et
   `fat_below_target` est classé `'selection'` (« ne pas alarmer »). Personne ne le
   voit — ce qui est justement pourquoi ça a tenu jusqu'ici.
+  🔬 **A9 RÉSISTE au relèvement du NEAT (A7).** Question posée immédiatement : puisque
+  monter `desk` de 1,20 à 1,30 relève le TDEE, la cible lipides ne décollerait-elle pas
+  du plancher toute seule ? **Non.** Mesuré sur `recalcProfile`, H 80 kg, les 4 crans de
+  NEAT × 0/4/6 séances :
+
+  | objectif | NEAT `desk` (TDEE 2110) | `light` (2250) | `active` (2391) | `physical` (2549) |
+  |---|---|---|---|---|
+  | **sèche** | +0 g | +0 g | +0 g | **+0 g** |
+  | maintien | +0 g | +0 g | +2 g | +7 g |
+  | prise de masse | +6 g | +10 g | +14 g | +18 g |
+
+  *(marge = cible lipides − plancher de 64 g)*
+
+  **En sèche, la cible est collée au plancher à TOUS les crans**, même `physical`. Le
+  NEAT n'y change rien : la part calorique lipidique reste sous 0,8 g/kg tant que la
+  cible est un déficit. A9 est donc indépendant de A7 et ne se résoudra pas tout seul.
   **Trois sorties possibles, non tranchées** : (a) viser un peu au-dessus du plancher
   (marge de ~10 %, comme en prise de masse) pour que l'approximation retombe dedans ;
   (b) assumer et **corriger la doc** — §6 annonce un hard block qui n'en est pas un
