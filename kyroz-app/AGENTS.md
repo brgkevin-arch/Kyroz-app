@@ -143,6 +143,30 @@ qu'ils étaient périmés.
   compteur. La doc de `lowEaWeeksBefore`, qui laissait croire l'inverse, est
   corrigée sur place. 5 tests.
 
+- ~~**A5 · Le %MG saisi peut effacer un déficit en silence**~~ ✅ **REPÈRE POSÉ le
+  2026-07-31.** Trouvé par le fondateur : « femme 80 kg 20 %MG » et « homme 80 kg
+  20 %MG » donnent **exactement le même plan**, recette par recette. Ce n'est pas un
+  bug — dès que le %MG est déclaré, Katch-McArdle ne lit QUE la masse maigre, et le
+  sexe n'entre pas dans la formule (64 kg de masse maigre des deux côtés → BMR 1752,
+  TDEE 2294, cible 2112). Sans %MG déclaré, Mifflin reprend la main et l'écart est
+  franc : 1731 (F) contre 1990 (H).
+  ⚠️ **Ce que ça révèle, et qui EST un risque** : le %MG est le second réglage le plus
+  lourd après le NEAT, et presque personne ne le connaît. Pour cette même femme,
+  saisir 20 % au lieu des 36 % estimés vaut **+381 kcal/jour sur la cible** — le
+  déficit disparaît en entier, en silence, découvert des semaines plus tard sur la
+  balance. Et l'erreur n'est pas symétrique : sous-estimer son %MG gonfle la dépense
+  (échec muet) ; la sur-estimer creuse le déficit, ce qui se voit et reste tenu par le
+  plancher.
+  **Correctif = un repère, pas un blocage** (ces valeurs existent) : sous la silhouette
+  la plus maigre de la charte (18 % F / 10 % H), la saisie manuelle affiche ce que le
+  chiffre coûte, calculé sur SON corps. Vérifié à l'écran : *« 15 %, c'est un niveau
+  d'athlète de compétition · Ce chiffre relève ta dépense estimée de 375 kcal/jour… »*
+  Les seuils sont ceux de la charte — un tap d'illustration ne peut jamais le lever —
+  et un test le verrouille contre une évolution de `BodyFatPicker`. 4 tests.
+  ℹ️ Le sexe n'a pas disparu pour autant : il agit **dans le temps**. Même profil suivi
+  30 semaines, déficit servi : femme `S1:182 S16:98 S20:0` (77,4 kg) · homme
+  `S1:182 S16:191 S20:193` (74,8 kg). Seule elle subit l'escalade RED-S.
+
 ### 🎯 B — Les deux briques Kyroz+ qui restent
 
 La valeur premium est **construite et déployée** (objectif daté). Plus aucune décision

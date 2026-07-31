@@ -5,8 +5,10 @@ import {
   fatFreeMassKg, lowEaWeeksForFloor, lowEaWeeksInWindow, markLowEaWeek, readLowEaRegistry,
   resolvedBodyFatPct, safetyFloorKcal, settleLowEaExposure, weekStartStamp,
   countsAsLowEaWeek, EA_COUNT_TOLERANCE, LOW_EA_STEP_PER_WEEK,
+  ATYPICAL_BF_BELOW, isAtypicalBodyFat,
 } from '../safety';
-import { calculateBMR, calculateMacros, computePlan, macrosPercent, proteinTarget, recalcProfile, PROTEIN_MAX_PER_KG_FFM } from '../tdee';
+import { readFileSync } from 'node:fs';
+import { calculateBMR, calculateMacros, computePlan, macrosPercent, proteinTarget, recalcProfile, PROTEIN_MAX_PER_KG_FFM, bodyFatTdeeImpact } from '../tdee';
 import { datedGoalStatus, maxWeeklyLossPct, MAX_DEFICIT_TDEE_RATIO, KCAL_PER_KG_FAT, KCAL_PER_KG_GAIN } from '../datedGoal';
 import { exerciseKcalPerDay } from '../sport';
 import { reconcileCloudLowEaWeeks } from '../syncGuard';
@@ -768,5 +770,53 @@ describe('A4 — le décompte de zone basse ne dépend plus d\'un arrondi', () =
   it('sans déficit, rien ne compte, quelle que soit l\'énergie disponible', () => {
     const cible = cibleA(31);
     expect(countsAsLowEaWeek(elle, cible, cible, sport)).toBe(false); // à sa maintenance
+  });
+});
+
+describe('repère de plausibilité du %MG saisi (2026-07-31)', () => {
+  // Katch-McArdle ne lit QUE la masse maigre : un %MG sous-estimé gonfle la dépense
+  // et efface le déficit EN SILENCE. Mesuré sur F 80 kg / 1 m 70 / 35 ans : 20 % au
+  // lieu des 36 % estimés → cible 2112 au lieu de 1731, soit +381 kcal/jour.
+  it('les seuils sont ceux de la silhouette la plus maigre du sélecteur', () => {
+    // VERROU : si la charte de BodyFatPicker descend plus bas, le repère se
+    // déclencherait sur un simple tap d'illustration. Les deux doivent bouger ensemble.
+    const src = readFileSync(new URL('../../components/BodyFatPicker.tsx', import.meta.url), 'utf8');
+    const bloc = (sexe: string) => {
+      const i = src.indexOf(`${sexe}: [`, src.indexOf('const LEVELS'));
+      return src.slice(i, src.indexOf('],', i));
+    };
+    const plusMaigre = (sexe: string) =>
+      Math.min(...[...bloc(sexe).matchAll(/pct:\s*(\d+)/g)].map((m) => Number(m[1])));
+    expect(plusMaigre('female')).toBe(ATYPICAL_BF_BELOW.female);
+    expect(plusMaigre('male')).toBe(ATYPICAL_BF_BELOW.male);
+  });
+
+  it('ne se lève PAS sur les valeurs des silhouettes (sinon il crierait au loup)', () => {
+    expect(isAtypicalBodyFat('female', 18)).toBe(false);
+    expect(isAtypicalBodyFat('male', 10)).toBe(false);
+    expect(isAtypicalBodyFat('female', 33)).toBe(false);
+  });
+
+  it('se lève sous la charte, et seulement là', () => {
+    expect(isAtypicalBodyFat('female', 15)).toBe(true);
+    expect(isAtypicalBodyFat('male', 8)).toBe(true);
+    // 15 % est banal chez l'homme, atypique chez la femme : le seuil est bien sexué.
+    expect(isAtypicalBodyFat('male', 15)).toBe(false);
+    expect(isAtypicalBodyFat('female', undefined)).toBe(false);
+    expect(isAtypicalBodyFat('female', NaN)).toBe(false);
+  });
+
+  it('le chiffre annoncé est l\'écart RÉEL de dépense, et il est prudent', () => {
+    const corps = { sex: 'female' as const, age: 35, weight_kg: 80, height_cm: 170, neat_level: 'desk' as const };
+    const impact = bodyFatTdeeImpact(corps, 20);
+    // Positif : sous-estimer son %MG fait monter la dépense estimée.
+    expect(impact).toBeGreaterThan(200);
+    // …et il sous-annonce l'effet sur la CIBLE (le plancher suit la masse maigre) :
+    // c'est voulu, on ne gonfle pas le chiffre pour impressionner.
+    const cible = (bf?: number) => recalcProfile(makeProfile({
+      ...corps, body_fat_pct: bf, goal: 'cut', macro_mode: 'auto',
+      sports: [{ type: 'musculation', sessions_per_week: 4, minutes_per_session: 60 }],
+    }), TODAY).target_kcal;
+    expect(impact).toBeLessThan(cible(20) - cible(undefined));
   });
 });

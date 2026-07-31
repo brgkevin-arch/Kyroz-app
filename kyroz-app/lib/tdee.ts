@@ -535,6 +535,25 @@ export function macrosPercent(
   return { target_kcal, protein_g, carbs_g, fat_g, floor_kcal, flags };
 }
 
+/**
+ * Ce que le %MG SAISI change sur la dépense estimée, vs l'estimation du moteur
+ * (Deurenberg). Positif = la saisie fait remonter la dépense — donc rogner le déficit.
+ *
+ * Sert au repère affiché sous la saisie manuelle (cf. `safety.isAtypicalBodyFat`) :
+ * un chiffre concret plutôt qu'un « es-tu sûr ? » que personne ne lit.
+ *
+ * On mesure sur la MAINTENANCE et non sur la cible servie, pour une raison
+ * pratique : à l'étape 3 de l'onboarding, ni l'objectif ni les séances ne sont
+ * encore connus — la cible n'existe pas. L'écart réel sur la cible est du même
+ * ordre, souvent plus grand (le plancher de sécurité suit la masse maigre), donc
+ * l'annonce reste PRUDENTE. Ne pas la présenter comme l'écart de cible.
+ */
+export function bodyFatTdeeImpact(body: TdeeBody, declaredPct: number): number {
+  const avec = calculateTDEE({ ...body, body_fat_pct: declaredPct });
+  const sans = calculateTDEE({ ...body, body_fat_pct: undefined });
+  return Math.round(avec - sans);
+}
+
 // ── Projecteur de trajectoire (alimente la date de l'objectif daté) ──────────
 
 /**
