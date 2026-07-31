@@ -372,10 +372,23 @@ produit en suspens — il ne reste qu'à coder.
 
 ### 🧹 E — Dette technique
 
-- **E1 · 🤖 Trancher le sort de `lib/generatePlan.ts`.** Dormant, retombe toujours sur le
-  moteur local, mais embarque le SDK Anthropic dans le bundle. **Reco : le supprimer**
-  (~120 lignes mortes + piège de sécurité — une clé posée là serait inlinée **en clair**
-  dans le bundle public). Si l'IA revient : Edge Function Supabase, jamais côté client.
+- ~~**E1 · Trancher le sort de `lib/generatePlan.ts`**~~ ✅ **SUPPRIMÉ le 2026-07-31 —
+  et il ne s'agissait pas de code mort inoffensif.** La reco disait « ~120 lignes
+  mortes + piège de sécurité » ; les deux moitiés ont été **vérifiées sur le bundle
+  RÉELLEMENT DÉPLOYÉ** avant de couper, pas sur le code source :
+  `curl` sur `entry-….js` (3,3 Mo servis à chaque visiteur) → **35 occurrences de
+  `anthropic`**, la chaîne `sk-ant-` et le prompt système en clair. Le chemin n'a
+  jamais tourné (la clé n'a jamais été posée), mais le SDK, lui, était bien livré.
+  **Mesuré, export web avant/après** : `3 500 427` → `3 271 142` octets, soit
+  **−224 Ko (−6,6 %)**, zéro trace résiduelle. 768 tests verts, `tsc` propre.
+  ⚠️ **La pause de 600 ms a été CONSERVÉE**, déplacée dans `plan.tsx`. Elle vivait
+  dans `generateMealPlan` sous l'étiquette « UX : transition fluide » et n'avait rien
+  d'une attente réseau : `buildLocalPlan` génère un plan 7 jours en **~8 ms** (mesuré,
+  médiane sur 30 générations), donc elle représente 98 % du temps perçu. La retirer
+  est une décision d'UX — pas du nettoyage — et n'a donc pas été prise ici.
+  ⚠️ `@anthropic-ai/sdk` est retiré de `package.json` **et** du `package-lock.json`,
+  mais PAS de `node_modules` (partagé avec une session parallèle) : un `npm install`
+  local le fera disparaître. La CI fait `npm ci` → elle ne l'installe déjà plus.
 - ~~**E2 · Journal des migrations appliquées**~~ ✅ **CRÉÉ le 2026-07-31** :
   `supabase/JOURNAL-MIGRATIONS.md`. Il ne liste pas des intentions — il consigne un
   ÉTAT VÉRIFIÉ et la commande d'une ligne qui permet de le re-vérifier sans dashboard
@@ -388,8 +401,26 @@ produit en suspens — il ne reste qu'à coder.
   rate-limit, brancher le CAPTCHA Turnstile (déjà provisionné), ou couper le provider.
   ⚠️ Les parcours Playwright en dépendent, et le rate-limit se rencontre pour de vrai
   (429 `over_request_rate_limit` observé le 2026-07-30).
-- **E4 · 🤖 Nettoyages.** Supprimer `kcalMargin()` (code mort) · déplacer les clés Supabase
-  du workflow vers les **secrets GitHub** + créer un `.env.example`.
+- ~~**E4 · Nettoyages**~~ ✅ **TRAITÉ le 2026-07-31 — mais une des trois demandes a été
+  REFUSÉE, mesure à l'appui.**
+  - ✅ `kcalMargin()` supprimée, ainsi que `DAILY_KCAL_MARGIN_PCT` qui n'existait que
+    pour elle (rien d'autre ne la lisait) et les 2 tests qui la couvraient.
+  - ✅ `.env.example` créé — il liste les **4** variables `EXPO_PUBLIC_*` réellement lues
+    par le code et dit, pour chacune, si elle peut être publique. Le `.gitignore` avait
+    déjà la ligne `!.env.example` en attente.
+  - 🚫 **Clés Supabase → secrets GitHub : NON FAIT, volontairement.** La demande partait
+    du principe qu'une clé dans `deploy.yml` est une clé exposée. **Elle l'est déjà, et
+    le restera** : `EXPO_PUBLIC_SUPABASE_ANON_KEY` est retrouvée **en clair dans le
+    bundle déployé** (`grep sb_publishable_…` sur `entry-….js` → 1 occurrence), parce
+    qu'Expo inline les `EXPO_PUBLIC_*` à la compilation et que le navigateur DOIT
+    l'avoir pour parler à Supabase. C'est la RLS qui protège les données, pas le secret
+    de cette clé — d'où son préfixe `sb_publishable_`.
+    Le déplacer n'aurait donc réduit **aucune** surface d'attaque, et aurait ajouté un
+    **échec silencieux** : secret absent ou mal nommé → build vert, bundle déployé avec
+    `createClient('', '')`, connexion morte en prod sans un message d'erreur.
+    **Ne pas relancer ce chantier sans un argument nouveau.** Ce qui reste vrai et est
+    écrit dans `.env.example` : une clé qui doit VRAIMENT rester secrète ne passe pas
+    par `EXPO_PUBLIC_*` du tout, elle vit côté serveur.
   ✅ *Le recomptage Ciqual réclamé ici est **FAIT** (2026-07-30)* : les chiffres qui se
   contredisaient (« 86/113 », « 99/113 », « 81/102 ») sont tous périmés. Mesure autoritaire,
   via le module lui-même : **123 ingrédients, 107 sourcés Ciqual, 16 saisis à la main**.
@@ -473,9 +504,9 @@ parallèle, recréer des worktrees — mais les nettoyer en fin de chantier, pas
 
 ## Décisions verrouillées (cf. CLAUDE.md)
 - Freemium large : core loop 100 % gratuit, sans clé API.
-- Génération **LOCALE** (`lib/planEngine.ts`) principale ; API Claude (`lib/generatePlan.ts`) seulement si `EXPO_PUBLIC_ANTHROPIC_API_KEY`, sinon fallback local auto.
+- Génération **LOCALE** (`lib/planEngine.ts`) — **seul chemin depuis le 2026-07-31**. Le chemin IA (`lib/generatePlan.ts`) est supprimé, cf. E1.
 - Supabase = auth + sync best-effort (offline-first, RLS stricte). Plan non synchronisé (déterministe) ; photos LOCAL-ONLY (RGPD).
-- ⚠️ **Sécurité clé Anthropic** : NE JAMAIS définir `EXPO_PUBLIC_ANTHROPIC_API_KEY` avec une vraie clé pour un build web public (inlinée en clair dans le bundle GitHub Pages). Si l'IA est réactivée → Edge Function Supabase (clé serveur), pas côté client.
+- ⚠️ **Règle qui SURVIT à la suppression du chemin IA** : aucune clé de service ne passe par une variable `EXPO_PUBLIC_*`. Expo les remplace par leur valeur À LA COMPILATION → elles sont lisibles dans le bundle public. Si l'IA revient → Edge Function Supabase (clé serveur), pas côté client. Gabarit et liste des variables : `.env.example`.
 
 ## Garde-fous PARTOUT (CLAUDE.md §6)
 Plancher = énergie disponible (30 kcal/kg de masse maigre + sport, **plafonné au TDEE**), filet absolu 1500 ♂ / 1200 ♀ ; déficit ≤ 25 % du TDEE **sur tous les chemins** ; plancher lipidique 0,8 g/kg de masse maigre ; **pas < 18 ans** (`lib/safety.ts::MIN_AGE`) ; déficit annulé sous IMC 18,5 ; disclaimer affiché ; fallback plan (jamais d'erreur vide).

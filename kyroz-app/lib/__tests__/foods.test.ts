@@ -1,7 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
   FOODS, findFood, searchFoods, macrosForQuantity, macrosFromIngredients, recipeMacrosPerPortion,
-  kcalMargin, DAILY_KCAL_MARGIN_PCT,
 } from '../foods';
 import { applyCuration, CurationConfig } from '../foods.curation';
 import { Food, Ingredient } from '../types';
@@ -59,16 +58,6 @@ describe('calcul des macros', () => {
     const whole = macrosFromIngredients(ings)!.macros;
     expect(recipeMacrosPerPortion(ings, 4)!.macros.kcal).toBe(Math.round(whole.kcal / 4));
     expect(recipeMacrosPerPortion(ings, 0)!.macros.kcal).toBe(whole.kcal); // 0 → traité comme 1
-  });
-});
-
-describe('kcalMargin (marge honnête)', () => {
-  it('applique le pourcentage et arrondit', () => {
-    expect(kcalMargin(2000)).toBe(Math.round(2000 * DAILY_KCAL_MARGIN_PCT / 100));
-  });
-  it('jamais négatif', () => {
-    expect(kcalMargin(0)).toBe(0);
-    expect(kcalMargin(-500)).toBe(0);
   });
 });
 
