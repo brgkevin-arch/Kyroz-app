@@ -278,6 +278,50 @@ qu'ils étaient périmés.
   vide, one-shot et idempotent ensuite. Soit un écran l'utilise, soit on retire le
   champ — c'est une ligne.
 
+- **A9 · 🧑 DÉCISION EN ATTENTE — le plancher lipidique est tenu sur la CIBLE, pas sur
+  ce qui est SERVI.** *Trouvé le 2026-07-31 en mesurant D5, qui cherchait autre chose.
+  RIEN N'A ÉTÉ CHANGÉ : corriger déplace les macros de tous les comptes en sèche et en
+  maintien → `ENGINE_REV` + avertissement one-shot, et c'est un garde-fou de
+  `CLAUDE.md` §6, donc ta décision.*
+
+  `CLAUDE.md` §6 range « lipides sous le seuil de carence » parmi les **hard blocks**,
+  plancher 0,8 g/kg de poids de corps. `fatTargetG` l'applique bien — **à la cible**.
+  Le plan, lui, approxime cette cible avec de vraies recettes, et retombe dessous.
+
+  **Mesuré** (8 tirages × 7 jours par profil, sur `buildLocalPlan`) :
+
+  | profil | cible L | plancher | marge | servi mini | jours sous le plancher |
+  |---|---|---|---|---|---|
+  | prise de masse H 80 | 74 g | 64 g | **+10 g** | 66 g | **0/56** |
+  | prise de masse F 60 | 58 g | 48 g | **+10 g** | 52 g | **0/56** |
+  | maintien H 80 | 64 g | 64 g | **0** | 56 g | **56/56** |
+  | maintien F 60 | 48 g | 48 g | **0** | 42 g | **54/56** |
+  | sèche H 90 · 4 repas | 72 g | 72 g | **0** | 63 g | **56/56** |
+  | sèche H 100 · 2 repas | 80 g | 80 g | **0** | **50 g** | **56/56** |
+
+  **La cause est mécanique, pas mystérieuse : en sèche ET en maintien, la cible EST
+  le plancher, exactement.** Marge zéro ⇒ la moindre approximation vers le bas passe
+  dessous. Dès qu'il y a de la marge (prise de masse, +10 g), c'est 0/56. Ce n'est
+  donc pas « le catalogue est trop maigre » — c'est qu'on a demandé au moteur de viser
+  pile un minimum.
+  ⚠️ C'est une **conséquence directe** du changement que tu as tranché le 2026-07-31
+  (base du plancher : masse maigre → poids de corps). `CLAUDE.md` §6 note déjà « le
+  plancher devient contraignant sur tous les profils testés — il ne borne plus la part
+  calorique, il la FIXE ». Ce qui n'avait pas été vu, c'est qu'à marge nulle le plan
+  servi passe dessous **quasi tous les jours**.
+  📉 **Ampleur à garder en tête avant de s'alarmer** : pour la plupart des profils
+  c'est **−6 à −10 g** (0,69–0,71 g/kg servi contre 0,80 visé), soit l'ordre de
+  grandeur normal d'approximation du moteur. Le cas qui sort du lot est **H 100 kg
+  sur 2 repas/jour : 50 g servis pour 80 visés, soit 0,50 g/kg (−37 %)**.
+  👁 **Invisible pour l'utilisateur** : `MacroBar` n'affiche aucune cible lipides, et
+  `fat_below_target` est classé `'selection'` (« ne pas alarmer »). Personne ne le
+  voit — ce qui est justement pourquoi ça a tenu jusqu'ici.
+  **Trois sorties possibles, non tranchées** : (a) viser un peu au-dessus du plancher
+  (marge de ~10 %, comme en prise de masse) pour que l'approximation retombe dedans ;
+  (b) assumer et **corriger la doc** — §6 annonce un hard block qui n'en est pas un
+  sur le plan servi ; (c) ne rien faire pour les −7 g et ne traiter que le cas des
+  gros gabarits à 2 repas.
+
 ### 🎯 B — Les deux briques Kyroz+ qui restent
 
 La valeur premium est **construite et déployée** (objectif daté). Plus aucune décision
@@ -356,9 +400,26 @@ produit en suspens — il ne reste qu'à coder.
   reste-t-on sur la saisie libre ?
 - **D4 · 🤖 Les 16 groupes R4 saturés** *(Journal §4)* (whey+avoine ×6, yaourt de soja sans féculent ×8) —
   à régler en écrivant ailleurs, pas en réécrivant.
-- **D5 · 🤖 3 recettes sans ingrédient gras `scalable`** (`rep13`, `rep47`, `rep52`) → le
-  moteur ne peut pas les monter en lipides, l'utilisateur voit « sous la cible ».
-  Une cuillère d'huile ou des oléagineux. **15 minutes.**
+- ~~**D5 · 3 recettes sans ingrédient gras `scalable`**~~ 🚫 **FERMÉ le 2026-07-31 —
+  la tâche était fausse sur ses trois affirmations. Ne pas la rouvrir.** Elle disait
+  « 3 recettes · le moteur ne peut pas les monter en lipides · l'utilisateur voit
+  *sous la cible* · 15 minutes ». Mesuré, dans cet ordre :
+  1. **Ce n'est pas 3, c'est 34** (10 % des 314 recettes) : 15 petits-déj, 15
+     collations, 4 repas complets. Le chiffre datait d'avant la vague de 113.
+  2. **Ces 34 ne causent RIEN.** Sur 1 540 repas générés (13 profils × 5 tirages,
+     dont 2 repas/jour, vegan, végétarien, variété basse), le drapeau
+     `fat_below_target` tombe **23 fois — et 0 fois sur une de ces 34 recettes**.
+     Le moteur ne les sélectionne tout simplement pas quand les lipides comptent
+     (`fitScore` les pénalise). Leur ajouter une cuillère d'huile n'aurait déplacé
+     aucun plan.
+  3. **L'utilisateur ne voit jamais « sous la cible » en lipides** : `MacroBar`
+     affiche les lipides en grammes dans une barre de proportion, **sans cible**.
+     Seules les kcal sont comparées à une cible. Et `FLAG_AUDIENCE` classe
+     `fat_below_target` en `'selection'` — explicitement « ne pas alarmer ».
+  Le vrai plafond, quand il mord, est le facteur de rôle `fat = [0.5, 1.5]` : une
+  recette bâtie sur 8 g d'huile plafonne à 12 g. C'est un garde-fou culinaire
+  volontaire (une portion ne devient pas 24 g d'huile), pas un défaut.
+  ➡️ **Ce que la mesure a réellement trouvé est ailleurs et plus sérieux : A9.**
 - **D6 · Les 48 collations invendables aux profils féminins restent dans le catalogue.**
   La vague de 113 **ajoute**, elle ne répare pas. La borne protéine 0,5 (2026-07-30) en
   rend une partie servable — **à re-mesurer** avec `npm run mesure:couverture` avant de
@@ -481,6 +542,16 @@ du temps au fondateur.
   auditeurs : ce ne sont **pas des bugs**, ce sont des arbitrages assumés.
 
 ## État du dépôt — remis à plat le 2026-07-30
+
+> ⚠️ **Le SHA ci-dessous est celui du 2026-07-30.** Ne pas le prendre pour l'état courant :
+> lire `git log --oneline -1`. Le principe qui compte est celui du paragraphe, pas le SHA.
+>
+> **Astuce mesurée le 2026-07-31** : un worktree n'oblige PAS à réinstaller 1,5 Go de
+> `node_modules` — un lien symbolique vers celui du dépôt principal suffit (vitest, tsc et
+> `expo export -p web` tournent tous dessus). ⚠️ Mais `.gitignore` dit `node_modules/`
+> **avec la barre finale**, qui ne matche que les répertoires : le lien symbolique, lui,
+> apparaît en `?? node_modules` et **un `git add .` le committerait**. Ajouter les fichiers
+> un par un.
 
 **Une seule branche, un seul worktree, arbre de travail propre.** `main` = `origin/main` = `30b0c19`.
 Les 9 branches de travail étaient toutes intégralement mergées : supprimées en local et sur le
