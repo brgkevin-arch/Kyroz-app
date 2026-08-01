@@ -860,11 +860,7 @@ produit en suspens — il ne reste qu'à coder.
   deux.** Elles n'ont jamais fonctionné. Seule régression réelle : **l'œuf entier sur pain
   au petit-déj, 7 → 5/12** (10,9 kcal par gramme de protéine).
 
-  📦 **Briefs prêts, non livrés** : `b4-repas` (`rep251`→`rep270`, 20 recettes) et
-  `b4-pdej` (`pd99`→`pd110`, 12 recettes), générés à l'enveloppe corrigée. Le brief pdej
-  impose de garder **2 recettes dans le BAS de l'enveloppe** (520–535 kcal, très denses) —
-  sans quoi on refait l'erreur en miroir contre les profils en sèche mince.
-  ➡️ **C'est le prochain chantier catalogue** : 🧑 dire « go » pour lancer la génération.
+  📦 **Lot B4 → livré, voir D14.**
 
   🧹 **`Recette/BRIEF-GENERATION-RECETTES.md` est corrigé aussi** : les 5 lignes qui
   annonçaient encore la borne 1,00 (l. 29, 465, 683, 780, 1153) sont rectifiées, et un
@@ -874,6 +870,43 @@ produit en suspens — il ne reste qu'à coder.
   de 3. Ce n'est pas le contrôle qui a changé pour les collations — c'est l'agrandissement
   du catalogue (327 → 427) qui a fait disparaître la dérogation « profil affamé » dont elle
   bénéficiait. À réécrire au prochain passage sur les collations.
+
+- ~~**D14 · Lot B4 — 32 recettes à l'enveloppe corrigée**~~ ✅ **LIVRÉ le 2026-08-02 —
+  `rep251`→`rep270` (20 repas complets) et `pd99`→`pd110` (12 petits-déjeuners), catalogue
+  427 → 459, `ENGINE_VERSION` 33 → 34.** Premier lot écrit à l'enveloppe de D13.
+  `check:doublons` 0 violation · `check:enveloppe` conforme (repas **11,4/12** de moyenne,
+  petits-déj **11,6/12**) · 791 tests verts · `tsc` propre.
+
+  🔴 **CE QUE ÇA NE RÈGLE PAS, ET C'EST LE POINT IMPORTANT.** Le lot double le vivier de
+  petits-déjeuners des gros gabarits mais **ne bouge quasiment pas celui des repas
+  complets** :
+
+  | pool servable | avant (427) | après (459) |
+  |---|---|---|
+  | `H 110 masse` · petit-déj | 23/98 (23 %) | **43/110 (39 %)** |
+  | `H 110 masse` · repas complet | 79/250 (32 %) | 85/270 (**31 %**) |
+  | `H 95 masse` · petit-déj | 53/98 (54 %) | 63/110 (57 %) |
+  | `H 95 masse` · repas complet | 122/250 (49 %) | 138/270 (51 %) |
+
+  ⚠️ **La raison est contre-intuitive et vaut pour toutes les vagues à venir : LA CIBLE
+  BOUGE QUAND LE CATALOGUE BOUGE.** Les cibles de `ciblesDe` sont reconstruites depuis des
+  plans réellement générés — ajouter des recettes change les plans, donc les cibles. Mesuré
+  pour `H 110 masse` : midi **1057 → 1065 kcal**, soir **944 → 958**. Détail exact du
+  vivier midi : **+16 recettes B4 servables, +2 anciennes entrées, −12 anciennes sorties**
+  (elles tombaient sous le plancher `under_target_kcal` = 0,88 × cible une fois la cible
+  relevée). Net : +6. ➡️ **Ne jamais annoncer le gain d'une vague en additionnant les
+  recettes conformes : il faut re-mesurer le catalogue entier après merge.**
+  ➡️ 🧑 **Le créneau midi/soir des gros gabarits reste ouvert** — il demande une vague de
+  plus, pas une correction d'enveloppe.
+
+  🧪 **Un test a sauté, et il avait tort avant de sauter.** `variety.test.ts` > « biais
+  fibres en sèche » ne tirait **qu'un seul plan (seed 0)** et appelait ça « le biais ».
+  Mesuré sur 40 seeds à budget figé, le catalogue de 427 donnait **×1,042** en moyenne et
+  ne dépassait ×1,08 que sur **3 seeds sur 40** : le test ne passait que parce que la
+  seed 0 était l'une des trois. B4 a déplacé le tirage et il est tombé — alors qu'il
+  **améliore** le biais (**×1,061**, 16/40 seeds au-dessus de 1,08). L'oracle est devenu
+  la **moyenne sur 12 seeds**, seuil ×1,02. Il garde ses dents : nudge coupé
+  (`FIBER_SELECT_W`/`FIBER_BAND_BONUS` à 0), la sèche tombe à ×0,885.
 
 ### 🧹 E — Dette technique
 

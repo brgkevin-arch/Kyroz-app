@@ -2,7 +2,7 @@
 
 ```
 Recette/
-├── recettes-kyroz.json          ← LE CATALOGUE LIVE (importé par lib/recipeData.ts) — 427 recettes
+├── recettes-kyroz.json          ← LE CATALOGUE LIVE (importé par lib/recipeData.ts) — 459 recettes
 ├── README.md                    ← ce fichier
 ├── BRIEF-GENERATION-RECETTES.md ← la SPEC : mesures, enveloppes, raisonnement. Ne pas transmettre tel quel.
 ├── lots/                        ← la COMMANDE, générée (npm run gen:lots). Un fichier = une conversation.
@@ -16,14 +16,16 @@ Recette/
     ├── 2026-08-01-b1-lot2-repas/    (+20 repas complets, mergé)
     ├── 2026-08-01-b1-lot3-repas/    (+20 repas complets, mergé)
     ├── 2026-08-01-b1-lot4-repas/    (+20 repas complets, mergé)
-    └── 2026-08-01-b3-petits-dejeuners/ (+20 petits-déjeuners, mergé)
+    ├── 2026-08-01-b3-petits-dejeuners/ (+20 petits-déjeuners, mergé)
+    ├── 2026-08-02-b4-repas-denses/     (+20 repas complets, mergé)
+    └── 2026-08-02-b4-pdej-denses/      (+12 petits-déjeuners, mergé)
 ```
 
-ℹ️ **`lots/` ne contient plus aucun brief, et c'est volontaire** (2026-08-01) : les six lots
-commandés — `b2`, `b1-lot1` à `b1-lot4`, `b3` — sont livrés et mergés, donc leurs ids sont pris :
-un brief qui les recommanderait serait une commande impossible à honorer, et le générateur
-refuse d'ailleurs de l'écrire. Leur définition reste dans `scripts/gen-brief-lot.ts` (marquée
-`livre`), la matière première dans `drops/`.
+ℹ️ **`lots/` ne contient plus aucun brief, et c'est volontaire** (2026-08-01) : les huit lots
+commandés — `b2`, `b1-lot1` à `b1-lot4`, `b3`, `b4-repas`, `b4-pdej` — sont livrés et mergés, donc
+leurs ids sont pris : un brief qui les recommanderait serait une commande impossible à honorer, et
+le générateur refuse d'ailleurs de l'écrire. Leur définition reste dans `scripts/gen-brief-lot.ts`
+(marquée `livre`), la matière première dans `drops/`.
 
 ⚠️ `recettes-kyroz.json` est **importé par le code** (`lib/recipeData.ts`, `lib/__tests__/recipeFoodMap.test.ts`).
 Les fichiers de `drops/` sont de la matière première : on en extrait, on ne les branche jamais.
