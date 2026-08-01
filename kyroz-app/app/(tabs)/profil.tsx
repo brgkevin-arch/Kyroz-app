@@ -782,11 +782,15 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
   // et enregistrer sans rien changer ne doit pas décaler l'échéance (même principe
   // que RestDaysPicker).
   const [horizonTouched, setHorizonTouched] = useState(false);
-  const pickWeeks = (h: number) => { setWeeks(h); setHorizonTouched(true); };
+  // Échéance adoptée en un tap depuis la puce « date tenable » : ce n'est pas un
+  // multiple des horizons proposés, donc elle ne peut pas vivre dans `weeks`.
+  const [customDate, setCustomDate] = useState<string | null>(null);
+  const pickWeeks = (h: number) => { setWeeks(h); setCustomDate(null); setHorizonTouched(true); };
 
   const twN = parseFloat(targetWeight.replace(',', '.'));
   const validWeight = twN >= 40 && twN <= 250;
-  const targetDate = existing && !horizonTouched ? existing.target_date : addDaysStamp(today, weeks * 7);
+  const targetDate = customDate
+    ?? (existing && !horizonTouched ? existing.target_date : addDaysStamp(today, weeks * 7));
   const provisional: GoalTarget | undefined = validWeight
     ? { target_weight_kg: twN, target_date: targetDate, start_weight_kg: profile.weight_kg, start_date: existing?.start_date ?? today }
     : undefined;
@@ -816,6 +820,41 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
   // interrogée qu'à l'onboarding — l'éditeur laissait passer n'importe quelle cible.
   const goalBlockMsg = provisional ? eligibilityMessage(checkEligibility(profile, provisional)) : null;
 
+  // ── La date réellement tenable, proposée en UN TAP ──────────────────────────
+  // Sans elle, l'écran se contentait de dire « tu y seras plutôt vers le … » et
+  // laissait l'utilisateur deviner quelle puce s'en approchait — or aucune ne s'en
+  // approche : sur le cas remonté (83 kg → 70), la date tenable est à ~43 semaines,
+  // hors des cinq horizons proposés. Le sélecteur devenait alors décoratif.
+  //
+  // ⚠️ ON VÉRIFIE QU'ELLE EST TENABLE AVANT DE LA PROPOSER, et ce n'est pas de la
+  // prudence gratuite : la date d'atteinte dépend des calories servies, qui
+  // dépendent de l'échéance. Proposer sans vérifier peut donc renvoyer une date
+  // encore « plus tard » — l'écran se mettrait à courir après lui-même. Si la
+  // vérification ne passe pas, on ne propose RIEN : la phrase et la carte disent
+  // déjà la vérité, mieux vaut pas de raccourci qu'un raccourci qui ment.
+  const tenableDate = useMemo(() => {
+    if (!provisional || !status || goalBlockMsg) return null;
+    if (status.reachableByDate || !status.projectable || status.directionMismatch) return null;
+    const cand: GoalTarget = { ...provisional, target_date: status.projectedDate };
+    const candPlan = computePlan({ ...profile, goal_target: cand }, today);
+    const candStatus = datedGoalStatus(
+      cand, profile, today, tdee, candPlan?.floor_kcal ?? null,
+      makeWeeklyProjector({ ...profile, goal_target: cand }),
+    );
+    if (!candStatus?.reachableByDate) return null;
+    // Déjà atteignable en tapant une puce existante → pas de puce en double.
+    const w = Math.round(daysBetween(today, status.projectedDate) / 7);
+    return HORIZONS.includes(w) ? null : status.projectedDate;
+  }, [provisional?.target_weight_kg, provisional?.target_date, goalBlockMsg, status?.projectedDate, status?.reachableByDate]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Une fois la date adoptée, elle DEVIENT tenable → `tenableDate` retombe à null.
+  // Sans ce repli sur `customDate`, la puce disparaîtrait au moment même où on la
+  // tape, en ne laissant aucune échéance sélectionnée : l'utilisateur croirait que
+  // son geste n'a rien fait. L'ordre compte — une offre FRAÎCHE (le poids cible a
+  // changé depuis l'adoption) doit primer sur la date déjà adoptée, sinon on
+  // continuerait de proposer une échéance devenue intenable.
+  const chipDate = tenableDate ?? customDate;
+  const chipWeeks = chipDate ? Math.round(daysBetween(today, chipDate) / 7) : 0;
+
   const submit = () => {
     if (!provisional || goalBlockMsg) return;
     onSave(withRecalc({ ...profile, goal_target: provisional }));
@@ -832,7 +871,20 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
 
       <SectionLabel t={t}>Échéance</SectionLabel>
       <View style={styles.wrap}>
-        {HORIZONS.map((h) => <Chip key={h} t={t} label={`${h} sem`} selected={weeks === h} onPress={() => pickWeeks(h)} />)}
+        {HORIZONS.map((h) => (
+          <Chip key={h} t={t} label={`${h} sem`} selected={!customDate && weeks === h} onPress={() => pickWeeks(h)} />
+        ))}
+        {/* La date tenable dans la MÊME rangée que les autres échéances : c'est une
+            échéance, pas un avertissement. Elle apparaît là où se prend la décision,
+            et non dans une carte que le bouton « Enregistrer » recouvre sur iPhone. */}
+        {chipDate && (
+          <Chip
+            t={t}
+            label={`${chipWeeks} sem · tenable`}
+            selected={customDate === chipDate}
+            onPress={() => { setCustomDate(chipDate); setHorizonTouched(true); }}
+          />
+        )}
       </View>
       {/* ⚠️ C'est la ligne la plus lue de l'écran — collée sous les puces, au moment
           exact du choix. Elle ne peut donc pas AFFIRMER une date que le moteur ne

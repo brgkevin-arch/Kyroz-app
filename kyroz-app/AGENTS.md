@@ -556,12 +556,37 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
   d'affichage, donc pas d'`ENGINE_REV`.
   Vérifié à l'écran sur les 5 échéances. Garde-fou : `datedGoal.test.ts` → « A14 — cible
   hors de portée ». 819 tests.
-  ⚠️ **Ce qui RESTE ouvert, et c'est une décision produit, pas un bug** : quand la cible
-  est hors de portée, le sélecteur d'échéance ne change plus rien d'autre que la date.
-  Pistes non tranchées : marquer les échéances intenables, ou proposer en un tap la date
-  réellement tenable (la carte « plancher » dit déjà *« Tu peux viser cette date-là »*
-  sans offrir le geste). **Ne pas implémenter sans arbitrage du fondateur** — griser des
-  puces peut se lire comme un reproche, ce que la règle produit interdit (CLAUDE.md §10).
+  **Suite tranchée par le fondateur (« 2 go ») et LIVRÉE le 2026-08-02** : la date
+  réellement tenable est proposée **en un tap**, sous forme d'une puce de plus dans la
+  rangée ÉCHÉANCE (`42 sem · tenable`) — pas dans une carte que le bouton Enregistrer
+  recouvre. Un tap : l'échéance devient cette date, la phrase redevient `« Cible le
+  24 mai 2027. »` (sans réserve) et la carte d'alerte cède la place à *« Rythme sûr, dans
+  les clous de ta date. »*. L'option écartée (griser les échéances intenables) l'a été
+  parce qu'elle se lit comme un reproche — CLAUDE.md §10.
+  ⚠️ **L'éditeur RE-VÉRIFIE que la date tenue le sera avant de la proposer, et ce n'est
+  pas de la prudence décorative** : la date d'atteinte dépend des calories servies, qui
+  dépendent de l'échéance. Mesuré — H 83 kg → 70 : adopter la date projetée tient (elle
+  avance même de 7 j). **F 78 kg → 65 : elle NE tient pas, la date glisse de 98 jours.**
+  Cause : le rythme *requis* est calculé en LIGNE DROITE (écart ÷ semaines) alors que la
+  *projection* SIMULE la trajectoire réelle, où le TDEE baisse avec le poids. Sur un gros
+  écart relatif, viser la date projetée fait servir moins de déficit (le plancher ne mord
+  plus, 1778 → 1940 kcal), le rythme tombe de 0,3 à 0,2 kg/sem, et aucune date ne
+  converge : plus on la repousse, moins on creuse. Dans ce cas **aucune puce n'est
+  proposée** — mieux vaut pas de raccourci qu'un raccourci qui ment. Verrouillé par
+  `datedGoal.test.ts` → « A14 — adopter la date projetée ». 820 tests.
+
+- **A15 · 🧑 À TRANCHER — sur un gros écart, l'objectif daté se dessert lui-même.**
+  Découvert en livrant A14, mesuré, **non corrigé** (ça déplacerait des calories →
+  `ENGINE_REV`, donc arbitrage fondateur obligatoire).
+  Le moteur sert le déficit **REQUIS pour la date**, plafonné au rythme sûr. Quand la
+  cible est hors de portée, repousser la date baisse donc le déficit servi — et éloigne
+  l'arrivée. F 78 kg → 65 kg : à 8 semaines il sert le plancher (1778 kcal, 0,3 kg/sem) ;
+  en visant la date que ce rythme projette, il ne sert plus que 1940 kcal (0,2 kg/sem) et
+  la date part 98 jours plus loin. **Il n'existe aucune date d'équilibre.**
+  Question de fond : quand l'objectif est hors de portée, faut-il servir le **rythme sûr
+  MAXIMAL** (et annoncer la date qui en découle) plutôt que le rythme « juste requis » ?
+  ⚠️ Ne pas confondre avec un défaut de sécurité : les deux comportements restent
+  au-dessus du plancher. C'est un choix de pilotage, pas un garde-fou.
 
 ### 🎯 B — Les deux briques Kyroz+ qui restent
 
