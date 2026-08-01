@@ -255,7 +255,22 @@ export interface UserProfile {
 
   // Données de base
   sex: Sex;
+  /**
+   * Âge en années révolues. **DÉRIVÉ de `birth_date` dès que celle-ci existe** —
+   * `computePlan` le recalcule à chaque passage, donc il ne peut plus vieillir de
+   * travers. Reste la valeur SAISIE pour les comptes créés avant le 2026-08-02,
+   * qui n'ont pas de date de naissance (on ne l'invente pas : un âge ne donne
+   * qu'une fourchette d'un an).
+   * ⚠️ Ne jamais écrire `age` à la main quand `birth_date` est connue : le
+   * prochain recalcul l'écrasera.
+   */
   age: number;
+  /**
+   * Date de naissance 'YYYY-MM-DD'. Source de vérité de l'âge (cf. lib/birthday.ts).
+   * Optionnelle : absente sur les comptes antérieurs au 2026-08-02.
+   * Synchronisée — migration 2026-08-02_profiles_birth_date.sql.
+   */
+  birth_date?: string;
   weight_kg: number;
   height_cm: number;
   body_fat_pct?: number;        // % de masse grasse (optionnel) → BMR Katch-McArdle

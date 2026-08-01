@@ -588,6 +588,55 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
   ⚠️ Ne pas confondre avec un défaut de sécurité : les deux comportements restent
   au-dessus du plancher. C'est un choix de pilotage, pas un garde-fou.
 
+- ~~**A16 · `Alert.alert` ne fait RIEN sur le web — dix interactions mortes**~~
+  ✅ **CORRIGÉ le 2026-08-02.** Remonté par le fondateur : *« le bouton régénérer mon
+  plan ne fonctionne pas »*. La cause n'était pas dans ce bouton :
+  `class Alert { static alert() {} }` — une fonction vide dans react-native-web. Aucune
+  erreur, aucune trace.
+  **Les dix appels de l'app étaient morts sur le web**, et pas seulement des
+  cosmétiques : « Régénérer mon plan » · **l'onboarding qui REFUSE un profil inéligible**
+  (mineur, IMC de départ — bouton final inerte, sans message : le garde-fou §6 devenait
+  invisible) · suppression d'une pesée · export RGPD · erreur de validation de
+  « Calories & macros » · message « rappel indisponible sur le web » · contact support.
+  ℹ️ `WeightCheckin` s'en était déjà sorti seul avec un `window.confirm` : le piège avait
+  été rencontré **une fois, jamais généralisé** — et la boîte grise du navigateur est
+  hors charte.
+  **Correctif** : `components/Dialog.tsx` (`useDialog()` → `confirm` / `notify` /
+  `choose`) remplace `Alert` PARTOUT, web ET natif — un seul chemin, une seule
+  apparence, bâti sur l'`ActionSheet` déjà thémée et déjà bornée sur tablette. Il rend
+  une **promesse** (`if (await confirm(...))`) au lieu d'éparpiller la suite dans des
+  callbacks. Garde-fou : `noAlert.test.ts`, **vérifié en réintroduisant volontairement
+  un `Alert`** — le piège est invisible à la relecture, seul un test peut le tenir fermé.
+  Vérifié à l'écran : dialogue → confirmation → `/plan`, seed 0 → 1, recettes changées.
+
+- ~~**A17 · L'âge était saisi une fois, puis il pourrissait**~~ ✅ **LIVRÉ le 2026-08-02**
+  (demande du fondateur). L'app demandait un ÂGE : juste le jour de la saisie, faux dès
+  le premier anniversaire, et personne ne revient le corriger. Ce n'est pas cosmétique —
+  l'âge entre dans **Mifflin-St Jeor**, donc dans le TDEE, donc dans les calories
+  servies tous les jours.
+  Désormais on demande la **date de naissance**, et `age` en est **DÉRIVÉ dans
+  `computePlan`** — le producteur unique, donc aucun écran ne peut l'oublier. Il se
+  remet à jour à la première ouverture qui suit l'anniversaire.
+  ⚠️ **`age` est CONSERVÉ, et ce n'est pas une redondance oubliée** : on ne peut pas
+  deviner la date de naissance des comptes existants (un âge ne donne qu'une fourchette
+  d'un an). Ces profils gardent leur âge saisi tant qu'ils n'ont pas renseigné leur
+  date — aucune valeur inventée, aucune migration de données. L'écran le dit :
+  *« Âge enregistré : 32 ans. Renseigne ta date de naissance pour qu'il se mette à jour
+  tout seul. »*
+  Saisie en **trois champs** (jour / mois / année) et non un date-picker, même raison
+  que les puces d'échéance : lourd sur le web. Les dates fantômes sont refusées (31/02,
+  29/02 hors bissextile) et l'âge déduit s'affiche en direct.
+  🎂 **Animation d'anniversaire** (`BirthdayCelebration`) une fois l'an à l'ouverture du
+  Plan — l'année vue est stockée, pas un booléen (rien ne le remettrait à zéro).
+  Confettis à positions FIXES : `Math.random()` rendrait l'animation intestable.
+  ⚠️ Ce n'est pas de la gamification de compétition (§5) : rien n'est gagné ni comparé.
+  Et c'est le jour où la dépense estimée bouge toute seule — autant que ça se voie.
+  ⚠️ **MIGRATION SUPABASE À JOUER** : `supabase/migrations/2026-08-02_profiles_birth_date.sql`.
+  Sans elle, `birth_date` ne se synchronise pas (le filet `PROFILE_COLS_LAST_MIGRATION`
+  limite la casse à cette seule colonne — le reste du profil continue de passer).
+  18 tests ajoutés, **830 au total**. Vérifié à l'écran : saisie, date impossible,
+  refus < 18 ans, repli des comptes sans date, animation, et non-rejeu au rechargement.
+
 ### 🎯 B — Les deux briques Kyroz+ qui restent
 
 La valeur premium est **construite et déployée** (objectif daté). Plus aucune décision

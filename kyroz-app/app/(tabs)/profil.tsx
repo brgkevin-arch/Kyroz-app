@@ -16,6 +16,8 @@ import { usePremium } from '../../hooks/usePremium';
 import { PremiumFeature, AccessReason } from '../../lib/premium';
 import { Sheet } from '../../components/Sheet';
 import { useDialog } from '../../components/Dialog';
+import { BirthDateField } from '../../components/BirthDateField';
+import { ageOn } from '../../lib/birthday';
 import { ActionSheet } from '../../components/ActionSheet';
 import { StreakProgress } from '../../components/StreakProgress';
 import { BodyFatPicker } from '../../components/BodyFatPicker';
@@ -560,17 +562,22 @@ type EditorProps = { t: ThemePalette; profile: UserProfile; onSave: (p: UserProf
 // ── Éditeurs ─────────────────────────────────────────────────────────────────
 function InfoEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
   const [sex, setSex] = useState<Sex>(profile.sex);
-  const [age, setAge] = useState(String(profile.age));
+  // Date de naissance plutôt qu'âge : l'âge en est DÉRIVÉ et ne pourrit plus (cf.
+  // lib/birthday.ts). ⚠️ Elle est ABSENTE des comptes créés avant le 2026-08-02 —
+  // on ne l'invente pas (un âge ne donne qu'une fourchette d'un an) : ces profils
+  // gardent leur âge saisi tant qu'ils n'ont pas renseigné leur date.
+  const [birthDate, setBirthDate] = useState<string | undefined>(profile.birth_date);
   const [weight, setWeight] = useState(String(profile.weight_kg));
   const [height, setHeight] = useState(String(profile.height_cm));
   const [bodyFat, setBodyFat] = useState<number | undefined>(profile.body_fat_pct);
-  const aN = parseInt(age), wN = parseFloat(weight), hN = parseFloat(height);
+  const aN = ageOn(birthDate, todayStamp()) ?? profile.age;
+  const wN = parseFloat(weight), hN = parseFloat(height);
   // Bornes tirées de lib/safety.ts, PAS réécrites en dur : elles divergeaient de
   // l'onboarding (16 ans ici contre 18 là-bas — le relèvement MIN_AGE n'avait été
   // câblé que côté onboarding, donc on pouvait saisir 18 puis repasser à 16 ici ;
   // et 40–250 kg contre 30–300, ce qui verrouillait l'écran pour un profil onboardé
   // hors de cette plage : bouton « Enregistrer » désactivé en permanence).
-  const draft = { ...profile, sex, age: aN, weight_kg: wN, height_cm: hN, body_fat_pct: bodyFat };
+  const draft = { ...profile, sex, age: aN, birth_date: birthDate, weight_kg: wN, height_cm: hN, body_fat_pct: bodyFat };
   const inBounds =
     aN >= AGE_BOUNDS[0] && aN <= AGE_BOUNDS[1] &&
     wN >= WEIGHT_BOUNDS[0] && wN <= WEIGHT_BOUNDS[1] &&
@@ -602,7 +609,8 @@ function InfoEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
         </Card>
       )}
       <Segmented t={t} options={[{ label: 'Homme', value: 'male' }, { label: 'Femme', value: 'female' }]} value={sex} onChange={setSex} />
-      <Field t={t} label="Âge" suffix="ans" value={age} onChangeText={setAge} keyboardType="number-pad" />
+      <SectionLabel t={t}>Date de naissance</SectionLabel>
+      <BirthDateField t={t} value={birthDate} onChange={setBirthDate} fallbackAge={profile.birth_date ? undefined : profile.age} />
       <Field t={t} label="Poids" suffix="kg" value={weight} onChangeText={setWeight} keyboardType="decimal-pad" />
       <Field t={t} label="Taille" suffix="cm" value={height} onChangeText={setHeight} keyboardType="number-pad" />
       <SectionLabel t={t}>Masse grasse (optionnel)</SectionLabel>

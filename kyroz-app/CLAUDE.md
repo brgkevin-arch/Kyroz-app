@@ -561,9 +561,21 @@ téléphone.
 
 ## 11. Pièges connus (redécouverts au moins une fois chacun)
 
+- **`Alert.alert` est une FONCTION VIDE sur react-native-web** — `class Alert { static
+  alert() {} }`. Aucune erreur, aucune trace : l'appel ne fait RIEN. Découvert le
+  2026-08-02, il tuait **dix** interactions, dont « Régénérer mon plan » et le REFUS
+  d'un profil inéligible à l'onboarding (bouton final inerte, sans message : le
+  garde-fou §6 devenait invisible). ➡️ Utiliser **`useDialog()`** (`components/Dialog.tsx`,
+  `confirm` / `notify` / `choose`) — un seul chemin web ET natif. Interdiction
+  verrouillée par `lib/__tests__/noAlert.test.ts`.
 - **`onEndEditing` est un no-op sur react-native-web.** Pour normaliser ou borner une
   saisie en fin de frappe, utiliser **`onBlur`**. Le bug « %MG saisi 23 → enregistré 33 »
   venait de là.
+  ⚠️ **Corollaire, redécouvert le 2026-08-02** : ne pas non plus laisser une valeur
+  clampée réécrire le champ PENDANT la frappe. Retirer le clamp fautif ne traitait que
+  le déclencheur ; le mécanisme, c'est la synchro `valeur → texte`, qui remplace ce que
+  l'utilisateur écrit dès qu'un clamp bouge. La garde est un `focused` (cf.
+  `BodyFatPicker`) : on ne resynchronise que hors focus.
 - **Le portail de dépistage santé et la visite guidée interceptent les clics.** Tout script
   qui pilote l'app doit les neutraliser d'abord, sinon il conclut que les écrans sont
   « introuvables » alors qu'il n'a jamais pu quitter le Plan (cf. `test/README.md`).

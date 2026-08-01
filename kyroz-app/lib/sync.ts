@@ -43,6 +43,10 @@ const OVERRIDES_KEY = '@kyroz:recipeOverrides';
 // Aucun autre module ne l'importe — c'est un point d'observation, pas une API.
 export const PROFILE_COLS = [
   'sex', 'age', 'weight_kg', 'height_cm', 'body_fat_pct', 'activity_level', 'training_days_per_week',
+  // Date de naissance — migration 2026-08-02_profiles_birth_date.sql. `age` reste
+  // synchronisée : elle est DÉRIVÉE de celle-ci quand elle existe, et reste la valeur
+  // saisie pour les comptes antérieurs (cf. lib/birthday.ts).
+  'birth_date',
   // Plancher d'énergie disponible (P0.1) — migration 2026-07-28_profiles_energy_availability.sql.
   // `is_post_menopausal` est VOLONTAIREMENT absent : LOCAL-ONLY et inerte tant que
   // l'onboarding ne pose pas la question (même parti pris que Streak.freeze_available).
@@ -67,7 +71,7 @@ export const PROFILE_COLS = [
 // transforme juste « synchro morte » en « tout passe sauf ces champs-là ».
 // Exporté pour que les TESTS lisent cette liste au lieu de la recopier : une
 // nouvelle migration ne doit pas faire rougir un test qui décrit l'ancienne.
-export const PROFILE_COLS_LAST_MIGRATION: string[] = ['calorie_bank'];
+export const PROFILE_COLS_LAST_MIGRATION: string[] = ['birth_date'];
 
 // ── Signal d'échec de synchro ────────────────────────────────────────────────
 //

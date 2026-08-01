@@ -13,6 +13,9 @@ import {
 } from '../../components/ui';
 import { BodyFatPicker } from '../../components/BodyFatPicker';
 import { useDialog } from '../../components/Dialog';
+import { BirthDateField } from '../../components/BirthDateField';
+import { ageOn } from '../../lib/birthday';
+import { todayStamp } from '../../lib/weight';
 import {
   AGE_BOUNDS, WEIGHT_BOUNDS, HEIGHT_BOUNDS, checkEligibility, eligibilityMessage,
 } from '../../lib/safety';
@@ -114,7 +117,9 @@ export default function Onboarding() {
   // État formulaire
   const [firstName, setFirstName] = useState('');
   const [sex, setSex] = useState<Sex>('male');
-  const [age, setAge] = useState('');
+  // Date de naissance et NON âge : un âge saisi pourrit au premier anniversaire,
+  // et il entre dans Mifflin-St Jeor donc dans les calories servies (lib/birthday.ts).
+  const [birthDate, setBirthDate] = useState<string | undefined>(undefined);
   const [weight, setWeight] = useState('');
   const [height, setHeight] = useState('');
   const [bodyFat, setBodyFat] = useState<number | undefined>(undefined);
@@ -129,7 +134,8 @@ export default function Onboarding() {
   const [restWeekdays, setRestWeekdays] = useState<number[]>([]);  // jours de repos (sous-ensemble des jours du plan) → carb-cycling
   const [meals, setMeals] = useState<MealType[]>(['breakfast', 'lunch', 'dinner', 'snack']);
 
-  const ageN = parseInt(age), wN = parseFloat(weight), hN = parseFloat(height);
+  const ageN = ageOn(birthDate, todayStamp()) ?? NaN;
+  const wN = parseFloat(weight), hN = parseFloat(height);
   // Étapes à validation requise (les autres sont libres) :
   const firstNameValid = firstName.trim().length > 0;                                    // étape 1 — prénom
   // Bornes de saisie (P0.4). L'âge minimum est passé de 16 à 18 ans : Mifflin-St Jeor
@@ -177,7 +183,7 @@ export default function Onboarding() {
     if (step === 1 && !firstNameValid) return 'Dis-nous comment t\'appeler pour commencer 🙂';
     if (step === 2 && !basicsValid) {
       if (ageN >= 1 && ageN < AGE_BOUNDS[0]) return `Kyroz est réservé aux ${AGE_BOUNDS[0]} ans et plus.`;
-      return 'Remplis ton âge, ton poids et ta taille pour continuer.';
+      return 'Remplis ta date de naissance, ton poids et ta taille pour continuer.';
     }
     if (step === 3 && !bodyFatValid)
       return 'On a besoin de ta masse grasse pour te calculer le plan le plus juste possible — choisis la silhouette la plus proche de toi, ou saisis ton % si tu le connais.';
@@ -201,7 +207,7 @@ export default function Onboarding() {
     // garantie avec le check-in poids et les éditeurs du profil).
     const draft: UserProfile = {
       id: `user-${Date.now()}`,
-      sex, age: ageN, weight_kg: wN, height_cm: hN,
+      sex, age: ageN, birth_date: birthDate, weight_kg: wN, height_cm: hN,
       body_fat_pct: bodyFat,
       activity_level: activityFromDays(trainingDaysEq),
       training_days_per_week: trainingDaysEq,
@@ -272,7 +278,7 @@ export default function Onboarding() {
             <Text style={s.title}>Tes infos de base</Text>
             <Text style={s.sub}>Pour calculer ton métabolisme et tes macros au plus juste.</Text>
             <Segmented t={t} options={[{ label: 'Homme', value: 'male' }, { label: 'Femme', value: 'female' }]} value={sex} onChange={setSex} />
-            <Field t={t} label="Âge" suffix="ans" value={age} onChangeText={setAge} placeholder="25" keyboardType="number-pad" />
+            <BirthDateField t={t} value={birthDate} onChange={setBirthDate} />
             <Field t={t} label="Poids" suffix="kg" value={weight} onChangeText={setWeight} placeholder="80" keyboardType="decimal-pad" />
             <Field t={t} label="Taille" suffix="cm" value={height} onChangeText={setHeight} placeholder="178" keyboardType="number-pad" />
           </View>
