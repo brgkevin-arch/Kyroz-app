@@ -229,7 +229,24 @@ qu'ils étaient périmés.
   homme même corps → aucun repère ; note de plancher rendue sur les deux).
   752 tests verts, `tsc` propre.
 
-- **A7 · 🧑 DÉCISION EN ATTENTE — le déficit demandé n'est JAMAIS servi au NEAT
+- ~~**A7 · le déficit demandé n'est JAMAIS servi au NEAT `desk`**~~ ✅ **TRANCHÉ ET
+  LIVRÉ le 2026-07-31 : `desk` passe à 1,30, `ENGINE_REV` 2 → 3.** Table resserrée à
+  1,30 / 1,35 / 1,40 / 1,45 pour rester monotone sous le plafond de 1,45. Mesuré sur
+  27 648 profils : cible servie médiane **+77 kcal/j** (max +239, aucune baisse),
+  plancher contraignant **16 % → 9 %**, déficit plein servi en sèche **59 % → 81 %**.
+  ⚠️ **Risque assumé** : en MAINTIEN la hausse est répercutée en entier (médiane
+  +84 kcal/j) — si l'estimation est trop haute, ces personnes mangent au-dessus de
+  leur dépense, et c'est silencieux.
+  **Trois bloquants trouvés par revue adverse et corrigés avant merge** : (1) la carte
+  de sortie de déficit annonçait « environ 0 kcal par semaine, encore 9 semaines »
+  sur 12 % des cartes ; (2) l'avertissement one-shot servait le texte rev-3 aux
+  comptes legacy, qui eux voient leur cible BAISSER ; (3) un avertissement non lu
+  avalait la bascule suivante, affichant les chiffres de l'ancienne transition.
+  L'ancienne analyse est conservée ci-dessous, elle explique POURQUOI le 1,20 tenait.
+
+  *Analyse d'origine :*
+
+- **~~DÉCISION EN ATTENTE~~ — le déficit demandé n'est JAMAIS servi au NEAT
   `desk`.** *Soulevé par le fondateur le 2026-07-31. Sa prémisse a été vérifiée et
   elle est même plus large qu'il ne la posait. Rien n'a été changé : sa consigne
   était conditionnelle (« si le 1,20 vient d'une table, passe-le à 1,30 ») et la
@@ -766,7 +783,7 @@ Plancher = énergie disponible (30 kcal/kg de masse maigre + sport, **plafonné 
   - ✅ **Étape 3 livrée (2026-07-28) — déplacement du TDEE.** 523 tests verts.
     - **P1.2 — MET NET (`MET − 1`)** (`lib/sport.ts::RESTING_MET`). `BMR × NEAT` couvre déjà les 24 h, séance comprise : créditer le MET brut facturait deux fois l'heure d'entraînement. Retiré **SEUL**, comme décidé — ni muscu à 4,0 (valeur d'aucune ligne du Compendium, traiterait une 2ᵉ fois le même phénomène), ni facteur 60+ (2,7/3,5 = 0,771 ≠ 0,85, falaise à l'anniversaire), bornes de séance 15–180 conservées. Amplitude : `0,0175 × poids × min` par séance, soit **−38 à −58 kcal/j**. ➕ Bénéfice non anticipé : la dépense nette EST la définition de l'EEE du calcul RED-S — la marge d'EA au plancher passe de **30,7–30,8 à 30,00 exact**, elle était partiellement fictive.
     - **P1.1 — CHEMIN TDEE UNIQUE** : `calculateTDEE(profile)` = `BMR × NEAT + dépense sportive`, **une seule formule pour tout le monde**. `training_days_per_week` ne pilote plus le TDEE (il reste utile aux jours de repos / au plan). Supprime la marche d'escalier mesurée : déclarer **1 séance de 15 min de marche** faisait bondir le TDEE de **+116 à +245 kcal/j** (médiane +181, **positif dans 100 % des 360 profils**) ; la méthode legacy avait en plus ses propres marches (+311 kcal entre 2 et 3 séances). Le saut vaut désormais < 15 kcal, verrouillé par test. Signature changée en objet (`TdeeBody`) : les 7 paramètres positionnels invitaient à l'erreur.
-    - **NEAT paramétrable** (`NEAT_PAL` = **1,20 / 1,28 / 1,36 / 1,45**, `neat_level` : `desk|light|active|physical`). Question dans le profil (éditeur renommé **« Sport & activité »**, NEAT AVANT les séances pour ne pas inviter à compter l'entraînement deux fois) — **pas à l'onboarding**, comme décidé. ⚠️ **Le défaut EST la valeur servie** pour la quasi-totalité des profils : `desk = 1,20`, non négociable, parce que **l'erreur n'est pas symétrique** — sur-estimer fait manger à sa maintenance en croyant sécher (échec SILENCIEUX, 61 à 87 % du déficit effacé à 1,35), sous-estimer fait perdre un peu plus vite (VISIBLE sur la balance, et **borné par le plancher, qui ne dépend pas du NEAT** : l'EA se mesure hors NEAT, verrouillé par test).
+    - **NEAT paramétrable** (`NEAT_PAL` = **1,20 / 1,28 / 1,36 / 1,45** à l'époque ; ⚠️ **relevé à 1,30 / 1,35 / 1,40 / 1,45 le 2026-07-31, cf. A7** — le paragraphe qui suit décrit l'état de juillet et son raisonnement, pas la table courante), `neat_level` : `desk|light|active|physical`). Question dans le profil (éditeur renommé **« Sport & activité »**, NEAT AVANT les séances pour ne pas inviter à compter l'entraînement deux fois) — **pas à l'onboarding**, comme décidé. ⚠️ **Le défaut EST la valeur servie** pour la quasi-totalité des profils : `desk = 1,20` (à l'époque), parce que **l'erreur n'est pas symétrique** — sur-estimer fait manger à sa maintenance en croyant sécher (échec SILENCIEUX, 61 à 87 % du déficit effacé à 1,35), sous-estimer fait perdre un peu plus vite (VISIBLE sur la balance, et **borné par le plancher, qui ne dépend pas du NEAT** : l'EA se mesure hors NEAT, verrouillé par test).
     - **`engine_rev` + `engine_notice`** (`lib/tdee.ts`, migration `2026-07-28_profiles_neat_engine_rev.sql`) : au premier recalcul sous une nouvelle révision, si la cible SERVIE bouge de ≥ 100 kcal/j, on dépose un avertissement affiché **une fois** en tête du profil (« Régler mon activité » → l'éditeur / « C'est noté »). ⚠️ **Deux pièges verrouillés par test** : (1) l'avertissement déposé ne doit PAS être recalculé aux passages suivants — le profil est recalculé à chaque ouverture d'app et dès le 2ᵉ passage l'écart vaut 0, le message se serait effacé avant d'être lu ; (2) la clé doit être **retirée** et pas mise à `undefined` — `JSON.stringify` élide les `undefined`, `useProfile` n'aurait vu aucun changement à persister et le message serait revenu.
     - 📉 **Conséquence produit à assumer** : le TDEE baisse (−230 kcal/j mesuré sur un profil muscu 4×60), donc **le plancher de sécurité mord bien plus souvent** — le déficit servi en sèche tombe de 300 à ~150-260 kcal/j chez les profils entraînés (C : 300 → 151). Les objectifs datés afficheront plus souvent « cette date n'est pas tenable » (P1.6). C'est honnête, pas cassé : le levier côté utilisateur est **de répondre à la question NEAT**, ce que la carte one-shot propose explicitement.
     - **Filet de synchro ajouté** : `pushProfile` retente l'upsert SANS les colonnes de la dernière migration si Postgres le rejette (PGRST204) → « synchro morte en silence » devient « tout passe sauf ces champs ». `reconcileCloudNeat` protège `neat_level` d'une ligne cloud antérieure à la migration (perdre le niveau = jusqu'à −450 kcal/j de TDEE).

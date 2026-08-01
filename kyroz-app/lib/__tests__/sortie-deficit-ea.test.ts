@@ -109,7 +109,16 @@ describe('qui reçoit l\'explication', () => {
 });
 
 describe('cohérence avec le producteur unique', () => {
-  it('computePlan n\'expose l\'explication QUE quand le drapeau est levé', () => {
+  it('une explication implique toujours le drapeau — mais plus l\'inverse', () => {
+    // ⚠️ ÉQUIVALENCE DEVENUE IMPLICATION LE 2026-07-31, et ce n'est pas un
+    // relâchement : les deux signaux ont cessé de dire la même chose.
+    //  · `LOW_EA_BUDGET_EXCEEDED` est un fait sur l'EXPOSITION : plus de 12 semaines
+    //    cumulées en zone basse. Il reste levé quoi qu'il arrive au plan.
+    //  · l'escalade est un fait sur le PLAN : « ta cible monte ». Depuis le
+    //    relèvement NEAT, la cible peut passer au-dessus du plancher escaladé — le
+    //    plancher monte alors sans l'emmener, et il n'y a rien à expliquer.
+    // Annoncer une remontée qui n'a pas lieu était précisément le mensonge corrigé
+    // ce jour-là (mesuré : 23 kcal/j annoncés, 0 vécu, à la semaine 14).
     const suivi: { flags: string[]; escalade: unknown }[] = [];
     let p: UserProfile = ELLE;
     for (let i = 0; i < 24; i++) {
@@ -118,9 +127,13 @@ describe('cohérence avec le producteur unique', () => {
       p = r.profile;
     }
     for (const [i, s] of suivi.entries()) {
-      expect(Boolean(s.escalade), `semaine ${i + 1}`)
-        .toBe(s.flags.includes('LOW_EA_BUDGET_EXCEEDED'));
+      if (s.escalade) {
+        expect(s.flags, `semaine ${i + 1}`).toContain('LOW_EA_BUDGET_EXCEEDED');
+      }
     }
+    // Le sens qui compte est bien exercé : l'explication FINIT par arriver, elle
+    // n'a pas simplement disparu du parcours.
+    expect(suivi.some((s) => s.escalade), 'l\'explication doit se déclencher').toBe(true);
   });
 
   it('le décompte annoncé est celui qui a servi à calculer le plancher', () => {
@@ -140,5 +153,50 @@ describe('cohérence avec le producteur unique', () => {
       }
       p = r.profile;
     }
+  });
+});
+
+describe('RÉGRESSIONS trouvées par revue adverse (2026-07-31)', () => {
+  it('BLOQUANT — jamais « environ 0 kcal par semaine, encore N semaines »', () => {
+    // Le plancher escaladé peut rester SOUS un autre plancher (le BMR chez un
+    // gabarit léger) : il monte, la cible ne bouge pas. La carte annonçait alors une
+    // remontée nulle « en cours ». Mesuré sur 12 % des cartes émises, dont 7 560 où
+    // la cible atteignait déjà le TDEE — la sèche était entièrement annulée et
+    // l'écran promettait quand même qu'elle allait le devenir.
+    let vues = 0;
+    for (const w of [45, 50, 55, 62, 75, 95, 120])
+    for (const bf of [undefined, 20, 30, 40, 52])
+    for (const goal of ['cut', 'cut_aggressive', 'recomp'] as const)
+    for (const neat of ['desk', 'light'] as const) {
+      let p: UserProfile = makeProfile({
+        sex: 'female', age: 35, weight_kg: w, height_cm: 160, body_fat_pct: bf,
+        goal, neat_level: neat, macro_mode: 'auto', training_days_per_week: 4,
+        sports: [{ type: 'course', sessions_per_week: 4, minutes_per_session: 60 }],
+      });
+      for (let i = 0; i < 26; i++) {
+        const r = computePlan(p, jour(i));
+        const e = r.low_ea_escalation;
+        if (e) {
+          vues++;
+          // L'invariant : une carte qui annonce une remontée EN COURS doit annoncer
+          // un nombre non nul. Au plateau (weeksToPlateau === 0) la carte ne parle
+          // plus de remontée mais de pause — 0 y est légitime.
+          if (e.weeksToPlateau > 0) {
+            expect(e.weeklyKcal, `${w}kg ${bf ?? 'sans'}%MG ${goal} ${neat} s${i + 1}`)
+              .toBeGreaterThan(0);
+          }
+        }
+        p = r.profile;
+      }
+    }
+    expect(vues, 'le balayage doit réellement produire des cartes').toBeGreaterThan(50);
+  });
+
+  it('la carte du PLATEAU survit à la garde — elle dit autre chose', () => {
+    // La garde ci-dessus ne doit pas rendre le moteur muet au moment où il ARRÊTE le
+    // déficit : ce message-là (« ta sèche est en pause ») est vrai et utile.
+    const suivi = vivre(ELLE, 40);
+    const plateau = suivi.find((s) => s.escalade && s.escalade.weeksToPlateau === 0);
+    expect(plateau, 'le plateau doit encore émettre une carte').toBeTruthy();
   });
 });

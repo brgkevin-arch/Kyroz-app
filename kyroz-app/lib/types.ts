@@ -46,9 +46,19 @@ export type NeatLevel =
  * pas une fois par appareil.
  */
 export interface EngineNotice {
-  rev: number;   // révision du moteur à l'origine du changement
+  rev: number;   // révision du moteur qui produit la NOUVELLE cible
   from: number;  // cible servie AVANT (kcal/j)
   to: number;    // cible servie APRÈS (kcal/j)
+  /**
+   * Révision D'OÙ VIENT le profil. Sans elle, l'écran ne peut pas savoir ce qu'il
+   * doit expliquer : un compte dormant depuis la rev 1 traverse PLUSIEURS
+   * corrections d'un coup, et sa cible baisse (séances comptées en double) là où
+   * un compte rev 2 la voit monter (NEAT relevé). Leur servir le même texte fait
+   * dire « Kyroz sous-estimait ta dépense » à quelqu'un qui vient de perdre
+   * 470 kcal — mesuré sur le profil de référence du dépôt.
+   * `undefined` = notice déposée avant l'existence du champ (lire ENGINE_REV_LEGACY).
+   */
+  fromRev?: number;
 }
 
 // Sports suivis pour estimer la dépense énergétique (méthode MET, cf. lib/sport.ts).
@@ -273,7 +283,8 @@ export interface UserProfile {
   activity_level: ActivityLevel;
   training_days_per_week: number;
   sports?: SportSession[];      // séances déclarées → dépense sportive chiffrée par MET (lib/sport.ts)
-  // Vie quotidienne hors sport. `undefined` → traité comme 'desk' (1,20) : c'est le
+  // Vie quotidienne hors sport. `undefined` → traité comme 'desk' (1,30 depuis le
+  // 2026-07-31, 1,20 avant) : c'est le
   // défaut qui ne peut pas inventer un déficit qui n'existe pas. Sur-estimer le NEAT
   // efface la sèche EN SILENCE (mesuré : 61 à 87 % du déficit à 1,35) ; sous-estimer
   // se voit sur la balance et se corrige. Question posée dans le profil (éditeur

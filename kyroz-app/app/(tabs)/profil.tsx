@@ -658,13 +658,38 @@ function EngineNoticeCard({ t, notice, onAdjust, onDismiss }: {
   t: ThemePalette; notice: EngineNotice; onAdjust: () => void; onDismiss: () => void;
 }) {
   const delta = notice.to - notice.from;
+  // ⚠️ Le texte est SPÉCIFIQUE À LA RÉVISION. Servir l'explication de la rev 2 à
+  // quelqu'un dont la cible a bougé pour une autre raison serait un mensonge, pas
+  // une approximation — et c'est le seul message que cette personne verra jamais
+  // sur le sujet. Une révision qui déplace les cibles doit ajouter son cas ici.
+  // ⚠️ Le texte se choisit sur le TRAJET (`fromRev` → `rev`) et sur le SIGNE, jamais
+  // sur la seule révision d'arrivée. Deux pièges déjà rencontrés, tous deux vus à
+  // l'écran ou mesurés :
+  //  · un compte dormant depuis la rev 1 traverse plusieurs corrections d'un coup et
+  //    voit sa cible BAISSER (séances comptées en double). Lui servir « Kyroz
+  //    sous-estimait ta dépense » au-dessus d'un « −470 » est un mensonge.
+  //  · la formulation doit rester neutre quant à l'OBJECTIF : la carte est servie
+  //    aussi aux maintiens et aux prises de masse, à qui parler d'une « sèche pas
+  //    servie en entier » ne veut rien dire.
+  const depuis = notice.fromRev ?? 1;
+  const monte = notice.to > notice.from;
+  const explication = notice.rev >= 3 && depuis >= 2 && monte
+    ? 'Kyroz sous-estimait la dépense d\'une journée plutôt assise : ton budget part maintenant d\'une estimation plus juste.'
+    : monte
+      ? 'Kyroz a revu sa façon d\'estimer ta dépense : ton budget part maintenant d\'une base plus juste.'
+      : 'Kyroz a corrigé deux choses : tes séances étaient comptées en double avec ta dépense de repos, et le niveau d\'activité de tes journées était supposé au lieu d\'être demandé.';
+  // ⚠️ Ne RIEN affirmer sur l'activité de la personne : la carte ne reçoit que la
+  // notice, jamais le profil. « Ce budget correspond à des journées plutôt assises »
+  // était faux pour qui a déjà déclaré `light`/`active`/`physical` — et ce sont
+  // justement des gens à qui la carte est servie.
+  const suite = 'Si tes journées sont plus actives que ce que Kyroz a retenu, dis-le : ton budget suivra.';
   return (
     <Card t={t}>
       <Text style={{ color: t.text, fontSize: 13, lineHeight: 19 }}>
-        Ton budget est passé de {notice.from} à {notice.to} kcal/jour ({delta > 0 ? '+' : ''}{delta}). Kyroz a corrigé deux choses : tes séances étaient comptées en double avec ta dépense de repos, et le niveau d'activité de tes journées était supposé au lieu d'être demandé.
+        Ton budget est passé de {notice.from} à {notice.to} kcal/jour ({delta > 0 ? '+' : ''}{delta}). {explication}
       </Text>
       <Text style={{ color: t.textSecondary, fontSize: 13, lineHeight: 19, marginTop: 8 }}>
-        Par défaut, Kyroz part de journées plutôt assises. Si les tiennes sont plus actives, dis-le — ton budget remontera.
+        {suite}
       </Text>
       <View style={{ flexDirection: 'row', gap: 10, marginTop: 14 }}>
         <TouchableOpacity onPress={onAdjust} activeOpacity={0.85} style={{ flex: 1, backgroundColor: t.accent, borderRadius: Radius.sm, paddingVertical: 11, alignItems: 'center' }}>

@@ -216,12 +216,23 @@ describe('A3 — projection simulée : plus de date flatteuse', () => {
     }
   });
 
-  it('femme en sèche : la date recule de PLUS D\'UN AN vs l\'ancien calcul', () => {
-    // F 80 → 70 kg en 24 semaines. L'escalade de zone basse écrase le déficit servi
-    // (285 → 34 kcal/j entre S13 et S26) : la vraie date est en 2029, pas en 2027.
-    const { sim, lin } = deuxDates(corps({ sex: 'female', weight_kg: 80, height_cm: 170, age: 35 }), 70, 24);
+  it('femme en sèche : la date recule encore de près d\'un an vs l\'ancien calcul', () => {
+    // ⚠️ GABARIT ET SEUIL CHANGÉS LE 2026-07-31, pour une raison qui vaut d'être lue :
+    // le relèvement NEAT (`desk` 1,20 → 1,30) a supprimé une GRANDE PART de ce bug à
+    // la source. La date flatteuse et le déficit rogné avaient la MÊME cause — le
+    // plancher mangeait le déficit, donc la perte réelle était bien plus lente que
+    // la projection linéaire ne le supposait. Le déficit demandé étant maintenant
+    // servi, les deux projections se rapprochent : sur le profil d'origine
+    // (F 80 → 70 kg / 24 sem), l'écart tombe de 365+ jours à 68.
+    //
+    // LE BUG N'A PAS DISPARU POUR AUTANT — il est simplement redevenu un cas limite
+    // au lieu d'être la norme. Mesuré après le relèvement, sur 4841 objectifs datés
+    // féminins : écart maximum 358 jours, et le calcul linéaire promet encore une
+    // date que la simulation refuse dans 12,1 % des cas. Le correctif A3 reste donc
+    // load-bearing, et ce test le vérifie sur le profil qui l'expose le plus.
+    const { sim, lin } = deuxDates(corps({ sex: 'female', weight_kg: 90, height_cm: 175, age: 35, sports: [], training_days_per_week: 0 }), 70, 8);
     expect(sim.projectable).toBe(true);
-    expect(daysBetween(lin.projectedDate, sim.projectedDate)).toBeGreaterThan(365);
+    expect(daysBetween(lin.projectedDate, sim.projectedDate)).toBeGreaterThan(300);
     expect(sim.reachableByDate).toBe(false);
   });
 
@@ -232,10 +243,14 @@ describe('A3 — projection simulée : plus de date flatteuse', () => {
   });
 
   it('LE BUG DE FOND — « rien n\'est bridé aujourd\'hui » ne vaut plus promesse', () => {
-    // F 65 → 62 kg en 30 semaines : aucun plafond ne mord le jour de la saisie,
-    // donc l'ancien calcul concluait « atteignable » — alors que l'escalade, elle,
-    // arrive à la 13ᵉ semaine et fera glisser la date. C'est exactement le mensonge.
-    const { sim, lin } = deuxDates(corps({ sex: 'female', weight_kg: 65, height_cm: 167 }), 62, 30);
+    // Aucun plafond ne mord le jour de la saisie, donc l'ancien calcul conclut
+    // « atteignable » — alors que l'escalade, elle, arrive plus tard et fera glisser
+    // la date. C'est exactement le mensonge que A3 corrige.
+    // ⚠️ Gabarit changé le 2026-07-31 (F 55 → 47 kg / 24 sem, au lieu de F 65 → 62 kg
+    // / 30 sem) : après le relèvement NEAT, l'ancien profil reçoit son déficit entier
+    // et n'expose plus le cas. Trouvé par balayage, pas au jugé — le glissement y est
+    // de 19 jours, modeste mais RÉEL, et c'est bien une promesse contredite.
+    const { sim, lin } = deuxDates(corps({ sex: 'female', weight_kg: 55, height_cm: 155, age: 35, training_days_per_week: 3, sports: [{ type: 'musculation', sessions_per_week: 3, minutes_per_session: 60 }] }), 47, 24);
     expect(sim.clamped).toBe(false);
     expect(sim.floorCapped).toBe(false);
     expect(lin.reachableByDate).toBe(true);   // l'ancien calcul promettait…

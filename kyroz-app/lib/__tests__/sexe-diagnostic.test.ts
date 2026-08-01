@@ -7,7 +7,7 @@
  */
 import { describe, it, expect } from 'vitest';
 import {
-  calculateBMR, calculateTDEE, computePlan, leanBodyMass,
+  calculateBMR, calculateTDEE, computePlan, leanBodyMass, neatPal,
 } from '../tdee';
 import {
   EA_HARD_FLOOR, MIN_KCAL, effectiveEaPerKgFfm, fatFreeMassKg, resolvedBodyFatPct,
@@ -62,7 +62,7 @@ function radiographie(sex: Sex, bf: number | undefined) {
     formule: formuleEmpruntee(sex, p.weight_kg, p.height_cm, p.age, bf),
     masseMaigre: Math.round(ffm * 10) / 10,
     bmr,
-    neatPal: 1.20,
+    neatPal: neatPal(p.neat_level),   // LU du moteur : en dur, le tableau cessait de recomposer le TDEE
     sportKcalJour: Math.round(sport),
     tdee,
     demande: tdee - 300,                                     // GOAL_CONFIG.cut

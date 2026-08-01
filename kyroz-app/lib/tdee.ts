@@ -52,9 +52,9 @@ export function calculateBMR(
 // 1,45 : les 1,50 / 1,65 des tables classiques sont des niveaux « exercice inclus »
 // et recouvriraient une dépense déjà comptée.
 export const NEAT_PAL: Record<NeatLevel, number> = {
-  desk: 1.20,
-  light: 1.28,
-  active: 1.36,
+  desk: 1.30,
+  light: 1.35,
+  active: 1.40,
   physical: 1.45,
 };
 
@@ -63,18 +63,38 @@ export const NEAT_PAL: Record<NeatLevel, number> = {
  * majorité des profils, la question vivant dans le profil et pas à l'onboarding.
  * Ce défaut EST donc la valeur servie en pratique : ce n'est pas un détail.
  *
- * 1,20 et pas 1,30/1,35, parce que l'erreur n'est pas symétrique :
- *  • sur-estimer le NEAT → la personne mange à sa maintenance en croyant sécher.
- *    Échec SILENCIEUX, indétectable autrement qu'en ne perdant rien pendant des
- *    semaines. Mesuré : 1,35 efface 61 à 87 % du déficit d'un profil sédentaire
- *    (H 30 ans, 85 kg : −216 → −28 kcal/j) et transforme la sèche d'une femme de
- *    95 kg à 45 %MG en prise (+12 kcal/j).
- *  • sous-estimer → la personne perd un peu plus vite que prévu. VISIBLE sur la
- *    balance, rattrapé par le suivi de trajectoire, et borné par le plancher de
- *    sécurité qui, lui, ne bouge pas.
+ * ⚠️ RELEVÉ DE 1,20 À 1,30 LE 2026-07-31 (décision fondateur). L'argument d'origine
+ * — reproduit plus bas — reste valable dans ses termes, mais il répondait à une
+ * AUTRE question que celle qui compte.
  *
- * C'est aussi la continuité stricte avec le jugement déjà encodé par l'ancien
- * multiplicateur legacy à 0 séance (1,2).
+ * L'argument d'origine (calibration du 2026-07-28) : l'erreur n'est pas symétrique.
+ *  • sur-estimer le NEAT → la personne mange à sa maintenance en croyant sécher.
+ *    Échec SILENCIEUX. Mesuré : 1,35 efface 61 à 87 % du déficit d'un profil
+ *    sédentaire (H 30 ans, 85 kg : −216 → −28 kcal/j).
+ *  • sous-estimer → elle perd un peu plus vite. VISIBLE sur la balance, rattrapé
+ *    par le suivi de trajectoire, borné par le plancher de sécurité.
+ *
+ * CE QUE CETTE CALIBRATION N'AVAIT PAS MESURÉ, et qui renverse la conclusion : elle
+ * comparait le déficit au moteur LEGACY, jamais le déficit SERVI au déficit DEMANDÉ.
+ * Or à 1,20 le déficit demandé n'était **jamais** servi — le plancher d'énergie
+ * disponible mordait à toutes les masses maigres, de 30 à 80 kg. Point de bascule
+ * exact : `FFM ≤ 35,3 kg` (⟺ `144 ≥ 4,08 × FFM`) ; au-delà c'est le plancher EA,
+ * en deçà `MIN_KCAL`. Autrement dit « sèche = −300 kcal/j » était une promesse que
+ * le moteur ne tenait pour personne, ce qui tombe sous la règle « pas de mensonge
+ * dans Kyroz » : c'est le chiffre qu'il faut corriger, pas l'habillage.
+ *
+ * Mesuré sur 27 648 profils, ancienne table contre nouvelle :
+ *   • cible servie : médiane +77 kcal/j, max +239, AUCUNE cible ne baisse ;
+ *   • plancher contraignant : 16 % → 9 % des profils ;
+ *   • sèche, les −300 pleins réellement servis : 59 % → 81 % des profils.
+ *
+ * ⚠️ LE RISQUE ASSUMÉ n'a pas disparu, il est choisi : sur un objectif de MAINTIEN
+ * la hausse est répercutée intégralement (médiane +84 kcal/j, max +239). Si
+ * l'estimation NEAT est trop haute, ces personnes mangent au-dessus de leur dépense
+ * — et c'est silencieux. Le contrepoids est que 1,20 est sous le plancher
+ * physiologique d'un adulte libre de ses mouvements (la FAO ne descend pas sous
+ * 1,40 pour un mode de vie sédentaire ; 1,20 y décrit un alitement), alors même que
+ * Kyroz compte le sport À PART et n'a donc aucun risque de double-comptage à 1,30.
  */
 export const DEFAULT_NEAT_LEVEL: NeatLevel = 'desk';
 
@@ -93,8 +113,12 @@ export const NEAT_ORDER: NeatLevel[] = ['desk', 'light', 'active', 'physical'];
  * ⚠️ CE N'EST PAS DE LA COSMÉTIQUE — c'est le réglage le plus lourd de l'app.
  *
  * Mesuré sur 800 profils (2 sexes × 5 âges × 5 %MG × 4 profils sportifs × 4
- * objectifs), un SEUL cran ajoute 126 à 165 kcal/j de maintenance (médiane 142) ;
- * `desk` → `physical` vaut +405 kcal/j sur la cible servie. Et surtout, en sèche :
+ * objectifs), un SEUL cran ajoutait 126 à 165 kcal/j de maintenance (médiane 142) et
+ * `desk` → `physical` valait +405 kcal/j. ⚠️ CHIFFRES DE L'ANCIENNE TABLE : depuis
+ * le resserrement du 2026-07-31 (pas de 0,05 au lieu de 0,08), un cran vaut ~90 kcal/j
+ * et l'amplitude totale 0,15 × BMR — soit 270 kcal/j sur un BMR de 1800, pas 450.
+ * Ils sont conservés parce que le RAISONNEMENT qu'ils portent n'a pas changé ; ne
+ * pas les citer comme valeurs courantes. En sèche, sur l'ancienne table :
  *
  *   niveau     déficit réel servi     plancher de sécurité actif
  *   desk       −180 kcal/j            200/200  (100 %)
@@ -102,10 +126,15 @@ export const NEAT_ORDER: NeatLevel[] = ['desk', 'light', 'active', 'physical'];
  *   active     −300 kcal/j              0/200
  *   physical   −300 kcal/j              0/200
  *
- * Autrement dit : le plancher de sécurité n'est CONTRAIGNANT qu'au cran `desk`.
- * Monter d'un seul cran le fait disparaître pour la totalité des profils mesurés
- * et rend l'intégralité du déficit demandé. Ce clic-là n'est pas un détail de
- * formulaire, c'est le garde-fou.
+ * Autrement dit : le plancher de sécurité n'était CONTRAIGNANT qu'au cran `desk`.
+ * C'est exactement ce constat qui a fait relever `desk` à 1,30 le 2026-07-31 — le
+ * garde-fou tenait lieu de cible pour la majorité des utilisateurs. Depuis, l'écart
+ * entre crans est de 0,05 et non plus 0,08 : la table est resserrée (1,30 / 1,35 /
+ * 1,40 / 1,45) pour rester MONOTONE sans franchir le plafond de 1,45, au-delà
+ * duquel les niveaux classiques incluent l'exercice. Conséquence directe : un cran
+ * pèse désormais ~la moitié de ce que disent les chiffres ci-dessus, donc une
+ * sur-déclaration coûte moins cher. Les mesures qui suivent datent de l'ancienne
+ * table et gardent leur valeur d'ORDRE DE GRANDEUR, pas de valeur absolue.
  *
  * Nuance qui compte pour lire les chiffres : sur un profil DÉJÀ retenu par le
  * plancher, passer `desk` → `light` ne déplace la cible que de ~15 kcal (mesuré
@@ -719,8 +748,15 @@ export function makeWeeklyProjector(p: UserProfile): WeeklyProjector {
 /** Révision des profils calculés AVANT l'existence du champ (MET brut + multiplicateur legacy). */
 export const ENGINE_REV_LEGACY = 1;
 
-/** Révision courante — à INCRÉMENTER à chaque correction qui déplace les cibles. */
-export const ENGINE_REV = 2;
+/**
+ * Révision courante — à INCRÉMENTER à chaque correction qui déplace les cibles.
+ *
+ * rev 2 → 3 (2026-07-31) : table NEAT relevée (`desk` 1,20 → 1,30). Le texte de
+ * l'avertissement est SPÉCIFIQUE À LA RÉVISION (cf. EngineNoticeCard) — servir
+ * l'explication de la rev 2 à quelqu'un dont la cible a bougé pour une autre raison
+ * serait un mensonge, pas une approximation.
+ */
+export const ENGINE_REV = 3;
 
 /**
  * Seuil d'affichage (kcal/j, en valeur absolue). En dessous, l'écart tient dans le
@@ -737,10 +773,13 @@ export const ENGINE_NOTICE_MIN_DELTA = 100;
  * qui n'a jamais vu l'ancienne valeur.
  */
 function engineNoticeFor(prevRev: number | undefined, prevTarget: number, nextTarget: number): EngineNotice | undefined {
-  if ((prevRev ?? ENGINE_REV_LEGACY) === ENGINE_REV) return undefined;
+  const depuis = prevRev ?? ENGINE_REV_LEGACY;
+  if (depuis === ENGINE_REV) return undefined;
   if (!(prevTarget > 0) || !(nextTarget > 0)) return undefined;
   if (Math.abs(nextTarget - prevTarget) < ENGINE_NOTICE_MIN_DELTA) return undefined;
-  return { rev: ENGINE_REV, from: prevTarget, to: nextTarget };
+  // `fromRev` est indispensable à l'écran : `rev` seul dit où l'on ARRIVE, jamais
+  // d'où l'on vient — or c'est le trajet qui doit être expliqué.
+  return { rev: ENGINE_REV, from: prevTarget, to: nextTarget, fromRev: depuis };
 }
 
 // ── Producteur unique du profil calculé ──────────────────────────────────────
@@ -914,8 +953,21 @@ export function computePlan(p: UserProfile, today: string = todayStamp()): Compu
   // (`dismissEngineNotice`) : le profil est recalculé à chaque ouverture d'app, et
   // dès le deuxième passage `p.target_kcal` vaut déjà la NOUVELLE valeur — l'écart
   // serait alors nul et le message s'effacerait avant d'avoir été vu.
-  const engine_notice = p.engine_notice
-    ?? engineNoticeFor(p.engine_rev, p.target_kcal, m.target_kcal);
+  // ⚠️ CHAÎNAGE, et non « le premier arrivé gagne ». Un avertissement NON LU appartient
+  // à une bascule précédente : le garder tel quel ferait avaler la nouvelle, et
+  // l'écran afficherait les chiffres de l'ancienne transition alors que le moteur
+  // sert déjà la nouvelle valeur — un mensonge à l'écran, et la seule explication
+  // que cette personne verra jamais du changement le plus récent.
+  // On fusionne : `from` reste le point de départ le plus ANCIEN (ce que la personne
+  // avait réellement sous les yeux), `to` devient la valeur servie aujourd'hui.
+  const nouvelleNotice = engineNoticeFor(p.engine_rev, p.target_kcal, m.target_kcal);
+  const engine_notice = p.engine_notice && nouvelleNotice
+    ? {
+        ...nouvelleNotice,
+        from: p.engine_notice.from,
+        fromRev: p.engine_notice.fromRev ?? p.engine_notice.rev,
+      }
+    : (p.engine_notice ?? nouvelleNotice);
 
   // ── Trace du plancher, déposée SUR LE PROFIL ──────────────────────────────
   // Version allégée de `m.clamp` : les candidats perdants servent au diagnostic
@@ -942,7 +994,20 @@ export function computePlan(p: UserProfile, today: string = todayStamp()): Compu
   // mettre la clé à `undefined` ne suffit pas, `JSON.stringify` l'élide.
   const { clamp: _clampPrecedent, ...profilSansClamp } = p;
 
-  const escalation = lowEaEscalation(p, lowEaWeeks) ?? undefined;
+  // La hausse annoncée doit être la hausse VÉCUE : on donne à l'escalade de quoi
+  // rejouer la décision du moteur (cf. safety.lowEaEscalation). Sans ces entrées,
+  // elle annonçait le pas théorique du plancher même quand la cible, située
+  // au-dessus, ne bougeait pas d'un kcal.
+  const escalation = lowEaEscalation(p, lowEaWeeks, {
+    requestedKcal: m.clamp.requestedKcal,
+    sportKcalPerDay,
+    maintenanceKcal: tdee,
+    bmr,
+    extraFloorKcal: Math.max(
+      0,
+      ...(['deficit_cap', 'underweight_maintenance'] as const).map((k) => m.clamp.candidates[k]),
+    ),
+  }) ?? undefined;
 
   return {
     profile: {
