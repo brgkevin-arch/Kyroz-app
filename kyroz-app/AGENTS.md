@@ -1412,6 +1412,33 @@ Plancher = énergie disponible (30 kcal/kg de masse maigre + sport, **plafonné 
   - **Ce qu'on ne fait PAS** : afficher les kcal sous chaque option. Ça transformerait une question factuelle (« c'est quoi tes journées ? ») en choix de résultat (« je prends lequel pour manger plus ? »).
   - `NEAT_SHORT` ajouté pour la ligne de résumé du profil (`numberOfLines={1}`) : la première version à 32 caractères s'affichait « journées assises, en dépl… », **vu à l'écran**. Budget mesuré à 375 pt : ~36 caractères préfixe compris.
 - ✅ **Fusion des deux sèches + énergie disponible HEBDOMADAIRE (2026-07-29).** `cut_aggressive` retiré des deux écrans et normalisé au chargement (`syncGuard::normalizeGoal`) — mesuré sur 2268 profils : **0 % d'écart** avec `cut` dès que le %MG est déclaré, 1 à 16 kcal/j quand il est estimé (du bruit). Conservé dans le type et `GOAL_CONFIG` : une ligne cloud non encore normalisée doit rester calculable. `'Sèche progressive'` → `'Sèche'`. **La vitesse se pilote désormais par l'objectif daté**, seul mécanisme qui sache dire si un rythme est tenable (P1.6) ; une carte le dit dans l'éditeur d'objectif.
+  - ⚠️ **L'argument « 0 % d'écart » est MORT depuis le relèvement NEAT du 2026-07-31**
+    (A7). En décollant la cible du plancher, il a rendu la parole aux deltas de
+    `GOAL_CONFIG`. Remesuré sur 2 160 profils, tous crans NEAT confondus : écart
+    médian **134 kcal/j** (p25 36 · p75 200), soit **67 % des 200 kcal nominaux** ;
+    le choix n'est encore fantôme que pour **19 %** des profils, contre 100 % avant.
+    Le test `fusion-seches.test.ts` avait prévu ce jour-là et disait « alors la
+    question de rouvrir un objectif rapide se repose légitimement ».
+  - ✅ **ARBITRÉ le 2026-07-31 : on NE rouvre PAS de « sèche rapide ».** Le motif a
+    changé, la décision tient — et pour une raison mesurée, pas par inertie :
+    **l'objectif daté sert DÉJÀ exactement le même déficit**, au kcal près.
+
+    | profil | sèche | rapide | **objectif daté** |
+    |---|---|---|---|
+    | H 90 kg · 25 %MG · 3× | −300 | −351 | **−351** |
+    | F 75 kg · 32 %MG · 4× | −300 | −384 | **−384** |
+    | H 110 kg · 35 %MG · 0× | −300 | −343 | **−343** |
+
+    Les deux butent sur le même plancher. Un « rapide » n'ouvrirait donc **aucune
+    porte** que l'objectif daté n'ouvre pas, et le ferait moins bien : il ne rend
+    aucun retour (l'objectif daté annonce une date et refuse un rythme intenable) ;
+    il promettrait 200 kcal et en servirait 134, le plancher mordant sur **71 %** des
+    profils « rapide » contre 19 % en « sèche » — soit exactement le mensonge qu'on
+    vient de retirer, déplacé d'un cran ; et il donnerait une version gratuite et
+    dégradée de la valeur Kyroz+ (« piloter son objectif dans le temps »).
+    **Ne pas re-proposer sans mesure nouvelle.** Le seul chantier qui reste sur ce
+    sujet est RÉDACTIONNEL : que « Sèche » dise qu'on peut aller plus vite via
+    l'objectif daté, plutôt que de laisser croire qu'il n'y a qu'un rythme.
   - **Décision fondateur : l'EA est une moyenne HEBDOMADAIRE, pas une contrainte quotidienne.** `safety.ts` disait « plancher RÉEL de la journée » — c'était faux, la dépense sportive est lissée (semaine/7). Mesuré sur 378 profils par volume : **94 à 98 %** des profils sportifs sont sous EA 30 le jour de leur séance (moyenne 24,8–28,7, min 23,4) et **aucun sous 20**. Le risque RED-S est chronique, pas journalier. ⚠️ **Ce que ce choix NE couvre PAS** : le volume CONCENTRÉ (`course 1×120` → 100 % sous EA 20, moyenne 8,1 ; **négatif** à 1×180). Ce n'est pas au plancher de le rattraper (il ne sait pas quel jour porte quelle séance) → **contrôle de plausibilité à la saisie, non fait à ce jour**.
   - `isTrainingDay` : défaut **dérivé des séances déclarées** au lieu de `true`. Il levait `CARBS_BELOW_TRAINING_FLOOR` sur des profils à ZÉRO séance (H 70 kg sédentaire : 189 g pour un seuil à 210 g). Inoffensif tant que le drapeau n'est affiché nulle part — **prérequis absolu avant de le câbler**.
 - ✅ **PR 2 — P1 (2026-07-28), étapes 1 et 2 livrées.** Validé par 15 agents AVANT implémentation (6 verdicts + 6 contre-expertises adverses + cohérence docs↔code + impact sur 12 profils). **La spec P1 avait tort trois fois** — d'où l'ordre de livraison, qui est celui de l'audit et pas celui du document : affichage d'abord (zéro kcal déplacé), budget constant ensuite, déplacement du TDEE en dernier.
