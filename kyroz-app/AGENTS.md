@@ -719,8 +719,18 @@ produit en suspens — il ne reste qu'à coder.
   ⚠️ **Trois recettes réécrites en cours de route**, toutes sur des collisions que seul le
   script voit : `soja_texture + tortilla + maïs + avocat` existait déjà à l'identique
   (4 refs communs), et « Seitan patate douce » partageait ses 3 premiers mots avec `rep41`.
-  ➡️ Reste 🧑 : lots `b1-lot3`, `b1-lot4` (`rep211`→`rep250`), puis `b3`. Les briefs sont
-  régénérés et voient déjà ce que les tranches 1 et 2 ont consommé.
+- ~~**D10 · Lot B1, tranche 3 sur 4**~~ ✅ **LIVRÉ le 2026-08-01 — 20 repas complets
+  (`rep211`→`rep230`), catalogue 367 → 387.** 11 carnées · 4 végétariennes · 5 vegan ·
+  9 sans gluten · 15 ancres protéiques distinctes. `check:doublons` → 0 violation ·
+  `check:enveloppe` → 20/20.
+  📈 Repas complets servables, **210/210 → 230/230** : F 55 sèche 148 → **168**,
+  H 65 sèche 169 → **189**, H 110 masse 69 → **74**.
+  ⚠️ **Le sans-gluten est tombé à 7 sur 9 demandés au premier jet, à cause de `sauce_soja`** :
+  elle est faite de blé et casse le régime, alors qu'elle ne pèse rien dans les macros et
+  qu'on la pose sans y penser. Remplacée par `oignon` dans deux recettes. À vérifier
+  systématiquement : le sans-gluten se compte sur TOUS les refs, pas seulement sur le féculent.
+  ➡️ Reste 🧑 : lot `b1-lot4` (`rep231`→`rep250`), puis `b3`. Les briefs sont régénérés et
+  voient déjà ce que les tranches 1 à 3 ont consommé.
 
 ### 🧹 E — Dette technique
 
