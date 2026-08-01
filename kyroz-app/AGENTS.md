@@ -637,6 +637,28 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
   18 tests ajoutés, **830 au total**. Vérifié à l'écran : saisie, date impossible,
   refus < 18 ans, repli des comptes sans date, animation, et non-rejeu au rechargement.
 
+- ~~**A18 · Le dépistage santé n'avait pas de « Non »**~~ ✅ **CORRIGÉ le 2026-08-02**
+  (remonté par le fondateur).
+  Chaque situation était un simple interrupteur : on tapait la carte pour dire « oui »,
+  et **« non » n'existait pas — c'était l'ABSENCE de tap**. Rien ne distinguait donc
+  *« j'ai lu et je ne suis pas concerné »* de *« je n'ai rien vu et j'ai filé vers le
+  bouton »*. Sur une préférence, ça passe ; sur le portail qui décide si l'app a le
+  droit de servir un moteur de déficit calorique (CLAUDE.md §6), non.
+  **Correctif** : réponses en TROIS états (oui / non / pas encore répondu). Chaque
+  situation porte un `Non / Oui` explicite, et « Continuer » reste désactivé tant que
+  les deux ne sont pas répondues — avec le motif affiché (*« Réponds aux deux questions
+  pour continuer. »*), sans reproche.
+  ℹ️ **L'attestation est CONSERVÉE** : elle couvre plus que les deux situations listées
+  (« je confirme être un adulte en bonne santé »). Trois taps au lieu d'un sur un écran
+  vu **une seule fois** : le coût est nul, retirer une attestation explicite pour
+  l'économiser n'en est pas un.
+  ℹ️ `SCREENING_VERSION` reste à **1**, à dessein : les critères dépistés n'ont pas
+  changé, seule la façon de répondre. L'incrémenter re-dépisterait tout le monde pour
+  rien.
+  La logique bloquante (`screeningBlocked`, testée) n'a pas bougé : seule la façon de
+  renseigner les drapeaux change. Vérifié à l'écran sur les deux chemins — « Non/Non +
+  attestation » débloque, « Oui » mène au cul-de-sac.
+
 ### 🎯 B — Les deux briques Kyroz+ qui restent
 
 La valeur premium est **construite et déployée** (objectif daté). Plus aucune décision
