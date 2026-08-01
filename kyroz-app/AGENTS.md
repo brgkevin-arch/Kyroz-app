@@ -682,6 +682,28 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
   n'était jamais le vrai coupable : c'est la synchro descendante. Garde `emitted` (on
   ignore ce qui nous revient de nous-même). Règle généralisée dans CLAUDE.md §11.
 
+- ~~**A20 · Le haut du Profil donnait la vedette à la série, pas au poids**~~
+  ✅ **FAIT le 2026-08-02** (décision fondateur, suite de A19).
+  **L'ordre était l'inverse de l'importance réelle.** Le poids ALIMENTE le moteur —
+  chaque pesée recalcule TDEE, macros et plan — et il tenait dans une ligne de menu
+  (« Suivi du poids · 82 kg »). La série, qui ne raconte que l'assiduité, occupait une
+  grosse carte en haut d'écran. Les deux ont échangé leur place.
+  **Nouveau `WeightSummaryCard`** : poids courant en gros, écart avec la pesée
+  précédente, mini-courbe (`WeightChart`, avec la trajectoire cible si un objectif daté
+  est posé), et un bouton qui devient « Me peser » quand une pesée est attendue. Sans
+  historique : une invitation, pas un vide.
+  ⚠️ **Deux choix de fond, pas cosmétiques** :
+  1. **La carte affiche le poids du PROFIL, pas la dernière pesée.** C'est celui que le
+     moteur utilise. Les deux diffèrent après un backfill (pesée saisie à une date
+     passée) — montrer l'autre serait un chiffre faux au sens de « pas de mensonge ».
+  2. **L'écart est en couleur NEUTRE.** Une hausse n'est pas une faute : la règle
+     produit (§10) veut que tout suivi rassure. Pas de rouge, pas de flèche dramatique.
+  **Série réduite à une LIGNE** : 🔥 compteur + « record N j » + le chaînon de 7 jours.
+  Le chaînon reste parce qu'il EST le North Star ; ce qui saute (compteur géant,
+  prochain palier) ne change rien à ce qu'on fait de sa journée.
+  ℹ️ Le variant s'appelle toujours `card` — nom conservé pour ne pas toucher aux
+  appelants, mais il rend une ligne. Ne pas réintroduire la grosse carte sans décision.
+
 ### 🎯 B — Les deux briques Kyroz+ qui restent
 
 La valeur premium est **construite et déployée** (objectif daté). Plus aucune décision

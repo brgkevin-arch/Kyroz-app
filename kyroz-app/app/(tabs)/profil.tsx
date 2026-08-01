@@ -20,6 +20,7 @@ import { BirthDateField } from '../../components/BirthDateField';
 import { ageOn } from '../../lib/birthday';
 import { ActionSheet } from '../../components/ActionSheet';
 import { StreakProgress } from '../../components/StreakProgress';
+import { WeightSummaryCard } from '../../components/WeightSummaryCard';
 import { BodyFatPicker } from '../../components/BodyFatPicker';
 import { DislikedFoodsField } from '../../components/DislikedFoodsField';
 import { MacroSplit } from '../../components/MacroSplit';
@@ -28,6 +29,7 @@ import { useHydrationEnabled } from '../../components/HydrationBar';
 import { useAnalyticsConsent } from '../../hooks/useAnalyticsConsent';
 import { useProfile } from '../../hooks/useProfile';
 import { useStreak } from '../../hooks/useStreak';
+import { useWeightLog } from '../../hooks/useWeightLog';
 import { useReminder } from '../../hooks/useReminder';
 import { usePlanCheckin } from '../../hooks/usePlanCheckin';
 import { useAuth } from '../../hooks/useAuth';
@@ -148,6 +150,9 @@ export default function ProfilScreen() {
   const layout = useLayout();
   const { profile, saveProfile, clearProfile } = useProfile();
   const { streak } = useStreak();
+  // Le suivi du poids est désormais une CARTE (courbe + écart) et non une ligne de
+  // menu : il lui faut les pesées, pas seulement le poids courant du profil.
+  const { entries: weightEntries, delta: weightDelta, due: weighInDue } = useWeightLog();
   const { slot, choose, busy } = useReminder();
   const { enabled: checkinEnabled, setEnabled: setCheckinEnabled } = usePlanCheckin();
   const { signOut } = useAuth();
@@ -287,13 +292,24 @@ export default function ProfilScreen() {
   return (
     <SafeAreaView style={s.safe} edges={['top']}>
       <ScrollView contentContainerStyle={[s.content, layout.content]} showsVerticalScrollIndicator={false}>
-        {/* Streak — progression vers l'objectif 7 jours (North Star) */}
-        <StreakProgress t={t} streak={streak} variant="card" />
+        {/* ⚠️ ORDRE INVERSÉ le 2026-08-02 (décision fondateur), et ce n'est pas
+            cosmétique : le POIDS alimente le moteur — chaque pesée recalcule TDEE,
+            macros et plan — alors que la série ne raconte que l'assiduité. Le premier
+            tenait dans une ligne de menu, la seconde occupait tout le haut de l'écran.
+            Ils ont échangé leur place. */}
+        <WeightSummaryCard
+          t={t}
+          profileWeightKg={profile.weight_kg}
+          entries={weightEntries}
+          delta={weightDelta}
+          due={weighInDue}
+          goalTarget={profile.goal_target}
+          onPress={() => setWeighIn(true)}
+        />
 
-        {/* Suivi du poids → recalcul auto des macros/plan */}
-        <View style={[s.menu, cardShadow(t)]}>
-          <MenuRow t={t} icon="trending-down-outline" label="Suivi du poids" value={`${profile.weight_kg} kg`} onPress={() => setWeighIn(true)} last />
-        </View>
+        {/* Série — ligne discrète : le chaînon de 7 jours reste (North Star), le
+            reste a été retiré (cf. StreakProgress). */}
+        <StreakProgress t={t} streak={streak} variant="card" />
 
         {/* Révision du moteur : la cible a bougé sans que l'utilisateur touche à rien.
             On l'explique UNE fois, factuellement, avec l'action qui permet d'affiner —
