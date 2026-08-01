@@ -4,7 +4,7 @@
 autorisés avec leurs macros, les règles, et ce qui est déjà pris dans le catalogue. Tu n'as besoin
 d'aucun autre document et d'aucun accès au code.
 
-Généré depuis le catalogue live (314 recettes) — les valeurs ci-dessous sont exactes.
+Généré depuis le catalogue live (327 recettes) — les valeurs ci-dessous sont exactes.
 
 ---
 
@@ -15,14 +15,17 @@ Généré depuis le catalogue live (314 recettes) — les valeurs ci-dessous son
 ids à produire, dans cet ordre, sans trou et sans doublon :
 `rep231`, `rep232`, `rep233`, `rep234`, `rep235`, `rep236`, `rep237`, `rep238`, `rep239`, `rep240`, `rep241`, `rep242`, `rep243`, `rep244`, `rep245`, `rep246`, `rep247`, `rep248`, `rep249`, `rep250`
 
-Répartition par régime, à respecter exactement :
+Répartition par régime, à respecter exactement. **Les trois lignes sont exclusives** : une
+recette tombe dans une seule, et c'est l'ingrédient le plus restrictif qui décide.
 
 | | Nombre |
 |---|---|
-| Sans restriction (viande, volaille, poisson, œufs, produits laitiers) | **11** |
-| Végétariennes (pas de chair animale ; œufs et laitages permis) | **4** |
-| Vegan strictes (aucun produit animal) | **5** |
-| **dont sans gluten, toutes catégories confondues** | **≥ 9** |
+| **Carnées ou marines** — contiennent viande, volaille ou poisson | **11** |
+| **Végétariennes** — œufs et/ou laitages, **aucune** chair animale | **4** |
+| **Vegan** — aucun produit animal (ni œuf, ni laitage, ni miel) | **5** |
+| **dont sans gluten, toutes lignes confondues** | **≥ 9** |
+
+Les seules ancres carnées que le §4 t'autorise sur ce créneau : `boeuf_5` · `boeuf_bavette` · `cabillaud` · `crevettes` · `dinde_escalope` · `jambon_blanc` · `maquereau` · `poulet_filet` · `sardines` · `saumon` · `saumon_fume` · `thon_frais` · `thon_naturel`. Aucune ne peut porter plus de 5 recettes (§7).
 
 Le sans-gluten est **transverse** : une recette vegan peut compter dans les deux colonnes. N'écris
 jamais le régime dans la recette — il est **déduit** des `ref` employés.
@@ -304,7 +307,7 @@ imiter — structure, nommage, niveau de détail :
     "carbs": 64.6,
     "fat": 17.7
   },
-  "wave": "2026-07-30-vague-113"
+  "wave": "2026-08-01-b1-lot4-repas"
 }
 ```
 
@@ -324,7 +327,7 @@ imiter — structure, nommage, niveau de détail :
 | `instructions` | **4 à 7 étapes** — voir §6 |
 | `why` | une phrase sobre sur l'intérêt nutritionnel. Aucune promesse de santé, aucune revendication de régime. |
 | `macros_per_serving` | **calculé**, pas estimé : pour chaque ingrédient `per_100 × qty / 100`, puis somme. Tolérance ±10 %. |
-| `wave` | `"2026-07-30-vague-113"` pour les 20 |
+| `wave` | `"2026-08-01-b1-lot4-repas"` pour les 20 — c'est le nom du dossier de drop qui portera cette livraison, la convention du catalogue (`_meta.waves`). Recopie-le tel quel. |
 
 ---
 
@@ -464,34 +467,35 @@ Refs les plus employés dans cette catégorie — à ne PAS renforcer :
 ### Ancres encore OUVERTES — c'est là qu'il faut aller
 
 Dire ce qui est interdit sans dire ce qui reste libre envoie dans un mur. Voici les ancres
-protéiques par ordre de **disponibilité** : « couples saturés » = combinaisons déjà fermées pour
-cette ancre, « places libres » = combinaisons (ancre × féculent) encore utilisables.
+protéiques par ordre de **disponibilité** — **toutes prises dans les 96 refs du §4**,
+donc toutes réellement employables. « Couples saturés » = combinaisons déjà fermées pour cette
+ancre, « places libres » = combinaisons (ancre × féculent autorisé) encore utilisables.
 
-| Ancre protéine | Couples saturés | Places libres |
-|---|---|---|
-| `dinde_escalope` | — | 29 |
-| `boeuf_5` | — | 29 |
-| `porc_filet` | — | 29 |
-| `jambon_blanc` | — | 29 |
-| `saumon` | — | 29 |
-| `saumon_fume` | — | 29 |
-| `thon_frais` | — | 29 |
-| `maquereau` | — | 29 |
-| `sardines` | — | 29 |
-| `blanc_oeuf` | — | 29 |
-| `skyr` | — | 29 |
-| `fromage_blanc_0` | — | 29 |
-| `yaourt_grec` | — | 29 |
-| `cottage_cheese` | — | 29 |
-| `whey` | — | 29 |
-| `mozzarella` | — | 29 |
-| `feta` | — | 29 |
-| `parmesan` | — | 29 |
+| Ancre protéine | Déjà employée ici | Couples saturés | Places libres |
+|---|---|---|---|
+| `haricots_rouges_conserve` | — | — | 21 |
+| `lentilles_cuites` | — | — | 21 |
+| `tofu_fume` | — | — | 21 |
+| `blanc_oeuf` | 1 | — | 21 |
+| `feves` | 1 | — | 21 |
+| `maquereau` | 1 | — | 21 |
+| `saumon_fume` | 1 | — | 21 |
+| `thon_frais` | 1 | — | 21 |
+| `yaourt_soja_proteine` | 1 | — | 21 |
+| `cottage_cheese` | 2 | — | 21 |
+| `fromage_blanc_0` | 2 | — | 21 |
+| `mozzarella` | 2 | — | 21 |
+| `pois_casses` | 2 | — | 21 |
+| `sardines` | 2 | — | 21 |
+| `seitan` | 2 | — | 21 |
+| `jambon_blanc` | 4 | — | 21 |
+| `lentilles_vertes` | 4 | — | 21 |
+| `yaourt_grec` | 4 | — | 21 |
 
-**Refs JAMAIS employés en `repas_complet`** — terrain entièrement vierge, aucun risque de
+**Refs du §4 JAMAIS employés en `repas_complet`** — terrain entièrement vierge, aucun risque de
 doublon :
 
-`banane` · `beurre_amande` · `boisson_soja` · `cacao_poudre` · `chataigne` · `chocolat_noir` · `dattes` · `falafel` · `flocons_avoine` · `framboises` · `fruits_rouges` · `galette_riz` · `graines_chia` · `haricots_rouges_conserve` · `kiwi` · `lait_amande` · `lait_demi_ecreme` · `lentilles_cuites` · `mangue` · `myrtilles` · `noisettes` · `noix` · `pain_sans_gluten` · `pain_seigle` · `pois_chiches_conserve` · `pomme` · `porc_filet` · `proteine_vegetale` · `raisins` · `sirop_erable` · `skyr` · `tahini` · `tofu_fume` · `whey` · `wrap_sans_gluten` · `yaourt_soja`
+`boisson_soja` · `falafel` · `haricots_rouges_conserve` · `lentilles_cuites` · `pain_sans_gluten` · `pois_chiches_conserve` · `tahini` · `tofu_fume` · `wrap_sans_gluten`
 
 ### Diversité de format
 
@@ -701,8 +705,9 @@ précédentes.
 - [ ] Aucun couple protéine × féculent de la liste des saturés.
 - [ ] Au plus 3 `ref` en commun avec une recette existante, et entre les recettes du lot.
 - [ ] Deux recettes du lot ne partagent pas leurs 3 premiers mots significatifs.
-- [ ] Répartition par régime du §1 respectée, sans écrire le régime dans la recette.
-- [ ] `wave` renseigné partout.
+- [ ] Répartition par régime du §1 respectée, **les trois lignes étant exclusives**, sans écrire
+      le régime dans la recette.
+- [ ] `wave` = `"2026-08-01-b1-lot4-repas"` sur les 20.
 
 Réponds avec **le JSON seul**. Si un ingrédient t'a manqué, ou si une recette t'a semblé
 impossible à tenir dans l'enveloppe, dis-le **après** le JSON, en clair.
