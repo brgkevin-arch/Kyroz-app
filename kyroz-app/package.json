@@ -49,7 +49,8 @@
     "check:enveloppe": "npx tsx scripts/mesure-couverture.ts --enveloppe",
     "mesure:couverture": "npx tsx scripts/mesure-couverture.ts",
     "gen:lots": "npx tsx scripts/gen-brief-lot.ts",
-    "store:assets": "node test/store-assets.mjs"
+    "store:assets": "node test/store-assets.mjs",
+    "mesure:variete": "npx tsx scripts/mesure-variete.ts"
   },
   "private": true,
   "homepage": "https://brgkevin-arch.github.io/Kyroz-app"

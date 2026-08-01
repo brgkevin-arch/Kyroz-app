@@ -69,6 +69,16 @@ const FIBER_SELECT_W = 0.005;
 // ~1 % à travers le balayage 0→0.09). Les recettes à flag (≥ 0.4) restent hors bande.
 // Cf. selectMealAdapted. Balayage 2026-07-23 : variété semaine ~×2 vs 0, précision plate.
 const VARIETY_STEP = 0.06;
+// Pénalité de score par utilisation d'une FAMILLE dans la semaine (cf. `familyKey`).
+// La rotation par `usage` ne connaît que l'id : elle empêche la même recette de
+// revenir, pas deux recettes quasi identiques. Mesuré avant ce correctif, sur
+// 240 semaines simulées (12 profils × 5 régimes × 4 tirages) : **56,3 % des semaines
+// servaient au moins deux recettes du MÊME couple (protéine × féculent)**, et le pire
+// contrevenant — `edamame × maïs` en collation, 48 semaines — est un groupe de DEUX
+// recettes, donc parfaitement légal au regard de la règle anti-doublons R4 (qui ne
+// s'alarme qu'au-delà de 2). ➡️ Le compteur R4 n'est pas l'instrument du défaut ; le
+// moteur, lui, le mesure. Valeur calibrée par balayage : cf. AGENTS.md D18.
+const FAMILY_STEP = 0.03;
 
 // Reroll (« Nouveau plan ») : pour produire un plan DIFFÉRENT à chaque clic, on
 // élargit le pool de choix (borné) et on décale la sélection avec un `seed`. Le
@@ -363,10 +373,27 @@ interface AdaptedChoice {
  * contre-sens (8 recettes taguées « jour off » dépassent 50 % de kcal glucidiques).
  * Un tag de contenu ne peut pas arbitrer mieux que le moteur qui, lui, mesure.
  */
+/**
+ * Clé de FAMILLE d'une recette : `refs protéine × refs glucide`.
+ *
+ * C'est le même triplet que la règle anti-doublons R4 du catalogue, moins la catégorie
+ * (les pools sont déjà séparés par créneau). Deux recettes qui partagent cette clé sont
+ * « la même assiette autrement racontée » : poulet-riz-brocoli et wok poulet-riz-légumes.
+ * L'utilisateur les vit comme une répétition ; `usage`, qui ne compte que les ids, ne
+ * les distingue pas.
+ */
+function familyKey(r: Recipe): string {
+  const refs = (role: string) =>
+    r.ingredients.filter((i) => i.macro_role === role).map((i) => i.ref ?? i.name).sort().join('+') || '∅';
+  return `${refs('protein')}×${refs('carb')}`;
+}
+
 function selectMealAdapted(
   pool: Recipe[],
   target: AdaptTarget,
   usage: Record<string, number>,
+  familyUsage: Record<string, number>,
+  families: Map<string, string>,
   variety: VarietyPreference,
   preferredIds: Set<string>,
   objectives: RecipeObjective[],
@@ -409,8 +436,14 @@ function selectMealAdapted(
   // variété quasi inchangée) ; au-delà de ~0.015 → surdose (>55 g) + variété qui chute.
   // Hors sèche : 0 (le maintien/la prise de masse ne sont pas touchés).
   const step = variety === 'repetitive' ? 0 : VARIETY_STEP;
+  // Même logique un cran plus haut : servir une recette pénalise TOUTE sa famille, plus
+  // faiblement que la recette elle-même (une famille reste servable deux fois dans la
+  // semaine si le pool est mince — c'est un nudge, pas une interdiction).
+  const famStep = variety === 'repetitive' ? 0 : FAMILY_STEP;
   const fiberW = fiberStrong ? FIBER_SELECT_W : 0;
-  const effOf = (c: AdaptedChoice) => c.score - fiberW * c.fiber + step * (usage[c.recipe.id] ?? 0);
+  const effOf = (c: AdaptedChoice) =>
+    c.score - fiberW * c.fiber + step * (usage[c.recipe.id] ?? 0)
+    + famStep * (familyUsage[families.get(c.recipe.id) ?? ''] ?? 0);
   candidates.sort((a, b) => effOf(a) - effOf(b) || a.recipe.id.localeCompare(b.recipe.id));
 
   const minEff = effOf(candidates[0]);
@@ -724,6 +757,13 @@ export function buildLocalPlan(profile: UserProfile, seed: number = 0): MealPlan
   const meals: Meal[] = [];
   // Compteur d'utilisation sur la semaine pour étaler les recettes (variété).
   const usage: Record<string, number> = {};
+  // Idem au niveau FAMILLE (couple protéine × féculent) : empêche deux quasi-doublons
+  // dans la même semaine, ce que `usage` — qui ne connaît que les ids — laisse passer.
+  // La table est construite UNE fois par plan (et non par repas) : le calcul de clé est
+  // du tri de chaînes sur 466 recettes, il n'a rien à faire dans la boucle des 28 repas.
+  const familyUsage: Record<string, number> = {};
+  const families = new Map<string, string>();
+  for (const mt of allMealTypes) for (const r of pools[mt] ?? []) if (!families.has(r.id)) families.set(r.id, familyKey(r));
   // Reliquat calorique reporté de jour en jour → la semaine converge vers days×cible.
   let weekDeficitKcal = 0;
 
@@ -774,10 +814,13 @@ export function buildLocalPlan(profile: UserProfile, seed: number = 0): MealPlan
       );
 
       const choice = selectMealAdapted(
-        pools[mealType], target, usage, variety, preferredIds, objectives, sportBuckets, seed, fiberStrong, goalDir,
+        pools[mealType], target, usage, familyUsage, families, variety, preferredIds, objectives, sportBuckets,
+        seed, fiberStrong, goalDir,
       );
 
       usage[choice.recipe.id] = (usage[choice.recipe.id] ?? 0) + 1;
+      const fam = families.get(choice.recipe.id);
+      if (fam) familyUsage[fam] = (familyUsage[fam] ?? 0) + 1;
       remainingKcal -= choice.macros.kcal;
       remainingProtein -= choice.macros.protein_g;
       remainingWeight -= weight;
