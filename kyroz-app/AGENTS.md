@@ -367,9 +367,51 @@ produit en suspens — il ne reste qu'à coder.
   `bankedTargets` / `dayTargetKcal`, utilisée aussi par l'écran Plan (qui affichait
   le jour « resto » comme un dépassement). 4 tests. **Leçon : une cible du jour ne
   se recalcule pas à deux endroits.**
-- **B2 · 🤖 Paywall RevenueCat** → dériver `is_premium` et gater objectif daté, banque,
-  transformation. Aujourd'hui **tout est gratuit**, le verrou n'est pas posé.
-  Tarif retenu : 4,99 €/mois · 39,99 €/an.
+- **B2 · Paywall — 🤖 L'ÉCRAN ET LE VERROU SONT POSÉS le 2026-08-01. Reste le SDK.**
+  Tarif retenu : 4,99 €/mois · 39,99 €/an. **Rien n'est verrouillé aujourd'hui** :
+  `PAYWALL_LAUNCH` vaut toujours `null`, donc `premiumAccess` renvoie
+  `{ allowed: true, reason: 'not_launched' }` à tout le monde et le code de verrou
+  est inerte. Le jour de la mise en vente = **poser une date, et rien d'autre**.
+
+  **Ce qui a été livré :**
+  - `app/kyroz-plus.tsx` — écran plein écran, route `/kyroz-plus`. Il sert les
+    **4 états** d'`AccessReason`, pas seulement la vente. Angle retenu « sobre » :
+    il ressemble à un écran de réglages, pas à une page de vente ; on explique
+    avant de demander, le bloc « ce qui reste gratuit » est aussi long que
+    l'argumentaire, et il n'y a ni compte à rebours ni « offre limitée ».
+  - **Verrou à point d'étranglement UNIQUE** : `openEditor()` dans `profil.tsx`.
+    Toutes les ouvertures d'éditeur y passent, **y compris le deep-link
+    `@kyroz:openEditor`** — c'est ce qui empêche de contourner le verrou en
+    ajoutant une surface. Le piège aurait été de ne garder que les `onPress`.
+  - `lib/premium.ts` : `PREMIUM_PRICES`, `annualSavingPct()`, `paywallBanner()`.
+    7 tests ajoutés (775 au total). Ils verrouillent ce que l'écran PROMET :
+    montants = ceux tarifés chez Apple, économie annoncée **arrondie vers le bas**
+    (33 %, jamais 34), et **aucun appel à payer** dans les 3 états non verrouillés.
+
+  **⚠️ Trois choses à savoir avant de continuer :**
+  1. **La capture pour la revue Apple doit venir d'un build iOS, PAS du web.**
+     Mesuré sur le bundle exporté : Metro remplace `Platform.OS` par `'web'` à la
+     compilation, donc le bouton « S'abonner » et « Restaurer mes achats » sont
+     **éliminés comme code mort** du build web. C'est correct (le navigateur ne
+     peut pas encaisser), mais qui cherche le CTA dans le bundle web conclura à
+     tort qu'il manque.
+  2. **`PREMIUM_PRICES` est une source PROVISOIRE.** Les montants sont les tarifs
+     FRANÇAIS. Au câblage, ils doivent venir du `priceString` du store, qui est
+     LOCALISÉ — afficher des euros à qui sera facturé en dollars serait exactement
+     le mensonge que la règle interdit. `PREMIUM_PRICES_ARE_LOCAL_FALLBACK` existe
+     pour que l'écran puisse le dire, et il le dit.
+  3. **Le verrou est d'INTERFACE, pas de moteur — c'est assumé, et ça a un prix.**
+     `goal_target` pilote `target_kcal` (`lib/tdee.ts`) et `calorie_bank` déplace
+     les calories de la semaine (`planEngine.ts`), tous deux **hors de tout hook
+     premium**. Un abonnement expiré laisserait donc un objectif déjà posé
+     continuer d'agir. Le corriger ferait bouger le plan sous les yeux de la
+     personne (`calorie_bank` est dans `profileSignature` → plan périmé +
+     régénération) : à trancher le jour où un abonnement peut réellement expirer,
+     pas avant.
+
+  🧑 **Reste, et ça demande tes comptes** : installer `react-native-purchases`,
+  remplacer `useEntitlement()` (une fonction, isolée exprès), brancher l'achat et
+  la restauration, puis poser une date dans `PAYWALL_LAUNCH`.
 
 ### 📱 C — Sortie stores
 

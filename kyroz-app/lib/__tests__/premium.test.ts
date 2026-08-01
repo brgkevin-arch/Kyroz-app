@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   PAYWALL_LAUNCH, PREMIUM_FEATURES, canUse, grandfatheredNotice, isGrandfathered, premiumAccess,
+  PREMIUM_PRICES, annualSavingPct, paywallBanner,
 } from '../premium';
 
 const LANCEMENT = '2026-09-01T00:00:00.000Z';
@@ -89,5 +90,62 @@ describe('grandfatheredNotice', () => {
     for (const r of ['not_launched', 'entitled', 'locked'] as const) {
       expect(grandfatheredNotice(r), r).toBeNull();
     }
+  });
+});
+
+// ── Tarifs et copie du paywall ───────────────────────────────────────────────
+// Ces tests verrouillent ce que l'écran PROMET. « Pas de mensonge dans Kyroz » :
+// un chiffre affiché est celui qui sera débité.
+
+describe('tarifs Kyroz+', () => {
+  it('les identifiants produits correspondent à ceux déclarés dans les stores', () => {
+    expect(PREMIUM_PRICES.map((p) => p.storeProductId)).toEqual([
+      'kyroz_plus_monthly', 'kyroz_plus_annual',
+    ]);
+  });
+
+  it('les montants sont ceux tarifés côté Apple (4,99 / 39,99)', () => {
+    expect(PREMIUM_PRICES.find((p) => p.id === 'monthly')!.price).toBe('4,99 €');
+    expect(PREMIUM_PRICES.find((p) => p.id === 'annual')!.price).toBe('39,99 €');
+  });
+
+  it('l’économie annoncée est VRAIE et jamais surestimée', () => {
+    // 4,99 × 12 = 59,88 · 39,99 → 33,2 % → on annonce 33, pas 34.
+    expect(annualSavingPct()).toBe(33);
+    const reel = (1 - 39.99 / (4.99 * 12)) * 100;
+    expect(annualSavingPct()!).toBeLessThanOrEqual(reel);
+  });
+
+  it('n’annonce AUCUNE économie si l’annuel n’est pas moins cher', () => {
+    expect(annualSavingPct([
+      { id: 'monthly', storeProductId: 'm', label: 'M', price: '4,99 €', billed: '' },
+      { id: 'annual', storeProductId: 'a', label: 'A', price: '59,88 €', billed: '' },
+    ])).toBeNull();
+    expect(annualSavingPct([
+      { id: 'monthly', storeProductId: 'm', label: 'M', price: 'gratuit', billed: '' },
+      { id: 'annual', storeProductId: 'a', label: 'A', price: '39,99 €', billed: '' },
+    ])).toBeNull();
+  });
+});
+
+describe('paywallBanner', () => {
+  it('couvre les 4 raisons, sans texte vide', () => {
+    for (const r of ['not_launched', 'grandfathered', 'entitled', 'locked'] as const) {
+      const b = paywallBanner(r);
+      expect(b.title.length, r).toBeGreaterThan(0);
+      expect(b.body.length, r).toBeGreaterThan(0);
+    }
+  });
+
+  it('un compte non verrouillé ne lit JAMAIS un appel à payer', () => {
+    for (const r of ['not_launched', 'grandfathered', 'entitled'] as const) {
+      const txt = `${paywallBanner(r).title} ${paywallBanner(r).body}`.toLowerCase();
+      expect(txt, r).not.toMatch(/abonne-toi|s'abonner|souscri|achet|essai gratuit/);
+    }
+  });
+
+  it('promet la gratuité à vie aux comptes antérieurs — c’est la décision fondateur', () => {
+    expect(paywallBanner('not_launched').body).toContain('à vie');
+    expect(paywallBanner('grandfathered').body).toContain('à vie');
   });
 });

@@ -109,3 +109,107 @@ export function grandfatheredNotice(reason: AccessReason): string | null {
     ? 'Inclus dans ton compte, à vie — tu étais là avant Kyroz+.'
     : null;
 }
+
+// ── Tarifs ───────────────────────────────────────────────────────────────────
+//
+// ⚠️ SOURCE PROVISOIRE, et c'est un point de « pas de mensonge » à ne pas rater.
+// Ces montants sont les tarifs FRANÇAIS déclarés dans App Store Connect
+// (cf. STORE-RELEASE.md §1-bis). Ils sont écrits ici pour UNE raison : produire
+// la capture d'écran que la revue Apple exige avant d'activer les abonnements,
+// alors que RevenueCat n'est pas branché.
+//
+// LE JOUR DU CÂBLAGE : remplacer ces chaînes par le `priceString` renvoyé par le
+// store, qui est LOCALISÉ. Un montant en euros affiché à quelqu'un qui sera
+// facturé en dollars serait exactement le mensonge que la règle interdit.
+// `PREMIUM_PRICES_ARE_LOCAL_FALLBACK` existe pour que l'écran puisse le dire.
+
+export const PREMIUM_PRICES_ARE_LOCAL_FALLBACK = true;
+
+export interface PremiumPlan {
+  id: 'monthly' | 'annual';
+  /** Identifiant produit côté stores — doit correspondre à App Store Connect / Play. */
+  storeProductId: string;
+  label: string;
+  /** Prix affiché. Remplacé par le `priceString` du store au câblage. */
+  price: string;
+  /** Ce qui est réellement débité, en toutes lettres. */
+  billed: string;
+}
+
+export const PREMIUM_PRICES: PremiumPlan[] = [
+  {
+    id: 'monthly',
+    storeProductId: 'kyroz_plus_monthly',
+    label: 'Mensuel',
+    price: '4,99 €',
+    billed: 'Débité chaque mois. Sans engagement, tu arrêtes quand tu veux.',
+  },
+  {
+    id: 'annual',
+    storeProductId: 'kyroz_plus_annual',
+    label: 'Annuel',
+    price: '39,99 €',
+    billed: 'Débité une fois par an, soit 3,33 € par mois.',
+  },
+];
+
+/**
+ * Économie de l'annuel par rapport à 12 mensualités, en pourcentage ENTIER
+ * arrondi vers le bas. Arrondir vers le bas garantit qu'on n'annonce jamais une
+ * économie plus grande que la vraie.
+ *
+ * Renvoie `null` si les prix ne sont pas comparables (formats inattendus) ou si
+ * l'annuel n'est pas moins cher — dans ce cas l'écran n'affiche simplement rien,
+ * plutôt qu'un « 0 % » ou un chiffre faux.
+ */
+export function annualSavingPct(plans: PremiumPlan[] = PREMIUM_PRICES): number | null {
+  const eur = (p?: PremiumPlan) => {
+    if (!p) return NaN;
+    const n = Number(p.price.replace(/[^0-9,.]/g, '').replace(',', '.'));
+    return Number.isFinite(n) && n > 0 ? n : NaN;
+  };
+  const m = eur(plans.find((p) => p.id === 'monthly'));
+  const a = eur(plans.find((p) => p.id === 'annual'));
+  if (!Number.isFinite(m) || !Number.isFinite(a)) return null;
+  const plein = m * 12;
+  if (a >= plein) return null;
+  return Math.floor(((plein - a) / plein) * 100);
+}
+
+/**
+ * Bandeau d'état en tête du paywall : ce que la personne doit lire EN PREMIER,
+ * selon la raison de son accès.
+ *
+ * Vit ici et non dans l'écran pour une raison concrète : `vitest.config.ts` ne
+ * collecte que `lib/__tests__/**`, donc rien de ce qui est écrit dans `app/` ou
+ * `hooks/` n'est testable. Ces phrases-là engagent le produit — elles méritent
+ * un verrou.
+ */
+export function paywallBanner(reason: AccessReason): { title: string; body: string } {
+  switch (reason) {
+    case 'not_launched':
+      return {
+        title: "Kyroz+ n'est pas encore en vente",
+        body:
+          "Ces trois outils sont actifs dans ton compte aujourd'hui, et ils y resteront : " +
+          'les comptes ouverts avant la mise en vente gardent tout, à vie.',
+      };
+    case 'grandfathered':
+      return {
+        title: "C'est déjà à toi",
+        body:
+          'Inclus dans ton compte, à vie — tu étais là avant Kyroz+. ' +
+          "Tu n'as rien à faire, et rien à payer.",
+      };
+    case 'entitled':
+      return {
+        title: 'Ton abonnement Kyroz+ est actif',
+        body: 'Le renouvellement et la résiliation se gèrent dans les réglages de ton compte App Store ou Google Play.',
+      };
+    case 'locked':
+      return {
+        title: 'Piloter ton objectif dans le temps',
+        body: 'Ton plan, tes courses et tes recettes ne changent pas — ils restent gratuits.',
+      };
+  }
+}

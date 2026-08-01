@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useCallback } from 'react';
+import React, { useMemo, useState, useCallback, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Platform, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -11,6 +11,8 @@ import { DISCLAIMER } from '../../constants/legal';
 import { CIQUAL_ATTRIBUTION } from '../../lib/foods';
 import { Card, PrimaryButton, Chip, OptionCard, Field, SectionLabel, Segmented } from '../../components/ui';
 import { bankedDailyTargets, offsetsForPlan } from '../../lib/calorieBank';
+import { usePremium } from '../../hooks/usePremium';
+import { PremiumFeature, AccessReason } from '../../lib/premium';
 import { Sheet } from '../../components/Sheet';
 import { ActionSheet } from '../../components/ActionSheet';
 import { StreakProgress } from '../../components/StreakProgress';
@@ -113,6 +115,22 @@ const withRecalc = recalcProfile;
 
 type EditorKey = 'info' | 'sports' | 'goal' | 'dated_goal' | 'macros' | 'prefs' | 'meals' | 'calorie_bank';
 
+// Éditeurs réservés à Kyroz+ une fois le paywall lancé. Les autres n'y figurent
+// pas et restent ouverts à tout le monde, définitivement.
+const EDITEURS_PREMIUM: Partial<Record<EditorKey, PremiumFeature>> = {
+  dated_goal: 'dated_goal',
+  calorie_bank: 'calorie_bank',
+};
+
+// Valeur de la ligne de menu « Kyroz+ », selon la raison de l'accès. Aujourd'hui
+// seule `not_launched` est atteignable (`PAYWALL_LAUNCH === null`).
+const KYROZ_PLUS_VALEUR: Record<AccessReason, string> = {
+  not_launched: 'Tout est déjà ouvert',
+  grandfathered: 'Inclus à vie',
+  entitled: 'Abonnement actif',
+  locked: 'En savoir plus',
+};
+
 // Objectif daté : horizons proposés (semaines) — évite un date-picker (lourd sur
 // web) et cadre l'UX sur « dans N semaines » ; la date exacte est dérivée + affichée.
 const HORIZONS = [4, 8, 12, 16, 24];
@@ -139,11 +157,31 @@ export default function ProfilScreen() {
 
   const save = async (updated: UserProfile) => { await saveProfile(updated); setEditor(null); };
 
+  // ── Verrou Kyroz+ ──────────────────────────────────────────────────────────
+  // `openEditor` est le point d'étranglement UNIQUE : toute ouverture d'éditeur
+  // passe par lui, y compris le deep-link ci-dessous. C'est ce qui rend le verrou
+  // impossible à contourner en ajoutant une surface — le piège serait de garder
+  // seulement les `onPress` des lignes de menu.
+  // ⚠️ INERTE tant que `PAYWALL_LAUNCH` vaut `null` : `can()` renvoie alors true
+  // pour tout le monde, donc aucun comportement ne change aujourd'hui.
+  const premium = usePremium();
+  // Ref plutôt que dépendance : le deep-link ci-dessous doit rester enregistré une
+  // seule fois (sinon il relit AsyncStorage à chaque rendu), mais il doit lire le
+  // verdict À JOUR au moment du clic, pas celui du premier rendu.
+  const premiumRef = useRef(premium);
+  premiumRef.current = premium;
+
+  const openEditor = (key: EditorKey) => {
+    const feature = EDITEURS_PREMIUM[key];
+    if (feature && !premiumRef.current.can(feature)) { router.push('/kyroz-plus'); return; }
+    setEditor(key);
+  };
+
   // Deep-link depuis l'écran Plan (« Personnaliser ma répartition ») : ouvre direct
   // l'éditeur demandé au focus, via un drapeau (même principe que REROLL_KEY).
   useFocusEffect(useCallback(() => {
     AsyncStorage.getItem('@kyroz:openEditor').then((v) => {
-      if (v) { AsyncStorage.removeItem('@kyroz:openEditor'); setEditor(v as EditorKey); }
+      if (v) { AsyncStorage.removeItem('@kyroz:openEditor'); openEditor(v as EditorKey); }
     });
   }, []));
 
@@ -316,11 +354,12 @@ export default function ProfilScreen() {
           <MenuRow t={t} icon="person-outline" label="Informations" value={`${SEX_LABELS[profile.sex]} · ${profile.age} ans · ${profile.weight_kg} kg${profile.body_fat_pct != null ? ` · ${profile.body_fat_pct}% MG` : ''}`} onPress={() => setEditor('info')} />
           <MenuRow t={t} icon="barbell-outline" label="Sport & activité" value={`${profile.sports?.length ? `${profile.sports.length} sport${profile.sports.length > 1 ? 's' : ''}` : 'Aucun sport'} · ${NEAT_SHORT[profile.neat_level ?? DEFAULT_NEAT_LEVEL]}`} onPress={() => setEditor('sports')} />
           <MenuRow t={t} icon="flag-outline" label="Objectif" value={goalLabel(profile.goal)} onPress={() => setEditor('goal')} />
-          <MenuRow t={t} icon="rocket-outline" label="Objectif daté" value={profile.goal_target ? `${profile.goal_target.target_weight_kg} kg · ${formatFR(profile.goal_target.target_date)}` : 'Aucun'} onPress={() => setEditor('dated_goal')} />
+          <MenuRow t={t} icon="rocket-outline" label="Objectif daté" value={profile.goal_target ? `${profile.goal_target.target_weight_kg} kg · ${formatFR(profile.goal_target.target_date)}` : (premium.can('dated_goal') ? 'Aucun' : 'Inclus dans Kyroz+')} onPress={() => openEditor('dated_goal')} />
           <MenuRow t={t} icon="flame-outline" label="Calories & macros" value={profile.macro_mode === 'percent' ? 'Perso %' : 'Calculées'} onPress={() => setEditor('macros')} />
           <MenuRow t={t} icon="restaurant-outline" label="Préférences alimentaires" value={profile.dietary_restrictions.length || profile.disliked_foods.length || profile.hidden_recipes?.length ? 'Personnalisées' : 'Aucune'} onPress={() => setEditor('prefs')} />
           <MenuRow t={t} icon="calendar-outline" label="Paramètres des repas" value={`${profile.plan_days} j · ${(profile.meals?.length || 4)} repas · ${EMPHASIS_LABELS[profile.meal_emphasis ?? 'even']}`} onPress={() => setEditor('meals')} />
-          <MenuRow t={t} icon="wallet-outline" label="Banque de calories" value={bankResume(profile)} onPress={() => setEditor('calorie_bank')} />
+          <MenuRow t={t} icon="wallet-outline" label="Banque de calories" value={premium.can('calorie_bank') ? bankResume(profile) : 'Inclus dans Kyroz+'} onPress={() => openEditor('calorie_bank')} />
+          <MenuRow t={t} icon="sparkles-outline" label="Kyroz+" value={KYROZ_PLUS_VALEUR[premium.reason]} onPress={() => router.push('/kyroz-plus')} />
           <MenuRow t={t} icon="refresh-outline" label="Régénérer mon plan" value="Repartir de zéro" onPress={regenPlan} last />
         </View>
 
