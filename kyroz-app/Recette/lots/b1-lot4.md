@@ -4,7 +4,7 @@
 autorisés avec leurs macros, les règles, et ce qui est déjà pris dans le catalogue. Tu n'as besoin
 d'aucun autre document et d'aucun accès au code.
 
-Généré depuis le catalogue live (327 recettes) — les valeurs ci-dessous sont exactes.
+Généré depuis le catalogue live (347 recettes) — les valeurs ci-dessous sont exactes.
 
 ---
 
@@ -114,6 +114,10 @@ pour l'application — il serait invisible au calcul des macros, au filtre des r
 de courses. Si un ingrédient te manque vraiment, ne l'invente pas : signale-le à la fin de ta
 réponse, hors du JSON.
 
+Les valeurs /100 g ci-dessous sont **celles que l'application sert réellement** — c'est avec
+elles qu'elle calcule les macros de l'assiette et qu'elle juge si ta recette est servable.
+Calcule ton `macros_per_serving` avec elles et rien d'autre.
+
 Colonnes : **Pesée** = « SEC » signifie que la quantité écrite est le poids sec avant cuisson (riz,
 pâtes, légumes secs), « cru » le poids cru (viandes, poissons, tubercules). **Max abs.** = plafond
 absolu que la quantité de base ne peut pas dépasser. **Déjà utilisé** = nombre de recettes de cette
@@ -122,100 +126,100 @@ catégorie qui emploient déjà ce `ref` (un chiffre élevé = format saturé, c
 
 | `ref` | Nom affiché | Unité | kcal/100 | P/100 | C/100 | L/100 | Pesée | Max abs. | Déjà utilisé |
 |---|---|---|---|---|---|---|---|---|---|
-| `amandes` | Amandes | g | 630 | 21 | 7 | 53 | — | ≤ 40 | 2 |
-| `ananas` | Ananas | g | 50 | 0.5 | 12 | 0.1 | — | — | 1 |
-| `asperges` | Asperges | g | 22 | 2.5 | 2 | 0.2 | — | — | 4 |
-| `avocat` | Avocat | g | 160 | 2 | 2 | 15 | — | ≤ 100 | 15 |
-| `betterave` | Betterave cuite | g | 43 | 1.6 | 8 | 0.2 | — | — | 3 |
-| `beurre_cacahuete` | Beurre de cacahuète | g | 600 | 25 | 12 | 50 | — | ≤ 40 | 4 |
-| `blanc_oeuf` | Blanc d'œuf | g | 48 | 10.9 | 0.7 | 0.2 | — | — | 1 |
-| `boeuf_5` | Bœuf haché 5% MG | g | 137 | 21 | 0 | 5 | cru | — | 10 |
-| `boeuf_bavette` | Bavette de bœuf | g | 170 | 26 | 0 | 7 | cru | — | 5 |
+| `amandes` | Amandes | g | 631 | 21.4 | 8.8 | 52.5 | — | ≤ 40 | 4 |
+| `ananas` | Ananas | g | 52 | 0.2 | 11.7 | 0.5 | — | — | 1 |
+| `asperges` | Asperges | g | 25 | 2.5 | 2 | 0.3 | — | — | 5 |
+| `avocat` | Avocat | g | 203 | 1.6 | 0 | 20.6 | — | ≤ 100 | 16 |
+| `betterave` | Betterave cuite | g | 42 | 1.4 | 7.1 | 0.4 | — | — | 3 |
+| `beurre_cacahuete` | Beurre de cacahuète | g | 643 | 22.2 | 17.3 | 51.4 | — | ≤ 40 | 4 |
+| `blanc_oeuf` | Blanc d'œuf | g | 48 | 10.9 | 0.7 | 0.2 | — | — | 4 |
+| `boeuf_5` | Bœuf haché 5% MG | g | 130 | 21.9 | 0.3 | 4.6 | cru | — | 10 |
+| `boeuf_bavette` | Bavette de bœuf | g | 133 | 20.4 | 0 | 5.7 | cru | — | 6 |
 | `boisson_soja` | Boisson au soja nature | ml | 42 | 3.2 | 1.9 | 2.1 | — | — | 0 |
-| `boulgour` ⛔SG | Boulgour | g | 350 | 12 | 70 | 1.5 | SEC | — | 9 |
-| `brocoli` | Brocoli | g | 34 | 2.8 | 4 | 0.4 | — | — | 12 |
-| `cabillaud` | Dos de cabillaud | g | 80 | 18 | 0 | 0.7 | cru | — | 11 |
-| `carotte` | Carotte | g | 36 | 0.8 | 7 | 0.2 | — | — | 10 |
-| `champignons` | Champignons | g | 22 | 3 | 1 | 0.3 | — | — | 9 |
+| `boulgour` ⛔SG | Boulgour | g | 347 | 11.7 | 65.8 | 1.4 | SEC | — | 12 |
+| `brocoli` | Brocoli | g | 32 | 2.9 | 2.1 | 0.4 | — | — | 13 |
+| `cabillaud` | Dos de cabillaud | g | 77 | 18.1 | 0 | 0.6 | cru | — | 11 |
+| `carotte` | Carotte | g | 30 | 0.8 | 5.2 | 0.5 | — | — | 11 |
+| `champignons` | Champignons | g | 21 | 2.1 | 1.8 | 0.4 | — | — | 10 |
 | `chapelure` ⛔SG | Chapelure | g | 365 | 9.4 | 74.3 | 1.6 | — | ≤ 40 | 1 |
-| `chou_fleur` | Chou-fleur | g | 28 | 2 | 3 | 0.4 | — | — | 3 |
-| `concombre` | Concombre | g | 12 | 0.6 | 2 | 0.1 | — | — | 7 |
-| `cottage_cheese` | Cottage cheese | g | 98 | 11 | 3 | 4.3 | — | — | 2 |
-| `courgette` | Courgette | g | 17 | 1.2 | 2 | 0.2 | — | — | 14 |
-| `creme_soja` | Crème de soja | ml | 180 | 3 | 3 | 17 | — | ≤ 80 | 4 |
-| `crevettes` | Crevettes cuites | g | 99 | 21 | 0 | 1.5 | — | — | 6 |
-| `dinde_escalope` | Escalope de dinde | g | 110 | 24 | 0 | 1.5 | cru | — | 7 |
+| `chou_fleur` | Chou-fleur | g | 25 | 1.8 | 2.1 | 0.7 | — | — | 4 |
+| `concombre` | Concombre | g | 17 | 0.7 | 2.9 | 0.1 | — | — | 7 |
+| `cottage_cheese` | Cottage cheese | g | 98 | 11 | 3 | 4.3 | — | — | 4 |
+| `courgette` | Courgette | g | 17 | 1.2 | 1.8 | 0.3 | — | — | 17 |
+| `creme_soja` | Crème de soja | ml | 152 | 3.2 | 2 | 14.7 | — | ≤ 80 | 7 |
+| `crevettes` | Crevettes cuites | g | 91 | 20.5 | 0.2 | 0.8 | — | — | 7 |
+| `dinde_escalope` | Escalope de dinde | g | 108 | 23.7 | 0 | 1.5 | cru | — | 8 |
 | `edamame` | Edamame | g | 125 | 11 | 9 | 5 | — | — | 5 |
-| `epinards` | Épinards frais | g | 23 | 2.9 | 1.4 | 0.4 | — | — | 19 |
+| `epinards` | Épinards frais | g | 33 | 2.7 | 3.1 | 0.4 | — | — | 22 |
 | `falafel` ⛔SG | Falafel prêt à consommer | g | 211 | 7.4 | 17.7 | 10.8 | — | ≤ 200 | 0 |
-| `feta` | Feta | g | 264 | 14 | 1 | 21 | — | ≤ 60 | 7 |
-| `feves` | Fèves | g | 341 | 26 | 50 | 2 | SEC | — | 1 |
-| `fromage_blanc_0` | Fromage blanc 0% | g | 47 | 8 | 4 | 0.2 | — | — | 2 |
-| `graines_courge` | Graines de courge | g | 560 | 30 | 11 | 49 | — | ≤ 30 | 3 |
-| `haricots_blancs` | Haricots blancs | g | 333 | 21 | 46 | 1.5 | SEC | — | 5 |
+| `feta` | Feta | g | 273 | 15.4 | 1.2 | 22.6 | — | ≤ 60 | 8 |
+| `feves` | Fèves | g | 301 | 26.1 | 33.3 | 1.5 | SEC | — | 1 |
+| `fromage_blanc_0` | Fromage blanc 0% | g | 48 | 7.3 | 4.2 | 0.1 | — | — | 2 |
+| `graines_courge` | Graines de courge | g | 618 | 29.5 | 5.4 | 49.1 | — | ≤ 30 | 6 |
+| `haricots_blancs` | Haricots blancs | g | 307 | 23.4 | 43.9 | 0.8 | SEC | — | 5 |
 | `haricots_noirs` | Haricots noirs | g | 341 | 21 | 47 | 1.5 | SEC | — | 5 |
 | `haricots_rouges` | Haricots rouges | g | 314 | 22.5 | 46.1 | 1.1 | SEC | — | 9 |
 | `haricots_rouges_conserve` | Haricots rouges (conserve, égouttés) | g | 108 | 8.3 | 13 | 1 | — | — | 0 |
-| `haricots_verts` | Haricots verts | g | 30 | 1.8 | 4 | 0.2 | — | — | 7 |
-| `huile_olive` | Huile d'olive | g | 900 | 0 | 0 | 100 | — | ≤ 25 | 119 |
-| `jambon_blanc` | Jambon blanc | g | 110 | 20 | 1 | 3 | — | — | 4 |
-| `lait_coco` | Lait de coco | ml | 200 | 2 | 3 | 21 | — | ≤ 120 | 19 |
+| `haricots_verts` | Haricots verts | g | 32 | 1.8 | 4.1 | 0.2 | — | — | 8 |
+| `huile_olive` | Huile d'olive | g | 899 | 0.2 | 0 | 99.9 | — | ≤ 25 | 122 |
+| `jambon_blanc` | Jambon blanc | g | 117 | 20.5 | 0.8 | 3.5 | — | — | 6 |
+| `lait_coco` | Lait de coco | ml | 199 | 1.9 | 4.3 | 19.2 | — | ≤ 120 | 20 |
 | `legumes_wok` | Mélange wok (poivron/brocoli/carotte) | g | 30 | 1.5 | 5 | 0.3 | — | — | 12 |
-| `lentilles_corail` | Lentilles corail | g | 350 | 24 | 50 | 1.5 | SEC | — | 5 |
+| `lentilles_corail` | Lentilles corail | g | 328 | 27.7 | 44.9 | 0.8 | SEC | — | 5 |
 | `lentilles_cuites` | Lentilles cuites (conserve ou sachet) | g | 125 | 10.1 | 16.2 | 0.6 | — | — | 0 |
 | `lentilles_vertes` | Lentilles vertes | g | 327 | 25.1 | 44.5 | 1.8 | SEC | — | 4 |
 | `levure_maltee` ⛔SG | Levure maltée | g | 350 | 50 | 35 | 5 | — | ≤ 20 | 3 |
-| `mais` | Maïs | g | 96 | 3 | 17 | 1.2 | — | — | 12 |
-| `maquereau` | Maquereau | g | 205 | 19 | 0 | 14 | cru | — | 1 |
-| `miel` | Miel | g | 320 | 0.3 | 80 | 0 | — | — | 1 |
-| `millet` | Millet | g | 360 | 11 | 73 | 4 | SEC | — | 3 |
-| `mozzarella` | Mozzarella light | g | 170 | 20 | 1 | 9 | — | ≤ 60 | 2 |
-| `nouilles_completes` ⛔SG | Nouilles complètes | g | 350 | 13 | 65 | 2.5 | SEC | — | 2 |
-| `nouilles_riz` | Nouilles de riz | g | 360 | 3 | 84 | 0.5 | SEC | — | 12 |
-| `oeuf_entier` | Œuf entier | g | 145 | 12.7 | 0.7 | 9.8 | — | — | 18 |
-| `oignon` | Oignon | g | 40 | 1.1 | 8 | 0.1 | — | — | 14 |
-| `olives` | Olives | g | 150 | 1 | 1 | 15 | — | ≤ 40 | 4 |
-| `pain_complet` ⛔SG | Pain complet | g | 250 | 9 | 47 | 1.7 | — | — | 5 |
-| `pain_pita_complet` ⛔SG | Pain pita complet | g | 270 | 9 | 50 | 2.5 | — | — | 2 |
-| `pain_sans_gluten` | Pain sans gluten | g | 249 | 4.6 | 37.1 | 6.6 | — | — | 0 |
-| `parmesan` | Parmesan | g | 400 | 36 | 0 | 28 | — | ≤ 40 | 7 |
-| `patate_douce` | Patate douce | g | 86 | 1.6 | 20 | 0.1 | cru | — | 16 |
-| `pates_completes` ⛔SG | Pâtes complètes | g | 350 | 13 | 62 | 2.5 | SEC | — | 10 |
-| `pates_semoule` ⛔SG | Pâtes (semoule) | g | 360 | 12 | 72 | 1.5 | SEC | — | 3 |
-| `pesto` | Pesto | g | 450 | 4 | 6 | 45 | — | ≤ 30 | 3 |
-| `petits_pois` | Petits pois | g | 80 | 5 | 11 | 0.5 | — | — | 6 |
-| `pois_casses` | Pois cassés | g | 341 | 23 | 50 | 1.5 | SEC | — | 2 |
+| `mais` | Maïs | g | 105 | 2.7 | 18.3 | 1.7 | — | — | 12 |
+| `maquereau` | Maquereau | g | 198 | 18.1 | 0.9 | 13.5 | cru | — | 1 |
+| `miel` | Miel | g | 331 | 0.7 | 82.1 | 0 | — | — | 1 |
+| `millet` | Millet | g | 360 | 11 | 73 | 4 | SEC | — | 5 |
+| `mozzarella` | Mozzarella light | g | 227 | 16.5 | 0.7 | 17.7 | — | ≤ 60 | 3 |
+| `nouilles_completes` ⛔SG | Nouilles complètes | g | 353 | 11.8 | 67.6 | 2.2 | SEC | — | 2 |
+| `nouilles_riz` | Nouilles de riz | g | 365 | 7.4 | 80.5 | 1 | SEC | — | 12 |
+| `oeuf_entier` | Œuf entier | g | 140 | 12.8 | 0.1 | 9.8 | — | — | 18 |
+| `oignon` | Oignon | g | 39 | 1.1 | 6.2 | 0.6 | — | — | 16 |
+| `olives` | Olives | g | 182 | 1.4 | 0.3 | 18 | — | ≤ 40 | 6 |
+| `pain_complet` ⛔SG | Pain complet | g | 234 | 8.7 | 41.2 | 1.7 | — | — | 5 |
+| `pain_pita_complet` ⛔SG | Pain pita complet | g | 249 | 7.5 | 48.8 | 1.5 | — | — | 2 |
+| `pain_sans_gluten` | Pain sans gluten | g | 249 | 4.6 | 37.1 | 6.6 | — | — | 1 |
+| `parmesan` | Parmesan | g | 411 | 31.1 | 1.1 | 31 | — | ≤ 40 | 7 |
+| `patate_douce` | Patate douce | g | 81 | 1.6 | 17.1 | 0.1 | cru | — | 18 |
+| `pates_completes` ⛔SG | Pâtes complètes | g | 353 | 11.8 | 67.6 | 2.2 | SEC | — | 11 |
+| `pates_semoule` ⛔SG | Pâtes (semoule) | g | 364 | 12 | 72.7 | 1.6 | SEC | — | 4 |
+| `pesto` | Pesto | g | 370 | 3.9 | 6.6 | 35.4 | — | ≤ 30 | 4 |
+| `petits_pois` | Petits pois | g | 92 | 4.9 | 13.7 | 0.8 | — | — | 7 |
+| `pois_casses` | Pois cassés | g | 347 | 23.8 | 47.5 | 1.2 | SEC | — | 2 |
 | `pois_chiches` | Pois chiches | g | 350 | 20.5 | 47.5 | 6 | SEC | — | 17 |
 | `pois_chiches_conserve` | Pois chiches (conserve, égouttés) | g | 122 | 6.7 | 15 | 2.7 | — | — | 0 |
-| `poivron` | Poivron | g | 26 | 1 | 4.6 | 0.3 | — | — | 13 |
-| `polenta` | Polenta | g | 360 | 8 | 73 | 1.5 | SEC | — | 9 |
-| `pomme_de_terre` | Pomme de terre | g | 80 | 2 | 17 | 0.1 | cru | — | 14 |
-| `poulet_filet` | Filet de poulet | g | 121 | 23 | 0 | 2.5 | cru | — | 29 |
-| `quinoa` | Quinoa | g | 368 | 14 | 58 | 6 | SEC | — | 15 |
-| `ratatouille` | Ratatouille de légumes | g | 35 | 1.2 | 5 | 1 | — | — | 7 |
-| `riz_basmati` | Riz basmati | g | 350 | 7.5 | 78 | 0.9 | SEC | — | 31 |
-| `riz_complet` | Riz complet | g | 350 | 7 | 77 | 2.8 | SEC | — | 16 |
-| `roquette` | Roquette | g | 25 | 2.6 | 2 | 0.7 | — | — | 8 |
-| `salade_verte` | Salade verte | g | 15 | 1.4 | 1.5 | 0.2 | — | — | 11 |
-| `sardines` | Sardines (conserve égouttées) | g | 180 | 25 | 0 | 9 | — | — | 2 |
-| `sarrasin` | Sarrasin | g | 350 | 13 | 70 | 3 | SEC | — | 6 |
-| `sauce_soja` ⛔SG | Sauce soja | ml | 60 | 6 | 6 | 0 | — | — | 12 |
-| `saumon` | Pavé de saumon | g | 208 | 20 | 0 | 13 | cru | — | 12 |
-| `saumon_fume` | Saumon fumé | g | 180 | 25 | 0 | 9 | — | — | 1 |
-| `seitan` ⛔SG | Seitan | g | 140 | 25 | 4 | 2 | — | — | 2 |
-| `semoule_couscous` ⛔SG | Semoule de couscous | g | 360 | 12 | 72 | 1.5 | SEC | — | 5 |
-| `soja_texture` | Protéine de soja texturée (PST) | g | 345 | 52 | 30 | 1 | SEC | ≤ 70 | 30 |
-| `tahini` | Purée de sésame (tahini) | g | 631 | 17.7 | 13.8 | 53.4 | — | ≤ 40 | 0 |
-| `tempeh` | Tempeh | g | 190 | 19 | 9 | 11 | — | — | 7 |
-| `thon_frais` | Thon frais | g | 144 | 23 | 0 | 5 | cru | — | 1 |
-| `thon_naturel` | Thon au naturel (conserve) | g | 116 | 26 | 0 | 1 | — | — | 9 |
-| `tofu_ferme` | Tofu ferme | g | 130 | 16 | 2 | 8 | — | — | 15 |
+| `poivron` | Poivron | g | 23 | 0.8 | 3.5 | 0.3 | — | — | 17 |
+| `polenta` | Polenta | g | 350 | 7.9 | 74 | 1.8 | SEC | — | 11 |
+| `pomme_de_terre` | Pomme de terre | g | 80 | 2 | 16.2 | 0.1 | cru | — | 15 |
+| `poulet_filet` | Filet de poulet | g | 110 | 23.4 | 0 | 1.5 | cru | — | 29 |
+| `quinoa` | Quinoa | g | 358 | 13.2 | 58.1 | 6.1 | SEC | — | 16 |
+| `ratatouille` | Ratatouille de légumes | g | 35 | 1.2 | 5 | 1 | — | — | 8 |
+| `riz_basmati` | Riz basmati | g | 351 | 7.1 | 78.4 | 0.6 | SEC | — | 31 |
+| `riz_complet` | Riz complet | g | 350 | 7 | 71.4 | 2.8 | SEC | — | 17 |
+| `roquette` | Roquette | g | 28 | 2.6 | 2.1 | 0.7 | — | — | 10 |
+| `salade_verte` | Salade verte | g | 14 | 1 | 1.5 | 0.1 | — | — | 11 |
+| `sardines` | Sardines (conserve égouttées) | g | 217 | 23.3 | 0.3 | 13.7 | — | — | 4 |
+| `sarrasin` | Sarrasin | g | 362 | 13.3 | 67.5 | 3.4 | SEC | — | 8 |
+| `sauce_soja` ⛔SG | Sauce soja | ml | 40 | 7.2 | 1.7 | 0.5 | — | — | 12 |
+| `saumon` | Pavé de saumon | g | 193 | 20.5 | 0 | 12.4 | cru | — | 12 |
+| `saumon_fume` | Saumon fumé | g | 184 | 22.2 | 0.1 | 10.5 | — | — | 2 |
+| `seitan` ⛔SG | Seitan | g | 134 | 20.6 | 6.7 | 2.5 | — | — | 4 |
+| `semoule_couscous` ⛔SG | Semoule de couscous | g | 350 | 11.8 | 69.8 | 1.3 | SEC | — | 7 |
+| `soja_texture` | Protéine de soja texturée (PST) | g | 345 | 52 | 30 | 1 | SEC | ≤ 70 | 31 |
+| `tahini` | Purée de sésame (tahini) | g | 631 | 17.7 | 13.8 | 53.4 | — | ≤ 40 | 3 |
+| `tempeh` | Tempeh | g | 157 | 16.1 | 7.9 | 4.7 | — | — | 7 |
+| `thon_frais` | Thon frais | g | 155 | 24 | 2.7 | 5.4 | cru | — | 3 |
+| `thon_naturel` | Thon au naturel (conserve) | g | 143 | 26.8 | 0 | 3.9 | — | — | 10 |
+| `tofu_ferme` | Tofu ferme | g | 147 | 13.4 | 2.9 | 8.5 | — | — | 16 |
 | `tofu_fume` | Tofu fumé | g | 164 | 14.9 | 2.9 | 9.5 | — | — | 0 |
-| `tofu_soyeux` | Tofu soyeux | g | 55 | 5 | 2 | 3 | — | — | 2 |
-| `tomate` | Tomate | g | 18 | 0.9 | 3 | 0.2 | — | — | 14 |
-| `tomate_concassee` | Tomate concassée | g | 30 | 1.3 | 5 | 0.3 | — | — | 30 |
-| `tortilla_complete` ⛔SG | Tortilla blé complet | g | 300 | 9 | 49 | 7 | — | — | 7 |
-| `wrap_sans_gluten` | Wrap / tortilla sans gluten | g | 316 | 6.1 | 58 | 5.6 | — | — | 0 |
+| `tofu_soyeux` | Tofu soyeux | g | 54 | 4.6 | 1.5 | 2.9 | — | — | 2 |
+| `tomate` | Tomate | g | 18 | 0.5 | 3.4 | 0.5 | — | — | 17 |
+| `tomate_concassee` | Tomate concassée | g | 23 | 1.2 | 3.6 | 0.5 | — | — | 32 |
+| `tortilla_complete` ⛔SG | Tortilla blé complet | g | 320 | 8 | 53 | 7.5 | — | — | 7 |
+| `wrap_sans_gluten` | Wrap / tortilla sans gluten | g | 316 | 6.1 | 58 | 5.6 | — | — | 1 |
 | `yaourt_grec` | Yaourt grec égoutté (type Fage) | g | 115 | 9 | 4 | 7 | — | — | 4 |
 | `yaourt_soja_proteine` | Yaourt de soja protéiné | g | 65 | 9 | 4 | 1.5 | — | — | 1 |
 
@@ -302,10 +306,10 @@ imiter — structure, nommage, niveau de détail :
   ],
   "why": "Muscu/endurance maintien : mijoté parfumé, protéines maigres et glucides lents.",
   "macros_per_serving": {
-    "kcal": 648.9,
-    "protein": 51.4,
-    "carbs": 64.6,
-    "fat": 17.7
+    "kcal": 623.8,
+    "protein": 52,
+    "carbs": 61.1,
+    "fat": 16.9
   },
   "wave": "2026-08-01-b1-lot4-repas"
 }
@@ -448,21 +452,21 @@ Aucun `ref` protéique ne peut porter plus de **25 % des 20 recettes**, soit
 
 Refs les plus employés dans cette catégorie — à ne PAS renforcer :
 
-- `huile_olive` (fat) — déjà dans 119 recettes
+- `huile_olive` (fat) — déjà dans 122 recettes
 - `riz_basmati` (carb) — déjà dans 31 recettes
-- `soja_texture` (protein) — déjà dans 30 recettes
+- `soja_texture` (protein) — déjà dans 31 recettes
 - `poulet_filet` (protein) — déjà dans 29 recettes
-- `lait_coco` (fat) — déjà dans 19 recettes
+- `lait_coco` (fat) — déjà dans 20 recettes
 - `oeuf_entier` (protein) — déjà dans 18 recettes
+- `patate_douce` (carb) — déjà dans 18 recettes
 - `pois_chiches` (protein) — déjà dans 17 recettes
-- `patate_douce` (carb) — déjà dans 16 recettes
-- `riz_complet` (carb) — déjà dans 16 recettes
-- `avocat` (fat) — déjà dans 15 recettes
-- `quinoa` (carb) — déjà dans 15 recettes
-- `tofu_ferme` (protein) — déjà dans 15 recettes
-- `pomme_de_terre` (carb) — déjà dans 14 recettes
+- `riz_complet` (carb) — déjà dans 17 recettes
+- `avocat` (fat) — déjà dans 16 recettes
+- `quinoa` (carb) — déjà dans 16 recettes
+- `tofu_ferme` (protein) — déjà dans 16 recettes
+- `pomme_de_terre` (carb) — déjà dans 15 recettes
+- `boulgour` (carb) — déjà dans 12 recettes
 - `nouilles_riz` (carb) — déjà dans 12 recettes
-- `saumon` (protein) — déjà dans 12 recettes
 
 ### Ancres encore OUVERTES — c'est là qu'il faut aller
 
@@ -473,29 +477,29 @@ ancre, « places libres » = combinaisons (ancre × féculent autorisé) encore 
 
 | Ancre protéine | Déjà employée ici | Couples saturés | Places libres |
 |---|---|---|---|
-| `haricots_rouges_conserve` | — | — | 21 |
-| `lentilles_cuites` | — | — | 21 |
-| `tofu_fume` | — | — | 21 |
-| `blanc_oeuf` | 1 | — | 21 |
-| `feves` | 1 | — | 21 |
-| `maquereau` | 1 | — | 21 |
-| `saumon_fume` | 1 | — | 21 |
-| `thon_frais` | 1 | — | 21 |
-| `yaourt_soja_proteine` | 1 | — | 21 |
-| `cottage_cheese` | 2 | — | 21 |
-| `fromage_blanc_0` | 2 | — | 21 |
-| `mozzarella` | 2 | — | 21 |
-| `pois_casses` | 2 | — | 21 |
-| `sardines` | 2 | — | 21 |
-| `seitan` | 2 | — | 21 |
-| `jambon_blanc` | 4 | — | 21 |
-| `lentilles_vertes` | 4 | — | 21 |
-| `yaourt_grec` | 4 | — | 21 |
+| `haricots_rouges_conserve` | — | — | 20 |
+| `lentilles_cuites` | — | — | 20 |
+| `tofu_fume` | — | — | 20 |
+| `feves` | 1 | — | 20 |
+| `maquereau` | 1 | — | 20 |
+| `yaourt_soja_proteine` | 1 | — | 20 |
+| `fromage_blanc_0` | 2 | — | 20 |
+| `pois_casses` | 2 | — | 20 |
+| `saumon_fume` | 2 | — | 20 |
+| `mozzarella` | 3 | — | 20 |
+| `thon_frais` | 3 | — | 20 |
+| `blanc_oeuf` | 4 | — | 20 |
+| `cottage_cheese` | 4 | — | 20 |
+| `lentilles_vertes` | 4 | — | 20 |
+| `sardines` | 4 | — | 20 |
+| `seitan` | 4 | — | 20 |
+| `yaourt_grec` | 4 | — | 20 |
+| `edamame` | 5 | — | 20 |
 
 **Refs du §4 JAMAIS employés en `repas_complet`** — terrain entièrement vierge, aucun risque de
 doublon :
 
-`boisson_soja` · `falafel` · `haricots_rouges_conserve` · `lentilles_cuites` · `pain_sans_gluten` · `pois_chiches_conserve` · `tahini` · `tofu_fume` · `wrap_sans_gluten`
+`boisson_soja` · `falafel` · `haricots_rouges_conserve` · `lentilles_cuites` · `pois_chiches_conserve` · `tofu_fume`
 
 ### Diversité de format
 
@@ -504,12 +508,12 @@ bowl, poêlée, salade, porridge/pudding, galette/pancake, soupe.
 
 ---
 
-## 8. Annexe — les 170 recettes `repas_complet` déjà au catalogue
+## 8. Annexe — les 190 recettes `repas_complet` déjà au catalogue
 
 **Tu as besoin de cette table pour respecter R1 et R2**, qui portent sur l'ensemble ENTIER des refs
 et pas seulement sur le couple protéine × féculent. Vérifie chacune de tes recettes contre elle.
 
-Refs les plus fréquents sur ce créneau (à éviter de renforcer) : `huile_olive` 119 · `riz_basmati` 31 · `tomate_concassee` 30 · `soja_texture` 30 · `poulet_filet` 29 · `epinards` 19 · `lait_coco` 19 · `oeuf_entier` 18 · `pois_chiches` 17 · `patate_douce` 16 · `riz_complet` 16 · `tofu_ferme` 15 · `quinoa` 15 · `avocat` 15 · `oignon` 14 · `courgette` 14 · `pomme_de_terre` 14 · `tomate` 14 · `poivron` 13 · `brocoli` 12 · `saumon` 12 · `legumes_wok` 12 · `sauce_soja` 12 · `mais` 12 · `nouilles_riz` 12 · `cabillaud` 11 · `salade_verte` 11 · `boeuf_5` 10 · `pates_completes` 10 · `carotte` 10 · `boulgour` 9 · `haricots_rouges` 9 · `thon_naturel` 9 · `polenta` 9 · `champignons` 9 · `roquette` 8 · `haricots_verts` 7 · `tortilla_complete` 7 · `dinde_escalope` 7 · `ratatouille` 7 · `concombre` 7 · `tempeh` 7 · `parmesan` 7 · `feta` 7 · `crevettes` 6 · `petits_pois` 6 · `sarrasin` 6 · `lentilles_corail` 5 · `boeuf_bavette` 5 · `edamame` 5 · `pain_complet` 5 · `semoule_couscous` 5 · `haricots_noirs` 5 · `haricots_blancs` 5
+Refs les plus fréquents sur ce créneau (à éviter de renforcer) : `huile_olive` 122 · `tomate_concassee` 32 · `riz_basmati` 31 · `soja_texture` 31 · `poulet_filet` 29 · `epinards` 22 · `lait_coco` 20 · `patate_douce` 18 · `oeuf_entier` 18 · `courgette` 17 · `poivron` 17 · `pois_chiches` 17 · `riz_complet` 17 · `tomate` 17 · `oignon` 16 · `tofu_ferme` 16 · `quinoa` 16 · `avocat` 16 · `pomme_de_terre` 15 · `brocoli` 13 · `saumon` 12 · `legumes_wok` 12 · `sauce_soja` 12 · `boulgour` 12 · `mais` 12 · `nouilles_riz` 12 · `cabillaud` 11 · `pates_completes` 11 · `salade_verte` 11 · `carotte` 11 · `polenta` 11 · `boeuf_5` 10 · `roquette` 10 · `thon_naturel` 10 · `champignons` 10 · `haricots_rouges` 9 · `haricots_verts` 8 · `dinde_escalope` 8 · `ratatouille` 8 · `feta` 8 · `sarrasin` 8 · `tortilla_complete` 7 · `concombre` 7 · `crevettes` 7 · `tempeh` 7 · `parmesan` 7 · `petits_pois` 7 · `semoule_couscous` 7 · `creme_soja` 7 · `boeuf_bavette` 6 · `olives` 6 · `jambon_blanc` 6 · `graines_courge` 6 · `lentilles_corail` 5 · `asperges` 5 · `edamame` 5 · `pain_complet` 5 · `haricots_noirs` 5 · `millet` 5 · `haricots_blancs` 5
 
 | id | ensemble de refs |
 |---|---|
@@ -683,6 +687,26 @@ Refs les plus fréquents sur ce créneau (à éviter de renforcer) : `huile_oliv
 | rep168 | `millet` · `saumon` · `brocoli` · `huile_olive` |
 | rep169 | `quinoa` · `dinde_escalope` · `patate_douce` · `epinards` · `amandes` |
 | rep170 | `sarrasin` · `haricots_blancs` · `soja_texture` · `tomate_concassee` · `olives` |
+| rep171 | `dinde_escalope` · `polenta` · `graines_courge` · `poivron` · `oignon` |
+| rep172 | `thon_naturel` · `millet` · `creme_soja` · `epinards` |
+| rep173 | `thon_frais` · `semoule_couscous` · `amandes` · `courgette` · `tomate` |
+| rep174 | `thon_frais` · `pates_semoule` · `pesto` · `brocoli` |
+| rep175 | `sardines` · `boulgour` · `tahini` · `chou_fleur` |
+| rep176 | `sardines` · `patate_douce` · `graines_courge` · `roquette` |
+| rep177 | `saumon_fume` · `sarrasin` · `creme_soja` · `asperges` |
+| rep178 | `jambon_blanc` · `quinoa` · `olives` · `petits_pois` · `tomate` |
+| rep179 | `jambon_blanc` · `pates_completes` · `creme_soja` · `champignons` |
+| rep180 | `boeuf_bavette` · `riz_complet` · `avocat` · `poivron` |
+| rep181 | `crevettes` · `millet` · `lait_coco` · `epinards` · `tomate` |
+| rep182 | `cottage_cheese` · `sarrasin` · `amandes` · `courgette` |
+| rep183 | `blanc_oeuf` · `patate_douce` · `tahini` · `haricots_verts` |
+| rep184 | `cottage_cheese` · `polenta` · `huile_olive` · `tomate_concassee` · `roquette` |
+| rep185 | `blanc_oeuf` · `boulgour` · `feta` · `poivron` |
+| rep186 | `blanc_oeuf` · `mozzarella` · `wrap_sans_gluten` · `olives` · `ratatouille` |
+| rep187 | `tofu_ferme` · `boulgour` · `graines_courge` · `epinards` |
+| rep188 | `seitan` · `semoule_couscous` · `tahini` · `courgette` |
+| rep189 | `soja_texture` · `pain_sans_gluten` · `huile_olive` · `carotte` · `oignon` |
+| rep190 | `seitan` · `pomme_de_terre` · `huile_olive` · `poivron` · `tomate_concassee` |
 
 ---
 

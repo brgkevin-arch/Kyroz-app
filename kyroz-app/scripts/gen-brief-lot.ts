@@ -17,6 +17,7 @@ import { writeFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import raw from '../Recette/recettes-kyroz.json';
 import { restrictionsOkFor } from '../lib/recipeDiet';
+import { RECIPE_INGREDIENTS } from '../lib/recipeData';
 
 type Per100 = { kcal: number; protein: number; carbs: number; fat: number };
 type RefDef = { name: string; unit: string; per_100: Per100; basis?: string; abs_max_qty?: number };
@@ -30,8 +31,31 @@ type Recette = {
 };
 
 const DATA = raw as unknown as { ingredients_reference: Record<string, RefDef>; recipes: Recette[] };
-const REFS = DATA.ingredients_reference;
 const RECIPES = DATA.recipes;
+
+/**
+ * Valeurs /100 g — celles que le MOTEUR SERT, pas celles du JSON.
+ *
+ * ⚠️ Corrigé le 2026-08-01, et l'écart n'était pas cosmétique. `ingredients_reference`
+ * porte le repère MANUEL ; `RECIPE_INGREDIENTS` porte la valeur réellement employée par
+ * `macrosForRefIngredients`, donc Ciqual pour les 107 refs mappés. **47 refs sur 123
+ * divergent** de plus de 8 % en kcal ou 12 % en protéines : `boeuf_bavette` −5,6 g de
+ * protéines aux 100 g, `mozzarella` +57 kcal, `pesto` −80 kcal, `seitan` −4,4 g P.
+ * Le brief publiait le repère manuel, donc le rédacteur calait son enveloppe sur des
+ * chiffres que personne ne mange — et R8, lui, se mesure sur le moteur. Une recette
+ * pouvait être dans l'enveloppe sur le papier et hors enveloppe dans l'assiette
+ * (mesuré : 32 g de protéines annoncés, 26 servis).
+ * `basis` et `abs_max_qty` restent lus dans `ingredients_reference` : le runtime ne les
+ * porte pas.
+ */
+const REFS: Record<string, RefDef> = Object.fromEntries(
+  Object.entries(DATA.ingredients_reference).map(([k, d]) => {
+    const rt = RECIPE_INGREDIENTS[k];
+    return [k, rt
+      ? { ...d, per_100: { kcal: rt.per100g.kcal, protein: rt.per100g.protein_g, carbs: rt.per100g.carbs_g, fat: rt.per100g.fat_g } }
+      : d];
+  }),
+);
 
 // ── Définition des lots (miroir du §5 + §7.3 du brief) ───────────────────────
 
@@ -101,6 +125,7 @@ const LOTS: Lot[] = [
     cle: `b1-lot${n}`, titre: `B1 — repas complets, lot ${n} sur 4`, volume: 20, categorie: 'repas_complet',
     prefixe: 'rep', idDebut: 171 + (n - 1) * 20, idFin: 190 + (n - 1) * 20,
     wave: `2026-08-01-b1-lot${n}-repas`,
+    livre: n === 1 ? '2026-08-01' : undefined,
     kcal: [520, 580], prot: [30, 34], carb: [58, 70], fat: [14, 18],
     // 44 libres · 18 végétariennes · 18 vegan sur les 80 : ça ne se divise pas en quatre
     // parts égales, donc les lots 1-2 penchent végétarien et les lots 3-4 vegan.
@@ -292,7 +317,18 @@ function exemple(cat: Recette['category'], wave: string): string {
     id: r.id, name: r.name, category: r.category,
     tags: r.tags, base_servings: r.base_servings,
     ingredients: r.ingredients, instructions: r.instructions,
-    why: r.why, macros_per_serving: r.macros_per_serving, wave,
+    why: r.why,
+    // Recalculé depuis la table du §4 plutôt que recopié du catalogue : sinon l'exemple
+    // affiche le repère manuel et contredit la table que le rédacteur doit utiliser.
+    macros_per_serving: (() => {
+      const m = r.ingredients.reduce((s, i) => {
+        const p = REFS[i.ref].per_100;
+        return { kcal: s.kcal + p.kcal * i.qty / 100, protein: s.protein + p.protein * i.qty / 100,
+          carbs: s.carbs + p.carbs * i.qty / 100, fat: s.fat + p.fat * i.qty / 100 };
+      }, { kcal: 0, protein: 0, carbs: 0, fat: 0 });
+      return { kcal: +m.kcal.toFixed(1), protein: +m.protein.toFixed(1), carbs: +m.carbs.toFixed(1), fat: +m.fat.toFixed(1) };
+    })(),
+    wave,
   }, null, 2);
 }
 
@@ -508,6 +544,10 @@ ${lot.specifique.map((x) => `- ${x}`).join('\n')}
 pour l'application — il serait invisible au calcul des macros, au filtre des régimes et à la liste
 de courses. Si un ingrédient te manque vraiment, ne l'invente pas : signale-le à la fin de ta
 réponse, hors du JSON.
+
+Les valeurs /100 g ci-dessous sont **celles que l'application sert réellement** — c'est avec
+elles qu'elle calcule les macros de l'assiette et qu'elle juge si ta recette est servable.
+Calcule ton \`macros_per_serving\` avec elles et rien d'autre.
 
 Colonnes : **Pesée** = « SEC » signifie que la quantité écrite est le poids sec avant cuisson (riz,
 pâtes, légumes secs), « cru » le poids cru (viandes, poissons, tubercules). **Max abs.** = plafond

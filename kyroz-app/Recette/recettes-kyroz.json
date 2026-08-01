@@ -1,7 +1,7 @@
 {
   "_meta": {
     "version": "2.0",
-    "count": 327,
+    "count": 347,
     "source_macros": "Estimations alignées CIQUAL/ANSES. Remplacer par le CSV officiel CIQUAL avant prod.",
     "precision": "±5-10%.",
     "poids_basis": "basis=dry -> poids cru/sec ; basis=raw -> viande/poisson cru. Garder la cohérence cru/cuit.",
@@ -17,7 +17,8 @@
         "fondation": 100,
         "2026-06-19-vegan": 164,
         "2026-07-22-sans-gluten": 50,
-        "2026-08-01-b2-collations": 13
+        "2026-08-01-b2-collations": 13,
+        "2026-08-01-b1-lot1-repas": 20
       },
       "convention": "Toute nouvelle vague reprend le NOM DU DOSSIER de son drop (AAAA-MM-JJ-<bloc>), pour qu'on retrouve la matière première d'une recette sans fouiller l'historique git."
     }
@@ -20375,6 +20376,1213 @@
         "fat": 9.1
       },
       "wave": "2026-08-01-b2-collations"
+    },
+    {
+      "id": "rep171",
+      "name": "Escalope de dinde, polenta crémeuse et poivrons",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 25
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "dinde_escalope",
+          "qty": 70,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "polenta",
+          "qty": 80,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "graines_courge",
+          "qty": 26,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "poivron",
+          "qty": 80,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "oignon",
+          "qty": 40,
+          "macro_role": "flavor",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Porte quatre fois le volume de la polenta en eau salée à frémissement dans une casserole.",
+        "Verse la polenta en pluie en fouettant sans arrêt, puis baisse à feu doux : compte 5 minutes, elle est prête quand elle se détache des parois.",
+        "Émince l'oignon et détaille le poivron en lanières, puis fais-les revenir 7 minutes à feu moyen-vif dans une poêle antiadhésive jusqu'à ce que les bords colorent.",
+        "Poêle l'escalope 3 minutes par face à feu moyen : elle doit être ferme sous le doigt et le jus qui perle doit être clair.",
+        "Fais torréfier les graines de courge 2 minutes à sec dans une petite poêle, jusqu'à ce qu'elles gonflent et claquent.",
+        "Dresse la polenta, pose l'escalope tranchée et les légumes par-dessus, parsème de graines, sale et poivre."
+      ],
+      "why": "Volaille maigre et polenta sans gluten : un apport protéique élevé pour peu de lipides.",
+      "macros_per_serving": {
+        "kcal": 550.3,
+        "protein": 31.7,
+        "carbs": 65.9,
+        "fat": 15.7
+      },
+      "wave": "2026-08-01-b1-lot1-repas"
+    },
+    {
+      "id": "rep172",
+      "name": "Millet au thon et épinards fondus",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 25
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "thon_naturel",
+          "qty": 65,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "millet",
+          "qty": 80,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "creme_soja",
+          "qty": 65,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "epinards",
+          "qty": 140,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Rince le millet à l'eau froide, puis verse-le dans deux fois son volume d'eau salée.",
+        "Porte à ébullition, couvre et laisse cuire 15 minutes à feu doux : les grains doivent avoir bu toute l'eau et rester détachés.",
+        "Pendant ce temps, fais tomber les épinards 3 minutes à feu vif dans une poêle large : ils réduisent de moitié et rendent leur eau.",
+        "Égoutte le thon et effeuille-le grossièrement à la fourchette.",
+        "Verse la crème de soja sur les épinards, mélange et laisse épaissir 2 minutes à feu doux.",
+        "Ajoute le millet et le thon, réchauffe 1 minute en remuant délicatement, poivre généreusement et sers."
+      ],
+      "why": "Le thon au naturel apporte la protéine, la crème de soja les lipides — sans produit laitier.",
+      "macros_per_serving": {
+        "kcal": 526,
+        "protein": 32.1,
+        "carbs": 64,
+        "fat": 15.8
+      },
+      "wave": "2026-08-01-b1-lot1-repas"
+    },
+    {
+      "id": "rep173",
+      "name": "Thon frais mi-cuit, semoule et courgettes aux amandes",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 20
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "thon_frais",
+          "qty": 70,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "semoule_couscous",
+          "qty": 80,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "amandes",
+          "qty": 20,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "courgette",
+          "qty": 90,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "tomate",
+          "qty": 85,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Verse la semoule dans un saladier avec un volume égal d'eau bouillante salée, couvre et laisse gonfler 5 minutes.",
+        "Égrène-la à la fourchette pour séparer les grains, sans écraser.",
+        "Taille la courgette en demi-rondelles et la tomate en dés.",
+        "Fais sauter la courgette 5 minutes à feu vif : elle doit être dorée et encore ferme sous la dent, puis ajoute la tomate pour 1 minute.",
+        "Concasse les amandes et fais-les dorer 2 minutes à sec dans la poêle, jusqu'à ce qu'elles sentent la noisette.",
+        "Saisis le pavé de thon 1 minute par face à feu vif : l'extérieur devient opaque, le cœur reste rosé. Tranche-le, dresse sur la semoule aux légumes, parsème d'amandes, sale et poivre."
+      ],
+      "why": "Thon frais et amandes : protéines complètes et lipides insaturés sur une base de semoule.",
+      "macros_per_serving": {
+        "kcal": 545.3,
+        "protein": 32,
+        "carbs": 64,
+        "fat": 16
+      },
+      "wave": "2026-08-01-b1-lot1-repas"
+    },
+    {
+      "id": "rep174",
+      "name": "Pâtes au thon frais, brocoli et pointe de pesto",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 20
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "thon_frais",
+          "qty": 75,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "pates_semoule",
+          "qty": 80,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "pesto",
+          "qty": 29,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "brocoli",
+          "qty": 110,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Porte une grande casserole d'eau salée à ébullition.",
+        "Détaille le brocoli en petits bouquets et plonge-le 4 minutes dans l'eau bouillante, puis récupère-le à l'écumoire : il doit rester vert vif et croquant.",
+        "Fais cuire les pâtes dans la même eau, une minute de moins que le temps du paquet — elles finiront à la poêle.",
+        "Coupe le thon en gros cubes et saisis-les 1 minute par face dans une poêle très chaude.",
+        "Égoutte les pâtes en gardant une louche d'eau de cuisson, verse-les dans la poêle avec le brocoli, le pesto et un peu de cette eau, puis remue 30 secondes hors du feu pour lier la sauce.",
+        "Ajoute le thon, poivre et sers aussitôt."
+      ],
+      "why": "Un plat de pâtes où la protéine vient du poisson frais plutôt que du fromage.",
+      "macros_per_serving": {
+        "kcal": 550,
+        "protein": 31.9,
+        "carbs": 64.4,
+        "fat": 16
+      },
+      "wave": "2026-08-01-b1-lot1-repas"
+    },
+    {
+      "id": "rep175",
+      "name": "Sardines, boulgour et chou-fleur rôti au sésame",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 30
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "sardines",
+          "qty": 65,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "boulgour",
+          "qty": 90,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "tahini",
+          "qty": 10,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "chou_fleur",
+          "qty": 145,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Préchauffe le four à 210 °C.",
+        "Détaille le chou-fleur en petits bouquets, étale-les sur une plaque, sale et enfourne 20 minutes : ils doivent être dorés aux pointes et tendres au couteau.",
+        "Verse le boulgour dans une fois et demie son volume d'eau bouillante salée, couvre et laisse cuire 10 minutes à feu doux, puis 5 minutes hors du feu.",
+        "Délie le tahini avec deux cuillères d'eau tiède et une pincée de sel jusqu'à obtenir une sauce lisse et coulante.",
+        "Égrène le boulgour à la fourchette, ajoute le chou-fleur rôti et les sardines égouttées, émiettées en gros morceaux.",
+        "Nappe de sauce au sésame, poivre et sers tiède."
+      ],
+      "why": "Sardines et sésame : protéines et lipides insaturés sur un féculent complet.",
+      "macros_per_serving": {
+        "kcal": 552.7,
+        "protein": 30.1,
+        "carbs": 63.8,
+        "fat": 16.5
+      },
+      "wave": "2026-08-01-b1-lot1-repas"
+    },
+    {
+      "id": "rep176",
+      "name": "Sardines sur patate douce écrasée, roquette",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 30
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "sardines",
+          "qty": 85,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "patate_douce",
+          "qty": 350,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "graines_courge",
+          "qty": 10,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "roquette",
+          "qty": 70,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Épluche les patates douces et coupe-les en gros cubes réguliers.",
+        "Plonge-les dans une casserole d'eau froide salée, porte à ébullition et compte 18 minutes : la pointe d'un couteau doit entrer sans résistance.",
+        "Égoutte et écrase à la fourchette en gardant des morceaux — une purée trop lisse devient collante.",
+        "Fais torréfier les graines de courge 2 minutes à sec dans une poêle : elles gonflent et claquent.",
+        "Dresse l'écrasé tiède, pose les sardines égouttées dessus, ajoute la roquette et les graines, poivre et sers."
+      ],
+      "why": "Patate douce et sardines : un féculent doux et une protéine marine riche en lipides insaturés.",
+      "macros_per_serving": {
+        "kcal": 549.4,
+        "protein": 30.2,
+        "carbs": 62.1,
+        "fat": 17.4
+      },
+      "wave": "2026-08-01-b1-lot1-repas"
+    },
+    {
+      "id": "rep177",
+      "name": "Sarrasin aux asperges et saumon fumé",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 25
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "saumon_fume",
+          "qty": 70,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "sarrasin",
+          "qty": 90,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "creme_soja",
+          "qty": 35,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "asperges",
+          "qty": 135,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Rince le sarrasin à l'eau froide, puis verse-le dans deux fois son volume d'eau salée.",
+        "Porte à ébullition et laisse cuire 12 minutes à découvert : les grains doivent être tendres mais garder du mordant. Égoutte.",
+        "Casse le pied dur des asperges, puis fais-les cuire 6 minutes à la vapeur : elles doivent plier sans casser.",
+        "Verse la crème de soja sur le sarrasin encore chaud, mélange et poivre.",
+        "Coupe le saumon fumé en lanières larges.",
+        "Répartis le sarrasin crémeux, pose les asperges et le saumon par-dessus, donne un tour de moulin et sers tiède."
+      ],
+      "why": "Sarrasin sans gluten et saumon fumé : protéines et fibres dans un plat qui se mange tiède.",
+      "macros_per_serving": {
+        "kcal": 541.5,
+        "protein": 32,
+        "carbs": 64.2,
+        "fat": 16
+      },
+      "wave": "2026-08-01-b1-lot1-repas"
+    },
+    {
+      "id": "rep178",
+      "name": "Quinoa au jambon, petits pois et olives",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 25
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "jambon_blanc",
+          "qty": 80,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "quinoa",
+          "qty": 83,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "olives",
+          "qty": 38,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "petits_pois",
+          "qty": 70,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "tomate",
+          "qty": 150,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Rince le quinoa sous l'eau froide 30 secondes pour retirer son amertume.",
+        "Verse-le dans deux fois son volume d'eau salée, porte à ébullition et laisse cuire 12 minutes à couvert : le germe se détache en petit anneau blanc quand c'est prêt.",
+        "Fais chauffer les petits pois 4 minutes dans une poêle avec un fond d'eau, jusqu'à ce qu'ils soient tendres.",
+        "Coupe le jambon en lanières, les tomates en dés, et dénoyaute les olives si besoin.",
+        "Égrène le quinoa et mélange-le aux petits pois, au jambon, aux tomates et aux olives.",
+        "Poivre, ajoute quelques feuilles de basilic si tu en as, et sers tiède ou froid."
+      ],
+      "why": "Quinoa et jambon : une protéine complète côté céréale, une autre côté viande maigre.",
+      "macros_per_serving": {
+        "kcal": 551.3,
+        "protein": 32.1,
+        "carbs": 63.7,
+        "fat": 16
+      },
+      "wave": "2026-08-01-b1-lot1-repas"
+    },
+    {
+      "id": "rep179",
+      "name": "Pâtes complètes au jambon et champignons, crème de soja",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 20
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "jambon_blanc",
+          "qty": 80,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "pates_completes",
+          "qty": 88,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "creme_soja",
+          "qty": 70,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "champignons",
+          "qty": 145,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Porte une grande casserole d'eau salée à ébullition et fais cuire les pâtes complètes selon le temps du paquet.",
+        "Pendant ce temps, émince les champignons et jette-les dans une poêle très chaude, sans matière grasse.",
+        "Laisse-les rendre leur eau puis colorer 8 minutes à feu vif en remuant peu : ils doivent être bien dorés, surtout pas bouillis.",
+        "Ajoute le jambon coupé en lanières et fais-le raidir 1 minute.",
+        "Verse la crème de soja, baisse à feu doux et laisse épaissir 2 minutes.",
+        "Égoutte les pâtes, verse-les dans la poêle, mélange 30 secondes et poivre généreusement."
+      ],
+      "why": "La crème de soja lie le plat sans y ajouter de produit laitier.",
+      "macros_per_serving": {
+        "kcal": 541.1,
+        "protein": 32.1,
+        "carbs": 64.1,
+        "fat": 15.6
+      },
+      "wave": "2026-08-01-b1-lot1-repas"
+    },
+    {
+      "id": "rep180",
+      "name": "Bavette grillée, riz complet et poivrons, avocat",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 35
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "boeuf_bavette",
+          "qty": 120,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "riz_complet",
+          "qty": 85,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "avocat",
+          "qty": 40,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "poivron",
+          "qty": 95,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Rince le riz complet, puis fais-le cuire 25 minutes à couvert et à feu doux dans deux fois et demie son volume d'eau salée.",
+        "Sors la bavette du réfrigérateur le temps de préparer les légumes : une viande glacée durcit à la cuisson.",
+        "Détaille les poivrons en lanières et fais-les revenir 8 minutes à feu moyen-vif, jusqu'à ce que les bords noircissent légèrement.",
+        "Chauffe une poêle à blanc, puis saisis la bavette 2 minutes par face sans la déplacer : elle doit se décoller seule quand la face est prise.",
+        "Laisse-la reposer 3 minutes sur une planche, puis tranche-la perpendiculairement aux fibres — c'est ce qui la rend tendre.",
+        "Écrase l'avocat à la fourchette avec du sel, et sers le riz, les poivrons et la bavette tranchée."
+      ],
+      "why": "Bœuf maigre et riz complet, avec l'avocat pour seul apport lipidique ajouté.",
+      "macros_per_serving": {
+        "kcal": 560.2,
+        "protein": 31.8,
+        "carbs": 64,
+        "fat": 17.7
+      },
+      "wave": "2026-08-01-b1-lot1-repas"
+    },
+    {
+      "id": "rep181",
+      "name": "Millet crémeux aux crevettes, épinards et coco",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 25
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "crevettes",
+          "qty": 95,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "millet",
+          "qty": 80,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "lait_coco",
+          "qty": 60,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "epinards",
+          "qty": 80,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "tomate",
+          "qty": 80,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Rince le millet, puis fais-le cuire 15 minutes à couvert dans deux fois son volume d'eau salée.",
+        "Coupe les tomates en dés et fais-les compoter 4 minutes à feu moyen dans une sauteuse.",
+        "Ajoute les épinards et laisse-les tomber 2 minutes : ils doivent être souples et brillants.",
+        "Verse le lait de coco, porte à petits frémissements et laisse réduire 3 minutes.",
+        "Ajoute les crevettes et compte 2 minutes à feu doux : elles sont cuites dès qu'elles sont fermes et opaques, au-delà elles deviennent caoutchouteuses.",
+        "Mélange le millet à la sauce, poivre, ajoute de la coriandre si tu en as, et sers chaud."
+      ],
+      "why": "Le lait de coco porte les lipides, les crevettes la protéine : beaucoup de volume pour peu de calories.",
+      "macros_per_serving": {
+        "kcal": 534.6,
+        "protein": 32,
+        "carbs": 66.4,
+        "fat": 16.2
+      },
+      "wave": "2026-08-01-b1-lot1-repas"
+    },
+    {
+      "id": "rep182",
+      "name": "Sarrasin au cottage cheese, courgettes et amandes",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 25
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "cottage_cheese",
+          "qty": 130,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "sarrasin",
+          "qty": 83,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "amandes",
+          "qty": 15,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "courgette",
+          "qty": 160,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Rince le sarrasin, puis fais-le cuire 12 minutes à découvert dans deux fois son volume d'eau salée, et égoutte.",
+        "Taille les courgettes en rubans à l'économe ou en fines rondelles.",
+        "Fais-les sauter 5 minutes à feu vif : elles doivent être marquées et encore fermes, surtout pas détrempées.",
+        "Concasse les amandes et fais-les dorer 2 minutes à sec dans la poêle, jusqu'à ce qu'elles sentent la noisette.",
+        "Mélange le sarrasin tiède aux courgettes, puis ajoute le cottage cheese par cuillerées sans trop remuer, pour garder des morceaux.",
+        "Parsème d'amandes, poivre et sers tiède."
+      ],
+      "why": "Cottage cheese et sarrasin : une protéine laitière maigre sur une céréale sans gluten.",
+      "macros_per_serving": {
+        "kcal": 549.7,
+        "protein": 30.5,
+        "carbs": 64.1,
+        "fat": 16.8
+      },
+      "wave": "2026-08-01-b1-lot1-repas"
+    },
+    {
+      "id": "rep183",
+      "name": "Blancs d'œufs brouillés, patate douce et haricots verts",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 30
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "blanc_oeuf",
+          "qty": 185,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "patate_douce",
+          "qty": 320,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "tahini",
+          "qty": 30,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "haricots_verts",
+          "qty": 80,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Épluche la patate douce, coupe-la en cubes de deux centimètres et fais-la cuire 18 minutes à l'eau bouillante salée : le couteau doit entrer sans forcer.",
+        "Fais cuire les haricots verts 8 minutes dans la même eau, ils doivent rester vert vif.",
+        "Délie le tahini avec un peu d'eau tiède et une pincée de sel, jusqu'à obtenir une sauce nappante.",
+        "Verse les blancs d'œufs dans une poêle FROIDE, mets sur feu doux et remue sans arrêt à la spatule 4 minutes.",
+        "Retire du feu quand ils sont encore brillants et souples : les blancs finissent de cuire hors du feu et deviennent caoutchouteux si tu attends.",
+        "Dresse la patate douce et les haricots, ajoute les blancs brouillés, nappe de sauce au sésame et poivre."
+      ],
+      "why": "Blancs d'œufs et tahini : protéine quasi pure d'un côté, lipides insaturés de l'autre.",
+      "macros_per_serving": {
+        "kcal": 562.9,
+        "protein": 32,
+        "carbs": 63.4,
+        "fat": 16.9
+      },
+      "wave": "2026-08-01-b1-lot1-repas"
+    },
+    {
+      "id": "rep184",
+      "name": "Polenta au cottage cheese et tomates, roquette",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 20
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "cottage_cheese",
+          "qty": 205,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "polenta",
+          "qty": 80,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "huile_olive",
+          "qty": 5,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "tomate_concassee",
+          "qty": 90,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "roquette",
+          "qty": 45,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Porte quatre fois le volume de la polenta en eau salée à frémissement.",
+        "Verse la polenta en pluie en fouettant, puis laisse cuire 5 minutes à feu doux sans cesser de remuer : elle épaissit vite et doit se détacher des parois.",
+        "Fais réduire la tomate concassée 6 minutes à feu moyen avec l'huile d'olive, du sel et une pincée d'origan : elle perd son eau et devient brillante.",
+        "Verse la polenta chaude dans l'assiette et creuse un puits au centre.",
+        "Garnis du cottage cheese et de la sauce tomate, ajoute la roquette au tout dernier moment pour qu'elle ne retombe pas, et poivre."
+      ],
+      "why": "Polenta et cottage cheese : un plat sans gluten et pauvre en lipides ajoutés.",
+      "macros_per_serving": {
+        "kcal": 559.2,
+        "protein": 31.1,
+        "carbs": 69.5,
+        "fat": 16
+      },
+      "wave": "2026-08-01-b1-lot1-repas"
+    },
+    {
+      "id": "rep185",
+      "name": "Boulgour aux blancs d'œufs, poivrons et feta",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 25
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "blanc_oeuf",
+          "qty": 110,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "boulgour",
+          "qty": 87,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "feta",
+          "qty": 60,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "poivron",
+          "qty": 150,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Verse le boulgour dans une fois et demie son volume d'eau bouillante salée, couvre et laisse cuire 10 minutes à feu doux.",
+        "Coupe les poivrons en lanières et fais-les revenir 8 minutes à feu moyen-vif, jusqu'à ce qu'ils s'affaissent et colorent.",
+        "Verse les blancs d'œufs directement sur les poivrons chauds, baisse le feu et remue 2 minutes : ils prennent presque instantanément.",
+        "Égrène le boulgour à la fourchette et mélange-le à la poêlée.",
+        "Émiette la feta par-dessus, poivre — elle sale déjà le plat — et sers tiède."
+      ],
+      "why": "La feta apporte les lipides et le sel du plat, les blancs d'œufs la protéine.",
+      "macros_per_serving": {
+        "kcal": 553,
+        "protein": 32.6,
+        "carbs": 64,
+        "fat": 15.4
+      },
+      "wave": "2026-08-01-b1-lot1-repas"
+    },
+    {
+      "id": "rep186",
+      "name": "Wrap sans gluten à la mozzarella et ratatouille",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 20
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "blanc_oeuf",
+          "qty": 170,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "mozzarella",
+          "qty": 35,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "wrap_sans_gluten",
+          "qty": 100,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "olives",
+          "qty": 20,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "ratatouille",
+          "qty": 100,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Réchauffe la ratatouille 5 minutes à feu moyen dans une poêle, le temps qu'elle perde son excès d'eau.",
+        "Verse les blancs d'œufs dans une poêle antiadhésive chaude, à feu doux, et laisse prendre 3 minutes sans remuer : tu obtiens une fine omelette.",
+        "Retourne-la 30 secondes, fais-la glisser sur une planche et roule-la.",
+        "Chauffe le wrap 30 secondes par face à sec dans la poêle : il doit rester souple, il craque s'il chauffe trop.",
+        "Garnis-le de ratatouille, de l'omelette tranchée, de la mozzarella en morceaux et des olives.",
+        "Poivre, replie les bords, roule serré et coupe en deux en biais."
+      ],
+      "why": "Un wrap sans gluten où la protéine vient des blancs d'œufs plutôt que de la garniture.",
+      "macros_per_serving": {
+        "kcal": 548.5,
+        "protein": 31.9,
+        "carbs": 64.5,
+        "fat": 16.7
+      },
+      "wave": "2026-08-01-b1-lot1-repas"
+    },
+    {
+      "id": "rep187",
+      "name": "Boulgour au tofu doré, épinards et graines de courge",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 25
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "tofu_ferme",
+          "qty": 110,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "boulgour",
+          "qty": 85,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "graines_courge",
+          "qty": 10,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "epinards",
+          "qty": 140,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Presse le tofu 5 minutes entre deux feuilles de papier absorbant sous une assiette lestée : moins il est gorgé d'eau, mieux il dore.",
+        "Verse le boulgour dans une fois et demie son volume d'eau bouillante salée, couvre et laisse cuire 10 minutes à feu doux.",
+        "Coupe le tofu en cubes et fais-les colorer 8 minutes dans une poêle très chaude, en ne les retournant que lorsqu'une face est franchement dorée.",
+        "Ajoute les épinards par poignées et laisse-les tomber 2 minutes.",
+        "Fais torréfier les graines de courge 2 minutes à sec dans une petite poêle.",
+        "Mélange le boulgour à la poêlée, parsème de graines, sale et poivre."
+      ],
+      "why": "Tofu et boulgour : deux sources végétales complémentaires en acides aminés.",
+      "macros_per_serving": {
+        "kcal": 564.6,
+        "protein": 31.4,
+        "carbs": 64,
+        "fat": 16
+      },
+      "wave": "2026-08-01-b1-lot1-repas"
+    },
+    {
+      "id": "rep188",
+      "name": "Seitan grillé, semoule et courgettes au tahini",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 20
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "seitan",
+          "qty": 80,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "semoule_couscous",
+          "qty": 80,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "tahini",
+          "qty": 25,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "courgette",
+          "qty": 80,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Verse la semoule dans un saladier avec un volume égal d'eau bouillante salée, couvre et laisse gonfler 5 minutes.",
+        "Taille la courgette en bâtonnets et fais-la griller 6 minutes à feu vif : les faces doivent être marquées.",
+        "Coupe le seitan en tranches épaisses et saisis-les 2 minutes par face, jusqu'à ce que les bords soient croustillants.",
+        "Délie le tahini avec trois cuillères d'eau tiède et une pincée de sel : la sauce blanchit et s'épaissit avant de redevenir fluide, continue jusqu'à ce qu'elle nappe.",
+        "Égrène la semoule, dresse avec les courgettes et le seitan, nappe de sauce au sésame et poivre."
+      ],
+      "why": "Seitan et sésame : une protéine végétale dense et des lipides insaturés.",
+      "macros_per_serving": {
+        "kcal": 558.6,
+        "protein": 31.3,
+        "carbs": 66.1,
+        "fat": 16.6
+      },
+      "wave": "2026-08-01-b1-lot1-repas"
+    },
+    {
+      "id": "rep189",
+      "name": "Protéines de soja aux carottes, pain sans gluten",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "recup_jour_repos": true,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 25
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "soja_texture",
+          "qty": 50,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "pain_sans_gluten",
+          "qty": 100,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "huile_olive",
+          "qty": 8,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "carotte",
+          "qty": 130,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "oignon",
+          "qty": 45,
+          "macro_role": "flavor",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Verse les protéines de soja dans un bol, couvre d'eau bouillante salée et laisse-les se réhydrater 8 minutes, puis presse-les pour retirer l'excédent.",
+        "Émince l'oignon et taille les carottes en rondelles fines.",
+        "Fais chauffer l'huile d'olive à feu moyen et fais suer l'oignon 3 minutes, jusqu'à ce qu'il devienne translucide.",
+        "Ajoute les carottes, couvre et laisse cuire 10 minutes : elles doivent être fondantes sans tomber en purée.",
+        "Ajoute les protéines de soja pressées et fais-les colorer 5 minutes à feu vif, en remuant peu.",
+        "Sale, poivre, ajoute du thym, et sers avec le pain sans gluten grillé."
+      ],
+      "why": "Les protéines de soja texturées offrent une densité protéique rare chez les végétaux.",
+      "macros_per_serving": {
+        "kcal": 550,
+        "protein": 32.2,
+        "carbs": 61.6,
+        "fat": 16
+      },
+      "wave": "2026-08-01-b1-lot1-repas"
+    },
+    {
+      "id": "rep190",
+      "name": "Seitan mijoté aux poivrons et pommes de terre",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 35
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "seitan",
+          "qty": 115,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "pomme_de_terre",
+          "qty": 305,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "huile_olive",
+          "qty": 12,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "poivron",
+          "qty": 80,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "tomate_concassee",
+          "qty": 115,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Épluche les pommes de terre et coupe-les en cubes de deux centimètres.",
+        "Fais chauffer l'huile d'olive dans une sauteuse et fais-y colorer les pommes de terre 8 minutes à feu vif, en les retournant peu.",
+        "Ajoute le poivron en lanières et poursuis 5 minutes.",
+        "Verse la tomate concassée, sale, ajoute du thym et une feuille de laurier, couvre et laisse mijoter 15 minutes à feu doux.",
+        "Coupe le seitan en gros dés et ajoute-le pour les 5 dernières minutes : il doit s'imprégner sans se défaire.",
+        "Vérifie la cuisson des pommes de terre à la pointe du couteau, poivre et sers."
+      ],
+      "why": "Un mijoté vegan où l'huile d'olive constitue l'essentiel des lipides.",
+      "macros_per_serving": {
+        "kcal": 550.8,
+        "protein": 31.8,
+        "carbs": 64.1,
+        "fat": 16
+      },
+      "wave": "2026-08-01-b1-lot1-repas"
     }
   ],
   "config": {
