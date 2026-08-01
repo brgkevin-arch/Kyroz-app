@@ -335,8 +335,22 @@ qu'ils étaient périmés.
   voit — ce qui est justement pourquoi ça a tenu jusqu'ici.
   ✅ **CONTRE-VÉRIFIÉ par une seconde méthode** : au lieu de lire le cache
   `total_macros_per_day`, on additionne les lipides des repas servis. Les deux méthodes
-  donnent **exactement les mêmes comptes** (56/56, 56/56, 0/56) avec un écart de **0 g**.
-  Le chiffre ne vient donc pas d'un cache périmé — piège déjà rencontré sur E8.
+  donnent **exactement les mêmes comptes**, avec un écart de **0 g**. Le chiffre ne vient
+  donc pas d'un cache périmé — piège déjà rencontré sur E8.
+  🔁 **RE-MESURÉ APRÈS LE MERGE DE A7** (NEAT `desk` 1,20 → 1,30, `safety.ts` remanié) —
+  un chiffre a bougé, les autres non :
+
+  | profil | avant A7 | après A7 |
+  |---|---|---|
+  | sèche H 80 · 4 repas | 56/56 | **56/56** |
+  | sèche H 100 · 2 repas | 56/56 | 54/56 |
+  | **maintien H 80 · 4 repas** | 56/56 | **47/56** |
+  | prise de masse H 80 | 0/56 | **0/56** |
+
+  Le relèvement du NEAT monte le TDEE, donc la cible du MAINTIEN, qui décolle parfois
+  du plancher — d'où les 9 jours gagnés. **La sèche ne bouge pas d'un jour** : sa cible
+  reste le plancher par construction. Le constat A9 est donc intact, et c'est bien en
+  sèche qu'il compte.
   🔬 **A9 RÉSISTE au relèvement du NEAT (A7).** Question posée immédiatement : puisque
   monter `desk` de 1,20 à 1,30 relève le TDEE, la cible lipides ne décollerait-elle pas
   du plancher toute seule ? **Non.** Mesuré sur `recalcProfile`, H 80 kg, les 4 crans de
