@@ -1,7 +1,7 @@
 {
   "_meta": {
     "version": "2.0",
-    "count": 459,
+    "count": 466,
     "source_macros": "Estimations alignées CIQUAL/ANSES. Remplacer par le CSV officiel CIQUAL avant prod.",
     "precision": "±5-10%.",
     "poids_basis": "basis=dry -> poids cru/sec ; basis=raw -> viande/poisson cru. Garder la cohérence cru/cuit.",
@@ -25,7 +25,8 @@
         "2026-08-01-b1-lot4-repas": 20,
         "2026-08-01-b3-petits-dejeuners": 20,
         "2026-08-02-b4-repas-denses": 20,
-        "2026-08-02-b4-pdej-denses": 12
+        "2026-08-02-b4-pdej-denses": 12,
+        "2026-08-02-b6-collations-vegan": 7
       },
       "convention": "Toute nouvelle vague reprend le NOM DU DOSSIER de son drop (AAAA-MM-JJ-<bloc>), pour qu'on retrouve la matière première d'une recette sans fouiller l'historique git."
     }
@@ -28811,6 +28812,387 @@
         "carbs": 62.8,
         "fat": 17.1
       }
+    },
+    {
+      "id": "col80",
+      "name": "Sarrasin torréfié, yaourt de soja et raisins",
+      "category": "collation",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "recup_jour_repos": true,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 10
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "yaourt_soja_proteine",
+          "qty": 180,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "sarrasin",
+          "qty": 30,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "raisins",
+          "qty": 70,
+          "macro_role": "fruit",
+          "scalable": true
+        },
+        {
+          "ref": "noisettes",
+          "qty": 8,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Fais torréfier les graines de sarrasin à sec dans une poêle chaude, 4 à 5 minutes, jusqu'à ce qu'elles sentent la noisette.",
+        "Verse le yaourt de soja dans un bol, ajoute les raisins coupés en deux.",
+        "Parsème le sarrasin encore tiède et les noisettes concassées juste avant de manger, pour garder le croquant."
+      ],
+      "why": "Le sarrasin torréfié apporte le féculent et le croquant sans passer par la casserole.",
+      "macros_per_serving": {
+        "kcal": 325.9,
+        "protein": 21.8,
+        "carbs": 39.4,
+        "fat": 8.4
+      },
+      "wave": "2026-08-02-b6-collations-vegan"
+    },
+    {
+      "id": "col81",
+      "name": "Polenta crémeuse à la protéine de pois et pomme râpée",
+      "category": "collation",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "recup_jour_repos": true,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 10
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "proteine_vegetale",
+          "qty": 24,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "polenta",
+          "qty": 30,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "pomme",
+          "qty": 120,
+          "macro_role": "fruit",
+          "scalable": true
+        },
+        {
+          "ref": "beurre_amande",
+          "qty": 6,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Verse la polenta en pluie dans trois fois son volume d'eau bouillante et remue 5 minutes, jusqu'à ce qu'elle épaississe.",
+        "Hors du feu, incorpore la protéine de pois et la purée d'amande, puis allonge d'un filet d'eau si la crème est trop épaisse.",
+        "Râpe la pomme par-dessus, avec une pincée de cannelle."
+      ],
+      "why": "Une crème chaude et rassasiante, montée en protéines sans laitage.",
+      "macros_per_serving": {
+        "kcal": 299.6,
+        "protein": 21.4,
+        "carbs": 39,
+        "fat": 5.6
+      },
+      "wave": "2026-08-02-b6-collations-vegan"
+    },
+    {
+      "id": "col82",
+      "name": "Wrap froid au soja texturé et avocat",
+      "category": "collation",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "recup_jour_repos": true,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 10
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "soja_texture",
+          "qty": 32,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "wrap_sans_gluten",
+          "qty": 50,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "avocat",
+          "qty": 25,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Couvre le soja texturé d'eau bouillante salée, laisse-le gonfler 5 minutes puis presse-le entre tes mains.",
+        "Écrase l'avocat à la fourchette avec du jus de citron, du sel et du paprika, puis mélange-le au soja.",
+        "Étale sur le wrap, roule serré et coupe en deux."
+      ],
+      "why": "Une collation salée à emporter, à la fois vegan et sans gluten — le catalogue n'en avait aucune.",
+      "macros_per_serving": {
+        "kcal": 319.1,
+        "protein": 20.1,
+        "carbs": 38.6,
+        "fat": 8.3
+      },
+      "wave": "2026-08-02-b6-collations-vegan"
+    },
+    {
+      "id": "col83",
+      "name": "Seitan poêlé au maïs et paprika",
+      "category": "collation",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 10
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "seitan",
+          "qty": 80,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "mais",
+          "qty": 175,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "huile_olive",
+          "qty": 5,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Coupe le seitan en dés et fais-le colorer 4 minutes à l'huile d'olive, à feu vif.",
+        "Ajoute le maïs égoutté, le paprika fumé et une pincée de sel, puis réchauffe 2 minutes en remuant.",
+        "Sers tiède, avec un trait de jus de citron."
+      ],
+      "why": "Une collation salée et chaude, là où le créneau vegan n'offrait presque que du sucré.",
+      "macros_per_serving": {
+        "kcal": 335.9,
+        "protein": 21.2,
+        "carbs": 37.4,
+        "fat": 10
+      },
+      "wave": "2026-08-02-b6-collations-vegan"
+    },
+    {
+      "id": "col84",
+      "name": "Tartine complète purée de cacahuète et pomme, yaourt de soja",
+      "category": "collation",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "recup_jour_repos": true,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 5
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "yaourt_soja_proteine",
+          "qty": 170,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "pain_complet",
+          "qty": 50,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "beurre_cacahuete",
+          "qty": 8,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "pomme",
+          "qty": 90,
+          "macro_role": "fruit",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Grille le pain complet, tartine-le de purée de cacahuète pendant qu'il est chaud.",
+        "Dispose la pomme en fines lamelles par-dessus.",
+        "Sers le yaourt de soja à côté, avec une pincée de fleur de sel sur la tartine."
+      ],
+      "why": "Le format tartine, monté en protéines par le yaourt servi à côté.",
+      "macros_per_serving": {
+        "kcal": 327.5,
+        "protein": 21.6,
+        "carbs": 39.2,
+        "fat": 7.7
+      },
+      "wave": "2026-08-02-b6-collations-vegan"
+    },
+    {
+      "id": "col85",
+      "name": "Crème de châtaigne à la protéine de pois et banane",
+      "category": "collation",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "recup_jour_repos": true,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 5
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "proteine_vegetale",
+          "qty": 24,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "chataigne",
+          "qty": 60,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "banane",
+          "qty": 70,
+          "macro_role": "fruit",
+          "scalable": true
+        },
+        {
+          "ref": "graines_courge",
+          "qty": 5,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Écrase les châtaignes cuites à la fourchette avec deux cuillères d'eau chaude, pour obtenir une purée souple.",
+        "Incorpore la protéine de pois, puis la banane écrasée.",
+        "Termine par les graines de courge, grillées 2 minutes à sec si tu as le temps."
+      ],
+      "why": "Dense en glucides lents, elle tient les grosses cibles de collation sans peser.",
+      "macros_per_serving": {
+        "kcal": 297.8,
+        "protein": 21,
+        "carbs": 38.5,
+        "fat": 5.6
+      },
+      "wave": "2026-08-02-b6-collations-vegan"
+    },
+    {
+      "id": "col86",
+      "name": "Quinoa froid à l'ananas et aux amandes",
+      "category": "collation",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "recup_jour_repos": true,
+        "sport": [
+          "muscu",
+          "endurance"
+        ],
+        "temps_min": 15
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "proteine_vegetale",
+          "qty": 20,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "quinoa",
+          "qty": 35,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "ananas",
+          "qty": 130,
+          "macro_role": "fruit",
+          "scalable": true
+        },
+        {
+          "ref": "amandes",
+          "qty": 10,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Cuis le quinoa 12 minutes à l'eau bouillante salée, égoutte-le et étale-le pour qu'il refroidisse vite.",
+        "Délaye la protéine végétale dans deux cuillères d'eau froide et un peu de jus d'ananas, puis mélange-la au quinoa.",
+        "Ajoute l'ananas en dés et les amandes concassées, avec de la menthe ciselée."
+      ],
+      "why": "Une collation froide à emporter, qui se prépare pendant que le reste cuit.",
+      "macros_per_serving": {
+        "kcal": 332.6,
+        "protein": 21.6,
+        "carbs": 38.4,
+        "fat": 9.4
+      },
+      "wave": "2026-08-02-b6-collations-vegan"
     }
   ],
   "config": {

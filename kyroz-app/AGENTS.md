@@ -63,18 +63,19 @@ qu'ils étaient périmés.
 
 | | valeur | comment la revérifier |
 |---|---|---|
-| Catalogue | **459 recettes** — 110 petits-déj · 270 repas complets · 79 collations | `npm run mesure:couverture` |
-| `ENGINE_VERSION` | **36** (invalide les plans en cache) | `lib/planEngine.ts` |
+| Catalogue | **466 recettes** — 110 petits-déj · 270 repas complets · 86 collations | `npm run mesure:couverture` |
+| `ENGINE_VERSION` | **37** (invalide les plans en cache) | `lib/planEngine.ts` |
 | `ENGINE_REV` | **4** (avertissement one-shot à l'utilisateur) | `lib/tdee.ts` |
 | Tests | **793 verts**, 41 fichiers · `tsc` propre | `npm test && npx tsc --noEmit` |
-| Anti-doublons | R1 81 · R2 70 · R4 14 · R5 17 · R7 0 — **figés par un test** | `npm run check:doublons` |
-| Créneau collation | moyenne **7,19/12** (4,52 avant B5) · **2 sous le seuil R8** — voir l'avertissement ci-dessous | `npm run check:enveloppe -- <drop>` |
-| Vegan | petit-déj 44/110 · repas 79/270 · collation 36/79 | idem |
-| Vegan + sans gluten | petit-déj 33 · repas 42 · collation 29 | idem |
+| Anti-doublons | R1 81 · R2 70 · R4 14 · R5 17 · R7 0 — **figés par un test**, inchangés par B6 | `npm run check:doublons` |
+| Créneau collation | moyenne **7,62/12** (7,19 avant B6 · 4,52 avant B5) · **1 sous le seuil R8** — voir l'avertissement ci-dessous | `npm run check:enveloppe -- <drop>` |
+| Vegan | petit-déj 44/110 · repas 79/270 · collation **43/86** | idem |
+| Vegan + sans gluten | petit-déj 33 · repas 42 · collation **34** | idem |
 
-**Les trois vagues du 2026-08-02, dans l'ordre où elles se sont enchaînées** — chacune a
+**Les quatre vagues du 2026-08-02, dans l'ordre où elles se sont enchaînées** — chacune a
 sa fiche : **D14** (lot B4, 32 recettes à l'enveloppe corrigée), **D15** (lot B5, 23
-collations réécrites), **D16** (plancher protéique par repas, dans le moteur).
+collations réécrites), **D16** (plancher protéique par repas, dans le moteur), **D17**
+(lot B6, 7 collations vegan — la dette laissée par B5).
 
 ⚠️ **LE PIÈGE DE MESURE À CONNAÎTRE AVANT DE TOUCHER AU CATALOGUE.** Le « vivier servable »
 (nombre de recettes atteignant la cible d'un profil) **n'est pas stable d'une vague à
@@ -94,23 +95,29 @@ courir après les deux dernières recettes en déplace deux autres. Les deux fau
 d'ailleurs des cas d'école du §4.12 du brief (`yaourt_grec` à 12,8 kcal/g de protéine,
 et une tartine avec un `vegetable` à poids fixe).
 
+⚠️ **Cinquième occurrence, dans l'autre sens — et c'est la même leçon.** B6 a ajouté
+**7 collations et n'a touché à aucune existante** ; `col38`, restée identique, est
+repassée AU-DESSUS du seuil toute seule, et le vivier collation de `F 70 masse` a bondi de
+**36 à 54 sur 86**, soit bien plus que les 7 recettes ajoutées. ➡️ **Un gain mesuré après
+merge n'est pas imputable en entier à la vague** : le déplacement des cibles en fabrique
+une partie. Le seul chiffre honnête est celui du catalogue ENTIER, avant et après, et il
+faut dire les deux.
+
 ⚠️ **Ce que le produit sert réellement, mesuré sur 4 semaines × 12 profils** : **zéro
 drapeau bloquant** (`over_target_kcal`, `under_target_kcal`, `protein_below_target`),
 précision calorique du jour **0,05 %**, protéines **+2,6 %** au-dessus de la cible. Les
 « viviers » ci-dessus sont une réserve de variété, **pas** ce que l'utilisateur reçoit :
 ne pas les présenter comme un défaut de service.
 
-### ▶️ Si tu reprends maintenant — les trois chantiers prêts
+### ▶️ Si tu reprends maintenant — les deux chantiers prêts
 
 Par ordre de « cause connue, remède écrit » décroissant. Le détail est dans la liste unique.
+*(D7 — les 7 collations vegan — est **FERMÉ le 2026-08-02** par le lot B6, cf. D17.)*
 
-1. **🤖 D7 — écrire 7 collations vegan.** Le chantier le plus cadré du dépôt : la cause est
-   mesurée (B5 a fait tomber le vivier vegan de 43 à 36 sur 79), le nombre est connu, et
-   les contraintes d'écriture sont écrites noir sur blanc au **§4.12** du brief de
-   génération. Il n'y a pas de diagnostic à refaire.
-2. **🤖 D4 — désaturer les couples R4.** 14 groupes, dont 4 sur le motif « ancre × aucun
+1. **🤖 D4 — désaturer les couples R4.** 14 groupes, dont 4 sur le motif « ancre × aucun
    féculent ». Se règle **en écrivant ailleurs**, jamais en réécrivant l'existant.
-3. **🧑 D3 — trancher l'axe allergène.** Décision produit, pas du code : le `tahini`
+   *(B6 n'en a créé aucun de plus : les 7 couples employés étaient libres ou à 1.)*
+2. **🧑 D3 — trancher l'axe allergène.** Décision produit, pas du code : le `tahini`
    introduit le sésame et aucun champ ne le porte.
 
 ⚠️ **Pour commander une vague** : les huit lots de `scripts/gen-brief-lot.ts` sont tous
@@ -119,6 +126,13 @@ dans `LOTS`, puis régénérer. Le générateur refuse d'écrire un brief incoh�
 (`verifieCoherence`) : ids déjà pris, `ref` cité hors du §4, régimes qui ne font pas le
 compte. **Une vague peut aussi RÉÉCRIRE** au lieu d'ajouter (précédent : B5) — la
 convention est dans `Recette/README.md`.
+
+⚠️ **Mais toutes les vagues ne passent pas par un brief.** B5 (23 réécritures) et B6
+(7 ajouts) ont été écrites **en session**, sans passer commande : sous ~25 recettes très
+contraintes, la boucle « écrire → `check:enveloppe` → corriger » est plus rapide qu'un
+aller-retour, et surtout elle permet de MESURER chaque quantité au lieu de la deviner
+(c'est comme ça qu'on a trouvé la 5ᵉ règle du §4.12). Le brief reste la bonne voie pour
+les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
 
 ## ⏳ CE QUI RESTE À FAIRE — la liste unique
 
@@ -719,8 +733,11 @@ produit en suspens — il ne reste qu'à coder.
   le lot B2.** C'était le même problème que D1, pas un chantier séparé : le catalogue
   ne comptait aucune collation légère parce que la vague de 113 n'en avait ajouté
   AUCUNE. Chiffres avant/après dans D1.
-- **D7 · 🤖 Pool vegan — RE-MESURÉ le 2026-07-31 : les ratios sont INCHANGÉS, mais la
-  conclusion de l'entrée était fausse.**
+- ~~**D7 · 🤖 Pool vegan**~~ ✅ **FERMÉ le 2026-08-02 par le lot B6 — 7 collations vegan
+  ajoutées (`col80`→`col86`), collations vegan 36/79 → **43/86**. Fiche complète : D17.**
+  L'historique du diagnostic est conservé ci-dessous ; **ne rien y prendre comme consigne.**
+  Ce qui reste ouvert et n'est PAS traité par B6 : le point mince **vegan + sans gluten sur
+  les petits gabarits en sèche**, en petit-déj et en repas complet (dernier paragraphe 🎯).
   Pool par créneau (champ `restrictions_ok`, celui que lit le moteur) :
   petit-déj **33/78** vegan · midi et soir **57/170** · collations **36/66**.
   Identique à ce qui était écrit : **la vague de 113 n'a ajouté aucune recette vegan.**
@@ -1116,6 +1133,54 @@ produit en suspens — il ne reste qu'à coder.
   12,8 kcal par gramme de protéine · `vegetable` à poids fixe). **Elles n'ont volontairement
   pas été réécrites** : courir après la queue de distribution en déplace deux autres.
   Le repère à suivre est la moyenne, pas le compteur.
+
+- ~~**D17 · Lot B6 — les 7 collations vegan que B5 avait coûtées**~~
+  ✅ **LIVRÉ le 2026-08-02 — `col80`→`col86`, catalogue 459 → 466, `ENGINE_VERSION`
+  36 → 37.** Ferme la dette chiffrée en D7 et en D15. Écrit **en session**, sans brief de
+  lot : 7 recettes très contraintes se calent plus vite en mesurant qu'en commandant.
+
+  | | avant B6 | après B6 |
+  |---|---|---|
+  | collations | 79 | **86** |
+  | collations vegan | 36 / 79 | **43 / 86** |
+  | collations vegan **+ sans gluten** | 29 | **34** |
+  | score moyen du créneau | 7,19 / 12 | **7,62 / 12** |
+  | sous le seuil R8 | 2 (`col07`, `col38`) | **1** (`col07` seule) |
+  | vivier collation `F 70 masse` | 36 / 79 | **54 / 86** |
+  | vivier collation `H 110 masse` | 35 / 79 | **44 / 86** |
+
+  **Les 7, et le trou que chacune bouche** — toutes ≥ 10/12, six à 12/12 :
+  `col80` sarrasin torréfié + yaourt de soja · `col81` polenta + protéine de pois ·
+  `col82` wrap au soja texturé et avocat (**la seule collation salée à emporter à la fois
+  vegan ET sans gluten**) · `col83` seitan poêlé au maïs (**la seule salée chaude**) ·
+  `col84` tartine complète + purée de cacahuète · `col85` crème de châtaigne · `col86`
+  quinoa froid à l'ananas. `check:doublons` → **0 violation** et les compteurs du
+  catalogue live ne bougent pas (R1 81 · R2 70 · R4 14 · R5 17) : les 7 couples
+  (protéine × féculent) employés étaient libres ou à 1, donc D4 n'empire pas.
+
+  🔬 **CE QUE LA MESURE A TROUVÉ, et qui vaut plus que le lot lui-même : l'ancre grasse
+  a un optimum, et il est bas.** `col84` a été écrite à 12 g de purée de cacahuète et
+  mesurait **6/12**. À composition strictement identique, 8 g → **12/12**, 16 g → 3/12.
+  Même courbe sur `col80` (noisettes). Le drapeau qui tombe est toujours `over_target_kcal`,
+  et **sur les cibles MOYENNES**, pas sur les extrêmes : une ancre grasse ne descend pas
+  sous ×0,5, et à 9 kcal le gramme elle fixe un plancher que la recette ne peut plus
+  franchir. L'exception, mesurée elle aussi : avec une ancre protéique très dense
+  (`proteine_vegetale`), `col86` tient 12/12 jusqu'à 18 g d'amandes.
+  ➡️ Écrit en **règle 5 du §4.12** du brief avec sa table de mesure. Une collation à
+  l'ancre volumineuse se cale entre **6 et 9 g de lipides**.
+
+  ⚠️ **Ce que B6 ne prouve PAS, et il faut le dire dans cet ordre.** Le vivier vegan par
+  profil grimpe bien plus que de 7 (`F 70 masse` 18 → 32 collations vegan servables) —
+  **ce n'est pas le lot, c'est le déplacement des cibles** (5ᵉ occurrence du piège de
+  mesure, cf. §📍). Et **la variété RÉELLEMENT servie ne bouge quasiment pas** : sur
+  4 semaines, un profil vegan voyait 9 à 13 collations distinctes, il en voit 10 à 14.
+  La rotation plafonnait déjà. Le gain de B6 est une **réserve** — de la marge quand un
+  profil masque des recettes, quand la vague suivante en réécrit, ou quand un goût
+  écarte une ancre. Ce n'est pas un gain visible par l'utilisateur, et il ne faut pas le
+  présenter comme tel.
+
+  ⚠️ **`col07` reste seule sous le seuil et ne sera pas réécrite** — même raison qu'en
+  D16 : la queue de distribution n'est pas un état stable.
 
 ### 🧹 E — Dette technique
 
