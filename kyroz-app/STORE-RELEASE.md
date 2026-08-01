@@ -18,7 +18,7 @@
 | URL politique de confidentialité (HTTP 200) | ✅ en ligne |
 | Textes de fiche (FR), réponses confidentialité, classification | ✅ ci-dessous (§3–6) |
 | **Comptes développeur Apple + Google** | ⛔ **toi** (§1) |
-| **Screenshots + feature graphic** | ⛔ **toi** (§7) |
+| Screenshots (iPhone + iPad 13") + feature graphic | ✅ générés (`npm run store:assets` / `:ipad`, §7) — toi : les uploader |
 | Accès reviewer (code) | ✅ code — toi : poser le secret au build (§9) |
 | **Lancer le build EAS** | ⛔ **toi** (§8) |
 
@@ -171,17 +171,23 @@ un identifiant enregistré, puis une fiche d'app. Dans cet ordre, sinon le menu
 > **Push Notifications : NON** — le rappel quotidien est une notification LOCALE
 > (`scheduleNotificationAsync`), aucun serveur n'envoie rien.
 
-> **Décision iPad — RÉVISÉE 2026-07-27 : ON SUPPORTE LA TABLETTE.** Usage produit
-> concret : cuisiner avec la recette sous les yeux sur sa tablette (aligné North Star,
-> moins de friction au moment de cuisiner). **Chantier prévu (autre session, non fait) :**
-> repasser `app.json > ios.supportsTablet: true`, adapter la mise en page tablette (au
-> minimum l'écran recette/cuisine : largeur max, lisibilité, cibles tactiles ; envisager
-> le **paysage** pour la cuisine — aujourd'hui portrait-only), puis tester le rendu iPad.
-> ⚠️ **Conséquences review** : dès `supportsTablet:true`, Apple **EXIGE des screenshots
-> iPad** (13" iPad Pro) ET **teste réellement la mise en page tablette** (plus le simple
-> mode compatibilité) → la version tablette doit être soignée avant soumission.
-> Tant que le chantier n'est pas fait, `supportsTablet` reste `false` (ne pas soumettre
-> `true` sans layout tablette prêt = rejet assuré).
+> **Décision iPad — RÉVISÉE 2026-07-27, CHANTIER FAIT le 2026-08-01.**
+> Usage produit concret : cuisiner avec la recette sous les yeux sur sa tablette
+> (aligné North Star, moins de friction au moment de cuisiner).
+> **`app.json > ios.supportsTablet` est passé à `true`**, et les trois étapes ont été
+> faites dans l'ordre imposé : layout d'abord, captures ensuite, bascule en dernier.
+> - **Layout** : colonne centrée sur tous les écrans, source unique `lib/layout.ts`
+>   (seuil 700 pt) + le hook `useLayout()`. L'écran recette est le seul à avoir une mise
+>   en page à lui : ingrédients | préparation côte à côte, exactement le cas d'usage
+>   ci-dessus. Le rendu téléphone est inchangé, un test l'exige.
+> - **Captures iPad 13"** : `npm run store:assets:ipad` → `test/store-ipad/`, **2048×2732**.
+> ⚠️ **Conséquences review, toujours vraies** : avec `supportsTablet:true`, Apple **EXIGE
+> les screenshots iPad** ET **teste réellement la mise en page tablette** (plus le simple
+> mode compatibilité). Les deux sont désormais couverts.
+> ⚠️ **C'est de la config NATIVE : l'OTA ne peut pas la livrer.** Il faut un nouveau build
+> iOS pour que le support iPad prenne effet sur un binaire déjà en ligne.
+> ℹ️ **Le paysage n'est PAS ouvert** — `orientation` reste `portrait`. Apple ne l'exige pas
+> pour un binaire iPad ; c'est une décision produit à part, pas un reliquat du chantier.
 
 ---
 
@@ -202,7 +208,7 @@ de ton profil : objectif (sèche, maintien, prise de masse), sport, préférence
 régime. Pas de blabla : un plan crédible dès le premier jour.
 
 • Plan 7 jours généré automatiquement, ajusté à tes calories et tes protéines
-• 314 recettes, adaptées à ton régime (végétarien, vegan, sans gluten, sans
+• 466 recettes, adaptées à ton régime (végétarien, vegan, sans gluten, sans
   lactose, sans porc, halal, pescétarien)
 • Quantités ajustées automatiquement pour tomber sur tes macros
 • Liste de courses (qui déduit ce que tu as déjà) + garde-manger
@@ -213,6 +219,12 @@ régime. Pas de blabla : un plan crédible dès le premier jour.
 Kyroz est conçu pour des adultes en bonne santé. Ces informations ne remplacent
 pas l'avis d'un médecin ou d'un diététicien-nutritionniste.
 ```
+
+⚠️ **Le nombre de recettes est écrit À LA MAIN ici** — c'est du texte que tu colles dans
+la fiche, rien ne peut le calculer. Il annonçait **314** pour un catalogue qui en comptait
+**466** (corrigé le 2026-08-01). **À revérifier après CHAQUE vague de recettes** :
+`npm run mesure:couverture`. Un chiffre faux dans une fiche de store est une allégation
+fausse, pas une coquille.
 
 **Mots-clés Apple** (100 car., séparés par des virgules, sans espaces) :
 `macros,nutrition,repas,fitness,muscu,prise de masse,seche,calories,proteine,meal prep,regime,sport`
@@ -326,14 +338,19 @@ pas l'avis d'un médecin ou d'un diététicien-nutritionniste.
 - **Screenshots iPhone 6.7"** (1290×2796) : **min 1, jusqu'à 10**. Montre les écrans
   forts : (1) plan du jour, (2) une recette + macros, (3) liste de courses,
   (4) onboarding/objectif, (5) série.
-- **Screenshots iPad 13"** (2048×2732) : **requis** dès que le chantier tablette est fait
-  (`supportsTablet:true`, cf. §2). Montre notamment l'écran recette en cuisine. Tant que
-  le chantier n'est pas fait et que `supportsTablet` reste `false`, pas de screenshots iPad.
+- **Screenshots iPad 13"** (2048×2732) : **requis**, `supportsTablet` étant à `true`
+  (cf. §2). ✅ **Générés** : `npm run store:assets:ipad` → `test/store-ipad/`, au gabarit
+  exact. Ils montrent l'écran recette en deux colonnes, c'est-à-dire l'argument tablette.
 - **Google Play** : min **2 screenshots** téléphone + un **feature graphic 1024×500**
-  (bannière — à faire sur Canva/Figma) + l'icône 512×512 (déjà en asset).
-- **Comment capturer** : lance l'app (simulateur iOS, ou la version web pour le
-  cadrage) et fais les captures aux bonnes dimensions. Je peux te générer des
-  captures de cadrage depuis le web si tu veux.
+  + l'icône 512×512 (déjà en asset). ✅ **Générés** : `npm run store:assets` →
+  `test/store` (captures **1170×2532**, feature graphic **1024×500**).
+  ⚠️ **CORRIGÉ le 2026-08-01, et c'était un rejet assuré** : le feature graphic sortait à
+  **3072×1500**, parce que sa page était créée dans le contexte des captures et héritait
+  de son `deviceScaleFactor: 3`. Google exige EXACTEMENT 1024×500. Il a désormais son
+  propre contexte en ×1. Le nombre de recettes affiché dessus était par ailleurs figé à
+  « 314 » ; il est maintenant lu dans `recettes-kyroz.json`.
+- **Comment capturer** : les deux commandes ci-dessus, serveur web allumé. Pas de device
+  ni d'outil de design nécessaire.
 
 ---
 
@@ -428,9 +445,9 @@ eas submit --platform android --latest    # 1re fois : créer l'app dans Play Co
 - [ ] URL de confidentialité renvoie 200 (déjà le cas).
 - [ ] Screenshots aux bonnes dimensions uploadés (§7).
 - [ ] Formulaires confidentialité remplis (§4).
-- [ ] **Support tablette** (décidé 2026-07-27, §2) : chantier `supportsTablet:true` +
-      layout tablette + screenshots iPad 13" — À FAIRE avant de soumettre en `true`.
-      Tant que non fait, rester en `false` pour ne pas bloquer une soumission iPhone-only.
+- [x] **Support tablette** (décidé 2026-07-27, fait 2026-08-01, §2) : `supportsTablet:true`
+      + layout tablette + screenshots iPad 13". ⚠️ Config NATIVE → exige un nouveau build
+      iOS pour prendre effet.
 - [ ] Pas d'allégation médicale dans la fiche (§5).
 - [ ] (Android) Testeurs recrutés pour la période de 14 jours si compte perso (§1).
 
@@ -438,9 +455,11 @@ eas submit --platform android --latest    # 1re fois : créer l'app dans Play Co
 
 ## 10. Ce que je peux encore faire pour toi (dis-moi)
 
-- Passer `supportsTablet` à `false` (retire l'exigence iPad).
-- Générer des **captures de cadrage** depuis la version web (pour préparer tes
-  screenshots).
+- Repasser `supportsTablet` à `false` si tu veux soumettre iPhone-only (retire
+  l'exigence iPad). ⚠️ Le layout tablette, lui, reste : il ne gêne rien, et sur iPhone
+  il est un no-op strict.
+- Regénérer les visuels de fiche : `npm run store:assets` (téléphone + feature graphic)
+  et `npm run store:assets:ipad` (iPad 13").
 
 ---
 

@@ -44,8 +44,10 @@ core tuerait le North Star — donc interdit.
 > - **Carb cycling / jours de repos** → livré (`rest_weekdays`, moteur v5+).
 > - **Ajustement des macros au poids** → livré (`recalcProfile` + check-in poids).
 > - **Recettes personnalisées** → livré (`RecipeEditor` + table `recipe_overrides`).
-> - **« Base étendue : 50 → +100 »** → sans objet : le catalogue est à **314 recettes**,
->   toutes gratuites. Le rationner *a posteriori* serait une régression.
+> - **« Base étendue : 50 → +100 »** → sans objet : le catalogue est à **466 recettes**
+>   (314 quand cette ligne a été écrite), toutes gratuites. Le rationner *a posteriori*
+>   serait une régression — et l'écart entre les deux chiffres montre à quel point
+>   l'argument s'est renforcé depuis.
 >
 > **Restent réellement monétisables** (non construits) : historique des plans,
 > export de la liste de courses, et tout ce qui reste à inventer.
@@ -61,7 +63,7 @@ core tuerait le North Star — donc interdit.
 | **Historique des plans** (semaines passées) | semaine en cours | ✅ illimité | **non construit** → monétisable |
 | **Export liste de courses** (PDF / impression / Notes) | — | ✅ | **non construit** → monétisable |
 | ~~Recettes personnalisées~~ | ✅ | — | ⚠️ **déjà livré gratuit** |
-| ~~Base de recettes étendue (50 / +100)~~ | ✅ 314 | — | ⚠️ **sans objet** (314 recettes, gratuites) |
+| ~~Base de recettes étendue (50 / +100)~~ | ✅ 466 | — | ⚠️ **sans objet** (466 recettes, gratuites) |
 | ~~Ajustement auto des macros au poids~~ | ✅ | — | ⚠️ **déjà livré gratuit** |
 | ~~Modes objectifs avancés (carb cycling)~~ | ✅ | — | ⚠️ **déjà livré gratuit** |
 
@@ -141,7 +143,7 @@ que par la banque de calories, chantier séparé). `profiles.stripe_customer_id`
 1. **Valeur premium** = Kyroz+ « piloter son objectif dans le temps » (objectif daté +
    trajectoire + transformation) — **construite + déployée** (+ banque de calories à venir).
 2. **Les 4 features déjà livrées restent GRATUITES** (carb cycling, recalc macros au poids,
-   recettes perso, catalogue 314) : les reprendre casserait la confiance et le North Star.
+   recettes perso, catalogue complet) : les reprendre casserait la confiance et le North Star.
 3. **Paiement = achat in-app Apple App Store + Google Play, via RevenueCat** (pas Stripe seul).
 4. **Tarif** = 4,99 €/mois · 39,99 €/an (ajustable au moment du câblage, mais c'est le plan retenu).
 

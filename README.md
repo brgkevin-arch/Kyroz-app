@@ -2,6 +2,8 @@
 
 App mobile (React Native / Expo Router) de plans repas macro-précis pour pratiquant de sport. Le cœur (génération de plan 7 jours, recettes, liste de courses) tourne 100 % en local, sans clé API.
 
+iPhone **et iPad** (portrait). La mise en page tablette passe par `useLayout()` — cf. `kyroz-app/CLAUDE.md` §8.
+
 ## 🧪 Tester l'app (pour un testeur)
 
 Ouvre simplement ce lien dans le navigateur de ton téléphone — rien à installer :

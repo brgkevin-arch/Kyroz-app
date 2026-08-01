@@ -45,7 +45,7 @@ dossier les a tous cassés d'un coup, en silence. Ce qui a dû être réparé le
 **Règle** : aucun chemin, port ou libellé d'écran dans les scripts appelants. Tout
 passe par `_harness.mjs`.
 
-## Deux pièges qui font mentir un rapport
+## Trois pièges qui font mentir un rapport
 
 1. **`getByText('Plan')` est insensible à la casse** — le bouton « Générer mon plan »
    le satisfait. Un script pouvait donc annoncer « écran Plan atteint » sans plan.
@@ -59,3 +59,18 @@ passe par `_harness.mjs`.
    Réutiliser **un seul** invité pour les quatre ne marcherait pas : un contexte
    neuf n'a pas de profil local, `hydrateFromCloud` fait alors `pull_cloud` et le
    persona suivant hériterait du profil du précédent en sautant l'onboarding.
+3. **L'auth anonyme s'allume et s'éteint depuis le dashboard, hors du dépôt.** Tous les
+   scripts d'ici passent par `guestLogin` : provider coupé = **tout échoue d'un coup**,
+   et ça ne ressemble pas au rate-limit du point 2 (aucune session, pas un 429). Ce
+   réglage a été mesuré **trois fois en deux jours avec trois réponses différentes**
+   (ouvert 07-31, fermé 08-01, ouvert 08-01) — donc **aucune note écrite ne peut être
+   tenue pour à jour, y compris celle-ci.** Avant de conclure que l'app est cassée,
+   relancer la mesure :
+
+   ```
+   curl -s "$SUPABASE_URL/auth/v1/settings" -H "apikey: $ANON_KEY" | grep anonymous
+   ```
+
+   `external_anonymous_users: false` → ce n'est pas l'app, c'est le réglage. La sortie
+   durable serait un compte de test dédié (`storageState` réutilisé), qui ferait cesser
+   cette dépendance.

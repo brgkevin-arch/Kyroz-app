@@ -37,8 +37,8 @@ App mobile React Native (Expo Router, SDK 56) de plans repas macro-précis pour 
 | Couche | Choix | État |
 |---|---|---|
 | Mobile | **React Native (Expo Router, SDK 56)**, TypeScript strict | En place |
-| Génération repas | **Moteur LOCAL** (\`lib/planEngine.ts\`) — macro-précis, 0 clé API, **seul chemin** | Moteur unique |
-| Persistance locale | AsyncStorage (clés \`@kyroz:*\`) | En place |
+| Génération repas | **Moteur LOCAL** (`lib/planEngine.ts`) — macro-précis, 0 clé API, **seul chemin** | Moteur unique |
+| Persistance locale | AsyncStorage (clés `@kyroz:*`) | En place |
 | Backend / Auth | **Supabase** (région EU) — création de compte email + suppression de compte (RGPD) | Auth OK |
 | Base nutritionnelle | **Ciqual (ANSES) + table maison** — voir la note ci-dessous | En place |
 | Analytics | PostHog (cloud EU) | **Câblé (dormant)** — `lib/analytics.ts`, consent-gated RGPD ; s'active en posant `EXPO_PUBLIC_POSTHOG_KEY` |
@@ -114,7 +114,7 @@ App mobile React Native (Expo Router, SDK 56) de plans repas macro-précis pour 
 
 ### Tables Supabase — les 6 qui existent réellement
 
-\`\`\`
+```
 profiles                        ← s'appelle « profiles », PAS « user_profiles »
   └── id (= auth.users.id) + 35 colonnes synchronisées.
       ⚠️ NE PAS recopier la liste ici : elle a divergé deux fois.
@@ -146,7 +146,7 @@ weight_logs (suivi du poids)
 
 recipe_overrides (recettes personnalisées par l'utilisateur)
   └── user_id, overrides (jsonb : recipe_id → Recipe)
-\`\`\`
+```
 
 ### Ce qui n'est PAS en base — et pourquoi
 
@@ -168,11 +168,11 @@ recipe_overrides (recettes personnalisées par l'utilisateur)
 
 ## 4. Core Loop (le cœur — priorité absolue)
 
-\`\`\`
+```
 INPUT          → Profil (sexe, âge, poids, taille, objectif, contraintes, repas)
 TRANSFORMATION → Génération auto plan repas 7 jours macro-précis (moteur local)
 OUTPUT         → Plan + liste de courses + recettes
-\`\`\`
+```
 
 **Contraintes non négociables :**
 - Latence < 1 seconde sur l'affichage du plan
@@ -410,15 +410,15 @@ Ce n'est pas un retard à rattraper, c'est un choix. **Ne plus la remonter** com
 prérequis, ni dans un bilan, ni dans une recommandation de chantier.
 
 Ce que la décision ne fait PAS disparaître, et qui reste vrai :
-- \`validated_by_dietitian\` reste \`false\` en dur (\`lib/recipeMap.ts\`) → **aucun écran
+- `validated_by_dietitian` reste `false` en dur (`lib/recipeMap.ts`) → **aucun écran
   ne doit prétendre le contraire**, et la revue App Store est sévère sur les
   allégations santé. Le disclaimer ci-dessus est donc d'autant plus obligatoire.
-- Les coefficients protéiques de \`GOAL_CONFIG\` se déclarent « PROVISOIRES » dans le
+- Les coefficients protéiques de `GOAL_CONFIG` se déclarent « PROVISOIRES » dans le
   code en attendant un tiers qui ne viendra pas → soit retirer la mention, soit
   l'assumer explicitement, mais ne pas laisser le code annoncer une attente vide.
 
 Historique : ces deux lignes exigeaient « prompts revus par diététicienne diplômée
-avant prod » et « \`validated_by_dietitian\` à passer à \`true\` après validation ».
+avant prod » et « `validated_by_dietitian` à passer à `true` après validation ».
 
 ---
 
@@ -435,11 +435,43 @@ Profil (poids, objectif, régime) = **données de santé** au sens RGPD.
 
 ---
 
-## 8. Thème UI
+## 8. Thème UI et mise en page
 
-- \`constants/theme.ts\` : adaptatif clair/sombre (suit le système)
-- Accent **monochrome** (blanc en sombre / encre en clair), noir pur \`#000000\` en sombre
-- Tout passe par \`useTheme()\` + \`makeStyles(t)\` — **aucune couleur en dur**
+### Thème
+
+- `constants/theme.ts` : adaptatif clair/sombre (suit le système)
+- Accent **monochrome** (blanc en sombre / encre en clair), noir pur `#000000` en sombre
+- Tout passe par `useTheme()` + `makeStyles(t)` — **aucune couleur en dur**
+
+### Largeurs — téléphone ET tablette (depuis le 2026-08-01)
+
+L'app est livrée pour iPad (`ios.supportsTablet: true`). **Tout écran passe par
+`useLayout()`** (`constants/layout.ts`, seuils dans `lib/layout.ts`) — de la même
+manière que toute couleur passe par `useTheme()`. Sans lui, un écran repart en pleine
+largeur, et à 1024 pt c'est illisible.
+
+| | largeur max | usage |
+|---|---|---|
+| `layout.content` | 620 | corps d'écran (`contentContainerStyle`) |
+| `layout.header` | 620 | en-têtes et pieds FIXES, hors ScrollView |
+| `layout.sheet` | 820 | feuilles modales (déjà posé dans `Sheet` / `ActionSheet`) |
+| `layout.grid` | 980 | grille de recettes (`layout.columns`) |
+
+Seuil unique **`TABLET_MIN_WIDTH = 700`** : au-dessus du plus large iPhone (440 pt) et
+au-dessus d'un Split View à 50 % sur iPad 11" (507 pt), qui doit rester en mise en page
+téléphone.
+
+- **Sur téléphone, c'est un no-op STRICT** : `centered()` renvoie un objet vide sous le
+  seuil, et un test l'exige. Un style « inoffensif » suffirait à faire diverger
+  l'existant.
+- **Une seule mise en page dérogatoire** : l'écran recette met ingrédients et préparation
+  côte à côte sur tablette. C'est le cas d'usage qui a motivé le support tablette
+  (cuisiner avec la recette sous les yeux). Tout le reste est une colonne centrée — pas
+  de split view, pas de navigation à deux panneaux : ça se décide, ça ne se déduit pas
+  d'un breakpoint.
+- **Règle de non-régression** : aucune colonne ne doit être plus étroite que la zone
+  utile d'un iPhone (345 pt). Verrouillée par `lib/__tests__/layout.test.ts`.
+- **L'orientation reste `portrait`.** Le paysage est une décision produit à part.
 
 ---
 
@@ -447,12 +479,12 @@ Profil (poids, objectif, régime) = **données de santé** au sens RGPD.
 
 | Type | Convention |
 |---|---|
-| Composants React Native | PascalCase (\`MealCard.tsx\`) |
-| Fonctions utilitaires | camelCase (\`calculateTDEE.ts\`) |
-| Constantes | SCREAMING_SNAKE (\`MAX_KCAL_PER_DAY\`) |
-| Tables Supabase | snake_case (\`weight_logs\`) |
-| Branches Git | \`feature/nom-court\`, \`fix/nom-court\` |
-| Commits | \`feat:\`, \`fix:\`, \`chore:\`, \`refactor:\` |
+| Composants React Native | PascalCase (`MealCard.tsx`) |
+| Fonctions utilitaires | camelCase (`calculateTDEE.ts`) |
+| Constantes | SCREAMING_SNAKE (`MAX_KCAL_PER_DAY`) |
+| Tables Supabase | snake_case (`weight_logs`) |
+| Branches Git | `feature/nom-court`, `fix/nom-court` |
+| Commits | `feat:`, `fix:`, `chore:`, `refactor:` |
 
 ---
 
@@ -522,6 +554,20 @@ Profil (poids, objectif, régime) = **données de santé** au sens RGPD.
 - **Les sous-écrans du Profil sont des `Sheet`, pas des routes** : `goBack()` ne les ferme
   pas, il faut cliquer le fond.
 - **Build natif iOS** : `npx expo run:ios` (CocoaPods via brew).
+- **`Dimensions.get('window')` ment sur iPad.** La fenêtre change de taille **sans
+  relancer l'app** (rotation, Split View, Slide Over) : une valeur lue au chargement du
+  module reste fausse jusqu'au prochain démarrage. Utiliser `useWindowDimensions()`.
+  Trois occurrences traînaient dans le code (`Sheet`, `GuidedTour`, `WeightCheckin`) ;
+  `WeightCheckin` calculait la largeur de sa courbe sur l'ÉCRAN alors qu'elle vit dans
+  une feuille bornée — la courbe débordait de son cadre.
+- **Une marge s'ajoute à l'EXTÉRIEUR d'un `maxWidth`.** Poser la colonne centrée
+  (`layout.header`) directement sur un élément aligné par `marginHorizontal` le fait
+  dépasser de deux fois la marge — la barre de progression de l'écran Courses sortait
+  des cartes de 40 pt. Dans ce cas, poser la colonne sur un CONTENEUR. Avec `padding`,
+  pas de problème.
+- **`FlatList` n'accepte pas un changement de `numColumns` à chaud.** Sur iPad, une
+  rotation en change la valeur : il faut une `key` qui dépend du nombre de colonnes pour
+  forcer le remontage, sinon React Native jette une erreur.
 
 ---
 
