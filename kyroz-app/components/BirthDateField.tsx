@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text } from 'react-native';
 import { ThemePalette } from '../constants/theme';
 import { Field } from './ui';
@@ -14,9 +14,9 @@ import { MIN_AGE } from '../lib/safety';
 // nombres se tapent au pavé numérique, partout, sans dépendance.
 //
 // Le composant ne rend une date que si elle EXISTE vraiment : « 31/02 » ne
-// produit rien (cf. `toStamp`). Il affiche l'âge qui en découle — c'est le
-// retour dont l'utilisateur a besoin pour vérifier qu'il n'a pas fauté d'un
-// chiffre, et ça montre au passage d'où sort l'âge du profil.
+// produit rien (cf. `toStamp`). Il ne commente PAS une saisie valide — l'âge
+// reste lisible sur la ligne « Informations » du profil, donc une faute de frappe
+// se voit quand même. Il ne parle que pour ce qui bloque, ou ce qui manque.
 
 interface Props {
   t: ThemePalette;
@@ -43,10 +43,19 @@ export function BirthDateField({ t, value, onChange, fallbackAge }: Props) {
   const [mo, setMo] = useState(init.mo);
   const [y, setY] = useState(init.y);
 
-  // Resynchro quand la valeur change de l'EXTÉRIEUR (ouverture de l'éditeur,
-  // profil tiré du cloud). On ne touche pas au texte pendant la frappe : c'est
-  // exactement le piège qui transformait « 23 » en « 33 » sur le %MG.
+  // ⚠️ Resynchro UNIQUEMENT sur un changement venu de l'EXTÉRIEUR (ouverture de
+  // l'éditeur, profil tiré du cloud) — jamais sur notre propre émission.
+  //
+  // C'est le piège du « 23 → 33 », troisième occurrence : taper une date qui
+  // n'existe pas (31/02) fait émettre `undefined`, le parent le renvoie, et la
+  // synchro VIDAIT les trois champs sous les doigts. L'utilisateur voyait sa
+  // saisie disparaître, et l'écran affichait « renseigne ta date » au lieu de
+  // « cette date n'existe pas ». `emitted` mémorise ce qu'on vient d'envoyer :
+  // ce qui nous revient de nous-même ne réécrit rien.
+  const emitted = useRef<string | undefined>(value);
   useEffect(() => {
+    if (value === emitted.current) return;
+    emitted.current = value;
     const s = split(value);
     setD(s.d); setMo(s.mo); setY(s.y);
   }, [value]);
@@ -55,6 +64,7 @@ export function BirthDateField({ t, value, onChange, fallbackAge }: Props) {
     const stamp = (dd && mm && yy.length === 4)
       ? toStamp(parseInt(yy, 10), parseInt(mm, 10), parseInt(dd, 10))
       : null;
+    emitted.current = stamp ?? undefined;
     onChange(stamp ?? undefined);
   };
   const num = (s: string, max: number) => s.replace(/[^0-9]/g, '').slice(0, max);
@@ -85,17 +95,26 @@ export function BirthDateField({ t, value, onChange, fallbackAge }: Props) {
         </View>
       </View>
 
-      <Text style={{ color: impossible || tropJeune || anneeAberrante ? t.warning : t.textSecondary, fontSize: 13, lineHeight: 18 }}>
-        {impossible || anneeAberrante
+      {/* On ne parle QUE quand il y a quelque chose à dire : ce qui bloque, ou ce
+          qui manque. Une saisie valide n'a pas besoin d'être commentée — l'âge
+          reste lisible sur la ligne « Informations » du profil, donc une faute de
+          frappe se voit toujours. (Ligne de réassurance retirée le 2026-08-02,
+          décision fondateur.) */}
+      {(() => {
+        const probleme = impossible || anneeAberrante
           ? 'Cette date n’existe pas — vérifie le jour et le mois.'
-          : tropJeune
-            ? `Kyroz est réservé aux ${MIN_AGE} ans et plus.`
-            : age != null
-              ? `${age} ans. Ton âge se mettra à jour tout seul à chaque anniversaire 🎂`
-              : fallbackAge != null
-                ? `Âge enregistré : ${fallbackAge} ans. Renseigne ta date de naissance pour qu’il se mette à jour tout seul.`
-                : 'On en déduit ton âge — et il restera juste, année après année.'}
-      </Text>
+          : tropJeune ? `Kyroz est réservé aux ${MIN_AGE} ans et plus.` : null;
+        // Repli des comptes sans date : on n'a rien à leur reprocher, ton neutre.
+        const repli = !probleme && age == null && fallbackAge != null
+          ? `Âge enregistré : ${fallbackAge} ans. Renseigne ta date de naissance pour qu’il se mette à jour tout seul.`
+          : null;
+        if (!probleme && !repli) return null;
+        return (
+          <Text style={{ color: probleme ? t.warning : t.textSecondary, fontSize: 13, lineHeight: 18 }}>
+            {probleme ?? repli}
+          </Text>
+        );
+      })()}
     </View>
   );
 }

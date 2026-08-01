@@ -659,6 +659,29 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
   renseigner les drapeaux change. Vérifié à l'écran sur les deux chemins — « Non/Non +
   attestation » débloque, « Oui » mène au cul-de-sac.
 
+- ~~**A19 · Allègement du profil : bouclier retiré, carte de série resserrée**~~
+  ✅ **FAIT le 2026-08-02** (décision fondateur).
+  **Bouclier retiré de l'AFFICHAGE, mécanisme INTACT** : `advanceStreak` pardonne
+  toujours un jour manqué, et le toast de l'écran Plan (*« 🛡️ Série protégée »*) le dit
+  **au moment où ça sert**. Ce qui saute, c'est le statut permanent « 🛡️ Prêt » et sa
+  notice explicative : ils commentaient en continu une mécanique qui ne concerne
+  l'utilisateur qu'un jour sur sept au pire. ⚠️ Ne pas réintroduire l'affichage sans
+  nouvelle décision — et ne pas confondre avec une suppression de la feature (§5
+  l'autorise explicitement).
+  **Carte resserrée** : compteur 52 → 36 pt, padding et gouttières réduits, notice
+  supprimée. Mesuré à l'écran (430 × 932) : **≈ 370 → ≈ 190 pt**, soit « Préférences
+  alimentaires » désormais visible sans défiler. Le chaînon de 7 jours ne bouge pas —
+  c'est le North Star.
+  **Ligne d'âge retirée** : le champ ne commente plus une saisie valide. Il ne parle
+  que pour ce qui bloque (date impossible, < 18 ans) ou ce qui manque (compte sans date).
+  L'âge reste lisible sur la ligne « Informations », donc une faute de frappe se voit.
+  ⚠️ **Défaut attrapé en vérifiant — TROISIÈME occurrence du piège « 23 → 33 »** : taper
+  une date impossible (31/02) émettait `undefined`, le parent le renvoyait, et la
+  synchro `valeur → texte` **vidait les trois champs sous les doigts** — l'écran
+  affichait alors « renseigne ta date » au lieu de « cette date n'existe pas ». Le clamp
+  n'était jamais le vrai coupable : c'est la synchro descendante. Garde `emitted` (on
+  ignore ce qui nous revient de nous-même). Règle généralisée dans CLAUDE.md §11.
+
 ### 🎯 B — Les deux briques Kyroz+ qui restent
 
 La valeur premium est **construite et déployée** (objectif daté). Plus aucune décision

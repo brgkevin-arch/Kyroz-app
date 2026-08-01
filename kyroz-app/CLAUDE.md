@@ -571,11 +571,15 @@ téléphone.
 - **`onEndEditing` est un no-op sur react-native-web.** Pour normaliser ou borner une
   saisie en fin de frappe, utiliser **`onBlur`**. Le bug « %MG saisi 23 → enregistré 33 »
   venait de là.
-  ⚠️ **Corollaire, redécouvert le 2026-08-02** : ne pas non plus laisser une valeur
-  clampée réécrire le champ PENDANT la frappe. Retirer le clamp fautif ne traitait que
-  le déclencheur ; le mécanisme, c'est la synchro `valeur → texte`, qui remplace ce que
-  l'utilisateur écrit dès qu'un clamp bouge. La garde est un `focused` (cf.
-  `BodyFatPicker`) : on ne resynchronise que hors focus.
+  ⚠️ **LE VRAI PIÈGE, redécouvert DEUX fois le 2026-08-02** : le clamp n'était que le
+  déclencheur. Le mécanisme, c'est la **synchro `valeur du parent → texte local`**, qui
+  réécrit ce que l'utilisateur est en train de taper dès que la valeur remonte modifiée
+  — clampée (`BodyFatPicker`) ou remise à `undefined` parce que la saisie est encore
+  invalide (`BirthDateField` : taper « 31/02 » vidait les trois champs).
+  ➡️ **Règle** : un champ contrôlé par un état parent ne se resynchronise QUE sur un
+  changement venu de l'EXTÉRIEUR. Deux gardes selon le cas : `focused` (on ne réécrit
+  pas tant que le champ a le focus) ou `emitted` (on ignore ce qui nous revient de
+  notre propre émission).
 - **Le portail de dépistage santé et la visite guidée interceptent les clics.** Tout script
   qui pilote l'app doit les neutraliser d'abord, sinon il conclut que les écrans sont
   « introuvables » alors qu'il n'a jamais pu quitter le Plan (cf. `test/README.md`).
