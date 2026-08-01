@@ -866,10 +866,10 @@ produit en suspens — il ne reste qu'à coder.
   annonçaient encore la borne 1,00 (l. 29, 465, 683, 780, 1153) sont rectifiées, et un
   bandeau au-dessus du tableau des facteurs dit que **la source de vérité est
   `config.scaling_factors_by_role`, jamais un tableau recopié**.
-  ⚠️ **Régression signalée, non traitée** : `col72` est passée à **2/12** sous le seuil R8
-  de 3. Ce n'est pas le contrôle qui a changé pour les collations — c'est l'agrandissement
-  du catalogue (327 → 427) qui a fait disparaître la dérogation « profil affamé » dont elle
-  bénéficiait. À réécrire au prochain passage sur les collations.
+  ⚠️ **Régression signalée** : `col72` est passée à **2/12** sous le seuil R8 de 3. Ce n'est
+  pas le contrôle qui a changé pour les collations — c'est l'agrandissement du catalogue
+  (327 → 427) qui a fait disparaître la dérogation « profil affamé » dont elle bénéficiait.
+  ➡️ **Traité le 2026-08-02, et ce n'était pas un cas isolé : voir D15.**
 
 - ~~**D14 · Lot B4 — 32 recettes à l'enveloppe corrigée**~~ ✅ **LIVRÉ le 2026-08-02 —
   `rep251`→`rep270` (20 repas complets) et `pd99`→`pd110` (12 petits-déjeuners), catalogue
@@ -907,6 +907,51 @@ produit en suspens — il ne reste qu'à coder.
   **améliore** le biais (**×1,061**, 16/40 seeds au-dessus de 1,08). L'oracle est devenu
   la **moyenne sur 12 seeds**, seuil ×1,02. Il garde ses dents : nudge coupé
   (`FIBER_SELECT_W`/`FIBER_BAND_BONUS` à 0), la sèche tombe à ×0,885.
+
+- ~~**D15 · Le créneau collation — 20 recettes sur 79 ne servaient (presque) personne**~~
+  ✅ **RÉÉCRIT le 2026-08-02 — 23 collations, mêmes ids, `ENGINE_VERSION` 34 → 35.**
+  Le point de départ était `col72` (D13). Mesuré, ce n'était pas une régression isolée :
+  **20 collations sur 79 étaient sous le seuil R8 de 3/12, dont 6 à ZÉRO** — aucun des
+  12 profils ne pouvait les recevoir. Elles occupaient un quart du créneau sans jamais
+  être servies.
+
+  | | avant | après |
+  |---|---|---|
+  | sous le seuil R8 (3/12) | **20 / 79** | **0 / 79** |
+  | score moyen par recette | 4,52 / 12 | **6,90 / 12** |
+  | vivier `F 55 sèche` | 25 / 79 | **42 / 79** |
+  | vivier `H 95 masse` | 19 / 79 | **39 / 79** |
+  | vivier `H 110 masse` | 18 / 79 | **31 / 79** |
+
+  🔎 **LES QUATRE CAUSES, mesurées — elles valent règle pour toute collation future.**
+  1. **Un ingrédient FIXE (`vegetable`/`flavor`) est fatal sur ce créneau.** La cible va de
+     187 à 449 kcal (×2,4) ; un poids qui ne bouge pas ne rétrécit pas pour la première et
+     ne grandit pas pour la seconde. Les trois collations salées à bâtonnets de carotte y
+     sont toutes mortes.
+  2. **L'élasticité doit venir de refs SANS `abs_max_qty`.** Toutes les sources de gras du
+     catalogue sont plafonnées à 30–40 g : une collation qui compte sur les oléagineux pour
+     monter en calories tape le plafond avant d'atteindre un gros gabarit.
+  3. **Une ancre protéique chère plafonne.** `yaourt_grec` coûte 12,8 kcal par gramme de
+     protéine — les trois collations bâties dessus étaient à 2/12. Viser ≤ 9.
+  4. **Le couple (protéines × féculent) « ∅ » est saturé** : 9 collations en
+     `yaourt_soja_proteine × aucun féculent`, 5 en `proteine_vegetale × ∅`. Toute nouvelle
+     collation doit porter un vrai `carb`.
+
+  ⚠️ **La cible qui bouge (cf. D14) s'est reproduite, et c'était prévisible** : réécrire les
+  20 premières a fait tomber **3 collations intactes** de 3/12 à 2/12. Elles ont été
+  réécrites dans la foulée (`col03`, `col25`, `col64`) — d'où 23 et non 20. ➡️ **Contrôler
+  le créneau ENTIER après une vague, jamais seulement le lot livré.**
+
+  🆕 **Une vague peut désormais RÉÉCRIRE au lieu d'ajouter** (première fois ici). Les ids
+  sont conservés (favoris, recettes masquées, overrides), `wave` bascule sur la vague de
+  réécriture, et les vagues d'origine perdent les recettes reprises dans la partition de
+  `recipeData.test.ts`. Convention écrite dans `Recette/README.md`.
+
+  ⚠️ **Ce que ça ne règle pas** : `F 70 masse` reste le profil le plus mal servi
+  (25/79). Sa cible collation est de 311 kcal pour **5 g de protéines** — une densité de
+  1,6 g/100 kcal que presque aucune collation protéinée ne peut viser sans dépasser les
+  calories. C'est un cas à part, à traiter par le moteur (répartition des repas) plutôt
+  que par le catalogue.
 
 ### 🧹 E — Dette technique
 

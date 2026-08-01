@@ -14,10 +14,11 @@
     "waves": {
       "role": "Vague de livraison d'origine de chaque recette (champ `wave`). Rétro-rempli le 2026-07-29 depuis les dossiers de Recette/drops/ ; « fondation » = le lot initial, antérieur aux drops.",
       "valeurs": {
-        "fondation": 100,
-        "2026-06-19-vegan": 164,
-        "2026-07-22-sans-gluten": 50,
-        "2026-08-01-b2-collations": 13,
+        "fondation": 92,
+        "2026-08-02-b5-collations-reecrites": 23,
+        "2026-06-19-vegan": 156,
+        "2026-07-22-sans-gluten": 46,
+        "2026-08-01-b2-collations": 10,
         "2026-08-01-b1-lot1-repas": 20,
         "2026-08-01-b1-lot2-repas": 20,
         "2026-08-01-b1-lot3-repas": 20,
@@ -2671,174 +2672,184 @@
     },
     {
       "id": "col03",
-      "name": "Cottage cheese – ananas – noix",
+      "name": "Cottage cheese, maïs et noix",
       "category": "collation",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "maintien",
+          "prise_de_masse"
         ],
         "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
-        "temps_min": 3
+        "temps_min": 5
       },
       "base_servings": 1,
       "ingredients": [
         {
           "ref": "cottage_cheese",
-          "qty": 200,
+          "qty": 135,
           "macro_role": "protein",
           "scalable": true
         },
         {
-          "ref": "ananas",
-          "qty": 100,
-          "macro_role": "fruit",
+          "ref": "mais",
+          "qty": 110,
+          "macro_role": "carb",
           "scalable": true
         },
         {
           "ref": "noix",
-          "qty": 15,
+          "qty": 12,
           "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "ananas",
+          "qty": 90,
+          "macro_role": "fruit",
           "scalable": true
         }
       ],
       "instructions": [
-        "Mélange cottage cheese et ananas.",
-        "Parsème de noix."
+        "Égoutte le maïs et éponge-le pour qu'il ne détrempe pas le fromage.",
+        "Mélange le cottage cheese au maïs, poivre généreusement.",
+        "Ajoute l'ananas coupé en petits dés et les cerneaux de noix cassés grossièrement."
       ],
-      "why": "Muscu perte de gras : très protéiné, peu calorique, satiété élevée.",
+      "why": "Collation salée-sucrée, le cottage cheese portant les protéines.",
       "macros_per_serving": {
-        "kcal": 350,
-        "protein": 25,
-        "carbs": 20,
-        "fat": 18
+        "kcal": 379.7,
+        "protein": 19.6,
+        "carbs": 35.5,
+        "fat": 16.2
       },
-      "wave": "fondation"
+      "wave": "2026-08-02-b5-collations-reecrites"
     },
     {
       "id": "col04",
-      "name": "Energy balls dattes – avoine – cacahuète",
+      "name": "Galettes croustillantes pomme et cacahuète",
       "category": "collation",
       "tags": {
         "objectif": [
+          "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
+        "recup_jour_repos": true,
         "sport": [
-          "endurance"
+          "muscu"
         ],
-        "temps_min": 15
+        "temps_min": 5
       },
       "base_servings": 1,
       "ingredients": [
         {
-          "ref": "dattes",
-          "qty": 60,
-          "macro_role": "fruit",
+          "ref": "whey",
+          "qty": 18,
+          "macro_role": "protein",
           "scalable": true
         },
         {
-          "ref": "flocons_avoine",
-          "qty": 50,
+          "ref": "galette_riz",
+          "qty": 22,
           "macro_role": "carb",
           "scalable": true
         },
         {
           "ref": "beurre_cacahuete",
-          "qty": 30,
+          "qty": 20,
           "macro_role": "fat",
           "scalable": true
         },
         {
-          "ref": "cacao_poudre",
-          "qty": 10,
-          "macro_role": "flavor",
-          "scalable": false
-        },
-        {
-          "ref": "proteine_vegetale",
-          "qty": 20,
-          "macro_role": "protein",
+          "ref": "pomme",
+          "qty": 90,
+          "macro_role": "fruit",
           "scalable": true
         }
       ],
       "instructions": [
-        "Mixe dattes + avoine + beurre.",
-        "Forme des boules.",
-        "Réfrigère 30 min."
+        "Délie le beurre de cacahuète avec la whey et 3 cuillères d'eau froide, en fouettant jusqu'à obtenir une crème lisse et coulante.",
+        "Étale cette crème sur les galettes de riz, jusqu'aux bords.",
+        "Coupe la pomme en fines lamelles avec la peau et dispose-les par-dessus juste avant de manger, pour garder le croquant."
       ],
-      "why": "Endurance prise de masse : énergie dense et transportable pour les sorties longues.",
+      "why": "Collation croquante sans cuisson, la whey portant les protéines.",
       "macros_per_serving": {
-        "kcal": 700,
-        "protein": 32,
-        "carbs": 92,
-        "fat": 22
+        "kcal": 328.9,
+        "protein": 20.9,
+        "carbs": 32.3,
+        "fat": 12
       },
-      "wave": "fondation"
+      "wave": "2026-08-02-b5-collations-reecrites"
     },
     {
       "id": "col05",
-      "name": "Tartine pain complet – cacahuète – banane",
+      "name": "Tartine complète, banane et cacahuète",
       "category": "collation",
       "tags": {
         "objectif": [
+          "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
+        "recup_jour_repos": true,
         "sport": [
-          "endurance",
           "muscu"
         ],
-        "temps_min": 4
+        "temps_min": 5
       },
       "base_servings": 1,
       "ingredients": [
         {
+          "ref": "fromage_blanc_0",
+          "qty": 185,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
           "ref": "pain_complet",
-          "qty": 60,
+          "qty": 20,
           "macro_role": "carb",
           "scalable": true
         },
         {
           "ref": "beurre_cacahuete",
-          "qty": 25,
+          "qty": 20,
           "macro_role": "fat",
           "scalable": true
         },
         {
           "ref": "banane",
-          "qty": 100,
+          "qty": 60,
           "macro_role": "fruit",
           "scalable": true
         }
       ],
       "instructions": [
-        "Toaste le pain.",
-        "Étale le beurre, dépose la banane."
+        "Fais griller la tranche de pain complet jusqu'à ce qu'elle soit ferme sous le doigt.",
+        "Étale le beurre de cacahuète sur le pain encore chaud, puis dépose la banane en rondelles fines.",
+        "Sers le fromage blanc à côté, avec une pincée de cannelle si tu veux."
       ],
-      "why": "Endurance/muscu prise de masse : glucides + lipides, collation pré-entraînement.",
+      "why": "Tartine où le fromage blanc apporte les protéines que le pain seul n'a pas.",
       "macros_per_serving": {
-        "kcal": 390,
-        "protein": 13,
-        "carbs": 51,
-        "fat": 14
+        "kcal": 317,
+        "protein": 20.3,
+        "carbs": 31.3,
+        "fat": 11.1
       },
-      "wave": "fondation"
+      "wave": "2026-08-02-b5-collations-reecrites"
     },
     {
       "id": "col06",
-      "name": "Smoothie protéiné végétal cacahuète – datte",
+      "name": "Smoothie végétal banane, avoine et noix",
       "category": "collation",
       "tags": {
         "objectif": [
+          "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
+        "recup_jour_repos": true,
         "sport": [
-          "endurance"
+          "muscu"
         ],
         "temps_min": 5
       },
@@ -2846,32 +2857,8 @@
       "ingredients": [
         {
           "ref": "proteine_vegetale",
-          "qty": 30,
-          "macro_role": "protein",
-          "scalable": true
-        },
-        {
-          "ref": "banane",
-          "qty": 120,
-          "macro_role": "fruit",
-          "scalable": true
-        },
-        {
-          "ref": "beurre_cacahuete",
           "qty": 20,
-          "macro_role": "fat",
-          "scalable": true
-        },
-        {
-          "ref": "lait_amande",
-          "qty": 250,
-          "macro_role": "dairy",
-          "scalable": true
-        },
-        {
-          "ref": "dattes",
-          "qty": 30,
-          "macro_role": "fruit",
+          "macro_role": "protein",
           "scalable": true
         },
         {
@@ -2879,19 +2866,33 @@
           "qty": 20,
           "macro_role": "carb",
           "scalable": true
+        },
+        {
+          "ref": "noix",
+          "qty": 10,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "banane",
+          "qty": 100,
+          "macro_role": "fruit",
+          "scalable": true
         }
       ],
       "instructions": [
-        "Mixe tout 45 s."
+        "Mets la banane en morceaux, les flocons d'avoine, les cerneaux de noix et la protéine végétale dans le bol du mixeur.",
+        "Ajoute 200 ml d'eau froide et mixe 45 secondes : la texture doit être lisse, sans éclat de noix au fond.",
+        "Verse dans un grand verre et bois sans attendre, avant que le mélange ne se sépare."
       ],
-      "why": "Endurance prise de masse 100% végétal : carburant liquide post-sortie longue.",
+      "why": "Boisson mixée protéinée par la protéine de pois plutôt que par le fruit.",
       "macros_per_serving": {
-        "kcal": 560,
-        "protein": 33,
-        "carbs": 69,
-        "fat": 17
+        "kcal": 309.3,
+        "protein": 19.2,
+        "carbs": 33.9,
+        "fat": 10.2
       },
-      "wave": "fondation"
+      "wave": "2026-08-02-b5-collations-reecrites"
     },
     {
       "id": "col07",
@@ -3060,50 +3061,59 @@
     },
     {
       "id": "col10",
-      "name": "Amandes – chocolat noir – pomme",
+      "name": "Skyr, pomme et graines de courge",
       "category": "collation",
       "tags": {
         "objectif": [
-          "maintien"
+          "maintien",
+          "prise_de_masse"
         ],
         "recup_jour_repos": true,
         "sport": [
-          "endurance"
+          "muscu"
         ],
-        "temps_min": 1
+        "temps_min": 5
       },
       "base_servings": 1,
       "ingredients": [
         {
-          "ref": "amandes",
-          "qty": 25,
-          "macro_role": "fat",
+          "ref": "skyr",
+          "qty": 130,
+          "macro_role": "protein",
           "scalable": true
         },
         {
-          "ref": "chocolat_noir",
+          "ref": "miel",
           "qty": 15,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "graines_courge",
+          "qty": 20,
           "macro_role": "fat",
           "scalable": true
         },
         {
           "ref": "pomme",
-          "qty": 120,
+          "qty": 90,
           "macro_role": "fruit",
           "scalable": true
         }
       ],
       "instructions": [
-        "Assemble et déguste."
+        "Fais griller les graines de courge 2 minutes à sec dans une petite poêle à feu moyen, jusqu'à ce qu'elles crépitent.",
+        "Fouette le skyr avec le miel jusqu'à ce qu'il n'y ait plus de traînée de miel au fond du bol.",
+        "Coupe la pomme en petits dés avec la peau et répartis-les sur le skyr avec les graines tièdes."
       ],
-      "why": "Endurance maintien : énergie rapide + bons lipides, zéro préparation.",
+      "why": "Laitage très protéiné, la pomme et le miel apportant les glucides.",
       "macros_per_serving": {
-        "kcal": 305,
-        "protein": 7,
-        "carbs": 21,
-        "fat": 19
+        "kcal": 303.8,
+        "protein": 20.5,
+        "carbs": 29,
+        "fat": 10.3
       },
-      "wave": "fondation"
+      "wave": "2026-08-02-b5-collations-reecrites"
     },
     {
       "id": "col11",
@@ -3324,134 +3334,31 @@
     },
     {
       "id": "col15",
-      "name": "Barre avoine – whey – miel maison",
+      "name": "Bol d'avoine, raisins et noisettes",
       "category": "collation",
       "tags": {
         "objectif": [
+          "maintien",
           "prise_de_masse"
-        ],
-        "recup_jour_repos": false,
-        "sport": [
-          "muscu"
-        ],
-        "temps_min": 20
-      },
-      "base_servings": 1,
-      "ingredients": [
-        {
-          "ref": "flocons_avoine",
-          "qty": 60,
-          "macro_role": "carb",
-          "scalable": true
-        },
-        {
-          "ref": "whey",
-          "qty": 30,
-          "macro_role": "protein",
-          "scalable": true
-        },
-        {
-          "ref": "miel",
-          "qty": 20,
-          "macro_role": "flavor",
-          "scalable": false
-        },
-        {
-          "ref": "beurre_cacahuete",
-          "qty": 20,
-          "macro_role": "fat",
-          "scalable": true
-        },
-        {
-          "ref": "lait_demi_ecreme",
-          "qty": 40,
-          "macro_role": "dairy",
-          "scalable": true
-        }
-      ],
-      "instructions": [
-        "Mélange tout en pâte.",
-        "Tasse dans un moule, réfrigère 1 h.",
-        "Coupe en barres."
-      ],
-      "why": "Muscu prise de masse : snack solide protéiné, alternative aux barres du commerce.",
-      "macros_per_serving": {
-        "kcal": 540,
-        "protein": 38,
-        "carbs": 58,
-        "fat": 16
-      },
-      "wave": "fondation"
-    },
-    {
-      "id": "col16",
-      "name": "Edamame vapeur – sauce soja",
-      "category": "collation",
-      "tags": {
-        "objectif": [
-          "perte_de_gras",
-          "maintien"
-        ],
-        "recup_jour_repos": false,
-        "sport": [
-          "combats"
-        ],
-        "temps_min": 6
-      },
-      "base_servings": 1,
-      "ingredients": [
-        {
-          "ref": "edamame",
-          "qty": 150,
-          "macro_role": "protein",
-          "scalable": true
-        },
-        {
-          "ref": "sauce_soja",
-          "qty": 10,
-          "macro_role": "flavor",
-          "scalable": false
-        }
-      ],
-      "instructions": [
-        "Cuis les edamame 5 min vapeur.",
-        "Sale légèrement, sauce soja."
-      ],
-      "why": "Combats perte de gras : protéines végétales, très peu calorique, coupe-faim.",
-      "macros_per_serving": {
-        "kcal": 195,
-        "protein": 17,
-        "carbs": 14,
-        "fat": 8
-      },
-      "wave": "fondation"
-    },
-    {
-      "id": "col17",
-      "name": "Yaourt grec – raisins – noisettes",
-      "category": "collation",
-      "tags": {
-        "objectif": [
-          "maintien"
         ],
         "recup_jour_repos": true,
         "sport": [
-          "endurance"
+          "muscu"
         ],
-        "temps_min": 3
+        "temps_min": 5
       },
       "base_servings": 1,
       "ingredients": [
         {
-          "ref": "yaourt_grec",
-          "qty": 200,
+          "ref": "fromage_blanc_0",
+          "qty": 190,
           "macro_role": "protein",
           "scalable": true
         },
         {
-          "ref": "raisins",
-          "qty": 40,
-          "macro_role": "fruit",
+          "ref": "flocons_avoine",
+          "qty": 30,
+          "macro_role": "carb",
           "scalable": true
         },
         {
@@ -3461,23 +3368,137 @@
           "scalable": true
         },
         {
-          "ref": "flocons_avoine",
-          "qty": 20,
-          "macro_role": "carb",
+          "ref": "raisins",
+          "qty": 70,
+          "macro_role": "fruit",
           "scalable": true
         }
       ],
       "instructions": [
-        "Mélange tout."
+        "Fais griller les noisettes 2 minutes à sec dans une petite poêle à feu moyen, puis concasse-les grossièrement.",
+        "Mélange les flocons d'avoine au fromage blanc et laisse-les gonfler 5 minutes : ils s'attendrissent sans cuisson.",
+        "Coupe les grains de raisin en deux, ajoute-les avec les noisettes et sers."
       ],
-      "why": "Endurance maintien : énergie + protéines, lipides des noisettes.",
+      "why": "Avoine crue et fromage blanc maigre, sans sucre ajouté.",
       "macros_per_serving": {
-        "kcal": 430,
-        "protein": 23,
-        "carbs": 28,
-        "fat": 25
+        "kcal": 346.4,
+        "protein": 19.7,
+        "carbs": 37.8,
+        "fat": 11.2
       },
-      "wave": "fondation"
+      "wave": "2026-08-02-b5-collations-reecrites"
+    },
+    {
+      "id": "col16",
+      "name": "Tartine de seigle, cottage cheese et ananas",
+      "category": "collation",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "recup_jour_repos": true,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 5
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "cottage_cheese",
+          "qty": 125,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "pain_seigle",
+          "qty": 35,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "noisettes",
+          "qty": 10,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "ananas",
+          "qty": 90,
+          "macro_role": "fruit",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Fais griller la tranche de pain de seigle jusqu'à ce qu'elle soit ferme sous le doigt.",
+        "Étale le cottage cheese en couche épaisse sur le pain encore chaud.",
+        "Dépose l'ananas coupé en petits dés, parsème de noisettes concassées et donne un tour de moulin à poivre."
+      ],
+      "why": "Tartine salée-sucrée, le cottage cheese apportant les protéines.",
+      "macros_per_serving": {
+        "kcal": 323.5,
+        "protein": 18.3,
+        "carbs": 33,
+        "fat": 11.9
+      },
+      "wave": "2026-08-02-b5-collations-reecrites"
+    },
+    {
+      "id": "col17",
+      "name": "Semoule de maïs au skyr et raisins",
+      "category": "collation",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "recup_jour_repos": true,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 15
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "skyr",
+          "qty": 115,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "polenta",
+          "qty": 25,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "noisettes",
+          "qty": 20,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "raisins",
+          "qty": 80,
+          "macro_role": "fruit",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Verse la polenta en pluie dans quatre fois son volume d'eau salée frémissante et remue 5 minutes à feu doux, jusqu'à ce qu'elle nappe la cuillère.",
+        "Coupe le feu et laisse tiédir 5 minutes — versée brûlante sur le skyr, elle le ferait trancher.",
+        "Incorpore le skyr, ajoute les raisins coupés en deux et les noisettes concassées."
+      ],
+      "why": "Polenta tiède et skyr, une collation sans gluten et rassasiante.",
+      "macros_per_serving": {
+        "kcal": 343.2,
+        "protein": 18.1,
+        "carbs": 37.6,
+        "fat": 12.2
+      },
+      "wave": "2026-08-02-b5-collations-reecrites"
     },
     {
       "id": "col18",
@@ -8944,57 +8965,59 @@
     },
     {
       "id": "col25",
-      "name": "Smoothie skyr – épinards – ananas",
+      "name": "Bol de sarrasin, skyr et ananas",
       "category": "collation",
       "tags": {
         "objectif": [
-          "perte_de_gras"
+          "maintien",
+          "prise_de_masse"
         ],
-        "recup_jour_repos": false,
+        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
-        "temps_min": 4
+        "temps_min": 20
       },
       "base_servings": 1,
       "ingredients": [
         {
           "ref": "skyr",
-          "qty": 150,
+          "qty": 100,
           "macro_role": "protein",
           "scalable": true
         },
         {
-          "ref": "ananas",
-          "qty": 100,
-          "macro_role": "fruit",
+          "ref": "sarrasin",
+          "qty": 30,
+          "macro_role": "carb",
           "scalable": true
         },
         {
-          "ref": "epinards",
-          "qty": 40,
-          "macro_role": "vegetable",
-          "scalable": false
+          "ref": "graines_chia",
+          "qty": 30,
+          "macro_role": "fat",
+          "scalable": true
         },
         {
-          "ref": "graines_chia",
-          "qty": 8,
-          "macro_role": "fat",
+          "ref": "ananas",
+          "qty": 80,
+          "macro_role": "fruit",
           "scalable": true
         }
       ],
       "instructions": [
-        "Mixer skyr, ananas, épinards et chia.",
-        "Servir."
+        "Rince le sarrasin, fais-le cuire 12 minutes dans deux fois son volume d'eau salée, puis égoutte-le et étale-le pour qu'il tiédisse 5 minutes.",
+        "Mélange les graines de chia au skyr et laisse-les gonfler 5 minutes : elles épaississent la crème.",
+        "Incorpore le sarrasin tiède et ajoute l'ananas coupé en dés."
       ],
-      "why": "Sèche : très protéiné, micronutriments, peu calorique.",
+      "why": "Sarrasin sans gluten et skyr, les graines de chia complétant les lipides.",
       "macros_per_serving": {
-        "kcal": 188,
-        "protein": 19.5,
-        "carbs": 19,
-        "fat": 3
+        "kcal": 349.4,
+        "protein": 20.1,
+        "carbs": 35.9,
+        "fat": 10.8
       },
-      "wave": "2026-06-19-vegan"
+      "wave": "2026-08-02-b5-collations-reecrites"
     },
     {
       "id": "col26",
@@ -9198,7 +9221,7 @@
     },
     {
       "id": "col30",
-      "name": "Yaourt grec – miel – noisettes",
+      "name": "Fromage blanc, miel et myrtilles",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -9209,41 +9232,48 @@
         "sport": [
           "muscu"
         ],
-        "temps_min": 3
+        "temps_min": 5
       },
       "base_servings": 1,
       "ingredients": [
         {
-          "ref": "yaourt_grec",
+          "ref": "fromage_blanc_0",
           "qty": 200,
           "macro_role": "protein",
           "scalable": true
         },
         {
           "ref": "miel",
-          "qty": 12,
-          "macro_role": "fruit",
+          "qty": 20,
+          "macro_role": "carb",
           "scalable": true
         },
         {
           "ref": "noisettes",
-          "qty": 15,
+          "qty": 20,
           "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "myrtilles",
+          "qty": 80,
+          "macro_role": "fruit",
           "scalable": true
         }
       ],
       "instructions": [
-        "Mélanger yaourt grec et miel.",
-        "Ajouter les noisettes."
+        "Fais griller les noisettes 2 minutes à sec dans une petite poêle à feu moyen : elles doivent blondir et embaumer.",
+        "Fouette le fromage blanc avec le miel jusqu'à ce que le mélange soit homogène et brillant.",
+        "Ajoute les myrtilles et les noisettes concassées sur le dessus."
       ],
-      "why": "Jour repos : plus de lipides, satiété longue.",
+      "why": "Fromage blanc 0 %, le miel et les noisettes équilibrant l'ensemble.",
       "macros_per_serving": {
-        "kcal": 331,
-        "protein": 20.3,
-        "carbs": 18.7,
-        "fat": 19.1
+        "kcal": 335,
+        "protein": 18.3,
+        "carbs": 34.7,
+        "fat": 11.8
       },
-      "wave": "2026-06-19-vegan"
+      "wave": "2026-08-02-b5-collations-reecrites"
     },
     {
       "id": "col31",
@@ -9302,74 +9332,70 @@
     },
     {
       "id": "col32",
-      "name": "Barre avoine – chocolat noir – amandes",
+      "name": "Croquant sarrasin et chocolat noir",
       "category": "collation",
       "tags": {
         "objectif": [
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
+        "recup_jour_repos": true,
         "sport": [
-          "endurance"
+          "muscu"
         ],
-        "temps_min": 10
+        "temps_min": 15
       },
       "base_servings": 1,
       "ingredients": [
         {
-          "ref": "flocons_avoine",
-          "qty": 50,
-          "macro_role": "carb",
-          "scalable": true
-        },
-        {
           "ref": "proteine_vegetale",
-          "qty": 25,
+          "qty": 20,
           "macro_role": "protein",
           "scalable": true
         },
         {
+          "ref": "sarrasin",
+          "qty": 25,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
           "ref": "chocolat_noir",
-          "qty": 15,
+          "qty": 20,
           "macro_role": "fat",
           "scalable": true
         },
         {
-          "ref": "amandes",
-          "qty": 15,
-          "macro_role": "fat",
-          "scalable": true
-        },
-        {
-          "ref": "dattes",
-          "qty": 30,
+          "ref": "pomme",
+          "qty": 80,
           "macro_role": "fruit",
           "scalable": true
         }
       ],
       "instructions": [
-        "Mixer flocons, protéine, dattes.",
-        "Ajouter chocolat et amandes, presser en barres, réfrigérer."
+        "Fais cuire le sarrasin 12 minutes dans deux fois son volume d'eau salée, puis égoutte-le et étale-le pour qu'il tiédisse.",
+        "Râpe la pomme avec les gros trous d'une râpe et mélange-la au sarrasin tiède avec la protéine végétale et 3 cuillères d'eau.",
+        "Râpe le chocolat noir par-dessus au dernier moment, pour qu'il ne fonde pas complètement."
       ],
-      "why": "Vegan : barre maison équilibrée pour soutenir un effort long.",
+      "why": "Sarrasin sans gluten et protéine de pois, sans sucre ajouté.",
       "macros_per_serving": {
-        "kcal": 542,
-        "protein": 31.6,
-        "carbs": 56,
-        "fat": 19.1
+        "kcal": 328.5,
+        "protein": 20.2,
+        "carbs": 33.5,
+        "fat": 11.7
       },
-      "wave": "2026-06-19-vegan"
+      "wave": "2026-08-02-b5-collations-reecrites"
     },
     {
       "id": "col33",
-      "name": "Boules cacao – chia – coco",
+      "name": "Bouchées châtaigne, datte et amande",
       "category": "collation",
       "tags": {
         "objectif": [
-          "maintien"
+          "maintien",
+          "prise_de_masse"
         ],
-        "recup_jour_repos": false,
+        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -9378,48 +9404,43 @@
       "base_servings": 1,
       "ingredients": [
         {
-          "ref": "graines_chia",
+          "ref": "proteine_vegetale",
+          "qty": 20,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "chataigne",
+          "qty": 35,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "beurre_amande",
           "qty": 15,
           "macro_role": "fat",
           "scalable": true
         },
         {
           "ref": "dattes",
-          "qty": 50,
-          "macro_role": "fruit",
-          "scalable": true
-        },
-        {
-          "ref": "proteine_vegetale",
           "qty": 25,
-          "macro_role": "protein",
-          "scalable": true
-        },
-        {
-          "ref": "cacao_poudre",
-          "qty": 10,
-          "macro_role": "flavor",
-          "scalable": false
-        },
-        {
-          "ref": "flocons_avoine",
-          "qty": 30,
-          "macro_role": "carb",
+          "macro_role": "fruit",
           "scalable": true
         }
       ],
       "instructions": [
-        "Mixer dattes, flocons, cacao et protéine.",
-        "Ajouter chia, former des boules."
+        "Écrase les châtaignes à la fourchette avec les dattes dénoyautées et 2 cuillères d'eau chaude, jusqu'à obtenir une pâte épaisse.",
+        "Incorpore la protéine végétale et le beurre d'amande, et travaille jusqu'à ce que la pâte se détache des parois du bol.",
+        "Roule en petites boules et mange-les fraîches."
       ],
-      "why": "Vegan : en-cas chocolaté riche en fibres et oméga-3.",
+      "why": "Bouchées végétales sans gluten, la châtaigne apportant les glucides.",
       "macros_per_serving": {
-        "kcal": 454,
-        "protein": 29.7,
-        "carbs": 54.5,
-        "fat": 9.3
+        "kcal": 309.1,
+        "protein": 19,
+        "carbs": 32.4,
+        "fat": 10
       },
-      "wave": "2026-06-19-vegan"
+      "wave": "2026-08-02-b5-collations-reecrites"
     },
     {
       "id": "col34",
@@ -9779,67 +9800,80 @@
     },
     {
       "id": "col41",
-      "name": "Pois chiches rôtis épicés",
+      "name": "Galettes de riz, dinde et avocat",
       "category": "collation",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "maintien",
+          "prise_de_masse"
         ],
-        "recup_jour_repos": false,
+        "recup_jour_repos": true,
         "sport": [
-          "combats"
+          "muscu"
         ],
         "temps_min": 10
       },
       "base_servings": 1,
       "ingredients": [
         {
-          "ref": "pois_chiches",
-          "qty": 60,
+          "ref": "dinde_escalope",
+          "qty": 70,
           "macro_role": "protein",
           "scalable": true
         },
         {
-          "ref": "huile_olive",
-          "qty": 6,
+          "ref": "galette_riz",
+          "qty": 30,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "avocat",
+          "qty": 40,
           "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "kiwi",
+          "qty": 70,
+          "macro_role": "fruit",
           "scalable": true
         }
       ],
       "instructions": [
-        "Sécher les pois chiches cuits, enrober d'huile et d'épices.",
-        "Rôtir 20 min à 200°C."
+        "Sale et poivre l'escalope de dinde, puis saisis-la 3 minutes par face dans une poêle antiadhésive bien chaude : la chair doit être ferme et blanche à cœur.",
+        "Écrase l'avocat à la fourchette avec une pincée de sel et tartine-le sur les galettes de riz.",
+        "Tranche la dinde finement, dépose-la sur les galettes et sers avec le kiwi coupé en rondelles."
       ],
-      "why": "Vegan : en-cas croustillant riche en protéines et fibres.",
+      "why": "Collation salée, la dinde apportant des protéines très maigres.",
       "macros_per_serving": {
-        "kcal": 264,
-        "protein": 12.3,
-        "carbs": 28.5,
-        "fat": 9.6
+        "kcal": 313.8,
+        "protein": 20.4,
+        "carbs": 31.1,
+        "fat": 10.6
       },
-      "wave": "2026-06-19-vegan"
+      "wave": "2026-08-02-b5-collations-reecrites"
     },
     {
       "id": "col42",
-      "name": "Yaourt grec – granola – framboises",
+      "name": "Fromage blanc, granola et framboises",
       "category": "collation",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "maintien",
+          "prise_de_masse"
         ],
-        "recup_jour_repos": false,
+        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
-        "temps_min": 4
+        "temps_min": 10
       },
       "base_servings": 1,
       "ingredients": [
         {
-          "ref": "yaourt_grec",
-          "qty": 180,
+          "ref": "fromage_blanc_0",
+          "qty": 210,
           "macro_role": "protein",
           "scalable": true
         },
@@ -9850,30 +9884,31 @@
           "scalable": true
         },
         {
-          "ref": "framboises",
-          "qty": 70,
-          "macro_role": "fruit",
+          "ref": "amandes",
+          "qty": 15,
+          "macro_role": "fat",
           "scalable": true
         },
         {
-          "ref": "amandes",
-          "qty": 10,
-          "macro_role": "fat",
+          "ref": "framboises",
+          "qty": 80,
+          "macro_role": "fruit",
           "scalable": true
         }
       ],
       "instructions": [
-        "Mélanger yaourt et flocons.",
-        "Garnir framboises et amandes."
+        "Fais griller les flocons d'avoine et les amandes concassées 4 minutes à sec dans une poêle à feu moyen, en remuant : ils doivent dorer sans brunir.",
+        "Verse le fromage blanc dans un bol et ajoute les framboises, en en écrasant quelques-unes pour colorer l'ensemble.",
+        "Répartis le granola tiède par-dessus juste avant de manger, sinon il ramollit."
       ],
-      "why": "Équilibré, protéines lentes pour les inter-repas.",
+      "why": "Granola grillé sur fromage blanc maigre, sans sucre ajouté.",
       "macros_per_serving": {
-        "kcal": 385,
-        "protein": 23,
-        "carbs": 29.2,
-        "fat": 16.8
+        "kcal": 344.5,
+        "protein": 22.7,
+        "carbs": 32.1,
+        "fat": 11.1
       },
-      "wave": "2026-06-19-vegan"
+      "wave": "2026-08-02-b5-collations-reecrites"
     },
     {
       "id": "col43",
@@ -16178,60 +16213,59 @@
     },
     {
       "id": "col50",
-      "name": "Edamame poêlés – maïs – graines de courge",
+      "name": "Edamame, maïs et graines de courge",
       "category": "collation",
       "tags": {
         "objectif": [
-          "perte_de_gras"
+          "maintien",
+          "prise_de_masse"
         ],
-        "recup_jour_repos": false,
+        "recup_jour_repos": true,
         "sport": [
-          "combats"
+          "muscu"
         ],
-        "temps_min": 8
+        "temps_min": 10
       },
       "base_servings": 1,
       "ingredients": [
         {
           "ref": "edamame",
-          "qty": 120,
+          "qty": 140,
           "macro_role": "protein",
           "scalable": true
         },
         {
           "ref": "mais",
-          "qty": 40,
-          "macro_role": "vegetable",
-          "scalable": false
+          "qty": 55,
+          "macro_role": "carb",
+          "scalable": true
         },
         {
           "ref": "graines_courge",
-          "qty": 10,
+          "qty": 12,
           "macro_role": "fat",
           "scalable": true
         },
         {
-          "ref": "huile_olive",
-          "qty": 3,
-          "macro_role": "fat",
+          "ref": "ananas",
+          "qty": 80,
+          "macro_role": "fruit",
           "scalable": true
         }
       ],
       "instructions": [
-        "Fais décongeler les edamame écossés 2 minutes à l'eau bouillante, puis égoutte-les soigneusement : l'eau résiduelle empêcherait la coloration.",
-        "Chauffe l'huile dans une poêle à feu vif jusqu'à ce qu'elle soit brillante.",
-        "Jette les edamame et le maïs égoutté, laisse-les colorer 3 minutes sans remuer, puis mélange une fois : des taches dorées doivent apparaître.",
-        "Ajoute les graines de courge, sale, poivre et poursuis 1 minute pour les torréfier.",
-        "Sers tiède, dans un bol, avec un tour de moulin."
+        "Fais cuire les edamame 5 minutes à la vapeur ou dans l'eau bouillante salée, puis égoutte-les et écosse-les si besoin.",
+        "Fais griller les graines de courge 2 minutes à sec dans une poêle chaude, jusqu'à ce qu'elles crépitent.",
+        "Mélange les edamame, le maïs égoutté et l'ananas en petits dés, poivre, et parsème de graines grillées."
       ],
-      "why": "Vegan & sans gluten : croquant, protéines végétales et volume.",
+      "why": "Collation salée végétale, les edamame portant les protéines.",
       "macros_per_serving": {
-        "kcal": 271.4,
-        "protein": 17.4,
-        "carbs": 18.7,
-        "fat": 14.4
+        "kcal": 348.5,
+        "protein": 20.6,
+        "carbs": 32.7,
+        "fat": 14.2
       },
-      "wave": "2026-06-19-vegan"
+      "wave": "2026-08-02-b5-collations-reecrites"
     },
     {
       "id": "col51",
@@ -16283,58 +16317,59 @@
     },
     {
       "id": "col52",
-      "name": "Mousse tofu soyeux – cacao – sirop érable",
+      "name": "Crème de soja, banane et amandes",
       "category": "collation",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "maintien",
+          "prise_de_masse"
         ],
         "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
-        "temps_min": 8
+        "temps_min": 5
       },
       "base_servings": 1,
       "ingredients": [
         {
-          "ref": "tofu_soyeux",
-          "qty": 150,
+          "ref": "yaourt_soja_proteine",
+          "qty": 170,
           "macro_role": "protein",
           "scalable": true
         },
         {
-          "ref": "proteine_vegetale",
+          "ref": "flocons_avoine",
           "qty": 20,
-          "macro_role": "protein",
+          "macro_role": "carb",
           "scalable": true
         },
         {
-          "ref": "cacao_poudre",
+          "ref": "amandes",
           "qty": 10,
-          "macro_role": "flavor",
-          "scalable": false
+          "macro_role": "fat",
+          "scalable": true
         },
         {
-          "ref": "sirop_erable",
-          "qty": 12,
+          "ref": "banane",
+          "qty": 90,
           "macro_role": "fruit",
           "scalable": true
         }
       ],
       "instructions": [
-        "Mixer tofu soyeux, protéine, cacao et sirop d'érable.",
-        "Réfrigérer 1 h avant de servir."
+        "Écrase la banane à la fourchette jusqu'à obtenir une purée sans gros morceaux.",
+        "Mélange-la au yaourt de soja avec les flocons d'avoine et laisse gonfler 5 minutes : l'avoine s'attendrit sans cuisson.",
+        "Concasse les amandes, parsème-les sur le dessus et sers frais."
       ],
-      "why": "Vegan & sans gluten : mousse chocolat protéinée, onctueuse.",
+      "why": "Crème végétale protéinée, sans cuisson ni sucre ajouté.",
       "macros_per_serving": {
-        "kcal": 224,
-        "protein": 27,
-        "carbs": 12,
-        "fat": 6.6
+        "kcal": 326.6,
+        "protein": 20.5,
+        "carbs": 37,
+        "fat": 9.8
       },
-      "wave": "2026-06-19-vegan"
+      "wave": "2026-08-02-b5-collations-reecrites"
     },
     {
       "id": "col53",
@@ -17953,30 +17988,37 @@
     },
     {
       "id": "col55",
-      "name": "Galettes de riz – skyr – myrtilles",
+      "name": "Galettes de riz, skyr et myrtilles",
       "category": "collation",
       "tags": {
         "objectif": [
-          "perte_de_gras"
+          "maintien",
+          "prise_de_masse"
         ],
-        "recup_jour_repos": false,
+        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
-        "temps_min": 3
+        "temps_min": 5
       },
       "base_servings": 1,
       "ingredients": [
         {
+          "ref": "skyr",
+          "qty": 95,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
           "ref": "galette_riz",
-          "qty": 30,
+          "qty": 25,
           "macro_role": "carb",
           "scalable": true
         },
         {
-          "ref": "skyr",
-          "qty": 170,
-          "macro_role": "protein",
+          "ref": "graines_courge",
+          "qty": 20,
+          "macro_role": "fat",
           "scalable": true
         },
         {
@@ -17987,17 +18029,18 @@
         }
       ],
       "instructions": [
-        "Tartiner le skyr sur les galettes.",
-        "Garnir de myrtilles."
+        "Fais griller les graines de courge 2 minutes à sec dans une petite poêle, jusqu'à ce qu'elles gonflent.",
+        "Étale le skyr en couche épaisse sur les galettes de riz, jusqu'aux bords.",
+        "Répartis les myrtilles et les graines grillées par-dessus, et mange tout de suite pour garder le croquant."
       ],
-      "why": "Sans gluten : sèche, protéines maigres et croquant.",
+      "why": "Tartine sans gluten, le skyr apportant l'essentiel des protéines.",
       "macros_per_serving": {
-        "kcal": 256,
-        "protein": 21.6,
-        "carbs": 39.5,
-        "fat": 1.4
+        "kcal": 319.3,
+        "protein": 19.1,
+        "carbs": 31.8,
+        "fat": 11
       },
-      "wave": "2026-07-22-sans-gluten"
+      "wave": "2026-08-02-b5-collations-reecrites"
     },
     {
       "id": "col56",
@@ -18103,57 +18146,59 @@
     },
     {
       "id": "col58",
-      "name": "Boules châtaigne – cacao – amande",
+      "name": "Bouchées châtaigne et beurre d'amande",
       "category": "collation",
       "tags": {
         "objectif": [
-          "maintien"
+          "maintien",
+          "prise_de_masse"
         ],
-        "recup_jour_repos": false,
+        "recup_jour_repos": true,
         "sport": [
-          "endurance"
+          "muscu"
         ],
         "temps_min": 10
       },
       "base_servings": 1,
       "ingredients": [
         {
-          "ref": "chataigne",
-          "qty": 120,
-          "macro_role": "carb",
-          "scalable": true
-        },
-        {
-          "ref": "proteine_vegetale",
-          "qty": 20,
+          "ref": "cottage_cheese",
+          "qty": 130,
           "macro_role": "protein",
           "scalable": true
         },
         {
-          "ref": "cacao_poudre",
-          "qty": 8,
-          "macro_role": "flavor",
-          "scalable": false
+          "ref": "chataigne",
+          "qty": 40,
+          "macro_role": "carb",
+          "scalable": true
         },
         {
           "ref": "beurre_amande",
-          "qty": 15,
+          "qty": 12,
           "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "pomme",
+          "qty": 80,
+          "macro_role": "fruit",
           "scalable": true
         }
       ],
       "instructions": [
-        "Mixer châtaignes, protéine et cacao.",
-        "Lier au beurre d'amande, former des boules, réfrigérer."
+        "Écrase les châtaignes à la fourchette avec la pomme râpée, jusqu'à obtenir une purée grumeleuse.",
+        "Incorpore le cottage cheese égoutté et le beurre d'amande, et travaille jusqu'à ce que la pâte se tienne.",
+        "Roule en boules de la taille d'une noix et garde-les au frais jusqu'au moment de manger."
       ],
-      "why": "Vegan & sans gluten : barre maison sans avoine ni céréale.",
+      "why": "Bouchées sans gluten, le cottage cheese relevant la densité protéique.",
       "macros_per_serving": {
-        "kcal": 411,
-        "protein": 24.4,
-        "carbs": 47.5,
-        "fat": 12.5
+        "kcal": 321.9,
+        "protein": 17.8,
+        "carbs": 29,
+        "fat": 12.8
       },
-      "wave": "2026-07-22-sans-gluten"
+      "wave": "2026-08-02-b5-collations-reecrites"
     },
     {
       "id": "col59",
@@ -18418,62 +18463,59 @@
     },
     {
       "id": "col64",
-      "name": "Houmous de haricots blancs – bâtonnets de carotte",
+      "name": "Écrasé d'edamame au tahini",
       "category": "collation",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "maintien",
+          "prise_de_masse"
         ],
-        "recup_jour_repos": false,
+        "recup_jour_repos": true,
         "sport": [
-          "combats"
+          "muscu"
         ],
-        "temps_min": 8
+        "temps_min": 10
       },
       "base_servings": 1,
       "ingredients": [
         {
-          "ref": "haricots_blancs",
-          "qty": 50,
+          "ref": "edamame",
+          "qty": 120,
           "macro_role": "protein",
           "scalable": true
         },
         {
+          "ref": "pain_complet",
+          "qty": 25,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
           "ref": "tahini",
-          "qty": 10,
+          "qty": 12,
           "macro_role": "fat",
           "scalable": true
         },
         {
-          "ref": "huile_olive",
-          "qty": 2,
-          "macro_role": "fat",
+          "ref": "mais",
+          "qty": 40,
+          "macro_role": "carb",
           "scalable": true
-        },
-        {
-          "ref": "carotte",
-          "qty": 80,
-          "macro_role": "vegetable",
-          "scalable": false
         }
       ],
       "instructions": [
-        "Fais tremper les haricots blancs la veille, puis cuis-les 45 minutes à l'eau non salée jusqu'à ce qu'ils s'écrasent entre deux doigts (ou pars de haricots déjà cuits et rincés).",
-        "Égoutte-les en réservant deux cuillères à soupe d'eau de cuisson.",
-        "Mets les haricots dans un mixeur avec le tahini, l'huile, une gousse d'ail, le jus d'un demi-citron, du sel et une pincée de cumin.",
-        "Mixe 1 minute en ajoutant l'eau réservée cuillère par cuillère, jusqu'à obtenir une crème lisse qui retombe lentement du fouet.",
-        "Épluche la carotte et taille-la en bâtonnets de la longueur d'un doigt.",
-        "Verse le houmous dans un bol, creuse un puits au dos de la cuillère et verse-y un filet d'huile."
+        "Fais cuire les edamame 5 minutes à l'eau bouillante salée, puis égoutte-les et écosse-les si besoin.",
+        "Écrase-les à la fourchette avec le tahini, du sel et du poivre, jusqu'à obtenir une pâte grossière avec encore des morceaux.",
+        "Incorpore le maïs égoutté et sers sur le pain complet grillé."
       ],
-      "why": "Vegan : en-cas protéiné et rassasiant, à préparer d'avance.",
+      "why": "Tartinade végétale salée, les edamame apportant les protéines.",
       "macros_per_serving": {
-        "kcal": 276.4,
-        "protein": 12.9,
-        "carbs": 30,
-        "fat": 8.2
+        "kcal": 326.2,
+        "protein": 18.6,
+        "carbs": 30.1,
+        "fat": 13.5
       },
-      "wave": "2026-07-22-sans-gluten"
+      "wave": "2026-08-02-b5-collations-reecrites"
     },
     {
       "id": "col65",
@@ -18534,51 +18576,59 @@
     },
     {
       "id": "col66",
-      "name": "Mousse tofu soyeux – framboises",
+      "name": "Crème de soja, châtaigne et amandes",
       "category": "collation",
       "tags": {
         "objectif": [
-          "perte_de_gras"
+          "maintien",
+          "prise_de_masse"
         ],
-        "recup_jour_repos": false,
+        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
-        "temps_min": 8
+        "temps_min": 5
       },
       "base_servings": 1,
       "ingredients": [
         {
-          "ref": "tofu_soyeux",
-          "qty": 170,
+          "ref": "yaourt_soja_proteine",
+          "qty": 150,
           "macro_role": "protein",
           "scalable": true
         },
         {
-          "ref": "proteine_vegetale",
-          "qty": 20,
-          "macro_role": "protein",
+          "ref": "chataigne",
+          "qty": 50,
+          "macro_role": "carb",
           "scalable": true
         },
         {
-          "ref": "framboises",
-          "qty": 80,
+          "ref": "amandes",
+          "qty": 15,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "kiwi",
+          "qty": 70,
           "macro_role": "fruit",
           "scalable": true
         }
       ],
       "instructions": [
-        "Mixer tofu soyeux et protéine jusqu'à texture mousseuse.",
-        "Garnir de framboises, réfrigérer 1 h."
+        "Écrase les châtaignes à la fourchette avec 2 cuillères d'eau chaude, jusqu'à obtenir une purée souple.",
+        "Fouette-la avec le yaourt de soja jusqu'à ce que la crème soit homogène.",
+        "Concasse les amandes, répartis-les avec le kiwi coupé en dés et sers frais."
       ],
-      "why": "Vegan & sans gluten : dessert protéiné très léger.",
+      "why": "Crème végétale sans gluten, protéinée par le yaourt de soja.",
       "macros_per_serving": {
-        "kcal": 210,
-        "protein": 27.2,
-        "carbs": 6.7,
-        "fat": 6.6
+        "kcal": 329.3,
+        "protein": 18.3,
+        "carbs": 33.4,
+        "fat": 11.4
       },
-      "wave": "2026-07-22-sans-gluten"
+      "wave": "2026-08-02-b5-collations-reecrites"
     },
     {
       "id": "rep153",
@@ -19715,58 +19765,59 @@
     },
     {
       "id": "col68",
-      "name": "Écrasé de lentilles au tahini – bâtonnets de carotte",
+      "name": "Tartine de seigle au tahini et raisins",
       "category": "collation",
       "tags": {
         "objectif": [
-          "perte_de_gras"
+          "maintien",
+          "prise_de_masse"
         ],
-        "recup_jour_repos": false,
+        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
-        "temps_min": 8
+        "temps_min": 5
       },
       "base_servings": 1,
       "ingredients": [
         {
-          "ref": "lentilles_cuites",
-          "qty": 85,
+          "ref": "proteine_vegetale",
+          "qty": 20,
           "macro_role": "protein",
           "scalable": true
         },
         {
-          "ref": "mais",
-          "qty": 20,
+          "ref": "pain_seigle",
+          "qty": 35,
           "macro_role": "carb",
           "scalable": true
         },
         {
-          "ref": "carotte",
-          "qty": 50,
-          "macro_role": "vegetable",
-          "scalable": false
+          "ref": "tahini",
+          "qty": 15,
+          "macro_role": "fat",
+          "scalable": true
         },
         {
-          "ref": "tahini",
-          "qty": 6,
-          "macro_role": "fat",
+          "ref": "raisins",
+          "qty": 60,
+          "macro_role": "fruit",
           "scalable": true
         }
       ],
       "instructions": [
-        "Rince les lentilles cuites à l'eau froide et égoutte-les à fond : c'est l'eau résiduelle qui rend l'écrasé fade et liquide.",
-        "Écrase-les grossièrement à la fourchette avec le tahini, un filet de jus de citron, du sel et du cumin, puis mélange le maïs sans l'écraser.",
-        "Taille la carotte en bâtonnets et sers l'écrasé encore tiède, il se tartine mieux."
+        "Délie le tahini avec la protéine végétale et 3 cuillères d'eau froide, en fouettant jusqu'à obtenir une crème lisse et coulante.",
+        "Fais griller la tranche de pain de seigle jusqu'à ce qu'elle soit ferme.",
+        "Étale la crème sur le pain chaud et dépose les raisins coupés en deux par-dessus."
       ],
-      "why": "Végétal complet : légumineuse et sésame apportent des protéines complémentaires.",
+      "why": "Tartine végétale, la protéine de pois compensant le pain seul.",
       "macros_per_serving": {
-        "kcal": 181.3,
-        "protein": 10.6,
-        "carbs": 21.5,
-        "fat": 4.1
+        "kcal": 304.9,
+        "protein": 20.6,
+        "carbs": 31.9,
+        "fat": 9.9
       },
-      "wave": "2026-08-01-b2-collations"
+      "wave": "2026-08-02-b5-collations-reecrites"
     },
     {
       "id": "col69",
@@ -19935,58 +19986,59 @@
     },
     {
       "id": "col72",
-      "name": "Haricots rouges – polenta grillée – tomate",
+      "name": "Polenta grillée aux edamame",
       "category": "collation",
       "tags": {
         "objectif": [
-          "perte_de_gras"
+          "maintien",
+          "prise_de_masse"
         ],
-        "recup_jour_repos": false,
+        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
-        "temps_min": 9
+        "temps_min": 15
       },
       "base_servings": 1,
       "ingredients": [
         {
-          "ref": "haricots_rouges_conserve",
-          "qty": 90,
+          "ref": "edamame",
+          "qty": 125,
           "macro_role": "protein",
           "scalable": true
         },
         {
           "ref": "polenta",
-          "qty": 12,
+          "qty": 10,
           "macro_role": "carb",
           "scalable": true
         },
         {
-          "ref": "tomate",
-          "qty": 50,
-          "macro_role": "vegetable",
-          "scalable": false
+          "ref": "noix",
+          "qty": 12,
+          "macro_role": "fat",
+          "scalable": true
         },
         {
-          "ref": "noix",
-          "qty": 5,
-          "macro_role": "fat",
+          "ref": "mais",
+          "qty": 50,
+          "macro_role": "carb",
           "scalable": true
         }
       ],
       "instructions": [
-        "Verse la polenta en pluie dans deux fois son volume d'eau bouillante salée, remue 3 minutes jusqu'à ce qu'elle se décolle des parois, puis étale-la sur 1 cm et laisse figer 5 minutes.",
-        "Coupe-la en bâtonnets et poêle-les à sec 2 minutes par face pour qu'ils croustillent.",
-        "Rince et égoutte les haricots rouges, mélange-les à la tomate en dés avec du sel et du paprika, et sers avec les bâtonnets et les noix concassées."
+        "Verse la polenta en pluie dans trois fois son volume d'eau salée frémissante et remue 5 minutes à feu doux, puis étale-la sur 1 cm d'épaisseur et laisse-la prendre 5 minutes.",
+        "Fais cuire les edamame 5 minutes à l'eau bouillante salée, égoutte-les et mélange-les au maïs égoutté avec les cerneaux de noix concassés.",
+        "Coupe la polenta refroidie en bâtonnets, fais-les colorer 3 minutes par face dans une poêle antiadhésive bien chaude et sers-les avec le mélange."
       ],
-      "why": "Légumineuse et céréale ensemble, pour un profil protéique plus complet.",
+      "why": "Collation salée sans gluten, les edamame portant les protéines.",
       "macros_per_serving": {
-        "kcal": 183.9,
-        "protein": 9.6,
-        "carbs": 22.5,
-        "fat": 4.4
+        "kcal": 328.8,
+        "protein": 17.5,
+        "carbs": 28.6,
+        "fat": 15.4
       },
-      "wave": "2026-08-01-b2-collations"
+      "wave": "2026-08-02-b5-collations-reecrites"
     },
     {
       "id": "col73",
@@ -20045,58 +20097,59 @@
     },
     {
       "id": "col74",
-      "name": "Salade tiède de haricots blancs – raisins – roquette",
+      "name": "Tartine de seigle, fromage blanc et avocat",
       "category": "collation",
       "tags": {
         "objectif": [
-          "perte_de_gras"
+          "maintien",
+          "prise_de_masse"
         ],
         "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
-        "temps_min": 6
+        "temps_min": 5
       },
       "base_servings": 1,
       "ingredients": [
         {
-          "ref": "haricots_blancs",
-          "qty": 36,
+          "ref": "fromage_blanc_0",
+          "qty": 190,
           "macro_role": "protein",
           "scalable": true
         },
         {
-          "ref": "raisins",
-          "qty": 15,
-          "macro_role": "fruit",
+          "ref": "pain_seigle",
+          "qty": 35,
+          "macro_role": "carb",
           "scalable": true
         },
         {
-          "ref": "roquette",
-          "qty": 35,
-          "macro_role": "vegetable",
-          "scalable": false
+          "ref": "avocat",
+          "qty": 45,
+          "macro_role": "fat",
+          "scalable": true
         },
         {
-          "ref": "beurre_amande",
-          "qty": 7,
-          "macro_role": "fat",
+          "ref": "kiwi",
+          "qty": 60,
+          "macro_role": "fruit",
           "scalable": true
         }
       ],
       "instructions": [
-        "Fais tremper les haricots blancs la veille, puis cuis-les 45 minutes à l'eau non salée jusqu'à ce qu'ils s'écrasent entre deux doigts, et égoutte-les à fond.",
-        "Détends le beurre d'amande avec une cuillère d'eau chaude, du jus de citron et du sel, jusqu'à une sauce fluide.",
-        "Mélange les haricots encore tièdes à la sauce — froids ils ne l'absorbent plus — puis ajoute les raisins coupés en deux et la roquette hors du feu."
+        "Fais griller la tranche de pain de seigle jusqu'à ce qu'elle soit ferme sous le doigt.",
+        "Écrase l'avocat avec une pincée de sel, puis fouette le fromage blanc avec du poivre.",
+        "Tartine l'avocat sur le pain, ajoute le fromage blanc en couche épaisse et sers avec le kiwi en rondelles."
       ],
-      "why": "Légumineuse sucrée-salée, sans laitage ni gluten.",
+      "why": "Tartine salée où le fromage blanc apporte les protéines.",
       "macros_per_serving": {
-        "kcal": 183.2,
-        "protein": 10,
-        "carbs": 20.2,
-        "fat": 4.7
+        "kcal": 310.2,
+        "protein": 18,
+        "carbs": 32.6,
+        "fat": 10.2
       },
-      "wave": "2026-08-01-b2-collations"
+      "wave": "2026-08-02-b5-collations-reecrites"
     },
     {
       "id": "col75",
