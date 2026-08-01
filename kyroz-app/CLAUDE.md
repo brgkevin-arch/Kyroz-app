@@ -284,6 +284,32 @@ Toute correction qui déplace les cibles doit incrémenter `ENGINE_REV` : un
 avertissement one-shot (`engine_notice`) explique alors le changement à
 l'utilisateur au-delà de 100 kcal/jour d'écart.
 
+### Variété — la rotation se fait par FAMILLE, pas seulement par recette
+
+`usage` fait tourner les **ids** : il empêche la même recette de revenir, pas deux
+recettes **quasi identiques**. Mesuré le 2026-08-02 sur 240 semaines simulées :
+**56,3 % des semaines servaient deux recettes du même couple (protéine × féculent)** —
+« poulet-riz-brocoli » et « wok poulet-riz-légumes » la même semaine. Depuis,
+`familyKey` groupe les recettes par ce couple et la famille la moins servie passe
+devant, en **clé de départage** : 27,9 %.
+
+⚠️ **Trois propriétés non négociables de ce mécanisme**, chacune payée par une mesure :
+1. **Il réordonne, il n'exclut jamais.** Sur le pool le plus mince du catalogue
+   (F 55 sèche, vegan + sans gluten), les 28 repas restent servis et les drapeaux
+   bloquants *baissent* (8 → 5).
+2. **Il passe APRÈS `preferred_proteins`.** Une variante qui coupait la bande plus haut
+   descendait les quasi-doublons à 9,6 % — mais les repas servis à qui déclare préférer
+   le poulet tombaient de 27,2 % à 18,3 %. Un nudge de variété ne passe pas devant le
+   signal explicite de l'utilisateur.
+3. **Il est borné en grammes de fibres** (`FAMILY_FIBER_TOL`), pas en points de score.
+   Dans le score, il se disputait la bande avec le biais fibres de sèche et le faisait
+   tomber sous son seuil. Les deux nudges sont désormais **ordonnés**, pas concurrents.
+
+➡️ Le contrôle est `npm run mesure:variete`, le garde-fou
+`lib/__tests__/varieteFamille.test.ts`, le raisonnement complet `AGENTS.md` D18.
+⚠️ **La règle anti-doublons R4 du catalogue ne mesure PAS ce défaut** : elle ne s'alarme
+qu'au-delà de 2 recettes par couple, or le pire contrevenant était un groupe de DEUX.
+
 ### Bloqué (hard block)
 - **Plans sous le plancher d'énergie disponible** — `lib/safety.ts::safetyFloorKcal`.
   Plancher = `max(BMR, min(30 kcal/kg de masse maigre + dépense sportive, TDEE), 1500 H / 1200 F)`.
