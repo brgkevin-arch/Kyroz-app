@@ -466,6 +466,59 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
   n'est pas quelque chose qu'un assistant fait. **Le fondateur peut le voir en un clic**
   (Profil → Calories & macros → Perso %) sur un profil en sèche.
 
+- ~~**A11 · L'app se fige au démarrage quand le réseau ne répond pas**~~ ✅ **CORRIGÉ
+  le 2026-08-02** — remonté par le fondateur : *« bug parfois aucun plan ne se génère
+  quand je reviens sur le lien »*, *« bug web sur tel qui se fige, obligé de forcer la
+  fermeture »*.
+  **La cause, mesurée** : le premier rendu attendait DEUX appels réseau **sans aucune
+  borne de temps** — `supabase.auth.getSession()` (qui part en rafraîchissement de jeton,
+  avec ses propres retries, et `fetch` n'a pas de délai d'expiration) puis
+  `hydrateFromCloud()` (**6 requêtes en série**). Tant que les deux n'avaient pas répondu,
+  `ready` restait faux et l'app affichait le splash. **Reproduit avec un `fetch` qui ne
+  répond jamais : au bout de 20 s l'écran affichait encore « KYROZ », alors que le profil
+  ET le plan étaient déjà en local** (`@kyroz:profile` et `@kyroz:plan` présents). C'est
+  une contradiction frontale avec `CLAUDE.md` §4 (« latence < 1 s », « fallback toujours »)
+  et avec l'offline-first de §3 : l'appareil avait tout ce qu'il fallait et refusait
+  d'afficher.
+  ⚠️ **Pourquoi ça tape surtout la version posée sur l'écran d'accueil** : elle est
+  réveillée après une mise en veille, avec un jeton à rafraîchir et un réseau pas encore
+  revenu — exactement la fenêtre où les deux appels traînent. Et elle ouvre **directement
+  un onglet** sans passer par l'index, donc par la garde de `app/(tabs)/_layout.tsx`.
+  **Correctif** : `lib/boot.ts::withBudget` borne l'ATTENTE (il n'annule rien — la requête
+  continue en fond et son résultat est pris en compte s'il arrive). Auth 1,5 s → repli sur
+  la session **persistée sur l'appareil** (`readPersistedSession`), pas sur « pas de
+  session » : sinon un réseau muet renverrait vers l'écran de connexion quelqu'un de
+  parfaitement connecté. Hydratation 6 s, et elle ne retient l'écran **que si l'appareil
+  n'a rien à afficher** (`hydrating` dans les deux gardes) — sinon on renverrait faire
+  l'onboarding à quelqu'un qui se connecte sur un 2e appareil.
+  ⚠️ **La contrepartie, assumée** : le profil local s'affiche avant la fin de la synchro.
+  `hydrationTick` déclenche donc une **relecture** quand le cloud arrive, même très en
+  retard — sans quoi une synchro tardive resterait invisible jusqu'au prochain démarrage.
+  La relecture ne remplace l'objet en mémoire **que si le contenu a changé** : une
+  nouvelle identité d'objet relancerait l'effet de l'écran Plan, qui compte une ouverture
+  (série + analytics).
+  ℹ️ `storageKey` est désormais posée explicitement dans `lib/supabase.ts` — **valeur
+  identique au défaut de supabase-js**, vérifié contre la clé réellement présente
+  (`sb-…-auth-token`) : personne n'est déconnecté. 5 tests (`lib/__tests__/boot.test.ts`),
+  **818 au total**. Vérifié à l'écran, réseau totalement muet : le plan s'affiche, et
+  l'ouverture directe d'un onglet aussi.
+
+- **A12 · 🧑 À TRANCHER — le site déployé a UN MOIS de retard sur `main`.**
+  `origin/gh-pages` date du **2026-07-03** ; `origin/main` du 2026-08-01. **230 commits**
+  ne sont jamais arrivés chez l'utilisateur. Ce n'est pas un détail de process : c'est ce
+  qui explique une partie de ce que le fondateur constate en testant le lien.
+  **Mesuré, deux exemples** : l'écran déployé propose encore un réglage **« Temps de prépa
+  max »** dans l'onboarding ET dans le profil, alors qu'il est retiré depuis le 2026-07-29
+  (il ne filtrait plus rien) ; et tout le travail A3→A10 + D + C est invisible.
+  ⚠️ **Ce que le retard n'explique PAS** : la saisie « 23 → 33 » du %MG. Le correctif
+  (`onBlur`, pas de clamp MIN pendant la frappe) date du **2026-06-27**, donc il EST dans
+  le déployé, et la frappe a été rejouée sur le code actuel — homme et femme, frappe lente
+  et rapide — elle rend bien **23**. Piste restante : bundle en cache sur le téléphone
+  (l'app posée sur l'écran d'accueil garde longtemps son `index.html`), ou un tap sur la
+  silhouette **~33 %**, voisine de la **~23 %** dans la grille féminine. **Question posée
+  au fondateur, en attente.**
+  ➡️ Publier : `npm run predeploy && npm run deploy`.
+
 ### 🎯 B — Les deux briques Kyroz+ qui restent
 
 La valeur premium est **construite et déployée** (objectif daté). Plus aucune décision

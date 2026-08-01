@@ -16,7 +16,7 @@ function makeIcon(name: IconName, nameFocused: IconName) {
 
 export default function TabLayout() {
   const t = useTheme();
-  const { session, ready } = useAuth();
+  const { session, ready, hydrating } = useAuth();
   const { profile, loading } = useProfile();
 
   // Garde d'entrée des onglets — MÊME logique que app/index.tsx.
@@ -27,6 +27,10 @@ export default function TabLayout() {
   // blanche avec juste la barre d'onglets. Constaté sur iPhone (2026-07-21).
   if (!ready || loading) return <Splash />;
   if (!session) return <Redirect href="/(auth)/login" />;
+  // Même règle qu'app/index.tsx : on n'attend le cloud QUE si l'appareil n'a
+  // rien à afficher. C'est ce chemin-là qu'emprunte le raccourci d'écran
+  // d'accueil, qui ouvre directement un onglet sans passer par l'index.
+  if (!profile && hydrating) return <Splash />;
   if (!profile) return <Redirect href="/(auth)/onboarding" />;
 
   return (

@@ -1,11 +1,23 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
-import { supabase } from '../lib/supabase';
+import { supabase, readPersistedSession } from '../lib/supabase';
 import { hydrateFromCloud } from '../lib/sync';
+import { withBudget, AUTH_BUDGET_MS, HYDRATION_BUDGET_MS } from '../lib/boot';
 
 interface AuthValue {
   session: Session | null;
-  ready: boolean; // session connue ET hydratation cloud terminée
+  /**
+   * Session connue — donc on sait vers quel écran router.
+   * ⚠️ Ne dépend PLUS de l'hydratation cloud ni d'une réponse réseau : c'est
+   * précisément ce couplage qui figeait l'app sur le splash (cf. lib/boot.ts).
+   */
+  ready: boolean;
+  /** Miroir cloud en cours de lecture. Sert UNIQUEMENT à ne pas renvoyer vers
+   *  l'onboarding quelqu'un dont le profil est encore en route (2e appareil). */
+  hydrating: boolean;
+  /** Incrémenté à CHAQUE fin d'hydratation, même tardive → les lecteurs du
+   *  profil local (useProfile) relisent ce que le cloud vient d'écrire. */
+  hydrationTick: number;
   signIn: (email: string, password: string) => Promise<{ error?: string }>;
   // needsConfirmation : inscription OK mais aucune session ouverte (confirmation
   // email activée côté Supabase) → l'appelant doit afficher « vérifie ta boîte mail »
@@ -23,24 +35,52 @@ const AuthContext = createContext<AuthValue | null>(null);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
-  const [hydrated, setHydrated] = useState(false);
+  const [hydrating, setHydrating] = useState(false);
+  const [hydrationTick, setHydrationTick] = useState(0);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
+    let alive = true;
+    // `getSession()` peut partir en rafraîchissement de jeton — un appel réseau
+    // SANS délai d'expiration, avec ses propres retries. On le borne : au-delà
+    // du budget, on repart de la session enregistrée sur l'appareil plutôt que
+    // de retenir l'écran. La promesse continue en fond, et `onAuthStateChange`
+    // ci-dessous corrige l'état dès que le réseau répond (y compris pour dire
+    // que la session est morte → écran de connexion, à raison cette fois).
+    withBudget(supabase.auth.getSession(), AUTH_BUDGET_MS).then(async (res) => {
+      const fromNetwork = res.ok ? res.value.data.session : null;
+      const fallback = fromNetwork ?? (await readPersistedSession());
+      if (!alive) return;
+      setSession(fallback);
       setAuthChecked(true);
     });
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => setSession(s));
-    return () => sub.subscription.unsubscribe();
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
+      setSession(s);
+      setAuthChecked(true);
+    });
+    return () => { alive = false; sub.subscription.unsubscribe(); };
   }, []);
 
   // À chaque changement d'utilisateur connecté : on (ré)hydre depuis le cloud.
   const uid = session?.user?.id;
   useEffect(() => {
     if (!authChecked) return;
-    if (!uid) { setHydrated(true); return; }
-    setHydrated(false);
-    hydrateFromCloud(uid).catch(() => {}).finally(() => setHydrated(true));
+    if (!uid) { setHydrating(false); return; }
+    let alive = true;
+    setHydrating(true);
+    const pull = hydrateFromCloud(uid).catch(() => {});
+    // Deux échéances distinctes, à dessein :
+    //  - le BUDGET libère l'écran (il ne l'attend de toute façon que s'il n'a
+    //    rien à afficher) ;
+    //  - la FIN RÉELLE du pull, même très tardive, déclenche la relecture du
+    //    profil : sans ça, un cloud arrivé en retard resterait invisible
+    //    jusqu'au prochain démarrage.
+    withBudget(pull, HYDRATION_BUDGET_MS).then(() => { if (alive) setHydrating(false); });
+    pull.then(() => {
+      if (!alive) return;
+      setHydrating(false);
+      setHydrationTick((n) => n + 1);
+    });
+    return () => { alive = false; };
   }, [authChecked, uid]);
 
   const signIn: AuthValue['signIn'] = async (email, password) => {
@@ -74,7 +114,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async () => { await supabase.auth.signOut(); };
 
-  const value: AuthValue = { session, ready: authChecked && hydrated, signIn, signUp, signInGuest, signOut };
+  const value: AuthValue = {
+    session, ready: authChecked, hydrating, hydrationTick,
+    signIn, signUp, signInGuest, signOut,
+  };
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
