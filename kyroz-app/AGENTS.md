@@ -510,14 +510,31 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
   **Mesuré, deux exemples** : l'écran déployé propose encore un réglage **« Temps de prépa
   max »** dans l'onboarding ET dans le profil, alors qu'il est retiré depuis le 2026-07-29
   (il ne filtrait plus rien) ; et tout le travail A3→A10 + D + C est invisible.
-  ⚠️ **Ce que le retard n'explique PAS** : la saisie « 23 → 33 » du %MG. Le correctif
-  (`onBlur`, pas de clamp MIN pendant la frappe) date du **2026-06-27**, donc il EST dans
-  le déployé, et la frappe a été rejouée sur le code actuel — homme et femme, frappe lente
-  et rapide — elle rend bien **23**. Piste restante : bundle en cache sur le téléphone
-  (l'app posée sur l'écran d'accueil garde longtemps son `index.html`), ou un tap sur la
-  silhouette **~33 %**, voisine de la **~23 %** dans la grille féminine. **Question posée
-  au fondateur, en attente.**
+  ⚠️ **Ce que le retard n'explique PAS** : la saisie « 23 → 33 » du %MG — traitée à part,
+  cf. A13.
   ➡️ Publier : `npm run predeploy && npm run deploy`.
+
+- ~~**A13 · Le champ « % exact » se réécrit sous les doigts pendant la frappe**~~
+  ✅ **DURCI le 2026-08-02.** Remonté par le fondateur (*« 33 au lieu de 23 »*, saisi au
+  clavier).
+  Le correctif de juin (retirer le clamp MIN pendant la frappe, `1807b5e`) n'avait traité
+  que **la moitié** du problème : il visait le déclencheur, pas le mécanisme. Le mécanisme,
+  c'est la synchro `useEffect([value]) → setPctText`, qui réécrit le texte tapé **dès que
+  n'importe quel clamp modifie `value` au milieu d'une frappe** — MIN, MAX, ou le
+  re-bornage au changement de sexe. La touche suivante s'ajoute alors à un nombre que
+  l'utilisateur n'a jamais tapé.
+  **Mesuré à l'écran, profil homme (plafond 60 %), AVANT / APRÈS** : taper « 9 » puis « 9 »
+  affichait **`60` en pleine frappe** → affiche désormais **`99`**, normalisé à `60` au
+  blur. Le MIN ayant sauté en juin, seul le MAX restait exposé — mais c'est la même
+  mécanique, et c'est celle qui produit « 23 → 33 ».
+  **Correctif** : une ref `focused` ; la synchro depuis `value` ne s'applique QUE si le
+  champ n'a pas le focus (tap d'une silhouette, « Effacer »). `onBlur` écrit lui-même la
+  valeur normalisée. Aucun clamp n'est retiré : on ne stocke toujours pas de valeur
+  absurde, on cesse juste de corriger l'utilisateur pendant qu'il écrit.
+  ⚠️ **Non prouvé** : que ce soit CE chemin qui ait produit le 33 chez le fondateur — le
+  déclencheur MIN n'est plus dans le code depuis le 2026-06-27, donc son téléphone servait
+  vraisemblablement un bundle en cache plus ancien. À revérifier sur la version fraîche
+  une fois A12 déployé.
 
 ### 🎯 B — Les deux briques Kyroz+ qui restent
 

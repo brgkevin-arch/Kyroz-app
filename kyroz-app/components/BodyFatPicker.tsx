@@ -78,7 +78,17 @@ export function BodyFatPicker({ t, sex, value, onChange, body }: Props) {
   // clamp MIN n'est appliqué qu'au blur. La synchro depuis `value` permet au tap
   // d'une silhouette (ou à « Effacer ») de remplir/vider le champ.
   const [pctText, setPctText] = useState(value != null ? String(value) : '');
+  // ⚠️ TANT QUE LE CHAMP A LE FOCUS, `value` ne réécrit PAS le texte tapé.
+  // C'est le mécanisme du bug « 23 → 33 », et retirer le clamp MIN ne l'avait
+  // traité qu'à moitié : dès qu'UN clamp (min, max, ou le re-bornage au
+  // changement de sexe) modifie `value` au milieu d'une frappe, cette synchro
+  // remplace ce que l'utilisateur est en train d'écrire — le chiffre suivant
+  // s'ajoute alors à une valeur qu'il n'a jamais tapée. Le champ n'est resynchro
+  // que quand il n'a PAS le focus (tap d'une silhouette, « Effacer ») ; au blur,
+  // `onBlur` ci-dessous écrit lui-même la valeur normalisée.
+  const focused = React.useRef(false);
   useEffect(() => {
+    if (focused.current) return;
     setPctText(value != null ? String(value) : '');
   }, [value]);
 
@@ -144,6 +154,7 @@ export function BodyFatPicker({ t, sex, value, onChange, body }: Props) {
         suffix="%"
         keyboardType="decimal-pad"
         value={pctText}
+        onFocus={() => { focused.current = true; }}
         onChangeText={(txt) => {
           setPctText(txt);
           if (!txt) return onChange(undefined);
@@ -156,6 +167,7 @@ export function BodyFatPicker({ t, sex, value, onChange, body }: Props) {
         // ⚠️ `onBlur` et NON `onEndEditing` : react-native-web ne câble PAS
         // onEndEditing (no-op sur le web déployé) — seul onBlur est appelé au blur.
         onBlur={() => {
+          focused.current = false;
           if (!pctText) return;
           const n = parseFloat(pctText.replace(',', '.'));
           if (Number.isNaN(n)) { onChange(undefined); setPctText(''); return; }
