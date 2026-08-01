@@ -5,7 +5,7 @@ import {
 } from '../datedGoal';
 import {
   computePlan, macrosPercent, calculateMacros, fatTargetG, clampCarbRatio,
-  FAT_MIN_PER_KG_BW, CARB_RATIO_MAX, CARB_RATIO_MIN, planFloorKcal,
+  FAT_MIN_PER_KG_BW, FAT_FLOOR_AIM_MARGIN, CARB_RATIO_MAX, CARB_RATIO_MIN, planFloorKcal,
 } from '../tdee';
 import { fatFreeMassKg } from '../safety';
 import { makeProfile } from './helpers';
@@ -182,7 +182,10 @@ describe('plancher lipidique (base poids de corps)', () => {
   const body = makeProfile({ sex: 'male', age: 30, weight_kg: 80, height_cm: 178, body_fat_pct: 18 });
 
   it('la base est le POIDS DE CORPS', () => {
-    expect(fatTargetG(1200, body)).toBe(Math.round(FAT_MIN_PER_KG_BW * body.weight_kg));
+    // ⚠️ La cible VISE 15 % au-dessus du plancher (`FAT_FLOOR_AIM_MARGIN`, A9) pour
+    // que le plan servi le franchisse. Le SEUIL DE CARENCE reste 0,8 g/kg — ce qui
+    // est verrouillé ici, c'est la BASE (poids de corps, pas masse maigre).
+    expect(fatTargetG(1200, body)).toBe(Math.round(FAT_MIN_PER_KG_BW * FAT_FLOOR_AIM_MARGIN * body.weight_kg));
     // Deux corps de même poids et de compositions opposées reçoivent le MÊME
     // plancher : c'est la conséquence directe du choix de base.
     const gras = makeProfile({ sex: 'male', age: 30, weight_kg: 80, height_cm: 178, body_fat_pct: 35 });
@@ -193,10 +196,10 @@ describe('plancher lipidique (base poids de corps)', () => {
     // F 125 kg à 52 %MG : 60 kg de masse maigre, donc 65 kg de tissu adipeux.
     const heavy = makeProfile({ sex: 'female', age: 40, weight_kg: 125, height_cm: 160, body_fat_pct: 52 });
     const ancien = Math.round(0.8 * fatFreeMassKg(heavy));   // 48 g — base masse maigre
-    const actuel = fatTargetG(2100, heavy);                  // 100 g — base poids
+    const actuel = fatTargetG(2100, heavy);                  // base poids × marge de visée
     expect(ancien).toBe(48);
-    expect(actuel).toBe(100);
-    // 43 % des calories en lipides, contre 25 % avant. Les glucides paient.
+    expect(actuel).toBe(115);
+    // 49 % des calories en lipides, contre 25 % avant. Les glucides paient.
     expect((actuel * 9) / 2100).toBeGreaterThan(0.42);
   });
 
@@ -204,7 +207,7 @@ describe('plancher lipidique (base poids de corps)', () => {
     // Avant : la part de 25 % suffisait et le plancher ne mordait sur aucun profil
     // sain. Maintenant il fixe les lipides dès que le budget est serré.
     const m = calculateMacros(1800, 'cut', body);
-    expect(m.fat_g).toBe(Math.round(FAT_MIN_PER_KG_BW * body.weight_kg));
+    expect(m.fat_g).toBe(Math.round(FAT_MIN_PER_KG_BW * FAT_FLOOR_AIM_MARGIN * body.weight_kg));
     expect(m.fat_g).toBeGreaterThan(Math.round((m.target_kcal * 0.25) / 9));
   });
 
@@ -213,10 +216,10 @@ describe('plancher lipidique (base poids de corps)', () => {
     // par part seule servait 12 à 20 g de lipides, sous le seuil de carence
     // (hormones stéroïdiennes, vitamines liposolubles).
     const m = macrosPercent(2400, 'cut', body, CARB_RATIO_MAX, { proteinPerKg: 2.2 });
-    const plancher = Math.round(FAT_MIN_PER_KG_BW * body.weight_kg);
+    const vise = Math.round(FAT_MIN_PER_KG_BW * FAT_FLOOR_AIM_MARGIN * body.weight_kg);
     const partSeule = Math.round(((m.target_kcal - m.protein_g * 4) * (1 - CARB_RATIO_MAX / 100)) / 9);
-    expect(partSeule).toBeLessThan(plancher);
-    expect(m.fat_g).toBe(plancher);
+    expect(partSeule).toBeLessThan(Math.round(FAT_MIN_PER_KG_BW * body.weight_kg)); // sous le SEUIL DE CARENCE
+    expect(m.fat_g).toBe(vise);
   });
 
   it('à 90 (ancien maximum, encore stocké en base), le trou était béant', () => {
@@ -310,5 +313,51 @@ describe('Plafond de déficit 25 % — plus seulement sur l\'objectif daté', ()
     const once = computePlan(p, TODAY).profile;
     const twice = computePlan(once, TODAY).profile;
     expect(twice).toEqual(once);
+  });
+});
+
+// ═════════════════════════════════════════════════════════════════════════════
+// A9 — le plancher lipidique était tenu sur la CIBLE, pas sur l'ASSIETTE.
+// Mesuré le 2026-08-01 : en sèche comme en maintien, `fatTargetG` renvoyait
+// EXACTEMENT le plancher (marge nulle), donc le plan servi retombait dessous
+// 86 % des jours. `FAT_FLOOR_AIM_MARGIN` vise 15 % plus haut pour que l'assiette
+// franchisse le seuil. Ces tests verrouillent la distinction seuil / visée.
+// ═════════════════════════════════════════════════════════════════════════════
+
+describe('A9 — marge de visée du plancher lipidique', () => {
+  const h80 = makeProfile({ sex: 'male', age: 32, weight_kg: 80, height_cm: 178 });
+
+  it('la marge VISE au-dessus du plancher sans DÉPLACER le seuil de carence', () => {
+    // Le seuil reste 0,8 g/kg — c'est lui qui définit la carence, pas la visée.
+    expect(FAT_MIN_PER_KG_BW).toBe(0.8);
+    expect(FAT_FLOOR_AIM_MARGIN).toBeGreaterThan(1);
+    const vise = fatTargetG(1800, h80);
+    expect(vise).toBeGreaterThan(Math.round(FAT_MIN_PER_KG_BW * h80.weight_kg));
+    expect(vise).toBe(Math.round(FAT_MIN_PER_KG_BW * FAT_FLOOR_AIM_MARGIN * h80.weight_kg));
+  });
+
+  it('la marge ne s\'applique QUE là où le plancher mord', () => {
+    // Budget large : la part calorique dépasse le plancher, la marge est inerte.
+    const large = fatTargetG(4000, h80);
+    expect(large).toBe(Math.round((4000 * 0.25) / 9));
+    // Budget serré : le plancher (majoré de la marge) reprend la main.
+    expect(fatTargetG(1800, h80)).toBeGreaterThan(Math.round((1800 * 0.25) / 9));
+  });
+
+  it('la marge reste BORNÉE PAR LE BUDGET — elle ne peut pas rendre un plan infaisable', () => {
+    // Gabarit lourd, budget étroit : sans bornage on prescrirait plus de lipides
+    // que le budget entier. Le `min(…, targetKcal / 9)` tient toujours.
+    const lourd = makeProfile({ sex: 'female', age: 40, weight_kg: 125, height_cm: 160, body_fat_pct: 52 });
+    const g = fatTargetG(900, lourd);
+    expect(g).toBeLessThanOrEqual(Math.round(900 / 9));
+  });
+
+  it('la prise de masse n\'est PAS touchée : sa cible était déjà au-dessus du plancher', () => {
+    const bulk = calculateMacros(2900, 'bulk', h80);
+    // Sa cible vient de la PART CALORIQUE, pas du plancher : elle est au-dessus de
+    // la visée, donc la marge ne la déplace pas d'un gramme…
+    expect(bulk.fat_g).toBeGreaterThan(Math.round(FAT_MIN_PER_KG_BW * FAT_FLOOR_AIM_MARGIN * h80.weight_kg));
+    // …et elle suit le budget, ce que ne ferait pas une valeur bloquée au plancher.
+    expect(calculateMacros(3400, 'bulk', h80).fat_g).toBeGreaterThan(bulk.fat_g);
   });
 });

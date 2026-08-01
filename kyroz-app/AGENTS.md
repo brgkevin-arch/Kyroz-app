@@ -295,83 +295,54 @@ qu'ils étaient périmés.
   vide, one-shot et idempotent ensuite. Soit un écran l'utilise, soit on retire le
   champ — c'est une ligne.
 
-- **A9 · 🧑 DÉCISION EN ATTENTE — le plancher lipidique est tenu sur la CIBLE, pas sur
-  ce qui est SERVI.** *Trouvé le 2026-07-31 en mesurant D5, qui cherchait autre chose.
-  RIEN N'A ÉTÉ CHANGÉ : corriger déplace les macros de tous les comptes en sèche et en
-  maintien → `ENGINE_REV` + avertissement one-shot, et c'est un garde-fou de
-  `CLAUDE.md` §6, donc ta décision.*
+- ~~**A9 · Le plancher lipidique est tenu sur la CIBLE, pas sur ce qui est SERVI**~~
+  ✅ **CORRIGÉ le 2026-08-01, sur « go » du fondateur.** `CLAUDE.md` §6 rangeait le
+  seuil de carence (0,8 g/kg de poids de corps) parmi les **hard blocks**, mais il
+  n'était appliqué qu'à la cible. En sèche comme en maintien la cible valait
+  EXACTEMENT le plancher — marge nulle — donc le plan, qui approxime la cible avec de
+  vraies recettes, retombait dessous.
 
-  `CLAUDE.md` §6 range « lipides sous le seuil de carence » parmi les **hard blocks**,
-  plancher 0,8 g/kg de poids de corps. `fatTargetG` l'applique bien — **à la cible**.
-  Le plan, lui, approxime cette cible avec de vraies recettes, et retombe dessous.
+  **Correctif** : `FAT_FLOOR_AIM_MARGIN = 1.15` dans `lib/tdee.ts`. La cible VISE 15 %
+  au-dessus du plancher pour que **l'assiette** le franchisse. Le seuil de carence,
+  lui, ne bouge pas. `ENGINE_REV` 3 → 4, `ENGINE_VERSION` 27 → 28. 787 tests verts.
 
-  **Mesuré** (8 tirages × 7 jours par profil, sur `buildLocalPlan`) :
+  **Mesuré, 560 jours servis (10 profils × 8 tirages × 7 jours)** :
 
-  | profil | cible L | plancher | marge | servi mini | jours sous le plancher |
-  |---|---|---|---|---|---|
-  | prise de masse H 80 | 74 g | 64 g | **+10 g** | 66 g | **0/56** |
-  | prise de masse F 60 | 58 g | 48 g | **+10 g** | 52 g | **0/56** |
-  | maintien H 80 | 64 g | 64 g | **0** | 56 g | **56/56** |
-  | maintien F 60 | 48 g | 48 g | **0** | 42 g | **54/56** |
-  | sèche H 90 · 4 repas | 72 g | 72 g | **0** | 63 g | **56/56** |
-  | sèche H 100 · 2 repas | 80 g | 80 g | **0** | **50 g** | **56/56** |
-
-  **La cause est mécanique, pas mystérieuse : en sèche ET en maintien, la cible EST
-  le plancher, exactement.** Marge zéro ⇒ la moindre approximation vers le bas passe
-  dessous. Dès qu'il y a de la marge (prise de masse, +10 g), c'est 0/56. Ce n'est
-  donc pas « le catalogue est trop maigre » — c'est qu'on a demandé au moteur de viser
-  pile un minimum.
-  ⚠️ C'est une **conséquence directe** du changement que tu as tranché le 2026-07-31
-  (base du plancher : masse maigre → poids de corps). `CLAUDE.md` §6 note déjà « le
-  plancher devient contraignant sur tous les profils testés — il ne borne plus la part
-  calorique, il la FIXE ». Ce qui n'avait pas été vu, c'est qu'à marge nulle le plan
-  servi passe dessous **quasi tous les jours**.
-  📉 **Ampleur à garder en tête avant de s'alarmer** : pour la plupart des profils
-  c'est **−6 à −10 g** (0,69–0,71 g/kg servi contre 0,80 visé), soit l'ordre de
-  grandeur normal d'approximation du moteur. Le cas qui sort du lot est **H 100 kg
-  sur 2 repas/jour : 50 g servis pour 80 visés, soit 0,50 g/kg (−37 %)**.
-  👁 **Invisible pour l'utilisateur** : `MacroBar` n'affiche aucune cible lipides, et
-  `fat_below_target` est classé `'selection'` (« ne pas alarmer »). Personne ne le
-  voit — ce qui est justement pourquoi ça a tenu jusqu'ici.
-  ✅ **CONTRE-VÉRIFIÉ par une seconde méthode** : au lieu de lire le cache
-  `total_macros_per_day`, on additionne les lipides des repas servis. Les deux méthodes
-  donnent **exactement les mêmes comptes**, avec un écart de **0 g**. Le chiffre ne vient
-  donc pas d'un cache périmé — piège déjà rencontré sur E8.
-  🔁 **RE-MESURÉ APRÈS LE MERGE DE A7** (NEAT `desk` 1,20 → 1,30, `safety.ts` remanié) —
-  un chiffre a bougé, les autres non :
-
-  | profil | avant A7 | après A7 |
+  | marge | jours sous 0,8 g/kg | pire écart |
   |---|---|---|
-  | sèche H 80 · 4 repas | 56/56 | **56/56** |
-  | sèche H 100 · 2 repas | 56/56 | 54/56 |
-  | **maintien H 80 · 4 repas** | 56/56 | **47/56** |
-  | prise de masse H 80 | 0/56 | **0/56** |
+  | ×1,00 *(avant)* | **86 %** | −29 g (H 100 · 2 repas, 0,50 g/kg servi) |
+  | ×1,05 | 71 % | −29 g |
+  | ×1,10 | 22 % | −30 g |
+  | **×1,15** *(retenu)* | **1 %** | **−8 g** |
 
-  Le relèvement du NEAT monte le TDEE, donc la cible du MAINTIEN, qui décolle parfois
-  du plancher — d'où les 9 jours gagnés. **La sèche ne bouge pas d'un jour** : sa cible
-  reste le plancher par construction. Le constat A9 est donc intact, et c'est bien en
-  sèche qu'il compte.
-  🔬 **A9 RÉSISTE au relèvement du NEAT (A7).** Question posée immédiatement : puisque
-  monter `desk` de 1,20 à 1,30 relève le TDEE, la cible lipides ne décollerait-elle pas
-  du plancher toute seule ? **Non.** Mesuré sur `recalcProfile`, H 80 kg, les 4 crans de
-  NEAT × 0/4/6 séances :
+  Au-delà de 1,15 le gain s'arrête et le coût continue.
 
-  | objectif | NEAT `desk` (TDEE 2110) | `light` (2250) | `active` (2391) | `physical` (2549) |
-  |---|---|---|---|---|
-  | **sèche** | +0 g | +0 g | +0 g | **+0 g** |
-  | maintien | +0 g | +0 g | +2 g | +7 g |
-  | prise de masse | +6 g | +10 g | +14 g | +18 g |
+  ⚠️ **PISTE ÉCARTÉE, MESURÉE — ne pas la retenter.** J'ai d'abord parié sur le
+  plafond de rôle `fat` du catalogue (×1,5, le plus bas de tous les rôles : protéine
+  1,7, glucides 1,8). **Le relever ne corrige RIEN** : 86 % → 83 % à ×1,7 comme à
+  ×2,0, et le pire cas ne bouge pas. Le manque ne vient donc pas de recettes
+  incapables de porter plus de gras — le moteur vise les kcal et la protéine, et les
+  lipides encaissent le résidu. C'est la cible qu'il fallait bouger, pas les recettes.
 
-  *(marge = cible lipides − plancher de 64 g)*
+  ⚠️ **CE QUE ÇA COÛTE, et c'est la contrepartie à connaître** (576 profils) :
+  `CARBS_BELOW_TRAINING_FLOOR` **30 % → 39 %** · part lipidique 27,8 % → 30,7 %
+  (toujours dans la fourchette usuelle 20–35 %) · glucides moyens 306 → 289 g.
+  On échange le franchissement SYSTÉMATIQUE d'un garde-fou de sécurité contre un
+  avertissement de performance plus fréquent.
 
-  **En sèche, la cible est collée au plancher à TOUS les crans**, même `physical`. Le
-  NEAT n'y change rien : la part calorique lipidique reste sous 0,8 g/kg tant que la
-  cible est un déficit. A9 est donc indépendant de A7 et ne se résoudra pas tout seul.
-  **Trois sorties possibles, non tranchées** : (a) viser un peu au-dessus du plancher
-  (marge de ~10 %, comme en prise de masse) pour que l'approximation retombe dedans ;
-  (b) assumer et **corriger la doc** — §6 annonce un hard block qui n'en est pas un
-  sur le plan servi ; (c) ne rien faire pour les −7 g et ne traiter que le cas des
-  gros gabarits à 2 repas.
+  🧑 **UN POINT QUI MÉRITE TON ARBITRAGE, révélé par un test qui est tombé** : en mode
+  « Perso % », un curseur réglé sur 55 % de glucides en sert désormais **50**. Le
+  plancher passait DÉJÀ avant le réglage de l'utilisateur depuis le changement de base
+  (masse maigre → poids de corps) ; ma marge creuse l'écart. Le test ne prétend plus
+  que le curseur est respecté, il **verrouille la vérité** et dit pourquoi. Reste la
+  question produit : un curseur qui affiche un chiffre qu'on ne sert pas, est-ce
+  acceptable ? Trois sorties — l'assumer et l'écrire à l'écran, borner le curseur à ce
+  qui est réellement servable, ou laisser le plancher céder en « Perso % ».
+
+  ℹ️ **Aucun avertissement one-shot n'est servi** : les calories ne bougent pas (seule
+  la répartition change), l'écart est donc sous le seuil des 100 kcal et la carte
+  `EngineNoticeCard`, bâtie sur un delta de kcal, ne se déclenche pas. C'est voulu —
+  elle aurait affiché « ton budget est passé de 2073 à 2073 kcal (+0) ».
 
 ### 🎯 B — Les deux briques Kyroz+ qui restent
 
