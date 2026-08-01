@@ -758,8 +758,56 @@ produit en suspens — il ne reste qu'à coder.
   🧑 **C'est le vrai chantier catalogue suivant**, plus utile qu'un cinquième lot à la même
   enveloppe.
 
-  ➡️ Reste 🧑 : `b3` (20 petits-déjeuners, `pd79`→`pd98`). C'est le dernier brief encore
-  ouvert ; il est régénéré et voit tout ce que la vague B1 a consommé.
+- ~~**D12 · Lot B3 — 20 petits-déjeuners**~~ ✅ **LIVRÉ le 2026-08-01 — `pd79`→`pd98`,
+  catalogue 407 → 427. Plus aucun lot commandé n'est en attente.** Répartition tenue
+  exactement : 6 carnées · 7 végétariennes · 7 vegan · **14 sans gluten** (9 demandés) ·
+  11 ancres protéiques distinctes. `check:doublons` → 0 violation · `check:enveloppe` →
+  20/20.
+  📈 **Effet mesuré en A/B sur le MÊME code** — petits-déjeuners servables, 78 → 98 :
+
+  | profil | avant | après | |
+  |---|---|---|---|
+  | H 95 masse | 34/78 | **53/98** | +19 |
+  | H 65 sèche | 43/78 | **62/98** | +19 |
+  | H 70 maintien | 55/78 | **74/98** | +19 |
+  | H 80 maintien | 54/78 | 74/98 | +20 |
+  | F 55 sèche | 53/78 | **73/98** | +20 |
+  | F 65 sèche | 56/78 | 76/98 | +20 |
+  | F 60 maintien | 56/78 | 75/98 | +19 |
+  | F 70 masse | 50/78 | 70/98 | +20 |
+  | F 80 sèche | 44/78 | 62/98 | +18 |
+  | F 65 maintien | 58/78 | 76/98 | +18 |
+  | H 80 sèche | 37/78 | 44/98 | +7 |
+  | **H 110 masse** | 23/78 | 23/98 | **+0** |
+
+  🔬 **CE QUI DÉCIDE DE LA COUVERTURE D'UN PETIT-DÉJEUNER, mesuré — à savoir avant le
+  prochain lot.** Trois recettes ont d'abord ÉCHOUÉ R8 (6 ou 7 profils sur 12) alors
+  qu'elles étaient parfaitement dans l'enveloppe macro. La cause n'est ni les kcal ni les
+  grammes : c'est le **coût calorique du gramme de protéine de l'ancre**.
+
+  | ancre | kcal par g de protéine | R8 |
+  |---|---|---|
+  | `blanc_oeuf` | 4,4 | ✅ |
+  | `dinde_escalope` | 4,6 | ✅ |
+  | `proteine_vegetale` | 5,2 | ✅ |
+  | `skyr` | 5,7 | ✅ |
+  | `yaourt_soja_proteine` | 7,2 | ✅ |
+  | `oeuf_entier` | 10,9 | ❌ 6/12 |
+  | `tofu_fume` | 11,0 | ❌ 7/12 |
+  | `lentilles_cuites` | 12,4 | ❌ 6/12 |
+
+  Les profils en sèche demandent **beaucoup de protéines pour peu de calories**
+  (F 80 sèche : 450 kcal · 34 g). Une ancre chère plafonne : monter la protéine fait
+  exploser les kcal avant d'atteindre la cible, et `adaptRecipe` lève
+  `protein_below_target`. **Viser ≤ 8 kcal par gramme de protéine sur l'ancre**, et lui
+  faire porter ≥ 60 % de la protéine de la recette.
+  ♻️ Contournement utile trouvé au passage : la **`levure_maltee` déclarée `protein` et
+  `scalable`** (50 g de protéines aux 100, 7 kcal/g P) sert de second étage protéique et
+  rattrape une ancre trop grasse — c'est ce qui a sauvé le tofu fumé de `pd93`.
+  ⚠️ **`H 110 masse` ne gagne AUCUN petit-déjeuner** (23/98, inchangé) et `H 80 sèche` n'en
+  gagne que 7. Même diagnostic qu'en repas complets : l'enveloppe 430–480 kcal ne peut pas
+  atteindre 834 kcal avec un facteur ×1,8. 🧑 **Un lot « gros gabarits » (650–750 kcal en
+  repas complet, 600–700 en petit-déj) est le seul chantier catalogue qui reste utile.**
 
 ### 🧹 E — Dette technique
 

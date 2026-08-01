@@ -1,7 +1,7 @@
 {
   "_meta": {
     "version": "2.0",
-    "count": 407,
+    "count": 427,
     "source_macros": "Estimations alignées CIQUAL/ANSES. Remplacer par le CSV officiel CIQUAL avant prod.",
     "precision": "±5-10%.",
     "poids_basis": "basis=dry -> poids cru/sec ; basis=raw -> viande/poisson cru. Garder la cohérence cru/cuit.",
@@ -21,7 +21,8 @@
         "2026-08-01-b1-lot1-repas": 20,
         "2026-08-01-b1-lot2-repas": 20,
         "2026-08-01-b1-lot3-repas": 20,
-        "2026-08-01-b1-lot4-repas": 20
+        "2026-08-01-b1-lot4-repas": 20,
+        "2026-08-01-b3-petits-dejeuners": 20
       },
       "convention": "Toute nouvelle vague reprend le NOM DU DOSSIER de son drop (AAAA-MM-JJ-<bloc>), pour qu'on retrouve la matière première d'une recette sans fouiller l'historique git."
     }
@@ -25401,6 +25402,1276 @@
         "fat": 15.9
       },
       "wave": "2026-08-01-b1-lot4-repas"
+    },
+    {
+      "id": "pd79",
+      "name": "Polenta crémeuse à la dinde et aux champignons",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 20
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "dinde_escalope",
+          "qty": 55,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "polenta",
+          "qty": 65,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "graines_courge",
+          "qty": 20,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "champignons",
+          "qty": 55,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "epinards",
+          "qty": 60,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Porte quatre fois le volume de la polenta en eau salée à frémissement.",
+        "Verse la polenta en pluie en fouettant sans arrêt, puis laisse cuire 5 minutes à feu doux : elle est prête quand elle se détache des parois.",
+        "Émince les champignons et jette-les dans une poêle très chaude, sans matière grasse : laisse-les rendre leur eau puis colorer 6 minutes.",
+        "Ajoute les épinards et laisse-les tomber 2 minutes, jusqu'à ce qu'ils réduisent de moitié.",
+        "Coupe l'escalope de dinde en lanières et saisis-les 4 minutes à feu vif avec les légumes : elles ne doivent plus être rosées au centre.",
+        "Fais torréfier les graines de courge 2 minutes à sec, verse la polenta dans l'assiette, garnis de la poêlée, parsème de graines, sale et poivre."
+      ],
+      "why": "Volaille très maigre et polenta sans gluten : beaucoup de protéines pour peu de lipides.",
+      "macros_per_serving": {
+        "kcal": 441.9,
+        "protein": 26.8,
+        "carbs": 52,
+        "fat": 12.3
+      },
+      "wave": "2026-08-01-b3-petits-dejeuners"
+    },
+    {
+      "id": "pd80",
+      "name": "Sarrasin poêlé à la dinde et aux poivrons",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 25
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "dinde_escalope",
+          "qty": 60,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "sarrasin",
+          "qty": 65,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "huile_olive",
+          "qty": 9,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "poivron",
+          "qty": 135,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "tomate",
+          "qty": 135,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Rince le sarrasin à l'eau froide, puis fais-le cuire 12 minutes à découvert dans deux fois son volume d'eau salée, et égoutte.",
+        "Détaille les poivrons en lanières et les tomates en quartiers.",
+        "Fais chauffer l'huile d'olive et fais revenir les poivrons 8 minutes à feu moyen-vif, jusqu'à ce que les bords colorent.",
+        "Ajoute les tomates et poursuis 2 minutes, le temps qu'elles s'affaissent.",
+        "Coupe l'escalope de dinde en lanières et saisis-les 4 minutes à feu vif : le jus qui perle doit être clair.",
+        "Mélange le sarrasin à la poêlée, sale, poivre et sers chaud."
+      ],
+      "why": "Sarrasin sans gluten et dinde : une protéine maigre sur une céréale riche en fibres.",
+      "macros_per_serving": {
+        "kcal": 436.4,
+        "protein": 24.6,
+        "carbs": 53.2,
+        "fat": 13.2
+      },
+      "wave": "2026-08-01-b3-petits-dejeuners"
+    },
+    {
+      "id": "pd81",
+      "name": "Tartine de seigle au jambon et concombre",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 10
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "jambon_blanc",
+          "qty": 75,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "pain_seigle",
+          "qty": 95,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "avocat",
+          "qty": 45,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "concombre",
+          "qty": 90,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "tomate",
+          "qty": 55,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Fais griller les tranches de pain de seigle jusqu'à ce qu'elles soient fermes sous le doigt.",
+        "Écrase l'avocat à la fourchette avec une pincée de sel, en gardant des morceaux.",
+        "Coupe le concombre en fines rondelles et la tomate en tranches.",
+        "Tartine le pain d'avocat, dépose le jambon en chiffonnade, puis le concombre et la tomate.",
+        "Poivre, ajoute de la ciboulette si tu en as, et mange aussitôt — le pain détrempe vite."
+      ],
+      "why": "Jambon maigre et avocat : la protéine d'un côté, les lipides de l'autre.",
+      "macros_per_serving": {
+        "kcal": 451.3,
+        "protein": 24.9,
+        "carbs": 54,
+        "fat": 13.2
+      },
+      "wave": "2026-08-01-b3-petits-dejeuners"
+    },
+    {
+      "id": "pd82",
+      "name": "Patate douce rôtie au jambon et aux épinards",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 30
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "jambon_blanc",
+          "qty": 80,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "patate_douce",
+          "qty": 285,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "noix",
+          "qty": 15,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "epinards",
+          "qty": 55,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "tomate",
+          "qty": 55,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Préchauffe le four à 210 °C.",
+        "Épluche la patate douce, coupe-la en cubes de deux centimètres et étale-les sur une plaque.",
+        "Sale et enfourne 22 minutes : les bords doivent être dorés et la pointe du couteau entrer sans résistance.",
+        "Fais tomber les épinards 2 minutes à feu vif dans une poêle, jusqu'à ce qu'ils réduisent de moitié.",
+        "Coupe le jambon en lanières et la tomate en dés.",
+        "Concasse les noix, réunis tout dans l'assiette, poivre et sers chaud."
+      ],
+      "why": "Patate douce et jambon : un féculent doux et une protéine maigre, les noix pour les lipides.",
+      "macros_per_serving": {
+        "kcal": 458.8,
+        "protein": 24.7,
+        "carbs": 54,
+        "fat": 13.7
+      },
+      "wave": "2026-08-01-b3-petits-dejeuners"
+    },
+    {
+      "id": "pd83",
+      "name": "Tartine de seigle au saumon fumé et concombre",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 10
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "saumon_fume",
+          "qty": 45,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "pain_seigle",
+          "qty": 95,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "graines_courge",
+          "qty": 15,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "concombre",
+          "qty": 55,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "epinards",
+          "qty": 85,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Fais griller les tranches de pain de seigle jusqu'à ce qu'elles croustillent sur les bords.",
+        "Fais torréfier les graines de courge 2 minutes à sec dans une petite poêle, jusqu'à ce qu'elles gonflent et claquent.",
+        "Rince les épinards et essore-les soigneusement : mouillés, ils détrempent la tartine.",
+        "Coupe le concombre en fines rondelles.",
+        "Garnis le pain d'épinards, dépose le saumon fumé en lanières, ajoute le concombre et les graines, poivre et sers."
+      ],
+      "why": "Saumon fumé et graines de courge : protéines et lipides insaturés sur un pain complet.",
+      "macros_per_serving": {
+        "kcal": 459.9,
+        "protein": 25,
+        "carbs": 54,
+        "fat": 13.4
+      },
+      "wave": "2026-08-01-b3-petits-dejeuners"
+    },
+    {
+      "id": "pd84",
+      "name": "Galettes de riz au saumon fumé et tomates",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 10
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "saumon_fume",
+          "qty": 80,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "galette_riz",
+          "qty": 60,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "huile_olive",
+          "qty": 3,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "tomate",
+          "qty": 70,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "poivron",
+          "qty": 135,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Coupe les tomates en tranches fines et le poivron en très fines lanières.",
+        "Assaisonne-les d'huile d'olive, de sel et de poivre, et laisse-les rendre un peu de jus 5 minutes.",
+        "Égoutte-les avant de garnir : c'est ce jus qui ramollit les galettes.",
+        "Dépose les légumes sur les galettes de riz, puis le saumon fumé en lanières.",
+        "Poivre et mange aussitôt — les galettes ramollissent en quelques minutes."
+      ],
+      "why": "Un petit-déjeuner salé sans gluten où le saumon apporte protéines et lipides.",
+      "macros_per_serving": {
+        "kcal": 446.4,
+        "protein": 24.2,
+        "carbs": 53.9,
+        "fat": 14
+      },
+      "wave": "2026-08-01-b3-petits-dejeuners"
+    },
+    {
+      "id": "pd85",
+      "name": "Tartine de seigle au cottage cheese et framboises",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 10
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "cottage_cheese",
+          "qty": 140,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "pain_seigle",
+          "qty": 90,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "noisettes",
+          "qty": 10,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "framboises",
+          "qty": 55,
+          "macro_role": "fruit",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Fais griller les tranches de pain de seigle jusqu'à ce qu'elles soient fermes sous le doigt.",
+        "Concasse grossièrement les noisettes et fais-les dorer 2 minutes à sec dans une poêle.",
+        "Étale le cottage cheese en couche épaisse sur le pain encore tiède.",
+        "Répartis les framboises en les écrasant à peine, pour qu'elles rendent un peu de jus sans détremper le pain.",
+        "Parsème de noisettes et mange aussitôt."
+      ],
+      "why": "Cottage cheese : une protéine laitière maigre, les noisettes apportant les lipides.",
+      "macros_per_serving": {
+        "kcal": 460.8,
+        "protein": 25,
+        "carbs": 54.5,
+        "fat": 13
+      },
+      "wave": "2026-08-01-b3-petits-dejeuners"
+    },
+    {
+      "id": "pd86",
+      "name": "Polenta au cottage cheese, tomates et levure maltée",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 15
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "cottage_cheese",
+          "qty": 140,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "polenta",
+          "qty": 58,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "huile_olive",
+          "qty": 5,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "tomate_concassee",
+          "qty": 120,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "levure_maltee",
+          "qty": 7,
+          "macro_role": "flavor",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Porte quatre fois le volume de la polenta en eau salée à frémissement.",
+        "Verse la polenta en pluie en fouettant, puis laisse cuire 5 minutes à feu doux sans cesser de remuer.",
+        "Fais réduire la tomate concassée 5 minutes à feu moyen avec l'huile d'olive, du sel et une pincée d'origan : elle doit perdre son eau et devenir brillante.",
+        "Verse la polenta dans un bol creux et creuse un puits au centre.",
+        "Garnis du cottage cheese et de la sauce tomate, saupoudre de levure maltée et poivre."
+      ],
+      "why": "Polenta sans gluten et cottage cheese : un salé très maigre en lipides ajoutés.",
+      "macros_per_serving": {
+        "kcal": 437.3,
+        "protein": 24.9,
+        "carbs": 53.9,
+        "fat": 13
+      },
+      "wave": "2026-08-01-b3-petits-dejeuners"
+    },
+    {
+      "id": "pd87",
+      "name": "Blancs d'œufs brouillés sur pain complet, avocat",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 15
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "blanc_oeuf",
+          "qty": 110,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "pain_complet",
+          "qty": 120,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "avocat",
+          "qty": 50,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "champignons",
+          "qty": 55,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "epinards",
+          "qty": 45,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Fais griller les tranches de pain complet.",
+        "Émince les champignons et fais-les colorer 6 minutes à feu vif dans une poêle antiadhésive, sans matière grasse.",
+        "Ajoute les épinards et laisse-les tomber 2 minutes.",
+        "Verse les blancs d'œufs dans une poêle FROIDE, mets sur feu doux et remue sans arrêt à la spatule 3 minutes.",
+        "Retire du feu quand ils sont encore brillants : les blancs finissent de cuire hors du feu et deviennent caoutchouteux si tu attends.",
+        "Écrase l'avocat sur le pain, dépose les blancs brouillés et la poêlée, sale et poivre."
+      ],
+      "why": "Blancs d'œufs et avocat : une protéine quasi pure et des lipides végétaux.",
+      "macros_per_serving": {
+        "kcal": 461.5,
+        "protein": 25.6,
+        "carbs": 52.6,
+        "fat": 13
+      },
+      "wave": "2026-08-01-b3-petits-dejeuners"
+    },
+    {
+      "id": "pd88",
+      "name": "Hachis de patate douce aux blancs d'œufs",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 30
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "blanc_oeuf",
+          "qty": 155,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "patate_douce",
+          "qty": 275,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "noix",
+          "qty": 20,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "poivron",
+          "qty": 75,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "tomate",
+          "qty": 55,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Épluche la patate douce et coupe-la en petits dés d'un centimètre : plus ils sont petits, plus le hachis dore.",
+        "Fais-les cuire 12 minutes à couvert dans une poêle avec un fond d'eau, puis 6 minutes à découvert pour qu'ils colorent.",
+        "Ajoute le poivron en dés et la tomate en quartiers, et poursuis 4 minutes.",
+        "Verse les blancs d'œufs sur le hachis chaud, baisse le feu et remue 2 minutes : ils prennent presque instantanément.",
+        "Concasse les noix, parsème-les, sale et poivre."
+      ],
+      "why": "Blancs d'œufs et patate douce : un salé riche en protéines, les noix pour les lipides.",
+      "macros_per_serving": {
+        "kcal": 466.1,
+        "protein": 24.8,
+        "carbs": 54,
+        "fat": 14.5
+      },
+      "wave": "2026-08-01-b3-petits-dejeuners"
+    },
+    {
+      "id": "pd89",
+      "name": "Bowl chaud de sarrasin au skyr, myrtilles et pomme",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 20
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "skyr",
+          "qty": 120,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "sarrasin",
+          "qty": 50,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "amandes",
+          "qty": 20,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "myrtilles",
+          "qty": 55,
+          "macro_role": "fruit",
+          "scalable": true
+        },
+        {
+          "ref": "pomme",
+          "qty": 65,
+          "macro_role": "fruit",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Rince le sarrasin à l'eau froide, puis fais-le cuire 12 minutes à découvert dans deux fois son volume d'eau légèrement salée.",
+        "Égoutte-le et laisse-le tiédir : versé brûlant sur le skyr, il le ferait trancher.",
+        "Concasse les amandes et fais-les dorer 2 minutes à sec dans une poêle.",
+        "Coupe la pomme en petits dés, avec la peau.",
+        "Mets le sarrasin tiède dans un bol, ajoute le skyr par cuillerées, puis la pomme et les myrtilles.",
+        "Parsème d'amandes et mange sans attendre."
+      ],
+      "why": "Skyr et sarrasin sans gluten : deux protéines complémentaires, les amandes pour les lipides.",
+      "macros_per_serving": {
+        "kcal": 449.8,
+        "protein": 24.8,
+        "carbs": 53.7,
+        "fat": 12.7
+      },
+      "wave": "2026-08-01-b3-petits-dejeuners"
+    },
+    {
+      "id": "pd90",
+      "name": "Millet au fromage blanc, pomme et miel",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 25
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "fromage_blanc_0",
+          "qty": 235,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "millet",
+          "qty": 50,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "noix",
+          "qty": 15,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "pomme",
+          "qty": 65,
+          "macro_role": "fruit",
+          "scalable": true
+        },
+        {
+          "ref": "miel",
+          "qty": 8,
+          "macro_role": "flavor",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Rince le millet, puis fais-le cuire 15 minutes à couvert dans deux fois son volume d'eau.",
+        "Égoutte-le si besoin et laisse-le tiédir hors du feu.",
+        "Coupe la pomme en dés, avec la peau, et concasse les noix.",
+        "Mélange le millet tiède au fromage blanc — attends qu'il ne soit plus brûlant, sinon le mélange devient liquide.",
+        "Ajoute la pomme et les noix, et termine par le miel en filet."
+      ],
+      "why": "Fromage blanc 0 % et millet sans gluten : une protéine laitière presque sans lipides.",
+      "macros_per_serving": {
+        "kcal": 460.7,
+        "protein": 24.8,
+        "carbs": 61.5,
+        "fat": 12.5
+      },
+      "wave": "2026-08-01-b3-petits-dejeuners"
+    },
+    {
+      "id": "pd91",
+      "name": "Pommes de terre sautées, blancs d'œufs et champignons",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 30
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "blanc_oeuf",
+          "qty": 155,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "pomme_de_terre",
+          "qty": 305,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "huile_olive",
+          "qty": 12,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "champignons",
+          "qty": 60,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "tomate_concassee",
+          "qty": 60,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Épluche les pommes de terre et coupe-les en cubes d'un centimètre et demi.",
+        "Fais chauffer l'huile d'olive et fais-les sauter 15 minutes à feu moyen-vif, en les retournant peu : elles doivent être dorées et tendres au couteau.",
+        "Émince les champignons et ajoute-les pour 5 minutes, le temps qu'ils rendent leur eau et colorent.",
+        "Verse la tomate concassée, sale et laisse réduire 3 minutes.",
+        "Verse les blancs d'œufs sur la poêlée, baisse le feu et remue 2 minutes : ils prennent presque instantanément.",
+        "Poivre, ajoute du persil si tu en as, et sers chaud."
+      ],
+      "why": "Blancs d'œufs et pomme de terre : un salé très protéiné où l'huile d'olive porte les lipides.",
+      "macros_per_serving": {
+        "kcal": 452.7,
+        "protein": 25,
+        "carbs": 53.7,
+        "fat": 13.1
+      },
+      "wave": "2026-08-01-b3-petits-dejeuners"
+    },
+    {
+      "id": "pd92",
+      "name": "Wrap sans gluten protéiné à l'avocat et aux épinards",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 10
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "proteine_vegetale",
+          "qty": 25,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "wrap_sans_gluten",
+          "qty": 80,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "avocat",
+          "qty": 30,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "tomate",
+          "qty": 80,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "epinards",
+          "qty": 45,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Écrase l'avocat à la fourchette dans un bol avec une pincée de sel.",
+        "Ajoute la protéine végétale et deux cuillères d'eau, puis travaille au dos de la cuillère jusqu'à obtenir une pâte lisse et tartinable.",
+        "Rince les épinards et essore-les soigneusement.",
+        "Coupe la tomate en tranches fines et sale-les légèrement.",
+        "Chauffe le wrap 30 secondes par face à sec dans une poêle : il doit rester souple, il craque s'il chauffe trop.",
+        "Tartine-le de la crème d'avocat, garnis d'épinards et de tomate, poivre, replie les bords et roule serré."
+      ],
+      "why": "Un wrap sans gluten où la protéine végétale est incorporée à la crème d'avocat.",
+      "macros_per_serving": {
+        "kcal": 438.7,
+        "protein": 25.2,
+        "carbs": 53,
+        "fat": 13
+      },
+      "wave": "2026-08-01-b3-petits-dejeuners"
+    },
+    {
+      "id": "pd93",
+      "name": "Polenta au tofu fumé brouillé et épinards",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 20
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "tofu_fume",
+          "qty": 85,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "levure_maltee",
+          "qty": 6,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "polenta",
+          "qty": 64,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "graines_courge",
+          "qty": 10,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "epinards",
+          "qty": 50,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Porte quatre fois le volume de la polenta en eau salée à frémissement.",
+        "Verse la polenta en pluie en fouettant, puis laisse cuire 5 minutes à feu doux : elle doit se détacher des parois.",
+        "Émiette le tofu fumé à la fourchette en morceaux irréguliers — c'est ce qui lui donne l'aspect brouillé.",
+        "Fais-le colorer 6 minutes à feu vif dans une poêle antiadhésive, en remuant peu.",
+        "Ajoute les épinards, laisse-les tomber 2 minutes, puis saupoudre de levure maltée hors du feu.",
+        "Fais torréfier les graines de courge 2 minutes à sec, dresse la polenta, garnis du tofu brouillé, parsème de graines et poivre."
+      ],
+      "why": "Tofu fumé et levure maltée : deux sources végétales qui portent ensemble la protéine.",
+      "macros_per_serving": {
+        "kcal": 462.7,
+        "protein": 25,
+        "carbs": 54,
+        "fat": 14.6
+      },
+      "wave": "2026-08-01-b3-petits-dejeuners"
+    },
+    {
+      "id": "pd94",
+      "name": "Bowl de quinoa protéiné à la mangue",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 20
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "proteine_vegetale",
+          "qty": 20,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "quinoa",
+          "qty": 50,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "beurre_amande",
+          "qty": 15,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "mangue",
+          "qty": 145,
+          "macro_role": "fruit",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Rince le quinoa sous l'eau froide 30 secondes pour retirer son amertume.",
+        "Fais-le cuire 12 minutes à couvert dans deux fois son volume d'eau : le germe se détache en petit anneau blanc quand c'est prêt.",
+        "Laisse-le tiédir, puis incorpore la protéine végétale avec deux cuillères d'eau : ajoutée dans le quinoa brûlant, elle ferait des grumeaux.",
+        "Coupe la mangue en dés.",
+        "Dresse le quinoa dans un bol, ajoute la mangue et termine par le beurre d'amande en filet."
+      ],
+      "why": "Quinoa et protéine végétale : une protéine complète sans aucun produit animal.",
+      "macros_per_serving": {
+        "kcal": 453.2,
+        "protein": 25.3,
+        "carbs": 53.1,
+        "fat": 13
+      },
+      "wave": "2026-08-01-b3-petits-dejeuners"
+    },
+    {
+      "id": "pd95",
+      "name": "Châtaigne au yaourt de soja, framboises et cacao",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 10
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "yaourt_soja_proteine",
+          "qty": 210,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "chataigne",
+          "qty": 110,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "noisettes",
+          "qty": 10,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "framboises",
+          "qty": 60,
+          "macro_role": "fruit",
+          "scalable": true
+        },
+        {
+          "ref": "cacao_poudre",
+          "qty": 8,
+          "macro_role": "flavor",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Écrase grossièrement les châtaignes à la fourchette, en gardant des morceaux.",
+        "Mélange le cacao au yaourt de soja jusqu'à obtenir une crème homogène, sans grumeaux.",
+        "Concasse les noisettes et fais-les dorer 2 minutes à sec dans une poêle.",
+        "Répartis les châtaignes au fond d'un bol et couvre de la crème au cacao.",
+        "Ajoute les framboises, parsème de noisettes et sers frais."
+      ],
+      "why": "Châtaigne et yaourt de soja : un féculent doux et une protéine végétale, sans gluten.",
+      "macros_per_serving": {
+        "kcal": 467.4,
+        "protein": 25.1,
+        "carbs": 54,
+        "fat": 12.9
+      },
+      "wave": "2026-08-01-b3-petits-dejeuners"
+    },
+    {
+      "id": "pd96",
+      "name": "Sarrasin au yaourt de soja, myrtilles et érable",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 20
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "yaourt_soja_proteine",
+          "qty": 170,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "sarrasin",
+          "qty": 50,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "tahini",
+          "qty": 15,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "myrtilles",
+          "qty": 55,
+          "macro_role": "fruit",
+          "scalable": true
+        },
+        {
+          "ref": "sirop_erable",
+          "qty": 8,
+          "macro_role": "flavor",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Rince le sarrasin, puis fais-le cuire 12 minutes à découvert dans deux fois son volume d'eau.",
+        "Égoutte-le et laisse-le tiédir.",
+        "Délie le tahini avec le sirop d'érable et une cuillère d'eau : la sauce s'épaissit avant de redevenir fluide, continue jusqu'à ce qu'elle nappe.",
+        "Mets le sarrasin tiède dans un bol et ajoute le yaourt de soja par cuillerées.",
+        "Nappe de sauce au sésame, ajoute les myrtilles et sers."
+      ],
+      "why": "Sarrasin et yaourt de soja : deux sources végétales complémentaires, lipides apportés par le sésame.",
+      "macros_per_serving": {
+        "kcal": 439.6,
+        "protein": 25.1,
+        "carbs": 53.8,
+        "fat": 12.4
+      },
+      "wave": "2026-08-01-b3-petits-dejeuners"
+    },
+    {
+      "id": "pd97",
+      "name": "Tartine sans gluten protéinée, tomate et concombre",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 10
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "proteine_vegetale",
+          "qty": 25,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "pain_sans_gluten",
+          "qty": 115,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "huile_olive",
+          "qty": 3,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "tomate",
+          "qty": 105,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "concombre",
+          "qty": 135,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Fais griller les tranches de pain sans gluten : il croustille moins que le pain de blé, insiste un peu plus longtemps.",
+        "Mélange la protéine végétale avec l'huile d'olive, deux cuillères d'eau et une pincée de sel, jusqu'à obtenir une crème tartinable.",
+        "Coupe la tomate en tranches et le concombre en fines rondelles.",
+        "Tartine le pain de la crème, puis dépose la tomate et le concombre.",
+        "Poivre, ajoute du basilic si tu en as, et mange aussitôt."
+      ],
+      "why": "Une tartine sans gluten salée dont la protéine ne vient d'aucun produit animal.",
+      "macros_per_serving": {
+        "kcal": 450.9,
+        "protein": 25,
+        "carbs": 52.6,
+        "fat": 13
+      },
+      "wave": "2026-08-01-b3-petits-dejeuners"
+    },
+    {
+      "id": "pd98",
+      "name": "Bowl de patate douce au yaourt de soja et noisettes",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 30
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "yaourt_soja_proteine",
+          "qty": 205,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "patate_douce",
+          "qty": 190,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "noisettes",
+          "qty": 15,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "pomme",
+          "qty": 100,
+          "macro_role": "fruit",
+          "scalable": true
+        },
+        {
+          "ref": "cacao_poudre",
+          "qty": 5,
+          "macro_role": "flavor",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Épluche la patate douce, coupe-la en cubes et fais-la cuire 18 minutes à l'eau bouillante : la pointe du couteau doit entrer sans résistance.",
+        "Égoutte et écrase à la fourchette en gardant des morceaux, puis laisse tiédir.",
+        "Mélange le cacao au yaourt de soja jusqu'à obtenir une crème homogène.",
+        "Coupe la pomme en dés, avec la peau.",
+        "Concasse les noisettes et fais-les dorer 2 minutes à sec dans une poêle.",
+        "Dresse l'écrasé tiède, couvre de la crème au cacao, ajoute la pomme et les noisettes."
+      ],
+      "why": "Patate douce et yaourt de soja : un féculent doux et une protéine végétale, sans gluten.",
+      "macros_per_serving": {
+        "kcal": 455.3,
+        "protein": 25,
+        "carbs": 53.9,
+        "fat": 13
+      },
+      "wave": "2026-08-01-b3-petits-dejeuners"
     }
   ],
   "config": {
