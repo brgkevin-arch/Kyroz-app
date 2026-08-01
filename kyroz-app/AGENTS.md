@@ -32,7 +32,7 @@ listes contradictoires.
 | Doc | À quoi il sert |
 |---|---|
 | `Recette/README.md` | Chaîne d'ajout de recettes (drops, merge, vérifications) + la convention « une vague peut RÉÉCRIRE ». |
-| `Recette/BRIEF-GENERATION-RECETTES.md` | Spec de génération, auto-portante. **§4.12 = les 4 règles de la collation**, §4.2 les ancres, §6 l'anti-doublons. Certains blocs du §5 sont des commandes LIVRÉES, marquées comme telles. |
+| `Recette/BRIEF-GENERATION-RECETTES.md` | Spec de génération, auto-portante. **§4.12 = les 5 règles de la collation**, §4.2 les ancres, §6 l'anti-doublons. Certains blocs du §5 sont des commandes LIVRÉES, marquées comme telles. |
 | `MONETISATION.md` | Kyroz+ : tranché et livré ; restent la banque de calories et le paywall. |
 | `test/README.md` | Parcours Playwright — **ne tournent pas dans `npm test`**, pièges du socle. |
 
@@ -66,17 +66,27 @@ qu'ils étaient périmés.
 | Catalogue | **466 recettes** — 110 petits-déj · 270 repas complets · 86 collations | `npm run mesure:couverture` |
 | `ENGINE_VERSION` | **38** (invalide les plans en cache) | `lib/planEngine.ts` |
 | `ENGINE_REV` | **4** (avertissement one-shot à l'utilisateur) | `lib/tdee.ts` |
-| Tests | **804 verts**, 43 fichiers · `tsc` propre | `npm test && npx tsc --noEmit` |
+| Tests | **813 verts**, 44 fichiers · `tsc` propre | `npm test && npx tsc --noEmit` |
 | Variété perçue | **27,9 %** des semaines servent 2 recettes d'un même couple (56,3 % avant D18) | `npm run mesure:variete` |
 | Anti-doublons | R1 81 · R2 70 · R4 14 · R5 17 · R7 0 — **figés par un test**, inchangés par B6 | `npm run check:doublons` |
-| Créneau collation | moyenne **7,62/12** (7,19 avant B6 · 4,52 avant B5) · **1 sous le seuil R8** — voir l'avertissement ci-dessous | `npm run check:enveloppe -- <drop>` |
+| Sous le seuil R8 | ⚠️ petit-déj **37/110** · repas complets **71/270** · collation **1/86** — le chantier B7 (D19) | `npm run mesure:seuils` |
+| Moyenne R8 par créneau | petit-déj **8,30/12** · repas complets **8,64** · collation **7,50** (7,62 avant D18 · 7,19 avant B6 · 4,52 avant B5) | idem |
 | Vegan | petit-déj 44/110 · repas 79/270 · collation **43/86** | idem |
 | Vegan + sans gluten | petit-déj 33 · repas 42 · collation **34** | idem |
 
-**Les quatre vagues du 2026-08-02, dans l'ordre où elles se sont enchaînées** — chacune a
-sa fiche : **D14** (lot B4, 32 recettes à l'enveloppe corrigée), **D15** (lot B5, 23
+**Les six chantiers du 2026-08-02, dans l'ordre où ils se sont enchaînés** — chacun a sa
+fiche : **D14** (lot B4, 32 recettes à l'enveloppe corrigée), **D15** (lot B5, 23
 collations réécrites), **D16** (plancher protéique par repas, dans le moteur), **D17**
-(lot B6, 7 collations vegan — la dette laissée par B5).
+(lot B6, 7 collations vegan — la dette laissée par B5), **D18** (rotation par famille,
+dans le moteur — la variété perçue), **D3** (le champ « aliments à éviter » réparé).
+
+⚠️ **Trois de ces six ont commencé par une fiche FAUSSE, et c'est le motif à retenir.**
+D4 demandait de désaturer un compteur de catalogue : le premier coupable mesuré était un
+groupe de 2 recettes, invisible de ce compteur, et le défaut était dans le moteur. D3
+partait du sésame du `tahini` : c'était le seul allergène que le filtre attrapait déjà.
+D5 et D7 avaient déjà connu ça. ➡️ **Mesurer ce que l'utilisateur reçoit AVANT d'exécuter
+une fiche, même quand elle a l'air cadrée.** Trois des cinq derniers chantiers auraient
+produit du travail inutile si on avait fait confiance à leur énoncé.
 
 ⚠️ **LE PIÈGE DE MESURE À CONNAÎTRE AVANT DE TOUCHER AU CATALOGUE.** Le « vivier servable »
 (nombre de recettes atteignant la cible d'un profil) **n'est pas stable d'une vague à
@@ -110,19 +120,24 @@ précision calorique du jour **0,05 %**, protéines **+2,6 %** au-dessus de la c
 « viviers » ci-dessus sont une réserve de variété, **pas** ce que l'utilisateur reçoit :
 ne pas les présenter comme un défaut de service.
 
-### ▶️ Si tu reprends maintenant — le chantier prêt
+### ▶️ Si tu reprends maintenant — le chantier prêt (mais REPORTÉ par le fondateur)
 
 *(D7 est **FERMÉ** par le lot B6, cf. D17 · D4 est **FERMÉ** — la tâche mesurait le mauvais
 objet, le défaut réel était dans le moteur, cf. D18 · D3 est **TRANCHÉ ET CORRIGÉ** : pas
 d'axe allergène, le chemin « aliments à éviter » réparé, cf. D3 · C1, le layout tablette,
 est **FERMÉ** le 2026-08-01, `supportsTablet` est à `true`.)*
 
-1. **🤖 B7 — l'audit R8 des deux créneaux qui ne l'ont jamais eu.** D15 l'a fait pour les
-   collations ; mesuré le 2026-08-02, **37 petits-déj sur 110 (34 %) et 70 repas complets
-   sur 270 (26 %) sont sous le seuil de 8/12**, dont 4 à ZÉRO profil dans chaque créneau.
-   Cause première déjà identifiée : les recettes **sans `carb`** (13 en petit-déj, moyenne
-   2,77/12 contre 9,03 pour celles qui en portent un ; 6 en repas complet à 1,50/12). Le
-   remède est le même qu'en B5 — réécrire — et le lot est plus gros. Détail en D4-bis.
+1. **🤖 B7 — l'audit R8 des deux créneaux qui ne l'ont jamais eu. ⏸️ REPORTÉ le
+   2026-08-02 (fondateur : « on fera ça plus tard »).** Le diagnostic est fait, il ne sera
+   pas à refaire : D15 avait audité les collations, jamais les deux autres créneaux —
+   mesuré, **37 petits-déj sur 110 (34 %) et 71 repas complets sur 270 (26 %) sont sous le
+   seuil de 8/12**, dont 4 à ZÉRO profil dans chaque créneau. Cause première déjà
+   identifiée : les recettes **sans `carb`** (13 en petit-déj, moyenne 2,77/12 contre 9,03
+   pour celles qui en portent un ; 6 en repas complet à 1,50/12). Remède identique à B5 —
+   réécrire, pas ajouter — et le lot est plus gros. Détail et chiffres en **D19**.
+   ⚠️ **Le chiffre bougera** : il a déjà bougé entre la mesure et l'écriture de cette ligne
+   (D18, un correctif du moteur, a fait passer les repas complets de 70 à 71 sous le seuil).
+   **`npm run mesure:seuils` avant de commander**, ne pas partir de ces 37/71.
 
 ⚠️ **Une décision produit attend le fondateur, et elle est réversible** : D3 a été tranché
 **contre** l'axe allergène formel (motif : promesse de sécurité intenable sur un catalogue
@@ -841,14 +856,37 @@ produit en suspens — il ne reste qu'à coder.
   ➡️ À régler **en écrivant ailleurs**, jamais en réécrivant une recette au hasard : le
   générateur de briefs (`scripts/gen-brief-lot.ts`) publie déjà les couples saturés et les
   ancres encore ouvertes dans chaque §7.
-  🆕 **Le vrai chantier qui reste ici est un chantier de CATALOGUE, pas de compteur** :
-  l'audit R8 refait le 2026-08-02 montre que **13 petits-déj et 6 repas complets sans
-  `carb` sont TOUS sous le seuil** (moyenne 2,77/12 en petit-déj contre 9,03 pour ceux qui
-  en portent un ; 1,50/12 en repas complet contre 8,80). Plus largement, **37 petits-déj
-  sur 110 (34 %) et 70 repas complets sur 270 (26 %) sont sous le seuil de 8/12**, dont
-  4 à ZÉRO profil dans chaque créneau — l'audit que D15 a fait pour les collations n'a
-  jamais été fait pour les deux autres créneaux. C'est le prochain lot de réécriture
-  (B7), et il est plus gros que B5.
+- **D19 · 🤖 B7 — l'audit R8 du petit-déj et du repas complet. ⏸️ REPORTÉ le 2026-08-02
+  (fondateur : « on fera ça plus tard »). Le diagnostic est FAIT, il ne sera pas à refaire.**
+  Trouvé en mesurant D4 : l'audit que D15 avait mené sur les collations n'avait **jamais**
+  été fait sur les deux autres créneaux.
+
+  | créneau | recettes | moyenne | sous le seuil 8/12 | à ZÉRO profil |
+  |---|---|---|---|---|
+  | petit-déj | 110 | 8,30/12 | **37 (34 %)** | 4 |
+  | repas complet | 270 | 8,64/12 | **71 (26 %)** | 4 |
+  | collation *(déjà traité, seuil 3/12)* | 86 | 7,50/12 | 1 | 0 |
+
+  ⚠️ **Ces chiffres ont déjà bougé une fois pendant qu'on les écrivait** — sixième
+  occurrence du piège de mesure. Mesurés avant D18 : repas complets **70** sous le seuil,
+  collation à **7,62/12** de moyenne. D18 est un correctif du MOTEUR qui n'a touché aucune
+  recette, et il a déplacé les deux. ➡️ `npm run mesure:seuils` avant de commander quoi
+  que ce soit.
+
+  🔎 **La cause première est la même qu'en D15, et elle est chiffrée** : une recette **sans
+  `carb`** ne peut pas s'étirer. Petit-déj — 13 recettes sans féculent, moyenne **2,77/12**,
+  **13 sur 13 sous le seuil**, contre 9,03/12 pour les 97 qui en portent un. Repas complet —
+  6 recettes, moyenne **1,50/12**, 6 sur 6 sous le seuil, contre 8,80/12 pour les 264 autres.
+  Les pires : `pd04` `pd11` `pd37` `pd64` et `rep18` `rep51` `rep137` `rep144` à **0/12**.
+
+  ➡️ **Remède : réécrire, pas ajouter** (convention B5, `Recette/README.md`) — les ids sont
+  conservés, `ENGINE_VERSION` s'incrémente. Le lot est plus gros que B5 (23 recettes).
+  ⚠️ **Re-mesurer avant de commander** : le vivier servable n'est pas stable d'une vague à
+  l'autre (cf. le piège de mesure du §📍), donc ne pas partir de ces 37/70 comme d'un acquis.
+  ⚠️ **Et vérifier d'abord que ça se voit dans le SERVICE.** D5 et D7 ont chacune été
+  ouvertes sur un compteur qui ne coûtait rien à l'utilisateur. Ici l'indice est sérieux —
+  4 recettes par créneau ne servent AUCUN des 12 profils — mais la question « combien de
+  repas servis viennent de ces recettes-là » n'a pas encore été posée.
 - ~~**D5 · 3 recettes sans ingrédient gras `scalable`**~~ 🚫 **FERMÉ le 2026-07-31 —
   la tâche était fausse sur ses trois affirmations. Ne pas la rouvrir.** Elle disait
   « 3 recettes · le moteur ne peut pas les monter en lipides · l'utilisateur voit
@@ -1705,7 +1743,7 @@ Plancher = énergie disponible (30 kcal/kg de masse maigre + sport, **plafonné 
   - ✅ **Contrôle anti-doublons EXÉCUTABLE** (`scripts/check-doublons.ts`, `npm run check:doublons -- <drop.json>`) + **cliquet** en test (`doublons.test.ts`). Confronte un lot au catalogue **et les recettes du lot entre elles** — c'est ce second contrôle qui manquait et qui a produit 8 groupes de clones sur trois vagues. 7 clones stricts et 2 noms identiques différenciés **sans supprimer une seule recette** (le catalogue a des cases minces). Compteurs : R1 92→85, R2 78→75, R5 22→18, R4 16.
   - ✅ **Champ `wave`** sur chaque recette, rétro-rempli en DÉRIVANT la partition des dossiers de `Recette/drops/` : `fondation` 100, `2026-06-19-vegan` 164, `2026-07-22-sans-gluten` 50. (Le drop « sans gluten » en contenait 214 = 164 reprises + 50 neuves — sans l'intersection, le compte était faux.)
   - ⚠️ **LA LEÇON DE MÉTHODE — un proxy de mesure a produit deux conclusions fausses.** Le script d'audit figeait le partage glucides:lipides de la cible à **55/45** — la valeur de REPLI de `carbFatRatio`, celle qui ne sert qu'à un profil sans ratio. Le moteur le DÉRIVE du profil : **65/35 en sèche, 68/32 au maintien, 69/31 en prise de masse**. Avec 10 à 14 points de lipides en trop, tout paraissait manquer de gras. Sont tombés : (1) « le catalogue est structurellement trop maigre » — sur les repas SERVIS le flag dominant est `carbs_below_target` (414) et non `fat_below_target` (157), le brief demandait de corriger dans le mauvais sens ; (2) « la prise de masse végétale est le trou » — le pool passe de 7 à 24 sur ce seul correctif. **Ground truth substituée aux proxies** : `buildLocalPlan` sur 3 gabarits × 4 semaines, on compte les recettes DISTINCTES réellement servies. **Règle : mesurer sur le moteur, pas sur une réplique de ses formules.** Poids mort réel du catalogue = **38 %** (118/314), pas 46 %.
-  - 📋 **Vague en cours : 113 recettes** (`Recette/BRIEF-GENERATION-RECETTES.md`, 1185 lignes, auto-portant ; le chiffre est passé de 30 à 113 — cf. la section « Catalogue de recettes » en fin de doc). Seules deux poches subsistent : petit-déj de prise de masse végétal ou sans gluten (9 à 11 distinctes sur 4 semaines), et **vegan + sans gluten en sèche** sur les quatre créneaux (11 à 12). B1 10 petits-déj (`pd79`–`88`), B2 14 repas complets (`rep171`–`184`), B3 6 collations (`col67`–`72`) — **tout vegan ET sans gluten**, ce qui remplit les 7 régimes d'un coup (`vegan ⊂ végétarien ⊂ pescatarien ⊂ no_pork = halal`). Enveloppes = les cibles que l'app calcule pour le gabarit médian, pas des moyennes inventées. **Génération prévue via Claude chat, bloc par bloc**, avec retour ici pour vérification mécanique avant merge. **Reste à faire** : un `npm run check:recettes` qui contrôle l'enveloppe (règle R8 du brief, aujourd'hui manuelle) ; l'axe **allergènes** (le `tahini` introduit le sésame, aucun champ ne le porte) ; les 16 groupes R4 restants, qui sont des familles saturées (whey+avoine ×6, yaourt de soja sans féculent ×8) à régler en écrivant AILLEURS, pas en réécrivant l'existant.
+  - 📋 **Vague en cours : 113 recettes** (`Recette/BRIEF-GENERATION-RECETTES.md`, 1185 lignes, auto-portant ; le chiffre est passé de 30 à 113 — cf. la section « Catalogue de recettes » en fin de doc). Seules deux poches subsistent : petit-déj de prise de masse végétal ou sans gluten (9 à 11 distinctes sur 4 semaines), et **vegan + sans gluten en sèche** sur les quatre créneaux (11 à 12). B1 10 petits-déj (`pd79`–`88`), B2 14 repas complets (`rep171`–`184`), B3 6 collations (`col67`–`72`) — **tout vegan ET sans gluten**, ce qui remplit les 7 régimes d'un coup (`vegan ⊂ végétarien ⊂ pescatarien ⊂ no_pork = halal`). Enveloppes = les cibles que l'app calcule pour le gabarit médian, pas des moyennes inventées. **Génération prévue via Claude chat, bloc par bloc**, avec retour ici pour vérification mécanique avant merge. **Reste à faire** : un `npm run check:recettes` qui contrôle l'enveloppe (règle R8 du brief, aujourd'hui manuelle) ; l'axe **allergènes** (le `tahini` introduit le sésame, aucun champ ne le porte) ; les 16 groupes R4 restants, qui sont des familles saturées (whey+avoine ×6, yaourt de soja sans féculent ×8) à régler en écrivant AILLEURS, pas en réécrivant l'existant. ⚠️ **Ces trois « reste à faire » sont PÉRIMÉS** : `check:enveloppe` existe (règle R8, `mesure-couverture.ts --enveloppe`), l'axe allergène a été tranché — on n'en crée pas, cf. **D3** — et le compteur R4 s'est révélé être le mauvais instrument, cf. **D18**.
 
 ## Écrans
 - **Plan** : jours pleine largeur, salutation « Salut {prénom} », tap repas → fiche, **résumé du jour = le TOTAL RÉEL du plan du jour en chiffre héros (`MacroBar`, révisé 2026-06-18 : avant = la cible figée, mais l'user voulait voir le vrai nombre) ; la CIBLE est affichée juste dessous en référence avec l'écart (« Cible X · ✓ dans la cible / ±Y ») ; en cours de journée → barre de progression « Consommé X · reste Y » (vers le total du jour) ; le TDEE n'apparaît plus ici (→ Profil)**, bouton « J'ai cuisiné » sur chaque carte (verrouille + déduit frigo + recale + série), « Je l'ai sauté », « J'ai mangé hors plan » (`OffPlanSheet`). **Synchro frigo non-bloquante** : si le frigo est suivi, la carte montre « ✓ tout dans ton frigo » / « 🛒 il te manque : X » + bouton en contour. ⚠️ JAMAIS désactivé (sinon casse le North Star pour qui ne suit pas son frigo). Courses/frigo/fibres lisent les **quantités adaptées** du repas via `mealIngredients(meal)` (adapted si présentes, sinon recette×portions — plans en cache d'avant la refonte). **Fiche repas** (`RecipeDetail`) : quantités adaptées, **badges objectif/sport**, ligne **« Pourquoi »** (`why_fr`), avertissements `adapt_flags` (sous/au-dessus cible) + bandeau si repli régime (`restriction_relaxed`). **Repas fixes gérés par l'user (`FixedMeal`, ENGINE_VERSION 8) :** un créneau peut passer en « Je gère » (petit-déj/collation récurrent défini UNE fois via `FixedMealSheet` : recherche Ciqual + quantité, ou champ libre nom + P/G/L) → **macros soustraites du budget** par le moteur (`buildLocalPlan` : les repas planifiés visent cible − fixes ; `mealTarget` inchangé), carte **🔒 verrouillée** comptée dans le total mais **jamais cuisinée/swappée/recalée** (exclue de `adjustIds`/`adaptDayOptions`/`swapMeal`) ni mise dans les courses. Réglable dans **Profil → Paramètres des repas** (retiré de l'onboarding 2026-06-20). Persisté `profile.fixed_meals` (jsonb ; `PROFILE_COLS` + migration `2026-06-18_profiles_fixed_meals.sql` — ⚠️ à exécuter dans Supabase). Tests : `fixedMeals.test.ts`. **Resserrage écart jour-à-jour (`tightenDay`, ENGINE_VERSION 9, 2026-06-18) :** le plan canonique (seed 0) était déjà serré (≤2%), mais le **reroll** (« Nouveau plan », seed≠0) faisait déborder le total certains jours sur **pool contraint** (prep court / régime / dislikes). `buildLocalPlan` lance après sélection un **water-filling** qui ré-adapte les MÊMES recettes (variété préservée) pour coller le total du jour à la cible, en redistribuant le reliquat des repas saturés vers ceux qui ont de la marge ; **garde-fou « jamais pire »** (le scaling discret peut dégrader → on annule si le total ne se rapproche pas). ⚠️ Limite : si le pool ne peut PAS atteindre la cible (ex. 4000 kcal en recettes 10 min), l'écart subsiste — vrai levier = ajouter des recettes. **Lissage hebdo (ENGINE_VERSION 10, 2026-06-18) :** les CALORIES sont lissées sur la semaine — chaque jour vise `cible ± DAILY_SMOOTH_CAP` (50 kcal), le reliquat est reporté (`weekDeficitKcal`) → la **SEMAINE** converge vers `days×cible` (un jour bridé est rattrapé par les suivants). **Protéines NON lissées** (plancher quotidien). Garde-fou §6 : jamais < `MIN_KCAL`. Tests : `dayTotalTightness.test.ts`.

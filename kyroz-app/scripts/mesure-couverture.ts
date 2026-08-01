@@ -17,6 +17,7 @@
  *   npx tsx scripts/mesure-couverture.ts --flags          + histogramme des drapeaux par sexe
  *   npx tsx scripts/mesure-couverture.ts --csv            sortie machine
  *   npx tsx scripts/mesure-couverture.ts --enveloppe <f>  contrôle R8 d'un lot livré (sort 1 si KO)
+ *   npx tsx scripts/mesure-couverture.ts --seuils         distribution R8 du catalogue LIVE, par créneau
  */
 import { buildLocalPlan } from '../lib/planEngine';
 import { adaptRecipe, type AdaptTarget } from '../lib/adaptRecipe';
@@ -327,6 +328,43 @@ function etatCatalogue(avecFlags: boolean, csv: boolean): void {
   }
 }
 
+/**
+ * Distribution R8 du catalogue LIVE, créneau par créneau.
+ *
+ * `--enveloppe` ne sait juger qu'un LOT livré (un fichier de drop) : la santé du
+ * catalogue déjà mergé n'était donc mesurable par aucune commande. C'est comme ça que
+ * l'audit fait pour les collations en D15 n'a jamais été refait ailleurs — jusqu'à ce
+ * qu'on le mesure à la main le 2026-08-02 et qu'on trouve 34 % des petits-déj et 26 %
+ * des repas complets sous le seuil. Une photo qu'on ne peut pas reprendre vieillit sans
+ * qu'on s'en aperçoive.
+ */
+function distributionSeuils(): void {
+  const cibles = PROFILS_REF.map((g) => ({ nom: g.nom, c: ciblesDe(g) }));
+  const pool = getEffectiveRecipes();
+  console.log('DISTRIBUTION R8 DU CATALOGUE LIVE — profils servis par recette, créneau par créneau.');
+  console.log('⚠️ Une recette est jugée sur le PIRE de ses créneaux (un repas complet est servi midi ET soir).\n');
+  console.log('créneau       | recettes | moyenne | sous le seuil | à ZÉRO | sans `carb` : nb · moyenne · sous le seuil');
+  for (const [cat, slots] of Object.entries(CATEGORIE_VERS_SLOTS) as [string, MealType[]][]) {
+    const seuil = SEUIL_R8[cat];
+    const recettes = pool.filter((r) => r.tags.includes(slots[0]));
+    const scores = recettes.map((r) => ({
+      r,
+      n: Math.min(...slots.map((s) => cibles.filter(({ c }) => servable(r, c[s])).length)),
+      carb: r.ingredients.some((i) => i.macro_role === 'carb'),
+    }));
+    const moy = (xs: typeof scores) => (xs.length ? xs.reduce((s, x) => s + x.n, 0) / xs.length : 0);
+    const sans = scores.filter((x) => !x.carb);
+    console.log(
+      `${cat.padEnd(13)} | ${String(recettes.length).padStart(8)} | ${moy(scores).toFixed(2).padStart(7)} `
+      + `| ${String(scores.filter((x) => x.n < seuil).length).padStart(6)} (≥${seuil}) `
+      + `| ${String(scores.filter((x) => x.n === 0).length).padStart(6)} `
+      + `| ${String(sans.length).padStart(2)} · ${moy(sans).toFixed(2)} · ${sans.filter((x) => x.n < seuil).length}`,
+    );
+    const pires = scores.filter((x) => x.n < seuil).sort((a, b) => a.n - b.n).slice(0, 12);
+    if (pires.length) console.log(`              ↳ les pires : ${pires.map((x) => `${x.r.id}(${x.n}${x.carb ? '' : ',∅'})`).join(' ')}`);
+  }
+}
+
 function main(argv: string[]): void {
   const iEnv = argv.indexOf('--enveloppe');
   if (iEnv !== -1) {
@@ -334,6 +372,7 @@ function main(argv: string[]): void {
     if (!chemin) { console.error('Usage : --enveloppe <chemin/vers/recettes.json>'); process.exit(2); }
     process.exit(controleEnveloppe(chemin));
   }
+  if (argv.includes('--seuils')) { distributionSeuils(); return; }
   etatCatalogue(argv.includes('--flags'), argv.includes('--csv'));
 }
 
