@@ -806,8 +806,74 @@ produit en suspens — il ne reste qu'à coder.
   rattrape une ancre trop grasse — c'est ce qui a sauvé le tofu fumé de `pd93`.
   ⚠️ **`H 110 masse` ne gagne AUCUN petit-déjeuner** (23/98, inchangé) et `H 80 sèche` n'en
   gagne que 7. Même diagnostic qu'en repas complets : l'enveloppe 430–480 kcal ne peut pas
-  atteindre 834 kcal avec un facteur ×1,8. 🧑 **Un lot « gros gabarits » (650–750 kcal en
-  repas complet, 600–700 en petit-déj) est le seul chantier catalogue qui reste utile.**
+  atteindre 834 kcal avec un facteur ×1,8. ➡️ **Cause trouvée, ce n'était pas un manque de
+  recettes : voir D13.**
+
+- ~~**D13 · Les gros gabarits — l'ENVELOPPE DES BRIEFS était fausse, pas le catalogue**~~
+  ✅ **CORRIGÉ le 2026-08-01.** C'est la découverte la plus lourde de conséquences de la
+  série : les six lots déjà commandés l'ont été dans une enveloppe calée sur une borne du
+  moteur qui **n'existe plus depuis le 2026-07-30**.
+
+  🔴 **LE DÉFAUT.** Le §2 de tous les briefs imprimait :
+  `| protein | **1,00** | 1,70 | Ne descend JAMAIS sous ta quantité. Plancher définitif. |`
+  puis en tirait la doctrine « **écris des quantités de base PETITES** ». Or
+  `config.scaling_factors_by_role.protein` vaut **[0,5 ; 1,7]** depuis le commit `f67b8b1`
+  (« borne basse de l'ancre proteine 1,0 → 0,5, décision fondateur »), et `CLAUDE.md` §1
+  le documente. Le tableau était **écrit en dur** dans `scripts/gen-brief-lot.ts`, jamais
+  dérivé de la config. Mesuré : **47,5 % des 5 160 ancres protéiques du catalogue sont
+  servies SOUS la quantité écrite**, 357 exactement au plancher ×0,50.
+  Son exemple chiffré était faux aussi : le brief annonçait « poulet 100 + riz 90 → 12/12,
+  poulet 160 + riz 40 → 6/12 » ; re-mesuré, **11/12 et 4/12**.
+
+  🔧 **CE QUI EST RÉPARÉ.**
+  - Le tableau §2 est **dérivé de `RECIPE_CONFIG`**, et sa grille de bases est **mesurée à
+    la génération** par `adaptRecipe` sur les 12 profils. Il ne peut plus diverger.
+  - **`check:enveloppe` ne jugeait que le MIDI** alors que `lib/recipeMap.ts` tague les
+    250 repas complets `['lunch','dinner']` — et la cible du soir est plus basse (415 kcal
+    au minimum contre 459). Il retient désormais le **pire des deux créneaux**. Les 5 lots
+    livrés repassent tous ✅.
+
+  📐 **NOUVELLES ENVELOPPES**, mesurées puis vérifiées par 7 agents adversariaux sur deux
+  oracles indépendants (cible moyenne 4 semaines ET cibles individuelles) :
+
+  | créneau | avant | après | profils servis |
+  |---|---|---|---|
+  | repas complet | 520–580 kcal · 30–34 g P | **620–700 · 38–44** | 8,77 → **9,60 / 12** |
+  | petit-déjeuner | 430–480 · 24–28 | **520–580 · 30–34** | 8,28 → **9,94 / 12** |
+
+  ⚠️ **L'AVERTISSEMENT À NE JAMAIS PERDRE — ce ne sont pas les calories, c'est la DENSITÉ
+  PROTÉIQUE.** Monter les kcal en gardant la protéine du brief donne **7,94/12, MOINS bien
+  qu'avant**, et **échange une population contre une autre** : `H 110 masse` passe de 21 %
+  à 89 % de service, mais `F 55 sèche` s'effondre de **77 % à 17 %**. Le brief impose donc
+  les trois bornes ensemble (kcal, protéines, densité en toutes lettres, ≈ 5,4–7,1 g P
+  pour 100 kcal). **Si une seule borne devait être reprise, ce serait celle des protéines.**
+
+  ⚠️ **« 12/12 » EST INATTEIGNABLE et le mot est banni des briefs.** Une composition isolée
+  peut servir 12 profils ; une enveloppe, non. Balayée sur les 250 recettes réelles, la
+  moyenne la plus haute jamais atteinte est **10,2/12**, quelle que soit l'enveloppe.
+
+  🧪 **Test d'écrivabilité par PAIRES** (même composition aux deux enveloppes), qui a
+  corrigé une affirmation que j'avais écrite dans le brief :
+  poulet+riz **11 → 12/12** · skyr+sarrasin **10 → 12/12** · bœuf+pâtes **10 → 11/12** ·
+  tofu+quinoa 6 → 6. **Les légumineuses sèches n'ont PAS été tuées par la nouvelle
+  enveloppe : `pois_chiches` sec est infaisable aux DEUX, `lentilles_vertes` rend 2/12 aux
+  deux.** Elles n'ont jamais fonctionné. Seule régression réelle : **l'œuf entier sur pain
+  au petit-déj, 7 → 5/12** (10,9 kcal par gramme de protéine).
+
+  📦 **Briefs prêts, non livrés** : `b4-repas` (`rep251`→`rep270`, 20 recettes) et
+  `b4-pdej` (`pd99`→`pd110`, 12 recettes), générés à l'enveloppe corrigée. Le brief pdej
+  impose de garder **2 recettes dans le BAS de l'enveloppe** (520–535 kcal, très denses) —
+  sans quoi on refait l'erreur en miroir contre les profils en sèche mince.
+  ➡️ **C'est le prochain chantier catalogue** : 🧑 dire « go » pour lancer la génération.
+
+  🧹 **`Recette/BRIEF-GENERATION-RECETTES.md` est corrigé aussi** : les 5 lignes qui
+  annonçaient encore la borne 1,00 (l. 29, 465, 683, 780, 1153) sont rectifiées, et un
+  bandeau au-dessus du tableau des facteurs dit que **la source de vérité est
+  `config.scaling_factors_by_role`, jamais un tableau recopié**.
+  ⚠️ **Régression signalée, non traitée** : `col72` est passée à **2/12** sous le seuil R8
+  de 3. Ce n'est pas le contrôle qui a changé pour les collations — c'est l'agrandissement
+  du catalogue (327 → 427) qui a fait disparaître la dérogation « profil affamé » dont elle
+  bénéficiait. À réécrire au prochain passage sur les collations.
 
 ### 🧹 E — Dette technique
 

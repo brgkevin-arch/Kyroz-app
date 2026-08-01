@@ -26,8 +26,8 @@ brutal.** Mesuré sur les 12 profils de référence du §4.11 : seuls 45 des 170
 32 des 78 petits-déjeuners atteignent leur cible sur au moins 8 profils sur 12 — et **aucune des
 66 collations**. 24 repas complets et **48 collations sur 66 ne servent aucun profil féminin.**
 La cause est mécanique, pas éditoriale : l'ancre protéine ne redescend jamais sous la quantité
-écrite (facteur minimum 1,00), donc un catalogue écrit sur un gabarit d'homme pose un plancher
-au-dessus de la moitié basse de la population.
+écrite (facteur minimum 1,00 À L'ÉPOQUE — c'est 0,50 depuis le 2026-07-30), donc un catalogue
+écrit sur un gabarit d'homme posait un plancher au-dessus de la moitié basse de la population.
 
 Public : adultes pratiquant du sport, **femmes et hommes**, cuisine du quotidien, pas de
 gastronomie. Ton produit sobre, jamais moralisateur, aucune promesse de santé. Le temps de
@@ -460,9 +460,16 @@ corrigée après coup** (une correction locale produit presque toujours un clone
 
 Le moteur multiplie les quantités `scalable` par un facteur borné, **dépendant du `macro_role`** :
 
+> ⚠️ **PÉRIMÉ depuis le 2026-07-30, corrigé le 2026-08-01.** Le facteur minimum du rôle
+> `protein` est passé de **1,00 à 0,50** (commit `f67b8b1`, décision fondateur) : la quantité
+> écrite N'EST PLUS un plancher. Mesuré, **47,5 % des 5 160 ancres du catalogue sont servies
+> SOUS la quantité écrite**. Tout raisonnement ci-dessous qui part de « la base est un
+> plancher » est caduc — voir `AGENTS.md` D13 pour ce qui le remplace : ce n'est pas la
+> taille de la base qui décide de la couverture, c'est la DENSITÉ PROTÉIQUE.
+
 | `macro_role` | Facteur min | Facteur max | Commentaire |
 |---|---|---|---|
-| `protein` | 1,00 | 1,70 | Ne descend jamais sous la quantité écrite : la base est un **plancher** |
+| `protein` | **0,50** | 1,70 | Descend à la moitié de la base — corrigé le 2026-07-30. La source de vérité est `config.scaling_factors_by_role`, jamais ce tableau |
 | `carb` | 0,50 | 1,80 | Le plus large : c'est lui qui porte le plafond calorique |
 | `fat` | 0,50 | 1,50 | Plafonné en plus par `abs_max_qty`, très bas sur les graisses |
 | `dairy` | 0,60 | 1,60 | **Peut descendre sous la base** → ne tient pas un plancher protéique |
@@ -680,7 +687,7 @@ sur les glucides. Aucune recette ne peut couvrir la population toute seule *par 
 peut y arriver que par sa **composition**, en laissant beaucoup de marge au féculent (cf. §4.2).
 
 **2. La protéine de base est un plancher, donc elle se cale sur le BAS de la colonne, pas sur le
-milieu.** Le facteur de l'ancre `protein` est [1,00 ; 1,70] : la quantité écrite ne descend jamais.
+milieu.** ⚠️ Le facteur de l'ancre `protein` est **[0,50 ; 1,70]** depuis le 2026-07-30 : la quantité écrite descend jusqu'à la moitié. La phrase d'origine (« ne descend jamais ») était vraie avant cette date.
 Une base à 44 g de protéines sur un repas complet est donc un plancher posé **au-dessus** de la
 cible réelle de sept profils sur douze. C'est exactement l'erreur du catalogue actuel, dont la
 médiane des repas complets est à 41 g : mesuré, **23 des 170 repas complets sont servables** par
@@ -777,7 +784,7 @@ Le balayage complet de la grille (protéine × féculent) donne toujours le mêm
 **protéine basse, féculent haut**. Monter la protéine de 100 à 160 g de poulet fait perdre la
 moitié de la population ; monter le riz de 40 à 90 g la fait gagner. La raison est mécanique :
 
-- la protéine ne descend jamais (facteur min **1,00**) → une base haute exclut les petites cibles ;
+- ⚠️ la protéine descendait jamais quand ceci a été écrit (facteur min 1,00) ; elle descend à **0,50** depuis le 2026-07-30, donc une base haute **n'exclut plus** les petites cibles — mesuré : la même assiette est servie à F 55 sèche que la base soit à 546 ou 815 kcal ;
 - le féculent monte jusqu'à **1,80×** et n'a aucun plafond absolu → c'est lui qui va chercher les
   grosses cibles.
 
@@ -1150,7 +1157,7 @@ qu'elle a** — et surtout ce qui a été corrigé en cours de route, pour que l
      est **11 à 13**, pour tout le monde, y compris sans restriction. La conclusion « seul
      vegan + sans gluten manque » tombe avec lui.
    - Les 9 profils de contrôle étaient **tous masculins**. Or l'ancre protéine ne descend jamais
-     sous sa base (facteur min 1,00), donc un catalogue écrit sur un homme de 80 kg pose un
+     sous sa base (facteur min 1,00 À L'ÉPOQUE, 0,50 depuis le 2026-07-30), donc un catalogue de l'époque écrit sur un homme de 80 kg posait un
      plancher au-dessus de la moitié basse de la population. Mesuré : **0 collation sur 66** est
      servable à une femme de 55 kg en sèche, et **48 sur 66 ne servent aucun profil féminin**.
 
