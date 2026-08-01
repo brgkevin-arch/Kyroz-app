@@ -125,7 +125,7 @@ const LOTS: Lot[] = [
     cle: `b1-lot${n}`, titre: `B1 — repas complets, lot ${n} sur 4`, volume: 20, categorie: 'repas_complet',
     prefixe: 'rep', idDebut: 171 + (n - 1) * 20, idFin: 190 + (n - 1) * 20,
     wave: `2026-08-01-b1-lot${n}-repas`,
-    livre: n <= 3 ? '2026-08-01' : undefined,
+    livre: '2026-08-01',
     kcal: [520, 580], prot: [30, 34], carb: [58, 70], fat: [14, 18],
     // 44 libres · 18 végétariennes · 18 vegan sur les 80 : ça ne se divise pas en quatre
     // parts égales, donc les lots 1-2 penchent végétarien et les lots 3-4 vegan.

@@ -1,7 +1,7 @@
 {
   "_meta": {
     "version": "2.0",
-    "count": 387,
+    "count": 407,
     "source_macros": "Estimations alignées CIQUAL/ANSES. Remplacer par le CSV officiel CIQUAL avant prod.",
     "precision": "±5-10%.",
     "poids_basis": "basis=dry -> poids cru/sec ; basis=raw -> viande/poisson cru. Garder la cohérence cru/cuit.",
@@ -20,7 +20,8 @@
         "2026-08-01-b2-collations": 13,
         "2026-08-01-b1-lot1-repas": 20,
         "2026-08-01-b1-lot2-repas": 20,
-        "2026-08-01-b1-lot3-repas": 20
+        "2026-08-01-b1-lot3-repas": 20,
+        "2026-08-01-b1-lot4-repas": 20
       },
       "convention": "Toute nouvelle vague reprend le NOM DU DOSSIER de son drop (AAAA-MM-JJ-<bloc>), pour qu'on retrouve la matière première d'une recette sans fouiller l'historique git."
     }
@@ -24124,6 +24125,1282 @@
         "fat": 16.3
       },
       "wave": "2026-08-01-b1-lot3-repas"
+    },
+    {
+      "id": "rep231",
+      "name": "Pita au poulet, concombre et avocat",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 20
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "poulet_filet",
+          "qty": 85,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "pain_pita_complet",
+          "qty": 120,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "avocat",
+          "qty": 60,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "concombre",
+          "qty": 140,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "roquette",
+          "qty": 45,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Chauffe une poêle à blanc et saisis le filet de poulet 6 minutes, 3 minutes par face : il doit être doré et ferme sous le doigt.",
+        "Laisse-le reposer 2 minutes sur une planche, puis taille-le en lanières.",
+        "Écrase l'avocat à la fourchette avec une pincée de sel, en gardant des morceaux.",
+        "Coupe le concombre en fines rondelles.",
+        "Fais tiédir le pain pita 1 minute par face à sec dans la poêle : il doit gonfler et rester souple.",
+        "Ouvre-le, tartine-le d'avocat, garnis de poulet, de concombre et de roquette, poivre et sers aussitôt."
+      ],
+      "why": "Poulet maigre et avocat : la protéine d'un côté, les lipides de l'autre.",
+      "macros_per_serving": {
+        "kcal": 550.5,
+        "protein": 32,
+        "carbs": 63.6,
+        "fat": 15.9
+      },
+      "wave": "2026-08-01-b1-lot4-repas"
+    },
+    {
+      "id": "rep232",
+      "name": "Couscous de poulet aux courgettes et amandes",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 25
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "poulet_filet",
+          "qty": 65,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "semoule_couscous",
+          "qty": 80,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "amandes",
+          "qty": 25,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "courgette",
+          "qty": 80,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "poivron",
+          "qty": 130,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Détaille les poivrons et la courgette en dés réguliers.",
+        "Fais-les sauter 8 minutes à feu moyen-vif dans une poêle antiadhésive : ils doivent être marqués et encore fermes.",
+        "Coupe le filet de poulet en gros morceaux et fais-les colorer 6 minutes avec les légumes, en les retournant une seule fois.",
+        "Verse la semoule dans un saladier avec un volume égal d'eau bouillante salée, couvre et laisse gonfler 5 minutes.",
+        "Égrène-la à la fourchette pour séparer les grains.",
+        "Concasse les amandes, fais-les dorer 2 minutes à sec, puis mélange le tout, sale et poivre."
+      ],
+      "why": "Volaille maigre et semoule : les amandes portent la totalité des lipides ajoutés.",
+      "macros_per_serving": {
+        "kcal": 552.8,
+        "protein": 32,
+        "carbs": 64,
+        "fat": 15.8
+      },
+      "wave": "2026-08-01-b1-lot4-repas"
+    },
+    {
+      "id": "rep233",
+      "name": "Sarrasin au bœuf, poivrons et tomates",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 25
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "boeuf_5",
+          "qty": 85,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "sarrasin",
+          "qty": 80,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "huile_olive",
+          "qty": 8,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "poivron",
+          "qty": 140,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "tomate_concassee",
+          "qty": 135,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Rince le sarrasin à l'eau froide, puis fais-le cuire 12 minutes à découvert dans deux fois son volume d'eau salée, et égoutte.",
+        "Détaille les poivrons en lanières et fais-les revenir 8 minutes dans l'huile d'olive à feu moyen-vif.",
+        "Ajoute le bœuf haché, écrase-le à la spatule et laisse-le colorer 5 minutes sans trop remuer : il doit brunir, pas bouillir.",
+        "Verse la tomate concassée, sale, ajoute du thym et laisse mijoter 6 minutes à feu doux.",
+        "Mélange le sarrasin à la poêlée et poivre."
+      ],
+      "why": "Bœuf à 5 % et sarrasin sans gluten, l'huile d'olive apportant les lipides.",
+      "macros_per_serving": {
+        "kcal": 535.3,
+        "protein": 32,
+        "carbs": 64,
+        "fat": 15.7
+      },
+      "wave": "2026-08-01-b1-lot4-repas"
+    },
+    {
+      "id": "rep234",
+      "name": "Boulgour à la bavette, poivrons et olives",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 25
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "boeuf_bavette",
+          "qty": 95,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "boulgour",
+          "qty": 81,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "olives",
+          "qty": 40,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "poivron",
+          "qty": 150,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "tomate_concassee",
+          "qty": 150,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Verse le boulgour dans une fois et demie son volume d'eau bouillante salée, couvre et laisse cuire 10 minutes à feu doux.",
+        "Détaille les poivrons en lanières et fais-les revenir 8 minutes à feu moyen-vif, jusqu'à ce que les bords noircissent légèrement.",
+        "Ajoute la tomate concassée et les olives dénoyautées, sale et laisse réduire 5 minutes.",
+        "Chauffe une seconde poêle à blanc et saisis la bavette 2 minutes par face sans la déplacer : elle doit se décoller seule.",
+        "Laisse-la reposer 3 minutes, puis tranche-la perpendiculairement aux fibres.",
+        "Égrène le boulgour, mélange-le à la sauce, dresse la viande dessus et poivre."
+      ],
+      "why": "Bavette et boulgour : une protéine dense où les olives complètent les lipides.",
+      "macros_per_serving": {
+        "kcal": 549.2,
+        "protein": 32.4,
+        "carbs": 64.1,
+        "fat": 14.9
+      },
+      "wave": "2026-08-01-b1-lot4-repas"
+    },
+    {
+      "id": "rep235",
+      "name": "Cabillaud au sarrasin, asperges et crème de soja",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 25
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "cabillaud",
+          "qty": 80,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "sarrasin",
+          "qty": 81,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "creme_soja",
+          "qty": 70,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "asperges",
+          "qty": 150,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "tomate",
+          "qty": 150,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Rince le sarrasin, puis fais-le cuire 12 minutes à découvert dans deux fois son volume d'eau salée, et égoutte.",
+        "Casse le pied dur des asperges et coupe-les en tronçons de trois centimètres.",
+        "Fais-les cuire 6 minutes à la vapeur : elles doivent plier sans casser.",
+        "Coupe les tomates en quartiers et fais-les compoter 4 minutes à feu moyen dans une sauteuse.",
+        "Verse la crème de soja, dépose les morceaux de cabillaud, couvre et laisse pocher 6 minutes à feu doux : la chair devient opaque et s'effeuille.",
+        "Réunis le sarrasin et les asperges dans l'assiette, pose le poisson et sa sauce, poivre et sers."
+      ],
+      "why": "Cabillaud très maigre et crème de soja : un plat crémeux sans produit laitier.",
+      "macros_per_serving": {
+        "kcal": 525.7,
+        "protein": 32,
+        "carbs": 64.2,
+        "fat": 14.7
+      },
+      "wave": "2026-08-01-b1-lot4-repas"
+    },
+    {
+      "id": "rep236",
+      "name": "Pavé de thon, riz complet et brocoli",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 35
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "thon_frais",
+          "qty": 95,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "riz_complet",
+          "qty": 80,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "huile_olive",
+          "qty": 8,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "brocoli",
+          "qty": 85,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "carotte",
+          "qty": 80,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Rince le riz complet, puis fais-le cuire 25 minutes à couvert et à feu doux dans deux fois et demie son volume d'eau salée.",
+        "Détaille le brocoli en petits bouquets et les carottes en rondelles fines.",
+        "Fais-les sauter 8 minutes dans l'huile d'olive à feu moyen-vif : ils doivent rester croquants et se marquer.",
+        "Chauffe une poêle à blanc et saisis le pavé de thon 1 minute par face : l'extérieur doit être opaque, le cœur rosé.",
+        "Tranche le thon en lamelles épaisses.",
+        "Sers le riz et les légumes, dispose le thon dessus, sale, poivre et ajoute de la coriandre si tu en as."
+      ],
+      "why": "Thon frais et riz complet : une protéine maigre et un féculent riche en fibres.",
+      "macros_per_serving": {
+        "kcal": 550.4,
+        "protein": 31.5,
+        "carbs": 65.6,
+        "fat": 16.1
+      },
+      "wave": "2026-08-01-b1-lot4-repas"
+    },
+    {
+      "id": "rep237",
+      "name": "Quinoa au thon, concombre et avocat",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 20
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "thon_naturel",
+          "qty": 60,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "quinoa",
+          "qty": 100,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "avocat",
+          "qty": 35,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "concombre",
+          "qty": 150,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "roquette",
+          "qty": 40,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Rince le quinoa sous l'eau froide 30 secondes pour retirer son amertume.",
+        "Verse-le dans deux fois son volume d'eau salée et laisse cuire 12 minutes à couvert : le germe se détache en petit anneau blanc quand c'est prêt.",
+        "Égrène-le à la fourchette et laisse-le refroidir.",
+        "Coupe le concombre en demi-rondelles et égoutte le thon, puis effeuille-le à la fourchette.",
+        "Écrase l'avocat avec une pincée de sel, en gardant des morceaux.",
+        "Mélange quinoa, concombre et thon, ajoute la roquette au dernier moment, dépose l'avocat, poivre et sers frais."
+      ],
+      "why": "Thon et avocat sur quinoa : trois sources de protéines, dont une végétale complète.",
+      "macros_per_serving": {
+        "kcal": 551.6,
+        "protein": 31.9,
+        "carbs": 63.3,
+        "fat": 16.1
+      },
+      "wave": "2026-08-01-b1-lot4-repas"
+    },
+    {
+      "id": "rep238",
+      "name": "Dinde et quinoa, haricots verts et graines de courge",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 25
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "dinde_escalope",
+          "qty": 65,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "quinoa",
+          "qty": 85,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "graines_courge",
+          "qty": 16,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "haricots_verts",
+          "qty": 80,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "carotte",
+          "qty": 150,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Rince le quinoa, puis fais-le cuire 12 minutes à couvert dans deux fois son volume d'eau salée.",
+        "Équeute les haricots verts et taille les carottes en rondelles fines.",
+        "Fais cuire les légumes 8 minutes à la vapeur : les haricots doivent rester vert vif et croquer sous la dent.",
+        "Poêle l'escalope de dinde 6 minutes à feu moyen-vif, 3 minutes par face : le jus qui perle doit être clair.",
+        "Fais torréfier les graines de courge 2 minutes à sec dans une petite poêle.",
+        "Égrène le quinoa, dresse avec les légumes et la dinde tranchée, parsème de graines, sale et poivre."
+      ],
+      "why": "Dinde et quinoa : deux protéines complémentaires, les graines apportant les lipides.",
+      "macros_per_serving": {
+        "kcal": 544,
+        "protein": 34,
+        "carbs": 61.3,
+        "fat": 14.9
+      },
+      "wave": "2026-08-01-b1-lot4-repas"
+    },
+    {
+      "id": "rep239",
+      "name": "Polenta au jambon, courgettes et champignons",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 25
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "jambon_blanc",
+          "qty": 100,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "polenta",
+          "qty": 80,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "creme_soja",
+          "qty": 70,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "courgette",
+          "qty": 105,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "champignons",
+          "qty": 80,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Porte quatre fois le volume de la polenta en eau salée à frémissement.",
+        "Verse la polenta en pluie en fouettant sans arrêt, puis laisse cuire 5 minutes à feu doux : elle doit se détacher des parois.",
+        "Émince les champignons et jette-les dans une poêle très chaude, sans matière grasse : laisse-les rendre leur eau puis colorer 7 minutes.",
+        "Taille la courgette en demi-rondelles et ajoute-la pour 5 minutes à feu vif.",
+        "Coupe le jambon en lanières, ajoute-le, verse la crème de soja et laisse épaissir 2 minutes à feu doux.",
+        "Étale la polenta dans l'assiette, garnis de la poêlée et poivre."
+      ],
+      "why": "Polenta sans gluten et jambon maigre, liés à la crème de soja.",
+      "macros_per_serving": {
+        "kcal": 538,
+        "protein": 32,
+        "carbs": 64.7,
+        "fat": 15.9
+      },
+      "wave": "2026-08-01-b1-lot4-repas"
+    },
+    {
+      "id": "rep240",
+      "name": "Crevettes au coco, patate douce et brocoli",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 30
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "crevettes",
+          "qty": 110,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "patate_douce",
+          "qty": 325,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "lait_coco",
+          "qty": 75,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "brocoli",
+          "qty": 80,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "poivron",
+          "qty": 80,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Épluche la patate douce, coupe-la en cubes de deux centimètres et fais-la cuire 18 minutes à l'eau bouillante salée.",
+        "Détaille le brocoli en bouquets et le poivron en lanières.",
+        "Fais-les sauter 6 minutes à feu vif dans une sauteuse : ils doivent rester croquants.",
+        "Verse le lait de coco, sale et porte à petits frémissements.",
+        "Ajoute les crevettes et compte 2 minutes à feu doux : elles sont prêtes dès qu'elles sont fermes et opaques.",
+        "Ajoute la patate douce égouttée, mélange délicatement, poivre et ajoute de la coriandre si tu en as."
+      ],
+      "why": "Crevettes très maigres et lait de coco : la protéine et les lipides viennent de deux sources distinctes.",
+      "macros_per_serving": {
+        "kcal": 556.6,
+        "protein": 32.1,
+        "carbs": 63.5,
+        "fat": 16.2
+      },
+      "wave": "2026-08-01-b1-lot4-repas"
+    },
+    {
+      "id": "rep241",
+      "name": "Pâtes complètes aux sardines, courgettes et tomates",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 20
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "sardines",
+          "qty": 70,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "pates_completes",
+          "qty": 85,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "tahini",
+          "qty": 10,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "courgette",
+          "qty": 125,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "tomate",
+          "qty": 80,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Porte une grande casserole d'eau salée à ébullition et fais cuire les pâtes complètes selon le temps du paquet.",
+        "Taille la courgette en demi-rondelles et les tomates en quartiers.",
+        "Fais sauter la courgette 5 minutes à feu vif, puis ajoute les tomates pour 2 minutes.",
+        "Délie le tahini avec trois cuillères d'eau chaude et une pincée de sel jusqu'à ce que la sauce nappe.",
+        "Égoutte les sardines et émiette-les en gros morceaux.",
+        "Égoutte les pâtes, mélange-les aux légumes hors du feu, ajoute les sardines et la sauce au sésame, poivre et sers."
+      ],
+      "why": "Sardines et sésame : protéines et lipides insaturés sur des pâtes complètes.",
+      "macros_per_serving": {
+        "kcal": 550.7,
+        "protein": 30,
+        "carbs": 64,
+        "fat": 17.6
+      },
+      "wave": "2026-08-01-b1-lot4-repas"
+    },
+    {
+      "id": "rep242",
+      "name": "Cottage cheese sur millet, haricots verts et graines",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 25
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "cottage_cheese",
+          "qty": 160,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "millet",
+          "qty": 80,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "graines_courge",
+          "qty": 11,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "haricots_verts",
+          "qty": 80,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "roquette",
+          "qty": 35,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Rince le millet, puis fais-le cuire 15 minutes à couvert dans deux fois son volume d'eau salée.",
+        "Équeute les haricots verts et fais-les cuire 8 minutes à l'eau bouillante salée : ils doivent rester vert vif.",
+        "Fais torréfier les graines de courge 2 minutes à sec dans une petite poêle, jusqu'à ce qu'elles gonflent.",
+        "Égrène le millet à la fourchette et laisse-le tiédir : trop chaud, il liquéfie le fromage.",
+        "Mélange-le aux haricots verts, ajoute le cottage cheese par cuillerées sans trop remuer.",
+        "Ajoute la roquette au dernier moment, parsème de graines, sale et poivre."
+      ],
+      "why": "Cottage cheese et millet sans gluten : une protéine laitière maigre sur une céréale douce.",
+      "macros_per_serving": {
+        "kcal": 548.2,
+        "protein": 32,
+        "carbs": 67.8,
+        "fat": 15.9
+      },
+      "wave": "2026-08-01-b1-lot4-repas"
+    },
+    {
+      "id": "rep243",
+      "name": "Pommes de terre aux blancs d’œufs, brocoli et amandes",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 30
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "blanc_oeuf",
+          "qty": 140,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "pomme_de_terre",
+          "qty": 325,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "amandes",
+          "qty": 25,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "brocoli",
+          "qty": 145,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "tomate",
+          "qty": 150,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Épluche les pommes de terre, coupe-les en cubes de deux centimètres et fais-les cuire 18 minutes à l'eau bouillante salée.",
+        "Détaille le brocoli en petits bouquets et fais-le cuire 5 minutes à la vapeur : il doit rester vert vif.",
+        "Coupe les tomates en quartiers.",
+        "Verse les blancs d'œufs dans une poêle FROIDE, mets sur feu doux et remue sans arrêt à la spatule 4 minutes.",
+        "Retire du feu quand ils sont encore brillants et souples : ils finissent de cuire hors du feu et deviennent caoutchouteux si tu attends.",
+        "Concasse les amandes, fais-les dorer 2 minutes à sec, puis dresse pommes de terre, brocoli, tomates et blancs brouillés, parsème d'amandes et poivre."
+      ],
+      "why": "Blancs d'œufs et amandes : une protéine quasi pure et des lipides insaturés.",
+      "macros_per_serving": {
+        "kcal": 558.4,
+        "protein": 32.1,
+        "carbs": 64,
+        "fat": 15.1
+      },
+      "wave": "2026-08-01-b1-lot4-repas"
+    },
+    {
+      "id": "rep244",
+      "name": "Quinoa aux blancs d’œufs, épinards et feta",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 25
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "blanc_oeuf",
+          "qty": 100,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "quinoa",
+          "qty": 97,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "feta",
+          "qty": 40,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "epinards",
+          "qty": 70,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "tomate",
+          "qty": 125,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Rince le quinoa sous l'eau froide 30 secondes, puis fais-le cuire 12 minutes à couvert dans deux fois son volume d'eau salée.",
+        "Coupe les tomates en quartiers et fais-les compoter 4 minutes à feu moyen.",
+        "Ajoute les épinards et laisse-les tomber 2 minutes, jusqu'à ce qu'ils soient souples et brillants.",
+        "Verse les blancs d'œufs sur les légumes chauds, baisse le feu et remue 2 minutes : ils prennent presque instantanément.",
+        "Égrène le quinoa à la fourchette et mélange-le à la poêlée.",
+        "Émiette la feta par-dessus, poivre — elle sale déjà le plat — et sers tiède."
+      ],
+      "why": "Blancs d'œufs et feta : la protéine d'un côté, les lipides et le sel de l'autre.",
+      "macros_per_serving": {
+        "kcal": 550.1,
+        "protein": 32.4,
+        "carbs": 64,
+        "fat": 16.1
+      },
+      "wave": "2026-08-01-b1-lot4-repas"
+    },
+    {
+      "id": "rep245",
+      "name": "Pâtes à l’œuf, épinards et parmesan",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 20
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "oeuf_entier",
+          "qty": 100,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "pates_semoule",
+          "qty": 80,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "parmesan",
+          "qty": 13,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "epinards",
+          "qty": 140,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "champignons",
+          "qty": 85,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Porte une grande casserole d'eau salée à ébullition et fais cuire les pâtes selon le temps du paquet.",
+        "Émince les champignons et jette-les dans une poêle très chaude, sans matière grasse : laisse-les rendre leur eau puis colorer 7 minutes.",
+        "Ajoute les épinards et laisse-les tomber 2 minutes.",
+        "Bats l'œuf entier avec le parmesan râpé, sale et poivre généreusement.",
+        "Égoutte les pâtes en gardant une louche d'eau de cuisson et verse-les brûlantes dans la poêle, HORS DU FEU.",
+        "Verse l'œuf battu et mélange sans arrêt avec un peu d'eau de cuisson : la sauce doit devenir crémeuse sans jamais coaguler."
+      ],
+      "why": "Un œuf entier pour les lipides, le parmesan pour le goût : peu d'ingrédients, beaucoup de protéines.",
+      "macros_per_serving": {
+        "kcal": 548.7,
+        "protein": 32,
+        "carbs": 64.3,
+        "fat": 16
+      },
+      "wave": "2026-08-01-b1-lot4-repas"
+    },
+    {
+      "id": "rep246",
+      "name": "Seitan et sarrasin, chou-fleur au sésame",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 30
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "seitan",
+          "qty": 75,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "sarrasin",
+          "qty": 80,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "tahini",
+          "qty": 20,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "chou_fleur",
+          "qty": 90,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "carotte",
+          "qty": 80,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Préchauffe le four à 210 °C.",
+        "Détaille le chou-fleur en petits bouquets et les carottes en rondelles, étale-les sur une plaque, sale et enfourne 20 minutes.",
+        "Rince le sarrasin, puis fais-le cuire 12 minutes à découvert dans deux fois son volume d'eau salée, et égoutte.",
+        "Coupe le seitan en tranches épaisses et saisis-les 2 minutes par face dans une poêle très chaude, jusqu'à ce que les bords croustillent.",
+        "Délie le tahini avec trois cuillères d'eau tiède et une pincée de sel jusqu'à ce que la sauce nappe.",
+        "Dresse le sarrasin, les légumes rôtis et le seitan, nappe de sauce au sésame et poivre."
+      ],
+      "why": "Seitan et sésame sur sarrasin sans gluten : deux sources végétales complémentaires.",
+      "macros_per_serving": {
+        "kcal": 562.8,
+        "protein": 31.9,
+        "carbs": 67.8,
+        "fat": 16.3
+      },
+      "wave": "2026-08-01-b1-lot4-repas"
+    },
+    {
+      "id": "rep247",
+      "name": "Couscous de seitan à la ratatouille",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 25
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "seitan",
+          "qty": 95,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "semoule_couscous",
+          "qty": 80,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "huile_olive",
+          "qty": 11,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "ratatouille",
+          "qty": 100,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "oignon",
+          "qty": 40,
+          "macro_role": "flavor",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Émince l'oignon et fais-le suer 3 minutes dans l'huile d'olive à feu moyen, jusqu'à ce qu'il devienne translucide.",
+        "Ajoute la ratatouille, du thym et une feuille de laurier, et laisse mijoter 8 minutes à feu doux.",
+        "Coupe le seitan en gros dés et ajoute-le pour les 5 dernières minutes : il doit s'imprégner sans se défaire.",
+        "Verse la semoule dans un saladier avec un volume égal d'eau bouillante salée, couvre et laisse gonfler 5 minutes.",
+        "Égrène-la à la fourchette pour séparer les grains.",
+        "Sers la semoule en lit, garnis du mijoté, sale et poivre."
+      ],
+      "why": "Seitan et semoule : une protéine végétale dense, l'huile d'olive apportant les lipides.",
+      "macros_per_serving": {
+        "kcal": 556.8,
+        "protein": 30.7,
+        "carbs": 69.7,
+        "fat": 15.6
+      },
+      "wave": "2026-08-01-b1-lot4-repas"
+    },
+    {
+      "id": "rep248",
+      "name": "Quinoa au soja et légumes wok au coco",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 25
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "soja_texture",
+          "qty": 35,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "quinoa",
+          "qty": 80,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "lait_coco",
+          "qty": 55,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "legumes_wok",
+          "qty": 110,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Verse les protéines de soja dans un bol, couvre d'eau bouillante salée et laisse-les se réhydrater 8 minutes, puis presse-les fermement.",
+        "Rince le quinoa, puis fais-le cuire 12 minutes à couvert dans deux fois son volume d'eau salée.",
+        "Fais sauter les légumes wok 5 minutes à feu vif dans une sauteuse : ils doivent rester croquants.",
+        "Ajoute les protéines de soja pressées et fais-les colorer 4 minutes, en remuant peu.",
+        "Verse le lait de coco, sale et laisse réduire 3 minutes à petits frémissements.",
+        "Égrène le quinoa, mélange-le à la sauteuse, poivre et ajoute de la coriandre si tu en as."
+      ],
+      "why": "Soja texturé et lait de coco : une protéine végétale dense et un lipide végétal.",
+      "macros_per_serving": {
+        "kcal": 549.6,
+        "protein": 31.5,
+        "carbs": 64.8,
+        "fat": 16.1
+      },
+      "wave": "2026-08-01-b1-lot4-repas"
+    },
+    {
+      "id": "rep249",
+      "name": "Pâtes complètes au soja, épinards et graines de courge",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 20
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "soja_texture",
+          "qty": 25,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "pates_completes",
+          "qty": 80,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "graines_courge",
+          "qty": 27,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "epinards",
+          "qty": 70,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "tomate_concassee",
+          "qty": 90,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Verse les protéines de soja dans un bol, couvre d'eau bouillante salée et laisse-les se réhydrater 8 minutes, puis presse-les.",
+        "Porte une grande casserole d'eau salée à ébullition et fais cuire les pâtes complètes selon le temps du paquet.",
+        "Fais colorer les protéines de soja 5 minutes à feu vif dans une sauteuse, en remuant peu : elles doivent croustiller sur les bords.",
+        "Verse la tomate concassée, sale, ajoute de l'origan et laisse réduire 5 minutes.",
+        "Ajoute les épinards et laisse-les tomber 2 minutes.",
+        "Égoutte les pâtes, mélange-les à la sauce, parsème de graines de courge torréfiées et poivre."
+      ],
+      "why": "Soja texturé et graines de courge : la protéine végétale la plus dense du catalogue.",
+      "macros_per_serving": {
+        "kcal": 579.3,
+        "protein": 33.4,
+        "carbs": 68.4,
+        "fat": 16
+      },
+      "wave": "2026-08-01-b1-lot4-repas"
+    },
+    {
+      "id": "rep250",
+      "name": "Seitan aux pâtes, brocoli et beurre de cacahuète",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 20
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "seitan",
+          "qty": 65,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "pates_semoule",
+          "qty": 80,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "beurre_cacahuete",
+          "qty": 24,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "brocoli",
+          "qty": 80,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "champignons",
+          "qty": 80,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Porte une grande casserole d'eau salée à ébullition et fais cuire les pâtes selon le temps du paquet.",
+        "Détaille le brocoli en petits bouquets et émince les champignons.",
+        "Fais sauter les champignons 6 minutes à feu vif dans une sauteuse : laisse-les rendre leur eau puis colorer.",
+        "Ajoute le brocoli et le seitan coupé en dés, et poursuis 4 minutes : le seitan doit croustiller sur les bords.",
+        "Délaie le beurre de cacahuète avec trois cuillères d'eau chaude et une pincée de sel jusqu'à obtenir une sauce nappante.",
+        "Égoutte les pâtes, verse-les dans la sauteuse avec la sauce, mélange 30 secondes hors du feu et poivre."
+      ],
+      "why": "Seitan et cacahuète : une protéine végétale dense et un lipide végétal.",
+      "macros_per_serving": {
+        "kcal": 575,
+        "protein": 32.3,
+        "carbs": 69.8,
+        "fat": 15.9
+      },
+      "wave": "2026-08-01-b1-lot4-repas"
     }
   ],
   "config": {

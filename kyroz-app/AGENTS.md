@@ -729,8 +729,37 @@ produit en suspens — il ne reste qu'à coder.
   elle est faite de blé et casse le régime, alors qu'elle ne pèse rien dans les macros et
   qu'on la pose sans y penser. Remplacée par `oignon` dans deux recettes. À vérifier
   systématiquement : le sans-gluten se compte sur TOUS les refs, pas seulement sur le féculent.
-  ➡️ Reste 🧑 : lot `b1-lot4` (`rep231`→`rep250`), puis `b3`. Les briefs sont régénérés et
-  voient déjà ce que les tranches 1 à 3 ont consommé.
+- ~~**D11 · Lot B1, tranche 4 sur 4 — LA VAGUE B1 EST COMPLÈTE**~~ ✅ **LIVRÉ le 2026-08-01
+  — 20 repas complets (`rep231`→`rep250`), catalogue 387 → 407.** 11 carnées ·
+  4 végétariennes · 5 vegan · 11 sans gluten · 15 ancres protéiques distinctes.
+  `check:doublons` → 0 violation · `check:enveloppe` → 20/20.
+
+  🏁 **Bilan des 4 tranches — repas complets servables, 170 → 250 recettes :**
+
+  | profil | avant | après | |
+  |---|---|---|---|
+  | F 65 maintien | 149/170 | **227/250** | +78 |
+  | F 60 maintien | 151/170 | **227/250** | +76 |
+  | H 70 maintien | 143/170 | **218/250** | +75 |
+  | F 55 sèche | 109/170 | **188/250** | +79 |
+  | F 65 sèche | 111/170 | **192/250** | +81 |
+  | F 70 masse | 116/170 | **192/250** | +76 |
+  | H 65 sèche | 127/170 | **207/250** | +80 |
+  | H 80 maintien | 124/170 | **205/250** | +81 |
+  | F 80 sèche | 107/170 | 169/250 | +62 |
+  | H 80 sèche | 120/170 | 163/250 | +43 |
+  | H 95 masse | 77/170 | 122/250 | +45 |
+  | H 110 masse | 57/170 | 79/250 | +22 |
+
+  **Les 12 profils gagnent**, mais l'écart se creuse : `H 110 masse` reste à **32 %** du
+  catalogue quand `F 65 maintien` est à 91 %. L'enveloppe 520–580 kcal du brief est calée
+  sur la médiane, et le moteur ne monte un plat que jusqu'à ×1,8 — les très gros gabarits
+  resteront mal servis tant qu'un lot ne visera pas explicitement 650–750 kcal de base.
+  🧑 **C'est le vrai chantier catalogue suivant**, plus utile qu'un cinquième lot à la même
+  enveloppe.
+
+  ➡️ Reste 🧑 : `b3` (20 petits-déjeuners, `pd79`→`pd98`). C'est le dernier brief encore
+  ouvert ; il est régénéré et voit tout ce que la vague B1 a consommé.
 
 ### 🧹 E — Dette technique
 
