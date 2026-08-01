@@ -6,6 +6,7 @@ import {
 import {
   computePlan, macrosPercent, calculateMacros, fatTargetG, clampCarbRatio,
   FAT_MIN_PER_KG_BW, FAT_FLOOR_AIM_MARGIN, CARB_RATIO_MAX, CARB_RATIO_MIN, planFloorKcal,
+  servedCarbSharePct, SPLIT_DIVERGENCE_TOLERANCE_PCT,
 } from '../tdee';
 import { fatFreeMassKg } from '../safety';
 import { makeProfile } from './helpers';
@@ -359,5 +360,47 @@ describe('A9 — marge de visée du plancher lipidique', () => {
     expect(bulk.fat_g).toBeGreaterThan(Math.round(FAT_MIN_PER_KG_BW * FAT_FLOOR_AIM_MARGIN * h80.weight_kg));
     // …et elle suit le budget, ce que ne ferait pas une valeur bloquée au plancher.
     expect(calculateMacros(3400, 'bulk', h80).fat_g).toBeGreaterThan(bulk.fat_g);
+  });
+});
+
+// ═════════════════════════════════════════════════════════════════════════════
+// « Perso % » — l'écran annonçait un partage qu'il ne servait pas.
+// La ligne sous le curseur affichait `100 − curseur` en lipides, une soustraction
+// qui ne consultait pas le moteur, alors que les GRAMMES juste en dessous, eux,
+// venaient de `macrosPercent`. L'écran se contredisait. Corrigé le 2026-08-01.
+// ═════════════════════════════════════════════════════════════════════════════
+
+describe('Perso % — part réellement servie', () => {
+  const h80 = makeProfile({ sex: 'male', age: 32, weight_kg: 80, height_cm: 178 });
+
+  it('sur un budget large, le curseur EST servi — pas de note inutile', () => {
+    const m = macrosPercent(4200, 'bulk', h80, 55, { proteinPerKg: 1.8 });
+    expect(servedCarbSharePct(m)).toBeCloseTo(55, 0);
+    expect(Math.abs(servedCarbSharePct(m) - 55)).toBeLessThanOrEqual(SPLIT_DIVERGENCE_TOLERANCE_PCT);
+  });
+
+  it('quand le plancher lipidique mord, le servi DIVERGE du curseur — et on le dit', () => {
+    const m = macrosPercent(2000, 'cut', h80, CARB_RATIO_MAX, { proteinPerKg: 2.2 });
+    const servi = servedCarbSharePct(m);
+    expect(servi).toBeLessThan(CARB_RATIO_MAX);
+    expect(CARB_RATIO_MAX - servi).toBeGreaterThan(SPLIT_DIVERGENCE_TOLERANCE_PCT);
+  });
+
+  it('la part servie est COHÉRENTE avec les grammes affichés — c\'est tout l\'enjeu', () => {
+    for (const ratio of [CARB_RATIO_MIN, 40, 55, CARB_RATIO_MAX]) {
+      const m = macrosPercent(2000, 'cut', h80, ratio, { proteinPerKg: 2.0 });
+      const reste = m.target_kcal - m.protein_g * 4;
+      const attendu = Math.round(((m.carbs_g * 4) / reste) * 100);
+      expect(servedCarbSharePct(m), `ratio ${ratio}`).toBe(attendu);
+      // Le complément affiché en lipides doit correspondre aux grammes de lipides,
+      // à l'arrondi près : c'est la contradiction d'écran qui est verrouillée ici.
+      const partLipidesGrammes = Math.round(((m.fat_g * 9) / reste) * 100);
+      expect(Math.abs((100 - servedCarbSharePct(m)) - partLipidesGrammes), `ratio ${ratio}`).toBeLessThanOrEqual(2);
+    }
+  });
+
+  it('budget entièrement mangé par les protéines → 0, pas une division par zéro', () => {
+    expect(servedCarbSharePct({ target_kcal: 400, protein_g: 100, carbs_g: 0 })).toBe(0);
+    expect(servedCarbSharePct({ target_kcal: 300, protein_g: 120, carbs_g: 5 })).toBe(0);
   });
 });
