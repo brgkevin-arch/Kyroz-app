@@ -947,11 +947,64 @@ produit en suspens — il ne reste qu'à coder.
   réécriture, et les vagues d'origine perdent les recettes reprises dans la partition de
   `recipeData.test.ts`. Convention écrite dans `Recette/README.md`.
 
-  ⚠️ **Ce que ça ne règle pas** : `F 70 masse` reste le profil le plus mal servi
-  (25/79). Sa cible collation est de 311 kcal pour **5 g de protéines** — une densité de
-  1,6 g/100 kcal que presque aucune collation protéinée ne peut viser sans dépasser les
-  calories. C'est un cas à part, à traiter par le moteur (répartition des repas) plutôt
-  que par le catalogue.
+  ⚠️ **Ce que ça ne réglait pas** : `F 70 masse` restait le profil le plus mal servi
+  (25/79), sur une cible collation de 311 kcal pour **5 g de protéines**. Diagnostic posé
+  et corrigé le jour même — c'était un défaut du MOTEUR, pas du catalogue : voir **D16**
+  (vivier 25 → 36).
+
+- ~~**D16 · La cible protéique du DERNIER repas s'effondrait — défaut du moteur, pas du catalogue**~~
+  ✅ **CORRIGÉ le 2026-08-02 — `PROT_SHARE_FLOOR` dans `lib/planEngine.ts`,
+  `ENGINE_VERSION` 35 → 36.** Point de départ : `F 70 masse`, le dernier profil encore
+  mal servi en collation (25/79) après D15. Ce n'était pas un manque de recettes.
+
+  🔴 **LE MÉCANISME.** `mealTarget` calcule la cible d'un repas au prorata du budget
+  **RESTANT**. Chaque repas qui dépasse sa part rogne celle des suivants, et le dernier
+  servi — la collation, dernière de `MEAL_ORDER` — encaisse toute la dérive. Mesuré sur
+  `F 70 masse`, repas par repas : petit-déj cible 25 → servi 28, midi 29 → 35, soir
+  22 → 27, **collation 5 → 12**. Sa part équitable est 12,7 g de protéines ; le moteur
+  lui en demandait **5,4**.
+
+  Une cible de 311 kcal pour 5,4 g de protéines, c'est une densité de **1,7 g pour
+  100 kcal** — aucune collation du catalogue ne peut viser ça. Pire, le moteur en
+  déduisait un besoin de **47 g de glucides**, la recette débordait en calories pour
+  l'atteindre, et `over_target_kcal` se levait : **35 collations sur 79 jugées « trop
+  grosses » pour une cible de 311 kcal**. Le symptôme (créneau collation pauvre) était à
+  l'opposé de la cause (cible protéique dégénérée).
+
+  🔧 **LE CORRECTIF.** La cible protéique d'un repas ne peut plus descendre sous **0,7 ×
+  sa part équitable** du budget du jour, bornée par les kcal du repas.
+
+  | | avant | après |
+  |---|---|---|
+  | `carbs_below_target` sur 1 344 repas servis | **15** | **0** |
+  | vivier collation `F 70 masse` | 25 / 79 | **36 / 79** |
+  | vivier collation `H 95 masse` | 39 / 79 | **46 / 79** |
+  | vivier repas complet `H 110 masse` | 70 / 270 | **74 / 270** |
+  | précision calorique du jour | 0,07 % | **0,05 %** |
+  | protéines servies / cible | +2,35 % | +2,56 % |
+
+  ⚠️ **0,7 est un point MESURÉ.** Balayé de 0 à 1 : le vivier TOTAL monte encore à 0,85
+  (3 925 contre 3 889), mais au prix du créneau le plus rare du catalogue — les repas
+  complets de `H 110 masse` tombent de 74 à **65**. C'est exactement le piège de
+  `CLAUDE.md` §10 : ne jamais agréger ce qu'un utilisateur voit séparément. À 1,0 la cible
+  ignore le budget restant et les protéines servies dépassent de 6,2 % sans rien gagner.
+  ⚠️ **Une régression assumée** : `H 80 maintien` perd 6 collations (48 → 42). Tous les
+  autres profils gagnent ou sont stables.
+  ⚠️ **Ce que le plancher NE cause PAS, vérifié des deux côtés** : le dépassement
+  protéique quotidien. Sur 42 jours d'un gabarit en prise de masse, le pire jour vaut
+  ×1,135 de la cible **avec ET sans** plancher. Il vient de recettes plus protéinées que
+  la cible, et il préexistait. Verrouillé par `lib/__tests__/mealProteinFloor.test.ts`,
+  qui échoue si le plancher disparaît.
+
+  ⚠️ **Pas d'`ENGINE_REV`** : la cible calorique du jour ne bouge pas (0,07 % → 0,05 %
+  d'écart), seule la répartition entre repas change. Le seuil d'avertissement one-shot
+  (100 kcal/jour) n'est pas approché.
+
+  📉 **Et un rappel de plus sur la métrique elle-même** : le vivier `H 110 masse` en repas
+  complet valait 85/270 après B4 et 70/270 après B5 — la vague B5 n'a pourtant touché QUE
+  des collations. Troisième occurrence du même effet (cf. D14) : **les cibles de l'audit
+  sont reconstruites depuis des plans réellement générés, donc toute vague les déplace.**
+  ➡️ Ne jamais annoncer le gain d'une vague avec ce chiffre sans re-mesurer après merge.
 
 ### 🧹 E — Dette technique
 
