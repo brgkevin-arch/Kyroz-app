@@ -3,7 +3,7 @@ import { RECIPES } from '../recipeMap';
 import { RAW_RECIPES, RECIPE_INGREDIENTS, macrosForRefIngredients } from '../recipeData';
 
 describe('recipeMap (JSON → Recipe)', () => {
-  it('mappe les 387 recettes', () => expect(RECIPES).toHaveLength(387));
+  it('mappe les 407 recettes', () => expect(RECIPES).toHaveLength(407));
 
   it('ids uniques', () => {
     const ids = RECIPES.map((r) => r.id);
@@ -33,7 +33,7 @@ describe('recipeMap (JSON → Recipe)', () => {
     expect(poulet.quantity_g).toBe(180);
   });
 
-  it('macros dérivées des ingrédients (cohérence exacte) sur les 387', () => {
+  it('macros dérivées des ingrédients (cohérence exacte) sur les 407', () => {
     // macros_per_portion EST désormais calculé depuis les ingrédients résolus
     // (base_servings===1) → cohérence exacte par construction.
     for (const r of RECIPES) {
