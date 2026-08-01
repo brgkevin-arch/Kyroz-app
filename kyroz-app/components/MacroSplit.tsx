@@ -3,7 +3,10 @@ import { View, Text, StyleSheet, TouchableOpacity, TextInput } from 'react-nativ
 import { Ionicons } from '@expo/vector-icons';
 import { ThemePalette, Radius, cardShadow } from '../constants/theme';
 import { Goal } from '../lib/types';
-import { MacroBody, macrosPercent, recommendedProteinPerKg, goalLabel, CARB_RATIO_MIN, CARB_RATIO_MAX } from '../lib/tdee';
+import {
+  MacroBody, macrosPercent, recommendedProteinPerKg, goalLabel, CARB_RATIO_MIN, CARB_RATIO_MAX,
+  servedCarbSharePct, SPLIT_DIVERGENCE_TOLERANCE_PCT,
+} from '../lib/tdee';
 
 // Mode « Perso % » (option B, contrôle total) :
 //  • protéines réglables en g/kg (avec repère conseillé selon l'objectif),
@@ -34,7 +37,13 @@ export function MacroSplit({
   onCarbChange, onProteinChange,
 }: Props) {
   const m = macrosPercent(tdee, goal, body, carbRatio, { proteinPerKg, kcalDeltaOverride, lowEaWeeks });
-  const fatRatio = 100 - carbRatio;
+  // ⚠️ NE PAS revenir à `100 - carbRatio`. Ce calcul-là ignorait le moteur, alors que
+  // le plancher lipidique passe AVANT le réglage : un curseur à 55 % de glucides en
+  // sert 50, et les grammes affichés juste en dessous le montraient déjà. L'écran se
+  // contredisait. On lit désormais ce qui sera réellement servi.
+  const carbServi = servedCarbSharePct(m);
+  const fatServi = 100 - carbServi;
+  const ecarte = Math.abs(carbServi - carbRatio) > SPLIT_DIVERGENCE_TOLERANCE_PCT;
   const reco = recommendedProteinPerKg(goal);
   const bodyFat = body.body_fat_pct;
   // La base est TOUJOURS la masse maigre depuis P0.2 — estimée quand le %MG
@@ -63,8 +72,17 @@ export function MacroSplit({
         <Text style={[styles.label, { color: t.textTertiary }]}>RÉPARTITION DU RESTE (après protéines)</Text>
         <Stepper t={t} value={carbRatio} min={CARB_MIN} max={CARB_MAX} step={1} decimals={0} unit="% glucides" color={t.carbs} onChange={onCarbChange} />
         <Text style={[styles.note, { color: t.textSecondary }]}>
-          → <Text style={{ color: t.fat, fontWeight: '700' }}>{fatRatio}%</Text> lipides
+          → <Text style={{ color: t.fat, fontWeight: '700' }}>{fatServi}%</Text> lipides
         </Text>
+        {ecarte && (
+          // Ton : on explique, on ne reproche pas (règle produit §10). Le réglage
+          // n'est pas « refusé », il est servi au plus près de ce que le corps permet.
+          <Text style={[styles.note, { color: t.textTertiary }]}>
+            Servi : <Text style={{ fontWeight: '700' }}>{carbServi}%</Text> glucides ·{' '}
+            <Text style={{ fontWeight: '700' }}>{fatServi}%</Text> lipides. Kyroz garde un minimum
+            de lipides pour tes hormones et tes vitamines, et répartit le reste selon ton réglage.
+          </Text>
+        )}
       </View>
 
       {/* Aperçu live des grammes */}

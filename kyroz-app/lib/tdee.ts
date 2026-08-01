@@ -376,6 +376,34 @@ export function fatTargetG(targetKcal: number, body: BodyInput, share: number = 
   return Math.round(Math.min(Math.max(fromShare, floor), targetKcal / 9));
 }
 
+/**
+ * Part RÉELLEMENT SERVIE de glucides dans l'énergie qui reste après les protéines,
+ * en %. C'est la valeur à afficher en mode « Perso % » — pas le réglage du curseur.
+ *
+ * ── POURQUOI CETTE FONCTION EXISTE ───────────────────────────────────────────
+ * L'écran affichait « → 45 % lipides » en calculant `100 − curseur`, une simple
+ * soustraction qui ne consultait pas le moteur. Or le plancher lipidique passe
+ * AVANT le réglage de l'utilisateur : un curseur à 55 % de glucides en sert 50.
+ * Les grammes affichés juste en dessous, eux, étaient justes — l'écran se
+ * contredisait donc lui-même. « Un chiffre affiché est celui qui sera servi. »
+ *
+ * Renvoie 0 si l'énergie restante est nulle ou négative (budget entièrement mangé
+ * par les protéines) : il n'y a alors rien à répartir, et aucun pourcentage n'a
+ * de sens.
+ */
+export function servedCarbSharePct(m: { target_kcal: number; protein_g: number; carbs_g: number }): number {
+  const reste = m.target_kcal - m.protein_g * 4;
+  if (reste <= 0) return 0;
+  return Math.round(((m.carbs_g * 4) / reste) * 100);
+}
+
+/**
+ * En deçà, l'écart curseur ↔ servi tient dans l'arrondi au gramme et l'annoncer
+ * ferait du bruit pour rien. Au-delà, c'est le plancher qui a repris la main et il
+ * faut le DIRE.
+ */
+export const SPLIT_DIVERGENCE_TOLERANCE_PCT = 2;
+
 /** Glucides sous le plancher « jour de séance » ? Partagé par les trois modes. */
 function isTrainingCarbShort(carbs_g: number, weight_kg: number): boolean {
   return carbs_g < CARB_TRAINING_FLOOR_PER_KG * weight_kg;

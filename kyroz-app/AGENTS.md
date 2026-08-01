@@ -330,19 +330,34 @@ qu'ils étaient périmés.
   On échange le franchissement SYSTÉMATIQUE d'un garde-fou de sécurité contre un
   avertissement de performance plus fréquent.
 
-  🧑 **UN POINT QUI MÉRITE TON ARBITRAGE, révélé par un test qui est tombé** : en mode
-  « Perso % », un curseur réglé sur 55 % de glucides en sert désormais **50**. Le
-  plancher passait DÉJÀ avant le réglage de l'utilisateur depuis le changement de base
-  (masse maigre → poids de corps) ; ma marge creuse l'écart. Le test ne prétend plus
-  que le curseur est respecté, il **verrouille la vérité** et dit pourquoi. Reste la
-  question produit : un curseur qui affiche un chiffre qu'on ne sert pas, est-ce
-  acceptable ? Trois sorties — l'assumer et l'écrire à l'écran, borner le curseur à ce
-  qui est réellement servable, ou laisser le plancher céder en « Perso % ».
+  ✅ **LE POINT « CURSEUR » QUI EN DÉCOULAIT EST RÉGLÉ le 2026-08-01** (« go curseur ») :
+  l'écran affiche désormais la part RÉELLEMENT SERVIE. Détail juste en dessous.
 
   ℹ️ **Aucun avertissement one-shot n'est servi** : les calories ne bougent pas (seule
   la répartition change), l'écart est donc sous le seuil des 100 kcal et la carte
   `EngineNoticeCard`, bâtie sur un delta de kcal, ne se déclenche pas. C'est voulu —
   elle aurait affiché « ton budget est passé de 2073 à 2073 kcal (+0) ».
+
+- ~~**A10 · « Perso % » annonçait un partage qu'il ne servait pas**~~ ✅ **CORRIGÉ le
+  2026-08-01.** Révélé par un test tombé pendant A9.
+  **Le défaut était petit et net** : sous le curseur, la ligne « → 45 % lipides » était
+  un simple `100 − curseur`, une soustraction qui **ne consultait pas le moteur**.
+  Or le plancher lipidique passe AVANT le réglage : un curseur à 55 % de glucides en
+  sert 50. Et les GRAMMES affichés juste en dessous, eux, venaient bien de
+  `macrosPercent` — **l'écran se contredisait donc lui-même**, à trois lignes d'écart.
+  **Correctif** : `servedCarbSharePct()` dans `lib/tdee.ts` (pur, testé) lit ce qui sera
+  réellement servi ; `MacroSplit` l'affiche, et ajoute une note quand l'écart dépasse
+  `SPLIT_DIVERGENCE_TOLERANCE_PCT` (2 points — en deçà c'est de l'arrondi au gramme).
+  Ton de la note : on explique, on ne reproche pas — *« Kyroz garde un minimum de
+  lipides pour tes hormones et tes vitamines, et répartit le reste selon ton réglage. »*
+  **Deux autres sorties écartées** : borner le maximum du curseur le rendrait dépendant
+  du profil (il bougerait avec le poids, sans dire pourquoi) ; laisser le plancher céder
+  en « Perso % » contredirait `CLAUDE.md` §6, qui exige qu'aucun chemin de code ne le
+  contourne. 4 tests. 791 au total.
+  ⚠️ **NON VÉRIFIÉ À L'ÉCRAN, et voici pourquoi** : l'éditeur « Calories & macros » est
+  derrière l'authentification, et le provider invité est coupé (cf. E3). Créer un compte
+  n'est pas quelque chose qu'un assistant fait. **Le fondateur peut le voir en un clic**
+  (Profil → Calories & macros → Perso %) sur un profil en sèche.
 
 ### 🎯 B — Les deux briques Kyroz+ qui restent
 
@@ -623,14 +638,33 @@ produit en suspens — il ne reste qu'à coder.
   `supabase/JOURNAL-MIGRATIONS.md`. Il ne liste pas des intentions — il consigne un
   ÉTAT VÉRIFIÉ et la commande d'une ligne qui permet de le re-vérifier sans dashboard
   (une colonne absente fait répondre `400` à PostgREST, présente `200`).
-- **E3 · 🧑 Trancher le compte invité — LE DOUTE EST LEVÉ, le provider EST OUVERT.**
-  Mesuré le 2026-07-31 : `POST /auth/v1/signup` avec un corps VIDE, sans
-  authentification et sans CAPTCHA, renvoie une session valide. Le bouton masqué en
-  prod ne protège donc rien — c'est l'endpoint qui est ouvert, et c'est exactement le
-  vecteur de création de comptes en masse. Reste l'arbitrage, inchangé : laisser +
-  rate-limit, brancher le CAPTCHA Turnstile (déjà provisionné), ou couper le provider.
-  ⚠️ Les parcours Playwright en dépendent, et le rate-limit se rencontre pour de vrai
-  (429 `over_request_rate_limit` observé le 2026-07-30).
+- ~~**E3 · Trancher le compte invité**~~ ✅ **DÉJÀ TRANCHÉ — le provider est COUPÉ.**
+  ⚠️ **L'entrée précédente affirmait l'inverse et il faut le savoir** : elle disait
+  « LE DOUTE EST LEVÉ, le provider EST OUVERT », mesuré le 2026-07-31 par un
+  `POST /auth/v1/signup` à corps vide. **Re-mesuré le 2026-08-01 sur l'endpoint de
+  configuration, en lecture seule** (`GET /auth/v1/settings`, aucun compte créé) :
+
+      external_anonymous_users : false
+      disable_signup           : false
+      mailer_autoconfirm       : true
+
+  Le provider anonyme est **désactivé**. Soit il a été coupé entre-temps, soit la
+  mesure du 2026-07-31 touchait un autre chemin que celui qu'emprunte l'app
+  (`signInAnonymously()`). Dans tous les cas la décision est prise et il n'y a plus
+  d'arbitrage à rendre : ni rate-limit à régler, ni CAPTCHA à brancher.
+  ✅ **Vérifié à l'écran** : le bouton « Continuer en invité » répond *« Connexion
+  invité indisponible. Active l'auth anonyme dans Supabase. »* — le message est juste.
+
+  🔴 **CONSÉQUENCE OPÉRATIONNELLE, à connaître avant de lancer un parcours** : les
+  scripts Playwright (`qa:full`, `qa:walkthrough`, `qa:deep`, `qa:settings`) passent
+  TOUS par `guestLogin` (`test/_harness.mjs`). **Ils ne peuvent donc plus s'exécuter.**
+  Ce n'est pas le rate-limit de juillet — c'est le provider lui-même. Deux sorties :
+  réactiver le provider anonyme le temps d'une passe (dashboard Supabase, 🧑), ou
+  donner au socle un compte de test dédié (`storageState` réutilisé) et cesser de
+  dépendre de l'invité.
+  ⚠️ `mailer_autoconfirm: true` : une inscription e-mail est active immédiatement,
+  sans confirmation. C'est ce qui rend un compte de test dédié facile à créer — **par
+  le fondateur**, pas par un assistant.
 - ~~**E4 · Nettoyages**~~ ✅ **TRAITÉ le 2026-07-31 — mais une des trois demandes a été
   REFUSÉE, mesure à l'appui.**
   - ✅ `kcalMargin()` supprimée, ainsi que `DAILY_KCAL_MARGIN_PCT` qui n'existait que
