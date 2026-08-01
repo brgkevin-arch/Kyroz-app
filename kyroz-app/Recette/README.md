@@ -2,7 +2,7 @@
 
 ```
 Recette/
-├── recettes-kyroz.json          ← LE CATALOGUE LIVE (importé par lib/recipeData.ts) — 459 recettes
+├── recettes-kyroz.json          ← LE CATALOGUE LIVE (importé par lib/recipeData.ts) — 466 recettes
 ├── README.md                    ← ce fichier
 ├── BRIEF-GENERATION-RECETTES.md ← la SPEC : mesures, enveloppes, raisonnement. Ne pas transmettre tel quel.
 ├── lots/                        ← la COMMANDE, générée (npm run gen:lots). Un fichier = une conversation.
@@ -19,7 +19,8 @@ Recette/
     ├── 2026-08-01-b3-petits-dejeuners/ (+20 petits-déjeuners, mergé)
     ├── 2026-08-02-b4-repas-denses/     (+20 repas complets, mergé)
     ├── 2026-08-02-b4-pdej-denses/      (+12 petits-déjeuners, mergé)
-    └── 2026-08-02-b5-collations-reecrites/ (23 collations RÉÉCRITES — pas ajoutées, mergé)
+    ├── 2026-08-02-b5-collations-reecrites/ (23 collations RÉÉCRITES — pas ajoutées, mergé)
+    └── 2026-08-02-b6-collations-vegan/     (+7 collations vegan, mergé)
 ```
 
 ⚠️ **Une vague peut RÉÉCRIRE au lieu d'ajouter** (première fois : `b5`, 2026-08-02). Les ids

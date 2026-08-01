@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { RECIPE_INGREDIENTS, RECIPE_CONFIG, RAW_RECIPES, macrosForRefIngredients } from '../recipeData';
 
 describe('recipeData', () => {
-  it('charge 459 recettes brutes', () => {
-    expect(RAW_RECIPES).toHaveLength(459);
+  it('charge 466 recettes brutes', () => {
+    expect(RAW_RECIPES).toHaveLength(466);
   });
   it('chaque recette déclare sa vague de livraison', () => {
     // Sans `wave`, une vague ne sait pas contre quoi se comparer : impossible d'expliquer
@@ -15,7 +15,8 @@ describe('recipeData', () => {
     for (const r of RAW_RECIPES) parVague[r.wave] = (parVague[r.wave] ?? 0) + 1;
     // ⚠️ La vague B5 a RÉÉCRIT 23 collations existantes, elle n'en a pas ajouté : les
     // quatre premières vagues perdent donc les recettes qu'elle reprend (fondation 100 → 92,
-    // vegan 164 → 156, sans-gluten 50 → 46, b2 13 → 10). Le total reste 459.
+    // vegan 164 → 156, sans-gluten 50 → 46, b2 13 → 10). Le total restait 459.
+    // B6 AJOUTE 7 collations vegan (col80 → col86) : 459 → 466.
     expect(parVague).toEqual({
       fondation: 92, '2026-06-19-vegan': 156, '2026-07-22-sans-gluten': 46,
       '2026-08-01-b2-collations': 10, '2026-08-01-b1-lot1-repas': 20,
@@ -23,6 +24,7 @@ describe('recipeData', () => {
       '2026-08-01-b1-lot4-repas': 20, '2026-08-01-b3-petits-dejeuners': 20,
       '2026-08-02-b4-repas-denses': 20, '2026-08-02-b4-pdej-denses': 12,
       '2026-08-02-b5-collations-reecrites': 23,
+      '2026-08-02-b6-collations-vegan': 7,
     });
   });
   it('chaque ingrédient de chaque recette a un ref existant dans la table', () => {

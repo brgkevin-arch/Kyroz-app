@@ -705,12 +705,14 @@ propose une médiane à 21,6 g de protéines pour 330 kcal — **3 collations su
 et aucune n'est à la fois sous 200 kcal et sous 12 g de protéines**. D'où le résultat le plus dur de
 la mesure : pour une femme de 55 kg en sèche, **0 collation sur 66 est servable**.
 
-### 4.12 Écrire une COLLATION — quatre règles mesurées le 2026-08-02
+### 4.12 Écrire une COLLATION — cinq règles mesurées le 2026-08-02
 
-> Ces quatre règles viennent d'un audit du créneau entier : **20 collations sur 79 étaient
-> sous le seuil R8 de 3/12, dont 6 servaient ZÉRO profil**. Elles ont toutes les quatre
-> une cause structurelle, pas éditoriale. Après réécriture des 23 concernées : **0 sous le
+> Les quatre premières viennent d'un audit du créneau entier : **20 collations sur 79
+> étaient sous le seuil R8 de 3/12, dont 6 servaient ZÉRO profil**. Elles ont toutes une
+> cause structurelle, pas éditoriale. Après réécriture des 23 concernées : **0 sous le
 > seuil**, moyenne 4,52 → 6,90/12. Détail complet : `AGENTS.md` D15.
+> La **cinquième** vient du lot B6 (`AGENTS.md` D17) : c'est celle qui a fait passer une
+> recette de 6/12 à 12/12 sans changer un seul ingrédient.
 
 1. **AUCUN ingrédient à poids fixe** (`vegetable` / `flavor`, donc `scalable: false`). La
    cible d'une collation va de **187 à 449 kcal** selon le profil, un facteur 2,4. Un poids
@@ -737,8 +739,31 @@ la mesure : pour une femme de 55 kg en sèche, **0 collation sur 66 est servable
    (R4, cf. `AGENTS.md` D4). Une collation sans féculent est donc à la fois refusée par
    l'anti-doublons et incapable de s'étirer.
 
+5. **L'ancre grasse a un OPTIMUM, et il est bas.** Mesuré à composition constante — seule
+   la quantité de l'ancre grasse change, tout le reste est figé :
+
+   | ancre grasse | 6 g | 8 g | 10 g | 12 g | 14 g | 16 g |
+   |---|---|---|---|---|---|---|
+   | `col84` (yaourt de soja) purée de cacahuète | 10/12 | **12/12** | 8/12 | 5/12 | 4/12 | 3/12 |
+   | `col80` (yaourt de soja) noisettes | 12/12 | **12/12** | 10/12 | 9/12 | 9/12 | 9/12 |
+   | `col86` (protéine de pois) amandes | — | 11/12 | **12/12** | 12/12 | 12/12 | 12/12 |
+
+   Le drapeau qui tombe est toujours le même : `over_target_kcal` sur les cibles MOYENNES.
+   Une ancre grasse ne peut pas descendre sous ×0,5 ; à 9 kcal le gramme, c'est le plancher
+   de la base qui devient infranchissable, et la recette déborde sur tout le milieu de la
+   grille. ➡️ **Avec une ancre protéique volumineuse (`yaourt_soja_proteine`, `skyr`,
+   `fromage_blanc_0`, `cottage_cheese`) : 6 à 9 g de lipides dans la base, pas plus.**
+   L'exception mesurée est l'ancre très dense (`proteine_vegetale`, `whey`) : elle libère
+   assez de place pour encaisser 10 à 18 g. Dans le doute, prends le bas.
+
 **Enveloppe qui en découle, mesurée** : base **300–360 kcal · 18–24 g de protéines**,
-3 à 4 `ref`, densité 5,2 à 6,8 g de protéines pour 100 kcal.
+3 à 4 `ref`, densité 5,2 à 6,8 g de protéines pour 100 kcal, **lipides 6 à 10 g**.
+
+**Les ancres végétales qui tiennent la règle 3**, si le lot demande du vegan : il n'y en a
+que quatre — `proteine_vegetale` (5,2 kcal/g de protéine), `seitan` (6,5, avec gluten),
+`soja_texture` (6,6, plafonné à 70 g), `yaourt_soja_proteine` (7,2). `tempeh` (9,8),
+`tofu_ferme` (11,0), `edamame` (11,4) et `tofu_soyeux` (11,7) sont hors jeu **en ancre** —
+rien n'interdit de les employer en accompagnement.
 
 ⚠️ **La note du §4.11 « cible protéique 1 à 18 g, souvent 1 ou 2 » est PÉRIMÉE depuis le
 2026-08-02.** Elle décrivait un défaut du moteur, pas une propriété du créneau : la cible
