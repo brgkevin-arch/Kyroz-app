@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useTheme, ThemePalette, Spacing, Radius } from '../constants/theme';
+import { useLayout } from '../constants/layout';
 import { Card, OptionCard, PrimaryButton, SectionLabel } from '../components/ui';
 import { usePremium } from '../hooks/usePremium';
 import { PREMIUM_PRICES, PREMIUM_PRICES_ARE_LOCAL_FALLBACK, annualSavingPct, paywallBanner } from '../lib/premium';
@@ -71,6 +72,7 @@ const GRATUIT =
 export default function KyrozPlusScreen() {
   const t = useTheme();
   const s = useMemo(() => makeStyles(t), [t]);
+  const layout = useLayout();
   const router = useRouter();
   const { reason } = usePremium();
   const [plan, setPlan] = useState<'monthly' | 'annual'>('monthly');
@@ -84,14 +86,14 @@ export default function KyrozPlusScreen() {
   return (
     <SafeAreaView style={s.safe} edges={['top']}>
       <StatusBar style={t.scheme === 'dark' ? 'light' : 'dark'} />
-      <View style={s.header}>
+      <View style={[s.header, layout.header]}>
         <TouchableOpacity onPress={() => router.back()} hitSlop={10} activeOpacity={0.7}>
           <Ionicons name="chevron-back" size={26} color={t.text} />
         </TouchableOpacity>
         <Text style={s.headerTitle}>Kyroz+</Text>
       </View>
 
-      <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={[s.content, layout.content]} showsVerticalScrollIndicator={false}>
         <Text style={s.h1}>{banner.title}</Text>
         <Text style={s.sub}>{banner.body}</Text>
 

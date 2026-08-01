@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { useTheme, ThemePalette, Spacing } from '../constants/theme';
+import { useLayout } from '../constants/layout';
 import { PrimaryButton, OptionCard } from './ui';
 import { useAuth } from '../hooks/useAuth';
 import {
@@ -31,6 +32,7 @@ const CONDITIONS: { key: keyof ScreeningFlags; title: string; sub: string }[] = 
 export default function HealthScreening({ onPass }: { onPass: () => void }) {
   const t = useTheme();
   const s = useMemo(() => makeStyles(t), [t]);
+  const layout = useLayout();
   const { signOut } = useAuth();
 
   const [flags, setFlags] = useState<ScreeningFlags>(EMPTY_FLAGS);
@@ -64,7 +66,7 @@ export default function HealthScreening({ onPass }: { onPass: () => void }) {
     return (
       <SafeAreaView style={s.safe} edges={['top', 'bottom']}>
         <StatusBar style={t.scheme === 'dark' ? 'light' : 'dark'} />
-        <ScrollView contentContainerStyle={s.blockContent} showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={[s.blockContent, layout.content]} showsVerticalScrollIndicator={false}>
           <View style={s.iconWrap}>
             <Ionicons name="medkit-outline" size={30} color={t.text} />
           </View>
@@ -82,7 +84,7 @@ export default function HealthScreening({ onPass }: { onPass: () => void }) {
             Kyroz ne fournit pas d'avis médical et ne remplace pas une consultation.
           </Text>
         </ScrollView>
-        <View style={s.footer}>
+        <View style={[s.footer, layout.header]}>
           <PrimaryButton t={t} label="Se déconnecter" onPress={logout} loading={busy} />
           <TouchableOpacity onPress={() => setShowBlock(false)} style={s.linkBtn} disabled={busy}>
             <Text style={s.linkTxt}>Revenir aux questions</Text>
@@ -96,7 +98,7 @@ export default function HealthScreening({ onPass }: { onPass: () => void }) {
   return (
     <SafeAreaView style={s.safe} edges={['top', 'bottom']}>
       <StatusBar style={t.scheme === 'dark' ? 'light' : 'dark'} />
-      <ScrollView contentContainerStyle={s.content} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={[s.content, layout.content]} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
         <Text style={s.title}>Avant de commencer</Text>
         <Text style={s.sub}>
           Kyroz calcule des plans nutrition précis pour des adultes en bonne santé. Ces
@@ -137,7 +139,7 @@ export default function HealthScreening({ onPass }: { onPass: () => void }) {
         )}
       </ScrollView>
 
-      <View style={s.footer}>
+      <View style={[s.footer, layout.header]}>
         <PrimaryButton t={t} label="Continuer" onPress={onContinue} disabled={!anyFlag && !attested} />
         <Text style={s.disclaimer}>
           Kyroz est conçu pour des adultes en bonne santé et ne remplace pas l'avis d'un

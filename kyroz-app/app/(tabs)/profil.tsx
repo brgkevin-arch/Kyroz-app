@@ -6,6 +6,7 @@ import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useTheme, ThemePalette, Radius, Spacing, cardShadow } from '../../constants/theme';
+import { useLayout } from '../../constants/layout';
 import { ThemeMode, useThemeMode, setThemeMode } from '../../lib/themeMode';
 import { DISCLAIMER } from '../../constants/legal';
 import { CIQUAL_ATTRIBUTION } from '../../lib/foods';
@@ -141,6 +142,7 @@ function closestHorizon(weeks: number): number {
 export default function ProfilScreen() {
   const t = useTheme();
   const s = useMemo(() => makeStyles(t), [t]);
+  const layout = useLayout();
   const { profile, saveProfile, clearProfile } = useProfile();
   const { streak } = useStreak();
   const { slot, choose, busy } = useReminder();
@@ -280,7 +282,7 @@ export default function ProfilScreen() {
 
   return (
     <SafeAreaView style={s.safe} edges={['top']}>
-      <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={[s.content, layout.content]} showsVerticalScrollIndicator={false}>
         {/* Streak — progression vers l'objectif 7 jours (North Star) */}
         <StreakProgress t={t} streak={streak} variant="card" />
 

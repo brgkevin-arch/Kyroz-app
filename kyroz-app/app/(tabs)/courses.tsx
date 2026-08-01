@@ -5,6 +5,7 @@ import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme, ThemePalette, Radius, Spacing, cardShadow } from '../../constants/theme';
+import { useLayout } from '../../constants/layout';
 import { MealPlan, ShoppingItem, ShoppingList } from '../../lib/types';
 import { buildShoppingList } from '../../lib/shoppingList';
 import { formatQuantity } from '../../lib/units';
@@ -40,6 +41,7 @@ type CoursesSection = {
 export default function CoursesScreen() {
   const t = useTheme();
   const s = useMemo(() => makeStyles(t), [t]);
+  const layout = useLayout();
   const [list, setList] = useState<ShoppingList | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [hideChecked, setHideChecked] = useState(false);
@@ -122,7 +124,7 @@ export default function CoursesScreen() {
     const covered = !!list && list.items.length === 0;
     return (
       <SafeAreaView style={s.safe} edges={['top']}>
-        <View style={s.center}>
+        <View style={[s.center, layout.content]}>
           <View style={[s.emptyIcon, { backgroundColor: t.fill }]}>
             <Ionicons name={covered ? 'checkmark-done-outline' : 'cart-outline'} size={30} color={covered ? t.success : t.textSecondary} />
           </View>
@@ -157,7 +159,7 @@ export default function CoursesScreen() {
   return (
     <SafeAreaView style={s.safe} edges={['top']}>
       {/* En-tête + progression */}
-      <View style={s.header}>
+      <View style={[s.header, layout.header]}>
         <View style={{ flex: 1 }}>
           <Text style={s.h1}>Liste de courses</Text>
           <Text style={s.sub}>{done ? 'Tout est coché 🎉' : `${remaining} restant${remaining > 1 ? 's' : ''} sur ${total}`}</Text>
@@ -165,10 +167,15 @@ export default function CoursesScreen() {
         <Text style={s.counter}>{checked}<Text style={s.counterTot}>/{total}</Text></Text>
       </View>
 
-      <View style={s.track}><View style={[s.fill, { width: `${pct}%`, backgroundColor: done ? t.success : t.accent }]} /></View>
+      {/* ⚠️ La colonne se pose sur un CONTENEUR ici, pas sur la barre elle-même :
+          `track` s'aligne par `marginHorizontal`, et une marge s'ajoute À
+          L'EXTÉRIEUR du `maxWidth` — la barre dépassait alors des cartes de 40 pt. */}
+      <View style={layout.header}>
+        <View style={s.track}><View style={[s.fill, { width: `${pct}%`, backgroundColor: done ? t.success : t.accent }]} /></View>
+      </View>
 
       {/* Contrôles */}
-      <View style={s.controls}>
+      <View style={[s.controls, layout.header]}>
         {remaining > 0 && (
           <TouchableOpacity style={s.ctrl} onPress={checkAll} activeOpacity={0.8}>
             <Ionicons name="checkmark-done-outline" size={15} color={t.textSecondary} />
@@ -187,12 +194,12 @@ export default function CoursesScreen() {
         )}
       </View>
 
-      <Text style={s.hint}>Coche un article → il part direct dans ton frigo 🧊</Text>
+      <Text style={[s.hint, layout.header]}>Coche un article → il part direct dans ton frigo 🧊</Text>
 
       <SectionList<ShoppingItem, CoursesSection>
         sections={sections}
         keyExtractor={(item) => item.name}
-        contentContainerStyle={s.list}
+        contentContainerStyle={[s.list, layout.content]}
         showsVerticalScrollIndicator={false}
         stickySectionHeadersEnabled={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={t.textTertiary} />}

@@ -113,12 +113,18 @@ ne pas les présenter comme un défaut de service.
 
 Par ordre de « cause connue, remède écrit » décroissant. Le détail est dans la liste unique.
 *(D7 — les 7 collations vegan — est **FERMÉ le 2026-08-02** par le lot B6, cf. D17.)*
+*(C1 — le layout tablette — est **FERMÉ le 2026-08-01**, `supportsTablet` est à `true`.)*
 
 1. **🤖 D4 — désaturer les couples R4.** 14 groupes, dont 4 sur le motif « ancre × aucun
    féculent ». Se règle **en écrivant ailleurs**, jamais en réécrivant l'existant.
    *(B6 n'en a créé aucun de plus : les 7 couples employés étaient libres ou à 1.)*
 2. **🧑 D3 — trancher l'axe allergène.** Décision produit, pas du code : le `tahini`
    introduit le sésame et aucun champ ne le porte.
+
+⚠️ **Une mise en page tablette existe désormais** (`lib/layout.ts`, seuil 700 pt). Tout
+nouvel écran doit passer par `useLayout()` : sans lui il repart en pleine largeur, et à
+1024 pt c'est illisible. Le rendu téléphone, lui, ne bouge pas — `centered()` est un
+no-op strict sous le seuil, et un test l'exige.
 
 ⚠️ **Pour commander une vague** : les huit lots de `scripts/gen-brief-lot.ts` sont tous
 marqués `livre`, donc `npm run gen:lots` n'écrit plus rien. Il faut **ajouter un `Lot`**
@@ -510,18 +516,78 @@ produit en suspens — il ne reste qu'à coder.
 
 ### 📱 C — Sortie stores
 
-- **C1 · 🤖 Build iPad** — *décidé le 2026-07-30 : « faudra songer à faire le build iPad ».*
-  Trois étapes : (1) `app.json > ios.supportsTablet: true` ; (2) **layout tablette**, au
-  minimum l'écran recette (largeur max, lisibilité, cibles ; envisager le **paysage**,
-  l'app est portrait-only) via `useWindowDimensions` ; (3) screenshots iPad 13" (2048×2732).
-  ⚠️ **Ordre non négociable** : dès `supportsTablet: true`, Apple exige les screenshots iPad
-  ET teste réellement la mise en page. Soumettre `true` sans layout prêt = rejet.
-  `supportsTablet` **reste `false`** d'ici là, ce qui permet une soumission iPhone-only
-  entre-temps.
+- ~~**C1 · 🤖 Build iPad**~~ ✅ **LES TROIS ÉTAPES SONT FAITES le 2026-08-01.**
+  `ios.supportsTablet` est passé à **`true`**, dans le bon ordre : le layout d'abord,
+  les captures ensuite, la bascule en dernier.
+
+  **Ce qu'il y avait à corriger, mesuré sur le rendu web à 1024 pt (iPad 13" portrait)
+  AVANT de coder** : il n'y avait pas « des écrans à ajuster », il n'y avait **aucune
+  contrainte de largeur nulle part** — une seule occurrence de `maxWidth` dans tout le
+  code, sur une modale. Le pire cas est précisément l'écran que le fondateur voulait
+  servir (« cuisiner avec la recette sous les yeux ») : la ligne « Œuf entier … 3 œufs »
+  séparait le nom de sa quantité de **plus de 900 pt**. Le bouton « J'ai cuisiné » faisait
+  1 200 px pour deux mots ; la liste de recettes montrait 8 recettes là où la place en
+  permettait 16.
+
+  **Source unique** : `lib/layout.ts` (seuils purs, testés) + `constants/layout.ts`
+  (le hook `useLayout()`). Seuil **`TABLET_MIN_WIDTH = 700`** — au-dessus du plus large
+  iPhone (440) et au-dessus d'un **Split View à 50 % sur iPad 11" (507)**, qui doit
+  continuer à recevoir la mise en page téléphone.
+
+  | | largeur max | pourquoi ce nombre |
+  |---|---|---|
+  | Écrans | **620** | ~70 caractères de texte courant — haut de la fourchette lisible (45–75). À 680 : 79. En pleine largeur : 130 |
+  | Feuilles (`Sheet`, `ActionSheet`) | **820** | pour que les deux colonnes de l'écran recette fassent 370 pt, soit **plus large que la zone utile d'un iPhone** (345) |
+  | Grille recettes | **980** | deux cartes de ~460 pt, la largeur d'une carte de téléphone |
+
+  **Le seul écran qui a une mise en page à lui : la recette.** Ingrédients | préparation
+  côte à côte sur tablette — c'est le cas d'usage énoncé, et côte à côte on lit une
+  quantité sans remonter l'étape en cours. Tout le reste est une colonne centrée.
+
+  ⚠️ **Une piste écartée en cours de route, par la mesure.** J'avais donné plus de place
+  à la préparation (flex 1,15 contre 1) : la colonne ingrédients tombait à **316 pt**,
+  soit **plus serré que sur un iPhone** (345 pt utiles) pour l'ingrédient le plus long du
+  catalogue (« Lentilles cuites (conserve ou sachet) », 37 caractères). Colonnes remises
+  à égalité et feuille élargie de 760 à 820. Le critère est verrouillé par un test :
+  *aucune colonne ne doit être plus étroite que sur téléphone*.
+
+  ⚠️ **Le piège d'alignement à connaître** : la colonne se pose sur un CONTENEUR quand
+  l'élément s'aligne par `marginHorizontal` — une marge s'ajoute à l'EXTÉRIEUR du
+  `maxWidth`. La barre de progression de l'écran Courses dépassait des cartes de 40 pt.
+  Un seul élément du code était dans ce cas ; le reste utilise `padding`.
+
+  **Trois `Dimensions.get('window')` corrigés au passage** (`Sheet`, `GuidedTour`,
+  `WeightCheckin`) : sur iPad la fenêtre change de taille **sans relancer l'app**
+  (rotation, Split View), et une valeur lue au chargement du module reste fausse jusqu'au
+  redémarrage. `WeightCheckin` calculait la largeur de sa courbe sur l'ÉCRAN (1024) alors
+  qu'elle vit dans une feuille bornée à 820 : la courbe débordait de son cadre.
+
+  **Vérifié à l'écran, écran par écran, à 1024×1300 ET à 390×844** : Plan · Courses ·
+  Frigo · Recettes (grille 2 colonnes : **18 recettes visibles contre 8**) · Recette
+  (2 colonnes) · Profil et son éditeur en feuille · Login · Onboarding · portail de
+  dépistage · Kyroz+. **Le rendu téléphone est inchangé** — `centered()` renvoie un objet
+  VIDE sous le seuil, et un test l'exige (un style « inoffensif » suffirait à faire
+  diverger l'existant). 802 tests verts, `tsc` propre.
+
+  **Captures iPad livrées** : `npm run store:assets:ipad` → `test/store-ipad/`,
+  **2048×2732**, le gabarit exact qu'Apple exige. Le script prend un gabarit tablette,
+  et n'y produit plus le feature graphic (visuel Google Play, cf. C2).
+
+  ℹ️ **Le paysage n'est PAS ouvert** : `orientation` reste `portrait`. Ce n'était pas dans
+  l'ordre des étapes, et Apple ne l'exige pas pour un binaire iPad. À trancher à part.
 - **C2 · Comptes et visuels — ✅ LARGEMENT FAIT le 2026-07-30.**
   Apple (compte + contrat de vente actif + fiche + 2 abonnements tarifés) · Google Play
   (compte payé, site validé, fiche créée) · **visuels générés** (`npm run store:assets` :
-  5 captures 1424×2532 + feature graphic 1024×500, aux specs) · **2 builds Android**
+  5 captures + feature graphic)
+  ⚠️ **CORRIGÉ le 2026-08-01 — « aux specs » était FAUX, et sur les deux chiffres.**
+  Les captures font **1170×2532** (390×844 en ×3), pas 1424×2532. Surtout, le feature
+  graphic sortait à **3072×1500** et non 1024×500 : sa page était créée dans le contexte
+  des captures, donc elle héritait de son `deviceScaleFactor: 3`. Google exige
+  EXACTEMENT 1024×500 — le visuel livré aurait été refusé. Il a désormais son propre
+  contexte en ×1, et la sortie est vérifiée à 1024×500.
+  Le nombre de recettes affiché dessus était figé à **« 314 recettes »** pour un
+  catalogue qui en compte 466 ; il est maintenant lu dans `recettes-kyroz.json`, donc
+  il ne peut plus prendre du retard sur une vague. · **2 builds Android**
   (`versionCode` 2 puis 3 ; **prendre le 3**, le 2 est antérieur au correctif de
   permissions). Restent, côté fondateur :
   - 🧑 **Build iOS** — `npx eas-cli build --platform ios --profile production`, **depuis
@@ -1222,13 +1288,17 @@ produit en suspens — il ne reste qu'à coder.
   ✅ **Vérifié à l'écran** : le bouton « Continuer en invité » répond *« Connexion
   invité indisponible. Active l'auth anonyme dans Supabase. »* — le message est juste.
 
-  🔴 **CONSÉQUENCE OPÉRATIONNELLE, à connaître avant de lancer un parcours** : les
-  scripts Playwright (`qa:full`, `qa:walkthrough`, `qa:deep`, `qa:settings`) passent
-  TOUS par `guestLogin` (`test/_harness.mjs`). **Ils ne peuvent donc plus s'exécuter.**
-  Ce n'est pas le rate-limit de juillet — c'est le provider lui-même. Deux sorties :
-  réactiver le provider anonyme le temps d'une passe (dashboard Supabase, 🧑), ou
-  donner au socle un compte de test dédié (`storageState` réutilisé) et cesser de
-  dépendre de l'invité.
+  🟢 **RE-MESURÉ le 2026-08-01 (plus tard dans la journée) : le provider est de nouveau
+  OUVERT.** `GET /auth/v1/settings` renvoie désormais `external_anonymous_users: true`.
+  **Preuve par l'usage, pas par l'endpoint** : `npm run store:assets` — qui passe par
+  `guestLogin` comme tous les scripts Playwright — s'est exécuté de bout en bout et a
+  produit 5 captures d'un plan réellement généré. **Les parcours Playwright refonctionnent.**
+  ⚠️ **La leçon, c'est la troisième mesure contradictoire sur ce réglage en deux jours**
+  (ouvert le 07-31, fermé le 08-01, ouvert le 08-01). Il est piloté depuis le dashboard,
+  hors du dépôt : **aucune trace écrite ici ne peut être tenue pour à jour.** Avant de
+  conclure qu'un parcours est cassé, RELANCER la mesure — c'est une commande d'une ligne.
+  La sortie durable reste la même : un compte de test dédié (`storageState` réutilisé)
+  ferait cesser cette dépendance à un réglage qui bouge sans prévenir.
   ⚠️ `mailer_autoconfirm: true` : une inscription e-mail est active immédiatement,
   sans confirmation. C'est ce qui rend un compte de test dédié facile à créer — **par
   le fondateur**, pas par un assistant.

@@ -8,24 +8,43 @@
 // Sortie : test/store/
 
 import { chromium } from 'playwright';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { sleep, open, tap, bootToPlan, neutralizeFirstRun, dismissOverlays, DEFAULT_PERSONA } from './_harness.mjs';
 
-const OUT = join(dirname(fileURLToPath(import.meta.url)), 'store');
+const HERE = dirname(fileURLToPath(import.meta.url));
+
+// ── Gabarit de capture ───────────────────────────────────────────────────────
+// 390×844 = iPhone 12/13/14, rendu TÉLÉPHONE garanti.
+// ⚠️ Le seuil réel est TABLET_MIN_WIDTH = 700 (lib/layout.ts), pas « ~600 px »
+// comme l'annonçait ce commentaire — et avant le 2026-08-01 il n'y avait AUCUN
+// seuil, l'app était en pleine largeur à toute taille.
+//
+// `--ipad` produit le gabarit exigé par Apple pour un binaire iPad : 2048×2732,
+// soit l'iPad Pro 13" (1024×1366 pt) en ×2.
+const IPAD = process.argv.includes('--ipad');
+const PHONE = { width: 390, height: 844 };
+const TABLET = { width: 1024, height: 1366 };
+const VIEWPORT = IPAD ? TABLET : PHONE;
+const SCALE = IPAD ? 2 : 3;
+
+const OUT = join(HERE, IPAD ? 'store-ipad' : 'store');
 mkdirSync(OUT, { recursive: true });
 
-// 390×844 = gabarit iPhone 12/13/14, rendu TÉLÉPHONE garanti. On ne capture pas
-// plus large : au-delà de ~600 px l'app bascule sur une mise en page tablette et
-// les captures ne ressembleraient plus à ce que verra l'utilisateur.
-const PHONE = { width: 390, height: 844 };
+// Le catalogue est la source du nombre affiché sur le feature graphic : il était
+// figé à « 314 recettes » alors que le catalogue en compte 466 — un chiffre faux
+// sur une fiche de store est exactement ce que la règle « pas de mensonge »
+// interdit, et un nombre écrit à la main redevient faux à la vague suivante.
+const NB_RECETTES = JSON.parse(
+  readFileSync(join(HERE, '..', 'Recette', 'recettes-kyroz.json'), 'utf8')
+).recipes.length;
 
 const browser = await chromium.launch({ headless: true });
 // THÈME SOMBRE imposé : l'app suit le système, et Playwright démarre en clair.
 // La marque est noire (splash #000000, feature graphic noir) — des captures claires
 // jureraient sur la fiche, et le remplissage noir des bords se verrait comme un défaut.
-const context = await browser.newContext({ viewport: PHONE, deviceScaleFactor: 3, colorScheme: 'dark' });
+const context = await browser.newContext({ viewport: VIEWPORT, deviceScaleFactor: SCALE, colorScheme: 'dark' });
 await neutralizeFirstRun(context);
 const page = await context.newPage();
 
@@ -63,6 +82,10 @@ for (const [nom, onglet] of ECRANS) {
 // ── Feature graphic 1024×500 ─────────────────────────────────────────────────
 // Sobre et sombre, aligné sur le thème de l'app. Pas de capture d'écran dedans :
 // Google l'affiche en petit et en tête de fiche, un écran illisible y dessert.
+//
+// ⚠️ JAMAIS en mode iPad : c'est un visuel Google Play, Apple n'en demande pas,
+// et le `deviceScaleFactor` de 2 le sortait à 2048×1000 — hors des specs Google,
+// qui exigent EXACTEMENT 1024×500.
 const FEATURE = `
 <style>html,body{margin:0;padding:0;background:#000;}</style>
 <div style="width:1024px;height:500px;background:#000;display:flex;align-items:center;
@@ -72,7 +95,7 @@ const FEATURE = `
     <div style="color:#fff;opacity:.62;font-size:29px;font-weight:500;margin-top:18px;
                 letter-spacing:-.4px;">Ton plan de repas, calé sur tes macros</div>
     <div style="margin-top:34px;display:flex;gap:14px;justify-content:center;">
-      ${['7 jours', 'Liste de courses', '314 recettes'].map((t) => `
+      ${['7 jours', 'Liste de courses', `${NB_RECETTES} recettes`].map((t) => `
         <span style="color:#fff;opacity:.85;font-size:19px;font-weight:600;
                      border:1px solid rgba(255,255,255,.22);border-radius:999px;
                      padding:9px 20px;">${t}</span>`).join('')}
@@ -80,20 +103,35 @@ const FEATURE = `
   </div>
 </div>`;
 
-const fg = await context.newPage();
-await fg.setViewportSize({ width: 1024, height: 500 });
-await fg.setContent(FEATURE);
-await sleep(400);
-await fg.screenshot({ path: `${OUT}/feature-graphic.png` });
-console.log('capture : feature-graphic (1024×500)');
+if (IPAD) {
+  console.log('feature graphic : ignoré (visuel Google Play, hors gabarit iPad)');
+} else {
+  // ⚠️ CONTEXTE À PART, `deviceScaleFactor: 1`. Le feature graphic était créé
+  // dans le contexte des captures, donc il HÉRITAIT de son ×3 et sortait à
+  // 3072×1500 — mesuré le 2026-08-01, et ce depuis l'origine du script.
+  // Google exige EXACTEMENT 1024×500 : le visuel livré était hors specs, alors
+  // qu'AGENTS.md C2 le déclarait conforme.
+  const fgCtx = await browser.newContext({
+    viewport: { width: 1024, height: 500 }, deviceScaleFactor: 1, colorScheme: 'dark',
+  });
+  const fg = await fgCtx.newPage();
+  await fg.setContent(FEATURE);
+  await sleep(400);
+  await fg.screenshot({ path: `${OUT}/feature-graphic.png` });
+  await fgCtx.close();
+  console.log('capture : feature-graphic (1024×500)');
+}
 
 await context.close();
 await browser.close();
 
+const { width: vw, height: vh } = VIEWPORT;
 writeFileSync(`${OUT}/README.txt`,
-  `Visuels de la fiche Google Play — générés le 2026-07-30 par test/store-assets.mjs\n\n` +
-  `Captures : 390×844 CSS rendues en ×3 → 1170×2532 px.\n` +
-  `Feature graphic : 1024×500 px, exigé par Google.\n\n` +
-  `Regénérer : npm run store:assets (serveur web allumé).\n`);
+  `Visuels de fiche de store — générés par test/store-assets.mjs\n\n` +
+  `Captures : ${vw}×${vh} CSS rendues en ×${SCALE} → ${vw * SCALE}×${vh * SCALE} px.\n` +
+  (IPAD
+    ? `Gabarit iPad Pro 13" — exigé par Apple dès ios.supportsTablet = true.\n`
+    : `Feature graphic : 1024×500 px, exigé par Google.\n`) +
+  `\nRegénérer : npm run store:assets${IPAD ? ' -- --ipad' : ''} (serveur web allumé).\n`);
 
 console.log('\n→ ' + OUT);

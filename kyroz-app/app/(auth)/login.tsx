@@ -7,6 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useTheme, ThemePalette, Spacing, Radius } from '../../constants/theme';
+import { useLayout } from '../../constants/layout';
 import { Field, PrimaryButton, Segmented } from '../../components/ui';
 import { useAuth } from '../../hooks/useAuth';
 import { DISCLAIMER } from '../../constants/legal';
@@ -17,6 +18,7 @@ type Mode = 'signin' | 'signup';
 export default function LoginScreen() {
   const t = useTheme();
   const s = useMemo(() => makeStyles(t), [t]);
+  const layout = useLayout();
   const router = useRouter();
   const { signIn, signUp, signInGuest } = useAuth();
 
@@ -72,7 +74,7 @@ export default function LoginScreen() {
     <SafeAreaView style={s.safe} edges={['top', 'bottom']}>
       <StatusBar style={t.scheme === 'dark' ? 'light' : 'dark'} />
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <ScrollView contentContainerStyle={s.content} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={[s.content, layout.content]} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
           <Text style={s.logo}>KYROZ</Text>
           <Text style={s.tagline}>Ton plan nutrition, sans réfléchir.</Text>
 

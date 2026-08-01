@@ -7,6 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useTheme, ThemePalette, Spacing } from '../../constants/theme';
+import { useLayout } from '../../constants/layout';
 import {
   PrimaryButton, Chip, OptionCard, Field, SectionLabel, Segmented,
 } from '../../components/ui';
@@ -92,6 +93,7 @@ function activityFromDays(d: number): ActivityLevel {
 export default function Onboarding() {
   const t = useTheme();
   const s = useMemo(() => makeStyles(t), [t]);
+  const layout = useLayout();
   const router = useRouter();
   const { saveProfile } = useProfile();
 
@@ -248,14 +250,14 @@ export default function Onboarding() {
       <StatusBar style={t.scheme === 'dark' ? 'light' : 'dark'} />
 
       {/* Header : retour + progression */}
-      <View style={s.header}>
+      <View style={[s.header, layout.header]}>
         <TouchableOpacity onPress={back} disabled={step === 1} style={[s.backBtn, step === 1 && { opacity: 0 }]}>
           <Ionicons name="chevron-back" size={22} color={t.text} />
         </TouchableOpacity>
         <View style={s.track}><View style={[s.fill, { width: `${(step / TOTAL_STEPS) * 100}%` }]} /></View>
       </View>
 
-      <ScrollView contentContainerStyle={s.content} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={[s.content, layout.content]} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
         {step > 1 && <SectionLabel t={t}>ÉTAPE {step - 1} / {TOTAL_STEPS - 1}</SectionLabel>}
 
         {step === 1 && <NameStep t={t} value={firstName} onChange={setFirstName} />}
@@ -392,7 +394,7 @@ export default function Onboarding() {
             (components/FirstPlanReveal.tsx), affiché à l'arrivée sur l'écran Plan. */}
       </ScrollView>
 
-      <View style={s.footer}>
+      <View style={[s.footer, layout.header]}>
         {hint && !canProceed && <Text style={s.hint}>{hint}</Text>}
         <PrimaryButton t={t} label={step === TOTAL_STEPS ? 'Générer mon plan' : 'Continuer'} onPress={next} loading={saving} />
       </View>
