@@ -18,8 +18,17 @@ Recette/
     ├── 2026-08-01-b1-lot4-repas/    (+20 repas complets, mergé)
     ├── 2026-08-01-b3-petits-dejeuners/ (+20 petits-déjeuners, mergé)
     ├── 2026-08-02-b4-repas-denses/     (+20 repas complets, mergé)
-    └── 2026-08-02-b4-pdej-denses/      (+12 petits-déjeuners, mergé)
+    ├── 2026-08-02-b4-pdej-denses/      (+12 petits-déjeuners, mergé)
+    └── 2026-08-02-b5-collations-reecrites/ (23 collations RÉÉCRITES — pas ajoutées, mergé)
 ```
+
+⚠️ **Une vague peut RÉÉCRIRE au lieu d'ajouter** (première fois : `b5`, 2026-08-02). Les ids
+sont conservés — favoris, recettes masquées et overrides utilisateurs les référencent — mais
+composition, texte et macros changent, donc **`ENGINE_VERSION` doit être incrémenté** comme
+pour un ajout, sinon un plan en cache sert l'ancienne recette sous le nouveau nom. Le champ
+`wave` bascule sur la vague de réécriture : c'est là qu'est désormais la matière première.
+Conséquence sur la partition de `recipeData.test.ts` : les vagues d'origine PERDENT les
+recettes reprises (`fondation` 100 → 92, etc.), le total ne bouge pas.
 
 ℹ️ **`lots/` ne contient plus aucun brief, et c'est volontaire** (2026-08-01) : les huit lots
 commandés — `b2`, `b1-lot1` à `b1-lot4`, `b3`, `b4-repas`, `b4-pdej` — sont livrés et mergés, donc
