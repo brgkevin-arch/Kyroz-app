@@ -266,6 +266,27 @@ l'utilisateur au-delà de 100 kcal/jour d'écart.
 - **Lipides sous le seuil de carence** — `lib/tdee.ts::fatTargetG`, plancher à
   0,8 g/kg de **poids de corps** (`FAT_MIN_PER_KG_BW`). Borné par le budget du
   jour, donc un plan reste toujours faisable.
+  ⚠️ **La cible VISE 15 % au-dessus du plancher (`FAT_FLOOR_AIM_MARGIN`),
+  corrigé le 2026-08-01, `ENGINE_REV` 3 → 4.** Ce n'est pas un second plancher :
+  le seuil de carence reste 0,8 g/kg. C'est l'écart nécessaire pour que
+  **l'assiette** le franchisse, et pas seulement la cible.
+  **Le défaut, mesuré** : en sèche comme en maintien, la cible valait EXACTEMENT
+  le plancher — marge nulle — et le plan, qui approxime la cible avec de vraies
+  recettes, retombait dessous **86 % des jours** (560 jours mesurés ; pire cas
+  H 100 kg à 2 repas, **0,50 g/kg servi pour 0,80 visé**). §6 annonçait un hard
+  block que l'assiette ne respectait pas. Après : **1 %**, pire écart −8 g.
+  ⚠️ **Piste écartée, mesurée** : relever le plafond de rôle `fat` du catalogue
+  (×1,5, le plus bas de tous les rôles) ne corrige rien — 86 % → 83 % à 1,7
+  comme à 2,0. Le manque ne vient pas de recettes incapables de porter du gras :
+  le moteur vise les kcal et la protéine, les lipides encaissent le résidu.
+  ⚠️ **Ce que ça coûte, assumé** : sur 576 profils, `CARBS_BELOW_TRAINING_FLOOR`
+  passe de 30 % à 39 %, la part lipidique de 27,8 % à 30,7 % (dans la fourchette
+  usuelle 20–35 %), les glucides moyens de 306 à 289 g. **Et en mode « Perso % »
+  l'écart entre le curseur et ce qui est servi se creuse** : un curseur à 55 % de
+  glucides en sert 50. Le plancher passait déjà avant le réglage de l'utilisateur
+  (cf. la note sur le changement de base ci-dessous) ; il passe désormais de plus
+  loin. **Aucun avertissement one-shot n'est servi** : les calories ne bougent pas
+  (seule la répartition change), donc l'écart est sous le seuil des 100 kcal.
   ⚠️ **Base changée le 2026-07-31 (décision fondateur).** Elle était la **masse
   maigre**, au motif que le tissu adipeux n'a pas de besoin lipidique — même
   raisonnement que les protéines, qui elles gardent la base masse maigre. Ce qui

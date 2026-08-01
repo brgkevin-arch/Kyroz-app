@@ -329,6 +329,36 @@ export const FAT_MIN_PER_KG_BW = 0.8;
 export const FAT_MIN_PER_KG_FFM = FAT_MIN_PER_KG_BW;
 
 /**
+ * Marge de VISÉE au-dessus du plancher lipidique. **Ce n'est pas un second plancher :
+ * le seuil de carence reste `FAT_MIN_PER_KG_BW` (0,8 g/kg).** C'est l'écart qu'il faut
+ * viser pour que le plan RÉELLEMENT SERVI le franchisse.
+ *
+ * ── POURQUOI (A9, mesuré le 2026-08-01) ──────────────────────────────────────
+ * Le plancher était tenu sur la CIBLE et pas sur l'assiette. En sèche comme en
+ * maintien, `fatTargetG` renvoyait EXACTEMENT le plancher — marge nulle — et le plan,
+ * qui approxime la cible avec de vraies recettes, retombait dessous.
+ * Mesuré sur 10 profils × 8 tirages × 7 jours (560 jours), part des jours servis
+ * sous 0,8 g/kg :
+ *
+ *   marge ×1,00 → 86 %   ×1,05 → 71 %   ×1,10 → 22 %   ×1,15 → 1 %
+ *
+ * ⚠️ **Piste écartée, mesurée elle aussi** : relever le plafond de rôle `fat` du
+ * catalogue (×1,5, le plus bas de tous les rôles) ne corrige RIEN — 86 % → 83 % à
+ * 1,7 comme à 2,0, et le pire cas ne bouge pas. Le manque ne vient donc pas de
+ * recettes incapables de porter plus de gras : le moteur vise les kcal et la
+ * protéine, et les lipides encaissent le résidu. Ne pas retenter.
+ *
+ * ⚠️ **CE QUE ÇA COÛTE, et c'est assumé** : sur 576 profils, le drapeau
+ * `CARBS_BELOW_TRAINING_FLOOR` passe de 30 % à 39 %, la part lipidique de 27,8 % à
+ * 30,7 % (donc dans la fourchette usuelle 20–35 %), et les glucides moyens de 306 à
+ * 289 g. On échange le franchissement SYSTÉMATIQUE d'un garde-fou de sécurité
+ * (§6, seuil de carence) contre un avertissement de performance plus fréquent.
+ * Monter au-delà de 1,15 ne rapporte quasi plus rien et continue de coûter des
+ * glucides (×1,20 → 40 % de drapeaux).
+ */
+export const FAT_FLOOR_AIM_MARGIN = 1.15;
+
+/**
  * Cible lipidique (g) : la part calorique habituelle, relevée au plancher
  * physiologique, et BORNÉE PAR LE BUDGET.
  *
@@ -342,7 +372,7 @@ export const FAT_MIN_PER_KG_FFM = FAT_MIN_PER_KG_BW;
  */
 export function fatTargetG(targetKcal: number, body: BodyInput, share: number = 0.25): number {
   const fromShare = (targetKcal * share) / 9;
-  const floor = FAT_MIN_PER_KG_BW * body.weight_kg;
+  const floor = FAT_MIN_PER_KG_BW * body.weight_kg * FAT_FLOOR_AIM_MARGIN;
   return Math.round(Math.min(Math.max(fromShare, floor), targetKcal / 9));
 }
 
@@ -751,12 +781,17 @@ export const ENGINE_REV_LEGACY = 1;
 /**
  * Révision courante — à INCRÉMENTER à chaque correction qui déplace les cibles.
  *
+ * rev 3 → 4 (2026-08-01) : la cible lipidique vise désormais 15 % au-dessus du
+ * plancher de carence (`FAT_FLOOR_AIM_MARGIN`), pour que le plan SERVI le franchisse.
+ * Ne déplace que les profils dont la cible ÉTAIT le plancher — sèche et maintien.
+ * Les kcal ne bougent pas : ce sont les glucides qui cèdent la place aux lipides.
+ *
  * rev 2 → 3 (2026-07-31) : table NEAT relevée (`desk` 1,20 → 1,30). Le texte de
  * l'avertissement est SPÉCIFIQUE À LA RÉVISION (cf. EngineNoticeCard) — servir
  * l'explication de la rev 2 à quelqu'un dont la cible a bougé pour une autre raison
  * serait un mensonge, pas une approximation.
  */
-export const ENGINE_REV = 3;
+export const ENGINE_REV = 4;
 
 /**
  * Seuil d'affichage (kcal/j, en valeur absolue). En dessous, l'écart tient dans le
