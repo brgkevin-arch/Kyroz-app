@@ -110,8 +110,14 @@ fichiers de `lots/` en sont la projection opérationnelle.
 3. **Compteurs de test** : `recipeMap.test.ts`, `recipes.test.ts`, `recipeData.test.ts` (`toHaveLength(N)`).
 4. **`ENGINE_VERSION`** (`lib/planEngine.ts`) → +1, sinon les plans en cache ignorent les nouvelles recettes.
 5. `npm test` puis `npx tsc --noEmit`.
-6. `npm run mesure:couverture` → vérité terrain sur 12 profils (règle R8), et
-   `npm run check:doublons`. **Ce sont les deux seuls contrôles de catalogue.**
+6. `npm run mesure:couverture` → vérité terrain sur 12 profils (règle R8),
+   `npm run mesure:seuils` → distribution R8 du catalogue LIVE créneau par créneau
+   (`--enveloppe` ne juge qu'un LOT ; sans cette commande, la santé du catalogue déjà
+   mergé n'était mesurable par rien — c'est comme ça que l'audit de D15 n'a jamais été
+   refait sur le petit-déj ni sur le repas complet), et `npm run check:doublons`.
+   ⚠️ `npm run mesure:variete` mesure autre chose et il faut le lancer aussi après une
+   vague : les quasi-doublons SERVIS (deux recettes du même couple protéine × féculent
+   dans la même semaine), que ni R4 ni la couverture ne voient.
    *(L'ancienne étape « `npm run gen:validation` → dossier diététicienne » a disparu le
    2026-07-30 : la validation diététicienne est écartée (`CLAUDE.md` §6), le script est
    supprimé et le dossier figé dans `docs/archive/2026-07-29-validation-recettes.md`.)*

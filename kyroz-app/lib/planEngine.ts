@@ -5,6 +5,7 @@ import { remainingMeals, MEAL_LABEL } from './mealtime';
 import { adaptRecipe, AdaptTarget, goalToObjectives, sportsToBuckets, needMatch } from './adaptRecipe';
 import { MIN_KCAL, bankFloorKcal } from './tdee';
 import { bankedDailyTargets, offsetsForPlan, BankResult } from './calorieBank';
+import { recipeContainsFood } from './avoidance';
 
 // ── Moteur de génération de plan local ──────────────────────────────────────
 // Respecte : nombre de jours, repas/jour, variété, préférences alimentaires.
@@ -318,10 +319,13 @@ function recipeAllowed(recipe: Recipe, profile: UserProfile): boolean {
     }
   }
 
-  // Aliments évités
+  // Aliments évités. ⚠️ Passe par `recipeContainsFood` et NON par une sous-chaîne sur
+  // `text` : la comparaison brute échouait EN SILENCE sur les mots de famille et sur les
+  // ligatures — « poisson » n'attrapait 0 ref sur 7, « oeuf » sans ligature 0 sur 2,
+  // « fruits à coque » 0 sur 5. L'utilisateur croyait avoir exclu le poisson et le
+  // moteur lui en servait. Détail et mesure : `lib/avoidance.ts` + `AGENTS.md` D3.
   for (const disliked of profile.disliked_foods ?? []) {
-    const kw = disliked.trim().toLowerCase();
-    if (kw && text.includes(kw)) return false;
+    if (recipeContainsFood(recipe, disliked)) return false;
   }
 
   return true;

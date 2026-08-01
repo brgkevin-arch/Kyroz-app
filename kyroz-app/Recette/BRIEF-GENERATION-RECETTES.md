@@ -987,7 +987,7 @@ sous-lot passe les contrôles du §6 **contre le catalogue ET contre les sous-lo
 ### B2 — 13 collations, deux formats
 
 > ℹ️ **Bloc LIVRÉ le 2026-08-01.** Conservé comme trace du raisonnement. Pour écrire une
-> collation aujourd'hui, la référence est le **§4.12** — les quatre règles structurelles
+> collation aujourd'hui, la référence est le **§4.12** — les cinq règles structurelles
 > mesurées le 2026-08-02, qui n'existaient pas quand ce bloc a été rédigé.
 
 **`col67` → `col79`, catégorie `collation`.** 7 sans restriction · 3 végétariennes · 3 vegan ·

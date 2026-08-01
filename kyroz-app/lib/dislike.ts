@@ -10,6 +10,7 @@
 
 import { Recipe, UserProfile } from './types';
 import { getRecipeById } from './recipes';
+import { recipeContainsFood } from './avoidance';
 
 // Sous ce nb de recettes proposables pour un repas, on demande l'ingrédient.
 export const DISLIKE_THRESHOLD = 3;
@@ -41,13 +42,17 @@ export const DISLIKE_KEYWORDS: { label: string; kw: string }[] = [
   { label: 'Riz', kw: 'riz' },
 ];
 
-function recipeText(r: Recipe): string {
-  return r.ingredients.map((i) => i.name.toLowerCase()).join(' ');
-}
-
-/** Une recette contient-elle ce mot-clé d'ingrédient ? */
+/**
+ * Une recette contient-elle ce mot-clé d'ingrédient ?
+ *
+ * ⚠️ Même prédicat que le filtre dur du moteur (`planEngine.recipeAllowed` →
+ * `recipeContainsFood`), et c'est indispensable : ce qu'on PROPOSE d'éviter ici doit
+ * être exactement ce qui sera évité là-bas. Les deux divergeaient avant le 2026-08-02 —
+ * la comparaison était une sous-chaîne brute des deux côtés, donc aveugle aux ligatures
+ * et aux mots de famille (`poisson` n'attrapait aucun des 7 poissons du catalogue).
+ */
 export function recipeHasKeyword(r: Recipe, kw: string): boolean {
-  return recipeText(r).includes(kw.toLowerCase());
+  return recipeContainsFood(r, kw);
 }
 
 /**
