@@ -487,40 +487,75 @@ produit en suspens — il ne reste qu'à coder.
 
 ### 🍽 D — Catalogue
 
-- **D1 · 🤖 Commande de rédaction : collations légères** *(raisonnement : Journal §1-bis)*. Le vrai trou du catalogue.
-  **CONFIRMÉ ET AGGRAVÉ, remesuré le 2026-07-31 sur les 66 collations du catalogue :**
+- ~~**D1 · Commande de rédaction : collations légères**~~ ✅ **LIVRÉ le 2026-08-01 —
+  13 collations (`col67`→`col79`), catalogue 314 → 327.** Le trou était réel et pire
+  qu'annoncé : sur 66 collations, **aucune** ne descendait sous 180 kcal (la plus légère
+  à 192), là où l'entrée disait « une seule sous 130 ». La plus légère du catalogue est
+  désormais à **156 kcal**.
+  📈 **Effet mesuré en A/B sur le MÊME code** (catalogue ramené à 314 puis remis à 327,
+  pour ne pas confondre avec l'effet du merge de A7) — collations servables par profil :
 
-  | seuil | collations sous ce seuil |
-  |---|---|
-  | ≤ 130 kcal/portion | **0** |
-  | ≤ 180 kcal/portion | **0** |
-  | ≤ 200 kcal/portion | 3 |
-  | ≤ 250 kcal/portion | 14 |
+  | profil | avant | après | |
+  |---|---|---|---|
+  | F 65 sèche | 27/66 | **39/79** | +12 |
+  | H 80 sèche | 35/66 | **46/79** | +11 |
+  | F 80 sèche | 29/66 | **37/79** | +8 |
+  | H 70 maintien | 25/66 | **33/79** | +8 |
+  | F 65 maintien | 28/66 | 35/79 | +7 |
+  | F 55 sèche | 23/66 | 28/79 | +5 |
+  | F 60 maintien | 27/66 | 32/79 | +5 |
+  | H 65 sèche | 31/66 | 36/79 | +5 |
+  | F 70 masse | 13/66 | 16/79 | +3 |
+  | H 80 maintien | 24/66 | 27/79 | +3 |
+  | H 95 masse | 21/66 | 23/79 | +2 |
+  | **H 110 masse** | 16/66 | 16/79 | **+0** |
 
-  La plus légère du catalogue est à **192 kcal** (*Edamame vapeur – sauce soja*).
-  L'entrée disait « une seule tient sous ~130 kcal » : en base de recette, il n'y en a
-  **aucune**. Le scaling ne descend qu'à ×0,55 environ, donc même la plus légère ne peut
-  pas atteindre les ~115 kcal que vise une femme de 55 kg en sèche.
-  ✅ **LA COMMANDE EST DÉJÀ ÉCRITE ET VISE JUSTE : `Recette/lots/b2.md`.** Ne pas en
-  rédiger une autre. Elle impose 9 « petits formats » à **120–185 kcal / 8–12 g de
-  protéines**, dont **au moins 2 à 115 kcal**, et elle a déjà identifié la cause
-  racine : *« n'essaie PAS d'atteindre 6 g de protéines pour 100 kcal — c'est cette
-  règle qui a rendu les 66 collations actuelles inutilisables »*.
-  ⚠️ **Piège pour la prochaine session** : la réponse intuitive (« une collation légère
-  doit être très protéinée ») est exactement l'erreur d'origine. À 130 kcal, 12 g de
-  protéines font 9 g/100 kcal — le double de ce que la commande prescrit. La collation
-  est servie EN DERNIER, le plancher protéique du jour est déjà couvert par les trois
-  repas ; la cible résiduelle réelle est de 1 à 18 g. **Suivre `b2.md`, pas son
-  intuition.** ➡️ D1 et D2 sont donc la même chaîne : le fondateur génère, je vérifie.
-- **D2 · 🧑 PUIS 🤖 — le lot B2 n'est pas encore généré.** *Vérifié le 2026-07-31 :
-  `Recette/lots/b2.md` est la **commande**, pas la livraison ; `Recette/drops/` ne
-  contient que les 3 lots déjà fusionnés (juin/juillet). Il n'y a donc rien à vérifier
-  aujourd'hui.* Le marquage 🤖 laissait croire le contraire.
-  🧑 **Étape bloquante = toi** : générer les 13 collations `col67`→`col79` à partir de
-  `b2.md` (lot autonome, aucun accès au code nécessaire), et déposer le JSON dans
-  `Recette/drops/`. 🤖 Ensuite je vérifie : `check:doublons`, `check:enveloppe`,
-  `mesure:couverture`. **C'est le chantier catalogue le plus rentable** — il ferme D1
-  et D6 d'un coup.
+  **Tous les profils gagnent sauf `H 110 masse`** — le seul que `check:enveloppe`
+  signale comme non couvert par l'union du lot. Son besoin dépasse le plafond de
+  l'enveloppe « standard » (290 kcal). À traiter dans un lot suivant, pas en forçant
+  une enveloppe.
+
+  ⚠️ **CE QUE JE N'AI PAS FAIT, ET POURQUOI.** `b2.md` §3 demande « au moins 2 des
+  9 petits formats à 115 kcal · 4 g de protéines », en assumant qu'elles ne serviront
+  qu'un profil. **Impossible : `check:enveloppe` REJETTE toute recette servant moins de
+  3 profils sur 12.** La commande et le contrôle se contredisent. J'ai suivi le
+  contrôle — c'est lui qui garde le catalogue vendable — donc aucune recette n'est
+  sous 156 kcal en base. **Si le fondateur veut vraiment des recettes ultra-légères
+  mono-profil, c'est le seuil R8 qu'il faut assouplir, pas la commande qu'il faut
+  réécrire.**
+
+  🧰 **Méthode, pour le prochain lot** : compositions écrites à la main, **quantités
+  résolues numériquement** contre les vraies valeurs `/100 g` d'`ingredients_reference`.
+  Trois pièges rencontrés, tous invisibles à la lecture :
+  1. viser le CENTRE des fourchettes fait échouer R8 — la servabilité dépend de la
+     **protéine**, il faut viser le HAUT de sa fourchette (4 recettes servaient 0 à 2
+     profils avant correction) ;
+  2. un solveur produit des grammages absurdes en cuisine (5 g de sarrasin pour une
+     galette, 1 g de noix) — imposer des minimums plausibles ;
+  3. changer un ingrédient sans relire les instructions viole le §6.3 (une recette
+     citait encore « le pain » après passage à la polenta).
+- ~~**D2 · Vérifier le lot B2**~~ ✅ **GÉNÉRÉ ET VÉRIFIÉ le 2026-08-01, en session.**
+  `check:doublons` → aucune violation (R1, R2, R4, R5, R7) · `check:enveloppe` → lot
+  conforme · 12 ancres protéiques distinctes (max 2 par ref, le brief en demandait 6
+  et plafonnait à 3) · 7 ancres grasses · 11 des 13 sans gluten. Drop conservé dans
+  `Recette/drops/2026-08-01-b2-collations/`.
+
+  ⚠️ **QUATRE CONTRADICTIONS DANS `b2.md`, à corriger avant de générer `b3`** — elles
+  ne sont pas anodines, chacune envoie dans un mur :
+  1. **§7 recommande des ancres absentes du §4.** `poulet_filet`, `saumon`, `feta`,
+     `mozzarella`… sont listées comme « places libres » alors que le §4 dit « règle
+     absolue : tu n'emploies QUE ces 63 clés ». J'ai suivi le §4.
+  2. **La répartition par régime du §1 est infaisable avec la liste du §4.**
+     Elle demande 7 recettes « sans restriction » (viande/poisson) alors que le §4
+     n'autorise **qu'une seule** viande (`dinde_escalope`) et aucun poisson — et que le
+     §7 plafonne un ref protéique à 3 recettes. Livré à la place : 7 vegan,
+     12 compatibles végétariennes, 1 carnée. *(Effet de bord utile : +7 collations
+     vegan, ça sert aussi D7.)*
+  3. **§5 impose `wave: "2026-07-30-vague-113"`** alors que `Recette/README.md` exige
+     le **nom du dossier du drop**. J'ai suivi le README (`2026-08-01-b2-collations`),
+     et un test vérifie la partition par vague.
+  4. **§3 cite `yaourt_nature` et `petit_suisse`** comme « formats ouverts, zéro
+     recette » — ces deux refs n'existent pas dans les 63 du §4.
 - **D3 · 🧑 Axe allergène — jamais tranché** *(Journal §3)*. Le `tahini` introduit le sésame et **aucun
   champ ne le porte**. Décision produit : ajoute-t-on un axe allergène au modèle, ou
   reste-t-on sur la saisie libre ?
@@ -546,19 +581,18 @@ produit en suspens — il ne reste qu'à coder.
   recette bâtie sur 8 g d'huile plafonne à 12 g. C'est un garde-fou culinaire
   volontaire (une portion ne devient pas 24 g d'huile), pas un défaut.
   ➡️ **Ce que la mesure a réellement trouvé est ailleurs et plus sérieux : A9.**
-- **D6 · Collations invendables aux petits gabarits — ✅ RE-MESURÉ le 2026-07-31, rien
-  n'a bougé, et c'est normal.** `npm run mesure:couverture` (POOL SERVABLE, règle R8
-  jouée sur `adaptRecipe`) : **F 55 sèche = 16/66 collations servables**, F 65 sèche
-  19/66, F 70 masse 19/66, F 60 maintien 21/66. Soit ~50 collations hors d'atteinte du
-  plus petit gabarit — l'ordre de grandeur des « 48 » d'origine.
-  **La vague de 113 n'y a rien changé parce qu'elle n'a ajouté AUCUNE collation** : le
-  catalogue en compte toujours 66 (78 petits-déj, 170 repas complets). Il n'y a donc
-  rien à décider ici : **D6 et D1 sont le même problème**, et D1 est la réponse.
+- ~~**D6 · Collations invendables aux petits gabarits**~~ ✅ **FERMÉ le 2026-08-01 par
+  le lot B2.** C'était le même problème que D1, pas un chantier séparé : le catalogue
+  ne comptait aucune collation légère parce que la vague de 113 n'en avait ajouté
+  AUCUNE. Chiffres avant/après dans D1.
 - **D7 · 🤖 Pool vegan — RE-MESURÉ le 2026-07-31 : les ratios sont INCHANGÉS, mais la
   conclusion de l'entrée était fausse.**
   Pool par créneau (champ `restrictions_ok`, celui que lit le moteur) :
   petit-déj **33/78** vegan · midi et soir **57/170** · collations **36/66**.
   Identique à ce qui était écrit : **la vague de 113 n'a ajouté aucune recette vegan.**
+  ♻️ **Recompté le 2026-08-01 après le lot B2** : les collations passent à **43/79**
+  vegan (+7). Petit-déj et repas complets sont **inchangés** — c'est là que le pool
+  reste mince, et c'est là qu'il faudra écrire.
   ❌ En revanche « en vegan + sèche le pool ne laisse qu'un petit-déj viable » est
   **faux**. Ce qui compte n'est pas le ratio du pool mais ce qu'un utilisateur VOIT :
   sur 4 semaines, les profils vegan reçoivent **8 à 14 petits-déj distincts**
