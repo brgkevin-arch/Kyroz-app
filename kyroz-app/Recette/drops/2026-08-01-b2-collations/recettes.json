@@ -1,0 +1,729 @@
+{
+  "recipes": [
+    {
+      "id": "col67",
+      "name": "Tartine de dinde – concombre – graines de courge",
+      "category": "collation",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "recup_jour_repos": true,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 6
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "dinde_escalope",
+          "qty": 35,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "pain_sans_gluten",
+          "qty": 35,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "concombre",
+          "qty": 60,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "graines_courge",
+          "qty": 5,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Poêle l'escalope de dinde 3 minutes par face à feu vif, sans la couvrir, puis laisse-la reposer une minute avant de l'émincer finement — coupée trop tôt, elle rend son jus et détrempe le pain.",
+        "Taille le concombre en fines rondelles et pose-les sur le pain grillé, la dinde par-dessus.",
+        "Concasse les graines de courge et parsème juste avant de manger."
+      ],
+      "why": "Collation salée protéinée, rare sur ce créneau où tout est sucré.",
+      "macros_per_serving": {
+        "kcal": 160.9,
+        "protein": 11.9,
+        "carbs": 14.7,
+        "fat": 5.3
+      },
+      "wave": "2026-08-01-b2-collations"
+    },
+    {
+      "id": "col68",
+      "name": "Écrasé de lentilles au tahini – bâtonnets de carotte",
+      "category": "collation",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 8
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "lentilles_cuites",
+          "qty": 85,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "mais",
+          "qty": 20,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "carotte",
+          "qty": 50,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "tahini",
+          "qty": 6,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Rince les lentilles cuites à l'eau froide et égoutte-les à fond : c'est l'eau résiduelle qui rend l'écrasé fade et liquide.",
+        "Écrase-les grossièrement à la fourchette avec le tahini, un filet de jus de citron, du sel et du cumin, puis mélange le maïs sans l'écraser.",
+        "Taille la carotte en bâtonnets et sers l'écrasé encore tiède, il se tartine mieux."
+      ],
+      "why": "Végétal complet : légumineuse et sésame apportent des protéines complémentaires.",
+      "macros_per_serving": {
+        "kcal": 181.3,
+        "protein": 10.6,
+        "carbs": 21.5,
+        "fat": 4.1
+      },
+      "wave": "2026-08-01-b2-collations"
+    },
+    {
+      "id": "col69",
+      "name": "Wrap froid edamame écrasés – roquette",
+      "category": "collation",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "recup_jour_repos": true,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 5
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "edamame",
+          "qty": 86,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "wrap_sans_gluten",
+          "qty": 18,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "roquette",
+          "qty": 25,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "graines_courge",
+          "qty": 1,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Plonge les edamame 4 minutes dans l'eau bouillante salée, égoutte et rafraîchis-les aussitôt sous l'eau froide, puis écosse-les.",
+        "Écrase-les grossièrement à la fourchette avec du sel, du poivre et un filet de jus de citron, et étale-les sur le wrap jusqu'aux bords — c'est cette purée qui fait tenir le reste, pas le pliage.",
+        "Ajoute la roquette et les graines de courge concassées, roule serré en partant du côté garni et coupe en deux en biais."
+      ],
+      "why": "Végétal salé, transportable, sans gluten.",
+      "macros_per_serving": {
+        "kcal": 176.2,
+        "protein": 11.5,
+        "carbs": 18.8,
+        "fat": 6
+      },
+      "wave": "2026-08-01-b2-collations"
+    },
+    {
+      "id": "col70",
+      "name": "Œuf mollet sur pain de seigle – tomate",
+      "category": "collation",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "recup_jour_repos": true,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 7
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "oeuf_entier",
+          "qty": 38,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "pain_seigle",
+          "qty": 36,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "tomate",
+          "qty": 70,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "amandes",
+          "qty": 3,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Plonge l'œuf dans l'eau bouillante 6 minutes exactement, puis passe-le sous l'eau froide 30 secondes : au-delà, le jaune prend et tu perds le coulant.",
+        "Écale-le, coupe-le en deux sur le pain grillé garni de rondelles de tomate salées.",
+        "Concasse les amandes par-dessus et poivre généreusement."
+      ],
+      "why": "Protéine complète et lipides de qualité, en un format salé rapide.",
+      "macros_per_serving": {
+        "kcal": 169.4,
+        "protein": 8.2,
+        "carbs": 18.4,
+        "fat": 6
+      },
+      "wave": "2026-08-01-b2-collations"
+    },
+    {
+      "id": "col71",
+      "name": "Skyr – châtaignes – framboises",
+      "category": "collation",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "recup_jour_repos": true,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 4
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "skyr",
+          "qty": 90,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "chataigne",
+          "qty": 25,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "framboises",
+          "qty": 30,
+          "macro_role": "fruit",
+          "scalable": true
+        },
+        {
+          "ref": "noisettes",
+          "qty": 6,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Verse le skyr dans un bol et détends-le à la cuillère : sorti du pot il est trop ferme pour se mélanger sans écraser les fruits.",
+        "Émiette les châtaignes cuites par-dessus, ajoute les framboises entières.",
+        "Concasse les noisettes et parsème juste avant de manger, sinon elles ramollissent."
+      ],
+      "why": "Laitage très protéiné associé à un féculent doux, rassasiant pour peu de calories.",
+      "macros_per_serving": {
+        "kcal": 156.9,
+        "protein": 11.9,
+        "carbs": 14.6,
+        "fat": 4.5
+      },
+      "wave": "2026-08-01-b2-collations"
+    },
+    {
+      "id": "col72",
+      "name": "Haricots rouges – polenta grillée – tomate",
+      "category": "collation",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 9
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "haricots_rouges_conserve",
+          "qty": 90,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "polenta",
+          "qty": 12,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "tomate",
+          "qty": 50,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "noix",
+          "qty": 5,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Verse la polenta en pluie dans deux fois son volume d'eau bouillante salée, remue 3 minutes jusqu'à ce qu'elle se décolle des parois, puis étale-la sur 1 cm et laisse figer 5 minutes.",
+        "Coupe-la en bâtonnets et poêle-les à sec 2 minutes par face pour qu'ils croustillent.",
+        "Rince et égoutte les haricots rouges, mélange-les à la tomate en dés avec du sel et du paprika, et sers avec les bâtonnets et les noix concassées."
+      ],
+      "why": "Légumineuse et céréale ensemble, pour un profil protéique plus complet.",
+      "macros_per_serving": {
+        "kcal": 183.9,
+        "protein": 9.6,
+        "carbs": 22.5,
+        "fat": 4.4
+      },
+      "wave": "2026-08-01-b2-collations"
+    },
+    {
+      "id": "col73",
+      "name": "Polenta grillée – cottage cheese – roquette",
+      "category": "collation",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "recup_jour_repos": true,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 5
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "cottage_cheese",
+          "qty": 90,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "polenta",
+          "qty": 16,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "roquette",
+          "qty": 20,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "amandes",
+          "qty": 1,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Verse la polenta en pluie dans deux fois son volume d'eau bouillante salée, remue 3 minutes jusqu'à ce qu'elle se décolle des parois, puis étale-la sur 1 cm et laisse figer 5 minutes.",
+        "Coupe-la en carrés et poêle-les à sec 2 minutes par face : c'est cette croûte qui empêche le cottage cheese de les détremper.",
+        "Garnis chaque carré de cottage cheese salé et poivré, couvre de roquette et parsème les amandes concassées au moment de servir."
+      ],
+      "why": "Laitage frais peu gras, riche en protéines, sur une base sans gluten.",
+      "macros_per_serving": {
+        "kcal": 157.1,
+        "protein": 11.9,
+        "carbs": 14.9,
+        "fat": 4.8
+      },
+      "wave": "2026-08-01-b2-collations"
+    },
+    {
+      "id": "col74",
+      "name": "Salade tiède de haricots blancs – raisins – roquette",
+      "category": "collation",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "recup_jour_repos": true,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 6
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "haricots_blancs",
+          "qty": 36,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "raisins",
+          "qty": 15,
+          "macro_role": "fruit",
+          "scalable": true
+        },
+        {
+          "ref": "roquette",
+          "qty": 35,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "beurre_amande",
+          "qty": 7,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Fais tremper les haricots blancs la veille, puis cuis-les 45 minutes à l'eau non salée jusqu'à ce qu'ils s'écrasent entre deux doigts, et égoutte-les à fond.",
+        "Détends le beurre d'amande avec une cuillère d'eau chaude, du jus de citron et du sel, jusqu'à une sauce fluide.",
+        "Mélange les haricots encore tièdes à la sauce — froids ils ne l'absorbent plus — puis ajoute les raisins coupés en deux et la roquette hors du feu."
+      ],
+      "why": "Légumineuse sucrée-salée, sans laitage ni gluten.",
+      "macros_per_serving": {
+        "kcal": 183.2,
+        "protein": 10,
+        "carbs": 20.2,
+        "fat": 4.7
+      },
+      "wave": "2026-08-01-b2-collations"
+    },
+    {
+      "id": "col75",
+      "name": "Fromage blanc – kiwi – graines de courge",
+      "category": "collation",
+      "tags": {
+        "objectif": [
+          "perte_de_gras"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 4
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "fromage_blanc_0",
+          "qty": 110,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "chataigne",
+          "qty": 22,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "kiwi",
+          "qty": 40,
+          "macro_role": "fruit",
+          "scalable": true
+        },
+        {
+          "ref": "graines_courge",
+          "qty": 7,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Pèle les kiwis et coupe-les en dés plutôt qu'en rondelles : les dés se mélangent au fromage blanc sans rendre leur jus d'un coup.",
+        "Mélange le fromage blanc avec les châtaignes émiettées, puis ajoute les kiwis en dernier et remue à peine.",
+        "Parsème les graines de courge juste avant de manger."
+      ],
+      "why": "Très peu de lipides et beaucoup de volume, pour une petite cible calorique.",
+      "macros_per_serving": {
+        "kcal": 153.7,
+        "protein": 12,
+        "carbs": 17.5,
+        "fat": 4.3
+      },
+      "wave": "2026-08-01-b2-collations"
+    },
+    {
+      "id": "col76",
+      "name": "Falafels tièdes – maïs – sauce fromage blanc au sésame",
+      "category": "collation",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "recup_jour_repos": true,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 10
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "falafel",
+          "qty": 65,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "fromage_blanc_0",
+          "qty": 150,
+          "macro_role": "dairy",
+          "scalable": true
+        },
+        {
+          "ref": "mais",
+          "qty": 45,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "concombre",
+          "qty": 60,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "tahini",
+          "qty": 5,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Réchauffe les falafels 6 minutes à la poêle à feu moyen en les retournant, sans matière grasse : au four ils sèchent, au micro-ondes ils ramollissent.",
+        "Fouette le fromage blanc avec le tahini, du jus de citron et du sel, jusqu'à obtenir une sauce qui nappe la cuillère.",
+        "Sers les falafels tièdes sur le maïs et le concombre en demi-lunes, la sauce à part pour qu'ils gardent leur croûte."
+      ],
+      "why": "Format salé rassasiant, protéines végétales et laitières combinées.",
+      "macros_per_serving": {
+        "kcal": 289.6,
+        "protein": 19.4,
+        "carbs": 27,
+        "fat": 10.6
+      },
+      "wave": "2026-08-01-b2-collations"
+    },
+    {
+      "id": "col77",
+      "name": "Pois chiches grillés – galette de sarrasin – carotte",
+      "category": "collation",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 12
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "pois_chiches",
+          "qty": 38,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "sarrasin",
+          "qty": 16,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "carotte",
+          "qty": 40,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "graines_courge",
+          "qty": 14,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Fais tremper les pois chiches la veille, puis cuis-les 50 minutes à l'eau non salée jusqu'à ce qu'ils s'écrasent entre deux doigts.",
+        "Délaye le sarrasin avec de l'eau et une pincée de sel jusqu'à une pâte fluide, laisse-la reposer le temps de râper la carotte, puis cuis une galette fine à la poêle chaude, 2 minutes par face.",
+        "Poêle les pois chiches égouttés et bien secs 5 minutes à feu vif avec les graines de courge, sale et sers sur la galette avec la carotte râpée."
+      ],
+      "why": "Légumineuse et céréale complète, sans gluten, très rassasiant.",
+      "macros_per_serving": {
+        "kcal": 281.8,
+        "protein": 14.4,
+        "carbs": 33.6,
+        "fat": 9.7
+      },
+      "wave": "2026-08-01-b2-collations"
+    },
+    {
+      "id": "col78",
+      "name": "Edamame – maïs – avocat au citron",
+      "category": "collation",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "recup_jour_repos": true,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 8
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "edamame",
+          "qty": 140,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "mais",
+          "qty": 65,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "roquette",
+          "qty": 30,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "avocat",
+          "qty": 20,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Plonge les edamame 4 minutes dans l'eau bouillante salée puis égoutte-les et rafraîchis-les aussitôt sous l'eau froide, sinon ils continuent de cuire et perdent leur mordant.",
+        "Écosse-les, mélange-les au maïs et à la roquette.",
+        "Coupe l'avocat en dés, arrose de jus de citron et de sel, puis incorpore-le en dernier sans écraser."
+      ],
+      "why": "Végétal complet, riche en fibres, servi froid.",
+      "macros_per_serving": {
+        "kcal": 276.9,
+        "protein": 18.5,
+        "carbs": 24.7,
+        "fat": 11
+      },
+      "wave": "2026-08-01-b2-collations"
+    },
+    {
+      "id": "col79",
+      "name": "Yaourt de soja – châtaignes – chocolat noir",
+      "category": "collation",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "recup_jour_repos": true,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 5
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "yaourt_soja_proteine",
+          "qty": 190,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "chataigne",
+          "qty": 35,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "framboises",
+          "qty": 60,
+          "macro_role": "fruit",
+          "scalable": true
+        },
+        {
+          "ref": "chocolat_noir",
+          "qty": 13,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Émiette les châtaignes cuites au fond du bol et verse le yaourt de soja par-dessus : dessous, elles s'imbibent et perdent leur texture farineuse.",
+        "Ajoute les framboises entières sans mélanger.",
+        "Râpe le chocolat noir au couteau économe juste avant de servir — fondu ou en morceaux, il ne se répartit pas."
+      ],
+      "why": "Alternative végétale protéinée, avec un féculent doux et des fruits rouges.",
+      "macros_per_serving": {
+        "kcal": 289.2,
+        "protein": 19.9,
+        "carbs": 27.5,
+        "fat": 9.1
+      },
+      "wave": "2026-08-01-b2-collations"
+    }
+  ]
+}
