@@ -104,11 +104,11 @@ function carbFatRatio(profile: UserProfile): { carb: number; fat: number } {
  */
 function mealTarget(
   remKcal: number, remProt: number, weight: number, remWeight: number,
-  ratio: { carb: number; fat: number },
+  ratio: { carb: number; fat: number }, protFloor = 0,
 ): AdaptTarget {
   const share = remWeight > 0 ? weight / remWeight : 0;
   const kcalMeal = Math.max(remKcal, 0) * share;
-  const proteinMeal = Math.max(remProt, 0) * share;
+  const proteinMeal = Math.max(Math.max(remProt, 0) * share, Math.min(protFloor, kcalMeal / 4));
   const nonProtKcal = Math.max(kcalMeal - 4 * proteinMeal, 0);
   return {
     kcalMeal,
@@ -507,7 +507,7 @@ export function computeDailyTotals(
 // Version du moteur de génération : à incrémenter quand le scoring/sélection
 // change, pour que les plans EN CACHE se régénèrent automatiquement (la signature
 // change → l'auto-refresh de l'écran Plan rejoue la génération). v2 = lipides cadrés.
-const ENGINE_VERSION = 35; // v35 = lot B5, 20 collations réécrites (composition changée sous le même id → les plans en cache serviraient l’ancienne recette) ; v34 = lot B4, 32 recettes à l’enveloppe corrigée (rep251–rep270, pd99–pd110) — les plans en cache ne les verraient pas ; v33 = lot B3, 20 petits-déjeuners (pd79–pd98) — tous les lots commandés sont livrés ; v32 = lot B1-lot4, 20 repas complets — la vague B1 est complète (rep171–rep250) ; v31 = lot B1-lot3, 20 repas complets ; v30 = lot B1-lot2, 20 repas complets ; v29 = lot B1-lot1, 20 repas complets (les plans en cache ne les verraient pas) ; v28 = cible lipidique visée 15 % au-dessus du plancher (A9) — les plans en cache serviraient l'ancienne répartition ; v27 = lot B2, 13 collations légères (les plans en cache ne les verraient pas) ; v26 = banque de calories (les plans en cache ignoraient les écarts déclarés) ; v25 = borne basse de l'ancre protéine 1,0 → 0,5 (les plans en cache servaient l'ancien plancher) ; v24 = 9 recettes différenciées (nettoyage des doublons : composition modifiée) ; v23 = ancre protéine rendue à 8 recettes ; v22 = le temps de prépa ne filtre plus ; v21 = yaourt_grec démappé
+const ENGINE_VERSION = 36; // v36 = plancher protéique par repas (`PROT_SHARE_FLOOR`) — la répartition intra-journée change, les plans en cache serviraient l’ancienne ; v35 = lot B5, 20 collations réécrites (composition changée sous le même id → les plans en cache serviraient l’ancienne recette) ; v34 = lot B4, 32 recettes à l’enveloppe corrigée (rep251–rep270, pd99–pd110) — les plans en cache ne les verraient pas ; v33 = lot B3, 20 petits-déjeuners (pd79–pd98) — tous les lots commandés sont livrés ; v32 = lot B1-lot4, 20 repas complets — la vague B1 est complète (rep171–rep250) ; v31 = lot B1-lot3, 20 repas complets ; v30 = lot B1-lot2, 20 repas complets ; v29 = lot B1-lot1, 20 repas complets (les plans en cache ne les verraient pas) ; v28 = cible lipidique visée 15 % au-dessus du plancher (A9) — les plans en cache serviraient l'ancienne répartition ; v27 = lot B2, 13 collations légères (les plans en cache ne les verraient pas) ; v26 = banque de calories (les plans en cache ignoraient les écarts déclarés) ; v25 = borne basse de l'ancre protéine 1,0 → 0,5 (les plans en cache servaient l'ancien plancher) ; v24 = 9 recettes différenciées (nettoyage des doublons : composition modifiée) ; v23 = ancre protéine rendue à 8 recettes ; v22 = le temps de prépa ne filtre plus ; v21 = yaourt_grec démappé
 
 export function profileSignature(p: UserProfile): string {
   // NB : `hidden_recipes` (👎) est VOLONTAIREMENT absent. Un 👎 remplace UN repas
@@ -537,6 +537,25 @@ export function profileSignature(p: UserProfile): string {
 // par itérations pondérées aux kcal COURANTES : un repas qui ne bouge plus (capé)
 // pèse moins au tour suivant → son reliquat coule vers les autres. No-op si déjà
 // dans la cible (cas du plan canonique seed 0). Borné à 4 itérations.
+// Plancher protéique d'un repas, en fraction de sa part ÉQUITABLE du jour.
+// Sans lui, la cible protéique se calcule sur le RESTANT : chaque repas qui dépasse
+// sa part rogne celle des suivants, et le dernier servi (la collation) encaisse toute
+// la dérive. Mesuré avant correctif sur `F 70 masse` : part équitable 12,7 g, cible
+// réellement servie à la collation **5,4 g** — une densité de 1,7 g pour 100 kcal
+// qu'aucune collation du catalogue ne peut viser. Le moteur demandait alors 47 g de
+// glucides pour 311 kcal, la recette débordait, et `over_target_kcal` se levait :
+// 35 collations sur 79 étaient jugées « trop grosses » pour une cible de 311 kcal.
+// APRÈS : cible 308 kcal · 9 g P, 23 « trop grosses », vivier 25 → 36 sur 79.
+// Le plancher est borné par les kcal du repas (jamais plus de 100 % de protéines).
+//
+// ⚠️ **0,7 est un point MESURÉ, pas un réglage esthétique.** Balayé de 0 à 1 sur les
+// 12 profils : le vivier total monte encore à 0,85 (3 925 contre 3 889), mais au prix
+// du créneau le plus rare du catalogue — les repas complets de `H 110 masse` tombent
+// de 74 à 65. Au-delà, la cible ignore le budget restant : à 1,0 les protéines servies
+// dépassent la cible de 6,2 % (contre 2,6 % ici) sans rien gagner d'utile.
+// Effet mesuré à 0,7 : `carbs_below_target` **15 → 0** sur 1 344 repas servis,
+// précision calorique du jour 0,07 % → 0,05 %, protéines +2,35 % → +2,56 %.
+const PROT_SHARE_FLOOR = 0.7;
 const TIGHTEN_TOL_KCAL = 25;
 // Lissage hebdo : déviation kcal max autorisée pour UN jour autour de la cible
 // quotidienne (le reliquat est rattrapé sur les jours suivants → cible hebdo tenue).
@@ -749,7 +768,10 @@ export function buildLocalPlan(profile: UserProfile, seed: number = 0): MealPlan
       // Cible du repas (EN GRAMMES) = part du budget restant (kcal + protéines) au
       // prorata du poids ; glucides/lipides déduits via le ratio du jour. Report
       // de budget → le total du jour reste serré malgré les arrondis/bornes.
-      const target = mealTarget(remainingKcal, remainingProtein, weight, remainingWeight, dayRatio);
+      const target = mealTarget(
+        remainingKcal, remainingProtein, weight, remainingWeight, dayRatio,
+        PROT_SHARE_FLOOR * profile.target_protein_g * (weight / totalWeight),
+      );
 
       const choice = selectMealAdapted(
         pools[mealType], target, usage, variety, preferredIds, objectives, sportBuckets, seed, fiberStrong, goalDir,
