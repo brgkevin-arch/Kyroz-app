@@ -442,15 +442,39 @@ produit en suspens — il ne reste qu'à coder.
     Google refuse de publier, **même en test fermé**, tant qu'elle est incomplète.
   - 🤖 **Abonnements Google** : `kyroz_plus` + forfaits `monthly` / `annual`. Le menu
     Monétisation ne s'ouvre qu'après dépôt d'un build.
-- **C4 · 🧑 Décision : mises à jour OTA (`expo-updates`) ?** Le build a signalé que
-  `eas.json` déclare des canaux alors que le paquet n'est PAS installé — les canaux sont
-  donc **inertes**. *Confirmé le 2026-07-31* : `expo-updates` est absent de
-  `package.json` ET de `node_modules` (même en transitif) ; `eas.json` déclare bien
-  3 canaux (`development`, `preview`, `production`) ; et `app.json` n'a **ni**
-  `runtimeVersion` **ni** bloc `updates`, tous deux nécessaires. Il ne manque donc pas
-  « juste le paquet » : c'est une installation en 3 points. Sans OTA, corriger une faute de frappe impose un nouveau build ET une
-  nouvelle revue du store. Avec, les correctifs JS partent en minutes. C'est une
-  dépendance de plus dans le core loop : décision produit, pas installation à la volée.
+- ~~**C4 · Décision : mises à jour OTA (`expo-updates`) ?**~~ ✅ **INSTALLÉ le
+  2026-08-01, sur « go » du fondateur.** `eas.json` déclarait trois canaux depuis des
+  semaines alors que le paquet n'était pas installé — ils étaient **inertes**. Il
+  manquait trois choses, pas une : le paquet, le bloc `updates` d'`app.json`, et
+  `runtimeVersion`.
+
+  **Config** : `runtimeVersion.policy = "appVersion"` · `checkAutomatically: "ON_LOAD"` ·
+  **`fallbackToCacheTimeout: 0`**. Ce dernier point est le seul qui touche l'expérience :
+  l'app **ne bloque jamais au démarrage** pour attendre une mise à jour — elle part sur
+  le bundle en cache, télécharge en fond, applique au lancement suivant. Sans lui, la
+  contrainte « latence < 1 seconde » de `CLAUDE.md` §4 sautait à la première connexion
+  lente.
+
+  **Vérifié sur le manifeste Android RÉELLEMENT généré** (`expo prebuild`, la seule
+  preuve qui vaille — cf. A2) : `EXPO_UPDATES_LAUNCH_WAIT_MS = 0` ·
+  `EXPO_UPDATES_CHECK_ON_LAUNCH = ALWAYS` · `EXPO_RUNTIME_VERSION = 1.0.0` ·
+  `EXPO_UPDATE_URL` pointant sur le projet EAS. **Aucune permission ajoutée**, et le
+  correctif A2 survit (`RECORD_AUDIO` et `SYSTEM_ALERT_WINDOW` toujours en
+  `tools:node="remove"`). Export web inchangé, 787 tests verts, `tsc` propre.
+
+  🧑 **Publier un correctif** : `npx eas-cli update --branch production --message "…"`.
+
+  ⚠️ **Ce que l'OTA ne peut PAS faire** : livrer du natif. Ajouter ou changer une
+  dépendance native impose un nouveau build ET une nouvelle revue de store.
+  `runtimeVersion` est le garde-fou : lié à `expo.version`, **monter la version coupe
+  volontairement la ligne OTA** vers les anciens binaires, pour qu'un bundle JS ne
+  atterrisse jamais sur un natif incompatible.
+
+  ⚠️ **Le risque, à connaître AVANT de s'en servir** : une mise à jour OTA atteint tout
+  le monde en quelques minutes, **sans revue de store pour l'arrêter**. Le filet
+  disparaît. Ne jamais publier sans `npm test` + `tsc` verts ; en cas de casse,
+  republier l'update précédent (`eas update:rollback`).
+
 - **C3 · 🧑 Classement d'âge : ADULTES UNIQUEMENT** — *tranché le 2026-07-30.*
   Apple 17+ · Google « Adultes uniquement », pour coller au blocage 18 ans de l'app.
   Répondre au questionnaire de façon à **atteindre** ce classement (le thème « gestion du

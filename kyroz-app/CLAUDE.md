@@ -28,6 +28,35 @@ App mobile React Native (Expo Router, SDK 56) de plans repas macro-précis pour 
 | Backend / Auth | **Supabase** (région EU) — création de compte email + suppression de compte (RGPD) | Auth OK |
 | Base nutritionnelle | **Ciqual (ANSES) + table maison** — voir la note ci-dessous | En place |
 | Analytics | PostHog (cloud EU) | **Câblé (dormant)** — `lib/analytics.ts`, consent-gated RGPD ; s'active en posant `EXPO_PUBLIC_POSTHOG_KEY` |
+| Mises à jour OTA | **`expo-updates`** — correctifs JS sans repasser par la revue des stores | **Actif** (2026-08-01) — voir la note ci-dessous |
+
+> **Mises à jour OTA — installées le 2026-08-01 (C4).** `eas.json` déclarait trois
+> canaux depuis des semaines alors que le paquet n'était pas installé : ils étaient
+> **inertes**. Trois choses manquaient, pas une : le paquet, le bloc `updates`, et
+> `runtimeVersion`.
+>
+> **Config retenue, et pourquoi** : `runtimeVersion.policy = "appVersion"` (le bundle JS
+> est lié à `expo.version`) · `checkAutomatically: "ON_LOAD"` · **`fallbackToCacheTimeout: 0`**.
+> Ce dernier n'est pas un détail : il garantit que l'app **ne bloque JAMAIS au démarrage**
+> pour attendre une mise à jour. Elle part sur le bundle en cache, télécharge en fond, et
+> applique au lancement suivant. Sans ça, la contrainte §4 « latence < 1 seconde » sautait
+> à la première connexion lente. Vérifié dans le manifeste généré :
+> `EXPO_UPDATES_LAUNCH_WAIT_MS = 0`.
+>
+> **Publier un correctif** : `npx eas-cli update --branch production --message "…"`.
+>
+> ⚠️ **Ce que l'OTA ne peut PAS faire** : livrer du natif. Ajouter ou changer une
+> dépendance native impose un nouveau build ET une nouvelle revue. `runtimeVersion` est
+> le garde-fou : lié à `expo.version`, **monter la version coupe volontairement la ligne
+> OTA** vers les anciens binaires, pour qu'un bundle JS ne se retrouve jamais sur un
+> natif incompatible.
+>
+> ⚠️ **Le risque, à connaître avant de s'en servir** : une mise à jour OTA atteint TOUT
+> LE MONDE en quelques minutes, **sans revue de store pour l'arrêter**. C'est le filet
+> qui disparaît. Ne jamais publier sans `npm test` + `tsc` verts. En cas de casse :
+> republier l'update précédent (`eas update:rollback`).
+> ℹ️ Aucune permission Android ajoutée — vérifié sur le manifeste généré, et le
+> correctif A2 (`RECORD_AUDIO`, `SYSTEM_ALERT_WINDOW` en `tools:node="remove"`) survit.
 
 > **Le chemin de génération par IA a été SUPPRIMÉ le 2026-07-31.** `lib/generatePlan.ts`
 > proposait un appel à l'API Claude « si `EXPO_PUBLIC_ANTHROPIC_API_KEY` est définie ».
