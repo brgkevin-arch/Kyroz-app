@@ -536,6 +536,33 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
   vraisemblablement un bundle en cache plus ancien. À revérifier sur la version fraîche
   une fois A12 déployé.
 
+- ~~**A14 · « Objectif daté » annonçait une date sous une phrase qui la contredisait**~~
+  ✅ **CORRIGÉ le 2026-08-02.** Remonté par le fondateur, captures à l'appui : les CINQ
+  échéances (4 / 8 / 12 / 16 / 24 sem) affichaient **exactement les mêmes chiffres** —
+  seule la date changeait.
+  **Ce n'est PAS un bug de calcul, et c'est important** : ce n'est pas l'échéance qui
+  pilote, c'est le **plancher de sécurité**. Mesuré sur le moteur (H 83 kg, 18 %MG, 4
+  séances → 70 kg) : plancher 2241 kcal/j, donc déficit borné à ~350 kcal/j, donc
+  **0,3 kg/sem quelle que soit la date choisie**. Le moteur a raison de refuser de creuser.
+  **Ce qui était faux, c'est la phrase.** `« Cible le 30 août 2026. »` était affirmée
+  comme un fait, juste sous les puces — pour une atteinte réelle le **19 juin 2027**,
+  soit **293 jours plus tard**. La vérité était déjà à l'écran (carte « plancher »), mais
+  **sous** la phrase qui disait l'inverse, et **hors du premier écran** (le bouton
+  Enregistrer la recouvre sur iPhone).
+  **Correctif** : la ligne sous les puces cesse d'affirmer une date que le moteur ne
+  tiendra pas — `« Cible le 30 août 2026 — au rythme sûr, Kyroz t'y amène plutôt vers le
+  24 mai 2027. »`. Elle s'appuie sur `reachableByDate` / `projectedDate`, qui existaient
+  déjà : rien n'est recalculé à côté. **Aucune calorie ne bouge** — c'est un correctif
+  d'affichage, donc pas d'`ENGINE_REV`.
+  Vérifié à l'écran sur les 5 échéances. Garde-fou : `datedGoal.test.ts` → « A14 — cible
+  hors de portée ». 819 tests.
+  ⚠️ **Ce qui RESTE ouvert, et c'est une décision produit, pas un bug** : quand la cible
+  est hors de portée, le sélecteur d'échéance ne change plus rien d'autre que la date.
+  Pistes non tranchées : marquer les échéances intenables, ou proposer en un tap la date
+  réellement tenable (la carte « plancher » dit déjà *« Tu peux viser cette date-là »*
+  sans offrir le geste). **Ne pas implémenter sans arbitrage du fondateur** — griser des
+  puces peut se lire comme un reproche, ce que la règle produit interdit (CLAUDE.md §10).
+
 ### 🎯 B — Les deux briques Kyroz+ qui restent
 
 La valeur premium est **construite et déployée** (objectif daté). Plus aucune décision

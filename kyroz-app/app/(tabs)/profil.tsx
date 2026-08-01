@@ -834,7 +834,23 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
       <View style={styles.wrap}>
         {HORIZONS.map((h) => <Chip key={h} t={t} label={`${h} sem`} selected={weeks === h} onPress={() => pickWeeks(h)} />)}
       </View>
-      <Text style={{ color: t.textSecondary, fontSize: 13 }}>Cible le {formatFR(targetDate)}.</Text>
+      {/* ⚠️ C'est la ligne la plus lue de l'écran — collée sous les puces, au moment
+          exact du choix. Elle ne peut donc pas AFFIRMER une date que le moteur ne
+          tiendra pas. Mesuré le 2026-08-02 (H 83 kg, 18 %MG, 4 séances → 70 kg) :
+          les CINQ échéances servent toutes 0,3 kg/sem, parce que c'est le plancher
+          de sécurité — et non l'échéance — qui borne le déficit. « 4 sem » annonçait
+          le 30 août 2026 pour une atteinte réelle le 19 juin 2027 : 293 jours d'écart.
+          La vérité était déjà à l'écran (carte « plancher » plus bas), mais SOUS une
+          phrase qui disait l'inverse, et hors du premier écran.
+          Ton : on annonce ce qui va se passer, on ne reproche pas l'ambition — le
+          moteur porte la charge, l'utilisateur n'est pas « en retard ». */}
+      <Text style={{ color: t.textSecondary, fontSize: 13, lineHeight: 18 }}>
+        {!goalBlockMsg && status && !status.reachableByDate && !status.directionMismatch
+          ? (status.projectable
+            ? `Cible le ${formatFR(targetDate)} — au rythme sûr, Kyroz t'y amène plutôt vers le ${formatFR(status.projectedDate)}.`
+            : `Cible le ${formatFR(targetDate)} — ce poids n'est pas atteignable au rythme sûr, quelle que soit la date.`)
+          : `Cible le ${formatFR(targetDate)}.`}
+      </Text>
 
       {/* Cible refusée → on affiche le motif SEUL. Montrer une trajectoire crédible
           (« Perdre 48 kg · 1982 kcal/j ») au-dessus d'un refus revient à valider

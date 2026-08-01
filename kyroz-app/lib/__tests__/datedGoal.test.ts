@@ -291,6 +291,34 @@ describe('A3 — projection simulée : plus de date flatteuse', () => {
     expect(Date.now() - t0).toBeLessThan(1000);
   });
 
+  // A14 — le cas remonté par le fondateur, capturé tel quel. L'écran « Objectif
+  // daté » affichait les MÊMES chiffres pour les 5 échéances proposées, parce que
+  // ce n'est pas l'échéance qui pilote mais le plancher de sécurité. Ce test ne
+  // valide pas ce comportement (il est correct : on ne creuse pas sous le
+  // plancher) — il verrouille le fait que le statut DIT que la date ne tiendra
+  // pas. C'est cette information-là que l'écran doit afficher au lieu d'affirmer
+  // « Cible le <date> ».
+  it('A14 — cible hors de portée : chaque échéance sert le MÊME rythme, et le dit', () => {
+    const p0 = corps({ sex: 'male', weight_kg: 83, height_cm: 180, body_fat_pct: 18 });
+    const HORIZONS = [4, 8, 12, 16, 24];
+    const vus = HORIZONS.map((w) => deuxDates(p0, 70, w).sim);
+
+    // Le plancher borne le déficit → rythme identique quelle que soit la date.
+    const rythmes = new Set(vus.map((s) => s.safeWeeklyKg));
+    expect(rythmes.size).toBe(1);
+    expect(vus.every((s) => s.floorCapped)).toBe(true);
+
+    // …et AUCUNE des échéances n'est tenable. Si un jour l'une le devient, ce test
+    // doit rougir : l'écran s'appuie sur `reachableByDate` pour ne pas mentir.
+    expect(vus.every((s) => !s.reachableByDate)).toBe(true);
+    expect(vus.every((s) => s.projectable)).toBe(true);
+
+    // L'écart n'est pas cosmétique : la date annoncée pour « 4 sem » est dépassée
+    // de plusieurs mois. Un adverbe qui minimiserait ça serait un mensonge poli.
+    const ecartJours = daysBetween(objectif(p0, 70, 4).target_date, vus[0].projectedDate);
+    expect(ecartJours).toBeGreaterThan(180);
+  });
+
   it('DISPLAY-ONLY — la projection ne déplace AUCUNE calorie', () => {
     // Le correctif corrige ce qu'on ANNONCE, pas ce qu'on sert. Si le delta bougeait,
     // ce serait une modification de plan déguisée en correctif d'affichage — et il
