@@ -654,6 +654,63 @@ produit en suspens — il ne reste qu'à coder.
   régime supporté parmi 7, sans emphase**. On sert correctement les utilisateurs vegan
   déjà là ; on ne présente Kyroz comme une app vegan **nulle part**.
 
+- ~~**D8 · Lot B1, tranche 1 sur 4**~~ ✅ **LIVRÉ le 2026-08-01 — 20 repas complets
+  (`rep171`→`rep190`), catalogue 327 → 347.** Répartition commandée tenue exactement :
+  11 carnées · 5 végétariennes · 4 vegan · 12 sans gluten (≥ 9 demandés) · 14 ancres
+  protéiques distinctes (6 demandées, plafond 5 par ancre, max atteint 3) · 10 ancres
+  grasses. `check:doublons` → 0 violation (R1, R2, R4, R5, R7) · `check:enveloppe` →
+  **20/20 conformes, moyenne 10,1 profils servis sur 12**, minimum 8.
+  📈 **Effet mesuré en A/B sur le MÊME code** (catalogue ramené à 327 puis restauré) —
+  repas complets servables par profil :
+
+  | profil | avant | après | |
+  |---|---|---|---|
+  | H 80 maintien | 124/170 | **147/190** | +23 |
+  | F 70 masse | 116/170 | **137/190** | +21 |
+  | F 65 sèche | 111/170 | **131/190** | +20 |
+  | F 65 maintien | 149/170 | **169/190** | +20 |
+  | H 65 sèche | 127/170 | **147/190** | +20 |
+  | H 70 maintien | 143/170 | 162/190 | +19 |
+  | F 55 sèche | 109/170 | 127/190 | +18 |
+  | F 60 maintien | 151/170 | 168/190 | +17 |
+  | F 80 sèche | 107/170 | 120/190 | +13 |
+  | H 95 masse | 77/170 | 88/190 | +11 |
+  | H 80 sèche | 120/170 | 129/190 | +9 |
+  | H 110 masse | 57/170 | 63/190 | +6 |
+
+  **Les 12 profils gagnent**, y compris `H 110 masse` que le lot B2 n'avait pas su servir.
+  ⚠️ *Les colonnes petit-déj et collation bougent de ±2 dans la même mesure : les cibles
+  sont dérivées de `buildLocalPlan`, donc elles se déplacent un peu quand le catalogue
+  change. Le signal est la colonne « repas complet ».*
+
+  🔬 **CINQUIÈME DÉFAUT DE BRIEF, trouvé en générant — le plus grave des cinq, corrigé.**
+  Le §4 publiait les valeurs /100 g d'`ingredients_reference` (le **repère manuel**) alors
+  que le moteur sert celles de `RECIPE_INGREDIENTS` (**Ciqual** pour les 107 refs mappés).
+  **47 refs sur 123 divergent** de plus de 8 % en kcal ou 12 % en protéines :
+  `boeuf_bavette` **−5,6 g de protéines aux 100 g**, `mozzarella` +57 kcal, `pesto`
+  −80 kcal, `seitan` −4,4 g P. Conséquence directe, constatée sur une recette de ce lot :
+  **32 g de protéines dans l'enveloppe sur le papier, 26 servis dans l'assiette** — et R8,
+  lui, se mesure sur le moteur. Le générateur publie désormais les valeurs servies, et
+  l'exemple JSON du §5 recalcule ses macros dessus au lieu de recopier le catalogue.
+  Après correction, les kcal du solveur et celles de `check:enveloppe` coïncident au
+  chiffre près.
+
+  🧰 **Ce que ce créneau impose, et qui n'était écrit nulle part** (à savoir avant le lot 2) :
+  1. **Un poisson gras ne peut pas porter 30 g de protéines sous un plafond de 18 g de
+     lipides.** Maquereau et saumon apportent 13–14 g de lipides aux 100 : à la dose
+     protéique nécessaire ils saturent l'enveloppe seuls, et il ne reste rien pour l'ancre
+     grasse que le §6.1 rend obligatoire. Même piège sur `tofu_fume` et `tempeh`. Solution :
+     ancre maigre + vraie ancre grasse, ou féculent riche en protéines (boulgour, pâtes
+     complètes, sarrasin) pour que l'ancre reste petite.
+  2. **Les légumineuses prêtes à consommer sont inutilisables comme féculent ici**, alors
+     que le §3 les recommande : 58 g de glucides demanderaient 360 g de lentilles cuites.
+     Elles ne servent qu'en ancre protéique ou en complément.
+  3. **Une recette à 4 ingrédients est fragile sur R1** : 3 refs partagés donnent
+     Jaccard 0,60 = rejet. À 5 ingrédients le même partage tombe à 0,43. Trois recettes ont
+     dû être réécrites pour ça.
+  ➡️ Reste 🧑 : lots `b1-lot2`, `b1-lot3`, `b1-lot4` (`rep191`→`rep250`), puis `b3`. Les
+  briefs sont régénérés et voient déjà ce que ce lot a consommé.
+
 ### 🧹 E — Dette technique
 
 - ~~**E1 · Trancher le sort de `lib/generatePlan.ts`**~~ ✅ **SUPPRIMÉ le 2026-07-31 —
