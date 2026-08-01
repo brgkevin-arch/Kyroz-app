@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { RECIPE_INGREDIENTS, RECIPE_CONFIG, RAW_RECIPES, macrosForRefIngredients } from '../recipeData';
 
 describe('recipeData', () => {
-  it('charge 407 recettes brutes', () => {
-    expect(RAW_RECIPES).toHaveLength(407);
+  it('charge 427 recettes brutes', () => {
+    expect(RAW_RECIPES).toHaveLength(427);
   });
   it('chaque recette déclare sa vague de livraison', () => {
     // Sans `wave`, une vague ne sait pas contre quoi se comparer : impossible d'expliquer
@@ -17,7 +17,7 @@ describe('recipeData', () => {
       fondation: 100, '2026-06-19-vegan': 164, '2026-07-22-sans-gluten': 50,
       '2026-08-01-b2-collations': 13, '2026-08-01-b1-lot1-repas': 20,
       '2026-08-01-b1-lot2-repas': 20, '2026-08-01-b1-lot3-repas': 20,
-      '2026-08-01-b1-lot4-repas': 20,
+      '2026-08-01-b1-lot4-repas': 20, '2026-08-01-b3-petits-dejeuners': 20,
     });
   });
   it('chaque ingrédient de chaque recette a un ref existant dans la table', () => {

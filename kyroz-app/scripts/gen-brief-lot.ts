@@ -143,7 +143,7 @@ const LOTS: Lot[] = [
   {
     cle: 'b3', titre: 'B3 — 20 petits-déjeuners', volume: 20, categorie: 'petit_dej',
     prefixe: 'pd', idDebut: 79, idFin: 98,
-    wave: '2026-08-01-b3-petits-dejeuners',
+    wave: '2026-08-01-b3-petits-dejeuners', livre: '2026-08-01',
     kcal: KCAL_PDJ, prot: [24, 28], carb: [52, 62], fat: [12, 16],
     // ⚠️ Corrigé le 2026-08-01 : c'était `libre: 11` — la répartition du lot B1
     // (repas complets) recopiée telle quelle. Elle n'a aucun sens ici : le §4 des
@@ -803,6 +803,11 @@ for (const lot of aFaire) {
   console.log(`✅ Recette/lots/${lot.cle}.md — ${lot.volume} recettes, ${lot.prefixe}${lot.idDebut}–${lot.prefixe}${lot.idFin}, ${(contenu.length / 1024).toFixed(0)} Ko`);
 }
 const restants = aFaire.filter((l) => !l.livre);
+if (!restants.length) {
+  console.log('\nTous les lots définis ici sont livrés — aucun brief à produire.');
+  console.log('Pour commander une nouvelle vague : ajouter un `Lot` dans LOTS, puis relancer.');
+  process.exit(0);
+}
 console.log(`\n${restants.length} fichier(s), ${total} recettes commandées au total.`);
 console.log(`À donner au rédacteur UN PAR CONVERSATION, dans l'ordre : ${restants.map((l) => l.cle).join(', ')}.`);
 console.log('Après merge d\'un lot, régénérer les suivants : ils verront ce que le lot a consommé.');

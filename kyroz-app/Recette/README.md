@@ -2,11 +2,10 @@
 
 ```
 Recette/
-├── recettes-kyroz.json          ← LE CATALOGUE LIVE (importé par lib/recipeData.ts) — 407 recettes
+├── recettes-kyroz.json          ← LE CATALOGUE LIVE (importé par lib/recipeData.ts) — 427 recettes
 ├── README.md                    ← ce fichier
 ├── BRIEF-GENERATION-RECETTES.md ← la SPEC : mesures, enveloppes, raisonnement. Ne pas transmettre tel quel.
 ├── lots/                        ← la COMMANDE, générée (npm run gen:lots). Un fichier = une conversation.
-│   ├── b3.md                    (20 petits-déjeuners, pd79–pd98)
 │   └── annexe-collations-existantes.md
 └── drops/                       ← livraisons brutes REÇUES (archives, JAMAIS importées par le code)
     ├── 2026-06-16-refonte-adaptrecipe/
@@ -16,13 +15,15 @@ Recette/
     ├── 2026-08-01-b1-lot1-repas/    (+20 repas complets, mergé)
     ├── 2026-08-01-b1-lot2-repas/    (+20 repas complets, mergé)
     ├── 2026-08-01-b1-lot3-repas/    (+20 repas complets, mergé)
-    └── 2026-08-01-b1-lot4-repas/    (+20 repas complets, mergé)
+    ├── 2026-08-01-b1-lot4-repas/    (+20 repas complets, mergé)
+    └── 2026-08-01-b3-petits-dejeuners/ (+20 petits-déjeuners, mergé)
 ```
 
-ℹ️ **`b2.md` et les quatre `b1-lot*.md` n'existent plus, et c'est volontaire** (2026-08-01) : ces lots sont
-livrés et mergés, donc leurs ids sont pris. Un brief qui commande `col67`–`col79` est désormais une commande impossible
-à honorer — le générateur refuse d'ailleurs de l'écrire. Leur définition reste dans
-`scripts/gen-brief-lot.ts` (marquée `livre`), la matière première dans `drops/`.
+ℹ️ **`lots/` ne contient plus aucun brief, et c'est volontaire** (2026-08-01) : les six lots
+commandés — `b2`, `b1-lot1` à `b1-lot4`, `b3` — sont livrés et mergés, donc leurs ids sont pris :
+un brief qui les recommanderait serait une commande impossible à honorer, et le générateur
+refuse d'ailleurs de l'écrire. Leur définition reste dans `scripts/gen-brief-lot.ts` (marquée
+`livre`), la matière première dans `drops/`.
 
 ⚠️ `recettes-kyroz.json` est **importé par le code** (`lib/recipeData.ts`, `lib/__tests__/recipeFoodMap.test.ts`).
 Les fichiers de `drops/` sont de la matière première : on en extrait, on ne les branche jamais.
@@ -42,7 +43,8 @@ npm run gen:lots -- b3      # un seul
 ```
 
 Chaque fichier est autonome : format de sortie, refs autorisés avec leurs macros, règles, formats
-déjà saturés, auto-contrôle. On en donne **un par conversation**, dans l'ordre — il ne reste que `b3`. **Après le merge d'un lot, régénérer les suivants** — ils verront ce que le
+déjà saturés, auto-contrôle. On en donne **un par conversation**. Pour commander une nouvelle
+vague : ajouter un `Lot` dans `LOTS` (`scripts/gen-brief-lot.ts`), puis `npm run gen:lots`. **Après le merge d'un lot, régénérer les suivants** — ils verront ce que le
 lot précédent a consommé, et c'est ce contrôle croisé qui manquait aux vagues d'avant. Marquer le
 lot livré (`livre` dans `scripts/gen-brief-lot.ts`) fait disparaître son brief : ses ids sont pris.
 
