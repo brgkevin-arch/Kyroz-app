@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, ScrollView, TextInp
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme, ThemePalette, Radius, Spacing, cardShadow } from '../../constants/theme';
+import { useLayout } from '../../constants/layout';
 import { RecipeDetail } from '../../components/RecipeDetail';
 import { RecipeEditor } from '../../components/RecipeEditor';
 import { Sheet } from '../../components/Sheet';
@@ -23,6 +24,7 @@ const norm = (s: string) =>
 export default function RecettesScreen() {
   const t = useTheme();
   const s = useMemo(() => makeStyles(t), [t]);
+  const layout = useLayout();
   const { isFavorite, toggle } = useFavorites();
   const { recipes, saveOverride, resetOverride, isCustom } = useRecipeOverrides();
   const [tag, setTag] = useState('Tout');
@@ -40,7 +42,7 @@ export default function RecettesScreen() {
 
   return (
     <SafeAreaView style={s.safe} edges={['top']}>
-      <View style={s.header}>
+      <View style={[s.header, layout.grid]}>
         <Text style={s.h1}>Recettes</Text>
         <Text style={s.sub}>
           {q || tag !== 'Tout'
@@ -49,7 +51,7 @@ export default function RecettesScreen() {
         </Text>
       </View>
 
-      <View style={s.searchWrap}>
+      <View style={[s.searchWrap, layout.grid]}>
         <View style={s.searchBox}>
           <Ionicons name="search" size={17} color={t.textTertiary} />
           <TextInput
@@ -69,7 +71,7 @@ export default function RecettesScreen() {
         </View>
       </View>
 
-      <View style={s.filtersWrap}>
+      <View style={[s.filtersWrap, layout.grid]}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.filters}>
           {TAGS.map((tg) => {
             const on = tag === tg;
@@ -87,7 +89,14 @@ export default function RecettesScreen() {
       <FlatList
         data={data}
         keyExtractor={(r) => r.id}
-        contentContainerStyle={s.list}
+        // Deux colonnes sur tablette : à 1024 pt une carte de recette occupait
+        // toute la largeur pour trois lignes de texte, et l'écran n'en montrait
+        // que 8 là où la grille en montre 16. `key` force le remontage — FlatList
+        // n'accepte pas un changement de `numColumns` à chaud (rotation iPad).
+        key={`cols-${layout.columns}`}
+        numColumns={layout.columns}
+        columnWrapperStyle={layout.columns > 1 ? s.gridRow : undefined}
+        contentContainerStyle={[s.list, layout.grid]}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           <View style={s.empty}>
@@ -102,7 +111,7 @@ export default function RecettesScreen() {
         renderItem={({ item }) => {
           const fav = isFavorite(item.id);
           return (
-            <TouchableOpacity style={[s.recipe, cardShadow(t)]} onPress={() => setSelected(item)} activeOpacity={0.85}>
+            <TouchableOpacity style={[s.recipe, layout.columns > 1 && s.recipeGrid, cardShadow(t)]} onPress={() => setSelected(item)} activeOpacity={0.85}>
               <View style={s.rTop}>
                 <Text style={s.rName}>{item.name_fr}</Text>
                 <View style={s.rTopRight}>
@@ -187,6 +196,11 @@ function makeStyles(t: ThemePalette) {
     chip: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 9, borderRadius: Radius.pill, borderWidth: 1 },
     list: { padding: Spacing.xl, paddingTop: 12, gap: 10, paddingBottom: 120 },
     recipe: { backgroundColor: t.card, borderRadius: Radius.lg, padding: 18, gap: 12 },
+    // En grille, chaque carte prend sa part de la rangée et toutes s'alignent
+    // en hauteur (`gridRow.alignItems: stretch`), sinon un titre sur deux lignes
+    // décale sa voisine.
+    recipeGrid: { flex: 1 },
+    gridRow: { gap: 10, alignItems: 'stretch' },
     rTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
     rName: { flex: 1, marginRight: 8, color: t.text, fontSize: 16, fontWeight: '700', letterSpacing: -0.3 },
     rTopRight: { flexDirection: 'row', alignItems: 'center', gap: 10 },

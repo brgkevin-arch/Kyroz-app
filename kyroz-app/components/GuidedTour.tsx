@@ -1,6 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import {
-  View, Text, StyleSheet, Modal, Pressable, Dimensions, ViewStyle,
+  View, Text, StyleSheet, Modal, Pressable, useWindowDimensions, ViewStyle,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme, Radius, ThemePalette } from '../constants/theme';
@@ -212,7 +212,9 @@ function Spotlight({
   onNext: () => void;
   onSkip: () => void;
 }) {
-  const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
+  // `useWindowDimensions` : la géométrie du trou est calculée en coordonnées
+  // écran, et sur iPad l'écran change de taille sans relancer l'app.
+  const { width: SCREEN_W, height: SCREEN_H } = useWindowDimensions();
   const s = makeStyles(t);
 
   // Trou (cible + marge), borné à l'écran.

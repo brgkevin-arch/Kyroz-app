@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme, ThemePalette, Radius, Spacing, cardShadow } from '../../constants/theme';
+import { useLayout } from '../../constants/layout';
 import { DISCLAIMER } from '../../constants/legal';
 import { MacroBar } from '../../components/MacroBar';
 import { MealCard } from '../../components/MealCard';
@@ -112,6 +113,7 @@ function startOfWeekMonday(d: Date): Date {
 export default function PlanScreen() {
   const t = useTheme();
   const s = useMemo(() => makeStyles(t), [t]);
+  const layout = useLayout();
   const { profile, saveProfile } = useProfile();
   const { favorites } = useFavorites();
   const router = useRouter();
@@ -529,7 +531,7 @@ export default function PlanScreen() {
     <SafeAreaView style={s.safe} edges={['top']}>
       <ScrollView
         ref={scrollRef}
-        contentContainerStyle={s.content}
+        contentContainerStyle={[s.content, layout.content]}
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={t.textTertiary} />}
       >

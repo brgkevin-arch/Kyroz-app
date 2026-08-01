@@ -1,11 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  Modal, View, StyleSheet, Animated, PanResponder, Dimensions,
+  Modal, View, StyleSheet, Animated, PanResponder, useWindowDimensions,
   Pressable, Platform,
 } from 'react-native';
 import { useTheme, Radius } from '../constants/theme';
-
-const { height: SCREEN_H } = Dimensions.get('window');
+import { useLayout } from '../constants/layout';
 
 interface Props {
   visible: boolean;
@@ -19,21 +18,26 @@ interface Props {
  */
 export function Sheet({ visible, onClose, children }: Props) {
   const t = useTheme();
+  const layout = useLayout();
+  // ⚠️ `useWindowDimensions` et non `Dimensions.get()` au chargement du module :
+  // sur iPad la fenêtre change de taille sans relancer l'app (rotation, Split
+  // View), et la feuille se rangeait alors hors écran ou trop court.
+  const { height: screenH } = useWindowDimensions();
   const [render, setRender] = useState(visible);
-  const ty = useRef(new Animated.Value(SCREEN_H)).current;
+  const ty = useRef(new Animated.Value(screenH)).current;
   const backdrop = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (visible) {
       setRender(true);
-      ty.setValue(SCREEN_H);
+      ty.setValue(screenH);
       Animated.parallel([
         Animated.timing(ty, { toValue: 0, duration: 300, useNativeDriver: true }),
         Animated.timing(backdrop, { toValue: 1, duration: 300, useNativeDriver: true }),
       ]).start();
     } else if (render) {
       Animated.parallel([
-        Animated.timing(ty, { toValue: SCREEN_H, duration: 240, useNativeDriver: true }),
+        Animated.timing(ty, { toValue: screenH, duration: 240, useNativeDriver: true }),
         Animated.timing(backdrop, { toValue: 0, duration: 240, useNativeDriver: true }),
       ]).start(({ finished }) => { if (finished) setRender(false); });
     }
@@ -72,10 +76,16 @@ export function Sheet({ visible, onClose, children }: Props) {
           <Animated.View style={[styles.backdrop, { opacity: backdrop }]} />
         </Pressable>
 
+        {/* Sur tablette la feuille devient une colonne centrée : à 1024 pt de
+            large, un éditeur de profil ou une recette pleine largeur éloignait
+            son libellé de sa valeur de plus de 900 pt. Les coins du bas
+            s'arrondissent aussi, puisqu'elle ne touche plus les bords. */}
         <Animated.View
           style={[
             styles.sheet,
             { backgroundColor: t.bg, transform: [{ translateY: ty }] },
+            layout.sheet,
+            layout.isTablet && styles.sheetTablet,
           ]}
         >
           {/* Poignée — grande zone de drag (toute la bande haute, pas juste l'encoche) */}
@@ -100,6 +110,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     ...(Platform.OS === 'web' ? { cursor: 'auto' as any } : {}),
   },
+  sheetTablet: { height: '90%', borderBottomLeftRadius: 24, borderBottomRightRadius: 24, marginBottom: 24 },
   // Bande de drag haute et pleine largeur : on peut tirer bien plus bas que l'encoche.
   handleZone: { paddingTop: 16, paddingBottom: 28, alignItems: 'center' },
   handle: { width: 56, height: 6, borderRadius: 3 },

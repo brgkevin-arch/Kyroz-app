@@ -3,6 +3,7 @@ import {
   Modal, View, StyleSheet, Animated, PanResponder, Pressable,
 } from 'react-native';
 import { useTheme } from '../constants/theme';
+import { useLayout } from '../constants/layout';
 
 interface Props {
   visible: boolean;
@@ -18,6 +19,7 @@ interface Props {
  */
 export function ActionSheet({ visible, onClose, children }: Props) {
   const t = useTheme();
+  const layout = useLayout();
   const [render, setRender] = useState(visible);
   const ty = useRef(new Animated.Value(700)).current;
   const backdrop = useRef(new Animated.Value(0)).current;
@@ -62,7 +64,7 @@ export function ActionSheet({ visible, onClose, children }: Props) {
 
         <Animated.View
           {...pan.panHandlers}
-          style={[styles.sheet, { backgroundColor: t.card, transform: [{ translateY: ty }] }]}
+          style={[styles.sheet, { backgroundColor: t.card, transform: [{ translateY: ty }] }, layout.sheet, layout.isTablet && styles.sheetTablet]}
         >
           <View style={[styles.handle, { backgroundColor: t.lineStrong }]} />
           {children}
@@ -79,5 +81,6 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 28, borderTopRightRadius: 28,
     paddingHorizontal: 24, paddingTop: 12, paddingBottom: 40, gap: 14,
   },
+  sheetTablet: { borderBottomLeftRadius: 28, borderBottomRightRadius: 28, marginBottom: 24 },
   handle: { width: 44, height: 5, borderRadius: 3, alignSelf: 'center', marginBottom: 6 },
 });

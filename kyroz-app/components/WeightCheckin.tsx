@@ -1,7 +1,8 @@
 import React, { useMemo, useState, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, Dimensions, Image, Alert, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, useWindowDimensions, Image, Alert, TouchableOpacity, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemePalette, Radius, Spacing } from '../constants/theme';
+import { SHEET_MAX_WIDTH } from '../constants/layout';
 import { Field, PrimaryButton, SectionLabel, Segmented } from './ui';
 import { WeightChart } from './WeightChart';
 import { TrackVerdict, PhotoCompare } from './Transformation';
@@ -130,7 +131,12 @@ export function WeightCheckin({ t, onClose, dragHandlers }: Props) {
     ]);
   };
 
-  const width = Dimensions.get('window').width - Spacing.xxl * 2;
+  // ⚠️ La largeur du graphe est celle de la FEUILLE, pas de l'écran : sur iPad
+  // la feuille est bornée à SHEET_MAX_WIDTH, et lire l'écran (1024) faisait
+  // déborder la courbe hors de son cadre. `useWindowDimensions` et non
+  // `Dimensions.get` pour suivre la rotation.
+  const { width: winW } = useWindowDimensions();
+  const width = Math.min(winW, SHEET_MAX_WIDTH) - Spacing.xxl * 2;
   const wN = parseFloat(val.replace(',', '.'));
   const valid = wN >= 40 && wN <= 250;
 

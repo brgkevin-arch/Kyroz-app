@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme, ThemePalette, Radius, Spacing, cardShadow } from '../../constants/theme';
+import { useLayout } from '../../constants/layout';
 import { PrimaryButton, Chip, Field, SectionLabel, Segmented } from '../../components/ui';
 import { ActionSheet } from '../../components/ActionSheet';
 import { formatQuantity, toBaseUnit } from '../../lib/units';
@@ -29,6 +30,7 @@ type ViewMode = 'stock' | 'cook';
 export default function GardeMangerScreen() {
   const t = useTheme();
   const s = useMemo(() => makeStyles(t), [t]);
+  const layout = useLayout();
 
   const [items, setItems] = useState<PantryItem[]>([]);
   const [view, setView] = useState<ViewMode>('stock');
@@ -108,7 +110,7 @@ export default function GardeMangerScreen() {
 
   return (
     <SafeAreaView style={s.safe} edges={['top']}>
-      <View style={s.header}>
+      <View style={[s.header, layout.header]}>
         <View>
           <Text style={s.h1}>Garde-manger</Text>
           <Text style={s.sub}>{visible.length} aliment{visible.length > 1 ? 's' : ''} · {ready.length} recette{ready.length > 1 ? 's' : ''} prête{ready.length > 1 ? 's' : ''}</Text>
@@ -119,7 +121,7 @@ export default function GardeMangerScreen() {
       </View>
 
       {visible.length > 0 && (
-        <View style={s.segment}>
+        <View style={[s.segment, layout.header]}>
           <Segmented
             t={t}
             options={[{ label: 'Mon stock', value: 'stock' }, { label: 'À cuisiner', value: 'cook' }]}
@@ -129,7 +131,7 @@ export default function GardeMangerScreen() {
         </View>
       )}
 
-      <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={[s.content, layout.content]} showsVerticalScrollIndicator={false}>
         {visible.length === 0 ? (
           <View style={s.empty}>
             <View style={[s.emptyIcon, { backgroundColor: t.fill }]}>

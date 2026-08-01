@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useTheme, ThemePalette, Spacing } from '../constants/theme';
+import { useLayout } from '../constants/layout';
 import { PRIVACY_POLICY, TERMS_OF_USE, LegalSection, LEGAL } from '../constants/legal';
 
 // Écran « Confidentialité & CGU » — route racine /legal, atteignable depuis le
@@ -12,19 +13,20 @@ import { PRIVACY_POLICY, TERMS_OF_USE, LegalSection, LEGAL } from '../constants/
 export default function LegalScreen() {
   const t = useTheme();
   const s = useMemo(() => makeStyles(t), [t]);
+  const layout = useLayout();
   const router = useRouter();
 
   return (
     <SafeAreaView style={s.safe} edges={['top']}>
       <StatusBar style={t.scheme === 'dark' ? 'light' : 'dark'} />
-      <View style={s.header}>
+      <View style={[s.header, layout.header]}>
         <TouchableOpacity onPress={() => router.back()} hitSlop={10} activeOpacity={0.7}>
           <Ionicons name="chevron-back" size={26} color={t.text} />
         </TouchableOpacity>
         <Text style={s.headerTitle}>Confidentialité & CGU</Text>
       </View>
 
-      <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={[s.content, layout.content]} showsVerticalScrollIndicator={false}>
         <Text style={s.docTitle}>Politique de confidentialité</Text>
         <Text style={s.updated}>Dernière mise à jour : {LEGAL.effectiveDate}</Text>
         {PRIVACY_POLICY.map((sec) => <Section key={sec.title} t={t} s={s} sec={sec} />)}

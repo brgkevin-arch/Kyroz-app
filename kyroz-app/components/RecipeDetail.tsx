@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme, ThemePalette, Radius, Spacing, cardShadow } from '../constants/theme';
+import { useLayout } from '../constants/layout';
 import { PrimaryButton } from './ui';
 import { useFavorites } from '../hooks/useFavorites';
 import { formatQuantity } from '../lib/units';
@@ -32,7 +33,8 @@ interface Props {
 
 export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adaptedMacros, adaptFlags, adaptGap, restrictionRelaxed, onClose, onCook, onSkip, onResetStatus, status, onSwap, onDislike, onEdit, custom, dragHandlers }: Props) {
   const t = useTheme();
-  const s = useMemo(() => makeStyles(t), [t]);
+  const layout = useLayout();
+  const s = useMemo(() => makeStyles(t, layout.isTablet), [t, layout.isTablet]);
   const { isFavorite, toggle } = useFavorites();
   const fav = isFavorite(recipe.id);
   const f = portions;
@@ -125,21 +127,33 @@ export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adapted
 
         {recipe.why_fr && <Text style={s.why}>{recipe.why_fr}</Text>}
 
-        <Text style={s.section}>INGRÉDIENTS</Text>
-        {ings.map((ing, i) => (
-          <View key={i} style={s.ing}>
-            <Text style={s.ingName}>{ing.name}</Text>
-            <Text style={s.ingQty}>{formatQuantity(ing.name, ing.quantity_g, ing.unit ?? 'g')}</Text>
+        {/* Ingrédients | préparation côte à côte sur tablette.
+            C'est LE cas d'usage tablette énoncé par le fondateur — cuisiner avec
+            la recette sous les yeux — et le seul écran qui mérite une mise en
+            page à lui : côte à côte, on lit une quantité sans avoir à remonter
+            l'étape qu'on est en train de faire. Sur téléphone, `cook` retombe en
+            colonne avec le même espacement qu'avant : le rendu est inchangé. */}
+        <View style={s.cook}>
+          <View style={s.cookCol}>
+            <Text style={s.section}>INGRÉDIENTS</Text>
+            {ings.map((ing, i) => (
+              <View key={i} style={s.ing}>
+                <Text style={s.ingName}>{ing.name}</Text>
+                <Text style={s.ingQty}>{formatQuantity(ing.name, ing.quantity_g, ing.unit ?? 'g')}</Text>
+              </View>
+            ))}
           </View>
-        ))}
 
-        <Text style={s.section}>PRÉPARATION</Text>
-        {recipe.steps.map((step, i) => (
-          <View key={i} style={s.step}>
-            <View style={s.stepN}><Text style={s.stepNTxt}>{i + 1}</Text></View>
-            <Text style={s.stepTxt}>{step}</Text>
+          <View style={s.cookColWide}>
+            <Text style={s.section}>PRÉPARATION</Text>
+            {recipe.steps.map((step, i) => (
+              <View key={i} style={s.step}>
+                <View style={s.stepN}><Text style={s.stepNTxt}>{i + 1}</Text></View>
+                <Text style={s.stepTxt}>{step}</Text>
+              </View>
+            ))}
           </View>
-        ))}
+        </View>
 
         {/* Repas déjà suivi (mangé / sauté) → état + annulation */}
         {status && status !== 'planned' && (onResetStatus || onCook || onSkip) && (
@@ -186,9 +200,22 @@ function Big({ t, v, l, u = '', c }: { t: ThemePalette; v: number; l: string; u?
   );
 }
 
-function makeStyles(t: ThemePalette) {
+function makeStyles(t: ThemePalette, isTablet: boolean) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: t.bg },
+    // `gap: 18` reproduit l'espacement que les lignes tenaient du
+    // contentContainer quand elles en étaient les enfants directs.
+    cook: isTablet
+      ? { flexDirection: 'row', gap: 32, alignItems: 'flex-start' }
+      : { gap: 18 },
+    // ⚠️ `flex` seulement sur tablette : dans un conteneur en colonne à
+    // l'intérieur d'un ScrollView, `flex: 1` écrase la hauteur du bloc.
+    cookCol: isTablet ? { flex: 1, gap: 18 } : { gap: 18 },
+    // Colonnes ÉGALES : donner plus de place à la préparation (essayé à 1,15)
+    // ramenait la colonne ingrédients sous la largeur utile d'un iPhone, donc
+    // rendait la ligne « nom … quantité » plus serrée sur iPad que sur
+    // téléphone. Verrouillé par lib/__tests__/layout.test.ts.
+    cookColWide: isTablet ? { flex: 1, gap: 18 } : { gap: 18 },
     content: { padding: Spacing.xxl, gap: 18, paddingBottom: 48 },
     header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 },
     name: { color: t.text, fontSize: 24, fontWeight: '800', letterSpacing: -0.5 },
