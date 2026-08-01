@@ -66,7 +66,7 @@ qu'ils étaient périmés.
 | Catalogue | **466 recettes** — 110 petits-déj · 270 repas complets · 86 collations | `npm run mesure:couverture` |
 | `ENGINE_VERSION` | **38** (invalide les plans en cache) | `lib/planEngine.ts` |
 | `ENGINE_REV` | **4** (avertissement one-shot à l'utilisateur) | `lib/tdee.ts` |
-| Tests | **797 verts**, 42 fichiers · `tsc` propre | `npm test && npx tsc --noEmit` |
+| Tests | **804 verts**, 43 fichiers · `tsc` propre | `npm test && npx tsc --noEmit` |
 | Variété perçue | **27,9 %** des semaines servent 2 recettes d'un même couple (56,3 % avant D18) | `npm run mesure:variete` |
 | Anti-doublons | R1 81 · R2 70 · R4 14 · R5 17 · R7 0 — **figés par un test**, inchangés par B6 | `npm run check:doublons` |
 | Créneau collation | moyenne **7,62/12** (7,19 avant B6 · 4,52 avant B5) · **1 sous le seuil R8** — voir l'avertissement ci-dessous | `npm run check:enveloppe -- <drop>` |
@@ -110,11 +110,11 @@ précision calorique du jour **0,05 %**, protéines **+2,6 %** au-dessus de la c
 « viviers » ci-dessus sont une réserve de variété, **pas** ce que l'utilisateur reçoit :
 ne pas les présenter comme un défaut de service.
 
-### ▶️ Si tu reprends maintenant — les deux chantiers prêts
+### ▶️ Si tu reprends maintenant — le chantier prêt
 
-Par ordre de « cause connue, remède écrit » décroissant. Le détail est dans la liste unique.
 *(D7 est **FERMÉ** par le lot B6, cf. D17 · D4 est **FERMÉ** — la tâche mesurait le mauvais
-objet, le défaut réel était dans le moteur, cf. D18.)*
+objet, le défaut réel était dans le moteur, cf. D18 · D3 est **TRANCHÉ ET CORRIGÉ** : pas
+d'axe allergène, le chemin « aliments à éviter » réparé, cf. D3.)*
 
 1. **🤖 B7 — l'audit R8 des deux créneaux qui ne l'ont jamais eu.** D15 l'a fait pour les
    collations ; mesuré le 2026-08-02, **37 petits-déj sur 110 (34 %) et 70 repas complets
@@ -122,12 +122,10 @@ objet, le défaut réel était dans le moteur, cf. D18.)*
    Cause première déjà identifiée : les recettes **sans `carb`** (13 en petit-déj, moyenne
    2,77/12 contre 9,03 pour celles qui en portent un ; 6 en repas complet à 1,50/12). Le
    remède est le même qu'en B5 — réécrire — et le lot est plus gros. Détail en D4-bis.
-2. **🧑 D3 — trancher l'axe allergène.** Décision produit, pas du code. ⚠️ **La prémisse de
-   la fiche est fausse et la mesure a trouvé pire** : le `tahini` s'appelle « Purée de
-   sésame (tahini) », donc taper `sésame` l'attrape — c'est le seul cas qui marche. En
-   revanche `poisson` n'attrape **0 ref sur 7**, `arachide` 0 sur 1, `fruits à coque`
-   0 sur 5, `oeuf` sans ligature 0 sur 2. Le champ « aliments évités » **échoue en
-   silence**.
+
+⚠️ **Une décision produit attend le fondateur, et elle est réversible** : D3 a été tranché
+**contre** l'axe allergène formel (motif : promesse de sécurité intenable sur un catalogue
+générique). Si tu veux l'axe malgré tout, le socle `FOOD_FAMILIES` est déjà écrit.
 
 ⚠️ **Pour commander une vague** : les huit lots de `scripts/gen-brief-lot.ts` sont tous
 marqués `livre`, donc `npm run gen:lots` n'écrit plus rien. Il faut **ajouter un `Lot`**
@@ -692,9 +690,54 @@ produit en suspens — il ne reste qu'à coder.
   est une commande impossible à honorer. Sa définition reste dans le générateur (marquée
   `livre`), sa matière première dans `drops/2026-08-01-b2-collations/`. Le contrôle d'ids
   attrape désormais ce cas tout seul.
-- **D3 · 🧑 Axe allergène — jamais tranché** *(Journal §3)*. Le `tahini` introduit le sésame et **aucun
-  champ ne le porte**. Décision produit : ajoute-t-on un axe allergène au modèle, ou
-  reste-t-on sur la saisie libre ?
+- ~~**D3 · 🧑 Axe allergène**~~ ✅ **TRANCHÉ ET CORRIGÉ le 2026-08-02 — PAS d'axe allergène,
+  et le chemin existant réparé.** La fiche demandait : « le `tahini` introduit le sésame et
+  aucun champ ne le porte — ajoute-t-on un axe allergène ou reste-t-on sur la saisie
+  libre ? ». La mesure a répondu autre chose.
+
+  🔴 **La prémisse visait le mauvais endroit.** `tahini` s'appelle **« Purée de sésame
+  (tahini) »** : écrire `sésame` dans « aliments à éviter » l'attrapait déjà, 1 ref sur 1.
+  **Le cas qui a ouvert la tâche était le seul qui fonctionnait.**
+
+  🔴 **Le vrai défaut : le filtre échouait EN SILENCE.** `recipeAllowed` comparait le mot
+  écrit à une sous-chaîne des noms d'ingrédients, sans normalisation ni synonyme :
+
+  | l'utilisateur écrit | refs attrapés | recettes qui restaient servies |
+  |---|---|---|
+  | `poisson` | **0 / 7** | 66 |
+  | `arachide` | **0 / 1** | 29 |
+  | `fruits à coque` | **0 / 5** | 96 |
+  | `oeuf` sans ligature | **0 / 2** | 53 |
+  | `lactose` | **0 / 10** | 130 |
+  | `soja` | 7 / 12 | tofu, tempeh, edamame passaient |
+
+  Le champ **proposait lui-même « arachide, crustacés… » en exemple** — les deux mots qui
+  n'attrapaient rien. Rien à l'écran ne le disait.
+
+  🔴 **Et il attrapait TROP, dans l'autre sens** : `bœuf` contient `œuf`. Éviter les œufs
+  retirait **23 des 24 plats de bœuf**, en silence aussi. Le correctif ancre la
+  correspondance en DÉBUT DE MOT — mesuré après : `œuf` → 53 (les vrais porteurs), `bœuf`
+  → 24, et les pluriels continuent de marcher (`lentille` → 11, `pâtes` = `pates` → 27).
+
+  ✅ **Ce qui a été livré** : `lib/avoidance.ts` (normalisation ligatures/accents + table
+  `FOOD_FAMILIES` mot → refs), branché dans `planEngine.recipeAllowed` **et** dans
+  `dislike.recipeHasKeyword` — les deux divergeaient, or ce qu'on PROPOSE d'éviter doit
+  être exactement ce qui SERA évité. Vérifié de bout en bout : sur 1 344 repas servis par
+  mot, **0 repas fautif** et **0 drapeau bloquant** (les pools restent viables).
+  L'écran affiche désormais ce qu'il fait — « arachide » écarte 29 recettes · « zzzz » →
+  « aucun ingrédient ne correspond » — et marque les mots déjà enregistrés restés sans
+  effet. Vérifié dans le navigateur.
+
+  🚫 **POURQUOI PAS D'AXE ALLERGÈNE FORMEL** (décision à confirmer par le fondateur, elle
+  est réversible) : une colonne + migration Supabase + question d'onboarding, pour
+  afficher « sans arachide » — c'est-à-dire une **promesse de sécurité** qu'un catalogue
+  générique ne peut pas tenir (traces, contamination croisée, composition réelle du
+  falafel prêt à consommer, du pesto, de la chapelure). `CLAUDE.md` §6 bloque déjà les
+  pathologies et Kyroz n'est pas un dispositif médical. Le champ reste une **préférence**,
+  et le vocabulaire de l'écran doit le rester. ➡️ Si tu veux l'axe formel malgré tout,
+  c'est un chantier à rouvrir explicitement — le socle (`FOOD_FAMILIES`) est déjà là.
+  ⚠️ Allergènes absents du catalogue, donc sans objet aujourd'hui : céleri, moutarde,
+  sulfites, lupin, mollusques.
 - ~~**D4 · 🤖 Les groupes R4 saturés**~~ 🚫 **FERMÉ le 2026-08-02 — la tâche mesurait le
   mauvais objet, et son remède aurait raté le premier coupable. Ne pas la rouvrir sous
   cette forme.** Le défaut de variété est RÉEL et il est traité, mais dans le MOTEUR :

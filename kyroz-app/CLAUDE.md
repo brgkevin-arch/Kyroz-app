@@ -398,6 +398,25 @@ qu'au-delà de 2 recettes par couple, or le pire contrevenant était un groupe d
 - IMC de départ < 18,5 avec un objectif de sèche ; poids cible hors plage saine ;
   volume d'entraînement > 20 h/semaine (`lib/safety.ts::checkEligibility`)
 
+### Allergènes — le produit n'en promet AUCUN, et c'est une décision
+
+**Il n'y a pas d'axe allergène dans le modèle, volontairement** (tranché le 2026-08-02).
+Le champ « aliments à éviter » (`disliked_foods`) est un filtre **dur** mais c'est une
+**préférence**, pas une garantie : un catalogue générique ignore les traces, la
+contamination croisée et la composition réelle des produits industriels qu'il emploie
+(falafel prêt à consommer, pesto, chapelure). Afficher « sans arachide » serait une
+promesse de sécurité que Kyroz ne peut pas tenir, et le produit n'est pas un dispositif
+médical. ➡️ **Aucun écran ne doit employer le vocabulaire de la garantie allergène.**
+
+Ce qui a été corrigé à la place : le filtre échouait **en silence**. Mesuré sur les
+123 refs, écrire `poisson` n'écartait **aucun** des 7 poissons, `arachide` aucun des
+29 plats à la cacahuète, `fruits à coque` aucun des 96 — alors que le champ proposait
+lui-même « arachide, crustacés… » en exemple. Et il attrapait trop dans l'autre sens :
+`bœuf` contient `œuf`, donc éviter les œufs retirait 23 des 24 plats de bœuf.
+`lib/avoidance.ts` normalise (ligatures, accents), résout les **familles** (mot → refs)
+et ancre la correspondance en début de mot. L'écran affiche désormais ce que le mot
+écarte, ou dit qu'il n'écarte rien.
+
 ### Disclaimer obligatoire (UI)
 > *"Kyroz est conçu pour des adultes en bonne santé. Ces informations ne remplacent pas l'avis d'un médecin ou diététicien-nutritionniste."*
 
