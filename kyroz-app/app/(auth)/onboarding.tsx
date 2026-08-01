@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Animated, Easing,
+  View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, Easing,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -12,6 +12,7 @@ import {
   PrimaryButton, Chip, OptionCard, Field, SectionLabel, Segmented,
 } from '../../components/ui';
 import { BodyFatPicker } from '../../components/BodyFatPicker';
+import { useDialog } from '../../components/Dialog';
 import {
   AGE_BOUNDS, WEIGHT_BOUNDS, HEIGHT_BOUNDS, checkEligibility, eligibilityMessage,
 } from '../../lib/safety';
@@ -96,6 +97,7 @@ export default function Onboarding() {
   const layout = useLayout();
   const router = useRouter();
   const { saveProfile } = useProfile();
+  const { notify } = useDialog();
 
   // Analytics : début du tunnel (no-op tant que non consenti/configuré).
   useEffect(() => { capture(Events.onboardingStarted); }, []);
@@ -226,9 +228,12 @@ export default function Onboarding() {
     // et l'allaitement sont déjà bloqués en amont par le portail de dépistage santé
     // (lib/healthScreening.ts) — on ne duplique pas le champ dans le profil.
     const blocked = eligibilityMessage(checkEligibility(profile));
-    if (blocked) { Alert.alert('Attention', blocked); return; }
+    // ⚠️ `Alert.alert` est une fonction VIDE sur le web : un profil REFUSÉ (mineur,
+    // IMC de départ, volume d'entraînement) voyait le bouton final ne rien faire,
+    // sans le moindre message. Un refus muet se lit comme une app cassée.
+    if (blocked) { await notify({ title: 'Attention', message: blocked }); return; }
     const err = validateProfile(sex, ageN, profile.target_kcal);
-    if (err) { Alert.alert('Attention', err); return; }
+    if (err) { await notify({ title: 'Attention', message: err }); return; }
     setSaving(true);
     await saveFirstName(firstName);
     await saveProfile(profile);

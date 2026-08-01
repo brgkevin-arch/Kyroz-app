@@ -9,6 +9,7 @@ import { ProfileProvider } from '../hooks/useProfile';
 import { RecipeOverridesProvider } from '../hooks/useRecipeOverrides';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { TourProvider } from '../components/GuidedTour';
+import { DialogProvider } from '../components/Dialog';
 
 export default function RootLayout() {
   const t = useTheme();
@@ -20,13 +21,18 @@ export default function RootLayout() {
         <ProfileProvider>
           <RecipeOverridesProvider>
             <TourProvider>
-              <StatusBar style={t.scheme === 'dark' ? 'light' : 'dark'} />
-              <Stack
-                screenOptions={{
-                  headerShown: false,
-                  contentStyle: { backgroundColor: t.bg },
-                }}
-              />
+              {/* Les boîtes de dialogue remplacent `Alert.alert`, fonction VIDE sur
+                  react-native-web (cf. components/Dialog.tsx). Au-dessus du Stack :
+                  n'importe quel écran peut en ouvrir une. */}
+              <DialogProvider>
+                <StatusBar style={t.scheme === 'dark' ? 'light' : 'dark'} />
+                <Stack
+                  screenOptions={{
+                    headerShown: false,
+                    contentStyle: { backgroundColor: t.bg },
+                  }}
+                />
+              </DialogProvider>
             </TourProvider>
           </RecipeOverridesProvider>
         </ProfileProvider>

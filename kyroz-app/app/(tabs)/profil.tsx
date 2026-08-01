@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useCallback, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Platform, Linking } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
@@ -15,6 +15,7 @@ import { bankedDailyTargets, offsetsForPlan } from '../../lib/calorieBank';
 import { usePremium } from '../../hooks/usePremium';
 import { PremiumFeature, AccessReason } from '../../lib/premium';
 import { Sheet } from '../../components/Sheet';
+import { useDialog } from '../../components/Dialog';
 import { ActionSheet } from '../../components/ActionSheet';
 import { StreakProgress } from '../../components/StreakProgress';
 import { BodyFatPicker } from '../../components/BodyFatPicker';
@@ -148,6 +149,7 @@ export default function ProfilScreen() {
   const { slot, choose, busy } = useReminder();
   const { enabled: checkinEnabled, setEnabled: setCheckinEnabled } = usePlanCheckin();
   const { signOut } = useAuth();
+  const { confirm, notify } = useDialog();
   const themeMode = useThemeMode();
   const [hydrationOn, setHydrationOn] = useHydrationEnabled();
   const { consent: analyticsConsent, choose: chooseConsent } = useAnalyticsConsent();
@@ -190,18 +192,18 @@ export default function ProfilScreen() {
   // « Régénérer mon plan » : escape hatch discret (le bouton « Nouveau plan » de
   // l'écran Plan a été retiré au profit de l'ajustement recette-par-recette). On
   // pose un drapeau consommé au focus de l'écran Plan (REROLL_KEY), puis on y va.
-  const regenPlan = () => {
-    Alert.alert(
-      'Régénérer tout ton plan ?',
-      'Kyroz reconstruit une semaine complète de repas (tes 👍/👎 et préférences sont gardés).',
-      [
-        { text: 'Annuler', style: 'cancel' },
-        {
-          text: 'Régénérer', style: 'destructive',
-          onPress: async () => { await AsyncStorage.setItem('@kyroz:planReroll', '1'); router.push('/(tabs)/plan'); },
-        },
-      ],
-    );
+  // ⚠️ `Alert.alert` était une FONCTION VIDE sur le web → ce bouton ne faisait
+  // rien du tout, sans erreur ni trace (cf. components/Dialog.tsx).
+  const regenPlan = async () => {
+    const ok = await confirm({
+      title: 'Régénérer tout ton plan ?',
+      message: 'Kyroz reconstruit une semaine complète de repas (tes 👍/👎 et préférences sont gardés).',
+      confirmLabel: 'Régénérer',
+      destructive: true,
+    });
+    if (!ok) return;
+    await AsyncStorage.setItem('@kyroz:planReroll', '1');
+    router.push('/(tabs)/plan');
   };
 
   // Déconnexion : couper la session NE redirige pas tout seul l'écran déjà monté
@@ -239,7 +241,7 @@ export default function ProfilScreen() {
     const url = `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent('Kyroz — aide')}`;
     const ok = await Linking.canOpenURL(url).catch(() => false);
     if (ok) Linking.openURL(url);
-    else Alert.alert('Nous contacter', SUPPORT_EMAIL);
+    else notify({ title: 'Nous contacter', message: SUPPORT_EMAIL });
   };
 
   const appVersion = Constants.expoConfig?.version ?? '1.0.0';
@@ -247,8 +249,8 @@ export default function ProfilScreen() {
   // Droit à la portabilité (RGPD art. 20) : exporter toutes ses données.
   const doExport = async () => {
     const res = await exportMyData();
-    if (!res.ok) { Alert.alert('Export', 'Impossible d’exporter tes données pour le moment.'); return; }
-    if (res.method === 'download') Alert.alert('Export terminé', 'Tes données ont été téléchargées (kyroz-mes-donnees.json).');
+    if (!res.ok) { notify({ title: 'Export', message: 'Impossible d’exporter tes données pour le moment.' }); return; }
+    if (res.method === 'download') notify({ title: 'Export terminé', message: 'Tes données ont été téléchargées (kyroz-mes-donnees.json).' });
   };
 
   if (!profile) return null;
@@ -380,12 +382,12 @@ export default function ProfilScreen() {
             if (busy) return;
             const ok = await choose(v);
             if (!ok && v !== 'off') {
-              Alert.alert(
-                remindersSupported ? 'Notifications désactivées' : 'Indisponible sur le web',
-                remindersSupported
+              notify({
+                title: remindersSupported ? 'Notifications désactivées' : 'Indisponible sur le web',
+                message: remindersSupported
                   ? 'Active les notifications de Kyroz dans les réglages de ton téléphone pour recevoir le rappel.'
                   : 'Le rappel quotidien fonctionne sur l’app mobile (iOS/Android), pas dans le navigateur.',
-              );
+              });
             }
           }}
           options={[
@@ -994,6 +996,7 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
 }
 
 function MacroEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
+  const { notify } = useDialog();
   // 'manual' (legacy) est ramené sur 'percent' : on ne propose plus les grammes fixes.
   const [mode, setMode] = useState<'auto' | 'percent'>(profile.macro_mode === 'auto' ? 'auto' : 'percent');
   const [carbRatio, setCarbRatio] = useState(profile.carb_ratio ?? DEFAULT_CARB_RATIO);
@@ -1017,7 +1020,7 @@ function MacroEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
     } else {
       const next = withRecalc({ ...profile, macro_mode: 'percent', carb_ratio: carbRatio, protein_per_kg: proteinPerKg });
       const err = validateProfile(profile.sex, profile.age, next.target_kcal); // garde-fou §6
-      if (err) { Alert.alert('Attention', err); return; }
+      if (err) { notify({ title: 'Attention', message: err }); return; }
       onSave(next);
     }
   };

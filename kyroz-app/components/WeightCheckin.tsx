@@ -1,9 +1,10 @@
 import React, { useMemo, useState, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, useWindowDimensions, Image, Alert, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, useWindowDimensions, Image, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemePalette, Radius, Spacing } from '../constants/theme';
 import { SHEET_MAX_WIDTH } from '../constants/layout';
 import { Field, PrimaryButton, SectionLabel, Segmented } from './ui';
+import { useDialog } from './Dialog';
 import { WeightChart } from './WeightChart';
 import { TrackVerdict, PhotoCompare } from './Transformation';
 import { planFlags } from '../lib/tdee';
@@ -31,19 +32,21 @@ const CHIP_GAP = 6;
 export function WeightCheckin({ t, onClose, dragHandlers }: Props) {
   const s = useMemo(() => makeStyles(t), [t]);
   const { entries, photos, last, logWeight, removeWeight, setPhoto } = useWeightLog();
+  const { confirm, choose } = useDialog();
 
-  // Confirmation multiplateforme (Alert à boutons ne rend rien sur web).
-  const confirmDelete = (d: string, w: number) => {
-    const doIt = () => { removeWeight(d); setSaved(null); };
-    if (Platform.OS === 'web') {
-      // eslint-disable-next-line no-alert
-      if (typeof window !== 'undefined' && window.confirm(`Supprimer la pesée du ${frDate(d)} (${w} kg) ?`)) doIt();
-      return;
-    }
-    Alert.alert('Supprimer cette pesée ?', `${frDate(d)} · ${w} kg`, [
-      { text: 'Annuler', style: 'cancel' },
-      { text: 'Supprimer', style: 'destructive', onPress: doIt },
-    ]);
+  // Un seul chemin, web ET natif. Cet écran avait déjà dû contourner `Alert` avec
+  // un `window.confirm` — la boîte grise du navigateur, hors charte, et une
+  // solution locale à un piège qui touchait dix appels (cf. components/Dialog.tsx).
+  const confirmDelete = async (d: string, w: number) => {
+    const ok = await confirm({
+      title: 'Supprimer cette pesée ?',
+      message: `${frDate(d)} · ${w} kg`,
+      confirmLabel: 'Supprimer',
+      destructive: true,
+    });
+    if (!ok) return;
+    removeWeight(d);
+    setSaved(null);
   };
   const { profile, saveProfile } = useProfile();
   const freq: WeighInFrequency = profile?.weigh_in_frequency ?? DEFAULT_WEIGH_IN_FREQUENCY;
@@ -122,13 +125,17 @@ export function WeightCheckin({ t, onClose, dragHandlers }: Props) {
     const uri = await pickProgressPhoto(src);
     if (uri) { setPendingPhoto(uri); setSaved(null); }
   };
-  const choosePhoto = () => {
+  const choosePhoto = async () => {
     if (!cameraAvailable) { pick('library'); return; }
-    Alert.alert('Photo de progression', 'Elle reste sur ton téléphone.', [
-      { text: 'Prendre une photo', onPress: () => pick('camera') },
-      { text: 'Choisir dans la galerie', onPress: () => pick('library') },
-      { text: 'Annuler', style: 'cancel' },
-    ]);
+    const src = await choose<PhotoSource>({
+      title: 'Photo de progression',
+      message: 'Elle reste sur ton téléphone.',
+      options: [
+        { label: 'Prendre une photo', value: 'camera' },
+        { label: 'Choisir dans la galerie', value: 'library' },
+      ],
+    });
+    if (src) pick(src);
   };
 
   // ⚠️ La largeur du graphe est celle de la FEUILLE, pas de l'écran : sur iPad
