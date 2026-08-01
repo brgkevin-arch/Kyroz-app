@@ -39,6 +39,15 @@ type Lot = {
   cle: string; titre: string; volume: number;
   categorie: Recette['category'];
   idDebut: number; idFin: number; prefixe: string;
+  /**
+   * Nom du dossier de drop qui portera cette livraison — et donc valeur EXACTE du champ
+   * `wave` (convention `_meta.waves` : `AAAA-MM-JJ-<bloc>`). Le brief l'imprime tel quel ;
+   * au merge, on crée `Recette/drops/<cette valeur>/`. L'ancien brief demandait
+   * `2026-07-30-vague-113` à tous les lots, ce qui aurait fait mentir la partition par vague.
+   */
+  wave: string;
+  /** Lot déjà livré et mergé : on ne le régénère plus (ses ids sont pris). */
+  livre?: string;
   /** Enveloppes : [min,max] de la base écrite. */
   kcal: [number, number]; prot: [number, number]; carb: [number, number]; fat: [number, number];
   regimes: { libre: number; vegetarien: number; vegan: number; sansGluten: number };
@@ -59,8 +68,13 @@ const LOTS: Lot[] = [
   {
     cle: 'b2', titre: 'B2 — 13 collations, deux formats', volume: 13, categorie: 'collation',
     prefixe: 'col', idDebut: 67, idFin: 79,
+    wave: '2026-08-01-b2-collations', livre: '2026-08-01',
     kcal: [120, 290], prot: [8, 20], carb: [14, 34], fat: [4, 11],
-    regimes: { libre: 7, vegetarien: 3, vegan: 3, sansGluten: 6 },
+    // Livré : 7 vegan · 5 végétariennes · 1 carnée. La commande d'origine demandait
+    // 7 « sans restriction » alors que le §4 de ce lot n'expose QU'UNE ancre carnée
+    // (`dinde_escalope`), plafonnée à 3 recettes → 7 était mécaniquement impossible.
+    // `verifieCoherence` refuserait désormais de générer ce brief tel quel.
+    regimes: { libre: 1, vegetarien: 5, vegan: 7, sansGluten: 6 },
     etapes: [2, 3],
     sousFormats: [
       { nom: 'petit format', ids: '`col67` → `col75` · 9 recettes', kcal: [120, 185], prot: [8, 12], carb: [14, 24], fat: [4, 6] },
@@ -69,16 +83,24 @@ const LOTS: Lot[] = [
     specifique: [
       'Les **deux sous-formats se livrent ENSEMBLE** dans ce lot. Ancre grasse : 4–6 g de lipides en petit format, 8–11 g en format standard.',
       'Aucune collation ne peut couvrir les 12 profils (maximum mesuré : 7/12). C\'est l\'**union des deux sous-formats** qui doit les couvrir. Ne pas produire 4 variantes du petit format en plus gros.',
-      '**Au moins 2 des 9 petits formats doivent viser la cible la plus basse** : 115 kcal · 4 g de protéines (femme 55 kg en sèche). Ces recettes-là ne serviront qu\'un profil, et c\'est normal — ce sont les plus utiles du lot, le catalogue en compte zéro aujourd\'hui.',
+      // ⚠️ Ligne RETIRÉE après livraison : elle demandait « au moins 2 des 9 petits formats
+      // à 115 kcal · 4 g de protéines, ces recettes ne serviront qu'un profil et c'est
+      // normal ». `check:enveloppe` (règle R8) REJETTE toute recette servant moins de
+      // 3 profils sur 12 — la commande et le contrôle se contredisaient. Ne pas la
+      // réécrire dans un lot futur tant que le seuil R8 n'a pas été assoupli (🧑).
       '⚠️ **La règle des 12 g de lipides ne s\'applique PAS ici.** 12 g de lipides valent 108 kcal, soit 70 % d\'une collation de 150 kcal. L\'ancre grasse reste obligatoire, elle est simplement petite.',
       '⚠️ **N\'essaie PAS d\'atteindre 6 g de protéines pour 100 kcal.** C\'est cette règle qui a rendu les 66 collations actuelles inutilisables. La collation est servie en dernier, le plancher protéique de la journée est déjà couvert par les trois repas : la cible résiduelle réelle est de **1 à 18 g**. Vise 5 à 7 g/100 kcal sans t\'y contraindre.',
       '**Le volume vient du fruit ou d\'un féculent léger**, jamais de la protéine.',
-      '⚠️ **« Fruit + laitage maigre » est FERMÉ** : `skyr`, `fromage_blanc_0`, `cottage_cheese` et `yaourt_grec` sont tous saturés en « sans féculent » et en « avec flocons d\'avoine ». Ne pars pas de là. Formats ouverts : **salé** (une collation carnée — le catalogue n\'en compte AUCUNE), tartine ou galette garnie, crudités + tartinable, `yaourt_nature` ou `petit_suisse` (zéro recette), ou un laitage saturé RÉHABILITÉ par un féculent léger (galette de riz, châtaigne, pain sans gluten).',
+      // ⚠️ `yaourt_nature` et `petit_suisse` ont été retirés de cette ligne : ils étaient
+      // présentés comme « formats ouverts, zéro recette » alors qu'ils n'existent PAS dans
+      // `ingredients_reference`. C'est ce que `verifieCoherence` interdit désormais.
+      '⚠️ **« Fruit + laitage maigre » est FERMÉ** : `skyr`, `fromage_blanc_0`, `cottage_cheese` et `yaourt_grec` sont tous saturés en « sans féculent » et en « avec flocons d\'avoine ». Ne pars pas de là. Formats ouverts : **salé** (une collation carnée — le catalogue n\'en compte AUCUNE), tartine ou galette garnie, crudités + tartinable, ou un laitage saturé RÉHABILITÉ par un féculent léger (`galette_riz`, `chataigne`, `pain_sans_gluten`).',
     ],
   },
   ...[1, 2, 3, 4].map((n): Lot => ({
     cle: `b1-lot${n}`, titre: `B1 — repas complets, lot ${n} sur 4`, volume: 20, categorie: 'repas_complet',
     prefixe: 'rep', idDebut: 171 + (n - 1) * 20, idFin: 190 + (n - 1) * 20,
+    wave: `2026-08-01-b1-lot${n}-repas`,
     kcal: [520, 580], prot: [30, 34], carb: [58, 70], fat: [14, 18],
     // 44 libres · 18 végétariennes · 18 vegan sur les 80 : ça ne se divise pas en quatre
     // parts égales, donc les lots 1-2 penchent végétarien et les lots 3-4 vegan.
@@ -96,8 +118,17 @@ const LOTS: Lot[] = [
   {
     cle: 'b3', titre: 'B3 — 20 petits-déjeuners', volume: 20, categorie: 'petit_dej',
     prefixe: 'pd', idDebut: 79, idFin: 98,
+    wave: '2026-08-01-b3-petits-dejeuners',
     kcal: KCAL_PDJ, prot: [24, 28], carb: [52, 62], fat: [12, 16],
-    regimes: { libre: 11, vegetarien: 4, vegan: 5, sansGluten: 9 },
+    // ⚠️ Corrigé le 2026-08-01 : c'était `libre: 11` — la répartition du lot B1
+    // (repas complets) recopiée telle quelle. Elle n'a aucun sens ici : le §4 des
+    // repas complets expose 13 ancres carnées, celui du petit-déj en expose 3
+    // (`dinde_escalope`, `jambon_blanc`, `saumon_fume`). 11 carnées sur 20 tenaient
+    // sous le plafond (3 ancres × 5) mais le saturaient à 73 %, avec la règle
+    // « au plus 2 recettes par couple protéine × féculent » par-dessus. Mesuré sur
+    // le catalogue : le créneau petit-déj compte 4 recettes carnées sur 78 (5 %).
+    // 6 fait passer à 10/98 — un vrai gain sur le salé (demandé au §3) sans forcer.
+    regimes: { libre: 6, vegetarien: 7, vegan: 7, sansGluten: 9 },
     etapes: [4, 7],
     specifique: [
       '**Base 430–480 kcal, 24 à 28 g de protéines.** C\'est la bande la mieux couvrante, mesurée : les recettes de 420 à 500 kcal servent en moyenne 8 profils sur 12, contre 2,8 pour celles de 250 à 340 kcal et 4,5 pour celles de 620 à 760. **N\'écris pas de petits-déjeuners minuscules** — une base trop basse plafonne trop tôt pour les gros gabarits.',
@@ -123,6 +154,28 @@ function refsPertinents(cat: Recette['category']): string[] {
     if (REFS[r]) vus.add(r);
   }
   return [...vus].filter((r) => REFS[r]).sort();
+}
+
+/**
+ * Un ref peut-il PORTER la protéine d'un plat ?
+ *
+ * Le seul critère précédent — « ≥ 7 g de protéines aux 100 » — laissait passer les amandes,
+ * les flocons d'avoine, le chocolat noir et les graines de courge : riches en protéines dans
+ * l'absolu, mais dont l'énergie est du gras ou de l'amidon. Tant que ce tableau se servait
+ * dans les 123 refs du catalogue, ces intrus étaient noyés sous les viandes ; une fois
+ * restreint au §4 d'un lot petit-déj, ils occupaient toute la table.
+ *
+ * Trois conditions, qui traduisent le §6.1 (« ancre protéine + scalable ») en arithmétique :
+ *  - au moins 7 g de protéines aux 100 g (seuil d'origine, conservé) ;
+ *  - la protéine pèse ≥ 25 % des calories du ref — c'est ce qui écarte les corps gras ;
+ *  - aucun plafond absolu ≤ 40 g, sinon l'ancre ne peut pas atteindre la fourchette
+ *    protéique d'une base (la levure maltée, plafonnée à 20 g, porte 10 g au maximum).
+ */
+function estAncreProteique(ref: string): boolean {
+  const p = REFS[ref].per_100;
+  if (p.protein < 7 || p.kcal <= 0) return false;
+  if ((p.protein * 4) / p.kcal < 0.25) return false;
+  return REFS[ref].abs_max_qty == null || REFS[ref].abs_max_qty > 40;
 }
 
 /** Rôle macro dominant d'un ref, tel qu'il est utilisé dans le catalogue. */
@@ -165,13 +218,20 @@ function tableEnsembles(cat: Recette['category']): string {
   return ['| id | ensemble de refs |', '|---|---|', ...l].join('\n');
 }
 
-/** Fréquence de chaque ref sur la catégorie, et refs jamais employés (terrain vierge). */
-function frequences(cat: Recette['category']): { chauds: string; vierges: string[] } {
+/**
+ * Fréquence de chaque ref sur la catégorie, et refs jamais employés (terrain vierge).
+ *
+ * ⚠️ `autorises` n'est PAS optionnel, et c'est le correctif du 2026-08-01 : la version
+ * précédente balayait `Object.keys(REFS)` — les 123 refs du catalogue — donc le §7
+ * annonçait « terrain entièrement vierge » sur des ingrédients que le §4 du même
+ * fichier interdisait deux pages plus haut (`poulet_filet`, `cabillaud`, `mozzarella`…).
+ */
+function frequences(cat: Recette['category'], autorises: string[]): { chauds: string; vierges: string[] } {
   const f: Record<string, number> = {};
   for (const r of RECIPES) if (r.category === cat) for (const i of r.ingredients) f[i.ref] = (f[i.ref] ?? 0) + 1;
   const chauds = Object.entries(f).filter(([, n]) => n >= 5).sort((a, b) => b[1] - a[1])
     .map(([k, n]) => `\`${k}\` ${n}`).join(' · ');
-  const vierges = Object.keys(REFS).filter((k) => !f[k]).sort();
+  const vierges = autorises.filter((k) => !f[k]).sort();
   return { chauds, vierges };
 }
 
@@ -181,25 +241,30 @@ function frequences(cat: Recette['category']): { chauds: string; vierges: string
  * sans dire ce qui reste ouvert envoie le rédacteur dans un mur invisible. C'est
  * exactement l'erreur qu'avait la première version de ce générateur, dont les « formats
  * à viser » pointaient tous sur des couples déjà saturés.
+ *
+ * ⚠️ Deuxième version de la même erreur, corrigée le 2026-08-01 : ce tableau se servait
+ * dans les 123 refs du catalogue, pas dans les refs autorisés par le §4 du lot. Sur `b3`,
+ * 12 des 18 « ancres encore ouvertes » (poulet, bœuf, porc, cabillaud, thon, sardines,
+ * crevettes, mozzarella…) n'étaient tout simplement pas employables — le §7 envoyait dans
+ * le mur que le §4 venait de construire. Les places libres se comptent donc désormais sur
+ * les féculents AUTORISÉS eux aussi, sinon le chiffre annoncé est faux.
  */
-function couplesOuverts(cat: Recette['category']): { proteine: string; libre: number; occupe: number }[] {
+function couplesOuverts(cat: Recette['category'], autorises: string[]): { proteine: string; libre: number; occupe: number; deja: number }[] {
   const m = new Map<string, number>();
   for (const r of RECIPES.filter((x) => x.category === cat)) {
     const p = r.ingredients.filter((i) => i.macro_role === 'protein').map((i) => i.ref).sort().join('+') || '∅';
     const c = r.ingredients.filter((i) => i.macro_role === 'carb').map((i) => i.ref).sort().join('+') || 'sans féculent';
     m.set(`${p} × ${c}`, (m.get(`${p} × ${c}`) ?? 0) + 1);
   }
-  // Ancres protéiques crédibles : ≥ 7 g de protéines aux 100, employées ou non.
-  const ancres = Object.keys(REFS).filter((k) => REFS[k].per_100.protein >= 7);
-  const feculents = ['sans féculent', ...Object.keys(REFS).filter((k) => {
+  const feculents = ['sans féculent', ...autorises.filter((k) => {
     const p = REFS[k].per_100;
     return p.carbs >= 20 && p.protein < 15;
   })];
-  return ancres.map((a) => {
+  return autorises.filter(estAncreProteique).map((a) => {
     const libre = feculents.filter((f) => (m.get(`${a} × ${f}`) ?? 0) < 2).length;
     const occupe = [...m.entries()].filter(([k, n]) => k.startsWith(`${a} ×`) && n >= 2).length;
-    return { proteine: a, libre, occupe };
-  }).filter((x) => x.libre > 0).sort((a, b) => a.occupe - b.occupe || b.libre - a.libre);
+    return { proteine: a, libre, occupe, deja: usage(a, cat) };
+  }).filter((x) => x.libre > 0).sort((a, b) => a.occupe - b.occupe || a.deja - b.deja || b.libre - a.libre);
 }
 
 function tableRefs(refs: string[], cat: Recette['category']): string {
@@ -219,7 +284,7 @@ function tableRefs(refs: string[], cat: Recette['category']): string {
   ].join('\n');
 }
 
-function exemple(cat: Recette['category']): string {
+function exemple(cat: Recette['category'], wave: string): string {
   // On prend une recette RÉELLE de la catégorie, parmi les plus détaillées : c'est le
   // gabarit à imiter, et il vient du catalogue live donc il est forcément valide.
   const r = RECIPES.filter((x) => x.category === cat).sort((a, b) => b.instructions.length - a.instructions.length)[0];
@@ -227,14 +292,99 @@ function exemple(cat: Recette['category']): string {
     id: r.id, name: r.name, category: r.category,
     tags: r.tags, base_servings: r.base_servings,
     ingredients: r.ingredients, instructions: r.instructions,
-    why: r.why, macros_per_serving: r.macros_per_serving, wave: '2026-07-30-vague-113',
+    why: r.why, macros_per_serving: r.macros_per_serving, wave,
   }, null, 2);
+}
+
+// ── Auto-contrôle du brief ───────────────────────────────────────────────────
+
+const CASSE_VEGETARIEN = (ref: string) => !restrictionsOkFor([ref]).includes('vegetarian');
+const CASSE_VEGAN = (ref: string) => !restrictionsOkFor([ref]).includes('vegan');
+
+/** Plafond d'occurrences d'une même ancre protéique sur un lot (§7). */
+const plafondAncre = (volume: number) => Math.floor(volume * 0.25);
+
+/**
+ * Mots entre backticks qui ne désignent PAS un ingrédient : rôles macro, champs du schéma,
+ * littéraux. Tout le reste, dans une consigne §3, doit être un `ref` autorisé — c'est ce
+ * qui rend la liste ci-dessous volontairement courte. L'élargir sans raison rouvre le trou.
+ */
+const TERMES_TECHNIQUES = new Set([
+  'protein', 'carb', 'fat', 'dairy', 'fruit', 'vegetable', 'flavor',
+  'scalable', 'true', 'false', 'ref', 'qty', 'macro_role', 'base_servings',
+  'wave', 'category', 'id', 'name', 'tags', 'instructions', 'why', 'macros_per_serving',
+]);
+
+/**
+ * Refuse de produire un brief qui se contredit lui-même.
+ *
+ * Pourquoi ça existe : les quatre défauts trouvés en relisant `b2.md` après livraison
+ * étaient tous du même type — une consigne écrite à la main qui parlait d'ingrédients ou
+ * de volumes que les tables CALCULÉES du même fichier rendaient impossibles. Un brief
+ * incohérent ne se voit pas à la lecture ; il se voit au retour du rédacteur, une
+ * conversation entière plus tard. Ces contrôles-là échouent en 200 ms.
+ */
+function verifieCoherence(lot: Lot, refs: string[]): void {
+  const err: string[] = [];
+  const autorises = new Set(refs);
+
+  // 1. Aucune consigne §3 ne cite un `ref` que le §4 n'expose pas — ni, a fortiori, un
+  //    ref inexistant (`b2.md` recommandait `yaourt_nature` et `petit_suisse`, absents
+  //    des 123 refs du catalogue).
+  for (const ligne of lot.specifique) {
+    for (const [, cite] of ligne.matchAll(/`([a-z0-9_]+)`/g)) {
+      if (!autorises.has(cite) && !TERMES_TECHNIQUES.has(cite)) {
+        err.push(REFS[cite]
+          ? `consigne §3 : \`${cite}\` existe au catalogue mais n'est PAS dans les ${refs.length} refs du §4`
+          : `consigne §3 : \`${cite}\` n'existe pas dans ingredients_reference`);
+      }
+    }
+  }
+
+  // 2. La répartition par régime doit couvrir le lot, exactement.
+  const { libre, vegetarien, vegan, sansGluten } = lot.regimes;
+  const somme = libre + vegetarien + vegan;
+  if (somme !== lot.volume) err.push(`régimes : ${libre}+${vegetarien}+${vegan} = ${somme} ≠ ${lot.volume} recettes`);
+  if (sansGluten > lot.volume) err.push(`régimes : ${sansGluten} sans gluten demandés pour ${lot.volume} recettes`);
+
+  // 3. Et elle doit être TENABLE avec les refs du §4. Une recette carnée a besoin d'une
+  //    ancre carnée, et aucune ancre ne peut porter plus de 25 % du lot : le produit des
+  //    deux est un plafond dur. `b2.md` demandait 7 collations carnées avec une seule
+  //    ancre disponible, plafonnée à 3.
+  const cap = plafondAncre(lot.volume);
+  const ancresCarnees = refs.filter((r) => CASSE_VEGETARIEN(r) && estAncreProteique(r));
+  if (libre > ancresCarnees.length * cap) {
+    err.push(`régimes : ${libre} recettes carnées demandées, mais le §4 n'expose que `
+      + `${ancresCarnees.length} ancre(s) carnée(s) (${ancresCarnees.join(', ') || 'aucune'}) `
+      + `× ${cap} au plus chacune = ${ancresCarnees.length * cap} maximum`);
+  }
+  const ancresOvo = refs.filter((r) => CASSE_VEGAN(r) && !CASSE_VEGETARIEN(r));
+  if (vegetarien > 0 && ancresOvo.length === 0) err.push('régimes : aucune source œuf/laitage dans le §4');
+  if (vegan > 0 && refs.filter((r) => !CASSE_VEGAN(r) && estAncreProteique(r)).length === 0) {
+    err.push('régimes : aucune ancre protéique végétale dans le §4');
+  }
+  if (sansGluten > 0 && refs.filter((r) => !GLUTEN_INTERDIT(r)).length === 0) {
+    err.push('régimes : aucun ref sans gluten dans le §4');
+  }
+
+  // 4. Les ids commandés doivent être libres. C'est le garde-fou qui empêche de
+  //    recommander un lot déjà livré après régénération.
+  const pris = new Set(RECIPES.map((r) => r.id));
+  const collisions = Array.from({ length: lot.volume }, (_, i) => `${lot.prefixe}${lot.idDebut + i}`).filter((id) => pris.has(id));
+  if (collisions.length) err.push(`ids déjà au catalogue : ${collisions.join(', ')} — ce lot est-il déjà livré ?`);
+
+  if (err.length) {
+    console.error(`\n❌ ${lot.cle} — brief incohérent, rien n'est écrit :`);
+    for (const e of err) console.error(`   · ${e}`);
+    process.exit(1);
+  }
 }
 
 // ── Génération ───────────────────────────────────────────────────────────────
 
 function genere(lot: Lot): string {
   const refs = refsPertinents(lot.categorie);
+  verifieCoherence(lot, refs);
   const sansGlutenOk = refs.filter((r) => !GLUTEN_INTERDIT(r));
   const trip = tripletsSatures(lot.categorie);
   const ids = Array.from({ length: lot.volume }, (_, i) => `${lot.prefixe}${lot.idDebut + i}`);
@@ -257,16 +407,19 @@ Généré depuis le catalogue live (${RECIPES.length} recettes) — les valeurs 
 ids à produire, dans cet ordre, sans trou et sans doublon :
 \`${ids.join('\`, \`')}\`
 
-Répartition par régime, à respecter exactement :
+Répartition par régime, à respecter exactement. **Les trois lignes sont exclusives** : une
+recette tombe dans une seule, et c'est l'ingrédient le plus restrictif qui décide.
 
 | | Nombre |
 |---|---|
-| Sans restriction (viande, volaille, poisson, œufs, produits laitiers) | **${lot.regimes.libre}** |
-| Végétariennes (pas de chair animale ; œufs et laitages permis) | **${lot.regimes.vegetarien}** |
-| Vegan strictes (aucun produit animal) | **${lot.regimes.vegan}** |
-| **dont sans gluten, toutes catégories confondues** | **≥ ${lot.regimes.sansGluten}** |
+| **Carnées ou marines** — contiennent viande, volaille ou poisson | **${lot.regimes.libre}** |
+| **Végétariennes** — œufs et/ou laitages, **aucune** chair animale | **${lot.regimes.vegetarien}** |
+| **Vegan** — aucun produit animal (ni œuf, ni laitage, ni miel) | **${lot.regimes.vegan}** |
+| **dont sans gluten, toutes lignes confondues** | **≥ ${lot.regimes.sansGluten}** |
 
-Le sans-gluten est **transverse** : une recette vegan peut compter dans les deux colonnes. N'écris
+${lot.regimes.libre > 0 ? `Les seules ancres carnées que le §4 t'autorise sur ce créneau : ${refs.filter((r) => CASSE_VEGETARIEN(r) && estAncreProteique(r)).map((r) => `\`${r}\``).join(' · ')}. Aucune ne peut porter plus de ${plafondAncre(lot.volume)} recettes (§7).
+
+` : ''}Le sans-gluten est **transverse** : une recette vegan peut compter dans les deux colonnes. N'écris
 jamais le régime dans la recette — il est **déduit** des \`ref\` employés.
 
 ---
@@ -381,7 +534,7 @@ Voici une recette **réelle** du catalogue, dans la bonne catégorie. C'est le g
 imiter — structure, nommage, niveau de détail :
 
 \`\`\`json
-${exemple(lot.categorie)}
+${exemple(lot.categorie, lot.wave)}
 \`\`\`
 
 ### Champ par champ
@@ -400,7 +553,7 @@ ${exemple(lot.categorie)}
 | \`instructions\` | **${lot.etapes[0]} à ${lot.etapes[1]} étapes** — voir §6 |
 | \`why\` | une phrase sobre sur l'intérêt nutritionnel. Aucune promesse de santé, aucune revendication de régime. |
 | \`macros_per_serving\` | **calculé**, pas estimé : pour chaque ingrédient \`per_100 × qty / 100\`, puis somme. Tolérance ±10 %. |
-| \`wave\` | \`"2026-07-30-vague-113"\` pour les ${lot.volume} |
+| \`wave\` | \`"${lot.wave}"\` pour les ${lot.volume} — c'est le nom du dossier de drop qui portera cette livraison, la convention du catalogue (\`_meta.waves\`). Recopie-le tel quel. |
 
 ---
 
@@ -505,7 +658,7 @@ ${trip.slice(0, 30).map((t) => `| ${t.cle} | ${t.n} | ${t.ids.join(', ')} |`).jo
 ### Plafond par ancre sur ce lot
 
 Aucun \`ref\` protéique ne peut porter plus de **25 % des ${lot.volume} recettes**, soit
-**${Math.floor(lot.volume * 0.25)} au maximum**. Il te faut au moins
+**${plafondAncre(lot.volume)} au maximum**. Il te faut au moins
 **${Math.min(6, Math.floor(lot.volume / 2))} ancres protéiques distinctes** et
 **${Math.min(4, Math.max(2, Math.floor(lot.volume / 3)))} ancres grasses distinctes**.
 
@@ -519,17 +672,23 @@ ${refs.map((r) => ({ r, n: usage(r, lot.categorie), role: roleDominant(r) }))
 ### Ancres encore OUVERTES — c'est là qu'il faut aller
 
 Dire ce qui est interdit sans dire ce qui reste libre envoie dans un mur. Voici les ancres
-protéiques par ordre de **disponibilité** : « couples saturés » = combinaisons déjà fermées pour
-cette ancre, « places libres » = combinaisons (ancre × féculent) encore utilisables.
+protéiques par ordre de **disponibilité** — **toutes prises dans les ${refs.length} refs du §4**,
+donc toutes réellement employables. « Couples saturés » = combinaisons déjà fermées pour cette
+ancre, « places libres » = combinaisons (ancre × féculent autorisé) encore utilisables.
 
-| Ancre protéine | Couples saturés | Places libres |
-|---|---|---|
-${couplesOuverts(lot.categorie).slice(0, 18).map((x) => `| \`${x.proteine}\` | ${x.occupe || '—'} | ${x.libre} |`).join('\n')}
+| Ancre protéine | Déjà employée ici | Couples saturés | Places libres |
+|---|---|---|---|
+${couplesOuverts(lot.categorie, refs).slice(0, 18).map((x) => `| \`${x.proteine}\` | ${x.deja || '—'} | ${x.occupe || '—'} | ${x.libre} |`).join('\n')}
 
-**Refs JAMAIS employés en \`${lot.categorie}\`** — terrain entièrement vierge, aucun risque de
+${(() => {
+    const v = frequences(lot.categorie, refs).vierges;
+    return v.length === 0
+      ? `_Tous les refs du §4 sont déjà employés au moins une fois sur ce créneau._`
+      : `**Refs du §4 JAMAIS employés en \`${lot.categorie}\`** — terrain entièrement vierge, aucun risque de
 doublon :
 
-${frequences(lot.categorie).vierges.map((v) => `\`${v}\``).join(' · ')}
+${v.map((x) => `\`${x}\``).join(' · ')}`;
+  })()}
 
 ### Diversité de format
 
@@ -543,7 +702,7 @@ bowl, poêlée, salade, porridge/pudding, galette/pancake, soupe.
 **Tu as besoin de cette table pour respecter R1 et R2**, qui portent sur l'ensemble ENTIER des refs
 et pas seulement sur le couple protéine × féculent. Vérifie chacune de tes recettes contre elle.
 
-Refs les plus fréquents sur ce créneau (à éviter de renforcer) : ${frequences(lot.categorie).chauds}
+Refs les plus fréquents sur ce créneau (à éviter de renforcer) : ${frequences(lot.categorie, refs).chauds}
 
 ${tableEnsembles(lot.categorie)}
 
@@ -570,8 +729,9 @@ précédentes.
 - [ ] Aucun couple protéine × féculent de la liste des saturés.
 - [ ] Au plus 3 \`ref\` en commun avec une recette existante, et entre les recettes du lot.
 - [ ] Deux recettes du lot ne partagent pas leurs 3 premiers mots significatifs.
-- [ ] Répartition par régime du §1 respectée, sans écrire le régime dans la recette.
-- [ ] \`wave\` renseigné partout.
+- [ ] Répartition par régime du §1 respectée, **les trois lignes étant exclusives**, sans écrire
+      le régime dans la recette.
+- [ ] \`wave\` = \`"${lot.wave}"\` sur les ${lot.volume}.
 
 Réponds avec **le JSON seul**. Si un ingrédient t'a manqué, ou si une recette t'a semblé
 impossible à tenir dans l'enveloppe, dis-le **après** le JSON, en clair.
@@ -590,12 +750,19 @@ if (!aFaire.length) {
 
 let total = 0;
 for (const lot of aFaire) {
+  // Un lot livré garde sa définition (c'est l'historique de la commande) mais n'a plus de
+  // brief : ses ids sont pris, et le régénérer produirait une commande impossible à honorer.
+  if (lot.livre) {
+    console.log(`⏭  ${lot.cle} — déjà livré le ${lot.livre} (vague \`${lot.wave}\`), brief non régénéré.`);
+    continue;
+  }
   const contenu = genere(lot);
   const chemin = join(dossier, `${lot.cle}.md`);
   writeFileSync(chemin, contenu, 'utf8');
   total += lot.volume;
   console.log(`✅ Recette/lots/${lot.cle}.md — ${lot.volume} recettes, ${lot.prefixe}${lot.idDebut}–${lot.prefixe}${lot.idFin}, ${(contenu.length / 1024).toFixed(0)} Ko`);
 }
-console.log(`\n${aFaire.length} fichier(s), ${total} recettes commandées au total.`);
-console.log('À donner au rédacteur UN PAR CONVERSATION, dans l\'ordre : b2, b1-lot1…4, b3.');
+const restants = aFaire.filter((l) => !l.livre);
+console.log(`\n${restants.length} fichier(s), ${total} recettes commandées au total.`);
+console.log(`À donner au rédacteur UN PAR CONVERSATION, dans l'ordre : ${restants.map((l) => l.cle).join(', ')}.`);
 console.log('Après merge d\'un lot, régénérer les suivants : ils verront ce que le lot a consommé.');

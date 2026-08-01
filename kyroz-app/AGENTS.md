@@ -533,6 +533,9 @@ produit en suspens — il ne reste qu'à coder.
   sous 156 kcal en base. **Si le fondateur veut vraiment des recettes ultra-légères
   mono-profil, c'est le seuil R8 qu'il faut assouplir, pas la commande qu'il faut
   réécrire.**
+  ♻️ **La consigne fautive est retirée du générateur le 2026-08-01**, avec la raison en
+  commentaire : tant que R8 refuse une recette servant moins de 3 profils sur 12, aucun
+  lot futur ne doit la redemander. C'est une décision 🧑 en attente, pas un oubli.
 
   🧰 **Méthode, pour le prochain lot** : compositions écrites à la main, **quantités
   résolues numériquement** contre les vraies valeurs `/100 g` d'`ingredients_reference`.
@@ -550,22 +553,58 @@ produit en suspens — il ne reste qu'à coder.
   et plafonnait à 3) · 7 ancres grasses · 11 des 13 sans gluten. Drop conservé dans
   `Recette/drops/2026-08-01-b2-collations/`.
 
-  ⚠️ **QUATRE CONTRADICTIONS DANS `b2.md`, à corriger avant de générer `b3`** — elles
-  ne sont pas anodines, chacune envoie dans un mur :
-  1. **§7 recommande des ancres absentes du §4.** `poulet_filet`, `saumon`, `feta`,
-     `mozzarella`… sont listées comme « places libres » alors que le §4 dit « règle
-     absolue : tu n'emploies QUE ces 63 clés ». J'ai suivi le §4.
-  2. **La répartition par régime du §1 est infaisable avec la liste du §4.**
-     Elle demande 7 recettes « sans restriction » (viande/poisson) alors que le §4
-     n'autorise **qu'une seule** viande (`dinde_escalope`) et aucun poisson — et que le
-     §7 plafonne un ref protéique à 3 recettes. Livré à la place : 7 vegan,
-     12 compatibles végétariennes, 1 carnée. *(Effet de bord utile : +7 collations
-     vegan, ça sert aussi D7.)*
-  3. **§5 impose `wave: "2026-07-30-vague-113"`** alors que `Recette/README.md` exige
-     le **nom du dossier du drop**. J'ai suivi le README (`2026-08-01-b2-collations`),
-     et un test vérifie la partition par vague.
-  4. **§3 cite `yaourt_nature` et `petit_suisse`** comme « formats ouverts, zéro
-     recette » — ces deux refs n'existent pas dans les 63 du §4.
+  ✅ **LES QUATRE CONTRADICTIONS DE `b2.md` SONT CORRIGÉES le 2026-08-01 — à la SOURCE.**
+  `Recette/lots/` est **généré** (`npm run gen:lots`) et le README interdit de l'éditer à
+  la main : corriger les fichiers n'aurait tenu que jusqu'à la régénération suivante. Tout
+  est donc passé dans `scripts/gen-brief-lot.ts`. Ce qu'elles étaient, et ce qui les tue :
+
+  1. **§7 recommandait des ancres absentes du §4.** `couplesOuverts()` et la liste
+     « refs jamais employés » se servaient dans les **123 refs du catalogue** au lieu des
+     refs autorisés par le §4 du lot. Sur `b3`, **12 des 18 « ancres encore ouvertes »**
+     (poulet, bœuf, porc, cabillaud, thon, sardines, crevettes, mozzarella…) étaient
+     inemployables : le §7 envoyait dans le mur que le §4 venait de construire. Les deux
+     fonctions prennent désormais les refs autorisés en paramètre — obligatoire, pas
+     optionnel.
+     ➡️ **Effet de bord révélateur** : une fois restreint au §4, le tableau se remplissait
+     d'`amandes`, `flocons_avoine`, `chocolat_noir` — le critère « ≥ 7 g de protéines
+     aux 100 » laisse passer tout ce qui est dense. Ces intrus étaient noyés sous les
+     viandes, pas absents. `estAncreProteique()` ajoute deux conditions : la protéine
+     doit peser **≥ 25 % des calories** du ref, et un plafond absolu ≤ 40 g disqualifie
+     (la levure maltée, plafonnée à 20 g, porte 10 g de protéines au maximum).
+  2. **La répartition par régime du §1 était infaisable.** b2 demandait 7 recettes
+     carnées avec **une seule** ancre carnée au §4 (`dinde_escalope`), plafonnée à 3.
+     Livré à la place : 7 vegan, 5 végétariennes, 1 carnée. *(Effet de bord utile :
+     +7 collations vegan, ça sert aussi D7.)* Deux causes, deux correctifs :
+     - les trois lignes du tableau **se recouvraient** (« sans restriction (viande,
+       volaille, poisson, œufs, produits laitiers) » vs « végétariennes (œufs et
+       laitages permis) ») : impossible de partitionner. Elles sont désormais
+       **exclusives** et le §1 nomme les ancres carnées réellement disponibles ;
+     - `verifieCoherence()` calcule le plafond (nb d'ancres carnées × 25 % du lot) et
+       **refuse de générer** au-delà.
+     ➡️ **`b3` portait la même erreur, par recopie** : `libre: 11`, la répartition des
+     repas complets appliquée au petit-déj. Le §4 des repas complets expose 13 ancres
+     carnées, celui du petit-déj en expose **3**. 11 tenait sous le plafond (3 × 5)
+     mais le saturait à 73 %. Ramené à **6** — mesuré, le créneau petit-déj compte
+     4 recettes carnées sur 78 (5 %), donc 6 fait un vrai gain sur le salé (que le §3
+     réclame) sans forcer. Nouvelle répartition `b3` : 6 carnées · 7 végé · 7 vegan.
+  3. **§5 imposait `wave: "2026-07-30-vague-113"`** alors que `Recette/README.md` exige le
+     **nom du dossier du drop**. `wave` est maintenant un champ du lot, imprimé au §5, dans
+     l'exemple JSON **et** dans l'auto-contrôle du §9 — une seule source, plus de
+     divergence possible.
+  4. **§3 citait `yaourt_nature` et `petit_suisse`**, deux refs qui n'existent nulle part.
+     `verifieCoherence()` extrait tout `ref` entre backticks des consignes et échoue s'il
+     n'est pas au §4 (une courte liste de termes techniques — `fat`, `scalable`… — est
+     exclue ; l'élargir sans raison rouvrirait le trou).
+
+  🔒 **Vérifié en remettant la commande d'origine de b2** : le générateur sort en code 1 et
+  n'écrit rien, en listant les 3 défauts + la collision d'ids. Et sur les 5 briefs produits,
+  contrôle indépendant fait **sur les fichiers** (pas sur le générateur) : zéro `ref` cité
+  hors du §4 du même fichier, `wave` identique au §5 et dans l'exemple.
+
+  🗑 **`b2.md` est SUPPRIMÉ.** Le lot est livré et mergé : un brief qui commande `col67`–`col79`
+  est une commande impossible à honorer. Sa définition reste dans le générateur (marquée
+  `livre`), sa matière première dans `drops/2026-08-01-b2-collations/`. Le contrôle d'ids
+  attrape désormais ce cas tout seul.
 - **D3 · 🧑 Axe allergène — jamais tranché** *(Journal §3)*. Le `tahini` introduit le sésame et **aucun
   champ ne le porte**. Décision produit : ajoute-t-on un axe allergène au modèle, ou
   reste-t-on sur la saisie libre ?
