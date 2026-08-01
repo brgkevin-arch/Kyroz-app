@@ -1,0 +1,784 @@
+{
+  "recipes": [
+    {
+      "id": "pd99",
+      "name": "Poêlée de dinde au millet et poivron",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 30
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "dinde_escalope",
+          "qty": 70,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "millet",
+          "qty": 76,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "graines_courge",
+          "qty": 24,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "tomate",
+          "qty": 80,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "poivron",
+          "qty": 60,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Rince le millet, verse-le dans deux fois son volume d'eau salée, porte à ébullition puis couvre et laisse cuire 20 minutes à feu très doux : les grains doivent avoir tout absorbé.",
+        "Coupe l'escalope de dinde en petites lanières, sale et poivre.",
+        "Chauffe une poêle antiadhésive à feu vif et saisis les lanières 2 minutes sans y toucher, puis retourne-les et compte 2 minutes de plus : elles doivent être dorées et fermes.",
+        "Ajoute le poivron en petits dés, baisse à feu moyen et fais revenir 4 minutes jusqu'à ce qu'il s'assouplisse.",
+        "Coupe la tomate en dés et ajoute-la hors du feu, avec du poivre.",
+        "Fais griller les graines de courge 2 minutes à sec dans une petite poêle, jusqu'à ce qu'elles crépitent, puis parsème-les sur le millet et la poêlée."
+      ],
+      "why": "Petit-déjeuner salé à base de volaille maigre et de céréale sans gluten.",
+      "wave": "2026-08-02-b4-pdej-denses",
+      "macros_per_serving": {
+        "kcal": 525.7,
+        "protein": 32.9,
+        "carbs": 61.6,
+        "fat": 16.5
+      }
+    },
+    {
+      "id": "pd100",
+      "name": "Polenta crémeuse au jambon",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 15
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "jambon_blanc",
+          "qty": 110,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "polenta",
+          "qty": 80,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "avocat",
+          "qty": 55,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "tomate_concassee",
+          "qty": 90,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "champignons",
+          "qty": 70,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Porte quatre fois le volume de la polenta en eau salée à frémissement, verse la polenta en pluie en fouettant sans arrêt, puis remue 5 minutes à feu doux : elle doit devenir onctueuse et napper la cuillère.",
+        "Pendant ce temps, émince les champignons et fais-les sauter 5 minutes à feu vif dans une poêle sans matière grasse, jusqu'à ce que toute leur eau se soit évaporée et qu'ils dorent.",
+        "Ajoute la tomate concassée et laisse réduire 3 minutes à feu moyen, jusqu'à ce que la sauce épaississe.",
+        "Coupe le jambon en lanières et ajoute-le hors du feu, juste pour le réchauffer.",
+        "Écrase l'avocat à la fourchette avec du sel et du poivre, en gardant quelques morceaux.",
+        "Verse la polenta dans un bol, dépose la poêlée par-dessus et termine par l'avocat écrasé."
+      ],
+      "why": "Version salée du porridge, la polenta remplaçant les flocons et le jambon portant les protéines.",
+      "wave": "2026-08-02-b4-pdej-denses",
+      "macros_per_serving": {
+        "kcal": 555.8,
+        "protein": 32.3,
+        "carbs": 64.6,
+        "fat": 17.4
+      }
+    },
+    {
+      "id": "pd101",
+      "name": "Assiette de sarrasin au saumon fumé",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "recup_jour_repos": true,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 20
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "saumon_fume",
+          "qty": 70,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "sarrasin",
+          "qty": 85,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "tahini",
+          "qty": 16,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "concombre",
+          "qty": 80,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "epinards",
+          "qty": 60,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Rince le sarrasin sous l'eau froide, verse-le dans deux fois son volume d'eau salée bouillante et laisse cuire 12 minutes à couvert sur feu doux.",
+        "Égoutte-le et étale-le sur une assiette froide pour qu'il tiédisse rapidement, en l'aérant à la fourchette.",
+        "Délie le tahini avec 2 cuillères d'eau froide, du sel et du poivre, en fouettant jusqu'à obtenir une sauce lisse et coulante.",
+        "Coupe le concombre en fines demi-lunes et hache grossièrement les épinards frais.",
+        "Mélange le sarrasin tiède aux épinards : leur volume tombe de moitié au contact de la chaleur.",
+        "Dresse dans une assiette, dépose le saumon fumé en lanières sur le dessus et nappe de sauce au sésame."
+      ],
+      "why": "Poisson fumé et sarrasin, un petit-déjeuner salé sans gluten qui ne demande aucune cuisson du poisson.",
+      "wave": "2026-08-02-b4-pdej-denses",
+      "macros_per_serving": {
+        "kcal": 570.9,
+        "protein": 31.9,
+        "carbs": 63.8,
+        "fat": 19.1
+      }
+    },
+    {
+      "id": "pd102",
+      "name": "Bol de quinoa au skyr et framboises",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "recup_jour_repos": true,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 20
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "skyr",
+          "qty": 160,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "quinoa",
+          "qty": 85,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "noisettes",
+          "qty": 14,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "framboises",
+          "qty": 70,
+          "macro_role": "fruit",
+          "scalable": true
+        },
+        {
+          "ref": "cacao_poudre",
+          "qty": 8,
+          "macro_role": "flavor",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Rince le quinoa en le frottant entre les doigts pour retirer son amertume, puis fais-le cuire 14 minutes dans deux fois son volume d'eau : il est prêt quand le germe se détache en petit anneau blanc.",
+        "Égoutte-le et étale-le sur une assiette pour qu'il refroidisse 5 minutes — versé chaud sur le skyr, il le ferait trancher.",
+        "Concasse les noisettes au couteau et fais-les torréfier 3 minutes à sec dans une poêle à feu moyen, jusqu'à ce qu'elles blondissent et sentent fort.",
+        "Fouette le skyr avec le cacao en poudre jusqu'à obtenir une crème homogène et sans grumeaux.",
+        "Mélange le quinoa tiédi à la crème de skyr.",
+        "Répartis les framboises et les noisettes concassées sur le dessus, et sers."
+      ],
+      "why": "Skyr très protéiné et quinoa complet, sans sucre ajouté.",
+      "wave": "2026-08-02-b4-pdej-denses",
+      "macros_per_serving": {
+        "kcal": 558.1,
+        "protein": 33.5,
+        "carbs": 61.8,
+        "fat": 15.7
+      }
+    },
+    {
+      "id": "pd103",
+      "name": "Écrasé de châtaigne au cottage cheese",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "recup_jour_repos": true,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 10
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "cottage_cheese",
+          "qty": 140,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "whey",
+          "qty": 16,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "chataigne",
+          "qty": 130,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "beurre_amande",
+          "qty": 14,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "pomme",
+          "qty": 70,
+          "macro_role": "fruit",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Réchauffe les châtaignes 3 minutes à la poêle à feu doux ou 40 secondes au micro-ondes : tièdes, elles s'écrasent sans effort.",
+        "Écrase-les à la fourchette avec 3 cuillères d'eau chaude jusqu'à obtenir une purée épaisse et encore un peu granuleuse.",
+        "Mélange la whey au cottage cheese en fouettant vigoureusement : la poudre doit disparaître complètement avant que tu ajoutes autre chose.",
+        "Incorpore la purée de châtaigne tiède à ce mélange, puis le beurre d'amande.",
+        "Coupe la pomme en petits dés en gardant la peau, et ajoute-les au dernier moment pour qu'ils restent croquants.",
+        "Verse dans un bol et donne un tour de moulin à poivre ou une pincée de cannelle."
+      ],
+      "why": "Châtaigne sans gluten et fromage frais, pour un petit-déjeuner sans cuisson longue.",
+      "wave": "2026-08-02-b4-pdej-denses",
+      "macros_per_serving": {
+        "kcal": 569.4,
+        "protein": 33.9,
+        "carbs": 62.5,
+        "fat": 16.7
+      }
+    },
+    {
+      "id": "pd104",
+      "name": "Œufs brouillés sur polenta et épinards",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "recup_jour_repos": true,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 15
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "oeuf_entier",
+          "qty": 70,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "blanc_oeuf",
+          "qty": 85,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "polenta",
+          "qty": 80,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "graines_courge",
+          "qty": 20,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "epinards",
+          "qty": 70,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Porte quatre fois le volume de la polenta en eau salée à frémissement, verse-la en pluie en fouettant, puis remue 5 minutes à feu doux jusqu'à ce qu'elle nappe la cuillère.",
+        "Fais griller les graines de courge 2 minutes à sec dans une petite poêle, jusqu'à ce qu'elles gonflent et crépitent.",
+        "Fais tomber les épinards 1 minute dans une poêle chaude sans matière grasse, puis presse-les pour en chasser l'eau et réserve.",
+        "Bats l'œuf entier avec les blancs, du sel et du poivre, juste assez pour les mélanger.",
+        "Verse-les dans une poêle froide, mets sur feu DOUX et remue sans arrêt à la spatule 3 minutes : coupe le feu quand ils sont encore brillants, ils finissent de cuire seuls.",
+        "Verse la polenta dans un bol, ajoute les épinards, les œufs brouillés et les graines grillées."
+      ],
+      "why": "Œufs entiers complétés par des blancs, sur une base sans gluten.",
+      "wave": "2026-08-02-b4-pdej-denses",
+      "macros_per_serving": {
+        "kcal": 565.5,
+        "protein": 32.3,
+        "carbs": 63.1,
+        "fat": 18.6
+      }
+    },
+    {
+      "id": "pd105",
+      "name": "Bol de millet au fromage blanc",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 30
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "fromage_blanc_0",
+          "qty": 300,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "millet",
+          "qty": 52,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "noix",
+          "qty": 18,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "raisins",
+          "qty": 50,
+          "macro_role": "fruit",
+          "scalable": true
+        },
+        {
+          "ref": "cacao_poudre",
+          "qty": 8,
+          "macro_role": "flavor",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Rince le millet, couvre-le de deux fois son volume d'eau, porte à ébullition puis laisse cuire 20 minutes à couvert sur feu très doux.",
+        "Égoutte-le s'il reste de l'eau et étale-le sur une assiette pour qu'il tiédisse 5 minutes.",
+        "Concasse les noix grossièrement entre tes doigts, sans les réduire en poudre.",
+        "Fouette le fromage blanc avec le cacao en poudre jusqu'à ce qu'il n'y ait plus la moindre trace sèche.",
+        "Mélange le millet tiédi à la crème de fromage blanc.",
+        "Coupe les raisins en deux, répartis-les avec les noix sur le dessus et sers."
+      ],
+      "why": "Fromage blanc maigre et millet sans gluten, avec les noix pour les lipides.",
+      "wave": "2026-08-02-b4-pdej-denses",
+      "macros_per_serving": {
+        "kcal": 525.3,
+        "protein": 32.2,
+        "carbs": 60.9,
+        "fat": 16.2
+      }
+    },
+    {
+      "id": "pd106",
+      "name": "Bouillie de sarrasin aux myrtilles",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 20
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "whey",
+          "qty": 20,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "sarrasin",
+          "qty": 70,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "noisettes",
+          "qty": 20,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "lait_demi_ecreme",
+          "qty": 120,
+          "macro_role": "dairy",
+          "scalable": true
+        },
+        {
+          "ref": "myrtilles",
+          "qty": 80,
+          "macro_role": "fruit",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Rince le sarrasin, verse-le dans une casserole avec le lait et autant d'eau, et porte à frémissement sans couvrir.",
+        "Baisse à feu doux et laisse cuire 12 minutes en remuant toutes les 2 minutes : le sarrasin gonfle et le liquide devient crémeux.",
+        "Pendant ce temps, concasse les noisettes et fais-les torréfier 3 minutes à sec dans une poêle à feu moyen.",
+        "Coupe le feu sous la bouillie et laisse-la tiédir 3 minutes — la whey versée dans un liquide bouillant fait des grumeaux.",
+        "Incorpore la whey en fouettant vivement jusqu'à ce que la bouillie redevienne lisse.",
+        "Verse dans un bol, répartis les myrtilles et les noisettes torréfiées sur le dessus."
+      ],
+      "why": "Bouillie de sarrasin sans gluten, enrichie en protéines après cuisson.",
+      "wave": "2026-08-02-b4-pdej-denses",
+      "macros_per_serving": {
+        "kcal": 559.2,
+        "protein": 33.1,
+        "carbs": 64.6,
+        "fat": 16.9
+      }
+    },
+    {
+      "id": "pd107",
+      "name": "Tartine de seigle au tofu fumé",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "recup_jour_repos": true,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 15
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "tofu_fume",
+          "qty": 140,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "pain_seigle",
+          "qty": 98,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "avocat",
+          "qty": 20,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "tomate",
+          "qty": 80,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "epinards",
+          "qty": 60,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Coupe le tofu fumé en tranches de 5 mm et éponge-les dans un papier absorbant : sec, il dore ; humide, il colle à la poêle.",
+        "Chauffe une poêle antiadhésive à feu moyen-vif et fais dorer les tranches 3 minutes par face, jusqu'à ce qu'elles soient croustillantes sur les bords.",
+        "Fais griller les tranches de pain de seigle jusqu'à ce qu'elles soient fermes sous le doigt.",
+        "Écrase l'avocat avec une pincée de sel et tartine-le sur le pain encore chaud.",
+        "Fais tomber les épinards 1 minute dans la poêle du tofu, avec du poivre.",
+        "Empile les épinards, les tranches de tofu et des rondelles de tomate sur les tartines, et donne un tour de moulin."
+      ],
+      "why": "Tartine salée sans produit animal, avec le tofu fumé comme source de protéines.",
+      "wave": "2026-08-02-b4-pdej-denses",
+      "macros_per_serving": {
+        "kcal": 559.2,
+        "protein": 31.3,
+        "carbs": 59.1,
+        "fat": 19
+      }
+    },
+    {
+      "id": "pd108",
+      "name": "Poêlée de lentilles au riz et champignons",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "recup_jour_repos": true,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 25
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "lentilles_cuites",
+          "qty": 180,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "riz_basmati",
+          "qty": 32,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "graines_courge",
+          "qty": 28,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "champignons",
+          "qty": 70,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "tomate",
+          "qty": 80,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Rince le riz basmati jusqu'à ce que l'eau soit claire, puis fais-le cuire 11 minutes dans un grand volume d'eau salée et égoutte-le.",
+        "Rince et égoutte les lentilles cuites pour retirer le jus de conserve.",
+        "Émince les champignons et fais-les sauter 5 minutes à feu vif dans une poêle sans matière grasse : attends qu'ils aient rendu toute leur eau et pris couleur.",
+        "Ajoute les lentilles et tes épices (cumin, curcuma, poivre), et remue 3 minutes à feu moyen pour les réchauffer et les parfumer.",
+        "Verse le riz égoutté, mélange 1 minute et coupe le feu.",
+        "Fais griller les graines de courge 3 minutes à sec dans une petite poêle, puis parsème-les avec la tomate coupée en dés."
+      ],
+      "why": "Petit-déjeuner salé végétal, où les lentilles portent l'essentiel des protéines.",
+      "wave": "2026-08-02-b4-pdej-denses",
+      "macros_per_serving": {
+        "kcal": 539.5,
+        "protein": 30.6,
+        "carbs": 59.7,
+        "fat": 15.7
+      }
+    },
+    {
+      "id": "pd109",
+      "name": "Galettes de riz au beurre de cacahuète",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "recup_jour_repos": true,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 10
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "proteine_vegetale",
+          "qty": 28,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "galette_riz",
+          "qty": 62,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "beurre_cacahuete",
+          "qty": 18,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "lait_amande",
+          "qty": 110,
+          "macro_role": "dairy",
+          "scalable": true
+        },
+        {
+          "ref": "framboises",
+          "qty": 80,
+          "macro_role": "fruit",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Verse le lait d'amande dans un bol et incorpore la protéine végétale en poudre en fouettant sans arrêt : ajoute-la en trois fois, sinon elle forme des grumeaux impossibles à rattraper.",
+        "Continue de fouetter 1 minute jusqu'à obtenir une crème lisse et un peu épaisse.",
+        "Écrase la moitié des framboises à la fourchette et mélange-les à cette crème : elle prend une couleur rosée.",
+        "Tartine les galettes de riz de beurre de cacahuète en couche régulière, jusqu'aux bords.",
+        "Dépose le reste des framboises entières sur les galettes.",
+        "Sers la crème rosée à côté, en trempette, et mange les galettes tant qu'elles sont croquantes."
+      ],
+      "why": "Petit-déjeuner sans cuisson ni produit animal, prêt en quelques minutes.",
+      "wave": "2026-08-02-b4-pdej-denses",
+      "macros_per_serving": {
+        "kcal": 537.2,
+        "protein": 31.8,
+        "carbs": 59.6,
+        "fat": 17.2
+      }
+    },
+    {
+      "id": "pd110",
+      "name": "Porridge de semoule de maïs à la mangue",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 15
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "yaourt_soja_proteine",
+          "qty": 225,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "polenta",
+          "qty": 55,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "graines_courge",
+          "qty": 20,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "lait_amande",
+          "qty": 80,
+          "macro_role": "dairy",
+          "scalable": true
+        },
+        {
+          "ref": "mangue",
+          "qty": 80,
+          "macro_role": "fruit",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Porte le lait d'amande allongé de trois fois son volume d'eau à frémissement dans une casserole.",
+        "Verse la polenta en pluie en fouettant sans arrêt, puis remue 5 minutes à feu doux : elle doit épaissir et napper la cuillère.",
+        "Coupe le feu et laisse tiédir 4 minutes — versé brûlant sur le yaourt, le porridge le ferait trancher.",
+        "Fais griller les graines de courge 2 minutes à sec dans une petite poêle, jusqu'à ce qu'elles crépitent.",
+        "Incorpore le yaourt de soja au porridge tiédi en remuant doucement, jusqu'à obtenir une texture homogène et crémeuse.",
+        "Coupe la mangue en dés, répartis-la avec les graines grillées et sers."
+      ],
+      "why": "Porridge sans gluten ni produit animal, le yaourt de soja protéiné apportant les protéines.",
+      "wave": "2026-08-02-b4-pdej-denses",
+      "macros_per_serving": {
+        "kcal": 548,
+        "protein": 31.9,
+        "carbs": 62.8,
+        "fat": 17.1
+      }
+    }
+  ]
+}

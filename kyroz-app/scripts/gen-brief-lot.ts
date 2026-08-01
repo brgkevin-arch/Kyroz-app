@@ -192,7 +192,7 @@ const LOTS: Lot[] = [
   {
     cle: 'b4-repas', titre: 'B4 — 20 repas complets, enveloppe corrigée', volume: 20, categorie: 'repas_complet',
     prefixe: 'rep', idDebut: 251, idFin: 270,
-    wave: '2026-08-02-b4-repas-denses',
+    wave: '2026-08-02-b4-repas-denses', livre: '2026-08-02',
     kcal: [620, 700], prot: [38, 44], carb: [62, 78], fat: [18, 24],
     // La densité protéique impose ~40 g de protéines à 650 kcal : les ancres végétales
     // peu denses (pois chiches secs, lentilles entières) deviennent inécrivables — mesuré,
@@ -213,7 +213,7 @@ const LOTS: Lot[] = [
   {
     cle: 'b4-pdej', titre: 'B4 — 12 petits-déjeuners, enveloppe corrigée', volume: 12, categorie: 'petit_dej',
     prefixe: 'pd', idDebut: 99, idFin: 110,
-    wave: '2026-08-02-b4-pdej-denses',
+    wave: '2026-08-02-b4-pdej-denses', livre: '2026-08-02',
     kcal: [520, 580], prot: [30, 34], carb: [58, 70], fat: [15, 20],
     regimes: { libre: 3, vegetarien: 5, vegan: 4, sansGluten: 6 },
     etapes: [4, 7],
