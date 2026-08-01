@@ -60,6 +60,15 @@
         "projectId": "28dc4c7e-cace-4fa2-80ba-7b503804d18e"
       }
     },
-    "owner": "kevinberger"
+    "owner": "kevinberger",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/28dc4c7e-cace-4fa2-80ba-7b503804d18e",
+      "enabled": true,
+      "checkAutomatically": "ON_LOAD",
+      "fallbackToCacheTimeout": 0
+    }
   }
 }
