@@ -260,6 +260,26 @@ pilote plus le TDEE (il reste utilisé pour les jours de repos et la génératio
 plan). Le double chemin produisait une discontinuité — déclarer une séance de
 15 minutes de marche faisait bondir le TDEE de +181 kcal/jour en médiane.
 
+### Répartition entre repas — plancher protéique (`lib/planEngine.ts`)
+
+La cible d'un repas est une part du budget **restant** du jour : le report de repas en
+repas est ce qui garde le total quotidien serré (0,05 % d'écart mesuré). Mais il a un
+effet de bord — chaque repas qui dépasse sa part rogne celle des suivants, et le
+**dernier servi** (la collation, dernière de `MEAL_ORDER`) encaisse toute la dérive.
+
+Depuis le 2026-08-02, la cible protéique d'un repas ne peut plus descendre sous
+**0,7 × sa part équitable** du budget du jour (`PROT_SHARE_FLOOR`), bornée par les
+calories du repas. Sans ce plancher, mesuré sur un gabarit en prise de masse : part
+équitable 12,7 g, cible réellement demandée à la collation **5,4 g** — soit 1,7 g de
+protéines pour 100 kcal, une densité qu'aucune recette ne peut viser. Le moteur en
+déduisait un besoin de 47 g de glucides, la recette débordait en calories pour
+l'atteindre, et 35 collations sur 79 étaient jugées « trop grosses ».
+
+⚠️ **La valeur 0,7 est un point mesuré, pas un réglage esthétique** : au-delà, le vivier
+total continue de monter mais le créneau le plus rare du catalogue (les repas complets
+des gros gabarits) se dégrade. Le raisonnement complet et les chiffres sont en
+`AGENTS.md` D16, le garde-fou en `lib/__tests__/mealProteinFloor.test.ts`.
+
 Toute correction qui déplace les cibles doit incrémenter `ENGINE_REV` : un
 avertissement one-shot (`engine_notice`) explique alors le changement à
 l'utilisateur au-delà de 100 kcal/jour d'écart.

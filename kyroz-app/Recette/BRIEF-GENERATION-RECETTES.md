@@ -693,12 +693,59 @@ cible réelle de sept profils sur douze. C'est exactement l'erreur du catalogue 
 médiane des repas complets est à 41 g : mesuré, **23 des 170 repas complets sont servables** par
 une femme de 55 kg en sèche, contre 1 sur 170 pour un homme de 80 kg au maintien.
 
-**3. La collation n'est pas un shaker de protéines, c'est le RESTE du budget.** Elle est servie en
+**3. La collation n'est pas un shaker de protéines, c'est le RESTE du budget.**
+⚠️ **PARTIELLEMENT PÉRIMÉ le 2026-08-02 — lire le §4.12 avant de s'en servir.** Le
+« 1 à 18 g, souvent 1 ou 2 » ci-dessous était un DÉFAUT DU MOTEUR, corrigé depuis
+(`PROT_SHARE_FLOOR`) ; la cible résiduelle réelle est aujourd'hui de **5 à 20 g**.
+Ce qui reste vrai : la collation est bien servie en dernier et reçoit le résidu.
+Elle est servie en
 dernier : les trois repas principaux ont déjà couvert le plancher protéique de la journée, et il ne
 reste presque rien. Cible protéique mesurée : **1 à 18 g**, et souvent 1 ou 2. Le catalogue, lui,
 propose une médiane à 21,6 g de protéines pour 330 kcal — **3 collations sur 66 sont sous 200 kcal,
 et aucune n'est à la fois sous 200 kcal et sous 12 g de protéines**. D'où le résultat le plus dur de
 la mesure : pour une femme de 55 kg en sèche, **0 collation sur 66 est servable**.
+
+### 4.12 Écrire une COLLATION — quatre règles mesurées le 2026-08-02
+
+> Ces quatre règles viennent d'un audit du créneau entier : **20 collations sur 79 étaient
+> sous le seuil R8 de 3/12, dont 6 servaient ZÉRO profil**. Elles ont toutes les quatre
+> une cause structurelle, pas éditoriale. Après réécriture des 23 concernées : **0 sous le
+> seuil**, moyenne 4,52 → 6,90/12. Détail complet : `AGENTS.md` D15.
+
+1. **AUCUN ingrédient à poids fixe** (`vegetable` / `flavor`, donc `scalable: false`). La
+   cible d'une collation va de **187 à 449 kcal** selon le profil, un facteur 2,4. Un poids
+   qui ne bouge pas ne rétrécit pas pour la première et ne grandit pas pour la seconde. Les
+   trois collations salées « à bâtonnets de carotte » du catalogue y étaient toutes mortes.
+   C'est la seule catégorie où cette interdiction est absolue.
+
+2. **L'élasticité doit venir de `ref` SANS `abs_max_qty`.** Toutes les sources de gras du
+   catalogue sont plafonnées à 30–40 g : une collation qui compte sur les oléagineux pour
+   monter en calories tape son plafond avant d'atteindre un gros gabarit. Les refs sans
+   plafond utilisables ici : `banane` `pomme` `mangue` `ananas` `kiwi` `raisins`
+   `myrtilles` `framboises` `miel` `sirop_erable` `galette_riz` `flocons_avoine` `polenta`
+   `sarrasin` `millet` `chataigne` `mais` `pain_*`, et côté protéines `skyr`
+   `fromage_blanc_0` `cottage_cheese` `yaourt_soja_proteine` `proteine_vegetale`
+   `lentilles_cuites` `edamame` `oeuf_entier` `dinde_escalope`.
+
+3. **Ancre protéique à ≤ 9 kcal par gramme de protéine.** `yaourt_grec` en coûte 12,8 : les
+   trois collations bâties dessus plafonnaient à 2/12. Même verdict pour `tofu_soyeux`
+   (11,7) et `edamame` (11,4) employés seuls. Repères utiles : `whey` 4,7 · `proteine_vegetale`
+   5,2 · `skyr` 5,7 · `fromage_blanc_0` 6,6 · `yaourt_soja_proteine` 7,2 · `cottage_cheese` 8,9.
+
+4. **Toujours un vrai `carb`.** Le couple « protéines × aucun féculent » est le plus saturé
+   du catalogue : 8 collations en `yaourt_soja_proteine × ∅`, 5 en `proteine_vegetale × ∅`
+   (R4, cf. `AGENTS.md` D4). Une collation sans féculent est donc à la fois refusée par
+   l'anti-doublons et incapable de s'étirer.
+
+**Enveloppe qui en découle, mesurée** : base **300–360 kcal · 18–24 g de protéines**,
+3 à 4 `ref`, densité 5,2 à 6,8 g de protéines pour 100 kcal.
+
+⚠️ **La note du §4.11 « cible protéique 1 à 18 g, souvent 1 ou 2 » est PÉRIMÉE depuis le
+2026-08-02.** Elle décrivait un défaut du moteur, pas une propriété du créneau : la cible
+d'un repas se calculait sur le budget restant, si bien que la collation — servie en dernier —
+encaissait toute la dérive des trois repas précédents. Un plancher (`PROT_SHARE_FLOOR`, cf.
+`CLAUDE.md` §6) l'empêche désormais de descendre sous 0,7 × sa part équitable. Cible
+résiduelle réelle aujourd'hui : **5 à 20 g** selon le profil.
 
 ---
 
@@ -913,6 +960,10 @@ sous-lot passe les contrôles du §6 **contre le catalogue ET contre les sous-lo
 ---
 
 ### B2 — 13 collations, deux formats
+
+> ℹ️ **Bloc LIVRÉ le 2026-08-01.** Conservé comme trace du raisonnement. Pour écrire une
+> collation aujourd'hui, la référence est le **§4.12** — les quatre règles structurelles
+> mesurées le 2026-08-02, qui n'existaient pas quand ce bloc a été rédigé.
 
 **`col67` → `col79`, catégorie `collation`.** 7 sans restriction · 3 végétariennes · 3 vegan ·
 ≥ 6 sans gluten.
