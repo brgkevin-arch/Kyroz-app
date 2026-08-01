@@ -37,8 +37,8 @@ describe('registre d’overrides (recettes personnalisées)', () => {
 });
 
 describe('intégrité de la base de recettes', () => {
-  it('347 recettes, ids uniques', () => {
-    expect(RECIPES).toHaveLength(347);
+  it('367 recettes, ids uniques', () => {
+    expect(RECIPES).toHaveLength(367);
     const ids = RECIPES.map((r) => r.id);
     expect(new Set(ids).size).toBe(ids.length);
   });
