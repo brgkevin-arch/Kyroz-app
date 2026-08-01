@@ -708,8 +708,19 @@ produit en suspens — il ne reste qu'à coder.
   3. **Une recette à 4 ingrédients est fragile sur R1** : 3 refs partagés donnent
      Jaccard 0,60 = rejet. À 5 ingrédients le même partage tombe à 0,43. Trois recettes ont
      dû être réécrites pour ça.
-  ➡️ Reste 🧑 : lots `b1-lot2`, `b1-lot3`, `b1-lot4` (`rep191`→`rep250`), puis `b3`. Les
-  briefs sont régénérés et voient déjà ce que ce lot a consommé.
+- ~~**D9 · Lot B1, tranche 2 sur 4**~~ ✅ **LIVRÉ le 2026-08-01 — 20 repas complets
+  (`rep191`→`rep210`), catalogue 347 → 367.** Répartition tenue : 11 carnées ·
+  5 végétariennes · 4 vegan · 10 sans gluten · 13 ancres protéiques distinctes, **jamais
+  plus de 2 fois la même**. `check:doublons` → 0 violation · `check:enveloppe` → 20/20,
+  moyenne 9,8 profils sur 12. Le brief régénéré après la tranche 1 a fait son travail :
+  il affichait déjà `dinde_escalope`, `jambon_blanc` et `sardines` comme consommés.
+  📈 Repas complets servables, **190/190 → 210/210** : F 55 sèche 127 → **148**,
+  H 65 sèche 147 → **169**, H 110 masse 63 → **69**. Les 12 profils gagnent à nouveau.
+  ⚠️ **Trois recettes réécrites en cours de route**, toutes sur des collisions que seul le
+  script voit : `soja_texture + tortilla + maïs + avocat` existait déjà à l'identique
+  (4 refs communs), et « Seitan patate douce » partageait ses 3 premiers mots avec `rep41`.
+  ➡️ Reste 🧑 : lots `b1-lot3`, `b1-lot4` (`rep211`→`rep250`), puis `b3`. Les briefs sont
+  régénérés et voient déjà ce que les tranches 1 et 2 ont consommé.
 
 ### 🧹 E — Dette technique
 
