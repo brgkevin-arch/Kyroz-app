@@ -32,7 +32,7 @@ const SLOTS: MealType[] = ['breakfast', 'lunch', 'dinner', 'snack'];
 // ── Les 12 profils de référence (§4.11 du brief) ─────────────────────────────
 // 6 femmes, 6 hommes. Le sexe n'est PAS un facteur d'échelle : Mifflin-St Jeor
 // retire 161 kcal à gabarit strictement égal.
-type Gabarit = { nom: string; sex: Sex; weight_kg: number; height_cm: number; age: number; goal: Goal };
+export type Gabarit = { nom: string; sex: Sex; weight_kg: number; height_cm: number; age: number; goal: Goal };
 export const PROFILS_REF: Gabarit[] = [
   { nom: 'F 55 sèche', sex: 'female', weight_kg: 55, height_cm: 162, age: 30, goal: 'cut' },
   { nom: 'F 60 maintien', sex: 'female', weight_kg: 60, height_cm: 165, age: 30, goal: 'maintain' },
@@ -77,7 +77,7 @@ function profil(g: Gabarit, restrictions: DietaryRestriction[] = []): UserProfil
  * Reconstruite depuis les repas servis (`macros − gap`) : le moteur reste seul juge
  * de ce qu'est une cible, ce script ne fait que la LIRE.
  */
-function ciblesDe(g: Gabarit): Record<MealType, AdaptTarget> {
+export function ciblesDe(g: Gabarit): Record<MealType, AdaptTarget> {
   const p = profil(g);
   const acc: Record<string, AdaptTarget[]> = { breakfast: [], lunch: [], dinner: [], snack: [] };
   for (const seed of SEEDS) {
@@ -106,6 +106,21 @@ export function servable(r: Recipe, t: AdaptTarget): boolean {
 
 // ── Mode --enveloppe : contrôle R8 d'un lot livré ────────────────────────────
 
+/**
+ * Créneaux réellement servis par chaque catégorie.
+ *
+ * ⚠️ Corrigé le 2026-08-01 : la table valait `repas_complet: 'lunch'`, alors que
+ * `lib/recipeMap.ts` tague CHAQUE repas complet `['lunch', 'dinner']` — vérifié sur le
+ * catalogue : 250 recettes en `dinner+lunch`, 98 en `breakfast`, 79 en `snack`.
+ * R8 ne contrôlait donc QU'UN des deux créneaux où la recette est servie, et le SOIR est
+ * l'exigeant : sa cible descend à 415 kcal contre 459 au midi (et plafonne à 944 contre
+ * 1057). Une recette calée sur le midi pouvait être systématiquement trop grosse le soir
+ * sans que rien ne le signale.
+ */
+const CATEGORIE_VERS_SLOTS: Record<string, MealType[]> = {
+  petit_dej: ['breakfast'], repas_complet: ['lunch', 'dinner'], collation: ['snack'],
+};
+/** Créneau de référence pour l'affichage et pour `profilsAffames`. */
 const CATEGORIE_VERS_SLOT: Record<string, MealType> = {
   petit_dej: 'breakfast', repas_complet: 'lunch', collation: 'snack',
 };
@@ -159,9 +174,12 @@ function controleEnveloppe(chemin: string): number {
   const brut = require('node:fs').readFileSync(chemin, 'utf8');
   const lot: RawRecipe[] = JSON.parse(brut).recipes;
   const cibles = PROFILS_REF.map((g) => ({ nom: g.nom, c: ciblesDe(g) }));
+  // Un jeu par créneau RÉELLEMENT servi — `dinner` manquait, ce qui faisait planter le
+  // contrôle dès qu'une recette avait le soir pour pire créneau.
   const affames: Record<string, Set<string>> = {
     breakfast: profilsAffames('breakfast', cibles),
     lunch: profilsAffames('lunch', cibles),
+    dinner: profilsAffames('dinner', cibles),
     snack: profilsAffames('snack', cibles),
   };
 
@@ -190,18 +208,29 @@ function controleEnveloppe(chemin: string): number {
       console.log(`${raw.id.padEnd(8)} | ${String(raw.category).padEnd(14)} | ${'—'.padStart(13)} | ${'—'.padStart(5)} | ❌ CAT   | catégorie inconnue`);
       echecs++; continue;
     }
-    const servis = cibles.filter(({ c }) => servable(r, c[slot])).map(({ nom }) => nom);
-    const rates = cibles.filter(({ c }) => !servable(r, c[slot])).map(({ nom }) => nom);
+    // Une recette est jugée sur TOUS les créneaux où elle sera servie. Un repas complet
+    // est tagué `lunch` ET `dinner` : le noter sur le seul midi laissait passer des
+    // recettes systématiquement trop grosses le soir.
+    const slots = CATEGORIE_VERS_SLOTS[raw.category] ?? [slot];
+    const parSlot = slots.map((s) => ({
+      s,
+      servis: cibles.filter(({ c }) => servable(r, c[s])).map(({ nom }) => nom),
+    }));
+    // Le score retenu est le PIRE créneau : promettre les deux, c'est tenir les deux.
+    const pire = parSlot.reduce((a, b) => (b.servis.length < a.servis.length ? b : a));
+    const servis = pire.servis;
+    const rates = cibles.filter(({ nom }) => !servis.includes(nom)).map(({ nom }) => nom);
     const seuil = SEUIL_R8[raw.category];
-    const nourritAffame = servis.some((n) => affames[slot].has(n));
+    const nourritAffame = servis.some((n) => affames[pire.s].has(n));
     const ok = servis.length >= seuil || nourritAffame;
     if (!ok) echecs++;
     if (raw.category === 'collation') servis.forEach((n) => couvertureCollations.add(n));
     const verdict = !ok ? '❌ ÉCHEC' : nourritAffame && servis.length < seuil ? '✅ AFFAMÉ' : '✅ ok   ';
+    const detail = slots.length > 1 ? ` [${parSlot.map((p) => `${p.s === 'lunch' ? 'midi' : 'soir'} ${p.servis.length}`).join('/')}]` : '';
     console.log(
       `${raw.id.padEnd(8)} | ${raw.category.padEnd(14)} | ` +
       `${String(Math.round(r.macros_per_portion.kcal)).padStart(4)} · ${String(Math.round(r.macros_per_portion.protein_g)).padStart(2)} P | ` +
-      `${String(servis.length).padStart(2)}/12 | ${verdict} | ${rates.join(' ') || '—'}`
+      `${String(servis.length).padStart(2)}/12 | ${verdict} | ${rates.join(' ') || '—'}${detail}`
     );
   }
 

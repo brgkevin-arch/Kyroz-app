@@ -17,7 +17,9 @@ import { writeFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import raw from '../Recette/recettes-kyroz.json';
 import { restrictionsOkFor } from '../lib/recipeDiet';
-import { RECIPE_INGREDIENTS } from '../lib/recipeData';
+import { RECIPE_INGREDIENTS, RECIPE_CONFIG, macrosForRefIngredients } from '../lib/recipeData';
+import { PROFILS_REF, ciblesDe, servable } from './mesure-couverture';
+import type { MealType, Recipe } from '../lib/types';
 
 type Per100 = { kcal: number; protein: number; carbs: number; fat: number };
 type RefDef = { name: string; unit: string; per_100: Per100; basis?: string; abs_max_qty?: number };
@@ -87,6 +89,25 @@ type Lot = {
 };
 
 const KCAL_PDJ: [number, number] = [430, 480];
+
+/**
+ * DENSITÉ PROTÉIQUE — la contrainte qui décide vraiment de la couverture.
+ *
+ * Découverte le 2026-08-01, en balayant la grille (kcal × protéines) sur le moteur, avec
+ * une vérification adversariale à 6 agents. Le résultat contredit la doctrine qui régnait
+ * dans ce fichier depuis toujours :
+ *  · l'enveloppe n'est PAS une affaire de calories. Monter un repas complet à 700 kcal en
+ *    gardant 36 g de protéines (5,1 g/100 kcal) rend **8,90 profils sur 12** — moins que
+ *    l'enveloppe 520–580 d'alors (8,45… mais son MEILLEUR point est à 9,27). Monter les
+ *    kcal SANS monter la protéine DÉGRADE le catalogue ;
+ *  · à densité tenue, monter les deux ensemble gagne : repas complet 8,45 → **10,1/12**,
+ *    petit-déj 8,2 → **9,3/12**, et `H 110 masse` passe de 24 % à 58 % de ses repas servis.
+ * La raison est mécanique : `adaptRecipe` monte la protéine avec l'ancre (facteur ≤ 1,7) ;
+ * si la base est pauvre en protéines, il doit gonfler toute la recette pour atteindre la
+ * cible protéique et lève alors `over_target_kcal`. Une base dense atteint la cible
+ * protéique sans déborder.
+ */
+const DENSITE_CIBLE: [number, number] = [5.4, 7.1];
 
 const LOTS: Lot[] = [
   {
@@ -163,6 +184,49 @@ const LOTS: Lot[] = [
       '**Aucun repos au froid de plus de 10 minutes.** Six recettes actuelles déclarent 5 minutes alors qu\'elles exigent une nuit au frais (pd02, pd31, pd34, pd47, pd54, pd72). Un plan affiché le matin doit être cuisinable le jour même.',
     ],
   },
+  // ── Vague B4 : l'enveloppe CORRIGÉE ────────────────────────────────────────
+  // Les six premiers lots ont été commandés dans une enveloppe calée sur une borne de
+  // scaling qui n'existait plus (`protein` min 1,0 → 0,5 le 2026-07-30). Mesuré sur le
+  // moteur : cette enveloppe plafonnait sous la cible des gros gabarits — `H 110 masse`
+  // n'était servi que par 24 % des repas complets et 23 petits-déj sur 98.
+  {
+    cle: 'b4-repas', titre: 'B4 — 20 repas complets, enveloppe corrigée', volume: 20, categorie: 'repas_complet',
+    prefixe: 'rep', idDebut: 251, idFin: 270,
+    wave: '2026-08-02-b4-repas-denses',
+    kcal: [620, 700], prot: [38, 44], carb: [62, 78], fat: [18, 24],
+    // La densité protéique impose ~40 g de protéines à 650 kcal : les ancres végétales
+    // peu denses (pois chiches secs, lentilles entières) deviennent inécrivables — mesuré,
+    // 0 % de compositions plausibles. D'où moins de vegan que dans B1, et sur des ancres
+    // DENSES uniquement (soja texturé, seitan, tofu, protéine végétale).
+    regimes: { libre: 12, vegetarien: 4, vegan: 4, sansGluten: 9 },
+    etapes: [4, 7],
+    specifique: [
+      '**Base 620–700 kcal ET 38 à 44 g de protéines. Les deux bornes ensemble, jamais l\'une sans l\'autre.** Mesuré sur le moteur : 700 kcal avec 36 g de protéines rend 8,9 profils sur 12, MOINS bien que l\'ancienne enveloppe. C\'est la densité qui porte le gain, pas les calories.',
+      '**Féculent 100 à 125 g pesés SECS.** C\'est lui qui va chercher les gros gabarits — il monte jusqu\'à ×1,8 et n\'a aucun plafond absolu.',
+      'Ancre grasse `fat` + `scalable`, **18 à 24 g** de lipides.',
+      '⚠️ **Ancres protéiques DENSES obligatoires.** Il te faut ~40 g de protéines dans la base : une ancre qui coûte plus de 8 kcal par gramme de protéine ne les atteint pas sans faire exploser les calories. À privilégier : viandes et poissons maigres, `blanc_oeuf`, `cottage_cheese`, `soja_texture`, `seitan`, `proteine_vegetale`, `tofu_ferme`.',
+      '⚠️ **Ce que cette enveloppe NE dégrade PAS, contrairement à ce qu\'on pourrait croire.** Testé par paires, même composition aux deux enveloppes : `pois_chiches` secs est **infaisable aux DEUX** (l\'arithmétique ne tient pas plus à 550 kcal qu\'à 660), `lentilles_vertes` sèches rendent 2 profils sur 12 **aux deux**. Ces ancres n\'ont pas été tuées par la nouvelle enveloppe, elles n\'ont jamais fonctionné. En revanche `poulet + riz` passe de 11 à **12/12**, `bœuf + pâtes` de 10 à **11/12**, et `tofu + quinoa` reste à 6 — les quantités restent plausibles (136 g de poulet cru, 81 g de riz sec).',
+      '⚠️ **Ce lot est jugé sur le MIDI ET LE SOIR** — un repas complet est servi aux deux créneaux, et la cible du soir est plus basse (415 kcal au minimum contre 459 le midi). `check:enveloppe` retient le PIRE des deux.',
+      '**Légumineuses : version prête à consommer** (`pois_chiches_conserve`, `lentilles_cuites`, `haricots_rouges_conserve`) si tu en emploies en complément. Le poids écrit est le poids ACHETÉ.',
+    ],
+  },
+  {
+    cle: 'b4-pdej', titre: 'B4 — 12 petits-déjeuners, enveloppe corrigée', volume: 12, categorie: 'petit_dej',
+    prefixe: 'pd', idDebut: 99, idFin: 110,
+    wave: '2026-08-02-b4-pdej-denses',
+    kcal: [520, 580], prot: [30, 34], carb: [58, 70], fat: [15, 20],
+    regimes: { libre: 3, vegetarien: 5, vegan: 4, sansGluten: 6 },
+    etapes: [4, 7],
+    specifique: [
+      '**Base 520–580 kcal ET 30 à 34 g de protéines. Les deux bornes ensemble.** Monter les calories sans monter la protéine dégrade la couverture — c\'est mesuré, pas supposé.',
+      '⚠️ **Les féculents LÉGERS plafonnent ce créneau.** Mesuré : patate douce et pomme de terre ne dépassent pas 6 profils sur 12 même au centre de l\'enveloppe — à 20 g de glucides aux 100 g, un facteur ×1,8 ne suffit pas à nourrir un gros gabarit. Emploie des féculents DENSES : `flocons_avoine`, `sarrasin`, `millet`, `quinoa`, `polenta`, `pain_complet`, `pain_seigle`, `chataigne`.',
+      '**Ce qui monte le plus haut, mesuré** : une ancre maigre et dense (`skyr`, `fromage_blanc_0`, `cottage_cheese`, `blanc_oeuf`, `yaourt_soja_proteine`, `whey`, `proteine_vegetale`) posée sur un féculent dense — `skyr` + `sarrasin` passe de 10 à 12 profils servis en changeant d\'enveloppe.',
+      '⚠️ **La seule composition que cette enveloppe DÉGRADE : l\'œuf entier sur pain.** Testé par paires, elle passe de 7 à **5 profils sur 12** — l\'œuf entier coûte 10,9 kcal par gramme de protéine, et à 32 g de protéines la base demande 182 g d\'œuf pour seulement 46 g de pain. Ne bâtis pas ce lot sur `oeuf_entier` seul ; associe-le à une ancre maigre, ou passe aux blancs.',
+      'Ancre grasse `fat` + `scalable`, **15 à 20 g** de lipides.',
+      '**Aucun repos au froid de plus de 10 minutes.** Un plan affiché le matin doit être cuisinable le jour même.',
+      '⚠️ **Garde 2 recettes du lot dans le BAS de l\'enveloppe** (520–535 kcal, 32–34 g de protéines, donc très denses). Le catalogue vient d\'être corrigé d\'un excès de bases basses ; refaire l\'erreur en miroir priverait les profils en sèche mince. Une enveloppe unique sert une population unique.',
+    ],
+  },
 ];
 
 // ── Outils d'analyse du catalogue ────────────────────────────────────────────
@@ -178,6 +242,12 @@ function refsPertinents(cat: Recette['category']): string[] {
     'tofu_fume', 'falafel', 'tahini', 'boisson_soja', 'pain_sans_gluten', 'wrap_sans_gluten']) {
     if (REFS[r]) vus.add(r);
   }
+  // `proteine_vegetale` (73 g de protéines aux 100, 5,2 kcal par gramme de protéine) est
+  // l'ancre végétale la plus dense du catalogue. Elle n'était exposée qu'au petit-déj et
+  // aux collations par simple accident d'usage — or c'est en repas complet, où l'enveloppe
+  // corrigée demande ~40 g de protéines, qu'elle devient indispensable : les légumineuses
+  // sèches y sont mathématiquement inécrivables (143 g de lentilles sèches pour 40 g de P).
+  if (REFS.proteine_vegetale) vus.add('proteine_vegetale');
   return [...vus].filter((r) => REFS[r]).sort();
 }
 
@@ -332,6 +402,63 @@ function exemple(cat: Recette['category'], wave: string): string {
   }, null, 2);
 }
 
+// ── §2 : les facteurs de redimensionnement, LUS DANS LA CONFIG DU MOTEUR ─────
+
+/**
+ * ⚠️ Ce tableau était écrit EN DUR, et il mentait depuis le 2026-07-30.
+ * Il annonçait `protein | 1,00 | 1,70 | ne descend JAMAIS sous ta quantité`, alors que
+ * `config.scaling_factors_by_role.protein` vaut **[0,5 ; 1,7]** — la borne est passée de
+ * 1,0 à 0,5 ce jour-là (`ENGINE_VERSION` v25, cf. AGENTS.md), et `CLAUDE.md` §1 l'écrit
+ * noir sur blanc. Toute la doctrine du §2 (« écris des quantités de base PETITES, une
+ * base grosse ne peut pas descendre ») reposait sur cette borne disparue — et les
+ * enveloppes du §3 ont été calées dessus.
+ * Il est désormais DÉRIVÉ de la config : il ne peut plus diverger du moteur.
+ */
+const IMPLICATION: Record<string, string> = {
+  protein: 'Porte la protéine du plat. Sa borne basse est le levier qui permet de servir les petits gabarits.',
+  carb: 'Le plus élastique, et aucun plafond absolu : c\'est lui qui va chercher les grosses cibles.',
+  fat: 'Plafonné en plus par la colonne « Max abs. » du §4.',
+  dairy: '**Ne tient aucun plancher protéique** — un laitage qui porte la protéine se déclare `protein`.',
+  fruit: '',
+};
+
+function tableauFacteurs(): string {
+  const f = RECIPE_CONFIG.scaling_factors_by_role as Record<string, [number, number]>;
+  const fmtF = (n: number) => n.toFixed(2).replace('.', ',');
+  const lignes = Object.entries(f).map(([role, [lo, hi]]) =>
+    `| \`${role}\` | ${fmtF(lo)} | ${fmtF(hi)} | ${IMPLICATION[role] ?? ''} |`);
+  return [
+    '| `macro_role` | Min | Max | Ce que ça implique |',
+    '|---|---|---|---|',
+    ...lignes,
+    '| `vegetable`, `flavor` | fixe | fixe | Jamais redimensionnés → **toujours `"scalable": false`**. |',
+  ].join('\n');
+}
+
+// Cibles réelles des 12 profils, calculées une seule fois (48 générations de plan).
+const CIBLES = PROFILS_REF.map((g) => ({ nom: g.nom, c: ciblesDe(g) }));
+
+/** Recette synthétique minimale, pour MESURER une enveloppe au lieu de l'affirmer. */
+function eprouvette(slot: MealType, parts: [string, number, string][]): Recipe {
+  const ings = parts.map(([ref, qty, role]) => ({ ref, qty, macro_role: role, scalable: role !== 'vegetable' && role !== 'flavor' }));
+  return {
+    id: 'eprouvette', name_fr: 'eprouvette', prep_time_min: 20, portions: 1,
+    macros_per_portion: macrosForRefIngredients(ings.map((i) => ({ ref: i.ref, qty: i.qty }))),
+    ingredients: ings.map((i) => ({ name: REFS[i.ref]?.name ?? i.ref, quantity_g: i.qty, unit: 'g', ref: i.ref, macro_role: i.macro_role, scalable: i.scalable })),
+    steps: [], tags: [slot], restrictions_ok: restrictionsOkFor(ings.map((i) => i.ref)),
+    objectives: [], sports: [], rest_day_ok: true, why_fr: '',
+  } as unknown as Recipe;
+}
+
+const CAT_VERS_SLOT: Record<Recette['category'], MealType> = {
+  petit_dej: 'breakfast', collation: 'snack', repas_complet: 'lunch',
+};
+
+/** Profils servis par une éprouvette, MESURÉ par `adaptRecipe` — jamais estimé. */
+function profilsServis(r: Recipe, slot: MealType): number {
+  return CIBLES.filter(({ c }) => servable(r, c[slot])).length;
+}
+
 // ── Auto-contrôle du brief ───────────────────────────────────────────────────
 
 const CASSE_VEGETARIEN = (ref: string) => !restrictionsOkFor([ref]).includes('vegetarian');
@@ -466,29 +593,50 @@ jamais le régime dans la recette — il est **déduit** des \`ref\` employés.
 ingrédient marqué \`scalable\` pour tomber sur la cible calorique de la personne, repas par repas.
 Ta recette n'est pas un plat, c'est une **enveloppe**.
 
-Les facteurs de redimensionnement, par \`macro_role\` :
+Les facteurs de redimensionnement, par \`macro_role\` — **lus dans la config du moteur au moment
+de générer ce fichier**, donc jamais périmés :
 
-| \`macro_role\` | Min | Max | Ce que ça implique |
-|---|---|---|---|
-| \`protein\` | **1,00** | 1,70 | **Ne descend JAMAIS sous ta quantité.** Ce que tu écris est un **plancher définitif**. |
-| \`carb\` | 0,50 | 1,80 | Le plus élastique, et aucun plafond absolu : c'est lui qui va chercher les grosses cibles. |
-| \`fat\` | 0,50 | 1,50 | Plafonné en plus par la colonne « Max abs. » du §4. |
-| \`dairy\` | 0,60 | 1,60 | **Peut descendre sous ta base** → ne tient aucun plancher protéique. |
-| \`fruit\` | 0,50 | 1,60 | |
-| \`vegetable\`, \`flavor\` | fixe | fixe | Jamais redimensionnés → **toujours \`"scalable": false\`**. |
+${tableauFacteurs()}
 
-**La conséquence est contre-intuitive et c'est le cœur du travail : écris des quantités de base
-PETITES.** Une base petite peut monter ; une base grosse ne peut pas descendre.
+**Ce qui compte n'est PAS d'écrire une base petite, c'est d'écrire une base ÉQUILIBRÉE.** Tous
+les rôles redimensionnables descendent à la moitié de ta quantité et montent au moins de moitié :
+une base bien répartie s'étire dans les deux sens. Ce qui coince, c'est un ingrédient qui pèse
+trop lourd par rapport aux autres — il tape sa borne avant que la cible soit atteinte.
 
-Vérifié en passant ces deux plats au moteur sur 12 profils réels :
+Mesuré en passant la même composition au moteur à différentes tailles de base, sur les 12 profils :
 
-| Recette | Base | Profils servis |
-|---|---|---|
-| poulet 100 g + riz 90 g + brocoli 120 g + huile 10 g | 554 kcal · 33 g P | **12 / 12** |
-| poulet 160 g + riz 40 g + brocoli 120 g + huile 10 g | 613 kcal · 40 g P | 6 / 12 |
+${(() => {
+    const slot = CAT_VERS_SLOT[lot.categorie];
+    const arch: Record<Recette['category'], (k: number) => [string, number, string][]> = {
+      repas_complet: (k) => [['poulet_filet', Math.round(0.20 * k), 'protein'], ['riz_basmati', Math.round(0.155 * k), 'carb'], ['huile_olive', Math.round(0.022 * k), 'fat'], ['brocoli', 120, 'vegetable']],
+      petit_dej: (k) => [['skyr', Math.round(0.28 * k), 'protein'], ['sarrasin', Math.round(0.13 * k), 'carb'], ['amandes', Math.round(0.03 * k), 'fat'], ['myrtilles', 90, 'fruit']],
+      collation: (k) => [['skyr', Math.round(0.45 * k), 'protein'], ['galette_riz', Math.round(0.10 * k), 'carb'], ['amandes', Math.round(0.04 * k), 'fat'], ['framboises', 60, 'fruit']],
+    };
+    // Le CENTRE de l'enveloppe du lot est toujours un palier : sans lui, le tableau
+    // mesure tout sauf ce qu'on demande au rédacteur d'écrire.
+    const centre = Math.round((lot.kcal[0] + lot.kcal[1]) / 2);
+    const base = lot.categorie === 'collation' ? [130, 180, 230, 280, 330] : lot.categorie === 'petit_dej' ? [430, 500, 560, 620, 700, 800] : [500, 560, 620, 700, 800, 900];
+    const paliers = [...new Set([...base, centre])].sort((a, b) => a - b);
+    const lignes = paliers.map((k) => {
+      const r = eprouvette(slot, arch[lot.categorie](k));
+      const m = (r as unknown as { macros_per_portion: { kcal: number; protein_g: number } }).macros_per_portion;
+      const n = profilsServis(r, slot);
+      const dansLot = m.kcal >= lot.kcal[0] && m.kcal <= lot.kcal[1];
+      return `| ${Math.round(m.kcal)} kcal · ${Math.round(m.protein_g)} g P | ${n} / 12 |${dansLot ? ' ← l\'enveloppe de CE lot' : ''}`;
+    });
+    return ['| Base écrite | Profils servis | |', '|---|---|---|', ...lignes].join('\n');
+  })()}
 
-Même plat, mêmes ingrédients. Le premier nourrit deux fois plus de monde — **gros gabarits
-compris**, parce que le riz monte jusqu'à ×1,8.
+Retiens-en la ligne de crête : trop bas, la recette ne monte pas jusqu'aux gros gabarits ; trop
+haut, elle sur-sert les petits. L'enveloppe du §3 est le point mesuré le plus couvrant — **tiens-la
+sans chercher à la déborder dans un sens ou dans l'autre**.
+
+⚠️ **Ne vise pas le 12/12.** Le tableau ci-dessus montre UNE composition, et une composition
+peut atteindre 12. Une ENVELOPPE, non : balayée sur les 250 recettes du catalogue, la moyenne
+la plus haute jamais atteinte est **10,2 profils sur 12**, quelle que soit l'enveloppe. Ce que
+l'enveloppe du §3 délivre en moyenne, mesuré : **9,6/12 en repas complet, 9,9/12 en petit-déj**.
+Une recette parfaitement conforme peut tomber à 5/12 — c'est la composition qui décide, et c'est
+pour ça que \`check:enveloppe\` note recette par recette.
 
 ### Les 12 profils que ta recette doit couvrir
 
@@ -533,6 +681,15 @@ ${lot.sousFormats.map((f) => `| **${f.nom}** | ${f.ids} | **${f.kcal[0]} – ${f
 | Protéines | **${lot.prot[0]} – ${lot.prot[1]} g** |
 | Glucides | ${lot.carb[0]} – ${lot.carb[1]} g |
 | Lipides | ${lot.fat[0]} – ${lot.fat[1]} g |`}
+
+${(() => {
+    const dLo = (lot.prot[0] / lot.kcal[1] * 100), dHi = (lot.prot[1] / lot.kcal[0] * 100);
+    const dans = dHi >= DENSITE_CIBLE[0] && dLo <= DENSITE_CIBLE[1];
+    return `> **Densité protéique imposée : ${dLo.toFixed(1)} à ${dHi.toFixed(1)} g de protéines pour 100 kcal.**
+> C'est la conséquence arithmétique des deux fourchettes ci-dessus, et c'est **la contrainte qui
+> décide** de la couverture — plus que les calories. Vérifie-la sur chaque recette :
+> \`protéines × 100 ÷ kcal\`.${dans ? '' : '\n> ⚠️ Cette bande sort du plateau mesuré ' + DENSITE_CIBLE[0] + '–' + DENSITE_CIBLE[1] + ' g/100 kcal.'}`;
+  })()}
 
 ${lot.specifique.map((x) => `- ${x}`).join('\n')}
 
