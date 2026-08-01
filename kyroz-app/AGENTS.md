@@ -64,9 +64,10 @@ qu'ils étaient périmés.
 | | valeur | comment la revérifier |
 |---|---|---|
 | Catalogue | **466 recettes** — 110 petits-déj · 270 repas complets · 86 collations | `npm run mesure:couverture` |
-| `ENGINE_VERSION` | **37** (invalide les plans en cache) | `lib/planEngine.ts` |
+| `ENGINE_VERSION` | **38** (invalide les plans en cache) | `lib/planEngine.ts` |
 | `ENGINE_REV` | **4** (avertissement one-shot à l'utilisateur) | `lib/tdee.ts` |
-| Tests | **793 verts**, 41 fichiers · `tsc` propre | `npm test && npx tsc --noEmit` |
+| Tests | **797 verts**, 42 fichiers · `tsc` propre | `npm test && npx tsc --noEmit` |
+| Variété perçue | **27,9 %** des semaines servent 2 recettes d'un même couple (56,3 % avant D18) | `npm run mesure:variete` |
 | Anti-doublons | R1 81 · R2 70 · R4 14 · R5 17 · R7 0 — **figés par un test**, inchangés par B6 | `npm run check:doublons` |
 | Créneau collation | moyenne **7,62/12** (7,19 avant B6 · 4,52 avant B5) · **1 sous le seuil R8** — voir l'avertissement ci-dessous | `npm run check:enveloppe -- <drop>` |
 | Vegan | petit-déj 44/110 · repas 79/270 · collation **43/86** | idem |
@@ -112,14 +113,22 @@ ne pas les présenter comme un défaut de service.
 ### ▶️ Si tu reprends maintenant — les deux chantiers prêts
 
 Par ordre de « cause connue, remède écrit » décroissant. Le détail est dans la liste unique.
-*(D7 — les 7 collations vegan — est **FERMÉ le 2026-08-02** par le lot B6, cf. D17.)*
-*(C1 — le layout tablette — est **FERMÉ le 2026-08-01**, `supportsTablet` est à `true`.)*
+*(D7 est **FERMÉ** par le lot B6, cf. D17 · D4 est **FERMÉ** — la tâche mesurait le mauvais
+objet, le défaut réel était dans le moteur, cf. D18 · C1, le layout tablette, est **FERMÉ**
+le 2026-08-01, `supportsTablet` est à `true`.)*
 
-1. **🤖 D4 — désaturer les couples R4.** 14 groupes, dont 4 sur le motif « ancre × aucun
-   féculent ». Se règle **en écrivant ailleurs**, jamais en réécrivant l'existant.
-   *(B6 n'en a créé aucun de plus : les 7 couples employés étaient libres ou à 1.)*
-2. **🧑 D3 — trancher l'axe allergène.** Décision produit, pas du code : le `tahini`
-   introduit le sésame et aucun champ ne le porte.
+1. **🤖 B7 — l'audit R8 des deux créneaux qui ne l'ont jamais eu.** D15 l'a fait pour les
+   collations ; mesuré le 2026-08-02, **37 petits-déj sur 110 (34 %) et 70 repas complets
+   sur 270 (26 %) sont sous le seuil de 8/12**, dont 4 à ZÉRO profil dans chaque créneau.
+   Cause première déjà identifiée : les recettes **sans `carb`** (13 en petit-déj, moyenne
+   2,77/12 contre 9,03 pour celles qui en portent un ; 6 en repas complet à 1,50/12). Le
+   remède est le même qu'en B5 — réécrire — et le lot est plus gros. Détail en D4-bis.
+2. **🧑 D3 — trancher l'axe allergène.** Décision produit, pas du code. ⚠️ **La prémisse de
+   la fiche est fausse et la mesure a trouvé pire** : le `tahini` s'appelle « Purée de
+   sésame (tahini) », donc taper `sésame` l'attrape — c'est le seul cas qui marche. En
+   revanche `poisson` n'attrape **0 ref sur 7**, `arachide` 0 sur 1, `fruits à coque`
+   0 sur 5, `oeuf` sans ligature 0 sur 2. Le champ « aliments évités » **échoue en
+   silence**.
 
 ⚠️ **Une mise en page tablette existe désormais** (`lib/layout.ts`, seuil 700 pt). Tout
 nouvel écran doit passer par `useLayout()` : sans lui il repart en pleine largeur, et à
@@ -752,7 +761,21 @@ produit en suspens — il ne reste qu'à coder.
 - **D3 · 🧑 Axe allergène — jamais tranché** *(Journal §3)*. Le `tahini` introduit le sésame et **aucun
   champ ne le porte**. Décision produit : ajoute-t-on un axe allergène au modèle, ou
   reste-t-on sur la saisie libre ?
-- **D4 · 🤖 Les groupes R4 saturés — RECOMPTÉS le 2026-08-02 : 14, pas 16.**
+- ~~**D4 · 🤖 Les groupes R4 saturés**~~ 🚫 **FERMÉ le 2026-08-02 — la tâche mesurait le
+  mauvais objet, et son remède aurait raté le premier coupable. Ne pas la rouvrir sous
+  cette forme.** Le défaut de variété est RÉEL et il est traité, mais dans le MOTEUR :
+  voir **D18**. Ce qui suit reste vrai comme photo du catalogue, pas comme consigne.
+  🔴 **Pourquoi la fiche était fausse.** Elle demandait de faire tomber un compteur de
+  groupes « au-delà de 2 recettes par couple ». Mesuré sur 240 semaines réellement
+  générées, les couples effectivement servis en quasi-doublon sont d'abord des groupes de
+  **DEUX** — `edamame × maïs` en collation, 48 semaines, le pire du catalogue et
+  parfaitement légal au regard de R4. Six des dix pires sont des groupes de 2. Réécrire
+  pour ramener 14 groupes à 0 n'aurait pas touché le premier responsable, et aurait fait
+  réécrire `rep71` (12/12) et `rep130` (11/12) pour satisfaire un compteur.
+  ➡️ **Le seuil « > 2 » de R4 reste utile pour le catalogue** (il empêche d'écrire six
+  fois le même plat) ; il n'a jamais été une mesure de ce que l'utilisateur reçoit.
+
+- **D4-bis · la photo du catalogue au 2026-08-02 — 14 groupes saturés.**
   Un couple (protéines × féculent) est « saturé » au-delà de 2 recettes. Les 14 groupes,
   par taille (`npm run check:doublons` les réaffiche) :
 
@@ -775,6 +798,14 @@ produit en suspens — il ne reste qu'à coder.
   ➡️ À régler **en écrivant ailleurs**, jamais en réécrivant une recette au hasard : le
   générateur de briefs (`scripts/gen-brief-lot.ts`) publie déjà les couples saturés et les
   ancres encore ouvertes dans chaque §7.
+  🆕 **Le vrai chantier qui reste ici est un chantier de CATALOGUE, pas de compteur** :
+  l'audit R8 refait le 2026-08-02 montre que **13 petits-déj et 6 repas complets sans
+  `carb` sont TOUS sous le seuil** (moyenne 2,77/12 en petit-déj contre 9,03 pour ceux qui
+  en portent un ; 1,50/12 en repas complet contre 8,80). Plus largement, **37 petits-déj
+  sur 110 (34 %) et 70 repas complets sur 270 (26 %) sont sous le seuil de 8/12**, dont
+  4 à ZÉRO profil dans chaque créneau — l'audit que D15 a fait pour les collations n'a
+  jamais été fait pour les deux autres créneaux. C'est le prochain lot de réécriture
+  (B7), et il est plus gros que B5.
 - ~~**D5 · 3 recettes sans ingrédient gras `scalable`**~~ 🚫 **FERMÉ le 2026-07-31 —
   la tâche était fausse sur ses trois affirmations. Ne pas la rouvrir.** Elle disait
   « 3 recettes · le moteur ne peut pas les monter en lipides · l'utilisateur voit
@@ -1247,6 +1278,82 @@ produit en suspens — il ne reste qu'à coder.
 
   ⚠️ **`col07` reste seule sous le seuil et ne sera pas réécrite** — même raison qu'en
   D16 : la queue de distribution n'est pas un état stable.
+
+- ~~**D18 · La variété perçue — le moteur faisait tourner les IDS, pas les ASSIETTES**~~
+  ✅ **CORRIGÉ le 2026-08-02 — `FAMILY_FIBER_TOL` dans `lib/planEngine.ts`,
+  `ENGINE_VERSION` 37 → 38.** Point de départ : D4, qui demandait de désaturer 14 groupes
+  du catalogue. La mesure a renvoyé la tâche au moteur.
+
+  🔴 **LE MÉCANISME.** `selectMealAdapted` fait tourner les recettes par **id**
+  (`usage[id] × VARIETY_STEP`). Deux recettes bâties sur le même couple protéine ×
+  féculent — « poulet-riz-brocoli » et « wok poulet-riz-légumes » — sont deux ids
+  distincts pour le moteur, et une répétition pour celui qui mange.
+
+  | mesuré sur 240 semaines (12 profils × 5 régimes × 4 tirages) | avant | après |
+  |---|---|---|
+  | semaines contenant ≥ 2 recettes d'un même couple | **56,3 %** | **27,9 %** |
+  | quasi-doublons servis | 203 | **93** |
+  | drapeaux bloquants | 18 | **14** |
+  | écart calorique du jour | 0,35 % | 0,36 % |
+  | fibres/1000 kcal en sèche | 20,62 | 20,59 |
+  | pool le plus mince (F 55 sèche vegan+SG) : distinctes / drapeaux | 27 / 8 | **28 / 5** |
+  | `preferred_proteins` respectées (poulet déclaré) | 31,1 % | **31,3 %** |
+
+  🔎 **CE QUE LA MESURE A RENVERSÉ, et c'est le cœur de la fiche.** Les couples servis en
+  quasi-doublon ne sont PAS ceux que R4 signale. Classement mesuré avant correctif :
+  `edamame × maïs` en collation, **48 semaines — un groupe de DEUX recettes**, donc légal
+  pour R4 ; puis `yaourt_soja × ∅` (8 recettes, 44) ; puis `tempeh × riz complet` (3, 14) ;
+  puis `protéine végétale × châtaigne` (**2**, 10). Six des dix pires sont des groupes
+  de 2. ➡️ **Un compteur de catalogue ne mesure pas ce qu'un utilisateur reçoit.** C'est
+  la troisième fois que ce piège se referme (D5 : 34 recettes « en cause » qui ne
+  causaient rien · D7 : un ratio de pool qui ne se voyait pas dans le service).
+
+  🔬 **TROIS RÉGLAGES ONT ÉTÉ ESSAYÉS ET DEUX SONT ÉCARTÉS, chacun par sa mesure.**
+  1. **La famille dans le score effectif** (`+ 0,03 × familyUsage`) : 41,3 %, mais 0,03
+     dépasse la bande de départage de `balanced` (0,024) — elle éjectait de la bande les
+     recettes fibreuses que le nudge fibres venait d'y faire entrer. **Le test P3.2 est
+     tombé** (ratio ×0,96 pour un seuil de ×1,02). Les deux nudges se disputaient la
+     même bande. ❌
+  2. **Couper la bande sur les fibres avant le tri** : le meilleur chiffre obtenu,
+     **9,6 %** de quasi-doublons — et rejeté. Les repas servis à qui déclare préférer le
+     poulet tombaient de 27,2 % à **18,3 %**, le poisson de 73,8 % à 51,5 %, et les
+     drapeaux bloquants doublaient (17 → 35). La mesure décisive est venue de l'agent
+     lui-même : le filtre de famille SEUL ne coûte rien sur `preferred` (25,9 %), c'est
+     le pré-tri fibres qui détruit la hiérarchie — or c'est lui qui faisait passer P3.2.
+     Dans cette structure, **la marge fibres et le signal de l'utilisateur sont le même
+     curseur tiré dans deux sens**. ❌
+  3. **Clé de départage bornée en grammes de fibres**, placée APRÈS `preferred` et
+     `need` : elle réordonne `pickable`, elle n'exclut jamais. ✅ **RETENUE.**
+
+  ⚠️ **La valeur 7 g est un point mesuré, et ce n'est ni le minimum de la courbe ni le
+  plus prudent.** Balayage complet (quasi-doublons · drapeaux · fibres sèche · pool mince
+  distinctes/drapeaux) : `OFF` 56,3 · 18 · 20,62 · 27/8 — `6` 28,7 · 18 · 20,59 · **28/10**
+  — `7` **27,9 · 14 · 20,59 · 28/5** — `8` 25,0 · 14 · 20,59 · 28/5 — `8,5` 26,7 · 20 ·
+  20,11 · 28/11 — `9` 26,7 · 20 · 20,11 · 26/11.
+  **6 g était mon premier choix « pour la marge » et la mesure l'a écarté** : c'est le
+  SEUL réglage qui dégrade le pool le plus mince (10 drapeaux contre 8 sans rotation).
+  Prendre de la marge y coûtait aux profils déjà les moins bien servis. 7 prend les mêmes
+  gains que 8 et s'assied **1,5 g sous la falaise** au lieu de 0,5 : entre 8 et 8,5 les
+  trois contrôles basculent ensemble. Le catalogue bouge encore — c'est exactement comme
+  ça que le lot B4 avait fait tomber P3.2. **Recalibrer par balayage, jamais à vue.**
+
+  ⚠️ **Pas d'`ENGINE_REV`** : la cible calorique du jour ne bouge pas (0,35 → 0,36 %
+  d'écart), seule la composition de la semaine change. Le seuil d'avertissement one-shot
+  (100 kcal/jour) n'est pas approché. `ENGINE_VERSION` 37 → 38, en revanche, est
+  obligatoire : un plan en cache servirait l'ancienne rotation.
+
+  🧰 **Outillage laissé derrière** : `npm run mesure:variete` (le défaut n'était visible
+  d'AUCUN contrôle existant) et `lib/__tests__/varieteFamille.test.ts`, qui échoue si le
+  mécanisme disparaît — vérifié en le débranchant.
+
+  ⚠️ **Ce que ça ne règle PAS, assumé** : la clé bornée ne sait pas déloger une famille
+  très fibreuse. `repas_complet | tempeh × riz complet` reste à 11 semaines sur 240 (contre 14 avant). Le
+  classement des pires contrevenants change ; ce n'est pas une régression cachée.
+
+  ⚠️ **La vérification adversariale prévue N'A PAS TOURNÉ** : les 6 agents de vérification
+  ont échoué sur la limite de session. Les chiffres ci-dessus ont été re-mesurés à la main
+  (balayage complet, coût sur `preferred_proteins`, pool mince, plan canonique, reroll,
+  performance 12 ms/plan) — mais aucune lentille indépendante n'a cherché à les réfuter.
 
 ### 🧹 E — Dette technique
 

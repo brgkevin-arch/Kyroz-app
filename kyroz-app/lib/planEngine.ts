@@ -69,6 +69,65 @@ const FIBER_SELECT_W = 0.005;
 // ~1 % à travers le balayage 0→0.09). Les recettes à flag (≥ 0.4) restent hors bande.
 // Cf. selectMealAdapted. Balayage 2026-07-23 : variété semaine ~×2 vs 0, précision plate.
 const VARIETY_STEP = 0.06;
+// Rotation au niveau FAMILLE (cf. `familyKey`). La rotation par `usage` ne connaît que
+// l'id : elle empêche la même recette de revenir, pas deux recettes QUASI identiques.
+// Mesuré avant ce correctif, sur 240 semaines simulées (12 profils × 5 régimes ×
+// 4 tirages) : **56,3 % des semaines servaient au moins deux recettes du MÊME couple
+// (protéine × féculent)** — « poulet-riz-brocoli » et « wok poulet-riz-légumes » la même
+// semaine. Le pire contrevenant, `edamame × maïs` en collation (48 semaines), est un
+// groupe de DEUX recettes : parfaitement légal au regard de la règle anti-doublons R4 du
+// catalogue, qui ne s'alarme qu'au-delà de 2. ➡️ Le compteur R4 n'est pas l'instrument du
+// défaut ; le moteur, lui, le mesure. Détail et balayage : `AGENTS.md` D18.
+//
+// ⚠️ LA FAMILLE NE VIT PAS DANS LE SCORE EFFECTIF, et c'est tout le réglage.
+// Première version essayée : `+ 0.03 × familyUsage` dans `effOf`. Elle descendait les
+// quasi-doublons à 41,3 %, mais 0,03 dépasse la bande de départage de `balanced`
+// (0,01 + 0,014 = 0,024) : elle ÉJECTAIT DE LA BANDE les recettes fibreuses que le nudge
+// fibres venait d'y faire entrer. Les deux nudges se disputaient la même bande, et le
+// biais fibres de sèche (P3.2) tombait à ×0,96 pour un seuil de ×1,02. La famille est
+// donc sortie du score : elle est une CLÉ DE DÉPARTAGE dans `pickable.sort`, placée
+// APRÈS `preferred` et `need` — elle réordonne, elle n'exclut JAMAIS.
+//
+// ⚠️ Le placement après `preferred` n'est pas cosmétique, il est MESURÉ. Une variante
+// concurrente coupait la bande sur les fibres avant le tri : quasi-doublons 9,6 %, le
+// meilleur chiffre obtenu — mais les repas servis à qui déclare préférer le poulet
+// tombaient de 27,2 % à 18,3 %, et les drapeaux bloquants doublaient (17 → 35). Un
+// nudge de variété ne passe pas devant le signal explicite de l'utilisateur.
+//
+// FAMILY_FIBER_TOL est en GRAMMES DE FIBRES PAR PORTION, pas en points de score :
+// « la rotation des familles a le droit de coûter jusqu'à N g de fibres sur une
+// assiette ; au-delà, les fibres reprennent la main ». Les deux nudges ne se disputent
+// plus la même bande — ils sont ORDONNÉS.
+//
+// BALAYAGE COMPLET, mesuré sur le moteur (`npm run mesure:variete` + le pool le plus
+// mince du catalogue, F 55 sèche en vegan + sans gluten) :
+//
+//   TOL | quasi-doublons | drapeaux | fibres sèche | pool mince : distinctes / drapeaux
+//   ----|----------------|----------|--------------|-----------------------------------
+//   OFF |     56,3 %     |    18    |    20,62     |        27 / 8
+//    6  |     28,7 %     |    18    |    20,59     |        28 / 10  ← dégrade le mince
+//  **7**|   **27,9 %**   |  **14**  |  **20,59**   |      **28 / 5**
+//    8  |     25,0 %     |    14    |    20,59     |        28 / 5
+//   8,5 |     26,7 %     |    20    |    20,11     |        28 / 11  ← la falaise
+//    9  |     26,7 %     |    20    |    20,11     |        26 / 11
+//
+// ⚠️ POURQUOI 7. Ce n'est ni le minimum de la courbe (8) ni la valeur la plus prudente
+// (6) : 6 est le SEUL réglage qui dégrade le pool le plus mince du catalogue (10 drapeaux
+// contre 8 sans rotation famille) — « prendre de la marge » y coûtait précisément aux
+// profils les moins bien servis. 7 prend exactement les mêmes gains que 8 sur tous les
+// contrôles (drapeaux 18 → 14, pool mince 8 → 5) pour 2,9 points de quasi-doublons en
+// plus, et il s'assied **1,5 g sous la falaise** au lieu de 0,5. Entre 8 et 8,5 les trois
+// contrôles basculent ENSEMBLE (fibres de sèche 20,59 → 20,11, drapeaux 14 → 20, pool
+// mince 5 → 11) : 8 n'a aucune marge, et un lot de recettes qui déplace le tirage peut
+// le faire basculer — c'est EXACTEMENT ce qui est arrivé au test P3.2 avec le lot B4.
+// Le catalogue bouge encore. Si ce réglage doit être recalibré, le refaire PAR BALAYAGE.
+//
+// ⚠️ Ce que la tolérance refuse de faire, assumé : un terme dans le score savait déloger
+// les familles TRÈS fibreuses, la clé bornée non. `repas_complet | tempeh × riz_complet`
+// reste à 11 semaines en quasi-doublon (4 avec le terme dans le score). Le bilan global va
+// de 56,3 % à 27,9 %, mais le
+// classement des pires contrevenants change — ce n'est pas une régression cachée.
+const FAMILY_FIBER_TOL = 7;
 
 // Reroll (« Nouveau plan ») : pour produire un plan DIFFÉRENT à chaque clic, on
 // élargit le pool de choix (borné) et on décale la sélection avec un `seed`. Le
@@ -363,10 +422,27 @@ interface AdaptedChoice {
  * contre-sens (8 recettes taguées « jour off » dépassent 50 % de kcal glucidiques).
  * Un tag de contenu ne peut pas arbitrer mieux que le moteur qui, lui, mesure.
  */
+/**
+ * Clé de FAMILLE d'une recette : `refs protéine × refs glucide`.
+ *
+ * C'est le même triplet que la règle anti-doublons R4 du catalogue, moins la catégorie
+ * (les pools sont déjà séparés par créneau). Deux recettes qui partagent cette clé sont
+ * « la même assiette autrement racontée » : poulet-riz-brocoli et wok poulet-riz-légumes.
+ * L'utilisateur les vit comme une répétition ; `usage`, qui ne compte que les ids, ne
+ * les distingue pas.
+ */
+export function familyKey(r: Recipe): string {
+  const refs = (role: string) =>
+    r.ingredients.filter((i) => i.macro_role === role).map((i) => i.ref ?? i.name).sort().join('+') || '∅';
+  return `${refs('protein')}×${refs('carb')}`;
+}
+
 function selectMealAdapted(
   pool: Recipe[],
   target: AdaptTarget,
   usage: Record<string, number>,
+  familyUsage: Record<string, number>,
+  families: Map<string, string>,
   variety: VarietyPreference,
   preferredIds: Set<string>,
   objectives: RecipeObjective[],
@@ -409,8 +485,17 @@ function selectMealAdapted(
   // variété quasi inchangée) ; au-delà de ~0.015 → surdose (>55 g) + variété qui chute.
   // Hors sèche : 0 (le maintien/la prise de masse ne sont pas touchés).
   const step = variety === 'repetitive' ? 0 : VARIETY_STEP;
+  // La FAMILLE reste HORS du score effectif : la bande, `minEff` et `pickable` sont
+  // exactement ceux d'avant ce correctif, donc aucune recette fibreuse n'est éjectée de
+  // la bande par un couple déjà servi. Elle est consommée plus bas, en clé de départage
+  // bornée (cf. FAMILY_FIBER_TOL). Le plan canonique (`repetitive`) n'en veut pas : il
+  // est volontairement statique.
+  const famActive = variety !== 'repetitive';
+  const famUse = (c: AdaptedChoice) =>
+    famActive ? (familyUsage[families.get(c.recipe.id) ?? ''] ?? 0) : 0;
   const fiberW = fiberStrong ? FIBER_SELECT_W : 0;
-  const effOf = (c: AdaptedChoice) => c.score - fiberW * c.fiber + step * (usage[c.recipe.id] ?? 0);
+  const effOf = (c: AdaptedChoice) =>
+    c.score - fiberW * c.fiber + step * (usage[c.recipe.id] ?? 0);
   candidates.sort((a, b) => effOf(a) - effOf(b) || a.recipe.id.localeCompare(b.recipe.id));
 
   const minEff = effOf(candidates[0]);
@@ -431,6 +516,19 @@ function selectMealAdapted(
     // 1bis) Besoin : recette taguée pour l'objectif/sport (soft-matching).
     if (a.need !== b.need) return b.need - a.need;
     // (plus de départage `rest_day_ok` ici — cf. le commentaire de selectMealAdapted.)
+    // 1quater) FAMILLE (protéine × féculent) : à préférence et besoin égaux, la famille
+    // la moins servie de la semaine passe devant — MAIS seulement si elle ne coûte pas
+    // plus de FAMILY_FIBER_TOL g de fibres/portion. Au-delà, les fibres reprennent la
+    // main. Placée ICI et pas plus haut : `preferred` (signal explicite de
+    // l'utilisateur) et `need` restent prioritaires sur un nudge de variété.
+    {
+      const d = famUse(a) - famUse(b);
+      if (d !== 0) {
+        const frais = d < 0 ? a : b;
+        const servi = d < 0 ? b : a;
+        if (servi.fiber - frais.fiber <= FAMILY_FIBER_TOL) return d;
+      }
+    }
     // 1ter) Fibres : nudge satiété (en sèche surtout). La rotation ne dépend plus de
     // cette clé — elle vit dans le score effectif → plus de monopole d'une recette.
     { const f = fiberCmp(a, b); if (f !== 0) return f; }
@@ -507,7 +605,7 @@ export function computeDailyTotals(
 // Version du moteur de génération : à incrémenter quand le scoring/sélection
 // change, pour que les plans EN CACHE se régénèrent automatiquement (la signature
 // change → l'auto-refresh de l'écran Plan rejoue la génération). v2 = lipides cadrés.
-const ENGINE_VERSION = 37; // v37 = lot B6, 7 collations vegan ajoutées (col80–col86) — les plans en cache ne les verraient pas ; v36 = plancher protéique par repas (`PROT_SHARE_FLOOR`) — la répartition intra-journée change, les plans en cache serviraient l’ancienne ; v35 = lot B5, 20 collations réécrites (composition changée sous le même id → les plans en cache serviraient l’ancienne recette) ; v34 = lot B4, 32 recettes à l’enveloppe corrigée (rep251–rep270, pd99–pd110) — les plans en cache ne les verraient pas ; v33 = lot B3, 20 petits-déjeuners (pd79–pd98) — tous les lots commandés sont livrés ; v32 = lot B1-lot4, 20 repas complets — la vague B1 est complète (rep171–rep250) ; v31 = lot B1-lot3, 20 repas complets ; v30 = lot B1-lot2, 20 repas complets ; v29 = lot B1-lot1, 20 repas complets (les plans en cache ne les verraient pas) ; v28 = cible lipidique visée 15 % au-dessus du plancher (A9) — les plans en cache serviraient l'ancienne répartition ; v27 = lot B2, 13 collations légères (les plans en cache ne les verraient pas) ; v26 = banque de calories (les plans en cache ignoraient les écarts déclarés) ; v25 = borne basse de l'ancre protéine 1,0 → 0,5 (les plans en cache servaient l'ancien plancher) ; v24 = 9 recettes différenciées (nettoyage des doublons : composition modifiée) ; v23 = ancre protéine rendue à 8 recettes ; v22 = le temps de prépa ne filtre plus ; v21 = yaourt_grec démappé
+const ENGINE_VERSION = 38; // v38 = rotation par FAMILLE (`FAMILY_FIBER_TOL`) — la composition de la semaine change, un plan en cache servirait l'ancienne rotation ; v37 = lot B6, 7 collations vegan ajoutées (col80–col86) — les plans en cache ne les verraient pas ; v36 = plancher protéique par repas (`PROT_SHARE_FLOOR`) — la répartition intra-journée change, les plans en cache serviraient l’ancienne ; v35 = lot B5, 20 collations réécrites (composition changée sous le même id → les plans en cache serviraient l’ancienne recette) ; v34 = lot B4, 32 recettes à l’enveloppe corrigée (rep251–rep270, pd99–pd110) — les plans en cache ne les verraient pas ; v33 = lot B3, 20 petits-déjeuners (pd79–pd98) — tous les lots commandés sont livrés ; v32 = lot B1-lot4, 20 repas complets — la vague B1 est complète (rep171–rep250) ; v31 = lot B1-lot3, 20 repas complets ; v30 = lot B1-lot2, 20 repas complets ; v29 = lot B1-lot1, 20 repas complets (les plans en cache ne les verraient pas) ; v28 = cible lipidique visée 15 % au-dessus du plancher (A9) — les plans en cache serviraient l'ancienne répartition ; v27 = lot B2, 13 collations légères (les plans en cache ne les verraient pas) ; v26 = banque de calories (les plans en cache ignoraient les écarts déclarés) ; v25 = borne basse de l'ancre protéine 1,0 → 0,5 (les plans en cache servaient l'ancien plancher) ; v24 = 9 recettes différenciées (nettoyage des doublons : composition modifiée) ; v23 = ancre protéine rendue à 8 recettes ; v22 = le temps de prépa ne filtre plus ; v21 = yaourt_grec démappé
 
 export function profileSignature(p: UserProfile): string {
   // NB : `hidden_recipes` (👎) est VOLONTAIREMENT absent. Un 👎 remplace UN repas
@@ -724,6 +822,13 @@ export function buildLocalPlan(profile: UserProfile, seed: number = 0): MealPlan
   const meals: Meal[] = [];
   // Compteur d'utilisation sur la semaine pour étaler les recettes (variété).
   const usage: Record<string, number> = {};
+  // Idem au niveau FAMILLE (couple protéine × féculent) : empêche deux quasi-doublons
+  // dans la même semaine, ce que `usage` — qui ne connaît que les ids — laisse passer.
+  // La table est construite UNE fois par plan (et non par repas) : le calcul de clé est
+  // du tri de chaînes sur 466 recettes, il n'a rien à faire dans la boucle des 28 repas.
+  const familyUsage: Record<string, number> = {};
+  const families = new Map<string, string>();
+  for (const mt of allMealTypes) for (const r of pools[mt] ?? []) if (!families.has(r.id)) families.set(r.id, familyKey(r));
   // Reliquat calorique reporté de jour en jour → la semaine converge vers days×cible.
   let weekDeficitKcal = 0;
 
@@ -774,10 +879,13 @@ export function buildLocalPlan(profile: UserProfile, seed: number = 0): MealPlan
       );
 
       const choice = selectMealAdapted(
-        pools[mealType], target, usage, variety, preferredIds, objectives, sportBuckets, seed, fiberStrong, goalDir,
+        pools[mealType], target, usage, familyUsage, families, variety, preferredIds, objectives, sportBuckets,
+        seed, fiberStrong, goalDir,
       );
 
       usage[choice.recipe.id] = (usage[choice.recipe.id] ?? 0) + 1;
+      const fam = families.get(choice.recipe.id);
+      if (fam) familyUsage[fam] = (familyUsage[fam] ?? 0) + 1;
       remainingKcal -= choice.macros.kcal;
       remainingProtein -= choice.macros.protein_g;
       remainingWeight -= weight;
