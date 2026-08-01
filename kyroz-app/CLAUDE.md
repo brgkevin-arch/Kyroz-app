@@ -16,6 +16,20 @@ App mobile React Native (Expo Router, SDK 56) de plans repas macro-précis pour 
 
 **Freemium large.** Le core loop (génération de plan, plan, courses, recettes) est gratuit et fonctionne sans aucune clé API. La monétisation vient de features avancées, pas du blocage du cœur. **Valeur premium (Kyroz+) tranchée + construite (2026-07-27)** : *« piloter son objectif dans le temps »* — objectif daté (trajectoire calorique vers un poids à une date), suivi de transformation (zone/photos), et à venir la banque de calories. **Paiement = achat in-app Apple/Google via RevenueCat (pas Stripe seul, refusé par les stores) + gating `is_premium` = à câbler** (features gratuites tant que ce n'est pas fait). Détail : `MONETISATION.md` + AGENTS.md.
 
+> **Un seul rythme de sèche, et c'est structurant** (arbitré le 2026-07-31). Il n'y a
+> qu'un objectif « Sèche ». `cut_aggressive` est legacy, retiré des écrans et refermé
+> sur `cut` à la lecture (`syncGuard::normalizeGoal`). **La vitesse se pilote par
+> l'objectif DATÉ, pas par un cran d'objectif** — c'est le seul mécanisme qui sache
+> dire si un rythme est tenable, et c'est le cœur de la valeur premium.
+> La justification d'origine (« les deux servaient le même plan ») est tombée avec le
+> relèvement NEAT du 2026-07-31 : l'écart médian est désormais de 134 kcal/j. La
+> décision tient quand même, pour une raison mesurée — **l'objectif daté sert déjà
+> exactement le même déficit qu'aurait servi un « rapide », au kcal près** (−351 /
+> −384 / −343 sur trois gabarits, identiques), parce que les deux butent sur le même
+> plancher. Rouvrir un cran « rapide » n'ouvrirait aucune porte, promettrait 200 kcal
+> pour en servir 134, et donnerait une version gratuite dégradée de Kyroz+.
+> ⚠️ Ne pas re-proposer sans mesure nouvelle. Détail et chiffres : AGENTS.md.
+
 ---
 
 ## 2. Stack technique
