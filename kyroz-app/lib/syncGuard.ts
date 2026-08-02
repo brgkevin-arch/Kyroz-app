@@ -1,4 +1,4 @@
-import { UserProfile } from './types';
+import { MEAL_ORDER, UserProfile, VarietyPreference } from './types';
 import { totalSessionsPerWeek } from './sport';
 import { readLowEaRegistry } from './safety';
 
@@ -74,6 +74,64 @@ export function normalizeProfileActivity<T extends Partial<UserProfile>>(p: T | 
 export function normalizeGoal<T extends Partial<UserProfile>>(p: T | null): T | null {
   if (!p || p.goal !== 'cut_aggressive') return p;
   return { ...p, goal: 'cut' };
+}
+
+// ── Préférence de variété hors barème (2026-08-02) ──────────────────────────
+//
+// Trouvé sur le profil du fondateur : `variety: 'high'`. Cette valeur n'a JAMAIS
+// existé dans l'énumération — `'repetitive' | 'balanced' | 'max'` est identique
+// depuis le commit initial, vérifié dans l'historique. C'est donc une saisie à la
+// main (test, édition directe en base), pas un vestige de version.
+//
+// Ce qu'elle provoquait, en silence et sur deux plans :
+//  · le MOTEUR ne reconnaissant ni `repetitive` ni `max`, il retombait sur le
+//    comportement « équilibré » — l'utilisateur ne recevait pas ce qu'il croyait ;
+//  · l'ÉDITEUR n'affichait AUCUNE carte sélectionnée (`selected={variety === v.value}`
+//    ne matchait rien), donc l'écran ne permettait même pas de constater le réglage
+//    actif. Un réglage invisible ET inopérant.
+//
+// Même remède que `normalizeGoal` : on referme au chargement plutôt que de laisser
+// une valeur orpheline en base. `'high'` → `'max'` (l'intention est sans ambiguïté :
+// c'est le cran de variété le plus haut) ; toute autre valeur inconnue → `'balanced'`,
+// qui est déjà le défaut de l'onboarding et ce que le moteur servait de fait.
+//
+// ⚠️ Ça CHANGE le plan de ces comptes : `variety` entre dans `profileSignature`, donc
+// le plan se régénère une fois. C'est voulu — ils recevront enfin le réglage demandé.
+// Aucune calorie ne bouge (seule la sélection des recettes change) → pas d'ENGINE_REV.
+const VARIETES_VALIDES = new Set<VarietyPreference>(['repetitive', 'balanced', 'max']);
+const VARIETES_ALIAS: Record<string, VarietyPreference> = { high: 'max', low: 'repetitive' };
+
+export function normalizeVariety<T extends Partial<UserProfile>>(p: T | null): T | null {
+  if (!p || p.variety === undefined) return p;
+  if (VARIETES_VALIDES.has(p.variety)) return p;
+  return { ...p, variety: VARIETES_ALIAS[String(p.variety)] ?? 'balanced' };
+}
+
+// ── `meals` qui n'est pas un tableau (2026-08-02) ───────────────────────────
+//
+// Trouvé sur le même profil réel, et c'est le plus grave des deux : `meals: 4`,
+// un NOMBRE, là où le type annonce `MealType[]`. Conséquences, mesurées à l'écran :
+//  · le MOTEUR s'en sortait — `buildLocalPlan` teste `Array.isArray` et retombe sur
+//    les 4 repas par défaut. Le plan servi était donc correct, et le défaut invisible.
+//  · l'ÉCRAN « Paramètres des repas » CRASHAIT. `useState(profile.meals ?? [...])`
+//    ne rattrape rien (`4 ?? x` vaut `4`), puis `meals.includes(...)` lève
+//    « meals.includes is not a function » → Error Boundary, écran mort.
+// Autrement dit : un réglage que l'utilisateur ne pouvait plus JAMAIS ouvrir, sans
+// que rien n'indique pourquoi. C'est ce qui l'empêchait de changer sa variété.
+//
+// Un nombre est lu comme « je veux N repas » — l'intention est claire, et c'est déjà
+// ce que l'écran Profil affichait (« 4 repas »). On prend donc les N premiers de
+// `MEAL_ORDER`, ce qui rend EXACTEMENT ce que le moteur servait déjà pour N = 4.
+// Toute autre forme inexploitable retombe sur les 4 repas par défaut.
+//
+// ⚠️ Le repli du moteur (`Array.isArray`) reste en place : c'est lui qui a évité que
+// le défaut atteigne les assiettes, et il protège les chemins qui ne passent pas ici.
+export function normalizeMeals<T extends Partial<UserProfile>>(p: T | null): T | null {
+  if (!p || p.meals === undefined) return p;
+  const m = p.meals as unknown;
+  if (Array.isArray(m) && m.length > 0 && m.every((x) => MEAL_ORDER.includes(x))) return p;
+  const n = typeof m === 'number' && m >= 1 ? Math.min(Math.floor(m), MEAL_ORDER.length) : MEAL_ORDER.length;
+  return { ...p, meals: MEAL_ORDER.slice(0, n) };
 }
 
 // À l'hydratation « pull_cloud » : un `sports` absent/vide côté cloud (ligne

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { decideProfileHydration, normalizeProfileActivity, reconcileCloudSports } from '../syncGuard';
+import { decideProfileHydration, normalizeMeals, normalizeProfileActivity, normalizeVariety, reconcileCloudSports } from '../syncGuard';
 import { SportSession } from '../types';
 
 const SPORTS: SportSession[] = [
@@ -88,5 +88,79 @@ describe('reconcileCloudSports (P3.3)', () => {
     const healed = normalizeProfileActivity(reconcileCloudSports(cloud as any, { sports: SPORTS }));
     expect(healed!.sports).toEqual(SPORTS);       // MET conservé → calcul précis
     expect(healed!.training_days_per_week).toBe(6); // cohérent avec les séances
+  });
+});
+
+// ── Préférence de variété hors barème ────────────────────────────────────────
+// Trouvée sur un profil réel : `variety: 'high'`, valeur qui n'a jamais existé dans
+// l'énumération. Elle était doublement invisible — le moteur retombait sur
+// « équilibré » sans le dire, et l'éditeur n'affichait aucune carte sélectionnée.
+describe('normalizeVariety — un réglage fantôme ne doit pas survivre au chargement', () => {
+  it('« high » devient « max » (le cran de variété le plus haut, intention sans ambiguïté)', () => {
+    expect(normalizeVariety({ variety: 'high' as never })!.variety).toBe('max');
+  });
+
+  it('« low » devient « repetitive »', () => {
+    expect(normalizeVariety({ variety: 'low' as never })!.variety).toBe('repetitive');
+  });
+
+  it('toute autre valeur inconnue retombe sur « balanced » — le défaut de l’onboarding', () => {
+    expect(normalizeVariety({ variety: 'wtf' as never })!.variety).toBe('balanced');
+    expect(normalizeVariety({ variety: '' as never })!.variety).toBe('balanced');
+  });
+
+  it('une valeur VALIDE est rendue telle quelle, sans recopier l’objet', () => {
+    for (const v of ['repetitive', 'balanced', 'max'] as const) {
+      const p = { variety: v };
+      expect(normalizeVariety(p)).toBe(p);   // même référence : aucun rendu inutile
+    }
+  });
+
+  it('ne fabrique pas une valeur quand le champ est absent (≠ « pas d’info »)', () => {
+    const p = { weight_kg: 80 };
+    expect(normalizeVariety(p)).toBe(p);
+    expect(normalizeVariety(null)).toBeNull();
+  });
+
+  it('laisse le reste du profil intact', () => {
+    const out = normalizeVariety({ variety: 'high' as never, weight_kg: 84, goal: 'cut' as const });
+    expect(out).toEqual({ variety: 'max', weight_kg: 84, goal: 'cut' });
+  });
+});
+
+// ── `meals` qui n'est pas un tableau ─────────────────────────────────────────
+// Vu sur un profil RÉEL : `meals: 4`. Le moteur l'absorbait (`Array.isArray`), mais
+// l'écran « Paramètres des repas » crashait sur `meals.includes` — réglage mort.
+describe('normalizeMeals — un `meals` non-tableau tuait un écran entier', () => {
+  it('le NOMBRE 4 devient les 4 repas — exactement ce que le moteur servait déjà', () => {
+    expect(normalizeMeals({ meals: 4 as never })!.meals).toEqual(['breakfast', 'lunch', 'dinner', 'snack']);
+  });
+
+  it('un nombre plus petit garde les N premiers repas (l’intention « N repas »)', () => {
+    expect(normalizeMeals({ meals: 3 as never })!.meals).toEqual(['breakfast', 'lunch', 'dinner']);
+    expect(normalizeMeals({ meals: 1 as never })!.meals).toEqual(['breakfast']);
+  });
+
+  it('un nombre absurde est borné, jamais propagé', () => {
+    expect(normalizeMeals({ meals: 99 as never })!.meals).toHaveLength(4);
+    expect(normalizeMeals({ meals: 0 as never })!.meals).toHaveLength(4);
+    expect(normalizeMeals({ meals: -2 as never })!.meals).toHaveLength(4);
+  });
+
+  it('toute autre forme inexploitable retombe sur les 4 repas', () => {
+    expect(normalizeMeals({ meals: 'brunch' as never })!.meals).toHaveLength(4);
+    expect(normalizeMeals({ meals: [] as never })!.meals).toHaveLength(4);
+    expect(normalizeMeals({ meals: ['brunch'] as never })!.meals).toHaveLength(4);
+  });
+
+  it('un tableau VALIDE est rendu tel quel, sans recopier l’objet', () => {
+    const p = { meals: ['breakfast', 'dinner'] as const };
+    expect(normalizeMeals(p as never)).toBe(p);
+  });
+
+  it('ne fabrique rien quand le champ est absent', () => {
+    const p = { weight_kg: 84 };
+    expect(normalizeMeals(p)).toBe(p);
+    expect(normalizeMeals(null)).toBeNull();
   });
 });

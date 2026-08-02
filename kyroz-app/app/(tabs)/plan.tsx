@@ -15,6 +15,7 @@ import { RecipeEditor } from '../../components/RecipeEditor';
 import { Sheet } from '../../components/Sheet';
 import { StreakProgress } from '../../components/StreakProgress';
 import { StreakCelebration } from '../../components/StreakCelebration';
+import { BirthdayCelebration } from '../../components/BirthdayCelebration';
 import { FirstPlanReveal } from '../../components/FirstPlanReveal';
 import { WeightCheckin } from '../../components/WeightCheckin';
 import { PlanCheckin } from '../../components/PlanCheckin';
@@ -35,6 +36,7 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { buildLocalPlan, profileSignature, swapMeal, computeDailyTotals, rebalanceDay, resetTracking, adaptDayOptions, AdaptOption, mealIngredients, reAdaptMealRecipe, mealPoolSize, dayTargetKcal, ON_TARGET_TOLERANCE_KCAL } from '../../lib/planEngine';
 import { DISLIKE_THRESHOLD, dislikeCandidates, applyDislikedIngredient } from '../../lib/dislike';
 import { todayStamp } from '../../lib/weight';
+import { isBirthday, ageOn } from '../../lib/birthday';
 import { mealFiberFromIngredients, dailyFiberTarget } from '../../lib/fiber';
 import { getRecipeById, getBaseRecipe } from '../../lib/recipes';
 import { useRecipeOverrides } from '../../hooks/useRecipeOverrides';
@@ -53,6 +55,11 @@ const REROLL_KEY = '@kyroz:planReroll';
 // l'onboarding) → l'overlay ne s'affiche QU'UNE fois. Backfillé pour les profils
 // qui ont déjà un plan (ne pas le montrer aux utilisateurs existants).
 const FIRST_PLAN_KEY = '@kyroz:firstPlanSeen';
+// Anniversaire déjà fêté — on stocke l'ANNÉE, pas un booléen : un booléen serait à
+// remettre à zéro quelque part, et ce « quelque part » n'existe pas (personne ne
+// tourne un cron dans une app locale). Comparer l'année stockée à l'année courante
+// se suffit à lui-même, et survit à une année sautée.
+const BIRTHDAY_KEY = '@kyroz:birthdaySeenYear';
 const WD = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
 
 // Visite guidée de l'onglet Plan (pilote). Les bulles ne s'affichent que la 1re
@@ -142,6 +149,7 @@ export default function PlanScreen() {
   const [adaptPrompt, setAdaptPrompt] = useState<number | null>(null); // kcal de l'écart en attente de décision Oui/Non
   const [refreshing, setRefreshing] = useState(false);
   const [showReveal, setShowReveal] = useState(false); // overlay « 1er plan prêt » (J1)
+  const [birthdayAge, setBirthdayAge] = useState<number | null>(null); // 🎂 une fois l'an
   const autoTried = React.useRef(false);
   const tourTried = React.useRef(false);
   const scrollRef = React.useRef<ScrollView>(null);
@@ -184,6 +192,25 @@ export default function PlanScreen() {
 
   // Analytics : palier de série franchi (3/7/14…) — no-op tant que non consenti.
   useEffect(() => { if (celebration) capture(Events.streakMilestone, { days: celebration }); }, [celebration]);
+
+  // 🎂 Anniversaire — une fois par an, à l'ouverture du Plan.
+  // Il ne s'affiche QUE si la date de naissance est connue : les comptes créés
+  // avant le 2026-08-02 n'en ont pas, et on n'en invente pas.
+  useEffect(() => {
+    if (!profile?.birth_date) return;
+    const today = todayStamp();
+    if (!isBirthday(profile.birth_date, today)) return;
+    const annee = today.slice(0, 4);
+    AsyncStorage.getItem(BIRTHDAY_KEY).then((vu) => {
+      if (vu === annee) return;
+      const age = ageOn(profile.birth_date, today);
+      if (age != null) setBirthdayAge(age);
+    });
+  }, [profile?.birth_date]);
+  const closeBirthday = useCallback(() => {
+    setBirthdayAge(null);
+    AsyncStorage.setItem(BIRTHDAY_KEY, todayStamp().slice(0, 4));
+  }, []);
 
   // Auto-refresh : dès qu'un réglage qui affecte le plan change (jours, repas,
   // macros, objectif, régime…), on régénère automatiquement — plus besoin de
@@ -794,6 +821,7 @@ export default function PlanScreen() {
 
       {/* Célébration quand un palier de série est franchi (3/7/14…) */}
       <StreakCelebration milestone={celebration} onClose={clearCelebration} />
+      <BirthdayCelebration age={birthdayAge} firstName={firstName} onClose={closeBirthday} />
 
       {/* « J'ai mangé hors plan » → enregistre l'écart, puis propose de réadapter */}
       <Sheet visible={offPlanOpen} onClose={() => setOffPlanOpen(false)}>

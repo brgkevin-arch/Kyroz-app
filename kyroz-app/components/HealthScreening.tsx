@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { useTheme, ThemePalette, Spacing } from '../constants/theme';
 import { useLayout } from '../constants/layout';
-import { PrimaryButton, OptionCard } from './ui';
+import { PrimaryButton, Segmented } from './ui';
 import { useAuth } from '../hooks/useAuth';
 import {
   ScreeningFlags, EMPTY_FLAGS, screeningBlocked, recordScreeningPassed,
@@ -35,22 +35,40 @@ export default function HealthScreening({ onPass }: { onPass: () => void }) {
   const layout = useLayout();
   const { signOut } = useAuth();
 
-  const [flags, setFlags] = useState<ScreeningFlags>(EMPTY_FLAGS);
+  // ⚠️ Réponses en TROIS états : oui / non / PAS ENCORE RÉPONDU.
+  //
+  // L'écran ne proposait qu'un interrupteur par situation : on tapait la carte pour
+  // dire « oui », et « non » n'existait pas — c'était l'ABSENCE de tap. Sur un
+  // portail de dépistage santé, ça ne va pas : rien ne distingue « j'ai lu et je ne
+  // suis pas concerné » de « je n'ai rien vu et j'ai filé vers le bouton ». Or ce
+  // qu'on demande ici n'est pas une préférence, c'est une déclaration qui décide si
+  // l'app a le droit de servir un moteur de déficit calorique (CLAUDE.md §6).
+  // `undefined` (aucune réponse) laisse donc « Continuer » désactivé.
+  type Reponse = 'oui' | 'non';
+  const [answers, setAnswers] = useState<Partial<Record<keyof ScreeningFlags, Reponse>>>({});
   const [attested, setAttested] = useState(false);
   const [showBlock, setShowBlock] = useState(false);
   const [busy, setBusy] = useState(false);
 
+  // Les drapeaux restent des BOOLÉENS pour `screeningBlocked` : la logique bloquante
+  // est testée et ne change pas — seule la façon de la renseigner change.
+  const flags: ScreeningFlags = {
+    ...EMPTY_FLAGS,
+    pregnant_or_breastfeeding: answers.pregnant_or_breastfeeding === 'oui',
+    chronic_condition: answers.chronic_condition === 'oui',
+  };
   const anyFlag = screeningBlocked(flags);
+  const allAnswered = CONDITIONS.every((c) => answers[c.key] != null);
 
-  const toggle = (k: keyof ScreeningFlags) => {
-    setFlags((f) => ({ ...f, [k]: !f[k] }));
+  const answer = (k: keyof ScreeningFlags, v: Reponse) => {
+    setAnswers((a) => ({ ...a, [k]: v }));
     setAttested(false); // toute modification invalide l'attestation précédente
   };
 
   const onContinue = async () => {
     if (busy) return;
     if (anyFlag) { setShowBlock(true); return; } // situation à risque → cul-de-sac
-    if (!attested) return;                        // sinon, attestation requise
+    if (!allAnswered || !attested) return;        // sinon : tout répondu + attestation
     await recordScreeningPassed();
     onPass();
   };
@@ -109,14 +127,17 @@ export default function HealthScreening({ onPass }: { onPass: () => void }) {
         <Text style={s.prompt}>Es-tu concerné·e par l'une de ces situations ?</Text>
         <View style={{ gap: 10 }}>
           {CONDITIONS.map((c) => (
-            <OptionCard
-              key={c.key}
-              t={t}
-              title={c.title}
-              subtitle={c.sub}
-              selected={flags[c.key]}
-              onPress={() => toggle(c.key)}
-            />
+            <View key={c.key} style={s.qCard}>
+              <Text style={s.qTitle}>{c.title}</Text>
+              <Text style={s.qSub}>{c.sub}</Text>
+              {/* « Non » est une réponse à DONNER, pas l'absence de geste. */}
+              <Segmented<'oui' | 'non'>
+                t={t}
+                options={[{ label: 'Non', value: 'non' }, { label: 'Oui', value: 'oui' }]}
+                value={answers[c.key] ?? ('' as 'oui' | 'non')}
+                onChange={(v) => answer(c.key, v)}
+              />
+            </View>
           ))}
         </View>
 
@@ -127,6 +148,10 @@ export default function HealthScreening({ onPass }: { onPass: () => void }) {
               D'après ta réponse, Kyroz n'est pas adapté à ta situation.
             </Text>
           </View>
+        ) : !allAnswered ? (
+          // Pas de reproche, juste ce qui manque : la moitié des gens arrivent ici
+          // et cherchent le bouton avant de lire les questions.
+          <Text style={s.pending}>Réponds aux deux questions pour continuer.</Text>
         ) : (
           <TouchableOpacity style={s.attest} onPress={() => setAttested((a) => !a)} activeOpacity={0.7}>
             <View style={[s.check, { borderColor: attested ? t.accent : t.lineStrong, backgroundColor: attested ? t.accent : 'transparent' }]}>
@@ -140,7 +165,7 @@ export default function HealthScreening({ onPass }: { onPass: () => void }) {
       </ScrollView>
 
       <View style={[s.footer, layout.header]}>
-        <PrimaryButton t={t} label="Continuer" onPress={onContinue} disabled={!anyFlag && !attested} />
+        <PrimaryButton t={t} label="Continuer" onPress={onContinue} disabled={!anyFlag && (!allAnswered || !attested)} />
         <Text style={s.disclaimer}>
           Kyroz est conçu pour des adultes en bonne santé et ne remplace pas l'avis d'un
           médecin ou diététicien-nutritionniste.
@@ -159,6 +184,10 @@ function makeStyles(t: ThemePalette) {
     title: { color: t.text, fontSize: 28, fontWeight: '800', letterSpacing: -0.8 },
     sub: { color: t.textSecondary, fontSize: 15, lineHeight: 21 },
     prompt: { color: t.text, fontSize: 16, fontWeight: '700', marginTop: 8 },
+    qCard: { backgroundColor: t.card, borderWidth: 1, borderColor: t.line, borderRadius: 14, padding: 16, gap: 6 },
+    qTitle: { color: t.text, fontSize: 16, fontWeight: '700' },
+    qSub: { color: t.textSecondary, fontSize: 13, lineHeight: 18, marginBottom: 6 },
+    pending: { color: t.textTertiary, fontSize: 14, lineHeight: 20, marginTop: 4 },
     body: { color: t.textSecondary, fontSize: 15, lineHeight: 22 },
     warnBox: { flexDirection: 'row', gap: 10, alignItems: 'flex-start', backgroundColor: t.fill, borderRadius: 12, padding: 14, marginTop: 4 },
     warnTxt: { flex: 1, color: t.warning, fontSize: 14, lineHeight: 20, fontWeight: '600' },

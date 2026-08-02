@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useCallback, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Platform, Linking } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
@@ -15,8 +15,12 @@ import { bankedDailyTargets, offsetsForPlan } from '../../lib/calorieBank';
 import { usePremium } from '../../hooks/usePremium';
 import { PremiumFeature, AccessReason } from '../../lib/premium';
 import { Sheet } from '../../components/Sheet';
+import { useDialog } from '../../components/Dialog';
+import { BirthDateField } from '../../components/BirthDateField';
+import { ageOn } from '../../lib/birthday';
 import { ActionSheet } from '../../components/ActionSheet';
 import { StreakProgress } from '../../components/StreakProgress';
+import { WeightSummaryCard } from '../../components/WeightSummaryCard';
 import { BodyFatPicker } from '../../components/BodyFatPicker';
 import { DislikedFoodsField } from '../../components/DislikedFoodsField';
 import { MacroSplit } from '../../components/MacroSplit';
@@ -25,6 +29,7 @@ import { useHydrationEnabled } from '../../components/HydrationBar';
 import { useAnalyticsConsent } from '../../hooks/useAnalyticsConsent';
 import { useProfile } from '../../hooks/useProfile';
 import { useStreak } from '../../hooks/useStreak';
+import { useWeightLog } from '../../hooks/useWeightLog';
 import { useReminder } from '../../hooks/useReminder';
 import { usePlanCheckin } from '../../hooks/usePlanCheckin';
 import { useAuth } from '../../hooks/useAuth';
@@ -145,9 +150,13 @@ export default function ProfilScreen() {
   const layout = useLayout();
   const { profile, saveProfile, clearProfile } = useProfile();
   const { streak } = useStreak();
+  // Le suivi du poids est désormais une CARTE (courbe + écart) et non une ligne de
+  // menu : il lui faut les pesées, pas seulement le poids courant du profil.
+  const { entries: weightEntries, delta: weightDelta, due: weighInDue } = useWeightLog();
   const { slot, choose, busy } = useReminder();
   const { enabled: checkinEnabled, setEnabled: setCheckinEnabled } = usePlanCheckin();
   const { signOut } = useAuth();
+  const { confirm, notify } = useDialog();
   const themeMode = useThemeMode();
   const [hydrationOn, setHydrationOn] = useHydrationEnabled();
   const { consent: analyticsConsent, choose: chooseConsent } = useAnalyticsConsent();
@@ -190,18 +199,18 @@ export default function ProfilScreen() {
   // « Régénérer mon plan » : escape hatch discret (le bouton « Nouveau plan » de
   // l'écran Plan a été retiré au profit de l'ajustement recette-par-recette). On
   // pose un drapeau consommé au focus de l'écran Plan (REROLL_KEY), puis on y va.
-  const regenPlan = () => {
-    Alert.alert(
-      'Régénérer tout ton plan ?',
-      'Kyroz reconstruit une semaine complète de repas (tes 👍/👎 et préférences sont gardés).',
-      [
-        { text: 'Annuler', style: 'cancel' },
-        {
-          text: 'Régénérer', style: 'destructive',
-          onPress: async () => { await AsyncStorage.setItem('@kyroz:planReroll', '1'); router.push('/(tabs)/plan'); },
-        },
-      ],
-    );
+  // ⚠️ `Alert.alert` était une FONCTION VIDE sur le web → ce bouton ne faisait
+  // rien du tout, sans erreur ni trace (cf. components/Dialog.tsx).
+  const regenPlan = async () => {
+    const ok = await confirm({
+      title: 'Régénérer tout ton plan ?',
+      message: 'Kyroz reconstruit une semaine complète de repas (tes 👍/👎 et préférences sont gardés).',
+      confirmLabel: 'Régénérer',
+      destructive: true,
+    });
+    if (!ok) return;
+    await AsyncStorage.setItem('@kyroz:planReroll', '1');
+    router.push('/(tabs)/plan');
   };
 
   // Déconnexion : couper la session NE redirige pas tout seul l'écran déjà monté
@@ -239,7 +248,7 @@ export default function ProfilScreen() {
     const url = `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent('Kyroz — aide')}`;
     const ok = await Linking.canOpenURL(url).catch(() => false);
     if (ok) Linking.openURL(url);
-    else Alert.alert('Nous contacter', SUPPORT_EMAIL);
+    else notify({ title: 'Nous contacter', message: SUPPORT_EMAIL });
   };
 
   const appVersion = Constants.expoConfig?.version ?? '1.0.0';
@@ -247,8 +256,8 @@ export default function ProfilScreen() {
   // Droit à la portabilité (RGPD art. 20) : exporter toutes ses données.
   const doExport = async () => {
     const res = await exportMyData();
-    if (!res.ok) { Alert.alert('Export', 'Impossible d’exporter tes données pour le moment.'); return; }
-    if (res.method === 'download') Alert.alert('Export terminé', 'Tes données ont été téléchargées (kyroz-mes-donnees.json).');
+    if (!res.ok) { notify({ title: 'Export', message: 'Impossible d’exporter tes données pour le moment.' }); return; }
+    if (res.method === 'download') notify({ title: 'Export terminé', message: 'Tes données ont été téléchargées (kyroz-mes-donnees.json).' });
   };
 
   if (!profile) return null;
@@ -283,13 +292,24 @@ export default function ProfilScreen() {
   return (
     <SafeAreaView style={s.safe} edges={['top']}>
       <ScrollView contentContainerStyle={[s.content, layout.content]} showsVerticalScrollIndicator={false}>
-        {/* Streak — progression vers l'objectif 7 jours (North Star) */}
-        <StreakProgress t={t} streak={streak} variant="card" />
+        {/* ⚠️ ORDRE INVERSÉ le 2026-08-02 (décision fondateur), et ce n'est pas
+            cosmétique : le POIDS alimente le moteur — chaque pesée recalcule TDEE,
+            macros et plan — alors que la série ne raconte que l'assiduité. Le premier
+            tenait dans une ligne de menu, la seconde occupait tout le haut de l'écran.
+            Ils ont échangé leur place. */}
+        <WeightSummaryCard
+          t={t}
+          profileWeightKg={profile.weight_kg}
+          entries={weightEntries}
+          delta={weightDelta}
+          due={weighInDue}
+          goalTarget={profile.goal_target}
+          onPress={() => setWeighIn(true)}
+        />
 
-        {/* Suivi du poids → recalcul auto des macros/plan */}
-        <View style={[s.menu, cardShadow(t)]}>
-          <MenuRow t={t} icon="trending-down-outline" label="Suivi du poids" value={`${profile.weight_kg} kg`} onPress={() => setWeighIn(true)} last />
-        </View>
+        {/* Série — ligne discrète : le chaînon de 7 jours reste (North Star), le
+            reste a été retiré (cf. StreakProgress). */}
+        <StreakProgress t={t} streak={streak} variant="card" />
 
         {/* Révision du moteur : la cible a bougé sans que l'utilisateur touche à rien.
             On l'explique UNE fois, factuellement, avec l'action qui permet d'affiner —
@@ -380,12 +400,12 @@ export default function ProfilScreen() {
             if (busy) return;
             const ok = await choose(v);
             if (!ok && v !== 'off') {
-              Alert.alert(
-                remindersSupported ? 'Notifications désactivées' : 'Indisponible sur le web',
-                remindersSupported
+              notify({
+                title: remindersSupported ? 'Notifications désactivées' : 'Indisponible sur le web',
+                message: remindersSupported
                   ? 'Active les notifications de Kyroz dans les réglages de ton téléphone pour recevoir le rappel.'
                   : 'Le rappel quotidien fonctionne sur l’app mobile (iOS/Android), pas dans le navigateur.',
-              );
+              });
             }
           }}
           options={[
@@ -558,17 +578,22 @@ type EditorProps = { t: ThemePalette; profile: UserProfile; onSave: (p: UserProf
 // ── Éditeurs ─────────────────────────────────────────────────────────────────
 function InfoEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
   const [sex, setSex] = useState<Sex>(profile.sex);
-  const [age, setAge] = useState(String(profile.age));
+  // Date de naissance plutôt qu'âge : l'âge en est DÉRIVÉ et ne pourrit plus (cf.
+  // lib/birthday.ts). ⚠️ Elle est ABSENTE des comptes créés avant le 2026-08-02 —
+  // on ne l'invente pas (un âge ne donne qu'une fourchette d'un an) : ces profils
+  // gardent leur âge saisi tant qu'ils n'ont pas renseigné leur date.
+  const [birthDate, setBirthDate] = useState<string | undefined>(profile.birth_date);
   const [weight, setWeight] = useState(String(profile.weight_kg));
   const [height, setHeight] = useState(String(profile.height_cm));
   const [bodyFat, setBodyFat] = useState<number | undefined>(profile.body_fat_pct);
-  const aN = parseInt(age), wN = parseFloat(weight), hN = parseFloat(height);
+  const aN = ageOn(birthDate, todayStamp()) ?? profile.age;
+  const wN = parseFloat(weight), hN = parseFloat(height);
   // Bornes tirées de lib/safety.ts, PAS réécrites en dur : elles divergeaient de
   // l'onboarding (16 ans ici contre 18 là-bas — le relèvement MIN_AGE n'avait été
   // câblé que côté onboarding, donc on pouvait saisir 18 puis repasser à 16 ici ;
   // et 40–250 kg contre 30–300, ce qui verrouillait l'écran pour un profil onboardé
   // hors de cette plage : bouton « Enregistrer » désactivé en permanence).
-  const draft = { ...profile, sex, age: aN, weight_kg: wN, height_cm: hN, body_fat_pct: bodyFat };
+  const draft = { ...profile, sex, age: aN, birth_date: birthDate, weight_kg: wN, height_cm: hN, body_fat_pct: bodyFat };
   const inBounds =
     aN >= AGE_BOUNDS[0] && aN <= AGE_BOUNDS[1] &&
     wN >= WEIGHT_BOUNDS[0] && wN <= WEIGHT_BOUNDS[1] &&
@@ -600,7 +625,8 @@ function InfoEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
         </Card>
       )}
       <Segmented t={t} options={[{ label: 'Homme', value: 'male' }, { label: 'Femme', value: 'female' }]} value={sex} onChange={setSex} />
-      <Field t={t} label="Âge" suffix="ans" value={age} onChangeText={setAge} keyboardType="number-pad" />
+      <SectionLabel t={t}>Date de naissance</SectionLabel>
+      <BirthDateField t={t} value={birthDate} onChange={setBirthDate} fallbackAge={profile.birth_date ? undefined : profile.age} />
       <Field t={t} label="Poids" suffix="kg" value={weight} onChangeText={setWeight} keyboardType="decimal-pad" />
       <Field t={t} label="Taille" suffix="cm" value={height} onChangeText={setHeight} keyboardType="number-pad" />
       <SectionLabel t={t}>Masse grasse (optionnel)</SectionLabel>
@@ -782,11 +808,15 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
   // et enregistrer sans rien changer ne doit pas décaler l'échéance (même principe
   // que RestDaysPicker).
   const [horizonTouched, setHorizonTouched] = useState(false);
-  const pickWeeks = (h: number) => { setWeeks(h); setHorizonTouched(true); };
+  // Échéance adoptée en un tap depuis la puce « date tenable » : ce n'est pas un
+  // multiple des horizons proposés, donc elle ne peut pas vivre dans `weeks`.
+  const [customDate, setCustomDate] = useState<string | null>(null);
+  const pickWeeks = (h: number) => { setWeeks(h); setCustomDate(null); setHorizonTouched(true); };
 
   const twN = parseFloat(targetWeight.replace(',', '.'));
   const validWeight = twN >= 40 && twN <= 250;
-  const targetDate = existing && !horizonTouched ? existing.target_date : addDaysStamp(today, weeks * 7);
+  const targetDate = customDate
+    ?? (existing && !horizonTouched ? existing.target_date : addDaysStamp(today, weeks * 7));
   const provisional: GoalTarget | undefined = validWeight
     ? { target_weight_kg: twN, target_date: targetDate, start_weight_kg: profile.weight_kg, start_date: existing?.start_date ?? today }
     : undefined;
@@ -816,6 +846,41 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
   // interrogée qu'à l'onboarding — l'éditeur laissait passer n'importe quelle cible.
   const goalBlockMsg = provisional ? eligibilityMessage(checkEligibility(profile, provisional)) : null;
 
+  // ── La date réellement tenable, proposée en UN TAP ──────────────────────────
+  // Sans elle, l'écran se contentait de dire « tu y seras plutôt vers le … » et
+  // laissait l'utilisateur deviner quelle puce s'en approchait — or aucune ne s'en
+  // approche : sur le cas remonté (83 kg → 70), la date tenable est à ~43 semaines,
+  // hors des cinq horizons proposés. Le sélecteur devenait alors décoratif.
+  //
+  // ⚠️ ON VÉRIFIE QU'ELLE EST TENABLE AVANT DE LA PROPOSER, et ce n'est pas de la
+  // prudence gratuite : la date d'atteinte dépend des calories servies, qui
+  // dépendent de l'échéance. Proposer sans vérifier peut donc renvoyer une date
+  // encore « plus tard » — l'écran se mettrait à courir après lui-même. Si la
+  // vérification ne passe pas, on ne propose RIEN : la phrase et la carte disent
+  // déjà la vérité, mieux vaut pas de raccourci qu'un raccourci qui ment.
+  const tenableDate = useMemo(() => {
+    if (!provisional || !status || goalBlockMsg) return null;
+    if (status.reachableByDate || !status.projectable || status.directionMismatch) return null;
+    const cand: GoalTarget = { ...provisional, target_date: status.projectedDate };
+    const candPlan = computePlan({ ...profile, goal_target: cand }, today);
+    const candStatus = datedGoalStatus(
+      cand, profile, today, tdee, candPlan?.floor_kcal ?? null,
+      makeWeeklyProjector({ ...profile, goal_target: cand }),
+    );
+    if (!candStatus?.reachableByDate) return null;
+    // Déjà atteignable en tapant une puce existante → pas de puce en double.
+    const w = Math.round(daysBetween(today, status.projectedDate) / 7);
+    return HORIZONS.includes(w) ? null : status.projectedDate;
+  }, [provisional?.target_weight_kg, provisional?.target_date, goalBlockMsg, status?.projectedDate, status?.reachableByDate]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Une fois la date adoptée, elle DEVIENT tenable → `tenableDate` retombe à null.
+  // Sans ce repli sur `customDate`, la puce disparaîtrait au moment même où on la
+  // tape, en ne laissant aucune échéance sélectionnée : l'utilisateur croirait que
+  // son geste n'a rien fait. L'ordre compte — une offre FRAÎCHE (le poids cible a
+  // changé depuis l'adoption) doit primer sur la date déjà adoptée, sinon on
+  // continuerait de proposer une échéance devenue intenable.
+  const chipDate = tenableDate ?? customDate;
+  const chipWeeks = chipDate ? Math.round(daysBetween(today, chipDate) / 7) : 0;
+
   const submit = () => {
     if (!provisional || goalBlockMsg) return;
     onSave(withRecalc({ ...profile, goal_target: provisional }));
@@ -832,9 +897,38 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
 
       <SectionLabel t={t}>Échéance</SectionLabel>
       <View style={styles.wrap}>
-        {HORIZONS.map((h) => <Chip key={h} t={t} label={`${h} sem`} selected={weeks === h} onPress={() => pickWeeks(h)} />)}
+        {HORIZONS.map((h) => (
+          <Chip key={h} t={t} label={`${h} sem`} selected={!customDate && weeks === h} onPress={() => pickWeeks(h)} />
+        ))}
+        {/* La date tenable dans la MÊME rangée que les autres échéances : c'est une
+            échéance, pas un avertissement. Elle apparaît là où se prend la décision,
+            et non dans une carte que le bouton « Enregistrer » recouvre sur iPhone. */}
+        {chipDate && (
+          <Chip
+            t={t}
+            label={`${chipWeeks} sem · tenable`}
+            selected={customDate === chipDate}
+            onPress={() => { setCustomDate(chipDate); setHorizonTouched(true); }}
+          />
+        )}
       </View>
-      <Text style={{ color: t.textSecondary, fontSize: 13 }}>Cible le {formatFR(targetDate)}.</Text>
+      {/* ⚠️ C'est la ligne la plus lue de l'écran — collée sous les puces, au moment
+          exact du choix. Elle ne peut donc pas AFFIRMER une date que le moteur ne
+          tiendra pas. Mesuré le 2026-08-02 (H 83 kg, 18 %MG, 4 séances → 70 kg) :
+          les CINQ échéances servent toutes 0,3 kg/sem, parce que c'est le plancher
+          de sécurité — et non l'échéance — qui borne le déficit. « 4 sem » annonçait
+          le 30 août 2026 pour une atteinte réelle le 19 juin 2027 : 293 jours d'écart.
+          La vérité était déjà à l'écran (carte « plancher » plus bas), mais SOUS une
+          phrase qui disait l'inverse, et hors du premier écran.
+          Ton : on annonce ce qui va se passer, on ne reproche pas l'ambition — le
+          moteur porte la charge, l'utilisateur n'est pas « en retard ». */}
+      <Text style={{ color: t.textSecondary, fontSize: 13, lineHeight: 18 }}>
+        {!goalBlockMsg && status && !status.reachableByDate && !status.directionMismatch
+          ? (status.projectable
+            ? `Cible le ${formatFR(targetDate)} — au rythme sûr, Kyroz t'y amène plutôt vers le ${formatFR(status.projectedDate)}.`
+            : `Cible le ${formatFR(targetDate)} — ce poids n'est pas atteignable au rythme sûr, quelle que soit la date.`)
+          : `Cible le ${formatFR(targetDate)}.`}
+      </Text>
 
       {/* Cible refusée → on affiche le motif SEUL. Montrer une trajectoire crédible
           (« Perdre 48 kg · 1982 kcal/j ») au-dessus d'un refus revient à valider
@@ -926,6 +1020,7 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
 }
 
 function MacroEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
+  const { notify } = useDialog();
   // 'manual' (legacy) est ramené sur 'percent' : on ne propose plus les grammes fixes.
   const [mode, setMode] = useState<'auto' | 'percent'>(profile.macro_mode === 'auto' ? 'auto' : 'percent');
   const [carbRatio, setCarbRatio] = useState(profile.carb_ratio ?? DEFAULT_CARB_RATIO);
@@ -949,7 +1044,7 @@ function MacroEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
     } else {
       const next = withRecalc({ ...profile, macro_mode: 'percent', carb_ratio: carbRatio, protein_per_kg: proteinPerKg });
       const err = validateProfile(profile.sex, profile.age, next.target_kcal); // garde-fou §6
-      if (err) { Alert.alert('Attention', err); return; }
+      if (err) { notify({ title: 'Attention', message: err }); return; }
       onSave(next);
     }
   };
@@ -1026,7 +1121,13 @@ function RestDaysPicker({ t, available, value, onToggle }: { t: ThemePalette; av
 function MealsEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
   const [weekdays, setWeekdays] = useState<number[]>(profile.plan_weekdays ?? [1, 2, 3, 4, 5, 6, 0]);
   const [restDays, setRestDays] = useState<number[]>(effectiveRestWeekdays(profile));
-  const [meals, setMeals] = useState<MealType[]>(profile.meals ?? ['breakfast', 'lunch', 'dinner', 'snack']);
+  // ⚠️ `?? [...]` ne suffit PAS : un `meals` non-tableau (vu en vrai : le NOMBRE 4) est
+  // « non nul », passe le `??`, et fait exploser cet écran au premier `meals.includes`
+  // — Error Boundary, réglage inaccessible à vie. `normalizeMeals` (syncGuard) referme
+  // la donnée en amont ; ce garde-fou-ci protège les chemins qui ne passent pas par là.
+  const [meals, setMeals] = useState<MealType[]>(
+    Array.isArray(profile.meals) && profile.meals.length > 0 ? profile.meals : [...MEAL_ORDER]
+  );
   const [emphasis, setEmphasis] = useState<MealEmphasis>(profile.meal_emphasis ?? 'even');
   const [variety, setVariety] = useState<VarietyPreference>(profile.variety);
   const [fixedMeals, setFixedMeals] = useState<FixedMeals>(profile.fixed_meals ?? {});

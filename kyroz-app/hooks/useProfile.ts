@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { UserProfile } from '../lib/types';
 import { useAuth } from './useAuth';
 import { pushProfile, markProfileDirty, clearProfileDirty } from '../lib/sync';
-import { normalizeGoal, normalizeProfileActivity } from '../lib/syncGuard';
+import { normalizeGoal, normalizeMeals, normalizeProfileActivity, normalizeVariety } from '../lib/syncGuard';
 import { recalcProfile } from '../lib/tdee';
 
 const PROFILE_KEY = '@kyroz:profile';
@@ -20,12 +20,20 @@ interface ProfileContextValue {
 const ProfileContext = createContext<ProfileContextValue | null>(null);
 
 export function ProfileProvider({ children }: { children: React.ReactNode }) {
-  const { ready } = useAuth();
+  const { ready, hydrationTick } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  // Dernier profil servi, sérialisé : sert à ne PAS remplacer l'objet en mémoire
+  // par un équivalent. Une nouvelle identité d'objet relance les effets qui en
+  // dépendent — dont celui de l'écran Plan qui compte une ouverture (analytics
+  // + série). Relire ne doit rien déclencher si rien n'a changé.
+  const servedRef = React.useRef<string | null>(null);
 
-  // On ne lit le profil local qu'une fois l'auth + l'hydratation cloud prêtes
-  // (sinon on lirait des données avant qu'elles soient tirées du serveur).
+  // On lit le profil local dès que l'auth est connue — SANS attendre le réseau
+  // (c'est ce qui figeait le démarrage, cf. lib/boot.ts). L'hydratation cloud
+  // écrit dans AsyncStorage quand elle arrive, y compris en retard : on relit
+  // alors (`hydrationTick`), sinon l'app garderait en mémoire la version locale
+  // d'avant la synchro.
   useEffect(() => {
     if (!ready) { setLoading(true); return; }
     let alive = true;
@@ -36,7 +44,11 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
       // `normalizeGoal` : `cut_aggressive` n'est plus proposé (il servait le même
       // plan que `cut`) → on le referme ici, sinon ces comptes gardent un objectif
       // qu'aucun écran ne sait plus afficher.
-      const stored = raw ? normalizeGoal(normalizeProfileActivity(JSON.parse(raw))) : null;
+      // `normalizeVariety` / `normalizeMeals` : deux champs hors barème trouvés sur un
+      // profil RÉEL (`variety: 'high'`, `meals: 4` au lieu d'un tableau). Le moteur les
+      // absorbait en silence, mais l'écran « Paramètres des repas » CRASHAIT dessus —
+      // donc le réglage était impossible à ouvrir, sans explication. On les referme ici.
+      const stored = raw ? normalizeMeals(normalizeVariety(normalizeGoal(normalizeProfileActivity(JSON.parse(raw))))) : null;
       // fix P0.1 : le plancher de sécurité doit être RÉTROACTIF. Les cibles étaient
       // figées en base et ne repassaient par `safetyFloorKcal` qu'à la prochaine
       // édition ou pesée : un profil dormant continuait d'être servi à 1200 kcal
@@ -45,7 +57,11 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
       // vrai pour les comptes existants — c'est le trou que la PR prétend fermer.
       const healed = stored ? recalcProfile(stored) : null;
       if (!alive) return;
-      setProfile(healed);
+      const served = JSON.stringify(healed);
+      if (served !== servedRef.current) {
+        servedRef.current = served;
+        setProfile(healed);
+      }
       setLoading(false);
       // On ne réécrit QUE si le recalcul a réellement changé quelque chose : un
       // démarrage d'app ne doit pas marquer le profil « dirty » pour rien.
@@ -58,10 +74,11 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
       }
     });
     return () => { alive = false; };
-  }, [ready]);
+  }, [ready, hydrationTick]);
 
   const saveProfile = useCallback(async (p: UserProfile) => {
     setProfile(p);
+    servedRef.current = JSON.stringify(p);
     await AsyncStorage.setItem(PROFILE_KEY, JSON.stringify(p));
     await markProfileDirty(); // local non encore confirmé poussé → protégé de l'écrasement cloud
     pushProfile(p); // miroir cloud (best-effort) ; lève le flag si le push réussit
@@ -69,6 +86,7 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
 
   const clearProfile = useCallback(async () => {
     setProfile(null);
+    servedRef.current = JSON.stringify(null);
     await AsyncStorage.removeItem(PROFILE_KEY);
     await clearProfileDirty();
   }, []);

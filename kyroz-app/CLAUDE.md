@@ -116,12 +116,12 @@ App mobile React Native (Expo Router, SDK 56) de plans repas macro-précis pour 
 
 ```
 profiles                        ← s'appelle « profiles », PAS « user_profiles »
-  └── id (= auth.users.id) + 35 colonnes synchronisées.
+  └── id (= auth.users.id) + 37 colonnes synchronisées.
       ⚠️ NE PAS recopier la liste ici : elle a divergé deux fois.
       Source unique = `PROFILE_COLS` (lib/sync.ts), VERROUILLÉE contre le SQL
       par `lib/__tests__/profileCols.test.ts` — une colonne ajoutée en migration
       sans être ajoutée au code fait rougir un test.
-      Les groupes : corps (sex, age, weight_kg, height_cm, body_fat_pct,
+      Les groupes : corps (sex, birth_date, age, weight_kg, height_cm, body_fat_pct,
       activity_level, training_days_per_week, neat_level, low_ea_weeks, sports) ·
       objectif (goal, goal_target, engine_rev, engine_notice) ·
       macros (macro_mode, carb_ratio, protein_per_kg, tdee_kcal, target_*) ·
@@ -131,6 +131,10 @@ profiles                        ← s'appelle « profiles », PAS « user_profil
       hidden_recipes — « j'aime pas » 👎, masquées, SOUPLE/réversible).
       LOCAL-ONLY volontaire : `is_post_menopausal` (l'onboarding ne pose pas
       la question → inerte tant qu'elle n'est pas posée).
+      ⚠️ `age` est DÉRIVÉ de `birth_date` par `computePlan` dès qu'elle existe — il ne
+      peut donc plus vieillir de travers. Il reste la valeur SAISIE pour les comptes
+      antérieurs au 2026-08-02, dont on ne peut pas deviner la date (un âge ne donne
+      qu'une fourchette d'un an). Cf. `lib/birthday.ts`.
 
 streaks
   └── user_id, current_streak_days, longest_streak_days, last_active_date
@@ -321,6 +325,14 @@ devant, en **clé de départage** : 27,9 %.
 
 ➡️ Le contrôle est `npm run mesure:variete`, le garde-fou
 `lib/__tests__/varieteFamille.test.ts`, le raisonnement complet `AGENTS.md` D18.
+
+⚠️ **Le réglage `variety` pilote AUSSI l'ampleur du reroll depuis le 2026-08-02**
+(`REROLL_PAR_VARIETE`). Il ne le pilotait pas : « Variété max » et « Équilibré »
+rendaient un « Régénérer mon plan » identique au bit près, donc deux des trois cartes
+de l'écran mentaient. Un réglage doit agir sur TOUS les chemins qui produisent un plan,
+pas seulement sur le canonique. Contrôle par réglage : `npm run mesure:reroll` et
+`npm run mesure:variete -- --variete=repetitive|balanced|max` (cf. AGENTS.md A21/A23).
+
 ⚠️ **La règle anti-doublons R4 du catalogue ne mesure PAS ce défaut** : elle ne s'alarme
 qu'au-delà de 2 recettes par couple, or le pire contrevenant était un groupe de DEUX.
 
@@ -568,9 +580,25 @@ téléphone.
 
 ## 11. Pièges connus (redécouverts au moins une fois chacun)
 
+- **`Alert.alert` est une FONCTION VIDE sur react-native-web** — `class Alert { static
+  alert() {} }`. Aucune erreur, aucune trace : l'appel ne fait RIEN. Découvert le
+  2026-08-02, il tuait **dix** interactions, dont « Régénérer mon plan » et le REFUS
+  d'un profil inéligible à l'onboarding (bouton final inerte, sans message : le
+  garde-fou §6 devenait invisible). ➡️ Utiliser **`useDialog()`** (`components/Dialog.tsx`,
+  `confirm` / `notify` / `choose`) — un seul chemin web ET natif. Interdiction
+  verrouillée par `lib/__tests__/noAlert.test.ts`.
 - **`onEndEditing` est un no-op sur react-native-web.** Pour normaliser ou borner une
   saisie en fin de frappe, utiliser **`onBlur`**. Le bug « %MG saisi 23 → enregistré 33 »
   venait de là.
+  ⚠️ **LE VRAI PIÈGE, redécouvert DEUX fois le 2026-08-02** : le clamp n'était que le
+  déclencheur. Le mécanisme, c'est la **synchro `valeur du parent → texte local`**, qui
+  réécrit ce que l'utilisateur est en train de taper dès que la valeur remonte modifiée
+  — clampée (`BodyFatPicker`) ou remise à `undefined` parce que la saisie est encore
+  invalide (`BirthDateField` : taper « 31/02 » vidait les trois champs).
+  ➡️ **Règle** : un champ contrôlé par un état parent ne se resynchronise QUE sur un
+  changement venu de l'EXTÉRIEUR. Deux gardes selon le cas : `focused` (on ne réécrit
+  pas tant que le champ a le focus) ou `emitted` (on ignore ce qui nous revient de
+  notre propre émission).
 - **Le portail de dépistage santé et la visite guidée interceptent les clics.** Tout script
   qui pilote l'app doit les neutraliser d'abord, sinon il conclut que les écrans sont
   « introuvables » alors qu'il n'a jamais pu quitter le Plan (cf. `test/README.md`).

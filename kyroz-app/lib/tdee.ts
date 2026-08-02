@@ -4,6 +4,7 @@ import {
   datedGoalStatus, goalDirectionMismatch, MAX_DEFICIT_TDEE_RATIO, WeekPoint, WeeklyProjector,
 } from './datedGoal';
 import { todayStamp } from './weight';
+import { ageOn } from './birthday';
 import {
   BodyInput, MIN_AGE, MIN_KCAL, EA_OPTIMAL, LOW_EA_BUDGET_WEEKS, countsAsLowEaWeek,
   bodyFatBounds, clamp, collapseLowEaRegistry, deficitBlocked, energyAvailability,
@@ -873,7 +874,19 @@ export interface ComputedPlan {
  *
  * Déterministe : la date du jour est un PARAMÈTRE, jamais une horloge implicite.
  */
-export function computePlan(p: UserProfile, today: string = todayStamp()): ComputedPlan {
+export function computePlan(rawProfile: UserProfile, today: string = todayStamp()): ComputedPlan {
+  // ── L'âge est DÉRIVÉ de la date de naissance, ici et nulle part ailleurs ────
+  // Un âge saisi est juste le jour de la saisie, puis il pourrit : au premier
+  // anniversaire le profil sous-estime d'un an, et personne ne revient corriger.
+  // Ce n'est pas cosmétique — l'âge entre dans Mifflin-St Jeor, donc dans le TDEE,
+  // donc dans les calories servies chaque jour. On le recale au SEUL endroit qui
+  // produit le profil enregistré, pour qu'aucun écran ne puisse l'oublier.
+  // Sans `birth_date` (comptes antérieurs au 2026-08-02) : on garde l'âge saisi.
+  const derivedAge = ageOn(rawProfile.birth_date, today);
+  const p: UserProfile = (derivedAge != null && derivedAge !== rawProfile.age)
+    ? { ...rawProfile, age: derivedAge }
+    : rawProfile;
+
   const tdee = calculateTDEE(p);
   const sportKcalPerDay = exerciseKcalPerDay(p.sports, p.weight_kg);
   const bmr = calculateBMR(p.sex, p.weight_kg, p.height_cm, p.age, p.body_fat_pct);

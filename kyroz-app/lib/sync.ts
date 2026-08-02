@@ -3,7 +3,7 @@ import { supabase } from './supabase';
 import { Recipe, Streak, UserProfile } from './types';
 import { PantryItem } from './pantry';
 import { WeightEntry } from './weight';
-import { decideProfileHydration, normalizeGoal, normalizeProfileActivity, reconcileCloudSports, reconcileCloudLowEaWeeks, reconcileCloudNeat, mergeWeightEntries, mergeStreak, mergeRecipeOverrides, PROFILE_PENDING_KEY } from './syncGuard';
+import { decideProfileHydration, normalizeGoal, normalizeMeals, normalizeProfileActivity, normalizeVariety, reconcileCloudSports, reconcileCloudLowEaWeeks, reconcileCloudNeat, mergeWeightEntries, mergeStreak, mergeRecipeOverrides, PROFILE_PENDING_KEY } from './syncGuard';
 
 /** La fusion a-t-elle produit autre chose que ce que le cloud détenait ? */
 const differs = (a: unknown, b: unknown): boolean => JSON.stringify(a) !== JSON.stringify(b);
@@ -43,6 +43,10 @@ const OVERRIDES_KEY = '@kyroz:recipeOverrides';
 // Aucun autre module ne l'importe — c'est un point d'observation, pas une API.
 export const PROFILE_COLS = [
   'sex', 'age', 'weight_kg', 'height_cm', 'body_fat_pct', 'activity_level', 'training_days_per_week',
+  // Date de naissance — migration 2026-08-02_profiles_birth_date.sql. `age` reste
+  // synchronisée : elle est DÉRIVÉE de celle-ci quand elle existe, et reste la valeur
+  // saisie pour les comptes antérieurs (cf. lib/birthday.ts).
+  'birth_date',
   // Plancher d'énergie disponible (P0.1) — migration 2026-07-28_profiles_energy_availability.sql.
   // `is_post_menopausal` est VOLONTAIREMENT absent : LOCAL-ONLY et inerte tant que
   // l'onboarding ne pose pas la question (même parti pris que Streak.freeze_available).
@@ -67,7 +71,7 @@ export const PROFILE_COLS = [
 // transforme juste « synchro morte » en « tout passe sauf ces champs-là ».
 // Exporté pour que les TESTS lisent cette liste au lieu de la recopier : une
 // nouvelle migration ne doit pas faire rougir un test qui décrit l'ancienne.
-export const PROFILE_COLS_LAST_MIGRATION: string[] = ['calorie_bank'];
+export const PROFILE_COLS_LAST_MIGRATION: string[] = ['birth_date'];
 
 // ── Signal d'échec de synchro ────────────────────────────────────────────────
 //
@@ -378,7 +382,7 @@ export async function hydrateFromCloud(uid: string): Promise<void> {
       // survivent (cf. localOnlyProfileFields).
       await AsyncStorage.setItem(PROFILE_KEY, JSON.stringify({
         ...localOnlyProfileFields(local),
-        ...normalizeGoal(normalizeProfileActivity(cloud)),
+        ...normalizeMeals(normalizeVariety(normalizeGoal(normalizeProfileActivity(cloud)))),
       }));
     } else if (local && (action === 'keep_local' || action === 'push_local')) {
       await pushProfile(local); // (re)pousse le local ; lève le flag si succès

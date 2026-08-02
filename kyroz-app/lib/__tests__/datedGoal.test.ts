@@ -291,6 +291,71 @@ describe('A3 — projection simulée : plus de date flatteuse', () => {
     expect(Date.now() - t0).toBeLessThan(1000);
   });
 
+  // A14 — le cas remonté par le fondateur, capturé tel quel. L'écran « Objectif
+  // daté » affichait les MÊMES chiffres pour les 5 échéances proposées, parce que
+  // ce n'est pas l'échéance qui pilote mais le plancher de sécurité. Ce test ne
+  // valide pas ce comportement (il est correct : on ne creuse pas sous le
+  // plancher) — il verrouille le fait que le statut DIT que la date ne tiendra
+  // pas. C'est cette information-là que l'écran doit afficher au lieu d'affirmer
+  // « Cible le <date> ».
+  it('A14 — cible hors de portée : chaque échéance sert le MÊME rythme, et le dit', () => {
+    const p0 = corps({ sex: 'male', weight_kg: 83, height_cm: 180, body_fat_pct: 18 });
+    const HORIZONS = [4, 8, 12, 16, 24];
+    const vus = HORIZONS.map((w) => deuxDates(p0, 70, w).sim);
+
+    // Le plancher borne le déficit → rythme identique quelle que soit la date.
+    const rythmes = new Set(vus.map((s) => s.safeWeeklyKg));
+    expect(rythmes.size).toBe(1);
+    expect(vus.every((s) => s.floorCapped)).toBe(true);
+
+    // …et AUCUNE des échéances n'est tenable. Si un jour l'une le devient, ce test
+    // doit rougir : l'écran s'appuie sur `reachableByDate` pour ne pas mentir.
+    expect(vus.every((s) => !s.reachableByDate)).toBe(true);
+    expect(vus.every((s) => s.projectable)).toBe(true);
+
+    // L'écart n'est pas cosmétique : la date annoncée pour « 4 sem » est dépassée
+    // de plusieurs mois. Un adverbe qui minimiserait ça serait un mensonge poli.
+    const ecartJours = daysBetween(objectif(p0, 70, 4).target_date, vus[0].projectedDate);
+    expect(ecartJours).toBeGreaterThan(180);
+  });
+
+  // La puce « N sem · tenable » de l'éditeur repose ENTIÈREMENT sur cet invariant :
+  // adopter la date projetée doit rendre l'objectif atteignable. Sans lui, un tap
+  // renverrait une date encore plus lointaine et l'écran courrait après lui-même.
+  // (L'éditeur re-vérifie de son côté avant de proposer — ce test protège le cas
+  // NOMINAL, celui où le plancher borne le rythme, donc où la date ne bouge plus.)
+  it('A14 — adopter la date projetée : tient sur un écart normal, PAS sur un gros écart', () => {
+    // « Adopter la date projetée » = ce que fait la puce de l'éditeur.
+    const adopter = (p0: UserProfile, cible: number, depuisSemaines: number) => {
+      const avant = deuxDates(p0, cible, depuisSemaines).sim;
+      const gt: GoalTarget = {
+        start_weight_kg: p0.weight_kg, start_date: JOUR,
+        target_weight_kg: cible, target_date: avant.projectedDate,
+      };
+      const p: UserProfile = { ...p0, goal_target: gt };
+      const apres = datedGoalStatus(gt, p, JOUR, p.tdee_kcal, planFloorKcal(p, JOUR), makeWeeklyProjector(p))!;
+      return { avant, apres };
+    };
+
+    // CAS NOMINAL — la puce est proposée, et elle tient.
+    const h = adopter(corps({ sex: 'male', weight_kg: 83, height_cm: 180, body_fat_pct: 18 }), 70, 8);
+    expect(h.avant.reachableByDate).toBe(false);
+    expect(h.apres.reachableByDate).toBe(true);
+
+    // ⚠️ CAS LIMITE CONNU, verrouillé ici pour qu'il ne surprenne personne.
+    // Le rythme REQUIS est calculé en ligne droite (écart ÷ semaines) alors que la
+    // PROJECTION simule la vraie trajectoire, où le TDEE baisse avec le poids. Sur un
+    // gros écart relatif, viser la date projetée fait donc servir MOINS de déficit
+    // (le plancher ne mord plus : 1778 → 1940 kcal), le rythme tombe de 0,3 à
+    // 0,2 kg/sem, et la date glisse de 98 jours. Aucune date ne converge : plus on
+    // la repousse, moins on creuse.
+    // ➡️ C'est pour ÇA que l'éditeur re-vérifie avant de proposer la puce — dans ce
+    // cas il n'en propose aucune, et la carte « plancher » reste seule à parler.
+    const f = adopter(corps({ sex: 'female', weight_kg: 78, height_cm: 168, body_fat_pct: 32 }), 65, 8);
+    expect(f.avant.reachableByDate).toBe(false);
+    expect(f.apres.reachableByDate).toBe(false);
+  });
+
   it('DISPLAY-ONLY — la projection ne déplace AUCUNE calorie', () => {
     // Le correctif corrige ce qu'on ANNONCE, pas ce qu'on sert. Si le delta bougeait,
     // ce serait une modification de plan déguisée en correctif d'affichage — et il
