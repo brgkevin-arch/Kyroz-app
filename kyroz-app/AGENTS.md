@@ -75,7 +75,9 @@ qu'ils étaient périmés.
 | Réglages inertes | **aucun** — les 13 réglages réglables depuis l'UI changent tous le plan servi (recettes et/ou portions), vérifié un par un | `npm run mesure:reglages` |
 | Reroll (« Régénérer mon plan ») | 1ers repas qui changent : **repetitive 51 % · balanced 78 % · max 83 %** (13,7 % pour tous avant A21) | `npm run mesure:reroll` |
 | Anti-doublons | R1 81 · R2 70 · R4 14 · R5 17 · R7 0 — **figés par un test**, inchangés par B6 | `npm run check:doublons` |
-| Sous le seuil R8 | ⚠️ petit-déj **37/110** · repas complets **74/270** · collation **3/86** — le chantier B7 (D19), **reporté** (cf. la note ci-dessous) | `npm run mesure:seuils` |
+| Sous le seuil R8 | ⚠️ petit-déj **37/110** · repas complets **74/270** · collation **3/86** — chantier B7 (D19), **commandé le 2026-08-02** : 3 briefs dans `Recette/lots/` | `npm run mesure:seuils` |
+| Ce que ça coûte au SERVICE | ces 114 recettes sous le seuil fournissent **935 repas servis sur 10 752 (8,7 %)** — la question était ouverte depuis D19, elle est répondue | `npm run mesure:vivier` |
+| Vivier vu par UN utilisateur | croisement gabarit × **régime** × créneau. Les 15 cellules les plus pauvres en familles sont TOUTES vegan/vegan+SG. Pire : collation · F 55 sèche · vegan+SG = **3 recettes, 2 familles** (86 au catalogue) | idem |
 | Moyenne R8 par créneau | petit-déj **8,27/12** · repas complets **8,51** · collation **7,38** (8,28 / 8,53 / 7,41 avant A25 · 7,62 avant D18 · 7,19 avant B6 · 4,52 avant B5) | idem |
 | Vegan | petit-déj 44/110 · repas 79/270 · collation **43/86** — comptage CATALOGUE (`restrictions_ok`), stable | compter `restrictions_ok` par créneau |
 | Vegan + sans gluten | petit-déj 33 · repas 42 · collation **34** — idem, stable | idem |
@@ -211,9 +213,14 @@ objet, le défaut réel était dans le moteur, cf. D18 · D3 est **TRANCHÉ ET C
 d'axe allergène, le chemin « aliments à éviter » réparé, cf. D3 · C1, le layout tablette,
 est **FERMÉ** le 2026-08-01, `supportsTablet` est à `true`.)*
 
-1. **🤖 B7 — l'audit R8 des deux créneaux qui ne l'ont jamais eu. ⏸️ REPORTÉ le
-   2026-08-02 (fondateur : « on fera ça plus tard »).** Le diagnostic est fait, il ne sera
-   pas à refaire : D15 avait audité les collations, jamais les deux autres créneaux —
+1. **🤖 B7 — l'audit R8 des deux créneaux qui ne l'ont jamais eu. ✅ COMMANDÉ le 2026-08-02
+   (fondateur : « on va enrichir les recettes dont on a besoin »).** Trois briefs générés,
+   **30 recettes**, tous végétaux : `b7-pdej` (12 petits-déj) · `b7-repas` (10 repas
+   complets) · `b7-coll` (8 collations). Un par conversation, **dans cet ordre**, et
+   régénérer les suivants après chaque merge. Ce qui reste à faire est la chaîne d'accueil
+   habituelle (`Recette/README.md` §« Ajouter des recettes ») : `check:doublons`,
+   `check:enveloppe`, `ENGINE_VERSION` +1, compteurs de test.
+   Le diagnostic qui l'a orienté ne sera pas à refaire : D15 avait audité les collations, jamais les deux autres créneaux —
    mesuré, **37 petits-déj sur 110 (34 %) et 74 repas complets sur 270 (27 %) sont sous le
    seuil de 8/12**, dont 4 à ZÉRO profil dans chaque créneau. Cause première déjà
    identifiée : les recettes **sans `carb`** (13 en petit-déj, moyenne 2,69/12 contre 9,02
@@ -246,12 +253,39 @@ est **FERMÉ** le 2026-08-01, `supportsTablet` est à `true`.)*
       `FAMILY_SELECT_W_CANON` à 0,04** (6,6 points de quasi-doublons abandonnés). À ce
       réglage, 1 repas sur 1 680 passe hors cible : une **collation vegan+SG en sèche**,
       sans alternative propre dans la bande. ⚠️ Ce repas n'est PAS servi aujourd'hui.
-   ➡️ Les quatre pointent le même endroit : **les petits-déjeuners et collations vegan
-   riches en protéines**. C'est le créneau qui rend le plus, et ce n'est pas un problème de
-   code. ⚠️ Viser des **couples protéine × féculent NOUVEAUX** : ajouter une neuvième
-   recette au yaourt de soja n'enlèverait aucun quasi-doublon. Familles saturées mesurées :
+   ➡️ Les quatre pointent le même endroit : **le végétal**. ⚠️ Viser des **couples
+   protéine × féculent NOUVEAUX** : ajouter une neuvième recette au yaourt de soja
+   n'enlèverait aucun quasi-doublon. Familles saturées mesurées :
    `yaourt_soja_proteine`, `tofu_ferme × nouilles_riz`, `proteine_vegetale`,
    `edamame × maïs`, `seitan`, `tempeh`.
+
+   ♻️ **Ce que la mesure du 2026-08-02 (`mesure:vivier`) a CORRIGÉ dans cette orientation,
+   avant d'écrire les briefs.** Les quatre points ci-dessus disaient « petits-déjeuners et
+   collations vegan riches en protéines ». Trois choses étaient fausses ou incomplètes :
+   1. **Le repas complet manquait à la liste, et c'est la 3ᵉ cellule la plus pauvre** :
+      une femme de 55 kg en sèche, vegan et sans gluten, a **4 repas complets sur 270**.
+      Écrire « petit-déj et collation » l'aurait laissée dehors.
+   2. **« Riches en protéines » est vrai en bas, faux en haut.** Le drapeau qui bloque
+      n'est pas le même aux deux bouts : chez F 55 sèche tout est **trop gros**
+      (`over_target_kcal`, 31 candidates sur 34) ; chez H 110 masse tout est **trop
+      petit** (`under_target_kcal`, 21 sur 33 — sa cible de collation est à 3,2 g de
+      protéines pour 100 kcal, l'inverse d'une recette protéinée). Une enveloppe unique
+      ne répond pas aux deux ; c'est la COMPOSITION qui le fait.
+   3. **Sur la collation, le côté PROTÉINE est arithmétiquement FERMÉ.** Balayé sur
+      18 ancres végétales : à 190 kcal pour 15 g de protéines, seules
+      `yaourt_soja_proteine`, `proteine_vegetale`, `soja_texture` et `seitan` laissent
+      encore la place d'un vrai féculent. Tofu, tempeh, edamame et les 8 légumineuses
+      consomment le budget calorique à elles seules et rendent 0 à 3 g de féculent —
+      elles reproduiraient exactement le défaut « sans `carb` » que le chantier veut
+      supprimer. ➡️ Sur ce créneau la variété se commande **sur le féculent**, pas sur
+      l'ancre (`familyKey` = protéine × féculent : un féculent neuf fait bien une
+      famille neuve). Commander « des ancres neuves en collation » aurait été une
+      commande impossible à honorer.
+   ➡️ Et un argument qui décide de la composition du lot, mesuré et non supposé : **une
+   recette végétalienne entre dans TOUS les pools de régime** — halal, pescatarien, sans
+   lactose, végétarien, sans porc : **166 fois sur 166**. Ce n'est pas une orientation
+   éditoriale (cf. la règle « végétal ≠ argument de vente »), c'est le seul type de recette
+   qui ne laisse personne dehors à volume égal. C'est pourquoi les 30 recettes de B7 le sont.
 
 ⚠️ **Une décision produit attend le fondateur, et elle est réversible** : D3 a été tranché
 **contre** l'axe allergène formel (motif : promesse de sécurité intenable sur un catalogue
@@ -1681,10 +1715,18 @@ produit en suspens — il ne reste qu'à coder.
   ➡️ À régler **en écrivant ailleurs**, jamais en réécrivant une recette au hasard : le
   générateur de briefs (`scripts/gen-brief-lot.ts`) publie déjà les couples saturés et les
   ancres encore ouvertes dans chaque §7.
-- **D19 · 🤖 B7 — l'audit R8 du petit-déj et du repas complet. ⏸️ REPORTÉ le 2026-08-02
-  (fondateur : « on fera ça plus tard »). Le diagnostic est FAIT, il ne sera pas à refaire.**
+- **D19 · 🤖 B7 — l'audit R8 du petit-déj et du repas complet. ✅ COMMANDÉ le 2026-08-02**
+  (fondateur : « on va enrichir les recettes dont on a besoin ») — 3 briefs, 30 recettes,
+  dans `Recette/lots/`. Reste la chaîne d'accueil au retour des lots.
   Trouvé en mesurant D4 : l'audit que D15 avait mené sur les collations n'avait **jamais**
   été fait sur les deux autres créneaux.
+
+  ✅ **La question laissée ouverte ici — « combien de repas SERVIS viennent de ces
+  recettes-là ? » — est répondue** (`npm run mesure:vivier`, 2026-08-02) : les 114 recettes
+  sous le seuil fournissent **935 des 10 752 repas servis, soit 8,7 %** (12 profils ×
+  8 régimes × 4 semaines). Ce n'est donc ni un compteur inerte (le piège de D5 et D7,
+  ouvertes sur des chiffres qui ne coûtaient rien) ni une urgence : environ un repas sur
+  onze. La commande B7 est calibrée là-dessus — 30 recettes, pas 114.
 
   | créneau | recettes | moyenne | sous le seuil 8/12 | à ZÉRO profil |
   |---|---|---|---|---|
@@ -1709,14 +1751,27 @@ produit en suspens — il ne reste qu'à coder.
   l'imprimait — il a été ajouté à `mesure:seuils` le 2026-08-02 (colonne « avec `carb` »).
   Un chiffre qui porte une décision doit être re-mesurable, sinon il vieillit en silence.
 
-  ➡️ **Remède : réécrire, pas ajouter** (convention B5, `Recette/README.md`) — les ids sont
-  conservés, `ENGINE_VERSION` s'incrémente. Le lot est plus gros que B5 (23 recettes).
+  ♻️ **Le remède a changé à la commande, et il faut dire pourquoi.** La fiche prescrivait
+  « **réécrire, pas ajouter** » (convention B5) sur les 114 recettes sous le seuil. Ce qui
+  a été commandé le 2026-08-02 est un **AJOUT de 30 recettes**. Deux mesures ont retourné
+  le raisonnement, et l'une a démenti ce que j'allais écrire :
+  1. **Ces recettes médiocres sont servies EN PRIORITÉ aux gabarits extrêmes**, pas aux
+     profils moyens comme je l'avais supposé : `H 110 masse` **15,4 %** de ses repas et
+     `H 95 masse` 13,3 %, contre **3,5 %** pour `F 65 sèche`. Le mécanisme est mécanique —
+     ces profils ont le vivier le plus mince, donc le moteur va chercher au fond du panier
+     faute d'alternative. ➡️ **Leur donner des alternatives suffit** : le moteur préférera
+     de lui-même la recette qui colle. Réécrire n'était pas nécessaire pour ça.
+  2. **Les 8 recettes à 0/12 ne sont servies AUCUNE fois** sur 10 752 repas (`pd04` `pd11`
+     `pd37` `pd64` · `rep18` `rep51` `rep137` `rep144`). Leur réécriture ne changerait
+     donc **rien pour personne aujourd'hui** : c'est de l'hygiène de catalogue, pas un
+     correctif de service. ⚠️ C'est exactement le piège de D5 et D7 — un compteur alarmant
+     qui ne coûte rien — et la ligne « 4 recettes par créneau ne servent AUCUN profil »
+     était en train de le retendre. Elles ne sont PAS dans B7, et c'est délibéré.
+  ➡️ Reste vrai : le manque n'est pas réparti, il est concentré dans des **cellules
+  régime × gabarit** précises (cf. `mesure:vivier`), et une cellule vide se remplit en
+  écrivant dedans.
   ⚠️ **Re-mesurer avant de commander** : le vivier servable n'est pas stable d'une vague à
   l'autre (cf. le piège de mesure du §📍), donc ne pas partir de ces 37/74 comme d'un acquis.
-  ⚠️ **Et vérifier d'abord que ça se voit dans le SERVICE.** D5 et D7 ont chacune été
-  ouvertes sur un compteur qui ne coûtait rien à l'utilisateur. Ici l'indice est sérieux —
-  4 recettes par créneau ne servent AUCUN des 12 profils — mais la question « combien de
-  repas servis viennent de ces recettes-là » n'a pas encore été posée.
 
   🎯 **CE QUI SE VOIT DANS LE SERVICE, LUI, EST MAINTENANT MESURÉ — et ça oriente le lot.**
   Quatre mesures indépendantes, prises pour d'autres raisons, désignent le même endroit :
@@ -1737,11 +1792,14 @@ produit en suspens — il ne reste qu'à coder.
      le reroll n'y peut rien, il n'y a pas assez de familles distinctes. Familles en cause
      mesurées : `yaourt_soja_proteine`, `tofu_ferme × nouilles_riz`, `proteine_vegetale`,
      `edamame × maïs`, `seitan`, `tempeh`.
-  ➡️ **Viser les petits-déjeuners et collations vegan riches en protéines, et privilégier
-  des couples protéine × féculent NOUVEAUX** plutôt que des variantes des familles
-  ci-dessus : ajouter une neuvième recette au yaourt de soja n'enlèverait aucun
-  quasi-doublon. ⚠️ Ce point est **transverse à D19** (qui vise le seuil R8) : une recette
-  peut passer R8 et rester un quasi-doublon. Les deux critères se commandent ensemble.
+  ➡️ **Viser le végétal, et privilégier des couples protéine × féculent NOUVEAUX** plutôt
+  que des variantes des familles ci-dessus : ajouter une neuvième recette au yaourt de soja
+  n'enlèverait aucun quasi-doublon. ⚠️ Ce point est **transverse à D19** (qui vise le seuil
+  R8) : une recette peut passer R8 et rester un quasi-doublon. Les deux critères se
+  commandent ensemble.
+  ♻️ **La formulation « petits-déjeuners et collations » a été corrigée à la commande** :
+  elle oubliait le repas complet (3ᵉ cellule la plus pauvre) et « riches en protéines » est
+  faux au bout haut. Détail dans la liste ♻️ du §« Chantiers ouverts », point B7.
 - ~~**D5 · 3 recettes sans ingrédient gras `scalable`**~~ 🚫 **FERMÉ le 2026-07-31 —
   la tâche était fausse sur ses trois affirmations. Ne pas la rouvrir.** Elle disait
   « 3 recettes · le moteur ne peut pas les monter en lipides · l'utilisateur voit

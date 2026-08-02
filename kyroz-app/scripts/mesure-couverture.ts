@@ -18,8 +18,9 @@
  *   npx tsx scripts/mesure-couverture.ts --csv            sortie machine
  *   npx tsx scripts/mesure-couverture.ts --enveloppe <f>  contrôle R8 d'un lot livré (sort 1 si KO)
  *   npx tsx scripts/mesure-couverture.ts --seuils         distribution R8 du catalogue LIVE, par créneau
+ *   npx tsx scripts/mesure-couverture.ts --vivier         vivier servable croisé RÉGIME × créneau
  */
-import { buildLocalPlan } from '../lib/planEngine';
+import { buildLocalPlan, familyKey } from '../lib/planEngine';
 import { adaptRecipe, type AdaptTarget } from '../lib/adaptRecipe';
 import { recalcProfile } from '../lib/tdee';
 import { getEffectiveRecipes } from '../lib/recipes';
@@ -78,8 +79,8 @@ function profil(g: Gabarit, restrictions: DietaryRestriction[] = []): UserProfil
  * Reconstruite depuis les repas servis (`macros − gap`) : le moteur reste seul juge
  * de ce qu'est une cible, ce script ne fait que la LIRE.
  */
-export function ciblesDe(g: Gabarit): Record<MealType, AdaptTarget> {
-  const p = profil(g);
+export function ciblesDe(g: Gabarit, restrictions: DietaryRestriction[] = []): Record<MealType, AdaptTarget> {
+  const p = profil(g, restrictions);
   const acc: Record<string, AdaptTarget[]> = { breakfast: [], lunch: [], dinner: [], snack: [] };
   for (const seed of SEEDS) {
     for (const m of buildLocalPlan(p, seed).meals) {
@@ -371,6 +372,90 @@ function distributionSeuils(): void {
   }
 }
 
+/**
+ * VIVIER SERVABLE croisé RÉGIME × créneau — le croisement qui manquait.
+ *
+ * `POOL SERVABLE` (mode par défaut) compte par GABARIT et ignore le régime ; `--seuils`
+ * compte par RECETTE et ignore le profil. Aucun des deux ne dit ce que voit réellement un
+ * utilisateur, qui a un gabarit ET un régime. C'est ce croisement qui a fait apparaître à
+ * la main, le 2026-08-02, qu'un petit-déjeuner vegan à forte cible protéique n'a qu'UNE
+ * recette servable dans tout le catalogue — un fait qui décide d'une commande et que
+ * jusqu'ici aucune commande n'imprimait.
+ *
+ * Deux colonnes par cellule, et il faut les lire ensemble :
+ *  · le VIVIER (combien de recettes sont servables) borne la précision ;
+ *  · les FAMILLES distinctes (`familyKey`, protéine × féculent) bornent la VARIÉTÉ PERÇUE.
+ * Dix recettes du même couple ne font pas dix repas différents — c'est tout le sujet de
+ * D18/A25. Un vivier de 12 sur 3 familles est plus pauvre qu'un vivier de 6 sur 6.
+ */
+function vivierCroise(): void {
+  const pool = getEffectiveRecipes();
+  const okPour = (r: Recipe, reg: DietaryRestriction[]) => reg.every((x) => r.restrictions_ok?.includes(x));
+
+  type Cellule = { creneau: string; profil: string; regime: string; vivier: number; familles: number };
+  const cellules: Cellule[] = [];
+
+  console.log('VIVIER SERVABLE — recettes servables, croisé RÉGIME × créneau (ce que voit UN utilisateur).');
+  console.log('⚠️ Le mode par défaut compte par gabarit et ignore le régime ; `--seuils` compte par');
+  console.log('   recette et ignore le profil. Un utilisateur, lui, porte les deux à la fois.\n');
+
+  for (const [cat, slots] of Object.entries(CATEGORIE_VERS_SLOTS) as [string, MealType[]][]) {
+    const slot = CATEGORIE_VERS_SLOT[cat];
+    const recettes = pool.filter((r) => r.tags.includes(slot));
+    console.log(`${cat} — ${recettes.length} recettes au catalogue`);
+    console.log(`profil         | ${REGIMES.map((r) => r.nom.padStart(8)).join(' | ')}`);
+    for (const g of PROFILS_REF) {
+      const cases = REGIMES.map((reg) => {
+        // La cible est reconstruite AVEC le régime : un plan vegan ne sert pas les mêmes
+        // repas, donc pas exactement la même cible moyenne par créneau.
+        const c = ciblesDe(g, reg.r);
+        // Une recette est jugée sur le PIRE de ses créneaux, comme en `--seuils`.
+        const servables = recettes.filter((r) => okPour(r, reg.r) && slots.every((s) => servable(r, c[s])));
+        const familles = new Set(servables.map(familyKey)).size;
+        cellules.push({ creneau: cat, profil: g.nom, regime: reg.nom, vivier: servables.length, familles });
+        return `${String(servables.length).padStart(4)}·${String(familles).padStart(3)}`;
+      });
+      console.log(`${g.nom.padEnd(14)} | ${cases.join(' | ')}`);
+    }
+    console.log('');
+  }
+  console.log('(lecture : « vivier · familles distinctes »)\n');
+
+  const minces = [...cellules].sort((a, b) => a.familles - b.familles || a.vivier - b.vivier).slice(0, 15);
+  console.log('LES 15 CELLULES LES PLUS PAUVRES EN FAMILLES — c\'est là que régénérer ne change rien.');
+  for (const c of minces) {
+    console.log(`  ${c.creneau.padEnd(13)} · ${c.profil.padEnd(14)} · ${c.regime.padEnd(12)} → ${String(c.vivier).padStart(3)} recette(s) · ${c.familles} famille(s)`);
+  }
+
+  // ── D19 : les recettes sous le seuil sont-elles SERVIES ? ──────────────────
+  // La question était posée dans AGENTS.md et n'avait jamais été mesurée. Une recette
+  // sous le seuil qui n'est jamais servie ne coûte rien à l'utilisateur — c'est
+  // exactement le piège qui a fait ouvrir D5 et D7 pour rien.
+  const ciblesNeutres = PROFILS_REF.map((g) => ({ nom: g.nom, c: ciblesDe(g) }));
+  const sousSeuil = new Set<string>();
+  for (const [cat, slots] of Object.entries(CATEGORIE_VERS_SLOTS) as [string, MealType[]][]) {
+    for (const r of pool.filter((x) => x.tags.includes(CATEGORIE_VERS_SLOT[cat]))) {
+      const n = Math.min(...slots.map((s) => ciblesNeutres.filter(({ c }) => servable(r, c[s])).length));
+      if (n < SEUIL_R8[cat]) sousSeuil.add(r.id);
+    }
+  }
+  let servis = 0, servisSousSeuil = 0;
+  for (const g of PROFILS_REF) {
+    for (const reg of REGIMES) {
+      const p = profil(g, reg.r);
+      for (const seed of SEEDS) {
+        for (const m of buildLocalPlan(p, seed).meals) {
+          servis++;
+          if (sousSeuil.has(m.recipe.id)) servisSousSeuil++;
+        }
+      }
+    }
+  }
+  console.log(`\nD19 — LES RECETTES SOUS LE SEUIL SONT-ELLES SERVIES ?`);
+  console.log(`  ${sousSeuil.size} recettes sous le seuil R8 · ${servisSousSeuil} repas servis sur ${servis} (${((servisSousSeuil / servis) * 100).toFixed(1)} %)`);
+  console.log(`  (12 profils × ${REGIMES.length} régimes × ${SEEDS.length} semaines)`);
+}
+
 function main(argv: string[]): void {
   const iEnv = argv.indexOf('--enveloppe');
   if (iEnv !== -1) {
@@ -379,6 +464,7 @@ function main(argv: string[]): void {
     process.exit(controleEnveloppe(chemin));
   }
   if (argv.includes('--seuils')) { distributionSeuils(); return; }
+  if (argv.includes('--vivier')) { vivierCroise(); return; }
   etatCatalogue(argv.includes('--flags'), argv.includes('--csv'));
 }
 

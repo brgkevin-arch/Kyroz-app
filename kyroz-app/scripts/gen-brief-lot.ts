@@ -81,6 +81,23 @@ type Lot = {
   /** Consignes propres au lot, en plus des règles générales. */
   specifique: string[];
   /**
+   * Refs à EXPOSER en plus au §4, alors que la catégorie ne les emploie pas encore.
+   *
+   * ⚠️ Ajouté le 2026-08-02, et c'est un défaut de conception qu'il corrige. `refsPertinents`
+   * ne retient que les refs DÉJÀ employés par la catégorie : la pertinence est garantie, mais
+   * le créneau est enfermé dans sa propre palette — donc **aucun couple protéine × féculent
+   * vraiment neuf n'y est commandable**. Mesuré : le §4 d'une collation n'exposait ni
+   * `tofu_ferme`, ni `tempeh`, ni une seule légumineuse sèche, ni `millet`/`riz_*` ; celui
+   * d'un petit-déj n'exposait ni `soja_texture` (l'ancre végétale la plus dense après
+   * `proteine_vegetale`) ni `edamame`. Or c'est exactement ce que demande le chantier D19 :
+   * des couples NEUFS, pas une neuvième variante du yaourt de soja. La liste des 9 refs
+   * « forcés » en dur dans `refsPertinents` était déjà ce correctif, en moins avouable.
+   *
+   * Règle d'emploi : n'y mettre qu'un ref dont on a VÉRIFIÉ qu'il tient l'enveloppe du lot
+   * (une ancre trop peu dense est inécrivable — cf. la note `DENSITE_CIBLE`).
+   */
+  refsEnPlus?: string[];
+  /**
    * Sous-formats, quand le lot en porte plusieurs. Sans ça, le tableau d'enveloppe
    * afficherait l'UNION des bornes — et autoriserait des combinaisons qui n'existent
    * dans aucun format (une collation de 200 kcal à 8 g de protéines, par exemple).
@@ -227,6 +244,125 @@ const LOTS: Lot[] = [
       '⚠️ **Garde 2 recettes du lot dans le BAS de l\'enveloppe** (520–535 kcal, 32–34 g de protéines, donc très denses). Le catalogue vient d\'être corrigé d\'un excès de bases basses ; refaire l\'erreur en miroir priverait les profils en sèche mince. Une enveloppe unique sert une population unique.',
     ],
   },
+
+  // ── Vague B7 : les cellules affamées, mesurées et non plus supposées ────────
+  //
+  // POURQUOI CE LOT EXISTE, ET POURQUOI IL EST VÉGÉTAL.
+  // `npm run mesure:vivier` (ajouté le 2026-08-02) croise pour la première fois GABARIT ×
+  // RÉGIME × CRÉNEAU — le croisement que voit un utilisateur réel, et qu'aucune commande
+  // n'imprimait : le mode par défaut compte par gabarit et ignore le régime, `--seuils`
+  // compte par recette et ignore le profil. Résultat : les 15 cellules les plus pauvres en
+  // familles sont TOUTES vegan ou vegan+sans gluten. Les pires :
+  //   · collation     · F 55 sèche  · vegan+SG →  3 recettes ·  2 familles
+  //   · collation     · F 55 sèche  · vegan    →  6 recettes ·  3 familles
+  //   · repas complet · F 55 sèche  · vegan+SG →  4 recettes ·  4 familles
+  //   · petit-déj     · H 110 masse · vegan+SG → 12 recettes ·  9 familles
+  // Les mêmes cellules en « aucun régime » comptent 30 à 86 recettes. L'écart n'est pas
+  // une impression, il est d'un facteur 10.
+  //
+  // ⚠️ Ce n'est PAS un virage éditorial vers le végétal (cf. `project-vegan-argument-de-vente` :
+  // un régime supporté parmi 7, sans emphase). C'est de l'arithmétique de couverture :
+  // mesuré sur les 166 recettes vegan du catalogue, **une recette vegan entre dans TOUS les
+  // pools de régime** — halal, pescatarien, sans lactose, végétarien, sans porc : 166/166.
+  // Une recette carnée n'entre que dans un. À volume égal, c'est le seul type de recette qui
+  // ne laisse personne dehors.
+  //
+  // ⚠️ ET LE BLOCAGE N'A PAS LE MÊME SENS AUX DEUX BOUTS — mesuré drapeau par drapeau :
+  //   · en bas (F 55 sèche, cible collation 148 kcal / 13 g P) tout est TROP GROS :
+  //     31 des 34 candidates lèvent `over_target_kcal` ;
+  //   · en haut (H 110 masse, cible petit-déj 892 kcal / 41 g P) tout est TROP PETIT :
+  //     21 des 33 lèvent `under_target_kcal`.
+  // Une enveloppe unique ne peut pas répondre aux deux — c'est la COMPOSITION qui le fait,
+  // et c'est pour ça que les consignes ci-dessous parlent d'ancres, pas seulement de bornes.
+  {
+    cle: 'b7-pdej', titre: 'B7 — 12 petits-déjeuners végétaux, ancres neuves', volume: 12, categorie: 'petit_dej',
+    prefixe: 'pd', idDebut: 111, idFin: 122,
+    wave: '2026-08-02-b7-pdej-vegan',
+    kcal: [510, 570], prot: [30, 36], carb: [56, 70], fat: [14, 19],
+    regimes: { libre: 0, vegetarien: 0, vegan: 12, sansGluten: 9 },
+    etapes: [4, 7],
+    // Le petit-déj est le créneau le plus GÉNÉREUX des trois, et c'est ce qui en fait le
+    // meilleur investissement. Balayé ancre par ancre à 540 kcal / 33 g P : `tempeh`,
+    // `tofu_ferme`, `tofu_fume`, `edamame`, `seitan` rendent tous **12/12 profils et 24/24
+    // cellules vegan** — autant que `yaourt_soja_proteine` et `proteine_vegetale`, qui sont
+    // saturés. Cinq ancres neuves entièrement employables : le créneau ne demande qu'à être
+    // ouvert. Les légumineuses SÈCHES, elles, plafonnent à 7/12 — elles restent hors jeu.
+    refsEnPlus: ['soja_texture', 'tempeh', 'edamame', 'seitan', 'riz_complet', 'mais', 'nouilles_riz'],
+    specifique: [
+      '**Base 510–570 kcal ET 30 à 36 g de protéines. Les deux bornes ensemble, jamais l\'une sans l\'autre.** Monter les calories sans monter la protéine dégrade la couverture — c\'est mesuré sur le moteur, pas supposé.',
+      '🎯 **TOUTES les recettes de ce lot sont végétaliennes.** Ce n\'est pas une orientation éditoriale, c\'est de l\'arithmétique : une recette végétalienne entre AUSSI dans les pools halal, pescatarien, sans lactose, végétarien et sans porc (mesuré : 166 recettes vegan du catalogue, 166 fois sur 166). Aucun autre type de recette ne sert autant de monde à volume égal.',
+      '🎯 **VARIE LES ANCRES — c\'est la raison d\'être du lot.** Les deux ancres végétales du créneau sont saturées : `yaourt_soja_proteine` et `proteine_vegetale` portent à elles seules 15 des 44 petits-déjeuners vegan existants. **Au plus 2 recettes du lot peuvent les employer comme ancre principale.** Les 10 autres se répartissent sur : `tofu_ferme`, `tofu_fume`, `tempeh`, `edamame`, `soja_texture`, `seitan`. Ces six-là rendent 12 profils sur 12 à cette enveloppe — c\'est mesuré, elles ne sont pas un pis-aller.',
+      '⚠️ **Les légumineuses SÈCHES ne tiennent pas ce créneau, ne les prends pas comme ancre principale.** Mesuré à 540 kcal / 33 g P : les lentilles corail rendent 7 profils sur 12, les lentilles vertes et les haricots blancs 6, `pois_chiches` 1. Il faut 95 à 160 g de légumineuse sèche pour 33 g de protéines, et il ne reste alors plus assez de calories pour un vrai féculent. En appoint (20–30 g), aucun problème — `pois_chiches_conserve` et `lentilles_cuites` sont là pour ça.',
+      '⚠️ **Un vrai féculent `carb` et `scalable` dans CHAQUE recette, 45 à 80 g pesés secs.** C\'est la cause première du chantier : les 13 petits-déjeuners du catalogue sans féculent servent **2,7 profils sur 12** en moyenne, contre **9,0** pour les 97 qui en portent un. Sans féculent, le moteur n\'a rien à étirer pour nourrir un gros gabarit.',
+      '⚠️ **Féculents DENSES.** `patate_douce` et `pomme_de_terre` ne dépassent pas 6 profils sur 12 même au centre de l\'enveloppe : à 20 g de glucides aux 100 g, le facteur de montée ne suffit pas. Emploie `flocons_avoine`, `sarrasin`, `millet`, `quinoa`, `polenta`, `pain_complet`, `pain_seigle`, `chataigne`, `riz_complet`.',
+      'Sous-lot sans gluten (9 des 12) : `flocons_avoine`, `pain_complet`, `pain_seigle` **interdits**. Autorisés : `sarrasin`, `millet`, `quinoa`, `polenta`, `galette_riz`, `chataigne`, `riz_complet`, `nouilles_riz`, `mais`, `pain_sans_gluten`. ⚠️ `seitan` contient du gluten : il ne peut porter aucune des 9.',
+      'Ancre grasse `fat` + `scalable`, **14 à 19 g** de lipides.',
+      '**Vise le SALÉ.** Le porridge et le pudding sont saturés, le contrôle anti-doublons les refusera. Tofu brouillé, galette de sarrasin garnie, bowl chaud salé, tartine complète, pancakes salés, edamame sur riz complet : c\'est là qu\'est la place libre.',
+      '**Aucun repos au froid de plus de 10 minutes.** Un plan affiché le matin doit être cuisinable le jour même.',
+    ],
+  },
+  {
+    cle: 'b7-repas', titre: 'B7 — 10 repas complets végétaux, pour les cellules affamées', volume: 10, categorie: 'repas_complet',
+    prefixe: 'rep', idDebut: 271, idFin: 280,
+    wave: '2026-08-02-b7-repas-vegan',
+    kcal: [600, 660], prot: [35, 40], carb: [64, 78], fat: [18, 23],
+    regimes: { libre: 0, vegetarien: 0, vegan: 10, sansGluten: 7 },
+    etapes: [4, 7],
+    // Enveloppe ABAISSÉE par rapport à B4 (620–700 / 38–44), et c'est délibéré : B4 notait
+    // que sa densité rendait les ancres végétales inécrivables et n'avait donc commandé que
+    // 4 recettes vegan sur 20. Balayé aux deux points 590/33 et 650/38, le classement des
+    // ancres est le MÊME — `yaourt_soja_proteine`, `seitan`, `edamame`, `proteine_vegetale`,
+    // `soja_texture` tiennent 10 à 12 profils sur 12 ; tofu et légumineuses sèches restent
+    // sous le seuil aux deux. La densité n'est donc pas ce qui les tue, et l'enveloppe basse
+    // rend `feves` employable (8/12 à 650/38). ⚠️ `edamame` à 12/12 et 23/24 cellules vegan
+    // est la vraie trouvaille : quasi inemployé en repas complet, et parfaitement calibré.
+    specifique: [
+      '**Base 600–660 kcal ET 35 à 40 g de protéines. Les deux bornes ensemble.** Mesuré sur le moteur : monter les calories sans monter la protéine rend MOINS de profils servis, pas plus.',
+      '🎯 **TOUTES les recettes de ce lot sont végétaliennes**, et pour une raison arithmétique : une recette végétalienne entre aussi dans les pools halal, pescatarien, sans lactose, végétarien et sans porc (166 fois sur 166 au catalogue). Le créneau visé est la cellule la plus affamée du catalogue après les collations — **une femme de 55 kg en sèche, vegan et sans gluten, dispose de 4 repas complets sur 270**.',
+      '🎯 **Les ancres qui TIENNENT cette enveloppe, mesurées une par une** (profils servis sur 12) : `edamame` 12, `seitan` 12, `yaourt_soja_proteine` 12, `proteine_vegetale` 11-12, `soja_texture` 10-11, `feves` 8. **Privilégie `edamame` et `feves`** : elles sont quasi inemployées en repas complet alors qu\'elles sont parfaitement calibrées. `soja_texture` et `proteine_vegetale` portent déjà 38 et 34 recettes — **au plus 2 recettes du lot chacune**.',
+      '⚠️ **Ce qui NE tient PAS cette enveloppe, et ce n\'est pas une question de goût** : `tofu_ferme` 4 profils sur 12, `tofu_fume` 4, `tofu_soyeux` 3, `pois_chiches` secs 2, `haricots_noirs` 4, `lentilles_vertes` 5, `haricots_blancs` 5, `lentilles_corail` 7, `tempeh` 7. Toutes coûtent trop de calories par gramme de protéine : à 37 g de protéines elles remplissent l\'assiette avant le féculent, et le moteur n\'a plus rien à étirer. Elles restent excellentes **en appoint** (30–60 g), jamais comme ancre principale.',
+      '⚠️ **Un vrai féculent `carb` et `scalable`, 95 à 125 g pesés SECS, dans CHAQUE recette.** C\'est lui qui va chercher les gros gabarits — il monte sans plafond absolu. Les 6 repas complets du catalogue sans féculent servent **1,5 profil sur 12** en moyenne, contre 8,7 pour les 264 autres.',
+      'Ancre grasse `fat` + `scalable`, **18 à 23 g** de lipides.',
+      'Sous-lot sans gluten (7 des 10) : `seitan` en est exclu (il est fait de gluten), ainsi que `pates_completes`, `pates_semoule`, `boulgour`, `semoule_couscous`, `nouilles_completes`, `tortilla_complete`, `pain_complet`, `pain_pita_complet`. Autorisés : `quinoa`, `sarrasin`, `millet`, `polenta`, `riz_basmati`, `riz_complet`, `nouilles_riz`, `patate_douce`, `pomme_de_terre`, `mais`, `wrap_sans_gluten`, `pain_sans_gluten`.',
+      '⚠️ **Ce lot est jugé sur le MIDI ET LE SOIR** — un repas complet est servi aux deux créneaux, et la cible du soir est plus basse. `check:enveloppe` retient le PIRE des deux.',
+      '**Légumineuses : version prête à consommer** (`pois_chiches_conserve`, `lentilles_cuites`, `haricots_rouges_conserve`) quand tu en emploies en appoint. Le poids écrit est le poids ACHETÉ ; la version sèche ferait afficher un poids sec en liste de courses.',
+    ],
+  },
+  {
+    cle: 'b7-coll', titre: 'B7 — 8 collations végétales, la cellule la plus affamée du catalogue', volume: 8, categorie: 'collation',
+    prefixe: 'col', idDebut: 87, idFin: 94,
+    wave: '2026-08-02-b7-collations-vegan',
+    kcal: [170, 320], prot: [13, 27], carb: [16, 40], fat: [5, 12],
+    regimes: { libre: 0, vegetarien: 0, vegan: 8, sansGluten: 6 },
+    etapes: [2, 3],
+    // ⚠️ LE CONSTAT LE PLUS IMPORTANT DE CE LOT, ET IL CONTREDIT LA COMMANDE ATTENDUE.
+    // D19 demandait « des couples protéine × féculent NEUFS ». Sur la collation, le côté
+    // PROTÉINE est arithmétiquement fermé : balayé sur 18 ancres végétales aux deux
+    // sous-formats, seules `yaourt_soja_proteine`, `seitan`, `proteine_vegetale` et
+    // `soja_texture` gardent un vrai féculent dans l'assiette. Toutes les autres — tofu,
+    // tempeh, edamame, les 8 légumineuses — consomment le budget calorique entier avec
+    // l'ancre seule et laissent 0 à 3 g de féculent, ce qui reproduit exactement le défaut
+    // « sans `carb` » que le chantier veut supprimer. Ce n'est pas un manque d'imagination
+    // du rédacteur : à 190 kcal pour 15 g de protéines, il faut 13 g de protéines pour
+    // 100 kcal, et trois ancres du catalogue seulement y arrivent.
+    // ➡️ La variété se commande donc sur le FÉCULENT, pas sur l'ancre. `familyKey` étant
+    // `protéine × féculent`, un féculent neuf crée bien une famille neuve.
+    refsEnPlus: ['millet', 'riz_complet', 'nouilles_riz', 'patate_douce'],
+    sousFormats: [
+      { nom: 'léger dense', ids: '`col87` → `col92` · 6 recettes', kcal: [170, 210], prot: [13, 16], carb: [16, 26], fat: [5, 8] },
+      { nom: 'gros format', ids: '`col93` → `col94` · 2 recettes', kcal: [280, 320], prot: [23, 27], carb: [28, 40], fat: [8, 12] },
+    ],
+    specifique: [
+      'Les **deux sous-formats se livrent ENSEMBLE**. Aucune collation ne peut couvrir les 12 profils — la cible du créneau va de 148 à 455 kcal, soit 3,1×, quand le moteur n\'étire que d\'environ 1,8×. C\'est l\'**union** des deux formats qui couvre, jamais une recette seule.',
+      '🎯 **La cellule visée est la plus affamée de tout le catalogue** : une femme de 55 kg en sèche, végétalienne et sans gluten, dispose de **3 collations sur 86, réparties sur 2 familles**. Sa cible est de 148 kcal pour 13 g de protéines. Le catalogue lui propose 34 collations compatibles avec son régime : **31 sont trop grosses** pour elle (drapeau `over_target_kcal`), il en reste 3. C\'est le format léger qui la sert, pas le gros.',
+      '🎯 **VARIE LE FÉCULENT, pas l\'ancre — et c\'est l\'inverse de ce qu\'on attendrait.** À cette densité (13 g de protéines pour 100 kcal en format léger), seules quatre ancres du catalogue laissent encore la place d\'un vrai féculent : `yaourt_soja_proteine`, `proteine_vegetale`, `soja_texture` et `seitan`. Toutes les autres — `edamame`, `lentilles_cuites`, `pois_chiches`, le tofu sous toutes ses formes, le tempeh — remplissent le budget calorique à elles seules et ne laissent que 0 à 3 g de féculent. Elles sont donc **interdites comme ancre principale ici**, et parfaitement bienvenues en appoint.',
+      '⚠️ **Chaque recette porte un vrai féculent `carb` et `scalable`.** C\'est la contrainte non négociable du lot : 24 collations du catalogue n\'en ont aucun et servent **5,8 profils sur 12** contre 8,0 pour les 62 qui en portent un. Une collation sans féculent ne peut pas s\'étirer, et c\'est précisément ce qui a vidé la cellule visée.',
+      '🎯 **Les couples déjà pris sur ce créneau, en végétal** : `yaourt_soja_proteine` sans féculent (8 recettes), `proteine_vegetale` sans féculent (4), `proteine_vegetale` + `flocons_avoine` (2), + `sarrasin` (2), + `chataigne` (2), `yaourt_soja_proteine` + `galette_riz` (2), + `chataigne` (2), `edamame` + `mais` (2). **Les féculents encore libres avec ces ancres** : `quinoa`, `millet`, `polenta`, `riz_complet`, `nouilles_riz`, `patate_douce`, `pain_sans_gluten`, `mais`. Va les chercher.',
+      '⚠️ **La règle des 12 g de lipides ne s\'applique PAS ici.** 12 g de lipides valent 108 kcal, soit 55 % d\'une collation de 190 kcal. L\'ancre grasse `fat` + `scalable` reste obligatoire, elle est simplement petite : 5 à 8 g en format léger, 8 à 12 g en gros format.',
+      'Sous-lot sans gluten (6 des 8) : `seitan`, `flocons_avoine`, `pain_complet` et `pain_seigle` en sont exclus. Autorisés : `quinoa`, `sarrasin`, `millet`, `polenta`, `galette_riz`, `chataigne`, `riz_complet`, `nouilles_riz`, `patate_douce`, `mais`, `pain_sans_gluten`.',
+      '**2 à 3 étapes, 10 minutes maximum, aucun repos au froid de plus de 10 minutes.** Une collation se prépare debout.',
+    ],
+  },
 ];
 
 // ── Outils d'analyse du catalogue ────────────────────────────────────────────
@@ -234,7 +370,7 @@ const LOTS: Lot[] = [
 const GLUTEN_INTERDIT = (ref: string) => !restrictionsOkFor([ref]).includes('gluten_free');
 
 /** Refs réellement employés par les recettes de cette catégorie → pertinence garantie. */
-function refsPertinents(cat: Recette['category']): string[] {
+function refsPertinents(cat: Recette['category'], enPlus: string[] = []): string[] {
   const vus = new Set<string>();
   for (const r of RECIPES) if (r.category === cat) for (const i of r.ingredients) vus.add(i.ref);
   // Les 9 refs créés le 2026-07-29 ne sont employés nulle part encore : on les force.
@@ -248,6 +384,9 @@ function refsPertinents(cat: Recette['category']): string[] {
   // corrigée demande ~40 g de protéines, qu'elle devient indispensable : les légumineuses
   // sèches y sont mathématiquement inécrivables (143 g de lentilles sèches pour 40 g de P).
   if (REFS.proteine_vegetale) vus.add('proteine_vegetale');
+  // Refs ouverts explicitement par le lot, pour pouvoir commander un couple NEUF sur un
+  // créneau enfermé dans sa palette (cf. `Lot.refsEnPlus`).
+  for (const r of enPlus) if (REFS[r]) vus.add(r);
   return [...vus].filter((r) => REFS[r]).sort();
 }
 
@@ -270,7 +409,14 @@ function estAncreProteique(ref: string): boolean {
   const p = REFS[ref].per_100;
   if (p.protein < 7 || p.kcal <= 0) return false;
   if ((p.protein * 4) / p.kcal < 0.25) return false;
-  return REFS[ref].abs_max_qty == null || REFS[ref].abs_max_qty > 40;
+  if (REFS[ref].abs_max_qty != null && REFS[ref].abs_max_qty <= 40) return false;
+  // Quatrième condition, ajoutée le 2026-08-02 : le CATALOGUE doit s'en servir comme d'une
+  // protéine. Les trois critères arithmétiques laissaient passer `sauce_soja` (40 kcal,
+  // 7,2 g de protéines aux 100 g — donc 72 % de calories protéiques sur le papier), qui
+  // figurait dans la table « ancres encore OUVERTES » alors que ses 13 emplois sont TOUS
+  // en `flavor`, à la cuillère. Un rédacteur ne bâtit pas un plat sur de la sauce soja.
+  const role = roleDominant(ref);
+  return role === 'protein' || role === 'dairy' || role === '—';
 }
 
 /** Rôle macro dominant d'un ref, tel qu'il est utilisé dans le catalogue. */
@@ -476,6 +622,9 @@ const TERMES_TECHNIQUES = new Set([
   'protein', 'carb', 'fat', 'dairy', 'fruit', 'vegetable', 'flavor',
   'scalable', 'true', 'false', 'ref', 'qty', 'macro_role', 'base_servings',
   'wave', 'category', 'id', 'name', 'tags', 'instructions', 'why', 'macros_per_serving',
+  // Les 3 drapeaux BLOQUANTS du moteur : une consigne a le droit de nommer ce qui fera
+  // rejeter la recette. Sans eux, le contrôle les prenait pour des `ref` inexistants.
+  'over_target_kcal', 'under_target_kcal', 'protein_below_target',
 ]);
 
 /**
@@ -546,7 +695,7 @@ function verifieCoherence(lot: Lot, refs: string[]): void {
 // ── Génération ───────────────────────────────────────────────────────────────
 
 function genere(lot: Lot): string {
-  const refs = refsPertinents(lot.categorie);
+  const refs = refsPertinents(lot.categorie, lot.refsEnPlus);
   verifieCoherence(lot, refs);
   const sansGlutenOk = refs.filter((r) => !GLUTEN_INTERDIT(r));
   const trip = tripletsSatures(lot.categorie);
@@ -683,12 +832,29 @@ ${lot.sousFormats.map((f) => `| **${f.nom}** | ${f.ids} | **${f.kcal[0]} – ${f
 | Lipides | ${lot.fat[0]} – ${lot.fat[1]} g |`}
 
 ${(() => {
-    const dLo = (lot.prot[0] / lot.kcal[1] * 100), dHi = (lot.prot[1] / lot.kcal[0] * 100);
-    const dans = dHi >= DENSITE_CIBLE[0] && dLo <= DENSITE_CIBLE[1];
-    return `> **Densité protéique imposée : ${dLo.toFixed(1)} à ${dHi.toFixed(1)} g de protéines pour 100 kcal.**
-> C'est la conséquence arithmétique des deux fourchettes ci-dessus, et c'est **la contrainte qui
+    // ⚠️ Calculée PAR SOUS-FORMAT quand il y en a plusieurs. Sur l'union, la bande annoncée
+    // est un mensonge arithmétique : le lot b7-coll affichait « 4,1 à 15,9 g/100 kcal »,
+    // c'est-à-dire la fourchette la plus large permise par un croisement des bornes que le
+    // tableau juste au-dessus INTERDIT (« jamais entre les deux »). Un chiffre affiché doit
+    // être celui qu'on servira — la règle vaut pour un brief comme pour un écran.
+    const bande = (kcal: [number, number], prot: [number, number]) => ({
+      lo: prot[0] / kcal[1] * 100, hi: prot[1] / kcal[0] * 100,
+    });
+    const dans = (b: { lo: number; hi: number }) => b.hi >= DENSITE_CIBLE[0] && b.lo <= DENSITE_CIBLE[1];
+    const entete = `> C'est la conséquence arithmétique des fourchettes ci-dessus, et c'est **la contrainte qui
 > décide** de la couverture — plus que les calories. Vérifie-la sur chaque recette :
-> \`protéines × 100 ÷ kcal\`.${dans ? '' : '\n> ⚠️ Cette bande sort du plateau mesuré ' + DENSITE_CIBLE[0] + '–' + DENSITE_CIBLE[1] + ' g/100 kcal.'}`;
+> \`protéines × 100 ÷ kcal\`.`;
+    if (lot.sousFormats) {
+      const l = lot.sousFormats.map((f) => {
+        const b = bande(f.kcal, f.prot);
+        return `> · **${f.nom}** : ${b.lo.toFixed(1)} à ${b.hi.toFixed(1)} g de protéines pour 100 kcal.`
+          + (dans(b) ? '' : ` _(hors du plateau ${DENSITE_CIBLE[0]}–${DENSITE_CIBLE[1]}, assumé pour ce format)_`);
+      }).join('\n');
+      return `> **Densité protéique imposée, sous-format par sous-format :**\n${l}\n${entete}\n> ⚠️ Ne calcule JAMAIS cette bande sur l'union des sous-formats : elle autoriserait des\n> combinaisons qu'aucun des deux ne permet.`;
+    }
+    const b = bande(lot.kcal, lot.prot);
+    return `> **Densité protéique imposée : ${b.lo.toFixed(1)} à ${b.hi.toFixed(1)} g de protéines pour 100 kcal.**
+${entete}${dans(b) ? '' : '\n> ⚠️ Cette bande sort du plateau mesuré ' + DENSITE_CIBLE[0] + '–' + DENSITE_CIBLE[1] + ' g/100 kcal.'}`;
   })()}
 
 ${lot.specifique.map((x) => `- ${x}`).join('\n')}
@@ -875,7 +1041,21 @@ ancre, « places libres » = combinaisons (ancre × féculent autorisé) encore 
 
 | Ancre protéine | Déjà employée ici | Couples saturés | Places libres |
 |---|---|---|---|
-${couplesOuverts(lot.categorie, refs).slice(0, 18).map((x) => `| \`${x.proteine}\` | ${x.deja || '—'} | ${x.occupe || '—'} | ${x.libre} |`).join('\n')}
+${(() => {
+    // ⚠️ TROISIÈME version de la même erreur, trouvée le 2026-08-02 sur le premier lot
+    // 100 % végétal. Le §4 restreint déjà la table aux refs du créneau, mais PAS au régime
+    // commandé au §5 : sur `b7-repas` (10 recettes vegan, 0 carnée), ce tableau proposait
+    // encore `maquereau`, `mozzarella`, `saumon_fume`, `sardines`, `thon_frais`,
+    // `yaourt_grec` — six lignes sur dix-huit strictement inemployables. « Va là, c'est
+    // ouvert » sur une ancre que la répartition du lot interdit, c'est le mur que ce
+    // tableau existe pour éviter.
+    const dispo = couplesOuverts(lot.categorie, refs).filter((x) => {
+      if (lot.regimes.libre === 0 && CASSE_VEGETARIEN(x.proteine)) return false;
+      if (lot.regimes.libre === 0 && lot.regimes.vegetarien === 0 && CASSE_VEGAN(x.proteine)) return false;
+      return true;
+    });
+    return dispo.slice(0, 18).map((x) => `| \`${x.proteine}\` | ${x.deja || '—'} | ${x.occupe || '—'} | ${x.libre} |`).join('\n');
+  })()}
 
 ${(() => {
     const v = frequences(lot.categorie, refs).vierges;
