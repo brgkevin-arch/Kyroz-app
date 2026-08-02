@@ -1031,6 +1031,17 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
   puis « Régénérer » → l'app repartirait sur 2 069 kcal pour la journée, soit **3 399 kcal
   réelles, 1 330 au-dessus de la cible** — le déficit du jour effacé, sans que l'app le
   sache. La péremption reste là où elle doit être : `resetTracking`, au changement de JOUR.
+  ℹ️ **CE QUI N'EST PAS REPORTÉ, ET C'EST ASSUMÉ : « Remplacer ce repas ».** Un
+  remplacement fait à la main ne survit pas à une régénération — `swapMeal` ne pose
+  AUCUN marqueur, un repas remplacé est indistinguable d'un repas proposé. Le préserver
+  demanderait d'ajouter un champ au type `Meal`, et c'est discutable : contrairement au
+  « mangé », un remplacement n'est pas un fait, et après un changement de cible le plat
+  choisi ne rentre peut-être plus. **Arbitré par le fondateur le 2026-08-02 : on laisse
+  le comportement et on met un disclaimer.** Livré sous le bouton, dans `RecipeDetail` :
+  « Ce remplacement vaut pour ce plan. Si ce plat ne te plaît pas du tout, le 👎 l'écarte
+  pour de bon. » — il dit la limite ET donne l'action qui, elle, tient dans le temps (le
+  👎 exclut la recette de toutes les générations suivantes). ⚠️ Ne pas rouvrir ça comme
+  un bug : c'est une décision, et le trou est étroit puisque le 👎 couvre le vrai besoin.
   ℹ️ **Indice qui traînait dans le code depuis longtemps** : le 👎 est volontairement
   tenu HORS de `profileSignature`, avec le commentaire « ne régénère pas tout ». On
   savait donc qu'une régénération détruisait le travail posé sur le plan — mais on avait
