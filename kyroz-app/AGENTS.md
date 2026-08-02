@@ -66,7 +66,7 @@ qu'ils étaient périmés.
 | Catalogue | **466 recettes** — 110 petits-déj · 270 repas complets · 86 collations | `npm run mesure:couverture` |
 | `ENGINE_VERSION` | **38** (invalide les plans en cache) | `lib/planEngine.ts` |
 | `ENGINE_REV` | **4** (avertissement one-shot à l'utilisateur) | `lib/tdee.ts` |
-| Tests | **898 verts**, 48 fichiers · `tsc` propre | `npm test && npx tsc --noEmit` |
+| Tests | **907 verts**, 49 fichiers · `tsc` propre | `npm test && npx tsc --noEmit` |
 | Plateformes | iPhone **+ iPad** (`supportsTablet: true` depuis le 2026-08-01) · portrait-only | `app.json` · `lib/layout.ts` |
 | Site déployé | **automatique** : GitHub Actions à chaque push `main` (`build_type: workflow`). ⚠️ **NE PAS lire `origin/gh-pages`** — branche morte, cf. A12 | `gh run list --workflow=deploy.yml` |
 | Migrations Supabase | toutes jouées, `2026-08-02_profiles_birth_date.sql` comprise (vérifiée par REST : `200`) | `supabase/JOURNAL-MIGRATIONS.md` |
@@ -975,9 +975,66 @@ produit en suspens — il ne reste qu'à coder.
      régénération) : à trancher le jour où un abonnement peut réellement expirer,
      pas avant.
 
-  🧑 **Reste, et ça demande tes comptes** : installer `react-native-purchases`,
-  remplacer `useEntitlement()` (une fonction, isolée exprès), brancher l'achat et
-  la restauration, puis poser une date dans `PAYWALL_LAUNCH`.
+  ✅ **LE SDK EST CÂBLÉ le 2026-08-02 — et il est DORMANT.** `react-native-purchases`
+  v10.6.0 installé, `lib/purchases.ts` écrit, `useEntitlement()` branché,
+  achat + restauration + prix localisés reliés à l'écran. **Rien ne change pour
+  personne aujourd'hui** : sans clé, `purchasesConfigured()` est faux, le SDK n'est
+  même pas chargé, et `PAYWALL_LAUNCH` reste `null`.
+
+  **Deux interrupteurs INDÉPENDANTS, et c'est volontaire** : la **clé** allume le
+  paiement, la **date** allume le verrou. On peut donc tester un achat en TestFlight
+  sans verrouiller un seul compte en production.
+
+  🔬 **CE QUE LA VÉRIFICATION A TROUVÉ, et c'est le vrai apport du chantier.**
+  `lib/purchases.ts` charge le SDK en `require` PARESSEUX, donc il n'est jamais
+  exécuté sur web. Mesuré sur le bundle exporté : **il y était quand même**, 4
+  occurrences de `purchaseStoreProduct` / `RNPurchases`, et le bundle web passait de
+  **3 509 492 à 4,4 Mo (+900 Ko)**. Metro analyse les `require` STATIQUEMENT — un
+  `require` paresseux retarde l'exécution, il ne retire rien du bundle. C'est
+  EXACTEMENT le piège de `lib/generatePlan.ts` (un SDK jamais appelé, servi à chaque
+  visiteur, −224 Ko à sa suppression) ; la leçon n'avait pas été généralisée.
+  ➡️ Corrigé par une séparation de plateforme : **`lib/purchases.web.ts`** est un
+  bouchon sans une ligne de code de paiement, que Metro résout avant `purchases.ts`
+  sur web. Re-mesuré : **3 510 945 octets, soit +1 453 octets (+1,4 Ko)** sur le
+  bundle web, et **0 occurrence** de RevenueCat. Le coût réel du chantier sur le
+  produit déployé est donc le poids du bouchon.
+
+  🧰 **Autre chose laissée derrière** : `test/reactNativeMock.ts` + l'alias
+  `react-native` dans `vitest.config.ts`. Vitest ne sait pas parser la source de
+  `react-native` (annotée Flow), ce qui rendait **intestable** tout fichier de `lib/`
+  qui l'importe — c'est pour ça que `exportData.ts` et `notifications.ts` n'ont
+  aucun test. `purchases.ts` décide qui paie : il ne pouvait pas rester dehors.
+  ⚠️ Le mock met `Platform.OS` à **`ios`** et pas `web`, exprès : sur `web`
+  `purchasesConfigured()` est faux quoi qu'il arrive, donc le test de dormance ne
+  prouverait plus rien. **Un test qui ne peut pas échouer ne protège rien.**
+
+  ✅ **Vérifié** : 907 tests verts (+9), `tsc` propre, bundle web reconstruit, et
+  l'écran relu dans le navigateur en état `locked` — prix de repli affichés AVEC la
+  mention « ce sont les tarifs français », chemin web sans bouton d'achat, 0 erreur
+  console. *(État forcé par une date de lancement temporaire, remise à `null` après.)*
+
+  🧑 **CE QUI RESTE, ET QUI DEMANDE TES COMPTES — dans cet ordre :**
+  1. **App Store Connect** : créer les deux abonnements auto-renouvelables dans un
+     même groupe, aux identifiants EXACTS `kyroz_plus_monthly` et `kyroz_plus_annual`
+     (ils sont verrouillés par un test), aux tarifs 4,99 € et 39,99 €.
+     Idem Google Play si tu sors sur Android.
+  2. **RevenueCat** : créer le projet, y rattacher l'app, et créer un entitlement
+     nommé EXACTEMENT **`kyroz_plus`** (verrouillé par un test aussi) auquel tu
+     attaches les deux produits.
+  3. **Poser les clés PUBLIQUES du SDK** (`appl_…` / `goog_…`) dans le build EAS :
+     `EXPO_PUBLIC_REVENUECAT_IOS_KEY` et `_ANDROID_KEY` (cf. `.env.example`).
+     ⚠️ **Pas la clé secrète du dashboard** — elle ne doit jamais entrer dans un
+     bundle client. Inutile de les poser sur le build web : il n'encaisse pas.
+  4. **Un nouveau build natif ET une nouvelle revue store.** `react-native-purchases`
+     est un module NATIF : l'OTA ne peut pas le livrer (`CLAUDE.md` §2). Le
+     `ios/` local doit être régénéré (`npx expo prebuild` puis `pod install`) — il
+     n'est pas versionné.
+  5. **Tester un achat en bac à sable** (compte sandbox Apple), puis seulement après :
+     poser une date dans `PAYWALL_LAUNCH`. ⚠️ Cette date ne se recule JAMAIS.
+
+  ⚠️ **Un point que la revue Apple refuse et qui n'est PAS encore fait** : le bouton
+  « Restaurer mes achats » est branché, mais il ne peut être PROUVÉ qu'avec un compte
+  sandbox. Sans restauration fonctionnelle, rejet au titre de la Guideline 3.1.1.
 
 ### 📱 C — Sortie stores
 
