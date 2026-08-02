@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { RECIPE_INGREDIENTS, RECIPE_CONFIG, RAW_RECIPES, macrosForRefIngredients } from '../recipeData';
 
 describe('recipeData', () => {
-  it('charge 466 recettes brutes', () => {
-    expect(RAW_RECIPES).toHaveLength(466);
+  it('charge 478 recettes brutes', () => {
+    expect(RAW_RECIPES).toHaveLength(478);
   });
   it('chaque recette déclare sa vague de livraison', () => {
     // Sans `wave`, une vague ne sait pas contre quoi se comparer : impossible d'expliquer
@@ -17,7 +17,9 @@ describe('recipeData', () => {
     // quatre premières vagues perdent donc les recettes qu'elle reprend (fondation 100 → 92,
     // vegan 164 → 156, sans-gluten 50 → 46, b2 13 → 10). Le total restait 459.
     // B6 AJOUTE 7 collations vegan (col80 → col86) : 459 → 466.
+    // B7-pdej AJOUTE 12 petits-déjeuners végétaux (pd111 → pd122) : 466 → 478.
     expect(parVague).toEqual({
+      '2026-08-02-b7-pdej-vegan': 12,
       fondation: 92, '2026-06-19-vegan': 156, '2026-07-22-sans-gluten': 46,
       '2026-08-01-b2-collations': 10, '2026-08-01-b1-lot1-repas': 20,
       '2026-08-01-b1-lot2-repas': 20, '2026-08-01-b1-lot3-repas': 20,

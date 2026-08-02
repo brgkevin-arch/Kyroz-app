@@ -1,7 +1,7 @@
 {
   "_meta": {
     "version": "2.0",
-    "count": 466,
+    "count": 478,
     "source_macros": "Estimations alignées CIQUAL/ANSES. Remplacer par le CSV officiel CIQUAL avant prod.",
     "precision": "±5-10%.",
     "poids_basis": "basis=dry -> poids cru/sec ; basis=raw -> viande/poisson cru. Garder la cohérence cru/cuit.",
@@ -26,7 +26,8 @@
         "2026-08-01-b3-petits-dejeuners": 20,
         "2026-08-02-b4-repas-denses": 20,
         "2026-08-02-b4-pdej-denses": 12,
-        "2026-08-02-b6-collations-vegan": 7
+        "2026-08-02-b6-collations-vegan": 7,
+        "2026-08-02-b7-pdej-vegan": 12
       },
       "convention": "Toute nouvelle vague reprend le NOM DU DOSSIER de son drop (AAAA-MM-JJ-<bloc>), pour qu'on retrouve la matière première d'une recette sans fouiller l'historique git."
     }
@@ -28812,6 +28813,722 @@
         "carbs": 62.8,
         "fat": 17.1
       }
+    },
+    {
+      "id": "pd111",
+      "name": "Tempeh grillé, sarrasin et épinards",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "recup_jour_repos": true,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 20
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "tempeh",
+          "qty": 96,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "sarrasin",
+          "qty": 73,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "graines_courge",
+          "qty": 18,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "epinards",
+          "qty": 80,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "tomate",
+          "qty": 60,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Rince le sarrasin à l'eau froide, puis fais-le cuire 12 minutes dans deux fois son volume d'eau salée, à couvert et à feu doux.",
+        "Coupe le tempeh en tranches d'un demi-centimètre et la tomate en dés.",
+        "Fais dorer les tranches de tempeh 3 minutes par face dans une poêle chaude à sec, jusqu'à ce qu'elles soient bien colorées.",
+        "Ajoute les épinards dans la poêle et remue 1 minute : ils doivent tomber sans rendre d'eau.",
+        "Fais griller les graines de courge 2 minutes dans une poêle sèche, en secouant, jusqu'à ce qu'elles commencent à sauter.",
+        "Égoutte le sarrasin, dresse-le en bol, pose le tempeh et les épinards dessus, ajoute les dés de tomate et parsème de graines de courge."
+      ],
+      "why": "Le tempeh apporte une protéine complète, le sarrasin des glucides à digestion lente.",
+      "macros_per_serving": {
+        "kcal": 563.4,
+        "protein": 32.9,
+        "carbs": 62.4,
+        "fat": 16.5
+      },
+      "wave": "2026-08-02-b7-pdej-vegan"
+    },
+    {
+      "id": "pd112",
+      "name": "Bol d'edamame au millet et poivron",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 20
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "edamame",
+          "qty": 213,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "millet",
+          "qty": 56,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "graines_chia",
+          "qty": 11,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "poivron",
+          "qty": 70,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Fais cuire le millet 15 minutes dans deux fois et demie son volume d'eau salée, à couvert et à feu doux, jusqu'à absorption complète.",
+        "Plonge les edamame 5 minutes dans une casserole d'eau bouillante salée, puis égoutte-les.",
+        "Coupe le poivron en lanières fines et fais-le revenir 4 minutes à feu vif : il doit rester croquant.",
+        "Égrène le millet à la fourchette et mélange-le aux edamame et au poivron, sale et poivre.",
+        "Parsème de graines de chia juste avant de servir, pour qu'elles gardent leur croquant."
+      ],
+      "why": "Les edamame couvrent la cible protéique du matin sans peser sur les lipides.",
+      "macros_per_serving": {
+        "kcal": 533.9,
+        "protein": 32,
+        "carbs": 63.3,
+        "fat": 16.5
+      },
+      "wave": "2026-08-02-b7-pdej-vegan"
+    },
+    {
+      "id": "pd113",
+      "name": "Polenta crémeuse aux champignons et soja texturé",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 15
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "soja_texture",
+          "qty": 48,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "polenta",
+          "qty": 59,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "lait_coco",
+          "qty": 75,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "champignons",
+          "qty": 90,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Couvre le soja texturé d'eau bouillante salée, laisse-le gonfler 5 minutes, puis presse-le entre tes mains pour l'essorer.",
+        "Émince les champignons et fais-les saisir 4 minutes à feu vif sans les remuer au début, pour qu'ils colorent au lieu de rendre leur eau.",
+        "Ajoute le soja texturé essoré dans la poêle, laisse-le dorer 3 minutes, sale et poivre.",
+        "Porte le lait de coco allongé de son volume d'eau à frémissement, verse la polenta en pluie et remue sans arrêt 5 minutes jusqu'à ce qu'elle épaississe.",
+        "Verse la polenta dans un bol creux et couronne-la du mélange champignons et soja texturé."
+      ],
+      "why": "Le soja texturé porte la protéine, la polenta reste digeste au réveil.",
+      "macros_per_serving": {
+        "kcal": 540.3,
+        "protein": 32.9,
+        "carbs": 62.9,
+        "fat": 16.3
+      },
+      "wave": "2026-08-02-b7-pdej-vegan"
+    },
+    {
+      "id": "pd114",
+      "name": "Tofu brouillé au quinoa et courgette",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "recup_jour_repos": true,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 20
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "tofu_ferme",
+          "qty": 119,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "quinoa",
+          "qty": 94,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "creme_soja",
+          "qty": 14,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "courgette",
+          "qty": 100,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Rince le quinoa sous l'eau froide et fais-le cuire 13 minutes dans deux fois son volume d'eau salée, à couvert.",
+        "Râpe grossièrement la courgette et presse-la dans un torchon pour en retirer l'eau.",
+        "Écrase le tofu à la fourchette en morceaux irréguliers, sale, poivre et fais-le revenir 5 minutes à feu vif sans trop remuer.",
+        "Ajoute la courgette râpée et poursuis 3 minutes, jusqu'à ce qu'elle perde son croquant.",
+        "Verse la crème de soja hors du feu et mélange : elle lie le brouillé sans le détremper.",
+        "Égrène le quinoa à la fourchette et sers-le sous le tofu brouillé."
+      ],
+      "why": "Le tofu et le quinoa se complètent sur les acides aminés essentiels.",
+      "macros_per_serving": {
+        "kcal": 549.7,
+        "protein": 30,
+        "carbs": 60.1,
+        "fat": 18.2
+      },
+      "wave": "2026-08-02-b7-pdej-vegan"
+    },
+    {
+      "id": "pd115",
+      "name": "Nouilles de riz sautées au tofu fumé",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 15
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "tofu_fume",
+          "qty": 157,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "nouilles_riz",
+          "qty": 65,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "creme_soja",
+          "qty": 10,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "legumes_wok",
+          "qty": 100,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Plonge les nouilles de riz dans un grand volume d'eau bouillante, coupe le feu et laisse-les gonfler 4 minutes, puis égoutte et rince à l'eau froide.",
+        "Coupe le tofu fumé en bâtonnets et fais-les dorer 4 minutes à feu vif dans une poêle très chaude, sans les bouger trop souvent.",
+        "Ajoute les légumes wok et saute 3 minutes à feu vif : ils doivent rester fermes.",
+        "Verse les nouilles égouttées dans la poêle, mélange 1 minute pour les réchauffer, sale et poivre.",
+        "Retire du feu, ajoute la crème de soja et mélange une dernière fois pour enrober."
+      ],
+      "why": "Un petit-déjeuner salé complet, riche en protéines et sans gluten.",
+      "macros_per_serving": {
+        "kcal": 539.9,
+        "protein": 30,
+        "carbs": 62.1,
+        "fat": 17.3
+      },
+      "wave": "2026-08-02-b7-pdej-vegan"
+    },
+    {
+      "id": "pd116",
+      "name": "Riz complet au tempeh et brocoli",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "recup_jour_repos": true,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 25
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "tempeh",
+          "qty": 141,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "riz_complet",
+          "qty": 63,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "huile_olive",
+          "qty": 10,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "brocoli",
+          "qty": 100,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Fais cuire le riz complet 20 minutes dans un grand volume d'eau salée, puis égoutte-le.",
+        "Détaille le brocoli en petits bouquets et fais-le cuire 5 minutes à la vapeur, au-dessus du riz si tu as un panier.",
+        "Coupe le tempeh en cubes et fais-les dorer 5 minutes dans l'huile d'olive chaude, en les retournant sur chaque face.",
+        "Ajoute le brocoli dans la poêle, sale, poivre et laisse colorer 2 minutes.",
+        "Sers le riz en bol, garni du tempeh et du brocoli, et arrose du jus de cuisson de la poêle."
+      ],
+      "why": "Le riz complet et le tempeh forment un ensemble protéique complet et rassasiant.",
+      "macros_per_serving": {
+        "kcal": 563.8,
+        "protein": 30,
+        "carbs": 58.2,
+        "fat": 18.8
+      },
+      "wave": "2026-08-02-b7-pdej-vegan"
+    },
+    {
+      "id": "pd117",
+      "name": "Galettes de riz garnies d'edamame écrasés",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 15
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "edamame",
+          "qty": 218,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "galette_riz",
+          "qty": 49,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "beurre_amande",
+          "qty": 10,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "carotte",
+          "qty": 80,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Fais cuire les edamame 5 minutes dans l'eau bouillante salée, égoutte-les et laisse-les tiédir 2 minutes.",
+        "Écrase-les grossièrement à la fourchette avec du sel et du poivre, en gardant des morceaux entiers.",
+        "Râpe la carotte finement et mélange-la à l'écrasé d'edamame.",
+        "Tartine les galettes de riz de purée d'amande en couche fine.",
+        "Répartis l'écrasé d'edamame et de carotte sur les galettes et sers aussitôt, avant qu'elles ne ramollissent."
+      ],
+      "why": "Une garniture protéinée sur une base sans gluten, prête en quinze minutes.",
+      "macros_per_serving": {
+        "kcal": 546.3,
+        "protein": 30.9,
+        "carbs": 62.8,
+        "fat": 18
+      },
+      "wave": "2026-08-02-b7-pdej-vegan"
+    },
+    {
+      "id": "pd118",
+      "name": "Châtaigne fondante au soja texturé",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "recup_jour_repos": true,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 20
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "soja_texture",
+          "qty": 54,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "chataigne",
+          "qty": 98,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "lait_coco",
+          "qty": 73,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "haricots_verts",
+          "qty": 90,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Couvre le soja texturé d'eau bouillante salée, laisse-le gonfler 5 minutes, puis essore-le en le pressant.",
+        "Fais cuire les haricots verts 8 minutes à la vapeur, ils doivent rester fermes sous la dent.",
+        "Écrase grossièrement les châtaignes à la fourchette et fais-les chauffer 3 minutes dans le lait de coco, à feu doux.",
+        "Fais dorer le soja texturé 4 minutes à feu vif dans une poêle chaude, sale et poivre.",
+        "Mélange les châtaignes au lait de coco avec les haricots verts, dresse en assiette creuse et couronne du soja texturé doré."
+      ],
+      "why": "La châtaigne apporte des glucides doux, le soja texturé la charge protéique.",
+      "macros_per_serving": {
+        "kcal": 545.6,
+        "protein": 33,
+        "carbs": 59.1,
+        "fat": 16.5
+      },
+      "wave": "2026-08-02-b7-pdej-vegan"
+    },
+    {
+      "id": "pd119",
+      "name": "Millet doré au tofu et asperges",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 20
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "tofu_ferme",
+          "qty": 122,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "millet",
+          "qty": 77,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "graines_courge",
+          "qty": 10,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "asperges",
+          "qty": 90,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Fais revenir le millet sec 2 minutes à sec dans une casserole, jusqu'à ce qu'il sente le grillé, puis couvre de deux fois et demie son volume d'eau salée et cuis 15 minutes à couvert.",
+        "Coupe le tofu en cubes et les asperges en tronçons de trois centimètres.",
+        "Fais dorer les cubes de tofu 5 minutes à feu vif, sur toutes leurs faces, sale et poivre.",
+        "Ajoute les asperges et poursuis 4 minutes : elles doivent rester croquantes.",
+        "Concasse les graines de courge au couteau et parsème-les sur le millet dressé avec le tofu et les asperges."
+      ],
+      "why": "Le millet grillé change la texture du matin sans sortir de la cible protéique.",
+      "macros_per_serving": {
+        "kcal": 540.8,
+        "protein": 30,
+        "carbs": 62.1,
+        "fat": 18.6
+      },
+      "wave": "2026-08-02-b7-pdej-vegan"
+    },
+    {
+      "id": "pd120",
+      "name": "Semoule aux poivrons et seitan doré",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "recup_jour_repos": false,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 15
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "seitan",
+          "qty": 114,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "semoule_couscous",
+          "qty": 72,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "huile_olive",
+          "qty": 12,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "poivron",
+          "qty": 70,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "oignon",
+          "qty": 40,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Verse la semoule dans un saladier, couvre-la d'un volume égal d'eau bouillante salée, filme et laisse gonfler 5 minutes.",
+        "Émince l'oignon et coupe le poivron en dés pendant que la semoule gonfle.",
+        "Fais chauffer l'huile d'olive et fais-y revenir l'oignon 2 minutes, jusqu'à ce qu'il devienne translucide.",
+        "Ajoute le poivron et le seitan coupé en dés, monte le feu et laisse colorer 5 minutes en remuant peu.",
+        "Égrène la semoule à la fourchette, verse le contenu de la poêle dessus et mélange, sale et poivre."
+      ],
+      "why": "Le seitan est l'ancre végétale la plus dense en protéines pour un matin pressé.",
+      "macros_per_serving": {
+        "kcal": 544.3,
+        "protein": 33,
+        "carbs": 62.8,
+        "fat": 16.2
+      },
+      "wave": "2026-08-02-b7-pdej-vegan"
+    },
+    {
+      "id": "pd121",
+      "name": "Champignons rôtis et seitan sur pain complet",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "recup_jour_repos": true,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 15
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "seitan",
+          "qty": 83,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "pain_complet",
+          "qty": 118,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "tahini",
+          "qty": 22,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "champignons",
+          "qty": 80,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Coupe les champignons en quartiers et fais-les saisir 5 minutes à feu vif sans les remuer au début, pour qu'ils rôtissent au lieu de bouillir.",
+        "Émince le seitan et ajoute-le dans la poêle pour 3 minutes, jusqu'à ce qu'il colore.",
+        "Détends le tahini avec deux cuillères d'eau et une pincée de sel, jusqu'à obtenir une crème lisse.",
+        "Fais griller les tranches de pain complet.",
+        "Nappe le pain de crème de tahini, répartis les champignons et le seitan par-dessus, poivre généreusement."
+      ],
+      "why": "Le tahini apporte les lipides du repas et lie l'ensemble sans cuisson.",
+      "macros_per_serving": {
+        "kcal": 543,
+        "protein": 32.9,
+        "carbs": 58.7,
+        "fat": 16.1
+      },
+      "wave": "2026-08-02-b7-pdej-vegan"
+    },
+    {
+      "id": "pd122",
+      "name": "Pita complète au tempeh et crudités",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "recup_jour_repos": true,
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 15
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "tempeh",
+          "qty": 138,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "pain_pita_complet",
+          "qty": 95,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "huile_olive",
+          "qty": 10,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "salade_verte",
+          "qty": 40,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "tomate",
+          "qty": 60,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Coupe le tempeh en lamelles et fais-les dorer 6 minutes dans l'huile d'olive, à feu moyen, en les retournant à mi-cuisson.",
+        "Réchauffe la pita 2 minutes dans une poêle sèche, puis ouvre-la en deux pour former une poche.",
+        "Coupe la tomate en dés et cisèle la salade verte en lanières.",
+        "Sale et poivre les lamelles de tempeh encore chaudes.",
+        "Garnis la pita de salade, de tomate et de tempeh, et arrose du reste d'huile de la poêle."
+      ],
+      "why": "Format nomade : la pita se mange en marchant sans perdre la cible protéique.",
+      "macros_per_serving": {
+        "kcal": 559.5,
+        "protein": 30.1,
+        "carbs": 59.9,
+        "fat": 18.2
+      },
+      "wave": "2026-08-02-b7-pdej-vegan"
     },
     {
       "id": "col80",

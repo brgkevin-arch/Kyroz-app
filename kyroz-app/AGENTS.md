@@ -75,12 +75,12 @@ qu'ils étaient périmés.
 | Réglages inertes | **aucun** — les 13 réglages réglables depuis l'UI changent tous le plan servi (recettes et/ou portions), vérifié un par un | `npm run mesure:reglages` |
 | Reroll (« Régénérer mon plan ») | 1ers repas qui changent : **repetitive 51 % · balanced 78 % · max 83 %** (13,7 % pour tous avant A21) | `npm run mesure:reroll` |
 | Anti-doublons | R1 81 · R2 70 · R4 14 · R5 17 · R7 0 — **figés par un test**, inchangés par B6 | `npm run check:doublons` |
-| Sous le seuil R8 | ⚠️ petit-déj **37/110** · repas complets **74/270** · collation **3/86** — chantier B7 (D19), **commandé le 2026-08-02** : 3 briefs dans `Recette/lots/` | `npm run mesure:seuils` |
-| Ce que ça coûte au SERVICE | ces 114 recettes sous le seuil fournissent **935 repas servis sur 10 752 (8,7 %)** — la question était ouverte depuis D19, elle est répondue | `npm run mesure:vivier` |
-| Vivier vu par UN utilisateur | croisement gabarit × **régime** × créneau. Les 15 cellules les plus pauvres en familles sont TOUTES vegan/vegan+SG. Pire : collation · F 55 sèche · vegan+SG = **3 recettes, 2 familles** (86 au catalogue) | idem |
-| Moyenne R8 par créneau | petit-déj **8,27/12** · repas complets **8,51** · collation **7,38** (8,28 / 8,53 / 7,41 avant A25 · 7,62 avant D18 · 7,19 avant B6 · 4,52 avant B5) | idem |
-| Vegan | petit-déj 44/110 · repas 79/270 · collation **43/86** — comptage CATALOGUE (`restrictions_ok`), stable | compter `restrictions_ok` par créneau |
-| Vegan + sans gluten | petit-déj 33 · repas 42 · collation **34** — idem, stable | idem |
+| Sous le seuil R8 | ⚠️ petit-déj **37/122** · repas complets **73/270** · collation **5/86** — chantier B7 (D19), **lot 1 sur 3 livré** (12 petits-déj végétaux) | `npm run mesure:seuils` |
+| Ce que ça coûte au SERVICE | **779 repas servis sur 10 752 (7,2 %)** viennent d'une recette sous le seuil — 935 (8,7 %) avant B7-pdej | `npm run mesure:vivier` |
+| Vivier vu par UN utilisateur | croisement gabarit × **régime** × créneau. Les cellules les plus pauvres en familles sont TOUTES vegan/vegan+SG, et désormais **toutes en collation ou en repas complet** — B7-pdej a vidé le créneau petit-déj de ce classement. Pire : collation · F 55 sèche · vegan+SG = **3 recettes, 2 familles** | idem |
+| Moyenne R8 par créneau | petit-déj **8,56/12** · repas complets **8,55** · collation **7,09** (8,27 / 8,51 / 7,38 avant B7-pdej · 7,62 avant D18 · 7,19 avant B6 · 4,52 avant B5) | idem |
+| Vegan | petit-déj **56/122** · repas 79/270 · collation 43/86 — comptage CATALOGUE (`restrictions_ok`) | compter `restrictions_ok` par créneau |
+| Vegan + sans gluten | petit-déj **42/122** · repas 42 · collation 34 | idem |
 
 **Les six chantiers du 2026-08-02, dans l'ordre où ils se sont enchaînés** — chacun a sa
 fiche : **D14** (lot B4, 32 recettes à l'enveloppe corrigée), **D15** (lot B5, 23
