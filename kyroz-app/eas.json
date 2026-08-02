@@ -40,7 +40,13 @@
   },
   "submit": {
     "production": {
-      "ios": {},
+      "ios": {
+        "ascAppId": "6796427402",
+        "appleTeamId": "8F2ZSM5NSY",
+        "ascApiKeyPath": "../../.eas-credentials/asc-api-key.p8",
+        "ascApiKeyId": "4X64252VGX",
+        "ascApiKeyIssuerId": "df98f779-6aaf-4339-9e78-c7dddfe9f302"
+      },
       "android": {
         "track": "internal"
       }
