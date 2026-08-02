@@ -1192,6 +1192,24 @@ produit en suspens — il ne reste qu'à coder.
      est un module NATIF : l'OTA ne peut pas le livrer (`CLAUDE.md` §2). Le
      `ios/` local doit être régénéré (`npx expo prebuild` puis `pod install`) — il
      n'est pas versionné.
+     ⚠️ **Cette étape ne peut PAS passer avant la 2 et la 3** : un binaire construit
+     sans les clés ne peut rien encaisser, et le bac à sable (étape 5) n'aurait rien
+     à tester. Bâtir avant, c'est brûler une revue store pour rien.
+     ✅ **Préparé le 2026-08-02 — `npx expo-doctor` a trouvé une vraie dette de
+     build** : `expo-font`, requis par `@expo/vector-icons`, n'était **pas déclaré en
+     dépendance directe** ni enregistré comme config plugin. Il était présent en
+     transitif — donc le web n'a jamais bronché — mais expo-doctor l'annonce comme
+     un risque de plantage **hors Expo Go**, c'est-à-dire exactement dans le binaire
+     qu'on s'apprête à envoyer en revue. Ajouté (`package.json` + `app.json`), zéro
+     nouveau paquet dans le lock, 931 tests verts, `tsc` propre, web relu (icônes
+     comprises) sans erreur console.
+     ⚠️ **Reste 9 paquets en retard de version** (`expo` 56.0.12 vs ~56.0.18,
+     `react-native-screens` 4.25.2 vs ~4.26.0, 7 correctifs). `npx expo install --fix`
+     **a échoué** sur un cache npm cassé (`EACCES` / `EEXIST` dans `~/.npm/_cacache`,
+     probablement deux `npm` concurrents). L'état a été remis d'aplomb à la main —
+     `package.json` et le lock sont cohérents avec ce qui est réellement installé.
+     ➡️ À reprendre avant le build : `npm cache verify` puis `npx expo install --fix`.
+     Ce n'est pas bloquant aujourd'hui, mais EAS le signalera.
   5. **Tester un achat en bac à sable** (compte sandbox Apple) — et y prouver les
      **trois** choses que seul le bac à sable peut prouver : l'achat débloque, la
      **restauration** fonctionne (sans elle, rejet Apple 3.1.1), et l'abonnement
