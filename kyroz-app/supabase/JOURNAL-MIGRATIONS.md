@@ -23,6 +23,44 @@ un `200` prouve que l'upsert du profil ne peut pas être rejeté pour colonne ma
 
 ## État vérifié
 
+### 2026-08-02 — ✅ TOUT est appliqué, `birth_date` comprise
+
+⚠️ **Cette entrée existe parce qu'une session a annoncé au fondateur que
+`2026-08-02_profiles_birth_date.sql` était « en attente », SANS l'avoir mesurée.** Elle
+l'était déjà. Une migration ne se déclare jamais en attente sur la foi d'un fichier
+présent dans le dépôt : la seule preuve est la réponse de PostgREST.
+
+Mesuré contre la prod (clé anonyme, lecture seule, aucun compte créé) :
+
+| Contrôle | Résultat |
+|---|---|
+| `birth_date` | `HTTP 200` → **présente** |
+| Les **37 colonnes** de `PROFILE_COLS` + `id`, en une requête | `HTTP 200` → aucune manquante |
+| Les **6 tables** | `HTTP 200` chacune |
+| Témoin négatif : une colonne inventée | `HTTP 400` → la mesure discrimine bien |
+
+Le témoin négatif n'est pas décoratif : sans lui, un `200` obtenu pour une autre raison
+(URL mal formée, filtre ignoré) se lirait comme une preuve. **Toujours demander une
+colonne qui n'existe pas dans la même passe.**
+
+Les **15** migrations de `supabase/migrations/` sont donc toutes reflétées en prod à
+cette date.
+
+**Depuis le 2026-08-02, tout ceci tient en une commande** — c'est le vrai correctif :
+une vérification qu'on saute est une vérification qui n'existe pas.
+
+```bash
+npm run check:migrations
+```
+
+Elle contrôle le témoin négatif D'ABORD (une colonne inventée doit répondre `400`, sinon
+elle s'arrête : sans ça un `200` ne prouve rien), puis les 6 tables, puis les 37 colonnes
+de `PROFILE_COLS` **en une seule requête** — exactement ce que fait `pushProfile`. Si le
+lot échoue, elle isole les colonnes fautives et nomme la migration à jouer.
+Lecture seule, clé anonyme, aucun compte créé.
+
+---
+
 ### 2026-07-31 — ✅ TOUT est appliqué, y compris `calorie_bank`
 
 Vérifié **par mesure contre la prod**, pas par lecture des fichiers :

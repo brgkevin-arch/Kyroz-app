@@ -705,9 +705,15 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
   Confettis à positions FIXES : `Math.random()` rendrait l'animation intestable.
   ⚠️ Ce n'est pas de la gamification de compétition (§5) : rien n'est gagné ni comparé.
   Et c'est le jour où la dépense estimée bouge toute seule — autant que ça se voie.
-  ⚠️ **MIGRATION SUPABASE À JOUER** : `supabase/migrations/2026-08-02_profiles_birth_date.sql`.
-  Sans elle, `birth_date` ne se synchronise pas (le filet `PROFILE_COLS_LAST_MIGRATION`
-  limite la casse à cette seule colonne — le reste du profil continue de passer).
+  ✅ **MIGRATION JOUÉE** — `supabase/migrations/2026-08-02_profiles_birth_date.sql`,
+  **vérifiée contre la prod le 2026-08-02** (`birth_date` → `HTTP 200`, les 37 colonnes
+  de `PROFILE_COLS` en une requête → `200`, témoin négatif → `400`). Détail et commande
+  reproductible : `supabase/JOURNAL-MIGRATIONS.md`.
+  ⚠️ **Cette ligne a dit « À JOUER » alors qu'elle l'était déjà, et une session l'a
+  répété au fondateur sans mesurer.** Une migration ne se déclare pas en attente parce
+  que son fichier est dans le dépôt : le dépôt ne sait rien de la prod. La seule preuve
+  est la réponse de PostgREST — c'est une commande d'une ligne, il n'y a aucune excuse
+  à ne pas la lancer avant d'annoncer un blocage.
   18 tests ajoutés, **830 au total**. Vérifié à l'écran : saisie, date impossible,
   refus < 18 ans, repli des comptes sans date, animation, et non-rejeu au rechargement.
 
@@ -917,7 +923,9 @@ produit en suspens — il ne reste qu'à coder.
   l'écart est repris sur les autres jours du plan, la SEMAINE garde son total.
   `lib/calorieBank.ts` (pur, 23 tests) + câblage `buildLocalPlan` + éditeur dans le
   Profil. Protéines pleines tous les jours, aucun jour sous le plancher.
-  ⚠️ **MIGRATION À JOUER** : `supabase/migrations/2026-07-30_profiles_calorie_bank.sql`.
+  ✅ **MIGRATION JOUÉE** : `supabase/migrations/2026-07-30_profiles_calorie_bank.sql`
+  — `calorie_bank` répond `HTTP 200` (revérifié le 2026-08-02). A1 le prouvait déjà
+  depuis le 2026-07-31 ; cette ligne était restée à « À JOUER ».
   ⚠️ **Limite mesurée, à connaître** : le plancher journalier de la banque est
   `max(BMR, filet absolu)` et NON le plancher d'énergie disponible — avec ce dernier,
   la marge empruntable était **nulle pour tout profil en déficit** (chez Marc, 82 kg,
