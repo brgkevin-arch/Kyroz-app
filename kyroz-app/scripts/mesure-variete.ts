@@ -29,7 +29,12 @@ import { recipeFiberPerPortion } from '../lib/fiber';
 import { PROFILS_REF, type Gabarit } from './mesure-couverture';
 import type { DietaryRestriction, Recipe, UserProfile, VarietyPreference } from '../lib/types';
 
-const SEEDS = [0, 1, 2, 3];
+// Tirages audités. Par défaut 0→3 (un plan canonique + trois régénérations), ce sur
+// quoi sont calibrés les chiffres de référence. `--seeds=0` isole le plan CANONIQUE,
+// `--seeds=1,2,3` les seules régénérations — utile pour vérifier que le premier plan
+// servi à un nouvel utilisateur tient la comparaison (mesuré le 2026-08-02 : non).
+const SEEDS = ((process.argv.find((a) => a.startsWith('--seeds=')) ?? '').split('=')[1] || '0,1,2,3')
+  .split(',').map((s) => parseInt(s, 10)).filter((n) => Number.isFinite(n));
 const VARIETE = ((process.argv.find((a) => a.startsWith('--variete=')) ?? '').split('=')[1] || 'max') as VarietyPreference;
 const REGIMES: { nom: string; r: DietaryRestriction[] }[] = [
   { nom: 'aucun', r: [] },

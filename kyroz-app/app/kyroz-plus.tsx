@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -7,8 +7,10 @@ import { StatusBar } from 'expo-status-bar';
 import { useTheme, ThemePalette, Spacing, Radius } from '../constants/theme';
 import { useLayout } from '../constants/layout';
 import { Card, OptionCard, PrimaryButton, SectionLabel } from '../components/ui';
+import { useDialog } from '../components/Dialog';
 import { usePremium } from '../hooks/usePremium';
-import { PREMIUM_PRICES, PREMIUM_PRICES_ARE_LOCAL_FALLBACK, annualSavingPct, paywallBanner } from '../lib/premium';
+import { PREMIUM_PRICES, annualSavingPct, paywallBanner, withStorePrices, type StorePrices } from '../lib/premium';
+import { buy, fetchStorePrices, purchasesConfigured, restore } from '../lib/purchases';
 import { DISCLAIMER } from '../constants/legal';
 
 // ── Écran Kyroz+ — route racine /kyroz-plus ──────────────────────────────────
@@ -33,12 +35,12 @@ import { DISCLAIMER } from '../constants/legal';
 // exemple personnalisé — lequel, calculé honnêtement, décourage plus qu'il ne
 // convainc.
 //
-// ⚠️ CE QUI RESTE À FAIRE LE JOUR DU CÂBLAGE REVENUECAT (cf. AGENTS.md B2) :
-//   1. `useEntitlement()` dans hooks/usePremium.ts → `Purchases.getCustomerInfo()`
-//   2. les prix viennent du store (`priceString`, LOCALISÉ), pas de PREMIUM_PRICES
-//   3. brancher `onSubscribe` et « Restaurer mes achats » sur le SDK
-// Le web ne peut pas encaisser (`react-native-purchases` n'existe pas côté
-// navigateur) : l'écran le DIT au lieu d'afficher un bouton qui échouerait.
+// ✅ REVENUECAT EST CÂBLÉ depuis le 2026-08-02 (cf. AGENTS.md B2) : entitlement,
+// prix localisés, achat et restauration passent par `lib/purchases.ts`. Le module
+// reste DORMANT tant que `EXPO_PUBLIC_REVENUECAT_IOS_KEY` / `_ANDROID_KEY` n'est
+// pas posée — dans ce cas les boutons restent désactivés et l'écran le dit.
+// Le web ne peut pas encaisser (Kyroz vend par les stores, cf. CLAUDE.md §1) :
+// l'écran le DIT au lieu d'afficher un bouton qui échouerait.
 
 const BRIQUES = [
   {
@@ -74,14 +76,82 @@ export default function KyrozPlusScreen() {
   const s = useMemo(() => makeStyles(t), [t]);
   const layout = useLayout();
   const router = useRouter();
+  const dialog = useDialog();
   const { reason } = usePremium();
   const [plan, setPlan] = useState<'monthly' | 'annual'>('monthly');
+  const [prixStore, setPrixStore] = useState<StorePrices>({});
+  const [enCours, setEnCours] = useState(false);
 
   const banner = paywallBanner(reason);
-  const economie = annualSavingPct();
   const enVente = reason === 'locked';
   const surWeb = Platform.OS === 'web';
   const store = Platform.OS === 'android' ? 'Google Play' : 'App Store';
+  const encaissable = purchasesConfigured();
+
+  // Prix RÉELS du store, localisés. Tant qu'ils n'arrivent pas (dormant, offre non
+  // publiée, réseau), on garde les tarifs français ET on le dit — cf. `withStorePrices`.
+  const { plans, fallback } = useMemo(() => withStorePrices(prixStore), [prixStore]);
+  const economie = useMemo(() => annualSavingPct(plans), [plans]);
+
+  useEffect(() => {
+    if (!enVente || !encaissable) return;
+    let vivant = true;
+    const ids = {
+      monthly: PREMIUM_PRICES.find((p) => p.id === 'monthly')!.storeProductId,
+      annual: PREMIUM_PRICES.find((p) => p.id === 'annual')!.storeProductId,
+    };
+    fetchStorePrices(ids).then((p) => { if (vivant) setPrixStore(p); });
+    return () => { vivant = false; };
+  }, [enVente, encaissable]);
+
+  const choisi = plans.find((p) => p.id === plan) ?? plans[0];
+
+  // ⚠️ `useDialog` et PAS `Alert.alert` : ce dernier est une fonction VIDE sur
+  // react-native-web (CLAUDE.md §11). Un achat échoué y serait resté MUET.
+  const acheter = async () => {
+    if (enCours) return;
+    setEnCours(true);
+    const r = await buy(choisi.storeProductId);
+    setEnCours(false);
+    if (r.statut === 'annule') return;          // l'utilisateur a renoncé : rien à dire
+    if (r.statut === 'ok') {
+      await dialog.notify({
+        title: r.entitled ? 'Kyroz+ est actif' : 'Achat enregistré',
+        message: r.entitled
+          ? 'Tes trois outils sont débloqués. Le renouvellement se gère dans ton compte ' + store + '.'
+          : "L'achat est passé mais le droit n'est pas encore actif. Il le sera d'ici quelques instants.",
+      });
+      return;
+    }
+    await dialog.notify({
+      title: "L'achat n'a pas abouti",
+      message: r.statut === 'indisponible'
+        ? "L'abonnement n'est pas disponible sur cet appareil pour l'instant. Rien ne t'a été débité."
+        : `${r.message}\n\nRien ne t'a été débité.`,
+    });
+  };
+
+  const restaurer = async () => {
+    if (enCours) return;
+    setEnCours(true);
+    const r = await restore();
+    setEnCours(false);
+    if (r.statut === 'ok') {
+      await dialog.notify({
+        title: r.entitled ? 'Abonnement retrouvé' : 'Aucun abonnement à restaurer',
+        message: r.entitled
+          ? 'Ton Kyroz+ est de nouveau actif sur cet appareil.'
+          : `Aucun achat Kyroz+ n'est associé à ce compte ${store}.`,
+      });
+      return;
+    }
+    await dialog.notify({
+      title: 'Restauration impossible',
+      message: r.statut === 'echec'
+        ? r.message
+        : "Les achats ne sont pas disponibles sur cet appareil.",
+    });
+  };
 
   return (
     <SafeAreaView style={s.safe} edges={['top']}>
@@ -126,7 +196,7 @@ export default function KyrozPlusScreen() {
           <View style={s.block}>
             <SectionLabel t={t}>Choisis ta formule</SectionLabel>
             <View style={{ gap: 10, marginTop: 10 }}>
-              {PREMIUM_PRICES.map((p) => (
+              {plans.map((p) => (
                 <OptionCard
                   key={p.id}
                   t={t}
@@ -151,12 +221,29 @@ export default function KyrozPlusScreen() {
               </Card>
             ) : (
               <View style={{ marginTop: 14, gap: 12 }}>
-                {/* ⚠️ Inerte tant que RevenueCat n'est pas branché — et cet état
-                    est inatteignable aujourd'hui (PAYWALL_LAUNCH === null). */}
-                <PrimaryButton t={t} label="S'abonner" onPress={() => {}} disabled />
-                <TouchableOpacity onPress={() => {}} activeOpacity={0.7} disabled>
-                  <Text style={s.lienSecondaire}>Restaurer mes achats</Text>
+                {/* Désactivé tant que la clé RevenueCat n'est pas posée. On le DIT
+                    plus bas au lieu de laisser un bouton mort sans explication. */}
+                <PrimaryButton
+                  t={t}
+                  label={enCours ? 'Un instant…' : "S'abonner"}
+                  onPress={acheter}
+                  disabled={!encaissable || enCours}
+                />
+                <TouchableOpacity
+                  onPress={restaurer}
+                  activeOpacity={0.7}
+                  disabled={!encaissable || enCours}
+                >
+                  <Text style={[s.lienSecondaire, (!encaissable || enCours) && { opacity: 0.5 }]}>
+                    Restaurer mes achats
+                  </Text>
                 </TouchableOpacity>
+                {!encaissable && (
+                  <Text style={s.mentions}>
+                    L'abonnement n'est pas encore ouvert sur cette version de l'app. Tes trois
+                    outils restent actifs en attendant.
+                  </Text>
+                )}
               </View>
             )}
 
@@ -166,7 +253,7 @@ export default function KyrozPlusScreen() {
               sauf si tu le désactives au moins 24 h avant. Tu peux le gérer ou l'arrêter à tout
               moment dans les réglages de ton compte {store}.
             </Text>
-            {PREMIUM_PRICES_ARE_LOCAL_FALLBACK && (
+            {fallback && (
               <Text style={s.mentions}>
                 Les montants ci-dessus sont les tarifs français. Le prix exact de ton pays
                 s'affiche au moment de l'achat, avant toute validation.

@@ -99,8 +99,14 @@ describe('grandfatheredNotice', () => {
 
 describe('tarifs Kyroz+', () => {
   it('les identifiants produits correspondent à ceux déclarés dans les stores', () => {
+    // ⚠️ Ce test verrouillait `kyroz_plus_annual` — une valeur INVENTÉE par le code du
+    // paywall le 2026-08-01, alors que les produits avaient été créés dans App Store
+    // Connect le 2026-07-30 sous `kyroz_plus_yearly` (`STORE-RELEASE.md` §4,
+    // `MONETISATION.md` §A). Le test protégeait donc le bug au lieu du produit.
+    // La source de vérité est le DASHBOARD, jamais le code : ces chaînes se recopient
+    // depuis App Store Connect, elles ne se choisissent pas ici.
     expect(PREMIUM_PRICES.map((p) => p.storeProductId)).toEqual([
-      'kyroz_plus_monthly', 'kyroz_plus_annual',
+      'kyroz_plus_monthly', 'kyroz_plus_yearly',
     ]);
   });
 

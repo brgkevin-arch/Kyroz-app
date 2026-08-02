@@ -78,6 +78,28 @@ const FIBER_SELECT_W_VARIANT = 0.014;
 // du panier. Mesuré à 0 : les quasi-doublons passaient de 27,9 % à 31,7 % des semaines.
 // Balayage : 0.01 → 28,3 % · 0.02 → 26,7 % · 0.04 → 23,8 % · 0.07 → 24,2 % (plateau).
 const FAMILY_SELECT_W_VARIANT = 0.04;
+// La MÊME pénalité, appliquée au PLAN CANONIQUE (seed 0) — plus douce.
+//
+// Pourquoi elle existe (2026-08-02) : la famille ne pesait sur le score QUE lors d'un
+// reroll. Conséquence mesurée, et elle est à l'envers — le premier plan qu'un nouvel
+// utilisateur reçoit était le PIRE des trois sur la variété : 45,0 % de ses semaines
+// contenaient au moins deux assiettes jumelles (même couple protéine × féculent),
+// contre 20,0 % pour un plan régénéré. Autrement dit, appuyer sur « Régénérer »
+// réparait un défaut de la première impression. Les familles en cause sont
+// massivement végétales (yaourt de soja, tofu, seitan, tempeh) — même trou de
+// catalogue que celui déjà consigné en D19/B7.
+//
+// Pourquoi 0.03 et pas 0.04 comme sur le reroll. Balayage au seed 0, panel de
+// référence (12 profils × 5 régimes) :
+//   0 (avant) → 45,0 % · 0.01 → 31,7 % · 0.02 → 23,3 % · 0.03 → 23,3 % · 0.04 → 16,7 %
+// 0.04 descend plus bas, mais fait apparaître 1 repas à drapeau sur 1 680 — une
+// collation vegan+SG en sèche, hors cible calorique, SANS alternative propre dans la
+// bande (limite du catalogue, vérifiée). Le canonique est à ZÉRO drapeau aujourd'hui ;
+// c'est le tout premier plan servi, et on ne l'ouvre pas à un repas hors cible pour
+// 6,6 points de variété. 0.03 prend l'essentiel du gain sans rien dégrader :
+// écart calorique 0,25 → 0,27 % du jour (tolérance 5 %), fibres en sèche inchangées
+// (20,42 g/1 000 kcal), aucun créneau monopolisé. Vérifiable : `npm run mesure:reglages`.
+const FAMILY_SELECT_W_CANON = 0.03;
 // Pénalité de score par utilisation d'une recette dans la semaine (rotation). Choisi
 // nettement > à la bande la plus large (0.036) pour qu'UNE utilisation suffise à sortir
 // une recette de la bande → rotation dès le lendemain. Ne dégrade PAS la précision :
@@ -595,12 +617,17 @@ function selectMealAdapted(
   const famUse = (c: AdaptedChoice) =>
     famActive ? (familyUsage[families.get(c.recipe.id) ?? ''] ?? 0) : 0;
   const fiberW = fiberStrong ? (seed !== 0 ? FIBER_SELECT_W_VARIANT : FIBER_SELECT_W) : 0;
-  // Sur un reroll, la FAMILLE entre aussi dans le score — même raison que les fibres :
-  // le seed choisit dans le haut du panier, donc la clé de départage « famille la moins
-  // servie » ne suffit plus à empêcher deux assiettes jumelles dans la même semaine.
-  // En pénalisant le score, la famille déjà servie sort du panier au lieu de perdre un
-  // départage. À 0 le reroll rendait 3,8 points de quasi-doublons ; ici il n'en rend rien.
-  const famW = seed !== 0 ? FAMILY_SELECT_W_VARIANT : 0;
+  // La FAMILLE entre dans le SCORE — même raison que les fibres : la clé de départage
+  // « famille la moins servie » (plus bas) ne suffit pas à empêcher deux assiettes
+  // jumelles dans la même semaine. En pénalisant le score, la famille déjà servie sort
+  // du panier au lieu de perdre un départage. À 0 le reroll rendait 3,8 points de
+  // quasi-doublons ; ici il n'en rend rien.
+  // Le poids est PLUS DOUX au plan canonique (cf. FAMILY_SELECT_W_CANON) : le seed y
+  // tire moins large, et le canonique doit rester à zéro repas hors cible.
+  // ⚠️ Avant le 2026-08-02, le canonique ne recevait AUCUNE pénalité de famille — le
+  // premier plan servi était donc le moins varié des trois. C'était l'inverse de ce
+  // qu'on veut d'une première impression.
+  const famW = famActive ? (seed !== 0 ? FAMILY_SELECT_W_VARIANT : FAMILY_SELECT_W_CANON) : 0;
   const effOf = (c: AdaptedChoice) =>
     c.score - fiberW * c.fiber + step * (usage[c.recipe.id] ?? 0) + famW * famUse(c);
   candidates.sort((a, b) => effOf(a) - effOf(b) || a.recipe.id.localeCompare(b.recipe.id));
@@ -713,6 +740,13 @@ function selectMealAdapted(
       seededRank(seed, c.recipe.id) < seededRank(seed, best.recipe.id) ? c : best);
   }
 
+  // Pas de plancher de qualité ici, contrairement au reroll — et c'est MESURÉ, pas
+  // une omission. Essayé le 2026-08-02 : au poids canonique retenu il ne change
+  // strictement rien (23,3 % de quasi-doublons, 0 drapeau, mêmes fibres, avec ou
+  // sans). Il ne rattrapait pas non plus le drapeau apparu à `FAMILY_SELECT_W_VARIANT`
+  // au canonique : ce repas-là (collation vegan+SG en sèche) n'a AUCUNE alternative
+  // propre dans la bande — c'est une limite du catalogue, pas un défaut de sélection.
+  // Un garde-fou qui ne garde rien est du bruit : il a donc été retiré.
   return pickable[0];
 }
 
@@ -770,13 +804,38 @@ export function computeDailyTotals(
 }
 
 /**
+ * Quel tirage servir à la prochaine génération.
+ *
+ * `stored` = le seed enregistré (AsyncStorage `@kyroz:planSeed`), `reroll` = l'appui
+ * sur « Régénérer mon plan ». Une seule règle : **le tirage courant se garde**, et
+ * seul un reroll l'avance.
+ *
+ * ⚠️ Extrait de `app/(tabs)/plan.tsx` le 2026-08-02 parce que la règle y était FAUSSE
+ * et invisible. Toute génération non-reroll y remettait le seed à 0 — or l'auto-refresh
+ * de l'écran Plan en déclenche une dès qu'un réglage change. L'utilisateur qui avait
+ * régénéré jusqu'à obtenir une semaine qui lui plaisait la perdait au réglage suivant :
+ * 92 % de la semaine détruite EN PLUS de ce que le réglage changeait légitimement, et
+ * dans les cas où le réglage ne touchait rien (un aliment évité absent de son plan), il
+ * retombait sur le plan canonique EXACT qu'il venait de rejeter. Mesuré par
+ * `npm run mesure:reglages`.
+ *
+ * Une fonction pure plutôt que trois lignes dans le composant : c'est la seule façon
+ * d'en faire une règle qu'un test tient fermée.
+ */
+export function nextPlanSeed(stored: string | null, reroll: boolean): number {
+  const n = stored === null ? 0 : parseInt(stored, 10);
+  const courant = Number.isFinite(n) && n >= 0 ? n : 0;
+  return courant + (reroll ? 1 : 0);
+}
+
+/**
  * Empreinte des réglages qui INFLUENCENT le plan. Si elle change, le plan est
  * périmé et doit être régénéré (cf. auto-refresh dans l'écran Plan).
  */
 // Version du moteur de génération : à incrémenter quand le scoring/sélection
 // change, pour que les plans EN CACHE se régénèrent automatiquement (la signature
 // change → l'auto-refresh de l'écran Plan rejoue la génération). v2 = lipides cadrés.
-const ENGINE_VERSION = 38; // v38 = rotation par FAMILLE (`FAMILY_FIBER_TOL`) — la composition de la semaine change, un plan en cache servirait l'ancienne rotation ; v37 = lot B6, 7 collations vegan ajoutées (col80–col86) — les plans en cache ne les verraient pas ; v36 = plancher protéique par repas (`PROT_SHARE_FLOOR`) — la répartition intra-journée change, les plans en cache serviraient l’ancienne ; v35 = lot B5, 20 collations réécrites (composition changée sous le même id → les plans en cache serviraient l’ancienne recette) ; v34 = lot B4, 32 recettes à l’enveloppe corrigée (rep251–rep270, pd99–pd110) — les plans en cache ne les verraient pas ; v33 = lot B3, 20 petits-déjeuners (pd79–pd98) — tous les lots commandés sont livrés ; v32 = lot B1-lot4, 20 repas complets — la vague B1 est complète (rep171–rep250) ; v31 = lot B1-lot3, 20 repas complets ; v30 = lot B1-lot2, 20 repas complets ; v29 = lot B1-lot1, 20 repas complets (les plans en cache ne les verraient pas) ; v28 = cible lipidique visée 15 % au-dessus du plancher (A9) — les plans en cache serviraient l'ancienne répartition ; v27 = lot B2, 13 collations légères (les plans en cache ne les verraient pas) ; v26 = banque de calories (les plans en cache ignoraient les écarts déclarés) ; v25 = borne basse de l'ancre protéine 1,0 → 0,5 (les plans en cache servaient l'ancien plancher) ; v24 = 9 recettes différenciées (nettoyage des doublons : composition modifiée) ; v23 = ancre protéine rendue à 8 recettes ; v22 = le temps de prépa ne filtre plus ; v21 = yaourt_grec démappé
+const ENGINE_VERSION = 39; // v39 = la pénalité de FAMILLE s'applique aussi au plan canonique (`FAMILY_SELECT_W_CANON`) — le 1er plan servi passe de 45,0 à 23,3 % de semaines avec quasi-doublon ; un plan en cache servirait encore l'ancienne composition ; v38 = rotation par FAMILLE (`FAMILY_FIBER_TOL`) — la composition de la semaine change, un plan en cache servirait l'ancienne rotation ; v37 = lot B6, 7 collations vegan ajoutées (col80–col86) — les plans en cache ne les verraient pas ; v36 = plancher protéique par repas (`PROT_SHARE_FLOOR`) — la répartition intra-journée change, les plans en cache serviraient l’ancienne ; v35 = lot B5, 20 collations réécrites (composition changée sous le même id → les plans en cache serviraient l’ancienne recette) ; v34 = lot B4, 32 recettes à l’enveloppe corrigée (rep251–rep270, pd99–pd110) — les plans en cache ne les verraient pas ; v33 = lot B3, 20 petits-déjeuners (pd79–pd98) — tous les lots commandés sont livrés ; v32 = lot B1-lot4, 20 repas complets — la vague B1 est complète (rep171–rep250) ; v31 = lot B1-lot3, 20 repas complets ; v30 = lot B1-lot2, 20 repas complets ; v29 = lot B1-lot1, 20 repas complets (les plans en cache ne les verraient pas) ; v28 = cible lipidique visée 15 % au-dessus du plancher (A9) — les plans en cache serviraient l'ancienne répartition ; v27 = lot B2, 13 collations légères (les plans en cache ne les verraient pas) ; v26 = banque de calories (les plans en cache ignoraient les écarts déclarés) ; v25 = borne basse de l'ancre protéine 1,0 → 0,5 (les plans en cache servaient l'ancien plancher) ; v24 = 9 recettes différenciées (nettoyage des doublons : composition modifiée) ; v23 = ancre protéine rendue à 8 recettes ; v22 = le temps de prépa ne filtre plus ; v21 = yaourt_grec démappé
 
 export function profileSignature(p: UserProfile): string {
   // NB : `hidden_recipes` (👎) est VOLONTAIREMENT absent. Un 👎 remplace UN repas
@@ -1428,5 +1487,54 @@ export function resetTracking(profile: UserProfile, plan: MealPlan): MealPlan {
   );
   let next: MealPlan = { ...plan, meals, day_extras: undefined, tracking_date: undefined };
   for (let d = 1; d <= plan.days; d++) next = rebalanceDay(profile, next, d);
+  return next;
+}
+
+/**
+ * Reporte le SUIVI d'un plan sur le plan qui le remplace.
+ *
+ * ⚠️ Corrige un défaut mesuré le 2026-08-02, et c'en est un de JUSTESSE, pas de
+ * confort. `generate()` remplaçait le plan par un `buildLocalPlan` neuf — sans jamais
+ * regarder l'ancien. Or l'auto-refresh de l'écran Plan le déclenche dès qu'un réglage
+ * change, à n'importe quelle heure de la journée. Tout ce que l'utilisateur avait posé
+ * disparaissait : repas marqués « mangé », portions réellement consommées
+ * (`locked_macros`), écarts hors plan (`day_extras`), date de suivi. Mesuré sur le
+ * panel de référence : **1 448 kcal déjà mangées oubliées en moyenne** (2 130 au pire),
+ * après quoi l'app replanifiait une journée PLEINE par-dessus. Pour une app de sèche,
+ * ce n'est pas une gêne — c'est un conseil faux.
+ *
+ * Ce qui est reporté, et pourquoi c'est asymétrique :
+ *  - **mangé** → on garde le repas ENTIER de l'ancien plan. Ce qu'il a avalé est un
+ *    FAIT : la recette, les portions et les macros consommées ne se re-planifient pas.
+ *  - **sauté** → seul le statut est reporté. Le créneau est décidé, mais la recette
+ *    qu'il n'aura pas mangée peut parfaitement changer avec ses nouveaux réglages.
+ *  - `day_extras` et `tracking_date` suivent tels quels.
+ *
+ * Les jours touchés sont recalés (`rebalanceDay`) pour que les repas RESTANTS absorbent
+ * le bon budget — sinon la journée compterait deux fois ce qui a déjà été mangé.
+ *
+ * Composé avec `resetTracking` : reporter une `tracking_date` de la veille est sans
+ * danger, l'écran remet la journée à zéro au changement de date. Ici on ne décide pas
+ * de la péremption, on évite juste la perte.
+ */
+export function carryTracking(profile: UserProfile, ancien: MealPlan | null | undefined, nouveau: MealPlan): MealPlan {
+  if (!ancien?.tracking_date) return nouveau;
+  // Les ids de repas sont `${jour}-${créneau}` : stables d'une génération à l'autre.
+  const parId = new Map(ancien.meals.map((m) => [m.id, m]));
+  const joursTouches = new Set<number>();
+  const meals = nouveau.meals.map((m) => {
+    const av = parId.get(m.id);
+    if (!av?.status) return m;
+    joursTouches.add(m.day);
+    return av.status === 'eaten' ? av : { ...m, status: av.status };
+  });
+  for (const d of Object.keys(ancien.day_extras ?? {})) joursTouches.add(Number(d));
+  if (joursTouches.size === 0) return nouveau;
+  let next: MealPlan = {
+    ...nouveau, meals,
+    day_extras: ancien.day_extras,
+    tracking_date: ancien.tracking_date,
+  };
+  for (const d of joursTouches) if (d >= 1 && d <= next.days) next = rebalanceDay(profile, next, d);
   return next;
 }

@@ -138,9 +138,49 @@ un identifiant enregistré, puis une fiche d'app. Dans cet ordre, sinon le menu
    **1 offering** contenant les deux packages. Récupérer les 2 clés SDK publiques
    (`appl_…` et `goog_…`) — publiques par conception, transmissibles sans risque.
 
-À la fin de l'étape 6, il reste **une seule fonction à écrire** côté code :
-`useEntitlement()` dans `hooks/usePremium.ts`. Tout le reste est déjà en place
-(cf. `lib/premium.ts`, grand-père des comptes existants).
+7. **Poser les deux clés publiques dans EAS.** Elles ne vivent pas dans le dépôt : le
+   build les lit depuis les variables d'environnement du projet EAS.
+   ```
+   npx eas-cli env:create production --name EXPO_PUBLIC_REVENUECAT_IOS_KEY \
+     --value appl_xxxxxxxx --visibility plaintext --type string
+   npx eas-cli env:create production --name EXPO_PUBLIC_REVENUECAT_ANDROID_KEY \
+     --value goog_xxxxxxxx --visibility plaintext --type string
+   ```
+   Répéter avec `preview` pour tester en TestFlight avant la production.
+   ⚠️ **`plaintext` est le bon choix, et ce n'est pas de la négligence** : le préfixe
+   `EXPO_PUBLIC_` fait inliner la valeur EN CLAIR dans le binaire, que la variable soit
+   marquée secrète ou non. N'importe qui peut l'extraire de l'app — c'est prévu, ce sont
+   les clés PUBLIQUES du SDK. La marquer « secrète » ne protégerait rien et laisserait
+   croire le contraire. ⚠️ **La clé SECRÈTE du dashboard, elle, ne doit JAMAIS approcher
+   un build client** ; elle ne sert que côté serveur (webhooks, effacement RGPD).
+   ⚠️ **Rien à poser sur le build web** : il n'encaisse pas (`lib/purchases.web.ts`).
+8. **Vérifier que le build a bien vu les clés** avant de tester un achat : dans l'app,
+   un bouton « S'abonner » actif = `purchasesConfigured()` vrai = clé lue. S'il reste
+   grisé, c'est la clé, pas le store.
+
+✅ **Le code n'attend plus rien — mis à jour le 2026-08-02.** Cette ligne disait qu'il
+restait `useEntitlement()` à écrire : c'est fait, ainsi que l'achat, la restauration, les
+prix localisés et le **rattachement de l'abonnement au compte** (`lib/purchases.ts`,
+`hooks/usePremium.ts`, `app/kyroz-plus.tsx`).
+À la fin de l'étape 6, il reste donc à **poser les clés publiques** (étape 7), faire un
+**build natif** (module natif → ni Expo Go ni OTA) et **tester en bac à sable**.
+
+🧪 **Ce que le bac à sable doit prouver, et qui ne se prouve QUE là** — trois choses, pas
+une. (1) L'achat aboutit et débloque. (2) **« Restaurer mes achats » fonctionne** : sans
+ça, rejet Apple au titre de la Guideline 3.1.1. (3) **L'abonnement suit le compte Kyroz,
+pas le téléphone** : se déconnecter doit RETIRER le droit, et se reconnecter sur un autre
+appareil doit le rendre sans repasser à la caisse (`identifyUser`, corrigé le 2026-08-02).
+
+⚠️ **Deux identifiants doivent correspondre au CARACTÈRE PRÈS entre ce document, le
+dashboard et le code** — c'est la source d'erreur n°1 rappelée plus haut, et elle s'est
+réalisée : le code portait `kyroz_plus_annual` et `kyroz_plus` là où Apple porte
+`kyroz_plus_yearly` et où l'étape 6 prescrit l'entitlement `premium`. Corrigé, et
+verrouillé par deux tests (`lib/__tests__/premium.test.ts`, `purchases.test.ts`).
+**Ces chaînes se recopient depuis le dashboard, elles ne se choisissent pas dans le code.**
+
+⚠️ **L'écart qui reste, et c'est une décision produit** : l'étape 4 dit que le paywall
+« devra présenter trois formules, pas deux ». Il en présente deux — l'annuel payé au mois
+(3,99 €/mois, engagement 12 mois) n'est pas affiché. À trancher avant la mise en vente.
 
 ---
 

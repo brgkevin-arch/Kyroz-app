@@ -14,7 +14,7 @@ App mobile React Native (Expo Router, SDK 56) de plans repas macro-précis pour 
 
 ## 1. Modèle économique
 
-**Freemium large.** Le core loop (génération de plan, plan, courses, recettes) est gratuit et fonctionne sans aucune clé API. La monétisation vient de features avancées, pas du blocage du cœur. **Valeur premium (Kyroz+) tranchée + construite (2026-07-27)** : *« piloter son objectif dans le temps »* — objectif daté (trajectoire calorique vers un poids à une date), suivi de transformation (zone/photos), et à venir la banque de calories. **Paiement = achat in-app Apple/Google via RevenueCat (pas Stripe seul, refusé par les stores) + gating `is_premium` = à câbler** (features gratuites tant que ce n'est pas fait). Détail : `MONETISATION.md` + AGENTS.md.
+**Freemium large.** Le core loop (génération de plan, plan, courses, recettes) est gratuit et fonctionne sans aucune clé API. La monétisation vient de features avancées, pas du blocage du cœur. **Valeur premium (Kyroz+) tranchée + construite (2026-07-27)** : *« piloter son objectif dans le temps »* — objectif daté (trajectoire calorique vers un poids à une date), suivi de transformation (zone/photos), et à venir la banque de calories. **Paiement = achat in-app Apple/Google via RevenueCat (pas Stripe seul, refusé par les stores). Le SDK est CÂBLÉ depuis le 2026-08-02 et DORMANT** : sans clé RevenueCat rien n'encaisse, et sans date dans `PAYWALL_LAUNCH` rien n'est verrouillé — les features restent gratuites pour tout le monde. Reste les comptes stores, un build natif et une revue (AGENTS.md B2). Détail : `MONETISATION.md` + AGENTS.md.
 
 > **Un seul rythme de sèche, et c'est structurant** (arbitré le 2026-07-31). Il n'y a
 > qu'un objectif « Sèche ». `cut_aggressive` est legacy, retiré des écrans et refermé
@@ -42,6 +42,7 @@ App mobile React Native (Expo Router, SDK 56) de plans repas macro-précis pour 
 | Backend / Auth | **Supabase** (région EU) — création de compte email + suppression de compte (RGPD) | Auth OK |
 | Base nutritionnelle | **Ciqual (ANSES) + table maison** — voir la note ci-dessous | En place |
 | Analytics | PostHog (cloud EU) | **Câblé (dormant)** — `lib/analytics.ts`, consent-gated RGPD ; s'active en posant `EXPO_PUBLIC_POSTHOG_KEY` |
+| Achats in-app | **RevenueCat** (`react-native-purchases`) | **Câblé (dormant)** — `lib/purchases.ts` ; s'active en posant `EXPO_PUBLIC_REVENUECAT_IOS_KEY` / `_ANDROID_KEY`. Le verrou, lui, dépend de `PAYWALL_LAUNCH` : deux interrupteurs séparés |
 | Mises à jour OTA | **`expo-updates`** — correctifs JS sans repasser par la revue des stores | **Actif** (2026-08-01) — voir la note ci-dessous |
 
 > **Mises à jour OTA — installées le 2026-08-01 (C4).** `eas.json` déclarait trois
@@ -336,6 +337,34 @@ pas seulement sur le canonique. Contrôle par réglage : `npm run mesure:reroll`
 ⚠️ **La règle anti-doublons R4 du catalogue ne mesure PAS ce défaut** : elle ne s'alarme
 qu'au-delà de 2 recettes par couple, or le pire contrevenant était un groupe de DEUX.
 
+⚠️ **Le PREMIER plan servi doit être aussi bon que les suivants** (2026-08-02,
+`FAMILY_SELECT_W_CANON`). La pénalité de famille ne s'appliquait qu'aux plans régénérés :
+le plan canonique — celui qu'un nouvel inscrit reçoit — servait deux assiettes jumelles
+dans **45 %** de ses semaines contre 20 % pour un plan régénéré. Appuyer sur « Régénérer »
+réparait la première impression. ➡️ **Tout nudge de qualité doit s'appliquer au canonique
+aussi**, quitte à être plus doux (0.03 au lieu de 0.04 : au-delà, un repas hors cible
+apparaît, et le canonique doit rester à zéro). Contrôle : `npm run mesure:variete -- --seeds=0`.
+
+⚠️ **CE QUI A ÉTÉ MANGÉ NE SE RE-PLANIFIE PAS** (2026-08-02, `carryTracking`). Générer
+un plan remplaçait l'ancien sans le regarder — donc l'auto-refresh effaçait, en pleine
+journée, les repas marqués « mangé », les portions consommées et les écarts hors plan.
+Mesuré : **1 448 kcal déjà avalées oubliées en moyenne**, après quoi l'app replanifiait
+une journée pleine par-dessus. ➡️ **Un statut de suivi est un FAIT, pas une préférence :
+aucune génération n'a le droit de l'effacer.** Le report est asymétrique — un repas
+*mangé* est conservé ENTIER (recette + macros), un repas *sauté* ne garde que son statut.
+La péremption reste au changement de JOUR (`resetTracking`), nulle part ailleurs.
+⚠️ Corollaire pour les livraisons : **un bump d'`ENGINE_VERSION` déclenche l'auto-refresh
+chez tout le monde**. Ce n'est pas une opération neutre côté utilisateur.
+
+⚠️ **Le plan que l'utilisateur s'est CHOISI ne se jette pas** (2026-08-02, `nextPlanSeed`).
+L'écran Plan remettait le tirage à zéro à chaque génération non-reroll — donc à chaque
+changement de réglage, via l'auto-refresh. L'utilisateur perdait la semaine qu'il avait
+obtenue en régénérant (92 % détruits **en plus** de ce que le réglage changeait), et
+retombait parfois sur le plan exact qu'il venait de rejeter. ➡️ **Une préférence exprimée
+par un geste — régénérer jusqu'à être satisfait — est une préférence : elle survit aux
+réglages suivants.** La règle est une fonction pure testée, pas trois lignes dans un
+composant. Audit complet des réglages : `npm run mesure:reglages`.
+
 ### Bloqué (hard block)
 - **Plans sous le plancher d'énergie disponible** — `lib/safety.ts::safetyFloorKcal`.
   Plancher = `max(BMR, min(30 kcal/kg de masse maigre + dépense sportive, TDEE), 1500 H / 1200 F)`.
@@ -612,6 +641,23 @@ téléphone.
   ait quoi que ce soit à se reprocher**.
 - **Les sous-écrans du Profil sont des `Sheet`, pas des routes** : `goBack()` ne les ferme
   pas, il faut cliquer le fond.
+- **Un `require` PARESSEUX ne retire RIEN du bundle.** Metro analyse les `require`
+  statiquement : un SDK chargé « seulement si on en a besoin » est quand même embarqué.
+  Mesuré deux fois — `lib/generatePlan.ts` servait le SDK Anthropic à chaque visiteur
+  web (−224 Ko à sa suppression), et `react-native-purchases` a ajouté **+900 Ko** au
+  bundle web alors qu'il n'y est jamais exécuté. ➡️ Pour qu'un module natif SORTE
+  vraiment du bundle web, il faut une **séparation de plateforme** (`fichier.web.ts`,
+  que Metro résout avant `fichier.ts`), pas une garde à l'exécution. Vérifier sur
+  l'export, pas sur l'intention : `npx expo export -p web` puis `grep` dans le bundle.
+- **Un SDK tiers configuré sans identifiant travaille sur l'APPAREIL, pas sur la
+  personne.** RevenueCat l'a fait le 2026-08-02 : `configure({ apiKey })` sans
+  `appUserID` crée un utilisateur anonyme lié au téléphone — la personne suivante sur
+  un appareil partagé héritait de l'abonnement, et l'abonné payant restait verrouillé
+  sur son second appareil. Les deux échouent en SILENCE.
+  ➡️ **Un DROIT s'ancre au compte** (`identifyUser`, UUID Supabase — jamais l'e-mail,
+  il part chez le tiers). Une MESURE, elle, reste volontairement anonyme : `lib/analytics.ts`
+  envoie un UUID local à PostHog, et c'est le bon choix côté RGPD. Ne pas confondre
+  les deux : ce qui ouvre une porte se rattache au compte, ce qui compte des visites non.
 - **Build natif iOS** : `npx expo run:ios` (CocoaPods via brew).
 - **`Dimensions.get('window')` ment sur iPad.** La fenêtre change de taille **sans
   relancer l'app** (rotation, Split View, Slide Over) : une valeur lue au chargement du
