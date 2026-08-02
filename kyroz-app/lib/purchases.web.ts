@@ -38,12 +38,13 @@ export async function configurePurchases(): Promise<null> {
   return null;
 }
 
-export async function isEntitled(): Promise<boolean> {
-  return false;
-}
-
 export function onEntitlementChange(_cb: (entitled: boolean) => void): () => void {
   return () => {};
+}
+
+/** Le web n'a pas d'identité d'achat : il n'y a rien à rattacher à un compte. */
+export async function identifyUser(_userId: string | null): Promise<boolean> {
+  return false;
 }
 
 export async function fetchStorePrices(_ids: { monthly: string; annual: string }): Promise<StorePrices> {

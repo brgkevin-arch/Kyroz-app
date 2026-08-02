@@ -604,6 +604,11 @@ téléphone.
   marchent dessus ; s'isoler dans un worktree, et le nettoyer en fin de chantier.
 - **Rappeler la migration Supabase** quand un changement en demande une : le schéma n'est
   pas auto-appliqué, et une migration non jouée tue la synchro **en silence** (§3).
+  ⚠️ **Mais MESURER avant d'annoncer un blocage — `npm run check:migrations`.** Le dépôt
+  ne sait rien de la prod : un fichier dans `supabase/migrations/` prouve que quelqu'un a
+  écrit du SQL, pas qu'il a été exécuté. Deux entrées d'AGENTS.md sont restées à
+  « MIGRATION À JOUER » pendant des jours alors que les colonnes étaient en base, et une
+  session l'a répété au fondateur comme un blocage réel. La commande prend deux secondes.
 - **Mettre à jour `AGENTS.md`** en fin de session, dans la liste unique. Ne jamais laisser
   le doc diverger du code, et ne jamais créer une deuxième liste de tâches.
 
@@ -646,6 +651,15 @@ téléphone.
   vraiment du bundle web, il faut une **séparation de plateforme** (`fichier.web.ts`,
   que Metro résout avant `fichier.ts`), pas une garde à l'exécution. Vérifier sur
   l'export, pas sur l'intention : `npx expo export -p web` puis `grep` dans le bundle.
+- **Un SDK tiers configuré sans identifiant travaille sur l'APPAREIL, pas sur la
+  personne.** RevenueCat l'a fait le 2026-08-02 : `configure({ apiKey })` sans
+  `appUserID` crée un utilisateur anonyme lié au téléphone — la personne suivante sur
+  un appareil partagé héritait de l'abonnement, et l'abonné payant restait verrouillé
+  sur son second appareil. Les deux échouent en SILENCE.
+  ➡️ **Un DROIT s'ancre au compte** (`identifyUser`, UUID Supabase — jamais l'e-mail,
+  il part chez le tiers). Une MESURE, elle, reste volontairement anonyme : `lib/analytics.ts`
+  envoie un UUID local à PostHog, et c'est le bon choix côté RGPD. Ne pas confondre
+  les deux : ce qui ouvre une porte se rattache au compte, ce qui compte des visites non.
 - **Build natif iOS** : `npx expo run:ios` (CocoaPods via brew).
 - **`Dimensions.get('window')` ment sur iPad.** La fenêtre change de taille **sans
   relancer l'app** (rotation, Split View, Slide Over) : une valeur lue au chargement du

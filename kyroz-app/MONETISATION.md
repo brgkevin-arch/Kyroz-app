@@ -128,8 +128,31 @@ core tuerait le North Star — donc interdit.
       Aucun flag local bricolé. Expose `{ allowed, reason, entitled, notice, can }` — plus
       riche que le `{ isPremium, loading }` prévu ici, parce que le verrou distingue quatre
       états (`not_launched`, `grandfathered`, `entitled`, `locked`).
+- [x] ✅ **L'abonnement est rattaché au COMPTE, pas à l'appareil** — corrigé le 2026-08-02,
+      `lib/purchases.ts::identifyUser()`. Le SDK était configuré **sans identifiant** : il
+      travaillait donc sur un utilisateur ANONYME, propre au téléphone. Deux dégâts
+      symétriques — la personne suivante sur un appareil partagé héritait de l'abonnement
+      (rien ne le retirait à la déconnexion), et la même personne sur son second appareil
+      restait `locked`. L'ancre est l'**UUID Supabase**, celui qui porte déjà `created_at`
+      donc le grand-père. Jamais l'e-mail : cet identifiant part chez RevenueCat.
 - [ ] (Optionnel, plus tard) miroir `profiles.is_premium` via **webhook RevenueCat → Edge
       Function** pour l'analytique serveur. PAS requis pour le gating client.
+- [x] ✅ **RGPD — la moitié « déclarer » est faite le 2026-08-02.** Rattacher l'UUID
+      Supabase fait de RevenueCat un **sous-traitant** qui conserve un identifiant de compte
+      et un historique d'achats. Deux phrases de la politique devenaient donc fausses au
+      premier abonné : §5 promettait « aucun tiers », §7 un effacement total. Réécrites **au
+      conditionnel** (« si vous souscrivez… ») pour rester vraies aujourd'hui, plus une
+      section CGU **« 3. Abonnement Kyroz+ »** : renouvellement automatique + 24 h,
+      remboursements du ressort du store (Apple Guideline 3.1.2), et le piège qui coûte de
+      l'argent — **supprimer son compte Kyroz n'annule PAS l'abonnement**.
+      Verrouillé par `lib/__tests__/legal.test.ts`, qui exige aussi que le miroir
+      `public/legal.html` contienne chaque paragraphe (les deux copies se recopiaient à la
+      main, sans filet).
+      ⚠️ **Manque encore, volontairement** : le cadre du transfert hors UE (clauses types /
+      DPF, RGPD art. 13-1-f) — non écrit parce que non vérifié dans le contrat RevenueCat.
+      À compléter à la signature de leur DPA.
+      ⏭️ **Non fait, assumé** : appeler leur API d'effacement depuis `delete-account`. Elle
+      demande la clé SECRÈTE, donc du code serveur, et ne sert à rien sans abonné.
 - [x] ✅ **Ce qu'on verrouille = features Kyroz+ uniquement** : `PREMIUM_FEATURES` =
       `dated_goal` · `transformation` · `calorie_bank` (livrée, plus « à venir »). Le reste
       — core loop, courses, recettes, garde-manger, favoris, série, pesée, synchro — **reste
