@@ -116,12 +116,12 @@ App mobile React Native (Expo Router, SDK 56) de plans repas macro-précis pour 
 
 ```
 profiles                        ← s'appelle « profiles », PAS « user_profiles »
-  └── id (= auth.users.id) + 35 colonnes synchronisées.
+  └── id (= auth.users.id) + 37 colonnes synchronisées.
       ⚠️ NE PAS recopier la liste ici : elle a divergé deux fois.
       Source unique = `PROFILE_COLS` (lib/sync.ts), VERROUILLÉE contre le SQL
       par `lib/__tests__/profileCols.test.ts` — une colonne ajoutée en migration
       sans être ajoutée au code fait rougir un test.
-      Les groupes : corps (sex, age, weight_kg, height_cm, body_fat_pct,
+      Les groupes : corps (sex, birth_date, age, weight_kg, height_cm, body_fat_pct,
       activity_level, training_days_per_week, neat_level, low_ea_weeks, sports) ·
       objectif (goal, goal_target, engine_rev, engine_notice) ·
       macros (macro_mode, carb_ratio, protein_per_kg, tdee_kcal, target_*) ·
@@ -131,6 +131,10 @@ profiles                        ← s'appelle « profiles », PAS « user_profil
       hidden_recipes — « j'aime pas » 👎, masquées, SOUPLE/réversible).
       LOCAL-ONLY volontaire : `is_post_menopausal` (l'onboarding ne pose pas
       la question → inerte tant qu'elle n'est pas posée).
+      ⚠️ `age` est DÉRIVÉ de `birth_date` par `computePlan` dès qu'elle existe — il ne
+      peut donc plus vieillir de travers. Il reste la valeur SAISIE pour les comptes
+      antérieurs au 2026-08-02, dont on ne peut pas deviner la date (un âge ne donne
+      qu'une fourchette d'un an). Cf. `lib/birthday.ts`.
 
 streaks
   └── user_id, current_streak_days, longest_streak_days, last_active_date
