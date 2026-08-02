@@ -180,12 +180,21 @@ describe('« Régénérer » doit suivre le réglage de variété', () => {
   // balanced=91 % et max=88 %. L'ordre des largeurs est une propriété de POPULATION :
   // sur un profil isolé, un panier plus large peut tirer deux fois la même recette
   // d'un seed au suivant. Tester la moyenne, c'est tester ce qu'on affirme.
+  // ⚠️ BUDGET DÉCLARÉ (60 s), et le panel reste ENTIER — les deux points ont été payés.
+  // Ce cas construit 3 variétés × 3 objectifs × 4 régimes × 8 seeds de plans 7 jours :
+  // 5,7 s en local, mais AU-DELÀ des 5 s par défaut de vitest sur le runner CI. La suite
+  // était verte ici et le déploiement a échoué là-bas. Un test lourd déclare son budget.
+  // Et NE PAS le raccourcir pour gagner du temps : à 5 seeds, `balanced` et `max` sortent
+  // rigoureusement égaux (90,7 % chacun). Ce n'est pas du bruit — sur un panel étroit le
+  // vivier dépasse rarement 8 candidats, donc les 2 crans de plus de `max` n'ont rien à
+  // exploiter. L'écart entre les deux réglages n'existe QUE là où le catalogue est riche.
+  const SEEDS_PANEL = SEEDS;
   const renouvellementMoyen = (variety: VarietyPreference) => {
     let vues = 0, changees = 0;
     for (const obj of OBJECTIFS) {
       for (const reg of REGIMES) {
         const p = makeProfile({ ...obj.o, plan_days: 7, plan_weekdays: [0, 1, 2, 3, 4, 5, 6], variety, dietary_restrictions: reg.r });
-        const maps = SEEDS.map((s) => parPosition(buildLocalPlan(p, s)));
+        const maps = SEEDS_PANEL.map((s) => parPosition(buildLocalPlan(p, s)));
         for (let i = 1; i < maps.length; i++) {
           for (const [cle, id] of maps[i - 1]) { vues++; if (maps[i].get(cle) !== id) changees++; }
         }
@@ -201,14 +210,14 @@ describe('« Régénérer » doit suivre le réglage de variété', () => {
     const vu = `repetitive=${(rep * 100).toFixed(0)} % balanced=${(bal * 100).toFixed(0)} % max=${(max * 100).toFixed(0)} %`;
     expect(bal, vu).toBeGreaterThan(rep);
     expect(max, vu).toBeGreaterThan(bal);
-  });
+  }, 60_000);
 
   it('MÊME en « repetitive », régénérer donne un vrai nouveau plan', () => {
     // « Souvent les mêmes plats » décrit la SEMAINE, pas le bouton. Quelqu'un qui
     // demande explicitement un nouveau plan doit en recevoir un — sinon on retombe
     // exactement sur le bug d'origine, mais réservé à un réglage.
     expect(renouvellementMoyen('repetitive')).toBeGreaterThan(0.4);
-  });
+  }, 60_000);
 
   it('« repetitive » garde le droit de servir le même plat toute la semaine', () => {
     // L'inverse du cas « aucun créneau monopolisé » plus haut : ici c'est DEMANDÉ.
