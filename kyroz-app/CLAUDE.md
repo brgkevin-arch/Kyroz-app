@@ -14,7 +14,7 @@ App mobile React Native (Expo Router, SDK 56) de plans repas macro-précis pour 
 
 ## 1. Modèle économique
 
-**Freemium large.** Le core loop (génération de plan, plan, courses, recettes) est gratuit et fonctionne sans aucune clé API. La monétisation vient de features avancées, pas du blocage du cœur. **Valeur premium (Kyroz+) tranchée + construite (2026-07-27)** : *« piloter son objectif dans le temps »* — objectif daté (trajectoire calorique vers un poids à une date), suivi de transformation (zone/photos), et à venir la banque de calories. **Paiement = achat in-app Apple/Google via RevenueCat (pas Stripe seul, refusé par les stores) + gating `is_premium` = à câbler** (features gratuites tant que ce n'est pas fait). Détail : `MONETISATION.md` + AGENTS.md.
+**Freemium large.** Le core loop (génération de plan, plan, courses, recettes) est gratuit et fonctionne sans aucune clé API. La monétisation vient de features avancées, pas du blocage du cœur. **Valeur premium (Kyroz+) tranchée + construite (2026-07-27)** : *« piloter son objectif dans le temps »* — objectif daté (trajectoire calorique vers un poids à une date), suivi de transformation (zone/photos), et à venir la banque de calories. **Paiement = achat in-app Apple/Google via RevenueCat (pas Stripe seul, refusé par les stores). Le SDK est CÂBLÉ depuis le 2026-08-02 et DORMANT** : sans clé RevenueCat rien n'encaisse, et sans date dans `PAYWALL_LAUNCH` rien n'est verrouillé — les features restent gratuites pour tout le monde. Reste les comptes stores, un build natif et une revue (AGENTS.md B2). Détail : `MONETISATION.md` + AGENTS.md.
 
 > **Un seul rythme de sèche, et c'est structurant** (arbitré le 2026-07-31). Il n'y a
 > qu'un objectif « Sèche ». `cut_aggressive` est legacy, retiré des écrans et refermé
@@ -42,6 +42,7 @@ App mobile React Native (Expo Router, SDK 56) de plans repas macro-précis pour 
 | Backend / Auth | **Supabase** (région EU) — création de compte email + suppression de compte (RGPD) | Auth OK |
 | Base nutritionnelle | **Ciqual (ANSES) + table maison** — voir la note ci-dessous | En place |
 | Analytics | PostHog (cloud EU) | **Câblé (dormant)** — `lib/analytics.ts`, consent-gated RGPD ; s'active en posant `EXPO_PUBLIC_POSTHOG_KEY` |
+| Achats in-app | **RevenueCat** (`react-native-purchases`) | **Câblé (dormant)** — `lib/purchases.ts` ; s'active en posant `EXPO_PUBLIC_REVENUECAT_IOS_KEY` / `_ANDROID_KEY`. Le verrou, lui, dépend de `PAYWALL_LAUNCH` : deux interrupteurs séparés |
 | Mises à jour OTA | **`expo-updates`** — correctifs JS sans repasser par la revue des stores | **Actif** (2026-08-01) — voir la note ci-dessous |
 
 > **Mises à jour OTA — installées le 2026-08-01 (C4).** `eas.json` déclarait trois
@@ -519,7 +520,14 @@ téléphone.
   d'un breakpoint.
 - **Règle de non-régression** : aucune colonne ne doit être plus étroite que la zone
   utile d'un iPhone (345 pt). Verrouillée par `lib/__tests__/layout.test.ts`.
-- **L'orientation reste `portrait`.** Le paysage est une décision produit à part.
+- ⚠️ **LE PAYSAGE EST OUVERT SUR IPAD, quoi qu'en dise `app.json`.** `orientation: portrait`
+  ne s'applique qu'à l'iPhone : dès `supportsTablet: true`, Expo écrit les **quatre**
+  orientations dans `UISupportedInterfaceOrientations~ipad` du manifeste généré, parce que
+  le multitâche iPadOS (`UIRequiresFullScreen: false`) l'exige. Vérifié sur le manifeste,
+  pas sur la config — même piège qu'en §11 pour les permissions Android.
+  **Conséquence : Apple teste l'app en paysage sur iPad, et tout écran doit y tenir.**
+  Vérifié à 1366×1024 : la colonne reste centrée, la grille garde ses 2 colonnes, rien ne
+  déborde. Ce n'est donc pas une décision à prendre — c'est un fait à respecter.
 
 ---
 
@@ -617,6 +625,14 @@ téléphone.
   ait quoi que ce soit à se reprocher**.
 - **Les sous-écrans du Profil sont des `Sheet`, pas des routes** : `goBack()` ne les ferme
   pas, il faut cliquer le fond.
+- **Un `require` PARESSEUX ne retire RIEN du bundle.** Metro analyse les `require`
+  statiquement : un SDK chargé « seulement si on en a besoin » est quand même embarqué.
+  Mesuré deux fois — `lib/generatePlan.ts` servait le SDK Anthropic à chaque visiteur
+  web (−224 Ko à sa suppression), et `react-native-purchases` a ajouté **+900 Ko** au
+  bundle web alors qu'il n'y est jamais exécuté. ➡️ Pour qu'un module natif SORTE
+  vraiment du bundle web, il faut une **séparation de plateforme** (`fichier.web.ts`,
+  que Metro résout avant `fichier.ts`), pas une garde à l'exécution. Vérifier sur
+  l'export, pas sur l'intention : `npx expo export -p web` puis `grep` dans le bundle.
 - **Build natif iOS** : `npx expo run:ios` (CocoaPods via brew).
 - **`Dimensions.get('window')` ment sur iPad.** La fenêtre change de taille **sans
   relancer l'app** (rotation, Split View, Slide Over) : une valeur lue au chargement du

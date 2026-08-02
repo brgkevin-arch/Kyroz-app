@@ -64,9 +64,9 @@ qu'ils étaient périmés.
 | | valeur | comment la revérifier |
 |---|---|---|
 | Catalogue | **466 recettes** — 110 petits-déj · 270 repas complets · 86 collations | `npm run mesure:couverture` |
-| `ENGINE_VERSION` | **38** (invalide les plans en cache) | `lib/planEngine.ts` |
+| `ENGINE_VERSION` | **39** (invalide les plans en cache) | `lib/planEngine.ts` |
 | `ENGINE_REV` | **4** (avertissement one-shot à l'utilisateur) | `lib/tdee.ts` |
-| Tests | **906 verts**, 49 fichiers · `tsc` propre | `npm test && npx tsc --noEmit` |
+| Tests | **915 verts**, 50 fichiers · `tsc` propre | `npm test && npx tsc --noEmit` |
 | Plateformes | iPhone **+ iPad** (`supportsTablet: true` depuis le 2026-08-01) · portrait-only | `app.json` · `lib/layout.ts` |
 | Site déployé | **automatique** : GitHub Actions à chaque push `main` (`build_type: workflow`). ⚠️ **NE PAS lire `origin/gh-pages`** — branche morte, cf. A12 | `gh run list --workflow=deploy.yml` |
 | Migrations Supabase | toutes jouées, `2026-08-02_profiles_birth_date.sql` comprise (vérifiée par REST : `200`) | `supabase/JOURNAL-MIGRATIONS.md` |
@@ -1060,9 +1060,66 @@ produit en suspens — il ne reste qu'à coder.
      régénération) : à trancher le jour où un abonnement peut réellement expirer,
      pas avant.
 
-  🧑 **Reste, et ça demande tes comptes** : installer `react-native-purchases`,
-  remplacer `useEntitlement()` (une fonction, isolée exprès), brancher l'achat et
-  la restauration, puis poser une date dans `PAYWALL_LAUNCH`.
+  ✅ **LE SDK EST CÂBLÉ le 2026-08-02 — et il est DORMANT.** `react-native-purchases`
+  v10.6.0 installé, `lib/purchases.ts` écrit, `useEntitlement()` branché,
+  achat + restauration + prix localisés reliés à l'écran. **Rien ne change pour
+  personne aujourd'hui** : sans clé, `purchasesConfigured()` est faux, le SDK n'est
+  même pas chargé, et `PAYWALL_LAUNCH` reste `null`.
+
+  **Deux interrupteurs INDÉPENDANTS, et c'est volontaire** : la **clé** allume le
+  paiement, la **date** allume le verrou. On peut donc tester un achat en TestFlight
+  sans verrouiller un seul compte en production.
+
+  🔬 **CE QUE LA VÉRIFICATION A TROUVÉ, et c'est le vrai apport du chantier.**
+  `lib/purchases.ts` charge le SDK en `require` PARESSEUX, donc il n'est jamais
+  exécuté sur web. Mesuré sur le bundle exporté : **il y était quand même**, 4
+  occurrences de `purchaseStoreProduct` / `RNPurchases`, et le bundle web passait de
+  **3 509 492 à 4,4 Mo (+900 Ko)**. Metro analyse les `require` STATIQUEMENT — un
+  `require` paresseux retarde l'exécution, il ne retire rien du bundle. C'est
+  EXACTEMENT le piège de `lib/generatePlan.ts` (un SDK jamais appelé, servi à chaque
+  visiteur, −224 Ko à sa suppression) ; la leçon n'avait pas été généralisée.
+  ➡️ Corrigé par une séparation de plateforme : **`lib/purchases.web.ts`** est un
+  bouchon sans une ligne de code de paiement, que Metro résout avant `purchases.ts`
+  sur web. Re-mesuré : **3 510 945 octets, soit +1 453 octets (+1,4 Ko)** sur le
+  bundle web, et **0 occurrence** de RevenueCat. Le coût réel du chantier sur le
+  produit déployé est donc le poids du bouchon.
+
+  🧰 **Autre chose laissée derrière** : `test/reactNativeMock.ts` + l'alias
+  `react-native` dans `vitest.config.ts`. Vitest ne sait pas parser la source de
+  `react-native` (annotée Flow), ce qui rendait **intestable** tout fichier de `lib/`
+  qui l'importe — c'est pour ça que `exportData.ts` et `notifications.ts` n'ont
+  aucun test. `purchases.ts` décide qui paie : il ne pouvait pas rester dehors.
+  ⚠️ Le mock met `Platform.OS` à **`ios`** et pas `web`, exprès : sur `web`
+  `purchasesConfigured()` est faux quoi qu'il arrive, donc le test de dormance ne
+  prouverait plus rien. **Un test qui ne peut pas échouer ne protège rien.**
+
+  ✅ **Vérifié** : 907 tests verts (+9), `tsc` propre, bundle web reconstruit, et
+  l'écran relu dans le navigateur en état `locked` — prix de repli affichés AVEC la
+  mention « ce sont les tarifs français », chemin web sans bouton d'achat, 0 erreur
+  console. *(État forcé par une date de lancement temporaire, remise à `null` après.)*
+
+  🧑 **CE QUI RESTE, ET QUI DEMANDE TES COMPTES — dans cet ordre :**
+  1. **App Store Connect** : créer les deux abonnements auto-renouvelables dans un
+     même groupe, aux identifiants EXACTS `kyroz_plus_monthly` et `kyroz_plus_annual`
+     (ils sont verrouillés par un test), aux tarifs 4,99 € et 39,99 €.
+     Idem Google Play si tu sors sur Android.
+  2. **RevenueCat** : créer le projet, y rattacher l'app, et créer un entitlement
+     nommé EXACTEMENT **`kyroz_plus`** (verrouillé par un test aussi) auquel tu
+     attaches les deux produits.
+  3. **Poser les clés PUBLIQUES du SDK** (`appl_…` / `goog_…`) dans le build EAS :
+     `EXPO_PUBLIC_REVENUECAT_IOS_KEY` et `_ANDROID_KEY` (cf. `.env.example`).
+     ⚠️ **Pas la clé secrète du dashboard** — elle ne doit jamais entrer dans un
+     bundle client. Inutile de les poser sur le build web : il n'encaisse pas.
+  4. **Un nouveau build natif ET une nouvelle revue store.** `react-native-purchases`
+     est un module NATIF : l'OTA ne peut pas le livrer (`CLAUDE.md` §2). Le
+     `ios/` local doit être régénéré (`npx expo prebuild` puis `pod install`) — il
+     n'est pas versionné.
+  5. **Tester un achat en bac à sable** (compte sandbox Apple), puis seulement après :
+     poser une date dans `PAYWALL_LAUNCH`. ⚠️ Cette date ne se recule JAMAIS.
+
+  ⚠️ **Un point que la revue Apple refuse et qui n'est PAS encore fait** : le bouton
+  « Restaurer mes achats » est branché, mais il ne peut être PROUVÉ qu'avec un compte
+  sandbox. Sans restauration fonctionnelle, rejet au titre de la Guideline 3.1.1.
 
 ### 📱 C — Sortie stores
 
@@ -1123,8 +1180,36 @@ produit en suspens — il ne reste qu'à coder.
   **2048×2732**, le gabarit exact qu'Apple exige. Le script prend un gabarit tablette,
   et n'y produit plus le feature graphic (visuel Google Play, cf. C2).
 
-  ℹ️ **Le paysage n'est PAS ouvert** : `orientation` reste `portrait`. Ce n'était pas dans
-  l'ordre des étapes, et Apple ne l'exige pas pour un binaire iPad. À trancher à part.
+  ✅ **VÉRIFIÉ EN NATIF le 2026-08-02, sur le simulateur iPad Pro 13"** — pas seulement
+  dans un navigateur. Build `xcodebuild` + install `simctl` (⚠️ `expo run:ios` échoue :
+  son détecteur d'appareils classe le simulateur en appareil PHYSIQUE et réclame un
+  certificat ; et CocoaPods casse si `LANG` n'est pas en UTF-8). Parcours réel :
+  login → dépistage → onboarding → plan → grille recettes (2 colonnes, 16 visibles) →
+  écran recette (2 colonnes, « Œuf entier … 3 œufs » à ~370 pt au lieu de 950).
+  **Rien de cassé.**
+
+  🔴 **CE QUE LA MESURE A CORRIGÉ, et c'est une affirmation FAUSSE que j'avais écrite
+  partout : LE PAYSAGE EST OUVERT SUR IPAD.** `orientation: portrait` d'`app.json` ne vaut
+  que pour l'iPhone. Le **manifeste réellement généré** dit :
+  `UISupportedInterfaceOrientations~ipad` = les **quatre** orientations · `UIRequiresFullScreen`
+  = `false`. Expo le fait exprès (le multitâche iPadOS l'impose) et Apple a retiré
+  l'échappatoire `UIRequiresFullScreen` : **ce n'est pas refermable, et Apple testera en
+  paysage.** Vérifié à 1366×1024 : colonne centrée, grille à 2 colonnes, rien ne déborde.
+  ➡️ **Même piège qu'A2** (`android.permissions: []` ne prouvait rien) : lire le manifeste
+  généré, jamais la config source. Deux fois le même piège, deux plateformes différentes.
+
+  ⚠️ **Une imprécision MESURÉE et ASSUMÉE, pour qu'on ne la redécouvre pas** : la barre
+  d'onglets code en dur `height: 88, paddingBottom: 28` sur iOS (`app/(tabs)/_layout.tsx`),
+  valeurs taillées pour l'encoche d'un iPhone (34 pt). Mesurée au pixel sur la capture
+  iPad : la barre fait bien 88 pt, alors que la zone sûre d'un iPad en demande 20 →
+  **8 pt d'espace mort**. Ce n'est ni cassé ni un motif de rejet, et le corriger
+  proprement (via `useSafeAreaInsets()`) **déplacerait aussi l'iPhone**. Laissé tel quel
+  délibérément : 8 pt ne valent pas une régression sur la plateforme principale.
+
+  ℹ️ **Piste non prise, si un jour tu veux mieux remplir le paysage** : à 1366 pt, la
+  grille de recettes garde 2 colonnes et laisse 193 pt de marge de chaque côté. Une 3ᵉ
+  colonne au-delà de ~1200 pt est un seul chiffre dans `gridColumns()`. Pas fait : hors du
+  périmètre demandé, et Apple ne l'exige pas.
 - **C2 · Comptes et visuels — ✅ LARGEMENT FAIT le 2026-07-30.**
   Apple (compte + contrat de vente actif + fiche + 2 abonnements tarifés) · Google Play
   (compte payé, site validé, fiche créée) · **visuels générés** (`npm run store:assets` :
@@ -2332,7 +2417,7 @@ Plancher = énergie disponible (30 kcal/kg de masse maigre + sport, **plafonné 
 - **Mise en page** (`constants/layout.ts` + seuils purs dans `lib/layout.ts`, 2026-08-01) : l'app est livrée pour iPad (`ios.supportsTablet: true`). **Tout écran passe par `useLayout()`**, comme toute couleur passe par `useTheme()` — sinon il repart en pleine largeur et devient illisible à 1024 pt. Seuil unique `TABLET_MIN_WIDTH = 700` (au-dessus du plus large iPhone, 440, et d'un Split View à 50 % sur iPad 11", 507). Colonnes : `content`/`header` 620, `sheet` 820 (déjà posé dans `Sheet` et `ActionSheet`), `grid` 980 avec `layout.columns`. **No-op STRICT sous le seuil** (`centered()` renvoie `{}`) — un test l'exige, le rendu téléphone ne doit pas bouger d'un pixel. Une seule mise en page dérogatoire : l'écran recette met ingrédients et préparation côte à côte. Règle de non-régression : aucune colonne plus étroite que la zone utile d'un iPhone (345 pt), verrouillée par `lib/__tests__/layout.test.ts`. Orientation : **portrait** (le paysage est une décision à part).
 - **Thème** (`constants/theme.ts`) : adaptatif clair/sombre, accent monochrome, pas de couleur en dur (`useTheme()` + `makeStyles(t)`). **Choix manuel Système/Clair/Sombre** : store externe `lib/themeMode.ts` (persisté `@kyroz:theme`, chargé au démarrage dans `_layout`) consommé par `useTheme()` via `useSyncExternalStore` — pas de provider. Réglage exposé dans Profil → section Application. `cardShadow` → `boxShadow` sur web / `shadow*`+`elevation` natif (warnings RN-web nettoyés 2026-06-14, avec `pointerEvents` en style et `TouchableWithoutFeedback`→`Pressable`).
 - **Recettes** : **466** — *(historique : 100, + **164** le 2026-06-19, + **50 sans gluten** le 2026-07-22, puis les vagues B1→B6 de fin juillet / début août. Le chiffre faisant foi est `npm run mesure:couverture`, pas cette ligne.)* ⚠️ **Tout le matériel recettes vit désormais dans `kyroz-app/Recette/`** (2026-07-22) : catalogue LIVE `Recette/recettes-kyroz.json` (l'ancien `lib/data/recettes-kyroz-100.json` est déplacé + renommé — le nom « 100 » mentait ; `lib/data/` supprimé), livraisons brutes archivées dans `Recette/drops/<date>-<sujet>/` (jamais importées par le code), mode d'emploi de la chaîne d'ajout dans `Recette/README.md`. Chaîne : (`Recette/recettes-kyroz.json` → `lib/recipeData.ts` (table d'ingrédients réf + config + macros depuis réf) → `lib/recipeMap.ts` (JSON FR → `Recipe[]` internes) → `lib/recipes.ts` (ré-export `RECIPES` + registre d'overrides inchangé). 78 petit-déj + 66 collations + 170 repas (chacun tagué objectif/sport + `why_fr` + ingrédients `ref`/`macro_role`/`scalable`). `validated_by_dietitian: false`. **`ENGINE_VERSION` = 38** *(valeur faisant foi : `lib/planEngine.ts`, qui porte l'historique complet ; cette ligne a traîné à 25)* (v16 = fix variété ; v17 = fibres sourcées Ciqual ; v18 = 2026-07-23, biais fibres en sèche à la sélection ; … ; **v25 = 2026-07-30, borne basse de l'ancre protéine 1,0 → 0,5**. Toute incrémentation régénère les plans en cache — valeur faisant foi : `lib/planEngine.ts`). **`restrictions_ok` dérivé par ingrédient** (`lib/recipeDiet.ts`, table d'incompatibilités) — autoritaire dans `recipeAllowed`, repli mots-clés pour le legacy. **Régime `vegan` ajouté (2026-06-19)** : `DietaryRestriction` + `VIOLATIONS` (26 refs animaux dont œufs/miel) + blocklist mots-clés ciblée (`planEngine.ts`, sans faux positifs lait d'amande/coco·yaourt soja·beurre végétal) + toggle onboarding/profil. **AUCUNE migration Supabase** (`dietary_restrictions text[]` libre). Couverture vegan (sur 314, mesurée 2026-07-22) : pdej **33**/78 · coll **36**/66 · repas **57**/170. **Macros recettes = SOURCÉES CIQUAL (fusion des deux bases, livrée)** : `lib/recipeFoodMap.ts` lie **99/113** ingrédients `ref` → `food_id` Ciqual (mapping VÉRIFIÉ À LA MAIN, basis cru/sec/cuit respecté — l'auto-matching par nom est piégeux : « maquereau »→« groseille à maquereau »). `recipeData` résout `per100g` depuis la base curée quand mappé. **Composites repris 2026-07-14 (+13)** : `pates_semoule`→9810, `pates_completes`/`nouilles_completes`→9870 (⚠️ PAS 9863 « nouilles asiatiques aux ŒUFS » → fausserait le végétalien), `nouilles_riz`→9900 (corrige la protéine sous-estimée 3→7,4 g), `polenta`→9614, `graines_courge`→**15064** (« Courge, graine, séchée » — le piège butternut), `beurre_amande`→15041, `pesto`→11179, `creme_soja`→11214, `cacao_poudre`→18100, `tomate_concassee`→20169, `raisins`→**13395** (« Raisin cru » — ⚠️ PAS le raisin SEC, 322 vs 71 kcal). Impact mesuré : 74/264 recettes bougent, Δ kcal moyen **1,2 %**, max 2,9 % (affinage, pas distorsion) → `macros_per_serving` du JSON **volontairement NON re-baselinés** (ils servent de repère INDÉPENDANT au garde-fou ; les re-caler le viderait de son sens). ✅ **Légumineuses harmonisées en SEC (2026-06-20)** — l'utilisateur pèse à sec (comme riz/pâtes). `pois_chiches`→`ciqual-20516`, `lentilles_vertes`→`20585`, `haricots_rouges`→`20525` (codes « …, sec », ~314-350 kcal/100 g, `basis=dry`) ; `lentilles_corail` était déjà en sec. Les 5 nouveaux ingrédients mappables le sont aussi (`haricots_blancs`→20501, `feves`→20518, `pois_casses`→20515, `sarrasin`→9380, `chataigne`→15024) ; `soja_texture`/`haricots_noirs`/`millet` restent **manuels** (pas d'entrée Ciqual sèche propre — Ciqual n'a que la PST réhydratée). ⚠️ **Conséquence** : les **anciennes** recettes (les 100) exprimaient leurs légumineuses en poids **CUIT** (100-200 g) → **15 quantités converties cuit→sec** (×~0,4, nutrition préservée) ; les nouvelles étaient déjà en sec (mon recalage « cuit » du 19/06 était donc à l'envers — corrigé). **49 `macros_per_serving` re-baselinés** sur le dérivé. `basis` = métadonnée seule (jamais affichée) ; la pesée à sec suit la convention riz/pâtes (nom sans « sec »). `recipeMap` DÉRIVE `macros_per_portion` des ingrédients résolus (÷ `base_servings`) → plus de double source. Impact mesuré : Δ kcal moyen 3 %, max 11 %, 42/100 recettes inchangées (les estimations étaient déjà bien calées) ; `macros_per_serving` du JSON conservé en garde-fou de régression (±30 %, `recipeMap.test.ts`). **`ENGINE_VERSION` 7** (régénère les plans en cache). **Les 14 `ref` encore manuels le restent À RAISON** (règle : on ne mappe QUE si l'entrée Ciqual est SANS AMBIGUÏTÉ le même aliment) : absents de Ciqual (`cottage_cheese`, `edamame`, `yaourt_soja`, `yaourt_soja_proteine`) · produits Kyroz (`whey`, `skyr`, `proteine_vegetale`) · pas d'entrée SÈCHE propre (`soja_texture`, `haricots_noirs`, `millet` — Ciqual n'a que la FARINE) · produit voisin mais distinct (`levure_maltee` : Ciqual n'a que la levure de BIÈRE) · composites par construction (`fruits_rouges`, `legumes_wok`, `ratatouille`). **Nouveau garde-fou `recipeFoodMap.test.ts` (2026-07-14)** : le garde-fou ±30 % de `recipeMap.test` compare les kcal de la RECETTE ENTIÈRE → il était **AVEUGLE** à un ingrédient dense mais peu pesé (20 g de graines mappées sur du butternut = 618→30 kcal ne bougent pas le total de 30 % ; vérifié : l'ancien test passait). Le nouveau teste chaque ingrédient **à la source** : (1) toute clé mappée existe dans le JSON (attrape la faute de frappe `datte`/`dattes` = mapping mort et silencieux), (2) tout `food_id` résout, (3) écart Ciqual vs estimation manuelle suspect si **> 40 kcal EN ABSOLU *et* > 50 % EN RELATIF** — les deux ensemble, car le relatif seul crie au loup sur les aliments peu caloriques (épinards 23→33 = +43 % mais 10 kcal) et l'absolu seul sur les denses (mozzarella +57 kcal, correction légitime). Reste : approche B « fourchette » de macros (post-tests utilisateurs). Fix `formatQuantity` : « bœuf » contenait « œuf » → était compté en œufs (corrigé + test). **Audit qualité des 264 recettes (workflow multi-agent, 2026-07-14)** — COUPÉ par la limite de session (71/146 agents ; verif 59/112 recettes, synthèse non faite → à re-lancer après reset : `Workflow({scriptPath:'…/audit-recettes-kyroz-wf_b0be652e-fb5.js', resumeFromRunId:'wf_b0be652e-fb5'})`, cache les agents finis). **Corrigé (déterministe, testé)** : (1) `col04` 80 g de dattes > `abs_max_qty` 60 → le moteur servait 60 (fiche≠servi, 57 kcal) → ramené à 60 + test « base ≤ abs_max_qty » ; (2) **3 noms de légumineuses** disaient « cuits/égouttés » alors qu'on pèse SEC (`Pois chiches cuits (égouttés)`→`Pois chiches`, idem lentilles vertes/haricots rouges) → mis au neutre (convention riz/pâtes) + test « pas de nom cuit/égoutté sur basis:dry » ; (3) **23 ingrédients flavor/vegetable marqués `scalable:true`** (miel, cacao, sirop, sauce soja) — INERTE (le moteur les fige déjà, `adaptRecipe` role flavor/vegetable) mais mensonger → passés `false` + test. **CAPTURÉ, non corrigé (contenu → diététicienne / audit à finir)** : ~~⚠️ `rep32` « Cabillaud pané maison » taggée `gluten_free » mais chapelure hors liste~~ **CORRIGÉ 2026-07-16** : nouvel ingrédient `chapelure` (→ `ciqual-7500`, `abs_max_qty` 40) + entrée `VIOLATIONS: ['gluten_free']` dans `recipeDiet.ts` + chapelure 25 g ajoutée à rep32 (`carb`, fixe). Effet : `restrictions_ok` de rep32 = pescatarian/no_pork/lactose_free/halal (**gluten_free tombe tout seul**), macros re-comptées 540→636 kcal (la panure n'était pas comptée). `macros_per_serving` re-calé (l'ancien décrivait le plat SANS panure), `ENGINE_VERSION` 14, test de régression `rep32 pas gluten_free`. **Autres ingrédients-fantômes** (cités dans les instructions, absents de la liste → macros/courses/régime faux) : sauces teriyaki (`rep50/73/147`), miso (`rep47`), sauce soja (`rep05/46/80`), sirop érable (`rep80`) ; houmous (`rep111/118` — ailleurs FAIT à partir des pois chiches listés, faux positif) ; aromates non tracés (ail, curry, citron) = volontaire, PAS un défaut. **Cohérence `why`/tags** (ex. `pd10` « yaourt grec – noix » : `why` vante un « équilibre protéines/lipides » muscu à 10 g P / 28 g L, aucune ancre protéine scalable) → jugement diététicienne.
-- **Tests** : **906 / 49 fichiers** (`npm test`, vitest ; tsc `--noEmit` OK — vérifié le 2026-08-02 sur `main`). Nouveaux fichiers du 2026-08-02 : `boot.test.ts` (le démarrage ne dépend plus du réseau), `noAlert.test.ts` (interdit `Alert`, no-op sur le web), `birthday.test.ts` (âge dérivé de la date de naissance, 29 février compris), **`reroll.test.ts` (« Régénérer mon plan » doit se VOIR — renouvellement ET non-répétition ; cf. A21)**, **`planSeed.test.ts` (le tirage choisi se GARDE au changement de réglage ; cf. A24)**. ⚠️ Ce compte a traîné à « 403 / 26 » puis « 413 » pendant plusieurs semaines : **le mettre à jour fait partie de la livraison**, sinon il devient un troisième chiffre à ne pas croire. Détail : comptage recettes **466** (`recipeMap.test.ts`, chiffre à bouger à chaque vague), **variété intra-semaine (`variety.test.ts` ; P3.5)**, **fibres sourcées Ciqual par ref/food_id + « aucune recette à 0 g » (`fiber.test.ts` ; P3.1)**, **jours de repos choisis (`rest_weekdays` : mapping weekday→index, `[]`=aucun, jour hors-plan ignoré, signature ; `planEngine.test.ts`)**, régime vegan + **halal (porc/charcuterie → `restrictions_ok`, repli blocklist ; `recipeDiet.test.ts` + `planEngine.test.ts`)** (refs animaux → restrictions_ok, blocklist), garde-fous §6, masse maigre, mode percent, fuseau, déterminisme, recalage du jour, fibres, courses→frigo, **liste de courses moins garde-manger** (`shoppingList.test.ts`), units (régression bœuf), refonte recettes : `recipeData`/`recipeMap` (intégrité 100, refs valides, macros ±2 %, restrictions_ok, `base_servings===1`), `adaptRecipe` (cible en grammes, **plancher protéique TOTAL** sur recette multi-source, légumes fixes, flags + `FLAG_AUDIENCE`/`gap`, repli si UN ingrédient sans ref), moteur via adaptRecipe (cible jour ±12 %, swap/rebalance/mealIngredients, **`reAdaptMealRecipe`**), **+ stress-test 20 profils (`multiProfile.test.ts`, 10 H + 10 F, gabarits/objectifs/sports/régimes variés)** : invariants garde-fous + macros↔kcal, **bande cible ASYMÉTRIQUE conjointe B+A2 — côté dangereux ≤ `max(15 % du delta TDEE−cible, 90 kcal)` ET protéines ≥ plancher** (remplace l'ancien ±15 % symétrique, trop lâche en sèche), gras ≤50 %, déterminisme, régime respecté/relaxed, courses = Σ ingrédients adaptés, swap conforme au régime. **+ `syncGuard.test.ts`** (décision d'hydratation anti-écrasement C) **+ `goalDirection` / fit asymétrique / `reAdaptMealRecipe` / carb-cycling** (`planEngine.test.ts`). Empirique (après A2) : **écart kcal max 3,8 %** (côté dangereux référencé au delta), protéines 100–118 %, gras 24–29 %. **+ bouclier de série (`advanceStreak` : gel d'1 jour manqué / reset / recharge à 7j / profil legacy ; `streak.test.ts`, 2026-06-20)**. **Error Boundary** global (`app/_layout.tsx`). **Vérif preview e2e 2026-06-17** : génération plan + fiche adaptée + flux override→courses + Tout cocher/Réinitialiser→frigo.
+- **Tests** : **915 / 50 fichiers** (`npm test`, vitest ; tsc `--noEmit` OK — vérifié le 2026-08-02 sur `main`). Nouveaux fichiers du 2026-08-02 : `boot.test.ts` (le démarrage ne dépend plus du réseau), `noAlert.test.ts` (interdit `Alert`, no-op sur le web), `birthday.test.ts` (âge dérivé de la date de naissance, 29 février compris), **`reroll.test.ts` (« Régénérer mon plan » doit se VOIR — renouvellement ET non-répétition ; cf. A21)**, **`planSeed.test.ts` (le tirage choisi se GARDE au changement de réglage ; cf. A24)**. ⚠️ Ce compte a traîné à « 403 / 26 » puis « 413 » pendant plusieurs semaines : **le mettre à jour fait partie de la livraison**, sinon il devient un troisième chiffre à ne pas croire. Détail : comptage recettes **466** (`recipeMap.test.ts`, chiffre à bouger à chaque vague), **variété intra-semaine (`variety.test.ts` ; P3.5)**, **fibres sourcées Ciqual par ref/food_id + « aucune recette à 0 g » (`fiber.test.ts` ; P3.1)**, **jours de repos choisis (`rest_weekdays` : mapping weekday→index, `[]`=aucun, jour hors-plan ignoré, signature ; `planEngine.test.ts`)**, régime vegan + **halal (porc/charcuterie → `restrictions_ok`, repli blocklist ; `recipeDiet.test.ts` + `planEngine.test.ts`)** (refs animaux → restrictions_ok, blocklist), garde-fous §6, masse maigre, mode percent, fuseau, déterminisme, recalage du jour, fibres, courses→frigo, **liste de courses moins garde-manger** (`shoppingList.test.ts`), units (régression bœuf), refonte recettes : `recipeData`/`recipeMap` (intégrité 100, refs valides, macros ±2 %, restrictions_ok, `base_servings===1`), `adaptRecipe` (cible en grammes, **plancher protéique TOTAL** sur recette multi-source, légumes fixes, flags + `FLAG_AUDIENCE`/`gap`, repli si UN ingrédient sans ref), moteur via adaptRecipe (cible jour ±12 %, swap/rebalance/mealIngredients, **`reAdaptMealRecipe`**), **+ stress-test 20 profils (`multiProfile.test.ts`, 10 H + 10 F, gabarits/objectifs/sports/régimes variés)** : invariants garde-fous + macros↔kcal, **bande cible ASYMÉTRIQUE conjointe B+A2 — côté dangereux ≤ `max(15 % du delta TDEE−cible, 90 kcal)` ET protéines ≥ plancher** (remplace l'ancien ±15 % symétrique, trop lâche en sèche), gras ≤50 %, déterminisme, régime respecté/relaxed, courses = Σ ingrédients adaptés, swap conforme au régime. **+ `syncGuard.test.ts`** (décision d'hydratation anti-écrasement C) **+ `goalDirection` / fit asymétrique / `reAdaptMealRecipe` / carb-cycling** (`planEngine.test.ts`). Empirique (après A2) : **écart kcal max 3,8 %** (côté dangereux référencé au delta), protéines 100–118 %, gras 24–29 %. **+ bouclier de série (`advanceStreak` : gel d'1 jour manqué / reset / recharge à 7j / profil legacy ; `streak.test.ts`, 2026-06-20)**. **Error Boundary** global (`app/_layout.tsx`). **Vérif preview e2e 2026-06-17** : génération plan + fiche adaptée + flux override→courses + Tout cocher/Réinitialiser→frigo.
 - **QA E2E Playwright** (`@playwright/test` devDep) : scripts dans `test/` (`walkthrough*.mjs` = parcours headed + vidéo ; `qa-full/qa-deep/qa-settings.mjs` = couverture login+onglets+réglages ; `qa/verify-*.mjs` = non-régression). Web RN garde tous les onglets montés dans le DOM → se fier aux **captures**, pas au dump texte. **Login automatisable** via le bouton **« Continuer en invité »** (connexion anonyme Supabase, `signInGuest` / `testID="guest-login"`) → un seul tap, pas de mot de passe. ⚠️ Nécessite l'**auth anonyme activée** dans Supabase (Authentication → Providers → Anonymous). ⚠️ **Masqué en PROD** (`{__DEV__ && …}` dans `login.tsx`, décidé à l'audit sécu pour fermer le vecteur de création anonyme de comptes en masse) — visible seulement en dev/Playwright, invisible sur le web déployé. La QA tourne en dev → OK. (Clé Cloudflare Turnstile créée mais **CAPTCHA non activé** : l'inscription email est déjà protégée par la confirmation email ; Turnstile gardé pour le mobile natif futur.) Repli legacy : session manuelle réutilisée via `test/qa/session.json` (gitignored). Sorties générées (PNG, rapports, vidéos) gitignored.
 
 ## État de `lib/sync.ts` — sous filet depuis le 2026-07-30

@@ -118,11 +118,16 @@ export function grandfatheredNotice(reason: AccessReason): string | null {
 // la capture d'écran que la revue Apple exige avant d'activer les abonnements,
 // alors que RevenueCat n'est pas branché.
 //
-// LE JOUR DU CÂBLAGE : remplacer ces chaînes par le `priceString` renvoyé par le
-// store, qui est LOCALISÉ. Un montant en euros affiché à quelqu'un qui sera
-// facturé en dollars serait exactement le mensonge que la règle interdit.
-// `PREMIUM_PRICES_ARE_LOCAL_FALLBACK` existe pour que l'écran puisse le dire.
+// ✅ CÂBLÉ le 2026-08-02 : `withStorePrices()` ci-dessous substitue le `priceString`
+// renvoyé par le store — qui est LOCALISÉ — dès qu'il est disponible. Un montant en
+// euros affiché à quelqu'un qui sera facturé en dollars serait exactement le mensonge
+// que la règle interdit. Ces chaînes restent le REPLI, et l'écran dit que c'en est un.
 
+/**
+ * Vrai tant qu'aucun prix ne vient du store.
+ * ⚠️ Conservé comme valeur par défaut (aucun store branché aujourd'hui) ; l'écran
+ * doit lire le drapeau renvoyé par `withStorePrices`, qui est le seul à jour.
+ */
 export const PREMIUM_PRICES_ARE_LOCAL_FALLBACK = true;
 
 export interface PremiumPlan {
@@ -152,6 +157,35 @@ export const PREMIUM_PRICES: PremiumPlan[] = [
     billed: 'Débité une fois par an, soit 3,33 € par mois.',
   },
 ];
+
+/**
+ * Substitue les prix RÉELS du store à nos tarifs de repli.
+ *
+ * Vit ici et non dans l'écran pour la raison habituelle : `vitest.config.ts` ne
+ * collecte que `lib/__tests__/**`, donc rien de ce qui est écrit dans `app/` n'est
+ * testable — et ces montants engagent le produit.
+ *
+ * `fallback` vaut vrai dès qu'UNE SEULE formule affiche encore un prix local : la
+ * mention « ce sont les tarifs français » doit s'afficher tant qu'un seul montant
+ * n'est pas celui du store. Se tromper dans l'autre sens afficherait un prix en
+ * euros à quelqu'un facturé en dollars, sans le dire.
+ */
+export function withStorePrices(
+  store: StorePrices,
+  plans: PremiumPlan[] = PREMIUM_PRICES,
+): { plans: PremiumPlan[]; fallback: boolean } {
+  let fallback = false;
+  const out = plans.map((p) => {
+    const prix = store[p.id];
+    if (typeof prix === 'string' && prix.trim() !== '') return { ...p, price: prix.trim() };
+    fallback = true;
+    return p;
+  });
+  return { plans: out, fallback };
+}
+
+/** Prix localisés renvoyés par le store, par formule (cf. `lib/purchases.ts`). */
+export type StorePrices = Partial<Record<PremiumPlan['id'], string>>;
 
 /**
  * Économie de l'annuel par rapport à 12 mensualités, en pourcentage ENTIER
