@@ -33,7 +33,7 @@ listes contradictoires.
 |---|---|
 | `Recette/README.md` | Chaîne d'ajout de recettes (drops, merge, vérifications) + la convention « une vague peut RÉÉCRIRE ». |
 | `Recette/BRIEF-GENERATION-RECETTES.md` | Spec de génération, auto-portante. **§4.12 = les 5 règles de la collation**, §4.2 les ancres, §6 l'anti-doublons. Certains blocs du §5 sont des commandes LIVRÉES, marquées comme telles. |
-| `MONETISATION.md` | Kyroz+ : tranché et livré ; restent la banque de calories et le paywall. |
+| `MONETISATION.md` | Kyroz+ : tranché, et **le code est livré en entier** (banque de calories, écran, verrou, SDK). Ne restent que des étapes de COMPTES et de revue — cf. AGENTS.md B2. |
 | `test/README.md` | Parcours Playwright — **ne tournent pas dans `npm test`**, pièges du socle. |
 
 *Sortie, conformité, exploitation*

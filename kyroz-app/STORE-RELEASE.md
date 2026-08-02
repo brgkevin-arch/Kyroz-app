@@ -138,9 +138,22 @@ un identifiant enregistré, puis une fiche d'app. Dans cet ordre, sinon le menu
    **1 offering** contenant les deux packages. Récupérer les 2 clés SDK publiques
    (`appl_…` et `goog_…`) — publiques par conception, transmissibles sans risque.
 
-À la fin de l'étape 6, il reste **une seule fonction à écrire** côté code :
-`useEntitlement()` dans `hooks/usePremium.ts`. Tout le reste est déjà en place
-(cf. `lib/premium.ts`, grand-père des comptes existants).
+✅ **Le code n'attend plus rien — mis à jour le 2026-08-02.** Cette ligne disait qu'il
+restait `useEntitlement()` à écrire : c'est fait, ainsi que l'achat, la restauration et
+les prix localisés (`lib/purchases.ts`, `hooks/usePremium.ts`, `app/kyroz-plus.tsx`).
+À la fin de l'étape 6, il reste donc à **poser les clés publiques** dans le build EAS,
+faire un **build natif** (module natif → ni Expo Go ni OTA) et **tester en bac à sable**.
+
+⚠️ **Deux identifiants doivent correspondre au CARACTÈRE PRÈS entre ce document, le
+dashboard et le code** — c'est la source d'erreur n°1 rappelée plus haut, et elle s'est
+réalisée : le code portait `kyroz_plus_annual` et `kyroz_plus` là où Apple porte
+`kyroz_plus_yearly` et où l'étape 6 prescrit l'entitlement `premium`. Corrigé, et
+verrouillé par deux tests (`lib/__tests__/premium.test.ts`, `purchases.test.ts`).
+**Ces chaînes se recopient depuis le dashboard, elles ne se choisissent pas dans le code.**
+
+⚠️ **L'écart qui reste, et c'est une décision produit** : l'étape 4 dit que le paywall
+« devra présenter trois formules, pas deux ». Il en présente deux — l'annuel payé au mois
+(3,99 €/mois, engagement 12 mois) n'est pas affiché. À trancher avant la mise en vente.
 
 ---
 

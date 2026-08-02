@@ -82,49 +82,77 @@ core tuerait le North Star — donc interdit.
 
 ## Implémentation du paywall — plan de câblage (prochain chantier CODE)
 
-> **▶ La valeur premium est construite (Kyroz+ livré + déployé) ; il reste à câbler le paiement.**
+> **▶ La valeur premium est construite ET le paiement est câblé (2026-08-02). Il reste des étapes de COMPTES, un build natif et une revue — plus une ligne de code.**
 > Ordre respecté : (1) valeur tranchée → (2) construite ✅ → (3) paywall = ce chantier.
 > Canal **TRANCHÉ** : achat in-app **Apple App Store (IAP) + Google Play (Billing)** via
 > **RevenueCat** (pas de Stripe seul — refusé par les stores). Bosser sur `feature/paywall`.
 > ⚠️ **Revalider la doc RevenueCat/Apple à jour au moment du câblage** (les exigences bougent) —
 > ce plan donne la trame, pas les appels d'API figés.
 
-### A. Prérequis externes (fondateur — comptes & produits, AVANT le code)
-- [ ] **App Store Connect** : accepter le *Paid Applications Agreement* (coordonnées bancaires
-      + fiscales). Créer un **groupe d'abonnement** + 2 produits auto-renouvelables :
-      `kyroz_plus_monthly` (4,99 €) et `kyroz_plus_yearly` (39,99 €), infos localisées + capture review.
-- [ ] **Google Play Console** : créer l'abonnement `kyroz_plus` avec 2 *base plans* (mensuel / annuel), mêmes prix.
-- [ ] **RevenueCat** : créer le projet, rattacher l'app iOS + Android, mapper les produits store
-      → **1 entitlement `premium`** + **1 offering** (packages mensuel/annuel). Récupérer les
-      **clés SDK publiques** (iOS `appl_…`, Android `goog_…`) — publiques, OK inlinées (comme la clé PostHog).
+> ⚠️ **ÉTAT AU 2026-08-02 — les sections B, C et D sont LIVRÉES.** Ce plan datait d'avant
+> le câblage ; il ne restait plus qu'à cocher, ce qui ne se voyait pas. Détail, mesures et
+> pièges : `AGENTS.md` B2. Ce qui reste ouvert est **hors code** (comptes, build, revue).
 
-### B. Intégration SDK (code)
-- [ ] `npx expo install react-native-purchases` (+ config plugin). ⚠️ Module **natif** →
-      nécessite un **build EAS / dev client** (pas Expo Go ; l'app build déjà via `eas.json`).
-- [ ] Init au démarrage (`app/_layout.tsx`), **natif seulement** : `Purchases.configure({ apiKey })`
-      avec la clé selon `Platform.OS`. Clés en `EXPO_PUBLIC_REVENUECAT_IOS_KEY` / `_ANDROID_KEY`.
-- [ ] **Web (GitHub Pages) = no-op** : `react-native-purchases` ne supporte pas le web → garder
-      derrière `Platform.OS !== 'web'` (même pattern que `notifications`). Sur web, `isPremium=false`
-      et le CTA d'achat renvoie « dispo sur l'app mobile » (ne jamais casser le web).
+### A. Prérequis externes (fondateur — comptes & produits, AVANT le code)
+- [x] **App Store Connect** — ✅ **fait le 2026-07-30** : Paid Applications Agreement ACTIF,
+      groupe d'abonnement **Kyroz+** et les 2 produits auto-renouvelables créés et tarifés,
+      `kyroz_plus_monthly` (4,99 €) et `kyroz_plus_yearly` (39,99 € d'avance **ou 3,99 €/mois**).
+      Reste la capture de review (impossible avant que le paywall existe) → produits en
+      « Métadonnées manquantes », ce qui n'empêche ni RevenueCat ni le bac à sable.
+      ⚠️ **`kyroz_plus_yearly`, pas `_annual`** : le code s'était trompé, cf. AGENTS.md B2.
+- [ ] **Google Play Console** : créer l'abonnement `kyroz_plus` avec 2 *base plans* (mensuel / annuel), mêmes prix.
+- [ ] **RevenueCat — état INCONNU au 2026-08-02** : créer le projet, rattacher l'app iOS + Android,
+      mapper les produits store → **1 entitlement `premium`** + **1 offering** (packages
+      mensuel/annuel). Récupérer les **clés SDK publiques** (iOS `appl_…`, Android `goog_…`) —
+      publiques, OK inlinées (comme la clé PostHog).
+      ⚠️ Le dépôt ne peut pas dire si c'est fait (aucune clé posée n'est nécessaire avant le
+      build). **Seul le dashboard fait foi.**
+
+### B. Intégration SDK (code) — ✅ LIVRÉE le 2026-08-02
+- [x] `react-native-purchases` **v10.6.0** installé. ⚠️ Module **natif** → build EAS / dev
+      client obligatoire (ni Expo Go, ni OTA).
+- [x] Init **paresseuse et idempotente** dans `lib/purchases.ts::configurePurchases()`, pas au
+      démarrage dans `app/_layout.tsx` — **écart assumé** : sans clé, le SDK n'est même pas
+      chargé, donc l'app ne paie rien pour une feature qui n'est pas ouverte.
+      Clés en `EXPO_PUBLIC_REVENUECAT_IOS_KEY` / `_ANDROID_KEY` (cf. `.env.example`).
+- [x] **Web = no-op**, mais par **séparation de plateforme** (`lib/purchases.web.ts`) et non
+      par une garde `Platform.OS !== 'web'`. ⚠️ **La garde ne suffisait PAS** : mesuré sur
+      l'export, le SDK restait embarqué dans le bundle web (**+900 Ko**) parce que Metro
+      analyse les `require` statiquement. Avec le fichier `.web.ts` : **+1,4 Ko** et zéro
+      occurrence. Piège consigné dans `CLAUDE.md` §11.
 
 ### C. Entitlement / gating (`is_premium`)
-- [ ] Hook `usePremium()` : lit `customerInfo.entitlements.active['premium']` + écoute
-      `addCustomerInfoUpdateListener`. Expose `{ isPremium, loading }`. **Source de vérité =
-      RevenueCat** (le SDK cache le dernier état → marche hors-ligne). Pas de flag local bricolé.
+- [x] ✅ Hook `usePremium()` : lit `entitlements.active['premium']` + écoute
+      `addCustomerInfoUpdateListener` (sinon un achat ne se verrait qu'au prochain lancement).
+      **Source de vérité = RevenueCat** (le SDK cache le dernier état → marche hors-ligne).
+      Aucun flag local bricolé. Expose `{ allowed, reason, entitled, notice, can }` — plus
+      riche que le `{ isPremium, loading }` prévu ici, parce que le verrou distingue quatre
+      états (`not_launched`, `grandfathered`, `entitled`, `locked`).
 - [ ] (Optionnel, plus tard) miroir `profiles.is_premium` via **webhook RevenueCat → Edge
       Function** pour l'analytique serveur. PAS requis pour le gating client.
-- [ ] **Ce qu'on verrouille = features Kyroz+ uniquement** : **Objectif daté** (`GoalTarget`,
-      `DatedGoalCard`), **Trajectoire / Transformation** (`components/Transformation.tsx`), +
-      **banque de calories** (à venir). Le reste (core loop + les 4 features déjà gratuites) **reste libre**.
-- [ ] **North Star sacré** : le paywall se déclenche **SUR INTENTION** (tap sur une feature
-      Kyroz+), **JAMAIS** au lancement, ni pendant la fenêtre 14 j, ni sur le geste quotidien.
+- [x] ✅ **Ce qu'on verrouille = features Kyroz+ uniquement** : `PREMIUM_FEATURES` =
+      `dated_goal` · `transformation` · `calorie_bank` (livrée, plus « à venir »). Le reste
+      — core loop, courses, recettes, garde-manger, favoris, série, pesée, synchro — **reste
+      libre**, et l'écran l'énumère noir sur blanc.
+- [x] ✅ **North Star sacré** : le paywall ne s'ouvre que sur **INTENTION** — un seul point
+      d'étranglement, `openEditor()` dans `app/(tabs)/profil.tsx` (ligne 187), plus l'entrée
+      explicite du menu Profil. **Aucun appel au lancement**, vérifié : `/kyroz-plus` n'est
+      poussé que depuis ces deux endroits.
 
-### D. Paywall (écran)
-- [ ] Composant `Paywall` : prix **lus depuis l'offering** RevenueCat (`priceString` localisé —
-      ne PAS coder « 4,99 € » en dur), choix mensuel/annuel, achat via `Purchases.purchasePackage()`.
-- [ ] **Obligatoires Apple** : bouton **« Restaurer mes achats »** (`restorePurchases()`), liens
-      **CGU + Confidentialité** (déjà `/legal`), mention claire prix / période / renouvellement.
-- [ ] États gérés : achat en cours, succès (déverrouille), annulation, erreur, déjà abonné.
+### D. Paywall (écran) — ✅ LIVRÉ (écran le 2026-08-01, câblage le 2026-08-02)
+- [x] `app/kyroz-plus.tsx` : prix **lus du store** (`priceString` localisé) dès qu'ils
+      arrivent, sinon repli sur les tarifs français **avec la mention qui le dit**. Achat via
+      `purchaseStoreProduct` (et non `purchasePackage` : on cible les produits directement,
+      un offering n'est pas nécessaire pour deux formules).
+- [x] **Obligatoires Apple** : « Restaurer mes achats » branché, liens CGU + Confidentialité,
+      mentions prix / période / renouvellement. ⚠️ La restauration ne sera PROUVÉE qu'en bac
+      à sable — sans ça, rejet Guideline 3.1.1.
+- [x] États gérés : achat en cours, succès, **annulation traitée comme un cas NORMAL** (aucun
+      message), erreur, indisponible. Via `useDialog()` et **jamais `Alert.alert`**, qui est
+      une fonction vide sur web (`CLAUDE.md` §11).
+- [ ] 🧑 **TROIS formules, pas deux** — Apple porte aussi l'annuel payé au mois (3,99 €/mois,
+      engagement 12 mois), que l'écran n'affiche pas. `STORE-RELEASE.md` §4 dit qu'il devrait.
+      Décision commerciale, à trancher avant la mise en vente.
 
 ### E. Conformité review & tests
 - [ ] Le reviewer doit **atteindre le paywall** (via l'accès reviewer existant) → le documenter
@@ -134,7 +162,10 @@ core tuerait le North Star — donc interdit.
 
 ### F. Ordre de bataille
 A (comptes/produits) → B (SDK + init web-safe) → C (hook `usePremium` + points de gate) →
-D (écran paywall) → E (sandbox + review). Sans impact `ENGINE_VERSION` (le moteur n'est touché
+D (écran paywall) → E (sandbox + review).
+✅ **B, C et D sont faits.** Il reste, dans l'ordre : **RevenueCat** (état inconnu) →
+**clés dans le build EAS** → **build natif** → **bac à sable** → **poser `PAYWALL_LAUNCH`**.
+⚠️ La date se pose en DERNIER, et elle ne se recule jamais. Sans impact `ENGINE_VERSION` (le moteur n'est touché
 que par la banque de calories, chantier séparé). `profiles.stripe_customer_id` = vestige
 (RevenueCat porte l'entitlement) : garder ou renommer au câblage, non bloquant.
 
