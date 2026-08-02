@@ -281,6 +281,16 @@ est **FERMÉ** le 2026-08-01, `supportsTablet` est à `true`.)*
       l'ancre (`familyKey` = protéine × féculent : un féculent neuf fait bien une
       famille neuve). Commander « des ancres neuves en collation » aurait été une
       commande impossible à honorer.
+      ⚠️ **Et l'élargissement évident est un piège — mesuré, puis abandonné.** Le réflexe
+      devant ces 4 ancres est d'élargir le format léger pour en libérer d'autres. Ça
+      marche… et ça perd la cliente. Balayé de 190/15 à 250/14 : à **190 kcal / 15 g P**,
+      `yaourt_soja_proteine`, `soja_texture` et `seitan` servent `F 55 sèche · vegan+SG` ;
+      **dès 210 kcal, plus AUCUNE ancre ne la sert**, quel que soit le gain de R8 (qui
+      monte pourtant à 10/12). L'étroitesse de ce format n'est pas un défaut à corriger,
+      c'est sa raison d'être. ➡️ Le vrai correctif était ailleurs : ouvrir `tempeh` sur le
+      **gros** format seulement, où il garde 13 g de féculent — sans quoi le plafond de
+      2 recettes par ancre ne laissait aucun degré de liberté (4 ancres × 2 = 8 places
+      pour 8 recettes).
    ➡️ Et un argument qui décide de la composition du lot, mesuré et non supposé : **une
    recette végétalienne entre dans TOUS les pools de régime** — halal, pescatarien, sans
    lactose, végétarien, sans porc : **166 fois sur 166**. Ce n'est pas une orientation

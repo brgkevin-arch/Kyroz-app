@@ -124,7 +124,8 @@ n'appartient à aucun format et sera rejetée.
 
 - Les **deux sous-formats se livrent ENSEMBLE**. Aucune collation ne peut couvrir les 12 profils — la cible du créneau va de 148 à 455 kcal, soit 3,1×, quand le moteur n'étire que d'environ 1,8×. C'est l'**union** des deux formats qui couvre, jamais une recette seule.
 - 🎯 **La cellule visée est la plus affamée de tout le catalogue** : une femme de 55 kg en sèche, végétalienne et sans gluten, dispose de **3 collations sur 86, réparties sur 2 familles**. Sa cible est de 148 kcal pour 13 g de protéines. Le catalogue lui propose 34 collations compatibles avec son régime : **31 sont trop grosses** pour elle (drapeau `over_target_kcal`), il en reste 3. C'est le format léger qui la sert, pas le gros.
-- 🎯 **VARIE LE FÉCULENT, pas l'ancre — et c'est l'inverse de ce qu'on attendrait.** À cette densité (13 g de protéines pour 100 kcal en format léger), seules quatre ancres du catalogue laissent encore la place d'un vrai féculent : `yaourt_soja_proteine`, `proteine_vegetale`, `soja_texture` et `seitan`. Toutes les autres — `edamame`, `lentilles_cuites`, `pois_chiches`, le tofu sous toutes ses formes, le tempeh — remplissent le budget calorique à elles seules et ne laissent que 0 à 3 g de féculent. Elles sont donc **interdites comme ancre principale ici**, et parfaitement bienvenues en appoint.
+- 🎯 **VARIE LE FÉCULENT, pas l'ancre — et c'est l'inverse de ce qu'on attendrait.** À cette densité, seules quatre ancres du catalogue laissent encore la place d'un vrai féculent en **format léger** : `yaourt_soja_proteine`, `proteine_vegetale`, `soja_texture` et `seitan`. Toutes les autres — `edamame`, `lentilles_cuites`, `pois_chiches`, le tofu sous toutes ses formes — remplissent le budget calorique à elles seules et ne laissent que 0 à 3 g de féculent. Elles sont donc **interdites comme ancre principale en format léger**, et parfaitement bienvenues en appoint. ➡️ **En gros format, `tempeh` s'ajoute à la liste** (mesuré : 13 g de féculent, 4 profils sur 12) : c'est une famille neuve, prends-la.
+- ⚠️ **Le plafond de 2 recettes par ancre est SERRÉ sur ce lot, compte avant d'écrire.** Cinq ancres employables × 2 = 10 places pour 8 recettes, dont `seitan` réservé aux 2 recettes avec gluten. Il te reste donc 4 ancres pour les 6 sans gluten, soit 8 places pour 6 : **tu ne peux pas poser trois recettes sur le yaourt de soja**. Répartis dès la première.
 - ⚠️ **Chaque recette porte un vrai féculent `carb` et `scalable`.** C'est la contrainte non négociable du lot : 24 collations du catalogue n'en ont aucun et servent **5,8 profils sur 12** contre 8,0 pour les 62 qui en portent un. Une collation sans féculent ne peut pas s'étirer, et c'est précisément ce qui a vidé la cellule visée.
 - 🎯 **Les couples déjà pris sur ce créneau, en végétal** : `yaourt_soja_proteine` sans féculent (8 recettes), `proteine_vegetale` sans féculent (4), `proteine_vegetale` + `flocons_avoine` (2), + `sarrasin` (2), + `chataigne` (2), `yaourt_soja_proteine` + `galette_riz` (2), + `chataigne` (2), `edamame` + `mais` (2). **Les féculents encore libres avec ces ancres** : `quinoa`, `millet`, `polenta`, `riz_complet`, `nouilles_riz`, `patate_douce`, `pain_sans_gluten`, `mais`. Va les chercher.
 - ⚠️ **La règle des 12 g de lipides ne s'applique PAS ici.** 12 g de lipides valent 108 kcal, soit 55 % d'une collation de 190 kcal. L'ancre grasse `fat` + `scalable` reste obligatoire, elle est simplement petite : 5 à 8 g en format léger, 8 à 12 g en gros format.
@@ -133,7 +134,7 @@ n'appartient à aucun format et sera rejetée.
 
 ---
 
-## 4. Les 67 `ref` autorisés
+## 4. Les 68 `ref` autorisés
 
 **Règle absolue : tu n'emploies QUE ces clés.** Un ingrédient absent de cette table n'existe pas
 pour l'application — il serait invisible au calcul des macros, au filtre des régimes et à la liste
@@ -213,6 +214,7 @@ catégorie qui emploient déjà ce `ref` (un chiffre élevé = format saturé, c
 | `skyr` | Skyr nature | g | 63 | 11 | 4 | 0.2 | — | — | 9 |
 | `soja_texture` | Protéine de soja texturée (PST) | g | 345 | 52 | 30 | 1 | SEC | ≤ 70 | 1 |
 | `tahini` | Purée de sésame (tahini) | g | 631 | 17.7 | 13.8 | 53.4 | — | ≤ 40 | 3 |
+| `tempeh` | Tempeh | g | 157 | 16.1 | 7.9 | 4.7 | — | — | 0 |
 | `tofu_fume` | Tofu fumé | g | 164 | 14.9 | 2.9 | 9.5 | — | — | 0 |
 | `tomate` | Tomate | g | 18 | 0.5 | 3.4 | 0.5 | — | — | 4 |
 | `whey` | Whey (neutre/vanille) | g | 377 | 80 | 7 | 5 | — | ≤ 60 | 8 |
@@ -220,7 +222,7 @@ catégorie qui emploient déjà ce `ref` (un chiffre élevé = format saturé, c
 | `yaourt_grec` | Yaourt grec égoutté (type Fage) | g | 115 | 9 | 4 | 7 | — | — | 1 |
 | `yaourt_soja_proteine` | Yaourt de soja protéiné | g | 65 | 9 | 4 | 1.5 | — | — | 17 |
 
-**61 de ces 67 refs sont compatibles sans gluten** (ceux sans ⛔SG).
+**62 de ces 68 refs sont compatibles sans gluten** (ceux sans ⛔SG).
 
 ---
 
@@ -448,7 +450,7 @@ Refs les plus employés dans cette catégorie — à ne PAS renforcer :
 ### Ancres encore OUVERTES — c'est là qu'il faut aller
 
 Dire ce qui est interdit sans dire ce qui reste libre envoie dans un mur. Voici les ancres
-protéiques par ordre de **disponibilité** — **toutes prises dans les 67 refs du §4**,
+protéiques par ordre de **disponibilité** — **toutes prises dans les 68 refs du §4**,
 donc toutes réellement employables. « Couples saturés » = combinaisons déjà fermées pour cette
 ancre, « places libres » = combinaisons (ancre × féculent autorisé) encore utilisables.
 
@@ -456,6 +458,7 @@ ancre, « places libres » = combinaisons (ancre × féculent autorisé) encore 
 |---|---|---|---|
 | `haricots_rouges_conserve` | — | — | 19 |
 | `lentilles_cuites` | — | — | 19 |
+| `tempeh` | — | — | 19 |
 | `tofu_fume` | — | — | 19 |
 | `seitan` | 1 | — | 19 |
 | `soja_texture` | 1 | — | 19 |
@@ -466,7 +469,7 @@ ancre, « places libres » = combinaisons (ancre × féculent autorisé) encore 
 **Refs du §4 JAMAIS employés en `collation`** — terrain entièrement vierge, aucun risque de
 doublon :
 
-`boisson_soja` · `haricots_rouges_conserve` · `lentilles_cuites` · `millet` · `nouilles_riz` · `patate_douce` · `pois_chiches_conserve` · `riz_complet` · `tofu_fume`
+`boisson_soja` · `haricots_rouges_conserve` · `lentilles_cuites` · `millet` · `nouilles_riz` · `patate_douce` · `pois_chiches_conserve` · `riz_complet` · `tempeh` · `tofu_fume`
 
 ### Diversité de format
 
