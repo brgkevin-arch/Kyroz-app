@@ -82,7 +82,7 @@ core tuerait le North Star — donc interdit.
 
 ## Implémentation du paywall — plan de câblage (prochain chantier CODE)
 
-> **▶ La valeur premium est construite (Kyroz+ livré + déployé) ; il reste à câbler le paiement.**
+> **▶ La valeur premium est construite ET le paiement est câblé (2026-08-02). Il reste des étapes de COMPTES, un build natif et une revue — plus une ligne de code.**
 > Ordre respecté : (1) valeur tranchée → (2) construite ✅ → (3) paywall = ce chantier.
 > Canal **TRANCHÉ** : achat in-app **Apple App Store (IAP) + Google Play (Billing)** via
 > **RevenueCat** (pas de Stripe seul — refusé par les stores). Bosser sur `feature/paywall`.
