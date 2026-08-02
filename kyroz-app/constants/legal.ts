@@ -22,7 +22,7 @@ export const LEGAL = {
   supportEmail: 'contact@kyroz.app',
   host: 'Supabase Inc.',
   hostRegion: 'Union européenne (UE)',
-  effectiveDate: '15 juin 2026',
+  effectiveDate: '2 août 2026',
 } as const;
 
 export interface LegalSection {
@@ -46,6 +46,7 @@ export const PRIVACY_POLICY: LegalSection[] = [
       "Données de santé : sexe, âge, poids, taille, taux de masse grasse, niveau d’activité et sport pratiqué, objectif, restrictions et préférences alimentaires. Ces informations sont des données de santé au sens de l’article 9 du RGPD.",
       "Données d’usage de l’app : plans générés, suivi du poids, série (streak), favoris, garde-manger.",
       "Photos de progression (facultatives) : elles restent stockées UNIQUEMENT sur votre appareil et ne sont jamais transmises à nos serveurs.",
+      "Données d’abonnement, uniquement si vous souscrivez à Kyroz+ : l’identifiant technique de votre compte et l’état de votre abonnement. Aucune coordonnée bancaire ne transite par Kyroz.",
     ],
   },
   {
@@ -61,10 +62,21 @@ export const PRIVACY_POLICY: LegalSection[] = [
       "Le traitement des données de santé repose sur votre consentement explicite (RGPD art. 9-2-a), recueilli à l’inscription. Vous pouvez le retirer à tout moment en supprimant votre compte.",
     ],
   },
+  // ⚠️ DEUX PHRASES DE CETTE SECTION SONT DATÉES — les relire avant d'allumer quoi
+  // que ce soit :
+  //  • « aucun outil d'analyse tiers » devient FAUX le jour où `EXPO_PUBLIC_POSTHOG_KEY`
+  //    est posée (`lib/analytics.ts`, dormant aujourd'hui) ;
+  //  • le paragraphe RevenueCat ne NOMME PAS le cadre du transfert hors UE (clauses
+  //    contractuelles types / Data Privacy Framework). Le RGPD (art. 13-1-f) l'exige.
+  //    Il n'est pas écrit ici parce qu'il n'a pas été vérifié dans le contrat
+  //    RevenueCat — et une politique de confidentialité n'est pas l'endroit où
+  //    supposer. ➡️ À compléter à la signature de leur DPA (AGENTS.md B2, étape 6).
   {
     title: '5. Destinataires et sous-traitants',
     paragraphs: [
       `Vos données synchronisées sont hébergées par ${LEGAL.host}, sur des serveurs situés en ${LEGAL.hostRegion}.`,
+      "Si vous souscrivez un abonnement Kyroz+, sa gestion est confiée à RevenueCat, Inc. (États-Unis). Ne lui sont transmis que l’identifiant technique de votre compte et l’état de votre abonnement — ni votre adresse email, ni vos données de santé, ni aucune coordonnée bancaire.",
+      "Le paiement lui-même est traité par l’App Store (Apple) ou Google Play. Kyroz ne voit ni ne conserve aucune coordonnée bancaire.",
       "Nous ne vendons, ne louons et ne partageons vos données avec aucun tiers à des fins commerciales. Aucun traceur publicitaire ni outil d’analyse tiers n’est utilisé.",
     ],
   },
@@ -77,7 +89,8 @@ export const PRIVACY_POLICY: LegalSection[] = [
   {
     title: '7. Durée de conservation',
     paragraphs: [
-      "Vos données sont conservées tant que votre compte est actif. Elles sont supprimées définitivement (serveur + appareil) lorsque vous supprimez votre compte.",
+      "Vos données sont conservées tant que votre compte est actif. Elles sont supprimées (serveur + appareil) lorsque vous supprimez votre compte.",
+      "Une exception : si vous avez souscrit un abonnement, l’historique de facturation correspondant est conservé par RevenueCat et par le store concerné, pour la durée qu’imposent leurs obligations légales et comptables. Cet historique ne contient aucune donnée de santé.",
     ],
   },
   {
@@ -123,45 +136,62 @@ export const TERMS_OF_USE: LegalSection[] = [
       "Kyroz génère des plans repas, des listes de courses et des recettes à visée nutritionnelle, à partir des informations que vous fournissez. Le cœur du service est gratuit.",
     ],
   },
+  // ⚠️ Cette section est écrite AVANT la mise en vente : elle décrit un abonnement que
+  // personne ne peut encore souscrire (`PAYWALL_LAUNCH` est `null`). Elle est rédigée
+  // au conditionnel pour rester VRAIE aujourd'hui. Deux points qu'Apple contrôle à la
+  // revue (Guideline 3.1.2) et qui doivent rester dans le texte : le renouvellement
+  // automatique avec son délai de résiliation, et le fait que les remboursements
+  // relèvent du store. Un troisième point est une décision fondateur, pas une
+  // obligation : la gratuité à vie des comptes antérieurs (`lib/premium.ts`).
   {
-    title: '3. Avertissement santé',
+    title: '3. Abonnement Kyroz+',
+    paragraphs: [
+      "Le cœur du service reste gratuit : plan de la semaine, liste de courses, recettes, garde-manger, favoris, série, pesée et synchronisation. Kyroz+ est un abonnement facultatif qui donne accès à des outils complémentaires — objectif daté, suivi de transformation, banque de calories.",
+      "L’abonnement est vendu par l’App Store ou Google Play, jamais directement par Kyroz. Le prix affiché au moment de l’achat fait foi. Le paiement, le renouvellement et la résiliation se gèrent dans les réglages de votre compte App Store ou Google Play.",
+      "L’abonnement se renouvelle automatiquement à la fin de chaque période, sauf résiliation au moins 24 heures avant l’échéance. Les demandes de remboursement relèvent du store, pas de Kyroz.",
+      "Les comptes créés avant la mise en vente de Kyroz+ conservent l’accès à ces outils gratuitement, à vie, sans démarche à effectuer.",
+    ],
+  },
+  {
+    title: '4. Avertissement santé',
     paragraphs: [
       DISCLAIMER,
       "Kyroz ne s’adresse pas aux personnes atteintes de pathologies (diabète, insuffisance rénale, troubles cardiaques…), aux femmes enceintes ou allaitantes. En cas de doute, consultez un professionnel de santé. Vous restez seul responsable de votre alimentation.",
     ],
   },
   {
-    title: '4. Compte',
+    title: '5. Compte',
     paragraphs: [
       "Vous vous engagez à fournir des informations exactes et à avoir au moins 18 ans. Vous êtes responsable de la confidentialité de vos identifiants.",
     ],
   },
   {
-    title: '5. Propriété intellectuelle',
+    title: '6. Propriété intellectuelle',
     paragraphs: [
       "Les recettes et contenus de l’app sont la propriété de Kyroz. Les données nutritionnelles sont issues de la table Ciqual (ANSES), réutilisées sous Licence Ouverte 2.0 (Etalab).",
     ],
   },
   {
-    title: '6. Données personnelles',
+    title: '7. Données personnelles',
     paragraphs: [
       "Le traitement de vos données est décrit dans la Politique de confidentialité ci-dessus, qui fait partie intégrante des présentes conditions.",
     ],
   },
   {
-    title: '7. Résiliation',
+    title: '8. Résiliation',
     paragraphs: [
-      "Vous pouvez supprimer votre compte à tout moment depuis l’app (Profil → Supprimer mon compte), ce qui efface définitivement vos données.",
+      "Vous pouvez supprimer votre compte à tout moment depuis l’app (Profil → Supprimer mon compte), ce qui efface vos données.",
+      "⚠️ Supprimer votre compte Kyroz n’annule PAS un abonnement en cours : celui-ci continue d’être facturé tant qu’il n’est pas résilié dans les réglages de votre compte App Store ou Google Play.",
     ],
   },
   {
-    title: '8. Responsabilité',
+    title: '9. Responsabilité',
     paragraphs: [
       "Kyroz fournit un outil d’aide à la planification nutritionnelle sans garantie de résultat. Notre responsabilité ne saurait être engagée pour l’usage que vous faites des plans proposés.",
     ],
   },
   {
-    title: '9. Droit applicable',
+    title: '10. Droit applicable',
     paragraphs: [
       `Les présentes conditions sont soumises au droit français. Contact : ${LEGAL.supportEmail}. En cas de litige, vous pouvez recourir à un médiateur de la consommation ou saisir la CNIL pour les questions relatives aux données.`,
     ],
