@@ -70,6 +70,22 @@ App mobile React Native (Expo Router, SDK 56) de plans repas macro-précis pour 
 > LE MONDE en quelques minutes, **sans revue de store pour l'arrêter**. C'est le filet
 > qui disparaît. Ne jamais publier sans `npm test` + `tsc` verts. En cas de casse :
 > republier l'update précédent (`eas update:rollback`).
+>
+> 🔴 **`eas.json` → bloc `env` : lu par `eas build`, PAS par `eas update`.** Découvert le
+> 2026-08-03. Les clés Supabase vivent dans `build.<profil>.env` d'`eas.json` ; elles ne
+> sont **pas** des variables d'environnement EAS. Un `eas update` lancé depuis un clone
+> frais, un CI, ou toute machine sans `.env.local` publierait donc un bundle **sans URL
+> Supabase** — et l'app ne démarre pas sans. Le tout distribué à tout le monde en
+> quelques minutes, sans filet.
+> ➡️ **Avant tout `eas update`, VÉRIFIER le bundle plutôt que l'intention** :
+> `npx eas-cli env:exec production 'npx expo export --platform ios --output-dir /tmp/x'`
+> puis `strings` sur le `.hbc` produit, et y chercher les chaînes attendues. Rien n'est
+> publié — c'est la simulation exacte de ce que l'update enverrait. Même méthode que pour
+> le bundle web (§11, « un `require` paresseux ne retire rien du bundle ») : **on mesure
+> l'artefact, pas la configuration.**
+> 🧑 Correctif de fond : poser les clés Supabase en variables EAS, comme la clé
+> RevenueCat. Aucune exposition nouvelle — elles sont déjà en clair dans `eas.json`, qui
+> est versionné, et publiques par conception (c'est la RLS qui protège).
 > ℹ️ Aucune permission Android ajoutée — vérifié sur le manifeste généré, et le
 > correctif A2 (`RECORD_AUDIO`, `SYSTEM_ALERT_WINDOW` en `tools:node="remove"`) survit.
 

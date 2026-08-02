@@ -68,6 +68,8 @@ qu'ils étaient périmés.
 | `ENGINE_REV` | **4** (avertissement one-shot à l'utilisateur) | `lib/tdee.ts` |
 | Tests | **939 verts**, 52 fichiers · `tsc` propre | `npm test && npx tsc --noEmit` |
 | Plateformes | iPhone **+ iPad** (`supportsTablet: true` depuis le 2026-08-01). ⚠️ **portrait sur iPhone, MAIS les 4 orientations sur iPad** — Expo les force dès `supportsTablet`, le multitâche iPadOS l'impose, ce n'est pas refermable. Vérifié en natif (iPad Pro 13") et à 1366×1024 | `ios/Kyroz/Info.plist` généré, PAS `app.json` · `lib/layout.ts` |
+| Sortie stores | iOS **1.0.0 (3)** envoyé à TestFlight, **revue bêta en cours** depuis le 2026-08-03 00h58 · Android : 2 builds, rien de soumis | `npx eas-cli build:list` · `TESTFLIGHT.md` |
+| Kyroz+ | **encaissement armé, verrou inerte.** Clé RevenueCat posée dans EAS et vérifiée dans le bundle ; `PAYWALL_LAUNCH` = `null`, donc **tout est gratuit pour tout le monde**. ⚠️ Le build TestFlight actuel est ANTÉRIEUR à la clé | `lib/premium.ts` · `npx eas-cli env:list production` |
 | Site déployé | **automatique** : GitHub Actions à chaque push `main` (`build_type: workflow`). ⚠️ **NE PAS lire `origin/gh-pages`** — branche morte, cf. A12 | `gh run list --workflow=deploy.yml` |
 | Migrations Supabase | les **15** jouées, `2026-08-02_profiles_birth_date.sql` comprise. ⚠️ **Ne jamais annoncer une migration « en attente » sans lancer la commande** — le dépôt ne sait rien de la prod, et deux lignes d'ici l'ont dit à tort pendant des jours | `npm run check:migrations` |
 | Variété perçue | semaines servant 2 recettes d'un même couple : **max 10,0 %** (11,7 % avant B9 · 12,5 % avant B8 · 20,8 % avant B7 · 27,5 / 26,3 % avant A25 · 56,3 % avant D18) | `npm run mesure:variete -- --variete=…` |
@@ -1369,12 +1371,38 @@ produit en suspens — il ne reste qu'à coder.
      zéro bénéfice. À rouvrir seulement si un jour on veut changer l'offre à distance.
 
      🧑 **Reste à confirmer** : la clé publique **`appl_…`** (Project settings → API keys).
-  3. **Poser les clés PUBLIQUES du SDK** (`appl_…` / `goog_…`) dans le build EAS :
-     `EXPO_PUBLIC_REVENUECAT_IOS_KEY` et `_ANDROID_KEY` (cf. `.env.example`).
-     ➡️ **Les deux commandes exactes sont écrites dans `STORE-RELEASE.md` §1-bis,
-     étape 7** (`npx eas-cli env:create …`), avec le motif du `--visibility plaintext`.
+  3. ✅ **CLÉ POSÉE le 2026-08-03** — `EXPO_PUBLIC_REVENUECAT_IOS_KEY` en variable
+     d'environnement EAS sur `production` (`npx eas-cli env:create`, `--visibility
+     plaintext` : le préfixe `EXPO_PUBLIC_` inline la valeur en clair dans le binaire
+     de toute façon, la marquer secrète ne protégerait rien).
+     ✅ **Et VÉRIFIÉE dans le bundle, pas seulement dans le dashboard** :
+     `npx eas-cli env:exec production 'npx expo export --platform ios'` puis `strings`
+     sur le bytecode Hermes → la clé y est (1 occurrence), `RNPurchases` aussi.
+     Rien n'a été publié : c'est un export local, la simulation exacte de ce que
+     `eas update` enverrait.
      ⚠️ **Pas la clé secrète du dashboard** — elle ne doit jamais entrer dans un
-     bundle client. Inutile de les poser sur le build web : il n'encaisse pas.
+     bundle client. Inutile de la poser sur le build web : il n'encaisse pas.
+     ⏸️ `preview` et `.env.local` : pas posées, pas nécessaires au chemin OTA.
+     `_ANDROID_KEY` : sans objet tant qu'il n'y a pas d'app Android.
+
+     🔴 **CE QUE CETTE VÉRIFICATION A TROUVÉ — un OTA peut BRIQUER l'app en silence.**
+     `eas env:list production` ne contient que **deux** variables : la clé RevenueCat
+     et `EXPO_PUBLIC_REVIEW_CODE`. **Les clés Supabase n'y sont PAS** — elles vivent
+     dans le bloc `env` de chaque profil de `eas.json`, que **`eas build` lit et que
+     `eas update` NE LIT PAS**.
+     ➡️ Conséquence : un `eas update` lancé depuis un clone frais, un CI, ou toute
+     machine sans `.env.local` publierait un bundle **sans URL Supabase**. L'app ne
+     démarre pas sans, et la mise à jour atteint tous les testeurs en quelques minutes,
+     **sans revue de store pour l'arrêter**.
+     ✅ Mesuré : depuis le worktree (qui a `.env.local`), le bundle contient bien
+     l'URL et la clé Supabase. Le chemin est donc sûr **depuis cette machine, depuis
+     ce dossier** — et nulle part ailleurs.
+     🧑 **Correctif de fond, non fait** : poser `EXPO_PUBLIC_SUPABASE_URL` et
+     `_ANON_KEY` en variables EAS, comme la clé RevenueCat. Build et update liraient
+     alors la même source. **Aucune exposition nouvelle** : ces deux valeurs sont déjà
+     en clair dans `eas.json`, qui est versionné, et publiques par conception (c'est la
+     RLS qui protège, pas le secret de la clé). Non fait ici parce que `eas.json`
+     appartient à une session parallèle.
   4. **Un nouveau build natif ET une nouvelle revue store.** `react-native-purchases`
      est un module NATIF : l'OTA ne peut pas le livrer (`CLAUDE.md` §2). Le
      `ios/` local doit être régénéré (`npx expo prebuild` puis `pod install`) — il
@@ -1590,11 +1618,27 @@ produit en suspens — il ne reste qu'à coder.
   il ne peut plus prendre du retard sur une vague. · **2 builds Android**
   (`versionCode` 2 puis 3 ; **prendre le 3**, le 2 est antérieur au correctif de
   permissions). Restent, côté fondateur :
-  - 🧑 **Build iOS** — `npx eas-cli build --platform ios --profile production`, **depuis
-    SON terminal** : EAS doit s'authentifier chez Apple (identifiant + double
-    authentification), ce qu'un assistant ne fait pas à sa place. ⚡ **iOS n'a PAS la
-    règle des 12 testeurs** → c'est probablement le chemin le plus RAPIDE pour être en
-    ligne, TestFlight distribuant immédiatement en interne.
+  - ✅ **Build iOS — FAIT, et cette ligne annonçait le contraire.** Constaté le
+    2026-08-03 en interrogeant EAS (`eas build:list`), pas en relisant la doc :
+    **iOS `production` 1.0.0 (3) FINISHED**, envoyé et traité par Apple, plus cinq
+    builds `device` (ad hoc). Le commit bâti, `cd4e2d3`, **contient tout le travail du
+    2026-08-02** — vérifié par ancêtre git, pas supposé : rattachement de l'abonnement
+    au compte, `expo-font`, texte légal.
+    ⚠️ **Ce build n'a PAS la clé RevenueCat** (elle a été posée après) → dans TestFlight
+    aujourd'hui, `purchasesConfigured()` est faux. C'est ce que l'OTA doit corriger.
+    ⏸️ **Revue bêta `WAITING_FOR_REVIEW`** depuis le 2026-08-03 00h58. Détail complet de
+    la procédure, des identifiants et des groupes de testeurs : **`TESTFLIGHT.md`**
+    (écrit par la session parallèle, branche `fix/soucis-terrain`).
+    ⚡ iOS n'a PAS la règle des 12 testeurs → c'est le chemin le plus rapide pour être
+    en ligne.
+
+    🔴 **NE PAS POSER `PAYWALL_LAUNCH` PENDANT UNE REVUE BÊTA.** Le relecteur Apple se
+    connecte via le compte sentinelle `review@kyroz.app` (`lib/reviewAccess.ts`), donc
+    un compte créé **au moment où il teste** — donc POSTÉRIEUR à la date. Il ne serait
+    pas grand-péré : il tomberait sur le paywall, avec des produits encore en
+    « Métadonnées manquantes », donc un bouton d'achat qui répond « indisponible ».
+    Motif de refus, et provoqué par nous. ➡️ Attendre que la revue soit acquise — elle
+    l'est ensuite pour de bon, builds et testeurs suivants n'y repassent pas.
   - 🧑 **Recruter 12 testeurs Android** + créer le Google Groupe. C'est le chemin
     critique côté Google : les 14 jours ne démarrent qu'une fois les testeurs inscrits.
   - 🧑 **Compléter la fiche Play** (textes §3, formulaire Sécurité des données §4) —
