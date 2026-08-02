@@ -1401,8 +1401,26 @@ produit en suspens — il ne reste qu'à coder.
      **trois** choses que seul le bac à sable peut prouver : l'achat débloque, la
      **restauration** fonctionne (sans elle, rejet Apple 3.1.1), et l'abonnement
      **suit le compte** (se déconnecter retire le droit, se reconnecter ailleurs le
-     rend). Puis seulement après : poser une date dans `PAYWALL_LAUNCH`.
-     ⚠️ Cette date ne se recule JAMAIS.
+     rend).
+
+     🔴 **CETTE FICHE DÉCRIVAIT UN ORDRE IMPOSSIBLE — corrigé le 2026-08-03.** Elle
+     disait « puis seulement après : poser une date dans `PAYWALL_LAUNCH` ». On ne
+     peut pas : **tout le bloc d'achat de `app/kyroz-plus.tsx` n'est rendu que si
+     `reason === 'locked'`** (ligne `{enVente && (`), et `locked` exige une date. Sans
+     date, il n'y a ni bouton d'achat, ni bouton de restauration, ni écran à
+     photographier. **Les trois choses à prouver, plus la capture qu'Apple réclame,
+     dépendent toutes du même interrupteur** — celui que la fiche plaçait en dernier.
+     ⚠️ **Et une date ne suffit pas** : `isGrandfathered` rend `true` pour tout compte
+     ANTÉRIEUR, donc le compte du fondateur ne verrait rien non plus. Il faut un
+     **compte créé APRÈS la date**.
+     ➡️ **Ordre réel** : poser la clé → poser une date → OTA → créer un compte neuf →
+     le paywall apparaît → capture + achat en bac à sable.
+     ⚠️ Le bac à sable pourrait quand même refuser tant que les produits sont en
+     « Métadonnées manquantes » (cf. étape 1) — et c'est la capture, prise à ce
+     moment-là, qui les en sort. La boucle se dénoue par la date, pas par l'achat.
+     ⚠️ La date ne se recule JAMAIS. En revanche la **repousser** est sans danger :
+     ça déverrouille des comptes, ça n'en verrouille aucun. Une date de test peut donc
+     être remplacée plus tard par la vraie date de mise en vente.
   6. 🧾 **RGPD — ✅ LA MOITIÉ « DÉCLARER » EST FAITE le 2026-08-02.** Rattacher l'UUID
      Supabase fait de RevenueCat un **sous-traitant**, et deux phrases de la politique
      de confidentialité devenaient fausses le jour du premier abonné : §5 promettait
