@@ -33,7 +33,7 @@ import { useStreak } from '../../hooks/useStreak';
 import { useWeightLog } from '../../hooks/useWeightLog';
 import { usePlanCheckin } from '../../hooks/usePlanCheckin';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { buildLocalPlan, nextPlanSeed, profileSignature, swapMeal, computeDailyTotals, rebalanceDay, resetTracking, adaptDayOptions, AdaptOption, mealIngredients, reAdaptMealRecipe, mealPoolSize, dayTargetKcal, ON_TARGET_TOLERANCE_KCAL } from '../../lib/planEngine';
+import { buildLocalPlan, carryTracking, nextPlanSeed, profileSignature, swapMeal, computeDailyTotals, rebalanceDay, resetTracking, adaptDayOptions, AdaptOption, mealIngredients, reAdaptMealRecipe, mealPoolSize, dayTargetKcal, ON_TARGET_TOLERANCE_KCAL } from '../../lib/planEngine';
 import { DISLIKE_THRESHOLD, dislikeCandidates, applyDislikedIngredient } from '../../lib/dislike';
 import { todayStamp } from '../../lib/weight';
 import { isBirthday, ageOn } from '../../lib/birthday';
@@ -320,7 +320,18 @@ export default function PlanScreen() {
       // dans `generatePlan.ts` (supprimé le 2026-07-31 avec le chemin IA) où elle
       // était étiquetée « UX : transition fluide ». La retirer = décision d'UX.
       await new Promise((r) => setTimeout(r, 600));
-      const p = buildLocalPlan(profile, seed);
+      // Le SUIVI de la journée survit à la génération (cf. `carryTracking`). Sans ça,
+      // régénérer en cours de journée effaçait les repas marqués « mangé » et les
+      // écarts hors plan — mesuré : 1 448 kcal déjà avalées oubliées en moyenne, après
+      // quoi l'app replanifiait une journée pleine par-dessus.
+      // ⚠️ Y COMPRIS sur un reroll explicite, et c'est délibéré : ce qui a été mangé
+      // est un FAIT, pas une préférence. « Repartir de zéro » veut dire de nouveaux
+      // repas à venir, pas l'amnésie sur ce matin — sinon le budget restant est faux
+      // exactement de la même façon. Le passage à une nouvelle journée, lui, reste géré
+      // par `resetTracking` (effet dédié plus haut).
+      const ancienRaw = await AsyncStorage.getItem(PLAN_KEY);
+      const ancien = ancienRaw ? (JSON.parse(ancienRaw) as MealPlan) : null;
+      const p = carryTracking(profile, ancien, buildLocalPlan(profile, seed));
       await AsyncStorage.setItem(PLAN_KEY, JSON.stringify(p));
       await AsyncStorage.removeItem(LIST_KEY);
       // Reveal J1 : seulement à la 1re génération (pas un reroll) et jamais revu.
