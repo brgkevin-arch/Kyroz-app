@@ -105,6 +105,39 @@ describe('carryTracking — le suivi survit à une régénération', () => {
     expect(j5porte).toEqual(j5neuf);
   });
 
+  it('les ids de repas sont UNIQUES — tout le report en dépend', () => {
+    // `carryTracking` apparie ancien et nouveau plan par `meal.id`. Si deux repas
+    // partageaient un id, la table n'en garderait qu'un et le report serait faux en
+    // silence. Piège vérifié au passage : un repas FIXE a la recette `fixed-<créneau>`
+    // (partagée par les 7 jours) mais garde bien un id de repas `<jour>-<créneau>`.
+    const avecFixe = gabarit({
+      fixed_meals: { breakfast: { label: 'Mon shaker', source: 'custom',
+        macros: { kcal: 400, protein_g: 30, carbs_g: 40, fat_g: 10 } } },
+    } as Partial<UserProfile>);
+    for (const p of [buildLocalPlan(profil, 0), buildLocalPlan(avecFixe, 3)]) {
+      const ids = p.meals.map((m) => m.id);
+      expect(new Set(ids).size, `ids dupliqués dans un plan de ${ids.length} repas`).toBe(ids.length);
+    }
+  });
+
+  it('un repas FIXE mangé se reporte sur le bon jour, pas sur les sept', () => {
+    const avecFixe = gabarit({
+      fixed_meals: { breakfast: { label: 'Mon shaker', source: 'custom',
+        macros: { kcal: 400, protein_g: 30, carbs_g: 40, fat_g: 10 } } },
+    } as Partial<UserProfile>);
+    const base = buildLocalPlan(avecFixe, 3);
+    const av: MealPlan = {
+      ...base,
+      meals: base.meals.map((m) => (m.day === 2 && m.meal_type === 'breakfast'
+        ? { ...m, status: 'eaten' as const, locked_macros: m.macros } : m)),
+      tracking_date: '2026-08-02',
+    };
+    const porte = carryTracking(avecFixe, av, buildLocalPlan(avecFixe, 4));
+    const manges = mange(porte);
+    expect(manges).toHaveLength(1);
+    expect(manges[0].day).toBe(2);
+  });
+
   it('sans suivi en cours, le plan neuf passe intact', () => {
     const sansSuivi = buildLocalPlan(profil, 3);
     expect(carryTracking(profil, sansSuivi, neuf)).toBe(neuf);
