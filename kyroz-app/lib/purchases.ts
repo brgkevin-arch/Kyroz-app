@@ -112,24 +112,19 @@ export async function configurePurchases(): Promise<Sdk | null> {
 
 // ── Entitlement ──────────────────────────────────────────────────────────────
 
-/**
- * L'abonnement est-il actif ?
- *
- * ⚠️ Renvoie `false` en cas d'échec réseau, et c'est le bon sens de l'erreur ici :
- * `PAYWALL_LAUNCH` verrouille par DATE DE COMPTE, pas par abonnement, donc un
- * `false` erroné ne retire rien à un compte grand-péré. Pour un compte payant hors
- * ligne, le SDK sert son cache local — c'est lui qui gère la tolérance, pas nous.
- */
-export async function isEntitled(): Promise<boolean> {
-  const sdk = await configurePurchases();
-  if (!sdk) return false;
-  try {
-    const info = await sdk.default.getCustomerInfo();
-    return info.entitlements.active[ENTITLEMENT_ID] !== undefined;
-  } catch {
-    return false;
-  }
-}
+// ⚠️ **Il n'y a PAS de `isEntitled()` sans identité, et c'est volontaire.** Cette
+// fonction existait : elle lisait `getCustomerInfo()` sans jamais dire au SDK de QUI
+// il s'agissait, donc elle répondait pour l'identité courante de l'APPAREIL. La
+// garder à côté d'`identifyUser()` laisserait deux façons de demander « cette
+// personne a-t-elle payé ? », dont une qui ignore le compte — le genre de double
+// chemin que `CLAUDE.md` §10 interdit. Pour connaître l'état d'abonnement, on passe
+// par `identifyUser()` (au montage et à chaque changement de compte) ou par
+// l'écouteur ci-dessous.
+//
+// ⚠️ Renvoie `false` en cas d'échec réseau, et c'est le bon sens de l'erreur ici :
+// `PAYWALL_LAUNCH` verrouille par DATE DE COMPTE, pas par abonnement, donc un
+// `false` erroné ne retire rien à un compte grand-péré. Pour un compte payant hors
+// ligne, le SDK sert son cache local — c'est lui qui gère la tolérance, pas nous.
 
 /**
  * S'abonner aux changements d'abonnement (achat, expiration, restauration sur un
@@ -150,6 +145,77 @@ export function onEntitlementChange(cb: (entitled: boolean) => void): () => void
   } catch {
     return () => {};
   }
+}
+
+// ── Identité : l'abonnement suit le COMPTE, pas l'appareil ───────────────────
+//
+// ⚠️ **C'était le trou du câblage du 2026-08-02.** `Purchases.configure({ apiKey })`
+// sans identifiant crée un utilisateur ANONYME, propre à l'appareil. Conséquences
+// concrètes, dans les deux sens :
+//   • deux personnes sur le même téléphone — la seconde héritait de l'abonnement de
+//     la première, parce que le droit était collé à l'appareil et que rien ne le
+//     retirait à la déconnexion ;
+//   • une personne sur deux appareils — celui de gauche a payé, celui de droite est
+//     `locked`, alors que c'est le même compte Kyroz.
+// Le compte Supabase est l'ancre naturelle : c'est déjà lui qui porte
+// `created_at`, donc le grand-père (`lib/premium.ts`).
+//
+// L'identifiant transmis est l'UUID Supabase — pseudonyme, jamais l'e-mail :
+// RevenueCat déconseille explicitement d'y mettre une donnée personnelle, et cet
+// identifiant voyage jusqu'à leurs serveurs.
+
+/** Le strict minimum du SDK dont dépend l'identité. Existe pour être testable. */
+export interface IdentityApi {
+  logIn: (userId: string) => Promise<{ customerInfo: CustomerInfoLike }>;
+  logOut: () => Promise<CustomerInfoLike>;
+  getCustomerInfo: () => Promise<CustomerInfoLike>;
+}
+
+type CustomerInfoLike = { entitlements: { active: Record<string, unknown> } };
+
+const actif = (info: CustomerInfoLike): boolean =>
+  info.entitlements.active[ENTITLEMENT_ID] !== undefined;
+
+/**
+ * La règle d'identité, isolée du SDK pour être VÉRIFIABLE. Vitest ne peut pas
+ * charger un module natif — sans cette extraction, le chemin qui décide qui a
+ * payé n'aurait aucun test, et il échouerait en silence.
+ *
+ * ⚠️ **En cas d'échec de `logIn`, on renvoie `false` — jamais l'état de l'identité
+ * précédente.** Se tromper en refusant coûte une feature à un abonné hors ligne, le
+ * temps d'un nouvel essai ; se tromper en donnant sert l'abonnement de la personne
+ * d'AVANT sur un téléphone partagé. Le premier sens est réparable, pas le second.
+ */
+export async function applyIdentity(api: IdentityApi, userId: string | null): Promise<boolean> {
+  if (userId) {
+    try {
+      const { customerInfo } = await api.logIn(userId);
+      return actif(customerInfo);
+    } catch {
+      return false;
+    }
+  }
+  // Déconnexion. `logOut()` LÈVE quand on est déjà anonyme — ce n'est pas une
+  // erreur, c'est l'état normal de quelqu'un qui n'a jamais eu de compte.
+  try {
+    return actif(await api.logOut());
+  } catch {
+    try {
+      return actif(await api.getCustomerInfo());
+    } catch {
+      return false;
+    }
+  }
+}
+
+/**
+ * Rattache (ou détache) les achats au compte Kyroz. Renvoie l'état d'abonnement de
+ * l'identité résultante. Ne lève jamais ; sans clé, ne fait rien et renvoie `false`.
+ */
+export async function identifyUser(userId: string | null): Promise<boolean> {
+  const sdk = await configurePurchases();
+  if (!sdk) return false;
+  return applyIdentity(sdk.default as unknown as IdentityApi, userId);
 }
 
 // ── Prix ─────────────────────────────────────────────────────────────────────

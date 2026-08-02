@@ -128,8 +128,21 @@ core tuerait le North Star — donc interdit.
       Aucun flag local bricolé. Expose `{ allowed, reason, entitled, notice, can }` — plus
       riche que le `{ isPremium, loading }` prévu ici, parce que le verrou distingue quatre
       états (`not_launched`, `grandfathered`, `entitled`, `locked`).
+- [x] ✅ **L'abonnement est rattaché au COMPTE, pas à l'appareil** — corrigé le 2026-08-02,
+      `lib/purchases.ts::identifyUser()`. Le SDK était configuré **sans identifiant** : il
+      travaillait donc sur un utilisateur ANONYME, propre au téléphone. Deux dégâts
+      symétriques — la personne suivante sur un appareil partagé héritait de l'abonnement
+      (rien ne le retirait à la déconnexion), et la même personne sur son second appareil
+      restait `locked`. L'ancre est l'**UUID Supabase**, celui qui porte déjà `created_at`
+      donc le grand-père. Jamais l'e-mail : cet identifiant part chez RevenueCat.
 - [ ] (Optionnel, plus tard) miroir `profiles.is_premium` via **webhook RevenueCat → Edge
       Function** pour l'analytique serveur. PAS requis pour le gating client.
+- [ ] 🧾 **RGPD — à trancher avant la mise en vente** : rattacher l'UUID Supabase fait de
+      RevenueCat un **sous-traitant** qui conserve un identifiant de compte + un historique
+      d'achats. La suppression de compte (Edge Function `delete-account`) n'efface **rien**
+      chez eux — l'effacement RevenueCat demande leur clé SECRÈTE, donc du code serveur.
+      Deux choses à faire le jour du lancement : citer RevenueCat dans les CGU/politique de
+      confidentialité, et décider si `delete-account` doit aussi les appeler.
 - [x] ✅ **Ce qu'on verrouille = features Kyroz+ uniquement** : `PREMIUM_FEATURES` =
       `dated_goal` · `transformation` · `calorie_bank` (livrée, plus « à venir »). Le reste
       — core loop, courses, recettes, garde-manger, favoris, série, pesée, synchro — **reste

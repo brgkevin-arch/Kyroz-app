@@ -1,7 +1,7 @@
 import { describe, it, expect, afterEach } from 'vitest';
 import { Platform } from 'react-native';
 import { withStorePrices, annualSavingPct, PREMIUM_PRICES } from '../premium';
-import { ENTITLEMENT_ID, purchasesConfigured } from '../purchases';
+import { ENTITLEMENT_ID, purchasesConfigured, applyIdentity, identifyUser, IdentityApi } from '../purchases';
 
 /**
  * Câblage RevenueCat (2026-08-02) — ce qui est TESTABLE, et pourquoi c'est ça.
@@ -42,6 +42,79 @@ describe('RevenueCat — dormance', () => {
     // Le code avait posé `kyroz_plus`, inventé de son côté — même faute que
     // `kyroz_plus_annual` vs `kyroz_plus_yearly`, et même échec SILENCIEUX à la clé.
     expect(ENTITLEMENT_ID).toBe('premium');
+  });
+});
+
+// ── Identité ─────────────────────────────────────────────────────────────────
+//
+// Le défaut corrigé le 2026-08-02 : le SDK était configuré SANS identifiant, donc
+// sur une identité anonyme propre à l'APPAREIL. Deux dégâts symétriques — la
+// personne suivante sur un téléphone partagé héritait de l'abonnement, et la même
+// personne sur son second appareil se retrouvait verrouillée.
+//
+// Ces tests portent sur `applyIdentity`, la règle isolée du SDK. C'est le SEUL moyen
+// de la tester : vitest ne peut pas charger un module natif. Sans cette extraction,
+// le chemin qui décide qui a payé n'aurait aucun test — et il échoue en SILENCE.
+
+const infoAvec = (droits: string[]) => ({
+  entitlements: { active: Object.fromEntries(droits.map((d) => [d, {}])) },
+});
+
+function faussSdk(over: Partial<IdentityApi> = {}): IdentityApi & { vus: string[] } {
+  const vus: string[] = [];
+  return {
+    vus,
+    logIn: over.logIn ?? (async (id) => { vus.push(`logIn:${id}`); return { customerInfo: infoAvec([]) }; }),
+    logOut: over.logOut ?? (async () => { vus.push('logOut'); return infoAvec([]); }),
+    getCustomerInfo: over.getCustomerInfo ?? (async () => { vus.push('getCustomerInfo'); return infoAvec([]); }),
+  };
+}
+
+describe("identité — l'abonnement suit le COMPTE, pas l'appareil", () => {
+  it("rattache les achats à l'identifiant du compte Kyroz", async () => {
+    const sdk = faussSdk({ logIn: async (id) => ({ customerInfo: infoAvec(id === 'u-1' ? [ENTITLEMENT_ID] : []) }) });
+    expect(await applyIdentity(sdk, 'u-1')).toBe(true);
+    expect(await applyIdentity(sdk, 'u-2')).toBe(false);
+  });
+
+  it('la déconnexion RETIRE le droit du compte précédent', async () => {
+    // Le cas concret : deux personnes sur le même téléphone. Sans `logOut`, la
+    // seconde ouvrait Kyroz+ avec l'abonnement de la première.
+    const sdk = faussSdk();
+    expect(await applyIdentity(sdk, null)).toBe(false);
+    expect(sdk.vus).toContain('logOut');
+  });
+
+  it("« déjà anonyme » n'est PAS une erreur — on lit l'état anonyme", async () => {
+    // `logOut()` lève quand personne n'est connecté. C'est l'état normal de qui n'a
+    // jamais créé de compte : le traiter comme un échec priverait de son achat
+    // quelqu'un qui a payé sans compte Kyroz.
+    const sdk = faussSdk({
+      logOut: async () => { throw new Error('current user is anonymous'); },
+      getCustomerInfo: async () => infoAvec([ENTITLEMENT_ID]),
+    });
+    expect(await applyIdentity(sdk, null)).toBe(true);
+  });
+
+  it("un `logIn` en échec ne sert JAMAIS le droit de l'identité précédente", async () => {
+    // Le sens de l'erreur est choisi : se tromper en refusant coûte une feature à un
+    // abonné hors ligne le temps d'un nouvel essai ; se tromper en donnant sert
+    // l'abonnement de quelqu'un d'autre. Le premier se répare, pas le second.
+    const sdk = faussSdk({ logIn: async () => { throw new Error('réseau'); } });
+    expect(await applyIdentity(sdk, 'u-1')).toBe(false);
+    expect(sdk.vus).not.toContain('getCustomerInfo');
+  });
+
+  it('ne lève jamais, même si tout le SDK échoue', async () => {
+    const casse = async () => { throw new Error('boum'); };
+    const sdk: IdentityApi = { logIn: casse, logOut: casse, getCustomerInfo: casse };
+    expect(await applyIdentity(sdk, 'u-1')).toBe(false);
+    expect(await applyIdentity(sdk, null)).toBe(false);
+  });
+
+  it('en dormant, `identifyUser` ne touche à rien et renvoie false', async () => {
+    expect(await identifyUser('u-1')).toBe(false);
+    expect(await identifyUser(null)).toBe(false);
   });
 });
 

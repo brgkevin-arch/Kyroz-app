@@ -633,6 +633,15 @@ téléphone.
   vraiment du bundle web, il faut une **séparation de plateforme** (`fichier.web.ts`,
   que Metro résout avant `fichier.ts`), pas une garde à l'exécution. Vérifier sur
   l'export, pas sur l'intention : `npx expo export -p web` puis `grep` dans le bundle.
+- **Un SDK tiers configuré sans identifiant travaille sur l'APPAREIL, pas sur la
+  personne.** RevenueCat l'a fait le 2026-08-02 : `configure({ apiKey })` sans
+  `appUserID` crée un utilisateur anonyme lié au téléphone — la personne suivante sur
+  un appareil partagé héritait de l'abonnement, et l'abonné payant restait verrouillé
+  sur son second appareil. Les deux échouent en SILENCE.
+  ➡️ **Un DROIT s'ancre au compte** (`identifyUser`, UUID Supabase — jamais l'e-mail,
+  il part chez le tiers). Une MESURE, elle, reste volontairement anonyme : `lib/analytics.ts`
+  envoie un UUID local à PostHog, et c'est le bon choix côté RGPD. Ne pas confondre
+  les deux : ce qui ouvre une porte se rattache au compte, ce qui compte des visites non.
 - **Build natif iOS** : `npx expo run:ios` (CocoaPods via brew).
 - **`Dimensions.get('window')` ment sur iPad.** La fenêtre change de taille **sans
   relancer l'app** (rotation, Split View, Slide Over) : une valeur lue au chargement du
