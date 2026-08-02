@@ -53,6 +53,7 @@
     "store:assets:ipad": "node test/store-assets.mjs --ipad",
     "mesure:variete": "npx tsx scripts/mesure-variete.ts",
     "mesure:reroll": "npx tsx scripts/mesure-reroll.ts",
+    "mesure:reglages": "npx tsx scripts/mesure-reglages.ts",
     "mesure:seuils": "npx tsx scripts/mesure-couverture.ts --seuils"
   },
   "private": true,

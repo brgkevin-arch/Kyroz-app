@@ -336,6 +336,23 @@ pas seulement sur le canonique. Contrôle par réglage : `npm run mesure:reroll`
 ⚠️ **La règle anti-doublons R4 du catalogue ne mesure PAS ce défaut** : elle ne s'alarme
 qu'au-delà de 2 recettes par couple, or le pire contrevenant était un groupe de DEUX.
 
+⚠️ **Le PREMIER plan servi doit être aussi bon que les suivants** (2026-08-02,
+`FAMILY_SELECT_W_CANON`). La pénalité de famille ne s'appliquait qu'aux plans régénérés :
+le plan canonique — celui qu'un nouvel inscrit reçoit — servait deux assiettes jumelles
+dans **45 %** de ses semaines contre 20 % pour un plan régénéré. Appuyer sur « Régénérer »
+réparait la première impression. ➡️ **Tout nudge de qualité doit s'appliquer au canonique
+aussi**, quitte à être plus doux (0.03 au lieu de 0.04 : au-delà, un repas hors cible
+apparaît, et le canonique doit rester à zéro). Contrôle : `npm run mesure:variete -- --seeds=0`.
+
+⚠️ **Le plan que l'utilisateur s'est CHOISI ne se jette pas** (2026-08-02, `nextPlanSeed`).
+L'écran Plan remettait le tirage à zéro à chaque génération non-reroll — donc à chaque
+changement de réglage, via l'auto-refresh. L'utilisateur perdait la semaine qu'il avait
+obtenue en régénérant (92 % détruits **en plus** de ce que le réglage changeait), et
+retombait parfois sur le plan exact qu'il venait de rejeter. ➡️ **Une préférence exprimée
+par un geste — régénérer jusqu'à être satisfait — est une préférence : elle survit aux
+réglages suivants.** La règle est une fonction pure testée, pas trois lignes dans un
+composant. Audit complet des réglages : `npm run mesure:reglages`.
+
 ### Bloqué (hard block)
 - **Plans sous le plancher d'énergie disponible** — `lib/safety.ts::safetyFloorKcal`.
   Plancher = `max(BMR, min(30 kcal/kg de masse maigre + dépense sportive, TDEE), 1500 H / 1200 F)`.
