@@ -322,9 +322,16 @@ recettes **quasi identiques**. Mesuré le 2026-08-02 sur 240 semaines simulées 
 **56,3 % des semaines servaient deux recettes du même couple (protéine × féculent)** —
 « poulet-riz-brocoli » et « wok poulet-riz-légumes » la même semaine. Depuis,
 `familyKey` groupe les recettes par ce couple et la famille la moins servie passe devant.
-**État courant : 20,8 %** (`--variete=max`, défaut) — 22,5 % en `repetitive`, 20,0 % en
+**État courant : 12,5 %** (`--variete=max`, défaut) — 14,6 % en `repetitive`, 10,0 % en
 `balanced`. *(27,9 % à la livraison de D18, quand la famille n'était QU'une clé de
-départage ; l'écart vient d'A21 puis A25, qui l'ont fait entrer dans le score.)*
+départage ; puis 20,8 % après A21 et A25, qui l'ont fait entrer dans le score.)*
+
+⚠️ **Le dernier gain n'est PAS venu du moteur mais du CATALOGUE** (vague B7, 2026-08-03) :
+20,8 → 12,5 % sans toucher une ligne de sélection. Le détail dit pourquoi — en vegan,
+**41,7 % → 6,3 %** ; en vegan + sans gluten, **50 % → 35,4 %**. Là où le vivier de familles
+est mince, aucun réglage ne peut faire tourner ce qui n'existe pas : A25 l'avait mesuré et
+nommé « limite de catalogue ». ➡️ Devant un plafond de variété, se demander d'abord s'il
+reste des familles à distribuer (`npm run mesure:vivier`), avant de toucher aux poids.
 
 ⚠️ **Trois propriétés de ce mécanisme, chacune payée par une mesure.** Deux d'entre elles
 ont CHANGÉ depuis D18 — elles étaient écrites « non négociables » et décrivaient un moteur
