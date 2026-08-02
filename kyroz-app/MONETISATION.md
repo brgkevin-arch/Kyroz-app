@@ -137,12 +137,27 @@ core tuerait le North Star — donc interdit.
       donc le grand-père. Jamais l'e-mail : cet identifiant part chez RevenueCat.
 - [ ] (Optionnel, plus tard) miroir `profiles.is_premium` via **webhook RevenueCat → Edge
       Function** pour l'analytique serveur. PAS requis pour le gating client.
-- [ ] 🧾 **RGPD — à trancher avant la mise en vente** : rattacher l'UUID Supabase fait de
-      RevenueCat un **sous-traitant** qui conserve un identifiant de compte + un historique
-      d'achats. La suppression de compte (Edge Function `delete-account`) n'efface **rien**
-      chez eux — l'effacement RevenueCat demande leur clé SECRÈTE, donc du code serveur.
-      Deux choses à faire le jour du lancement : citer RevenueCat dans les CGU/politique de
-      confidentialité, et décider si `delete-account` doit aussi les appeler.
+- [x] ✅ **RGPD — la moitié « déclarer » est faite le 2026-08-02.** Rattacher l'UUID
+      Supabase fait de RevenueCat un **sous-traitant** qui conserve un identifiant de compte
+      et un historique d'achats. Deux phrases de la politique devenaient donc fausses au
+      premier abonné : §5 promettait « aucun tiers », §7 un effacement total. Réécrites **au
+      conditionnel** (« si vous souscrivez… ») pour rester vraies aujourd'hui, plus une
+      section CGU **« 3. Abonnement Kyroz+ »** : renouvellement automatique + 24 h,
+      remboursements du ressort du store (Apple Guideline 3.1.2), et le piège qui coûte de
+      l'argent — **supprimer son compte Kyroz n'annule PAS l'abonnement**.
+      Verrouillé par `lib/__tests__/legal.test.ts`, qui exige aussi que le miroir
+      `public/legal.html` contienne chaque paragraphe (les deux copies se recopiaient à la
+      main, sans filet).
+      🔴 **Le texte NOMMAIT RevenueCat — retiré le même jour, sur signalement du fondateur :
+      aucun contrat n'existe, et le choix du prestataire n'est pas définitivement arrêté.**
+      Nommer un sous-traitant qui n'en est pas un est le même mensonge que taire celui qui
+      l'est. Le texte dit « un prestataire spécialisé » — les **catégories** de destinataires
+      sont explicitement admises (RGPD art. 13-1-e) — et promet de le nommer avant la vente.
+      ⚠️ **Manque encore, volontairement** : le cadre du transfert hors UE (clauses types /
+      DPF, RGPD art. 13-1-f). Il ne se lit que dans le contrat — à écrire EN MÊME TEMPS que
+      le nom, le jour de la signature.
+      ⏭️ **Non fait, assumé** : appeler leur API d'effacement depuis `delete-account`. Elle
+      demande la clé SECRÈTE, donc du code serveur, et ne sert à rien sans abonné.
 - [x] ✅ **Ce qu'on verrouille = features Kyroz+ uniquement** : `PREMIUM_FEATURES` =
       `dated_goal` · `transformation` · `calorie_bank` (livrée, plus « à venir »). Le reste
       — core loop, courses, recettes, garde-manger, favoris, série, pesée, synchro — **reste
