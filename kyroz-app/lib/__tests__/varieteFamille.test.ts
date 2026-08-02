@@ -93,6 +93,56 @@ describe('rotation par FAMILLE (protéine × féculent)', () => {
     }
   });
 
+  it('le PREMIER plan servi n\'est pas le moins varié (FAMILY_SELECT_W_CANON)', () => {
+    // 2026-08-02 — la pénalité de famille ne pesait sur le score QUE lors d'un reroll.
+    // Résultat à l'envers : le plan canonique, celui qu'un nouvel utilisateur reçoit,
+    // contenait deux assiettes jumelles dans 45,0 % de ses semaines contre 20,0 % pour
+    // un plan régénéré (panel de référence, 12 profils × 5 régimes). Appuyer sur
+    // « Régénérer » réparait donc la première impression.
+    //
+    // Après correctif : 23,3 % au canonique contre 20,0 % au régénéré — l'écart tombe
+    // de 25 points à 3,3. On n'exige pas que le canonique GAGNE, juste qu'il ne soit
+    // plus nettement derrière : le seuil large verrouille la DISPARITION de la pénalité
+    // (qui reprojetterait le canonique à ~45 %), pas un chiffre au dixième.
+    //
+    // ⚠️ Les régimes doivent rester ceux du panel de référence. Un échantillon à
+    // dominante vegan fait remonter le canonique à 55 % et rend le test rouge à tort :
+    // le vegan est le pool le plus mince du catalogue (41,7 % canonique contre 30,6 %
+    // régénéré ; en vegan+sans gluten, 50 % des DEUX côtés — le reroll n'y peut rien
+    // non plus). C'est une limite de CATALOGUE consignée en D19/B7, pas de sélection.
+    const GABARITS: Partial<UserProfile>[] = [
+      { sex: 'female', weight_kg: 55, height_cm: 162, goal: 'cut' },
+      { sex: 'male', weight_kg: 80, height_cm: 180, goal: 'maintain' },
+      { sex: 'male', weight_kg: 110, height_cm: 190, age: 35, goal: 'bulk' },
+    ];
+    const REGIMES: DietaryRestriction[][] = [
+      [], ['vegetarian'], ['vegan'], ['gluten_free'], ['vegan', 'gluten_free'],
+    ];
+    const compte = (seeds: number[]) => {
+      let semaines = 0, avecClone = 0;
+      for (const g of GABARITS) {
+        for (const r of REGIMES) {
+          const p = gabarit({ ...g, dietary_restrictions: r });
+          for (const seed of seeds) {
+            semaines++;
+            const vus = new Map<string, Set<string>>();
+            for (const m of buildLocalPlan(p, seed).meals) {
+              const k = cle(m.recipe);
+              if (!vus.has(k)) vus.set(k, new Set());
+              vus.get(k)!.add(m.recipe.id);
+            }
+            if ([...vus.values()].some((ids) => ids.size > 1)) avecClone++;
+          }
+        }
+      }
+      return (avecClone / semaines) * 100;
+    };
+    const canonique = compte([0]);
+    const regenere = compte([1, 2, 3]);
+    expect(canonique, `canonique ${canonique.toFixed(1)} % vs régénéré ${regenere.toFixed(1)} %`)
+      .toBeLessThanOrEqual(regenere + 15);
+  });
+
   it('le plan canonique (`repetitive`, seed 0) ignore la famille et reste déterministe', () => {
     // Il est volontairement statique : la rotation — id comme famille — n'y entre pas.
     const p = gabarit({ variety: 'repetitive' });
