@@ -1,0 +1,172 @@
+{
+  "recipes": [
+    {
+      "id": "col95",
+      "name": "Nouilles de riz à la tomate et aux amandes",
+      "category": "collation",
+      "tags": { "objectif": ["perte_de_gras"], "recup_jour_repos": true, "sport": ["muscu"], "temps_min": 8 },
+      "base_servings": 1,
+      "ingredients": [
+        { "ref": "yaourt_soja_proteine", "qty": 123, "macro_role": "protein", "scalable": true },
+        { "ref": "nouilles_riz", "qty": 14, "macro_role": "carb", "scalable": true },
+        { "ref": "amandes", "qty": 8, "macro_role": "fat", "scalable": true },
+        { "ref": "tomate", "qty": 60, "macro_role": "vegetable", "scalable": false }
+      ],
+      "instructions": [
+        "Plonge les nouilles de riz dans l'eau bouillante, coupe le feu, laisse gonfler 4 minutes puis rince à l'eau froide.",
+        "Coupe la tomate en dés et concasse les amandes au couteau.",
+        "Mélange les nouilles égouttées au yaourt de soja avec la tomate, sale, poivre et parsème d'amandes."
+      ],
+      "why": "Un format froid et salé, rare parmi les collations du catalogue.",
+      "macros_per_serving": { "kcal": 192.3, "protein": 14.1, "carbs": 18.9, "fat": 6.5 },
+      "wave": "2026-08-03-b8-collations-vegan-sg"
+    },
+    {
+      "id": "col96",
+      "name": "Semoule de polenta à l'ananas",
+      "category": "collation",
+      "tags": { "objectif": ["perte_de_gras"], "recup_jour_repos": true, "sport": ["muscu"], "temps_min": 10 },
+      "base_servings": 1,
+      "ingredients": [
+        { "ref": "yaourt_soja_proteine", "qty": 121, "macro_role": "protein", "scalable": true },
+        { "ref": "polenta", "qty": 10, "macro_role": "carb", "scalable": true },
+        { "ref": "graines_courge", "qty": 8, "macro_role": "fat", "scalable": true },
+        { "ref": "ananas", "qty": 70, "macro_role": "fruit", "scalable": false }
+      ],
+      "instructions": [
+        "Porte trois fois le volume de la polenta en eau à frémissement, verse-la en pluie et remue 5 minutes, puis laisse tiédir.",
+        "Mélange la polenta tiédie au yaourt de soja et couvre d'ananas coupé en dés.",
+        "Fais griller les graines de courge 2 minutes à sec et parsème-les au dernier moment."
+      ],
+      "why": "Le sucré-salé change du registre habituel des collations protéinées.",
+      "macros_per_serving": { "kcal": 199.5, "protein": 14.2, "carbs": 20.9, "fat": 6.3 },
+      "wave": "2026-08-03-b8-collations-vegan-sg"
+    },
+    {
+      "id": "col97",
+      "name": "Toast à la banane et protéine végétale",
+      "category": "collation",
+      "tags": { "objectif": ["perte_de_gras"], "recup_jour_repos": true, "sport": ["muscu"], "temps_min": 5 },
+      "base_servings": 1,
+      "ingredients": [
+        { "ref": "proteine_vegetale", "qty": 17, "macro_role": "protein", "scalable": true },
+        { "ref": "pain_sans_gluten", "qty": 11, "macro_role": "carb", "scalable": true },
+        { "ref": "lait_coco", "qty": 21, "macro_role": "fat", "scalable": true },
+        { "ref": "banane", "qty": 70, "macro_role": "fruit", "scalable": false }
+      ],
+      "instructions": [
+        "Fais griller la tranche de pain sans gluten jusqu'à ce qu'elle soit ferme sous le doigt.",
+        "Écrase la banane à la fourchette avec le lait de coco et la protéine végétale, jusqu'à obtenir une crème.",
+        "Étale la crème sur le toast et sers aussitôt, avant qu'il ne ramollisse."
+      ],
+      "why": "Une tartine sucrée qui atteint la cible protéique sans laitage.",
+      "macros_per_serving": { "kcal": 195.9, "protein": 14.1, "carbs": 20.5, "fat": 6.3 },
+      "wave": "2026-08-03-b8-collations-vegan-sg"
+    },
+    {
+      "id": "col98",
+      "name": "Galettes aux fruits rouges et crème de coco",
+      "category": "collation",
+      "tags": { "objectif": ["perte_de_gras"], "recup_jour_repos": true, "sport": ["muscu"], "temps_min": 5 },
+      "base_servings": 1,
+      "ingredients": [
+        { "ref": "proteine_vegetale", "qty": 17, "macro_role": "protein", "scalable": true },
+        { "ref": "galette_riz", "qty": 13, "macro_role": "carb", "scalable": true },
+        { "ref": "lait_coco", "qty": 24, "macro_role": "fat", "scalable": true },
+        { "ref": "fruits_rouges", "qty": 70, "macro_role": "fruit", "scalable": false }
+      ],
+      "instructions": [
+        "Écrase les fruits rouges à la fourchette avec le lait de coco et la protéine végétale.",
+        "Laisse reposer 2 minutes, le temps que la préparation épaississe.",
+        "Répartis la crème sur les galettes de riz et sers immédiatement."
+      ],
+      "why": "Montée en cinq minutes, sans cuisson ni matériel.",
+      "macros_per_serving": { "kcal": 197.4, "protein": 14.7, "carbs": 19.2, "fat": 6.5 },
+      "wave": "2026-08-03-b8-collations-vegan-sg"
+    },
+    {
+      "id": "col99",
+      "name": "Polenta au poivron et soja texturé",
+      "category": "collation",
+      "tags": { "objectif": ["perte_de_gras"], "recup_jour_repos": true, "sport": ["muscu"], "temps_min": 10 },
+      "base_servings": 1,
+      "ingredients": [
+        { "ref": "soja_texture", "qty": 22, "macro_role": "protein", "scalable": true },
+        { "ref": "polenta", "qty": 12, "macro_role": "carb", "scalable": true },
+        { "ref": "creme_soja", "qty": 40, "macro_role": "fat", "scalable": true },
+        { "ref": "poivron", "qty": 60, "macro_role": "vegetable", "scalable": false }
+      ],
+      "instructions": [
+        "Couvre le soja texturé d'eau bouillante salée, laisse gonfler 5 minutes puis presse-le pour l'essorer.",
+        "Porte trois fois le volume de la polenta en eau salée à frémissement et verse-la en pluie, en remuant 5 minutes.",
+        "Incorpore la crème de soja, le soja texturé et le poivron taillé en dés, sale et poivre."
+      ],
+      "why": "Une collation salée chaude, prête en dix minutes.",
+      "macros_per_serving": { "kcal": 192.5, "protein": 14.1, "carbs": 18.4, "fat": 6.5 },
+      "wave": "2026-08-03-b8-collations-vegan-sg"
+    },
+    {
+      "id": "col100",
+      "name": "Châtaignes et carottes au soja texturé",
+      "category": "collation",
+      "tags": { "objectif": ["perte_de_gras"], "recup_jour_repos": true, "sport": ["muscu"], "temps_min": 10 },
+      "base_servings": 1,
+      "ingredients": [
+        { "ref": "soja_texture", "qty": 23, "macro_role": "protein", "scalable": true },
+        { "ref": "chataigne", "qty": 25, "macro_role": "carb", "scalable": true },
+        { "ref": "creme_soja", "qty": 37, "macro_role": "fat", "scalable": true },
+        { "ref": "carotte", "qty": 60, "macro_role": "vegetable", "scalable": false }
+      ],
+      "instructions": [
+        "Couvre le soja texturé d'eau bouillante salée, laisse gonfler 5 minutes et presse-le pour l'essorer.",
+        "Râpe la carotte et écrase grossièrement les châtaignes à la fourchette.",
+        "Mélange le tout à la crème de soja, sale, poivre et sers tiède."
+      ],
+      "why": "La châtaigne apporte des glucides doux sans cuisson longue.",
+      "macros_per_serving": { "kcal": 200.8, "protein": 14.1, "carbs": 20.0, "fat": 6.4 },
+      "wave": "2026-08-03-b8-collations-vegan-sg"
+    },
+    {
+      "id": "col101",
+      "name": "Tempeh et maïs en salade tiède",
+      "category": "collation",
+      "tags": { "objectif": ["maintien", "prise_de_masse"], "recup_jour_repos": true, "sport": ["muscu"], "temps_min": 10 },
+      "base_servings": 1,
+      "ingredients": [
+        { "ref": "tempeh", "qty": 122, "macro_role": "protein", "scalable": true },
+        { "ref": "mais", "qty": 96, "macro_role": "carb", "scalable": true },
+        { "ref": "creme_soja", "qty": 11, "macro_role": "fat", "scalable": true },
+        { "ref": "salade_verte", "qty": 50, "macro_role": "vegetable", "scalable": false }
+      ],
+      "instructions": [
+        "Coupe le tempeh en dés et fais-les dorer 5 minutes dans une poêle chaude à sec.",
+        "Ajoute le maïs égoutté hors du feu, avec la crème de soja, du sel et du poivre.",
+        "Dresse sur un lit de salade verte et sers tiède."
+      ],
+      "why": "Une grosse collation salée qui couvre un besoin protéique élevé.",
+      "macros_per_serving": { "kcal": 316.1, "protein": 23.1, "carbs": 28.2, "fat": 9.0 },
+      "wave": "2026-08-03-b8-collations-vegan-sg"
+    },
+    {
+      "id": "col102",
+      "name": "Polenta crémeuse aux épinards et tempeh",
+      "category": "collation",
+      "tags": { "objectif": ["maintien", "prise_de_masse"], "recup_jour_repos": true, "sport": ["muscu"], "temps_min": 10 },
+      "base_servings": 1,
+      "ingredients": [
+        { "ref": "tempeh", "qty": 133, "macro_role": "protein", "scalable": true },
+        { "ref": "polenta", "qty": 21, "macro_role": "carb", "scalable": true },
+        { "ref": "creme_soja", "qty": 9, "macro_role": "fat", "scalable": true },
+        { "ref": "epinards", "qty": 60, "macro_role": "vegetable", "scalable": false }
+      ],
+      "instructions": [
+        "Porte trois fois le volume de la polenta en eau salée à frémissement, verse-la en pluie et remue 5 minutes.",
+        "Coupe le tempeh en lamelles et fais-les dorer 4 minutes dans une poêle chaude, avec les épinards en fin de cuisson.",
+        "Incorpore la crème de soja à la polenta et couronne du tempeh aux épinards."
+      ],
+      "why": "Le tempeh porte une charge protéique élevée pour une collation chaude.",
+      "macros_per_serving": { "kcal": 315.8, "protein": 25.0, "carbs": 28.1, "fat": 8.2 },
+      "wave": "2026-08-03-b8-collations-vegan-sg"
+    }
+  ]
+}

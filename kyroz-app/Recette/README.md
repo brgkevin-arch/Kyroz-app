@@ -2,7 +2,7 @@
 
 ```
 Recette/
-├── recettes-kyroz.json          ← LE CATALOGUE LIVE (importé par lib/recipeData.ts) — 466 recettes
+├── recettes-kyroz.json          ← LE CATALOGUE LIVE (importé par lib/recipeData.ts) — 504 recettes
 ├── README.md                    ← ce fichier
 ├── BRIEF-GENERATION-RECETTES.md ← la SPEC : mesures, enveloppes, raisonnement. Ne pas transmettre tel quel.
 ├── lots/                        ← la COMMANDE, générée (npm run gen:lots). Un fichier = une conversation.
@@ -23,7 +23,8 @@ Recette/
     ├── 2026-08-02-b6-collations-vegan/     (+7 collations vegan, mergé)
     ├── 2026-08-02-b7-pdej-vegan/           (+12 petits-déjeuners végétaux, mergé)
     ├── 2026-08-02-b7-repas-vegan/          (+10 repas complets végétaux, mergé)
-    └── 2026-08-02-b7-collations-vegan/     (+8 collations végétales, mergé)
+    ├── 2026-08-02-b7-collations-vegan/     (+8 collations végétales, mergé)
+    └── 2026-08-03-b8-collations-vegan-sg/  (+8 collations vegan + sans gluten, mergé)
 ```
 
 ⚠️ **Une vague peut RÉÉCRIRE au lieu d'ajouter** (première fois : `b5`, 2026-08-02). Les ids
@@ -39,11 +40,11 @@ recettes reprises (`fondation` 100 → 92, etc.), le total ne bouge pas.
 sont mergés, donc leurs ids sont pris. Un brief qui les recommanderait serait une commande
 impossible à honorer, et le générateur refuse d'ailleurs de l'écrire. Leur définition reste dans
 `scripts/gen-brief-lot.ts` (marquée `livre`), la matière première dans `drops/`.
-La vague **B7** (30 recettes végétales) est livrée depuis le 2026-08-03 — motivation, mesures
-et leçons dans `AGENTS.md`, fiche **B7**.
+Les vagues **B7** (30 recettes végétales) et **B8** (8 collations vegan + sans gluten) sont
+livrées — motivation, mesures et leçons dans `AGENTS.md`, fiche **B7**.
 
-⚠️ **La vague B7 a été écrite ICI et non en conversation externe**, et c'est une exception
-assumée, pas un changement de convention. Ce qui l'a justifiée : ses contraintes sont
+⚠️ **Les vagues B7 et B8 ont été écrites ICI et non en conversation externe**, et c'est une exception
+assumée, pas un changement de convention. Ce qui l'a justifié : leurs contraintes sont
 arithmétiques (quatre bandes de macros, plafond par ancre, couples interdits, seuil R8), donc
 **la boucle écrire → contrôler → recaler compte plus que la rédaction**. Mesuré sur le lot :
 2 recettes sur 3 hors bandes au premier jet, 6 sur 30 réécrites après contrôle. En local le

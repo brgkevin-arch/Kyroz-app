@@ -322,16 +322,26 @@ recettes **quasi identiques**. Mesuré le 2026-08-02 sur 240 semaines simulées 
 **56,3 % des semaines servaient deux recettes du même couple (protéine × féculent)** —
 « poulet-riz-brocoli » et « wok poulet-riz-légumes » la même semaine. Depuis,
 `familyKey` groupe les recettes par ce couple et la famille la moins servie passe devant.
-**État courant : 12,5 %** (`--variete=max`, défaut) — 14,6 % en `repetitive`, 10,0 % en
-`balanced`. *(27,9 % à la livraison de D18, quand la famille n'était QU'une clé de
-départage ; puis 20,8 % après A21 et A25, qui l'ont fait entrer dans le score.)*
+**État courant : 11,7 %** (`--variete=max`, défaut). *(27,9 % à la livraison de D18, quand
+la famille n'était QU'une clé de départage ; puis 20,8 % après A21 et A25, qui l'ont fait
+entrer dans le score.)*
 
-⚠️ **Le dernier gain n'est PAS venu du moteur mais du CATALOGUE** (vague B7, 2026-08-03) :
-20,8 → 12,5 % sans toucher une ligne de sélection. Le détail dit pourquoi — en vegan,
-**41,7 % → 6,3 %** ; en vegan + sans gluten, **50 % → 35,4 %**. Là où le vivier de familles
-est mince, aucun réglage ne peut faire tourner ce qui n'existe pas : A25 l'avait mesuré et
-nommé « limite de catalogue ». ➡️ Devant un plafond de variété, se demander d'abord s'il
-reste des familles à distribuer (`npm run mesure:vivier`), avant de toucher aux poids.
+⚠️ **Les deux derniers gains ne viennent PAS du moteur mais du CATALOGUE** (vagues B7 puis
+B8, 2026-08-03) : 20,8 → 12,5 → **11,7 %** sans toucher une ligne de sélection. Le détail
+par régime dit pourquoi — vegan **41,7 % → 8,3 %**, vegan + sans gluten **50 % → 35,4 % →
+22,9 %**. Là où le vivier de familles est mince, aucun réglage ne fait tourner ce qui
+n'existe pas : A25 l'avait mesuré et nommé « limite de catalogue ». ➡️ Devant un plafond de
+variété, se demander d'abord s'il reste des familles à distribuer (`npm run mesure:vivier`,
+et `mesure:variete -- --regime=…` pour isoler le régime fautif), avant de toucher aux poids.
+
+⚠️ **`familyKey` dégénère sur les recettes SANS féculent, et il ne faut PAS le « corriger »
+à la légère.** Toutes les collations d'une même ancre sans féculent tombent dans une seule
+famille — mesuré, 8 yaourts de soja + fruit en formaient une, à l'origine de 9 des 18
+collisions vegan+SG. Faire du FRUIT le second axe quand le féculent manque ferait tomber ce
+régime de 33,3 à 16,7 % **sans qu'un seul repas servi ne change** : ce serait corriger
+l'affichage, pas le produit — exactement ce que la règle « pas de mensonge » interdit. La
+question légitime est de PRODUIT (« deux yaourts de soja à des fruits différents, est-ce
+une répétition ? ») et se tranche avec le fondateur, pas dans un correctif de métrique.
 
 ⚠️ **Trois propriétés de ce mécanisme, chacune payée par une mesure.** Deux d'entre elles
 ont CHANGÉ depuis D18 — elles étaient écrites « non négociables » et décrivaient un moteur

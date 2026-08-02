@@ -17,6 +17,7 @@
  *   npx tsx scripts/mesure-variete.ts           quasi-doublons + métriques de contrôle
  *   npx tsx scripts/mesure-variete.ts --detail  + le détail par profil × régime
  *   npx tsx scripts/mesure-variete.ts --variete=balanced
+ *   npx tsx scripts/mesure-variete.ts --regime=vegan+SG   n'audite QU'UN régime
  *
  * ⚠️ Le réglage de variété PILOTE l'ampleur du reroll depuis le 2026-08-02
  * (`REROLL_PAR_VARIETE`). Le défaut reste `max` : c'est sur lui que sont calibrés les
@@ -36,13 +37,26 @@ import type { DietaryRestriction, Recipe, UserProfile, VarietyPreference } from 
 const SEEDS = ((process.argv.find((a) => a.startsWith('--seeds=')) ?? '').split('=')[1] || '0,1,2,3')
   .split(',').map((s) => parseInt(s, 10)).filter((n) => Number.isFinite(n));
 const VARIETE = ((process.argv.find((a) => a.startsWith('--variete=')) ?? '').split('=')[1] || 'max') as VarietyPreference;
-const REGIMES: { nom: string; r: DietaryRestriction[] }[] = [
+const TOUS_REGIMES: { nom: string; r: DietaryRestriction[] }[] = [
   { nom: 'aucun', r: [] },
   { nom: 'végétarien', r: ['vegetarian'] },
   { nom: 'vegan', r: ['vegan'] },
   { nom: 'sans gluten', r: ['gluten_free'] },
   { nom: 'vegan+SG', r: ['vegan', 'gluten_free'] },
 ];
+/**
+ * `--regime=vegan+SG` isole UN régime — et le classement des familles fautives devient
+ * alors exploitable. Ajouté le 2026-08-03 : agrégé sur les cinq régimes, ce classement
+ * est dominé par les familles du régime le plus riche, alors que le défaut se concentre
+ * ailleurs. Après la vague B7, la moyenne est à 12,5 % mais `vegan+SG` reste à 35,4 % :
+ * commander la vague suivante sur le classement agrégé viserait le mauvais endroit.
+ */
+const FILTRE = (process.argv.find((a) => a.startsWith('--regime=')) ?? '').split('=')[1];
+const REGIMES = FILTRE ? TOUS_REGIMES.filter((x) => x.nom === FILTRE) : TOUS_REGIMES;
+if (FILTRE && REGIMES.length === 0) {
+  console.error(`Régime inconnu : « ${FILTRE} ». Valeurs : ${TOUS_REGIMES.map((x) => x.nom).join(' · ')}`);
+  process.exit(2);
+}
 
 /**
  * Clé de FAMILLE — doit rester le miroir exact de `familyKey` dans `lib/planEngine.ts`,

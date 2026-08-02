@@ -371,6 +371,50 @@ const LOTS: Lot[] = [
       '**2 à 3 étapes, 10 minutes maximum, aucun repos au froid de plus de 10 minutes.** Une collation se prépare debout.',
     ],
   },
+
+  // ── Vague B8 : le reliquat vegan + sans gluten ──────────────────────────────
+  //
+  // B7 a fait tomber les quasi-doublons de 20,8 à 12,5 % — mais `vegan+SG` reste à
+  // **35,4 %**, très loin des autres régimes (aucun 6,3 · sans gluten 2,1 · vegan 6,3).
+  // Isolé avec `mesure:variete -- --regime=vegan+SG` : **15 des 18 collisions sont des
+  // COLLATIONS**, et 9 viennent d'une seule famille — `yaourt_soja_proteine × ∅`, huit
+  // recettes de yaourt de soja sans féculent, dont quatre à la banane.
+  //
+  // ⚠️ DEUX FAUSSES PISTES, écartées après mesure — ne pas les rouvrir.
+  // 1. **Réécrire ces 8 recettes** (leur donner un féculent, comme D15 l'a fait ailleurs) :
+  //    mesuré, elles passent TOUTES R8 (5 à 10 profils sur 12, seuil 3) et ne pèsent que
+  //    1,5 % des repas servis. On échangerait 8 recettes saines et appétissantes contre
+  //    quelques points de métrique — mauvais marché.
+  // 2. **Changer `familyKey`** pour que le FRUIT tienne lieu de second axe quand il n'y a
+  //    pas de féculent : mesuré, `vegan+SG` tomberait de 33,3 à 16,7 % **sans qu'un seul
+  //    repas servi ne change**. C'est de l'habillage, pas une correction — exactement ce
+  //    que la règle « pas de mensonge » interdit. Si le sujet revient, il doit être posé
+  //    comme une question de PRODUIT (« deux yaourts de soja à des fruits différents,
+  //    est-ce une répétition ? »), jamais comme un correctif de chiffre.
+  // ➡️ Reste le levier qui a déjà payé : **plus de familles distinctes**. B7-coll a fait
+  // 50 % → 35,4 % avec 8 collations sur des féculents neufs. On refait le même geste.
+  {
+    cle: 'b8-coll', titre: 'B8 — 8 collations végétales sans gluten, familles neuves', volume: 8, categorie: 'collation',
+    prefixe: 'col', idDebut: 95, idFin: 102,
+    wave: '2026-08-03-b8-collations-vegan-sg', livre: '2026-08-03',
+    kcal: [170, 320], prot: [13, 27], carb: [16, 40], fat: [5, 12],
+    regimes: { libre: 0, vegetarien: 0, vegan: 8, sansGluten: 8 },
+    etapes: [2, 3],
+    refsEnPlus: ['tempeh'],
+    sousFormats: [
+      { nom: 'léger dense', ids: '`col95` → `col100` · 6 recettes', kcal: [170, 210], prot: [13, 16], carb: [16, 26], fat: [5, 8] },
+      { nom: 'gros format', ids: '`col101` → `col102` · 2 recettes', kcal: [280, 320], prot: [23, 27], carb: [28, 40], fat: [8, 12] },
+    ],
+    specifique: [
+      '🎯 **Les 8 sont végétaliennes ET sans gluten, sans exception.** C\'est le seul lot de la série à l\'exiger : ce régime est le dernier à rester loin des autres sur la variété perçue (35,4 % de semaines avec quasi-doublon, contre 6,3 % sans régime), et 15 de ses 18 collisions sont des collations.',
+      '🎯 **Un couple protéine × féculent NEUF par recette — c\'est tout l\'objet du lot.** Les quatre ancres employables sont `yaourt_soja_proteine`, `proteine_vegetale`, `soja_texture` et `tempeh` : à cette densité, ce sont les seules qui laissent la place d\'un vrai féculent. La variété se commande donc **sur le féculent**, et le §7 te donne les places encore libres.',
+      '⚠️ **Chaque recette porte un vrai féculent `carb` et `scalable`.** Le défaut que ce lot corrige est précisément une famille de 8 collations SANS féculent, que le moteur regroupe en une seule et sert deux fois par semaine à ce régime.',
+      '⚠️ **Féculents compatibles avec les 10 minutes**, mesuré : `galette_riz`, `chataigne`, `polenta`, `mais`, `nouilles_riz`, `pain_sans_gluten`. Le millet, le quinoa, le riz complet et la patate douce demandent 13 à 20 minutes de cuisson — ils sont hors sujet ici, quelle que soit leur place libre au §7.',
+      '⚠️ **La règle des 12 g de lipides ne s\'applique PAS ici.** L\'ancre grasse `fat` + `scalable` reste obligatoire, elle est simplement petite : 5 à 8 g en format léger, 8 à 12 g en gros format.',
+      '⚠️ **Ne pose jamais un ingrédient PILE à son plafond absolu** (colonne « Max abs. » du §4). Il est alors `scalable` sur le papier mais incapable de monter, et la recette perd sa capacité à nourrir un gros gabarit — mesuré sur un lot précédent : 5 profils servis sur 12 au lieu de 9.',
+      '**2 à 3 étapes, 10 minutes maximum, aucun repos au froid de plus de 10 minutes.**',
+    ],
+  },
 ];
 
 // ── Outils d'analyse du catalogue ────────────────────────────────────────────
