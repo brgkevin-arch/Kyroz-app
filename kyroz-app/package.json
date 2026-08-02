@@ -51,6 +51,7 @@
     "check:enveloppe": "npx tsx scripts/mesure-couverture.ts --enveloppe",
     "mesure:couverture": "npx tsx scripts/mesure-couverture.ts",
     "gen:lots": "npx tsx scripts/gen-brief-lot.ts",
+    "check:migrations": "node scripts/check-migrations.mjs",
     "store:assets": "node test/store-assets.mjs",
     "store:assets:ipad": "node test/store-assets.mjs --ipad",
     "mesure:variete": "npx tsx scripts/mesure-variete.ts",

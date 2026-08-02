@@ -602,6 +602,11 @@ téléphone.
   marchent dessus ; s'isoler dans un worktree, et le nettoyer en fin de chantier.
 - **Rappeler la migration Supabase** quand un changement en demande une : le schéma n'est
   pas auto-appliqué, et une migration non jouée tue la synchro **en silence** (§3).
+  ⚠️ **Mais MESURER avant d'annoncer un blocage — `npm run check:migrations`.** Le dépôt
+  ne sait rien de la prod : un fichier dans `supabase/migrations/` prouve que quelqu'un a
+  écrit du SQL, pas qu'il a été exécuté. Deux entrées d'AGENTS.md sont restées à
+  « MIGRATION À JOUER » pendant des jours alors que les colonnes étaient en base, et une
+  session l'a répété au fondateur comme un blocage réel. La commande prend deux secondes.
 - **Mettre à jour `AGENTS.md`** en fin de session, dans la liste unique. Ne jamais laisser
   le doc diverger du code, et ne jamais créer une deuxième liste de tâches.
 
