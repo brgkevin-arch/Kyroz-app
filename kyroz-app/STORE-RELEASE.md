@@ -73,8 +73,18 @@ Sans ces deux comptes, rien ne peut être soumis. Le reste (§2–7) peut se pr�
 > Bundle ID enregistré · fiche d'app créée · Paid Applications Agreement **Actif**
 > (compte bancaire + W-8BEN actifs) · groupe `Kyroz+` et les deux abonnements créés
 > et tarifés. Reste la **capture de review**, impossible avant que le paywall existe —
-> les produits restent en « Métadonnées manquantes », ce qui n'empêche NI RevenueCat
-> NI les tests sandbox.
+> les produits restent en « Métadonnées manquantes ».
+>
+> ⚠️ **Cette phrase disait « ce qui n'empêche NI RevenueCat NI les tests sandbox ».
+> La moitié est établie, l'autre ne l'est pas** (corrigé le 2026-08-02).
+> **RevenueCat : confirmé** — le dashboard résout les deux identifiants et affiche
+> l'état Apple lui-même (`MISSING_METADATA`), donc la liaison fonctionne.
+> **Le bac à sable : JAMAIS VÉRIFIÉ.** Apple ne sert normalement un produit à StoreKit
+> qu'à partir de l'état « Prêt à soumettre ». Si c'est le cas, `getProducts()` rendrait
+> une liste vide en bac à sable et l'achat afficherait « indisponible » — un échec qu'on
+> imputerait à tort au code. ➡️ **Compléter les métadonnées AVANT le test sandbox**
+> (nom d'affichage + description localisés FR sur chaque abonnement), pour que la
+> question ne se pose pas. Seule la capture de review dépend vraiment du build.
 >
 > ⚠️ **À surveiller** : la conformité **DSA** était « En cours de vérification ».
 > Tant qu'elle n'est pas validée, **aucune distribution dans l'UE** — donc pas en

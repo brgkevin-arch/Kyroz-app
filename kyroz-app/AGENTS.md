@@ -1281,15 +1281,56 @@ produit en suspens — il ne reste qu'à coder.
   🧑 **CE QUI RESTE, ET QUI DEMANDE TES COMPTES — dans cet ordre :**
   1. ✅ **App Store Connect — FAIT le 2026-07-30** (commit `3a78fdc`) : Bundle ID,
      fiche, Paid Applications Agreement actif, groupe Kyroz+ et les deux abonnements
-     créés et tarifés. Reste la capture de review, impossible avant que le paywall
-     existe — les produits restent en « Métadonnées manquantes », ce qui n'empêche ni
-     RevenueCat ni le bac à sable.
-  2. 🧑 **RevenueCat — ÉTAT INCONNU, et le dépôt ne peut pas y répondre.** Aucune clé
-     dans `.env.local`, rien dans `eas.json`, et la case est **non cochée** dans
-     `STORE-RELEASE.md` §6 comme dans `MONETISATION.md` §A. Ça ne prouve rien : la clé
-     n'est nécessaire qu'au build. **Seul le dashboard fait foi.** À y vérifier :
-     un projet existe, l'app iOS y est rattachée, un entitlement **`premium`** contient
-     les deux produits, et récupérer la clé publique `appl_…`.
+     créés et tarifés. Les deux produits sont en **« Métadonnées manquantes »**.
+     ⚠️ **Cette fiche affirmait que cet état « n'empêche ni RevenueCat ni le bac à
+     sable ». La moitié seulement est établie** (corrigé le 2026-08-02) :
+     • **RevenueCat : CONFIRMÉ**, et pas déduit — une fois la clé App Store Connect API
+       posée, le dashboard résout les deux identifiants et affiche l'état renvoyé par
+       Apple (`MISSING_METADATA`). **C'est la preuve, par Apple lui-même, que
+       `kyroz_plus_monthly` et `kyroz_plus_yearly` existent bien chez lui** — la seule
+       vérification des identifiants qui ne demandait pas un build.
+     • **Bac à sable : JAMAIS VÉRIFIÉ.** Apple ne sert normalement un produit à StoreKit
+       qu'à partir de « Prêt à soumettre ». Si c'est le cas, `getProducts()` rendrait une
+       liste vide, l'achat afficherait « indisponible », et on imputerait au code un
+       problème de fiche produit.
+     ➡️ **Compléter les métadonnées AVANT le test sandbox** — nom d'affichage et
+     description localisés FR sur chaque abonnement, ce qui se fait dès maintenant. Seule
+     la **capture de review** dépend réellement du paywall, donc du build.
+     🧰 **Laissé au passage : la clé App Store Connect API est posée dans RevenueCat**
+     (rôle App Manager + Issuer ID + Vendor number). Elle ne sert pas à l'app, elle sert
+     à ce que le dashboard puisse INTERROGER Apple au lieu d'afficher « Could not check ».
+     Sur quatre identifiants faux dans ce chantier, c'est le seul instrument qui tranche
+     sans build.
+  2. ✅ **RevenueCat — CONFIGURÉ le 2026-08-02 par le fondateur, et VÉRIFIÉ.** Projet
+     « Kyroz », app App Store rattachée (`app.kyroz.mobile`), entitlement **`premium`**
+     contenant **`kyroz_plus_monthly`** et **`kyroz_plus_yearly`**, tous deux sous l'app
+     Apple. Recoupé avec le code : `ENTITLEMENT_ID` (`lib/purchases.ts` + le bouchon web)
+     et les deux `storeProductId` (`lib/premium.ts`) correspondent au caractère près, et
+     deux tests les verrouillent.
+
+     🔴 **UN QUATRIÈME IDENTIFIANT FAUX, attrapé AVANT le build.** L'onboarding
+     RevenueCat propose des noms tout faits (« Kyroz Pro », « Kyroz Premium »…) et avait
+     créé l'entitlement sous l'identifiant **`Kyroz Premium`** — avec une majuscule et
+     un ESPACE, dans une chaîne qui voyage en URL. Le code demandant `premium`, l'achat
+     aurait abouti et l'abonné serait resté `locked`, **sans message**. Corrigé côté
+     dashboard (et pas côté code) pour trois raisons : l'espace est illégitime dans une
+     clé, le renommage est gratuit tant qu'aucun abonné n'existe, et un identifiant
+     GÉNÉRIQUE laisse le nom commercial libre de changer sans toucher au code.
+     ➡️ **Le compteur est à quatre** (`kyroz_plus_annual`, `kyroz_plus`, celui-ci, plus
+     l'entitlement des faux produits) : ces chaînes se recopient d'un bout à l'autre,
+     elles ne se choisissent nulle part.
+
+     ⚠️ **Piège de l'onboarding, à connaître** : RevenueCat crée d'office un « Test
+     Store » avec deux faux produits (`monthly`, `yearly`) et les attache à l'entitlement.
+     Ils ne correspondent à RIEN chez Apple. Détachés. La clé `test_…` servie pendant
+     l'onboarding n'est pas non plus la bonne — celle du build commence par `appl_`.
+
+     ⚠️ **L'offering n'a PAS été créé, et c'est correct** : le code adresse les produits
+     par identifiant (`getProducts([...])`, `purchaseStoreProduct`) et ne lit jamais les
+     offerings. RevenueCat les recommande ; ici c'est une couche de plus à maintenir pour
+     zéro bénéfice. À rouvrir seulement si un jour on veut changer l'offre à distance.
+
+     🧑 **Reste à confirmer** : la clé publique **`appl_…`** (Project settings → API keys).
   3. **Poser les clés PUBLIQUES du SDK** (`appl_…` / `goog_…`) dans le build EAS :
      `EXPO_PUBLIC_REVENUECAT_IOS_KEY` et `_ANDROID_KEY` (cf. `.env.example`).
      ➡️ **Les deux commandes exactes sont écrites dans `STORE-RELEASE.md` §1-bis,

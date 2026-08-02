@@ -98,15 +98,26 @@ core tuerait le North Star — donc interdit.
       groupe d'abonnement **Kyroz+** et les 2 produits auto-renouvelables créés et tarifés,
       `kyroz_plus_monthly` (4,99 €) et `kyroz_plus_yearly` (39,99 € d'avance **ou 3,99 €/mois**).
       Reste la capture de review (impossible avant que le paywall existe) → produits en
-      « Métadonnées manquantes », ce qui n'empêche ni RevenueCat ni le bac à sable.
+      « Métadonnées manquantes ». ⚠️ Cette ligne ajoutait « ce qui n'empêche ni RevenueCat
+      ni le bac à sable » : **RevenueCat, confirmé le 2026-08-02** (il résout les deux
+      identifiants et affiche l'état Apple) ; **le bac à sable, jamais vérifié** — Apple ne
+      sert normalement un produit à StoreKit qu'à partir de « Prêt à soumettre ».
+      Cf. `STORE-RELEASE.md` §1-bis.
       ⚠️ **`kyroz_plus_yearly`, pas `_annual`** : le code s'était trompé, cf. AGENTS.md B2.
 - [ ] **Google Play Console** : créer l'abonnement `kyroz_plus` avec 2 *base plans* (mensuel / annuel), mêmes prix.
-- [ ] **RevenueCat — état INCONNU au 2026-08-02** : créer le projet, rattacher l'app iOS + Android,
-      mapper les produits store → **1 entitlement `premium`** + **1 offering** (packages
-      mensuel/annuel). Récupérer les **clés SDK publiques** (iOS `appl_…`, Android `goog_…`) —
-      publiques, OK inlinées (comme la clé PostHog).
-      ⚠️ Le dépôt ne peut pas dire si c'est fait (aucune clé posée n'est nécessaire avant le
-      build). **Seul le dashboard fait foi.**
+- [x] ✅ **RevenueCat — fait le 2026-08-02.** Projet « Kyroz », app App Store rattachée
+      (`app.kyroz.mobile`, clé d'achat in-app `.p8` déposée), entitlement **`premium`** avec
+      `kyroz_plus_monthly` + `kyroz_plus_yearly` sous l'app Apple. Recoupé au caractère près
+      avec `lib/purchases.ts` et `lib/premium.ts`.
+      🔴 L'onboarding avait nommé l'entitlement **`Kyroz Premium`** (majuscule + ESPACE) et
+      l'avait rempli de deux **faux produits du « Test Store »**. Corrigé côté dashboard :
+      un identifiant générique laisse le nom commercial libre, et l'espace n'a rien à faire
+      dans une chaîne qui voyage en URL. Cf. AGENTS.md B2 — c'est le 4ᵉ identifiant faux de
+      la série.
+      ⚠️ **Pas d'offering, volontairement** : le code adresse les produits par identifiant et
+      ne lit jamais les offerings.
+      🧑 Reste la clé publique **`appl_…`** à récupérer (Project settings → API keys), et
+      l'app Android le jour où Google Play existera.
 
 ### B. Intégration SDK (code) — ✅ LIVRÉE le 2026-08-02
 - [x] `react-native-purchases` **v10.6.0** installé. ⚠️ Module **natif** → build EAS / dev
