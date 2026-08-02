@@ -62,20 +62,24 @@ export const PRIVACY_POLICY: LegalSection[] = [
       "Le traitement des données de santé repose sur votre consentement explicite (RGPD art. 9-2-a), recueilli à l’inscription. Vous pouvez le retirer à tout moment en supprimant votre compte.",
     ],
   },
-  // ⚠️ DEUX PHRASES DE CETTE SECTION SONT DATÉES — les relire avant d'allumer quoi
-  // que ce soit :
-  //  • « aucun outil d'analyse tiers » devient FAUX le jour où `EXPO_PUBLIC_POSTHOG_KEY`
-  //    est posée (`lib/analytics.ts`, dormant aujourd'hui) ;
-  //  • le paragraphe RevenueCat ne NOMME PAS le cadre du transfert hors UE (clauses
-  //    contractuelles types / Data Privacy Framework). Le RGPD (art. 13-1-f) l'exige.
-  //    Il n'est pas écrit ici parce qu'il n'a pas été vérifié dans le contrat
-  //    RevenueCat — et une politique de confidentialité n'est pas l'endroit où
-  //    supposer. ➡️ À compléter à la signature de leur DPA (AGENTS.md B2, étape 6).
+  // ⚠️ **ON NE NOMME AUCUN PRESTATAIRE D'ABONNEMENT, ET C'EST DÉLIBÉRÉ.** Une première
+  // version (2026-08-02) écrivait « RevenueCat, Inc. (États-Unis) » alors qu'AUCUN
+  // contrat n'existe avec eux et que le choix technique n'est pas définitivement
+  // arrêté. Nommer un sous-traitant qui n'en est pas un est le même mensonge que
+  // taire celui qui l'est — juste dans l'autre sens. Le RGPD (art. 13-1-e) autorise
+  // explicitement les **catégories** de destinataires, ce que fait le texte ci-dessous.
+  // ➡️ Le jour où le contrat est signé : remplacer « un prestataire spécialisé » par
+  // le nom, et AJOUTER le cadre du transfert hors UE (clauses contractuelles types /
+  // Data Privacy Framework), exigé par l'art. 13-1-f et qui ne peut se lire que dans
+  // le contrat. Une politique de confidentialité n'est pas l'endroit où supposer.
+  //
+  // ⚠️ Autre phrase datée ici : « aucun outil d'analyse tiers » devient FAUSSE le jour
+  // où `EXPO_PUBLIC_POSTHOG_KEY` est posée (`lib/analytics.ts`, dormant aujourd'hui).
   {
     title: '5. Destinataires et sous-traitants',
     paragraphs: [
       `Vos données synchronisées sont hébergées par ${LEGAL.host}, sur des serveurs situés en ${LEGAL.hostRegion}.`,
-      "Si vous souscrivez un abonnement Kyroz+, sa gestion est confiée à RevenueCat, Inc. (États-Unis). Ne lui sont transmis que l’identifiant technique de votre compte et l’état de votre abonnement — ni votre adresse email, ni vos données de santé, ni aucune coordonnée bancaire.",
+      "Si vous souscrivez un jour un abonnement Kyroz+, sa gestion technique pourra être confiée à un prestataire spécialisé. Ne lui seraient transmis que l’identifiant technique de votre compte et l’état de votre abonnement — ni votre adresse email, ni vos données de santé, ni aucune coordonnée bancaire. Ce prestataire sera nommé ici avant toute mise en vente.",
       "Le paiement lui-même est traité par l’App Store (Apple) ou Google Play. Kyroz ne voit ni ne conserve aucune coordonnée bancaire.",
       "Nous ne vendons, ne louons et ne partageons vos données avec aucun tiers à des fins commerciales. Aucun traceur publicitaire ni outil d’analyse tiers n’est utilisé.",
     ],
@@ -90,7 +94,7 @@ export const PRIVACY_POLICY: LegalSection[] = [
     title: '7. Durée de conservation',
     paragraphs: [
       "Vos données sont conservées tant que votre compte est actif. Elles sont supprimées (serveur + appareil) lorsque vous supprimez votre compte.",
-      "Une exception : si vous avez souscrit un abonnement, l’historique de facturation correspondant est conservé par RevenueCat et par le store concerné, pour la durée qu’imposent leurs obligations légales et comptables. Cet historique ne contient aucune donnée de santé.",
+      "Une exception : si vous avez souscrit un abonnement, l’historique de facturation correspondant est conservé par le store concerné (Apple, Google) et par le prestataire mentionné au point 5, pour la durée qu’imposent leurs obligations légales et comptables. Cet historique ne contient aucune donnée de santé.",
     ],
   },
   {
