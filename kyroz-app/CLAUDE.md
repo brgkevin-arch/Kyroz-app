@@ -352,7 +352,9 @@ Mesuré : **1 448 kcal déjà avalées oubliées en moyenne**, après quoi l'app
 une journée pleine par-dessus. ➡️ **Un statut de suivi est un FAIT, pas une préférence :
 aucune génération n'a le droit de l'effacer.** Le report est asymétrique — un repas
 *mangé* est conservé ENTIER (recette + macros), un repas *sauté* ne garde que son statut.
-La péremption reste au changement de JOUR (`resetTracking`), nulle part ailleurs.
+La péremption reste au changement de JOUR (`resetTracking`), nulle part ailleurs — y
+compris quand l'utilisateur demande LUI-MÊME un nouveau plan (arbitré par le fondateur le
+2026-08-02 : « Régénérer » renouvelle les repas à venir, il n'efface pas la journée).
 ⚠️ Corollaire pour les livraisons : **un bump d'`ENGINE_VERSION` déclenche l'auto-refresh
 chez tout le monde**. Ce n'est pas une opération neutre côté utilisateur.
 
