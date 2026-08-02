@@ -1017,12 +1017,14 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
   - **sauté** → seul le statut suit. Le créneau est décidé, mais la recette qu'il
     n'aura pas mangée peut changer avec ses nouveaux réglages.
   - les jours touchés sont recalés, sinon la journée compterait deux fois le déjà-mangé.
-  ⚠️ **Le report vaut AUSSI pour un reroll explicite, et c'est un arbitrage à connaître.**
-  « Repartir de zéro » veut dire de nouveaux repas À VENIR, pas l'amnésie sur ce matin :
-  sinon le budget restant est faux exactement de la même façon. La péremption reste
-  gérée là où elle doit l'être — `resetTracking`, au changement de JOUR. Si le fondateur
-  veut que « Régénérer » efface aussi la journée en cours, c'est sa décision, mais elle
-  doit être prise en connaissance du prix.
+  ✅ **Le report vaut AUSSI pour un reroll explicite — ARBITRÉ PAR LE FONDATEUR le
+  2026-08-02 (« okok on garde »). Ne pas rouvrir sans qu'il le redemande.**
+  « Repartir de zéro » porte sur les repas À VENIR, pas sur l'amnésie de ce matin : un
+  petit-déjeuner mangé, aucun bouton ne le défait. Le prix de l'autre lecture a été posé
+  avant la décision, sur son propre profil (cible 2 069 kcal) : mangé 1 330 kcal à midi,
+  puis « Régénérer » → l'app repartirait sur 2 069 kcal pour la journée, soit **3 399 kcal
+  réelles, 1 330 au-dessus de la cible** — le déficit du jour effacé, sans que l'app le
+  sache. La péremption reste là où elle doit être : `resetTracking`, au changement de JOUR.
   ℹ️ **Indice qui traînait dans le code depuis longtemps** : le 👎 est volontairement
   tenu HORS de `profileSignature`, avec le commentaire « ne régénère pas tout ». On
   savait donc qu'une régénération détruisait le travail posé sur le plan — mais on avait
