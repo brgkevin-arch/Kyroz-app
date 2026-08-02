@@ -490,7 +490,14 @@ téléphone.
   d'un breakpoint.
 - **Règle de non-régression** : aucune colonne ne doit être plus étroite que la zone
   utile d'un iPhone (345 pt). Verrouillée par `lib/__tests__/layout.test.ts`.
-- **L'orientation reste `portrait`.** Le paysage est une décision produit à part.
+- ⚠️ **LE PAYSAGE EST OUVERT SUR IPAD, quoi qu'en dise `app.json`.** `orientation: portrait`
+  ne s'applique qu'à l'iPhone : dès `supportsTablet: true`, Expo écrit les **quatre**
+  orientations dans `UISupportedInterfaceOrientations~ipad` du manifeste généré, parce que
+  le multitâche iPadOS (`UIRequiresFullScreen: false`) l'exige. Vérifié sur le manifeste,
+  pas sur la config — même piège qu'en §11 pour les permissions Android.
+  **Conséquence : Apple teste l'app en paysage sur iPad, et tout écran doit y tenir.**
+  Vérifié à 1366×1024 : la colonne reste centrée, la grille garde ses 2 colonnes, rien ne
+  déborde. Ce n'est donc pas une décision à prendre — c'est un fait à respecter.
 
 ---
 

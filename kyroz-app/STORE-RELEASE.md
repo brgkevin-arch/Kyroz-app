@@ -186,8 +186,16 @@ un identifiant enregistré, puis une fiche d'app. Dans cet ordre, sinon le menu
 > mode compatibilité). Les deux sont désormais couverts.
 > ⚠️ **C'est de la config NATIVE : l'OTA ne peut pas la livrer.** Il faut un nouveau build
 > iOS pour que le support iPad prenne effet sur un binaire déjà en ligne.
-> ℹ️ **Le paysage n'est PAS ouvert** — `orientation` reste `portrait`. Apple ne l'exige pas
-> pour un binaire iPad ; c'est une décision produit à part, pas un reliquat du chantier.
+> 🔴 **LE PAYSAGE EST OUVERT SUR IPAD — corrigé le 2026-08-02, cette ligne disait le
+> contraire.** `orientation: portrait` dans `app.json` ne vaut que pour l'iPhone. Lu sur le
+> **manifeste réellement généré** (`ios/Kyroz/Info.plist` après prebuild) :
+> `UISupportedInterfaceOrientations~ipad` contient les **quatre** orientations, paysage
+> compris, et `UIRequiresFullScreen` vaut `false`. Expo le fait exprès : le multitâche
+> iPadOS (Split View, Slide Over) l'impose, et Apple a retiré l'échappatoire
+> `UIRequiresFullScreen` des iPadOS récents. **Ce n'est donc pas refermable.**
+> ➡️ **Apple testera l'app en paysage.** Vérifié à 1366×1024 : colonne centrée, grille à
+> 2 colonnes, rien ne déborde. C'est le même piège qu'A2 (`android.permissions: []` ne
+> prouvait rien) — lire le manifeste généré, jamais la config source.
 
 ---
 
@@ -341,6 +349,8 @@ fausse, pas une coquille.
 - **Screenshots iPad 13"** (2048×2732) : **requis**, `supportsTablet` étant à `true`
   (cf. §2). ✅ **Générés** : `npm run store:assets:ipad` → `test/store-ipad/`, au gabarit
   exact. Ils montrent l'écran recette en deux colonnes, c'est-à-dire l'argument tablette.
+  ℹ️ Ce sont des captures **portrait** — c'est le gabarit 2048×2732 qu'Apple demande, même
+  si l'app tourne aussi en paysage.
 - **Google Play** : min **2 screenshots** téléphone + un **feature graphic 1024×500**
   + l'icône 512×512 (déjà en asset). ✅ **Générés** : `npm run store:assets` →
   `test/store` (captures **1170×2532**, feature graphic **1024×500**).

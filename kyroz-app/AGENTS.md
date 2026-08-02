@@ -596,8 +596,36 @@ produit en suspens — il ne reste qu'à coder.
   **2048×2732**, le gabarit exact qu'Apple exige. Le script prend un gabarit tablette,
   et n'y produit plus le feature graphic (visuel Google Play, cf. C2).
 
-  ℹ️ **Le paysage n'est PAS ouvert** : `orientation` reste `portrait`. Ce n'était pas dans
-  l'ordre des étapes, et Apple ne l'exige pas pour un binaire iPad. À trancher à part.
+  ✅ **VÉRIFIÉ EN NATIF le 2026-08-02, sur le simulateur iPad Pro 13"** — pas seulement
+  dans un navigateur. Build `xcodebuild` + install `simctl` (⚠️ `expo run:ios` échoue :
+  son détecteur d'appareils classe le simulateur en appareil PHYSIQUE et réclame un
+  certificat ; et CocoaPods casse si `LANG` n'est pas en UTF-8). Parcours réel :
+  login → dépistage → onboarding → plan → grille recettes (2 colonnes, 16 visibles) →
+  écran recette (2 colonnes, « Œuf entier … 3 œufs » à ~370 pt au lieu de 950).
+  **Rien de cassé.**
+
+  🔴 **CE QUE LA MESURE A CORRIGÉ, et c'est une affirmation FAUSSE que j'avais écrite
+  partout : LE PAYSAGE EST OUVERT SUR IPAD.** `orientation: portrait` d'`app.json` ne vaut
+  que pour l'iPhone. Le **manifeste réellement généré** dit :
+  `UISupportedInterfaceOrientations~ipad` = les **quatre** orientations · `UIRequiresFullScreen`
+  = `false`. Expo le fait exprès (le multitâche iPadOS l'impose) et Apple a retiré
+  l'échappatoire `UIRequiresFullScreen` : **ce n'est pas refermable, et Apple testera en
+  paysage.** Vérifié à 1366×1024 : colonne centrée, grille à 2 colonnes, rien ne déborde.
+  ➡️ **Même piège qu'A2** (`android.permissions: []` ne prouvait rien) : lire le manifeste
+  généré, jamais la config source. Deux fois le même piège, deux plateformes différentes.
+
+  ⚠️ **Une imprécision MESURÉE et ASSUMÉE, pour qu'on ne la redécouvre pas** : la barre
+  d'onglets code en dur `height: 88, paddingBottom: 28` sur iOS (`app/(tabs)/_layout.tsx`),
+  valeurs taillées pour l'encoche d'un iPhone (34 pt). Mesurée au pixel sur la capture
+  iPad : la barre fait bien 88 pt, alors que la zone sûre d'un iPad en demande 20 →
+  **8 pt d'espace mort**. Ce n'est ni cassé ni un motif de rejet, et le corriger
+  proprement (via `useSafeAreaInsets()`) **déplacerait aussi l'iPhone**. Laissé tel quel
+  délibérément : 8 pt ne valent pas une régression sur la plateforme principale.
+
+  ℹ️ **Piste non prise, si un jour tu veux mieux remplir le paysage** : à 1366 pt, la
+  grille de recettes garde 2 colonnes et laisse 193 pt de marge de chaque côté. Une 3ᵉ
+  colonne au-delà de ~1200 pt est un seul chiffre dans `gridColumns()`. Pas fait : hors du
+  périmètre demandé, et Apple ne l'exige pas.
 - **C2 · Comptes et visuels — ✅ LARGEMENT FAIT le 2026-07-30.**
   Apple (compte + contrat de vente actif + fiche + 2 abonnements tarifés) · Google Play
   (compte payé, site validé, fiche créée) · **visuels générés** (`npm run store:assets` :
