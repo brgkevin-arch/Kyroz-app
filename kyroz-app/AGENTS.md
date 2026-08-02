@@ -1099,13 +1099,17 @@ produit en suspens — il ne reste qu'à coder.
   console. *(État forcé par une date de lancement temporaire, remise à `null` après.)*
 
   🧑 **CE QUI RESTE, ET QUI DEMANDE TES COMPTES — dans cet ordre :**
-  1. **App Store Connect** : créer les deux abonnements auto-renouvelables dans un
-     même groupe, aux identifiants EXACTS `kyroz_plus_monthly` et `kyroz_plus_annual`
-     (ils sont verrouillés par un test), aux tarifs 4,99 € et 39,99 €.
-     Idem Google Play si tu sors sur Android.
-  2. **RevenueCat** : créer le projet, y rattacher l'app, et créer un entitlement
-     nommé EXACTEMENT **`kyroz_plus`** (verrouillé par un test aussi) auquel tu
-     attaches les deux produits.
+  1. ✅ **App Store Connect — FAIT le 2026-07-30** (commit `3a78fdc`) : Bundle ID,
+     fiche, Paid Applications Agreement actif, groupe Kyroz+ et les deux abonnements
+     créés et tarifés. Reste la capture de review, impossible avant que le paywall
+     existe — les produits restent en « Métadonnées manquantes », ce qui n'empêche ni
+     RevenueCat ni le bac à sable.
+  2. 🧑 **RevenueCat — ÉTAT INCONNU, et le dépôt ne peut pas y répondre.** Aucune clé
+     dans `.env.local`, rien dans `eas.json`, et la case est **non cochée** dans
+     `STORE-RELEASE.md` §6 comme dans `MONETISATION.md` §A. Ça ne prouve rien : la clé
+     n'est nécessaire qu'au build. **Seul le dashboard fait foi.** À y vérifier :
+     un projet existe, l'app iOS y est rattachée, un entitlement **`premium`** contient
+     les deux produits, et récupérer la clé publique `appl_…`.
   3. **Poser les clés PUBLIQUES du SDK** (`appl_…` / `goog_…`) dans le build EAS :
      `EXPO_PUBLIC_REVENUECAT_IOS_KEY` et `_ANDROID_KEY` (cf. `.env.example`).
      ⚠️ **Pas la clé secrète du dashboard** — elle ne doit jamais entrer dans un
@@ -1120,6 +1124,29 @@ produit en suspens — il ne reste qu'à coder.
   ⚠️ **Un point que la revue Apple refuse et qui n'est PAS encore fait** : le bouton
   « Restaurer mes achats » est branché, mais il ne peut être PROUVÉ qu'avec un compte
   sandbox. Sans restauration fonctionnelle, rejet au titre de la Guideline 3.1.1.
+
+  🔴 **DEUX IDENTIFIANTS ÉTAIENT FAUX DANS LE CODE — corrigés le 2026-08-02, et c'est
+  la vraie trouvaille de la vérification.** Les deux échouaient de la même façon : en
+  SILENCE, ce que `STORE-RELEASE.md` appelle lui-même « la source d'erreur n°1 ».
+  | | le code disait | la réalité | établi par |
+  |---|---|---|---|
+  | produit annuel | `kyroz_plus_annual` | **`kyroz_plus_yearly`** | créé chez Apple le 2026-07-30 (`STORE-RELEASE.md` §4, `MONETISATION.md` §A) |
+  | entitlement | `kyroz_plus` | **`premium`** | prescrit par `STORE-RELEASE.md` §6 et `MONETISATION.md` §A/§C |
+  Les deux mauvaises valeurs ont été **inventées par le code du paywall le 2026-08-01**,
+  APRÈS que les produits aient existé — et un test verrouillait la première, donc
+  protégeait le bug. Effet si on les avait laissées : `getProducts()` ne trouve rien,
+  l'achat rend « indisponible », le prix reste au tarif de repli, et l'entitlement
+  n'est jamais vu — donc un abonné payant resterait `locked`.
+  ➡️ **Règle** : ces chaînes se RECOPIENT depuis le dashboard, elles ne se choisissent
+  pas dans le code. Si le dashboard dit autre chose, c'est lui qui a raison.
+
+  🟠 **UN ÉCART DE PRODUIT, NON TRAITÉ (décision fondateur requise).** Apple porte
+  **TROIS** formules depuis le 2026-07-30 — mensuel 4,99 € · annuel payé au mois
+  3,99 €/mois avec engagement 12 mois · annuel payé d'avance 39,99 €. Le paywall n'en
+  affiche que **DEUX**, et `STORE-RELEASE.md` §4 dit noir sur blanc « le paywall devra
+  donc présenter trois formules, pas deux ». Ce n'est pas un bug de câblage : c'est un
+  choix de présentation commerciale (l'engagement 12 mois se vend mal, et la règle
+  produit interdit de mettre la pression). ➡️ À trancher avant la mise en vente.
 
 ### 📱 C — Sortie stores
 
