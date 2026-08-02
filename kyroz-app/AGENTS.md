@@ -70,13 +70,13 @@ qu'ils étaient périmés.
 | Plateformes | iPhone **+ iPad** (`supportsTablet: true` depuis le 2026-08-01) · portrait-only | `app.json` · `lib/layout.ts` |
 | Site déployé | **automatique** : GitHub Actions à chaque push `main` (`build_type: workflow`). ⚠️ **NE PAS lire `origin/gh-pages`** — branche morte, cf. A12 | `gh run list --workflow=deploy.yml` |
 | Migrations Supabase | toutes jouées, `2026-08-02_profiles_birth_date.sql` comprise (vérifiée par REST : `200`) | `supabase/JOURNAL-MIGRATIONS.md` |
-| Variété perçue | **24,6 %** des semaines servent 2 recettes d'un même couple (27,9 % avant A21 · 56,3 % avant D18) | `npm run mesure:variete` |
+| Variété perçue | semaines servant 2 recettes d'un même couple : **repetitive 22,5 % · balanced 27,5 % · max 26,3 %** (27,9 % pour tous avant A21 · 56,3 % avant D18) | `npm run mesure:variete -- --variete=…` |
 | Reroll (« Régénérer mon plan ») | 1ers repas qui changent : **repetitive 51 % · balanced 78 % · max 83 %** (13,7 % pour tous avant A21) | `npm run mesure:reroll` |
 | Anti-doublons | R1 81 · R2 70 · R4 14 · R5 17 · R7 0 — **figés par un test**, inchangés par B6 | `npm run check:doublons` |
-| Sous le seuil R8 | ⚠️ petit-déj **37/110** · repas complets **71/270** · collation **1/86** — le chantier B7 (D19) | `npm run mesure:seuils` |
-| Moyenne R8 par créneau | petit-déj **8,30/12** · repas complets **8,64** · collation **7,50** (7,62 avant D18 · 7,19 avant B6 · 4,52 avant B5) | idem |
-| Vegan | petit-déj 44/110 · repas 79/270 · collation **43/86** | idem |
-| Vegan + sans gluten | petit-déj 33 · repas 42 · collation **34** | idem |
+| Sous le seuil R8 | ⚠️ petit-déj **37/110** · repas complets **74/270** · collation **3/86** — le chantier B7 (D19), **reporté** (cf. la note ci-dessous) | `npm run mesure:seuils` |
+| Moyenne R8 par créneau | petit-déj **8,28/12** · repas complets **8,53** · collation **7,41** (7,62 avant D18 · 7,19 avant B6 · 4,52 avant B5) | idem |
+| Vegan | petit-déj 44/110 · repas 79/270 · collation **43/86** — comptage CATALOGUE (`restrictions_ok`), stable | compter `restrictions_ok` par créneau |
+| Vegan + sans gluten | petit-déj 33 · repas 42 · collation **34** — idem, stable | idem |
 
 **Les six chantiers du 2026-08-02, dans l'ordre où ils se sont enchaînés** — chacun a sa
 fiche : **D14** (lot B4, 32 recettes à l'enveloppe corrigée), **D15** (lot B5, 23
@@ -105,6 +105,16 @@ cassé ne l'était jamais là où on le croyait.**
 - Trois de ces correctifs sont des **pièges de plateforme** invisibles à la relecture
   (`Alert` vide, `onEndEditing` no-op, synchro descendante qui écrase la frappe). Ils
   sont désormais dans `CLAUDE.md` §11, deux d'entre eux tenus par un test.
+- **A21 → A23 forment une chaîne, et c'est la partie la plus instructive de la session.**
+  Le même bouton a été « réparé » trois fois. A16 corrige une vraie cause (`Alert` mort)
+  et le bouton reste inerte — **on avait vérifié la mécanique, pas le résultat**. A21
+  trouve la vraie cause (le seed n'arbitrait rien) et introduit au passage une régression
+  qu'aucune de mes mesures ne voyait — **mesurer le renouvellement ne dit rien de la
+  répétition**. A22 découvre que l'écran de réglages CRASHAIT depuis toujours sur une
+  donnée hors barème, ce qui rendait le réglage inaccessible. A23 découvre que ce réglage,
+  une fois accessible, **n'agissait pas** sur ce bouton. ➡️ Quand le fondateur RE-signale
+  quelque chose de « corrigé », le premier diagnostic était juste mais INCOMPLET : ne pas
+  rechercher la même cause, chercher l'étage suivant.
 
 ⚠️ **Trois de ces six ont commencé par une fiche FAUSSE, et c'est le motif à retenir.**
 D4 demandait de désaturer un compteur de catalogue : le premier coupable mesuré était un
@@ -113,6 +123,16 @@ partait du sésame du `tahini` : c'était le seul allergène que le filtre attra
 D5 et D7 avaient déjà connu ça. ➡️ **Mesurer ce que l'utilisateur reçoit AVANT d'exécuter
 une fiche, même quand elle a l'air cadrée.** Trois des cinq derniers chantiers auraient
 produit du travail inutile si on avait fait confiance à leur énoncé.
+
+⚠️ **LES CHIFFRES R8 ONT BOUGÉ LE 2026-08-02 SANS QUE LE CATALOGUE CHANGE.** Repas
+complets sous le seuil 71 → 74, collations 1 → 3, et le « vivier servable » de la
+collation a fait le yo-yo (F 55 sèche **54 → 30**, mais F 65 sèche **38 → 58**). Cause :
+A21/A23 ont modifié les plans des seeds ≠ 0, or les cibles de l'audit sont RECONSTRUITES
+depuis des plans générés (`ciblesDe`) — donc changer le moteur déplace la règle avant de
+mesurer la copie. **Vérifié contre le moteur d'avant** : les mouvements vont dans les deux
+sens, ce n'est pas une régression. La collation encaisse le plus parce qu'elle est servie
+en dernier et absorbe la dérive du jour. ➡️ Ne jamais lire une variation de ces lignes
+comme un effet catalogue sans avoir rejoué la mesure sur les DEUX moteurs.
 
 ⚠️ **LE PIÈGE DE MESURE À CONNAÎTRE AVANT DE TOUCHER AU CATALOGUE.** Le « vivier servable »
 (nombre de recettes atteignant la cible d'un profil) **n'est pas stable d'une vague à
@@ -156,14 +176,31 @@ est **FERMÉ** le 2026-08-01, `supportsTablet` est à `true`.)*
 1. **🤖 B7 — l'audit R8 des deux créneaux qui ne l'ont jamais eu. ⏸️ REPORTÉ le
    2026-08-02 (fondateur : « on fera ça plus tard »).** Le diagnostic est fait, il ne sera
    pas à refaire : D15 avait audité les collations, jamais les deux autres créneaux —
-   mesuré, **37 petits-déj sur 110 (34 %) et 71 repas complets sur 270 (26 %) sont sous le
+   mesuré, **37 petits-déj sur 110 (34 %) et 74 repas complets sur 270 (27 %) sont sous le
    seuil de 8/12**, dont 4 à ZÉRO profil dans chaque créneau. Cause première déjà
    identifiée : les recettes **sans `carb`** (13 en petit-déj, moyenne 2,77/12 contre 9,03
    pour celles qui en portent un ; 6 en repas complet à 1,50/12). Remède identique à B5 —
    réécrire, pas ajouter — et le lot est plus gros. Détail et chiffres en **D19**.
-   ⚠️ **Le chiffre bougera** : il a déjà bougé entre la mesure et l'écriture de cette ligne
-   (D18, un correctif du moteur, a fait passer les repas complets de 70 à 71 sous le seuil).
-   **`npm run mesure:seuils` avant de commander**, ne pas partir de ces 37/71.
+   ⚠️ **Le chiffre bougera** : il a déjà bougé DEUX fois pendant qu'on l'écrivait — D18 a
+   fait passer les repas complets de 70 à 71, puis A21/A23 de 71 à **74** (et la collation
+   de 1 à **3**). Aucun des trois n'a touché une recette : ce sont des correctifs du
+   MOTEUR, et les cibles de l'audit sont reconstruites depuis des plans générés.
+   **`npm run mesure:seuils` avant de commander**, ne jamais partir des chiffres écrits ici.
+
+   🎯 **Ce que la session « terrain » du 2026-08-02 ajoute à la commande** — deux limites
+   mesurées qui ne se corrigeront PAS dans le moteur, et qui disent où viser :
+   1. **Petit-déjeuner vegan à forte cible protéique : UNE seule recette du catalogue tient
+      la cible** (profil 90 kg, 198 g de protéines, 2 614 kcal). Conséquence visible : la
+      position est FIGÉE — régénérer son plan ne change jamais ce repas, et c'est le bon
+      comportement (servir autre chose serait servir faux). C'est la seule position figée
+      sur les 336 mesurées, et `lib/__tests__/reroll.test.ts` la documente comme telle.
+   2. **« Variété max » ne peut pas dépasser « Équilibré » là où le vivier est mince** :
+      les deux réglages ouvrent le même panier dès que le catalogue ne fournit pas assez de
+      candidats comparables (mesuré : à panel réduit, 90,7 % de renouvellement pour les
+      deux, au centième près). Le réglage tient sa promesse en proportion de ce qu'il y a
+      à distribuer.
+   ➡️ Les deux pointent le même endroit : **les petits-déjeuners et collations vegan riches
+   en protéines**. C'est le créneau qui rend le plus, et ce n'est pas un problème de code.
 
 ⚠️ **Une décision produit attend le fondateur, et elle est réversible** : D3 a été tranché
 **contre** l'axe allergène formel (motif : promesse de sécurité intenable sur un catalogue
@@ -756,12 +793,16 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
   arbitrer **1,30** — et **une seule dans 77,8 % des sélections**. Résultat vécu : le
   1er repas affiché en arrivant sur l'écran Plan changeait **13,7 %** du temps.
   **Le correctif inverse les rôles** : les nudges CLASSENT, le seed CHOISIT parmi les
-  `VARIANT_TOP` premiers — exactement le motif de `swapMeal` (« Échanger ce repas »),
+  premiers du classement — exactement le motif de `swapMeal` (« Échanger ce repas »),
   qui lui a toujours marché. Deux compensations rendent aux nudges ce que le tirage leur
   prend, en les repliant dans le SCORE plutôt que dans le départage
   (`FIBER_SELECT_W_VARIANT`, `FAMILY_SELECT_W_VARIANT`), plus un plancher de qualité.
   **Bilan mesuré (48 profils × 8 rerolls · 240 semaines simulées) :**
-  | | avant | après |
+  ℹ️ Chiffres **historiques, valables au moment d'A21**, quand le tirage était le même pour
+  les trois réglages de variété. **A23 les a remplacés par un jeu par réglage** — pour
+  l'état courant, voir la fiche A23 ou la photo en tête de fichier. Conservés ici parce
+  qu'ils mesurent ce que CE correctif a produit.
+  | | avant | après A21 |
   |---|---|---|
   | 1er repas affiché qui change | 13,7 % | **78,0 %** |
   | semaine renouvelée | 43,4 % | **90,4 %** |
@@ -1265,15 +1306,16 @@ produit en suspens — il ne reste qu'à coder.
 
   | créneau | recettes | moyenne | sous le seuil 8/12 | à ZÉRO profil |
   |---|---|---|---|---|
-  | petit-déj | 110 | 8,30/12 | **37 (34 %)** | 4 |
-  | repas complet | 270 | 8,64/12 | **71 (26 %)** | 4 |
-  | collation *(déjà traité, seuil 3/12)* | 86 | 7,50/12 | 1 | 0 |
+  | petit-déj | 110 | 8,28/12 | **37 (34 %)** | 4 |
+  | repas complet | 270 | 8,53/12 | **74 (27 %)** | 4 |
+  | collation *(déjà traité, seuil 3/12)* | 86 | 7,41/12 | 3 | 0 |
 
-  ⚠️ **Ces chiffres ont déjà bougé une fois pendant qu'on les écrivait** — sixième
-  occurrence du piège de mesure. Mesurés avant D18 : repas complets **70** sous le seuil,
-  collation à **7,62/12** de moyenne. D18 est un correctif du MOTEUR qui n'a touché aucune
-  recette, et il a déplacé les deux. ➡️ `npm run mesure:seuils` avant de commander quoi
-  que ce soit.
+  ⚠️ **Ces chiffres ont bougé DEUX fois pendant qu'on les écrivait** — sixième puis
+  septième occurrence du piège de mesure. Avant D18 : repas complets **70**, collation à
+  **7,62/12**. Après D18 : **71** et **7,50**. Après A21/A23 : **74** et **7,41**, la
+  collation passant de 1 à 3 sous le seuil. Les trois sont des correctifs du MOTEUR qui
+  n'ont touché AUCUNE recette. ➡️ `npm run mesure:seuils` avant de commander quoi que ce
+  soit, et ne pas lire une variation de ces lignes comme un effet catalogue.
 
   🔎 **La cause première est la même qu'en D15, et elle est chiffrée** : une recette **sans
   `carb`** ne peut pas s'étirer. Petit-déj — 13 recettes sans féculent, moyenne **2,77/12**,
