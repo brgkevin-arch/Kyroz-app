@@ -1269,9 +1269,26 @@ produit en suspens — il ne reste qu'à coder.
   🧑 **CE QUI RESTE, ET QUI DEMANDE TES COMPTES — dans cet ordre :**
   1. ✅ **App Store Connect — FAIT le 2026-07-30** (commit `3a78fdc`) : Bundle ID,
      fiche, Paid Applications Agreement actif, groupe Kyroz+ et les deux abonnements
-     créés et tarifés. Reste la capture de review, impossible avant que le paywall
-     existe — les produits restent en « Métadonnées manquantes », ce qui n'empêche ni
-     RevenueCat ni le bac à sable.
+     créés et tarifés. Les deux produits sont en **« Métadonnées manquantes »**.
+     ⚠️ **Cette fiche affirmait que cet état « n'empêche ni RevenueCat ni le bac à
+     sable ». La moitié seulement est établie** (corrigé le 2026-08-02) :
+     • **RevenueCat : CONFIRMÉ**, et pas déduit — une fois la clé App Store Connect API
+       posée, le dashboard résout les deux identifiants et affiche l'état renvoyé par
+       Apple (`MISSING_METADATA`). **C'est la preuve, par Apple lui-même, que
+       `kyroz_plus_monthly` et `kyroz_plus_yearly` existent bien chez lui** — la seule
+       vérification des identifiants qui ne demandait pas un build.
+     • **Bac à sable : JAMAIS VÉRIFIÉ.** Apple ne sert normalement un produit à StoreKit
+       qu'à partir de « Prêt à soumettre ». Si c'est le cas, `getProducts()` rendrait une
+       liste vide, l'achat afficherait « indisponible », et on imputerait au code un
+       problème de fiche produit.
+     ➡️ **Compléter les métadonnées AVANT le test sandbox** — nom d'affichage et
+     description localisés FR sur chaque abonnement, ce qui se fait dès maintenant. Seule
+     la **capture de review** dépend réellement du paywall, donc du build.
+     🧰 **Laissé au passage : la clé App Store Connect API est posée dans RevenueCat**
+     (rôle App Manager + Issuer ID + Vendor number). Elle ne sert pas à l'app, elle sert
+     à ce que le dashboard puisse INTERROGER Apple au lieu d'afficher « Could not check ».
+     Sur quatre identifiants faux dans ce chantier, c'est le seul instrument qui tranche
+     sans build.
   2. ✅ **RevenueCat — CONFIGURÉ le 2026-08-02 par le fondateur, et VÉRIFIÉ.** Projet
      « Kyroz », app App Store rattachée (`app.kyroz.mobile`), entitlement **`premium`**
      contenant **`kyroz_plus_monthly`** et **`kyroz_plus_yearly`**, tous deux sous l'app
