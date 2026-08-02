@@ -150,8 +150,16 @@ export const PREMIUM_PRICES: PremiumPlan[] = [
     billed: 'Débité chaque mois. Sans engagement, tu arrêtes quand tu veux.',
   },
   {
+    // ⚠️ `kyroz_plus_yearly`, PAS `_annual`. Corrigé le 2026-08-02, et ce n'était pas
+    // un détail : l'identifiant doit être celui réellement créé dans App Store Connect
+    // le 2026-07-30 (`STORE-RELEASE.md` §4 et `MONETISATION.md` §A, tous deux écrits au
+    // moment de la création). `_annual` a été inventé par le code du paywall le
+    // 2026-08-01, APRÈS. Un test verrouillait d'ailleurs la mauvaise valeur.
+    // Conséquence si on l'avait laissée : `getProducts()` ne trouve rien, l'achat rend
+    // « indisponible » et le prix reste au tarif de repli — un échec SILENCIEUX. C'est
+    // exactement le piège que `STORE-RELEASE.md` appelle « la source d'erreur n°1 ».
     id: 'annual',
-    storeProductId: 'kyroz_plus_annual',
+    storeProductId: 'kyroz_plus_yearly',
     label: 'Annuel',
     price: '39,99 €',
     billed: 'Débité une fois par an, soit 3,33 € par mois.',

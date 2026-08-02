@@ -19,7 +19,7 @@
 // d'afficher un bouton qui échouerait. Ce fichier est la traduction de cette
 // décision : sur web, il n'y a pas de paiement — pas même du code de paiement.
 
-export const ENTITLEMENT_ID = 'kyroz_plus';
+export const ENTITLEMENT_ID = 'premium';
 
 export type StorePrices = Partial<Record<'monthly' | 'annual', string>>;
 

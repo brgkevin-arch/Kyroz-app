@@ -34,11 +34,19 @@
 import { Platform } from 'react-native';
 
 /**
- * Identifiant de l'entitlement côté RevenueCat — à créer à l'identique dans le
- * dashboard. C'est LUI qui décide, pas l'identifiant produit : un même droit peut
- * être servi par plusieurs abonnements (mensuel, annuel, promo, offre d'essai).
+ * Identifiant de l'entitlement côté RevenueCat. C'est LUI qui décide, pas
+ * l'identifiant produit : un même droit peut être servi par plusieurs abonnements
+ * (mensuel, annuel, promo, offre d'essai).
+ *
+ * ⚠️ **`premium`, parce que c'est ce que les deux docs de procédure prescrivent**
+ * (`STORE-RELEASE.md` §6, `MONETISATION.md` §A et §C) — donc ce qui sera créé dans
+ * le dashboard. Le code avait d'abord posé `kyroz_plus`, inventé ici : c'est la même
+ * faute que `kyroz_plus_annual` vs `kyroz_plus_yearly`, et elle échoue de la même
+ * façon — en SILENCE, l'entitlement n'étant simplement jamais trouvé.
+ * ➡️ Si le dashboard dit autre chose, c'est le dashboard qui a raison : une seule
+ * ligne à changer ici, et le test qui la verrouille.
  */
-export const ENTITLEMENT_ID = 'kyroz_plus';
+export const ENTITLEMENT_ID = 'premium';
 
 const IOS_KEY = process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY ?? '';
 const ANDROID_KEY = process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_KEY ?? '';

@@ -36,10 +36,12 @@ describe('RevenueCat — dormance', () => {
     expect(purchasesConfigured()).toBe(false);
   });
 
-  it("l'entitlement porte le nom attendu côté dashboard", () => {
-    // Il doit être créé à l'identique dans RevenueCat : c'est LUI qui accorde le
-    // droit, pas l'identifiant produit (plusieurs produits, un seul droit).
-    expect(ENTITLEMENT_ID).toBe('kyroz_plus');
+  it("l'entitlement porte le nom PRESCRIT PAR LA PROCÉDURE, pas un nom inventé", () => {
+    // `STORE-RELEASE.md` §6 et `MONETISATION.md` §A/§C disent tous les deux `premium` :
+    // c'est ce qui sera créé dans le dashboard, donc c'est ce que le code doit lire.
+    // Le code avait posé `kyroz_plus`, inventé de son côté — même faute que
+    // `kyroz_plus_annual` vs `kyroz_plus_yearly`, et même échec SILENCIEUX à la clé.
+    expect(ENTITLEMENT_ID).toBe('premium');
   });
 });
 
