@@ -149,14 +149,46 @@ const FAMILY_FIBER_TOL = 7;
 // élargit le pool de choix (borné) et on décale la sélection avec un `seed`. Le
 // report de budget kcal/protéines garde le total du jour en cible malgré la
 // variation par repas. seed = 0 → plan canonique (déterministe, macro-serré).
-const VARIANT_BAND = 0.15;
 const VARIANT_MIN = 4;
-const VARIANT_POOL = 8;
 
-// Combien de recettes le seed a-t-il le droit de départager, une fois le pool
-// CLASSÉ par qualité (préférence > besoin > famille > fibres > fit) ?
+// ⚠️ LE RÉGLAGE DE VARIÉTÉ PILOTE LE REROLL — depuis le 2026-08-02 seulement.
 //
-// ⚠️ C'EST LA CONSTANTE QUI FAIT MARCHER « Régénérer mon plan ». Avant le
+// Avant, ces trois nombres étaient des CONSTANTES : le tirage de « Régénérer mon
+// plan » construisait son panier sur sa propre bande et ignorait complètement
+// `variety`. Mesuré : `balanced` et `max` rendaient un reroll IDENTIQUE AU BIT PRÈS
+// (le plan canonique, lui, différait bien). Les trois cartes de l'écran promettaient
+// donc trois comportements dont un seul existait — « Le plus de diversité » ne
+// donnait pas plus de diversité que « Routine et variété » dès qu'on régénérait.
+//
+// `max` garde EXACTEMENT les valeurs calibrées pour A21 (bande 0.15 · pool 8 · top 7) :
+// c'est sur des profils `max` que tournent `mesure-variete` et `mesure-couverture`,
+// donc tous les chiffres de contrôle publiés décrivent cette ligne. Ne pas y toucher
+// sans rejouer les deux scripts. Les deux autres se resserrent SOUS elle — personne
+// ne perd ce qui vient d'être livré, et le réglage se met à dire la vérité.
+//
+//   · `pool`  : combien de candidats macro-comparables entrent dans le panier
+//   · `top`   : parmi eux, combien le seed a le droit de départager
+//   · `choix` : en dessous de combien un nudge se tait (cf. `affine`)
+//
+// `repetitive` reste volontairement au-dessus de 1 : « souvent les mêmes plats »
+// décrit la SEMAINE (déjà obtenu par `step = 0` et `famActive = false`), pas le
+// bouton. Quelqu'un qui demande explicitement un nouveau plan doit en recevoir un.
+interface ReglageReroll { band: number; pool: number; top: number; choix: number }
+const REROLL_PAR_VARIETE: Record<VarietyPreference, ReglageReroll> = {
+  repetitive: { band: 0.10, pool: 4,  top: 3,  choix: 2 },
+  balanced:   { band: 0.15, pool: 8,  top: 7,  choix: 4 },
+  max:        { band: 0.15, pool: 10, top: 9,  choix: 5 },
+};
+// Repli sur `balanced` : une préférence hors barème est normalisée au chargement
+// (`syncGuard::normalizeVariety`), mais le moteur ne doit pas en dépendre — il est
+// appelé aussi par des scripts de mesure et des tests qui construisent leurs profils.
+const reglageReroll = (v: VarietyPreference): ReglageReroll =>
+  REROLL_PAR_VARIETE[v] ?? REROLL_PAR_VARIETE.balanced;
+
+// ── CE QUI FAIT MARCHER « Régénérer mon plan » ──────────────────────────────
+//
+// Le seed départage le haut d'un pool CLASSÉ par qualité (préférence > besoin >
+// famille > fibres > fit). Avant le
 // 2026-08-02, le seed n'était qu'une clé de départage placée SOUS les nudges
 // (besoin, famille, fibres). Ces clés sont ABSOLUES : à pool identique elles
 // désignent toujours le même gagnant. Mesuré : le pool de variantes contenait
@@ -167,38 +199,41 @@ const VARIANT_POOL = 8;
 // temps. Le bouton n'était pas cassé — il était inaudible.
 //
 // Le correctif inverse les rôles : les nudges CLASSENT, le seed CHOISIT parmi
-// les `VARIANT_TOP` premiers. C'est exactement le motif de `swapMeal`
+// les `top` premiers. C'est exactement le motif de `swapMeal`
 // (« Échanger ce repas ») — qui, lui, a toujours fonctionné. La qualité reste
 // garantie : la recette servie est toujours dans le haut du classement.
 //
-// Calibré au balayage (`npx tsx scripts/mesure-reroll.ts` + `scripts/mesure-variete.ts`),
-// 48 profils × 8 rerolls et 240 semaines simulées. Bilan avant → après :
+// Calibré au balayage (`npm run mesure:reroll` + `npm run mesure:variete --variete=…`),
+// 48 profils × 8 rerolls et 240 semaines simulées par réglage. La colonne « avant » est
+// l'état d'avant A21, commun aux trois — le tirage ignorait alors `variety` :
 //
-//   1er repas affiché qui change d'un reroll au suivant   13,7 %  →  78,0 %
-//   semaine renouvelée                                    43,4 %  →  90,4 %
-//   positions FIGÉES (même recette sur 8 rerolls)          31,5 %  →   0,0 %
-//   recettes distinctes servies sur 4 semaines (médiane)      41   →     61
-//   quasi-doublons de famille (semaines concernées)        27,9 %  →  24,6 %
-//   repas servis à drapeau bloquant (sur 6 720)               14   →      5
-//   fibres en sèche, g/1 000 kcal                          20,59   →  21,24
-//   écart calorique moyen du jour                          0,36 %  →  0,38 %
-//   créneaux monopolisés (1 recette sur 7 jours)            0,0 %  →   0,0 %
+//                                          avant │ repetitive  balanced     max
+//   1er repas affiché qui change          13,7 % │   51,2 %     78,0 %    82,7 %
+//   semaine renouvelée                    43,4 % │   74,0 %     90,3 %    92,4 %
+//   positions figées sur 8 rerolls        31,5 % │    0,4 %      0,0 %     0,0 %
+//   recettes distinctes / 4 sem (médiane)     41 │      30         62        64
+//   quasi-doublons de famille             27,9 % │   22,5 %     27,5 %    26,3 %
+//   repas à drapeau bloquant / 6 720          14 │       5          5         6
+//   fibres en sèche, g/1 000 kcal          20,59 │   20,28      21,22     20,63
+//   écart calorique moyen du jour          0,36 % │   0,25 %     0,37 %    0,40 %
+//
+// Aucun des trois réglages n'est en dessous de l'état d'avant sur un seul contrôle, et
+// le renouvellement suit enfin l'ordre que les cartes de l'écran promettent. Le prix de
+// `max` est lisible et assumé : un peu de densité en fibres et de rotation par famille
+// échangées contre de la diversité — c'est exactement ce que le réglage veut dire.
+// `repetitive` sert moins de recettes distinctes (30 contre 62) : c'est le but.
 //
 // Tous les contrôles de qualité vont donc dans le BON sens, sauf l'écart calorique qui
 // perd 0,02 point (bruit : il reste sous 0,4 %). Ce n'est PAS gratuit : sans les deux
 // compensations (`FIBER_SELECT_W_VARIANT`, `FAMILY_SELECT_W_VARIANT`) et le plancher de
 // drapeaux, ouvrir le tirage les dégradait TOUS — mesuré à la première tentative :
-// quasi-doublons 41,7 %, fibres 18,72, drapeaux 22. Ne pas toucher à VARIANT_TOP /
-// CHOIX_MIN sans rejouer les deux scripts.
+// quasi-doublons 41,7 %, fibres 18,72, drapeaux 22. Ne pas toucher à
+// `REROLL_PAR_VARIETE.max` sans rejouer les deux scripts.
 //
 // ⚠️ Le plan CANONIQUE (seed 0) est inchangé — vérifié sur 144 combinaisons profil ×
 // régime × variété, plans identiques au champ près. C'est pourquoi ENGINE_VERSION n'a
 // PAS été bumpé : aucun plan en cache n'est périmé, et bumper aurait ramené de force au
 // plan canonique les gens qui avaient justement demandé un reroll.
-const VARIANT_TOP = 7;
-// Nombre de candidats en dessous duquel un nudge se tait (cf. `affine`). À 7 (= nudges
-// jamais appliqués) les quasi-doublons remontent à 38,8 % : ce garde-fou gagne sa place.
-const CHOIX_MIN = 4;
 
 // Rang pseudo-aléatoire stable d'une recette pour un seed donné (FNV-like).
 function seededRank(seed: number, id: string): number {
@@ -573,11 +608,14 @@ function selectMealAdapted(
   const minEff = effOf(candidates[0]);
   const band = (variety === 'max' ? TIE_BAND_MAX : TIE_BAND_BALANCED) + (fiberStrong ? FIBER_BAND_BONUS : 0);
 
+  // Le reroll ouvre le panier — et son ampleur SUIT LE RÉGLAGE DE VARIÉTÉ depuis le
+  // 2026-08-02 (cf. REROLL_PAR_VARIETE). Avant, elle était la même pour les trois.
+  const rr = reglageReroll(variety);
   let pickable = candidates.filter((c) => effOf(c) <= minEff + band);
   if (seed !== 0) {
-    let wide = candidates.filter((c) => effOf(c) <= minEff + VARIANT_BAND);
+    let wide = candidates.filter((c) => effOf(c) <= minEff + rr.band);
     if (wide.length < VARIANT_MIN) wide = candidates.slice(0, VARIANT_MIN);
-    pickable = wide.slice(0, VARIANT_POOL);
+    pickable = wide.slice(0, rr.pool);
   }
 
   const fiberCmp = (a: AdaptedChoice, b: AdaptedChoice) => (b.fiber - a.fiber > 1 ? 1 : a.fiber - b.fiber > 1 ? -1 : 0);
@@ -607,7 +645,7 @@ function selectMealAdapted(
     // 2) Sinon le meilleur score EFFECTIF (moins utilisé d'abord), puis déterminisme.
     // ⚠️ Le seed N'EST PLUS une clé de départage ici : il ne se déclenchait qu'en cas
     // d'ex æquo parfait sur tout ce qui précède, ce qui n'arrivait presque jamais
-    // (cf. VARIANT_TOP). Il agit maintenant APRÈS le tri, sur le haut du classement.
+    // (cf. REROLL_PAR_VARIETE). Il agit APRÈS le tri, sur le haut du classement.
     return effOf(a) - effOf(b) || a.recipe.id.localeCompare(b.recipe.id);
   });
 
@@ -615,7 +653,7 @@ function selectMealAdapted(
   // panier. Même motif que `swapMeal` (« Échanger ce repas ») : la recette servie est
   // toujours dans les meilleures, mais ce n'est plus fatalement la même.
   if (seed !== 0 && pickable.length > 1) {
-    let choix = pickable.slice(0, Math.min(VARIANT_TOP, pickable.length));
+    let choix = pickable.slice(0, Math.min(rr.top, pickable.length));
 
     // PLANCHER DE QUALITÉ, avant tout le reste : un repas qui rate sa cible macro
     // (kcal hors ±12 %, protéines sous 95 %) ne se sert pas s'il existe une alternative
@@ -637,8 +675,13 @@ function selectMealAdapted(
     // qui sert la même recette 7 jours sur 7, mais une AUTRE à chaque reroll, les passe
     // toutes. C'est le contrôle « créneaux MONOPOLISÉS » de `scripts/mesure-reroll.ts`
     // qui l'a levé, et il a été ajouté APRÈS coup. Ne pas le retirer.
+    // ⚠️ …SAUF en `repetitive`. Ce réglage DEMANDE « souvent les mêmes plats » : y casser
+    // un monopole, c'est défaire ce que l'utilisateur a choisi — et le payer en repas
+    // hors cible. Mesuré : l'exception coûtait 22 repas à drapeau sur 6 720 en
+    // `repetitive` contre 5 ailleurs. Sans elle sur ce réglage : 5 aussi.
+    const antiMonopole = variety !== 'repetitive';
     const propres = choix.filter((c) => !c.flags.some((f) => FLAG_AUDIENCE[f] === 'user'));
-    const monopole = propres.length === 1 && (usage[propres[0].recipe.id] ?? 0) > 0;
+    const monopole = antiMonopole && propres.length === 1 && (usage[propres[0].recipe.id] ?? 0) > 0;
     if (propres.length > 0 && !monopole) choix = propres;
 
     // Les protéines PRÉFÉRÉES gardent la priorité ABSOLUE : c'est un signal explicite
@@ -646,13 +689,13 @@ function selectMealAdapted(
     if (choix.some((c) => c.preferred)) choix = choix.filter((c) => c.preferred);
 
     // Les nudges gardent la main — À CONDITION DE LAISSER LE CHOIX. Un nudge peut
-    // réduire le haut du panier tant qu'il y reste `CHOIX_MIN` candidats ; au-delà il
+    // réduire le haut du panier tant qu'il y reste `rr.choix` candidats ; au-delà il
     // se tait. C'est ce garde-fou qui manquait : appliqués sans borne, les trois
     // nudges ramenaient le panier à UNE recette dans 77,8 % des cas, et le reroll
     // n'avait plus rien à tirer. Même esprit que `FAMILY_FIBER_TOL` : un nudge borné.
     const affine = (garde: (c: AdaptedChoice) => boolean) => {
       const f = choix.filter(garde);
-      if (f.length >= CHOIX_MIN) choix = f;
+      if (f.length >= rr.choix) choix = f;
     };
     // Même ordre que le comparateur ci-dessus, pour qu'il n'y ait qu'une hiérarchie à
     // retenir. L'ordre a été mesuré : le mettre à l'envers (fibres d'abord) ne déplace

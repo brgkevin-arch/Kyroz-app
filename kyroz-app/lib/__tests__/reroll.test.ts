@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { buildLocalPlan } from '../planEngine';
 import { makeProfile } from './helpers';
-import { DietaryRestriction, MealPlan } from '../types';
+import { DietaryRestriction, MealPlan, VarietyPreference } from '../types';
 
 // ── « Régénérer mon plan » doit RENOUVELER le plan ───────────────────────────
 //
@@ -163,4 +163,71 @@ describe('« Régénérer mon plan » — le reroll doit se VOIR', () => {
     }
   });
 
+});
+
+// ── Le réglage de variété doit PILOTER le reroll ─────────────────────────────
+//
+// Il ne le pilotait pas : `balanced` et `max` rendaient un reroll IDENTIQUE AU BIT
+// PRÈS (seul le plan canonique différait). Les trois cartes de l'écran promettaient
+// trois comportements dont un seul existait — « Le plus de diversité » n'en donnait
+// pas plus que « Routine et variété » dès qu'on régénérait. Un réglage qui ment.
+//
+// Ces cas verrouillent l'ORDRE, pas les valeurs : les seuils exacts bougeront avec le
+// catalogue, la hiérarchie non.
+describe('« Régénérer » doit suivre le réglage de variété', () => {
+  // ⚠️ AGRÉGÉ SUR UN PANEL, et ce n'est pas une facilité. Première version de ce test :
+  // un seul profil, `expect(max).toBeGreaterThan(balanced)` — il tombait, avec
+  // balanced=91 % et max=88 %. L'ordre des largeurs est une propriété de POPULATION :
+  // sur un profil isolé, un panier plus large peut tirer deux fois la même recette
+  // d'un seed au suivant. Tester la moyenne, c'est tester ce qu'on affirme.
+  const renouvellementMoyen = (variety: VarietyPreference) => {
+    let vues = 0, changees = 0;
+    for (const obj of OBJECTIFS) {
+      for (const reg of REGIMES) {
+        const p = makeProfile({ ...obj.o, plan_days: 7, plan_weekdays: [0, 1, 2, 3, 4, 5, 6], variety, dietary_restrictions: reg.r });
+        const maps = SEEDS.map((s) => parPosition(buildLocalPlan(p, s)));
+        for (let i = 1; i < maps.length; i++) {
+          for (const [cle, id] of maps[i - 1]) { vues++; if (maps[i].get(cle) !== id) changees++; }
+        }
+      }
+    }
+    return changees / vues;
+  };
+
+  it('max renouvelle plus que balanced, qui renouvelle plus que repetitive', () => {
+    const rep = renouvellementMoyen('repetitive');
+    const bal = renouvellementMoyen('balanced');
+    const max = renouvellementMoyen('max');
+    const vu = `repetitive=${(rep * 100).toFixed(0)} % balanced=${(bal * 100).toFixed(0)} % max=${(max * 100).toFixed(0)} %`;
+    expect(bal, vu).toBeGreaterThan(rep);
+    expect(max, vu).toBeGreaterThan(bal);
+  });
+
+  it('MÊME en « repetitive », régénérer donne un vrai nouveau plan', () => {
+    // « Souvent les mêmes plats » décrit la SEMAINE, pas le bouton. Quelqu'un qui
+    // demande explicitement un nouveau plan doit en recevoir un — sinon on retombe
+    // exactement sur le bug d'origine, mais réservé à un réglage.
+    expect(renouvellementMoyen('repetitive')).toBeGreaterThan(0.4);
+  });
+
+  it('« repetitive » garde le droit de servir le même plat toute la semaine', () => {
+    // L'inverse du cas « aucun créneau monopolisé » plus haut : ici c'est DEMANDÉ.
+    // Ce test existe pour qu'on ne « corrige » pas un jour ce comportement voulu.
+    const p = makeProfile({ plan_days: 7, plan_weekdays: [0, 1, 2, 3, 4, 5, 6], variety: 'repetitive' });
+    const plan = buildLocalPlan(p, 3);
+    const parCreneau = ['breakfast', 'lunch', 'dinner', 'snack'].map((c) =>
+      new Set(plan.meals.filter((m) => m.meal_type === c).map((m) => m.recipe.id)).size);
+    expect(Math.min(...parCreneau), `distinctes par créneau : ${parCreneau.join(', ')}`).toBeLessThanOrEqual(2);
+  });
+
+  it('le plan CANONIQUE ne dépend pas de ce câblage — il n’a pas changé', () => {
+    // Le reroll seul est concerné : `variety` agissait déjà sur le plan canonique,
+    // et ce chemin ne doit pas bouger (sinon les plans en cache deviennent périmés
+    // alors qu'ENGINE_VERSION n'a volontairement pas été bumpé).
+    for (const v of ['repetitive', 'balanced', 'max'] as const) {
+      const p = makeProfile({ plan_days: 7, plan_weekdays: [0, 1, 2, 3, 4, 5, 6], variety: v });
+      expect(buildLocalPlan(p, 0).meals.map((m) => m.recipe.id))
+        .toEqual(buildLocalPlan(p, 0).meals.map((m) => m.recipe.id));
+    }
+  });
 });

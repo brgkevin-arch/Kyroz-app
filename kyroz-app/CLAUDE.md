@@ -325,6 +325,14 @@ devant, en **clé de départage** : 27,9 %.
 
 ➡️ Le contrôle est `npm run mesure:variete`, le garde-fou
 `lib/__tests__/varieteFamille.test.ts`, le raisonnement complet `AGENTS.md` D18.
+
+⚠️ **Le réglage `variety` pilote AUSSI l'ampleur du reroll depuis le 2026-08-02**
+(`REROLL_PAR_VARIETE`). Il ne le pilotait pas : « Variété max » et « Équilibré »
+rendaient un « Régénérer mon plan » identique au bit près, donc deux des trois cartes
+de l'écran mentaient. Un réglage doit agir sur TOUS les chemins qui produisent un plan,
+pas seulement sur le canonique. Contrôle par réglage : `npm run mesure:reroll` et
+`npm run mesure:variete -- --variete=repetitive|balanced|max` (cf. AGENTS.md A21/A23).
+
 ⚠️ **La règle anti-doublons R4 du catalogue ne mesure PAS ce défaut** : elle ne s'alarme
 qu'au-delà de 2 recettes par couple, or le pire contrevenant était un groupe de DEUX.
 

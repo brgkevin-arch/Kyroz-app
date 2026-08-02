@@ -16,15 +16,21 @@
  * Usage :
  *   npx tsx scripts/mesure-variete.ts           quasi-doublons + métriques de contrôle
  *   npx tsx scripts/mesure-variete.ts --detail  + le détail par profil × régime
+ *   npx tsx scripts/mesure-variete.ts --variete=balanced
+ *
+ * ⚠️ Le réglage de variété PILOTE l'ampleur du reroll depuis le 2026-08-02
+ * (`REROLL_PAR_VARIETE`). Le défaut reste `max` : c'est sur lui que sont calibrés les
+ * chiffres de référence. Pour auditer un autre réglage, passer `--variete=`.
  */
 import { buildLocalPlan } from '../lib/planEngine';
 import { recalcProfile } from '../lib/tdee';
 import { getEffectiveRecipes } from '../lib/recipes';
 import { recipeFiberPerPortion } from '../lib/fiber';
 import { PROFILS_REF, type Gabarit } from './mesure-couverture';
-import type { DietaryRestriction, Recipe, UserProfile } from '../lib/types';
+import type { DietaryRestriction, Recipe, UserProfile, VarietyPreference } from '../lib/types';
 
 const SEEDS = [0, 1, 2, 3];
+const VARIETE = ((process.argv.find((a) => a.startsWith('--variete=')) ?? '').split('=')[1] || 'max') as VarietyPreference;
 const REGIMES: { nom: string; r: DietaryRestriction[] }[] = [
   { nom: 'aucun', r: [] },
   { nom: 'végétarien', r: ['vegetarian'] },
@@ -53,7 +59,7 @@ function profil(g: Gabarit, restrictions: DietaryRestriction[] = []): UserProfil
     neat_level: 'desk', goal: g.goal, macro_mode: 'auto',
     tdee_kcal: 0, target_kcal: 0, target_protein_g: 0, target_carbs_g: 0, target_fat_g: 0,
     plan_days: 7, plan_weekdays: [0, 1, 2, 3, 4, 5, 6],
-    meals: ['breakfast', 'lunch', 'dinner', 'snack'], meal_emphasis: 'even', variety: 'max',
+    meals: ['breakfast', 'lunch', 'dinner', 'snack'], meal_emphasis: 'even', variety: VARIETE,
     dietary_restrictions: restrictions, disliked_foods: [], preferred_proteins: [],
   } as UserProfile);
 }
@@ -121,7 +127,7 @@ function fibresMoyennes(goal: 'cut' | 'maintain'): number {
 }
 
 const distinctes = Object.values(distinctesParCle);
-console.log(`\n── VARIÉTÉ PERÇUE — ${semaines} semaines simulées (${PROFILS_REF.length} profils × ${REGIMES.length} régimes × ${SEEDS.length} tirages)`);
+console.log(`\n── VARIÉTÉ PERÇUE [réglage : ${VARIETE}] — ${semaines} semaines simulées (${PROFILS_REF.length} profils × ${REGIMES.length} régimes × ${SEEDS.length} tirages)`);
 console.log(`quasi-doublons : ${semainesAvecClone}/${semaines} semaines en contiennent au moins un — ${(semainesAvecClone / semaines * 100).toFixed(1)} %`);
 console.log(`                 ${paires} quasi-doublons servis au total, sur ${repas} repas (${(paires / repas * 100).toFixed(1)} %)`);
 console.log(`recettes distinctes sur 4 semaines : min ${Math.min(...distinctes)} · médiane ${distinctes.sort((a, b) => a - b)[Math.floor(distinctes.length / 2)]} · max ${Math.max(...distinctes)}`);

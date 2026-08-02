@@ -6,9 +6,14 @@
  */
 import { buildLocalPlan } from '../lib/planEngine';
 import { recalcProfile } from '../lib/tdee';
-import type { UserProfile, MealPlan, DietaryRestriction, Sex, Goal } from '../lib/types';
+import type { UserProfile, MealPlan, DietaryRestriction, Sex, Goal, VarietyPreference } from '../lib/types';
 
 const SEEDS = [1, 2, 3, 4, 5, 6, 7, 8];
+// Les TROIS réglages : depuis le 2026-08-02 ils pilotent l'ampleur du reroll, donc la
+// mesure doit les distinguer — agrégés, ils se masqueraient l'un l'autre.
+const VARIETES: VarietyPreference[] = ['repetitive', 'balanced', 'max'];
+const parVariete: Record<string, { pos: number; chg: number; prem: number; premChg: number; fig: number; nPos: number }> = {};
+for (const v of VARIETES) parVariete[v] = { pos: 0, chg: 0, prem: 0, premChg: 0, fig: 0, nPos: 0 };
 
 type Gabarit = { nom: string; sex: Sex; weight_kg: number; height_cm: number; age: number; goal: Goal };
 const PROFILS: Gabarit[] = [
@@ -26,7 +31,7 @@ const REGIMES: { nom: string; r: DietaryRestriction[] }[] = [
   { nom: 'sans gluten', r: ['gluten_free'] },
 ];
 
-function profil(g: Gabarit, restrictions: DietaryRestriction[], variety: 'balanced' | 'max'): UserProfile {
+function profil(g: Gabarit, restrictions: DietaryRestriction[], variety: VarietyPreference): UserProfile {
   return recalcProfile({
     id: 'mesure', sex: g.sex, age: g.age, weight_kg: g.weight_kg, height_cm: g.height_cm,
     activity_level: 'moderate', training_days_per_week: 4,
@@ -61,7 +66,7 @@ const lignes: string[] = [];
 // recettes DISTINCTES par créneau À L'INTÉRIEUR d'une même semaine.
 const distinctsDansLaSemaine: { cle: string; n: number; creneau: string }[] = [];
 
-for (const variety of ['balanced', 'max'] as const) {
+for (const variety of VARIETES) {
   for (const g of PROFILS) {
     for (const reg of REGIMES) {
       const p = profil(g, reg.r, variety);
@@ -81,6 +86,8 @@ for (const variety of ['balanced', 'max'] as const) {
         const premB = plans[i].meals.find((m) => m.day === 1)!.recipe.id;
         prem++; if (premA !== premB) premChg++;
       }
+      const acc = parVariete[variety];
+      acc.pos += pos; acc.chg += chg; acc.prem += prem; acc.premChg += premChg;
       totalPos += pos; totalChg += chg;
       vuJ1 += j1; chgJ1 += j1chg;
       vuPremier += prem; chgPremier += premChg;
@@ -89,6 +96,8 @@ for (const variety of ['balanced', 'max'] as const) {
       const positions = [...maps[0].keys()];
       const d = positions.map((k) => new Set(maps.map((m) => m.get(k))).size);
       distinctsParPos.push(...d);
+      parVariete[variety].nPos += d.length;
+      parVariete[variety].fig += d.filter((x) => x === 1).length;
 
       // Et DANS une même semaine : le créneau tourne-t-il, ou sert-il 7 fois la même ?
       for (const plan of plans) {
@@ -116,7 +125,13 @@ for (const variety of ['balanced', 'max'] as const) {
 
 const pct = (a: number, b: number) => `${((a / b) * 100).toFixed(1)} %`;
 console.log(lignes.join('\n'));
-console.log('\n══════════════════════════════════════════════════════════');
+console.log('\n════ PAR RÉGLAGE DE VARIÉTÉ ══════════════════════════════');
+console.log(`${'réglage'.padEnd(12)} ${'1er repas'.padStart(10)} ${'semaine'.padStart(9)} ${'figées'.padStart(8)}`);
+for (const v of VARIETES) {
+  const a = parVariete[v];
+  console.log(`${v.padEnd(12)} ${((a.premChg / a.prem) * 100).toFixed(1).padStart(8)} % ${((a.chg / a.pos) * 100).toFixed(1).padStart(7)} % ${((a.fig / a.nPos) * 100).toFixed(1).padStart(6)} %`);
+}
+console.log('\n══════════════════ TOUTES VARIÉTÉS CONFONDUES ════════════');
 console.log(`Positions renouvelées d'un reroll au suivant : ${pct(totalChg, totalPos)}  (${totalChg}/${totalPos})`);
 console.log(`  · dont le JOUR 1                           : ${pct(chgJ1, vuJ1)}`);
 console.log(`  · le 1ER REPAS affiché à l'arrivée         : ${pct(chgPremier, vuPremier)}`);
