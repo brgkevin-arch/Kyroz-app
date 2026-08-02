@@ -343,7 +343,11 @@ function distributionSeuils(): void {
   const pool = getEffectiveRecipes();
   console.log('DISTRIBUTION R8 DU CATALOGUE LIVE — profils servis par recette, créneau par créneau.');
   console.log('⚠️ Une recette est jugée sur le PIRE de ses créneaux (un repas complet est servi midi ET soir).\n');
-  console.log('créneau       | recettes | moyenne | sous le seuil | à ZÉRO | sans `carb` : nb · moyenne · sous le seuil');
+  // La colonne « AVEC `carb` » a été ajoutée le 2026-08-02 : D19 citait ce contraste
+  // (2,69 contre 9,02 en petit-déj) comme sa cause première, mais AUCUNE commande ne
+  // l'imprimait — il n'était donc pas revérifiable, et l'écart est justement tout
+  // l'argument du chantier. Un chiffre qui porte une décision doit être re-mesurable.
+  console.log('créneau       | recettes | moyenne | sous le seuil | à ZÉRO | sans `carb` : nb · moyenne · sous le seuil | avec `carb` : nb · moyenne');
   for (const [cat, slots] of Object.entries(CATEGORIE_VERS_SLOTS) as [string, MealType[]][]) {
     const seuil = SEUIL_R8[cat];
     const recettes = pool.filter((r) => r.tags.includes(slots[0]));
@@ -354,11 +358,13 @@ function distributionSeuils(): void {
     }));
     const moy = (xs: typeof scores) => (xs.length ? xs.reduce((s, x) => s + x.n, 0) / xs.length : 0);
     const sans = scores.filter((x) => !x.carb);
+    const avec = scores.filter((x) => x.carb);
     console.log(
       `${cat.padEnd(13)} | ${String(recettes.length).padStart(8)} | ${moy(scores).toFixed(2).padStart(7)} `
       + `| ${String(scores.filter((x) => x.n < seuil).length).padStart(6)} (≥${seuil}) `
       + `| ${String(scores.filter((x) => x.n === 0).length).padStart(6)} `
-      + `| ${String(sans.length).padStart(2)} · ${moy(sans).toFixed(2)} · ${sans.filter((x) => x.n < seuil).length}`,
+      + `| ${String(sans.length).padStart(2)} · ${moy(sans).toFixed(2)} · ${sans.filter((x) => x.n < seuil).length}`
+      + ` | ${String(avec.length).padStart(3)} · ${moy(avec).toFixed(2)}`,
     );
     const pires = scores.filter((x) => x.n < seuil).sort((a, b) => a.n - b.n).slice(0, 12);
     if (pires.length) console.log(`              ↳ les pires : ${pires.map((x) => `${x.r.id}(${x.n}${x.carb ? '' : ',∅'})`).join(' ')}`);

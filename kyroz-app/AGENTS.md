@@ -76,7 +76,7 @@ qu'ils étaient périmés.
 | Reroll (« Régénérer mon plan ») | 1ers repas qui changent : **repetitive 51 % · balanced 78 % · max 83 %** (13,7 % pour tous avant A21) | `npm run mesure:reroll` |
 | Anti-doublons | R1 81 · R2 70 · R4 14 · R5 17 · R7 0 — **figés par un test**, inchangés par B6 | `npm run check:doublons` |
 | Sous le seuil R8 | ⚠️ petit-déj **37/110** · repas complets **74/270** · collation **3/86** — le chantier B7 (D19), **reporté** (cf. la note ci-dessous) | `npm run mesure:seuils` |
-| Moyenne R8 par créneau | petit-déj **8,28/12** · repas complets **8,53** · collation **7,41** (7,62 avant D18 · 7,19 avant B6 · 4,52 avant B5) | idem |
+| Moyenne R8 par créneau | petit-déj **8,27/12** · repas complets **8,51** · collation **7,38** (8,28 / 8,53 / 7,41 avant A25 · 7,62 avant D18 · 7,19 avant B6 · 4,52 avant B5) | idem |
 | Vegan | petit-déj 44/110 · repas 79/270 · collation **43/86** — comptage CATALOGUE (`restrictions_ok`), stable | compter `restrictions_ok` par créneau |
 | Vegan + sans gluten | petit-déj 33 · repas 42 · collation **34** — idem, stable | idem |
 
@@ -135,6 +135,24 @@ cassé ne l'était jamais là où on le croyait.**
   avec quasi-doublon : 45 % au canonique contre 20 % au régénéré). Un gain inexpliqué est
   une anomalie au même titre qu'une perte : ici il disait que le premier plan servi était
   le plus mauvais des trois. ➡️ **Ne pas empocher un résultat favorable sans l'expliquer.**
+- 🔎 **Ces `.md` ont été AUDITÉS contre le code le 2026-08-02, et l'audit a trouvé sept
+  affirmations fausses — dont trois écrites le jour même.** Écrire soigneusement ne suffit
+  pas ; il faut confronter. Ce qui a été corrigé, par ordre de gravité :
+  1. **D19 annonçait qu'un repas hors cible est servi au plan canonique.** Faux — le
+     canonique est à ZÉRO drapeau. Ce repas n'apparaît qu'au réglage 0,04, qui n'a PAS été
+     retenu. Un agent ouvrant B7 là-dessus serait parti chasser un défaut inexistant.
+  2. **`CLAUDE.md` présentait deux propriétés « NON NÉGOCIABLES » du nudge de famille qui
+     ne sont plus vraies** (« il n'exclut jamais », « pas en points de score ») : elles
+     dataient de D18, avant qu'A21 et A25 ne fassent entrer la famille dans le score. Un
+     lecteur s'y fiant aurait refusé un mécanisme **déjà en place**.
+  3. Une constante attribuée à la mauvaise fiche (A22 au lieu d'A21), `37/70` au lieu de
+     `37/74` dans la consigne même qui dit de se méfier de ce chiffre, `intégrité 100`
+     pour un catalogue à 466, et `27,9 %` donné pour l'état courant en `CLAUDE.md`.
+  ➡️ **Une doc écrite de bonne foi dérive quand même** — surtout ses tableaux « avant /
+  après » et ses blocs « non négociable », qui vieillissent au premier correctif suivant.
+  Six autres signalements ont été REJETÉS après réfutation (notes historiques prises pour
+  des erreurs, omissions de style) : l'audit doit avoir une passe adverse, sinon il
+  réécrit du vrai.
 
 ⚠️ **Trois de ces six ont commencé par une fiche FAUSSE, et c'est le motif à retenir.**
 D4 demandait de désaturer un compteur de catalogue : le premier coupable mesuré était un
@@ -198,16 +216,16 @@ est **FERMÉ** le 2026-08-01, `supportsTablet` est à `true`.)*
    pas à refaire : D15 avait audité les collations, jamais les deux autres créneaux —
    mesuré, **37 petits-déj sur 110 (34 %) et 74 repas complets sur 270 (27 %) sont sous le
    seuil de 8/12**, dont 4 à ZÉRO profil dans chaque créneau. Cause première déjà
-   identifiée : les recettes **sans `carb`** (13 en petit-déj, moyenne 2,77/12 contre 9,03
-   pour celles qui en portent un ; 6 en repas complet à 1,50/12). Remède identique à B5 —
-   réécrire, pas ajouter — et le lot est plus gros. Détail et chiffres en **D19**.
-   ⚠️ **Le chiffre bougera** : il a déjà bougé DEUX fois pendant qu'on l'écrivait — D18 a
+   identifiée : les recettes **sans `carb`** (13 en petit-déj, moyenne 2,69/12 contre 9,02
+   pour celles qui en portent un ; 6 en repas complet à 1,50/12 contre 8,67). Remède
+   identique à B5 — réécrire, pas ajouter — et le lot est plus gros. Détail en **D19**.
+   ⚠️ **Le chiffre bougera** : il a déjà bougé TROIS fois pendant qu'on l'écrivait — D18 a
    fait passer les repas complets de 70 à 71, puis A21/A23 de 71 à **74** (et la collation
-   de 1 à **3**). Aucun des trois n'a touché une recette : ce sont des correctifs du
+   de 1 à **3**), puis A25 a déplacé les moyennes. Aucun des quatre n'a touché une recette : ce sont des correctifs du
    MOTEUR, et les cibles de l'audit sont reconstruites depuis des plans générés.
    **`npm run mesure:seuils` avant de commander**, ne jamais partir des chiffres écrits ici.
 
-   🎯 **Ce que la session « terrain » du 2026-08-02 ajoute à la commande** — deux limites
+   🎯 **Ce que la session « terrain » du 2026-08-02 ajoute à la commande** — quatre limites
    mesurées qui ne se corrigeront PAS dans le moteur, et qui disent où viser :
    1. **Petit-déjeuner vegan à forte cible protéique : UNE seule recette du catalogue tient
       la cible** (profil 90 kg, 198 g de protéines, 2 614 kcal). Conséquence visible : la
@@ -219,8 +237,21 @@ est **FERMÉ** le 2026-08-01, `supportsTablet` est à `true`.)*
       candidats comparables (mesuré : à panel réduit, 90,7 % de renouvellement pour les
       deux, au centième près). Le réglage tient sa promesse en proportion de ce qu'il y a
       à distribuer.
-   ➡️ Les deux pointent le même endroit : **les petits-déjeuners et collations vegan riches
-   en protéines**. C'est le créneau qui rend le plus, et ce n'est pas un problème de code.
+   3. **Les quasi-doublons restants sont concentrés sur le végétal** (mesuré à A25) :
+      41,7 % des semaines en vegan contre 8,3 % sans régime — et **50 % en vegan+sans
+      gluten des DEUX côtés**, canonique comme régénéré. Là, le moteur n'y peut plus rien :
+      il n'y a pas assez de familles protéine × féculent distinctes pour tourner.
+   4. **Le catalogue PLAFONNE la qualité du plan canonique** — sans le dégrader : il est à
+      zéro drapeau bloquant, mais c'est lui qui a **interdit de monter
+      `FAMILY_SELECT_W_CANON` à 0,04** (6,6 points de quasi-doublons abandonnés). À ce
+      réglage, 1 repas sur 1 680 passe hors cible : une **collation vegan+SG en sèche**,
+      sans alternative propre dans la bande. ⚠️ Ce repas n'est PAS servi aujourd'hui.
+   ➡️ Les quatre pointent le même endroit : **les petits-déjeuners et collations vegan
+   riches en protéines**. C'est le créneau qui rend le plus, et ce n'est pas un problème de
+   code. ⚠️ Viser des **couples protéine × féculent NOUVEAUX** : ajouter une neuvième
+   recette au yaourt de soja n'enlèverait aucun quasi-doublon. Familles saturées mesurées :
+   `yaourt_soja_proteine`, `tofu_ferme × nouilles_riz`, `proteine_vegetale`,
+   `edamame × maïs`, `seitan`, `tempeh`.
 
 ⚠️ **Une décision produit attend le fondateur, et elle est réversible** : D3 a été tranché
 **contre** l'axe allergène formel (motif : promesse de sécurité intenable sur un catalogue
@@ -970,7 +1001,7 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
 - ~~**A25 · Le premier plan servi était le MOINS varié des trois**~~
   ✅ **CORRIGÉ le 2026-08-02.** Trouvé en vérifiant qu'A24 ne coûtait rien : un contrôle
   s'améliorait trop franchement, ce qui était l'anomalie. La pénalité de score par
-  FAMILLE (`FAMILY_SELECT_W_VARIANT`, A22) ne s'appliquait **que sur un reroll**. Donc le
+  FAMILLE (`FAMILY_SELECT_W_VARIANT`, A21) ne s'appliquait **que sur un reroll**. Donc le
   plan canonique — celui qu'un nouvel utilisateur reçoit à l'inscription — servait deux
   assiettes du même couple protéine × féculent dans **45,0 %** de ses semaines, contre
   **20,0 %** pour un plan régénéré. Appuyer sur « Régénérer » réparait la première
@@ -1657,27 +1688,31 @@ produit en suspens — il ne reste qu'à coder.
 
   | créneau | recettes | moyenne | sous le seuil 8/12 | à ZÉRO profil |
   |---|---|---|---|---|
-  | petit-déj | 110 | 8,28/12 | **37 (34 %)** | 4 |
-  | repas complet | 270 | 8,53/12 | **74 (27 %)** | 4 |
-  | collation *(déjà traité, seuil 3/12)* | 86 | 7,41/12 | 3 | 0 |
+  | petit-déj | 110 | 8,27/12 | **37 (34 %)** | 4 |
+  | repas complet | 270 | 8,51/12 | **74 (27 %)** | 4 |
+  | collation *(déjà traité, seuil 3/12)* | 86 | 7,38/12 | 3 | 0 |
 
-  ⚠️ **Ces chiffres ont bougé DEUX fois pendant qu'on les écrivait** — sixième puis
-  septième occurrence du piège de mesure. Avant D18 : repas complets **70**, collation à
+  ⚠️ **Ces chiffres ont bougé TROIS fois pendant qu'on les écrivait** — sixième, septième
+  puis huitième occurrence du piège de mesure. Avant D18 : repas complets **70**, collation à
   **7,62/12**. Après D18 : **71** et **7,50**. Après A21/A23 : **74** et **7,41**, la
-  collation passant de 1 à 3 sous le seuil. Les trois sont des correctifs du MOTEUR qui
-  n'ont touché AUCUNE recette. ➡️ `npm run mesure:seuils` avant de commander quoi que ce
-  soit, et ne pas lire une variation de ces lignes comme un effet catalogue.
+  collation passant de 1 à 3 sous le seuil. Après A25 : **8,27 / 8,51 / 7,38**. Les quatre
+  sont des correctifs du MOTEUR qui n'ont touché AUCUNE recette. ➡️ `npm run mesure:seuils`
+  avant de commander quoi que ce soit, et ne pas lire une variation de ces lignes comme un
+  effet catalogue.
 
   🔎 **La cause première est la même qu'en D15, et elle est chiffrée** : une recette **sans
-  `carb`** ne peut pas s'étirer. Petit-déj — 13 recettes sans féculent, moyenne **2,77/12**,
-  **13 sur 13 sous le seuil**, contre 9,03/12 pour les 97 qui en portent un. Repas complet —
-  6 recettes, moyenne **1,50/12**, 6 sur 6 sous le seuil, contre 8,80/12 pour les 264 autres.
+  `carb`** ne peut pas s'étirer. Petit-déj — 13 recettes sans féculent, moyenne **2,69/12**,
+  **13 sur 13 sous le seuil**, contre **9,02/12** pour les 97 qui en portent un. Repas complet —
+  6 recettes, moyenne **1,50/12**, 6 sur 6 sous le seuil, contre **8,67/12** pour les 264 autres.
   Les pires : `pd04` `pd11` `pd37` `pd64` et `rep18` `rep51` `rep137` `rep144` à **0/12**.
+  ℹ️ Ce contraste est **la** justification du chantier, et pourtant aucune commande ne
+  l'imprimait — il a été ajouté à `mesure:seuils` le 2026-08-02 (colonne « avec `carb` »).
+  Un chiffre qui porte une décision doit être re-mesurable, sinon il vieillit en silence.
 
   ➡️ **Remède : réécrire, pas ajouter** (convention B5, `Recette/README.md`) — les ids sont
   conservés, `ENGINE_VERSION` s'incrémente. Le lot est plus gros que B5 (23 recettes).
   ⚠️ **Re-mesurer avant de commander** : le vivier servable n'est pas stable d'une vague à
-  l'autre (cf. le piège de mesure du §📍), donc ne pas partir de ces 37/70 comme d'un acquis.
+  l'autre (cf. le piège de mesure du §📍), donc ne pas partir de ces 37/74 comme d'un acquis.
   ⚠️ **Et vérifier d'abord que ça se voit dans le SERVICE.** D5 et D7 ont chacune été
   ouvertes sur un compteur qui ne coûtait rien à l'utilisateur. Ici l'indice est sérieux —
   4 recettes par créneau ne servent AUCUN des 12 profils — mais la question « combien de
@@ -1691,8 +1726,12 @@ produit en suspens — il ne reste qu'à coder.
      chose serait servir faux.
   2. *(A23)* **« Variété max » ne peut pas dépasser « Équilibré »** là où le vivier est
      mince : les deux ouvrent le même panier faute de candidats comparables.
-  3. *(A25)* Le seul repas hors cible que le catalogue impose encore au plan canonique est
-     une **collation vegan + sans gluten en sèche**, sans aucune alternative propre.
+  3. *(A25)* Le plan canonique est à **ZÉRO drapeau bloquant** — ce que le catalogue lui
+     coûte, c'est d'avoir **interdit de monter `FAMILY_SELECT_W_CANON` à 0,04**, soit
+     6,6 points de quasi-doublons laissés sur la table : à ce réglage apparaît 1 repas
+     hors cible sur 1 680, une **collation vegan + sans gluten en sèche**, sans aucune
+     alternative propre dans la bande. ⚠️ Ne pas lire ça comme « un repas hors cible est
+     servi aujourd'hui » — il ne l'est pas. C'est un plafond, pas un défaut visible.
   4. *(A25)* Les quasi-doublons restants sont **concentrés sur le végétal** : 41,7 % des
      semaines en vegan (contre 8,3 % sans régime), et **50 % en vegan+SG des DEUX côtés** —
      le reroll n'y peut rien, il n'y a pas assez de familles distinctes. Familles en cause
@@ -2186,7 +2225,13 @@ produit en suspens — il ne reste qu'à coder.
   féculent — « poulet-riz-brocoli » et « wok poulet-riz-légumes » — sont deux ids
   distincts pour le moteur, et une répétition pour celui qui mange.
 
-  | mesuré sur 240 semaines (12 profils × 5 régimes × 4 tirages) | avant | après |
+  ⚠️ **Tableau HISTORIQUE — la colonne « après » est celle du 2026-08-02 AU MOMENT DE D18.**
+  A21 puis A25 ont fait entrer la famille dans le SCORE (elle n'était ici qu'une clé de
+  départage) : l'état courant est **20,8 %**, pas 27,9 %. Pour les chiffres du jour, la
+  photo d'état en tête de fichier ou `npm run mesure:variete`. Même piège que la table
+  d'A21 plus haut : une colonne « après » vieillit dès le correctif suivant.
+
+  | mesuré sur 240 semaines (12 profils × 5 régimes × 4 tirages) | avant | après (à D18) |
   |---|---|---|
   | semaines contenant ≥ 2 recettes d'un même couple | **56,3 %** | **27,9 %** |
   | quasi-doublons servis | 203 | **93** |
@@ -2598,7 +2643,7 @@ Plancher = énergie disponible (30 kcal/kg de masse maigre + sport, **plafonné 
 - **Mise en page** (`constants/layout.ts` + seuils purs dans `lib/layout.ts`, 2026-08-01) : l'app est livrée pour iPad (`ios.supportsTablet: true`). **Tout écran passe par `useLayout()`**, comme toute couleur passe par `useTheme()` — sinon il repart en pleine largeur et devient illisible à 1024 pt. Seuil unique `TABLET_MIN_WIDTH = 700` (au-dessus du plus large iPhone, 440, et d'un Split View à 50 % sur iPad 11", 507). Colonnes : `content`/`header` 620, `sheet` 820 (déjà posé dans `Sheet` et `ActionSheet`), `grid` 980 avec `layout.columns`. **No-op STRICT sous le seuil** (`centered()` renvoie `{}`) — un test l'exige, le rendu téléphone ne doit pas bouger d'un pixel. Une seule mise en page dérogatoire : l'écran recette met ingrédients et préparation côte à côte. Règle de non-régression : aucune colonne plus étroite que la zone utile d'un iPhone (345 pt), verrouillée par `lib/__tests__/layout.test.ts`. Orientation : **portrait** (le paysage est une décision à part).
 - **Thème** (`constants/theme.ts`) : adaptatif clair/sombre, accent monochrome, pas de couleur en dur (`useTheme()` + `makeStyles(t)`). **Choix manuel Système/Clair/Sombre** : store externe `lib/themeMode.ts` (persisté `@kyroz:theme`, chargé au démarrage dans `_layout`) consommé par `useTheme()` via `useSyncExternalStore` — pas de provider. Réglage exposé dans Profil → section Application. `cardShadow` → `boxShadow` sur web / `shadow*`+`elevation` natif (warnings RN-web nettoyés 2026-06-14, avec `pointerEvents` en style et `TouchableWithoutFeedback`→`Pressable`).
 - **Recettes** : **466** — *(historique : 100, + **164** le 2026-06-19, + **50 sans gluten** le 2026-07-22, puis les vagues B1→B6 de fin juillet / début août. Le chiffre faisant foi est `npm run mesure:couverture`, pas cette ligne.)* ⚠️ **Tout le matériel recettes vit désormais dans `kyroz-app/Recette/`** (2026-07-22) : catalogue LIVE `Recette/recettes-kyroz.json` (l'ancien `lib/data/recettes-kyroz-100.json` est déplacé + renommé — le nom « 100 » mentait ; `lib/data/` supprimé), livraisons brutes archivées dans `Recette/drops/<date>-<sujet>/` (jamais importées par le code), mode d'emploi de la chaîne d'ajout dans `Recette/README.md`. Chaîne : (`Recette/recettes-kyroz.json` → `lib/recipeData.ts` (table d'ingrédients réf + config + macros depuis réf) → `lib/recipeMap.ts` (JSON FR → `Recipe[]` internes) → `lib/recipes.ts` (ré-export `RECIPES` + registre d'overrides inchangé). 78 petit-déj + 66 collations + 170 repas (chacun tagué objectif/sport + `why_fr` + ingrédients `ref`/`macro_role`/`scalable`). `validated_by_dietitian: false`. **`ENGINE_VERSION` = 38** *(valeur faisant foi : `lib/planEngine.ts`, qui porte l'historique complet ; cette ligne a traîné à 25)* (v16 = fix variété ; v17 = fibres sourcées Ciqual ; v18 = 2026-07-23, biais fibres en sèche à la sélection ; … ; **v25 = 2026-07-30, borne basse de l'ancre protéine 1,0 → 0,5**. Toute incrémentation régénère les plans en cache — valeur faisant foi : `lib/planEngine.ts`). **`restrictions_ok` dérivé par ingrédient** (`lib/recipeDiet.ts`, table d'incompatibilités) — autoritaire dans `recipeAllowed`, repli mots-clés pour le legacy. **Régime `vegan` ajouté (2026-06-19)** : `DietaryRestriction` + `VIOLATIONS` (26 refs animaux dont œufs/miel) + blocklist mots-clés ciblée (`planEngine.ts`, sans faux positifs lait d'amande/coco·yaourt soja·beurre végétal) + toggle onboarding/profil. **AUCUNE migration Supabase** (`dietary_restrictions text[]` libre). Couverture vegan (sur 314, mesurée 2026-07-22) : pdej **33**/78 · coll **36**/66 · repas **57**/170. **Macros recettes = SOURCÉES CIQUAL (fusion des deux bases, livrée)** : `lib/recipeFoodMap.ts` lie **99/113** ingrédients `ref` → `food_id` Ciqual (mapping VÉRIFIÉ À LA MAIN, basis cru/sec/cuit respecté — l'auto-matching par nom est piégeux : « maquereau »→« groseille à maquereau »). `recipeData` résout `per100g` depuis la base curée quand mappé. **Composites repris 2026-07-14 (+13)** : `pates_semoule`→9810, `pates_completes`/`nouilles_completes`→9870 (⚠️ PAS 9863 « nouilles asiatiques aux ŒUFS » → fausserait le végétalien), `nouilles_riz`→9900 (corrige la protéine sous-estimée 3→7,4 g), `polenta`→9614, `graines_courge`→**15064** (« Courge, graine, séchée » — le piège butternut), `beurre_amande`→15041, `pesto`→11179, `creme_soja`→11214, `cacao_poudre`→18100, `tomate_concassee`→20169, `raisins`→**13395** (« Raisin cru » — ⚠️ PAS le raisin SEC, 322 vs 71 kcal). Impact mesuré : 74/264 recettes bougent, Δ kcal moyen **1,2 %**, max 2,9 % (affinage, pas distorsion) → `macros_per_serving` du JSON **volontairement NON re-baselinés** (ils servent de repère INDÉPENDANT au garde-fou ; les re-caler le viderait de son sens). ✅ **Légumineuses harmonisées en SEC (2026-06-20)** — l'utilisateur pèse à sec (comme riz/pâtes). `pois_chiches`→`ciqual-20516`, `lentilles_vertes`→`20585`, `haricots_rouges`→`20525` (codes « …, sec », ~314-350 kcal/100 g, `basis=dry`) ; `lentilles_corail` était déjà en sec. Les 5 nouveaux ingrédients mappables le sont aussi (`haricots_blancs`→20501, `feves`→20518, `pois_casses`→20515, `sarrasin`→9380, `chataigne`→15024) ; `soja_texture`/`haricots_noirs`/`millet` restent **manuels** (pas d'entrée Ciqual sèche propre — Ciqual n'a que la PST réhydratée). ⚠️ **Conséquence** : les **anciennes** recettes (les 100) exprimaient leurs légumineuses en poids **CUIT** (100-200 g) → **15 quantités converties cuit→sec** (×~0,4, nutrition préservée) ; les nouvelles étaient déjà en sec (mon recalage « cuit » du 19/06 était donc à l'envers — corrigé). **49 `macros_per_serving` re-baselinés** sur le dérivé. `basis` = métadonnée seule (jamais affichée) ; la pesée à sec suit la convention riz/pâtes (nom sans « sec »). `recipeMap` DÉRIVE `macros_per_portion` des ingrédients résolus (÷ `base_servings`) → plus de double source. Impact mesuré : Δ kcal moyen 3 %, max 11 %, 42/100 recettes inchangées (les estimations étaient déjà bien calées) ; `macros_per_serving` du JSON conservé en garde-fou de régression (±30 %, `recipeMap.test.ts`). **`ENGINE_VERSION` 7** (régénère les plans en cache). **Les 14 `ref` encore manuels le restent À RAISON** (règle : on ne mappe QUE si l'entrée Ciqual est SANS AMBIGUÏTÉ le même aliment) : absents de Ciqual (`cottage_cheese`, `edamame`, `yaourt_soja`, `yaourt_soja_proteine`) · produits Kyroz (`whey`, `skyr`, `proteine_vegetale`) · pas d'entrée SÈCHE propre (`soja_texture`, `haricots_noirs`, `millet` — Ciqual n'a que la FARINE) · produit voisin mais distinct (`levure_maltee` : Ciqual n'a que la levure de BIÈRE) · composites par construction (`fruits_rouges`, `legumes_wok`, `ratatouille`). **Nouveau garde-fou `recipeFoodMap.test.ts` (2026-07-14)** : le garde-fou ±30 % de `recipeMap.test` compare les kcal de la RECETTE ENTIÈRE → il était **AVEUGLE** à un ingrédient dense mais peu pesé (20 g de graines mappées sur du butternut = 618→30 kcal ne bougent pas le total de 30 % ; vérifié : l'ancien test passait). Le nouveau teste chaque ingrédient **à la source** : (1) toute clé mappée existe dans le JSON (attrape la faute de frappe `datte`/`dattes` = mapping mort et silencieux), (2) tout `food_id` résout, (3) écart Ciqual vs estimation manuelle suspect si **> 40 kcal EN ABSOLU *et* > 50 % EN RELATIF** — les deux ensemble, car le relatif seul crie au loup sur les aliments peu caloriques (épinards 23→33 = +43 % mais 10 kcal) et l'absolu seul sur les denses (mozzarella +57 kcal, correction légitime). Reste : approche B « fourchette » de macros (post-tests utilisateurs). Fix `formatQuantity` : « bœuf » contenait « œuf » → était compté en œufs (corrigé + test). **Audit qualité des 264 recettes (workflow multi-agent, 2026-07-14)** — COUPÉ par la limite de session (71/146 agents ; verif 59/112 recettes, synthèse non faite → à re-lancer après reset : `Workflow({scriptPath:'…/audit-recettes-kyroz-wf_b0be652e-fb5.js', resumeFromRunId:'wf_b0be652e-fb5'})`, cache les agents finis). **Corrigé (déterministe, testé)** : (1) `col04` 80 g de dattes > `abs_max_qty` 60 → le moteur servait 60 (fiche≠servi, 57 kcal) → ramené à 60 + test « base ≤ abs_max_qty » ; (2) **3 noms de légumineuses** disaient « cuits/égouttés » alors qu'on pèse SEC (`Pois chiches cuits (égouttés)`→`Pois chiches`, idem lentilles vertes/haricots rouges) → mis au neutre (convention riz/pâtes) + test « pas de nom cuit/égoutté sur basis:dry » ; (3) **23 ingrédients flavor/vegetable marqués `scalable:true`** (miel, cacao, sirop, sauce soja) — INERTE (le moteur les fige déjà, `adaptRecipe` role flavor/vegetable) mais mensonger → passés `false` + test. **CAPTURÉ, non corrigé (contenu → diététicienne / audit à finir)** : ~~⚠️ `rep32` « Cabillaud pané maison » taggée `gluten_free » mais chapelure hors liste~~ **CORRIGÉ 2026-07-16** : nouvel ingrédient `chapelure` (→ `ciqual-7500`, `abs_max_qty` 40) + entrée `VIOLATIONS: ['gluten_free']` dans `recipeDiet.ts` + chapelure 25 g ajoutée à rep32 (`carb`, fixe). Effet : `restrictions_ok` de rep32 = pescatarian/no_pork/lactose_free/halal (**gluten_free tombe tout seul**), macros re-comptées 540→636 kcal (la panure n'était pas comptée). `macros_per_serving` re-calé (l'ancien décrivait le plat SANS panure), `ENGINE_VERSION` 14, test de régression `rep32 pas gluten_free`. **Autres ingrédients-fantômes** (cités dans les instructions, absents de la liste → macros/courses/régime faux) : sauces teriyaki (`rep50/73/147`), miso (`rep47`), sauce soja (`rep05/46/80`), sirop érable (`rep80`) ; houmous (`rep111/118` — ailleurs FAIT à partir des pois chiches listés, faux positif) ; aromates non tracés (ail, curry, citron) = volontaire, PAS un défaut. **Cohérence `why`/tags** (ex. `pd10` « yaourt grec – noix » : `why` vante un « équilibre protéines/lipides » muscu à 10 g P / 28 g L, aucune ancre protéine scalable) → jugement diététicienne.
-- **Tests** : **939 / 52 fichiers** (`npm test`, vitest ; tsc `--noEmit` OK — vérifié le 2026-08-02 sur `main`). Nouveaux fichiers du 2026-08-02 : `boot.test.ts` (le démarrage ne dépend plus du réseau), `noAlert.test.ts` (interdit `Alert`, no-op sur le web), `birthday.test.ts` (âge dérivé de la date de naissance, 29 février compris), **`reroll.test.ts` (« Régénérer mon plan » doit se VOIR — renouvellement ET non-répétition ; cf. A21)**, **`planSeed.test.ts` (le tirage choisi se GARDE au changement de réglage ; cf. A24)**, **`carryTracking.test.ts` (ce qui a été mangé survit à une régénération ; cf. A26)**. ⚠️ Ce compte a traîné à « 403 / 26 » puis « 413 » pendant plusieurs semaines : **le mettre à jour fait partie de la livraison**, sinon il devient un troisième chiffre à ne pas croire. Détail : comptage recettes **466** (`recipeMap.test.ts`, chiffre à bouger à chaque vague), **variété intra-semaine (`variety.test.ts` ; P3.5)**, **fibres sourcées Ciqual par ref/food_id + « aucune recette à 0 g » (`fiber.test.ts` ; P3.1)**, **jours de repos choisis (`rest_weekdays` : mapping weekday→index, `[]`=aucun, jour hors-plan ignoré, signature ; `planEngine.test.ts`)**, régime vegan + **halal (porc/charcuterie → `restrictions_ok`, repli blocklist ; `recipeDiet.test.ts` + `planEngine.test.ts`)** (refs animaux → restrictions_ok, blocklist), garde-fous §6, masse maigre, mode percent, fuseau, déterminisme, recalage du jour, fibres, courses→frigo, **liste de courses moins garde-manger** (`shoppingList.test.ts`), units (régression bœuf), refonte recettes : `recipeData`/`recipeMap` (intégrité 100, refs valides, macros ±2 %, restrictions_ok, `base_servings===1`), `adaptRecipe` (cible en grammes, **plancher protéique TOTAL** sur recette multi-source, légumes fixes, flags + `FLAG_AUDIENCE`/`gap`, repli si UN ingrédient sans ref), moteur via adaptRecipe (cible jour ±12 %, swap/rebalance/mealIngredients, **`reAdaptMealRecipe`**), **+ stress-test 20 profils (`multiProfile.test.ts`, 10 H + 10 F, gabarits/objectifs/sports/régimes variés)** : invariants garde-fous + macros↔kcal, **bande cible ASYMÉTRIQUE conjointe B+A2 — côté dangereux ≤ `max(15 % du delta TDEE−cible, 90 kcal)` ET protéines ≥ plancher** (remplace l'ancien ±15 % symétrique, trop lâche en sèche), gras ≤50 %, déterminisme, régime respecté/relaxed, courses = Σ ingrédients adaptés, swap conforme au régime. **+ `syncGuard.test.ts`** (décision d'hydratation anti-écrasement C) **+ `goalDirection` / fit asymétrique / `reAdaptMealRecipe` / carb-cycling** (`planEngine.test.ts`). Empirique (après A2) : **écart kcal max 3,8 %** (côté dangereux référencé au delta), protéines 100–118 %, gras 24–29 %. **+ bouclier de série (`advanceStreak` : gel d'1 jour manqué / reset / recharge à 7j / profil legacy ; `streak.test.ts`, 2026-06-20)**. **Error Boundary** global (`app/_layout.tsx`). **Vérif preview e2e 2026-06-17** : génération plan + fiche adaptée + flux override→courses + Tout cocher/Réinitialiser→frigo.
+- **Tests** : **939 / 52 fichiers** (`npm test`, vitest ; tsc `--noEmit` OK — vérifié le 2026-08-02 sur `main`). Nouveaux fichiers du 2026-08-02 : `boot.test.ts` (le démarrage ne dépend plus du réseau), `noAlert.test.ts` (interdit `Alert`, no-op sur le web), `birthday.test.ts` (âge dérivé de la date de naissance, 29 février compris), **`reroll.test.ts` (« Régénérer mon plan » doit se VOIR — renouvellement ET non-répétition ; cf. A21)**, **`planSeed.test.ts` (le tirage choisi se GARDE au changement de réglage ; cf. A24)**, **`carryTracking.test.ts` (ce qui a été mangé survit à une régénération ; cf. A26)**. ⚠️ Ce compte a traîné à « 403 / 26 » puis « 413 » pendant plusieurs semaines : **le mettre à jour fait partie de la livraison**, sinon il devient un troisième chiffre à ne pas croire. Détail : comptage recettes **466** (`recipeMap.test.ts`, chiffre à bouger à chaque vague), **variété intra-semaine (`variety.test.ts` ; P3.5)**, **fibres sourcées Ciqual par ref/food_id + « aucune recette à 0 g » (`fiber.test.ts` ; P3.1)**, **jours de repos choisis (`rest_weekdays` : mapping weekday→index, `[]`=aucun, jour hors-plan ignoré, signature ; `planEngine.test.ts`)**, régime vegan + **halal (porc/charcuterie → `restrictions_ok`, repli blocklist ; `recipeDiet.test.ts` + `planEngine.test.ts`)** (refs animaux → restrictions_ok, blocklist), garde-fous §6, masse maigre, mode percent, fuseau, déterminisme, recalage du jour, fibres, courses→frigo, **liste de courses moins garde-manger** (`shoppingList.test.ts`), units (régression bœuf), refonte recettes : `recipeData`/`recipeMap` (intégrité 466, refs valides, macros ±2 %, restrictions_ok, `base_servings===1`), `adaptRecipe` (cible en grammes, **plancher protéique TOTAL** sur recette multi-source, légumes fixes, flags + `FLAG_AUDIENCE`/`gap`, repli si UN ingrédient sans ref), moteur via adaptRecipe (cible jour ±12 %, swap/rebalance/mealIngredients, **`reAdaptMealRecipe`**), **+ stress-test 20 profils (`multiProfile.test.ts`, 10 H + 10 F, gabarits/objectifs/sports/régimes variés)** : invariants garde-fous + macros↔kcal, **bande cible ASYMÉTRIQUE conjointe B+A2 — côté dangereux ≤ `max(15 % du delta TDEE−cible, 90 kcal)` ET protéines ≥ plancher** (remplace l'ancien ±15 % symétrique, trop lâche en sèche), gras ≤50 %, déterminisme, régime respecté/relaxed, courses = Σ ingrédients adaptés, swap conforme au régime. **+ `syncGuard.test.ts`** (décision d'hydratation anti-écrasement C) **+ `goalDirection` / fit asymétrique / `reAdaptMealRecipe` / carb-cycling** (`planEngine.test.ts`). Empirique (après A2) : **écart kcal max 3,8 %** (côté dangereux référencé au delta), protéines 100–118 %, gras 24–29 %. **+ bouclier de série (`advanceStreak` : gel d'1 jour manqué / reset / recharge à 7j / profil legacy ; `streak.test.ts`, 2026-06-20)**. **Error Boundary** global (`app/_layout.tsx`). **Vérif preview e2e 2026-06-17** : génération plan + fiche adaptée + flux override→courses + Tout cocher/Réinitialiser→frigo.
 - **QA E2E Playwright** (`@playwright/test` devDep) : scripts dans `test/` (`walkthrough*.mjs` = parcours headed + vidéo ; `qa-full/qa-deep/qa-settings.mjs` = couverture login+onglets+réglages ; `qa/verify-*.mjs` = non-régression). Web RN garde tous les onglets montés dans le DOM → se fier aux **captures**, pas au dump texte. **Login automatisable** via le bouton **« Continuer en invité »** (connexion anonyme Supabase, `signInGuest` / `testID="guest-login"`) → un seul tap, pas de mot de passe. ⚠️ Nécessite l'**auth anonyme activée** dans Supabase (Authentication → Providers → Anonymous). ⚠️ **Masqué en PROD** (`{__DEV__ && …}` dans `login.tsx`, décidé à l'audit sécu pour fermer le vecteur de création anonyme de comptes en masse) — visible seulement en dev/Playwright, invisible sur le web déployé. La QA tourne en dev → OK. (Clé Cloudflare Turnstile créée mais **CAPTCHA non activé** : l'inscription email est déjà protégée par la confirmation email ; Turnstile gardé pour le mobile natif futur.) Repli legacy : session manuelle réutilisée via `test/qa/session.json` (gitignored). Sorties générées (PNG, rapports, vidéos) gitignored.
 
 ## État de `lib/sync.ts` — sous filet depuis le 2026-07-30
