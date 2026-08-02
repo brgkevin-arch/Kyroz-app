@@ -62,10 +62,22 @@ describe("ce que le texte doit dire avant qu'un abonnement puisse être vendu", 
 
   const tousLesParas = [...PRIVACY_POLICY, ...TERMS_OF_USE].flatMap((s) => s.paragraphs).join(' ');
 
-  it('nomme RevenueCat comme sous-traitant', () => {
-    // Sans ça, §5 promet « aucun tiers » alors qu'un tiers reçoit l'identifiant du
+  it('annonce qu’un prestataire recevra l’identifiant du compte', () => {
+    // Sans ça, §5 promet « aucun tiers » alors qu'un tiers recevra l'identifiant du
     // compte. La politique deviendrait fausse le jour du premier abonné.
-    expect(tousLesParas).toContain('RevenueCat');
+    expect(tousLesParas).toMatch(/prestataire/);
+    expect(tousLesParas).toMatch(/identifiant technique de votre compte/);
+  });
+
+  it('ne NOMME aucun prestataire tant qu’aucun contrat n’existe', () => {
+    // ⚠️ Ce test protège le sens INVERSE du précédent, et il a une histoire : une
+    // première version nommait « RevenueCat, Inc. » dans un document public alors
+    // qu'aucun contrat n'avait été signé et que le choix technique n'était pas arrêté.
+    // Désigner un sous-traitant qui n'en est pas un est le même mensonge que taire
+    // celui qui l'est. Le RGPD autorise les CATÉGORIES de destinataires (art. 13-1-e).
+    // ➡️ Le jour où le contrat existe : on met le nom ICI et dans le texte, ensemble,
+    // avec le cadre du transfert hors UE (art. 13-1-f) qui ne se lit que dans le contrat.
+    expect(tousLesParas).not.toMatch(/RevenueCat|Stripe|Adapty|Superwall/i);
   });
 
   it('dit que le renouvellement est automatique ET comment y échapper', () => {

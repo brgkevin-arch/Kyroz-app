@@ -148,9 +148,14 @@ core tuerait le North Star — donc interdit.
       Verrouillé par `lib/__tests__/legal.test.ts`, qui exige aussi que le miroir
       `public/legal.html` contienne chaque paragraphe (les deux copies se recopiaient à la
       main, sans filet).
+      🔴 **Le texte NOMMAIT RevenueCat — retiré le même jour, sur signalement du fondateur :
+      aucun contrat n'existe, et le choix du prestataire n'est pas définitivement arrêté.**
+      Nommer un sous-traitant qui n'en est pas un est le même mensonge que taire celui qui
+      l'est. Le texte dit « un prestataire spécialisé » — les **catégories** de destinataires
+      sont explicitement admises (RGPD art. 13-1-e) — et promet de le nommer avant la vente.
       ⚠️ **Manque encore, volontairement** : le cadre du transfert hors UE (clauses types /
-      DPF, RGPD art. 13-1-f) — non écrit parce que non vérifié dans le contrat RevenueCat.
-      À compléter à la signature de leur DPA.
+      DPF, RGPD art. 13-1-f). Il ne se lit que dans le contrat — à écrire EN MÊME TEMPS que
+      le nom, le jour de la signature.
       ⏭️ **Non fait, assumé** : appeler leur API d'effacement depuis `delete-account`. Elle
       demande la clé SECRÈTE, donc du code serveur, et ne sert à rien sans abonné.
 - [x] ✅ **Ce qu'on verrouille = features Kyroz+ uniquement** : `PREMIUM_FEATURES` =
