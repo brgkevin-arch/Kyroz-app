@@ -172,10 +172,19 @@ export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adapted
         {(!status || status === 'planned') && (onSwap || onCook || onSkip) && (
           <View style={{ marginTop: 24, gap: 10 }}>
             {onSwap && (
-              <TouchableOpacity onPress={onSwap} activeOpacity={0.85} style={s.swapBtn}>
-                <Ionicons name="swap-horizontal" size={18} color={t.text} />
-                <Text style={s.swapTxt}>Remplacer ce repas</Text>
-              </TouchableOpacity>
+              <>
+                <TouchableOpacity onPress={onSwap} activeOpacity={0.85} style={s.swapBtn}>
+                  <Ionicons name="swap-horizontal" size={18} color={t.text} />
+                  <Text style={s.swapTxt}>Remplacer ce repas</Text>
+                </TouchableOpacity>
+                {/* Disclaimer assumé, pas un aveu de bug : un remplacement n'est pas
+                    mémorisé (rien ne le distingue d'un repas proposé), donc une
+                    régénération peut ramener le plat écarté. On le DIT, et on donne
+                    l'action qui, elle, tient dans le temps — le 👎. Cf. AGENTS.md A26. */}
+                <Text style={s.swapHint}>
+                  Ce remplacement vaut pour ce plan. Si ce plat ne te plaît pas du tout, le 👎 l'écarte pour de bon.
+                </Text>
+              </>
             )}
             {onSkip && (
               <TouchableOpacity onPress={onSkip} activeOpacity={0.85} style={s.swapBtn}>
@@ -241,6 +250,7 @@ function makeStyles(t: ThemePalette, isTablet: boolean) {
     stepTxt: { flex: 1, color: t.textSecondary, fontSize: 15, lineHeight: 22 },
     swapBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 16, borderRadius: Radius.md, borderWidth: 1.5, borderColor: t.lineStrong },
     swapTxt: { color: t.text, fontSize: 16, fontWeight: '700' },
+    swapHint: { color: t.textSecondary, fontSize: 13, lineHeight: 18, marginTop: -4, paddingHorizontal: 2 },
     statusBanner: { marginTop: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, paddingVertical: 14, paddingHorizontal: 16, borderRadius: Radius.md, borderWidth: 1 },
     statusTxt: { flex: 1, color: t.textSecondary, fontSize: 14, fontWeight: '600' },
     statusUndo: { color: t.text, fontSize: 14, fontWeight: '700' },

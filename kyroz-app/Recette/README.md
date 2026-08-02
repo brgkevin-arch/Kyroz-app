@@ -6,6 +6,9 @@ Recette/
 ├── README.md                    ← ce fichier
 ├── BRIEF-GENERATION-RECETTES.md ← la SPEC : mesures, enveloppes, raisonnement. Ne pas transmettre tel quel.
 ├── lots/                        ← la COMMANDE, générée (npm run gen:lots). Un fichier = une conversation.
+│   ├── b7-pdej.md               ← 12 petits-déj végétaux  ⟵ à livrer, DANS CET ORDRE
+│   ├── b7-repas.md              ← 10 repas complets végétaux
+│   ├── b7-coll.md               ← 8 collations végétales
 │   └── annexe-collations-existantes.md
 └── drops/                       ← livraisons brutes REÇUES (archives, JAMAIS importées par le code)
     ├── 2026-06-16-refonte-adaptrecipe/
@@ -31,11 +34,13 @@ pour un ajout, sinon un plan en cache sert l'ancienne recette sous le nouveau no
 Conséquence sur la partition de `recipeData.test.ts` : les vagues d'origine PERDENT les
 recettes reprises (`fondation` 100 → 92, etc.), le total ne bouge pas.
 
-ℹ️ **`lots/` ne contient plus aucun brief, et c'est volontaire** (2026-08-01) : les huit lots
-commandés — `b2`, `b1-lot1` à `b1-lot4`, `b3`, `b4-repas`, `b4-pdej` — sont livrés et mergés, donc
-leurs ids sont pris : un brief qui les recommanderait serait une commande impossible à honorer, et
-le générateur refuse d'ailleurs de l'écrire. Leur définition reste dans `scripts/gen-brief-lot.ts`
-(marquée `livre`), la matière première dans `drops/`.
+ℹ️ **Un brief disparaît de `lots/` dès que son lot est livré**, et c'est volontaire
+(2026-08-01) : les huit premiers lots — `b2`, `b1-lot1` à `b1-lot4`, `b3`, `b4-repas`, `b4-pdej` —
+sont mergés, donc leurs ids sont pris. Un brief qui les recommanderait serait une commande
+impossible à honorer, et le générateur refuse d'ailleurs de l'écrire. Leur définition reste dans
+`scripts/gen-brief-lot.ts` (marquée `livre`), la matière première dans `drops/`.
+**Les trois briefs présents aujourd'hui sont la vague B7** (30 recettes, commandée le 2026-08-02) :
+ils ne sont pas livrés. Motivation et mesures : `AGENTS.md`, fiche **D19**.
 
 ⚠️ `recettes-kyroz.json` est **importé par le code** (`lib/recipeData.ts`, `lib/__tests__/recipeFoodMap.test.ts`).
 Les fichiers de `drops/` sont de la matière première : on en extrait, on ne les branche jamais.
@@ -56,7 +61,16 @@ npm run gen:lots -- b3      # un seul
 
 Chaque fichier est autonome : format de sortie, refs autorisés avec leurs macros, règles, formats
 déjà saturés, auto-contrôle. On en donne **un par conversation**. Pour commander une nouvelle
-vague : ajouter un `Lot` dans `LOTS` (`scripts/gen-brief-lot.ts`), puis `npm run gen:lots`. **Après le merge d'un lot, régénérer les suivants** — ils verront ce que le
+vague : ajouter un `Lot` dans `LOTS` (`scripts/gen-brief-lot.ts`), puis `npm run gen:lots`.
+
+⚠️ **Le §4 n'expose que les refs DÉJÀ employés par la catégorie** — c'est ce qui garantit leur
+pertinence, mais ça enferme chaque créneau dans sa propre palette : **aucun couple protéine ×
+féculent vraiment neuf n'y est commandable**. Mesuré le 2026-08-02 : le §4 d'une collation
+n'exposait ni tofu, ni tempeh, ni une seule légumineuse sèche ; celui d'un petit-déj n'exposait
+pas `soja_texture`, l'ancre végétale la plus dense après `proteine_vegetale`. ➡️ Un lot peut
+ouvrir des refs supplémentaires avec **`refsEnPlus`**, à condition d'avoir VÉRIFIÉ sur le moteur
+qu'ils tiennent son enveloppe (une ancre peu dense est inécrivable). La liste des 9 refs
+« forcés » en dur dans `refsPertinents` était déjà ce correctif, en moins avouable. **Après le merge d'un lot, régénérer les suivants** — ils verront ce que le
 lot précédent a consommé, et c'est ce contrôle croisé qui manquait aux vagues d'avant. Marquer le
 lot livré (`livre` dans `scripts/gen-brief-lot.ts`) fait disparaître son brief : ses ids sont pris.
 
@@ -118,6 +132,13 @@ fichiers de `lots/` en sont la projection opérationnelle.
    ⚠️ `npm run mesure:variete` mesure autre chose et il faut le lancer aussi après une
    vague : les quasi-doublons SERVIS (deux recettes du même couple protéine × féculent
    dans la même semaine), que ni R4 ni la couverture ne voient.
+   ⚠️ `npm run mesure:vivier` mesure une TROISIÈME chose, et c'est celle qui dit où
+   commander la vague suivante : le vivier croisé **gabarit × RÉGIME × créneau**, c'est-à-dire
+   ce que voit un utilisateur réel — qui porte les deux à la fois. `mesure:couverture` compte
+   par gabarit et ignore le régime ; `mesure:seuils` compte par recette et ignore le profil.
+   Aucun des deux n'aurait montré qu'une femme de 55 kg en sèche, vegan et sans gluten,
+   dispose de **3 collations sur 86**. Il imprime aussi le nombre de FAMILLES distinctes par
+   cellule : dix recettes du même couple ne font pas dix repas différents.
    *(L'ancienne étape « `npm run gen:validation` → dossier diététicienne » a disparu le
    2026-07-30 : la validation diététicienne est écartée (`CLAUDE.md` §6), le script est
    supprimé et le dossier figé dans `docs/archive/2026-07-29-validation-recettes.md`.)*

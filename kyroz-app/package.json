@@ -57,7 +57,8 @@
     "mesure:variete": "npx tsx scripts/mesure-variete.ts",
     "mesure:reroll": "npx tsx scripts/mesure-reroll.ts",
     "mesure:reglages": "npx tsx scripts/mesure-reglages.ts",
-    "mesure:seuils": "npx tsx scripts/mesure-couverture.ts --seuils"
+    "mesure:seuils": "npx tsx scripts/mesure-couverture.ts --seuils",
+    "mesure:vivier": "npx tsx scripts/mesure-couverture.ts --vivier"
   },
   "private": true,
   "homepage": "https://brgkevin-arch.github.io/Kyroz-app"
