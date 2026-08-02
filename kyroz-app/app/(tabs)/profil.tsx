@@ -1121,7 +1121,13 @@ function RestDaysPicker({ t, available, value, onToggle }: { t: ThemePalette; av
 function MealsEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
   const [weekdays, setWeekdays] = useState<number[]>(profile.plan_weekdays ?? [1, 2, 3, 4, 5, 6, 0]);
   const [restDays, setRestDays] = useState<number[]>(effectiveRestWeekdays(profile));
-  const [meals, setMeals] = useState<MealType[]>(profile.meals ?? ['breakfast', 'lunch', 'dinner', 'snack']);
+  // ⚠️ `?? [...]` ne suffit PAS : un `meals` non-tableau (vu en vrai : le NOMBRE 4) est
+  // « non nul », passe le `??`, et fait exploser cet écran au premier `meals.includes`
+  // — Error Boundary, réglage inaccessible à vie. `normalizeMeals` (syncGuard) referme
+  // la donnée en amont ; ce garde-fou-ci protège les chemins qui ne passent pas par là.
+  const [meals, setMeals] = useState<MealType[]>(
+    Array.isArray(profile.meals) && profile.meals.length > 0 ? profile.meals : [...MEAL_ORDER]
+  );
   const [emphasis, setEmphasis] = useState<MealEmphasis>(profile.meal_emphasis ?? 'even');
   const [variety, setVariety] = useState<VarietyPreference>(profile.variety);
   const [fixedMeals, setFixedMeals] = useState<FixedMeals>(profile.fixed_meals ?? {});

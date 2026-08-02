@@ -3,7 +3,7 @@ import { supabase } from './supabase';
 import { Recipe, Streak, UserProfile } from './types';
 import { PantryItem } from './pantry';
 import { WeightEntry } from './weight';
-import { decideProfileHydration, normalizeGoal, normalizeProfileActivity, reconcileCloudSports, reconcileCloudLowEaWeeks, reconcileCloudNeat, mergeWeightEntries, mergeStreak, mergeRecipeOverrides, PROFILE_PENDING_KEY } from './syncGuard';
+import { decideProfileHydration, normalizeGoal, normalizeMeals, normalizeProfileActivity, normalizeVariety, reconcileCloudSports, reconcileCloudLowEaWeeks, reconcileCloudNeat, mergeWeightEntries, mergeStreak, mergeRecipeOverrides, PROFILE_PENDING_KEY } from './syncGuard';
 
 /** La fusion a-t-elle produit autre chose que ce que le cloud détenait ? */
 const differs = (a: unknown, b: unknown): boolean => JSON.stringify(a) !== JSON.stringify(b);
@@ -382,7 +382,7 @@ export async function hydrateFromCloud(uid: string): Promise<void> {
       // survivent (cf. localOnlyProfileFields).
       await AsyncStorage.setItem(PROFILE_KEY, JSON.stringify({
         ...localOnlyProfileFields(local),
-        ...normalizeGoal(normalizeProfileActivity(cloud)),
+        ...normalizeMeals(normalizeVariety(normalizeGoal(normalizeProfileActivity(cloud)))),
       }));
     } else if (local && (action === 'keep_local' || action === 'push_local')) {
       await pushProfile(local); // (re)pousse le local ; lève le flag si succès
