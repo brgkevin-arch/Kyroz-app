@@ -16,8 +16,8 @@ listes contradictoires.
 
 ## Carte des docs — lire ceci d'abord (rangé le 2026-07-30)
 
-**Les 11 docs VIVANTS, et rien d'autre** (recompté le 2026-07-30 : la carte en annonçait
-6, en listait 8 et en oubliait 4) :
+**Les 12 docs VIVANTS, et rien d'autre** (recomptés le 2026-07-30 : la carte en annonçait
+6, en listait 8 et en oubliait 4 — `TESTFLIGHT.md` ajouté le 2026-08-03) :
 
 *Ce qui pilote le travail — à lire d'abord*
 
@@ -41,6 +41,7 @@ listes contradictoires.
 | Doc | À quoi il sert |
 |---|---|
 | `STORE-RELEASE.md` | Playbook de sortie stores — **en cours** ; reste ce qui demande identité / argent / device. |
+| `TESTFLIGHT.md` | **Distribution iOS aux testeurs** (2026-08-03) — repères fixes (app id, team id, **quel Apple ID est l'identifiant de connexion**), état, commandes que je peux lancer seul depuis la clé API. Les deux pièges qui ont coûté du temps y sont : l'ad hoc échoue **en silence** depuis un navigateur intégré, et l'accès relecteur dépend de l'auth anonyme Supabase. |
 | `RGPD-REGISTRE.md` | Registre de traitement. |
 | `supabase/RUNBOOK-PROD.md` | Étapes Supabase **non faisables depuis le dépôt** (accès projet requis). |
 | `../docs/politique-confidentialite-kyroz.md` | Politique de confidentialité **publique**. ⚠️ Sa date de mise à jour est encore le gabarit `[JJ/MM/AAAA]`. |
