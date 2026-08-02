@@ -277,7 +277,7 @@ const LOTS: Lot[] = [
   {
     cle: 'b7-pdej', titre: 'B7 — 12 petits-déjeuners végétaux, ancres neuves', volume: 12, categorie: 'petit_dej',
     prefixe: 'pd', idDebut: 111, idFin: 122,
-    wave: '2026-08-02-b7-pdej-vegan',
+    wave: '2026-08-02-b7-pdej-vegan', livre: '2026-08-02',
     kcal: [510, 570], prot: [30, 36], carb: [56, 70], fat: [14, 19],
     regimes: { libre: 0, vegetarien: 0, vegan: 12, sansGluten: 9 },
     etapes: [4, 7],
@@ -304,7 +304,7 @@ const LOTS: Lot[] = [
   {
     cle: 'b7-repas', titre: 'B7 — 10 repas complets végétaux, pour les cellules affamées', volume: 10, categorie: 'repas_complet',
     prefixe: 'rep', idDebut: 271, idFin: 280,
-    wave: '2026-08-02-b7-repas-vegan',
+    wave: '2026-08-02-b7-repas-vegan', livre: '2026-08-02',
     kcal: [600, 660], prot: [35, 40], carb: [64, 78], fat: [18, 23],
     regimes: { libre: 0, vegetarien: 0, vegan: 10, sansGluten: 7 },
     etapes: [4, 7],
@@ -333,7 +333,7 @@ const LOTS: Lot[] = [
   {
     cle: 'b7-coll', titre: 'B7 — 8 collations végétales, la cellule la plus affamée du catalogue', volume: 8, categorie: 'collation',
     prefixe: 'col', idDebut: 87, idFin: 94,
-    wave: '2026-08-02-b7-collations-vegan',
+    wave: '2026-08-02-b7-collations-vegan', livre: '2026-08-03',
     kcal: [170, 320], prot: [13, 27], carb: [16, 40], fat: [5, 12],
     regimes: { libre: 0, vegetarien: 0, vegan: 8, sansGluten: 6 },
     etapes: [2, 3],

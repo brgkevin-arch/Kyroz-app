@@ -1,0 +1,244 @@
+{
+  "recipes": [
+    {
+      "id": "rep271",
+      "name": "Sarrasin aux edamame et brocoli",
+      "category": "repas_complet",
+      "tags": { "objectif": ["perte_de_gras", "maintien"], "recup_jour_repos": true, "sport": ["muscu"], "temps_min": 25 },
+      "base_servings": 1,
+      "ingredients": [
+        { "ref": "edamame", "qty": 214, "macro_role": "protein", "scalable": true },
+        { "ref": "sarrasin", "qty": 70, "macro_role": "carb", "scalable": true },
+        { "ref": "lait_coco", "qty": 36, "macro_role": "fat", "scalable": true },
+        { "ref": "brocoli", "qty": 120, "macro_role": "vegetable", "scalable": false }
+      ],
+      "instructions": [
+        "Rince le sarrasin et fais-le cuire 12 minutes dans deux fois son volume d'eau salée, à couvert et à feu doux.",
+        "Détaille le brocoli en petits bouquets et fais-le cuire 6 minutes à la vapeur : il doit rester vert vif.",
+        "Fais cuire les edamame 5 minutes dans l'eau bouillante salée, puis égoutte-les.",
+        "Verse le lait de coco dans une sauteuse, porte à frémissement et laisse réduire 3 minutes en remuant.",
+        "Ajoute les edamame et le brocoli dans le lait de coco réduit, sale, poivre et mélange 2 minutes.",
+        "Dresse le sarrasin égoutté au fond de l'assiette et verse la préparation dessus."
+      ],
+      "why": "Les edamame et le sarrasin se complètent sur les acides aminés essentiels.",
+      "macros_per_serving": { "kcal": 630.9, "protein": 37.0, "carbs": 70.6, "fat": 20.5 },
+      "wave": "2026-08-02-b7-repas-vegan"
+    },
+    {
+      "id": "rep272",
+      "name": "Polenta poêlée aux edamame et tomates",
+      "category": "repas_complet",
+      "tags": { "objectif": ["perte_de_gras", "maintien"], "recup_jour_repos": true, "sport": ["muscu"], "temps_min": 25 },
+      "base_servings": 1,
+      "ingredients": [
+        { "ref": "edamame", "qty": 251, "macro_role": "protein", "scalable": true },
+        { "ref": "polenta", "qty": 57, "macro_role": "carb", "scalable": true },
+        { "ref": "graines_chia", "qty": 19, "macro_role": "fat", "scalable": true },
+        { "ref": "tomate", "qty": 110, "macro_role": "vegetable", "scalable": false },
+        { "ref": "champignons", "qty": 60, "macro_role": "vegetable", "scalable": false }
+      ],
+      "instructions": [
+        "Porte trois fois le volume de la polenta en eau salée à frémissement, verse la polenta en pluie et remue 5 minutes jusqu'à ce qu'elle épaississe.",
+        "Étale la polenta sur une assiette en couche d'un centimètre et laisse-la raffermir 8 minutes.",
+        "Fais cuire les edamame 5 minutes à l'eau bouillante salée, égoutte-les.",
+        "Coupe les tomates en quartiers et les champignons en lamelles, puis fais-les saisir 6 minutes à feu vif.",
+        "Coupe la polenta raffermie en cubes et fais-les dorer 4 minutes dans la même poêle.",
+        "Réunis polenta, edamame et légumes, sale, poivre et parsème de graines de chia."
+      ],
+      "why": "La polenta poêlée apporte une texture croustillante sans matière grasse ajoutée.",
+      "macros_per_serving": { "kcal": 631.9, "protein": 37.1, "carbs": 71.1, "fat": 20.2 },
+      "wave": "2026-08-02-b7-repas-vegan"
+    },
+    {
+      "id": "rep273",
+      "name": "Fèves mijotées à la tomate et quinoa",
+      "category": "repas_complet",
+      "tags": { "objectif": ["perte_de_gras", "maintien"], "recup_jour_repos": true, "sport": ["muscu"], "temps_min": 45 },
+      "base_servings": 1,
+      "ingredients": [
+        { "ref": "feves", "qty": 51, "macro_role": "protein", "scalable": true },
+        { "ref": "soja_texture", "qty": 25, "macro_role": "protein", "scalable": true },
+        { "ref": "quinoa", "qty": 60, "macro_role": "carb", "scalable": true },
+        { "ref": "lait_coco", "qty": 78, "macro_role": "fat", "scalable": true },
+        { "ref": "carotte", "qty": 90, "macro_role": "vegetable", "scalable": false },
+        { "ref": "oignon", "qty": 50, "macro_role": "vegetable", "scalable": false }
+      ],
+      "instructions": [
+        "Fais tremper les fèves la veille, égoutte-les, puis fais-les cuire 40 minutes dans un grand volume d'eau non salée.",
+        "Couvre la protéine de soja texturée d'eau bouillante salée, laisse-la gonfler 5 minutes et presse-la pour l'essorer.",
+        "Rince le quinoa et fais-le cuire 13 minutes dans deux fois son volume d'eau salée, à couvert.",
+        "Émince l'oignon et taille la carotte en rondelles, puis fais-les fondre 8 minutes à feu moyen avec le lait de coco.",
+        "Ajoute les fèves égouttées et le soja texturé essoré, sale, poivre et laisse mijoter 5 minutes.",
+        "Sers le mijoté sur le quinoa égrené à la fourchette."
+      ],
+      "why": "Le soja texturé complète les fèves pour atteindre la cible protéique du repas.",
+      "macros_per_serving": { "kcal": 656.3, "protein": 37.0, "carbs": 70.5, "fat": 20.4 },
+      "wave": "2026-08-02-b7-repas-vegan"
+    },
+    {
+      "id": "rep274",
+      "name": "Millet aux fèves et épinards",
+      "category": "repas_complet",
+      "tags": { "objectif": ["perte_de_gras", "maintien"], "recup_jour_repos": true, "sport": ["muscu"], "temps_min": 45 },
+      "base_servings": 1,
+      "ingredients": [
+        { "ref": "yaourt_soja_proteine", "qty": 172, "macro_role": "protein", "scalable": true },
+        { "ref": "feves", "qty": 45, "macro_role": "protein", "scalable": true },
+        { "ref": "millet", "qty": 62, "macro_role": "carb", "scalable": true },
+        { "ref": "huile_olive", "qty": 14, "macro_role": "fat", "scalable": true },
+        { "ref": "epinards", "qty": 110, "macro_role": "vegetable", "scalable": false }
+      ],
+      "instructions": [
+        "Fais tremper les fèves la veille, égoutte-les et fais-les cuire 40 minutes dans un grand volume d'eau non salée.",
+        "Fais revenir le millet sec 2 minutes dans l'huile d'olive, jusqu'à ce qu'il sente le grillé, puis couvre d'eau salée et cuis 15 minutes à couvert.",
+        "Fais tomber les épinards 2 minutes dans une poêle chaude, puis presse-les pour retirer l'eau rendue.",
+        "Écrase la moitié des fèves à la fourchette et laisse l'autre moitié entière, pour la texture.",
+        "Mélange le millet, les fèves et les épinards, sale et poivre généreusement.",
+        "Nappe de yaourt de soja au moment de servir, sans le chauffer."
+      ],
+      "why": "Le yaourt de soja apporte en sauce la protéine que les fèves seules n'atteignent pas.",
+      "macros_per_serving": { "kcal": 632.6, "protein": 37.0, "carbs": 70.5, "fat": 20.2 },
+      "wave": "2026-08-02-b7-repas-vegan"
+    },
+    {
+      "id": "rep275",
+      "name": "Chou-fleur rôti, sauce au yaourt de soja et riz complet",
+      "category": "repas_complet",
+      "tags": { "objectif": ["perte_de_gras", "maintien"], "recup_jour_repos": true, "sport": ["muscu"], "temps_min": 35 },
+      "base_servings": 1,
+      "ingredients": [
+        { "ref": "yaourt_soja_proteine", "qty": 278, "macro_role": "protein", "scalable": true },
+        { "ref": "riz_complet", "qty": 74, "macro_role": "carb", "scalable": true },
+        { "ref": "tahini", "qty": 25, "macro_role": "fat", "scalable": true },
+        { "ref": "chou_fleur", "qty": 130, "macro_role": "vegetable", "scalable": false }
+      ],
+      "instructions": [
+        "Détaille le chou-fleur en bouquets et fais-les rôtir 25 minutes à four chaud, en les retournant à mi-cuisson.",
+        "Fais cuire le riz complet 20 minutes dans un grand volume d'eau salée, puis égoutte-le.",
+        "Fouette le yaourt de soja avec le tahini, du sel et du poivre jusqu'à obtenir une sauce lisse.",
+        "Sers le riz en assiette creuse, dispose les bouquets de chou-fleur rôtis dessus.",
+        "Nappe généreusement de sauce au yaourt et donne un tour de moulin."
+      ],
+      "why": "Le yaourt de soja protéiné porte la charge protéique en sauce, sans cuisson.",
+      "macros_per_serving": { "kcal": 630.0, "protein": 37.0, "carbs": 70.1, "fat": 20.5 },
+      "wave": "2026-08-02-b7-repas-vegan"
+    },
+    {
+      "id": "rep276",
+      "name": "Polenta aux petits pois et poivron",
+      "category": "repas_complet",
+      "tags": { "objectif": ["perte_de_gras", "maintien"], "recup_jour_repos": true, "sport": ["muscu"], "temps_min": 20 },
+      "base_servings": 1,
+      "ingredients": [
+        { "ref": "proteine_vegetale", "qty": 40, "macro_role": "protein", "scalable": true },
+        { "ref": "polenta", "qty": 60, "macro_role": "carb", "scalable": true },
+        { "ref": "huile_olive", "qty": 16, "macro_role": "fat", "scalable": true },
+        { "ref": "petits_pois", "qty": 110, "macro_role": "vegetable", "scalable": false },
+        { "ref": "poivron", "qty": 70, "macro_role": "vegetable", "scalable": false }
+      ],
+      "instructions": [
+        "Porte trois fois le volume de la polenta en eau salée à frémissement, verse-la en pluie et remue 5 minutes jusqu'à épaississement.",
+        "Coupe le poivron en petits dés et fais-le revenir 5 minutes dans l'huile d'olive à feu vif.",
+        "Ajoute les petits pois et poursuis 4 minutes, jusqu'à ce qu'ils soient tendres.",
+        "Délaye la protéine végétale dans un peu d'eau tiède jusqu'à obtenir une pâte souple, puis incorpore-la à la polenta hors du feu.",
+        "Dresse la polenta en assiette creuse, couronne des légumes, sale et poivre."
+      ],
+      "why": "Une assiette réconfortante qui atteint la cible protéique sans produit animal.",
+      "macros_per_serving": { "kcal": 624.3, "protein": 39.9, "carbs": 65.9, "fat": 21.0 },
+      "wave": "2026-08-02-b7-repas-vegan"
+    },
+    {
+      "id": "rep277",
+      "name": "Maïs et haricots verts au soja texturé",
+      "category": "repas_complet",
+      "tags": { "objectif": ["perte_de_gras", "maintien"], "recup_jour_repos": true, "sport": ["muscu"], "temps_min": 20 },
+      "base_servings": 1,
+      "ingredients": [
+        { "ref": "soja_texture", "qty": 52, "macro_role": "protein", "scalable": true },
+        { "ref": "mais", "qty": 246, "macro_role": "carb", "scalable": true },
+        { "ref": "lait_coco", "qty": 80, "macro_role": "fat", "scalable": true },
+        { "ref": "haricots_verts", "qty": 110, "macro_role": "vegetable", "scalable": false }
+      ],
+      "instructions": [
+        "Couvre la protéine de soja texturée d'eau bouillante salée, laisse gonfler 5 minutes puis presse-la pour l'essorer.",
+        "Fais cuire les haricots verts 8 minutes à la vapeur : ils doivent rester fermes.",
+        "Fais dorer le soja texturé 4 minutes à feu vif dans une sauteuse chaude, sale et poivre.",
+        "Ajoute le maïs égoutté et le lait de coco, laisse mijoter 5 minutes à feu moyen jusqu'à ce que la sauce nappe.",
+        "Ajoute les haricots verts, mélange 1 minute et sers aussitôt."
+      ],
+      "why": "Le maïs et le soja texturé donnent un plat nourrissant sans gluten.",
+      "macros_per_serving": { "kcal": 632.1, "protein": 37.2, "carbs": 68.6, "fat": 20.3 },
+      "wave": "2026-08-02-b7-repas-vegan"
+    },
+    {
+      "id": "rep278",
+      "name": "Boulgour au seitan et courgette",
+      "category": "repas_complet",
+      "tags": { "objectif": ["perte_de_gras", "maintien"], "recup_jour_repos": true, "sport": ["muscu"], "temps_min": 25 },
+      "base_servings": 1,
+      "ingredients": [
+        { "ref": "seitan", "qty": 117, "macro_role": "protein", "scalable": true },
+        { "ref": "boulgour", "qty": 84, "macro_role": "carb", "scalable": true },
+        { "ref": "lait_coco", "qty": 83, "macro_role": "fat", "scalable": true },
+        { "ref": "courgette", "qty": 130, "macro_role": "vegetable", "scalable": false }
+      ],
+      "instructions": [
+        "Couvre le boulgour d'une fois et demie son volume d'eau bouillante salée et laisse-le gonfler 12 minutes à couvert.",
+        "Coupe le seitan en cubes et la courgette en demi-rondelles épaisses.",
+        "Fais dorer les cubes de seitan 5 minutes à feu vif, sur toutes leurs faces.",
+        "Ajoute la courgette et poursuis 5 minutes, jusqu'à ce qu'elle soit fondante mais encore tenue.",
+        "Verse le lait de coco, laisse réduire 4 minutes à feu moyen, sale et poivre.",
+        "Égrène le boulgour à la fourchette et verse la préparation par-dessus."
+      ],
+      "why": "Le seitan est l'ancre végétale la plus dense en protéines par gramme.",
+      "macros_per_serving": { "kcal": 635.5, "protein": 37.1, "carbs": 69.0, "fat": 20.4 },
+      "wave": "2026-08-02-b7-repas-vegan"
+    },
+    {
+      "id": "rep279",
+      "name": "Nouilles complètes sautées au seitan",
+      "category": "repas_complet",
+      "tags": { "objectif": ["perte_de_gras", "maintien"], "recup_jour_repos": true, "sport": ["muscu"], "temps_min": 20 },
+      "base_servings": 1,
+      "ingredients": [
+        { "ref": "seitan", "qty": 122, "macro_role": "protein", "scalable": true },
+        { "ref": "nouilles_completes", "qty": 83, "macro_role": "carb", "scalable": true },
+        { "ref": "huile_olive", "qty": 15, "macro_role": "fat", "scalable": true },
+        { "ref": "legumes_wok", "qty": 130, "macro_role": "vegetable", "scalable": false }
+      ],
+      "instructions": [
+        "Fais cuire les nouilles complètes 8 minutes à l'eau bouillante salée, égoutte-les et rince-les à l'eau froide.",
+        "Coupe le seitan en lanières fines.",
+        "Fais chauffer l'huile d'olive à feu vif et saisis les lanières de seitan 4 minutes sans trop les remuer.",
+        "Ajoute le mélange wok et saute 4 minutes : les légumes doivent rester croquants.",
+        "Verse les nouilles égouttées, mélange 2 minutes pour tout réchauffer, sale et poivre."
+      ],
+      "why": "Un plat sauté prêt en vingt minutes, à la cible protéique du repas complet.",
+      "macros_per_serving": { "kcal": 630.3, "protein": 36.9, "carbs": 70.8, "fat": 20.2 },
+      "wave": "2026-08-02-b7-repas-vegan"
+    },
+    {
+      "id": "rep280",
+      "name": "Semoule à la ratatouille et protéine végétale",
+      "category": "repas_complet",
+      "tags": { "objectif": ["perte_de_gras", "maintien"], "recup_jour_repos": true, "sport": ["muscu"], "temps_min": 20 },
+      "base_servings": 1,
+      "ingredients": [
+        { "ref": "proteine_vegetale", "qty": 40, "macro_role": "protein", "scalable": true },
+        { "ref": "semoule_couscous", "qty": 78, "macro_role": "carb", "scalable": true },
+        { "ref": "huile_olive", "qty": 17, "macro_role": "fat", "scalable": true },
+        { "ref": "ratatouille", "qty": 130, "macro_role": "vegetable", "scalable": false }
+      ],
+      "instructions": [
+        "Verse la semoule dans un saladier, couvre-la d'un volume égal d'eau bouillante salée, filme et laisse gonfler 5 minutes.",
+        "Fais réchauffer la ratatouille 6 minutes à feu moyen dans une sauteuse, à découvert, pour que l'eau s'évapore.",
+        "Délaye la protéine végétale dans un peu d'eau tiède jusqu'à obtenir une pâte souple, puis incorpore-la à la ratatouille.",
+        "Égrène la semoule à la fourchette en versant l'huile d'olive en filet.",
+        "Dresse la semoule et couronne-la de ratatouille, sale et poivre."
+      ],
+      "why": "Un plat de semoule complet en protéines, prêt en vingt minutes.",
+      "macros_per_serving": { "kcal": 624.5, "protein": 40.0, "carbs": 64.9, "fat": 22.1 },
+      "wave": "2026-08-02-b7-repas-vegan"
+    }
+  ]
+}

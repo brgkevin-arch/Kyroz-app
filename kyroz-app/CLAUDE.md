@@ -299,6 +299,18 @@ total continue de monter mais le créneau le plus rare du catalogue (les repas c
 des gros gabarits) se dégrade. Le raisonnement complet et les chiffres sont en
 `AGENTS.md` D16, le garde-fou en `lib/__tests__/mealProteinFloor.test.ts`.
 
+⚠️ **Ce plancher doit être passé à TOUS les chemins qui calculent une cible de repas, pas
+seulement à la sélection.** Corrigé le 2026-08-03 : `mealTarget` accepte le plancher en
+paramètre **optionnel**, et la passe de resserrage `tightenDay` l'omettait — il retombait
+donc à 0 en silence. Le garde-fou disparaissait exactement dans le cas qu'il existe pour
+couvrir (un jour dont le total dérive, c'est-à-dire un jour où les premiers repas ont mangé
+le budget des suivants). Mesuré sur 1 680 jours : pire cible protéique de la collation
+**32 % → 67 %** de sa part équitable, précision calorique du jour inchangée (0,382 →
+0,380 %), `carbs_below_target` 16 → 13. ➡️ **Un paramètre de sécurité ne doit pas avoir de
+valeur par défaut permissive** : ici, `= 0` a rendu l'oubli invisible pendant un jour
+entier de production. Le défaut était dormant depuis D16 et n'est apparu qu'en changeant
+le catalogue.
+
 Toute correction qui déplace les cibles doit incrémenter `ENGINE_REV` : un
 avertissement one-shot (`engine_notice`) explique alors le changement à
 l'utilisateur au-delà de 100 kcal/jour d'écart.

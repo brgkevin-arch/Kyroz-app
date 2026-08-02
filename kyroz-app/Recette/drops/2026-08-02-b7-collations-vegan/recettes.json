@@ -1,0 +1,172 @@
+{
+  "recipes": [
+    {
+      "id": "col87",
+      "name": "Tartine de yaourt de soja aux framboises",
+      "category": "collation",
+      "tags": { "objectif": ["perte_de_gras"], "recup_jour_repos": true, "sport": ["muscu"], "temps_min": 5 },
+      "base_servings": 1,
+      "ingredients": [
+        { "ref": "yaourt_soja_proteine", "qty": 131, "macro_role": "protein", "scalable": true },
+        { "ref": "pain_sans_gluten", "qty": 19, "macro_role": "carb", "scalable": true },
+        { "ref": "creme_soja", "qty": 19, "macro_role": "fat", "scalable": true },
+        { "ref": "framboises", "qty": 60, "macro_role": "fruit", "scalable": false }
+      ],
+      "instructions": [
+        "Fais griller la tranche de pain sans gluten jusqu'à ce qu'elle soit ferme sous le doigt.",
+        "Fouette le yaourt de soja avec la crème de soja et une pincée de sel, jusqu'à obtenir une texture lisse.",
+        "Étale la préparation sur la tartine et couvre de framboises écrasées à la fourchette."
+      ],
+      "why": "Le pain sans gluten donne une base solide à une collation protéinée.",
+      "macros_per_serving": { "kcal": 190.1, "protein": 14.0, "carbs": 16.1, "fat": 6.5 },
+      "wave": "2026-08-02-b7-collations-vegan"
+    },
+    {
+      "id": "col88",
+      "name": "Salade de maïs au yaourt de soja",
+      "category": "collation",
+      "tags": { "objectif": ["perte_de_gras"], "recup_jour_repos": true, "sport": ["muscu"], "temps_min": 5 },
+      "base_servings": 1,
+      "ingredients": [
+        { "ref": "yaourt_soja_proteine", "qty": 125, "macro_role": "protein", "scalable": true },
+        { "ref": "mais", "qty": 58, "macro_role": "carb", "scalable": true },
+        { "ref": "creme_soja", "qty": 23, "macro_role": "fat", "scalable": true },
+        { "ref": "poivron", "qty": 60, "macro_role": "vegetable", "scalable": false }
+      ],
+      "instructions": [
+        "Égoutte le maïs et taille le poivron en petits dés.",
+        "Fouette le yaourt de soja avec la crème de soja, du sel et du poivre pour obtenir une sauce nappante.",
+        "Mélange le maïs et le poivron à la sauce et sers frais."
+      ],
+      "why": "Une collation salée et fraîche, prête sans cuisson.",
+      "macros_per_serving": { "kcal": 190.9, "protein": 14.0, "carbs": 18.2, "fat": 6.4 },
+      "wave": "2026-08-02-b7-collations-vegan"
+    },
+    {
+      "id": "col89",
+      "name": "Crème de polenta au kiwi",
+      "category": "collation",
+      "tags": { "objectif": ["perte_de_gras"], "recup_jour_repos": true, "sport": ["muscu"], "temps_min": 10 },
+      "base_servings": 1,
+      "ingredients": [
+        { "ref": "proteine_vegetale", "qty": 16, "macro_role": "protein", "scalable": true },
+        { "ref": "polenta", "qty": 13, "macro_role": "carb", "scalable": true },
+        { "ref": "creme_soja", "qty": 32, "macro_role": "fat", "scalable": true },
+        { "ref": "kiwi", "qty": 70, "macro_role": "fruit", "scalable": false }
+      ],
+      "instructions": [
+        "Porte trois fois le volume de la polenta en eau à frémissement, verse-la en pluie et remue 5 minutes jusqu'à ce qu'elle épaississe.",
+        "Retire du feu, incorpore la crème de soja puis la protéine végétale en fouettant, pour éviter les grumeaux.",
+        "Pèle le kiwi, coupe-le en rondelles et dépose-les sur la crème tiède."
+      ],
+      "why": "Une collation sucrée qui atteint la cible protéique sans laitage.",
+      "macros_per_serving": { "kcal": 198.1, "protein": 14.4, "carbs": 19.6, "fat": 6.5 },
+      "wave": "2026-08-02-b7-collations-vegan"
+    },
+    {
+      "id": "col90",
+      "name": "Nouilles de riz froides au concombre",
+      "category": "collation",
+      "tags": { "objectif": ["perte_de_gras"], "recup_jour_repos": true, "sport": ["muscu"], "temps_min": 8 },
+      "base_servings": 1,
+      "ingredients": [
+        { "ref": "proteine_vegetale", "qty": 16, "macro_role": "protein", "scalable": true },
+        { "ref": "nouilles_riz", "qty": 18, "macro_role": "carb", "scalable": true },
+        { "ref": "creme_soja", "qty": 35, "macro_role": "fat", "scalable": true },
+        { "ref": "concombre", "qty": 70, "macro_role": "vegetable", "scalable": false }
+      ],
+      "instructions": [
+        "Plonge les nouilles de riz dans l'eau bouillante, coupe le feu et laisse-les gonfler 4 minutes, puis rince-les à l'eau froide.",
+        "Fouette la crème de soja avec la protéine végétale, du sel et du poivre, jusqu'à obtenir une sauce lisse.",
+        "Taille le concombre en bâtonnets et mélange-le aux nouilles égouttées et à la sauce."
+      ],
+      "why": "Un format froid et rassasiant, sans cuisson longue.",
+      "macros_per_serving": { "kcal": 192.1, "protein": 14.6, "carbs": 18.8, "fat": 6.5 },
+      "wave": "2026-08-02-b7-collations-vegan"
+    },
+    {
+      "id": "col91",
+      "name": "Galettes de riz au soja texturé et tomate",
+      "category": "collation",
+      "tags": { "objectif": ["perte_de_gras"], "recup_jour_repos": true, "sport": ["muscu"], "temps_min": 8 },
+      "base_servings": 1,
+      "ingredients": [
+        { "ref": "soja_texture", "qty": 24, "macro_role": "protein", "scalable": true },
+        { "ref": "galette_riz", "qty": 11, "macro_role": "carb", "scalable": true },
+        { "ref": "lait_coco", "qty": 29, "macro_role": "fat", "scalable": true },
+        { "ref": "tomate", "qty": 60, "macro_role": "vegetable", "scalable": false }
+      ],
+      "instructions": [
+        "Couvre le soja texturé de lait de coco chaud allongé d'un peu d'eau salée et laisse-le gonfler 5 minutes.",
+        "Coupe la tomate en dés et mélange-la au soja texturé réhydraté, sale et poivre.",
+        "Répartis la préparation sur les galettes de riz et sers aussitôt."
+      ],
+      "why": "Une collation salée croquante, montée en cinq minutes.",
+      "macros_per_serving": { "kcal": 193.2, "protein": 14.3, "carbs": 19.1, "fat": 6.4 },
+      "wave": "2026-08-02-b7-collations-vegan"
+    },
+    {
+      "id": "col92",
+      "name": "Champignons poêlés à la châtaigne",
+      "category": "collation",
+      "tags": { "objectif": ["perte_de_gras"], "recup_jour_repos": true, "sport": ["muscu"], "temps_min": 10 },
+      "base_servings": 1,
+      "ingredients": [
+        { "ref": "soja_texture", "qty": 23, "macro_role": "protein", "scalable": true },
+        { "ref": "chataigne", "qty": 22, "macro_role": "carb", "scalable": true },
+        { "ref": "lait_coco", "qty": 29, "macro_role": "fat", "scalable": true },
+        { "ref": "champignons", "qty": 60, "macro_role": "vegetable", "scalable": false }
+      ],
+      "instructions": [
+        "Couvre le soja texturé d'eau bouillante salée et laisse-le gonfler 5 minutes, puis presse-le pour l'essorer.",
+        "Émince les champignons et fais-les saisir 4 minutes à feu vif, sans les remuer au début.",
+        "Ajoute le soja texturé, les châtaignes écrasées et le lait de coco, mélange 1 minute et sers chaud."
+      ],
+      "why": "La châtaigne apporte des glucides doux à une collation salée.",
+      "macros_per_serving": { "kcal": 191.2, "protein": 14.2, "carbs": 17.3, "fat": 6.4 },
+      "wave": "2026-08-02-b7-collations-vegan"
+    },
+    {
+      "id": "col93",
+      "name": "Tempeh doré sur galettes et roquette",
+      "category": "collation",
+      "tags": { "objectif": ["maintien", "prise_de_masse"], "recup_jour_repos": true, "sport": ["muscu"], "temps_min": 10 },
+      "base_servings": 1,
+      "ingredients": [
+        { "ref": "tempeh", "qty": 129, "macro_role": "protein", "scalable": true },
+        { "ref": "galette_riz", "qty": 21, "macro_role": "carb", "scalable": true },
+        { "ref": "lait_coco", "qty": 10, "macro_role": "fat", "scalable": true },
+        { "ref": "roquette", "qty": 50, "macro_role": "vegetable", "scalable": false }
+      ],
+      "instructions": [
+        "Coupe le tempeh en tranches fines et fais-les dorer 5 minutes dans une poêle chaude à sec, en les retournant à mi-cuisson.",
+        "Arrose les tranches de lait de coco hors du feu, sale et poivre.",
+        "Dispose la roquette sur les galettes de riz et couvre du tempeh encore tiède."
+      ],
+      "why": "Une grosse collation salée qui couvre un besoin protéique élevé.",
+      "macros_per_serving": { "kcal": 316.4, "protein": 24.0, "carbs": 28.0, "fat": 9.0 },
+      "wave": "2026-08-02-b7-collations-vegan"
+    },
+    {
+      "id": "col94",
+      "name": "Seitan poêlé, pain complet et concombre",
+      "category": "collation",
+      "tags": { "objectif": ["maintien", "prise_de_masse"], "recup_jour_repos": true, "sport": ["muscu"], "temps_min": 10 },
+      "base_servings": 1,
+      "ingredients": [
+        { "ref": "seitan", "qty": 93, "macro_role": "protein", "scalable": true },
+        { "ref": "pain_complet", "qty": 46, "macro_role": "carb", "scalable": true },
+        { "ref": "creme_soja", "qty": 43, "macro_role": "fat", "scalable": true },
+        { "ref": "concombre", "qty": 70, "macro_role": "vegetable", "scalable": false }
+      ],
+      "instructions": [
+        "Coupe le seitan en dés et fais-les dorer 5 minutes dans une poêle chaude.",
+        "Taille le concombre en dés et mélange-le à la crème de soja, avec du sel et du poivre.",
+        "Fais griller le pain complet, garnis-le du seitan doré et du concombre à la crème."
+      ],
+      "why": "Le seitan porte une charge protéique élevée pour peu de calories.",
+      "macros_per_serving": { "kcal": 309.5, "protein": 25.0, "carbs": 28.1, "fat": 9.5 },
+      "wave": "2026-08-02-b7-collations-vegan"
+    }
+  ]
+}

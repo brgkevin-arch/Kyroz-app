@@ -6,9 +6,6 @@ Recette/
 ├── README.md                    ← ce fichier
 ├── BRIEF-GENERATION-RECETTES.md ← la SPEC : mesures, enveloppes, raisonnement. Ne pas transmettre tel quel.
 ├── lots/                        ← la COMMANDE, générée (npm run gen:lots). Un fichier = une conversation.
-│   ├── b7-pdej.md               ← 12 petits-déj végétaux  ⟵ à livrer, DANS CET ORDRE
-│   ├── b7-repas.md              ← 10 repas complets végétaux
-│   ├── b7-coll.md               ← 8 collations végétales
 │   └── annexe-collations-existantes.md
 └── drops/                       ← livraisons brutes REÇUES (archives, JAMAIS importées par le code)
     ├── 2026-06-16-refonte-adaptrecipe/
@@ -23,7 +20,10 @@ Recette/
     ├── 2026-08-02-b4-repas-denses/     (+20 repas complets, mergé)
     ├── 2026-08-02-b4-pdej-denses/      (+12 petits-déjeuners, mergé)
     ├── 2026-08-02-b5-collations-reecrites/ (23 collations RÉÉCRITES — pas ajoutées, mergé)
-    └── 2026-08-02-b6-collations-vegan/     (+7 collations vegan, mergé)
+    ├── 2026-08-02-b6-collations-vegan/     (+7 collations vegan, mergé)
+    ├── 2026-08-02-b7-pdej-vegan/           (+12 petits-déjeuners végétaux, mergé)
+    ├── 2026-08-02-b7-repas-vegan/          (+10 repas complets végétaux, mergé)
+    └── 2026-08-02-b7-collations-vegan/     (+8 collations végétales, mergé)
 ```
 
 ⚠️ **Une vague peut RÉÉCRIRE au lieu d'ajouter** (première fois : `b5`, 2026-08-02). Les ids
@@ -39,8 +39,16 @@ recettes reprises (`fondation` 100 → 92, etc.), le total ne bouge pas.
 sont mergés, donc leurs ids sont pris. Un brief qui les recommanderait serait une commande
 impossible à honorer, et le générateur refuse d'ailleurs de l'écrire. Leur définition reste dans
 `scripts/gen-brief-lot.ts` (marquée `livre`), la matière première dans `drops/`.
-**Les trois briefs présents aujourd'hui sont la vague B7** (30 recettes, commandée le 2026-08-02) :
-ils ne sont pas livrés. Motivation et mesures : `AGENTS.md`, fiche **D19**.
+La vague **B7** (30 recettes végétales) est livrée depuis le 2026-08-03 — motivation, mesures
+et leçons dans `AGENTS.md`, fiche **B7**.
+
+⚠️ **La vague B7 a été écrite ICI et non en conversation externe**, et c'est une exception
+assumée, pas un changement de convention. Ce qui l'a justifiée : ses contraintes sont
+arithmétiques (quatre bandes de macros, plafond par ancre, couples interdits, seuil R8), donc
+**la boucle écrire → contrôler → recaler compte plus que la rédaction**. Mesuré sur le lot :
+2 recettes sur 3 hors bandes au premier jet, 6 sur 30 réécrites après contrôle. En local le
+recalage coûte une seconde ; en conversation il coûte un aller-retour complet. ➡️ Le brief
+reste la bonne façon de COMMANDER — il a d'ailleurs servi de spec à l'écriture.
 
 ⚠️ `recettes-kyroz.json` est **importé par le code** (`lib/recipeData.ts`, `lib/__tests__/recipeFoodMap.test.ts`).
 Les fichiers de `drops/` sont de la matière première : on en extrait, on ne les branche jamais.

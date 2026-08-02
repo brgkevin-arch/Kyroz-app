@@ -835,7 +835,7 @@ export function nextPlanSeed(stored: string | null, reroll: boolean): number {
 // Version du moteur de génération : à incrémenter quand le scoring/sélection
 // change, pour que les plans EN CACHE se régénèrent automatiquement (la signature
 // change → l'auto-refresh de l'écran Plan rejoue la génération). v2 = lipides cadrés.
-const ENGINE_VERSION = 40; // v40 = lot B7-pdej, 12 petits-déjeuners végétaux ajoutés (pd111–pd122) — les plans en cache ne les verraient pas ; v39 = la pénalité de FAMILLE s'applique aussi au plan canonique (`FAMILY_SELECT_W_CANON`) — le 1er plan servi passe de 45,0 à 23,3 % de semaines avec quasi-doublon ; un plan en cache servirait encore l'ancienne composition ; v38 = rotation par FAMILLE (`FAMILY_FIBER_TOL`) — la composition de la semaine change, un plan en cache servirait l'ancienne rotation ; v37 = lot B6, 7 collations vegan ajoutées (col80–col86) — les plans en cache ne les verraient pas ; v36 = plancher protéique par repas (`PROT_SHARE_FLOOR`) — la répartition intra-journée change, les plans en cache serviraient l’ancienne ; v35 = lot B5, 20 collations réécrites (composition changée sous le même id → les plans en cache serviraient l’ancienne recette) ; v34 = lot B4, 32 recettes à l’enveloppe corrigée (rep251–rep270, pd99–pd110) — les plans en cache ne les verraient pas ; v33 = lot B3, 20 petits-déjeuners (pd79–pd98) — tous les lots commandés sont livrés ; v32 = lot B1-lot4, 20 repas complets — la vague B1 est complète (rep171–rep250) ; v31 = lot B1-lot3, 20 repas complets ; v30 = lot B1-lot2, 20 repas complets ; v29 = lot B1-lot1, 20 repas complets (les plans en cache ne les verraient pas) ; v28 = cible lipidique visée 15 % au-dessus du plancher (A9) — les plans en cache serviraient l'ancienne répartition ; v27 = lot B2, 13 collations légères (les plans en cache ne les verraient pas) ; v26 = banque de calories (les plans en cache ignoraient les écarts déclarés) ; v25 = borne basse de l'ancre protéine 1,0 → 0,5 (les plans en cache servaient l'ancien plancher) ; v24 = 9 recettes différenciées (nettoyage des doublons : composition modifiée) ; v23 = ancre protéine rendue à 8 recettes ; v22 = le temps de prépa ne filtre plus ; v21 = yaourt_grec démappé
+const ENGINE_VERSION = 40; // v40 = vague B7 : 30 recettes végétales ajoutées — 12 petits-déjeuners (pd111–pd122), 10 repas complets (rep271–rep280), 8 collations (col87–col94) ; les plans en cache ne les verraient pas ; v39 = la pénalité de FAMILLE s'applique aussi au plan canonique (`FAMILY_SELECT_W_CANON`) — le 1er plan servi passe de 45,0 à 23,3 % de semaines avec quasi-doublon ; un plan en cache servirait encore l'ancienne composition ; v38 = rotation par FAMILLE (`FAMILY_FIBER_TOL`) — la composition de la semaine change, un plan en cache servirait l'ancienne rotation ; v37 = lot B6, 7 collations vegan ajoutées (col80–col86) — les plans en cache ne les verraient pas ; v36 = plancher protéique par repas (`PROT_SHARE_FLOOR`) — la répartition intra-journée change, les plans en cache serviraient l’ancienne ; v35 = lot B5, 20 collations réécrites (composition changée sous le même id → les plans en cache serviraient l’ancienne recette) ; v34 = lot B4, 32 recettes à l’enveloppe corrigée (rep251–rep270, pd99–pd110) — les plans en cache ne les verraient pas ; v33 = lot B3, 20 petits-déjeuners (pd79–pd98) — tous les lots commandés sont livrés ; v32 = lot B1-lot4, 20 repas complets — la vague B1 est complète (rep171–rep250) ; v31 = lot B1-lot3, 20 repas complets ; v30 = lot B1-lot2, 20 repas complets ; v29 = lot B1-lot1, 20 repas complets (les plans en cache ne les verraient pas) ; v28 = cible lipidique visée 15 % au-dessus du plancher (A9) — les plans en cache serviraient l'ancienne répartition ; v27 = lot B2, 13 collations légères (les plans en cache ne les verraient pas) ; v26 = banque de calories (les plans en cache ignoraient les écarts déclarés) ; v25 = borne basse de l'ancre protéine 1,0 → 0,5 (les plans en cache servaient l'ancien plancher) ; v24 = 9 recettes différenciées (nettoyage des doublons : composition modifiée) ; v23 = ancre protéine rendue à 8 recettes ; v22 = le temps de prépa ne filtre plus ; v21 = yaourt_grec démappé
 
 export function profileSignature(p: UserProfile): string {
   // NB : `hidden_recipes` (👎) est VOLONTAIREMENT absent. Un 👎 remplace UN repas
@@ -888,7 +888,21 @@ const TIGHTEN_TOL_KCAL = 25;
 // Lissage hebdo : déviation kcal max autorisée pour UN jour autour de la cible
 // quotidienne (le reliquat est rattrapé sur les jours suivants → cible hebdo tenue).
 const DAILY_SMOOTH_CAP = 50;
-function tightenDay(dayMeals: Meal[], budgetKcal: number, budgetProtein: number, ratio: { carb: number; fat: number }): void {
+/**
+ * ⚠️ `protFloors` n'est PAS optionnel, et son absence était un trou dans D16.
+ *
+ * Le plancher protéique par repas (`PROT_SHARE_FLOOR`) est appliqué à la SÉLECTION,
+ * puis cette passe de resserrage ré-adaptait chaque repas en rappelant `mealTarget`
+ * **sans le plancher** — le paramètre étant optionnel, il retombait silencieusement à 0.
+ * Le garde-fou disparaissait donc exactement dans le cas qu'il existe pour couvrir :
+ * un jour dont le total dérive, c'est-à-dire un jour où les premiers repas ont mangé
+ * le budget des suivants. Mesuré le 2026-08-03 sur `F 70 masse` : cible protéique
+ * demandée à la collation **5,0 g** pour une part équitable de 12,5 g — la valeur
+ * d'AVANT le correctif D16, réapparue par la petite porte.
+ * Découvert parce que la vague B7 a changé les recettes servies et fait déborder un
+ * jour qui ne débordait pas : le défaut était là depuis D16, dormant.
+ */
+function tightenDay(dayMeals: Meal[], budgetKcal: number, budgetProtein: number, ratio: { carb: number; fat: number }, protFloors: Partial<Record<MealType, number>>): void {
   if (dayMeals.length === 0) return;
   const distBefore = Math.abs(budgetKcal - dayMeals.reduce((s, m) => s + m.macros.kcal, 0));
   if (distBefore <= TIGHTEN_TOL_KCAL) return; // déjà dans la cible (plan canonique)
@@ -904,7 +918,7 @@ function tightenDay(dayMeals: Meal[], budgetKcal: number, budgetProtein: number,
     let moved = false;
     for (const m of dayMeals) {
       const w = m.macros.kcal; // poids = kcal courantes ; un repas saturé pèse moins au tour suivant
-      const target = mealTarget(remK, remP, w, remW, ratio);
+      const target = mealTarget(remK, remP, w, remW, ratio, protFloors[m.meal_type] ?? 0);
       const a = adaptRecipe(m.recipe, target);
       if (Math.abs(a.macros.kcal - m.macros.kcal) > 2) moved = true;
       m.macros = a.macros;
@@ -1143,6 +1157,10 @@ export function buildLocalPlan(profile: UserProfile, seed: number = 0): MealPlan
       Math.max(dayCibleKcal - fixedDailyKcal, 0),
       Math.max(profile.target_protein_g - fixedDailyProtein, 0),
       dayRatio,
+      // Le MÊME plancher qu'à la sélection, par créneau — sinon le resserrage le perd.
+      Object.fromEntries(allMealTypes.map((t) => [
+        t, PROT_SHARE_FLOOR * profile.target_protein_g * (distribution[t] / totalWeight),
+      ])) as Partial<Record<MealType, number>>,
     );
     meals.push(...dayMeals);
 

@@ -75,12 +75,12 @@ qu'ils étaient périmés.
 | Réglages inertes | **aucun** — les 13 réglages réglables depuis l'UI changent tous le plan servi (recettes et/ou portions), vérifié un par un | `npm run mesure:reglages` |
 | Reroll (« Régénérer mon plan ») | 1ers repas qui changent : **repetitive 51 % · balanced 78 % · max 83 %** (13,7 % pour tous avant A21) | `npm run mesure:reroll` |
 | Anti-doublons | R1 81 · R2 70 · R4 14 · R5 17 · R7 0 — **figés par un test**, inchangés par B6 | `npm run check:doublons` |
-| Sous le seuil R8 | ⚠️ petit-déj **37/122** · repas complets **73/270** · collation **5/86** — chantier B7 (D19), **lot 1 sur 3 livré** (12 petits-déj végétaux) | `npm run mesure:seuils` |
-| Ce que ça coûte au SERVICE | **779 repas servis sur 10 752 (7,2 %)** viennent d'une recette sous le seuil — 935 (8,7 %) avant B7-pdej | `npm run mesure:vivier` |
-| Vivier vu par UN utilisateur | croisement gabarit × **régime** × créneau. Les cellules les plus pauvres en familles sont TOUTES vegan/vegan+SG, et désormais **toutes en collation ou en repas complet** — B7-pdej a vidé le créneau petit-déj de ce classement. Pire : collation · F 55 sèche · vegan+SG = **3 recettes, 2 familles** | idem |
-| Moyenne R8 par créneau | petit-déj **8,56/12** · repas complets **8,55** · collation **7,09** (8,27 / 8,51 / 7,38 avant B7-pdej · 7,62 avant D18 · 7,19 avant B6 · 4,52 avant B5) | idem |
-| Vegan | petit-déj **56/122** · repas 79/270 · collation 43/86 — comptage CATALOGUE (`restrictions_ok`) | compter `restrictions_ok` par créneau |
-| Vegan + sans gluten | petit-déj **42/122** · repas 42 · collation 34 | idem |
+| Sous le seuil R8 | ⚠️ petit-déj **37/122** · repas complets **71/280** · collation **5/94** — chantier B7 (D19) **LIVRÉ** : 30 recettes végétales en 3 lots | `npm run mesure:seuils` |
+| Ce que ça coûte au SERVICE | **573 repas servis sur 10 752 (5,3 %)** viennent d'une recette sous le seuil — **935 (8,7 %) avant la vague B7** | `npm run mesure:vivier` |
+| Vivier vu par UN utilisateur | croisement gabarit × **régime** × créneau. Les cellules les plus pauvres restent vegan/vegan+SG. Pire : collation · F 55 sèche · vegan+SG = **7 recettes, 6 familles** — c'était **3 et 2** avant B7 | idem |
+| Moyenne R8 par créneau | petit-déj **8,55/12** · repas complets **8,63** · collation **6,99** (8,27 / 8,51 / 7,38 avant B7 · 7,62 avant D18 · 7,19 avant B6 · 4,52 avant B5) | idem |
+| Vegan | petit-déj **56/122** · repas **89/280** · collation **51/94** — comptage CATALOGUE (`restrictions_ok`) | compter `restrictions_ok` par créneau |
+| Vegan + sans gluten | petit-déj **42/122** · repas **49/280** · collation **41/94** | idem |
 
 **Les six chantiers du 2026-08-02, dans l'ordre où ils se sont enchaînés** — chacun a sa
 fiche : **D14** (lot B4, 32 recettes à l'enveloppe corrigée), **D15** (lot B5, 23
@@ -213,14 +213,26 @@ objet, le défaut réel était dans le moteur, cf. D18 · D3 est **TRANCHÉ ET C
 d'axe allergène, le chemin « aliments à éviter » réparé, cf. D3 · C1, le layout tablette,
 est **FERMÉ** le 2026-08-01, `supportsTablet` est à `true`.)*
 
-1. **🤖 B7 — l'audit R8 des deux créneaux qui ne l'ont jamais eu. ✅ COMMANDÉ le 2026-08-02
-   (fondateur : « on va enrichir les recettes dont on a besoin »).** Trois briefs générés,
-   **30 recettes**, tous végétaux : `b7-pdej` (12 petits-déj) · `b7-repas` (10 repas
-   complets) · `b7-coll` (8 collations). Un par conversation, **dans cet ordre**, et
-   régénérer les suivants après chaque merge. Ce qui reste à faire est la chaîne d'accueil
-   habituelle (`Recette/README.md` §« Ajouter des recettes ») : `check:doublons`,
-   `check:enveloppe`, `ENGINE_VERSION` +1, compteurs de test.
-   Le diagnostic qui l'a orienté ne sera pas à refaire : D15 avait audité les collations, jamais les deux autres créneaux —
+1. ~~**🤖 B7 — l'audit R8 des deux créneaux qui ne l'ont jamais eu**~~ ✅ **LIVRÉ le
+   2026-08-03** (fondateur : « on va enrichir les recettes dont on a besoin », puis
+   « je les génère ici »). **30 recettes végétales**, catalogue 466 → 496 :
+   `b7-pdej` (12) · `b7-repas` (10) · `b7-coll` (8). Résultats mesurés :
+   - part des repas servis venant d'une recette sous le seuil : **8,7 % → 5,3 %** ;
+   - pire cellule du catalogue (collation · F 55 sèche · vegan+SG) : **3 recettes /
+     2 familles → 7 / 6** ; petit-déj · H 110 masse · vegan+SG : **12 / 9 → 21 / 18** ;
+   - moyennes R8 : petit-déj 8,27 → **8,55** · repas complets 8,51 → **8,63** ·
+     collation 7,38 → **6,99** ⚠️ (cf. le piège de mesure ci-dessous).
+   🔁 **Écrites ICI, pas en conversation externe** — première fois. Ce que ça change,
+   mesuré : **2 recettes sur 3 sortaient des bandes au premier jet**, et 6 sur 30 ont dû
+   être RÉÉCRITES après contrôle (doublon R1/R2, seuil R8, ancre à son plafond). Chaque
+   recalage a coûté une seconde au lieu d'une conversation. ➡️ Le brief reste la bonne
+   commande ; c'est la BOUCLE qui gagne à être locale.
+   🐛 **Un défaut du moteur trouvé au passage, dormant depuis D16** : `tightenDay`
+   rappelait `mealTarget` **sans le plancher protéique** (paramètre optionnel → 0), donc
+   la passe de resserrage annulait D16 exactement dans le cas qu'il couvre. Pire cible
+   protéique de la collation : **32 % → 67 %** de la part équitable, précision calorique
+   inchangée (0,382 → 0,380 %). Corrigé, garde-fou `mealProteinFloor.test.ts`.
+   Le diagnostic d'origine, pour mémoire : D15 avait audité les collations, jamais les deux autres créneaux —
    mesuré, **37 petits-déj sur 110 (34 %) et 74 repas complets sur 270 (27 %) sont sous le
    seuil de 8/12**, dont 4 à ZÉRO profil dans chaque créneau. Cause première déjà
    identifiée : les recettes **sans `carb`** (13 en petit-déj, moyenne 2,69/12 contre 9,02
@@ -1725,9 +1737,16 @@ produit en suspens — il ne reste qu'à coder.
   ➡️ À régler **en écrivant ailleurs**, jamais en réécrivant une recette au hasard : le
   générateur de briefs (`scripts/gen-brief-lot.ts`) publie déjà les couples saturés et les
   ancres encore ouvertes dans chaque §7.
-- **D19 · 🤖 B7 — l'audit R8 du petit-déj et du repas complet. ✅ COMMANDÉ le 2026-08-02**
-  (fondateur : « on va enrichir les recettes dont on a besoin ») — 3 briefs, 30 recettes,
-  dans `Recette/lots/`. Reste la chaîne d'accueil au retour des lots.
+- **D19 · 🤖 B7 — l'audit R8 du petit-déj et du repas complet. ✅ LIVRÉ le 2026-08-03** —
+  30 recettes végétales, catalogue 466 → 496. Chiffres et leçons dans la fiche B7 du
+  §« Chantiers ouverts ». Ce qui suit est le diagnostic d'origine, conservé parce qu'il
+  explique les choix.
+  ⚠️ **Neuvième occurrence du piège de mesure, et la plus contre-intuitive** : ajouter
+  12 petits-déjeuners a fait passer la collation de **3 à 5 recettes sous le seuil** et sa
+  moyenne de 7,38 à 7,09, **sans qu'aucune collation soit touchée**. Les cibles de l'audit
+  sont reconstruites depuis des plans générés : changer les recettes du matin change les
+  plans, donc les cibles du soir. ➡️ Ne jamais lire une variation de créneau comme un effet
+  de ce qu'on vient d'écrire dans CE créneau.
   Trouvé en mesurant D4 : l'audit que D15 avait mené sur les collations n'avait **jamais**
   été fait sur les deux autres créneaux.
 
