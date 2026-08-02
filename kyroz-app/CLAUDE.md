@@ -345,6 +345,17 @@ réparait la première impression. ➡️ **Tout nudge de qualité doit s'appliq
 aussi**, quitte à être plus doux (0.03 au lieu de 0.04 : au-delà, un repas hors cible
 apparaît, et le canonique doit rester à zéro). Contrôle : `npm run mesure:variete -- --seeds=0`.
 
+⚠️ **CE QUI A ÉTÉ MANGÉ NE SE RE-PLANIFIE PAS** (2026-08-02, `carryTracking`). Générer
+un plan remplaçait l'ancien sans le regarder — donc l'auto-refresh effaçait, en pleine
+journée, les repas marqués « mangé », les portions consommées et les écarts hors plan.
+Mesuré : **1 448 kcal déjà avalées oubliées en moyenne**, après quoi l'app replanifiait
+une journée pleine par-dessus. ➡️ **Un statut de suivi est un FAIT, pas une préférence :
+aucune génération n'a le droit de l'effacer.** Le report est asymétrique — un repas
+*mangé* est conservé ENTIER (recette + macros), un repas *sauté* ne garde que son statut.
+La péremption reste au changement de JOUR (`resetTracking`), nulle part ailleurs.
+⚠️ Corollaire pour les livraisons : **un bump d'`ENGINE_VERSION` déclenche l'auto-refresh
+chez tout le monde**. Ce n'est pas une opération neutre côté utilisateur.
+
 ⚠️ **Le plan que l'utilisateur s'est CHOISI ne se jette pas** (2026-08-02, `nextPlanSeed`).
 L'écran Plan remettait le tirage à zéro à chaque génération non-reroll — donc à chaque
 changement de réglage, via l'auto-refresh. L'utilisateur perdait la semaine qu'il avait

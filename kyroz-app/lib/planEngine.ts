@@ -1489,3 +1489,52 @@ export function resetTracking(profile: UserProfile, plan: MealPlan): MealPlan {
   for (let d = 1; d <= plan.days; d++) next = rebalanceDay(profile, next, d);
   return next;
 }
+
+/**
+ * Reporte le SUIVI d'un plan sur le plan qui le remplace.
+ *
+ * ⚠️ Corrige un défaut mesuré le 2026-08-02, et c'en est un de JUSTESSE, pas de
+ * confort. `generate()` remplaçait le plan par un `buildLocalPlan` neuf — sans jamais
+ * regarder l'ancien. Or l'auto-refresh de l'écran Plan le déclenche dès qu'un réglage
+ * change, à n'importe quelle heure de la journée. Tout ce que l'utilisateur avait posé
+ * disparaissait : repas marqués « mangé », portions réellement consommées
+ * (`locked_macros`), écarts hors plan (`day_extras`), date de suivi. Mesuré sur le
+ * panel de référence : **1 448 kcal déjà mangées oubliées en moyenne** (2 130 au pire),
+ * après quoi l'app replanifiait une journée PLEINE par-dessus. Pour une app de sèche,
+ * ce n'est pas une gêne — c'est un conseil faux.
+ *
+ * Ce qui est reporté, et pourquoi c'est asymétrique :
+ *  - **mangé** → on garde le repas ENTIER de l'ancien plan. Ce qu'il a avalé est un
+ *    FAIT : la recette, les portions et les macros consommées ne se re-planifient pas.
+ *  - **sauté** → seul le statut est reporté. Le créneau est décidé, mais la recette
+ *    qu'il n'aura pas mangée peut parfaitement changer avec ses nouveaux réglages.
+ *  - `day_extras` et `tracking_date` suivent tels quels.
+ *
+ * Les jours touchés sont recalés (`rebalanceDay`) pour que les repas RESTANTS absorbent
+ * le bon budget — sinon la journée compterait deux fois ce qui a déjà été mangé.
+ *
+ * Composé avec `resetTracking` : reporter une `tracking_date` de la veille est sans
+ * danger, l'écran remet la journée à zéro au changement de date. Ici on ne décide pas
+ * de la péremption, on évite juste la perte.
+ */
+export function carryTracking(profile: UserProfile, ancien: MealPlan | null | undefined, nouveau: MealPlan): MealPlan {
+  if (!ancien?.tracking_date) return nouveau;
+  // Les ids de repas sont `${jour}-${créneau}` : stables d'une génération à l'autre.
+  const parId = new Map(ancien.meals.map((m) => [m.id, m]));
+  const joursTouches = new Set<number>();
+  const meals = nouveau.meals.map((m) => {
+    const av = parId.get(m.id);
+    if (!av?.status) return m;
+    joursTouches.add(m.day);
+    return av.status === 'eaten' ? av : { ...m, status: av.status };
+  });
+  for (const d of Object.keys(ancien.day_extras ?? {})) joursTouches.add(Number(d));
+  if (joursTouches.size === 0) return nouveau;
+  let next: MealPlan = {
+    ...nouveau, meals,
+    day_extras: ancien.day_extras,
+    tracking_date: ancien.tracking_date,
+  };
+  for (const d of joursTouches) if (d >= 1 && d <= next.days) next = rebalanceDay(profile, next, d);
+  return next;
+}
