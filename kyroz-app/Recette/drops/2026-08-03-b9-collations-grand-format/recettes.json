@@ -1,0 +1,172 @@
+{
+  "recipes": [
+    {
+      "id": "col103",
+      "name": "Tempeh et châtaignes sur roquette",
+      "category": "collation",
+      "tags": { "objectif": ["maintien", "prise_de_masse"], "recup_jour_repos": true, "sport": ["muscu"], "temps_min": 10 },
+      "base_servings": 1,
+      "ingredients": [
+        { "ref": "tempeh", "qty": 115, "macro_role": "protein", "scalable": true },
+        { "ref": "chataigne", "qty": 80, "macro_role": "carb", "scalable": true },
+        { "ref": "creme_soja", "qty": 49, "macro_role": "fat", "scalable": true },
+        { "ref": "roquette", "qty": 50, "macro_role": "vegetable", "scalable": false }
+      ],
+      "instructions": [
+        "Coupe le tempeh en dés et fais-les dorer 5 minutes dans une poêle chaude à sec.",
+        "Ajoute les châtaignes écrasées grossièrement et la crème de soja, laisse chauffer 2 minutes, sale et poivre.",
+        "Dresse sur un lit de roquette et sers tiède."
+      ],
+      "why": "Un format nourrissant pour les gros gabarits, sans passer par un repas complet.",
+      "macros_per_serving": { "kcal": 420.2, "protein": 23.0, "carbs": 40.6, "fat": 14.4 },
+      "wave": "2026-08-03-b9-collations-grand-format"
+    },
+    {
+      "id": "col104",
+      "name": "Nouilles de riz aux edamame et carotte",
+      "category": "collation",
+      "tags": { "objectif": ["maintien", "prise_de_masse"], "recup_jour_repos": false, "sport": ["muscu"], "temps_min": 10 },
+      "base_servings": 1,
+      "ingredients": [
+        { "ref": "edamame", "qty": 176, "macro_role": "protein", "scalable": true },
+        { "ref": "nouilles_riz", "qty": 35, "macro_role": "carb", "scalable": true },
+        { "ref": "lait_coco", "qty": 26, "macro_role": "fat", "scalable": true },
+        { "ref": "carotte", "qty": 70, "macro_role": "vegetable", "scalable": false }
+      ],
+      "instructions": [
+        "Plonge les nouilles de riz dans l'eau bouillante avec les edamame, coupe le feu et laisse 5 minutes, puis égoutte.",
+        "Râpe la carotte et mélange-la au lait de coco avec du sel et du poivre.",
+        "Réunis les nouilles, les edamame et la carotte, et sers tiède ou froid."
+      ],
+      "why": "Les edamame portent la protéine sans alourdir un format déjà généreux.",
+      "macros_per_serving": { "kcal": 420.5, "protein": 23.0, "carbs": 48.8, "fat": 14.5 },
+      "wave": "2026-08-03-b9-collations-grand-format"
+    },
+    {
+      "id": "col105",
+      "name": "Galettes garnies de tofu et tomate",
+      "category": "collation",
+      "tags": { "objectif": ["maintien", "prise_de_masse"], "recup_jour_repos": false, "sport": ["muscu"], "temps_min": 10 },
+      "base_servings": 1,
+      "ingredients": [
+        { "ref": "tofu_ferme", "qty": 125, "macro_role": "protein", "scalable": true },
+        { "ref": "galette_riz", "qty": 55, "macro_role": "carb", "scalable": true },
+        { "ref": "creme_soja", "qty": 10, "macro_role": "fat", "scalable": true },
+        { "ref": "tomate", "qty": 70, "macro_role": "vegetable", "scalable": false }
+      ],
+      "instructions": [
+        "Écrase le tofu à la fourchette et fais-le revenir 5 minutes à feu vif, sale et poivre.",
+        "Mélange-le hors du feu à la crème de soja et à la tomate coupée en dés.",
+        "Répartis la préparation sur les galettes de riz et sers aussitôt."
+      ],
+      "why": "Une garniture salée généreuse sur une base sans gluten.",
+      "macros_per_serving": { "kcal": 421.1, "protein": 22.0, "carbs": 49.1, "fat": 14.1 },
+      "wave": "2026-08-03-b9-collations-grand-format"
+    },
+    {
+      "id": "col106",
+      "name": "Polenta au tofu fumé et poivron",
+      "category": "collation",
+      "tags": { "objectif": ["maintien", "prise_de_masse"], "recup_jour_repos": false, "sport": ["muscu"], "temps_min": 10 },
+      "base_servings": 1,
+      "ingredients": [
+        { "ref": "tofu_fume", "qty": 87, "macro_role": "protein", "scalable": true },
+        { "ref": "polenta", "qty": 59, "macro_role": "carb", "scalable": true },
+        { "ref": "graines_courge", "qty": 10, "macro_role": "fat", "scalable": true },
+        { "ref": "champignons", "qty": 70, "macro_role": "vegetable", "scalable": false }
+      ],
+      "instructions": [
+        "Porte trois fois le volume de la polenta en eau salée à frémissement, verse-la en pluie et remue 5 minutes.",
+        "Émince les champignons et le tofu fumé, fais-les saisir 4 minutes à feu vif sans les remuer au début.",
+        "Dresse la polenta, couronne du tofu aux champignons et parsème de graines de courge concassées."
+      ],
+      "why": "Le tofu fumé donne du caractère à une collation chaude et rassasiante.",
+      "macros_per_serving": { "kcal": 425.7, "protein": 22.0, "carbs": 48.0, "fat": 14.5 },
+      "wave": "2026-08-03-b9-collations-grand-format"
+    },
+    {
+      "id": "col107",
+      "name": "Maïs au soja texturé et haricots verts",
+      "category": "collation",
+      "tags": { "objectif": ["maintien", "prise_de_masse"], "recup_jour_repos": true, "sport": ["muscu"], "temps_min": 10 },
+      "base_servings": 1,
+      "ingredients": [
+        { "ref": "soja_texture", "qty": 31, "macro_role": "protein", "scalable": true },
+        { "ref": "mais", "qty": 169, "macro_role": "carb", "scalable": true },
+        { "ref": "lait_coco", "qty": 57, "macro_role": "fat", "scalable": true },
+        { "ref": "haricots_verts", "qty": 70, "macro_role": "vegetable", "scalable": false }
+      ],
+      "instructions": [
+        "Couvre le soja texturé d'eau bouillante salée, laisse gonfler 5 minutes puis presse-le pour l'essorer.",
+        "Fais cuire les haricots verts 6 minutes à la vapeur, ils doivent rester fermes.",
+        "Réunis le maïs égoutté, le soja texturé et les haricots verts avec le lait de coco, sale et poivre."
+      ],
+      "why": "Un plat de collation complet, sans gluten et sans produit animal.",
+      "macros_per_serving": { "kcal": 420.2, "protein": 23.0, "carbs": 45.5, "fat": 14.3 },
+      "wave": "2026-08-03-b9-collations-grand-format"
+    },
+    {
+      "id": "col108",
+      "name": "Bol de maïs aux légumes wok et tahini",
+      "category": "collation",
+      "tags": { "objectif": ["maintien", "prise_de_masse"], "recup_jour_repos": true, "sport": ["muscu"], "temps_min": 10 },
+      "base_servings": 1,
+      "ingredients": [
+        { "ref": "proteine_vegetale", "qty": 18, "macro_role": "protein", "scalable": true },
+        { "ref": "mais", "qty": 203, "macro_role": "carb", "scalable": true },
+        { "ref": "tahini", "qty": 18, "macro_role": "fat", "scalable": true },
+        { "ref": "legumes_wok", "qty": 80, "macro_role": "vegetable", "scalable": false }
+      ],
+      "instructions": [
+        "Fais sauter les légumes wok 5 minutes à feu vif, ils doivent rester croquants.",
+        "Détends le tahini avec deux cuillères d'eau et la protéine végétale, jusqu'à obtenir une sauce lisse.",
+        "Réunis le maïs égoutté et les légumes, nappe de sauce, sale et poivre."
+      ],
+      "why": "Un bol salé généreux qui atteint la cible protéique sans laitage.",
+      "macros_per_serving": { "kcal": 419.7, "protein": 23.0, "carbs": 45.4, "fat": 14.5 },
+      "wave": "2026-08-03-b9-collations-grand-format"
+    },
+    {
+      "id": "col109",
+      "name": "Mousse de tofu soyeux aux myrtilles",
+      "category": "collation",
+      "tags": { "objectif": ["maintien", "prise_de_masse"], "recup_jour_repos": true, "sport": ["muscu"], "temps_min": 8 },
+      "base_servings": 1,
+      "ingredients": [
+        { "ref": "tofu_soyeux", "qty": 402, "macro_role": "protein", "scalable": true },
+        { "ref": "chataigne", "qty": 78, "macro_role": "carb", "scalable": true },
+        { "ref": "creme_soja", "qty": 10, "macro_role": "fat", "scalable": true },
+        { "ref": "myrtilles", "qty": 70, "macro_role": "fruit", "scalable": false }
+      ],
+      "instructions": [
+        "Égoutte le tofu soyeux et mixe-le avec les châtaignes et la crème de soja, jusqu'à obtenir une mousse lisse.",
+        "Sale légèrement pour relever le goût, puis répartis dans un bol.",
+        "Couvre de myrtilles et sers immédiatement."
+      ],
+      "why": "Le tofu soyeux donne du volume pour très peu de calories au gramme.",
+      "macros_per_serving": { "kcal": 420.3, "protein": 21.0, "carbs": 42.4, "fat": 14.7 },
+      "wave": "2026-08-03-b9-collations-grand-format"
+    },
+    {
+      "id": "col110",
+      "name": "Lentilles et concombre sur galettes croquantes",
+      "category": "collation",
+      "tags": { "objectif": ["maintien", "prise_de_masse"], "recup_jour_repos": true, "sport": ["muscu"], "temps_min": 8 },
+      "base_servings": 1,
+      "ingredients": [
+        { "ref": "lentilles_cuites", "qty": 129, "macro_role": "protein", "scalable": true },
+        { "ref": "galette_riz", "qty": 31, "macro_role": "carb", "scalable": true },
+        { "ref": "graines_courge", "qty": 23, "macro_role": "fat", "scalable": true },
+        { "ref": "concombre", "qty": 70, "macro_role": "vegetable", "scalable": false }
+      ],
+      "instructions": [
+        "Égoutte les lentilles et taille le concombre en petits dés.",
+        "Fais griller les graines de courge 2 minutes à sec, puis concasse-les au couteau.",
+        "Mélange lentilles et concombre, sale, poivre, répartis sur les galettes et parsème de graines."
+      ],
+      "why": "Les lentilles prêtes à consommer évitent tout temps de cuisson.",
+      "macros_per_serving": { "kcal": 433.4, "protein": 22.9, "carbs": 48.3, "fat": 13.1 },
+      "wave": "2026-08-03-b9-collations-grand-format"
+    }
+  ]
+}

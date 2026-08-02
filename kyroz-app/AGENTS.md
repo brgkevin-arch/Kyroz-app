@@ -70,16 +70,16 @@ qu'ils étaient périmés.
 | Plateformes | iPhone **+ iPad** (`supportsTablet: true` depuis le 2026-08-01). ⚠️ **portrait sur iPhone, MAIS les 4 orientations sur iPad** — Expo les force dès `supportsTablet`, le multitâche iPadOS l'impose, ce n'est pas refermable. Vérifié en natif (iPad Pro 13") et à 1366×1024 | `ios/Kyroz/Info.plist` généré, PAS `app.json` · `lib/layout.ts` |
 | Site déployé | **automatique** : GitHub Actions à chaque push `main` (`build_type: workflow`). ⚠️ **NE PAS lire `origin/gh-pages`** — branche morte, cf. A12 | `gh run list --workflow=deploy.yml` |
 | Migrations Supabase | les **15** jouées, `2026-08-02_profiles_birth_date.sql` comprise. ⚠️ **Ne jamais annoncer une migration « en attente » sans lancer la commande** — le dépôt ne sait rien de la prod, et deux lignes d'ici l'ont dit à tort pendant des jours | `npm run check:migrations` |
-| Variété perçue | semaines servant 2 recettes d'un même couple : **max 11,7 %** (12,5 % avant B8 · 20,8 % avant B7 · 27,5 / 26,3 % avant A25 · 56,3 % avant D18) | `npm run mesure:variete -- --variete=…` |
-| Variété perçue **par régime** | aucun 6,2 % · végétarien 14,6 % · sans gluten 6,2 % · vegan 8,3 % · **vegan+SG 22,9 %**. Trajectoire de la cible : **50 % → 35,4 % (B7) → 22,9 % (B8)** | `npm run mesure:variete -- --detail` |
+| Variété perçue | semaines servant 2 recettes d'un même couple : **max 10,0 %** (11,7 % avant B9 · 12,5 % avant B8 · 20,8 % avant B7 · 27,5 / 26,3 % avant A25 · 56,3 % avant D18) | `npm run mesure:variete -- --variete=…` |
+| Variété perçue **par régime** | **vegan+SG 16,7 %** — trajectoire de la cible : **50 % → 35,4 % (B7) → 22,9 % (B8) → 16,7 % (B9)** | `npm run mesure:variete -- --detail` |
 | Premier plan servi | plan **canonique** (seed 0) : **10,0 %** de semaines avec quasi-doublon (23,3 % avant B7 · **45,0 % avant A25**, où le 1er plan était le PIRE des trois) | `npm run mesure:variete -- --seeds=0` |
 | Réglages inertes | **aucun** — les 13 réglages réglables depuis l'UI changent tous le plan servi (recettes et/ou portions), vérifié un par un | `npm run mesure:reglages` |
 | Reroll (« Régénérer mon plan ») | 1ers repas qui changent : **repetitive 51 % · balanced 78 % · max 83 %** (13,7 % pour tous avant A21) | `npm run mesure:reroll` |
 | Anti-doublons | R1 81 · R2 70 · R4 14 · R5 17 · R7 0 — **figés par un test**, inchangés par B6 | `npm run check:doublons` |
-| Sous le seuil R8 | ⚠️ petit-déj **37/122** · repas complets **70/280** · collation **5/102** — B7 (30 recettes) et B8 (8) LIVRÉES, catalogue **504** | `npm run mesure:seuils` |
-| Ce que ça coûte au SERVICE | **574 repas servis sur 10 752 (5,3 %)** viennent d'une recette sous le seuil — **935 (8,7 %) avant B7** | `npm run mesure:vivier` |
+| Sous le seuil R8 | ⚠️ petit-déj **37/122** · repas complets **70/280** · collation **7/110** — B7 (30), B8 (8) et B9 (8) livrées, catalogue **512** | `npm run mesure:seuils` |
+| Ce que ça coûte au SERVICE | **633 repas servis sur 10 752 (5,9 %)** viennent d'une recette sous le seuil — **935 (8,7 %) avant B7**. ⚠️ Remonté de 5,3 % par B9 : un format volontairement étroit fait BAISSER une moyenne par recette tout en améliorant la couverture réelle | `npm run mesure:vivier` |
 | Vivier vu par UN utilisateur | croisement gabarit × **régime** × créneau. Les cellules les plus pauvres restent vegan/vegan+SG. Pire : collation · F 55 sèche · vegan+SG = **9 recettes, 8 familles** — c'était **3 et 2** avant B7 | idem |
-| Moyenne R8 par créneau | petit-déj **8,55/12** · repas complets **8,64** · collation **6,96** (8,27 / 8,51 / 7,38 avant B7 · 7,62 avant D18 · 7,19 avant B6 · 4,52 avant B5) | idem |
+| Moyenne R8 par créneau | petit-déj **8,55/12** · repas complets **8,64** · collation **6,73** (8,27 / 8,51 / 7,38 avant B7 · 7,62 avant D18 · 7,19 avant B6 · 4,52 avant B5) | idem |
 | Vegan | petit-déj **56/122** · repas **89/280** · collation **59/102** — comptage CATALOGUE (`restrictions_ok`) | compter `restrictions_ok` par créneau |
 | Vegan + sans gluten | petit-déj **42/122** · repas **49/280** · collation **49/102** | idem |
 
@@ -244,6 +244,27 @@ est **FERMÉ** le 2026-08-01, `supportsTablet` est à `true`.)*
       pas de féculent — mesuré, `vegan+SG` tomberait de 33,3 à 16,7 % **sans qu'un seul
       repas servi ne change**. C'est de l'habillage, pas une correction. Si le sujet
       revient, il se pose comme une question de PRODUIT, jamais comme un correctif.
+   ➕ **B9 (8 collations GRAND FORMAT) a suivi**, catalogue 504 → 512. **Un format que le
+   catalogue n'avait jamais eu**, et le signal traînait depuis trois lots : le contrôle
+   d'union de `check:enveloppe` répétait « NON couverts : H 95 masse, H 110 masse » sans
+   que personne ne le relève, parce que le lot passait quand même. Leur cible de collation
+   vaut **402 et 458 kcal** — toutes les enveloppes écrites jusque-là plafonnaient à 320.
+   Ces profils étaient servis par des recettes ÉTIRÉES, jamais par des recettes conçues
+   pour eux. Résultat : `H 110 masse · vegan+SG` passe de **14 recettes / 11 familles à
+   20 / 18**, vegan+SG de 22,9 à **16,7 %**, moyenne générale à **10,0 %**.
+   🔎 **Et ça corrige une affirmation de B7-coll** : « sur la collation, le côté protéine
+   est arithmétiquement fermé (4 ancres) ». Vrai du format LÉGER seulement. À 400 kcal la
+   densité tombe à 5,5 g/100 kcal et **neuf ancres tiennent**, toutes à 3/3 gros gabarits
+   servis. ➡️ **Le verrou n'était pas celui du créneau, mais celui d'un FORMAT** — devant
+   un créneau qui paraît fermé, balayer l'enveloppe avant de conclure.
+   ⚠️ **Deux contreparties, mesurées et assumées.** (1) La moyenne R8 de la collation
+   descend de 6,96 à **6,73** et 7 recettes passent sous le seuil : un format volontairement
+   étroit fait baisser une moyenne PAR RECETTE tout en améliorant la couverture réelle —
+   c'est déjà la doctrine des sous-formats de B2 (« la vraie garantie n'est pas le score par
+   recette mais l'UNION »). (2) **Un drapeau bloquant réapparaît** sur les repas servis, le
+   premier depuis A25 : `H 110 masse · vegan+SG`, seed 2, `rep10` rend 40 g de protéines
+   pour 44 demandés. Un repas sur 6 720, sur un plan RÉGÉNÉRÉ — **le plan canonique reste à
+   zéro**, ce qu'exige A25.
    🐛 **Un défaut du moteur trouvé au passage, dormant depuis D16** : `tightenDay`
    rappelait `mealTarget` **sans le plancher protéique** (paramètre optionnel → 0), donc
    la passe de resserrage annulait D16 exactement dans le cas qu'il couvre. Pire cible

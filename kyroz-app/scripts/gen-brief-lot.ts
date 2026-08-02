@@ -415,6 +415,44 @@ const LOTS: Lot[] = [
       '**2 à 3 étapes, 10 minutes maximum, aucun repos au froid de plus de 10 minutes.**',
     ],
   },
+
+  // ── Vague B9 : le TROISIÈME format de collation, jamais commandé ────────────
+  //
+  // Le contrôle d'union de `check:enveloppe` a dit la même chose TROIS fois de suite
+  // (B2, B7-coll, B8) : « Union des collations du lot — NON couverts : H 95 masse,
+  // H 110 masse ». Personne ne l'avait relevé, parce que le lot passait quand même.
+  // La raison est arithmétique : leur cible de collation vaut **402 et 458 kcal pour 13
+  // et 15 g de protéines** (3,2 g/100 kcal), alors que les tables d'enveloppe de tous les
+  // briefs précédents plafonnaient à 320 kcal. Aucune collation ne leur a jamais été
+  // écrite — elles étaient servies par des recettes étirées, pas conçues pour eux.
+  //
+  // 🔎 **Et ça corrige une affirmation de B7-coll**, qui disait le côté PROTÉINE
+  // « arithmétiquement fermé » sur la collation (4 ancres employables). C'est vrai du
+  // format LÉGER seulement : à 190 kcal pour 15 g de protéines il faut 13 g de protéines
+  // pour 100 kcal, et seules 4 ancres y arrivent. À 400 kcal pour 22 g, la densité tombe
+  // à 5,5 et **NEUF ancres tiennent**, mesurées une par une, toutes à 3/3 gros gabarits
+  // vegan+SG servis : `tempeh` `edamame` `tofu_ferme` `tofu_fume` `tofu_soyeux`
+  // `lentilles_cuites` `soja_texture` `proteine_vegetale` `yaourt_soja_proteine`.
+  // ➡️ Le verrou n'était pas celui du CRÉNEAU, mais celui d'un FORMAT.
+  {
+    cle: 'b9-coll', titre: 'B9 — 8 collations grand format, pour les gros gabarits', volume: 8, categorie: 'collation',
+    prefixe: 'col', idDebut: 103, idFin: 110,
+    wave: '2026-08-03-b9-collations-grand-format', livre: '2026-08-03',
+    kcal: [380, 460], prot: [18, 28], carb: [40, 64], fat: [11, 18],
+    regimes: { libre: 0, vegetarien: 0, vegan: 8, sansGluten: 8 },
+    etapes: [2, 3],
+    refsEnPlus: ['tempeh', 'tofu_ferme', 'tofu_soyeux'],
+    specifique: [
+      '🎯 **Ce lot vise un format que le catalogue n\'a JAMAIS eu : la grosse collation.** La cible d\'un homme de 95 à 110 kg en prise de masse vaut **402 à 458 kcal** pour 13 à 15 g de protéines ; toutes les enveloppes de collation écrites jusqu\'ici plafonnaient à 320 kcal. Ces profils sont donc servis par des recettes étirées au maximum, jamais par des recettes pensées pour eux.',
+      '🎯 **La densité protéique de ce format est BASSE, et c\'est volontaire** : 3,9 à 7,4 g de protéines pour 100 kcal, contre 6,2 à 9,4 pour la collation légère. Ne cherche pas à la monter — la cible réelle de ces profils est à 3,2 g/100 kcal. Une collation trop protéinée pour eux devient trop petite en calories.',
+      '🎯 **NEUF ancres tiennent ce format, mesurées une par une** — c\'est le lot le plus ouvert de la série : `tempeh`, `edamame`, `tofu_ferme`, `tofu_fume`, `tofu_soyeux`, `lentilles_cuites`, `soja_texture`, `proteine_vegetale`, `yaourt_soja_proteine`. **Emploie-en 8 différentes, une par recette.** Le verrou du format léger (4 ancres seulement) ne s\'applique pas ici : à cette densité, les ancres peu denses redeviennent employables.',
+      '⚠️ **Un vrai féculent `carb` et `scalable` dans chaque recette, 40 à 64 g de glucides.** C\'est lui qui porte le format : sans lui, la recette ne peut pas atteindre 400 kcal sans devenir un bloc de protéines.',
+      '⚠️ **Féculents compatibles avec les 10 minutes** : `galette_riz`, `chataigne`, `polenta`, `mais`, `nouilles_riz`, `pain_sans_gluten`. Les autres demandent 13 à 20 minutes de cuisson.',
+      '⚠️ **Ne pose jamais un ingrédient PILE à son plafond absolu** (colonne « Max abs. » du §4) : il devient `scalable` sur le papier mais incapable de monter.',
+      '**Les 8 sont végétaliennes ET sans gluten.** C\'est le régime où le vivier de ces profils est le plus mince (14 collations servables sur 102 pour `H 110 masse`).',
+      '**2 à 3 étapes, 10 minutes maximum.** Une grosse collation reste une collation : elle se prépare debout, pas à la casserole.',
+    ],
+  },
 ];
 
 // ── Outils d'analyse du catalogue ────────────────────────────────────────────
