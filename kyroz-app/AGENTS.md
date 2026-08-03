@@ -67,16 +67,18 @@ qu'ils étaient périmés.
 | `ENGINE_VERSION` | **45** (invalide les plans en cache) | `lib/planEngine.ts` |
 | `ENGINE_REV` | **5** (avertissement one-shot à l'utilisateur) — A15, l'objectif daté hors de portée sert désormais le rythme sûr MAXIMAL | `lib/tdee.ts` |
 | Objectif daté | la date affichée est un **POINT FIXE** : l'adopter ne la déplace plus (3 corps sur 8 glissaient de +96 j avant A15) | `npm run mesure:objectif` |
-| Tests | **954 verts**, 54 fichiers · `tsc` propre | `npm test && npx tsc --noEmit` |
+| Échéances proposées | **dérivées du corps** (A27) — **40/40 tenables** et **40/40 servant un plan distinct**, contre **9/40** et **14/40** avec les 5 durées figées | `npm run mesure:objectif` |
+| Tests | **987 verts**, 58 fichiers · `tsc` propre | `npm test && npx tsc --noEmit` |
 | Plateformes | iPhone **+ iPad** (`supportsTablet: true` depuis le 2026-08-01). ⚠️ **portrait sur iPhone, MAIS les 4 orientations sur iPad** — Expo les force dès `supportsTablet`, le multitâche iPadOS l'impose, ce n'est pas refermable. Vérifié en natif (iPad Pro 13") et à 1366×1024 | `ios/Kyroz/Info.plist` généré, PAS `app.json` · `lib/layout.ts` |
 | Sortie stores | iOS **1.0.0 (3)** envoyé à TestFlight, **revue bêta en cours** depuis le 2026-08-03 00h58 · Android : 2 builds, rien de soumis | `npx eas-cli build:list` · `TESTFLIGHT.md` |
 | Kyroz+ | **encaissement armé, verrou inerte.** Clé RevenueCat posée dans EAS et vérifiée dans le bundle ; `PAYWALL_LAUNCH` = `null`, donc **tout est gratuit pour tout le monde**. ⚠️ Le build TestFlight actuel est ANTÉRIEUR à la clé | `lib/premium.ts` · `npx eas-cli env:list production` |
+| Clés du build/OTA | **une seule source : les variables EAS.** `eas.json` ne porte plus aucune clé, chaque profil déclare son `environment`. ⚠️ **`eas update --clear-cache`** — le cache Metro ignore un changement de valeur `EXPO_PUBLIC_*` | `npx eas-cli config --profile production --platform ios` · `lib/__tests__/easEnv.test.ts` |
 | Site déployé | **automatique** : GitHub Actions à chaque push `main` (`build_type: workflow`). ⚠️ **NE PAS lire `origin/gh-pages`** — branche morte, cf. A12 | `gh run list --workflow=deploy.yml` |
 | Migrations Supabase | les **15** jouées, `2026-08-02_profiles_birth_date.sql` comprise. ⚠️ **Ne jamais annoncer une migration « en attente » sans lancer la commande** — le dépôt ne sait rien de la prod, et deux lignes d'ici l'ont dit à tort pendant des jours | `npm run check:migrations` |
 | Variété perçue | semaines servant 2 recettes d'un même couple : **max 7,9 %** (9,2 % avant D22 · 10,0 % avant D21 · 11,7 % avant B9 · 12,5 % avant B8 · 20,8 % avant B7 · 27,5 / 26,3 % avant A25 · 56,3 % avant D18) | `npm run mesure:variete -- --variete=…` |
 | Variété perçue **par régime** | **vegan+SG 16,7 %** — trajectoire de la cible : **50 % → 35,4 % (B7) → 22,9 % (B8) → 16,7 % (B9)** | `npm run mesure:variete -- --detail` |
 | Premier plan servi | plan **canonique** (seed 0) : **6,7 %** de semaines avec quasi-doublon (8,3 % avant D22 (23,3 % avant B7 · **45,0 % avant A25**, où le 1er plan était le PIRE des trois). ⚠️ La ligne annonçait 10,0 % — c'était la moyenne tous tirages recopiée ici par erreur, re-mesurée le 2026-08-03 | `npm run mesure:variete -- --seeds=0` |
-| Réglages inertes | **aucun** — les 13 réglages réglables depuis l'UI changent tous le plan servi (recettes et/ou portions), vérifié un par un | `npm run mesure:reglages` |
+| Réglages inertes | **aucun parmi les 13 audités** — chacun change le plan servi (recettes et/ou portions), vérifié un par un. ⚠️ **Mais l'audit ne couvrait pas tout** : A27 a trouvé le 2026-08-03 que la rangée d'ÉCHÉANCES, absente de ces 13, servait le même plan sur ses 5 puces chez 5 gabarits sur 8. Un « aucun » ne vaut que pour le périmètre mesuré | `npm run mesure:reglages` + `npm run mesure:objectif` |
 | Reroll (« Régénérer mon plan ») | 1ers repas qui changent : **repetitive 53,0 % · balanced 69,6 % · max 73,8 %** (13,7 % pour tous avant A21). ⚠️ **Re-mesuré le 2026-08-03 : la ligne annonçait 51 / 78 / 83 %, périmé depuis un moment et PAS à cause de D21-D22** — sur le catalogue d'avant ces deux chantiers, le même script rend 55,4 / 69,0 / 71,4 %. Un chiffre de cette table se re-mesure avant d'être cité | `npm run mesure:reroll` |
 | Anti-doublons | R1 81 · R2 70 · R4 14 · R5 **16** · R7 0 — **figés par un test**, et les plafonds ont été RESSERRÉS au constaté le 2026-08-03 (ils gardaient 4 à 5 points de mou depuis le 2026-07-29, cf. D20) | `npm run check:doublons` |
 | Drapeaux bloquants sur les repas SERVIS | **0** sur 10 752 (12 profils × 8 régimes × 4 semaines). Le dernier — `rep10` — est tombé avec D20 | `npm run mesure:variete` |
@@ -810,6 +812,11 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
   d'affichage, donc pas d'`ENGINE_REV`.
   Vérifié à l'écran sur les 5 échéances. Garde-fou : `datedGoal.test.ts` → « A14 — cible
   hors de portée ». 819 tests.
+  ⚠️ **CETTE PUCE N'EXISTE PLUS depuis A27 (2026-08-03)** — ce qui suit est de l'histoire,
+  pas l'état du code. La rangée entière est désormais dérivée du corps, donc sa PREMIÈRE
+  puce est par construction l'échéance la plus courte qui tienne : garder « N sem ·
+  tenable » afficherait deux fois la même offre. Ne pas la rechercher dans `profil.tsx`.
+
   **Suite tranchée par le fondateur (« 2 go ») et LIVRÉE le 2026-08-02** : la date
   réellement tenable est proposée **en un tap**, sous forme d'une puce de plus dans la
   rangée ÉCHÉANCE (`42 sem · tenable`) — pas dans une carte que le bouton Enregistrer
@@ -829,28 +836,72 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
   proposée** — mieux vaut pas de raccourci qu'un raccourci qui ment. Verrouillé par
   `datedGoal.test.ts` → « A14 — adopter la date projetée ». 820 tests.
 
-- **A27 · 🤖 OUVERT — la rangée d'échéances ne propose que de l'impossible à la moitié
-  des gabarits.** *(Publiée par erreur sous le numéro **A26**, déjà pris par « régénérer
+- ~~**A27 · la rangée d'échéances ne proposait que de l'impossible à la moitié des
+  gabarits**~~ *(publiée par erreur sous le numéro **A26**, déjà pris par « régénérer
   oubliait ce qui avait été mangé » — deux fiches sous une même référence, donc une
-  référence qui ne désigne plus rien. Renumérotée le 2026-08-03.)*
-  Mesuré le 2026-08-03 sur `main` (`npm run mesure:objectif`) :
-  **4 corps de référence sur 8 n'ont AUCUNE échéance tenable parmi les 5 proposées**
-  (4 / 8 / 12 / 16 / 24 semaines). La personne choisit dans une rangée où chaque option
-  lui répond « tu y arriveras après ta date ». La première échéance réellement tenable
-  se situe entre **18 et 82 semaines** selon le corps — hors de la rangée.
+  référence qui ne désigne plus rien ; renumérotée le 2026-08-03)*
+  ✅ **TRANCHÉ ET LIVRÉ le 2026-08-03** (fondateur : « puces dynamiques »).
+  `lib/goalLadder.ts` · garde-fou `lib/__tests__/goalLadder.test.ts` · contrôle
+  **`npm run mesure:objectif`**.
 
-  ℹ️ **Ce n'est PAS un défaut de moteur** : sur ces échéances courtes le moteur sert déjà
-  le maximum sûr, et le plancher d'énergie disponible borne le reste. L'objectif est
-  vraiment hors de portée — c'est la rangée de puces qui ment par omission.
-  ✅ Atténué par A15 : la puce « N sem · tenable » se propose désormais partout (elle
-  était refusée sur les cas les plus durs). Le trou restant est la rangée elle-même.
+  **Le défaut.** La rangée offrait CINQ DURÉES FIGÉES (4 / 8 / 12 / 16 / 24 semaines).
+  Mesuré : **4 corps de référence sur 8 n'avaient AUCUNE échéance tenable**, la première
+  réellement atteignable se situant entre 18 et 82 semaines — hors de la rangée. La
+  personne choisissait donc dans une liste où chaque option lui répondait « tu y
+  arriveras après ta date ».
 
-  🧑 **Deux directions, à trancher avec le fondateur avant d'écrire** : rendre les cinq
-  puces DYNAMIQUES (dérivées du corps, donc toutes atteignables) — ou garder les durées
-  fixes et n'afficher que celles qui tiennent, la puce « tenable » complétant. La seconde
-  est plus petite mais peut ne laisser qu'une seule puce sur les gros écarts.
-  ⚠️ Ne pas griser les puces intenables : écarté en A14, ça se lit comme un reproche
-  (CLAUDE.md §10).
+  ⚠️ **Et c'était PIRE que ça, découvert en mesurant l'après.** La rangée figée ne
+  servait pas seulement des dates fausses : sur 5 corps sur 8, **ses cinq boutons
+  servaient UN SEUL ET MÊME PLAN** (mêmes calories au kcal près). Sous une certaine
+  durée, le plancher d'énergie disponible borne le déficit — allonger l'échéance ne
+  change alors rien à l'assiette. C'est exactement A23 (« un réglage qui ne pilote
+  rien »), et personne ne l'avait vu parce que la fiche ne mesurait que la tenabilité.
+  ➡️ **Quand on remplace un composant, mesurer AUSSI ce qu'on ne l'accusait pas de faire.**
+
+  **Ce qui est livré.** Les cinq durées sont dérivées du corps. Deux invariants, et il
+  faut les deux — le premier seul donnerait une rangée honnête mais décorative :
+  1. **chaque puce tient** — la première est l'échéance la plus courte que les
+     garde-fous laissent tenir, les suivantes sont plus longues donc plus faciles ;
+  2. **chaque puce est un plan différent** — l'échelle cherche d'abord la durée à
+     partir de laquelle le plan DÉCOLLE du plancher, et n'étale les puces qu'à partir
+     de là.
+
+  | | puces tenables | puces servant un plan distinct |
+  |---|---|---|
+  | 5 durées figées | **9 / 40** | **14 / 40** |
+  | échelle dérivée | **40 / 40** | **40 / 40** |
+
+  ⚠️ **L'échelle INTERROGE le moteur, elle ne rejoue pas ses formules** (CLAUDE.md §10) :
+  `deadlineLadder` reçoit une sonde, comme `datedGoalStatus` reçoit un projecteur. Coût
+  mesuré : ~17 sondes, 3 à 45 ms sur les gabarits courants, **283 ms** sur le cas extrême
+  (F 110 → 80, écart de 30 kg). ➡️ **Mémoïsé sur le poids cible** dans `profil.tsx` —
+  sans ça, la saisie du poids serait saccadée.
+
+  ⚠️ **La dichotomie repose sur une propriété MESURÉE, pas garantie par le code** : une
+  fois qu'une durée tient, toutes les durées plus longues tiennent. Aucune ligne de
+  `datedGoal.ts` ne l'impose. Un test balaye l'horizon et exige l'absence de trou — si
+  la propriété tombe, la première puce deviendrait fausse **en silence**.
+
+  ⚠️ **En PRISE de masse, les calories servies BAISSENT quand la date s'éloigne** (le
+  surplus se dilue). Le test « le plan a-t-il décollé du plancher ? » est donc écrit
+  `!==` et non `>` : une première version orientée perte marchait sur la prise **par
+  accident**, en retombant sur un cas particulier.
+
+  ℹ️ La puce « N sem · tenable » livrée en A14/A15 a été **retirée** : la première puce
+  de la rangée est désormais, par construction, l'échéance la plus courte qui tienne.
+  La garder afficherait deux fois la même offre. Les cinq durées figées survivent en
+  **repli** (`HORIZONS_REPLI`) pour le seul cas où rien n'est tenable dans l'horizon de
+  projection — le poids visé est alors hors de portée quelle que soit la date, et c'est
+  la phrase sous la rangée qui le dit.
+  ℹ️ Défaut d'un objectif neuf : la **2ᵉ** puce, pas la 1ʳᵉ. La première est le rythme
+  sûr maximal, et un défaut ne pousse pas d'office quelqu'un au plafond de ce que la
+  sécurité autorise (CLAUDE.md §10).
+  ⚠️ Ne pas griser les puces intenables : écarté en A14, ça se lit comme un reproche.
+  🔎 **Vérifié à l'écran** (H 83 → 70, le cas qui avait déclenché la fiche) : rangée
+  `39 sem · 42 sem · 52 sem · 16 mois · 21 mois`, phrase « Rythme sûr, dans les clous de
+  ta date », et le choix PILOTE — 42 sem sert 2251 kcal/j (−340), 21 mois sert
+  2436 kcal/j (−155). Avant : cinq puces dont « 4 sem » annonçait le 30 août 2026 pour
+  une arrivée réelle le 19 juin 2027.
 
 - ~~**A15 · sur un gros écart, l'objectif daté se dessert lui-même**~~
   ✅ **TRANCHÉ ET LIVRÉ le 2026-08-03** (fondateur : « les deux »). `ENGINE_REV` 4 → 5.
@@ -868,6 +919,10 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
   📉 **Ce que la mesure a trouvé, et que la fiche ne disait pas** (8 corps × 11 échéances) :
   - **5 corps sur 8 : AUCUNE des 5 échéances de l'écran n'est tenable.** La première
     tenable est à 18–82 semaines — hors de la rangée de puces.
+    ℹ️ Chiffre mesuré **AVANT** A15. Après A15 il tombe à **4 sur 8** (servir le rythme
+    sûr maximal rapproche l'arrivée, donc une échéance de plus devient tenable), et c'est
+    ce 4/8 que cite A27. Les deux sont justes, à deux instants différents — ne pas les
+    lire comme une contradiction.
   - **3 sur 8 (les trois femmes à gros écart) : la date de repli affichée GLISSE dès
     qu'on l'adopte**, jusqu'à **+96 jours**. C'est le défaut de fond : Kyroz affichait
     une date qui n'était vraie que tant qu'on ne s'en servait pas.
@@ -895,7 +950,7 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
   | `F 70 → 62` | J+339 · 1842 kcal | **J+188 · 1638 kcal** |
   | `F 65 → 58` | J+270 · 1731 kcal | **J+143 · 1540 kcal** |
   | les 5 hommes + `F 60` | — | **inchangés, au kcal près** |
-  | puce « N sem · tenable » sur `F 78 → 65` | ❌ aucune | ✅ `63 sem` |
+  | puce « N sem · tenable » sur `F 78 → 65` *(puce supprimée depuis, cf. A27)* | ❌ aucune | ✅ `63 sem` |
   | `computePlan` | 0,026 ms | 0,11 ms (0,47 au pire) |
 
   ⚠️ **Aucun garde-fou n'est franchi, et c'est balayé par un test** (`A15 — creuser plus
@@ -1556,15 +1611,47 @@ produit en suspens — il ne reste qu'à coder.
      machine sans `.env.local` publierait un bundle **sans URL Supabase**. L'app ne
      démarre pas sans, et la mise à jour atteint tous les testeurs en quelques minutes,
      **sans revue de store pour l'arrêter**.
-     ✅ Mesuré : depuis le worktree (qui a `.env.local`), le bundle contient bien
-     l'URL et la clé Supabase. Le chemin est donc sûr **depuis cette machine, depuis
-     ce dossier** — et nulle part ailleurs.
-     🧑 **Correctif de fond, non fait** : poser `EXPO_PUBLIC_SUPABASE_URL` et
-     `_ANON_KEY` en variables EAS, comme la clé RevenueCat. Build et update liraient
-     alors la même source. **Aucune exposition nouvelle** : ces deux valeurs sont déjà
-     en clair dans `eas.json`, qui est versionné, et publiques par conception (c'est la
-     RLS qui protège, pas le secret de la clé). Non fait ici parce que `eas.json`
-     appartient à une session parallèle.
+     ⚠️ **La première mesure ne prouvait rien** : elle avait été faite depuis le worktree,
+     qui a `.env.local`. Le bundle contenait donc les clés — mais grâce au fichier local,
+     pas grâce à EAS. **Une mesure qui ne distingue pas les deux sources ne mesure pas la
+     question posée.**
+
+     ✅ **CORRIGÉ le 2026-08-03, et mesuré des deux côtés.** Protocole : écarter
+     `.env.local`, exporter le bundle iOS via `eas env:exec production`, `strings -a` sur
+     le `.hbc`. Avant : `rgdjsdnqlmfkourrhijv` **0**, `sb_publishable_` **0**, clé
+     RevenueCat **1** — le brique était réel, pas théorique, et c'est ce contraste avec la
+     clé RevenueCat (déjà côté EAS) qui a désigné le coupable. Après : **1 / 1 / 1**.
+     `EXPO_PUBLIC_SUPABASE_URL` et `_ANON_KEY` sont désormais des variables EAS sur
+     `production`, `preview` **et** `development` ; `eas.json` ne porte plus **aucune**
+     clé et chaque profil DÉCLARE son environnement. **Aucune exposition nouvelle** : ces
+     deux valeurs étaient déjà en clair dans `eas.json`, versionné, et sont publiques par
+     conception (c'est la RLS qui protège, pas le secret de la clé).
+     🎁 Effet de bord gagné : le profil `development` n'avait **aucun** bloc `env` — un
+     build dev-client partait donc sans Supabase. Il les a maintenant.
+     🔒 Garde-fou : `lib/__tests__/easEnv.test.ts` (3 tests, contrôle de morsure fait —
+     réintroduire une clé dans `eas.json` ou retirer un `environment` fait rougir, avec le
+     nom du profil fautif dans le message).
+
+     🔴 **LE PIÈGE DANS LE PIÈGE — le cache de Metro ne s'invalide PAS sur un changement
+     de valeur d'`EXPO_PUBLIC_*`.** Une fois les variables posées, le ré-export a **encore**
+     rendu 0 occurrence. La configuration était juste, le bundler resservait une
+     transformation figée. Seul `--clear` a produit le bon artefact.
+     ➡️ **`eas update --clear-cache`**, sans exception. Et vider le cache avant toute
+     mesure : ici, c'est la MESURE qui mentait, et elle a menti dans le sens alarmant —
+     elle aurait tout aussi bien pu mentir dans le sens rassurant.
+
+     ⚠️ **Deuxième piège : quand une clé est dans les deux endroits, `eas.json` GAGNE**
+     (eas-cli, `evaluateConfigWithEnvVarsAsync` : `{ ...serverEnvVars, ...buildProfile.env }`).
+     Faire tourner une clé côté serveur seulement aurait laissé les builds servir
+     l'ancienne — le même brique, réintroduit par la porte d'à côté. EAS l'écrivait dans
+     sa sortie (« The values from the build profile configuration will be used ») ; encore
+     fallait-il la lire. C'est ce qui a décidé de supprimer le doublon plutôt que de le
+     garder « au cas où ».
+
+     🧰 **`eas config --profile <p> --platform ios` est l'instrument à connaître** : il
+     imprime l'environnement résolu, les variables serveur chargées, celles d'`eas.json`
+     et l'avertissement de doublon — **sans lancer de build, donc gratuitement**. Les
+     quatre profils ont été vérifiés un par un, avant et après.
   4. **Un nouveau build natif ET une nouvelle revue store.** `react-native-purchases`
      est un module NATIF : l'OTA ne peut pas le livrer (`CLAUDE.md` §2). Le
      `ios/` local doit être régénéré (`npx expo prebuild` puis `pod install`) — il
@@ -1788,6 +1875,26 @@ produit en suspens — il ne reste qu'à coder.
     au compte, `expo-font`, texte légal.
     ⚠️ **Ce build n'a PAS la clé RevenueCat** (elle a été posée après) → dans TestFlight
     aujourd'hui, `purchasesConfigured()` est faux. C'est ce que l'OTA doit corriger.
+    ✅ **Vérifié SUR LE BINAIRE, pas sur la config** (2026-08-03) : l'IPA soumis a été
+    téléchargé (27 Mo, `artifacts.applicationArchiveUrl`), dézippé, et son
+    `Payload/Kyroz.app/main.jsbundle` mesuré au `strings -a`. Résultat :
+    `rgdjsdnqlmfkourrhijv` **1**, `sb_publishable_` **1**, `RNPurchases` **2**,
+    `appl_xBxm` **0**. Le build a donc bien Supabase (via l'ancien bloc `env`
+    d'`eas.json`) et pas la clé RevenueCat — cohérent avec sa date de création
+    (03/08 01h39, postérieure au build du 02/08 22h35).
+    ✅ **ET LE RELECTEUR APPLE PEUT SE CONNECTER — question posée, puis tranchée.**
+    Les profils de `eas.json` ne déclaraient aucun `environment` ; on pouvait craindre
+    que `eas build` n'aille pas chercher `EXPO_PUBLIC_REVIEW_CODE`, qui ne vit QUE côté
+    serveur — le relecteur aurait alors été bloqué au login, motif de refus.
+    Trois faits l'écartent : eas-cli DÉDUIT l'environnement (`distribution: store` →
+    production, source `evaluateConfigWithEnvVarsAsync`) ; la variable est en visibilité
+    *Sensitive*, donc chargée (`byAppIdWithSensitiveAsync` prend Plain text **et**
+    Sensitive) ; et `eas env:list --format long` la date au **17 juillet**, bien avant
+    le build. `eas config --profile production` le confirme en une commande.
+    ⚠️ **Chercher le NOM de la variable dans le bundle ne prouve rien** : `strings` rend
+    0 pour `EXPO_PUBLIC_REVIEW_CODE` comme pour `EXPO_PUBLIC_REVENUECAT_IOS_KEY`, alors
+    que l'une est posée et l'autre pas. Babel retire le nom dans les deux cas. Ce sont
+    les VALEURS qui se cherchent, jamais les noms.
     ⏸️ **Revue bêta `WAITING_FOR_REVIEW`** depuis le 2026-08-03 00h58. Détail complet de
     la procédure, des identifiants et des groupes de testeurs : **`TESTFLIGHT.md`**
     (écrit par la session parallèle, branche `fix/soucis-terrain`).
@@ -3336,7 +3443,7 @@ Plancher = énergie disponible (30 kcal/kg de masse maigre + sport, **plafonné 
 - **Couleur d'accent personnalisable (2026-08-03, `lib/accentColor.ts`)** : six choix — monochrome (**défaut**, = la DA), bleu, vert, orange, rouge, violet — réglés dans Profil → Préférences. Seul l'accent change (boutons, jour actif, pilule sélectionnée, onglet actif) ; **le fond ne bouge jamais**. LOCAL-ONLY comme `themeMode` → **aucune migration**. Câblage quasi gratuit : `t.accent`/`t.onAccent` étaient déjà utilisés **85 fois dans 20 fichiers**, donc changer le token a suffi. ⚠️ `onAccent` se CALCULE (`readableOn`) ; ⚠️ le garde-fou porte sur « l'accent se détache du fond de page » (3:1) et **non** sur la lisibilité du texte — celle-ci ne peut PAS échouer (plancher mathématique 4,61:1 démontré dans le test), un seuil AA y aurait été purement décoratif ; ⚠️ palette **mise en cache** (sinon `useMemo(makeStyles)` invalidé à chaque rendu). Détail et pièges : CLAUDE.md §8.
 - **Thème** (`constants/theme.ts`) : adaptatif clair/sombre, accent monochrome par défaut (personnalisable, ci-dessus), pas de couleur en dur (`useTheme()` + `makeStyles(t)`). **Choix manuel Système/Clair/Sombre** : store externe `lib/themeMode.ts` (persisté `@kyroz:theme`, chargé au démarrage dans `_layout`) consommé par `useTheme()` via `useSyncExternalStore` — pas de provider. Réglage exposé dans Profil → section Application. `cardShadow` → `boxShadow` sur web / `shadow*`+`elevation` natif (warnings RN-web nettoyés 2026-06-14, avec `pointerEvents` en style et `TouchableWithoutFeedback`→`Pressable`).
 - **Recettes** : **512** *(mesuré le 2026-08-03 : 122 petit-déj + 110 collations + 280 repas complets)* — *(historique : 100, + **164** le 2026-06-19, + **50 sans gluten** le 2026-07-22, puis les vagues B1→B9 de fin juillet / début août. Le chiffre faisant foi est `npm run mesure:couverture`, pas cette ligne.)* ⚠️ **Tout le matériel recettes vit désormais dans `kyroz-app/Recette/`** (2026-07-22) : catalogue LIVE `Recette/recettes-kyroz.json` (l'ancien `lib/data/recettes-kyroz-100.json` est déplacé + renommé — le nom « 100 » mentait ; `lib/data/` supprimé), livraisons brutes archivées dans `Recette/drops/<date>-<sujet>/` (jamais importées par le code), mode d'emploi de la chaîne d'ajout dans `Recette/README.md`. Chaîne : (`Recette/recettes-kyroz.json` → `lib/recipeData.ts` (table d'ingrédients réf + config + macros depuis réf) → `lib/recipeMap.ts` (JSON FR → `Recipe[]` internes) → `lib/recipes.ts` (ré-export `RECIPES` + registre d'overrides inchangé). 122 petit-déj + 110 collations + 280 repas (chacun tagué objectif/sport + `why_fr` + ingrédients `ref`/`macro_role`/`scalable`). `validated_by_dietitian: false`. **`ENGINE_VERSION` = 45** *(valeur faisant foi : `lib/planEngine.ts`, qui porte l'historique complet ; cette ligne a traîné à 25, puis à 38)* (v16 = fix variété ; v17 = fibres sourcées Ciqual ; v18 = 2026-07-23, biais fibres en sèche à la sélection ; … ; **v25 = 2026-07-30, borne basse de l'ancre protéine 1,0 → 0,5**. Toute incrémentation régénère les plans en cache — valeur faisant foi : `lib/planEngine.ts`). **`restrictions_ok` dérivé par ingrédient** (`lib/recipeDiet.ts`, table d'incompatibilités) — autoritaire dans `recipeAllowed`, repli mots-clés pour le legacy. **Régime `vegan` ajouté (2026-06-19)** : `DietaryRestriction` + `VIOLATIONS` (26 refs animaux dont œufs/miel) + blocklist mots-clés ciblée (`planEngine.ts`, sans faux positifs lait d'amande/coco·yaourt soja·beurre végétal) + toggle onboarding/profil. **AUCUNE migration Supabase** (`dietary_restrictions text[]` libre). Couverture vegan (sur 314, mesurée 2026-07-22) : pdej **33**/78 · coll **36**/66 · repas **57**/170. **Macros recettes = SOURCÉES CIQUAL (fusion des deux bases, livrée)** : `lib/recipeFoodMap.ts` lie **99/113** ingrédients `ref` → `food_id` Ciqual (mapping VÉRIFIÉ À LA MAIN, basis cru/sec/cuit respecté — l'auto-matching par nom est piégeux : « maquereau »→« groseille à maquereau »). `recipeData` résout `per100g` depuis la base curée quand mappé. **Composites repris 2026-07-14 (+13)** : `pates_semoule`→9810, `pates_completes`/`nouilles_completes`→9870 (⚠️ PAS 9863 « nouilles asiatiques aux ŒUFS » → fausserait le végétalien), `nouilles_riz`→9900 (corrige la protéine sous-estimée 3→7,4 g), `polenta`→9614, `graines_courge`→**15064** (« Courge, graine, séchée » — le piège butternut), `beurre_amande`→15041, `pesto`→11179, `creme_soja`→11214, `cacao_poudre`→18100, `tomate_concassee`→20169, `raisins`→**13395** (« Raisin cru » — ⚠️ PAS le raisin SEC, 322 vs 71 kcal). Impact mesuré : 74/264 recettes bougent, Δ kcal moyen **1,2 %**, max 2,9 % (affinage, pas distorsion) → `macros_per_serving` du JSON **volontairement NON re-baselinés** (ils servent de repère INDÉPENDANT au garde-fou ; les re-caler le viderait de son sens). ✅ **Légumineuses harmonisées en SEC (2026-06-20)** — l'utilisateur pèse à sec (comme riz/pâtes). `pois_chiches`→`ciqual-20516`, `lentilles_vertes`→`20585`, `haricots_rouges`→`20525` (codes « …, sec », ~314-350 kcal/100 g, `basis=dry`) ; `lentilles_corail` était déjà en sec. Les 5 nouveaux ingrédients mappables le sont aussi (`haricots_blancs`→20501, `feves`→20518, `pois_casses`→20515, `sarrasin`→9380, `chataigne`→15024) ; `soja_texture`/`haricots_noirs`/`millet` restent **manuels** (pas d'entrée Ciqual sèche propre — Ciqual n'a que la PST réhydratée). ⚠️ **Conséquence** : les **anciennes** recettes (les 100) exprimaient leurs légumineuses en poids **CUIT** (100-200 g) → **15 quantités converties cuit→sec** (×~0,4, nutrition préservée) ; les nouvelles étaient déjà en sec (mon recalage « cuit » du 19/06 était donc à l'envers — corrigé). **49 `macros_per_serving` re-baselinés** sur le dérivé. `basis` = métadonnée seule (jamais affichée) ; la pesée à sec suit la convention riz/pâtes (nom sans « sec »). `recipeMap` DÉRIVE `macros_per_portion` des ingrédients résolus (÷ `base_servings`) → plus de double source. Impact mesuré : Δ kcal moyen 3 %, max 11 %, 42/100 recettes inchangées (les estimations étaient déjà bien calées) ; `macros_per_serving` du JSON conservé en garde-fou de régression (±30 %, `recipeMap.test.ts`). **`ENGINE_VERSION` 7** (régénère les plans en cache). **Les 14 `ref` encore manuels le restent À RAISON** (règle : on ne mappe QUE si l'entrée Ciqual est SANS AMBIGUÏTÉ le même aliment) : absents de Ciqual (`cottage_cheese`, `edamame`, `yaourt_soja`, `yaourt_soja_proteine`) · produits Kyroz (`whey`, `skyr`, `proteine_vegetale`) · pas d'entrée SÈCHE propre (`soja_texture`, `haricots_noirs`, `millet` — Ciqual n'a que la FARINE) · produit voisin mais distinct (`levure_maltee` : Ciqual n'a que la levure de BIÈRE) · composites par construction (`fruits_rouges`, `legumes_wok`, `ratatouille`). **Nouveau garde-fou `recipeFoodMap.test.ts` (2026-07-14)** : le garde-fou ±30 % de `recipeMap.test` compare les kcal de la RECETTE ENTIÈRE → il était **AVEUGLE** à un ingrédient dense mais peu pesé (20 g de graines mappées sur du butternut = 618→30 kcal ne bougent pas le total de 30 % ; vérifié : l'ancien test passait). Le nouveau teste chaque ingrédient **à la source** : (1) toute clé mappée existe dans le JSON (attrape la faute de frappe `datte`/`dattes` = mapping mort et silencieux), (2) tout `food_id` résout, (3) écart Ciqual vs estimation manuelle suspect si **> 40 kcal EN ABSOLU *et* > 50 % EN RELATIF** — les deux ensemble, car le relatif seul crie au loup sur les aliments peu caloriques (épinards 23→33 = +43 % mais 10 kcal) et l'absolu seul sur les denses (mozzarella +57 kcal, correction légitime). Reste : approche B « fourchette » de macros (post-tests utilisateurs). Fix `formatQuantity` : « bœuf » contenait « œuf » → était compté en œufs (corrigé + test). **Audit qualité des 264 recettes (workflow multi-agent, 2026-07-14)** — COUPÉ par la limite de session (71/146 agents ; verif 59/112 recettes, synthèse non faite → à re-lancer après reset : `Workflow({scriptPath:'…/audit-recettes-kyroz-wf_b0be652e-fb5.js', resumeFromRunId:'wf_b0be652e-fb5'})`, cache les agents finis). **Corrigé (déterministe, testé)** : (1) `col04` 80 g de dattes > `abs_max_qty` 60 → le moteur servait 60 (fiche≠servi, 57 kcal) → ramené à 60 + test « base ≤ abs_max_qty » ; (2) **3 noms de légumineuses** disaient « cuits/égouttés » alors qu'on pèse SEC (`Pois chiches cuits (égouttés)`→`Pois chiches`, idem lentilles vertes/haricots rouges) → mis au neutre (convention riz/pâtes) + test « pas de nom cuit/égoutté sur basis:dry » ; (3) **23 ingrédients flavor/vegetable marqués `scalable:true`** (miel, cacao, sirop, sauce soja) — INERTE (le moteur les fige déjà, `adaptRecipe` role flavor/vegetable) mais mensonger → passés `false` + test. **CAPTURÉ, non corrigé (contenu → diététicienne / audit à finir)** : ~~⚠️ `rep32` « Cabillaud pané maison » taggée `gluten_free » mais chapelure hors liste~~ **CORRIGÉ 2026-07-16** : nouvel ingrédient `chapelure` (→ `ciqual-7500`, `abs_max_qty` 40) + entrée `VIOLATIONS: ['gluten_free']` dans `recipeDiet.ts` + chapelure 25 g ajoutée à rep32 (`carb`, fixe). Effet : `restrictions_ok` de rep32 = pescatarian/no_pork/lactose_free/halal (**gluten_free tombe tout seul**), macros re-comptées 540→636 kcal (la panure n'était pas comptée). `macros_per_serving` re-calé (l'ancien décrivait le plat SANS panure), `ENGINE_VERSION` 14, test de régression `rep32 pas gluten_free`. **Autres ingrédients-fantômes** (cités dans les instructions, absents de la liste → macros/courses/régime faux) : sauces teriyaki (`rep50/73/147`), miso (`rep47`), sauce soja (`rep05/46/80`), sirop érable (`rep80`) ; houmous (`rep111/118` — ailleurs FAIT à partir des pois chiches listés, faux positif) ; aromates non tracés (ail, curry, citron) = volontaire, PAS un défaut. **Cohérence `why`/tags** (ex. `pd10` « yaourt grec – noix » : `why` vante un « équilibre protéines/lipides » muscu à 10 g P / 28 g L, aucune ancre protéine scalable) → jugement diététicienne.
-- **Tests** : **976 / 56 fichiers** (`npm test`, vitest ; tsc `--noEmit` OK — mesuré le 2026-08-03 après la passe 2 de la refonte). Nouveau : **`rayonsDA.test.ts`** (un `borderRadius` en chiffre n'est légitime que sur un objet de taille fixe — vérifié par mutation). Nouveaux fichiers du 2026-08-02 : `boot.test.ts` (le démarrage ne dépend plus du réseau), `noAlert.test.ts` (interdit `Alert`, no-op sur le web), `birthday.test.ts` (âge dérivé de la date de naissance, 29 février compris), **`reroll.test.ts` (« Régénérer mon plan » doit se VOIR — renouvellement ET non-répétition ; cf. A21)**, **`planSeed.test.ts` (le tirage choisi se GARDE au changement de réglage ; cf. A24)**, **`carryTracking.test.ts` (ce qui a été mangé survit à une régénération ; cf. A26)**. ⚠️ Ce compte a traîné à « 403 / 26 » puis « 413 » pendant plusieurs semaines : **le mettre à jour fait partie de la livraison**, sinon il devient un troisième chiffre à ne pas croire. Détail : comptage recettes **512** (`recipeMap.test.ts`, chiffre à bouger à chaque vague), **variété intra-semaine (`variety.test.ts` ; P3.5)**, **fibres sourcées Ciqual par ref/food_id + « aucune recette à 0 g » (`fiber.test.ts` ; P3.1)**, **jours de repos choisis (`rest_weekdays` : mapping weekday→index, `[]`=aucun, jour hors-plan ignoré, signature ; `planEngine.test.ts`)**, régime vegan + **halal (porc/charcuterie → `restrictions_ok`, repli blocklist ; `recipeDiet.test.ts` + `planEngine.test.ts`)** (refs animaux → restrictions_ok, blocklist), garde-fous §6, masse maigre, mode percent, fuseau, déterminisme, recalage du jour, fibres, courses→frigo, **liste de courses moins le frigo** (`shoppingList.test.ts`), units (régression bœuf), refonte recettes : `recipeData`/`recipeMap` (intégrité 512, refs valides, macros ±2 %, restrictions_ok, `base_servings===1`), `adaptRecipe` (cible en grammes, **plancher protéique TOTAL** sur recette multi-source, légumes fixes, flags + `FLAG_AUDIENCE`/`gap`, repli si UN ingrédient sans ref), moteur via adaptRecipe (cible jour ±12 %, swap/rebalance/mealIngredients, **`reAdaptMealRecipe`**), **+ stress-test 20 profils (`multiProfile.test.ts`, 10 H + 10 F, gabarits/objectifs/sports/régimes variés)** : invariants garde-fous + macros↔kcal, **bande cible ASYMÉTRIQUE conjointe B+A2 — côté dangereux ≤ `max(15 % du delta TDEE−cible, 90 kcal)` ET protéines ≥ plancher** (remplace l'ancien ±15 % symétrique, trop lâche en sèche), gras ≤50 %, déterminisme, régime respecté/relaxed, courses = Σ ingrédients adaptés, swap conforme au régime. **+ `syncGuard.test.ts`** (décision d'hydratation anti-écrasement C) **+ `goalDirection` / fit asymétrique / `reAdaptMealRecipe` / carb-cycling** (`planEngine.test.ts`). Empirique (après A2) : **écart kcal max 3,8 %** (côté dangereux référencé au delta), protéines 100–118 %, gras 24–29 %. **+ bouclier de série (`advanceStreak` : gel d'1 jour manqué / reset / recharge à 7j / profil legacy ; `streak.test.ts`, 2026-06-20)**. **Error Boundary** global (`app/_layout.tsx`). **Vérif preview e2e 2026-06-17** : génération plan + fiche adaptée + flux override→courses + Tout cocher/Réinitialiser→frigo.
+- **Tests** : **987 / 58 fichiers** (`npm test`, vitest ; tsc `--noEmit` OK — re-mesuré le 2026-08-03 sur l'arbre FUSIONNÉ, après A27 et la passe 2 du design). ⚠️ **Ce compte vit à DEUX endroits** — ici et dans le tableau de tête — et les deux ont divergé le 2026-08-03 (982/56 ici contre 985/57 là-haut, deux sessions ayant livré en parallèle). **Les mettre à jour ENSEMBLE**, ou n'en garder qu'un. Nouveaux fichiers du 2026-08-03 : **`rayonsDA.test.ts`** (un `borderRadius` en chiffre n'est légitime que sur un objet de taille fixe — vérifié par mutation) · **`goalLadder.test.ts` (les échéances proposées sont toutes TENABLES et toutes DISTINCTES ; l'ensemble tenable n'a pas de trou, ce qui fonde la dichotomie ; cf. A27 — les deux invariants ont été vérifiés PAR MUTATION, chacun rougit sur le défaut qu'il vise)**. Nouveaux fichiers du 2026-08-02 : `boot.test.ts` (le démarrage ne dépend plus du réseau), `noAlert.test.ts` (interdit `Alert`, no-op sur le web), `birthday.test.ts` (âge dérivé de la date de naissance, 29 février compris), **`reroll.test.ts` (« Régénérer mon plan » doit se VOIR — renouvellement ET non-répétition ; cf. A21)**, **`planSeed.test.ts` (le tirage choisi se GARDE au changement de réglage ; cf. A24)**, **`carryTracking.test.ts` (ce qui a été mangé survit à une régénération ; cf. A26)**. ⚠️ Ce compte a traîné à « 403 / 26 » puis « 413 » pendant plusieurs semaines : **le mettre à jour fait partie de la livraison**, sinon il devient un troisième chiffre à ne pas croire. Détail : comptage recettes **512** (`recipeMap.test.ts`, chiffre à bouger à chaque vague), **variété intra-semaine (`variety.test.ts` ; P3.5)**, **fibres sourcées Ciqual par ref/food_id + « aucune recette à 0 g » (`fiber.test.ts` ; P3.1)**, **jours de repos choisis (`rest_weekdays` : mapping weekday→index, `[]`=aucun, jour hors-plan ignoré, signature ; `planEngine.test.ts`)**, régime vegan + **halal (porc/charcuterie → `restrictions_ok`, repli blocklist ; `recipeDiet.test.ts` + `planEngine.test.ts`)** (refs animaux → restrictions_ok, blocklist), garde-fous §6, masse maigre, mode percent, fuseau, déterminisme, recalage du jour, fibres, courses→frigo, **liste de courses moins le frigo** (`shoppingList.test.ts`), units (régression bœuf), refonte recettes : `recipeData`/`recipeMap` (intégrité 512, refs valides, macros ±2 %, restrictions_ok, `base_servings===1`), `adaptRecipe` (cible en grammes, **plancher protéique TOTAL** sur recette multi-source, légumes fixes, flags + `FLAG_AUDIENCE`/`gap`, repli si UN ingrédient sans ref), moteur via adaptRecipe (cible jour ±12 %, swap/rebalance/mealIngredients, **`reAdaptMealRecipe`**), **+ stress-test 20 profils (`multiProfile.test.ts`, 10 H + 10 F, gabarits/objectifs/sports/régimes variés)** : invariants garde-fous + macros↔kcal, **bande cible ASYMÉTRIQUE conjointe B+A2 — côté dangereux ≤ `max(15 % du delta TDEE−cible, 90 kcal)` ET protéines ≥ plancher** (remplace l'ancien ±15 % symétrique, trop lâche en sèche), gras ≤50 %, déterminisme, régime respecté/relaxed, courses = Σ ingrédients adaptés, swap conforme au régime. **+ `syncGuard.test.ts`** (décision d'hydratation anti-écrasement C) **+ `goalDirection` / fit asymétrique / `reAdaptMealRecipe` / carb-cycling** (`planEngine.test.ts`). Empirique (après A2) : **écart kcal max 3,8 %** (côté dangereux référencé au delta), protéines 100–118 %, gras 24–29 %. **+ bouclier de série (`advanceStreak` : gel d'1 jour manqué / reset / recharge à 7j / profil legacy ; `streak.test.ts`, 2026-06-20)**. **Error Boundary** global (`app/_layout.tsx`). **Vérif preview e2e 2026-06-17** : génération plan + fiche adaptée + flux override→courses + Tout cocher/Réinitialiser→frigo.
 - **QA E2E Playwright** (`@playwright/test` devDep) : scripts dans `test/` (`walkthrough*.mjs` = parcours headed + vidéo ; `qa-full/qa-deep/qa-settings.mjs` = couverture login+onglets+réglages ; `qa/verify-*.mjs` = non-régression). Web RN garde tous les onglets montés dans le DOM → se fier aux **captures**, pas au dump texte. **Login automatisable** via le bouton **« Continuer en invité »** (connexion anonyme Supabase, `signInGuest` / `testID="guest-login"`) → un seul tap, pas de mot de passe. ⚠️ Nécessite l'**auth anonyme activée** dans Supabase (Authentication → Providers → Anonymous). ⚠️ **Masqué en PROD** (`{__DEV__ && …}` dans `login.tsx`, décidé à l'audit sécu pour fermer le vecteur de création anonyme de comptes en masse) — visible seulement en dev/Playwright, invisible sur le web déployé. La QA tourne en dev → OK. (Clé Cloudflare Turnstile créée mais **CAPTCHA non activé** : l'inscription email est déjà protégée par la confirmation email ; Turnstile gardé pour le mobile natif futur.) Repli legacy : session manuelle réutilisée via `test/qa/session.json` (gitignored). Sorties générées (PNG, rapports, vidéos) gitignored.
 
 ## État de `lib/sync.ts` — sous filet depuis le 2026-07-30
@@ -3591,7 +3698,7 @@ restent dans le catalogue. Le chantier se mesure maintenant en une commande.
 - **▶ DÉCISION PRODUIT 2026-07-27 — SUPPORT TABLETTE.** ✅ **CHANTIER FAIT le 2026-08-01 (C1), vérifié en natif le 2026-08-02.** *Entrée conservée pour la trace ; ce qui suit décrit l'état d'AVANT et n'est plus une consigne — en particulier « supportsTablet reste false » et « l'app est portrait-only », tous deux faux aujourd'hui.* Usage : cuisiner avec la recette sous les yeux sur tablette (aligné North Star). À faire (autre session) : (1) `app.json > ios.supportsTablet: true` ; (2) layout tablette — au minimum l'écran recette/cuisine (largeur max, lisibilité, cibles ; envisager le **paysage**, l'app est portrait-only) via breakpoints `useWindowDimensions` ; (3) screenshots iPad 13" (2048×2732). ⚠️ Dès `supportsTablet:true`, Apple EXIGE des screenshots iPad ET teste réellement la mise en page tablette (plus le simple mode compatibilité) → **ne pas soumettre `true` sans layout tablette prêt** (rejet). `supportsTablet` **reste `false`** d'ici là (permet une soumission iPhone-only entre-temps). Détail : `STORE-RELEASE.md` §2/§7/§9 + [[project-ipad-support-decided]]. (Le mythe « faut coder l'iPad sinon rejet » était faux ; ici c'est un choix produit délibéré, pas la peur du rejet.)
   - **Session Kyroz+ — objectif daté / monétisation (2026-07-27), LIVRÉE + DÉPLOYÉE (`5a4fc63`)** :
     - **Valeur premium tranchée PUIS construite** (comble le trou « que vendre ? » de `MONETISATION.md`) : Kyroz+ = **« piloter son objectif dans le temps »**. 3 piliers livrés. Le core loop reste 100 % gratuit.
-    - **🎯 Objectif daté** (`lib/datedGoal.ts`, PUR + testé) : poids cible + date → **rythme SÛR** (`MAX_LOSS_RATE_PCT`=1 %/sem, `MAX_GAIN_RATE_PCT`=0,5 %/sem, `KCAL_PER_KG`=7700), delta calorique **branché dans le CERVEAU MACRO UNIQUE** : `recalcProfile` calcule un `kcalDeltaOverride` (via `datedGoalKcalDelta`) qui **remplace** `GOAL_CONFIG[goal].kcalDelta` dans `calculateMacros`/`macrosPercent` → **plancher `MIN_KCAL` (§6) préservé**, protéines inchangées. Échéance passée / poids atteint = inactif (retour au delta d'objectif normal). Éditeur « Objectif daté » (Profil : `GoalTarget`, horizons 4/8/12/16/24 sem → date dérivée, aperçu live des kcal ajustées + avertissement « objectif ambitieux » si bridé ; **date exacte préservée à la réouverture** — pas de re-arrondi de l'horizon). Carte de suivi **partagée** `components/DatedGoalCard.tsx` sur **Profil ET Plan** (deep-link `@kyroz:openEditor='dated_goal'`, même mécanisme que la perso macros).
+    - **🎯 Objectif daté** (`lib/datedGoal.ts`, PUR + testé) : poids cible + date → **rythme SÛR** (⚠️ *re-vérifié le 2026-08-03 — cette ligne citait trois constantes qui n'existent plus* : `maxWeeklyLossPct()` **modulé par l'adiposité** (0,5 / 0,75 / 1,25 %/sem) et non un `MAX_LOSS_RATE_PCT` fixe à 1 ; `MAX_GAIN_RATE_PCT`=0,5 %/sem ; coût du kg **ASYMÉTRIQUE** `KCAL_PER_KG_FAT`=7700 / `KCAL_PER_KG_GAIN`=5000, pas un `KCAL_PER_KG` unique), delta calorique **branché dans le CERVEAU MACRO UNIQUE** : `recalcProfile` calcule un `kcalDeltaOverride` (via `datedGoalKcalDelta`) qui **remplace** `GOAL_CONFIG[goal].kcalDelta` dans `calculateMacros`/`macrosPercent` → **plancher `MIN_KCAL` (§6) préservé**, protéines inchangées. Échéance passée / poids atteint = inactif (retour au delta d'objectif normal). Éditeur « Objectif daté » (Profil : `GoalTarget`, **échéances DÉRIVÉES DU CORPS** depuis A27 — `lib/goalLadder.ts` ; les horizons 4/8/12/16/24 sem ne survivent qu'en repli → date dérivée, aperçu live des kcal ajustées + avertissement « objectif ambitieux » si bridé ; **date exacte préservée à la réouverture** — pas de re-arrondi de l'horizon). Carte de suivi **partagée** `components/DatedGoalCard.tsx` sur **Profil ET Plan** (deep-link `@kyroz:openEditor='dated_goal'`, même mécanisme que la perso macros).
     - **📈 Trajectoire + réassurance ANTI-CHARGE-MENTALE** (`components/Transformation.tsx`, `WeightChart` enrichi) — **décision produit clé** : la courbe montre une **ZONE ombrée SEULE** (couloir cible ± `TRACK_TOLERANCE_KG`=**1 kg**, large exprès car le poids fluctue de 1-2 kg/j), **NI ligne « à suivre » NI marqueur d'arrivée** (une ligne au pixel près = anxiogène = anti-North-Star). Verdict `TrackVerdict` **jamais alarmant** : « ✓ Dans ta zone » / « 🔥 En avance » / « Ça descend à ton rythme » (le pire cas est NEUTRE, pas de ⚠️/ambre), ancré sur l'**acquis** (« Depuis le départ : −X kg 💪 ») + le mécanisme vrai qui rassure : « la pente est un repère, pas une règle — à chaque pesée Kyroz réajuste tes calories ». Recalage auto **gratuit** : `useWeightLog.logWeight` appelle déjà `recalcProfile` à chaque pesée du jour → la trajectoire se recalcule seule (`idealWeightAt`/`trackStatus`, purs + testés). ⚠️ En prise de masse le sens du « retard » s'inverse.
     - **📸 Module Transformation** : comparaison **photos avant/après** (1re vs dernière photo, datées + poids + Δ). **LOCAL-ONLY** (RGPD, `lib/photos.ts` inchangé — rien d'uploadé). Rangée plafonnée à 420 px (sinon photos géantes sur le web large).
     - **🐛 Fix pré-existant attrapé** : `WeightChart` se dessinait **HORS CADRE** quand `Dimensions.get('window').width` renvoyait 0 (largeur SVG négative → SVG invisible, bug silencieux) → largeur **auto-mesurée** via `onLayout` (la prop `width` n'est plus qu'une valeur initiale, plancher `MIN_CHART_WIDTH`). L'axe X est passé **proportionnel au TEMPS** (avant : indexé par point → une trajectoire superposée aurait menti sur pesées irrégulières).

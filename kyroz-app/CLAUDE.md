@@ -71,21 +71,50 @@ App mobile React Native (Expo Router, SDK 56) de plans repas macro-précis pour 
 > qui disparaît. Ne jamais publier sans `npm test` + `tsc` verts. En cas de casse :
 > republier l'update précédent (`eas update:rollback`).
 >
-> 🔴 **`eas.json` → bloc `env` : lu par `eas build`, PAS par `eas update`.** Découvert le
-> 2026-08-03. Les clés Supabase vivent dans `build.<profil>.env` d'`eas.json` ; elles ne
-> sont **pas** des variables d'environnement EAS. Un `eas update` lancé depuis un clone
-> frais, un CI, ou toute machine sans `.env.local` publierait donc un bundle **sans URL
-> Supabase** — et l'app ne démarre pas sans. Le tout distribué à tout le monde en
-> quelques minutes, sans filet.
-> ➡️ **Avant tout `eas update`, VÉRIFIER le bundle plutôt que l'intention** :
-> `npx eas-cli env:exec production 'npx expo export --platform ios --output-dir /tmp/x'`
-> puis `strings` sur le `.hbc` produit, et y chercher les chaînes attendues. Rien n'est
-> publié — c'est la simulation exacte de ce que l'update enverrait. Même méthode que pour
-> le bundle web (§11, « un `require` paresseux ne retire rien du bundle ») : **on mesure
-> l'artefact, pas la configuration.**
-> 🧑 Correctif de fond : poser les clés Supabase en variables EAS, comme la clé
-> RevenueCat. Aucune exposition nouvelle — elles sont déjà en clair dans `eas.json`, qui
-> est versionné, et publiques par conception (c'est la RLS qui protège).
+> 🔴 **`eas.json` → bloc `env` : lu par `eas build`, PAS par `eas update`.** Découvert et
+> **CORRIGÉ le 2026-08-03.** Les clés Supabase ne vivaient que dans `build.<profil>.env`
+> d'`eas.json` : un `eas update` lancé depuis un clone frais, un CI, ou toute machine sans
+> `.env.local` aurait publié un bundle **sans URL Supabase** — et l'app ne démarre pas
+> sans. Le tout distribué à tout le monde en quelques minutes, sans revue pour l'arrêter.
+> **Mesuré avant correctif** (export iOS, `.env.local` écarté) : `rgdjsdnqlmfkourrhijv`
+> **0**, `sb_publishable_` **0**, clé RevenueCat **1** — celle-ci était déjà une variable
+> EAS, et c'est ce contraste qui a désigné le coupable.
+> ✅ **État actuel** : les deux clés Supabase sont des variables d'environnement EAS
+> (`production`, `preview`, `development`), `eas.json` ne porte plus **aucune** clé, et
+> chaque profil **DÉCLARE** son environnement. Garde-fou : `lib/__tests__/easEnv.test.ts`.
+>
+> ⚠️ **Trois pièges à connaître, chacun payé par une mesure :**
+>
+> 1. **Le cache de Metro ne s'invalide PAS quand la valeur d'une `EXPO_PUBLIC_*` change.**
+>    Le plus vicieux des trois. Après avoir posé les variables, un ré-export a **encore**
+>    rendu 0 occurrence : le bundler resservait une transformation figée. Seul `--clear`
+>    a produit le bon bundle (0/0 → 1/1). ➡️ **`eas update --clear-cache`**, et vider le
+>    cache avant TOUTE mesure — sinon c'est la mesure elle-même qui ment, et elle ment
+>    dans le sens rassurant comme dans l'autre.
+> 2. **Quand une clé est dans les deux endroits, `eas.json` GAGNE** (eas-cli,
+>    `evaluateConfigWithEnvVarsAsync` : `{ ...serverEnvVars, ...buildProfile.env }`).
+>    Faire tourner une clé côté serveur seulement laisserait donc les builds servir
+>    l'ancienne valeur — le même brique, réintroduit par la porte d'à côté. EAS l'écrit
+>    noir sur blanc dans sa sortie (« The values from the build profile configuration
+>    will be used ») ; encore faut-il la lire.
+> 3. **Sans champ `environment`, eas-cli le DÉDUIT** de `distribution` / `developmentClient`
+>    (`store` → production, `developmentClient` → development, sinon preview). Passer un
+>    profil en `distribution: internal` le ferait glisser de « production » à « preview »,
+>    donc changer les clés servies, **sans qu'aucune ligne du diff ne parle
+>    d'environnement**. D'où la déclaration explicite.
+>
+> ➡️ **Vérifier plutôt que supposer, et c'est GRATUIT** :
+> `npx eas-cli config --profile production --platform ios` imprime l'environnement résolu,
+> les variables serveur chargées, celles d'`eas.json`, et l'avertissement de doublon —
+> **sans lancer de build**. Pour aller jusqu'à l'artefact :
+> `npx eas-cli env:exec production 'npx expo export --platform ios --clear --output-dir /tmp/x'`
+> puis `strings -a` sur le `.hbc` produit (c'est du bytecode Hermes : `grep` seul rend 0).
+> Rien n'est publié — c'est la simulation exacte de ce que l'update enverrait. Même méthode
+> que pour le bundle web (§11, « un `require` paresseux ne retire rien du bundle ») :
+> **on mesure l'artefact, pas la configuration.**
+> ⚠️ Et la table de chaînes de Hermes est **concaténée** : `strings` rend de longues lignes
+> qui collent plusieurs chaînes bout à bout. Chercher par sous-chaîne (`grep -c`), jamais
+> par égalité de ligne — un `comm` entre deux bundles ne compare que du bruit.
 > ℹ️ Aucune permission Android ajoutée — vérifié sur le manifeste généré, et le
 > correctif A2 (`RECORD_AUDIO`, `SYSTEM_ALERT_WINDOW` en `tools:node="remove"`) survit.
 
@@ -476,6 +505,39 @@ composant. Audit complet des réglages : `npm run mesure:reglages`.
 > (0,47 au pire). Aucune récursion : l'appel intérieur du projecteur reste `project: null`.
 >
 > ➡️ Contrôle : `npm run mesure:objectif`. Raisonnement complet et chiffres : AGENTS.md A15.
+
+> **Les échéances proposées sont DÉRIVÉES DU CORPS, jamais figées** (2026-08-03, A27,
+> `lib/goalLadder.ts`). La rangée offrait cinq durées en dur — 4 / 8 / 12 / 16 / 24
+> semaines — et **9 puces sur 40 seulement étaient tenables** : sur 4 corps de référence
+> sur 8, AUCUNE ne l'était. La première échéance atteignable se situait entre 18 et
+> 82 semaines, hors de la rangée.
+>
+> **Deux invariants, et il faut les deux.** Une rangée dont chaque puce tient serait
+> encore mensongère si deux puces servaient la même assiette :
+>  1. **tenable** — la puce ne promet pas une date que le moteur ne tiendra pas ;
+>  2. **distincte** — sous une certaine durée, le plancher d'énergie disponible borne le
+>     déficit, donc allonger l'échéance ne change RIEN au plan. Mesuré avant correctif :
+>     **14 puces sur 40** servaient un plan distinct, et sur 5 corps sur 8 les CINQ
+>     boutons servaient la même assiette. C'est le défaut A23 (« un réglage qui ne pilote
+>     rien »), resté invisible parce qu'on ne mesurait que la tenabilité.
+> ➡️ **Quand on remplace un composant, mesurer aussi ce qu'on ne l'accusait PAS de faire.**
+> Après : **40 / 40** sur les deux critères.
+>
+> ⚠️ **L'échelle interroge le moteur, elle ne rejoue pas ses formules** : `deadlineLadder`
+> reçoit une SONDE, exactement comme `datedGoalStatus` reçoit un projecteur. Le prix est
+> réel — ~17 sondes simulant chacune jusqu'à 260 semaines, soit 3 à 45 ms sur les
+> gabarits courants et 283 ms sur un écart de 30 kg. **Donc mémoïsé sur le poids cible**,
+> sinon la saisie devient saccadée.
+>
+> ⚠️ **La recherche par dichotomie repose sur une propriété MESURÉE, pas garantie par le
+> code** : une fois qu'une durée tient, toutes les plus longues tiennent. Un test balaye
+> l'horizon et exige l'absence de trou — sans lui, la première puce deviendrait fausse en
+> silence le jour où la propriété tombe.
+>
+> ⚠️ **En PRISE de masse, les calories servies BAISSENT quand la date s'éloigne.** Tout
+> prédicat écrit en pensant à la sèche (`>`, « plus de calories ») y est faux : le test de
+> décollage du plancher est `!==`. Une version orientée perte marchait sur la prise **par
+> accident**. Vaut au-delà de ce module.
 
 - **Lipides sous le seuil de carence** — `lib/tdee.ts::fatTargetG`, plancher à
   0,8 g/kg de **poids de corps** (`FAT_MIN_PER_KG_BW`). Borné par le budget du
