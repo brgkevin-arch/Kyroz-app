@@ -28,6 +28,20 @@ cd kyroz-app && npx eas env:list production --include-sensitive
 Vérifiée activée le 2026-08-03. Si elle est coupée, la connexion du relecteur échoue
 et la revue est refusée — sans que le motif soit évident.
 
+## Les deux groupes, et lequel sert à quoi
+
+| Groupe | ID | Pour qui | Revue Apple |
+|---|---|---|---|
+| **Équipe interne** | `da72c6f8-86ad-4f39-a4a1-028afc225c5a` | le fondateur (Account Holder) | **aucune, jamais** — le build arrive dès la fin du traitement |
+| **Bêta** (externe) | `b15d3e76-ac4d-43a6-9359-c0675cec8ffc` | testeurs extérieurs | revue faite une fois, désormais acquise |
+
+Le groupe interne a `hasAccessToAllBuilds: true` → tout nouveau build y atterrit seul,
+sans aucune manip. C'est le canal à utiliser pour se tester soi-même.
+
+⚠️ Le bundle ID est le même que la distribution ad hoc (`app.kyroz.mobile`) :
+**l'install TestFlight REMPLACE l'app ad hoc et repart sur un conteneur vide.**
+Être connecté à son compte Kyroz avant — le profil revient par la synchro Supabase.
+
 ## Ce qui est déjà en place
 
 - [x] Certificat de distribution App Store + profil de provisioning
