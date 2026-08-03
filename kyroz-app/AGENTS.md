@@ -67,7 +67,7 @@ qu'ils étaient périmés.
 | `ENGINE_VERSION` | **45** (invalide les plans en cache) | `lib/planEngine.ts` |
 | `ENGINE_REV` | **5** (avertissement one-shot à l'utilisateur) — A15, l'objectif daté hors de portée sert désormais le rythme sûr MAXIMAL | `lib/tdee.ts` |
 | Objectif daté | la date affichée est un **POINT FIXE** : l'adopter ne la déplace plus (3 corps sur 8 glissaient de +96 j avant A15) | `npm run mesure:objectif` |
-| Tests | **952 verts**, 54 fichiers · `tsc` propre | `npm test && npx tsc --noEmit` |
+| Tests | **954 verts**, 54 fichiers · `tsc` propre | `npm test && npx tsc --noEmit` |
 | Plateformes | iPhone **+ iPad** (`supportsTablet: true` depuis le 2026-08-01). ⚠️ **portrait sur iPhone, MAIS les 4 orientations sur iPad** — Expo les force dès `supportsTablet`, le multitâche iPadOS l'impose, ce n'est pas refermable. Vérifié en natif (iPad Pro 13") et à 1366×1024 | `ios/Kyroz/Info.plist` généré, PAS `app.json` · `lib/layout.ts` |
 | Sortie stores | iOS **1.0.0 (3)** envoyé à TestFlight, **revue bêta en cours** depuis le 2026-08-03 00h58 · Android : 2 builds, rien de soumis | `npx eas-cli build:list` · `TESTFLIGHT.md` |
 | Kyroz+ | **encaissement armé, verrou inerte.** Clé RevenueCat posée dans EAS et vérifiée dans le bundle ; `PAYWALL_LAUNCH` = `null`, donc **tout est gratuit pour tout le monde**. ⚠️ Le build TestFlight actuel est ANTÉRIEUR à la clé | `lib/premium.ts` · `npx eas-cli env:list production` |
@@ -2881,13 +2881,24 @@ produit en suspens — il ne reste qu'à coder.
   `endurance` et `combats` ne se répandent pas au-delà du constaté (114 et 51) ·
   aucun `tags.sport` vide · **`recup_jour_repos` ne réapparaît jamais**.
 
-  🧑 **CE QUI RESTE À TRANCHER — la seule question ouverte de cette fiche.** **105 recettes
-  affichent « Endurance » sans remplir la règle des 55 % de glucides.** Le tag est vu par
-  l'utilisateur. Le rendre exact coûte, mesuré : **0 → 5 drapeaux bloquants** sur les repas
-  servis, c'est-à-dire l'acquis phare de D20. Trois issues possibles, aucune gratuite :
-  (1) laisser tel quel et assumer un label mou ; (2) l'appliquer et payer les 5 drapeaux ;
-  (3) **retirer `sport` de l'affichage** et le garder comme pur diversifieur interne — ce
-  qui règle le mensonge sans toucher au moteur, et c'est la piste que je recommande.
+  ✅ **TRANCHÉ LE MÊME JOUR — `sport` sort de l'affichage.** 105 recettes montraient
+  « Endurance » sans remplir la règle des 55 % de glucides, et le tag était vu par
+  l'utilisateur. Trois issues, aucune gratuite : (1) laisser mentir ; (2) appliquer la
+  règle et payer **0 → 5 drapeaux bloquants**, c'est-à-dire l'acquis phare de D20 ;
+  (3) retirer l'affichage. **Décision du fondateur : la (3)** — `Recipe.sports` reste un
+  diversifieur pour `needMatch`, il n'est simplement plus MONTRÉ.
+  ➡️ **Un tag qu'on ne montre pas n'a pas à être une promesse.** Coût moteur : **zéro**
+  (aucune donnée, aucun score touché — `ENGINE_VERSION` reste donc à 45).
+  🔒 Retiré de `components/RecipeDetail.tsx` et `app/(tabs)/recettes.tsx`, `SPORT_LABEL`
+  supprimé de `lib/recipeLabels.ts` (celui de `lib/sport.ts`, les sports du PROFIL, reste).
+  Verrouillé par un **scan des sources** dans `tags.test.ts`, sur le patron de
+  `noAlert.test.ts` : ré-afficher `sports` ou réimporter le libellé fait rougir la suite,
+  les deux vérifiés par mutation. Le jour où quelqu'un voudra vraiment l'afficher, il
+  faudra **d'abord le rendre vrai** — et le tableau ci-dessus dit ce que ça coûte.
+  ⚠️ **Vérification navigateur NON faite** : le port 8090 était pris par une session
+  parallèle et `.claude/launch.json` est un fichier suivi que je n'ai pas voulu modifier
+  sous elle. À la place, l'invariant visuel qui restait est verrouillé par un test —
+  chaque recette a 1 ou 2 objectifs, donc la ligne de tags n'est jamais vide.
 
 ### 🧹 E — Dette technique
 

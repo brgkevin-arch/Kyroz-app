@@ -1,4 +1,6 @@
 import { describe, it, expect } from 'vitest';
+import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { join } from 'node:path';
 import raw from '../../Recette/recettes-kyroz.json';
 import { RAW_RECIPES, macrosForRefIngredients } from '../recipeData';
 
@@ -59,9 +61,12 @@ describe('tags mécaniques — ils se calculent, ils ne se décident pas', () =>
    * seul améliore TOUT. On garde donc `sport` tel quel — mais on l'empêche de dériver
    * davantage : les deux plafonds ci-dessous sont l'état constaté le 2026-08-03.
    *
-   * ⚠️ Conséquence assumée et NON réglée : 105 recettes affichent « Endurance » sans
-   * remplir la règle des 55 %. C'est une question de fond posée au fondateur (fiche D22),
-   * pas un oubli.
+   * ✅ **Tranché le 2026-08-03 : `sport` n'est plus AFFICHÉ.** 105 recettes montraient
+   * « Endurance » sans remplir la règle des 55 % — un label qu'on ne peut pas tenir. Les
+   * trois issues étaient (1) laisser mentir, (2) appliquer la règle et payer 5 drapeaux
+   * bloquants, (3) retirer l'affichage. Le fondateur a pris la (3) : **un tag qu'on ne
+   * montre pas n'a pas à être une promesse**, et le diversifieur reste intact — zéro coût
+   * moteur. Le retrait de l'affichage est verrouillé plus bas.
    */
   it('« endurance » ne se répand pas : au plus les 114 recettes constatées', () => {
     const n = RAW_RECIPES.filter((r) => r.tags.sport.includes('endurance')).length;
@@ -77,10 +82,22 @@ describe('tags mécaniques — ils se calculent, ils ne se décident pas', () =>
     expect(n, 'un nouveau lot a posé « combats », interdit par le §5 du brief').toBeLessThanOrEqual(51);
   });
 
-  // Un tag vide ne s'affiche pas et ne départage rien : il doit rester au moins une valeur.
+  // Un tag vide ne départage rien : il doit rester au moins une valeur.
   it('aucune recette sans tag de sport', () => {
     const vides = RAW_RECIPES.filter((r) => !r.tags.sport.length).map((r) => r.id);
     expect(vides, `tags.sport vide : ${vides.join(', ')}`).toEqual([]);
+  });
+
+  // L'INVARIANT VISUEL laissé par le retrait de `sport` de l'affichage : la ligne de tags
+  // de la fiche et de la liste ne contient plus QUE `objectif`. Si une recette pouvait
+  // avoir zéro objectif, la ligne disparaîtrait pour elle — un trou dans la carte que
+  // personne ne verrait avant la prod. Le §6.5 rend toujours 1 ou 2 valeurs, mais c'est
+  // une propriété du calcul, pas une garantie des données : on la vérifie.
+  it('chaque recette a 1 ou 2 objectifs — la ligne de tags n’est jamais vide', () => {
+    const anomalies = RAW_RECIPES
+      .filter((r) => r.tags.objectif.length < 1 || r.tags.objectif.length > 2)
+      .map((r) => `${r.id} : ${r.tags.objectif.length} objectif(s)`);
+    expect(anomalies, `ligne de tags vide ou surchargée :\n  ${anomalies.join('\n  ')}`).toEqual([]);
   });
 
   /**
@@ -103,6 +120,49 @@ describe('tags mécaniques — ils se calculent, ils ne se décident pas', () =>
     expect(
       revenants,
       'champ mort réintroduit — relire §4.8 du brief avant de le remettre :\n  ' + revenants.join(', '),
+    ).toEqual([]);
+  });
+
+  /**
+   * `Recipe.sports` NE DOIT PAS ÊTRE AFFICHÉ (décision du fondateur, 2026-08-03).
+   *
+   * Il reste un diversifieur pour `needMatch` — utile, mesuré, et volontairement pas
+   * exact : 105 recettes portent « endurance » sans remplir la règle des 55 %. Tant qu'il
+   * n'est pas montré, ce n'est pas un mensonge ; le jour où quelqu'un le ré-affiche, ça
+   * en redevient un **en silence**. D'où ce test, sur le patron de `noAlert.test.ts` :
+   * seul un scan des sources peut tenir fermé un piège invisible à la relecture.
+   *
+   * ⚠️ Si tu veux vraiment l'afficher un jour, il faut D'ABORD le rendre vrai — et la
+   * fiche D22 dit ce que ça coûte (0 → 5 drapeaux bloquants sur les repas servis).
+   */
+  it('aucun écran n’affiche `sports` d’une recette', () => {
+    const racine = join(__dirname, '..', '..');
+    const fichiers = (dir: string, acc: string[] = []): string[] => {
+      for (const e of readdirSync(dir)) {
+        if (e === 'node_modules' || e === '__tests__') continue;
+        const p = join(dir, e);
+        if (statSync(p).isDirectory()) fichiers(p, acc);
+        else if (/\.tsx$/.test(e)) acc.push(p);
+      }
+      return acc;
+    };
+    const coupables: string[] = [];
+    for (const dossier of ['app', 'components']) {
+      for (const f of fichiers(join(racine, dossier))) {
+        const src = readFileSync(f, 'utf8');
+        // `recipe.sports.map(...)` / `item.sports?.map(...)` — le rendu, pas la lecture.
+        const rend = /\.sports\s*\??\.\s*map\s*\(/.test(src);
+        // …ou réimporte le libellé côté recette (celui de `lib/sport.ts` est un AUTRE
+        // libellé — les sports du PROFIL — et reste parfaitement légitime).
+        const reimporte = /SPORT_LABEL/.test(src) && /recipeLabels/.test(src);
+        if (rend || reimporte) {
+          coupables.push(f.slice(racine.length + 1).replace(/\\/g, '/'));
+        }
+      }
+    }
+    expect(
+      coupables,
+      'le tag sport d’une recette est de nouveau affiché — le rendre VRAI d’abord (cf. D22) :\n  ' + coupables.join('\n  '),
     ).toEqual([]);
   });
 
