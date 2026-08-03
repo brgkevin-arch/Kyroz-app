@@ -67,10 +67,11 @@ qu'ils étaient périmés.
 | `ENGINE_VERSION` | **45** (invalide les plans en cache) | `lib/planEngine.ts` |
 | `ENGINE_REV` | **5** (avertissement one-shot à l'utilisateur) — A15, l'objectif daté hors de portée sert désormais le rythme sûr MAXIMAL | `lib/tdee.ts` |
 | Objectif daté | la date affichée est un **POINT FIXE** : l'adopter ne la déplace plus (3 corps sur 8 glissaient de +96 j avant A15) | `npm run mesure:objectif` |
-| Tests | **954 verts**, 54 fichiers · `tsc` propre | `npm test && npx tsc --noEmit` |
+| Tests | **977 verts**, 56 fichiers · `tsc` propre | `npm test && npx tsc --noEmit` |
 | Plateformes | iPhone **+ iPad** (`supportsTablet: true` depuis le 2026-08-01). ⚠️ **portrait sur iPhone, MAIS les 4 orientations sur iPad** — Expo les force dès `supportsTablet`, le multitâche iPadOS l'impose, ce n'est pas refermable. Vérifié en natif (iPad Pro 13") et à 1366×1024 | `ios/Kyroz/Info.plist` généré, PAS `app.json` · `lib/layout.ts` |
 | Sortie stores | iOS **1.0.0 (3)** envoyé à TestFlight, **revue bêta en cours** depuis le 2026-08-03 00h58 · Android : 2 builds, rien de soumis | `npx eas-cli build:list` · `TESTFLIGHT.md` |
 | Kyroz+ | **encaissement armé, verrou inerte.** Clé RevenueCat posée dans EAS et vérifiée dans le bundle ; `PAYWALL_LAUNCH` = `null`, donc **tout est gratuit pour tout le monde**. ⚠️ Le build TestFlight actuel est ANTÉRIEUR à la clé | `lib/premium.ts` · `npx eas-cli env:list production` |
+| Clés du build/OTA | **une seule source : les variables EAS.** `eas.json` ne porte plus aucune clé, chaque profil déclare son `environment`. ⚠️ **`eas update --clear-cache`** — le cache Metro ignore un changement de valeur `EXPO_PUBLIC_*` | `npx eas-cli config --profile production --platform ios` · `lib/__tests__/easEnv.test.ts` |
 | Site déployé | **automatique** : GitHub Actions à chaque push `main` (`build_type: workflow`). ⚠️ **NE PAS lire `origin/gh-pages`** — branche morte, cf. A12 | `gh run list --workflow=deploy.yml` |
 | Migrations Supabase | les **15** jouées, `2026-08-02_profiles_birth_date.sql` comprise. ⚠️ **Ne jamais annoncer une migration « en attente » sans lancer la commande** — le dépôt ne sait rien de la prod, et deux lignes d'ici l'ont dit à tort pendant des jours | `npm run check:migrations` |
 | Variété perçue | semaines servant 2 recettes d'un même couple : **max 7,9 %** (9,2 % avant D22 · 10,0 % avant D21 · 11,7 % avant B9 · 12,5 % avant B8 · 20,8 % avant B7 · 27,5 / 26,3 % avant A25 · 56,3 % avant D18) | `npm run mesure:variete -- --variete=…` |
@@ -1556,15 +1557,47 @@ produit en suspens — il ne reste qu'à coder.
      machine sans `.env.local` publierait un bundle **sans URL Supabase**. L'app ne
      démarre pas sans, et la mise à jour atteint tous les testeurs en quelques minutes,
      **sans revue de store pour l'arrêter**.
-     ✅ Mesuré : depuis le worktree (qui a `.env.local`), le bundle contient bien
-     l'URL et la clé Supabase. Le chemin est donc sûr **depuis cette machine, depuis
-     ce dossier** — et nulle part ailleurs.
-     🧑 **Correctif de fond, non fait** : poser `EXPO_PUBLIC_SUPABASE_URL` et
-     `_ANON_KEY` en variables EAS, comme la clé RevenueCat. Build et update liraient
-     alors la même source. **Aucune exposition nouvelle** : ces deux valeurs sont déjà
-     en clair dans `eas.json`, qui est versionné, et publiques par conception (c'est la
-     RLS qui protège, pas le secret de la clé). Non fait ici parce que `eas.json`
-     appartient à une session parallèle.
+     ⚠️ **La première mesure ne prouvait rien** : elle avait été faite depuis le worktree,
+     qui a `.env.local`. Le bundle contenait donc les clés — mais grâce au fichier local,
+     pas grâce à EAS. **Une mesure qui ne distingue pas les deux sources ne mesure pas la
+     question posée.**
+
+     ✅ **CORRIGÉ le 2026-08-03, et mesuré des deux côtés.** Protocole : écarter
+     `.env.local`, exporter le bundle iOS via `eas env:exec production`, `strings -a` sur
+     le `.hbc`. Avant : `rgdjsdnqlmfkourrhijv` **0**, `sb_publishable_` **0**, clé
+     RevenueCat **1** — le brique était réel, pas théorique, et c'est ce contraste avec la
+     clé RevenueCat (déjà côté EAS) qui a désigné le coupable. Après : **1 / 1 / 1**.
+     `EXPO_PUBLIC_SUPABASE_URL` et `_ANON_KEY` sont désormais des variables EAS sur
+     `production`, `preview` **et** `development` ; `eas.json` ne porte plus **aucune**
+     clé et chaque profil DÉCLARE son environnement. **Aucune exposition nouvelle** : ces
+     deux valeurs étaient déjà en clair dans `eas.json`, versionné, et sont publiques par
+     conception (c'est la RLS qui protège, pas le secret de la clé).
+     🎁 Effet de bord gagné : le profil `development` n'avait **aucun** bloc `env` — un
+     build dev-client partait donc sans Supabase. Il les a maintenant.
+     🔒 Garde-fou : `lib/__tests__/easEnv.test.ts` (3 tests, contrôle de morsure fait —
+     réintroduire une clé dans `eas.json` ou retirer un `environment` fait rougir, avec le
+     nom du profil fautif dans le message).
+
+     🔴 **LE PIÈGE DANS LE PIÈGE — le cache de Metro ne s'invalide PAS sur un changement
+     de valeur d'`EXPO_PUBLIC_*`.** Une fois les variables posées, le ré-export a **encore**
+     rendu 0 occurrence. La configuration était juste, le bundler resservait une
+     transformation figée. Seul `--clear` a produit le bon artefact.
+     ➡️ **`eas update --clear-cache`**, sans exception. Et vider le cache avant toute
+     mesure : ici, c'est la MESURE qui mentait, et elle a menti dans le sens alarmant —
+     elle aurait tout aussi bien pu mentir dans le sens rassurant.
+
+     ⚠️ **Deuxième piège : quand une clé est dans les deux endroits, `eas.json` GAGNE**
+     (eas-cli, `evaluateConfigWithEnvVarsAsync` : `{ ...serverEnvVars, ...buildProfile.env }`).
+     Faire tourner une clé côté serveur seulement aurait laissé les builds servir
+     l'ancienne — le même brique, réintroduit par la porte d'à côté. EAS l'écrivait dans
+     sa sortie (« The values from the build profile configuration will be used ») ; encore
+     fallait-il la lire. C'est ce qui a décidé de supprimer le doublon plutôt que de le
+     garder « au cas où ».
+
+     🧰 **`eas config --profile <p> --platform ios` est l'instrument à connaître** : il
+     imprime l'environnement résolu, les variables serveur chargées, celles d'`eas.json`
+     et l'avertissement de doublon — **sans lancer de build, donc gratuitement**. Les
+     quatre profils ont été vérifiés un par un, avant et après.
   4. **Un nouveau build natif ET une nouvelle revue store.** `react-native-purchases`
      est un module NATIF : l'OTA ne peut pas le livrer (`CLAUDE.md` §2). Le
      `ios/` local doit être régénéré (`npx expo prebuild` puis `pod install`) — il
@@ -1788,6 +1821,26 @@ produit en suspens — il ne reste qu'à coder.
     au compte, `expo-font`, texte légal.
     ⚠️ **Ce build n'a PAS la clé RevenueCat** (elle a été posée après) → dans TestFlight
     aujourd'hui, `purchasesConfigured()` est faux. C'est ce que l'OTA doit corriger.
+    ✅ **Vérifié SUR LE BINAIRE, pas sur la config** (2026-08-03) : l'IPA soumis a été
+    téléchargé (27 Mo, `artifacts.applicationArchiveUrl`), dézippé, et son
+    `Payload/Kyroz.app/main.jsbundle` mesuré au `strings -a`. Résultat :
+    `rgdjsdnqlmfkourrhijv` **1**, `sb_publishable_` **1**, `RNPurchases` **2**,
+    `appl_xBxm` **0**. Le build a donc bien Supabase (via l'ancien bloc `env`
+    d'`eas.json`) et pas la clé RevenueCat — cohérent avec sa date de création
+    (03/08 01h39, postérieure au build du 02/08 22h35).
+    ✅ **ET LE RELECTEUR APPLE PEUT SE CONNECTER — question posée, puis tranchée.**
+    Les profils de `eas.json` ne déclaraient aucun `environment` ; on pouvait craindre
+    que `eas build` n'aille pas chercher `EXPO_PUBLIC_REVIEW_CODE`, qui ne vit QUE côté
+    serveur — le relecteur aurait alors été bloqué au login, motif de refus.
+    Trois faits l'écartent : eas-cli DÉDUIT l'environnement (`distribution: store` →
+    production, source `evaluateConfigWithEnvVarsAsync`) ; la variable est en visibilité
+    *Sensitive*, donc chargée (`byAppIdWithSensitiveAsync` prend Plain text **et**
+    Sensitive) ; et `eas env:list --format long` la date au **17 juillet**, bien avant
+    le build. `eas config --profile production` le confirme en une commande.
+    ⚠️ **Chercher le NOM de la variable dans le bundle ne prouve rien** : `strings` rend
+    0 pour `EXPO_PUBLIC_REVIEW_CODE` comme pour `EXPO_PUBLIC_REVENUECAT_IOS_KEY`, alors
+    que l'une est posée et l'autre pas. Babel retire le nom dans les deux cas. Ce sont
+    les VALEURS qui se cherchent, jamais les noms.
     ⏸️ **Revue bêta `WAITING_FOR_REVIEW`** depuis le 2026-08-03 00h58. Détail complet de
     la procédure, des identifiants et des groupes de testeurs : **`TESTFLIGHT.md`**
     (écrit par la session parallèle, branche `fix/soucis-terrain`).

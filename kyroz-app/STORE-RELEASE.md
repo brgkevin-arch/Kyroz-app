@@ -164,9 +164,26 @@ un identifiant enregistré, puis une fiche d'app. Dans cet ordre, sinon le menu
    croire le contraire. ⚠️ **La clé SECRÈTE du dashboard, elle, ne doit JAMAIS approcher
    un build client** ; elle ne sert que côté serveur (webhooks, effacement RGPD).
    ⚠️ **Rien à poser sur le build web** : il n'encaisse pas (`lib/purchases.web.ts`).
-8. **Vérifier que le build a bien vu les clés** avant de tester un achat : dans l'app,
-   un bouton « S'abonner » actif = `purchasesConfigured()` vrai = clé lue. S'il reste
-   grisé, c'est la clé, pas le store.
+8. **Vérifier que le build a bien vu les clés — SUR L'ARTEFACT, pas dans l'app.**
+   ```
+   npx eas-cli config --profile production --platform ios     # gratuit, sans build
+   npx eas-cli env:exec production 'npx expo export --platform ios --clear --output-dir /tmp/x'
+   strings -a /tmp/x/_expo/static/js/ios/*.hbc | grep -c 'appl_'
+   ```
+   La première commande dit quel environnement le profil résout et quelles variables
+   sont chargées. La seconde produit le bundle exact qu'un `eas update` enverrait, sans
+   rien publier. `strings -a` est obligatoire : c'est du **bytecode Hermes**, un `grep`
+   seul rend 0 même quand la clé est là.
+   ⚠️ **`--clear` n'est pas décoratif** : le cache de Metro ne s'invalide pas quand la
+   valeur d'une `EXPO_PUBLIC_*` change. Sans lui, on mesure le bundle d'avant. Corollaire
+   pour publier : **`eas update --clear-cache`**.
+   ⚠️ **Ne PAS chercher le nom de la variable** (`EXPO_PUBLIC_…`) : Babel le retire du
+   bundle qu'elle soit posée ou non. On cherche la VALEUR.
+   🔴 **Et surtout : la version précédente de cette étape était FAUSSE.** Elle disait
+   « un bouton *S'abonner* actif = clé lue ». Impossible : tout le bloc d'achat de
+   `app/kyroz-plus.tsx` n'est rendu que si `reason === 'locked'`, ce qui exige une date
+   dans `PAYWALL_LAUNCH`. Sans date, le bouton n'existe pas — clé ou pas clé. On aurait
+   conclu à une clé manquante en regardant un écran qui ne pouvait rien montrer.
 
 ✅ **Le code n'attend plus rien — mis à jour le 2026-08-02.** Cette ligne disait qu'il
 restait `useEntitlement()` à écrire : c'est fait, ainsi que l'achat, la restauration, les

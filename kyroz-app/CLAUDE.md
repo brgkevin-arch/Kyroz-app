@@ -71,21 +71,50 @@ App mobile React Native (Expo Router, SDK 56) de plans repas macro-précis pour 
 > qui disparaît. Ne jamais publier sans `npm test` + `tsc` verts. En cas de casse :
 > republier l'update précédent (`eas update:rollback`).
 >
-> 🔴 **`eas.json` → bloc `env` : lu par `eas build`, PAS par `eas update`.** Découvert le
-> 2026-08-03. Les clés Supabase vivent dans `build.<profil>.env` d'`eas.json` ; elles ne
-> sont **pas** des variables d'environnement EAS. Un `eas update` lancé depuis un clone
-> frais, un CI, ou toute machine sans `.env.local` publierait donc un bundle **sans URL
-> Supabase** — et l'app ne démarre pas sans. Le tout distribué à tout le monde en
-> quelques minutes, sans filet.
-> ➡️ **Avant tout `eas update`, VÉRIFIER le bundle plutôt que l'intention** :
-> `npx eas-cli env:exec production 'npx expo export --platform ios --output-dir /tmp/x'`
-> puis `strings` sur le `.hbc` produit, et y chercher les chaînes attendues. Rien n'est
-> publié — c'est la simulation exacte de ce que l'update enverrait. Même méthode que pour
-> le bundle web (§11, « un `require` paresseux ne retire rien du bundle ») : **on mesure
-> l'artefact, pas la configuration.**
-> 🧑 Correctif de fond : poser les clés Supabase en variables EAS, comme la clé
-> RevenueCat. Aucune exposition nouvelle — elles sont déjà en clair dans `eas.json`, qui
-> est versionné, et publiques par conception (c'est la RLS qui protège).
+> 🔴 **`eas.json` → bloc `env` : lu par `eas build`, PAS par `eas update`.** Découvert et
+> **CORRIGÉ le 2026-08-03.** Les clés Supabase ne vivaient que dans `build.<profil>.env`
+> d'`eas.json` : un `eas update` lancé depuis un clone frais, un CI, ou toute machine sans
+> `.env.local` aurait publié un bundle **sans URL Supabase** — et l'app ne démarre pas
+> sans. Le tout distribué à tout le monde en quelques minutes, sans revue pour l'arrêter.
+> **Mesuré avant correctif** (export iOS, `.env.local` écarté) : `rgdjsdnqlmfkourrhijv`
+> **0**, `sb_publishable_` **0**, clé RevenueCat **1** — celle-ci était déjà une variable
+> EAS, et c'est ce contraste qui a désigné le coupable.
+> ✅ **État actuel** : les deux clés Supabase sont des variables d'environnement EAS
+> (`production`, `preview`, `development`), `eas.json` ne porte plus **aucune** clé, et
+> chaque profil **DÉCLARE** son environnement. Garde-fou : `lib/__tests__/easEnv.test.ts`.
+>
+> ⚠️ **Trois pièges à connaître, chacun payé par une mesure :**
+>
+> 1. **Le cache de Metro ne s'invalide PAS quand la valeur d'une `EXPO_PUBLIC_*` change.**
+>    Le plus vicieux des trois. Après avoir posé les variables, un ré-export a **encore**
+>    rendu 0 occurrence : le bundler resservait une transformation figée. Seul `--clear`
+>    a produit le bon bundle (0/0 → 1/1). ➡️ **`eas update --clear-cache`**, et vider le
+>    cache avant TOUTE mesure — sinon c'est la mesure elle-même qui ment, et elle ment
+>    dans le sens rassurant comme dans l'autre.
+> 2. **Quand une clé est dans les deux endroits, `eas.json` GAGNE** (eas-cli,
+>    `evaluateConfigWithEnvVarsAsync` : `{ ...serverEnvVars, ...buildProfile.env }`).
+>    Faire tourner une clé côté serveur seulement laisserait donc les builds servir
+>    l'ancienne valeur — le même brique, réintroduit par la porte d'à côté. EAS l'écrit
+>    noir sur blanc dans sa sortie (« The values from the build profile configuration
+>    will be used ») ; encore faut-il la lire.
+> 3. **Sans champ `environment`, eas-cli le DÉDUIT** de `distribution` / `developmentClient`
+>    (`store` → production, `developmentClient` → development, sinon preview). Passer un
+>    profil en `distribution: internal` le ferait glisser de « production » à « preview »,
+>    donc changer les clés servies, **sans qu'aucune ligne du diff ne parle
+>    d'environnement**. D'où la déclaration explicite.
+>
+> ➡️ **Vérifier plutôt que supposer, et c'est GRATUIT** :
+> `npx eas-cli config --profile production --platform ios` imprime l'environnement résolu,
+> les variables serveur chargées, celles d'`eas.json`, et l'avertissement de doublon —
+> **sans lancer de build**. Pour aller jusqu'à l'artefact :
+> `npx eas-cli env:exec production 'npx expo export --platform ios --clear --output-dir /tmp/x'`
+> puis `strings -a` sur le `.hbc` produit (c'est du bytecode Hermes : `grep` seul rend 0).
+> Rien n'est publié — c'est la simulation exacte de ce que l'update enverrait. Même méthode
+> que pour le bundle web (§11, « un `require` paresseux ne retire rien du bundle ») :
+> **on mesure l'artefact, pas la configuration.**
+> ⚠️ Et la table de chaînes de Hermes est **concaténée** : `strings` rend de longues lignes
+> qui collent plusieurs chaînes bout à bout. Chercher par sous-chaîne (`grep -c`), jamais
+> par égalité de ligne — un `comm` entre deux bundles ne compare que du bruit.
 > ℹ️ Aucune permission Android ajoutée — vérifié sur le manifeste généré, et le
 > correctif A2 (`RECORD_AUDIO`, `SYSTEM_ALERT_WINDOW` en `tools:node="remove"`) survit.
 
