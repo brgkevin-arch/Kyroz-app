@@ -758,6 +758,7 @@ export function bodyFatTdeeImpact(body: TdeeBody, declaredPct: number): number {
  */
 function servedTargetAt(
   p: UserProfile, weightKg: number, stamp: string, lowEaWeeks: number,
+  kcalDeltaOverride?: number,
 ): WeekPoint {
   const body: UserProfile = { ...p, weight_kg: weightKg };
   const tdee = calculateTDEE(body);
@@ -767,10 +768,12 @@ function servedTargetAt(
 
   // `project: null` → aucune récursion : c'est la présence d'un projecteur qui
   // déclenche la simulation, et on n'en passe pas ici.
-  const dated = datedGoalStatus(
+  // Avec un delta IMPOSÉ (A15), on ne consulte même pas la politique : le simulateur
+  // veut savoir où mène CE rythme-là, pas celui que l'échéance déduirait.
+  const dated = kcalDeltaOverride == null ? datedGoalStatus(
     p.goal_target, body, stamp, tdee, p.macro_mode === 'manual' ? null : baseFloor, null,
-  );
-  const kcalDelta = dated?.active ? dated.dailyKcalDelta : GOAL_CONFIG[p.goal].kcalDelta;
+  ) : null;
+  const kcalDelta = kcalDeltaOverride ?? (dated?.active ? dated.dailyKcalDelta : GOAL_CONFIG[p.goal].kcalDelta);
 
   // En mode `manual`, la cible vient des GRAMMES saisis, pas de `tdee + delta`
   // (cf. computePlan). Le plancher s'y applique de la même façon.
@@ -791,7 +794,8 @@ function servedTargetAt(
  * poids ni l'escalade de zone basse n'y figurent.
  */
 export function makeWeeklyProjector(p: UserProfile): WeeklyProjector {
-  return (weightKg, stamp, lowEaWeeks) => servedTargetAt(p, weightKg, stamp, lowEaWeeks);
+  return (weightKg, stamp, lowEaWeeks, kcalDeltaOverride) =>
+    servedTargetAt(p, weightKg, stamp, lowEaWeeks, kcalDeltaOverride);
 }
 
 // ── Révision du moteur et avertissement one-shot ─────────────────────────────
@@ -810,6 +814,14 @@ export const ENGINE_REV_LEGACY = 1;
 /**
  * Révision courante — à INCRÉMENTER à chaque correction qui déplace les cibles.
  *
+ * rev 4 → 5 (2026-08-03, A15) : quand la date visée ne tient pas, le moteur sert le
+ * rythme sûr MAXIMAL au lieu du rythme « juste requis ». Ne déplace QUE les profils
+ * portant un objectif daté hors de portée — mesuré sur 8 corps de référence, les
+ * trois femmes à gros écart voient leur cible baisser de ~200 kcal/j et leur date
+ * d'arrivée avancer de 127 à 157 jours ; les autres ne bougent pas d'un kcal.
+ * Aucun garde-fou n'est franchi (rythme sûr, plafond 25 % du TDEE, plancher d'énergie
+ * disponible), et un test le balaie sur toute la grille.
+ *
  * rev 3 → 4 (2026-08-01) : la cible lipidique vise désormais 15 % au-dessus du
  * plancher de carence (`FAT_FLOOR_AIM_MARGIN`), pour que le plan SERVI le franchisse.
  * Ne déplace que les profils dont la cible ÉTAIT le plancher — sèche et maintien.
@@ -820,7 +832,7 @@ export const ENGINE_REV_LEGACY = 1;
  * l'explication de la rev 2 à quelqu'un dont la cible a bougé pour une autre raison
  * serait un mensonge, pas une approximation.
  */
-export const ENGINE_REV = 4;
+export const ENGINE_REV = 5;
 
 /**
  * Seuil d'affichage (kcal/j, en valeur absolue). En dessous, l'écart tient dans le
@@ -917,12 +929,25 @@ export function computePlan(rawProfile: UserProfile, today: string = todayStamp(
   //
   // `null` en mode `manual` : la cible y vient des grammes saisis, pas de
   // `tdee + delta` — la correction de plancher y donnerait le signe inverse.
-  // `project: null` : `computePlan` n'a besoin QUE du delta calorique. Simuler
-  // 260 semaines à chaque recalcul (donc à chaque ouverture d'écran) serait payer
-  // une projection que personne ne lit ici — les écrans qui affichent une date
-  // appellent `datedGoalStatus` eux-mêmes, avec `makeWeeklyProjector`.
+  // ⚠️ UN PROJECTEUR EST PASSÉ ICI DEPUIS A15 (2026-08-03), et ce n'est pas un
+  // détail de perf : le delta lui-même en dépend désormais. Quand la date choisie ne
+  // tient pas, le moteur sert le rythme sûr MAXIMAL au lieu du rythme « juste
+  // requis » — et « la date ne tient pas » n'est connaissable QUE par simulation (le
+  // repli linéaire est trop optimiste de 182 à 1032 jours chez la femme). Sans
+  // projecteur ici, les écrans afficheraient la trajectoire corrigée pendant que
+  // l'assiette servirait l'ancienne.
+  //
+  // Ce commentaire disait auparavant l'inverse (« computePlan n'a besoin QUE du
+  // delta calorique »), et c'était vrai tant que le delta ne dépendait pas de la
+  // projection. Le coût — une simulation de 260 semaines au plus, deux quand la date
+  // ne tient pas — est mesuré : cf. AGENTS.md A15.
+  //
+  // Aucune récursion : le projecteur appelle `datedGoalStatus` avec `project: null`,
+  // et un appel sans projecteur ne simule rien.
   const datedStatus = datedGoalStatus(
-    p.goal_target, p, today, tdee, p.macro_mode === 'manual' ? null : baseFloor, null,
+    p.goal_target, p, today, tdee,
+    p.macro_mode === 'manual' ? null : baseFloor,
+    p.goal_target ? makeWeeklyProjector(p) : null,
   );
   const datedDelta = datedStatus?.active ? datedStatus.dailyKcalDelta : undefined;
   const kcalDelta = datedDelta ?? GOAL_CONFIG[p.goal].kcalDelta;
