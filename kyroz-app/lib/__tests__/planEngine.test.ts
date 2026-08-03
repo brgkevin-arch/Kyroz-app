@@ -495,15 +495,23 @@ describe('carb-cycling jours actifs / repos', () => {
   // Décision 2026-07-29 : le jour de repos agit sur la CIBLE (restDayRatio) puis sur
   // l'adaptation des quantités — jamais sur le CHOIX de la recette. Le tag `rest_day_ok`
   // pilotait un départage qui déplaçait 30 à 36 % des repas des jours de repos, alors
-  // qu'un tiers du catalogue le portait à contre-sens. Ce test échoue si la clé revient.
-  it('rest_day_ok n’influence PAS la sélection : inverser le tag ne change pas le plan', () => {
+  // qu'un tiers du catalogue le portait à contre-sens.
+  //
+  // ⚠️ Ce test inversait le tag sur tout le catalogue pour prouver que la sélection ne le
+  // lisait pas. Le 2026-08-03 le champ a été **supprimé** (données, schéma et type) : il
+  // n'y a plus rien à inverser, et l'absence garantit mieux que l'ignorance. Ce qui reste
+  // à vérifier ici, c'est que le plan ne dépend d'AUCUN reliquat de ce tag ; la
+  // non-réapparition du champ est verrouillée par `lib/__tests__/tags.test.ts`.
+  it('un tag « jour de repos » posé sur les recettes n’influence PAS la sélection', () => {
     const p = makeProfile({ training_days_per_week: 3, plan_days: 7, plan_weekdays: [1, 2, 3, 4, 5, 6, 0] });
     const sig = (pl: ReturnType<typeof buildLocalPlan>) => pl.meals.map((m) => `${m.id}:${m.recipe.id}`).join('|');
 
     const avant = sig(buildLocalPlan(p, 0));
-    expect(RECIPES.some((r) => r.rest_day_ok === true), 'le catalogue doit porter le tag pour que le test ait un sens').toBe(true);
-    // Tag inversé sur TOUT le catalogue : si la sélection le lisait, le plan bougerait.
-    setRecipeOverrides(Object.fromEntries(RECIPES.map((r) => [r.id, { ...r, rest_day_ok: !r.rest_day_ok }])));
+    // On REPOSE le tag artificiellement, une recette sur deux : si un jour la sélection
+    // se remettait à le lire, le plan bougerait et ce test le dirait.
+    setRecipeOverrides(Object.fromEntries(
+      RECIPES.map((r, i) => [r.id, { ...r, rest_day_ok: i % 2 === 0 } as typeof r]),
+    ));
     expect(sig(buildLocalPlan(p, 0))).toBe(avant);
   });
 

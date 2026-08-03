@@ -11,7 +11,7 @@ import { useFavorites } from '../../hooks/useFavorites';
 import { useRecipeOverrides } from '../../hooks/useRecipeOverrides';
 import { getBaseRecipe } from '../../lib/recipes';
 import { Recipe } from '../../lib/types';
-import { OBJ_LABEL, SPORT_LABEL } from '../../lib/recipeLabels';
+import { OBJ_LABEL } from '../../lib/recipeLabels';
 
 const TAGS = ['Tout', 'fav', 'breakfast', 'lunch', 'dinner', 'snack'];
 const TAG_LABELS: Record<string, string> = {
@@ -136,18 +136,15 @@ export default function RecettesScreen() {
                 {` kcal · ${item.macros_per_portion.protein_g} P · ${item.macros_per_portion.carbs_g} G · ${item.macros_per_portion.fat_g} L · ${item.prep_time_min} min`}
               </Text>
               {/* DEUX étiquettes au maximum : à quatre, la carte devenait un nuage
-                  de mots-clés et le plat disparaissait dessous. */}
-              {(() => {
-                const tags = [
-                  ...(item.objectives ?? []).map((o) => OBJ_LABEL[o]),
-                  ...(item.sports ?? []).map((sp) => SPORT_LABEL[sp]),
-                ].slice(0, 2);
-                return tags.length ? (
-                  <View style={s.rTagRow}>
-                    {tags.map((label) => <Text key={label} style={s.rTag}>{label}</Text>)}
-                  </View>
-                ) : null;
-              })()}
+                  de mots-clés et le plat disparaissait dessous.
+                  `item.sports` n'est plus affiché depuis le 2026-08-03 : diversifieur
+                  interne, pas une promesse (cf. lib/recipeLabels.ts). Les deux règles
+                  vont dans le même sens — la carte ne porte que ce qu'elle tient. */}
+              {item.objectives?.length ? (
+                <View style={s.rTagRow}>
+                  {item.objectives.slice(0, 2).map((o) => <Text key={o} style={s.rTag}>{OBJ_LABEL[o]}</Text>)}
+                </View>
+              ) : null}
             </TouchableOpacity>
           );
         }}

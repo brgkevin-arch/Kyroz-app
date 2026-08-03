@@ -3,6 +3,7 @@ import {
   datedGoalStatus, datedGoalKcalDelta, addDaysStamp, daysBetween,
   idealWeightAt, trackStatus, TRACK_TOLERANCE_KG,
   KCAL_PER_KG_FAT, KCAL_PER_KG_GAIN, MAX_GAIN_RATE_PCT, maxWeeklyLossPct,
+  MAX_DEFICIT_TDEE_RATIO,
 } from '../datedGoal';
 import { calculateMacros, computePlan, recalcProfile, MIN_KCAL, planFloorKcal, makeWeeklyProjector } from '../tdee';
 import { lowEaWeeksForFloor } from '../safety';
@@ -250,12 +251,20 @@ describe('A3 — projection simulée : plus de date flatteuse', () => {
     // / 30 sem) : après le relèvement NEAT, l'ancien profil reçoit son déficit entier
     // et n'expose plus le cas. Trouvé par balayage, pas au jugé — le glissement y est
     // de 19 jours, modeste mais RÉEL, et c'est bien une promesse contredite.
+    // ⚠️ RÉÉCRIT le 2026-08-03 (A15). Ce test exigeait `sim.clamped === false` et
+    // `sim.floorCapped === false` : il constatait qu'AUCUN plafond ne mord le jour de
+    // la saisie, et s'arrêtait là. Depuis A15, constater que la date ne tiendra pas
+    // n'est plus sans effet — le moteur bascule sur le rythme sûr MAXIMAL, donc un
+    // plafond mord bel et bien. Ce qui est vérifié ici reste le même FAIT (le repli
+    // linéaire promet ce que la simulation dément) ; c'est la CONSÉQUENCE qui a
+    // changé, et c'est une décision du fondateur, pas une dérive.
     const { sim, lin } = deuxDates(corps({ sex: 'female', weight_kg: 55, height_cm: 155, age: 35, training_days_per_week: 3, sports: [{ type: 'musculation', sessions_per_week: 3, minutes_per_session: 60 }] }), 47, 24);
-    expect(sim.clamped).toBe(false);
-    expect(sim.floorCapped).toBe(false);
     expect(lin.reachableByDate).toBe(true);   // l'ancien calcul promettait…
-    expect(sim.reachableByDate).toBe(false);  // …la simulation, non.
-    expect(daysBetween(sim.targetDate, sim.projectedDate)).toBeGreaterThan(0);
+    // …la simulation, non — et le moteur en tire désormais une conséquence.
+    expect(sim.maxRateApplied).toBe(true);
+    // Creuser DAVANTAGE, jamais moins : c'est tout l'objet de la bascule.
+    expect(sim.dailyKcalDelta).toBeLessThan(lin.dailyKcalDelta);
+    expect(sim.clamped).toBe(true);
   });
 
   it('un objectif RÉELLEMENT tenable reste annoncé tenable', () => {
@@ -322,9 +331,15 @@ describe('A3 — projection simulée : plus de date flatteuse', () => {
   // La puce « N sem · tenable » de l'éditeur repose ENTIÈREMENT sur cet invariant :
   // adopter la date projetée doit rendre l'objectif atteignable. Sans lui, un tap
   // renverrait une date encore plus lointaine et l'écran courrait après lui-même.
-  // (L'éditeur re-vérifie de son côté avant de proposer — ce test protège le cas
-  // NOMINAL, celui où le plancher borne le rythme, donc où la date ne bouge plus.)
-  it('A14 — adopter la date projetée : tient sur un écart normal, PAS sur un gros écart', () => {
+  //
+  // ⚠️ RENFORCÉ le 2026-08-03 (A15) — il exigeait AVANT que le gros écart NE tienne
+  // PAS (`f.apres.reachableByDate === false`), et cette exception était le défaut
+  // lui-même, pas une propriété à protéger : le rythme requis se calculait en ligne
+  // droite alors que l'arrivée est simulée, donc adopter la date faisait servir moins
+  // de déficit et la date glissait de 96 jours. Depuis que le moteur sert le rythme
+  // sûr MAXIMAL quand la date ne tient pas, la date projetée est un POINT FIXE par
+  // construction. Le test exige donc maintenant qu'elle tienne DANS LES DEUX CAS.
+  it('A15 — adopter la date projetée tient TOUJOURS : c\'est un point fixe', () => {
     // « Adopter la date projetée » = ce que fait la puce de l'éditeur.
     const adopter = (p0: UserProfile, cible: number, depuisSemaines: number) => {
       const avant = deuxDates(p0, cible, depuisSemaines).sim;
@@ -342,31 +357,83 @@ describe('A3 — projection simulée : plus de date flatteuse', () => {
     expect(h.avant.reachableByDate).toBe(false);
     expect(h.apres.reachableByDate).toBe(true);
 
-    // ⚠️ CAS LIMITE CONNU, verrouillé ici pour qu'il ne surprenne personne.
-    // Le rythme REQUIS est calculé en ligne droite (écart ÷ semaines) alors que la
-    // PROJECTION simule la vraie trajectoire, où le TDEE baisse avec le poids. Sur un
-    // gros écart relatif, viser la date projetée fait donc servir MOINS de déficit
-    // (le plancher ne mord plus : 1778 → 1940 kcal), le rythme tombe de 0,3 à
-    // 0,2 kg/sem, et la date glisse de 98 jours. Aucune date ne converge : plus on
-    // la repousse, moins on creuse.
-    // ➡️ C'est pour ÇA que l'éditeur re-vérifie avant de proposer la puce — dans ce
-    // cas il n'en propose aucune, et la carte « plancher » reste seule à parler.
+    // GROS ÉCART — le cas qui NE tenait pas avant A15, et qui est la raison du chantier.
+    // La femme de 78 kg visant 65 : la date promise glissait de 96 jours dès qu'elle
+    // l'adoptait. Le moteur sert désormais le rythme sûr maximal tant que la date
+    // n'est pas tenue, donc le rythme ne dépend plus de l'échéance et la date tient.
     const f = adopter(corps({ sex: 'female', weight_kg: 78, height_cm: 168, body_fat_pct: 32 }), 65, 8);
     expect(f.avant.reachableByDate).toBe(false);
-    expect(f.apres.reachableByDate).toBe(false);
+    expect(f.apres.reachableByDate).toBe(true);
+    // Et elle y arrive PLUS TÔT qu'en servant le rythme « juste requis » : le point
+    // fixe de l'ancien moteur était 157 jours plus loin, pour 209 kcal/j de moins.
+    expect(daysBetween(JOUR, f.apres.projectedDate))
+      .toBeLessThanOrEqual(daysBetween(JOUR, f.avant.projectedDate) + 1);
   });
 
-  it('DISPLAY-ONLY — la projection ne déplace AUCUNE calorie', () => {
-    // Le correctif corrige ce qu'on ANNONCE, pas ce qu'on sert. Si le delta bougeait,
-    // ce serait une modification de plan déguisée en correctif d'affichage — et il
-    // faudrait incrémenter ENGINE_REV pour prévenir l'utilisateur.
+  // ⚠️ LE GARDE-FOU QUI COMPTE : A15 fait creuser DAVANTAGE, donc la question n'est
+  // plus « la date est-elle honnête ? » mais « est-ce qu'on sort de l'enveloppe de
+  // sécurité pour y arriver ? ». La réponse doit être non, sur toute la grille.
+  it('A15 — creuser plus ne franchit AUCUN garde-fou', () => {
+    const grille = [
+      { sex: 'female' as const, weight_kg: 78, height_cm: 168, body_fat_pct: 32, cible: 65 },
+      { sex: 'female' as const, weight_kg: 70, height_cm: 166, body_fat_pct: 30, cible: 62 },
+      { sex: 'female' as const, weight_kg: 65, height_cm: 165, body_fat_pct: 27, cible: 58 },
+      { sex: 'female' as const, weight_kg: 55, height_cm: 158, body_fat_pct: 22, cible: 50 },
+      { sex: 'male' as const, weight_kg: 95, height_cm: 182, body_fat_pct: 26, cible: 82 },
+      { sex: 'male' as const, weight_kg: 83, height_cm: 178, body_fat_pct: 18, cible: 70 },
+      { sex: 'male' as const, weight_kg: 72, height_cm: 175, body_fat_pct: 14, cible: 68 },
+    ];
+    for (const g of grille) {
+      for (const semaines of [4, 8, 12, 16, 24, 52]) {
+        const { cible, ...corpsArgs } = g;
+        const p0 = corps(corpsArgs);
+        const { sim } = deuxDates(p0, cible, semaines);
+        const etiquette = `${g.sex} ${g.weight_kg}→${cible} à ${semaines} sem`;
+
+        // 1. Le rythme SERVI ne dépasse jamais le rythme sûr, modulé par l'adiposité.
+        const maxSur = (maxWeeklyLossPct(p0) / 100) * p0.weight_kg;
+        expect(Math.abs(sim.safeWeeklyKg), etiquette).toBeLessThanOrEqual(maxSur + 0.05);
+
+        // 2. Le déficit DEMANDÉ ne dépasse jamais 25 % du TDEE.
+        expect(sim.dailyKcalDelta, etiquette)
+          .toBeGreaterThanOrEqual(-Math.round(MAX_DEFICIT_TDEE_RATIO * p0.tdee_kcal) - 1);
+
+        // 3. La cible SERVIE ne descend jamais sous le plancher d'énergie disponible —
+        //    c'est le hard block de CLAUDE.md §6, et A15 ne l'effleure pas.
+        const p: UserProfile = { ...p0, goal_target: objectif(p0, cible, semaines) };
+        expect(recalcProfile(p).target_kcal, etiquette)
+          .toBeGreaterThanOrEqual(planFloorKcal(p, JOUR) - 1);
+      }
+    }
+  });
+
+  // ⚠️ RECADRÉ le 2026-08-03 (A15) — et c'est le cas d'école du garde-fou qui cesse
+  // de garder sans rougir. Ce test s'appelait « la projection ne déplace AUCUNE
+  // calorie » et protégeait l'invariant de P1.6. A15 déplace délibérément des
+  // calories… et le test est resté VERT, parce que ses deux gabarits sont
+  // atteignables des deux côtés : il ne touchait jamais le cas qui change.
+  // Un test qu'on n'a jamais vu rougir ne prouve pas ce que son nom annonce.
+  // Il vérifie donc maintenant la FRONTIÈRE, dans les deux sens.
+  it('la projection ne déplace de calories QUE si la date ne tient pas', () => {
+    // Côté P1.6 — objectif atteignable : simuler ne change rien à ce qui est servi.
     for (const o of [
       { sex: 'female' as const, weight_kg: 80, height_cm: 170, age: 35 },
       { sex: 'male' as const, weight_kg: 80, height_cm: 180 },
     ]) {
       const { sim, lin } = deuxDates(corps(o), o.weight_kg - 6, 20);
+      expect(sim.reachableByDate, `${o.sex} ${o.weight_kg} doit être atteignable`).toBe(true);
+      expect(sim.maxRateApplied).toBe(false);
       expect(sim.dailyKcalDelta).toBe(lin.dailyKcalDelta);
       expect(sim.safeWeeklyKg).toBe(lin.safeWeeklyKg);
     }
+
+    // Côté A15 — objectif hors de portée : les calories DOIVENT bouger, sinon le
+    // correctif n'existe pas. C'est l'assertion qui manquait et qui aurait rougi.
+    const { sim: dur, lin: durLin } = deuxDates(
+      corps({ sex: 'female', weight_kg: 78, height_cm: 168, body_fat_pct: 32 }), 65, 52,
+    );
+    expect(dur.reachableByDate).toBe(false);
+    expect(dur.maxRateApplied).toBe(true);
+    expect(dur.dailyKcalDelta).toBeLessThan(durLin.dailyKcalDelta);
   });
 });

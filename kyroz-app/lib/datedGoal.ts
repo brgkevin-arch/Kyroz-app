@@ -78,6 +78,14 @@ export interface DatedGoalStatus {
   projectable: boolean;      // false = aucune date d'atteinte crédible (rythme nul, inversé ou > 5 ans)
   projectedDate: string;     // date réelle d'atteinte AU RYTHME RÉELLEMENT SERVI (cf. projectable)
   reachableByDate: boolean;  // false = tu y arrives après ta date
+  /**
+   * true = la date choisie ne tient pas, alors Kyroz sert le rythme sûr MAXIMAL au
+   * lieu du rythme « juste requis » (A15). La date projetée est alors un POINT FIXE :
+   * l'adopter ne la déplace plus. Distinct de `clamped`, qui dit seulement qu'un
+   * plafond a mordu — l'UI doit dire « Kyroz creuse au maximum sûr », pas « Kyroz
+   * garde le rythme sûr », qui se lirait comme un frein alors que c'est l'inverse.
+   */
+  maxRateApplied: boolean;
   dailyKcalDelta: number;    // signé, alimente le cerveau macro (recalcProfile)
 }
 
@@ -108,7 +116,17 @@ export interface WeekPoint {
  * `datedGoalStatus` avec `project = null` — sans récursion possible, puisque c'est
  * la présence d'un projecteur qui déclenche la simulation.
  */
-export type WeeklyProjector = (weightKg: number, stamp: string, lowEaWeeks: number) => WeekPoint;
+export type WeeklyProjector = (
+  weightKg: number, stamp: string, lowEaWeeks: number,
+  /**
+   * Delta calorique IMPOSÉ pour cette semaine, au lieu de celui que la politique
+   * déduirait de l'échéance. Sert à simuler une trajectoire « rythme sûr maximal »
+   * (A15) sans que le simulateur ait à connaître la politique : il exécute le delta
+   * qu'on lui donne, le plancher s'applique par-dessus comme d'habitude.
+   * Absent = comportement d'origine (le projecteur déduit le delta de l'objectif).
+   */
+  kcalDeltaOverride?: number,
+) => WeekPoint;
 
 // Différence en jours entre deux stamps 'YYYY-MM-DD' (heure LOCALE, cf. weight.ts).
 export function daysBetween(a: string, b: string): number {
@@ -156,8 +174,39 @@ const STALLED_KG_PER_WEEK = 0.0005;
  *
  * Renvoie `Infinity` si la trajectoire s'arrête, s'inverse, ou dépasse l'horizon.
  */
+/**
+ * Delta calorique du RYTHME SÛR MAXIMAL à un poids donné — le plus vite que les
+ * garde-fous autorisent, sans les franchir. Les deux plafonds d'amont s'appliquent
+ * (rythme %/semaine modulé par l'adiposité, puis 25 % du TDEE) ; le plancher
+ * d'énergie disponible, lui, mord en aval comme pour n'importe quel delta.
+ */
+function maxSafeDeltaAt(
+  p: GoalBody, weightKg: number, tdee: number, sens: number,
+): { delta: number; deficitCapped: boolean } {
+  const body = { ...p, weight_kg: weightKg };
+  const rate = sens < 0
+    ? -(maxWeeklyLossPct(body) / 100) * weightKg
+    : (MAX_GAIN_RATE_PCT / 100) * weightKg;
+  const raw = Math.round((rate * (rate > 0 ? KCAL_PER_KG_GAIN : KCAL_PER_KG_FAT)) / 7);
+  const cap = Number.isFinite(tdee) && tdee > 0 ? -Math.round(MAX_DEFICIT_TDEE_RATIO * tdee) : -Infinity;
+  return { delta: raw < cap ? cap : raw, deficitCapped: raw < cap };
+}
+
 function weeksToTargetSimulated(
   p: GoalBody, target: GoalTarget, today: string, project: WeeklyProjector,
+  /**
+   * Simuler au RYTHME SÛR MAXIMAL au lieu de celui que l'échéance déduirait (A15).
+   * Sert à répondre à « et si Kyroz creusait autant qu'il en a le droit ? » — la
+   * réponse date la trajectoire réellement servie quand la date choisie ne tient pas.
+   */
+  forceMaxRate = false,
+  /**
+   * Reçoit, semaine par semaine, le poids que la trajectoire SERVIE fait atteindre.
+   * Paramètre de SORTIE, sans effet sur le calcul : il existe pour que le couloir de
+   * progression puisse être tracé sur ce que le moteur fera vraiment, au lieu d'une
+   * ligne droite vers la date saisie (cf. `simulatedTrajectory`).
+   */
+  journal?: { stamp: string; weightKg: number }[],
 ): number {
   // Semaines de zone basse DÉJÀ vécues, avec leur date : elles sortent de la
   // fenêtre de 12 mois au fil de la simulation, comme dans la vraie vie.
@@ -177,6 +226,7 @@ function weeksToTargetSimulated(
   let poids = p.weight_kg;
   for (let semaine = 0; semaine < MAX_PROJECTION_WEEKS; semaine++) {
     const stamp = addDaysStamp(today, semaine * 7);
+    journal?.push({ stamp, weightKg: poids });
     // La semaine COURANTE ne compte pas dans son propre plancher (idempotence,
     // cf. safety.lowEaWeeksBefore) : on mesure sur les semaines antérieures.
     const reste = target.target_weight_kg - poids;
@@ -186,7 +236,12 @@ function weeksToTargetSimulated(
     // annoncée sur des objectifs parfaitement tenables (mesuré : H 80 → 77 kg).
     if (Math.abs(reste) <= MAINTAIN_EPS_KG) return semaine;
 
-    const point = project(poids, stamp, compteur(stamp));
+    // Au rythme maximal, deux passes : la première ne sert qu'à connaître le TDEE de
+    // la semaine (le plafond des 25 % s'y adosse), la seconde exécute le delta imposé.
+    const brut = project(poids, stamp, compteur(stamp));
+    const point = forceMaxRate
+      ? project(poids, stamp, compteur(stamp), maxSafeDeltaAt(p, poids, brut.tdeeKcal, Math.sign(reste)).delta)
+      : brut;
     const rythme = weeklyKgFor(point);
 
     if (Math.abs(rythme) < STALLED_KG_PER_WEEK) return Infinity;   // à l'arrêt
@@ -202,6 +257,26 @@ function weeksToTargetSimulated(
     poids += rythme;
   }
   return Infinity; // au-delà de l'horizon : on ne donne pas de date
+}
+
+/**
+ * La trajectoire que le moteur SERVIRA réellement, semaine par semaine.
+ *
+ * ⚠️ À employer partout où l'on dessine « où tu devrais en être ». `idealWeightAt`
+ * trace une LIGNE DROITE du poids de départ au poids cible sur la date SAISIE — le
+ * même raccourci que A15 vient de retirer du moteur. Quand la date n'est pas tenable,
+ * cette ligne descend beaucoup plus vite que ce que Kyroz sert, donc l'utilisateur
+ * sort de son couloir en quelques jours **en ayant parfaitement suivi le plan**.
+ * Reprocher un retard qu'on a soi-même imposé est exactement la charge mentale que
+ * CLAUDE.md §10 refuse — le principe était déjà écrit ici pour le cas « déficit
+ * bloqué », il manquait pour le cas « date hors de portée ».
+ */
+export function simulatedTrajectory(
+  p: GoalBody, target: GoalTarget, today: string, project: WeeklyProjector,
+): { stamp: string; weightKg: number }[] {
+  const journal: { stamp: string; weightKg: number }[] = [];
+  weeksToTargetSimulated(p, target, today, project, false, journal);
+  return journal;
 }
 
 /**
@@ -275,6 +350,7 @@ export function datedGoalStatus(
       projectable: true,
       projectedDate: target.target_date,
       reachableByDate: true,
+      maxRateApplied: false,
       dailyKcalDelta: 0,
     };
   }
@@ -302,6 +378,7 @@ export function datedGoalStatus(
       projectable: false,
       projectedDate: target.target_date,
       reachableByDate: false,
+      maxRateApplied: false,
       dailyKcalDelta: 0,
     };
   }
@@ -322,6 +399,7 @@ export function datedGoalStatus(
       projectable: false,
       projectedDate: target.target_date,
       reachableByDate: false,
+      maxRateApplied: false,
       dailyKcalDelta: 0,
     };
   }
@@ -375,53 +453,112 @@ export function datedGoalStatus(
   // avant d'entrer ici. Ce bloc ne change AUCUNE calorie servie — il aligne
   // seulement ce qu'on annonce sur ce qu'on sert.
   const floorUsable = floorKcal != null && Number.isFinite(floorKcal) && tdeeUsable;
-  const servedDelta = floorUsable ? Math.max(tdee + dailyKcalDelta, floorKcal!) - tdee : dailyKcalDelta;
-  const floorCapped = servedDelta > dailyKcalDelta + 1e-6;
 
+  /**
+   * D'un delta DEMANDÉ vers tout ce qui en découle. Isolé en fonction parce que A15
+   * l'évalue DEUX fois : une fois au rythme requis, une fois au rythme sûr maximal.
+   *
+   * Trois gardes sur la projection, chacun pour un mode d'échec observé :
+   *  1. rythme nul — `!== 0` laissait passer `-0` (produit par un TDEE nul) et
+   *     faisait retomber sur `weeksRemaining`, donc « atteignable » à rythme zéro ;
+   *  2. rythme INVERSÉ — un plancher au-dessus de la maintenance (BMR mal estimé,
+   *     filet absolu sur un très petit gabarit) prescrit un surplus à quelqu'un qui
+   *     veut perdre : `diff / applied` redevient positif et la date paraît crédible ;
+   *  3. horizon — 0,04 kg/semaine passe les deux gardes précédents et projette une
+   *     date en 2048, positive et finie.
+   */
+  const derive = (demande: number, auMax: boolean) => {
+    const served = floorUsable ? Math.max(tdee + demande, floorKcal!) - tdee : demande;
+    const applied = (served * 7) / kcalPerKg;
+    const avance = Math.abs(applied) > 1e-9 && Math.sign(applied) === Math.sign(diff);
+    // Avec un projecteur : la trajectoire est SIMULÉE semaine par semaine (le TDEE
+    // baisse, l'escalade de zone basse mord — cf. weeksToTargetSimulated). Sans lui,
+    // repli linéaire, réservé aux appelants qui n'utilisent pas la date.
+    const weeks = project
+      ? weeksToTargetSimulated(p, target, today, project, auMax)
+      : (avance ? diff / applied : Infinity);
+    const projetable = Number.isFinite(weeks) && weeks <= MAX_PROJECTION_WEEKS;
+    return {
+      demande, served, applied, weeks, projetable,
+      floorCapped: served > demande + 1e-6,
+      // Avec projecteur : SEULE la simulation décide. Le raccourci « rien n'a été bridé
+      // AUJOURD'HUI ⇒ la date tient » était précisément le mensonge — chez la femme,
+      // l'escalade de zone basse ne mord qu'à la 13ᵉ semaine, donc rien n'est bridé le
+      // jour où l'on promet la date. Tolérance d'un jour : la simulation avance par pas
+      // d'une semaine, on ne va pas refuser une date pour un arrondi de discrétisation.
+      reachable: project
+        ? projetable && weeks <= weeksRemaining + 1 / 7
+        : (!clamped && served <= demande + 1e-6) || (projetable && weeks <= weeksRemaining + 1e-6),
+    };
+  };
+
+  let etat = derive(dailyKcalDelta, false);
+
+  // ── A15 — quand la date ne tient pas, on creuse autant qu'on en a le DROIT ──
+  //
+  // Le rythme requis se calcule en LIGNE DROITE (`écart ÷ semaines`) alors que
+  // l'arrivée est SIMULÉE. Repousser sa date réduisait donc le déficit demandé, le
+  // plancher cessait de mordre, le rythme SERVI tombait — et l'arrivée reculait.
+  // Mesuré avant correctif (`npm run mesure:objectif`) : la date de repli affichée
+  // glissait de +96 jours dès qu'on l'adoptait, sur 3 corps de référence sur 8.
+  //
+  // La règle : servir juste ce qu'il faut TANT QUE ça suffit ; dès que ça ne suffit
+  // plus, servir le maximum SÛR et dater la trajectoire là-dessus. La date affichée
+  // devient alors un point fixe — l'adopter ne la déplace plus, puisque le rythme ne
+  // dépend plus de l'échéance.
+  //
+  // ⚠️ Aucun garde-fou n'est franchi : `maxSafeDeltaAt` applique le plafond de rythme
+  // (modulé par l'adiposité) ET les 25 % du TDEE, et le plancher d'énergie disponible
+  // mord en aval comme pour n'importe quel delta. On ne va pas plus vite que ce que la
+  // sécurité autorisait déjà à quelqu'un ayant choisi une date proche.
+  //
+  // ⚠️ Réservé aux appelants QUI ONT UN PROJECTEUR : sans simulation, « la date ne
+  // tient pas » n'est pas connaissable (le repli linéaire est trop optimiste, de 182 à
+  // 1032 jours chez la femme). C'est pourquoi `computePlan` en passe un depuis A15.
+  let maxRateApplied = false;
+  let deficitCappedFinal = deficitCapped;
+  if (project && !etat.reachable) {
+    const max = maxSafeDeltaAt(p, currentWeightKg, tdee, Math.sign(diff));
+    if (Math.abs(max.delta) > Math.abs(dailyKcalDelta) + 1e-6) {
+      const candidat = derive(max.delta, true);
+      // On ne bascule que si ça RAPPROCHE vraiment l'arrivée : chez la femme non
+      // ménopausée, l'escalade de zone basse peut annuler le gain, et servir plus de
+      // déficit pour arriver au même moment serait un coût sans contrepartie.
+      if (candidat.projetable && candidat.weeks < etat.weeks - 1 / 7) {
+        etat = candidat;
+        maxRateApplied = true;
+        deficitCappedFinal = max.deficitCapped;
+      }
+    }
+  }
+
+  const dailyKcalDeltaFinal = etat.demande;
+  const floorCapped = etat.floorCapped;
   // Rythme RÉELLEMENT servi, après tous les plafonds ET le plancher → c'est lui qui
   // doit dater la projection, sinon l'UI affiche deux chiffres qui se contredisent.
-  const appliedWeeklyKg = (servedDelta * 7) / kcalPerKg;
-
-  // Trois gardes, chacun pour un mode d'échec observé :
-  //  1. rythme nul — `!== 0` laissait passer `-0` (produit par un TDEE nul) et
-  //     faisait retomber sur `weeksRemaining`, donc « atteignable » à rythme zéro ;
-  //  2. rythme INVERSÉ — un plancher au-dessus de la maintenance (BMR mal estimé,
-  //     filet absolu sur un très petit gabarit) prescrit un surplus à quelqu'un qui
-  //     veut perdre : `diff / applied` redevient positif et la date paraît crédible ;
-  //  3. horizon — 0,04 kg/semaine passe les deux gardes précédents et projette une
-  //     date en 2048, positive et finie.
-  const movesTowardTarget = Math.abs(appliedWeeklyKg) > 1e-9 && Math.sign(appliedWeeklyKg) === Math.sign(diff);
-  // Avec un projecteur : la trajectoire est SIMULÉE semaine par semaine (le TDEE
-  // baisse, l'escalade de zone basse mord — cf. weeksToTargetSimulated). Sans lui,
-  // repli linéaire, réservé aux appelants qui n'utilisent pas la date.
-  const weeksNeeded = project
-    ? weeksToTargetSimulated(p, target, today, project)
-    : (movesTowardTarget ? diff / appliedWeeklyKg : Infinity);
-  const projectable = Number.isFinite(weeksNeeded) && weeksNeeded <= MAX_PROJECTION_WEEKS;
-  const projectedDate = projectable ? addDaysStamp(today, weeksNeeded * 7) : target.target_date;
-  // Avec projecteur : SEULE la simulation décide. Le raccourci « rien n'a été bridé
-  // AUJOURD'HUI ⇒ la date tient » était précisément le mensonge — chez la femme,
-  // l'escalade de zone basse ne mord qu'à la 13ᵉ semaine, donc rien n'est bridé le
-  // jour où l'on promet la date. Tolérance d'un jour : la simulation avance par pas
-  // d'une semaine, on ne va pas refuser une date pour un arrondi de discrétisation.
-  const reachableByDate = project
-    ? projectable && weeksNeeded <= weeksRemaining + 1 / 7
-    : (!clamped && !floorCapped) || (projectable && weeksNeeded <= weeksRemaining + 1e-6);
+  const appliedWeeklyKg = etat.applied;
+  const projectable = etat.projetable;
+  const projectedDate = projectable ? addDaysStamp(today, etat.weeks * 7) : target.target_date;
+  const reachableByDate = etat.reachable;
 
   return {
     ...base,
     active: true,
     requiredWeeklyKg: round1(requiredWeeklyKg),
     safeWeeklyKg: round1(appliedWeeklyKg),
-    clamped,
-    deficitCapped,
+    // Servir le maximum sûr, c'est par définition être au plafond de rythme : le
+    // signal « un garde-fou a mordu » doit le dire, sinon la carte plancher/plafond
+    // disparaît chez ceux qui sont justement bridés.
+    clamped: clamped || maxRateApplied,
+    deficitCapped: deficitCappedFinal,
     floorCapped,
     directionMismatch: false,
     underweightBlocked: false,
     projectable,
     projectedDate,
     reachableByDate,
-    dailyKcalDelta,
+    maxRateApplied,
+    dailyKcalDelta: dailyKcalDeltaFinal,
   };
 }
 

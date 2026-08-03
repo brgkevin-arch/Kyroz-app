@@ -8,7 +8,7 @@ import { useFavorites } from '../hooks/useFavorites';
 import { formatQuantity } from '../lib/units';
 import { mealFiberG, mealFiberFromIngredients } from '../lib/fiber';
 import { Recipe, MealStatus, Macros, AdaptFlag } from '../lib/types';
-import { OBJ_LABEL, SPORT_LABEL } from '../lib/recipeLabels';
+import { OBJ_LABEL } from '../lib/recipeLabels';
 import { FLAG_AUDIENCE } from '../lib/adaptRecipe';
 
 interface Props {
@@ -105,10 +105,11 @@ export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adapted
           <Text style={s.metaTxt}>🍽 {f === 1 ? '1 portion' : `${f} portions`}</Text>
         </View>
 
-        {(recipe.objectives?.length || recipe.sports?.length) ? (
+        {/* `recipe.sports` n'est plus affiché depuis le 2026-08-03 : il reste un
+            diversifieur interne, pas une promesse (cf. lib/recipeLabels.ts). */}
+        {recipe.objectives?.length ? (
           <View style={s.tagRow}>
-            {recipe.objectives?.map((o) => <Text key={o} style={s.tag}>{OBJ_LABEL[o]}</Text>)}
-            {recipe.sports?.map((sp) => <Text key={sp} style={s.tag}>{SPORT_LABEL[sp]}</Text>)}
+            {recipe.objectives.map((o) => <Text key={o} style={s.tag}>{OBJ_LABEL[o]}</Text>)}
           </View>
         ) : null}
 
