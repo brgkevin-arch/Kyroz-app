@@ -56,7 +56,7 @@ de date et un en-tête `ARCHIVÉ` — pas à la racine sans date. C'est ce qui a
 le désordre : dix fichiers au même niveau dont seul le contenu, en ligne 10, révélait
 qu'ils étaient périmés.
 
-## 📍 OÙ ON EN EST — photo du 2026-08-02
+## 📍 OÙ ON EN EST — photo du 2026-08-03
 
 > Bloc à relire en premier dans une nouvelle session, et à **re-mesurer** avant de s'en
 > servir (les commandes sont données). Il ne remplace pas la liste unique ci-dessous.
@@ -64,25 +64,25 @@ qu'ils étaient périmés.
 | | valeur | comment la revérifier |
 |---|---|---|
 | Catalogue | **512 recettes** — 122 petits-déj · 280 repas complets · 110 collations | `npm run mesure:couverture` |
-| `ENGINE_VERSION` | **43** (invalide les plans en cache) | `lib/planEngine.ts` |
+| `ENGINE_VERSION` | **44** (invalide les plans en cache) | `lib/planEngine.ts` |
 | `ENGINE_REV` | **4** (avertissement one-shot à l'utilisateur) | `lib/tdee.ts` |
-| Tests | **939 verts**, 52 fichiers · `tsc` propre | `npm test && npx tsc --noEmit` |
+| Tests | **945 verts**, 53 fichiers · `tsc` propre | `npm test && npx tsc --noEmit` |
 | Plateformes | iPhone **+ iPad** (`supportsTablet: true` depuis le 2026-08-01). ⚠️ **portrait sur iPhone, MAIS les 4 orientations sur iPad** — Expo les force dès `supportsTablet`, le multitâche iPadOS l'impose, ce n'est pas refermable. Vérifié en natif (iPad Pro 13") et à 1366×1024 | `ios/Kyroz/Info.plist` généré, PAS `app.json` · `lib/layout.ts` |
 | Sortie stores | iOS **1.0.0 (3)** envoyé à TestFlight, **revue bêta en cours** depuis le 2026-08-03 00h58 · Android : 2 builds, rien de soumis | `npx eas-cli build:list` · `TESTFLIGHT.md` |
 | Kyroz+ | **encaissement armé, verrou inerte.** Clé RevenueCat posée dans EAS et vérifiée dans le bundle ; `PAYWALL_LAUNCH` = `null`, donc **tout est gratuit pour tout le monde**. ⚠️ Le build TestFlight actuel est ANTÉRIEUR à la clé | `lib/premium.ts` · `npx eas-cli env:list production` |
 | Site déployé | **automatique** : GitHub Actions à chaque push `main` (`build_type: workflow`). ⚠️ **NE PAS lire `origin/gh-pages`** — branche morte, cf. A12 | `gh run list --workflow=deploy.yml` |
 | Migrations Supabase | les **15** jouées, `2026-08-02_profiles_birth_date.sql` comprise. ⚠️ **Ne jamais annoncer une migration « en attente » sans lancer la commande** — le dépôt ne sait rien de la prod, et deux lignes d'ici l'ont dit à tort pendant des jours | `npm run check:migrations` |
-| Variété perçue | semaines servant 2 recettes d'un même couple : **max 10,0 %** (11,7 % avant B9 · 12,5 % avant B8 · 20,8 % avant B7 · 27,5 / 26,3 % avant A25 · 56,3 % avant D18) | `npm run mesure:variete -- --variete=…` |
+| Variété perçue | semaines servant 2 recettes d'un même couple : **max 9,2 %** (10,0 % avant D21 · 11,7 % avant B9 · 12,5 % avant B8 · 20,8 % avant B7 · 27,5 / 26,3 % avant A25 · 56,3 % avant D18) | `npm run mesure:variete -- --variete=…` |
 | Variété perçue **par régime** | **vegan+SG 16,7 %** — trajectoire de la cible : **50 % → 35,4 % (B7) → 22,9 % (B8) → 16,7 % (B9)** | `npm run mesure:variete -- --detail` |
 | Premier plan servi | plan **canonique** (seed 0) : **8,3 %** de semaines avec quasi-doublon (23,3 % avant B7 · **45,0 % avant A25**, où le 1er plan était le PIRE des trois). ⚠️ La ligne annonçait 10,0 % — c'était la moyenne tous tirages recopiée ici par erreur, re-mesurée le 2026-08-03 | `npm run mesure:variete -- --seeds=0` |
 | Réglages inertes | **aucun** — les 13 réglages réglables depuis l'UI changent tous le plan servi (recettes et/ou portions), vérifié un par un | `npm run mesure:reglages` |
 | Reroll (« Régénérer mon plan ») | 1ers repas qui changent : **repetitive 51 % · balanced 78 % · max 83 %** (13,7 % pour tous avant A21) | `npm run mesure:reroll` |
 | Anti-doublons | R1 81 · R2 70 · R4 14 · R5 **16** · R7 0 — **figés par un test**, et les plafonds ont été RESSERRÉS au constaté le 2026-08-03 (ils gardaient 4 à 5 points de mou depuis le 2026-07-29, cf. D20) | `npm run check:doublons` |
 | Drapeaux bloquants sur les repas SERVIS | **0** sur 10 752 (12 profils × 8 régimes × 4 semaines). Le dernier — `rep10` — est tombé avec D20 | `npm run mesure:variete` |
-| Sous le seuil R8 | ⚠️ petit-déj **37/122** · repas complets **71/280** · collation **7/110** — B7 (30), B8 (8) et B9 (8) livrées, catalogue **512** | `npm run mesure:seuils` |
-| Ce que ça coûte au SERVICE | **611 repas servis sur 10 752 (5,7 %)** viennent d'une recette sous le seuil — **935 (8,7 %) avant B7**, 633 (5,9 %) avant D20. ⚠️ B9 l'avait fait remonter depuis 5,3 % : un format volontairement étroit fait BAISSER une moyenne par recette tout en améliorant la couverture réelle | `npm run mesure:vivier` |
-| Vivier vu par UN utilisateur | croisement gabarit × **régime** × créneau. Les cellules les plus pauvres restent vegan/vegan+SG. Pire : collation · F 55 sèche · vegan+SG = **9 recettes, 8 familles** — c'était **3 et 2** avant B7 | idem |
-| Moyenne R8 par créneau | petit-déj **8,55/12** · repas complets **8,61** · collation **6,72** (8,27 / 8,51 / 7,38 avant B7 · 7,62 avant D18 · 7,19 avant B6 · 4,52 avant B5) | idem |
+| Sous le seuil R8 | ⚠️ petit-déj **37/122** · repas complets **69/280** · collation **5/110** — B7 (30), B8 (8) et B9 (8) livrées, catalogue **512** ; D21 en a sorti 2 du repas complet et 2 de la collation | `npm run mesure:seuils` |
+| Ce que ça coûte au SERVICE | **641 repas servis sur 10 752 (6,0 %)** viennent d'une recette sous le seuil — **935 (8,7 %) avant B7**, 633 (5,9 %) avant D20, 611 (5,7 %) avant D21. ⚠️ **D21 a fait BAISSER le nombre de recettes sous le seuil (115 → 111) et MONTER le nombre de repas qui en viennent** : les rescapées sont servies plus souvent. Les deux chiffres disent des choses différentes, ne pas lire l'un pour l'autre. ⚠️ B9 l'avait fait remonter depuis 5,3 % : un format volontairement étroit fait BAISSER une moyenne par recette tout en améliorant la couverture réelle | `npm run mesure:vivier` |
+| Vivier vu par UN utilisateur | croisement gabarit × **régime** × créneau. Les cellules les plus pauvres restent vegan/vegan+SG. Pire : collation · F 55 sèche · vegan+SG = **10 recettes, 9 familles** — c'était **3 et 2** avant B7 | idem |
+| Moyenne R8 par créneau | petit-déj **8,54/12** · repas complets **8,67** · collation **6,91** (8,55 / 8,61 / 6,72 avant D21 · 8,27 / 8,51 / 7,38 avant B7 · 7,62 avant D18 · 7,19 avant B6 · 4,52 avant B5) | idem |
 | Vegan | petit-déj **56/122** · repas **89/280** · collation **67/110** — comptage CATALOGUE (`restrictions_ok`) | compter `restrictions_ok` par créneau |
 | Vegan + sans gluten | petit-déj **42/122** · repas **49/280** · collation **57/110** | idem |
 
@@ -2611,6 +2611,122 @@ produit en suspens — il ne reste qu'à coder.
   seule recette du catalogue à employer `pois_chiches_conserve`, et c'était le bon choix
   pour elle ; l'incohérence des 16 autres est un chantier à part, pas une retouche à
   glisser ici. Elle touche les 22 `ref` pesées SEC, pas seulement les pois chiches.
+  ➡️ **C'est D21, juste en dessous — livré le même jour, et il y en avait 47, pas 16.**
+
+- ~~**D21 · La pesée SÈCHE contre les instructions — 47 recettes, et aucun contrôle**~~
+  ✅ **LIVRÉ le 2026-08-03.** Le chantier que D20 avait vu et mis de côté. **47 recettes
+  sur 512 (9 %)** employaient une légumineuse à cuisson longue déclarée `basis: "dry"`
+  avec un `temps_min` sous 40 minutes : une cuisson impossible à sec, trempage non
+  compris. Qui suit l'instruction ouvre une conserve.
+
+  📉 **Ce que ça coûtait, mesuré sur les valeurs du moteur** (et pas sur le repère manuel
+  du JSON, cf. la leçon du 2026-08-01) : **130 kcal annoncées en trop par recette en
+  moyenne, jusqu'à 209** (`rep112`) — soit **7 % à 35 % de l'assiette**, et jusqu'à 14 g
+  de protéines fantômes. Les instructions elles-mêmes se répartissaient en trois cas :
+  31 disaient « mijoter/cuire », 14 étaient muettes, et **2 disaient déjà « cuits » ou
+  « égouttés » tout en pesant sec** (`rep144`, `pd42`). Le pire : `col77` écrivait noir
+  sur blanc « fais tremper la veille, puis cuis 50 minutes » sous un `temps_min` de
+  **12**.
+
+  🧭 **Le fait qui a décidé de l'arbitrage, et qui n'était pas évident** : `temps_min`
+  **ne filtre plus rien** depuis le 2026-07-29 (`lib/planEngine.ts`, et
+  `scripts/mesure-couverture.ts` le force à 10). Il n'est plus qu'**affiché** sur la
+  fiche. Donc l'option « garder la pesée sèche et dire la vraie durée » ne coûtait
+  **rien** sur R8, le vivier ou la variété — elle coûtait un houmous à 8 h de trempage et
+  42 repas du soir infaisables en semaine, contre le §6.6 du brief. ➡️ **Avant de choisir
+  entre deux corrections, vérifier lequel des deux champs le moteur lit vraiment.**
+
+  ⚖️ **Tranché par le fondateur : l'HYBRIDE.** 44 recettes passent sur un `ref` prêt à
+  consommer ; **3 gardent la pesée sèche** parce que la cuisson longue EST le plat et
+  qu'aucune ne demande de trempage (`rep107`, `rep108`, `rep112`) — seul leur `temps_min`
+  mentait, il passe à 50 min. C'est la ligne de D20 appliquée en grand : *une recette
+  qu'on ne peut pas suivre est un mensonge de la même famille qu'un chiffre faux.*
+
+  🔧 **Comment les quantités ont été converties, et pourquoi ce n'est pas un réglage** :
+  facteur = **rendement de cuisson** (×2,4 pois chiches, ×2,5 haricots et lentilles),
+  arrondi au pas de 5 g du moteur. La portion dans l'assiette ne bouge pas ; seules les
+  macros suivent la réalité. Aucune quantité n'a été retouchée pour flatter le R8 — c'est
+  la leçon « optimum sur une falaise » du 2026-08-03 appliquée en amont.
+
+  ➕ **Deux `ref` ajoutés** : `haricots_blancs_conserve` (Ciqual **20511**, mappé) et
+  `haricots_noirs_conserve` (**valeur manuelle** : Ciqual n'a AUCUNE entrée haricot noir,
+  ni sèche ni appertisée — la valeur est déduite du rapport sec → appertisé mesuré sur le
+  haricot rouge, 20525 → 20524). Le catalogue n'a donc eu besoin d'**aucune source
+  tierce** : tout le reste était déjà dans la base Ciqual locale.
+
+  📊 **Résultats, tous re-mesurés avant/après sur le même code** :
+
+  | | avant | après |
+  |---|---|---|
+  | recettes dont la pesée contredit les instructions | **47** | **0** |
+  | kcal annoncées en trop, par recette | 130 (max 209) | **0** |
+  | moyenne R8 — repas complet | 8,61 | **8,67** |
+  | moyenne R8 — collation | 6,72 | **6,91** |
+  | moyenne R8 — petit-déj | 8,55 | 8,54 |
+  | sous le seuil R8 — repas complet | 71/280 | **69/280** |
+  | sous le seuil R8 — collation | 7/110 | **5/110** |
+  | recettes sous le seuil, toutes catégories | 115 | **111** |
+  | quasi-doublons (max) | 10,0 % | **9,2 %** |
+  | écart calorique moyen du jour | 0,35 % | **0,34 %** |
+  | drapeaux bloquants sur 10 752 repas servis | 0 | **0** |
+  | anti-doublons R1 · R2 · R4 · R5 · R7 | 81 · 70 · 14 · 16 · 0 | **inchangés** |
+  | fibres/1 000 kcal — sèche vs maintien | 22,53 / 13,19 | **22,77 / 13,30** |
+  | vivier `repas_complet · H 110 masse · vegan+SG` | 25 rec. / 22 fam. | **26 / 23** |
+  | pire cellule du vivier (`collation · F 55 sèche · vegan+SG`) | 9 rec. / 8 fam. | **10 / 9** |
+
+  ⚠️ **Le seul chiffre qui se dégrade, et il faut le lire correctement** : les repas
+  servis venant d'une recette sous le seuil passent de **611 (5,7 %) à 641 (6,0 %)**,
+  alors même que le NOMBRE de recettes sous le seuil baisse (115 → 111). Ce n'est pas une
+  contradiction : les rescapées sont servies plus souvent qu'avant. **Les deux indicateurs
+  ne mesurent pas la même chose**, et celui-ci est le seul qui compte le service réel.
+
+  ⚠️ **Le R8 par recette bouge sur 117 recettes dont 96 QUE PERSONNE N'A TOUCHÉES.**
+  `ciblesDe` reconstruit les cibles depuis les repas réellement servis : changer 47
+  recettes déplace les cibles, donc le score de tout le monde. ➡️ **Un delta de ±1 sur une
+  recette isolée est du bruit ici** ; seuls les franchissements de seuil se lisent. Bilan
+  net : **8 recettes repassent au-dessus, 4 tombent** (`rep17` 9→7 est la seule touchée ;
+  `rep58`, `col22`, `col103` sont des effets de bord).
+
+  💸 **Ce que la vérité coûte, assumé** : les pois chiches en conserve sont **moins denses
+  en protéines** que secs (5,49 contre 5,86 g de protéines pour 100 kcal). Les recettes
+  dont ils sont l'ancre principale perdent 1 à 3 profils (`col37` 6→3, `pd20` 6→4,
+  `rep142` 7→5). C'est inhérent à l'ingrédient, pas à la conversion : augmenter la
+  quantité ne change pas une densité. Ces recettes sont les bonnes candidates à une
+  réécriture façon D20 — **pas** à un rattrapage de quantité.
+
+  🔒 **LE LIVRABLE PRINCIPAL, c'est le contrôle** (`lib/__tests__/legumineuses.test.ts`,
+  6 tests). La règle était écrite dans le brief **depuis toujours** (§6.4, « les
+  instructions doivent être cohérentes avec cette pesée ») et 47 recettes la violaient :
+  une consigne sans test ne survit pas à la vague suivante. Il refuse désormais (1) un
+  `ref` sec à trempage dans n'importe quelle recette, (2) un `temps_min` plus court que la
+  cuisson réelle, (3) une instruction qui décrit comme DÉJÀ CUIT un ingrédient pesé sec,
+  (4) une instruction qui fait cuire une conserve, (5) un prêt-à-consommer marqué
+  `basis: dry`, et (6) **tout nouveau `ref` sec non classé** — ce dernier est le plus
+  important : sans lui, le garde-fou ne couvrirait que les données du jour où il a été
+  écrit.
+  ✅ **Les 6 gardes ont été vérifiés par MUTATION** — on casse le catalogue exprès, un par
+  un, et on vérifie que le test rougit. Les 6 rougissent. Un contrôle qu'on n'a pas vu
+  échouer ne prouve rien.
+
+  🔎 **Le contrôle a trouvé DEUX recettes de plus, hors des 47** : `rep273` et `rep274`
+  faisaient **tremper les fèves la veille** — contre le §6.6 (aucun repos > 10 min) — avec
+  un `temps_min` de 45 qui ignorait le trempage. Le même mensonge dans l'autre sens : ici
+  les instructions étaient honnêtes et c'était la DURÉE qui mentait. Corrigé en déclarant
+  ce que les trois recettes de fèves décrivent réellement : `feves` s'appelle désormais
+  **« Fèves sèches décortiquées »** (elles cuisent 40 min sans trempage), et les deux
+  étapes de trempage ont sauté. ➡️ Un contrôle écrit pour un défaut en trouve un deuxième
+  le jour où on le lance ; c'est le signe qu'il vise le bon endroit.
+  ⚠️ **Approximation assumée** : le `ref` reste mappé sur Ciqual 20518 « Fève, sèche »,
+  qui est la fève ENTIÈRE. Les macros énergétiques sont les mêmes, mais les **fibres**
+  (25 g/100 g) sont surestimées pour une fève décortiquée. Les fibres ne servent qu'au
+  nudge et à la rotation par famille, jamais à une macro affichée.
+
+  📌 **Ce que D21 ne règle PAS, et qui est réel** : `tags.objectif` est censé être une
+  fonction mécanique des kcal de base (§6.5 du brief) — **189 recettes sur 512 (37 %) ne
+  le respectent pas**, et c'est vrai depuis bien avant ce chantier (`recup_jour_repos` :
+  149 ; `sport`/endurance : 117). Ces tags-là PILOTENT la sélection. Les recalculer sur
+  les 47 seules aurait été arbitraire et aurait pollué la mesure avant/après, donc ils
+  n'ont pas été touchés. **C'est un chantier à part, et il est plus gros que celui-ci.**
 
 ### 🧹 E — Dette technique
 

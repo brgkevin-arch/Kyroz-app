@@ -10,7 +10,7 @@
       "scalable": "true = quantité ajustable par l'algo ; false = fixe (légumes)"
     },
     "priorite_sport": "Muscu prioritaire, puis Endurance, peu de Combats (cf. distribution).",
-    "corrections_kyroz": "rep57 +8g huile_olive (équilibre lipidique). | 2026-07-29 : sauce_soja déclarée dans rep05/rep46/rep80 (citée en instruction, invisible du dérivé régime) ; levure_maltee + falafel + pesto ajoutés à recipeDiet.VIOLATIONS ; why de rep80/pd52/pd77/rep152/rep155 : « sans gluten » retiré (devenu faux) ; +9 ingrédients (légumineuses prêtes à consommer, tofu fumé, falafel, tahini, boisson soja, pain/wrap sans gluten). recomp_flag SUPPRIMÉ (champ mort : aucun code ne le lisait, et il marquait 5 recettes quand ~40 avaient une densité protéique équivalente ou pire). | yaourt_grec DÉMAPPÉ de ciqual-19860 (« yaourt à la grecque » = dessert à 3 g de protéines, pas un grec égoutté à 9 g) → valeur manuelle, comme skyr ; nom précisé « égoutté (type Fage) » ; macro_role dairy→protein sur pd10/col07/col17, où le yaourt est la seule source de protéines. | 8 recettes sans ancre protéine (pd02/pd06/pd08/pd15/col01/col03/col13/col19) : le laitier qui porte 58 à 89 % de leurs protéines passe de dairy à protein. | Nettoyage des doublons 2026-07-29 : 7 clones stricts et 2 noms identiques différenciés (rep37 tajine aux olives, rep64 papillote, rep165 pho sans mélange wok, col64 houmous, col50/col65 edamame distincts, pd38 tartine de seigle, col45 pudding framboise) — aucune suppression.",
+    "corrections_kyroz": "rep57 +8g huile_olive (équilibre lipidique). | 2026-07-29 : sauce_soja déclarée dans rep05/rep46/rep80 (citée en instruction, invisible du dérivé régime) ; levure_maltee + falafel + pesto ajoutés à recipeDiet.VIOLATIONS ; why de rep80/pd52/pd77/rep152/rep155 : « sans gluten » retiré (devenu faux) ; +9 ingrédients (légumineuses prêtes à consommer, tofu fumé, falafel, tahini, boisson soja, pain/wrap sans gluten). recomp_flag SUPPRIMÉ (champ mort : aucun code ne le lisait, et il marquait 5 recettes quand ~40 avaient une densité protéique équivalente ou pire). | yaourt_grec DÉMAPPÉ de ciqual-19860 (« yaourt à la grecque » = dessert à 3 g de protéines, pas un grec égoutté à 9 g) → valeur manuelle, comme skyr ; nom précisé « égoutté (type Fage) » ; macro_role dairy→protein sur pd10/col07/col17, où le yaourt est la seule source de protéines. | 8 recettes sans ancre protéine (pd02/pd06/pd08/pd15/col01/col03/col13/col19) : le laitier qui porte 58 à 89 % de leurs protéines passe de dairy à protein. | Nettoyage des doublons 2026-07-29 : 7 clones stricts et 2 noms identiques différenciés (rep37 tajine aux olives, rep64 papillote, rep165 pho sans mélange wok, col64 houmous, col50/col65 edamame distincts, pd38 tartine de seigle, col45 pudding framboise) — aucune suppression. | 2026-08-03 : les 47 recettes qui pesaient une légumineuse à cuisson longue au poids SEC tout en la cuisinant en moins de 40 min. 44 passent sur un `ref` prêt à consommer (quantité × le rendement de cuisson : ×2,4 pois chiches, ×2,5 haricots et lentilles), instructions réécrites (« égoutte et rince » au lieu de « cuis »). 3 gardent la pesée sèche parce que la cuisson longue EST le plat et qu’aucune ne demande de trempage (rep107, rep108, rep112) : seul leur `temps_min` était faux, il passe à 50 min. +2 `ref` : haricots_blancs_conserve (Ciqual 20511) et haricots_noirs_conserve (déduit du rapport sec→appertisé du haricot rouge, Ciqual n’ayant pas d’entrée pour le haricot noir).",
     "waves": {
       "role": "Vague de livraison d'origine de chaque recette (champ `wave`). Rétro-rempli le 2026-07-29 depuis les dossiers de Recette/drops/ ; « fondation » = le lot initial, antérieur aux drops.",
       "valeurs": {
@@ -1163,7 +1163,7 @@
       "basis": "dry"
     },
     "feves": {
-      "name": "Fèves",
+      "name": "Fèves sèches décortiquées",
       "unit": "g",
       "per_100": {
         "kcal": 341,
@@ -1286,6 +1286,26 @@
         "protein": 8.3,
         "carbs": 13,
         "fat": 1
+      }
+    },
+    "haricots_blancs_conserve": {
+      "name": "Haricots blancs (conserve, égouttés)",
+      "unit": "g",
+      "per_100": {
+        "kcal": 86,
+        "protein": 5.9,
+        "carbs": 10.9,
+        "fat": 0.5
+      }
+    },
+    "haricots_noirs_conserve": {
+      "name": "Haricots noirs (conserve, égouttés)",
+      "unit": "g",
+      "per_100": {
+        "kcal": 117,
+        "protein": 7.7,
+        "carbs": 13.3,
+        "fat": 1.4
       }
     },
     "tofu_fume": {
@@ -2541,8 +2561,8 @@
           "scalable": false
         },
         {
-          "ref": "pois_chiches",
-          "qty": 30,
+          "ref": "pois_chiches_conserve",
+          "qty": 70,
           "macro_role": "protein",
           "scalable": true
         },
@@ -2560,16 +2580,16 @@
         }
       ],
       "instructions": [
-        "Mijote tomate + poivron + pois chiches 8 min.",
-        "Casse les œufs dedans, couvre 5 min.",
-        "Sers avec le pain."
+        "Égoutte et rince les pois chiches.",
+        "Mijote la tomate, le poivron et les pois chiches 8 min à feu moyen.",
+        "Casse les œufs dedans, couvre 5 min : le blanc doit être pris. Sers avec le pain."
       ],
       "why": "Muscu/combats maintien : plat complet protéiné, double protéine animale + végétale.",
       "macros_per_serving": {
-        "kcal": 544,
-        "protein": 31.4,
-        "carbs": 41.2,
-        "fat": 25.9
+        "kcal": 514,
+        "protein": 29.8,
+        "carbs": 35.3,
+        "fat": 26.3
       },
       "wave": "fondation"
     },
@@ -3198,8 +3218,8 @@
       "base_servings": 1,
       "ingredients": [
         {
-          "ref": "pois_chiches",
-          "qty": 40,
+          "ref": "pois_chiches_conserve",
+          "qty": 95,
           "macro_role": "protein",
           "scalable": true
         },
@@ -3223,15 +3243,15 @@
         }
       ],
       "instructions": [
-        "Mixe pois chiches + huile en houmous.",
-        "Sers avec carottes et pita."
+        "Égoutte et rince les pois chiches, puis mixe-les avec l’huile jusqu’à un houmous lisse.",
+        "Sers avec les bâtonnets de carotte et le pita."
       ],
       "why": "Endurance perte de gras : protéines végétales + fibres, rassasiant et léger.",
       "macros_per_serving": {
-        "kcal": 360,
-        "protein": 12,
-        "carbs": 43.7,
-        "fat": 13.5
+        "kcal": 335,
+        "protein": 10.2,
+        "carbs": 39,
+        "fat": 13.7
       },
       "wave": "fondation"
     },
@@ -4022,8 +4042,8 @@
           "scalable": true
         },
         {
-          "ref": "pois_chiches",
-          "qty": 40,
+          "ref": "pois_chiches_conserve",
+          "qty": 95,
           "macro_role": "protein",
           "scalable": true
         },
@@ -4042,15 +4062,15 @@
       ],
       "instructions": [
         "Cuis le boulgour.",
-        "Poêle courgettes + pois chiches.",
-        "Cuis le cabillaud, citron."
+        "Égoutte et rince les pois chiches, poêle-les avec les courgettes.",
+        "Cuis le cabillaud, arrose de citron."
       ],
       "why": "Endurance/combats perte de gras : meilleur profil recomp, poisson maigre + légumineuse.",
       "macros_per_serving": {
-        "kcal": 584,
-        "protein": 49.6,
-        "carbs": 61.2,
-        "fat": 12.8
+        "kcal": 560,
+        "protein": 47.8,
+        "carbs": 56.4,
+        "fat": 12.9
       },
       "wave": "fondation"
     },
@@ -4497,8 +4517,8 @@
       "base_servings": 1,
       "ingredients": [
         {
-          "ref": "haricots_rouges",
-          "qty": 80,
+          "ref": "haricots_rouges_conserve",
+          "qty": 200,
           "macro_role": "protein",
           "scalable": true
         },
@@ -4534,16 +4554,16 @@
         }
       ],
       "instructions": [
-        "Revenir poivron + épices.",
-        "Haricots + maïs + tomate, mijote 20 min.",
+        "Fais revenir le poivron avec les épices.",
+        "Égoutte et rince les haricots rouges, ajoute-les avec le maïs et la tomate, mijote 20 min.",
         "Sers avec le riz."
       ],
       "why": "Endurance perte de gras : végétal très rassasiant, riche en fibres.",
       "macros_per_serving": {
-        "kcal": 584,
-        "protein": 25.6,
-        "carbs": 93.2,
-        "fat": 8.2
+        "kcal": 538,
+        "protein": 24.1,
+        "carbs": 80.2,
+        "fat": 9.6
       },
       "wave": "fondation"
     },
@@ -4701,8 +4721,8 @@
           "scalable": false
         },
         {
-          "ref": "pois_chiches",
-          "qty": 25,
+          "ref": "pois_chiches_conserve",
+          "qty": 60,
           "macro_role": "protein",
           "scalable": true
         },
@@ -4722,14 +4742,14 @@
       "instructions": [
         "Cuis le quinoa.",
         "Dore le tofu.",
-        "Dresse avec betterave, houmous, roquette."
+        "Égoutte et rince les pois chiches, écrase-les en houmous, dresse avec la betterave et la roquette."
       ],
       "why": "Endurance maintien : bowl végétal complet, double protéine végétale.",
       "macros_per_serving": {
-        "kcal": 640,
-        "protein": 35.3,
-        "carbs": 57.6,
-        "fat": 26.5
+        "kcal": 625,
+        "protein": 34.2,
+        "carbs": 54.7,
+        "fat": 26.6
       },
       "wave": "fondation"
     },
@@ -5425,8 +5445,8 @@
       "base_servings": 1,
       "ingredients": [
         {
-          "ref": "pois_chiches",
-          "qty": 80,
+          "ref": "pois_chiches_conserve",
+          "qty": 190,
           "macro_role": "protein",
           "scalable": true
         },
@@ -5462,16 +5482,16 @@
         }
       ],
       "instructions": [
-        "Rôtis les pois chiches épicés 20 min.",
+        "Égoutte et rince les pois chiches, sèche-les bien puis rôtis-les épicés 20 min.",
         "Cuis le boulgour.",
-        "Mélange avec légumes et feta."
+        "Mélange avec les légumes et la feta."
       ],
       "why": "Endurance perte de gras : protéines végétales, méditerranéen, fibres.",
       "macros_per_serving": {
-        "kcal": 673,
-        "protein": 29.7,
-        "carbs": 82.4,
-        "fat": 21.1
+        "kcal": 625,
+        "protein": 26,
+        "carbs": 72.9,
+        "fat": 21.4
       },
       "wave": "fondation"
     },
@@ -5677,8 +5697,8 @@
           "scalable": true
         },
         {
-          "ref": "haricots_rouges",
-          "qty": 50,
+          "ref": "haricots_rouges_conserve",
+          "qty": 125,
           "macro_role": "protein",
           "scalable": true
         },
@@ -5703,15 +5723,15 @@
       ],
       "instructions": [
         "Saisis le bœuf épicé.",
-        "Ajoute haricots + poivron.",
+        "Égoutte et rince les haricots rouges, ajoute-les avec le poivron.",
         "Sers sur le riz."
       ],
       "why": "Combats/muscu prise de masse : double protéine, fer élevé, dense.",
       "macros_per_serving": {
-        "kcal": 688,
-        "protein": 49.7,
-        "carbs": 81.2,
-        "fat": 16.1
+        "kcal": 666,
+        "protein": 48.9,
+        "carbs": 74.4,
+        "fat": 16.8
       },
       "wave": "fondation"
     },
@@ -5739,8 +5759,8 @@
           "scalable": true
         },
         {
-          "ref": "lentilles_vertes",
-          "qty": 70,
+          "ref": "lentilles_cuites",
+          "qty": 175,
           "macro_role": "protein",
           "scalable": true
         },
@@ -5758,16 +5778,16 @@
         }
       ],
       "instructions": [
-        "Réchauffe les lentilles.",
+        "Réchauffe les lentilles cuites.",
         "Poêle le saumon.",
-        "Épinards tombés."
+        "Fais tomber les épinards."
       ],
       "why": "Endurance/muscu maintien : oméga-3 + fer végétal, récup complète.",
       "macros_per_serving": {
-        "kcal": 590,
-        "protein": 50.5,
-        "carbs": 33.6,
-        "fat": 25.2
+        "kcal": 580,
+        "protein": 50.6,
+        "carbs": 30.8,
+        "fat": 25
       },
       "wave": "fondation"
     },
@@ -6232,8 +6252,8 @@
           "scalable": true
         },
         {
-          "ref": "haricots_rouges",
-          "qty": 40,
+          "ref": "haricots_rouges_conserve",
+          "qty": 100,
           "macro_role": "protein",
           "scalable": true
         },
@@ -6265,14 +6285,14 @@
       "instructions": [
         "Saisis le bœuf épicé.",
         "Cuis le riz.",
-        "Dresse en bowl avec haricots, maïs, avocat."
+        "Égoutte et rince les haricots rouges, dresse en bowl avec le maïs et l’avocat."
       ],
       "why": "Muscu/combats prise de masse : dense, double protéine, fer élevé.",
       "macros_per_serving": {
-        "kcal": 711,
-        "protein": 49.3,
-        "carbs": 83.3,
-        "fat": 17.7
+        "kcal": 693,
+        "protein": 48.6,
+        "carbs": 77.9,
+        "fat": 18.3
       },
       "wave": "fondation"
     },
@@ -6791,8 +6811,8 @@
           "scalable": true
         },
         {
-          "ref": "lentilles_vertes",
-          "qty": 70,
+          "ref": "lentilles_cuites",
+          "qty": 175,
           "macro_role": "protein",
           "scalable": true
         },
@@ -6810,15 +6830,15 @@
         }
       ],
       "instructions": [
-        "Réchauffe les lentilles + tomate.",
+        "Réchauffe les lentilles cuites avec la tomate.",
         "Cuis le cabillaud.",
         "Dresse ensemble."
       ],
       "why": "Endurance perte de gras : poisson maigre + fer végétal, jour off.",
       "macros_per_serving": {
-        "kcal": 469,
+        "kcal": 452,
         "protein": 51.5,
-        "carbs": 36.2,
+        "carbs": 32,
         "fat": 10.6
       },
       "wave": "fondation"
@@ -6972,8 +6992,8 @@
           "scalable": true
         },
         {
-          "ref": "pois_chiches",
-          "qty": 50,
+          "ref": "pois_chiches_conserve",
+          "qty": 120,
           "macro_role": "protein",
           "scalable": true
         },
@@ -6998,15 +7018,15 @@
       ],
       "instructions": [
         "Poêle la patate douce en dés.",
-        "Ajoute pois chiches + épinards.",
+        "Égoutte et rince les pois chiches, ajoute-les avec les épinards.",
         "Casse les œufs dessus."
       ],
       "why": "Endurance maintien : végétarien complet, double protéine, fibres.",
       "macros_per_serving": {
-        "kcal": 609,
-        "protein": 28.7,
-        "carbs": 68.5,
-        "fat": 21.3
+        "kcal": 581,
+        "protein": 26.5,
+        "carbs": 62.7,
+        "fat": 21.5
       },
       "wave": "fondation"
     },
@@ -7159,8 +7179,8 @@
           "scalable": true
         },
         {
-          "ref": "haricots_rouges",
-          "qty": 40,
+          "ref": "haricots_rouges_conserve",
+          "qty": 100,
           "macro_role": "protein",
           "scalable": true
         },
@@ -7191,15 +7211,15 @@
       ],
       "instructions": [
         "Saisis la dinde hachée.",
-        "Ajoute haricots + tomate + poivron, 20 min.",
-        "Sers avec le riz, filet d'huile d'olive."
+        "Égoutte et rince les haricots rouges, ajoute-les avec la tomate et le poivron, mijote 20 min.",
+        "Sers avec le riz et un filet d’huile d’olive."
       ],
       "why": "Muscu/combats perte de gras : double protéine maigre, fibres, rassasiant.",
       "macros_per_serving": {
-        "kcal": 631,
-        "protein": 57.8,
-        "carbs": 67.9,
-        "fat": 12.1
+        "kcal": 603,
+        "protein": 57,
+        "carbs": 60.4,
+        "fat": 13
       },
       "wave": "fondation"
     },
@@ -7368,8 +7388,8 @@
           "scalable": true
         },
         {
-          "ref": "haricots_rouges",
-          "qty": 30,
+          "ref": "haricots_rouges_conserve",
+          "qty": 75,
           "macro_role": "protein",
           "scalable": true
         },
@@ -7382,15 +7402,15 @@
       ],
       "instructions": [
         "Cuis le riz.",
-        "Saisis le bœuf + œuf au plat.",
-        "Dresse avec avocat et haricots."
+        "Saisis le bœuf, fais un œuf au plat.",
+        "Égoutte et rince les haricots rouges, dresse avec l’avocat."
       ],
       "why": "Muscu/combats prise de masse : bowl très calorique, triple protéine pour le bulk.",
       "macros_per_serving": {
-        "kcal": 923,
-        "protein": 60.5,
-        "carbs": 92.8,
-        "fat": 32.4
+        "kcal": 909,
+        "protein": 60,
+        "carbs": 88.7,
+        "fat": 32.8
       },
       "wave": "fondation"
     },
@@ -8611,8 +8631,8 @@
           "scalable": true
         },
         {
-          "ref": "pois_chiches",
-          "qty": 40,
+          "ref": "pois_chiches_conserve",
+          "qty": 95,
           "macro_role": "protein",
           "scalable": true
         },
@@ -8636,15 +8656,15 @@
         }
       ],
       "instructions": [
-        "Écraser pois chiches cuits avec un filet d'huile.",
-        "Garnir le pita d'œuf dur, houmous et tomate."
+        "Égoutte et rince les pois chiches, écrase-les avec un filet d’huile.",
+        "Garnis le pita d’œuf dur, de houmous et de tomate."
       ],
       "why": "Végétarien complet : double source protéique pour le muscle.",
       "macros_per_serving": {
-        "kcal": 510,
-        "protein": 26.6,
-        "carbs": 55.3,
-        "fat": 18.5
+        "kcal": 486,
+        "protein": 24.7,
+        "carbs": 50.6,
+        "fat": 18.7
       },
       "wave": "2026-06-19-vegan"
     },
@@ -9636,8 +9656,8 @@
           "scalable": true
         },
         {
-          "ref": "pois_chiches",
-          "qty": 50,
+          "ref": "pois_chiches_conserve",
+          "qty": 120,
           "macro_role": "protein",
           "scalable": true
         },
@@ -9655,15 +9675,15 @@
         }
       ],
       "instructions": [
-        "Écraser les pois chiches avec l'huile.",
-        "Tartiner sur le seigle, ajouter carotte râpée."
+        "Égoutte et rince les pois chiches, écrase-les à la fourchette avec l’huile.",
+        "Tartine sur le pain de seigle, ajoute la carotte râpée."
       ],
       "why": "Vegan combats : satiété élevée, peu calorique, fibres.",
       "macros_per_serving": {
-        "kcal": 368,
-        "protein": 14.9,
-        "carbs": 52.6,
-        "fat": 8.8
+        "kcal": 339,
+        "protein": 12.7,
+        "carbs": 46.9,
+        "fat": 9
       },
       "wave": "2026-06-19-vegan"
     },
@@ -10933,8 +10953,8 @@
           "scalable": true
         },
         {
-          "ref": "haricots_rouges",
-          "qty": 50,
+          "ref": "haricots_rouges_conserve",
+          "qty": 125,
           "macro_role": "protein",
           "scalable": true
         },
@@ -10952,15 +10972,15 @@
         }
       ],
       "instructions": [
-        "Cuire le riz.",
-        "Mijoter tofu émietté, haricots, tomate et épices chili, finir au lait de coco."
+        "Cuis le riz.",
+        "Égoutte et rince les haricots rouges, mijote-les avec le tofu émietté, la tomate et les épices chili, finis au lait de coco."
       ],
       "why": "Vegan combats : plat complet équilibré, double protéine végétale.",
       "macros_per_serving": {
-        "kcal": 773,
-        "protein": 39.3,
-        "carbs": 92.2,
-        "fat": 23.6
+        "kcal": 743,
+        "protein": 38.3,
+        "carbs": 83.8,
+        "fat": 24.5
       },
       "wave": "2026-06-19-vegan"
     },
@@ -11281,8 +11301,8 @@
           "scalable": true
         },
         {
-          "ref": "haricots_noirs",
-          "qty": 60,
+          "ref": "haricots_noirs_conserve",
+          "qty": 150,
           "macro_role": "protein",
           "scalable": true
         },
@@ -11306,15 +11326,15 @@
         }
       ],
       "instructions": [
-        "Cuire riz et haricots.",
-        "Réhydrater la PST, assembler en bowl tex-mex avec maïs et avocat."
+        "Cuis le riz.",
+        "Réhydrate la PST, égoutte et rince les haricots noirs, assemble en bowl tex-mex avec le maïs et l’avocat."
       ],
       "why": "Vegan combats : protéines complètes (haricots + PST), sans gluten.",
       "macros_per_serving": {
-        "kcal": 738,
-        "protein": 37.6,
-        "carbs": 107,
-        "fat": 13.1
+        "kcal": 744,
+        "protein": 35.3,
+        "carbs": 97.1,
+        "fat": 18
       },
       "wave": "2026-06-19-vegan"
     },
@@ -11464,8 +11484,8 @@
           "scalable": true
         },
         {
-          "ref": "pois_chiches",
-          "qty": 60,
+          "ref": "pois_chiches_conserve",
+          "qty": 145,
           "macro_role": "protein",
           "scalable": true
         },
@@ -11489,15 +11509,15 @@
         }
       ],
       "instructions": [
-        "Cuire riz et pois chiches.",
-        "Assembler en bowl grec avec feta émiettée et concombre."
+        "Cuis le riz.",
+        "Égoutte et rince les pois chiches, assemble en bowl grec avec la feta émiettée et le concombre."
       ],
       "why": "Végétarien méditerranéen : protéines végétales + feta, sans gluten.",
       "macros_per_serving": {
-        "kcal": 677,
-        "protein": 24.7,
-        "carbs": 94,
-        "fat": 20.2
+        "kcal": 643,
+        "protein": 22.1,
+        "carbs": 87.3,
+        "fat": 20.5
       },
       "wave": "2026-06-19-vegan"
     },
@@ -11635,8 +11655,8 @@
           "scalable": true
         },
         {
-          "ref": "pois_chiches",
-          "qty": 60,
+          "ref": "pois_chiches_conserve",
+          "qty": 145,
           "macro_role": "protein",
           "scalable": true
         },
@@ -11666,15 +11686,15 @@
         }
       ],
       "instructions": [
-        "Cuire quinoa et pois chiches.",
-        "Réhydrater la PST, dresser avec avocat, betterave et roquette."
+        "Cuis le quinoa.",
+        "Réhydrate la PST, égoutte et rince les pois chiches, dresse avec l’avocat, la betterave et la roquette."
       ],
       "why": "Vegan & sans gluten : triple protéine végétale, riche en fibres.",
       "macros_per_serving": {
-        "kcal": 738,
-        "protein": 38.4,
-        "carbs": 87.4,
-        "fat": 21.5
+        "kcal": 705,
+        "protein": 35.9,
+        "carbs": 80.6,
+        "fat": 21.9
       },
       "wave": "2026-06-19-vegan"
     },
@@ -11812,8 +11832,8 @@
           "scalable": true
         },
         {
-          "ref": "pois_chiches",
-          "qty": 60,
+          "ref": "pois_chiches_conserve",
+          "qty": 145,
           "macro_role": "protein",
           "scalable": true
         },
@@ -11837,15 +11857,15 @@
         }
       ],
       "instructions": [
-        "Cuire le millet.",
-        "Mijoter pois chiches + PST au curry et lait de coco, ajouter épinards."
+        "Cuis le millet.",
+        "Égoutte et rince les pois chiches, mijote-les avec la PST au curry et au lait de coco, ajoute les épinards."
       ],
       "why": "Vegan endurance sans gluten : capacité protéique haute, crémeux.",
       "macros_per_serving": {
-        "kcal": 727,
-        "protein": 39.8,
-        "carbs": 100.5,
-        "fat": 17
+        "kcal": 694,
+        "protein": 37.2,
+        "carbs": 93.8,
+        "fat": 17.3
       },
       "wave": "2026-06-19-vegan"
     },
@@ -11988,8 +12008,8 @@
           "scalable": true
         },
         {
-          "ref": "haricots_blancs",
-          "qty": 70,
+          "ref": "haricots_blancs_conserve",
+          "qty": 175,
           "macro_role": "protein",
           "scalable": true
         },
@@ -12013,15 +12033,15 @@
         }
       ],
       "instructions": [
-        "Cuire le quinoa.",
-        "Mijoter haricots blancs + PST avec tomate et romarin."
+        "Cuis le quinoa.",
+        "Égoutte et rince les haricots blancs, mijote-les avec la PST, la tomate et le romarin."
       ],
       "why": "Vegan combats sans gluten : haricots blancs = capacité protéique élevée.",
       "macros_per_serving": {
-        "kcal": 689,
-        "protein": 41.3,
-        "carbs": 89.7,
-        "fat": 14
+        "kcal": 618,
+        "protein": 35.1,
+        "carbs": 76.7,
+        "fat": 14.5
       },
       "wave": "2026-06-19-vegan"
     },
@@ -12274,8 +12294,8 @@
           "scalable": true
         },
         {
-          "ref": "haricots_rouges",
-          "qty": 40,
+          "ref": "haricots_rouges_conserve",
+          "qty": 100,
           "macro_role": "protein",
           "scalable": true
         },
@@ -12299,15 +12319,15 @@
         }
       ],
       "instructions": [
-        "Rôtir la patate douce.",
-        "Mijoter PST + haricots en chili, dresser avec maïs."
+        "Rôtis la patate douce.",
+        "Égoutte et rince les haricots rouges, mijote-les avec la PST en chili, dresse avec le maïs."
       ],
       "why": "Vegan combats sans gluten : très haute capacité protéique.",
       "macros_per_serving": {
-        "kcal": 597,
-        "protein": 40.9,
-        "carbs": 81.8,
-        "fat": 8.3
+        "kcal": 572,
+        "protein": 40.1,
+        "carbs": 75,
+        "fat": 9
       },
       "wave": "2026-06-19-vegan"
     },
@@ -12518,8 +12538,8 @@
       "base_servings": 1,
       "ingredients": [
         {
-          "ref": "haricots_rouges",
-          "qty": 70,
+          "ref": "haricots_rouges_conserve",
+          "qty": 175,
           "macro_role": "protein",
           "scalable": true
         },
@@ -12555,15 +12575,15 @@
         }
       ],
       "instructions": [
-        "Mijoter haricots + PST + tomate + épices.",
-        "Ajouter le maïs, servir sur riz."
+        "Égoutte et rince les haricots rouges, mijote-les avec la PST, la tomate et les épices.",
+        "Ajoute le maïs, sers sur le riz."
       ],
       "why": "Vegan combats sans gluten : protéines complètes, plat réconfortant.",
       "macros_per_serving": {
-        "kcal": 728,
-        "protein": 41.8,
-        "carbs": 107.9,
-        "fat": 10.3
+        "kcal": 689,
+        "protein": 40.4,
+        "carbs": 96.7,
+        "fat": 11.5
       },
       "wave": "2026-06-19-vegan"
     },
@@ -12585,8 +12605,8 @@
       "base_servings": 1,
       "ingredients": [
         {
-          "ref": "pois_chiches",
-          "qty": 70,
+          "ref": "pois_chiches_conserve",
+          "qty": 170,
           "macro_role": "protein",
           "scalable": true
         },
@@ -12616,15 +12636,15 @@
         }
       ],
       "instructions": [
-        "Mijoter pois chiches + PST + patate en curry.",
-        "Finir au lait de coco."
+        "Égoutte et rince les pois chiches, mijote-les avec la PST et la patate douce en curry.",
+        "Finis au lait de coco."
       ],
       "why": "Vegan endurance sans gluten : glucides patate + capacité protéique.",
       "macros_per_serving": {
-        "kcal": 610,
-        "protein": 39.3,
-        "carbs": 72.9,
-        "fat": 14.6
+        "kcal": 565,
+        "protein": 36.3,
+        "carbs": 63.8,
+        "fat": 15.2
       },
       "wave": "2026-06-19-vegan"
     },
@@ -12646,8 +12666,8 @@
       "base_servings": 1,
       "ingredients": [
         {
-          "ref": "haricots_blancs",
-          "qty": 80,
+          "ref": "haricots_blancs_conserve",
+          "qty": 200,
           "macro_role": "protein",
           "scalable": true
         },
@@ -12683,15 +12703,15 @@
         }
       ],
       "instructions": [
-        "Mijoter haricots blancs + PST + légumes 25 min.",
-        "Servir avec le pain."
+        "Égoutte et rince les haricots blancs, mijote-les avec la PST et les légumes 25 min.",
+        "Sers avec le pain."
       ],
       "why": "Vegan combats : soupe-repas rassasiante, protéines végétales.",
       "macros_per_serving": {
-        "kcal": 569,
-        "protein": 37.8,
-        "carbs": 71.4,
-        "fat": 10.4
+        "kcal": 490,
+        "protein": 30.8,
+        "carbs": 56.9,
+        "fat": 10.9
       },
       "wave": "2026-06-19-vegan"
     },
@@ -12713,8 +12733,8 @@
       "base_servings": 1,
       "ingredients": [
         {
-          "ref": "haricots_noirs",
-          "qty": 70,
+          "ref": "haricots_noirs_conserve",
+          "qty": 175,
           "macro_role": "protein",
           "scalable": true
         },
@@ -12744,15 +12764,15 @@
         }
       ],
       "instructions": [
-        "Mijoter haricots noirs + PST + oignon + épices.",
-        "Servir sur riz."
+        "Égoutte et rince les haricots noirs, mijote-les avec la PST, l’oignon et les épices.",
+        "Sers sur le riz."
       ],
       "why": "Vegan muscu sans gluten : haricots noirs riches en protéines et fer.",
       "macros_per_serving": {
-        "kcal": 701,
-        "protein": 39.3,
-        "carbs": 101.4,
-        "fat": 10.3
+        "kcal": 667,
+        "protein": 37.4,
+        "carbs": 89.8,
+        "fat": 12.1
       },
       "wave": "2026-06-19-vegan"
     },
@@ -12769,7 +12789,7 @@
         "sport": [
           "endurance"
         ],
-        "temps_min": 30
+        "temps_min": 50
       },
       "base_servings": 1,
       "ingredients": [
@@ -12811,8 +12831,9 @@
         }
       ],
       "instructions": [
-        "Cuire pois cassés et boulgour.",
-        "Assembler en bowl avec carotte râpée et roquette."
+        "Cuis les pois cassés 45 min à l’eau non salée, sans trempage : ils doivent se défaire sous la fourchette.",
+        "Cuis le boulgour et réhydrate la PST pendant ce temps.",
+        "Assemble en bowl avec la carotte râpée et la roquette."
       ],
       "why": "Vegan endurance : pois cassés protéinés + glucides du boulgour.",
       "macros_per_serving": {
@@ -12836,7 +12857,7 @@
         "sport": [
           "muscu"
         ],
-        "temps_min": 28
+        "temps_min": 50
       },
       "base_servings": 1,
       "ingredients": [
@@ -12872,8 +12893,9 @@
         }
       ],
       "instructions": [
-        "Mijoter fèves + PST + tomate.",
-        "Finir au lait de coco, servir avec le riz."
+        "Cuis les fèves sèches décortiquées 40 min à l’eau, sans trempage : elles doivent s’écraser entre deux doigts.",
+        "Mijote-les avec la PST et la tomate, finis au lait de coco.",
+        "Sers avec le riz."
       ],
       "why": "Vegan muscu sans gluten : fèves = excellente densité protéique.",
       "macros_per_serving": {
@@ -12902,8 +12924,8 @@
       "base_servings": 1,
       "ingredients": [
         {
-          "ref": "lentilles_vertes",
-          "qty": 80,
+          "ref": "lentilles_cuites",
+          "qty": 200,
           "macro_role": "protein",
           "scalable": true
         },
@@ -12933,15 +12955,15 @@
         }
       ],
       "instructions": [
-        "Cuire les lentilles, refroidir.",
-        "Mélanger avec feta, tomate, concombre et vinaigrette."
+        "Rince les lentilles cuites et laisse-les s’égoutter.",
+        "Mélange avec la feta, la tomate, le concombre et la vinaigrette."
       ],
       "why": "Végétarien sans gluten : froid, protéiné, fibres et fraîcheur.",
       "macros_per_serving": {
-        "kcal": 471,
-        "protein": 27.2,
-        "carbs": 41.2,
-        "fat": 19
+        "kcal": 459,
+        "protein": 27.3,
+        "carbs": 38,
+        "fat": 18.8
       },
       "wave": "2026-06-19-vegan"
     },
@@ -12975,8 +12997,8 @@
           "scalable": true
         },
         {
-          "ref": "haricots_rouges",
-          "qty": 50,
+          "ref": "haricots_rouges_conserve",
+          "qty": 125,
           "macro_role": "protein",
           "scalable": true
         },
@@ -12994,15 +13016,15 @@
         }
       ],
       "instructions": [
-        "Mijoter poulet émincé + haricots + tomate + épices.",
-        "Servir sur riz."
+        "Égoutte et rince les haricots rouges, mijote-les avec le poulet émincé, la tomate et les épices.",
+        "Sers sur le riz."
       ],
       "why": "Muscu sans gluten : double protéine animale + végétale, capacité haute.",
       "macros_per_serving": {
-        "kcal": 657,
-        "protein": 50.6,
-        "carbs": 81.6,
-        "fat": 11
+        "kcal": 628,
+        "protein": 49.6,
+        "carbs": 73.4,
+        "fat": 11.9
       },
       "wave": "2026-06-19-vegan"
     },
@@ -13024,8 +13046,8 @@
       "base_servings": 1,
       "ingredients": [
         {
-          "ref": "pois_chiches",
-          "qty": 80,
+          "ref": "pois_chiches_conserve",
+          "qty": 190,
           "macro_role": "protein",
           "scalable": true
         },
@@ -13055,15 +13077,15 @@
         }
       ],
       "instructions": [
-        "Cuire boulgour et pois chiches.",
-        "Assembler avec houmous, PST et poivron grillé."
+        "Cuis le boulgour.",
+        "Égoutte et rince les pois chiches, écrase-en la moitié en houmous, assemble avec la PST et le poivron grillé."
       ],
       "why": "Vegan endurance : levantin protéiné, glucides du boulgour.",
       "macros_per_serving": {
-        "kcal": 682,
-        "protein": 35.6,
-        "carbs": 92.9,
-        "fat": 14.2
+        "kcal": 634,
+        "protein": 32,
+        "carbs": 83.4,
+        "fat": 14.5
       },
       "wave": "2026-06-19-vegan"
     },
@@ -13080,7 +13102,7 @@
         "sport": [
           "combats"
         ],
-        "temps_min": 30
+        "temps_min": 50
       },
       "base_servings": 1,
       "ingredients": [
@@ -13122,8 +13144,8 @@
         }
       ],
       "instructions": [
-        "Mijoter pois cassés + légumes 25 min, mixer.",
-        "Servir avec croûtons et graines de courge."
+        "Mijote les pois cassés avec la carotte et l’oignon 45 min à couvert, sans trempage, puis mixe.",
+        "Sers avec les croûtons et les graines de courge."
       ],
       "why": "Vegan combats : velouté-repas dense en protéines, peu de lipides.",
       "macros_per_serving": {
@@ -13225,8 +13247,8 @@
           "scalable": true
         },
         {
-          "ref": "haricots_noirs",
-          "qty": 50,
+          "ref": "haricots_noirs_conserve",
+          "qty": 125,
           "macro_role": "protein",
           "scalable": true
         },
@@ -13244,15 +13266,15 @@
         }
       ],
       "instructions": [
-        "Réhydrater la PST, mijoter façon chili.",
-        "Garnir les tortillas avec haricots, maïs et avocat."
+        "Réhydrate la PST, mijote-la façon chili.",
+        "Égoutte et rince les haricots noirs, garnis les tortillas avec le maïs et l’avocat."
       ],
       "why": "Vegan combats : tacos très protéinés, capacité élevée.",
       "macros_per_serving": {
-        "kcal": 738,
-        "protein": 46.2,
-        "carbs": 93,
-        "fat": 15.8
+        "kcal": 761,
+        "protein": 45,
+        "carbs": 88.5,
+        "fat": 20.2
       },
       "wave": "2026-06-19-vegan"
     },
@@ -13457,8 +13479,8 @@
           "scalable": true
         },
         {
-          "ref": "pois_chiches",
-          "qty": 85,
+          "ref": "pois_chiches_conserve",
+          "qty": 205,
           "macro_role": "protein",
           "scalable": true
         },
@@ -13482,15 +13504,15 @@
         }
       ],
       "instructions": [
-        "Mixer pois chiches + PST en falafels, cuire au four.",
-        "Garnir la tortilla de falafels, houmous et salade."
+        "Égoutte et rince les pois chiches, sèche-les bien, mixe-les avec la PST en falafels et cuis-les au four.",
+        "Garnis la tortilla de falafels, de houmous et de salade."
       ],
       "why": "Vegan endurance : falafels protéinés, glucides du wrap.",
       "macros_per_serving": {
-        "kcal": 767,
-        "protein": 40.6,
-        "carbs": 97.7,
-        "fat": 20.2
+        "kcal": 719,
+        "protein": 37,
+        "carbs": 88.1,
+        "fat": 20.6
       },
       "wave": "2026-06-19-vegan"
     },
@@ -13634,8 +13656,8 @@
           "scalable": true
         },
         {
-          "ref": "pois_chiches",
-          "qty": 70,
+          "ref": "pois_chiches_conserve",
+          "qty": 170,
           "macro_role": "protein",
           "scalable": true
         },
@@ -13659,15 +13681,15 @@
         }
       ],
       "instructions": [
-        "Hydrater la semoule.",
-        "Mélanger pois chiches, PST réhydratée, tomate, menthe et citron."
+        "Hydrate la semoule.",
+        "Égoutte et rince les pois chiches, mélange avec la PST réhydratée, la tomate, la menthe et le citron."
       ],
       "why": "Vegan endurance : taboulé enrichi en protéines, froid.",
       "macros_per_serving": {
-        "kcal": 680,
-        "protein": 34.6,
-        "carbs": 97.8,
-        "fat": 13.8
+        "kcal": 643,
+        "protein": 31.6,
+        "carbs": 90.1,
+        "fat": 14.2
       },
       "wave": "2026-06-19-vegan"
     },
@@ -13701,8 +13723,8 @@
           "scalable": true
         },
         {
-          "ref": "pois_chiches",
-          "qty": 40,
+          "ref": "pois_chiches_conserve",
+          "qty": 95,
           "macro_role": "protein",
           "scalable": true
         },
@@ -13726,15 +13748,15 @@
         }
       ],
       "instructions": [
-        "Cuire la semoule.",
-        "Mijoter poulet, légumes et pois chiches en bouillon épicé."
+        "Cuis la semoule.",
+        "Égoutte et rince les pois chiches, mijote-les avec le poulet et les légumes en bouillon épicé."
       ],
       "why": "Muscu : couscous complet, double protéine, capacité haute.",
       "macros_per_serving": {
-        "kcal": 703,
-        "protein": 54.9,
-        "carbs": 83.9,
-        "fat": 13.4
+        "kcal": 679,
+        "protein": 53.1,
+        "carbs": 79.2,
+        "fat": 13.6
       },
       "wave": "2026-06-19-vegan"
     },
@@ -13939,8 +13961,8 @@
           "scalable": true
         },
         {
-          "ref": "pois_chiches",
-          "qty": 60,
+          "ref": "pois_chiches_conserve",
+          "qty": 145,
           "macro_role": "protein",
           "scalable": true
         },
@@ -13970,15 +13992,15 @@
         }
       ],
       "instructions": [
-        "Cuire la semoule.",
-        "Mijoter pois chiches + PST + légumes en bouillon."
+        "Cuis la semoule.",
+        "Égoutte et rince les pois chiches, mijote-les avec la PST et les légumes en bouillon."
       ],
       "why": "Vegan endurance : couscous complet, capacité protéique élevée.",
       "macros_per_serving": {
-        "kcal": 738,
-        "protein": 42.1,
-        "carbs": 103.9,
-        "fat": 13.7
+        "kcal": 705,
+        "protein": 39.6,
+        "carbs": 97.2,
+        "fat": 14
       },
       "wave": "2026-06-19-vegan"
     },
@@ -14397,8 +14419,8 @@
           "scalable": true
         },
         {
-          "ref": "pois_chiches",
-          "qty": 50,
+          "ref": "pois_chiches_conserve",
+          "qty": 120,
           "macro_role": "protein",
           "scalable": true
         },
@@ -14428,15 +14450,15 @@
         }
       ],
       "instructions": [
-        "Mijoter tomate, poivron et pois chiches.",
-        "Casser les œufs dessus, cuire couvert, servir avec pain."
+        "Égoutte et rince les pois chiches, mijote-les avec la tomate et le poivron.",
+        "Casse les œufs dessus, cuis à couvert, sers avec le pain."
       ],
       "why": "Végétarien : plat mijoté riche en protéines, glucides du pain.",
       "macros_per_serving": {
-        "kcal": 628,
-        "protein": 36.4,
-        "carbs": 54.8,
-        "fat": 26.2
+        "kcal": 589,
+        "protein": 34,
+        "carbs": 47,
+        "fat": 26.8
       },
       "wave": "2026-06-19-vegan"
     },
@@ -14877,8 +14899,8 @@
           "scalable": true
         },
         {
-          "ref": "pois_chiches",
-          "qty": 70,
+          "ref": "pois_chiches_conserve",
+          "qty": 170,
           "macro_role": "protein",
           "scalable": true
         },
@@ -14902,15 +14924,15 @@
         }
       ],
       "instructions": [
-        "Cuire le boulgour.",
-        "Mélanger pois chiches, feta, concombre et menthe."
+        "Cuis le boulgour.",
+        "Égoutte et rince les pois chiches, mélange avec la feta, le concombre et la menthe."
       ],
       "why": "Végétarien combats : salade levantine fraîche et protéinée.",
       "macros_per_serving": {
-        "kcal": 648,
-        "protein": 28.1,
-        "carbs": 75.5,
-        "fat": 22.2
+        "kcal": 610,
+        "protein": 25.1,
+        "carbs": 67.8,
+        "fat": 22.5
       },
       "wave": "2026-06-19-vegan"
     },
@@ -14932,8 +14954,8 @@
       "base_servings": 1,
       "ingredients": [
         {
-          "ref": "lentilles_vertes",
-          "qty": 80,
+          "ref": "lentilles_cuites",
+          "qty": 200,
           "macro_role": "protein",
           "scalable": true
         },
@@ -14963,15 +14985,15 @@
         }
       ],
       "instructions": [
-        "Cuire les lentilles, refroidir.",
-        "Assembler avec saumon fumé, betterave et roquette."
+        "Rince les lentilles cuites et laisse-les s’égoutter.",
+        "Assemble avec le saumon fumé, la betterave et la roquette."
       ],
       "why": "Pescatarien sans gluten : protéiné, oméga-3, sans cuisson de poisson.",
       "macros_per_serving": {
-        "kcal": 498,
-        "protein": 37.8,
-        "carbs": 42.2,
-        "fat": 16.4
+        "kcal": 487,
+        "protein": 37.9,
+        "carbs": 39,
+        "fat": 16.1
       },
       "wave": "2026-06-19-vegan"
     },
@@ -14993,8 +15015,8 @@
       "base_servings": 1,
       "ingredients": [
         {
-          "ref": "haricots_blancs",
-          "qty": 80,
+          "ref": "haricots_blancs_conserve",
+          "qty": 200,
           "macro_role": "protein",
           "scalable": true
         },
@@ -15024,15 +15046,15 @@
         }
       ],
       "instructions": [
-        "Rincer les haricots blancs cuits.",
-        "Mélanger avec thon, tomate et oignon rouge."
+        "Égoutte et rince les haricots blancs.",
+        "Mélange avec le thon, la tomate et l’oignon rouge."
       ],
       "why": "Pescatarien sans gluten : salade express, double protéine rassasiante.",
       "macros_per_serving": {
-        "kcal": 490,
-        "protein": 46.4,
-        "carbs": 40.4,
-        "fat": 13.2
+        "kcal": 417,
+        "protein": 39.4,
+        "carbs": 27.1,
+        "fat": 13.6
       },
       "wave": "2026-06-19-vegan"
     },
@@ -15060,8 +15082,8 @@
           "scalable": true
         },
         {
-          "ref": "haricots_noirs",
-          "qty": 70,
+          "ref": "haricots_noirs_conserve",
+          "qty": 175,
           "macro_role": "protein",
           "scalable": true
         },
@@ -15085,15 +15107,15 @@
         }
       ],
       "instructions": [
-        "Cuire le quinoa.",
-        "Mélanger haricots noirs, PST, maïs et avocat, assaisonner au citron vert."
+        "Cuis le quinoa.",
+        "Égoutte et rince les haricots noirs, mélange avec la PST, le maïs et l’avocat, assaisonne au citron vert."
       ],
       "why": "Vegan combats sans gluten : salade tex-mex, protéines complètes.",
       "macros_per_serving": {
-        "kcal": 715,
-        "protein": 37.9,
-        "carbs": 93.7,
-        "fat": 15.3
+        "kcal": 709,
+        "protein": 35.7,
+        "carbs": 80.9,
+        "fat": 20.3
       },
       "wave": "2026-06-19-vegan"
     },
@@ -16634,8 +16656,8 @@
           "scalable": true
         },
         {
-          "ref": "haricots_noirs",
-          "qty": 60,
+          "ref": "haricots_noirs_conserve",
+          "qty": 150,
           "macro_role": "protein",
           "scalable": true
         },
@@ -16659,15 +16681,15 @@
         }
       ],
       "instructions": [
-        "Rôtir la patate douce.",
-        "Mijoter haricots noirs + PST façon chili, dresser avec maïs et avocat."
+        "Rôtis la patate douce.",
+        "Égoutte et rince les haricots noirs, mijote-les avec la PST façon chili, dresse avec le maïs et l’avocat."
       ],
       "why": "Vegan combats & sans gluten : protéines complètes, très haute capacité.",
       "macros_per_serving": {
-        "kcal": 628,
-        "protein": 36.2,
-        "carbs": 84.5,
-        "fat": 11.2
+        "kcal": 616,
+        "protein": 34.9,
+        "carbs": 70.4,
+        "fat": 15.8
       },
       "wave": "2026-06-19-vegan"
     },
@@ -16750,8 +16772,8 @@
           "scalable": true
         },
         {
-          "ref": "haricots_blancs",
-          "qty": 70,
+          "ref": "haricots_blancs_conserve",
+          "qty": 175,
           "macro_role": "protein",
           "scalable": true
         },
@@ -16775,15 +16797,15 @@
         }
       ],
       "instructions": [
-        "Cuire la polenta crémeuse.",
-        "Mijoter haricots blancs + PST avec tomate et romarin, dresser sur la polenta."
+        "Cuis la polenta crémeuse.",
+        "Égoutte et rince les haricots blancs, mijote-les avec la PST, la tomate et le romarin, dresse sur la polenta."
       ],
       "why": "Vegan combats & sans gluten : ragoût rustique, capacité protéique élevée.",
       "macros_per_serving": {
-        "kcal": 672,
-        "protein": 38.9,
-        "carbs": 95.8,
-        "fat": 10.2
+        "kcal": 594,
+        "protein": 32.7,
+        "carbs": 83.5,
+        "fat": 10.9
       },
       "wave": "2026-06-19-vegan"
     },
@@ -19028,8 +19050,8 @@
           "scalable": true
         },
         {
-          "ref": "pois_chiches",
-          "qty": 70,
+          "ref": "pois_chiches_conserve",
+          "qty": 170,
           "macro_role": "protein",
           "scalable": true
         },
@@ -19053,14 +19075,14 @@
         }
       ],
       "instructions": [
-        "Mijoter pommes de terre, pois chiches et PST au curry 20 min.",
-        "Ajouter épinards et lait de coco."
+        "Mijote les pommes de terre 20 min au curry avec la PST.",
+        "Égoutte et rince les pois chiches, ajoute-les avec les épinards et le lait de coco."
       ],
       "why": "Vegan & sans gluten : curry complet, capacité protéique élevée.",
       "macros_per_serving": {
-        "kcal": 647,
-        "protein": 36.3,
-        "carbs": 79.8,
+        "kcal": 607,
+        "protein": 34.2,
+        "carbs": 71.7,
         "fat": 16
       },
       "wave": "2026-07-22-sans-gluten"
@@ -19685,8 +19707,8 @@
           "scalable": true
         },
         {
-          "ref": "haricots_blancs",
-          "qty": 75,
+          "ref": "haricots_blancs_conserve",
+          "qty": 190,
           "macro_role": "protein",
           "scalable": true
         },
@@ -19710,15 +19732,15 @@
         }
       ],
       "instructions": [
-        "Cuire le sarrasin.",
-        "Mijoter haricots blancs + PST avec tomate et olives."
+        "Cuis le sarrasin.",
+        "Égoutte et rince les haricots blancs, mijote-les avec la PST, la tomate et les olives."
       ],
       "why": "Vegan & sans gluten combats : rustique, capacité protéique élevée.",
       "macros_per_serving": {
-        "kcal": 711,
-        "protein": 43.7,
-        "carbs": 105.3,
-        "fat": 8.7
+        "kcal": 636,
+        "protein": 39.2,
+        "carbs": 87.8,
+        "fat": 9.9
       },
       "wave": "2026-07-22-sans-gluten"
     },
@@ -20300,8 +20322,8 @@
       "base_servings": 1,
       "ingredients": [
         {
-          "ref": "pois_chiches",
-          "qty": 38,
+          "ref": "pois_chiches_conserve",
+          "qty": 90,
           "macro_role": "protein",
           "scalable": true
         },
@@ -20325,16 +20347,16 @@
         }
       ],
       "instructions": [
-        "Fais tremper les pois chiches la veille, puis cuis-les 50 minutes à l'eau non salée jusqu'à ce qu'ils s'écrasent entre deux doigts.",
-        "Délaye le sarrasin avec de l'eau et une pincée de sel jusqu'à une pâte fluide, laisse-la reposer le temps de râper la carotte, puis cuis une galette fine à la poêle chaude, 2 minutes par face.",
-        "Poêle les pois chiches égouttés et bien secs 5 minutes à feu vif avec les graines de courge, sale et sers sur la galette avec la carotte râpée."
+        "Égoutte et rince les pois chiches, sèche-les bien dans un torchon.",
+        "Délaye le sarrasin avec de l’eau et une pincée de sel jusqu’à une pâte fluide, laisse-la reposer le temps de râper la carotte, puis cuis une galette fine à la poêle chaude, 2 minutes par face.",
+        "Poêle les pois chiches 5 minutes à feu vif avec les graines de courge, sale et sers sur la galette avec la carotte râpée."
       ],
       "why": "Légumineuse et céréale complète, sans gluten, très rassasiant.",
       "macros_per_serving": {
-        "kcal": 281.8,
-        "protein": 14.4,
-        "carbs": 33.6,
-        "fat": 9.7
+        "kcal": 266,
+        "protein": 12.6,
+        "carbs": 27.1,
+        "fat": 10
       },
       "wave": "2026-08-01-b2-collations"
     },
@@ -28225,7 +28247,7 @@
         }
       ],
       "instructions": [
-        "Fais tremper les fèves la veille, égoutte-les, puis fais-les cuire 40 minutes dans un grand volume d'eau non salée.",
+        "Fais cuire les fèves décortiquées 40 minutes dans un grand volume d'eau non salée, sans trempage : elles doivent s'écraser entre deux doigts.",
         "Couvre la protéine de soja texturée d'eau bouillante salée, laisse-la gonfler 5 minutes et presse-la pour l'essorer.",
         "Rince le quinoa et fais-le cuire 13 minutes dans deux fois son volume d'eau salée, à couvert.",
         "Émince l'oignon et taille la carotte en rondelles, puis fais-les fondre 8 minutes à feu moyen avec le lait de coco.",
@@ -28290,7 +28312,7 @@
         }
       ],
       "instructions": [
-        "Fais tremper les fèves la veille, égoutte-les et fais-les cuire 40 minutes dans un grand volume d'eau non salée.",
+        "Fais cuire les fèves décortiquées 40 minutes dans un grand volume d'eau non salée, sans trempage : elles doivent s'écraser entre deux doigts.",
         "Fais revenir le millet sec 2 minutes dans l'huile d'olive, jusqu'à ce qu'il sente le grillé, puis couvre d'eau salée et cuis 15 minutes à couvert.",
         "Fais tomber les épinards 2 minutes dans une poêle chaude, puis presse-les pour retirer l'eau rendue.",
         "Écrase la moitié des fèves à la fourchette et laisse l'autre moitié entière, pour la texture.",

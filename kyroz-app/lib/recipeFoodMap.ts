@@ -55,6 +55,9 @@ export const REF_FOOD_ID: Record<string, string> = {
   // le poids SEC en liste de courses : non achetable pour un plat sans trempage ni cuisson.
   pois_chiches_conserve: 'ciqual-20532',    // « Pois chiche, appertisé, égoutté »
   haricots_rouges_conserve: 'ciqual-20524', // « Haricot rouge, appertisé, égoutté »
+  haricots_blancs_conserve: 'ciqual-20511', // « Haricot blanc, appertisé, égoutté » (2026-08-03)
+  // (haricots_noirs_conserve : Ciqual n'a AUCUNE entrée haricot noir, sèche ou
+  //  appertisée — comme le ref sec, la valeur reste manuelle dans le JSON.)
   lentilles_cuites: 'ciqual-20360',         // « Lentille, bouillie/cuite à l'eau (aliment moyen) » — Ciqual
                                             // n'a AUCUNE entrée appertisée pour la lentille, d'où le ref
                                             // nommé « cuites » (conserve ou sachet) et non « conserve ».
@@ -119,6 +122,8 @@ export const REF_FIBER_MANUAL: Record<string, number> = {
   yaourt_soja: 0.6, yaourt_soja_proteine: 0.6,    // yaourts de soja : très peu
   proteine_vegetale: 5.5,                         // poudre protéinée pois/soja
   soja_texture: 15, haricots_noirs: 15.5,         // PST & haricots noirs SECS : très fibreux
+  haricots_noirs_conserve: 7,                     // égouttés : même rapport sec→appertisé que
+                                                  // le haricot rouge (Ciqual 15,2 → 7,0)
   edamame: 5, millet: 3.5,                         // fève de soja / millet
   levure_maltee: 20,                              // levure maltée : très riche
   fruits_rouges: 4, legumes_wok: 2.5, ratatouille: 2, // mélanges (moyenne des composants)

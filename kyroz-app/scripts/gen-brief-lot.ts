@@ -1064,6 +1064,22 @@ Respecte la colonne « Pesée » du §4. On n'écrit jamais « égoutté », « 
 \`name\` d'une recette dont un ingrédient est pesé SEC, et les instructions doivent être cohérentes
 avec cette pesée.
 
+**Les légumineuses, en particulier.** Cette règle était déjà écrite ici et **47 recettes la
+violaient quand même** — 9 % du catalogue, découvert le 2026-08-03. Elles pesaient des pois chiches
+SECS (350 kcal/100 g) en les cuisinant en 18 minutes : impossible sans trempage, donc l'utilisateur
+ouvre une conserve (122 kcal/100 g) et mange **130 kcal de moins que ce que la fiche annonce, jusqu'à
+209**. Le contrôle qui manquait existe maintenant (\`lib/__tests__/legumineuses.test.ts\`) — un lot qui
+refait la faute ne passe plus.
+
+| Ce que tu écris | Le \`ref\` à employer |
+|---|---|
+| une salade, un houmous, un chili, un curry — bref **moins de 40 minutes** | \`pois_chiches_conserve\`, \`haricots_rouges_conserve\`, \`haricots_blancs_conserve\`, \`haricots_noirs_conserve\`, \`lentilles_cuites\` |
+| un plat **dont la cuisson longue EST le plat** (soupe de pois cassés, dahl de fèves) | le \`ref\` SEC, avec un \`temps_min\` qui inclut vraiment la cuisson (45 à 50 min) |
+
+⚠️ **Pois chiches, haricots rouges, blancs et noirs SECS sont interdits**, quel que soit le
+\`temps_min\` : ils exigent un trempage de plusieurs heures, or le §6.6 interdit tout repos de plus de
+10 minutes. Seuls les pois cassés, les fèves décortiquées et les lentilles cuisent sans trempage.
+
 ### 6.5 \`tags.objectif\` — mécanique, depuis les kcal de base
 
 | Catégorie | \`["perte_de_gras"]\` | \`["perte_de_gras","maintien"]\` | \`["maintien","prise_de_masse"]\` |
