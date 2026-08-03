@@ -11,7 +11,7 @@ import { useFavorites } from '../../hooks/useFavorites';
 import { useRecipeOverrides } from '../../hooks/useRecipeOverrides';
 import { getBaseRecipe } from '../../lib/recipes';
 import { Recipe } from '../../lib/types';
-import { OBJ_LABEL, SPORT_LABEL } from '../../lib/recipeLabels';
+import { OBJ_LABEL } from '../../lib/recipeLabels';
 
 const TAGS = ['Tout', 'fav', 'breakfast', 'lunch', 'dinner', 'snack'];
 const TAG_LABELS: Record<string, string> = {
@@ -127,10 +127,11 @@ export default function RecettesScreen() {
                 <M v={item.macros_per_portion.carbs_g} u="G" c={t.carbs} cu={t.textQuaternary} />
                 <M v={item.macros_per_portion.fat_g} u="L" c={t.fat} cu={t.textQuaternary} />
               </View>
-              {(item.objectives?.length || item.sports?.length) ? (
+              {/* `item.sports` n'est plus affiché depuis le 2026-08-03 : diversifieur
+                  interne, pas une promesse (cf. lib/recipeLabels.ts). */}
+              {item.objectives?.length ? (
                 <View style={s.rTagRow}>
-                  {item.objectives?.map((o) => <Text key={o} style={s.rTag}>{OBJ_LABEL[o]}</Text>)}
-                  {item.sports?.map((sp) => <Text key={sp} style={s.rTag}>{SPORT_LABEL[sp]}</Text>)}
+                  {item.objectives.map((o) => <Text key={o} style={s.rTag}>{OBJ_LABEL[o]}</Text>)}
                 </View>
               ) : null}
             </TouchableOpacity>
