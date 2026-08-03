@@ -829,9 +829,31 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
   proposée** — mieux vaut pas de raccourci qu'un raccourci qui ment. Verrouillé par
   `datedGoal.test.ts` → « A14 — adopter la date projetée ». 820 tests.
 
+- **A26 · 🤖 OUVERT — la rangée d'échéances ne propose que de l'impossible à la moitié
+  des gabarits.** Mesuré le 2026-08-03 sur `main` (`npm run mesure:objectif`) :
+  **4 corps de référence sur 8 n'ont AUCUNE échéance tenable parmi les 5 proposées**
+  (4 / 8 / 12 / 16 / 24 semaines). La personne choisit dans une rangée où chaque option
+  lui répond « tu y arriveras après ta date ». La première échéance réellement tenable
+  se situe entre **18 et 82 semaines** selon le corps — hors de la rangée.
+
+  ℹ️ **Ce n'est PAS un défaut de moteur** : sur ces échéances courtes le moteur sert déjà
+  le maximum sûr, et le plancher d'énergie disponible borne le reste. L'objectif est
+  vraiment hors de portée — c'est la rangée de puces qui ment par omission.
+  ✅ Atténué par A15 : la puce « N sem · tenable » se propose désormais partout (elle
+  était refusée sur les cas les plus durs). Le trou restant est la rangée elle-même.
+
+  🧑 **Deux directions, à trancher avec le fondateur avant d'écrire** : rendre les cinq
+  puces DYNAMIQUES (dérivées du corps, donc toutes atteignables) — ou garder les durées
+  fixes et n'afficher que celles qui tiennent, la puce « tenable » complétant. La seconde
+  est plus petite mais peut ne laisser qu'une seule puce sur les gros écarts.
+  ⚠️ Ne pas griser les puces intenables : écarté en A14, ça se lit comme un reproche
+  (CLAUDE.md §10).
+
 - ~~**A15 · sur un gros écart, l'objectif daté se dessert lui-même**~~
   ✅ **TRANCHÉ ET LIVRÉ le 2026-08-03** (fondateur : « les deux »). `ENGINE_REV` 4 → 5.
   Contrôle re-mesurable : **`npm run mesure:objectif`**.
+  ⚠️ Ce que cette fiche a laissé OUVERT est sorti en **A26** ci-dessus — il était enterré
+  dans une fiche marquée ✅ LIVRÉ, donc invisible pour qui cherche du travail à faire.
 
   🔎 **La fiche se trompait sur un point, et ça a changé le chantier.** Elle affirmait
   « **il n'existe aucune date d'équilibre** ». Faux : elle existe sur les 8 corps de
