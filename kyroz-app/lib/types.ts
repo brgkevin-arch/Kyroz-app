@@ -449,13 +449,12 @@ export interface Recipe {
   validated_by_dietitian: boolean;
   objectives?: RecipeObjective[];   // tag « Objectif »
   sports?: RecipeSport[];           // tag « Sport »
-  // Tag « récup jour off ». STOCKÉ, PLUS LU PAR LE MOTEUR depuis le 2026-07-29 : le jour
-  // de repos se joue sur la CIBLE (restDayRatio dans planEngine) puis sur l'adaptation des
-  // quantités, pas sur le choix de la recette. Le commentaire précédent disait déjà « non
-  // utilisé » alors que le champ pilotait un départage — c'est maintenant vrai, et un test
-  // le verrouille (planEngine.test.ts). Conservé en données : le catalogue le porte encore
-  // et la fiche pourra l'afficher un jour, mais aucun code de sélection ne le lit.
-  rest_day_ok?: boolean;
+  // (`rest_day_ok` SUPPRIMÉ le 2026-08-03. Il a survécu deux fois à sa propre mort : le
+  //  commentaire disait « non utilisé » alors qu'il pilotait un départage, puis il est
+  //  resté « conservé en données, la fiche pourra l'afficher un jour » — un an de tag
+  //  que RIEN ne lisait et que personne ne pouvait vérifier, faux sur 152 recettes sur
+  //  512. ➡️ Un champ gardé « au cas où » ne se corrige jamais. Sa réapparition est
+  //  bloquée par `lib/__tests__/tags.test.ts`.)
   why_fr?: string;                  // « Pourquoi », affiché
 }
 

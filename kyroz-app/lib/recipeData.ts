@@ -56,7 +56,11 @@ export interface RawIngredient { ref: string; qty: number; macro_role: MacroRole
 export interface RawRecipe {
   id: string; name: string; category: 'petit_dej' | 'collation' | 'repas_complet';
   base_servings: number;
-  tags: { objectif: ObjectiveFr[]; recup_jour_repos: boolean; sport: ('muscu'|'endurance'|'combats')[]; temps_min: number };
+  // `recup_jour_repos` SUPPRIMÉ le 2026-08-03 : champ mort. Le jour de repos agit sur la
+  // CIBLE (`restDayRatio`) depuis le 2026-07-29, plus aucun code ne lisait le tag — et il
+  // était faux sur 152 recettes sur 512 sans que personne puisse s'en apercevoir. Même
+  // sort que `recomp_flag`. Sa réapparition est bloquée par `lib/__tests__/tags.test.ts`.
+  tags: { objectif: ObjectiveFr[]; sport: ('muscu'|'endurance'|'combats')[]; temps_min: number };
   ingredients: RawIngredient[]; instructions: string[]; why: string;
   macros_per_serving: Per100;
   // Vague de livraison d'origine. Rétro-rempli le 2026-07-29 depuis Recette/drops/ :

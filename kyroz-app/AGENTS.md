@@ -64,26 +64,26 @@ qu'ils étaient périmés.
 | | valeur | comment la revérifier |
 |---|---|---|
 | Catalogue | **512 recettes** — 122 petits-déj · 280 repas complets · 110 collations | `npm run mesure:couverture` |
-| `ENGINE_VERSION` | **44** (invalide les plans en cache) | `lib/planEngine.ts` |
+| `ENGINE_VERSION` | **45** (invalide les plans en cache) | `lib/planEngine.ts` |
 | `ENGINE_REV` | **5** (avertissement one-shot à l'utilisateur) — A15, l'objectif daté hors de portée sert désormais le rythme sûr MAXIMAL | `lib/tdee.ts` |
 | Objectif daté | la date affichée est un **POINT FIXE** : l'adopter ne la déplace plus (3 corps sur 8 glissaient de +96 j avant A15) | `npm run mesure:objectif` |
-| Tests | **946 verts**, 53 fichiers · `tsc` propre | `npm test && npx tsc --noEmit` |
+| Tests | **952 verts**, 54 fichiers · `tsc` propre | `npm test && npx tsc --noEmit` |
 | Plateformes | iPhone **+ iPad** (`supportsTablet: true` depuis le 2026-08-01). ⚠️ **portrait sur iPhone, MAIS les 4 orientations sur iPad** — Expo les force dès `supportsTablet`, le multitâche iPadOS l'impose, ce n'est pas refermable. Vérifié en natif (iPad Pro 13") et à 1366×1024 | `ios/Kyroz/Info.plist` généré, PAS `app.json` · `lib/layout.ts` |
 | Sortie stores | iOS **1.0.0 (3)** envoyé à TestFlight, **revue bêta en cours** depuis le 2026-08-03 00h58 · Android : 2 builds, rien de soumis | `npx eas-cli build:list` · `TESTFLIGHT.md` |
 | Kyroz+ | **encaissement armé, verrou inerte.** Clé RevenueCat posée dans EAS et vérifiée dans le bundle ; `PAYWALL_LAUNCH` = `null`, donc **tout est gratuit pour tout le monde**. ⚠️ Le build TestFlight actuel est ANTÉRIEUR à la clé | `lib/premium.ts` · `npx eas-cli env:list production` |
 | Site déployé | **automatique** : GitHub Actions à chaque push `main` (`build_type: workflow`). ⚠️ **NE PAS lire `origin/gh-pages`** — branche morte, cf. A12 | `gh run list --workflow=deploy.yml` |
 | Migrations Supabase | les **15** jouées, `2026-08-02_profiles_birth_date.sql` comprise. ⚠️ **Ne jamais annoncer une migration « en attente » sans lancer la commande** — le dépôt ne sait rien de la prod, et deux lignes d'ici l'ont dit à tort pendant des jours | `npm run check:migrations` |
-| Variété perçue | semaines servant 2 recettes d'un même couple : **max 9,2 %** (10,0 % avant D21 · 11,7 % avant B9 · 12,5 % avant B8 · 20,8 % avant B7 · 27,5 / 26,3 % avant A25 · 56,3 % avant D18) | `npm run mesure:variete -- --variete=…` |
+| Variété perçue | semaines servant 2 recettes d'un même couple : **max 7,9 %** (9,2 % avant D22 · 10,0 % avant D21 · 11,7 % avant B9 · 12,5 % avant B8 · 20,8 % avant B7 · 27,5 / 26,3 % avant A25 · 56,3 % avant D18) | `npm run mesure:variete -- --variete=…` |
 | Variété perçue **par régime** | **vegan+SG 16,7 %** — trajectoire de la cible : **50 % → 35,4 % (B7) → 22,9 % (B8) → 16,7 % (B9)** | `npm run mesure:variete -- --detail` |
 | Premier plan servi | plan **canonique** (seed 0) : **8,3 %** de semaines avec quasi-doublon (23,3 % avant B7 · **45,0 % avant A25**, où le 1er plan était le PIRE des trois). ⚠️ La ligne annonçait 10,0 % — c'était la moyenne tous tirages recopiée ici par erreur, re-mesurée le 2026-08-03 | `npm run mesure:variete -- --seeds=0` |
 | Réglages inertes | **aucun** — les 13 réglages réglables depuis l'UI changent tous le plan servi (recettes et/ou portions), vérifié un par un | `npm run mesure:reglages` |
 | Reroll (« Régénérer mon plan ») | 1ers repas qui changent : **repetitive 51 % · balanced 78 % · max 83 %** (13,7 % pour tous avant A21) | `npm run mesure:reroll` |
 | Anti-doublons | R1 81 · R2 70 · R4 14 · R5 **16** · R7 0 — **figés par un test**, et les plafonds ont été RESSERRÉS au constaté le 2026-08-03 (ils gardaient 4 à 5 points de mou depuis le 2026-07-29, cf. D20) | `npm run check:doublons` |
 | Drapeaux bloquants sur les repas SERVIS | **0** sur 10 752 (12 profils × 8 régimes × 4 semaines). Le dernier — `rep10` — est tombé avec D20 | `npm run mesure:variete` |
-| Sous le seuil R8 | ⚠️ petit-déj **37/122** · repas complets **69/280** · collation **5/110** — B7 (30), B8 (8) et B9 (8) livrées, catalogue **512** ; D21 en a sorti 2 du repas complet et 2 de la collation | `npm run mesure:seuils` |
-| Ce que ça coûte au SERVICE | **641 repas servis sur 10 752 (6,0 %)** viennent d'une recette sous le seuil — **935 (8,7 %) avant B7**, 633 (5,9 %) avant D20, 611 (5,7 %) avant D21. ⚠️ **D21 a fait BAISSER le nombre de recettes sous le seuil (115 → 111) et MONTER le nombre de repas qui en viennent** : les rescapées sont servies plus souvent. Les deux chiffres disent des choses différentes, ne pas lire l'un pour l'autre. ⚠️ B9 l'avait fait remonter depuis 5,3 % : un format volontairement étroit fait BAISSER une moyenne par recette tout en améliorant la couverture réelle | `npm run mesure:vivier` |
+| Sous le seuil R8 | ⚠️ petit-déj **37/122** · repas complets **70/280** · collation **5/110** — B7 (30), B8 (8) et B9 (8) livrées, catalogue **512** ; D21 en a sorti 2 du repas complet et 2 de la collation | `npm run mesure:seuils` |
+| Ce que ça coûte au SERVICE | **675 repas servis sur 10 752 (6,3 %)** viennent d'une recette sous le seuil — **935 (8,7 %) avant B7**, 633 (5,9 %) avant D20, 611 (5,7 %) avant D21. ⚠️ **D21 a fait BAISSER le nombre de recettes sous le seuil (115 → 111) et MONTER le nombre de repas qui en viennent** : les rescapées sont servies plus souvent. Les deux chiffres disent des choses différentes, ne pas lire l'un pour l'autre. ⚠️ B9 l'avait fait remonter depuis 5,3 % : un format volontairement étroit fait BAISSER une moyenne par recette tout en améliorant la couverture réelle | `npm run mesure:vivier` |
 | Vivier vu par UN utilisateur | croisement gabarit × **régime** × créneau. Les cellules les plus pauvres restent vegan/vegan+SG. Pire : collation · F 55 sèche · vegan+SG = **10 recettes, 9 familles** — c'était **3 et 2** avant B7 | idem |
-| Moyenne R8 par créneau | petit-déj **8,54/12** · repas complets **8,67** · collation **6,91** (8,55 / 8,61 / 6,72 avant D21 · 8,27 / 8,51 / 7,38 avant B7 · 7,62 avant D18 · 7,19 avant B6 · 4,52 avant B5) | idem |
+| Moyenne R8 par créneau | petit-déj **8,54/12** · repas complets **8,72** · collation **7,00** (8,67 / 6,91 avant D22 · 8,55 / 8,61 / 6,72 avant D21 · 8,27 / 8,51 / 7,38 avant B7 · 7,62 avant D18 · 7,19 avant B6 · 4,52 avant B5) | idem |
 | Vegan | petit-déj **56/122** · repas **89/280** · collation **67/110** — comptage CATALOGUE (`restrictions_ok`) | compter `restrictions_ok` par créneau |
 | Vegan + sans gluten | petit-déj **42/122** · repas **49/280** · collation **57/110** | idem |
 
@@ -2799,7 +2799,95 @@ produit en suspens — il ne reste qu'à coder.
   le respectent pas**, et c'est vrai depuis bien avant ce chantier (`recup_jour_repos` :
   149 ; `sport`/endurance : 117). Ces tags-là PILOTENT la sélection. Les recalculer sur
   les 47 seules aurait été arbitraire et aurait pollué la mesure avant/après, donc ils
-  n'ont pas été touchés. **C'est un chantier à part, et il est plus gros que celui-ci.**
+  n'ont pas été touchés. **C'est un chantier à part, et il est plus gros que celui-ci.** ➡️ **C'est D22, juste en dessous — livré le même jour.**
+
+- ~~**D22 · Les tags qu'on croyait décoratifs — et le champ mort qui a survécu deux fois**~~
+  ✅ **LIVRÉ le 2026-08-03.** Le chantier que D21 avait laissé ouvert. Trois champs, trois
+  sorts différents — et deux d'entre eux sont **affichés à l'utilisateur**
+  (`components/RecipeDetail.tsx`, `app/(tabs)/recettes.tsx`), ce qui n'était écrit nulle
+  part et change tout : ce ne sont pas des réglages internes, ce sont des **promesses**.
+
+  🧭 **Le fait qui cadre tout, vérifié avant de toucher quoi que ce soit** : `objectif` et
+  `sport` ne servent QUE de **départage** (`needMatch`, `lib/adaptRecipe.ts` — +1 chacun),
+  jamais de filtre. Le pool est filtré par créneau + régime + 👎, rien d'autre
+  (`poolForWithFlag`). ➡️ **Aucun risque de rétrécir un vivier** ; tout le risque est
+  ailleurs, dans la rotation.
+
+  📉 **`tags.objectif` — 192 recettes sur 512 (37 %) contredisaient les calories de leur
+  propre recette.** Le §6.5 du brief le dit pourtant « mécanique, depuis les kcal de base.
+  Rien d'éditorial ». Ce n'est pas un artefact de source (183 non conformes en calculant
+  sur le repère manuel du JSON, 192 sur les macros du moteur) : c'est de la DÉRIVE, et
+  elle penche toujours du même côté — **109 des 192 annonçaient plus gros que la recette
+  n'est** (59 « prise de masse » qui sont en fait des recettes de sèche). Recalculés
+  mécaniquement, sur les macros du MOTEUR.
+
+  ⚖️ **`tags.sport` — la règle a été mesurée puis ÉCARTÉE, et c'est le vrai résultat de la
+  fiche.** Le §5 dit « `muscu` par défaut ; `endurance` si les glucides dépassent 55 % ».
+  Appliquée aux 512, elle pose `muscu` **partout** — et le départage `needMatch` devient
+  **constant, donc inerte**. Balayage complet, sur le moteur :
+
+  | variante | quasi-doublons | drapeaux bloquants |
+  |---|---|---|
+  | avant le chantier | 9,2 % | **0** |
+  | `objectif` ET `sport` mécaniques | **13,3 %** | 1 |
+  | idem + `needMatch` désarmé | 7,1 % | **5** |
+  | **`objectif` seul, `sport` intact (retenu)** | **7,9 %** | **0** |
+
+  ➡️ **Les tags « faux » de `sport` faisaient office de diversifieur**, et les rendre
+  exacts détruisait un mécanisme qui marchait. `objectif` seul améliore TOUT. Deuxième
+  leçon, plus dure : **une règle écrite dans le brief peut être mauvaise pour le moteur —
+  la mesurer avant de l'appliquer en masse.** (Les variantes « needMatch désarmé » sont
+  identiques entre elles : preuve que le terme `sport` était déjà devenu inerte.)
+
+  🪦 **`recup_jour_repos` — SUPPRIMÉ des 512, du schéma et du type. Il avait survécu DEUX
+  fois à sa propre mort.** En 2026-06 sa doc disait « stocké, non utilisé » alors qu'il
+  pilotait un départage déplaçant 30 à 36 % des repas des jours de repos. Le 2026-07-29 le
+  départage a sauté — et le champ est resté, « conservé en données, la fiche pourra
+  l'afficher un jour ». Résultat : plus aucun code ne le lisait, donc **plus personne ne
+  pouvait voir qu'il était faux sur 152 recettes sur 512**, ni que deux documents en
+  donnaient **deux règles de calcul contradictoires** (`≤ 36,6 % glucides ET ≥ 31,5 %
+  lipides` dans `BRIEF-GENERATION-RECETTES.md` §4.8, `< 45 % glucides` dans la commande
+  générée). ➡️ **Un champ gardé « au cas où » ne se corrige jamais, et son erreur devient
+  invisible.** Même sort que `recomp_flag`.
+
+  📊 **Résultats, tous re-mesurés avant/après sur le même code** :
+
+  | | avant | après |
+  |---|---|---|
+  | `tags.objectif` qui contredit ses kcal | **192 / 512** | **0** |
+  | quasi-doublons (max) | 9,2 % | **7,9 %** |
+  | drapeaux bloquants sur 10 752 repas servis | 0 | **0** |
+  | moyenne R8 — repas complet | 8,67 | **8,72** |
+  | moyenne R8 — collation | 6,91 | **7,00** |
+  | moyenne R8 — petit-déj | 8,54 | 8,54 |
+  | écart calorique moyen du jour | 0,34 % | **0,34 %** |
+  | anti-doublons R1 · R2 · R4 · R5 · R7 | 81 · 70 · 14 · 16 · 0 | **inchangés** |
+  | sous le seuil R8 — repas complet | 69/280 | 70/280 |
+  | repas servis venant d'une recette sous le seuil | 641 (6,0 %) | 675 (6,3 %) |
+
+  ⚠️ **Un test a cassé, et il n'a PAS été assoupli à l'aveugle.**
+  `mealProteinFloor.test.ts` bornait le dépassement protéique quotidien à ×1,16 ; il est
+  monté à ×1,177. Re-mesuré des deux côtés avant de toucher la borne
+  (**`npm run mesure:proteine`**, commande ajoutée pour que le chiffre reste
+  re-vérifiable) : sur 21 jours, **la médiane ne bouge pas** (1,083 → 1,083) et la moyenne
+  passe de 1,084 à 1,088 — **c'est UN jour sur 21**, pas une dérive. La cause n'est pas le
+  plancher (inchangé) : ce gabarit est en prise de masse, et `prise_de_masse` ne décore
+  plus 59 recettes trop légères pour le porter, donc `needMatch` oriente enfin
+  correctement vers des recettes denses. Borne relevée à 1,18, avec l'ordre de RE-MESURER
+  si elle doit remonter.
+
+  🔒 **Le contrôle** (`lib/__tests__/tags.test.ts`, 6 tests, **les 6 vérifiés par
+  mutation**) : `objectif` conforme au §6.5 sur les 512 · aucune combinaison interdite ·
+  `endurance` et `combats` ne se répandent pas au-delà du constaté (114 et 51) ·
+  aucun `tags.sport` vide · **`recup_jour_repos` ne réapparaît jamais**.
+
+  🧑 **CE QUI RESTE À TRANCHER — la seule question ouverte de cette fiche.** **105 recettes
+  affichent « Endurance » sans remplir la règle des 55 % de glucides.** Le tag est vu par
+  l'utilisateur. Le rendre exact coûte, mesuré : **0 → 5 drapeaux bloquants** sur les repas
+  servis, c'est-à-dire l'acquis phare de D20. Trois issues possibles, aucune gratuite :
+  (1) laisser tel quel et assumer un label mou ; (2) l'appliquer et payer les 5 drapeaux ;
+  (3) **retirer `sport` de l'affichage** et le garder comme pur diversifieur interne — ce
+  qui règle le mensonge sans toucher au moteur, et c'est la piste que je recommande.
 
 ### 🧹 E — Dette technique
 
