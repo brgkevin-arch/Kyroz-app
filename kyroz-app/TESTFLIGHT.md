@@ -34,15 +34,14 @@ et la revue est refusée — sans que le motif soit évident.
 - [x] Clé API App Store Connect → `~/.eas-credentials/` (hors dépôt, `600`)
 - [x] `eas.json` : profil `device` (ad hoc), env Supabase sur `device`/`preview`/`production`,
       bloc `submit.production.ios` (ascAppId + clé API)
-- [x] Build `production` **1.0.0 (3)** envoyé et traité par Apple
+- [x] Build `production` **1.0.0 (3)** envoyé et traité par Apple (`25f0ec7b-…`)
 - [x] Groupe de testeurs **externes** « Bêta » (`b15d3e76-ac4d-43a6-9359-c0675cec8ffc`)
-      ⚠️ un groupe INTERNE « Bêta » traîne aussi (`1757668c-…`) — à supprimer, inutile
 - [x] Infos de test remplies (connexion requise + notes)
-- [x] 1 testeuse externe ajoutée
-- [ ] **Revue bêta en cours** — `WAITING_FOR_REVIEW`, soumis le 2026-08-03 à 00h58 (Paris)
+- [x] **Revue bêta APPROUVÉE** — soumis le 2026-08-03 à 00h58, approuvé dans la journée
+- [x] 1 testeuse externe, état `INSTALLED` (elle a l'app sur son iPhone)
 
-Une fois cette revue passée, elle est **acquise** : builds suivants et nouveaux testeurs
-sans repasser par Apple.
+✅ **La revue est acquise.** Les builds suivants et les nouveaux testeurs passent
+directement, sans repasser par Apple. La distribution TestFlight est opérationnelle.
 
 ## Commandes (je peux les lancer seul depuis la clé API)
 
@@ -52,6 +51,9 @@ npx eas build --profile production --platform ios --non-interactive --no-wait
 
 # Envoi TestFlight (remplacer l'ID)
 npx eas submit --platform ios --id <BUILD_ID> --non-interactive
+
+# Ajouter un testeur au groupe externe (aucune revue à repasser)
+#   → App Store Connect › TestFlight › Testeurs externes › Bêta › +
 
 # Build ad hoc (installation directe par lien, sans TestFlight)
 npx eas build --profile device --platform ios --non-interactive --no-wait
