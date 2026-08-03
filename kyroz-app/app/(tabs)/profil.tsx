@@ -515,7 +515,7 @@ export default function ProfilScreen() {
       <ActionSheet visible={confirmDelete} onClose={() => setConfirmDelete(false)}>
         <Text style={{ color: t.text, fontSize: 20, fontWeight: '800', letterSpacing: -0.5 }}>Supprimer mon compte ?</Text>
         <Text style={{ color: t.textSecondary, fontSize: 15, lineHeight: 21 }}>
-          Toutes tes données (profil, plans, streak, favoris, garde-manger) seront définitivement supprimées, sur cet appareil et sur le serveur.
+          Toutes tes données (profil, plans, série, favoris, frigo) seront définitivement supprimées, sur cet appareil et sur le serveur.
         </Text>
         <View style={{ height: 6 }} />
         <TouchableOpacity onPress={doDelete} disabled={deleting} activeOpacity={0.85}

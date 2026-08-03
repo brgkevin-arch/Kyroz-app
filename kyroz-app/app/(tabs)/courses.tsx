@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useTheme, ThemePalette, Radius, Spacing, cardShadow } from '../../constants/theme';
+import { useTheme, ThemePalette, Radius, Spacing, Type } from '../../constants/theme';
 import { useLayout } from '../../constants/layout';
 import { MealPlan, ShoppingItem, ShoppingList } from '../../lib/types';
 import { buildShoppingList } from '../../lib/shoppingList';
@@ -22,13 +22,8 @@ const CATEGORY_LABELS: Record<ShoppingItem['category'], string> = {
   laitiers: 'Produits laitiers & œufs',
   autres: 'Autres',
 };
-const CATEGORY_ICON: Record<ShoppingItem['category'], any> = {
-  viandes: 'fish-outline',
-  légumes: 'leaf-outline',
-  féculents: 'nutrition-outline',
-  laitiers: 'egg-outline',
-  autres: 'bag-handle-outline',
-};
+// Les icônes de rayon ont disparu des en-têtes de section : à 14 px devant un
+// libellé en capitales, elles n'aidaient personne à trouver « Viandes & poissons ».
 const CATEGORY_ORDER: ShoppingItem['category'][] = ['viandes', 'légumes', 'féculents', 'laitiers', 'autres'];
 
 type CoursesSection = {
@@ -131,7 +126,7 @@ export default function CoursesScreen() {
           <Text style={s.emptyT}>{covered ? 'Rien à acheter 🎉' : 'Aucune liste'}</Text>
           <Text style={s.emptyS}>
             {covered
-              ? 'Ton garde-manger couvre déjà tout le plan de la semaine. La liste réapparaîtra dès qu\'il te manquera quelque chose.'
+              ? 'Ton frigo couvre déjà tout le plan de la semaine. La liste réapparaîtra dès qu\'il te manquera quelque chose.'
               : 'Génère un plan repas et ta liste de courses apparaît ici, triée par rayon.'}
           </Text>
         </View>
@@ -159,12 +154,14 @@ export default function CoursesScreen() {
   return (
     <SafeAreaView style={s.safe} edges={['top']}>
       {/* En-tête + progression */}
+      {/* « Courses », pas « Liste de courses » : le mot de la barre d'onglets, pour
+          qu'un même objet n'ait pas deux noms selon l'endroit où on le regarde. */}
       <View style={[s.header, layout.header]}>
         <View style={{ flex: 1 }}>
-          <Text style={s.h1}>Liste de courses</Text>
           <Text style={s.sub}>{done ? 'Tout est coché 🎉' : `${remaining} restant${remaining > 1 ? 's' : ''} sur ${total}`}</Text>
+          <Text style={s.h1}>Courses</Text>
         </View>
-        <Text style={s.counter}>{checked}<Text style={s.counterTot}>/{total}</Text></Text>
+        <Text style={s.counter}>{checked}<Text style={s.counterTot}> / {total} cochés</Text></Text>
       </View>
 
       {/* ⚠️ La colonne se pose sur un CONTENEUR ici, pas sur la barre elle-même :
@@ -205,20 +202,37 @@ export default function CoursesScreen() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={t.textTertiary} />}
         renderSectionHeader={({ section }) => (
           <View style={s.section}>
-            <Ionicons name={CATEGORY_ICON[section.cat]} size={14} color={t.textTertiary} />
             <Text style={s.sectionTxt}>{section.title.toUpperCase()}</Text>
-            {section.left > 0 && <Text style={s.sectionCount}>{section.left}</Text>}
+            <Text style={s.sectionCount}>{section.left} sur {section.data.length}</Text>
           </View>
         )}
-        renderItem={({ item }) => (
-          <TouchableOpacity style={[s.row, cardShadow(t)]} onPress={() => toggle(item)} activeOpacity={0.7}>
-            <View style={[s.box, { borderColor: item.checked ? t.accent : t.lineStrong, backgroundColor: item.checked ? t.accent : 'transparent' }]}>
-              {item.checked && <Ionicons name="checkmark" size={15} color={t.onAccent} />}
-            </View>
-            <Text style={[s.name, item.checked && { textDecorationLine: 'line-through', color: t.textTertiary }]} numberOfLines={1}>{item.name}</Text>
-            <Text style={[s.qty, item.checked && { color: t.textQuaternary }]}>{formatQuantity(item.name, item.quantity, item.unit)}</Text>
-          </TouchableOpacity>
-        )}
+        // UN BLOC par rayon, pas une carte par article : les lignes se séparent
+        // par un filet de fond. Vingt-six cartes empilées, c'était vingt-six
+        // ombres et vingt-six coins arrondis pour une seule liste.
+        renderItem={({ item, index, section }) => {
+          const first = index === 0;
+          const last = index === section.data.length - 1;
+          return (
+            <TouchableOpacity
+              style={[
+                s.row,
+                first && { borderTopLeftRadius: Radius.card, borderTopRightRadius: Radius.card },
+                last && { borderBottomLeftRadius: Radius.card, borderBottomRightRadius: Radius.card },
+                !last && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.line },
+              ]}
+              onPress={() => toggle(item)}
+              activeOpacity={0.7}
+            >
+              {/* Pastille RONDE et pleine : une case à cocher carrée est un objet de
+                  formulaire, or ici on ne remplit pas un formulaire, on fait ses courses. */}
+              <View style={[s.dot, { borderColor: item.checked ? t.accent : t.lineStrong, backgroundColor: item.checked ? t.accent : 'transparent' }]}>
+                {item.checked && <Ionicons name="checkmark" size={14} color={t.onAccent} />}
+              </View>
+              <Text style={[s.name, item.checked && { textDecorationLine: 'line-through', color: t.textTertiary }]} numberOfLines={1}>{item.name}</Text>
+              <Text style={[s.qty, item.checked && { color: t.textQuaternary }]}>{formatQuantity(item.name, item.quantity, item.unit)}</Text>
+            </TouchableOpacity>
+          );
+        }}
       />
     </SafeAreaView>
   );
@@ -233,28 +247,28 @@ function makeStyles(t: ThemePalette) {
     emptyS: { color: t.textSecondary, fontSize: 15, textAlign: 'center', lineHeight: 21 },
 
     header: { flexDirection: 'row', alignItems: 'flex-end', padding: Spacing.xl, paddingBottom: 12 },
-    h1: { color: t.text, fontSize: 30, fontWeight: '800', letterSpacing: -1 },
-    sub: { color: t.textSecondary, fontSize: 14, marginTop: 3 },
-    counter: { color: t.text, fontSize: 26, fontWeight: '800', letterSpacing: -1 },
-    counterTot: { color: t.textTertiary, fontSize: 16, fontWeight: '700' },
+    h1: { color: t.text, ...Type.display, marginTop: 2 },
+    sub: { color: t.textSecondary, fontSize: 14, lineHeight: 19 },
+    counter: { color: t.text, fontSize: 22, fontWeight: '700', letterSpacing: -0.6 },
+    counterTot: { color: t.textTertiary, fontSize: 14, fontWeight: '400', letterSpacing: 0 },
 
     track: { height: 5, backgroundColor: t.fill, marginHorizontal: Spacing.xl, borderRadius: 3, overflow: 'hidden' },
     fill: { height: 5, borderRadius: 3 },
 
     controls: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: Spacing.xl, paddingTop: 14, paddingBottom: 2 },
-    ctrl: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 13, paddingVertical: 8, borderRadius: Radius.pill, backgroundColor: t.fill, borderWidth: 1, borderColor: t.line },
-    ctrlOn: { backgroundColor: t.accent, borderColor: t.accent },
-    ctrlTxt: { color: t.textSecondary, fontSize: 13, fontWeight: '600' },
-    hint: { color: t.textTertiary, fontSize: 12, paddingHorizontal: Spacing.xl, paddingTop: 12 },
+    ctrl: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 9, borderRadius: Radius.pill, backgroundColor: t.fill },
+    ctrlOn: { backgroundColor: t.accent },
+    ctrlTxt: { color: t.text, fontSize: 14, fontWeight: '500' },
+    hint: { color: t.textTertiary, fontSize: 13, lineHeight: 18, paddingHorizontal: Spacing.xl, paddingTop: 12 },
 
     list: { paddingHorizontal: Spacing.xl, paddingBottom: 120, paddingTop: 4 },
-    section: { flexDirection: 'row', alignItems: 'center', gap: 7, marginTop: 22, marginBottom: 10 },
-    sectionTxt: { color: t.textTertiary, fontSize: 12, fontWeight: '700', letterSpacing: 0.5 },
-    sectionCount: { color: t.textTertiary, fontSize: 12, fontWeight: '700', backgroundColor: t.fill, minWidth: 20, textAlign: 'center', paddingHorizontal: 6, paddingVertical: 1, borderRadius: Radius.pill, overflow: 'hidden' },
+    section: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginTop: 24, marginBottom: 8 },
+    sectionTxt: { color: t.textTertiary, fontSize: 11, fontWeight: '700', letterSpacing: 1 },
+    sectionCount: { color: t.textTertiary, fontSize: 13 },
 
-    row: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 16, backgroundColor: t.card, borderRadius: Radius.md, marginBottom: 8 },
-    box: { width: 24, height: 24, borderRadius: 8, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
-    name: { flex: 1, color: t.text, fontSize: 15, fontWeight: '600' },
-    qty: { color: t.textSecondary, fontSize: 14, fontWeight: '600' },
+    row: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 16, paddingVertical: 15, backgroundColor: t.card },
+    dot: { width: 24, height: 24, borderRadius: 12, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
+    name: { flex: 1, color: t.text, fontSize: 16, fontWeight: '500' },
+    qty: { color: t.textSecondary, fontSize: 15 },
   });
 }

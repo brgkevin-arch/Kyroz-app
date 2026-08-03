@@ -68,7 +68,7 @@ const BRIQUES = [
 
 const GRATUIT =
   "Ton plan de la semaine macro par macro, ta liste de courses, toutes les recettes, " +
-  "ton garde-manger, tes favoris, ta série, ta pesée et le recalcul de tes calories, " +
+  "ton frigo, tes favoris, ta série, ta pesée et le recalcul de tes calories, " +
   "et la synchro de ton compte. Rien de tout ça ne passera jamais derrière un abonnement.";
 
 export default function KyrozPlusScreen() {
