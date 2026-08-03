@@ -698,6 +698,15 @@ téléphone.
   près ; aucun signal alarmant ; le pire cas reste neutre. Le message de fond est « le
   moteur porte la charge », pas « tu es en retard ». C'est un choix produit — une app de
   nutrition anxiogène perd l'utilisateur, donc le North Star.
+  ⚠️ **Sa conséquence technique, et elle a été violée deux fois** : un suivi se dessine
+  sur ce que le moteur SERT, jamais sur ce que l'utilisateur a SAISI. Le couloir de
+  progression était tracé en ligne droite vers la date saisie — donc il annonçait « en
+  retard » à quelqu'un qui suivait le plan À LA LETTRE, mesuré dès **le 7ᵉ jour**, avec
+  jusqu'à **10,4 kg** d'écart (11 cas sur 16 avant correctif, 3 après). Le principe était
+  pourtant déjà écrit dans `trackStatus`, pour un autre cas : *« reprocher un retard qu'on
+  a soi-même imposé »*. ➡️ Point d'entrée unique : **`tdee.ts::trackingTarget`** — tout
+  écran qui affiche une progression passe par lui. Contrôle : `npm run mesure:objectif`.
+  ➡️ Et quand on écrit un principe en corrigeant UN cas, chercher tout de suite ses voisins.
 - **Mesurer sur le moteur, jamais sur une réplique de ses formules.** Cette erreur a
   produit **trois** conclusions fausses (partage glucides/lipides figé à 55/45 ; « le
   catalogue est trop maigre » ; « 21 à 30 recettes distinctes » alors qu'un utilisateur
