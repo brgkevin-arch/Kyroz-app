@@ -2,9 +2,9 @@
   "_meta": {
     "version": "2.0",
     "count": 512,
-    "source_macros": "Estimations alignées CIQUAL/ANSES. Remplacer par le CSV officiel CIQUAL avant prod.",
+    "source_macros": "CIQUAL 2025 (ANSES) pour 108 des 125 ref, via lib/recipeFoodMap.ts → la table officielle est INTÉGRÉE (lib/foods.generated.ts), ce n'est plus une estimation. Les 17 ref restants portent une valeur manuelle assumée, listée dans recipeFoodMap (protéines en poudre, mélanges, haricots noirs — Ciqual n'a pas d'entrée). ⚠️ Ce champ a longtemps dit « remplacer par le CSV officiel avant prod » : c'est FAIT depuis le 2026-08-01.",
     "precision": "±5-10%.",
-    "poids_basis": "basis=dry -> poids cru/sec ; basis=raw -> viande/poisson cru. Garder la cohérence cru/cuit.",
+    "poids_basis": "basis=dry -> poids cru/sec (riz, pâtes, légumineuses sèches) ; basis=raw -> viande/poisson cru ; aucun basis -> poids PRÊT À CONSOMMER (conserve égouttée, aliment cuit). ⚠️ La cohérence n'est pas qu'une convention de pesée : les INSTRUCTIONS doivent correspondre. Une légumineuse pesée sèche ne se cuisine pas en 18 minutes — 47 recettes le faisaient jusqu'au 2026-08-03. Verrouillé par lib/__tests__/legumineuses.test.ts.",
     "adaptation_fields": {
       "macro_role": "protein|carb|fat|dairy|vegetable|fruit|flavor",
       "scalable": "true = quantité ajustable par l'algo ; false = fixe (légumes)"
