@@ -24,7 +24,7 @@
 ## Principe directeur (non négociable)
 
 Le **core loop reste 100 % gratuit, sans clé API** : profil → plan 7 jours
-macro-précis → courses → recettes → garde-manger → favoris → **streak**.
+macro-précis → courses → recettes → frigo → favoris → **streak**.
 
 Conséquence directe sur le **North Star** (% d'utilisateurs à 7 jours consécutifs
 dans les 14 premiers jours) : **le paywall ne doit JAMAIS bloquer la fenêtre des
@@ -44,7 +44,7 @@ core tuerait le North Star — donc interdit.
 > - **Carb cycling / jours de repos** → livré (`rest_weekdays`, moteur v5+).
 > - **Ajustement des macros au poids** → livré (`recalcProfile` + check-in poids).
 > - **Recettes personnalisées** → livré (`RecipeEditor` + table `recipe_overrides`).
-> - **« Base étendue : 50 → +100 »** → sans objet : le catalogue est à **466 recettes**
+> - **« Base étendue : 50 → +100 »** → sans objet : le catalogue est à **512 recettes**
 >   (314 quand cette ligne a été écrite), toutes gratuites. Le rationner *a posteriori*
 >   serait une régression — et l'écart entre les deux chiffres montre à quel point
 >   l'argument s'est renforcé depuis.
@@ -57,13 +57,13 @@ core tuerait le North Star — donc interdit.
 | Capacité | Gratuit | **Kyroz+** (payant) | État réel |
 |---|---|---|---|
 | Génération plan 7 j macro-précis | ✅ | ✅ | livré |
-| Recettes + macros + courses + garde-manger | ✅ | ✅ | livré |
+| Recettes + macros + courses + frigo | ✅ | ✅ | livré |
 | Favoris + streak + rappel quotidien | ✅ | ✅ | livré |
 | Régénérer / remplacer un repas | ✅ (illimité) | ✅ | livré |
 | **Historique des plans** (semaines passées) | semaine en cours | ✅ illimité | **non construit** → monétisable |
 | **Export liste de courses** (PDF / impression / Notes) | — | ✅ | **non construit** → monétisable |
 | ~~Recettes personnalisées~~ | ✅ | — | ⚠️ **déjà livré gratuit** |
-| ~~Base de recettes étendue (50 / +100)~~ | ✅ 466 | — | ⚠️ **sans objet** (466 recettes, gratuites) |
+| ~~Base de recettes étendue (50 / +100)~~ | ✅ 512 | — | ⚠️ **sans objet** (512 recettes, gratuites) |
 | ~~Ajustement auto des macros au poids~~ | ✅ | — | ⚠️ **déjà livré gratuit** |
 | ~~Modes objectifs avancés (carb cycling)~~ | ✅ | — | ⚠️ **déjà livré gratuit** |
 
@@ -171,7 +171,7 @@ core tuerait le North Star — donc interdit.
       demande la clé SECRÈTE, donc du code serveur, et ne sert à rien sans abonné.
 - [x] ✅ **Ce qu'on verrouille = features Kyroz+ uniquement** : `PREMIUM_FEATURES` =
       `dated_goal` · `transformation` · `calorie_bank` (livrée, plus « à venir »). Le reste
-      — core loop, courses, recettes, garde-manger, favoris, série, pesée, synchro — **reste
+      — core loop, courses, recettes, frigo, favoris, série, pesée, synchro — **reste
       libre**, et l'écran l'énumère noir sur blanc.
 - [x] ✅ **North Star sacré** : le paywall ne s'ouvre que sur **INTENTION** — un seul point
       d'étranglement, `openEditor()` dans `app/(tabs)/profil.tsx` (ligne 187), plus l'entrée
