@@ -40,7 +40,6 @@ export const RECIPES: Recipe[] = RAW_RECIPES.map((raw) => {
     restrictions_ok: restrictionsOkFor(ingredients.map((i) => i.ref)),
     objectives: raw.tags.objectif.map((o) => OBJ_FR_TO_INTERNAL[o]),
     sports: raw.tags.sport,
-    rest_day_ok: raw.tags.recup_jour_repos,
     why_fr: raw.why,
     validated_by_dietitian: false,
   };

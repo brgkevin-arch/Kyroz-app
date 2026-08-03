@@ -19,9 +19,14 @@ describe('recipeMap (JSON → Recipe)', () => {
     expect(col.tags).toContain('snack');
   });
 
-  it('objectif FR → RecipeObjective', () => {
-    const r = RECIPES.find((r) => r.id === 'pd04')!; // perte_de_gras, maintien
-    expect(r.objectives).toEqual(expect.arrayContaining(['cut', 'maintain']));
+  // ⚠️ Ne PAS réépingler un id précis ici : ce test visait `pd04`, dont l'`objectif` a
+  // changé le 2026-08-03 quand les tags ont été recalculés mécaniquement depuis les kcal.
+  // On vérifie la TRADUCTION, pas la valeur d'une recette — c'est ce que la fonction fait.
+  it('objectif FR → RecipeObjective : les trois valeurs sont traduites, et rien d’autre', () => {
+    const vus = new Set(RECIPES.flatMap((r) => r.objectives ?? []));
+    expect([...vus].sort()).toEqual(['bulk', 'cut', 'maintain']);
+    const r = RECIPES.find((x) => (x.objectives ?? []).length === 2)!;
+    expect(r.objectives!.every((o) => ['cut', 'maintain', 'bulk'].includes(o))).toBe(true);
   });
 
   it('ingrédients : ref/macro_role/scalable + nom depuis la table', () => {

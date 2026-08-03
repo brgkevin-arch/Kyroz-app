@@ -155,7 +155,7 @@ function versRuntime(raw: RawRecipe): { r: Recipe; inconnus: string[] } {
       : macrosForRefIngredients(raw.ingredients.map((i) => ({ ref: i.ref, qty: i.qty }))),
     ingredients, steps: [], tags: slot ? [slot] : [],
     restrictions_ok: restrictionsOkFor(raw.ingredients.map((i) => i.ref)),
-    objectives: [], sports: [], rest_day_ok: true, why_fr: '',
+    objectives: [], sports: [], why_fr: '',
   } as unknown as Recipe;
   return { r, inconnus };
 }

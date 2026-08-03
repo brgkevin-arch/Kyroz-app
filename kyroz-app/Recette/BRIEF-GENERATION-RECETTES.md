@@ -47,7 +47,6 @@ Une recette = un objet JSON. **Aucun champ en plus, aucun champ en moins.**
   "category": "repas_complet",      // ENUM STRICT : "petit_dej" | "collation" | "repas_complet"
   "tags": {
     "objectif": ["maintien"],       // ENUM : "perte_de_gras" | "maintien" | "prise_de_masse" (1 à 2 valeurs)
-    "recup_jour_repos": false,      // booléen, règle de calcul en §4.8
     "sport": ["muscu"],             // ENUM : "muscu" | "endurance" ("combats" INTERDIT, cf. §4.9)
     "temps_min": 15                 // entier, temps TOTAL de cuisine, cuisson comprise
   },
@@ -73,7 +72,7 @@ recette, et sa valeur est **exactement le nom du dossier** dans lequel le lot es
 314 recettes existantes portent `fondation` (100), `2026-06-19-vegan` (164) et
 `2026-07-22-sans-gluten` (50). Sans ce champ, on ne peut pas comparer un lot au précédent : c'est
 ce qui a empêché d'expliquer pourquoi `recup_jour_repos` était posé sur 43 % du premier lot et
-12 % du second. Un test échoue si une recette n'en porte pas.
+12 % du second (ce champ a été SUPPRIMÉ le 2026-08-03, cf. §4.8 — l'exemple reste valable). Un test échoue si une recette n'en porte pas.
 
 ### Deux exemples réels, copiés du catalogue live
 
@@ -84,7 +83,7 @@ Ce sont des exemples de **format**, pas de contenu à imiter.
   "id": "pd01",
   "name": "Porridge avoine – whey – banane – myrtilles",
   "category": "petit_dej",
-  "tags": { "objectif": ["prise_de_masse", "maintien"], "recup_jour_repos": true, "sport": ["muscu", "endurance"], "temps_min": 8 },
+  "tags": { "objectif": ["prise_de_masse", "maintien"], "sport": ["muscu", "endurance"], "temps_min": 8 },
   "base_servings": 1,
   "ingredients": [
     { "ref": "whey", "qty": 30, "macro_role": "protein", "scalable": true },
@@ -108,7 +107,7 @@ Ce sont des exemples de **format**, pas de contenu à imiter.
   "id": "rep113",
   "name": "Wrap poulet – avocat – crudités",
   "category": "repas_complet",
-  "tags": { "objectif": ["perte_de_gras", "maintien"], "recup_jour_repos": false, "sport": ["muscu"], "temps_min": 15 },
+  "tags": { "objectif": ["perte_de_gras", "maintien"], "sport": ["muscu"], "temps_min": 15 },
   "base_servings": 1,
   "ingredients": [
     { "ref": "tortilla_complete", "qty": 80, "macro_role": "carb", "scalable": true },
@@ -126,8 +125,7 @@ Ce sont des exemples de **format**, pas de contenu à imiter.
 }
 ```
 
-Trois défauts à ne pas copier depuis ces exemples : `pd01` porte `recup_jour_repos: true` alors
-qu'elle est à 52,8 % de ses kcal en glucides (contre-directionnel, cf. §4.8) ; `rep113` n'a que
+Deux défauts à ne pas copier depuis ces exemples : `rep113` n'a que
 deux légumes non scalables et une enveloppe grasse portée par un seul avocat ; et **surtout, leurs
 `instructions` sont beaucoup trop courtes** — c'est le défaut principal du catalogue actuel et il
 ne doit pas être reproduit (cf. §4.6bis).
@@ -597,20 +595,21 @@ ingrédient absent de `ingredients[]` (§4.6). Aucune durée ne dépasse `temps_
 - Le `name` doit décrire ce qui est réellement dans `ingredients[]`. Une recette actuelle s'appelle
   « Pudding chia – cacao – beurre cacahuète » sans contenir de beurre de cacahuète.
 
-### 4.8 `tags.recup_jour_repos`
+### 4.8 `tags.recup_jour_repos` — SUPPRIMÉ le 2026-08-03
 
-Les jours de repos, le moteur déplace 12 points de la fraction non protéique des glucides vers les
-lipides, à calories et protéines constantes. Le tag doit donc marquer les recettes **peu
-glucidiques et plus grasses**. Règle de calcul, appliquée sur les macros dérivées :
+**N'écris plus ce champ.** Il a été retiré des 512 recettes, du schéma et du type.
 
-```
-recup_jour_repos = true  SI  (%kcal glucides ≤ 36,6 %)  ET  (%kcal lipides ≥ 31,5 %)
-                   false sinon
-```
+Ce paragraphe disait « ce tag est **lu par le moteur** et déplace 30 à 36 % des repas des jours de
+repos ». C'était vrai jusqu'au 2026-07-29, date à laquelle le fondateur a tranché que le jour de
+repos est l'affaire du moteur (`restDayRatio` déplace 12 points de glucides vers les lipides, à
+calories et protéines constantes) et **pas d'un tag de contenu**. Le champ est resté un an de plus
+« au cas où la fiche l'affiche un jour » : plus aucun code ne le lisait, donc plus personne ne
+pouvait voir qu'il était **faux sur 152 recettes sur 512** — et deux documents en donnaient deux
+règles de calcul contradictoires (`≤ 36,6 % glucides ET ≥ 31,5 % lipides` ici, `< 45 % glucides`
+dans la commande générée).
 
-Ce tag est **lu par le moteur** et déplace 30 à 36 % des repas des jours de repos. Un tiers du
-catalogue actuel le porte à contre-sens (8 recettes taguées « jour de repos » dépassent 50 % de
-kcal glucidiques). Dans le doute, mettre `false`.
+➡️ **Un champ gardé « au cas où » ne se corrige jamais, et personne ne s'en aperçoit.** Sa
+réapparition est bloquée par `lib/__tests__/tags.test.ts`.
 
 ### 4.9 `tags.sport`
 
@@ -1259,8 +1258,8 @@ qu'elle a** — et surtout ce qui a été corrigé en cours de route, pour que l
 3. ~~**Corriger les tags jour-repos avant la relecture diététicienne.**~~ **Tranché le
    2026-07-29 : non.** Le fondateur a arbitré que le jour de repos est l'affaire du moteur, qui
    module déjà les macros ce jour-là (glucides ↓ / lipides ↑) : le tag ne porte pas de décision
-   de contenu. Pour le rédacteur, `recup_jour_repos` se remplit donc par la règle mécanique du
-   §4.8 et rien d'autre — ne pas y consacrer de réflexion éditoriale.
+   de contenu. ⚠️ **Suite et fin le 2026-08-03 : le champ a été SUPPRIMÉ**, cf. §4.8. Il ne se
+   remplit plus du tout.
 
 4. ~~**Champ `wave` / `batch`.**~~ **Tranché le 2026-07-29 : ajouté.** Le champ `wave` est
    obligatoire au format de sortie (§2) et les 314 recettes existantes ont été rétro-remplies

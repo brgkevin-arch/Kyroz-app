@@ -10,7 +10,7 @@
       "scalable": "true = quantité ajustable par l'algo ; false = fixe (légumes)"
     },
     "priorite_sport": "Muscu prioritaire, puis Endurance, peu de Combats (cf. distribution).",
-    "corrections_kyroz": "rep57 +8g huile_olive (équilibre lipidique). | 2026-07-29 : sauce_soja déclarée dans rep05/rep46/rep80 (citée en instruction, invisible du dérivé régime) ; levure_maltee + falafel + pesto ajoutés à recipeDiet.VIOLATIONS ; why de rep80/pd52/pd77/rep152/rep155 : « sans gluten » retiré (devenu faux) ; +9 ingrédients (légumineuses prêtes à consommer, tofu fumé, falafel, tahini, boisson soja, pain/wrap sans gluten). recomp_flag SUPPRIMÉ (champ mort : aucun code ne le lisait, et il marquait 5 recettes quand ~40 avaient une densité protéique équivalente ou pire). | yaourt_grec DÉMAPPÉ de ciqual-19860 (« yaourt à la grecque » = dessert à 3 g de protéines, pas un grec égoutté à 9 g) → valeur manuelle, comme skyr ; nom précisé « égoutté (type Fage) » ; macro_role dairy→protein sur pd10/col07/col17, où le yaourt est la seule source de protéines. | 8 recettes sans ancre protéine (pd02/pd06/pd08/pd15/col01/col03/col13/col19) : le laitier qui porte 58 à 89 % de leurs protéines passe de dairy à protein. | Nettoyage des doublons 2026-07-29 : 7 clones stricts et 2 noms identiques différenciés (rep37 tajine aux olives, rep64 papillote, rep165 pho sans mélange wok, col64 houmous, col50/col65 edamame distincts, pd38 tartine de seigle, col45 pudding framboise) — aucune suppression. | 2026-08-03 : les 47 recettes qui pesaient une légumineuse à cuisson longue au poids SEC tout en la cuisinant en moins de 40 min. 44 passent sur un `ref` prêt à consommer (quantité × le rendement de cuisson : ×2,4 pois chiches, ×2,5 haricots et lentilles), instructions réécrites (« égoutte et rince » au lieu de « cuis »). 3 gardent la pesée sèche parce que la cuisson longue EST le plat et qu’aucune ne demande de trempage (rep107, rep108, rep112) : seul leur `temps_min` était faux, il passe à 50 min. +2 `ref` : haricots_blancs_conserve (Ciqual 20511) et haricots_noirs_conserve (déduit du rapport sec→appertisé du haricot rouge, Ciqual n’ayant pas d’entrée pour le haricot noir).",
+    "corrections_kyroz": "rep57 +8g huile_olive (équilibre lipidique). | 2026-07-29 : sauce_soja déclarée dans rep05/rep46/rep80 (citée en instruction, invisible du dérivé régime) ; levure_maltee + falafel + pesto ajoutés à recipeDiet.VIOLATIONS ; why de rep80/pd52/pd77/rep152/rep155 : « sans gluten » retiré (devenu faux) ; +9 ingrédients (légumineuses prêtes à consommer, tofu fumé, falafel, tahini, boisson soja, pain/wrap sans gluten). recomp_flag SUPPRIMÉ (champ mort : aucun code ne le lisait, et il marquait 5 recettes quand ~40 avaient une densité protéique équivalente ou pire). | yaourt_grec DÉMAPPÉ de ciqual-19860 (« yaourt à la grecque » = dessert à 3 g de protéines, pas un grec égoutté à 9 g) → valeur manuelle, comme skyr ; nom précisé « égoutté (type Fage) » ; macro_role dairy→protein sur pd10/col07/col17, où le yaourt est la seule source de protéines. | 8 recettes sans ancre protéine (pd02/pd06/pd08/pd15/col01/col03/col13/col19) : le laitier qui porte 58 à 89 % de leurs protéines passe de dairy à protein. | Nettoyage des doublons 2026-07-29 : 7 clones stricts et 2 noms identiques différenciés (rep37 tajine aux olives, rep64 papillote, rep165 pho sans mélange wok, col64 houmous, col50/col65 edamame distincts, pd38 tartine de seigle, col45 pudding framboise) — aucune suppression. | 2026-08-03 : les 47 recettes qui pesaient une légumineuse à cuisson longue au poids SEC tout en la cuisinant en moins de 40 min. 44 passent sur un `ref` prêt à consommer (quantité × le rendement de cuisson : ×2,4 pois chiches, ×2,5 haricots et lentilles), instructions réécrites (« égoutte et rince » au lieu de « cuis »). 3 gardent la pesée sèche parce que la cuisson longue EST le plat et qu’aucune ne demande de trempage (rep107, rep108, rep112) : seul leur `temps_min` était faux, il passe à 50 min. +2 `ref` : haricots_blancs_conserve (Ciqual 20511) et haricots_noirs_conserve (déduit du rapport sec→appertisé du haricot rouge, Ciqual n’ayant pas d’entrée pour le haricot noir). | 2026-08-03 (2) : `tags.objectif` et `tags.sport` RECALCULÉS mécaniquement depuis les macros du moteur, pour les 512 recettes — ils sont AFFICHÉS sur la fiche et 192 (objectif) et 116 (endurance) contredisaient les calories de leur propre recette. `recup_jour_repos` SUPPRIMÉ des 512 : champ mort depuis le 2026-07-29 (le jour de repos agit sur la cible, pas par un tag), faux sur 152 recettes sans que personne puisse le voir — même sort que `recomp_flag`.",
     "waves": {
       "role": "Vague de livraison d'origine de chaque recette (champ `wave`). Rétro-rempli le 2026-07-29 depuis les dossiers de Recette/drops/ ; « fondation » = le lot initial, antérieur aux drops.",
       "valeurs": {
@@ -1378,10 +1378,9 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
-          "prise_de_masse",
-          "maintien"
+          "maintien",
+          "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu",
           "endurance"
@@ -1441,10 +1440,9 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
-          "maintien",
-          "perte_de_gras"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -1503,10 +1501,9 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
-          "prise_de_masse",
+          "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -1565,10 +1562,8 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu",
           "combats"
@@ -1622,9 +1617,9 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
+          "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -1677,10 +1672,8 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu",
           "endurance"
@@ -1740,9 +1733,8 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
-          "maintien"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -1807,10 +1799,8 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -1863,9 +1853,9 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
+          "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -1930,9 +1920,9 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
+          "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -1993,7 +1983,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu",
           "combats"
@@ -2053,10 +2042,9 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
-          "prise_de_masse",
+          "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -2121,9 +2109,8 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
-          "maintien"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu",
           "combats"
@@ -2177,9 +2164,9 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
+          "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu",
           "endurance"
@@ -2238,10 +2225,8 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "endurance"
         ],
@@ -2293,10 +2278,8 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -2349,9 +2332,9 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
+          "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "endurance"
         ],
@@ -2410,9 +2393,8 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
-          "maintien"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -2464,9 +2446,9 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
+          "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -2530,10 +2512,9 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
-          "maintien",
-          "perte_de_gras"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu",
           "combats"
@@ -2599,9 +2580,9 @@
       "category": "collation",
       "tags": {
         "objectif": [
-          "maintien"
+          "maintien",
+          "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu",
           "combats"
@@ -2654,10 +2635,9 @@
       "category": "collation",
       "tags": {
         "objectif": [
-          "prise_de_masse",
-          "maintien"
+          "maintien",
+          "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -2705,7 +2685,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -2761,7 +2740,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -2817,7 +2795,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -2873,7 +2850,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -2926,10 +2902,9 @@
       "category": "collation",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "maintien",
+          "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -2981,9 +2956,9 @@
       "category": "collation",
       "tags": {
         "objectif": [
-          "perte_de_gras"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -3038,7 +3013,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu",
           "combats"
@@ -3094,7 +3068,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -3147,9 +3120,9 @@
       "category": "collation",
       "tags": {
         "objectif": [
-          "maintien"
+          "maintien",
+          "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -3206,10 +3179,9 @@
       "category": "collation",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "maintien",
+          "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -3261,9 +3233,9 @@
       "category": "collation",
       "tags": {
         "objectif": [
-          "maintien"
+          "maintien",
+          "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -3315,9 +3287,9 @@
       "category": "collation",
       "tags": {
         "objectif": [
-          "perte_de_gras"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu",
           "combats"
@@ -3367,7 +3339,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -3423,7 +3394,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -3479,7 +3449,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -3532,9 +3501,9 @@
       "category": "collation",
       "tags": {
         "objectif": [
-          "perte_de_gras"
+          "maintien",
+          "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -3591,10 +3560,9 @@
       "category": "collation",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "maintien",
+          "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -3646,9 +3614,9 @@
       "category": "collation",
       "tags": {
         "objectif": [
-          "maintien"
+          "maintien",
+          "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -3707,10 +3675,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "prise_de_masse",
+          "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -3763,9 +3730,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
+          "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "endurance",
           "muscu"
@@ -3819,9 +3786,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "perte_de_gras"
+          "maintien",
+          "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "endurance",
           "combats"
@@ -3887,9 +3854,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "prise_de_masse"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "combats",
           "muscu"
@@ -3951,7 +3918,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "combats",
           "endurance"
@@ -4020,7 +3986,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "endurance",
           "combats"
@@ -4080,10 +4045,8 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "prise_de_masse",
-          "maintien"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -4136,10 +4099,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "prise_de_masse",
+          "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu",
           "combats"
@@ -4199,9 +4161,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "prise_de_masse"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -4263,7 +4225,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "endurance"
         ],
@@ -4330,10 +4291,8 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "prise_de_masse",
-          "maintien"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu",
           "combats"
@@ -4387,9 +4346,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
+          "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "endurance",
           "muscu"
@@ -4443,10 +4402,8 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -4505,10 +4462,8 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "endurance"
         ],
@@ -4576,7 +4531,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "combats",
           "muscu"
@@ -4636,10 +4590,8 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "endurance"
         ],
@@ -4692,9 +4644,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
+          "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "endurance"
         ],
@@ -4761,7 +4713,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -4820,9 +4771,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
+          "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance",
           "muscu"
@@ -4882,10 +4833,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "prise_de_masse",
-          "maintien"
+          "maintien",
+          "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu",
           "endurance"
@@ -4951,10 +4901,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "prise_de_masse",
+          "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -5013,10 +4962,8 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "endurance"
         ],
@@ -5081,10 +5028,8 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "prise_de_masse",
-          "maintien"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -5137,10 +5082,8 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "combats",
           "endurance"
@@ -5200,9 +5143,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
+          "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -5255,9 +5198,8 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "maintien"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "endurance"
         ],
@@ -5310,9 +5252,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "prise_de_masse"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -5371,10 +5313,8 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "maintien",
           "perte_de_gras"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "endurance"
         ],
@@ -5436,7 +5376,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "endurance"
         ],
@@ -5501,10 +5440,8 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "maintien",
           "perte_de_gras"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -5557,9 +5494,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "prise_de_masse"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -5612,9 +5549,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
+          "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -5679,9 +5616,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
+          "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "combats",
           "muscu"
@@ -5741,9 +5678,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
+          "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "endurance",
           "muscu"
@@ -5800,7 +5737,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance",
           "combats"
@@ -5860,9 +5796,8 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "maintien"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -5921,10 +5856,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance",
           "muscu"
@@ -5997,7 +5931,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "combats"
         ],
@@ -6050,9 +5983,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
+          "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -6111,9 +6044,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
+          "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -6178,10 +6111,8 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "prise_de_masse",
-          "maintien"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -6234,9 +6165,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
+          "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu",
           "combats"
@@ -6304,7 +6235,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "endurance",
           "combats"
@@ -6358,10 +6288,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "prise_de_masse",
+          "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -6414,10 +6343,8 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu",
           "combats"
@@ -6477,9 +6404,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "maintien"
+          "maintien",
+          "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -6544,10 +6471,8 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance",
           "combats"
@@ -6607,10 +6532,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "prise_de_masse",
+          "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -6669,9 +6593,8 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "maintien"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "endurance"
         ],
@@ -6733,7 +6656,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu",
           "endurance"
@@ -6793,10 +6715,8 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "endurance"
         ],
@@ -6849,10 +6769,8 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "combats",
           "muscu"
@@ -6912,10 +6830,8 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "prise_de_masse",
-          "maintien"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -6974,10 +6890,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "maintien",
-          "perte_de_gras"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "endurance"
         ],
@@ -7036,10 +6951,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "prise_de_masse",
-          "maintien"
+          "maintien",
+          "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu",
           "endurance"
@@ -7099,9 +7013,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
+          "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -7163,7 +7077,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu",
           "combats"
@@ -7229,9 +7142,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
+          "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "combats"
         ],
@@ -7296,10 +7209,8 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "endurance"
         ],
@@ -7352,9 +7263,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
+          "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu",
           "combats"
@@ -7423,7 +7334,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -7481,10 +7391,8 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -7536,10 +7444,8 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -7591,10 +7497,9 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "endurance"
         ],
@@ -7649,7 +7554,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -7707,10 +7611,8 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -7762,10 +7664,9 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -7817,10 +7718,8 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -7875,7 +7774,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -7927,10 +7825,9 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -7982,10 +7879,8 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -8037,10 +7932,9 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -8092,9 +7986,8 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
-          "maintien"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -8152,10 +8045,8 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -8216,7 +8107,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -8274,10 +8164,9 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -8337,7 +8226,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -8389,10 +8277,9 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -8448,10 +8335,8 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -8503,10 +8388,8 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -8558,10 +8441,9 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -8616,7 +8498,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -8674,10 +8555,8 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -8731,7 +8610,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -8786,7 +8664,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -8841,7 +8718,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -8893,10 +8769,9 @@
       "category": "collation",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "maintien",
+          "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -8951,7 +8826,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -9006,7 +8880,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -9062,7 +8935,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -9114,9 +8986,9 @@
       "category": "collation",
       "tags": {
         "objectif": [
-          "perte_de_gras"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -9162,9 +9034,9 @@
       "category": "collation",
       "tags": {
         "objectif": [
-          "perte_de_gras"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "combats"
         ],
@@ -9213,7 +9085,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -9262,7 +9133,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -9318,7 +9188,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -9373,7 +9242,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -9429,7 +9297,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -9485,7 +9352,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -9537,9 +9403,9 @@
       "category": "collation",
       "tags": {
         "objectif": [
-          "maintien"
+          "maintien",
+          "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -9591,9 +9457,9 @@
       "category": "collation",
       "tags": {
         "objectif": [
-          "perte_de_gras"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -9639,9 +9505,9 @@
       "category": "collation",
       "tags": {
         "objectif": [
-          "perte_de_gras"
+          "maintien",
+          "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "combats"
         ],
@@ -9693,10 +9559,9 @@
       "category": "collation",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "maintien",
+          "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -9750,7 +9615,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -9796,9 +9660,9 @@
       "category": "collation",
       "tags": {
         "objectif": [
-          "perte_de_gras"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "combats"
         ],
@@ -9841,7 +9705,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -9897,7 +9760,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -9953,7 +9815,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -10005,9 +9866,9 @@
       "category": "collation",
       "tags": {
         "objectif": [
-          "perte_de_gras"
+          "maintien",
+          "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -10053,10 +9914,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -10108,10 +9968,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -10169,10 +10028,8 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -10224,10 +10081,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -10292,7 +10148,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -10353,7 +10208,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -10420,7 +10274,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -10475,7 +10328,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -10527,10 +10379,8 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -10582,10 +10432,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "combats"
         ],
@@ -10643,10 +10492,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -10701,7 +10549,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -10759,10 +10606,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -10817,7 +10663,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -10877,7 +10722,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -10932,7 +10776,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "combats"
         ],
@@ -10990,10 +10833,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -11051,10 +10893,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -11109,7 +10950,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -11167,10 +11007,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -11231,7 +11070,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -11286,7 +11124,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "combats"
         ],
@@ -11344,10 +11181,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -11408,7 +11244,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -11469,7 +11304,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -11527,10 +11361,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -11582,10 +11415,8 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -11640,7 +11471,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -11704,10 +11534,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -11759,10 +11588,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -11817,7 +11645,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -11877,7 +11704,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "combats"
         ],
@@ -11929,10 +11755,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -11990,10 +11815,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "combats"
         ],
@@ -12051,10 +11875,8 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -12106,10 +11928,8 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -12161,10 +11981,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -12218,7 +12037,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -12270,10 +12088,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "combats"
         ],
@@ -12337,10 +12154,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -12401,7 +12217,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -12468,7 +12283,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -12529,7 +12343,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "combats"
         ],
@@ -12593,10 +12406,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -12654,10 +12466,8 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "combats"
         ],
@@ -12724,7 +12534,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -12785,7 +12594,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -12850,10 +12658,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -12912,10 +12719,8 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -12973,10 +12778,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -13034,10 +12838,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -13098,7 +12901,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "combats"
         ],
@@ -13162,10 +12964,8 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -13226,7 +13026,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "combats"
         ],
@@ -13284,10 +13083,8 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -13345,10 +13142,8 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -13400,10 +13195,8 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -13464,7 +13257,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -13522,10 +13314,8 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -13577,10 +13367,8 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "combats"
         ],
@@ -13641,7 +13429,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -13702,7 +13489,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -13766,10 +13552,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "combats"
         ],
@@ -13830,7 +13615,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "combats"
         ],
@@ -13888,10 +13672,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -13946,7 +13729,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -14010,10 +13792,8 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -14068,7 +13848,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -14123,7 +13902,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -14175,10 +13953,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -14230,10 +14007,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -14294,7 +14070,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -14346,10 +14121,8 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -14404,7 +14177,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -14471,7 +14243,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -14529,10 +14300,8 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -14586,7 +14355,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -14644,9 +14412,8 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "maintien"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "endurance"
         ],
@@ -14698,10 +14465,8 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -14762,7 +14527,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -14823,7 +14587,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -14884,7 +14647,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "combats"
         ],
@@ -14942,10 +14704,8 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -15003,10 +14763,8 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -15067,7 +14825,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "combats"
         ],
@@ -15125,10 +14882,8 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -15186,10 +14941,9 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -15241,10 +14995,9 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "endurance"
         ],
@@ -15302,10 +15055,8 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -15359,7 +15110,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -15411,10 +15161,8 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -15466,10 +15214,8 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -15524,7 +15270,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "endurance"
         ],
@@ -15585,7 +15330,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -15645,7 +15389,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -15691,10 +15434,9 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "endurance"
         ],
@@ -15758,10 +15500,8 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -15813,10 +15553,8 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -15868,10 +15606,8 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -15926,7 +15662,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -15984,9 +15719,9 @@
       "category": "collation",
       "tags": {
         "objectif": [
-          "perte_de_gras"
+          "maintien",
+          "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -16044,7 +15779,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -16096,9 +15830,9 @@
       "category": "collation",
       "tags": {
         "objectif": [
-          "perte_de_gras"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -16147,7 +15881,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -16199,9 +15932,9 @@
       "category": "collation",
       "tags": {
         "objectif": [
-          "maintien"
+          "maintien",
+          "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -16256,7 +15989,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -16311,7 +16043,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -16360,7 +16091,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -16416,7 +16146,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -16468,9 +16197,9 @@
       "category": "collation",
       "tags": {
         "objectif": [
-          "perte_de_gras"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -16522,10 +16251,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -16586,7 +16314,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -16638,10 +16365,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "combats"
         ],
@@ -16702,7 +16428,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -16754,10 +16479,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "combats"
         ],
@@ -16818,7 +16542,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -16879,7 +16602,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -16937,10 +16659,9 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -16998,10 +16719,8 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -17056,7 +16775,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "endurance"
         ],
@@ -17114,10 +16832,9 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -17169,10 +16886,9 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -17227,7 +16943,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "endurance"
         ],
@@ -17291,10 +17006,9 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -17355,7 +17069,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -17413,10 +17126,8 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -17468,10 +17179,8 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -17526,7 +17235,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -17587,7 +17295,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -17641,7 +17348,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -17687,10 +17393,8 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -17744,7 +17448,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -17796,10 +17499,8 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -17854,7 +17555,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -17909,7 +17609,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -17970,7 +17669,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -18031,7 +17729,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -18084,9 +17781,9 @@
       "category": "collation",
       "tags": {
         "objectif": [
-          "maintien"
+          "maintien",
+          "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -18138,9 +17835,9 @@
       "category": "collation",
       "tags": {
         "objectif": [
-          "perte_de_gras"
+          "maintien",
+          "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "combats"
         ],
@@ -18189,7 +17886,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -18245,7 +17941,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -18297,10 +17992,9 @@
       "category": "collation",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "maintien",
+          "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -18349,7 +18043,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -18401,9 +18094,9 @@
       "category": "collation",
       "tags": {
         "objectif": [
-          "maintien"
+          "maintien",
+          "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -18455,9 +18148,9 @@
       "category": "collation",
       "tags": {
         "objectif": [
-          "perte_de_gras"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -18506,7 +18199,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -18559,9 +18251,9 @@
       "category": "collation",
       "tags": {
         "objectif": [
-          "perte_de_gras"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "combats"
         ],
@@ -18619,7 +18311,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -18672,10 +18363,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -18733,10 +18423,8 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -18788,10 +18476,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -18852,7 +18539,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -18916,10 +18602,8 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -18971,10 +18655,8 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -19032,10 +18714,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -19093,10 +18774,8 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "combats"
         ],
@@ -19154,10 +18833,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -19215,10 +18893,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -19272,7 +18949,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -19324,10 +19000,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "combats"
         ],
@@ -19388,7 +19063,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -19460,7 +19134,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "endurance"
         ],
@@ -19515,7 +19188,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -19576,7 +19248,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -19631,7 +19302,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -19689,10 +19359,9 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "combats"
         ],
@@ -19752,7 +19421,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -19808,7 +19476,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -19863,7 +19530,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -19918,7 +19584,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -19973,7 +19638,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -20029,7 +19693,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -20084,7 +19747,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -20140,7 +19802,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -20195,7 +19856,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -20251,7 +19911,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -20310,10 +19969,9 @@
       "category": "collation",
       "tags": {
         "objectif": [
-          "maintien",
-          "prise_de_masse"
+          "perte_de_gras",
+          "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -20366,10 +20024,9 @@
       "category": "collation",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "maintien",
+          "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -20425,7 +20082,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -20480,7 +20136,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -20544,7 +20199,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -20602,7 +20256,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -20666,7 +20319,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -20724,7 +20376,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -20782,7 +20433,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -20839,7 +20489,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -20897,7 +20546,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -20961,7 +20609,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -21020,7 +20667,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -21078,7 +20724,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -21142,7 +20787,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -21201,7 +20845,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -21259,7 +20902,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -21322,7 +20964,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -21379,7 +21020,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -21444,7 +21084,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -21502,7 +21141,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -21559,7 +21197,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -21623,7 +21260,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -21688,7 +21324,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -21752,7 +21387,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -21816,7 +21450,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -21881,7 +21514,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -21945,7 +21577,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -22009,7 +21640,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -22067,7 +21697,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -22131,7 +21760,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -22195,7 +21823,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -22259,7 +21886,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -22316,7 +21942,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -22381,7 +22006,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -22446,7 +22070,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -22510,7 +22133,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -22574,7 +22196,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -22638,7 +22259,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -22702,7 +22322,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -22766,7 +22385,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -22830,7 +22448,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -22895,7 +22512,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -22959,7 +22575,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -23023,7 +22638,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -23087,7 +22701,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -23151,7 +22764,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -23215,7 +22827,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -23280,7 +22891,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -23344,7 +22954,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -23408,7 +23017,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -23472,7 +23080,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -23536,7 +23143,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -23599,7 +23205,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -23663,7 +23268,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -23727,7 +23331,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -23791,7 +23394,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -23848,7 +23450,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -23913,7 +23514,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -23977,7 +23577,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -24041,7 +23640,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -24105,7 +23703,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -24169,7 +23766,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -24226,7 +23822,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -24290,7 +23885,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -24354,7 +23948,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -24417,7 +24010,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -24481,7 +24073,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -24545,7 +24136,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -24609,7 +24199,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -24673,7 +24262,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -24737,7 +24325,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -24801,7 +24388,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -24865,7 +24451,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -24929,7 +24514,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -24993,7 +24577,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -25057,7 +24640,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -25121,7 +24703,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -25186,7 +24767,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -25250,7 +24830,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -25314,7 +24893,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -25373,7 +24951,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -25438,7 +25015,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -25502,7 +25078,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -25566,7 +25141,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -25631,7 +25205,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -25695,7 +25268,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -25760,7 +25332,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -25823,7 +25394,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -25887,7 +25457,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -25944,7 +25513,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -26008,7 +25576,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -26073,7 +25640,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -26136,7 +25702,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -26201,7 +25766,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -26265,7 +25829,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -26329,7 +25892,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -26394,7 +25956,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -26459,7 +26020,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -26517,7 +26077,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -26580,7 +26139,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -26644,7 +26202,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -26708,7 +26265,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -26773,7 +26329,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -26838,7 +26393,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -26909,7 +26463,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -26974,7 +26527,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -27038,7 +26590,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -27103,7 +26654,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -27168,7 +26718,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -27233,7 +26782,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -27298,7 +26846,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -27363,7 +26910,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -27428,7 +26974,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -27492,7 +27037,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -27557,7 +27101,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -27622,7 +27165,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -27687,7 +27229,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -27752,7 +27293,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -27817,7 +27357,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -27882,7 +27421,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -27947,7 +27485,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -28012,7 +27549,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -28077,7 +27613,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -28136,7 +27671,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -28201,7 +27735,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -28272,7 +27805,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -28337,7 +27869,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -28395,7 +27926,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -28459,7 +27989,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -28517,7 +28046,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -28576,7 +28104,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -28634,7 +28161,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -28692,7 +28218,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -28757,7 +28282,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -28822,7 +28346,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -28887,7 +28410,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -28952,7 +28474,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -29017,7 +28538,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -29082,7 +28602,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -29147,7 +28666,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -29212,7 +28730,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -29277,7 +28794,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -29342,7 +28858,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -29407,7 +28922,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -29472,7 +28986,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -29537,7 +29050,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -29595,7 +29107,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -29653,7 +29164,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -29712,7 +29222,6 @@
           "perte_de_gras",
           "maintien"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -29770,7 +29279,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -29828,7 +29336,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -29886,7 +29393,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -29944,7 +29450,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -30002,7 +29507,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -30066,7 +29570,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -30124,7 +29627,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -30185,10 +29687,9 @@
       "category": "collation",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "maintien",
+          "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -30244,7 +29745,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -30297,10 +29797,9 @@
       "category": "collation",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "maintien",
+          "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -30347,10 +29846,9 @@
       "category": "collation",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "maintien",
+          "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -30400,7 +29898,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -30456,7 +29953,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -30512,7 +30008,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu",
           "endurance"
@@ -30568,7 +30063,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -30623,7 +30117,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -30678,7 +30171,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -30733,7 +30225,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -30788,7 +30279,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -30843,7 +30333,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -30899,7 +30388,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -30955,7 +30443,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -31010,7 +30497,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -31065,7 +30551,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -31120,7 +30605,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -31175,7 +30659,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -31230,7 +30713,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -31285,7 +30767,6 @@
         "objectif": [
           "perte_de_gras"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -31341,7 +30822,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -31397,7 +30877,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -31453,7 +30932,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -31509,7 +30987,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -31565,7 +31042,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -31621,7 +31097,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": false,
         "sport": [
           "muscu"
         ],
@@ -31677,7 +31152,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -31733,7 +31207,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -31789,7 +31262,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
@@ -31845,7 +31317,6 @@
           "maintien",
           "prise_de_masse"
         ],
-        "recup_jour_repos": true,
         "sport": [
           "muscu"
         ],
