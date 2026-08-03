@@ -477,6 +477,39 @@ composant. Audit complet des réglages : `npm run mesure:reglages`.
 >
 > ➡️ Contrôle : `npm run mesure:objectif`. Raisonnement complet et chiffres : AGENTS.md A15.
 
+> **Les échéances proposées sont DÉRIVÉES DU CORPS, jamais figées** (2026-08-03, A27,
+> `lib/goalLadder.ts`). La rangée offrait cinq durées en dur — 4 / 8 / 12 / 16 / 24
+> semaines — et **9 puces sur 40 seulement étaient tenables** : sur 4 corps de référence
+> sur 8, AUCUNE ne l'était. La première échéance atteignable se situait entre 18 et
+> 82 semaines, hors de la rangée.
+>
+> **Deux invariants, et il faut les deux.** Une rangée dont chaque puce tient serait
+> encore mensongère si deux puces servaient la même assiette :
+>  1. **tenable** — la puce ne promet pas une date que le moteur ne tiendra pas ;
+>  2. **distincte** — sous une certaine durée, le plancher d'énergie disponible borne le
+>     déficit, donc allonger l'échéance ne change RIEN au plan. Mesuré avant correctif :
+>     **14 puces sur 40** servaient un plan distinct, et sur 5 corps sur 8 les CINQ
+>     boutons servaient la même assiette. C'est le défaut A23 (« un réglage qui ne pilote
+>     rien »), resté invisible parce qu'on ne mesurait que la tenabilité.
+> ➡️ **Quand on remplace un composant, mesurer aussi ce qu'on ne l'accusait PAS de faire.**
+> Après : **40 / 40** sur les deux critères.
+>
+> ⚠️ **L'échelle interroge le moteur, elle ne rejoue pas ses formules** : `deadlineLadder`
+> reçoit une SONDE, exactement comme `datedGoalStatus` reçoit un projecteur. Le prix est
+> réel — ~17 sondes simulant chacune jusqu'à 260 semaines, soit 3 à 45 ms sur les
+> gabarits courants et 283 ms sur un écart de 30 kg. **Donc mémoïsé sur le poids cible**,
+> sinon la saisie devient saccadée.
+>
+> ⚠️ **La recherche par dichotomie repose sur une propriété MESURÉE, pas garantie par le
+> code** : une fois qu'une durée tient, toutes les plus longues tiennent. Un test balaye
+> l'horizon et exige l'absence de trou — sans lui, la première puce deviendrait fausse en
+> silence le jour où la propriété tombe.
+>
+> ⚠️ **En PRISE de masse, les calories servies BAISSENT quand la date s'éloigne.** Tout
+> prédicat écrit en pensant à la sèche (`>`, « plus de calories ») y est faux : le test de
+> décollage du plancher est `!==`. Une version orientée perte marchait sur la prise **par
+> accident**. Vaut au-delà de ce module.
+
 - **Lipides sous le seuil de carence** — `lib/tdee.ts::fatTargetG`, plancher à
   0,8 g/kg de **poids de corps** (`FAT_MIN_PER_KG_BW`). Borné par le budget du
   jour, donc un plan reste toujours faisable.
