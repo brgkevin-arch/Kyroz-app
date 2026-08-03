@@ -24,10 +24,17 @@ import { findViolations, nameKey, norm, type CheckRecipe } from '../../scripts/c
 //               cliquet ne dit pas « tu as cassé », il dit « voilà ce que le catalogue est ».
 //   R1 92 → 85, R2 78 → 75, R5 22 → 18, R4 → 16 : différenciation des 7 clones stricts et
 //               des 2 noms identiques (2026-07-29), sans supprimer une seule recette.
+//   R1 85 → 81, R2 75 → 70, R4 16 → 14, R5 18 → 16 : RESSERRAGE au constaté du
+//               2026-08-03. Les plafonds n'avaient pas bougé depuis le 2026-07-29 alors
+//               que les vagues B7 → B9 et la réécriture de rep10 avaient fait descendre
+//               les compteurs : le cliquet gardait 4 à 5 points de mou sur CHAQUE règle,
+//               donc une vague pouvait rajouter quatre clones sans faire rougir un test.
+//               ⚠️ Un cliquet ne se resserre pas tout seul — après un nettoyage, le
+//               descendre fait partie du nettoyage.
 // Ce qui reste est du quasi-doublon de composition, pas du clone : R4 est dominé par des
 // familles saturées (whey+avoine ×6, yaourt de soja sans féculent ×8) qui se règlent en
 // écrivant AILLEURS, pas en réécrivant l'existant.
-const PLAFOND = { R1: 85, R2: 75, R4: 16, R5: 18, R7: 0 } as const;
+const PLAFOND = { R1: 81, R2: 70, R4: 14, R5: 16, R7: 0 } as const;
 
 const RECIPES = (raw as { recipes: unknown[] }).recipes as CheckRecipe[];
 

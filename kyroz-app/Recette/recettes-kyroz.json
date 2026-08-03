@@ -4236,12 +4236,12 @@
     },
     {
       "id": "rep10",
-      "name": "Curry pois chiches – épinards – riz",
+      "name": "Tofu et pois chiches au lait de coco, épinards et riz",
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "maintien",
+          "prise_de_masse"
         ],
         "recup_jour_repos": true,
         "sport": [
@@ -4252,26 +4252,32 @@
       "base_servings": 1,
       "ingredients": [
         {
-          "ref": "pois_chiches",
-          "qty": 80,
+          "ref": "tofu_ferme",
+          "qty": 200,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "pois_chiches_conserve",
+          "qty": 100,
           "macro_role": "protein",
           "scalable": true
         },
         {
           "ref": "epinards",
-          "qty": 80,
+          "qty": 100,
           "macro_role": "vegetable",
           "scalable": false
         },
         {
           "ref": "tomate_concassee",
-          "qty": 150,
+          "qty": 120,
           "macro_role": "vegetable",
           "scalable": false
         },
         {
           "ref": "lait_coco",
-          "qty": 60,
+          "qty": 40,
           "macro_role": "fat",
           "scalable": true
         },
@@ -4283,16 +4289,18 @@
         }
       ],
       "instructions": [
-        "Mijote pois chiches + tomate + coco 12 min.",
-        "Ajoute les épinards.",
-        "Sers sur le riz."
+        "Fais cuire le riz 10 minutes dans un grand volume d'eau salée, puis égoutte-le.",
+        "Égoutte et rince les pois chiches ; presse le tofu entre deux feuilles de papier absorbant et coupe-le en cubes.",
+        "Fais dorer les cubes de tofu 5 minutes à feu vif dans une sauteuse chaude, sale et poivre.",
+        "Ajoute la tomate concassée et le lait de coco, laisse mijoter 8 minutes à feu moyen, puis ajoute les pois chiches.",
+        "Ajoute les épinards, mélange 2 minutes le temps qu'ils tombent, et sers sur le riz."
       ],
-      "why": "Endurance perte de gras : végétal riche en fibres, réconfortant et économique.",
+      "why": "Le tofu porte la protéine, les pois chiches apportent les fibres : végétal, sans gluten et sans lactose.",
       "macros_per_serving": {
-        "kcal": 646,
-        "protein": 25.2,
-        "carbs": 89.8,
-        "fat": 17.4
+        "kcal": 732,
+        "protein": 41.9,
+        "carbs": 69.1,
+        "fat": 28.7
       },
       "wave": "fondation"
     },
