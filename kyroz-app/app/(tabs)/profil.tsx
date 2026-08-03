@@ -701,11 +701,17 @@ function EngineNoticeCard({ t, notice, onAdjust, onDismiss }: {
   //    servie en entier » ne veut rien dire.
   const depuis = notice.fromRev ?? 1;
   const monte = notice.to > notice.from;
-  const explication = notice.rev >= 3 && depuis >= 2 && monte
-    ? 'Kyroz sous-estimait la dépense d\'une journée plutôt assise : ton budget part maintenant d\'une estimation plus juste.'
-    : monte
-      ? 'Kyroz a revu sa façon d\'estimer ta dépense : ton budget part maintenant d\'une base plus juste.'
-      : 'Kyroz a corrigé deux choses : tes séances étaient comptées en double avec ta dépense de repos, et le niveau d\'activité de tes journées était supposé au lieu d\'être demandé.';
+  const explication = notice.rev >= 5 && depuis >= 4 && !monte
+    // rev 5 (A15) — la cible BAISSE, et pour une raison précise : la date visée ne
+    // tenait pas et Kyroz servait quand même le rythme « juste requis », donc il
+    // freinait sans le dire. Le ton reste celui de la §10 : on annonce un moteur qui
+    // porte la charge, pas un retard à rattraper.
+    ? 'Ta date n\'était pas tenable au rythme que Kyroz servait : il avance maintenant au maximum de ce qui reste sûr, et la date qu\'il t\'annonce est celle qu\'il tiendra.'
+    : notice.rev >= 3 && depuis >= 2 && monte
+      ? 'Kyroz sous-estimait la dépense d\'une journée plutôt assise : ton budget part maintenant d\'une estimation plus juste.'
+      : monte
+        ? 'Kyroz a revu sa façon d\'estimer ta dépense : ton budget part maintenant d\'une base plus juste.'
+        : 'Kyroz a corrigé deux choses : tes séances étaient comptées en double avec ta dépense de repos, et le niveau d\'activité de tes journées était supposé au lieu d\'être demandé.';
   // ⚠️ Ne RIEN affirmer sur l'activité de la personne : la carte ne reçoit que la
   // notice, jamais le profil. « Ce budget correspond à des journées plutôt assises »
   // était faux pour qui a déjà déclaré `light`/`active`/`physical` — et ce sont
@@ -963,11 +969,19 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
       {/* « Objectif ambitieux » = un plafond de RYTHME a mordu. On ne dit plus
           « un peu après ta date » : l'écart médian mesuré est de 32 jours, 89 au
           90ᵉ centile. Un adverbe qui minimise un trimestre est un mensonge poli. */}
+      {/* ⚠️ La dernière phrase se choisit sur `maxRateApplied` depuis A15, et l'inverser
+          n'est pas cosmétique : quand Kyroz bascule sur le rythme sûr MAXIMAL, écrire
+          « Kyroz garde le rythme sûr » dirait qu'il freine alors qu'il accélère. Et
+          « garde » se lit comme un refus poli — §10 : le message doit dire que le
+          moteur porte la charge, jamais que la personne en demande trop. */}
       {!goalBlockMsg && status?.clamped && !status.directionMismatch && !status.floorCapped && (
         <Card t={t}>
           <Text style={{ color: t.text, fontSize: 13, lineHeight: 19 }}>
             Objectif ambitieux : au rythme le plus sûr tu atteins {status.targetWeightKg} kg
-            {status.projectable ? ` vers le ${formatFR(status.projectedDate)}` : ' plus tard que prévu'}, après ta date. Kyroz garde le rythme sûr.
+            {status.projectable ? ` vers le ${formatFR(status.projectedDate)}` : ' plus tard que prévu'}, après ta date.{' '}
+            {status.maxRateApplied
+              ? 'Kyroz avance au maximum de ce qui reste sûr, et cette date-là, il la tient.'
+              : 'Kyroz garde le rythme sûr.'}
           </Text>
         </Card>
       )}

@@ -66,7 +66,8 @@ qu'ils étaient périmés.
 |---|---|---|
 | Catalogue | **512 recettes** — 122 petits-déj · 280 repas complets · 110 collations | `npm run mesure:couverture` |
 | `ENGINE_VERSION` | **43** (invalide les plans en cache) | `lib/planEngine.ts` |
-| `ENGINE_REV` | **4** (avertissement one-shot à l'utilisateur) | `lib/tdee.ts` |
+| `ENGINE_REV` | **5** (avertissement one-shot à l'utilisateur) — A15, l'objectif daté hors de portée sert désormais le rythme sûr MAXIMAL | `lib/tdee.ts` |
+| Objectif daté | la date affichée est un **POINT FIXE** : l'adopter ne la déplace plus (3 corps sur 8 glissaient de +96 j avant A15) | `npm run mesure:objectif` |
 | Tests | **939 verts**, 52 fichiers · `tsc` propre | `npm test && npx tsc --noEmit` |
 | Plateformes | iPhone **+ iPad** (`supportsTablet: true` depuis le 2026-08-01). ⚠️ **portrait sur iPhone, MAIS les 4 orientations sur iPad** — Expo les force dès `supportsTablet`, le multitâche iPadOS l'impose, ce n'est pas refermable. Vérifié en natif (iPad Pro 13") et à 1366×1024 | `ios/Kyroz/Info.plist` généré, PAS `app.json` · `lib/layout.ts` |
 | Site déployé | **automatique** : GitHub Actions à chaque push `main` (`build_type: workflow`). ⚠️ **NE PAS lire `origin/gh-pages`** — branche morte, cf. A12 | `gh run list --workflow=deploy.yml` |
@@ -798,18 +799,90 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
   proposée** — mieux vaut pas de raccourci qu'un raccourci qui ment. Verrouillé par
   `datedGoal.test.ts` → « A14 — adopter la date projetée ». 820 tests.
 
-- **A15 · 🧑 À TRANCHER — sur un gros écart, l'objectif daté se dessert lui-même.**
-  Découvert en livrant A14, mesuré, **non corrigé** (ça déplacerait des calories →
-  `ENGINE_REV`, donc arbitrage fondateur obligatoire).
+- ~~**A15 · sur un gros écart, l'objectif daté se dessert lui-même**~~
+  ✅ **TRANCHÉ ET LIVRÉ le 2026-08-03** (fondateur : « les deux »). `ENGINE_REV` 4 → 5.
+  Contrôle re-mesurable : **`npm run mesure:objectif`**.
+
+  🔎 **La fiche se trompait sur un point, et ça a changé le chantier.** Elle affirmait
+  « **il n'existe aucune date d'équilibre** ». Faux : elle existe sur les 8 corps de
+  référence. Ce qui ne converge pas, c'est **UN SEUL aller-retour** — exactement ce que
+  fait l'écran avant de renoncer. En itérant l'adoption, ça converge en 3 à 11 tours.
+  L'arbitrage réel n'était donc pas « aucune date » contre « une date », mais **« la
+  date d'équilibre, lente » contre « la date au rythme sûr maximal, plus proche »**.
+
+  📉 **Ce que la mesure a trouvé, et que la fiche ne disait pas** (8 corps × 11 échéances) :
+  - **5 corps sur 8 : AUCUNE des 5 échéances de l'écran n'est tenable.** La première
+    tenable est à 18–82 semaines — hors de la rangée de puces.
+  - **3 sur 8 (les trois femmes à gros écart) : la date de repli affichée GLISSE dès
+    qu'on l'adopte**, jusqu'à **+96 jours**. C'est le défaut de fond : Kyroz affichait
+    une date qui n'était vraie que tant qu'on ne s'en servait pas.
+  - ⚠️ **Une mesure ÉCARTÉE, pour mémoire** : « l'arrivée est-elle monotone en la date
+    choisie ? » donne 8/8 et c'est un **faux positif**. Sur un objectif confortable, une
+    date lointaine DOIT servir un déficit plus doux (`F 60 → 57` : J+52 à 8 semaines,
+    J+655 à 104 — les deux honnêtes). Le premier indicateur écrit était le mauvais.
+
+  🔧 **Le correctif, en une phrase** : servir juste ce qu'il faut TANT QUE ça suffit ;
+  dès que ça ne suffit plus, servir le **maximum sûr** et dater la trajectoire là-dessus.
+  Le rythme cesse alors de dépendre de l'échéance, donc **la date projetée devient un
+  point fixe** — et (a) tombe tout seul, sans itération dans l'écran.
+  Mécanique : `WeeklyProjector` accepte un `kcalDeltaOverride`, `weeksToTargetSimulated`
+  sait simuler au rythme maximal, et **`computePlan` passe désormais un projecteur**
+  (`lib/tdee.ts`) — sans quoi les écrans auraient affiché la trajectoire corrigée
+  pendant que l'assiette servait l'ancienne. Aucune récursion : l'appel intérieur du
+  projecteur reste `project: null`.
+
+  📊 **Mesuré avant / après, même code** :
+
+  | | avant | après |
+  |---|---|---|
+  | la date promise glisse dès qu'on l'adopte | **3/8** | **0/8** |
+  | `F 78 → 65` — arrivée · cible | J+576 · 1940 kcal | **J+419 · 1731 kcal** |
+  | `F 70 → 62` | J+339 · 1842 kcal | **J+188 · 1638 kcal** |
+  | `F 65 → 58` | J+270 · 1731 kcal | **J+143 · 1540 kcal** |
+  | les 5 hommes + `F 60` | — | **inchangés, au kcal près** |
+  | puce « N sem · tenable » sur `F 78 → 65` | ❌ aucune | ✅ `63 sem` |
+  | `computePlan` | 0,026 ms | 0,11 ms (0,47 au pire) |
+
+  ⚠️ **Aucun garde-fou n'est franchi, et c'est balayé par un test** (`A15 — creuser plus
+  ne franchit AUCUN garde-fou`, 7 corps × 6 échéances) : rythme sûr modulé par
+  l'adiposité, plafond des 25 % du TDEE, plancher d'énergie disponible. On ne va pas
+  plus vite que ce que la sécurité autorisait **déjà** à qui avait choisi une date proche.
+
+  🔁 **Deux arbitrages écrits ont été rouverts, sur décision du fondateur** :
+  1. **A14** — « aucune puce n'est proposée » sur le gros écart. La puce est désormais
+     proposée partout, parce que la date tient. Le test qui gravait l'exception
+     (`f.apres.reachableByDate === false`) exigeait en réalité le DÉFAUT : il exige
+     maintenant l'inverse.
+  2. **P1.6** — « display-only : aucune calorie servie ne bouge ». A15 en déplace
+     délibérément. ⚠️ **Et son test est resté VERT** : ses deux gabarits sont
+     atteignables des deux côtés, donc il ne touchait jamais le cas qui change. Un
+     garde-fou qui a cessé de garder sans rougir. Il vérifie maintenant la FRONTIÈRE
+     dans les deux sens (atteignable → rien ne bouge · hors de portée → ça doit bouger).
+
+  ⚠️ **Ce qui n'a PAS été vérifié** : rien à l'écran, ni web ni natif. Le chemin de code
+  exact de la puce a été rejoué par calcul, pas cliqué.
+  ℹ️ Reste ouvert, signalé par la cartographie, **non traité ici** : `Transformation.tsx`
+  et `WeightChart.tsx` tracent leur couloir depuis la date SAISIE et ne lisent jamais
+  `DatedGoalStatus` — la courbe servie peut donc sortir du couloir par le bas.
+
+  <details><summary>Diagnostic d'origine (conservé)</summary>
+
+  Découvert en livrant A14, mesuré, **non corrigé** à l'époque (ça déplacerait des
+  calories → `ENGINE_REV`, donc arbitrage fondateur obligatoire).
   Le moteur sert le déficit **REQUIS pour la date**, plafonné au rythme sûr. Quand la
   cible est hors de portée, repousser la date baisse donc le déficit servi — et éloigne
   l'arrivée. F 78 kg → 65 kg : à 8 semaines il sert le plancher (1778 kcal, 0,3 kg/sem) ;
   en visant la date que ce rythme projette, il ne sert plus que 1940 kcal (0,2 kg/sem) et
   la date part 98 jours plus loin. **Il n'existe aucune date d'équilibre.**
+  *(❌ Cette dernière phrase était FAUSSE — cf. le correctif ci-dessus. Elle est laissée
+  telle quelle parce qu'elle a orienté le chantier pendant un jour : une affirmation
+  écrite de bonne foi et jamais re-mesurée finit par décider à la place de la mesure.)*
   Question de fond : quand l'objectif est hors de portée, faut-il servir le **rythme sûr
   MAXIMAL** (et annoncer la date qui en découle) plutôt que le rythme « juste requis » ?
   ⚠️ Ne pas confondre avec un défaut de sécurité : les deux comportements restent
   au-dessus du plancher. C'est un choix de pilotage, pas un garde-fou.
+
+  </details>
 
 - ~~**A16 · `Alert.alert` ne fait RIEN sur le web — dix interactions mortes**~~
   ✅ **CORRIGÉ le 2026-08-02.** Remonté par le fondateur : *« le bouton régénérer mon
