@@ -21,8 +21,10 @@
  *   npx tsx scripts/mesure-objectif-date.ts --detail   + la courbe d'un cas
  *   npx tsx scripts/mesure-objectif-date.ts --csv      sortie machine
  */
-import { datedGoalStatus, addDaysStamp, daysBetween } from '../lib/datedGoal';
-import { recalcProfile, makeWeeklyProjector, planFloorKcal } from '../lib/tdee';
+import {
+  datedGoalStatus, addDaysStamp, daysBetween, idealWeightAt, simulatedTrajectory, trackStatus,
+} from '../lib/datedGoal';
+import { recalcProfile, makeWeeklyProjector, planFloorKcal, trackingTarget } from '../lib/tdee';
 import type { GoalTarget, Goal, Sex, UserProfile } from '../lib/types';
 
 /** Date d'ancrage FIXE : `Date.now()` rendrait la mesure irreproductible. */
@@ -250,4 +252,61 @@ if (!csv) {
       ` (${tours + 1} tours)`,
     );
   }
+
+  /**
+   * ── LE COULOIR DE PROGRESSION TIENT-IL ? ────────────────────────────────────
+   *
+   * L'écran de suivi du poids trace une ZONE (`WeightChart`) et annonce « rester
+   * dedans suffit ». Elle est bâtie sur `idealWeightAt` : une LIGNE DROITE du poids
+   * de départ au poids cible, sur la date SAISIE — le raccourci que A15 vient de
+   * retirer du moteur, resté dans l'affichage.
+   *
+   * On mesure donc, pour un utilisateur qui suit le plan PARFAITEMENT (sa trajectoire
+   * EST celle que le moteur simule) : au bout de combien de jours sort-il de sa zone,
+   * et de combien de kilos le couloir se trompe-t-il à la date promise ?
+   */
+  console.log('\n── LE COULOIR DE SUIVI (« ▚ Ta zone … rester dedans suffit »)');
+  console.log('⚠️ Utilisateur qui suit le plan À LA LETTRE : sa courbe est celle du moteur.');
+  console.log('              | AVANT (couloir sur la date SAISIE)  | APRÈS (couloir sur la date TENUE)');
+  console.log('corps        | éch. | sort de sa zone | écart final | sort de sa zone | écart final');
+  let avantSorties = 0, apresSorties = 0, cas = 0, pireEcart = 0;
+  for (const c of CORPS) {
+    for (const sem of [8, 24]) {
+      const base = profil(c);
+      const gt = cible(c, sem);
+      const p = recalcProfile({ ...base, goal_target: gt });
+      const traj = simulatedTrajectory(p, gt, AUJOURD_HUI, makeWeeklyProjector(p));
+      // Ce que l'écran dessine désormais : la date que le moteur TIENDRA.
+      const suivi = trackingTarget(p, AUJOURD_HUI)!;
+
+      /** Premier jour où l'app dirait « en retard » (ou « en avance ») à qui suit le plan. */
+      const sortie = (ref: GoalTarget) => {
+        for (const point of traj) {
+          // `trackStatus` est le juge de l'app : on ne réplique pas son seuil.
+          const etat = trackStatus(ref, point.weightKg, point.stamp, false)?.state;
+          if (etat === 'behind' || etat === 'ahead') return daysBetween(AUJOURD_HUI, point.stamp);
+        }
+        return null;
+      };
+      /** Écart au couloir le jour où celui-ci promet le poids cible. */
+      const ecart = (ref: GoalTarget) => {
+        const a = traj.filter((x) => daysBetween(x.stamp, ref.target_date) >= 0).pop();
+        return a ? a.weightKg - idealWeightAt(ref, a.stamp) : NaN;
+      };
+
+      const sA = sortie(gt), sB = sortie(suivi);
+      const eA = ecart(gt), eB = ecart(suivi);
+      cas++;
+      if (sA != null) avantSorties++;
+      if (sB != null) apresSorties++;
+      if (Number.isFinite(eB) && Math.abs(eB) > pireEcart) pireEcart = Math.abs(eB);
+
+      const fmt = (s: number | null, e: number) =>
+        `${(s == null ? 'jamais' : `J+${s}`).padStart(15)} | ${(Number.isFinite(e) ? `${e >= 0 ? '+' : ''}${e.toFixed(1)} kg` : '—').padStart(11)}`;
+      console.log(`${c.nom.padEnd(12)} | ${String(sem).padStart(3)}s | ${fmt(sA, eA)} | ${fmt(sB, eB)}`);
+    }
+  }
+  console.log(`\ncas où l'app dit « en retard » à qui suit le plan À LA LETTRE : ` +
+    `**${avantSorties}/${cas} → ${apresSorties}/${cas}**` +
+    ` · pire écart au couloir après correctif : ${pireEcart.toFixed(1)} kg`);
 }
