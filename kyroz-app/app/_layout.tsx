@@ -4,6 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useTheme } from '../constants/theme';
 import { loadThemeMode } from '../lib/themeMode';
+import { loadAccentId } from '../lib/accentColor';
 import { AuthProvider } from '../hooks/useAuth';
 import { ProfileProvider } from '../hooks/useProfile';
 import { RecipeOverridesProvider } from '../hooks/useRecipeOverrides';
@@ -13,7 +14,7 @@ import { DialogProvider } from '../components/Dialog';
 
 export default function RootLayout() {
   const t = useTheme();
-  useEffect(() => { loadThemeMode(); }, []);
+  useEffect(() => { loadThemeMode(); loadAccentId(); }, []);
   return (
     <SafeAreaProvider>
       <ErrorBoundary>

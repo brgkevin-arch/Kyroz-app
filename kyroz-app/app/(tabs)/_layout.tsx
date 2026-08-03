@@ -46,7 +46,10 @@ export default function TabLayout() {
           paddingBottom: Platform.OS === 'ios' ? 28 : 10,
           paddingTop: 8,
         },
-        tabBarActiveTintColor: t.text,
+        // L'onglet actif porte l'ACCENT, pas l'encre : c'est la convention iOS, et
+        // c'est ce qu'attend quelqu'un qui vient de choisir une couleur. En
+        // monochrome, `accent` vaut déjà l'encre — le rendu ne bouge pas d'un pixel.
+        tabBarActiveTintColor: t.accent,
         tabBarInactiveTintColor: t.textQuaternary,
         tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
       }}

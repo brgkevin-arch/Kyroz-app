@@ -8,6 +8,7 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { useTheme, ThemePalette, Radius, Spacing, Type } from '../../constants/theme';
 import { useLayout } from '../../constants/layout';
 import { ThemeMode, useThemeMode, setThemeMode } from '../../lib/themeMode';
+import { ACCENTS, ACCENT_IDS, useAccentId, setAccentId, readableOn } from '../../lib/accentColor';
 import { DISCLAIMER } from '../../constants/legal';
 import { CIQUAL_ATTRIBUTION } from '../../lib/foods';
 import { Card, PrimaryButton, Chip, OptionCard, Field, SectionLabel, Segmented } from '../../components/ui';
@@ -158,6 +159,7 @@ export default function ProfilScreen() {
   const { signOut } = useAuth();
   const { confirm, notify } = useDialog();
   const themeMode = useThemeMode();
+  const accentId = useAccentId();
   const [hydrationOn, setHydrationOn] = useHydrationEnabled();
   const { consent: analyticsConsent, choose: chooseConsent } = useAnalyticsConsent();
   const router = useRouter();
@@ -472,6 +474,38 @@ export default function ProfilScreen() {
         />
         <Text style={s.reminderHint}>
           {themeMode === 'system' ? 'Suit le réglage clair/sombre de ton téléphone.' : `Thème ${themeMode === 'light' ? 'clair' : 'sombre'} forcé.`}
+        </Text>
+
+        {/* Couleur d'accent — ce qui se touche : boutons, jour actif, coches.
+            Monochrome par défaut : la DA de Kyroz ne bouge pas, c'est une
+            personnalisation qu'on OFFRE, pas un habillage imposé. Chaque pastille
+            montre la couleur telle qu'elle sera DANS LE THÈME COURANT — un même
+            bleu n'a pas la même valeur sur fond noir et sur fond clair. */}
+        <Text style={s.settingLabel}>Couleur d'accent</Text>
+        <View style={s.swatches}>
+          {ACCENT_IDS.map((id) => {
+            const on = accentId === id;
+            const couleur = ACCENTS[id][t.scheme];
+            return (
+              <TouchableOpacity
+                key={id}
+                onPress={() => setAccentId(id)}
+                activeOpacity={0.8}
+                accessibilityRole="button"
+                accessibilityState={{ selected: on }}
+                accessibilityLabel={`Couleur d'accent ${ACCENTS[id].label}`}
+                style={[s.swatch, { backgroundColor: couleur, borderColor: on ? t.text : t.line }]}
+              >
+                {/* La coche se calcule elle aussi : noir ou blanc selon la pastille. */}
+                {on && <Ionicons name="checkmark" size={20} color={readableOn(couleur)} />}
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+        <Text style={s.reminderHint}>
+          {accentId === 'mono'
+            ? 'Monochrome : encre sur fond clair, blanc sur fond sombre.'
+            : `${ACCENTS[accentId].label} — appliqué aux boutons et aux éléments actifs.`}
         </Text>
 
         <Text style={s.settingLabel}>Suivi d'hydratation</Text>
@@ -1309,6 +1343,8 @@ function makeStyles(t: ThemePalette) {
     tdeeV: { flexShrink: 0, color: t.text, fontSize: 17, fontWeight: '600' },
     reminderHint: { color: t.textTertiary, fontSize: 13, lineHeight: 18, marginTop: -8 },
     settingLabel: { color: t.text, fontSize: 17, fontWeight: '600', letterSpacing: -0.3, marginBottom: -8 },
+    swatches: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
+    swatch: { width: 44, height: 44, borderRadius: 22, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
     disclaimer: { color: t.textTertiary, fontSize: 11, lineHeight: 16, textAlign: 'center' },
     logoutBtn: { alignItems: 'center', justifyContent: 'center', paddingVertical: 15, marginTop: 8, borderRadius: Radius.button, backgroundColor: t.fill },
     logoutTxt: { color: t.text, fontSize: 15, fontWeight: '600' },

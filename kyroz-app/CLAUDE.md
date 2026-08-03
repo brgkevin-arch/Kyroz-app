@@ -584,8 +584,42 @@ Profil (poids, objectif, régime) = **données de santé** au sens RGPD.
 ### Thème
 
 - `constants/theme.ts` : adaptatif clair/sombre (suit le système)
-- Accent **monochrome** (blanc en sombre / encre en clair), noir pur `#000000` en sombre
+- Accent **monochrome PAR DÉFAUT** (blanc en sombre / encre en clair), noir pur `#000000` en sombre
 - Tout passe par `useTheme()` + `makeStyles(t)` — **aucune couleur en dur**
+
+> **L'accent est PERSONNALISABLE depuis le 2026-08-03 (décision fondateur)** —
+> `lib/accentColor.ts`, réglage « Couleur d'accent » dans Profil → Préférences.
+> Six choix : monochrome (défaut), bleu, vert, orange, rouge, violet. Le monochrome
+> reste la DA de Kyroz : **le fond ne bouge jamais** (noir pur / `#F2F2F7`), seul
+> l'accent change — boutons, jour actif, pilule sélectionnée, onglet actif.
+>
+> **LOCAL-ONLY**, comme la préférence de thème : aucune colonne, **aucune migration
+> Supabase**. C'est un réglage d'APPAREIL, pas une donnée de profil — le même compte
+> peut vouloir du bleu sur son téléphone et du monochrome sur son iPad.
+>
+> ⚠️ **`onAccent` se CALCULE, il ne se choisit pas** (`readableOn`) : la couleur du
+> libellé est toujours celle — noir ou blanc — qui contraste le plus avec le fond du
+> bouton. Une table écrite à la main est une promesse qu'on oublie de tenir : il
+> suffit d'ajouter un orange clair en gardant « texte blanc » pour livrer un bouton
+> illisible, et ça ne se voit pas en relisant un diff.
+>
+> ⚠️ **Le garde-fou est « l'accent se détache du FOND DE PAGE » (3:1), PAS « le texte
+> est lisible ».** Le second serait décoratif : avec la règle du meilleur-des-deux, le
+> pire fond concevable atteint encore **4,61:1** — un seuil AA ne pourrait jamais
+> rougir, quelle que soit la couleur ajoutée. Le risque réel est le bouton NOYÉ dans
+> la page (un bleu sombre sur fond noir : 1,43:1, mesuré). `lib/__tests__/accentColor.test.ts`
+> lit les fonds directement dans `theme.ts` et vérifie les 6 × 2 combinaisons.
+>
+> ⚠️ **Chaque accent porte DEUX valeurs, une par thème** : une couleur assez sombre
+> pour se lire sur blanc devient un trou noir sur fond noir. Et l'orange clair a été
+> choisi **par balayage** (`#CC6600`) — assombri jusqu'au seuil il virait au marron,
+> la tentation était de baisser le seuil, la bonne réponse était de mesurer les
+> valeurs intermédiaires.
+>
+> ⚠️ **La palette calculée est MISE EN CACHE** (`paletteFor`, 12 entrées max). Chaque
+> écran fait `useMemo(() => makeStyles(t), [t])` : renvoyer un objet neuf à chaque
+> rendu invaliderait ce memo partout et reconstruirait toutes les feuilles de style à
+> chaque frappe.
 
 ### Largeurs — téléphone ET tablette (depuis le 2026-08-01)
 

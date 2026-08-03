@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from 'react';
 import { useColorScheme, Platform } from 'react-native';
 import { getThemeMode, subscribeThemeMode } from '../lib/themeMode';
+import { ACCENTS, AccentId, getAccentId, subscribeAccentId, readableOn } from '../lib/accentColor';
 
 // ── Système de thème adaptatif Kyroz ─────────────────────────────────────────
 // Clair + sombre, suit le réglage système. Palette système iOS, accent graphite.
@@ -80,7 +81,8 @@ const dark: ThemePalette = {
   textTertiary: 'rgba(235,235,245,0.40)',
   textQuaternary: 'rgba(235,235,245,0.25)',
 
-  accent: '#8E8E93',        // graphite (iOS systemGray)
+  // Défaut MONOCHROME — remplacé à l'exécution par la couleur choisie (cf. `paletteFor`).
+  accent: '#FFFFFF',
   onAccent: '#000000',
   onDanger: '#FFFFFF',
 
@@ -112,7 +114,8 @@ const light: ThemePalette = {
   textTertiary: 'rgba(60,60,67,0.42)',
   textQuaternary: 'rgba(60,60,67,0.26)',
 
-  accent: '#6F7274',        // graphite (contraste 4,85:1 sur blanc — AA)
+  // Défaut MONOCHROME — remplacé à l'exécution par la couleur choisie (cf. `paletteFor`).
+  accent: '#1C1C1E',
   onAccent: '#FFFFFF',
   onDanger: '#FFFFFF',
 
@@ -162,12 +165,37 @@ export const Type = {
   overline: { fontSize: 11, fontWeight: '700' as const, letterSpacing: 1 },
 } as const;
 
+// ── Application de la couleur d'accent choisie ───────────────────────────────
+// L'accent est le SEUL token personnalisable (cf. lib/accentColor.ts). Tout le
+// reste de la palette — fonds, encre, gris de macro — reste la DA de Kyroz.
+//
+// ⚠️ Le résultat est MIS EN CACHE, et ce n'est pas de l'optimisation prématurée :
+// chaque écran fait `useMemo(() => makeStyles(t), [t])`. Renvoyer un objet neuf à
+// chaque rendu invaliderait ce memo partout, et l'app reconstruirait toutes ses
+// feuilles de style à chaque frappe au clavier. Le cache tient 12 entrées au
+// maximum (2 thèmes × 6 accents), donc son identité est stable.
+const palettes = new Map<string, ThemePalette>();
+
+function paletteFor(scheme: 'light' | 'dark', accentId: AccentId): ThemePalette {
+  const cle = `${scheme}:${accentId}`;
+  const connue = palettes.get(cle);
+  if (connue) return connue;
+  const base = scheme === 'light' ? light : dark;
+  const accent = (ACCENTS[accentId] ?? ACCENTS.mono)[scheme];
+  // `onAccent` se CALCULE : voir la note dans lib/accentColor.ts. Une table écrite
+  // à la main livrerait tôt ou tard un libellé illisible sur un bouton.
+  const p: ThemePalette = { ...base, accent, onAccent: readableOn(accent) };
+  palettes.set(cle, p);
+  return p;
+}
+
 /** Hook principal : renvoie la palette active selon la préférence (ou le système). */
 export function useTheme(): ThemePalette {
   const system = useColorScheme();
   const mode = useSyncExternalStore(subscribeThemeMode, getThemeMode, getThemeMode);
+  const accentId = useSyncExternalStore(subscribeAccentId, getAccentId, getAccentId);
   const scheme = mode === 'system' ? system : mode;
-  return scheme === 'light' ? light : dark; // défaut sombre (premium)
+  return paletteFor(scheme === 'light' ? 'light' : 'dark', accentId); // défaut sombre (premium)
 }
 
 /** Ombre de carte adaptée au thème (douce en clair, nulle en sombre). */
