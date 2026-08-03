@@ -338,14 +338,14 @@ recettes **quasi identiques**. Mesuré le 2026-08-02 sur 240 semaines simulées 
 **56,3 % des semaines servaient deux recettes du même couple (protéine × féculent)** —
 « poulet-riz-brocoli » et « wok poulet-riz-légumes » la même semaine. Depuis,
 `familyKey` groupe les recettes par ce couple et la famille la moins servie passe devant.
-**État courant : 11,7 %** (`--variete=max`, défaut). *(27,9 % à la livraison de D18, quand
+**État courant : 10,0 %** (`--variete=max`, défaut). *(27,9 % à la livraison de D18, quand
 la famille n'était QU'une clé de départage ; puis 20,8 % après A21 et A25, qui l'ont fait
 entrer dans le score.)*
 
-⚠️ **Les deux derniers gains ne viennent PAS du moteur mais du CATALOGUE** (vagues B7 puis
-B8, 2026-08-03) : 20,8 → 12,5 → **11,7 %** sans toucher une ligne de sélection. Le détail
-par régime dit pourquoi — vegan **41,7 % → 8,3 %**, vegan + sans gluten **50 % → 35,4 % →
-22,9 %**. Là où le vivier de familles est mince, aucun réglage ne fait tourner ce qui
+⚠️ **Les trois derniers gains ne viennent PAS du moteur mais du CATALOGUE** (vagues B7, B8
+puis B9, 2026-08-03) : 20,8 → 12,5 → 11,7 → **10,0 %** sans toucher une ligne de sélection.
+Le détail par régime dit pourquoi — vegan **41,7 % → 8,3 %**, vegan + sans gluten
+**50 % → 35,4 % → 22,9 % → 16,7 %**. Là où le vivier de familles est mince, aucun réglage ne fait tourner ce qui
 n'existe pas : A25 l'avait mesuré et nommé « limite de catalogue ». ➡️ Devant un plafond de
 variété, se demander d'abord s'il reste des familles à distribuer (`npm run mesure:vivier`,
 et `mesure:variete -- --regime=…` pour isoler le régime fautif), avant de toucher aux poids.

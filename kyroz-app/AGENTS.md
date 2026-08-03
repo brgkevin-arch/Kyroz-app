@@ -63,8 +63,8 @@ qu'ils étaient périmés.
 
 | | valeur | comment la revérifier |
 |---|---|---|
-| Catalogue | **466 recettes** — 110 petits-déj · 270 repas complets · 86 collations | `npm run mesure:couverture` |
-| `ENGINE_VERSION` | **39** (invalide les plans en cache) | `lib/planEngine.ts` |
+| Catalogue | **512 recettes** — 122 petits-déj · 280 repas complets · 110 collations | `npm run mesure:couverture` |
+| `ENGINE_VERSION` | **43** (invalide les plans en cache) | `lib/planEngine.ts` |
 | `ENGINE_REV` | **4** (avertissement one-shot à l'utilisateur) | `lib/tdee.ts` |
 | Tests | **939 verts**, 52 fichiers · `tsc` propre | `npm test && npx tsc --noEmit` |
 | Plateformes | iPhone **+ iPad** (`supportsTablet: true` depuis le 2026-08-01). ⚠️ **portrait sur iPhone, MAIS les 4 orientations sur iPad** — Expo les force dès `supportsTablet`, le multitâche iPadOS l'impose, ce n'est pas refermable. Vérifié en natif (iPad Pro 13") et à 1366×1024 | `ios/Kyroz/Info.plist` généré, PAS `app.json` · `lib/layout.ts` |
@@ -74,16 +74,17 @@ qu'ils étaient périmés.
 | Migrations Supabase | les **15** jouées, `2026-08-02_profiles_birth_date.sql` comprise. ⚠️ **Ne jamais annoncer une migration « en attente » sans lancer la commande** — le dépôt ne sait rien de la prod, et deux lignes d'ici l'ont dit à tort pendant des jours | `npm run check:migrations` |
 | Variété perçue | semaines servant 2 recettes d'un même couple : **max 10,0 %** (11,7 % avant B9 · 12,5 % avant B8 · 20,8 % avant B7 · 27,5 / 26,3 % avant A25 · 56,3 % avant D18) | `npm run mesure:variete -- --variete=…` |
 | Variété perçue **par régime** | **vegan+SG 16,7 %** — trajectoire de la cible : **50 % → 35,4 % (B7) → 22,9 % (B8) → 16,7 % (B9)** | `npm run mesure:variete -- --detail` |
-| Premier plan servi | plan **canonique** (seed 0) : **10,0 %** de semaines avec quasi-doublon (23,3 % avant B7 · **45,0 % avant A25**, où le 1er plan était le PIRE des trois) | `npm run mesure:variete -- --seeds=0` |
+| Premier plan servi | plan **canonique** (seed 0) : **8,3 %** de semaines avec quasi-doublon (23,3 % avant B7 · **45,0 % avant A25**, où le 1er plan était le PIRE des trois). ⚠️ La ligne annonçait 10,0 % — c'était la moyenne tous tirages recopiée ici par erreur, re-mesurée le 2026-08-03 | `npm run mesure:variete -- --seeds=0` |
 | Réglages inertes | **aucun** — les 13 réglages réglables depuis l'UI changent tous le plan servi (recettes et/ou portions), vérifié un par un | `npm run mesure:reglages` |
 | Reroll (« Régénérer mon plan ») | 1ers repas qui changent : **repetitive 51 % · balanced 78 % · max 83 %** (13,7 % pour tous avant A21) | `npm run mesure:reroll` |
-| Anti-doublons | R1 81 · R2 70 · R4 14 · R5 17 · R7 0 — **figés par un test**, inchangés par B6 | `npm run check:doublons` |
-| Sous le seuil R8 | ⚠️ petit-déj **37/122** · repas complets **70/280** · collation **7/110** — B7 (30), B8 (8) et B9 (8) livrées, catalogue **512** | `npm run mesure:seuils` |
-| Ce que ça coûte au SERVICE | **633 repas servis sur 10 752 (5,9 %)** viennent d'une recette sous le seuil — **935 (8,7 %) avant B7**. ⚠️ Remonté de 5,3 % par B9 : un format volontairement étroit fait BAISSER une moyenne par recette tout en améliorant la couverture réelle | `npm run mesure:vivier` |
+| Anti-doublons | R1 81 · R2 70 · R4 14 · R5 **16** · R7 0 — **figés par un test**, et les plafonds ont été RESSERRÉS au constaté le 2026-08-03 (ils gardaient 4 à 5 points de mou depuis le 2026-07-29, cf. D20) | `npm run check:doublons` |
+| Drapeaux bloquants sur les repas SERVIS | **0** sur 10 752 (12 profils × 8 régimes × 4 semaines). Le dernier — `rep10` — est tombé avec D20 | `npm run mesure:variete` |
+| Sous le seuil R8 | ⚠️ petit-déj **37/122** · repas complets **71/280** · collation **7/110** — B7 (30), B8 (8) et B9 (8) livrées, catalogue **512** | `npm run mesure:seuils` |
+| Ce que ça coûte au SERVICE | **611 repas servis sur 10 752 (5,7 %)** viennent d'une recette sous le seuil — **935 (8,7 %) avant B7**, 633 (5,9 %) avant D20. ⚠️ B9 l'avait fait remonter depuis 5,3 % : un format volontairement étroit fait BAISSER une moyenne par recette tout en améliorant la couverture réelle | `npm run mesure:vivier` |
 | Vivier vu par UN utilisateur | croisement gabarit × **régime** × créneau. Les cellules les plus pauvres restent vegan/vegan+SG. Pire : collation · F 55 sèche · vegan+SG = **9 recettes, 8 familles** — c'était **3 et 2** avant B7 | idem |
-| Moyenne R8 par créneau | petit-déj **8,55/12** · repas complets **8,64** · collation **6,73** (8,27 / 8,51 / 7,38 avant B7 · 7,62 avant D18 · 7,19 avant B6 · 4,52 avant B5) | idem |
-| Vegan | petit-déj **56/122** · repas **89/280** · collation **59/102** — comptage CATALOGUE (`restrictions_ok`) | compter `restrictions_ok` par créneau |
-| Vegan + sans gluten | petit-déj **42/122** · repas **49/280** · collation **49/102** | idem |
+| Moyenne R8 par créneau | petit-déj **8,55/12** · repas complets **8,61** · collation **6,72** (8,27 / 8,51 / 7,38 avant B7 · 7,62 avant D18 · 7,19 avant B6 · 4,52 avant B5) | idem |
+| Vegan | petit-déj **56/122** · repas **89/280** · collation **67/110** — comptage CATALOGUE (`restrictions_ok`) | compter `restrictions_ok` par créneau |
+| Vegan + sans gluten | petit-déj **42/122** · repas **49/280** · collation **57/110** | idem |
 
 **Les six chantiers du 2026-08-02, dans l'ordre où ils se sont enchaînés** — chacun a sa
 fiche : **D14** (lot B4, 32 recettes à l'enveloppe corrigée), **D15** (lot B5, 23
@@ -266,7 +267,9 @@ est **FERMÉ** le 2026-08-01, `supportsTablet` est à `true`.)*
    recette mais l'UNION »). (2) **Un drapeau bloquant réapparaît** sur les repas servis, le
    premier depuis A25 : `H 110 masse · vegan+SG`, seed 2, `rep10` rend 40 g de protéines
    pour 44 demandés. Un repas sur 6 720, sur un plan RÉGÉNÉRÉ — **le plan canonique reste à
-   zéro**, ce qu'exige A25.
+   zéro**, ce qu'exige A25. ✅ **Refermé le 2026-08-03 par D20** : le drapeau était le
+   symptôme, `rep10` ne servait que 4 profils sur 12. Réécrite, elle en sert 11 et le
+   compteur est retombé à **zéro sur 10 752 repas**.
    🐛 **Un défaut du moteur trouvé au passage, dormant depuis D16** : `tightenDay`
    rappelait `mealTarget` **sans le plancher protéique** (paramètre optionnel → 0), donc
    la passe de resserrage annulait D16 exactement dans le cas qu'il couvre. Pire cible
@@ -2524,6 +2527,90 @@ produit en suspens — il ne reste qu'à coder.
   ont échoué sur la limite de session. Les chiffres ci-dessus ont été re-mesurés à la main
   (balayage complet, coût sur `preferred_proteins`, pool mince, plan canonique, reroll,
   performance 12 ms/plan) — mais aucune lentille indépendante n'a cherché à les réfuter.
+
+- ~~**D20 · `rep10` — le dernier drapeau bloquant, et la pire recette du créneau**~~
+  ✅ **LIVRÉ le 2026-08-03.** Point de départ : le drapeau laissé ouvert par B9
+  (`H 110 masse · vegan+SG`, seed 2, `rep10` rendait 40 g de protéines pour 44 demandés).
+  Mesuré avant de toucher quoi que ce soit — et **le drapeau n'était pas le sujet**.
+
+  📉 **`rep10` servait 4 profils sur 12** — dernier rang des 17 recettes ancrées pois
+  chiches (à égalité avec `rep85`) et dernier rang du pool vegan + sans gluten. Sur les
+  24 cellules (12 profils × midi/soir), **13 échouaient** : le drapeau dominant n'était
+  pas `protein_below_target` (9 cellules) mais **`over_target_kcal` (10 cellules)**, et
+  6 cellules portaient les deux. La recette plafonnait à
+  **3,87 g de protéines pour 100 kcal** quand une femme de 55 kg en sèche en demande
+  **6,8**. Pour servir 28 g de protéines il fallait lui poser 535 kcal dans l'assiette
+  pour une cible de 412. ➡️ **Un drapeau protéine peut être le symptôme d'un défaut
+  calorique** : c'est la DENSITÉ qui décide, pas la quantité d'ancre.
+
+  🔧 **Le fait de moteur qui commande tout, et qui n'était écrit nulle part** :
+  `adaptRecipe` scale **toutes les ancres protéiques par le MÊME facteur `kp`**
+  (`lib/adaptRecipe.ts`, étape 2). Ajouter une seconde ancre ne découple donc PAS la
+  protéine des calories — seule la densité **mélangée** du couple d'ancres compte. C'est
+  ce qui rend une retouche de quantité inutile ici, et ce qui explique la forme des
+  recettes qui tiennent 12/12 (`rep275`, `rep277`) : **une seule ancre très dense et peu
+  calorique**, jamais deux ancres moyennes.
+
+  🚫 **La retouche évidente était fermée, et c'est mesuré** : ajouter de la PST à `rep10`
+  viole R2 contre `rep91`, `rep104` ET `rep159` — les trois partagent déjà
+  `pois_chiches + soja_texture + lait_coco`, donc toute quatrième `ref` commune fait
+  quatre. Le curry de pois chiches végétal est un espace **saturé**. Ne pas rouvrir cette
+  piste.
+
+  📐 **Ce qui a été écrit** : `Tofu et pois chiches au lait de coco, épinards et riz` —
+  tofu ferme 200 g, pois chiches en conserve 100 g, riz 50 g, lait de coco 40 ml,
+  épinards 100 g, tomate concassée 120 g. **732 kcal · 41,9 g de protéines · densité 5,73**.
+  Choisi par balayage de la composition **sur le moteur** (`adaptRecipe`, jamais une
+  réplique de ses formules), à raison d'un meilleur R8 par quantité de pois chiches.
+
+  ⚖️ **Un arbitrage explicite, contre la métrique** : la meilleure composition mesurée
+  était `pois chiches SECS 35 g + tofu 180 g` → **12/12**. Elle a été écartée. Le §6.4 du
+  brief exige des instructions cohérentes avec la pesée, et **35 g de pois chiches secs ne
+  se cuisinent pas en 25 minutes** — personne ne fait tremper 35 g la veille. La version
+  en conserve rend **11/12** et se cuisine telle qu'elle est écrite. ➡️ **Une recette
+  qu'on ne peut pas suivre est un mensonge de la même famille qu'un chiffre faux** ; le
+  point de R8 se paie, l'instruction impossible non.
+
+  📏 **Un instrument ajouté au passage : la MARGE.** Le R8 seul choisit des compositions
+  posées sur une falaise — à riz 50 g la recette sert 12/12, à riz 55 g elle tombe à 10/12,
+  et la cellule limite passait à **1 kcal** du seuil des +12 %. Un optimum sans marge
+  retombe au premier changement de moteur (et « les chiffres R8 bougent quand le moteur
+  change » est déjà écrit trois fois ici). La composition retenue a **17 cellules sur 24
+  au-delà de 2 % de marge et 9 au-delà de 5 %**, le même profil que `rep277`, une 12/12
+  du catalogue.
+
+  📊 **Résultats, tous re-mesurés avant/après sur le même code** :
+
+  | | avant | après |
+  |---|---|---|
+  | drapeaux bloquants sur 10 752 repas servis | **1** | **0** |
+  | `rep10` — profils servis (pire créneau) | 4/12 | **11/12** |
+  | repas complets sous le seuil R8 | 72/280 | **71/280** |
+  | moyenne R8 du repas complet | 8,58 | **8,61** |
+  | repas servis venant d'une recette sous le seuil | 633 (5,9 %) | **611 (5,7 %)** |
+  | vivier `repas_complet · H 110 masse · vegan+SG` | 24 rec. / 21 fam. | **25 / 22** |
+  | écart calorique moyen du jour | 0,3450 % | 0,3459 % |
+  | quasi-doublons (max) | 10,0 % | 10,0 % |
+
+  L'écart calorique bouge de neuf dix-millièmes de point : `rep10` est servie plus souvent
+  qu'avant, rien de plus. `npm run mesure:variete` l'arrondit à 0,34 → 0,35 %, d'où cette
+  ligne — **le contrôle n'affiche que deux décimales, ne pas lire une dégradation là où il
+  n'y a que l'arrondi.**
+
+  🔒 **Le cliquet anti-doublons a été RESSERRÉ** (`lib/__tests__/doublons.test.ts`) :
+  R1 85 → 81, R2 75 → 70, R4 16 → 14, R5 18 → 16. Les plafonds n'avaient pas bougé depuis
+  le 2026-07-29 alors que B7 → B9 avaient fait descendre les compteurs — le garde-fou
+  gardait **4 à 5 points de mou sur chaque règle**, donc une vague pouvait ajouter quatre
+  clones sans faire rougir un test. ➡️ **Un cliquet ne se resserre pas tout seul :
+  descendre le plafond fait partie du nettoyage.**
+
+  ⚠️ **Ce que D20 ne règle PAS, et qui est réel** : les **16 autres recettes aux pois
+  chiches** pèsent la légumineuse SÈCHE (`basis: "dry"`, 350 kcal/100 g) tout en écrivant
+  des instructions qui la font mijoter 12 à 20 minutes — cuisson impossible à sec. Qui
+  utilise une conserve mange **un tiers** des calories annoncées. `rep10` est désormais la
+  seule recette du catalogue à employer `pois_chiches_conserve`, et c'était le bon choix
+  pour elle ; l'incohérence des 16 autres est un chantier à part, pas une retouche à
+  glisser ici. Elle touche les 22 `ref` pesées SEC, pas seulement les pois chiches.
 
 ### 🧹 E — Dette technique
 
