@@ -451,6 +451,32 @@ composant. Audit complet des réglages : `npm run mesure:reglages`.
   `GOAL_CONFIG` : il ne concernait auparavant que l'objectif daté, et « sèche rapide »
   servait 28 % de déficit à une femme de 60 kg sans le moindre drapeau. C'est un
   plancher calorique de plus (75 % du TDEE), il ne peut donc pas créer de surplus.
+> **Objectif daté — quand la date ne tient pas, Kyroz sert le rythme sûr MAXIMAL**
+> (2026-08-03, A15, `ENGINE_REV` 4 → 5). La règle : servir juste ce qu'il faut TANT QUE
+> ça suffit ; dès que la simulation dit que la date ne sera pas tenue, servir le maximum
+> **sûr** et dater la trajectoire là-dessus.
+>
+> **Le défaut que ça corrige** : le rythme requis se calculait en LIGNE DROITE
+> (`écart ÷ semaines`) alors que l'arrivée est SIMULÉE. Repousser sa date réduisait donc
+> le déficit demandé, le plancher cessait de mordre, le rythme SERVI tombait — et
+> l'arrivée reculait. **La date affichée n'était vraie que tant qu'on ne s'en servait
+> pas** : mesuré, elle glissait de +96 jours dès qu'on l'adoptait, sur 3 corps de
+> référence sur 8. Depuis, le rythme ne dépend plus de l'échéance, donc **la date
+> projetée est un point fixe**.
+>
+> ⚠️ **Aucun garde-fou n'est franchi** : rythme sûr modulé par l'adiposité, plafond des
+> 25 % du TDEE, plancher d'énergie disponible — on ne va pas plus vite que ce que la
+> sécurité autorisait déjà à quelqu'un ayant choisi une date proche. Balayé par
+> `datedGoal.test.ts` → « A15 — creuser plus ne franchit AUCUN garde-fou ».
+>
+> ⚠️ **`computePlan` passe désormais un PROJECTEUR** (`lib/tdee.ts`). Ce n'était pas le
+> cas, au motif que « computePlan n'a besoin que du delta » — vrai tant que le delta ne
+> dépendait pas de la projection. Sans lui, les écrans afficheraient la trajectoire
+> corrigée pendant que l'assiette servirait l'ancienne. Coût mesuré : 0,026 → 0,11 ms
+> (0,47 au pire). Aucune récursion : l'appel intérieur du projecteur reste `project: null`.
+>
+> ➡️ Contrôle : `npm run mesure:objectif`. Raisonnement complet et chiffres : AGENTS.md A15.
+
 - **Lipides sous le seuil de carence** — `lib/tdee.ts::fatTargetG`, plancher à
   0,8 g/kg de **poids de corps** (`FAT_MIN_PER_KG_BW`). Borné par le budget du
   jour, donc un plan reste toujours faisable.
