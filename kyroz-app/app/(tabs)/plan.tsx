@@ -5,7 +5,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useTheme, ThemePalette, Radius, Spacing, cardShadow } from '../../constants/theme';
+import { useTheme, ThemePalette, Radius, Spacing, Type } from '../../constants/theme';
 import { useLayout } from '../../constants/layout';
 import { DISCLAIMER } from '../../constants/legal';
 import { MacroBar } from '../../components/MacroBar';
@@ -582,8 +582,8 @@ export default function PlanScreen() {
       >
         {/* Header */}
         <View style={s.header}>
-          <View>
-            <Text style={s.date}>{todayLabel.toUpperCase()}</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={s.date}>{todayLabel.charAt(0).toUpperCase() + todayLabel.slice(1)}</Text>
             <Text style={s.h1}>{firstName ? `Salut ${firstName} 👋` : 'Ton plan'}</Text>
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
@@ -592,9 +592,11 @@ export default function PlanScreen() {
                 <Ionicons name="help-circle-outline" size={24} color={t.textTertiary} />
               </TouchableOpacity>
             )}
+            {/* La série se dit en toutes lettres, sans 🔥 : le compteur porte seul.
+                La progression vers l'objectif 7 jours reste juste dessous. */}
             <View style={s.streak}>
-              <Text style={{ fontSize: 15 }}>🔥</Text>
-              <Text style={s.streakN}>{streak.current_streak_days}</Text>
+              <Text style={s.streakN}>{streak.current_streak_days} j</Text>
+              <Text style={s.streakLbl}>de série</Text>
             </View>
           </View>
         </View>
@@ -656,16 +658,19 @@ export default function PlanScreen() {
               })}
             </View>
 
-            {/* Summary */}
+            {/* Synthèse du jour — SANS carte : c'est l'en-tête de l'écran, pas un
+                bloc parmi d'autres. Les cartes blanches sont réservées aux repas,
+                pour qu'un coup d'œil suffise à distinguer « le résumé » de « la
+                liste ». */}
             {dayMacros && (
-              <View ref={macrosRef} style={[s.card, cardShadow(t)]}>
+              <View ref={macrosRef}>
                 <SectionLabel t={t}>Jour {selectedDay}</SectionLabel>
                 {isRestDay && (
-                  <Text style={{ color: t.textSecondary, fontSize: 12, fontWeight: '600', marginTop: 4 }}>
+                  <Text style={{ color: t.textSecondary, fontSize: 14, lineHeight: 19, marginTop: 2 }}>
                     🛌 Jour de repos · glucides réduits, lipides relevés (mêmes kcal)
                   </Text>
                 )}
-                <View style={{ height: 10 }} />
+                <View style={{ height: 12 }} />
                 <MacroBar
                   protein_g={dayMacros.protein_g}
                   carbs_g={dayMacros.carbs_g}
@@ -716,8 +721,14 @@ export default function PlanScreen() {
             {/* Suivi d'hydratation (feature test — voir components/HydrationBar.tsx) */}
             {hydrationEnabled && <HydrationBar />}
 
-            {/* Meals */}
-            <SectionLabel t={t}>Repas du jour</SectionLabel>
+            {/* Meals — le titre de section porte le total prévu à droite, comme un
+                compteur de résultats (même grammaire que Courses et Recettes). */}
+            <View style={s.sectionRow}>
+              <SectionLabel t={t}>Repas du jour</SectionLabel>
+              {dayMacros && (
+                <Text style={s.sectionCount}>{dayMacros.kcal.toLocaleString('fr-FR')} kcal prévus</Text>
+              )}
+            </View>
             <View style={{ gap: 10 }}>
               {dayMeals.map((m, i) => {
                 const fridgeTracked = pantry.length > 0;
@@ -986,25 +997,27 @@ function makeStyles(t: ThemePalette) {
     safe: { flex: 1, backgroundColor: t.bg },
     center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
     content: { padding: Spacing.xl, gap: 20, paddingBottom: 120 },
-    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-    date: { color: t.textTertiary, fontSize: 12, fontWeight: '700', letterSpacing: 0.5 },
-    h1: { color: t.text, fontSize: 30, fontWeight: '800', letterSpacing: -1, marginTop: 3 },
-    streak: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: t.card, borderWidth: 1, borderColor: t.line, paddingHorizontal: 14, paddingVertical: 9, borderRadius: Radius.pill },
-    streakN: { color: t.text, fontSize: 15, fontWeight: '800' },
-    banner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, backgroundColor: t.fill, borderWidth: 1, borderColor: t.line, borderRadius: Radius.md, padding: 14 },
-    weighBanner: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: t.card, borderWidth: 1, borderColor: t.line, borderRadius: Radius.md, padding: 14 },
-    weighTitle: { color: t.text, fontSize: 15, fontWeight: '700' },
-    weighSub: { color: t.textSecondary, fontSize: 13, lineHeight: 18, marginTop: 2 },
-    bannerTxt: { flex: 1, color: t.textSecondary, fontSize: 13, lineHeight: 18 },
-    bannerCta: { color: t.text, fontSize: 13, fontWeight: '700' },
+    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 },
+    date: { color: t.textSecondary, fontSize: 14, lineHeight: 19 },
+    h1: { color: t.text, ...Type.display, marginTop: 2 },
+    streak: { alignItems: 'center', backgroundColor: t.card, borderWidth: 1, borderColor: t.line, paddingHorizontal: 14, paddingVertical: 8, borderRadius: Radius.card },
+    streakN: { color: t.text, fontSize: 17, fontWeight: '700' },
+    streakLbl: { color: t.textTertiary, fontSize: 11, fontWeight: '500', marginTop: 1 },
+    banner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, backgroundColor: t.fill, borderRadius: Radius.card, padding: 16 },
+    weighBanner: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: t.card, borderRadius: Radius.card, padding: 16 },
+    weighTitle: { color: t.text, fontSize: 15, fontWeight: '600' },
+    weighSub: { color: t.textSecondary, fontSize: 14, lineHeight: 19, marginTop: 2 },
+    bannerTxt: { flex: 1, color: t.textSecondary, fontSize: 14, lineHeight: 19 },
+    bannerCta: { color: t.text, fontSize: 14, fontWeight: '600' },
     days: { flexDirection: 'row', gap: 8 },
-    day: { flex: 1, height: 58, borderRadius: 14, borderWidth: 1, alignItems: 'center', justifyContent: 'center', gap: 4 },
+    day: { flex: 1, height: 58, borderRadius: Radius.button, borderWidth: 1, alignItems: 'center', justifyContent: 'center', gap: 4 },
     dayWd: { fontSize: 11, fontWeight: '600' },
     dayNum: { fontSize: 15, fontWeight: '700' },
-    card: { backgroundColor: t.card, borderRadius: Radius.xl, padding: Spacing.xxl },
-    extraRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 10 },
-    offPlanBtn: { marginTop: 14, paddingTop: 14, borderTopWidth: 1, borderTopColor: t.line, alignItems: 'center' },
-    offPlanTxt: { color: t.textSecondary, fontSize: 14, fontWeight: '600' },
+    sectionRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
+    sectionCount: { color: t.textTertiary, fontSize: 13 },
+    extraRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 12 },
+    offPlanBtn: { marginTop: 14, alignItems: 'center', backgroundColor: t.fill, borderRadius: Radius.button, paddingVertical: 13 },
+    offPlanTxt: { color: t.textSecondary, fontSize: 15, fontWeight: '600' },
     empty: { alignItems: 'center', gap: 10, paddingVertical: 24 },
     emptyIcon: { width: 72, height: 72, borderRadius: 24, alignItems: 'center', justifyContent: 'center', marginBottom: 6 },
     emptyTitle: { color: t.text, fontSize: 22, fontWeight: '800', letterSpacing: -0.5 },
@@ -1012,7 +1025,7 @@ function makeStyles(t: ThemePalette) {
     regenHint: { marginTop: 6, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
     regenHintTxt: { color: t.textTertiary, fontSize: 13, fontWeight: '600' },
     disclaimer: { color: t.textTertiary, fontSize: 11, lineHeight: 16, textAlign: 'center' },
-    toast: { position: 'absolute', left: 20, right: 20, bottom: 28, backgroundColor: t.accent, borderRadius: Radius.md, paddingVertical: 14, paddingHorizontal: 18, alignItems: 'center' },
-    toastTxt: { color: t.onAccent, fontSize: 14, fontWeight: '700' },
+    toast: { position: 'absolute', left: 20, right: 20, bottom: 28, backgroundColor: t.accent, borderRadius: Radius.button, paddingVertical: 14, paddingHorizontal: 18, alignItems: 'center' },
+    toastTxt: { color: t.onAccent, fontSize: 15, fontWeight: '600' },
   });
 }

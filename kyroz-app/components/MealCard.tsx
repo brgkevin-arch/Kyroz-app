@@ -42,44 +42,42 @@ export function MealCard({
       ref={rootRef}
       onPress={onPress}
       activeOpacity={0.85}
-      style={[{ backgroundColor: t.card, borderRadius: Radius.lg, padding: 18, opacity: muted ? 0.6 : 1 }, cardShadow(t)]}
+      style={[{ backgroundColor: t.card, borderRadius: Radius.card, padding: 18, opacity: muted ? 0.6 : 1 }, cardShadow(t)]}
     >
-      <View style={styles.top}>
-        <Text style={[styles.type, { color: t.textTertiary }]}>{MEAL_LABELS[meal.meal_type]?.toUpperCase()}</Text>
-        {isFixed ? (
-          <Text style={[styles.tag, { color: t.textSecondary }]}>🔒 Tu gères</Text>
-        ) : eaten ? (
-          <Text style={[styles.tag, { color: t.success }]}>✓ Mangé</Text>
-        ) : skipped ? (
-          <Text style={[styles.tag, { color: t.textTertiary }]}>⊘ Sauté</Text>
-        ) : (
-          <Text style={[styles.time, { color: t.textQuaternary }]}>{meal.recipe.prep_time_min} min</Text>
-        )}
-      </View>
+      {/* Un seul surtitre « TYPE · DURÉE » au lieu de deux coins opposés : le nom
+          du plat devient la première chose qu'on lit. Les états (mangé / sauté /
+          tu gères) prennent la place de la durée — ils comptent plus qu'elle. */}
+      <Text style={[styles.type, { color: t.textTertiary }]}>
+        {MEAL_LABELS[meal.meal_type]?.toUpperCase()}
+        {isFixed ? ' · 🔒 TU GÈRES'
+          : eaten ? ' · ✓ MANGÉ'
+          : skipped ? ' · ⊘ SAUTÉ'
+          : ` · ${meal.recipe.prep_time_min} MIN`}
+      </Text>
       <Text style={[styles.name, { color: t.text, textDecorationLine: skipped ? 'line-through' : 'none' }]}>
         {meal.recipe.name_fr}
       </Text>
       {isFixed && (
         <Text style={[styles.fixedNote, { color: t.textTertiary }]}>Tu gères ce repas — compté dans ton total</Text>
       )}
+      {/* Macros : une ligne grise, plus quatre pastilles colorées. Ici il n'y a
+          aucune proportion à comparer — c'est le nom du plat qu'on lit. */}
       {!skipped && (
-        <View style={styles.macros}>
-          <Pill v={meal.macros.kcal} u="kcal" c={t.textSecondary} cu={t.textQuaternary} />
-          <Pill v={meal.macros.protein_g} u="P" c={t.protein} cu={t.textQuaternary} />
-          <Pill v={meal.macros.carbs_g} u="G" c={t.carbs} cu={t.textQuaternary} />
-          <Pill v={meal.macros.fat_g} u="L" c={t.fat} cu={t.textQuaternary} />
-        </View>
+        <Text style={[styles.macros, { color: t.textSecondary }]}>
+          <Text style={{ color: t.text, fontWeight: '600' }}>{meal.macros.kcal}</Text>
+          {` kcal · ${meal.macros.protein_g} P · ${meal.macros.carbs_g} G · ${meal.macros.fat_g} L`}
+        </Text>
       )}
 
       {/* Synchro frigo (uniquement si l'user suit son garde-manger) — informatif,
           jamais bloquant : « J'ai cuisiné » reste toujours cliquable. */}
       {planned && fridgeTracked && (
         lacks ? (
-          <Text style={[styles.fridge, { color: t.warning }]} numberOfLines={1}>
-            🛒 Il te manque : {missing!.join(', ')}
+          <Text style={[styles.fridge, { color: t.textSecondary }]} numberOfLines={1}>
+            Il te manque : {missing!.join(', ')}
           </Text>
         ) : (
-          <Text style={[styles.fridge, { color: t.success }]}>✓ Tout est dans ton frigo</Text>
+          <Text style={[styles.fridge, { color: t.textTertiary }]}>Tout est dans ton frigo</Text>
         )
       )}
 
@@ -128,29 +126,14 @@ function CookButton({ t, onCook, lacks, cookRef }: { t: ThemePalette; onCook: ()
   );
 }
 
-function Pill({ v, u, c, cu }: { v: number; u: string; c: string; cu: string }) {
-  return (
-    <View style={styles.pill}>
-      <Text style={[styles.pillV, { color: c }]}>{v}</Text>
-      <Text style={[styles.pillU, { color: cu }]}>{u}</Text>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
-  top: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   type: { fontSize: 11, fontWeight: '700', letterSpacing: 1 },
-  time: { fontSize: 12 },
-  tag: { fontSize: 12, fontWeight: '700' },
-  name: { fontSize: 17, fontWeight: '700', letterSpacing: -0.3, marginTop: 7 },
-  macros: { flexDirection: 'row', gap: 14, marginTop: 12 },
-  pill: { flexDirection: 'row', gap: 3, alignItems: 'baseline' },
-  pillV: { fontSize: 14, fontWeight: '700' },
-  pillU: { fontSize: 11 },
-  fridge: { fontSize: 12, fontWeight: '600', marginTop: 12 },
+  name: { fontSize: 17, fontWeight: '600', letterSpacing: -0.3, marginTop: 7 },
+  macros: { fontSize: 14, lineHeight: 19, marginTop: 6 },
+  fridge: { fontSize: 13, marginTop: 10 },
   fixedNote: { fontSize: 12, marginTop: 6 },
-  actions: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12 },
-  cookBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, height: 44, paddingHorizontal: 12, borderRadius: Radius.md },
-  cookTxt: { fontSize: 14, fontWeight: '700' },
-  iconBtn: { width: 44, height: 44, borderRadius: Radius.md, alignItems: 'center', justifyContent: 'center' },
+  actions: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 14 },
+  cookBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, height: 44, paddingHorizontal: 12, borderRadius: Radius.button },
+  cookTxt: { fontSize: 15, fontWeight: '600' },
+  iconBtn: { width: 44, height: 44, borderRadius: Radius.button, alignItems: 'center', justifyContent: 'center' },
 });
