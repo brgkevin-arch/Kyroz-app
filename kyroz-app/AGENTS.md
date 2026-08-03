@@ -829,8 +829,11 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
   proposée** — mieux vaut pas de raccourci qu'un raccourci qui ment. Verrouillé par
   `datedGoal.test.ts` → « A14 — adopter la date projetée ». 820 tests.
 
-- **A26 · 🤖 OUVERT — la rangée d'échéances ne propose que de l'impossible à la moitié
-  des gabarits.** Mesuré le 2026-08-03 sur `main` (`npm run mesure:objectif`) :
+- **A27 · 🤖 OUVERT — la rangée d'échéances ne propose que de l'impossible à la moitié
+  des gabarits.** *(Publiée par erreur sous le numéro **A26**, déjà pris par « régénérer
+  oubliait ce qui avait été mangé » — deux fiches sous une même référence, donc une
+  référence qui ne désigne plus rien. Renumérotée le 2026-08-03.)*
+  Mesuré le 2026-08-03 sur `main` (`npm run mesure:objectif`) :
   **4 corps de référence sur 8 n'ont AUCUNE échéance tenable parmi les 5 proposées**
   (4 / 8 / 12 / 16 / 24 semaines). La personne choisit dans une rangée où chaque option
   lui répond « tu y arriveras après ta date ». La première échéance réellement tenable
@@ -852,7 +855,7 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
 - ~~**A15 · sur un gros écart, l'objectif daté se dessert lui-même**~~
   ✅ **TRANCHÉ ET LIVRÉ le 2026-08-03** (fondateur : « les deux »). `ENGINE_REV` 4 → 5.
   Contrôle re-mesurable : **`npm run mesure:objectif`**.
-  ⚠️ Ce que cette fiche a laissé OUVERT est sorti en **A26** ci-dessus — il était enterré
+  ⚠️ Ce que cette fiche a laissé OUVERT est sorti en **A27** ci-dessus — il était enterré
   dans une fiche marquée ✅ LIVRÉ, donc invisible pour qui cherche du travail à faire.
 
   🔎 **La fiche se trompait sur un point, et ça a changé le chantier.** Elle affirmait
