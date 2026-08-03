@@ -5,6 +5,26 @@ Tout ce qui est nécessaire (schéma, ingrédients autorisés, invariants, volum
 
 Date : 2026-07-29 · Catalogue de référence : 314 recettes · Vague demandée : **113 recettes**.
 
+> ⚠️ **LIRE CECI D'ABORD — ce document est daté (2026-07-29).** Tous ses comptages
+> (« 314 recettes existantes », « 286 des 314 », les étalonnages du §6) sont l'état du
+> catalogue **à cette date**. Le catalogue en compte **512** aujourd'hui. Ces chiffres
+> restent utiles comme calibration historique ; ils ne décrivent plus le catalogue live.
+>
+> **La commande à jour se génère** : `npm run gen:lots` (`scripts/gen-brief-lot.ts`), qui
+> lit le catalogue réel et recalcule enveloppes, couples saturés et ingrédients autorisés.
+> Ce document-ci reste la SPEC de fond (raisonnement, invariants, §4.12 les 5 règles de la
+> collation) ; en cas de contradiction sur un CHIFFRE, la commande générée gagne.
+>
+> **Ce qui a changé depuis, et qui invalide des passages ci-dessous :**
+> - **§4.8 `recup_jour_repos` : le champ est SUPPRIMÉ** (2026-08-03). Ne l'écris plus.
+> - **Légumineuses** : une `ref` sèche à trempage (pois chiches, haricots rouges/blancs/
+>   noirs) est **interdite** — utilise la `ref` prête à consommer. Voir le §6.4 de la
+>   commande générée, et `lib/__tests__/legumineuses.test.ts` qui refuse le lot sinon.
+> - **`tags.objectif` est vérifié par un test** sur les 512 (`lib/__tests__/tags.test.ts`) :
+>   il se déduit des kcal, aucune marge d'appréciation.
+> - **`tags.sport` n'est plus affiché à l'utilisateur** (2026-08-03) : il ne sert plus que
+>   de diversifieur interne. Le remplir reste utile, mais il ne promet plus rien.
+
 ---
 
 ## 1. Contexte
