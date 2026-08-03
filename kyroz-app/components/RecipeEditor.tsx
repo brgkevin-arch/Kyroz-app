@@ -172,9 +172,9 @@ export function RecipeEditor({ t, recipe, isCustom, onSave, onReset, onCancel, d
             <View style={s.computed}>
               <View style={s.computedRow}>
                 <MacroCell t={t} label="kcal" value={computed.macros.kcal} />
-                <MacroCell t={t} label="Prot." value={`${computed.macros.protein_g} g`} color={t.protein} />
-                <MacroCell t={t} label="Gluc." value={`${computed.macros.carbs_g} g`} color={t.carbs} />
-                <MacroCell t={t} label="Lip." value={`${computed.macros.fat_g} g`} color={t.fat} />
+                <MacroCell t={t} label="Prot." value={`${computed.macros.protein_g} g`} />
+                <MacroCell t={t} label="Gluc." value={`${computed.macros.carbs_g} g`} />
+                <MacroCell t={t} label="Lip." value={`${computed.macros.fat_g} g`} />
               </View>
               {computed.matchedRatio < 0.99 && (
                 <Text style={s.warn}>⚠️ {Math.round((1 - computed.matchedRatio) * 100)}% des ingrédients ne sont pas liés à la base — le total est partiel. Lie-les ou passe en Manuel.</Text>

@@ -120,9 +120,9 @@ export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adapted
 
         <View style={[s.macros, cardShadow(t)]}>
           <Big t={t} v={macros.kcal} l="kcal" />
-          <Big t={t} v={macros.protein_g} l="Protéines" u="g" c={t.protein} />
-          <Big t={t} v={macros.carbs_g} l="Glucides" u="g" c={t.carbs} />
-          <Big t={t} v={macros.fat_g} l="Lipides" u="g" c={t.fat} />
+          <Big t={t} v={macros.protein_g} l="Protéines" u="g" />
+          <Big t={t} v={macros.carbs_g} l="Glucides" u="g" />
+          <Big t={t} v={macros.fat_g} l="Lipides" u="g" />
         </View>
         <Text style={s.fiber}>🌾 ~{adaptedIngredients ? mealFiberFromIngredients(adaptedIngredients) : mealFiberG(recipe, f)} g de fibres (estimé)</Text>
 

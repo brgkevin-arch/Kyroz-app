@@ -75,7 +75,7 @@ export function WeightSummaryCard({
 
 function makeStyles(t: ThemePalette) {
   return StyleSheet.create({
-    card: { backgroundColor: t.card, borderRadius: Radius.lg, padding: Spacing.xl, gap: 14 },
+    card: { backgroundColor: t.card, borderRadius: Radius.card, padding: Spacing.xl, gap: 14 },
     head: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
     label: { color: t.textTertiary, fontSize: 12, fontWeight: '700', letterSpacing: 0.6 },
     valueRow: { flexDirection: 'row', alignItems: 'baseline', gap: 6, marginTop: 4, flexWrap: 'wrap' },

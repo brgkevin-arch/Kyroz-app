@@ -21,6 +21,16 @@ const CONFETTIS = [
   { x: -110, delay: 380 }, { x: 22, delay: 440 }, { x: 124, delay: 340 },
 ];
 
+// ⚠️ Palette PROPRE aux confettis, et surtout PAS les tokens de macro.
+// Ils l'étaient (`[t.protein, t.carbs, t.fat, t.accent]`) : un détournement qui
+// marchait tant que ces tokens valaient bleu / jaune / rouge, et qui est devenu
+// douze pastilles GRISES le jour où les macros sont passées en nuances d'un même
+// gris (refonte design 2026-08-03). Des confettis gris pour un anniversaire, ça
+// n'est pas une sobriété assumée, c'est une panne.
+// C'est le seul endroit de l'app qui a le droit à de la couleur franche : il dure
+// deux secondes, une fois par an, et ne code aucune information.
+const CONFETTI_COULEURS = ['#F0B429', '#E0524E', '#3B7BE0', '#7FD49B', '#B57BE0'];
+
 /**
  * Petit moment d'anniversaire. Une fois par an, à l'ouverture du Plan.
  *
@@ -75,7 +85,7 @@ export function BirthdayCelebration({ age, firstName, onClose }: Props) {
                   width: i % 3 === 0 ? 7 : 5,
                   height: i % 2 === 0 ? 12 : 7,
                   borderRadius: 2,
-                  backgroundColor: [t.protein, t.carbs, t.fat, t.accent][i % 4],
+                  backgroundColor: CONFETTI_COULEURS[i % CONFETTI_COULEURS.length],
                   opacity: progres.interpolate({ inputRange: [0, 0.15, 0.8, 1], outputRange: [0, 1, 1, 0] }),
                   transform: [
                     { translateY: progres.interpolate({ inputRange: [0, 1], outputRange: [-40, 760] }) },

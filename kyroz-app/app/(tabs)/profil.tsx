@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { useTheme, ThemePalette, Radius, Spacing, cardShadow } from '../../constants/theme';
+import { useTheme, ThemePalette, Radius, Spacing, Type } from '../../constants/theme';
 import { useLayout } from '../../constants/layout';
 import { ThemeMode, useThemeMode, setThemeMode } from '../../lib/themeMode';
 import { DISCLAIMER } from '../../constants/legal';
@@ -292,6 +292,15 @@ export default function ProfilScreen() {
   return (
     <SafeAreaView style={s.safe} edges={['top']}>
       <ScrollView contentContainerStyle={[s.content, layout.content]} showsVerticalScrollIndicator={false}>
+        {/* En-tête — l'écran n'en avait AUCUN : il démarrait direct sur la carte
+            poids. Sur un écran aussi long, arriver sans savoir où on est coûte plus
+            cher que les 60 px que ça prend. Le surtitre dit qui tu es, le titre dit
+            où tu es. */}
+        <View style={s.header}>
+          <Text style={s.sub}>{SEX_LABELS[profile.sex]} · {profile.age} ans · {goalLabel(profile.goal)}</Text>
+          <Text style={s.h1}>Profil</Text>
+        </View>
+
         {/* ⚠️ ORDRE INVERSÉ le 2026-08-02 (décision fondateur), et ce n'est pas
             cosmétique : le POIDS alimente le moteur — chaque pesée recalcule TDEE,
             macros et plan — alors que la série ne raconte que l'assiduité. Le premier
@@ -343,13 +352,15 @@ export default function ProfilScreen() {
             chiffre SUR SON CORPS, et on promet une fin (la remontée est bornée). */}
         {lowEaRise && <LowEaRiseCard t={t} rise={lowEaRise} onPress={() => setEditor('goal')} />}
 
-        {/* Macros cibles (affichage) */}
-        <SectionLabel t={t}>MACROS CIBLES / JOUR</SectionLabel>
+        {/* Cibles du jour — les quatre macros perdent leurs quatre couleurs : même
+            graisse, même encre, la valeur porte seule. Il n'y a rien à comparer
+            entre quatre boîtes côte à côte (cf. la note en tête de theme.ts). */}
+        <SectionTitle t={t}>Cibles du jour</SectionTitle>
         <View style={s.grid}>
           <Box t={t} v={profile.target_kcal} l="kcal" />
-          <Box t={t} v={profile.target_protein_g} l="Protéines" u="g" c={t.protein} />
-          <Box t={t} v={profile.target_carbs_g} l="Glucides" u="g" c={t.carbs} />
-          <Box t={t} v={profile.target_fat_g} l="Lipides" u="g" c={t.fat} />
+          <Box t={t} v={profile.target_protein_g} l="protéines" u=" g" />
+          <Box t={t} v={profile.target_carbs_g} l="glucides" u=" g" />
+          <Box t={t} v={profile.target_fat_g} l="lipides" u=" g" />
         </View>
 
         {/* Ton informatif, pas alarmant : c'est une borne qui protège, pas un échec.
@@ -370,29 +381,41 @@ export default function ProfilScreen() {
           </Text>
         )}
 
-        {/* Réglages — édition par catégorie */}
-        <SectionLabel t={t}>RÉGLAGES</SectionLabel>
-        <View style={[s.menu, cardShadow(t)]}>
-          <MenuRow t={t} icon="person-outline" label="Informations" value={`${SEX_LABELS[profile.sex]} · ${profile.age} ans · ${profile.weight_kg} kg${profile.body_fat_pct != null ? ` · ${profile.body_fat_pct}% MG` : ''}`} onPress={() => setEditor('info')} />
-          <MenuRow t={t} icon="barbell-outline" label="Sport & activité" value={`${profile.sports?.length ? `${profile.sports.length} sport${profile.sports.length > 1 ? 's' : ''}` : 'Aucun sport'} · ${NEAT_SHORT[profile.neat_level ?? DEFAULT_NEAT_LEVEL]}`} onPress={() => setEditor('sports')} />
-          <MenuRow t={t} icon="flag-outline" label="Objectif" value={goalLabel(profile.goal)} onPress={() => setEditor('goal')} />
-          <MenuRow t={t} icon="rocket-outline" label="Objectif daté" value={profile.goal_target ? `${profile.goal_target.target_weight_kg} kg · ${formatFR(profile.goal_target.target_date)}` : (premium.can('dated_goal') ? 'Aucun' : 'Inclus dans Kyroz+')} onPress={() => openEditor('dated_goal')} />
-          <MenuRow t={t} icon="flame-outline" label="Calories & macros" value={profile.macro_mode === 'percent' ? 'Perso %' : 'Calculées'} onPress={() => setEditor('macros')} />
-          <MenuRow t={t} icon="restaurant-outline" label="Préférences alimentaires" value={profile.dietary_restrictions.length || profile.disliked_foods.length || profile.hidden_recipes?.length ? 'Personnalisées' : 'Aucune'} onPress={() => setEditor('prefs')} />
-          <MenuRow t={t} icon="calendar-outline" label="Paramètres des repas" value={`${profile.plan_days} j · ${(profile.meals?.length || 4)} repas · ${EMPHASIS_LABELS[profile.meal_emphasis ?? 'even']}`} onPress={() => setEditor('meals')} />
-          <MenuRow t={t} icon="wallet-outline" label="Banque de calories" value={premium.can('calorie_bank') ? bankResume(profile) : 'Inclus dans Kyroz+'} onPress={() => openEditor('calorie_bank')} />
-          <MenuRow t={t} icon="sparkles-outline" label="Kyroz+" value={KYROZ_PLUS_VALEUR[premium.reason]} onPress={() => router.push('/kyroz-plus')} />
-          <MenuRow t={t} icon="refresh-outline" label="Régénérer mon plan" value="Repartir de zéro" onPress={regenPlan} last />
+        {/* Réglages — TOI d'abord (corps, sport, objectif), TON PLAN ensuite. Dix
+            lignes d'affilée étaient un mur : les couper en deux blocs nommés donne
+            un repère, et ça ne coûte rien. Les icônes sont parties — à 17 px
+            semi-gras le libellé suffit, et la ligne respire. */}
+        <SectionTitle t={t}>Réglages</SectionTitle>
+        <View style={s.menu}>
+          <MenuRow t={t} label="Informations" value={`${SEX_LABELS[profile.sex]} · ${profile.age} ans · ${profile.weight_kg} kg${profile.body_fat_pct != null ? ` · ${profile.body_fat_pct}% MG` : ''}`} onPress={() => setEditor('info')} />
+          <MenuRow t={t} label="Sport & activité" value={`${profile.sports?.length ? `${profile.sports.length} sport${profile.sports.length > 1 ? 's' : ''}` : 'Aucun sport'} · ${NEAT_SHORT[profile.neat_level ?? DEFAULT_NEAT_LEVEL]}`} onPress={() => setEditor('sports')} />
+          <MenuRow t={t} label="Objectif" value={goalLabel(profile.goal)} onPress={() => setEditor('goal')} />
+          <MenuRow t={t} label="Objectif daté" value={profile.goal_target ? `${profile.goal_target.target_weight_kg} kg · ${formatFR(profile.goal_target.target_date)}` : (premium.can('dated_goal') ? 'Aucun' : 'Inclus dans Kyroz+')} onPress={() => openEditor('dated_goal')} last />
         </View>
 
-        {/* TDEE */}
-        <View style={[s.tdee, cardShadow(t)]}>
+        <SectionLabel t={t}>TON PLAN</SectionLabel>
+        <View style={s.menu}>
+          <MenuRow t={t} label="Calories & macros" value={profile.macro_mode === 'percent' ? 'Perso %' : 'Calculées'} onPress={() => setEditor('macros')} />
+          <MenuRow t={t} label="Préférences alimentaires" value={profile.dietary_restrictions.length || profile.disliked_foods.length || profile.hidden_recipes?.length ? 'Personnalisées' : 'Aucune'} onPress={() => setEditor('prefs')} />
+          <MenuRow t={t} label="Paramètres des repas" value={`${profile.plan_days} j · ${(profile.meals?.length || 4)} repas · ${EMPHASIS_LABELS[profile.meal_emphasis ?? 'even']}`} onPress={() => setEditor('meals')} />
+          <MenuRow t={t} label="Banque de calories" value={premium.can('calorie_bank') ? bankResume(profile) : 'Inclus dans Kyroz+'} onPress={() => openEditor('calorie_bank')} />
+          <MenuRow t={t} label="Kyroz+" value={KYROZ_PLUS_VALEUR[premium.reason]} onPress={() => router.push('/kyroz-plus')} />
+          <MenuRow t={t} label="Régénérer mon plan" value="Repartir de zéro" onPress={regenPlan} last />
+        </View>
+
+        {/* TDEE — le libellé prend la place qui reste, le chiffre ne se coupe jamais
+            en deux lignes (`flexShrink: 0`). Sans ça, « 2 369 kcal » passait à la
+            ligne au milieu de lui-même. */}
+        <View style={s.tdee}>
           <Text style={s.tdeeL}>Dépense estimée · maintenance (TDEE)</Text>
-          <Text style={s.tdeeV}>{profile.tdee_kcal} kcal</Text>
+          <Text style={s.tdeeV}>{profile.tdee_kcal.toLocaleString('fr-FR')} kcal</Text>
         </View>
 
-        {/* Rappel quotidien (spec §5) — ramène l'utilisateur chaque jour */}
-        <SectionLabel t={t}>RAPPEL QUOTIDIEN</SectionLabel>
+        {/* Préférences — un seul titre pour les quatre réglages qui suivent. Ils
+            avaient chacun leur en-tête en capitales, ce qui donnait l'impression de
+            quatre sections indépendantes là où il n'y a qu'une liste d'interrupteurs. */}
+        <SectionTitle t={t}>Préférences</SectionTitle>
+        <Text style={s.settingLabel}>Rappel quotidien</Text>
         <Segmented<ReminderSlot>
           t={t}
           value={slot}
@@ -423,7 +446,7 @@ export default function ProfilScreen() {
         </Text>
 
         {/* Propositions d'ajustement du plan (le check-in « ton plan te convient ? ») */}
-        <SectionLabel t={t}>PROPOSITIONS D'AJUSTEMENT</SectionLabel>
+        <Text style={s.settingLabel}>Propositions d'ajustement</Text>
         <Segmented<'on' | 'off'>
           t={t}
           value={checkinEnabled ? 'on' : 'off'}
@@ -436,8 +459,6 @@ export default function ProfilScreen() {
             : 'On ne te proposera plus d’ajuster ton plan.'}
         </Text>
 
-        {/* Paramètres de l'application — préférences générales */}
-        <SectionLabel t={t}>APPLICATION</SectionLabel>
         <Text style={s.settingLabel}>Apparence</Text>
         <Segmented<ThemeMode>
           t={t}
@@ -480,11 +501,11 @@ export default function ProfilScreen() {
             : 'Aucune statistique d’usage n’est partagée.'}
         </Text>
 
-        <View style={[s.menu, cardShadow(t)]}>
-          <MenuRow t={t} icon="mail-outline" label="Aide & contact" value={SUPPORT_EMAIL} onPress={contactSupport} />
-          <MenuRow t={t} icon="download-outline" label="Exporter mes données" value="Télécharger tout (RGPD)" onPress={doExport} />
-          <MenuRow t={t} icon="shield-checkmark-outline" label="Confidentialité & CGU" value="RGPD, données de santé" onPress={() => router.push('/legal')} />
-          <MenuRow t={t} icon="information-circle-outline" label="Version" value={appVersion} onPress={() => {}} readonly last />
+        <View style={s.menu}>
+          <MenuRow t={t} label="Aide & contact" value={SUPPORT_EMAIL} onPress={contactSupport} />
+          <MenuRow t={t} label="Exporter mes données" value="Télécharger tout (RGPD)" onPress={doExport} />
+          <MenuRow t={t} label="Confidentialité & CGU" value="RGPD, données de santé" onPress={() => router.push('/legal')} />
+          <MenuRow t={t} label="Version" value={appVersion} onPress={() => {}} readonly last />
         </View>
 
         <TouchableOpacity style={s.logoutBtn} onPress={doLogout} activeOpacity={0.8}><Text style={s.logoutTxt}>Se déconnecter</Text></TouchableOpacity>
@@ -519,7 +540,7 @@ export default function ProfilScreen() {
         </Text>
         <View style={{ height: 6 }} />
         <TouchableOpacity onPress={doDelete} disabled={deleting} activeOpacity={0.85}
-          style={{ backgroundColor: t.danger, borderRadius: Radius.md, paddingVertical: 17, alignItems: 'center', opacity: deleting ? 0.6 : 1 }}>
+          style={{ backgroundColor: t.danger, borderRadius: Radius.button, paddingVertical: 17, alignItems: 'center', opacity: deleting ? 0.6 : 1 }}>
           <Text style={{ color: t.onDanger, fontSize: 17, fontWeight: '700' }}>{deleting ? 'Suppression…' : 'Supprimer définitivement'}</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => setConfirmDelete(false)} style={{ alignItems: 'center', paddingVertical: 6 }}>
@@ -531,25 +552,42 @@ export default function ProfilScreen() {
 }
 
 // ── Lignes / boîtes ──────────────────────────────────────────────────────────
-function MenuRow({ t, icon, label, value, onPress, last, readonly }: { t: ThemePalette; icon: any; label: string; value: string; onPress: () => void; last?: boolean; readonly?: boolean }) {
+
+/** Titre de section, en casse normale. Distinct de `SectionLabel` (petites
+ *  capitales) : celui-ci découpe l'écran, l'autre étiquette un bloc. */
+function SectionTitle({ t, children }: { t: ThemePalette; children: React.ReactNode }) {
+  return (
+    <Text style={{ color: t.text, fontSize: 20, fontWeight: '700', letterSpacing: -0.4, marginTop: 8 }}>
+      {children}
+    </Text>
+  );
+}
+
+// Plus d'icône en tête de ligne : à 17 px semi-gras le libellé se lit seul, et
+// dix pictogrammes empilés faisaient un mur de gris qui n'aidait personne à
+// trouver « Objectif daté ». Le chevron reste — lui dit qu'il se passe quelque
+// chose au toucher.
+function MenuRow({ t, label, value, onPress, last, readonly }: { t: ThemePalette; label: string; value: string; onPress: () => void; last?: boolean; readonly?: boolean }) {
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={readonly ? 1 : 0.7} disabled={readonly}
-      style={[{ flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 16 }, !last && { borderBottomWidth: 1, borderBottomColor: t.line }]}>
-      <Ionicons name={icon} size={20} color={t.textSecondary} />
+      style={[{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 15 }, !last && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.line }]}>
       <View style={{ flex: 1 }}>
-        <Text style={{ color: t.text, fontSize: 15, fontWeight: '600' }}>{label}</Text>
-        <Text style={{ color: t.textTertiary, fontSize: 13, marginTop: 2 }} numberOfLines={1}>{value}</Text>
+        <Text style={{ color: t.text, fontSize: 17, fontWeight: '600', letterSpacing: -0.3 }}>{label}</Text>
+        <Text style={{ color: t.textTertiary, fontSize: 14, marginTop: 2 }} numberOfLines={1}>{value}</Text>
       </View>
       {!readonly && <Ionicons name="chevron-forward" size={18} color={t.textQuaternary} />}
     </TouchableOpacity>
   );
 }
 
-function Box({ t, v, l, u = '', c }: { t: ThemePalette; v: number; l: string; u?: string; c?: string }) {
+// ⚠️ Plus de prop `c` (couleur) : les quatre macros portaient quatre teintes,
+// alors qu'il n'y a rien à comparer entre quatre boîtes côte à côte. Même encre
+// pour les quatre — cf. la note en tête de constants/theme.ts.
+function Box({ t, v, l, u = '' }: { t: ThemePalette; v: number; l: string; u?: string }) {
   return (
-    <View style={[{ flex: 1, backgroundColor: t.card, borderRadius: Radius.md, padding: 14, alignItems: 'center', gap: 4 }, cardShadow(t)]}>
-      <Text style={{ fontSize: 19, fontWeight: '800', letterSpacing: -0.5, color: c ?? t.text }}>{v}{u}</Text>
-      <Text style={{ fontSize: 10, color: t.textSecondary, textAlign: 'center' }}>{l}</Text>
+    <View style={{ flex: 1, backgroundColor: t.card, borderRadius: Radius.card, paddingVertical: 16, paddingHorizontal: 8, alignItems: 'center', gap: 3 }}>
+      <Text style={{ fontSize: 20, fontWeight: '700', letterSpacing: -0.5, color: t.text }}>{v}{u}</Text>
+      <Text style={{ fontSize: 12, color: t.textSecondary, textAlign: 'center' }}>{l}</Text>
     </View>
   );
 }
@@ -950,7 +988,13 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
           <Row t={t} l="Trajectoire" v={status.direction === 'maintain' ? dirLabel : `${dirLabel} ${gapKg} kg`} strong />
           {status.direction !== 'maintain' && <Row t={t} l="Rythme sûr" v={`${Math.abs(status.safeWeeklyKg)} kg / sem`} />}
           <Row t={t} l="Calories ajustées" v={`${preview.target_kcal} kcal/j`} strong />
-          <Row t={t} l="vs maintenance" v={`${kcalDelta >= 0 ? '+' : ''}${kcalDelta} kcal/j`} c={kcalDelta < 0 ? t.carbs : t.protein} />
+          {/* ⚠️ Cette ligne colorait le delta avec les tokens de MACRO — `carbs` en
+              déficit, `protein` en surplus. Un jaune et un bleu détournés en code
+              de statut : ils ne voulaient rien dire ici, et depuis que les macros
+              sont trois gris, ils ne se distinguaient même plus. Le signe porte
+              l'information, et un écart à la maintenance n'a pas à s'alarmer
+              (règle produit §10). */}
+          <Row t={t} l="vs maintenance" v={`${kcalDelta >= 0 ? '+' : ''}${kcalDelta} kcal/j`} />
         </Card>
       )}
       {!goalBlockMsg && status?.directionMismatch && (
@@ -1069,9 +1113,11 @@ function MacroEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
       {mode === 'auto' ? (
         <Card t={t} style={{ gap: 12 }}>
           <Row t={t} l="Objectif calorique" v={`${auto.target_kcal} kcal`} strong />
-          <Row t={t} l="Protéines" v={`${auto.target_protein_g} g`} c={t.protein} />
-          <Row t={t} l="Glucides" v={`${auto.target_carbs_g} g`} c={t.carbs} />
-          <Row t={t} l="Lipides" v={`${auto.target_fat_g} g`} c={t.fat} />
+          {/* Trois lignes empilées : aucune proportion à comparer, donc aucune
+              couleur à porter (cf. la note en tête de constants/theme.ts). */}
+          <Row t={t} l="Protéines" v={`${auto.target_protein_g} g`} />
+          <Row t={t} l="Glucides" v={`${auto.target_carbs_g} g`} />
+          <Row t={t} l="Lipides" v={`${auto.target_fat_g} g`} />
         </Card>
       ) : (
         <MacroSplit
@@ -1202,7 +1248,7 @@ function MealsEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
         {orderedMeals(meals).map((mt) => {
           const fm = fixedMeals[mt];
           return (
-            <View key={mt} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: t.card, borderRadius: Radius.md, padding: 14 }}>
+            <View key={mt} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: t.card, borderRadius: Radius.card, padding: 14 }}>
               <View style={{ flex: 1, paddingRight: 10 }}>
                 <Text style={{ color: t.text, fontSize: 14, fontWeight: '700' }}>{mealLabel(mt)}</Text>
                 <Text style={{ color: fm ? t.textSecondary : t.textTertiary, fontSize: 12, marginTop: 3 }} numberOfLines={1}>
@@ -1252,17 +1298,20 @@ function makeStyles(t: ThemePalette) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: t.bg },
     content: { padding: Spacing.xl, gap: 16, paddingBottom: 120 },
+    header: { marginBottom: 2 },
+    sub: { color: t.textSecondary, fontSize: 14, lineHeight: 19 },
+    h1: { color: t.text, ...Type.display, marginTop: 2 },
     grid: { flexDirection: 'row', gap: 8 },
-    menu: { backgroundColor: t.card, borderRadius: Radius.lg, paddingHorizontal: Spacing.xl },
-    tdee: { backgroundColor: t.card, borderRadius: Radius.md, padding: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-    floorNote: { color: t.textSecondary, fontSize: 12, lineHeight: 17, marginTop: -4 },
-    tdeeL: { color: t.textSecondary, fontSize: 13 },
-    tdeeV: { color: t.text, fontSize: 16, fontWeight: '700' },
-    reminderHint: { color: t.textTertiary, fontSize: 12, lineHeight: 16, marginTop: -8 },
-    settingLabel: { color: t.text, fontSize: 15, fontWeight: '600', marginBottom: -8 },
+    menu: { backgroundColor: t.card, borderRadius: Radius.card, paddingHorizontal: 16 },
+    tdee: { backgroundColor: t.card, borderRadius: Radius.card, padding: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 12 },
+    floorNote: { color: t.textSecondary, fontSize: 13, lineHeight: 18, marginTop: -4 },
+    tdeeL: { flex: 1, color: t.textSecondary, fontSize: 14, lineHeight: 19 },
+    tdeeV: { flexShrink: 0, color: t.text, fontSize: 17, fontWeight: '600' },
+    reminderHint: { color: t.textTertiary, fontSize: 13, lineHeight: 18, marginTop: -8 },
+    settingLabel: { color: t.text, fontSize: 17, fontWeight: '600', letterSpacing: -0.3, marginBottom: -8 },
     disclaimer: { color: t.textTertiary, fontSize: 11, lineHeight: 16, textAlign: 'center' },
-    logoutBtn: { alignItems: 'center', justifyContent: 'center', paddingVertical: 14, marginTop: 8, borderRadius: Radius.md, borderWidth: 1.5, borderColor: t.lineStrong },
-    logoutTxt: { color: t.text, fontSize: 15, fontWeight: '700' },
+    logoutBtn: { alignItems: 'center', justifyContent: 'center', paddingVertical: 15, marginTop: 8, borderRadius: Radius.button, backgroundColor: t.fill },
+    logoutTxt: { color: t.text, fontSize: 15, fontWeight: '600' },
     delBtn: { alignItems: 'center', paddingVertical: 12, marginTop: 4 },
     delTxt: { color: t.danger, fontSize: 13 },
   });

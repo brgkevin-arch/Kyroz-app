@@ -56,7 +56,7 @@ export function MacroSplit({
       {/* Protéines */}
       <View style={{ gap: 8 }}>
         <Text style={[styles.label, { color: t.textTertiary }]}>PROTÉINES (g / kg de {proteinBasis})</Text>
-        <Stepper t={t} value={proteinPerKg} min={PROT_MIN} max={PROT_MAX} step={0.1} decimals={1} unit="g/kg" color={t.protein} onChange={onProteinChange} />
+        <Stepper t={t} value={proteinPerKg} min={PROT_MIN} max={PROT_MAX} step={0.1} decimals={1} unit="g/kg" color={t.accent} onChange={onProteinChange} />
         <Text style={[styles.note, { color: t.textSecondary }]}>
           💡 Conseillé pour « {goalLabel(goal)} » : <Text style={{ fontWeight: '700' }}>{reco} g/kg</Text>
         </Text>
@@ -70,9 +70,9 @@ export function MacroSplit({
       {/* Glucides / lipides */}
       <View style={{ gap: 8 }}>
         <Text style={[styles.label, { color: t.textTertiary }]}>RÉPARTITION DU RESTE (après protéines)</Text>
-        <Stepper t={t} value={carbRatio} min={CARB_MIN} max={CARB_MAX} step={1} decimals={0} unit="% glucides" color={t.carbs} onChange={onCarbChange} />
+        <Stepper t={t} value={carbRatio} min={CARB_MIN} max={CARB_MAX} step={1} decimals={0} unit="% glucides" color={t.accent} onChange={onCarbChange} />
         <Text style={[styles.note, { color: t.textSecondary }]}>
-          → <Text style={{ color: t.fat, fontWeight: '700' }}>{fatServi}%</Text> lipides
+          → <Text style={{ color: t.text, fontWeight: '700' }}>{fatServi}%</Text> lipides
         </Text>
         {ecarte && (
           // Ton : on explique, on ne reproche pas (règle produit §10). Le réglage
@@ -94,9 +94,9 @@ export function MacroSplit({
           </Text>
         )}
         <View style={[styles.sep, { backgroundColor: t.line }]} />
-        <Row t={t} l="Protéines" v={`${m.protein_g} g`} c={t.protein} />
-        <Row t={t} l="Glucides" v={`${m.carbs_g} g`} c={t.carbs} />
-        <Row t={t} l="Lipides" v={`${m.fat_g} g`} c={t.fat} />
+        <Row t={t} l="Protéines" v={`${m.protein_g} g`} />
+        <Row t={t} l="Glucides" v={`${m.carbs_g} g`} />
+        <Row t={t} l="Lipides" v={`${m.fat_g} g`} />
       </View>
     </View>
   );
