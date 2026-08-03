@@ -7,7 +7,7 @@ import { Field, PrimaryButton, SectionLabel, Segmented } from './ui';
 import { useDialog } from './Dialog';
 import { WeightChart } from './WeightChart';
 import { TrackVerdict, PhotoCompare } from './Transformation';
-import { planFlags } from '../lib/tdee';
+import { planFlags, trackingTarget } from '../lib/tdee';
 import { useWeightLog } from '../hooks/useWeightLog';
 import { useProfile } from '../hooks/useProfile';
 import { pickProgressPhoto, cameraAvailable, PhotoSource } from '../lib/photos';
@@ -61,6 +61,13 @@ export function WeightCheckin({ t, onClose, dragHandlers }: Props) {
   const [pendingPhoto, setPendingPhoto] = useState<string | null>(null);
   // Confirmation structurée après enregistrement.
   const [saved, setSaved] = useState<{ updated: boolean; label: string; delta: number | null; date: string } | null>(null);
+
+  // Objectif de SUIVI : la date que le moteur tiendra, pas celle qui a été saisie.
+  // Coûte une simulation, d'où le mémo — elle ne bouge que si le profil bouge.
+  const suiviTarget = useMemo(
+    () => (profile ? trackingTarget(profile, todayStamp()) : undefined),
+    [profile?.goal_target?.target_date, profile?.goal_target?.target_weight_kg, profile?.weight_kg, profile?.target_kcal], // eslint-disable-line react-hooks/exhaustive-deps
+  );
 
   // Message honnête : explique si (et pourquoi) le plan a été ajusté.
   const planStatusMsg = (d: string) => {
@@ -261,15 +268,18 @@ export function WeightCheckin({ t, onClose, dragHandlers }: Props) {
         )}
 
         <SectionLabel t={t}>Évolution</SectionLabel>
-        <WeightChart t={t} entries={entries} width={width} goalTarget={profile?.goal_target} />
-        {profile?.goal_target && (
+        {/* ⚠️ `trackingTarget`, PAS `profile.goal_target` : le couloir vise la date que
+            le moteur tiendra, pas celle qui a été saisie. Sans ça, on affiche « en
+            retard » à quelqu'un qui suit le plan à la lettre — mesuré, dès J+7. */}
+        <WeightChart t={t} entries={entries} width={width} goalTarget={suiviTarget} />
+        {profile && suiviTarget && (
           // `paused` vient du PRODUCTEUR UNIQUE : quand le moteur a cessé de piloter
           // la trajectoire (insuffisance pondérale, poids cible à contresens), la
           // ligne idéale continue de descendre alors que le plan est au maintien —
           // sans ce drapeau on affichait « en retard » à quelqu'un à qui l'app venait
           // d'interdire tout déficit.
           <TrackVerdict
-            t={t} goalTarget={profile.goal_target} currentWeightKg={profile.weight_kg}
+            t={t} goalTarget={suiviTarget} currentWeightKg={profile.weight_kg}
             paused={planFlags(profile).some((f) => f === 'UNDERWEIGHT_NO_DEFICIT' || f === 'GOAL_DIRECTION_MISMATCH')}
           />
         )}

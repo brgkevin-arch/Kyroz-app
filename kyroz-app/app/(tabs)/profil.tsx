@@ -39,7 +39,7 @@ import { exportMyData } from '../../lib/exportData';
 import {
   calculateTDEE, computePlan, goalLabel, planFlags, validateProfile, recalcProfile, DEFAULT_CARB_RATIO, recommendedProteinPerKg,
   DEFAULT_NEAT_LEVEL, NEAT_ORDER, NEAT_LABEL, NEAT_HINT, NEAT_SHORT, dismissEngineNotice,
-  bankFloorKcal, makeWeeklyProjector,
+  bankFloorKcal, makeWeeklyProjector, trackingTarget,
 } from '../../lib/tdee';
 import {
   lowEaWeeksForFloor, checkEligibility, eligibilityMessage, LowEaEscalation,
@@ -303,7 +303,7 @@ export default function ProfilScreen() {
           entries={weightEntries}
           delta={weightDelta}
           due={weighInDue}
-          goalTarget={profile.goal_target}
+          goalTarget={trackingTarget(profile, todayStamp())}
           onPress={() => setWeighIn(true)}
         />
 

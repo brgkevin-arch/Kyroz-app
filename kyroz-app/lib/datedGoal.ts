@@ -200,6 +200,13 @@ function weeksToTargetSimulated(
    * réponse date la trajectoire réellement servie quand la date choisie ne tient pas.
    */
   forceMaxRate = false,
+  /**
+   * Reçoit, semaine par semaine, le poids que la trajectoire SERVIE fait atteindre.
+   * Paramètre de SORTIE, sans effet sur le calcul : il existe pour que le couloir de
+   * progression puisse être tracé sur ce que le moteur fera vraiment, au lieu d'une
+   * ligne droite vers la date saisie (cf. `simulatedTrajectory`).
+   */
+  journal?: { stamp: string; weightKg: number }[],
 ): number {
   // Semaines de zone basse DÉJÀ vécues, avec leur date : elles sortent de la
   // fenêtre de 12 mois au fil de la simulation, comme dans la vraie vie.
@@ -219,6 +226,7 @@ function weeksToTargetSimulated(
   let poids = p.weight_kg;
   for (let semaine = 0; semaine < MAX_PROJECTION_WEEKS; semaine++) {
     const stamp = addDaysStamp(today, semaine * 7);
+    journal?.push({ stamp, weightKg: poids });
     // La semaine COURANTE ne compte pas dans son propre plancher (idempotence,
     // cf. safety.lowEaWeeksBefore) : on mesure sur les semaines antérieures.
     const reste = target.target_weight_kg - poids;
@@ -249,6 +257,26 @@ function weeksToTargetSimulated(
     poids += rythme;
   }
   return Infinity; // au-delà de l'horizon : on ne donne pas de date
+}
+
+/**
+ * La trajectoire que le moteur SERVIRA réellement, semaine par semaine.
+ *
+ * ⚠️ À employer partout où l'on dessine « où tu devrais en être ». `idealWeightAt`
+ * trace une LIGNE DROITE du poids de départ au poids cible sur la date SAISIE — le
+ * même raccourci que A15 vient de retirer du moteur. Quand la date n'est pas tenable,
+ * cette ligne descend beaucoup plus vite que ce que Kyroz sert, donc l'utilisateur
+ * sort de son couloir en quelques jours **en ayant parfaitement suivi le plan**.
+ * Reprocher un retard qu'on a soi-même imposé est exactement la charge mentale que
+ * CLAUDE.md §10 refuse — le principe était déjà écrit ici pour le cas « déficit
+ * bloqué », il manquait pour le cas « date hors de portée ».
+ */
+export function simulatedTrajectory(
+  p: GoalBody, target: GoalTarget, today: string, project: WeeklyProjector,
+): { stamp: string; weightKg: number }[] {
+  const journal: { stamp: string; weightKg: number }[] = [];
+  weeksToTargetSimulated(p, target, today, project, false, journal);
+  return journal;
 }
 
 /**

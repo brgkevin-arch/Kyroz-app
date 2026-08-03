@@ -1,4 +1,4 @@
-import { ClampInfo, EngineNotice, FloorSource, Goal, NeatLevel, PlanFlag, Sex, SportSession, UserProfile } from './types';
+import { ClampInfo, EngineNotice, FloorSource, Goal, GoalTarget, NeatLevel, PlanFlag, Sex, SportSession, UserProfile } from './types';
 import { exerciseKcalPerDay, totalSessionsPerWeek } from './sport';
 import {
   datedGoalStatus, goalDirectionMismatch, MAX_DEFICIT_TDEE_RATIO, WeekPoint, WeeklyProjector,
@@ -796,6 +796,38 @@ function servedTargetAt(
 export function makeWeeklyProjector(p: UserProfile): WeeklyProjector {
   return (weightKg, stamp, lowEaWeeks, kcalDeltaOverride) =>
     servedTargetAt(p, weightKg, stamp, lowEaWeeks, kcalDeltaOverride);
+}
+
+/**
+ * L'objectif à utiliser pour DESSINER LE SUIVI — couloir de progression, « où tu
+ * devrais en être », verdict `trackStatus`. Ce n'est PAS l'objectif saisi.
+ *
+ * ⚠️ Le couloir se traçait sur la date SAISIE, en ligne droite (`idealWeightAt`) —
+ * le raccourci que A15 vient de retirer du moteur, resté dans l'affichage. Quand la
+ * date n'est pas tenable, cette ligne descend bien plus vite que ce que Kyroz sert :
+ * mesuré sur 8 corps × 2 échéances, **11 cas sur 16 sortent du couloir**, la moitié
+ * en moins de trois semaines, et l'écart atteint **10,4 kg** à la date promise. Pire :
+ * l'app affichait « en retard » à quelqu'un qui avait suivi le plan À LA LETTRE.
+ * Reprocher un retard qu'on a soi-même imposé est exactement la charge mentale que
+ * CLAUDE.md §10 refuse — le principe était déjà écrit pour le cas « déficit bloqué »
+ * (cf. `trackStatus`), il manquait pour le cas « date hors de portée ».
+ *
+ * Le couloir vise donc la date que le moteur TIENDRA. Depuis A15 c'est un point fixe,
+ * donc le couloir ne se déplacera pas sous les pieds de l'utilisateur.
+ * ➡️ Contrôle : `npm run mesure:objectif`.
+ */
+export function trackingTarget(p: UserProfile, today: string): GoalTarget | undefined {
+  const gt = p.goal_target;
+  if (!gt) return undefined;
+  const st = datedGoalStatus(
+    gt, p, today, p.tdee_kcal,
+    p.macro_mode === 'manual' ? null : planFloorKcal(p, today),
+    makeWeeklyProjector(p),
+  );
+  // Date tenue, pilotage arrêté, ou aucune date crédible → on garde l'objectif saisi :
+  // il n'y a rien de plus honnête à proposer.
+  if (!st?.active || st.reachableByDate || !st.projectable) return gt;
+  return { ...gt, target_date: st.projectedDate };
 }
 
 // ── Révision du moteur et avertissement one-shot ─────────────────────────────

@@ -859,11 +859,43 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
      garde-fou qui a cessé de garder sans rougir. Il vérifie maintenant la FRONTIÈRE
      dans les deux sens (atteignable → rien ne bouge · hors de portée → ça doit bouger).
 
-  ⚠️ **Ce qui n'a PAS été vérifié** : rien à l'écran, ni web ni natif. Le chemin de code
-  exact de la puce a été rejoué par calcul, pas cliqué.
-  ℹ️ Reste ouvert, signalé par la cartographie, **non traité ici** : `Transformation.tsx`
-  et `WeightChart.tsx` tracent leur couloir depuis la date SAISIE et ne lisent jamais
-  `DatedGoalStatus` — la courbe servie peut donc sortir du couloir par le bas.
+  ✅ **Vérifié à l'écran** (web, profil F 78 → 65 kg à 8 semaines) : la carte annonce
+  « Plutôt le 19 oct. 2027 · 0,3 kg/sem » pour 1731 kcal — les valeurs mesurées.
+
+- ~~**A15-bis · le couloir de progression accusait l'utilisateur d'un retard imposé
+  par l'app**~~ ✅ **LIVRÉ le 2026-08-03**, dans la foulée d'A15. Display-only : aucune
+  calorie ne bouge, donc **pas d'`ENGINE_REV`**.
+
+  Le couloir (`WeightChart`, « ▚ Ta zone vers X kg le … · **rester dedans suffit** ») et
+  le verdict `trackStatus` étaient bâtis sur `idealWeightAt` : une **ligne droite** du
+  poids de départ au poids cible sur la date **SAISIE** — exactement le raccourci qu'A15
+  venait de retirer du moteur, resté dans l'affichage. Vu à l'écran, l'un au-dessus de
+  l'autre : couloir vers le **28 sept. 2026**, carte annonçant le **19 oct. 2027**.
+  **387 jours d'écart sur le même écran.**
+
+  📉 **Mesuré sur un utilisateur qui suit le plan À LA LETTRE** (sa courbe EST celle que
+  le moteur simule), 8 corps × 2 échéances :
+
+  | | avant | après |
+  |---|---|---|
+  | cas où l'app affiche « en retard » | **11/16** | **3/16** |
+  | `F 78 → 65` à 8 sem — sortie de zone | **J+7** | J+56 |
+  | `H 83 → 70` à 8 sem — sortie de zone | **J+7** | jamais |
+  | pire écart au couloir à la date promise | **+10,5 kg** | **+1,1 kg** |
+
+  ➡️ Le couloir vise désormais la date que le moteur TIENDRA (`trackingTarget`, dans
+  `lib/tdee.ts`) — un point fixe depuis A15, donc il ne se déplacera pas sous les pieds
+  de l'utilisateur. Les 3 cas restants sortent tard (J+56 à J+266) : c'est l'escalade de
+  zone basse qui courbe la trajectoire en cours de route, et aucune bande droite ne peut
+  la suivre.
+
+  🔎 **Le principe était DÉJÀ écrit dans ce fichier**, pour un autre cas : *« Reprocher
+  un retard qu'on a soi-même imposé est la définition exacte de la charge mentale qu'on
+  refuse »* (`trackStatus`, cas « déficit bloqué »). Il manquait pour le cas « date hors
+  de portée », qui est le plus fréquent. ➡️ **Quand on écrit un principe pour un cas,
+  chercher tout de suite les autres cas qu'il couvre.**
+
+  ✅ Vérifié à l'écran : couloir et carte annoncent la même date.
 
   <details><summary>Diagnostic d'origine (conservé)</summary>
 
