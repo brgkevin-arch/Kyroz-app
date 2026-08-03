@@ -33,10 +33,10 @@ export function AnalyticsConsentBanner() {
 
 function makeStyles(t: ThemePalette) {
   return StyleSheet.create({
-    card: { backgroundColor: t.card, borderWidth: 1, borderColor: t.line, borderRadius: Radius.md, padding: 16, gap: 10 },
+    card: { backgroundColor: t.card, borderWidth: 1, borderColor: t.line, borderRadius: Radius.card, padding: 16, gap: 10 },
     title: { color: t.text, fontSize: 15, fontWeight: '700' },
     body: { color: t.textSecondary, fontSize: 13, lineHeight: 18 },
     row: { flexDirection: 'row', gap: 10, marginTop: 2 },
-    btn: { flex: 1, paddingVertical: 11, borderRadius: Radius.sm, alignItems: 'center' },
+    btn: { flex: 1, paddingVertical: 11, borderRadius: Radius.button, alignItems: 'center' },
   });
 }

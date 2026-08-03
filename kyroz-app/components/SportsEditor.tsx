@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { ThemePalette, useTheme } from '../constants/theme';
+import { ThemePalette, useTheme, Radius } from '../constants/theme';
 import { SportSession, SportType } from '../lib/types';
 import {
   SPORT_ORDER, SPORT_LABEL, exerciseKcalPerDay,
@@ -129,7 +129,7 @@ const makeStyles = (t: ThemePalette) =>
   StyleSheet.create({
     wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
     chip: {
-      paddingVertical: 9, paddingHorizontal: 14, borderRadius: 999,
+      paddingVertical: 9, paddingHorizontal: 14, borderRadius: Radius.pill,
       backgroundColor: t.fill, borderWidth: 1, borderColor: t.line,
     },
     chipOn: { backgroundColor: t.accent, borderColor: t.accent },
@@ -137,7 +137,7 @@ const makeStyles = (t: ThemePalette) =>
     chipTxtOn: { color: t.onAccent },
 
     row: {
-      marginTop: 12, padding: 14, borderRadius: 14,
+      marginTop: 12, padding: 14, borderRadius: Radius.card,
       backgroundColor: t.card, borderWidth: 1, borderColor: t.line, gap: 12,
     },
     rowTitle: { color: t.text, fontSize: 15, fontWeight: '700' },

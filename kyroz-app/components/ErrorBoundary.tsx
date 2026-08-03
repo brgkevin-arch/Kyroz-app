@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { useTheme, Radius, Spacing } from '../constants/theme';
+import { useTheme, Radius, Spacing, Type } from '../constants/theme';
 
 // Frontière d'erreur globale : un crash de rendu n'affiche plus un écran rouge
 // mais un fallback propre avec « Réessayer » (re-monte l'arbre). Les données
@@ -50,8 +50,8 @@ export class ErrorBoundary extends React.Component<{ children: React.ReactNode }
 
 const styles = StyleSheet.create({
   root: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: Spacing.xxxl, gap: 12 },
-  title: { fontSize: 22, fontWeight: '800', letterSpacing: -0.5, textAlign: 'center' },
+  title: { ...Type.h2, textAlign: 'center' },
   sub: { fontSize: 15, lineHeight: 21, textAlign: 'center' },
-  btn: { marginTop: 10, paddingVertical: 15, paddingHorizontal: 36, borderRadius: Radius.md },
+  btn: { marginTop: 10, paddingVertical: 15, paddingHorizontal: 36, borderRadius: Radius.button },
   btnTxt: { fontSize: 16, fontWeight: '700' },
 });

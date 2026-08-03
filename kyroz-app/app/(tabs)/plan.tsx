@@ -859,7 +859,7 @@ export default function PlanScreen() {
 
       {/* Consentement : on ne réadapte le plan que si l'utilisateur le demande */}
       <ActionSheet visible={adaptPrompt !== null} onClose={declineAdapt}>
-        <Text style={{ color: t.text, fontSize: 20, fontWeight: '800', letterSpacing: -0.4 }}>
+        <Text style={{ color: t.text, ...Type.h2 }}>
           +{adaptPrompt ?? 0} kcal assumées, c'est noté 😎
         </Text>
         {(() => {
@@ -893,7 +893,7 @@ export default function PlanScreen() {
               {opts.map((o) => (
                 <TouchableOpacity
                   key={o.key} onPress={() => applyAdapt(o)} activeOpacity={0.85}
-                  style={{ flexDirection: 'row', alignItems: 'center', gap: 12, borderWidth: 1, borderColor: t.line, borderRadius: 14, padding: 14 }}
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 12, borderWidth: 1, borderColor: t.line, borderRadius: Radius.card, padding: 14 }}
                 >
                   <View style={{ flex: 1 }}>
                     <Text style={{ color: t.text, fontSize: 15, fontWeight: '700' }}>{o.label}</Text>
@@ -1020,7 +1020,7 @@ function makeStyles(t: ThemePalette) {
     offPlanTxt: { color: t.textSecondary, fontSize: 15, fontWeight: '600' },
     empty: { alignItems: 'center', gap: 10, paddingVertical: 24 },
     emptyIcon: { width: 72, height: 72, borderRadius: 24, alignItems: 'center', justifyContent: 'center', marginBottom: 6 },
-    emptyTitle: { color: t.text, fontSize: 22, fontWeight: '800', letterSpacing: -0.5 },
+    emptyTitle: { color: t.text, ...Type.h2 },
     emptySub: { color: t.textSecondary, fontSize: 15, textAlign: 'center', lineHeight: 21, paddingHorizontal: 10 },
     regenHint: { marginTop: 6, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
     regenHintTxt: { color: t.textTertiary, fontSize: 13, fontWeight: '600' },

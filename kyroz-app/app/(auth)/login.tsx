@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useTheme, ThemePalette, Spacing, Radius } from '../../constants/theme';
+import { useTheme, ThemePalette, Spacing, Radius, Type } from '../../constants/theme';
 import { useLayout } from '../../constants/layout';
 import { Field, PrimaryButton, Segmented } from '../../components/ui';
 import { useAuth } from '../../hooks/useAuth';
@@ -169,7 +169,7 @@ function makeStyles(t: ThemePalette) {
     logo: { color: t.text, fontSize: 34, fontWeight: '900', letterSpacing: 6, textAlign: 'center' },
     tagline: { color: t.textSecondary, fontSize: 15, textAlign: 'center', marginTop: 10 },
     consent: { flexDirection: 'row', gap: 12, alignItems: 'flex-start', marginTop: 16, paddingHorizontal: 2 },
-    check: { width: 24, height: 24, borderRadius: 8, borderWidth: 2, alignItems: 'center', justifyContent: 'center', marginTop: 1 },
+    check: { width: 24, height: 24, borderRadius: Radius.sm - 4, borderWidth: 2, alignItems: 'center', justifyContent: 'center', marginTop: 1 },
     consentTxt: { flex: 1, color: t.textTertiary, fontSize: 13, lineHeight: 19 },
     error: { color: t.danger, fontSize: 14, fontWeight: '600', textAlign: 'center', marginTop: 16 },
     notice: { color: t.accent, fontSize: 14, fontWeight: '600', textAlign: 'center', marginTop: 16, lineHeight: 20 },

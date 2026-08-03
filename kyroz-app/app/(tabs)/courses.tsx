@@ -243,7 +243,7 @@ function makeStyles(t: ThemePalette) {
     safe: { flex: 1, backgroundColor: t.bg },
     center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 10, paddingHorizontal: 40 },
     emptyIcon: { width: 72, height: 72, borderRadius: 24, alignItems: 'center', justifyContent: 'center', marginBottom: 6 },
-    emptyT: { color: t.text, fontSize: 21, fontWeight: '800', letterSpacing: -0.5 },
+    emptyT: { color: t.text, ...Type.h2 },
     emptyS: { color: t.textSecondary, fontSize: 15, textAlign: 'center', lineHeight: 21 },
 
     header: { flexDirection: 'row', alignItems: 'flex-end', padding: Spacing.xl, paddingBottom: 12 },

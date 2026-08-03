@@ -143,20 +143,48 @@ export const Spacing = {
   xxxl: 32,
 } as const;
 
+// ── Rayons — À QUOI sert chaque valeur, pas juste combien elle vaut ──────────
+// La liste triée par taille ne dit pas laquelle employer, et c'est comme ça que
+// la même carte s'est retrouvée à 16 dans un composant et 22 dans l'écran d'à
+// côté. Le rôle est donc écrit ici, et il n'y en a QU'UN par objet :
+//
+//   pill    puce, jauge, badge          — jamais un bouton pleine largeur
+//   sm      sous-bloc DANS un bloc, ligne de liste, vignette
+//   button  bouton (plein, contour ou pointillé) ET champ de saisie
+//   card    bloc de contenu dans la page — le rayon dominant de la DA
+//   xl      grande surface flottante : feuille modale, dialogue, célébration
+//
+// ⚠️ `md` (16) et `lg` (20) ont été SUPPRIMÉS le 2026-08-03, et c'est le garde-fou :
+// tant qu'ils existaient, rien n'empêchait d'écrire `Radius.md` sur une carte, et
+// c'est exactement ce qui s'est passé — la carte Hydratation était à 16 sur un écran
+// où tout le reste était à 22. Les rendre inexistants fait échouer `tsc` au lieu de
+// laisser passer un écart qui ne se voit qu'à l'œil, sur un écran, un jour.
 export const Radius = {
   sm: 12,
   button: 14,   // boutons pleins
-  md: 16,
-  lg: 20,
   card: 22,     // blocs de contenu — le rayon dominant
   xl: 24,
   pill: 999,
 } as const;
 
+// ── Échelle typographique ────────────────────────────────────────────────────
+// ⚠️ La hiérarchie se fait par la TAILLE, pas par la graisse : tout ce qui est
+// titre pèse 700. `h1` valait 800 — plus lourd que le `display` au-dessus de
+// lui — ce qui inversait la hiérarchie dès qu'on employait les deux. Personne ne
+// s'en servait encore, l'incohérence est donc restée invisible dans le fichier
+// qui SERT de référence à toute l'app.
+//
+//   hero     chiffre héros (kcal du jour, poids) — 40, une seule par écran
+//   display  titre d'écran
+//   h1       titre d'étape (onboarding, écran secondaire plein)
+//   h2       titre de feuille modale ou de dialogue
+//   h3       titre de bloc à l'intérieur d'un écran
+//   overline sur-titre en capitales
 export const Type = {
   // tailles + graisses (la police système rend du SF Pro sur iOS)
+  hero: { fontSize: 40, fontWeight: '700' as const, letterSpacing: -1.4 },
   display: { fontSize: 34, fontWeight: '700' as const, letterSpacing: -0.9, lineHeight: 41 },
-  h1: { fontSize: 30, fontWeight: '800' as const, letterSpacing: -0.8 },
+  h1: { fontSize: 30, fontWeight: '700' as const, letterSpacing: -0.8 },
   h2: { fontSize: 22, fontWeight: '700' as const, letterSpacing: -0.5 },
   h3: { fontSize: 17, fontWeight: '700' as const, letterSpacing: -0.3 },
   body: { fontSize: 15, fontWeight: '500' as const },

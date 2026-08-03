@@ -265,7 +265,7 @@ export default function GardeMangerScreen() {
           const sug = searchFoods(name, 5);
           if (sug.length === 0) return null;
           return (
-            <View style={{ borderWidth: 1, borderColor: t.line, borderRadius: 10, overflow: 'hidden' }}>
+            <View style={{ borderWidth: 1, borderColor: t.line, borderRadius: Radius.sm, overflow: 'hidden' }}>
               {sug.map((f) => (
                 <TouchableOpacity
                   key={f.id} activeOpacity={0.7}
@@ -346,12 +346,12 @@ function makeStyles(t: ThemePalette) {
 
     empty: { alignItems: 'center', gap: 10, paddingVertical: 40 },
     emptyIcon: { width: 72, height: 72, borderRadius: 24, alignItems: 'center', justifyContent: 'center', marginBottom: 6 },
-    emptyTitle: { color: t.text, fontSize: 21, fontWeight: '800', letterSpacing: -0.5 },
+    emptyTitle: { color: t.text, ...Type.h2 },
     emptySub: { color: t.textSecondary, fontSize: 15, textAlign: 'center', lineHeight: 21, paddingHorizontal: 10 },
     ghostBtn: { paddingVertical: 14, alignItems: 'center' },
     ghostTxt: { color: t.textSecondary, fontSize: 15, fontWeight: '600' },
 
-    recipe: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: t.card, borderRadius: Radius.lg, padding: 16 },
+    recipe: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: t.card, borderRadius: Radius.card, padding: 16 },
     rName: { color: t.text, fontSize: 16, fontWeight: '700', letterSpacing: -0.3 },
     rMeta: { color: t.textSecondary, fontSize: 13, marginTop: 4 },
     rMissing: { color: t.textTertiary, fontSize: 13, marginTop: 4 },
@@ -360,7 +360,7 @@ function makeStyles(t: ThemePalette) {
     missingBadge: { width: 28, height: 28, borderRadius: 14, backgroundColor: t.fill, alignItems: 'center', justifyContent: 'center' },
     missingBadgeTxt: { color: t.textSecondary, fontSize: 13, fontWeight: '700' },
 
-    note: { borderRadius: Radius.md, padding: 16, marginTop: 4 },
+    note: { borderRadius: Radius.card, padding: 16, marginTop: 4 },
     noteTxt: { color: t.textSecondary, fontSize: 14, lineHeight: 20 },
 
     invHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
@@ -375,16 +375,16 @@ function makeStyles(t: ThemePalette) {
     stepBtn: { width: 48, height: 48, borderRadius: Radius.button, backgroundColor: t.fill, alignItems: 'center', justifyContent: 'center' },
     stepHint: { color: t.textTertiary, fontSize: 13, lineHeight: 18 },
 
-    toast: { position: 'absolute', left: 20, right: 20, bottom: 28, backgroundColor: t.accent, borderRadius: Radius.md, paddingVertical: 14, paddingHorizontal: 18, alignItems: 'center' },
+    toast: { position: 'absolute', left: 20, right: 20, bottom: 28, backgroundColor: t.accent, borderRadius: Radius.button, paddingVertical: 14, paddingHorizontal: 18, alignItems: 'center' },
     toastTxt: { color: t.onAccent, fontSize: 14, fontWeight: '700' },
 
-    sheetTitle: { color: t.text, fontSize: 20, fontWeight: '800', letterSpacing: -0.5 },
+    sheetTitle: { color: t.text, ...Type.h2 },
     editName: { color: t.textSecondary, fontSize: 15, fontWeight: '600', marginTop: -6 },
     unitRow: { flexDirection: 'row', gap: 8 },
     cancel: { alignItems: 'center', paddingVertical: 6 },
     cancelTxt: { color: t.textSecondary, fontSize: 15, fontWeight: '600' },
     confirmMsg: { color: t.textSecondary, fontSize: 15, lineHeight: 21 },
-    confirmBtn: { borderRadius: Radius.md, paddingVertical: 17, alignItems: 'center', justifyContent: 'center' },
+    confirmBtn: { borderRadius: Radius.button, paddingVertical: 17, alignItems: 'center', justifyContent: 'center' },
     confirmBtnTxt: { fontSize: 17, fontWeight: '700' },
   });
 }

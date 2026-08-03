@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Modal, View, Text, StyleSheet, Animated, Easing, Pressable } from 'react-native';
-import { useTheme, Radius, Spacing } from '../constants/theme';
+import { useTheme, Radius, Spacing, Type } from '../constants/theme';
 import { PrimaryButton } from './ui';
 
 interface Props {
@@ -123,6 +123,6 @@ const styles = StyleSheet.create({
     padding: Spacing.xxxl, alignItems: 'center',
   },
   emoji: { fontSize: 56, marginBottom: 8 },
-  title: { fontSize: 24, fontWeight: '900', letterSpacing: -0.6, textAlign: 'center' },
+  title: { ...Type.h2, textAlign: 'center' },
   body: { fontSize: 15, lineHeight: 21, textAlign: 'center', marginTop: 10 },
 });

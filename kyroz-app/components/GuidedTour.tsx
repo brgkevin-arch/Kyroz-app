@@ -3,7 +3,7 @@ import {
   View, Text, StyleSheet, Modal, Pressable, useWindowDimensions, ViewStyle,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useTheme, Radius, ThemePalette } from '../constants/theme';
+import { useTheme, Radius, ThemePalette, Type } from '../constants/theme';
 
 // ── Visite guidée (coachmark / spotlight) ────────────────────────────────────
 // Overlay sombre qui « découpe » un trou autour d'un élément cible et affiche
@@ -245,7 +245,7 @@ function Spotlight({
       <View
         style={{
           position: 'absolute', top: cy, left: cx, width: cw, height: ch,
-          borderRadius: Radius.md, borderWidth: 2, borderColor: t.accent,
+          borderRadius: Radius.card, borderWidth: 2, borderColor: t.accent,
           pointerEvents: 'none',
         }}
       />
@@ -274,17 +274,17 @@ function makeStyles(t: ThemePalette) {
     bubble: {
       position: 'absolute',
       backgroundColor: t.cardElevated,
-      borderRadius: Radius.lg,
+      borderRadius: Radius.card,
       borderWidth: 1,
       borderColor: t.line,
       padding: 18,
     },
     counter: { color: t.textTertiary, fontSize: 12, fontWeight: '700', letterSpacing: 1, marginBottom: 6 },
-    title: { color: t.text, fontSize: 18, fontWeight: '800', letterSpacing: -0.3, marginBottom: 6 },
+    title: { color: t.text, ...Type.h3, marginBottom: 6 },
     text: { color: t.textSecondary, fontSize: 14, lineHeight: 20 },
     actions: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 16 },
     skip: { color: t.textTertiary, fontSize: 14, fontWeight: '600' },
-    nextBtn: { backgroundColor: t.accent, borderRadius: Radius.pill, paddingHorizontal: 22, paddingVertical: 10 },
+    nextBtn: { backgroundColor: t.accent, borderRadius: Radius.button, paddingHorizontal: 22, paddingVertical: 10 },
     nextTxt: { color: t.onAccent, fontSize: 14, fontWeight: '700' },
   });
 }

@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useTheme, ThemePalette, Spacing } from '../../constants/theme';
+import { useTheme, ThemePalette, Spacing, Radius, Type } from '../../constants/theme';
 import { useLayout } from '../../constants/layout';
 import {
   PrimaryButton, Chip, OptionCard, Field, SectionLabel, Segmented,
@@ -435,7 +435,7 @@ function NameStep({ t, value, onChange }: { t: ThemePalette; value: string; onCh
   return (
     <View style={{ paddingTop: 36, gap: 14 }}>
       <Animated.Text style={[{ fontSize: 44 }, enter]}>👋</Animated.Text>
-      <Animated.Text style={[{ color: t.text, fontSize: 32, fontWeight: '800', letterSpacing: -1, lineHeight: 38 }, enter]}>
+      <Animated.Text style={[{ color: t.text, ...Type.display, lineHeight: 40 }, enter]}>
         Bienvenue sur Kyroz
       </Animated.Text>
       <Animated.Text style={[{ color: t.textSecondary, fontSize: 16, lineHeight: 23 }, enter]}>
@@ -457,12 +457,12 @@ function makeStyles(t: ThemePalette) {
     fill: { height: 4, backgroundColor: t.accent, borderRadius: 2 },
     content: { padding: Spacing.xl, paddingTop: Spacing.lg, gap: 16, paddingBottom: 24 },
     block: { gap: 16 },
-    title: { color: t.text, fontSize: 28, fontWeight: '800', letterSpacing: -0.8 },
+    title: { color: t.text, ...Type.h1 },
     sub: { color: t.textSecondary, fontSize: 15, lineHeight: 21, marginTop: -8 },
     wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
     daysRow: { flexDirection: 'row', gap: 8, justifyContent: 'space-between' },
-    dayCircle: { flex: 1, height: 52, borderRadius: 14, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
-    footer: { padding: Spacing.xl, paddingTop: 8, backgroundColor: t.bg, borderTopWidth: 1, borderTopColor: t.line },
+    dayCircle: { flex: 1, height: 52, borderRadius: Radius.button, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+    footer: { padding: Spacing.xl, paddingTop: 8, backgroundColor: t.bg },
     hint: { color: t.warning, fontSize: 13, lineHeight: 18, fontWeight: '600', marginBottom: 10, textAlign: 'center' },
     disclaimer: { color: t.textTertiary, fontSize: 11, lineHeight: 16, textAlign: 'center', marginTop: 4 },
   });

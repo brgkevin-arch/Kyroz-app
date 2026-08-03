@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useTheme, ThemePalette, Spacing } from '../constants/theme';
+import { useTheme, ThemePalette, Spacing, Type } from '../constants/theme';
 import { useLayout } from '../constants/layout';
 import { PRIVACY_POLICY, TERMS_OF_USE, LegalSection, LEGAL } from '../constants/legal';
 
@@ -52,13 +52,16 @@ function Section({ t, s, sec }: { t: ThemePalette; s: ReturnType<typeof makeStyl
 function makeStyles(t: ThemePalette) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: t.bg },
-    header: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: Spacing.xl, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: t.line },
-    headerTitle: { color: t.text, fontSize: 18, fontWeight: '800', letterSpacing: -0.4 },
+    // Pas de liseré sous l'en-tête : la DA pose les blocs par le fond et
+    // l'espacement, pas par des traits. Le seul séparateur gardé est celui qui
+    // sépare DEUX documents (`divider`), parce qu'il porte du sens.
+    header: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: Spacing.xl, paddingVertical: 12 },
+    headerTitle: { color: t.text, ...Type.h3 },
     content: { padding: Spacing.xl, paddingBottom: 60, gap: 4 },
-    docTitle: { color: t.text, fontSize: 22, fontWeight: '800', letterSpacing: -0.5, marginTop: 8 },
+    docTitle: { color: t.text, ...Type.h2, marginTop: 8 },
     updated: { color: t.textTertiary, fontSize: 12, marginTop: 2, marginBottom: 8 },
     section: { marginTop: 16 },
-    secTitle: { color: t.text, fontSize: 15, fontWeight: '700', marginBottom: 6 },
+    secTitle: { color: t.text, ...Type.bodyStrong, marginBottom: 6 },
     para: { color: t.textSecondary, fontSize: 14, lineHeight: 21, marginBottom: 8 },
     divider: { height: 1, backgroundColor: t.line, marginVertical: 24 },
   });
