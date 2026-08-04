@@ -863,6 +863,15 @@ téléphone.
   séparément**, et vérifier qu'un panel de contrôle n'est pas tout masculin.
 - **Un tag posé à la main n'arbitre pas mieux qu'un moteur qui mesure.** Devant le choix,
   garder le mécanisme qui calcule, jeter l'étiquette.
+- **Une copie STOCKÉE que personne ne lit est une seconde source de vérité qui attend
+  son bug.** `UserProfile.clamp` a vécu quatre jours sans un seul lecteur : une version
+  appauvrie et figée de `plan.clamp`, recalculable en 0,11 ms (A8, retiré). Devant le
+  choix entre stocker et recalculer, recalculer — sauf coût mesuré.
+  ⚠️ **Et retirer un champ ne suffit pas à l'effacer** : les profils déjà enregistrés en
+  portent une copie. La ligne qui la NETTOIE doit survivre au champ, sinon la valeur
+  périmée reste dans AsyncStorage pour toujours, prête à être relue comme si elle était
+  fraîche. Mettre la clé à `undefined` ne suffit pas — `JSON.stringify` l'élide, donc la
+  comparaison anti-réécriture de `useProfile` ne voit rien à persister.
 
 ### Exécution
 
@@ -933,6 +942,35 @@ téléphone.
   il part chez le tiers). Une MESURE, elle, reste volontairement anonyme : `lib/analytics.ts`
   envoie un UUID local à PostHog, et c'est le bon choix côté RGPD. Ne pas confondre
   les deux : ce qui ouvre une porte se rattache au compte, ce qui compte des visites non.
+- 🔴 **LE SITE WEB EST PRÉ-RENDU DEPUIS LE 2026-08-04, et c'est un piège ARMÉ.**
+  `app.json > expo.web.output: "static"` pré-rend chaque route en HTML au moment du
+  build, pour que GitHub Pages réponde 200 sur un lien direct au lieu de 404 (E7).
+  Ce rendu s'exécute dans **Node** : ni `window`, ni `localStorage`, ni `document`.
+  ➡️ **Tout module qui touche le stockage ou le DOM AU CHARGEMENT fait échouer le
+  déploiement**, pas seulement le sien — le workflow entier devient rouge, sur une
+  `ReferenceError: window is not defined` dont la pile ne nomme aucun fichier à nous
+  (elle pointe le bundle de rendu d'Expo). Le premier cas était le client Supabase,
+  qui démarre sa session dès sa CONSTRUCTION.
+  ➡️ Le contournement est un stockage/valeur muet pendant le pré-rendu seulement :
+  `lib/prerender.ts::isPrerender(Platform.OS, typeof window !== 'undefined')`.
+  ⚠️ **Le garde-fou doit exclure le natif PAR CONSTRUCTION, pas par `window`.** React
+  Native définit `window` (alias de `global`), donc un test sur lui seul marche —
+  aujourd'hui. Si ce détail de runtime changeait, iOS et Android basculeraient sur le
+  chemin muet et **perdraient leur session à chaque démarrage, en silence**. D'où le
+  `Platform.OS === 'web'` en tête du prédicat.
+  ⚠️ **Et ce cas n'est visible NULLE PART** : ni dans un navigateur (où `window`
+  existe), ni sous vitest. Aucun test d'intégration ne le verrait. C'est pourquoi le
+  prédicat est une fonction PURE, dans un fichier sans aucun import — `lib/supabase.ts`
+  tire `react-native-url-polyfill`, qui explose sous vitest. **Un garde-fou qu'on ne
+  peut pas tester n'est pas un garde-fou.**
+  ➡️ Vérifier un changement web sur l'ARTEFACT : `npm run build:web`, puis servir
+  l'export derrière un serveur qui IMITE la résolution d'URL de Pages (`/foo` →
+  `foo.html`). `python3 -m http.server` ne la fait pas et rend une mesure muette.
+- ⚠️ **`npm run deploy` NE DÉPLOIE RIEN — et c'est volontaire.** Le site part par
+  GitHub Actions à chaque push sur `main`. La commande a été gardée pour le DIRE
+  (`scripts/deploy-info.mjs`) et **sort en code 1** : le piège d'origine était un
+  script qui réussissait sans rien faire, et il a produit un diagnostic entièrement
+  faux (AGENTS.md A12). L'export local s'appelle désormais **`npm run build:web`**.
 - **Build natif iOS** : `npx expo run:ios` (CocoaPods via brew).
 - **`Dimensions.get('window')` ment sur iPad.** La fenêtre change de taille **sans
   relancer l'app** (rotation, Split View, Slide Over) : une valeur lue au chargement du
