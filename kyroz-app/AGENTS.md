@@ -3103,7 +3103,27 @@ produit en suspens — il ne reste qu'à coder.
 
 ### 🧹 E — Dette technique
 
-- **E9 · 🧑 À TRANCHER — `npm run deploy` ne déploie rien, et le fait croire.**
+- ~~**E10 · `npm run deploy` ne déployait rien, et le faisait croire**~~
+  *(publiée le 2026-08-02 sous le numéro **E9**, déjà pris depuis le 2026-07-31 par
+  « un repas sauté peut laisser un trou muet » — renumérotée le 2026-08-04. Deuxième
+  collision d'identifiant en deux jours, après A26 : le contrôle de doublons doit
+  couvrir **tous** les préfixes, `E` compris, pas seulement A/B/C/D/P.)*
+  ✅ **TRANCHÉ ET CORRIGÉ le 2026-08-04** (fondateur : « dis la vérité »). Sortie (b)
+  retenue, plus une : `predeploy` devient **`build:web`** (l'export local reste utile,
+  cf. E1), la dépendance `gh-pages` est **retirée** (elle ne servait qu'au script mort),
+  et `deploy` devient `scripts/deploy-info.mjs` — qui explique le vrai chemin, imprime
+  les trois derniers déploiements RÉELS (`gh run list`), et **sort en code 1**.
+  ⚠️ **Le code de retour n'est pas cosmétique** : le piège d'origine était un script qui
+  RÉUSSISSAIT sans rien faire. Supprimer l'entrée aurait donné « Missing script: deploy »
+  — honnête, mais qui n'apprend rien à qui croyait déployer. Une sortie en erreur rend la
+  confusion impossible, pour un humain comme pour un script.
+  ✅ **Vérifié avant de couper**, comme la fiche l'exigeait : `gh api repos/:owner/:repo/pages`
+  rend `build_type: workflow` — Pages sert l'artefact du workflow, la branche n'est servie
+  nulle part. Aucun chemin de secours ne dépendait du script. *(Le dernier commit de
+  `origin/gh-pages`, daté du 2026-08-02, est la trace de la session qui a cru déployer.)*
+
+  <details><summary>Le constat d'origine</summary>
+
   `"deploy": "gh-pages -d dist"` pousse sur `origin/gh-pages`, **branche morte** depuis
   le passage à GitHub Actions : GitHub Pages sert l'artefact du workflow
   (`build_type: "workflow"`), pas cette branche. Le script s'exécute, affiche
@@ -3118,6 +3138,8 @@ produit en suspens — il ne reste qu'à coder.
   ⚠️ Vérifier avant de couper si un chemin de secours en dépend (publication manuelle si
   Actions tombe) — auquel cas c'est la CONFIGURATION Pages qu'il faudrait basculer, pas
   le script qu'il faudrait garder.
+
+  </details>
 
 - ~~**E1 · Trancher le sort de `lib/generatePlan.ts`**~~ ✅ **SUPPRIMÉ le 2026-07-31 —
   et il ne s'agissait pas de code mort inoffensif.** La reco disait « ~120 lignes
