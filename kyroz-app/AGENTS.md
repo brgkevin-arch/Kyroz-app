@@ -69,7 +69,7 @@ qu'ils étaient périmés.
 | Objectif daté | la date affichée est un **POINT FIXE** : l'adopter ne la déplace plus (3 corps sur 8 glissaient de +96 j avant A15) | `npm run mesure:objectif` |
 | Tests | **985 verts**, 57 fichiers · `tsc` propre | `npm test && npx tsc --noEmit` |
 | Plateformes | iPhone **+ iPad** (`supportsTablet: true` depuis le 2026-08-01). ⚠️ **portrait sur iPhone, MAIS les 4 orientations sur iPad** — Expo les force dès `supportsTablet`, le multitâche iPadOS l'impose, ce n'est pas refermable. Vérifié en natif (iPad Pro 13") et à 1366×1024 | `ios/Kyroz/Info.plist` généré, PAS `app.json` · `lib/layout.ts` |
-| Sortie stores | iOS **1.0.0 (3)** envoyé à TestFlight, **revue bêta en cours** depuis le 2026-08-03 00h58 · Android : 2 builds, rien de soumis | `npx eas-cli build:list` · `TESTFLIGHT.md` |
+| Sortie stores | iOS **1.0.0 (3)** envoyé à TestFlight, **revue bêta en cours** depuis le 2026-08-03 00h58 · Android : 2 builds, rien de soumis | `npx eas-cli build:list` · ⚠️ `TESTFLIGHT.md` **n'est PAS sur `main`** — il vit sur la branche `fix/soucis-terrain`, non fusionnée |
 | Kyroz+ | **encaissement armé, verrou inerte.** Clé RevenueCat posée dans EAS et vérifiée dans le bundle ; `PAYWALL_LAUNCH` = `null`, donc **tout est gratuit pour tout le monde**. ⚠️ Le build TestFlight actuel est ANTÉRIEUR à la clé | `lib/premium.ts` · `npx eas-cli env:list production` |
 | Clés du build/OTA | **une seule source : les variables EAS.** `eas.json` ne porte plus aucune clé, chaque profil déclare son `environment`. ⚠️ **`eas update --clear-cache`** — le cache Metro ignore un changement de valeur `EXPO_PUBLIC_*` | `npx eas-cli config --profile production --platform ios` · `lib/__tests__/easEnv.test.ts` |
 | Site déployé | **automatique** : GitHub Actions à chaque push `main` (`build_type: workflow`). ⚠️ **NE PAS lire `origin/gh-pages`** — branche morte, cf. A12 | `gh run list --workflow=deploy.yml` |
@@ -1592,13 +1592,15 @@ produit en suspens — il ne reste qu'à coder.
      ⏸️ `preview` et `.env.local` : pas posées, pas nécessaires au chemin OTA.
      `_ANDROID_KEY` : sans objet tant qu'il n'y a pas d'app Android.
 
-     🔴 **CE QUE CETTE VÉRIFICATION A TROUVÉ — un OTA peut BRIQUER l'app en silence.**
-     `eas env:list production` ne contient que **deux** variables : la clé RevenueCat
-     et `EXPO_PUBLIC_REVIEW_CODE`. **Les clés Supabase n'y sont PAS** — elles vivent
+     🔴 **CE QUE CETTE VÉRIFICATION A TROUVÉ — un OTA POUVAIT briquer l'app en silence.**
+     *(Diagnostic du 2026-08-03 au matin. **Corrigé le jour même** — le paragraphe est
+     conservé au passé parce que le mécanisme, lui, resservira.)*
+     `eas env:list production` ne contenait que **deux** variables : la clé RevenueCat
+     et `EXPO_PUBLIC_REVIEW_CODE`. **Les clés Supabase n'y étaient PAS** — elles vivaient
      dans le bloc `env` de chaque profil de `eas.json`, que **`eas build` lit et que
      `eas update` NE LIT PAS**.
      ➡️ Conséquence : un `eas update` lancé depuis un clone frais, un CI, ou toute
-     machine sans `.env.local` publierait un bundle **sans URL Supabase**. L'app ne
+     machine sans `.env.local` aurait publié un bundle **sans URL Supabase**. L'app ne
      démarre pas sans, et la mise à jour atteint tous les testeurs en quelques minutes,
      **sans revue de store pour l'arrêter**.
      ⚠️ **La première mesure ne prouvait rien** : elle avait été faite depuis le worktree,

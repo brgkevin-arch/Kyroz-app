@@ -125,7 +125,11 @@ core tuerait le North Star — donc interdit.
 - [x] Init **paresseuse et idempotente** dans `lib/purchases.ts::configurePurchases()`, pas au
       démarrage dans `app/_layout.tsx` — **écart assumé** : sans clé, le SDK n'est même pas
       chargé, donc l'app ne paie rien pour une feature qui n'est pas ouverte.
-      Clés en `EXPO_PUBLIC_REVENUECAT_IOS_KEY` / `_ANDROID_KEY` (cf. `.env.example`).
+      Clés en `EXPO_PUBLIC_REVENUECAT_IOS_KEY` / `_ANDROID_KEY`. ⚠️ **Elles vivent dans
+      les VARIABLES D'ENVIRONNEMENT EAS, pas dans un fichier** (`.env.example` n'en donne
+      que le nom). Depuis le 2026-08-03 c'est la source UNIQUE — `eas.json` ne porte plus
+      aucune clé, parce que son bloc `env` est lu par `eas build` et **pas** par
+      `eas update` (le détail, et les deux pièges qui vont avec, sont en `CLAUDE.md` §2).
 - [x] **Web = no-op**, mais par **séparation de plateforme** (`lib/purchases.web.ts`) et non
       par une garde `Platform.OS !== 'web'`. ⚠️ **La garde ne suffisait PAS** : mesuré sur
       l'export, le SDK restait embarqué dans le bundle web (**+900 Ko**) parce que Metro
