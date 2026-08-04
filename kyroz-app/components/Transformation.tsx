@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, Image } from 'react-native';
-import { ThemePalette, Radius } from '../constants/theme';
+import { ThemePalette, Radius, Type } from '../constants/theme';
 import { WeightEntry, todayStamp } from '../lib/weight';
 import { GoalTarget } from '../lib/types';
 import { trackStatus } from '../lib/datedGoal';
@@ -47,7 +47,7 @@ export function TrackVerdict({ t, goalTarget, currentWeightKg, paused = false }:
     : { txt: losing ? 'Ça descend à ton rythme' : 'Ça monte à ton rythme', color: t.text };
 
   return (
-    <View style={{ backgroundColor: t.fill, borderRadius: Radius.md, padding: 12, gap: 4 }}>
+    <View style={{ backgroundColor: t.fill, borderRadius: Radius.card, padding: 12, gap: 4 }}>
       <Text style={{ color: headline.color, fontSize: 14, fontWeight: '700' }}>{headline.txt}</Text>
       {progress > 0 && (
         <Text style={{ color: t.textSecondary, fontSize: 12.5, lineHeight: 18 }}>
@@ -104,7 +104,7 @@ function Shot({ t, uri, label, date, kg }: {
     <View style={{ flex: 1, gap: 6 }}>
       <Image
         source={{ uri }}
-        style={{ width: '100%', aspectRatio: 3 / 4, borderRadius: Radius.md, backgroundColor: t.fill }}
+        style={{ width: '100%', aspectRatio: 3 / 4, borderRadius: Radius.card, backgroundColor: t.fill }}
         resizeMode="cover"
       />
       <Text style={{ color: t.text, fontSize: 13, fontWeight: '700' }}>{label}</Text>

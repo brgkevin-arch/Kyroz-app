@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useTheme, ThemePalette, Radius, Spacing, cardShadow } from '../constants/theme';
+import { useTheme, ThemePalette, Radius, Spacing, Type, cardShadow } from '../constants/theme';
 import { useLayout } from '../constants/layout';
 import { PrimaryButton } from './ui';
 import { useFavorites } from '../hooks/useFavorites';
@@ -204,7 +204,7 @@ export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adapted
 function Big({ t, v, l, u = '', c }: { t: ThemePalette; v: number; l: string; u?: string; c?: string }) {
   return (
     <View style={{ alignItems: 'center', gap: 4 }}>
-      <Text style={{ fontSize: 22, fontWeight: '800', letterSpacing: -0.5, color: c ?? t.text }}>{v}{u}</Text>
+      <Text style={{ ...Type.h2, color: c ?? t.text }}>{v}{u}</Text>
       <Text style={{ fontSize: 11, color: t.textSecondary }}>{l}</Text>
     </View>
   );
@@ -228,7 +228,7 @@ function makeStyles(t: ThemePalette, isTablet: boolean) {
     cookColWide: isTablet ? { flex: 1, gap: 18 } : { gap: 18 },
     content: { padding: Spacing.xxl, gap: 18, paddingBottom: 48 },
     header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 },
-    name: { color: t.text, fontSize: 24, fontWeight: '800', letterSpacing: -0.5 },
+    name: { color: t.text, ...Type.h2 },
     badge: { flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-start', backgroundColor: t.fill, paddingHorizontal: 9, paddingVertical: 4, borderRadius: Radius.pill },
     badgeTxt: { color: t.textSecondary, fontSize: 11, fontWeight: '600' },
     headerBtns: { flexDirection: 'row', gap: 8 },
@@ -239,9 +239,9 @@ function makeStyles(t: ThemePalette, isTablet: boolean) {
     tag: { backgroundColor: t.fill, color: t.textSecondary, fontSize: 11, fontWeight: '600', paddingHorizontal: 9, paddingVertical: 4, borderRadius: Radius.pill, overflow: 'hidden' },
     warn: { color: t.warning, fontSize: 13, marginTop: -8 },
     why: { color: t.textSecondary, fontSize: 14, fontStyle: 'italic', lineHeight: 20, marginTop: -8 },
-    macros: { flexDirection: 'row', backgroundColor: t.card, borderRadius: Radius.md, padding: 16, justifyContent: 'space-around' },
+    macros: { flexDirection: 'row', backgroundColor: t.card, borderRadius: Radius.card, padding: 16, justifyContent: 'space-around' },
     fiber: { color: t.textTertiary, fontSize: 13, marginTop: -8 },
-    section: { color: t.textTertiary, fontSize: 12, fontWeight: '700', letterSpacing: 0.5 },
+    section: { color: t.textTertiary, ...Type.overline },
     ing: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: t.line },
     ingName: { color: t.text, fontSize: 15 },
     ingQty: { color: t.textSecondary, fontSize: 14 },
@@ -249,10 +249,13 @@ function makeStyles(t: ThemePalette, isTablet: boolean) {
     stepN: { width: 28, height: 28, borderRadius: 14, backgroundColor: t.fill, alignItems: 'center', justifyContent: 'center', marginTop: 2 },
     stepNTxt: { color: t.text, fontSize: 13, fontWeight: '700' },
     stepTxt: { flex: 1, color: t.textSecondary, fontSize: 15, lineHeight: 22 },
-    swapBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 16, borderRadius: Radius.md, borderWidth: 1.5, borderColor: t.lineStrong },
+    // Bouton secondaire : un REMPLISSAGE, pas un liseré de 1,5 px. Le contour
+    // doublait celui de la feuille et faisait de l'action secondaire l'objet le
+    // plus dessiné de l'écran — c'est le même arbitrage que les puces de filtre.
+    swapBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 16, borderRadius: Radius.button, backgroundColor: t.fill },
     swapTxt: { color: t.text, fontSize: 16, fontWeight: '700' },
     swapHint: { color: t.textSecondary, fontSize: 13, lineHeight: 18, marginTop: -4, paddingHorizontal: 2 },
-    statusBanner: { marginTop: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, paddingVertical: 14, paddingHorizontal: 16, borderRadius: Radius.md, borderWidth: 1 },
+    statusBanner: { marginTop: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, paddingVertical: 14, paddingHorizontal: 16, borderRadius: Radius.card, borderWidth: 1 },
     statusTxt: { flex: 1, color: t.textSecondary, fontSize: 14, fontWeight: '600' },
     statusUndo: { color: t.text, fontSize: 14, fontWeight: '700' },
   });

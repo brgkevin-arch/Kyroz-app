@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { ThemePalette, Radius, Spacing } from '../constants/theme';
+import { ThemePalette, Radius, Spacing, Type } from '../constants/theme';
 import { Field, PrimaryButton, Segmented } from './ui';
 import { Recipe, Ingredient } from '../lib/types';
 import { searchFoods, recipeMacrosPerPortion } from '../lib/foods';
@@ -246,7 +246,7 @@ function MacroCell({ t, label, value, color }: { t: ThemePalette; label: string;
 function makeStyles(t: ThemePalette) {
   return StyleSheet.create({
     header: { paddingHorizontal: Spacing.xxl, paddingBottom: 10, gap: 6 },
-    title: { color: t.text, fontSize: 22, fontWeight: '800', letterSpacing: -0.5 },
+    title: { color: t.text, ...Type.h2 },
     sub: { color: t.textSecondary, fontSize: 14, lineHeight: 20 },
     content: { padding: Spacing.xxl, paddingTop: 8, gap: 14, paddingBottom: 32 },
     row2: { flexDirection: 'row', gap: 12 },
@@ -254,7 +254,7 @@ function makeStyles(t: ThemePalette) {
     hint: { color: t.textTertiary, fontSize: 12, lineHeight: 16, marginTop: -6 },
     input: {
       backgroundColor: t.scheme === 'dark' ? t.fill : t.card, borderWidth: 1, borderColor: t.line,
-      borderRadius: Radius.sm, paddingHorizontal: 14, paddingVertical: 12, fontSize: 15, color: t.text,
+      borderRadius: Radius.button, paddingHorizontal: 14, paddingVertical: 12, fontSize: 15, color: t.text,
     },
     ingRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
     inputLinked: { borderColor: t.success },
@@ -275,7 +275,7 @@ function makeStyles(t: ThemePalette) {
     stepRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
     stepN: { width: 26, height: 26, borderRadius: 13, backgroundColor: t.fill, alignItems: 'center', justifyContent: 'center', marginTop: 10 },
     stepNTxt: { color: t.text, fontSize: 12, fontWeight: '700' },
-    addBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 12, borderRadius: Radius.sm, borderWidth: 1, borderColor: t.line, borderStyle: 'dashed' },
+    addBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 12, borderRadius: Radius.button, borderWidth: 1, borderColor: t.line, borderStyle: 'dashed' },
     addTxt: { color: t.text, fontSize: 14, fontWeight: '600' },
     reset: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 14, marginTop: 4 },
     resetTxt: { color: t.danger, fontSize: 14, fontWeight: '600' },

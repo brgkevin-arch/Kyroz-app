@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
-import { ThemePalette, Radius } from '../constants/theme';
+import { ThemePalette, Radius, Type } from '../constants/theme';
 import { PrimaryButton } from './ui';
 
 // ── « C'est quoi qui te gêne vraiment ? » ───────────────────────────────────
@@ -79,15 +79,15 @@ export function DislikeSheet({
 function makeStyles(t: ThemePalette) {
   return StyleSheet.create({
     wrap: { padding: 24, gap: 16 },
-    title: { color: t.text, fontSize: 22, fontWeight: '800', letterSpacing: -0.5 },
+    title: { color: t.text, ...Type.h2 },
     sub: { color: t.textSecondary, fontSize: 14, lineHeight: 20, marginTop: 6 },
     chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-    chip: { borderWidth: 1, borderRadius: Radius.md, paddingVertical: 12, paddingHorizontal: 14, gap: 2, minWidth: '47%', flexGrow: 1 },
+    chip: { borderWidth: 1, borderRadius: Radius.card, paddingVertical: 12, paddingHorizontal: 14, gap: 2, minWidth: '47%', flexGrow: 1 },
     chipLabel: { fontSize: 16, fontWeight: '700' },
     chipSub: { fontSize: 12 },
     customRow: { gap: 8 },
     customLabel: { color: t.textSecondary, fontSize: 13, fontWeight: '600' },
-    inputBox: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderRadius: Radius.sm, paddingHorizontal: 16 },
+    inputBox: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderRadius: Radius.button, paddingHorizontal: 16 },
     input: { flex: 1, paddingVertical: 14, fontSize: 17, fontWeight: '600', color: t.text },
     skip: { color: t.textTertiary, fontSize: 14, fontWeight: '700', paddingVertical: 4 },
   });

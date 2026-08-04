@@ -136,12 +136,15 @@ export function Segmented<T extends string | number>({
   t, options, value, onChange,
 }: { t: ThemePalette; options: { label: string; value: T }[]; value: T; onChange: (v: T) => void }) {
   return (
-    <View style={{ flexDirection: 'row', backgroundColor: t.fill, borderRadius: 14, padding: 4, gap: 4 }}>
+    <View style={{ flexDirection: 'row', backgroundColor: t.fill, borderRadius: Radius.button, padding: 4, gap: 4 }}>
+      {/* Rayon INTÉRIEUR = extérieur − le retrait (4) : c'est ce qui rend les deux
+          courbes concentriques. Il était écrit 11 pour un cadre à 14, donc le
+          curseur ne suivait pas tout à fait la courbe de son rail. */}
       {options.map((o) => {
         const on = o.value === value;
         return (
           <TouchableOpacity key={String(o.value)} onPress={() => onChange(o.value)} activeOpacity={0.8}
-            style={{ flex: 1, paddingVertical: 12, borderRadius: 11, alignItems: 'center', backgroundColor: on ? t.accent : 'transparent' }}>
+            style={{ flex: 1, paddingVertical: 12, borderRadius: Radius.button - 4, alignItems: 'center', backgroundColor: on ? t.accent : 'transparent' }}>
             <Text style={{ color: on ? t.onAccent : t.textSecondary, fontWeight: '700', fontSize: 14 }}>{o.label}</Text>
           </TouchableOpacity>
         );

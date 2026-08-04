@@ -683,6 +683,52 @@ Profil (poids, objectif, régime) = **données de santé** au sens RGPD.
 > rendu invaliderait ce memo partout et reconstruirait toutes les feuilles de style à
 > chaque frappe.
 
+### La FORME et la GRAISSE passent par un token, comme la couleur (2026-08-03)
+
+La règle « aucune couleur en dur » existait depuis toujours ; elle ne disait rien du
+**rayon** ni de la **graisse**. Ces deux-là ont donc dérivé librement, et la refonte
+des 5 onglets n'y a rien changé — un composant qui n'a fait qu'hériter des tokens de
+couleur garde sa forme d'avant.
+
+**Mesuré le 2026-08-03, en UNE capture de l'écran Plan** : bandeau de série 22 · bouton
+« hors plan » 14 · carte Hydratation **16** · bouton « + un verre » **999**. Quatre
+objets qui se touchent, trois grammaires. Rien de tout ça ne se voit en relisant un
+diff — **un rayon ne se lit pas, il se regarde.**
+
+| Rôle | Token | Objets |
+|---|---|---|
+| puce, jauge, badge | `Radius.pill` | filtres, tags — **jamais** un bouton pleine largeur |
+| sous-bloc, ligne de liste, vignette | `Radius.sm` (12) | suggestions, miniatures |
+| bouton **et champ de saisie** | `Radius.button` (14) | tout ce qui se presse ou se remplit |
+| bloc de contenu | `Radius.card` (22) | **le rayon dominant de la DA** |
+| grande surface flottante | `Radius.xl` (24) | feuille modale, dialogue, célébration |
+
+⚠️ **`md` (16) et `lg` (20) ont été SUPPRIMÉS du token, et c'est ça le correctif.**
+Tant qu'ils existaient, rien n'empêchait d'écrire `Radius.md` sur une carte — et c'est
+exactement ce qui est arrivé, huit fois. Les rendre inexistants fait échouer `tsc`.
+*Un token sans rôle n'est pas neutre : c'est une porte ouverte que personne ne surveille.*
+
+⚠️ **Le rayon seul ne suffit pas — la HAUTEUR fait la forme.** « + un verre » passé de
+999 à 14 ressemblait encore à une lozange : à 34 pt de haut, 14 de rayon *est* presque
+un demi-cercle. C'est la hauteur qui était fausse (34 → 44 pt, aussi le minimum d'une
+cible tactile Apple, que `hitSlop` rattrapait au doigt sans jamais le rattraper à l'œil).
+
+**Échelle typographique** — la hiérarchie se fait par la **TAILLE**, pas par la graisse :
+tout titre pèse **700**. `Type.h1` valait 800, soit plus lourd que le `display` au-dessus
+de lui : la hiérarchie s'inversait dès qu'on employait les deux. Personne ne s'en servait,
+donc l'incohérence dormait **dans le fichier qui sert de référence à toute l'app**.
+`hero` (40) chiffre héros · `display` (34) titre d'écran · `h1` (30) titre d'étape ·
+`h2` (22) titre de feuille · `h3` (17) titre de bloc · `overline` (11) sur-titre.
+
+➡️ **Garde-fou : `lib/__tests__/rayonsDA.test.ts`.** Un `borderRadius` en chiffre n'est
+légitime que si l'objet a une **taille fixe** et que le rayon en est au plus la moitié
+(disque, pastille, barre). Dès qu'un objet se dimensionne par son contenu, sa forme est
+une décision de DA. **Vérifié par mutation** : remettre la carte Hydratation à 16, ou le
+`PrimaryButton` à 999, fait rougir le test.
+⚠️ Ce qu'il ne sait PAS faire : dire qu'on a choisi le bon token — `Radius.pill` sur une
+carte passerait. Il ferme la porte au chiffre en dur, qui est le chemin par lequel la
+dérive est réellement arrivée.
+
 ### Largeurs — téléphone ET tablette (depuis le 2026-08-01)
 
 L'app est livrée pour iPad (`ios.supportsTablet: true`). **Tout écran passe par

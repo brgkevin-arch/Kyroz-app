@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { ThemePalette, Radius } from '../constants/theme';
+import { ThemePalette, Radius, Type } from '../constants/theme';
 import { Streak } from '../lib/types';
 import { chainProgress, streakMessage } from '../lib/streak';
 
@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   lineHead: { flexDirection: 'row', alignItems: 'baseline', gap: 5 },
-  lineNum: { fontSize: 17, fontWeight: '900', letterSpacing: -0.5 },
+  lineNum: { ...Type.h3 },
   lineLbl: { fontSize: 13, fontWeight: '600' },
   lineRecord: { fontSize: 12, fontWeight: '600' },
 

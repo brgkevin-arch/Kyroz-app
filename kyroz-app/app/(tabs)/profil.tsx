@@ -575,7 +575,7 @@ export default function ProfilScreen() {
 
       {/* Confirmation suppression de compte (RGPD) */}
       <ActionSheet visible={confirmDelete} onClose={() => setConfirmDelete(false)}>
-        <Text style={{ color: t.text, fontSize: 20, fontWeight: '800', letterSpacing: -0.5 }}>Supprimer mon compte ?</Text>
+        <Text style={{ color: t.text, ...Type.h2 }}>Supprimer mon compte ?</Text>
         <Text style={{ color: t.textSecondary, fontSize: 15, lineHeight: 21 }}>
           Toutes tes données (profil, plans, série, favoris, frigo) seront définitivement supprimées, sur cet appareil et sur le serveur.
         </Text>
@@ -640,7 +640,7 @@ function EditorShell({
   return (
     <View style={{ flex: 1, backgroundColor: t.bg }}>
       <View style={{ paddingHorizontal: Spacing.xxl, paddingBottom: 8 }} {...(dragHandlers ?? {})}>
-        <Text style={{ color: t.text, fontSize: 24, fontWeight: '800', letterSpacing: -0.5 }}>{title}</Text>
+        <Text style={{ color: t.text, ...Type.h2 }}>{title}</Text>
       </View>
       <ScrollView contentContainerStyle={{ padding: Spacing.xxl, paddingTop: 12, gap: 16 }} showsVerticalScrollIndicator={false}>
         {children}

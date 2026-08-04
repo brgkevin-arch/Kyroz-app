@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image, ImageSourcePropType } from 'react-native';
-import { ThemePalette, Radius } from '../constants/theme';
+import { ThemePalette, Radius, Type } from '../constants/theme';
 import { Field } from './ui';
 import { Sex } from '../lib/types';
 import { bodyFatBounds, bodyFatConcern, fatFreeMassKg } from '../lib/safety';
@@ -216,7 +216,7 @@ const styles = StyleSheet.create({
     width: '48%',
     flexGrow: 1,
     borderWidth: 1,
-    borderRadius: Radius.md,
+    borderRadius: Radius.card,
     paddingVertical: 14,
     paddingHorizontal: 14,
     gap: 4,
@@ -224,8 +224,8 @@ const styles = StyleSheet.create({
   },
   figure: { height: 104, alignItems: 'center', justifyContent: 'center' },
   img: { height: 104, aspectRatio: 220 / 462 },
-  pct: { fontSize: 17, fontWeight: '800', letterSpacing: -0.3 },
+  pct: { ...Type.h3 },
   desc: { fontSize: 12, lineHeight: 16, textAlign: 'center' },
   clear: { alignSelf: 'flex-start', paddingVertical: 2 },
-  note: { borderWidth: 1, borderRadius: Radius.md, paddingVertical: 10, paddingHorizontal: 12 },
+  note: { borderWidth: 1, borderRadius: Radius.card, paddingVertical: 10, paddingHorizontal: 12 },
 });

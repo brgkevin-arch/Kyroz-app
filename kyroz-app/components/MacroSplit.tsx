@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { ThemePalette, Radius, cardShadow } from '../constants/theme';
+import { ThemePalette, Radius, Type, cardShadow } from '../constants/theme';
 import { Goal } from '../lib/types';
 import {
   MacroBody, macrosPercent, recommendedProteinPerKg, goalLabel, CARB_RATIO_MIN, CARB_RATIO_MAX,
@@ -165,12 +165,12 @@ function Row({ t, l, v, c, strong }: { t: ThemePalette; l: string; v: string; c?
 const styles = StyleSheet.create({
   label: { fontSize: 12, fontWeight: '700', letterSpacing: 0.4 },
   note: { fontSize: 13, lineHeight: 18 },
-  stepper: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderRadius: Radius.md, padding: 8, gap: 8 },
+  stepper: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderRadius: Radius.button, padding: 8, gap: 8 },
   btn: { width: 44, height: 44, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   center: { flex: 1, flexDirection: 'row', alignItems: 'baseline', justifyContent: 'center', gap: 5 },
-  input: { fontSize: 20, fontWeight: '800', minWidth: 44, textAlign: 'right', padding: 0 },
+  input: { ...Type.h2, minWidth: 44, textAlign: 'right', padding: 0 },
   unit: { fontSize: 15, fontWeight: '700' },
-  preview: { borderRadius: Radius.md, padding: 16, gap: 12 },
+  preview: { borderRadius: Radius.card, padding: 16, gap: 12 },
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   sep: { height: 1 },
 });

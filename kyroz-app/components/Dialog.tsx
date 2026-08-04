@@ -1,6 +1,6 @@
 import React, { createContext, useCallback, useContext, useRef, useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import { useTheme, ThemePalette, Radius } from '../constants/theme';
+import { useTheme, ThemePalette, Radius, Type } from '../constants/theme';
 import { ActionSheet } from './ActionSheet';
 
 // ── Boîtes de dialogue — POURQUOI CE FICHIER EXISTE ─────────────────────────
@@ -118,7 +118,7 @@ export function DialogProvider({ children }: { children: React.ReactNode }) {
     <DialogContext.Provider value={value}>
       {children}
       <ActionSheet visible={req !== null} onClose={() => settle(req?.dismissValue ?? null)}>
-        <Text style={{ color: t.text, fontSize: 20, fontWeight: '800', letterSpacing: -0.4 }}>
+        <Text style={{ color: t.text, ...Type.h2 }}>
           {req?.title}
         </Text>
         {!!req?.message && (
@@ -143,7 +143,7 @@ function DialogButton({ t, b, onPress }: { t: ThemePalette; b: Btn<unknown>; onP
       onPress={onPress}
       style={{
         backgroundColor: bg,
-        borderRadius: Radius.md,
+        borderRadius: Radius.xl,
         paddingVertical: 15,
         alignItems: 'center',
         borderWidth: 1,

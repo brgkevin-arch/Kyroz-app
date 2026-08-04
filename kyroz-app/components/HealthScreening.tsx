@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
-import { useTheme, ThemePalette, Spacing } from '../constants/theme';
+import { useTheme, ThemePalette, Spacing, Radius, Type } from '../constants/theme';
 import { useLayout } from '../constants/layout';
 import { PrimaryButton, Segmented } from './ui';
 import { useAuth } from '../hooks/useAuth';
@@ -181,15 +181,15 @@ function makeStyles(t: ThemePalette) {
     content: { padding: Spacing.xl, gap: 16, paddingBottom: 24 },
     blockContent: { padding: Spacing.xl, gap: 16, paddingBottom: 24, flexGrow: 1, justifyContent: 'center' },
     iconWrap: { width: 60, height: 60, borderRadius: 30, backgroundColor: t.fill, alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
-    title: { color: t.text, fontSize: 28, fontWeight: '800', letterSpacing: -0.8 },
+    title: { color: t.text, ...Type.h1 },
     sub: { color: t.textSecondary, fontSize: 15, lineHeight: 21 },
     prompt: { color: t.text, fontSize: 16, fontWeight: '700', marginTop: 8 },
-    qCard: { backgroundColor: t.card, borderWidth: 1, borderColor: t.line, borderRadius: 14, padding: 16, gap: 6 },
+    qCard: { backgroundColor: t.card, borderWidth: 1, borderColor: t.line, borderRadius: Radius.card, padding: 16, gap: 6 },
     qTitle: { color: t.text, fontSize: 16, fontWeight: '700' },
     qSub: { color: t.textSecondary, fontSize: 13, lineHeight: 18, marginBottom: 6 },
     pending: { color: t.textTertiary, fontSize: 14, lineHeight: 20, marginTop: 4 },
     body: { color: t.textSecondary, fontSize: 15, lineHeight: 22 },
-    warnBox: { flexDirection: 'row', gap: 10, alignItems: 'flex-start', backgroundColor: t.fill, borderRadius: 12, padding: 14, marginTop: 4 },
+    warnBox: { flexDirection: 'row', gap: 10, alignItems: 'flex-start', backgroundColor: t.fill, borderRadius: Radius.card, padding: 14, marginTop: 4 },
     warnTxt: { flex: 1, color: t.warning, fontSize: 14, lineHeight: 20, fontWeight: '600' },
     attest: { flexDirection: 'row', gap: 12, alignItems: 'flex-start', marginTop: 8, paddingHorizontal: 2 },
     check: { width: 22, height: 22, borderRadius: 6, borderWidth: 2, alignItems: 'center', justifyContent: 'center', marginTop: 1 },
