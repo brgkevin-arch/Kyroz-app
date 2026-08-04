@@ -18,7 +18,7 @@
 | URL politique de confidentialité (HTTP 200) | ✅ en ligne |
 | Textes de fiche (FR), réponses confidentialité, classification | ✅ ci-dessous (§3–6) |
 | **Comptes développeur Apple + Google** | ⛔ **toi** (§1) |
-| Screenshots (iPhone + iPad 13") + feature graphic | ✅ générés (`npm run store:assets` / `:ipad`, §7) — toi : les uploader |
+| Screenshots (iPhone + iPad 13") + feature graphic | 🔴 **À REGÉNÉRER** — celles sur disque datent du **30 juillet**, donc d'AVANT la refonte design du 2026-08-03 (§7) |
 | Accès reviewer (code) | ✅ code — toi : poser le secret au build (§9) |
 | **Lancer le build EAS** | ⛔ **toi** (§8) |
 
@@ -164,9 +164,26 @@ un identifiant enregistré, puis une fiche d'app. Dans cet ordre, sinon le menu
    croire le contraire. ⚠️ **La clé SECRÈTE du dashboard, elle, ne doit JAMAIS approcher
    un build client** ; elle ne sert que côté serveur (webhooks, effacement RGPD).
    ⚠️ **Rien à poser sur le build web** : il n'encaisse pas (`lib/purchases.web.ts`).
-8. **Vérifier que le build a bien vu les clés** avant de tester un achat : dans l'app,
-   un bouton « S'abonner » actif = `purchasesConfigured()` vrai = clé lue. S'il reste
-   grisé, c'est la clé, pas le store.
+8. **Vérifier que le build a bien vu les clés — SUR L'ARTEFACT, pas dans l'app.**
+   ```
+   npx eas-cli config --profile production --platform ios     # gratuit, sans build
+   npx eas-cli env:exec production 'npx expo export --platform ios --clear --output-dir /tmp/x'
+   strings -a /tmp/x/_expo/static/js/ios/*.hbc | grep -c 'appl_'
+   ```
+   La première commande dit quel environnement le profil résout et quelles variables
+   sont chargées. La seconde produit le bundle exact qu'un `eas update` enverrait, sans
+   rien publier. `strings -a` est obligatoire : c'est du **bytecode Hermes**, un `grep`
+   seul rend 0 même quand la clé est là.
+   ⚠️ **`--clear` n'est pas décoratif** : le cache de Metro ne s'invalide pas quand la
+   valeur d'une `EXPO_PUBLIC_*` change. Sans lui, on mesure le bundle d'avant. Corollaire
+   pour publier : **`eas update --clear-cache`**.
+   ⚠️ **Ne PAS chercher le nom de la variable** (`EXPO_PUBLIC_…`) : Babel le retire du
+   bundle qu'elle soit posée ou non. On cherche la VALEUR.
+   🔴 **Et surtout : la version précédente de cette étape était FAUSSE.** Elle disait
+   « un bouton *S'abonner* actif = clé lue ». Impossible : tout le bloc d'achat de
+   `app/kyroz-plus.tsx` n'est rendu que si `reason === 'locked'`, ce qui exige une date
+   dans `PAYWALL_LAUNCH`. Sans date, le bouton n'existe pas — clé ou pas clé. On aurait
+   conclu à une clé manquante en regardant un écran qui ne pouvait rien montrer.
 
 ✅ **Le code n'attend plus rien — mis à jour le 2026-08-02.** Cette ligne disait qu'il
 restait `useEntitlement()` à écrire : c'est fait, ainsi que l'achat, la restauration, les
@@ -231,6 +248,19 @@ verrouillé par deux tests (`lib/__tests__/premium.test.ts`, `purchases.test.ts`
 >   en page à lui : ingrédients | préparation côte à côte, exactement le cas d'usage
 >   ci-dessus. Le rendu téléphone est inchangé, un test l'exige.
 > - **Captures iPad 13"** : `npm run store:assets:ipad` → `test/store-ipad/`, **2048×2732**.
+
+> 🔴 **LES CAPTURES SUR DISQUE SONT PÉRIMÉES — mesuré le 2026-08-03.** La refonte
+> design a changé les cinq écrans ET les icônes d'onglets ; les PNG présents dans
+> `test/store/` datent du **30 juillet 21:59**, soit d'avant. Les uploader publierait
+> une interface qui n'existe plus — c'est exactement le genre d'écart qu'une fiche de
+> store fige pour des semaines.
+> Vérifié aussi : **`test/store-ipad/` ne contient AUCUN png** aujourd'hui (juste son
+> `README.txt`). Les deux dossiers étant gitignorés (`test/store*/**.png`), leur absence
+> ne prouve pas qu'ils n'ont jamais existé — mais elle prouve qu'il n'y a rien à
+> uploader en l'état.
+> ➡️ **Avant toute soumission** : `npm run store:assets` **et** `npm run store:assets:ipad`
+> (serveur web allumé), puis regarder les PNG produits. Le tableau du haut ne repassera
+> au vert que là.
 > ⚠️ **Conséquences review, toujours vraies** : avec `supportsTablet:true`, Apple **EXIGE
 > les screenshots iPad** ET **teste réellement la mise en page tablette** (plus le simple
 > mode compatibilité). Les deux sont désormais couverts.
@@ -266,10 +296,10 @@ de ton profil : objectif (sèche, maintien, prise de masse), sport, préférence
 régime. Pas de blabla : un plan crédible dès le premier jour.
 
 • Plan 7 jours généré automatiquement, ajusté à tes calories et tes protéines
-• 466 recettes, adaptées à ton régime (végétarien, vegan, sans gluten, sans
+• 512 recettes, adaptées à ton régime (végétarien, vegan, sans gluten, sans
   lactose, sans porc, halal, pescétarien)
 • Quantités ajustées automatiquement pour tomber sur tes macros
-• Liste de courses (qui déduit ce que tu as déjà) + garde-manger
+• Liste de courses (qui déduit ce que tu as déjà) + frigo
 • « Recale ma journée » : un imprévu, un repas sauté ? Le plan se réajuste
 • Suivi de série pour tenir le rythme
 • 100 % gratuit sur le cœur, fonctionne hors-ligne
@@ -279,10 +309,13 @@ pas l'avis d'un médecin ou d'un diététicien-nutritionniste.
 ```
 
 ⚠️ **Le nombre de recettes est écrit À LA MAIN ici** — c'est du texte que tu colles dans
-la fiche, rien ne peut le calculer. Il annonçait **314** pour un catalogue qui en comptait
-**466** (corrigé le 2026-08-01). **À revérifier après CHAQUE vague de recettes** :
-`npm run mesure:couverture`. Un chiffre faux dans une fiche de store est une allégation
-fausse, pas une coquille.
+la fiche, rien ne peut le calculer. **Il a déjà dérivé DEUX fois** : annoncé **314** pour
+un catalogue de **466** (corrigé le 2026-08-01), puis **466** pour un catalogue de **512**
+(corrigé le 2026-08-03, après les vagues B7→B9). L'avertissement « à revérifier après
+CHAQUE vague » était déjà écrit ici la première fois — et il n'a pas suffi.
+➡️ **Le mesurer, pas le relire** : `npm run mesure:couverture`, ou
+`node -e "console.log(require('./Recette/recettes-kyroz.json').recipes.length)"`.
+Un chiffre faux dans une fiche de store est une allégation fausse, pas une coquille.
 
 **Mots-clés Apple** (100 car., séparés par des virgules, sans espaces) :
 `macros,nutrition,repas,fitness,muscu,prise de masse,seche,calories,proteine,meal prep,regime,sport`

@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, useWindowDimensions, Image, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { ThemePalette, Radius, Spacing } from '../constants/theme';
+import { ThemePalette, Radius, Spacing, Type } from '../constants/theme';
 import { SHEET_MAX_WIDTH } from '../constants/layout';
 import { Field, PrimaryButton, SectionLabel, Segmented } from './ui';
 import { useDialog } from './Dialog';
@@ -344,21 +344,21 @@ export function WeightCheckin({ t, onClose, dragHandlers }: Props) {
 function makeStyles(t: ThemePalette) {
   return StyleSheet.create({
     header: { paddingHorizontal: Spacing.xxl, paddingBottom: 8, gap: 8 },
-    title: { color: t.text, fontSize: 24, fontWeight: '800', letterSpacing: -0.5 },
+    title: { color: t.text, ...Type.h2 },
     sub: { color: t.textSecondary, fontSize: 14, lineHeight: 20 },
     content: { padding: Spacing.xxl, paddingTop: 12, gap: 14, paddingBottom: 40 },
     dateRow: { gap: CHIP_GAP, paddingVertical: 2 },
-    dateChip: { width: CHIP_W, height: 56, borderRadius: 14, borderWidth: 1, alignItems: 'center', justifyContent: 'center', gap: 3 },
+    dateChip: { width: CHIP_W, height: 56, borderRadius: Radius.button, borderWidth: 1, alignItems: 'center', justifyContent: 'center', gap: 3 },
     dateChipFuture: { backgroundColor: t.fill, borderColor: t.line, opacity: 0.5 },
     dateWd: { fontSize: 10, fontWeight: '600', textTransform: 'capitalize' },
     dateNum: { fontSize: 15, fontWeight: '700' },
     dateDot: { width: 4, height: 4, borderRadius: 2, position: 'absolute', bottom: 7 },
     inputRow: { flexDirection: 'row', gap: 12 },
-    confirm: { backgroundColor: t.fill, borderRadius: Radius.md, padding: 14, gap: 3 },
+    confirm: { backgroundColor: t.fill, borderRadius: Radius.card, padding: 14, gap: 3 },
     confirmTitle: { color: t.text, fontSize: 15, fontWeight: '700' },
     confirmSub: { color: t.textSecondary, fontSize: 13 },
     freqHint: { color: t.textTertiary, fontSize: 12, lineHeight: 16, marginTop: -6 },
-    histCard: { backgroundColor: t.card, borderRadius: Radius.md, borderWidth: 1, borderColor: t.line, paddingHorizontal: 16 },
+    histCard: { backgroundColor: t.card, borderRadius: Radius.card, borderWidth: 1, borderColor: t.line, paddingHorizontal: 16 },
     histItem: { paddingVertical: 13 },
     histRow: { flexDirection: 'row', alignItems: 'center' },
     histDivider: { borderBottomWidth: 1, borderBottomColor: t.line },
@@ -367,12 +367,15 @@ function makeStyles(t: ThemePalette) {
     histD: { width: 56, textAlign: 'right', fontSize: 14, fontWeight: '600' },
     histDel: { marginLeft: 10, padding: 2 },
     histNote: { color: t.textSecondary, fontSize: 13, lineHeight: 18, marginTop: 5, fontStyle: 'italic' },
-    histPhoto: { width: 64, height: 84, borderRadius: 10, marginTop: 8, backgroundColor: t.fill },
-    photoBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 14, borderRadius: Radius.md, borderWidth: 1, borderColor: t.line, borderStyle: 'dashed' },
+    histPhoto: { width: 64, height: 84, borderRadius: Radius.sm, marginTop: 8, backgroundColor: t.fill },
+    photoBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 14, borderRadius: Radius.button, borderWidth: 1, borderColor: t.line, borderStyle: 'dashed' },
     photoBtnTxt: { color: t.text, fontSize: 15, fontWeight: '600' },
     photoPreview: { alignSelf: 'flex-start' },
-    photoBig: { width: 150, height: 200, borderRadius: Radius.md, backgroundColor: t.fill },
-    photoRemove: { position: 'absolute', top: -8, right: -8, backgroundColor: t.bg, borderRadius: 14 },
+    photoBig: { width: 150, height: 200, borderRadius: Radius.card, backgroundColor: t.fill },
+    // Pastille de fond DERRIÈRE l'icône « close-circle » de 26 : sa taille est
+    // donc dictée par l'icône, et son rayon en est la moitié. Elle valait 14 pour
+    // 26 de large — donc pas tout à fait un disque, ce qui se voyait au liseré.
+    photoRemove: { position: 'absolute', top: -8, right: -8, backgroundColor: t.bg, width: 26, height: 26, borderRadius: 13 },
     photoHint: { color: t.textTertiary, fontSize: 12, lineHeight: 16, marginTop: -4 },
   });
 }

@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useTheme, ThemePalette, Spacing, Radius } from '../constants/theme';
+import { useTheme, ThemePalette, Spacing, Radius, Type } from '../constants/theme';
 import { useLayout } from '../constants/layout';
 import { Card, OptionCard, PrimaryButton, SectionLabel } from '../components/ui';
 import { useDialog } from '../components/Dialog';
@@ -68,7 +68,7 @@ const BRIQUES = [
 
 const GRATUIT =
   "Ton plan de la semaine macro par macro, ta liste de courses, toutes les recettes, " +
-  "ton garde-manger, tes favoris, ta série, ta pesée et le recalcul de tes calories, " +
+  "ton frigo, tes favoris, ta série, ta pesée et le recalcul de tes calories, " +
   "et la synchro de ton compte. Rien de tout ça ne passera jamais derrière un abonnement.";
 
 export default function KyrozPlusScreen() {
@@ -275,14 +275,14 @@ export default function KyrozPlusScreen() {
 function makeStyles(t: ThemePalette) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: t.bg },
-    header: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: Spacing.xl, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: t.line },
-    headerTitle: { color: t.text, fontSize: 18, fontWeight: '800', letterSpacing: -0.4 },
+    header: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: Spacing.xl, paddingVertical: 12 },
+    headerTitle: { color: t.text, ...Type.h3 },
     content: { padding: Spacing.xl, paddingBottom: 60 },
-    h1: { color: t.text, fontSize: 26, fontWeight: '800', letterSpacing: -0.6, marginTop: 8 },
+    h1: { color: t.text, ...Type.display, marginTop: 8 },
     sub: { color: t.textSecondary, fontSize: 15, lineHeight: 22, marginTop: 8 },
     block: { marginTop: 28 },
     briqueTitre: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 },
-    briqueNom: { color: t.text, fontSize: 17, fontWeight: '700', letterSpacing: -0.3 },
+    briqueNom: { color: t.text, ...Type.h3 },
     briqueCorps: { color: t.textSecondary, fontSize: 14, lineHeight: 21 },
     confid: { color: t.textTertiary, fontSize: 12.5, lineHeight: 18, marginTop: 10 },
     lienSecondaire: { color: t.textSecondary, fontSize: 14, fontWeight: '600', textAlign: 'center' },

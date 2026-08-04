@@ -10,7 +10,7 @@ import { ThemePalette, Radius, Spacing, Type, cardShadow } from '../constants/th
 
 export function Card({ t, style, children }: { t: ThemePalette; style?: ViewStyle; children: React.ReactNode }) {
   return (
-    <View style={[{ backgroundColor: t.card, borderRadius: Radius.lg, padding: Spacing.xl }, cardShadow(t), style]}>
+    <View style={[{ backgroundColor: t.card, borderRadius: Radius.card, padding: Spacing.xl }, cardShadow(t), style]}>
       {children}
     </View>
   );
@@ -26,7 +26,7 @@ export function PrimaryButton({
       disabled={disabled || loading}
       style={{
         backgroundColor: t.accent,
-        borderRadius: Radius.md,
+        borderRadius: Radius.button,
         paddingVertical: 17,
         alignItems: 'center',
         justifyContent: 'center',
@@ -52,11 +52,12 @@ export function Chip({
         paddingVertical: 10,
         borderRadius: Radius.pill,
         backgroundColor: selected ? t.accent : t.fill,
-        borderWidth: 1,
-        borderColor: selected ? t.accent : t.line,
       }}
     >
-      <Text style={{ color: selected ? t.onAccent : t.textSecondary, fontSize: 14, fontWeight: '600' }}>
+      {/* Pas de bordure sur les pilules inactives : le remplissage suffit à les
+          poser, et le liseré doublait le contour à chaque puce (cf. les filtres
+          de l'écran Recettes). */}
+      <Text style={{ color: selected ? t.onAccent : t.text, fontSize: 15, fontWeight: selected ? '600' : '500' }}>
         {label}
       </Text>
     </TouchableOpacity>
@@ -73,7 +74,7 @@ export function OptionCard({
       style={[
         {
           backgroundColor: t.card,
-          borderRadius: Radius.md,
+          borderRadius: Radius.card,
           padding: Spacing.xl,
           borderWidth: 1.5,
           borderColor: selected ? t.accent : (t.scheme === 'dark' ? t.line : 'transparent'),
@@ -110,7 +111,7 @@ export function Field({
       <View style={{
         flexDirection: 'row', alignItems: 'center',
         backgroundColor: t.scheme === 'dark' ? t.fill : t.card,
-        borderRadius: Radius.sm, borderWidth: 1, borderColor: t.line,
+        borderRadius: Radius.button, borderWidth: 1, borderColor: t.line,
         paddingHorizontal: 16,
       }}>
         <TextInput
@@ -135,12 +136,15 @@ export function Segmented<T extends string | number>({
   t, options, value, onChange,
 }: { t: ThemePalette; options: { label: string; value: T }[]; value: T; onChange: (v: T) => void }) {
   return (
-    <View style={{ flexDirection: 'row', backgroundColor: t.fill, borderRadius: 14, padding: 4, gap: 4 }}>
+    <View style={{ flexDirection: 'row', backgroundColor: t.fill, borderRadius: Radius.button, padding: 4, gap: 4 }}>
+      {/* Rayon INTÉRIEUR = extérieur − le retrait (4) : c'est ce qui rend les deux
+          courbes concentriques. Il était écrit 11 pour un cadre à 14, donc le
+          curseur ne suivait pas tout à fait la courbe de son rail. */}
       {options.map((o) => {
         const on = o.value === value;
         return (
           <TouchableOpacity key={String(o.value)} onPress={() => onChange(o.value)} activeOpacity={0.8}
-            style={{ flex: 1, paddingVertical: 12, borderRadius: 11, alignItems: 'center', backgroundColor: on ? t.accent : 'transparent' }}>
+            style={{ flex: 1, paddingVertical: 12, borderRadius: Radius.button - 4, alignItems: 'center', backgroundColor: on ? t.accent : 'transparent' }}>
             <Text style={{ color: on ? t.onAccent : t.textSecondary, fontWeight: '700', fontSize: 14 }}>{o.label}</Text>
           </TouchableOpacity>
         );

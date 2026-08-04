@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useTheme, Radius, Spacing, cardShadow } from '../constants/theme';
+import { useTheme, Radius, Spacing, Type, cardShadow } from '../constants/theme';
 import { ActionSheet } from './ActionSheet';
 import { Segmented, SectionLabel } from './ui';
 
@@ -156,7 +156,7 @@ export function HydrationBar() {
 }
 
 const styles = StyleSheet.create({
-  card: { borderRadius: Radius.md, padding: Spacing.lg, gap: Spacing.md, marginBottom: Spacing.lg },
+  card: { borderRadius: Radius.card, padding: Spacing.lg, gap: Spacing.md, marginBottom: Spacing.lg },
   headRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   headRight: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
   title: { fontSize: 15, fontWeight: '700' },
@@ -164,11 +164,18 @@ const styles = StyleSheet.create({
   track: { height: 8, borderRadius: Radius.pill, overflow: 'hidden' },
   fill: { height: '100%', borderRadius: Radius.pill },
   controls: { flexDirection: 'row', gap: Spacing.sm },
-  btn: { paddingVertical: 8, paddingHorizontal: 16, borderRadius: Radius.pill, alignItems: 'center', justifyContent: 'center', minWidth: 48 },
+  // `Radius.button` et pas `pill` : ces deux-là sont des BOUTONS. En pilule
+  // pleine, « + un verre » était le seul objet complètement rond de l'écran Plan,
+  // au milieu de blocs à 22 et de boutons à 14.
+  // ⚠️ Et le rayon seul ne suffisait pas : à 34 pt de haut, 14 de rayon rend
+  // encore une lozange. C'est la HAUTEUR qui était fausse — 44 pt est aussi le
+  // minimum d'une cible tactile chez Apple, que `hitSlop` rattrapait au doigt
+  // sans jamais le rattraper à l'œil.
+  btn: { paddingVertical: 13, paddingHorizontal: 16, borderRadius: Radius.button, alignItems: 'center', justifyContent: 'center', minWidth: 48 },
   btnAdd: { flex: 1 },
   btnTxt: { fontSize: 15, fontWeight: '700' },
-  sheetTitle: { fontSize: 18, fontWeight: '800', marginBottom: 4 },
+  sheetTitle: { ...Type.h2, marginBottom: 4 },
   sheetBlock: { gap: Spacing.sm },
   hint: { fontSize: 12, fontWeight: '600' },
-  doneBtn: { marginTop: Spacing.sm, paddingVertical: 14, borderRadius: Radius.pill, alignItems: 'center' },
+  doneBtn: { marginTop: Spacing.sm, paddingVertical: 14, borderRadius: Radius.button, alignItems: 'center' },
 });

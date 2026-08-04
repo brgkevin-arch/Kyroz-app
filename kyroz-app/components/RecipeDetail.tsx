@@ -1,14 +1,14 @@
 import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useTheme, ThemePalette, Radius, Spacing, cardShadow } from '../constants/theme';
+import { useTheme, ThemePalette, Radius, Spacing, Type, cardShadow } from '../constants/theme';
 import { useLayout } from '../constants/layout';
 import { PrimaryButton } from './ui';
 import { useFavorites } from '../hooks/useFavorites';
 import { formatQuantity } from '../lib/units';
 import { mealFiberG, mealFiberFromIngredients } from '../lib/fiber';
 import { Recipe, MealStatus, Macros, AdaptFlag } from '../lib/types';
-import { OBJ_LABEL, SPORT_LABEL } from '../lib/recipeLabels';
+import { OBJ_LABEL } from '../lib/recipeLabels';
 import { FLAG_AUDIENCE } from '../lib/adaptRecipe';
 
 interface Props {
@@ -105,10 +105,11 @@ export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adapted
           <Text style={s.metaTxt}>🍽 {f === 1 ? '1 portion' : `${f} portions`}</Text>
         </View>
 
-        {(recipe.objectives?.length || recipe.sports?.length) ? (
+        {/* `recipe.sports` n'est plus affiché depuis le 2026-08-03 : il reste un
+            diversifieur interne, pas une promesse (cf. lib/recipeLabels.ts). */}
+        {recipe.objectives?.length ? (
           <View style={s.tagRow}>
-            {recipe.objectives?.map((o) => <Text key={o} style={s.tag}>{OBJ_LABEL[o]}</Text>)}
-            {recipe.sports?.map((sp) => <Text key={sp} style={s.tag}>{SPORT_LABEL[sp]}</Text>)}
+            {recipe.objectives.map((o) => <Text key={o} style={s.tag}>{OBJ_LABEL[o]}</Text>)}
           </View>
         ) : null}
 
@@ -119,9 +120,9 @@ export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adapted
 
         <View style={[s.macros, cardShadow(t)]}>
           <Big t={t} v={macros.kcal} l="kcal" />
-          <Big t={t} v={macros.protein_g} l="Protéines" u="g" c={t.protein} />
-          <Big t={t} v={macros.carbs_g} l="Glucides" u="g" c={t.carbs} />
-          <Big t={t} v={macros.fat_g} l="Lipides" u="g" c={t.fat} />
+          <Big t={t} v={macros.protein_g} l="Protéines" u="g" />
+          <Big t={t} v={macros.carbs_g} l="Glucides" u="g" />
+          <Big t={t} v={macros.fat_g} l="Lipides" u="g" />
         </View>
         <Text style={s.fiber}>🌾 ~{adaptedIngredients ? mealFiberFromIngredients(adaptedIngredients) : mealFiberG(recipe, f)} g de fibres (estimé)</Text>
 
@@ -203,7 +204,7 @@ export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adapted
 function Big({ t, v, l, u = '', c }: { t: ThemePalette; v: number; l: string; u?: string; c?: string }) {
   return (
     <View style={{ alignItems: 'center', gap: 4 }}>
-      <Text style={{ fontSize: 22, fontWeight: '800', letterSpacing: -0.5, color: c ?? t.text }}>{v}{u}</Text>
+      <Text style={{ ...Type.h2, color: c ?? t.text }}>{v}{u}</Text>
       <Text style={{ fontSize: 11, color: t.textSecondary }}>{l}</Text>
     </View>
   );
@@ -227,7 +228,7 @@ function makeStyles(t: ThemePalette, isTablet: boolean) {
     cookColWide: isTablet ? { flex: 1, gap: 18 } : { gap: 18 },
     content: { padding: Spacing.xxl, gap: 18, paddingBottom: 48 },
     header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 },
-    name: { color: t.text, fontSize: 24, fontWeight: '800', letterSpacing: -0.5 },
+    name: { color: t.text, ...Type.h2 },
     badge: { flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-start', backgroundColor: t.fill, paddingHorizontal: 9, paddingVertical: 4, borderRadius: Radius.pill },
     badgeTxt: { color: t.textSecondary, fontSize: 11, fontWeight: '600' },
     headerBtns: { flexDirection: 'row', gap: 8 },
@@ -238,9 +239,9 @@ function makeStyles(t: ThemePalette, isTablet: boolean) {
     tag: { backgroundColor: t.fill, color: t.textSecondary, fontSize: 11, fontWeight: '600', paddingHorizontal: 9, paddingVertical: 4, borderRadius: Radius.pill, overflow: 'hidden' },
     warn: { color: t.warning, fontSize: 13, marginTop: -8 },
     why: { color: t.textSecondary, fontSize: 14, fontStyle: 'italic', lineHeight: 20, marginTop: -8 },
-    macros: { flexDirection: 'row', backgroundColor: t.card, borderRadius: Radius.md, padding: 16, justifyContent: 'space-around' },
+    macros: { flexDirection: 'row', backgroundColor: t.card, borderRadius: Radius.card, padding: 16, justifyContent: 'space-around' },
     fiber: { color: t.textTertiary, fontSize: 13, marginTop: -8 },
-    section: { color: t.textTertiary, fontSize: 12, fontWeight: '700', letterSpacing: 0.5 },
+    section: { color: t.textTertiary, ...Type.overline },
     ing: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: t.line },
     ingName: { color: t.text, fontSize: 15 },
     ingQty: { color: t.textSecondary, fontSize: 14 },
@@ -248,10 +249,13 @@ function makeStyles(t: ThemePalette, isTablet: boolean) {
     stepN: { width: 28, height: 28, borderRadius: 14, backgroundColor: t.fill, alignItems: 'center', justifyContent: 'center', marginTop: 2 },
     stepNTxt: { color: t.text, fontSize: 13, fontWeight: '700' },
     stepTxt: { flex: 1, color: t.textSecondary, fontSize: 15, lineHeight: 22 },
-    swapBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 16, borderRadius: Radius.md, borderWidth: 1.5, borderColor: t.lineStrong },
+    // Bouton secondaire : un REMPLISSAGE, pas un liseré de 1,5 px. Le contour
+    // doublait celui de la feuille et faisait de l'action secondaire l'objet le
+    // plus dessiné de l'écran — c'est le même arbitrage que les puces de filtre.
+    swapBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 16, borderRadius: Radius.button, backgroundColor: t.fill },
     swapTxt: { color: t.text, fontSize: 16, fontWeight: '700' },
     swapHint: { color: t.textSecondary, fontSize: 13, lineHeight: 18, marginTop: -4, paddingHorizontal: 2 },
-    statusBanner: { marginTop: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, paddingVertical: 14, paddingHorizontal: 16, borderRadius: Radius.md, borderWidth: 1 },
+    statusBanner: { marginTop: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, paddingVertical: 14, paddingHorizontal: 16, borderRadius: Radius.card, borderWidth: 1 },
     statusTxt: { flex: 1, color: t.textSecondary, fontSize: 14, fontWeight: '600' },
     statusUndo: { color: t.text, fontSize: 14, fontWeight: '700' },
   });

@@ -5,7 +5,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { useTheme, ThemePalette, Radius, Spacing, cardShadow } from '../../constants/theme';
+import { useTheme, ThemePalette, Radius, Spacing, Type, cardShadow } from '../../constants/theme';
 import { useLayout } from '../../constants/layout';
 import { PrimaryButton, Chip, Field, SectionLabel, Segmented } from '../../components/ui';
 import { ActionSheet } from '../../components/ActionSheet';
@@ -71,10 +71,18 @@ export default function GardeMangerScreen() {
     setEditUnit(it.unit);
   };
 
+  // Tomber à ZÉRO retire l'aliment : c'est le seul chemin de suppression depuis que
+  // les lignes n'ont plus de croix. La quantité et la présence dans le frigo sont la
+  // même information — « je n'en ai plus » et « retire-le » sont le même geste.
   const saveEdit = async () => {
     if (!editItem) return;
     const q = parseFloat(editQty);
-    if (!(q > 0)) return;
+    if (!(q >= 0)) return;
+    if (q === 0) {
+      await persist(removeItem(items, editItem.name, editItem.unit));
+      setEditItem(null);
+      return;
+    }
     const base = toBaseUnit(q, editUnit);
     let next = removeItem(items, editItem.name, editItem.unit);
     next = addOrMerge(next, { name: editItem.name, quantity: base.quantity, unit: base.unit, category: editItem.category });
@@ -82,7 +90,19 @@ export default function GardeMangerScreen() {
     setEditItem(null);
   };
 
-  const remove = (it: PantryItem) => persist(removeItem(items, it.name, it.unit));
+  // Pas du − / + selon l'unité. Un pas unique n'existe pas : « −1 g » sur 500 g de
+  // riz ne sert à rien, et « −50 » sur 3 œufs vide la ligne d'un coup.
+  //
+  // Mise à jour FONCTIONNELLE plutôt que `parseFloat(editQty)` : un pas-à-pas se
+  // tapote vite, et lire l'état dans la fermeture ferait partir deux appuis
+  // rapprochés de la même valeur. React groupe les mises à jour, pas les lectures.
+  const bumpEditQty = (dir: 1 | -1) => {
+    const step = editUnit === 'pièce' ? 1 : editUnit === 'kg' ? 0.5 : 50;
+    setEditQty((prev) => {
+      const cur = parseFloat(prev) || 0;
+      return String(Math.max(0, Math.round((cur + dir * step) * 100) / 100));
+    });
+  };
 
   // Cuisiné : déduction directe, sans confirmation (juste un retour visuel).
   const cook = async (c: Coverage) => {
@@ -92,7 +112,7 @@ export default function GardeMangerScreen() {
 
   const clearAll = () => {
     setConfirm({
-      title: 'Vider le garde-manger ?',
+      title: 'Vider le frigo ?',
       message: 'Tous les aliments seront supprimés.',
       cta: 'Vider', danger: true,
       onYes: () => persist([]),
@@ -110,10 +130,12 @@ export default function GardeMangerScreen() {
 
   return (
     <SafeAreaView style={s.safe} edges={['top']}>
+      {/* « Frigo », le mot de la barre d'onglets — un même objet ne peut pas avoir
+          deux noms selon l'endroit d'où on le regarde. */}
       <View style={[s.header, layout.header]}>
-        <View>
-          <Text style={s.h1}>Garde-manger</Text>
+        <View style={{ flex: 1 }}>
           <Text style={s.sub}>{visible.length} aliment{visible.length > 1 ? 's' : ''} · {ready.length} recette{ready.length > 1 ? 's' : ''} prête{ready.length > 1 ? 's' : ''}</Text>
+          <Text style={s.h1}>Frigo</Text>
         </View>
         <TouchableOpacity style={s.addBtn} onPress={() => setShowAdd(true)} activeOpacity={0.85}>
           <Ionicons name="add" size={22} color={t.onAccent} />
@@ -137,7 +159,7 @@ export default function GardeMangerScreen() {
             <View style={[s.emptyIcon, { backgroundColor: t.fill }]}>
               <Ionicons name="file-tray-full-outline" size={30} color={t.textSecondary} />
             </View>
-            <Text style={s.emptyTitle}>Ton garde-manger est vide</Text>
+            <Text style={s.emptyTitle}>Ton frigo est vide</Text>
             <Text style={s.emptySub}>Ajoute ce que tu as déjà — ou coche tes articles dans l'onglet Courses, ils arrivent ici automatiquement.</Text>
             <View style={{ height: 8 }} />
             <TouchableOpacity onPress={() => setShowAdd(true)} style={s.ghostBtn} activeOpacity={0.8}>
@@ -206,19 +228,20 @@ export default function GardeMangerScreen() {
               <View key={g.cat} style={{ marginTop: 8 }}>
                 <Text style={s.catLabel}>{CATEGORY_LABELS[g.cat].toUpperCase()}</Text>
                 <View style={[s.invCard, cardShadow(t)]}>
+                  {/* Plus de croix de suppression par ligne : toucher la quantité
+                      ouvre le pas-à-pas, et tomber à zéro retire l'aliment. Une
+                      croix sur chaque ligne, c'est une invitation à la faute de
+                      frappe sur un geste irréversible. */}
                   {g.list.map((it, i) => (
-                    <View key={it.name + it.unit} style={[s.invRow, i < g.list.length - 1 && { borderBottomWidth: 1, borderBottomColor: t.line }]}>
-                      <TouchableOpacity style={s.invMain} onPress={() => openEdit(it)} activeOpacity={0.6}>
-                        <Text style={s.invName} numberOfLines={1}>{it.name}</Text>
-                        <View style={s.invQtyWrap}>
-                          <Text style={s.invQty}>{formatQuantity(it.name, it.quantity, it.unit)}</Text>
-                          <Ionicons name="pencil" size={13} color={t.textQuaternary} />
-                        </View>
-                      </TouchableOpacity>
-                      <TouchableOpacity onPress={() => remove(it)} hitSlop={8} style={{ marginLeft: 12 }}>
-                        <Ionicons name="close-circle" size={20} color={t.textQuaternary} />
-                      </TouchableOpacity>
-                    </View>
+                    <TouchableOpacity
+                      key={it.name + it.unit}
+                      style={[s.invRow, i < g.list.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.line }]}
+                      onPress={() => openEdit(it)}
+                      activeOpacity={0.6}
+                    >
+                      <Text style={s.invName} numberOfLines={1}>{it.name}</Text>
+                      <Text style={s.invQty}>{formatQuantity(it.name, it.quantity, it.unit)}</Text>
+                    </TouchableOpacity>
                   ))}
                 </View>
               </View>
@@ -242,7 +265,7 @@ export default function GardeMangerScreen() {
           const sug = searchFoods(name, 5);
           if (sug.length === 0) return null;
           return (
-            <View style={{ borderWidth: 1, borderColor: t.line, borderRadius: 10, overflow: 'hidden' }}>
+            <View style={{ borderWidth: 1, borderColor: t.line, borderRadius: Radius.sm, overflow: 'hidden' }}>
               {sug.map((f) => (
                 <TouchableOpacity
                   key={f.id} activeOpacity={0.7}
@@ -268,12 +291,28 @@ export default function GardeMangerScreen() {
       <ActionSheet visible={!!editItem} onClose={() => setEditItem(null)}>
         <Text style={s.sheetTitle}>Modifier la quantité</Text>
         <Text style={s.editName}>{editItem?.name}</Text>
-        <Field t={t} label="Quantité" suffix={editUnit} value={editQty} onChangeText={setEditQty} placeholder="2" keyboardType="decimal-pad" />
+        <View style={s.stepRow}>
+          <TouchableOpacity onPress={() => bumpEditQty(-1)} style={s.stepBtn} activeOpacity={0.7} accessibilityLabel="Diminuer la quantité">
+            <Ionicons name="remove" size={22} color={t.text} />
+          </TouchableOpacity>
+          <View style={{ flex: 1 }}>
+            <Field t={t} label="Quantité" suffix={editUnit} value={editQty} onChangeText={setEditQty} placeholder="2" keyboardType="decimal-pad" />
+          </View>
+          <TouchableOpacity onPress={() => bumpEditQty(1)} style={s.stepBtn} activeOpacity={0.7} accessibilityLabel="Augmenter la quantité">
+            <Ionicons name="add" size={22} color={t.text} />
+          </TouchableOpacity>
+        </View>
         <View style={s.unitRow}>
           {UNITS.map((u) => <Chip key={u} t={t} label={u} selected={editUnit === u} onPress={() => setEditUnit(u)} />)}
         </View>
+        <Text style={s.stepHint}>Descends à 0 pour retirer cet aliment du frigo.</Text>
         <View style={{ height: 4 }} />
-        <PrimaryButton t={t} label="Enregistrer" onPress={saveEdit} disabled={!(parseFloat(editQty) > 0)} />
+        <PrimaryButton
+          t={t}
+          label={parseFloat(editQty) === 0 ? 'Retirer du frigo' : 'Enregistrer'}
+          onPress={saveEdit}
+          disabled={!(parseFloat(editQty) >= 0)}
+        />
         <TouchableOpacity onPress={() => setEditItem(null)} style={s.cancel}><Text style={s.cancelTxt}>Annuler</Text></TouchableOpacity>
       </ActionSheet>
 
@@ -299,20 +338,20 @@ function makeStyles(t: ThemePalette) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: t.bg },
     header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: Spacing.xl, paddingTop: 4, paddingBottom: 12 },
-    h1: { color: t.text, fontSize: 30, fontWeight: '800', letterSpacing: -1 },
-    sub: { color: t.textSecondary, fontSize: 13, marginTop: 2 },
+    h1: { color: t.text, ...Type.display, marginTop: 2 },
+    sub: { color: t.textSecondary, fontSize: 14, lineHeight: 19 },
     addBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: t.accent, alignItems: 'center', justifyContent: 'center' },
     segment: { paddingHorizontal: Spacing.xl, paddingBottom: 6 },
     content: { paddingHorizontal: Spacing.xl, paddingTop: 10, paddingBottom: 120 },
 
     empty: { alignItems: 'center', gap: 10, paddingVertical: 40 },
     emptyIcon: { width: 72, height: 72, borderRadius: 24, alignItems: 'center', justifyContent: 'center', marginBottom: 6 },
-    emptyTitle: { color: t.text, fontSize: 21, fontWeight: '800', letterSpacing: -0.5 },
+    emptyTitle: { color: t.text, ...Type.h2 },
     emptySub: { color: t.textSecondary, fontSize: 15, textAlign: 'center', lineHeight: 21, paddingHorizontal: 10 },
     ghostBtn: { paddingVertical: 14, alignItems: 'center' },
     ghostTxt: { color: t.textSecondary, fontSize: 15, fontWeight: '600' },
 
-    recipe: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: t.card, borderRadius: Radius.lg, padding: 16 },
+    recipe: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: t.card, borderRadius: Radius.card, padding: 16 },
     rName: { color: t.text, fontSize: 16, fontWeight: '700', letterSpacing: -0.3 },
     rMeta: { color: t.textSecondary, fontSize: 13, marginTop: 4 },
     rMissing: { color: t.textTertiary, fontSize: 13, marginTop: 4 },
@@ -321,30 +360,31 @@ function makeStyles(t: ThemePalette) {
     missingBadge: { width: 28, height: 28, borderRadius: 14, backgroundColor: t.fill, alignItems: 'center', justifyContent: 'center' },
     missingBadgeTxt: { color: t.textSecondary, fontSize: 13, fontWeight: '700' },
 
-    note: { borderRadius: Radius.md, padding: 16, marginTop: 4 },
+    note: { borderRadius: Radius.card, padding: 16, marginTop: 4 },
     noteTxt: { color: t.textSecondary, fontSize: 14, lineHeight: 20 },
 
     invHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
-    invHint: { color: t.textTertiary, fontSize: 12 },
-    link: { color: t.textSecondary, fontSize: 13, fontWeight: '600' },
-    catLabel: { color: t.textTertiary, fontSize: 11, fontWeight: '700', letterSpacing: 0.5, marginBottom: 8, marginTop: 12 },
-    invCard: { backgroundColor: t.card, borderRadius: Radius.lg, paddingHorizontal: Spacing.xl },
-    invRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 14 },
-    invMain: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-    invName: { flex: 1, color: t.text, fontSize: 15, fontWeight: '600', marginRight: 12 },
-    invQtyWrap: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-    invQty: { color: t.textSecondary, fontSize: 14, fontWeight: '600' },
+    invHint: { color: t.textTertiary, fontSize: 13 },
+    link: { color: t.textSecondary, fontSize: 14, fontWeight: '500' },
+    catLabel: { color: t.textTertiary, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8, marginTop: 12 },
+    invCard: { backgroundColor: t.card, borderRadius: Radius.card, paddingHorizontal: 16 },
+    invRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, paddingVertical: 15 },
+    invName: { flex: 1, color: t.text, fontSize: 16, fontWeight: '500' },
+    invQty: { color: t.textSecondary, fontSize: 15 },
+    stepRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 10 },
+    stepBtn: { width: 48, height: 48, borderRadius: Radius.button, backgroundColor: t.fill, alignItems: 'center', justifyContent: 'center' },
+    stepHint: { color: t.textTertiary, fontSize: 13, lineHeight: 18 },
 
-    toast: { position: 'absolute', left: 20, right: 20, bottom: 28, backgroundColor: t.accent, borderRadius: Radius.md, paddingVertical: 14, paddingHorizontal: 18, alignItems: 'center' },
+    toast: { position: 'absolute', left: 20, right: 20, bottom: 28, backgroundColor: t.accent, borderRadius: Radius.button, paddingVertical: 14, paddingHorizontal: 18, alignItems: 'center' },
     toastTxt: { color: t.onAccent, fontSize: 14, fontWeight: '700' },
 
-    sheetTitle: { color: t.text, fontSize: 20, fontWeight: '800', letterSpacing: -0.5 },
+    sheetTitle: { color: t.text, ...Type.h2 },
     editName: { color: t.textSecondary, fontSize: 15, fontWeight: '600', marginTop: -6 },
     unitRow: { flexDirection: 'row', gap: 8 },
     cancel: { alignItems: 'center', paddingVertical: 6 },
     cancelTxt: { color: t.textSecondary, fontSize: 15, fontWeight: '600' },
     confirmMsg: { color: t.textSecondary, fontSize: 15, lineHeight: 21 },
-    confirmBtn: { borderRadius: Radius.md, paddingVertical: 17, alignItems: 'center', justifyContent: 'center' },
+    confirmBtn: { borderRadius: Radius.button, paddingVertical: 17, alignItems: 'center', justifyContent: 'center' },
     confirmBtnTxt: { fontSize: 17, fontWeight: '700' },
   });
 }

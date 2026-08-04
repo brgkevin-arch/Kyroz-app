@@ -5,9 +5,10 @@ import { Ionicons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { useTheme, ThemePalette, Radius, Spacing, cardShadow } from '../../constants/theme';
+import { useTheme, ThemePalette, Radius, Spacing, Type } from '../../constants/theme';
 import { useLayout } from '../../constants/layout';
 import { ThemeMode, useThemeMode, setThemeMode } from '../../lib/themeMode';
+import { ACCENTS, ACCENT_IDS, useAccentId, setAccentId, readableOn } from '../../lib/accentColor';
 import { DISCLAIMER } from '../../constants/legal';
 import { CIQUAL_ATTRIBUTION } from '../../lib/foods';
 import { Card, PrimaryButton, Chip, OptionCard, Field, SectionLabel, Segmented } from '../../components/ui';
@@ -46,6 +47,7 @@ import {
   AGE_BOUNDS, WEIGHT_BOUNDS, HEIGHT_BOUNDS,
 } from '../../lib/safety';
 import { datedGoalStatus, datedGoalKcalDelta, addDaysStamp, daysBetween } from '../../lib/datedGoal';
+import { deadlineLadder, formatHorizon } from '../../lib/goalLadder';
 import { DatedGoalCard, formatFR } from '../../components/DatedGoalCard';
 import { todayStamp } from '../../lib/weight';
 import {
@@ -139,9 +141,15 @@ const KYROZ_PLUS_VALEUR: Record<AccessReason, string> = {
 
 // Objectif daté : horizons proposés (semaines) — évite un date-picker (lourd sur
 // web) et cadre l'UX sur « dans N semaines » ; la date exacte est dérivée + affichée.
-const HORIZONS = [4, 8, 12, 16, 24];
-function closestHorizon(weeks: number): number {
-  return HORIZONS.reduce((best, h) => (Math.abs(h - weeks) < Math.abs(best - weeks) ? h : best), HORIZONS[0]);
+//
+// ⚠️ CES DURÉES NE SONT PLUS CELLES QU'ON PROPOSE (A27, 2026-08-03). Elles ne servent
+// plus que de REPLI, quand aucune échéance n'est tenable dans l'horizon de projection :
+// le poids visé est alors hors de portée quelle que soit la date, la rangée redevient
+// un simple sélecteur, et c'est la phrase sous les puces qui dit la vérité.
+// La rangée réellement affichée est dérivée du corps — cf. `lib/goalLadder.ts`.
+const HORIZONS_REPLI = [4, 8, 12, 16, 24];
+function closestHorizon(horizons: number[], weeks: number): number {
+  return horizons.reduce((best, h) => (Math.abs(h - weeks) < Math.abs(best - weeks) ? h : best), horizons[0]);
 }
 
 export default function ProfilScreen() {
@@ -158,6 +166,7 @@ export default function ProfilScreen() {
   const { signOut } = useAuth();
   const { confirm, notify } = useDialog();
   const themeMode = useThemeMode();
+  const accentId = useAccentId();
   const [hydrationOn, setHydrationOn] = useHydrationEnabled();
   const { consent: analyticsConsent, choose: chooseConsent } = useAnalyticsConsent();
   const router = useRouter();
@@ -292,6 +301,15 @@ export default function ProfilScreen() {
   return (
     <SafeAreaView style={s.safe} edges={['top']}>
       <ScrollView contentContainerStyle={[s.content, layout.content]} showsVerticalScrollIndicator={false}>
+        {/* En-tête — l'écran n'en avait AUCUN : il démarrait direct sur la carte
+            poids. Sur un écran aussi long, arriver sans savoir où on est coûte plus
+            cher que les 60 px que ça prend. Le surtitre dit qui tu es, le titre dit
+            où tu es. */}
+        <View style={s.header}>
+          <Text style={s.sub}>{SEX_LABELS[profile.sex]} · {profile.age} ans · {goalLabel(profile.goal)}</Text>
+          <Text style={s.h1}>Profil</Text>
+        </View>
+
         {/* ⚠️ ORDRE INVERSÉ le 2026-08-02 (décision fondateur), et ce n'est pas
             cosmétique : le POIDS alimente le moteur — chaque pesée recalcule TDEE,
             macros et plan — alors que la série ne raconte que l'assiduité. Le premier
@@ -343,13 +361,15 @@ export default function ProfilScreen() {
             chiffre SUR SON CORPS, et on promet une fin (la remontée est bornée). */}
         {lowEaRise && <LowEaRiseCard t={t} rise={lowEaRise} onPress={() => setEditor('goal')} />}
 
-        {/* Macros cibles (affichage) */}
-        <SectionLabel t={t}>MACROS CIBLES / JOUR</SectionLabel>
+        {/* Cibles du jour — les quatre macros perdent leurs quatre couleurs : même
+            graisse, même encre, la valeur porte seule. Il n'y a rien à comparer
+            entre quatre boîtes côte à côte (cf. la note en tête de theme.ts). */}
+        <SectionTitle t={t}>Cibles du jour</SectionTitle>
         <View style={s.grid}>
           <Box t={t} v={profile.target_kcal} l="kcal" />
-          <Box t={t} v={profile.target_protein_g} l="Protéines" u="g" c={t.protein} />
-          <Box t={t} v={profile.target_carbs_g} l="Glucides" u="g" c={t.carbs} />
-          <Box t={t} v={profile.target_fat_g} l="Lipides" u="g" c={t.fat} />
+          <Box t={t} v={profile.target_protein_g} l="protéines" u=" g" />
+          <Box t={t} v={profile.target_carbs_g} l="glucides" u=" g" />
+          <Box t={t} v={profile.target_fat_g} l="lipides" u=" g" />
         </View>
 
         {/* Ton informatif, pas alarmant : c'est une borne qui protège, pas un échec.
@@ -370,29 +390,41 @@ export default function ProfilScreen() {
           </Text>
         )}
 
-        {/* Réglages — édition par catégorie */}
-        <SectionLabel t={t}>RÉGLAGES</SectionLabel>
-        <View style={[s.menu, cardShadow(t)]}>
-          <MenuRow t={t} icon="person-outline" label="Informations" value={`${SEX_LABELS[profile.sex]} · ${profile.age} ans · ${profile.weight_kg} kg${profile.body_fat_pct != null ? ` · ${profile.body_fat_pct}% MG` : ''}`} onPress={() => setEditor('info')} />
-          <MenuRow t={t} icon="barbell-outline" label="Sport & activité" value={`${profile.sports?.length ? `${profile.sports.length} sport${profile.sports.length > 1 ? 's' : ''}` : 'Aucun sport'} · ${NEAT_SHORT[profile.neat_level ?? DEFAULT_NEAT_LEVEL]}`} onPress={() => setEditor('sports')} />
-          <MenuRow t={t} icon="flag-outline" label="Objectif" value={goalLabel(profile.goal)} onPress={() => setEditor('goal')} />
-          <MenuRow t={t} icon="rocket-outline" label="Objectif daté" value={profile.goal_target ? `${profile.goal_target.target_weight_kg} kg · ${formatFR(profile.goal_target.target_date)}` : (premium.can('dated_goal') ? 'Aucun' : 'Inclus dans Kyroz+')} onPress={() => openEditor('dated_goal')} />
-          <MenuRow t={t} icon="flame-outline" label="Calories & macros" value={profile.macro_mode === 'percent' ? 'Perso %' : 'Calculées'} onPress={() => setEditor('macros')} />
-          <MenuRow t={t} icon="restaurant-outline" label="Préférences alimentaires" value={profile.dietary_restrictions.length || profile.disliked_foods.length || profile.hidden_recipes?.length ? 'Personnalisées' : 'Aucune'} onPress={() => setEditor('prefs')} />
-          <MenuRow t={t} icon="calendar-outline" label="Paramètres des repas" value={`${profile.plan_days} j · ${(profile.meals?.length || 4)} repas · ${EMPHASIS_LABELS[profile.meal_emphasis ?? 'even']}`} onPress={() => setEditor('meals')} />
-          <MenuRow t={t} icon="wallet-outline" label="Banque de calories" value={premium.can('calorie_bank') ? bankResume(profile) : 'Inclus dans Kyroz+'} onPress={() => openEditor('calorie_bank')} />
-          <MenuRow t={t} icon="sparkles-outline" label="Kyroz+" value={KYROZ_PLUS_VALEUR[premium.reason]} onPress={() => router.push('/kyroz-plus')} />
-          <MenuRow t={t} icon="refresh-outline" label="Régénérer mon plan" value="Repartir de zéro" onPress={regenPlan} last />
+        {/* Réglages — TOI d'abord (corps, sport, objectif), TON PLAN ensuite. Dix
+            lignes d'affilée étaient un mur : les couper en deux blocs nommés donne
+            un repère, et ça ne coûte rien. Les icônes sont parties — à 17 px
+            semi-gras le libellé suffit, et la ligne respire. */}
+        <SectionTitle t={t}>Réglages</SectionTitle>
+        <View style={s.menu}>
+          <MenuRow t={t} label="Informations" value={`${SEX_LABELS[profile.sex]} · ${profile.age} ans · ${profile.weight_kg} kg${profile.body_fat_pct != null ? ` · ${profile.body_fat_pct}% MG` : ''}`} onPress={() => setEditor('info')} />
+          <MenuRow t={t} label="Sport & activité" value={`${profile.sports?.length ? `${profile.sports.length} sport${profile.sports.length > 1 ? 's' : ''}` : 'Aucun sport'} · ${NEAT_SHORT[profile.neat_level ?? DEFAULT_NEAT_LEVEL]}`} onPress={() => setEditor('sports')} />
+          <MenuRow t={t} label="Objectif" value={goalLabel(profile.goal)} onPress={() => setEditor('goal')} />
+          <MenuRow t={t} label="Objectif daté" value={profile.goal_target ? `${profile.goal_target.target_weight_kg} kg · ${formatFR(profile.goal_target.target_date)}` : (premium.can('dated_goal') ? 'Aucun' : 'Inclus dans Kyroz+')} onPress={() => openEditor('dated_goal')} last />
         </View>
 
-        {/* TDEE */}
-        <View style={[s.tdee, cardShadow(t)]}>
+        <SectionLabel t={t}>TON PLAN</SectionLabel>
+        <View style={s.menu}>
+          <MenuRow t={t} label="Calories & macros" value={profile.macro_mode === 'percent' ? 'Perso %' : 'Calculées'} onPress={() => setEditor('macros')} />
+          <MenuRow t={t} label="Préférences alimentaires" value={profile.dietary_restrictions.length || profile.disliked_foods.length || profile.hidden_recipes?.length ? 'Personnalisées' : 'Aucune'} onPress={() => setEditor('prefs')} />
+          <MenuRow t={t} label="Paramètres des repas" value={`${profile.plan_days} j · ${(profile.meals?.length || 4)} repas · ${EMPHASIS_LABELS[profile.meal_emphasis ?? 'even']}`} onPress={() => setEditor('meals')} />
+          <MenuRow t={t} label="Banque de calories" value={premium.can('calorie_bank') ? bankResume(profile) : 'Inclus dans Kyroz+'} onPress={() => openEditor('calorie_bank')} />
+          <MenuRow t={t} label="Kyroz+" value={KYROZ_PLUS_VALEUR[premium.reason]} onPress={() => router.push('/kyroz-plus')} />
+          <MenuRow t={t} label="Régénérer mon plan" value="Repartir de zéro" onPress={regenPlan} last />
+        </View>
+
+        {/* TDEE — le libellé prend la place qui reste, le chiffre ne se coupe jamais
+            en deux lignes (`flexShrink: 0`). Sans ça, « 2 369 kcal » passait à la
+            ligne au milieu de lui-même. */}
+        <View style={s.tdee}>
           <Text style={s.tdeeL}>Dépense estimée · maintenance (TDEE)</Text>
-          <Text style={s.tdeeV}>{profile.tdee_kcal} kcal</Text>
+          <Text style={s.tdeeV}>{profile.tdee_kcal.toLocaleString('fr-FR')} kcal</Text>
         </View>
 
-        {/* Rappel quotidien (spec §5) — ramène l'utilisateur chaque jour */}
-        <SectionLabel t={t}>RAPPEL QUOTIDIEN</SectionLabel>
+        {/* Préférences — un seul titre pour les quatre réglages qui suivent. Ils
+            avaient chacun leur en-tête en capitales, ce qui donnait l'impression de
+            quatre sections indépendantes là où il n'y a qu'une liste d'interrupteurs. */}
+        <SectionTitle t={t}>Préférences</SectionTitle>
+        <Text style={s.settingLabel}>Rappel quotidien</Text>
         <Segmented<ReminderSlot>
           t={t}
           value={slot}
@@ -423,7 +455,7 @@ export default function ProfilScreen() {
         </Text>
 
         {/* Propositions d'ajustement du plan (le check-in « ton plan te convient ? ») */}
-        <SectionLabel t={t}>PROPOSITIONS D'AJUSTEMENT</SectionLabel>
+        <Text style={s.settingLabel}>Propositions d'ajustement</Text>
         <Segmented<'on' | 'off'>
           t={t}
           value={checkinEnabled ? 'on' : 'off'}
@@ -436,8 +468,6 @@ export default function ProfilScreen() {
             : 'On ne te proposera plus d’ajuster ton plan.'}
         </Text>
 
-        {/* Paramètres de l'application — préférences générales */}
-        <SectionLabel t={t}>APPLICATION</SectionLabel>
         <Text style={s.settingLabel}>Apparence</Text>
         <Segmented<ThemeMode>
           t={t}
@@ -451,6 +481,38 @@ export default function ProfilScreen() {
         />
         <Text style={s.reminderHint}>
           {themeMode === 'system' ? 'Suit le réglage clair/sombre de ton téléphone.' : `Thème ${themeMode === 'light' ? 'clair' : 'sombre'} forcé.`}
+        </Text>
+
+        {/* Couleur d'accent — ce qui se touche : boutons, jour actif, coches.
+            Monochrome par défaut : la DA de Kyroz ne bouge pas, c'est une
+            personnalisation qu'on OFFRE, pas un habillage imposé. Chaque pastille
+            montre la couleur telle qu'elle sera DANS LE THÈME COURANT — un même
+            bleu n'a pas la même valeur sur fond noir et sur fond clair. */}
+        <Text style={s.settingLabel}>Couleur d'accent</Text>
+        <View style={s.swatches}>
+          {ACCENT_IDS.map((id) => {
+            const on = accentId === id;
+            const couleur = ACCENTS[id][t.scheme];
+            return (
+              <TouchableOpacity
+                key={id}
+                onPress={() => setAccentId(id)}
+                activeOpacity={0.8}
+                accessibilityRole="button"
+                accessibilityState={{ selected: on }}
+                accessibilityLabel={`Couleur d'accent ${ACCENTS[id].label}`}
+                style={[s.swatch, { backgroundColor: couleur, borderColor: on ? t.text : t.line }]}
+              >
+                {/* La coche se calcule elle aussi : noir ou blanc selon la pastille. */}
+                {on && <Ionicons name="checkmark" size={20} color={readableOn(couleur)} />}
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+        <Text style={s.reminderHint}>
+          {accentId === 'mono'
+            ? 'Monochrome : encre sur fond clair, blanc sur fond sombre.'
+            : `${ACCENTS[accentId].label} — appliqué aux boutons et aux éléments actifs.`}
         </Text>
 
         <Text style={s.settingLabel}>Suivi d'hydratation</Text>
@@ -480,11 +542,11 @@ export default function ProfilScreen() {
             : 'Aucune statistique d’usage n’est partagée.'}
         </Text>
 
-        <View style={[s.menu, cardShadow(t)]}>
-          <MenuRow t={t} icon="mail-outline" label="Aide & contact" value={SUPPORT_EMAIL} onPress={contactSupport} />
-          <MenuRow t={t} icon="download-outline" label="Exporter mes données" value="Télécharger tout (RGPD)" onPress={doExport} />
-          <MenuRow t={t} icon="shield-checkmark-outline" label="Confidentialité & CGU" value="RGPD, données de santé" onPress={() => router.push('/legal')} />
-          <MenuRow t={t} icon="information-circle-outline" label="Version" value={appVersion} onPress={() => {}} readonly last />
+        <View style={s.menu}>
+          <MenuRow t={t} label="Aide & contact" value={SUPPORT_EMAIL} onPress={contactSupport} />
+          <MenuRow t={t} label="Exporter mes données" value="Télécharger tout (RGPD)" onPress={doExport} />
+          <MenuRow t={t} label="Confidentialité & CGU" value="RGPD, données de santé" onPress={() => router.push('/legal')} />
+          <MenuRow t={t} label="Version" value={appVersion} onPress={() => {}} readonly last />
         </View>
 
         <TouchableOpacity style={s.logoutBtn} onPress={doLogout} activeOpacity={0.8}><Text style={s.logoutTxt}>Se déconnecter</Text></TouchableOpacity>
@@ -513,13 +575,13 @@ export default function ProfilScreen() {
 
       {/* Confirmation suppression de compte (RGPD) */}
       <ActionSheet visible={confirmDelete} onClose={() => setConfirmDelete(false)}>
-        <Text style={{ color: t.text, fontSize: 20, fontWeight: '800', letterSpacing: -0.5 }}>Supprimer mon compte ?</Text>
+        <Text style={{ color: t.text, ...Type.h2 }}>Supprimer mon compte ?</Text>
         <Text style={{ color: t.textSecondary, fontSize: 15, lineHeight: 21 }}>
-          Toutes tes données (profil, plans, streak, favoris, garde-manger) seront définitivement supprimées, sur cet appareil et sur le serveur.
+          Toutes tes données (profil, plans, série, favoris, frigo) seront définitivement supprimées, sur cet appareil et sur le serveur.
         </Text>
         <View style={{ height: 6 }} />
         <TouchableOpacity onPress={doDelete} disabled={deleting} activeOpacity={0.85}
-          style={{ backgroundColor: t.danger, borderRadius: Radius.md, paddingVertical: 17, alignItems: 'center', opacity: deleting ? 0.6 : 1 }}>
+          style={{ backgroundColor: t.danger, borderRadius: Radius.button, paddingVertical: 17, alignItems: 'center', opacity: deleting ? 0.6 : 1 }}>
           <Text style={{ color: t.onDanger, fontSize: 17, fontWeight: '700' }}>{deleting ? 'Suppression…' : 'Supprimer définitivement'}</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => setConfirmDelete(false)} style={{ alignItems: 'center', paddingVertical: 6 }}>
@@ -531,25 +593,42 @@ export default function ProfilScreen() {
 }
 
 // ── Lignes / boîtes ──────────────────────────────────────────────────────────
-function MenuRow({ t, icon, label, value, onPress, last, readonly }: { t: ThemePalette; icon: any; label: string; value: string; onPress: () => void; last?: boolean; readonly?: boolean }) {
+
+/** Titre de section, en casse normale. Distinct de `SectionLabel` (petites
+ *  capitales) : celui-ci découpe l'écran, l'autre étiquette un bloc. */
+function SectionTitle({ t, children }: { t: ThemePalette; children: React.ReactNode }) {
+  return (
+    <Text style={{ color: t.text, fontSize: 20, fontWeight: '700', letterSpacing: -0.4, marginTop: 8 }}>
+      {children}
+    </Text>
+  );
+}
+
+// Plus d'icône en tête de ligne : à 17 px semi-gras le libellé se lit seul, et
+// dix pictogrammes empilés faisaient un mur de gris qui n'aidait personne à
+// trouver « Objectif daté ». Le chevron reste — lui dit qu'il se passe quelque
+// chose au toucher.
+function MenuRow({ t, label, value, onPress, last, readonly }: { t: ThemePalette; label: string; value: string; onPress: () => void; last?: boolean; readonly?: boolean }) {
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={readonly ? 1 : 0.7} disabled={readonly}
-      style={[{ flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 16 }, !last && { borderBottomWidth: 1, borderBottomColor: t.line }]}>
-      <Ionicons name={icon} size={20} color={t.textSecondary} />
+      style={[{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 15 }, !last && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.line }]}>
       <View style={{ flex: 1 }}>
-        <Text style={{ color: t.text, fontSize: 15, fontWeight: '600' }}>{label}</Text>
-        <Text style={{ color: t.textTertiary, fontSize: 13, marginTop: 2 }} numberOfLines={1}>{value}</Text>
+        <Text style={{ color: t.text, fontSize: 17, fontWeight: '600', letterSpacing: -0.3 }}>{label}</Text>
+        <Text style={{ color: t.textTertiary, fontSize: 14, marginTop: 2 }} numberOfLines={1}>{value}</Text>
       </View>
       {!readonly && <Ionicons name="chevron-forward" size={18} color={t.textQuaternary} />}
     </TouchableOpacity>
   );
 }
 
-function Box({ t, v, l, u = '', c }: { t: ThemePalette; v: number; l: string; u?: string; c?: string }) {
+// ⚠️ Plus de prop `c` (couleur) : les quatre macros portaient quatre teintes,
+// alors qu'il n'y a rien à comparer entre quatre boîtes côte à côte. Même encre
+// pour les quatre — cf. la note en tête de constants/theme.ts.
+function Box({ t, v, l, u = '' }: { t: ThemePalette; v: number; l: string; u?: string }) {
   return (
-    <View style={[{ flex: 1, backgroundColor: t.card, borderRadius: Radius.md, padding: 14, alignItems: 'center', gap: 4 }, cardShadow(t)]}>
-      <Text style={{ fontSize: 19, fontWeight: '800', letterSpacing: -0.5, color: c ?? t.text }}>{v}{u}</Text>
-      <Text style={{ fontSize: 10, color: t.textSecondary, textAlign: 'center' }}>{l}</Text>
+    <View style={{ flex: 1, backgroundColor: t.card, borderRadius: Radius.card, paddingVertical: 16, paddingHorizontal: 8, alignItems: 'center', gap: 3 }}>
+      <Text style={{ fontSize: 20, fontWeight: '700', letterSpacing: -0.5, color: t.text }}>{v}{u}</Text>
+      <Text style={{ fontSize: 12, color: t.textSecondary, textAlign: 'center' }}>{l}</Text>
     </View>
   );
 }
@@ -561,7 +640,7 @@ function EditorShell({
   return (
     <View style={{ flex: 1, backgroundColor: t.bg }}>
       <View style={{ paddingHorizontal: Spacing.xxl, paddingBottom: 8 }} {...(dragHandlers ?? {})}>
-        <Text style={{ color: t.text, fontSize: 24, fontWeight: '800', letterSpacing: -0.5 }}>{title}</Text>
+        <Text style={{ color: t.text, ...Type.h2 }}>{title}</Text>
       </View>
       <ScrollView contentContainerStyle={{ padding: Spacing.xxl, paddingTop: 12, gap: 16 }} showsVerticalScrollIndicator={false}>
         {children}
@@ -806,27 +885,59 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
   const [targetWeight, setTargetWeight] = useState(
     String(existing?.target_weight_kg ?? Math.max(40, Math.round(profile.weight_kg) - 4)),
   );
-  const [weeks, setWeeks] = useState<number>(
-    existing ? closestHorizon(Math.max(1, Math.round(daysBetween(today, existing.target_date) / 7))) : 8,
-  );
-  // L'horizon est un ARRONDI de l'échéance stockée (7,9 sem → « 8 sem »). Tant que
-  // l'user n'a pas touché aux puces, on garde la date EXACTE enregistrée : ré-ouvrir
-  // et enregistrer sans rien changer ne doit pas décaler l'échéance (même principe
-  // que RestDaysPicker).
-  const [horizonTouched, setHorizonTouched] = useState(false);
-  // Échéance adoptée en un tap depuis la puce « date tenable » : ce n'est pas un
-  // multiple des horizons proposés, donc elle ne peut pas vivre dans `weeks`.
-  const [customDate, setCustomDate] = useState<string | null>(null);
-  const pickWeeks = (h: number) => { setWeeks(h); setCustomDate(null); setHorizonTouched(true); };
+  // Échéance CHOISIE (semaines). `null` = l'utilisateur n'a pas encore touché la
+  // rangée : on garde alors la date EXACTE enregistrée, pour que ré-ouvrir et
+  // enregistrer sans rien changer ne décale pas l'échéance (comme RestDaysPicker).
+  const [weeks, setWeeks] = useState<number | null>(null);
+  const pickWeeks = (h: number) => setWeeks(h);
 
   const twN = parseFloat(targetWeight.replace(',', '.'));
   const validWeight = twN >= 40 && twN <= 250;
-  const targetDate = customDate
-    ?? (existing && !horizonTouched ? existing.target_date : addDaysStamp(today, weeks * 7));
+  const tdee = calculateTDEE(profile);
+
+  // ── Les échéances proposées, DÉRIVÉES DU CORPS (A27) ────────────────────────
+  //
+  // La rangée offrait cinq durées figées (4/8/12/16/24 semaines) dont AUCUNE ne
+  // tenait chez la moitié des gabarits de référence. Elle est désormais calculée :
+  // la première puce est l'échéance la plus courte que les garde-fous laissent
+  // tenir, les suivantes sont autant de plans réellement différents.
+  //
+  // ⚠️ MÉMOÏSÉ SUR LE POIDS CIBLE, et c'est indispensable : `deadlineLadder` sonde
+  // le moteur ~17 fois, chaque sonde simulant jusqu'à 260 semaines de trajectoire
+  // (mesuré : 3 à 45 ms sur les gabarits courants, 283 ms sur le cas extrême d'un
+  // écart de 30 kg). Le recalculer à chaque rendu rendrait la saisie saccadée.
+  // L'échelle ne dépend PAS de la date choisie — aucune circularité.
+  const horizons = useMemo(() => {
+    if (!validWeight) return HORIZONS_REPLI;
+    const echelle = deadlineLadder((semaines) => {
+      const gt: GoalTarget = {
+        target_weight_kg: twN, target_date: addDaysStamp(today, Math.round(semaines * 7)),
+        start_weight_kg: profile.weight_kg, start_date: existing?.start_date ?? today,
+      };
+      const p = { ...profile, goal_target: gt };
+      const plan = computePlan(p, today);
+      const s = datedGoalStatus(gt, p, today, tdee, plan?.floor_kcal ?? null, makeWeeklyProjector(p));
+      return { reachable: !!s?.reachableByDate, servedKcal: plan?.profile.target_kcal ?? 0 };
+    });
+    return echelle.length ? echelle : HORIZONS_REPLI;
+  }, [twN, validWeight, profile, today, tdee, existing?.start_date]);
+
+  // Défaut d'un objectif NEUF : la 2ᵉ puce, pas la 1ʳᵉ. La première est le rythme sûr
+  // MAXIMAL — un défaut ne doit pas pousser d'office quelqu'un au plafond de ce que la
+  // sécurité autorise (CLAUDE.md §10 : le suivi rassure, il ne met pas la pression).
+  const defaultWeeks = horizons[Math.min(1, horizons.length - 1)];
+  // Semaines de l'échéance ENREGISTRÉE — sert à surligner la puce la plus proche,
+  // sans toucher à la date tant que l'utilisateur n'a rien choisi.
+  const storedWeeks = existing ? Math.max(1, Math.round(daysBetween(today, existing.target_date) / 7)) : null;
+  const effectiveWeeks = weeks ?? (existing ? storedWeeks! : defaultWeeks);
+  const selectedWeeks = weeks ?? closestHorizon(horizons, effectiveWeeks);
+
+  const targetDate = weeks == null && existing
+    ? existing.target_date
+    : addDaysStamp(today, effectiveWeeks * 7);
   const provisional: GoalTarget | undefined = validWeight
     ? { target_weight_kg: twN, target_date: targetDate, start_weight_kg: profile.weight_kg, start_date: existing?.start_date ?? today }
     : undefined;
-  const tdee = calculateTDEE(profile);
 
   // Aperçu calculé par le PRODUCTEUR UNIQUE (computePlan) et non par un chemin
   // parallèle : ce que la carte annonce est exactement ce qui sera enregistré,
@@ -852,40 +963,11 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
   // interrogée qu'à l'onboarding — l'éditeur laissait passer n'importe quelle cible.
   const goalBlockMsg = provisional ? eligibilityMessage(checkEligibility(profile, provisional)) : null;
 
-  // ── La date réellement tenable, proposée en UN TAP ──────────────────────────
-  // Sans elle, l'écran se contentait de dire « tu y seras plutôt vers le … » et
-  // laissait l'utilisateur deviner quelle puce s'en approchait — or aucune ne s'en
-  // approche : sur le cas remonté (83 kg → 70), la date tenable est à ~43 semaines,
-  // hors des cinq horizons proposés. Le sélecteur devenait alors décoratif.
-  //
-  // ⚠️ ON VÉRIFIE QU'ELLE EST TENABLE AVANT DE LA PROPOSER, et ce n'est pas de la
-  // prudence gratuite : la date d'atteinte dépend des calories servies, qui
-  // dépendent de l'échéance. Proposer sans vérifier peut donc renvoyer une date
-  // encore « plus tard » — l'écran se mettrait à courir après lui-même. Si la
-  // vérification ne passe pas, on ne propose RIEN : la phrase et la carte disent
-  // déjà la vérité, mieux vaut pas de raccourci qu'un raccourci qui ment.
-  const tenableDate = useMemo(() => {
-    if (!provisional || !status || goalBlockMsg) return null;
-    if (status.reachableByDate || !status.projectable || status.directionMismatch) return null;
-    const cand: GoalTarget = { ...provisional, target_date: status.projectedDate };
-    const candPlan = computePlan({ ...profile, goal_target: cand }, today);
-    const candStatus = datedGoalStatus(
-      cand, profile, today, tdee, candPlan?.floor_kcal ?? null,
-      makeWeeklyProjector({ ...profile, goal_target: cand }),
-    );
-    if (!candStatus?.reachableByDate) return null;
-    // Déjà atteignable en tapant une puce existante → pas de puce en double.
-    const w = Math.round(daysBetween(today, status.projectedDate) / 7);
-    return HORIZONS.includes(w) ? null : status.projectedDate;
-  }, [provisional?.target_weight_kg, provisional?.target_date, goalBlockMsg, status?.projectedDate, status?.reachableByDate]); // eslint-disable-line react-hooks/exhaustive-deps
-  // Une fois la date adoptée, elle DEVIENT tenable → `tenableDate` retombe à null.
-  // Sans ce repli sur `customDate`, la puce disparaîtrait au moment même où on la
-  // tape, en ne laissant aucune échéance sélectionnée : l'utilisateur croirait que
-  // son geste n'a rien fait. L'ordre compte — une offre FRAÎCHE (le poids cible a
-  // changé depuis l'adoption) doit primer sur la date déjà adoptée, sinon on
-  // continuerait de proposer une échéance devenue intenable.
-  const chipDate = tenableDate ?? customDate;
-  const chipWeeks = chipDate ? Math.round(daysBetween(today, chipDate) / 7) : 0;
+  // ℹ️ La puce « N sem · tenable » a été RETIRÉE ici le 2026-08-03 (A27), et c'est une
+  // suppression, pas un oubli : elle existait parce que les cinq durées figées
+  // pouvaient être toutes intenables, et proposait alors la vraie date en un tap.
+  // Maintenant que la PREMIÈRE puce de la rangée est par construction l'échéance la
+  // plus courte qui tienne, la garder afficherait deux fois la même offre.
 
   const submit = () => {
     if (!provisional || goalBlockMsg) return;
@@ -902,21 +984,12 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
       <Field t={t} label="Poids cible" suffix="kg" value={targetWeight} onChangeText={setTargetWeight} keyboardType="decimal-pad" />
 
       <SectionLabel t={t}>Échéance</SectionLabel>
+      {/* Les durées sont DÉRIVÉES DU CORPS (A27) : chacune tient, et chacune sert un
+          plan différent. La première est le plus rapide que la sécurité autorise. */}
       <View style={styles.wrap}>
-        {HORIZONS.map((h) => (
-          <Chip key={h} t={t} label={`${h} sem`} selected={!customDate && weeks === h} onPress={() => pickWeeks(h)} />
+        {horizons.map((h) => (
+          <Chip key={h} t={t} label={formatHorizon(h)} selected={selectedWeeks === h} onPress={() => pickWeeks(h)} />
         ))}
-        {/* La date tenable dans la MÊME rangée que les autres échéances : c'est une
-            échéance, pas un avertissement. Elle apparaît là où se prend la décision,
-            et non dans une carte que le bouton « Enregistrer » recouvre sur iPhone. */}
-        {chipDate && (
-          <Chip
-            t={t}
-            label={`${chipWeeks} sem · tenable`}
-            selected={customDate === chipDate}
-            onPress={() => { setCustomDate(chipDate); setHorizonTouched(true); }}
-          />
-        )}
       </View>
       {/* ⚠️ C'est la ligne la plus lue de l'écran — collée sous les puces, au moment
           exact du choix. Elle ne peut donc pas AFFIRMER une date que le moteur ne
@@ -950,7 +1023,13 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
           <Row t={t} l="Trajectoire" v={status.direction === 'maintain' ? dirLabel : `${dirLabel} ${gapKg} kg`} strong />
           {status.direction !== 'maintain' && <Row t={t} l="Rythme sûr" v={`${Math.abs(status.safeWeeklyKg)} kg / sem`} />}
           <Row t={t} l="Calories ajustées" v={`${preview.target_kcal} kcal/j`} strong />
-          <Row t={t} l="vs maintenance" v={`${kcalDelta >= 0 ? '+' : ''}${kcalDelta} kcal/j`} c={kcalDelta < 0 ? t.carbs : t.protein} />
+          {/* ⚠️ Cette ligne colorait le delta avec les tokens de MACRO — `carbs` en
+              déficit, `protein` en surplus. Un jaune et un bleu détournés en code
+              de statut : ils ne voulaient rien dire ici, et depuis que les macros
+              sont trois gris, ils ne se distinguaient même plus. Le signe porte
+              l'information, et un écart à la maintenance n'a pas à s'alarmer
+              (règle produit §10). */}
+          <Row t={t} l="vs maintenance" v={`${kcalDelta >= 0 ? '+' : ''}${kcalDelta} kcal/j`} />
         </Card>
       )}
       {!goalBlockMsg && status?.directionMismatch && (
@@ -1069,9 +1148,11 @@ function MacroEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
       {mode === 'auto' ? (
         <Card t={t} style={{ gap: 12 }}>
           <Row t={t} l="Objectif calorique" v={`${auto.target_kcal} kcal`} strong />
-          <Row t={t} l="Protéines" v={`${auto.target_protein_g} g`} c={t.protein} />
-          <Row t={t} l="Glucides" v={`${auto.target_carbs_g} g`} c={t.carbs} />
-          <Row t={t} l="Lipides" v={`${auto.target_fat_g} g`} c={t.fat} />
+          {/* Trois lignes empilées : aucune proportion à comparer, donc aucune
+              couleur à porter (cf. la note en tête de constants/theme.ts). */}
+          <Row t={t} l="Protéines" v={`${auto.target_protein_g} g`} />
+          <Row t={t} l="Glucides" v={`${auto.target_carbs_g} g`} />
+          <Row t={t} l="Lipides" v={`${auto.target_fat_g} g`} />
         </Card>
       ) : (
         <MacroSplit
@@ -1202,7 +1283,7 @@ function MealsEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
         {orderedMeals(meals).map((mt) => {
           const fm = fixedMeals[mt];
           return (
-            <View key={mt} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: t.card, borderRadius: Radius.md, padding: 14 }}>
+            <View key={mt} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: t.card, borderRadius: Radius.card, padding: 14 }}>
               <View style={{ flex: 1, paddingRight: 10 }}>
                 <Text style={{ color: t.text, fontSize: 14, fontWeight: '700' }}>{mealLabel(mt)}</Text>
                 <Text style={{ color: fm ? t.textSecondary : t.textTertiary, fontSize: 12, marginTop: 3 }} numberOfLines={1}>
@@ -1252,17 +1333,22 @@ function makeStyles(t: ThemePalette) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: t.bg },
     content: { padding: Spacing.xl, gap: 16, paddingBottom: 120 },
+    header: { marginBottom: 2 },
+    sub: { color: t.textSecondary, fontSize: 14, lineHeight: 19 },
+    h1: { color: t.text, ...Type.display, marginTop: 2 },
     grid: { flexDirection: 'row', gap: 8 },
-    menu: { backgroundColor: t.card, borderRadius: Radius.lg, paddingHorizontal: Spacing.xl },
-    tdee: { backgroundColor: t.card, borderRadius: Radius.md, padding: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-    floorNote: { color: t.textSecondary, fontSize: 12, lineHeight: 17, marginTop: -4 },
-    tdeeL: { color: t.textSecondary, fontSize: 13 },
-    tdeeV: { color: t.text, fontSize: 16, fontWeight: '700' },
-    reminderHint: { color: t.textTertiary, fontSize: 12, lineHeight: 16, marginTop: -8 },
-    settingLabel: { color: t.text, fontSize: 15, fontWeight: '600', marginBottom: -8 },
+    menu: { backgroundColor: t.card, borderRadius: Radius.card, paddingHorizontal: 16 },
+    tdee: { backgroundColor: t.card, borderRadius: Radius.card, padding: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 12 },
+    floorNote: { color: t.textSecondary, fontSize: 13, lineHeight: 18, marginTop: -4 },
+    tdeeL: { flex: 1, color: t.textSecondary, fontSize: 14, lineHeight: 19 },
+    tdeeV: { flexShrink: 0, color: t.text, fontSize: 17, fontWeight: '600' },
+    reminderHint: { color: t.textTertiary, fontSize: 13, lineHeight: 18, marginTop: -8 },
+    settingLabel: { color: t.text, fontSize: 17, fontWeight: '600', letterSpacing: -0.3, marginBottom: -8 },
+    swatches: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
+    swatch: { width: 44, height: 44, borderRadius: 22, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
     disclaimer: { color: t.textTertiary, fontSize: 11, lineHeight: 16, textAlign: 'center' },
-    logoutBtn: { alignItems: 'center', justifyContent: 'center', paddingVertical: 14, marginTop: 8, borderRadius: Radius.md, borderWidth: 1.5, borderColor: t.lineStrong },
-    logoutTxt: { color: t.text, fontSize: 15, fontWeight: '700' },
+    logoutBtn: { alignItems: 'center', justifyContent: 'center', paddingVertical: 15, marginTop: 8, borderRadius: Radius.button, backgroundColor: t.fill },
+    logoutTxt: { color: t.text, fontSize: 15, fontWeight: '600' },
     delBtn: { alignItems: 'center', paddingVertical: 12, marginTop: 4 },
     delTxt: { color: t.danger, fontSize: 13 },
   });

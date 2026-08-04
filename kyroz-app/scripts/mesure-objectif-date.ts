@@ -24,7 +24,8 @@
 import {
   datedGoalStatus, addDaysStamp, daysBetween, idealWeightAt, simulatedTrajectory, trackStatus,
 } from '../lib/datedGoal';
-import { recalcProfile, makeWeeklyProjector, planFloorKcal, trackingTarget } from '../lib/tdee';
+import { deadlineLadder, formatHorizon } from '../lib/goalLadder';
+import { recalcProfile, makeWeeklyProjector, planFloorKcal, trackingTarget, computePlan } from '../lib/tdee';
 import type { GoalTarget, Goal, Sex, UserProfile } from '../lib/types';
 
 /** Date d'ancrage FIXE : `Date.now()` rendrait la mesure irreproductible. */
@@ -205,7 +206,61 @@ if (!csv) {
   console.log(`\n── PRÉVALENCE (${total} objectifs × ${ECHEANCES.length} échéances)`);
   console.log(`la date PROMISE glisse dès qu'on l'adopte : ${dateQuiMent}/${total}` +
     (pireCas ? ` — pire cas ${pireCas}, +${Math.round(pireGlissement)} j` : ''));
-  console.log(`aucune des 5 échéances de l'ÉCRAN n'est tenable : ${sansOptionTenable}/${total}`);
+  console.log(`aucune des 5 échéances FIGÉES n'était tenable : ${sansOptionTenable}/${total}` +
+    ' (défaut A27 — voir la section suivante pour ce qui est servi aujourd\'hui)');
+
+  /**
+   * ── A27 — LA RANGÉE D'ÉCHÉANCES ────────────────────────────────────────────
+   *
+   * L'écran proposait CINQ DURÉES FIGÉES (4/8/12/16/24 semaines). Elles sont
+   * désormais dérivées du corps (`lib/goalLadder.ts`). Deux critères, et il faut
+   * les deux :
+   *   · TENABLE — la puce ne promet pas une date que le moteur ne tiendra pas ;
+   *   · DISTINCTE — deux puces qui servent la même assiette ne sont pas deux choix
+   *     (défaut A23). Sous une certaine durée, le plancher d'énergie disponible
+   *     borne le déficit : allonger l'échéance ne change alors RIEN au plan.
+   */
+  console.log('\n── A27 — LA RANGÉE D\'ÉCHÉANCES (figée → dérivée du corps)');
+  console.log('corps        | AVANT : 5 durées figées | APRÈS : l\'échelle dérivée');
+  let figeesTenables = 0, figeesDistinctes = 0, derivTenables = 0, derivDistinctes = 0, cellules = 0, cellulesDeriv = 0;
+  for (const c of CORPS) {
+    const base = profil(c);
+    /** La sonde EXACTE que câble `profil.tsx` : plan servi + verdict du moteur. */
+    const sonde = (semaines: number) => {
+      const gt: GoalTarget = {
+        target_weight_kg: CIBLES[c.nom], target_date: addDaysStamp(AUJOURD_HUI, Math.round(semaines * 7)),
+        start_weight_kg: c.weight_kg, start_date: AUJOURD_HUI,
+      };
+      const p = { ...base, goal_target: gt };
+      const plan = computePlan(p, AUJOURD_HUI);
+      const s = datedGoalStatus(gt, p, AUJOURD_HUI, base.tdee_kcal, plan?.floor_kcal ?? null, makeWeeklyProjector(p));
+      return { reachable: !!s?.reachableByDate, servedKcal: plan?.profile.target_kcal ?? 0 };
+    };
+
+    const bilan = (puces: number[]) => {
+      const pts = puces.map(sonde);
+      return {
+        tenables: pts.filter((x) => x.reachable).length,
+        distinctes: new Set(pts.map((x) => x.servedKcal)).size,
+        n: puces.length,
+      };
+    };
+    const avant = bilan(ECHEANCES_ECRAN);
+    const echelle = deadlineLadder(sonde);
+    const apres = bilan(echelle);
+
+    figeesTenables += avant.tenables; figeesDistinctes += avant.distinctes; cellules += avant.n;
+    derivTenables += apres.tenables; derivDistinctes += apres.distinctes; cellulesDeriv += apres.n;
+
+    console.log(
+      `${c.nom.padEnd(12)} | ${avant.tenables}/${avant.n} tenables · ${avant.distinctes}/${avant.n} plans` +
+      ` | ${echelle.map(formatHorizon).join(' · ').padEnd(38)}` +
+      ` ${apres.tenables}/${apres.n} tenables · ${apres.distinctes}/${apres.n} plans`,
+    );
+  }
+  console.log(`\npuces TENABLES   : **${figeesTenables}/${cellules} → ${derivTenables}/${cellulesDeriv}**`);
+  console.log(`puces DISTINCTES : **${figeesDistinctes}/${cellules} → ${derivDistinctes}/${cellulesDeriv}**` +
+    ' (deux puces qui servent la même assiette ne sont pas deux choix — cf. A23)');
 
   /**
    * ── LE POINT FIXE EXISTE-T-IL ? ─────────────────────────────────────────────

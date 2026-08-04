@@ -1,18 +1,19 @@
 import { Tabs, Redirect } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 import { Platform, ColorValue } from 'react-native';
 import { useTheme } from '../../constants/theme';
 import { useAuth } from '../../hooks/useAuth';
 import { useProfile } from '../../hooks/useProfile';
 import Splash from '../../components/Splash';
+import { PlanIcon, CoursesIcon, FrigoIcon, RecettesIcon, ProfilIcon } from '../../components/TabIcons';
 
-type IconName = keyof typeof Ionicons.glyphMap;
+// Chaque onglet nomme un OBJET, pas une ambiance. Les icônes viennent de
+// `components/TabIcons.tsx` (tracés de la maquette) — voir la note qui y explique
+// pourquoi elles ne sortent pas d'une librairie.
+type TabIcon = (p: { color: string; focused: boolean }) => React.ReactElement;
 
-function makeIcon(name: IconName, nameFocused: IconName) {
-  return ({ color, focused }: { color: ColorValue; focused: boolean }) => (
-    <Ionicons name={focused ? nameFocused : name} size={23} color={color as string} />
-  );
-}
+const icon = (Cmp: TabIcon) =>
+  ({ color, focused }: { color: ColorValue; focused: boolean }) =>
+    Cmp({ color: color as string, focused });
 
 export default function TabLayout() {
   const t = useTheme();
@@ -45,16 +46,19 @@ export default function TabLayout() {
           paddingBottom: Platform.OS === 'ios' ? 28 : 10,
           paddingTop: 8,
         },
-        tabBarActiveTintColor: t.text,
+        // L'onglet actif porte l'ACCENT, pas l'encre : c'est la convention iOS, et
+        // c'est ce qu'attend quelqu'un qui vient de choisir une couleur. En
+        // monochrome, `accent` vaut déjà l'encre — le rendu ne bouge pas d'un pixel.
+        tabBarActiveTintColor: t.accent,
         tabBarInactiveTintColor: t.textQuaternary,
         tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
       }}
     >
-      <Tabs.Screen name="plan" options={{ title: 'Plan', tabBarIcon: makeIcon('calendar-outline', 'calendar') }} />
-      <Tabs.Screen name="courses" options={{ title: 'Courses', tabBarIcon: makeIcon('cart-outline', 'cart') }} />
-      <Tabs.Screen name="garde-manger" options={{ title: 'Frigo', tabBarIcon: makeIcon('file-tray-full-outline', 'file-tray-full') }} />
-      <Tabs.Screen name="recettes" options={{ title: 'Recettes', tabBarIcon: makeIcon('restaurant-outline', 'restaurant') }} />
-      <Tabs.Screen name="profil" options={{ title: 'Profil', tabBarIcon: makeIcon('flame-outline', 'flame') }} />
+      <Tabs.Screen name="plan" options={{ title: 'Plan', tabBarIcon: icon(PlanIcon) }} />
+      <Tabs.Screen name="courses" options={{ title: 'Courses', tabBarIcon: icon(CoursesIcon) }} />
+      <Tabs.Screen name="garde-manger" options={{ title: 'Frigo', tabBarIcon: icon(FrigoIcon) }} />
+      <Tabs.Screen name="recettes" options={{ title: 'Recettes', tabBarIcon: icon(RecettesIcon) }} />
+      <Tabs.Screen name="profil" options={{ title: 'Profil', tabBarIcon: icon(ProfilIcon) }} />
     </Tabs>
   );
 }

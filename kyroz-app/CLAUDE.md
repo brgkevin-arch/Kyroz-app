@@ -70,6 +70,51 @@ App mobile React Native (Expo Router, SDK 56) de plans repas macro-précis pour 
 > LE MONDE en quelques minutes, **sans revue de store pour l'arrêter**. C'est le filet
 > qui disparaît. Ne jamais publier sans `npm test` + `tsc` verts. En cas de casse :
 > republier l'update précédent (`eas update:rollback`).
+>
+> 🔴 **`eas.json` → bloc `env` : lu par `eas build`, PAS par `eas update`.** Découvert et
+> **CORRIGÉ le 2026-08-03.** Les clés Supabase ne vivaient que dans `build.<profil>.env`
+> d'`eas.json` : un `eas update` lancé depuis un clone frais, un CI, ou toute machine sans
+> `.env.local` aurait publié un bundle **sans URL Supabase** — et l'app ne démarre pas
+> sans. Le tout distribué à tout le monde en quelques minutes, sans revue pour l'arrêter.
+> **Mesuré avant correctif** (export iOS, `.env.local` écarté) : `rgdjsdnqlmfkourrhijv`
+> **0**, `sb_publishable_` **0**, clé RevenueCat **1** — celle-ci était déjà une variable
+> EAS, et c'est ce contraste qui a désigné le coupable.
+> ✅ **État actuel** : les deux clés Supabase sont des variables d'environnement EAS
+> (`production`, `preview`, `development`), `eas.json` ne porte plus **aucune** clé, et
+> chaque profil **DÉCLARE** son environnement. Garde-fou : `lib/__tests__/easEnv.test.ts`.
+>
+> ⚠️ **Trois pièges à connaître, chacun payé par une mesure :**
+>
+> 1. **Le cache de Metro ne s'invalide PAS quand la valeur d'une `EXPO_PUBLIC_*` change.**
+>    Le plus vicieux des trois. Après avoir posé les variables, un ré-export a **encore**
+>    rendu 0 occurrence : le bundler resservait une transformation figée. Seul `--clear`
+>    a produit le bon bundle (0/0 → 1/1). ➡️ **`eas update --clear-cache`**, et vider le
+>    cache avant TOUTE mesure — sinon c'est la mesure elle-même qui ment, et elle ment
+>    dans le sens rassurant comme dans l'autre.
+> 2. **Quand une clé est dans les deux endroits, `eas.json` GAGNE** (eas-cli,
+>    `evaluateConfigWithEnvVarsAsync` : `{ ...serverEnvVars, ...buildProfile.env }`).
+>    Faire tourner une clé côté serveur seulement laisserait donc les builds servir
+>    l'ancienne valeur — le même brique, réintroduit par la porte d'à côté. EAS l'écrit
+>    noir sur blanc dans sa sortie (« The values from the build profile configuration
+>    will be used ») ; encore faut-il la lire.
+> 3. **Sans champ `environment`, eas-cli le DÉDUIT** de `distribution` / `developmentClient`
+>    (`store` → production, `developmentClient` → development, sinon preview). Passer un
+>    profil en `distribution: internal` le ferait glisser de « production » à « preview »,
+>    donc changer les clés servies, **sans qu'aucune ligne du diff ne parle
+>    d'environnement**. D'où la déclaration explicite.
+>
+> ➡️ **Vérifier plutôt que supposer, et c'est GRATUIT** :
+> `npx eas-cli config --profile production --platform ios` imprime l'environnement résolu,
+> les variables serveur chargées, celles d'`eas.json`, et l'avertissement de doublon —
+> **sans lancer de build**. Pour aller jusqu'à l'artefact :
+> `npx eas-cli env:exec production 'npx expo export --platform ios --clear --output-dir /tmp/x'`
+> puis `strings -a` sur le `.hbc` produit (c'est du bytecode Hermes : `grep` seul rend 0).
+> Rien n'est publié — c'est la simulation exacte de ce que l'update enverrait. Même méthode
+> que pour le bundle web (§11, « un `require` paresseux ne retire rien du bundle ») :
+> **on mesure l'artefact, pas la configuration.**
+> ⚠️ Et la table de chaînes de Hermes est **concaténée** : `strings` rend de longues lignes
+> qui collent plusieurs chaînes bout à bout. Chercher par sous-chaîne (`grep -c`), jamais
+> par égalité de ligne — un `comm` entre deux bundles ne compare que du bruit.
 > ℹ️ Aucune permission Android ajoutée — vérifié sur le manifeste généré, et le
 > correctif A2 (`RECORD_AUDIO`, `SYSTEM_ALERT_WINDOW` en `tools:node="remove"`) survit.
 
@@ -461,6 +506,39 @@ composant. Audit complet des réglages : `npm run mesure:reglages`.
 >
 > ➡️ Contrôle : `npm run mesure:objectif`. Raisonnement complet et chiffres : AGENTS.md A15.
 
+> **Les échéances proposées sont DÉRIVÉES DU CORPS, jamais figées** (2026-08-03, A27,
+> `lib/goalLadder.ts`). La rangée offrait cinq durées en dur — 4 / 8 / 12 / 16 / 24
+> semaines — et **9 puces sur 40 seulement étaient tenables** : sur 4 corps de référence
+> sur 8, AUCUNE ne l'était. La première échéance atteignable se situait entre 18 et
+> 82 semaines, hors de la rangée.
+>
+> **Deux invariants, et il faut les deux.** Une rangée dont chaque puce tient serait
+> encore mensongère si deux puces servaient la même assiette :
+>  1. **tenable** — la puce ne promet pas une date que le moteur ne tiendra pas ;
+>  2. **distincte** — sous une certaine durée, le plancher d'énergie disponible borne le
+>     déficit, donc allonger l'échéance ne change RIEN au plan. Mesuré avant correctif :
+>     **14 puces sur 40** servaient un plan distinct, et sur 5 corps sur 8 les CINQ
+>     boutons servaient la même assiette. C'est le défaut A23 (« un réglage qui ne pilote
+>     rien »), resté invisible parce qu'on ne mesurait que la tenabilité.
+> ➡️ **Quand on remplace un composant, mesurer aussi ce qu'on ne l'accusait PAS de faire.**
+> Après : **40 / 40** sur les deux critères.
+>
+> ⚠️ **L'échelle interroge le moteur, elle ne rejoue pas ses formules** : `deadlineLadder`
+> reçoit une SONDE, exactement comme `datedGoalStatus` reçoit un projecteur. Le prix est
+> réel — ~17 sondes simulant chacune jusqu'à 260 semaines, soit 3 à 45 ms sur les
+> gabarits courants et 283 ms sur un écart de 30 kg. **Donc mémoïsé sur le poids cible**,
+> sinon la saisie devient saccadée.
+>
+> ⚠️ **La recherche par dichotomie repose sur une propriété MESURÉE, pas garantie par le
+> code** : une fois qu'une durée tient, toutes les plus longues tiennent. Un test balaye
+> l'horizon et exige l'absence de trou — sans lui, la première puce deviendrait fausse en
+> silence le jour où la propriété tombe.
+>
+> ⚠️ **En PRISE de masse, les calories servies BAISSENT quand la date s'éloigne.** Tout
+> prédicat écrit en pensant à la sèche (`>`, « plus de calories ») y est faux : le test de
+> décollage du plancher est `!==`. Une version orientée perte marchait sur la prise **par
+> accident**. Vaut au-delà de ce module.
+
 - **Lipides sous le seuil de carence** — `lib/tdee.ts::fatTargetG`, plancher à
   0,8 g/kg de **poids de corps** (`FAT_MIN_PER_KG_BW`). Borné par le budget du
   jour, donc un plan reste toujours faisable.
@@ -568,8 +646,88 @@ Profil (poids, objectif, régime) = **données de santé** au sens RGPD.
 ### Thème
 
 - `constants/theme.ts` : adaptatif clair/sombre (suit le système)
-- Accent **monochrome** (blanc en sombre / encre en clair), noir pur `#000000` en sombre
+- Accent **monochrome PAR DÉFAUT** (blanc en sombre / encre en clair), noir pur `#000000` en sombre
 - Tout passe par `useTheme()` + `makeStyles(t)` — **aucune couleur en dur**
+
+> **L'accent est PERSONNALISABLE depuis le 2026-08-03 (décision fondateur)** —
+> `lib/accentColor.ts`, réglage « Couleur d'accent » dans Profil → Préférences.
+> Six choix : monochrome (défaut), bleu, vert, orange, rouge, violet. Le monochrome
+> reste la DA de Kyroz : **le fond ne bouge jamais** (noir pur / `#F2F2F7`), seul
+> l'accent change — boutons, jour actif, pilule sélectionnée, onglet actif.
+>
+> **LOCAL-ONLY**, comme la préférence de thème : aucune colonne, **aucune migration
+> Supabase**. C'est un réglage d'APPAREIL, pas une donnée de profil — le même compte
+> peut vouloir du bleu sur son téléphone et du monochrome sur son iPad.
+>
+> ⚠️ **`onAccent` se CALCULE, il ne se choisit pas** (`readableOn`) : la couleur du
+> libellé est toujours celle — noir ou blanc — qui contraste le plus avec le fond du
+> bouton. Une table écrite à la main est une promesse qu'on oublie de tenir : il
+> suffit d'ajouter un orange clair en gardant « texte blanc » pour livrer un bouton
+> illisible, et ça ne se voit pas en relisant un diff.
+>
+> ⚠️ **Le garde-fou est « l'accent se détache du FOND DE PAGE » (3:1), PAS « le texte
+> est lisible ».** Le second serait décoratif : avec la règle du meilleur-des-deux, le
+> pire fond concevable atteint encore **4,61:1** — un seuil AA ne pourrait jamais
+> rougir, quelle que soit la couleur ajoutée. Le risque réel est le bouton NOYÉ dans
+> la page (un bleu sombre sur fond noir : 1,43:1, mesuré). `lib/__tests__/accentColor.test.ts`
+> lit les fonds directement dans `theme.ts` et vérifie les 6 × 2 combinaisons.
+>
+> ⚠️ **Chaque accent porte DEUX valeurs, une par thème** : une couleur assez sombre
+> pour se lire sur blanc devient un trou noir sur fond noir. Et l'orange clair a été
+> choisi **par balayage** (`#CC6600`) — assombri jusqu'au seuil il virait au marron,
+> la tentation était de baisser le seuil, la bonne réponse était de mesurer les
+> valeurs intermédiaires.
+>
+> ⚠️ **La palette calculée est MISE EN CACHE** (`paletteFor`, 12 entrées max). Chaque
+> écran fait `useMemo(() => makeStyles(t), [t])` : renvoyer un objet neuf à chaque
+> rendu invaliderait ce memo partout et reconstruirait toutes les feuilles de style à
+> chaque frappe.
+
+### La FORME et la GRAISSE passent par un token, comme la couleur (2026-08-03)
+
+La règle « aucune couleur en dur » existait depuis toujours ; elle ne disait rien du
+**rayon** ni de la **graisse**. Ces deux-là ont donc dérivé librement, et la refonte
+des 5 onglets n'y a rien changé — un composant qui n'a fait qu'hériter des tokens de
+couleur garde sa forme d'avant.
+
+**Mesuré le 2026-08-03, en UNE capture de l'écran Plan** : bandeau de série 22 · bouton
+« hors plan » 14 · carte Hydratation **16** · bouton « + un verre » **999**. Quatre
+objets qui se touchent, trois grammaires. Rien de tout ça ne se voit en relisant un
+diff — **un rayon ne se lit pas, il se regarde.**
+
+| Rôle | Token | Objets |
+|---|---|---|
+| puce, jauge, badge | `Radius.pill` | filtres, tags — **jamais** un bouton pleine largeur |
+| sous-bloc, ligne de liste, vignette | `Radius.sm` (12) | suggestions, miniatures |
+| bouton **et champ de saisie** | `Radius.button` (14) | tout ce qui se presse ou se remplit |
+| bloc de contenu | `Radius.card` (22) | **le rayon dominant de la DA** |
+| grande surface flottante | `Radius.xl` (24) | feuille modale, dialogue, célébration |
+
+⚠️ **`md` (16) et `lg` (20) ont été SUPPRIMÉS du token, et c'est ça le correctif.**
+Tant qu'ils existaient, rien n'empêchait d'écrire `Radius.md` sur une carte — et c'est
+exactement ce qui est arrivé, huit fois. Les rendre inexistants fait échouer `tsc`.
+*Un token sans rôle n'est pas neutre : c'est une porte ouverte que personne ne surveille.*
+
+⚠️ **Le rayon seul ne suffit pas — la HAUTEUR fait la forme.** « + un verre » passé de
+999 à 14 ressemblait encore à une lozange : à 34 pt de haut, 14 de rayon *est* presque
+un demi-cercle. C'est la hauteur qui était fausse (34 → 44 pt, aussi le minimum d'une
+cible tactile Apple, que `hitSlop` rattrapait au doigt sans jamais le rattraper à l'œil).
+
+**Échelle typographique** — la hiérarchie se fait par la **TAILLE**, pas par la graisse :
+tout titre pèse **700**. `Type.h1` valait 800, soit plus lourd que le `display` au-dessus
+de lui : la hiérarchie s'inversait dès qu'on employait les deux. Personne ne s'en servait,
+donc l'incohérence dormait **dans le fichier qui sert de référence à toute l'app**.
+`hero` (40) chiffre héros · `display` (34) titre d'écran · `h1` (30) titre d'étape ·
+`h2` (22) titre de feuille · `h3` (17) titre de bloc · `overline` (11) sur-titre.
+
+➡️ **Garde-fou : `lib/__tests__/rayonsDA.test.ts`.** Un `borderRadius` en chiffre n'est
+légitime que si l'objet a une **taille fixe** et que le rayon en est au plus la moitié
+(disque, pastille, barre). Dès qu'un objet se dimensionne par son contenu, sa forme est
+une décision de DA. **Vérifié par mutation** : remettre la carte Hydratation à 16, ou le
+`PrimaryButton` à 999, fait rougir le test.
+⚠️ Ce qu'il ne sait PAS faire : dire qu'on a choisi le bon token — `Radius.pill` sur une
+carte passerait. Il ferme la porte au chiffre en dur, qui est le chemin par lequel la
+dérive est réellement arrivée.
 
 ### Largeurs — téléphone ET tablette (depuis le 2026-08-01)
 
@@ -648,6 +806,15 @@ téléphone.
   près ; aucun signal alarmant ; le pire cas reste neutre. Le message de fond est « le
   moteur porte la charge », pas « tu es en retard ». C'est un choix produit — une app de
   nutrition anxiogène perd l'utilisateur, donc le North Star.
+  ⚠️ **Sa conséquence technique, et elle a été violée deux fois** : un suivi se dessine
+  sur ce que le moteur SERT, jamais sur ce que l'utilisateur a SAISI. Le couloir de
+  progression était tracé en ligne droite vers la date saisie — donc il annonçait « en
+  retard » à quelqu'un qui suivait le plan À LA LETTRE, mesuré dès **le 7ᵉ jour**, avec
+  jusqu'à **10,4 kg** d'écart (11 cas sur 16 avant correctif, 3 après). Le principe était
+  pourtant déjà écrit dans `trackStatus`, pour un autre cas : *« reprocher un retard qu'on
+  a soi-même imposé »*. ➡️ Point d'entrée unique : **`tdee.ts::trackingTarget`** — tout
+  écran qui affiche une progression passe par lui. Contrôle : `npm run mesure:objectif`.
+  ➡️ Et quand on écrit un principe en corrigeant UN cas, chercher tout de suite ses voisins.
 - **Mesurer sur le moteur, jamais sur une réplique de ses formules.** Cette erreur a
   produit **trois** conclusions fausses (partage glucides/lipides figé à 55/45 ; « le
   catalogue est trop maigre » ; « 21 à 30 recettes distinctes » alors qu'un utilisateur

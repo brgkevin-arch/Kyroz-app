@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { ThemePalette, Radius, Spacing, cardShadow } from '../constants/theme';
+import { ThemePalette, Radius, Spacing, Type, cardShadow } from '../constants/theme';
 
 interface Props {
   t: ThemePalette;
@@ -58,10 +58,10 @@ export function PlanCheckin({
 function makeStyles(t: ThemePalette) {
   return StyleSheet.create({
     header: { paddingHorizontal: Spacing.xxl, paddingBottom: 12, gap: 8 },
-    title: { color: t.text, fontSize: 24, fontWeight: '800', letterSpacing: -0.5 },
+    title: { color: t.text, ...Type.h2 },
     intro: { color: t.textSecondary, fontSize: 14, lineHeight: 20 },
     body: { paddingHorizontal: Spacing.xxl, gap: 10 },
-    row: { flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: t.card, borderRadius: Radius.md, padding: 16 },
+    row: { flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: t.card, borderRadius: Radius.card, padding: 16 },
     icon: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
     label: { color: t.text, fontSize: 16, fontWeight: '700', letterSpacing: -0.2 },
     sub: { color: t.textSecondary, fontSize: 13, marginTop: 2 },

@@ -26,7 +26,7 @@ type RefDef = { name: string; unit: string; per_100: Per100; basis?: string; abs
 type Recette = {
   id: string; name: string; category: 'petit_dej' | 'collation' | 'repas_complet';
   base_servings: number; wave?: string;
-  tags: { objectif: string[]; recup_jour_repos: boolean; sport: string[]; temps_min: number };
+  tags: { objectif: string[]; sport: string[]; temps_min: number };
   ingredients: { ref: string; qty: number; macro_role: string; scalable: boolean }[];
   instructions: string[]; why: string;
   macros_per_serving: { kcal: number; protein: number; carbs: number; fat: number };
@@ -682,7 +682,7 @@ function eprouvette(slot: MealType, parts: [string, number, string][]): Recipe {
     macros_per_portion: macrosForRefIngredients(ings.map((i) => ({ ref: i.ref, qty: i.qty }))),
     ingredients: ings.map((i) => ({ name: REFS[i.ref]?.name ?? i.ref, quantity_g: i.qty, unit: 'g', ref: i.ref, macro_role: i.macro_role, scalable: i.scalable })),
     steps: [], tags: [slot], restrictions_ok: restrictionsOkFor(ings.map((i) => i.ref)),
-    objectives: [], sports: [], rest_day_ok: true, why_fr: '',
+    objectives: [], sports: [], why_fr: '',
   } as unknown as Recipe;
 }
 
@@ -999,8 +999,8 @@ ${exemple(lot.categorie, lot.wave)}
 | \`category\` | \`"${lot.categorie}"\` pour les ${lot.volume} |
 | \`base_servings\` | \`1\`, sans exception |
 | \`tags.objectif\` | mécanique, depuis les kcal de base — voir §6 |
-| \`tags.recup_jour_repos\` | \`true\` si les glucides font moins de 45 % des calories, sinon \`false\`. Rien d'éditorial. |
-| \`tags.sport\` | \`["muscu"]\` par défaut ; ajoute \`"endurance"\` si les glucides dépassent 55 % des calories. **\`"combats"\` est interdit.** |
+| \`tags.sport\` | \`["muscu"]\` par défaut ; ajoute \`"endurance"\` si les glucides dépassent 55 % des calories. **\`"combats"\` est interdit.** ⚠️ Cette règle vaut pour TON lot, mais elle n'a **pas** été appliquée rétroactivement au catalogue : la poser sur les 512 met \`muscu\` partout, ce qui rend le départage \`needMatch\` constant donc inerte — mesuré, les quasi-doublons passent de 9,2 à 13,3 %. Cf. fiche D22 d'AGENTS.md. |
+| \`tags.objectif\` | ⚠️ **Purement mécanique, aucune marge d'appréciation** — il se déduit des kcal de base (§6.5) et un test le vérifie sur les 512 (\`lib/__tests__/tags.test.ts\`). 192 recettes le contredisaient avant le 2026-08-03. |
 | \`tags.temps_min\` | temps TOTAL de cuisine, cuisson comprise. Aucune durée des \`instructions\` ne peut le dépasser. |
 | \`ingredients\` | **4 à 6 entrées.** Chacune : \`ref\` (§4), \`qty\` entier, \`macro_role\`, \`scalable\`. |
 | \`instructions\` | **${lot.etapes[0]} à ${lot.etapes[1]} étapes** — voir §6 |
@@ -1063,6 +1063,22 @@ Le sel, le poivre et les herbes non listés sont tolérés dans les instructions
 Respecte la colonne « Pesée » du §4. On n'écrit jamais « égoutté », « cuit » ou « cuisiné » dans le
 \`name\` d'une recette dont un ingrédient est pesé SEC, et les instructions doivent être cohérentes
 avec cette pesée.
+
+**Les légumineuses, en particulier.** Cette règle était déjà écrite ici et **47 recettes la
+violaient quand même** — 9 % du catalogue, découvert le 2026-08-03. Elles pesaient des pois chiches
+SECS (350 kcal/100 g) en les cuisinant en 18 minutes : impossible sans trempage, donc l'utilisateur
+ouvre une conserve (122 kcal/100 g) et mange **130 kcal de moins que ce que la fiche annonce, jusqu'à
+209**. Le contrôle qui manquait existe maintenant (\`lib/__tests__/legumineuses.test.ts\`) — un lot qui
+refait la faute ne passe plus.
+
+| Ce que tu écris | Le \`ref\` à employer |
+|---|---|
+| une salade, un houmous, un chili, un curry — bref **moins de 40 minutes** | \`pois_chiches_conserve\`, \`haricots_rouges_conserve\`, \`haricots_blancs_conserve\`, \`haricots_noirs_conserve\`, \`lentilles_cuites\` |
+| un plat **dont la cuisson longue EST le plat** (soupe de pois cassés, dahl de fèves) | le \`ref\` SEC, avec un \`temps_min\` qui inclut vraiment la cuisson (45 à 50 min) |
+
+⚠️ **Pois chiches, haricots rouges, blancs et noirs SECS sont interdits**, quel que soit le
+\`temps_min\` : ils exigent un trempage de plusieurs heures, or le §6.6 interdit tout repos de plus de
+10 minutes. Seuls les pois cassés, les fèves décortiquées et les lentilles cuisent sans trempage.
 
 ### 6.5 \`tags.objectif\` — mécanique, depuis les kcal de base
 

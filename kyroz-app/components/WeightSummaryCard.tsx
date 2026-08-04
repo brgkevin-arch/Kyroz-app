@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { ThemePalette, Radius, Spacing, cardShadow } from '../constants/theme';
+import { ThemePalette, Radius, Spacing, Type, cardShadow } from '../constants/theme';
 import { WeightChart } from './WeightChart';
 import { GoalTarget } from '../lib/types';
 import { WeightEntry } from '../lib/weight';
@@ -75,11 +75,11 @@ export function WeightSummaryCard({
 
 function makeStyles(t: ThemePalette) {
   return StyleSheet.create({
-    card: { backgroundColor: t.card, borderRadius: Radius.lg, padding: Spacing.xl, gap: 14 },
+    card: { backgroundColor: t.card, borderRadius: Radius.card, padding: Spacing.xl, gap: 14 },
     head: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
-    label: { color: t.textTertiary, fontSize: 12, fontWeight: '700', letterSpacing: 0.6 },
+    label: { color: t.textTertiary, ...Type.overline },
     valueRow: { flexDirection: 'row', alignItems: 'baseline', gap: 6, marginTop: 4, flexWrap: 'wrap' },
-    value: { color: t.text, fontSize: 34, fontWeight: '900', letterSpacing: -1.2 },
+    value: { color: t.text, ...Type.hero },
     unit: { color: t.textSecondary, fontSize: 15, fontWeight: '600' },
     // Neutre À DESSEIN : une hausse n'est pas une faute (cf. l'en-tête du fichier).
     delta: { color: t.textTertiary, fontSize: 12, fontWeight: '600', marginLeft: 2 },

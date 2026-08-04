@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { ThemePalette, Radius } from '../constants/theme';
+import { ThemePalette, Radius, Type } from '../constants/theme';
 import { Streak } from '../lib/types';
 import { chainProgress, streakMessage } from '../lib/streak';
 
@@ -58,8 +58,9 @@ export function StreakProgress({ t, streak, variant = 'strip' }: Props) {
     // journée. Ne pas réintroduire la grosse carte sans nouvelle décision (A20).
     return (
       <View style={[styles.line, { backgroundColor: t.card, borderColor: t.line }]}>
+        {/* Plus de 🔥 : la barre de sept jours EST la série, et l'emoji la disait
+            une deuxième fois. Même geste que l'en-tête du Plan (2026-08-03). */}
         <View style={styles.lineHead}>
-          <Text style={{ fontSize: 14 }}>🔥</Text>
           <Text style={[styles.lineNum, { color: t.text }]}>{streak.current_streak_days}</Text>
           <Text style={[styles.lineLbl, { color: t.textSecondary }]}>
             jour{streak.current_streak_days > 1 ? 's' : ''} d’affilée
@@ -88,7 +89,7 @@ const styles = StyleSheet.create({
 
   strip: {
     borderWidth: 1,
-    borderRadius: Radius.md,
+    borderRadius: Radius.card,
     paddingHorizontal: 16,
     paddingVertical: 14,
     gap: 10,
@@ -98,13 +99,13 @@ const styles = StyleSheet.create({
   // la série se lit d'un coup d'œil et rend la place au suivi du poids.
   line: {
     borderWidth: 1,
-    borderRadius: Radius.md,
+    borderRadius: Radius.card,
     paddingHorizontal: 14,
     paddingVertical: 12,
     gap: 10,
   },
   lineHead: { flexDirection: 'row', alignItems: 'baseline', gap: 5 },
-  lineNum: { fontSize: 17, fontWeight: '900', letterSpacing: -0.5 },
+  lineNum: { ...Type.h3 },
   lineLbl: { fontSize: 13, fontWeight: '600' },
   lineRecord: { fontSize: 12, fontWeight: '600' },
 

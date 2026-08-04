@@ -12,10 +12,15 @@ interface MacroBarProps {
   consumedKcal?: number;   // déjà consommé (mangé + hors-plan) ; 0/absent = rien mangé encore
 }
 
-// Affichage : le chiffre HÉROS = le TOTAL RÉEL du plan du jour (ce qu'on mange
-// vraiment), pas la cible figée — la cible reste affichée juste en dessous, en
-// référence, avec l'écart (✓ dans la cible / ±X). En cours de journée → barre de
-// progression du consommé vers ce total. Le TDEE n'apparaît pas ici (Réglages).
+// Affichage : le chiffre HÉROS est CE QUI A ÉTÉ MANGÉ, sur la cible du jour —
+// « 0 / 2 112 kcal ». C'est la question qu'on se pose en ouvrant l'app en cours de
+// journée, et le seul cadran qui bouge quand on coche un repas.
+//
+// ⚠️ Le héros était le total PRÉVU du plan (2026-08-03, refonte design). Le prévu
+// n'a pas disparu — il est passé en sous-titre, avec son écart à la cible. Rien
+// n'est perdu : ce qui change est l'ordre de lecture, pas l'information. Ne pas
+// « re-promouvoir » le prévu sans le dire ; deux gros chiffres sur le même écran
+// et personne ne sait lequel compte.
 export function MacroBar({ protein_g, carbs_g, fat_g, targetKcal, plannedKcal, consumedKcal }: MacroBarProps) {
   const t = useTheme();
   const total = protein_g * 4 + carbs_g * 4 + fat_g * 9;
@@ -26,75 +31,53 @@ export function MacroBar({ protein_g, carbs_g, fat_g, targetKcal, plannedKcal, c
   const consumed = consumedKcal ?? 0;
   const tracking = consumed > 0;
   const remaining = Math.max(0, plannedKcal - consumed);
-  const progress = plannedKcal > 0 ? Math.min(1, consumed / plannedKcal) : 0;
 
   const planDelta = plannedKcal - targetKcal;
   const onTarget = Math.abs(planDelta) <= ON_TARGET_TOLERANCE_KCAL;
   const sign = planDelta > 0 ? '+' : '';
 
   return (
-    <View style={{ gap: 12 }}>
-      {/* Héros = le total RÉEL du plan du jour, cible en référence juste dessous */}
+    <View style={{ gap: 14 }}>
+      {/* Héros = ce qui est déjà mangé, sur la cible du jour */}
       <View>
-        <Text style={[styles.heroLabel, { color: t.textTertiary }]}>Plan du jour</Text>
         <View style={styles.kcalRow}>
-          <Text style={[styles.kcal, { color: t.text }]}>{plannedKcal.toLocaleString('fr-FR')}</Text>
-          <Text style={[styles.kcalSub, { color: t.textTertiary }]}> kcal</Text>
+          <Text style={[styles.kcal, { color: t.text }]}>{consumed.toLocaleString('fr-FR')}</Text>
+          <Text style={[styles.kcalSub, { color: t.textTertiary }]}> / {targetKcal.toLocaleString('fr-FR')} kcal</Text>
         </View>
-        <Text style={[styles.cibleRef, { color: onTarget ? t.success : t.warning }]}>
-          Cible {targetKcal.toLocaleString('fr-FR')} kcal · {onTarget ? '✓ dans la cible' : `${sign}${planDelta}`}
+        <Text style={[styles.sub, { color: t.textSecondary }]}>
+          {plannedKcal.toLocaleString('fr-FR')} kcal prévus sur la journée
+          {tracking
+            ? <Text style={{ color: t.text, fontWeight: '600' }}>{` · reste ${remaining.toLocaleString('fr-FR')} kcal`}</Text>
+            : ', rien de coché'}
         </Text>
-      </View>
-
-      {/* En cours de journée → progression du consommé vers le total du jour */}
-      {tracking && (
-        <View style={{ gap: 6 }}>
-          <View style={styles.progressTrack}>
-            <View style={{ flex: progress, backgroundColor: t.accent, borderRadius: 4 }} />
-            <View style={{ flex: 1 - progress }} />
-          </View>
-          <Text style={[styles.statusTxt, { color: t.textSecondary }]}>
-            Consommé {consumed.toLocaleString('fr-FR')} · <Text style={{ color: t.text, fontWeight: '700' }}>reste {remaining.toLocaleString('fr-FR')} kcal</Text>
+        {!onTarget && (
+          <Text style={[styles.sub, { color: t.textTertiary, marginTop: 2 }]}>
+            Cible {targetKcal.toLocaleString('fr-FR')} kcal · {sign}{planDelta}
           </Text>
-        </View>
-      )}
-
-      {/* Composition macro du jour */}
-      <View style={styles.bar}>
-        <View style={{ flex: p, backgroundColor: t.protein, borderRadius: 4 }} />
-        <View style={{ flex: c, backgroundColor: t.carbs, borderRadius: 4 }} />
-        <View style={{ flex: f, backgroundColor: t.fat, borderRadius: 4 }} />
+        )}
       </View>
 
-      <View style={styles.legend}>
-        <Legend color={t.protein} label="Protéines" value={protein_g} c={t.textSecondary} />
-        <Legend color={t.carbs} label="Glucides" value={carbs_g} c={t.textSecondary} />
-        <Legend color={t.fat} label="Lipides" value={fat_g} c={t.textSecondary} />
+      {/* Composition macro du jour — trois NUANCES du même gris, sur une piste.
+          Pas trois teintes : la couleur ne sert qu'à séparer des proportions
+          côte à côte (cf. la note en tête de constants/theme.ts). */}
+      <View style={[styles.bar, { backgroundColor: t.fill }]}>
+        <View style={{ flex: p, backgroundColor: t.protein }} />
+        <View style={{ flex: c, backgroundColor: t.carbs }} />
+        <View style={{ flex: f, backgroundColor: t.fat }} />
       </View>
-    </View>
-  );
-}
 
-function Legend({ color, label, value, c }: { color: string; label: string; value: number; c: string }) {
-  return (
-    <View style={styles.leg}>
-      <View style={[styles.dot, { backgroundColor: color }]} />
-      <Text style={[styles.legText, { color: c }]}>{label} {value}g</Text>
+      <Text style={[styles.legend, { color: t.textSecondary }]}>
+        {protein_g} g de protéines · {carbs_g} g de glucides · {fat_g} g de lipides
+      </Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  heroLabel: { fontSize: 12, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 2 },
   kcalRow: { flexDirection: 'row', alignItems: 'baseline' },
-  kcal: { fontSize: 40, fontWeight: '800', letterSpacing: -1.5 },
-  kcalSub: { fontSize: 15 },
-  cibleRef: { fontSize: 13, fontWeight: '600', marginTop: 2 },
-  statusTxt: { fontSize: 13 },
-  progressTrack: { flexDirection: 'row', height: 7, borderRadius: 4, backgroundColor: 'rgba(127,127,127,0.18)', overflow: 'hidden' },
-  bar: { flexDirection: 'row', height: 7, gap: 3 },
-  legend: { flexDirection: 'row', gap: 16, flexWrap: 'wrap' },
-  leg: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  dot: { width: 8, height: 8, borderRadius: 3 },
-  legText: { fontSize: 13 },
+  kcal: { fontSize: 40, fontWeight: '700', letterSpacing: -1.4 },
+  kcalSub: { fontSize: 17, fontWeight: '500' },
+  sub: { fontSize: 14, lineHeight: 19, marginTop: 4 },
+  bar: { flexDirection: 'row', height: 8, borderRadius: 4, overflow: 'hidden' },
+  legend: { fontSize: 14, lineHeight: 19 },
 });

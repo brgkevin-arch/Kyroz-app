@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { ThemePalette, Radius } from '../constants/theme';
+import { ThemePalette, Radius, Type } from '../constants/theme';
 import { PrimaryButton, Segmented } from './ui';
 import { Food, FixedMeal, MealType } from '../lib/types';
 import { searchFoods, macrosForQuantity } from '../lib/foods';
@@ -175,9 +175,9 @@ function MacroInput({ t, label, value, onChange, suffix }: { t: ThemePalette; la
 function makeStyles(t: ThemePalette) {
   return StyleSheet.create({
     wrap: { padding: 24, gap: 16 },
-    title: { color: t.text, fontSize: 22, fontWeight: '800', letterSpacing: -0.5 },
+    title: { color: t.text, ...Type.h2 },
     sub: { color: t.textSecondary, fontSize: 14, lineHeight: 20, marginTop: 6 },
-    inputBox: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderRadius: Radius.sm, paddingHorizontal: 16 },
+    inputBox: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderRadius: Radius.button, paddingHorizontal: 16 },
     input: { flex: 1, paddingVertical: 14, fontSize: 16, fontWeight: '600', color: t.text },
     inputSuffix: { color: t.textTertiary, fontSize: 15 },
     suggest: { marginTop: 8, borderWidth: 1, borderColor: t.line, borderRadius: Radius.sm, overflow: 'hidden' },
@@ -185,7 +185,7 @@ function makeStyles(t: ThemePalette) {
     suggestName: { color: t.text, fontSize: 14, fontWeight: '600' },
     suggestMacro: { color: t.textTertiary, fontSize: 12, marginTop: 2 },
     suggestEmpty: { color: t.textTertiary, fontSize: 13, padding: 14 },
-    pickedCard: { borderWidth: 1, borderColor: t.line, borderRadius: Radius.md, padding: 16, gap: 12 },
+    pickedCard: { borderWidth: 1, borderColor: t.line, borderRadius: Radius.card, padding: 16, gap: 12 },
     pickedHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 },
     pickedName: { color: t.text, fontSize: 15, fontWeight: '700', flex: 1 },
     change: { color: t.textSecondary, fontSize: 13, fontWeight: '700' },

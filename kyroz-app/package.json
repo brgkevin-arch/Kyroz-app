@@ -58,6 +58,7 @@
     "mesure:reroll": "npx tsx scripts/mesure-reroll.ts",
     "mesure:reglages": "npx tsx scripts/mesure-reglages.ts",
     "mesure:objectif": "npx tsx scripts/mesure-objectif-date.ts",
+    "mesure:proteine": "npx tsx scripts/mesure-proteine-jour.ts",
     "mesure:seuils": "npx tsx scripts/mesure-couverture.ts --seuils",
     "mesure:vivier": "npx tsx scripts/mesure-couverture.ts --vivier"
   },
