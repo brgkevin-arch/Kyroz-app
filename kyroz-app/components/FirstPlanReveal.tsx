@@ -92,8 +92,8 @@ function Stat({ t, value, label }: { t: ThemePalette; value: string; label: stri
   // quand l'objectif (« Sèche progressive ») passe sur 2 lignes.
   return (
     <View style={{ alignItems: 'center', flex: 1 }}>
-      <Text style={{ color: t.text, fontSize: 16, fontWeight: '800', letterSpacing: -0.3, lineHeight: 19, minHeight: 38, textAlign: 'center' }} numberOfLines={2}>{value}</Text>
-      <Text style={{ color: t.textTertiary, fontSize: 11, fontWeight: '600', marginTop: 2, textAlign: 'center' }}>{label}</Text>
+      <Text style={{ ...Type.label, color: t.text, letterSpacing: -0.3, lineHeight: 19, minHeight: 38, textAlign: 'center' }} numberOfLines={2}>{value}</Text>
+      <Text style={{ ...Type.microStrong, color: t.textTertiary, marginTop: 2, textAlign: 'center' }}>{label}</Text>
     </View>
   );
 }
@@ -105,14 +105,14 @@ function makeStyles(t: ThemePalette) {
     scroll: { padding: Spacing.xxl, alignItems: 'center' },
     emoji: { fontSize: 48, marginBottom: 6 },
     title: { color: t.text, ...Type.h2, textAlign: 'center' },
-    sub: { color: t.textSecondary, fontSize: 14, lineHeight: 20, textAlign: 'center', marginTop: 8, alignSelf: 'stretch' },
+    sub: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 20, textAlign: 'center', marginTop: 8, alignSelf: 'stretch' },
     statRow: { flexDirection: 'row', alignSelf: 'stretch', gap: 8, marginTop: 18, paddingVertical: 14, borderTopWidth: 1, borderBottomWidth: 1, borderColor: t.line },
     section: { alignSelf: 'stretch', marginTop: 18, gap: 10 },
     mealRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
     mealEmoji: { fontSize: 20 },
-    mealType: { color: t.textTertiary, fontSize: 11, fontWeight: '600' },
-    mealName: { color: t.text, fontSize: 14, fontWeight: '600', marginTop: 1 },
-    mealKcal: { color: t.textSecondary, fontSize: 12, fontWeight: '700' },
-    disclaimer: { color: t.textTertiary, fontSize: 11, lineHeight: 16, textAlign: 'center', marginTop: 18 },
+    mealType: { ...Type.microStrong, color: t.textTertiary },
+    mealName: { ...Type.bodySmallStrong, color: t.text, marginTop: 1 },
+    mealKcal: { ...Type.captionStrong, color: t.textSecondary },
+    disclaimer: { ...Type.micro, color: t.textTertiary, lineHeight: 16, textAlign: 'center', marginTop: 18 },
   });
 }

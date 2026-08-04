@@ -262,15 +262,15 @@ function makeStyles(t: ThemePalette) {
     center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 10, paddingHorizontal: 40 },
     emptyIcon: { width: 72, height: 72, borderRadius: 24, alignItems: 'center', justifyContent: 'center', marginBottom: 6 },
     emptyT: { color: t.text, ...Type.h2 },
-    emptyS: { color: t.textSecondary, fontSize: 15, textAlign: 'center', lineHeight: 21 },
+    emptyS: { ...Type.body, color: t.textSecondary, textAlign: 'center', lineHeight: 21 },
 
     // Plus de padding horizontal ici, ni dans `controls`/`hint`/`track` : ces blocs
     // vivent dans le contentContainer de la liste, qui pose déjà les 20 pt.
     header: { flexDirection: 'row', alignItems: 'flex-end', paddingTop: Spacing.xl, paddingBottom: 12 },
     h1: { color: t.text, ...Type.display, marginTop: 2 },
-    sub: { color: t.textSecondary, fontSize: 14, lineHeight: 19 },
-    counter: { color: t.text, fontSize: 22, fontWeight: '700', letterSpacing: -0.6 },
-    counterTot: { color: t.textTertiary, fontSize: 14, fontWeight: '400', letterSpacing: 0 },
+    sub: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 19 },
+    counter: { ...Type.h2, color: t.text, letterSpacing: -0.6 },
+    counterTot: { ...Type.bodySmall, color: t.textTertiary, letterSpacing: 0 },
 
     track: { height: 5, backgroundColor: t.fill, borderRadius: 3, overflow: 'hidden' },
     fill: { height: 5, borderRadius: 3 },
@@ -278,20 +278,20 @@ function makeStyles(t: ThemePalette) {
     controls: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingTop: 14, paddingBottom: 2 },
     ctrl: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 9, borderRadius: Radius.pill, backgroundColor: t.fill },
     ctrlOn: { backgroundColor: t.accent },
-    ctrlTxt: { color: t.text, fontSize: 14, fontWeight: '500' },
-    hint: { color: t.textTertiary, fontSize: 13, lineHeight: 18, paddingTop: 12 },
+    ctrlTxt: { ...Type.bodySmall, color: t.text },
+    hint: { ...Type.caption, color: t.textTertiary, lineHeight: 18, paddingTop: 12 },
     // Note de pied présente dans la maquette et absente de l'app : elle dit d'où
     // sortent les quantités, ce qu'aucun autre élément de l'écran n'explique.
-    footnote: { color: t.textQuaternary, fontSize: 12, lineHeight: 17, paddingTop: 18 },
+    footnote: { ...Type.caption, color: t.textQuaternary, lineHeight: 17, paddingTop: 18 },
 
     list: { paddingHorizontal: Spacing.xl, paddingBottom: 120, paddingTop: 4 },
     section: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginTop: 24, marginBottom: 8 },
-    sectionTxt: { color: t.textTertiary, fontSize: 11, fontWeight: '700', letterSpacing: 1 },
-    sectionCount: { color: t.textTertiary, fontSize: 13 },
+    sectionTxt: { ...Type.overline, color: t.textTertiary },
+    sectionCount: { ...Type.caption, color: t.textTertiary },
 
     row: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 16, paddingVertical: 15, backgroundColor: t.card },
     dot: { width: 24, height: 24, borderRadius: 12, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
-    name: { flex: 1, color: t.text, fontSize: 16, fontWeight: '500' },
-    qty: { color: t.textSecondary, fontSize: 15 },
+    name: { ...Type.body, flex: 1, color: t.text },
+    qty: { ...Type.body, color: t.textSecondary },
   });
 }

@@ -59,14 +59,14 @@ function makeStyles(t: ThemePalette) {
   return StyleSheet.create({
     header: { paddingHorizontal: Spacing.xxl, paddingBottom: 12, gap: 8 },
     title: { color: t.text, ...Type.h2 },
-    intro: { color: t.textSecondary, fontSize: 14, lineHeight: 20 },
+    intro: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 20 },
     body: { paddingHorizontal: Spacing.xxl, gap: 10 },
     row: { flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: t.card, borderRadius: Radius.card, padding: 16 },
     icon: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
-    label: { color: t.text, fontSize: 16, fontWeight: '700', letterSpacing: -0.2 },
-    sub: { color: t.textSecondary, fontSize: 13, marginTop: 2 },
+    label: { ...Type.label, color: t.text, letterSpacing: -0.2 },
+    sub: { ...Type.caption, color: t.textSecondary, marginTop: 2 },
     optOut: { alignItems: 'center', paddingVertical: 14, marginTop: 6 },
-    optOutTxt: { color: t.textTertiary, fontSize: 14, fontWeight: '600' },
-    optOutHint: { color: t.textQuaternary, fontSize: 12, textAlign: 'center', marginTop: -6 },
+    optOutTxt: { ...Type.bodySmallStrong, color: t.textTertiary },
+    optOutHint: { ...Type.caption, color: t.textQuaternary, textAlign: 'center', marginTop: -6 },
   });
 }

@@ -92,7 +92,7 @@ export default function RecettesScreen() {
                 // entrait en concurrence avec le cœur des cartes, qui lui agit.
                 <TouchableOpacity key={tg} onPress={() => setTag(tg)} activeOpacity={0.8}
                   style={[s.chip, { backgroundColor: on ? t.accent : t.fill }]}>
-                  <Text style={{ color: on ? t.onAccent : t.text, fontSize: 15, fontWeight: on ? '600' : '500' }}>{TAG_LABELS[tg]}</Text>
+                  <Text style={{ ...(on ? Type.bodyStrong : Type.body), color: on ? t.onAccent : t.text }}>{TAG_LABELS[tg]}</Text>
                 </TouchableOpacity>
               );
             })}
@@ -207,22 +207,22 @@ function makeStyles(t: ThemePalette) {
     // vivent dans le contentContainer de la liste, qui pose déjà les 20 pt.
     header: { paddingTop: 4, paddingBottom: 12 },
     h1: { color: t.text, ...Type.display, marginTop: 2 },
-    sub: { color: t.textSecondary, fontSize: 14, lineHeight: 19 },
+    sub: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 19 },
     searchWrap: { paddingBottom: 12 },
     searchBox: {
       flexDirection: 'row', alignItems: 'center', gap: 8,
       backgroundColor: t.fill, borderRadius: Radius.button,
       paddingHorizontal: 14, height: 44,
     },
-    searchInput: { flex: 1, color: t.text, fontSize: 16, padding: 0 },
+    searchInput: { ...Type.input, flex: 1, color: t.text, padding: 0 },
     // La bande de filtres RESSORT du padding du conteneur (marge négative) pour
     // rester à fond perdu : elle défile horizontalement, elle doit toucher les bords.
     filtersWrap: { marginBottom: 4, marginHorizontal: -Spacing.xl },
     filters: { paddingHorizontal: Spacing.xl, gap: 8 },
     chip: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10, borderRadius: Radius.pill },
     countRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', paddingTop: 14, paddingBottom: 2 },
-    countLabel: { color: t.textTertiary, fontSize: 11, fontWeight: '700', letterSpacing: 1 },
-    countN: { color: t.textTertiary, fontSize: 13 },
+    countLabel: { ...Type.overline, color: t.textTertiary },
+    countN: { ...Type.caption, color: t.textTertiary },
     list: { padding: Spacing.xl, paddingTop: 10, gap: 10, paddingBottom: 120 },
     recipe: { backgroundColor: t.card, borderRadius: Radius.card, padding: 18, gap: 8 },
     // En grille, chaque carte prend sa part de la rangée et toutes s'alignent
@@ -231,13 +231,13 @@ function makeStyles(t: ThemePalette) {
     recipeGrid: { flex: 1 },
     gridRow: { gap: 10, alignItems: 'stretch' },
     rTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-    rName: { flex: 1, marginRight: 8, color: t.text, fontSize: 17, fontWeight: '600', letterSpacing: -0.3 },
+    rName: { ...Type.h3, flex: 1, marginRight: 8, color: t.text, letterSpacing: -0.3 },
     heart: { padding: 2 },
-    rMacros: { color: t.textSecondary, fontSize: 14, lineHeight: 19 },
-    rKcal: { color: t.text, fontWeight: '600' },
+    rMacros: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 19 },
+    rKcal: { color: t.text, fontWeight: '700' },
     rTagRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 2 },
-    rTag: { backgroundColor: t.fill, color: t.textSecondary, fontSize: 13, paddingHorizontal: 10, paddingVertical: 4, borderRadius: Radius.pill, overflow: 'hidden' },
+    rTag: { ...Type.caption, backgroundColor: t.fill, color: t.textSecondary, paddingHorizontal: 10, paddingVertical: 4, borderRadius: Radius.pill, overflow: 'hidden' },
     empty: { alignItems: 'center', gap: 10, paddingTop: 60 },
-    emptyTxt: { color: t.textTertiary, fontSize: 14 },
+    emptyTxt: { ...Type.bodySmall, color: t.textTertiary },
   });
 }

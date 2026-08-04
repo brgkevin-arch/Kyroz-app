@@ -59,10 +59,10 @@ function makeStyles(t: ThemePalette) {
     headerTitle: { color: t.text, ...Type.h3 },
     content: { padding: Spacing.xl, paddingBottom: 60, gap: 4 },
     docTitle: { color: t.text, ...Type.h2, marginTop: 8 },
-    updated: { color: t.textTertiary, fontSize: 12, marginTop: 2, marginBottom: 8 },
+    updated: { ...Type.caption, color: t.textTertiary, marginTop: 2, marginBottom: 8 },
     section: { marginTop: 16 },
     secTitle: { color: t.text, ...Type.bodyStrong, marginBottom: 6 },
-    para: { color: t.textSecondary, fontSize: 14, lineHeight: 21, marginBottom: 8 },
+    para: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 21, marginBottom: 8 },
     divider: { height: 1, backgroundColor: t.line, marginVertical: 24 },
   });
 }

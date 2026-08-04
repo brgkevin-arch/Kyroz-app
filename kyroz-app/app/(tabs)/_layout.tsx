@@ -1,6 +1,6 @@
 import { Tabs, Redirect } from 'expo-router';
 import { Platform, ColorValue } from 'react-native';
-import { useTheme } from '../../constants/theme';
+import { useTheme, Type } from '../../constants/theme';
 import { useAuth } from '../../hooks/useAuth';
 import { useProfile } from '../../hooks/useProfile';
 import Splash from '../../components/Splash';
@@ -51,7 +51,7 @@ export default function TabLayout() {
         // monochrome, `accent` vaut déjà l'encre — le rendu ne bouge pas d'un pixel.
         tabBarActiveTintColor: t.accent,
         tabBarInactiveTintColor: t.textQuaternary,
-        tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
+        tabBarLabelStyle: { ...Type.microStrong },
       }}
     >
       <Tabs.Screen name="plan" options={{ title: 'Plan', tabBarIcon: icon(PlanIcon) }} />

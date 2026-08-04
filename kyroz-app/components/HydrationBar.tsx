@@ -159,8 +159,8 @@ const styles = StyleSheet.create({
   card: { borderRadius: Radius.card, padding: Spacing.lg, gap: Spacing.md, marginBottom: Spacing.lg },
   headRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   headRight: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
-  title: { fontSize: 15, fontWeight: '700' },
-  count: { fontSize: 13, fontWeight: '600' },
+  title: { ...Type.bodyStrong },
+  count: { ...Type.captionStrong },
   track: { height: 8, borderRadius: Radius.pill, overflow: 'hidden' },
   fill: { height: '100%', borderRadius: Radius.pill },
   controls: { flexDirection: 'row', gap: Spacing.sm },
@@ -173,9 +173,9 @@ const styles = StyleSheet.create({
   // sans jamais le rattraper à l'œil.
   btn: { paddingVertical: 13, paddingHorizontal: 16, borderRadius: Radius.button, alignItems: 'center', justifyContent: 'center', minWidth: 48 },
   btnAdd: { flex: 1 },
-  btnTxt: { fontSize: 15, fontWeight: '700' },
+  btnTxt: { ...Type.bodyStrong },
   sheetTitle: { ...Type.h2, marginBottom: 4 },
   sheetBlock: { gap: Spacing.sm },
-  hint: { fontSize: 12, fontWeight: '600' },
+  hint: { ...Type.captionStrong },
   doneBtn: { marginTop: Spacing.sm, paddingVertical: 14, borderRadius: Radius.button, alignItems: 'center' },
 });

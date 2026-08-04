@@ -67,5 +67,5 @@ const styles = StyleSheet.create({
   },
   emoji: { fontSize: 56, marginBottom: 8 },
   title: { ...Type.h2, textAlign: 'center' },
-  body: { fontSize: 15, lineHeight: 21, textAlign: 'center', marginTop: 10 },
+  body: { ...Type.body, lineHeight: 21, textAlign: 'center', marginTop: 10 },
 });

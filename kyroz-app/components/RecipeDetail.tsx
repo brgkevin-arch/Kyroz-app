@@ -205,7 +205,7 @@ function Big({ t, v, l, u = '', c }: { t: ThemePalette; v: number; l: string; u?
   return (
     <View style={{ alignItems: 'center', gap: 4 }}>
       <Text style={{ ...Type.h2, color: c ?? t.text }}>{v}{u}</Text>
-      <Text style={{ fontSize: 11, color: t.textSecondary }}>{l}</Text>
+      <Text style={{ ...Type.micro, color: t.textSecondary }}>{l}</Text>
     </View>
   );
 }
@@ -230,33 +230,33 @@ function makeStyles(t: ThemePalette, isTablet: boolean) {
     header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 },
     name: { color: t.text, ...Type.h2 },
     badge: { flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-start', backgroundColor: t.fill, paddingHorizontal: 9, paddingVertical: 4, borderRadius: Radius.pill },
-    badgeTxt: { color: t.textSecondary, fontSize: 11, fontWeight: '600' },
+    badgeTxt: { ...Type.microStrong, color: t.textSecondary },
     headerBtns: { flexDirection: 'row', gap: 8 },
     close: { width: 36, height: 36, borderRadius: 18, backgroundColor: t.fill, alignItems: 'center', justifyContent: 'center' },
     meta: { flexDirection: 'row', gap: 16 },
-    metaTxt: { color: t.textSecondary, fontSize: 14 },
+    metaTxt: { ...Type.bodySmall, color: t.textSecondary },
     tagRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: -8 },
-    tag: { backgroundColor: t.fill, color: t.textSecondary, fontSize: 11, fontWeight: '600', paddingHorizontal: 9, paddingVertical: 4, borderRadius: Radius.pill, overflow: 'hidden' },
-    warn: { color: t.warning, fontSize: 13, marginTop: -8 },
-    why: { color: t.textSecondary, fontSize: 14, fontStyle: 'italic', lineHeight: 20, marginTop: -8 },
+    tag: { ...Type.microStrong, backgroundColor: t.fill, color: t.textSecondary, paddingHorizontal: 9, paddingVertical: 4, borderRadius: Radius.pill, overflow: 'hidden' },
+    warn: { ...Type.caption, color: t.warning, marginTop: -8 },
+    why: { ...Type.bodySmall, color: t.textSecondary, fontStyle: 'italic', lineHeight: 20, marginTop: -8 },
     macros: { flexDirection: 'row', backgroundColor: t.card, borderRadius: Radius.card, padding: 16, justifyContent: 'space-around' },
-    fiber: { color: t.textTertiary, fontSize: 13, marginTop: -8 },
+    fiber: { ...Type.caption, color: t.textTertiary, marginTop: -8 },
     section: { color: t.textTertiary, ...Type.overline },
     ing: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: t.line },
-    ingName: { color: t.text, fontSize: 15 },
-    ingQty: { color: t.textSecondary, fontSize: 14 },
+    ingName: { ...Type.body, color: t.text },
+    ingQty: { ...Type.bodySmall, color: t.textSecondary },
     step: { flexDirection: 'row', gap: 14, alignItems: 'flex-start' },
     stepN: { width: 28, height: 28, borderRadius: 14, backgroundColor: t.fill, alignItems: 'center', justifyContent: 'center', marginTop: 2 },
-    stepNTxt: { color: t.text, fontSize: 13, fontWeight: '700' },
-    stepTxt: { flex: 1, color: t.textSecondary, fontSize: 15, lineHeight: 22 },
+    stepNTxt: { ...Type.captionStrong, color: t.text },
+    stepTxt: { ...Type.body, flex: 1, color: t.textSecondary, lineHeight: 22 },
     // Bouton secondaire : un REMPLISSAGE, pas un liseré de 1,5 px. Le contour
     // doublait celui de la feuille et faisait de l'action secondaire l'objet le
     // plus dessiné de l'écran — c'est le même arbitrage que les puces de filtre.
     swapBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 16, borderRadius: Radius.button, backgroundColor: t.fill },
-    swapTxt: { color: t.text, fontSize: 16, fontWeight: '700' },
-    swapHint: { color: t.textSecondary, fontSize: 13, lineHeight: 18, marginTop: -4, paddingHorizontal: 2 },
+    swapTxt: { ...Type.label, color: t.text },
+    swapHint: { ...Type.caption, color: t.textSecondary, lineHeight: 18, marginTop: -4, paddingHorizontal: 2 },
     statusBanner: { marginTop: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, paddingVertical: 14, paddingHorizontal: 16, borderRadius: Radius.card, borderWidth: 1 },
-    statusTxt: { flex: 1, color: t.textSecondary, fontSize: 14, fontWeight: '600' },
-    statusUndo: { color: t.text, fontSize: 14, fontWeight: '700' },
+    statusTxt: { ...Type.bodySmallStrong, flex: 1, color: t.textSecondary },
+    statusUndo: { ...Type.bodySmallStrong, color: t.text },
   });
 }

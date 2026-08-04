@@ -370,7 +370,7 @@ export default function Onboarding() {
                 return (
                   <TouchableOpacity key={d.val} onPress={() => togglePlanDay(d.val)} activeOpacity={0.8}
                     style={[s.dayCircle, { backgroundColor: on ? t.accent : t.fill, borderColor: on ? t.accent : t.line }]}>
-                    <Text style={{ color: on ? t.onAccent : t.textTertiary, fontWeight: '700', fontSize: 13 }}>{d.label}</Text>
+                    <Text style={{ ...Type.captionStrong, color: on ? t.onAccent : t.textTertiary }}>{d.label}</Text>
                   </TouchableOpacity>
                 );
               })}
@@ -379,7 +379,7 @@ export default function Onboarding() {
 
             {/* Jours de repos = sous-ensemble des jours du plan → carb-cycling. */}
             <SectionLabel t={t}>Jours de repos</SectionLabel>
-            <Text style={[s.sub, { marginTop: -8, fontSize: 12 }]}>
+            <Text style={[s.sub, { ...Type.caption, marginTop: -8 }]}>
               Tes jours sans entraînement : Kyroz baisse un peu les glucides et monte les lipides (mêmes calories) et privilégie les recettes « récup ».
             </Text>
             <View style={s.wrap}>
@@ -388,7 +388,7 @@ export default function Onboarding() {
               ))}
             </View>
             {planWeekdays.length === 0 && (
-              <Text style={[s.sub, { marginTop: -4, fontSize: 12 }]}>Choisis d'abord tes jours de plan ci-dessus.</Text>
+              <Text style={[s.sub, { ...Type.caption, marginTop: -4 }]}>Choisis d'abord tes jours de plan ci-dessus.</Text>
             )}
 
             <SectionLabel t={t}>Repas inclus</SectionLabel>
@@ -438,7 +438,7 @@ function NameStep({ t, value, onChange }: { t: ThemePalette; value: string; onCh
       <Animated.Text style={[{ color: t.text, ...Type.display, lineHeight: 40 }, enter]}>
         Bienvenue sur Kyroz
       </Animated.Text>
-      <Animated.Text style={[{ color: t.textSecondary, fontSize: 16, lineHeight: 23 }, enter]}>
+      <Animated.Text style={[{ ...Type.body, color: t.textSecondary, lineHeight: 23 }, enter]}>
         On va te bâtir un plan nutrition sur-mesure en moins d'une minute. D'abord, comment on t'appelle ?
       </Animated.Text>
       <Animated.View style={{ opacity: field, marginTop: 8 }}>
@@ -458,12 +458,12 @@ function makeStyles(t: ThemePalette) {
     content: { padding: Spacing.xl, paddingTop: Spacing.lg, gap: 16, paddingBottom: 24 },
     block: { gap: 16 },
     title: { color: t.text, ...Type.h1 },
-    sub: { color: t.textSecondary, fontSize: 15, lineHeight: 21, marginTop: -8 },
+    sub: { ...Type.body, color: t.textSecondary, lineHeight: 21, marginTop: -8 },
     wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
     daysRow: { flexDirection: 'row', gap: 8, justifyContent: 'space-between' },
     dayCircle: { flex: 1, height: 52, borderRadius: Radius.button, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
     footer: { padding: Spacing.xl, paddingTop: 8, backgroundColor: t.bg },
-    hint: { color: t.warning, fontSize: 13, lineHeight: 18, fontWeight: '600', marginBottom: 10, textAlign: 'center' },
-    disclaimer: { color: t.textTertiary, fontSize: 11, lineHeight: 16, textAlign: 'center', marginTop: 4 },
+    hint: { ...Type.captionStrong, color: t.warning, lineHeight: 18, marginBottom: 10, textAlign: 'center' },
+    disclaimer: { ...Type.micro, color: t.textTertiary, lineHeight: 16, textAlign: 'center', marginTop: 4 },
   });
 }

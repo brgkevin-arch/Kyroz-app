@@ -713,13 +713,6 @@ exactement ce qui est arrivé, huit fois. Les rendre inexistants fait échouer `
 un demi-cercle. C'est la hauteur qui était fausse (34 → 44 pt, aussi le minimum d'une
 cible tactile Apple, que `hitSlop` rattrapait au doigt sans jamais le rattraper à l'œil).
 
-**Échelle typographique** — la hiérarchie se fait par la **TAILLE**, pas par la graisse :
-tout titre pèse **700**. `Type.h1` valait 800, soit plus lourd que le `display` au-dessus
-de lui : la hiérarchie s'inversait dès qu'on employait les deux. Personne ne s'en servait,
-donc l'incohérence dormait **dans le fichier qui sert de référence à toute l'app**.
-`hero` (40) chiffre héros · `display` (34) titre d'écran · `h1` (30) titre d'étape ·
-`h2` (22) titre de feuille · `h3` (17) titre de bloc · `overline` (11) sur-titre.
-
 ➡️ **Garde-fou : `lib/__tests__/rayonsDA.test.ts`.** Un `borderRadius` en chiffre n'est
 légitime que si l'objet a une **taille fixe** et que le rayon en est au plus la moitié
 (disque, pastille, barre). Dès qu'un objet se dimensionne par son contenu, sa forme est
@@ -728,6 +721,50 @@ une décision de DA. **Vérifié par mutation** : remettre la carte Hydratation 
 ⚠️ Ce qu'il ne sait PAS faire : dire qu'on a choisi le bon token — `Radius.pill` sur une
 carte passerait. Il ferme la porte au chiffre en dur, qui est le chemin par lequel la
 dérive est réellement arrivée.
+
+### L'échelle typographique a été POSÉE, pas inventée (2026-08-05)
+
+La règle ci-dessus disait déjà « la hiérarchie se fait par la **TAILLE**, pas par la
+graisse ». Elle était vraie, écrite, et **contredite par le code depuis toujours** —
+parce qu'aucun test ne la mesurait. Comptage du 2026-08-05 :
+
+| Ce que disait `Type` | Ce que faisait l'app |
+|---|---|
+| 8 tailles | **18** |
+| 2 graisses (500, 700) | **6** (400, 500, 600, 700, 800, 900) |
+| — | `fontSize: 11.5` et `12.5` — des **demi-pixels**, 3 fois |
+
+**Les deux tailles les plus employées de toute l'app n'existaient dans aucun token** :
+14 (76 fois) et 12 (48 fois). Et 12, 13, 14, 15 cohabitaient — quatre « petits textes »
+à un pixel d'écart. Ça ne fait pas quatre niveaux de lecture, ça fait **un flou** : le
+lecteur ne perçoit aucun cran, juste un alignement imprécis.
+
+**La graisse 600 a été bannie** (72 emplois). Mesurée, elle se répartissait au hasard
+sur les six tailles — elle ne marquait donc *rien*. C'était la trace de « je veux que
+ça ressorte un peu », pas une décision. Elle est devenue 700.
+
+L'échelle finale a **16 crans, tous mesurés** : aucun n'a été créé sans au moins quatre
+usages réels dans le code. `micro` (11) et `bodySmall` (14) sont nés de ce comptage,
+pas d'une intuition.
+
+🔴 **`Type.input` ne descend JAMAIS sous 16.** Ce n'est pas de l'esthétique : **Safari
+iOS zoome de force** sur un champ dont le texte fait moins de 16 px, et les testeurs
+ouvrent Kyroz dans le navigateur de leur téléphone (c'est le lien du README). Les sept
+champs respectaient ce plancher **par accident** — sauf un, `RecipeEditor.input`, qui
+était à 15 sur trois lignes et que le premier comptage avait raté.
+
+⚠️ **Un style recopié partout est un rôle qui n'a pas de nom.** Le `disclaimer` (11 px,
+interligne 16, centré) était dupliqué **à l'identique dans sept fichiers** — sept
+occasions qu'une seule dérive, sur la phrase la plus sensible de l'app. Il est devenu
+`Disclaimer` dans `theme.ts`. Même histoire pour le sur-titre en capitales : le
+composant `SectionLabel` existait et servait 45 fois, pendant que cinq fichiers le
+refaisaient à la main avec des interlettrages différents (0,4 · 0,5 · 0,6 · 1).
+
+➡️ **Garde-fou : `lib/__tests__/typoDA.test.ts`.** Un `fontSize` en chiffre n'est
+légitime que sur un **pictogramme** (un emoji dimensionné n'est pas de la typographie).
+**Vérifié par mutation** — cinq fautes réintroduites une par une, cinq rougissements :
+taille en dur, graisse 600, token hors échelle, `input` sous 16, cran sans token.
+⚠️ Même angle mort que son frère : il ne dit pas qu'on a choisi le **bon** cran.
 
 ### Le grand titre se replie (2026-08-04)
 
@@ -898,6 +935,18 @@ téléphone.
 
 ## 11. Pièges connus (redécouverts au moins une fois chacun)
 
+- 🔴 **Depuis un worktree, le serveur de preview sert l'app du dépôt PRINCIPAL.**
+  `node_modules` y est un lien symbolique vers le dépôt principal ; expo-router résout
+  la racine de l'app à travers lui. Mesuré le 2026-08-05 : après avoir migré 333 styles,
+  le navigateur affichait encore, **au pixel près, la version d'avant** — logo en 900,
+  tailles en 12. ⚠️ **Le piège n'est pas l'écran cassé, c'est l'écran PLAUSIBLE** :
+  rien ne signale l'erreur, et la conclusion naturelle est « ma migration n'a pas pris »,
+  donc on part corriger du code sain. Deux indices : `--clear` ne change rien (ce n'est
+  pas le cache), et le rendu correspond **exactement** à `git show HEAD:<fichier>`.
+  ➡️ Lancer avec `EXPO_ROUTER_APP_ROOT=$PWD/app` depuis `kyroz-app`. Et noter que
+  `preview_start` lit le `launch.json` du **dépôt principal**, pas celui du worktree —
+  y ajouter une config reviendrait à modifier la copie de travail d'une autre session.
+  *Même famille que « mesurer l'instrument » : la mesure était juste, sur le mauvais code.*
 - **`Alert.alert` est une FONCTION VIDE sur react-native-web** — `class Alert { static
   alert() {} }`. Aucune erreur, aucune trace : l'appel ne fait RIEN. Découvert le
   2026-08-02, il tuait **dix** interactions, dont « Régénérer mon plan » et le REFUS

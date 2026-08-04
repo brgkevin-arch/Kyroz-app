@@ -174,12 +174,39 @@ export const Radius = {
 // s'en servait encore, l'incohérence est donc restée invisible dans le fichier
 // qui SERT de référence à toute l'app.
 //
-//   hero     chiffre héros (kcal du jour, poids) — 40, une seule par écran
-//   display  titre d'écran
-//   h1       titre d'étape (onboarding, écran secondaire plein)
-//   h2       titre de feuille modale ou de dialogue
-//   h3       titre de bloc à l'intérieur d'un écran
-//   overline sur-titre en capitales
+//   hero             chiffre héros (kcal du jour, poids) — un seul par écran
+//   display          titre d'écran
+//   h1               titre d'étape (onboarding, écran secondaire plein)
+//   h2               titre de feuille modale ou de dialogue
+//   h3               titre de bloc à l'intérieur d'un écran
+//   label            libellé de bouton, nom d'un item de liste
+//   input            texte SAISI dans un champ — voir le plancher ci-dessous
+//   body             le texte qu'on lit
+//   bodySmall        le texte secondaire qui accompagne (macros sous un repas,
+//                    libellé gris d'une ligne de réglage, sous-titre de bloc)
+//   caption          la mention qu'on ne lit qu'en cas de doute
+//   micro            mention de bas d'écran, badge, libellé d'axe de graphe
+//   overline         sur-titre en CAPITALES — c'est l'interlettrage qui le fait,
+//                    pas la taille : `micro` a le même corps sans l'espacement
+//
+// Chaque cran a un variant `…Strong` quand la mesure a montré qu'il servait
+// vraiment aux deux graisses. Aucun token de cette table n'est spéculatif.
+//
+// ⚠️ Cette échelle a été POSÉE le 2026-08-05, pas inventée : l'app employait
+// 18 tailles pour 8 tokens déclarés. Les deux grandes absentes étaient les plus
+// courues — 14 (76 fois) et 12 (48 fois) — et la table qui SERT de référence ne
+// les mentionnait nulle part. Détail de la mesure : `kyroz-app/CLAUDE.md` §8.
+//
+// ⚠️ La graisse 600 a été BANNIE le même jour (72 emplois). Elle ne marquait
+// rien : mesurée, elle se répartissait sur les six tailles au hasard de qui
+// écrivait « un peu gras ». Deux graisses suffisent, et c'est ce que dit déjà
+// la première ligne de ce commentaire — 500 pour le texte, 700 pour ce qui porte.
+//
+// 🔴 `input` ne descend JAMAIS sous 16. Ce n'est pas un choix esthétique : Safari
+// iOS ZOOME de force sur un champ dont le texte fait moins de 16 px, et les
+// testeurs de Kyroz ouvrent l'app dans le navigateur de leur téléphone (c'est
+// le lien du README). Avant ce token, les sept champs de l'app respectaient ce
+// plancher par accident et rien n'empêchait le prochain de le casser.
 export const Type = {
   // tailles + graisses (la police système rend du SF Pro sur iOS)
   hero: { fontSize: 40, fontWeight: '700' as const, letterSpacing: -1.4 },
@@ -187,11 +214,32 @@ export const Type = {
   h1: { fontSize: 30, fontWeight: '700' as const, letterSpacing: -0.8 },
   h2: { fontSize: 22, fontWeight: '700' as const, letterSpacing: -0.5 },
   h3: { fontSize: 17, fontWeight: '700' as const, letterSpacing: -0.3 },
+  label: { fontSize: 16, fontWeight: '700' as const, letterSpacing: -0.3 },
+  input: { fontSize: 16, fontWeight: '500' as const },
   body: { fontSize: 15, fontWeight: '500' as const },
   bodyStrong: { fontSize: 15, fontWeight: '700' as const },
+  bodySmall: { fontSize: 14, fontWeight: '500' as const },
+  bodySmallStrong: { fontSize: 14, fontWeight: '700' as const },
   caption: { fontSize: 13, fontWeight: '500' as const },
+  captionStrong: { fontSize: 13, fontWeight: '700' as const },
+  micro: { fontSize: 11, fontWeight: '500' as const },
+  microStrong: { fontSize: 11, fontWeight: '700' as const },
   overline: { fontSize: 11, fontWeight: '700' as const, letterSpacing: 1 },
 } as const;
+
+// La mention de bas d'écran — « Kyroz n'est pas un dispositif médical », etc.
+// Le style était RECOPIÉ à l'identique dans sept fichiers (login, onboarding,
+// plan, profil, kyroz-plus, FirstPlanReveal, HealthScreening) : même corps, même
+// interligne, même centrage. Sept copies d'un texte de prudence, c'est sept
+// occasions qu'une seule dérive et que la phrase la plus sensible de l'app soit
+// composée différemment d'un écran à l'autre.
+export const Disclaimer = { ...Type.micro, lineHeight: 16, textAlign: 'center' as const };
+
+// Les tailles que l'échelle AUTORISE, et rien d'autre. `lib/__tests__/typoDA.test.ts`
+// s'en sert pour refuser tout `fontSize:` littéral qui n'y figure pas — sans cette
+// liste, ajouter un cran de plus ne coûterait rien à personne, et c'est exactement
+// comme ça qu'on est arrivé à 18 tailles.
+export const TAILLES_AUTORISEES = [11, 13, 14, 15, 16, 17, 22, 30, 34, 40] as const;
 
 // ── Application de la couleur d'accent choisie ───────────────────────────────
 // L'accent est le SEUL token personnalisable (cf. lib/accentColor.ts). Tout le

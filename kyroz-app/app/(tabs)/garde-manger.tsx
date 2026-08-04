@@ -280,7 +280,7 @@ export default function GardeMangerScreen() {
                   onPress={() => { setName(f.name_fr); setSugDismissed(true); }}
                   style={{ paddingHorizontal: 14, paddingVertical: 11, borderBottomWidth: 1, borderBottomColor: t.line }}
                 >
-                  <Text style={{ color: t.text, fontSize: 14 }} numberOfLines={1}>{f.name_fr}</Text>
+                  <Text style={{ ...Type.bodySmall, color: t.text }} numberOfLines={1}>{f.name_fr}</Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -350,7 +350,7 @@ function makeStyles(t: ThemePalette) {
     // aurait doublés.
     header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 4, paddingBottom: 12 },
     h1: { color: t.text, ...Type.display, marginTop: 2 },
-    sub: { color: t.textSecondary, fontSize: 14, lineHeight: 19 },
+    sub: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 19 },
     addBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: t.accent, alignItems: 'center', justifyContent: 'center' },
     segment: { paddingBottom: 6 },
     content: { paddingHorizontal: Spacing.xl, paddingTop: 10, paddingBottom: 120 },
@@ -358,44 +358,44 @@ function makeStyles(t: ThemePalette) {
     empty: { alignItems: 'center', gap: 10, paddingVertical: 40 },
     emptyIcon: { width: 72, height: 72, borderRadius: 24, alignItems: 'center', justifyContent: 'center', marginBottom: 6 },
     emptyTitle: { color: t.text, ...Type.h2 },
-    emptySub: { color: t.textSecondary, fontSize: 15, textAlign: 'center', lineHeight: 21, paddingHorizontal: 10 },
+    emptySub: { ...Type.body, color: t.textSecondary, textAlign: 'center', lineHeight: 21, paddingHorizontal: 10 },
     ghostBtn: { paddingVertical: 14, alignItems: 'center' },
-    ghostTxt: { color: t.textSecondary, fontSize: 15, fontWeight: '600' },
+    ghostTxt: { ...Type.bodyStrong, color: t.textSecondary },
 
     recipe: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: t.card, borderRadius: Radius.card, padding: 16 },
-    rName: { color: t.text, fontSize: 16, fontWeight: '700', letterSpacing: -0.3 },
-    rMeta: { color: t.textSecondary, fontSize: 13, marginTop: 4 },
-    rMissing: { color: t.textTertiary, fontSize: 13, marginTop: 4 },
+    rName: { ...Type.label, color: t.text, letterSpacing: -0.3 },
+    rMeta: { ...Type.caption, color: t.textSecondary, marginTop: 4 },
+    rMissing: { ...Type.caption, color: t.textTertiary, marginTop: 4 },
     cookBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: t.accent, paddingHorizontal: 14, paddingVertical: 10, borderRadius: Radius.pill },
-    cookTxt: { color: t.onAccent, fontSize: 13, fontWeight: '700' },
+    cookTxt: { ...Type.captionStrong, color: t.onAccent },
     missingBadge: { width: 28, height: 28, borderRadius: 14, backgroundColor: t.fill, alignItems: 'center', justifyContent: 'center' },
-    missingBadgeTxt: { color: t.textSecondary, fontSize: 13, fontWeight: '700' },
+    missingBadgeTxt: { ...Type.captionStrong, color: t.textSecondary },
 
     note: { borderRadius: Radius.card, padding: 16, marginTop: 4 },
-    noteTxt: { color: t.textSecondary, fontSize: 14, lineHeight: 20 },
+    noteTxt: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 20 },
 
     invHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
-    invHint: { color: t.textTertiary, fontSize: 13 },
-    link: { color: t.textSecondary, fontSize: 14, fontWeight: '500' },
-    catLabel: { color: t.textTertiary, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8, marginTop: 12 },
+    invHint: { ...Type.caption, color: t.textTertiary },
+    link: { ...Type.bodySmall, color: t.textSecondary },
+    catLabel: { ...Type.overline, color: t.textTertiary, marginBottom: 8, marginTop: 12 },
     invCard: { backgroundColor: t.card, borderRadius: Radius.card, paddingHorizontal: 16 },
     invRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, paddingVertical: 15 },
-    invName: { flex: 1, color: t.text, fontSize: 16, fontWeight: '500' },
-    invQty: { color: t.textSecondary, fontSize: 15 },
+    invName: { ...Type.body, flex: 1, color: t.text },
+    invQty: { ...Type.body, color: t.textSecondary },
     stepRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 10 },
     stepBtn: { width: 48, height: 48, borderRadius: Radius.button, backgroundColor: t.fill, alignItems: 'center', justifyContent: 'center' },
-    stepHint: { color: t.textTertiary, fontSize: 13, lineHeight: 18 },
+    stepHint: { ...Type.caption, color: t.textTertiary, lineHeight: 18 },
 
     toast: { position: 'absolute', left: 20, right: 20, bottom: 28, backgroundColor: t.accent, borderRadius: Radius.button, paddingVertical: 14, paddingHorizontal: 18, alignItems: 'center' },
-    toastTxt: { color: t.onAccent, fontSize: 14, fontWeight: '700' },
+    toastTxt: { ...Type.bodySmallStrong, color: t.onAccent },
 
     sheetTitle: { color: t.text, ...Type.h2 },
-    editName: { color: t.textSecondary, fontSize: 15, fontWeight: '600', marginTop: -6 },
+    editName: { ...Type.bodyStrong, color: t.textSecondary, marginTop: -6 },
     unitRow: { flexDirection: 'row', gap: 8 },
     cancel: { alignItems: 'center', paddingVertical: 6 },
-    cancelTxt: { color: t.textSecondary, fontSize: 15, fontWeight: '600' },
-    confirmMsg: { color: t.textSecondary, fontSize: 15, lineHeight: 21 },
+    cancelTxt: { ...Type.bodyStrong, color: t.textSecondary },
+    confirmMsg: { ...Type.body, color: t.textSecondary, lineHeight: 21 },
     confirmBtn: { borderRadius: Radius.button, paddingVertical: 17, alignItems: 'center', justifyContent: 'center' },
-    confirmBtnTxt: { fontSize: 17, fontWeight: '700' },
+    confirmBtnTxt: { ...Type.h3 },
   });
 }

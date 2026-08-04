@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text } from 'react-native';
-import { ThemePalette } from '../constants/theme';
+import { ThemePalette, Type } from '../constants/theme';
 import { Field } from './ui';
 import { ageOn, toStamp, BIRTH_YEAR_MIN } from '../lib/birthday';
 import { todayStamp } from '../lib/weight';
@@ -110,7 +110,7 @@ export function BirthDateField({ t, value, onChange, fallbackAge }: Props) {
           : null;
         if (!probleme && !repli) return null;
         return (
-          <Text style={{ color: probleme ? t.warning : t.textSecondary, fontSize: 13, lineHeight: 18 }}>
+          <Text style={{ ...Type.caption, color: probleme ? t.warning : t.textSecondary, lineHeight: 18 }}>
             {probleme ?? repli}
           </Text>
         );

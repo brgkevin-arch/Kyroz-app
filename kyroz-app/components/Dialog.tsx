@@ -122,7 +122,7 @@ export function DialogProvider({ children }: { children: React.ReactNode }) {
           {req?.title}
         </Text>
         {!!req?.message && (
-          <Text style={{ color: t.textSecondary, fontSize: 14, lineHeight: 20, marginTop: 6 }}>
+          <Text style={{ ...Type.bodySmall, color: t.textSecondary, lineHeight: 20, marginTop: 6 }}>
             {req.message}
           </Text>
         )}
@@ -150,7 +150,7 @@ function DialogButton({ t, b, onPress }: { t: ThemePalette; b: Btn<unknown>; onP
         borderColor: b.destructive || b.primary ? 'transparent' : t.line,
       }}
     >
-      <Text style={{ color: fg, fontSize: 16, fontWeight: '700' }}>{b.label}</Text>
+      <Text style={{ ...Type.label, color: fg }}>{b.label}</Text>
     </TouchableOpacity>
   );
 }

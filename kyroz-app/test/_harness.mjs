@@ -129,8 +129,26 @@ export async function guestLogin(page) {
  * d'onboarding ne voit jamais l'étape 1.
  */
 export async function passScreening(page) {
+  // ⚠️ L'attestation n'est PAS affichée à l'arrivée : l'écran ne la révèle
+  // qu'une fois les deux questions répondues (`allAnswered`, cf. le ternaire de
+  // components/HealthScreening.tsx). Cette fonction la cherchait d'emblée, ne la
+  // trouvait donc jamais, et renvoyait `false` — ce qui faisait sauter TOUT
+  // l'onboarding en silence. Constaté le 2026-08-05 : le script de captures
+  // annonçait « plan non généré », puis écrasait quand même les PNG du store.
+  const questions = page.getByText('Es-tu concerné·e', { exact: false }).first();
+  if (!(await questions.isVisible({ timeout: 4000 }).catch(() => false))) return false;
+
+  // « Non » est une réponse à DONNER : il y en a une par question, et le bouton
+  // reste désactivé tant qu'il en manque une.
+  const nons = page.getByText('Non', { exact: true });
+  const combien = await nons.count();
+  for (let i = 0; i < combien; i++) {
+    await nons.nth(i).click().catch(() => {});
+    await sleep(250);
+  }
+
   const attest = page.getByText('Je confirme être un adulte en bonne santé', { exact: false }).first();
-  if (!(await attest.isVisible({ timeout: 4000 }).catch(() => false))) return false;
+  if (!(await attest.isVisible({ timeout: 3000 }).catch(() => false))) return false;
   await attest.click().catch(() => {});
   await sleep(400);
   await tapPrimary(page, 'Continuer');
@@ -160,7 +178,14 @@ export async function runOnboarding(page, p) {
 
   // 2 — sexe + infos de base
   if (p.sex === 'female') { await tap(page, 'Femme', { exact: true }); await sleep(250); }
-  await fillPh(page, '25', p.age);
+  // ⚠️ L'âge ne se SAISIT plus : c'est une date de naissance en trois champs
+  // (components/BirthDateField.tsx), dont l'âge est dérivé. Ce script remplissait
+  // encore un champ « 25 » qui n'existe plus ; « Continuer » restait donc
+  // désactivé et TOUT l'onboarding s'arrêtait à l'étape 1, en silence.
+  const [jour, mois, annee] = p.birth ?? [15, 3, 1998];
+  await fillPh(page, '2', jour);
+  await fillPh(page, '8', mois);
+  await fillPh(page, '1994', annee);
   await fillPh(page, '80', p.weight);
   await fillPh(page, '178', p.height);
   await sleep(250);

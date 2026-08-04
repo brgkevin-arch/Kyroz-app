@@ -106,8 +106,8 @@ const styles = StyleSheet.create({
   },
   lineHead: { flexDirection: 'row', alignItems: 'baseline', gap: 5 },
   lineNum: { ...Type.h3 },
-  lineLbl: { fontSize: 13, fontWeight: '600' },
-  lineRecord: { fontSize: 12, fontWeight: '600' },
+  lineLbl: { ...Type.captionStrong },
+  lineRecord: { ...Type.captionStrong },
 
-  message: { fontSize: 13, fontWeight: '600', textAlign: 'center' },
+  message: { ...Type.captionStrong, textAlign: 'center' },
 });

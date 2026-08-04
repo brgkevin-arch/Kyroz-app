@@ -51,7 +51,7 @@ export class ErrorBoundary extends React.Component<{ children: React.ReactNode }
 const styles = StyleSheet.create({
   root: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: Spacing.xxxl, gap: 12 },
   title: { ...Type.h2, textAlign: 'center' },
-  sub: { fontSize: 15, lineHeight: 21, textAlign: 'center' },
+  sub: { ...Type.body, lineHeight: 21, textAlign: 'center' },
   btn: { marginTop: 10, paddingVertical: 15, paddingHorizontal: 36, borderRadius: Radius.button },
-  btnTxt: { fontSize: 16, fontWeight: '700' },
+  btnTxt: { ...Type.label },
 });

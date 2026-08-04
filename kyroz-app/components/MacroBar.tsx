@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { useTheme } from '../constants/theme';
+import { useTheme, Type } from '../constants/theme';
 import { ON_TARGET_TOLERANCE_KCAL } from '../lib/planEngine';
 
 interface MacroBarProps {
@@ -47,7 +47,7 @@ export function MacroBar({ protein_g, carbs_g, fat_g, targetKcal, plannedKcal, c
         <Text style={[styles.sub, { color: t.textSecondary }]}>
           {plannedKcal.toLocaleString('fr-FR')} kcal prévus sur la journée
           {tracking
-            ? <Text style={{ color: t.text, fontWeight: '600' }}>{` · reste ${remaining.toLocaleString('fr-FR')} kcal`}</Text>
+            ? <Text style={{ color: t.text, fontWeight: '700' }}>{` · reste ${remaining.toLocaleString('fr-FR')} kcal`}</Text>
             : ', rien de coché'}
         </Text>
         {!onTarget && (
@@ -75,9 +75,9 @@ export function MacroBar({ protein_g, carbs_g, fat_g, targetKcal, plannedKcal, c
 
 const styles = StyleSheet.create({
   kcalRow: { flexDirection: 'row', alignItems: 'baseline' },
-  kcal: { fontSize: 40, fontWeight: '700', letterSpacing: -1.4 },
-  kcalSub: { fontSize: 17, fontWeight: '500' },
-  sub: { fontSize: 14, lineHeight: 19, marginTop: 4 },
+  kcal: { ...Type.hero, letterSpacing: -1.4 },
+  kcalSub: { ...Type.h3 },
+  sub: { ...Type.bodySmall, lineHeight: 19, marginTop: 4 },
   bar: { flexDirection: 'row', height: 8, borderRadius: 4, overflow: 'hidden' },
-  legend: { fontSize: 14, lineHeight: 19 },
+  legend: { ...Type.bodySmall, lineHeight: 19 },
 });

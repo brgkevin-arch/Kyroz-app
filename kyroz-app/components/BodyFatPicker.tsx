@@ -186,12 +186,12 @@ export function BodyFatPicker({ t, sex, value, onChange, body }: Props) {
           maigre hors plafond, que ce soit tapé ou choisi ne change rien au chiffre. */}
       {concern && (
         <View style={[styles.note, { borderColor: t.warning, backgroundColor: t.card }]}>
-          <Text style={{ color: t.text, fontSize: 13, fontWeight: '700', marginBottom: 2 }}>
+          <Text style={{ ...Type.captionStrong, color: t.text, marginBottom: 2 }}>
             {concern === 'lean_mass' && leanKg != null
               ? `Ce chiffre annonce ${leanKg} kg de masse maigre`
               : `${value} %, c'est un niveau d'athlète de compétition`}
           </Text>
-          <Text style={{ color: t.textSecondary, fontSize: 12, lineHeight: 17 }}>
+          <Text style={{ ...Type.caption, color: t.textSecondary, lineHeight: 17 }}>
             {concern === 'lean_mass'
               ? `C'est au-dessus de ce que porte la quasi-totalité des ${sex === 'female' ? 'femmes' : 'hommes'} de ta taille. Kyroz calcule ta dépense sur cette masse${impactKcal != null && impactKcal > 0 ? `, et la relève de ${impactKcal} kcal/jour` : ''} — autant de déficit en moins si le % est trop bas. La silhouette la plus proche sera plus juste.`
               : impactKcal != null && impactKcal > 0
@@ -203,7 +203,7 @@ export function BodyFatPicker({ t, sex, value, onChange, body }: Props) {
 
       {value != null && (
         <TouchableOpacity onPress={() => onChange(undefined)} activeOpacity={0.7} style={styles.clear}>
-          <Text style={{ color: t.textTertiary, fontSize: 13, fontWeight: '600' }}>Effacer ma sélection</Text>
+          <Text style={{ ...Type.captionStrong, color: t.textTertiary }}>Effacer ma sélection</Text>
         </TouchableOpacity>
       )}
     </View>
@@ -225,7 +225,7 @@ const styles = StyleSheet.create({
   figure: { height: 104, alignItems: 'center', justifyContent: 'center' },
   img: { height: 104, aspectRatio: 220 / 462 },
   pct: { ...Type.h3 },
-  desc: { fontSize: 12, lineHeight: 16, textAlign: 'center' },
+  desc: { ...Type.caption, lineHeight: 16, textAlign: 'center' },
   clear: { alignSelf: 'flex-start', paddingVertical: 2 },
   note: { borderWidth: 1, borderRadius: Radius.card, paddingVertical: 10, paddingHorizontal: 12 },
 });

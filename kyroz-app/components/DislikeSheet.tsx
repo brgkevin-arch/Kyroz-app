@@ -80,15 +80,15 @@ function makeStyles(t: ThemePalette) {
   return StyleSheet.create({
     wrap: { padding: 24, gap: 16 },
     title: { color: t.text, ...Type.h2 },
-    sub: { color: t.textSecondary, fontSize: 14, lineHeight: 20, marginTop: 6 },
+    sub: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 20, marginTop: 6 },
     chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
     chip: { borderWidth: 1, borderRadius: Radius.card, paddingVertical: 12, paddingHorizontal: 14, gap: 2, minWidth: '47%', flexGrow: 1 },
-    chipLabel: { fontSize: 16, fontWeight: '700' },
-    chipSub: { fontSize: 12 },
+    chipLabel: { ...Type.label },
+    chipSub: { ...Type.caption },
     customRow: { gap: 8 },
-    customLabel: { color: t.textSecondary, fontSize: 13, fontWeight: '600' },
+    customLabel: { ...Type.captionStrong, color: t.textSecondary },
     inputBox: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderRadius: Radius.button, paddingHorizontal: 16 },
-    input: { flex: 1, paddingVertical: 14, fontSize: 17, fontWeight: '600', color: t.text },
-    skip: { color: t.textTertiary, fontSize: 14, fontWeight: '700', paddingVertical: 4 },
+    input: { ...Type.input, flex: 1, paddingVertical: 14, color: t.text },
+    skip: { ...Type.bodySmallStrong, color: t.textTertiary, paddingVertical: 4 },
   });
 }

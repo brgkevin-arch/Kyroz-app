@@ -672,7 +672,7 @@ export default function PlanScreen() {
               <View ref={macrosRef}>
                 <SectionLabel t={t}>Jour {selectedDay}</SectionLabel>
                 {isRestDay && (
-                  <Text style={{ color: t.textSecondary, fontSize: 14, lineHeight: 19, marginTop: 2 }}>
+                  <Text style={{ ...Type.bodySmall, color: t.textSecondary, lineHeight: 19, marginTop: 2 }}>
                     🛌 Jour de repos · glucides réduits, lipides relevés (mêmes kcal)
                   </Text>
                 )}
@@ -695,11 +695,11 @@ export default function PlanScreen() {
                   activeOpacity={0.7}
                   style={{ marginTop: 12, alignSelf: 'flex-start' }}
                 >
-                  <Text style={{ color: t.accent, fontSize: 13, fontWeight: '700' }}>⚙️ Personnaliser ma répartition (%)</Text>
+                  <Text style={{ ...Type.captionStrong, color: t.accent }}>⚙️ Personnaliser ma répartition (%)</Text>
                 </TouchableOpacity>
                 {dayExtraKcal > 0 && (
                   <View style={s.extraRow}>
-                    <Text style={{ color: t.textSecondary, fontSize: 13 }}>
+                    <Text style={{ ...Type.caption, color: t.textSecondary }}>
                       {(dayMacros.kcal - dayExtraKcal).toLocaleString('fr-FR')} plan
                       <Text style={{ color: t.text, fontWeight: '700' }}>{` + ${dayExtraKcal} kcal assumées 😎`}</Text>
                       {/* CE QUE C'ÉTAIT (E6) : deux jours plus tard, « +450 kcal » ne
@@ -707,7 +707,7 @@ export default function PlanScreen() {
                       {dayExtraLabel ? <Text style={{ color: t.textTertiary }}>{` · ${dayExtraLabel}`}</Text> : null}
                     </Text>
                     <TouchableOpacity onPress={clearOffPlan} hitSlop={8}>
-                      <Text style={{ color: t.textTertiary, fontSize: 13, fontWeight: '700' }}>Retirer</Text>
+                      <Text style={{ ...Type.captionStrong, color: t.textTertiary }}>Retirer</Text>
                     </TouchableOpacity>
                   </View>
                 )}
@@ -881,11 +881,11 @@ export default function PlanScreen() {
           if (opts.length === 0) {
             return (
               <>
-                <Text style={{ color: t.textSecondary, fontSize: 14, lineHeight: 20 }}>
+                <Text style={{ ...Type.bodySmall, color: t.textSecondary, lineHeight: 20 }}>
                   Tes repas du jour sont déjà passés — il n'y a plus rien à réadapter. On garde tout tel quel.
                 </Text>
                 <TouchableOpacity onPress={declineAdapt} style={{ alignItems: 'center', paddingVertical: 10 }}>
-                  <Text style={{ color: t.textSecondary, fontSize: 15, fontWeight: '600' }}>Compris</Text>
+                  <Text style={{ ...Type.bodyStrong, color: t.textSecondary }}>Compris</Text>
                 </TouchableOpacity>
               </>
             );
@@ -899,7 +899,7 @@ export default function PlanScreen() {
           const rentreDansLaCible = opts.some((o) => o.overTargetKcal <= ON_TARGET_TOLERANCE_KCAL);
           return (
             <>
-              <Text style={{ color: t.textSecondary, fontSize: 14, lineHeight: 20 }}>
+              <Text style={{ ...Type.bodySmall, color: t.textSecondary, lineHeight: 20 }}>
                 {rentreDansLaCible
                   ? 'Comment tu veux rentrer dans ta cible ? Tes protéines restent pleines dans tous les cas.'
                   : 'Une seule journée ne peut pas tout reprendre — tes repas restants ont une taille minimale. Voilà ce qu\'on peut faire aujourd\'hui ; le reste ne se rattrape pas, et une journée ne fait pas ta semaine. Tes protéines restent pleines dans tous les cas.'}
@@ -910,16 +910,16 @@ export default function PlanScreen() {
                   style={{ flexDirection: 'row', alignItems: 'center', gap: 12, borderWidth: 1, borderColor: t.line, borderRadius: Radius.card, padding: 14 }}
                 >
                   <View style={{ flex: 1 }}>
-                    <Text style={{ color: t.text, fontSize: 15, fontWeight: '700' }}>{o.label}</Text>
-                    <Text style={{ color: t.textTertiary, fontSize: 12, marginTop: 2 }}>{o.detail}</Text>
+                    <Text style={{ ...Type.bodyStrong, color: t.text }}>{o.label}</Text>
+                    <Text style={{ ...Type.caption, color: t.textTertiary, marginTop: 2 }}>{o.detail}</Text>
                   </View>
                   <View style={{ alignItems: 'flex-end' }}>
-                    <Text style={{ color: t.text, fontSize: 14, fontWeight: '700' }}>≈ {o.dayKcal.toLocaleString('fr-FR')}</Text>
+                    <Text style={{ ...Type.bodySmallStrong, color: t.text }}>≈ {o.dayKcal.toLocaleString('fr-FR')}</Text>
                     {/* Le chiffre qui compte pour la personne : ce que l'option REPREND.
                         On n'affiche pas le reliquat option par option — ce serait trois
                         rappels de retard sur le même écran (règle produit : rassurer). */}
                     {o.absorbedKcal > 0 && (
-                      <Text style={{ color: t.textTertiary, fontSize: 11, marginTop: 2 }}>
+                      <Text style={{ ...Type.micro, color: t.textTertiary, marginTop: 2 }}>
                         reprend {o.absorbedKcal.toLocaleString('fr-FR')} kcal
                       </Text>
                     )}
@@ -927,7 +927,7 @@ export default function PlanScreen() {
                 </TouchableOpacity>
               ))}
               <TouchableOpacity onPress={declineAdapt} style={{ alignItems: 'center', paddingVertical: 10 }}>
-                <Text style={{ color: t.textSecondary, fontSize: 15, fontWeight: '600' }}>Non, je garde mon plan</Text>
+                <Text style={{ ...Type.bodyStrong, color: t.textSecondary }}>Non, je garde mon plan</Text>
               </TouchableOpacity>
             </>
           );
@@ -970,7 +970,7 @@ export default function PlanScreen() {
 function SousCibleNote({ t, manque }: { t: ThemePalette; manque: number }) {
   if (manque <= ON_TARGET_TOLERANCE_KCAL) return null;
   return (
-    <Text style={{ color: t.textTertiary, fontSize: 12, lineHeight: 17, marginTop: 8 }}>
+    <Text style={{ ...Type.caption, color: t.textTertiary, lineHeight: 17, marginTop: 8 }}>
       Ta journée s'arrête {Math.round(manque).toLocaleString('fr-FR')} kcal sous ta cible : les portions de tes repas
       ne peuvent pas monter plus haut. Une journée sous la cible ne compromet rien.
     </Text>
@@ -983,7 +983,7 @@ function MarginNote({ t, kcal }: { t: ThemePalette; kcal: number }) {
   // pas une pesée au gramme près. On n'affiche plus la fourchette ± (donnait
   // l'impression que le plan était imprécis ; cf. retour fondateur 2026-06-18).
   return (
-    <Text style={{ color: t.textTertiary, fontSize: 12, marginTop: 8, lineHeight: 16 }}>
+    <Text style={{ ...Type.caption, color: t.textTertiary, marginTop: 8, lineHeight: 16 }}>
       Valeurs estimées (moyennes alimentaires)
     </Text>
   );
@@ -994,8 +994,8 @@ function FiberRow({ t, actual, target }: { t: ThemePalette; actual: number; targ
   const ok = actual >= target - 5;
   return (
     <View style={styles.fiber}>
-      <Text style={{ color: t.textTertiary, fontSize: 13 }}>🌾 Fibres {actual} g / {target} g</Text>
-      <Text style={{ color: ok ? t.success : t.warning, fontSize: 13, fontWeight: '700' }}>
+      <Text style={{ ...Type.caption, color: t.textTertiary }}>🌾 Fibres {actual} g / {target} g</Text>
+      <Text style={{ ...Type.captionStrong, color: ok ? t.success : t.warning }}>
         {ok ? '✓ Bon apport' : 'Un peu juste'}
       </Text>
     </View>
@@ -1012,34 +1012,34 @@ function makeStyles(t: ThemePalette) {
     center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
     content: { padding: Spacing.xl, gap: 20, paddingBottom: 120 },
     header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 },
-    date: { color: t.textSecondary, fontSize: 14, lineHeight: 19 },
+    date: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 19 },
     h1: { color: t.text, ...Type.display, marginTop: 2 },
     streak: { alignItems: 'center', backgroundColor: t.card, borderWidth: 1, borderColor: t.line, paddingHorizontal: 14, paddingVertical: 8, borderRadius: Radius.card },
-    streakN: { color: t.text, fontSize: 17, fontWeight: '700' },
-    streakLbl: { color: t.textTertiary, fontSize: 11, fontWeight: '500', marginTop: 1 },
+    streakN: { ...Type.h3, color: t.text },
+    streakLbl: { ...Type.micro, color: t.textTertiary, marginTop: 1 },
     banner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, backgroundColor: t.fill, borderRadius: Radius.card, padding: 16 },
     weighBanner: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: t.card, borderRadius: Radius.card, padding: 16 },
-    weighTitle: { color: t.text, fontSize: 15, fontWeight: '600' },
-    weighSub: { color: t.textSecondary, fontSize: 14, lineHeight: 19, marginTop: 2 },
-    bannerTxt: { flex: 1, color: t.textSecondary, fontSize: 14, lineHeight: 19 },
-    bannerCta: { color: t.text, fontSize: 14, fontWeight: '600' },
+    weighTitle: { ...Type.bodyStrong, color: t.text },
+    weighSub: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 19, marginTop: 2 },
+    bannerTxt: { ...Type.bodySmall, flex: 1, color: t.textSecondary, lineHeight: 19 },
+    bannerCta: { ...Type.bodySmallStrong, color: t.text },
     days: { flexDirection: 'row', gap: 8 },
     day: { flex: 1, height: 58, borderRadius: Radius.button, borderWidth: 1, alignItems: 'center', justifyContent: 'center', gap: 4 },
-    dayWd: { fontSize: 11, fontWeight: '600' },
-    dayNum: { fontSize: 15, fontWeight: '700' },
+    dayWd: { ...Type.microStrong },
+    dayNum: { ...Type.bodyStrong },
     sectionRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
-    sectionCount: { color: t.textTertiary, fontSize: 13 },
+    sectionCount: { ...Type.caption, color: t.textTertiary },
     extraRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 12 },
     offPlanBtn: { marginTop: 14, alignItems: 'center', backgroundColor: t.fill, borderRadius: Radius.button, paddingVertical: 13 },
-    offPlanTxt: { color: t.textSecondary, fontSize: 15, fontWeight: '600' },
+    offPlanTxt: { ...Type.bodyStrong, color: t.textSecondary },
     empty: { alignItems: 'center', gap: 10, paddingVertical: 24 },
     emptyIcon: { width: 72, height: 72, borderRadius: 24, alignItems: 'center', justifyContent: 'center', marginBottom: 6 },
     emptyTitle: { color: t.text, ...Type.h2 },
-    emptySub: { color: t.textSecondary, fontSize: 15, textAlign: 'center', lineHeight: 21, paddingHorizontal: 10 },
+    emptySub: { ...Type.body, color: t.textSecondary, textAlign: 'center', lineHeight: 21, paddingHorizontal: 10 },
     regenHint: { marginTop: 6, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
-    regenHintTxt: { color: t.textTertiary, fontSize: 13, fontWeight: '600' },
-    disclaimer: { color: t.textTertiary, fontSize: 11, lineHeight: 16, textAlign: 'center' },
+    regenHintTxt: { ...Type.captionStrong, color: t.textTertiary },
+    disclaimer: { ...Type.micro, color: t.textTertiary, lineHeight: 16, textAlign: 'center' },
     toast: { position: 'absolute', left: 20, right: 20, bottom: 28, backgroundColor: t.accent, borderRadius: Radius.button, paddingVertical: 14, paddingHorizontal: 18, alignItems: 'center' },
-    toastTxt: { color: t.onAccent, fontSize: 15, fontWeight: '600' },
+    toastTxt: { ...Type.bodyStrong, color: t.onAccent },
   });
 }

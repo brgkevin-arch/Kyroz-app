@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { ThemePalette } from '../constants/theme';
+import { ThemePalette, Type } from '../constants/theme';
 import { Chip, Field, SectionLabel } from './ui';
 import { getEffectiveRecipes } from '../lib/recipes';
 import { foodKeywordMatches, normalizeFood } from '../lib/avoidance';
@@ -79,14 +79,14 @@ export function DislikedFoodsField({
         blurOnSubmit={false}
       />
       {compteBrouillon !== null ? (
-        <Text style={{ color: compteBrouillon === 0 ? t.textTertiary : t.textSecondary, fontSize: 13 }}>
+        <Text style={{ ...Type.caption, color: compteBrouillon === 0 ? t.textTertiary : t.textSecondary }}>
           {compteBrouillon === 0
             ? `Aucun ingrédient ne correspond à « ${draft.trim()} » — ce mot n'écartera aucune recette.`
             : `« ${draft.trim()} » écarte ${compteBrouillon} recette${compteBrouillon > 1 ? 's' : ''} du catalogue.`}
         </Text>
       ) : null}
       {inertes.length ? (
-        <Text style={{ color: t.textTertiary, fontSize: 13 }}>
+        <Text style={{ ...Type.caption, color: t.textTertiary }}>
           Sans effet, aucun ingrédient ne correspond : {inertes.join(', ')}.
         </Text>
       ) : null}

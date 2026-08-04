@@ -156,20 +156,20 @@ function Stepper({
 function Row({ t, l, v, c, strong }: { t: ThemePalette; l: string; v: string; c?: string; strong?: boolean }) {
   return (
     <View style={styles.row}>
-      <Text style={{ color: t.textSecondary, fontSize: 14 }}>{l}</Text>
+      <Text style={{ ...Type.bodySmall, color: t.textSecondary }}>{l}</Text>
       <Text style={{ color: c ?? t.text, fontSize: strong ? 18 : 15, fontWeight: '700' }}>{v}</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  label: { fontSize: 12, fontWeight: '700', letterSpacing: 0.4 },
-  note: { fontSize: 13, lineHeight: 18 },
+  label: { ...Type.overline },
+  note: { ...Type.caption, lineHeight: 18 },
   stepper: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderRadius: Radius.button, padding: 8, gap: 8 },
   btn: { width: 44, height: 44, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   center: { flex: 1, flexDirection: 'row', alignItems: 'baseline', justifyContent: 'center', gap: 5 },
   input: { ...Type.h2, minWidth: 44, textAlign: 'right', padding: 0 },
-  unit: { fontSize: 15, fontWeight: '700' },
+  unit: { ...Type.bodyStrong },
   preview: { borderRadius: Radius.card, padding: 16, gap: 12 },
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   sep: { height: 1 },

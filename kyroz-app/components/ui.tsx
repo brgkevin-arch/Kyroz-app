@@ -35,7 +35,7 @@ export function PrimaryButton({
     >
       {loading
         ? <ActivityIndicator color={t.onAccent} />
-        : <Text style={{ color: t.onAccent, fontSize: 17, fontWeight: '700' }}>{label}</Text>}
+        : <Text style={{ ...Type.h3, color: t.onAccent }}>{label}</Text>}
     </TouchableOpacity>
   );
 }
@@ -57,7 +57,7 @@ export function Chip({
       {/* Pas de bordure sur les pilules inactives : le remplissage suffit à les
           poser, et le liseré doublait le contour à chaque puce (cf. les filtres
           de l'écran Recettes). */}
-      <Text style={{ color: selected ? t.onAccent : t.text, fontSize: 15, fontWeight: selected ? '600' : '500' }}>
+      <Text style={{ ...(selected ? Type.bodyStrong : Type.body), color: selected ? t.onAccent : t.text }}>
         {label}
       </Text>
     </TouchableOpacity>
@@ -85,9 +85,9 @@ export function OptionCard({
       ]}
     >
       <View style={{ flex: 1 }}>
-        <Text style={{ color: t.text, fontSize: 17, fontWeight: '700', letterSpacing: -0.3 }}>{title}</Text>
+        <Text style={{ ...Type.h3, color: t.text, letterSpacing: -0.3 }}>{title}</Text>
         {subtitle ? (
-          <Text style={{ color: t.textSecondary, fontSize: 13, marginTop: 4 }}>{subtitle}</Text>
+          <Text style={{ ...Type.caption, color: t.textSecondary, marginTop: 4 }}>{subtitle}</Text>
         ) : null}
       </View>
       <View style={{
@@ -107,7 +107,7 @@ export function Field({
 }: { t: ThemePalette; label: string; suffix?: string } & TextInputProps) {
   return (
     <View style={{ gap: 8 }}>
-      <Text style={{ color: t.textSecondary, fontSize: 13, fontWeight: '600' }}>{label}</Text>
+      <Text style={{ ...Type.captionStrong, color: t.textSecondary }}>{label}</Text>
       <View style={{
         flexDirection: 'row', alignItems: 'center',
         backgroundColor: t.scheme === 'dark' ? t.fill : t.card,
@@ -123,10 +123,10 @@ export function Field({
           // dans le cadre (sinon, surtout sur web, sa largeur intrinsèque pousse
           // l'unité hors de la bordure). Avec un suffixe, valeur alignée à droite
           // → collée à l'unité (« 30 min ») ; sans suffixe (ex. « Nom »), à gauche.
-          style={{ flex: 1, minWidth: 0, paddingVertical: 16, fontSize: 18, fontWeight: '600', color: t.text, textAlign: suffix ? 'right' : 'left' }}
+          style={{ ...Type.h3, flex: 1, minWidth: 0, paddingVertical: 16, color: t.text, textAlign: suffix ? 'right' : 'left' }}
           {...props}
         />
-        {suffix ? <Text style={{ color: t.textTertiary, fontSize: 15, marginLeft: 6 }}>{suffix}</Text> : null}
+        {suffix ? <Text style={{ ...Type.body, color: t.textTertiary, marginLeft: 6 }}>{suffix}</Text> : null}
       </View>
     </View>
   );
@@ -145,7 +145,7 @@ export function Segmented<T extends string | number>({
         return (
           <TouchableOpacity key={String(o.value)} onPress={() => onChange(o.value)} activeOpacity={0.8}
             style={{ flex: 1, paddingVertical: 12, borderRadius: Radius.button - 4, alignItems: 'center', backgroundColor: on ? t.accent : 'transparent' }}>
-            <Text style={{ color: on ? t.onAccent : t.textSecondary, fontWeight: '700', fontSize: 14 }}>{o.label}</Text>
+            <Text style={{ ...Type.bodySmallStrong, color: on ? t.onAccent : t.textSecondary }}>{o.label}</Text>
           </TouchableOpacity>
         );
       })}
@@ -156,8 +156,7 @@ export function Segmented<T extends string | number>({
 export function SectionLabel({ t, children }: { t: ThemePalette; children: React.ReactNode }) {
   return (
     <Text style={{
-      color: t.textTertiary, fontSize: 12, fontWeight: '700',
-      letterSpacing: 0.6, textTransform: 'uppercase',
+      ...Type.overline, color: t.textTertiary, textTransform: 'uppercase',
     }}>
       {children}
     </Text>

@@ -48,14 +48,14 @@ export function DatedGoalCard({ t, profile, onPress }: { t: ThemePalette; profil
           <Text style={{ color: t.text, ...Type.h3 }}>
             🎯 {profile.weight_kg} → {gt.target_weight_kg} kg
           </Text>
-          <Text style={{ color: t.textSecondary, fontSize: 13, fontWeight: '600' }}>
+          <Text style={{ ...Type.captionStrong, color: t.textSecondary }}>
             {status.active ? `${status.weeksRemaining} sem` : 'Échéance passée'}
           </Text>
         </View>
         <View style={{ height: 8, borderRadius: 4, backgroundColor: t.line, overflow: 'hidden' }}>
           <View style={{ width: `${Math.round(progress * 100)}%`, height: '100%', backgroundColor: t.text }} />
         </View>
-        <Text style={{ color: t.textSecondary, fontSize: 12 }}>
+        <Text style={{ ...Type.caption, color: t.textSecondary }}>
           {/* `underweightBlocked` d'abord : le rythme y vaut 0 par sécurité, et
               « 0 kg/sem » sans motif se lit comme un plan cassé. */}
           {status.underweightBlocked

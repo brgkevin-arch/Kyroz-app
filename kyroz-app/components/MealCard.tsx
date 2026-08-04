@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useTheme, Radius, cardShadow, ThemePalette } from '../constants/theme';
+import { useTheme, Radius, cardShadow, ThemePalette, Type } from '../constants/theme';
 import { Meal } from '../lib/types';
 import { useTourTarget } from './GuidedTour';
 import { useFavorites } from '../hooks/useFavorites';
@@ -64,7 +64,7 @@ export function MealCard({
           aucune proportion à comparer — c'est le nom du plat qu'on lit. */}
       {!skipped && (
         <Text style={[styles.macros, { color: t.textSecondary }]}>
-          <Text style={{ color: t.text, fontWeight: '600' }}>{meal.macros.kcal}</Text>
+          <Text style={{ color: t.text, fontWeight: '700' }}>{meal.macros.kcal}</Text>
           {` kcal · ${meal.macros.protein_g} P · ${meal.macros.carbs_g} G · ${meal.macros.fat_g} L`}
         </Text>
       )}
@@ -127,13 +127,13 @@ function CookButton({ t, onCook, lacks, cookRef }: { t: ThemePalette; onCook: ()
 }
 
 const styles = StyleSheet.create({
-  type: { fontSize: 11, fontWeight: '700', letterSpacing: 1 },
-  name: { fontSize: 17, fontWeight: '600', letterSpacing: -0.3, marginTop: 7 },
-  macros: { fontSize: 14, lineHeight: 19, marginTop: 6 },
-  fridge: { fontSize: 13, marginTop: 10 },
-  fixedNote: { fontSize: 12, marginTop: 6 },
+  type: { ...Type.overline },
+  name: { ...Type.h3, letterSpacing: -0.3, marginTop: 7 },
+  macros: { ...Type.bodySmall, lineHeight: 19, marginTop: 6 },
+  fridge: { ...Type.caption, marginTop: 10 },
+  fixedNote: { ...Type.caption, marginTop: 6 },
   actions: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 14 },
   cookBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, height: 44, paddingHorizontal: 12, borderRadius: Radius.button },
-  cookTxt: { fontSize: 15, fontWeight: '600' },
+  cookTxt: { ...Type.bodyStrong },
   iconBtn: { width: 44, height: 44, borderRadius: Radius.button, alignItems: 'center', justifyContent: 'center' },
 });

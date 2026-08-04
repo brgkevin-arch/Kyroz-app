@@ -48,13 +48,13 @@ export function TrackVerdict({ t, goalTarget, currentWeightKg, paused = false }:
 
   return (
     <View style={{ backgroundColor: t.fill, borderRadius: Radius.card, padding: 12, gap: 4 }}>
-      <Text style={{ color: headline.color, fontSize: 14, fontWeight: '700' }}>{headline.txt}</Text>
+      <Text style={{ ...Type.bodySmallStrong, color: headline.color }}>{headline.txt}</Text>
       {progress > 0 && (
-        <Text style={{ color: t.textSecondary, fontSize: 12.5, lineHeight: 18 }}>
+        <Text style={{ ...Type.caption, color: t.textSecondary, lineHeight: 18 }}>
           Depuis le départ : {losing ? '-' : '+'}{Math.abs(progress)} kg 💪
         </Text>
       )}
-      <Text style={{ color: t.textTertiary, fontSize: 12, lineHeight: 17 }}>
+      <Text style={{ ...Type.caption, color: t.textTertiary, lineHeight: 17 }}>
         {st.state === 'paused'
           ? 'Kyroz ne pilote plus cette trajectoire pour le moment — ton plan est au maintien. Ton objectif reste enregistré.'
           : `La pente est un repère, pas une règle — à chaque pesée, Kyroz réajuste tes calories pour viser ${goalTarget.target_weight_kg} kg le ${frDate(goalTarget.target_date)}.`}
@@ -86,11 +86,11 @@ export function PhotoCompare({ t, photos, entries }: {
         <Shot t={t} uri={photos[lastD]} label="Après" date={lastD} kg={w2} />
       </View>
       {delta != null && (
-        <Text style={{ color: t.text, fontSize: 14, fontWeight: '700' }}>
+        <Text style={{ ...Type.bodySmallStrong, color: t.text }}>
           {delta > 0 ? '+' : ''}{delta} kg entre les deux photos
         </Text>
       )}
-      <Text style={{ color: t.textTertiary, fontSize: 11 }}>
+      <Text style={{ ...Type.micro, color: t.textTertiary }}>
         🔒 Tes photos restent sur ton téléphone, jamais envoyées.
       </Text>
     </View>
@@ -107,8 +107,8 @@ function Shot({ t, uri, label, date, kg }: {
         style={{ width: '100%', aspectRatio: 3 / 4, borderRadius: Radius.card, backgroundColor: t.fill }}
         resizeMode="cover"
       />
-      <Text style={{ color: t.text, fontSize: 13, fontWeight: '700' }}>{label}</Text>
-      <Text style={{ color: t.textSecondary, fontSize: 12 }}>
+      <Text style={{ ...Type.captionStrong, color: t.text }}>{label}</Text>
+      <Text style={{ ...Type.caption, color: t.textSecondary }}>
         {frDate(date)}{kg != null ? ` · ${kg} kg` : ''}
       </Text>
     </View>

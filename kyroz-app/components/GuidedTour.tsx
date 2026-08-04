@@ -279,12 +279,12 @@ function makeStyles(t: ThemePalette) {
       borderColor: t.line,
       padding: 18,
     },
-    counter: { color: t.textTertiary, fontSize: 12, fontWeight: '700', letterSpacing: 1, marginBottom: 6 },
+    counter: { ...Type.overline, color: t.textTertiary, marginBottom: 6 },
     title: { color: t.text, ...Type.h3, marginBottom: 6 },
-    text: { color: t.textSecondary, fontSize: 14, lineHeight: 20 },
+    text: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 20 },
     actions: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 16 },
-    skip: { color: t.textTertiary, fontSize: 14, fontWeight: '600' },
+    skip: { ...Type.bodySmallStrong, color: t.textTertiary },
     nextBtn: { backgroundColor: t.accent, borderRadius: Radius.button, paddingHorizontal: 22, paddingVertical: 10 },
-    nextTxt: { color: t.onAccent, fontSize: 14, fontWeight: '700' },
+    nextTxt: { ...Type.bodySmallStrong, color: t.onAccent },
   });
 }
