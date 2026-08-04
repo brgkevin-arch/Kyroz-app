@@ -3329,7 +3329,47 @@ produit en suspens — il ne reste qu'à coder.
      clé de stockage + probablement une table Supabase + une migration.
   ➡️ Faire le 1 ne « fait » pas E6. Le 2 est une petite feature, pas de la dette.
   </details>
-- **E7 · 🤖 Deep links web → HTTP 404** (le rendu est bon, le statut est faux).
+- ~~**E7 · Deep links web → HTTP 404** (le rendu était bon, le statut était faux)~~
+  ✅ **CORRIGÉ le 2026-08-04.** `app.json > expo.web.output: "static"` — chaque route est
+  pré-rendue en HTML, donc GitHub Pages sert un fichier réel au lieu de retomber sur
+  `404.html`.
+
+  📊 **Mesuré sur l'ARTEFACT, pas sur l'intention.** Les deux exports ont été servis par
+  un serveur qui IMITE la résolution d'URL de Pages (`/foo` → `foo.html`, repli 404) :
+  `python3 -m http.server` ne la fait pas, et aurait rendu une mesure muette.
+
+  | | `/Kyroz-app/plan` | fichiers HTML | poids du site |
+  |---|---|---|---|
+  | avant (`single`) | **404 Not Found** | 3 | 8,9 Mo |
+  | après (`static`) | **200 OK** | 19 | 9,3 Mo |
+
+  ⚠️ **Le blocage annoncé par la fiche était RÉEL — c'était le client Supabase.** Le
+  pré-rendu s'exécute dans **Node** ; `createClient` ne se contente pas de construire, il
+  **démarre sa session** (`_emitInitialSession` → `__loadSession` → `getItem`), ce qui
+  atteint `window.localStorage`. Le build mourait sur `ReferenceError: window is not
+  defined` avant d'avoir rendu une seule route. Correctif : un **stockage muet** pendant
+  le pré-rendu, et lui seul.
+
+  🔴 **Le vrai danger n'était pas le build, c'était l'inverse.** Si un appareil RÉEL
+  tombait dans cette branche, il perdrait sa session à chaque démarrage, **en silence**.
+  Le prédicat teste donc `Platform.OS === 'web'` **en plus** de `window` : React Native
+  définit `window` aujourd'hui (alias de `global`), mais c'est un détail de runtime, pas
+  un contrat. `Platform.OS` exclut le natif par construction.
+  ⚠️ Ce cas ne peut se produire ni dans un navigateur ni dans vitest — **aucun test
+  d'intégration ne le verrait**. D'où un prédicat PUR dans `lib/prerender.ts`, fichier
+  **sans aucun import** (`lib/supabase.ts` tire `react-native-url-polyfill`, qui explose
+  sous vitest : un garde-fou qu'on ne peut pas tester n'est pas un garde-fou).
+  Garde-fou `supabaseStorage.test.ts`, **vérifié par mutation** : retirer la garde
+  `Platform` fait rougir « iOS et Android ne peuvent PAS y tomber ».
+
+  ℹ️ Le HTML pré-rendu reste un **shell vide** : l'app est derrière l'authentification, il
+  n'y a rien à indexer. Ce qui est corrigé est le **statut**, pas le contenu — c'était
+  l'objet de la fiche. `deploy.yml` garde son `cp dist/index.html dist/404.html` : le
+  repli sert désormais aux URL réellement inconnues, et lui seul rend un vrai 404.
+  ℹ️ Aucune route dynamique dans l'app (`app/**/[*]` est vide) : les 19 routes se
+  pré-rendent toutes, pas de `generateStaticParams` à écrire.
+
+  <details><summary>Le constat d'origine</summary>
   Mauvais SEO. Contournement en place. **Faible priorité.**
   *Cause identifiée le 2026-07-31* : `app.json > expo.web` ne contient qu'un `favicon`,
   donc `output` vaut son défaut **`"single"`** — une seule page, toutes les routes
@@ -3340,6 +3380,7 @@ produit en suspens — il ne reste qu'à coder.
   hors navigateur : tout module qui touche `localStorage`/AsyncStorage au chargement
   casse le build. À ne tenter que sur une branche, avec l'export vérifié route par
   route — pas la veille d'une sortie store.
+  </details>
 
 ### 🚫 F — Volontairement reporté : NE PAS RELANCER
 
