@@ -46,6 +46,7 @@ sans aucune manip. C'est le canal à utiliser pour se tester soi-même.
 
 - [x] Certificat de distribution App Store + profil de provisioning
 - [x] Clé API App Store Connect → `~/.eas-credentials/` (hors dépôt, `600`)
+      + `asc.mjs` au même endroit : client API prêt à l'emploi, voir plus bas
 - [x] `eas.json` : profil `device` (ad hoc), env Supabase sur `device`/`preview`/`production`,
       bloc `submit.production.ios` (ascAppId + clé API)
 - [x] Build `production` **1.0.0 (3)** envoyé et traité par Apple (`25f0ec7b-…`)
@@ -53,6 +54,7 @@ sans aucune manip. C'est le canal à utiliser pour se tester soi-même.
 - [x] Infos de test remplies (connexion requise + notes)
 - [x] **Revue bêta APPROUVÉE** — soumis le 2026-08-03 à 00h58, approuvé dans la journée
 - [x] 1 testeuse externe, état `INSTALLED` (elle a l'app sur son iPhone)
+- [x] Groupe **interne** « Équipe interne » + le fondateur, état `INSTALLED`
 
 ✅ **La revue est acquise.** Les builds suivants et les nouveaux testeurs passent
 directement, sans repasser par Apple. La distribution TestFlight est opérationnelle.
@@ -68,6 +70,22 @@ npx eas submit --platform ios --id <BUILD_ID> --non-interactive
 
 # Ajouter un testeur au groupe externe (aucune revue à repasser)
 #   → App Store Connect › TestFlight › Testeurs externes › Bêta › +
+```
+
+### Interroger l'API directement
+
+`~/.eas-credentials/asc.mjs` (hors dépôt) signe le JWT ES256 et appelle l'API.
+Utile pour **vérifier un état plutôt que le supposer** — un 201 ne prouve pas
+qu'un testeur recevra son mail.
+
+```bash
+source ~/.eas-credentials/asc.env
+
+# Où en est la revue bêta d'un build ?
+node ~/.eas-credentials/asc.mjs GET "/v1/builds/<BUILD_ID>/betaAppReviewSubmission"
+
+# Qui est testeur, et a-t-il vraiment installé ? (INVITED → ACCEPTED → INSTALLED)
+node ~/.eas-credentials/asc.mjs GET "/v1/betaGroups/<GROUP_ID>/betaTesters?fields[betaTesters]=firstName,email,state"
 
 # Build ad hoc (installation directe par lien, sans TestFlight)
 npx eas build --profile device --platform ios --non-interactive --no-wait
