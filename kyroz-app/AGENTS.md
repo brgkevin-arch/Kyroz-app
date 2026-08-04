@@ -1587,7 +1587,8 @@ produit en suspens — il ne reste qu'à coder.
      offerings. RevenueCat les recommande ; ici c'est une couche de plus à maintenir pour
      zéro bénéfice. À rouvrir seulement si un jour on veut changer l'offre à distance.
 
-     🧑 **Reste à confirmer** : la clé publique **`appl_…`** (Project settings → API keys).
+     ✅ **Clé publique confirmée le 2026-08-03** : `appl_xBxmQspWhyarHqyIZeQgBpUBLlF`
+     (Project settings → API keys), posée dans EAS et **retrouvée dans le bundle exporté**.
   3. ✅ **CLÉ POSÉE le 2026-08-03** — `EXPO_PUBLIC_REVENUECAT_IOS_KEY` en variable
      d'environnement EAS sur `production` (`npx eas-cli env:create`, `--visibility
      plaintext` : le préfixe `EXPO_PUBLIC_` inline la valeur en clair dans le binaire
@@ -1599,7 +1600,10 @@ produit en suspens — il ne reste qu'à coder.
      `eas update` enverrait.
      ⚠️ **Pas la clé secrète du dashboard** — elle ne doit jamais entrer dans un
      bundle client. Inutile de la poser sur le build web : il n'encaisse pas.
-     ⏸️ `preview` et `.env.local` : pas posées, pas nécessaires au chemin OTA.
+     ⏸️ **La clé RevenueCat n'est que sur `production`** — mesuré : `eas env:list preview`
+     ne rend que les deux clés Supabase. Un build `preview`/`device` n'encaisse donc pas.
+     C'est volontaire tant que le seul chemin testé est TestFlight, mais à savoir avant de
+     conclure « le SDK ne marche pas » sur un build interne.
      `_ANDROID_KEY` : sans objet tant qu'il n'y a pas d'app Android.
 
      🔴 **CE QUE CETTE VÉRIFICATION A TROUVÉ — un OTA POUVAIT briquer l'app en silence.**
