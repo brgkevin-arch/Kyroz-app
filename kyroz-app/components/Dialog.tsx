@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useRef, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { useTheme, ThemePalette, Radius, Type } from '../constants/theme';
 import { ActionSheet } from './ActionSheet';
@@ -81,6 +81,29 @@ export function DialogProvider({ children }: { children: React.ReactNode }) {
     cur?.resolve(v);
   }, []);
 
+  // ⚠️ LE DIALOGUE N'EST MONTÉ QUE QUAND IL SERT, et ce n'est pas une optimisation :
+  // sans ça, il est INVISIBLE dès qu'on l'ouvre depuis une feuille.
+  //
+  // react-native-web crée le conteneur DOM d'une `Modal` à son MONTAGE, pas quand
+  // elle devient visible. Ce fournisseur vivant à la racine, son conteneur naissait
+  // au démarrage de l'app — donc AVANT celui de n'importe quelle feuille ouverte
+  // ensuite. Les deux portent `z-index: 9999`, alors c'est l'ordre du DOM qui
+  // tranche : la feuille passait par-dessus. Le code s'exécutait, la promesse
+  // attendait, et l'utilisateur ne voyait RIEN.
+  //
+  // Mesuré le 2026-08-05 sur DEUX chemins, dont un livré depuis longtemps : la
+  // suppression d'une pesée (`WeightCheckin`, dans une feuille) et l'historique des
+  // écarts (E6). Le montage tardif place le conteneur en DERNIER, donc au-dessus.
+  //
+  // Le délai garde le conteneur le temps de l'animation de sortie de l'ActionSheet
+  // (200 ms) — sans lui, la boîte disparaîtrait d'un coup au lieu de redescendre.
+  const [monte, setMonte] = useState(false);
+  useEffect(() => {
+    if (req) { setMonte(true); return; }
+    const id = setTimeout(() => setMonte(false), 260);
+    return () => clearTimeout(id);
+  }, [req]);
+
   const value: DialogValue = {
     confirm: (o) => open({
       title: o.title,
@@ -117,19 +140,21 @@ export function DialogProvider({ children }: { children: React.ReactNode }) {
   return (
     <DialogContext.Provider value={value}>
       {children}
-      <ActionSheet visible={req !== null} onClose={() => settle(req?.dismissValue ?? null)}>
-        <Text style={{ color: t.text, ...Type.h2 }}>
-          {req?.title}
-        </Text>
-        {!!req?.message && (
-          <Text style={{ color: t.textSecondary, fontSize: 14, lineHeight: 20, marginTop: 6 }}>
-            {req.message}
+      {monte && (
+        <ActionSheet visible={req !== null} onClose={() => settle(req?.dismissValue ?? null)}>
+          <Text style={{ color: t.text, ...Type.h2 }}>
+            {req?.title}
           </Text>
-        )}
-        <View style={{ gap: 8, marginTop: 18 }}>
-          {req?.buttons.map((b, i) => <DialogButton key={i} t={t} b={b} onPress={() => settle(b.value)} />)}
-        </View>
-      </ActionSheet>
+          {!!req?.message && (
+            <Text style={{ color: t.textSecondary, fontSize: 14, lineHeight: 20, marginTop: 6 }}>
+              {req.message}
+            </Text>
+          )}
+          <View style={{ gap: 8, marginTop: 18 }}>
+            {req?.buttons.map((b, i) => <DialogButton key={i} t={t} b={b} onPress={() => settle(b.value)} />)}
+          </View>
+        </ActionSheet>
+      )}
     </DialogContext.Provider>
   );
 }

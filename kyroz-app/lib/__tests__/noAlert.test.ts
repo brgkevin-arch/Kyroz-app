@@ -53,4 +53,22 @@ describe('Alert de react-native — interdit (no-op sur le web)', () => {
     const src = readFileSync(join(RACINE, 'components', 'Dialog.tsx'), 'utf8');
     for (const api of ['confirm:', 'notify:', 'choose:']) expect(src).toContain(api);
   });
+
+  // ── Le remplaçant a eu SON propre piège, du même genre ────────────────────
+  // Une boîte de dialogue ouverte depuis une FEUILLE était invisible : le code
+  // s'exécutait, la promesse attendait, l'utilisateur ne voyait rien. Cause
+  // mesurée le 2026-08-05 : react-native-web crée le conteneur DOM d'une `Modal`
+  // à son MONTAGE, pas quand elle devient visible. Le fournisseur vivant à la
+  // racine, son conteneur naissait au démarrage — donc AVANT celui de toute
+  // feuille ouverte ensuite. Les deux portent `z-index: 9999`, alors l'ordre du
+  // DOM tranche, et la feuille passait par-dessus. Deux chemins touchés, dont un
+  // livré : la suppression d'une pesée et l'historique des écarts (E6).
+  //
+  // ⚠️ Ce défaut est INVISIBLE sous vitest (pas de DOM) et à la relecture (le
+  // code a l'air juste). Ce test ne le mesure pas — il empêche qu'on retire le
+  // montage conditionnel en croyant simplifier.
+  it('le dialogue est monté À LA DEMANDE (sinon invisible sous une feuille)', () => {
+    const src = readFileSync(join(RACINE, 'components', 'Dialog.tsx'), 'utf8');
+    expect(src).toMatch(/\{\s*monte\s*&&\s*\(?\s*<ActionSheet/);
+  });
 });
