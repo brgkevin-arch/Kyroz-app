@@ -29,7 +29,11 @@ export function OffPlanSheet({
   t, onLog, onClose, dragHandlers,
 }: {
   t: ThemePalette;
-  onLog: (kcal: number) => void;
+  /**
+   * `label` = CE QUE C'ÉTAIT, quand on le sait (E6). Absent en saisie libre : taper
+   * « 380 » ne nomme rien, et une chaîne vide serait un faux nom.
+   */
+  onLog: (kcal: number, label?: string) => void;
   onClose: () => void;
   dragHandlers?: any;
 }) {
@@ -49,6 +53,13 @@ export function OffPlanSheet({
 
   const kcal = mode === 'food' ? foodKcal : quickKcal;
   const canLog = kcal > 0;
+  // Le nom EXISTE ici — il était jeté au moment de l'enregistrement (E6). En mode
+  // aliment on garde la quantité : « Pizza » et « Pizza · 300 g » ne racontent pas la
+  // même journée. En mode rapide, seul un raccourci CHOISI porte un sens ; un nombre
+  // tapé à la main n'en porte aucun.
+  const label = mode === 'food'
+    ? (picked ? `${picked.name_fr} · ${num(grams)} g` : undefined)
+    : (!custom && sel != null ? CHIPS.find((c) => c.kcal === sel)?.label : undefined);
 
   return (
     <View style={s.wrap}>
@@ -143,7 +154,7 @@ export function OffPlanSheet({
       <PrimaryButton
         t={t}
         label={canLog ? `Enregistrer (+${kcal} kcal)` : 'Choisis un aliment ou un écart'}
-        onPress={() => { if (canLog) { onLog(kcal); onClose(); } }}
+        onPress={() => { if (canLog) { onLog(kcal, label); onClose(); } }}
       />
     </View>
   );

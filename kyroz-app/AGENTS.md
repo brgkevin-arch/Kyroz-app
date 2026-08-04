@@ -3284,8 +3284,37 @@ produit en suspens — il ne reste qu'à coder.
   et l'écran ne le cache plus) · journée à 1435 kcal → *« Ta journée s'arrête 677 kcal
   sous ta cible : les portions de tes repas ne peuvent pas monter plus haut. Une journée
   sous la cible ne compromet rien. »* Plan du fondateur restauré après vérification.
-- **E6 · 🤖 Hors-plan : seules les kcal sont enregistrées** (« +450 kcal », pas « une
-  pizza »). *Tracé le 2026-07-31 : le nom EXISTE au moment de la saisie et il est jeté.*
+- **E6 · 🧑 Hors-plan — ✅ LE LIBELLÉ EST GARDÉ (2026-08-04). Reste l'HISTORIQUE, qui
+  demande une décision.**
+
+  ✅ **Point 1 livré** : `OffPlanSheet` remonte `onLog(kcal, label?)`, le plan porte
+  `DayExtra = Macros & { label?: string }`, et la ligne du jour affiche
+  « + 234 kcal assumées 😎 **· Pizza (aliment moyen) · 100 g** ».
+  · Le libellé garde la QUANTITÉ en mode aliment : « Pizza » et « Pizza · 300 g » ne
+    racontent pas la même journée.
+  · Il est **absent** quand on tape un nombre à la main dans « estimer vite » — il n'y a
+    rien à nommer, et une chaîne vide serait un faux nom.
+  · Il **survit à une régénération** (`carryTracking`), comme le reste du suivi. Garde-fou
+    dans `carryTracking.test.ts`, **vérifié par mutation** : un report qui perd le libellé
+    fait rougir le test.
+  · Lecteur immédiat, donc **pas de champ orphelin** — la leçon d'A8, appliquée le jour
+    même où on l'a payée.
+  🔎 Vérifié à l'écran (pizza 100 g → 234 kcal), zéro erreur console, valeur persistée.
+
+  🧑 **Point 2 — L'HISTORIQUE DES ÉCARTS : à trancher, ce n'est pas de la dette.**
+  Le plan n'est ni synchronisé ni durable (`CLAUDE.md` §3 : déterministe, re-dérivable),
+  donc tout ce qui vit dedans est éphémère — le libellé compris. Un historique demande un
+  journal à part, et **deux formes possibles** :
+  · **local-only**, sur le modèle des photos de progression : une clé AsyncStorage, aucune
+    migration, mais l'historique meurt avec le téléphone ;
+  · **synchronisé**, sur le modèle de `weight_logs` : une table Supabase **et une migration
+    à jouer** — l'historique suit le compte.
+  ⚠️ Ne pas trancher ça dans un correctif : c'est une question de produit (« un écart
+  d'il y a trois mois, ça sert à quoi ? ») et la seconde branche ajoute une opération
+  manuelle côté base.
+
+  <details><summary>Le constat d'origine</summary>
+  *Tracé le 2026-07-31 : le nom EXISTE au moment de la saisie et il est jeté.*
   `OffPlanSheet` connaît `picked.name_fr` (mode « chercher un aliment ») ou le libellé
   du chip (mode « estimer vite »), mais sa prop est `onLog: (kcal: number) => void`.
   Le stockage est `plan.day_extras[jour]` = un simple `Macros`.
@@ -3299,6 +3328,7 @@ produit en suspens — il ne reste qu'à coder.
      demande un journal persistant à part, sur le modèle de `weight_logs`, donc une
      clé de stockage + probablement une table Supabase + une migration.
   ➡️ Faire le 1 ne « fait » pas E6. Le 2 est une petite feature, pas de la dette.
+  </details>
 - **E7 · 🤖 Deep links web → HTTP 404** (le rendu est bon, le statut est faux).
   Mauvais SEO. Contournement en place. **Faible priorité.**
   *Cause identifiée le 2026-07-31* : `app.json > expo.web` ne contient qu'un `favicon`,

@@ -38,7 +38,7 @@ function journeeEntamee(plan: MealPlan): MealPlan {
       ? { ...m, status: 'eaten' as const, locked_macros: m.macros }
       : m
   );
-  return { ...plan, meals, day_extras: { 1: { kcal: 150, protein_g: 5, carbs_g: 20, fat_g: 5 } }, tracking_date: '2026-08-02' };
+  return { ...plan, meals, day_extras: { 1: { kcal: 150, protein_g: 5, carbs_g: 20, fat_g: 5, label: 'Pizza · 300 g' } }, tracking_date: '2026-08-02' };
 }
 
 const mange = (p: MealPlan) => p.meals.filter((m) => m.status === 'eaten');
@@ -73,6 +73,9 @@ describe('carryTracking — le suivi survit à une régénération', () => {
   it('l\'écart hors plan et la date de suivi suivent', () => {
     const porte = carryTracking(profil, ancien, neuf);
     expect(porte.day_extras).toEqual(ancien.day_extras);
+    // E6 — le LIBELLÉ survit avec les calories. Sans lui, régénérer transformerait
+    // « une pizza » en « +150 kcal » : le fait resterait, son sens disparaîtrait.
+    expect(porte.day_extras![1].label).toBe('Pizza · 300 g');
     expect(porte.tracking_date).toBe('2026-08-02');
   });
 

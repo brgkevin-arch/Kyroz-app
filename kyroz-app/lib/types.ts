@@ -362,6 +362,26 @@ export interface UserProfile {
   // `computePlan` et lire `plan.clamp`. Cf. AGENTS.md A8.
 }
 
+/**
+ * Un écart hors plan enregistré pour une journée : les calories, et **CE QUE C'ÉTAIT**
+ * (E6, 2026-08-04).
+ *
+ * Le libellé existait déjà au moment de la saisie — `OffPlanSheet` connaît le nom de
+ * l'aliment choisi ou l'intitulé du raccourci — et il était **jeté** : l'écran ne
+ * pouvait afficher que « + 450 kcal », jamais « une pizza ». Deux jours plus tard,
+ * l'utilisateur ne sait plus ce qu'il a assumé.
+ *
+ * `label` est OPTIONNEL et le restera : quand on tape un nombre à la main dans
+ * « estimer vite », il n'y a rien à nommer. Une chaîne vide serait un faux nom.
+ *
+ * ⚠️ Ce champ vit dans le PLAN, qui n'est ni synchronisé ni durable (`CLAUDE.md` §3 :
+ * il est déterministe et se régénère). Il survit à une régénération — `carryTracking`
+ * reporte `day_extras` tel quel — mais **il ne constitue pas un historique**. Un vrai
+ * journal des écarts demande un stockage à part, sur le modèle de `weight_logs` : c'est
+ * le point 2 d'E6, une feature, pas la suite mécanique de celle-ci.
+ */
+export type DayExtra = Macros & { label?: string };
+
 export interface Ingredient {
   name: string;
   quantity_g: number;
@@ -461,7 +481,7 @@ export interface MealPlan {
   profile_sig?: string; // empreinte des réglages ayant produit ce plan (auto-refresh)
   // Calories mangées hors plan, par jour (1–7) — comptées dans le consommé et
   // absorbées par le recalage des repas restants. Clé = numéro de jour.
-  day_extras?: Record<number, Macros>;
+  day_extras?: Record<number, DayExtra>;
   // Date locale (YYYY-MM-DD) du dernier suivi posé (mangé/sauté/hors plan). Sert
   // à remettre la journée à zéro quand on change de jour calendaire.
   tracking_date?: string;
