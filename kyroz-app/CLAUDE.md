@@ -729,6 +729,46 @@ une décision de DA. **Vérifié par mutation** : remettre la carte Hydratation 
 carte passerait. Il ferme la porte au chiffre en dur, qui est le chemin par lequel la
 dérive est réellement arrivée.
 
+### Le grand titre se replie (2026-08-04)
+
+Comportement des grands titres iOS, et ce que fait la maquette **sur ses cinq écrans à
+l'identique** : un gros titre (34) dans le contenu qui s'en va vers le haut, un titre
+compact (17) dans une barre collée en haut qui, elle, ne bouge jamais.
+
+**Ce que ça corrige, et le défaut était pire que « ça manque »** : les cinq onglets ne
+faisaient PAS la même chose. Plan et Profil avaient leur en-tête DANS la zone défilante —
+le titre partait et rien ne le remplaçait. Recettes, Courses et Frigo l'avaient en dehors —
+le titre de 34 restait planté en haut à perpétuité. **Deux comportements opposés pour le
+même objet**, sur cinq écrans d'une même barre d'onglets.
+
+Mécanique unique : `components/CollapsingTitle.tsx` (`useCollapsingTitle` + `CompactTitleBar`),
+posée sur les cinq. Les écrans à liste (`FlatList`, `SectionList`) passent leur en-tête en
+`ListHeaderComponent` — c'est la seule façon qu'il défile.
+
+⚠️ **Passer un ÉLÉMENT à `ListHeaderComponent`, jamais une fonction composant.** Une
+nouvelle fonction à chaque rendu remonte l'en-tête, et **le champ de recherche des Recettes
+perdrait le focus à chaque frappe**. Vérifié : 6 caractères saisis d'affilée, focus conservé.
+
+⚠️ **Pas de flou**, contrairement à la maquette (`blur(22px)`) : il faudrait `expo-blur`,
+donc une dépendance NATIVE — nouveau build, nouvelle revue, et voie OTA fermée pour les
+anciens binaires (§2). Pour une barre de 52 pt, le prix n'en vaut pas la peine. Le fond
+opaque `t.bg` rend le même service. Le filet sous la barre est le seul trait gardé dans
+cette DA et il porte du sens : sans lui, le contenu semble s'évaporer au lieu de passer
+sous quelque chose.
+
+⚠️ **Le seuil ne peut pas être négatif** (`lib/collapsingTitle.ts::seuilRepli`, plancher à
+24) : sur un écran dont l'en-tête est plus COURT que la barre — le Frigo quand le stock est
+vide — le calcul donnerait un seuil négatif, donc un titre compact affiché en permanence,
+**posé par-dessus le grand titre**.
+
+🔴 **Le MOUVEMENT est invérifiable dans le panneau navigateur** : `requestAnimationFrame`
+n'y tourne pas (**0 frame en 7,2 s**, mesuré). Une animation y démarre, rend une frame,
+puis se fige à une valeur intermédiaire **parfaitement plausible** — j'ai « corrigé » un
+`useNativeDriver` qui n'avait rien de fautif avant de penser à mesurer l'instrument.
+➡️ La décision vit donc dans une fonction PURE, testée (`lib/__tests__/repliTitre.test.ts`),
+et l'écran ne sert qu'à juger le rendu (opacité forcée à 1). Procédure :
+`docs/comparer-maquette.md`.
+
 ### Largeurs — téléphone ET tablette (depuis le 2026-08-01)
 
 L'app est livrée pour iPad (`ios.supportsTablet: true`). **Tout écran passe par

@@ -6,6 +6,7 @@ import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useTheme, ThemePalette, Radius, Spacing, Type } from '../../constants/theme';
+import { useCollapsingTitle, CompactTitleBar } from '../../components/CollapsingTitle';
 import { useLayout } from '../../constants/layout';
 import { ThemeMode, useThemeMode, setThemeMode } from '../../lib/themeMode';
 import { ACCENTS, ACCENT_IDS, useAccentId, setAccentId, readableOn } from '../../lib/accentColor';
@@ -156,6 +157,7 @@ export default function ProfilScreen() {
   const t = useTheme();
   const s = useMemo(() => makeStyles(t), [t]);
   const layout = useLayout();
+  const repli = useCollapsingTitle();
   const { profile, saveProfile, clearProfile } = useProfile();
   const { streak } = useStreak();
   // Le suivi du poids est désormais une CARTE (courbe + écart) et non une ligne de
@@ -300,12 +302,12 @@ export default function ProfilScreen() {
 
   return (
     <SafeAreaView style={s.safe} edges={['top']}>
-      <ScrollView contentContainerStyle={[s.content, layout.content]} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={[s.content, layout.content]} showsVerticalScrollIndicator={false} {...repli.scrollProps}>
         {/* En-tête — l'écran n'en avait AUCUN : il démarrait direct sur la carte
             poids. Sur un écran aussi long, arriver sans savoir où on est coûte plus
             cher que les 60 px que ça prend. Le surtitre dit qui tu es, le titre dit
             où tu es. */}
-        <View style={s.header}>
+        <View style={s.header} onLayout={repli.onHeaderLayout}>
           <Text style={s.sub}>{SEX_LABELS[profile.sex]} · {profile.age} ans · {goalLabel(profile.goal)}</Text>
           <Text style={s.h1}>Profil</Text>
         </View>
@@ -555,6 +557,8 @@ export default function ProfilScreen() {
         <Text style={s.disclaimer}>{DISCLAIMER}</Text>
         <Text style={s.disclaimer}>{CIQUAL_ATTRIBUTION}</Text>
       </ScrollView>
+
+      <CompactTitleBar t={t} title="Profil" opacity={repli.opacity} />
 
       {/* Feuilles d'édition */}
       <Sheet visible={editor !== null} onClose={() => setEditor(null)}>

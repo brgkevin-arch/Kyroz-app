@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme, ThemePalette, Radius, Spacing, Type, cardShadow } from '../../constants/theme';
 import { useLayout } from '../../constants/layout';
+import { useCollapsingTitle, CompactTitleBar } from '../../components/CollapsingTitle';
 import { RecipeDetail } from '../../components/RecipeDetail';
 import { RecipeEditor } from '../../components/RecipeEditor';
 import { Sheet } from '../../components/Sheet';
@@ -25,6 +26,7 @@ export default function RecettesScreen() {
   const t = useTheme();
   const s = useMemo(() => makeStyles(t), [t]);
   const layout = useLayout();
+  const repli = useCollapsingTitle();
   const { isFavorite, toggle, favorites } = useFavorites();
   const { recipes, saveOverride, resetOverride, isCustom } = useRecipeOverrides();
   const [tag, setTag] = useState('Tout');
@@ -40,63 +42,76 @@ export default function RecettesScreen() {
     return r.tags.includes(tag);
   });
 
+  // ⚠️ L'en-tête, la recherche, les filtres et le compteur vivent DANS la liste
+  // (`ListHeaderComponent`) et non au-dessus : c'est ce qui permet au grand titre
+  // de s'effacer au profit de la barre compacte, comme dans la maquette. C'est
+  // aussi le comportement d'iOS (Mail, Notes) : la recherche suit le grand titre
+  // et se récupère en tirant vers le bas.
+  //
+  // ⚠️ On passe un ÉLÉMENT, pas une fonction composant : une nouvelle fonction à
+  // chaque rendu ferait REMONTER l'en-tête, et le champ de recherche perdrait le
+  // focus à chaque frappe.
+  const enTete = (
+    <View onLayout={repli.onHeaderLayout}>
+        {/* Surtitre AU-DESSUS du grand titre : le chiffre pose le contexte, le mot
+            reste la chose la plus grosse de l'écran. */}
+        <View style={s.header}>
+          <Text style={s.sub}>
+            {recipes.length} recettes{favorites.length > 0 ? ` · ${favorites.length} en favori${favorites.length > 1 ? 's' : ''}` : ''}
+          </Text>
+          <Text style={s.h1}>Recettes</Text>
+        </View>
+
+        <View style={s.searchWrap}>
+          <View style={s.searchBox}>
+            <Ionicons name="search" size={17} color={t.textTertiary} />
+            <TextInput
+              value={query}
+              onChangeText={setQuery}
+              placeholder="Rechercher une recette"
+              placeholderTextColor={t.textQuaternary}
+              autoCorrect={false}
+              returnKeyType="search"
+              style={s.searchInput}
+            />
+            {query.length > 0 && (
+              <TouchableOpacity onPress={() => setQuery('')} hitSlop={10}>
+                <Ionicons name="close-circle" size={18} color={t.textTertiary} />
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+
+        <View style={s.filtersWrap}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.filters}>
+            {TAGS.map((tg) => {
+              const on = tag === tg;
+              return (
+                // Le filtre actif prend l'accent PLEIN, les autres restent neutres et
+                // sans bordure. « Favoris » perd son cœur : le mot suffit, et l'icône
+                // entrait en concurrence avec le cœur des cartes, qui lui agit.
+                <TouchableOpacity key={tg} onPress={() => setTag(tg)} activeOpacity={0.8}
+                  style={[s.chip, { backgroundColor: on ? t.accent : t.fill }]}>
+                  <Text style={{ color: on ? t.onAccent : t.text, fontSize: 15, fontWeight: on ? '600' : '500' }}>{TAG_LABELS[tg]}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </View>
+
+        {/* Le compteur de résultats vit SOUS les filtres, comme un titre de section :
+            c'est là qu'il change, donc là qu'on le regarde. */}
+        <View style={s.countRow}>
+          <Text style={s.countLabel}>
+            {q ? 'RÉSULTATS' : tag === 'Tout' ? 'TOUTES LES RECETTES' : TAG_LABELS[tag].toUpperCase()}
+          </Text>
+          <Text style={s.countN}>{data.length} recette{data.length > 1 ? 's' : ''}</Text>
+        </View>
+    </View>
+  );
+
   return (
     <SafeAreaView style={s.safe} edges={['top']}>
-      {/* Surtitre AU-DESSUS du grand titre : le chiffre pose le contexte, le mot
-          reste la chose la plus grosse de l'écran. */}
-      <View style={[s.header, layout.grid]}>
-        <Text style={s.sub}>
-          {recipes.length} recettes{favorites.length > 0 ? ` · ${favorites.length} en favori${favorites.length > 1 ? 's' : ''}` : ''}
-        </Text>
-        <Text style={s.h1}>Recettes</Text>
-      </View>
-
-      <View style={[s.searchWrap, layout.grid]}>
-        <View style={s.searchBox}>
-          <Ionicons name="search" size={17} color={t.textTertiary} />
-          <TextInput
-            value={query}
-            onChangeText={setQuery}
-            placeholder="Rechercher une recette"
-            placeholderTextColor={t.textQuaternary}
-            autoCorrect={false}
-            returnKeyType="search"
-            style={s.searchInput}
-          />
-          {query.length > 0 && (
-            <TouchableOpacity onPress={() => setQuery('')} hitSlop={10}>
-              <Ionicons name="close-circle" size={18} color={t.textTertiary} />
-            </TouchableOpacity>
-          )}
-        </View>
-      </View>
-
-      <View style={[s.filtersWrap, layout.grid]}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.filters}>
-          {TAGS.map((tg) => {
-            const on = tag === tg;
-            return (
-              // Le filtre actif prend l'accent PLEIN, les autres restent neutres et
-              // sans bordure. « Favoris » perd son cœur : le mot suffit, et l'icône
-              // entrait en concurrence avec le cœur des cartes, qui lui agit.
-              <TouchableOpacity key={tg} onPress={() => setTag(tg)} activeOpacity={0.8}
-                style={[s.chip, { backgroundColor: on ? t.accent : t.fill }]}>
-                <Text style={{ color: on ? t.onAccent : t.text, fontSize: 15, fontWeight: on ? '600' : '500' }}>{TAG_LABELS[tg]}</Text>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
-      </View>
-
-      {/* Le compteur de résultats vit SOUS les filtres, comme un titre de section :
-          c'est là qu'il change, donc là qu'on le regarde. */}
-      <View style={[s.countRow, layout.grid]}>
-        <Text style={s.countLabel}>
-          {q ? 'RÉSULTATS' : tag === 'Tout' ? 'TOUTES LES RECETTES' : TAG_LABELS[tag].toUpperCase()}
-        </Text>
-        <Text style={s.countN}>{data.length} recette{data.length > 1 ? 's' : ''}</Text>
-      </View>
-
       <FlatList
         data={data}
         keyExtractor={(r) => r.id}
@@ -109,6 +124,8 @@ export default function RecettesScreen() {
         columnWrapperStyle={layout.columns > 1 ? s.gridRow : undefined}
         contentContainerStyle={[s.list, layout.grid]}
         showsVerticalScrollIndicator={false}
+        ListHeaderComponent={enTete}
+        {...repli.scrollProps}
         ListEmptyComponent={
           <View style={s.empty}>
             <Ionicons name={q ? 'search-outline' : 'heart-outline'} size={28} color={t.textTertiary} />
@@ -177,6 +194,8 @@ export default function RecettesScreen() {
           />
         )}
       </Sheet>
+
+      <CompactTitleBar t={t} title="Recettes" opacity={repli.opacity} />
     </SafeAreaView>
   );
 }
@@ -184,20 +203,24 @@ export default function RecettesScreen() {
 function makeStyles(t: ThemePalette) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: t.bg },
-    header: { paddingHorizontal: Spacing.xl, paddingTop: 4, paddingBottom: 12 },
+    // Plus de `paddingHorizontal` ici ni dans `searchWrap`/`countRow` : ces blocs
+    // vivent dans le contentContainer de la liste, qui pose déjà les 20 pt.
+    header: { paddingTop: 4, paddingBottom: 12 },
     h1: { color: t.text, ...Type.display, marginTop: 2 },
     sub: { color: t.textSecondary, fontSize: 14, lineHeight: 19 },
-    searchWrap: { paddingHorizontal: Spacing.xl, paddingBottom: 12 },
+    searchWrap: { paddingBottom: 12 },
     searchBox: {
       flexDirection: 'row', alignItems: 'center', gap: 8,
       backgroundColor: t.fill, borderRadius: Radius.button,
       paddingHorizontal: 14, height: 44,
     },
     searchInput: { flex: 1, color: t.text, fontSize: 16, padding: 0 },
-    filtersWrap: { marginBottom: 4 },
+    // La bande de filtres RESSORT du padding du conteneur (marge négative) pour
+    // rester à fond perdu : elle défile horizontalement, elle doit toucher les bords.
+    filtersWrap: { marginBottom: 4, marginHorizontal: -Spacing.xl },
     filters: { paddingHorizontal: Spacing.xl, gap: 8 },
     chip: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10, borderRadius: Radius.pill },
-    countRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', paddingHorizontal: Spacing.xl, paddingTop: 14, paddingBottom: 2 },
+    countRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', paddingTop: 14, paddingBottom: 2 },
     countLabel: { color: t.textTertiary, fontSize: 11, fontWeight: '700', letterSpacing: 1 },
     countN: { color: t.textTertiary, fontSize: 13 },
     list: { padding: Spacing.xl, paddingTop: 10, gap: 10, paddingBottom: 120 },

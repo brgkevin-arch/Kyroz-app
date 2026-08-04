@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme, ThemePalette, Radius, Spacing, Type } from '../../constants/theme';
+import { useCollapsingTitle, CompactTitleBar } from '../../components/CollapsingTitle';
 import { useLayout } from '../../constants/layout';
 import { DISCLAIMER } from '../../constants/legal';
 import { MacroBar } from '../../components/MacroBar';
@@ -153,6 +154,7 @@ export default function PlanScreen() {
   const autoTried = React.useRef(false);
   const tourTried = React.useRef(false);
   const scrollRef = React.useRef<ScrollView>(null);
+  const repli = useCollapsingTitle();
   // Cibles de la visite guidée (ref directe sur l'élément → spotlight aligné).
   const daysRef = useTourTarget('plan-days');
   const macrosRef = useTourTarget('plan-macros');
@@ -579,9 +581,10 @@ export default function PlanScreen() {
         contentContainerStyle={[s.content, layout.content]}
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={t.textTertiary} />}
+        {...repli.scrollProps}
       >
         {/* Header */}
-        <View style={s.header}>
+        <View style={s.header} onLayout={repli.onHeaderLayout}>
           <View style={{ flex: 1 }}>
             <Text style={s.date}>{todayLabel.charAt(0).toUpperCase() + todayLabel.slice(1)}</Text>
             <Text style={s.h1}>{firstName ? `Salut ${firstName} 👋` : 'Ton plan'}</Text>
@@ -774,6 +777,11 @@ export default function PlanScreen() {
 
         <Text style={s.disclaimer}>{DISCLAIMER}</Text>
       </ScrollView>
+
+      {/* ⚠️ « Plan » et non « Salut Kévin 👋 » : la barre compacte reprend le mot
+          de la barre d'onglets, pour qu'un même écran n'ait pas deux noms selon
+          l'endroit où on le regarde (même règle que « Courses »). */}
+      <CompactTitleBar t={t} title="Plan" opacity={repli.opacity} />
 
       {/* Toast « cuisiné » */}
       {cookedNote && (

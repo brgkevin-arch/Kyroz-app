@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme, ThemePalette, Radius, Spacing, Type } from '../../constants/theme';
 import { useLayout } from '../../constants/layout';
+import { useCollapsingTitle, CompactTitleBar } from '../../components/CollapsingTitle';
 import { MealPlan, ShoppingItem, ShoppingList } from '../../lib/types';
 import { buildShoppingList } from '../../lib/shoppingList';
 import { formatQuantity } from '../../lib/units';
@@ -37,6 +38,7 @@ export default function CoursesScreen() {
   const t = useTheme();
   const s = useMemo(() => makeStyles(t), [t]);
   const layout = useLayout();
+  const repli = useCollapsingTitle();
   const [list, setList] = useState<ShoppingList | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [hideChecked, setHideChecked] = useState(false);
@@ -151,54 +153,68 @@ export default function CoursesScreen() {
     })
     .filter((sec) => sec.data.length > 0);
 
+  // ⚠️ En-tête, progression, commandes et note vivent DANS la liste
+  // (`ListHeaderComponent`) : c'est ce qui permet au grand titre de s'effacer au
+  // profit de la barre compacte, comme dans la maquette. Ils étaient au-dessus de
+  // la SectionList, donc « Courses » en 34 restait planté en haut pour toujours.
+  //
+  // ⚠️ Un ÉLÉMENT, pas une fonction composant : une nouvelle fonction à chaque
+  // rendu ferait remonter tout l'en-tête à chaque case cochée.
+  const enTete = (
+    <View onLayout={repli.onHeaderLayout}>
+        {/* En-tête + progression */}
+        {/* « Courses », pas « Liste de courses » : le mot de la barre d'onglets, pour
+            qu'un même objet n'ait pas deux noms selon l'endroit où on le regarde. */}
+        <View style={s.header}>
+          <View style={{ flex: 1 }}>
+            <Text style={s.sub}>{done ? 'Tout est coché 🎉' : `${remaining} restant${remaining > 1 ? 's' : ''} sur ${total}`}</Text>
+            <Text style={s.h1}>Courses</Text>
+          </View>
+          <Text style={s.counter}>{checked}<Text style={s.counterTot}> / {total} cochés</Text></Text>
+        </View>
+
+        {/* La barre n'a plus besoin de conteneur porteur de colonne : elle est dans
+            le contentContainer de la liste, qui pose la colonne ET le padding. Le
+            piège d'origine — `marginHorizontal` qui s'ajoute À L'EXTÉRIEUR d'un
+            `maxWidth`, et la barre qui dépassait des cartes de 40 pt — disparaît
+            avec la marge (cf. CLAUDE.md §11). */}
+        <View style={s.track}><View style={[s.fill, { width: `${pct}%`, backgroundColor: done ? t.success : t.accent }]} /></View>
+
+        {/* Contrôles */}
+        <View style={s.controls}>
+          {remaining > 0 && (
+            <TouchableOpacity style={s.ctrl} onPress={checkAll} activeOpacity={0.8}>
+              <Ionicons name="checkmark-done-outline" size={15} color={t.textSecondary} />
+              <Text style={s.ctrlTxt}>Tout cocher</Text>
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity style={[s.ctrl, hideChecked && s.ctrlOn]} onPress={() => setHideChecked((v) => !v)} activeOpacity={0.8}>
+            <Ionicons name={hideChecked ? 'eye-off-outline' : 'eye-outline'} size={15} color={hideChecked ? t.onAccent : t.textSecondary} />
+            <Text style={[s.ctrlTxt, hideChecked && { color: t.onAccent }]}>Masquer cochés</Text>
+          </TouchableOpacity>
+          {checked > 0 && (
+            <TouchableOpacity style={s.ctrl} onPress={reset} activeOpacity={0.8}>
+              <Ionicons name="refresh-outline" size={15} color={t.textSecondary} />
+              <Text style={s.ctrlTxt}>Réinitialiser</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        <Text style={s.hint}>Coche un article → il part direct dans ton frigo 🧊</Text>
+    </View>
+  );
+
   return (
     <SafeAreaView style={s.safe} edges={['top']}>
-      {/* En-tête + progression */}
-      {/* « Courses », pas « Liste de courses » : le mot de la barre d'onglets, pour
-          qu'un même objet n'ait pas deux noms selon l'endroit où on le regarde. */}
-      <View style={[s.header, layout.header]}>
-        <View style={{ flex: 1 }}>
-          <Text style={s.sub}>{done ? 'Tout est coché 🎉' : `${remaining} restant${remaining > 1 ? 's' : ''} sur ${total}`}</Text>
-          <Text style={s.h1}>Courses</Text>
-        </View>
-        <Text style={s.counter}>{checked}<Text style={s.counterTot}> / {total} cochés</Text></Text>
-      </View>
-
-      {/* ⚠️ La colonne se pose sur un CONTENEUR ici, pas sur la barre elle-même :
-          `track` s'aligne par `marginHorizontal`, et une marge s'ajoute À
-          L'EXTÉRIEUR du `maxWidth` — la barre dépassait alors des cartes de 40 pt. */}
-      <View style={layout.header}>
-        <View style={s.track}><View style={[s.fill, { width: `${pct}%`, backgroundColor: done ? t.success : t.accent }]} /></View>
-      </View>
-
-      {/* Contrôles */}
-      <View style={[s.controls, layout.header]}>
-        {remaining > 0 && (
-          <TouchableOpacity style={s.ctrl} onPress={checkAll} activeOpacity={0.8}>
-            <Ionicons name="checkmark-done-outline" size={15} color={t.textSecondary} />
-            <Text style={s.ctrlTxt}>Tout cocher</Text>
-          </TouchableOpacity>
-        )}
-        <TouchableOpacity style={[s.ctrl, hideChecked && s.ctrlOn]} onPress={() => setHideChecked((v) => !v)} activeOpacity={0.8}>
-          <Ionicons name={hideChecked ? 'eye-off-outline' : 'eye-outline'} size={15} color={hideChecked ? t.onAccent : t.textSecondary} />
-          <Text style={[s.ctrlTxt, hideChecked && { color: t.onAccent }]}>Masquer cochés</Text>
-        </TouchableOpacity>
-        {checked > 0 && (
-          <TouchableOpacity style={s.ctrl} onPress={reset} activeOpacity={0.8}>
-            <Ionicons name="refresh-outline" size={15} color={t.textSecondary} />
-            <Text style={s.ctrlTxt}>Réinitialiser</Text>
-          </TouchableOpacity>
-        )}
-      </View>
-
-      <Text style={[s.hint, layout.header]}>Coche un article → il part direct dans ton frigo 🧊</Text>
-
       <SectionList<ShoppingItem, CoursesSection>
         sections={sections}
         keyExtractor={(item) => item.name}
         contentContainerStyle={[s.list, layout.content]}
         showsVerticalScrollIndicator={false}
         stickySectionHeadersEnabled={false}
+        ListHeaderComponent={enTete}
+        ListFooterComponent={<Text style={s.footnote}>Quantités calculées pour tes repas de la semaine.</Text>}
+        {...repli.scrollProps}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={t.textTertiary} />}
         renderSectionHeader={({ section }) => (
           <View style={s.section}>
@@ -234,6 +250,8 @@ export default function CoursesScreen() {
           );
         }}
       />
+
+      <CompactTitleBar t={t} title="Courses" opacity={repli.opacity} />
     </SafeAreaView>
   );
 }
@@ -246,20 +264,25 @@ function makeStyles(t: ThemePalette) {
     emptyT: { color: t.text, ...Type.h2 },
     emptyS: { color: t.textSecondary, fontSize: 15, textAlign: 'center', lineHeight: 21 },
 
-    header: { flexDirection: 'row', alignItems: 'flex-end', padding: Spacing.xl, paddingBottom: 12 },
+    // Plus de padding horizontal ici, ni dans `controls`/`hint`/`track` : ces blocs
+    // vivent dans le contentContainer de la liste, qui pose déjà les 20 pt.
+    header: { flexDirection: 'row', alignItems: 'flex-end', paddingTop: Spacing.xl, paddingBottom: 12 },
     h1: { color: t.text, ...Type.display, marginTop: 2 },
     sub: { color: t.textSecondary, fontSize: 14, lineHeight: 19 },
     counter: { color: t.text, fontSize: 22, fontWeight: '700', letterSpacing: -0.6 },
     counterTot: { color: t.textTertiary, fontSize: 14, fontWeight: '400', letterSpacing: 0 },
 
-    track: { height: 5, backgroundColor: t.fill, marginHorizontal: Spacing.xl, borderRadius: 3, overflow: 'hidden' },
+    track: { height: 5, backgroundColor: t.fill, borderRadius: 3, overflow: 'hidden' },
     fill: { height: 5, borderRadius: 3 },
 
-    controls: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: Spacing.xl, paddingTop: 14, paddingBottom: 2 },
+    controls: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingTop: 14, paddingBottom: 2 },
     ctrl: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 9, borderRadius: Radius.pill, backgroundColor: t.fill },
     ctrlOn: { backgroundColor: t.accent },
     ctrlTxt: { color: t.text, fontSize: 14, fontWeight: '500' },
-    hint: { color: t.textTertiary, fontSize: 13, lineHeight: 18, paddingHorizontal: Spacing.xl, paddingTop: 12 },
+    hint: { color: t.textTertiary, fontSize: 13, lineHeight: 18, paddingTop: 12 },
+    // Note de pied présente dans la maquette et absente de l'app : elle dit d'où
+    // sortent les quantités, ce qu'aucun autre élément de l'écran n'explique.
+    footnote: { color: t.textQuaternary, fontSize: 12, lineHeight: 17, paddingTop: 18 },
 
     list: { paddingHorizontal: Spacing.xl, paddingBottom: 120, paddingTop: 4 },
     section: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginTop: 24, marginBottom: 8 },

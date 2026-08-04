@@ -69,6 +69,20 @@ Sinon on compare deux choses différentes et tous les écarts de couleur sont fa
   maquette est cassée » sur une capture blanche.
 - **La largeur de fenêtre coupe la colonne SOMBRE.** Les cadres font 402 px et sont posés
   côte à côte : sous ~1400 px de large, le téléphone de droite est tronqué.
+- 🔴 **`requestAnimationFrame` ne tourne PAS dans le panneau navigateur** — mesuré le
+  2026-08-04 : **0 frame en 7,2 secondes**. Toute animation (`Animated.timing`, transition
+  CSS, fondu) démarre, rend une frame ou deux, puis se **fige** à une valeur intermédiaire.
+  ⚠️ **Le piège n'est pas la capture vide, c'est la capture PLAUSIBLE** : une opacité figée
+  à 0,03 ressemble exactement à une animation cassée, et j'ai « corrigé » un
+  `useNativeDriver` qui n'avait rien de fautif avant de mesurer l'instrument.
+  ➡️ Devant une animation qui ne se termine pas, **compter les frames d'abord** :
+  ```js
+  window.__n = 0; const b = () => { window.__n++; requestAnimationFrame(b); }; requestAnimationFrame(b);
+  // puis, dans un SECOND appel : window.__n
+  ```
+  Si le compteur reste à 0, c'est le panneau, pas le code. On vérifie alors l'**état final**
+  (forcer l'opacité à 1 dans le DOM pour juger le rendu) et le **déclencheur** séparément
+  (la valeur a-t-elle quitté 0 au bon seuil ?), sans jamais conclure sur le mouvement.
 
 ## À savoir
 

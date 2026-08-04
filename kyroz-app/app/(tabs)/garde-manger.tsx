@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme, ThemePalette, Radius, Spacing, Type, cardShadow } from '../../constants/theme';
+import { useCollapsingTitle, CompactTitleBar } from '../../components/CollapsingTitle';
 import { useLayout } from '../../constants/layout';
 import { PrimaryButton, Chip, Field, SectionLabel, Segmented } from '../../components/ui';
 import { ActionSheet } from '../../components/ActionSheet';
@@ -31,6 +32,7 @@ export default function GardeMangerScreen() {
   const t = useTheme();
   const s = useMemo(() => makeStyles(t), [t]);
   const layout = useLayout();
+  const repli = useCollapsingTitle();
 
   const [items, setItems] = useState<PantryItem[]>([]);
   const [view, setView] = useState<ViewMode>('stock');
@@ -130,30 +132,34 @@ export default function GardeMangerScreen() {
 
   return (
     <SafeAreaView style={s.safe} edges={['top']}>
-      {/* « Frigo », le mot de la barre d'onglets — un même objet ne peut pas avoir
-          deux noms selon l'endroit d'où on le regarde. */}
-      <View style={[s.header, layout.header]}>
-        <View style={{ flex: 1 }}>
-          <Text style={s.sub}>{visible.length} aliment{visible.length > 1 ? 's' : ''} · {ready.length} recette{ready.length > 1 ? 's' : ''} prête{ready.length > 1 ? 's' : ''}</Text>
-          <Text style={s.h1}>Frigo</Text>
+      <ScrollView contentContainerStyle={[s.content, layout.content]} showsVerticalScrollIndicator={false} {...repli.scrollProps}>
+        {/* ⚠️ L'en-tête ET les segments sont DANS le défilement, comme dans la
+            maquette : c'est ce qui permet au gros titre de s'effacer au profit de
+            la barre compacte. Ils étaient au-dessus du ScrollView, donc le titre
+            de 34 restait planté en haut pour toujours. */}
+        {/* « Frigo », le mot de la barre d'onglets — un même objet ne peut pas avoir
+            deux noms selon l'endroit d'où on le regarde. */}
+        <View style={s.header} onLayout={repli.onHeaderLayout}>
+          <View style={{ flex: 1 }}>
+            <Text style={s.sub}>{visible.length} aliment{visible.length > 1 ? 's' : ''} · {ready.length} recette{ready.length > 1 ? 's' : ''} prête{ready.length > 1 ? 's' : ''}</Text>
+            <Text style={s.h1}>Frigo</Text>
+          </View>
+          <TouchableOpacity style={s.addBtn} onPress={() => setShowAdd(true)} activeOpacity={0.85}>
+            <Ionicons name="add" size={22} color={t.onAccent} />
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity style={s.addBtn} onPress={() => setShowAdd(true)} activeOpacity={0.85}>
-          <Ionicons name="add" size={22} color={t.onAccent} />
-        </TouchableOpacity>
-      </View>
 
-      {visible.length > 0 && (
-        <View style={[s.segment, layout.header]}>
-          <Segmented
-            t={t}
-            options={[{ label: 'Mon stock', value: 'stock' }, { label: 'À cuisiner', value: 'cook' }]}
-            value={view}
-            onChange={(v) => setView(v as ViewMode)}
-          />
-        </View>
-      )}
+        {visible.length > 0 && (
+          <View style={s.segment}>
+            <Segmented
+              t={t}
+              options={[{ label: 'Mon stock', value: 'stock' }, { label: 'À cuisiner', value: 'cook' }]}
+              value={view}
+              onChange={(v) => setView(v as ViewMode)}
+            />
+          </View>
+        )}
 
-      <ScrollView contentContainerStyle={[s.content, layout.content]} showsVerticalScrollIndicator={false}>
         {visible.length === 0 ? (
           <View style={s.empty}>
             <View style={[s.emptyIcon, { backgroundColor: t.fill }]}>
@@ -250,6 +256,8 @@ export default function GardeMangerScreen() {
         )}
       </ScrollView>
 
+      <CompactTitleBar t={t} title="Frigo" opacity={repli.opacity} />
+
       {/* Toast « cuisiné » */}
       {toast && (
         <View style={[s.toast, { pointerEvents: 'none' }]}>
@@ -337,11 +345,14 @@ export default function GardeMangerScreen() {
 function makeStyles(t: ThemePalette) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: t.bg },
-    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: Spacing.xl, paddingTop: 4, paddingBottom: 12 },
+    // ⚠️ Plus de `paddingHorizontal` : l'en-tête vit maintenant dans le
+    // contentContainer du ScrollView, qui pose déjà les 20 pt. L'y laisser les
+    // aurait doublés.
+    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 4, paddingBottom: 12 },
     h1: { color: t.text, ...Type.display, marginTop: 2 },
     sub: { color: t.textSecondary, fontSize: 14, lineHeight: 19 },
     addBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: t.accent, alignItems: 'center', justifyContent: 'center' },
-    segment: { paddingHorizontal: Spacing.xl, paddingBottom: 6 },
+    segment: { paddingBottom: 6 },
     content: { paddingHorizontal: Spacing.xl, paddingTop: 10, paddingBottom: 120 },
 
     empty: { alignItems: 'center', gap: 10, paddingVertical: 40 },
