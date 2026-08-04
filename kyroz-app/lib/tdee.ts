@@ -1,4 +1,4 @@
-import { ClampInfo, EngineNotice, FloorSource, Goal, GoalTarget, NeatLevel, PlanFlag, Sex, SportSession, UserProfile } from './types';
+import { EngineNotice, FloorSource, Goal, GoalTarget, NeatLevel, PlanFlag, Sex, SportSession, UserProfile } from './types';
 import { exerciseKcalPerDay, totalSessionsPerWeek } from './sport';
 import {
   datedGoalStatus, goalDirectionMismatch, MAX_DEFICIT_TDEE_RATIO, WeekPoint, WeeklyProjector,
@@ -454,10 +454,12 @@ function defaultIsTrainingDay(body: MacroBody): boolean {
  * `requestedKcal` = la cible AVANT plancher : `tdee + delta` en auto/percent,
  * l'énergie des grammes saisis en manual.
  */
-// `FloorSource` a déménagé dans types.ts : `UserProfile.clamp` le porte, et le
-// déclarer ici créerait un cycle d'imports. Ré-exporté pour les appelants
-// historiques du moteur, qui l'importent de ce fichier.
-export type { FloorSource, ClampInfo };
+// `FloorSource` vit dans types.ts : `ClampRecord` et `safety.ts` le portent tous
+// deux, et le déclarer ici créerait un cycle d'imports. Ré-exporté pour les
+// appelants historiques du moteur, qui l'importent de ce fichier.
+// *(Il y était descendu pour `UserProfile.clamp`, retiré en A8 — mais il a depuis
+// deux autres porteurs, donc il reste à sa place.)*
+export type { FloorSource };
 
 /**
  * Trace EXPLICITE d'un clamp : ce qui était demandé, ce qui est servi, l'écart, et
@@ -1102,30 +1104,16 @@ export function computePlan(rawProfile: UserProfile, today: string = todayStamp(
       }
     : (p.engine_notice ?? nouvelleNotice);
 
-  // ── Trace du plancher, déposée SUR LE PROFIL ──────────────────────────────
-  // Version allégée de `m.clamp` : les candidats perdants servent au diagnostic
-  // (ils restent sur `ComputedPlan`), pas au stockage — inutile de persister cinq
-  // nombres pour en afficher deux, et ils redeviendraient faux si le corps change
-  // sans qu'un recalcul les rafraîchisse.
-  // `undefined` quand le plancher ne contraint pas : l'ABSENCE porte le sens « la
-  // demande est servie », un objet à zéro ne le dirait pas et ferait grossir le
-  // profil stocké. Même prédicat que `FLOOR_APPLIED`, donc le champ stocké et le
-  // drapeau ne peuvent pas se contredire.
-  const clampInfo: ClampInfo | undefined = m.clamp.floorBinding
-    ? {
-        source: m.clamp.source,
-        floorKcal: m.clamp.floorKcal,
-        requestedKcal: m.clamp.requestedKcal,
-        servedKcal: m.clamp.servedKcal,
-        clampedByKcal: m.clamp.clampedByKcal,
-      }
-    : undefined;
-  // ⚠️ La clé doit être RETIRÉE du profil précédent avant d'être éventuellement
-  // reposée : `{ ...p }` reconduirait la trace de l'avant-dernier calcul quand plus
-  // rien ne mord, et l'écran afficherait « ta cible est ton plancher » sur un plan
-  // qui sert exactement ce qui était demandé. Même raison que `dismissEngineNotice` :
-  // mettre la clé à `undefined` ne suffit pas, `JSON.stringify` l'élide.
-  const { clamp: _clampPrecedent, ...profilSansClamp } = p;
+  // ⚠️ **CE RETRAIT DOIT SURVIVRE À LA SUPPRESSION DU CHAMP (A8, 2026-08-04).**
+  // `UserProfile.clamp` n'est plus écrit — il n'a jamais eu de lecteur, et l'écran
+  // qui affiche cette information lit `plan.clamp`, un sur-ensemble recalculé. Mais
+  // les profils ENREGISTRÉS avant ce jour en portent encore une copie : sans cette
+  // ligne, elle resterait dans AsyncStorage pour toujours, figée au dernier calcul
+  // qui l'a produite, prête à être lue un jour comme si elle était fraîche.
+  // Mettre la clé à `undefined` ne suffirait pas : `JSON.stringify` l'élide, donc la
+  // comparaison anti-réécriture de `useProfile` ne verrait aucun changement à
+  // persister et la valeur périmée survivrait au redémarrage.
+  const { clamp: _clampPerime, ...profilSansClamp } = p as UserProfile & { clamp?: unknown };
 
   // La hausse annoncée doit être la hausse VÉCUE : on donne à l'escalade de quoi
   // rejouer la décision du moteur (cf. safety.lowEaEscalation). Sans ces entrées,
@@ -1153,11 +1141,6 @@ export function computePlan(rawProfile: UserProfile, today: string = todayStamp(
       target_fat_g: m.fat_g,
       engine_rev: ENGINE_REV,
       ...(engine_notice ? { engine_notice } : {}),
-      // Étalée conditionnellement, comme `engine_notice` : la clé doit être RETIRÉE
-      // et pas mise à `undefined`. `JSON.stringify` élide les `undefined`, donc la
-      // comparaison anti-réécriture de `useProfile` ne verrait aucun changement et
-      // un profil qui SORT du plancher garderait sa trace périmée à l'écran.
-      ...(clampInfo ? { clamp: clampInfo } : {}),
     },
     flags,
     floor_kcal: m.floor_kcal,

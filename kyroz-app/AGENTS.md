@@ -636,7 +636,41 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
   ⚠️ Toute option retenue déplace la cible de TOUS les comptes sédentaires →
   incrémenter `ENGINE_REV` et prévoir l'avertissement one-shot.
 
-- **A8 · 🧑 À TRANCHER — `UserProfile.clamp` n'a pas encore de lecteur.**
+- ~~**A8 · `UserProfile.clamp` n'a jamais trouvé de lecteur**~~
+  ✅ **TRANCHÉ ET RETIRÉ le 2026-08-04** (fondateur : « retire le champ »).
+  Le champ a vécu du 2026-07-31 au 2026-08-04 **sans qu'une seule ligne ne le lise** :
+  l'écran qui affiche cette information (`profil.tsx`) lit `plan.clamp`, produit par
+  `computePlan`. Retiré de `types.ts`, `tdee.ts`, et le type `ClampInfo` avec lui —
+  il devenait mort. `FloorSource`, lui, RESTE dans `types.ts` : il y était descendu
+  pour ce champ, mais il a depuis deux autres porteurs (`ClampRecord`, `safety.ts`).
+
+  **Le motif n'est pas l'encombrement, c'est la DIVERGENCE.** `ClampInfo` (stocké) était
+  un SOUS-ensemble de `ClampRecord` (calculé) : mêmes cinq valeurs, moins `floorBinding`
+  et les candidats de diagnostic. On gardait donc une copie *appauvrie* et *figée au
+  dernier `recalcProfile`* à côté d'une valeur recalculée — une seconde source de vérité
+  qui attend son bug. Ce n'est pas théorique : la même semaine, deux compteurs de tests
+  d'`AGENTS.md` se sont contredits, et le couloir de progression se dessinait sur la
+  saisie au lieu du servi (A15-bis). L'argument « c'est plus rapide que recalculer » ne
+  tenait pas non plus : `computePlan` coûte **0,11 ms**.
+
+  ⚠️ **Le NETTOYAGE doit survivre au champ, et c'est le vrai piège de ce retrait.** Les
+  comptes créés entre les deux dates en portent une copie dans AsyncStorage. Cesser de
+  l'écrire ne l'efface pas : sans la ligne qui la retire, elle y resterait pour toujours,
+  figée, prête à être relue un jour comme si elle était fraîche. Et la mettre à
+  `undefined` ne suffirait pas — `JSON.stringify` l'élide, donc la comparaison
+  anti-réécriture de `useProfile` ne verrait rien à persister.
+  ➡️ Garde-fou `safety.test.ts` → « MIGRATION : une trace déjà STOCKÉE est nettoyée ».
+  **Vérifié par mutation** : retirer le nettoyage fait rougir ce test, et lui seul.
+
+  ℹ️ L'invariant « la trace est présente exactement quand `FLOOR_APPLIED` » n'a PAS été
+  supprimé avec le champ : ce qu'il protège — un seul prédicat pour une seule question,
+  pour que l'écran ne puisse pas contredire le drapeau — reste vrai. Il a changé de
+  porteur, il s'exerce sur `plan.clamp`.
+  ➡️ Si un écran a un jour besoin de cette trace SANS calculer de plan : appeler
+  `computePlan` et lire `plan.clamp`. Ne pas remettre le champ.
+  *(Coût one-shot du retrait, symétrique à celui de l'ajout : ~18 % des comptes voient
+  leur profil réécrit une fois à la première ouverture. La ligne poussée est identique,
+  `clamp` n'ayant jamais été dans `PROFILE_COLS`.)*
   Livré le 2026-07-31 à la demande du fondateur (champ additif, `recalcProfile`
   garde sa signature). L'écran Profil appelle déjà `computePlan`, donc il lit
   `plan.clamp` et non `profile.clamp` : le champ stocké attend son premier

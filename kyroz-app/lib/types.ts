@@ -195,38 +195,6 @@ export type FloorSource =
   | 'underweight_maintenance'; // IMC < 18,5 → plan ramené à la maintenance
 
 /**
- * Pourquoi la cible servie n'est pas celle qui était demandée — STOCKÉE sur le
- * profil, donc lisible par n'importe quel écran sans rejouer le calcul.
- *
- * ⚠️ DÉRIVÉE, jamais saisie : `computePlan` la réécrit à chaque recalcul, au même
- * titre que `target_kcal`. Elle n'est donc PAS synchronisée (absente de
- * `PROFILE_COLS`) — la resynchroniser serait pousser en base une valeur que le
- * moteur reconstruit de toute façon à la première ouverture, et qui deviendrait
- * fausse si un autre appareil recalcule avec un corps différent.
- *
- * `undefined` = le plancher ne contraint pas la cible. Présent ⟺ `FLOOR_APPLIED` :
- * un seul prédicat pour une seule question, sinon un écran finit par contredire un
- * drapeau. L'absence porte donc du sens — ne pas la remplacer par un objet à zéro.
- */
-export interface ClampInfo {
-  /** Le plancher qui a gagné — c'est LUI qu'un écran doit nommer. */
-  source: FloorSource;
-  /** Sa valeur, c'est-à-dire la cible servie quand il contraint. */
-  floorKcal: number;
-  /** Ce que l'objectif demandait avant plancher. */
-  requestedKcal: number;
-  /** Ce qui est réellement servi. */
-  servedKcal: number;
-  /**
-   * De combien la cible a été REMONTÉE à ce calcul-ci. Peut valoir 0 alors que le
-   * plancher contraint : en mode `manual` la correction est persistée dans les
-   * grammes, donc la demande finit par valoir exactement le plancher. Un écran qui
-   * conditionnerait son affichage à ce nombre deviendrait muet sur ces comptes-là.
-   */
-  clampedByKcal: number;
-}
-
-/**
  * Registre d'exposition à l'énergie disponible basse (cf. lib/safety.ts).
  *
  * `since` est ce qui rend le compteur honnête : le plan servi reste EN VIGUEUR
@@ -382,15 +350,16 @@ export interface UserProfile {
   // l'a lu — synchronisé, donc lu une seule fois tous appareils confondus.
   engine_notice?: EngineNotice;
 
-  // ── Trace du plancher ─────────────────────────────────────────────────────
-  // Pourquoi `target_kcal` n'est pas la cible demandée. Le moteur servait 2112
-  // pour une demande à 1994 sans laisser la moindre trace : `FLOOR_APPLIED` dit
-  // QU'un plancher mord, jamais LEQUEL ni DE COMBIEN — impossible d'écrire un
-  // message juste avec ça (un écran qui parle de « masse maigre » ment quand
-  // c'est le filet absolu qui a mordu).
-  // DÉRIVÉE et LOCAL-ONLY : réécrite à chaque `computePlan`, absente de
-  // `PROFILE_COLS`. `undefined` = rien n'a mordu.
-  clamp?: ClampInfo;
+  // ⚠️ **`clamp` a été RETIRÉ du profil le 2026-08-04 (A8) — ne pas le remettre.**
+  // Le champ portait la trace du plancher (lequel a mordu, de combien). Il a vécu
+  // du 2026-07-31 au 2026-08-04 **sans jamais trouver un seul lecteur** : l'écran
+  // qui affiche cette information (`profil.tsx`) lit `plan.clamp`, produit par
+  // `computePlan`, et `ClampRecord` est un SUR-ensemble de ce qui était stocké.
+  // Le motif du retrait n'est pas l'encombrement, c'est la DIVERGENCE : une copie
+  // figée au dernier `recalcProfile` à côté d'une valeur recalculée est une seconde
+  // source de vérité qui attend son bug — et recalculer coûte 0,11 ms.
+  // ➡️ Si un écran a un jour besoin de cette trace SANS calculer de plan, appeler
+  // `computePlan` et lire `plan.clamp`. Cf. AGENTS.md A8.
 }
 
 export interface Ingredient {
