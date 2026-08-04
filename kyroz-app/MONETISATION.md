@@ -85,7 +85,8 @@ core tuerait le North Star — donc interdit.
 > **▶ La valeur premium est construite ET le paiement est câblé (2026-08-02). Il reste des étapes de COMPTES, un build natif et une revue — plus une ligne de code.**
 > Ordre respecté : (1) valeur tranchée → (2) construite ✅ → (3) paywall = ce chantier.
 > Canal **TRANCHÉ** : achat in-app **Apple App Store (IAP) + Google Play (Billing)** via
-> **RevenueCat** (pas de Stripe seul — refusé par les stores). Bosser sur `feature/paywall`.
+> **RevenueCat** (pas de Stripe seul — refusé par les stores). ~~Bosser sur `feature/paywall`~~ — le
+> câblage est LIVRÉ et mergé (2026-08-02), il n'y a plus de branche à ouvrir.
 > ⚠️ **Revalider la doc RevenueCat/Apple à jour au moment du câblage** (les exigences bougent) —
 > ce plan donne la trame, pas les appels d'API figés.
 

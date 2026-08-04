@@ -1,6 +1,29 @@
 # Politique de confidentialité — Kyroz
 
-**Dernière mise à jour : [JJ/MM/AAAA]**
+**Dernière mise à jour : 2 août 2026**
+
+> 🔴 **CE DOCUMENT N'EST PAS CELUI QUE L'APP AFFICHE, et les deux ont divergé.**
+> Le texte servi aux utilisateurs vit dans `kyroz-app/constants/legal.ts`
+> (`PRIVACY_POLICY`), rendu par l'écran `/legal`. Celui-ci est la version destinée à
+> une page **publique** (URL exigée par les stores). Comparés le 2026-08-05 :
+>
+> | | app (`constants/legal.ts`) | ce document |
+> |---|---|---|
+> | sections | **11** | **10** |
+> | **§ Mineurs** | ✅ « réservé aux 18 ans et plus, aucun compte en deçà » | ❌ **absente** |
+> | hébergement | § dédié (6) | fondu dans le § 5 |
+> | contact | dans le § 1 | § 10 dédié |
+> | date | `LEGAL.effectiveDate` = **2 août 2026** | était le gabarit `[JJ/MM/AAAA]` |
+>
+> ⚠️ **L'absence du § Mineurs est la divergence qui compte** : le blocage des moins de
+> 18 ans est un garde-fou DUR du produit (CLAUDE.md §6, `lib/safety.ts::MIN_AGE`), et
+> Apple comme le RGPD regardent ce point. Une page publique qui ne le dit pas promet
+> autre chose que ce que l'app fait.
+>
+> 🧑 **Décision fondateur attendue** : soit ce fichier devient une simple copie générée
+> depuis `constants/legal.ts` (une seule source, plus de dérive possible), soit il est
+> aligné à la main — mais alors quelqu'un devra le refaire à chaque changement. Je n'ai
+> pas réécrit un texte juridique de ma propre initiative ; j'ai daté et mesuré l'écart.
 
 La présente politique de confidentialité décrit comment l'application **Kyroz** (« l'Application ») collecte, utilise et protège tes données personnelles, conformément au Règlement Général sur la Protection des Données (RGPD — Règlement UE 2016/679).
 

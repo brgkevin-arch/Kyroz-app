@@ -2,7 +2,12 @@
 
 App mobile (React Native / Expo Router) de plans repas macro-précis pour pratiquant de sport. Le cœur (génération de plan 7 jours, recettes, liste de courses) tourne 100 % en local, sans clé API.
 
-iPhone **et iPad** (portrait). La mise en page tablette passe par `useLayout()` — cf. `kyroz-app/CLAUDE.md` §8.
+iPhone **et iPad**. La mise en page tablette passe par `useLayout()` — cf. `kyroz-app/CLAUDE.md` §8.
+
+> ⚠️ L'iPhone est en portrait, **pas l'iPad** : `orientation: "portrait"` dans `app.json` ne
+> s'applique qu'au téléphone. Dès `supportsTablet: true`, Expo écrit les quatre orientations
+> pour l'iPad, parce que le multitâche iPadOS l'exige — vérifié sur le manifeste généré, pas
+> sur la config. Apple teste donc l'app **en paysage** sur iPad.
 
 ## 🧪 Tester l'app (pour un testeur)
 

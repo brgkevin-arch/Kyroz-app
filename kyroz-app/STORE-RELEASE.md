@@ -18,7 +18,7 @@
 | URL politique de confidentialité (HTTP 200) | ✅ en ligne |
 | Textes de fiche (FR), réponses confidentialité, classification | ✅ ci-dessous (§3–6) |
 | **Comptes développeur Apple + Google** | ⛔ **toi** (§1) |
-| Screenshots (iPhone + iPad 13") + feature graphic | 🔴 **À REGÉNÉRER** — celles sur disque datent du **30 juillet**, donc d'AVANT la refonte design du 2026-08-03 (§7) |
+| Screenshots (iPhone + iPad 13") + feature graphic | 🔴 **À REGÉNÉRER** — les 6 PNG sur disque datent du **30 juillet 21:59**, donc d'avant les **trois** passes de refonte (2026-08-03 et 04) ; `test/store-ipad/` est **vide** (§7) |
 | Accès reviewer (code) | ✅ code — toi : poser le secret au build (§9) |
 | **Lancer le build EAS** | ⛔ **toi** (§8) |
 
@@ -249,11 +249,16 @@ verrouillé par deux tests (`lib/__tests__/premium.test.ts`, `purchases.test.ts`
 >   ci-dessus. Le rendu téléphone est inchangé, un test l'exige.
 > - **Captures iPad 13"** : `npm run store:assets:ipad` → `test/store-ipad/`, **2048×2732**.
 
-> 🔴 **LES CAPTURES SUR DISQUE SONT PÉRIMÉES — mesuré le 2026-08-03.** La refonte
-> design a changé les cinq écrans ET les icônes d'onglets ; les PNG présents dans
-> `test/store/` datent du **30 juillet 21:59**, soit d'avant. Les uploader publierait
-> une interface qui n'existe plus — c'est exactement le genre d'écart qu'une fiche de
-> store fige pour des semaines.
+> 🔴 **LES CAPTURES SUR DISQUE SONT PÉRIMÉES — re-mesuré le 2026-08-05.** `test/store/`
+> contient **6 PNG datés du 30 juillet 21:59**, et l'interface a changé **trois fois**
+> depuis : refonte des 5 écrans + icônes d'onglets (2026-08-03), passe des rayons et de
+> l'échelle typo sur tout le reste (2026-08-03), repli du grand titre sur les 5 onglets
+> (2026-08-04). Les uploader publierait une interface qui n'existe plus — c'est exactement
+> le genre d'écart qu'une fiche de store fige pour des semaines.
+> ⚠️ **Le compte de passes se périme lui aussi** : ne pas relire cette ligne comme une
+> vérité, relancer la mesure. `ls -lt kyroz-app/test/store/*.png | head -1` donne la date
+> réelle, et `git log --oneline --since=<cette date> -- kyroz-app/app kyroz-app/components`
+> dit ce qui a bougé depuis.
 > Vérifié aussi : **`test/store-ipad/` ne contient AUCUN png** aujourd'hui (juste son
 > `README.txt`). Les deux dossiers étant gitignorés (`test/store*/**.png`), leur absence
 > ne prouve pas qu'ils n'ont jamais existé — mais elle prouve qu'il n'y a rien à
