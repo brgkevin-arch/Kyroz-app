@@ -30,7 +30,6 @@
   "devDependencies": {
     "@playwright/test": "^1.60.0",
     "@types/react": "~19.2.2",
-    "gh-pages": "^6.3.0",
     "typescript": "~6.0.3",
     "vitest": "^4.1.8"
   },
@@ -41,8 +40,8 @@
     "web": "expo start --web",
     "test": "vitest run",
     "test:watch": "vitest",
-    "predeploy": "npx expo export -p web",
-    "deploy": "gh-pages -d dist",
+    "deploy": "node scripts/deploy-info.mjs",
+    "build:web": "npx expo export -p web",
     "qa:walkthrough": "node test/walkthrough.mjs",
     "qa:full": "node test/qa-full.mjs",
     "qa:deep": "node test/qa-deep.mjs",

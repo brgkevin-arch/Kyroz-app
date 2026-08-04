@@ -44,7 +44,7 @@ import { useRecipeOverrides } from '../../hooks/useRecipeOverrides';
 import { loadPantry, savePantry, deductIngredients, recipeCoverage, PantryItem } from '../../lib/pantry';
 import { loadFirstName } from '../../lib/profileName';
 import { capture, Events } from '../../lib/analytics';
-import { Macros, Meal, MealPlan, MealStatus, Recipe } from '../../lib/types';
+import { DayExtra, Macros, Meal, MealPlan, MealStatus, Recipe } from '../../lib/types';
 
 const PLAN_KEY = '@kyroz:plan';
 const LIST_KEY = '@kyroz:shopping';
@@ -418,9 +418,11 @@ export default function PlanScreen() {
   // « J'ai mangé hors plan » : on ENREGISTRE l'écart (compté à part dans le total)
   // SANS toucher au plan, puis on PROPOSE de réadapter (Oui/Non). Avant, ça recalait
   // tout seul — désormais on demande d'abord (le plan ne change que sur accord).
-  const logOffPlan = async (kcal: number) => {
+  const logOffPlan = async (kcal: number, label?: string) => {
     if (!plan || !profile) return;
-    const extra: Macros = { kcal, protein_g: 0, carbs_g: 0, fat_g: 0 };
+    // `label` = ce que c'était (E6). Étalé conditionnellement : une clé absente dit
+    // « on ne sait pas », une chaîne vide dirait « ça s'appelle rien ».
+    const extra: DayExtra = { kcal, protein_g: 0, carbs_g: 0, fat_g: 0, ...(label ? { label } : {}) };
     const day_extras = { ...(plan.day_extras ?? {}), [selectedDay]: extra };
     const updated: MealPlan = {
       ...plan,
@@ -514,6 +516,7 @@ export default function PlanScreen() {
   const dayFiber = dayMeals.reduce((s, m) => (m.status === 'skipped' ? s : s + mealFiberFromIngredients(mealIngredients(m))), 0);
   const fiberTarget = profile ? dailyFiberTarget(profile) : 0;
   const dayExtraKcal = plan?.day_extras?.[selectedDay]?.kcal ?? 0;
+  const dayExtraLabel = plan?.day_extras?.[selectedDay]?.label;
   // Déjà consommé aujourd'hui (repas mangés verrouillés + écarts hors-plan) → « restant ».
   const consumedDayKcal = (plan?.meals ?? [])
     .filter((m) => m.day === selectedDay && m.status === 'eaten')
@@ -699,6 +702,9 @@ export default function PlanScreen() {
                     <Text style={{ color: t.textSecondary, fontSize: 13 }}>
                       {(dayMacros.kcal - dayExtraKcal).toLocaleString('fr-FR')} plan
                       <Text style={{ color: t.text, fontWeight: '700' }}>{` + ${dayExtraKcal} kcal assumées 😎`}</Text>
+                      {/* CE QUE C'ÉTAIT (E6) : deux jours plus tard, « +450 kcal » ne
+                          dit plus rien. Ton inchangé — on nomme, on ne reproche pas. */}
+                      {dayExtraLabel ? <Text style={{ color: t.textTertiary }}>{` · ${dayExtraLabel}`}</Text> : null}
                     </Text>
                     <TouchableOpacity onPress={clearOffPlan} hitSlop={8}>
                       <Text style={{ color: t.textTertiary, fontSize: 13, fontWeight: '700' }}>Retirer</Text>

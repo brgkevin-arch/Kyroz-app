@@ -973,9 +973,15 @@ describe('trace du clamp — quel plancher a gagné, et de combien (2026-07-31)'
   });
 });
 
-describe('UserProfile.clamp — la trace stockée sur le profil (2026-07-31)', () => {
-  // ⚠️ Gabarit changé le 2026-07-31 : après le relèvement NEAT, le profil qui avait
-  // fait naître ce champ n'est plus retenu par le plancher. Celui-ci l'est encore.
+describe('UserProfile.clamp — RETIRÉ du profil (A8, 2026-08-04)', () => {
+  // Le champ portait la trace du plancher SUR LE PROFIL, du 2026-07-31 au 2026-08-04.
+  // Il n'a jamais trouvé un seul lecteur : l'écran qui affiche cette information lit
+  // `plan.clamp` (`ComputedPlan`), un SUR-ensemble recalculé à chaque appel.
+  //
+  // ⚠️ Ces tests exigent désormais l'INVERSE de ce qu'ils exigeaient. Le motif du
+  // retrait n'est pas l'encombrement mais la DIVERGENCE : une copie figée au dernier
+  // `recalcProfile`, posée à côté d'une valeur recalculée, est une seconde source de
+  // vérité qui attend son bug — et recalculer coûte 0,11 ms.
   const corps = {
     age: 30, weight_kg: 42, height_cm: 150, body_fat_pct: 8,
     goal: 'cut_aggressive' as const, macro_mode: 'auto' as const, neat_level: 'desk' as const,
@@ -983,40 +989,45 @@ describe('UserProfile.clamp — la trace stockée sur le profil (2026-07-31)', (
     sports: [{ type: 'course' as const, sessions_per_week: 7, minutes_per_session: 60 }],
   };
 
-  it('est déposée sur le profil, allégée, et cohérente avec la cible servie', () => {
+  it('n est PLUS déposée, même quand le plancher mord fort', () => {
     const p = recalcProfile(makeProfile({ ...corps, sex: 'male' }), TODAY);
-    expect(p.clamp).toBeDefined();
-    expect(p.clamp!.source).toBe('energy_availability');
-    expect(p.clamp!.servedKcal).toBe(p.target_kcal);
-    expect(p.clamp!.floorKcal).toBe(p.clamp!.servedKcal);
-    expect(p.clamp!.clampedByKcal).toBe(p.clamp!.servedKcal - p.clamp!.requestedKcal);
-    // Allégée : les candidats perdants restent sur ComputedPlan, pas sur le profil.
-    expect(p.clamp).not.toHaveProperty('candidates');
+    // Le plancher contraint bel et bien ce gabarit — c'est le cas qui faisait naître
+    // le champ. Sans cette assertion, le test passerait aussi sur un profil libre et
+    // ne prouverait rien.
+    expect(computePlan(makeProfile({ ...corps, sex: 'male' }), TODAY)!.flags).toContain('FLOOR_APPLIED');
+    expect('clamp' in p).toBe(false);
+    expect(JSON.stringify(p)).not.toContain('"clamp"');
   });
 
-  it('ABSENTE quand la demande est servie — l\'absence porte le sens', () => {
-    const p = recalcProfile(makeProfile({ ...corps, sex: 'male', goal: 'maintain' }), TODAY);
-    expect(p.clamp).toBeUndefined();
-    expect('clamp' in p).toBe(false);   // la clé est RETIRÉE, pas mise à undefined
+  it('MIGRATION : une trace déjà STOCKÉE est nettoyée au premier recalcul', () => {
+    // Les comptes créés entre le 2026-07-31 et le 2026-08-04 en portent une copie dans
+    // AsyncStorage. Sans nettoyage elle y resterait pour toujours, figée au calcul qui
+    // l'a produite, prête à être relue un jour comme si elle était fraîche.
+    const ancien = {
+      ...makeProfile({ ...corps, sex: 'male' }),
+      clamp: { source: 'energy_availability', floorKcal: 1, requestedKcal: 1, servedKcal: 1, clampedByKcal: 0 },
+    } as any;
+    const p = recalcProfile(ancien, TODAY);
+    expect('clamp' in p).toBe(false);
+    // `JSON.stringify` élide les `undefined` : mettre la clé à `undefined` ne suffirait
+    // pas, la comparaison anti-réécriture de `useProfile` ne verrait aucun changement
+    // à persister et la valeur périmée survivrait au redémarrage.
+    expect(JSON.stringify(p)).not.toContain('"clamp"');
   });
 
-  it('RÉGRESSION : une trace périmée ne survit pas à la sortie du plancher', () => {
-    // Le piège : `{ ...p }` reconduit `clamp` quand plus rien ne mord. L'écran
-    // afficherait alors « ta cible est ton plancher » sur un plan non contraint.
-    const contraint = recalcProfile(makeProfile({ ...corps, sex: 'male' }), TODAY);
-    expect(contraint.clamp).toBeDefined();
-    // Le même profil repasse en maintien : plus aucun plancher ne mord.
-    const libere = recalcProfile({ ...contraint, goal: 'maintain' }, TODAY);
-    expect(libere.clamp).toBeUndefined();
-    expect('clamp' in libere).toBe(false);
-    // …et JSON.stringify ne doit plus voir la clé (c'est ce que compare useProfile).
-    expect(JSON.stringify(libere)).not.toContain('"clamp"');
+  it('la trace RECALCULÉE, elle, reste disponible sur le plan', () => {
+    // Ce que le retrait ne coûte pas : l'information existe toujours, plus riche
+    // (candidats de diagnostic compris), là où l'écran la lit déjà.
+    const plan = computePlan(makeProfile({ ...corps, sex: 'male' }), TODAY)!;
+    expect(plan.clamp.floorBinding).toBe(true);
+    expect(plan.clamp.source).toBe('energy_availability');
+    expect(plan.clamp.servedKcal).toBe(plan.profile.target_kcal);
+    expect(plan.clamp).toHaveProperty('candidates');
   });
 
   it('est IDEMPOTENTE : recalculer deux fois ne change rien', () => {
     const un = recalcProfile(makeProfile({ ...corps, sex: 'male' }), TODAY);
     const deux = recalcProfile(un, TODAY);
-    expect(JSON.stringify(deux.clamp)).toBe(JSON.stringify(un.clamp));
     expect(JSON.stringify(deux)).toBe(JSON.stringify(un));   // aucune boucle d'écriture
   });
 });
@@ -1056,7 +1067,6 @@ describe('RÉGRESSION — état vs transition : le mode manual (revue adverse 20
       // …et le plancher reste NOMMÉ, sinon l'écran tomberait dans sa branche par
       // défaut et annoncerait le mauvais plancher (mensonge, pas imprécision).
       expect(r.clamp.source).toBe('energy_availability');
-      expect(r.profile.clamp?.source).toBe('energy_availability');
     }
   });
 
@@ -1072,7 +1082,11 @@ describe('RÉGRESSION — état vs transition : le mode manual (revue adverse 20
     }
   });
 
-  it('INVARIANT : la trace stockée est présente exactement quand FLOOR_APPLIED', () => {
+  it('INVARIANT : `clamp.floorBinding` vaut exactement FLOOR_APPLIED', () => {
+    // ⚠️ Cet invariant portait sur `profile.clamp`, retiré en A8 (2026-08-04). Il n'est
+    // PAS supprimé avec lui : ce qu'il protège — un seul prédicat pour une seule
+    // question, pour que l'écran ne puisse pas contredire le drapeau — reste vrai, et
+    // s'exerce désormais sur le porteur qui a survécu, `plan.clamp`.
     const cas = [
       { sex: 'female' as const, weight_kg: 80, height_cm: 170, body_fat_pct: 20, goal: 'cut' as const },
       { sex: 'male' as const, weight_kg: 80, height_cm: 178, body_fat_pct: 20, goal: 'maintain' as const },
@@ -1082,8 +1096,10 @@ describe('RÉGRESSION — état vs transition : le mode manual (revue adverse 20
     ];
     for (const c of cas) {
       const r = computePlan(makeProfile({ age: 35, macro_mode: 'auto', training_days_per_week: 0, sports: [], ...c }), TODAY);
-      expect(!!r.profile.clamp, JSON.stringify(c)).toBe(r.flags.includes('FLOOR_APPLIED'));
-      if (r.profile.clamp) expect(r.profile.clamp.servedKcal).toBe(r.profile.target_kcal);
+      expect(r.clamp.floorBinding, JSON.stringify(c)).toBe(r.flags.includes('FLOOR_APPLIED'));
+      if (r.clamp.floorBinding) expect(r.clamp.servedKcal).toBe(r.profile.target_kcal);
+      // Et le champ retiré ne revient par aucune porte.
+      expect('clamp' in r.profile, JSON.stringify(c)).toBe(false);
     }
   });
 });

@@ -16,8 +16,8 @@ listes contradictoires.
 
 ## Carte des docs — lire ceci d'abord (rangé le 2026-07-30)
 
-**Les 11 docs VIVANTS, et rien d'autre** (recompté le 2026-07-30 : la carte en annonçait
-6, en listait 8 et en oubliait 4) :
+**Les 12 docs VIVANTS, et rien d'autre** (recomptés le 2026-07-30 : la carte en annonçait
+6, en listait 8 et en oubliait 4 — `TESTFLIGHT.md` ajouté le 2026-08-03) :
 
 *Ce qui pilote le travail — à lire d'abord*
 
@@ -41,6 +41,7 @@ listes contradictoires.
 | Doc | À quoi il sert |
 |---|---|
 | `STORE-RELEASE.md` | Playbook de sortie stores — **en cours** ; reste ce qui demande identité / argent / device. |
+| `TESTFLIGHT.md` | **Distribution iOS aux testeurs** (2026-08-03) — repères fixes (app id, team id, **quel Apple ID est l'identifiant de connexion**), état, commandes que je peux lancer seul depuis la clé API. Les deux pièges qui ont coûté du temps y sont : l'ad hoc échoue **en silence** depuis un navigateur intégré, et l'accès relecteur dépend de l'auth anonyme Supabase. |
 | `RGPD-REGISTRE.md` | Registre de traitement. |
 | `supabase/RUNBOOK-PROD.md` | Étapes Supabase **non faisables depuis le dépôt** (accès projet requis). |
 | `../docs/politique-confidentialite-kyroz.md` | Politique de confidentialité **publique**. ⚠️ Sa date de mise à jour est encore le gabarit `[JJ/MM/AAAA]`. |
@@ -70,7 +71,7 @@ qu'ils étaient périmés.
 | Échéances proposées | **dérivées du corps** (A27) — **40/40 tenables** et **40/40 servant un plan distinct**, contre **9/40** et **14/40** avec les 5 durées figées | `npm run mesure:objectif` |
 | Tests | **991 verts**, 59 fichiers · `tsc` propre | `npm test && npx tsc --noEmit` |
 | Plateformes | iPhone **+ iPad** (`supportsTablet: true` depuis le 2026-08-01). ⚠️ **portrait sur iPhone, MAIS les 4 orientations sur iPad** — Expo les force dès `supportsTablet`, le multitâche iPadOS l'impose, ce n'est pas refermable. Vérifié en natif (iPad Pro 13") et à 1366×1024 | `ios/Kyroz/Info.plist` généré, PAS `app.json` · `lib/layout.ts` |
-| Sortie stores | iOS **1.0.0 (3)** envoyé à TestFlight, **revue bêta en cours** depuis le 2026-08-03 00h58 · Android : 2 builds, rien de soumis | `npx eas-cli build:list` · `TESTFLIGHT.md` |
+| Sortie stores | iOS **1.0.0 (3)** en TestFlight, **revue bêta APPROUVÉE le 2026-08-03** — donc acquise : builds et testeurs suivants passent sans repasser par Apple. 2 testeurs `INSTALLED` (1 interne, 1 externe) · Android : 2 builds, rien de soumis | `npx eas-cli build:list` · `TESTFLIGHT.md` |
 | Kyroz+ | **encaissement armé, verrou inerte.** Clé RevenueCat posée dans EAS et vérifiée dans le bundle ; `PAYWALL_LAUNCH` = `null`, donc **tout est gratuit pour tout le monde**. ⚠️ Le build TestFlight actuel est ANTÉRIEUR à la clé | `lib/premium.ts` · `npx eas-cli env:list production` |
 | Clés du build/OTA | **une seule source : les variables EAS.** `eas.json` ne porte plus aucune clé, chaque profil déclare son `environment`. ⚠️ **`eas update --clear-cache`** — le cache Metro ignore un changement de valeur `EXPO_PUBLIC_*` | `npx eas-cli config --profile production --platform ios` · `lib/__tests__/easEnv.test.ts` |
 | Site déployé | **automatique** : GitHub Actions à chaque push `main` (`build_type: workflow`). ⚠️ **NE PAS lire `origin/gh-pages`** — branche morte, cf. A12 | `gh run list --workflow=deploy.yml` |
@@ -635,7 +636,41 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
   ⚠️ Toute option retenue déplace la cible de TOUS les comptes sédentaires →
   incrémenter `ENGINE_REV` et prévoir l'avertissement one-shot.
 
-- **A8 · 🧑 À TRANCHER — `UserProfile.clamp` n'a pas encore de lecteur.**
+- ~~**A8 · `UserProfile.clamp` n'a jamais trouvé de lecteur**~~
+  ✅ **TRANCHÉ ET RETIRÉ le 2026-08-04** (fondateur : « retire le champ »).
+  Le champ a vécu du 2026-07-31 au 2026-08-04 **sans qu'une seule ligne ne le lise** :
+  l'écran qui affiche cette information (`profil.tsx`) lit `plan.clamp`, produit par
+  `computePlan`. Retiré de `types.ts`, `tdee.ts`, et le type `ClampInfo` avec lui —
+  il devenait mort. `FloorSource`, lui, RESTE dans `types.ts` : il y était descendu
+  pour ce champ, mais il a depuis deux autres porteurs (`ClampRecord`, `safety.ts`).
+
+  **Le motif n'est pas l'encombrement, c'est la DIVERGENCE.** `ClampInfo` (stocké) était
+  un SOUS-ensemble de `ClampRecord` (calculé) : mêmes cinq valeurs, moins `floorBinding`
+  et les candidats de diagnostic. On gardait donc une copie *appauvrie* et *figée au
+  dernier `recalcProfile`* à côté d'une valeur recalculée — une seconde source de vérité
+  qui attend son bug. Ce n'est pas théorique : la même semaine, deux compteurs de tests
+  d'`AGENTS.md` se sont contredits, et le couloir de progression se dessinait sur la
+  saisie au lieu du servi (A15-bis). L'argument « c'est plus rapide que recalculer » ne
+  tenait pas non plus : `computePlan` coûte **0,11 ms**.
+
+  ⚠️ **Le NETTOYAGE doit survivre au champ, et c'est le vrai piège de ce retrait.** Les
+  comptes créés entre les deux dates en portent une copie dans AsyncStorage. Cesser de
+  l'écrire ne l'efface pas : sans la ligne qui la retire, elle y resterait pour toujours,
+  figée, prête à être relue un jour comme si elle était fraîche. Et la mettre à
+  `undefined` ne suffirait pas — `JSON.stringify` l'élide, donc la comparaison
+  anti-réécriture de `useProfile` ne verrait rien à persister.
+  ➡️ Garde-fou `safety.test.ts` → « MIGRATION : une trace déjà STOCKÉE est nettoyée ».
+  **Vérifié par mutation** : retirer le nettoyage fait rougir ce test, et lui seul.
+
+  ℹ️ L'invariant « la trace est présente exactement quand `FLOOR_APPLIED` » n'a PAS été
+  supprimé avec le champ : ce qu'il protège — un seul prédicat pour une seule question,
+  pour que l'écran ne puisse pas contredire le drapeau — reste vrai. Il a changé de
+  porteur, il s'exerce sur `plan.clamp`.
+  ➡️ Si un écran a un jour besoin de cette trace SANS calculer de plan : appeler
+  `computePlan` et lire `plan.clamp`. Ne pas remettre le champ.
+  *(Coût one-shot du retrait, symétrique à celui de l'ajout : ~18 % des comptes voient
+  leur profil réécrit une fois à la première ouverture. La ligne poussée est identique,
+  `clamp` n'ayant jamais été dans `PROFILE_COLS`.)*
   Livré le 2026-07-31 à la demande du fondateur (champ additif, `recalcProfile`
   garde sa signature). L'écran Profil appelle déjà `computePlan`, donc il lit
   `plan.clamp` et non `profile.clamp` : le champ stocké attend son premier
@@ -1587,7 +1622,8 @@ produit en suspens — il ne reste qu'à coder.
      offerings. RevenueCat les recommande ; ici c'est une couche de plus à maintenir pour
      zéro bénéfice. À rouvrir seulement si un jour on veut changer l'offre à distance.
 
-     🧑 **Reste à confirmer** : la clé publique **`appl_…`** (Project settings → API keys).
+     ✅ **Clé publique confirmée le 2026-08-03** : `appl_xBxmQspWhyarHqyIZeQgBpUBLlF`
+     (Project settings → API keys), posée dans EAS et **retrouvée dans le bundle exporté**.
   3. ✅ **CLÉ POSÉE le 2026-08-03** — `EXPO_PUBLIC_REVENUECAT_IOS_KEY` en variable
      d'environnement EAS sur `production` (`npx eas-cli env:create`, `--visibility
      plaintext` : le préfixe `EXPO_PUBLIC_` inline la valeur en clair dans le binaire
@@ -1599,16 +1635,21 @@ produit en suspens — il ne reste qu'à coder.
      `eas update` enverrait.
      ⚠️ **Pas la clé secrète du dashboard** — elle ne doit jamais entrer dans un
      bundle client. Inutile de la poser sur le build web : il n'encaisse pas.
-     ⏸️ `preview` et `.env.local` : pas posées, pas nécessaires au chemin OTA.
+     ⏸️ **La clé RevenueCat n'est que sur `production`** — mesuré : `eas env:list preview`
+     ne rend que les deux clés Supabase. Un build `preview`/`device` n'encaisse donc pas.
+     C'est volontaire tant que le seul chemin testé est TestFlight, mais à savoir avant de
+     conclure « le SDK ne marche pas » sur un build interne.
      `_ANDROID_KEY` : sans objet tant qu'il n'y a pas d'app Android.
 
-     🔴 **CE QUE CETTE VÉRIFICATION A TROUVÉ — un OTA peut BRIQUER l'app en silence.**
-     `eas env:list production` ne contient que **deux** variables : la clé RevenueCat
-     et `EXPO_PUBLIC_REVIEW_CODE`. **Les clés Supabase n'y sont PAS** — elles vivent
+     🔴 **CE QUE CETTE VÉRIFICATION A TROUVÉ — un OTA POUVAIT briquer l'app en silence.**
+     *(Diagnostic du 2026-08-03 au matin. **Corrigé le jour même** — le paragraphe est
+     conservé au passé parce que le mécanisme, lui, resservira.)*
+     `eas env:list production` ne contenait que **deux** variables : la clé RevenueCat
+     et `EXPO_PUBLIC_REVIEW_CODE`. **Les clés Supabase n'y étaient PAS** — elles vivaient
      dans le bloc `env` de chaque profil de `eas.json`, que **`eas build` lit et que
      `eas update` NE LIT PAS**.
      ➡️ Conséquence : un `eas update` lancé depuis un clone frais, un CI, ou toute
-     machine sans `.env.local` publierait un bundle **sans URL Supabase**. L'app ne
+     machine sans `.env.local` aurait publié un bundle **sans URL Supabase**. L'app ne
      démarre pas sans, et la mise à jour atteint tous les testeurs en quelques minutes,
      **sans revue de store pour l'arrêter**.
      ⚠️ **La première mesure ne prouvait rien** : elle avait été faite depuis le worktree,
@@ -1895,9 +1936,10 @@ produit en suspens — il ne reste qu'à coder.
     0 pour `EXPO_PUBLIC_REVIEW_CODE` comme pour `EXPO_PUBLIC_REVENUECAT_IOS_KEY`, alors
     que l'une est posée et l'autre pas. Babel retire le nom dans les deux cas. Ce sont
     les VALEURS qui se cherchent, jamais les noms.
-    ⏸️ **Revue bêta `WAITING_FOR_REVIEW`** depuis le 2026-08-03 00h58. Détail complet de
-    la procédure, des identifiants et des groupes de testeurs : **`TESTFLIGHT.md`**
-    (écrit par la session parallèle, branche `fix/soucis-terrain`).
+    ✅ **Revue bêta APPROUVÉE le 2026-08-03** (soumise à 00h58). Elle est désormais
+    **acquise** : les builds suivants et les nouveaux testeurs sont distribués sans
+    repasser par Apple. Détail de la procédure, des identifiants et des deux groupes
+    de testeurs : **`TESTFLIGHT.md`**.
     ⚡ iOS n'a PAS la règle des 12 testeurs → c'est le chemin le plus rapide pour être
     en ligne.
 
@@ -3095,7 +3137,27 @@ produit en suspens — il ne reste qu'à coder.
 
 ### 🧹 E — Dette technique
 
-- **E9 · 🧑 À TRANCHER — `npm run deploy` ne déploie rien, et le fait croire.**
+- ~~**E10 · `npm run deploy` ne déployait rien, et le faisait croire**~~
+  *(publiée le 2026-08-02 sous le numéro **E9**, déjà pris depuis le 2026-07-31 par
+  « un repas sauté peut laisser un trou muet » — renumérotée le 2026-08-04. Deuxième
+  collision d'identifiant en deux jours, après A26 : le contrôle de doublons doit
+  couvrir **tous** les préfixes, `E` compris, pas seulement A/B/C/D/P.)*
+  ✅ **TRANCHÉ ET CORRIGÉ le 2026-08-04** (fondateur : « dis la vérité »). Sortie (b)
+  retenue, plus une : `predeploy` devient **`build:web`** (l'export local reste utile,
+  cf. E1), la dépendance `gh-pages` est **retirée** (elle ne servait qu'au script mort),
+  et `deploy` devient `scripts/deploy-info.mjs` — qui explique le vrai chemin, imprime
+  les trois derniers déploiements RÉELS (`gh run list`), et **sort en code 1**.
+  ⚠️ **Le code de retour n'est pas cosmétique** : le piège d'origine était un script qui
+  RÉUSSISSAIT sans rien faire. Supprimer l'entrée aurait donné « Missing script: deploy »
+  — honnête, mais qui n'apprend rien à qui croyait déployer. Une sortie en erreur rend la
+  confusion impossible, pour un humain comme pour un script.
+  ✅ **Vérifié avant de couper**, comme la fiche l'exigeait : `gh api repos/:owner/:repo/pages`
+  rend `build_type: workflow` — Pages sert l'artefact du workflow, la branche n'est servie
+  nulle part. Aucun chemin de secours ne dépendait du script. *(Le dernier commit de
+  `origin/gh-pages`, daté du 2026-08-02, est la trace de la session qui a cru déployer.)*
+
+  <details><summary>Le constat d'origine</summary>
+
   `"deploy": "gh-pages -d dist"` pousse sur `origin/gh-pages`, **branche morte** depuis
   le passage à GitHub Actions : GitHub Pages sert l'artefact du workflow
   (`build_type: "workflow"`), pas cette branche. Le script s'exécute, affiche
@@ -3110,6 +3172,8 @@ produit en suspens — il ne reste qu'à coder.
   ⚠️ Vérifier avant de couper si un chemin de secours en dépend (publication manuelle si
   Actions tombe) — auquel cas c'est la CONFIGURATION Pages qu'il faudrait basculer, pas
   le script qu'il faudrait garder.
+
+  </details>
 
 - ~~**E1 · Trancher le sort de `lib/generatePlan.ts`**~~ ✅ **SUPPRIMÉ le 2026-07-31 —
   et il ne s'agissait pas de code mort inoffensif.** La reco disait « ~120 lignes
@@ -3220,8 +3284,37 @@ produit en suspens — il ne reste qu'à coder.
   et l'écran ne le cache plus) · journée à 1435 kcal → *« Ta journée s'arrête 677 kcal
   sous ta cible : les portions de tes repas ne peuvent pas monter plus haut. Une journée
   sous la cible ne compromet rien. »* Plan du fondateur restauré après vérification.
-- **E6 · 🤖 Hors-plan : seules les kcal sont enregistrées** (« +450 kcal », pas « une
-  pizza »). *Tracé le 2026-07-31 : le nom EXISTE au moment de la saisie et il est jeté.*
+- **E6 · 🧑 Hors-plan — ✅ LE LIBELLÉ EST GARDÉ (2026-08-04). Reste l'HISTORIQUE, qui
+  demande une décision.**
+
+  ✅ **Point 1 livré** : `OffPlanSheet` remonte `onLog(kcal, label?)`, le plan porte
+  `DayExtra = Macros & { label?: string }`, et la ligne du jour affiche
+  « + 234 kcal assumées 😎 **· Pizza (aliment moyen) · 100 g** ».
+  · Le libellé garde la QUANTITÉ en mode aliment : « Pizza » et « Pizza · 300 g » ne
+    racontent pas la même journée.
+  · Il est **absent** quand on tape un nombre à la main dans « estimer vite » — il n'y a
+    rien à nommer, et une chaîne vide serait un faux nom.
+  · Il **survit à une régénération** (`carryTracking`), comme le reste du suivi. Garde-fou
+    dans `carryTracking.test.ts`, **vérifié par mutation** : un report qui perd le libellé
+    fait rougir le test.
+  · Lecteur immédiat, donc **pas de champ orphelin** — la leçon d'A8, appliquée le jour
+    même où on l'a payée.
+  🔎 Vérifié à l'écran (pizza 100 g → 234 kcal), zéro erreur console, valeur persistée.
+
+  🧑 **Point 2 — L'HISTORIQUE DES ÉCARTS : à trancher, ce n'est pas de la dette.**
+  Le plan n'est ni synchronisé ni durable (`CLAUDE.md` §3 : déterministe, re-dérivable),
+  donc tout ce qui vit dedans est éphémère — le libellé compris. Un historique demande un
+  journal à part, et **deux formes possibles** :
+  · **local-only**, sur le modèle des photos de progression : une clé AsyncStorage, aucune
+    migration, mais l'historique meurt avec le téléphone ;
+  · **synchronisé**, sur le modèle de `weight_logs` : une table Supabase **et une migration
+    à jouer** — l'historique suit le compte.
+  ⚠️ Ne pas trancher ça dans un correctif : c'est une question de produit (« un écart
+  d'il y a trois mois, ça sert à quoi ? ») et la seconde branche ajoute une opération
+  manuelle côté base.
+
+  <details><summary>Le constat d'origine</summary>
+  *Tracé le 2026-07-31 : le nom EXISTE au moment de la saisie et il est jeté.*
   `OffPlanSheet` connaît `picked.name_fr` (mode « chercher un aliment ») ou le libellé
   du chip (mode « estimer vite »), mais sa prop est `onLog: (kcal: number) => void`.
   Le stockage est `plan.day_extras[jour]` = un simple `Macros`.
@@ -3235,7 +3328,48 @@ produit en suspens — il ne reste qu'à coder.
      demande un journal persistant à part, sur le modèle de `weight_logs`, donc une
      clé de stockage + probablement une table Supabase + une migration.
   ➡️ Faire le 1 ne « fait » pas E6. Le 2 est une petite feature, pas de la dette.
-- **E7 · 🤖 Deep links web → HTTP 404** (le rendu est bon, le statut est faux).
+  </details>
+- ~~**E7 · Deep links web → HTTP 404** (le rendu était bon, le statut était faux)~~
+  ✅ **CORRIGÉ le 2026-08-04.** `app.json > expo.web.output: "static"` — chaque route est
+  pré-rendue en HTML, donc GitHub Pages sert un fichier réel au lieu de retomber sur
+  `404.html`.
+
+  📊 **Mesuré sur l'ARTEFACT, pas sur l'intention.** Les deux exports ont été servis par
+  un serveur qui IMITE la résolution d'URL de Pages (`/foo` → `foo.html`, repli 404) :
+  `python3 -m http.server` ne la fait pas, et aurait rendu une mesure muette.
+
+  | | `/Kyroz-app/plan` | fichiers HTML | poids du site |
+  |---|---|---|---|
+  | avant (`single`) | **404 Not Found** | 3 | 8,9 Mo |
+  | après (`static`) | **200 OK** | 19 | 9,3 Mo |
+
+  ⚠️ **Le blocage annoncé par la fiche était RÉEL — c'était le client Supabase.** Le
+  pré-rendu s'exécute dans **Node** ; `createClient` ne se contente pas de construire, il
+  **démarre sa session** (`_emitInitialSession` → `__loadSession` → `getItem`), ce qui
+  atteint `window.localStorage`. Le build mourait sur `ReferenceError: window is not
+  defined` avant d'avoir rendu une seule route. Correctif : un **stockage muet** pendant
+  le pré-rendu, et lui seul.
+
+  🔴 **Le vrai danger n'était pas le build, c'était l'inverse.** Si un appareil RÉEL
+  tombait dans cette branche, il perdrait sa session à chaque démarrage, **en silence**.
+  Le prédicat teste donc `Platform.OS === 'web'` **en plus** de `window` : React Native
+  définit `window` aujourd'hui (alias de `global`), mais c'est un détail de runtime, pas
+  un contrat. `Platform.OS` exclut le natif par construction.
+  ⚠️ Ce cas ne peut se produire ni dans un navigateur ni dans vitest — **aucun test
+  d'intégration ne le verrait**. D'où un prédicat PUR dans `lib/prerender.ts`, fichier
+  **sans aucun import** (`lib/supabase.ts` tire `react-native-url-polyfill`, qui explose
+  sous vitest : un garde-fou qu'on ne peut pas tester n'est pas un garde-fou).
+  Garde-fou `supabaseStorage.test.ts`, **vérifié par mutation** : retirer la garde
+  `Platform` fait rougir « iOS et Android ne peuvent PAS y tomber ».
+
+  ℹ️ Le HTML pré-rendu reste un **shell vide** : l'app est derrière l'authentification, il
+  n'y a rien à indexer. Ce qui est corrigé est le **statut**, pas le contenu — c'était
+  l'objet de la fiche. `deploy.yml` garde son `cp dist/index.html dist/404.html` : le
+  repli sert désormais aux URL réellement inconnues, et lui seul rend un vrai 404.
+  ℹ️ Aucune route dynamique dans l'app (`app/**/[*]` est vide) : les 19 routes se
+  pré-rendent toutes, pas de `generateStaticParams` à écrire.
+
+  <details><summary>Le constat d'origine</summary>
   Mauvais SEO. Contournement en place. **Faible priorité.**
   *Cause identifiée le 2026-07-31* : `app.json > expo.web` ne contient qu'un `favicon`,
   donc `output` vaut son défaut **`"single"`** — une seule page, toutes les routes
@@ -3246,6 +3380,7 @@ produit en suspens — il ne reste qu'à coder.
   hors navigateur : tout module qui touche `localStorage`/AsyncStorage au chargement
   casse le build. À ne tenter que sur une branche, avec l'export vérifié route par
   route — pas la veille d'une sortie store.
+  </details>
 
 ### 🚫 F — Volontairement reporté : NE PAS RELANCER
 
