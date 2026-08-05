@@ -3778,12 +3778,24 @@ parcours n'y est jamais arrivé. Ajouté au harnais :
 - `bilanPannes()` en fin de script → **code de sortie non nul**, et les scripts s'arrêtent
   au lieu de dérouler une liste de « introuvable » qui vise les mauvais écrans.
 
+⚠️ **Le dernier chemin muet n'était pas un écran mais une ÉTAPE SANS VALIDATION.** Les
+étapes 5 (objectif) et 6 (préférences) sont les seules que `canProceed` laisse toujours
+passer : une preuve d'avancement ne prouve donc rien pour elles. Un sous-titre de
+`GOAL_SUB` devenu faux aurait fait passer le persona avec l'objectif par DÉFAUT (« cut »),
+et le rapport aurait rendu un plan complet, vert et plausible — pour un profil qu'on n'a
+pas demandé. `runOnboarding` compare désormais l'objectif **servi** (`@kyroz:profile`) à
+celui demandé. Vérifié par mutation : un libellé faussé rend « objectif demandé
+« maintain », objectif servi « cut » » au lieu de 12 repas verts.
+➡️ **Là où l'app ne valide rien, vérifier ce qui est SERVI, pas ce qui a été cliqué.**
+
 ⚠️ Le persona porte désormais `birth: { d, m, y }` et **plus de champ `age`** — il ne
 remplirait plus rien, et ce serait une seconde source de vérité (l'âge est dérivé de la
 date, `lib/birthday.ts`).
 
-**Vérifié de bout en bout le 2026-08-05** contre l'app qui tourne : `qa-full` (H1) →
-**12 repas planifiés**, TDEE 2508 / cible 2208 kcal, 0 erreur page ; `qa-settings`,
+**Vérifié de bout en bout le 2026-08-05** contre l'app qui tourne — **les 4 personas de
+`qa-full`, un par un** (12 repas planifiés chacun) : H1 cut 2208 kcal · H2 lean_bulk
+2773 · F1 recomp 1645 · F2 maintain 1914, 0 erreur page. Les personas FÉMININS comptent :
+ils sont les seuls à exercer le clic « Femme » de l'étape 2. `qa-settings`,
 `qa-deep`, `walkthrough` et `walkthrough-auth` atteignent l'écran Plan, sortie 0.
 **Garde-fou vérifié par MUTATION** : un placeholder de date faussé fait rendre
 « ✗ PARCOURS BLOQUÉ [onboarding-etape-2] », avec la phrase de l'app à l'appui et une

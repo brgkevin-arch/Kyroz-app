@@ -354,6 +354,19 @@ export async function runOnboarding(page, p = DEFAULT_PERSONA) {
     await panne(page, 'onboarding-plan', 'les 7 étapes sont passées mais aucun plan n\'a été persisté (@kyroz:plan)');
     return { ok: false, etape: 7, repas: 0 };
   }
+
+  // ⚠️ L'étape 5 (objectif) et l'étape 6 (préférences) sont les SEULES que l'app
+  // ne valide pas : `canProceed` les laisse toujours passer. Un sous-titre de
+  // GOAL_SUB devenu faux ne bloquerait donc rien — le persona recevrait l'objectif
+  // par défaut (« cut ») et le rapport parlerait d'un profil qu'on n'a pas demandé.
+  // C'est le dernier chemin muet du parcours : on le vérifie sur ce qui est SERVI.
+  const servi = await page.evaluate(() => {
+    try { return JSON.parse(localStorage.getItem('@kyroz:profile')).goal; } catch { return null; }
+  }).catch(() => null);
+  if (servi !== p.goal) {
+    await panne(page, 'onboarding-objectif', `objectif demandé « ${p.goal} », objectif servi « ${servi ?? 'aucun' } » — le sous-titre de GOAL_SUB ne correspond plus à l'écran`);
+    return { ok: false, etape: 5, repas };
+  }
   return { ok: true, etape: 7, repas };
 }
 
