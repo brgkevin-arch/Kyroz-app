@@ -407,7 +407,16 @@ export default function Onboarding() {
 
       <View style={[s.footer, layout.header]}>
         {hint && !canProceed && <Text style={s.hint}>{hint}</Text>}
-        <PrimaryButton t={t} label={step === TOTAL_STEPS ? 'Générer mon plan' : 'Continuer'} onPress={next} loading={saving} />
+        {/* `muted` et non `disabled` : le bouton reste cliquable, c'est lui qui
+            affiche `blockReason()`. Il est simplement atténué pour ne plus
+            promettre d'avancer quand l'étape est incomplète. */}
+        <PrimaryButton
+          t={t}
+          label={step === TOTAL_STEPS ? 'Générer mon plan' : 'Continuer'}
+          onPress={next}
+          loading={saving}
+          muted={!canProceed}
+        />
       </View>
     </SafeAreaView>
   );

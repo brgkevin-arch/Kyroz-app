@@ -16,9 +16,18 @@ export function Card({ t, style, children }: { t: ThemePalette; style?: ViewStyl
   );
 }
 
+/**
+ * `disabled` = inerte (grisé ET non cliquable).
+ * `muted` = « il manque quelque chose », mais le bouton RESTE cliquable : c'est
+ * lui qui explique ce qui bloque. Sans ce troisième état, l'onboarding affichait
+ * un bouton « Continuer » plein et franc qui refusait d'avancer — le seul retour
+ * arrivait APRÈS le clic. Un bouton qui a l'air actif et ne l'est pas est un
+ * mensonge d'interface ; le griser pour de bon en serait un autre, puisqu'on
+ * perdrait l'explication.
+ */
 export function PrimaryButton({
-  t, label, onPress, disabled, loading,
-}: { t: ThemePalette; label: string; onPress: () => void; disabled?: boolean; loading?: boolean }) {
+  t, label, onPress, disabled, loading, muted,
+}: { t: ThemePalette; label: string; onPress: () => void; disabled?: boolean; loading?: boolean; muted?: boolean }) {
   return (
     <TouchableOpacity
       activeOpacity={0.85}
@@ -30,7 +39,7 @@ export function PrimaryButton({
         paddingVertical: 17,
         alignItems: 'center',
         justifyContent: 'center',
-        opacity: disabled ? 0.3 : 1,
+        opacity: disabled ? 0.3 : muted ? 0.45 : 1,
       }}
     >
       {loading

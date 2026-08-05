@@ -66,11 +66,15 @@ const WD = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
 
 // Visite guidée de l'onglet Plan (pilote). Les bulles ne s'affichent que la 1re
 // fois (mémorisé), et sont rejouables via le « ? » de l'en-tête.
-const PLAN_TOUR: TourStep[] = [
+//
+// ⚠️ Fonction, et non constante : la première bulle annonçait « Tes 7 jours de
+// plan » EN DUR alors que le plan suit `plan_days` (on peut n'en choisir que 3).
+// Le tutoriel comptait donc des jours que l'écran ne montrait pas.
+const planTour = (days: number): TourStep[] => [
   {
     targetId: 'plan-days',
     title: 'Navigue dans ta semaine',
-    text: "Tes 7 jours de plan. Touche un jour pour voir ses repas — celui en surbrillance est affiché en dessous.",
+    text: `${days === 1 ? 'Ton jour de plan' : `Tes ${days} jours de plan`}. Touche un jour pour voir ses repas — celui en surbrillance est affiché en dessous.`,
   },
   {
     targetId: 'plan-macros',
@@ -172,7 +176,7 @@ export default function PlanScreen() {
     if (loading || !plan || tourTried.current || showReveal) return;
     tourTried.current = true;
     hasSeenTour('plan').then((seen) => {
-      if (!seen) setTimeout(() => startTour('plan', PLAN_TOUR, { scrollRef }), 650);
+      if (!seen) setTimeout(() => startTour('plan', planTour(plan.days), { scrollRef }), 650);
     });
   }, [loading, plan, startTour, showReveal]);
 
@@ -606,7 +610,7 @@ export default function PlanScreen() {
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             {plan && (
-              <TouchableOpacity onPress={() => startTour('plan', PLAN_TOUR, { scrollRef })} hitSlop={8} activeOpacity={0.7}>
+              <TouchableOpacity onPress={() => startTour('plan', planTour(plan.days), { scrollRef })} hitSlop={8} activeOpacity={0.7}>
                 <Ionicons name="help-circle-outline" size={24} color={t.textTertiary} />
               </TouchableOpacity>
             )}
