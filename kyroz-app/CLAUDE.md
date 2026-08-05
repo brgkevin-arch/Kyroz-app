@@ -258,6 +258,16 @@ OUTPUT         → Plan + liste de courses + recettes
 3. Performance (< 1s) > esthétique avancée
 4. La solution la plus simple qui marche > la plus élégante (anti-over-engineering)
 
+> **Un GESTE ne se vérifie pas en web.** Règle tirée d'une mesure du 2026-08-05 :
+> le glissement pour fermer les feuilles était mort en natif **depuis le commit
+> initial**, et le web l'a caché tout ce temps — `react-native-web` fait passer le
+> glissement par des événements SOURIS que le système de responder voit toujours,
+> là où iOS, lui, ne propose plus les phases « mouvement » à une vue qui n'a pas
+> réclamé le geste au contact. Le web ne pouvait donc dire que « ça marche ».
+> ➡️ Tout ce qui est glissement / pincement / balayage se valide **au simulateur**
+> (`npx expo run:ios`), jamais sur le panneau navigateur. Détail, mesures et piège
+> du `useRef` non recréé par Fast Refresh : **AGENTS.md E12**.
+
 ### Features autorisées
 - [x] Onboarding (profil + TDEE)
 - [x] Génération plan repas 7 jours (moteur local)

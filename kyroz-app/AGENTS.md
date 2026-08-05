@@ -69,7 +69,7 @@ qu'ils étaient périmés.
 | `ENGINE_REV` | **5** (avertissement one-shot à l'utilisateur) — A15, l'objectif daté hors de portée sert désormais le rythme sûr MAXIMAL | `lib/tdee.ts` |
 | Objectif daté | la date affichée est un **POINT FIXE** : l'adopter ne la déplace plus (3 corps sur 8 glissaient de +96 j avant A15) | `npm run mesure:objectif` |
 | Échéances proposées | **dérivées du corps** (A27) — **40/40 tenables** et **40/40 servant un plan distinct**, contre **9/40** et **14/40** avec les 5 durées figées | `npm run mesure:objectif` |
-| Tests | **1 015 verts**, 61 fichiers · `tsc` propre | `npm test && npx tsc --noEmit` |
+| Tests | **1 018 verts**, 62 fichiers · `tsc` propre | `npm test && npx tsc --noEmit` |
 | Design | **3 passes livrées** — 5 onglets refaits (2026-08-03) · rayons + échelle typo sur TOUT le reste (2026-08-03) · repli du grand titre sur les 5 onglets (2026-08-04). Maquette de référence : `mockups/` (hors dépôt app). ⚠️ Le rayon ne se relit pas, il se **mesure** | `npm test -- rayonsDA` · `getComputedStyle` dans le panneau, cf. `docs/comparer-maquette.md` |
 | Plateformes | iPhone **+ iPad** (`supportsTablet: true` depuis le 2026-08-01). ⚠️ **portrait sur iPhone, MAIS les 4 orientations sur iPad** — Expo les force dès `supportsTablet`, le multitâche iPadOS l'impose, ce n'est pas refermable. Vérifié en natif (iPad Pro 13") et à 1366×1024 | `ios/Kyroz/Info.plist` généré, PAS `app.json` · `lib/layout.ts` |
 | Sortie stores | iOS **1.0.0 (3)** en TestFlight, **revue bêta APPROUVÉE le 2026-08-03** — donc acquise : builds et testeurs suivants passent sans repasser par Apple. 2 testeurs `INSTALLED` (1 interne, 1 externe) · Android : 2 builds, rien de soumis | `npx eas-cli build:list` · `TESTFLIGHT.md` |
@@ -3156,6 +3156,53 @@ produit en suspens — il ne reste qu'à coder.
   chaque recette a 1 ou 2 objectifs, donc la ligne de tags n'est jamais vide.
 
 ### 🧹 E — Dette technique
+
+- ~~**E12 · Le glissement pour fermer une feuille était MORT en natif — depuis le
+  commit initial**~~ ✅ **CORRIGÉ le 2026-08-05, mesuré au simulateur iOS.**
+  Signalé par le fondateur sur le build TestFlight (« le drag vers le bas ne
+  fonctionne sur aucun écran »). Reproduit : tirer la poignée ne déplaçait la feuille
+  d'**aucun pixel**, alors que le contenu défilait et que les boutons répondaient.
+  **Cause** : `onStartShouldSetPanResponder` renvoyait `false` — posé volontairement
+  « pour laisser passer les taps ». En natif, si aucune vue ne réclame le responder
+  **au contact**, les phases « mouvement » ne sont plus proposées du tout : ni
+  `onMoveShouldSetPanResponder`, ni `onMoveShouldSetPanResponderCapture` (les deux
+  essayés, mesurés sans effet). Le geste n'a donc **jamais** fonctionné au doigt.
+  ⚠️ **Pourquoi ça a tenu des mois** : `react-native-web` fait passer le glissement par
+  des événements SOURIS que le système de responder voit toujours. Le web disait
+  « ça marche » et ne pouvait rien dire d'autre. ➡️ **Pour un GESTE, le web n'est pas
+  une mesure** — il faut le simulateur.
+  ⚠️ **Second défaut, révélé par le premier correctif** (on ne pouvait pas l'atteindre
+  tant que le geste ne partait jamais) : en tirant depuis l'en-tête de la recette — qui
+  vit, lui, DANS le `ScrollView` — le scroll natif reprend le geste en cours de route,
+  le pan est « terminé » sans passer par `onPanResponderRelease`, et la feuille restait
+  **figée à mi-course**. D'où `onPanResponderTerminationRequest: () => false` +
+  `onPanResponderTerminate`.
+  ⚠️ **Piège de méthode, qui a failli produire un faux diagnostic** : un `PanResponder`
+  vit dans un `useRef`. **Fast Refresh ne le recrée pas** — modifier ses callbacks et
+  recharger à chaud ne change rien, alors qu'un changement de STYLE s'applique (fausse
+  preuve que « le rechargement marche »). ➡️ Après toute modif d'un PanResponder :
+  `xcrun simctl terminate booted app.kyroz.mobile` puis `launch`.
+  Vérifié à l'écran, avant/après : poignée ✅ ferme · en-tête ✅ ferme sans blocage ·
+  défilement ✅ intact · bouton cœur ✅ intact (feuille reste ouverte) · `ActionSheet`
+  ✅ ferme · saisie + suggestions Ciqual ✅ intactes.
+  `components/Sheet.tsx`, `components/ActionSheet.tsx`. **Livrable par OTA** (JS pur).
+
+- ~~**E13 · Trois écarts corrigés dans la foulée**~~ ✅ **2026-08-05.**
+  **(a)** Le bouton « Continuer » de l'onboarding était **plein et franc** alors qu'il
+  refusait d'avancer — le seul retour arrivait APRÈS le clic. `PrimaryButton` ne
+  connaissait que « actif » ou « mort » (`disabled` grise ET bloque le clic) : ajout d'un
+  troisième état **`muted`**, atténué mais CLIQUABLE, pour que le bouton cesse de mentir
+  sans perdre l'explication — et sans afficher un reproche d'entrée de jeu sur un écran
+  encore vierge (cf. la règle « rassurer, jamais mettre la pression »).
+  **(b)** La visite guidée annonçait « **Tes 7 jours de plan** » EN DUR alors que le plan
+  suit `plan_days` : constante → fonction du nombre réel. Vérifié à 3 jours.
+  **(c)** `EXPO_PUBLIC_ANTHROPIC_API_KEY` traînait encore dans `.env.local` alors que le
+  chemin IA a été supprimé le 2026-07-31. Aucun code ne la lit (donc **pas** inlinée dans
+  le bundle), mais la règle de CLAUDE.md §2 « clé côté SERVEUR, jamais côté client »
+  n'était qu'**écrite** : elle est désormais **comptée** par
+  `lib/__tests__/noClientAiKey.test.ts`, vérifié **par mutation** (il rougit et désigne le
+  fichier fautif). 🧑 **Reste au fondateur** : nettoyer son `.env.local` et **révoquer la
+  clé** si elle est encore active.
 
 - ~~**E10 · `npm run deploy` ne déployait rien, et le faisait croire**~~
   *(publiée le 2026-08-02 sous le numéro **E9**, déjà pris depuis le 2026-07-31 par
