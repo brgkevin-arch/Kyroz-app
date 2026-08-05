@@ -31,10 +31,21 @@ import { findViolations, nameKey, norm, type CheckRecipe } from '../../scripts/c
 //               donc une vague pouvait rajouter quatre clones sans faire rougir un test.
 //               ⚠️ Un cliquet ne se resserre pas tout seul — après un nettoyage, le
 //               descendre fait partie du nettoyage.
+//   R1 81 → 74, R2 70 → 71 : chantier P3.4 + les 8 recettes jamais servies (2026-08-05).
+//               R1 DESCEND de 7 — donner un gras DIFFÉRENT à chacune des 20 recettes qui
+//               n'en avaient pas a défait des compositions jusque-là identiques. Le choix
+//               n'était pas décoratif : un premier jet uniforme (le même gras partout)
+//               faisait au contraire monter R2 de 70 à 86, et c'est ce test qui l'a dit.
+//               ⚠️ R2 MONTE de 1, et c'est assumé : rep18 était servie ZÉRO fois sur
+//               10 752 repas, et seule la pomme de terre la remonte à 7/12 — quinoa, riz
+//               complet, boulgour, pâtes, châtaigne et maïs plafonnent tous à 3/12
+//               (balayés, pas supposés). Elle partage alors 4 refs avec rep133
+//               (oeuf_entier, epinards, huile_olive, pomme_de_terre), dont trois qu'elle
+//               partageait DÉJÀ. Le solde du chantier est de −6 violations.
 // Ce qui reste est du quasi-doublon de composition, pas du clone : R4 est dominé par des
 // familles saturées (whey+avoine ×6, yaourt de soja sans féculent ×8) qui se règlent en
 // écrivant AILLEURS, pas en réécrivant l'existant.
-const PLAFOND = { R1: 81, R2: 70, R4: 14, R5: 16, R7: 0 } as const;
+const PLAFOND = { R1: 74, R2: 71, R4: 14, R5: 16, R7: 0 } as const;
 
 const RECIPES = (raw as { recipes: unknown[] }).recipes as CheckRecipe[];
 

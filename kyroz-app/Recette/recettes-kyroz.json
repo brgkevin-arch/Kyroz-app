@@ -1418,19 +1418,26 @@
           "qty": 60,
           "macro_role": "fruit",
           "scalable": true
+        },
+        {
+          "ref": "amandes",
+          "qty": 12,
+          "macro_role": "fat",
+          "scalable": true
         }
       ],
       "instructions": [
         "Chauffe avoine + lait 4-5 min en remuant.",
         "Hors du feu, incorpore la whey.",
-        "Ajoute banane et myrtilles."
+        "Ajoute banane et myrtilles.",
+        "Parsème les amandes concassées."
       ],
       "why": "Muscu/endurance prise de masse : glucides complexes + protéines complètes, idéal post-training.",
       "macros_per_serving": {
-        "kcal": 610,
-        "protein": 43,
-        "carbs": 83,
-        "fat": 11
+        "kcal": 686,
+        "protein": 45.5,
+        "carbs": 83.8,
+        "fat": 17.4
       },
       "wave": "fondation"
     },
@@ -1501,8 +1508,8 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "maintien",
+          "prise_de_masse"
         ],
         "sport": [
           "muscu"
@@ -1540,19 +1547,26 @@
           "qty": 20,
           "macro_role": "protein",
           "scalable": true
+        },
+        {
+          "ref": "noisettes",
+          "qty": 10,
+          "macro_role": "fat",
+          "scalable": true
         }
       ],
       "instructions": [
         "Mixe tous les ingrédients.",
         "Cuis de petites galettes 2 min par face.",
-        "Sers nature ou avec un fruit."
+        "Sers nature ou avec un fruit.",
+        "Parsème les noisettes concassées."
       ],
       "why": "Muscu prise de masse : alternative gourmande haute en protéines pour un petit-déj costaud.",
       "macros_per_serving": {
-        "kcal": 505,
-        "protein": 38,
-        "carbs": 62,
-        "fat": 11
+        "kcal": 571,
+        "protein": 39.5,
+        "carbs": 62.8,
+        "fat": 17.1
       },
       "wave": "fondation"
     },
@@ -1562,7 +1576,8 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
-          "perte_de_gras"
+          "maintien",
+          "prise_de_masse"
         ],
         "sport": [
           "muscu",
@@ -1595,19 +1610,26 @@
           "qty": 5,
           "macro_role": "fat",
           "scalable": true
+        },
+        {
+          "ref": "pain_complet",
+          "qty": 100,
+          "macro_role": "carb",
+          "scalable": true
         }
       ],
       "instructions": [
         "Saisis les champignons 3 min.",
         "Verse les œufs battus + jambon.",
-        "Cuis 4 min, plie."
+        "Cuis 4 min, plie.",
+        "Sers avec le pain complet grillé."
       ],
       "why": "Muscu/combats perte de gras : très protéiné, pauvre en glucides pour démarrer léger.",
       "macros_per_serving": {
-        "kcal": 325,
-        "protein": 29,
-        "carbs": 2,
-        "fat": 21
+        "kcal": 575,
+        "protein": 38,
+        "carbs": 49,
+        "fat": 22.7
       },
       "wave": "fondation"
     },
@@ -1733,7 +1755,8 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
-          "perte_de_gras"
+          "perte_de_gras",
+          "maintien"
         ],
         "sport": [
           "endurance"
@@ -1777,19 +1800,26 @@
           "qty": 20,
           "macro_role": "carb",
           "scalable": true
+        },
+        {
+          "ref": "amandes",
+          "qty": 12,
+          "macro_role": "fat",
+          "scalable": true
         }
       ],
       "instructions": [
         "Mixe le tout en texture épaisse.",
         "Verse dans un bol.",
-        "Ajoute des toppings au choix."
+        "Ajoute des toppings au choix.",
+        "Parsème les amandes concassées."
       ],
       "why": "Endurance maintien : glucides accessibles + micronutriments, léger sur l'estomac.",
       "macros_per_serving": {
-        "kcal": 355,
-        "protein": 24,
-        "carbs": 52,
-        "fat": 6
+        "kcal": 431,
+        "protein": 26.5,
+        "carbs": 52.8,
+        "fat": 12.4
       },
       "wave": "fondation"
     },
@@ -1981,7 +2011,8 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
-          "perte_de_gras"
+          "perte_de_gras",
+          "maintien"
         ],
         "sport": [
           "muscu",
@@ -2020,19 +2051,26 @@
           "qty": 5,
           "macro_role": "fat",
           "scalable": true
+        },
+        {
+          "ref": "pain_complet",
+          "qty": 100,
+          "macro_role": "carb",
+          "scalable": true
         }
       ],
       "instructions": [
         "Fais tomber les épinards.",
         "Verse blancs + 1 œuf.",
-        "Émiette la feta, plie."
+        "Émiette la feta, plie.",
+        "Sers avec le pain complet grillé."
       ],
       "why": "Muscu/combats perte de gras : protéines maximales, calories basses pour le poids de catégorie.",
       "macros_per_serving": {
-        "kcal": 295,
-        "protein": 32,
-        "carbs": 3,
-        "fat": 17
+        "kcal": 545,
+        "protein": 41,
+        "carbs": 50,
+        "fat": 18.7
       },
       "wave": "fondation"
     },
@@ -2042,8 +2080,8 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "maintien",
+          "prise_de_masse"
         ],
         "sport": [
           "muscu"
@@ -2087,19 +2125,26 @@
           "qty": 10,
           "macro_role": "flavor",
           "scalable": false
+        },
+        {
+          "ref": "amandes",
+          "qty": 12,
+          "macro_role": "fat",
+          "scalable": true
         }
       ],
       "instructions": [
         "Trempe le pain dans œuf + lait + whey.",
         "Dore 2 min par face.",
-        "Garnis de fruits et sirop."
+        "Garnis de fruits et sirop.",
+        "Parsème les amandes concassées."
       ],
       "why": "Muscu prise de masse : version protéinée du classique, glucides + protéines élevés.",
       "macros_per_serving": {
-        "kcal": 505,
-        "protein": 36,
-        "carbs": 56,
-        "fat": 14
+        "kcal": 581,
+        "protein": 38.5,
+        "carbs": 56.8,
+        "fat": 20.4
       },
       "wave": "fondation"
     },
@@ -2109,7 +2154,8 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
-          "perte_de_gras"
+          "perte_de_gras",
+          "maintien"
         ],
         "sport": [
           "muscu",
@@ -2142,19 +2188,26 @@
           "qty": 60,
           "macro_role": "vegetable",
           "scalable": false
+        },
+        {
+          "ref": "avocat",
+          "qty": 35,
+          "macro_role": "fat",
+          "scalable": true
         }
       ],
       "instructions": [
         "Cuis l'œuf brouillé et la dinde émincée.",
         "Réchauffe la tortilla.",
-        "Garnis et roule."
+        "Garnis et roule.",
+        "Ajoute l'avocat en lamelles."
       ],
       "why": "Muscu/combats maintien : transportable, double source de protéines maigres.",
       "macros_per_serving": {
-        "kcal": 405,
-        "protein": 33,
-        "carbs": 33,
-        "fat": 15
+        "kcal": 461,
+        "protein": 33.7,
+        "carbs": 33.7,
+        "fat": 20.3
       },
       "wave": "fondation"
     },
@@ -2425,18 +2478,25 @@
           "qty": 50,
           "macro_role": "vegetable",
           "scalable": false
+        },
+        {
+          "ref": "avocat",
+          "qty": 35,
+          "macro_role": "fat",
+          "scalable": true
         }
       ],
       "instructions": [
         "Toaste le pita.",
-        "Étale le fromage, dépose saumon et concombre."
+        "Étale le fromage, dépose saumon et concombre.",
+        "Ajoute l'avocat en lamelles."
       ],
       "why": "Muscu maintien : oméga-3 du saumon + protéines, petit-déj salé rapide.",
       "macros_per_serving": {
-        "kcal": 360,
-        "protein": 28,
-        "carbs": 38,
-        "fat": 10
+        "kcal": 416,
+        "protein": 28.7,
+        "carbs": 38.7,
+        "fat": 15.3
       },
       "wave": "fondation"
     },
@@ -3010,8 +3070,8 @@
       "category": "collation",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "maintien",
+          "prise_de_masse"
         ],
         "sport": [
           "muscu",
@@ -3044,18 +3104,25 @@
           "qty": 40,
           "macro_role": "vegetable",
           "scalable": false
+        },
+        {
+          "ref": "avocat",
+          "qty": 35,
+          "macro_role": "fat",
+          "scalable": true
         }
       ],
       "instructions": [
         "Tartine les galettes.",
-        "Dépose dinde et concombre."
+        "Dépose dinde et concombre.",
+        "Ajoute l'avocat en lamelles."
       ],
       "why": "Muscu/combats perte de gras : protéines maigres, croquant, faible en gras.",
       "macros_per_serving": {
-        "kcal": 245,
-        "protein": 24,
-        "carbs": 27,
-        "fat": 4
+        "kcal": 301,
+        "protein": 24.7,
+        "carbs": 27.7,
+        "fat": 9.3
       },
       "wave": "fondation"
     },
@@ -4440,19 +4507,26 @@
           "qty": 50,
           "macro_role": "dairy",
           "scalable": true
+        },
+        {
+          "ref": "huile_olive",
+          "qty": 6,
+          "macro_role": "fat",
+          "scalable": true
         }
       ],
       "instructions": [
         "Cuis le poulet émincé.",
         "Garnis la tortilla.",
-        "Roule serré."
+        "Roule serré.",
+        "Ajoute l'huile d'olive."
       ],
       "why": "Muscu perte de gras : repas rapide protéiné, transportable.",
       "macros_per_serving": {
-        "kcal": 445,
+        "kcal": 499,
         "protein": 45,
         "carbs": 38,
-        "fat": 11
+        "fat": 17
       },
       "wave": "fondation"
     },
@@ -4711,7 +4785,8 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "perte_de_gras"
+          "maintien",
+          "prise_de_masse"
         ],
         "sport": [
           "muscu"
@@ -4746,22 +4821,29 @@
         },
         {
           "ref": "huile_olive",
-          "qty": 5,
+          "qty": 10,
           "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "pomme_de_terre",
+          "qty": 320,
+          "macro_role": "carb",
           "scalable": true
         }
       ],
       "instructions": [
         "Saisis poulet + épinards.",
         "Verse les œufs.",
-        "Ajoute mozzarella, plie."
+        "Ajoute mozzarella, plie.",
+        "Sers avec les pommes de terre vapeur."
       ],
       "why": "Muscu perte de gras : très haute protéine, glucides quasi nuls.",
       "macros_per_serving": {
-        "kcal": 495,
-        "protein": 52,
-        "carbs": 3,
-        "fat": 30
+        "kcal": 796,
+        "protein": 58.4,
+        "carbs": 57.4,
+        "fat": 35.3
       },
       "wave": "fondation"
     },
@@ -6510,19 +6592,26 @@
           "qty": 15,
           "macro_role": "flavor",
           "scalable": false
+        },
+        {
+          "ref": "avocat",
+          "qty": 35,
+          "macro_role": "fat",
+          "scalable": true
         }
       ],
       "instructions": [
         "Chauffe un bouillon miso.",
         "Ajoute nouilles + légumes.",
-        "Tofu et edamame en fin."
+        "Tofu et edamame en fin.",
+        "Ajoute l'avocat en lamelles."
       ],
       "why": "Endurance/combats perte de gras : léger, chaud, double protéine végétale.",
       "macros_per_serving": {
-        "kcal": 450,
-        "protein": 21,
-        "carbs": 69,
-        "fat": 9
+        "kcal": 506,
+        "protein": 21.7,
+        "carbs": 69.7,
+        "fat": 14.3
       },
       "wave": "fondation"
     },
@@ -6715,7 +6804,8 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "perte_de_gras"
+          "maintien",
+          "prise_de_masse"
         ],
         "sport": [
           "endurance"
@@ -6744,22 +6834,29 @@
         },
         {
           "ref": "huile_olive",
-          "qty": 8,
+          "qty": 10,
           "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "pomme_de_terre",
+          "qty": 320,
+          "macro_role": "carb",
           "scalable": true
         }
       ],
       "instructions": [
         "Réchauffe les lentilles cuites avec la tomate.",
         "Cuis le cabillaud.",
-        "Dresse ensemble."
+        "Dresse ensemble.",
+        "Sers avec les pommes de terre vapeur."
       ],
       "why": "Endurance perte de gras : poisson maigre + fer végétal, jour off.",
       "macros_per_serving": {
-        "kcal": 452,
-        "protein": 51.5,
-        "carbs": 32,
-        "fat": 10.6
+        "kcal": 726,
+        "protein": 57.9,
+        "carbs": 86.4,
+        "fat": 12.9
       },
       "wave": "fondation"
     },
@@ -6808,19 +6905,26 @@
           "qty": 50,
           "macro_role": "dairy",
           "scalable": true
+        },
+        {
+          "ref": "graines_courge",
+          "qty": 12,
+          "macro_role": "fat",
+          "scalable": true
         }
       ],
       "instructions": [
         "Mélange thon + fromage frais.",
         "Garnis la tortilla.",
-        "Roule."
+        "Roule.",
+        "Parsème les graines de courge."
       ],
       "why": "Combats/muscu perte de gras : rapide, protéiné, faible en gras.",
       "macros_per_serving": {
-        "kcal": 390,
-        "protein": 39,
-        "carbs": 38,
-        "fat": 8
+        "kcal": 457,
+        "protein": 42.6,
+        "carbs": 39.3,
+        "fat": 13.9
       },
       "wave": "fondation"
     },
@@ -8256,18 +8360,25 @@
           "qty": 50,
           "macro_role": "carb",
           "scalable": true
+        },
+        {
+          "ref": "huile_olive",
+          "qty": 6,
+          "macro_role": "fat",
+          "scalable": true
         }
       ],
       "instructions": [
         "Battre blancs + œuf, cuire en omelette avec la tomate.",
-        "Servir avec pain de seigle."
+        "Servir avec pain de seigle.",
+        "Ajoute l'huile d'olive."
       ],
       "why": "Sèche : très haute protéine, lipides minimaux.",
       "macros_per_serving": {
-        "kcal": 293,
+        "kcal": 347,
         "protein": 31,
         "carbs": 26.9,
-        "fat": 6.3
+        "fat": 12.3
       },
       "wave": "2026-06-19-vegan"
     },
@@ -8335,7 +8446,8 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
-          "perte_de_gras"
+          "perte_de_gras",
+          "maintien"
         ],
         "sport": [
           "muscu"
@@ -8367,18 +8479,25 @@
           "qty": 80,
           "macro_role": "fruit",
           "scalable": true
+        },
+        {
+          "ref": "noix",
+          "qty": 10,
+          "macro_role": "fat",
+          "scalable": true
         }
       ],
       "instructions": [
         "Mixer flocons, whey et blancs.",
-        "Cuire en pancakes, garnir de myrtilles."
+        "Cuire en pancakes, garnir de myrtilles.",
+        "Parsème les cerneaux de noix."
       ],
       "why": "Capacité protéique élevée pour le muscle, peu de lipides.",
       "macros_per_serving": {
-        "kcal": 402,
-        "protein": 42.8,
-        "carbs": 42.8,
-        "fat": 5.8
+        "kcal": 471,
+        "protein": 44.3,
+        "carbs": 43.9,
+        "fat": 12.3
       },
       "wave": "2026-06-19-vegan"
     },
@@ -9457,8 +9576,8 @@
       "category": "collation",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "maintien",
+          "prise_de_masse"
         ],
         "sport": [
           "muscu"
@@ -9484,18 +9603,25 @@
           "qty": 60,
           "macro_role": "vegetable",
           "scalable": false
+        },
+        {
+          "ref": "avocat",
+          "qty": 35,
+          "macro_role": "fat",
+          "scalable": true
         }
       ],
       "instructions": [
         "Tartiner le cottage sur les galettes.",
-        "Déposer tomate et poivre."
+        "Déposer tomate et poivre.",
+        "Ajoute l'avocat en lamelles."
       ],
       "why": "Sans gluten, léger et protéiné pour la sèche.",
       "macros_per_serving": {
-        "kcal": 252,
-        "protein": 17.2,
-        "carbs": 30,
-        "fat": 6.2
+        "kcal": 308,
+        "protein": 17.9,
+        "carbs": 30.7,
+        "fat": 11.5
       },
       "wave": "2026-06-19-vegan"
     },
@@ -13121,18 +13247,25 @@
           "qty": 50,
           "macro_role": "vegetable",
           "scalable": false
+        },
+        {
+          "ref": "avocat",
+          "qty": 35,
+          "macro_role": "fat",
+          "scalable": true
         }
       ],
       "instructions": [
         "Mélanger thon et fromage blanc.",
-        "Garnir la tortilla, ajouter crudités, rouler."
+        "Garnir la tortilla, ajouter crudités, rouler.",
+        "Ajoute l'avocat en lamelles."
       ],
       "why": "Pescatarien léger : protéiné, sauce sans gras, à emporter.",
       "macros_per_serving": {
-        "kcal": 414,
-        "protein": 42.1,
-        "carbs": 44,
-        "fat": 7.1
+        "kcal": 470,
+        "protein": 42.8,
+        "carbs": 44.7,
+        "fat": 12.4
       },
       "wave": "2026-06-19-vegan"
     },
@@ -14353,7 +14486,8 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "perte_de_gras"
+          "maintien",
+          "prise_de_masse"
         ],
         "sport": [
           "muscu"
@@ -14382,13 +14516,13 @@
         },
         {
           "ref": "riz_basmati",
-          "qty": 60,
+          "qty": 115,
           "macro_role": "carb",
           "scalable": true
         },
         {
           "ref": "huile_olive",
-          "qty": 4,
+          "qty": 12,
           "macro_role": "fat",
           "scalable": true
         }
@@ -14399,10 +14533,10 @@
       ],
       "why": "Sèche végétarienne sans gluten : très haute protéine, peu de gras.",
       "macros_per_serving": {
-        "kcal": 436,
-        "protein": 35.7,
-        "carbs": 49.4,
-        "fat": 10.1
+        "kcal": 701,
+        "protein": 39.8,
+        "carbs": 92.3,
+        "fat": 18.6
       },
       "wave": "2026-06-19-vegan"
     },
@@ -14763,7 +14897,8 @@
       "category": "repas_complet",
       "tags": {
         "objectif": [
-          "perte_de_gras"
+          "perte_de_gras",
+          "maintien"
         ],
         "sport": [
           "muscu"
@@ -14801,18 +14936,25 @@
           "qty": 8,
           "macro_role": "fat",
           "scalable": true
+        },
+        {
+          "ref": "pain_complet",
+          "qty": 100,
+          "macro_role": "carb",
+          "scalable": true
         }
       ],
       "instructions": [
         "Égoutte et rince les haricots blancs.",
-        "Mélange avec le thon, la tomate et l’oignon rouge."
+        "Mélange avec le thon, la tomate et l’oignon rouge.",
+        "Sers avec le pain complet."
       ],
       "why": "Pescatarien sans gluten : salade express, double protéine rassasiante.",
       "macros_per_serving": {
-        "kcal": 417,
-        "protein": 39.4,
-        "carbs": 27.1,
-        "fat": 13.6
+        "kcal": 667,
+        "protein": 48.4,
+        "carbs": 74.1,
+        "fat": 15.3
       },
       "wave": "2026-06-19-vegan"
     },
@@ -14995,8 +15137,8 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "maintien",
+          "prise_de_masse"
         ],
         "sport": [
           "endurance"
@@ -15034,18 +15176,25 @@
           "qty": 30,
           "macro_role": "fruit",
           "scalable": true
+        },
+        {
+          "ref": "noisettes",
+          "qty": 10,
+          "macro_role": "fat",
+          "scalable": true
         }
       ],
       "instructions": [
         "Cuire le millet dans le lait d'amande 12 min.",
-        "Incorporer protéine et cacao, garnir de dattes."
+        "Incorporer protéine et cacao, garnir de dattes.",
+        "Parsème les noisettes concassées."
       ],
       "why": "Vegan & sans gluten : version chocolatée, jour repos.",
       "macros_per_serving": {
-        "kcal": 470,
-        "protein": 30,
-        "carbs": 71.8,
-        "fat": 6.8
+        "kcal": 536,
+        "protein": 31.5,
+        "carbs": 72.6,
+        "fat": 12.9
       },
       "wave": "2026-06-19-vegan"
     },
@@ -15809,18 +15958,25 @@
           "qty": 8,
           "macro_role": "flavor",
           "scalable": false
+        },
+        {
+          "ref": "beurre_cacahuete",
+          "qty": 10,
+          "macro_role": "fat",
+          "scalable": true
         }
       ],
       "instructions": [
         "Mixer protéine, banane, lait d'amande et cacao.",
-        "Servir frais."
+        "Servir frais.",
+        "Ajoute le beurre de cacahuète."
       ],
       "why": "Vegan & sans gluten : shake post-training, protéines végétales.",
       "macros_per_serving": {
-        "kcal": 290,
-        "protein": 28.1,
-        "carbs": 30.2,
-        "fat": 5.4
+        "kcal": 350,
+        "protein": 30.6,
+        "carbs": 31.4,
+        "fat": 10.4
       },
       "wave": "2026-06-19-vegan"
     },
@@ -16659,8 +16815,8 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "maintien",
+          "prise_de_masse"
         ],
         "sport": [
           "endurance"
@@ -16698,18 +16854,25 @@
           "qty": 90,
           "macro_role": "fruit",
           "scalable": true
+        },
+        {
+          "ref": "noix",
+          "qty": 10,
+          "macro_role": "fat",
+          "scalable": true
         }
       ],
       "instructions": [
         "Cuire la polenta dans le lait d'amande 8 min.",
-        "Incorporer protéine et cacao, garnir de banane."
+        "Incorporer protéine et cacao, garnir de banane.",
+        "Parsème les cerneaux de noix."
       ],
       "why": "Vegan & sans gluten : porridge de maïs chocolaté, énergie durable.",
       "macros_per_serving": {
-        "kcal": 472,
-        "protein": 28.6,
-        "carbs": 73.8,
-        "fat": 5.7
+        "kcal": 541,
+        "protein": 30.1,
+        "carbs": 74.9,
+        "fat": 12.2
       },
       "wave": "2026-07-22-sans-gluten"
     },
@@ -16886,8 +17049,8 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
-          "perte_de_gras",
-          "maintien"
+          "maintien",
+          "prise_de_masse"
         ],
         "sport": [
           "muscu"
@@ -16919,18 +17082,25 @@
           "qty": 80,
           "macro_role": "fruit",
           "scalable": true
+        },
+        {
+          "ref": "amandes",
+          "qty": 12,
+          "macro_role": "fat",
+          "scalable": true
         }
       ],
       "instructions": [
         "Cuire le riz dans le lait 18 min à feu doux.",
-        "Hors du feu incorporer la whey, garnir de framboises."
+        "Hors du feu incorporer la whey, garnir de framboises.",
+        "Parsème les amandes concassées."
       ],
       "why": "Sans gluten : riz au lait protéiné, réconfortant et calorique.",
       "macros_per_serving": {
-        "kcal": 483,
-        "protein": 31.9,
-        "carbs": 71.2,
-        "fat": 5.9
+        "kcal": 559,
+        "protein": 34.4,
+        "carbs": 72,
+        "fat": 12.3
       },
       "wave": "2026-07-22-sans-gluten"
     },
@@ -17126,7 +17296,8 @@
       "category": "petit_dej",
       "tags": {
         "objectif": [
-          "perte_de_gras"
+          "perte_de_gras",
+          "maintien"
         ],
         "sport": [
           "muscu"
@@ -17158,18 +17329,25 @@
           "qty": 70,
           "macro_role": "fruit",
           "scalable": true
+        },
+        {
+          "ref": "amandes",
+          "qty": 12,
+          "macro_role": "fat",
+          "scalable": true
         }
       ],
       "instructions": [
         "Écraser la banane, mélanger aux œufs battus et au skyr.",
-        "Cuire en petits pancakes, garnir de framboises."
+        "Cuire en petits pancakes, garnir de framboises.",
+        "Parsème les amandes concassées."
       ],
       "why": "Sans gluten sans farine : 3 ingrédients, très protéiné.",
       "macros_per_serving": {
-        "kcal": 413,
-        "protein": 32.7,
-        "carbs": 30.2,
-        "fat": 15.9
+        "kcal": 489,
+        "protein": 35.2,
+        "carbs": 31,
+        "fat": 22.3
       },
       "wave": "2026-07-22-sans-gluten"
     },
@@ -17862,18 +18040,25 @@
           "qty": 70,
           "macro_role": "vegetable",
           "scalable": false
+        },
+        {
+          "ref": "huile_olive",
+          "qty": 6,
+          "macro_role": "fat",
+          "scalable": true
         }
       ],
       "instructions": [
         "Tartiner le cottage sur les galettes.",
-        "Déposer concombre, poivre et herbes."
+        "Déposer concombre, poivre et herbes.",
+        "Ajoute l'huile d'olive."
       ],
       "why": "Sans gluten combats : rassasiant, très peu calorique.",
       "macros_per_serving": {
-        "kcal": 281,
+        "kcal": 335,
         "protein": 20.4,
         "carbs": 30.5,
-        "fat": 7.4
+        "fat": 13.4
       },
       "wave": "2026-07-22-sans-gluten"
     },

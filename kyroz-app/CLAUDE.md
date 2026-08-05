@@ -130,16 +130,21 @@ App mobile React Native (Expo Router, SDK 56) de plans repas macro-précis pour 
 
 > Avant SDK : lire https://docs.expo.dev/versions/v56.0.0/ — Expo a changé.
 
-> **Base nutritionnelle — corrigé le 2026-07-30.** Cette ligne annonçait « Ciqual primaire
-> + **Open Food Facts** secondaire », en statut « Cible ». Open Food Facts **n'a jamais été
-> branché** : zéro ligne de code, zéro appel. La réalité, mesurée : sur **123 ingrédients**
-> de recette, **107 sont sourcés Ciqual** (`lib/recipeFoodMap.ts::REF_FOOD_ID` → base ANSES
-> convertie dans `lib/foods.generated.ts`) et **16 sont saisis à la main** dans
-> `Recette/recettes-kyroz.json > ingredients_reference` — ceux que Ciqual ne couvre pas
-> proprement : `whey`, `skyr`, `yaourt_grec`, `cottage_cheese`, `proteine_vegetale`,
-> `soja_texture`, `yaourt_soja`, `yaourt_soja_proteine`, `levure_maltee`, `edamame`,
-> `haricots_noirs`, `millet`, `wrap_sans_gluten`, et trois mélanges (`legumes_wok`,
-> `ratatouille`, `fruits_rouges`).
+> **Base nutritionnelle — corrigé le 2026-07-30, chiffres RE-MESURÉS le 2026-08-05.**
+> Cette ligne annonçait « Ciqual primaire + **Open Food Facts** secondaire », en statut
+> « Cible ». Open Food Facts **n'a jamais été branché** : zéro ligne de code, zéro appel.
+> La réalité, mesurée : la table `Recette/recettes-kyroz.json > ingredients_reference`
+> porte **125 refs**, dont **117 réellement utilisées** par une recette. **108/125 sont
+> sourcées Ciqual** (`lib/recipeFoodMap.ts::REF_FOOD_ID` → base ANSES convertie dans
+> `lib/foods.generated.ts`), soit **102/117** en ne comptant que les utilisées, et
+> **15 sont saisies à la main** — celles que Ciqual ne couvre pas proprement : `whey`,
+> `skyr`, `yaourt_grec`, `cottage_cheese`, `proteine_vegetale`, `soja_texture`,
+> `yaourt_soja_proteine`, `levure_maltee`, `edamame`, `haricots_noirs_conserve`,
+> `millet`, `wrap_sans_gluten`, et trois mélanges (`legumes_wok`, `ratatouille`,
+> `fruits_rouges`).
+> ⚠️ **Ces chiffres bougent à chaque vague de catalogue** — la version précédente
+> (« 123 / 107 / 16 ») était périmée, et AGENTS.md en citait trois autres qui se
+> contredisaient. Les recompter fait partie d'une vague, sinon ils vieillissent seuls.
 >
 > **Décision fondateur (2026-07-30) : les ajouts futurs se font À LA MAIN.** Pas de source
 > tierce automatique. Open Food Facts reste envisageable un jour pour les produits de

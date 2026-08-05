@@ -30,8 +30,13 @@ jobs:
         run: npm test
       - run: npx expo export -p web
         env:
-          EXPO_PUBLIC_SUPABASE_URL: https://rgdjsdnqlmfkourrhijv.supabase.co
-          EXPO_PUBLIC_SUPABASE_ANON_KEY: sb_publishable_2DI5q7hJ9w7bpUFcEYGV1w_KiWMLt_L
+          # Secrets du dépôt (P4.4, 2026-08-05). Ces deux valeurs étaient EN CLAIR
+          # dans ce fichier. Ce n'était pas une fuite — la clé `anon` est publiable
+          # par construction et part de toute façon dans le bundle web — mais un
+          # fichier de CI n'est pas l'endroit où vit une clé : la faire tourner
+          # imposait un commit, et rien ne distinguait celle-ci d'une vraie.
+          EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
+          EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
       # Expo génère la page en lang="en" (mode SPA, +html.tsx ignoré). On force le
       # français + on désactive la traduction auto, sinon les navigateurs traduisent
       # les faux-amis (« pain complet » → « douleur complète », « sèche » → « sèche-cheveux »).
