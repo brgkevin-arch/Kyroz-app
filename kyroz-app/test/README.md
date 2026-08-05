@@ -45,6 +45,30 @@ dossier les a tous cassés d'un coup, en silence. Ce qui a dû être réparé le
 **Règle** : aucun chemin, port ou libellé d'écran dans les scripts appelants. Tout
 passe par `_harness.mjs`.
 
+### Ce qui a dû être réparé le 2026-08-05 — et comment ça s'était vu
+
+Le harness avait re-pourri, sur deux points **qui se ressemblent** : à chaque fois, un
+écran avait changé et le harness cherchait encore l'ancien.
+
+1. **`passScreening` cherchait l'attestation d'emblée.** Or l'écran de dépistage ne la
+   révèle qu'**une fois les deux questions répondues** (le ternaire `allAnswered` dans
+   `components/HealthScreening.tsx`). Elle n'était donc jamais visible, la fonction
+   renvoyait `false`, et **tout l'onboarding sautait en silence**.
+2. **`runOnboarding` remplissait un champ « âge » qui n'existe plus.** Depuis le
+   2026-08-02 c'est une **date de naissance en trois champs** (`BirthDateField`), dont
+   l'âge est dérivé. Sans elle, « Continuer » reste désactivé et le parcours s'arrête à
+   l'étape 1.
+
+🔴 **Le vrai défaut n'était aucun des deux, c'était la réaction du script appelant.**
+`store-assets.mjs` détectait la panne et l'écrivait — « ⚠️ plan non généré — captures
+probablement vides » — **puis écrasait quand même les PNG de la fiche store**. Un script
+qui signale sa propre panne et continue est plus dangereux qu'un script qui plante : il
+produit un livrable d'apparence normale que personne ne re-regarde.
+
+➡️ **Comment savoir que le parcours a vraiment abouti** : la sortie doit dire
+`session prête`. `plannedMeals()` est la preuve non ambiguë (elle lit le plan PERSISTÉ) —
+chercher le mot « Plan » à l'écran ne prouve rien, cf. les trois pièges ci-dessous.
+
 ## Trois pièges qui font mentir un rapport
 
 1. **`getByText('Plan')` est insensible à la casse** — le bouton « Générer mon plan »

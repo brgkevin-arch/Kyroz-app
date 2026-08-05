@@ -3656,6 +3656,27 @@ Plancher = énergie disponible (30 kcal/kg de masse maigre + sport, **plafonné 
 
 - **REFONTE DESIGN — passe 6 : les trois finitions (2026-08-06, ✅)** — même diagnostic que les trois passes précédentes, en plus petit. `activeOpacity` employait **QUATRE valeurs pour un seul geste** (0,85 ×31 · 0,7 ×23 · 0,8 ×14 · 0,6 ×1), sans qu'aucune ne corresponde à un type d'élément : c'était l'humeur de qui écrivait la ligne. → `OPACITE_PRESSION` = **0,7**, et pas 0,85 : à 15 % d'écart sur fond sombre le retour est presque invisible, or c'est le SEUL signe que l'appui a été pris en compte. `borderWidth` : 1 (×40), 2 (×5), 1,5 (×4) → **deux rôles** (`Trait.fin` séparateur · `Trait.controle` case à cocher, pastille, option retenue) ; le 1,5 n'avait aucun rôle, il était « un peu plus épais qu'un séparateur ». Taille d'icône : **12 valeurs de 14 à 30** → 5 crans. ⚠️ **Une icône n'a pas de taille « à elle », elle en a une par rapport à ce qu'elle accompagne** — d'où `petite` / `standard` / `action` / `nav` / `vide` et pas `sm/md/lg`, qui n'auraient rien dit de plus que le chiffre remplacé. Garde-fou **`finitionsDA.test.ts`**, 6 mutations. ⚠️ **Piège d'écriture** : le regex `borderWidth:\s*(1|1\.5|2)\b` matche `1` dans `1.5` et laisse `.5` — quatre fichiers sont sortis avec `Trait.fin.5`, rattrapés par `tsc`. Mettre la valeur la plus longue en tête d'alternance. 🔴 **NON FAIT, volontairement** : les 110 `lineHeight` en dur. Les porter dans les tokens `Type` s'appliquerait aussi aux textes d'UNE ligne, dont ça change la hauteur de boîte donc l'alignement — un risque invisible sur les 5 onglets et bien réel sur les ~25 feuilles modales, qu'aucune capture ne couvre. Chantier à part, avec sa vérification à lui.
 
+- 📋 **DESIGN — ce qui RESTE, mesuré le 2026-08-06 (pas une impression, un comptage).**
+  Les quatre axes qui portent un garde-fou sont clos : couleur (1 seul littéral, les
+  confettis d'anniversaire — légitime), rayon (`rayonsDA`), typographie (`typoDA`),
+  espacement + cible tactile (`espacementDA`), finitions trait/icône/toucher
+  (`finitionsDA`). Restent **deux chantiers, et le second conditionne le premier** :
+  - 🔴 **Les 114 `lineHeight` en dur.** Le geste évident — les porter dans les tokens
+    `Type` — a un effet de bord qui n'est PAS évident : un `lineHeight` posé sur
+    `Type.body` s'applique aussi aux textes d'**UNE seule ligne**, dont il change la
+    hauteur de boîte, donc l'alignement. ⚠️ Ce risque est **invisible là où on sait
+    regarder** : les 5 onglets se capturent (`npm run store:assets`), les feuilles
+    modales non. Ne pas lancer ce chantier sans sa vérification à lui.
+  - 🔴 **Les écrans jamais VUS rendus** : `app/kyroz-plus.tsx`, `app/legal.tsx` et les
+    **9 feuilles / éditeurs** (`*Sheet.tsx`, `*Editor.tsx`, `*Checkin.tsx`). Ils ont reçu
+    les tokens des six passes, mais aucune capture ne les couvre — le harness s'arrête
+    aux 5 onglets. ⚠️ **« Les tokens sont passés » ne veut pas dire « l'écran est juste »**
+    : c'est exactement l'erreur de la passe 1, où des composants avaient hérité de la
+    bonne palette et gardé la géométrie d'avant.
+  ➡️ Ordre : **voir d'abord, migrer ensuite.** Étendre le harness à ces écrans donne à la
+  fois la vérification qui manque et le filet du chantier `lineHeight`.
+
+
 ## État de `lib/sync.ts` — sous filet depuis le 2026-07-30
 
 Le module qui peut faire perdre des données à un utilisateur avait **0 test** sur 259 lignes.
