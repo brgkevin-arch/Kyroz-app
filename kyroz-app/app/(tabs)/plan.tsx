@@ -37,6 +37,7 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { buildLocalPlan, carryTracking, nextPlanSeed, profileSignature, swapMeal, computeDailyTotals, rebalanceDay, resetTracking, adaptDayOptions, AdaptOption, mealIngredients, reAdaptMealRecipe, mealPoolSize, dayTargetKcal, ON_TARGET_TOLERANCE_KCAL } from '../../lib/planEngine';
 import { DISLIKE_THRESHOLD, dislikeCandidates, applyDislikedIngredient } from '../../lib/dislike';
 import { todayStamp } from '../../lib/weight';
+import { recordOffPlan, resolveOffPlan, forgetOffPlan } from '../../lib/offPlanJournal';
 import { isBirthday, ageOn } from '../../lib/birthday';
 import { mealFiberFromIngredients, dailyFiberTarget } from '../../lib/fiber';
 import { getRecipeById, getBaseRecipe } from '../../lib/recipes';
@@ -431,6 +432,9 @@ export default function PlanScreen() {
       total_macros_per_day: computeDailyTotals(plan.meals, plan.days, day_extras),
     };
     await persistPlan(updated, false);
+    // Journal des écarts (E6). Le plan est effacé au changement de jour, donc
+    // l'écart n'y survit pas 24 h : ce qui doit RESTER vit dans un journal à part.
+    await recordOffPlan(selectedDay, kcal, label);
     setAdaptPrompt(kcal); // → propose la réadaptation
   };
 
@@ -438,11 +442,18 @@ export default function PlanScreen() {
   const applyAdapt = async (opt: AdaptOption) => {
     if (!plan) { setAdaptPrompt(null); return; }
     await persistPlan({ ...opt.plan, tracking_date: todayStamp() }, false);
+    // Ce que le recalage REPREND est la seule chose que l'historique a besoin de
+    // retenir : sans elle, il ne resterait qu'une liste de dérapages.
+    await resolveOffPlan(selectedDay, opt.absorbedKcal);
     setAdaptPrompt(null);
     toast('Journée réadaptée 👊');
   };
   // « Non, je garde mon plan » : on ne touche à rien, l'écart reste compté à part.
-  const declineAdapt = () => { setAdaptPrompt(null); toast('Ok, on garde ton plan 😎'); };
+  const declineAdapt = async () => {
+    setAdaptPrompt(null);
+    toast('Ok, on garde ton plan 😎');
+    await resolveOffPlan(selectedDay, 0); // 0 = journée gardée telle quelle
+  };
 
   // Cœur du « changer de recette » (carte ET fiche) : échange UN repas contre une
   // alternative équivalente, en privilégiant les recettes aimées (👍) à fit comparable.
@@ -534,6 +545,7 @@ export default function PlanScreen() {
       total_macros_per_day: computeDailyTotals(plan.meals, plan.days, day_extras),
     };
     await persistPlan(updated, false);
+    await forgetOffPlan(selectedDay); // l'écart est annulé : l'historique ne le garde pas
   };
 
   const todayLabel = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });

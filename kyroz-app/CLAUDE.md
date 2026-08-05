@@ -208,11 +208,24 @@ recipe_overrides (recettes personnalisées par l'utilisateur)
 | **La liste de courses** | recalculée à la volée depuis le plan moins le garde-manger | idem — jamais eu de table `shopping_lists` |
 | **Le catalogue de recettes** | `Recette/recettes-kyroz.json` → `lib/recipeMap.ts`, embarqué dans le bundle | il est le même pour tout le monde ; le servir depuis le réseau ajouterait une latence pour zéro bénéfice. Les fibres sont calculées à la volée (`lib/fiber.ts`), sourcées Ciqual par `ref`/`food_id`, jamais stockées |
 | **Les photos de progression** | AsyncStorage, l'appareil uniquement | donnée de santé sensible (RGPD) — décision explicite, cf. §7 |
+| **Le journal des repas hors plan** | AsyncStorage `@kyroz:offPlan`, l'appareil uniquement | donnée de **comportement alimentaire** (même traitement que les photos) ; et lui donner une table rouvrirait la porte fermée en supprimant `meal_plans`. Décision fondateur du 2026-08-05, cf. AGENTS.md E6 |
 
 > **Persistance** : AsyncStorage local (source de travail, offline-first) **+ miroir
 > Supabase câblé** (sync best-effort par utilisateur, RLS stricte — voir `lib/sync.ts`).
 > Exceptions volontaires : le **plan** n'est pas synchronisé (déterministe depuis le
-> profil) ; les **photos de progression** restent LOCAL-ONLY (RGPD — donnée sensible).
+> profil) ; les **photos de progression** et le **journal des repas hors plan** restent
+> LOCAL-ONLY (RGPD — données sensibles).
+>
+> ⚠️ **« Local-only » n'est pas l'autre branche d'un choix — c'est la première moitié
+> des deux.** Toute donnée synchronisée de Kyroz a **déjà** une clé locale comme source
+> de travail : `lib/sync.ts` fait correspondre 6 clés AsyncStorage à 6 tables. La table
+> n'est pas une alternative à la clé, c'est un **miroir posé dessus**. Donc choisir
+> local-only ne ferme aucune porte (le miroir s'ajoute plus tard sans rien réécrire),
+> alors que l'inverse est cher : une table où des utilisateurs ont des données ne se
+> supprime pas à la légère. ➡️ **Devant ce choix, commencer local et mesurer le besoin
+> de synchro** — et compter les SIX surfaces qu'une table coûte vraiment (schéma,
+> migration à jouer à la main, `sync.ts`, la liste de tables de `delete-account`, la
+> politique de confidentialité, le registre RGPD), pas les deux qu'on imagine.
 
 ---
 
@@ -954,6 +967,23 @@ téléphone.
   garde-fou §6 devenait invisible). ➡️ Utiliser **`useDialog()`** (`components/Dialog.tsx`,
   `confirm` / `notify` / `choose`) — un seul chemin web ET natif. Interdiction
   verrouillée par `lib/__tests__/noAlert.test.ts`.
+- 🔴 **Une `Modal` de react-native-web crée son conteneur DOM à son MONTAGE, pas quand
+  elle devient visible** — et à `z-index` égal, c'est l'ORDRE DU DOM qui décide qui
+  passe devant. Conséquence mesurée le 2026-08-05 : `DialogProvider` vivant à la racine,
+  son conteneur naissait au démarrage de l'app, donc **avant** celui de toute feuille
+  ouverte ensuite → **tout `confirm` / `notify` / `choose` appelé depuis une `Sheet`
+  était invisible**. Le code s'exécutait, la promesse attendait, l'utilisateur ne voyait
+  rien : la famille exacte du piège `Alert.alert` ci-dessous, dans le module écrit pour
+  le remplacer. Deux chemins touchés, dont un livré depuis longtemps (« Supprimer cette
+  pesée ? »).
+  ➡️ **Règle : une surcouche globale qui doit passer AU-DESSUS se monte à la demande,
+  pas au démarrage.** `Dialog.tsx` ne monte son `ActionSheet` que lorsqu'une demande
+  existe (+ 260 ms pour l'animation de sortie). Garde-fou : `noAlert.test.ts`.
+  ⚠️ Invisible sous vitest (pas de DOM) et à la relecture — seule une CAPTURE le montre.
+  Et l'instrument ment ici aussi : `getBoundingClientRect` rend une hauteur 0 pour TOUS
+  les conteneurs de modale, y compris celle qui est bien à l'écran.
+  ℹ️ Mesuré sur le web ; sur natif, `Modal` est une modale de plateforme et l'ordre de
+  présentation n'obéit pas au DOM.
 - **`onEndEditing` est un no-op sur react-native-web.** Pour normaliser ou borner une
   saisie en fin de frappe, utiliser **`onBlur`**. Le bug « %MG saisi 23 → enregistré 33 »
   venait de là.

@@ -27,11 +27,14 @@ import { BodyFatPicker } from '../../components/BodyFatPicker';
 import { DislikedFoodsField } from '../../components/DislikedFoodsField';
 import { MacroSplit } from '../../components/MacroSplit';
 import { WeightCheckin } from '../../components/WeightCheckin';
+import { OffPlanHistory } from '../../components/OffPlanHistory';
 import { useHydrationEnabled } from '../../components/HydrationBar';
 import { useAnalyticsConsent } from '../../hooks/useAnalyticsConsent';
 import { useProfile } from '../../hooks/useProfile';
 import { useStreak } from '../../hooks/useStreak';
 import { useWeightLog } from '../../hooks/useWeightLog';
+import { useOffPlanJournal } from '../../hooks/useOffPlanJournal';
+import { journalSummary } from '../../lib/offPlanJournal';
 import { useReminder } from '../../hooks/useReminder';
 import { usePlanCheckin } from '../../hooks/usePlanCheckin';
 import { useAuth } from '../../hooks/useAuth';
@@ -174,6 +177,11 @@ export default function ProfilScreen() {
   const router = useRouter();
   const [editor, setEditor] = useState<EditorKey | null>(null);
   const [weighIn, setWeighIn] = useState(false);
+  // Historique des repas hors plan (E6). Les écarts se posent depuis l'onglet
+  // Plan, donc on RECHARGE à l'ouverture — la liste du montage est périmée.
+  const journal = useOffPlanJournal();
+  const [offPlanOpen, setOffPlanOpen] = useState(false);
+  const openOffPlan = () => { journal.reload(); setOffPlanOpen(true); };
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
@@ -410,6 +418,9 @@ export default function ProfilScreen() {
           <MenuRow t={t} label="Préférences alimentaires" value={profile.dietary_restrictions.length || profile.disliked_foods.length || profile.hidden_recipes?.length ? 'Personnalisées' : 'Aucune'} onPress={() => setEditor('prefs')} />
           <MenuRow t={t} label="Paramètres des repas" value={`${profile.plan_days} j · ${(profile.meals?.length || 4)} repas · ${EMPHASIS_LABELS[profile.meal_emphasis ?? 'even']}`} onPress={() => setEditor('meals')} />
           <MenuRow t={t} label="Banque de calories" value={premium.can('calorie_bank') ? bankResume(profile) : 'Inclus dans Kyroz+'} onPress={() => openEditor('calorie_bank')} />
+          {/* La VALEUR ne compte pas les écarts (cf. `journalSummary`) : un score
+              posé là mettrait la pression sans qu'on ouvre quoi que ce soit. */}
+          <MenuRow t={t} label="Repas hors plan" value={journalSummary(journal.entries)} onPress={openOffPlan} />
           <MenuRow t={t} label="Kyroz+" value={KYROZ_PLUS_VALEUR[premium.reason]} onPress={() => router.push('/kyroz-plus')} />
           <MenuRow t={t} label="Régénérer mon plan" value="Repartir de zéro" onPress={regenPlan} last />
         </View>
@@ -575,6 +586,11 @@ export default function ProfilScreen() {
       {/* Suivi du poids */}
       <Sheet visible={weighIn} onClose={() => setWeighIn(false)}>
         <WeightCheckin t={t} onClose={() => setWeighIn(false)} />
+      </Sheet>
+
+      {/* Historique des repas hors plan (E6) — local à l'appareil */}
+      <Sheet visible={offPlanOpen} onClose={() => setOffPlanOpen(false)}>
+        <OffPlanHistory t={t} entries={journal.entries} onRemove={journal.removeDisplayed} />
       </Sheet>
 
       {/* Confirmation suppression de compte (RGPD) */}
