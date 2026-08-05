@@ -955,6 +955,15 @@ téléphone.
 - **Le portail de dépistage santé et la visite guidée interceptent les clics.** Tout script
   qui pilote l'app doit les neutraliser d'abord, sinon il conclut que les écrans sont
   « introuvables » alors qu'il n'a jamais pu quitter le Plan (cf. `test/README.md`).
+  ⚠️ **« Écran introuvable » est presque toujours un FAUX diagnostic** : l'écran existe,
+  c'est le parcours qui ne l'atteint plus. Les scripts de `test/` ont pourri deux fois
+  ainsi (juin-juillet 2026, puis le 2026-08-05 : attestation de dépistage déplacée, champ
+  d'âge devenu date de naissance) et la panne a dormi des JOURS, parce qu'elle ne se voyait
+  qu'en lançant un navigateur. Depuis : les libellés dont les scripts dépendent sont
+  verrouillés contre les écrans par **`lib/__tests__/harnaisEcrans.test.ts`** (donc un
+  renommage rougit dans `npm test` le jour même), et toute étape qui n'aboutit pas nomme la
+  marche cassée avec une capture. ➡️ **Un harnais qui échoue doit dire OÙ il s'est arrêté ;
+  un `false` muet est ce qui laisse la panne dormir.**
 - **Supabase plafonne la création de comptes invités** (429 `over_request_rate_limit`, par
   heure et par IP). Enchaîner les passes de test fait échouer des parcours **sans que l'app
   ait quoi que ce soit à se reprocher**.

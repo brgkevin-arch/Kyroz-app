@@ -3788,6 +3788,35 @@ celui demandé. Vérifié par mutation : un libellé faussé rend « objectif de
 « maintain », objectif servi « cut » » au lieu de 12 repas verts.
 ➡️ **Là où l'app ne valide rien, vérifier ce qui est SERVI, pas ce qui a été cliqué.**
 
+### 🔒 Le verrou qui empêche la TROISIÈME fois — `lib/__tests__/harnaisEcrans.test.ts`
+
+Tout ce qui précède répare le passé. Le harnais est reparti faux **deux fois pour la même
+raison structurelle** : il pilote l'app par ce qu'elle AFFICHE, ces textes vivent dans les
+écrans, et rien n'obligeait à prévenir le harnais en les changeant. La panne ne pouvait se
+voir qu'en lançant un navigateur contre un serveur — donc jamais dans `npm test`, jamais
+dans un diff. D'où des jours de sommeil, deux fois.
+
+Le test lit les fichiers du dépôt (ni navigateur ni serveur, 75 ms) et verrouille
+**40 ancres** : libellés cliqués, placeholders remplis, clés AsyncStorage, plus quatre
+tables recopiées qui doivent suivre leur source — `TABS` ↔ les onglets montés, `GOAL_SUB`
+↔ `GOALS`, le nombre d'étapes jouées ↔ `TOTAL_STEPS`, et l'ORDRE de `passScreening`
+(réponses avant attestation, nombre de conditions compté et non figé).
+
+**Les deux côtés sont vérifiés** — l'écran ET le script. Un libellé retiré de l'app rougit ;
+un libellé retiré du script rougit aussi, sinon la table du test deviendrait à son tour une
+vérité de plus que personne ne relit.
+
+**Vérifié par MUTATION, sur les deux pannes réelles rejouées dans l'app** :
+`placeholder="1994"` → `"1993"` et un sous-titre d'objectif reformulé font tomber
+2 cas sur 40, avec le message qui nomme la conséquence (« fillPh() ne remplira RIEN, en
+silence »). Suite complète : **1 055 tests verts** (62 fichiers), `tsc` propre.
+
+⚠️ **Ce qu'il ne sait PAS faire, et il ne faut pas le croire plus fort qu'il n'est** :
+dire que l'ENCHAÎNEMENT est encore juste. Le défaut du 2026-08-05 lui aurait échappé —
+« Je confirme… » existait toujours, seul son MOMENT avait changé. La preuve du parcours
+reste une passe Playwright. Ce test ferme le chemin par lequel la dérive est réellement
+arrivée : un texte changé d'un côté sans l'autre.
+
 ⚠️ Le persona porte désormais `birth: { d, m, y }` et **plus de champ `age`** — il ne
 remplirait plus rien, et ce serait une seconde source de vérité (l'âge est dérivé de la
 date, `lib/birthday.ts`).
