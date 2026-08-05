@@ -44,13 +44,28 @@ export function Sheet({ visible, onClose, children }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible]);
 
-  // Glisser pour fermer. onStart=false → les taps (ex. croix) passent au travers ;
-  // on ne capte le geste que sur un mouvement vers le bas. Les panHandlers sont
-  // posés sur une grande zone (poignée haute + en-tête de la recette) pour qu'on
-  // puisse tirer depuis plus bas, sans interférer avec le scroll du contenu.
+  // Glisser pour fermer. Les panHandlers sont posés sur une grande zone (poignée
+  // haute + en-tête de la recette) pour qu'on puisse tirer depuis plus bas.
+  //
+  // ⚠️ `onStartShouldSetPanResponder` DOIT renvoyer `true`. Il renvoyait `false`
+  // depuis le commit initial, avec l'intention de « laisser passer les taps » —
+  // et le geste n'a alors JAMAIS fonctionné en natif. Mesuré au simulateur iOS le
+  // 2026-08-05 : tirer la poignée ne déplaçait la feuille d'AUCUN pixel, alors
+  // que le contenu défilait et que les boutons répondaient.
+  // En natif, si aucune vue ne réclame le responder au CONTACT, les phases
+  // « mouvement » ne sont plus proposées du tout — ni en bulle
+  // (`onMoveShouldSetPanResponder`) ni en capture
+  // (`onMoveShouldSetPanResponderCapture`, essayé et mesuré sans effet non plus).
+  // Le web ne pouvait pas le montrer : react-native-web fait passer le glissement
+  // par des événements souris que le système de responder voit toujours. D'où un
+  // geste « qui marchait » pendant des mois sans avoir jamais marché au doigt.
+  //
+  // Les taps continuent de passer, pour deux raisons mesurées : les `Touchable*`
+  // enfants sont plus profonds dans l'arbre et gagnent le responder devant ce
+  // parent ; et un simple appui ici se termine avec dy ≈ 0, donc sans effet.
   const pan = useRef(
     PanResponder.create({
-      onStartShouldSetPanResponder: () => false,
+      onStartShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponder: (_, g) => g.dy > 6 && Math.abs(g.dy) > Math.abs(g.dx),
       onPanResponderMove: (_, g) => { if (g.dy > 0) ty.setValue(g.dy); },
       onPanResponderRelease: (_, g) => {
@@ -59,6 +74,18 @@ export function Sheet({ visible, onClose, children }: Props) {
         } else {
           Animated.spring(ty, { toValue: 0, useNativeDriver: true, bounciness: 2 }).start();
         }
+      },
+      // ⚠️ Ces deux-là ne sont pas décoratifs — sans eux la feuille RESTE COINCÉE
+      // à mi-course. Mesuré le 2026-08-05 : en tirant depuis l'en-tête de la
+      // recette (qui vit, lui, dans le `ScrollView`), le scroll natif reprend le
+      // geste en cours de route ; le pan est alors « terminé » sans passer par
+      // `onPanResponderRelease`, et plus personne ne ramène `ty` à 0.
+      // `onPanResponderTerminationRequest: false` refuse de céder un geste déjà
+      // commencé, et `onPanResponderTerminate` rattrape le cas où il est repris
+      // malgré tout (l'appel entrant, par exemple).
+      onPanResponderTerminationRequest: () => false,
+      onPanResponderTerminate: () => {
+        Animated.spring(ty, { toValue: 0, useNativeDriver: true, bounciness: 2 }).start();
       },
     })
   ).current;

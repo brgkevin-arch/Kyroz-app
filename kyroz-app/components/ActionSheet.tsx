@@ -41,16 +41,28 @@ export function ActionSheet({ visible, onClose, children }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible]);
 
-  // Toute la feuille est draggable : on ne capte que les gestes nettement vers le
-  // bas (onStart=false → les taps/focus sur les champs et boutons passent).
+  // Toute la feuille est draggable : on ne ferme que sur un geste nettement vers
+  // le bas (le filtre vit dans `onMoveShouldSetPanResponder` + le seuil au relâché).
+  //
+  // ⚠️ `onStartShouldSetPanResponder` DOIT renvoyer `true` — même mesure et même
+  // raison que dans `Sheet.tsx` (voir le commentaire détaillé là-bas) : à `false`,
+  // le geste n'existe tout simplement pas en natif. Les taps et le focus des
+  // champs continuent de passer, parce que `TextInput` et `Touchable*` sont plus
+  // profonds dans l'arbre et gagnent le responder devant ce parent.
   const pan = useRef(
     PanResponder.create({
-      onStartShouldSetPanResponder: () => false,
+      onStartShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponder: (_, g) => g.dy > 8 && Math.abs(g.dy) > Math.abs(g.dx) * 1.5,
       onPanResponderMove: (_, g) => { if (g.dy > 0) ty.setValue(g.dy); },
       onPanResponderRelease: (_, g) => {
         if (g.dy > 80 || g.vy > 0.4) onClose();
         else Animated.spring(ty, { toValue: 0, useNativeDriver: true, bounciness: 2 }).start();
+      },
+      // Même garde-fou que dans `Sheet.tsx` : sans ça, un geste repris par un
+      // scroll (ou par le système) laisse la feuille figée à mi-course.
+      onPanResponderTerminationRequest: () => false,
+      onPanResponderTerminate: () => {
+        Animated.spring(ty, { toValue: 0, useNativeDriver: true, bounciness: 2 }).start();
       },
     })
   ).current;
