@@ -8,7 +8,7 @@
 
 import { chromium } from 'playwright';
 import { writeFileSync, existsSync } from 'node:fs';
-import { SHOT, STATE, PHONE, HEADLESS, sleep, ensureDirs, open, tap, bootToPlan, closeSheet, goToProfil, neutralizeFirstRun } from './_harness.mjs';
+import { SHOT, STATE, PHONE, HEADLESS, sleep, ensureDirs, open, tap, bootToPlan, closeSheet, goToProfil, neutralizeFirstRun, bilanPannes } from './_harness.mjs';
 
 ensureDirs();
 
@@ -37,6 +37,15 @@ await open(page);
 
 const onPlan = await bootToPlan(page);
 log(onPlan ? 'session prête' : 'ATTENTION : écran Plan jamais atteint');
+if (!onPlan) {
+  // Sans session, le Frigo et les sous-écrans du Profil n'existent pas : la suite
+  // ne produirait qu'une liste de « introuvable » qui accuse les écrans alors que
+  // c'est le PARCOURS qui est cassé. On s'arrête sur le vrai diagnostic.
+  await context.close();
+  await browser.close();
+  bilanPannes();
+  process.exit(3);
+}
 if (!haveState) {
   await context.storageState({ path: STATE });
   log('session sauvegardée -> ' + STATE);
