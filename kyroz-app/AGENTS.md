@@ -3185,7 +3185,16 @@ produit en suspens — il ne reste qu'à coder.
   Vérifié à l'écran, avant/après : poignée ✅ ferme · en-tête ✅ ferme sans blocage ·
   défilement ✅ intact · bouton cœur ✅ intact (feuille reste ouverte) · `ActionSheet`
   ✅ ferme · saisie + suggestions Ciqual ✅ intactes.
-  `components/Sheet.tsx`, `components/ActionSheet.tsx`. **Livrable par OTA** (JS pur).
+  `components/Sheet.tsx`, `components/ActionSheet.tsx`.
+  ✅ **PUBLIÉ EN OTA le 2026-08-06** — la **première** du projet (la branche `production`
+  était vide jusque-là). Group `28dce9c7-0270-4c3f-b0b9-88b1a224ce8c`, runtime `1.0.0`,
+  commit `31ee5724` — donc atteint le build TestFlight **3**, sans repasser par Apple.
+  ⚠️ `--environment production` est **obligatoire** depuis le SDK 55 : sans lui, les
+  variables serveur EAS ne sont pas chargées et le bundle part **sans URL Supabase**
+  (l'app ne démarre alors plus, pour tout le monde, en quelques minutes).
+  ✅ **Bundle vérifié avant de considérer l'affaire close**, méthode CLAUDE.md §2
+  (`strings -a` sur le `.hbc`) : URL Supabase **1**, `sb_publishable_` **1**,
+  `sk-ant-` **0**.
 
 - ~~**E13 · Trois écarts corrigés dans la foulée**~~ ✅ **2026-08-05.**
   **(a)** Le bouton « Continuer » de l'onboarding était **plein et franc** alors qu'il
