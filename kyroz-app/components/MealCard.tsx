@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useTheme, Radius, cardShadow, ThemePalette, Type, Spacing } from '../constants/theme';
+import { useTheme, Radius, cardShadow, ThemePalette, Type, Spacing, Trait, Icone, OPACITE_PRESSION } from '../constants/theme';
 import { Meal } from '../lib/types';
 import { useTourTarget } from './GuidedTour';
 import { useFavorites } from '../hooks/useFavorites';
@@ -41,7 +41,7 @@ export function MealCard({
     <TouchableOpacity
       ref={rootRef}
       onPress={onPress}
-      activeOpacity={0.85}
+      activeOpacity={OPACITE_PRESSION}
       style={[{ backgroundColor: t.card, borderRadius: Radius.card, padding: Spacing.xl, opacity: muted ? 0.6 : 1 }, cardShadow(t)]}
     >
       {/* Un seul surtitre « TYPE · DURÉE » au lieu de deux coins opposés : le nom
@@ -99,8 +99,8 @@ export function MealCard({
 // Bouton-icône d'action (favori / j'aime pas / changer), aligné sur le bouton cuisiné.
 function ActionIcon({ t, name, active, onPress, label }: { t: ThemePalette; name: keyof typeof Ionicons.glyphMap; active?: boolean; onPress: () => void; label: string }) {
   return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.7} accessibilityLabel={label} style={[styles.iconBtn, { backgroundColor: t.fill }]}>
-      <Ionicons name={name} size={18} color={active ? t.text : t.textSecondary} />
+    <TouchableOpacity onPress={onPress} activeOpacity={OPACITE_PRESSION} accessibilityLabel={label} style={[styles.iconBtn, { backgroundColor: t.fill }]}>
+      <Ionicons name={name} size={Icone.standard} color={active ? t.text : t.textSecondary} />
     </TouchableOpacity>
   );
 }
@@ -112,15 +112,15 @@ function CookButton({ t, onCook, lacks, cookRef }: { t: ThemePalette; onCook: ()
     <TouchableOpacity
       ref={cookRef}
       onPress={onCook}
-      activeOpacity={0.85}
+      activeOpacity={OPACITE_PRESSION}
       style={[
         styles.cookBtn,
         lacks
-          ? { borderWidth: 1.5, borderColor: t.lineStrong }
+          ? { borderWidth: Trait.controle, borderColor: t.lineStrong }
           : { backgroundColor: t.accent },
       ]}
     >
-      <Ionicons name="restaurant" size={15} color={lacks ? t.text : t.onAccent} />
+      <Ionicons name="restaurant" size={Icone.petite} color={lacks ? t.text : t.onAccent} />
       <Text style={[styles.cookTxt, { color: lacks ? t.text : t.onAccent }]}>J'ai cuisiné</Text>
     </TouchableOpacity>
   );

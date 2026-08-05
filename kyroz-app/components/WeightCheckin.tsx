@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, useWindowDimensions, Image, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { ThemePalette, Radius, Spacing, Type, Fond } from '../constants/theme';
+import { ThemePalette, Radius, Spacing, Type, Fond, Trait, Icone, OPACITE_PRESSION } from '../constants/theme';
 import { SHEET_MAX_WIDTH } from '../constants/layout';
 import { Field, PrimaryButton, SectionLabel, Segmented } from './ui';
 import { useDialog } from './Dialog';
@@ -206,7 +206,7 @@ export function WeightCheckin({ t, onClose, dragHandlers }: Props) {
               <TouchableOpacity
                 key={d.iso}
                 onPress={() => pickDate(d.iso)}
-                activeOpacity={0.85}
+                activeOpacity={OPACITE_PRESSION}
                 style={[s.dateChip, { backgroundColor: on ? t.accent : t.card, borderColor: on ? t.accent : t.line }]}
               >
                 <Text style={[s.dateWd, { color: on ? t.onAccent : t.textTertiary }]}>{d.today ? 'Auj.' : d.wd}</Text>
@@ -244,12 +244,12 @@ export function WeightCheckin({ t, onClose, dragHandlers }: Props) {
           <View style={s.photoPreview}>
             <Image source={{ uri: pendingPhoto }} style={s.photoBig} />
             <TouchableOpacity onPress={() => setPendingPhoto(null)} style={s.photoRemove} hitSlop={8}>
-              <Ionicons name="close-circle" size={26} color={t.text} />
+              <Ionicons name="close-circle" size={Icone.nav} color={t.text} />
             </TouchableOpacity>
           </View>
         ) : (
-          <TouchableOpacity onPress={choosePhoto} style={s.photoBtn} activeOpacity={0.8}>
-            <Ionicons name="camera-outline" size={18} color={t.text} />
+          <TouchableOpacity onPress={choosePhoto} style={s.photoBtn} activeOpacity={OPACITE_PRESSION}>
+            <Ionicons name="camera-outline" size={Icone.standard} color={t.text} />
             <Text style={s.photoBtnTxt}>Ajouter une photo de progression</Text>
           </TouchableOpacity>
         )}
@@ -323,7 +323,7 @@ export function WeightCheckin({ t, onClose, dragHandlers }: Props) {
                         {d == null ? '—' : `${d > 0 ? '+' : ''}${d}`}
                       </Text>
                       <TouchableOpacity onPress={() => confirmDelete(e.date, e.weight_kg)} hitSlop={8} style={s.histDel}>
-                        <Ionicons name="close" size={15} color={t.textQuaternary} />
+                        <Ionicons name="close" size={Icone.petite} color={t.textQuaternary} />
                       </TouchableOpacity>
                     </View>
                     {e.note ? <Text style={s.histNote}>{e.note}</Text> : null}
@@ -348,7 +348,7 @@ function makeStyles(t: ThemePalette) {
     sub: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 20 },
     content: { padding: Spacing.xxl, paddingTop: Spacing.md, gap: Spacing.lg, paddingBottom: Fond.feuille },
     dateRow: { gap: CHIP_GAP, paddingVertical: Spacing.xs },
-    dateChip: { width: CHIP_W, height: 56, borderRadius: Radius.button, borderWidth: 1, alignItems: 'center', justifyContent: 'center', gap: Spacing.xs },
+    dateChip: { width: CHIP_W, height: 56, borderRadius: Radius.button, borderWidth: Trait.fin, alignItems: 'center', justifyContent: 'center', gap: Spacing.xs },
     dateChipFuture: { backgroundColor: t.fill, borderColor: t.line, opacity: 0.5 },
     dateWd: { ...Type.microStrong, textTransform: 'capitalize' },
     dateNum: { ...Type.bodyStrong },
@@ -358,7 +358,7 @@ function makeStyles(t: ThemePalette) {
     confirmTitle: { ...Type.bodyStrong, color: t.text },
     confirmSub: { ...Type.caption, color: t.textSecondary },
     freqHint: { ...Type.caption, color: t.textTertiary, lineHeight: 16, marginTop: -Spacing.sm },
-    histCard: { backgroundColor: t.card, borderRadius: Radius.card, borderWidth: 1, borderColor: t.line, paddingHorizontal: Spacing.lg },
+    histCard: { backgroundColor: t.card, borderRadius: Radius.card, borderWidth: Trait.fin, borderColor: t.line, paddingHorizontal: Spacing.lg },
     histItem: { paddingVertical: Spacing.md },
     histRow: { flexDirection: 'row', alignItems: 'center' },
     histDivider: { borderBottomWidth: 1, borderBottomColor: t.line },
@@ -368,7 +368,7 @@ function makeStyles(t: ThemePalette) {
     histDel: { marginLeft: Spacing.md, padding: Spacing.xs },
     histNote: { ...Type.caption, color: t.textSecondary, lineHeight: 18, marginTop: Spacing.xs, fontStyle: 'italic' },
     histPhoto: { width: 64, height: 84, borderRadius: Radius.sm, marginTop: Spacing.sm, backgroundColor: t.fill },
-    photoBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm, paddingVertical: Spacing.lg, borderRadius: Radius.button, borderWidth: 1, borderColor: t.line, borderStyle: 'dashed' },
+    photoBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm, paddingVertical: Spacing.lg, borderRadius: Radius.button, borderWidth: Trait.fin, borderColor: t.line, borderStyle: 'dashed' },
     photoBtnTxt: { ...Type.bodyStrong, color: t.text },
     photoPreview: { alignSelf: 'flex-start' },
     photoBig: { width: 150, height: 200, borderRadius: Radius.card, backgroundColor: t.fill },

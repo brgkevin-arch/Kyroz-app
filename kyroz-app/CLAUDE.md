@@ -836,6 +836,41 @@ padding natif d'un champ) ; la grille reste un multiple de 4, croissante et sans
 doublon ; aucun pressable sous 44 pt. **Vérifié par 5 mutations**, toutes
 rougissent.
 
+### Les trois finitions : trait, icône, retour au toucher (2026-08-06)
+
+Même diagnostic que les trois passes précédentes, en plus petit — le token existe
+ou n'existe pas, mais rien n'oblige à s'en servir :
+
+| Ce qui dérivait | Mesuré | Devenu |
+|---|---|---|
+| `activeOpacity` | **4 valeurs** (0,85 ×31 · 0,7 ×23 · 0,8 ×14 · 0,6 ×1) | `OPACITE_PRESSION` = 0,7 |
+| `borderWidth` | 1 (×40) · 2 (×5) · **1,5 (×4)** | `Trait.fin` / `Trait.controle` |
+| taille d'icône | **12 valeurs** de 14 à 30 | `Icone.petite/standard/action/nav/vide` |
+
+⚠️ **Un seul geste mérite une seule valeur.** Les quatre `activeOpacity` ne
+correspondaient à aucun type d'élément : c'était l'humeur de qui écrivait la
+ligne. 0,7 plutôt que 0,85 parce qu'à 15 % d'écart sur fond sombre le retour est
+presque invisible — or c'est le **seul** signe que l'appui a été pris en compte.
+
+⚠️ **Une icône n'a pas de taille « à elle »** — elle en a une par rapport à ce
+qu'elle accompagne. D'où des crans nommés `petite` (dans une case, une puce),
+`standard` (chevron de ligne, croix d'un champ), `action` (bouton rond), `nav`
+(chevron retour), `vide` (illustration d'état vide). Des noms `sm/md/lg`
+n'auraient rien dit de plus que le chiffre qu'ils remplacent.
+
+Le `1,5` du trait est parti : le `2` marquait **toujours** un contrôle qu'on
+sélectionne (case, pastille de couleur, option retenue), le `1,5` n'était
+qu'« un peu plus épais qu'un séparateur ».
+
+➡️ **Garde-fou : `lib/__tests__/finitionsDA.test.ts`**, vérifié par 6 mutations.
+
+⚠️ **Ce qui n'a PAS été fait, et pourquoi** : les 110 `lineHeight` en dur. Le bon
+geste serait de les porter dans les tokens `Type` — mais un `lineHeight` posé sur
+`Type.body` s'applique aussi aux textes d'UNE ligne, dont il change la hauteur de
+boîte, donc l'alignement. Le risque ne se voit pas sur les 5 onglets : il se voit
+sur les ~25 feuilles modales, qu'aucune capture ne couvre encore. C'est un
+chantier à part, avec sa vérification à lui.
+
 ### Le grand titre se replie (2026-08-04)
 
 Comportement des grands titres iOS, et ce que fait la maquette **sur ses cinq écrans à

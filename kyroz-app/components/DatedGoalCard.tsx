@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import { ThemePalette, Type, Spacing } from '../constants/theme';
+import { ThemePalette, Type, Spacing, OPACITE_PRESSION } from '../constants/theme';
 import { Card } from './ui';
 import { datedGoalStatus } from '../lib/datedGoal';
 import { planFloorKcal, makeWeeklyProjector } from '../lib/tdee';
@@ -42,7 +42,7 @@ export function DatedGoalCard({ t, profile, onPress }: { t: ThemePalette; profil
   const progress = denom !== 0 ? Math.min(Math.max((gt.start_weight_kg - profile.weight_kg) / denom, 0), 1) : 1;
 
   return (
-    <TouchableOpacity activeOpacity={0.85} onPress={onPress}>
+    <TouchableOpacity activeOpacity={OPACITE_PRESSION} onPress={onPress}>
       <Card t={t} style={{ gap: Spacing.md }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
           <Text style={{ color: t.text, ...Type.h3 }}>

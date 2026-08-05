@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { ThemePalette, Radius, Type, Spacing } from '../constants/theme';
+import { ThemePalette, Radius, Type, Spacing, Trait, Icone } from '../constants/theme';
 import { useDialog } from './Dialog';
 import { OffPlanEntry, describeOutcome, newestFirst } from '../lib/offPlanJournal';
 import { todayStamp } from '../lib/weight';
@@ -95,7 +95,7 @@ export function OffPlanHistory({
                     // d'avoir à accorder un article avec une date variable.
                     accessibilityLabel={`Retirer cette ligne — ${frDate(e.date)}`}
                   >
-                    <Ionicons name="close" size={18} color={t.textQuaternary} />
+                    <Ionicons name="close" size={Icone.standard} color={t.textQuaternary} />
                   </TouchableOpacity>
                 </View>
                 {/* Décision inconnue (app quittée avant l'arbitrage) → on se tait.
@@ -122,14 +122,14 @@ function makeStyles(t: ThemePalette) {
     sub: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 20, marginTop: Spacing.sm },
     scroll: { flex: 1 },
     scrollContent: { gap: Spacing.md, paddingBottom: Spacing.xs },
-    card: { borderWidth: 1, borderColor: t.line, borderRadius: Radius.card, padding: Spacing.lg, gap: Spacing.sm },
+    card: { borderWidth: Trait.fin, borderColor: t.line, borderRadius: Radius.card, padding: Spacing.lg, gap: Spacing.sm },
     head: { flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.md },
     headTexte: { flex: 1 },
     date: { ...Type.bodyStrong, color: t.text },
     label: { ...Type.caption, color: t.textSecondary, marginTop: Spacing.xs },
     kcal: { ...Type.bodyStrong, color: t.text },
     outcome: { ...Type.caption, color: t.textTertiary, lineHeight: 18 },
-    videCard: { borderWidth: 1, borderColor: t.line, borderRadius: Radius.card, padding: Spacing.xl, gap: Spacing.sm },
+    videCard: { borderWidth: Trait.fin, borderColor: t.line, borderRadius: Radius.card, padding: Spacing.xl, gap: Spacing.sm },
     videTitre: { ...Type.label, color: t.text },
     videTexte: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 20 },
     note: { ...Type.caption, color: t.textQuaternary, lineHeight: 17 },

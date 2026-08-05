@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useTheme, ThemePalette, Radius, Spacing, Type, Fond, CIBLE_TACTILE_MIN } from '../../constants/theme';
+import { useTheme, ThemePalette, Radius, Spacing, Type, Fond, CIBLE_TACTILE_MIN, Trait, Icone, OPACITE_PRESSION } from '../../constants/theme';
 import { useLayout } from '../../constants/layout';
 import { useCollapsingTitle, CompactTitleBar } from '../../components/CollapsingTitle';
 import { MealPlan, ShoppingItem, ShoppingList } from '../../lib/types';
@@ -123,7 +123,7 @@ export default function CoursesScreen() {
       <SafeAreaView style={s.safe} edges={['top']}>
         <View style={[s.center, layout.content]}>
           <View style={[s.emptyIcon, { backgroundColor: t.fill }]}>
-            <Ionicons name={covered ? 'checkmark-done-outline' : 'cart-outline'} size={30} color={covered ? t.success : t.textSecondary} />
+            <Ionicons name={covered ? 'checkmark-done-outline' : 'cart-outline'} size={Icone.vide} color={covered ? t.success : t.textSecondary} />
           </View>
           <Text style={s.emptyT}>{covered ? 'Rien à acheter 🎉' : 'Aucune liste'}</Text>
           <Text style={s.emptyS}>
@@ -183,18 +183,18 @@ export default function CoursesScreen() {
         {/* Contrôles */}
         <View style={s.controls}>
           {remaining > 0 && (
-            <TouchableOpacity style={s.ctrl} onPress={checkAll} activeOpacity={0.8}>
-              <Ionicons name="checkmark-done-outline" size={15} color={t.textSecondary} />
+            <TouchableOpacity style={s.ctrl} onPress={checkAll} activeOpacity={OPACITE_PRESSION}>
+              <Ionicons name="checkmark-done-outline" size={Icone.petite} color={t.textSecondary} />
               <Text style={s.ctrlTxt}>Tout cocher</Text>
             </TouchableOpacity>
           )}
-          <TouchableOpacity style={[s.ctrl, hideChecked && s.ctrlOn]} onPress={() => setHideChecked((v) => !v)} activeOpacity={0.8}>
-            <Ionicons name={hideChecked ? 'eye-off-outline' : 'eye-outline'} size={15} color={hideChecked ? t.onAccent : t.textSecondary} />
+          <TouchableOpacity style={[s.ctrl, hideChecked && s.ctrlOn]} onPress={() => setHideChecked((v) => !v)} activeOpacity={OPACITE_PRESSION}>
+            <Ionicons name={hideChecked ? 'eye-off-outline' : 'eye-outline'} size={Icone.petite} color={hideChecked ? t.onAccent : t.textSecondary} />
             <Text style={[s.ctrlTxt, hideChecked && { color: t.onAccent }]}>Masquer cochés</Text>
           </TouchableOpacity>
           {checked > 0 && (
-            <TouchableOpacity style={s.ctrl} onPress={reset} activeOpacity={0.8}>
-              <Ionicons name="refresh-outline" size={15} color={t.textSecondary} />
+            <TouchableOpacity style={s.ctrl} onPress={reset} activeOpacity={OPACITE_PRESSION}>
+              <Ionicons name="refresh-outline" size={Icone.petite} color={t.textSecondary} />
               <Text style={s.ctrlTxt}>Réinitialiser</Text>
             </TouchableOpacity>
           )}
@@ -237,12 +237,12 @@ export default function CoursesScreen() {
                 !last && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.line },
               ]}
               onPress={() => toggle(item)}
-              activeOpacity={0.7}
+              activeOpacity={OPACITE_PRESSION}
             >
               {/* Pastille RONDE et pleine : une case à cocher carrée est un objet de
                   formulaire, or ici on ne remplit pas un formulaire, on fait ses courses. */}
               <View style={[s.dot, { borderColor: item.checked ? t.accent : t.lineStrong, backgroundColor: item.checked ? t.accent : 'transparent' }]}>
-                {item.checked && <Ionicons name="checkmark" size={14} color={t.onAccent} />}
+                {item.checked && <Ionicons name="checkmark" size={Icone.petite} color={t.onAccent} />}
               </View>
               <Text style={[s.name, item.checked && { textDecorationLine: 'line-through', color: t.textTertiary }]} numberOfLines={1}>{item.name}</Text>
               <Text style={[s.qty, item.checked && { color: t.textQuaternary }]}>{formatQuantity(item.name, item.quantity, item.unit)}</Text>
@@ -290,7 +290,7 @@ function makeStyles(t: ThemePalette) {
     sectionCount: { ...Type.caption, color: t.textTertiary },
 
     row: { flexDirection: 'row', alignItems: 'center', gap: Spacing.lg, paddingHorizontal: Spacing.lg, paddingVertical: Spacing.lg, backgroundColor: t.card },
-    dot: { width: 24, height: 24, borderRadius: 12, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
+    dot: { width: 24, height: 24, borderRadius: 12, borderWidth: Trait.controle, alignItems: 'center', justifyContent: 'center' },
     name: { ...Type.body, flex: 1, color: t.text },
     qty: { ...Type.body, color: t.textSecondary },
   });

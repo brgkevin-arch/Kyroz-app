@@ -190,6 +190,44 @@ export const Fond = {
 // l'œil : un bouton qui a l'air petit reste difficile à viser.
 export const CIBLE_TACTILE_MIN = 44;
 
+// ── Épaisseur de trait — deux rôles, pas trois ──────────────────────────────
+// Mesuré le 2026-08-06 : 1 (40 fois), 2 (5) et 1,5 (4). Le 2 marquait TOUJOURS
+// la même chose — un contrôle qu'on sélectionne : case à cocher, pastille de
+// couleur, option retenue, surlignage du guide. Le 1,5 n'avait aucun rôle : il
+// était juste « un peu plus épais qu'un séparateur ».
+export const Trait = {
+  /** Séparateur, contour de carte, liseré discret. */
+  fin: 1,
+  /** Contrôle qu'on sélectionne : case à cocher, pastille, option retenue. */
+  controle: 2,
+} as const;
+
+// ── Taille d'icône ──────────────────────────────────────────────────────────
+// Mesuré le 2026-08-06 : 12 tailles différentes de 14 à 30 pour une cinquantaine
+// d'icônes. Une icône n'a pas de taille « à elle » — elle en a une par rapport à
+// ce qu'elle accompagne, donc les crans sont nommés d'après ce rapport.
+export const Icone = {
+  /** Dans un contrôle compact : le ✓ d'une case, l'icône d'une puce. */
+  petite: 16,
+  /** L'icône d'interface courante : chevron de ligne, croix d'un champ. */
+  standard: 18,
+  /** Bouton rond d'action : le + du frigo, le − d'un pas-à-pas. */
+  action: 22,
+  /** Navigation et en-tête : le chevron « retour ». */
+  nav: 26,
+  /** Illustration d'un état vide — la seule qui se regarde au lieu de se cliquer. */
+  vide: 30,
+} as const;
+
+// ── Retour au toucher ───────────────────────────────────────────────────────
+// UNE valeur, parce que c'est UN geste. L'app en employait quatre (0,85 ×31 ·
+// 0,7 ×23 · 0,8 ×14 · 0,6 ×1) sans qu'aucune ne corresponde à un type d'élément :
+// c'était l'humeur de qui écrivait la ligne. Un accusé de réception qui change
+// d'intensité d'un bouton à l'autre se remarque sans se comprendre.
+// 0,7 plutôt que 0,85 : à 15 % d'écart sur un fond sombre, le retour est presque
+// invisible — or c'est le SEUL signe que l'appui a été pris en compte.
+export const OPACITE_PRESSION = 0.7;
+
 // ── Rayons — À QUOI sert chaque valeur, pas juste combien elle vaut ──────────
 // La liste triée par taille ne dit pas laquelle employer, et c'est comme ça que
 // la même carte s'est retrouvée à 16 dans un composant et 22 dans l'écran d'à

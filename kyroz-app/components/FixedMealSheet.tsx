@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { ThemePalette, Radius, Type, Spacing, CIBLE_TACTILE_MIN } from '../constants/theme';
+import { ThemePalette, Radius, Type, Spacing, CIBLE_TACTILE_MIN, Trait, Icone, OPACITE_PRESSION } from '../constants/theme';
 import { PrimaryButton, Segmented } from './ui';
 import { Food, FixedMeal, MealType } from '../lib/types';
 import { searchFoods, macrosForQuantity } from '../lib/foods';
@@ -114,7 +114,7 @@ export function FixedMealSheet({
         ) : (
           <View>
             <View style={[s.inputBox, { borderColor: t.line }]}>
-              <Ionicons name="search" size={16} color={t.textTertiary} />
+              <Ionicons name="search" size={Icone.petite} color={t.textTertiary} />
               <TextInput value={query} onChangeText={setQuery} autoFocus
                 placeholder="Ex. flocons d'avoine…" placeholderTextColor={t.textQuaternary}
                 style={[s.input, { marginLeft: Spacing.sm }]} />
@@ -122,7 +122,7 @@ export function FixedMealSheet({
             {query.trim().length > 0 && (
               <View style={s.suggest}>
                 {searchFoods(query, 6).map((food) => (
-                  <TouchableOpacity key={food.id} style={s.suggestRow} onPress={() => { setPicked(food); setGrams(String(DEFAULT_GRAMS)); }} activeOpacity={0.7}>
+                  <TouchableOpacity key={food.id} style={s.suggestRow} onPress={() => { setPicked(food); setGrams(String(DEFAULT_GRAMS)); }} activeOpacity={OPACITE_PRESSION}>
                     <Text style={s.suggestName}>{food.name_fr}</Text>
                     <Text style={s.suggestMacro}>{food.per100g.kcal} kcal /100g</Text>
                   </TouchableOpacity>
@@ -177,15 +177,15 @@ function makeStyles(t: ThemePalette) {
     wrap: { padding: Spacing.xxl, gap: Spacing.lg },
     title: { color: t.text, ...Type.h2 },
     sub: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 20, marginTop: Spacing.sm },
-    inputBox: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderRadius: Radius.button, paddingHorizontal: Spacing.lg },
+    inputBox: { flexDirection: 'row', alignItems: 'center', borderWidth: Trait.fin, borderRadius: Radius.button, paddingHorizontal: Spacing.lg },
     input: { ...Type.input, flex: 1, paddingVertical: Spacing.lg, color: t.text },
     inputSuffix: { ...Type.body, color: t.textTertiary },
-    suggest: { marginTop: Spacing.sm, borderWidth: 1, borderColor: t.line, borderRadius: Radius.sm, overflow: 'hidden' },
+    suggest: { marginTop: Spacing.sm, borderWidth: Trait.fin, borderColor: t.line, borderRadius: Radius.sm, overflow: 'hidden' },
     suggestRow: { paddingHorizontal: Spacing.lg, paddingVertical: Spacing.md, minHeight: CIBLE_TACTILE_MIN, justifyContent: 'center', borderBottomWidth: 1, borderBottomColor: t.line },
     suggestName: { ...Type.bodySmallStrong, color: t.text },
     suggestMacro: { ...Type.caption, color: t.textTertiary, marginTop: Spacing.xs },
     suggestEmpty: { ...Type.caption, color: t.textTertiary, padding: Spacing.lg },
-    pickedCard: { borderWidth: 1, borderColor: t.line, borderRadius: Radius.card, padding: Spacing.lg, gap: Spacing.md },
+    pickedCard: { borderWidth: Trait.fin, borderColor: t.line, borderRadius: Radius.card, padding: Spacing.lg, gap: Spacing.md },
     pickedHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: Spacing.md },
     pickedName: { ...Type.bodyStrong, color: t.text, flex: 1 },
     change: { ...Type.captionStrong, color: t.textSecondary },

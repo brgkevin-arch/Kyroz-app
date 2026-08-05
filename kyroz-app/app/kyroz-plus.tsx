@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useTheme, ThemePalette, Spacing, Radius, Type, Fond } from '../constants/theme';
+import { useTheme, ThemePalette, Spacing, Radius, Type, Fond, Icone, OPACITE_PRESSION } from '../constants/theme';
 import { useLayout } from '../constants/layout';
 import { Card, OptionCard, PrimaryButton, SectionLabel } from '../components/ui';
 import { useDialog } from '../components/Dialog';
@@ -157,8 +157,8 @@ export default function KyrozPlusScreen() {
     <SafeAreaView style={s.safe} edges={['top']}>
       <StatusBar style={t.scheme === 'dark' ? 'light' : 'dark'} />
       <View style={[s.header, layout.header]}>
-        <TouchableOpacity onPress={() => router.back()} hitSlop={10} activeOpacity={0.7}>
-          <Ionicons name="chevron-back" size={26} color={t.text} />
+        <TouchableOpacity onPress={() => router.back()} hitSlop={10} activeOpacity={OPACITE_PRESSION}>
+          <Ionicons name="chevron-back" size={Icone.nav} color={t.text} />
         </TouchableOpacity>
         <Text style={s.headerTitle}>Kyroz+</Text>
       </View>
@@ -173,7 +173,7 @@ export default function KyrozPlusScreen() {
             {BRIQUES.map((b) => (
               <Card key={b.titre} t={t}>
                 <View style={s.briqueTitre}>
-                  <Ionicons name={b.icone} size={19} color={t.text} />
+                  <Ionicons name={b.icone} size={Icone.standard} color={t.text} />
                   <Text style={s.briqueNom}>{b.titre}</Text>
                 </View>
                 <Text style={s.briqueCorps}>{b.corps}</Text>
@@ -231,7 +231,7 @@ export default function KyrozPlusScreen() {
                 />
                 <TouchableOpacity
                   onPress={restaurer}
-                  activeOpacity={0.7}
+                  activeOpacity={OPACITE_PRESSION}
                   disabled={!encaissable || enCours}
                 >
                   <Text style={[s.lienSecondaire, (!encaissable || enCours) && { opacity: 0.5 }]}>
@@ -262,7 +262,7 @@ export default function KyrozPlusScreen() {
           </View>
         )}
 
-        <TouchableOpacity onPress={() => router.push('/legal')} activeOpacity={0.7} style={{ marginTop: Spacing.xxl }}>
+        <TouchableOpacity onPress={() => router.push('/legal')} activeOpacity={OPACITE_PRESSION} style={{ marginTop: Spacing.xxl }}>
           <Text style={s.lienSecondaire}>Conditions d'utilisation · Confidentialité</Text>
         </TouchableOpacity>
 

@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
-import { useTheme, ThemePalette, Spacing, Radius, Type } from '../constants/theme';
+import { useTheme, ThemePalette, Spacing, Radius, Type, Trait, Icone, OPACITE_PRESSION } from '../constants/theme';
 import { useLayout } from '../constants/layout';
 import { PrimaryButton, Segmented } from './ui';
 import { useAuth } from '../hooks/useAuth';
@@ -86,7 +86,7 @@ export default function HealthScreening({ onPass }: { onPass: () => void }) {
         <StatusBar style={t.scheme === 'dark' ? 'light' : 'dark'} />
         <ScrollView contentContainerStyle={[s.blockContent, layout.content]} showsVerticalScrollIndicator={false}>
           <View style={s.iconWrap}>
-            <Ionicons name="medkit-outline" size={30} color={t.text} />
+            <Ionicons name="medkit-outline" size={Icone.vide} color={t.text} />
           </View>
           <Text style={s.title}>Kyroz n'est pas adapté à ta situation</Text>
           <Text style={s.body}>
@@ -143,7 +143,7 @@ export default function HealthScreening({ onPass }: { onPass: () => void }) {
 
         {anyFlag ? (
           <View style={s.warnBox}>
-            <Ionicons name="alert-circle" size={18} color={t.warning} />
+            <Ionicons name="alert-circle" size={Icone.standard} color={t.warning} />
             <Text style={s.warnTxt}>
               D'après ta réponse, Kyroz n'est pas adapté à ta situation.
             </Text>
@@ -153,9 +153,9 @@ export default function HealthScreening({ onPass }: { onPass: () => void }) {
           // et cherchent le bouton avant de lire les questions.
           <Text style={s.pending}>Réponds aux deux questions pour continuer.</Text>
         ) : (
-          <TouchableOpacity style={s.attest} onPress={() => setAttested((a) => !a)} activeOpacity={0.7}>
+          <TouchableOpacity style={s.attest} onPress={() => setAttested((a) => !a)} activeOpacity={OPACITE_PRESSION}>
             <View style={[s.check, { borderColor: attested ? t.accent : t.lineStrong, backgroundColor: attested ? t.accent : 'transparent' }]}>
-              {attested && <Ionicons name="checkmark" size={14} color={t.onAccent} />}
+              {attested && <Ionicons name="checkmark" size={Icone.petite} color={t.onAccent} />}
             </View>
             <Text style={s.attestTxt}>
               Je confirme être un adulte en bonne santé et n'être concerné·e par aucune de ces situations.
@@ -184,7 +184,7 @@ function makeStyles(t: ThemePalette) {
     title: { color: t.text, ...Type.h1 },
     sub: { ...Type.body, color: t.textSecondary, lineHeight: 21 },
     prompt: { ...Type.label, color: t.text, marginTop: Spacing.sm },
-    qCard: { backgroundColor: t.card, borderWidth: 1, borderColor: t.line, borderRadius: Radius.card, padding: Spacing.lg, gap: Spacing.sm },
+    qCard: { backgroundColor: t.card, borderWidth: Trait.fin, borderColor: t.line, borderRadius: Radius.card, padding: Spacing.lg, gap: Spacing.sm },
     qTitle: { ...Type.label, color: t.text },
     qSub: { ...Type.caption, color: t.textSecondary, lineHeight: 18, marginBottom: Spacing.sm },
     pending: { ...Type.bodySmall, color: t.textTertiary, lineHeight: 20, marginTop: Spacing.xs },
@@ -192,7 +192,7 @@ function makeStyles(t: ThemePalette) {
     warnBox: { flexDirection: 'row', gap: Spacing.md, alignItems: 'flex-start', backgroundColor: t.fill, borderRadius: Radius.card, padding: Spacing.lg, marginTop: Spacing.xs },
     warnTxt: { ...Type.bodySmallStrong, flex: 1, color: t.warning, lineHeight: 20 },
     attest: { flexDirection: 'row', gap: Spacing.md, alignItems: 'flex-start', marginTop: Spacing.sm, paddingHorizontal: Spacing.xs },
-    check: { width: 22, height: 22, borderRadius: 6, borderWidth: 2, alignItems: 'center', justifyContent: 'center', marginTop: Spacing.xs },
+    check: { width: 22, height: 22, borderRadius: 6, borderWidth: Trait.controle, alignItems: 'center', justifyContent: 'center', marginTop: Spacing.xs },
     attestTxt: { ...Type.bodySmall, flex: 1, color: t.textSecondary, lineHeight: 20 },
     footer: { padding: Spacing.xl, paddingTop: Spacing.sm, backgroundColor: t.bg, borderTopWidth: 1, borderTopColor: t.line, gap: Spacing.md },
     linkBtn: { alignItems: 'center', paddingVertical: Spacing.xs },

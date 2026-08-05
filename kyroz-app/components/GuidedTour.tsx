@@ -3,7 +3,7 @@ import {
   View, Text, StyleSheet, Modal, Pressable, useWindowDimensions, ViewStyle,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useTheme, Radius, ThemePalette, Type, Spacing, CIBLE_TACTILE_MIN } from '../constants/theme';
+import { useTheme, Radius, ThemePalette, Type, Spacing, CIBLE_TACTILE_MIN, Trait } from '../constants/theme';
 
 // ── Visite guidée (coachmark / spotlight) ────────────────────────────────────
 // Overlay sombre qui « découpe » un trou autour d'un élément cible et affiche
@@ -245,7 +245,7 @@ function Spotlight({
       <View
         style={{
           position: 'absolute', top: cy, left: cx, width: cw, height: ch,
-          borderRadius: Radius.card, borderWidth: 2, borderColor: t.accent,
+          borderRadius: Radius.card, borderWidth: Trait.controle, borderColor: t.accent,
           pointerEvents: 'none',
         }}
       />
@@ -275,7 +275,7 @@ function makeStyles(t: ThemePalette) {
       position: 'absolute',
       backgroundColor: t.cardElevated,
       borderRadius: Radius.card,
-      borderWidth: 1,
+      borderWidth: Trait.fin,
       borderColor: t.line,
       padding: Spacing.xl,
     },

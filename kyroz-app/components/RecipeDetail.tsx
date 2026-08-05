@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useTheme, ThemePalette, Radius, Spacing, Type, cardShadow, CIBLE_TACTILE_MIN } from '../constants/theme';
+import { useTheme, ThemePalette, Radius, Spacing, Type, cardShadow, CIBLE_TACTILE_MIN, Trait, Icone, OPACITE_PRESSION } from '../constants/theme';
 import { useLayout } from '../constants/layout';
 import { PrimaryButton } from './ui';
 import { useFavorites } from '../hooks/useFavorites';
@@ -75,7 +75,7 @@ export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adapted
             <Text style={s.name}>{recipe.name_fr}</Text>
             {custom && (
               <View style={s.badge}>
-                <Ionicons name="create" size={11} color={t.textSecondary} />
+                <Ionicons name="create" size={Icone.petite} color={t.textSecondary} />
                 <Text style={s.badgeTxt}>Personnalisée</Text>
               </View>
             )}
@@ -83,19 +83,19 @@ export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adapted
           <View style={s.headerBtns}>
             {onEdit && (
               <TouchableOpacity onPress={onEdit} style={s.close}>
-                <Ionicons name="create-outline" size={18} color={t.textSecondary} />
+                <Ionicons name="create-outline" size={Icone.standard} color={t.textSecondary} />
               </TouchableOpacity>
             )}
             <TouchableOpacity onPress={() => toggle(recipe.id)} style={s.close} accessibilityLabel="J'aime cette recette">
-              <Ionicons name={fav ? 'heart' : 'heart-outline'} size={18} color={fav ? t.text : t.textSecondary} />
+              <Ionicons name={fav ? 'heart' : 'heart-outline'} size={Icone.standard} color={fav ? t.text : t.textSecondary} />
             </TouchableOpacity>
             {onDislike && (
               <TouchableOpacity onPress={onDislike} style={s.close} accessibilityLabel="Je n'aime pas — changer">
-                <Ionicons name="thumbs-down-outline" size={17} color={t.textSecondary} />
+                <Ionicons name="thumbs-down-outline" size={Icone.petite} color={t.textSecondary} />
               </TouchableOpacity>
             )}
             <TouchableOpacity onPress={onClose} style={s.close}>
-              <Ionicons name="close" size={18} color={t.textSecondary} />
+              <Ionicons name="close" size={Icone.standard} color={t.textSecondary} />
             </TouchableOpacity>
           </View>
         </View>
@@ -174,8 +174,8 @@ export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adapted
           <View style={{ marginTop: Spacing.xxl, gap: Spacing.md }}>
             {onSwap && (
               <>
-                <TouchableOpacity onPress={onSwap} activeOpacity={0.85} style={s.swapBtn}>
-                  <Ionicons name="swap-horizontal" size={18} color={t.text} />
+                <TouchableOpacity onPress={onSwap} activeOpacity={OPACITE_PRESSION} style={s.swapBtn}>
+                  <Ionicons name="swap-horizontal" size={Icone.standard} color={t.text} />
                   <Text style={s.swapTxt}>Remplacer ce repas</Text>
                 </TouchableOpacity>
                 {/* Disclaimer assumé, pas un aveu de bug : un remplacement n'est pas
@@ -188,8 +188,8 @@ export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adapted
               </>
             )}
             {onSkip && (
-              <TouchableOpacity onPress={onSkip} activeOpacity={0.85} style={s.swapBtn}>
-                <Ionicons name="close-circle-outline" size={18} color={t.text} />
+              <TouchableOpacity onPress={onSkip} activeOpacity={OPACITE_PRESSION} style={s.swapBtn}>
+                <Ionicons name="close-circle-outline" size={Icone.standard} color={t.text} />
                 <Text style={s.swapTxt}>Je l'ai sauté</Text>
               </TouchableOpacity>
             )}
@@ -255,7 +255,7 @@ function makeStyles(t: ThemePalette, isTablet: boolean) {
     swapBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm, paddingVertical: Spacing.lg, borderRadius: Radius.button, backgroundColor: t.fill },
     swapTxt: { ...Type.label, color: t.text },
     swapHint: { ...Type.caption, color: t.textSecondary, lineHeight: 18, marginTop: -Spacing.xs, paddingHorizontal: Spacing.xs },
-    statusBanner: { marginTop: Spacing.xxl, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.md, paddingVertical: Spacing.lg, paddingHorizontal: Spacing.lg, borderRadius: Radius.card, borderWidth: 1 },
+    statusBanner: { marginTop: Spacing.xxl, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.md, paddingVertical: Spacing.lg, paddingHorizontal: Spacing.lg, borderRadius: Radius.card, borderWidth: Trait.fin },
     statusTxt: { ...Type.bodySmallStrong, flex: 1, color: t.textSecondary },
     statusUndo: { ...Type.bodySmallStrong, color: t.text },
   });

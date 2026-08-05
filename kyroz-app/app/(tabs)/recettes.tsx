@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ScrollView, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useTheme, ThemePalette, Radius, Spacing, Type, cardShadow, Fond } from '../../constants/theme';
+import { useTheme, ThemePalette, Radius, Spacing, Type, cardShadow, Fond, Icone, OPACITE_PRESSION } from '../../constants/theme';
 import { useLayout } from '../../constants/layout';
 import { useCollapsingTitle, CompactTitleBar } from '../../components/CollapsingTitle';
 import { RecipeDetail } from '../../components/RecipeDetail';
@@ -64,7 +64,7 @@ export default function RecettesScreen() {
 
         <View style={s.searchWrap}>
           <View style={s.searchBox}>
-            <Ionicons name="search" size={17} color={t.textTertiary} />
+            <Ionicons name="search" size={Icone.petite} color={t.textTertiary} />
             <TextInput
               value={query}
               onChangeText={setQuery}
@@ -76,7 +76,7 @@ export default function RecettesScreen() {
             />
             {query.length > 0 && (
               <TouchableOpacity onPress={() => setQuery('')} hitSlop={10}>
-                <Ionicons name="close-circle" size={18} color={t.textTertiary} />
+                <Ionicons name="close-circle" size={Icone.standard} color={t.textTertiary} />
               </TouchableOpacity>
             )}
           </View>
@@ -90,7 +90,7 @@ export default function RecettesScreen() {
                 // Le filtre actif prend l'accent PLEIN, les autres restent neutres et
                 // sans bordure. « Favoris » perd son cœur : le mot suffit, et l'icône
                 // entrait en concurrence avec le cœur des cartes, qui lui agit.
-                <TouchableOpacity key={tg} onPress={() => setTag(tg)} activeOpacity={0.8}
+                <TouchableOpacity key={tg} onPress={() => setTag(tg)} activeOpacity={OPACITE_PRESSION}
                   style={[s.chip, { backgroundColor: on ? t.accent : t.fill }]}>
                   <Text style={{ ...(on ? Type.bodyStrong : Type.body), color: on ? t.onAccent : t.text }}>{TAG_LABELS[tg]}</Text>
                 </TouchableOpacity>
@@ -128,7 +128,7 @@ export default function RecettesScreen() {
         {...repli.scrollProps}
         ListEmptyComponent={
           <View style={s.empty}>
-            <Ionicons name={q ? 'search-outline' : 'heart-outline'} size={28} color={t.textTertiary} />
+            <Ionicons name={q ? 'search-outline' : 'heart-outline'} size={Icone.nav} color={t.textTertiary} />
             <Text style={s.emptyTxt}>
               {q
                 ? `Aucune recette pour « ${query.trim()} ».`
@@ -139,11 +139,11 @@ export default function RecettesScreen() {
         renderItem={({ item }) => {
           const fav = isFavorite(item.id);
           return (
-            <TouchableOpacity style={[s.recipe, layout.columns > 1 && s.recipeGrid, cardShadow(t)]} onPress={() => setSelected(item)} activeOpacity={0.85}>
+            <TouchableOpacity style={[s.recipe, layout.columns > 1 && s.recipeGrid, cardShadow(t)]} onPress={() => setSelected(item)} activeOpacity={OPACITE_PRESSION}>
               <View style={s.rTop}>
                 <Text style={s.rName}>{item.name_fr}</Text>
                 <TouchableOpacity onPress={() => toggle(item.id)} hitSlop={10} style={s.heart}>
-                  <Ionicons name={fav ? 'heart' : 'heart-outline'} size={20} color={fav ? t.text : t.textQuaternary} />
+                  <Ionicons name={fav ? 'heart' : 'heart-outline'} size={Icone.standard} color={fav ? t.text : t.textQuaternary} />
                 </TouchableOpacity>
               </View>
               {/* Une seule ligne grise, durée comprise : dans une liste il n'y a

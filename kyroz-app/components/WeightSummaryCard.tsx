@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { ThemePalette, Radius, Spacing, Type, cardShadow } from '../constants/theme';
+import { ThemePalette, Radius, Spacing, Type, cardShadow, OPACITE_PRESSION } from '../constants/theme';
 import { WeightChart } from './WeightChart';
 import { GoalTarget } from '../lib/types';
 import { WeightEntry } from '../lib/weight';
@@ -41,7 +41,7 @@ export function WeightSummaryCard({
   const poids = profileWeightKg;
 
   return (
-    <TouchableOpacity activeOpacity={0.85} onPress={onPress} style={[s.card, cardShadow(t)]}>
+    <TouchableOpacity activeOpacity={OPACITE_PRESSION} onPress={onPress} style={[s.card, cardShadow(t)]}>
       <View style={s.head}>
         <View style={{ flex: 1 }}>
           <Text style={s.label}>SUIVI DU POIDS</Text>

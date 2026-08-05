@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { ThemePalette, Radius, Type, Spacing } from '../constants/theme';
+import { ThemePalette, Radius, Type, Spacing, Trait } from '../constants/theme';
 import { Streak } from '../lib/types';
 import { chainProgress, streakMessage } from '../lib/streak';
 
@@ -85,10 +85,10 @@ export function StreakProgress({ t, streak, variant = 'strip' }: Props) {
 
 const styles = StyleSheet.create({
   chain: { flexDirection: 'row', gap: Spacing.sm, width: '100%' },
-  seg: { flex: 1, height: 8, borderRadius: Radius.pill, borderWidth: 1 },
+  seg: { flex: 1, height: 8, borderRadius: Radius.pill, borderWidth: Trait.fin },
 
   strip: {
-    borderWidth: 1,
+    borderWidth: Trait.fin,
     borderRadius: Radius.card,
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.lg,
@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
   // Ligne discrète du Profil (2026-08-02). Même gabarit que le bandeau du Plan :
   // la série se lit d'un coup d'œil et rend la place au suivi du poids.
   line: {
-    borderWidth: 1,
+    borderWidth: Trait.fin,
     borderRadius: Radius.card,
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,

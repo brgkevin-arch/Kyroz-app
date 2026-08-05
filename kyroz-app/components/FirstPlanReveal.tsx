@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Modal, View, Text, StyleSheet, Animated, ScrollView } from 'react-native';
-import { useTheme, Radius, Spacing, Type, ThemePalette } from '../constants/theme';
+import { useTheme, Radius, Spacing, Type, ThemePalette, Trait } from '../constants/theme';
 import { PrimaryButton, SectionLabel } from './ui';
 import { goalLabel } from '../lib/tdee';
 import { Meal, UserProfile } from '../lib/types';
@@ -101,7 +101,7 @@ function Stat({ t, value, label }: { t: ThemePalette; value: string; label: stri
 function makeStyles(t: ThemePalette) {
   return StyleSheet.create({
     root: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.6)', padding: Spacing.xl },
-    card: { width: '100%', maxWidth: 400, maxHeight: '88%', backgroundColor: t.card, borderWidth: 1, borderColor: t.line, borderRadius: Radius.xl },
+    card: { width: '100%', maxWidth: 400, maxHeight: '88%', backgroundColor: t.card, borderWidth: Trait.fin, borderColor: t.line, borderRadius: Radius.xl },
     scroll: { padding: Spacing.xxl, alignItems: 'center' },
     emoji: { fontSize: 48, marginBottom: Spacing.sm },
     title: { color: t.text, ...Type.h2, textAlign: 'center' },

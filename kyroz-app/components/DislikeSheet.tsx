@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
-import { ThemePalette, Radius, Type, Spacing } from '../constants/theme';
+import { ThemePalette, Radius, Type, Spacing, Trait, OPACITE_PRESSION } from '../constants/theme';
 import { PrimaryButton } from './ui';
 
 // ── « C'est quoi qui te gêne vraiment ? » ───────────────────────────────────
@@ -39,7 +39,7 @@ export function DislikeSheet({
             const on = !custom.trim() && sel === c.kw;
             return (
               <TouchableOpacity
-                key={c.kw} activeOpacity={0.85}
+                key={c.kw} activeOpacity={OPACITE_PRESSION}
                 onPress={() => { setSel(c.kw); setCustom(''); }}
                 style={[s.chip, { backgroundColor: on ? t.accent : t.card, borderColor: on ? t.accent : t.line }]}
               >
@@ -82,12 +82,12 @@ function makeStyles(t: ThemePalette) {
     title: { color: t.text, ...Type.h2 },
     sub: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 20, marginTop: Spacing.sm },
     chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.md },
-    chip: { borderWidth: 1, borderRadius: Radius.card, paddingVertical: Spacing.md, paddingHorizontal: Spacing.lg, gap: Spacing.xs, minWidth: '47%', flexGrow: 1 },
+    chip: { borderWidth: Trait.fin, borderRadius: Radius.card, paddingVertical: Spacing.md, paddingHorizontal: Spacing.lg, gap: Spacing.xs, minWidth: '47%', flexGrow: 1 },
     chipLabel: { ...Type.label },
     chipSub: { ...Type.caption },
     customRow: { gap: Spacing.sm },
     customLabel: { ...Type.captionStrong, color: t.textSecondary },
-    inputBox: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderRadius: Radius.button, paddingHorizontal: Spacing.lg },
+    inputBox: { flexDirection: 'row', alignItems: 'center', borderWidth: Trait.fin, borderRadius: Radius.button, paddingHorizontal: Spacing.lg },
     input: { ...Type.input, flex: 1, paddingVertical: Spacing.lg, color: t.text },
     skip: { ...Type.bodySmallStrong, color: t.textTertiary, paddingVertical: Spacing.xs },
   });

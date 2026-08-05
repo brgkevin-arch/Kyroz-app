@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Modal, View, Text, StyleSheet, Animated, Easing, Pressable } from 'react-native';
-import { useTheme, Radius, Spacing, Type } from '../constants/theme';
+import { useTheme, Radius, Spacing, Type, Trait } from '../constants/theme';
 import { PrimaryButton } from './ui';
 
 interface Props {
@@ -119,7 +119,7 @@ export function BirthdayCelebration({ age, firstName, onClose }: Props) {
 const styles = StyleSheet.create({
   root: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.6)', padding: Spacing.xl },
   card: {
-    width: '100%', maxWidth: 360, borderWidth: 1, borderRadius: Radius.xl,
+    width: '100%', maxWidth: 360, borderWidth: Trait.fin, borderRadius: Radius.xl,
     padding: Spacing.xxxl, alignItems: 'center',
   },
   emoji: { fontSize: 56, marginBottom: Spacing.sm },

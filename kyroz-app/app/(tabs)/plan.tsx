@@ -5,7 +5,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useTheme, ThemePalette, Radius, Spacing, Type, Fond, CIBLE_TACTILE_MIN } from '../../constants/theme';
+import { useTheme, ThemePalette, Radius, Spacing, Type, Fond, CIBLE_TACTILE_MIN, Trait, Icone, OPACITE_PRESSION } from '../../constants/theme';
 import { useCollapsingTitle, CompactTitleBar } from '../../components/CollapsingTitle';
 import { useLayout } from '../../constants/layout';
 import { DISCLAIMER } from '../../constants/legal';
@@ -606,8 +606,8 @@ export default function PlanScreen() {
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md }}>
             {plan && (
-              <TouchableOpacity onPress={() => startTour('plan', PLAN_TOUR, { scrollRef })} hitSlop={8} activeOpacity={0.7}>
-                <Ionicons name="help-circle-outline" size={24} color={t.textTertiary} />
+              <TouchableOpacity onPress={() => startTour('plan', PLAN_TOUR, { scrollRef })} hitSlop={8} activeOpacity={OPACITE_PRESSION}>
+                <Ionicons name="help-circle-outline" size={Icone.action} color={t.textTertiary} />
               </TouchableOpacity>
             )}
             {/* La série se dit en toutes lettres, sans 🔥 : le compteur porte seul.
@@ -627,7 +627,7 @@ export default function PlanScreen() {
 
         {/* Check-in poids hebdo : ramène l'utilisateur + garde le plan juste dans le temps */}
         {weighInDue && (
-          <TouchableOpacity style={s.weighBanner} onPress={() => setWeighIn(true)} activeOpacity={0.85}>
+          <TouchableOpacity style={s.weighBanner} onPress={() => setWeighIn(true)} activeOpacity={OPACITE_PRESSION}>
             <Text style={{ fontSize: 18 }}>⚖️</Text>
             <View style={{ flex: 1 }}>
               <Text style={s.weighTitle}>C'est le moment de te peser</Text>
@@ -639,7 +639,7 @@ export default function PlanScreen() {
 
         {/* Proposition d'ajustement périodique (opt-out réactivable dans Profil) */}
         {checkinDue && (
-          <TouchableOpacity style={s.weighBanner} onPress={() => setCheckinOpen(true)} activeOpacity={0.85}>
+          <TouchableOpacity style={s.weighBanner} onPress={() => setCheckinOpen(true)} activeOpacity={OPACITE_PRESSION}>
             <Text style={{ fontSize: 18 }}>🍽️</Text>
             <View style={{ flex: 1 }}>
               <Text style={s.weighTitle}>Ton plan te convient toujours ?</Text>
@@ -653,7 +653,7 @@ export default function PlanScreen() {
           <>
             {/* Plan désynchronisé du profil → mise à jour en 1 tap */}
             {planStale && !generating && (
-              <TouchableOpacity style={s.banner} onPress={() => generate()} activeOpacity={0.85} disabled={generating}>
+              <TouchableOpacity style={s.banner} onPress={() => generate()} activeOpacity={OPACITE_PRESSION} disabled={generating}>
                 <Text style={s.bannerTxt}>
                   Ton plan ({plan.days} j) ne correspond plus à tes réglages ({clampDays(intendedDays)} j).
                 </Text>
@@ -666,7 +666,7 @@ export default function PlanScreen() {
               {Array.from({ length: plan.days }).map((_, i) => {
                 const n = i + 1; const on = selectedDay === n; const meta = dayMeta(i);
                 return (
-                  <TouchableOpacity key={n} onPress={() => setSelectedDay(n)} activeOpacity={0.85}
+                  <TouchableOpacity key={n} onPress={() => setSelectedDay(n)} activeOpacity={OPACITE_PRESSION}
                     style={[s.day, { backgroundColor: on ? t.accent : t.card, borderColor: on ? t.accent : t.line }]}>
                     <Text style={[s.dayWd, { color: on ? t.onAccent : t.textTertiary }]}>{meta.wd}</Text>
                     <Text style={[s.dayNum, { color: on ? t.onAccent : t.textSecondary }]}>{meta.num}</Text>
@@ -704,7 +704,7 @@ export default function PlanScreen() {
                     deep-link vers l'éditeur « Calories & macros » du Profil. */}
                 <TouchableOpacity
                   onPress={async () => { await AsyncStorage.setItem('@kyroz:openEditor', 'macros'); router.push('/(tabs)/profil'); }}
-                  activeOpacity={0.7}
+                  activeOpacity={OPACITE_PRESSION}
                   style={{ marginTop: Spacing.md, alignSelf: 'flex-start' }}
                 >
                   <Text style={{ ...Type.captionStrong, color: t.accent }}>⚙️ Personnaliser ma répartition (%)</Text>
@@ -723,7 +723,7 @@ export default function PlanScreen() {
                     </TouchableOpacity>
                   </View>
                 )}
-                <TouchableOpacity ref={offplanRef} onPress={() => setOffPlanOpen(true)} activeOpacity={0.7} style={s.offPlanBtn}>
+                <TouchableOpacity ref={offplanRef} onPress={() => setOffPlanOpen(true)} activeOpacity={OPACITE_PRESSION} style={s.offPlanBtn}>
                   <Text style={s.offPlanTxt}>+ J'ai mangé hors plan</Text>
                 </TouchableOpacity>
               </View>
@@ -918,8 +918,8 @@ export default function PlanScreen() {
               </Text>
               {opts.map((o) => (
                 <TouchableOpacity
-                  key={o.key} onPress={() => applyAdapt(o)} activeOpacity={0.85}
-                  style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md, borderWidth: 1, borderColor: t.line, borderRadius: Radius.card, padding: Spacing.lg }}
+                  key={o.key} onPress={() => applyAdapt(o)} activeOpacity={OPACITE_PRESSION}
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md, borderWidth: Trait.fin, borderColor: t.line, borderRadius: Radius.card, padding: Spacing.lg }}
                 >
                   <View style={{ flex: 1 }}>
                     <Text style={{ ...Type.bodyStrong, color: t.text }}>{o.label}</Text>
@@ -1026,7 +1026,7 @@ function makeStyles(t: ThemePalette) {
     header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: Spacing.md },
     date: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 19 },
     h1: { color: t.text, ...Type.display, marginTop: Spacing.xs },
-    streak: { alignItems: 'center', backgroundColor: t.card, borderWidth: 1, borderColor: t.line, paddingHorizontal: Spacing.lg, paddingVertical: Spacing.sm, borderRadius: Radius.card },
+    streak: { alignItems: 'center', backgroundColor: t.card, borderWidth: Trait.fin, borderColor: t.line, paddingHorizontal: Spacing.lg, paddingVertical: Spacing.sm, borderRadius: Radius.card },
     streakN: { ...Type.h3, color: t.text },
     streakLbl: { ...Type.micro, color: t.textTertiary, marginTop: Spacing.xs },
     banner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.md, backgroundColor: t.fill, borderRadius: Radius.card, padding: Spacing.lg },
@@ -1036,7 +1036,7 @@ function makeStyles(t: ThemePalette) {
     bannerTxt: { ...Type.bodySmall, flex: 1, color: t.textSecondary, lineHeight: 19 },
     bannerCta: { ...Type.bodySmallStrong, color: t.text },
     days: { flexDirection: 'row', gap: Spacing.sm },
-    day: { flex: 1, height: 58, borderRadius: Radius.button, borderWidth: 1, alignItems: 'center', justifyContent: 'center', gap: Spacing.xs },
+    day: { flex: 1, height: 58, borderRadius: Radius.button, borderWidth: Trait.fin, alignItems: 'center', justifyContent: 'center', gap: Spacing.xs },
     dayWd: { ...Type.microStrong },
     dayNum: { ...Type.bodyStrong },
     sectionRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },

@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { ThemePalette, Radius, Spacing, Type, CIBLE_TACTILE_MIN } from '../constants/theme';
+import { ThemePalette, Radius, Spacing, Type, CIBLE_TACTILE_MIN, Trait, Icone, OPACITE_PRESSION } from '../constants/theme';
 import { Field, PrimaryButton, Segmented } from './ui';
 import { Recipe, Ingredient } from '../lib/types';
 import { searchFoods, recipeMacrosPerPortion } from '../lib/foods';
@@ -135,16 +135,16 @@ export function RecipeEditor({ t, recipe, isCustom, onSave, onReset, onCancel, d
                 placeholder="g" placeholderTextColor={t.textQuaternary} keyboardType="decimal-pad"
               />
               <TouchableOpacity onPress={() => removeIng(i)} style={s.del} hitSlop={8}>
-                <Ionicons name="close-circle" size={22} color={t.textTertiary} />
+                <Ionicons name="close-circle" size={Icone.action} color={t.textTertiary} />
               </TouchableOpacity>
             </View>
             {ing.food_id && (
-              <Text style={s.linkedTag}><Ionicons name="checkmark-circle" size={12} color={t.success} /> macros liées à la base</Text>
+              <Text style={s.linkedTag}><Ionicons name="checkmark-circle" size={Icone.petite} color={t.success} /> macros liées à la base</Text>
             )}
             {searchRow === i && ing.name.trim().length > 0 && (
               <View style={s.suggest}>
                 {searchFoods(ing.name, 6).map((f) => (
-                  <TouchableOpacity key={f.id} style={s.suggestRow} onPress={() => pickFood(i, f.id, f.name_fr)} activeOpacity={0.7}>
+                  <TouchableOpacity key={f.id} style={s.suggestRow} onPress={() => pickFood(i, f.id, f.name_fr)} activeOpacity={OPACITE_PRESSION}>
                     <Text style={s.suggestName}>{f.name_fr}</Text>
                     <Text style={s.suggestMacro}>{f.per100g.kcal} kcal · {f.per100g.protein_g}P /100g</Text>
                   </TouchableOpacity>
@@ -156,8 +156,8 @@ export function RecipeEditor({ t, recipe, isCustom, onSave, onReset, onCancel, d
             )}
           </View>
         ))}
-        <TouchableOpacity onPress={addIng} style={s.addBtn} activeOpacity={0.8}>
-          <Ionicons name="add" size={18} color={t.text} />
+        <TouchableOpacity onPress={addIng} style={s.addBtn} activeOpacity={OPACITE_PRESSION}>
+          <Ionicons name="add" size={Icone.standard} color={t.text} />
           <Text style={s.addTxt}>Ajouter un ingrédient</Text>
         </TouchableOpacity>
 
@@ -206,18 +206,18 @@ export function RecipeEditor({ t, recipe, isCustom, onSave, onReset, onCancel, d
               placeholder="Étape…" placeholderTextColor={t.textQuaternary} multiline
             />
             <TouchableOpacity onPress={() => removeStep(i)} style={s.del} hitSlop={8}>
-              <Ionicons name="close-circle" size={22} color={t.textTertiary} />
+              <Ionicons name="close-circle" size={Icone.action} color={t.textTertiary} />
             </TouchableOpacity>
           </View>
         ))}
-        <TouchableOpacity onPress={addStep} style={s.addBtn} activeOpacity={0.8}>
-          <Ionicons name="add" size={18} color={t.text} />
+        <TouchableOpacity onPress={addStep} style={s.addBtn} activeOpacity={OPACITE_PRESSION}>
+          <Ionicons name="add" size={Icone.standard} color={t.text} />
           <Text style={s.addTxt}>Ajouter une étape</Text>
         </TouchableOpacity>
 
         {isCustom && (
-          <TouchableOpacity onPress={onReset} style={s.reset} activeOpacity={0.7}>
-            <Ionicons name="refresh" size={16} color={t.danger} />
+          <TouchableOpacity onPress={onReset} style={s.reset} activeOpacity={OPACITE_PRESSION}>
+            <Ionicons name="refresh" size={Icone.petite} color={t.danger} />
             <Text style={s.resetTxt}>Réinitialiser à la recette d'origine</Text>
           </TouchableOpacity>
         )}
@@ -225,7 +225,7 @@ export function RecipeEditor({ t, recipe, isCustom, onSave, onReset, onCancel, d
 
       <View style={s.footer}>
         <PrimaryButton t={t} label="Enregistrer ma version" onPress={save} disabled={!valid} />
-        <TouchableOpacity onPress={onCancel} style={s.cancel} activeOpacity={0.7}>
+        <TouchableOpacity onPress={onCancel} style={s.cancel} activeOpacity={OPACITE_PRESSION}>
           <Text style={s.cancelTxt}>Annuler</Text>
         </TouchableOpacity>
       </View>
@@ -253,18 +253,18 @@ function makeStyles(t: ThemePalette) {
     section: { ...Type.overline, color: t.textTertiary, marginTop: Spacing.sm },
     hint: { ...Type.caption, color: t.textTertiary, lineHeight: 16, marginTop: -Spacing.sm },
     input: {
-      backgroundColor: t.scheme === 'dark' ? t.fill : t.card, borderWidth: 1, borderColor: t.line,
+      backgroundColor: t.scheme === 'dark' ? t.fill : t.card, borderWidth: Trait.fin, borderColor: t.line,
       borderRadius: Radius.button, paddingHorizontal: Spacing.lg, paddingVertical: Spacing.md, ...Type.input, color: t.text,
     },
     ingRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
     inputLinked: { borderColor: t.success },
     linkedTag: { ...Type.microStrong, color: t.success, marginTop: Spacing.xs, marginLeft: Spacing.xs },
-    suggest: { marginTop: Spacing.xs, borderWidth: 1, borderColor: t.line, borderRadius: Radius.sm, overflow: 'hidden' },
+    suggest: { marginTop: Spacing.xs, borderWidth: Trait.fin, borderColor: t.line, borderRadius: Radius.sm, overflow: 'hidden' },
     suggestRow: { paddingHorizontal: Spacing.md, paddingVertical: Spacing.md, minHeight: CIBLE_TACTILE_MIN, justifyContent: 'center', borderBottomWidth: 1, borderBottomColor: t.line, backgroundColor: t.scheme === 'dark' ? t.fill : t.card },
     suggestName: { ...Type.bodySmallStrong, color: t.text },
     suggestMacro: { ...Type.caption, color: t.textTertiary, marginTop: Spacing.xs },
     suggestEmpty: { ...Type.caption, color: t.textTertiary, padding: Spacing.md },
-    computed: { marginTop: Spacing.xs, padding: Spacing.md, borderRadius: Radius.sm, borderWidth: 1, borderColor: t.line, backgroundColor: t.scheme === 'dark' ? t.fill : t.card, gap: Spacing.sm },
+    computed: { marginTop: Spacing.xs, padding: Spacing.md, borderRadius: Radius.sm, borderWidth: Trait.fin, borderColor: t.line, backgroundColor: t.scheme === 'dark' ? t.fill : t.card, gap: Spacing.sm },
     computedRow: { flexDirection: 'row', justifyContent: 'space-between' },
     cell: { alignItems: 'center', flex: 1 },
     cellVal: { ...Type.h3, color: t.text },
@@ -275,7 +275,7 @@ function makeStyles(t: ThemePalette) {
     stepRow: { flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.md },
     stepN: { width: 26, height: 26, borderRadius: 13, backgroundColor: t.fill, alignItems: 'center', justifyContent: 'center', marginTop: Spacing.md },
     stepNTxt: { ...Type.captionStrong, color: t.text },
-    addBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm, paddingVertical: Spacing.md, borderRadius: Radius.button, borderWidth: 1, borderColor: t.line, borderStyle: 'dashed' },
+    addBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm, paddingVertical: Spacing.md, borderRadius: Radius.button, borderWidth: Trait.fin, borderColor: t.line, borderStyle: 'dashed' },
     addTxt: { ...Type.bodySmallStrong, color: t.text },
     reset: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm, paddingVertical: Spacing.lg, marginTop: Spacing.xs },
     resetTxt: { ...Type.bodySmallStrong, color: t.danger },

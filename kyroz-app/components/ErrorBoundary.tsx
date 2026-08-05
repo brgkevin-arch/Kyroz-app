@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { useTheme, Radius, Spacing, Type } from '../constants/theme';
+import { useTheme, Radius, Spacing, Type, OPACITE_PRESSION } from '../constants/theme';
 
 // Frontière d'erreur globale : un crash de rendu n'affiche plus un écran rouge
 // mais un fallback propre avec « Réessayer » (re-monte l'arbre). Les données
@@ -17,7 +17,7 @@ function Fallback({ onRetry }: { onRetry: () => void }) {
       </Text>
       <TouchableOpacity
         onPress={onRetry}
-        activeOpacity={0.85}
+        activeOpacity={OPACITE_PRESSION}
         style={[styles.btn, { backgroundColor: t.accent }]}
       >
         <Text style={[styles.btnTxt, { color: t.onAccent }]}>Réessayer</Text>

@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useTheme, ThemePalette, Spacing, Type, Fond } from '../constants/theme';
+import { useTheme, ThemePalette, Spacing, Type, Fond, Icone, OPACITE_PRESSION } from '../constants/theme';
 import { useLayout } from '../constants/layout';
 import { PRIVACY_POLICY, TERMS_OF_USE, LegalSection, LEGAL } from '../constants/legal';
 
@@ -20,8 +20,8 @@ export default function LegalScreen() {
     <SafeAreaView style={s.safe} edges={['top']}>
       <StatusBar style={t.scheme === 'dark' ? 'light' : 'dark'} />
       <View style={[s.header, layout.header]}>
-        <TouchableOpacity onPress={() => router.back()} hitSlop={10} activeOpacity={0.7}>
-          <Ionicons name="chevron-back" size={26} color={t.text} />
+        <TouchableOpacity onPress={() => router.back()} hitSlop={10} activeOpacity={OPACITE_PRESSION}>
+          <Ionicons name="chevron-back" size={Icone.nav} color={t.text} />
         </TouchableOpacity>
         <Text style={s.headerTitle}>Confidentialité & CGU</Text>
       </View>

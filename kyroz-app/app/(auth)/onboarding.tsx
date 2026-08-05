@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useTheme, ThemePalette, Spacing, Radius, Type, CIBLE_TACTILE_MIN } from '../../constants/theme';
+import { useTheme, ThemePalette, Spacing, Radius, Type, CIBLE_TACTILE_MIN, Trait, Icone, OPACITE_PRESSION } from '../../constants/theme';
 import { useLayout } from '../../constants/layout';
 import {
   PrimaryButton, Chip, OptionCard, Field, SectionLabel, Segmented,
@@ -263,7 +263,7 @@ export default function Onboarding() {
       {/* Header : retour + progression */}
       <View style={[s.header, layout.header]}>
         <TouchableOpacity onPress={back} disabled={step === 1} style={[s.backBtn, step === 1 && { opacity: 0 }]}>
-          <Ionicons name="chevron-back" size={22} color={t.text} />
+          <Ionicons name="chevron-back" size={Icone.action} color={t.text} />
         </TouchableOpacity>
         <View style={s.track}><View style={[s.fill, { width: `${(step / TOTAL_STEPS) * 100}%` }]} /></View>
       </View>
@@ -368,7 +368,7 @@ export default function Onboarding() {
               {WEEKDAY_OPTS.map((d) => {
                 const on = planWeekdays.includes(d.val);
                 return (
-                  <TouchableOpacity key={d.val} onPress={() => togglePlanDay(d.val)} activeOpacity={0.8}
+                  <TouchableOpacity key={d.val} onPress={() => togglePlanDay(d.val)} activeOpacity={OPACITE_PRESSION}
                     style={[s.dayCircle, { backgroundColor: on ? t.accent : t.fill, borderColor: on ? t.accent : t.line }]}>
                     <Text style={{ ...Type.captionStrong, color: on ? t.onAccent : t.textTertiary }}>{d.label}</Text>
                   </TouchableOpacity>
@@ -461,7 +461,7 @@ function makeStyles(t: ThemePalette) {
     sub: { ...Type.body, color: t.textSecondary, lineHeight: 21, marginTop: -Spacing.sm },
     wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
     daysRow: { flexDirection: 'row', gap: Spacing.sm, justifyContent: 'space-between' },
-    dayCircle: { flex: 1, height: 52, borderRadius: Radius.button, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+    dayCircle: { flex: 1, height: 52, borderRadius: Radius.button, borderWidth: Trait.fin, alignItems: 'center', justifyContent: 'center' },
     footer: { padding: Spacing.xl, paddingTop: Spacing.sm, backgroundColor: t.bg },
     hint: { ...Type.captionStrong, color: t.warning, lineHeight: 18, marginBottom: Spacing.md, textAlign: 'center' },
     disclaimer: { ...Type.micro, color: t.textTertiary, lineHeight: 16, textAlign: 'center', marginTop: Spacing.xs },

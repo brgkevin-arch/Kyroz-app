@@ -5,7 +5,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { useTheme, ThemePalette, Radius, Spacing, Type, cardShadow, Fond, CIBLE_TACTILE_MIN } from '../../constants/theme';
+import { useTheme, ThemePalette, Radius, Spacing, Type, cardShadow, Fond, CIBLE_TACTILE_MIN, Trait, Icone, OPACITE_PRESSION } from '../../constants/theme';
 import { useCollapsingTitle, CompactTitleBar } from '../../components/CollapsingTitle';
 import { useLayout } from '../../constants/layout';
 import { PrimaryButton, Chip, Field, SectionLabel, Segmented } from '../../components/ui';
@@ -144,8 +144,8 @@ export default function GardeMangerScreen() {
             <Text style={s.sub}>{visible.length} aliment{visible.length > 1 ? 's' : ''} · {ready.length} recette{ready.length > 1 ? 's' : ''} prête{ready.length > 1 ? 's' : ''}</Text>
             <Text style={s.h1}>Frigo</Text>
           </View>
-          <TouchableOpacity style={s.addBtn} onPress={() => setShowAdd(true)} activeOpacity={0.85}>
-            <Ionicons name="add" size={22} color={t.onAccent} />
+          <TouchableOpacity style={s.addBtn} onPress={() => setShowAdd(true)} activeOpacity={OPACITE_PRESSION}>
+            <Ionicons name="add" size={Icone.action} color={t.onAccent} />
           </TouchableOpacity>
         </View>
 
@@ -163,12 +163,12 @@ export default function GardeMangerScreen() {
         {visible.length === 0 ? (
           <View style={s.empty}>
             <View style={[s.emptyIcon, { backgroundColor: t.fill }]}>
-              <Ionicons name="file-tray-full-outline" size={30} color={t.textSecondary} />
+              <Ionicons name="file-tray-full-outline" size={Icone.vide} color={t.textSecondary} />
             </View>
             <Text style={s.emptyTitle}>Ton frigo est vide</Text>
             <Text style={s.emptySub}>Ajoute ce que tu as déjà — ou coche tes articles dans l'onglet Courses, ils arrivent ici automatiquement.</Text>
             <View style={{ height: 8 }} />
-            <TouchableOpacity onPress={() => setShowAdd(true)} style={s.ghostBtn} activeOpacity={0.8}>
+            <TouchableOpacity onPress={() => setShowAdd(true)} style={s.ghostBtn} activeOpacity={OPACITE_PRESSION}>
               <Text style={s.ghostTxt}>Ajouter un aliment</Text>
             </TouchableOpacity>
           </View>
@@ -185,8 +185,8 @@ export default function GardeMangerScreen() {
                         <Text style={s.rName}>{c.recipe.name_fr}</Text>
                         <Text style={s.rMeta}>{c.recipe.prep_time_min} min · {c.recipe.macros_per_portion.kcal} kcal · {c.recipe.macros_per_portion.protein_g}g P</Text>
                       </View>
-                      <TouchableOpacity style={s.cookBtn} onPress={() => cook(c)} activeOpacity={0.85}>
-                        <Ionicons name="restaurant" size={14} color={t.onAccent} />
+                      <TouchableOpacity style={s.cookBtn} onPress={() => cook(c)} activeOpacity={OPACITE_PRESSION}>
+                        <Ionicons name="restaurant" size={Icone.petite} color={t.onAccent} />
                         <Text style={s.cookTxt}>Cuisiné</Text>
                       </TouchableOpacity>
                     </View>
@@ -243,7 +243,7 @@ export default function GardeMangerScreen() {
                       key={it.name + it.unit}
                       style={[s.invRow, i < g.list.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.line }]}
                       onPress={() => openEdit(it)}
-                      activeOpacity={0.6}
+                      activeOpacity={OPACITE_PRESSION}
                     >
                       <Text style={s.invName} numberOfLines={1}>{it.name}</Text>
                       <Text style={s.invQty}>{formatQuantity(it.name, it.quantity, it.unit)}</Text>
@@ -273,10 +273,10 @@ export default function GardeMangerScreen() {
           const sug = searchFoods(name, 5);
           if (sug.length === 0) return null;
           return (
-            <View style={{ borderWidth: 1, borderColor: t.line, borderRadius: Radius.sm, overflow: 'hidden' }}>
+            <View style={{ borderWidth: Trait.fin, borderColor: t.line, borderRadius: Radius.sm, overflow: 'hidden' }}>
               {sug.map((f) => (
                 <TouchableOpacity
-                  key={f.id} activeOpacity={0.7}
+                  key={f.id} activeOpacity={OPACITE_PRESSION}
                   onPress={() => { setName(f.name_fr); setSugDismissed(true); }}
                   style={{ paddingHorizontal: Spacing.lg, paddingVertical: Spacing.md, borderBottomWidth: 1, borderBottomColor: t.line }}
                 >
@@ -300,14 +300,14 @@ export default function GardeMangerScreen() {
         <Text style={s.sheetTitle}>Modifier la quantité</Text>
         <Text style={s.editName}>{editItem?.name}</Text>
         <View style={s.stepRow}>
-          <TouchableOpacity onPress={() => bumpEditQty(-1)} style={s.stepBtn} activeOpacity={0.7} accessibilityLabel="Diminuer la quantité">
-            <Ionicons name="remove" size={22} color={t.text} />
+          <TouchableOpacity onPress={() => bumpEditQty(-1)} style={s.stepBtn} activeOpacity={OPACITE_PRESSION} accessibilityLabel="Diminuer la quantité">
+            <Ionicons name="remove" size={Icone.action} color={t.text} />
           </TouchableOpacity>
           <View style={{ flex: 1 }}>
             <Field t={t} label="Quantité" suffix={editUnit} value={editQty} onChangeText={setEditQty} placeholder="2" keyboardType="decimal-pad" />
           </View>
-          <TouchableOpacity onPress={() => bumpEditQty(1)} style={s.stepBtn} activeOpacity={0.7} accessibilityLabel="Augmenter la quantité">
-            <Ionicons name="add" size={22} color={t.text} />
+          <TouchableOpacity onPress={() => bumpEditQty(1)} style={s.stepBtn} activeOpacity={OPACITE_PRESSION} accessibilityLabel="Augmenter la quantité">
+            <Ionicons name="add" size={Icone.action} color={t.text} />
           </TouchableOpacity>
         </View>
         <View style={s.unitRow}>
@@ -330,7 +330,7 @@ export default function GardeMangerScreen() {
         <Text style={s.confirmMsg}>{confirm?.message}</Text>
         <View style={{ height: 6 }} />
         <TouchableOpacity
-          activeOpacity={0.85}
+          activeOpacity={OPACITE_PRESSION}
           onPress={() => { confirm?.onYes(); setConfirm(null); }}
           style={[s.confirmBtn, { backgroundColor: confirm?.danger ? t.danger : t.accent }]}
         >

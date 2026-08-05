@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useTheme, Radius, Spacing, Type, cardShadow } from '../constants/theme';
+import { useTheme, Radius, Spacing, Type, cardShadow, Icone, OPACITE_PRESSION } from '../constants/theme';
 import { ActionSheet } from './ActionSheet';
 import { Segmented, SectionLabel } from './ui';
 
@@ -99,7 +99,7 @@ export function HydrationBar() {
             hitSlop={10}
             accessibilityLabel="Réglages de l'hydratation"
           >
-            <Ionicons name="options-outline" size={20} color={t.textSecondary} />
+            <Ionicons name="options-outline" size={Icone.standard} color={t.textSecondary} />
           </TouchableOpacity>
         </View>
       </View>
@@ -146,7 +146,7 @@ export function HydrationBar() {
         <TouchableOpacity
           onPress={() => setSettingsOpen(false)}
           style={[styles.doneBtn, { backgroundColor: t.accent }]}
-          activeOpacity={0.85}
+          activeOpacity={OPACITE_PRESSION}
         >
           <Text style={[styles.btnTxt, { color: t.onAccent }]}>OK</Text>
         </TouchableOpacity>

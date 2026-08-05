@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image, ImageSourcePropType } from 'react-native';
-import { ThemePalette, Radius, Type, Spacing } from '../constants/theme';
+import { ThemePalette, Radius, Type, Spacing, Trait, OPACITE_PRESSION } from '../constants/theme';
 import { Field } from './ui';
 import { Sex } from '../lib/types';
 import { bodyFatBounds, bodyFatConcern, fatFreeMassKg } from '../lib/safety';
@@ -127,7 +127,7 @@ export function BodyFatPicker({ t, sex, value, onChange, body }: Props) {
           return (
             <TouchableOpacity
               key={lv.pct}
-              activeOpacity={0.85}
+              activeOpacity={OPACITE_PRESSION}
               onPress={() => onChange(on ? undefined : lv.pct)}
               style={[
                 styles.cell,
@@ -202,7 +202,7 @@ export function BodyFatPicker({ t, sex, value, onChange, body }: Props) {
       )}
 
       {value != null && (
-        <TouchableOpacity onPress={() => onChange(undefined)} activeOpacity={0.7} style={styles.clear}>
+        <TouchableOpacity onPress={() => onChange(undefined)} activeOpacity={OPACITE_PRESSION} style={styles.clear}>
           <Text style={{ ...Type.captionStrong, color: t.textTertiary }}>Effacer ma sélection</Text>
         </TouchableOpacity>
       )}
@@ -215,7 +215,7 @@ const styles = StyleSheet.create({
   cell: {
     width: '48%',
     flexGrow: 1,
-    borderWidth: 1,
+    borderWidth: Trait.fin,
     borderRadius: Radius.card,
     paddingVertical: Spacing.lg,
     paddingHorizontal: Spacing.lg,
@@ -227,5 +227,5 @@ const styles = StyleSheet.create({
   pct: { ...Type.h3 },
   desc: { ...Type.caption, lineHeight: 16, textAlign: 'center' },
   clear: { alignSelf: 'flex-start', paddingVertical: Spacing.xs },
-  note: { borderWidth: 1, borderRadius: Radius.card, paddingVertical: Spacing.md, paddingHorizontal: Spacing.md },
+  note: { borderWidth: Trait.fin, borderRadius: Radius.card, paddingVertical: Spacing.md, paddingHorizontal: Spacing.md },
 });

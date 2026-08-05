@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { useTheme, ThemePalette, Radius, Spacing, Type, Fond, CIBLE_TACTILE_MIN } from '../../constants/theme';
+import { useTheme, ThemePalette, Radius, Spacing, Type, Fond, CIBLE_TACTILE_MIN, Trait, Icone, OPACITE_PRESSION } from '../../constants/theme';
 import { useCollapsingTitle, CompactTitleBar } from '../../components/CollapsingTitle';
 import { useLayout } from '../../constants/layout';
 import { ThemeMode, useThemeMode, setThemeMode } from '../../lib/themeMode';
@@ -355,7 +355,7 @@ export default function ProfilScreen() {
             Ton informatif et non alarmant (anti charge mentale) : on explique et on
             offre l'action, on ne dramatise pas et on ne bloque rien. */}
         {underweightCapped && (
-          <TouchableOpacity activeOpacity={0.85} onPress={() => setEditor('goal')}>
+          <TouchableOpacity activeOpacity={OPACITE_PRESSION} onPress={() => setEditor('goal')}>
             <Card t={t}>
               <Text style={{ ...Type.caption, color: t.text, lineHeight: 19 }}>
                 Ton poids est descendu sous la plage de référence pour ta taille. Kyroz a ramené ton plan à ta maintenance : plus de déficit tant que tu es dans cette zone. Tu n'as rien à faire dans l'immédiat — touche ici quand tu veux choisir un autre objectif.
@@ -510,14 +510,14 @@ export default function ProfilScreen() {
               <TouchableOpacity
                 key={id}
                 onPress={() => setAccentId(id)}
-                activeOpacity={0.8}
+                activeOpacity={OPACITE_PRESSION}
                 accessibilityRole="button"
                 accessibilityState={{ selected: on }}
                 accessibilityLabel={`Couleur d'accent ${ACCENTS[id].label}`}
                 style={[s.swatch, { backgroundColor: couleur, borderColor: on ? t.text : t.line }]}
               >
                 {/* La coche se calcule elle aussi : noir ou blanc selon la pastille. */}
-                {on && <Ionicons name="checkmark" size={20} color={readableOn(couleur)} />}
+                {on && <Ionicons name="checkmark" size={Icone.standard} color={readableOn(couleur)} />}
               </TouchableOpacity>
             );
           })}
@@ -562,7 +562,7 @@ export default function ProfilScreen() {
           <MenuRow t={t} label="Version" value={appVersion} onPress={() => {}} readonly last />
         </View>
 
-        <TouchableOpacity style={s.logoutBtn} onPress={doLogout} activeOpacity={0.8}><Text style={s.logoutTxt}>Se déconnecter</Text></TouchableOpacity>
+        <TouchableOpacity style={s.logoutBtn} onPress={doLogout} activeOpacity={OPACITE_PRESSION}><Text style={s.logoutTxt}>Se déconnecter</Text></TouchableOpacity>
         <TouchableOpacity style={s.delBtn} onPress={() => setConfirmDelete(true)}><Text style={s.delTxt}>Supprimer mon compte</Text></TouchableOpacity>
 
         <Text style={s.disclaimer}>{DISCLAIMER}</Text>
@@ -600,7 +600,7 @@ export default function ProfilScreen() {
           Toutes tes données (profil, plans, série, favoris, frigo) seront définitivement supprimées, sur cet appareil et sur le serveur.
         </Text>
         <View style={{ height: 6 }} />
-        <TouchableOpacity onPress={doDelete} disabled={deleting} activeOpacity={0.85}
+        <TouchableOpacity onPress={doDelete} disabled={deleting} activeOpacity={OPACITE_PRESSION}
           style={{ backgroundColor: t.danger, borderRadius: Radius.button, paddingVertical: Spacing.lg, alignItems: 'center', opacity: deleting ? 0.6 : 1 }}>
           <Text style={{ ...Type.h3, color: t.onDanger }}>{deleting ? 'Suppression…' : 'Supprimer définitivement'}</Text>
         </TouchableOpacity>
@@ -636,7 +636,7 @@ function MenuRow({ t, label, value, onPress, last, readonly }: { t: ThemePalette
         <Text style={{ ...Type.h3, color: t.text, letterSpacing: -0.3 }}>{label}</Text>
         <Text style={{ ...Type.bodySmall, color: t.textTertiary, marginTop: Spacing.xs }} numberOfLines={1}>{value}</Text>
       </View>
-      {!readonly && <Ionicons name="chevron-forward" size={18} color={t.textQuaternary} />}
+      {!readonly && <Ionicons name="chevron-forward" size={Icone.standard} color={t.textQuaternary} />}
     </TouchableOpacity>
   );
 }
@@ -755,7 +755,7 @@ function LowEaRiseCard({ t, rise, onPress }: {
 }) {
   const enCours = rise.weeksToPlateau > 0;
   return (
-    <TouchableOpacity activeOpacity={0.85} onPress={onPress}>
+    <TouchableOpacity activeOpacity={OPACITE_PRESSION} onPress={onPress}>
       <Card t={t}>
         <Text style={{ ...Type.bodyStrong, color: t.text, marginBottom: Spacing.sm }}>
           {enCours ? '🛡️ Ta cible remonte, c\'est voulu' : '🛡️ Kyroz a mis ta sèche en pause'}
@@ -825,10 +825,10 @@ function EngineNoticeCard({ t, notice, onAdjust, onDismiss }: {
         {suite}
       </Text>
       <View style={{ flexDirection: 'row', gap: Spacing.md, marginTop: Spacing.lg }}>
-        <TouchableOpacity onPress={onAdjust} activeOpacity={0.85} style={{ flex: 1, backgroundColor: t.accent, borderRadius: Radius.sm, paddingVertical: Spacing.sm, minHeight: CIBLE_TACTILE_MIN, justifyContent: 'center', alignItems: 'center' }}>
+        <TouchableOpacity onPress={onAdjust} activeOpacity={OPACITE_PRESSION} style={{ flex: 1, backgroundColor: t.accent, borderRadius: Radius.sm, paddingVertical: Spacing.sm, minHeight: CIBLE_TACTILE_MIN, justifyContent: 'center', alignItems: 'center' }}>
           <Text style={{ ...Type.bodySmallStrong, color: t.onAccent }}>Régler mon activité</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={onDismiss} activeOpacity={0.85} style={{ flex: 1, borderRadius: Radius.sm, paddingVertical: Spacing.sm, minHeight: CIBLE_TACTILE_MIN, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: t.lineStrong }}>
+        <TouchableOpacity onPress={onDismiss} activeOpacity={OPACITE_PRESSION} style={{ flex: 1, borderRadius: Radius.sm, paddingVertical: Spacing.sm, minHeight: CIBLE_TACTILE_MIN, justifyContent: 'center', alignItems: 'center', borderWidth: Trait.fin, borderColor: t.lineStrong }}>
           <Text style={{ ...Type.bodySmallStrong, color: t.text }}>C'est noté</Text>
         </TouchableOpacity>
       </View>
@@ -1365,7 +1365,7 @@ function makeStyles(t: ThemePalette) {
     reminderHint: { ...Type.caption, color: t.textTertiary, lineHeight: 18, marginTop: -Spacing.sm },
     settingLabel: { ...Type.h3, color: t.text, letterSpacing: -0.3, marginBottom: -Spacing.sm },
     swatches: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.md },
-    swatch: { width: 44, height: 44, borderRadius: 22, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
+    swatch: { width: 44, height: 44, borderRadius: 22, borderWidth: Trait.controle, alignItems: 'center', justifyContent: 'center' },
     disclaimer: { ...Type.micro, color: t.textTertiary, lineHeight: 16, textAlign: 'center' },
     logoutBtn: { alignItems: 'center', justifyContent: 'center', paddingVertical: Spacing.lg, marginTop: Spacing.sm, borderRadius: Radius.button, backgroundColor: t.fill },
     logoutTxt: { ...Type.bodyStrong, color: t.text },

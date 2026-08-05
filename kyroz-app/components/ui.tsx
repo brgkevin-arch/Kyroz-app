@@ -4,7 +4,7 @@ import {
   ViewStyle, TextStyle, ActivityIndicator, TextInputProps,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { ThemePalette, Radius, Spacing, Type, cardShadow, CIBLE_TACTILE_MIN } from '../constants/theme';
+import { ThemePalette, Radius, Spacing, Type, cardShadow, CIBLE_TACTILE_MIN, Trait, Icone, OPACITE_PRESSION } from '../constants/theme';
 
 // ── Primitives UI thémées, réutilisables partout ─────────────────────────────
 
@@ -21,7 +21,7 @@ export function PrimaryButton({
 }: { t: ThemePalette; label: string; onPress: () => void; disabled?: boolean; loading?: boolean }) {
   return (
     <TouchableOpacity
-      activeOpacity={0.85}
+      activeOpacity={OPACITE_PRESSION}
       onPress={onPress}
       disabled={disabled || loading}
       style={{
@@ -45,7 +45,7 @@ export function Chip({
 }: { t: ThemePalette; label: string; selected: boolean; onPress: () => void }) {
   return (
     <TouchableOpacity
-      activeOpacity={0.8}
+      activeOpacity={OPACITE_PRESSION}
       onPress={onPress}
       style={{
         paddingHorizontal: Spacing.lg,
@@ -71,14 +71,14 @@ export function OptionCard({
 }: { t: ThemePalette; title: string; subtitle?: string; selected: boolean; onPress: () => void }) {
   return (
     <TouchableOpacity
-      activeOpacity={0.85}
+      activeOpacity={OPACITE_PRESSION}
       onPress={onPress}
       style={[
         {
           backgroundColor: t.card,
           borderRadius: Radius.card,
           padding: Spacing.xl,
-          borderWidth: 1.5,
+          borderWidth: Trait.controle,
           borderColor: selected ? t.accent : (t.scheme === 'dark' ? t.line : 'transparent'),
           flexDirection: 'row',
           alignItems: 'center',
@@ -94,11 +94,11 @@ export function OptionCard({
       </View>
       <View style={{
         width: 24, height: 24, borderRadius: 12,
-        borderWidth: 2, borderColor: selected ? t.accent : t.lineStrong,
+        borderWidth: Trait.controle, borderColor: selected ? t.accent : t.lineStrong,
         backgroundColor: selected ? t.accent : 'transparent',
         alignItems: 'center', justifyContent: 'center',
       }}>
-        {selected && <Ionicons name="checkmark" size={15} color={t.onAccent} />}
+        {selected && <Ionicons name="checkmark" size={Icone.petite} color={t.onAccent} />}
       </View>
     </TouchableOpacity>
   );
@@ -113,7 +113,7 @@ export function Field({
       <View style={{
         flexDirection: 'row', alignItems: 'center',
         backgroundColor: t.scheme === 'dark' ? t.fill : t.card,
-        borderRadius: Radius.button, borderWidth: 1, borderColor: t.line,
+        borderRadius: Radius.button, borderWidth: Trait.fin, borderColor: t.line,
         paddingHorizontal: Spacing.lg,
       }}>
         <TextInput
@@ -145,7 +145,7 @@ export function Segmented<T extends string | number>({
       {options.map((o) => {
         const on = o.value === value;
         return (
-          <TouchableOpacity key={String(o.value)} onPress={() => onChange(o.value)} activeOpacity={0.8}
+          <TouchableOpacity key={String(o.value)} onPress={() => onChange(o.value)} activeOpacity={OPACITE_PRESSION}
             style={{ flex: 1, paddingVertical: Spacing.md, borderRadius: Radius.button - 4, alignItems: 'center', backgroundColor: on ? t.accent : 'transparent' }}>
             <Text style={{ ...Type.bodySmallStrong, color: on ? t.onAccent : t.textSecondary }}>{o.label}</Text>
           </TouchableOpacity>

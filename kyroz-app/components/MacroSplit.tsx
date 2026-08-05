@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { ThemePalette, Radius, Type, cardShadow, Spacing } from '../constants/theme';
+import { ThemePalette, Radius, Type, cardShadow, Spacing, Trait, Icone } from '../constants/theme';
 import { Goal } from '../lib/types';
 import {
   MacroBody, macrosPercent, recommendedProteinPerKg, goalLabel, CARB_RATIO_MIN, CARB_RATIO_MAX,
@@ -123,7 +123,7 @@ function Stepper({
         disabled={value <= min}
         style={[styles.btn, { backgroundColor: t.fill, opacity: value <= min ? 0.4 : 1 }]}
       >
-        <Ionicons name="remove" size={20} color={t.text} />
+        <Ionicons name="remove" size={Icone.standard} color={t.text} />
       </TouchableOpacity>
 
       <View style={styles.center}>
@@ -147,7 +147,7 @@ function Stepper({
         disabled={value >= max}
         style={[styles.btn, { backgroundColor: t.fill, opacity: value >= max ? 0.4 : 1 }]}
       >
-        <Ionicons name="add" size={20} color={t.text} />
+        <Ionicons name="add" size={Icone.standard} color={t.text} />
       </TouchableOpacity>
     </View>
   );
@@ -165,7 +165,7 @@ function Row({ t, l, v, c, strong }: { t: ThemePalette; l: string; v: string; c?
 const styles = StyleSheet.create({
   label: { ...Type.overline },
   note: { ...Type.caption, lineHeight: 18 },
-  stepper: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderRadius: Radius.button, padding: Spacing.sm, gap: Spacing.sm },
+  stepper: { flexDirection: 'row', alignItems: 'center', borderWidth: Trait.fin, borderRadius: Radius.button, padding: Spacing.sm, gap: Spacing.sm },
   btn: { width: 44, height: 44, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   center: { flex: 1, flexDirection: 'row', alignItems: 'baseline', justifyContent: 'center', gap: Spacing.xs },
   input: { ...Type.h2, minWidth: 44, textAlign: 'right', padding: 0 },
