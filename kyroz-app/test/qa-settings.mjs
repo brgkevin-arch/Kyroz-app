@@ -7,7 +7,7 @@
 
 import { chromium } from 'playwright';
 import { existsSync } from 'node:fs';
-import { SHOT, STATE, PHONE, HEADLESS, sleep, ensureDirs, open, tap, bootToPlan, closeSheet, goToProfil, neutralizeFirstRun } from './_harness.mjs';
+import { SHOT, STATE, PHONE, HEADLESS, sleep, ensureDirs, open, tap, bootToPlan, closeSheet, goToProfil, neutralizeFirstRun, bilanPannes } from './_harness.mjs';
 
 ensureDirs();
 
@@ -26,6 +26,14 @@ await open(page);
 
 const onPlan = await bootToPlan(page);
 console.log(onPlan ? 'session prête' : 'ATTENTION : écran Plan jamais atteint');
+if (!onPlan) {
+  // Les sous-écrans visés vivent dans le Profil, qui n'existe pas sans session :
+  // continuer ne rendrait que des « INTROUVABLE » qui accusent les mauvais écrans.
+  await context.close();
+  await browser.close();
+  bilanPannes();
+  process.exit(3);
+}
 if (!haveState) await context.storageState({ path: STATE });
 await sleep(1200);
 

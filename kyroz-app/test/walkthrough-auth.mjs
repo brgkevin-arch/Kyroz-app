@@ -7,7 +7,7 @@
 // Usage : node test/walkthrough-auth.mjs
 
 import { chromium } from 'playwright';
-import { VIDEO, PHONE, TABS, HEADLESS, sleep, ensureDirs, open, tap, bootToPlan, neutralizeFirstRun } from './_harness.mjs';
+import { VIDEO, PHONE, TABS, HEADLESS, sleep, ensureDirs, open, tap, bootToPlan, neutralizeFirstRun, bilanPannes } from './_harness.mjs';
 
 ensureDirs();
 
@@ -26,6 +26,14 @@ await open(page);
 
 const onPlan = await bootToPlan(page);
 console.log(onPlan ? 'LOGIN_OK' : 'LOGIN_FAILED');
+if (!onPlan) {
+  // Filmer les onglets sans session revient à filmer l'écran de login : la vidéo
+  // serait propre et mensongère. `bilanPannes` dit à quelle marche ça a cassé.
+  await context.close();
+  await browser.close();
+  bilanPannes();
+  process.exit(3);
+}
 await sleep(1500);
 
 for (const label of TABS) {

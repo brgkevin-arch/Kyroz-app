@@ -19,6 +19,7 @@ import { writeFileSync } from 'node:fs';
 import {
   SHOT, PHONE, HEADLESS, BASE_URL, sleep, ensureDirs, open,
   guestLogin, passScreening, runOnboarding, dismissReveal, dismissOverlays, neutralizeFirstRun, plannedMeals,
+  bilanPannes,
 } from './_harness.mjs';
 
 ensureDirs();
@@ -74,11 +75,16 @@ const readProfile = (page) => page.evaluate(() => {
 // ── Personas : sexe / poids / masse grasse / objectif variés ──────────────────
 // (objectifs choisis pour rester au-dessus du plancher d'énergie disponible —
 //  cf. lib/safety.ts::safetyFloorKcal, sinon la génération est bloquée.)
+//
+// ⚠️ `birth` et non `age` : l'étape 2 saisit une DATE DE NAISSANCE depuis le
+// 2026-08-02, dont l'âge est dérivé. Les âges en commentaire sont ceux du
+// 2026-08-05 et vieillissent avec les personas — c'est voulu, un utilisateur
+// aussi. Ce qui compte pour la QA, ce sont les gabarits, pas l'année pile.
 const PERSONAS = [
-  { key: 'H1-homme-cut', name: 'Marc', sex: 'male', age: 28, weight: 82, height: 180, bodyFat: 12, goal: 'cut' },
-  { key: 'H2-homme-bulk', name: 'Yanis', sex: 'male', age: 35, weight: 98, height: 178, bodyFat: 24, goal: 'lean_bulk' },
-  { key: 'F1-femme-recomp', name: 'Léa', sex: 'female', age: 29, weight: 60, height: 166, bodyFat: 22, goal: 'recomp' },
-  { key: 'F2-femme-maint', name: 'Sophie', sex: 'female', age: 33, weight: 75, height: 168, bodyFat: 32, goal: 'maintain' },
+  { key: 'H1-homme-cut', name: 'Marc', sex: 'male', birth: { d: 2, m: 8, y: 1998 }, weight: 82, height: 180, bodyFat: 12, goal: 'cut' },          // 28 ans
+  { key: 'H2-homme-bulk', name: 'Yanis', sex: 'male', birth: { d: 14, m: 3, y: 1991 }, weight: 98, height: 178, bodyFat: 24, goal: 'lean_bulk' },  // 35 ans
+  { key: 'F1-femme-recomp', name: 'Léa', sex: 'female', birth: { d: 9, m: 1, y: 1997 }, weight: 60, height: 166, bodyFat: 22, goal: 'recomp' },    // 29 ans
+  { key: 'F2-femme-maint', name: 'Sophie', sex: 'female', birth: { d: 27, m: 5, y: 1993 }, weight: 75, height: 168, bodyFat: 32, goal: 'maintain' }, // 33 ans
 ];
 
 // Chaque persona consomme UNE création d'invité, et Supabase les plafonne par
@@ -151,9 +157,24 @@ async function runPersona(p) {
     await ctx.close();
     return;
   }
-  await passScreening(page);
+  // Portail de dépistage santé. 'absent' = session déjà onboardée (ne devrait pas
+  // arriver ici, le contexte est neuf) ; 'echec' = le harnais ne sait plus le
+  // franchir — inutile de jouer un onboarding fantôme derrière.
+  const depistage = await passScreening(page);
+  if (depistage === 'echec') {
+    await snap(page, `${p.key}-DEPISTAGE-BLOQUE`);
+    report.personas.push({ key: p.key, sex: p.sex, weight: p.weight, bodyFat: p.bodyFat, goal: p.goal, planMeals: 0, blocked: 'portail de dépistage santé non franchi' });
+    await ctx.close();
+    return;
+  }
 
-  await runOnboarding(page, p);
+  const onboarding = await runOnboarding(page, p);
+  if (!onboarding.ok) {
+    await snap(page, `${p.key}-ONBOARDING-BLOQUE`);
+    report.personas.push({ key: p.key, sex: p.sex, weight: p.weight, bodyFat: p.bodyFat, goal: p.goal, planMeals: 0, blocked: `onboarding bloqué à l'étape ${onboarding.etape}` });
+    await ctx.close();
+    return;
+  }
 
   // Reveal du 1er plan : c'est là que vivent objectif / kcal / jours désormais.
   const reveal = await snap(page, `${p.key}-reveal`);
@@ -210,5 +231,9 @@ log('\n-- pageErrors --\n' + (report.pageErrors.join('\n') || 'aucune'));
 log('\n-- failedRequests (dédup) --\n' + ([...new Set(report.failedRequests)].slice(0, 20).join('\n') || 'aucune'));
 log('\n-- console (dédup) --\n' + ([...new Set(report.console)].slice(0, 25).join('\n') || 'aucune'));
 log(`\nrapport -> ${SHOT}/report.json`);
+// Distinguer les deux échecs, parce qu'ils appellent deux gestes différents :
+// un persona sans plan peut être un refus Supabase, tandis qu'un blocage de
+// parcours désigne une séquence du harnais devenue fausse.
+const pannes = bilanPannes();
 log(ko.length ? `ÉCHEC : ${ko.map((r) => r.key).join(', ')}` : 'DONE');
-process.exitCode = ko.length ? 1 : 0;
+process.exitCode = ko.length || pannes ? 1 : 0;

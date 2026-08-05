@@ -8,6 +8,13 @@
 //
 // RÈGLE : aucun chemin absolu, aucun port, aucun libellé d'écran dans les scripts
 // appelants. S'il faut en ajouter un, il vient s'ajouter à ce fichier.
+//
+// SECONDE RÈGLE, ajoutée le 2026-08-05 : une séquence périmée doit le DIRE. Deux
+// d'entre elles (dépistage santé, étape 2 de l'onboarding) ont été fausses pendant
+// des jours sans qu'une seule ligne de sortie ne l'indique — les scripts rendaient
+// « écran introuvable » alors qu'ils n'avaient jamais quitté le portail de santé.
+// Toute étape qui n'aboutit pas passe par `panne()` ; `bilanPannes()` rend le
+// compte en fin de script, à poser dans `process.exitCode`.
 
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
@@ -39,6 +46,54 @@ export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 export function ensureDirs() {
   mkdirSync(VIDEO, { recursive: true });
   mkdirSync(SHOT, { recursive: true });
+}
+
+// ── Faire VOIR la panne ──────────────────────────────────────────────────────
+//
+// Ces scripts échouaient en silence : une séquence périmée rendait `false`, le
+// script continuait, et le rapport concluait « écran introuvable » — le seul
+// diagnostic qui soit à la fois faux et rassurant. L'écran EXISTE ; c'est le
+// parcours qui n'y arrive plus. Mesuré le 2026-08-05 : `passScreening` cherchait
+// une attestation qui n'est rendue qu'APRÈS les deux réponses, et `runOnboarding`
+// remplissait un champ d'âge supprimé le 2026-08-02 — aucun script n'atteignait
+// plus l'écran Plan, et pas une ligne de sortie ne le disait.
+//
+// Toute séquence du harnais qui n'aboutit pas passe désormais par `panne()` :
+// message explicite, texte réellement à l'écran, capture. `bilanPannes()` les
+// répète en fin de course et rend un code de sortie non nul.
+export const PANNES = [];
+
+/** Texte réellement visible, aplati — ce que le script « voyait » au moment du blocage. */
+export const apercu = (page) => page
+  .evaluate(() => (document.body.innerText || '').replace(/\s*\n+\s*/g, ' | ').trim().slice(0, 240))
+  .catch(() => '(page illisible)');
+
+/** Enregistre un blocage de parcours : bruyant, daté, avec capture. */
+export async function panne(page, quoi, pourquoi) {
+  const ecran = await apercu(page);
+  mkdirSync(SHOT, { recursive: true });
+  const capture = join(SHOT, `panne-${quoi}.png`);
+  await page.screenshot({ path: capture }).catch(() => {});
+  PANNES.push({ quoi, pourquoi, ecran, capture });
+  console.error(`\n✗ PARCOURS BLOQUÉ [${quoi}] — ${pourquoi}`);
+  console.error(`   à l'écran : ${ecran}`);
+  console.error(`   capture   : ${capture}\n`);
+}
+
+/**
+ * À appeler en fin de script. Rend le nombre de blocages (0 = parcours propre),
+ * à poser dans `process.exitCode` : un parcours cassé ne doit pas sortir en 0.
+ */
+export function bilanPannes() {
+  if (!PANNES.length) return 0;
+  console.error(`\n########## ${PANNES.length} BLOCAGE(S) DE PARCOURS ##########`);
+  for (const p of PANNES) console.error(`✗ [${p.quoi}] ${p.pourquoi}\n  écran : ${p.ecran}\n  capture : ${p.capture}`);
+  console.error(
+    '\nUn blocage de parcours n\'est PAS un « écran introuvable » : les écrans suivants\n' +
+    'n\'ont jamais été atteints. Vérifier d\'abord que les séquences de test/_harness.mjs\n' +
+    'correspondent encore aux écrans (dépistage santé, étapes d\'onboarding).\n',
+  );
+  return PANNES.length;
 }
 
 /**
@@ -127,14 +182,80 @@ export async function guestLogin(page) {
  * Portail de dépistage santé (components/HealthScreening.tsx).
  * Il REMPLACE l'assistant tant qu'il n'est pas passé : sans lui, aucun script
  * d'onboarding ne voit jamais l'étape 1.
+ *
+ * SÉQUENCE : un « Non » par situation, PUIS l'attestation, PUIS « Continuer ».
+ *
+ * ⚠️ L'ordre n'est pas cosmétique. Cette fonction cherchait l'attestation en
+ * PREMIER (« Je confirme être un adulte en bonne santé ») ; or l'écran ne la rend
+ * que lorsque les DEUX questions ont reçu une réponse (`allAnswered`,
+ * HealthScreening.tsx L144-164) — avant ça il affiche « Réponds aux deux questions
+ * pour continuer. ». Le portail était donc INFRANCHISSABLE, et comme la fonction
+ * rendait `false` sans rien dire, tous les scripts concluaient « écran introuvable ».
+ *
+ * Trois états, parce qu'ils appellent trois conduites différentes :
+ *   'ok'     — franchi, l'assistant d'onboarding suit ;
+ *   'absent' — pas rencontré (session déjà onboardée) : ce n'est PAS un échec ;
+ *   'echec'  — rencontré et pas franchi : ça, c'est une panne, et elle se voit.
  */
 export async function passScreening(page) {
-  const attest = page.getByText('Je confirme être un adulte en bonne santé', { exact: false }).first();
-  if (!(await attest.isVisible({ timeout: 4000 }).catch(() => false))) return false;
+  const prompt = page.getByText('Es-tu concerné·e', { exact: false }).first();
+  if (!(await prompt.isVisible({ timeout: 5000 }).catch(() => false))) return 'absent';
+
+  // Un « Non » par situation. On clique CE QUI EXISTE plutôt qu'un nombre écrit en
+  // dur : ajouter une 3ᵉ condition à CONDITIONS ne doit pas re-casser le harnais.
+  const nons = page.getByText('Non', { exact: true });
+  const n = await nons.count();
+  if (n === 0) {
+    await panne(page, 'depistage-reponses', 'aucune réponse « Non » sur le portail de dépistage santé');
+    return 'echec';
+  }
+  for (let i = 0; i < n; i++) {
+    await nons.nth(i).click({ timeout: 2000 }).catch(() => {});
+    await sleep(350);
+  }
+
+  const attest = page.getByText('Je confirme être un adulte', { exact: false }).first();
+  if (!(await attest.isVisible({ timeout: 3000 }).catch(() => false))) {
+    await panne(page, 'depistage-attestation', `attestation absente après ${n} réponse(s) — les questions n'ont pas toutes été renseignées`);
+    return 'echec';
+  }
   await attest.click().catch(() => {});
   await sleep(400);
   await tapPrimary(page, 'Continuer');
-  return true;
+
+  // Preuve de franchissement : l'assistant est là. Sans ce contrôle, une case
+  // cochée mais un bouton resté désactivé passerait pour un succès.
+  if ((await etapeCourante(page)) !== 1) {
+    await panne(page, 'depistage-continuer', '« Continuer » n\'a pas ouvert l\'assistant d\'onboarding');
+    return 'echec';
+  }
+  return 'ok';
+}
+
+/**
+ * Étape courante de l'assistant (1 à 7), `null` si on n'y est pas.
+ *
+ * L'assistant affiche « ÉTAPE n / 6 » à partir de l'étape 2 (le compteur exclut
+ * le prénom, cf. onboarding.tsx L272) : l'étape 1 se reconnaît à son champ.
+ * C'est ce repère qui permet d'affirmer qu'une étape a été FRANCHIE plutôt que
+ * d'enchaîner sept clics dans le vide.
+ */
+export const etapeCourante = (page) => page.evaluate(() => {
+  const txt = document.body.innerText || '';
+  const m = /[ÉE]TAPE\s+(\d+)\s*\/\s*\d+/i.exec(txt);
+  if (m) return Number(m[1]) + 1;
+  return /Ton prénom/i.test(txt) ? 1 : null;
+}).catch(() => null);
+
+/** Attend que le plan soit PERSISTÉ (la génération suit l'onboarding d'une poignée de secondes). */
+export async function attendrePlan(page, maxMs = 15000) {
+  const debut = Date.now();
+  do {
+    const n = await plannedMeals(page);
+    if (n > 0) return n;
+    await sleep(500);
+  } while (Date.now() - debut < maxMs);
+  return 0;
 }
 
 // Sous-titre unique par objectif — source : GOALS dans app/(auth)/onboarding.tsx.
@@ -151,47 +272,89 @@ export const GOAL_SUB = {
  * Joue l'onboarding complet — 7 étapes (TOTAL_STEPS, app/(auth)/onboarding.tsx).
  * Les vieux scripts en jouaient 10 : l'étape « récap » a été supprimée le
  * 2026-06-20 et macros/préférences/variété ont fusionné en une seule étape.
+ *
+ * ⚠️ L'étape 2 ne demande plus un ÂGE mais une DATE DE NAISSANCE, depuis le
+ * 2026-08-02 : trois champs Jour / Mois / Année (components/BirthDateField.tsx,
+ * placeholders « 2 », « 8 », « 1994 »). Le harnais remplissait encore un champ
+ * d'âge (placeholder « 25 ») qui n'existe plus — `basicsValid` restait faux et le
+ * parcours ne dépassait JAMAIS l'étape 2, sans un mot dans la sortie.
+ *
+ * Chaque « Continuer » exige désormais une preuve d'avancement (`etapeCourante`) :
+ * un champ qui disparaîtra à son tour fera du bruit au lieu de faire du vide.
+ *
+ * Rend `{ ok, etape, repas }` — `etape` = celle où ça a coincé quand `ok` est faux.
  */
-export async function runOnboarding(page, p) {
+export async function runOnboarding(page, p = DEFAULT_PERSONA) {
+  if (!p.birth) {
+    await panne(page, 'onboarding-persona', `le persona « ${p.name ?? '?'} » ne porte pas de date de naissance (birth: { d, m, y }) — le champ « âge » a disparu de l'étape 2 le 2026-08-02`);
+    return { ok: false, etape: 2, repas: 0 };
+  }
+  const depart = await etapeCourante(page);
+  if (depart !== 1) {
+    await panne(page, 'onboarding-depart', `l'assistant n'est pas à l'étape 1 (lu : ${depart ?? 'hors assistant'}) — le dépistage santé a-t-il été franchi ?`);
+    return { ok: false, etape: depart ?? 0, repas: 0 };
+  }
+
+  /** Tape « Continuer » et EXIGE que l'assistant ait avancé d'une étape. */
+  const suivant = async (depuis) => {
+    await tapPrimary(page);
+    const arrivee = await etapeCourante(page);
+    if (arrivee === depuis + 1) return true;
+    // L'écran affiche LUI-MÊME pourquoi il refuse (`blockReason`, onboarding.tsx
+    // L182) : `apercu` le ramasse dans la capture de `panne`.
+    await panne(page, `onboarding-etape-${depuis}`, `l'assistant n'a pas quitté l'étape ${depuis} (lu : ${arrivee ?? 'hors assistant'})`);
+    return false;
+  };
+
   // 1 — prénom
   await fillPh(page, 'Kévin', p.name);
-  await sleep(250);
-  await tapPrimary(page);
+  await sleep(300);
+  if (!(await suivant(1))) return { ok: false, etape: 1, repas: 0 };
 
-  // 2 — sexe + infos de base
+  // 2 — sexe + infos de base (date de naissance, poids, taille)
   if (p.sex === 'female') { await tap(page, 'Femme', { exact: true }); await sleep(250); }
-  await fillPh(page, '25', p.age);
+  await fillPh(page, '2', p.birth.d);
+  await fillPh(page, '8', p.birth.m);
+  await fillPh(page, '1994', p.birth.y);
   await fillPh(page, '80', p.weight);
   await fillPh(page, '178', p.height);
-  await sleep(250);
-  await tapPrimary(page);
+  await sleep(400);
+  if (!(await suivant(2))) return { ok: false, etape: 2, repas: 0 };
 
   // 3 — masse grasse (saisie % directe plutôt que la silhouette)
   await fillPh(page, 'ex. 18', p.bodyFat);
-  await sleep(250);
-  await tapPrimary(page);
+  await sleep(300);
+  if (!(await suivant(3))) return { ok: false, etape: 3, repas: 0 };
 
   // 4 — activité : « Je ne fais pas de sport » (au moins un choix est exigé)
   await tap(page, 'Je ne fais pas de sport');
-  await sleep(250);
-  await tapPrimary(page);
+  await sleep(300);
+  if (!(await suivant(4))) return { ok: false, etape: 4, repas: 0 };
 
   // 5 — objectif
   await tap(page, GOAL_SUB[p.goal]);
-  await sleep(250);
-  await tapPrimary(page);
+  await sleep(300);
+  if (!(await suivant(5))) return { ok: false, etape: 5, repas: 0 };
 
   // 6 — préférences / protéines / variété → défauts
-  await tapPrimary(page);
+  if (!(await suivant(6))) return { ok: false, etape: 6, repas: 0 };
 
   // 7 — jours de plan (AUCUN coché par défaut → obligatoire) ; repas déjà tous cochés
   for (const d of p.days ?? ['Lun', 'Mer', 'Ven']) {
     await tap(page, d, { exact: true });
-    await sleep(150);
+    await sleep(200);
   }
-  await sleep(250);
+  await sleep(300);
   await tapPrimary(page, 'Générer mon plan');
-  await sleep(3500);
+
+  // Le plan est généré à l'arrivée sur l'onglet Plan : on ATTEND la preuve
+  // persistée plutôt que de dormir un nombre de secondes tiré au jugé.
+  const repas = await attendrePlan(page);
+  if (!repas) {
+    await panne(page, 'onboarding-plan', 'les 7 étapes sont passées mais aucun plan n\'a été persisté (@kyroz:plan)');
+    return { ok: false, etape: 7, repas: 0 };
+  }
+  return { ok: true, etape: 7, repas };
 }
 
 /**
@@ -228,9 +391,16 @@ export async function dismissReveal(page) {
   return false;
 }
 
-/** Persona par défaut : profil qui passe le plancher de sécurité sans drapeau. */
+/**
+ * Persona par défaut : profil qui passe le plancher de sécurité sans drapeau.
+ *
+ * ⚠️ `birth` (jour / mois / année) et NON `age` : l'étape 2 saisit une date de
+ * naissance depuis le 2026-08-02, et l'âge en est DÉRIVÉ (lib/birthday.ts).
+ * Garder un champ `age` ici serait une seconde source de vérité qui ne remplit
+ * plus rien à l'écran. Né le 02/08/1998 → 28 ans au 2026-08-05.
+ */
 export const DEFAULT_PERSONA = {
-  name: 'Marc', sex: 'male', age: 28, weight: 82, height: 180, bodyFat: 12, goal: 'cut',
+  name: 'Marc', sex: 'male', birth: { d: 2, m: 8, y: 1998 }, weight: 82, height: 180, bodyFat: 12, goal: 'cut',
 };
 
 /**
@@ -250,11 +420,31 @@ export const plannedMeals = (page) => page.evaluate(() => {
  * invité → dépistage → onboarding → reveal. Idempotent : si la session est déjà
  * onboardée (storageState réutilisé), chaque étape se saute d'elle-même.
  * Renvoie true si un plan a réellement été généré.
+ *
+ * Chaque marche qui casse est NOMMÉE (cf. `panne`) : un `false` muet renvoyait
+ * les scripts vers le seul diagnostic qui soit à la fois faux et rassurant —
+ * « écran introuvable ».
  */
 export async function bootToPlan(page, persona = DEFAULT_PERSONA) {
-  await guestLogin(page);
-  if (await passScreening(page)) await runOnboarding(page, persona);
+  if (!(await guestLogin(page))) {
+    await panne(page, 'connexion-invite', 'connexion invité refusée — 429 Supabase (plafond par heure et par IP) ou provider anonyme coupé');
+    return false;
+  }
+
+  const depistage = await passScreening(page);
+  if (depistage === 'echec') return false;
+  // 'absent' = session déjà onboardée… ou assistant déjà ouvert par une passe
+  // précédente restée en plan : dans ce cas seulement, on rejoue l'onboarding.
+  if (depistage === 'ok' || (await etapeCourante(page)) === 1) {
+    if (!(await runOnboarding(page, persona)).ok) return false;
+  }
+
   await dismissReveal(page);
   await dismissOverlays(page);
-  return (await plannedMeals(page)) > 0;
+  const repas = await plannedMeals(page);
+  if (!repas) {
+    await panne(page, 'ecran-plan', 'aucun plan persisté (@kyroz:plan) — l\'écran Plan n\'a pas été atteint');
+    return false;
+  }
+  return true;
 }

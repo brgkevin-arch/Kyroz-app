@@ -45,8 +45,32 @@ dossier les a tous cassés d'un coup, en silence. Ce qui a dû être réparé le
 **Règle** : aucun chemin, port ou libellé d'écran dans les scripts appelants. Tout
 passe par `_harness.mjs`.
 
-## Trois pièges qui font mentir un rapport
+### Ce qui a dû être réparé le 2026-08-05 — et la règle qui en sort
 
+Deux séquences décrivaient des écrans qui avaient bougé, et **les 5 scripts s'arrêtaient
+au portail de dépistage santé** :
+
+- `passScreening` cherchait l'attestation AVANT de répondre aux questions. L'écran ne la
+  rend qu'une fois les DEUX conditions renseignées : la séquence est **Non · Non ·
+  attestation · Continuer** ;
+- `runOnboarding` remplissait un champ d'**âge** supprimé le 2026-08-02 — l'étape 2 saisit
+  une **date de naissance** (Jour / Mois / Année). D'où `birth: { d, m, y }` dans les
+  personas, et plus de champ `age` : il ne remplirait plus rien.
+
+**SECONDE RÈGLE : une séquence périmée doit le DIRE.** Le défaut coûteux n'était pas la
+péremption — c'était le silence. Une étape qui ne passe plus appelle `panne()` (marche
+nommée, texte réellement à l'écran, capture `test/qa/panne-*.png`), chaque « Continuer »
+exige une preuve d'avancement (`etapeCourante`, qui lit « ÉTAPE n / 6 »), et `bilanPannes()`
+rend un **code de sortie non nul** en fin de script.
+
+> Ne pas « réparer » un script en enchaînant des clics jusqu'à ce que ça passe : un clic
+> sans preuve d'avancement, c'est exactement ce qui a permis à la panne de dormir.
+
+## Quatre pièges qui font mentir un rapport
+
+0. **« Écran introuvable » est presque toujours FAUX.** L'écran existe ; c'est le parcours
+   qui ne l'atteint plus. Avant d'accuser l'app, lire le bilan des blocages en fin de
+   sortie et la capture `test/qa/panne-*.png` : ils nomment la marche qui a cassé.
 1. **`getByText('Plan')` est insensible à la casse** — le bouton « Générer mon plan »
    le satisfait. Un script pouvait donc annoncer « écran Plan atteint » sans plan.
    La preuve retenue est le plan **persisté** (`plannedMeals()`).

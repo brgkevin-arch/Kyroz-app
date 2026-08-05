@@ -3753,6 +3753,42 @@ Lancement : `npm run qa:full` · `qa:deep` · `qa:settings` · `qa:walkthrough`
 (`KYROZ_URL`, `KYROZ_HEADLESS=1`). Détail dans [test/README.md](test/README.md).
 Prérequis une fois : `npx playwright install chromium`.
 
+### ✅ Re-réparés le 2026-08-05 — et cette fois la panne se VOIT
+
+Le socle avait re-pourri au même endroit : deux séquences décrivaient des écrans qui
+avaient changé. **Mesuré contre l'app qui tourne : les 5 scripts s'arrêtaient au portail
+de dépistage santé, aucun n'atteignait plus l'écran Plan.**
+
+| Séquence | Ce qu'elle faisait | Ce que l'écran fait vraiment |
+|---|---|---|
+| `passScreening` | cherchait l'attestation « Je confirme être un adulte… » **d'abord** | elle n'est rendue qu'APRÈS les deux réponses (`allAnswered`, `HealthScreening.tsx` L144-164). Avant ça, l'écran dit « Réponds aux deux questions ». Séquence : **Non · Non · attestation · Continuer** |
+| `runOnboarding` | remplissait un champ d'ÂGE (placeholder « 25 ») | l'étape 2 saisit une **date de naissance** depuis le 2026-08-02 (`BirthDateField`, trois champs Jour/Mois/Année). `basicsValid` restait faux → parcours bloqué à l'étape 2 |
+
+**Le vrai défaut n'était pas la péremption — c'était le SILENCE.** Une séquence périmée
+rendait `false`, le script continuait, et le rapport concluait « écran introuvable » : le
+seul diagnostic à la fois faux et rassurant, puisqu'il accuse les écrans alors que le
+parcours n'y est jamais arrivé. Ajouté au harnais :
+
+- `panne()` — nomme la marche cassée, cite le texte réellement à l'écran (l'assistant y
+  écrit lui-même son refus, cf. `blockReason`) et pose une capture `test/qa/panne-*.png` ;
+- `etapeCourante()` — lit « ÉTAPE n / 6 », donc chaque « Continuer » **exige une preuve
+  d'avancement** au lieu d'enchaîner sept clics dans le vide ;
+- `passScreening` rend `'ok' | 'absent' | 'echec'` : « pas rencontré » (session déjà
+  onboardée) n'est plus confondu avec « pas franchi » ;
+- `bilanPannes()` en fin de script → **code de sortie non nul**, et les scripts s'arrêtent
+  au lieu de dérouler une liste de « introuvable » qui vise les mauvais écrans.
+
+⚠️ Le persona porte désormais `birth: { d, m, y }` et **plus de champ `age`** — il ne
+remplirait plus rien, et ce serait une seconde source de vérité (l'âge est dérivé de la
+date, `lib/birthday.ts`).
+
+**Vérifié de bout en bout le 2026-08-05** contre l'app qui tourne : `qa-full` (H1) →
+**12 repas planifiés**, TDEE 2508 / cible 2208 kcal, 0 erreur page ; `qa-settings`,
+`qa-deep`, `walkthrough` et `walkthrough-auth` atteignent l'écran Plan, sortie 0.
+**Garde-fou vérifié par MUTATION** : un placeholder de date faussé fait rendre
+« ✗ PARCOURS BLOQUÉ [onboarding-etape-2] », avec la phrase de l'app à l'appui et une
+capture — c'est exactement ce qui manquait pendant que les scripts échouaient en silence.
+
 ## Chantiers de la session du 2026-07-30 — détail
 
 > **1** et **5** sont livrés. **1-bis, 2, 3 et 4 sont encore ouverts** : leur ligne d'action

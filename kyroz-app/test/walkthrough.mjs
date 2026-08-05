@@ -2,7 +2,7 @@
 // Usage : node test/walkthrough.mjs        (KYROZ_HEADLESS=1 pour une passe muette)
 
 import { chromium } from 'playwright';
-import { VIDEO, PHONE, TABS, HEADLESS, sleep, ensureDirs, open, tap, bootToPlan, neutralizeFirstRun } from './_harness.mjs';
+import { VIDEO, PHONE, TABS, HEADLESS, sleep, ensureDirs, open, tap, bootToPlan, neutralizeFirstRun, bilanPannes } from './_harness.mjs';
 
 ensureDirs();
 
@@ -24,6 +24,15 @@ await open(page);
 // session, aucun onglet n'existe. Il filme désormais un vrai parcours.
 const onPlan = await bootToPlan(page);
 console.log(onPlan ? 'PLAN_REACHED' : 'PLAN_NOT_REACHED');
+if (!onPlan) {
+  // Sans session, les onglets n'existent pas : la suite filmerait l'écran de
+  // login en boucle. Une vidéo muette de 40 s se regarde comme une app cassée,
+  // alors que c'est le PARCOURS qui n'est plus jouable — `bilanPannes` le nomme.
+  await context.close();
+  await browser.close();
+  bilanPannes();
+  process.exit(3);
+}
 
 for (const label of TABS) {
   if (await tap(page, label, { which: 'last', timeout: 1200 })) {
