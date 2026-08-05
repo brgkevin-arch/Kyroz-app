@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
-import { ThemePalette, Radius, Type } from '../constants/theme';
+import { ThemePalette, Radius, Type, Spacing } from '../constants/theme';
 import { PrimaryButton } from './ui';
 
 // ── « C'est quoi qui te gêne vraiment ? » ───────────────────────────────────
@@ -78,17 +78,17 @@ export function DislikeSheet({
 
 function makeStyles(t: ThemePalette) {
   return StyleSheet.create({
-    wrap: { padding: 24, gap: 16 },
+    wrap: { padding: Spacing.xxl, gap: Spacing.lg },
     title: { color: t.text, ...Type.h2 },
-    sub: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 20, marginTop: 6 },
-    chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-    chip: { borderWidth: 1, borderRadius: Radius.card, paddingVertical: 12, paddingHorizontal: 14, gap: 2, minWidth: '47%', flexGrow: 1 },
+    sub: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 20, marginTop: Spacing.sm },
+    chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.md },
+    chip: { borderWidth: 1, borderRadius: Radius.card, paddingVertical: Spacing.md, paddingHorizontal: Spacing.lg, gap: Spacing.xs, minWidth: '47%', flexGrow: 1 },
     chipLabel: { ...Type.label },
     chipSub: { ...Type.caption },
-    customRow: { gap: 8 },
+    customRow: { gap: Spacing.sm },
     customLabel: { ...Type.captionStrong, color: t.textSecondary },
-    inputBox: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderRadius: Radius.button, paddingHorizontal: 16 },
-    input: { ...Type.input, flex: 1, paddingVertical: 14, color: t.text },
-    skip: { ...Type.bodySmallStrong, color: t.textTertiary, paddingVertical: 4 },
+    inputBox: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderRadius: Radius.button, paddingHorizontal: Spacing.lg },
+    input: { ...Type.input, flex: 1, paddingVertical: Spacing.lg, color: t.text },
+    skip: { ...Type.bodySmallStrong, color: t.textTertiary, paddingVertical: Spacing.xs },
   });
 }

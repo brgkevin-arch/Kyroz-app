@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { useTheme, Type } from '../constants/theme';
+import { useTheme, Type, Spacing } from '../constants/theme';
 import { ON_TARGET_TOLERANCE_KCAL } from '../lib/planEngine';
 
 interface MacroBarProps {
@@ -37,7 +37,7 @@ export function MacroBar({ protein_g, carbs_g, fat_g, targetKcal, plannedKcal, c
   const sign = planDelta > 0 ? '+' : '';
 
   return (
-    <View style={{ gap: 14 }}>
+    <View style={{ gap: Spacing.lg }}>
       {/* Héros = ce qui est déjà mangé, sur la cible du jour */}
       <View>
         <View style={styles.kcalRow}>
@@ -51,7 +51,7 @@ export function MacroBar({ protein_g, carbs_g, fat_g, targetKcal, plannedKcal, c
             : ', rien de coché'}
         </Text>
         {!onTarget && (
-          <Text style={[styles.sub, { color: t.textTertiary, marginTop: 2 }]}>
+          <Text style={[styles.sub, { color: t.textTertiary, marginTop: Spacing.xs }]}>
             Cible {targetKcal.toLocaleString('fr-FR')} kcal · {sign}{planDelta}
           </Text>
         )}
@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
   kcalRow: { flexDirection: 'row', alignItems: 'baseline' },
   kcal: { ...Type.hero, letterSpacing: -1.4 },
   kcalSub: { ...Type.h3 },
-  sub: { ...Type.bodySmall, lineHeight: 19, marginTop: 4 },
+  sub: { ...Type.bodySmall, lineHeight: 19, marginTop: Spacing.xs },
   bar: { flexDirection: 'row', height: 8, borderRadius: 4, overflow: 'hidden' },
   legend: { ...Type.bodySmall, lineHeight: 19 },
 });

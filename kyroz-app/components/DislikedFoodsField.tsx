@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { ThemePalette, Type } from '../constants/theme';
+import { ThemePalette, Type, Spacing } from '../constants/theme';
 import { Chip, Field, SectionLabel } from './ui';
 import { getEffectiveRecipes } from '../lib/recipes';
 import { foodKeywordMatches, normalizeFood } from '../lib/avoidance';
@@ -95,5 +95,5 @@ export function DislikedFoodsField({
 }
 
 const styles = StyleSheet.create({
-  wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
 });

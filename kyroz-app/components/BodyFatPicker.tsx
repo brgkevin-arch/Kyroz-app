@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image, ImageSourcePropType } from 'react-native';
-import { ThemePalette, Radius, Type } from '../constants/theme';
+import { ThemePalette, Radius, Type, Spacing } from '../constants/theme';
 import { Field } from './ui';
 import { Sex } from '../lib/types';
 import { bodyFatBounds, bodyFatConcern, fatFreeMassKg } from '../lib/safety';
@@ -120,7 +120,7 @@ export function BodyFatPicker({ t, sex, value, onChange, body }: Props) {
     : null;
 
   return (
-    <View style={{ gap: 12 }}>
+    <View style={{ gap: Spacing.md }}>
       <View style={styles.grid}>
         {levels.map((lv, i) => {
           const on = value === lv.pct;
@@ -186,7 +186,7 @@ export function BodyFatPicker({ t, sex, value, onChange, body }: Props) {
           maigre hors plafond, que ce soit tapé ou choisi ne change rien au chiffre. */}
       {concern && (
         <View style={[styles.note, { borderColor: t.warning, backgroundColor: t.card }]}>
-          <Text style={{ ...Type.captionStrong, color: t.text, marginBottom: 2 }}>
+          <Text style={{ ...Type.captionStrong, color: t.text, marginBottom: Spacing.xs }}>
             {concern === 'lean_mass' && leanKg != null
               ? `Ce chiffre annonce ${leanKg} kg de masse maigre`
               : `${value} %, c'est un niveau d'athlète de compétition`}
@@ -211,21 +211,21 @@ export function BodyFatPicker({ t, sex, value, onChange, body }: Props) {
 }
 
 const styles = StyleSheet.create({
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
   cell: {
     width: '48%',
     flexGrow: 1,
     borderWidth: 1,
     borderRadius: Radius.card,
-    paddingVertical: 14,
-    paddingHorizontal: 14,
-    gap: 4,
+    paddingVertical: Spacing.lg,
+    paddingHorizontal: Spacing.lg,
+    gap: Spacing.xs,
     alignItems: 'center',
   },
   figure: { height: 104, alignItems: 'center', justifyContent: 'center' },
   img: { height: 104, aspectRatio: 220 / 462 },
   pct: { ...Type.h3 },
   desc: { ...Type.caption, lineHeight: 16, textAlign: 'center' },
-  clear: { alignSelf: 'flex-start', paddingVertical: 2 },
-  note: { borderWidth: 1, borderRadius: Radius.card, paddingVertical: 10, paddingHorizontal: 12 },
+  clear: { alignSelf: 'flex-start', paddingVertical: Spacing.xs },
+  note: { borderWidth: 1, borderRadius: Radius.card, paddingVertical: Spacing.md, paddingHorizontal: Spacing.md },
 });

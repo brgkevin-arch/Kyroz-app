@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useTheme, ThemePalette, Spacing, Type } from '../constants/theme';
+import { useTheme, ThemePalette, Spacing, Type, Fond } from '../constants/theme';
 import { useLayout } from '../constants/layout';
 import { PRIVACY_POLICY, TERMS_OF_USE, LegalSection, LEGAL } from '../constants/legal';
 
@@ -55,14 +55,14 @@ function makeStyles(t: ThemePalette) {
     // Pas de liseré sous l'en-tête : la DA pose les blocs par le fond et
     // l'espacement, pas par des traits. Le seul séparateur gardé est celui qui
     // sépare DEUX documents (`divider`), parce qu'il porte du sens.
-    header: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: Spacing.xl, paddingVertical: 12 },
+    header: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, paddingHorizontal: Spacing.xl, paddingVertical: Spacing.md },
     headerTitle: { color: t.text, ...Type.h3 },
-    content: { padding: Spacing.xl, paddingBottom: 60, gap: 4 },
-    docTitle: { color: t.text, ...Type.h2, marginTop: 8 },
-    updated: { ...Type.caption, color: t.textTertiary, marginTop: 2, marginBottom: 8 },
-    section: { marginTop: 16 },
-    secTitle: { color: t.text, ...Type.bodyStrong, marginBottom: 6 },
-    para: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 21, marginBottom: 8 },
-    divider: { height: 1, backgroundColor: t.line, marginVertical: 24 },
+    content: { padding: Spacing.xl, paddingBottom: Fond.ecran, gap: Spacing.xs },
+    docTitle: { color: t.text, ...Type.h2, marginTop: Spacing.sm },
+    updated: { ...Type.caption, color: t.textTertiary, marginTop: Spacing.xs, marginBottom: Spacing.sm },
+    section: { marginTop: Spacing.lg },
+    secTitle: { color: t.text, ...Type.bodyStrong, marginBottom: Spacing.sm },
+    para: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 21, marginBottom: Spacing.sm },
+    divider: { height: 1, backgroundColor: t.line, marginVertical: Spacing.xxl },
   });
 }

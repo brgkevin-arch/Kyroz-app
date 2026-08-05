@@ -1,5 +1,5 @@
 import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
-import { useTheme, Type } from '../constants/theme';
+import { useTheme, Type, Spacing } from '../constants/theme';
 
 // Écran d'attente pendant que la session + le profil s'hydratent.
 // Partagé par app/index.tsx et app/(tabs)/_layout.tsx : les deux points d'entrée
@@ -9,7 +9,7 @@ export default function Splash() {
   return (
     <View style={[styles.splash, { backgroundColor: t.bg }]}>
       <Text style={[styles.logo, { color: t.text }]}>KYROZ</Text>
-      <ActivityIndicator color={t.textTertiary} style={{ marginTop: 24 }} />
+      <ActivityIndicator color={t.textTertiary} style={{ marginTop: Spacing.xxl }} />
     </View>
   );
 }

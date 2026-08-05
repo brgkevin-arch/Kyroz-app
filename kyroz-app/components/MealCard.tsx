@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useTheme, Radius, cardShadow, ThemePalette, Type } from '../constants/theme';
+import { useTheme, Radius, cardShadow, ThemePalette, Type, Spacing } from '../constants/theme';
 import { Meal } from '../lib/types';
 import { useTourTarget } from './GuidedTour';
 import { useFavorites } from '../hooks/useFavorites';
@@ -42,7 +42,7 @@ export function MealCard({
       ref={rootRef}
       onPress={onPress}
       activeOpacity={0.85}
-      style={[{ backgroundColor: t.card, borderRadius: Radius.card, padding: 18, opacity: muted ? 0.6 : 1 }, cardShadow(t)]}
+      style={[{ backgroundColor: t.card, borderRadius: Radius.card, padding: Spacing.xl, opacity: muted ? 0.6 : 1 }, cardShadow(t)]}
     >
       {/* Un seul surtitre « TYPE · DURÉE » au lieu de deux coins opposés : le nom
           du plat devient la première chose qu'on lit. Les états (mangé / sauté /
@@ -128,12 +128,12 @@ function CookButton({ t, onCook, lacks, cookRef }: { t: ThemePalette; onCook: ()
 
 const styles = StyleSheet.create({
   type: { ...Type.overline },
-  name: { ...Type.h3, letterSpacing: -0.3, marginTop: 7 },
-  macros: { ...Type.bodySmall, lineHeight: 19, marginTop: 6 },
-  fridge: { ...Type.caption, marginTop: 10 },
-  fixedNote: { ...Type.caption, marginTop: 6 },
-  actions: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 14 },
-  cookBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, height: 44, paddingHorizontal: 12, borderRadius: Radius.button },
+  name: { ...Type.h3, letterSpacing: -0.3, marginTop: Spacing.sm },
+  macros: { ...Type.bodySmall, lineHeight: 19, marginTop: Spacing.sm },
+  fridge: { ...Type.caption, marginTop: Spacing.md },
+  fixedNote: { ...Type.caption, marginTop: Spacing.sm },
+  actions: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, marginTop: Spacing.lg },
+  cookBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm, height: 44, paddingHorizontal: Spacing.md, borderRadius: Radius.button },
   cookTxt: { ...Type.bodyStrong },
   iconBtn: { width: 44, height: 44, borderRadius: Radius.button, alignItems: 'center', justifyContent: 'center' },
 });

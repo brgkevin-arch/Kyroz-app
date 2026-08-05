@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { useTheme, ThemePalette, Radius, Spacing, Type } from '../../constants/theme';
+import { useTheme, ThemePalette, Radius, Spacing, Type, Fond, CIBLE_TACTILE_MIN } from '../../constants/theme';
 import { useCollapsingTitle, CompactTitleBar } from '../../components/CollapsingTitle';
 import { useLayout } from '../../constants/layout';
 import { ThemeMode, useThemeMode, setThemeMode } from '../../lib/themeMode';
@@ -601,10 +601,10 @@ export default function ProfilScreen() {
         </Text>
         <View style={{ height: 6 }} />
         <TouchableOpacity onPress={doDelete} disabled={deleting} activeOpacity={0.85}
-          style={{ backgroundColor: t.danger, borderRadius: Radius.button, paddingVertical: 17, alignItems: 'center', opacity: deleting ? 0.6 : 1 }}>
+          style={{ backgroundColor: t.danger, borderRadius: Radius.button, paddingVertical: Spacing.lg, alignItems: 'center', opacity: deleting ? 0.6 : 1 }}>
           <Text style={{ ...Type.h3, color: t.onDanger }}>{deleting ? 'Suppression…' : 'Supprimer définitivement'}</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => setConfirmDelete(false)} style={{ alignItems: 'center', paddingVertical: 6 }}>
+        <TouchableOpacity onPress={() => setConfirmDelete(false)} style={{ alignItems: 'center', paddingVertical: Spacing.sm }}>
           <Text style={{ ...Type.bodyStrong, color: t.textSecondary }}>Annuler</Text>
         </TouchableOpacity>
       </ActionSheet>
@@ -618,7 +618,7 @@ export default function ProfilScreen() {
  *  capitales) : celui-ci découpe l'écran, l'autre étiquette un bloc. */
 function SectionTitle({ t, children }: { t: ThemePalette; children: React.ReactNode }) {
   return (
-    <Text style={{ ...Type.h2, color: t.text, letterSpacing: -0.4, marginTop: 8 }}>
+    <Text style={{ ...Type.h2, color: t.text, letterSpacing: -0.4, marginTop: Spacing.sm }}>
       {children}
     </Text>
   );
@@ -631,10 +631,10 @@ function SectionTitle({ t, children }: { t: ThemePalette; children: React.ReactN
 function MenuRow({ t, label, value, onPress, last, readonly }: { t: ThemePalette; label: string; value: string; onPress: () => void; last?: boolean; readonly?: boolean }) {
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={readonly ? 1 : 0.7} disabled={readonly}
-      style={[{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 15 }, !last && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.line }]}>
+      style={[{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md, paddingVertical: Spacing.lg }, !last && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.line }]}>
       <View style={{ flex: 1 }}>
         <Text style={{ ...Type.h3, color: t.text, letterSpacing: -0.3 }}>{label}</Text>
-        <Text style={{ ...Type.bodySmall, color: t.textTertiary, marginTop: 2 }} numberOfLines={1}>{value}</Text>
+        <Text style={{ ...Type.bodySmall, color: t.textTertiary, marginTop: Spacing.xs }} numberOfLines={1}>{value}</Text>
       </View>
       {!readonly && <Ionicons name="chevron-forward" size={18} color={t.textQuaternary} />}
     </TouchableOpacity>
@@ -646,7 +646,7 @@ function MenuRow({ t, label, value, onPress, last, readonly }: { t: ThemePalette
 // pour les quatre — cf. la note en tête de constants/theme.ts.
 function Box({ t, v, l, u = '' }: { t: ThemePalette; v: number; l: string; u?: string }) {
   return (
-    <View style={{ flex: 1, backgroundColor: t.card, borderRadius: Radius.card, paddingVertical: 16, paddingHorizontal: 8, alignItems: 'center', gap: 3 }}>
+    <View style={{ flex: 1, backgroundColor: t.card, borderRadius: Radius.card, paddingVertical: Spacing.lg, paddingHorizontal: Spacing.sm, alignItems: 'center', gap: Spacing.xs }}>
       <Text style={{ ...Type.h2, letterSpacing: -0.5, color: t.text }}>{v}{u}</Text>
       <Text style={{ ...Type.caption, color: t.textSecondary, textAlign: 'center' }}>{l}</Text>
     </View>
@@ -659,13 +659,13 @@ function EditorShell({
 }: { t: ThemePalette; title: string; children: React.ReactNode; onSave: () => void; canSave?: boolean; dragHandlers?: any }) {
   return (
     <View style={{ flex: 1, backgroundColor: t.bg }}>
-      <View style={{ paddingHorizontal: Spacing.xxl, paddingBottom: 8 }} {...(dragHandlers ?? {})}>
+      <View style={{ paddingHorizontal: Spacing.xxl, paddingBottom: Spacing.sm }} {...(dragHandlers ?? {})}>
         <Text style={{ color: t.text, ...Type.h2 }}>{title}</Text>
       </View>
-      <ScrollView contentContainerStyle={{ padding: Spacing.xxl, paddingTop: 12, gap: 16 }} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={{ padding: Spacing.xxl, paddingTop: Spacing.md, gap: Spacing.lg }} showsVerticalScrollIndicator={false}>
         {children}
       </ScrollView>
-      <View style={{ padding: Spacing.xxl, paddingTop: 8, borderTopWidth: 1, borderTopColor: t.line }}>
+      <View style={{ padding: Spacing.xxl, paddingTop: Spacing.sm, borderTopWidth: 1, borderTopColor: t.line }}>
         <PrimaryButton t={t} label="Enregistrer" onPress={onSave} disabled={!canSave} />
       </View>
     </View>
@@ -757,7 +757,7 @@ function LowEaRiseCard({ t, rise, onPress }: {
   return (
     <TouchableOpacity activeOpacity={0.85} onPress={onPress}>
       <Card t={t}>
-        <Text style={{ ...Type.bodyStrong, color: t.text, marginBottom: 6 }}>
+        <Text style={{ ...Type.bodyStrong, color: t.text, marginBottom: Spacing.sm }}>
           {enCours ? '🛡️ Ta cible remonte, c\'est voulu' : '🛡️ Kyroz a mis ta sèche en pause'}
         </Text>
         {enCours ? (
@@ -821,14 +821,14 @@ function EngineNoticeCard({ t, notice, onAdjust, onDismiss }: {
       <Text style={{ ...Type.caption, color: t.text, lineHeight: 19 }}>
         Ton budget est passé de {notice.from} à {notice.to} kcal/jour ({delta > 0 ? '+' : ''}{delta}). {explication}
       </Text>
-      <Text style={{ ...Type.caption, color: t.textSecondary, lineHeight: 19, marginTop: 8 }}>
+      <Text style={{ ...Type.caption, color: t.textSecondary, lineHeight: 19, marginTop: Spacing.sm }}>
         {suite}
       </Text>
-      <View style={{ flexDirection: 'row', gap: 10, marginTop: 14 }}>
-        <TouchableOpacity onPress={onAdjust} activeOpacity={0.85} style={{ flex: 1, backgroundColor: t.accent, borderRadius: Radius.sm, paddingVertical: 11, alignItems: 'center' }}>
+      <View style={{ flexDirection: 'row', gap: Spacing.md, marginTop: Spacing.lg }}>
+        <TouchableOpacity onPress={onAdjust} activeOpacity={0.85} style={{ flex: 1, backgroundColor: t.accent, borderRadius: Radius.sm, paddingVertical: Spacing.sm, minHeight: CIBLE_TACTILE_MIN, justifyContent: 'center', alignItems: 'center' }}>
           <Text style={{ ...Type.bodySmallStrong, color: t.onAccent }}>Régler mon activité</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={onDismiss} activeOpacity={0.85} style={{ flex: 1, borderRadius: Radius.sm, paddingVertical: 11, alignItems: 'center', borderWidth: 1, borderColor: t.lineStrong }}>
+        <TouchableOpacity onPress={onDismiss} activeOpacity={0.85} style={{ flex: 1, borderRadius: Radius.sm, paddingVertical: Spacing.sm, minHeight: CIBLE_TACTILE_MIN, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: t.lineStrong }}>
           <Text style={{ ...Type.bodySmallStrong, color: t.text }}>C'est noté</Text>
         </TouchableOpacity>
       </View>
@@ -854,7 +854,7 @@ function SportsProfileEditor({ t, profile, onSave, dragHandlers }: EditorProps) 
           l'ordre inverse invite à répondre « je suis actif » en pensant à ses séances
           — qui sont déjà comptées juste en dessous. */}
       <SectionLabel t={t}>TES JOURNÉES, HORS SPORT</SectionLabel>
-      <Text style={{ ...Type.caption, color: t.textSecondary, lineHeight: 18, marginBottom: 4 }}>
+      <Text style={{ ...Type.caption, color: t.textSecondary, lineHeight: 18, marginBottom: Spacing.xs }}>
         Ce que tu dépenses sans y penser : boulot, trajets, courses. Ne compte pas tes séances ici, elles sont comptées juste en dessous.
       </Text>
       {NEAT_ORDER.map((lvl) => (
@@ -862,7 +862,7 @@ function SportsProfileEditor({ t, profile, onSave, dragHandlers }: EditorProps) 
       ))}
 
       <SectionLabel t={t}>TES SÉANCES</SectionLabel>
-      <Text style={{ ...Type.caption, color: t.textSecondary, lineHeight: 18, marginBottom: 4 }}>Tes sports servent à estimer tes calories dépensées. Plus c'est précis, plus ton plan l'est.</Text>
+      <Text style={{ ...Type.caption, color: t.textSecondary, lineHeight: 18, marginBottom: Spacing.xs }}>Tes sports servent à estimer tes calories dépensées. Plus c'est précis, plus ton plan l'est.</Text>
       <SportsEditor sports={sports} weight={profile.weight_kg} onChange={setSports} />
       <RestDaysPicker t={t} available={planWeekdays} value={restDays} onToggle={togRestDay} />
     </EditorShell>
@@ -1039,7 +1039,7 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
       )}
 
       {!goalBlockMsg && status && preview && (
-        <Card t={t} style={{ gap: 12 }}>
+        <Card t={t} style={{ gap: Spacing.md }}>
           <Row t={t} l="Trajectoire" v={status.direction === 'maintain' ? dirLabel : `${dirLabel} ${gapKg} kg`} strong />
           {status.direction !== 'maintain' && <Row t={t} l="Rythme sûr" v={`${Math.abs(status.safeWeeklyKg)} kg / sem`} />}
           <Row t={t} l="Calories ajustées" v={`${preview.target_kcal} kcal/j`} strong />
@@ -1124,7 +1124,7 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
       )}
 
       {existing && (
-        <TouchableOpacity onPress={remove} style={{ alignItems: 'center', paddingVertical: 10 }}>
+        <TouchableOpacity onPress={remove} style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: Spacing.sm, minHeight: CIBLE_TACTILE_MIN }}>
           <Text style={{ ...Type.bodyStrong, color: t.danger }}>Retirer l'objectif daté</Text>
         </TouchableOpacity>
       )}
@@ -1166,7 +1166,7 @@ function MacroEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
     <EditorShell t={t} title="Calories & macros" onSave={submit} dragHandlers={dragHandlers}>
       <Segmented<'auto' | 'percent'> t={t} options={[{ label: 'Calculées', value: 'auto' }, { label: 'Perso %', value: 'percent' }]} value={mode} onChange={setMode} />
       {mode === 'auto' ? (
-        <Card t={t} style={{ gap: 12 }}>
+        <Card t={t} style={{ gap: Spacing.md }}>
           <Row t={t} l="Objectif calorique" v={`${auto.target_kcal} kcal`} strong />
           {/* Trois lignes empilées : aucune proportion à comparer, donc aucune
               couleur à porter (cf. la note en tête de constants/theme.ts). */}
@@ -1205,7 +1205,7 @@ function PrefEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
       {hiddenNamed.length > 0 && (
         <>
           <SectionLabel t={t}>Recettes masquées ({hiddenNamed.length})</SectionLabel>
-          <Text style={{ ...Type.caption, color: t.textTertiary, lineHeight: 17, marginTop: -8 }}>
+          <Text style={{ ...Type.caption, color: t.textTertiary, lineHeight: 17, marginTop: -Spacing.sm }}>
             Les recettes que tu as marquées « j'aime pas ». Touche-en une pour la réafficher.
           </Text>
           <View style={styles.wrap}>{hiddenNamed.map((r) => <Chip key={r.id} t={t} label={`${r.name}  ✕`} selected onPress={() => tog(hidden, r.id, setHidden)} />)}</View>
@@ -1223,7 +1223,7 @@ function RestDaysPicker({ t, available, value, onToggle }: { t: ThemePalette; av
   return (
     <>
       <SectionLabel t={t}>Jours de repos</SectionLabel>
-      <Text style={{ ...Type.caption, color: t.textTertiary, lineHeight: 17, marginTop: -8 }}>
+      <Text style={{ ...Type.caption, color: t.textTertiary, lineHeight: 17, marginTop: -Spacing.sm }}>
         Tes jours sans entraînement : Kyroz baisse un peu les glucides et monte les lipides (mêmes calories) et privilégie les recettes « récup ».
       </Text>
       <View style={styles.wrap}>
@@ -1296,21 +1296,21 @@ function MealsEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
       {meals.length === 0 && <Text style={{ ...Type.caption, color: t.danger }}>Sélectionne au moins 1 repas.</Text>}
 
       <SectionLabel t={t}>Repas que tu gères toi-même</SectionLabel>
-      <Text style={{ ...Type.caption, color: t.textTertiary, lineHeight: 17, marginTop: -8 }}>
+      <Text style={{ ...Type.caption, color: t.textTertiary, lineHeight: 17, marginTop: -Spacing.sm }}>
         Définis-les une fois : Kyroz les compte dans ton total et cale tes autres repas autour, sans te les redemander chaque jour.
       </Text>
-      <View style={{ gap: 8 }}>
+      <View style={{ gap: Spacing.sm }}>
         {orderedMeals(meals).map((mt) => {
           const fm = fixedMeals[mt];
           return (
-            <View key={mt} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: t.card, borderRadius: Radius.card, padding: 14 }}>
-              <View style={{ flex: 1, paddingRight: 10 }}>
+            <View key={mt} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: t.card, borderRadius: Radius.card, padding: Spacing.lg }}>
+              <View style={{ flex: 1, paddingRight: Spacing.md }}>
                 <Text style={{ ...Type.bodySmallStrong, color: t.text }}>{mealLabel(mt)}</Text>
-                <Text style={{ ...Type.caption, color: fm ? t.textSecondary : t.textTertiary, marginTop: 3 }} numberOfLines={1}>
+                <Text style={{ ...Type.caption, color: fm ? t.textSecondary : t.textTertiary, marginTop: Spacing.xs }} numberOfLines={1}>
                   {fm ? `🔒 ${fm.label} · ${fm.macros.kcal} kcal` : 'Kyroz le planifie'}
                 </Text>
               </View>
-              <View style={{ flexDirection: 'row', gap: 16, alignItems: 'center' }}>
+              <View style={{ flexDirection: 'row', gap: Spacing.lg, alignItems: 'center' }}>
                 {fm && (
                   <TouchableOpacity onPress={() => removeFixed(mt)} hitSlop={8}>
                     <Text style={{ ...Type.captionStrong, color: t.textTertiary }}>Retirer</Text>
@@ -1328,7 +1328,7 @@ function MealsEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
       <SectionLabel t={t}>Tu manges plus à quel moment ?</SectionLabel>
       <View style={styles.wrap}>{emphasisOpts.map((e) => <Chip key={e.val} t={t} label={e.label} selected={emphasis === e.val} onPress={() => setEmphasis(e.val)} />)}</View>
       <SectionLabel t={t}>Variété</SectionLabel>
-      <View style={{ gap: 10 }}>{VARIETY.map((v) => <OptionCard key={v.value} t={t} title={v.title} subtitle={v.sub} selected={variety === v.value} onPress={() => setVariety(v.value)} />)}</View>
+      <View style={{ gap: Spacing.md }}>{VARIETY.map((v) => <OptionCard key={v.value} t={t} title={v.title} subtitle={v.sub} selected={variety === v.value} onPress={() => setVariety(v.value)} />)}</View>
       <Text style={{ ...Type.caption, color: t.textTertiary, textAlign: 'center', lineHeight: 17 }}>
         Ton plan se met à jour automatiquement après enregistrement.
       </Text>
@@ -1346,30 +1346,30 @@ function Row({ t, l, v, c, strong }: { t: ThemePalette; l: string; v: string; c?
 }
 
 const styles = StyleSheet.create({
-  wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
 });
 
 function makeStyles(t: ThemePalette) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: t.bg },
-    content: { padding: Spacing.xl, gap: 16, paddingBottom: 120 },
-    header: { marginBottom: 2 },
+    content: { padding: Spacing.xl, gap: Spacing.lg, paddingBottom: Fond.barreOnglets },
+    header: { marginBottom: Spacing.xs },
     sub: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 19 },
-    h1: { color: t.text, ...Type.display, marginTop: 2 },
-    grid: { flexDirection: 'row', gap: 8 },
-    menu: { backgroundColor: t.card, borderRadius: Radius.card, paddingHorizontal: 16 },
-    tdee: { backgroundColor: t.card, borderRadius: Radius.card, padding: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 12 },
-    floorNote: { ...Type.caption, color: t.textSecondary, lineHeight: 18, marginTop: -4 },
+    h1: { color: t.text, ...Type.display, marginTop: Spacing.xs },
+    grid: { flexDirection: 'row', gap: Spacing.sm },
+    menu: { backgroundColor: t.card, borderRadius: Radius.card, paddingHorizontal: Spacing.lg },
+    tdee: { backgroundColor: t.card, borderRadius: Radius.card, padding: Spacing.lg, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: Spacing.md },
+    floorNote: { ...Type.caption, color: t.textSecondary, lineHeight: 18, marginTop: -Spacing.xs },
     tdeeL: { ...Type.bodySmall, flex: 1, color: t.textSecondary, lineHeight: 19 },
     tdeeV: { ...Type.h3, flexShrink: 0, color: t.text },
-    reminderHint: { ...Type.caption, color: t.textTertiary, lineHeight: 18, marginTop: -8 },
-    settingLabel: { ...Type.h3, color: t.text, letterSpacing: -0.3, marginBottom: -8 },
-    swatches: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
+    reminderHint: { ...Type.caption, color: t.textTertiary, lineHeight: 18, marginTop: -Spacing.sm },
+    settingLabel: { ...Type.h3, color: t.text, letterSpacing: -0.3, marginBottom: -Spacing.sm },
+    swatches: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.md },
     swatch: { width: 44, height: 44, borderRadius: 22, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
     disclaimer: { ...Type.micro, color: t.textTertiary, lineHeight: 16, textAlign: 'center' },
-    logoutBtn: { alignItems: 'center', justifyContent: 'center', paddingVertical: 15, marginTop: 8, borderRadius: Radius.button, backgroundColor: t.fill },
+    logoutBtn: { alignItems: 'center', justifyContent: 'center', paddingVertical: Spacing.lg, marginTop: Spacing.sm, borderRadius: Radius.button, backgroundColor: t.fill },
     logoutTxt: { ...Type.bodyStrong, color: t.text },
-    delBtn: { alignItems: 'center', paddingVertical: 12, marginTop: 4 },
+    delBtn: { alignItems: 'center', paddingVertical: Spacing.md, marginTop: Spacing.xs },
     delTxt: { ...Type.caption, color: t.danger },
   });
 }
@@ -1439,7 +1439,7 @@ function CalorieBankEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
         // dans les faits, c'est presque toujours une donnée fausse (masse grasse
         // saisie de travers) ou un objectif qui ne convient pas à ce gabarit.
         <Card t={t}>
-          <Text style={{ ...Type.bodyStrong, color: t.text, marginBottom: 6 }}>
+          <Text style={{ ...Type.bodyStrong, color: t.text, marginBottom: Spacing.sm }}>
             Ta cible est déjà à ton minimum
           </Text>
           <Text style={{ ...Type.caption, color: t.textSecondary, lineHeight: 19 }}>
@@ -1504,7 +1504,7 @@ function CalorieBankEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
           const label = WEEKDAY_OPTS.find((o) => o.val === wd)?.label ?? `J${i + 1}`;
           const ecart = kcal - profile.target_kcal;
           return (
-            <View key={i} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 7 }}>
+            <View key={i} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: Spacing.sm }}>
               <Text style={{ ...Type.bodySmall, color: t.textSecondary }}>{label}</Text>
               <Text style={{ color: ecart === 0 ? t.textSecondary : t.text, ...(ecart === 0 ? Type.bodySmall : Type.bodySmallStrong) }}>
                 {kcal} kcal{ecart !== 0 ? `  (${ecart > 0 ? '+' : ''}${ecart})` : ''}

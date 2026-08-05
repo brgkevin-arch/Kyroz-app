@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { ThemePalette, Radius, Spacing, Type } from '../constants/theme';
+import { ThemePalette, Radius, Spacing, Type, CIBLE_TACTILE_MIN } from '../constants/theme';
 import { Field, PrimaryButton, Segmented } from './ui';
 import { Recipe, Ingredient } from '../lib/types';
 import { searchFoods, recipeMacrosPerPortion } from '../lib/foods';
@@ -245,42 +245,42 @@ function MacroCell({ t, label, value, color }: { t: ThemePalette; label: string;
 
 function makeStyles(t: ThemePalette) {
   return StyleSheet.create({
-    header: { paddingHorizontal: Spacing.xxl, paddingBottom: 10, gap: 6 },
+    header: { paddingHorizontal: Spacing.xxl, paddingBottom: Spacing.md, gap: Spacing.sm },
     title: { color: t.text, ...Type.h2 },
     sub: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 20 },
-    content: { padding: Spacing.xxl, paddingTop: 8, gap: 14, paddingBottom: 32 },
-    row2: { flexDirection: 'row', gap: 12 },
-    section: { ...Type.overline, color: t.textTertiary, marginTop: 6 },
-    hint: { ...Type.caption, color: t.textTertiary, lineHeight: 16, marginTop: -6 },
+    content: { padding: Spacing.xxl, paddingTop: Spacing.sm, gap: Spacing.lg, paddingBottom: Spacing.xxxl },
+    row2: { flexDirection: 'row', gap: Spacing.md },
+    section: { ...Type.overline, color: t.textTertiary, marginTop: Spacing.sm },
+    hint: { ...Type.caption, color: t.textTertiary, lineHeight: 16, marginTop: -Spacing.sm },
     input: {
       backgroundColor: t.scheme === 'dark' ? t.fill : t.card, borderWidth: 1, borderColor: t.line,
-      borderRadius: Radius.button, paddingHorizontal: 14, paddingVertical: 12, ...Type.input, color: t.text,
+      borderRadius: Radius.button, paddingHorizontal: Spacing.lg, paddingVertical: Spacing.md, ...Type.input, color: t.text,
     },
-    ingRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+    ingRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
     inputLinked: { borderColor: t.success },
-    linkedTag: { ...Type.microStrong, color: t.success, marginTop: 3, marginLeft: 2 },
-    suggest: { marginTop: 4, borderWidth: 1, borderColor: t.line, borderRadius: Radius.sm, overflow: 'hidden' },
-    suggestRow: { paddingHorizontal: 12, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: t.line, backgroundColor: t.scheme === 'dark' ? t.fill : t.card },
+    linkedTag: { ...Type.microStrong, color: t.success, marginTop: Spacing.xs, marginLeft: Spacing.xs },
+    suggest: { marginTop: Spacing.xs, borderWidth: 1, borderColor: t.line, borderRadius: Radius.sm, overflow: 'hidden' },
+    suggestRow: { paddingHorizontal: Spacing.md, paddingVertical: Spacing.md, minHeight: CIBLE_TACTILE_MIN, justifyContent: 'center', borderBottomWidth: 1, borderBottomColor: t.line, backgroundColor: t.scheme === 'dark' ? t.fill : t.card },
     suggestName: { ...Type.bodySmallStrong, color: t.text },
-    suggestMacro: { ...Type.caption, color: t.textTertiary, marginTop: 2 },
-    suggestEmpty: { ...Type.caption, color: t.textTertiary, padding: 12 },
-    computed: { marginTop: 4, padding: 12, borderRadius: Radius.sm, borderWidth: 1, borderColor: t.line, backgroundColor: t.scheme === 'dark' ? t.fill : t.card, gap: 8 },
+    suggestMacro: { ...Type.caption, color: t.textTertiary, marginTop: Spacing.xs },
+    suggestEmpty: { ...Type.caption, color: t.textTertiary, padding: Spacing.md },
+    computed: { marginTop: Spacing.xs, padding: Spacing.md, borderRadius: Radius.sm, borderWidth: 1, borderColor: t.line, backgroundColor: t.scheme === 'dark' ? t.fill : t.card, gap: Spacing.sm },
     computedRow: { flexDirection: 'row', justifyContent: 'space-between' },
     cell: { alignItems: 'center', flex: 1 },
     cellVal: { ...Type.h3, color: t.text },
-    cellLabel: { ...Type.micro, color: t.textTertiary, marginTop: 2 },
-    warn: { ...Type.caption, color: t.warning, lineHeight: 17, marginTop: 6 },
+    cellLabel: { ...Type.micro, color: t.textTertiary, marginTop: Spacing.xs },
+    warn: { ...Type.caption, color: t.warning, lineHeight: 17, marginTop: Spacing.sm },
     qty: { width: 76, textAlign: 'center' },
-    del: { padding: 2 },
-    stepRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
-    stepN: { width: 26, height: 26, borderRadius: 13, backgroundColor: t.fill, alignItems: 'center', justifyContent: 'center', marginTop: 10 },
+    del: { padding: Spacing.xs },
+    stepRow: { flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.md },
+    stepN: { width: 26, height: 26, borderRadius: 13, backgroundColor: t.fill, alignItems: 'center', justifyContent: 'center', marginTop: Spacing.md },
     stepNTxt: { ...Type.captionStrong, color: t.text },
-    addBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 12, borderRadius: Radius.button, borderWidth: 1, borderColor: t.line, borderStyle: 'dashed' },
+    addBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm, paddingVertical: Spacing.md, borderRadius: Radius.button, borderWidth: 1, borderColor: t.line, borderStyle: 'dashed' },
     addTxt: { ...Type.bodySmallStrong, color: t.text },
-    reset: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 14, marginTop: 4 },
+    reset: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm, paddingVertical: Spacing.lg, marginTop: Spacing.xs },
     resetTxt: { ...Type.bodySmallStrong, color: t.danger },
-    footer: { padding: Spacing.xxl, paddingTop: 10, borderTopWidth: 1, borderTopColor: t.line, gap: 6 },
-    cancel: { alignItems: 'center', paddingVertical: 10 },
+    footer: { padding: Spacing.xxl, paddingTop: Spacing.md, borderTopWidth: 1, borderTopColor: t.line, gap: Spacing.sm },
+    cancel: { alignItems: 'center', justifyContent: 'center', paddingVertical: Spacing.sm, minHeight: CIBLE_TACTILE_MIN },
     cancelTxt: { ...Type.bodyStrong, color: t.textSecondary },
   });
 }

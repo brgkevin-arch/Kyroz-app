@@ -5,7 +5,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { useTheme, ThemePalette, Radius, Spacing, Type, cardShadow } from '../../constants/theme';
+import { useTheme, ThemePalette, Radius, Spacing, Type, cardShadow, Fond, CIBLE_TACTILE_MIN } from '../../constants/theme';
 import { useCollapsingTitle, CompactTitleBar } from '../../components/CollapsingTitle';
 import { useLayout } from '../../constants/layout';
 import { PrimaryButton, Chip, Field, SectionLabel, Segmented } from '../../components/ui';
@@ -178,7 +178,7 @@ export default function GardeMangerScreen() {
             {ready.length > 0 && (
               <>
                 <SectionLabel t={t}>Réalisable maintenant</SectionLabel>
-                <View style={{ gap: 10, marginTop: 10 }}>
+                <View style={{ gap: Spacing.md, marginTop: Spacing.md }}>
                   {ready.map((c) => (
                     <View key={c.recipe.id} style={[s.recipe, cardShadow(t)]}>
                       <View style={{ flex: 1 }}>
@@ -200,7 +200,7 @@ export default function GardeMangerScreen() {
                 <View style={{ marginTop: ready.length > 0 ? 28 : 0 }}>
                   <SectionLabel t={t}>Presque — quelques ingrédients en plus</SectionLabel>
                 </View>
-                <View style={{ gap: 10, marginTop: 10 }}>
+                <View style={{ gap: Spacing.md, marginTop: Spacing.md }}>
                   {almost.map((c) => (
                     <View key={c.recipe.id} style={[s.recipe, cardShadow(t), { opacity: 0.92 }]}>
                       <View style={{ flex: 1 }}>
@@ -231,7 +231,7 @@ export default function GardeMangerScreen() {
             </View>
 
             {grouped.map((g) => (
-              <View key={g.cat} style={{ marginTop: 8 }}>
+              <View key={g.cat} style={{ marginTop: Spacing.sm }}>
                 <Text style={s.catLabel}>{CATEGORY_LABELS[g.cat].toUpperCase()}</Text>
                 <View style={[s.invCard, cardShadow(t)]}>
                   {/* Plus de croix de suppression par ligne : toucher la quantité
@@ -278,7 +278,7 @@ export default function GardeMangerScreen() {
                 <TouchableOpacity
                   key={f.id} activeOpacity={0.7}
                   onPress={() => { setName(f.name_fr); setSugDismissed(true); }}
-                  style={{ paddingHorizontal: 14, paddingVertical: 11, borderBottomWidth: 1, borderBottomColor: t.line }}
+                  style={{ paddingHorizontal: Spacing.lg, paddingVertical: Spacing.md, borderBottomWidth: 1, borderBottomColor: t.line }}
                 >
                   <Text style={{ ...Type.bodySmall, color: t.text }} numberOfLines={1}>{f.name_fr}</Text>
                 </TouchableOpacity>
@@ -348,54 +348,54 @@ function makeStyles(t: ThemePalette) {
     // ⚠️ Plus de `paddingHorizontal` : l'en-tête vit maintenant dans le
     // contentContainer du ScrollView, qui pose déjà les 20 pt. L'y laisser les
     // aurait doublés.
-    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 4, paddingBottom: 12 },
-    h1: { color: t.text, ...Type.display, marginTop: 2 },
+    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: Spacing.xs, paddingBottom: Spacing.md },
+    h1: { color: t.text, ...Type.display, marginTop: Spacing.xs },
     sub: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 19 },
-    addBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: t.accent, alignItems: 'center', justifyContent: 'center' },
-    segment: { paddingBottom: 6 },
-    content: { paddingHorizontal: Spacing.xl, paddingTop: 10, paddingBottom: 120 },
+    addBtn: { width: CIBLE_TACTILE_MIN, height: CIBLE_TACTILE_MIN, borderRadius: Radius.pill, backgroundColor: t.accent, alignItems: 'center', justifyContent: 'center' },
+    segment: { paddingBottom: Spacing.sm },
+    content: { paddingHorizontal: Spacing.xl, paddingTop: Spacing.md, paddingBottom: Fond.barreOnglets },
 
-    empty: { alignItems: 'center', gap: 10, paddingVertical: 40 },
-    emptyIcon: { width: 72, height: 72, borderRadius: 24, alignItems: 'center', justifyContent: 'center', marginBottom: 6 },
+    empty: { alignItems: 'center', gap: Spacing.md, paddingVertical: Spacing.xxxl },
+    emptyIcon: { width: 72, height: 72, borderRadius: 24, alignItems: 'center', justifyContent: 'center', marginBottom: Spacing.sm },
     emptyTitle: { color: t.text, ...Type.h2 },
-    emptySub: { ...Type.body, color: t.textSecondary, textAlign: 'center', lineHeight: 21, paddingHorizontal: 10 },
-    ghostBtn: { paddingVertical: 14, alignItems: 'center' },
+    emptySub: { ...Type.body, color: t.textSecondary, textAlign: 'center', lineHeight: 21, paddingHorizontal: Spacing.md },
+    ghostBtn: { paddingVertical: Spacing.lg, alignItems: 'center' },
     ghostTxt: { ...Type.bodyStrong, color: t.textSecondary },
 
-    recipe: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: t.card, borderRadius: Radius.card, padding: 16 },
+    recipe: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, backgroundColor: t.card, borderRadius: Radius.card, padding: Spacing.lg },
     rName: { ...Type.label, color: t.text, letterSpacing: -0.3 },
-    rMeta: { ...Type.caption, color: t.textSecondary, marginTop: 4 },
-    rMissing: { ...Type.caption, color: t.textTertiary, marginTop: 4 },
-    cookBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: t.accent, paddingHorizontal: 14, paddingVertical: 10, borderRadius: Radius.pill },
+    rMeta: { ...Type.caption, color: t.textSecondary, marginTop: Spacing.xs },
+    rMissing: { ...Type.caption, color: t.textTertiary, marginTop: Spacing.xs },
+    cookBtn: { flexDirection: 'row', alignItems: 'center', gap: Spacing.xs, backgroundColor: t.accent, paddingHorizontal: Spacing.lg, paddingVertical: Spacing.sm, minHeight: CIBLE_TACTILE_MIN, justifyContent: 'center', borderRadius: Radius.pill },
     cookTxt: { ...Type.captionStrong, color: t.onAccent },
     missingBadge: { width: 28, height: 28, borderRadius: 14, backgroundColor: t.fill, alignItems: 'center', justifyContent: 'center' },
     missingBadgeTxt: { ...Type.captionStrong, color: t.textSecondary },
 
-    note: { borderRadius: Radius.card, padding: 16, marginTop: 4 },
+    note: { borderRadius: Radius.card, padding: Spacing.lg, marginTop: Spacing.xs },
     noteTxt: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 20 },
 
-    invHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
+    invHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: Spacing.xs },
     invHint: { ...Type.caption, color: t.textTertiary },
     link: { ...Type.bodySmall, color: t.textSecondary },
-    catLabel: { ...Type.overline, color: t.textTertiary, marginBottom: 8, marginTop: 12 },
-    invCard: { backgroundColor: t.card, borderRadius: Radius.card, paddingHorizontal: 16 },
-    invRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, paddingVertical: 15 },
+    catLabel: { ...Type.overline, color: t.textTertiary, marginBottom: Spacing.sm, marginTop: Spacing.md },
+    invCard: { backgroundColor: t.card, borderRadius: Radius.card, paddingHorizontal: Spacing.lg },
+    invRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.md, paddingVertical: Spacing.lg },
     invName: { ...Type.body, flex: 1, color: t.text },
     invQty: { ...Type.body, color: t.textSecondary },
-    stepRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 10 },
+    stepRow: { flexDirection: 'row', alignItems: 'flex-end', gap: Spacing.md },
     stepBtn: { width: 48, height: 48, borderRadius: Radius.button, backgroundColor: t.fill, alignItems: 'center', justifyContent: 'center' },
     stepHint: { ...Type.caption, color: t.textTertiary, lineHeight: 18 },
 
-    toast: { position: 'absolute', left: 20, right: 20, bottom: 28, backgroundColor: t.accent, borderRadius: Radius.button, paddingVertical: 14, paddingHorizontal: 18, alignItems: 'center' },
+    toast: { position: 'absolute', left: 20, right: 20, bottom: 28, backgroundColor: t.accent, borderRadius: Radius.button, paddingVertical: Spacing.lg, paddingHorizontal: Spacing.xl, alignItems: 'center' },
     toastTxt: { ...Type.bodySmallStrong, color: t.onAccent },
 
     sheetTitle: { color: t.text, ...Type.h2 },
-    editName: { ...Type.bodyStrong, color: t.textSecondary, marginTop: -6 },
-    unitRow: { flexDirection: 'row', gap: 8 },
-    cancel: { alignItems: 'center', paddingVertical: 6 },
+    editName: { ...Type.bodyStrong, color: t.textSecondary, marginTop: -Spacing.sm },
+    unitRow: { flexDirection: 'row', gap: Spacing.sm },
+    cancel: { alignItems: 'center', paddingVertical: Spacing.sm },
     cancelTxt: { ...Type.bodyStrong, color: t.textSecondary },
     confirmMsg: { ...Type.body, color: t.textSecondary, lineHeight: 21 },
-    confirmBtn: { borderRadius: Radius.button, paddingVertical: 17, alignItems: 'center', justifyContent: 'center' },
+    confirmBtn: { borderRadius: Radius.button, paddingVertical: Spacing.lg, alignItems: 'center', justifyContent: 'center' },
     confirmBtnTxt: { ...Type.h3 },
   });
 }

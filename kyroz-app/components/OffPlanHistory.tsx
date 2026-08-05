@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { ThemePalette, Radius, Type } from '../constants/theme';
+import { ThemePalette, Radius, Type, Spacing } from '../constants/theme';
 import { useDialog } from './Dialog';
 import { OffPlanEntry, describeOutcome, newestFirst } from '../lib/offPlanJournal';
 import { todayStamp } from '../lib/weight';
@@ -117,19 +117,19 @@ export function OffPlanHistory({
 
 function makeStyles(t: ThemePalette) {
   return StyleSheet.create({
-    wrap: { padding: 24, gap: 16, flex: 1 },
+    wrap: { padding: Spacing.xxl, gap: Spacing.lg, flex: 1 },
     title: { color: t.text, ...Type.h2 },
-    sub: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 20, marginTop: 6 },
+    sub: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 20, marginTop: Spacing.sm },
     scroll: { flex: 1 },
-    scrollContent: { gap: 10, paddingBottom: 4 },
-    card: { borderWidth: 1, borderColor: t.line, borderRadius: Radius.card, padding: 16, gap: 6 },
-    head: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
+    scrollContent: { gap: Spacing.md, paddingBottom: Spacing.xs },
+    card: { borderWidth: 1, borderColor: t.line, borderRadius: Radius.card, padding: Spacing.lg, gap: Spacing.sm },
+    head: { flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.md },
     headTexte: { flex: 1 },
     date: { ...Type.bodyStrong, color: t.text },
-    label: { ...Type.caption, color: t.textSecondary, marginTop: 2 },
+    label: { ...Type.caption, color: t.textSecondary, marginTop: Spacing.xs },
     kcal: { ...Type.bodyStrong, color: t.text },
     outcome: { ...Type.caption, color: t.textTertiary, lineHeight: 18 },
-    videCard: { borderWidth: 1, borderColor: t.line, borderRadius: Radius.card, padding: 20, gap: 6 },
+    videCard: { borderWidth: 1, borderColor: t.line, borderRadius: Radius.card, padding: Spacing.xl, gap: Spacing.sm },
     videTitre: { ...Type.label, color: t.text },
     videTexte: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 20 },
     note: { ...Type.caption, color: t.textQuaternary, lineHeight: 17 },

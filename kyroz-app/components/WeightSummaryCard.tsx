@@ -75,15 +75,15 @@ export function WeightSummaryCard({
 
 function makeStyles(t: ThemePalette) {
   return StyleSheet.create({
-    card: { backgroundColor: t.card, borderRadius: Radius.card, padding: Spacing.xl, gap: 14 },
-    head: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
+    card: { backgroundColor: t.card, borderRadius: Radius.card, padding: Spacing.xl, gap: Spacing.lg },
+    head: { flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.md },
     label: { color: t.textTertiary, ...Type.overline },
-    valueRow: { flexDirection: 'row', alignItems: 'baseline', gap: 6, marginTop: 4, flexWrap: 'wrap' },
+    valueRow: { flexDirection: 'row', alignItems: 'baseline', gap: Spacing.sm, marginTop: Spacing.xs, flexWrap: 'wrap' },
     value: { color: t.text, ...Type.hero },
     unit: { ...Type.bodyStrong, color: t.textSecondary },
     // Neutre À DESSEIN : une hausse n'est pas une faute (cf. l'en-tête du fichier).
-    delta: { ...Type.captionStrong, color: t.textTertiary, marginLeft: 2 },
-    cta: { backgroundColor: t.fill, borderRadius: Radius.pill, paddingHorizontal: 14, paddingVertical: 8, marginTop: 6 },
+    delta: { ...Type.captionStrong, color: t.textTertiary, marginLeft: Spacing.xs },
+    cta: { backgroundColor: t.fill, borderRadius: Radius.pill, paddingHorizontal: Spacing.lg, paddingVertical: Spacing.sm, marginTop: Spacing.sm },
     ctaTxt: { ...Type.captionStrong, color: t.text },
     empty: { ...Type.caption, color: t.textSecondary, lineHeight: 18 },
   });

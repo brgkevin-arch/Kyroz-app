@@ -57,16 +57,16 @@ export function PlanCheckin({
 
 function makeStyles(t: ThemePalette) {
   return StyleSheet.create({
-    header: { paddingHorizontal: Spacing.xxl, paddingBottom: 12, gap: 8 },
+    header: { paddingHorizontal: Spacing.xxl, paddingBottom: Spacing.md, gap: Spacing.sm },
     title: { color: t.text, ...Type.h2 },
     intro: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 20 },
-    body: { paddingHorizontal: Spacing.xxl, gap: 10 },
-    row: { flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: t.card, borderRadius: Radius.card, padding: 16 },
+    body: { paddingHorizontal: Spacing.xxl, gap: Spacing.md },
+    row: { flexDirection: 'row', alignItems: 'center', gap: Spacing.lg, backgroundColor: t.card, borderRadius: Radius.card, padding: Spacing.lg },
     icon: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
     label: { ...Type.label, color: t.text, letterSpacing: -0.2 },
-    sub: { ...Type.caption, color: t.textSecondary, marginTop: 2 },
-    optOut: { alignItems: 'center', paddingVertical: 14, marginTop: 6 },
+    sub: { ...Type.caption, color: t.textSecondary, marginTop: Spacing.xs },
+    optOut: { alignItems: 'center', paddingVertical: Spacing.lg, marginTop: Spacing.sm },
     optOutTxt: { ...Type.bodySmallStrong, color: t.textTertiary },
-    optOutHint: { ...Type.caption, color: t.textQuaternary, textAlign: 'center', marginTop: -6 },
+    optOutHint: { ...Type.caption, color: t.textQuaternary, textAlign: 'center', marginTop: -Spacing.sm },
   });
 }

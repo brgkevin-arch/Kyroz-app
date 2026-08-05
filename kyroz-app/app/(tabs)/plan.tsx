@@ -5,7 +5,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useTheme, ThemePalette, Radius, Spacing, Type } from '../../constants/theme';
+import { useTheme, ThemePalette, Radius, Spacing, Type, Fond, CIBLE_TACTILE_MIN } from '../../constants/theme';
 import { useCollapsingTitle, CompactTitleBar } from '../../components/CollapsingTitle';
 import { useLayout } from '../../constants/layout';
 import { DISCLAIMER } from '../../constants/legal';
@@ -604,7 +604,7 @@ export default function PlanScreen() {
             <Text style={s.date}>{todayLabel.charAt(0).toUpperCase() + todayLabel.slice(1)}</Text>
             <Text style={s.h1}>{firstName ? `Salut ${firstName} 👋` : 'Ton plan'}</Text>
           </View>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md }}>
             {plan && (
               <TouchableOpacity onPress={() => startTour('plan', PLAN_TOUR, { scrollRef })} hitSlop={8} activeOpacity={0.7}>
                 <Ionicons name="help-circle-outline" size={24} color={t.textTertiary} />
@@ -684,7 +684,7 @@ export default function PlanScreen() {
               <View ref={macrosRef}>
                 <SectionLabel t={t}>Jour {selectedDay}</SectionLabel>
                 {isRestDay && (
-                  <Text style={{ ...Type.bodySmall, color: t.textSecondary, lineHeight: 19, marginTop: 2 }}>
+                  <Text style={{ ...Type.bodySmall, color: t.textSecondary, lineHeight: 19, marginTop: Spacing.xs }}>
                     🛌 Jour de repos · glucides réduits, lipides relevés (mêmes kcal)
                   </Text>
                 )}
@@ -705,7 +705,7 @@ export default function PlanScreen() {
                 <TouchableOpacity
                   onPress={async () => { await AsyncStorage.setItem('@kyroz:openEditor', 'macros'); router.push('/(tabs)/profil'); }}
                   activeOpacity={0.7}
-                  style={{ marginTop: 12, alignSelf: 'flex-start' }}
+                  style={{ marginTop: Spacing.md, alignSelf: 'flex-start' }}
                 >
                   <Text style={{ ...Type.captionStrong, color: t.accent }}>⚙️ Personnaliser ma répartition (%)</Text>
                 </TouchableOpacity>
@@ -750,7 +750,7 @@ export default function PlanScreen() {
                 <Text style={s.sectionCount}>{dayMacros.kcal.toLocaleString('fr-FR')} kcal prévus</Text>
               )}
             </View>
-            <View style={{ gap: 10 }}>
+            <View style={{ gap: Spacing.md }}>
               {dayMeals.map((m, i) => {
                 const fridgeTracked = pantry.length > 0;
                 const missing = fridgeTracked ? recipeCoverage(m.recipe, pantry).missing.map((i) => i.name) : undefined;
@@ -896,7 +896,7 @@ export default function PlanScreen() {
                 <Text style={{ ...Type.bodySmall, color: t.textSecondary, lineHeight: 20 }}>
                   Tes repas du jour sont déjà passés — il n'y a plus rien à réadapter. On garde tout tel quel.
                 </Text>
-                <TouchableOpacity onPress={declineAdapt} style={{ alignItems: 'center', paddingVertical: 10 }}>
+                <TouchableOpacity onPress={declineAdapt} style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: Spacing.sm, minHeight: CIBLE_TACTILE_MIN }}>
                   <Text style={{ ...Type.bodyStrong, color: t.textSecondary }}>Compris</Text>
                 </TouchableOpacity>
               </>
@@ -919,11 +919,11 @@ export default function PlanScreen() {
               {opts.map((o) => (
                 <TouchableOpacity
                   key={o.key} onPress={() => applyAdapt(o)} activeOpacity={0.85}
-                  style={{ flexDirection: 'row', alignItems: 'center', gap: 12, borderWidth: 1, borderColor: t.line, borderRadius: Radius.card, padding: 14 }}
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md, borderWidth: 1, borderColor: t.line, borderRadius: Radius.card, padding: Spacing.lg }}
                 >
                   <View style={{ flex: 1 }}>
                     <Text style={{ ...Type.bodyStrong, color: t.text }}>{o.label}</Text>
-                    <Text style={{ ...Type.caption, color: t.textTertiary, marginTop: 2 }}>{o.detail}</Text>
+                    <Text style={{ ...Type.caption, color: t.textTertiary, marginTop: Spacing.xs }}>{o.detail}</Text>
                   </View>
                   <View style={{ alignItems: 'flex-end' }}>
                     <Text style={{ ...Type.bodySmallStrong, color: t.text }}>≈ {o.dayKcal.toLocaleString('fr-FR')}</Text>
@@ -931,14 +931,14 @@ export default function PlanScreen() {
                         On n'affiche pas le reliquat option par option — ce serait trois
                         rappels de retard sur le même écran (règle produit : rassurer). */}
                     {o.absorbedKcal > 0 && (
-                      <Text style={{ ...Type.micro, color: t.textTertiary, marginTop: 2 }}>
+                      <Text style={{ ...Type.micro, color: t.textTertiary, marginTop: Spacing.xs }}>
                         reprend {o.absorbedKcal.toLocaleString('fr-FR')} kcal
                       </Text>
                     )}
                   </View>
                 </TouchableOpacity>
               ))}
-              <TouchableOpacity onPress={declineAdapt} style={{ alignItems: 'center', paddingVertical: 10 }}>
+              <TouchableOpacity onPress={declineAdapt} style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: Spacing.sm, minHeight: CIBLE_TACTILE_MIN }}>
                 <Text style={{ ...Type.bodyStrong, color: t.textSecondary }}>Non, je garde mon plan</Text>
               </TouchableOpacity>
             </>
@@ -982,7 +982,7 @@ export default function PlanScreen() {
 function SousCibleNote({ t, manque }: { t: ThemePalette; manque: number }) {
   if (manque <= ON_TARGET_TOLERANCE_KCAL) return null;
   return (
-    <Text style={{ ...Type.caption, color: t.textTertiary, lineHeight: 17, marginTop: 8 }}>
+    <Text style={{ ...Type.caption, color: t.textTertiary, lineHeight: 17, marginTop: Spacing.sm }}>
       Ta journée s'arrête {Math.round(manque).toLocaleString('fr-FR')} kcal sous ta cible : les portions de tes repas
       ne peuvent pas monter plus haut. Une journée sous la cible ne compromet rien.
     </Text>
@@ -995,7 +995,7 @@ function MarginNote({ t, kcal }: { t: ThemePalette; kcal: number }) {
   // pas une pesée au gramme près. On n'affiche plus la fourchette ± (donnait
   // l'impression que le plan était imprécis ; cf. retour fondateur 2026-06-18).
   return (
-    <Text style={{ ...Type.caption, color: t.textTertiary, marginTop: 8, lineHeight: 16 }}>
+    <Text style={{ ...Type.caption, color: t.textTertiary, marginTop: Spacing.sm, lineHeight: 16 }}>
       Valeurs estimées (moyennes alimentaires)
     </Text>
   );
@@ -1015,43 +1015,43 @@ function FiberRow({ t, actual, target }: { t: ThemePalette; actual: number; targ
 }
 
 const styles = StyleSheet.create({
-  fiber: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 10 },
+  fiber: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: Spacing.md },
 });
 
 function makeStyles(t: ThemePalette) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: t.bg },
     center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-    content: { padding: Spacing.xl, gap: 20, paddingBottom: 120 },
-    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 },
+    content: { padding: Spacing.xl, gap: Spacing.xl, paddingBottom: Fond.barreOnglets },
+    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: Spacing.md },
     date: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 19 },
-    h1: { color: t.text, ...Type.display, marginTop: 2 },
-    streak: { alignItems: 'center', backgroundColor: t.card, borderWidth: 1, borderColor: t.line, paddingHorizontal: 14, paddingVertical: 8, borderRadius: Radius.card },
+    h1: { color: t.text, ...Type.display, marginTop: Spacing.xs },
+    streak: { alignItems: 'center', backgroundColor: t.card, borderWidth: 1, borderColor: t.line, paddingHorizontal: Spacing.lg, paddingVertical: Spacing.sm, borderRadius: Radius.card },
     streakN: { ...Type.h3, color: t.text },
-    streakLbl: { ...Type.micro, color: t.textTertiary, marginTop: 1 },
-    banner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, backgroundColor: t.fill, borderRadius: Radius.card, padding: 16 },
-    weighBanner: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: t.card, borderRadius: Radius.card, padding: 16 },
+    streakLbl: { ...Type.micro, color: t.textTertiary, marginTop: Spacing.xs },
+    banner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.md, backgroundColor: t.fill, borderRadius: Radius.card, padding: Spacing.lg },
+    weighBanner: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, backgroundColor: t.card, borderRadius: Radius.card, padding: Spacing.lg },
     weighTitle: { ...Type.bodyStrong, color: t.text },
-    weighSub: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 19, marginTop: 2 },
+    weighSub: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 19, marginTop: Spacing.xs },
     bannerTxt: { ...Type.bodySmall, flex: 1, color: t.textSecondary, lineHeight: 19 },
     bannerCta: { ...Type.bodySmallStrong, color: t.text },
-    days: { flexDirection: 'row', gap: 8 },
-    day: { flex: 1, height: 58, borderRadius: Radius.button, borderWidth: 1, alignItems: 'center', justifyContent: 'center', gap: 4 },
+    days: { flexDirection: 'row', gap: Spacing.sm },
+    day: { flex: 1, height: 58, borderRadius: Radius.button, borderWidth: 1, alignItems: 'center', justifyContent: 'center', gap: Spacing.xs },
     dayWd: { ...Type.microStrong },
     dayNum: { ...Type.bodyStrong },
     sectionRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
     sectionCount: { ...Type.caption, color: t.textTertiary },
-    extraRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 12 },
-    offPlanBtn: { marginTop: 14, alignItems: 'center', backgroundColor: t.fill, borderRadius: Radius.button, paddingVertical: 13 },
+    extraRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: Spacing.md },
+    offPlanBtn: { marginTop: Spacing.lg, alignItems: 'center', backgroundColor: t.fill, borderRadius: Radius.button, paddingVertical: Spacing.md },
     offPlanTxt: { ...Type.bodyStrong, color: t.textSecondary },
-    empty: { alignItems: 'center', gap: 10, paddingVertical: 24 },
-    emptyIcon: { width: 72, height: 72, borderRadius: 24, alignItems: 'center', justifyContent: 'center', marginBottom: 6 },
+    empty: { alignItems: 'center', gap: Spacing.md, paddingVertical: Spacing.xxl },
+    emptyIcon: { width: 72, height: 72, borderRadius: 24, alignItems: 'center', justifyContent: 'center', marginBottom: Spacing.sm },
     emptyTitle: { color: t.text, ...Type.h2 },
-    emptySub: { ...Type.body, color: t.textSecondary, textAlign: 'center', lineHeight: 21, paddingHorizontal: 10 },
-    regenHint: { marginTop: 6, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+    emptySub: { ...Type.body, color: t.textSecondary, textAlign: 'center', lineHeight: 21, paddingHorizontal: Spacing.md },
+    regenHint: { marginTop: Spacing.sm, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm },
     regenHintTxt: { ...Type.captionStrong, color: t.textTertiary },
     disclaimer: { ...Type.micro, color: t.textTertiary, lineHeight: 16, textAlign: 'center' },
-    toast: { position: 'absolute', left: 20, right: 20, bottom: 28, backgroundColor: t.accent, borderRadius: Radius.button, paddingVertical: 14, paddingHorizontal: 18, alignItems: 'center' },
+    toast: { position: 'absolute', left: 20, right: 20, bottom: 28, backgroundColor: t.accent, borderRadius: Radius.button, paddingVertical: Spacing.lg, paddingHorizontal: Spacing.xl, alignItems: 'center' },
     toastTxt: { ...Type.bodyStrong, color: t.onAccent },
   });
 }

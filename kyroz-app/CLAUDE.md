@@ -779,6 +779,63 @@ légitime que sur un **pictogramme** (un emoji dimensionné n'est pas de la typo
 taille en dur, graisse 600, token hors échelle, `input` sous 16, cran sans token.
 ⚠️ Même angle mort que son frère : il ne dit pas qu'on a choisi le **bon** cran.
 
+### L'espacement — le blanc DIT ce qui va ensemble (2026-08-06)
+
+Troisième axe de la DA à recevoir un rôle et un garde-fou, après la forme et le
+texte. Et le plus dérivé des trois : **520 espacements écrits à la main pour 49
+usages de `Spacing`** — dix marges en dur pour une seule qui passait par le token.
+**231 valeurs hors grille**, la plus courue étant `10` (70 fois), devant `14` (53),
+`6` (39), `2` (39).
+
+⚠️ **Ce n'est pas une question de joliesse.** Le blanc est le seul outil qui dit au
+lecteur ce qui va ensemble : deux éléments proches sont lus comme un groupe, et
+l'œil fait ce regroupement **avant** de lire. Exemple mesuré — les cinq écarts
+verticaux empilés dans `MealCard` valaient **7, 6, 10, 6, 14**. Quatre informations
+y flottaient à des distances presque identiques : rien ne disait où finissait le
+bloc. Le coût n'est pas « moins joli », c'est **plus lent à comprendre**.
+
+| Rôle | Token |
+|---|---|
+| écart serré DANS un groupe (un libellé et sa valeur) | `Spacing.xs` (4) |
+| entre deux éléments d'un même groupe | `Spacing.sm` (8) |
+| entre deux groupes d'un même bloc | `Spacing.md` (12) |
+| marge intérieure d'une carte | `Spacing.lg` (16) |
+| marge latérale d'un écran | `Spacing.xl` (20) |
+| marge intérieure d'une feuille modale | `Spacing.xxl` (24) |
+| séparation de deux sections | `Spacing.xxxl` (32) |
+
+⚠️ **Les valeurs hors grille ont été ABSORBÉES, pas adoptées — et c'est la
+différence avec la typographie.** Là-bas, 14 avait un rôle propre (le texte
+secondaire) et a mérité son token. Ici, 10 n'est pas « un cran entre 8 et 12 » :
+c'est « un peu plus que 8 ». Deux points d'écart passent sous le seuil de
+perception, donc un tel cran ne crée aucun niveau de lecture — il **dilue** ceux
+qui existent. Règle appliquée : le cran le plus proche, on monte à égalité
+(2→4, 6→8, 10→12, 14→16, 18→20). L'app s'aère de 1 à 2 points, jamais plus.
+
+⚠️ **Tout ce qui s'écrit en points n'est pas un espacement**, et les confondre est
+ce qui a produit les défauts les plus concrets :
+- les **dégagements de bas** (120 sous une liste d'onglet, 60 en bas d'écran plein,
+  40 pour le menton d'une feuille) compensent quelque chose de **physique** — ils
+  vivent dans `Fond`, nommés d'après ce qu'ils dégagent, pas dans la grille ;
+- le `paddingVertical` d'un bouton ne règle pas un écart, il fabrique une
+  **HAUTEUR**. C'est de là que venaient les 17 éléments pressables sous les 44 pt
+  d'Apple — dont un bouton « Annuler » à **29 pt**. Le correctif n'est pas de
+  gonfler le padding mais d'ajouter `minHeight: CIBLE_TACTILE_MIN` : le padding
+  règle l'air autour du libellé, la hauteur minimale garantit la cible.
+  ⚠️ `hitSlop` élargit la zone **au doigt, jamais à l'œil** — un bouton qui a l'air
+  petit reste difficile à viser, donc il ne compte pas comme un correctif.
+- les **rattrapages négatifs** (`marginTop: -8`, 22 sites) sont tous des textes
+  d'aide qui annulent le `gap` de leur conteneur pour se recoller à leur champ.
+  Ils sont désormais alignés sur la grille (`-Spacing.sm`), mais ils **restent le
+  symptôme** d'un espacement uniforme là où il faudrait des groupes : la vraie
+  correction serait structurelle, pas un token.
+
+➡️ **Garde-fou : `lib/__tests__/espacementDA.test.ts`.** Aucun espacement en
+chiffre (sauf `0`, qui n'est pas un espacement mais son absence — il annule le
+padding natif d'un champ) ; la grille reste un multiple de 4, croissante et sans
+doublon ; aucun pressable sous 44 pt. **Vérifié par 5 mutations**, toutes
+rougissent.
+
 ### Le grand titre se replie (2026-08-04)
 
 Comportement des grands titres iOS, et ce que fait la maquette **sur ses cinq écrans à

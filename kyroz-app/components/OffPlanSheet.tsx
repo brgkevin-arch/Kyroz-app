@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { ThemePalette, Radius, Type } from '../constants/theme';
+import { ThemePalette, Radius, Type, Spacing, CIBLE_TACTILE_MIN } from '../constants/theme';
 import { PrimaryButton, Segmented } from './ui';
 import { Food } from '../lib/types';
 import { searchFoods, macrosForQuantity } from '../lib/foods';
@@ -102,7 +102,7 @@ export function OffPlanSheet({
               <TextInput
                 value={query} onChangeText={setQuery} autoFocus
                 placeholder="Ex. tarte aux fraises…" placeholderTextColor={t.textQuaternary}
-                style={[s.input, { marginLeft: 8 }]}
+                style={[s.input, { marginLeft: Spacing.sm }]}
               />
             </View>
             {query.trim().length > 0 && (
@@ -162,26 +162,26 @@ export function OffPlanSheet({
 
 function makeStyles(t: ThemePalette) {
   return StyleSheet.create({
-    wrap: { padding: 24, gap: 16 },
+    wrap: { padding: Spacing.xxl, gap: Spacing.lg },
     title: { color: t.text, ...Type.h2 },
-    sub: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 20, marginTop: 6 },
-    chips: { gap: 10 },
-    chip: { borderWidth: 1, borderRadius: Radius.card, padding: 16, gap: 2 },
+    sub: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 20, marginTop: Spacing.sm },
+    chips: { gap: Spacing.md },
+    chip: { borderWidth: 1, borderRadius: Radius.card, padding: Spacing.lg, gap: Spacing.xs },
     chipLabel: { ...Type.label },
     chipSub: { ...Type.caption },
-    chipKcal: { ...Type.captionStrong, marginTop: 2 },
-    customRow: { gap: 8 },
+    chipKcal: { ...Type.captionStrong, marginTop: Spacing.xs },
+    customRow: { gap: Spacing.sm },
     customLabel: { ...Type.captionStrong, color: t.textSecondary },
-    inputBox: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderRadius: Radius.button, paddingHorizontal: 16 },
-    input: { ...Type.input, flex: 1, paddingVertical: 14, color: t.text },
+    inputBox: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderRadius: Radius.button, paddingHorizontal: Spacing.lg },
+    input: { ...Type.input, flex: 1, paddingVertical: Spacing.lg, color: t.text },
     inputSuffix: { ...Type.body, color: t.textTertiary },
-    suggest: { marginTop: 8, borderWidth: 1, borderColor: t.line, borderRadius: Radius.sm, overflow: 'hidden' },
-    suggestRow: { paddingHorizontal: 14, paddingVertical: 11, borderBottomWidth: 1, borderBottomColor: t.line },
+    suggest: { marginTop: Spacing.sm, borderWidth: 1, borderColor: t.line, borderRadius: Radius.sm, overflow: 'hidden' },
+    suggestRow: { paddingHorizontal: Spacing.lg, paddingVertical: Spacing.md, minHeight: CIBLE_TACTILE_MIN, justifyContent: 'center', borderBottomWidth: 1, borderBottomColor: t.line },
     suggestName: { ...Type.bodySmallStrong, color: t.text },
-    suggestMacro: { ...Type.caption, color: t.textTertiary, marginTop: 2 },
-    suggestEmpty: { ...Type.caption, color: t.textTertiary, padding: 14 },
-    pickedCard: { borderWidth: 1, borderColor: t.line, borderRadius: Radius.card, padding: 16, gap: 12 },
-    pickedHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 },
+    suggestMacro: { ...Type.caption, color: t.textTertiary, marginTop: Spacing.xs },
+    suggestEmpty: { ...Type.caption, color: t.textTertiary, padding: Spacing.lg },
+    pickedCard: { borderWidth: 1, borderColor: t.line, borderRadius: Radius.card, padding: Spacing.lg, gap: Spacing.md },
+    pickedHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: Spacing.md },
     pickedName: { ...Type.bodyStrong, color: t.text, flex: 1 },
     change: { ...Type.captionStrong, color: t.textSecondary },
     gramsRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },

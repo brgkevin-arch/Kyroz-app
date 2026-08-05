@@ -3,7 +3,7 @@ import {
   View, Text, StyleSheet, Modal, Pressable, useWindowDimensions, ViewStyle,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useTheme, Radius, ThemePalette, Type } from '../constants/theme';
+import { useTheme, Radius, ThemePalette, Type, Spacing, CIBLE_TACTILE_MIN } from '../constants/theme';
 
 // ── Visite guidée (coachmark / spotlight) ────────────────────────────────────
 // Overlay sombre qui « découpe » un trou autour d'un élément cible et affiche
@@ -277,14 +277,14 @@ function makeStyles(t: ThemePalette) {
       borderRadius: Radius.card,
       borderWidth: 1,
       borderColor: t.line,
-      padding: 18,
+      padding: Spacing.xl,
     },
-    counter: { ...Type.overline, color: t.textTertiary, marginBottom: 6 },
-    title: { color: t.text, ...Type.h3, marginBottom: 6 },
+    counter: { ...Type.overline, color: t.textTertiary, marginBottom: Spacing.sm },
+    title: { color: t.text, ...Type.h3, marginBottom: Spacing.sm },
     text: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 20 },
-    actions: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 16 },
+    actions: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: Spacing.lg },
     skip: { ...Type.bodySmallStrong, color: t.textTertiary },
-    nextBtn: { backgroundColor: t.accent, borderRadius: Radius.button, paddingHorizontal: 22, paddingVertical: 10 },
+    nextBtn: { backgroundColor: t.accent, borderRadius: Radius.button, paddingHorizontal: Spacing.xxl, paddingVertical: Spacing.md, minHeight: CIBLE_TACTILE_MIN, justifyContent: 'center' },
     nextTxt: { ...Type.bodySmallStrong, color: t.onAccent },
   });
 }

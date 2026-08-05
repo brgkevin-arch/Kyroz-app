@@ -3,7 +3,7 @@ import {
   Modal, View, StyleSheet, Animated, PanResponder, useWindowDimensions,
   Pressable, Platform,
 } from 'react-native';
-import { useTheme, Radius } from '../constants/theme';
+import { useTheme, Radius, Spacing } from '../constants/theme';
 import { useLayout } from '../constants/layout';
 
 interface Props {
@@ -110,8 +110,8 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     ...(Platform.OS === 'web' ? { cursor: 'auto' as any } : {}),
   },
-  sheetTablet: { height: '90%', borderBottomLeftRadius: 24, borderBottomRightRadius: 24, marginBottom: 24 },
+  sheetTablet: { height: '90%', borderBottomLeftRadius: 24, borderBottomRightRadius: 24, marginBottom: Spacing.xxl },
   // Bande de drag haute et pleine largeur : on peut tirer bien plus bas que l'encoche.
-  handleZone: { paddingTop: 16, paddingBottom: 28, alignItems: 'center' },
+  handleZone: { paddingTop: Spacing.lg, paddingBottom: Spacing.xxxl, alignItems: 'center' },
   handle: { width: 56, height: 6, borderRadius: 3 },
 });

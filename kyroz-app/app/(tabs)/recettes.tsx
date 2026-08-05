@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ScrollView, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useTheme, ThemePalette, Radius, Spacing, Type, cardShadow } from '../../constants/theme';
+import { useTheme, ThemePalette, Radius, Spacing, Type, cardShadow, Fond } from '../../constants/theme';
 import { useLayout } from '../../constants/layout';
 import { useCollapsingTitle, CompactTitleBar } from '../../components/CollapsingTitle';
 import { RecipeDetail } from '../../components/RecipeDetail';
@@ -205,39 +205,39 @@ function makeStyles(t: ThemePalette) {
     safe: { flex: 1, backgroundColor: t.bg },
     // Plus de `paddingHorizontal` ici ni dans `searchWrap`/`countRow` : ces blocs
     // vivent dans le contentContainer de la liste, qui pose déjà les 20 pt.
-    header: { paddingTop: 4, paddingBottom: 12 },
-    h1: { color: t.text, ...Type.display, marginTop: 2 },
+    header: { paddingTop: Spacing.xs, paddingBottom: Spacing.md },
+    h1: { color: t.text, ...Type.display, marginTop: Spacing.xs },
     sub: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 19 },
-    searchWrap: { paddingBottom: 12 },
+    searchWrap: { paddingBottom: Spacing.md },
     searchBox: {
-      flexDirection: 'row', alignItems: 'center', gap: 8,
+      flexDirection: 'row', alignItems: 'center', gap: Spacing.sm,
       backgroundColor: t.fill, borderRadius: Radius.button,
-      paddingHorizontal: 14, height: 44,
+      paddingHorizontal: Spacing.lg, height: 44,
     },
     searchInput: { ...Type.input, flex: 1, color: t.text, padding: 0 },
     // La bande de filtres RESSORT du padding du conteneur (marge négative) pour
     // rester à fond perdu : elle défile horizontalement, elle doit toucher les bords.
-    filtersWrap: { marginBottom: 4, marginHorizontal: -Spacing.xl },
-    filters: { paddingHorizontal: Spacing.xl, gap: 8 },
-    chip: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10, borderRadius: Radius.pill },
-    countRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', paddingTop: 14, paddingBottom: 2 },
+    filtersWrap: { marginBottom: Spacing.xs, marginHorizontal: -Spacing.xl },
+    filters: { paddingHorizontal: Spacing.xl, gap: Spacing.sm },
+    chip: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: Spacing.lg, paddingVertical: Spacing.md, borderRadius: Radius.pill },
+    countRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', paddingTop: Spacing.lg, paddingBottom: Spacing.xs },
     countLabel: { ...Type.overline, color: t.textTertiary },
     countN: { ...Type.caption, color: t.textTertiary },
-    list: { padding: Spacing.xl, paddingTop: 10, gap: 10, paddingBottom: 120 },
-    recipe: { backgroundColor: t.card, borderRadius: Radius.card, padding: 18, gap: 8 },
+    list: { padding: Spacing.xl, paddingTop: Spacing.md, gap: Spacing.md, paddingBottom: Fond.barreOnglets },
+    recipe: { backgroundColor: t.card, borderRadius: Radius.card, padding: Spacing.xl, gap: Spacing.sm },
     // En grille, chaque carte prend sa part de la rangée et toutes s'alignent
     // en hauteur (`gridRow.alignItems: stretch`), sinon un titre sur deux lignes
     // décale sa voisine.
     recipeGrid: { flex: 1 },
-    gridRow: { gap: 10, alignItems: 'stretch' },
+    gridRow: { gap: Spacing.md, alignItems: 'stretch' },
     rTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-    rName: { ...Type.h3, flex: 1, marginRight: 8, color: t.text, letterSpacing: -0.3 },
-    heart: { padding: 2 },
+    rName: { ...Type.h3, flex: 1, marginRight: Spacing.sm, color: t.text, letterSpacing: -0.3 },
+    heart: { padding: Spacing.xs },
     rMacros: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 19 },
     rKcal: { color: t.text, fontWeight: '700' },
-    rTagRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 2 },
-    rTag: { ...Type.caption, backgroundColor: t.fill, color: t.textSecondary, paddingHorizontal: 10, paddingVertical: 4, borderRadius: Radius.pill, overflow: 'hidden' },
-    empty: { alignItems: 'center', gap: 10, paddingTop: 60 },
+    rTagRow: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm, marginTop: Spacing.xs },
+    rTag: { ...Type.caption, backgroundColor: t.fill, color: t.textSecondary, paddingHorizontal: Spacing.md, paddingVertical: Spacing.xs, borderRadius: Radius.pill, overflow: 'hidden' },
+    empty: { alignItems: 'center', gap: Spacing.md, paddingTop: Spacing.xxxl },
     emptyTxt: { ...Type.bodySmall, color: t.textTertiary },
   });
 }

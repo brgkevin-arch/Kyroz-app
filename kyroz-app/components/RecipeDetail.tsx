@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useTheme, ThemePalette, Radius, Spacing, Type, cardShadow } from '../constants/theme';
+import { useTheme, ThemePalette, Radius, Spacing, Type, cardShadow, CIBLE_TACTILE_MIN } from '../constants/theme';
 import { useLayout } from '../constants/layout';
 import { PrimaryButton } from './ui';
 import { useFavorites } from '../hooks/useFavorites';
@@ -71,7 +71,7 @@ export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adapted
     <View style={s.safe}>
       <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
         <View style={s.header} {...(dragHandlers ?? {})}>
-          <View style={{ flex: 1, gap: 6 }}>
+          <View style={{ flex: 1, gap: Spacing.sm }}>
             <Text style={s.name}>{recipe.name_fr}</Text>
             {custom && (
               <View style={s.badge}>
@@ -171,7 +171,7 @@ export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adapted
         )}
 
         {(!status || status === 'planned') && (onSwap || onCook || onSkip) && (
-          <View style={{ marginTop: 24, gap: 10 }}>
+          <View style={{ marginTop: Spacing.xxl, gap: Spacing.md }}>
             {onSwap && (
               <>
                 <TouchableOpacity onPress={onSwap} activeOpacity={0.85} style={s.swapBtn}>
@@ -203,7 +203,7 @@ export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adapted
 
 function Big({ t, v, l, u = '', c }: { t: ThemePalette; v: number; l: string; u?: string; c?: string }) {
   return (
-    <View style={{ alignItems: 'center', gap: 4 }}>
+    <View style={{ alignItems: 'center', gap: Spacing.xs }}>
       <Text style={{ ...Type.h2, color: c ?? t.text }}>{v}{u}</Text>
       <Text style={{ ...Type.micro, color: t.textSecondary }}>{l}</Text>
     </View>
@@ -213,49 +213,49 @@ function Big({ t, v, l, u = '', c }: { t: ThemePalette; v: number; l: string; u?
 function makeStyles(t: ThemePalette, isTablet: boolean) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: t.bg },
-    // `gap: 18` reproduit l'espacement que les lignes tenaient du
+    // `gap: Spacing.xl` reproduit l'espacement que les lignes tenaient du
     // contentContainer quand elles en étaient les enfants directs.
     cook: isTablet
-      ? { flexDirection: 'row', gap: 32, alignItems: 'flex-start' }
-      : { gap: 18 },
+      ? { flexDirection: 'row', gap: Spacing.xxxl, alignItems: 'flex-start' }
+      : { gap: Spacing.xl },
     // ⚠️ `flex` seulement sur tablette : dans un conteneur en colonne à
     // l'intérieur d'un ScrollView, `flex: 1` écrase la hauteur du bloc.
-    cookCol: isTablet ? { flex: 1, gap: 18 } : { gap: 18 },
+    cookCol: isTablet ? { flex: 1, gap: Spacing.xl } : { gap: Spacing.xl },
     // Colonnes ÉGALES : donner plus de place à la préparation (essayé à 1,15)
     // ramenait la colonne ingrédients sous la largeur utile d'un iPhone, donc
     // rendait la ligne « nom … quantité » plus serrée sur iPad que sur
     // téléphone. Verrouillé par lib/__tests__/layout.test.ts.
-    cookColWide: isTablet ? { flex: 1, gap: 18 } : { gap: 18 },
-    content: { padding: Spacing.xxl, gap: 18, paddingBottom: 48 },
-    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 },
+    cookColWide: isTablet ? { flex: 1, gap: Spacing.xl } : { gap: Spacing.xl },
+    content: { padding: Spacing.xxl, gap: Spacing.xl, paddingBottom: Spacing.xxxl },
+    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: Spacing.md },
     name: { color: t.text, ...Type.h2 },
-    badge: { flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-start', backgroundColor: t.fill, paddingHorizontal: 9, paddingVertical: 4, borderRadius: Radius.pill },
+    badge: { flexDirection: 'row', alignItems: 'center', gap: Spacing.xs, alignSelf: 'flex-start', backgroundColor: t.fill, paddingHorizontal: Spacing.sm, paddingVertical: Spacing.xs, borderRadius: Radius.pill },
     badgeTxt: { ...Type.microStrong, color: t.textSecondary },
-    headerBtns: { flexDirection: 'row', gap: 8 },
-    close: { width: 36, height: 36, borderRadius: 18, backgroundColor: t.fill, alignItems: 'center', justifyContent: 'center' },
-    meta: { flexDirection: 'row', gap: 16 },
+    headerBtns: { flexDirection: 'row', gap: Spacing.sm },
+    close: { width: CIBLE_TACTILE_MIN, height: CIBLE_TACTILE_MIN, borderRadius: Radius.pill, backgroundColor: t.fill, alignItems: 'center', justifyContent: 'center' },
+    meta: { flexDirection: 'row', gap: Spacing.lg },
     metaTxt: { ...Type.bodySmall, color: t.textSecondary },
-    tagRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: -8 },
-    tag: { ...Type.microStrong, backgroundColor: t.fill, color: t.textSecondary, paddingHorizontal: 9, paddingVertical: 4, borderRadius: Radius.pill, overflow: 'hidden' },
-    warn: { ...Type.caption, color: t.warning, marginTop: -8 },
-    why: { ...Type.bodySmall, color: t.textSecondary, fontStyle: 'italic', lineHeight: 20, marginTop: -8 },
-    macros: { flexDirection: 'row', backgroundColor: t.card, borderRadius: Radius.card, padding: 16, justifyContent: 'space-around' },
-    fiber: { ...Type.caption, color: t.textTertiary, marginTop: -8 },
+    tagRow: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm, marginTop: -Spacing.sm },
+    tag: { ...Type.microStrong, backgroundColor: t.fill, color: t.textSecondary, paddingHorizontal: Spacing.sm, paddingVertical: Spacing.xs, borderRadius: Radius.pill, overflow: 'hidden' },
+    warn: { ...Type.caption, color: t.warning, marginTop: -Spacing.sm },
+    why: { ...Type.bodySmall, color: t.textSecondary, fontStyle: 'italic', lineHeight: 20, marginTop: -Spacing.sm },
+    macros: { flexDirection: 'row', backgroundColor: t.card, borderRadius: Radius.card, padding: Spacing.lg, justifyContent: 'space-around' },
+    fiber: { ...Type.caption, color: t.textTertiary, marginTop: -Spacing.sm },
     section: { color: t.textTertiary, ...Type.overline },
-    ing: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: t.line },
+    ing: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: Spacing.md, borderBottomWidth: 1, borderBottomColor: t.line },
     ingName: { ...Type.body, color: t.text },
     ingQty: { ...Type.bodySmall, color: t.textSecondary },
-    step: { flexDirection: 'row', gap: 14, alignItems: 'flex-start' },
-    stepN: { width: 28, height: 28, borderRadius: 14, backgroundColor: t.fill, alignItems: 'center', justifyContent: 'center', marginTop: 2 },
+    step: { flexDirection: 'row', gap: Spacing.lg, alignItems: 'flex-start' },
+    stepN: { width: 28, height: 28, borderRadius: 14, backgroundColor: t.fill, alignItems: 'center', justifyContent: 'center', marginTop: Spacing.xs },
     stepNTxt: { ...Type.captionStrong, color: t.text },
     stepTxt: { ...Type.body, flex: 1, color: t.textSecondary, lineHeight: 22 },
     // Bouton secondaire : un REMPLISSAGE, pas un liseré de 1,5 px. Le contour
     // doublait celui de la feuille et faisait de l'action secondaire l'objet le
     // plus dessiné de l'écran — c'est le même arbitrage que les puces de filtre.
-    swapBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 16, borderRadius: Radius.button, backgroundColor: t.fill },
+    swapBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm, paddingVertical: Spacing.lg, borderRadius: Radius.button, backgroundColor: t.fill },
     swapTxt: { ...Type.label, color: t.text },
-    swapHint: { ...Type.caption, color: t.textSecondary, lineHeight: 18, marginTop: -4, paddingHorizontal: 2 },
-    statusBanner: { marginTop: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, paddingVertical: 14, paddingHorizontal: 16, borderRadius: Radius.card, borderWidth: 1 },
+    swapHint: { ...Type.caption, color: t.textSecondary, lineHeight: 18, marginTop: -Spacing.xs, paddingHorizontal: Spacing.xs },
+    statusBanner: { marginTop: Spacing.xxl, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.md, paddingVertical: Spacing.lg, paddingHorizontal: Spacing.lg, borderRadius: Radius.card, borderWidth: 1 },
     statusTxt: { ...Type.bodySmallStrong, flex: 1, color: t.textSecondary },
     statusUndo: { ...Type.bodySmallStrong, color: t.text },
   });

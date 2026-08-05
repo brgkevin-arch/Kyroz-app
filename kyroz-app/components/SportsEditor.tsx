@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { ThemePalette, useTheme, Radius, Type } from '../constants/theme';
+import { ThemePalette, useTheme, Radius, Type, Spacing } from '../constants/theme';
 import { SportSession, SportType } from '../lib/types';
 import {
   SPORT_ORDER, SPORT_LABEL, exerciseKcalPerDay,
@@ -127,9 +127,9 @@ function Stepper({
 
 const makeStyles = (t: ThemePalette) =>
   StyleSheet.create({
-    wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+    wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
     chip: {
-      paddingVertical: 9, paddingHorizontal: 14, borderRadius: Radius.pill,
+      paddingVertical: Spacing.sm, paddingHorizontal: Spacing.lg, borderRadius: Radius.pill,
       backgroundColor: t.fill, borderWidth: 1, borderColor: t.line,
     },
     chipOn: { backgroundColor: t.accent, borderColor: t.accent },
@@ -137,14 +137,14 @@ const makeStyles = (t: ThemePalette) =>
     chipTxtOn: { color: t.onAccent },
 
     row: {
-      marginTop: 12, padding: 14, borderRadius: Radius.card,
-      backgroundColor: t.card, borderWidth: 1, borderColor: t.line, gap: 12,
+      marginTop: Spacing.md, padding: Spacing.lg, borderRadius: Radius.card,
+      backgroundColor: t.card, borderWidth: 1, borderColor: t.line, gap: Spacing.md,
     },
     rowTitle: { ...Type.bodyStrong, color: t.text },
 
     stepper: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
     stepLabel: { ...Type.bodySmall, color: t.textSecondary },
-    stepCtrls: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+    stepCtrls: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
     stepBtn: {
       width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center',
       backgroundColor: t.fill, borderWidth: 1, borderColor: t.line,
@@ -152,5 +152,5 @@ const makeStyles = (t: ThemePalette) =>
     stepBtnOff: { opacity: 0.5 },
     stepVal: { ...Type.bodyStrong, color: t.text, minWidth: 64, textAlign: 'center' },
 
-    estimate: { ...Type.caption, marginTop: 12, color: t.textSecondary, lineHeight: 18 },
+    estimate: { ...Type.caption, marginTop: Spacing.md, color: t.textSecondary, lineHeight: 18 },
   });

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text } from 'react-native';
-import { ThemePalette, Type } from '../constants/theme';
+import { ThemePalette, Type, Spacing } from '../constants/theme';
 import { Field } from './ui';
 import { ageOn, toStamp, BIRTH_YEAR_MIN } from '../lib/birthday';
 import { todayStamp } from '../lib/weight';
@@ -79,8 +79,8 @@ export function BirthDateField({ t, value, onChange, fallbackAge }: Props) {
   const anneeAberrante = y.length === 4 && parseInt(y, 10) < BIRTH_YEAR_MIN;
 
   return (
-    <View style={{ gap: 8 }}>
-      <View style={{ flexDirection: 'row', gap: 8 }}>
+    <View style={{ gap: Spacing.sm }}>
+      <View style={{ flexDirection: 'row', gap: Spacing.sm }}>
         <View style={{ flex: 1 }}>
           <Field t={t} label="Jour" value={d} placeholder="2" keyboardType="number-pad"
             onChangeText={(v) => { const n = num(v, 2); setD(n); push(n, mo, y); }} />

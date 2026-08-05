@@ -125,7 +125,7 @@ export default function HealthScreening({ onPass }: { onPass: () => void }) {
         </Text>
 
         <Text style={s.prompt}>Es-tu concerné·e par l'une de ces situations ?</Text>
-        <View style={{ gap: 10 }}>
+        <View style={{ gap: Spacing.md }}>
           {CONDITIONS.map((c) => (
             <View key={c.key} style={s.qCard}>
               <Text style={s.qTitle}>{c.title}</Text>
@@ -178,24 +178,24 @@ export default function HealthScreening({ onPass }: { onPass: () => void }) {
 function makeStyles(t: ThemePalette) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: t.bg },
-    content: { padding: Spacing.xl, gap: 16, paddingBottom: 24 },
-    blockContent: { padding: Spacing.xl, gap: 16, paddingBottom: 24, flexGrow: 1, justifyContent: 'center' },
-    iconWrap: { width: 60, height: 60, borderRadius: 30, backgroundColor: t.fill, alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
+    content: { padding: Spacing.xl, gap: Spacing.lg, paddingBottom: Spacing.xxl },
+    blockContent: { padding: Spacing.xl, gap: Spacing.lg, paddingBottom: Spacing.xxl, flexGrow: 1, justifyContent: 'center' },
+    iconWrap: { width: 60, height: 60, borderRadius: 30, backgroundColor: t.fill, alignItems: 'center', justifyContent: 'center', marginBottom: Spacing.xs },
     title: { color: t.text, ...Type.h1 },
     sub: { ...Type.body, color: t.textSecondary, lineHeight: 21 },
-    prompt: { ...Type.label, color: t.text, marginTop: 8 },
-    qCard: { backgroundColor: t.card, borderWidth: 1, borderColor: t.line, borderRadius: Radius.card, padding: 16, gap: 6 },
+    prompt: { ...Type.label, color: t.text, marginTop: Spacing.sm },
+    qCard: { backgroundColor: t.card, borderWidth: 1, borderColor: t.line, borderRadius: Radius.card, padding: Spacing.lg, gap: Spacing.sm },
     qTitle: { ...Type.label, color: t.text },
-    qSub: { ...Type.caption, color: t.textSecondary, lineHeight: 18, marginBottom: 6 },
-    pending: { ...Type.bodySmall, color: t.textTertiary, lineHeight: 20, marginTop: 4 },
+    qSub: { ...Type.caption, color: t.textSecondary, lineHeight: 18, marginBottom: Spacing.sm },
+    pending: { ...Type.bodySmall, color: t.textTertiary, lineHeight: 20, marginTop: Spacing.xs },
     body: { ...Type.body, color: t.textSecondary, lineHeight: 22 },
-    warnBox: { flexDirection: 'row', gap: 10, alignItems: 'flex-start', backgroundColor: t.fill, borderRadius: Radius.card, padding: 14, marginTop: 4 },
+    warnBox: { flexDirection: 'row', gap: Spacing.md, alignItems: 'flex-start', backgroundColor: t.fill, borderRadius: Radius.card, padding: Spacing.lg, marginTop: Spacing.xs },
     warnTxt: { ...Type.bodySmallStrong, flex: 1, color: t.warning, lineHeight: 20 },
-    attest: { flexDirection: 'row', gap: 12, alignItems: 'flex-start', marginTop: 8, paddingHorizontal: 2 },
-    check: { width: 22, height: 22, borderRadius: 6, borderWidth: 2, alignItems: 'center', justifyContent: 'center', marginTop: 1 },
+    attest: { flexDirection: 'row', gap: Spacing.md, alignItems: 'flex-start', marginTop: Spacing.sm, paddingHorizontal: Spacing.xs },
+    check: { width: 22, height: 22, borderRadius: 6, borderWidth: 2, alignItems: 'center', justifyContent: 'center', marginTop: Spacing.xs },
     attestTxt: { ...Type.bodySmall, flex: 1, color: t.textSecondary, lineHeight: 20 },
-    footer: { padding: Spacing.xl, paddingTop: 8, backgroundColor: t.bg, borderTopWidth: 1, borderTopColor: t.line, gap: 12 },
-    linkBtn: { alignItems: 'center', paddingVertical: 4 },
+    footer: { padding: Spacing.xl, paddingTop: Spacing.sm, backgroundColor: t.bg, borderTopWidth: 1, borderTopColor: t.line, gap: Spacing.md },
+    linkBtn: { alignItems: 'center', paddingVertical: Spacing.xs },
     linkTxt: { ...Type.bodyStrong, color: t.textSecondary },
     disclaimer: { ...Type.micro, color: t.textTertiary, lineHeight: 16, textAlign: 'center' },
   });

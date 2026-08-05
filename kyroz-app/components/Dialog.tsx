@@ -1,6 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import { useTheme, ThemePalette, Radius, Type } from '../constants/theme';
+import { useTheme, ThemePalette, Radius, Type, Spacing } from '../constants/theme';
 import { ActionSheet } from './ActionSheet';
 
 // ── Boîtes de dialogue — POURQUOI CE FICHIER EXISTE ─────────────────────────
@@ -146,11 +146,11 @@ export function DialogProvider({ children }: { children: React.ReactNode }) {
             {req?.title}
           </Text>
           {!!req?.message && (
-            <Text style={{ ...Type.bodySmall, color: t.textSecondary, lineHeight: 20, marginTop: 6 }}>
+            <Text style={{ ...Type.bodySmall, color: t.textSecondary, lineHeight: 20, marginTop: Spacing.sm }}>
               {req.message}
             </Text>
           )}
-          <View style={{ gap: 8, marginTop: 18 }}>
+          <View style={{ gap: Spacing.sm, marginTop: Spacing.xl }}>
             {req?.buttons.map((b, i) => <DialogButton key={i} t={t} b={b} onPress={() => settle(b.value)} />)}
           </View>
         </ActionSheet>
@@ -169,7 +169,7 @@ function DialogButton({ t, b, onPress }: { t: ThemePalette; b: Btn<unknown>; onP
       style={{
         backgroundColor: bg,
         borderRadius: Radius.xl,
-        paddingVertical: 15,
+        paddingVertical: Spacing.lg,
         alignItems: 'center',
         borderWidth: 1,
         borderColor: b.destructive || b.primary ? 'transparent' : t.line,

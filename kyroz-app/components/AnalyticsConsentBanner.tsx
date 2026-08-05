@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { useTheme, Radius, ThemePalette, Type } from '../constants/theme';
+import { useTheme, Radius, ThemePalette, Type, Spacing, CIBLE_TACTILE_MIN } from '../constants/theme';
 import { useAnalyticsConsent } from '../hooks/useAnalyticsConsent';
 
 /**
@@ -33,10 +33,10 @@ export function AnalyticsConsentBanner() {
 
 function makeStyles(t: ThemePalette) {
   return StyleSheet.create({
-    card: { backgroundColor: t.card, borderWidth: 1, borderColor: t.line, borderRadius: Radius.card, padding: 16, gap: 10 },
+    card: { backgroundColor: t.card, borderWidth: 1, borderColor: t.line, borderRadius: Radius.card, padding: Spacing.lg, gap: Spacing.md },
     title: { ...Type.bodyStrong, color: t.text },
     body: { ...Type.caption, color: t.textSecondary, lineHeight: 18 },
-    row: { flexDirection: 'row', gap: 10, marginTop: 2 },
-    btn: { flex: 1, paddingVertical: 11, borderRadius: Radius.button, alignItems: 'center' },
+    row: { flexDirection: 'row', gap: Spacing.md, marginTop: Spacing.xs },
+    btn: { flex: 1, paddingVertical: Spacing.md, minHeight: CIBLE_TACTILE_MIN, justifyContent: 'center', borderRadius: Radius.button, alignItems: 'center' },
   });
 }

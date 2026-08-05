@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { ThemePalette, Radius, Type } from '../constants/theme';
+import { ThemePalette, Radius, Type, Spacing } from '../constants/theme';
 import { Streak } from '../lib/types';
 import { chainProgress, streakMessage } from '../lib/streak';
 
@@ -84,15 +84,15 @@ export function StreakProgress({ t, streak, variant = 'strip' }: Props) {
 }
 
 const styles = StyleSheet.create({
-  chain: { flexDirection: 'row', gap: 6, width: '100%' },
+  chain: { flexDirection: 'row', gap: Spacing.sm, width: '100%' },
   seg: { flex: 1, height: 8, borderRadius: Radius.pill, borderWidth: 1 },
 
   strip: {
     borderWidth: 1,
     borderRadius: Radius.card,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    gap: 10,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.lg,
+    gap: Spacing.md,
   },
 
   // Ligne discrète du Profil (2026-08-02). Même gabarit que le bandeau du Plan :
@@ -100,11 +100,11 @@ const styles = StyleSheet.create({
   line: {
     borderWidth: 1,
     borderRadius: Radius.card,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    gap: 10,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    gap: Spacing.md,
   },
-  lineHead: { flexDirection: 'row', alignItems: 'baseline', gap: 5 },
+  lineHead: { flexDirection: 'row', alignItems: 'baseline', gap: Spacing.xs },
   lineNum: { ...Type.h3 },
   lineLbl: { ...Type.captionStrong },
   lineRecord: { ...Type.captionStrong },

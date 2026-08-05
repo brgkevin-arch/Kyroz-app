@@ -171,11 +171,11 @@ const styles = StyleSheet.create({
   // encore une lozange. C'est la HAUTEUR qui était fausse — 44 pt est aussi le
   // minimum d'une cible tactile chez Apple, que `hitSlop` rattrapait au doigt
   // sans jamais le rattraper à l'œil.
-  btn: { paddingVertical: 13, paddingHorizontal: 16, borderRadius: Radius.button, alignItems: 'center', justifyContent: 'center', minWidth: 48 },
+  btn: { paddingVertical: Spacing.md, paddingHorizontal: Spacing.lg, borderRadius: Radius.button, alignItems: 'center', justifyContent: 'center', minWidth: 48 },
   btnAdd: { flex: 1 },
   btnTxt: { ...Type.bodyStrong },
-  sheetTitle: { ...Type.h2, marginBottom: 4 },
+  sheetTitle: { ...Type.h2, marginBottom: Spacing.xs },
   sheetBlock: { gap: Spacing.sm },
   hint: { ...Type.captionStrong },
-  doneBtn: { marginTop: Spacing.sm, paddingVertical: 14, borderRadius: Radius.button, alignItems: 'center' },
+  doneBtn: { marginTop: Spacing.sm, paddingVertical: Spacing.lg, borderRadius: Radius.button, alignItems: 'center' },
 });

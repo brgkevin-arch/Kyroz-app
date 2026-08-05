@@ -132,7 +132,33 @@ const light: ThemePalette = {
   shadowOpacity: 1,
 };
 
-// Tokens partagés (indépendants du thème)
+// ── Espacement — le blanc DIT ce qui va ensemble ────────────────────────────
+// Ce n'est pas de la décoration : deux éléments proches sont lus comme un
+// groupe, deux éléments éloignés comme deux groupes, et l'œil fait ce
+// regroupement avant même de lire. Une grille de 4 limite donc le nombre de
+// distances possibles, et chacune veut dire quelque chose.
+//
+//   xs    4   écart serré DANS un groupe (un libellé et sa valeur)
+//   sm    8   entre deux éléments d'un même groupe
+//   md   12   entre deux groupes d'un même bloc
+//   lg   16   marge intérieure d'une carte
+//   xl   20   marge latérale d'un écran
+//   xxl  24   marge intérieure d'une feuille modale
+//   xxxl 32   séparation de deux sections
+//
+// ⚠️ Mesuré le 2026-08-06 : l'app écrivait **520 espacements à la main pour 49
+// usages de ce token** — dix marges en dur pour une seule qui passait par ici.
+// Et 231 de ces valeurs n'étaient dans aucun cran : 10 (70 fois), 14 (53),
+// 6 (39), 2 (39), 18, 15, 11.
+//
+// ⚠️ Elles ont été ABSORBÉES, pas adoptées, et c'est la différence avec la
+// typographie — où 14 avait un vrai rôle et a mérité son token. Ici 10 n'est
+// pas « un cran entre 8 et 12 » : c'est « un peu plus que 8 ». Deux pixels sur
+// un écart passent sous le seuil de perception, donc un tel cran ne crée aucun
+// niveau de lecture — il ne fait que diluer ceux qui existent.
+// Règle d'absorption appliquée : **le cran le plus proche, et on monte en cas
+// d'égalité** (2→4, 6→8, 10→12, 14→16, 18→20). L'app s'aère de 1 à 2 points par
+// endroit, jamais plus.
 export const Spacing = {
   xs: 4,
   sm: 8,
@@ -142,6 +168,27 @@ export const Spacing = {
   xxl: 24,
   xxxl: 32,
 } as const;
+
+// Dégagements de bas d'écran. Ce ne sont PAS des écarts de mise en page — on ne
+// les choisit pas à l'œil, ils compensent quelque chose de physique — donc ils
+// n'ont rien à faire dans la grille ci-dessus, et ils sont nommés d'après ce
+// qu'ils dégagent.
+export const Fond = {
+  /** Sous une liste d'onglet : la barre d'onglets flotte au-dessus du contenu. */
+  barreOnglets: 120,
+  /** Bas d'un écran plein sans barre d'onglets (Kyroz+, mentions légales). */
+  ecran: 60,
+  /** Bas d'une feuille modale : la zone sûre du menton de l'iPhone. */
+  feuille: 40,
+} as const;
+
+// 🔴 Cible tactile minimale d'Apple (Human Interface Guidelines). Ce n'est pas
+// un espacement non plus : c'est une HAUTEUR, et elle se fabrique le plus
+// souvent par le `paddingVertical` d'un bouton — ce qui explique que la mesure
+// du 2026-08-06 ait trouvé des `paddingVertical` à 6, 9 et 11 sur des éléments
+// pressables. `hitSlop` élargit la zone au doigt, mais ne la rattrape jamais à
+// l'œil : un bouton qui a l'air petit reste difficile à viser.
+export const CIBLE_TACTILE_MIN = 44;
 
 // ── Rayons — À QUOI sert chaque valeur, pas juste combien elle vaut ──────────
 // La liste triée par taille ne dit pas laquelle employer, et c'est comme ça que

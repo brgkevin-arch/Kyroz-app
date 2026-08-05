@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
     width: '100%', maxWidth: 360, borderWidth: 1, borderRadius: Radius.xl,
     padding: Spacing.xxxl, alignItems: 'center',
   },
-  emoji: { fontSize: 56, marginBottom: 8 },
+  emoji: { fontSize: 56, marginBottom: Spacing.sm },
   title: { ...Type.h2, textAlign: 'center' },
-  body: { ...Type.body, lineHeight: 21, textAlign: 'center', marginTop: 10 },
+  body: { ...Type.body, lineHeight: 21, textAlign: 'center', marginTop: Spacing.md },
 });

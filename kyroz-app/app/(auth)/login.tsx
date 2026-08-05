@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useTheme, ThemePalette, Spacing, Radius, Type } from '../../constants/theme';
+import { useTheme, ThemePalette, Spacing, Radius, Type, Fond } from '../../constants/theme';
 import { useLayout } from '../../constants/layout';
 import { Field, PrimaryButton, Segmented } from '../../components/ui';
 import { useAuth } from '../../hooks/useAuth';
@@ -165,20 +165,20 @@ function translate(msg: string): string {
 function makeStyles(t: ThemePalette) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: t.bg },
-    content: { flexGrow: 1, justifyContent: 'center', padding: Spacing.xl, paddingBottom: 40 },
+    content: { flexGrow: 1, justifyContent: 'center', padding: Spacing.xl, paddingBottom: Fond.feuille },
     logo: { ...Type.display, color: t.text, letterSpacing: 6, textAlign: 'center' },
-    tagline: { ...Type.body, color: t.textSecondary, textAlign: 'center', marginTop: 10 },
-    consent: { flexDirection: 'row', gap: 12, alignItems: 'flex-start', marginTop: 16, paddingHorizontal: 2 },
-    check: { width: 24, height: 24, borderRadius: Radius.sm - 4, borderWidth: 2, alignItems: 'center', justifyContent: 'center', marginTop: 1 },
+    tagline: { ...Type.body, color: t.textSecondary, textAlign: 'center', marginTop: Spacing.md },
+    consent: { flexDirection: 'row', gap: Spacing.md, alignItems: 'flex-start', marginTop: Spacing.lg, paddingHorizontal: Spacing.xs },
+    check: { width: 24, height: 24, borderRadius: Radius.sm - 4, borderWidth: 2, alignItems: 'center', justifyContent: 'center', marginTop: Spacing.xs },
     consentTxt: { ...Type.caption, flex: 1, color: t.textTertiary, lineHeight: 19 },
-    error: { ...Type.bodySmallStrong, color: t.danger, textAlign: 'center', marginTop: 16 },
-    notice: { ...Type.bodySmallStrong, color: t.accent, textAlign: 'center', marginTop: 16, lineHeight: 20 },
-    social: { ...Type.caption, color: t.textTertiary, textAlign: 'center', marginTop: 18 },
-    guestRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 22 },
+    error: { ...Type.bodySmallStrong, color: t.danger, textAlign: 'center', marginTop: Spacing.lg },
+    notice: { ...Type.bodySmallStrong, color: t.accent, textAlign: 'center', marginTop: Spacing.lg, lineHeight: 20 },
+    social: { ...Type.caption, color: t.textTertiary, textAlign: 'center', marginTop: Spacing.xl },
+    guestRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, marginTop: Spacing.xxl },
     guestLine: { flex: 1, height: 1, backgroundColor: t.line },
     guestOr: { ...Type.caption, color: t.textTertiary },
-    guest: { ...Type.bodyStrong, color: t.textSecondary, textAlign: 'center', marginTop: 16 },
-    disclaimer: { ...Type.micro, color: t.textQuaternary, lineHeight: 16, textAlign: 'center', marginTop: 20 },
-    legalLink: { ...Type.captionStrong, color: t.textTertiary, textAlign: 'center', marginTop: 10, textDecorationLine: 'underline' },
+    guest: { ...Type.bodyStrong, color: t.textSecondary, textAlign: 'center', marginTop: Spacing.lg },
+    disclaimer: { ...Type.micro, color: t.textQuaternary, lineHeight: 16, textAlign: 'center', marginTop: Spacing.xl },
+    legalLink: { ...Type.captionStrong, color: t.textTertiary, textAlign: 'center', marginTop: Spacing.md, textDecorationLine: 'underline' },
   });
 }
