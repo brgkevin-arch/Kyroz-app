@@ -3196,6 +3196,25 @@ produit en suspens — il ne reste qu'à coder.
   (`strings -a` sur le `.hbc`) : URL Supabase **1**, `sb_publishable_` **1**,
   `sk-ant-` **0**.
 
+- ~~**E15 · Un fichier a traîné 4 jours sans que PERSONNE ne puisse le voir**~~
+  ✅ **OUTILLÉ le 2026-08-06** — `npm run check:suspens`.
+  Constat : la déclaration de chiffrement Apple (E13-bis) est restée non committée
+  pendant quatre jours dans le dépôt principal, **alors que le fondateur demandait des
+  merges en permanence**. Personne n'était en faute.
+  **La cause est structurelle** : chaque worktree a son propre répertoire de travail,
+  et `git status` n'y montre que lui-même. Toutes les sessions voyaient « arbre propre »
+  — la vérité, chez elles. Ce qui traînait dans le dépôt principal était invisible pour
+  tout le monde, y compris pour celui qui posait la question.
+  ➡️ **Le mécanisme qui évite les conflits (un worktree par session) CRÉE l'angle mort.**
+  C'est le prix de l'isolement, et il ne se paie qu'une fois qu'on le sait.
+  `scripts/check-suspens.mjs` parcourt `git worktree list` et fait le `status` de CHAQUE
+  arbre — c'est le seul endroit d'où l'on voit l'ensemble. Il **sort en code 1** au-delà
+  de 24 h : du travail en cours n'est pas un oubli, et un contrôle qui rougit tous les
+  jours ne se lit plus. `node_modules` est filtré pour la même raison (il remonte en
+  « non suivi » dans les worktrees antérieurs au `.gitignore` actuel).
+  Première exécution : a trouvé `app.json` (3 j) et `mockups/` (3 j), et n'a PAS
+  signalé les 8 fichiers de la session design en cours (0–1 h). Seuil bien placé.
+
 - ~~**E14 · Le défilement et la fermeture étaient deux mondes séparés — et huit
   feuilles ne recevaient RIEN**~~ ✅ **CORRIGÉ le 2026-08-06, mesuré au simulateur.**
   Remonté par le fondateur après E12 : « on peut scroller le repas sans que ça ferme
