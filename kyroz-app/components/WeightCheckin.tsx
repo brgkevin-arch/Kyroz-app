@@ -14,6 +14,7 @@ import { pickProgressPhoto, cameraAvailable, PhotoSource } from '../lib/photos';
 import { todayStamp, localStamp, DEFAULT_WEIGH_IN_FREQUENCY, WEIGH_IN_LABELS } from '../lib/weight';
 import { applyWeighInReminder } from '../lib/notifications';
 import { WeighInFrequency } from '../lib/types';
+import { LocalIcon } from './Icons';
 
 interface Props {
   t: ThemePalette;
@@ -256,7 +257,10 @@ export function WeightCheckin({ t, onClose, dragHandlers, sheetScrollProps }: Pr
             <Text style={s.photoBtnTxt}>Ajouter une photo de progression</Text>
           </TouchableOpacity>
         )}
-        <Text style={s.photoHint}>🔒 Tes photos restent sur ton téléphone, jamais envoyées.</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+          <LocalIcon color={t.textTertiary} size={12} />
+          <Text style={[s.photoHint, { flex: 1 }]}>Tes photos restent sur ton téléphone, jamais envoyées.</Text>
+        </View>
 
         <PrimaryButton t={t} label="Enregistrer" onPress={save} disabled={!valid} />
 

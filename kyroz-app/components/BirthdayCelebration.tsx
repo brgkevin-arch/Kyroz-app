@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { Modal, View, Text, StyleSheet, Animated, Easing, Pressable } from 'react-native';
 import { useTheme, Radius, Spacing, Type } from '../constants/theme';
 import { PrimaryButton } from './ui';
+import { AnniversaireIcon } from './Icons';
 
 interface Props {
   /** Âge atteint aujourd'hui ; `null` = masqué. */
@@ -100,7 +101,7 @@ export function BirthdayCelebration({ age, firstName, onClose }: Props) {
         <Animated.View
           style={[styles.card, { backgroundColor: t.card, borderColor: t.line, opacity, transform: [{ scale }] }]}
         >
-          <Text style={styles.emoji}>🎂</Text>
+          <AnniversaireIcon color={t.text} size={44} />
           <Text style={[styles.title, { color: t.text }]}>
             {firstName ? `Joyeux anniversaire, ${firstName} !` : 'Joyeux anniversaire !'}
           </Text>
@@ -109,7 +110,7 @@ export function BirthdayCelebration({ age, firstName, onClose }: Props) {
             reste calé sur toi, sans que tu aies rien à toucher.
           </Text>
           <View style={{ height: 8 }} />
-          <PrimaryButton t={t} label="Merci 🙂" onPress={onClose} />
+          <PrimaryButton t={t} label="Merci" onPress={onClose} />
         </Animated.View>
       </View>
     </Modal>

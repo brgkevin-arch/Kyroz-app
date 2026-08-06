@@ -5,6 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme, Radius, Spacing, Type, cardShadow } from '../constants/theme';
 import { ActionSheet } from './ActionSheet';
 import { Segmented, SectionLabel } from './ui';
+import { HydratationIcon } from './Icons';
 
 // --- Feature test : suivi d'hydratation (jetable). Tout est isolé ici ;
 // pour retirer la feature il suffit de supprimer ce fichier + son import/usage
@@ -131,7 +132,10 @@ export function HydrationBar() {
   return (
     <View style={[styles.card, { backgroundColor: t.card }, cardShadow(t)]}>
       <View style={styles.headRow}>
-        <Text style={[styles.title, { color: t.text }]}>💧 Hydratation</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          <HydratationIcon color={t.text} size={16} />
+          <Text style={[styles.title, { color: t.text }]}>Hydratation</Text>
+        </View>
         <View style={styles.headRight}>
           <Text style={[styles.count, { color: t.textSecondary }]}>
             {fmtL(consumedMl)} / {fmtL(goalMl)} L · {count} verre{count > 1 ? 's' : ''}{done ? '  ✓' : ''}
@@ -170,7 +174,10 @@ export function HydrationBar() {
       </View>
 
       <ActionSheet visible={settingsOpen} onClose={() => setSettingsOpen(false)}>
-        <Text style={[styles.sheetTitle, { color: t.text }]}>💧 Hydratation</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <HydratationIcon color={t.text} size={20} />
+          <Text style={[styles.sheetTitle, { color: t.text }]}>Hydratation</Text>
+        </View>
 
         <View style={styles.sheetBlock}>
           <SectionLabel t={t}>Objectif du jour</SectionLabel>

@@ -5,6 +5,7 @@ import { ThemePalette, Radius, Spacing, Type } from '../constants/theme';
 import { Field, PrimaryButton, Segmented } from './ui';
 import { Recipe, Ingredient } from '../lib/types';
 import { searchFoods, recipeMacrosPerPortion } from '../lib/foods';
+import { AvertissementIcon } from './Icons';
 
 interface Props {
   t: ThemePalette;
@@ -178,7 +179,10 @@ export function RecipeEditor({ t, recipe, isCustom, onSave, onReset, onCancel, d
                 <MacroCell t={t} label="Lip." value={`${computed.macros.fat_g} g`} />
               </View>
               {computed.matchedRatio < 0.99 && (
-                <Text style={s.warn}>⚠️ {Math.round((1 - computed.matchedRatio) * 100)}% des ingrédients ne sont pas liés à la base — le total est partiel. Lie-les ou passe en Manuel.</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 6 }}>
+                  <AvertissementIcon color={t.warning} size={14} />
+                  <Text style={[s.warn, { flex: 1 }]}>{Math.round((1 - computed.matchedRatio) * 100)}% des ingrédients ne sont pas liés à la base — le total est partiel. Lie-les ou passe en Manuel.</Text>
+                </View>
               )}
             </View>
           ) : (

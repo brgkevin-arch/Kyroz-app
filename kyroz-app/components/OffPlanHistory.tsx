@@ -70,7 +70,7 @@ export function OffPlanHistory({
 
       {liste.length === 0 ? (
         <View style={s.videCard}>
-          <Text style={s.videTitre}>Rien pour l'instant 😎</Text>
+          <Text style={s.videTitre}>Rien pour l'instant</Text>
           <Text style={s.videTexte}>
             Quand tu déclares un repas hors plan depuis l'écran Plan, il s'inscrit ici avec les calories que
             tes repas suivants ont reprises.

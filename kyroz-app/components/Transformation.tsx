@@ -4,6 +4,7 @@ import { ThemePalette, Radius, Type } from '../constants/theme';
 import { WeightEntry, todayStamp } from '../lib/weight';
 import { GoalTarget } from '../lib/types';
 import { trackStatus } from '../lib/datedGoal';
+import { LocalIcon } from './Icons';
 
 // ── Module « Transformation » (premium « Kyroz+ ») ───────────────────────────
 // La PREUVE que l'objectif daté avance : le verdict de pente (courbe réelle vs
@@ -42,7 +43,7 @@ export function TrackVerdict({ t, goalTarget, currentWeightKg, paused = false }:
   // qu'on refuse : ici on constate la pause, on ne juge rien.
   const headline =
     st.state === 'paused' ? { txt: 'Suivi en pause', color: t.text }
-    : st.state === 'ahead' ? { txt: '🔥 En avance sur ton objectif', color: t.success }
+    : st.state === 'ahead' ? { txt: 'En avance sur ton objectif', color: t.success }
     : st.state === 'on_track' ? { txt: '✓ Dans ta zone', color: t.success }
     : { txt: losing ? 'Ça descend à ton rythme' : 'Ça monte à ton rythme', color: t.text };
 
@@ -51,7 +52,7 @@ export function TrackVerdict({ t, goalTarget, currentWeightKg, paused = false }:
       <Text style={{ color: headline.color, fontSize: 14, fontWeight: '700' }}>{headline.txt}</Text>
       {progress > 0 && (
         <Text style={{ color: t.textSecondary, fontSize: 12.5, lineHeight: 18 }}>
-          Depuis le départ : {losing ? '-' : '+'}{Math.abs(progress)} kg 💪
+          Depuis le départ : {losing ? '-' : '+'}{Math.abs(progress)} kg
         </Text>
       )}
       <Text style={{ color: t.textTertiary, fontSize: 12, lineHeight: 17 }}>
@@ -90,9 +91,12 @@ export function PhotoCompare({ t, photos, entries }: {
           {delta > 0 ? '+' : ''}{delta} kg entre les deux photos
         </Text>
       )}
-      <Text style={{ color: t.textTertiary, fontSize: 11 }}>
-        🔒 Tes photos restent sur ton téléphone, jamais envoyées.
-      </Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+        <LocalIcon color={t.textTertiary} size={12} />
+        <Text style={{ color: t.textTertiary, fontSize: 11, flex: 1 }}>
+          Tes photos restent sur ton téléphone, jamais envoyées.
+        </Text>
+      </View>
     </View>
   );
 }

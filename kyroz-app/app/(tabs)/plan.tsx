@@ -15,6 +15,7 @@ import { RecipeDetail } from '../../components/RecipeDetail';
 import { RecipeEditor } from '../../components/RecipeEditor';
 import { Sheet } from '../../components/Sheet';
 import { StreakCelebration } from '../../components/StreakCelebration';
+import { PeseeIcon, RepasIcon } from '../../components/Icons';
 import { BirthdayCelebration } from '../../components/BirthdayCelebration';
 import { FirstPlanReveal } from '../../components/FirstPlanReveal';
 import { WeightCheckin } from '../../components/WeightCheckin';
@@ -367,7 +368,7 @@ export default function PlanScreen() {
 
   // Bouclier de série : un jour manqué vient d'être pardonné → on rassure l'utilisateur.
   useEffect(() => {
-    if (froze) { toast('🛡️ Série protégée — un jour manqué pardonné. Reviens demain 👊'); capture(Events.streakFrozen); clearFroze(); }
+    if (froze) { toast('Série protégée — un jour manqué pardonné. Reviens demain'); capture(Events.streakFrozen); clearFroze(); }
   }, [froze]);
 
   // Persiste un plan modifié + invalide les courses (portions/repas changés) et
@@ -404,7 +405,7 @@ export default function PlanScreen() {
     await markActiveToday(); // manger selon le plan = adhésion réelle
     capture(Events.mealCooked, { meal_type: meal.meal_type });
     setSelectedMeal(null);
-    toast('✓ Mangé — journée recalée 👊');
+    toast('✓ Mangé — journée recalée');
   };
 
   // « Je l'ai sauté » : le repas ne compte pas, son budget bascule sur les
@@ -449,12 +450,12 @@ export default function PlanScreen() {
     // retenir : sans elle, il ne resterait qu'une liste de dérapages.
     await resolveOffPlan(selectedDay, opt.absorbedKcal);
     setAdaptPrompt(null);
-    toast('Journée réadaptée 👊');
+    toast('Journée réadaptée');
   };
   // « Non, je garde mon plan » : on ne touche à rien, l'écart reste compté à part.
   const declineAdapt = async () => {
     setAdaptPrompt(null);
-    toast('Ok, on garde ton plan 😎');
+    toast('Ok, on garde ton plan');
     await resolveOffPlan(selectedDay, 0); // 0 = journée gardée telle quelle
   };
 
@@ -491,14 +492,14 @@ export default function PlanScreen() {
     const r = await dislikeMealCore(selectedMeal);
     if (r === 'elicit') { setSelectedMeal(null); return; }
     setSelectedMeal(r);
-    toast('Noté 👎 — on te change ça');
+    toast('C\'est noté — on te change ça');
   };
 
   // ── Actions directement sur la CARTE (fiche fermée → on ne touche pas selectedMeal) ──
-  const reloadMealOnCard = async (meal: Meal) => { await swapMealCore(meal); toast('Recette changée 🔄'); };
+  const reloadMealOnCard = async (meal: Meal) => { await swapMealCore(meal); toast('Recette changée'); };
   const dislikeMealOnCard = async (meal: Meal) => {
     const r = await dislikeMealCore(meal);
-    if (r !== 'elicit') toast('Noté 👎 — on te change ça');
+    if (r !== 'elicit') toast('C\'est noté — on te change ça');
   };
 
   // L'utilisateur a nommé l'ingrédient gênant : on l'évite partout (disliked_foods,
@@ -508,7 +509,7 @@ export default function PlanScreen() {
     if (!profile) return;
     await saveProfile(applyDislikedIngredient(profile, kw));
     setDislikeElicit(null);
-    toast('Compris — on évite ça et on te ramène le reste 👌');
+    toast('Compris — on évite ça et on te ramène le reste');
   };
 
   // Met la fiche ouverte à jour après personnalisation (le plan, lui, est
@@ -578,7 +579,7 @@ export default function PlanScreen() {
   // seul via l'effet d'auto-refresh. L'option « recettes trop longues » a disparu avec
   // le filtre de temps le 2026-07-29 : elle abaissait le curseur d'un cran sans le
   // moindre garde-fou et pouvait, en un clic, faire tomber le pool de repas à 0.
-  const checkinSatisfied = () => { snoozeCheckin(); setCheckinOpen(false); toast('Parfait, on continue 👊'); };
+  const checkinSatisfied = () => { snoozeCheckin(); setCheckinOpen(false); toast('Parfait, on continue'); };
   const checkinMoreVariety = () => { if (profile) saveProfile({ ...profile, variety: 'max' }); snoozeCheckin(); setCheckinOpen(false); toast('Variété au max — nouveau plan en route'); };
   const checkinNewPlan = () => { snoozeCheckin(); setCheckinOpen(false); generate(true); };
   const checkinAdjustProfile = () => { snoozeCheckin(); setCheckinOpen(false); router.push('/(tabs)/profil'); };
@@ -632,7 +633,7 @@ export default function PlanScreen() {
         {/* Check-in poids hebdo : ramène l'utilisateur + garde le plan juste dans le temps */}
         {weighInDue && (
           <TouchableOpacity style={s.weighBanner} onPress={() => setWeighIn(true)} activeOpacity={0.85}>
-            <Text style={{ fontSize: 18 }}>⚖️</Text>
+            <PeseeIcon color={t.text} size={20} />
             <View style={{ flex: 1 }}>
               <Text style={s.weighTitle}>C'est le moment de te peser</Text>
               <Text style={s.weighSub}>Mets à jour ton poids — on réajuste tes macros et ton plan.</Text>
@@ -644,7 +645,7 @@ export default function PlanScreen() {
         {/* Proposition d'ajustement périodique (opt-out réactivable dans Profil) */}
         {checkinDue && (
           <TouchableOpacity style={s.weighBanner} onPress={() => setCheckinOpen(true)} activeOpacity={0.85}>
-            <Text style={{ fontSize: 18 }}>🍽️</Text>
+            <RepasIcon color={t.text} size={20} />
             <View style={{ flex: 1 }}>
               <Text style={s.weighTitle}>Ton plan te convient toujours ?</Text>
               <Text style={s.weighSub}>Dis-nous ce qui coince — on ajuste en un tap.</Text>
@@ -729,7 +730,7 @@ export default function PlanScreen() {
                   <View style={s.extraRow}>
                     <Text style={{ color: t.textSecondary, fontSize: 13 }}>
                       {(dayMacros.kcal - dayExtraKcal).toLocaleString('fr-FR')} plan
-                      <Text style={{ color: t.text, fontWeight: '700' }}>{` + ${dayExtraKcal} kcal assumées 😎`}</Text>
+                      <Text style={{ color: t.text, fontWeight: '700' }}>{` + ${dayExtraKcal} kcal assumées`}</Text>
                       {/* CE QUE C'ÉTAIT (E6) : deux jours plus tard, « +450 kcal » ne
                           dit plus rien. Ton inchangé — on nomme, on ne reproche pas. */}
                       {dayExtraLabel ? <Text style={{ color: t.textTertiary }}>{` · ${dayExtraLabel}`}</Text> : null}
@@ -818,7 +819,7 @@ export default function PlanScreen() {
         ) : (
           <View style={s.empty}>
             <View style={[s.emptyIcon, { backgroundColor: t.fill }]}>
-              <Text style={{ fontSize: 30 }}>🍽️</Text>
+              <RepasIcon color={t.textTertiary} size={30} />
             </View>
             <Text style={s.emptyTitle}>Prêt à démarrer ?</Text>
             <Text style={s.emptySub}>Kyroz génère ton plan repas, les recettes et la liste de courses en un instant.</Text>
@@ -920,7 +921,7 @@ export default function PlanScreen() {
       {/* Consentement : on ne réadapte le plan que si l'utilisateur le demande */}
       <ActionSheet visible={adaptPrompt !== null} onClose={declineAdapt}>
         <Text style={{ color: t.text, ...Type.h2 }}>
-          +{adaptPrompt ?? 0} kcal assumées, c'est noté 😎
+          +{adaptPrompt ?? 0} kcal assumées, c'est noté
         </Text>
         {(() => {
           const opts = (plan && profile) ? adaptDayOptions(profile, plan, selectedDay, new Date().getHours()) : [];

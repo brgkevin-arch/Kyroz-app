@@ -5,8 +5,8 @@ import { PrimaryButton, SectionLabel } from './ui';
 import { goalLabel } from '../lib/tdee';
 import { Meal, UserProfile } from '../lib/types';
 import { DISCLAIMER } from '../constants/legal';
+import { ReussiteIcon, IconeRepas } from './Icons';
 
-const MEAL_EMOJI: Record<string, string> = { breakfast: '🍳', lunch: '🍗', dinner: '🍽️', snack: '🥤' };
 const MEAL_LABEL: Record<string, string> = { breakfast: 'Petit-déj', lunch: 'Déjeuner', dinner: 'Dîner', snack: 'Collation' };
 
 interface Props {
@@ -48,7 +48,7 @@ export function FirstPlanReveal({ visible, profile, firstName, previewMeals, onC
       <View style={s.root}>
         <Animated.View style={[s.card, { opacity, transform: [{ scale }] }]}>
           <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
-            <Text style={s.emoji}>🎉</Text>
+            <ReussiteIcon color={t.accent} size={46} />
             <Text style={s.title}>C'est prêt{firstName ? `, ${firstName}` : ''} !</Text>
             <Text style={s.sub}>Ta semaine de repas est calée au plus juste sur ton objectif.</Text>
 
@@ -64,7 +64,7 @@ export function FirstPlanReveal({ visible, profile, firstName, previewMeals, onC
                 <View style={{ gap: 10 }}>
                   {previewMeals.map((m) => (
                     <View key={m.id} style={s.mealRow}>
-                      <Text style={s.mealEmoji}>{MEAL_EMOJI[m.meal_type] ?? '🍽️'}</Text>
+                      <IconeRepas type={m.meal_type} color={t.textSecondary} size={20} />
                       <View style={{ flex: 1 }}>
                         <Text style={s.mealType}>{MEAL_LABEL[m.meal_type] ?? m.meal_type}</Text>
                         <Text style={s.mealName} numberOfLines={1}>{m.recipe.name_fr}</Text>
@@ -77,7 +77,7 @@ export function FirstPlanReveal({ visible, profile, firstName, previewMeals, onC
             )}
 
             <View style={{ height: 18 }} />
-            <PrimaryButton t={t} label="Voir mon plan 👊" onPress={onClose} />
+            <PrimaryButton t={t} label="Voir mon plan" onPress={onClose} />
 
             <Text style={s.disclaimer}>{DISCLAIMER}</Text>
           </ScrollView>

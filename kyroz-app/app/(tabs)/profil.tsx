@@ -30,6 +30,7 @@ import { WeightCheckin } from '../../components/WeightCheckin';
 import { OffPlanHistory } from '../../components/OffPlanHistory';
 import { useHydrationEnabled } from '../../components/HydrationBar';
 import { useFirstName, saveFirstName } from '../../lib/profileName';
+import { ProtectionIcon, RepasLibreIcon } from '../../components/Icons';
 import { useAnalyticsConsent } from '../../hooks/useAnalyticsConsent';
 import { useProfile } from '../../hooks/useProfile';
 import { useStreak } from '../../hooks/useStreak';
@@ -224,7 +225,7 @@ export default function ProfilScreen() {
   const regenPlan = async () => {
     const ok = await confirm({
       title: 'Régénérer tout ton plan ?',
-      message: 'Kyroz reconstruit une semaine complète de repas (tes 👍/👎 et préférences sont gardés).',
+      message: 'Kyroz reconstruit une semaine complète de repas (tes goûts et tes préférences sont gardés).',
       confirmLabel: 'Régénérer',
       destructive: true,
     });
@@ -775,9 +776,12 @@ function LowEaRiseCard({ t, rise, onPress }: {
   return (
     <TouchableOpacity activeOpacity={0.85} onPress={onPress}>
       <Card t={t}>
-        <Text style={{ color: t.text, fontSize: 15, fontWeight: '700', marginBottom: 6 }}>
-          {enCours ? '🛡️ Ta cible remonte, c\'est voulu' : '🛡️ Kyroz a mis ta sèche en pause'}
-        </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7, marginBottom: 6 }}>
+          <ProtectionIcon color={t.text} size={16} />
+          <Text style={{ color: t.text, fontSize: 15, fontWeight: '700', flex: 1 }}>
+            {enCours ? 'Ta cible remonte, c\'est voulu' : 'Kyroz a mis ta sèche en pause'}
+          </Text>
+        </View>
         {enCours ? (
           <Text style={{ color: t.text, fontSize: 13, lineHeight: 19 }}>
             Tu sèches depuis plus de 3 mois. Pour protéger ton énergie sur la durée, Kyroz remonte doucement tes calories — environ {rise.weeklyKcal} kcal par semaine, encore {rise.weeksToPlateau} semaine{rise.weeksToPlateau > 1 ? 's' : ''}. Tu n'as rien à changer.
@@ -1333,9 +1337,12 @@ function MealsEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: Edi
             <View key={mt} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: t.card, borderRadius: Radius.card, padding: 14 }}>
               <View style={{ flex: 1, paddingRight: 10 }}>
                 <Text style={{ color: t.text, fontSize: 14, fontWeight: '700' }}>{mealLabel(mt)}</Text>
-                <Text style={{ color: fm ? t.textSecondary : t.textTertiary, fontSize: 12, marginTop: 3 }} numberOfLines={1}>
-                  {fm ? `🔒 ${fm.label} · ${fm.macros.kcal} kcal` : 'Kyroz le planifie'}
-                </Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 3 }}>
+                  {fm && <RepasLibreIcon color={t.textSecondary} size={13} />}
+                  <Text style={{ color: fm ? t.textSecondary : t.textTertiary, fontSize: 12, flex: 1 }} numberOfLines={1}>
+                    {fm ? `${fm.label} · ${fm.macros.kcal} kcal` : 'Kyroz le planifie'}
+                  </Text>
+                </View>
               </View>
               <View style={{ flexDirection: 'row', gap: 16, alignItems: 'center' }}>
                 {fm && (

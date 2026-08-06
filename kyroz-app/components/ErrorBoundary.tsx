@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTheme, Radius, Spacing, Type } from '../constants/theme';
+import { AvertissementIcon } from './Icons';
 
 // Frontière d'erreur globale : un crash de rendu n'affiche plus un écran rouge
 // mais un fallback propre avec « Réessayer » (re-monte l'arbre). Les données
@@ -10,7 +11,7 @@ function Fallback({ onRetry }: { onRetry: () => void }) {
   const t = useTheme();
   return (
     <View style={[styles.root, { backgroundColor: t.bg }]}>
-      <Text style={{ fontSize: 40 }}>🍳</Text>
+      <AvertissementIcon color={t.textSecondary} size={40} />
       <Text style={[styles.title, { color: t.text }]}>Oups, quelque chose a cassé</Text>
       <Text style={[styles.sub, { color: t.textSecondary }]}>
         Ce n'est pas toi, c'est nous. Tes données sont intactes.

@@ -15,7 +15,7 @@ export function AnalyticsConsentBanner() {
   const s = makeStyles(t);
   return (
     <View style={s.card}>
-      <Text style={s.title}>Aide à améliorer Kyroz 🙏</Text>
+      <Text style={s.title}>Aide à améliorer Kyroz</Text>
       <Text style={s.body}>
         Partager des statistiques d'usage <Text style={{ fontWeight: '700' }}>anonymes</Text> (jamais ton nom ni tes données perso) pour qu'on améliore l'app. Modifiable à tout moment dans ton profil.
       </Text>

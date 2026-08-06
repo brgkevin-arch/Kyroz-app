@@ -10,6 +10,7 @@ import { mealFiberG, mealFiberFromIngredients } from '../lib/fiber';
 import { Recipe, MealStatus, Macros, AdaptFlag } from '../lib/types';
 import { OBJ_LABEL } from '../lib/recipeLabels';
 import { FLAG_AUDIENCE } from '../lib/adaptRecipe';
+import { DureeIcon, RepasIcon, AvertissementIcon, FibresIcon } from './Icons';
 
 interface Props {
   recipe: Recipe;
@@ -51,11 +52,11 @@ export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adapted
     if (fl === 'protein_below_target') {
       const miss = adaptGap ? Math.max(0, -Math.round(adaptGap.protein_g)) : 0;
       return miss > 0
-        ? `⚠️ ~${miss} g de protéines sous ta cible — ajoute un side protéiné.`
-        : '⚠️ Repas un peu pauvre en protéines.';
+        ? `~${miss} g de protéines sous ta cible — ajoute un side protéiné.`
+        : 'Repas un peu pauvre en protéines.';
     }
-    if (fl === 'under_target_kcal') return 'ℹ️ Repas un peu en dessous de ta cible.';
-    if (fl === 'over_target_kcal') return 'ℹ️ Repas un peu au-dessus de ta cible.';
+    if (fl === 'under_target_kcal') return 'Repas un peu en dessous de ta cible.';
+    if (fl === 'over_target_kcal') return 'Repas un peu au-dessus de ta cible.';
     return '';
   };
 
@@ -102,8 +103,14 @@ export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adapted
         </View>
 
         <View style={s.meta}>
-          <Text style={s.metaTxt}>⏱ {recipe.prep_time_min} min</Text>
-          <Text style={s.metaTxt}>🍽 {f === 1 ? '1 portion' : `${f} portions`}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+            <DureeIcon color={t.textSecondary} size={14} />
+            <Text style={s.metaTxt}>{recipe.prep_time_min} min</Text>
+          </View>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+            <RepasIcon color={t.textSecondary} size={14} />
+            <Text style={s.metaTxt}>{f === 1 ? '1 portion' : `${f} portions`}</Text>
+          </View>
         </View>
 
         {/* `recipe.sports` n'est plus affiché depuis le 2026-08-03 : il reste un
@@ -115,7 +122,10 @@ export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adapted
         ) : null}
 
         {restrictionRelaxed && (
-          <Text style={s.warn}>⚠️ Aucune recette adaptée à ton régime pour ce repas — option standard.</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 6 }}>
+            <AvertissementIcon color={t.warning} size={14} />
+            <Text style={[s.warn, { flex: 1 }]}>Aucune recette adaptée à ton régime pour ce repas — option standard.</Text>
+          </View>
         )}
         {orderedFlags.map((fl) => <Text key={fl} style={s.warn}>{flagMsg(fl)}</Text>)}
 
@@ -125,7 +135,10 @@ export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adapted
           <Big t={t} v={macros.carbs_g} l="Glucides" u="g" />
           <Big t={t} v={macros.fat_g} l="Lipides" u="g" />
         </View>
-        <Text style={s.fiber}>🌾 ~{adaptedIngredients ? mealFiberFromIngredients(adaptedIngredients) : mealFiberG(recipe, f)} g de fibres (estimé)</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+          <FibresIcon color={t.textTertiary} size={13} />
+          <Text style={[s.fiber, { flex: 1 }]}>~{adaptedIngredients ? mealFiberFromIngredients(adaptedIngredients) : mealFiberG(recipe, f)} g de fibres (estimé)</Text>
+        </View>
 
         {recipe.why_fr && <Text style={s.why}>{recipe.why_fr}</Text>}
 
@@ -184,7 +197,7 @@ export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adapted
                     régénération peut ramener le plat écarté. On le DIT, et on donne
                     l'action qui, elle, tient dans le temps — le 👎. Cf. AGENTS.md A26. */}
                 <Text style={s.swapHint}>
-                  Ce remplacement vaut pour ce plan. Si ce plat ne te plaît pas du tout, le 👎 l'écarte pour de bon.
+                  Ce remplacement vaut pour ce plan. Si ce plat ne te plaît pas du tout, « je n'aime pas » l'écarte pour de bon.
                 </Text>
               </>
             )}

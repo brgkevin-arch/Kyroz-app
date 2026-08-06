@@ -183,7 +183,7 @@ export default function Onboarding() {
 
   // Pourquoi on ne peut pas avancer (message affiché au tap sur « Continuer »).
   const blockReason = (): string | null => {
-    if (step === 1 && !firstNameValid) return 'Dis-nous comment t\'appeler pour commencer 🙂';
+    if (step === 1 && !firstNameValid) return 'Dis-nous comment t\'appeler pour commencer';
     if (step === 2 && !basicsValid) {
       if (ageN >= 1 && ageN < AGE_BOUNDS[0]) return `Kyroz est réservé aux ${AGE_BOUNDS[0]} ans et plus.`;
       return 'Remplis ta date de naissance, ton poids et ta taille pour continuer.';
@@ -448,7 +448,6 @@ function NameStep({ t, value, onChange }: { t: ThemePalette; value: string; onCh
 
   return (
     <View style={{ paddingTop: 36, gap: 14 }}>
-      <Animated.Text style={[{ fontSize: 44 }, enter]}>👋</Animated.Text>
       <Animated.Text style={[{ color: t.text, ...Type.display, lineHeight: 40 }, enter]}>
         Bienvenue sur Kyroz
       </Animated.Text>

@@ -6,6 +6,7 @@ import { datedGoalStatus } from '../lib/datedGoal';
 import { planFloorKcal, makeWeeklyProjector } from '../lib/tdee';
 import { todayStamp } from '../lib/weight';
 import { UserProfile } from '../lib/types';
+import { ObjectifIcon } from './Icons';
 
 // ── Carte de suivi d'objectif daté (premium « Kyroz+ ») ──────────────────────
 // Partagée par l'écran Plan (le geste quotidien) et le Profil. Lecture seule :
@@ -45,9 +46,12 @@ export function DatedGoalCard({ t, profile, onPress }: { t: ThemePalette; profil
     <TouchableOpacity activeOpacity={0.85} onPress={onPress}>
       <Card t={t} style={{ gap: 10 }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Text style={{ color: t.text, ...Type.h3 }}>
-            🎯 {profile.weight_kg} → {gt.target_weight_kg} kg
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
+            <ObjectifIcon color={t.text} size={17} />
+            <Text style={{ color: t.text, ...Type.h3 }}>
+              {profile.weight_kg} → {gt.target_weight_kg} kg
+            </Text>
+          </View>
           <Text style={{ color: t.textSecondary, fontSize: 13, fontWeight: '600' }}>
             {status.active ? `${status.weeksRemaining} sem` : 'Échéance passée'}
           </Text>

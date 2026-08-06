@@ -125,7 +125,7 @@ export default function CoursesScreen() {
           <View style={[s.emptyIcon, { backgroundColor: t.fill }]}>
             <Ionicons name={covered ? 'checkmark-done-outline' : 'cart-outline'} size={30} color={covered ? t.success : t.textSecondary} />
           </View>
-          <Text style={s.emptyT}>{covered ? 'Rien à acheter 🎉' : 'Aucune liste'}</Text>
+          <Text style={s.emptyT}>{covered ? 'Rien à acheter' : 'Aucune liste'}</Text>
           <Text style={s.emptyS}>
             {covered
               ? 'Ton frigo couvre déjà tout le plan de la semaine. La liste réapparaîtra dès qu\'il te manquera quelque chose.'
@@ -167,7 +167,7 @@ export default function CoursesScreen() {
             qu'un même objet n'ait pas deux noms selon l'endroit où on le regarde. */}
         <View style={s.header}>
           <View style={{ flex: 1 }}>
-            <Text style={s.sub}>{done ? 'Tout est coché 🎉' : `${remaining} restant${remaining > 1 ? 's' : ''} sur ${total}`}</Text>
+            <Text style={s.sub}>{done ? 'Tout est coché' : `${remaining} restant${remaining > 1 ? 's' : ''} sur ${total}`}</Text>
             <Text style={s.h1}>Courses</Text>
           </View>
           <Text style={s.counter}>{checked}<Text style={s.counterTot}> / {total} cochés</Text></Text>
@@ -200,7 +200,7 @@ export default function CoursesScreen() {
           )}
         </View>
 
-        <Text style={s.hint}>Coche un article → il part direct dans ton frigo 🧊</Text>
+        <Text style={s.hint}>Coche un article → il part direct dans ton frigo</Text>
     </View>
   );
 

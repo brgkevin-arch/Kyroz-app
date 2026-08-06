@@ -50,7 +50,7 @@ export function MealCard({
           tu gères) prennent la place de la durée — ils comptent plus qu'elle. */}
       <Text style={[styles.type, { color: t.textTertiary }]}>
         {MEAL_LABELS[meal.meal_type]?.toUpperCase()}
-        {isFixed ? ' · 🔒 TU GÈRES'
+        {isFixed ? ' · TU GÈRES'
           : eaten ? ' · ✓ MANGÉ'
           : skipped ? ' · ⊘ SAUTÉ'
           : ` · ${meal.recipe.prep_time_min} MIN`}

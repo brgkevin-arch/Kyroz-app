@@ -7,6 +7,7 @@ import {
   MacroBody, macrosPercent, recommendedProteinPerKg, goalLabel, CARB_RATIO_MIN, CARB_RATIO_MAX,
   servedCarbSharePct, SPLIT_DIVERGENCE_TOLERANCE_PCT,
 } from '../lib/tdee';
+import { ConseilIcon } from './Icons';
 
 // Mode « Perso % » (option B, contrôle total) :
 //  • protéines réglables en g/kg (avec repère conseillé selon l'objectif),
@@ -57,9 +58,12 @@ export function MacroSplit({
       <View style={{ gap: 8 }}>
         <Text style={[styles.label, { color: t.textTertiary }]}>PROTÉINES (g / kg de {proteinBasis})</Text>
         <Stepper t={t} value={proteinPerKg} min={PROT_MIN} max={PROT_MAX} step={0.1} decimals={1} unit="g/kg" color={t.accent} onChange={onProteinChange} />
-        <Text style={[styles.note, { color: t.textSecondary }]}>
-          💡 Conseillé pour « {goalLabel(goal)} » : <Text style={{ fontWeight: '700' }}>{reco} g/kg</Text>
-        </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 6 }}>
+          <ConseilIcon color={t.textSecondary} size={14} />
+          <Text style={[styles.note, { color: t.textSecondary, flex: 1 }]}>
+            Conseillé pour « {goalLabel(goal)} » : <Text style={{ fontWeight: '700' }}>{reco} g/kg</Text>
+          </Text>
+        </View>
         {bodyFat == null && (
           <Text style={[styles.note, { color: t.warning }]}>
             Renseigne ta masse grasse (Profil → Informations) pour caler les protéines sur ta masse maigre.
