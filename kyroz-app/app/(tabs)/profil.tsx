@@ -58,7 +58,7 @@ import {
   ActivityLevel, DietaryRestriction, EngineNotice, FixedMeals, Goal, GoalTarget, MEAL_ORDER, MealEmphasis, MealType, NeatLevel, Sex, SportSession, UserProfile, VarietyPreference,
 } from '../../lib/types';
 import { totalSessionsPerWeek } from '../../lib/sport';
-import { restDaySet } from '../../lib/planEngine';
+import { restDaySet, baseDayTargets } from '../../lib/planEngine';
 import { getRecipeById } from '../../lib/recipes';
 import SportsEditor from '../../components/SportsEditor';
 import { FixedMealSheet } from '../../components/FixedMealSheet';
@@ -279,6 +279,23 @@ export default function ProfilScreen() {
     if (res.method === 'download') notify({ title: 'Export terminé', message: 'Tes données ont été téléchargées (kyroz-mes-donnees.json).' });
   };
 
+  // Amplitude réelle des cibles quotidiennes. Le plan n'est plus isocalorique depuis
+  // le 2026-08-06 : afficher UN chiffre « du jour » serait annoncer un nombre
+  // qu'aucune journée ne sert. On montre donc la moyenne ET la fourchette.
+  // Ton volontairement rassurant (règle produit) : c'est le moteur qui module, ce
+  // n'est ni un effort demandé, ni un écart à rattraper.
+  // ⚠️ AVANT le `if (!profile) return null` ci-dessous : un hook posé après un retour
+  // anticipé n'existe pas à tous les rendus, et React casse à la bascule
+  // (« Rendered more hooks than during the previous render »). Le même oubli a fait
+  // tomber `FirstPlanReveal` dans l'ErrorBoundary — invisible de `tsc` comme des tests.
+  const modulation = useMemo(() => {
+    if (!profile) return null;
+    const jours = baseDayTargets(profile, Math.max(1, Math.min(profile.plan_days ?? 7, 7)));
+    const bas = Math.min(...jours);
+    const haut = Math.max(...jours);
+    return haut - bas >= 40 ? { bas, haut } : null;
+  }, [profile]);
+
   if (!profile) return null;
 
   // Dérive sous IMC 18,5 : le moteur a ramené le plan à la maintenance. On le DIT,
@@ -374,13 +391,19 @@ export default function ProfilScreen() {
         {/* Cibles du jour — les quatre macros perdent leurs quatre couleurs : même
             graisse, même encre, la valeur porte seule. Il n'y a rien à comparer
             entre quatre boîtes côte à côte (cf. la note en tête de theme.ts). */}
-        <SectionTitle t={t}>Cibles du jour</SectionTitle>
+        <SectionTitle t={t}>Tes cibles</SectionTitle>
         <View style={s.grid}>
-          <Box t={t} v={profile.target_kcal} l="kcal" />
+          <Box t={t} v={profile.target_kcal} l="kcal en moyenne" />
           <Box t={t} v={profile.target_protein_g} l="protéines" u=" g" />
           <Box t={t} v={profile.target_carbs_g} l="glucides" u=" g" />
           <Box t={t} v={profile.target_fat_g} l="lipides" u=" g" />
         </View>
+
+        {modulation && (
+          <Text style={s.floorNote}>
+            Ton plan module ces calories selon tes journées : <Text style={{ fontWeight: '700' }}>{modulation.bas} à {modulation.haut} kcal</Text> — plus les jours où tu t'entraînes, moins les jours de repos. Le total de ta semaine, lui, ne change pas. Tes protéines non plus.
+          </Text>
+        )}
 
         {/* Ton informatif, pas alarmant : c'est une borne qui protège, pas un échec.
             On dit d'où vient le chiffre ET s'il bougera — sinon une cible qui ne
@@ -1409,11 +1432,17 @@ function CalorieBankEditor({ t, profile, onSave, dragHandlers, sheetScrollProps 
   const joursDuPlan = WEEKDAY_OPTS.filter((o) => (profile.plan_weekdays ?? []).includes(o.val));
   const days = Math.max(1, Math.min(profile.plan_days ?? joursDuPlan.length, 7));
 
+  // ⚠️ La base est la répartition PAR VOLUME (`baseDayTargets`), pas la cible plate.
+  // Depuis le 2026-08-06 le plan n'est plus isocalorique : un jour d'entraînement vise
+  // plus haut, un jour de repos plus bas. Recalculer ici sur `target_kcal` afficherait
+  // une semaine plate sous un plan qui ne l'est pas — le même défaut, à la lettre, que
+  // celui qui effaçait la banque de calories avant `bankedTargets`.
+  const base = baseDayTargets(profile, days);
   const apercu = bankedDailyTargets({
     days,
-    baseTargetKcal: profile.target_kcal,
+    baseTargetKcal: base,
     offsets: offsetsForPlan(bank, profile.plan_weekdays, days),
-    floorKcal: Math.min(bankFloorKcal(profile), profile.target_kcal),
+    floorKcal: Math.min(bankFloorKcal(profile), ...base),
   });
 
   const set = (val: number, kcal: number | null) => {
@@ -1507,7 +1536,10 @@ function CalorieBankEditor({ t, profile, onSave, dragHandlers, sheetScrollProps 
         {apercu.targets.map((kcal, i) => {
           const wd = (profile.plan_weekdays ?? [])[i];
           const label = WEEKDAY_OPTS.find((o) => o.val === wd)?.label ?? `J${i + 1}`;
-          const ecart = kcal - profile.target_kcal;
+          // L'écart se lit contre la cible DU JOUR : un jour de repos est déjà sous la
+          // moyenne sans que l'utilisateur ait rien déclaré, et l'afficher comme un
+          // « −144 » lui ferait lire un écart là où il n'a rien demandé.
+          const ecart = kcal - (base[i] ?? profile.target_kcal);
           return (
             <View key={i} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 7 }}>
               <Text style={{ color: t.textSecondary, fontSize: 14 }}>{label}</Text>

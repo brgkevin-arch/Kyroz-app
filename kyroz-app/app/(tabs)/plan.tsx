@@ -687,9 +687,15 @@ export default function PlanScreen() {
             {dayMacros && (
               <View ref={macrosRef}>
                 <SectionLabel t={t}>Jour {selectedDay}</SectionLabel>
+                {/* ⚠️ Ce bandeau disait « (mêmes kcal) » — c'était vrai jusqu'au
+                    2026-08-06, ça ne l'est plus : le budget du jour suit désormais la
+                    dépense du jour, donc un jour de repos reçoit MOINS. Laisser la
+                    phrase aurait contredit le nombre affiché deux lignes plus bas.
+                    On dit ce qui baisse, et surtout on rassure sur la semaine — le
+                    suivi doit rassurer, jamais mettre la pression. */}
                 {isRestDay && (
                   <Text style={{ color: t.textSecondary, fontSize: 14, lineHeight: 19, marginTop: 2 }}>
-                    🛌 Jour de repos · glucides réduits, lipides relevés (mêmes kcal)
+                    🛌 Jour de repos · un peu moins de calories et de glucides, tes protéines inchangées. Ta semaine garde son total.
                   </Text>
                 )}
                 <View style={{ height: 12 }} />

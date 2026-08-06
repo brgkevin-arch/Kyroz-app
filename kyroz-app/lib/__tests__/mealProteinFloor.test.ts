@@ -72,12 +72,47 @@ describe('plancher protéique par repas', () => {
     // contrepartie, sur la macro où déborder est le moins grave.
     // ➡️ Si cette borne doit encore monter, RE-MESURER d'abord : deux hausses de suite
     // voudraient dire que la cause a changé.
+    //
+    // ⚠️ TROISIÈME HAUSSE, 1,18 → 1,22 le 2026-08-06 — et la cause A changé, comme la
+    // ligne ci-dessus le prévoyait. Re-mesuré sur les 21 mêmes jours, en séparant les
+    // jours d'entraînement des jours de repos, ce que les versions précédentes ne
+    // faisaient pas :
+    //   tous          min 1,031 · médiane 1,083 · moyenne 1,093 · MAX 1,198
+    //   entraînement                médiane 1,115 ·                MAX 1,198
+    //   repos                       médiane 1,052 ·                MAX 1,073
+    // La MÉDIANE ne bouge pas d'un millième (1,083 avant comme après) : ce n'est pas une
+    // dérive. Le dépassement s'est DÉPLACÉ, il n'a pas grossi. Depuis la répartition du
+    // budget par volume (`lib/dailyBudget.ts`), un jour d'entraînement reçoit ~5 % de
+    // calories en plus alors que la cible protéique, elle, est QUOTIDIENNE et ne bouge
+    // pas (§6 : le turnover ne prend pas de jour de repos). Le moteur remplit donc ces
+    // calories avec des recettes entières, qui portent de la protéine. Le jour de repos,
+    // symétriquement, tombe de 1,084 à 1,052 — plus près de sa cible qu'avant.
+    // ➡️ Le dépassement se concentre désormais là où déborder est le moins grave : le
+    // jour où l'on s'entraîne.
+    //
+    // ⚠️ ET LA BORNE NE SUFFIT PLUS SEULE. Relever un MAXIMUM sans rien ajouter, c'est
+    // ouvrir la porte à la dérive qu'on prétend surveiller : une vraie dégradation se
+    // cacherait sous la nouvelle borne. D'où l'ajout de la MÉDIANE, serrée sur la valeur
+    // mesurée — c'est elle, maintenant, le vrai garde-fou ; le maximum n'est plus qu'un
+    // filet. VÉRIFIÉ PAR MUTATION, et c'est bien le plancher de ce fichier qu'elle
+    // attrape : porter `PROT_SHARE_FLOOR` de 0,7 à 0,9 — la dérive exacte que ce cas
+    // existe pour détecter — fait passer la médiane à 1,125 et rougir le test, alors que
+    // le maximum, lui, resterait sous 1,22.
+    // (Mutation essayée d'abord et qui ne marche PAS : mettre `REST_DAY_CARB_TO_FAT_SHIFT`
+    // à 0 laisse les deux bornes vertes. Le cyclage glucidique ne déplace pas les
+    // protéines — c'est même sa définition. Noté pour que personne ne la retente.)
     const p = gabarit();
+    const ratios: number[] = [];
     for (const seed of [0, 1, 2]) {
-      const jours = buildLocalPlan(p, seed).total_macros_per_day.map((m) => m.protein_g);
-      for (const g of jours) {
-        expect(g / p.target_protein_g, `seed ${seed}`).toBeLessThan(1.18);
+      for (const m of buildLocalPlan(p, seed).total_macros_per_day) {
+        const r = m.protein_g / p.target_protein_g;
+        expect(r, `seed ${seed}`).toBeLessThan(1.22);
+        ratios.push(r);
       }
     }
+    ratios.sort((a, b) => a - b);
+    const mediane = ratios[Math.floor(ratios.length / 2)];
+    expect(ratios.length, 'jours mesurés').toBe(21);
+    expect(mediane, `médiane=${mediane.toFixed(3)}`).toBeLessThan(1.10);
   });
 });

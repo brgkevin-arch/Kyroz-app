@@ -3,8 +3,10 @@ import { getEffectiveRecipes } from './recipes';
 import { recipeFiberPerPortion, isFiberFocusGoal } from './fiber';
 import { remainingMeals, MEAL_LABEL } from './mealtime';
 import { adaptRecipe, AdaptTarget, goalToObjectives, sportsToBuckets, needMatch, FLAG_AUDIENCE } from './adaptRecipe';
-import { MIN_KCAL, bankFloorKcal } from './tdee';
+import { MIN_KCAL, bankFloorKcal, calculateBMR, neatPal, FAT_MIN_PER_KG_BW, FAT_FLOOR_AIM_MARGIN } from './tdee';
+import { exerciseKcalPerWeek, exerciseKcalPerDay } from './sport';
 import { bankedDailyTargets, offsetsForPlan, BankResult } from './calorieBank';
+import { dailyBudgets } from './dailyBudget';
 import { recipeContainsFood } from './avoidance';
 
 // ── Moteur de génération de plan local ──────────────────────────────────────
@@ -89,17 +91,31 @@ const FAMILY_SELECT_W_VARIANT = 0.04;
 // massivement végétales (yaourt de soja, tofu, seitan, tempeh) — même trou de
 // catalogue que celui déjà consigné en D19/B7.
 //
-// Pourquoi 0.03 et pas 0.04 comme sur le reroll. Balayage au seed 0, panel de
-// référence (12 profils × 5 régimes) :
+// Pourquoi 0.03 et pas 0.04 comme sur le reroll (raisonnement du 2026-08-02, PÉRIMÉ
+// depuis, conservé parce que c'est lui qui explique le changement). Balayage au seed 0,
+// panel de référence (12 profils × 5 régimes) :
 //   0 (avant) → 45,0 % · 0.01 → 31,7 % · 0.02 → 23,3 % · 0.03 → 23,3 % · 0.04 → 16,7 %
-// 0.04 descend plus bas, mais fait apparaître 1 repas à drapeau sur 1 680 — une
-// collation vegan+SG en sèche, hors cible calorique, SANS alternative propre dans la
-// bande (limite du catalogue, vérifiée). Le canonique est à ZÉRO drapeau aujourd'hui ;
-// c'est le tout premier plan servi, et on ne l'ouvre pas à un repas hors cible pour
-// 6,6 points de variété. 0.03 prend l'essentiel du gain sans rien dégrader :
-// écart calorique 0,25 → 0,27 % du jour (tolérance 5 %), fibres en sèche inchangées
-// (20,42 g/1 000 kcal), aucun créneau monopolisé. Vérifiable : `npm run mesure:reglages`.
-const FAMILY_SELECT_W_CANON = 0.03;
+// 0.04 descendait plus bas mais faisait apparaître 1 repas à drapeau sur 1 680 — une
+// collation vegan+SG en sèche, hors cible, SANS alternative propre dans la bande. Le
+// canonique était à ZÉRO drapeau, et on ne l'ouvrait pas à un repas hors cible pour
+// 6,6 points de variété.
+//
+// ⚠️ PORTÉ À 0.04 LE 2026-08-06 — la condition qui justifiait 0.03 n'existe plus.
+// Cette valeur protégeait un « zéro drapeau » sur le plan canonique. Depuis la
+// répartition du budget par volume, ce zéro n'est plus atteignable À AUCUN poids :
+// mesuré, le canonique porte **5 drapeaux à 0.03 et 6 à 0.04**, et les six sont sur
+// UN SEUL profil — F 55 kg en sèche, vegan et vegan+SG, tous sur des JOURS DE REPOS
+// (cible 1328 kcal contre 1460 en plat), où le catalogue n'a pas de dîner ni de
+// collation assez petits. C'est la limite de vivier déjà consignée en D19/B7, pas un
+// effet du poids. ➡️ Tenir 0.03 ne protégeait donc plus rien, et coûtait la variété
+// exactement là où elle est déjà la plus rare. Mesuré au seed 0 (12 profils × 5 régimes) :
+//   régime      aucun  végét.  vegan  sansG  vegan+SG   global 480 sem.
+//   0.03         8,3 %  16,7 %  33,3 %  8,3 %   33,3 %       10,0 %
+//   0.04         8,3 %  16,7 %  25,0 %  8,3 %   25,0 %        9,6 %
+// ➡️ Le jour où une vague de catalogue comblera le creux vegan des petits budgets, le
+// zéro redeviendra atteignable et l'écart 0.03/0.04 méritera d'être re-mesuré. Les deux
+// constantes restent SÉPARÉES pour ça : leur égalité est un état mesuré, pas une identité.
+const FAMILY_SELECT_W_CANON = 0.04;
 // Pénalité de score par utilisation d'une recette dans la semaine (rotation). Choisi
 // nettement > à la bande la plus large (0.036) pour qu'UNE utilisation suffise à sortir
 // une recette de la bande → rotation dès le lendemain. Ne dégrade PAS la précision :
@@ -298,16 +314,80 @@ function mealTarget(
 }
 
 // ── Cyclage glucidique : jours actifs vs jours de repos ──────────────────────
-// Les jours SANS entraînement, on garde les MÊMES kcal et les MÊMES protéines
-// (plancher protéique quotidien), mais on décale une part des kcal NON protéiques
-// des glucides vers les lipides : moins de glucides quand on ne s'entraîne pas,
-// énergie préservée (carb-cycling isocalorique léger). Les jours d'entraînement
-// gardent le ratio du profil. Décalage exprimé en points de la fraction non-prot.
-const REST_DAY_CARB_TO_FAT_SHIFT = 0.12;
+// Les jours SANS entraînement, on décale une part des kcal NON protéiques des
+// glucides vers les lipides. Les protéines ne bougent jamais (plancher quotidien),
+// les jours d'entraînement gardent le ratio du profil. Décalage exprimé en points
+// de la fraction non-protéique.
+//
+// ⚠️ VALEUR RAMENÉE DE 0,12 À 0,06 LE 2026-08-06, et ce n'est pas un ajustement
+// esthétique : sa PRÉMISSE a changé. 0,12 avait été calibré quand le décalage était
+// le SEUL différenciateur entre un jour d'entraînement et un jour de repos — le
+// commentaire d'origine disait « on garde les MÊMES kcal ». Depuis la répartition du
+// budget par volume (`lib/dailyBudget.ts`), le jour de repos reçoit DÉJÀ moins de
+// calories : les deux mécanismes retirent des glucides au même endroit.
+//
+// Le critère de choix n'est pas la variété, c'est la règle du produit — « les
+// glucides absorbent la variation, les lipides gardent leur plancher ». Autrement
+// dit : les LIPIDES DU JOUR DE REPOS DOIVENT RESTER À PEU PRÈS CONSTANTS en grammes.
+// Balayé (H 80 sèche / F 62 maintien, écart de lipides entraînement → repos) :
+//
+//   0,12 → +2 / +6 g   (les lipides MONTENT sur un jour à −330 kcal : rien ne le justifie)
+//   0,08 → −4 / +2 g
+//   0,06 → −6 / −1 g   ← retenu
+//   0,04 → −8 / −4 g
+//   0,00 → −14 / −10 g (la baisse sort pour moitié des lipides)
+//
+// Effet de bord favorable, pas le motif : la variété perçue revient de 12,5 % à 9,6 %
+// de semaines avec quasi-doublon (480 semaines), soit la parité avec avant (9,0 %) —
+// un jour de repos doublement contraint (moins de kcal ET moins de glucides) voyait
+// son vivier de recettes se refermer.
+const REST_DAY_CARB_TO_FAT_SHIFT = 0.08;
 
 function restDayRatio(ratio: { carb: number; fat: number }): { carb: number; fat: number } {
   const shift = Math.min(REST_DAY_CARB_TO_FAT_SHIFT, ratio.carb);
   return { carb: ratio.carb - shift, fat: ratio.fat + shift };
+}
+
+/**
+ * Le plancher lipidique de CLAUDE.md §6, appliqué à la cible DU JOUR.
+ *
+ * 🔴 SANS CETTE FONCTION, LE GARDE-FOU DISPARAÎT SUR LES JOURS DE REPOS. `fatTargetG`
+ * relève les lipides au plancher de carence une fois, sur la cible PLATE du profil ;
+ * le plan, lui, dérive les grammes d'un RATIO. Tant que tous les jours valaient la
+ * même chose, les deux coïncidaient. Depuis la répartition par volume, un jour de
+ * repos vaut moins — et un ratio ne sait pas qu'il existe un plancher en GRAMMES.
+ * Mesuré sur 648 jours de repos (9 gabarits × 4 objectifs × 3 volumes) : **0 % avant,
+ * 4,2 % après**, pire cas 64 g pour un plancher à 70 (F 88 kg en sèche).
+ *
+ * ➡️ Mode d'échec déjà consigné deux fois : un garde-fou écrit pour UN cas (ici
+ * « tous les jours se valent ») devient faux chez ses voisins dès que la donnée
+ * change — et il se tait en le faisant.
+ *
+ * La marge de visée `FAT_FLOOR_AIM_MARGIN` est reprise telle quelle : viser le
+ * plancher exact le fait rater par l'ASSIETTE 86 % du temps (mesure A9). Et la borne
+ * à 1 reprend le bornage au budget de `fatTargetG` — un plancher qui rend le jour
+ * infaisable n'est plus un plancher.
+ *
+ * ⚠️ BORNÉ À LA CIBLE LIPIDIQUE DU PROFIL (`target_fat_g`), et ce n'est pas une
+ * précaution cosmétique : c'est le même invariant que partout ailleurs — **un
+ * plancher empêche de descendre, il ne relève JAMAIS la cible**. Sans cette borne,
+ * un profil dont la cible lipidique est sous la visée voyait TOUS ses jours poussés
+ * au-dessus de sa propre cible : ce n'est plus un garde-fou, c'est une re-décision
+ * du partage glucides/lipides dans son dos. Repéré sur un cas à 1 kcal du seuil
+ * d'écran — le genre d'écart qui ne se voit qu'en mesurant.
+ */
+function dayRatioWithFatFloor(
+  ratio: { carb: number; fat: number },
+  dayKcal: number,
+  proteinG: number,
+  weightKg: number,
+  targetFatG: number,
+): { carb: number; fat: number } {
+  const nonProtKcal = dayKcal - 4 * proteinG;
+  if (!(nonProtKcal > 0) || !(weightKg > 0)) return ratio;
+  const viseG = Math.min(FAT_MIN_PER_KG_BW * weightKg * FAT_FLOOR_AIM_MARGIN, targetFatG || Infinity);
+  const minFat = Math.min(1, (viseG * 9) / nonProtKcal);
+  return ratio.fat >= minFat ? ratio : { carb: 1 - minFat, fat: minFat };
 }
 
 /**
@@ -835,7 +915,7 @@ export function nextPlanSeed(stored: string | null, reroll: boolean): number {
 // Version du moteur de génération : à incrémenter quand le scoring/sélection
 // change, pour que les plans EN CACHE se régénèrent automatiquement (la signature
 // change → l'auto-refresh de l'écran Plan rejoue la génération). v2 = lipides cadrés.
-const ENGINE_VERSION = 45; // v45 = `tags.objectif` (192 recettes) et `tags.sport` (148) recalculés mécaniquement depuis les kcal du moteur, et `recup_jour_repos` supprimé : le départage `needMatch` lit objectif+sport, donc la sélection change et un plan en cache servirait l'ancienne ; v44 = 47 recettes dont la légumineuse était pesée SÈCHE alors que les instructions la cuisinaient en moins de 40 min : 44 passent sur un `ref` prêt à consommer (macros ET composition changées sous les mêmes ids, un plan en cache servirait l'ancienne pesée), 3 gardent le sec avec un `temps_min` corrigé ; v43 = rep10 réécrit (curry de pois chiches → tofu + pois chiches au lait de coco) : composition changée sous le même id, un plan en cache servirait l'ancienne recette ; v42 = vague B9 : 8 collations GRAND FORMAT (col103–col110, 380–460 kcal) — un format inédit, les gros gabarits n'étaient servis que par étirement ; v41 = vague B8 : 8 collations vegan + sans gluten (col95–col102), familles neuves — les plans en cache ne les verraient pas ; v40 = vague B7 : 30 recettes végétales ajoutées — 12 petits-déjeuners (pd111–pd122), 10 repas complets (rep271–rep280), 8 collations (col87–col94) ; les plans en cache ne les verraient pas ; v39 = la pénalité de FAMILLE s'applique aussi au plan canonique (`FAMILY_SELECT_W_CANON`) — le 1er plan servi passe de 45,0 à 23,3 % de semaines avec quasi-doublon ; un plan en cache servirait encore l'ancienne composition ; v38 = rotation par FAMILLE (`FAMILY_FIBER_TOL`) — la composition de la semaine change, un plan en cache servirait l'ancienne rotation ; v37 = lot B6, 7 collations vegan ajoutées (col80–col86) — les plans en cache ne les verraient pas ; v36 = plancher protéique par repas (`PROT_SHARE_FLOOR`) — la répartition intra-journée change, les plans en cache serviraient l’ancienne ; v35 = lot B5, 20 collations réécrites (composition changée sous le même id → les plans en cache serviraient l’ancienne recette) ; v34 = lot B4, 32 recettes à l’enveloppe corrigée (rep251–rep270, pd99–pd110) — les plans en cache ne les verraient pas ; v33 = lot B3, 20 petits-déjeuners (pd79–pd98) — tous les lots commandés sont livrés ; v32 = lot B1-lot4, 20 repas complets — la vague B1 est complète (rep171–rep250) ; v31 = lot B1-lot3, 20 repas complets ; v30 = lot B1-lot2, 20 repas complets ; v29 = lot B1-lot1, 20 repas complets (les plans en cache ne les verraient pas) ; v28 = cible lipidique visée 15 % au-dessus du plancher (A9) — les plans en cache serviraient l'ancienne répartition ; v27 = lot B2, 13 collations légères (les plans en cache ne les verraient pas) ; v26 = banque de calories (les plans en cache ignoraient les écarts déclarés) ; v25 = borne basse de l'ancre protéine 1,0 → 0,5 (les plans en cache servaient l'ancien plancher) ; v24 = 9 recettes différenciées (nettoyage des doublons : composition modifiée) ; v23 = ancre protéine rendue à 8 recettes ; v22 = le temps de prépa ne filtre plus ; v21 = yaourt_grec démappé
+const ENGINE_VERSION = 46; // v46 = le budget du jour suit la dépense RÉELLE du jour (`lib/dailyBudget.ts`) : le plan n'est plus isocalorique entre jours d'entraînement et jours de repos, un plan en cache servirait l'ancienne répartition ; v45 = `tags.objectif` (192 recettes) et `tags.sport` (148) recalculés mécaniquement depuis les kcal du moteur, et `recup_jour_repos` supprimé : le départage `needMatch` lit objectif+sport, donc la sélection change et un plan en cache servirait l'ancienne ; v44 = 47 recettes dont la légumineuse était pesée SÈCHE alors que les instructions la cuisinaient en moins de 40 min : 44 passent sur un `ref` prêt à consommer (macros ET composition changées sous les mêmes ids, un plan en cache servirait l'ancienne pesée), 3 gardent le sec avec un `temps_min` corrigé ; v43 = rep10 réécrit (curry de pois chiches → tofu + pois chiches au lait de coco) : composition changée sous le même id, un plan en cache servirait l'ancienne recette ; v42 = vague B9 : 8 collations GRAND FORMAT (col103–col110, 380–460 kcal) — un format inédit, les gros gabarits n'étaient servis que par étirement ; v41 = vague B8 : 8 collations vegan + sans gluten (col95–col102), familles neuves — les plans en cache ne les verraient pas ; v40 = vague B7 : 30 recettes végétales ajoutées — 12 petits-déjeuners (pd111–pd122), 10 repas complets (rep271–rep280), 8 collations (col87–col94) ; les plans en cache ne les verraient pas ; v39 = la pénalité de FAMILLE s'applique aussi au plan canonique (`FAMILY_SELECT_W_CANON`) — le 1er plan servi passe de 45,0 à 23,3 % de semaines avec quasi-doublon ; un plan en cache servirait encore l'ancienne composition ; v38 = rotation par FAMILLE (`FAMILY_FIBER_TOL`) — la composition de la semaine change, un plan en cache servirait l'ancienne rotation ; v37 = lot B6, 7 collations vegan ajoutées (col80–col86) — les plans en cache ne les verraient pas ; v36 = plancher protéique par repas (`PROT_SHARE_FLOOR`) — la répartition intra-journée change, les plans en cache serviraient l’ancienne ; v35 = lot B5, 20 collations réécrites (composition changée sous le même id → les plans en cache serviraient l’ancienne recette) ; v34 = lot B4, 32 recettes à l’enveloppe corrigée (rep251–rep270, pd99–pd110) — les plans en cache ne les verraient pas ; v33 = lot B3, 20 petits-déjeuners (pd79–pd98) — tous les lots commandés sont livrés ; v32 = lot B1-lot4, 20 repas complets — la vague B1 est complète (rep171–rep250) ; v31 = lot B1-lot3, 20 repas complets ; v30 = lot B1-lot2, 20 repas complets ; v29 = lot B1-lot1, 20 repas complets (les plans en cache ne les verraient pas) ; v28 = cible lipidique visée 15 % au-dessus du plancher (A9) — les plans en cache serviraient l'ancienne répartition ; v27 = lot B2, 13 collations légères (les plans en cache ne les verraient pas) ; v26 = banque de calories (les plans en cache ignoraient les écarts déclarés) ; v25 = borne basse de l'ancre protéine 1,0 → 0,5 (les plans en cache servaient l'ancien plancher) ; v24 = 9 recettes différenciées (nettoyage des doublons : composition modifiée) ; v23 = ancre protéine rendue à 8 recettes ; v22 = le temps de prépa ne filtre plus ; v21 = yaourt_grec démappé
 
 export function profileSignature(p: UserProfile): string {
   // NB : `hidden_recipes` (👎) est VOLONTAIREMENT absent. Un 👎 remplace UN repas
@@ -848,6 +928,11 @@ export function profileSignature(p: UserProfile): string {
     k: p.target_kcal, pr: p.target_protein_g, c: p.target_carbs_g, f: p.target_fat_g,
     d: p.plan_days, m: p.meals, e: p.meal_emphasis, v: p.variety,
     rw: p.rest_weekdays ?? null, td: p.training_days_per_week, pw: p.plan_weekdays,
+    // Dépense sportive HEBDOMADAIRE : elle pilote la répartition du budget entre
+    // les jours (`dayExpenditures`). `target_kcal` la reflète d'habitude, mais pas
+    // quand le plancher mord — deux volumes différents peuvent alors servir la même
+    // cible plate tout en méritant deux répartitions différentes.
+    sp: exerciseKcalPerWeek(p.sports, p.weight_kg),
     r: p.dietary_restrictions, dl: p.disliked_foods, pp: p.preferred_proteins,
     // `max_prep_time_min` retiré de la signature le 2026-07-29 : il ne filtre plus rien,
     // le garder ferait régénérer un plan identique à chaque changement de la valeur.
@@ -955,15 +1040,83 @@ function tightenDay(dayMeals: Meal[], budgetKcal: number, budgetProtein: number,
  * indexés sur les jours du plan (cf. `offsetsForPlan`), pas sur un réglage qui a
  * pu changer depuis.
  */
-export function bankedTargets(profile: UserProfile, days: number): BankResult {
-  return bankedDailyTargets({
+/**
+ * Cibles caloriques du plan AVANT banque : la cible du profil répartie sur les jours
+ * au prorata de la dépense de chacun (`lib/dailyBudget.ts`).
+ *
+ * Exportée pour la même raison que `bankedTargets` l'a été : **tout écran qui montre
+ * une cible quotidienne doit lire CELLE-CI**. La banque de calories avait déjà été
+ * effacée une fois par des chemins qui relisaient `profile.target_kcal` ; l'aperçu
+ * « Ta semaine après répartition » du Profil recalculait exactement de cette façon, et
+ * aurait affiché des jours plats sous un plan qui, lui, ne l'est plus.
+ */
+export function baseDayTargets(profile: UserProfile, days: number): number[] {
+  return dailyBudgets({
     days,
     baseTargetKcal: profile.target_kcal,
+    dayExpenditureKcal: dayExpenditures(profile, days),
+    floorKcal: bankFloorKcal(profile),
+  }).targets;
+}
+
+export function bankedTargets(profile: UserProfile, days: number): BankResult {
+  const base = baseDayTargets(profile, days);
+  return bankedDailyTargets({
+    days,
+    baseTargetKcal: base,
     offsets: offsetsForPlan(profile.calorie_bank, profile.plan_weekdays, days),
     // Même bornage qu'à la génération : la banque ne contraint que la
     // COMPENSATION (vers le bas), elle ne relève jamais la cible.
-    floorKcal: Math.min(bankFloorKcal(profile), profile.target_kcal),
+    // ⚠️ Borné à la plus BASSE des cibles du jour et non à `target_kcal` depuis la
+    // répartition par volume : un jour de repos est légitimement sous la cible
+    // plate, et un plancher resté à `target_kcal` l'y aurait remonté — donc aurait
+    // effacé la répartition qu'on vient de calculer.
+    floorKcal: Math.min(bankFloorKcal(profile), ...base),
   });
+}
+
+/**
+ * Nombre de jours d'entraînement dans la SEMAINE (pas dans le plan) : c'est le
+ * diviseur de la dépense sportive, elle-même déclarée à la semaine.
+ * `rest_weekdays` fait foi quand l'utilisateur a choisi ses jours ; sinon le
+ * compteur historique.
+ */
+function trainingDaysPerWeek(profile: UserProfile): number {
+  if (Array.isArray(profile.rest_weekdays)) {
+    return Math.max(0, 7 - new Set(profile.rest_weekdays).size);
+  }
+  return Math.max(0, Math.min(7, Math.round(profile.training_days_per_week || 0)));
+}
+
+/**
+ * Dépense énergétique de chaque jour du plan (1-based → index 0), sport compris.
+ *
+ * ⚠️ CE QUE LE PROFIL NE DIT PAS, et il faut le savoir avant de lire les chiffres :
+ * les séances sont déclarées à la SEMAINE (`sessions_per_week` × `minutes_per_session`),
+ * jamais à la date. Le moteur sait donc combien de jours portent un entraînement,
+ * pas LEQUEL porte la sortie longue. La dépense hebdomadaire est répartie à parts
+ * égales sur les jours d'entraînement — c'est le maximum d'exactitude que la saisie
+ * autorise, et c'est déjà tout autre chose que l'étalement sur 7 jours : à une
+ * séance par semaine, la répartition devient EXACTE.
+ *
+ * Repli sur le lissage d'avant quand il n'y a aucun jour d'entraînement déclaré
+ * alors que du sport l'est : la seule chose honnête à faire d'une saisie qui se
+ * contredit est de ne rien en déduire.
+ */
+export function dayExpenditures(profile: UserProfile, days: number): number[] {
+  const bmr = calculateBMR(profile.sex, profile.weight_kg, profile.height_cm, profile.age, profile.body_fat_pct);
+  const horsSport = bmr * neatPal(profile.neat_level);
+  const semaine = exerciseKcalPerWeek(profile.sports, profile.weight_kg);
+  const joursEntrainement = trainingDaysPerWeek(profile);
+
+  if (semaine <= 0 || joursEntrainement <= 0) {
+    const lisse = exerciseKcalPerDay(profile.sports, profile.weight_kg);
+    return Array.from({ length: days }, () => horsSport + lisse);
+  }
+
+  const parSeance = semaine / joursEntrainement;
+  const repos = restDaysForProfile(profile, days);
+  return Array.from({ length: days }, (_, i) => horsSport + (repos.has(i + 1) ? 0 : parSeance));
 }
 
 /** Cible calorique d'UN jour du plan (1-based), banque comprise. */
@@ -1099,9 +1252,15 @@ export function buildLocalPlan(profile: UserProfile, seed: number = 0): MealPlan
     let remainingKcal = Math.max(dayCibleKcal - fixedDailyKcal, 0);
     let remainingProtein = Math.max(profile.target_protein_g - fixedDailyProtein, 0);
     let remainingWeight = totalWeight;
-    // Jour de repos → glucides ↓ / lipides ↑ (mêmes kcal + protéines).
+    // Jour de repos → glucides ↓ / lipides ↑, puis plancher lipidique DU JOUR.
+    // ⚠️ Le plancher passe APRÈS le décalage : c'est le décalage qui peut faire
+    // descendre les lipides sous le seuil sur un jour à petit budget, donc l'ordre
+    // inverse le laisserait passer.
     const isRest = restDays.has(d);
-    const dayRatio = isRest ? restDayRatio(ratio) : ratio;
+    const dayRatio = dayRatioWithFatFloor(
+      isRest ? restDayRatio(ratio) : ratio,
+      dayCibleKcal, profile.target_protein_g, profile.weight_kg, profile.target_fat_g,
+    );
 
     // Parcours dans l'ordre canonique : les repas fixes sont injectés verrouillés,
     // les autres planifiés sur le budget restant (report de budget de repas en repas).
@@ -1342,8 +1501,16 @@ function rebalanceCore(
 
   // Cohérence carb-cycling : si le jour est marqué « repos », on recale avec le
   // même ratio glucides/lipides décalé qu'à la génération.
+  // ⚠️ Le plancher lipidique du jour s'applique ICI AUSSI. C'est exactement l'oubli
+  // qui a rendu le plancher protéique par repas inopérant dans `tightenDay` pendant
+  // une journée entière : un garde-fou doit être posé sur TOUS les chemins qui
+  // produisent une cible, pas seulement sur celui de la génération. Le recalage
+  // (« j'ai mangé », « j'ai sauté ») en est un.
   const isRestDay = dayMeals.some((m) => m.rest_day === true);
-  const ratio = isRestDay ? restDayRatio(carbFatRatio(profile)) : carbFatRatio(profile);
+  const ratio = dayRatioWithFatFloor(
+    isRestDay ? restDayRatio(carbFatRatio(profile)) : carbFatRatio(profile),
+    dayKcalTarget, profile.target_protein_g, profile.weight_kg, profile.target_fat_g,
+  );
   const adjustMeals = dayMeals.filter(isAdjustable);
   let remWeight = adjustMeals.reduce((s, m) => s + dist[m.meal_type], 0) || 1;
 

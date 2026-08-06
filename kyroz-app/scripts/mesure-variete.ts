@@ -23,7 +23,7 @@
  * (`REROLL_PAR_VARIETE`). Le défaut reste `max` : c'est sur lui que sont calibrés les
  * chiffres de référence. Pour auditer un autre réglage, passer `--variete=`.
  */
-import { buildLocalPlan } from '../lib/planEngine';
+import { buildLocalPlan, dayTargetKcal } from '../lib/planEngine';
 import { recalcProfile } from '../lib/tdee';
 import { getEffectiveRecipes } from '../lib/recipes';
 import { recipeFiberPerPortion } from '../lib/fiber';
@@ -112,9 +112,16 @@ for (const g of PROFILS_REF) {
         if (!parSemaine.has(k)) parSemaine.set(k, new Set());
         parSemaine.get(k)!.add(m.recipe.id);
       }
-      for (const kcal of Object.values(kcalParJour)) {
+      // ⚠️ Mesuré contre la cible DU JOUR et non contre la cible plate. Depuis la
+      // répartition par volume sportif (2026-08-06), le plan n'est plus isocalorique :
+      // contre `target_kcal`, ce contrôle affichait 6,94 % au lieu de 0,34 % — il
+      // aurait annoncé une perte de précision de 20× là où le moteur sert exactement
+      // ce qu'on lui a demandé. Un contrôle qui garde l'ancienne référence accuse le
+      // moteur du changement qu'on vient de lui faire.
+      for (const [d, kcal] of Object.entries(kcalParJour)) {
         jours++;
-        ecartKcalTotal += Math.abs(kcal - p.target_kcal) / p.target_kcal;
+        const cible = dayTargetKcal(p, plan.days, Number(d));
+        ecartKcalTotal += Math.abs(kcal - cible) / cible;
       }
       let cloneCetteSemaine = false;
       for (const [k, ids] of parSemaine) {

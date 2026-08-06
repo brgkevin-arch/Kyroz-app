@@ -1,8 +1,9 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { Modal, View, Text, StyleSheet, Animated, ScrollView } from 'react-native';
 import { useTheme, Radius, Spacing, Type, ThemePalette } from '../constants/theme';
 import { PrimaryButton, SectionLabel } from './ui';
 import { goalLabel } from '../lib/tdee';
+import { baseDayTargets } from '../lib/planEngine';
 import { Meal, UserProfile } from '../lib/types';
 import { DISCLAIMER } from '../constants/legal';
 
@@ -41,6 +42,17 @@ export function FirstPlanReveal({ visible, profile, firstName, previewMeals, onC
     }
   }, [visible]);
 
+  // Les jours diffèrent-ils réellement ? Sur un profil sans sport déclaré, non — et
+  // dire « en moyenne » y serait une précaution qui embrouille pour rien.
+  // ⚠️ AVANT le `return null` ci-dessous, et pas après : posé plus bas, ce `useMemo`
+  // n'existait qu'aux rendus visibles → « Rendered more hooks than during the previous
+  // render », et l'écran de bienvenue tombait dans l'ErrorBoundary. Ni `tsc` ni les
+  // 1065 tests ne l'ont vu ; seul le rendu le montre.
+  const modulé = useMemo(() => {
+    const j = baseDayTargets(profile, Math.max(1, Math.min(profile.plan_days ?? 7, 7)));
+    return Math.max(...j) - Math.min(...j) >= 40;
+  }, [profile]);
+
   if (!visible) return null;
 
   return (
@@ -54,7 +66,12 @@ export function FirstPlanReveal({ visible, profile, firstName, previewMeals, onC
 
             <View style={s.statRow}>
               <Stat t={t} value={goalLabel(profile.goal)} label="Objectif" />
-              <Stat t={t} value={`${profile.target_kcal}`} label="kcal / jour" />
+              {/* « en moyenne » et pas « / jour » : depuis la répartition par volume
+                  (2026-08-06) aucune journée ne vaut exactement ce chiffre — un jour
+                  d'entraînement vise plus haut, un jour de repos plus bas. Annoncer
+                  « kcal / jour » sur le TOUT PREMIER écran serait ouvrir la relation
+                  sur un nombre que le plan juste en dessous contredit. */}
+              <Stat t={t} value={`${profile.target_kcal}`} label={modulé ? 'kcal en moyenne' : 'kcal / jour'} />
               <Stat t={t} value={`${profile.plan_days}`} label={`jour${profile.plan_days > 1 ? 's' : ''}`} />
             </View>
 

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { makeProfile } from './helpers';
 import { recalcProfile, MIN_KCAL, validateProfile } from '../tdee';
-import { buildLocalPlan, computeDailyTotals, mealIngredients, swapMeal } from '../planEngine';
+import { buildLocalPlan, computeDailyTotals, mealIngredients, swapMeal, dayTargetKcal } from '../planEngine';
 import { buildShoppingList } from '../shoppingList';
 import { isStaple } from '../pantry';
 import { UserProfile, DietaryRestriction, MealType, Macros } from '../types';
@@ -148,12 +148,17 @@ describe('Stress-test 20 profils (10 H + 10 F) — cohérence bout-en-bout', () 
 
     for (let d = 0; d < totals.length; d++) {
       const t = totals[d];
-      const dev = t.kcal - p.target_kcal;                 // signé
+      // ⚠️ Référence = la cible DU JOUR. Depuis la répartition par volume sportif
+      // (2026-08-06) le plan n'est plus isocalorique : un jour d'entraînement vise
+      // plus haut, un jour de repos plus bas, à budget hebdomadaire constant.
+      // Comparer à la cible PLATE ferait lire cet écart voulu comme le bug A2.
+      const cible = dayTargetKcal(p, plan.days, d + 1);
+      const dev = t.kcal - cible;                         // signé
       const danger = dir > 0 ? Math.max(dev, 0) : dir < 0 ? Math.max(-dev, 0) : Math.abs(dev);
       // CÔTÉ DANGEREUX serré : c'est le bug A2 (le réalisé qui mange le déficit/surplus).
-      expect(danger, `${label} J${d + 1} danger=${Math.round(danger)}kcal>cap${Math.round(dangerCap)} (${t.kcal}/${p.target_kcal})`).toBeLessThanOrEqual(dangerCap);
+      expect(danger, `${label} J${d + 1} danger=${Math.round(danger)}kcal>cap${Math.round(dangerCap)} (${t.kcal}/${cible})`).toBeLessThanOrEqual(dangerCap);
       // CÔTÉ SÛR : backstop lâche (ne jamais sous/sur-manger grossièrement non plus).
-      expect(dayDev(t.kcal, p.target_kcal), `${label} J${d + 1} dev`).toBeLessThanOrEqual(SAFE_DEV);
+      expect(dayDev(t.kcal, cible), `${label} J${d + 1} dev`).toBeLessThanOrEqual(SAFE_DEV);
       // JOINT avec B : protéines jamais affamées (plancher) — ≥ 90% de la cible.
       expect(t.protein_g, `${label} J${d + 1} prot=${t.protein_g}/${p.target_protein_g}`).toBeGreaterThanOrEqual(p.target_protein_g * 0.9);
       // Pas de bombe de gras : part calorique des lipides ≤ 50% du jour.

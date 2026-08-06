@@ -20,8 +20,15 @@ export type DayOffsets = Record<number, number>;
 export interface BankInput {
   /** Nombre de jours du plan (1–7). */
   days: number;
-  /** Cible calorique quotidienne normale, avant banque. */
-  baseTargetKcal: number;
+  /**
+   * Cible calorique quotidienne normale, avant banque.
+   *
+   * Un TABLEAU (index 0 = jour 1) depuis la répartition par volume sportif du
+   * 2026-08-06 : les jours n'ont plus tous la même cible avant banque. Un nombre
+   * reste accepté et vaut « la même cible partout » — c'est le cas dégénéré, pas
+   * un second chemin.
+   */
+  baseTargetKcal: number | number[];
   /** Écarts déclarés, par index de jour du plan (1-based). */
   offsets: DayOffsets;
   /**
@@ -89,9 +96,12 @@ export function bankedDailyTargets(input: BankInput): BankResult {
   if (days <= 0) return { targets: [], uncompensatedKcal: 0 };
 
   const floor = Math.max(0, floorKcal);
-  // 1 — cibles brutes : la cible normale, plus l'écart déclaré du jour.
+  const baseDu = (d: number) => (
+    Array.isArray(baseTargetKcal) ? (baseTargetKcal[d - 1] ?? 0) : baseTargetKcal
+  );
+  // 1 — cibles brutes : la cible normale DU JOUR, plus l'écart déclaré du jour.
   const targets: number[] = [];
-  for (let d = 1; d <= days; d++) targets.push(baseTargetKcal + (offsets[d] ?? 0));
+  for (let d = 1; d <= days; d++) targets.push(baseDu(d) + (offsets[d] ?? 0));
 
   // 2 — ce qu'il faut reprendre (ou rendre) sur le reste de la semaine.
   let àRépartir = -totalOffset(offsets, days);

@@ -16,9 +16,16 @@ describe('goalDirection + fit asymétrique (A2)', () => {
   it('sèche : le réalisé ne déborde pas la cible côté dangereux (anti-bug A2)', () => {
     const p = makeProfile({ tdee_kcal: 1900, target_kcal: 1600, target_protein_g: 130, target_carbs_g: 150, target_fat_g: 45 });
     const cap = Math.max(0.15 * (p.tdee_kcal - p.target_kcal), 90);
-    for (const day of buildLocalPlan(p, 0).total_macros_per_day) {
-      expect(day.kcal - p.target_kcal, `débordement=${day.kcal - p.target_kcal}kcal`).toBeLessThanOrEqual(cap);
-    }
+    const plan = buildLocalPlan(p, 0);
+    // ⚠️ Référence = la cible DU JOUR, pas la cible plate. Depuis la répartition
+    // par volume sportif (2026-08-06), un jour d'entraînement vise légitimement
+    // plus haut : mesurer contre `target_kcal` ferait lire cette hausse VOULUE
+    // comme le débordement A2, c'est-à-dire accuser le moteur de ce qu'on lui a
+    // demandé. La borne, elle, ne bouge pas d'un kcal.
+    plan.total_macros_per_day.forEach((day, i) => {
+      const cible = dayTargetKcal(p, plan.days, i + 1);
+      expect(day.kcal - cible, `J${i + 1} débordement=${day.kcal - cible}kcal`).toBeLessThanOrEqual(cap);
+    });
   });
 });
 

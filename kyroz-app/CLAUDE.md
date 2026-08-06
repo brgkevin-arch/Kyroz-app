@@ -352,6 +352,76 @@ pilote plus le TDEE (il reste utilisé pour les jours de repos et la génératio
 plan). Le double chemin produisait une discontinuité — déclarer une séance de
 15 minutes de marche faisait bondir le TDEE de +181 kcal/jour en médiane.
 
+### Répartition du budget entre les JOURS — le volume concentré (`lib/dailyBudget.ts`)
+
+**Le plan n'est plus isocalorique depuis le 2026-08-06** (`ENGINE_VERSION` 45 → 46).
+La cible d'un jour vaut `dépense de CE jour + le même écart qu'avant` ; la **semaine
+garde son total au kcal près**, donc le déficit, la trajectoire datée et
+`profile.target_kcal` sont **inchangés**. Ce module déplace des calories, il n'en
+crée ni n'en retire.
+
+**Le défaut corrigé** : deux lissages se superposaient — `exerciseKcalPerDay` étalait
+la dépense sur 7 jours, et tous les jours recevaient la même cible. Trois sorties de
+45 min et une sortie de 3 h étaient donc indiscernables. Mesuré (F 60 kg, 25 %MG,
+sèche) : l'énergie disponible **annoncée** vaut 32,1 quel que soit le volume — le
+plancher l'y ramène toujours — quand celle du jour **vécu** tombe à 18,9 (2×90),
+11,0 (1×120) et **0,4** (1×180). L'app conseillait 1683 kcal le jour d'un trois
+heures. Après : l'EA vécue **égale** l'EA annoncée, tous les jours.
+
+⚠️ **Ce n'est PAS une urgence RED-S** (l'énergie disponible est hebdomadaire,
+décision du 2026-07-29) : c'est de la **qualité de plan**. Ne pas le remonter comme
+un danger.
+
+⚠️ **Le plancher du jour est `max(BMR, filet absolu)`, PAS celui d'énergie
+disponible.** C'est ce point qui avait fait rejeter la spec P2.1 (« le ratio des
+planchers seuls vaut déjà 2,30 »), en appliquant jour par jour un seuil qui ne l'est
+pas. Le raisonnement était déjà écrit pour la banque de calories
+(`tdee.ts::bankFloorKcal`) : **un mécanisme qui conserve le total de la semaine
+laisse l'exposition hebdomadaire inchangée.** Le plafond arbitraire rejeté avec P2.1
+(`MAX_DAY_RATIO = 1,35`) ne revient pas — le rapport entre les jours n'est pas un
+réglage, c'est celui des dépenses réelles.
+
+⚠️ **Le moteur sait COMBIEN de jours portent un entraînement, pas LEQUEL porte la
+sortie longue** : les séances sont déclarées à la semaine. La dépense hebdomadaire
+est donc répartie à parts égales sur les jours d'entraînement — exact à une séance
+par semaine, approché au-delà. C'est le maximum que la saisie autorise ; ne pas
+prétendre mieux à l'écran.
+
+⚠️ **Sans sport déclaré, aucune répartition n'est inventée** (repli sur la cible
+plate). `training_days_per_week` est une déclaration, pas une mesure.
+
+**Deux constantes ont dû être re-mesurées, parce que leur PRÉMISSE avait changé** —
+toutes deux avaient été calibrées quand les jours étaient identiques :
+- `REST_DAY_CARB_TO_FAT_SHIFT` **0,12 → 0,08**. Critère : « les glucides absorbent la
+  variation, les lipides gardent leur plancher », donc les lipides du jour de repos
+  doivent rester constants EN GRAMMES. À 0,12 ils MONTAIENT (+2/+6 g) sur un jour à
+  −330 kcal ; à 0 la baisse sortait pour moitié des lipides (−14/−10 g).
+- `FAMILY_SELECT_W_CANON` **0,03 → 0,04**. Le 0,03 protégeait un « zéro repas hors
+  cible » sur le plan canonique — ce zéro n'est plus atteignable à AUCUN poids, pour
+  une raison de catalogue (voir plus bas). Il ne protégeait donc plus rien.
+
+🔴 **Un garde-fou de §6 avait DISPARU en silence, et c'est le vrai enseignement.**
+`fatTargetG` relève les lipides au seuil de carence une fois, sur la cible PLATE ; le
+plan, lui, dérive les grammes d'un RATIO. Tant que tous les jours se valaient, les
+deux coïncidaient. Dès qu'un jour est descendu, **4,2 % des jours de repos sont
+passés sous 0,8 g/kg** (0 % avant), pire cas 64 g pour un plancher à 70.
+➡️ `dayRatioWithFatFloor` applique le plancher à la cible DU JOUR, sur **les deux**
+chemins (génération ET recalage) — 0,3 % après. Et il est **borné à `target_fat_g`** :
+un plancher empêche de descendre, il ne relève jamais la cible.
+
+**Ce que ça coûte, mesuré et assumé** (480 semaines) : quasi-doublons de famille
+9,0 % → 9,6 %, précision calorique du jour 0,34 % → 0,39 %, recettes distinctes
+min 49 → 53. Mais le plan **canonique** passe de 11,7 % à 16,7 %, et le canonique
+gagne **6 repas hors cible** (0 avant) — les six sur **un seul profil**, F 55 kg en
+sèche vegan / vegan+sans gluten, tous les JOURS DE REPOS (1328 kcal), où le catalogue
+n'a ni dîner ni collation assez petits. C'est la limite de vivier déjà consignée, pas
+un défaut de sélection : la dégradation est **nulle en omnivore** (1 semaine avant,
+1 après) et entière dans les régimes végétaux.
+➡️ **Prochaine vague de catalogue : des petits formats vegan / vegan+SG** (dîners et
+collations pour petits gabarits en sèche). C'est le seul levier qui reste.
+
+➡️ Contrôle : `npm run mesure:volume`. Garde-fou : `lib/__tests__/volumeConcentre.test.ts`.
+
 ### Répartition entre repas — plancher protéique (`lib/planEngine.ts`)
 
 La cible d'un repas est une part du budget **restant** du jour : le report de repas en

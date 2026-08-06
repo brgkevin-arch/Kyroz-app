@@ -110,9 +110,36 @@ describe('rotation par FAMILLE (protéine × féculent)', () => {
     // le vegan est le pool le plus mince du catalogue (41,7 % canonique contre 30,6 %
     // régénéré ; en vegan+sans gluten, 50 % des DEUX côtés — le reroll n'y peut rien
     // non plus). C'est une limite de CATALOGUE consignée en D19/B7, pas de sélection.
+    // ⚠️ PANEL ÉLARGI AUX 12 GABARITS DE RÉFÉRENCE LE 2026-08-06, et ce n'est pas un
+    // assouplissement — c'est ce que le commentaire ci-dessus dit déjà mesurer. Les TROIS
+    // gabarits d'origine ne pouvaient pas porter un seuil de 15 points : sur 15 semaines,
+    // UNE semaine en vaut 6,7, donc le verdict se jouait à trois plans près. Pire, l'un
+    // des trois (F 55 sèche) est précisément le profil dont le vivier vegan est le plus
+    // mince — il pesait un tiers de l'échantillon et décidait seul du résultat.
+    //
+    // Second défaut de construction, révélé par la répartition du budget par volume : le
+    // seuil est RELATIF au plan régénéré, donc il se resserre quand celui-ci s'améliore.
+    // Le reroll est passé de 9,4 % à 6,1 % (un progrès), ce qui abaissait mécaniquement
+    // le plafond du canonique de ~24 % à ~21 %. Un garde-fou ne doit pas durcir parce
+    // qu'autre chose va mieux.
+    //
+    // Mesuré sur le panel élargi : canonique 16,7 % contre 6,1 % au régénéré, soit
+    // 10,6 points d'écart pour 15 autorisés. La marge s'est réduite (2,3 points avant la
+    // répartition) : c'est réel, c'est consigné, et c'est une limite de CATALOGUE — les
+    // 6 repas hors cible du canonique sont TOUS sur F 55 sèche vegan / vegan+SG, les
+    // jours de repos, où aucun dîner ni collation n'est assez petit.
     const GABARITS: Partial<UserProfile>[] = [
       { sex: 'female', weight_kg: 55, height_cm: 162, goal: 'cut' },
+      { sex: 'female', weight_kg: 60, height_cm: 165, goal: 'maintain' },
+      { sex: 'female', weight_kg: 65, height_cm: 167, goal: 'cut' },
+      { sex: 'female', weight_kg: 65, height_cm: 167, goal: 'maintain' },
+      { sex: 'female', weight_kg: 70, height_cm: 168, goal: 'bulk' },
+      { sex: 'female', weight_kg: 80, height_cm: 170, age: 35, goal: 'cut' },
+      { sex: 'male', weight_kg: 65, height_cm: 173, goal: 'cut' },
+      { sex: 'male', weight_kg: 70, height_cm: 175, goal: 'maintain' },
+      { sex: 'male', weight_kg: 80, height_cm: 180, goal: 'cut' },
       { sex: 'male', weight_kg: 80, height_cm: 180, goal: 'maintain' },
+      { sex: 'male', weight_kg: 95, height_cm: 183, goal: 'bulk' },
       { sex: 'male', weight_kg: 110, height_cm: 190, age: 35, goal: 'bulk' },
     ];
     const REGIMES: DietaryRestriction[][] = [
