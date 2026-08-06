@@ -12,6 +12,15 @@ interface Props {
   children: React.ReactNode;
 }
 
+// Distance à dépasser pour que la feuille se ferme — même seuil que le glissement
+// à la poignée, pour que les deux gestes se ressemblent.
+const SEUIL_FERMETURE = 90;
+// ⚠️ Suivi VOLONTAIREMENT partiel. Le rebond décale déjà le contenu de `-y` ; si la
+// feuille se déplaçait aussi de `-y`, l'écart à l'écran doublerait et le contenu
+// filerait deux fois plus vite que le doigt. À 0,5 le doigt et le contenu vont
+// ensemble. Valeur réglée à l'œil au simulateur, pas déduite.
+const SUIVI = 0.5;
+
 /**
  * Feuille modale « à la Trade Republic » : glisser vers le bas (poignée) ou
  * taper le fond pour fermer. Animée, compatible web + natif.
@@ -90,11 +99,58 @@ export function Sheet({ visible, onClose, children }: Props) {
     })
   ).current;
 
+  // ── Jonction défilement ↔ fermeture ────────────────────────────────────────
+  //
+  // Sans ça, le contenu et la feuille sont DEUX mondes séparés : arrivé en haut de
+  // la recette, on continue de tirer vers le bas et… rien. Sur iOS, les deux gestes
+  // n'en font qu'un. On ne peut pas reprendre le geste au `ScrollView` natif une
+  // fois qu'il l'a pris (son reconnaisseur est natif, le JS ne le lui retire pas) —
+  // alors on se sert de LUI : quand on tire au-delà du haut, `contentOffset.y`
+  // devient NÉGATIF (le rebond élastique). Cette valeur est le geste, déjà mesuré
+  // par le système. Il suffit de la lire.
+  //
+  // `dragging` : les événements de défilement continuent d'arriver pendant le
+  // retour élastique, APRÈS le relâchement. Sans ce drapeau, ils écraseraient
+  // l'animation de fermeture qu'on vient de lancer.
+  const dragging = useRef(false);
+
+  const sheetScrollProps = {
+    scrollEventThrottle: 16,
+    onScrollBeginDrag: () => { dragging.current = true; },
+    onScroll: (e: any) => {
+      if (!dragging.current) return;
+      const y = e.nativeEvent.contentOffset.y;
+      ty.setValue(y < 0 ? -y * SUIVI : 0);
+    },
+    onScrollEndDrag: (e: any) => {
+      dragging.current = false;
+      const depasse = -e.nativeEvent.contentOffset.y;
+      if (depasse > SEUIL_FERMETURE) onClose();
+      else Animated.spring(ty, { toValue: 0, useNativeDriver: true, bounciness: 2 }).start();
+    },
+  };
+
   // On injecte les poignées de drag dans l'enfant (ex. RecipeDetail) pour rendre
-  // son en-tête glissable aussi.
-  const child = React.isValidElement(children)
-    ? React.cloneElement(children as React.ReactElement<any>, { dragHandlers: pan.panHandlers })
-    : children;
+  // son en-tête glissable aussi, et les props de défilement pour son ScrollView.
+  //
+  // ⚠️ `React.Children.map` et non `isValidElement(children)`. L'ancienne version
+  // testait l'ENFANT UNIQUE : dès qu'une feuille en contenait plusieurs, `children`
+  // devenait un tableau, le test tombait à faux et **plus rien n'était injecté**.
+  // C'était le cas du sélecteur d'éditeurs de Profil et de ses HUIT enfants
+  // conditionnels (`{editor === 'info' && …}`) : ses en-têtes n'ont jamais été
+  // glissables, alors que le code pour le faire était bien là, écrit et inerte.
+  //
+  // Le filtre `typeof c.type === 'function'` cible nos composants React et épargne
+  // les vues natives (`<View>`, `<Text>`), à qui ces props ne veulent rien dire et
+  // qui s'en plaindraient dans la console.
+  const child = React.Children.map(children, (c) =>
+    React.isValidElement(c) && typeof (c as any).type === 'function'
+      ? React.cloneElement(c as React.ReactElement<any>, {
+          dragHandlers: pan.panHandlers,
+          sheetScrollProps,
+        })
+      : c
+  );
 
   return (
     <Modal visible={render} transparent animationType="none" onRequestClose={onClose}>

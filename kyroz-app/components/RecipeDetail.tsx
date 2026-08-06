@@ -29,9 +29,10 @@ interface Props {
   onEdit?: () => void;        // si fourni, affiche le bouton « personnaliser »
   custom?: boolean;           // recette déjà personnalisée → badge
   dragHandlers?: any;         // injecté par <Sheet> : rend l'en-tête glissable
+  sheetScrollProps?: any;     // injecté par <Sheet> : lie le défilement à la fermeture
 }
 
-export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adaptedMacros, adaptFlags, adaptGap, restrictionRelaxed, onClose, onCook, onSkip, onResetStatus, status, onSwap, onDislike, onEdit, custom, dragHandlers }: Props) {
+export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adaptedMacros, adaptFlags, adaptGap, restrictionRelaxed, onClose, onCook, onSkip, onResetStatus, status, onSwap, onDislike, onEdit, custom, dragHandlers, sheetScrollProps }: Props) {
   const t = useTheme();
   const layout = useLayout();
   const s = useMemo(() => makeStyles(t, layout.isTablet), [t, layout.isTablet]);
@@ -69,7 +70,7 @@ export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adapted
 
   return (
     <View style={s.safe}>
-      <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false} {...(sheetScrollProps ?? {})}>
         <View style={s.header} {...(dragHandlers ?? {})}>
           <View style={{ flex: 1, gap: 6 }}>
             <Text style={s.name}>{recipe.name_fr}</Text>

@@ -33,13 +33,14 @@ const frDate = (iso: string): string => {
 };
 
 export function OffPlanHistory({
-  t, entries, onRemove, dragHandlers,
+  t, entries, onRemove, dragHandlers, sheetScrollProps,
 }: {
   t: ThemePalette;
   entries: OffPlanEntry[];
   /** Retire une entrée par son rang dans la liste AFFICHÉE (récente d'abord). */
   onRemove: (index: number) => void;
   dragHandlers?: any;
+  sheetScrollProps?: any;     // injecté par <Sheet> : lie le défilement à la fermeture
 }) {
   const s = useMemo(() => makeStyles(t), [t]);
   const { confirm } = useDialog();
@@ -76,7 +77,7 @@ export function OffPlanHistory({
           </Text>
         </View>
       ) : (
-        <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent} showsVerticalScrollIndicator={false}>
+        <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent} showsVerticalScrollIndicator={false} {...(sheetScrollProps ?? {})}>
           {liste.map((e, i) => {
             const phrase = describeOutcome(e);
             return (

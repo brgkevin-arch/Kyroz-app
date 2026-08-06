@@ -655,14 +655,18 @@ function Box({ t, v, l, u = '' }: { t: ThemePalette; v: number; l: string; u?: s
 
 // ── Coquille d'éditeur (en-tête + scroll + bouton) ───────────────────────────
 function EditorShell({
-  t, title, children, onSave, canSave = true, dragHandlers,
-}: { t: ThemePalette; title: string; children: React.ReactNode; onSave: () => void; canSave?: boolean; dragHandlers?: any }) {
+  t, title, children, onSave, canSave = true, dragHandlers, sheetScrollProps,
+}: { t: ThemePalette; title: string; children: React.ReactNode; onSave: () => void; canSave?: boolean; dragHandlers?: any; sheetScrollProps?: any }) {
   return (
     <View style={{ flex: 1, backgroundColor: t.bg }}>
       <View style={{ paddingHorizontal: Spacing.xxl, paddingBottom: 8 }} {...(dragHandlers ?? {})}>
         <Text style={{ color: t.text, ...Type.h2 }}>{title}</Text>
       </View>
-      <ScrollView contentContainerStyle={{ padding: Spacing.xxl, paddingTop: 12, gap: 16 }} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={{ padding: Spacing.xxl, paddingTop: 12, gap: 16 }}
+        showsVerticalScrollIndicator={false}
+        {...(sheetScrollProps ?? {})}
+      >
         {children}
       </ScrollView>
       <View style={{ padding: Spacing.xxl, paddingTop: 8, borderTopWidth: 1, borderTopColor: t.line }}>
@@ -672,10 +676,10 @@ function EditorShell({
   );
 }
 
-type EditorProps = { t: ThemePalette; profile: UserProfile; onSave: (p: UserProfile) => void; dragHandlers?: any };
+type EditorProps = { t: ThemePalette; profile: UserProfile; onSave: (p: UserProfile) => void; dragHandlers?: any; sheetScrollProps?: any };
 
 // ── Éditeurs ─────────────────────────────────────────────────────────────────
-function InfoEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
+function InfoEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: EditorProps) {
   const [sex, setSex] = useState<Sex>(profile.sex);
   // Date de naissance plutôt qu'âge : l'âge en est DÉRIVÉ et ne pourrit plus (cf.
   // lib/birthday.ts). ⚠️ Elle est ABSENTE des comptes créés avant le 2026-08-02 —
@@ -710,7 +714,7 @@ function InfoEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
   // `sports`), et withRecalc recalcule le TDEE avec le nouveau poids/%MG.
   const submit = () => { if (valid) onSave(withRecalc(draft)); };
   return (
-    <EditorShell t={t} title="Informations" onSave={submit} canSave={valid} dragHandlers={dragHandlers}>
+    <EditorShell t={t} title="Informations" onSave={submit} canSave={valid} dragHandlers={dragHandlers} sheetScrollProps={sheetScrollProps}>
       {blockMsg && (
         <Card t={t}>
           <Text style={{ color: t.danger, fontSize: 13, lineHeight: 19, fontWeight: '600' }}>{blockMsg}</Text>
@@ -836,7 +840,7 @@ function EngineNoticeCard({ t, notice, onAdjust, onDismiss }: {
   );
 }
 
-function SportsProfileEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
+function SportsProfileEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: EditorProps) {
   const [sports, setSports] = useState<SportSession[]>(profile.sports ?? []);
   const [neat, setNeat] = useState<NeatLevel>(profile.neat_level ?? DEFAULT_NEAT_LEVEL);
   const [restDays, setRestDays] = useState<number[]>(effectiveRestWeekdays(profile));
@@ -849,7 +853,7 @@ function SportsProfileEditor({ t, profile, onSave, dragHandlers }: EditorProps) 
     rest_weekdays: orderedWeekdays(restDays.filter((d) => !planWeekdays.length || planWeekdays.includes(d))),
   }));
   return (
-    <EditorShell t={t} title="Sport & activité" onSave={submit} dragHandlers={dragHandlers}>
+    <EditorShell t={t} title="Sport & activité" onSave={submit} dragHandlers={dragHandlers} sheetScrollProps={sheetScrollProps}>
       {/* Le NEAT vient EN PREMIER : c'est la base sur laquelle le sport s'ajoute, et
           l'ordre inverse invite à répondre « je suis actif » en pensant à ses séances
           — qui sont déjà comptées juste en dessous. */}
@@ -869,7 +873,7 @@ function SportsProfileEditor({ t, profile, onSave, dragHandlers }: EditorProps) 
   );
 }
 
-function GoalEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
+function GoalEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: EditorProps) {
   const [goal, setGoal] = useState<Goal>(profile.goal);
   // L'éligibilité était branchée sur l'onboarding et l'objectif daté seulement :
   // une personne en insuffisance pondérale se voyait refuser la sèche à l'inscription
@@ -877,7 +881,7 @@ function GoalEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
   const blockMsg = eligibilityMessage(checkEligibility({ ...profile, goal }, profile.goal_target));
   const submit = () => { if (!blockMsg) onSave(withRecalc({ ...profile, goal })); };
   return (
-    <EditorShell t={t} title="Objectif" onSave={submit} canSave={!blockMsg} dragHandlers={dragHandlers}>
+    <EditorShell t={t} title="Objectif" onSave={submit} canSave={!blockMsg} dragHandlers={dragHandlers} sheetScrollProps={sheetScrollProps}>
       {GOALS.map((g) => <OptionCard key={g} t={t} title={goalLabel(g)} selected={goal === g} onPress={() => setGoal(g)} />)}
       {/* « Sèche rapide » a été retiré parce qu'il servait le même plan que « Sèche » :
           le plancher de sécurité absorbait l'écart. Plutôt que de laisser croire à un
@@ -899,7 +903,7 @@ function GoalEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
   );
 }
 
-function DatedGoalEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
+function DatedGoalEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: EditorProps) {
   const today = todayStamp();
   const existing = profile.goal_target;
   const [targetWeight, setTargetWeight] = useState(
@@ -996,7 +1000,7 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
   const remove = () => onSave(withRecalc({ ...profile, goal_target: undefined }));
 
   return (
-    <EditorShell t={t} title="Objectif daté" onSave={submit} canSave={validWeight && !goalBlockMsg} dragHandlers={dragHandlers}>
+    <EditorShell t={t} title="Objectif daté" onSave={submit} canSave={validWeight && !goalBlockMsg} dragHandlers={dragHandlers} sheetScrollProps={sheetScrollProps}>
       <Text style={{ color: t.textSecondary, fontSize: 13, lineHeight: 18 }}>
         Fixe un poids et une échéance : Kyroz ajuste tes calories jour après jour pour t'y amener au rythme le plus rapide — mais sûr.
       </Text>
@@ -1132,7 +1136,7 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
   );
 }
 
-function MacroEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
+function MacroEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: EditorProps) {
   const { notify } = useDialog();
   // 'manual' (legacy) est ramené sur 'percent' : on ne propose plus les grammes fixes.
   const [mode, setMode] = useState<'auto' | 'percent'>(profile.macro_mode === 'auto' ? 'auto' : 'percent');
@@ -1163,7 +1167,7 @@ function MacroEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
   };
 
   return (
-    <EditorShell t={t} title="Calories & macros" onSave={submit} dragHandlers={dragHandlers}>
+    <EditorShell t={t} title="Calories & macros" onSave={submit} dragHandlers={dragHandlers} sheetScrollProps={sheetScrollProps}>
       <Segmented<'auto' | 'percent'> t={t} options={[{ label: 'Calculées', value: 'auto' }, { label: 'Perso %', value: 'percent' }]} value={mode} onChange={setMode} />
       {mode === 'auto' ? (
         <Card t={t} style={{ gap: 12 }}>
@@ -1186,7 +1190,7 @@ function MacroEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
   );
 }
 
-function PrefEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
+function PrefEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: EditorProps) {
   const [restrictions, setRestrictions] = useState<DietaryRestriction[]>(profile.dietary_restrictions);
   const [proteins, setProteins] = useState<string[]>(profile.preferred_proteins);
   const [dislikes, setDislikes] = useState<string[]>(profile.disliked_foods);
@@ -1196,7 +1200,7 @@ function PrefEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
   const tog = <T,>(arr: T[], v: T, set: (x: T[]) => void) => set(arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
   const submit = () => onSave({ ...profile, dietary_restrictions: restrictions, preferred_proteins: proteins, disliked_foods: dislikes, hidden_recipes: hidden });
   return (
-    <EditorShell t={t} title="Préférences" onSave={submit} dragHandlers={dragHandlers}>
+    <EditorShell t={t} title="Préférences" onSave={submit} dragHandlers={dragHandlers} sheetScrollProps={sheetScrollProps}>
       <SectionLabel t={t}>Régime</SectionLabel>
       <View style={styles.wrap}>{RESTRICTIONS.map((r) => <Chip key={r.value} t={t} label={r.label} selected={restrictions.includes(r.value)} onPress={() => tog(restrictions, r.value, setRestrictions)} />)}</View>
       <SectionLabel t={t}>Protéines préférées</SectionLabel>
@@ -1233,7 +1237,7 @@ function RestDaysPicker({ t, available, value, onToggle }: { t: ThemePalette; av
   );
 }
 
-function MealsEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
+function MealsEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: EditorProps) {
   const [weekdays, setWeekdays] = useState<number[]>(profile.plan_weekdays ?? [1, 2, 3, 4, 5, 6, 0]);
   const [restDays, setRestDays] = useState<number[]>(effectiveRestWeekdays(profile));
   // ⚠️ `?? [...]` ne suffit PAS : un `meals` non-tableau (vu en vrai : le NOMBRE 4) est
@@ -1277,6 +1281,7 @@ function MealsEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
 
   // Sous-vue : définir le repas géré par l'user (remplace l'éditeur le temps de la saisie).
   if (definingMeal) {
+    // Pas de `sheetScrollProps` ici : cette feuille n'a pas de ScrollView.
     return (
       <FixedMealSheet
         t={t} mealType={definingMeal} initial={fixedMeals[definingMeal]}
@@ -1287,7 +1292,7 @@ function MealsEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
   }
 
   return (
-    <EditorShell t={t} title="Paramètres des repas" onSave={submit} canSave={weekdays.length >= 1 && meals.length >= 1} dragHandlers={dragHandlers}>
+    <EditorShell t={t} title="Paramètres des repas" onSave={submit} canSave={weekdays.length >= 1 && meals.length >= 1} dragHandlers={dragHandlers} sheetScrollProps={sheetScrollProps}>
       <SectionLabel t={t}>Jours du plan</SectionLabel>
       <View style={styles.wrap}>{WEEKDAY_OPTS.map((d) => <Chip key={d.val} t={t} label={d.label} selected={weekdays.includes(d.val)} onPress={() => togDay(d.val)} />)}</View>
       <RestDaysPicker t={t} available={weekdays} value={restDays} onToggle={togRestDay} />
@@ -1395,7 +1400,7 @@ function bankResume(p: UserProfile): string {
 
 const BANK_PRESETS = [200, 400, 600, 900];
 
-function CalorieBankEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
+function CalorieBankEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: EditorProps) {
   const [bank, setBank] = useState<Record<string, number>>(profile.calorie_bank ?? {});
   const [jour, setJour] = useState<number | null>(null);
 
@@ -1424,7 +1429,7 @@ function CalorieBankEditor({ t, profile, onSave, dragHandlers }: EditorProps) {
   const marge = profile.target_kcal - bankFloorKcal(profile);
 
   return (
-    <EditorShell t={t} title="Banque de calories" onSave={() => onSave({ ...profile, calorie_bank: Object.keys(bank).length ? bank : undefined })} dragHandlers={dragHandlers}>
+    <EditorShell t={t} title="Banque de calories" onSave={() => onSave({ ...profile, calorie_bank: Object.keys(bank).length ? bank : undefined })} dragHandlers={dragHandlers} sheetScrollProps={sheetScrollProps}>
       <Text style={{ color: t.textSecondary, fontSize: 14, lineHeight: 20 }}>
         Un resto, un anniversaire ? Dis-le à Kyroz : il répartit l'écart sur tes autres
         jours de la semaine. Tes protéines ne bougent pas, et aucun jour ne descend sous

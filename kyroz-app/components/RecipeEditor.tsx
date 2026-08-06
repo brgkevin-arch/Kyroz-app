@@ -14,6 +14,7 @@ interface Props {
   onReset: () => void;
   onCancel: () => void;
   dragHandlers?: any;
+  sheetScrollProps?: any;     // injecté par <Sheet> : lie le défilement à la fermeture
 }
 
 type IngDraft = { name: string; quantity_g: string; unit?: string; food_id?: string };
@@ -23,7 +24,7 @@ const num = (s: string) => {
   return Number.isFinite(n) ? n : 0;
 };
 
-export function RecipeEditor({ t, recipe, isCustom, onSave, onReset, onCancel, dragHandlers }: Props) {
+export function RecipeEditor({ t, recipe, isCustom, onSave, onReset, onCancel, dragHandlers, sheetScrollProps }: Props) {
   const s = useMemo(() => makeStyles(t), [t]);
 
   const [name, setName] = useState(recipe.name_fr);
@@ -109,7 +110,7 @@ export function RecipeEditor({ t, recipe, isCustom, onSave, onReset, onCancel, d
         <Text style={s.sub}>Ajuste-la comme TU l'aimes — ta version sera utilisée partout.</Text>
       </View>
 
-      <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" {...(sheetScrollProps ?? {})}>
         <Field t={t} label="Nom" value={name} onChangeText={setName} autoCapitalize="sentences" />
 
         <View style={s.row2}>

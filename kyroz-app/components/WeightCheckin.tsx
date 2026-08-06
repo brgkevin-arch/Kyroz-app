@@ -19,6 +19,7 @@ interface Props {
   t: ThemePalette;
   onClose?: () => void;
   dragHandlers?: any;
+  sheetScrollProps?: any;     // injecté par <Sheet> : lie le défilement à la fermeture
 }
 
 const frDate = (iso: string) =>
@@ -29,7 +30,7 @@ const FUTURE_DAYS = 7;   // jours futurs grisés (aperçu) à gauche
 const CHIP_W = 46;
 const CHIP_GAP = 6;
 
-export function WeightCheckin({ t, onClose, dragHandlers }: Props) {
+export function WeightCheckin({ t, onClose, dragHandlers, sheetScrollProps }: Props) {
   const s = useMemo(() => makeStyles(t), [t]);
   const { entries, photos, last, logWeight, removeWeight, setPhoto } = useWeightLog();
   const { confirm, choose } = useDialog();
@@ -182,7 +183,9 @@ export function WeightCheckin({ t, onClose, dragHandlers }: Props) {
         </Text>
       </View>
 
-      <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+      {/* Seul le ScrollView VERTICAL reçoit `sheetScrollProps` — la timeline
+          horizontale juste en dessous ne doit pas fermer la feuille. */}
+      <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" {...(sheetScrollProps ?? {})}>
         {/* Sélecteur de date : aujourd'hui centré · passé à droite · futur grisé à gauche */}
         <ScrollView
           ref={stripRef}

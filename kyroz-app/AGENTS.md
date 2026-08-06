@@ -3196,6 +3196,37 @@ produit en suspens — il ne reste qu'à coder.
   (`strings -a` sur le `.hbc`) : URL Supabase **1**, `sb_publishable_` **1**,
   `sk-ant-` **0**.
 
+- ~~**E14 · Le défilement et la fermeture étaient deux mondes séparés — et huit
+  feuilles ne recevaient RIEN**~~ ✅ **CORRIGÉ le 2026-08-06, mesuré au simulateur.**
+  Remonté par le fondateur après E12 : « on peut scroller le repas sans que ça ferme
+  la feuille, j'aimerais fusionner les deux ». Sur iOS les deux gestes n'en font
+  qu'un — arrivé en haut du contenu, on continue de tirer et la feuille suit.
+  **Comment**, sans dépendance native : on ne peut pas reprendre le geste au
+  `ScrollView` (son reconnaisseur est natif), **alors on se sert de lui**. Tirer
+  au-delà du haut rend `contentOffset.y` NÉGATIF — le rebond élastique. Cette valeur
+  EST le geste, déjà mesuré par le système ; `Sheet` la lit via un jeu de props
+  (`sheetScrollProps`) posé sur le ScrollView de chaque contenu.
+  ⚠️ Suivi à **0,5** et non 1 : le rebond décale déjà le contenu de `-y`, un suivi
+  plein ferait filer l'écart à l'écran deux fois plus vite que le doigt.
+  ⚠️ Le drapeau `dragging` n'est pas décoratif : les événements de défilement
+  continuent d'arriver PENDANT le retour élastique, après le relâchement, et
+  écraseraient l'animation de fermeture qu'on vient de lancer.
+  🔴 **Trouvé en chemin, et plus grave que la demande** : `Sheet` testait
+  `React.isValidElement(children)` — donc l'ENFANT UNIQUE. Le sélecteur d'éditeurs de
+  Profil a **huit** enfants conditionnels (`{editor === 'info' && …}`) : `children` y
+  est un TABLEAU, le test tombait à faux, et **plus rien n'était injecté**. Les huit
+  éditeurs de profil n'ont donc jamais eu d'en-tête glissable — le code pour le faire
+  était écrit, câblé, et **inerte**. Remplacé par `React.Children.map`, avec un filtre
+  `typeof c.type === 'function'` pour n'injecter que dans nos composants et épargner
+  les vues natives.
+  **Périmètre vérifié un par un** (la demande était « check chaque point ») : contenus
+  scrollables = `RecipeDetail`, `WeightCheckin`, `RecipeEditor`, `OffPlanHistory`,
+  `EditorShell` (= 8 éditeurs). Sans défilement, donc hors sujet : `OffPlanSheet`,
+  `DislikeSheet`, `FixedMealSheet`, `PlanCheckin`. ⚠️ Dans `WeightCheckin`, seul le
+  ScrollView VERTICAL est équipé — la timeline horizontale ne doit pas fermer la feuille.
+  Mesuré : fiche recette, tirer depuis le contenu ✅ ferme · défiler puis remonter
+  ✅ ne ferme PAS · éditeur de profil, tirer depuis le titre ✅ ferme (ne marchait pas).
+
 - ~~**E13 · Trois écarts corrigés dans la foulée**~~ ✅ **2026-08-05.**
   **(a)** Le bouton « Continuer » de l'onboarding était **plein et franc** alors qu'il
   refusait d'avancer — le seul retour arrivait APRÈS le clic. `PrimaryButton` ne
