@@ -55,7 +55,7 @@ import { deadlineLadder, formatHorizon } from '../../lib/goalLadder';
 import { DatedGoalCard, formatFR } from '../../components/DatedGoalCard';
 import { todayStamp } from '../../lib/weight';
 import {
-  ActivityLevel, DietaryRestriction, EngineNotice, FixedMeals, Goal, GoalTarget, MEAL_ORDER, MealEmphasis, MealType, NeatLevel, Sex, SportSession, UserProfile, VarietyPreference,
+  ActivityLevel, BodyFatSource, DietaryRestriction, EngineNotice, FixedMeals, Goal, GoalTarget, MEAL_ORDER, MealEmphasis, MealType, NeatLevel, Sex, SportSession, UserProfile, VarietyPreference,
 } from '../../lib/types';
 import { totalSessionsPerWeek } from '../../lib/sport';
 import { restDaySet } from '../../lib/planEngine';
@@ -689,6 +689,7 @@ function InfoEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: Edit
   const [weight, setWeight] = useState(String(profile.weight_kg));
   const [height, setHeight] = useState(String(profile.height_cm));
   const [bodyFat, setBodyFat] = useState<number | undefined>(profile.body_fat_pct);
+  const [bodyFatSource, setBodyFatSource] = useState<BodyFatSource | undefined>(profile.body_fat_source);
   const aN = ageOn(birthDate, todayStamp()) ?? profile.age;
   const wN = parseFloat(weight), hN = parseFloat(height);
   // Bornes tirées de lib/safety.ts, PAS réécrites en dur : elles divergeaient de
@@ -696,7 +697,7 @@ function InfoEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: Edit
   // câblé que côté onboarding, donc on pouvait saisir 18 puis repasser à 16 ici ;
   // et 40–250 kg contre 30–300, ce qui verrouillait l'écran pour un profil onboardé
   // hors de cette plage : bouton « Enregistrer » désactivé en permanence).
-  const draft = { ...profile, sex, age: aN, birth_date: birthDate, weight_kg: wN, height_cm: hN, body_fat_pct: bodyFat };
+  const draft = { ...profile, sex, age: aN, birth_date: birthDate, weight_kg: wN, height_cm: hN, body_fat_pct: bodyFat, body_fat_source: bodyFatSource };
   const inBounds =
     aN >= AGE_BOUNDS[0] && aN <= AGE_BOUNDS[1] &&
     wN >= WEIGHT_BOUNDS[0] && wN <= WEIGHT_BOUNDS[1] &&
@@ -735,7 +736,11 @@ function InfoEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: Edit
       <SectionLabel t={t}>Masse grasse (optionnel)</SectionLabel>
       {/* `draft` : le repère de plausibilité chiffre l'impact sur le corps EN COURS
           d'édition, pas sur le profil enregistré. */}
-      <BodyFatPicker t={t} sex={sex} value={bodyFat} onChange={setBodyFat} body={draft} />
+      <BodyFatPicker
+        t={t} sex={sex} value={bodyFat} source={bodyFatSource}
+        onChange={(pct, src) => { setBodyFat(pct); setBodyFatSource(src); }}
+        body={draft}
+      />
     </EditorShell>
   );
 }
@@ -804,7 +809,15 @@ function EngineNoticeCard({ t, notice, onAdjust, onDismiss }: {
   //    servie en entier » ne veut rien dire.
   const depuis = notice.fromRev ?? 1;
   const monte = notice.to > notice.from;
-  const explication = notice.rev >= 5 && depuis >= 4 && !monte
+  const explication = notice.rev >= 6 && depuis >= 5
+    // rev 6 (2026-08-06) — Katch-McArdle exige désormais un %MG MESURÉ. La cible peut
+    // monter ou baisser selon le sens de l'erreur d'estimation, donc le texte ne prend
+    // PAS parti sur le signe : il explique la cause, qui est la même dans les deux cas.
+    // Aucun jargon (« Katch », « métabolisme de base ») et aucun reproche — la personne
+    // n'a rien fait de mal, c'est le moteur qui cesse de prétendre à une précision
+    // qu'un chiffre estimé n'a pas.
+    ? 'Kyroz s\'appuyait sur ton pourcentage de masse grasse comme s\'il était mesuré. Tant qu\'il est estimé, il repart d\'un calcul plus prudent — ton pourcentage reste affiché, il ne sert simplement plus de base à ta dépense.'
+    : notice.rev >= 5 && depuis >= 4 && !monte
     // rev 5 (A15) — la cible BAISSE, et pour une raison précise : la date visée ne
     // tenait pas et Kyroz servait quand même le rythme « juste requis », donc il
     // freinait sans le dire. Le ton reste celui de la §10 : on annonce un moteur qui

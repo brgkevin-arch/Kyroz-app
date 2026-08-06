@@ -21,7 +21,7 @@ import {
 } from '../../lib/safety';
 import { DislikedFoodsField } from '../../components/DislikedFoodsField';
 import {
-  ActivityLevel, DietaryRestriction, Goal, MEAL_ORDER, MealType, Sex, SportSession, UserProfile, VarietyPreference,
+  ActivityLevel, BodyFatSource, DietaryRestriction, Goal, MEAL_ORDER, MealType, Sex, SportSession, UserProfile, VarietyPreference,
 } from '../../lib/types';
 import {
   validateProfile, goalLabel, recalcProfile,
@@ -123,6 +123,9 @@ export default function Onboarding() {
   const [weight, setWeight] = useState('');
   const [height, setHeight] = useState('');
   const [bodyFat, setBodyFat] = useState<number | undefined>(undefined);
+  // Provenance du %MG : elle décide de la formule du BMR (cf. lib/tdee.ts).
+  // `undefined` tant que rien n'est choisi → le moteur calcule comme « estimé ».
+  const [bodyFatSource, setBodyFatSource] = useState<BodyFatSource | undefined>(undefined);
   const [sports, setSports] = useState<SportSession[]>([]);
   const [noSport, setNoSport] = useState(false); // « je ne fais pas de sport » → calcul base seule
   const [goal, setGoal] = useState<Goal>('cut');
@@ -209,6 +212,7 @@ export default function Onboarding() {
       id: `user-${Date.now()}`,
       sex, age: ageN, birth_date: birthDate, weight_kg: wN, height_cm: hN,
       body_fat_pct: bodyFat,
+      body_fat_source: bodyFatSource,
       activity_level: activityFromDays(trainingDaysEq),
       training_days_per_week: trainingDaysEq,
       sports: noSport ? [] : sports,
@@ -294,7 +298,8 @@ export default function Onboarding() {
                 chiffrer l'impact. Les séances (étape 4) ne comptent pas ici : elles
                 s'ajoutent au TDEE sans dépendre du %MG. */}
             <BodyFatPicker
-              t={t} sex={sex} value={bodyFat} onChange={setBodyFat}
+              t={t} sex={sex} value={bodyFat} source={bodyFatSource}
+              onChange={(pct, src) => { setBodyFat(pct); setBodyFatSource(src); }}
               body={{ sex, age: ageN, weight_kg: wN, height_cm: hN }}
             />
           </View>

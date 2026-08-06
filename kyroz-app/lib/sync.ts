@@ -43,6 +43,10 @@ const OVERRIDES_KEY = '@kyroz:recipeOverrides';
 // Aucun autre module ne l'importe — c'est un point d'observation, pas une API.
 export const PROFILE_COLS = [
   'sex', 'age', 'weight_kg', 'height_cm', 'body_fat_pct', 'activity_level', 'training_days_per_week',
+  // Provenance du %MG — migration 2026-08-06_profiles_body_fat_source.sql. Elle décide
+  // de la formule du BMR : sans elle en base, le cloud renverrait un profil dont le
+  // moteur recalculerait la cible en Mifflin à chaque hydratation.
+  'body_fat_source',
   // Date de naissance — migration 2026-08-02_profiles_birth_date.sql. `age` reste
   // synchronisée : elle est DÉRIVÉE de celle-ci quand elle existe, et reste la valeur
   // saisie pour les comptes antérieurs (cf. lib/birthday.ts).
@@ -71,7 +75,7 @@ export const PROFILE_COLS = [
 // transforme juste « synchro morte » en « tout passe sauf ces champs-là ».
 // Exporté pour que les TESTS lisent cette liste au lieu de la recopier : une
 // nouvelle migration ne doit pas faire rougir un test qui décrit l'ancienne.
-export const PROFILE_COLS_LAST_MIGRATION: string[] = ['birth_date'];
+export const PROFILE_COLS_LAST_MIGRATION: string[] = ['body_fat_source'];
 
 // ── Signal d'échec de synchro ────────────────────────────────────────────────
 //

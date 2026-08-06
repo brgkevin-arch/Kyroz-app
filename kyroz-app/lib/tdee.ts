@@ -1,4 +1,4 @@
-import { EngineNotice, FloorSource, Goal, GoalTarget, NeatLevel, PlanFlag, Sex, SportSession, UserProfile } from './types';
+import { BodyFatSource, EngineNotice, FloorSource, Goal, GoalTarget, NeatLevel, PlanFlag, Sex, SportSession, UserProfile } from './types';
 import { exerciseKcalPerDay, totalSessionsPerWeek } from './sport';
 import {
   datedGoalStatus, goalDirectionMismatch, MAX_DEFICIT_TDEE_RATIO, WeekPoint, WeeklyProjector,
@@ -29,21 +29,64 @@ export function leanBodyMass(sex: Sex, weight_kg: number, bodyFatPct: number): n
   return weight_kg * (1 - clamp(bodyFatPct, lo, hi) / 100);
 }
 
-// BMR — Katch-McArdle si le % de masse grasse est connu (basé sur la masse maigre,
-// donc bien plus précis quand deux personnes de même poids ont des compositions
-// différentes), sinon Mifflin-St Jeor (différenciée par sexe).
-export function calculateBMR(
-  sex: Sex,
-  weight_kg: number,
-  height_cm: number,
-  age: number,
-  bodyFatPct?: number
-): number {
-  if (typeof bodyFatPct === 'number' && bodyFatPct > 0) {
-    return Math.round(370 + 21.6 * leanBodyMass(sex, weight_kg, bodyFatPct));
+/**
+ * Corps minimal pour le métabolisme de base.
+ *
+ * ⚠️ **LA SIGNATURE EST UN OBJET, ET C'EST LE GARDE-FOU.** Elle était positionnelle
+ * (`calculateBMR(sex, poids, taille, âge, %MG)`), donc un appelant pouvait passer le
+ * %MG sans sa provenance — c'est-à-dire choisir Katch-McArdle sur une silhouette
+ * tapée au jugé, exactement ce que ce module existe désormais pour empêcher. Avec un
+ * corps unique, les deux champs ne peuvent plus être dissociés : il n'y a plus de
+ * geste « j'oublie le dernier argument », et `tsc` refuse l'ancien appel au lieu de
+ * le laisser passer en silence.
+ *
+ * Même famille de défaut que le plancher protéique passé en paramètre optionnel
+ * (CLAUDE.md §6) — sauf qu'ici on a RETIRÉ la possibilité d'oublier au lieu de la
+ * documenter. « Un paramètre de sécurité ne doit pas avoir de défaut permissif. »
+ */
+export type BmrBody = {
+  sex: Sex;
+  weight_kg: number;
+  height_cm: number;
+  age: number;
+  body_fat_pct?: number;
+  body_fat_source?: BodyFatSource;
+};
+
+/**
+ * Le %MG a-t-il le droit d'alimenter Katch-McArdle ? **Mesuré uniquement.**
+ *
+ * ⚠️ Test d'ÉGALITÉ à `'measured'`, et non une négation de `'estimated'` : une valeur
+ * inconnue — champ jamais renseigné, ligne cloud d'une version future, provenance
+ * corrompue — doit tomber du côté prudent. Nier `'estimated'` ouvrirait Katch à tout
+ * ce qui n'est pas exactement cette chaîne-là, ce qui est l'inverse du besoin.
+ */
+export function katchEligible(b: Pick<BmrBody, 'body_fat_pct' | 'body_fat_source'>): boolean {
+  return b.body_fat_source === 'measured'
+    && typeof b.body_fat_pct === 'number' && b.body_fat_pct > 0;
+}
+
+/**
+ * BMR — Katch-McArdle si le %MG est **MESURÉ** (basé sur la masse maigre, donc bien
+ * plus précis quand deux personnes de même poids ont des compositions différentes),
+ * sinon Mifflin-St Jeor (différenciée par sexe).
+ *
+ * ⚠️ « connu » ne suffit plus, il faut « mesuré » (2026-08-06, `ENGINE_REV` 5 → 6).
+ * Le %MG est OBLIGATOIRE à l'onboarding et le chemin par défaut y est le tap sur une
+ * silhouette : « connu » désignait donc, pour la quasi-totalité du parc, une
+ * ESTIMATION VISUELLE. Le %MG estimé continue d'être stocké, affiché, et de porter la
+ * masse maigre (plancher, protéines, rythme de perte) — il ne pilote plus le BMR.
+ *
+ * Ce que ça déplace, mesuré sur 12 corps de référence : cible servie médiane
+ * −26 kcal/j, min −183, max +233. Le plancher de sécurité, lui, ne bouge pas (0 sur
+ * 12/12 : c'est le candidat `energy_availability` qui gagne, et il ne lit pas le BMR).
+ */
+export function calculateBMR(b: BmrBody): number {
+  if (katchEligible(b)) {
+    return Math.round(370 + 21.6 * leanBodyMass(b.sex, b.weight_kg, b.body_fat_pct as number));
   }
-  const base = 10 * weight_kg + 6.25 * height_cm - 5 * age;
-  return Math.round(base + (sex === 'male' ? 5 : -161));
+  const base = 10 * b.weight_kg + 6.25 * b.height_cm - 5 * b.age;
+  return Math.round(base + (b.sex === 'male' ? 5 : -161));
 }
 
 // ── NEAT : la vie quotidienne HORS sport ─────────────────────────────────────
@@ -204,6 +247,8 @@ export type TdeeBody = {
   height_cm: number;
   age: number;
   body_fat_pct?: number;
+  /** Indispensable : sans elle, `calculateBMR` retombe sur Mifflin (cf. `BmrBody`). */
+  body_fat_source?: BodyFatSource;
   sports?: SportSession[];
   neat_level?: NeatLevel;
 };
@@ -224,14 +269,15 @@ export type TdeeBody = {
  * exactement ce qu'elle coûte, et `training_days_per_week` ne pilote plus rien ici
  * (il reste utile aux jours de repos et à la génération du plan).
  *
- * BMR : Katch-McArdle si `body_fat_pct` est fourni, sinon Mifflin-St Jeor.
+ * BMR : Katch-McArdle si `body_fat_pct` est **mesuré** (`body_fat_source`), sinon
+ * Mifflin-St Jeor. Cf. `calculateBMR`.
  *
  * Cette fonction est l'UNIQUE source de calcul du TDEE, et `recalcProfile` en est
  * l'UNIQUE producteur de la valeur stockée `tdee_kcal`. Tout écran lit la valeur
  * stockée — aucun ne recalcule par un chemin parallèle.
  */
 export function calculateTDEE(b: TdeeBody): number {
-  const bmr = calculateBMR(b.sex, b.weight_kg, b.height_cm, b.age, b.body_fat_pct);
+  const bmr = calculateBMR(b);
   return Math.round(bmr * neatPal(b.neat_level) + exerciseKcalPerDay(b.sports, b.weight_kg));
 }
 
@@ -497,7 +543,7 @@ export interface ClampRecord {
 function floorAndFlags(body: MacroBody, tdee: number, requestedKcal: number, opts: MacroOptions) {
   const sportKcalPerDay = opts.sportKcalPerDay ?? exerciseKcalPerDay(body.sports, body.weight_kg);
   const lowEaWeeks = opts.lowEaWeeks ?? 0;
-  const bmr = calculateBMR(body.sex, body.weight_kg, body.height_cm, body.age, body.body_fat_pct);
+  const bmr = calculateBMR(body);
   // `tdee` plafonne la composante EA : le plancher ne doit jamais imposer un surplus.
   const baseFloor = safetyFloorKcal(body, bmr, sportKcalPerDay, lowEaWeeks, tdee);
 
@@ -609,7 +655,7 @@ function floorAndFlags(body: MacroBody, tdee: number, requestedKcal: number, opt
  * emprunté est un jour rendu ailleurs dans la même semaine.
  */
 export function bankFloorKcal(p: UserProfile): number {
-  const bmr = calculateBMR(p.sex, p.weight_kg, p.height_cm, p.age, p.body_fat_pct);
+  const bmr = calculateBMR(p);
   return Math.round(Math.max(bmr, MIN_KCAL[p.sex]));
 }
 
@@ -738,10 +784,18 @@ export function macrosPercent(
  * encore connus — la cible n'existe pas. L'écart réel sur la cible est du même
  * ordre, souvent plus grand (le plancher de sécurité suit la masse maigre), donc
  * l'annonce reste PRUDENTE. Ne pas la présenter comme l'écart de cible.
+ *
+ * ⚠️ `source` N'EST PAS DÉCORATIF (2026-08-06). Depuis que Katch-McArdle exige un %MG
+ * mesuré, un %MG ESTIMÉ ne déplace plus la dépense : cette fonction rend alors 0, et
+ * l'écran ne doit pas annoncer de kcal. Sans ce paramètre elle continuerait de
+ * chiffrer un impact qui n'existe plus — « un chiffre affiché est celui qui sera
+ * servi », et ici il ne le serait plus.
  */
-export function bodyFatTdeeImpact(body: TdeeBody, declaredPct: number): number {
-  const avec = calculateTDEE({ ...body, body_fat_pct: declaredPct });
-  const sans = calculateTDEE({ ...body, body_fat_pct: undefined });
+export function bodyFatTdeeImpact(
+  body: TdeeBody, declaredPct: number, source?: BodyFatSource,
+): number {
+  const avec = calculateTDEE({ ...body, body_fat_pct: declaredPct, body_fat_source: source });
+  const sans = calculateTDEE({ ...body, body_fat_pct: undefined, body_fat_source: undefined });
   return Math.round(avec - sans);
 }
 
@@ -765,7 +819,9 @@ function servedTargetAt(
   const body: UserProfile = { ...p, weight_kg: weightKg };
   const tdee = calculateTDEE(body);
   const sportKcalPerDay = exerciseKcalPerDay(p.sports, weightKg);
-  const bmr = calculateBMR(body.sex, weightKg, body.height_cm, body.age, body.body_fat_pct);
+  // `body` porte DÉJÀ le poids projeté (`{ ...p, weight_kg: weightKg }`) : lui repasser
+  // `weightKg` à part rouvrirait la possibilité que les deux divergent.
+  const bmr = calculateBMR(body);
   const baseFloor = safetyFloorKcal(body, bmr, sportKcalPerDay, lowEaWeeks, tdee);
 
   // `project: null` → aucune récursion : c'est la présence d'un projecteur qui
@@ -848,6 +904,16 @@ export const ENGINE_REV_LEGACY = 1;
 /**
  * Révision courante — à INCRÉMENTER à chaque correction qui déplace les cibles.
  *
+ * rev 5 → 6 (2026-08-06) : Katch-McArdle exige désormais un %MG **MESURÉ**. Un %MG
+ * estimé (silhouette tapée, chiffre au jugé) repasse sur Mifflin-St Jeor. Déplace
+ * TOUS les profils dont la provenance n'est pas `measured` — c'est-à-dire, au
+ * lancement, la totalité du parc : la question n'existait pas. Mesuré sur 12 corps de
+ * référence, cible servie médiane **−26 kcal/j**, min −183, max **+233**. Le sens de
+ * l'écart suit celui de l'erreur : un %MG surestimé (silhouette trop grasse) faisait
+ * une cible trop basse, elle remonte ; un %MG sous-estimé faisait l'inverse.
+ * ⚠️ Le plancher de sécurité, lui, ne bouge PAS (0 kcal sur 12/12) : la masse maigre
+ * continue de lire le %MG déclaré, seul le métabolisme de base cesse de le faire.
+ *
  * rev 4 → 5 (2026-08-03, A15) : quand la date visée ne tient pas, le moteur sert le
  * rythme sûr MAXIMAL au lieu du rythme « juste requis ». Ne déplace QUE les profils
  * portant un objectif daté hors de portée — mesuré sur 8 corps de référence, les
@@ -866,7 +932,7 @@ export const ENGINE_REV_LEGACY = 1;
  * l'explication de la rev 2 à quelqu'un dont la cible a bougé pour une autre raison
  * serait un mensonge, pas une approximation.
  */
-export const ENGINE_REV = 5;
+export const ENGINE_REV = 6;
 
 /**
  * Seuil d'affichage (kcal/j, en valeur absolue). En dessous, l'écart tient dans le
@@ -935,7 +1001,7 @@ export function computePlan(rawProfile: UserProfile, today: string = todayStamp(
 
   const tdee = calculateTDEE(p);
   const sportKcalPerDay = exerciseKcalPerDay(p.sports, p.weight_kg);
-  const bmr = calculateBMR(p.sex, p.weight_kg, p.height_cm, p.age, p.body_fat_pct);
+  const bmr = calculateBMR(p);
 
   // ── Registre d'exposition en zone d'énergie disponible basse ───────────────
   // 1. On SOLDE d'abord les semaines écoulées depuis le début de l'exposition en

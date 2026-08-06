@@ -35,7 +35,10 @@ const BASE = {
  *  aux deux candidates. On n'utilise PAS ces formules pour conclure quoi que ce
  *  soit d'autre — uniquement pour nommer la branche prise. */
 function formuleEmpruntee(sex: Sex, w: number, h: number, age: number, bf?: number): string {
-  const moteur = calculateBMR(sex, w, h, age, bf);
+  // `measured` : ce diagnostic sert à nommer la formule empruntée quand le %MG a le
+  // DROIT d'alimenter Katch. Sans provenance, les deux branches rendraient Mifflin et
+  // le test ne dirait plus rien du sexe, qui est son sujet.
+  const moteur = calculateBMR({ sex, weight_kg: w, height_cm: h, age, body_fat_pct: bf, body_fat_source: 'measured' });
   const mifflin = Math.round(10 * w + 6.25 * h - 5 * age + (sex === 'male' ? 5 : -161));
   const katch = bf != null
     ? Math.round(370 + 21.6 * leanBodyMass(sex, w, bf))
@@ -46,10 +49,10 @@ function formuleEmpruntee(sex: Sex, w: number, h: number, age: number, bf?: numb
 }
 
 function radiographie(sex: Sex, bf: number | undefined) {
-  const p: UserProfile = makeProfile({ ...BASE, sex, body_fat_pct: bf });
+  const p: UserProfile = makeProfile({ ...BASE, sex, body_fat_pct: bf, body_fat_source: bf == null ? undefined : 'measured' });
   const { profile: r, floor_kcal, flags } = computePlan(p, TODAY);
 
-  const bmr = calculateBMR(sex, p.weight_kg, p.height_cm, p.age, bf);
+  const bmr = calculateBMR(p);
   const tdee = calculateTDEE(p);
   const sport = exerciseKcalPerDay(p.sports, p.weight_kg);
   const ffm = fatFreeMassKg(p);

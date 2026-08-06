@@ -167,7 +167,7 @@ App mobile React Native (Expo Router, SDK 56) de plans repas macro-précis pour 
 
 ```
 profiles                        ← s'appelle « profiles », PAS « user_profiles »
-  └── id (= auth.users.id) + 37 colonnes synchronisées.
+  └── id (= auth.users.id) + 38 colonnes synchronisées.
       ⚠️ NE PAS recopier la liste ici : elle a divergé deux fois.
       Source unique = `PROFILE_COLS` (lib/sync.ts), VERROUILLÉE contre le SQL
       par `lib/__tests__/profileCols.test.ts` — une colonne ajoutée en migration
@@ -316,7 +316,36 @@ OUTPUT         → Plan + liste de courses + recettes
 
 `TDEE = BMR × NEAT + dépense sportive/jour`, **pour tous les profils sans exception**.
 
-- **BMR** : Katch-McArdle si le %MG est connu, sinon Mifflin-St Jeor.
+- **BMR** : Katch-McArdle si le %MG est **MESURÉ**, sinon Mifflin-St Jeor.
+  ⚠️ **C'est la PROVENANCE qui décide, pas la présence du chiffre** (2026-08-06,
+  `ENGINE_REV` 5 → 6, `body_fat_source`). Avant, tout %MG renseigné basculait le
+  moteur sur Katch — y compris celui posé en tapant sur une **silhouette**, dont
+  l'incertitude est de ±5 points. Katch-McArdle est la formule la plus PRÉCISE
+  quand la masse maigre est connue, et la plus FRAGILE quand elle est devinée :
+  elle ne lit que ça, là où Mifflin lit quatre entrées certaines (poids, taille,
+  âge, sexe). Mesuré : un point de %MG vaut **±13 kcal/jour** de BMR, donc les
+  ±5 points de la silhouette valaient **jusqu'à 126 kcal/jour** servis à l'assiette,
+  sans que rien à l'écran ne dise que le chiffre était une estimation. Le %MG
+  estimé reste **stocké et affiché** (suivi de progression) — il ne pilote plus
+  que ce qu'il peut porter.
+  ➡️ Prédicat unique : **`tdee.ts::katchEligible`**, et `calculateBMR` prend le
+  CORPS entier (pas un `%MG` positionnel) pour qu'aucun appelant ne puisse passer
+  le chiffre en oubliant sa provenance. Garde-fou : `bodyFatSource.test.ts`.
+  ⚠️ **La masse maigre, elle, continue de lire le %MG DÉCLARÉ quelle que soit sa
+  provenance** — c'est une décision, pas un oubli. Le plancher d'énergie disponible,
+  la base protéique et le rythme de perte maximal ne bougent donc pas d'un kcal.
+  L'alternative (retomber sur Deurenberg quand c'est estimé) a été mesurée et
+  ÉCARTÉE : Deurenberg ne lit que l'IMC, l'âge et le sexe, il ne distingue pas un
+  muscle d'un kilo de gras, et sur les corps entraînés que Kyroz sert il est **pire
+  qu'une silhouette** (+12 points sur une femme de 65 kg à 18 %, +8 sur un homme de
+  72 kg à 10 %). Remplacer une information par une régression de population qui
+  ignore ce qui distingue cette population n'est pas un garde-fou.
+  ⚠️ **`undefined` (tous les comptes d'avant la migration) calcule comme ESTIMÉ**,
+  et la colonne n'est **PAS backfillée** : « jamais demandé » doit rester
+  distinguable de « répondu au jugé », sinon la question ne peut plus être posée.
+  Écart mesuré sur les 12 silhouettes du sélecteur : TDEE **−217 à +363 kcal/j**,
+  cible servie **−80 à +363** (le plancher amortit toujours les baisses). Croissant
+  avec le %MG déclaré : négatif sur les silhouettes sèches, positif sur les grasses.
 - **NEAT** (`neat_level`) : la vie quotidienne **hors sport** — `desk` 1,30 / `light` 1,35 /
   `active` 1,40 / `physical` 1,45. La table s'arrête à 1,45 : au-delà, les niveaux
   classiques (1,50, 1,65) sont « exercice inclus » et recouvriraient les MET.

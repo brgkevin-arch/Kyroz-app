@@ -14,14 +14,15 @@ import { makeProfile } from './helpers';
 describe('BMR', () => {
   it('Mifflin-St Jeor sans %MG (différencié par sexe)', () => {
     // 10×90 + 6.25×180 − 5×30 = 1875 ; +5 homme / −161 femme
-    expect(calculateBMR('male', 90, 180, 30)).toBe(1880);
-    expect(calculateBMR('female', 90, 180, 30)).toBe(1714);
+    expect(calculateBMR({ sex: 'male', weight_kg: 90, height_cm: 180, age: 30 })).toBe(1880);
+    expect(calculateBMR({ sex: 'female', weight_kg: 90, height_cm: 180, age: 30 })).toBe(1714);
   });
 
-  it('Katch-McArdle quand le %MG est connu (même valeur pour les 2 sexes)', () => {
+  it('Katch-McArdle quand le %MG est MESURÉ (même valeur pour les 2 sexes)', () => {
     // LBM = 90×0.85 = 76.5 → 370 + 21.6×76.5 = 2022.4
-    expect(calculateBMR('male', 90, 180, 30, 15)).toBe(2022);
-    expect(calculateBMR('female', 90, 180, 30, 15)).toBe(2022);
+    const corps = { weight_kg: 90, height_cm: 180, age: 30, body_fat_pct: 15, body_fat_source: 'measured' as const };
+    expect(calculateBMR({ ...corps, sex: 'male' })).toBe(2022);
+    expect(calculateBMR({ ...corps, sex: 'female' })).toBe(2022);
   });
 
   it('clamp du %MG aberrant, PAR SEXE (P0.4)', () => {
@@ -94,7 +95,7 @@ describe('TDEE', () => {
       sports: [{ type: 'course', sessions_per_week: 3, minutes_per_session: 45 }],
       neat_level: 'active',
     });
-    const bmr = calculateBMR(p.sex, p.weight_kg, p.height_cm, p.age, p.body_fat_pct);
+    const bmr = calculateBMR(p);
     const perDay = exerciseKcalPerDay(p.sports, p.weight_kg);
     expect(recalcProfile(p).tdee_kcal).toBe(Math.round(bmr * NEAT_PAL.active + perDay));
   });
@@ -298,7 +299,7 @@ describe('Unicité & stabilité du TDEE', () => {
   });
 
   it('P1.1 — UNE seule formule : `training_days_per_week` ne pilote plus le TDEE', () => {
-    const bmr = calculateBMR('male', 90, 180, 30); // Mifflin (pas de %MG)
+    const bmr = calculateBMR({ sex: 'male', weight_kg: 90, height_cm: 180, age: 30 }); // Mifflin (pas de %MG)
     // Il y avait deux méthodes choisies selon que `sports` était rempli : c'est
     // exactement ce qui produisait la marche d'escalier. Sans séance, le TDEE ne
     // dépend plus que du NEAT — le compteur de séances peut valoir n'importe quoi.

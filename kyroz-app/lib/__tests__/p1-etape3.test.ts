@@ -98,7 +98,7 @@ describe('P1.1 — le NEAT par défaut ne peut pas effacer un déficit', () => {
     // sportive n'est chiffrable. C'est ce qui déclenche l'avertissement one-shot,
     // dont le message invite précisément à renseigner ses sports.
     const legacy = makeProfile({ sports: undefined, training_days_per_week: 5 });
-    const bmr = calculateBMR('male', 90, 180, 30);
+    const bmr = calculateBMR({ sex: 'male', weight_kg: 90, height_cm: 180, age: 30 });
     expect(calculateTDEE(legacy)).toBe(Math.round(bmr * NEAT_PAL.desk));
   });
 });

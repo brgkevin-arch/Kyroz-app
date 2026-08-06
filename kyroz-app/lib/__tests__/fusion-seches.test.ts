@@ -31,10 +31,15 @@ describe('le choix était fantôme — c\'est CE fait qui justifie la fusion', (
     // l'objectif DATÉ, seul mécanisme qui sache dire si le rythme est tenable.
     // Rouvrir un « rapide » est une décision produit, consignée dans AGENTS.md.
     const cas = [
-      { sex: 'male' as const, weight_kg: 85, height_cm: 178, age: 30, body_fat_pct: 20 },
-      { sex: 'male' as const, weight_kg: 75, height_cm: 175, age: 25, body_fat_pct: 12 },
-      { sex: 'female' as const, weight_kg: 62, height_cm: 165, age: 35, body_fat_pct: 30 },
-      { sex: 'female' as const, weight_kg: 95, height_cm: 160, age: 45, body_fat_pct: 40 },
+      // %MG MESURÉ sur les quatre : l'écart mesuré au relèvement NEAT (134 kcal de
+      // médiane) l'a été sur la branche Katch. En provenance ESTIMÉE, l'écart tombe
+      // à 0 sur le H 75 kg — les deux objectifs y butent sur le même plancher. Ça ne
+      // change rien de vivant (`cut_aggressive` est refermé à la lecture) mais c'est
+      // le fait, et il ne doit pas se cacher derrière une provenance non déclarée.
+      { sex: 'male' as const, weight_kg: 85, height_cm: 178, age: 30, body_fat_pct: 20, body_fat_source: 'measured' as const },
+      { sex: 'male' as const, weight_kg: 75, height_cm: 175, age: 25, body_fat_pct: 12, body_fat_source: 'measured' as const },
+      { sex: 'female' as const, weight_kg: 62, height_cm: 165, age: 35, body_fat_pct: 30, body_fat_source: 'measured' as const },
+      { sex: 'female' as const, weight_kg: 95, height_cm: 160, age: 45, body_fat_pct: 40, body_fat_source: 'measured' as const },
     ];
     for (const c of cas) {
       const lent = computePlan(makeProfile({ ...c, goal: 'cut', sports: [] }), T);
@@ -121,7 +126,11 @@ describe('isTrainingDay — un profil sans séance n\'a pas de jour de séance',
     // pour une mauvaise raison. Gabarit trouvé par balayage, pas au jugé.
     // Au passage : la fréquence du drapeau en sèche baisse de 27,4 % à 21,1 %.
     const p = makeProfile({
-      sex: 'male', weight_kg: 60, height_cm: 160, age: 30, goal: 'cut', body_fat_pct: 30,
+      // %MG mesuré : le gabarit a été trouvé PAR BALAYAGE sous Katch, et sa raison
+      // d'être est d'exercer le drapeau. En Mifflin il sert 189 g pour un seuil à 180
+      // → le drapeau ne se lève plus et le test passerait au vert sans rien vérifier,
+      // exactement le piège que son commentaire du 2026-07-31 documente déjà.
+      sex: 'male', weight_kg: 60, height_cm: 160, age: 30, goal: 'cut', body_fat_pct: 30, body_fat_source: 'measured',
       sports: [{ type: 'marche_rapide', sessions_per_week: 3, minutes_per_session: 45 }],
     });
     const { profile, flags } = computePlan(p, T);
@@ -140,7 +149,7 @@ describe('isTrainingDay — un profil sans séance n\'a pas de jour de séance',
     // relèvement NEAT, le H 70 kg reçoit 222 g de glucides pour un seuil à 210, donc
     // la PRÉCONDITION du test (« la condition de grammes est remplie ») n'était plus
     // vraie. Le test serait passé au vert sans rien vérifier du tout.
-    const CORPS = { sex: 'male' as const, weight_kg: 60, height_cm: 160, age: 30, body_fat_pct: 30 };
+    const CORPS = { sex: 'male' as const, weight_kg: 60, height_cm: 160, age: 30, body_fat_pct: 30, body_fat_source: 'measured' as const };
     const SEUIL = 3 * CORPS.weight_kg;
     const body = recalcProfile(makeProfile({ ...CORPS, sports: [] }), T);
 

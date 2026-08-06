@@ -430,7 +430,15 @@ describe('A3 — projection simulée : plus de date flatteuse', () => {
     // Côté A15 — objectif hors de portée : les calories DOIVENT bouger, sinon le
     // correctif n'existe pas. C'est l'assertion qui manquait et qui aurait rougi.
     const { sim: dur, lin: durLin } = deuxDates(
-      corps({ sex: 'female', weight_kg: 78, height_cm: 168, body_fat_pct: 32 }), 65, 52,
+      // ⚠️ %MG MESURÉ, et ce n'est pas cosmétique : ce gabarit est À 3 kcal DE BMR de
+      // la frontière d'atteignabilité. Mesuré le 2026-08-06 en passant la provenance
+      // à « estimé » (BMR 1516 → 1519, TDEE 2158 → 2162) : `reachableByDate` bascule
+      // false → true et la date projetée avance de 94 jours (2027-03-18 → 2026-12-14).
+      // La falaise est PRÉEXISTANTE — `reachableByDate` est un booléen tiré d'une
+      // simulation semaine par semaine, donc tout corps qui arrive près de l'échéance
+      // y bascule sur un arrondi. Le déclarer mesuré rend au test le cas exact pour
+      // lequel A15 a été écrit.
+      corps({ sex: 'female', weight_kg: 78, height_cm: 168, body_fat_pct: 32, body_fat_source: 'measured' }), 65, 52,
     );
     expect(dur.reachableByDate).toBe(false);
     expect(dur.maxRateApplied).toBe(true);
