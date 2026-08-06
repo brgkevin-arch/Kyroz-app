@@ -35,9 +35,17 @@
 -- `PROFILE_COLS_LAST_MIGRATION` limite la casse à cette seule colonne, il ne dispense
 -- pas de jouer le SQL.)
 --
--- Ce que ça DÉPLACE, mesuré sur 12 corps de référence : cible servie médiane
--- −26 kcal/j, min −183, max +233. Le plancher de sécurité ne bouge pas (0 sur 12/12).
--- Un avertissement one-shot (`engine_notice`) l'explique au-delà de 100 kcal/jour.
+-- Ce que ça DÉPLACE, RE-MESURÉ sur les 12 silhouettes du sélecteur, deux sexes :
+-- cible servie médiane +43 kcal/j, min −80, max +363 (TDEE : −217 à +363 — le plancher
+-- amortit toujours les baisses). L'écart croît avec le %MG déclaré : négatif sur les
+-- silhouettes sèches, où Katch donnait plus, positif sur les grasses. Un avertissement
+-- one-shot (`engine_notice`) l'explique au-delà de 100 kcal/jour.
+--
+-- Le plancher de sécurité BRUT (30 kcal/kg de masse maigre + sport) ne bouge d'aucun
+-- kcal sur les 12 — la masse maigre ne lit pas la provenance. ⚠️ Le CANDIDAT
+-- `energy_availability`, lui, peut bouger : il est plafonné à la maintenance (CLAUDE.md
+-- §6, « un plancher n'impose jamais un surplus »), et ce plafond suit bien le TDEE.
+-- Mesuré : 1 corps sur 12 (F 82 kg à 10 % de MG, gabarit implausible), 2362 → 2306.
 --
 -- 100 % idempotent (add column if not exists) : ré-exécutable sans risque.
 -- ════════════════════════════════════════════════════════════════════════════

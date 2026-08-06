@@ -77,9 +77,15 @@ export function katchEligible(b: Pick<BmrBody, 'body_fat_pct' | 'body_fat_source
  * ESTIMATION VISUELLE. Le %MG estimé continue d'être stocké, affiché, et de porter la
  * masse maigre (plancher, protéines, rythme de perte) — il ne pilote plus le BMR.
  *
- * Ce que ça déplace, mesuré sur 12 corps de référence : cible servie médiane
- * −26 kcal/j, min −183, max +233. Le plancher de sécurité, lui, ne bouge pas (0 sur
- * 12/12 : c'est le candidat `energy_availability` qui gagne, et il ne lit pas le BMR).
+ * Ce que ça déplace, mesuré sur les 12 silhouettes du sélecteur : cible servie médiane
+ * **+43 kcal/j**, min −80, max +363 (TDEE : −217 à +363 — le plancher amortit toujours
+ * les baisses). L'écart croît avec le %MG déclaré : négatif sur les silhouettes sèches,
+ * où Katch donnait plus, positif sur les grasses.
+ * Le plancher BRUT (30 kcal/kg de masse maigre + sport) ne bouge d'aucun kcal — la masse
+ * maigre ne lit pas la provenance. ⚠️ Le CANDIDAT `energy_availability`, lui, peut
+ * bouger : il est plafonné à la maintenance (§6), et ce plafond suit le TDEE. Mesuré :
+ * 1 corps sur 12, un gabarit implausible (F 82 kg à 10 % de MG). Voir
+ * `bodyFatSource.test.ts`, bloc 4 — la formulation naïve de ce test était FAUSSE.
  */
 export function calculateBMR(b: BmrBody): number {
   if (katchEligible(b)) {
@@ -907,12 +913,15 @@ export const ENGINE_REV_LEGACY = 1;
  * rev 5 → 6 (2026-08-06) : Katch-McArdle exige désormais un %MG **MESURÉ**. Un %MG
  * estimé (silhouette tapée, chiffre au jugé) repasse sur Mifflin-St Jeor. Déplace
  * TOUS les profils dont la provenance n'est pas `measured` — c'est-à-dire, au
- * lancement, la totalité du parc : la question n'existait pas. Mesuré sur 12 corps de
- * référence, cible servie médiane **−26 kcal/j**, min −183, max **+233**. Le sens de
- * l'écart suit celui de l'erreur : un %MG surestimé (silhouette trop grasse) faisait
- * une cible trop basse, elle remonte ; un %MG sous-estimé faisait l'inverse.
- * ⚠️ Le plancher de sécurité, lui, ne bouge PAS (0 kcal sur 12/12) : la masse maigre
- * continue de lire le %MG déclaré, seul le métabolisme de base cesse de le faire.
+ * lancement, la totalité du parc : la question n'existait pas. Mesuré sur les 12
+ * silhouettes du sélecteur, cible servie médiane **+43 kcal/j**, min −80, max **+363**
+ * (TDEE : −217 à +363 — le plancher amortit toujours les baisses). Le sens de l'écart
+ * suit celui de l'erreur : un %MG surestimé (silhouette trop grasse) faisait une cible
+ * trop basse, elle remonte ; un %MG sous-estimé faisait l'inverse.
+ * ⚠️ Le plancher BRUT, lui, ne bouge PAS d'un kcal : la masse maigre continue de lire
+ * le %MG déclaré, seul le métabolisme de base cesse de le faire. Le CANDIDAT
+ * `energy_availability` peut bouger, mais par son PLAFOND (la maintenance, §6), pas par
+ * son plancher — 1 corps sur 12, un gabarit implausible.
  *
  * rev 4 → 5 (2026-08-03, A15) : quand la date visée ne tient pas, le moteur sert le
  * rythme sûr MAXIMAL au lieu du rythme « juste requis ». Ne déplace QUE les profils

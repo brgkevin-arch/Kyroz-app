@@ -138,6 +138,11 @@ export interface BodyInput {
    * que soit sa provenance : le plancher d'énergie disponible, la base protéique et
    * le rythme de perte maximal ne bougent donc pas d'un kcal (mesuré : 0 d'écart sur
    * 12 corps de référence).
+   * ⚠️ **Le CANDIDAT `energy_availability` peut quand même bouger, et ce n'est pas une
+   * contradiction** : il vaut `min(30 × masse maigre + sport, maintenance)`, et c'est le
+   * PLAFOND qui suit la provenance, pas le plancher. Mesuré : 1 corps sur 12 (F 82 kg à
+   * 10 % de MG, gabarit implausible), 2362 → 2306. Écrire un test « le candidat est
+   * identique » le fait rougir à tort — c'est exactement l'erreur qui a été commise.
    *
    * Pourquoi ne pas retomber sur Deurenberg quand c'est estimé : Deurenberg ne lit que
    * l'IMC, l'âge et le sexe — il ne distingue pas un muscle d'un kilo de gras. Sur les
