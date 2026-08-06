@@ -112,6 +112,22 @@ App mobile React Native (Expo Router, SDK 56) de plans repas macro-précis pour 
 > Rien n'est publié — c'est la simulation exacte de ce que l'update enverrait. Même méthode
 > que pour le bundle web (§11, « un `require` paresseux ne retire rien du bundle ») :
 > **on mesure l'artefact, pas la configuration.**
+> 🔴 **ET `strings` NE REND QUE LES CHAÎNES ASCII PURES** — mesuré le 2026-08-06, en
+> cherchant à vérifier un texte d'interface avant publication. Toute chaîne contenant
+> un seul caractère non-ASCII est **invisible** : « J'ai cuisiné » (é), « Jour de
+> repos · … » (·), « Ton plan nutrition, sans réfléchir » (é) rendent **0**, alors
+> qu'elles sont bel et bien dans le bundle. Ce qui sort : les identifiants
+> (`body_fat_source`, `baseDayTargets`, `rest_weekdays`) et les littéraux sans accent
+> (« Ton plan » → 3, « kcal en moyenne » → 1, « Continuer » → 1).
+> ➡️ Dans une app FRANÇAISE, cela exclut la quasi-totalité de l'interface. Le témoin
+> de chantier doit donc être **ASCII pur** — un identifiant, de préférence. Un zéro
+> sur une phrase accentuée ne veut RIEN dire, et se lit comme un défaut : c'est
+> exactement le piège de « mesurer l'instrument » (§11), rejoué sur cet outil-ci.
+> ⚠️ Corollaire : cette vérification prouve que les CLÉS sont inlinées et qu'aucune
+> clé d'IA n'a fuité — c'est son objet. Elle ne prouve pas qu'un écran contient le
+> bon texte. Pour ça, la garantie est ailleurs : le bundle est exporté depuis l'arbre
+> de travail, donc il suffit qu'il soit à `origin/main` et que la suite soit verte.
+
 > ⚠️ Et la table de chaînes de Hermes est **concaténée** : `strings` rend de longues lignes
 > qui collent plusieurs chaînes bout à bout. Chercher par sous-chaîne (`grep -c`), jamais
 > par égalité de ligne — un `comm` entre deux bundles ne compare que du bruit.
