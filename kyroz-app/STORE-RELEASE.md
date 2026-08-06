@@ -221,6 +221,19 @@ verrouillé par deux tests (`lib/__tests__/premium.test.ts`, `purchases.test.ts`
 | EAS projectId | `28dc4c7e-cace-4fa2-80ba-7b503804d18e` (owner `kevinberger`) |
 | Thème | Sombre (splash + UI) |
 | Orientation | Portrait |
+| Chiffrement (Apple) | `ITSAppUsesNonExemptEncryption: false` — voir la note ci-dessous |
+
+> **Déclaration de chiffrement — committée le 2026-08-06, après avoir vécu 4 jours
+> hors du dépôt.** Sans elle, App Store Connect repose le questionnaire « votre app
+> utilise-t-elle du chiffrement ? » **à chaque envoi de build**, et le build reste en
+> attente tant qu'on n'y a pas répondu. `false` est la réponse juste ici : Kyroz
+> n'embarque aucun chiffrement propriétaire, seulement HTTPS — exempté.
+> ⚠️ **Elle avait été posée le 2026-08-02 à 23:02, une heure et demie avant le build
+> TestFlight n°3, et jamais committée** : elle n'existait que sur la machine du
+> fondateur. Un `git checkout`, un clone frais ou un build en CI l'aurait perdue, et
+> le questionnaire serait revenu sans que personne ne comprenne pourquoi. C'est le
+> même motif que les clés d'`eas.json` (CLAUDE.md §2) : **ce qui n'est pas versionné
+> n'existe que sur une machine.**
 
 > **Pourquoi `app.kyroz.mobile`, et pourquoi c'est figé.** `app.kyroz` = le domaine
 > `kyroz.app` écrit à l'envers (seule chose que tu possèdes de façon unique au monde) ;
