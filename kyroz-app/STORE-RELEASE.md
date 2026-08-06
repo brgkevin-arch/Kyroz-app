@@ -442,6 +442,53 @@ Un chiffre faux dans une fiche de store est une allégation fausse, pas une coqu
 
 ---
 
+## 6-bis. L'icône grise d'App Store Connect — diagnostic mesuré (2026-08-06)
+
+> Le fondateur a signalé une **vignette grise en filigrane** à côté de « Kyroz » dans
+> l'en-tête d'App Store Connect (onglet TestFlight). Voici ce qui a été **mesuré**, et
+> ce qui reste à faire — dans cet ordre, une étape à la fois.
+
+### Ce qui est déjà vérifié — il n'y a RIEN à corriger dans le code
+
+| vérification | résultat |
+|---|---|
+| `assets/icon.png` | 1024×1024 · **sans alpha** · PNG — le K de Kyroz |
+| catalogue iOS généré (`AppIcon.appiconset`) | même image, `platform: ios`, `size: 1024x1024` |
+| commit d'origine de l'icône | `d02c0b8`, 2026-08-02 · **présent dans `main`** |
+| build TestFlight actuel | **v1.0.0 build 3**, produit du commit `cd4e2d3` |
+| ce commit contient-il l'icône ? | **oui**, et l'empreinte du fichier est identique à celle d'aujourd'hui |
+
+➡️ **Le binaire déposé chez Apple porte l'icône.** Le défaut classique — une icône
+avec canal alpha, qu'Apple refuse — est écarté : `hasAlpha: no` aux deux endroits.
+
+ℹ️ **À savoir, et ça change la manip** : depuis iOS 11, l'icône 1024² de la fiche
+**n'existe plus comme champ à téléverser** dans App Store Connect. Elle est LUE dans le
+build. Il n'y a donc rien à déposer — il y a un build à rattacher.
+
+### La procédure — une étape à la fois
+
+**Étape 1 — établir s'il y a seulement un problème.** Ouvrir Kyroz **sur l'iPhone**
+(l'app installée par TestFlight) et regarder l'icône sur l'écran d'accueil.
+- **Icône Kyroz visible** → le binaire est bon, la vignette grise ne concerne QUE la
+  fiche App Store. Passer à l'étape 2.
+- **Icône grise / générique sur le téléphone aussi** → là c'est un vrai défaut, et il
+  n'est pas dans le dépôt : le noter et revenir, il faudra chercher côté build EAS.
+
+**Étape 2 — rattacher le build à une version App Store.** App Store Connect →
+**Distribution** → la version **1.0** pour iOS → section **Build** → sélectionner
+**build 3**. L'icône de l'en-tête se remplit à partir de ce build.
+⚠️ Si aucune version 1.0 n'existe encore, c'est qu'elle n'a pas été créée : elle
+l'est au moment de préparer la soumission, pas pour TestFlight. **Tant que Kyroz ne
+vit qu'en bêta, cette vignette grise est normale et ne bloque rien.**
+
+**Étape 3 — changer d'icône, si c'est ça qu'on veut.** Remplacer `assets/icon.png`
+(1024², sans alpha) et les trois variantes Android (`android-icon-foreground`,
+`-background`, `-monochrome`), puis **produire un NOUVEAU BUILD**.
+🔴 **Une icône ne passe JAMAIS par une mise à jour OTA** : elle vit dans le binaire.
+`eas update` ne peut rien y faire, il faut `eas build` + une nouvelle soumission.
+
+---
+
 ## 7. Visuels à produire (à toi — impossible sans device/design)
 
 - **Screenshots iPhone 6.7"** (1290×2796) : **min 1, jusqu'à 10**. Montre les écrans
