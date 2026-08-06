@@ -3226,6 +3226,9 @@ produit en suspens — il ne reste qu'à coder.
   ScrollView VERTICAL est équipé — la timeline horizontale ne doit pas fermer la feuille.
   Mesuré : fiche recette, tirer depuis le contenu ✅ ferme · défiler puis remonter
   ✅ ne ferme PAS · éditeur de profil, tirer depuis le titre ✅ ferme (ne marchait pas).
+  ✅ **PUBLIÉ EN OTA le 2026-08-06** — group `98d5217a-b436-4a36-9e18-25dae16dfd13`,
+  runtime `1.0.0`, commit `bf1dd2b`. Bundle vérifié avant de clore : Supabase **1 / 1**,
+  `sk-ant-` **0**.
 
 - ~~**E13 · Trois écarts corrigés dans la foulée**~~ ✅ **2026-08-05.**
   **(a)** Le bouton « Continuer » de l'onboarding était **plein et franc** alors qu'il
