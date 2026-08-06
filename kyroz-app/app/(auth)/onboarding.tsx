@@ -27,6 +27,7 @@ import {
   validateProfile, goalLabel, recalcProfile,
 } from '../../lib/tdee';
 import { totalSessionsPerWeek } from '../../lib/sport';
+import { deducedRestWeekdays } from '../../lib/planEngine';
 import SportsEditor from '../../components/SportsEditor';
 import { useProfile } from '../../hooks/useProfile';
 import { saveFirstName } from '../../lib/profileName';
@@ -131,7 +132,12 @@ export default function Onboarding() {
   const [dislikes, setDislikes] = useState<string[]>([]);
   const [variety, setVariety] = useState<VarietyPreference>('balanced');
   const [planWeekdays, setPlanWeekdays] = useState<number[]>([]); // rien coché par défaut → l'user sélectionne (noir = off, blanc = on)
-  const [restWeekdays, setRestWeekdays] = useState<number[]>([]);  // jours de repos (sous-ensemble des jours du plan) → carb-cycling
+  const [restWeekdays, setRestWeekdays] = useState<number[]>([]);  // jours de repos (sous-ensemble des jours du plan) → cyclage
+  // ⚠️ Tant que l'utilisateur n'y a pas touché, les jours de repos sont PRÉ-COCHÉS
+  // depuis le nombre de séances déclaré (cf. l'effet plus bas). Ce drapeau existe
+  // pour que la pré-sélection ne réécrive JAMAIS un choix déjà fait — même règle
+  // que pour les champs contrôlés : on ne resynchronise que ce qui vient du dehors.
+  const [restTouched, setRestTouched] = useState(false);
   const [meals, setMeals] = useState<MealType[]>(['breakfast', 'lunch', 'dinner', 'snack']);
 
   const ageN = ageOn(birthDate, todayStamp()) ?? NaN;
@@ -172,8 +178,27 @@ export default function Onboarding() {
     setPlanWeekdays((arr) => removing ? arr.filter((x) => x !== v) : [...arr, v]);
     if (removing) setRestWeekdays((arr) => arr.filter((x) => x !== v));
   };
-  const toggleRestDay = (v: number) =>
+  const toggleRestDay = (v: number) => {
+    setRestTouched(true);
     setRestWeekdays((arr) => arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
+  };
+  // « Aucun jour de repos » — une réponse À PART ENTIÈRE, pas une case laissée vide.
+  // Avant, l'onboarding démarrait à zéro jour coché et enregistrait ce vide tel quel :
+  // « je n'ai pas répondu » devenait « je m'entraîne 7 j/7 », et le plan repartait
+  // PLAT (mesuré). Le Profil, lui, pré-cochait déjà la déduction — deux écrans, deux
+  // comportements pour le même réglage.
+  const setNoRestDay = () => { setRestTouched(true); setRestWeekdays([]); };
+
+  // Pré-sélection : les jours de repos que le moteur déduirait de toute façon
+  // (`restDaySet`, la MÊME fonction qu'il utilise), projetés sur les jours du plan.
+  // On ne devine pas mieux qu'avant — on rend l'hypothèse VISIBLE, donc corrigeable.
+  // Un utilisateur ne peut pas rectifier ce qu'on ne lui montre pas.
+  useEffect(() => {
+    if (restTouched) return;
+    const ordered = orderedWeekdays(planWeekdays);
+    if (!ordered.length) { setRestWeekdays([]); return; }
+    setRestWeekdays(deducedRestWeekdays(ordered, trainingDaysEq));
+  }, [planWeekdays, trainingDaysEq, restTouched]);
 
   // Les macros (auto) sont calculées par recalcProfile au finish ; plus de calcul
   // en ligne ici depuis la suppression de l'étape récap (le reveal du 1er plan les affiche).
@@ -379,13 +404,19 @@ export default function Onboarding() {
 
             {/* Jours de repos = sous-ensemble des jours du plan → carb-cycling. */}
             <SectionLabel t={t}>Jours de repos</SectionLabel>
+            {/* ⚠️ Ce texte promettait deux choses fausses — « (mêmes calories) », plus
+                vrai depuis la répartition par volume, et « recettes récup », plus vrai
+                depuis la suppression du tag `rest_day_ok` le 2026-08-03. */}
             <Text style={[s.sub, { marginTop: -8, fontSize: 12 }]}>
-              Tes jours sans entraînement : Kyroz baisse un peu les glucides et monte les lipides (mêmes calories) et privilégie les recettes « récup ».
+              Tes jours sans entraînement : Kyroz y sert un peu moins de calories et de glucides, et reporte la différence sur tes jours d'entraînement. Tes protéines ne bougent pas, et ta semaine garde son total.
             </Text>
             <View style={s.wrap}>
               {(planWeekdays.length ? WEEKDAY_OPTS.filter((o) => planWeekdays.includes(o.val)) : []).map((d) => (
                 <Chip key={d.val} t={t} label={d.label} selected={restWeekdays.includes(d.val)} onPress={() => toggleRestDay(d.val)} />
               ))}
+              {planWeekdays.length > 0 && (
+                <Chip t={t} label="Aucun" selected={restWeekdays.length === 0} onPress={setNoRestDay} />
+              )}
             </View>
             {planWeekdays.length === 0 && (
               <Text style={[s.sub, { marginTop: -4, fontSize: 12 }]}>Choisis d'abord tes jours de plan ci-dessus.</Text>

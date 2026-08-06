@@ -390,6 +390,20 @@ prétendre mieux à l'écran.
 ⚠️ **Sans sport déclaré, aucune répartition n'est inventée** (repli sur la cible
 plate). `training_days_per_week` est une déclaration, pas une mesure.
 
+⚠️ **« Pas répondu » et « aucun jour de repos » sont DEUX choses, et les confondre
+rendait tout ceci inerte** (corrigé le 2026-08-06). L'onboarding démarrait à zéro jour
+coché et enregistrait ce vide comme `rest_weekdays = []` — donc « je m'entraîne 7 j/7 »,
+donc dépense relissée, donc **plan plat** pour tout nouvel inscrit. Le Profil, lui,
+pré-cochait déjà la déduction : deux écrans, deux sens. Depuis :
+`deducedRestWeekdays` est la **source unique** des deux écrans, la déduction est
+**pré-cochée** (l'hypothèse s'affiche donc, et devient corrigeable), et une puce
+**« Aucun »** rend le « je n'en ai pas » explicite — car c'est une réponse légitime
+qu'on n'a pas le droit de forcer. Les trois états vivaient déjà dans la donnée
+(`undefined` / `[]` / liste) ; seule l'UI les écrasait.
+➡️ **Ce réglage a changé de nature** : il ne déplaçait que des glucides, il déplace
+maintenant jusqu'à **330 kcal**. Un réglage devenu porteur doit être re-regardé côté
+saisie, pas seulement côté moteur.
+
 **Deux constantes ont dû être re-mesurées, parce que leur PRÉMISSE avait changé** —
 toutes deux avaient été calibrées quand les jours étaient identiques :
 - `REST_DAY_CARB_TO_FAT_SHIFT` **0,12 → 0,08**. Critère : « les glucides absorbent la

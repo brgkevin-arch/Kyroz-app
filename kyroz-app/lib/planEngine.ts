@@ -412,6 +412,29 @@ export function restDaySet(days: number, trainingDaysPerWeek: number): Set<numbe
 }
 
 /**
+ * Jours de repos DÉDUITS, exprimés en jours de SEMAINE (0=Dim … 6=Sam), à partir des
+ * jours du plan **déjà ordonnés** et du nombre de séances déclaré.
+ *
+ * C'est la même déduction que `restDaySet` — celle que le moteur applique quand le
+ * profil ne porte pas de `rest_weekdays`. Elle vit ici, et pas dans un écran, parce
+ * que DEUX écrans en ont besoin : le Profil la pré-cochait déjà, l'onboarding non.
+ * Le résultat était que le même réglage partait vide d'un côté et pré-rempli de
+ * l'autre — et qu'un nouvel inscrit qui ne cochait rien recevait un plan PLAT, donc
+ * exactement le défaut que la répartition par volume vient de corriger.
+ *
+ * ⚠️ Ce que ça ne fait PAS : deviner mieux. Le moteur déduisait déjà la même chose
+ * en silence. Ce qui change, c'est que l'hypothèse s'AFFICHE, donc qu'elle peut être
+ * corrigée — on ne rectifie pas ce qu'on ne voit pas.
+ */
+export function deducedRestWeekdays(orderedPlanWeekdays: number[], trainingDaysPerWeek: number): number[] {
+  const n = orderedPlanWeekdays.length;
+  if (!n) return [];
+  return [...restDaySet(n, trainingDaysPerWeek)]
+    .map((i) => orderedPlanWeekdays[i - 1])
+    .filter((v): v is number => v !== undefined);
+}
+
+/**
  * Jours de REPOS effectifs d'un plan (numéros 1-based), pour un profil donné.
  *  - `rest_weekdays` défini (même []) → l'user a CHOISI ses jours : on mappe ces
  *    jours de semaine (getDay) sur les index du plan via `plan_weekdays`.

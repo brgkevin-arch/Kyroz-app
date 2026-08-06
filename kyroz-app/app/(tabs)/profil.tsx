@@ -58,7 +58,7 @@ import {
   ActivityLevel, DietaryRestriction, EngineNotice, FixedMeals, Goal, GoalTarget, MEAL_ORDER, MealEmphasis, MealType, NeatLevel, Sex, SportSession, UserProfile, VarietyPreference,
 } from '../../lib/types';
 import { totalSessionsPerWeek } from '../../lib/sport';
-import { restDaySet, baseDayTargets } from '../../lib/planEngine';
+import { baseDayTargets, deducedRestWeekdays } from '../../lib/planEngine';
 import { getRecipeById } from '../../lib/recipes';
 import SportsEditor from '../../components/SportsEditor';
 import { FixedMealSheet } from '../../components/FixedMealSheet';
@@ -102,10 +102,11 @@ function orderedWeekdays(sel: number[]): number[] {
 // ne modifie pas le plan.
 function effectiveRestWeekdays(profile: UserProfile): number[] {
   if (Array.isArray(profile.rest_weekdays)) return orderedWeekdays(profile.rest_weekdays);
-  const wd = profile.plan_weekdays ?? [];
-  const days = wd.length || Math.min(Math.max(profile.plan_days ?? 7, 1), 7);
-  const idx = restDaySet(days, profile.training_days_per_week); // index 1..days
-  return orderedWeekdays([...idx].map((d) => wd[d - 1]).filter((v): v is number => v !== undefined));
+  const wd = orderedWeekdays(profile.plan_weekdays ?? []);
+  if (!wd.length) return [];
+  // Source unique avec l'onboarding (`deducedRestWeekdays`) : les deux écrans
+  // pré-cochent la MÊME chose, sinon le réglage change de sens selon l'endroit.
+  return orderedWeekdays(deducedRestWeekdays(wd, profile.training_days_per_week));
 }
 const MEAL_OPTS: { label: string; val: MealType }[] = [
   { label: 'Petit-déj', val: 'breakfast' }, { label: 'Déjeuner', val: 'lunch' },
@@ -891,7 +892,7 @@ function SportsProfileEditor({ t, profile, onSave, dragHandlers, sheetScrollProp
       <SectionLabel t={t}>TES SÉANCES</SectionLabel>
       <Text style={{ color: t.textSecondary, fontSize: 13, lineHeight: 18, marginBottom: 4 }}>Tes sports servent à estimer tes calories dépensées. Plus c'est précis, plus ton plan l'est.</Text>
       <SportsEditor sports={sports} weight={profile.weight_kg} onChange={setSports} />
-      <RestDaysPicker t={t} available={planWeekdays} value={restDays} onToggle={togRestDay} />
+      <RestDaysPicker t={t} available={planWeekdays} value={restDays} onToggle={togRestDay} onNone={() => setRestDays([])} />
     </EditorShell>
   );
 }
@@ -1245,16 +1246,28 @@ function PrefEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: Edit
 // Sélecteur de jours de repos, partagé par les éditeurs Repas et Sports.
 // `available` = jours de semaine du plan (on ne se repose que sur un jour planifié) ;
 // vide → on propose les 7 jours (repli profils sans jours définis).
-function RestDaysPicker({ t, available, value, onToggle }: { t: ThemePalette; available: number[]; value: number[]; onToggle: (v: number) => void }) {
+function RestDaysPicker({ t, available, value, onToggle, onNone }: { t: ThemePalette; available: number[]; value: number[]; onToggle: (v: number) => void; onNone: () => void }) {
   const opts = available.length ? WEEKDAY_OPTS.filter((o) => available.includes(o.val)) : WEEKDAY_OPTS;
   return (
     <>
       <SectionLabel t={t}>Jours de repos</SectionLabel>
+      {/* ⚠️ Ce texte promettait DEUX choses fausses (corrigé le 2026-08-06) :
+          « (mêmes calories) » ne l'est plus depuis la répartition par volume, et
+          « privilégie les recettes récup » ne l'était plus depuis le 2026-08-03,
+          date à laquelle le tag `rest_day_ok` a été supprimé et la sélection a cessé
+          de le lire. Un écran ne promet que ce que le moteur fait AUJOURD'HUI. */}
       <Text style={{ color: t.textTertiary, fontSize: 12, lineHeight: 17, marginTop: -8 }}>
-        Tes jours sans entraînement : Kyroz baisse un peu les glucides et monte les lipides (mêmes calories) et privilégie les recettes « récup ».
+        Tes jours sans entraînement : Kyroz y sert un peu moins de calories et de glucides, et reporte la différence sur tes jours d'entraînement. Tes protéines ne bougent pas, et ta semaine garde son total.
       </Text>
       <View style={styles.wrap}>
         {opts.map((d) => <Chip key={d.val} t={t} label={d.label} selected={value.includes(d.val)} onPress={() => onToggle(d.val)} />)}
+        {/* « Aucun » n'est PAS un état caché : c'est la même donnée (liste vide),
+            rendue visible. Sans cette puce, « je m'entraîne 7 j/7 » et « je n'ai pas
+            répondu » se ressemblent à l'écran alors qu'ils ne demandent pas le même
+            plan — et depuis que le réglage déplace jusqu'à 330 kcal, les confondre
+            coûte cher. Elle se lit comme sélectionnée dès qu'aucun jour ne l'est,
+            donc l'écran ne peut jamais montrer « rien du tout ». */}
+        <Chip t={t} label="Aucun" selected={value.length === 0} onPress={onNone} />
       </View>
     </>
   );
@@ -1318,7 +1331,7 @@ function MealsEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: Edi
     <EditorShell t={t} title="Paramètres des repas" onSave={submit} canSave={weekdays.length >= 1 && meals.length >= 1} dragHandlers={dragHandlers} sheetScrollProps={sheetScrollProps}>
       <SectionLabel t={t}>Jours du plan</SectionLabel>
       <View style={styles.wrap}>{WEEKDAY_OPTS.map((d) => <Chip key={d.val} t={t} label={d.label} selected={weekdays.includes(d.val)} onPress={() => togDay(d.val)} />)}</View>
-      <RestDaysPicker t={t} available={weekdays} value={restDays} onToggle={togRestDay} />
+      <RestDaysPicker t={t} available={weekdays} value={restDays} onToggle={togRestDay} onNone={() => setRestDays([])} />
       <SectionLabel t={t}>Repas inclus</SectionLabel>
       <View style={styles.wrap}>{MEAL_OPTS.map((m) => <Chip key={m.val} t={t} label={m.label} selected={meals.includes(m.val)} onPress={() => togMeal(m.val)} />)}</View>
       {meals.length === 0 && <Text style={{ color: t.danger, fontSize: 12 }}>Sélectionne au moins 1 repas.</Text>}

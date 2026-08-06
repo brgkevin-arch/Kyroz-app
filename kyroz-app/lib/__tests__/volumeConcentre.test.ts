@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { dailyBudgets } from '../dailyBudget';
-import { bankedTargets, dayExpenditures, buildLocalPlan, restDaysForProfile } from '../planEngine';
+import { bankedTargets, dayExpenditures, buildLocalPlan, restDaysForProfile, deducedRestWeekdays } from '../planEngine';
 import { recalcProfile, calculateTDEE } from '../tdee';
 import { fatFreeMassKg } from '../safety';
 import { exerciseKcalPerWeek, exerciseKcalPerDay } from '../sport';
@@ -137,5 +137,53 @@ describe('volume concentré — le budget du jour suit la dépense du jour', () 
     const seance = jours.filter((_, i) => !repos.has(i + 1));
     const off = jours.filter((_, i) => repos.has(i + 1));
     expect(Math.min(...seance), `séance=${seance.join(',')}`).toBeGreaterThan(Math.max(...off) + 1000);
+  });
+});
+
+describe('« jours de repos » — la case vide ne doit pas vouloir dire « je m’entraîne 7 j/7 »', () => {
+  // 🔴 Mesuré le 2026-08-06 : l'onboarding démarrait à zéro jour coché et enregistrait
+  // ce vide TEL QUEL. « Je n'ai pas répondu » devenait donc « aucun jour de repos », le
+  // moteur comptait 7 jours d'entraînement, la dépense se relissait sur la semaine — et
+  // le plan repartait PLAT. Autrement dit, la répartition par volume était inerte pour
+  // tout nouvel inscrit qui n'avait pas rempli une question facultative. Le Profil, lui,
+  // pré-cochait déjà la déduction : deux écrans, deux sens pour le même réglage.
+
+  it('accepter la pré-sélection donne EXACTEMENT ce que le moteur déduisait seul', () => {
+    // L'invariant qui rend la pré-sélection honnête : elle ne décide de rien de neuf,
+    // elle rend visible ce qui se décidait en silence. Si les deux divergeaient, un
+    // utilisateur qui valide sans rien toucher changerait son plan sans le savoir.
+    const SEMAINE = [1, 2, 3, 4, 5, 6, 0];
+    for (const seances of [0, 1, 2, 3, 4, 5, 6, 7]) {
+      const preCoche = deducedRestWeekdays(SEMAINE, seances);
+      const p = profil(MUSCU_4x60, {
+        training_days_per_week: seances, plan_weekdays: SEMAINE, rest_weekdays: preCoche,
+      });
+      const auto = profil(MUSCU_4x60, {
+        training_days_per_week: seances, plan_weekdays: SEMAINE, rest_weekdays: undefined,
+      });
+      expect([...restDaysForProfile(p, 7)].sort(), `${seances} séances`)
+        .toEqual([...restDaysForProfile(auto, 7)].sort());
+    }
+  });
+
+  it('« Aucun » reste une réponse possible — et elle rend le plan plat, à raison', () => {
+    // On ne force personne à déclarer un jour de repos : quelqu'un qui s'entraîne tous
+    // les jours a le droit de le dire, et son plan DOIT alors être plat. Ce cas verrouille
+    // que « aucun » continue de vouloir dire « aucun » — c'est le prix à payer pour que
+    // le vide cesse d'être un accident.
+    const p = profil(MUSCU_4x60, { rest_weekdays: [], plan_weekdays: [1, 2, 3, 4, 5, 6, 0] });
+    expect(restDaysForProfile(p, 7).size).toBe(0);
+    expect(new Set(bankedTargets(p, 7).targets).size).toBe(1);
+  });
+
+  it('la déduction ne rend que des jours DU PLAN, jamais un jour hors plan', () => {
+    // Un jour de repos posé hors du plan ne serait jamais servi (cf. offsetsForPlan) :
+    // le pré-cocher afficherait un choix sans effet.
+    const plan = [1, 3, 5];                     // lun / mer / ven
+    for (const seances of [0, 1, 2, 3, 7]) {
+      for (const j of deducedRestWeekdays(plan, seances)) {
+        expect(plan, `${seances} séances → ${j}`).toContain(j);
+      }
+    }
   });
 });
