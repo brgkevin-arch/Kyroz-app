@@ -2,6 +2,12 @@
 
 # dependencies
 node_modules/
+# Sans la barre finale AUSSI : un motif terminé par `/` ne matche que les vrais
+# répertoires. Dans un worktree, `node_modules` est souvent un LIEN vers celui du
+# dépôt principal — git le voit alors comme un fichier, il ressort en `??`, et un
+# `git add -A` l'emporte (mesuré le 2026-08-06 ; cf. CLAUDE.md §10, « ne committer
+# QUE son propre travail »).
+node_modules
 
 # Expo
 .expo/
@@ -53,3 +59,6 @@ test/store-ipad/*.png
 # Source brute Ciqual (ANSES) — convertie en lib/foods.generated.ts, pas commitée (lourde)
 # Casse insensible (APFS local vs FS sensible à la casse en CI Linux)
 [Dd]ata/[Cc]iqual/
+
+# miroir HTML du design system — GÉNÉRÉ (npm run design:build), poussé vers Claude Design
+design-system/

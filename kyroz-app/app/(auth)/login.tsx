@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useTheme, ThemePalette, Spacing, Radius, Type } from '../../constants/theme';
+import { useTheme, ThemePalette, Spacing, Radius, Type, Fond, Trait, Icone, OPACITE_PRESSION } from '../../constants/theme';
 import { useLayout } from '../../constants/layout';
 import { Field, PrimaryButton, Segmented } from '../../components/ui';
 import { useAuth } from '../../hooks/useAuth';
@@ -101,9 +101,9 @@ export default function LoginScreen() {
           />
 
           {mode === 'signup' && (
-            <TouchableOpacity style={s.consent} onPress={() => setConsent((c) => !c)} activeOpacity={0.7}>
+            <TouchableOpacity style={s.consent} onPress={() => setConsent((c) => !c)} activeOpacity={OPACITE_PRESSION}>
               <View style={[s.check, { borderColor: consent ? t.accent : t.lineStrong, backgroundColor: consent ? t.accent : 'transparent' }]}>
-                {consent && <Ionicons name="checkmark" size={14} color={t.onAccent} />}
+                {consent && <Ionicons name="checkmark" size={Icone.petite} color={t.onAccent} />}
               </View>
               <Text style={s.consentTxt}>
                 J'accepte que mes données (poids, objectif, régime) — des <Text style={{ fontWeight: '700', color: t.textSecondary }}>données de santé</Text> — soient traitées pour générer mes plans. Stockage en Europe, supprimables à tout moment.
@@ -136,14 +136,14 @@ export default function LoginScreen() {
                 <Text style={s.guestOr}>ou</Text>
                 <View style={s.guestLine} />
               </View>
-              <TouchableOpacity onPress={guest} disabled={busy} activeOpacity={0.7} testID="guest-login">
+              <TouchableOpacity onPress={guest} disabled={busy} activeOpacity={OPACITE_PRESSION} testID="guest-login">
                 <Text style={s.guest}>Continuer en invité</Text>
               </TouchableOpacity>
             </>
           )}
 
           <Text style={s.disclaimer}>{DISCLAIMER}</Text>
-          <TouchableOpacity onPress={() => router.push('/legal')} activeOpacity={0.7}>
+          <TouchableOpacity onPress={() => router.push('/legal')} activeOpacity={OPACITE_PRESSION}>
             <Text style={s.legalLink}>Politique de confidentialité & CGU</Text>
           </TouchableOpacity>
         </ScrollView>
@@ -165,20 +165,20 @@ function translate(msg: string): string {
 function makeStyles(t: ThemePalette) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: t.bg },
-    content: { flexGrow: 1, justifyContent: 'center', padding: Spacing.xl, paddingBottom: 40 },
-    logo: { color: t.text, fontSize: 34, fontWeight: '900', letterSpacing: 6, textAlign: 'center' },
-    tagline: { color: t.textSecondary, fontSize: 15, textAlign: 'center', marginTop: 10 },
-    consent: { flexDirection: 'row', gap: 12, alignItems: 'flex-start', marginTop: 16, paddingHorizontal: 2 },
-    check: { width: 24, height: 24, borderRadius: Radius.sm - 4, borderWidth: 2, alignItems: 'center', justifyContent: 'center', marginTop: 1 },
-    consentTxt: { flex: 1, color: t.textTertiary, fontSize: 13, lineHeight: 19 },
-    error: { color: t.danger, fontSize: 14, fontWeight: '600', textAlign: 'center', marginTop: 16 },
-    notice: { color: t.accent, fontSize: 14, fontWeight: '600', textAlign: 'center', marginTop: 16, lineHeight: 20 },
-    social: { color: t.textTertiary, fontSize: 12, textAlign: 'center', marginTop: 18 },
-    guestRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 22 },
+    content: { flexGrow: 1, justifyContent: 'center', padding: Spacing.xl, paddingBottom: Fond.feuille },
+    logo: { ...Type.display, color: t.text, letterSpacing: 6, textAlign: 'center' },
+    tagline: { ...Type.body, color: t.textSecondary, textAlign: 'center', marginTop: Spacing.md },
+    consent: { flexDirection: 'row', gap: Spacing.md, alignItems: 'flex-start', marginTop: Spacing.lg, paddingHorizontal: Spacing.xs },
+    check: { width: 24, height: 24, borderRadius: Radius.sm - 4, borderWidth: Trait.controle, alignItems: 'center', justifyContent: 'center', marginTop: Spacing.xs },
+    consentTxt: { ...Type.caption, flex: 1, color: t.textTertiary, lineHeight: 19 },
+    error: { ...Type.bodySmallStrong, color: t.danger, textAlign: 'center', marginTop: Spacing.lg },
+    notice: { ...Type.bodySmallStrong, color: t.accent, textAlign: 'center', marginTop: Spacing.lg, lineHeight: 20 },
+    social: { ...Type.caption, color: t.textTertiary, textAlign: 'center', marginTop: Spacing.xl },
+    guestRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, marginTop: Spacing.xxl },
     guestLine: { flex: 1, height: 1, backgroundColor: t.line },
-    guestOr: { color: t.textTertiary, fontSize: 12 },
-    guest: { color: t.textSecondary, fontSize: 15, fontWeight: '700', textAlign: 'center', marginTop: 16 },
-    disclaimer: { color: t.textQuaternary, fontSize: 11, lineHeight: 16, textAlign: 'center', marginTop: 20 },
-    legalLink: { color: t.textTertiary, fontSize: 12, fontWeight: '600', textAlign: 'center', marginTop: 10, textDecorationLine: 'underline' },
+    guestOr: { ...Type.caption, color: t.textTertiary },
+    guest: { ...Type.bodyStrong, color: t.textSecondary, textAlign: 'center', marginTop: Spacing.lg },
+    disclaimer: { ...Type.micro, color: t.textQuaternary, lineHeight: 16, textAlign: 'center', marginTop: Spacing.xl },
+    legalLink: { ...Type.captionStrong, color: t.textTertiary, textAlign: 'center', marginTop: Spacing.md, textDecorationLine: 'underline' },
   });
 }

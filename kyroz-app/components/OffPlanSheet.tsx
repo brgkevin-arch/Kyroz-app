@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { ThemePalette, Radius, Type } from '../constants/theme';
+import { ThemePalette, Radius, Type, Spacing, CIBLE_TACTILE_MIN, Trait, Icone, OPACITE_PRESSION } from '../constants/theme';
 import { PrimaryButton, Segmented } from './ui';
 import { Food } from '../lib/types';
 import { searchFoods, macrosForQuantity } from '../lib/foods';
@@ -98,17 +98,17 @@ export function OffPlanSheet({
         ) : (
           <View>
             <View style={[s.inputBox, { borderColor: t.line }]}>
-              <Ionicons name="search" size={16} color={t.textTertiary} />
+              <Ionicons name="search" size={Icone.petite} color={t.textTertiary} />
               <TextInput
                 value={query} onChangeText={setQuery} autoFocus
                 placeholder="Ex. tarte aux fraises…" placeholderTextColor={t.textQuaternary}
-                style={[s.input, { marginLeft: 8 }]}
+                style={[s.input, { marginLeft: Spacing.sm }]}
               />
             </View>
             {query.trim().length > 0 && (
               <View style={s.suggest}>
                 {searchFoods(query, 6).map((f) => (
-                  <TouchableOpacity key={f.id} style={s.suggestRow} onPress={() => { setPicked(f); setGrams(String(DEFAULT_GRAMS)); }} activeOpacity={0.7}>
+                  <TouchableOpacity key={f.id} style={s.suggestRow} onPress={() => { setPicked(f); setGrams(String(DEFAULT_GRAMS)); }} activeOpacity={OPACITE_PRESSION}>
                     <Text style={s.suggestName}>{f.name_fr}</Text>
                     <Text style={s.suggestMacro}>{f.per100g.kcal} kcal /100g</Text>
                   </TouchableOpacity>
@@ -127,7 +127,7 @@ export function OffPlanSheet({
               const on = !custom && sel === c.kcal;
               return (
                 <TouchableOpacity
-                  key={c.kcal} activeOpacity={0.85}
+                  key={c.kcal} activeOpacity={OPACITE_PRESSION}
                   onPress={() => { setSel(c.kcal); setCustom(''); }}
                   style={[s.chip, { backgroundColor: on ? t.accent : t.card, borderColor: on ? t.accent : t.line }]}
                 >
@@ -162,30 +162,30 @@ export function OffPlanSheet({
 
 function makeStyles(t: ThemePalette) {
   return StyleSheet.create({
-    wrap: { padding: 24, gap: 16 },
+    wrap: { padding: Spacing.xxl, gap: Spacing.lg },
     title: { color: t.text, ...Type.h2 },
-    sub: { color: t.textSecondary, fontSize: 14, lineHeight: 20, marginTop: 6 },
-    chips: { gap: 10 },
-    chip: { borderWidth: 1, borderRadius: Radius.card, padding: 16, gap: 2 },
-    chipLabel: { fontSize: 16, fontWeight: '700' },
-    chipSub: { fontSize: 13 },
-    chipKcal: { fontSize: 13, fontWeight: '600', marginTop: 2 },
-    customRow: { gap: 8 },
-    customLabel: { color: t.textSecondary, fontSize: 13, fontWeight: '600' },
-    inputBox: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderRadius: Radius.button, paddingHorizontal: 16 },
-    input: { flex: 1, paddingVertical: 14, fontSize: 17, fontWeight: '600', color: t.text },
-    inputSuffix: { color: t.textTertiary, fontSize: 15 },
-    suggest: { marginTop: 8, borderWidth: 1, borderColor: t.line, borderRadius: Radius.sm, overflow: 'hidden' },
-    suggestRow: { paddingHorizontal: 14, paddingVertical: 11, borderBottomWidth: 1, borderBottomColor: t.line },
-    suggestName: { color: t.text, fontSize: 14, fontWeight: '600' },
-    suggestMacro: { color: t.textTertiary, fontSize: 12, marginTop: 2 },
-    suggestEmpty: { color: t.textTertiary, fontSize: 13, padding: 14 },
-    pickedCard: { borderWidth: 1, borderColor: t.line, borderRadius: Radius.card, padding: 16, gap: 12 },
-    pickedHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 },
-    pickedName: { color: t.text, fontSize: 15, fontWeight: '700', flex: 1 },
-    change: { color: t.textSecondary, fontSize: 13, fontWeight: '700' },
+    sub: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 20, marginTop: Spacing.sm },
+    chips: { gap: Spacing.md },
+    chip: { borderWidth: Trait.fin, borderRadius: Radius.card, padding: Spacing.lg, gap: Spacing.xs },
+    chipLabel: { ...Type.label },
+    chipSub: { ...Type.caption },
+    chipKcal: { ...Type.captionStrong, marginTop: Spacing.xs },
+    customRow: { gap: Spacing.sm },
+    customLabel: { ...Type.captionStrong, color: t.textSecondary },
+    inputBox: { flexDirection: 'row', alignItems: 'center', borderWidth: Trait.fin, borderRadius: Radius.button, paddingHorizontal: Spacing.lg },
+    input: { ...Type.input, flex: 1, paddingVertical: Spacing.lg, color: t.text },
+    inputSuffix: { ...Type.body, color: t.textTertiary },
+    suggest: { marginTop: Spacing.sm, borderWidth: Trait.fin, borderColor: t.line, borderRadius: Radius.sm, overflow: 'hidden' },
+    suggestRow: { paddingHorizontal: Spacing.lg, paddingVertical: Spacing.md, minHeight: CIBLE_TACTILE_MIN, justifyContent: 'center', borderBottomWidth: Trait.fin, borderBottomColor: t.line },
+    suggestName: { ...Type.bodySmallStrong, color: t.text },
+    suggestMacro: { ...Type.caption, color: t.textTertiary, marginTop: Spacing.xs },
+    suggestEmpty: { ...Type.caption, color: t.textTertiary, padding: Spacing.lg },
+    pickedCard: { borderWidth: Trait.fin, borderColor: t.line, borderRadius: Radius.card, padding: Spacing.lg, gap: Spacing.md },
+    pickedHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: Spacing.md },
+    pickedName: { ...Type.bodyStrong, color: t.text, flex: 1 },
+    change: { ...Type.captionStrong, color: t.textSecondary },
     gramsRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-    gramsLabel: { color: t.textSecondary, fontSize: 14 },
-    pickedKcal: { color: t.text, fontSize: 18, fontWeight: '800' },
+    gramsLabel: { ...Type.bodySmall, color: t.textSecondary },
+    pickedKcal: { ...Type.h3, color: t.text },
   });
 }

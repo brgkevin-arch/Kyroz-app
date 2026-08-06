@@ -23,6 +23,33 @@ export type Goal =
 export type ActivityLevel = 'sedentary' | 'light' | 'moderate' | 'active' | 'very_active';
 
 /**
+ * D'où vient le % de masse grasse — et **c'est ce qui décide de la formule du BMR**
+ * (`lib/tdee.ts::calculateBMR`, `ENGINE_REV` 5 → 6, 2026-08-06).
+ *
+ * ⚠️ CE N'EST PAS UNE MÉTADONNÉE D'AFFICHAGE. Katch-McArdle ne lit QUE la masse
+ * maigre (`370 + 21,6 × masse maigre`), il est donc hypersensible au %MG. Mesuré sur
+ * une femme de 90 kg : deux %MG distants de 5 points écartent la cible de
+ * **126 kcal/jour, et ce à TOUS les niveaux** — 20 % comme 50 %. La formule est
+ * linéaire, le coût d'une erreur ne dépend que du POIDS, jamais du niveau de masse
+ * grasse. Or une estimation visuelle se trompe couramment de 5 à 8 points, et son
+ * erreur est SYSTÉMATIQUE : la personne garde le même mauvais chiffre pendant des
+ * mois, ce n'est pas du bruit qui se compense. Brancher Katch là-dessus affiche une
+ * précision qui n'existe pas — la règle « pas de mensonge dans Kyroz » appliquée à un
+ * choix de formule.
+ *
+ * `undefined` = **on ne sait pas**, et c'est un état LÉGITIME et DURABLE : celui de
+ * tous les profils créés avant le 2026-08-06, à qui la question n'a jamais été posée.
+ * Le moteur le traite comme `estimated` (donc Mifflin-St Jeor) parce que le défaut
+ * doit aller vers la prudence, jamais vers la formule qui prétend en savoir plus.
+ * ⚠️ **Ne PAS le backfiller à `'estimated'`** : on perdrait la seule chose qui
+ * distingue « jamais demandé » de « répondu au jugé », donc la possibilité de poser
+ * la question une fois à ceux qui ont une vraie mesure.
+ */
+export type BodyFatSource =
+  | 'measured'    // impédancemètre, plis cutanés, DEXA — un appareil a rendu un chiffre
+  | 'estimated';  // silhouette du sélecteur, ou pourcentage donné au jugé
+
+/**
  * Activité de la vie quotidienne HORS sport (NEAT — Non-Exercise Activity
  * Thermogenesis) : boulot, déplacements, courses, ménage, enfants.
  *
@@ -241,7 +268,24 @@ export interface UserProfile {
   birth_date?: string;
   weight_kg: number;
   height_cm: number;
-  body_fat_pct?: number;        // % de masse grasse (optionnel) → BMR Katch-McArdle
+  /**
+   * % de masse grasse. **Ne suffit PLUS à choisir la formule du BMR** : il faut sa
+   * provenance (`body_fat_source`), et les deux ne se lisent jamais l'un sans
+   * l'autre — `calculateBMR` prend le CORPS entier, précisément pour qu'un appelant
+   * ne puisse pas passer le chiffre en oubliant d'où il vient.
+   *
+   * Reste STOCKÉ et AFFICHÉ quelle que soit sa provenance (ligne « Informations »,
+   * sélecteur), et continue de porter la MASSE MAIGRE — plancher d'énergie
+   * disponible, base protéique, rythme de perte maximal. Seul le métabolisme de base
+   * cesse de le lire quand il est estimé (cf. `BodyFatSource`).
+   */
+  body_fat_pct?: number;
+  /**
+   * Mesuré ou estimé ? Synchronisé — migration `2026-08-06_profiles_body_fat_source.sql`.
+   * `undefined` = question jamais posée → le moteur calcule comme « estimé ».
+   * Le raisonnement et les chiffres sont sur `BodyFatSource`.
+   */
+  body_fat_source?: BodyFatSource;
   // Femme ménopausée : lève la remontée progressive du plancher d'énergie disponible
   // (le risque de perturbation ovulatoire ne s'applique plus). `undefined` = traité
   // comme NON ménopausée → le défaut protège (cf. lib/safety.ts).

@@ -35,7 +35,7 @@ describe('P0.1 — plancher d\'énergie disponible', () => {
   it('plancher = 30 × masse maigre + dépense sportive', () => {
     const ffm = fatFreeMassKg(female65); // 65 × 0,75 = 48,75
     expect(ffm).toBeCloseTo(48.75, 5);
-    const floor = safetyFloorKcal(female65, calculateBMR('female', 65, 168, 30, 25), 400, 0, 99999);
+    const floor = safetyFloorKcal(female65, calculateBMR({ sex: 'female', weight_kg: 65, height_cm: 168, age: 30, body_fat_pct: 25, body_fat_source: 'measured' }), 400, 0, 99999);
     expect(floor).toBe(Math.round(EA_HARD_FLOOR * 48.75 + 400)); // 1863
   });
 
@@ -50,7 +50,7 @@ describe('P0.1 — plancher d\'énergie disponible', () => {
   it('le filet absolu 1500/1200 mord bien sur un gabarit léger extrême', () => {
     // Masse maigre faible → 30 × FFM tombe sous le filet : c'est lui qui protège.
     const tiny: UserProfile = makeProfile({ sex: 'female', age: 30, weight_kg: 42, height_cm: 150, goal: 'cut_aggressive' });
-    const bmr = calculateBMR('female', 42, 150, 30);
+    const bmr = calculateBMR({ sex: 'female', weight_kg: 42, height_cm: 150, age: 30 });
     const eaFloor = EA_HARD_FLOOR * fatFreeMassKg(tiny);
     expect(eaFloor).toBeLessThan(MIN_KCAL.female);        // le plancher EA seul serait insuffisant
     expect(safetyFloorKcal(tiny, bmr, 0, 0, 99999)).toBeGreaterThanOrEqual(MIN_KCAL.female);
@@ -58,7 +58,7 @@ describe('P0.1 — plancher d\'énergie disponible', () => {
 
   it('le plancher n\'est jamais sous le métabolisme de base', () => {
     const p = makeProfile({ sex: 'male', weight_kg: 70, height_cm: 190, age: 20, body_fat_pct: 6 });
-    const bmr = calculateBMR('male', 70, 190, 20, 6);
+    const bmr = calculateBMR({ sex: 'male', weight_kg: 70, height_cm: 190, age: 20, body_fat_pct: 6, body_fat_source: 'measured' });
     expect(safetyFloorKcal(p, bmr, 0, 0, 99999)).toBeGreaterThanOrEqual(bmr);
   });
 
@@ -187,7 +187,9 @@ describe('P0.1 — plancher d\'énergie disponible', () => {
     // plus AUCUN déficit mais sa semaine continuait d'être comptée. Le compteur
     // saturait et la verrouillait à « déficit zéro » à vie.
     let prof = makeProfile({
-      sex: 'female', age: 35, weight_kg: 135, height_cm: 168, body_fat_pct: 45,
+      // %MG mesuré : les cibles attendues de cette régression ont été relevées sous
+      // Katch. C'est l'escalade de zone basse qui est testée ici, pas la provenance.
+      sex: 'female', age: 35, weight_kg: 135, height_cm: 168, body_fat_pct: 45, body_fat_source: 'measured',
       goal: 'cut', macro_mode: 'auto', low_ea_weeks: [],
       sports: [{ type: 'musculation', sessions_per_week: 3, minutes_per_session: 60 }],
       training_days_per_week: 3,
@@ -808,7 +810,10 @@ describe('repère de plausibilité du %MG saisi (2026-07-31)', () => {
 
   it('le chiffre annoncé est l\'écart RÉEL de dépense, et il est prudent', () => {
     const corps = { sex: 'female' as const, age: 35, weight_kg: 80, height_cm: 170, neat_level: 'desk' as const };
-    const impact = bodyFatTdeeImpact(corps, 20);
+    // MESURÉ : c'est la seule provenance où un %MG déplace encore la dépense. Le cas
+    // « estimé » a son propre test — il doit rendre 0, sinon l'écran annoncerait des
+    // kcal que le moteur ne sert plus.
+    const impact = bodyFatTdeeImpact(corps, 20, 'measured');
     // Positif : sous-estimer son %MG fait monter la dépense estimée.
     expect(impact).toBeGreaterThan(200);
     // …et il n'EXAGÈRE jamais l'effet sur la CIBLE : c'est le point qui compte, on
@@ -818,8 +823,12 @@ describe('repère de plausibilité du %MG saisi (2026-07-31)', () => {
     // Maintenant que la cible est libre, les deux coïncident exactement — l'écart de
     // cible EST l'écart de dépense, à l'arrondi près. L'annonce reste donc juste,
     // elle a simplement cessé d'être conservatrice.
+    // ⚠️ MÊME provenance que l'appel à `bodyFatTdeeImpact` ci-dessus. Sans elle, on
+    // comparerait l'écart de dépense d'un %MG MESURÉ à un écart de cible calculé sur
+    // un %MG estimé — deux mondes différents, et la comparaison ne voudrait rien dire.
     const cible = (bf?: number) => recalcProfile(makeProfile({
-      ...corps, body_fat_pct: bf, goal: 'cut', macro_mode: 'auto',
+      ...corps, body_fat_pct: bf, body_fat_source: bf == null ? undefined : 'measured',
+      goal: 'cut', macro_mode: 'auto',
       sports: [{ type: 'musculation', sessions_per_week: 4, minutes_per_session: 60 }],
     }), TODAY).target_kcal;
     expect(impact).toBeLessThanOrEqual(cible(20) - cible(undefined));
@@ -878,7 +887,9 @@ describe('trace du clamp — quel plancher a gagné, et de combien (2026-07-31)'
   // « On sert 2112 pour une demande à 1994 sans aucune trace. » FLOOR_APPLIED disait
   // QU'un plancher mordait, jamais LEQUEL ni DE COMBIEN.
   const corps = {
-    age: 35, weight_kg: 80, height_cm: 170, body_fat_pct: 20,
+    // %MG MESURÉ : tous les candidats attendus plus bas (bmr 1752, etc.) sont des
+    // valeurs Katch. Ce bloc teste la TRACE du clamp, pas la provenance.
+    age: 35, weight_kg: 80, height_cm: 170, body_fat_pct: 20, body_fat_source: 'measured' as const,
     goal: 'cut' as const, macro_mode: 'auto' as const, neat_level: 'desk' as const,
     training_days_per_week: 4,
     sports: [{ type: 'musculation' as const, sessions_per_week: 4, minutes_per_session: 60 }],

@@ -1,11 +1,12 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import { ThemePalette, Type } from '../constants/theme';
+import { ThemePalette, Type, Spacing, OPACITE_PRESSION , Icone } from '../constants/theme';
 import { Card } from './ui';
 import { datedGoalStatus } from '../lib/datedGoal';
 import { planFloorKcal, makeWeeklyProjector } from '../lib/tdee';
 import { todayStamp } from '../lib/weight';
 import { UserProfile } from '../lib/types';
+import { ObjectifIcon } from './Icons';
 
 // ── Carte de suivi d'objectif daté (premium « Kyroz+ ») ──────────────────────
 // Partagée par l'écran Plan (le geste quotidien) et le Profil. Lecture seule :
@@ -42,20 +43,26 @@ export function DatedGoalCard({ t, profile, onPress }: { t: ThemePalette; profil
   const progress = denom !== 0 ? Math.min(Math.max((gt.start_weight_kg - profile.weight_kg) / denom, 0), 1) : 1;
 
   return (
-    <TouchableOpacity activeOpacity={0.85} onPress={onPress}>
-      <Card t={t} style={{ gap: 10 }}>
+    <TouchableOpacity activeOpacity={OPACITE_PRESSION} onPress={onPress}>
+      <Card t={t} style={{ gap: Spacing.md }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Text style={{ color: t.text, ...Type.h3 }}>
-            🎯 {profile.weight_kg} → {gt.target_weight_kg} kg
-          </Text>
-          <Text style={{ color: t.textSecondary, fontSize: 13, fontWeight: '600' }}>
+          {/* Fusion 2026-08-06 : l'ICÔNE vient de main (le 🎯 a été retiré partout),
+              le TOKEN typographique vient de la passe DA. Les deux passes ne se
+              contredisent pas — elles portent sur deux axes différents. */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm }}>
+            <ObjectifIcon color={t.text} size={Icone.petite} />
+            <Text style={{ color: t.text, ...Type.h3 }}>
+              {profile.weight_kg} → {gt.target_weight_kg} kg
+            </Text>
+          </View>
+          <Text style={{ ...Type.captionStrong, color: t.textSecondary }}>
             {status.active ? `${status.weeksRemaining} sem` : 'Échéance passée'}
           </Text>
         </View>
         <View style={{ height: 8, borderRadius: 4, backgroundColor: t.line, overflow: 'hidden' }}>
           <View style={{ width: `${Math.round(progress * 100)}%`, height: '100%', backgroundColor: t.text }} />
         </View>
-        <Text style={{ color: t.textSecondary, fontSize: 12 }}>
+        <Text style={{ ...Type.caption, color: t.textSecondary }}>
           {/* `underweightBlocked` d'abord : le rythme y vaut 0 par sécurité, et
               « 0 kg/sem » sans motif se lit comme un plan cassé. */}
           {status.underweightBlocked

@@ -1,5 +1,10 @@
 .DS_Store
 node_modules/
+# Sans la barre finale AUSSI : un motif terminé par `/` ne matche que les vrais
+# répertoires. Dans un worktree, `node_modules` est souvent un LIEN vers celui du
+# dépôt principal — git le voit alors comme un fichier, il ressort en `??`, et un
+# `git add -A` l'emporte (mesuré le 2026-08-06).
+node_modules
 .env
 
 # Config Claude Code locale (par machine, chemins absolus, ne doit pas être versionnée)

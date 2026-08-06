@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useTheme, ThemePalette, Spacing, Radius, Type } from '../constants/theme';
+import { useTheme, ThemePalette, Spacing, Radius, Type, Fond, Icone, OPACITE_PRESSION, Trait } from '../constants/theme';
 import { useLayout } from '../constants/layout';
 import { Card, OptionCard, PrimaryButton, SectionLabel } from '../components/ui';
 import { useDialog } from '../components/Dialog';
@@ -157,8 +157,8 @@ export default function KyrozPlusScreen() {
     <SafeAreaView style={s.safe} edges={['top']}>
       <StatusBar style={t.scheme === 'dark' ? 'light' : 'dark'} />
       <View style={[s.header, layout.header]}>
-        <TouchableOpacity onPress={() => router.back()} hitSlop={10} activeOpacity={0.7}>
-          <Ionicons name="chevron-back" size={26} color={t.text} />
+        <TouchableOpacity onPress={() => router.back()} hitSlop={10} activeOpacity={OPACITE_PRESSION}>
+          <Ionicons name="chevron-back" size={Icone.nav} color={t.text} />
         </TouchableOpacity>
         <Text style={s.headerTitle}>Kyroz+</Text>
       </View>
@@ -169,11 +169,11 @@ export default function KyrozPlusScreen() {
 
         <View style={s.block}>
           <SectionLabel t={t}>Ce que Kyroz+ ajoute</SectionLabel>
-          <View style={{ gap: 10, marginTop: 10 }}>
+          <View style={{ gap: Spacing.md, marginTop: Spacing.md }}>
             {BRIQUES.map((b) => (
               <Card key={b.titre} t={t}>
                 <View style={s.briqueTitre}>
-                  <Ionicons name={b.icone} size={19} color={t.text} />
+                  <Ionicons name={b.icone} size={Icone.standard} color={t.text} />
                   <Text style={s.briqueNom}>{b.titre}</Text>
                 </View>
                 <Text style={s.briqueCorps}>{b.corps}</Text>
@@ -187,7 +187,7 @@ export default function KyrozPlusScreen() {
 
         <View style={s.block}>
           <SectionLabel t={t}>Ce qui reste gratuit</SectionLabel>
-          <Card t={t} style={{ marginTop: 10 }}>
+          <Card t={t} style={{ marginTop: Spacing.md }}>
             <Text style={s.briqueCorps}>{GRATUIT}</Text>
           </Card>
         </View>
@@ -195,7 +195,7 @@ export default function KyrozPlusScreen() {
         {enVente && (
           <View style={s.block}>
             <SectionLabel t={t}>Choisis ta formule</SectionLabel>
-            <View style={{ gap: 10, marginTop: 10 }}>
+            <View style={{ gap: Spacing.md, marginTop: Spacing.md }}>
               {plans.map((p) => (
                 <OptionCard
                   key={p.id}
@@ -213,14 +213,14 @@ export default function KyrozPlusScreen() {
             </View>
 
             {surWeb ? (
-              <Card t={t} style={{ marginTop: 14 }}>
+              <Card t={t} style={{ marginTop: Spacing.lg }}>
                 <Text style={s.briqueCorps}>
                   L'abonnement s'achète depuis l'app iPhone ou Android. Le navigateur ne peut pas
                   encaisser le paiement.
                 </Text>
               </Card>
             ) : (
-              <View style={{ marginTop: 14, gap: 12 }}>
+              <View style={{ marginTop: Spacing.lg, gap: Spacing.md }}>
                 {/* Désactivé tant que la clé RevenueCat n'est pas posée. On le DIT
                     plus bas au lieu de laisser un bouton mort sans explication. */}
                 <PrimaryButton
@@ -231,7 +231,7 @@ export default function KyrozPlusScreen() {
                 />
                 <TouchableOpacity
                   onPress={restaurer}
-                  activeOpacity={0.7}
+                  activeOpacity={OPACITE_PRESSION}
                   disabled={!encaissable || enCours}
                 >
                   <Text style={[s.lienSecondaire, (!encaissable || enCours) && { opacity: 0.5 }]}>
@@ -262,7 +262,7 @@ export default function KyrozPlusScreen() {
           </View>
         )}
 
-        <TouchableOpacity onPress={() => router.push('/legal')} activeOpacity={0.7} style={{ marginTop: 26 }}>
+        <TouchableOpacity onPress={() => router.push('/legal')} activeOpacity={OPACITE_PRESSION} style={{ marginTop: Spacing.xxl }}>
           <Text style={s.lienSecondaire}>Conditions d'utilisation · Confidentialité</Text>
         </TouchableOpacity>
 
@@ -275,18 +275,18 @@ export default function KyrozPlusScreen() {
 function makeStyles(t: ThemePalette) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: t.bg },
-    header: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: Spacing.xl, paddingVertical: 12 },
+    header: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, paddingHorizontal: Spacing.xl, paddingVertical: Spacing.md },
     headerTitle: { color: t.text, ...Type.h3 },
-    content: { padding: Spacing.xl, paddingBottom: 60 },
-    h1: { color: t.text, ...Type.display, marginTop: 8 },
-    sub: { color: t.textSecondary, fontSize: 15, lineHeight: 22, marginTop: 8 },
-    block: { marginTop: 28 },
-    briqueTitre: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 },
+    content: { padding: Spacing.xl, paddingBottom: Fond.ecran },
+    h1: { color: t.text, ...Type.display, marginTop: Spacing.sm },
+    sub: { ...Type.body, color: t.textSecondary, lineHeight: 22, marginTop: Spacing.sm },
+    block: { marginTop: Spacing.xxxl },
+    briqueTitre: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, marginBottom: Spacing.sm },
     briqueNom: { color: t.text, ...Type.h3 },
-    briqueCorps: { color: t.textSecondary, fontSize: 14, lineHeight: 21 },
-    confid: { color: t.textTertiary, fontSize: 12.5, lineHeight: 18, marginTop: 10 },
-    lienSecondaire: { color: t.textSecondary, fontSize: 14, fontWeight: '600', textAlign: 'center' },
-    mentions: { color: t.textTertiary, fontSize: 12, lineHeight: 18, marginTop: 14 },
-    disclaimer: { color: t.textTertiary, fontSize: 11.5, lineHeight: 17, marginTop: 26, borderTopWidth: 1, borderTopColor: t.line, paddingTop: 14 },
+    briqueCorps: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 21 },
+    confid: { ...Type.caption, color: t.textTertiary, lineHeight: 18, marginTop: Spacing.md },
+    lienSecondaire: { ...Type.bodySmallStrong, color: t.textSecondary, textAlign: 'center' },
+    mentions: { ...Type.caption, color: t.textTertiary, lineHeight: 18, marginTop: Spacing.lg },
+    disclaimer: { ...Type.micro, color: t.textTertiary, lineHeight: 17, marginTop: Spacing.xxl, borderTopWidth: Trait.fin, borderTopColor: t.line, paddingTop: Spacing.lg },
   });
 }

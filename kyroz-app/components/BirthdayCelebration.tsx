@@ -1,7 +1,8 @@
 import React, { useEffect, useRef } from 'react';
 import { Modal, View, Text, StyleSheet, Animated, Easing, Pressable } from 'react-native';
-import { useTheme, Radius, Spacing, Type } from '../constants/theme';
+import { useTheme, Radius, Spacing, Type, Trait , Icone } from '../constants/theme';
 import { PrimaryButton } from './ui';
+import { AnniversaireIcon } from './Icons';
 
 interface Props {
   /** Âge atteint aujourd'hui ; `null` = masqué. */
@@ -100,7 +101,7 @@ export function BirthdayCelebration({ age, firstName, onClose }: Props) {
         <Animated.View
           style={[styles.card, { backgroundColor: t.card, borderColor: t.line, opacity, transform: [{ scale }] }]}
         >
-          <Text style={styles.emoji}>🎂</Text>
+          <AnniversaireIcon color={t.text} size={Icone.fete} />
           <Text style={[styles.title, { color: t.text }]}>
             {firstName ? `Joyeux anniversaire, ${firstName} !` : 'Joyeux anniversaire !'}
           </Text>
@@ -109,7 +110,7 @@ export function BirthdayCelebration({ age, firstName, onClose }: Props) {
             reste calé sur toi, sans que tu aies rien à toucher.
           </Text>
           <View style={{ height: 8 }} />
-          <PrimaryButton t={t} label="Merci 🙂" onPress={onClose} />
+          <PrimaryButton t={t} label="Merci" onPress={onClose} />
         </Animated.View>
       </View>
     </Modal>
@@ -119,10 +120,10 @@ export function BirthdayCelebration({ age, firstName, onClose }: Props) {
 const styles = StyleSheet.create({
   root: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.6)', padding: Spacing.xl },
   card: {
-    width: '100%', maxWidth: 360, borderWidth: 1, borderRadius: Radius.xl,
+    width: '100%', maxWidth: 360, borderWidth: Trait.fin, borderRadius: Radius.xl,
     padding: Spacing.xxxl, alignItems: 'center',
   },
-  emoji: { fontSize: 56, marginBottom: 8 },
+  emoji: { fontSize: 56, marginBottom: Spacing.sm },
   title: { ...Type.h2, textAlign: 'center' },
-  body: { fontSize: 15, lineHeight: 21, textAlign: 'center', marginTop: 10 },
+  body: { ...Type.body, lineHeight: 21, textAlign: 'center', marginTop: Spacing.md },
 });

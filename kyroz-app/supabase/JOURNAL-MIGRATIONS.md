@@ -23,6 +23,31 @@ un `200` prouve que l'upsert du profil ne peut pas être rejeté pour colonne ma
 
 ## État vérifié
 
+### 2026-08-06 — ✅ `body_fat_source` jouée (16ᵉ migration)
+
+`2026-08-06_profiles_body_fat_source.sql`, jouée par le fondateur dans le SQL Editor.
+Colonne `profiles.body_fat_source text`, **sans backfill** : elle naît à `NULL` partout,
+et `NULL` veut dire « question jamais posée » — distinguable de « répondu au jugé ».
+C'est ce qui décide de la formule du métabolisme de base (`ENGINE_REV` 6, cf. AGENTS.md
+E16 et CLAUDE.md §6).
+
+Mesuré **avant** (le matin) et **après**, avec `npm run check:migrations` :
+
+| Contrôle | Avant | Après |
+|---|---|---|
+| Témoin négatif : une colonne inventée | `400` | `400` — la mesure discrimine |
+| `body_fat_source` seule | `400` → **absente** | — |
+| Les **38 colonnes** de `PROFILE_COLS` + `id`, en une requête | `400` | `200` → aucune manquante |
+| Les **6 tables** | `200` | `200` |
+
+⚠️ **Ce que ce contrôle prouve, et ce qu'il ne prouve pas.** Il interroge le schéma en
+LECTURE, donc il ferme le mode de panne réel (`PGRST204` : colonne inconnue → upsert
+ENTIER rejeté → synchro morte en silence). Il ne remplace pas une **écriture** réelle
+depuis l'app — celle-ci ne peut avoir lieu qu'après le déploiement du client, puisque
+c'est l'écran de saisie qui produit la valeur. Consigner ici quand ce sera fait.
+
+Les **16** migrations de `supabase/migrations/` sont donc reflétées en prod à cette date.
+
 ### 2026-08-02 — ✅ TOUT est appliqué, `birth_date` comprise
 
 ⚠️ **Cette entrée existe parce qu'une session a annoncé au fondateur que

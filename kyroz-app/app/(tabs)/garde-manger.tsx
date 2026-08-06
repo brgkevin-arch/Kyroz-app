@@ -5,7 +5,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { useTheme, ThemePalette, Radius, Spacing, Type, cardShadow } from '../../constants/theme';
+import { useTheme, ThemePalette, Radius, Spacing, Type, cardShadow, Fond, CIBLE_TACTILE_MIN, Trait, Icone, OPACITE_PRESSION } from '../../constants/theme';
 import { useCollapsingTitle, CompactTitleBar } from '../../components/CollapsingTitle';
 import { useLayout } from '../../constants/layout';
 import { PrimaryButton, Chip, Field, SectionLabel, Segmented } from '../../components/ui';
@@ -144,8 +144,8 @@ export default function GardeMangerScreen() {
             <Text style={s.sub}>{visible.length} aliment{visible.length > 1 ? 's' : ''} · {ready.length} recette{ready.length > 1 ? 's' : ''} prête{ready.length > 1 ? 's' : ''}</Text>
             <Text style={s.h1}>Frigo</Text>
           </View>
-          <TouchableOpacity style={s.addBtn} onPress={() => setShowAdd(true)} activeOpacity={0.85}>
-            <Ionicons name="add" size={22} color={t.onAccent} />
+          <TouchableOpacity style={s.addBtn} onPress={() => setShowAdd(true)} activeOpacity={OPACITE_PRESSION}>
+            <Ionicons name="add" size={Icone.action} color={t.onAccent} />
           </TouchableOpacity>
         </View>
 
@@ -163,12 +163,12 @@ export default function GardeMangerScreen() {
         {visible.length === 0 ? (
           <View style={s.empty}>
             <View style={[s.emptyIcon, { backgroundColor: t.fill }]}>
-              <Ionicons name="file-tray-full-outline" size={30} color={t.textSecondary} />
+              <Ionicons name="file-tray-full-outline" size={Icone.vide} color={t.textSecondary} />
             </View>
             <Text style={s.emptyTitle}>Ton frigo est vide</Text>
             <Text style={s.emptySub}>Ajoute ce que tu as déjà — ou coche tes articles dans l'onglet Courses, ils arrivent ici automatiquement.</Text>
             <View style={{ height: 8 }} />
-            <TouchableOpacity onPress={() => setShowAdd(true)} style={s.ghostBtn} activeOpacity={0.8}>
+            <TouchableOpacity onPress={() => setShowAdd(true)} style={s.ghostBtn} activeOpacity={OPACITE_PRESSION}>
               <Text style={s.ghostTxt}>Ajouter un aliment</Text>
             </TouchableOpacity>
           </View>
@@ -178,15 +178,15 @@ export default function GardeMangerScreen() {
             {ready.length > 0 && (
               <>
                 <SectionLabel t={t}>Réalisable maintenant</SectionLabel>
-                <View style={{ gap: 10, marginTop: 10 }}>
+                <View style={{ gap: Spacing.md, marginTop: Spacing.md }}>
                   {ready.map((c) => (
                     <View key={c.recipe.id} style={[s.recipe, cardShadow(t)]}>
                       <View style={{ flex: 1 }}>
                         <Text style={s.rName}>{c.recipe.name_fr}</Text>
                         <Text style={s.rMeta}>{c.recipe.prep_time_min} min · {c.recipe.macros_per_portion.kcal} kcal · {c.recipe.macros_per_portion.protein_g}g P</Text>
                       </View>
-                      <TouchableOpacity style={s.cookBtn} onPress={() => cook(c)} activeOpacity={0.85}>
-                        <Ionicons name="restaurant" size={14} color={t.onAccent} />
+                      <TouchableOpacity style={s.cookBtn} onPress={() => cook(c)} activeOpacity={OPACITE_PRESSION}>
+                        <Ionicons name="restaurant" size={Icone.petite} color={t.onAccent} />
                         <Text style={s.cookTxt}>Cuisiné</Text>
                       </TouchableOpacity>
                     </View>
@@ -200,7 +200,7 @@ export default function GardeMangerScreen() {
                 <View style={{ marginTop: ready.length > 0 ? 28 : 0 }}>
                   <SectionLabel t={t}>Presque — quelques ingrédients en plus</SectionLabel>
                 </View>
-                <View style={{ gap: 10, marginTop: 10 }}>
+                <View style={{ gap: Spacing.md, marginTop: Spacing.md }}>
                   {almost.map((c) => (
                     <View key={c.recipe.id} style={[s.recipe, cardShadow(t), { opacity: 0.92 }]}>
                       <View style={{ flex: 1 }}>
@@ -231,7 +231,7 @@ export default function GardeMangerScreen() {
             </View>
 
             {grouped.map((g) => (
-              <View key={g.cat} style={{ marginTop: 8 }}>
+              <View key={g.cat} style={{ marginTop: Spacing.sm }}>
                 <Text style={s.catLabel}>{CATEGORY_LABELS[g.cat].toUpperCase()}</Text>
                 <View style={[s.invCard, cardShadow(t)]}>
                   {/* Plus de croix de suppression par ligne : toucher la quantité
@@ -243,7 +243,7 @@ export default function GardeMangerScreen() {
                       key={it.name + it.unit}
                       style={[s.invRow, i < g.list.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.line }]}
                       onPress={() => openEdit(it)}
-                      activeOpacity={0.6}
+                      activeOpacity={OPACITE_PRESSION}
                     >
                       <Text style={s.invName} numberOfLines={1}>{it.name}</Text>
                       <Text style={s.invQty}>{formatQuantity(it.name, it.quantity, it.unit)}</Text>
@@ -273,14 +273,14 @@ export default function GardeMangerScreen() {
           const sug = searchFoods(name, 5);
           if (sug.length === 0) return null;
           return (
-            <View style={{ borderWidth: 1, borderColor: t.line, borderRadius: Radius.sm, overflow: 'hidden' }}>
+            <View style={{ borderWidth: Trait.fin, borderColor: t.line, borderRadius: Radius.sm, overflow: 'hidden' }}>
               {sug.map((f) => (
                 <TouchableOpacity
-                  key={f.id} activeOpacity={0.7}
+                  key={f.id} activeOpacity={OPACITE_PRESSION}
                   onPress={() => { setName(f.name_fr); setSugDismissed(true); }}
-                  style={{ paddingHorizontal: 14, paddingVertical: 11, borderBottomWidth: 1, borderBottomColor: t.line }}
+                  style={{ paddingHorizontal: Spacing.lg, paddingVertical: Spacing.md, borderBottomWidth: Trait.fin, borderBottomColor: t.line }}
                 >
-                  <Text style={{ color: t.text, fontSize: 14 }} numberOfLines={1}>{f.name_fr}</Text>
+                  <Text style={{ ...Type.bodySmall, color: t.text }} numberOfLines={1}>{f.name_fr}</Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -300,14 +300,14 @@ export default function GardeMangerScreen() {
         <Text style={s.sheetTitle}>Modifier la quantité</Text>
         <Text style={s.editName}>{editItem?.name}</Text>
         <View style={s.stepRow}>
-          <TouchableOpacity onPress={() => bumpEditQty(-1)} style={s.stepBtn} activeOpacity={0.7} accessibilityLabel="Diminuer la quantité">
-            <Ionicons name="remove" size={22} color={t.text} />
+          <TouchableOpacity onPress={() => bumpEditQty(-1)} style={s.stepBtn} activeOpacity={OPACITE_PRESSION} accessibilityLabel="Diminuer la quantité">
+            <Ionicons name="remove" size={Icone.action} color={t.text} />
           </TouchableOpacity>
           <View style={{ flex: 1 }}>
             <Field t={t} label="Quantité" suffix={editUnit} value={editQty} onChangeText={setEditQty} placeholder="2" keyboardType="decimal-pad" />
           </View>
-          <TouchableOpacity onPress={() => bumpEditQty(1)} style={s.stepBtn} activeOpacity={0.7} accessibilityLabel="Augmenter la quantité">
-            <Ionicons name="add" size={22} color={t.text} />
+          <TouchableOpacity onPress={() => bumpEditQty(1)} style={s.stepBtn} activeOpacity={OPACITE_PRESSION} accessibilityLabel="Augmenter la quantité">
+            <Ionicons name="add" size={Icone.action} color={t.text} />
           </TouchableOpacity>
         </View>
         <View style={s.unitRow}>
@@ -330,7 +330,7 @@ export default function GardeMangerScreen() {
         <Text style={s.confirmMsg}>{confirm?.message}</Text>
         <View style={{ height: 6 }} />
         <TouchableOpacity
-          activeOpacity={0.85}
+          activeOpacity={OPACITE_PRESSION}
           onPress={() => { confirm?.onYes(); setConfirm(null); }}
           style={[s.confirmBtn, { backgroundColor: confirm?.danger ? t.danger : t.accent }]}
         >
@@ -348,54 +348,54 @@ function makeStyles(t: ThemePalette) {
     // ⚠️ Plus de `paddingHorizontal` : l'en-tête vit maintenant dans le
     // contentContainer du ScrollView, qui pose déjà les 20 pt. L'y laisser les
     // aurait doublés.
-    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 4, paddingBottom: 12 },
-    h1: { color: t.text, ...Type.display, marginTop: 2 },
-    sub: { color: t.textSecondary, fontSize: 14, lineHeight: 19 },
-    addBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: t.accent, alignItems: 'center', justifyContent: 'center' },
-    segment: { paddingBottom: 6 },
-    content: { paddingHorizontal: Spacing.xl, paddingTop: 10, paddingBottom: 120 },
+    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: Spacing.xs, paddingBottom: Spacing.md },
+    h1: { color: t.text, ...Type.display, marginTop: Spacing.xs },
+    sub: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 19 },
+    addBtn: { width: CIBLE_TACTILE_MIN, height: CIBLE_TACTILE_MIN, borderRadius: Radius.pill, backgroundColor: t.accent, alignItems: 'center', justifyContent: 'center' },
+    segment: { paddingBottom: Spacing.sm },
+    content: { paddingHorizontal: Spacing.xl, paddingTop: Spacing.md, paddingBottom: Fond.barreOnglets },
 
-    empty: { alignItems: 'center', gap: 10, paddingVertical: 40 },
-    emptyIcon: { width: 72, height: 72, borderRadius: 24, alignItems: 'center', justifyContent: 'center', marginBottom: 6 },
+    empty: { alignItems: 'center', gap: Spacing.md, paddingVertical: Spacing.xxxl },
+    emptyIcon: { width: 72, height: 72, borderRadius: 24, alignItems: 'center', justifyContent: 'center', marginBottom: Spacing.sm },
     emptyTitle: { color: t.text, ...Type.h2 },
-    emptySub: { color: t.textSecondary, fontSize: 15, textAlign: 'center', lineHeight: 21, paddingHorizontal: 10 },
-    ghostBtn: { paddingVertical: 14, alignItems: 'center' },
-    ghostTxt: { color: t.textSecondary, fontSize: 15, fontWeight: '600' },
+    emptySub: { ...Type.body, color: t.textSecondary, textAlign: 'center', lineHeight: 21, paddingHorizontal: Spacing.md },
+    ghostBtn: { paddingVertical: Spacing.lg, alignItems: 'center' },
+    ghostTxt: { ...Type.bodyStrong, color: t.textSecondary },
 
-    recipe: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: t.card, borderRadius: Radius.card, padding: 16 },
-    rName: { color: t.text, fontSize: 16, fontWeight: '700', letterSpacing: -0.3 },
-    rMeta: { color: t.textSecondary, fontSize: 13, marginTop: 4 },
-    rMissing: { color: t.textTertiary, fontSize: 13, marginTop: 4 },
-    cookBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: t.accent, paddingHorizontal: 14, paddingVertical: 10, borderRadius: Radius.pill },
-    cookTxt: { color: t.onAccent, fontSize: 13, fontWeight: '700' },
+    recipe: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, backgroundColor: t.card, borderRadius: Radius.card, padding: Spacing.lg },
+    rName: { ...Type.label, color: t.text, letterSpacing: -0.3 },
+    rMeta: { ...Type.caption, color: t.textSecondary, marginTop: Spacing.xs },
+    rMissing: { ...Type.caption, color: t.textTertiary, marginTop: Spacing.xs },
+    cookBtn: { flexDirection: 'row', alignItems: 'center', gap: Spacing.xs, backgroundColor: t.accent, paddingHorizontal: Spacing.lg, paddingVertical: Spacing.sm, minHeight: CIBLE_TACTILE_MIN, justifyContent: 'center', borderRadius: Radius.pill },
+    cookTxt: { ...Type.captionStrong, color: t.onAccent },
     missingBadge: { width: 28, height: 28, borderRadius: 14, backgroundColor: t.fill, alignItems: 'center', justifyContent: 'center' },
-    missingBadgeTxt: { color: t.textSecondary, fontSize: 13, fontWeight: '700' },
+    missingBadgeTxt: { ...Type.captionStrong, color: t.textSecondary },
 
-    note: { borderRadius: Radius.card, padding: 16, marginTop: 4 },
-    noteTxt: { color: t.textSecondary, fontSize: 14, lineHeight: 20 },
+    note: { borderRadius: Radius.card, padding: Spacing.lg, marginTop: Spacing.xs },
+    noteTxt: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 20 },
 
-    invHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
-    invHint: { color: t.textTertiary, fontSize: 13 },
-    link: { color: t.textSecondary, fontSize: 14, fontWeight: '500' },
-    catLabel: { color: t.textTertiary, fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8, marginTop: 12 },
-    invCard: { backgroundColor: t.card, borderRadius: Radius.card, paddingHorizontal: 16 },
-    invRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, paddingVertical: 15 },
-    invName: { flex: 1, color: t.text, fontSize: 16, fontWeight: '500' },
-    invQty: { color: t.textSecondary, fontSize: 15 },
-    stepRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 10 },
+    invHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: Spacing.xs },
+    invHint: { ...Type.caption, color: t.textTertiary },
+    link: { ...Type.bodySmall, color: t.textSecondary },
+    catLabel: { ...Type.overline, color: t.textTertiary, marginBottom: Spacing.sm, marginTop: Spacing.md },
+    invCard: { backgroundColor: t.card, borderRadius: Radius.card, paddingHorizontal: Spacing.lg },
+    invRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.md, paddingVertical: Spacing.lg },
+    invName: { ...Type.body, flex: 1, color: t.text },
+    invQty: { ...Type.body, color: t.textSecondary },
+    stepRow: { flexDirection: 'row', alignItems: 'flex-end', gap: Spacing.md },
     stepBtn: { width: 48, height: 48, borderRadius: Radius.button, backgroundColor: t.fill, alignItems: 'center', justifyContent: 'center' },
-    stepHint: { color: t.textTertiary, fontSize: 13, lineHeight: 18 },
+    stepHint: { ...Type.caption, color: t.textTertiary, lineHeight: 18 },
 
-    toast: { position: 'absolute', left: 20, right: 20, bottom: 28, backgroundColor: t.accent, borderRadius: Radius.button, paddingVertical: 14, paddingHorizontal: 18, alignItems: 'center' },
-    toastTxt: { color: t.onAccent, fontSize: 14, fontWeight: '700' },
+    toast: { position: 'absolute', left: 20, right: 20, bottom: 28, backgroundColor: t.accent, borderRadius: Radius.button, paddingVertical: Spacing.lg, paddingHorizontal: Spacing.xl, alignItems: 'center' },
+    toastTxt: { ...Type.bodySmallStrong, color: t.onAccent },
 
     sheetTitle: { color: t.text, ...Type.h2 },
-    editName: { color: t.textSecondary, fontSize: 15, fontWeight: '600', marginTop: -6 },
-    unitRow: { flexDirection: 'row', gap: 8 },
-    cancel: { alignItems: 'center', paddingVertical: 6 },
-    cancelTxt: { color: t.textSecondary, fontSize: 15, fontWeight: '600' },
-    confirmMsg: { color: t.textSecondary, fontSize: 15, lineHeight: 21 },
-    confirmBtn: { borderRadius: Radius.button, paddingVertical: 17, alignItems: 'center', justifyContent: 'center' },
-    confirmBtnTxt: { fontSize: 17, fontWeight: '700' },
+    editName: { ...Type.bodyStrong, color: t.textSecondary, marginTop: -Spacing.sm },
+    unitRow: { flexDirection: 'row', gap: Spacing.sm },
+    cancel: { alignItems: 'center', paddingVertical: Spacing.sm },
+    cancelTxt: { ...Type.bodyStrong, color: t.textSecondary },
+    confirmMsg: { ...Type.body, color: t.textSecondary, lineHeight: 21 },
+    confirmBtn: { borderRadius: Radius.button, paddingVertical: Spacing.lg, alignItems: 'center', justifyContent: 'center' },
+    confirmBtnTxt: { ...Type.h3 },
   });
 }

@@ -38,6 +38,14 @@ create table if not exists public.profiles (
   weight_kg numeric,
   height_cm numeric,
   body_fat_pct numeric check (body_fat_pct is null or (body_fat_pct >= 3 and body_fat_pct <= 65)),
+  -- Provenance du %MG : 'measured' | 'estimated'. C'est elle qui décide de la formule
+  -- du BMR (Katch-McArdle uniquement si mesuré — lib/tdee.ts::calculateBMR).
+  -- SANS contrainte d'énumération À DESSEIN, même raison que neat_level : une valeur
+  -- ajoutée côté app avant sa migration ferait rejeter l'upsert ENTIER, donc perdre
+  -- tout le profil. Le client borne à la lecture (`katchEligible`).
+  -- NULL = question jamais posée → le moteur calcule comme « estimé ». JAMAIS
+  -- backfillé : NULL et 'estimated' ne veulent pas dire la même chose.
+  body_fat_source text,
   activity_level text,
   training_days_per_week int,
   low_ea_weeks jsonb, -- registre d'exposition à l'énergie disponible basse (plancher P0.1). NULL = aucun historique

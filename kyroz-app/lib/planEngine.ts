@@ -1127,7 +1127,11 @@ function trainingDaysPerWeek(profile: UserProfile): number {
  * contredit est de ne rien en déduire.
  */
 export function dayExpenditures(profile: UserProfile, days: number): number[] {
-  const bmr = calculateBMR(profile.sex, profile.weight_kg, profile.height_cm, profile.age, profile.body_fat_pct);
+  // ⚠️ Le PROFIL entier, pas cinq arguments : `calculateBMR` a été passée en objet
+  // pour que le %MG ne puisse plus voyager sans sa PROVENANCE (Katch-McArdle ne doit
+  // pas s'appliquer à une silhouette tapée au jugé). Passer le profil garde ce lien
+  // intact ici aussi — la répartition par jour hérite du bon BMR sans rien redécider.
+  const bmr = calculateBMR(profile);
   const horsSport = bmr * neatPal(profile.neat_level);
   const semaine = exerciseKcalPerWeek(profile.sports, profile.weight_kg);
   const joursEntrainement = trainingDaysPerWeek(profile);

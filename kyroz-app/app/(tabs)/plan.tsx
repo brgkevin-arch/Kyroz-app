@@ -5,7 +5,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useTheme, ThemePalette, Radius, Spacing, Type } from '../../constants/theme';
+import { useTheme, ThemePalette, Radius, Spacing, Type, Trait, Icone, OPACITE_PRESSION , Fond } from '../../constants/theme';
 import { useCollapsingTitle, CompactTitleBar } from '../../components/CollapsingTitle';
 import { useLayout } from '../../constants/layout';
 import { DISCLAIMER } from '../../constants/legal';
@@ -14,8 +14,8 @@ import { MealCard } from '../../components/MealCard';
 import { RecipeDetail } from '../../components/RecipeDetail';
 import { RecipeEditor } from '../../components/RecipeEditor';
 import { Sheet } from '../../components/Sheet';
-import { StreakProgress } from '../../components/StreakProgress';
 import { StreakCelebration } from '../../components/StreakCelebration';
+import { PeseeIcon, RepasIcon } from '../../components/Icons';
 import { BirthdayCelebration } from '../../components/BirthdayCelebration';
 import { FirstPlanReveal } from '../../components/FirstPlanReveal';
 import { WeightCheckin } from '../../components/WeightCheckin';
@@ -39,11 +39,10 @@ import { DISLIKE_THRESHOLD, dislikeCandidates, applyDislikedIngredient } from '.
 import { todayStamp } from '../../lib/weight';
 import { recordOffPlan, resolveOffPlan, forgetOffPlan } from '../../lib/offPlanJournal';
 import { isBirthday, ageOn } from '../../lib/birthday';
-import { mealFiberFromIngredients, dailyFiberTarget } from '../../lib/fiber';
 import { getRecipeById, getBaseRecipe } from '../../lib/recipes';
 import { useRecipeOverrides } from '../../hooks/useRecipeOverrides';
 import { loadPantry, savePantry, deductIngredients, recipeCoverage, PantryItem } from '../../lib/pantry';
-import { loadFirstName } from '../../lib/profileName';
+import { useFirstName } from '../../lib/profileName';
 import { capture, Events } from '../../lib/analytics';
 import { DayExtra, Macros, Meal, MealPlan, MealStatus, Recipe } from '../../lib/types';
 
@@ -142,7 +141,9 @@ export default function PlanScreen() {
 
   const [plan, setPlan] = useState<MealPlan | null>(null);
   const [pantry, setPantry] = useState<PantryItem[]>([]);
-  const [firstName, setFirstName] = useState('');
+  // Diffusé, pas lu au montage : le prénom se pose aussi depuis Profil →
+  // Informations, et le titre doit suivre sans redémarrage (cf. lib/profileName.ts).
+  const firstName = useFirstName();
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [selectedDay, setSelectedDay] = useState(1);
@@ -166,7 +167,6 @@ export default function PlanScreen() {
   const offplanRef = useTourTarget('plan-offplan');
 
   useEffect(() => { load(); }, []);
-  useEffect(() => { loadFirstName().then(setFirstName); }, []);
 
   // Visite guidée : au 1er affichage d'un plan, on lance le tour s'il n'a jamais
   // été vu. Petit délai pour laisser la mise en page (et le ScrollView) se poser.
@@ -368,7 +368,7 @@ export default function PlanScreen() {
 
   // Bouclier de série : un jour manqué vient d'être pardonné → on rassure l'utilisateur.
   useEffect(() => {
-    if (froze) { toast('🛡️ Série protégée — un jour manqué pardonné. Reviens demain 👊'); capture(Events.streakFrozen); clearFroze(); }
+    if (froze) { toast('Série protégée — un jour manqué pardonné. Reviens demain'); capture(Events.streakFrozen); clearFroze(); }
   }, [froze]);
 
   // Persiste un plan modifié + invalide les courses (portions/repas changés) et
@@ -405,7 +405,7 @@ export default function PlanScreen() {
     await markActiveToday(); // manger selon le plan = adhésion réelle
     capture(Events.mealCooked, { meal_type: meal.meal_type });
     setSelectedMeal(null);
-    toast('✓ Mangé — journée recalée 👊');
+    toast('✓ Mangé — journée recalée');
   };
 
   // « Je l'ai sauté » : le repas ne compte pas, son budget bascule sur les
@@ -450,12 +450,12 @@ export default function PlanScreen() {
     // retenir : sans elle, il ne resterait qu'une liste de dérapages.
     await resolveOffPlan(selectedDay, opt.absorbedKcal);
     setAdaptPrompt(null);
-    toast('Journée réadaptée 👊');
+    toast('Journée réadaptée');
   };
   // « Non, je garde mon plan » : on ne touche à rien, l'écart reste compté à part.
   const declineAdapt = async () => {
     setAdaptPrompt(null);
-    toast('Ok, on garde ton plan 😎');
+    toast('Ok, on garde ton plan');
     await resolveOffPlan(selectedDay, 0); // 0 = journée gardée telle quelle
   };
 
@@ -492,14 +492,14 @@ export default function PlanScreen() {
     const r = await dislikeMealCore(selectedMeal);
     if (r === 'elicit') { setSelectedMeal(null); return; }
     setSelectedMeal(r);
-    toast('Noté 👎 — on te change ça');
+    toast('C\'est noté — on te change ça');
   };
 
   // ── Actions directement sur la CARTE (fiche fermée → on ne touche pas selectedMeal) ──
-  const reloadMealOnCard = async (meal: Meal) => { await swapMealCore(meal); toast('Recette changée 🔄'); };
+  const reloadMealOnCard = async (meal: Meal) => { await swapMealCore(meal); toast('Recette changée'); };
   const dislikeMealOnCard = async (meal: Meal) => {
     const r = await dislikeMealCore(meal);
-    if (r !== 'elicit') toast('Noté 👎 — on te change ça');
+    if (r !== 'elicit') toast('C\'est noté — on te change ça');
   };
 
   // L'utilisateur a nommé l'ingrédient gênant : on l'évite partout (disliked_foods,
@@ -509,7 +509,7 @@ export default function PlanScreen() {
     if (!profile) return;
     await saveProfile(applyDislikedIngredient(profile, kw));
     setDislikeElicit(null);
-    toast('Compris — on évite ça et on te ramène le reste 👌');
+    toast('Compris — on évite ça et on te ramène le reste');
   };
 
   // Met la fiche ouverte à jour après personnalisation (le plan, lui, est
@@ -526,10 +526,6 @@ export default function PlanScreen() {
   const dayTarget = (plan && profile) ? dayTargetKcal(profile, plan.days, selectedDay) : profile?.target_kcal;
   const isRestDay = dayMeals.some((m) => m.rest_day);
   const restDayNums = new Set((plan?.meals ?? []).filter((m) => m.rest_day).map((m) => m.day));
-  // Fibres : seuls les repas non sautés comptent (un repas sauté n'est pas mangé).
-  // Estimées depuis les quantités EFFECTIVES (adaptées par ingrédient si présentes).
-  const dayFiber = dayMeals.reduce((s, m) => (m.status === 'skipped' ? s : s + mealFiberFromIngredients(mealIngredients(m))), 0);
-  const fiberTarget = profile ? dailyFiberTarget(profile) : 0;
   const dayExtraKcal = plan?.day_extras?.[selectedDay]?.kcal ?? 0;
   const dayExtraLabel = plan?.day_extras?.[selectedDay]?.label;
   // Déjà consommé aujourd'hui (repas mangés verrouillés + écarts hors-plan) → « restant ».
@@ -583,7 +579,7 @@ export default function PlanScreen() {
   // seul via l'effet d'auto-refresh. L'option « recettes trop longues » a disparu avec
   // le filtre de temps le 2026-07-29 : elle abaissait le curseur d'un cran sans le
   // moindre garde-fou et pouvait, en un clic, faire tomber le pool de repas à 0.
-  const checkinSatisfied = () => { snoozeCheckin(); setCheckinOpen(false); toast('Parfait, on continue 👊'); };
+  const checkinSatisfied = () => { snoozeCheckin(); setCheckinOpen(false); toast('Parfait, on continue'); };
   const checkinMoreVariety = () => { if (profile) saveProfile({ ...profile, variety: 'max' }); snoozeCheckin(); setCheckinOpen(false); toast('Variété au max — nouveau plan en route'); };
   const checkinNewPlan = () => { snoozeCheckin(); setCheckinOpen(false); generate(true); };
   const checkinAdjustProfile = () => { snoozeCheckin(); setCheckinOpen(false); router.push('/(tabs)/profil'); };
@@ -606,12 +602,14 @@ export default function PlanScreen() {
         <View style={s.header} onLayout={repli.onHeaderLayout}>
           <View style={{ flex: 1 }}>
             <Text style={s.date}>{todayLabel.charAt(0).toUpperCase() + todayLabel.slice(1)}</Text>
-            <Text style={s.h1}>{firstName ? `Salut ${firstName} 👋` : 'Ton plan'}</Text>
+            {/* Sans émoji (2026-08-06) : chantier de fond, on les retire partout
+                progressivement. Un titre d'écran n'a pas besoin d'être illustré. */}
+            <Text style={s.h1}>{firstName ? `Salut ${firstName}` : 'Ton plan'}</Text>
           </View>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md }}>
             {plan && (
-              <TouchableOpacity onPress={() => startTour('plan', planTour(plan.days), { scrollRef })} hitSlop={8} activeOpacity={0.7}>
-                <Ionicons name="help-circle-outline" size={24} color={t.textTertiary} />
+              <TouchableOpacity onPress={() => startTour('plan', planTour(plan.days), { scrollRef })} hitSlop={8} activeOpacity={OPACITE_PRESSION}>
+                <Ionicons name="help-circle-outline" size={Icone.nav} color={t.textTertiary} />
               </TouchableOpacity>
             )}
             {/* La série se dit en toutes lettres, sans 🔥 : le compteur porte seul.
@@ -623,16 +621,19 @@ export default function PlanScreen() {
           </View>
         </View>
 
-        {/* Progression vers l'objectif 7 jours (North Star) */}
-        <StreakProgress t={t} streak={streak} variant="strip" />
+        {/* ⚠️ Le bandeau de progression vers l'objectif 7 jours (`StreakProgress`
+            variant="strip") a été RETIRÉ de cet écran le 2026-08-05 (décision
+            fondateur). Le compteur de série reste dans l'en-tête ci-dessus, et le
+            bandeau complet vit toujours dans le Profil (variant="card") — le
+            composant n'est donc pas mort, il n'a plus sa place ICI. */}
 
         {/* Consentement analytics (RGPD) — prompt une fois, post-onboarding */}
         <AnalyticsConsentBanner />
 
         {/* Check-in poids hebdo : ramène l'utilisateur + garde le plan juste dans le temps */}
         {weighInDue && (
-          <TouchableOpacity style={s.weighBanner} onPress={() => setWeighIn(true)} activeOpacity={0.85}>
-            <Text style={{ fontSize: 18 }}>⚖️</Text>
+          <TouchableOpacity style={s.weighBanner} onPress={() => setWeighIn(true)} activeOpacity={OPACITE_PRESSION}>
+            <PeseeIcon color={t.text} size={Icone.action} />
             <View style={{ flex: 1 }}>
               <Text style={s.weighTitle}>C'est le moment de te peser</Text>
               <Text style={s.weighSub}>Mets à jour ton poids — on réajuste tes macros et ton plan.</Text>
@@ -643,8 +644,8 @@ export default function PlanScreen() {
 
         {/* Proposition d'ajustement périodique (opt-out réactivable dans Profil) */}
         {checkinDue && (
-          <TouchableOpacity style={s.weighBanner} onPress={() => setCheckinOpen(true)} activeOpacity={0.85}>
-            <Text style={{ fontSize: 18 }}>🍽️</Text>
+          <TouchableOpacity style={s.weighBanner} onPress={() => setCheckinOpen(true)} activeOpacity={OPACITE_PRESSION}>
+            <RepasIcon color={t.text} size={Icone.action} />
             <View style={{ flex: 1 }}>
               <Text style={s.weighTitle}>Ton plan te convient toujours ?</Text>
               <Text style={s.weighSub}>Dis-nous ce qui coince — on ajuste en un tap.</Text>
@@ -657,7 +658,7 @@ export default function PlanScreen() {
           <>
             {/* Plan désynchronisé du profil → mise à jour en 1 tap */}
             {planStale && !generating && (
-              <TouchableOpacity style={s.banner} onPress={() => generate()} activeOpacity={0.85} disabled={generating}>
+              <TouchableOpacity style={s.banner} onPress={() => generate()} activeOpacity={OPACITE_PRESSION} disabled={generating}>
                 <Text style={s.bannerTxt}>
                   Ton plan ({plan.days} j) ne correspond plus à tes réglages ({clampDays(intendedDays)} j).
                 </Text>
@@ -665,16 +666,36 @@ export default function PlanScreen() {
               </TouchableOpacity>
             )}
 
-            {/* Day strip — réparti sur toute la largeur, tous les jours conservés */}
+            {/* Day strip — ÉPURÉ (2026-08-05, maquette). Chaque jour était une carte
+                bordée de 58 pt : sept cadres alignés sous un titre, ça pesait plus que
+                le plan lui-même. Ne restent qu'une lettre, un chiffre, et une PASTILLE
+                en accent sur le jour actif — la seule chose qui doit se voir.
+                ⚠️ La rangée montre les jours DU PLAN (`plan.days`), pas les 7 jours du
+                calendrier : un jour sans repas n'est pas sélectionnable, l'afficher
+                promettrait une journée qui n'existe pas. */}
             <View ref={daysRef} style={s.days}>
               {Array.from({ length: plan.days }).map((_, i) => {
                 const n = i + 1; const on = selectedDay === n; const meta = dayMeta(i);
+                const repos = restDayNums.has(n);
                 return (
-                  <TouchableOpacity key={n} onPress={() => setSelectedDay(n)} activeOpacity={0.85}
-                    style={[s.day, { backgroundColor: on ? t.accent : t.card, borderColor: on ? t.accent : t.line }]}>
-                    <Text style={[s.dayWd, { color: on ? t.onAccent : t.textTertiary }]}>{meta.wd}</Text>
-                    <Text style={[s.dayNum, { color: on ? t.onAccent : t.textSecondary }]}>{meta.num}</Text>
-                    <Text style={{ fontSize: 9, height: 12, lineHeight: 12 }}>{restDayNums.has(n) ? '🛌' : ''}</Text>
+                  <TouchableOpacity
+                    key={n}
+                    onPress={() => setSelectedDay(n)}
+                    activeOpacity={OPACITE_PRESSION}
+                    style={s.day}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: on }}
+                    accessibilityLabel={`${meta.wd} ${meta.num}${repos ? ', jour de repos' : ''}`}
+                  >
+                    <Text style={s.dayWd}>{meta.wd}</Text>
+                    <View style={[s.dayDot, on && { backgroundColor: t.accent }]}>
+                      <Text style={[s.dayNum, { color: on ? t.onAccent : t.text }]}>{meta.num}</Text>
+                    </View>
+                    {/* Hauteur réservée même sans lune : sinon la rangée se décale
+                        verticalement selon qu'un jour de repos est présent ou non. */}
+                    <View style={s.dayMoon}>
+                      {repos && <Ionicons name="moon" size={Icone.petite} color={t.textTertiary} />}
+                    </View>
                   </TouchableOpacity>
                 );
               })}
@@ -687,16 +708,18 @@ export default function PlanScreen() {
             {dayMacros && (
               <View ref={macrosRef}>
                 <SectionLabel t={t}>Jour {selectedDay}</SectionLabel>
-                {/* ⚠️ Ce bandeau disait « (mêmes kcal) » — c'était vrai jusqu'au
-                    2026-08-06, ça ne l'est plus : le budget du jour suit désormais la
-                    dépense du jour, donc un jour de repos reçoit MOINS. Laisser la
-                    phrase aurait contredit le nombre affiché deux lignes plus bas.
-                    On dit ce qui baisse, et surtout on rassure sur la semaine — le
-                    suivi doit rassurer, jamais mettre la pression. */}
+                {/* Même symbole que dans la rangée de jours : deux marqueurs différents
+                    pour la même chose sur un même écran, c'est ce qu'on corrige.
+                    ⚠️ Et le TEXTE disait « (mêmes kcal) » — vrai jusqu'au 2026-08-06,
+                    faux depuis : le budget du jour suit la dépense du jour, donc un jour
+                    de repos reçoit MOINS. La phrase contredisait le nombre affiché deux
+                    lignes plus bas. On dit ce qui baisse, et on rassure sur la semaine —
+                    un suivi rassure, il ne met pas la pression. */}
                 {isRestDay && (
-                  <Text style={{ color: t.textSecondary, fontSize: 14, lineHeight: 19, marginTop: 2 }}>
-                    🛌 Jour de repos · un peu moins de calories et de glucides, tes protéines inchangées. Ta semaine garde son total.
-                  </Text>
+                  <View style={s.restRow}>
+                    <Ionicons name="moon" size={Icone.petite} color={t.textSecondary} />
+                    <Text style={s.restTxt}>Jour de repos · un peu moins de calories et de glucides, tes protéines inchangées. Ta semaine garde son total.</Text>
+                  </View>
                 )}
                 <View style={{ height: 12 }} />
                 <MacroBar
@@ -707,35 +730,41 @@ export default function PlanScreen() {
                   plannedKcal={dayMacros.kcal}
                   consumedKcal={consumedDayKcal}
                 />
-                <MarginNote t={t} kcal={dayMacros.kcal} />
                 <SousCibleNote t={t} manque={(dayTarget ?? dayMacros.kcal) - dayMacros.kcal} />
-                {profile && <FiberRow t={t} actual={dayFiber} target={fiberTarget} />}
-                {/* Découvrabilité de la perso macros (le fork a été retiré de l'onboarding) :
-                    deep-link vers l'éditeur « Calories & macros » du Profil. */}
-                <TouchableOpacity
-                  onPress={async () => { await AsyncStorage.setItem('@kyroz:openEditor', 'macros'); router.push('/(tabs)/profil'); }}
-                  activeOpacity={0.7}
-                  style={{ marginTop: 12, alignSelf: 'flex-start' }}
-                >
-                  <Text style={{ color: t.accent, fontSize: 13, fontWeight: '700' }}>⚙️ Personnaliser ma répartition (%)</Text>
-                </TouchableOpacity>
                 {dayExtraKcal > 0 && (
                   <View style={s.extraRow}>
-                    <Text style={{ color: t.textSecondary, fontSize: 13 }}>
+                    <Text style={{ ...Type.caption, color: t.textSecondary }}>
                       {(dayMacros.kcal - dayExtraKcal).toLocaleString('fr-FR')} plan
-                      <Text style={{ color: t.text, fontWeight: '700' }}>{` + ${dayExtraKcal} kcal assumées 😎`}</Text>
+                      <Text style={{ color: t.text, fontWeight: '700' }}>{` + ${dayExtraKcal} kcal assumées`}</Text>
                       {/* CE QUE C'ÉTAIT (E6) : deux jours plus tard, « +450 kcal » ne
                           dit plus rien. Ton inchangé — on nomme, on ne reproche pas. */}
                       {dayExtraLabel ? <Text style={{ color: t.textTertiary }}>{` · ${dayExtraLabel}`}</Text> : null}
                     </Text>
                     <TouchableOpacity onPress={clearOffPlan} hitSlop={8}>
-                      <Text style={{ color: t.textTertiary, fontSize: 13, fontWeight: '700' }}>Retirer</Text>
+                      <Text style={{ ...Type.captionStrong, color: t.textTertiary }}>Retirer</Text>
                     </TouchableOpacity>
                   </View>
                 )}
-                <TouchableOpacity ref={offplanRef} onPress={() => setOffPlanOpen(true)} activeOpacity={0.7} style={s.offPlanBtn}>
-                  <Text style={s.offPlanTxt}>+ J'ai mangé hors plan</Text>
-                </TouchableOpacity>
+                {/* Les deux actions du jour sur UNE ligne (décision fondateur, 2026-08-05).
+                    La perso des macros était un lien en accent, l'écart hors plan un bouton
+                    pleine largeur : deux grammaires pour deux gestes de même rang.
+                    ⚠️ SANS FOND depuis le 2026-08-06 : deux pavés remplis juste sous le
+                    chiffre du jour pesaient plus que lui. Ce sont des sorties de route,
+                    pas l'action principale de l'écran — elles se fondent dans la page. */}
+                <View style={s.actionsRow}>
+                  <TouchableOpacity ref={offplanRef} onPress={() => setOffPlanOpen(true)} activeOpacity={OPACITE_PRESSION} style={s.actionBtn}>
+                    <Text style={s.actionTxt}>+ J'ai mangé hors plan</Text>
+                  </TouchableOpacity>
+                  {/* Découvrabilité de la perso macros (le fork a été retiré de l'onboarding) :
+                      deep-link vers l'éditeur « Calories & macros » du Profil. */}
+                  <TouchableOpacity
+                    onPress={async () => { await AsyncStorage.setItem('@kyroz:openEditor', 'macros'); router.push('/(tabs)/profil'); }}
+                    activeOpacity={OPACITE_PRESSION}
+                    style={s.actionBtn}
+                  >
+                    <Text style={s.actionTxt}>Ma répartition (%)</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             )}
 
@@ -760,7 +789,7 @@ export default function PlanScreen() {
                 <Text style={s.sectionCount}>{dayMacros.kcal.toLocaleString('fr-FR')} kcal prévus</Text>
               )}
             </View>
-            <View style={{ gap: 10 }}>
+            <View style={{ gap: Spacing.md }}>
               {dayMeals.map((m, i) => {
                 const fridgeTracked = pantry.length > 0;
                 const missing = fridgeTracked ? recipeCoverage(m.recipe, pantry).missing.map((i) => i.name) : undefined;
@@ -772,6 +801,7 @@ export default function PlanScreen() {
                     onCook={m.fixed ? undefined : () => cookMeal(m)}
                     onReload={m.fixed ? undefined : () => reloadMealOnCard(m)}
                     onDislike={m.fixed ? undefined : () => dislikeMealOnCard(m)}
+                    onShopping={() => router.push('/(tabs)/courses')}
                     missing={m.fixed ? undefined : missing}
                     fridgeTracked={fridgeTracked}
                     tourId={i === 0 ? 'plan-meal' : undefined}
@@ -794,7 +824,7 @@ export default function PlanScreen() {
         ) : (
           <View style={s.empty}>
             <View style={[s.emptyIcon, { backgroundColor: t.fill }]}>
-              <Text style={{ fontSize: 30 }}>🍽️</Text>
+              <RepasIcon color={t.textTertiary} size={Icone.vide} />
             </View>
             <Text style={s.emptyTitle}>Prêt à démarrer ?</Text>
             <Text style={s.emptySub}>Kyroz génère ton plan repas, les recettes et la liste de courses en un instant.</Text>
@@ -896,18 +926,18 @@ export default function PlanScreen() {
       {/* Consentement : on ne réadapte le plan que si l'utilisateur le demande */}
       <ActionSheet visible={adaptPrompt !== null} onClose={declineAdapt}>
         <Text style={{ color: t.text, ...Type.h2 }}>
-          +{adaptPrompt ?? 0} kcal assumées, c'est noté 😎
+          +{adaptPrompt ?? 0} kcal assumées, c'est noté
         </Text>
         {(() => {
           const opts = (plan && profile) ? adaptDayOptions(profile, plan, selectedDay, new Date().getHours()) : [];
           if (opts.length === 0) {
             return (
               <>
-                <Text style={{ color: t.textSecondary, fontSize: 14, lineHeight: 20 }}>
+                <Text style={{ ...Type.bodySmall, color: t.textSecondary, lineHeight: 20 }}>
                   Tes repas du jour sont déjà passés — il n'y a plus rien à réadapter. On garde tout tel quel.
                 </Text>
-                <TouchableOpacity onPress={declineAdapt} style={{ alignItems: 'center', paddingVertical: 10 }}>
-                  <Text style={{ color: t.textSecondary, fontSize: 15, fontWeight: '600' }}>Compris</Text>
+                <TouchableOpacity onPress={declineAdapt} style={{ alignItems: 'center', justifyContent: 'center', minHeight: 44 }}>
+                  <Text style={{ ...Type.bodyStrong, color: t.textSecondary }}>Compris</Text>
                 </TouchableOpacity>
               </>
             );
@@ -921,35 +951,35 @@ export default function PlanScreen() {
           const rentreDansLaCible = opts.some((o) => o.overTargetKcal <= ON_TARGET_TOLERANCE_KCAL);
           return (
             <>
-              <Text style={{ color: t.textSecondary, fontSize: 14, lineHeight: 20 }}>
+              <Text style={{ ...Type.bodySmall, color: t.textSecondary, lineHeight: 20 }}>
                 {rentreDansLaCible
                   ? 'Comment tu veux rentrer dans ta cible ? Tes protéines restent pleines dans tous les cas.'
                   : 'Une seule journée ne peut pas tout reprendre — tes repas restants ont une taille minimale. Voilà ce qu\'on peut faire aujourd\'hui ; le reste ne se rattrape pas, et une journée ne fait pas ta semaine. Tes protéines restent pleines dans tous les cas.'}
               </Text>
               {opts.map((o) => (
                 <TouchableOpacity
-                  key={o.key} onPress={() => applyAdapt(o)} activeOpacity={0.85}
-                  style={{ flexDirection: 'row', alignItems: 'center', gap: 12, borderWidth: 1, borderColor: t.line, borderRadius: Radius.card, padding: 14 }}
+                  key={o.key} onPress={() => applyAdapt(o)} activeOpacity={OPACITE_PRESSION}
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md, borderWidth: Trait.fin, borderColor: t.line, borderRadius: Radius.card, padding: Spacing.lg }}
                 >
                   <View style={{ flex: 1 }}>
-                    <Text style={{ color: t.text, fontSize: 15, fontWeight: '700' }}>{o.label}</Text>
-                    <Text style={{ color: t.textTertiary, fontSize: 12, marginTop: 2 }}>{o.detail}</Text>
+                    <Text style={{ ...Type.bodyStrong, color: t.text }}>{o.label}</Text>
+                    <Text style={{ ...Type.caption, color: t.textTertiary, marginTop: Spacing.xs }}>{o.detail}</Text>
                   </View>
                   <View style={{ alignItems: 'flex-end' }}>
-                    <Text style={{ color: t.text, fontSize: 14, fontWeight: '700' }}>≈ {o.dayKcal.toLocaleString('fr-FR')}</Text>
+                    <Text style={{ ...Type.bodySmallStrong, color: t.text }}>≈ {o.dayKcal.toLocaleString('fr-FR')}</Text>
                     {/* Le chiffre qui compte pour la personne : ce que l'option REPREND.
                         On n'affiche pas le reliquat option par option — ce serait trois
                         rappels de retard sur le même écran (règle produit : rassurer). */}
                     {o.absorbedKcal > 0 && (
-                      <Text style={{ color: t.textTertiary, fontSize: 11, marginTop: 2 }}>
+                      <Text style={{ ...Type.micro, color: t.textTertiary, marginTop: Spacing.xs }}>
                         reprend {o.absorbedKcal.toLocaleString('fr-FR')} kcal
                       </Text>
                     )}
                   </View>
                 </TouchableOpacity>
               ))}
-              <TouchableOpacity onPress={declineAdapt} style={{ alignItems: 'center', paddingVertical: 10 }}>
-                <Text style={{ color: t.textSecondary, fontSize: 15, fontWeight: '600' }}>Non, je garde mon plan</Text>
+              <TouchableOpacity onPress={declineAdapt} style={{ alignItems: 'center', justifyContent: 'center', minHeight: 44 }}>
+                <Text style={{ ...Type.bodyStrong, color: t.textSecondary }}>Non, je garde mon plan</Text>
               </TouchableOpacity>
             </>
           );
@@ -992,76 +1022,67 @@ export default function PlanScreen() {
 function SousCibleNote({ t, manque }: { t: ThemePalette; manque: number }) {
   if (manque <= ON_TARGET_TOLERANCE_KCAL) return null;
   return (
-    <Text style={{ color: t.textTertiary, fontSize: 12, lineHeight: 17, marginTop: 8 }}>
+    <Text style={{ ...Type.caption, color: t.textTertiary, lineHeight: 17, marginTop: Spacing.sm }}>
       Ta journée s'arrête {Math.round(manque).toLocaleString('fr-FR')} kcal sous ta cible : les portions de tes repas
       ne peuvent pas monter plus haut. Une journée sous la cible ne compromet rien.
     </Text>
   );
 }
 
-function MarginNote({ t, kcal }: { t: ThemePalette; kcal: number }) {
-  if (kcal <= 0) return null;
-  // Note d'honnêteté discrète : les valeurs alimentaires sont des moyennes (Ciqual),
-  // pas une pesée au gramme près. On n'affiche plus la fourchette ± (donnait
-  // l'impression que le plan était imprécis ; cf. retour fondateur 2026-06-18).
-  return (
-    <Text style={{ color: t.textTertiary, fontSize: 12, marginTop: 8, lineHeight: 16 }}>
-      Valeurs estimées (moyennes alimentaires)
-    </Text>
-  );
-}
-
-function FiberRow({ t, actual, target }: { t: ThemePalette; actual: number; target: number }) {
-  // Tolérance : on alerte seulement nettement sous la cible (−5 g), sinon ✓.
-  const ok = actual >= target - 5;
-  return (
-    <View style={styles.fiber}>
-      <Text style={{ color: t.textTertiary, fontSize: 13 }}>🌾 Fibres {actual} g / {target} g</Text>
-      <Text style={{ color: ok ? t.success : t.warning, fontSize: 13, fontWeight: '700' }}>
-        {ok ? '✓ Bon apport' : 'Un peu juste'}
-      </Text>
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  fiber: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 10 },
-});
+// ⚠️ `MarginNote` (« Valeurs estimées — moyennes alimentaires ») et `FiberRow`
+// (« 🌾 Fibres 52 g / 35 g · ✓ Bon apport ») ont été RETIRÉS le 2026-08-05
+// (décision fondateur). Le moteur n'a pas changé : il continue de viser les fibres
+// exactement pareil (biais de sélection `FIBER_SELECT_W_*`, cf. CLAUDE.md §6), il
+// ne le DIT simplement plus. « On donne un bon apport sans le faire remarquer. »
+// ➡️ Ne pas les réintroduire en croyant réparer un oubli : c'est un choix.
+// Le disclaimer OBLIGATOIRE de §6 (« ne remplace pas l'avis d'un médecin »), lui,
+// est un autre texte et reste affiché — voir `s.disclaimer` plus bas.
 
 function makeStyles(t: ThemePalette) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: t.bg },
     center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-    content: { padding: Spacing.xl, gap: 20, paddingBottom: 120 },
-    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 },
-    date: { color: t.textSecondary, fontSize: 14, lineHeight: 19 },
-    h1: { color: t.text, ...Type.display, marginTop: 2 },
-    streak: { alignItems: 'center', backgroundColor: t.card, borderWidth: 1, borderColor: t.line, paddingHorizontal: 14, paddingVertical: 8, borderRadius: Radius.card },
-    streakN: { color: t.text, fontSize: 17, fontWeight: '700' },
-    streakLbl: { color: t.textTertiary, fontSize: 11, fontWeight: '500', marginTop: 1 },
-    banner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, backgroundColor: t.fill, borderRadius: Radius.card, padding: 16 },
-    weighBanner: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: t.card, borderRadius: Radius.card, padding: 16 },
-    weighTitle: { color: t.text, fontSize: 15, fontWeight: '600' },
-    weighSub: { color: t.textSecondary, fontSize: 14, lineHeight: 19, marginTop: 2 },
-    bannerTxt: { flex: 1, color: t.textSecondary, fontSize: 14, lineHeight: 19 },
-    bannerCta: { color: t.text, fontSize: 14, fontWeight: '600' },
-    days: { flexDirection: 'row', gap: 8 },
-    day: { flex: 1, height: 58, borderRadius: Radius.button, borderWidth: 1, alignItems: 'center', justifyContent: 'center', gap: 4 },
-    dayWd: { fontSize: 11, fontWeight: '600' },
-    dayNum: { fontSize: 15, fontWeight: '700' },
+    content: { padding: Spacing.xl, gap: Spacing.xl, paddingBottom: Fond.barreOnglets },
+    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: Spacing.md },
+    date: { color: t.textSecondary, lineHeight: 19 },
+    h1: { color: t.text, ...Type.display, marginTop: Spacing.xs },
+    streak: { alignItems: 'center', backgroundColor: t.card, borderWidth: Trait.fin, borderColor: t.line, paddingHorizontal: Spacing.lg, paddingVertical: Spacing.sm, borderRadius: Radius.card },
+    streakN: { color: t.text,  },
+    streakLbl: { color: t.textTertiary, marginTop: Spacing.xs },
+    banner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.md, backgroundColor: t.fill, borderRadius: Radius.card, padding: Spacing.lg },
+    weighBanner: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, backgroundColor: t.card, borderRadius: Radius.card, padding: Spacing.lg },
+    weighTitle: { ...Type.bodyStrong, color: t.text },
+    weighSub: { color: t.textSecondary, lineHeight: 19, marginTop: Spacing.xs },
+    bannerTxt: { flex: 1, color: t.textSecondary, lineHeight: 19 },
+    bannerCta: { ...Type.bodySmallStrong, color: t.text },
+    days: { flexDirection: 'row' },
+    day: { flex: 1, alignItems: 'center', gap: Spacing.sm, paddingVertical: Spacing.xs },
+    dayWd: { color: t.textTertiary,  },
+    // Pastille : `Radius.pill` est son rôle exact (puce/badge), et l'objet a une
+    // taille FIXE — c'est la condition posée par lib/__tests__/rayonsDA.test.ts.
+    dayDot: { width: 40, height: 40, borderRadius: Radius.pill, alignItems: 'center', justifyContent: 'center' },
+    dayNum: {  },
+    dayMoon: { height: 13, alignItems: 'center', justifyContent: 'center' },
+    restRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, marginTop: Spacing.xs },
+    restTxt: { flex: 1, color: t.textSecondary, lineHeight: 19 },
     sectionRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
-    sectionCount: { color: t.textTertiary, fontSize: 13 },
-    extraRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 12 },
-    offPlanBtn: { marginTop: 14, alignItems: 'center', backgroundColor: t.fill, borderRadius: Radius.button, paddingVertical: 13 },
-    offPlanTxt: { color: t.textSecondary, fontSize: 15, fontWeight: '600' },
-    empty: { alignItems: 'center', gap: 10, paddingVertical: 24 },
-    emptyIcon: { width: 72, height: 72, borderRadius: 24, alignItems: 'center', justifyContent: 'center', marginBottom: 6 },
+    sectionCount: { color: t.textTertiary,  },
+    extraRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: Spacing.md },
+    // Les deux actions du jour partagent EXACTEMENT le même gabarit : elles sont de
+    // même rang, donc rien ne doit laisser croire que l'une prime sur l'autre.
+    // Aucun fond : elles se posent sur la page. La hauteur de 44 reste — c'est la
+    // cible tactile minimale d'Apple, et elle ne se voit pas mais elle se touche.
+    actionsRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', columnGap: Spacing.xl, marginTop: Spacing.sm },
+    actionBtn: { minHeight: 44, justifyContent: 'center' },
+    actionTxt: { ...Type.bodySmallStrong, color: t.textSecondary },
+    empty: { alignItems: 'center', gap: Spacing.md, paddingVertical: Spacing.xxl },
+    emptyIcon: { width: 72, height: 72, borderRadius: 24, alignItems: 'center', justifyContent: 'center', marginBottom: Spacing.sm },
     emptyTitle: { color: t.text, ...Type.h2 },
-    emptySub: { color: t.textSecondary, fontSize: 15, textAlign: 'center', lineHeight: 21, paddingHorizontal: 10 },
-    regenHint: { marginTop: 6, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
-    regenHintTxt: { color: t.textTertiary, fontSize: 13, fontWeight: '600' },
-    disclaimer: { color: t.textTertiary, fontSize: 11, lineHeight: 16, textAlign: 'center' },
-    toast: { position: 'absolute', left: 20, right: 20, bottom: 28, backgroundColor: t.accent, borderRadius: Radius.button, paddingVertical: 14, paddingHorizontal: 18, alignItems: 'center' },
-    toastTxt: { color: t.onAccent, fontSize: 15, fontWeight: '600' },
+    emptySub: { color: t.textSecondary, textAlign: 'center', lineHeight: 21, paddingHorizontal: Spacing.md },
+    regenHint: { marginTop: Spacing.sm, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm },
+    regenHintTxt: { ...Type.bodySmallStrong, color: t.textTertiary },
+    disclaimer: { color: t.textTertiary, lineHeight: 16, textAlign: 'center' },
+    toast: { position: 'absolute', left: 20, right: 20, bottom: 28, backgroundColor: t.accent, borderRadius: Radius.button, paddingVertical: Spacing.lg, paddingHorizontal: Spacing.xl, alignItems: 'center' },
+    toastTxt: { ...Type.bodyStrong, color: t.onAccent },
   });
 }

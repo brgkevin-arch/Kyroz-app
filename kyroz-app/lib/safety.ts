@@ -1,4 +1,4 @@
-import { FloorSource, Goal, GoalTarget, LowEaRegistry, LowEaRegistryStored, Sex, SportSession } from './types';
+import { BodyFatSource, FloorSource, Goal, GoalTarget, LowEaRegistry, LowEaRegistryStored, Sex, SportSession } from './types';
 import { totalWeeklyTrainingMinutes } from './sport';
 
 // Arithmétique de dates 'YYYY-MM-DD'. Dupliquée (petitement) depuis datedGoal.ts
@@ -128,6 +128,33 @@ export interface BodyInput {
   weight_kg: number;
   height_cm: number;
   body_fat_pct?: number;
+  /**
+   * Provenance du %MG. Portée ici pour que le corps reste UN SEUL objet du sélecteur
+   * jusqu'au BMR — `calculateBMR` la lit, et un `MacroBody` amputé de ce champ
+   * rouvrirait la porte qu'on vient de fermer.
+   *
+   * ⚠️ **Ce module ne s'en sert PAS, et c'est une décision mesurée** (2026-08-06).
+   * `resolvedBodyFatPct` et `fatFreeMassKg` continuent de lire le %MG DÉCLARÉ, quelle
+   * que soit sa provenance : le plancher d'énergie disponible, la base protéique et
+   * le rythme de perte maximal ne bougent donc pas d'un kcal (mesuré : 0 d'écart sur
+   * 12 corps de référence).
+   * ⚠️ **Le CANDIDAT `energy_availability` peut quand même bouger, et ce n'est pas une
+   * contradiction** : il vaut `min(30 × masse maigre + sport, maintenance)`, et c'est le
+   * PLAFOND qui suit la provenance, pas le plancher. Mesuré : 1 corps sur 12 (F 82 kg à
+   * 10 % de MG, gabarit implausible), 2362 → 2306. Écrire un test « le candidat est
+   * identique » le fait rougir à tort — c'est exactement l'erreur qui a été commise.
+   *
+   * Pourquoi ne pas retomber sur Deurenberg quand c'est estimé : Deurenberg ne lit que
+   * l'IMC, l'âge et le sexe — il ne distingue pas un muscle d'un kilo de gras. Sur les
+   * corps entraînés que Kyroz sert, il est PIRE qu'une silhouette : mesuré +12 points
+   * sur une femme de 65 kg à 18 % (il annonce 30 %), +8 sur un homme de 72 kg à 10 %.
+   * Jeter la silhouette pour lui serait remplacer une information par une régression
+   * de population qui ignore précisément ce qui distingue cette population.
+   * ➡️ Le cas où le chiffre déclaré est faux DE FAÇON CONNAISSABLE (au plafond du
+   * sélecteur, ou impliquant une masse maigre hors du plausible) est un chantier
+   * séparé : cf. `bodyFatConcern`, qui sait déjà le détecter dans les deux sens.
+   */
+  body_fat_source?: BodyFatSource;
   /** Femme ménopausée → plus de risque de perturbation ovulatoire (cf. plancher EA). */
   is_post_menopausal?: boolean;
 }

@@ -146,11 +146,13 @@ describe('bankFloorKcal — le plancher JOURNALIER de la banque', () => {
     ({ sports: [], low_ea_weeks: undefined, ...o }) as unknown as Parameters<typeof bankFloorKcal>[0];
 
   it('vaut max(BMR, filet absolu) — et PAS le plancher d’énergie disponible', () => {
-    // Marc, 82 kg, 12 % MG → masse maigre 72,2 kg → BMR Katch-McArdle ≈ 1929.
+    // Marc, 82 kg, 12 % MG MESURÉ → masse maigre 72,2 kg → BMR Katch-McArdle ≈ 1929.
+    // ⚠️ `body_fat_source: 'measured'` n'est pas décoratif : sans lui le moteur passe
+    // en Mifflin (1810) et ce test ne mesurerait plus la branche Katch qu'il décrit.
     // Le plancher EA (30 × 72,2 = 2165) vaut EXACTEMENT sa cible : s'en servir
     // laisserait 0 kcal empruntable. Mesuré le 2026-07-30, c'est ce qui rendait
     // la banque inutile pour tout profil en déficit. Cf. la doc de bankFloorKcal.
-    const marc = prof({ sex: 'male', age: 28, weight_kg: 82, height_cm: 180, body_fat_pct: 12, tdee_kcal: 2315, target_kcal: 2165 });
+    const marc = prof({ sex: 'male', age: 28, weight_kg: 82, height_cm: 180, body_fat_pct: 12, body_fat_source: 'measured', tdee_kcal: 2315, target_kcal: 2165 });
     const f = bankFloorKcal(marc);
     expect(f).toBe(1929);
     expect(2165 - f).toBeGreaterThan(200); // il reste de quoi emprunter
@@ -163,9 +165,10 @@ describe('bankFloorKcal — le plancher JOURNALIER de la banque', () => {
   });
 
   it('un profil dont la cible EST son BMR ne peut rien emprunter — et c’est correct', () => {
-    // Camille, 55 kg, 23 % MG : BMR = cible = 1285. On ne mange pas sous son BMR,
+    // Camille, 55 kg, 23 % MG MESURÉ (sinon Mifflin → 1270, et le test ne parle plus
+    // du cas qu'il décrit) : BMR = cible = 1285. On ne mange pas sous son BMR,
     // même un jour. La banque est alors inerte, et l'écran le dit.
-    const camille = prof({ sex: 'female', age: 30, weight_kg: 55, height_cm: 165, body_fat_pct: 23, tdee_kcal: 1542, target_kcal: 1285 });
+    const camille = prof({ sex: 'female', age: 30, weight_kg: 55, height_cm: 165, body_fat_pct: 23, body_fat_source: 'measured', tdee_kcal: 1542, target_kcal: 1285 });
     expect(bankFloorKcal(camille)).toBe(1285);
     const r = bankedDailyTargets({
       days: 7, baseTargetKcal: 1285, offsets: { 6: 600 },

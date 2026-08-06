@@ -3,7 +3,7 @@ import {
   View, Text, StyleSheet, Modal, Pressable, useWindowDimensions, ViewStyle,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useTheme, Radius, ThemePalette, Type } from '../constants/theme';
+import { useTheme, Radius, ThemePalette, Type, Spacing, CIBLE_TACTILE_MIN, Trait } from '../constants/theme';
 
 // ── Visite guidée (coachmark / spotlight) ────────────────────────────────────
 // Overlay sombre qui « découpe » un trou autour d'un élément cible et affiche
@@ -245,7 +245,7 @@ function Spotlight({
       <View
         style={{
           position: 'absolute', top: cy, left: cx, width: cw, height: ch,
-          borderRadius: Radius.card, borderWidth: 2, borderColor: t.accent,
+          borderRadius: Radius.card, borderWidth: Trait.controle, borderColor: t.accent,
           pointerEvents: 'none',
         }}
       />
@@ -275,16 +275,16 @@ function makeStyles(t: ThemePalette) {
       position: 'absolute',
       backgroundColor: t.cardElevated,
       borderRadius: Radius.card,
-      borderWidth: 1,
+      borderWidth: Trait.fin,
       borderColor: t.line,
-      padding: 18,
+      padding: Spacing.xl,
     },
-    counter: { color: t.textTertiary, fontSize: 12, fontWeight: '700', letterSpacing: 1, marginBottom: 6 },
-    title: { color: t.text, ...Type.h3, marginBottom: 6 },
-    text: { color: t.textSecondary, fontSize: 14, lineHeight: 20 },
-    actions: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 16 },
-    skip: { color: t.textTertiary, fontSize: 14, fontWeight: '600' },
-    nextBtn: { backgroundColor: t.accent, borderRadius: Radius.button, paddingHorizontal: 22, paddingVertical: 10 },
-    nextTxt: { color: t.onAccent, fontSize: 14, fontWeight: '700' },
+    counter: { ...Type.overline, color: t.textTertiary, marginBottom: Spacing.sm },
+    title: { color: t.text, ...Type.h3, marginBottom: Spacing.sm },
+    text: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 20 },
+    actions: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: Spacing.lg },
+    skip: { ...Type.bodySmallStrong, color: t.textTertiary },
+    nextBtn: { backgroundColor: t.accent, borderRadius: Radius.button, paddingHorizontal: Spacing.xxl, paddingVertical: Spacing.md, minHeight: CIBLE_TACTILE_MIN, justifyContent: 'center' },
+    nextTxt: { ...Type.bodySmallStrong, color: t.onAccent },
   });
 }

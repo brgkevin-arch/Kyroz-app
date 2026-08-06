@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { ThemePalette, Radius, Type, cardShadow } from '../constants/theme';
+import { ThemePalette, Radius, Type, cardShadow, Spacing, Trait, Icone } from '../constants/theme';
 import { Goal } from '../lib/types';
 import {
   MacroBody, macrosPercent, recommendedProteinPerKg, goalLabel, CARB_RATIO_MIN, CARB_RATIO_MAX,
   servedCarbSharePct, SPLIT_DIVERGENCE_TOLERANCE_PCT,
 } from '../lib/tdee';
+import { ConseilIcon } from './Icons';
 
 // Mode « Perso % » (option B, contrôle total) :
 //  • protéines réglables en g/kg (avec repère conseillé selon l'objectif),
@@ -52,14 +53,17 @@ export function MacroSplit({
   const floored = m.flags.includes('FLOOR_APPLIED');
 
   return (
-    <View style={{ gap: 14 }}>
+    <View style={{ gap: Spacing.lg }}>
       {/* Protéines */}
-      <View style={{ gap: 8 }}>
+      <View style={{ gap: Spacing.sm }}>
         <Text style={[styles.label, { color: t.textTertiary }]}>PROTÉINES (g / kg de {proteinBasis})</Text>
         <Stepper t={t} value={proteinPerKg} min={PROT_MIN} max={PROT_MAX} step={0.1} decimals={1} unit="g/kg" color={t.accent} onChange={onProteinChange} />
-        <Text style={[styles.note, { color: t.textSecondary }]}>
-          💡 Conseillé pour « {goalLabel(goal)} » : <Text style={{ fontWeight: '700' }}>{reco} g/kg</Text>
-        </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.sm }}>
+          <ConseilIcon color={t.textSecondary} size={Icone.petite} />
+          <Text style={[styles.note, { color: t.textSecondary, flex: 1 }]}>
+            Conseillé pour « {goalLabel(goal)} » : <Text style={{ fontWeight: '700' }}>{reco} g/kg</Text>
+          </Text>
+        </View>
         {bodyFat == null && (
           <Text style={[styles.note, { color: t.warning }]}>
             Renseigne ta masse grasse (Profil → Informations) pour caler les protéines sur ta masse maigre.
@@ -68,7 +72,7 @@ export function MacroSplit({
       </View>
 
       {/* Glucides / lipides */}
-      <View style={{ gap: 8 }}>
+      <View style={{ gap: Spacing.sm }}>
         <Text style={[styles.label, { color: t.textTertiary }]}>RÉPARTITION DU RESTE (après protéines)</Text>
         <Stepper t={t} value={carbRatio} min={CARB_MIN} max={CARB_MAX} step={1} decimals={0} unit="% glucides" color={t.accent} onChange={onCarbChange} />
         <Text style={[styles.note, { color: t.textSecondary }]}>
@@ -123,7 +127,7 @@ function Stepper({
         disabled={value <= min}
         style={[styles.btn, { backgroundColor: t.fill, opacity: value <= min ? 0.4 : 1 }]}
       >
-        <Ionicons name="remove" size={20} color={t.text} />
+        <Ionicons name="remove" size={Icone.standard} color={t.text} />
       </TouchableOpacity>
 
       <View style={styles.center}>
@@ -147,7 +151,7 @@ function Stepper({
         disabled={value >= max}
         style={[styles.btn, { backgroundColor: t.fill, opacity: value >= max ? 0.4 : 1 }]}
       >
-        <Ionicons name="add" size={20} color={t.text} />
+        <Ionicons name="add" size={Icone.standard} color={t.text} />
       </TouchableOpacity>
     </View>
   );
@@ -156,21 +160,21 @@ function Stepper({
 function Row({ t, l, v, c, strong }: { t: ThemePalette; l: string; v: string; c?: string; strong?: boolean }) {
   return (
     <View style={styles.row}>
-      <Text style={{ color: t.textSecondary, fontSize: 14 }}>{l}</Text>
+      <Text style={{ ...Type.bodySmall, color: t.textSecondary }}>{l}</Text>
       <Text style={{ color: c ?? t.text, fontSize: strong ? 18 : 15, fontWeight: '700' }}>{v}</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  label: { fontSize: 12, fontWeight: '700', letterSpacing: 0.4 },
-  note: { fontSize: 13, lineHeight: 18 },
-  stepper: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderRadius: Radius.button, padding: 8, gap: 8 },
+  label: { ...Type.overline },
+  note: { ...Type.caption, lineHeight: 18 },
+  stepper: { flexDirection: 'row', alignItems: 'center', borderWidth: Trait.fin, borderRadius: Radius.button, padding: Spacing.sm, gap: Spacing.sm },
   btn: { width: 44, height: 44, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  center: { flex: 1, flexDirection: 'row', alignItems: 'baseline', justifyContent: 'center', gap: 5 },
+  center: { flex: 1, flexDirection: 'row', alignItems: 'baseline', justifyContent: 'center', gap: Spacing.xs },
   input: { ...Type.h2, minWidth: 44, textAlign: 'right', padding: 0 },
-  unit: { fontSize: 15, fontWeight: '700' },
-  preview: { borderRadius: Radius.card, padding: 16, gap: 12 },
+  unit: { ...Type.bodyStrong },
+  preview: { borderRadius: Radius.card, padding: Spacing.lg, gap: Spacing.md },
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   sep: { height: 1 },
 });

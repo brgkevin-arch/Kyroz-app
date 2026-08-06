@@ -5,6 +5,8 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useTheme } from '../constants/theme';
 import { loadThemeMode } from '../lib/themeMode';
 import { loadAccentId } from '../lib/accentColor';
+import { loadHydrationEnabled } from '../components/HydrationBar';
+import { loadFirstName } from '../lib/profileName';
 import { AuthProvider } from '../hooks/useAuth';
 import { ProfileProvider } from '../hooks/useProfile';
 import { RecipeOverridesProvider } from '../hooks/useRecipeOverrides';
@@ -14,7 +16,12 @@ import { DialogProvider } from '../components/Dialog';
 
 export default function RootLayout() {
   const t = useTheme();
-  useEffect(() => { loadThemeMode(); loadAccentId(); }, []);
+  // Les quatre valeurs LOCALES à l'appareil (thème, accent, suivi d'hydratation,
+  // prénom) se chargent ici, une seule fois. Une valeur oubliée ici part sur son
+  // défaut à chaque démarrage — c'est exactement ce qui faisait que l'interrupteur
+  // d'hydratation ne prenait effet qu'au lancement suivant (cf. la note dans
+  // components/HydrationBar.tsx).
+  useEffect(() => { loadThemeMode(); loadAccentId(); loadHydrationEnabled(); loadFirstName(); }, []);
   return (
     <SafeAreaProvider>
       <ErrorBoundary>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
-import { ThemePalette, Radius, Type } from '../constants/theme';
+import { ThemePalette, Radius, Type, Spacing, Trait, OPACITE_PRESSION } from '../constants/theme';
 import { PrimaryButton } from './ui';
 
 // ── « C'est quoi qui te gêne vraiment ? » ───────────────────────────────────
@@ -39,7 +39,7 @@ export function DislikeSheet({
             const on = !custom.trim() && sel === c.kw;
             return (
               <TouchableOpacity
-                key={c.kw} activeOpacity={0.85}
+                key={c.kw} activeOpacity={OPACITE_PRESSION}
                 onPress={() => { setSel(c.kw); setCustom(''); }}
                 style={[s.chip, { backgroundColor: on ? t.accent : t.card, borderColor: on ? t.accent : t.line }]}
               >
@@ -78,17 +78,17 @@ export function DislikeSheet({
 
 function makeStyles(t: ThemePalette) {
   return StyleSheet.create({
-    wrap: { padding: 24, gap: 16 },
+    wrap: { padding: Spacing.xxl, gap: Spacing.lg },
     title: { color: t.text, ...Type.h2 },
-    sub: { color: t.textSecondary, fontSize: 14, lineHeight: 20, marginTop: 6 },
-    chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-    chip: { borderWidth: 1, borderRadius: Radius.card, paddingVertical: 12, paddingHorizontal: 14, gap: 2, minWidth: '47%', flexGrow: 1 },
-    chipLabel: { fontSize: 16, fontWeight: '700' },
-    chipSub: { fontSize: 12 },
-    customRow: { gap: 8 },
-    customLabel: { color: t.textSecondary, fontSize: 13, fontWeight: '600' },
-    inputBox: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderRadius: Radius.button, paddingHorizontal: 16 },
-    input: { flex: 1, paddingVertical: 14, fontSize: 17, fontWeight: '600', color: t.text },
-    skip: { color: t.textTertiary, fontSize: 14, fontWeight: '700', paddingVertical: 4 },
+    sub: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 20, marginTop: Spacing.sm },
+    chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.md },
+    chip: { borderWidth: Trait.fin, borderRadius: Radius.card, paddingVertical: Spacing.md, paddingHorizontal: Spacing.lg, gap: Spacing.xs, minWidth: '47%', flexGrow: 1 },
+    chipLabel: { ...Type.label },
+    chipSub: { ...Type.caption },
+    customRow: { gap: Spacing.sm },
+    customLabel: { ...Type.captionStrong, color: t.textSecondary },
+    inputBox: { flexDirection: 'row', alignItems: 'center', borderWidth: Trait.fin, borderRadius: Radius.button, paddingHorizontal: Spacing.lg },
+    input: { ...Type.input, flex: 1, paddingVertical: Spacing.lg, color: t.text },
+    skip: { ...Type.bodySmallStrong, color: t.textTertiary, paddingVertical: Spacing.xs },
   });
 }

@@ -24,6 +24,21 @@
       "cwd": "kyroz-app"
     },
     {
+      "//": "À employer DEPUIS UN WORKTREE. `node_modules` y est un lien vers le dépôt",
+      "//2": "principal ; expo-router résout la racine de l'app à travers lui et sert donc",
+      "//3": "l'app du dépôt principal — l'écran a l'air juste, mais c'est l'autre code.",
+      "//4": "`$PWD/app` force la racine du worktree courant, sans chemin en dur.",
+      "//5": "⚠️ preview_start lit le launch.json du dépôt PRINCIPAL, pas celui-ci : cette",
+      "//6": "entrée sert donc au lancement à la main. Ne pas la recopier dans le principal,",
+      "//7": "ce serait modifier la copie de travail d'une autre session.",
+      "name": "kyroz-worktree",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": ["-c", "EXPO_ROUTER_APP_ROOT=$PWD/app npx expo start --web --port 8097 --clear"],
+      "port": 8097,
+      "autoPort": false,
+      "cwd": "kyroz-app"
+    },
+    {
       "name": "mockups",
       "runtimeExecutable": "python3",
       "runtimeArgs": ["-m", "http.server", "3002", "--directory", "mockups"],

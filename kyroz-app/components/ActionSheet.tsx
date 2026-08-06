@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
   Modal, View, StyleSheet, Animated, PanResponder, Pressable,
 } from 'react-native';
-import { useTheme } from '../constants/theme';
+import { useTheme, Spacing, Fond } from '../constants/theme';
 import { useLayout } from '../constants/layout';
 
 interface Props {
@@ -121,8 +121,8 @@ const styles = StyleSheet.create({
   backdrop: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)' },
   sheet: {
     borderTopLeftRadius: 28, borderTopRightRadius: 28,
-    paddingHorizontal: 24, paddingTop: 12, paddingBottom: 40, gap: 14,
+    paddingHorizontal: Spacing.xxl, paddingTop: Spacing.md, paddingBottom: Fond.feuille, gap: Spacing.lg,
   },
-  sheetTablet: { borderBottomLeftRadius: 28, borderBottomRightRadius: 28, marginBottom: 24 },
-  handle: { width: 44, height: 5, borderRadius: 3, alignSelf: 'center', marginBottom: 6 },
+  sheetTablet: { borderBottomLeftRadius: 28, borderBottomRightRadius: 28, marginBottom: Spacing.xxl },
+  handle: { width: 44, height: 5, borderRadius: 3, alignSelf: 'center', marginBottom: Spacing.sm },
 });

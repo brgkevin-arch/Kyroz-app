@@ -1,11 +1,11 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState, useSyncExternalStore } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useTheme, Radius, Spacing, Type, cardShadow } from '../constants/theme';
+import { useTheme, Radius, Spacing, Type, cardShadow, Icone, OPACITE_PRESSION } from '../constants/theme';
 import { ActionSheet } from './ActionSheet';
 import { Segmented, SectionLabel } from './ui';
+import { HydratationIcon } from './Icons';
 
 // --- Feature test : suivi d'hydratation (jetable). Tout est isolé ici ;
 // pour retirer la feature il suffit de supprimer ce fichier + son import/usage
@@ -36,21 +36,64 @@ const GOAL_PREF_KEY = '@kyroz:hydration:goalMl';
 const GLASS_PREF_KEY = '@kyroz:hydration:glassMl';
 const ENABLED_KEY = '@kyroz:hydration:enabled';
 
-// Préférence « afficher la barre d'hydratation » (réglage dans l'onglet Profil).
-// Re-lue à chaque focus d'écran → reste synchro entre l'onglet Profil et le Plan.
-// Stockage : '0' = masqué, sinon (absent ou '1') = affiché par défaut.
+// ── Préférence « afficher la barre d'hydratation » ───────────────────────────
+// Réglage d'APPAREIL, comme le thème et la couleur d'accent — donc même patron
+// qu'eux : un petit store hors React (`useSyncExternalStore`), chargé une fois au
+// démarrage dans le layout racine. Tout écran qui le lit se re-rend à la bascule.
+//
+// ⚠️ MASQUÉE PAR DÉFAUT depuis le 2026-08-06 (décision fondateur). Le suivi de
+// l'eau n'est pas le cœur du produit : il s'ajoutait de lui-même sur l'écran le
+// plus lu, entre les macros du jour et les repas. C'est à l'utilisateur de le
+// demander, pas à l'app de l'imposer.
+// Stockage : '1' = affiché, sinon (absent ou '0') = masqué.
+//
+// 🔴 CE STORE REMPLACE UN `useFocusEffect` QUI NE MARCHAIT PAS — et le défaut était
+// DORMANT. L'ancienne version partait de `true` puis relisait la clé « à chaque
+// focus d'écran » ; cette relecture n'atteignait jamais l'écran Plan. Tant que le
+// défaut valait « affiché », personne ne pouvait s'en apercevoir : la carte était
+// là, pour la seule raison qu'elle l'était au montage. Inverser le défaut a réveillé
+// le défaut d'un coup — l'interrupteur du Profil écrivait bien `1` en stockage et
+// n'allumait rien, y compris après un rechargement complet (mesuré le 2026-08-06).
+// ➡️ Un réglage lu par un AUTRE écran que celui qui le pose ne se relit pas « au
+// focus » : il se DIFFUSE. Les deux autres réglages d'appareil le faisaient déjà.
+//
+// ⚠️ Conséquence assumée du changement de défaut : quelqu'un qui s'en servait SANS
+// avoir jamais touché l'interrupteur n'a rien d'enregistré, et voit donc la carte
+// disparaître. Ses verres du jour ne sont pas perdus pour autant — ils vivent sous
+// une autre clé (`@kyroz:hydration:<date>`) et réapparaissent s'il réactive le suivi.
+
+let hydrationEnabled = false;
+const hydrationListeners = new Set<() => void>();
+
+export function getHydrationEnabled(): boolean {
+  return hydrationEnabled;
+}
+
+export function setHydrationEnabled(next: boolean) {
+  if (next === hydrationEnabled) return;
+  hydrationEnabled = next;
+  AsyncStorage.setItem(ENABLED_KEY, next ? '1' : '0').catch(() => {});
+  hydrationListeners.forEach((l) => l());
+}
+
+export function subscribeHydrationEnabled(listener: () => void) {
+  hydrationListeners.add(listener);
+  return () => hydrationListeners.delete(listener);
+}
+
+/** Charge la préférence persistée au démarrage (appelé une fois dans le layout racine). */
+export async function loadHydrationEnabled() {
+  const raw = await AsyncStorage.getItem(ENABLED_KEY);
+  const next = raw === '1';
+  if (next !== hydrationEnabled) {
+    hydrationEnabled = next;
+    hydrationListeners.forEach((l) => l());
+  }
+}
+
 export function useHydrationEnabled(): [boolean, (v: boolean) => void] {
-  const [enabled, setEnabled] = useState(true);
-  useFocusEffect(
-    useCallback(() => {
-      AsyncStorage.getItem(ENABLED_KEY).then((v) => setEnabled(v !== '0'));
-    }, []),
-  );
-  const set = (v: boolean) => {
-    setEnabled(v);
-    AsyncStorage.setItem(ENABLED_KEY, v ? '1' : '0');
-  };
-  return [enabled, set];
+  const enabled = useSyncExternalStore(subscribeHydrationEnabled, getHydrationEnabled, getHydrationEnabled);
+  return [enabled, setHydrationEnabled];
 }
 
 export function HydrationBar() {
@@ -89,7 +132,10 @@ export function HydrationBar() {
   return (
     <View style={[styles.card, { backgroundColor: t.card }, cardShadow(t)]}>
       <View style={styles.headRow}>
-        <Text style={[styles.title, { color: t.text }]}>💧 Hydratation</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm }}>
+          <HydratationIcon color={t.text} size={Icone.petite} />
+          <Text style={[styles.title, { color: t.text }]}>Hydratation</Text>
+        </View>
         <View style={styles.headRight}>
           <Text style={[styles.count, { color: t.textSecondary }]}>
             {fmtL(consumedMl)} / {fmtL(goalMl)} L · {count} verre{count > 1 ? 's' : ''}{done ? '  ✓' : ''}
@@ -99,7 +145,7 @@ export function HydrationBar() {
             hitSlop={10}
             accessibilityLabel="Réglages de l'hydratation"
           >
-            <Ionicons name="options-outline" size={20} color={t.textSecondary} />
+            <Ionicons name="options-outline" size={Icone.standard} color={t.textSecondary} />
           </TouchableOpacity>
         </View>
       </View>
@@ -128,7 +174,10 @@ export function HydrationBar() {
       </View>
 
       <ActionSheet visible={settingsOpen} onClose={() => setSettingsOpen(false)}>
-        <Text style={[styles.sheetTitle, { color: t.text }]}>💧 Hydratation</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm }}>
+          <HydratationIcon color={t.text} size={Icone.action} />
+          <Text style={[styles.sheetTitle, { color: t.text }]}>Hydratation</Text>
+        </View>
 
         <View style={styles.sheetBlock}>
           <SectionLabel t={t}>Objectif du jour</SectionLabel>
@@ -146,7 +195,7 @@ export function HydrationBar() {
         <TouchableOpacity
           onPress={() => setSettingsOpen(false)}
           style={[styles.doneBtn, { backgroundColor: t.accent }]}
-          activeOpacity={0.85}
+          activeOpacity={OPACITE_PRESSION}
         >
           <Text style={[styles.btnTxt, { color: t.onAccent }]}>OK</Text>
         </TouchableOpacity>
@@ -159,8 +208,8 @@ const styles = StyleSheet.create({
   card: { borderRadius: Radius.card, padding: Spacing.lg, gap: Spacing.md, marginBottom: Spacing.lg },
   headRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   headRight: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
-  title: { fontSize: 15, fontWeight: '700' },
-  count: { fontSize: 13, fontWeight: '600' },
+  title: { ...Type.bodyStrong },
+  count: { ...Type.captionStrong },
   track: { height: 8, borderRadius: Radius.pill, overflow: 'hidden' },
   fill: { height: '100%', borderRadius: Radius.pill },
   controls: { flexDirection: 'row', gap: Spacing.sm },
@@ -171,11 +220,11 @@ const styles = StyleSheet.create({
   // encore une lozange. C'est la HAUTEUR qui était fausse — 44 pt est aussi le
   // minimum d'une cible tactile chez Apple, que `hitSlop` rattrapait au doigt
   // sans jamais le rattraper à l'œil.
-  btn: { paddingVertical: 13, paddingHorizontal: 16, borderRadius: Radius.button, alignItems: 'center', justifyContent: 'center', minWidth: 48 },
+  btn: { paddingVertical: Spacing.md, paddingHorizontal: Spacing.lg, borderRadius: Radius.button, alignItems: 'center', justifyContent: 'center', minWidth: 48 },
   btnAdd: { flex: 1 },
-  btnTxt: { fontSize: 15, fontWeight: '700' },
-  sheetTitle: { ...Type.h2, marginBottom: 4 },
+  btnTxt: { ...Type.bodyStrong },
+  sheetTitle: { ...Type.h2, marginBottom: Spacing.xs },
   sheetBlock: { gap: Spacing.sm },
-  hint: { fontSize: 12, fontWeight: '600' },
-  doneBtn: { marginTop: Spacing.sm, paddingVertical: 14, borderRadius: Radius.button, alignItems: 'center' },
+  hint: { ...Type.captionStrong },
+  doneBtn: { marginTop: Spacing.sm, paddingVertical: Spacing.lg, borderRadius: Radius.button, alignItems: 'center' },
 });

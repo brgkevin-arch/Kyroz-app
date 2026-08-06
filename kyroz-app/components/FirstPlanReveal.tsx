@@ -1,13 +1,13 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import { Modal, View, Text, StyleSheet, Animated, ScrollView } from 'react-native';
-import { useTheme, Radius, Spacing, Type, ThemePalette } from '../constants/theme';
+import { useTheme, Radius, Spacing, Type, ThemePalette, Trait , Icone } from '../constants/theme';
 import { PrimaryButton, SectionLabel } from './ui';
 import { goalLabel } from '../lib/tdee';
 import { baseDayTargets } from '../lib/planEngine';
 import { Meal, UserProfile } from '../lib/types';
 import { DISCLAIMER } from '../constants/legal';
+import { ReussiteIcon, IconeRepas } from './Icons';
 
-const MEAL_EMOJI: Record<string, string> = { breakfast: '🍳', lunch: '🍗', dinner: '🍽️', snack: '🥤' };
 const MEAL_LABEL: Record<string, string> = { breakfast: 'Petit-déj', lunch: 'Déjeuner', dinner: 'Dîner', snack: 'Collation' };
 
 interface Props {
@@ -60,7 +60,7 @@ export function FirstPlanReveal({ visible, profile, firstName, previewMeals, onC
       <View style={s.root}>
         <Animated.View style={[s.card, { opacity, transform: [{ scale }] }]}>
           <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
-            <Text style={s.emoji}>🎉</Text>
+            <ReussiteIcon color={t.accent} size={Icone.fete} />
             <Text style={s.title}>C'est prêt{firstName ? `, ${firstName}` : ''} !</Text>
             <Text style={s.sub}>Ta semaine de repas est calée au plus juste sur ton objectif.</Text>
 
@@ -78,10 +78,10 @@ export function FirstPlanReveal({ visible, profile, firstName, previewMeals, onC
             {previewMeals.length > 0 && (
               <View style={s.section}>
                 <SectionLabel t={t}>Un aperçu de ta semaine</SectionLabel>
-                <View style={{ gap: 10 }}>
+                <View style={{ gap: Spacing.md }}>
                   {previewMeals.map((m) => (
                     <View key={m.id} style={s.mealRow}>
-                      <Text style={s.mealEmoji}>{MEAL_EMOJI[m.meal_type] ?? '🍽️'}</Text>
+                      <IconeRepas type={m.meal_type} color={t.textSecondary} size={Icone.standard} />
                       <View style={{ flex: 1 }}>
                         <Text style={s.mealType}>{MEAL_LABEL[m.meal_type] ?? m.meal_type}</Text>
                         <Text style={s.mealName} numberOfLines={1}>{m.recipe.name_fr}</Text>
@@ -94,7 +94,7 @@ export function FirstPlanReveal({ visible, profile, firstName, previewMeals, onC
             )}
 
             <View style={{ height: 18 }} />
-            <PrimaryButton t={t} label="Voir mon plan 👊" onPress={onClose} />
+            <PrimaryButton t={t} label="Voir mon plan" onPress={onClose} />
 
             <Text style={s.disclaimer}>{DISCLAIMER}</Text>
           </ScrollView>
@@ -109,8 +109,8 @@ function Stat({ t, value, label }: { t: ThemePalette; value: string; label: stri
   // quand l'objectif (« Sèche progressive ») passe sur 2 lignes.
   return (
     <View style={{ alignItems: 'center', flex: 1 }}>
-      <Text style={{ color: t.text, fontSize: 16, fontWeight: '800', letterSpacing: -0.3, lineHeight: 19, minHeight: 38, textAlign: 'center' }} numberOfLines={2}>{value}</Text>
-      <Text style={{ color: t.textTertiary, fontSize: 11, fontWeight: '600', marginTop: 2, textAlign: 'center' }}>{label}</Text>
+      <Text style={{ ...Type.label, color: t.text, letterSpacing: -0.3, lineHeight: 19, minHeight: 38, textAlign: 'center' }} numberOfLines={2}>{value}</Text>
+      <Text style={{ ...Type.microStrong, color: t.textTertiary, marginTop: Spacing.xs, textAlign: 'center' }}>{label}</Text>
     </View>
   );
 }
@@ -118,18 +118,18 @@ function Stat({ t, value, label }: { t: ThemePalette; value: string; label: stri
 function makeStyles(t: ThemePalette) {
   return StyleSheet.create({
     root: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.6)', padding: Spacing.xl },
-    card: { width: '100%', maxWidth: 400, maxHeight: '88%', backgroundColor: t.card, borderWidth: 1, borderColor: t.line, borderRadius: Radius.xl },
+    card: { width: '100%', maxWidth: 400, maxHeight: '88%', backgroundColor: t.card, borderWidth: Trait.fin, borderColor: t.line, borderRadius: Radius.xl },
     scroll: { padding: Spacing.xxl, alignItems: 'center' },
-    emoji: { fontSize: 48, marginBottom: 6 },
+    emoji: { fontSize: 48, marginBottom: Spacing.sm },
     title: { color: t.text, ...Type.h2, textAlign: 'center' },
-    sub: { color: t.textSecondary, fontSize: 14, lineHeight: 20, textAlign: 'center', marginTop: 8, alignSelf: 'stretch' },
-    statRow: { flexDirection: 'row', alignSelf: 'stretch', gap: 8, marginTop: 18, paddingVertical: 14, borderTopWidth: 1, borderBottomWidth: 1, borderColor: t.line },
-    section: { alignSelf: 'stretch', marginTop: 18, gap: 10 },
-    mealRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+    sub: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 20, textAlign: 'center', marginTop: Spacing.sm, alignSelf: 'stretch' },
+    statRow: { flexDirection: 'row', alignSelf: 'stretch', gap: Spacing.sm, marginTop: Spacing.xl, paddingVertical: Spacing.lg, borderTopWidth: Trait.fin, borderBottomWidth: Trait.fin, borderColor: t.line },
+    section: { alignSelf: 'stretch', marginTop: Spacing.xl, gap: Spacing.md },
+    mealRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
     mealEmoji: { fontSize: 20 },
-    mealType: { color: t.textTertiary, fontSize: 11, fontWeight: '600' },
-    mealName: { color: t.text, fontSize: 14, fontWeight: '600', marginTop: 1 },
-    mealKcal: { color: t.textSecondary, fontSize: 12, fontWeight: '700' },
-    disclaimer: { color: t.textTertiary, fontSize: 11, lineHeight: 16, textAlign: 'center', marginTop: 18 },
+    mealType: { ...Type.microStrong, color: t.textTertiary },
+    mealName: { ...Type.bodySmallStrong, color: t.text, marginTop: Spacing.xs },
+    mealKcal: { ...Type.captionStrong, color: t.textSecondary },
+    disclaimer: { ...Type.micro, color: t.textTertiary, lineHeight: 16, textAlign: 'center', marginTop: Spacing.xl },
   });
 }

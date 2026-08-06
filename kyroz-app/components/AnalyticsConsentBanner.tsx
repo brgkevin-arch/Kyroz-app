@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { useTheme, Radius, ThemePalette } from '../constants/theme';
+import { useTheme, Radius, ThemePalette, Type, Spacing, CIBLE_TACTILE_MIN, Trait, OPACITE_PRESSION } from '../constants/theme';
 import { useAnalyticsConsent } from '../hooks/useAnalyticsConsent';
 
 /**
@@ -15,16 +15,16 @@ export function AnalyticsConsentBanner() {
   const s = makeStyles(t);
   return (
     <View style={s.card}>
-      <Text style={s.title}>Aide à améliorer Kyroz 🙏</Text>
+      <Text style={s.title}>Aide à améliorer Kyroz</Text>
       <Text style={s.body}>
         Partager des statistiques d'usage <Text style={{ fontWeight: '700' }}>anonymes</Text> (jamais ton nom ni tes données perso) pour qu'on améliore l'app. Modifiable à tout moment dans ton profil.
       </Text>
       <View style={s.row}>
-        <TouchableOpacity style={[s.btn, { backgroundColor: t.fill }]} onPress={() => choose('denied')} activeOpacity={0.8}>
-          <Text style={{ color: t.textSecondary, fontSize: 14, fontWeight: '700' }}>Non merci</Text>
+        <TouchableOpacity style={[s.btn, { backgroundColor: t.fill }]} onPress={() => choose('denied')} activeOpacity={OPACITE_PRESSION}>
+          <Text style={{ ...Type.bodySmallStrong, color: t.textSecondary }}>Non merci</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[s.btn, { backgroundColor: t.accent }]} onPress={() => choose('granted')} activeOpacity={0.85}>
-          <Text style={{ color: t.onAccent, fontSize: 14, fontWeight: '700' }}>Activer</Text>
+        <TouchableOpacity style={[s.btn, { backgroundColor: t.accent }]} onPress={() => choose('granted')} activeOpacity={OPACITE_PRESSION}>
+          <Text style={{ ...Type.bodySmallStrong, color: t.onAccent }}>Activer</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -33,10 +33,10 @@ export function AnalyticsConsentBanner() {
 
 function makeStyles(t: ThemePalette) {
   return StyleSheet.create({
-    card: { backgroundColor: t.card, borderWidth: 1, borderColor: t.line, borderRadius: Radius.card, padding: 16, gap: 10 },
-    title: { color: t.text, fontSize: 15, fontWeight: '700' },
-    body: { color: t.textSecondary, fontSize: 13, lineHeight: 18 },
-    row: { flexDirection: 'row', gap: 10, marginTop: 2 },
-    btn: { flex: 1, paddingVertical: 11, borderRadius: Radius.button, alignItems: 'center' },
+    card: { backgroundColor: t.card, borderWidth: Trait.fin, borderColor: t.line, borderRadius: Radius.card, padding: Spacing.lg, gap: Spacing.md },
+    title: { ...Type.bodyStrong, color: t.text },
+    body: { ...Type.caption, color: t.textSecondary, lineHeight: 18 },
+    row: { flexDirection: 'row', gap: Spacing.md, marginTop: Spacing.xs },
+    btn: { flex: 1, paddingVertical: Spacing.md, minHeight: CIBLE_TACTILE_MIN, justifyContent: 'center', borderRadius: Radius.button, alignItems: 'center' },
   });
 }

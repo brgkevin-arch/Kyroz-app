@@ -1,6 +1,6 @@
 import { Tabs, Redirect } from 'expo-router';
 import { Platform, ColorValue } from 'react-native';
-import { useTheme } from '../../constants/theme';
+import { useTheme, Type, Spacing, Trait } from '../../constants/theme';
 import { useAuth } from '../../hooks/useAuth';
 import { useProfile } from '../../hooks/useProfile';
 import Splash from '../../components/Splash';
@@ -41,17 +41,17 @@ export default function TabLayout() {
         tabBarStyle: {
           backgroundColor: t.card,
           borderTopColor: t.line,
-          borderTopWidth: 1,
+          borderTopWidth: Trait.fin,
           height: Platform.OS === 'ios' ? 88 : 68,
           paddingBottom: Platform.OS === 'ios' ? 28 : 10,
-          paddingTop: 8,
+          paddingTop: Spacing.sm,
         },
         // L'onglet actif porte l'ACCENT, pas l'encre : c'est la convention iOS, et
         // c'est ce qu'attend quelqu'un qui vient de choisir une couleur. En
         // monochrome, `accent` vaut déjà l'encre — le rendu ne bouge pas d'un pixel.
         tabBarActiveTintColor: t.accent,
         tabBarInactiveTintColor: t.textQuaternary,
-        tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
+        tabBarLabelStyle: { ...Type.microStrong },
       }}
     >
       <Tabs.Screen name="plan" options={{ title: 'Plan', tabBarIcon: icon(PlanIcon) }} />
