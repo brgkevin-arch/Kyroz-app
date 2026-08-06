@@ -3625,6 +3625,37 @@ par le fondateur, **entièrement réalisée** par la vague de 113. C'est son con
 ⚠️ **Le fondateur veut repartir d'une base saine.** Si plusieurs sessions travaillent à nouveau en
 parallèle, recréer des worktrees — mais les nettoyer en fin de chantier, pas les laisser.
 
+### ▼ Mise à jour du 2026-08-06 — ils ont été laissés
+
+Le paragraphe ci-dessus (« une seule branche, un seul worktree ») **n'est plus vrai depuis
+longtemps**, et son propre avertissement — « les nettoyer, pas les laisser » — n'a pas été suivi.
+Mesuré le 2026-08-06 : **7 arbres de travail**.
+
+| Arbre | Branche | État |
+|---|---|---|
+| `Kyroz_Code` (principal) | `main` | ✅ à jour |
+| `app-issues-fixes-63d801` | `claude/app-issues-fixes-63d801` | ✅ tout dans `main` |
+| `autre-tache-parallele-1af7f5` | `claude/design-session-701e7e` | ✅ commits dans `main` — **session ACTIVE**, 10 fichiers non committés |
+| `body-fat-provenance-audit-23f355` | `claude/body-fat-provenance-audit-23f355` | ✅ tout dans `main` |
+| `Kyroz_Code-design-avant` | (détaché) | ✅ tout dans `main` |
+| `b2-revenuecat` | `worktree-b2-revenuecat` | ✅ tout dans `main` |
+| **`design-audit`** | **`worktree-design-audit`** | 🔴 **5 commits HORS de `main`** |
+
+🔴 **`worktree-design-audit` porte du travail qui n'est nulle part ailleurs** : 5 commits du
+2026-08-05, **55 fichiers, +1 585 / −853**, dont **trois fichiers de tests** —
+`typoDA.test.ts`, `espacementDA.test.ts`, `finitionsDA.test.ts` (échelle typographique,
+espacement porteur de sens, finitions : trait, icône, retour au toucher).
+Vérifié un par un : ni les titres de commit, ni les trois fichiers n'existent dans `main`.
+**Ce n'est donc pas un doublon d'une passe déjà livrée.** À merger ou à abandonner
+explicitement — mais pas à laisser dans le troisième état.
+
+➡️ **Ce constat n'a été possible que parce qu'on a REGARDÉ les autres arbres.** Depuis
+n'importe quel worktree, `git status` répond « propre » et `git log` ne connaît que sa
+branche : du travail entier peut dormir à côté sans qu'aucune session ne le soupçonne.
+`npm run check:suspens` montre les fichiers non committés de tous les arbres ; pour les
+COMMITS non mergés, la commande est :
+`git worktree list` puis `git rev-list --count origin/main..<branche>` sur chacune.
+
 ---
 
 # 📖 RÉFÉRENCE — comment le produit marche
