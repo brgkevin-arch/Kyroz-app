@@ -14,13 +14,14 @@ const MEAL_LABELS: Record<string, string> = {
 };
 
 export function MealCard({
-  meal, onPress, onCook, onReload, onDislike, missing, fridgeTracked, tourId, cookTourId,
+  meal, onPress, onCook, onReload, onDislike, onShopping, missing, fridgeTracked, tourId, cookTourId,
 }: {
   meal: Meal;
   onPress?: () => void;
   onCook?: () => void;
   onReload?: () => void;     // 🔄 changer cette recette (sans ouvrir la fiche)
   onDislike?: () => void;    // 👎 je n'aime pas → masque + change
+  onShopping?: () => void;   // → liste de courses (raccourci depuis « il te manque »)
   missing?: string[];        // ingrédients absents du frigo (undefined si frigo non suivi)
   fridgeTracked?: boolean;   // le frigo contient au moins 1 article
   tourId?: string;           // si fourni : rend la carte ciblable par la visite guidée
@@ -70,12 +71,32 @@ export function MealCard({
       )}
 
       {/* Synchro frigo (uniquement si l'user suit son garde-manger) — informatif,
-          jamais bloquant : « J'ai cuisiné » reste toujours cliquable. */}
+          jamais bloquant : « J'ai cuisiné » reste toujours cliquable.
+          ⚠️ Le raccourci dit « Mes courses », PAS « Ajouter » — et ce n'est pas une
+          nuance de vocabulaire. La liste de courses n'est pas une liste où l'on
+          ajoute : `buildShoppingList` prend les repas du plan et SOUSTRAIT le frigo,
+          en excluant les condiments et les repas que l'user gère lui-même. Or
+          `recipeCoverage`, qui produit ce « il te manque », applique EXACTEMENT les
+          deux mêmes exclusions. Ce qui s'affiche ici est donc déjà dans la liste, par
+          construction : un bouton « Ajouter » n'ajouterait rien et confirmerait un
+          geste qui n'a pas eu lieu. */}
       {planned && fridgeTracked && (
         lacks ? (
-          <Text style={[styles.fridge, { color: t.textSecondary }]} numberOfLines={1}>
-            Il te manque : {missing!.join(', ')}
-          </Text>
+          <View style={styles.fridgeRow}>
+            <Text style={[styles.fridge, { color: t.textSecondary, flex: 1 }]} numberOfLines={1}>
+              Il te manque : {missing!.join(', ')}
+            </Text>
+            {onShopping && (
+              <TouchableOpacity
+                onPress={onShopping}
+                hitSlop={10}
+                accessibilityRole="link"
+                accessibilityLabel="Voir ces ingrédients dans ma liste de courses"
+              >
+                <Text style={[styles.fridgeLink, { color: t.accent }]}>Mes courses ›</Text>
+              </TouchableOpacity>
+            )}
+          </View>
         ) : (
           <Text style={[styles.fridge, { color: t.textTertiary }]}>Tout est dans ton frigo</Text>
         )
@@ -131,6 +152,8 @@ const styles = StyleSheet.create({
   name: { fontSize: 17, fontWeight: '600', letterSpacing: -0.3, marginTop: 7 },
   macros: { fontSize: 14, lineHeight: 19, marginTop: 6 },
   fridge: { fontSize: 13, marginTop: 10 },
+  fridgeRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  fridgeLink: { fontSize: 13, fontWeight: '700', marginTop: 10 },
   fixedNote: { fontSize: 12, marginTop: 6 },
   actions: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 14 },
   cookBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, height: 44, paddingHorizontal: 12, borderRadius: Radius.button },

@@ -112,3 +112,57 @@ export function contrastRatio(a: string, b: string): number {
 export function readableOn(bg: string): '#000000' | '#FFFFFF' {
   return contrastRatio(bg, '#FFFFFF') >= contrastRatio(bg, '#000000') ? '#FFFFFF' : '#000000';
 }
+
+// ── Les trois nuances de la barre de macros ──────────────────────────────────
+// Décision fondateur du 2026-08-05 : la barre prend la couleur choisie, en TROIS
+// NUANCES — exactement ce que font les variantes colorées de la maquette. Le
+// principe posé en tête de `constants/theme.ts` ne change pas d'un iota : trois
+// nuances d'UNE couleur, jamais trois teintes différentes. Ce qui change, c'est
+// que cette couleur n'est plus forcément le gris.
+//
+// 🔴 LE PIÈGE, ET IL A DÉJÀ COÛTÉ UNE LIVRAISON : la 3ᵉ nuance de la maquette
+// (`#DDDDDF`) tombait à **1,21:1** contre le fond de page. Le segment « lipides »
+// était invisible et la barre semblait s'arrêter aux deux tiers — juste dans un
+// cadre de 402 px, illisible sur le vrai fond. Une nuance ne se choisit donc pas
+// « à l'œil, un peu plus claire » : elle se MESURE contre le fond.
+//
+// D'où le plancher ci-dessous, repris de la valeur qui avait servi à réparer ce
+// défaut (les gris système successifs remontaient le plus pâle à 1,50:1).
+
+/** Plancher de contraste d'une nuance contre le FOND DE PAGE. */
+export const MACRO_SHADE_MIN_CONTRAST = 1.5;
+
+/** Mélange linéaire de deux `#RRGGBB`. `ratio` 0 → `a`, 1 → `b`. */
+export function mixHex(a: string, b: string, ratio: number): string {
+  const parse = (hex: string) => {
+    const h = hex.replace('#', '');
+    return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+  };
+  const [ar, ag, ab] = parse(a);
+  const [br, bg, bb] = parse(b);
+  const k = Math.max(0, Math.min(1, ratio));
+  const c = (x: number, y: number) => Math.round(x + (y - x) * k).toString(16).padStart(2, '0');
+  return `#${c(ar, br)}${c(ag, bg)}${c(ab, bb)}`.toUpperCase();
+}
+
+/**
+ * Rapproche `accent` du fond de `ratio`, mais **jamais au point de disparaître** :
+ * si la nuance obtenue passe sous le plancher, on recule vers l'accent par pas de
+ * 0,05 jusqu'à repasser. L'accent lui-même est garanti ≥ 3:1 contre le fond
+ * (test `accentColor.test.ts`), donc la boucle termine toujours.
+ */
+function shadeVersBg(accent: string, bg: string, ratio: number): string {
+  for (let k = ratio; k > 0; k -= 0.05) {
+    const nuance = mixHex(accent, bg, k);
+    if (contrastRatio(nuance, bg) >= MACRO_SHADE_MIN_CONTRAST) return nuance;
+  }
+  return accent;
+}
+
+/**
+ * Les trois nuances de la barre, de la plus franche à la plus discrète :
+ * protéines = l'accent, glucides et lipides s'en éloignent vers le fond.
+ */
+export function macroShades(accent: string, bg: string): [string, string, string] {
+  return [accent, shadeVersBg(accent, bg, 0.38), shadeVersBg(accent, bg, 0.64)];
+}

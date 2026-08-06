@@ -29,6 +29,7 @@ import { MacroSplit } from '../../components/MacroSplit';
 import { WeightCheckin } from '../../components/WeightCheckin';
 import { OffPlanHistory } from '../../components/OffPlanHistory';
 import { useHydrationEnabled } from '../../components/HydrationBar';
+import { useFirstName, saveFirstName } from '../../lib/profileName';
 import { useAnalyticsConsent } from '../../hooks/useAnalyticsConsent';
 import { useProfile } from '../../hooks/useProfile';
 import { useStreak } from '../../hooks/useStreak';
@@ -680,6 +681,11 @@ type EditorProps = { t: ThemePalette; profile: UserProfile; onSave: (p: UserProf
 
 // ── Éditeurs ─────────────────────────────────────────────────────────────────
 function InfoEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: EditorProps) {
+  // Prénom — LOCAL à l'appareil, hors profil synchronisé (cf. lib/profileName.ts).
+  // Il ne s'écrivait qu'à l'onboarding : un compte antérieur à cette étape restait
+  // sur « Ton plan » sans aucun recours. Il vit ici désormais.
+  const prenomInitial = useFirstName();
+  const [prenom, setPrenom] = useState(prenomInitial);
   const [sex, setSex] = useState<Sex>(profile.sex);
   // Date de naissance plutôt qu'âge : l'âge en est DÉRIVÉ et ne pourrit plus (cf.
   // lib/birthday.ts). ⚠️ Elle est ABSENTE des comptes créés avant le 2026-08-02 —
@@ -713,7 +719,9 @@ function InfoEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: Edit
   const valid = inBounds && !blockMsg;
   // Les sports vivent dans leur propre éditeur — on préserve `...profile` (donc
   // `sports`), et withRecalc recalcule le TDEE avec le nouveau poids/%MG.
-  const submit = () => { if (valid) onSave(withRecalc(draft)); };
+  // Le prénom part avant le profil : il vit dans son propre store, `onSave` ne le
+  // porte pas. Vide = on efface la salutation, ce qui est un choix légitime.
+  const submit = () => { if (valid) { saveFirstName(prenom); onSave(withRecalc(draft)); } };
   return (
     <EditorShell t={t} title="Informations" onSave={submit} canSave={valid} dragHandlers={dragHandlers} sheetScrollProps={sheetScrollProps}>
       {blockMsg && (
@@ -728,6 +736,7 @@ function InfoEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: Edit
           </Text>
         </Card>
       )}
+      <Field t={t} label="Prénom" value={prenom} onChangeText={setPrenom} placeholder="Kévin" autoCapitalize="words" />
       <Segmented t={t} options={[{ label: 'Homme', value: 'male' }, { label: 'Femme', value: 'female' }]} value={sex} onChange={setSex} />
       <SectionLabel t={t}>Date de naissance</SectionLabel>
       <BirthDateField t={t} value={birthDate} onChange={setBirthDate} fallbackAge={profile.birth_date ? undefined : profile.age} />

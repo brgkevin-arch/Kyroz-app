@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import {
   ACCENTS, ACCENT_IDS, contrastRatio, readableOn, relativeLuminance, getAccentId,
+  mixHex, macroShades, MACRO_SHADE_MIN_CONTRAST,
 } from '../accentColor';
 
 // Le contrat de la personnalisation d'accent : on peut ajouter une couleur, on ne
@@ -109,6 +110,105 @@ describe('la palette est bien formée', () => {
       expect(ACCENTS[id].light).toMatch(/^#[0-9A-F]{6}$/i);
       expect(ACCENTS[id].dark).toMatch(/^#[0-9A-F]{6}$/i);
     }
+  });
+});
+
+describe('les trois nuances de macro suivent l\'accent SANS disparaître', () => {
+  // Ce bloc existe à cause d'un défaut RÉEL, pas d'une précaution : la 3ᵉ nuance de
+  // la maquette (#DDDDDF) tombait à 1,21:1 contre le fond, et le segment « lipides »
+  // était purement invisible — la barre semblait s'arrêter aux deux tiers.
+  // Une nuance choisie « à l'œil, un peu plus claire » reproduit ce bug à coup sûr.
+  const fonds = fondsDePage();
+  const COLORES = ACCENT_IDS.filter((id) => id !== 'mono');
+
+  it('mixHex interpole correctement', () => {
+    expect(mixHex('#000000', '#FFFFFF', 0)).toBe('#000000');
+    expect(mixHex('#000000', '#FFFFFF', 1)).toBe('#FFFFFF');
+    expect(mixHex('#000000', '#FFFFFF', 0.5)).toBe('#808080');
+    // Hors bornes : borné, jamais un hex invalide.
+    expect(mixHex('#000000', '#FFFFFF', 2)).toBe('#FFFFFF');
+    expect(mixHex('#000000', '#FFFFFF', -1)).toBe('#000000');
+  });
+
+  it.each(COLORES.flatMap((id) => (['light', 'dark'] as const).map((s) => [id, s] as const)))(
+    'accent %s en thème %s : les 3 nuances restent visibles sur le fond',
+    (id, scheme) => {
+      const nuances = macroShades(ACCENTS[id][scheme], fonds[scheme]);
+      expect(nuances).toHaveLength(3);
+      for (const [i, n] of nuances.entries()) {
+        const ratio = contrastRatio(n, fonds[scheme]);
+        expect(
+          ratio,
+          `${id}/${scheme} nuance ${i + 1} (${n}) sur fond ${fonds[scheme]} : ${ratio.toFixed(2)}:1`,
+        ).toBeGreaterThanOrEqual(MACRO_SHADE_MIN_CONTRAST);
+      }
+    },
+  );
+
+  it.each(COLORES.flatMap((id) => (['light', 'dark'] as const).map((s) => [id, s] as const)))(
+    'accent %s en thème %s : les 3 nuances se distinguent entre elles',
+    (id, scheme) => {
+      // Trois segments côte à côte qui se confondent ne séparent plus rien : la
+      // barre redevient un bloc uni, ce qui est l'autre façon de mentir sur une
+      // proportion. On exige un écart de luminance mesurable entre voisins.
+      const [a, b, c] = macroShades(ACCENTS[id][scheme], fonds[scheme]);
+      expect(new Set([a, b, c]).size, `${id}/${scheme} : nuances identiques`).toBe(3);
+      for (const [x, y] of [[a, b], [b, c]] as const) {
+        const ecart = Math.abs(relativeLuminance(x) - relativeLuminance(y));
+        expect(ecart, `${id}/${scheme} : ${x} et ${y} sont trop proches`).toBeGreaterThan(0.02);
+      }
+    },
+  );
+
+  it('la 1re nuance EST l\'accent — la barre appartient à la couleur choisie', () => {
+    for (const id of COLORES) {
+      for (const scheme of ['light', 'dark'] as const) {
+        expect(macroShades(ACCENTS[id][scheme], fonds[scheme])[0]).toBe(ACCENTS[id][scheme]);
+      }
+    }
+  });
+
+  // ⚠️ MESURÉ le 2026-08-05 : sur les 6 accents actuels, le plancher ne mord
+  // JAMAIS — le cas le plus serré est l'orange en clair, dont la 3ᵉ nuance tient à
+  // 1,53:1, soit 0,03 au-dessus du seuil. Le mécanisme de recul n'est donc exercé
+  // par AUCUN accent livré, et un garde-fou que le chemin réel ne traverse jamais
+  // ne garde rien. Le test ci-dessous le traverse volontairement, avec une couleur
+  // hostile — c'est le seul qui rougirait si on retirait le recul.
+  it('le plancher MORD — une couleur trop proche du fond est ramenée vers l\'accent', () => {
+    for (const scheme of ['light', 'dark'] as const) {
+      const fond = fonds[scheme];
+      // Un accent à un cheveu du fond : tout mélange vers le fond disparaît.
+      const hostile = mixHex(fond, scheme === 'dark' ? '#FFFFFF' : '#000000', 0.22);
+      const naif = mixHex(hostile, fond, 0.64);
+      expect(
+        contrastRatio(naif, fond),
+        `le cas hostile n'est plus hostile en ${scheme} : ${naif} tient déjà le seuil`,
+      ).toBeLessThan(MACRO_SHADE_MIN_CONTRAST);
+
+      // Le recul ramène jusqu'à l'accent lui-même s'il le faut, et s'arrête là :
+      // il ne fabrique jamais une couleur plus contrastée que ce qu'on lui a donné.
+      const [, , lip] = macroShades(hostile, fond);
+      expect(contrastRatio(lip, fond)).toBeGreaterThanOrEqual(
+        Math.min(MACRO_SHADE_MIN_CONTRAST, contrastRatio(hostile, fond)),
+      );
+      expect(contrastRatio(lip, fond)).toBeGreaterThan(contrastRatio(naif, fond));
+    }
+  });
+
+  it('la marge du cas le plus serré est CONNUE, pas découverte en production', () => {
+    // Le pire cas se documente au lieu de se subir : si un accent futur descend
+    // sous le seuil, c'est le test « restent visibles » qui rougit — mais si un
+    // accent futur RÔDE juste au-dessus, personne ne le voit. Cette ligne fige la
+    // marge minimale observée pour que sa dégradation se remarque.
+    const marges = COLORES.flatMap((id) =>
+      (['light', 'dark'] as const).map((s) => {
+        const [, , lip] = macroShades(ACCENTS[id][s], fonds[s]);
+        return { cas: `${id}/${s}`, marge: contrastRatio(lip, fonds[s]) - MACRO_SHADE_MIN_CONTRAST };
+      }),
+    );
+    const pire = marges.reduce((a, b) => (a.marge <= b.marge ? a : b));
+    expect(pire.marge, `cas le plus serré : ${pire.cas}`).toBeGreaterThanOrEqual(0);
+    expect(pire.cas).toBe('orange/light');   // mesuré : 1,53:1, marge 0,03
   });
 });
 

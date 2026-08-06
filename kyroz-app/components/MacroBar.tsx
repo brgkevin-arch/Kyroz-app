@@ -57,9 +57,10 @@ export function MacroBar({ protein_g, carbs_g, fat_g, targetKcal, plannedKcal, c
         )}
       </View>
 
-      {/* Composition macro du jour — trois NUANCES du même gris, sur une piste.
-          Pas trois teintes : la couleur ne sert qu'à séparer des proportions
-          côte à côte (cf. la note en tête de constants/theme.ts). */}
+      {/* Composition macro du jour — trois NUANCES d'une même couleur, sur une
+          piste. Pas trois teintes : la couleur ne sert qu'à séparer des proportions
+          côte à côte (cf. la note en tête de constants/theme.ts). En monochrome ce
+          sont les gris système ; sinon, trois nuances de l'accent choisi. */}
       <View style={[styles.bar, { backgroundColor: t.fill }]}>
         <View style={{ flex: p, backgroundColor: t.protein }} />
         <View style={{ flex: c, backgroundColor: t.carbs }} />

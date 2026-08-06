@@ -1,7 +1,6 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState, useSyncExternalStore } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme, Radius, Spacing, Type, cardShadow } from '../constants/theme';
 import { ActionSheet } from './ActionSheet';
@@ -36,21 +35,64 @@ const GOAL_PREF_KEY = '@kyroz:hydration:goalMl';
 const GLASS_PREF_KEY = '@kyroz:hydration:glassMl';
 const ENABLED_KEY = '@kyroz:hydration:enabled';
 
-// Préférence « afficher la barre d'hydratation » (réglage dans l'onglet Profil).
-// Re-lue à chaque focus d'écran → reste synchro entre l'onglet Profil et le Plan.
-// Stockage : '0' = masqué, sinon (absent ou '1') = affiché par défaut.
+// ── Préférence « afficher la barre d'hydratation » ───────────────────────────
+// Réglage d'APPAREIL, comme le thème et la couleur d'accent — donc même patron
+// qu'eux : un petit store hors React (`useSyncExternalStore`), chargé une fois au
+// démarrage dans le layout racine. Tout écran qui le lit se re-rend à la bascule.
+//
+// ⚠️ MASQUÉE PAR DÉFAUT depuis le 2026-08-06 (décision fondateur). Le suivi de
+// l'eau n'est pas le cœur du produit : il s'ajoutait de lui-même sur l'écran le
+// plus lu, entre les macros du jour et les repas. C'est à l'utilisateur de le
+// demander, pas à l'app de l'imposer.
+// Stockage : '1' = affiché, sinon (absent ou '0') = masqué.
+//
+// 🔴 CE STORE REMPLACE UN `useFocusEffect` QUI NE MARCHAIT PAS — et le défaut était
+// DORMANT. L'ancienne version partait de `true` puis relisait la clé « à chaque
+// focus d'écran » ; cette relecture n'atteignait jamais l'écran Plan. Tant que le
+// défaut valait « affiché », personne ne pouvait s'en apercevoir : la carte était
+// là, pour la seule raison qu'elle l'était au montage. Inverser le défaut a réveillé
+// le défaut d'un coup — l'interrupteur du Profil écrivait bien `1` en stockage et
+// n'allumait rien, y compris après un rechargement complet (mesuré le 2026-08-06).
+// ➡️ Un réglage lu par un AUTRE écran que celui qui le pose ne se relit pas « au
+// focus » : il se DIFFUSE. Les deux autres réglages d'appareil le faisaient déjà.
+//
+// ⚠️ Conséquence assumée du changement de défaut : quelqu'un qui s'en servait SANS
+// avoir jamais touché l'interrupteur n'a rien d'enregistré, et voit donc la carte
+// disparaître. Ses verres du jour ne sont pas perdus pour autant — ils vivent sous
+// une autre clé (`@kyroz:hydration:<date>`) et réapparaissent s'il réactive le suivi.
+
+let hydrationEnabled = false;
+const hydrationListeners = new Set<() => void>();
+
+export function getHydrationEnabled(): boolean {
+  return hydrationEnabled;
+}
+
+export function setHydrationEnabled(next: boolean) {
+  if (next === hydrationEnabled) return;
+  hydrationEnabled = next;
+  AsyncStorage.setItem(ENABLED_KEY, next ? '1' : '0').catch(() => {});
+  hydrationListeners.forEach((l) => l());
+}
+
+export function subscribeHydrationEnabled(listener: () => void) {
+  hydrationListeners.add(listener);
+  return () => hydrationListeners.delete(listener);
+}
+
+/** Charge la préférence persistée au démarrage (appelé une fois dans le layout racine). */
+export async function loadHydrationEnabled() {
+  const raw = await AsyncStorage.getItem(ENABLED_KEY);
+  const next = raw === '1';
+  if (next !== hydrationEnabled) {
+    hydrationEnabled = next;
+    hydrationListeners.forEach((l) => l());
+  }
+}
+
 export function useHydrationEnabled(): [boolean, (v: boolean) => void] {
-  const [enabled, setEnabled] = useState(true);
-  useFocusEffect(
-    useCallback(() => {
-      AsyncStorage.getItem(ENABLED_KEY).then((v) => setEnabled(v !== '0'));
-    }, []),
-  );
-  const set = (v: boolean) => {
-    setEnabled(v);
-    AsyncStorage.setItem(ENABLED_KEY, v ? '1' : '0');
-  };
-  return [enabled, set];
+  const enabled = useSyncExternalStore(subscribeHydrationEnabled, getHydrationEnabled, getHydrationEnabled);
+  return [enabled, setHydrationEnabled];
 }
 
 export function HydrationBar() {

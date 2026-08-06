@@ -14,7 +14,6 @@ import { MealCard } from '../../components/MealCard';
 import { RecipeDetail } from '../../components/RecipeDetail';
 import { RecipeEditor } from '../../components/RecipeEditor';
 import { Sheet } from '../../components/Sheet';
-import { StreakProgress } from '../../components/StreakProgress';
 import { StreakCelebration } from '../../components/StreakCelebration';
 import { BirthdayCelebration } from '../../components/BirthdayCelebration';
 import { FirstPlanReveal } from '../../components/FirstPlanReveal';
@@ -39,11 +38,10 @@ import { DISLIKE_THRESHOLD, dislikeCandidates, applyDislikedIngredient } from '.
 import { todayStamp } from '../../lib/weight';
 import { recordOffPlan, resolveOffPlan, forgetOffPlan } from '../../lib/offPlanJournal';
 import { isBirthday, ageOn } from '../../lib/birthday';
-import { mealFiberFromIngredients, dailyFiberTarget } from '../../lib/fiber';
 import { getRecipeById, getBaseRecipe } from '../../lib/recipes';
 import { useRecipeOverrides } from '../../hooks/useRecipeOverrides';
 import { loadPantry, savePantry, deductIngredients, recipeCoverage, PantryItem } from '../../lib/pantry';
-import { loadFirstName } from '../../lib/profileName';
+import { useFirstName } from '../../lib/profileName';
 import { capture, Events } from '../../lib/analytics';
 import { DayExtra, Macros, Meal, MealPlan, MealStatus, Recipe } from '../../lib/types';
 
@@ -142,7 +140,9 @@ export default function PlanScreen() {
 
   const [plan, setPlan] = useState<MealPlan | null>(null);
   const [pantry, setPantry] = useState<PantryItem[]>([]);
-  const [firstName, setFirstName] = useState('');
+  // Diffusé, pas lu au montage : le prénom se pose aussi depuis Profil →
+  // Informations, et le titre doit suivre sans redémarrage (cf. lib/profileName.ts).
+  const firstName = useFirstName();
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [selectedDay, setSelectedDay] = useState(1);
@@ -166,7 +166,6 @@ export default function PlanScreen() {
   const offplanRef = useTourTarget('plan-offplan');
 
   useEffect(() => { load(); }, []);
-  useEffect(() => { loadFirstName().then(setFirstName); }, []);
 
   // Visite guidée : au 1er affichage d'un plan, on lance le tour s'il n'a jamais
   // été vu. Petit délai pour laisser la mise en page (et le ScrollView) se poser.
@@ -526,10 +525,6 @@ export default function PlanScreen() {
   const dayTarget = (plan && profile) ? dayTargetKcal(profile, plan.days, selectedDay) : profile?.target_kcal;
   const isRestDay = dayMeals.some((m) => m.rest_day);
   const restDayNums = new Set((plan?.meals ?? []).filter((m) => m.rest_day).map((m) => m.day));
-  // Fibres : seuls les repas non sautés comptent (un repas sauté n'est pas mangé).
-  // Estimées depuis les quantités EFFECTIVES (adaptées par ingrédient si présentes).
-  const dayFiber = dayMeals.reduce((s, m) => (m.status === 'skipped' ? s : s + mealFiberFromIngredients(mealIngredients(m))), 0);
-  const fiberTarget = profile ? dailyFiberTarget(profile) : 0;
   const dayExtraKcal = plan?.day_extras?.[selectedDay]?.kcal ?? 0;
   const dayExtraLabel = plan?.day_extras?.[selectedDay]?.label;
   // Déjà consommé aujourd'hui (repas mangés verrouillés + écarts hors-plan) → « restant ».
@@ -606,7 +601,9 @@ export default function PlanScreen() {
         <View style={s.header} onLayout={repli.onHeaderLayout}>
           <View style={{ flex: 1 }}>
             <Text style={s.date}>{todayLabel.charAt(0).toUpperCase() + todayLabel.slice(1)}</Text>
-            <Text style={s.h1}>{firstName ? `Salut ${firstName} 👋` : 'Ton plan'}</Text>
+            {/* Sans émoji (2026-08-06) : chantier de fond, on les retire partout
+                progressivement. Un titre d'écran n'a pas besoin d'être illustré. */}
+            <Text style={s.h1}>{firstName ? `Salut ${firstName}` : 'Ton plan'}</Text>
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             {plan && (
@@ -623,8 +620,11 @@ export default function PlanScreen() {
           </View>
         </View>
 
-        {/* Progression vers l'objectif 7 jours (North Star) */}
-        <StreakProgress t={t} streak={streak} variant="strip" />
+        {/* ⚠️ Le bandeau de progression vers l'objectif 7 jours (`StreakProgress`
+            variant="strip") a été RETIRÉ de cet écran le 2026-08-05 (décision
+            fondateur). Le compteur de série reste dans l'en-tête ci-dessus, et le
+            bandeau complet vit toujours dans le Profil (variant="card") — le
+            composant n'est donc pas mort, il n'a plus sa place ICI. */}
 
         {/* Consentement analytics (RGPD) — prompt une fois, post-onboarding */}
         <AnalyticsConsentBanner />
@@ -665,16 +665,36 @@ export default function PlanScreen() {
               </TouchableOpacity>
             )}
 
-            {/* Day strip — réparti sur toute la largeur, tous les jours conservés */}
+            {/* Day strip — ÉPURÉ (2026-08-05, maquette). Chaque jour était une carte
+                bordée de 58 pt : sept cadres alignés sous un titre, ça pesait plus que
+                le plan lui-même. Ne restent qu'une lettre, un chiffre, et une PASTILLE
+                en accent sur le jour actif — la seule chose qui doit se voir.
+                ⚠️ La rangée montre les jours DU PLAN (`plan.days`), pas les 7 jours du
+                calendrier : un jour sans repas n'est pas sélectionnable, l'afficher
+                promettrait une journée qui n'existe pas. */}
             <View ref={daysRef} style={s.days}>
               {Array.from({ length: plan.days }).map((_, i) => {
                 const n = i + 1; const on = selectedDay === n; const meta = dayMeta(i);
+                const repos = restDayNums.has(n);
                 return (
-                  <TouchableOpacity key={n} onPress={() => setSelectedDay(n)} activeOpacity={0.85}
-                    style={[s.day, { backgroundColor: on ? t.accent : t.card, borderColor: on ? t.accent : t.line }]}>
-                    <Text style={[s.dayWd, { color: on ? t.onAccent : t.textTertiary }]}>{meta.wd}</Text>
-                    <Text style={[s.dayNum, { color: on ? t.onAccent : t.textSecondary }]}>{meta.num}</Text>
-                    <Text style={{ fontSize: 9, height: 12, lineHeight: 12 }}>{restDayNums.has(n) ? '🛌' : ''}</Text>
+                  <TouchableOpacity
+                    key={n}
+                    onPress={() => setSelectedDay(n)}
+                    activeOpacity={0.7}
+                    style={s.day}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: on }}
+                    accessibilityLabel={`${meta.wd} ${meta.num}${repos ? ', jour de repos' : ''}`}
+                  >
+                    <Text style={s.dayWd}>{meta.wd}</Text>
+                    <View style={[s.dayDot, on && { backgroundColor: t.accent }]}>
+                      <Text style={[s.dayNum, { color: on ? t.onAccent : t.text }]}>{meta.num}</Text>
+                    </View>
+                    {/* Hauteur réservée même sans lune : sinon la rangée se décale
+                        verticalement selon qu'un jour de repos est présent ou non. */}
+                    <View style={s.dayMoon}>
+                      {repos && <Ionicons name="moon" size={11} color={t.textTertiary} />}
+                    </View>
                   </TouchableOpacity>
                 );
               })}
@@ -687,10 +707,13 @@ export default function PlanScreen() {
             {dayMacros && (
               <View ref={macrosRef}>
                 <SectionLabel t={t}>Jour {selectedDay}</SectionLabel>
+                {/* Même symbole que dans la rangée de jours : deux marqueurs différents
+                    pour la même chose sur un même écran, c'est ce qu'on corrige. */}
                 {isRestDay && (
-                  <Text style={{ color: t.textSecondary, fontSize: 14, lineHeight: 19, marginTop: 2 }}>
-                    🛌 Jour de repos · glucides réduits, lipides relevés (mêmes kcal)
-                  </Text>
+                  <View style={s.restRow}>
+                    <Ionicons name="moon" size={13} color={t.textSecondary} />
+                    <Text style={s.restTxt}>Jour de repos · glucides réduits, lipides relevés (mêmes kcal)</Text>
+                  </View>
                 )}
                 <View style={{ height: 12 }} />
                 <MacroBar
@@ -701,18 +724,7 @@ export default function PlanScreen() {
                   plannedKcal={dayMacros.kcal}
                   consumedKcal={consumedDayKcal}
                 />
-                <MarginNote t={t} kcal={dayMacros.kcal} />
                 <SousCibleNote t={t} manque={(dayTarget ?? dayMacros.kcal) - dayMacros.kcal} />
-                {profile && <FiberRow t={t} actual={dayFiber} target={fiberTarget} />}
-                {/* Découvrabilité de la perso macros (le fork a été retiré de l'onboarding) :
-                    deep-link vers l'éditeur « Calories & macros » du Profil. */}
-                <TouchableOpacity
-                  onPress={async () => { await AsyncStorage.setItem('@kyroz:openEditor', 'macros'); router.push('/(tabs)/profil'); }}
-                  activeOpacity={0.7}
-                  style={{ marginTop: 12, alignSelf: 'flex-start' }}
-                >
-                  <Text style={{ color: t.accent, fontSize: 13, fontWeight: '700' }}>⚙️ Personnaliser ma répartition (%)</Text>
-                </TouchableOpacity>
                 {dayExtraKcal > 0 && (
                   <View style={s.extraRow}>
                     <Text style={{ color: t.textSecondary, fontSize: 13 }}>
@@ -727,9 +739,26 @@ export default function PlanScreen() {
                     </TouchableOpacity>
                   </View>
                 )}
-                <TouchableOpacity ref={offplanRef} onPress={() => setOffPlanOpen(true)} activeOpacity={0.7} style={s.offPlanBtn}>
-                  <Text style={s.offPlanTxt}>+ J'ai mangé hors plan</Text>
-                </TouchableOpacity>
+                {/* Les deux actions du jour sur UNE ligne (décision fondateur, 2026-08-05).
+                    La perso des macros était un lien en accent, l'écart hors plan un bouton
+                    pleine largeur : deux grammaires pour deux gestes de même rang.
+                    ⚠️ SANS FOND depuis le 2026-08-06 : deux pavés remplis juste sous le
+                    chiffre du jour pesaient plus que lui. Ce sont des sorties de route,
+                    pas l'action principale de l'écran — elles se fondent dans la page. */}
+                <View style={s.actionsRow}>
+                  <TouchableOpacity ref={offplanRef} onPress={() => setOffPlanOpen(true)} activeOpacity={0.6} style={s.actionBtn}>
+                    <Text style={s.actionTxt}>+ J'ai mangé hors plan</Text>
+                  </TouchableOpacity>
+                  {/* Découvrabilité de la perso macros (le fork a été retiré de l'onboarding) :
+                      deep-link vers l'éditeur « Calories & macros » du Profil. */}
+                  <TouchableOpacity
+                    onPress={async () => { await AsyncStorage.setItem('@kyroz:openEditor', 'macros'); router.push('/(tabs)/profil'); }}
+                    activeOpacity={0.6}
+                    style={s.actionBtn}
+                  >
+                    <Text style={s.actionTxt}>Ma répartition (%)</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             )}
 
@@ -766,6 +795,7 @@ export default function PlanScreen() {
                     onCook={m.fixed ? undefined : () => cookMeal(m)}
                     onReload={m.fixed ? undefined : () => reloadMealOnCard(m)}
                     onDislike={m.fixed ? undefined : () => dislikeMealOnCard(m)}
+                    onShopping={() => router.push('/(tabs)/courses')}
                     missing={m.fixed ? undefined : missing}
                     fridgeTracked={fridgeTracked}
                     tourId={i === 0 ? 'plan-meal' : undefined}
@@ -993,34 +1023,14 @@ function SousCibleNote({ t, manque }: { t: ThemePalette; manque: number }) {
   );
 }
 
-function MarginNote({ t, kcal }: { t: ThemePalette; kcal: number }) {
-  if (kcal <= 0) return null;
-  // Note d'honnêteté discrète : les valeurs alimentaires sont des moyennes (Ciqual),
-  // pas une pesée au gramme près. On n'affiche plus la fourchette ± (donnait
-  // l'impression que le plan était imprécis ; cf. retour fondateur 2026-06-18).
-  return (
-    <Text style={{ color: t.textTertiary, fontSize: 12, marginTop: 8, lineHeight: 16 }}>
-      Valeurs estimées (moyennes alimentaires)
-    </Text>
-  );
-}
-
-function FiberRow({ t, actual, target }: { t: ThemePalette; actual: number; target: number }) {
-  // Tolérance : on alerte seulement nettement sous la cible (−5 g), sinon ✓.
-  const ok = actual >= target - 5;
-  return (
-    <View style={styles.fiber}>
-      <Text style={{ color: t.textTertiary, fontSize: 13 }}>🌾 Fibres {actual} g / {target} g</Text>
-      <Text style={{ color: ok ? t.success : t.warning, fontSize: 13, fontWeight: '700' }}>
-        {ok ? '✓ Bon apport' : 'Un peu juste'}
-      </Text>
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  fiber: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 10 },
-});
+// ⚠️ `MarginNote` (« Valeurs estimées — moyennes alimentaires ») et `FiberRow`
+// (« 🌾 Fibres 52 g / 35 g · ✓ Bon apport ») ont été RETIRÉS le 2026-08-05
+// (décision fondateur). Le moteur n'a pas changé : il continue de viser les fibres
+// exactement pareil (biais de sélection `FIBER_SELECT_W_*`, cf. CLAUDE.md §6), il
+// ne le DIT simplement plus. « On donne un bon apport sans le faire remarquer. »
+// ➡️ Ne pas les réintroduire en croyant réparer un oubli : c'est un choix.
+// Le disclaimer OBLIGATOIRE de §6 (« ne remplace pas l'avis d'un médecin »), lui,
+// est un autre texte et reste affiché — voir `s.disclaimer` plus bas.
 
 function makeStyles(t: ThemePalette) {
   return StyleSheet.create({
@@ -1039,15 +1049,26 @@ function makeStyles(t: ThemePalette) {
     weighSub: { color: t.textSecondary, fontSize: 14, lineHeight: 19, marginTop: 2 },
     bannerTxt: { flex: 1, color: t.textSecondary, fontSize: 14, lineHeight: 19 },
     bannerCta: { color: t.text, fontSize: 14, fontWeight: '600' },
-    days: { flexDirection: 'row', gap: 8 },
-    day: { flex: 1, height: 58, borderRadius: Radius.button, borderWidth: 1, alignItems: 'center', justifyContent: 'center', gap: 4 },
-    dayWd: { fontSize: 11, fontWeight: '600' },
-    dayNum: { fontSize: 15, fontWeight: '700' },
+    days: { flexDirection: 'row' },
+    day: { flex: 1, alignItems: 'center', gap: 6, paddingVertical: 2 },
+    dayWd: { color: t.textTertiary, fontSize: 13, fontWeight: '500' },
+    // Pastille : `Radius.pill` est son rôle exact (puce/badge), et l'objet a une
+    // taille FIXE — c'est la condition posée par lib/__tests__/rayonsDA.test.ts.
+    dayDot: { width: 40, height: 40, borderRadius: Radius.pill, alignItems: 'center', justifyContent: 'center' },
+    dayNum: { fontSize: 17, fontWeight: '700' },
+    dayMoon: { height: 13, alignItems: 'center', justifyContent: 'center' },
+    restRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 },
+    restTxt: { flex: 1, color: t.textSecondary, fontSize: 14, lineHeight: 19 },
     sectionRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
     sectionCount: { color: t.textTertiary, fontSize: 13 },
     extraRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 12 },
-    offPlanBtn: { marginTop: 14, alignItems: 'center', backgroundColor: t.fill, borderRadius: Radius.button, paddingVertical: 13 },
-    offPlanTxt: { color: t.textSecondary, fontSize: 15, fontWeight: '600' },
+    // Les deux actions du jour partagent EXACTEMENT le même gabarit : elles sont de
+    // même rang, donc rien ne doit laisser croire que l'une prime sur l'autre.
+    // Aucun fond : elles se posent sur la page. La hauteur de 44 reste — c'est la
+    // cible tactile minimale d'Apple, et elle ne se voit pas mais elle se touche.
+    actionsRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', columnGap: 22, marginTop: 6 },
+    actionBtn: { minHeight: 44, justifyContent: 'center' },
+    actionTxt: { color: t.textSecondary, fontSize: 14, fontWeight: '600' },
     empty: { alignItems: 'center', gap: 10, paddingVertical: 24 },
     emptyIcon: { width: 72, height: 72, borderRadius: 24, alignItems: 'center', justifyContent: 'center', marginBottom: 6 },
     emptyTitle: { color: t.text, ...Type.h2 },

@@ -53,3 +53,6 @@ test/store-ipad/*.png
 # Source brute Ciqual (ANSES) — convertie en lib/foods.generated.ts, pas commitée (lourde)
 # Casse insensible (APFS local vs FS sensible à la casse en CI Linux)
 [Dd]ata/[Cc]iqual/
+
+# miroir HTML du design system — GÉNÉRÉ (npm run design:build), poussé vers Claude Design
+design-system/

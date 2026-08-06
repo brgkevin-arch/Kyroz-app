@@ -1,21 +1,27 @@
 import { useSyncExternalStore } from 'react';
 import { useColorScheme, Platform } from 'react-native';
 import { getThemeMode, subscribeThemeMode } from '../lib/themeMode';
-import { ACCENTS, AccentId, getAccentId, subscribeAccentId, readableOn } from '../lib/accentColor';
+import { ACCENTS, AccentId, getAccentId, subscribeAccentId, readableOn, macroShades } from '../lib/accentColor';
 
 // ── Système de thème adaptatif Kyroz ─────────────────────────────────────────
 // Clair + sombre, suit le réglage système. Palette système iOS, accent graphite.
 //
-// ⚠️ LES MACROS N'ONT PLUS TROIS TEINTES, MAIS TROIS NUANCES DU MÊME GRIS
+// ⚠️ LES MACROS N'ONT PLUS TROIS TEINTES, MAIS TROIS NUANCES D'UNE MÊME COULEUR
 // (2026-08-03, refonte design). `protein` / `carbs` / `fat` valaient bleu / jaune /
 // rouge et étaient employés à 32 endroits — y compris là où il n'y a RIEN à
 // comparer (une ligne de texte « 42 P · 81 G · 12 L » dans une liste). La couleur
 // ne porte une information que dans une BARRE, où elle sépare des proportions
 // côte à côte ; ailleurs elle ne fait que du bruit et écrase le nom du plat.
 // Les trois valeurs restent donc des tokens distincts — la barre garde ses trois
-// segments lisibles — mais elles ne sortent plus du gris.
+// segments lisibles — mais elles ne portent plus trois teintes.
 // ⚠️ Ne pas « re-coloriser » un seul écran : c'est le mélange des deux grammaires
 // qui rendait l'ancienne UI bruyante, pas la couleur en soi.
+//
+// ⚠️ CETTE COULEUR SUIT L'ACCENT CHOISI depuis le 2026-08-05 (décision fondateur).
+// Les valeurs ci-dessous sont celles du MONOCHROME — le défaut, donc la DA que
+// voit la majorité. Dès qu'un accent coloré est choisi, `paletteFor` les remplace
+// par trois nuances de cet accent (`lib/accentColor.ts::macroShades`), mesurées
+// contre le fond de page. Le principe est intact : trois nuances d'UNE couleur.
 //
 // ⚠️ SEUL ÉCART ASSUMÉ AVEC LA MAQUETTE — l'échelle de gris est resserrée.
 // La maquette servait #8E8E93 / #C1C1C4 / #DDDDDF en clair. Mesuré sur le rendu :
@@ -213,6 +219,16 @@ function paletteFor(scheme: 'light' | 'dark', accentId: AccentId): ThemePalette 
   // `onAccent` se CALCULE : voir la note dans lib/accentColor.ts. Une table écrite
   // à la main livrerait tôt ou tard un libellé illisible sur un bouton.
   const p: ThemePalette = { ...base, accent, onAccent: readableOn(accent) };
+  // Les macros suivent la couleur choisie — en TROIS NUANCES, pas trois teintes
+  // (décision fondateur 2026-08-05, cf. lib/accentColor.ts::macroShades).
+  // ⚠️ En monochrome on garde les gris système EN DUR plutôt que de dériver du
+  // blanc ou de l'encre : les dériver donnerait des gris différents en clair et en
+  // sombre, et surtout ferait BOUGER la DA par défaut — celle que voit tout le
+  // monde — pour un changement qui ne concerne que ceux qui choisissent une couleur.
+  if (accentId !== 'mono') {
+    const [prot, glu, lip] = macroShades(accent, base.bg);
+    p.protein = prot; p.carbs = glu; p.fat = lip;
+  }
   palettes.set(cle, p);
   return p;
 }
