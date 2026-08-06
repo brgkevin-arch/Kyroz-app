@@ -78,7 +78,7 @@ qu'ils étaient périmés.
 | OTA publiées | **2, les deux du 2026-08-06** (la branche `production` était vide avant) : `28dce9c7` (gestes des feuilles) puis `98d5217a` (défilement ↔ fermeture). Runtime `1.0.0` → atteignent le build TestFlight **3**. ⚠️ **`--environment production` est OBLIGATOIRE** (SDK 55+) : sans lui les variables serveur ne sont pas chargées et le bundle part **sans URL Supabase**. ⚠️ Mesurer le bundle AVANT de clore (`strings -a` sur le `.hbc` de `dist/`) : attendu **1 / 1 / 0** (URL Supabase, `sb_publishable_`, `sk-ant-`) | `npx eas-cli channel:view production` |
 | Ce qui traîne (tous worktrees) | ⚠️ `git status` dans un worktree ne montre QUE ce worktree — un fichier a dormi **4 jours** dans le dépôt principal sans que personne puisse le voir. Le contrôle parcourt TOUS les arbres et échoue au-delà de 24 h | `npm run check:suspens` |
 | Site déployé | **automatique** : GitHub Actions à chaque push `main` (`build_type: workflow`). Routes **pré-rendues** (`web.output: "static"`, E7) → un lien direct répond 200. ⚠️ Le pré-rendu tourne dans **Node** : un module qui touche `window` au chargement casse le déploiement (CLAUDE.md §11). ⚠️ **NE PAS lire `origin/gh-pages`** — branche morte, cf. A12 | `gh run list --workflow=deploy.yml` |
-| Migrations Supabase | 🔴 **15 jouées sur 16.** `2026-08-06_profiles_body_fat_source.sql` est écrite mais **PAS en prod** — mesuré le 2026-08-06, `body_fat_source` rend HTTP 400. Tant qu'elle n'est pas jouée, l'upsert global rejette **toute la ligne** (PGRST204) : la synchro du profil meurt **en silence**. Elle est donc bloquante pour E16. ⚠️ **Ne jamais annoncer une migration « en attente » sans lancer la commande** — le dépôt ne sait rien de la prod, et deux lignes d'ici l'ont dit à tort pendant des jours | `npm run check:migrations` |
+| Migrations Supabase | les **16** jouées, `2026-08-06_profiles_body_fat_source.sql` comprise (jouée le 2026-08-06, mesurée avant ET après : 400 → 200). ⚠️ **Ne jamais annoncer une migration « en attente » sans lancer la commande** — le dépôt ne sait rien de la prod, et deux lignes d'ici l'ont dit à tort pendant des jours | `npm run check:migrations` |
 | Variété perçue | semaines servant 2 recettes d'un même couple : **max 7,9 %** (9,2 % avant D22 · 10,0 % avant D21 · 11,7 % avant B9 · 12,5 % avant B8 · 20,8 % avant B7 · 27,5 / 26,3 % avant A25 · 56,3 % avant D18) | `npm run mesure:variete -- --variete=…` |
 | Variété perçue **par régime** | **vegan+SG 16,7 %** — trajectoire de la cible : **50 % → 35,4 % (B7) → 22,9 % (B8) → 16,7 % (B9)** | `npm run mesure:variete -- --detail` |
 | Premier plan servi | plan **canonique** (seed 0) : **6,7 %** de semaines avec quasi-doublon (8,3 % avant D22 (23,3 % avant B7 · **45,0 % avant A25**, où le 1er plan était le PIRE des trois). ⚠️ La ligne annonçait 10,0 % — c'était la moyenne tous tirages recopiée ici par erreur, re-mesurée le 2026-08-03 | `npm run mesure:variete -- --seeds=0` |
@@ -3159,8 +3159,8 @@ produit en suspens — il ne reste qu'à coder.
 
 ### 🧹 E — Dette technique
 
-- **E16 · Katch-McArdle prenait une DEVINETTE pour une mesure** — 🟡 **CODE LIVRÉ le
-  2026-08-06, BLOQUÉ SUR LA MIGRATION.** `ENGINE_REV` 5 → 6.
+- **E16 · Katch-McArdle prenait une DEVINETTE pour une mesure** — 🟡 **CODE LIVRÉ +
+  MIGRATION JOUÉE le 2026-08-06 ; reste le merge et le déploiement.** `ENGINE_REV` 5 → 6.
 
   **Le défaut** : dès qu'un %MG était renseigné, le moteur basculait sur Katch-McArdle.
   Or ce chiffre pouvait venir de deux mondes qui n'ont rien à voir — un impédancemètre,
@@ -3201,11 +3201,15 @@ produit en suspens — il ne reste qu'à coder.
   cible servie **−80 à +363** (le plancher amortit toujours les baisses), croissant avec
   le %MG déclaré. Au-delà de 100 kcal/j, l'avertissement one-shot `engine_notice` part.
 
-  🔴 **BLOQUANT — la migration n'est PAS jouée.** Mesuré, pas supposé
-  (`npm run check:migrations` : `body_fat_source` → HTTP 400). Tant qu'elle ne l'est pas,
-  l'upsert global rejette **toute la ligne** (PGRST204) et la synchro du profil meurt en
-  silence. SQL à jouer : `supabase/migrations/2026-08-06_profiles_body_fat_source.sql`
-  (Supabase → SQL Editor → Run), puis consigner dans `supabase/JOURNAL-MIGRATIONS.md`.
+  ✅ **Migration JOUÉE le 2026-08-06**, mesurée avant et après (`body_fat_source` :
+  400 → 200 ; les 38 colonnes de `PROFILE_COLS` en une requête : 400 → 200). Consignée
+  dans `supabase/JOURNAL-MIGRATIONS.md`. Le mode de panne qu'elle ferme est réel et
+  s'est produit 3 fois : colonne absente → upsert ENTIER rejeté (PGRST204) → synchro du
+  profil morte en silence. Procédure : `supabase/PROCEDURE-2026-08-06-body-fat-source.md`.
+  ⚠️ **La procédure avait ses deux dernières étapes dans le mauvais ordre** : elle
+  exigeait de prouver une écriture réelle AVANT le déploiement, or cette écriture passe
+  par la question de provenance à l'écran, qui n'existe qu'après. Corrigée. Reste donc :
+  merge → déploiement → vérifier `body_fat_source = 'measured'` en base depuis l'app.
 
   ⚠️ **Deux constats sortis du chantier, à ne pas perdre :**
   1. **Le sélecteur de silhouettes a un PLAFOND** — 35 % (H) / 43 % (F). Au-delà, la

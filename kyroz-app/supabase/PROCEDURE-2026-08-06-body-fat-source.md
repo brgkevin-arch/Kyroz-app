@@ -46,9 +46,27 @@ de patienter avant de conclure à un échec.
 
 ---
 
-## Étape 3 — prouver qu'une écriture RÉELLE atterrit
+## Étape 3 — le merge et le déploiement
 
-Le schéma peut être bon et le push casser ailleurs. On le vérifie de bout en bout.
+> ⚠️ **Cette étape était en 4ᵉ position, derrière la vérification d'écriture réelle.
+> C'était impossible dans cet ordre** : cette vérification passe par la question de
+> provenance à l'écran, et cet écran n'existe qu'après le déploiement. Corrigé le
+> 2026-08-06. Le risque qui justifiait l'ordre strict — déployer un client qui écrit
+> une colonne absente — est levé par l'étape 1.
+
+Une fois les étapes 1 et 2 vertes.
+
+La branche est `worktree-body-fat-provenance-impl`.
+Merge dans `main` → le push déclenche GitHub Actions → le site part tout seul.
+
+**→ Dis-moi « go merge » quand tu veux que je le fasse.**
+
+---
+
+## Étape 4 — prouver qu'une écriture RÉELLE atterrit
+
+Le schéma peut être bon et le push casser ailleurs. On le vérifie de bout en bout,
+**après** le déploiement.
 
 1. Ouvre l'app, va dans **Profil → Mon corps → % de masse grasse**.
 2. Saisis un pourcentage **à la main** (pas une silhouette) → la question apparaît.
@@ -57,18 +75,12 @@ Le schéma peut être bon et le push casser ailleurs. On le vérifie de bout en 
 
 Attendu : `measured`.
 
+⚠️ Ce que l'étape 2 prouve et ce qu'elle NE prouve PAS : elle interroge le schéma en
+LECTURE sur les 38 colonnes en une requête — donc elle ferme le mode de panne réel
+(`PGRST204`, colonne inconnue → ligne entière rejetée). Elle ne remplace pas une
+écriture : c'est celle-ci qui vérifie que l'écran envoie bien la valeur.
+
 **→ Dis-moi ce que tu vois dans la cellule.**
-
----
-
-## Étape 4 — le merge et le déploiement
-
-Seulement une fois les étapes 1 à 3 vertes.
-
-La branche est `worktree-body-fat-provenance-impl`, commit `658aa13`.
-Merge dans `main` → le push déclenche GitHub Actions → le site part tout seul.
-
-**→ Dis-moi « go merge » quand tu veux que je le fasse.**
 
 ---
 
