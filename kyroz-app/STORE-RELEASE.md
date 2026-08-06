@@ -485,10 +485,26 @@ sélectionné pour une **version**, pas dans les builds TestFlight.
 tant qu'on ne clique pas sur « Ajouter pour examen » / « Submit for review ». C'est
 une manip sans conséquence, réversible.
 
-⚠️ **Si l'en-tête reste gris après ça**, ce n'est plus une question de fiche : il
-faudra ouvrir l'IPA réellement déposée pour vérifier que le catalogue d'icônes y a
-bien été compilé. C'est faisable (artefact EAS téléchargeable), mais ça se demande —
-on ne télécharge pas 60 Mo sans le dire.
+✅ **RÉSOLU le 2026-08-06.** Cause réelle : **le bouton « Enregistrer » n'avait pas
+été cliqué.** App Store Connect garde le build sélectionné à l'écran sans le
+persister — au rechargement, il a disparu. Le signal était là et il est discret :
+**« Enregistrer » reste GRISÉ tant qu'aucune modification n'est enregistrable, et
+devient actif dès qu'il y en a une.** S'il est grisé après un ajout de build, rien
+n'est parti.
+
+⚠️ **DEUX FAUSSES PISTES, notées pour que personne ne les retente :**
+1. *« Le build n'a pas la déclaration de chiffrement, donc il est bloqué. »* La
+   prémisse est vraie — le build 3 (2 août) est antérieur à `42bc57b` (6 août) qui
+   ajoute `ITSAppUsesNonExemptEncryption` — mais la conclusion est FAUSSE : TestFlight
+   affiche le build « Terminé / En cours de test », **sans le moindre avertissement de
+   conformité**. Un fait exact peut désigner le mauvais coupable.
+2. *« Le binaire ne porte pas l'icône. »* Réfuté par la capture : le build 1.0.0 (3)
+   **affiche le K de Kyroz** dans les deux tableaux de TestFlight. Apple l'avait depuis
+   le début — seule la vignette d'en-tête, qui dépend de la VERSION, restait vide.
+
+➡️ **Ce que ça enseigne** : sur une interface tierce, la capture d'écran tranche là où
+le raisonnement dérape. Les deux hypothèses étaient plausibles et documentées ; c'est
+l'image du build portant déjà l'icône qui a désigné le vrai coupable — un bouton.
 
 **Étape 3 — changer d'icône, si c'est ça qu'on veut.** Remplacer `assets/icon.png`
 (1024², sans alpha) et les trois variantes Android (`android-icon-foreground`,
