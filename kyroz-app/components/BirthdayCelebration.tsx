@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Modal, View, Text, StyleSheet, Animated, Easing, Pressable } from 'react-native';
-import { useTheme, Radius, Spacing, Type } from '../constants/theme';
+import { useTheme, Radius, Spacing, Type, Trait } from '../constants/theme';
 import { PrimaryButton } from './ui';
 import { AnniversaireIcon } from './Icons';
 
@@ -120,10 +120,10 @@ export function BirthdayCelebration({ age, firstName, onClose }: Props) {
 const styles = StyleSheet.create({
   root: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.6)', padding: Spacing.xl },
   card: {
-    width: '100%', maxWidth: 360, borderWidth: 1, borderRadius: Radius.xl,
+    width: '100%', maxWidth: 360, borderWidth: Trait.fin, borderRadius: Radius.xl,
     padding: Spacing.xxxl, alignItems: 'center',
   },
-  emoji: { fontSize: 56, marginBottom: 8 },
+  emoji: { fontSize: 56, marginBottom: Spacing.sm },
   title: { ...Type.h2, textAlign: 'center' },
-  body: { fontSize: 15, lineHeight: 21, textAlign: 'center', marginTop: 10 },
+  body: { ...Type.body, lineHeight: 21, textAlign: 'center', marginTop: Spacing.md },
 });

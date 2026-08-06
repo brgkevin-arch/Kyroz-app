@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { ThemePalette, Radius, Type } from '../constants/theme';
+import { ThemePalette, Radius, Type, Spacing, Trait } from '../constants/theme';
 import { Streak } from '../lib/types';
 import { chainProgress, streakMessage } from '../lib/streak';
 
@@ -84,30 +84,30 @@ export function StreakProgress({ t, streak, variant = 'strip' }: Props) {
 }
 
 const styles = StyleSheet.create({
-  chain: { flexDirection: 'row', gap: 6, width: '100%' },
-  seg: { flex: 1, height: 8, borderRadius: Radius.pill, borderWidth: 1 },
+  chain: { flexDirection: 'row', gap: Spacing.sm, width: '100%' },
+  seg: { flex: 1, height: 8, borderRadius: Radius.pill, borderWidth: Trait.fin },
 
   strip: {
-    borderWidth: 1,
+    borderWidth: Trait.fin,
     borderRadius: Radius.card,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    gap: 10,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.lg,
+    gap: Spacing.md,
   },
 
   // Ligne discrète du Profil (2026-08-02). Même gabarit que le bandeau du Plan :
   // la série se lit d'un coup d'œil et rend la place au suivi du poids.
   line: {
-    borderWidth: 1,
+    borderWidth: Trait.fin,
     borderRadius: Radius.card,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    gap: 10,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    gap: Spacing.md,
   },
-  lineHead: { flexDirection: 'row', alignItems: 'baseline', gap: 5 },
+  lineHead: { flexDirection: 'row', alignItems: 'baseline', gap: Spacing.xs },
   lineNum: { ...Type.h3 },
-  lineLbl: { fontSize: 13, fontWeight: '600' },
-  lineRecord: { fontSize: 12, fontWeight: '600' },
+  lineLbl: { ...Type.captionStrong },
+  lineRecord: { ...Type.captionStrong },
 
-  message: { fontSize: 13, fontWeight: '600', textAlign: 'center' },
+  message: { ...Type.captionStrong, textAlign: 'center' },
 });

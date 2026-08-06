@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, LayoutChangeEvent } from 'react-native';
 import Svg, { Polyline, Polygon, Circle, Line, Text as SvgText } from 'react-native-svg';
-import { ThemePalette, Radius } from '../constants/theme';
+import { ThemePalette, Radius, Type, Spacing } from '../constants/theme';
 import { WeightEntry } from '../lib/weight';
 import { GoalTarget } from '../lib/types';
 import { daysBetween, TRACK_TOLERANCE_KG, zoneHalfWidthKg } from '../lib/datedGoal';
@@ -48,7 +48,7 @@ export function WeightChart({ t, entries, width, height = 130, goalTarget }: Pro
   if (!canRender) {
     return (
       <View onLayout={onLayout} style={[styles.empty, { height, backgroundColor: t.fill }]}>
-        <Text style={{ color: t.textTertiary, fontSize: 13, textAlign: 'center' }}>
+        <Text style={{ ...Type.caption, color: t.textTertiary, textAlign: 'center' }}>
           Enregistre ton poids chaque semaine pour voir ta courbe.
         </Text>
       </View>
@@ -131,7 +131,7 @@ export function WeightChart({ t, entries, width, height = 130, goalTarget }: Pro
         </Text>
       </View>
       {goalTarget && (
-        <Text style={[styles.axisTxt, { color: t.textTertiary, marginTop: 2 }]}>
+        <Text style={[styles.axisTxt, { color: t.textTertiary, marginTop: Spacing.xs }]}>
           ▚ Ta zone vers {goalTarget.target_weight_kg} kg le {frDate(goalTarget.target_date)} · rester dedans suffit
         </Text>
       )}
@@ -140,7 +140,7 @@ export function WeightChart({ t, entries, width, height = 130, goalTarget }: Pro
 }
 
 const styles = StyleSheet.create({
-  empty: { borderRadius: Radius.card, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 20 },
-  axis: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 4 },
-  axisTxt: { fontSize: 11 },
+  empty: { borderRadius: Radius.card, alignItems: 'center', justifyContent: 'center', paddingHorizontal: Spacing.xl },
+  axis: { flexDirection: 'row', justifyContent: 'space-between', marginTop: Spacing.xs },
+  axisTxt: { ...Type.micro },
 });

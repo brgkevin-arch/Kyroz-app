@@ -2,7 +2,7 @@ import React, { useEffect, useState, useSyncExternalStore } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useTheme, Radius, Spacing, Type, cardShadow } from '../constants/theme';
+import { useTheme, Radius, Spacing, Type, cardShadow, Icone, OPACITE_PRESSION } from '../constants/theme';
 import { ActionSheet } from './ActionSheet';
 import { Segmented, SectionLabel } from './ui';
 import { HydratationIcon } from './Icons';
@@ -145,7 +145,7 @@ export function HydrationBar() {
             hitSlop={10}
             accessibilityLabel="Réglages de l'hydratation"
           >
-            <Ionicons name="options-outline" size={20} color={t.textSecondary} />
+            <Ionicons name="options-outline" size={Icone.standard} color={t.textSecondary} />
           </TouchableOpacity>
         </View>
       </View>
@@ -195,7 +195,7 @@ export function HydrationBar() {
         <TouchableOpacity
           onPress={() => setSettingsOpen(false)}
           style={[styles.doneBtn, { backgroundColor: t.accent }]}
-          activeOpacity={0.85}
+          activeOpacity={OPACITE_PRESSION}
         >
           <Text style={[styles.btnTxt, { color: t.onAccent }]}>OK</Text>
         </TouchableOpacity>
@@ -208,8 +208,8 @@ const styles = StyleSheet.create({
   card: { borderRadius: Radius.card, padding: Spacing.lg, gap: Spacing.md, marginBottom: Spacing.lg },
   headRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   headRight: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
-  title: { fontSize: 15, fontWeight: '700' },
-  count: { fontSize: 13, fontWeight: '600' },
+  title: { ...Type.bodyStrong },
+  count: { ...Type.captionStrong },
   track: { height: 8, borderRadius: Radius.pill, overflow: 'hidden' },
   fill: { height: '100%', borderRadius: Radius.pill },
   controls: { flexDirection: 'row', gap: Spacing.sm },
@@ -220,11 +220,11 @@ const styles = StyleSheet.create({
   // encore une lozange. C'est la HAUTEUR qui était fausse — 44 pt est aussi le
   // minimum d'une cible tactile chez Apple, que `hitSlop` rattrapait au doigt
   // sans jamais le rattraper à l'œil.
-  btn: { paddingVertical: 13, paddingHorizontal: 16, borderRadius: Radius.button, alignItems: 'center', justifyContent: 'center', minWidth: 48 },
+  btn: { paddingVertical: Spacing.md, paddingHorizontal: Spacing.lg, borderRadius: Radius.button, alignItems: 'center', justifyContent: 'center', minWidth: 48 },
   btnAdd: { flex: 1 },
-  btnTxt: { fontSize: 15, fontWeight: '700' },
-  sheetTitle: { ...Type.h2, marginBottom: 4 },
+  btnTxt: { ...Type.bodyStrong },
+  sheetTitle: { ...Type.h2, marginBottom: Spacing.xs },
   sheetBlock: { gap: Spacing.sm },
-  hint: { fontSize: 12, fontWeight: '600' },
-  doneBtn: { marginTop: Spacing.sm, paddingVertical: 14, borderRadius: Radius.button, alignItems: 'center' },
+  hint: { ...Type.captionStrong },
+  doneBtn: { marginTop: Spacing.sm, paddingVertical: Spacing.lg, borderRadius: Radius.button, alignItems: 'center' },
 });

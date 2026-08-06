@@ -69,6 +69,21 @@ Sinon on compare deux choses différentes et tous les écarts de couleur sont fa
   maquette est cassée » sur une capture blanche.
 - **La largeur de fenêtre coupe la colonne SOMBRE.** Les cadres font 402 px et sont posés
   côte à côte : sous ~1400 px de large, le téléphone de droite est tronqué.
+- 🔴 **Depuis un WORKTREE, le serveur sert l'app du dépôt PRINCIPAL.** `node_modules` y est
+  un lien symbolique vers le dépôt principal, et expo-router résout la racine de l'app à
+  travers lui. Mesuré le 2026-08-05 : après avoir migré 333 styles, le navigateur affichait
+  encore **au pixel près la version d'avant**.
+  ⚠️ **Le piège n'est pas l'écran cassé, c'est l'écran PLAUSIBLE** — rien ne signale
+  l'erreur, et la conclusion naturelle est « ma migration n'a pas pris », donc on part
+  corriger du code parfaitement sain.
+  ➡️ Deux façons de le confirmer en 10 secondes : `--clear` n'y change **rien** (ce n'est
+  donc pas le cache Metro), et le rendu correspond **exactement** à
+  `git show HEAD:<fichier>`. Lancer alors depuis `kyroz-app` avec :
+  ```bash
+  EXPO_ROUTER_APP_ROOT=$PWD/app npx expo start --web --port 8097 --clear
+  ```
+  ⚠️ `preview_start` lit le `launch.json` du **dépôt principal**, pas celui du worktree :
+  y ajouter une config reviendrait à modifier la copie de travail d'une autre session.
 - 🔴 **`requestAnimationFrame` ne tourne PAS dans le panneau navigateur** — mesuré le
   2026-08-04 : **0 frame en 7,2 secondes**. Toute animation (`Animated.timing`, transition
   CSS, fondu) démarre, rend une frame ou deux, puis se **fige** à une valeur intermédiaire.

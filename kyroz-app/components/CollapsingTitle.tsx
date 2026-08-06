@@ -3,7 +3,7 @@ import {
   Animated, LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent,
   StyleSheet, Text, View,
 } from 'react-native';
-import { ThemePalette, Type } from '../constants/theme';
+import { ThemePalette, Type, Spacing } from '../constants/theme';
 import { COMPACT_BAR_H, SEUIL_PAR_DEFAUT, seuilRepli } from '../lib/collapsingTitle';
 
 // Ré-exportés pour que les écrans n'aient qu'un seul import à faire.
@@ -117,6 +117,6 @@ const styles = StyleSheet.create({
     // en prop, et le prévient à chaque rendu dans la console.
     pointerEvents: 'none',
   },
-  centre: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 56 },
+  centre: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: Spacing.xxxl },
   titre: { ...Type.h3 },
 });

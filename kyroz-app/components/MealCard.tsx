@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useTheme, Radius, cardShadow, ThemePalette } from '../constants/theme';
+import { useTheme, Radius, cardShadow, ThemePalette, Type, Spacing, Trait, Icone, OPACITE_PRESSION } from '../constants/theme';
 import { Meal } from '../lib/types';
 import { useTourTarget } from './GuidedTour';
 import { useFavorites } from '../hooks/useFavorites';
@@ -42,8 +42,8 @@ export function MealCard({
     <TouchableOpacity
       ref={rootRef}
       onPress={onPress}
-      activeOpacity={0.85}
-      style={[{ backgroundColor: t.card, borderRadius: Radius.card, padding: 18, opacity: muted ? 0.6 : 1 }, cardShadow(t)]}
+      activeOpacity={OPACITE_PRESSION}
+      style={[{ backgroundColor: t.card, borderRadius: Radius.card, padding: Spacing.xl, opacity: muted ? 0.6 : 1 }, cardShadow(t)]}
     >
       {/* Un seul surtitre « TYPE · DURÉE » au lieu de deux coins opposés : le nom
           du plat devient la première chose qu'on lit. Les états (mangé / sauté /
@@ -65,7 +65,7 @@ export function MealCard({
           aucune proportion à comparer — c'est le nom du plat qu'on lit. */}
       {!skipped && (
         <Text style={[styles.macros, { color: t.textSecondary }]}>
-          <Text style={{ color: t.text, fontWeight: '600' }}>{meal.macros.kcal}</Text>
+          <Text style={{ color: t.text, fontWeight: '700' }}>{meal.macros.kcal}</Text>
           {` kcal · ${meal.macros.protein_g} P · ${meal.macros.carbs_g} G · ${meal.macros.fat_g} L`}
         </Text>
       )}
@@ -120,8 +120,8 @@ export function MealCard({
 // Bouton-icône d'action (favori / j'aime pas / changer), aligné sur le bouton cuisiné.
 function ActionIcon({ t, name, active, onPress, label }: { t: ThemePalette; name: keyof typeof Ionicons.glyphMap; active?: boolean; onPress: () => void; label: string }) {
   return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.7} accessibilityLabel={label} style={[styles.iconBtn, { backgroundColor: t.fill }]}>
-      <Ionicons name={name} size={18} color={active ? t.text : t.textSecondary} />
+    <TouchableOpacity onPress={onPress} activeOpacity={OPACITE_PRESSION} accessibilityLabel={label} style={[styles.iconBtn, { backgroundColor: t.fill }]}>
+      <Ionicons name={name} size={Icone.standard} color={active ? t.text : t.textSecondary} />
     </TouchableOpacity>
   );
 }
@@ -133,30 +133,33 @@ function CookButton({ t, onCook, lacks, cookRef }: { t: ThemePalette; onCook: ()
     <TouchableOpacity
       ref={cookRef}
       onPress={onCook}
-      activeOpacity={0.85}
+      activeOpacity={OPACITE_PRESSION}
       style={[
         styles.cookBtn,
         lacks
-          ? { borderWidth: 1.5, borderColor: t.lineStrong }
+          ? { borderWidth: Trait.controle, borderColor: t.lineStrong }
           : { backgroundColor: t.accent },
       ]}
     >
-      <Ionicons name="restaurant" size={15} color={lacks ? t.text : t.onAccent} />
+      <Ionicons name="restaurant" size={Icone.petite} color={lacks ? t.text : t.onAccent} />
       <Text style={[styles.cookTxt, { color: lacks ? t.text : t.onAccent }]}>J'ai cuisiné</Text>
     </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
-  type: { fontSize: 11, fontWeight: '700', letterSpacing: 1 },
-  name: { fontSize: 17, fontWeight: '600', letterSpacing: -0.3, marginTop: 7 },
-  macros: { fontSize: 14, lineHeight: 19, marginTop: 6 },
-  fridge: { fontSize: 13, marginTop: 10 },
-  fridgeRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  fridgeLink: { fontSize: 13, fontWeight: '700', marginTop: 10 },
-  fixedNote: { fontSize: 12, marginTop: 6 },
-  actions: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 14 },
-  cookBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, height: 44, paddingHorizontal: 12, borderRadius: Radius.button },
-  cookTxt: { fontSize: 15, fontWeight: '600' },
+  type: { ...Type.overline },
+  name: { ...Type.h3, letterSpacing: -0.3, marginTop: Spacing.sm },
+  macros: { ...Type.bodySmall, lineHeight: 19, marginTop: Spacing.sm },
+  fridge: { ...Type.caption, marginTop: Spacing.md },
+  // ⚠️ `fridgeRow` / `fridgeLink` viennent de main et sont TOUJOURS utilisés
+  // (lignes 85 et 96). La passe DA les avait supprimés parce qu'ils n'existaient
+  // pas encore chez elle : les garder tokenisés, pas les perdre.
+  fridgeRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
+  fridgeLink: { ...Type.captionStrong, marginTop: Spacing.md },
+  fixedNote: { ...Type.caption, marginTop: Spacing.sm },
+  actions: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, marginTop: Spacing.lg },
+  cookBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm, height: 44, paddingHorizontal: Spacing.md, borderRadius: Radius.button },
+  cookTxt: { ...Type.bodyStrong },
   iconBtn: { width: 44, height: 44, borderRadius: Radius.button, alignItems: 'center', justifyContent: 'center' },
 });

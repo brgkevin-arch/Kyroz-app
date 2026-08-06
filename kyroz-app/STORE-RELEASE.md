@@ -262,12 +262,26 @@ verrouillé par deux tests (`lib/__tests__/premium.test.ts`, `purchases.test.ts`
 >   ci-dessus. Le rendu téléphone est inchangé, un test l'exige.
 > - **Captures iPad 13"** : `npm run store:assets:ipad` → `test/store-ipad/`, **2048×2732**.
 
-> 🔴 **LES CAPTURES SUR DISQUE SONT PÉRIMÉES — re-mesuré le 2026-08-05.** `test/store/`
-> contient **6 PNG datés du 30 juillet 21:59**, et l'interface a changé **trois fois**
-> depuis : refonte des 5 écrans + icônes d'onglets (2026-08-03), passe des rayons et de
-> l'échelle typo sur tout le reste (2026-08-03), repli du grand titre sur les 5 onglets
-> (2026-08-04). Les uploader publierait une interface qui n'existe plus — c'est exactement
-> le genre d'écart qu'une fiche de store fige pour des semaines.
+> 🔴 **LES CAPTURES SUR DISQUE SONT PÉRIMÉES — re-mesuré le 2026-08-06.** `test/store/`
+> contient **6 PNG datés du 30 juillet 21:59**, et l'interface a changé **six fois**
+> depuis : refonte des 5 écrans + icônes d'onglets (2026-08-03), rayons sur tout le reste
+> (2026-08-03), repli du grand titre (2026-08-04), échelle typographique posée et migrée
+> sur 333 sites (2026-08-05), espacement + cibles tactiles 44 pt sur 537 sites
+> (2026-08-06), finitions trait/icône/toucher (2026-08-06). Les uploader publierait une
+> interface qui n'existe plus — c'est exactement le genre d'écart qu'une fiche de store
+> fige pour des semaines.
+>
+> 🔴 **ET JUSQU'AU 2026-08-05, LA COMMANDE CI-DESSOUS NE POUVAIT PLUS LES REGÉNÉRER.**
+> `test/_harness.mjs` était périmé sur deux points — l'attestation de dépistage
+> n'apparaît qu'**après** avoir répondu aux deux questions (elle était cherchée
+> d'emblée), et l'âge ne se saisit plus (c'est une date de naissance en trois champs).
+> `bootToPlan` échouait donc en silence, et le script **annonçait** « ⚠️ plan non généré
+> — captures probablement vides », **puis écrasait quand même les PNG**. Lancer la
+> commande sans lire sa sortie produisait cinq captures de l'écran de dépistage.
+> ⚠️ **La leçon vaut au-delà des captures** : un script qui signale sa propre panne PUIS
+> continue est plus dangereux qu'un script qui plante. Réparé le 2026-08-05 ; les cinq
+> écrans se regénèrent (vérifié). Mais **lire la sortie reste la seule preuve** : elle
+> doit dire `session prête`, pas `plan non généré`.
 > ⚠️ **Le compte de passes se périme lui aussi** : ne pas relire cette ligne comme une
 > vérité, relancer la mesure. `ls -lt kyroz-app/test/store/*.png | head -1` donne la date
 > réelle, et `git log --oneline --since=<cette date> -- kyroz-app/app kyroz-app/components`

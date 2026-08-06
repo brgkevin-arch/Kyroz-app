@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { ThemePalette, useTheme, Radius } from '../constants/theme';
+import { ThemePalette, useTheme, Radius, Type, Spacing, Trait, Icone } from '../constants/theme';
 import { SportSession, SportType } from '../lib/types';
 import {
   SPORT_ORDER, SPORT_LABEL, exerciseKcalPerDay,
@@ -109,7 +109,7 @@ function Stepper({
           style={[s.stepBtn, value <= min && s.stepBtnOff]}
           accessibilityRole="button" accessibilityLabel={`Diminuer ${label}`}
         >
-          <Ionicons name="remove" size={18} color={value <= min ? t.textTertiary : t.text} />
+          <Ionicons name="remove" size={Icone.standard} color={value <= min ? t.textTertiary : t.text} />
         </Pressable>
         <Text style={s.stepVal}>{value}{suffix}</Text>
         <Pressable
@@ -118,7 +118,7 @@ function Stepper({
           style={[s.stepBtn, value >= max && s.stepBtnOff]}
           accessibilityRole="button" accessibilityLabel={`Augmenter ${label}`}
         >
-          <Ionicons name="add" size={18} color={value >= max ? t.textTertiary : t.text} />
+          <Ionicons name="add" size={Icone.standard} color={value >= max ? t.textTertiary : t.text} />
         </Pressable>
       </View>
     </View>
@@ -127,30 +127,30 @@ function Stepper({
 
 const makeStyles = (t: ThemePalette) =>
   StyleSheet.create({
-    wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+    wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
     chip: {
-      paddingVertical: 9, paddingHorizontal: 14, borderRadius: Radius.pill,
-      backgroundColor: t.fill, borderWidth: 1, borderColor: t.line,
+      paddingVertical: Spacing.sm, paddingHorizontal: Spacing.lg, borderRadius: Radius.pill,
+      backgroundColor: t.fill, borderWidth: Trait.fin, borderColor: t.line,
     },
     chipOn: { backgroundColor: t.accent, borderColor: t.accent },
-    chipTxt: { color: t.text, fontSize: 14, fontWeight: '600' },
+    chipTxt: { ...Type.bodySmallStrong, color: t.text },
     chipTxtOn: { color: t.onAccent },
 
     row: {
-      marginTop: 12, padding: 14, borderRadius: Radius.card,
-      backgroundColor: t.card, borderWidth: 1, borderColor: t.line, gap: 12,
+      marginTop: Spacing.md, padding: Spacing.lg, borderRadius: Radius.card,
+      backgroundColor: t.card, borderWidth: Trait.fin, borderColor: t.line, gap: Spacing.md,
     },
-    rowTitle: { color: t.text, fontSize: 15, fontWeight: '700' },
+    rowTitle: { ...Type.bodyStrong, color: t.text },
 
     stepper: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-    stepLabel: { color: t.textSecondary, fontSize: 14 },
-    stepCtrls: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+    stepLabel: { ...Type.bodySmall, color: t.textSecondary },
+    stepCtrls: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
     stepBtn: {
       width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center',
-      backgroundColor: t.fill, borderWidth: 1, borderColor: t.line,
+      backgroundColor: t.fill, borderWidth: Trait.fin, borderColor: t.line,
     },
     stepBtnOff: { opacity: 0.5 },
-    stepVal: { color: t.text, fontSize: 15, fontWeight: '700', minWidth: 64, textAlign: 'center' },
+    stepVal: { ...Type.bodyStrong, color: t.text, minWidth: 64, textAlign: 'center' },
 
-    estimate: { marginTop: 12, color: t.textSecondary, fontSize: 13, lineHeight: 18 },
+    estimate: { ...Type.caption, marginTop: Spacing.md, color: t.textSecondary, lineHeight: 18 },
   });

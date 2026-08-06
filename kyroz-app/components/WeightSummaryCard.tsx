@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { ThemePalette, Radius, Spacing, Type, cardShadow } from '../constants/theme';
+import { ThemePalette, Radius, Spacing, Type, cardShadow, OPACITE_PRESSION } from '../constants/theme';
 import { WeightChart } from './WeightChart';
 import { GoalTarget } from '../lib/types';
 import { WeightEntry } from '../lib/weight';
@@ -41,7 +41,7 @@ export function WeightSummaryCard({
   const poids = profileWeightKg;
 
   return (
-    <TouchableOpacity activeOpacity={0.85} onPress={onPress} style={[s.card, cardShadow(t)]}>
+    <TouchableOpacity activeOpacity={OPACITE_PRESSION} onPress={onPress} style={[s.card, cardShadow(t)]}>
       <View style={s.head}>
         <View style={{ flex: 1 }}>
           <Text style={s.label}>SUIVI DU POIDS</Text>
@@ -75,16 +75,16 @@ export function WeightSummaryCard({
 
 function makeStyles(t: ThemePalette) {
   return StyleSheet.create({
-    card: { backgroundColor: t.card, borderRadius: Radius.card, padding: Spacing.xl, gap: 14 },
-    head: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
+    card: { backgroundColor: t.card, borderRadius: Radius.card, padding: Spacing.xl, gap: Spacing.lg },
+    head: { flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.md },
     label: { color: t.textTertiary, ...Type.overline },
-    valueRow: { flexDirection: 'row', alignItems: 'baseline', gap: 6, marginTop: 4, flexWrap: 'wrap' },
+    valueRow: { flexDirection: 'row', alignItems: 'baseline', gap: Spacing.sm, marginTop: Spacing.xs, flexWrap: 'wrap' },
     value: { color: t.text, ...Type.hero },
-    unit: { color: t.textSecondary, fontSize: 15, fontWeight: '600' },
+    unit: { ...Type.bodyStrong, color: t.textSecondary },
     // Neutre À DESSEIN : une hausse n'est pas une faute (cf. l'en-tête du fichier).
-    delta: { color: t.textTertiary, fontSize: 12, fontWeight: '600', marginLeft: 2 },
-    cta: { backgroundColor: t.fill, borderRadius: Radius.pill, paddingHorizontal: 14, paddingVertical: 8, marginTop: 6 },
-    ctaTxt: { color: t.text, fontSize: 13, fontWeight: '700' },
-    empty: { color: t.textSecondary, fontSize: 13, lineHeight: 18 },
+    delta: { ...Type.captionStrong, color: t.textTertiary, marginLeft: Spacing.xs },
+    cta: { backgroundColor: t.fill, borderRadius: Radius.pill, paddingHorizontal: Spacing.lg, paddingVertical: Spacing.sm, marginTop: Spacing.sm },
+    ctaTxt: { ...Type.captionStrong, color: t.text },
+    empty: { ...Type.caption, color: t.textSecondary, lineHeight: 18 },
   });
 }

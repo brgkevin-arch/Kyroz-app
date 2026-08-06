@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, Image } from 'react-native';
-import { ThemePalette, Radius, Type } from '../constants/theme';
+import { ThemePalette, Radius, Type, Spacing } from '../constants/theme';
 import { WeightEntry, todayStamp } from '../lib/weight';
 import { GoalTarget } from '../lib/types';
 import { trackStatus } from '../lib/datedGoal';
@@ -48,14 +48,14 @@ export function TrackVerdict({ t, goalTarget, currentWeightKg, paused = false }:
     : { txt: losing ? 'Ça descend à ton rythme' : 'Ça monte à ton rythme', color: t.text };
 
   return (
-    <View style={{ backgroundColor: t.fill, borderRadius: Radius.card, padding: 12, gap: 4 }}>
-      <Text style={{ color: headline.color, fontSize: 14, fontWeight: '700' }}>{headline.txt}</Text>
+    <View style={{ backgroundColor: t.fill, borderRadius: Radius.card, padding: Spacing.md, gap: Spacing.xs }}>
+      <Text style={{ ...Type.bodySmallStrong, color: headline.color }}>{headline.txt}</Text>
       {progress > 0 && (
-        <Text style={{ color: t.textSecondary, fontSize: 12.5, lineHeight: 18 }}>
+        <Text style={{ ...Type.caption, color: t.textSecondary, lineHeight: 18 }}>
           Depuis le départ : {losing ? '-' : '+'}{Math.abs(progress)} kg
         </Text>
       )}
-      <Text style={{ color: t.textTertiary, fontSize: 12, lineHeight: 17 }}>
+      <Text style={{ ...Type.caption, color: t.textTertiary, lineHeight: 17 }}>
         {st.state === 'paused'
           ? 'Kyroz ne pilote plus cette trajectoire pour le moment — ton plan est au maintien. Ton objectif reste enregistré.'
           : `La pente est un repère, pas une règle — à chaque pesée, Kyroz réajuste tes calories pour viser ${goalTarget.target_weight_kg} kg le ${frDate(goalTarget.target_date)}.`}
@@ -79,21 +79,22 @@ export function PhotoCompare({ t, photos, entries }: {
   const delta = w1 != null && w2 != null ? Math.round((w2 - w1) * 10) / 10 : null;
 
   return (
-    <View style={{ gap: 8 }}>
+    <View style={{ gap: Spacing.sm }}>
       {/* Plafond de largeur : sans lui, sur le web (écran large) deux colonnes en
           ratio 3/4 donnent des photos de 800 px de haut. Sur mobile, sans effet. */}
-      <View style={{ flexDirection: 'row', gap: 10, width: '100%', maxWidth: PHOTO_ROW_MAX_WIDTH }}>
+      <View style={{ flexDirection: 'row', gap: Spacing.md, width: '100%', maxWidth: PHOTO_ROW_MAX_WIDTH }}>
         <Shot t={t} uri={photos[firstD]} label="Avant" date={firstD} kg={w1} />
         <Shot t={t} uri={photos[lastD]} label="Après" date={lastD} kg={w2} />
       </View>
       {delta != null && (
-        <Text style={{ color: t.text, fontSize: 14, fontWeight: '700' }}>
+        <Text style={{ ...Type.bodySmallStrong, color: t.text }}>
           {delta > 0 ? '+' : ''}{delta} kg entre les deux photos
         </Text>
       )}
+      {/* Icône de main (le 🔒 est parti avec tous les émojis), token de la passe DA. */}
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
         <LocalIcon color={t.textTertiary} size={12} />
-        <Text style={{ color: t.textTertiary, fontSize: 11, flex: 1 }}>
+        <Text style={{ ...Type.micro, color: t.textTertiary, flex: 1 }}>
           Tes photos restent sur ton téléphone, jamais envoyées.
         </Text>
       </View>
@@ -105,14 +106,14 @@ function Shot({ t, uri, label, date, kg }: {
   t: ThemePalette; uri: string; label: string; date: string; kg?: number;
 }) {
   return (
-    <View style={{ flex: 1, gap: 6 }}>
+    <View style={{ flex: 1, gap: Spacing.sm }}>
       <Image
         source={{ uri }}
         style={{ width: '100%', aspectRatio: 3 / 4, borderRadius: Radius.card, backgroundColor: t.fill }}
         resizeMode="cover"
       />
-      <Text style={{ color: t.text, fontSize: 13, fontWeight: '700' }}>{label}</Text>
-      <Text style={{ color: t.textSecondary, fontSize: 12 }}>
+      <Text style={{ ...Type.captionStrong, color: t.text }}>{label}</Text>
+      <Text style={{ ...Type.caption, color: t.textSecondary }}>
         {frDate(date)}{kg != null ? ` · ${kg} kg` : ''}
       </Text>
     </View>

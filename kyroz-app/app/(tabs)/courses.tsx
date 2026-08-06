@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useTheme, ThemePalette, Radius, Spacing, Type } from '../../constants/theme';
+import { useTheme, ThemePalette, Radius, Spacing, Type, Fond, CIBLE_TACTILE_MIN, Trait, Icone, OPACITE_PRESSION } from '../../constants/theme';
 import { useLayout } from '../../constants/layout';
 import { useCollapsingTitle, CompactTitleBar } from '../../components/CollapsingTitle';
 import { MealPlan, ShoppingItem, ShoppingList } from '../../lib/types';
@@ -123,7 +123,7 @@ export default function CoursesScreen() {
       <SafeAreaView style={s.safe} edges={['top']}>
         <View style={[s.center, layout.content]}>
           <View style={[s.emptyIcon, { backgroundColor: t.fill }]}>
-            <Ionicons name={covered ? 'checkmark-done-outline' : 'cart-outline'} size={30} color={covered ? t.success : t.textSecondary} />
+            <Ionicons name={covered ? 'checkmark-done-outline' : 'cart-outline'} size={Icone.vide} color={covered ? t.success : t.textSecondary} />
           </View>
           <Text style={s.emptyT}>{covered ? 'Rien à acheter' : 'Aucune liste'}</Text>
           <Text style={s.emptyS}>
@@ -183,18 +183,18 @@ export default function CoursesScreen() {
         {/* Contrôles */}
         <View style={s.controls}>
           {remaining > 0 && (
-            <TouchableOpacity style={s.ctrl} onPress={checkAll} activeOpacity={0.8}>
-              <Ionicons name="checkmark-done-outline" size={15} color={t.textSecondary} />
+            <TouchableOpacity style={s.ctrl} onPress={checkAll} activeOpacity={OPACITE_PRESSION}>
+              <Ionicons name="checkmark-done-outline" size={Icone.petite} color={t.textSecondary} />
               <Text style={s.ctrlTxt}>Tout cocher</Text>
             </TouchableOpacity>
           )}
-          <TouchableOpacity style={[s.ctrl, hideChecked && s.ctrlOn]} onPress={() => setHideChecked((v) => !v)} activeOpacity={0.8}>
-            <Ionicons name={hideChecked ? 'eye-off-outline' : 'eye-outline'} size={15} color={hideChecked ? t.onAccent : t.textSecondary} />
+          <TouchableOpacity style={[s.ctrl, hideChecked && s.ctrlOn]} onPress={() => setHideChecked((v) => !v)} activeOpacity={OPACITE_PRESSION}>
+            <Ionicons name={hideChecked ? 'eye-off-outline' : 'eye-outline'} size={Icone.petite} color={hideChecked ? t.onAccent : t.textSecondary} />
             <Text style={[s.ctrlTxt, hideChecked && { color: t.onAccent }]}>Masquer cochés</Text>
           </TouchableOpacity>
           {checked > 0 && (
-            <TouchableOpacity style={s.ctrl} onPress={reset} activeOpacity={0.8}>
-              <Ionicons name="refresh-outline" size={15} color={t.textSecondary} />
+            <TouchableOpacity style={s.ctrl} onPress={reset} activeOpacity={OPACITE_PRESSION}>
+              <Ionicons name="refresh-outline" size={Icone.petite} color={t.textSecondary} />
               <Text style={s.ctrlTxt}>Réinitialiser</Text>
             </TouchableOpacity>
           )}
@@ -237,12 +237,12 @@ export default function CoursesScreen() {
                 !last && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.line },
               ]}
               onPress={() => toggle(item)}
-              activeOpacity={0.7}
+              activeOpacity={OPACITE_PRESSION}
             >
               {/* Pastille RONDE et pleine : une case à cocher carrée est un objet de
                   formulaire, or ici on ne remplit pas un formulaire, on fait ses courses. */}
               <View style={[s.dot, { borderColor: item.checked ? t.accent : t.lineStrong, backgroundColor: item.checked ? t.accent : 'transparent' }]}>
-                {item.checked && <Ionicons name="checkmark" size={14} color={t.onAccent} />}
+                {item.checked && <Ionicons name="checkmark" size={Icone.petite} color={t.onAccent} />}
               </View>
               <Text style={[s.name, item.checked && { textDecorationLine: 'line-through', color: t.textTertiary }]} numberOfLines={1}>{item.name}</Text>
               <Text style={[s.qty, item.checked && { color: t.textQuaternary }]}>{formatQuantity(item.name, item.quantity, item.unit)}</Text>
@@ -259,39 +259,39 @@ export default function CoursesScreen() {
 function makeStyles(t: ThemePalette) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: t.bg },
-    center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 10, paddingHorizontal: 40 },
-    emptyIcon: { width: 72, height: 72, borderRadius: 24, alignItems: 'center', justifyContent: 'center', marginBottom: 6 },
+    center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: Spacing.md, paddingHorizontal: Spacing.xxxl },
+    emptyIcon: { width: 72, height: 72, borderRadius: 24, alignItems: 'center', justifyContent: 'center', marginBottom: Spacing.sm },
     emptyT: { color: t.text, ...Type.h2 },
-    emptyS: { color: t.textSecondary, fontSize: 15, textAlign: 'center', lineHeight: 21 },
+    emptyS: { ...Type.body, color: t.textSecondary, textAlign: 'center', lineHeight: 21 },
 
     // Plus de padding horizontal ici, ni dans `controls`/`hint`/`track` : ces blocs
     // vivent dans le contentContainer de la liste, qui pose déjà les 20 pt.
-    header: { flexDirection: 'row', alignItems: 'flex-end', paddingTop: Spacing.xl, paddingBottom: 12 },
-    h1: { color: t.text, ...Type.display, marginTop: 2 },
-    sub: { color: t.textSecondary, fontSize: 14, lineHeight: 19 },
-    counter: { color: t.text, fontSize: 22, fontWeight: '700', letterSpacing: -0.6 },
-    counterTot: { color: t.textTertiary, fontSize: 14, fontWeight: '400', letterSpacing: 0 },
+    header: { flexDirection: 'row', alignItems: 'flex-end', paddingTop: Spacing.xl, paddingBottom: Spacing.md },
+    h1: { color: t.text, ...Type.display, marginTop: Spacing.xs },
+    sub: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 19 },
+    counter: { ...Type.h2, color: t.text, letterSpacing: -0.6 },
+    counterTot: { ...Type.bodySmall, color: t.textTertiary, letterSpacing: 0 },
 
     track: { height: 5, backgroundColor: t.fill, borderRadius: 3, overflow: 'hidden' },
     fill: { height: 5, borderRadius: 3 },
 
-    controls: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingTop: 14, paddingBottom: 2 },
-    ctrl: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 9, borderRadius: Radius.pill, backgroundColor: t.fill },
+    controls: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm, paddingTop: Spacing.lg, paddingBottom: Spacing.xs },
+    ctrl: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, paddingHorizontal: Spacing.lg, paddingVertical: Spacing.sm, minHeight: CIBLE_TACTILE_MIN, borderRadius: Radius.pill, backgroundColor: t.fill },
     ctrlOn: { backgroundColor: t.accent },
-    ctrlTxt: { color: t.text, fontSize: 14, fontWeight: '500' },
-    hint: { color: t.textTertiary, fontSize: 13, lineHeight: 18, paddingTop: 12 },
+    ctrlTxt: { ...Type.bodySmall, color: t.text },
+    hint: { ...Type.caption, color: t.textTertiary, lineHeight: 18, paddingTop: Spacing.md },
     // Note de pied présente dans la maquette et absente de l'app : elle dit d'où
     // sortent les quantités, ce qu'aucun autre élément de l'écran n'explique.
-    footnote: { color: t.textQuaternary, fontSize: 12, lineHeight: 17, paddingTop: 18 },
+    footnote: { ...Type.caption, color: t.textQuaternary, lineHeight: 17, paddingTop: Spacing.xl },
 
-    list: { paddingHorizontal: Spacing.xl, paddingBottom: 120, paddingTop: 4 },
-    section: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginTop: 24, marginBottom: 8 },
-    sectionTxt: { color: t.textTertiary, fontSize: 11, fontWeight: '700', letterSpacing: 1 },
-    sectionCount: { color: t.textTertiary, fontSize: 13 },
+    list: { paddingHorizontal: Spacing.xl, paddingBottom: Fond.barreOnglets, paddingTop: Spacing.xs },
+    section: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginTop: Spacing.xxl, marginBottom: Spacing.sm },
+    sectionTxt: { ...Type.overline, color: t.textTertiary },
+    sectionCount: { ...Type.caption, color: t.textTertiary },
 
-    row: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 16, paddingVertical: 15, backgroundColor: t.card },
-    dot: { width: 24, height: 24, borderRadius: 12, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
-    name: { flex: 1, color: t.text, fontSize: 16, fontWeight: '500' },
-    qty: { color: t.textSecondary, fontSize: 15 },
+    row: { flexDirection: 'row', alignItems: 'center', gap: Spacing.lg, paddingHorizontal: Spacing.lg, paddingVertical: Spacing.lg, backgroundColor: t.card },
+    dot: { width: 24, height: 24, borderRadius: 12, borderWidth: Trait.controle, alignItems: 'center', justifyContent: 'center' },
+    name: { ...Type.body, flex: 1, color: t.text },
+    qty: { ...Type.body, color: t.textSecondary },
   });
 }

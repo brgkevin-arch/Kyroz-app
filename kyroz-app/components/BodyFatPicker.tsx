@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image, ImageSourcePropType } from 'react-native';
-import { ThemePalette, Radius, Type } from '../constants/theme';
+import { ThemePalette, Radius, Type, Spacing, Trait, OPACITE_PRESSION } from '../constants/theme';
 import { Chip, Field } from './ui';
 import { BodyFatSource, Sex } from '../lib/types';
 import { bodyFatBounds, bodyFatConcern, fatFreeMassKg } from '../lib/safety';
@@ -147,14 +147,14 @@ export function BodyFatPicker({ t, sex, value, source, onChange, body }: Props) 
     : null;
 
   return (
-    <View style={{ gap: 12 }}>
+    <View style={{ gap: Spacing.md }}>
       <View style={styles.grid}>
         {levels.map((lv, i) => {
           const on = value === lv.pct;
           return (
             <TouchableOpacity
               key={lv.pct}
-              activeOpacity={0.85}
+              activeOpacity={OPACITE_PRESSION}
               // Taper une silhouette EST une estimation : on ne pose pas la question,
               // on enregistre la réponse. Demander « tu l'as mesuré ? » juste après un
               // tap sur un dessin serait absurde, et inviterait à répondre « oui ».
@@ -253,12 +253,12 @@ export function BodyFatPicker({ t, sex, value, source, onChange, body }: Props) 
           maigre hors plafond, que ce soit tapé ou choisi ne change rien au chiffre. */}
       {concern && (
         <View style={[styles.note, { borderColor: t.warning, backgroundColor: t.card }]}>
-          <Text style={{ color: t.text, fontSize: 13, fontWeight: '700', marginBottom: 2 }}>
+          <Text style={{ ...Type.captionStrong, color: t.text, marginBottom: Spacing.xs }}>
             {concern === 'lean_mass' && leanKg != null
               ? `Ce chiffre annonce ${leanKg} kg de masse maigre`
               : `${value} %, c'est un niveau d'athlète de compétition`}
           </Text>
-          <Text style={{ color: t.textSecondary, fontSize: 12, lineHeight: 17 }}>
+          <Text style={{ ...Type.caption, color: t.textSecondary, lineHeight: 17 }}>
             {concern === 'lean_mass'
               // ⚠️ DEUX SITUATIONS OPPOSÉES derrière le même repère, et il faut les
               // distinguer : au PLAFOND du sélecteur le chiffre est trop HAUT et la
@@ -276,8 +276,8 @@ export function BodyFatPicker({ t, sex, value, source, onChange, body }: Props) 
       )}
 
       {value != null && (
-        <TouchableOpacity onPress={() => { setSaisiManuel(false); onChange(undefined, undefined); }} activeOpacity={0.7} style={styles.clear}>
-          <Text style={{ color: t.textTertiary, fontSize: 13, fontWeight: '600' }}>Effacer ma sélection</Text>
+        <TouchableOpacity onPress={() => { setSaisiManuel(false); onChange(undefined, undefined); }} activeOpacity={OPACITE_PRESSION} style={styles.clear}>
+          <Text style={{ ...Type.captionStrong, color: t.textTertiary }}>Effacer ma sélection</Text>
         </TouchableOpacity>
       )}
     </View>
@@ -285,22 +285,22 @@ export function BodyFatPicker({ t, sex, value, source, onChange, body }: Props) 
 }
 
 const styles = StyleSheet.create({
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
+  wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
   cell: {
     width: '48%',
     flexGrow: 1,
-    borderWidth: 1,
+    borderWidth: Trait.fin,
     borderRadius: Radius.card,
-    paddingVertical: 14,
-    paddingHorizontal: 14,
-    gap: 4,
+    paddingVertical: Spacing.lg,
+    paddingHorizontal: Spacing.lg,
+    gap: Spacing.xs,
     alignItems: 'center',
   },
   figure: { height: 104, alignItems: 'center', justifyContent: 'center' },
   img: { height: 104, aspectRatio: 220 / 462 },
   pct: { ...Type.h3 },
-  desc: { fontSize: 12, lineHeight: 16, textAlign: 'center' },
-  clear: { alignSelf: 'flex-start', paddingVertical: 2 },
-  note: { borderWidth: 1, borderRadius: Radius.card, paddingVertical: 10, paddingHorizontal: 12 },
+  desc: { ...Type.caption, lineHeight: 16, textAlign: 'center' },
+  clear: { alignSelf: 'flex-start', paddingVertical: Spacing.xs },
+  note: { borderWidth: Trait.fin, borderRadius: Radius.card, paddingVertical: Spacing.md, paddingHorizontal: Spacing.md },
 });

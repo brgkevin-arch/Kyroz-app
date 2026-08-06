@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useTheme, ThemePalette, Spacing, Radius, Type } from '../../constants/theme';
+import { useTheme, ThemePalette, Spacing, Radius, Type, CIBLE_TACTILE_MIN, Trait, Icone, OPACITE_PRESSION } from '../../constants/theme';
 import { useLayout } from '../../constants/layout';
 import {
   PrimaryButton, Chip, OptionCard, Field, SectionLabel, Segmented,
@@ -267,7 +267,7 @@ export default function Onboarding() {
       {/* Header : retour + progression */}
       <View style={[s.header, layout.header]}>
         <TouchableOpacity onPress={back} disabled={step === 1} style={[s.backBtn, step === 1 && { opacity: 0 }]}>
-          <Ionicons name="chevron-back" size={22} color={t.text} />
+          <Ionicons name="chevron-back" size={Icone.action} color={t.text} />
         </TouchableOpacity>
         <View style={s.track}><View style={[s.fill, { width: `${(step / TOTAL_STEPS) * 100}%` }]} /></View>
       </View>
@@ -326,7 +326,7 @@ export default function Onboarding() {
           <View style={s.block}>
             <Text style={s.title}>Ton objectif</Text>
             <Text style={s.sub}>Le plan sera calibré précisément pour ça.</Text>
-            <View style={{ gap: 10 }}>
+            <View style={{ gap: Spacing.md }}>
               {GOALS.map((g) => (
                 <OptionCard key={g.value} t={t} title={goalLabel(g.value)} subtitle={g.sub} selected={goal === g.value} onPress={() => setGoal(g.value)} />
               ))}
@@ -356,8 +356,8 @@ export default function Onboarding() {
             <DislikedFoodsField t={t} value={dislikes} onChange={setDislikes} />
 
             <SectionLabel t={t}>Variété des repas</SectionLabel>
-            <Text style={[s.sub, { marginTop: -4 }]}>Tu préfères la routine ou la diversité ?</Text>
-            <View style={{ gap: 10 }}>
+            <Text style={[s.sub, { marginTop: -Spacing.xs }]}>Tu préfères la routine ou la diversité ?</Text>
+            <View style={{ gap: Spacing.md }}>
               {VARIETY.map((v) => (
                 <OptionCard key={v.value} t={t} title={v.title} subtitle={v.sub} selected={variety === v.value} onPress={() => setVariety(v.value)} />
               ))}
@@ -373,18 +373,18 @@ export default function Onboarding() {
               {WEEKDAY_OPTS.map((d) => {
                 const on = planWeekdays.includes(d.val);
                 return (
-                  <TouchableOpacity key={d.val} onPress={() => togglePlanDay(d.val)} activeOpacity={0.8}
+                  <TouchableOpacity key={d.val} onPress={() => togglePlanDay(d.val)} activeOpacity={OPACITE_PRESSION}
                     style={[s.dayCircle, { backgroundColor: on ? t.accent : t.fill, borderColor: on ? t.accent : t.line }]}>
-                    <Text style={{ color: on ? t.onAccent : t.textTertiary, fontWeight: '700', fontSize: 13 }}>{d.label}</Text>
+                    <Text style={{ ...Type.captionStrong, color: on ? t.onAccent : t.textTertiary }}>{d.label}</Text>
                   </TouchableOpacity>
                 );
               })}
             </View>
-            <Text style={[s.sub, { marginTop: -4 }]}>{planWeekdays.length} jour{planWeekdays.length > 1 ? 's' : ''} par semaine</Text>
+            <Text style={[s.sub, { marginTop: -Spacing.xs }]}>{planWeekdays.length} jour{planWeekdays.length > 1 ? 's' : ''} par semaine</Text>
 
             {/* Jours de repos = sous-ensemble des jours du plan → carb-cycling. */}
             <SectionLabel t={t}>Jours de repos</SectionLabel>
-            <Text style={[s.sub, { marginTop: -8, fontSize: 12 }]}>
+            <Text style={[s.sub, { ...Type.caption, marginTop: -Spacing.sm }]}>
               Tes jours sans entraînement : Kyroz baisse un peu les glucides et monte les lipides (mêmes calories) et privilégie les recettes « récup ».
             </Text>
             <View style={s.wrap}>
@@ -393,7 +393,7 @@ export default function Onboarding() {
               ))}
             </View>
             {planWeekdays.length === 0 && (
-              <Text style={[s.sub, { marginTop: -4, fontSize: 12 }]}>Choisis d'abord tes jours de plan ci-dessus.</Text>
+              <Text style={[s.sub, { ...Type.caption, marginTop: -Spacing.xs }]}>Choisis d'abord tes jours de plan ci-dessus.</Text>
             )}
 
             <SectionLabel t={t}>Repas inclus</SectionLabel>
@@ -402,7 +402,7 @@ export default function Onboarding() {
                 <Chip key={m.val} t={t} label={m.label} selected={meals.includes(m.val)} onPress={() => toggleMeal(m.val)} />
               ))}
             </View>
-            {meals.length === 0 && <Text style={[s.sub, { marginTop: -4 }]}>Sélectionne au moins 1 repas.</Text>}
+            {meals.length === 0 && <Text style={[s.sub, { marginTop: -Spacing.xs }]}>Sélectionne au moins 1 repas.</Text>}
           </View>
         )}
         {/* L'étape « récap » a été supprimée (2026-06-20) : le récap + le rappel
@@ -447,14 +447,16 @@ function NameStep({ t, value, onChange }: { t: ThemePalette; value: string; onCh
   const enter = { opacity: fade, transform: [{ translateY: lift }] };
 
   return (
-    <View style={{ paddingTop: 36, gap: 14 }}>
+    {/* Tokens d'espacement de la passe DA, mais PAS le 👋 : main a retiré tous
+        les émojis de l'interface le 2026-08-06, décision postérieure. */}
+    <View style={{ paddingTop: Spacing.xxxl, gap: Spacing.lg }}>
       <Animated.Text style={[{ color: t.text, ...Type.display, lineHeight: 40 }, enter]}>
         Bienvenue sur Kyroz
       </Animated.Text>
-      <Animated.Text style={[{ color: t.textSecondary, fontSize: 16, lineHeight: 23 }, enter]}>
+      <Animated.Text style={[{ ...Type.body, color: t.textSecondary, lineHeight: 23 }, enter]}>
         On va te bâtir un plan nutrition sur-mesure en moins d'une minute. D'abord, comment on t'appelle ?
       </Animated.Text>
-      <Animated.View style={{ opacity: field, marginTop: 8 }}>
+      <Animated.View style={{ opacity: field, marginTop: Spacing.sm }}>
         <Field t={t} label="Ton prénom" value={value} onChangeText={onChange} placeholder="Kévin" autoCapitalize="words" autoFocus />
       </Animated.View>
     </View>
@@ -464,19 +466,19 @@ function NameStep({ t, value, onChange }: { t: ThemePalette; value: string; onCh
 function makeStyles(t: ThemePalette) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: t.bg },
-    header: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: Spacing.xl, paddingTop: 4, paddingBottom: 8 },
-    backBtn: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: t.fill },
+    header: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, paddingHorizontal: Spacing.xl, paddingTop: Spacing.xs, paddingBottom: Spacing.sm },
+    backBtn: { width: CIBLE_TACTILE_MIN, height: CIBLE_TACTILE_MIN, borderRadius: Radius.pill, alignItems: 'center', justifyContent: 'center', backgroundColor: t.fill },
     track: { flex: 1, height: 4, backgroundColor: t.fill, borderRadius: 2, overflow: 'hidden' },
     fill: { height: 4, backgroundColor: t.accent, borderRadius: 2 },
-    content: { padding: Spacing.xl, paddingTop: Spacing.lg, gap: 16, paddingBottom: 24 },
-    block: { gap: 16 },
+    content: { padding: Spacing.xl, paddingTop: Spacing.lg, gap: Spacing.lg, paddingBottom: Spacing.xxl },
+    block: { gap: Spacing.lg },
     title: { color: t.text, ...Type.h1 },
-    sub: { color: t.textSecondary, fontSize: 15, lineHeight: 21, marginTop: -8 },
-    wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-    daysRow: { flexDirection: 'row', gap: 8, justifyContent: 'space-between' },
-    dayCircle: { flex: 1, height: 52, borderRadius: Radius.button, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
-    footer: { padding: Spacing.xl, paddingTop: 8, backgroundColor: t.bg },
-    hint: { color: t.warning, fontSize: 13, lineHeight: 18, fontWeight: '600', marginBottom: 10, textAlign: 'center' },
-    disclaimer: { color: t.textTertiary, fontSize: 11, lineHeight: 16, textAlign: 'center', marginTop: 4 },
+    sub: { ...Type.body, color: t.textSecondary, lineHeight: 21, marginTop: -Spacing.sm },
+    wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
+    daysRow: { flexDirection: 'row', gap: Spacing.sm, justifyContent: 'space-between' },
+    dayCircle: { flex: 1, height: 52, borderRadius: Radius.button, borderWidth: Trait.fin, alignItems: 'center', justifyContent: 'center' },
+    footer: { padding: Spacing.xl, paddingTop: Spacing.sm, backgroundColor: t.bg },
+    hint: { ...Type.captionStrong, color: t.warning, lineHeight: 18, marginBottom: Spacing.md, textAlign: 'center' },
+    disclaimer: { ...Type.micro, color: t.textTertiary, lineHeight: 16, textAlign: 'center', marginTop: Spacing.xs },
   });
 }

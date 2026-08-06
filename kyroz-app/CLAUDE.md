@@ -770,13 +770,6 @@ exactement ce qui est arrivé, huit fois. Les rendre inexistants fait échouer `
 un demi-cercle. C'est la hauteur qui était fausse (34 → 44 pt, aussi le minimum d'une
 cible tactile Apple, que `hitSlop` rattrapait au doigt sans jamais le rattraper à l'œil).
 
-**Échelle typographique** — la hiérarchie se fait par la **TAILLE**, pas par la graisse :
-tout titre pèse **700**. `Type.h1` valait 800, soit plus lourd que le `display` au-dessus
-de lui : la hiérarchie s'inversait dès qu'on employait les deux. Personne ne s'en servait,
-donc l'incohérence dormait **dans le fichier qui sert de référence à toute l'app**.
-`hero` (40) chiffre héros · `display` (34) titre d'écran · `h1` (30) titre d'étape ·
-`h2` (22) titre de feuille · `h3` (17) titre de bloc · `overline` (11) sur-titre.
-
 ➡️ **Garde-fou : `lib/__tests__/rayonsDA.test.ts`.** Un `borderRadius` en chiffre n'est
 légitime que si l'objet a une **taille fixe** et que le rayon en est au plus la moitié
 (disque, pastille, barre). Dès qu'un objet se dimensionne par son contenu, sa forme est
@@ -785,6 +778,142 @@ une décision de DA. **Vérifié par mutation** : remettre la carte Hydratation 
 ⚠️ Ce qu'il ne sait PAS faire : dire qu'on a choisi le bon token — `Radius.pill` sur une
 carte passerait. Il ferme la porte au chiffre en dur, qui est le chemin par lequel la
 dérive est réellement arrivée.
+
+### L'échelle typographique a été POSÉE, pas inventée (2026-08-05)
+
+La règle ci-dessus disait déjà « la hiérarchie se fait par la **TAILLE**, pas par la
+graisse ». Elle était vraie, écrite, et **contredite par le code depuis toujours** —
+parce qu'aucun test ne la mesurait. Comptage du 2026-08-05 :
+
+| Ce que disait `Type` | Ce que faisait l'app |
+|---|---|
+| 8 tailles | **18** |
+| 2 graisses (500, 700) | **6** (400, 500, 600, 700, 800, 900) |
+| — | `fontSize: 11.5` et `12.5` — des **demi-pixels**, 3 fois |
+
+**Les deux tailles les plus employées de toute l'app n'existaient dans aucun token** :
+14 (76 fois) et 12 (48 fois). Et 12, 13, 14, 15 cohabitaient — quatre « petits textes »
+à un pixel d'écart. Ça ne fait pas quatre niveaux de lecture, ça fait **un flou** : le
+lecteur ne perçoit aucun cran, juste un alignement imprécis.
+
+**La graisse 600 a été bannie** (72 emplois). Mesurée, elle se répartissait au hasard
+sur les six tailles — elle ne marquait donc *rien*. C'était la trace de « je veux que
+ça ressorte un peu », pas une décision. Elle est devenue 700.
+
+L'échelle finale a **16 crans, tous mesurés** : aucun n'a été créé sans au moins quatre
+usages réels dans le code. `micro` (11) et `bodySmall` (14) sont nés de ce comptage,
+pas d'une intuition.
+
+🔴 **`Type.input` ne descend JAMAIS sous 16.** Ce n'est pas de l'esthétique : **Safari
+iOS zoome de force** sur un champ dont le texte fait moins de 16 px, et les testeurs
+ouvrent Kyroz dans le navigateur de leur téléphone (c'est le lien du README). Les sept
+champs respectaient ce plancher **par accident** — sauf un, `RecipeEditor.input`, qui
+était à 15 sur trois lignes et que le premier comptage avait raté.
+
+⚠️ **Un style recopié partout est un rôle qui n'a pas de nom.** Le `disclaimer` (11 px,
+interligne 16, centré) était dupliqué **à l'identique dans sept fichiers** — sept
+occasions qu'une seule dérive, sur la phrase la plus sensible de l'app. Il est devenu
+`Disclaimer` dans `theme.ts`. Même histoire pour le sur-titre en capitales : le
+composant `SectionLabel` existait et servait 45 fois, pendant que cinq fichiers le
+refaisaient à la main avec des interlettrages différents (0,4 · 0,5 · 0,6 · 1).
+
+➡️ **Garde-fou : `lib/__tests__/typoDA.test.ts`.** Un `fontSize` en chiffre n'est
+légitime que sur un **pictogramme** (un emoji dimensionné n'est pas de la typographie).
+**Vérifié par mutation** — cinq fautes réintroduites une par une, cinq rougissements :
+taille en dur, graisse 600, token hors échelle, `input` sous 16, cran sans token.
+⚠️ Même angle mort que son frère : il ne dit pas qu'on a choisi le **bon** cran.
+
+### L'espacement — le blanc DIT ce qui va ensemble (2026-08-06)
+
+Troisième axe de la DA à recevoir un rôle et un garde-fou, après la forme et le
+texte. Et le plus dérivé des trois : **520 espacements écrits à la main pour 49
+usages de `Spacing`** — dix marges en dur pour une seule qui passait par le token.
+**231 valeurs hors grille**, la plus courue étant `10` (70 fois), devant `14` (53),
+`6` (39), `2` (39).
+
+⚠️ **Ce n'est pas une question de joliesse.** Le blanc est le seul outil qui dit au
+lecteur ce qui va ensemble : deux éléments proches sont lus comme un groupe, et
+l'œil fait ce regroupement **avant** de lire. Exemple mesuré — les cinq écarts
+verticaux empilés dans `MealCard` valaient **7, 6, 10, 6, 14**. Quatre informations
+y flottaient à des distances presque identiques : rien ne disait où finissait le
+bloc. Le coût n'est pas « moins joli », c'est **plus lent à comprendre**.
+
+| Rôle | Token |
+|---|---|
+| écart serré DANS un groupe (un libellé et sa valeur) | `Spacing.xs` (4) |
+| entre deux éléments d'un même groupe | `Spacing.sm` (8) |
+| entre deux groupes d'un même bloc | `Spacing.md` (12) |
+| marge intérieure d'une carte | `Spacing.lg` (16) |
+| marge latérale d'un écran | `Spacing.xl` (20) |
+| marge intérieure d'une feuille modale | `Spacing.xxl` (24) |
+| séparation de deux sections | `Spacing.xxxl` (32) |
+
+⚠️ **Les valeurs hors grille ont été ABSORBÉES, pas adoptées — et c'est la
+différence avec la typographie.** Là-bas, 14 avait un rôle propre (le texte
+secondaire) et a mérité son token. Ici, 10 n'est pas « un cran entre 8 et 12 » :
+c'est « un peu plus que 8 ». Deux points d'écart passent sous le seuil de
+perception, donc un tel cran ne crée aucun niveau de lecture — il **dilue** ceux
+qui existent. Règle appliquée : le cran le plus proche, on monte à égalité
+(2→4, 6→8, 10→12, 14→16, 18→20). L'app s'aère de 1 à 2 points, jamais plus.
+
+⚠️ **Tout ce qui s'écrit en points n'est pas un espacement**, et les confondre est
+ce qui a produit les défauts les plus concrets :
+- les **dégagements de bas** (120 sous une liste d'onglet, 60 en bas d'écran plein,
+  40 pour le menton d'une feuille) compensent quelque chose de **physique** — ils
+  vivent dans `Fond`, nommés d'après ce qu'ils dégagent, pas dans la grille ;
+- le `paddingVertical` d'un bouton ne règle pas un écart, il fabrique une
+  **HAUTEUR**. C'est de là que venaient les 17 éléments pressables sous les 44 pt
+  d'Apple — dont un bouton « Annuler » à **29 pt**. Le correctif n'est pas de
+  gonfler le padding mais d'ajouter `minHeight: CIBLE_TACTILE_MIN` : le padding
+  règle l'air autour du libellé, la hauteur minimale garantit la cible.
+  ⚠️ `hitSlop` élargit la zone **au doigt, jamais à l'œil** — un bouton qui a l'air
+  petit reste difficile à viser, donc il ne compte pas comme un correctif.
+- les **rattrapages négatifs** (`marginTop: -8`, 22 sites) sont tous des textes
+  d'aide qui annulent le `gap` de leur conteneur pour se recoller à leur champ.
+  Ils sont désormais alignés sur la grille (`-Spacing.sm`), mais ils **restent le
+  symptôme** d'un espacement uniforme là où il faudrait des groupes : la vraie
+  correction serait structurelle, pas un token.
+
+➡️ **Garde-fou : `lib/__tests__/espacementDA.test.ts`.** Aucun espacement en
+chiffre (sauf `0`, qui n'est pas un espacement mais son absence — il annule le
+padding natif d'un champ) ; la grille reste un multiple de 4, croissante et sans
+doublon ; aucun pressable sous 44 pt. **Vérifié par 5 mutations**, toutes
+rougissent.
+
+### Les trois finitions : trait, icône, retour au toucher (2026-08-06)
+
+Même diagnostic que les trois passes précédentes, en plus petit — le token existe
+ou n'existe pas, mais rien n'oblige à s'en servir :
+
+| Ce qui dérivait | Mesuré | Devenu |
+|---|---|---|
+| `activeOpacity` | **4 valeurs** (0,85 ×31 · 0,7 ×23 · 0,8 ×14 · 0,6 ×1) | `OPACITE_PRESSION` = 0,7 |
+| `borderWidth` | 1 (×40) · 2 (×5) · **1,5 (×4)** | `Trait.fin` / `Trait.controle` |
+| taille d'icône | **12 valeurs** de 14 à 30 | `Icone.petite/standard/action/nav/vide` |
+
+⚠️ **Un seul geste mérite une seule valeur.** Les quatre `activeOpacity` ne
+correspondaient à aucun type d'élément : c'était l'humeur de qui écrivait la
+ligne. 0,7 plutôt que 0,85 parce qu'à 15 % d'écart sur fond sombre le retour est
+presque invisible — or c'est le **seul** signe que l'appui a été pris en compte.
+
+⚠️ **Une icône n'a pas de taille « à elle »** — elle en a une par rapport à ce
+qu'elle accompagne. D'où des crans nommés `petite` (dans une case, une puce),
+`standard` (chevron de ligne, croix d'un champ), `action` (bouton rond), `nav`
+(chevron retour), `vide` (illustration d'état vide). Des noms `sm/md/lg`
+n'auraient rien dit de plus que le chiffre qu'ils remplacent.
+
+Le `1,5` du trait est parti : le `2` marquait **toujours** un contrôle qu'on
+sélectionne (case, pastille de couleur, option retenue), le `1,5` n'était
+qu'« un peu plus épais qu'un séparateur ».
+
+➡️ **Garde-fou : `lib/__tests__/finitionsDA.test.ts`**, vérifié par 6 mutations.
+
+⚠️ **Ce qui n'a PAS été fait, et pourquoi** : les 110 `lineHeight` en dur. Le bon
+geste serait de les porter dans les tokens `Type` — mais un `lineHeight` posé sur
+`Type.body` s'applique aussi aux textes d'UNE ligne, dont il change la hauteur de
+boîte, donc l'alignement. Le risque ne se voit pas sur les 5 onglets : il se voit
+sur les ~25 feuilles modales, qu'aucune capture ne couvre encore. C'est un
+chantier à part, avec sa vérification à lui.
 
 ### Le grand titre se replie (2026-08-04)
 
@@ -955,6 +1084,18 @@ téléphone.
 
 ## 11. Pièges connus (redécouverts au moins une fois chacun)
 
+- 🔴 **Depuis un worktree, le serveur de preview sert l'app du dépôt PRINCIPAL.**
+  `node_modules` y est un lien symbolique vers le dépôt principal ; expo-router résout
+  la racine de l'app à travers lui. Mesuré le 2026-08-05 : après avoir migré 333 styles,
+  le navigateur affichait encore, **au pixel près, la version d'avant** — logo en 900,
+  tailles en 12. ⚠️ **Le piège n'est pas l'écran cassé, c'est l'écran PLAUSIBLE** :
+  rien ne signale l'erreur, et la conclusion naturelle est « ma migration n'a pas pris »,
+  donc on part corriger du code sain. Deux indices : `--clear` ne change rien (ce n'est
+  pas le cache), et le rendu correspond **exactement** à `git show HEAD:<fichier>`.
+  ➡️ Lancer avec `EXPO_ROUTER_APP_ROOT=$PWD/app` depuis `kyroz-app`. Et noter que
+  `preview_start` lit le `launch.json` du **dépôt principal**, pas celui du worktree —
+  y ajouter une config reviendrait à modifier la copie de travail d'une autre session.
+  *Même famille que « mesurer l'instrument » : la mesure était juste, sur le mauvais code.*
 - **`Alert.alert` est une FONCTION VIDE sur react-native-web** — `class Alert { static
   alert() {} }`. Aucune erreur, aucune trace : l'appel ne fait RIEN. Découvert le
   2026-08-02, il tuait **dix** interactions, dont « Régénérer mon plan » et le REFUS

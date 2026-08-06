@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, useWindowDimensions, Image, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { ThemePalette, Radius, Spacing, Type } from '../constants/theme';
+import { ThemePalette, Radius, Spacing, Type, Fond, Trait, Icone, OPACITE_PRESSION } from '../constants/theme';
 import { SHEET_MAX_WIDTH } from '../constants/layout';
 import { Field, PrimaryButton, SectionLabel, Segmented } from './ui';
 import { useDialog } from './Dialog';
@@ -210,7 +210,7 @@ export function WeightCheckin({ t, onClose, dragHandlers, sheetScrollProps }: Pr
               <TouchableOpacity
                 key={d.iso}
                 onPress={() => pickDate(d.iso)}
-                activeOpacity={0.85}
+                activeOpacity={OPACITE_PRESSION}
                 style={[s.dateChip, { backgroundColor: on ? t.accent : t.card, borderColor: on ? t.accent : t.line }]}
               >
                 <Text style={[s.dateWd, { color: on ? t.onAccent : t.textTertiary }]}>{d.today ? 'Auj.' : d.wd}</Text>
@@ -248,12 +248,12 @@ export function WeightCheckin({ t, onClose, dragHandlers, sheetScrollProps }: Pr
           <View style={s.photoPreview}>
             <Image source={{ uri: pendingPhoto }} style={s.photoBig} />
             <TouchableOpacity onPress={() => setPendingPhoto(null)} style={s.photoRemove} hitSlop={8}>
-              <Ionicons name="close-circle" size={26} color={t.text} />
+              <Ionicons name="close-circle" size={Icone.nav} color={t.text} />
             </TouchableOpacity>
           </View>
         ) : (
-          <TouchableOpacity onPress={choosePhoto} style={s.photoBtn} activeOpacity={0.8}>
-            <Ionicons name="camera-outline" size={18} color={t.text} />
+          <TouchableOpacity onPress={choosePhoto} style={s.photoBtn} activeOpacity={OPACITE_PRESSION}>
+            <Ionicons name="camera-outline" size={Icone.standard} color={t.text} />
             <Text style={s.photoBtnTxt}>Ajouter une photo de progression</Text>
           </TouchableOpacity>
         )}
@@ -330,7 +330,7 @@ export function WeightCheckin({ t, onClose, dragHandlers, sheetScrollProps }: Pr
                         {d == null ? '—' : `${d > 0 ? '+' : ''}${d}`}
                       </Text>
                       <TouchableOpacity onPress={() => confirmDelete(e.date, e.weight_kg)} hitSlop={8} style={s.histDel}>
-                        <Ionicons name="close" size={15} color={t.textQuaternary} />
+                        <Ionicons name="close" size={Icone.petite} color={t.textQuaternary} />
                       </TouchableOpacity>
                     </View>
                     {e.note ? <Text style={s.histNote}>{e.note}</Text> : null}
@@ -350,39 +350,39 @@ export function WeightCheckin({ t, onClose, dragHandlers, sheetScrollProps }: Pr
 
 function makeStyles(t: ThemePalette) {
   return StyleSheet.create({
-    header: { paddingHorizontal: Spacing.xxl, paddingBottom: 8, gap: 8 },
+    header: { paddingHorizontal: Spacing.xxl, paddingBottom: Spacing.sm, gap: Spacing.sm },
     title: { color: t.text, ...Type.h2 },
-    sub: { color: t.textSecondary, fontSize: 14, lineHeight: 20 },
-    content: { padding: Spacing.xxl, paddingTop: 12, gap: 14, paddingBottom: 40 },
-    dateRow: { gap: CHIP_GAP, paddingVertical: 2 },
-    dateChip: { width: CHIP_W, height: 56, borderRadius: Radius.button, borderWidth: 1, alignItems: 'center', justifyContent: 'center', gap: 3 },
+    sub: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 20 },
+    content: { padding: Spacing.xxl, paddingTop: Spacing.md, gap: Spacing.lg, paddingBottom: Fond.feuille },
+    dateRow: { gap: CHIP_GAP, paddingVertical: Spacing.xs },
+    dateChip: { width: CHIP_W, height: 56, borderRadius: Radius.button, borderWidth: Trait.fin, alignItems: 'center', justifyContent: 'center', gap: Spacing.xs },
     dateChipFuture: { backgroundColor: t.fill, borderColor: t.line, opacity: 0.5 },
-    dateWd: { fontSize: 10, fontWeight: '600', textTransform: 'capitalize' },
-    dateNum: { fontSize: 15, fontWeight: '700' },
+    dateWd: { ...Type.microStrong, textTransform: 'capitalize' },
+    dateNum: { ...Type.bodyStrong },
     dateDot: { width: 4, height: 4, borderRadius: 2, position: 'absolute', bottom: 7 },
-    inputRow: { flexDirection: 'row', gap: 12 },
-    confirm: { backgroundColor: t.fill, borderRadius: Radius.card, padding: 14, gap: 3 },
-    confirmTitle: { color: t.text, fontSize: 15, fontWeight: '700' },
-    confirmSub: { color: t.textSecondary, fontSize: 13 },
-    freqHint: { color: t.textTertiary, fontSize: 12, lineHeight: 16, marginTop: -6 },
-    histCard: { backgroundColor: t.card, borderRadius: Radius.card, borderWidth: 1, borderColor: t.line, paddingHorizontal: 16 },
-    histItem: { paddingVertical: 13 },
+    inputRow: { flexDirection: 'row', gap: Spacing.md },
+    confirm: { backgroundColor: t.fill, borderRadius: Radius.card, padding: Spacing.lg, gap: Spacing.xs },
+    confirmTitle: { ...Type.bodyStrong, color: t.text },
+    confirmSub: { ...Type.caption, color: t.textSecondary },
+    freqHint: { ...Type.caption, color: t.textTertiary, lineHeight: 16, marginTop: -Spacing.sm },
+    histCard: { backgroundColor: t.card, borderRadius: Radius.card, borderWidth: Trait.fin, borderColor: t.line, paddingHorizontal: Spacing.lg },
+    histItem: { paddingVertical: Spacing.md },
     histRow: { flexDirection: 'row', alignItems: 'center' },
     histDivider: { borderBottomWidth: 1, borderBottomColor: t.line },
-    histDate: { flex: 1, color: t.textSecondary, fontSize: 14 },
-    histW: { color: t.text, fontSize: 15, fontWeight: '700', width: 80, textAlign: 'right' },
-    histD: { width: 56, textAlign: 'right', fontSize: 14, fontWeight: '600' },
-    histDel: { marginLeft: 10, padding: 2 },
-    histNote: { color: t.textSecondary, fontSize: 13, lineHeight: 18, marginTop: 5, fontStyle: 'italic' },
-    histPhoto: { width: 64, height: 84, borderRadius: Radius.sm, marginTop: 8, backgroundColor: t.fill },
-    photoBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 14, borderRadius: Radius.button, borderWidth: 1, borderColor: t.line, borderStyle: 'dashed' },
-    photoBtnTxt: { color: t.text, fontSize: 15, fontWeight: '600' },
+    histDate: { ...Type.bodySmall, flex: 1, color: t.textSecondary },
+    histW: { ...Type.bodyStrong, color: t.text, width: 80, textAlign: 'right' },
+    histD: { ...Type.bodySmallStrong, width: 56, textAlign: 'right' },
+    histDel: { marginLeft: Spacing.md, padding: Spacing.xs },
+    histNote: { ...Type.caption, color: t.textSecondary, lineHeight: 18, marginTop: Spacing.xs, fontStyle: 'italic' },
+    histPhoto: { width: 64, height: 84, borderRadius: Radius.sm, marginTop: Spacing.sm, backgroundColor: t.fill },
+    photoBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm, paddingVertical: Spacing.lg, borderRadius: Radius.button, borderWidth: Trait.fin, borderColor: t.line, borderStyle: 'dashed' },
+    photoBtnTxt: { ...Type.bodyStrong, color: t.text },
     photoPreview: { alignSelf: 'flex-start' },
     photoBig: { width: 150, height: 200, borderRadius: Radius.card, backgroundColor: t.fill },
     // Pastille de fond DERRIÈRE l'icône « close-circle » de 26 : sa taille est
     // donc dictée par l'icône, et son rayon en est la moitié. Elle valait 14 pour
     // 26 de large — donc pas tout à fait un disque, ce qui se voyait au liseré.
     photoRemove: { position: 'absolute', top: -8, right: -8, backgroundColor: t.bg, width: 26, height: 26, borderRadius: 13 },
-    photoHint: { color: t.textTertiary, fontSize: 12, lineHeight: 16, marginTop: -4 },
+    photoHint: { ...Type.caption, color: t.textTertiary, lineHeight: 16, marginTop: -Spacing.xs },
   });
 }
