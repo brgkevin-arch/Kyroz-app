@@ -18,6 +18,8 @@ import {
   loadPantry, savePantry, addOrMerge, removeItem, categorize,
   deductRecipe, cookableRecipes, visiblePantry,
 } from '../../lib/pantry';
+import { useTourTarget, useScreenTour, TourButton } from '../../components/GuidedTour';
+import { frigoTour } from '../../lib/tours';
 
 const CATEGORY_ORDER: PantryCategory[] = ['viandes', 'légumes', 'féculents', 'laitiers', 'autres'];
 const CATEGORY_LABELS: Record<PantryCategory, string> = {
@@ -49,6 +51,17 @@ export default function GardeMangerScreen() {
   // Formulaire d'édition
   const [editQty, setEditQty] = useState('');
   const [editUnit, setEditUnit] = useState('g');
+
+  // Cibles de la visite guidée.
+  const ajouterRef = useTourTarget('frigo-ajouter');
+  const compteurRef = useTourTarget('frigo-compteur');
+  const vueRef = useTourTarget('frigo-vue-cuisiner');
+  // ⚠️ Sur un frigo VIDE, le compteur ne dit rien et le sélecteur de vue n'est
+  // même pas monté : le tour se réduirait au bouton « + ». On attend qu'il y ait
+  // un stock — l'écran vide, lui, s'explique déjà tout seul en toutes lettres.
+  const { rejouer: rejouerTour } = useScreenTour('frigo', frigoTour(), {
+    pret: items.length > 0,
+  });
 
   const refresh = useCallback(async () => {
     setItems(await loadPantry());
@@ -140,17 +153,23 @@ export default function GardeMangerScreen() {
         {/* « Frigo », le mot de la barre d'onglets — un même objet ne peut pas avoir
             deux noms selon l'endroit d'où on le regarde. */}
         <View style={s.header} onLayout={repli.onHeaderLayout}>
-          <View style={{ flex: 1 }}>
+          {/* La ref du compteur est posée sur ce bloc et non sur le `+` qui suit :
+              le spotlight épouse alors le sous-titre et le titre, c'est-à-dire ce
+              dont la bulle parle. */}
+          <View ref={compteurRef} style={{ flex: 1 }}>
             <Text style={s.sub}>{visible.length} aliment{visible.length > 1 ? 's' : ''} · {ready.length} recette{ready.length > 1 ? 's' : ''} prête{ready.length > 1 ? 's' : ''}</Text>
             <Text style={s.h1}>Frigo</Text>
           </View>
-          <TouchableOpacity style={s.addBtn} onPress={() => setShowAdd(true)} activeOpacity={OPACITE_PRESSION}>
-            <Ionicons name="add" size={Icone.action} color={t.onAccent} />
-          </TouchableOpacity>
+          <View style={s.headerActions}>
+            <TourButton onPress={rejouerTour} />
+            <TouchableOpacity ref={ajouterRef} style={s.addBtn} onPress={() => setShowAdd(true)} activeOpacity={OPACITE_PRESSION}>
+              <Ionicons name="add" size={Icone.action} color={t.onAccent} />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {visible.length > 0 && (
-          <View style={s.segment}>
+          <View ref={vueRef} style={s.segment}>
             <Segmented
               t={t}
               options={[{ label: 'Mon stock', value: 'stock' }, { label: 'À cuisiner', value: 'cook' }]}
@@ -349,6 +368,7 @@ function makeStyles(t: ThemePalette) {
     // contentContainer du ScrollView, qui pose déjà les 20 pt. L'y laisser les
     // aurait doublés.
     header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: Spacing.xs, paddingBottom: Spacing.md },
+    headerActions: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
     h1: { color: t.text, ...Type.display, marginTop: Spacing.xs },
     sub: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 19 },
     addBtn: { width: CIBLE_TACTILE_MIN, height: CIBLE_TACTILE_MIN, borderRadius: Radius.pill, backgroundColor: t.accent, alignItems: 'center', justifyContent: 'center' },
