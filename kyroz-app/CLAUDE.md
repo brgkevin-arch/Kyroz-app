@@ -773,7 +773,15 @@ composant. Audit complet des réglages : `npm run mesure:reglages`.
 > ➡️ Contrôle : `npm run mesure:objectif`. Raisonnement complet et chiffres : AGENTS.md A15.
 
 > **Les échéances proposées sont DÉRIVÉES DU CORPS, jamais figées** (2026-08-03, A27,
-> `lib/goalLadder.ts`). La rangée offrait cinq durées en dur — 4 / 8 / 12 / 16 / 24
+> `lib/goalLadder.ts`).
+>
+> 🔴 **CE QUI SUIT DÉCRIT UNE RANGÉE QUI N'EST PLUS AFFICHÉE** — retirée le 2026-08-07
+> (décision fondateur, note « l'échéance est une DATE » plus bas). Le mécanisme, lui,
+> tourne toujours : il produit la date **pré-remplie**. Tout ce qui est dit ici des
+> invariants (tenable, distincte), du coût des sondes et de la mémoïsation reste donc
+> VRAI et applicable ; seul « la personne choisit dans la rangée » ne l'est plus.
+>
+> La rangée offrait cinq durées en dur — 4 / 8 / 12 / 16 / 24
 > semaines — et **9 puces sur 40 seulement étaient tenables** : sur 4 corps de référence
 > sur 8, AUCUNE ne l'était. La première échéance atteignable se situait entre 18 et
 > 82 semaines, hors de la rangée.
@@ -805,13 +813,30 @@ composant. Audit complet des réglages : `npm run mesure:reglages`.
 > décollage du plancher est `!==`. Une version orientée perte marchait sur la prise **par
 > accident**. Vaut au-delà de ce module.
 
-> **L'échéance s'écrit aussi À LA MAIN** (2026-08-07, `goalLadder.ts::checkEcheance`).
-> La rangée dérivée ci-dessus reste le chemin recommandé — chaque puce tient et chaque
-> puce pilote — mais elle ne propose que cinq dates, et **un événement réel ne tombe
-> jamais sur un multiple de semaines**. Trois champs jour/mois/année, toujours visibles
-> sous la rangée, portent la date visée : taper dedans devient le choix, et la puce
-> s'éteint. Aucune calorie ne change de règle, donc **pas d'`ENGINE_REV`** —
-> `datedGoalStatus` reçoit un stamp et se moque de sa provenance.
+> 🔴 **L'ÉCHÉANCE EST UNE DATE, ET LA RANGÉE DE PUCES EST RETIRÉE** (2026-08-07,
+> décision fondateur — `goalLadder.ts::checkEcheance`, `components/DateInput.tsx`).
+> On ne demande plus « dans combien de semaines », on demande la date : c'est ce que la
+> personne a en tête, et **un événement réel ne tombe jamais sur un multiple de
+> semaines**. Trois champs jour/mois/année, qui sont aussi l'AFFICHAGE de la date visée.
+> Aucune calorie ne change de règle, donc **pas d'`ENGINE_REV`** — `datedGoalStatus`
+> reçoit un stamp et se moque de sa provenance.
+>
+> ⚠️ **L'échelle dérivée du corps (A27) N'EST PAS MORTE — elle n'est plus affichée.**
+> `deadlineLadder` est toujours appelé, pour une seule chose : la date **pré-remplie**,
+> prise sur sa 2ᵉ marche. C'est désormais la seule échéance que l'app propose, donc
+> c'est elle qui doit tenir — et la 1ʳᵉ marche est écartée à dessein (c'est le rythme
+> sûr MAXIMAL ; un défaut ne pousse pas d'office quelqu'un au plafond de la sécurité,
+> §10). Vérifié à l'écran : un objectif neuf s'ouvre sur « Rythme sûr, dans les clous
+> de ta date ». ➡️ Supprimer `goalLadder.ts` en croyant nettoyer du code mort ferait
+> retomber le défaut d'origine — une date par défaut que la moitié des gabarits ne
+> peuvent pas tenir.
+>
+> 🟡 **Ce que le retrait COÛTE, et c'est assumé** : le raccourci « adopter en un tap la
+> date réellement tenable » (A14) disparaît. Il vivait dans la puce « N sem · tenable »,
+> puis dans la 1ʳᵉ marche de la rangée depuis A27. La phrase sous le champ continue
+> d'annoncer la date que Kyroz tiendra (« au rythme sûr, plutôt vers le … ») ; il faut
+> maintenant la **retaper à la main** pour la viser. Rouvrir ce raccourci se ferait par
+> un bouton sur la date projetée, pas par un retour des durées.
 >
 > ⚠️ **Pas de sélecteur de date, et c'est un choix** : dépendance NATIVE (donc build +
 > revue, §2) pour un service que trois nombres rendent partout. Même raison qu'à
@@ -840,12 +865,15 @@ composant. Audit complet des réglages : `npm run mesure:reglages`.
 > annonce l'arrivée réelle, donc la question reçoit une réponse vraie. Refuser serait
 > interdire sur le ton du reproche (§10).
 >
-> ⚠️ **`closestHorizon` a été SUPPRIMÉ, et ce n'est pas du nettoyage** : il allumait la
-> puce la plus PROCHE de l'échéance enregistrée, donc une cible au 14 novembre affichait
-> « 16 sem » en surbrillance au-dessus d'une ligne annonçant une autre date — **deux
-> échéances à l'écran pour un seul objectif**. Une puce ne s'allume plus que si sa date
-> EST la date visée. Le défaut existait avant ce chantier ; c'est la date libre qui l'a
-> rendu visible.
+> ℹ️ **`closestHorizon` est parti avec la rangée.** Il allumait la puce la plus PROCHE de
+> l'échéance enregistrée : une cible au 14 novembre affichait « 16 sem » en surbrillance
+> au-dessus d'une ligne annonçant une autre date — **deux échéances à l'écran pour un
+> seul objectif**. Le défaut est antérieur à ce chantier ; c'est la saisie libre qui l'a
+> rendu regardable, et le retrait de la rangée qui l'a clos.
+>
+> ⚠️ **La ligne « Cible le … » est désormais le SEUL endroit qui dise si la date tient.**
+> Elle porte donc toute la charge d'honnêteté de l'écran (A14/A15) : ne jamais la
+> raccourcir, la déplacer sous le pli, ou la remplacer par un simple rappel de la date.
 
 - **Lipides sous le seuil de carence** — `lib/tdee.ts::fatTargetG`, plancher à
   0,8 g/kg de **poids de corps** (`FAT_MIN_PER_KG_BW`). Borné par le budget du

@@ -60,7 +60,7 @@ import {
   AGE_BOUNDS, WEIGHT_BOUNDS, HEIGHT_BOUNDS,
 } from '../../lib/safety';
 import { datedGoalStatus, datedGoalKcalDelta, addDaysStamp } from '../../lib/datedGoal';
-import { deadlineLadder, formatHorizon, checkEcheance, messageEcheance } from '../../lib/goalLadder';
+import { deadlineLadder, checkEcheance, messageEcheance } from '../../lib/goalLadder';
 import { DatedGoalCard, formatFR } from '../../components/DatedGoalCard';
 import { todayStamp } from '../../lib/weight';
 import {
@@ -166,29 +166,38 @@ const KYROZ_PLUS_VALEUR: Record<AccessReason, string> = {
   locked: 'En savoir plus',
 };
 
-// Objectif daté : horizons proposés (semaines) — évite un date-picker (lourd sur
-// web) et cadre l'UX sur « dans N semaines » ; la date exacte est dérivée + affichée.
+// Objectif daté : durées de REPLI (semaines).
 //
-// ⚠️ CES DURÉES NE SONT PLUS CELLES QU'ON PROPOSE (A27, 2026-08-03). Elles ne servent
-// plus que de REPLI, quand aucune échéance n'est tenable dans l'horizon de projection :
-// le poids visé est alors hors de portée quelle que soit la date, la rangée redevient
-// un simple sélecteur, et c'est la phrase sous les puces qui dit la vérité.
-// La rangée réellement affichée est dérivée du corps — cf. `lib/goalLadder.ts`.
+// ⚠️ PLUS AUCUNE DURÉE N'EST AFFICHÉE (2026-08-07) — la rangée de puces est retirée,
+// l'échéance se tape. L'échelle dérivée du corps (A27, `lib/goalLadder.ts`) survit
+// pour une seule chose : fournir la date PRÉ-REMPLIE, qui doit tenir. Ces cinq durées
+// en dur sont son repli, quand rien n'est tenable dans l'horizon de projection — le
+// poids visé est alors hors de portée quelle que soit la date, et c'est la phrase sous
+// le champ qui le dit.
 const HORIZONS_REPLI = [4, 8, 12, 16, 24];
 
 /**
- * Échéance CHOISIE dans l'éditeur d'objectif daté — par une puce, ou à la main.
+ * Échéance TAPÉE dans l'éditeur d'objectif daté.
+ * `stamp` absent = la saisie n'est pas (encore) une date ; `complete` dit pourquoi.
  *
- * ⚠️ `closestHorizon` a été SUPPRIMÉ avec l'arrivée de la date libre (2026-08-07), et
- * ce n'est pas un nettoyage : il surlignait la puce la plus PROCHE de l'échéance
- * enregistrée. Une cible au 14 novembre affichait donc « 16 sem » en surbrillance
- * au-dessus d'une ligne annonçant une autre date — deux échéances à l'écran pour un
- * seul objectif. Une puce ne s'allume plus que si sa date EST la date visée.
+ * ⚠️ **LA RANGÉE DE PUCES A ÉTÉ RETIRÉE le 2026-08-07 (décision fondateur)** : on ne
+ * propose plus de durées, on demande une date. Deux morceaux sont partis avec elle,
+ * et il faut savoir lequel est un manque :
+ *  • `closestHorizon` — bon débarras : il allumait la puce la plus PROCHE de
+ *    l'échéance enregistrée, donc une cible au 14 novembre affichait « 16 sem » en
+ *    surbrillance au-dessus d'une ligne annonçant une AUTRE date ;
+ *  • le raccourci « adopter la date réellement tenable en un tap » (A14) — celui-là
+ *    est une PERTE assumée. Il vivait dans la première puce depuis A27. La phrase
+ *    sous le champ continue d'annoncer la date que Kyroz tiendra ; il faut désormais
+ *    la retaper à la main pour la viser.
+ *
+ * ⚠️ `deadlineLadder` reste appelé, et ce n'est pas un reliquat : la date PRÉ-REMPLIE
+ * est maintenant la seule échéance que l'app propose, donc elle doit tenir. Elle est
+ * la 2ᵉ marche de l'échelle dérivée du corps — la 1ʳᵉ est le rythme sûr MAXIMAL, et
+ * un défaut ne pousse pas d'office quelqu'un au plafond de ce que la sécurité
+ * autorise (CLAUDE.md §10).
  */
-type Echeance =
-  | { par: 'puce'; semaines: number }
-  /** `stamp` absent = la saisie n'est pas (encore) une date ; `complete` dit pourquoi. */
-  | { par: 'saisie'; stamp?: string; complete: boolean };
+type EcheanceSaisie = { stamp?: string; complete: boolean };
 
 export default function ProfilScreen() {
   const t = useTheme();
@@ -1040,21 +1049,23 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }:
   const [targetWeight, setTargetWeight] = useState(
     String(existing?.target_weight_kg ?? Math.max(40, Math.round(profile.weight_kg) - 4)),
   );
-  // Échéance CHOISIE. `null` = l'utilisateur n'a encore touché ni la rangée ni les
-  // champs : on garde alors la date EXACTE enregistrée, pour que ré-ouvrir et
-  // enregistrer sans rien changer ne décale pas l'échéance (comme RestDaysPicker).
-  const [echeance, setEcheance] = useState<Echeance | null>(null);
+  // Échéance TAPÉE. `null` = l'utilisateur n'a pas encore touché les champs : on garde
+  // alors la date EXACTE enregistrée, pour que ré-ouvrir et enregistrer sans rien
+  // changer ne décale pas l'échéance (comme RestDaysPicker).
+  const [saisie, setSaisie] = useState<EcheanceSaisie | null>(null);
 
   const twN = parseFloat(targetWeight.replace(',', '.'));
   const validWeight = twN >= 40 && twN <= 250;
   const tdee = calculateTDEE(profile);
 
-  // ── Les échéances proposées, DÉRIVÉES DU CORPS (A27) ────────────────────────
+  // ── L'échelle dérivée du corps (A27) — ne sert plus qu'au PRÉ-REMPLISSAGE ────
   //
-  // La rangée offrait cinq durées figées (4/8/12/16/24 semaines) dont AUCUNE ne
-  // tenait chez la moitié des gabarits de référence. Elle est désormais calculée :
-  // la première puce est l'échéance la plus courte que les garde-fous laissent
-  // tenir, les suivantes sont autant de plans réellement différents.
+  // Elle a remplacé cinq durées figées (4/8/12/16/24 semaines) dont AUCUNE ne tenait
+  // chez la moitié des gabarits de référence : sa 1ʳᵉ marche est l'échéance la plus
+  // courte que les garde-fous laissent tenir, les suivantes sont autant de plans
+  // réellement différents. Depuis le retrait de la rangée (2026-08-07), rien de tout
+  // ça n'est AFFICHÉ — mais la date pré-remplie sort de sa 2ᵉ marche, donc l'échelle
+  // reste ce qui garantit que la seule échéance proposée par l'app est tenable.
   //
   // ⚠️ MÉMOÏSÉ SUR LE POIDS CIBLE, et c'est indispensable : `deadlineLadder` sonde
   // le moteur ~17 fois, chaque sonde simulant jusqu'à 260 semaines de trajectoire
@@ -1076,31 +1087,24 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }:
     return echelle.length ? echelle : HORIZONS_REPLI;
   }, [twN, validWeight, profile, today, tdee, existing?.start_date]);
 
-  // Défaut d'un objectif NEUF : la 2ᵉ puce, pas la 1ʳᵉ. La première est le rythme sûr
-  // MAXIMAL — un défaut ne doit pas pousser d'office quelqu'un au plafond de ce que la
-  // sécurité autorise (CLAUDE.md §10 : le suivi rassure, il ne met pas la pression).
+  // Date PRÉ-REMPLIE d'un objectif neuf : la 2ᵉ marche de l'échelle, pas la 1ʳᵉ. La
+  // première est le rythme sûr MAXIMAL — un défaut ne doit pas pousser d'office
+  // quelqu'un au plafond de ce que la sécurité autorise (CLAUDE.md §10 : le suivi
+  // rassure, il ne met pas la pression). Depuis le retrait de la rangée, c'est la SEULE
+  // échéance que l'app propose : raison de plus pour qu'elle soit tenable.
   const defaultWeeks = horizons[Math.min(1, horizons.length - 1)];
-  const dateDePuce = (h: number) => addDaysStamp(today, h * 7);
 
-  // La date que la rangée ET les champs désignent. `undefined` = ce qui est tapé n'est
-  // pas encore une date : on n'invente RIEN à sa place, sinon les champs se
-  // réécriraient sous les doigts (cf. le garde de `components/DateInput.tsx`).
-  const targetDate = echeance?.par === 'saisie'
-    ? echeance.stamp
-    : echeance?.par === 'puce'
-      ? dateDePuce(echeance.semaines)
-      : existing?.target_date ?? dateDePuce(defaultWeeks);
+  // La date que les champs portent. `undefined` = ce qui est tapé n'est pas encore une
+  // date : on n'invente RIEN à sa place, sinon les champs se réécriraient sous les
+  // doigts (cf. le garde de `components/DateInput.tsx`).
+  const targetDate = saisie
+    ? saisie.stamp
+    : existing?.target_date ?? addDaysStamp(today, defaultWeeks * 7);
 
-  // Puce allumée = celle dont la date EST la date visée. Pas « la plus proche » : voir
-  // la note sur `closestHorizon` en tête de fichier.
-  const puceActive = targetDate ? horizons.find((h) => dateDePuce(h) === targetDate) ?? null : null;
-
-  // L'échéance est contrôlée QUELLE QUE SOIT sa provenance — saisie, puce, ou date déjà
-  // enregistrée. Un objectif ré-ouvert après son échéance tombe donc sur « choisis une
-  // date à venir » au lieu d'être ré-enregistré inactif, en silence.
-  const refus = checkEcheance(
-    targetDate, echeance?.par === 'saisie' ? echeance.complete : true, today,
-  );
+  // L'échéance est contrôlée QUELLE QUE SOIT sa provenance — tapée, pré-remplie, ou
+  // déjà enregistrée. Un objectif ré-ouvert après son échéance tombe donc sur « choisis
+  // une date à venir » au lieu d'être ré-enregistré inactif, en silence.
+  const refus = checkEcheance(targetDate, saisie ? saisie.complete : true, today);
   /** La date retenue, ou `null` s'il y a quelque chose à corriger d'abord. */
   const dateVisee = refus ? null : targetDate ?? null;
 
@@ -1156,38 +1160,34 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }:
       <Field t={t} label="Poids cible" suffix="kg" value={targetWeight} onChangeText={setTargetWeight} keyboardType="decimal-pad" />
 
       <SectionLabel t={t}>Échéance</SectionLabel>
-      {/* Les durées sont DÉRIVÉES DU CORPS (A27) : chacune tient, et chacune sert un
-          plan différent. La première est le plus rapide que la sécurité autorise. */}
-      <View style={styles.wrap}>
-        {horizons.map((h) => (
-          <Chip key={h} t={t} label={formatHorizon(h)} selected={puceActive === h} onPress={() => setEcheance({ par: 'puce', semaines: h })} />
-        ))}
-      </View>
-      {/* ── La date libre (2026-08-07) ───────────────────────────────────────────
-          Les puces ne proposent que cinq dates, et un vrai événement — un mariage,
-          une compétition, des vacances — ne tombe jamais sur un multiple de semaines.
-          Les champs sont TOUJOURS visibles, jamais derrière une bascule : ils portent
-          la date visée, donc ils remplacent l'affichage qu'il fallait de toute façon
-          faire. Taper dedans devient le choix, et la puce s'éteint d'elle-même.
+      {/* ── Une DATE, plus une durée (2026-08-07, décision fondateur) ────────────
+          La rangée de puces proposait cinq durées dérivées du corps ; elle est
+          retirée. On ne demande plus « dans combien de semaines », on demande la
+          date — parce que c'est ce que la personne a en tête, et qu'un événement
+          réel ne tombe jamais sur un multiple de semaines.
+          Les champs portent la date visée : ils sont donc aussi son AFFICHAGE.
           Pas de sélecteur de date : ce serait une dépendance NATIVE (build + revue,
-          CLAUDE.md §2) pour un service que trois nombres rendent partout. */}
+          CLAUDE.md §2) pour un service que trois nombres rendent partout.
+          ⚠️ La date pré-remplie reste dérivée du corps (cf. `defaultWeeks`) : c'est
+          désormais la seule échéance que l'app propose, elle ne peut pas mentir. */}
       <Text style={{ ...Type.caption, color: t.textSecondary, lineHeight: 18 }}>
-        Ou vise une date précise — un mariage, une compétition, des vacances.
+        Pose la date que tu vises — un mariage, une compétition, des vacances.
       </Text>
       <DateInput
         t={t}
         value={targetDate}
         placeholders={{ d: '14', mo: '11', y: String(parseInt(today.slice(0, 4), 10) + 1) }}
-        onChange={(stamp, complete) => setEcheance({ par: 'saisie', stamp, complete })}
+        onChange={(stamp, complete) => setSaisie({ stamp, complete })}
       />
-      {/* ⚠️ C'est la ligne la plus lue de l'écran — collée sous les puces, au moment
-          exact du choix. Elle ne peut donc pas AFFIRMER une date que le moteur ne
-          tiendra pas. Mesuré le 2026-08-02 (H 83 kg, 18 %MG, 4 séances → 70 kg) :
-          les CINQ échéances servent toutes 0,3 kg/sem, parce que c'est le plancher
-          de sécurité — et non l'échéance — qui borne le déficit. « 4 sem » annonçait
-          le 30 août 2026 pour une atteinte réelle le 19 juin 2027 : 293 jours d'écart.
-          La vérité était déjà à l'écran (carte « plancher » plus bas), mais SOUS une
-          phrase qui disait l'inverse, et hors du premier écran.
+      {/* ⚠️ C'est la ligne la plus lue de l'écran — collée sous le champ, au moment
+          exact du choix, et depuis le retrait de la rangée elle est le SEUL endroit qui
+          dise si la date tient. Elle ne peut donc pas AFFIRMER une date que le moteur
+          ne tiendra pas. Mesuré le 2026-08-02 (H 83 kg, 18 %MG, 4 séances → 70 kg) :
+          les CINQ échéances d'alors servaient toutes 0,3 kg/sem, parce que c'est le
+          plancher de sécurité — et non l'échéance — qui borne le déficit. « 4 sem »
+          annonçait le 30 août 2026 pour une atteinte réelle le 19 juin 2027 : 293 jours
+          d'écart. La vérité était déjà à l'écran (carte « plancher » plus bas), mais
+          SOUS une phrase qui disait l'inverse, et hors du premier écran.
           Ton : on annonce ce qui va se passer, on ne reproche pas l'ambition — le
           moteur porte la charge, l'utilisateur n'est pas « en retard ». */}
       {/* Une échéance à corriger prend la place de la ligne « Cible le … » : afficher

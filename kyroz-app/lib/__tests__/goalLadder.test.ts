@@ -8,12 +8,18 @@ import { computePlan, recalcProfile, makeWeeklyProjector } from '../tdee';
 import { makeProfile } from './helpers';
 import { GoalTarget, UserProfile } from '../types';
 
-// ── A27 — la rangée d'échéances ne doit proposer QUE des options réelles ──────
+// ── A27 — l'échelle d'échéances ne doit produire QUE des options réelles ──────
 //
-// Avant ce chantier, elle offrait cinq durées figées (4/8/12/16/24 semaines) : sur
-// 4 corps de référence sur 8, AUCUNE ne tenait. Deux invariants sont vérifiés ici,
-// et il faut les deux — le premier seul laisserait passer une rangée honnête mais
-// décorative (cf. A23, « un réglage qui ne pilote rien »).
+// Avant ce chantier, la rangée offrait cinq durées figées (4/8/12/16/24 semaines) :
+// sur 4 corps de référence sur 8, AUCUNE ne tenait. Deux invariants sont vérifiés
+// ici, et il faut les deux — le premier seul laisserait passer une échelle honnête
+// mais décorative (cf. A23, « un réglage qui ne pilote rien »).
+//
+// 🔴 **LA RANGÉE N'EST PLUS AFFICHÉE depuis le 2026-08-07** (A28, décision fondateur :
+// l'échéance se SAISIT). Ne pas supprimer ce fichier en croyant tester une UI morte :
+// `deadlineLadder` produit désormais la date **PRÉ-REMPLIE** de l'éditeur, prise sur
+// sa 2ᵉ marche. C'est la seule échéance que l'app propose encore, donc ces invariants
+// sont ce qui l'empêche d'être une date que le corps ne peut pas tenir.
 
 const TODAY = '2026-08-03';
 
