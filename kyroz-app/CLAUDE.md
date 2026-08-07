@@ -766,10 +766,12 @@ ne traverse jamais ne garde rien : `accentColor.test.ts` le traverse volontairem
 avec une couleur hostile, et fige la marge du pire cas pour que sa dégradation se
 remarque. Vérifié par mutation.
 
-### Aucun émoji dans l'interface (2026-08-06)
+### Aucun émoji dans l'interface — règle posée, passe INCOMPLÈTE (2026-08-06)
 
-Il y en avait **55 affichés**. Ils ne se traitaient pas tous pareil, et c'est la
-seule chose à retenir :
+La règle est tranchée : **pas d'émoji dans l'interface**. L'état du code, lui, ne
+la respecte pas encore — et ce paragraphe a annoncé le contraire.
+
+**Ce que la passe a fait**, sur `app/` et `components/` (les 55 émojis comptés là) :
 
 - **39 tenaient la place d'une ICÔNE** — avertissement, cadenas, chrono, type de
   repas. Ils sont devenus **17 tracés** (`components/Icons.tsx`), dessinés par
@@ -782,14 +784,38 @@ seule chose à retenir :
   assumées 😎 »). Ceux-là ont été **SUPPRIMÉS, pas remplacés** : aucun pictogramme
   ne remplace une ponctuation, et la phrase doit tenir sans elle.
 
+🔴 **Ce qu'elle n'a PAS fait — re-mesuré le 2026-08-07 : 13 émojis sont encore
+AFFICHÉS**, dans trois modules que la passe n'a jamais ouverts.
+
+| Où | Combien | Ce qui l'affiche |
+|---|---|---|
+| `lib/streak.ts` (paliers) | 6 — 🔥 🎉 💪 🏆 ⭐ 👑 | `StreakCelebration.tsx` en **fontSize 56**, monté sur l'écran Plan |
+| `lib/streak.ts` (`streakMessage`) | 2 — 🎯 🎉 | `StreakProgress.tsx` |
+| `lib/notifications.ts` | 4 — 💪 🍽️ 🔥 ⚖️ | les notifications natives |
+| `constants/legal.ts` | 1 — ⚠️ | l'écran `/legal` (CGU) |
+
+⚠️ **Le compte de 55 n'était pas faux, il portait sur le mauvais périmètre.** Ces
+chaînes vivent dans `lib/` et `constants/` — des fichiers qui n'ont pas l'air
+d'interface — et remontent à l'écran via un composant qui, lui, n'en contient
+aucune. ➡️ **Un inventaire d'interface se compte sur ce qui est AFFICHÉ, pas sur
+les fichiers qui ressemblent à de l'interface.**
+
+⚠️ **Et « plus un seul émoji » a été écrit à trois endroits — le commit, `Icons.tsx`
+et ici — sans qu'aucun compteur ne l'exige.** Une passe qui n'a pas de test se
+déclare terminée toute seule, et les trois copies se confirment l'une l'autre.
+
 ⚠️ **Un émoji vivant dans une CHAÎNE ne peut pas devenir une icône** — un toast est
 une string, pas du JSX. Ceux-là se retirent et la phrase se reformule (« Noté 👎 »
 → « C'est noté »). Les autres deviennent une rangée icône + texte, plus verbeuse
 qu'un caractère collé devant une phrase : c'est le prix de la couleur héritée.
 
-➡️ **Règle : ne pas réintroduire d'émoji dans l'interface.** Le compte se refait en
-une commande, en écartant les commentaires du code (un `grep` naïf en rend ~200
-pour 55 réels, les ⚠️ et 🔴 des commentaires n'étant affichés nulle part).
+➡️ **Règle : ne pas réintroduire d'émoji dans l'interface**, et **finir les 13
+restants** — chantier ouvert, pas un oubli à corriger en passant : la célébration
+de palier est un objet VISUEL de 56 px, la remplacer (icône `ReussiteIcon` ? rien
+du tout ?) est une décision de DA, pas une substitution mécanique. Le compte se
+refait en écartant les commentaires du code (les ⚠️ et 🔴 qui y vivent ne sont
+affichés nulle part) **et sans se limiter à `app/` + `components/`** — c'est
+exactement l'erreur ci-dessus.
 
 ### La FORME et la GRAISSE passent par un token, comme la couleur (2026-08-03)
 
