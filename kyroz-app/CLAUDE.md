@@ -929,15 +929,28 @@ la respecte pas encore — et ce paragraphe a annoncé le contraire.
   assumées 😎 »). Ceux-là ont été **SUPPRIMÉS, pas remplacés** : aucun pictogramme
   ne remplace une ponctuation, et la phrase doit tenir sans elle.
 
-🔴 **Ce qu'elle n'a PAS fait — re-mesuré le 2026-08-07 : 13 émojis sont encore
-AFFICHÉS**, dans trois modules que la passe n'a jamais ouverts.
+🔴 **Ce qu'elle n'a PAS fait — re-mesuré le 2026-08-07 : 13 émojis étaient encore
+AFFICHÉS**, dans trois modules que la passe n'a jamais ouverts. **Il en reste 9**
+(les 4 des notifications sont partis le 2026-08-07, cf. ci-dessous).
 
 | Où | Combien | Ce qui l'affiche |
 |---|---|---|
 | `lib/streak.ts` (paliers) | 6 — 🔥 🎉 💪 🏆 ⭐ 👑 | `StreakCelebration.tsx` en **fontSize 56**, monté sur l'écran Plan |
 | `lib/streak.ts` (`streakMessage`) | 2 — 🎯 🎉 | `StreakProgress.tsx` |
-| `lib/notifications.ts` | 4 — 💪 🍽️ 🔥 ⚖️ | les notifications natives |
+| ~~`lib/notifications.ts`~~ | ~~4 — 💪 🍽️ 🔥 ⚖️~~ → **0** | **FAIT** — les textes ont déménagé dans `lib/reminder.ts` et se sont reformulés sans eux |
 | `constants/legal.ts` | 1 — ⚠️ | l'écran `/legal` (CGU) |
+
+✅ **Les quatre des notifications sont tombés en passant, et c'est instructif :
+ils ne coûtaient rien à retirer** parce qu'on RÉÉCRIVAIT les phrases de toute
+façon (heure libre → un jeu de messages par créneau de journée). Aucun d'eux ne
+tenait la place d'une icône — ils étaient du ton de voix, exactement le cas que
+la passe dit de SUPPRIMER sans remplacer. Ce qui les protégeait n'était donc pas
+leur rôle, c'était que personne n'ouvrait ce fichier.
+
+➡️ Et cette fois **un test les compte** (`lib/__tests__/reminder.test.ts` →
+« aucun émoji »), avec le même motif que `typoDA`. C'est la réponse directe au
+reproche du paragraphe suivant : une règle qu'aucun compteur n'exige se déclare
+tenue toute seule.
 
 ⚠️ **Le compte de 55 n'était pas faux, il portait sur le mauvais périmètre.** Ces
 chaînes vivent dans `lib/` et `constants/` — des fichiers qui n'ont pas l'air
@@ -954,7 +967,7 @@ une string, pas du JSX. Ceux-là se retirent et la phrase se reformule (« Noté
 → « C'est noté »). Les autres deviennent une rangée icône + texte, plus verbeuse
 qu'un caractère collé devant une phrase : c'est le prix de la couleur héritée.
 
-➡️ **Règle : ne pas réintroduire d'émoji dans l'interface**, et **finir les 13
+➡️ **Règle : ne pas réintroduire d'émoji dans l'interface**, et **finir les 9
 restants** — chantier ouvert, pas un oubli à corriger en passant : la célébration
 de palier est un objet VISUEL de 56 px, la remplacer (icône `ReussiteIcon` ? rien
 du tout ?) est une décision de DA, pas une substitution mécanique. Le compte se

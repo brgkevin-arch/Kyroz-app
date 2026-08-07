@@ -40,7 +40,9 @@ import { journalSummary } from '../../lib/offPlanJournal';
 import { useReminder } from '../../hooks/useReminder';
 import { usePlanCheckin } from '../../hooks/usePlanCheckin';
 import { useAuth } from '../../hooks/useAuth';
-import { ReminderSlot, remindersSupported } from '../../lib/notifications';
+import { remindersSupported } from '../../lib/notifications';
+import { DEFAULT_REMINDER_TIME, ReminderTime, formatReminderTime } from '../../lib/reminder';
+import { ReminderTimeField } from '../../components/ReminderTimeField';
 import { deleteAccount, deleteCloudData } from '../../lib/sync';
 import { exportMyData } from '../../lib/exportData';
 import {
@@ -169,7 +171,7 @@ export default function ProfilScreen() {
   // Le suivi du poids est désormais une CARTE (courbe + écart) et non une ligne de
   // menu : il lui faut les pesées, pas seulement le poids courant du profil.
   const { entries: weightEntries, delta: weightDelta, due: weighInDue } = useWeightLog();
-  const { slot, choose, busy } = useReminder();
+  const { time: reminderTime, choose: chooseReminder } = useReminder();
   const { enabled: checkinEnabled, setEnabled: setCheckinEnabled } = usePlanCheckin();
   const { signOut } = useAuth();
   const { confirm, notify } = useDialog();
@@ -463,14 +465,19 @@ export default function ProfilScreen() {
             avaient chacun leur en-tête en capitales, ce qui donnait l'impression de
             quatre sections indépendantes là où il n'y a qu'une liste d'interrupteurs. */}
         <SectionTitle t={t}>Préférences</SectionTitle>
+        {/* Rappel quotidien — l'interrupteur, puis l'HEURE (libre, cf.
+            `ReminderTimeField`). Les trois créneaux d'avant n'ont pas disparu :
+            ils sont devenus les puces de raccourci du champ. */}
         <Text style={s.settingLabel}>Rappel quotidien</Text>
-        <Segmented<ReminderSlot>
+        <Segmented<'off' | 'on'>
           t={t}
-          value={slot}
+          value={reminderTime ? 'on' : 'off'}
           onChange={async (v) => {
-            if (busy) return;
-            const ok = await choose(v);
-            if (!ok && v !== 'off') {
+            // Réactiver reprend l'heure qu'on voit à l'écran ; c'est la première
+            // activation seulement qui pose le matin par défaut.
+            const next: ReminderTime | null = v === 'on' ? (reminderTime ?? DEFAULT_REMINDER_TIME) : null;
+            const ok = await chooseReminder(next);
+            if (!ok && next) {
               notify({
                 title: remindersSupported ? 'Notifications désactivées' : 'Indisponible sur le web',
                 message: remindersSupported
@@ -481,16 +488,21 @@ export default function ProfilScreen() {
           }}
           options={[
             { label: 'Aucun', value: 'off' },
-            { label: 'Matin', value: 'morning' },
-            { label: 'Midi', value: 'midday' },
-            { label: 'Soir', value: 'evening' },
+            { label: 'Activé', value: 'on' },
           ]}
         />
+        {/* Aucun geste ne se JETTE ici — ni sur l'interrupteur, ni sur l'heure.
+            Le garde « un choix est déjà en cours » a coûté les deux : une heure
+            saisie perdue (le champ affichait 05, le rappel était armé sur 15) et
+            un segment mort. Les choix s'empilent dans `useReminder`. */}
+        {reminderTime ? (
+          <ReminderTimeField t={t} value={reminderTime} onChange={chooseReminder} />
+        ) : null}
         <Text style={s.reminderHint}>
-          {slot === 'off'
-            ? 'Un rappel par jour pour ne pas casser ta série.'
-            : `Chaque jour à ${slot === 'morning' ? '8h00' : slot === 'midday' ? '12h00' : '18h30'}.`}
-          {!remindersSupported && slot !== 'off' ? ' La notif arrive sur l’app mobile (pas sur le web).' : ''}
+          {reminderTime
+            ? `Chaque jour à ${formatReminderTime(reminderTime)}, avec une citation.`
+            : 'Un rappel par jour, à l’heure que tu choisis, pour retrouver ton plan.'}
+          {!remindersSupported && reminderTime ? ' La notif arrive sur l’app mobile (pas sur le web).' : ''}
         </Text>
 
         {/* Propositions d'ajustement du plan (le check-in « ton plan te convient ? ») */}
