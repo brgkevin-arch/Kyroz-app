@@ -30,9 +30,17 @@ contraire de la réalité.
 
 ## L'ordre compte, et il n'est pas négociable
 
-1. **L'app d'abord.** L'e-mail contient un code à 6 chiffres, et c'est l'écran de
-   saisie qui l'attend. Activer la confirmation avant que cet écran soit en ligne
-   enverrait un code que personne ne peut saisir.
+1. **L'app avant l'INTERRUPTEUR** (étape 10, pas avant). L'e-mail contient un code à
+   6 chiffres, et c'est l'écran de saisie qui l'attend : activer la confirmation avant
+   que cet écran soit en ligne enverrait un code que personne ne peut taper.
+   ✅ **En revanche, les étapes 2 à 9 ne dépendent PAS du déploiement et peuvent se
+   faire tout de suite.** Aujourd'hui **aucun e-mail d'authentification ne part** de
+   Kyroz — confirmation coupée, réinitialisation inexistante, ni magic link ni
+   changement d'adresse. Tout ce paramétrage se fait donc à vide : rien ne s'envoie,
+   rien ne change pour personne. Les DNS de l'étape 3 ont même intérêt à être posés
+   tôt, le temps de se propager.
+   ➡️ Si l'étape 1 est reportée, **la reprendre avant l'étape 10** : c'est la seule
+   qui la réclame.
 2. **L'expéditeur ensuite.** Le service e-mail intégré de Supabase est bridé à
    ~2 envois par heure **pour tout le projet**, et Supabase le déconseille
    explicitement en production. C'est le suspect n°1 du « ça ne marchait plus pour
@@ -41,7 +49,7 @@ contraire de la réalité.
 
 ---
 
-## Étape 1 — livrer l'app (avant tout le reste)
+## Étape 1 — livrer l'app (reportable, mais AVANT l'étape 10)
 
 La PR de cette branche porte l'écran de saisie du code, la page d'atterrissage
 (`public/confirme.html`) et le gabarit d'e-mail.
@@ -230,6 +238,10 @@ bas pour qu'un abus se voie.
 ---
 
 ## Étape 10 — l'interrupteur
+
+🔴 **L'étape 1 doit être faite AVANT celle-ci** (les deux PR mergées, le déploiement
+vert, `confirme.html` qui répond 200). Si elle a été reportée, y retourner maintenant :
+c'est le seul point de la procédure où l'ordre mord vraiment.
 
 Supabase → **Authentication** → **Sign In / Providers** → **Email** → cocher
 **Confirm email** → **Save**.
