@@ -3222,6 +3222,31 @@ produit en suspens — il ne reste qu'à coder.
   arrivé en `f4e9c6c`. Web et natif ne posent donc pas la question au même moment.
   Une 5ᵉ OTA est en attente d'arbitrage du fondateur.
 
+  ⚠️ **UNE SECONDE IMPLÉMENTATION DU MÊME CHANTIER A EXISTÉ — JETÉE le 2026-08-07**,
+  sur décision du fondateur et **après avoir vérifié idée par idée qu'il n'y avait rien
+  à en reprendre**. Le worktree `body-fat-provenance-audit-23f355` portait `lib/tdee.ts`
+  et `lib/types.ts` modifiés mais jamais commités, sur une base de 28 commits de retard
+  (`9169c9a`) : `BodyFatSource`, `BmrBody`, `katchEligible`, `calculateBMR` prenant le
+  corps entier — **la même conception, en moins avancé**, sans `safety.ts`, sans la
+  colonne, sans la migration, sans l'écran, sans les 23 tests, sans le seuil 35/43.
+  Ses sept arguments de fond (coût linéaire ne dépendant que du poids, erreur
+  SYSTÉMATIQUE et non du bruit, parallèle avec le plancher protéique optionnel,
+  126 kcal/j, 5 à 8 points…) étaient **tous déjà** dans `types.ts`, `tdee.ts`, la
+  migration et `CLAUDE.md`.
+  ⚠️ **Le tri a failli conclure l'inverse, deux fois, à cause de l'INSTRUMENT** : (1)
+  `\|` dans un motif `rg` cherche une barre LITTÉRALE, pas une alternative ; (2) **zsh
+  ne découpe pas une variable non quotée en mots** — `grep -l "$m" $FICHIERS` passait
+  toute la liste comme UN nom de fichier, et rendait « absent » pour tout. Les deux
+  fabriquaient des faux négatifs qui auraient justifié de « récupérer » du travail déjà
+  présent. ➡️ **Un tri de ce genre se fait avec un TÉMOIN POSITIF** (une chaîne qu'on
+  sait présente) : c'est lui qui a désigné la panne. Et une recherche par chaîne exacte
+  ne trouve pas une IDÉE reformulée — la conclusion finale est venue de la LECTURE du
+  fichier, pas du `grep`.
+  ➡️ Leçon générale : **deux sessions sur le même chantier ne se rattrapent pas, elles
+  divergent.** Celle-ci a coûté 20 h de travail parallèle pour zéro ligne livrée, et
+  n'était visible que par `npm run check:suspens` — `git status` ne montre que son
+  propre worktree.
+
   **Le défaut** : dès qu'un %MG était renseigné, le moteur basculait sur Katch-McArdle.
   Or ce chiffre pouvait venir de deux mondes qui n'ont rien à voir — un impédancemètre,
   ou **une tape sur une silhouette** dans `BodyFatPicker`, dont l'incertitude est de
