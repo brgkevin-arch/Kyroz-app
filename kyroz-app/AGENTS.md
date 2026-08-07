@@ -57,7 +57,7 @@ de date et un en-tête `ARCHIVÉ` — pas à la racine sans date. C'est ce qui a
 le désordre : dix fichiers au même niveau dont seul le contenu, en ligne 10, révélait
 qu'ils étaient périmés.
 
-## 📍 OÙ ON EN EST — photo du 2026-08-06
+## 📍 OÙ ON EN EST — photo du 2026-08-07
 
 > Bloc à relire en premier dans une nouvelle session, et à **re-mesurer** avant de s'en
 > servir (les commandes sont données). Il ne remplace pas la liste unique ci-dessous.
@@ -75,7 +75,8 @@ qu'ils étaient périmés.
 | Sortie stores | iOS **1.0.0 (3)** en TestFlight, **revue bêta APPROUVÉE le 2026-08-03** — donc acquise : builds et testeurs suivants passent sans repasser par Apple. 2 testeurs `INSTALLED` (1 interne, 1 externe) · Android : 2 builds, rien de soumis. ⚠️ Ce build **reçoit les OTA** (voir ligne ci-dessous) : il ne porte donc plus le JS de son commit d'origine. La déclaration `ITSAppUsesNonExemptEncryption` est enfin **committée** (elle n'a vécu que sur une machine du 2026-08-02 au 2026-08-06) | `npx eas-cli build:list` · `TESTFLIGHT.md` |
 | Kyroz+ | **encaissement armé, verrou inerte.** Clé RevenueCat posée dans EAS et vérifiée dans le bundle ; `PAYWALL_LAUNCH` = `null`, donc **tout est gratuit pour tout le monde**. ⚠️ Le build TestFlight actuel est ANTÉRIEUR à la clé | `lib/premium.ts` · `npx eas-cli env:list production` |
 | Clés du build/OTA | **une seule source : les variables EAS.** `eas.json` ne porte plus aucune clé, chaque profil déclare son `environment`. ⚠️ **`eas update --clear-cache`** — le cache Metro ignore un changement de valeur `EXPO_PUBLIC_*` | `npx eas-cli config --profile production --platform ios` · `lib/__tests__/easEnv.test.ts` |
-| OTA publiées | **4, toutes du 2026-08-06** (la branche `production` était vide avant) : `28dce9c7` (gestes des feuilles) · `98d5217a` (défilement ↔ fermeture) · `93fad600` (provenance du %MG + refonte design sans émoji, commit `7baa943`) · **`3afe091f`** (budget du jour ↔ dépense du jour, feuille qui ne se fermait plus, passe design du 5 août ; commit `fcebfcf`, iOS + Android). Runtime `1.0.0` → atteignent le build TestFlight **3**. ⚠️ **`--environment production` est OBLIGATOIRE** (SDK 55+) : sans lui les variables serveur ne sont pas chargées et le bundle part **sans URL Supabase**. ⚠️ Mesurer le bundle AVANT de clore (`strings -a` sur le `.hbc` de `dist/`) : attendu **1 / 1 / 0** (URL Supabase, `sb_publishable_`, `sk-ant-`). ➡️ **Et mesurer AVANT de publier, pas seulement après** : `eas-cli env:exec production 'npx expo export …'` rend le même bundle sans rien envoyer. Une OTA atteint tout le monde en minutes sans revue — la vérifier après coup, c'est la vérifier trop tard. Ajouter au relevé une chaîne du chantier en cours (ici `body_fat_source` → **1**) : trois zéros attendus se lisent comme un succès même quand `strings` ne trouve plus rien du tout. 🔴 **Et ce témoin doit être ASCII PUR** — mesuré le 2026-08-06 : `strings` ne rend AUCUNE chaîne contenant un accent ou un `·`, donc presque aucun texte d'interface français. « Jour de repos · … » rend 0 tout en étant dans le bundle. Prendre un identifiant (`baseDayTargets`, `rest_weekdays`), jamais une phrase accentuée | `npx eas-cli channel:view production` |
+| OTA publiées | **4, toutes du 2026-08-06** (la branche `production` était vide avant) : `28dce9c7` (gestes des feuilles) · `98d5217a` (défilement ↔ fermeture) · `93fad600` (provenance du %MG + refonte design sans émoji, commit `7baa943`) · **`3afe091f`** (budget du jour ↔ dépense du jour, feuille qui ne se fermait plus, passe design du 5 août ; commit `fcebfcf`, iOS + Android). Runtime `1.0.0` → atteignent le build TestFlight **3**.
+🔴 **L'IPHONE EST EN RETARD SUR LE WEB depuis le 2026-08-07** : la dernière OTA porte le commit `fcebfcf`, donc **PAS** le seuil 35 % / 43 % de la question de provenance (`f4e9c6c`), ni le correctif de délai des tests. Le web l'a, l'app native non — les deux surfaces ne posent pas la question au même moment. Rien n'est cassé (l'iPhone applique la version précédente de la règle, qui la posait plus souvent), mais **toute vérification faite sur l'un ne vaut pas pour l'autre**. Une 5ᵉ OTA est en attente d'arbitrage. ⚠️ **`--environment production` est OBLIGATOIRE** (SDK 55+) : sans lui les variables serveur ne sont pas chargées et le bundle part **sans URL Supabase**. ⚠️ Mesurer le bundle AVANT de clore (`strings -a` sur le `.hbc` de `dist/`) : attendu **1 / 1 / 0** (URL Supabase, `sb_publishable_`, `sk-ant-`). ➡️ **Et mesurer AVANT de publier, pas seulement après** : `eas-cli env:exec production 'npx expo export …'` rend le même bundle sans rien envoyer. Une OTA atteint tout le monde en minutes sans revue — la vérifier après coup, c'est la vérifier trop tard. Ajouter au relevé une chaîne du chantier en cours (ici `body_fat_source` → **1**) : trois zéros attendus se lisent comme un succès même quand `strings` ne trouve plus rien du tout. 🔴 **Et ce témoin doit être ASCII PUR** — mesuré le 2026-08-06 : `strings` ne rend AUCUNE chaîne contenant un accent ou un `·`, donc presque aucun texte d'interface français. « Jour de repos · … » rend 0 tout en étant dans le bundle. Prendre un identifiant (`baseDayTargets`, `rest_weekdays`), jamais une phrase accentuée | `npx eas-cli channel:view production` |
 | Ce qui traîne (tous worktrees) | ⚠️ `git status` dans un worktree ne montre QUE ce worktree — un fichier a dormi **4 jours** dans le dépôt principal sans que personne puisse le voir. Le contrôle parcourt TOUS les arbres et échoue au-delà de 24 h | `npm run check:suspens` |
 | Site déployé | **automatique** : GitHub Actions à chaque push `main` (`build_type: workflow`). Routes **pré-rendues** (`web.output: "static"`, E7) → un lien direct répond 200. ⚠️ Le pré-rendu tourne dans **Node** : un module qui touche `window` au chargement casse le déploiement (CLAUDE.md §11). ⚠️ **NE PAS lire `origin/gh-pages`** — branche morte, cf. A12 | `gh run list --workflow=deploy.yml` |
 | Migrations Supabase | les **16** jouées, `2026-08-06_profiles_body_fat_source.sql` comprise (jouée le 2026-08-06, mesurée avant ET après : 400 → 200). ⚠️ **Ne jamais annoncer une migration « en attente » sans lancer la commande** — le dépôt ne sait rien de la prod, et deux lignes d'ici l'ont dit à tort pendant des jours | `npm run check:migrations` |
@@ -3159,12 +3160,50 @@ produit en suspens — il ne reste qu'à coder.
 
 ### 🧹 E — Dette technique
 
-- ~~**E16 · Katch-McArdle prenait une DEVINETTE pour une mesure**~~ ✅ **LIVRÉ PARTOUT
-  le 2026-08-06** — code, migration jouée, OTA `93fad600` (iOS), et web déployé et
-  **mesuré sur le bundle réellement servi** (`body_fat_source` **4**, « Oui, avec un
-  appareil » **1**, « Non, c'est une estimation » **1** ; témoins : `body_fat_pct` 7,
-  chaîne inexistante 0). Un run vert dit que le robot a fini, pas que la bonne chose
-  est en ligne — les deux se vérifient séparément. `ENGINE_REV` 5 → 6.
+- ~~**E16 · Katch-McArdle prenait une DEVINETTE pour une mesure**~~ ✅ **LIVRÉ
+  le 2026-08-06**, **amendé le 2026-08-07** — code, migration jouée, OTA `93fad600`,
+  web déployé et **mesuré sur le bundle réellement servi** (`body_fat_source` **4**,
+  « Oui, avec un appareil » **1**, « Non, c'est une estimation » **1** ; témoins :
+  `body_fat_pct` 7, chaîne inexistante 0). Un run vert dit que le robot a fini, pas
+  que la bonne chose est en ligne — les deux se vérifient séparément.
+  `ENGINE_REV` 5 → 6.
+
+  🔴 **AMENDEMENT DU 2026-08-07 — la question n'est posée qu'au-delà de 35 % (H) /
+  43 % (F)**, le plafond du sélecteur de silhouettes. Décision du fondateur, prise
+  après que le coût lui a été chiffré et maintenue après objection.
+  **Sous le seuil la question n'existe pas**, donc `body_fat_source` reste `undefined`,
+  donc **Mifflin pour tout le monde** — y compris qui sort d'un DEXA :
+
+  | corps, avec une VRAIE mesure | perte |         | perte |
+  |---|---|---|---|
+  | H 75 kg · 12 % (DEXA) | −94 kcal/j | F 58 kg · 20 % | −81 kcal/j |
+  | H 82 kg · 15 % | −99 kcal/j | F 62 kg · 25 % | −48 kcal/j |
+
+  Katch-McArdle est pourtant le plus précis sur ces corps-là. L'arbitrage assume de le
+  réserver aux fortes adiposités, où l'écart est le plus gros (**+227 kcal/j** sur un
+  H de 110 kg à 38 %) et où la silhouette ment le plus.
+  ➡️ **Ce n'est PAS un oubli. Ne pas le « corriger » sans le fondateur** — une session
+  qui verra un DEXA à 12 % traité en Mifflin croira à un bug.
+  Règles pures et testées : `safety.ts::provenanceDemandee` / `provenanceRetenue`,
+  bloc 8 de `bodyFatSource.test.ts`, trois mutations (M4-M6).
+
+  ⚠️ **L'état FANTÔME que le seuil créait, et qui n'était pas dans la demande** :
+  répondre « mesuré » à 40 % puis corriger son chiffre à 20 % laissait `'measured'`
+  enregistré alors que la question avait disparu de l'écran — Katch s'appliquait via un
+  réglage inatteignable. `provenanceRetenue` le nettoie. `'estimated'` survit (il calcule
+  comme `undefined`, ne déplace aucune cible, et « dit au jugé » est une info vraie).
+
+  🟡 **CE NETTOYAGE EST CÔTÉ ÉCRAN, PAS CÔTÉ MOTEUR — à savoir avant d'en déduire quoi
+  que ce soit.** Il ne s'applique qu'au moment où quelqu'un touche le champ. Un profil
+  DÉJÀ enregistré avec `'measured'` sous le seuil garde donc Katch jusqu'à ce qu'il
+  rouvre l'écran. C'est le choix conservateur (aucune cible ne bouge en silence, pas de
+  bump d'`ENGINE_REV`), mais **la règle n'est pas uniformément appliquée sur le parc**.
+  Portée réelle au 2026-08-07 : quasi nulle (2 testeurs, feature vieille de 14 h). La
+  rendre uniforme demanderait `ENGINE_REV` 7 + avertissement one-shot — à arbitrer.
+
+  🟡 **L'IPHONE NE L'A PAS ENCORE** : la dernière OTA porte `fcebfcf`, le seuil est
+  arrivé en `f4e9c6c`. Web et natif ne posent donc pas la question au même moment.
+  Une 5ᵉ OTA est en attente d'arbitrage du fondateur.
 
   **Le défaut** : dès qu'un %MG était renseigné, le moteur basculait sur Katch-McArdle.
   Or ce chiffre pouvait venir de deux mondes qui n'ont rien à voir — un impédancemètre,

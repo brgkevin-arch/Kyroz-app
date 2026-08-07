@@ -345,7 +345,7 @@ OUTPUT         → Plan + liste de courses + recettes
   estimé reste **stocké et affiché** (suivi de progression) — il ne pilote plus
   que ce qu'il peut porter.
   ⚠️ **La question n'est posée qu'au-delà du PLAFOND du sélecteur** — 35 % (H) / 43 % (F),
-  décision du fondateur du 2026-08-06, prise après mesure. Sous ce seuil elle n'apparaît
+  décision du fondateur du 2026-08-07, prise après mesure. Sous ce seuil elle n'apparaît
   jamais, donc `body_fat_source` reste `undefined` et **tout le monde calcule en Mifflin**,
   y compris qui sort d'un DEXA : mesuré, un H de 75 kg à 12 % perd **94 kcal/j**, un H de
   82 kg à 15 % **99**, une F de 58 kg à 20 % **81**. L'arbitrage assume de réserver Katch
@@ -357,6 +357,13 @@ OUTPUT         → Plan + liste de courses + recettes
   s'appliquer via un réglage que la personne ne peut plus ni voir ni changer — un réglage
   inatteignable ne décide pas d'une formule. `'estimated'`, lui, survit : il calcule comme
   `undefined`, donc il ne déplace aucune cible, et c'est une information vraie.
+  🟡 **Ce nettoyage est CÔTÉ ÉCRAN, pas côté moteur** — il ne s'applique qu'au moment où
+  quelqu'un touche le champ. Un profil déjà enregistré avec `'measured'` sous le seuil
+  garde donc Katch jusqu'à sa prochaine visite sur l'écran : c'est le choix conservateur
+  (aucune cible ne bouge en silence, pas de bump d'`ENGINE_REV`), mais **la règle n'est
+  pas uniformément appliquée sur le parc**. La rendre uniforme demanderait `ENGINE_REV` 7
+  et un avertissement one-shot. Écrit ici pour que la prochaine session n'en déduise pas
+  que le seuil est vrai partout.
   ➡️ Prédicat unique : **`tdee.ts::katchEligible`**, et `calculateBMR` prend le
   CORPS entier (pas un `%MG` positionnel) pour qu'aucun appelant ne puisse passer
   le chiffre en oubliant sa provenance. Garde-fou : `bodyFatSource.test.ts`.
