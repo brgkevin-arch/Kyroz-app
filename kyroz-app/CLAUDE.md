@@ -524,12 +524,74 @@ collations pour petits gabarits en sèche). C'est le seul levier qui reste.
 
 ➡️ Contrôle : `npm run mesure:volume`. Garde-fou : `lib/__tests__/volumeConcentre.test.ts`.
 
+### Les repas de la journée sont LIBRES (`lib/mealSlots.ts`, 2026-08-07)
+
+Un créneau de repas est une **donnée** (`MealSlot` : id, libellé, heure, vivier), plus une
+valeur de type. L'utilisateur en crée autant qu'il veut — « Shaker post-training », 18h30,
+vivier collation — à l'onboarding **et** dans Profil → Paramètres des repas, par le même
+composant (`components/MealSlotsPicker.tsx`).
+
+**Ce que ça corrige** : `MealType` était une union FERMÉE de quatre valeurs. Le plafond
+n'était écrit dans aucune spec — **il était dans le TYPE**. Quelqu'un qui mange six fois
+par jour ne pouvait pas le déclarer, et le moteur répartissait son budget sur quatre
+assiettes qu'il ne mangeait pas : un plan faux, sans le moindre message.
+
+⚠️ **Les 4 créneaux intégrés gardent leurs ids** (`breakfast`, `lunch`, `dinner`,
+`snack`), et c'est ce qui rend le changement non destructeur : `profiles.meals` (text[],
+aucune contrainte d'énumération), les plans en cache, les repas « je gère » et les tags
+de recettes désignent tous les mêmes créneaux. Ils restent **en dur côté app** — les
+stocker par utilisateur figerait une copie qu'une correction future n'atteindrait plus
+(CLAUDE.md §10, « la copie stockée que personne ne relit »). Seuls les créneaux **créés**
+vivent en base (`profiles.meal_slots` jsonb — migration 2026-08-07).
+
+🔴 **`MEAL_ORDER` est devenu CHRONOLOGIQUE** (la collation de 16 h passe avant le dîner ;
+elle était servie en dernier). Obligatoire : un ordre qui n'est pas celui de la journée
+rangeait une collation de 10 h après le dîner. Conséquence — le report de budget de repas
+en repas ne se fait plus dans le même ordre, donc **`ENGINE_VERSION` 46 → 47 et le plan de
+tout le monde se régénère une fois**. Aucune calorie ne bouge.
+
+⚠️ **`MEAL_DEFAULT_PRIORITY` existe à côté, et il ne doit PAS suivre.** Il ne sert qu'à
+répondre à « je veux N repas » sans savoir lesquels (`syncGuard::normalizeMeals`, une
+donnée réelle : `meals: 4`, un nombre). Sur l'ordre chronologique, N = 3 aurait rendu
+« petit-déj + déjeuner + collation » — donc **supprimé le dîner** de quelqu'un qui n'a
+rien demandé.
+
+⚠️ **Le plafond est de 8 repas/jour, et il vient du CATALOGUE, pas du type.** Mesuré
+(`npm run mesure:creneaux`, 5 gabarits × 5 tirages × 7 jours) : écart calorique du jour
+0,66 % à 4 repas · **0,92 % à 8** · 1,19 % à 9 · 4,94 % à 12 ; drapeaux vus par
+l'utilisateur 4 → **81** → 174 → 712. 8 est le dernier palier sous 1 % et le dernier avant
+que les drapeaux ne DOUBLENT. La dégradation est **graduelle et concentrée** : jusqu'à 8,
+74 des 81 drapeaux tombent sur F 55 kg en sèche **vegan** — la limite de vivier « petits
+formats vegan » déjà consignée plus haut. C'est à 9 que ça déborde sur les petits gabarits
+omnivores (6 → 30). *La mesure a aussi trouvé un défaut hors périmètre : à **3** repas, un
+H 95 en prise de masse est à 6,11 % d'écart — le catalogue n'a pas de plat à 1 060 kcal.
+Antérieur aux créneaux libres, noté, pas corrigé.*
+
+⚠️ Deux propriétés que le code garde et qu'il ne faut pas « simplifier » :
+- **Un créneau supprimé reste servable** (`slotOrFallback`, poids de collation). Un plan
+  en cache peut le contenir ; sans repli il recevrait un poids nul, donc une cible de
+  0 kcal, donc une assiette vide — un correctif pire que la donnée périmée.
+- **Le LIBELLÉ n'entre pas dans `profileSignature`**, l'heure et le vivier si. Renommer un
+  créneau ne doit pas régénérer la semaine pour une faute de frappe corrigée.
+
+➡️ Contrôle : `npm run mesure:creneaux`. Garde-fou : `lib/__tests__/mealSlots.test.ts`,
+**vérifié par 6 mutations** — et la 6ᵉ a montré qu'un premier test ne prouvait rien :
+neutraliser tout le filtre de vivier le laissait vert, parce que sur une cible de
+collation le moteur choisit une collation même quand le catalogue entier lui est ouvert.
+Il mesure désormais le VIVIER, pas la sortie.
+
 ### Répartition entre repas — plancher protéique (`lib/planEngine.ts`)
 
 La cible d'un repas est une part du budget **restant** du jour : le report de repas en
 repas est ce qui garde le total quotidien serré (0,05 % d'écart mesuré). Mais il a un
 effet de bord — chaque repas qui dépasse sa part rogne celle des suivants, et le
-**dernier servi** (la collation, dernière de `MEAL_ORDER`) encaisse toute la dérive.
+**dernier servi de la journée** encaisse toute la dérive.
+
+> ℹ️ Cette phrase disait « la collation, **dernière de `MEAL_ORDER`** ». C'était vrai
+> quand la mesure a été faite, et ça ne l'est plus depuis que l'ordre est chronologique
+> (2026-08-07) : le dernier servi est maintenant le **dîner**, ou le dernier créneau créé
+> de la soirée. Le mécanisme, lui, est inchangé — et le plancher ne dépend d'aucun
+> créneau en particulier, c'est justement ce qui fait qu'il tient encore.
 
 Depuis le 2026-08-02, la cible protéique d'un repas ne peut plus descendre sous
 **0,7 × sa part équitable** du budget du jour (`PROT_SHARE_FLOOR`), bornée par les

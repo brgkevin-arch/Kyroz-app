@@ -1,7 +1,8 @@
-import { AdaptFlag, DietaryRestriction, FixedMeal, Ingredient, Macros, Meal, MEAL_ORDER, MealEmphasis, MealPlan, MealStatus, MealType, Recipe, RecipeObjective, RecipeSport, UserProfile, VarietyPreference } from './types';
+import { AdaptFlag, DietaryRestriction, FixedMeal, Ingredient, Macros, Meal, MEAL_ORDER, MealEmphasis, MealPlan, MealSlot, MealStatus, MealType, Recipe, RecipeObjective, RecipeSport, UserProfile, VarietyPreference } from './types';
 import { getEffectiveRecipes } from './recipes';
 import { recipeFiberPerPortion, isFiberFocusGoal } from './fiber';
-import { remainingMeals, MEAL_LABEL } from './mealtime';
+import { remainingMeals, mealLabelFor } from './mealtime';
+import { BUILTIN_SLOTS, activeSlots, knownSlots, orderSlotIds, slotOrFallback, slotRecipeTags, slotWeight } from './mealSlots';
 import { adaptRecipe, AdaptTarget, goalToObjectives, sportsToBuckets, needMatch, FLAG_AUDIENCE } from './adaptRecipe';
 import { MIN_KCAL, bankFloorKcal, calculateBMR, neatPal, FAT_MIN_PER_KG_BW, FAT_FLOOR_AIM_MARGIN } from './tdee';
 import { exerciseKcalPerWeek, exerciseKcalPerDay } from './sport';
@@ -22,22 +23,40 @@ import { recipeContainsFood } from './avoidance';
 
 // MEAL_ORDER (ordre canonique des repas) est importé depuis ./types.
 
-// Poids relatifs de base (avant normalisation) : la collation reste légère,
-// les repas principaux plus consistants. Approche les anciennes distributions.
-const BASE_WEIGHT: Record<MealType, number> = {
-  breakfast: 0.9, lunch: 1.1, dinner: 1.0, snack: 0.45,
-};
+// Les poids relatifs de base (collation légère, repas principaux consistants)
+// vivent désormais sur le créneau — `mealSlots.ts::slotWeight`. Ils y sont
+// identiques au kcal près à l'ancien `BASE_WEIGHT` de ce fichier.
+
 // Multiplicateur appliqué au repas mis en avant (« gros midi/soir/matin »).
 const EMPHASIS_BOOST = 1.7;
 
 /**
- * Répartition normalisée (somme = 1) des calories/protéines par repas, calculée
- * dynamiquement à partir des repas choisis et de l'emphase. Remplace les
- * distributions fixes 3/4 repas : gère n'importe quel sous-ensemble de repas.
+ * Part du budget du jour revenant à chaque créneau, par id. Une table et non un
+ * `Record<MealType, …>` : depuis les créneaux libres, les clés ne sont plus
+ * connues à la compilation.
  */
-export function computeDistribution(meals: MealType[], emphasis: MealEmphasis): Record<MealType, number> {
-  const dist: Record<MealType, number> = { breakfast: 0, lunch: 0, dinner: 0, snack: 0 };
-  const active = MEAL_ORDER.filter((m) => meals.includes(m));
+export type MealDistribution = Record<string, number>;
+
+/**
+ * Répartition normalisée (somme = 1) des calories/protéines par repas, calculée
+ * dynamiquement à partir des repas choisis et de l'emphase. Gère n'importe quel
+ * sous-ensemble de créneaux, intégrés ou créés par l'utilisateur.
+ *
+ * `slots` décrit les créneaux connus ; sans lui, les 4 intégrés — ce qui rend
+ * exactement l'ancien comportement pour tout appelant qui n'en a pas.
+ */
+export function computeDistribution(
+  meals: MealType[],
+  emphasis: MealEmphasis,
+  slots: readonly MealSlot[] = BUILTIN_SLOTS,
+): MealDistribution {
+  // Pré-rempli à 0 pour TOUS les créneaux connus, et pas seulement les actifs :
+  // des appelants lisent `dist[t]` pour un repas hors distribution (les repas
+  // FIXES, retirés de la répartition puisque Kyroz ne les met pas à l'échelle).
+  // Rendre `undefined` y produirait un NaN silencieux au lieu d'un zéro.
+  const dist: MealDistribution = {};
+  for (const s of slots) dist[s.id] = 0;
+  const active = orderSlotIds(slots, meals.filter((m) => slots.some((s) => s.id === m)));
   // L'appelant garantit meals non vide (buildLocalPlan a un repli) ; si vide, on
   // renvoie une distribution nulle plutôt que de diviser par zéro.
   if (active.length === 0) return dist;
@@ -45,7 +64,7 @@ export function computeDistribution(meals: MealType[], emphasis: MealEmphasis): 
   const raw: Record<string, number> = {};
   let total = 0;
   for (const m of active) {
-    let w = BASE_WEIGHT[m];
+    let w = slotWeight(slotOrFallback(slots, m));
     if (emphasis !== 'even' && emphasis === m) w *= EMPHASIS_BOOST;
     raw[m] = w;
     total += w;
@@ -553,8 +572,10 @@ function recipeAllowed(recipe: Recipe, profile: UserProfile): boolean {
   return true;
 }
 
-function poolFor(mealType: MealType, profile: UserProfile): Recipe[] {
-  return poolForWithFlag(mealType, profile).pool;
+/** Une recette convient-elle à ce créneau ? (son vivier, pas son id). */
+function recipeFitsSlot(r: Recipe, slot: MealSlot): boolean {
+  const tags = slotRecipeTags(slot);
+  return r.tags.some((t) => (tags as string[]).includes(t));
 }
 
 /**
@@ -569,9 +590,9 @@ function poolFor(mealType: MealType, profile: UserProfile): Recipe[] {
  * `relaxed` = true UNIQUEMENT quand le RÉGIME a dû céder (cas légitime : aucune
  * recette compatible au catalogue) — pas quand on ré-affiche des 👎.
  */
-function poolForWithFlag(mealType: MealType, profile: UserProfile): { pool: Recipe[]; relaxed: boolean } {
+function poolForWithFlag(slot: MealSlot, profile: UserProfile): { pool: Recipe[]; relaxed: boolean } {
   const recipes = getEffectiveRecipes();
-  const all = recipes.filter((r) => r.tags.includes(mealType));
+  const all = recipes.filter((r) => recipeFitsSlot(r, slot));
   const dietOk = all.filter((r) => recipeAllowed(r, profile)); // ① mur dur
   const hidden = new Set(profile.hidden_recipes ?? []);
   const visible = dietOk.filter((r) => !hidden.has(r.id));      // ② moins les 👎
@@ -587,9 +608,10 @@ function poolForWithFlag(mealType: MealType, profile: UserProfile): { pool: Reci
  * quand un 👎 fait passer ce compte sous le seuil, l'UI demande quel ingrédient gêne.
  */
 export function mealPoolSize(profile: UserProfile, mealType: MealType): number {
+  const slot = slotOrFallback(knownSlots(profile), mealType);
   const hidden = new Set(profile.hidden_recipes ?? []);
   return getEffectiveRecipes().filter(
-    (r) => r.tags.includes(mealType) && recipeAllowed(r, profile) && !hidden.has(r.id)
+    (r) => recipeFitsSlot(r, slot) && recipeAllowed(r, profile) && !hidden.has(r.id)
   ).length;
 }
 
@@ -938,7 +960,7 @@ export function nextPlanSeed(stored: string | null, reroll: boolean): number {
 // Version du moteur de génération : à incrémenter quand le scoring/sélection
 // change, pour que les plans EN CACHE se régénèrent automatiquement (la signature
 // change → l'auto-refresh de l'écran Plan rejoue la génération). v2 = lipides cadrés.
-const ENGINE_VERSION = 46; // v46 = le budget du jour suit la dépense RÉELLE du jour (`lib/dailyBudget.ts`) : le plan n'est plus isocalorique entre jours d'entraînement et jours de repos, un plan en cache servirait l'ancienne répartition ; v45 = `tags.objectif` (192 recettes) et `tags.sport` (148) recalculés mécaniquement depuis les kcal du moteur, et `recup_jour_repos` supprimé : le départage `needMatch` lit objectif+sport, donc la sélection change et un plan en cache servirait l'ancienne ; v44 = 47 recettes dont la légumineuse était pesée SÈCHE alors que les instructions la cuisinaient en moins de 40 min : 44 passent sur un `ref` prêt à consommer (macros ET composition changées sous les mêmes ids, un plan en cache servirait l'ancienne pesée), 3 gardent le sec avec un `temps_min` corrigé ; v43 = rep10 réécrit (curry de pois chiches → tofu + pois chiches au lait de coco) : composition changée sous le même id, un plan en cache servirait l'ancienne recette ; v42 = vague B9 : 8 collations GRAND FORMAT (col103–col110, 380–460 kcal) — un format inédit, les gros gabarits n'étaient servis que par étirement ; v41 = vague B8 : 8 collations vegan + sans gluten (col95–col102), familles neuves — les plans en cache ne les verraient pas ; v40 = vague B7 : 30 recettes végétales ajoutées — 12 petits-déjeuners (pd111–pd122), 10 repas complets (rep271–rep280), 8 collations (col87–col94) ; les plans en cache ne les verraient pas ; v39 = la pénalité de FAMILLE s'applique aussi au plan canonique (`FAMILY_SELECT_W_CANON`) — le 1er plan servi passe de 45,0 à 23,3 % de semaines avec quasi-doublon ; un plan en cache servirait encore l'ancienne composition ; v38 = rotation par FAMILLE (`FAMILY_FIBER_TOL`) — la composition de la semaine change, un plan en cache servirait l'ancienne rotation ; v37 = lot B6, 7 collations vegan ajoutées (col80–col86) — les plans en cache ne les verraient pas ; v36 = plancher protéique par repas (`PROT_SHARE_FLOOR`) — la répartition intra-journée change, les plans en cache serviraient l’ancienne ; v35 = lot B5, 20 collations réécrites (composition changée sous le même id → les plans en cache serviraient l’ancienne recette) ; v34 = lot B4, 32 recettes à l’enveloppe corrigée (rep251–rep270, pd99–pd110) — les plans en cache ne les verraient pas ; v33 = lot B3, 20 petits-déjeuners (pd79–pd98) — tous les lots commandés sont livrés ; v32 = lot B1-lot4, 20 repas complets — la vague B1 est complète (rep171–rep250) ; v31 = lot B1-lot3, 20 repas complets ; v30 = lot B1-lot2, 20 repas complets ; v29 = lot B1-lot1, 20 repas complets (les plans en cache ne les verraient pas) ; v28 = cible lipidique visée 15 % au-dessus du plancher (A9) — les plans en cache serviraient l'ancienne répartition ; v27 = lot B2, 13 collations légères (les plans en cache ne les verraient pas) ; v26 = banque de calories (les plans en cache ignoraient les écarts déclarés) ; v25 = borne basse de l'ancre protéine 1,0 → 0,5 (les plans en cache servaient l'ancien plancher) ; v24 = 9 recettes différenciées (nettoyage des doublons : composition modifiée) ; v23 = ancre protéine rendue à 8 recettes ; v22 = le temps de prépa ne filtre plus ; v21 = yaourt_grec démappé
+const ENGINE_VERSION = 47; // v47 = créneaux de repas libres : l'ordre canonique de la journée devient CHRONOLOGIQUE (la collation de 16 h passe avant le dîner, elle était servie en dernier), donc le report de budget de repas en repas ne se fait plus dans le même ordre et un plan en cache servirait l'ancienne répartition ; v46 = le budget du jour suit la dépense RÉELLE du jour (`lib/dailyBudget.ts`) : le plan n'est plus isocalorique entre jours d'entraînement et jours de repos, un plan en cache servirait l'ancienne répartition ; v45 = `tags.objectif` (192 recettes) et `tags.sport` (148) recalculés mécaniquement depuis les kcal du moteur, et `recup_jour_repos` supprimé : le départage `needMatch` lit objectif+sport, donc la sélection change et un plan en cache servirait l'ancienne ; v44 = 47 recettes dont la légumineuse était pesée SÈCHE alors que les instructions la cuisinaient en moins de 40 min : 44 passent sur un `ref` prêt à consommer (macros ET composition changées sous les mêmes ids, un plan en cache servirait l'ancienne pesée), 3 gardent le sec avec un `temps_min` corrigé ; v43 = rep10 réécrit (curry de pois chiches → tofu + pois chiches au lait de coco) : composition changée sous le même id, un plan en cache servirait l'ancienne recette ; v42 = vague B9 : 8 collations GRAND FORMAT (col103–col110, 380–460 kcal) — un format inédit, les gros gabarits n'étaient servis que par étirement ; v41 = vague B8 : 8 collations vegan + sans gluten (col95–col102), familles neuves — les plans en cache ne les verraient pas ; v40 = vague B7 : 30 recettes végétales ajoutées — 12 petits-déjeuners (pd111–pd122), 10 repas complets (rep271–rep280), 8 collations (col87–col94) ; les plans en cache ne les verraient pas ; v39 = la pénalité de FAMILLE s'applique aussi au plan canonique (`FAMILY_SELECT_W_CANON`) — le 1er plan servi passe de 45,0 à 23,3 % de semaines avec quasi-doublon ; un plan en cache servirait encore l'ancienne composition ; v38 = rotation par FAMILLE (`FAMILY_FIBER_TOL`) — la composition de la semaine change, un plan en cache servirait l'ancienne rotation ; v37 = lot B6, 7 collations vegan ajoutées (col80–col86) — les plans en cache ne les verraient pas ; v36 = plancher protéique par repas (`PROT_SHARE_FLOOR`) — la répartition intra-journée change, les plans en cache serviraient l’ancienne ; v35 = lot B5, 20 collations réécrites (composition changée sous le même id → les plans en cache serviraient l’ancienne recette) ; v34 = lot B4, 32 recettes à l’enveloppe corrigée (rep251–rep270, pd99–pd110) — les plans en cache ne les verraient pas ; v33 = lot B3, 20 petits-déjeuners (pd79–pd98) — tous les lots commandés sont livrés ; v32 = lot B1-lot4, 20 repas complets — la vague B1 est complète (rep171–rep250) ; v31 = lot B1-lot3, 20 repas complets ; v30 = lot B1-lot2, 20 repas complets ; v29 = lot B1-lot1, 20 repas complets (les plans en cache ne les verraient pas) ; v28 = cible lipidique visée 15 % au-dessus du plancher (A9) — les plans en cache serviraient l'ancienne répartition ; v27 = lot B2, 13 collations légères (les plans en cache ne les verraient pas) ; v26 = banque de calories (les plans en cache ignoraient les écarts déclarés) ; v25 = borne basse de l'ancre protéine 1,0 → 0,5 (les plans en cache servaient l'ancien plancher) ; v24 = 9 recettes différenciées (nettoyage des doublons : composition modifiée) ; v23 = ancre protéine rendue à 8 recettes ; v22 = le temps de prépa ne filtre plus ; v21 = yaourt_grec démappé
 
 export function profileSignature(p: UserProfile): string {
   // NB : `hidden_recipes` (👎) est VOLONTAIREMENT absent. Un 👎 remplace UN repas
@@ -950,6 +972,11 @@ export function profileSignature(p: UserProfile): string {
     ev: ENGINE_VERSION,
     k: p.target_kcal, pr: p.target_protein_g, c: p.target_carbs_g, f: p.target_fat_g,
     d: p.plan_days, m: p.meals, e: p.meal_emphasis, v: p.variety,
+    // Créneaux CRÉÉS : seuls l'heure (donc l'ordre de la journée) et le vivier
+    // entrent dans la signature. Le LIBELLÉ en est volontairement absent — le
+    // renommer ne change pas une assiette, et le mettre ici régénérerait toute la
+    // semaine pour une faute de frappe corrigée. Il se résout à l'affichage.
+    ms: (p.meal_slots ?? []).map((s) => [s.id, s.hour, s.minute ?? 0, s.pool]),
     rw: p.rest_weekdays ?? null, td: p.training_days_per_week, pw: p.plan_weekdays,
     // Dépense sportive HEBDOMADAIRE : elle pilote la répartition du budget entre
     // les jours (`dayExpenditures`). `target_kcal` la reflète d'habitude, mais pas
@@ -975,8 +1002,11 @@ export function profileSignature(p: UserProfile): string {
 // dans la cible (cas du plan canonique seed 0). Borné à 4 itérations.
 // Plancher protéique d'un repas, en fraction de sa part ÉQUITABLE du jour.
 // Sans lui, la cible protéique se calcule sur le RESTANT : chaque repas qui dépasse
-// sa part rogne celle des suivants, et le dernier servi (la collation) encaisse toute
-// la dérive. Mesuré avant correctif sur `F 70 masse` : part équitable 12,7 g, cible
+// sa part rogne celle des suivants, et le dernier servi de la journée encaisse toute
+// la dérive. (Cette ligne disait « la collation » : c'était vrai tant qu'elle était
+// dernière de `MEAL_ORDER`, ce qui n'est plus le cas depuis l'ordre chronologique du
+// 2026-08-07. Le plancher ne vise aucun créneau en particulier — c'est ce qui fait
+// qu'il tient encore.) Mesuré avant correctif sur `F 70 masse` : part équitable 12,7 g, cible
 // réellement servie à la collation **5,4 g** — une densité de 1,7 g pour 100 kcal
 // qu'aucune collation du catalogue ne peut viser. Le moteur demandait alors 47 g de
 // glucides pour 311 kcal, la recette débordait, et `over_target_kcal` se levait :
@@ -1152,7 +1182,8 @@ export function dayTargetKcal(profile: UserProfile, days: number, day: number): 
 }
 
 /** Construit le Meal VERROUILLÉ d'un repas fixe (géré par l'user) pour un jour donné. */
-function fixedMealToMeal(fm: FixedMeal, day: number, mealType: MealType, isRest: boolean): Meal {
+function fixedMealToMeal(fm: FixedMeal, day: number, slot: MealSlot, isRest: boolean): Meal {
+  const mealType = slot.id;
   const recipe: Recipe = {
     id: `fixed-${mealType}`,
     name_fr: fm.label,
@@ -1161,7 +1192,10 @@ function fixedMealToMeal(fm: FixedMeal, day: number, mealType: MealType, isRest:
     macros_per_portion: fm.macros,
     ingredients: fm.ingredients ?? [],
     steps: [],
-    tags: [mealType],
+    // Les tags du VIVIER du créneau, pas son id : sur un créneau créé, `custom-1`
+    // n'est pas un tag de recette et cette assiette ne serait plus reconnue comme
+    // un petit-déj / un repas / une collation nulle part ailleurs.
+    tags: slotRecipeTags(slot),
     validated_by_dietitian: false,
   };
   return {
@@ -1180,12 +1214,12 @@ function fixedMealToMeal(fm: FixedMeal, day: number, mealType: MealType, isRest:
 export function buildLocalPlan(profile: UserProfile, seed: number = 0): MealPlan {
   const days = Math.min(Math.max(profile.plan_days, 1), 7);
 
-  // Repas choisis par l'utilisateur (réordonnés), avec repli sur 4 repas pour
-  // les profils créés avant cette option.
-  const selected = Array.isArray(profile.meals) && profile.meals.length > 0
-    ? profile.meals
-    : (['breakfast', 'lunch', 'dinner', 'snack'] as MealType[]);
-  const allMealTypes = MEAL_ORDER.filter((m) => selected.includes(m));
+  // Créneaux retenus par l'utilisateur, dans l'ordre CHRONOLOGIQUE. `activeSlots`
+  // porte le repli sur les 4 intégrés (profils créés avant l'option, et `meals`
+  // non-tableau — le NOMBRE 4, vu en production, cf. syncGuard).
+  const slots = knownSlots(profile);
+  const daySlots = activeSlots(profile);
+  const allMealTypes = daySlots.map((s) => s.id);
 
   // Repas fixes (gérés par l'user) vs repas planifiés par Kyroz : les fixes sont
   // injectés tels quels et leur budget soustrait ; seuls les `plannedTypes` sont générés.
@@ -1197,7 +1231,7 @@ export function buildLocalPlan(profile: UserProfile, seed: number = 0): MealPlan
   // n'est pas mis à l'échelle), sinon elle serait sans effet → repli « équilibré ».
   const rawEmphasis = profile.meal_emphasis ?? 'even';
   const emphasis = rawEmphasis !== 'even' && !plannedTypes.includes(rawEmphasis as MealType) ? 'even' : rawEmphasis;
-  const distribution = computeDistribution(plannedTypes, emphasis);
+  const distribution = computeDistribution(plannedTypes, emphasis, slots);
 
   const variety = profile.variety ?? 'balanced';
   const fiberStrong = isFiberFocusGoal(profile.goal); // sèche → fibres prioritaires
@@ -1228,10 +1262,11 @@ export function buildLocalPlan(profile: UserProfile, seed: number = 0): MealPlan
 
   const pools: Record<string, Recipe[]> = {};
   const relaxed: Record<string, boolean> = {};
-  for (const mt of plannedTypes) {
-    const pf = poolForWithFlag(mt, profile);
-    pools[mt] = pf.pool;
-    relaxed[mt] = pf.relaxed;
+  for (const slot of daySlots) {
+    if (fixedMeals[slot.id]) continue;
+    const pf = poolForWithFlag(slot, profile);
+    pools[slot.id] = pf.pool;
+    relaxed[slot.id] = pf.relaxed;
   }
 
   // Recettes correspondant aux protéines préférées (départage à macro égale).
@@ -1289,13 +1324,14 @@ export function buildLocalPlan(profile: UserProfile, seed: number = 0): MealPlan
       dayCibleKcal, profile.target_protein_g, profile.weight_kg, profile.target_fat_g,
     );
 
-    // Parcours dans l'ordre canonique : les repas fixes sont injectés verrouillés,
+    // Parcours dans l'ordre CHRONOLOGIQUE : les repas fixes sont injectés verrouillés,
     // les autres planifiés sur le budget restant (report de budget de repas en repas).
     const dayMeals: Meal[] = [];
-    for (const mealType of allMealTypes) {
+    for (const slot of daySlots) {
+      const mealType = slot.id;
       const fm = fixedMeals[mealType];
       if (fm) {
-        dayMeals.push(fixedMealToMeal(fm, d, mealType, isRest));
+        dayMeals.push(fixedMealToMeal(fm, d, slot, isRest));
         continue;
       }
       const weight = distribution[mealType];
@@ -1385,7 +1421,8 @@ export function buildLocalPlan(profile: UserProfile, seed: number = 0): MealPlan
  */
 export function swapMeal(profile: UserProfile, plan: MealPlan, meal: Meal, favoriteIds?: Iterable<string>): MealPlan {
   if (meal.fixed) return plan; // un repas géré par l'user ne se swappe pas
-  const pool = poolFor(meal.meal_type, profile).filter((r) => r.id !== meal.recipe.id);
+  const slot = slotOrFallback(knownSlots(profile), meal.meal_type);
+  const pool = poolForWithFlag(slot, profile).pool.filter((r) => r.id !== meal.recipe.id);
   if (pool.length === 0) return plan; // aucune alternative possible
 
   // Cible = les macros actuelles du repas (en grammes) → l'alternative est adaptée
@@ -1499,10 +1536,13 @@ function rebalanceCore(
   const dayMeals = plan.meals.filter((m) => m.day === day);
   if (dayMeals.length === 0) return plan;
 
-  const types = MEAL_ORDER.filter((mt) => dayMeals.some((m) => m.meal_type === mt));
+  // Les créneaux tels que le PLAN les porte, pas tels que le profil les déclare :
+  // un créneau supprimé depuis la génération doit rester recalable (cf. slotOrFallback).
+  const slots = knownSlots(profile);
+  const types = orderSlotIds(slots, dayMeals.map((m) => m.meal_type));
   const rawEmphasis = profile.meal_emphasis ?? 'even';
   const emphasis = rawEmphasis !== 'even' && !types.includes(rawEmphasis as MealType) ? 'even' : rawEmphasis;
-  const dist = computeDistribution(types, emphasis);
+  const dist = computeDistribution(types, emphasis, types.map((id) => slotOrFallback(slots, id)));
 
   const isAdjustable = (m: Meal) => adjustIds.has(m.id) && (m.status ?? 'planned') === 'planned' && !skipIds.has(m.id);
 
@@ -1542,7 +1582,7 @@ function rebalanceCore(
   let remWeight = adjustMeals.reduce((s, m) => s + dist[m.meal_type], 0) || 1;
 
   const updates = new Map<string, Meal>();
-  for (const mt of MEAL_ORDER) {
+  for (const mt of types) {
     const meal = adjustMeals.find((m) => m.meal_type === mt);
     if (!meal) continue;
     const weight = dist[mt];
@@ -1623,8 +1663,9 @@ export function adaptDayOptions(
   profile: UserProfile, plan: MealPlan, day: number, nowHour: number,
 ): AdaptOption[] {
   const dayMeals = plan.meals.filter((m) => m.day === day);
+  const slots = knownSlots(profile);
   // Repas fixes exclus : ils ne se recalent pas (l'user les gère).
-  const upcoming = remainingMeals(dayMeals, nowHour).filter((m) => !m.fixed);
+  const upcoming = remainingMeals(dayMeals, nowHour, slots).filter((m) => !m.fixed);
   if (upcoming.length === 0) return [];
 
   const allIds = new Set(upcoming.map((m) => m.id));
@@ -1654,30 +1695,37 @@ export function adaptDayOptions(
   options.push({
     key: 'spread',
     label: 'Répartir sur mes repas restants',
-    detail: upcoming.map((m) => MEAL_LABEL[m.meal_type]).join(' + ') + ' ajustés',
+    detail: upcoming.map((m) => mealLabelFor(slots, m.meal_type)).join(' + ') + ' ajustés',
     plan: spread, ...chiffrer(spread),
   });
 
   // 2. Sauter la collation → les autres restants prennent le relais (protéines pleines).
-  const snack = upcoming.find((m) => m.meal_type === 'snack');
+  // ⚠️ Se cherche par VIVIER et non par l'id `snack` : avec des créneaux libres, la
+  // prochaine collation peut être un « Shaker de 22h ». La cibler par son id ne
+  // proposerait l'option qu'à qui a gardé le créneau intégré — et la ferait
+  // disparaître chez celui qui a justement le plus de collations à sauter.
+  const snack = upcoming.find((m) => slotOrFallback(slots, m.meal_type).pool === 'snack');
   if (snack && upcoming.length >= 2) {
     const rest = new Set(upcoming.filter((m) => m.id !== snack.id).map((m) => m.id));
     const skipped = rebalanceCore(profile, plan, day, rest, new Set([snack.id]));
     options.push({
       key: 'skip_snack',
-      label: 'Sauter la collation',
+      label: `Sauter ${mealLabelFor(slots, snack.meal_type) === 'collation' ? 'la collation' : `« ${slotOrFallback(slots, snack.meal_type).label} »`}`,
       detail: 'le reste se densifie en protéines',
       plan: skipped, ...chiffrer(skipped),
     });
   }
 
   // 3. Ajuster surtout le dîner → les autres repas restants ne bougent pas.
-  const dinner = upcoming.find((m) => m.meal_type === 'dinner');
+  // Le DERNIER repas complet encore devant soi, et non l'id `dinner` : c'est le
+  // plus gros levier de la fin de journée, et sur un profil sans créneau « Dîner »
+  // l'option disparaissait alors qu'il restait un vrai repas à ajuster.
+  const dinner = [...upcoming].reverse().find((m) => slotOrFallback(slots, m.meal_type).pool === 'meal');
   if (dinner && upcoming.length >= 2) {
     const focused = rebalanceCore(profile, plan, day, new Set([dinner.id]), new Set());
     options.push({
       key: 'focus_dinner',
-      label: 'Ajuster surtout le dîner',
+      label: `Ajuster surtout ${mealLabelFor(slots, dinner.meal_type) === 'dîner' ? 'le dîner' : `« ${slotOrFallback(slots, dinner.meal_type).label} »`}`,
       detail: 'tes autres repas ne bougent pas',
       plan: focused, ...chiffrer(focused),
     });

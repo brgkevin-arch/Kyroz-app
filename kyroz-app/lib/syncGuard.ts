@@ -1,4 +1,5 @@
-import { MEAL_ORDER, UserProfile, VarietyPreference } from './types';
+import { BUILTIN_MEAL_TYPES, MEAL_DEFAULT_PRIORITY, MealSlot, UserProfile, VarietyPreference } from './types';
+import { sanitizeSlot } from './mealSlots';
 import { totalSessionsPerWeek } from './sport';
 import { readLowEaRegistry } from './safety';
 
@@ -121,17 +122,70 @@ export function normalizeVariety<T extends Partial<UserProfile>>(p: T | null): T
 //
 // Un nombre est lu comme « je veux N repas » — l'intention est claire, et c'est déjà
 // ce que l'écran Profil affichait (« 4 repas »). On prend donc les N premiers de
-// `MEAL_ORDER`, ce qui rend EXACTEMENT ce que le moteur servait déjà pour N = 4.
-// Toute autre forme inexploitable retombe sur les 4 repas par défaut.
+// `MEAL_DEFAULT_PRIORITY`, ce qui rend EXACTEMENT ce que le moteur servait déjà
+// pour N = 4. Toute autre forme inexploitable retombe sur les 4 repas par défaut.
+//
+// ⚠️ La priorité N'EST PAS l'ordre chronologique, et c'est volontaire. `MEAL_ORDER`
+// est passé chronologique le 2026-08-07 (la collation de 16 h avant le dîner) ; s'en
+// servir ici ferait rendre « petit-déj + déjeuner + collation » pour N = 3, donc
+// SUPPRIMER le dîner de quelqu'un qui n'a jamais demandé ça.
+//
+// ⚠️ Un id de créneau CRÉÉ (`custom-1`) est un id VALIDE. Ne valider que contre les
+// 4 intégrés ferait passer tout profil à créneaux libres pour une donnée abîmée, et
+// ce garde-fou effacerait en silence les repas que l'utilisateur vient d'ajouter —
+// un correctif qui détruit exactement ce qu'il prétend protéger.
 //
 // ⚠️ Le repli du moteur (`Array.isArray`) reste en place : c'est lui qui a évité que
 // le défaut atteigne les assiettes, et il protège les chemins qui ne passent pas ici.
 export function normalizeMeals<T extends Partial<UserProfile>>(p: T | null): T | null {
   if (!p || p.meals === undefined) return p;
   const m = p.meals as unknown;
-  if (Array.isArray(m) && m.length > 0 && m.every((x) => MEAL_ORDER.includes(x))) return p;
-  const n = typeof m === 'number' && m >= 1 ? Math.min(Math.floor(m), MEAL_ORDER.length) : MEAL_ORDER.length;
-  return { ...p, meals: MEAL_ORDER.slice(0, n) };
+  const connus = new Set<string>([
+    ...BUILTIN_MEAL_TYPES,
+    ...(Array.isArray(p.meal_slots) ? p.meal_slots.map((s) => String(s?.id)) : []),
+  ]);
+  if (Array.isArray(m) && m.length > 0 && m.every((x) => typeof x === 'string' && connus.has(x))) return p;
+  const n = typeof m === 'number' && m >= 1
+    ? Math.min(Math.floor(m), MEAL_DEFAULT_PRIORITY.length)
+    : MEAL_DEFAULT_PRIORITY.length;
+  return { ...p, meals: MEAL_DEFAULT_PRIORITY.slice(0, n) };
+}
+
+// ── Créneaux créés illisibles ───────────────────────────────────────────────
+//
+// `meal_slots` est du jsonb LIBRE côté Supabase (aucune contrainte de forme, cf. la
+// migration) : c'est le client qui borne, et il doit le faire à la LECTURE. Une
+// entrée sans id ou sans heure numérique casserait le tri chronologique de la
+// journée — donc l'ordre des repas servis, pas seulement un libellé.
+//
+// Une entrée inexploitable est JETÉE, jamais réparée au jugé : inventer une heure
+// placerait un repas à un moment que personne n'a choisi. Un créneau qui disparaît
+// laisse son id dans `meals`, et `slotOrFallback` sait encore le servir.
+export function normalizeMealSlots<T extends Partial<UserProfile>>(p: T | null): T | null {
+  if (!p || p.meal_slots === undefined || p.meal_slots === null) return p;
+  const brut = p.meal_slots as unknown;
+  if (!Array.isArray(brut)) return { ...p, meal_slots: undefined };
+  const vus = new Set<string>(BUILTIN_MEAL_TYPES);
+  const propres: MealSlot[] = [];
+  for (const s of brut) {
+    if (!s || typeof s !== 'object') continue;
+    const c = s as Partial<MealSlot>;
+    if (typeof c.id !== 'string' || !c.id || vus.has(c.id)) continue;
+    if (typeof c.hour !== 'number' || !Number.isFinite(c.hour)) continue;
+    vus.add(c.id);
+    propres.push(sanitizeSlot({
+      id: c.id,
+      label: typeof c.label === 'string' ? c.label : '',
+      hour: c.hour,
+      minute: typeof c.minute === 'number' && Number.isFinite(c.minute) ? c.minute : 0,
+      pool: c.pool === 'breakfast' || c.pool === 'meal' ? c.pool : 'snack',
+    }));
+  }
+  // Comparaison par VALEUR : `sanitizeSlot` rend toujours un objet neuf, donc une
+  // comparaison d'identité ferait remplacer le profil en mémoire à chaque lecture —
+  // et une nouvelle identité relance les effets qui en dépendent (cf. useProfile).
+  if (JSON.stringify(propres) === JSON.stringify(brut)) return p;
+  return { ...p, meal_slots: propres.length ? propres : undefined };
 }
 
 // À l'hydratation « pull_cloud » : un `sports` absent/vide côté cloud (ligne

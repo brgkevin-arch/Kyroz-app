@@ -5,7 +5,12 @@ import { useTheme, Radius, cardShadow, ThemePalette, Type, Spacing, Trait, Icone
 import { Meal } from '../lib/types';
 import { useTourTarget } from './GuidedTour';
 import { useFavorites } from '../hooks/useFavorites';
+import { useMealSlots } from '../hooks/useMealSlots';
+import { slotLabel } from '../lib/mealSlots';
 
+// Les libellés des 4 créneaux INTÉGRÉS, en version longue (« Petit-déjeuner »
+// plutôt que « Petit-déj ») : c'est le surtitre de la carte, il a la place. Un
+// créneau CRÉÉ, lui, porte le nom que l'utilisateur lui a donné.
 const MEAL_LABELS: Record<string, string> = {
   breakfast: 'Petit-déjeuner',
   lunch: 'Déjeuner',
@@ -31,6 +36,7 @@ export function MealCard({
   const rootRef = useTourTarget(tourId);
   const cookRef = useTourTarget(cookTourId);
   const { isFavorite, toggle } = useFavorites();
+  const slots = useMealSlots();
   const fav = isFavorite(meal.recipe.id);
   const isFixed = meal.fixed === true;
   const eaten = meal.status === 'eaten';
@@ -49,7 +55,7 @@ export function MealCard({
           du plat devient la première chose qu'on lit. Les états (mangé / sauté /
           tu gères) prennent la place de la durée — ils comptent plus qu'elle. */}
       <Text style={[styles.type, { color: t.textTertiary }]}>
-        {MEAL_LABELS[meal.meal_type]?.toUpperCase()}
+        {(MEAL_LABELS[meal.meal_type] ?? slotLabel(slots, meal.meal_type)).toLocaleUpperCase('fr-FR')}
         {isFixed ? ' · TU GÈRES'
           : eaten ? ' · ✓ MANGÉ'
           : skipped ? ' · ⊘ SAUTÉ'
