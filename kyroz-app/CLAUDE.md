@@ -227,6 +227,7 @@ recipe_overrides (recettes personnalisées par l'utilisateur)
 | **Le plan de la semaine** | AsyncStorage `@kyroz:plan` | **déterministe** : re-dérivable du profil + du catalogue. `meal_plans` a été supprimée le 2026-06-14 pour cette raison |
 | **Les repas du plan** | dans l'objet plan ci-dessus | idem — jamais eu de table `meals` |
 | **La liste de courses** | recalculée à la volée depuis le plan moins le garde-manger | idem — jamais eu de table `shopping_lists` |
+| **L'historique des courses** | AsyncStorage `@kyroz:shoppingHistory`, l'appareil uniquement | ce qui est éphémère par nature (la liste est un CALCUL, son cache est effacé à chaque changement de plan) a besoin d'une trace, pas d'une table. Décision du 2026-08-07, même raisonnement que le journal hors plan : commencer local ne ferme aucune porte, le miroir se pose par-dessus la clé le jour où le besoin est mesuré. Borné à 30 sorties / 180 jours |
 | **Le catalogue de recettes** | `Recette/recettes-kyroz.json` → `lib/recipeMap.ts`, embarqué dans le bundle | il est le même pour tout le monde ; le servir depuis le réseau ajouterait une latence pour zéro bénéfice. Les fibres sont calculées à la volée (`lib/fiber.ts`), sourcées Ciqual par `ref`/`food_id`, jamais stockées |
 | **Les photos de progression** | AsyncStorage, l'appareil uniquement | donnée de santé sensible (RGPD) — décision explicite, cf. §7 |
 | **Le journal des repas hors plan** | AsyncStorage `@kyroz:offPlan`, l'appareil uniquement | donnée de **comportement alimentaire** (même traitement que les photos) ; et lui donner une table rouvrirait la porte fermée en supprimant `meal_plans`. Décision fondateur du 2026-08-05, cf. AGENTS.md E6 |
@@ -289,6 +290,7 @@ OUTPUT         → Plan + liste de courses + recettes
 - [x] Génération plan repas 7 jours (moteur local)
 - [x] Affichage recettes + macros
 - [x] Liste de courses
+- [x] Clôture des courses (« Courses terminées ») + historique des listes — LOCAL-ONLY
 - [x] Frigo / garde-manger
 - [x] Favoris recettes
 - [x] Streak tracker (7 jours consécutifs)
