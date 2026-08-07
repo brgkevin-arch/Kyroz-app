@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView,
 } from 'react-native';
@@ -6,21 +6,27 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useTheme, ThemePalette, Spacing, Radius, Type, Fond, Trait, Icone, OPACITE_PRESSION } from '../../constants/theme';
+import { useTheme, ThemePalette, Spacing, Radius, Type, Fond, Trait, Icone, OPACITE_PRESSION, CIBLE_TACTILE_MIN } from '../../constants/theme';
 import { useLayout } from '../../constants/layout';
 import { Field, PrimaryButton, Segmented } from '../../components/ui';
 import { useAuth } from '../../hooks/useAuth';
 import { DISCLAIMER } from '../../constants/legal';
 import { isReviewLogin } from '../../lib/reviewAccess';
+import { CODE_LONGUEUR, codeComplet, normaliseCode, traduitErreurConfirmation } from '../../lib/emailConfirmation';
 
 type Mode = 'signin' | 'signup';
+
+/** Délai avant de pouvoir redemander un e-mail. Supabase refuse plus vite que ça
+ *  (60 s côté serveur) : sans compte à rebours visible, l'utilisateur appuie et
+ *  reçoit une erreur qu'il lit comme une panne. */
+const DELAI_RENVOI_S = 60;
 
 export default function LoginScreen() {
   const t = useTheme();
   const s = useMemo(() => makeStyles(t), [t]);
   const layout = useLayout();
   const router = useRouter();
-  const { signIn, signUp, signInGuest } = useAuth();
+  const { signIn, signUp, confirmEmail, resendConfirmation, signInGuest } = useAuth();
 
   const [mode, setMode] = useState<Mode>('signup');
   const [email, setEmail] = useState('');
@@ -29,6 +35,18 @@ export default function LoginScreen() {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  // Adresse dont la confirmation est en attente. Non nulle = l'écran affiche la
+  // saisie du code, pas le formulaire.
+  const [aConfirmer, setAConfirmer] = useState<string | null>(null);
+  const [code, setCode] = useState('');
+  const [renvoiDans, setRenvoiDans] = useState(0);
+
+  useEffect(() => {
+    if (renvoiDans <= 0) return;
+    const id = setInterval(() => setRenvoiDans((n) => (n <= 1 ? 0 : n - 1)), 1000);
+    return () => clearInterval(id);
+  }, [renvoiDans]);
 
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
   const canSubmit = emailValid && password.length >= 6 && (mode === 'signin' || consent);
@@ -47,15 +65,48 @@ export default function LoginScreen() {
       : await signUp(email, password, consent);
     setBusy(false);
     if (res.error) { setError(translate(res.error)); return; }
-    // Inscription sans session = confirmation email à valider → on explique
-    // plutôt que de renvoyer sur un formulaire vide (l'utilisateur croirait à un bug).
+    // Inscription sans session = confirmation e-mail à valider. On enchaîne SUR PLACE
+    // avec la saisie du code reçu — l'utilisateur ne quitte pas l'app, et il n'a rien
+    // à retenir. Renvoyer ici sur un formulaire de connexion vide ferait croire à un bug.
     if ('needsConfirmation' in res && res.needsConfirmation) {
-      setMode('signin');
+      setAConfirmer(email.trim());
       setPassword('');
-      setNotice('Compte créé ! Vérifie ta boîte mail pour confirmer ton adresse, puis connecte-toi.');
+      setCode('');
+      setRenvoiDans(DELAI_RENVOI_S);
       return;
     }
     router.replace('/'); // l'index route ensuite selon session + profil
+  };
+
+  const confirmer = async () => {
+    if (!aConfirmer || !codeComplet(code) || busy) return;
+    setBusy(true); setError(null); setNotice(null);
+    const res = await confirmEmail(aConfirmer, code);
+    setBusy(false);
+    if (res.error) { setError(traduitErreurConfirmation(res.error)); return; }
+    // `verifyOtp` ouvre la session : rien à ressaisir, on entre directement.
+    router.replace('/');
+  };
+
+  const renvoyer = async () => {
+    if (!aConfirmer || renvoiDans > 0 || busy) return;
+    setBusy(true); setError(null); setNotice(null);
+    const res = await resendConfirmation(aConfirmer);
+    setBusy(false);
+    setRenvoiDans(DELAI_RENVOI_S);
+    if (res.error) { setError(traduitErreurConfirmation(res.error)); return; }
+    // ⚠️ Le nouvel envoi INVALIDE le code précédent : le dire, sinon quelqu'un
+    // saisit celui du premier e-mail et croit que l'app se trompe.
+    setCode('');
+    setNotice('Nouvel e-mail envoyé. Utilise le code du dernier reçu, les précédents ne valent plus.');
+  };
+
+  const retourConnexion = () => {
+    setAConfirmer(null);
+    setCode('');
+    setMode('signin');
+    setError(null);
+    setNotice('Adresse confirmée ? Connecte-toi avec ton e-mail et ton mot de passe.');
   };
 
   const guest = async () => {
@@ -80,6 +131,57 @@ export default function LoginScreen() {
 
           <View style={{ height: 28 }} />
 
+          {aConfirmer ? (
+            <>
+              {/* ── Confirmation d'adresse : le code reçu par e-mail ────────────
+                  L'utilisateur reste ICI. Le lien de l'e-mail marche aussi, mais
+                  il ouvre un navigateur et ne sait pas revenir dans l'app (aucun
+                  lien universel n'est configuré) — cf. lib/emailConfirmation.ts. */}
+              <Text style={s.titreConfirmation}>Confirme ton adresse</Text>
+              <Text style={s.texteConfirmation}>
+                Un code à {CODE_LONGUEUR} chiffres vient de partir vers <Text style={s.adresse}>{aConfirmer}</Text>. Saisis-le ici.
+              </Text>
+
+              <View style={{ height: 18 }} />
+
+              <Field
+                t={t} label={`Code à ${CODE_LONGUEUR} chiffres`} value={code}
+                onChangeText={(v) => setCode(normaliseCode(v))}
+                placeholder="000000" keyboardType="number-pad"
+                maxLength={CODE_LONGUEUR}
+                // Le code arrive par e-mail, pas par SMS : `oneTimeCode` permet à iOS
+                // de le proposer au collage depuis la notification.
+                textContentType="oneTimeCode" autoComplete="one-time-code"
+              />
+
+              {error && <Text style={s.error}>{error}</Text>}
+              {notice && <Text style={s.notice}>{notice}</Text>}
+
+              <View style={{ height: 10 }} />
+              <PrimaryButton
+                t={t} label="Confirmer mon adresse" onPress={confirmer}
+                disabled={!codeComplet(code)} loading={busy}
+              />
+
+              <TouchableOpacity
+                onPress={renvoyer} disabled={renvoiDans > 0 || busy}
+                activeOpacity={OPACITE_PRESSION} style={s.lienSecondaire}
+              >
+                <Text style={[s.lienSecondaireTxt, renvoiDans > 0 && { color: t.textQuaternary }]}>
+                  {renvoiDans > 0 ? `Renvoyer l'e-mail (${renvoiDans} s)` : 'Renvoyer l\'e-mail'}
+                </Text>
+              </TouchableOpacity>
+
+              <Text style={s.aideConfirmation}>
+                Rien reçu ? Regarde dans les indésirables. Si tu as cliqué le lien de l'e-mail, ton adresse est déjà confirmée : connecte-toi.
+              </Text>
+
+              <TouchableOpacity onPress={retourConnexion} activeOpacity={OPACITE_PRESSION} style={s.lienSecondaire}>
+                <Text style={s.lienSecondaireTxt}>Revenir à la connexion</Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+          <>
           <Segmented
             t={t}
             options={[{ label: 'Inscription', value: 'signup' }, { label: 'Connexion', value: 'signin' }]}
@@ -141,6 +243,8 @@ export default function LoginScreen() {
               </TouchableOpacity>
             </>
           )}
+          </>
+          )}
 
           <Text style={s.disclaimer}>{DISCLAIMER}</Text>
           <TouchableOpacity onPress={() => router.push('/legal')} activeOpacity={OPACITE_PRESSION}>
@@ -171,6 +275,14 @@ function makeStyles(t: ThemePalette) {
     consent: { flexDirection: 'row', gap: Spacing.md, alignItems: 'flex-start', marginTop: Spacing.lg, paddingHorizontal: Spacing.xs },
     check: { width: 24, height: 24, borderRadius: Radius.sm - 4, borderWidth: Trait.controle, alignItems: 'center', justifyContent: 'center', marginTop: Spacing.xs },
     consentTxt: { ...Type.caption, flex: 1, color: t.textTertiary, lineHeight: 19 },
+    titreConfirmation: { ...Type.h2, color: t.text, textAlign: 'center' },
+    texteConfirmation: { ...Type.body, color: t.textSecondary, textAlign: 'center', lineHeight: 22, marginTop: Spacing.md },
+    adresse: { ...Type.bodyStrong, color: t.text },
+    // Un lien secondaire reste une CIBLE : `minHeight` garantit les 44 pt d'Apple,
+    // que le seul texte centré n'atteindrait pas (cf. CLAUDE.md §8, espacement).
+    lienSecondaire: { minHeight: CIBLE_TACTILE_MIN, justifyContent: 'center', marginTop: Spacing.md },
+    lienSecondaireTxt: { ...Type.bodyStrong, color: t.textSecondary, textAlign: 'center' },
+    aideConfirmation: { ...Type.caption, color: t.textTertiary, textAlign: 'center', lineHeight: 19, marginTop: Spacing.sm },
     error: { ...Type.bodySmallStrong, color: t.danger, textAlign: 'center', marginTop: Spacing.lg },
     notice: { ...Type.bodySmallStrong, color: t.accent, textAlign: 'center', marginTop: Spacing.lg, lineHeight: 20 },
     social: { ...Type.caption, color: t.textTertiary, textAlign: 'center', marginTop: Spacing.xl },
