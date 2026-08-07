@@ -2,8 +2,9 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import {
-  CODE_LONGUEUR, URL_RETOUR_CONFIRMATION,
-  normaliseCode, codeComplet, traduitErreurConfirmation,
+  CODE_LONGUEUR, MDP_LONGUEUR_MIN, URL_RETOUR_CONFIRMATION,
+  normaliseCode, codeComplet, motDePasseValide,
+  traduitErreurConfirmation, traduitErreurReinitialisation,
 } from '../emailConfirmation';
 
 // ── Pourquoi ce test existe ─────────────────────────────────────────────────
@@ -26,7 +27,34 @@ import {
 
 const RACINE = join(__dirname, '..', '..');
 const GABARIT = join(RACINE, 'supabase', 'emails', 'confirmation.html');
+const GABARIT_MDP = join(RACINE, 'supabase', 'emails', 'reinitialisation.html');
 const PAGE_RETOUR = join(RACINE, 'public', 'confirme.html');
+
+/** Variables de gabarit que Supabase sait réellement remplacer. Une variable
+ *  inexistante n'est pas remplacée : elle part TELLE QUELLE dans la boîte de
+ *  réception (« {{ .Prenom }} »), et Supabase ne prévient pas. */
+const VARIABLES_CONNUES = ['Token', 'ConfirmationURL', 'SiteURL', 'Email', 'TokenHash', 'RedirectTo', 'Data'];
+
+/** Les variables réellement employées par un gabarit. */
+const variablesDe = (html: string) => [...html.matchAll(/\{\{\s*\.(\w+)\s*\}\}/g)].map((m) => m[1]);
+
+/** Le corps du gabarit, commentaires HTML écartés — ils documentent les pièges
+ *  (et contiennent des ⚠️) mais ne s'affichent nulle part. */
+const sansCommentaires = (html: string) => html.replace(/<!--[\s\S]*?-->/g, '');
+
+/**
+ * 🔴 Le CODE seul, commentaires TypeScript écartés.
+ *
+ * Même piège que pour les gabarits, et il a mordu deux fois le 2026-08-07 : ce
+ * fichier commente abondamment ses propres pièges, donc il CITE les chaînes qu'on
+ * cherche (« type: 'recovery' — surtout PAS 'signup' »). Un test qui lit le
+ * fichier entier reste vert alors que le code réel a changé : **le commentaire se
+ * porte garant de ce qu'il décrit**. Trouvé par mutation, pas à la relecture — un
+ * `'recovery'` supprimé de l'appel laissait encore une occurrence, dans la ligne
+ * qui explique pourquoi il ne faut pas le supprimer.
+ */
+const sansCommentairesTS = (src: string) =>
+  src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
 
 // Plage des émoji + symboles pictographiques (CLAUDE.md §8 : aucun dans l'interface).
 // Les e-mails et la page de retour en font partie : ce sont des surfaces vues.
@@ -78,7 +106,13 @@ describe('Erreurs Supabase — traduites, et surtout ACTIONNABLES', () => {
 });
 
 describe('Gabarit d\'e-mail — les variables sans lesquelles il ne sert à rien', () => {
-  const html = readFileSync(GABARIT, 'utf8');
+  // 🔴 Le CORPS, commentaires écartés — et ce n'est pas un détail de forme.
+  // L'en-tête du gabarit documente les variables obligatoires, donc il les CITE.
+  // Un test qui lit le fichier entier passe au vert même si le corps n'en contient
+  // aucune : le commentaire se porte garant de ce qu'il décrit. Défaut trouvé le
+  // 2026-08-07 en écrivant le gabarit de réinitialisation — les mutations n'avaient
+  // rien vu parce qu'elles frappaient le fichier entier, commentaire compris.
+  const html = sansCommentaires(readFileSync(GABARIT, 'utf8'));
 
   it('porte {{ .Token }} : sans lui, l\'e-mail affiche un code VIDE', () => {
     // Le maillon le plus fragile de la chaîne. Le gabarit par défaut de Supabase
@@ -92,15 +126,11 @@ describe('Gabarit d\'e-mail — les variables sans lesquelles il ne sert à rien
   });
 
   it('n\'invente aucune autre variable de gabarit', () => {
-    // Une variable inexistante n'est pas remplacée : elle part TELLE QUELLE dans
-    // la boîte de réception (« {{ .Prenom }} »). Supabase ne prévient pas.
-    const CONNUES = ['Token', 'ConfirmationURL', 'SiteURL', 'Email', 'TokenHash', 'RedirectTo', 'Data'];
-    const trouvees = [...html.matchAll(/\{\{\s*\.(\w+)\s*\}\}/g)].map((m) => m[1]);
-    for (const v of trouvees) expect(CONNUES).toContain(v);
+    for (const v of variablesDe(html)) expect(VARIABLES_CONNUES).toContain(v);
   });
 
   it('aucun émoji — un e-mail est une surface de la DA comme une autre', () => {
-    expect(EMOJI.test(html.replace(/<!--[\s\S]*?-->/g, ''))).toBe(false);
+    expect(EMOJI.test(html)).toBe(false);
   });
 });
 
@@ -187,8 +217,94 @@ describe('Page de retour — son script, EXÉCUTÉ (pas relu)', () => {
   });
 });
 
+describe('Mot de passe oublié — le seul recours quand le mot de passe est perdu', () => {
+  it('un mot de passe court est refusé, à la même longueur qu\'à l\'inscription', () => {
+    // Deux exigences différentes pour le même champ seraient vécues comme un bug.
+    expect(motDePasseValide('12345')).toBe(false);
+    expect(motDePasseValide('123456')).toBe(true);
+    expect(MDP_LONGUEUR_MIN).toBe(6);
+  });
+
+  it('le libellé affiché annonce la MÊME longueur que la règle', () => {
+    // Le placeholder est écrit en toutes lettres dans login.tsx (un test de harnais
+    // le verrouille) : rien n'empêcherait donc de changer la règle sans le texte,
+    // et l'écran refuserait une saisie qu'il vient lui-même de déclarer suffisante.
+    const login = readFileSync(join(RACINE, 'app', '(auth)', 'login.tsx'), 'utf8');
+    expect(login).toContain(`${MDP_LONGUEUR_MIN} caractères minimum`);
+  });
+
+  it('les erreurs ne parlent JAMAIS d\'un lien — il n\'y en a pas', () => {
+    // 🔴 Le vrai risque de ce parcours : réutiliser les messages de la confirmation.
+    // Celle-là conseille « si tu as déjà cliqué le lien de l'e-mail… », or l'e-mail
+    // de réinitialisation n'en contient AUCUN. Un message qui décrit un geste
+    // impossible fait douter de l'app, pas du code saisi.
+    for (const brut of ['Token has expired or is invalid', 'For security purposes, you can only request this after 47 seconds']) {
+      expect(traduitErreurReinitialisation(brut).toLowerCase()).not.toContain('lien');
+    }
+    // …et la confirmation, elle, en parle bien : les deux ne sont pas interchangeables.
+    expect(traduitErreurConfirmation('Token has expired or is invalid').toLowerCase()).toContain('lien');
+  });
+
+  it('« même mot de passe qu\'avant » est nommé, pas rendu tel quel', () => {
+    // Erreur de la 3e étape (pas du code) : sans traduction, l'utilisateur lit un
+    // message anglais sous un champ qu'il vient de remplir correctement.
+    expect(traduitErreurReinitialisation('New password should be different from the old password'))
+      .toContain('déjà le tien');
+  });
+
+  it('un message inconnu passe tel quel plutôt que d\'être avalé', () => {
+    expect(traduitErreurReinitialisation('Signups not allowed')).toBe('Signups not allowed');
+  });
+});
+
+describe('Gabarit de réinitialisation — le code, et RIEN à cliquer', () => {
+  // Le CORPS seul, pour la raison expliquée plus haut : l'en-tête de ce gabarit
+  // écrit noir sur blanc « PAS de {{ .ConfirmationURL }} », donc un test qui lit
+  // le fichier entier accuserait le commentaire qui l'interdit.
+  const html = sansCommentaires(readFileSync(GABARIT_MDP, 'utf8'));
+
+  it('porte {{ .Token }}', () => {
+    expect(html).toMatch(/\{\{\s*\.Token\s*\}\}/);
+  });
+
+  it('🔴 ne porte PAS {{ .ConfirmationURL }}, et ce n\'est pas un oubli', () => {
+    // Cliquer un lien de réinitialisation CONSOMME le jeton sans changer le mot de
+    // passe : une page statique ne peut pas appeler `updateUser`, et la session
+    // ouverte vit dans le navigateur, jamais dans l'app native. La personne se
+    // retrouverait avec un mot de passe inchangé ET un code mort — pire qu'avant
+    // sa demande. Les antivirus de messagerie, qui pré-cliquent les liens, le
+    // provoqueraient tout seuls à chaque envoi.
+    expect(html).not.toMatch(/\{\{\s*\.ConfirmationURL\s*\}\}/);
+  });
+
+  it('ne contient aucun lien web cliquable', () => {
+    // Le garde-fou ci-dessus ne suffit pas : on pourrait recoller une URL en dur,
+    // ou un « voir dans le navigateur ». Seul `mailto:` reste permis (le contact).
+    const liens = [...html.matchAll(/href="([^"]*)"/g)].map((m) => m[1]);
+    for (const href of liens) expect(href.startsWith('mailto:')).toBe(true);
+  });
+
+  it('n\'invente aucune autre variable de gabarit', () => {
+    for (const v of variablesDe(html)) expect(VARIABLES_CONNUES).toContain(v);
+  });
+
+  it('aucun émoji', () => {
+    expect(EMOJI.test(html)).toBe(false);
+  });
+
+  it('dit que le mot de passe actuel reste valable tant que rien n\'est saisi', () => {
+    // Un e-mail de réinitialisation non sollicité est alarmant. La phrase qui
+    // rassure fait partie du produit (CLAUDE.md §10 — un suivi rassure, jamais
+    // ne met la pression), et elle est vraie : sans le code, rien ne change.
+    expect(html).toContain('reste valable');
+  });
+});
+
 describe('Câblage app — les deux appels qui doivent porter la redirection', () => {
-  const useAuth = readFileSync(join(RACINE, 'hooks', 'useAuth.tsx'), 'utf8');
+  // Le CODE seul : ce fichier commente ses propres pièges, donc il cite les
+  // chaînes qu'on cherche. Cf. `sansCommentairesTS` — deux tests d'ici étaient
+  // verts alors que le code réel était cassé.
+  const useAuth = sansCommentairesTS(readFileSync(join(RACINE, 'hooks', 'useAuth.tsx'), 'utf8'));
 
   it('signUp ET resend passent emailRedirectTo', () => {
     // Sans lui, Supabase retombe sur la « Site URL » du projet : le clic mène à
@@ -204,5 +320,24 @@ describe('Câblage app — les deux appels qui doivent porter la redirection', (
     // été cochée. Le report est donc conditionné à la présence d'une session.
     expect(useAuth).toMatch(/if\s*\(id\s*&&\s*data\.session\)/);
     expect(useAuth).toContain('CLE_CONSENTEMENT_EN_ATTENTE');
+  });
+
+  it('chaque parcours interroge son PROPRE type de jeton', () => {
+    // 🔴 Le même code à 6 chiffres est refusé s'il est interrogé sous le mauvais
+    // type : l'utilisateur lirait « code invalide » sur des chiffres pourtant
+    // justes, et retaperait indéfiniment. Les deux types doivent coexister.
+    expect(useAuth).toMatch(/type:\s*'signup'/);
+    expect(useAuth).toMatch(/type:\s*'recovery'/);
+  });
+
+  it('la demande de réinitialisation ne passe AUCUNE redirection', () => {
+    // Lui en donner une rouvrirait le piège du lien cliquable : jeton consommé,
+    // mot de passe inchangé. Le gabarit n'a pas de lien, l'appel non plus.
+    // ⚠️ Capturer jusqu'au premier `);` et non `[^)]*` : `email.trim()` porte déjà
+    // une parenthèse fermante, donc la version naïve s'arrêtait AVANT les options
+    // et laissait passer la mutation qu'elle est censée attraper.
+    const appel = useAuth.match(/resetPasswordForEmail\([\s\S]*?\);/)?.[0] ?? '';
+    expect(appel).toBeTruthy();
+    expect(appel).not.toContain('redirectTo');
   });
 });

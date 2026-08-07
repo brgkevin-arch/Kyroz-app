@@ -53,6 +53,13 @@ interface AuthValue {
   confirmEmail: (email: string, code: string) => Promise<{ error?: string }>;
   // Renvoie l'e-mail de confirmation (code + lien neufs, les précédents meurent).
   resendConfirmation: (email: string) => Promise<{ error?: string }>;
+  // ── Mot de passe oublié, en trois temps ──
+  // 1. demander le code · 2. le vérifier (ouvre une session) · 3. poser le nouveau
+  // mot de passe. Les trois sont séparés parce que l'utilisateur peut abandonner
+  // entre deux, et parce que chaque étape a ses propres erreurs à expliquer.
+  sendPasswordReset: (email: string) => Promise<{ error?: string }>;
+  verifyPasswordReset: (email: string, code: string) => Promise<{ error?: string }>;
+  setNewPassword: (password: string) => Promise<{ error?: string }>;
   // Connexion « invité » (anonyme Supabase) : vraie session sans email/mot de passe,
   // pour tester rapidement le parcours (manuel + Playwright). Nécessite l'auth
   // anonyme activée dans le dashboard Supabase (Authentication → Providers → Anonymous).
@@ -198,6 +205,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return error ? { error: error.message } : {};
   };
 
+  const sendPasswordReset: AuthValue['sendPasswordReset'] = async (email) => {
+    // ⚠️ Aucun `redirectTo` : le gabarit de réinitialisation ne porte PAS de lien,
+    // et lui en donner un rouvrirait le piège décrit dans lib/emailConfirmation.ts
+    // (jeton consommé par un clic qui ne change aucun mot de passe).
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim());
+    return error ? { error: error.message } : {};
+  };
+
+  const verifyPasswordReset: AuthValue['verifyPasswordReset'] = async (email, code) => {
+    // `type: 'recovery'` — surtout PAS 'signup' : le même code à 6 chiffres est
+    // refusé si on l'interroge sous le mauvais type, et l'utilisateur lirait
+    // « code invalide » sur des chiffres pourtant justes.
+    // Réussi → une session s'ouvre, et c'est elle qui autorise `updateUser`.
+    const { error } = await supabase.auth.verifyOtp({
+      email: email.trim(),
+      token: normaliseCode(code),
+      type: 'recovery',
+    });
+    return error ? { error: error.message } : {};
+  };
+
+  const setNewPassword: AuthValue['setNewPassword'] = async (password) => {
+    const { error } = await supabase.auth.updateUser({ password });
+    return error ? { error: error.message } : {};
+  };
+
   const signInGuest: AuthValue['signInGuest'] = async () => {
     const { error } = await supabase.auth.signInAnonymously();
     return error ? { error: error.message } : {};
@@ -207,7 +240,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const value: AuthValue = {
     session, ready: authChecked, hydrating, hydrationTick,
-    signIn, signUp, confirmEmail, resendConfirmation, signInGuest, signOut,
+    signIn, signUp, confirmEmail, resendConfirmation,
+    sendPasswordReset, verifyPasswordReset, setNewPassword,
+    signInGuest, signOut,
   };
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
