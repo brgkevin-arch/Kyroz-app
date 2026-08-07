@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { ThemePalette, Radius, Type, Spacing, Trait, Icone } from '../constants/theme';
 import { useDialog } from './Dialog';
 import { OffPlanEntry, describeOutcome, newestFirst } from '../lib/offPlanJournal';
-import { todayStamp } from '../lib/weight';
+import { frDateLongue } from '../lib/dateLabel';
 
 // ── Historique des repas hors plan (E6, point 2) ─────────────────────────────
 //
@@ -19,18 +19,10 @@ import { todayStamp } from '../lib/weight';
 //    lieu de supposer.
 // Le message de fond est « le moteur a encaissé », pas « tu as dérapé ».
 
-const frDate = (iso: string): string => {
-  const today = todayStamp();
-  if (iso === today) return "Aujourd'hui";
-  const veille = new Date(today + 'T00:00:00');
-  veille.setDate(veille.getDate() - 1);
-  const hier = `${veille.getFullYear()}-${String(veille.getMonth() + 1).padStart(2, '0')}-${String(veille.getDate()).padStart(2, '0')}`;
-  if (iso === hier) return 'Hier';
-  const txt = new Date(iso + 'T00:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
-  // ⚠️ Surtout PAS `textTransform: 'capitalize'` : il met une majuscule à chaque
-  // mot et rend « Mardi 28 Juillet ». En français, seul le premier mot en prend une.
-  return txt.charAt(0).toUpperCase() + txt.slice(1);
-};
+// Le formatage vivait ici, à l'abri des tests. Il est sorti dans `lib/dateLabel`
+// quand l'historique des courses en a eu besoin — AVANT la copie, pas après (le
+// `disclaimer` recopié dans sept fichiers a suffi comme démonstration, §8).
+const frDate = frDateLongue;
 
 export function OffPlanHistory({
   t, entries, onRemove, dragHandlers, sheetScrollProps,
