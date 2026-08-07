@@ -428,10 +428,16 @@ crée ni n'en retire.
 **Le défaut corrigé** : deux lissages se superposaient — `exerciseKcalPerDay` étalait
 la dépense sur 7 jours, et tous les jours recevaient la même cible. Trois sorties de
 45 min et une sortie de 3 h étaient donc indiscernables. Mesuré (F 60 kg, 25 %MG,
-sèche) : l'énergie disponible **annoncée** vaut 32,1 quel que soit le volume — le
-plancher l'y ramène toujours — quand celle du jour **vécu** tombe à 18,9 (2×90),
-11,0 (1×120) et **0,4** (1×180). L'app conseillait 1683 kcal le jour d'un trois
-heures. Après : l'EA vécue **égale** l'EA annoncée, tous les jours.
+sèche, relevé du 2026-08-07) : l'énergie disponible **annoncée** vaut 31,5 quel que
+soit le volume — le plancher l'y ramène toujours — quand celle du jour **vécu** tombe
+à 18,3 (2×90), 10,3 (1×120) et **−0,2** (1×180). L'app conseillait 1654 kcal le jour
+d'un trois heures. Après : l'EA vécue **égale** l'EA annoncée, tous les jours.
+⚠️ Ces cinq nombres ont **changé sans que ce module bouge** : la première rédaction
+disait 32,1 / 18,9 / 11,0 / 0,4 / 1683, mesurée avant qu'E16 ne rende Katch-McArdle
+conditionnel à la provenance du %MG — ces gabarits déclarent un %MG estimé, donc leur
+BMR a changé de formule, donc leur dépense et leur cible. Le fait démontré est le même
+(l'EA vécue rejoint l'EA annoncée) ; les chiffres qui l'illustrent se re-lisent dans
+`npm run mesure:volume`, jamais ici.
 
 ⚠️ **Ce n'est PAS une urgence RED-S** (l'énergie disponible est hebdomadaire,
 décision du 2026-07-29) : c'est de la **qualité de plan**. Ne pas le remonter comme
@@ -488,14 +494,29 @@ passés sous 0,8 g/kg** (0 % avant), pire cas 64 g pour un plancher à 70.
 chemins (génération ET recalage) — 0,3 % après. Et il est **borné à `target_fat_g`** :
 un plancher empêche de descendre, il ne relève jamais la cible.
 
-**Ce que ça coûte, mesuré et assumé** (480 semaines) : quasi-doublons de famille
-9,0 % → 9,6 %, précision calorique du jour 0,34 % → 0,39 %, recettes distinctes
-min 49 → 53. Mais le plan **canonique** passe de 11,7 % à 16,7 %, et le canonique
-gagne **6 repas hors cible** (0 avant) — les six sur **un seul profil**, F 55 kg en
-sèche vegan / vegan+sans gluten, tous les JOURS DE REPOS (1328 kcal), où le catalogue
-n'a ni dîner ni collation assez petits. C'est la limite de vivier déjà consignée, pas
-un défaut de sélection : la dégradation est **nulle en omnivore** (1 semaine avant,
-1 après) et entière dans les régimes végétaux.
+**Ce que ça coûte, mesuré et assumé.** Relevé du 2026-08-07, les DEUX colonnes prises
+sur le **même arbre** — « avant » obtenu en forçant `baseDayTargets` à rendre la cible
+plate, puis restauré (240 semaines ; le canonique sur 60) :
+
+| | plat (avant) | par volume (servi) |
+|---|---|---|
+| semaines avec quasi-doublon | 4,6 % | **8,8 %** |
+| dont plan **canonique** | 11,7 % | **16,7 %** |
+| écart calorique moyen du jour | 0,32 % | **0,35 %** |
+| recettes distinctes sur 4 sem. (min) | 39 | **48** ✓ |
+| **drapeaux bloquants sur les repas servis** | 0 | **25** (dont 6 au canonique) |
+
+Les 25 drapeaux sont **tous** sur deux gabarits (F 55 et F 65 en sèche), **tous** en
+vegan ou vegan+sans gluten, et **tous les JOURS DE REPOS** — 1 328 / 1 498 kcal, où le
+catalogue n'a ni dîner ni collation assez petits (19 `over_target_kcal`, 6
+`protein_below_target`). Aucun en omnivore, végétarien ou sans gluten seul. C'est la
+limite de vivier déjà consignée, pas un défaut de sélection : jusqu'ici aucun jour ne
+descendait assez bas pour la toucher.
+⚠️ **La première rédaction annonçait « 9,0 → 9,6 % »** — pair mesuré sur la branche
+avant qu'elle ne fusionne `main`, donc juste ce jour-là et faux dès le lendemain. Le
+coût réel est un **doublement** (4,6 → 8,8 %), pas +0,6 point. ➡️ **Un avant/après ne
+vaut que si les deux moitiés sortent du même arbre** ; sinon on compare deux mondes et
+on publie l'écart comme s'il n'y en avait qu'un.
 ➡️ **Prochaine vague de catalogue : des petits formats vegan / vegan+SG** (dîners et
 collations pour petits gabarits en sèche). C'est le seul levier qui reste.
 
@@ -544,14 +565,18 @@ recettes **quasi identiques**. Mesuré le 2026-08-02 sur 240 semaines simulées 
 **56,3 % des semaines servaient deux recettes du même couple (protéine × féculent)** —
 « poulet-riz-brocoli » et « wok poulet-riz-légumes » la même semaine. Depuis,
 `familyKey` groupe les recettes par ce couple et la famille la moins servie passe devant.
-**État courant : 10,0 %** (`--variete=max`, défaut). *(27,9 % à la livraison de D18, quand
-la famille n'était QU'une clé de départage ; puis 20,8 % après A21 et A25, qui l'ont fait
-entrer dans le score.)*
+**État courant : 8,8 %** (`--variete=max`, défaut ; re-mesuré le 2026-08-07). *(27,9 % à
+la livraison de D18, quand la famille n'était QU'une clé de départage ; puis 20,8 % après
+A21 et A25, qui l'ont fait entrer dans le score ; 10,0 % après B9 ; 7,9 % après D22 — et
+remonté à 8,8 % avec la répartition par volume, qui écarte les cibles des jours.)*
 
 ⚠️ **Les trois derniers gains ne viennent PAS du moteur mais du CATALOGUE** (vagues B7, B8
 puis B9, 2026-08-03) : 20,8 → 12,5 → 11,7 → **10,0 %** sans toucher une ligne de sélection.
-Le détail par régime dit pourquoi — vegan **41,7 % → 8,3 %**, vegan + sans gluten
-**50 % → 35,4 % → 22,9 % → 16,7 %**. Là où le vivier de familles est mince, aucun réglage ne fait tourner ce qui
+Le détail par régime dit pourquoi — vegan **41,7 % → 8,3 %** (10,4 % aujourd'hui), vegan +
+sans gluten **50 % → 35,4 % → 22,9 % → 16,7 %** (**20,8 %** aujourd'hui). Les deux valeurs
+« aujourd'hui » sont du 2026-08-07 et REMONTENT : c'est la répartition par volume, seule
+étape de cette trajectoire à coûter de la variété au lieu d'en rendre. Là où le vivier de
+familles est mince, aucun réglage ne fait tourner ce qui
 n'existe pas : A25 l'avait mesuré et nommé « limite de catalogue ». ➡️ Devant un plafond de
 variété, se demander d'abord s'il reste des familles à distribuer (`npm run mesure:vivier`,
 et `mesure:variete -- --regime=…` pour isoler le régime fautif), avant de toucher aux poids.
@@ -1156,7 +1181,8 @@ téléphone.
   sur ce que le moteur SERT, jamais sur ce que l'utilisateur a SAISI. Le couloir de
   progression était tracé en ligne droite vers la date saisie — donc il annonçait « en
   retard » à quelqu'un qui suivait le plan À LA LETTRE, mesuré dès **le 7ᵉ jour**, avec
-  jusqu'à **10,4 kg** d'écart (11 cas sur 16 avant correctif, 3 après). Le principe était
+  jusqu'à **10,8 kg** d'écart (10 cas sur 16 avant correctif, 3 après — relevé du
+  2026-08-07 ; la ligne annonçait 10,4 kg et 11 cas). Le principe était
   pourtant déjà écrit dans `trackStatus`, pour un autre cas : *« reprocher un retard qu'on
   a soi-même imposé »*. ➡️ Point d'entrée unique : **`tdee.ts::trackingTarget`** — tout
   écran qui affiche une progression passe par lui. Contrôle : `npm run mesure:objectif`.

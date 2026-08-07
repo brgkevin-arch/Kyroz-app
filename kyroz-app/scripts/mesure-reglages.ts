@@ -12,7 +12,7 @@
  *      touche un réglage → l'auto-refresh de l'écran Plan rejoue `generate()`
  *      SANS reroll (seed remis à 0). Que perd-il ?
  */
-import { buildLocalPlan } from '../lib/planEngine';
+import { buildLocalPlan, dayTargetKcal } from '../lib/planEngine';
 import { recalcProfile } from '../lib/tdee';
 import { recipeFiberPerPortion } from '../lib/fiber';
 import { PROFILS_REF } from './mesure-couverture';
@@ -212,7 +212,17 @@ function qualite(seeds: number[]) {
           if (!parFam.has(k)) parFam.set(k, new Set());
           parFam.get(k)!.add(m.recipe.id);
         }
-        for (const kcal of Object.values(kcalJour)) { jours++; ecartKcal += Math.abs(kcal - p.target_kcal) / p.target_kcal; }
+        // ⚠️ Mesuré contre la cible DU JOUR, comme `mesure-variete.ts`. Depuis la
+        // répartition par volume sportif (2026-08-06) le plan n'est plus isocalorique :
+        // ce contrôle est resté sur `target_kcal` deux jours de plus que son jumeau et
+        // annonçait **7,00 %** d'écart là où le moteur sert 0,35 %. Il accusait donc le
+        // moteur d'une perte de précision de 20× qui n'existe pas — et c'est en
+        // re-mesurant la doc, pas en lisant le code, qu'on l'a vu.
+        for (const kcal of Object.entries(kcalJour)) {
+          jours++;
+          const cible = dayTargetKcal(p, plan.days, Number(kcal[0]));
+          ecartKcal += Math.abs(kcal[1] - cible) / cible;
+        }
         if ([...parFam.values()].some((ids) => ids.size > 1)) avecClone++;
         // ⚠️ CONTRE-MESURE. Renforcer un biais de sélection peut faire servir UNE seule
         // recette 7 jours d'affilée sans qu'aucune moyenne ne bronche — c'est la
