@@ -74,7 +74,8 @@ create table if not exists public.profiles (
   plan_days int,
   plan_weekdays int[] not null default '{}',
   rest_weekdays int[], -- jours de repos choisis (getDay). NULL = auto ; '{}' = aucun
-  meals text[] not null default '{}',
+  meals text[] not null default '{}', -- ids des créneaux retenus : 'breakfast'… ou 'custom-N'
+  meal_slots jsonb, -- créneaux CRÉÉS par l'user : [{id,label,hour,minute,pool}]. Les 4 intégrés restent en dur côté app
   meal_emphasis text,
   variety text,
   dietary_restrictions text[] not null default '{}',

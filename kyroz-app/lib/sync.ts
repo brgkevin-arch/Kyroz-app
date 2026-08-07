@@ -3,7 +3,7 @@ import { supabase } from './supabase';
 import { Recipe, Streak, UserProfile } from './types';
 import { PantryItem } from './pantry';
 import { WeightEntry } from './weight';
-import { decideProfileHydration, normalizeGoal, normalizeMeals, normalizeProfileActivity, normalizeVariety, reconcileCloudSports, reconcileCloudLowEaWeeks, reconcileCloudNeat, mergeWeightEntries, mergeStreak, mergeRecipeOverrides, PROFILE_PENDING_KEY } from './syncGuard';
+import { decideProfileHydration, normalizeGoal, normalizeMeals, normalizeMealSlots, normalizeProfileActivity, normalizeVariety, reconcileCloudSports, reconcileCloudLowEaWeeks, reconcileCloudNeat, mergeWeightEntries, mergeStreak, mergeRecipeOverrides, PROFILE_PENDING_KEY } from './syncGuard';
 
 /** La fusion a-t-elle produit autre chose que ce que le cloud détenait ? */
 const differs = (a: unknown, b: unknown): boolean => JSON.stringify(a) !== JSON.stringify(b);
@@ -61,6 +61,8 @@ export const PROFILE_COLS = [
   'dietary_restrictions', 'disliked_foods', 'preferred_proteins', 'max_prep_time_min',
   'hidden_recipes',
   'weigh_in_frequency', 'fixed_meals',
+  // Créneaux de repas créés par l'utilisateur — migration 2026-08-07_profiles_meal_slots.sql.
+  'meal_slots',
   // Banque de calories (Kyroz+) — migration 2026-07-30_profiles_calorie_bank.sql.
   'calorie_bank',
   // Étape 3 du moteur — migration 2026-07-28_profiles_neat_engine_rev.sql.
@@ -75,7 +77,7 @@ export const PROFILE_COLS = [
 // transforme juste « synchro morte » en « tout passe sauf ces champs-là ».
 // Exporté pour que les TESTS lisent cette liste au lieu de la recopier : une
 // nouvelle migration ne doit pas faire rougir un test qui décrit l'ancienne.
-export const PROFILE_COLS_LAST_MIGRATION: string[] = ['body_fat_source'];
+export const PROFILE_COLS_LAST_MIGRATION: string[] = ['meal_slots'];
 
 // ── Signal d'échec de synchro ────────────────────────────────────────────────
 //
@@ -386,7 +388,11 @@ export async function hydrateFromCloud(uid: string): Promise<void> {
       // survivent (cf. localOnlyProfileFields).
       await AsyncStorage.setItem(PROFILE_KEY, JSON.stringify({
         ...localOnlyProfileFields(local),
-        ...normalizeMeals(normalizeVariety(normalizeGoal(normalizeProfileActivity(cloud)))),
+        // ⚠️ `normalizeMealSlots` passe AVANT `normalizeMeals` : c'est lui qui décide
+        // quels ids de créneau existent, et `normalizeMeals` valide `meals` contre eux.
+        // Dans l'autre sens, un créneau abîmé nettoyé après coup laisserait `meals`
+        // désigner un id qui vient de disparaître.
+        ...normalizeMeals(normalizeMealSlots(normalizeVariety(normalizeGoal(normalizeProfileActivity(cloud))))),
       }));
     } else if (local && (action === 'keep_local' || action === 'push_local')) {
       await pushProfile(local); // (re)pousse le local ; lève le flag si succès

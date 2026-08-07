@@ -5,6 +5,8 @@ import { ThemePalette, Radius, Type, Spacing, CIBLE_TACTILE_MIN, Trait, Icone, O
 import { PrimaryButton, Segmented } from './ui';
 import { Food, FixedMeal, MealType } from '../lib/types';
 import { searchFoods, macrosForQuantity } from '../lib/foods';
+import { slotLabel } from '../lib/mealSlots';
+import { useMealSlots } from '../hooks/useMealSlots';
 import { kcalFromMacros } from '../lib/tdee';
 
 // ── Définir un repas que l'utilisateur GÈRE lui-même (FixedMeal) ──────────────
@@ -14,7 +16,10 @@ import { kcalFromMacros } from '../lib/tdee';
 //    calculé). Couvre ses propres recettes / estimations.
 // Le résultat est soustrait du budget du jour (cf. planEngine).
 
-const MEAL_LABELS: Record<MealType, string> = {
+// Les 4 créneaux INTÉGRÉS, en minuscules parce qu'ils suivent « Mon » dans le titre.
+// Un créneau CRÉÉ porte le nom que l'utilisateur lui a donné — on le laisse tel quel :
+// le mettre en minuscules abîmerait un nom propre (« Mon Shaker Isolate »).
+const MEAL_LABELS: Record<string, string> = {
   breakfast: 'petit-déjeuner', lunch: 'déjeuner', dinner: 'dîner', snack: 'collation',
 };
 const DEFAULT_GRAMS = 100;
@@ -34,6 +39,7 @@ export function FixedMealSheet({
   dragHandlers?: any;
 }) {
   const s = makeStyles(t);
+  const slots = useMealSlots();
   const [mode, setMode] = useState<'food' | 'custom'>(initial?.source === 'custom' ? 'custom' : 'food');
 
   // Mode « aliment »
@@ -80,7 +86,7 @@ export function FixedMealSheet({
   return (
     <View style={s.wrap}>
       <View {...(dragHandlers ?? {})}>
-        <Text style={s.title}>Mon {MEAL_LABELS[mealType]}</Text>
+        <Text style={s.title}>Mon {MEAL_LABELS[mealType] ?? slotLabel(slots, mealType)}</Text>
         <Text style={s.sub}>Dis-nous une fois ce que tu manges — Kyroz cale tes autres repas autour, sans te le redemander chaque jour.</Text>
       </View>
 

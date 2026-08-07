@@ -31,6 +31,8 @@ import { OffPlanHistory } from '../../components/OffPlanHistory';
 import { useHydrationEnabled } from '../../components/HydrationBar';
 import { useFirstName, saveFirstName } from '../../lib/profileName';
 import { ProtectionIcon, RepasLibreIcon } from '../../components/Icons';
+import { MealSlotsPicker } from '../../components/MealSlotsPicker';
+import { BUILTIN_SLOTS, knownSlots, slotLabel } from '../../lib/mealSlots';
 import { useAnalyticsConsent } from '../../hooks/useAnalyticsConsent';
 import { useProfile } from '../../hooks/useProfile';
 import { useStreak } from '../../hooks/useStreak';
@@ -57,7 +59,7 @@ import { deadlineLadder, formatHorizon } from '../../lib/goalLadder';
 import { DatedGoalCard, formatFR } from '../../components/DatedGoalCard';
 import { todayStamp } from '../../lib/weight';
 import {
-  ActivityLevel, BodyFatSource, DietaryRestriction, EngineNotice, FixedMeals, Goal, GoalTarget, MEAL_ORDER, MealEmphasis, MealType, NeatLevel, Sex, SportSession, UserProfile, VarietyPreference,
+  ActivityLevel, BodyFatSource, DietaryRestriction, EngineNotice, FixedMeals, Goal, GoalTarget, MealEmphasis, MealSlot, MealType, NeatLevel, Sex, SportSession, UserProfile, VarietyPreference,
 } from '../../lib/types';
 import { totalSessionsPerWeek } from '../../lib/sport';
 import { baseDayTargets, deducedRestWeekdays } from '../../lib/planEngine';
@@ -110,20 +112,33 @@ function effectiveRestWeekdays(profile: UserProfile): number[] {
   // pré-cochent la MÊME chose, sinon le réglage change de sens selon l'endroit.
   return orderedWeekdays(deducedRestWeekdays(wd, profile.training_days_per_week));
 }
-const MEAL_OPTS: { label: string; val: MealType }[] = [
-  { label: 'Petit-déj', val: 'breakfast' }, { label: 'Déjeuner', val: 'lunch' },
-  { label: 'Dîner', val: 'dinner' }, { label: 'Collation', val: 'snack' },
-];
-function orderedMeals(sel: MealType[]): MealType[] {
-  return MEAL_ORDER.filter((m) => sel.includes(m));
+// Repas retenus, dans l'ordre CHRONOLOGIQUE de la journée — créneaux créés compris.
+function orderedMeals(sel: MealType[], custom: MealSlot[]): MealType[] {
+  return knownSlots({ meal_slots: custom }).filter((s) => sel.includes(s.id)).map((s) => s.id);
 }
-const EMPHASIS_OPTS: { label: string; val: MealEmphasis }[] = [
-  { label: 'Équilibré', val: 'even' }, { label: 'Plus le matin', val: 'breakfast' },
-  { label: 'Plus le midi', val: 'lunch' }, { label: 'Plus le soir', val: 'dinner' },
-];
-const EMPHASIS_LABELS: Record<MealEmphasis, string> = {
-  even: 'Équilibré', breakfast: 'Matin', lunch: 'Midi', dinner: 'Soir',
+
+// Libellés d'emphase des 4 créneaux intégrés. Un créneau CRÉÉ n'en a pas — il prend
+// son propre nom (« Plus : Shaker post-training »), parce qu'inventer « Plus le soir »
+// pour un créneau que l'utilisateur a nommé lui-même effacerait précisément ce nom.
+const EMPHASIS_BUILTIN: Record<string, { opt: string; court: string }> = {
+  breakfast: { opt: 'Plus le matin', court: 'Matin' },
+  lunch: { opt: 'Plus le midi', court: 'Midi' },
+  dinner: { opt: 'Plus le soir', court: 'Soir' },
 };
+function emphasisOptions(slots: MealSlot[], sel: MealType[]): { label: string; val: MealEmphasis }[] {
+  return [
+    { label: 'Équilibré', val: 'even' as MealEmphasis },
+    ...slots.filter((s) => sel.includes(s.id)).map((s) => ({
+      label: EMPHASIS_BUILTIN[s.id]?.opt ?? `Plus : ${s.label}`,
+      val: s.id as MealEmphasis,
+    })),
+  ];
+}
+function emphasisResume(p: UserProfile): string {
+  const e = p.meal_emphasis ?? 'even';
+  if (e === 'even') return 'Équilibré';
+  return EMPHASIS_BUILTIN[e]?.court ?? slotLabel(knownSlots(p), e);
+}
 // Recalcule TDEE (toujours) et macros (si mode auto)
 // Délègue à la source unique (lib/tdee) — même calcul partout (profil + check-in).
 const withRecalc = recalcProfile;
@@ -442,7 +457,7 @@ export default function ProfilScreen() {
         <View style={s.menu}>
           <MenuRow t={t} label="Calories & macros" value={profile.macro_mode === 'percent' ? 'Perso %' : 'Calculées'} onPress={() => setEditor('macros')} />
           <MenuRow t={t} label="Préférences alimentaires" value={profile.dietary_restrictions.length || profile.disliked_foods.length || profile.hidden_recipes?.length ? 'Personnalisées' : 'Aucune'} onPress={() => setEditor('prefs')} />
-          <MenuRow t={t} label="Paramètres des repas" value={`${profile.plan_days} j · ${(profile.meals?.length || 4)} repas · ${EMPHASIS_LABELS[profile.meal_emphasis ?? 'even']}`} onPress={() => setEditor('meals')} />
+          <MenuRow t={t} label="Paramètres des repas" value={`${profile.plan_days} j · ${(profile.meals?.length || 4)} repas · ${emphasisResume(profile)}`} onPress={() => setEditor('meals')} />
           <MenuRow t={t} label="Banque de calories" value={premium.can('calorie_bank') ? bankResume(profile) : 'Inclus dans Kyroz+'} onPress={() => openEditor('calorie_bank')} />
           {/* La VALEUR ne compte pas les écarts (cf. `journalSummary`) : un score
               posé là mettrait la pression sans qu'on ouvre quoi que ce soit. */}
@@ -1308,12 +1323,16 @@ function MealsEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: Edi
   // — Error Boundary, réglage inaccessible à vie. `normalizeMeals` (syncGuard) referme
   // la donnée en amont ; ce garde-fou-ci protège les chemins qui ne passent pas par là.
   const [meals, setMeals] = useState<MealType[]>(
-    Array.isArray(profile.meals) && profile.meals.length > 0 ? profile.meals : [...MEAL_ORDER]
+    Array.isArray(profile.meals) && profile.meals.length > 0 ? profile.meals : BUILTIN_SLOTS.map((s) => s.id)
+  );
+  const [customSlots, setCustomSlots] = useState<MealSlot[]>(
+    Array.isArray(profile.meal_slots) ? profile.meal_slots : []
   );
   const [emphasis, setEmphasis] = useState<MealEmphasis>(profile.meal_emphasis ?? 'even');
   const [variety, setVariety] = useState<VarietyPreference>(profile.variety);
   const [fixedMeals, setFixedMeals] = useState<FixedMeals>(profile.fixed_meals ?? {});
   const [definingMeal, setDefiningMeal] = useState<MealType | null>(null);
+  const slots = knownSlots({ meal_slots: customSlots });
   // Retirer un jour du plan le retire aussi des jours de repos (un repos doit être un jour planifié).
   const togDay = (v: number) => {
     const removing = weekdays.includes(v);
@@ -1329,15 +1348,38 @@ function MealsEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: Edi
     if (!next.includes(v)) setFixedMeals((prev) => { if (!prev[v]) return prev; const n = { ...prev }; delete n[v]; return n; });
   };
   const removeFixed = (mt: MealType) => setFixedMeals((prev) => { const n = { ...prev }; delete n[mt]; return n; });
-  const mealLabel = (mt: MealType) => MEAL_OPTS.find((o) => o.val === mt)?.label ?? mt;
-  const emphasisOpts = EMPHASIS_OPTS.filter((e) => e.val === 'even' || meals.includes(e.val as MealType));
+  const mealLabel = (mt: MealType) => slotLabel(slots, mt);
+  const emphasisOpts = emphasisOptions(slots, meals);
+
+  // Un créneau créé est RETENU d'office (même règle qu'à l'onboarding).
+  const saveSlot = (s: MealSlot) => {
+    setCustomSlots((arr) => arr.some((x) => x.id === s.id) ? arr.map((x) => (x.id === s.id ? s : x)) : [...arr, s]);
+    setMeals((arr) => (arr.includes(s.id) ? arr : [...arr, s.id]));
+  };
+  // Supprimer un créneau retire aussi sa sélection, son emphase et son repas « je gère » :
+  // les trois pointent vers un id qui n'existera plus, et un réglage qui désigne le vide
+  // ne se corrige plus par l'écran (il n'a plus de ligne à cocher).
+  const deleteSlot = (id: MealType) => {
+    setCustomSlots((arr) => arr.filter((x) => x.id !== id));
+    setMeals((arr) => arr.filter((x) => x !== id));
+    setEmphasis((e) => (e === id ? 'even' : e));
+    setFixedMeals((prev) => { if (!prev[id]) return prev; const n = { ...prev }; delete n[id]; return n; });
+  };
+
   const submit = () => {
+    const retenus = orderedMeals(meals, customSlots);
     const cleaned: FixedMeals = {};
-    for (const mt of orderedMeals(meals)) if (fixedMeals[mt]) cleaned[mt] = fixedMeals[mt];
+    for (const mt of retenus) if (fixedMeals[mt]) cleaned[mt] = fixedMeals[mt];
+    // On n'enregistre que les créneaux ENCORE retenus : un créneau créé puis décoché
+    // n'a plus de raison d'exister, et le garder ferait réapparaître sa ligne à chaque
+    // ouverture de l'écran comme si l'utilisateur ne l'avait jamais retirée.
+    const gardes = customSlots.filter((s) => retenus.includes(s.id));
     onSave({
       ...profile, plan_weekdays: orderedWeekdays(weekdays), plan_days: weekdays.length,
       rest_weekdays: orderedWeekdays(restDays.filter((d) => weekdays.includes(d))),
-      meals: orderedMeals(meals), meal_emphasis: emphasis, variety,
+      meals: retenus, meal_slots: gardes.length ? gardes : undefined,
+      meal_emphasis: retenus.includes(emphasis as MealType) || emphasis === 'even' ? emphasis : 'even',
+      variety,
       fixed_meals: Object.keys(cleaned).length ? cleaned : undefined,
     });
   };
@@ -1360,7 +1402,14 @@ function MealsEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: Edi
       <View style={styles.wrap}>{WEEKDAY_OPTS.map((d) => <Chip key={d.val} t={t} label={d.label} selected={weekdays.includes(d.val)} onPress={() => togDay(d.val)} />)}</View>
       <RestDaysPicker t={t} available={weekdays} value={restDays} onToggle={togRestDay} onNone={() => setRestDays([])} />
       <SectionLabel t={t}>Repas inclus</SectionLabel>
-      <View style={styles.wrap}>{MEAL_OPTS.map((m) => <Chip key={m.val} t={t} label={m.label} selected={meals.includes(m.val)} onPress={() => togMeal(m.val)} />)}</View>
+      <Text style={{ ...Type.caption, color: t.textTertiary, lineHeight: 17, marginTop: -Spacing.sm }}>
+        Tu manges plus de quatre fois par jour ? Ajoute tes propres repas : Kyroz répartit
+        ton budget de la journée sur tous, dans l'ordre où ils arrivent.
+      </Text>
+      <MealSlotsPicker
+        t={t} customSlots={customSlots} selected={meals}
+        onToggle={togMeal} onSaveSlot={saveSlot} onDeleteSlot={deleteSlot}
+      />
       {meals.length === 0 && <Text style={{ ...Type.caption, color: t.danger }}>Sélectionne au moins 1 repas.</Text>}
 
       <SectionLabel t={t}>Repas que tu gères toi-même</SectionLabel>
@@ -1368,7 +1417,7 @@ function MealsEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: Edi
         Définis-les une fois : Kyroz les compte dans ton total et cale tes autres repas autour, sans te les redemander chaque jour.
       </Text>
       <View style={{ gap: Spacing.sm }}>
-        {orderedMeals(meals).map((mt) => {
+        {orderedMeals(meals, customSlots).map((mt) => {
           const fm = fixedMeals[mt];
           return (
             <View key={mt} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: t.card, borderRadius: Radius.card, padding: Spacing.lg }}>

@@ -23,6 +23,28 @@ un `200` prouve que l'upsert du profil ne peut pas être rejeté pour colonne ma
 
 ## État vérifié
 
+### 2026-08-07 — ⏳ `meal_slots` À JOUER (17ᵉ migration)
+
+`2026-08-07_profiles_meal_slots.sql` — colonne `profiles.meal_slots jsonb`, les créneaux
+de repas CRÉÉS par l'utilisateur (le plafond de 4 repas par jour est levé). **Sans
+backfill** : `NULL` partout veut dire « aucun créneau créé », donc les 4 intégrés, donc
+le comportement d'avant au repas près.
+
+**Pas encore jouée.** Mesuré le 2026-08-07, `npm run check:migrations` :
+
+| Contrôle | Résultat |
+|---|---|
+| Témoin négatif : une colonne inventée | `400` — la mesure discrimine |
+| Les 6 tables | `200` |
+| Les **39 colonnes** de `PROFILE_COLS` + `id`, en une requête | `400` |
+| `meal_slots` isolée | `400` → **absente** |
+
+Et le filet a été vu à l'œuvre dans le navigateur : la synchro retombe sur « tout sauf
+`meal_slots` » et le journalise, au lieu de mourir en silence. Conséquence tant que la
+migration n'est pas jouée : les créneaux créés **restent sur l'appareil**.
+
+➡️ Procédure pas à pas : `supabase/PROCEDURE-2026-08-07-meal-slots.md`.
+
 ### 2026-08-06 — ✅ `body_fat_source` jouée (16ᵉ migration)
 
 `2026-08-06_profiles_body_fat_source.sql`, jouée par le fondateur dans le SQL Editor.
