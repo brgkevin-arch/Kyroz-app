@@ -903,13 +903,16 @@ export default function PlanScreen() {
         )}
       </Sheet>
 
-      {/* Reveal du 1er plan (J1) : une seule fois, avant la visite guidée */}
+      {/* Reveal du 1er plan (J1) : une seule fois, avant la visite guidée.
+          `previewMeals` = le jour 1 EN ENTIER. Un `slice(0, 4)` traînait ici :
+          invisible tant que 4 était le maximum, il coupait le dîner dès le 5ᵉ repas
+          — l'aperçu montrait donc une journée qui n'est pas celle qu'on va servir. */}
       {profile && (
         <FirstPlanReveal
           visible={showReveal}
           profile={profile}
           firstName={firstName}
-          previewMeals={plan ? plan.meals.filter((m) => m.day === 1).slice(0, 4) : []}
+          previewMeals={plan ? plan.meals.filter((m) => m.day === 1) : []}
           onClose={() => setShowReveal(false)}
         />
       )}
