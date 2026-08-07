@@ -12,6 +12,8 @@ import { buildShoppingList } from '../../lib/shoppingList';
 import { formatQuantity } from '../../lib/units';
 import { loadPantry, savePantry, addOrMerge, subtractQuantity, isStaple } from '../../lib/pantry';
 import { pushPantry } from '../../lib/sync';
+import { useTourTarget, useScreenTour, TourButton } from '../../components/GuidedTour';
+import { coursesTour } from '../../lib/tours';
 
 const PLAN_KEY = '@kyroz:plan';
 const LIST_KEY = '@kyroz:shopping';
@@ -42,6 +44,20 @@ export default function CoursesScreen() {
   const [list, setList] = useState<ShoppingList | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [hideChecked, setHideChecked] = useState(false);
+
+  // Cibles de la visite guidée. La ref d'article se pose sur la toute première
+  // ligne de la première section — `renderItem` étant une callback, le hook vit
+  // ici (même contrainte que l'onglet Recettes).
+  const sourceRef = useTourTarget('courses-source');
+  const controlesRef = useTourTarget('courses-controles');
+  const articleRef = useTourTarget('courses-article');
+  // ⚠️ AVANT le `return` de l'état vide, plus bas : un hook posé après un retour
+  // n'existe qu'aux rendus qui l'atteignent → « Rendered more hooks than during
+  // the previous render », et l'écran tombe dans l'ErrorBoundary. Le même piège a
+  // déjà coûté l'écran de bienvenue (cf. FirstPlanReveal).
+  const { rejouer: rejouerTour } = useScreenTour('courses', coursesTour(), {
+    pret: !!list && list.items.length > 0,
+  });
 
   useFocusEffect(useCallback(() => { load(); }, []));
 
@@ -165,12 +181,13 @@ export default function CoursesScreen() {
         {/* En-tête + progression */}
         {/* « Courses », pas « Liste de courses » : le mot de la barre d'onglets, pour
             qu'un même objet n'ait pas deux noms selon l'endroit où on le regarde. */}
-        <View style={s.header}>
+        <View ref={sourceRef} style={s.header}>
           <View style={{ flex: 1 }}>
             <Text style={s.sub}>{done ? 'Tout est coché' : `${remaining} restant${remaining > 1 ? 's' : ''} sur ${total}`}</Text>
             <Text style={s.h1}>Courses</Text>
           </View>
           <Text style={s.counter}>{checked}<Text style={s.counterTot}> / {total} cochés</Text></Text>
+          <TourButton onPress={rejouerTour} />
         </View>
 
         {/* La barre n'a plus besoin de conteneur porteur de colonne : elle est dans
@@ -181,7 +198,7 @@ export default function CoursesScreen() {
         <View style={s.track}><View style={[s.fill, { width: `${pct}%`, backgroundColor: done ? t.success : t.accent }]} /></View>
 
         {/* Contrôles */}
-        <View style={s.controls}>
+        <View ref={controlesRef} style={s.controls}>
           {remaining > 0 && (
             <TouchableOpacity style={s.ctrl} onPress={checkAll} activeOpacity={OPACITE_PRESSION}>
               <Ionicons name="checkmark-done-outline" size={Icone.petite} color={t.textSecondary} />
@@ -228,8 +245,12 @@ export default function CoursesScreen() {
         renderItem={({ item, index, section }) => {
           const first = index === 0;
           const last = index === section.data.length - 1;
+          // Le tout premier article de la liste entière (1re ligne du 1er rayon),
+          // pas le premier de chaque section.
+          const premierDeLaListe = first && section.cat === sections[0]?.cat;
           return (
             <TouchableOpacity
+              ref={premierDeLaListe ? articleRef : undefined}
               style={[
                 s.row,
                 first && { borderTopLeftRadius: Radius.card, borderTopRightRadius: Radius.card },
@@ -266,7 +287,7 @@ function makeStyles(t: ThemePalette) {
 
     // Plus de padding horizontal ici, ni dans `controls`/`hint`/`track` : ces blocs
     // vivent dans le contentContainer de la liste, qui pose déjà les 20 pt.
-    header: { flexDirection: 'row', alignItems: 'flex-end', paddingTop: Spacing.xl, paddingBottom: Spacing.md },
+    header: { flexDirection: 'row', alignItems: 'flex-end', gap: Spacing.md, paddingTop: Spacing.xl, paddingBottom: Spacing.md },
     h1: { color: t.text, ...Type.display, marginTop: Spacing.xs },
     sub: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 19 },
     counter: { ...Type.h2, color: t.text, letterSpacing: -0.6 },

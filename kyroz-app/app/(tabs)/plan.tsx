@@ -27,14 +27,15 @@ import { PrimaryButton, SectionLabel } from '../../components/ui';
 import { HydrationBar, useHydrationEnabled } from '../../components/HydrationBar';
 import { AnalyticsConsentBanner } from '../../components/AnalyticsConsentBanner';
 import { DatedGoalCard } from '../../components/DatedGoalCard';
-import { useTourTarget, useTour, hasSeenTour, TourStep } from '../../components/GuidedTour';
+import { useTourTarget, useScreenTour, TourButton } from '../../components/GuidedTour';
+import { planTour } from '../../lib/tours';
 import { useProfile } from '../../hooks/useProfile';
 import { useFavorites } from '../../hooks/useFavorites';
 import { useStreak } from '../../hooks/useStreak';
 import { useWeightLog } from '../../hooks/useWeightLog';
 import { usePlanCheckin } from '../../hooks/usePlanCheckin';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { buildLocalPlan, carryTracking, nextPlanSeed, profileSignature, swapMeal, computeDailyTotals, rebalanceDay, resetTracking, adaptDayOptions, AdaptOption, mealIngredients, reAdaptMealRecipe, mealPoolSize, dayTargetKcal, ON_TARGET_TOLERANCE_KCAL } from '../../lib/planEngine';
+import { buildLocalPlan, carryTracking, nextPlanSeed, profileSignature, swapMeal, computeDailyTotals, rebalanceDay, resetTracking, adaptDayOptions, AdaptOption, mealIngredients, reAdaptMealRecipe, mealPoolSize, dayTargetKcal, baseDayTargets, ON_TARGET_TOLERANCE_KCAL } from '../../lib/planEngine';
 import { DISLIKE_THRESHOLD, dislikeCandidates, applyDislikedIngredient } from '../../lib/dislike';
 import { todayStamp } from '../../lib/weight';
 import { recordOffPlan, resolveOffPlan, forgetOffPlan } from '../../lib/offPlanJournal';
@@ -63,39 +64,12 @@ const FIRST_PLAN_KEY = '@kyroz:firstPlanSeen';
 const BIRTHDAY_KEY = '@kyroz:birthdaySeenYear';
 const WD = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
 
-// Visite guidée de l'onglet Plan (pilote). Les bulles ne s'affichent que la 1re
-// fois (mémorisé), et sont rejouables via le « ? » de l'en-tête.
-//
-// ⚠️ Fonction, et non constante : la première bulle annonçait « Tes 7 jours de
-// plan » EN DUR alors que le plan suit `plan_days` (on peut n'en choisir que 3).
-// Le tutoriel comptait donc des jours que l'écran ne montrait pas.
-const planTour = (days: number): TourStep[] => [
-  {
-    targetId: 'plan-days',
-    title: 'Navigue dans ta semaine',
-    text: `${days === 1 ? 'Ton jour de plan' : `Tes ${days} jours de plan`}. Touche un jour pour voir ses repas — celui en surbrillance est affiché en dessous.`,
-  },
-  {
-    targetId: 'plan-macros',
-    title: 'Tes cibles du jour',
-    text: "Tes calories visées et la répartition protéines / glucides / lipides. La barre se remplit à mesure que tu marques tes repas comme cuisinés.",
-  },
-  {
-    targetId: 'plan-offplan',
-    title: 'Mangé hors plan ?',
-    text: "Ajoute un écart ici : Kyroz recale automatiquement les repas restants pour absorber les calories en plus, sans casser ton objectif.",
-  },
-  {
-    targetId: 'plan-meal',
-    title: 'Ouvre une recette',
-    text: "Touche un repas pour voir ses ingrédients ajustés à tes macros, ses badges d'adaptation, et le bouton « Échanger ce repas » si tu veux autre chose.",
-  },
-  {
-    targetId: 'plan-cook',
-    title: 'Marque-le comme cuisiné',
-    text: "Quand tu as préparé un plat, tape « J'ai cuisiné » : les ingrédients se déduisent de ton frigo et ta journée se recale toute seule.",
-  },
-];
+// ⚠️ La visite guidée de cet écran vivait ICI, en dur, et trois de ses cinq
+// bulles ont été trouvées FAUSSES le 2026-08-07 — dont « Kyroz recale
+// automatiquement les repas restants », alors que le code demande d'abord (cf.
+// `logOffPlan` plus bas). Le contenu est parti dans `lib/tours.ts`, qui n'importe
+// rien et se teste (`lib/__tests__/visiteGuidee.test.ts`) : une bulle qui promet
+// un comportement doit pouvoir être confrontée au code qui le rend.
 
 // Nb de jours du profil ramené dans [1, 7].
 const clampDays = (n?: number) => Math.min(Math.max(n ?? 0, 1), 7);
@@ -130,7 +104,6 @@ export default function PlanScreen() {
   const { favorites } = useFavorites();
   const router = useRouter();
   const [hydrationEnabled] = useHydrationEnabled(); // réglage Profil : afficher/masquer la barre
-  const { startTour } = useTour();
   const { streak, markActiveToday, celebration, clearCelebration, froze, clearFroze } = useStreak();
   const { due: weighInDue } = useWeightLog();
   const [weighIn, setWeighIn] = useState(false);
@@ -162,23 +135,32 @@ export default function PlanScreen() {
   const scrollRef = React.useRef<ScrollView>(null);
   const repli = useCollapsingTitle();
   // Cibles de la visite guidée (ref directe sur l'élément → spotlight aligné).
-  const daysRef = useTourTarget('plan-days');
+  const serieRef = useTourTarget('plan-serie');
   const macrosRef = useTourTarget('plan-macros');
   const offplanRef = useTourTarget('plan-offplan');
+  const repartitionRef = useTourTarget('plan-repartition');
+
+  // Les cibles des jours diffèrent-elles réellement ? Sans sport déclaré, non —
+  // `dayExpenditures` retombe alors sur une cible plate, et la bulle qui parle de
+  // « jours d'entraînement » mentirait à qui n'en a pas. Même seuil et même
+  // calcul que `FirstPlanReveal`, pour que les deux écrans ne se contredisent
+  // pas sur la même question.
+  const moduleParVolume = useMemo(() => {
+    if (!profile) return false;
+    const j = baseDayTargets(profile, Math.max(1, Math.min(profile.plan_days ?? 7, 7)));
+    return Math.max(...j) - Math.min(...j) >= 40;
+  }, [profile]);
 
   useEffect(() => { load(); }, []);
 
-  // Visite guidée : au 1er affichage d'un plan, on lance le tour s'il n'a jamais
-  // été vu. Petit délai pour laisser la mise en page (et le ScrollView) se poser.
-  useEffect(() => {
-    // Le reveal du 1er plan passe AVANT le tour : tant qu'il est affiché, on
-    // n'arme pas le tour (tourTried reste false) → il démarre à sa fermeture.
-    if (loading || !plan || tourTried.current || showReveal) return;
-    tourTried.current = true;
-    hasSeenTour('plan').then((seen) => {
-      if (!seen) setTimeout(() => startTour('plan', planTour(plan.days), { scrollRef }), 650);
-    });
-  }, [loading, plan, startTour, showReveal]);
+  // Visite guidée : au 1er affichage d'un plan, s'il n'a jamais été vu.
+  // ⚠️ Le reveal du 1er plan passe AVANT le tour : tant qu'il est affiché, le
+  // tour n'est pas « prêt » → il démarre à sa fermeture, pas par-dessus.
+  const { rejouer: rejouerTour } = useScreenTour(
+    'plan',
+    planTour({ days: plan?.days ?? 7, moduleParVolume }),
+    { pret: !loading && !!plan && !showReveal, scrollRef },
+  );
 
   // Garde-manger : rechargé à chaque fois qu'on revient sur l'onglet Plan, pour
   // refléter ce qui a été coché dans Courses (synchro plan ↔ frigo).
@@ -608,13 +590,11 @@ export default function PlanScreen() {
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md }}>
             {plan && (
-              <TouchableOpacity onPress={() => startTour('plan', planTour(plan.days), { scrollRef })} hitSlop={8} activeOpacity={OPACITE_PRESSION}>
-                <Ionicons name="help-circle-outline" size={Icone.nav} color={t.textTertiary} />
-              </TouchableOpacity>
+              <TourButton onPress={rejouerTour} />
             )}
             {/* La série se dit en toutes lettres, sans 🔥 : le compteur porte seul.
                 La progression vers l'objectif 7 jours reste juste dessous. */}
-            <View style={s.streak}>
+            <View ref={serieRef} style={s.streak}>
               <Text style={s.streakN}>{streak.current_streak_days} j</Text>
               <Text style={s.streakLbl}>de série</Text>
             </View>
@@ -673,7 +653,7 @@ export default function PlanScreen() {
                 ⚠️ La rangée montre les jours DU PLAN (`plan.days`), pas les 7 jours du
                 calendrier : un jour sans repas n'est pas sélectionnable, l'afficher
                 promettrait une journée qui n'existe pas. */}
-            <View ref={daysRef} style={s.days}>
+            <View style={s.days}>
               {Array.from({ length: plan.days }).map((_, i) => {
                 const n = i + 1; const on = selectedDay === n; const meta = dayMeta(i);
                 const repos = restDayNums.has(n);
@@ -714,8 +694,19 @@ export default function PlanScreen() {
                     faux depuis : le budget du jour suit la dépense du jour, donc un jour
                     de repos reçoit MOINS. La phrase contredisait le nombre affiché deux
                     lignes plus bas. On dit ce qui baisse, et on rassure sur la semaine —
-                    un suivi rassure, il ne met pas la pression. */}
-                {isRestDay && (
+                    un suivi rassure, il ne met pas la pression.
+                    🔴 ET `moduleParVolume`, ajouté le 2026-08-07 : la phrase n'était
+                    conditionnée qu'à `isRestDay`, donc elle promettait « un peu moins de
+                    calories » à qui n'a déclaré AUCUN sport — or `dayExpenditures` retombe
+                    alors sur une cible plate, et les sept jours valent le même chiffre.
+                    Mesuré sur le moteur (H 30 ans, 83 kg, 18 % MG, sèche, NEAT desk) :
+                    sans sport, 2042 kcal les sept jours, amplitude 0 ; avec 3 séances de
+                    60 min, 2042/2303 alternés, amplitude 261. Le nombre affiché juste en
+                    dessous démentait donc la phrase, sur l'écran le plus regardé de l'app.
+                    ➡️ Trouvé en écrivant la bulle de visite guidée qui parle de la même
+                    chose : elle, elle se conditionnait déjà — c'est la CAPTURE des deux
+                    textes côte à côte qui a montré la contradiction. */}
+                {isRestDay && moduleParVolume && (
                   <View style={s.restRow}>
                     <Ionicons name="moon" size={Icone.petite} color={t.textSecondary} />
                     <Text style={s.restTxt}>Jour de repos · un peu moins de calories et de glucides, tes protéines inchangées. Ta semaine garde son total.</Text>
@@ -758,6 +749,7 @@ export default function PlanScreen() {
                   {/* Découvrabilité de la perso macros (le fork a été retiré de l'onboarding) :
                       deep-link vers l'éditeur « Calories & macros » du Profil. */}
                   <TouchableOpacity
+                    ref={repartitionRef}
                     onPress={async () => { await AsyncStorage.setItem('@kyroz:openEditor', 'macros'); router.push('/(tabs)/profil'); }}
                     activeOpacity={OPACITE_PRESSION}
                     style={s.actionBtn}
@@ -804,8 +796,8 @@ export default function PlanScreen() {
                     onShopping={() => router.push('/(tabs)/courses')}
                     missing={m.fixed ? undefined : missing}
                     fridgeTracked={fridgeTracked}
-                    tourId={i === 0 ? 'plan-meal' : undefined}
                     cookTourId={i === 0 ? 'plan-cook' : undefined}
+                    actionsTourId={i === 0 ? 'plan-actions' : undefined}
                   />
                 );
               })}

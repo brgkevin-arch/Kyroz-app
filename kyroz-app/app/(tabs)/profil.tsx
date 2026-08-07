@@ -23,6 +23,8 @@ import { ageOn } from '../../lib/birthday';
 import { ActionSheet } from '../../components/ActionSheet';
 import { StreakProgress } from '../../components/StreakProgress';
 import { WeightSummaryCard } from '../../components/WeightSummaryCard';
+import { useTourTarget, useScreenTour, TourButton, resetAllTours } from '../../components/GuidedTour';
+import { profilTour, TOURS } from '../../lib/tours';
 import { BodyFatPicker } from '../../components/BodyFatPicker';
 import { DislikedFoodsField } from '../../components/DislikedFoodsField';
 import { MacroSplit } from '../../components/MacroSplit';
@@ -219,6 +221,7 @@ export default function ProfilScreen() {
   // seule fois (sinon il relit AsyncStorage à chaque rendu), mais il doit lire le
   // verdict À JOUR au moment du clic, pas celui du premier rendu.
   const premiumRef = useRef(premium);
+  const scrollRef = useRef<ScrollView>(null);
   premiumRef.current = premium;
 
   const openEditor = (key: EditorKey) => {
@@ -290,6 +293,19 @@ export default function ProfilScreen() {
     else notify({ title: 'Nous contacter', message: SUPPORT_EMAIL });
   };
 
+  // « Revoir les tutos » : on oublie les cinq tours, puis on relance TOUT DE SUITE
+  // celui de cet écran. Sans ce lancement immédiat, l'action n'aurait aucun effet
+  // visible — la personne resterait devant une ligne de menu qui a l'air de n'avoir
+  // rien fait, et les autres tours ne reviendraient qu'en changeant d'onglet.
+  // ⚠️ Pas de `notify` de confirmation : le dialogue est lui aussi une modale, et
+  // il se poserait PAR-DESSUS la bulle qu'on vient de lancer (ou l'inverse). Le
+  // tour qui démarre EST le retour visuel — c'est plus clair qu'un message qui
+  // annonce ce que l'écran est en train de faire.
+  const revoirTutos = async () => {
+    await resetAllTours();
+    rejouerTour();
+  };
+
   const appVersion = Constants.expoConfig?.version ?? '1.0.0';
 
   // Droit à la portabilité (RGPD art. 20) : exporter toutes ses données.
@@ -315,6 +331,17 @@ export default function ProfilScreen() {
     const haut = Math.max(...jours);
     return haut - bas >= 40 ? { bas, haut } : null;
   }, [profile]);
+
+  // Cibles de la visite guidée qui ne passent pas par un composant (les lignes de
+  // menu, elles, reçoivent un `tourId`). ⚠️ Comme `modulation` ci-dessus : AVANT
+  // le retour anticipé.
+  const tdeeRef = useTourTarget('profil-tdee');
+  const donneesRef = useTourTarget('profil-donnees');
+  const { rejouer: rejouerTour } = useScreenTour(
+    'profil',
+    profilTour({ objectifDateDisponible: premium.can('dated_goal') }),
+    { pret: !!profile, scrollRef },
+  );
 
   if (!profile) return null;
 
@@ -347,14 +374,21 @@ export default function ProfilScreen() {
 
   return (
     <SafeAreaView style={s.safe} edges={['top']}>
-      <ScrollView contentContainerStyle={[s.content, layout.content]} showsVerticalScrollIndicator={false} {...repli.scrollProps}>
+      {/* `ref` : la visite guidée en a besoin pour amener ses cibles basses (la
+          dépense estimée, le bloc « ce qui suit ton compte ») dans le champ
+          visible. En natif, sans cette ref, une cible sous la ligne de flottaison
+          se mesure hors écran et son étape s'ouvre sur le vide. */}
+      <ScrollView ref={scrollRef} contentContainerStyle={[s.content, layout.content]} showsVerticalScrollIndicator={false} {...repli.scrollProps}>
         {/* En-tête — l'écran n'en avait AUCUN : il démarrait direct sur la carte
             poids. Sur un écran aussi long, arriver sans savoir où on est coûte plus
             cher que les 60 px que ça prend. Le surtitre dit qui tu es, le titre dit
             où tu es. */}
         <View style={s.header} onLayout={repli.onHeaderLayout}>
-          <Text style={s.sub}>{SEX_LABELS[profile.sex]} · {profile.age} ans · {goalLabel(profile.goal)}</Text>
-          <Text style={s.h1}>Profil</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={s.sub}>{SEX_LABELS[profile.sex]} · {profile.age} ans · {goalLabel(profile.goal)}</Text>
+            <Text style={s.h1}>Profil</Text>
+          </View>
+          <TourButton onPress={rejouerTour} />
         </View>
 
         {/* ⚠️ ORDRE INVERSÉ le 2026-08-02 (décision fondateur), et ce n'est pas
@@ -370,6 +404,7 @@ export default function ProfilScreen() {
           due={weighInDue}
           goalTarget={trackingTarget(profile, todayStamp())}
           onPress={() => setWeighIn(true)}
+          tourId="profil-poids"
         />
 
         {/* Série — ligne discrète : le chaînon de 7 jours reste (North Star), le
@@ -450,9 +485,9 @@ export default function ProfilScreen() {
         <SectionTitle t={t}>Réglages</SectionTitle>
         <View style={s.menu}>
           <MenuRow t={t} label="Informations" value={`${SEX_LABELS[profile.sex]} · ${profile.age} ans · ${profile.weight_kg} kg${profile.body_fat_pct != null ? ` · ${profile.body_fat_pct}% MG` : ''}`} onPress={() => setEditor('info')} />
-          <MenuRow t={t} label="Sport & activité" value={`${profile.sports?.length ? `${profile.sports.length} sport${profile.sports.length > 1 ? 's' : ''}` : 'Aucun sport'} · ${NEAT_SHORT[profile.neat_level ?? DEFAULT_NEAT_LEVEL]}`} onPress={() => setEditor('sports')} />
+          <MenuRow t={t} label="Sport & activité" value={`${profile.sports?.length ? `${profile.sports.length} sport${profile.sports.length > 1 ? 's' : ''}` : 'Aucun sport'} · ${NEAT_SHORT[profile.neat_level ?? DEFAULT_NEAT_LEVEL]}`} onPress={() => setEditor('sports')} tourId="profil-sport" />
           <MenuRow t={t} label="Objectif" value={goalLabel(profile.goal)} onPress={() => setEditor('goal')} />
-          <MenuRow t={t} label="Objectif daté" value={profile.goal_target ? `${profile.goal_target.target_weight_kg} kg · ${formatFR(profile.goal_target.target_date)}` : (premium.can('dated_goal') ? 'Aucun' : 'Inclus dans Kyroz+')} onPress={() => openEditor('dated_goal')} last />
+          <MenuRow t={t} label="Objectif daté" value={profile.goal_target ? `${profile.goal_target.target_weight_kg} kg · ${formatFR(profile.goal_target.target_date)}` : (premium.can('dated_goal') ? 'Aucun' : 'Inclus dans Kyroz+')} onPress={() => openEditor('dated_goal')} tourId="profil-objectif-date" last />
         </View>
 
         <SectionLabel t={t}>TON PLAN</SectionLabel>
@@ -465,13 +500,13 @@ export default function ProfilScreen() {
               posé là mettrait la pression sans qu'on ouvre quoi que ce soit. */}
           <MenuRow t={t} label="Repas hors plan" value={journalSummary(journal.entries)} onPress={openOffPlan} />
           <MenuRow t={t} label="Kyroz+" value={KYROZ_PLUS_VALEUR[premium.reason]} onPress={() => router.push('/kyroz-plus')} />
-          <MenuRow t={t} label="Régénérer mon plan" value="Repartir de zéro" onPress={regenPlan} last />
+          <MenuRow t={t} label="Régénérer mon plan" value="Repartir de zéro" onPress={regenPlan} tourId="profil-regenerer" last />
         </View>
 
         {/* TDEE — le libellé prend la place qui reste, le chiffre ne se coupe jamais
             en deux lignes (`flexShrink: 0`). Sans ça, « 2 369 kcal » passait à la
             ligne au milieu de lui-même. */}
-        <View style={s.tdee}>
+        <View ref={tdeeRef} style={s.tdee}>
           <Text style={s.tdeeL}>Dépense estimée · maintenance (TDEE)</Text>
           <Text style={s.tdeeV}>{profile.tdee_kcal.toLocaleString('fr-FR')} kcal</Text>
         </View>
@@ -608,8 +643,11 @@ export default function ProfilScreen() {
             : 'Aucune statistique d’usage n’est partagée.'}
         </Text>
 
-        <View style={s.menu}>
+        <View ref={donneesRef} style={s.menu}>
           <MenuRow t={t} label="Aide & contact" value={SUPPORT_EMAIL} onPress={contactSupport} />
+          {/* Rejouer les visites guidées : « Passer » par réflexe perdait un tour
+              à vie, et le « ? » d'un onglet ne se trouve que si on y retourne. */}
+          <MenuRow t={t} label="Revoir les tutos" value={`${TOURS.length} visites guidées`} onPress={revoirTutos} />
           <MenuRow t={t} label="Exporter mes données" value="Télécharger tout (RGPD)" onPress={doExport} />
           <MenuRow t={t} label="Confidentialité & CGU" value="RGPD, données de santé" onPress={() => router.push('/legal')} />
           <MenuRow t={t} label="Version" value={appVersion} onPress={() => {}} readonly last />
@@ -681,9 +719,13 @@ function SectionTitle({ t, children }: { t: ThemePalette; children: React.ReactN
 // dix pictogrammes empilés faisaient un mur de gris qui n'aidait personne à
 // trouver « Objectif daté ». Le chevron reste — lui dit qu'il se passe quelque
 // chose au toucher.
-function MenuRow({ t, label, value, onPress, last, readonly }: { t: ThemePalette; label: string; value: string; onPress: () => void; last?: boolean; readonly?: boolean }) {
+function MenuRow({ t, label, value, onPress, last, readonly, tourId }: { t: ThemePalette; label: string; value: string; onPress: () => void; last?: boolean; readonly?: boolean; tourId?: string }) {
+  // `tourId` optionnel : rend CETTE ligne ciblable par la visite guidée. Sept
+  // lignes de menu partagent ce composant, et sans lui aucune n'était ancrable —
+  // un TouchableOpacity rendu par une fonction n'expose pas de ref à l'appelant.
+  const tourRef = useTourTarget(tourId);
   return (
-    <TouchableOpacity onPress={onPress} activeOpacity={readonly ? 1 : 0.7} disabled={readonly}
+    <TouchableOpacity ref={tourRef} onPress={onPress} activeOpacity={readonly ? 1 : 0.7} disabled={readonly}
       style={[{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md, paddingVertical: Spacing.lg }, !last && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.line }]}>
       <View style={{ flex: 1 }}>
         <Text style={{ ...Type.h3, color: t.text, letterSpacing: -0.3 }}>{label}</Text>
@@ -1485,7 +1527,7 @@ function makeStyles(t: ThemePalette) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: t.bg },
     content: { padding: Spacing.xl, gap: Spacing.lg, paddingBottom: Fond.barreOnglets },
-    header: { marginBottom: Spacing.xs },
+    header: { flexDirection: 'row', alignItems: 'flex-end', marginBottom: Spacing.xs },
     sub: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 19 },
     h1: { color: t.text, ...Type.display, marginTop: Spacing.xs },
     grid: { flexDirection: 'row', gap: Spacing.sm },
