@@ -44,6 +44,60 @@ export function bodyFatBounds(sex: Sex): [number, number] {
 }
 
 /**
+ * %MG de la silhouette la plus GRASSE du sélecteur. Au-delà, la charte ne peut plus
+ * illustrer : la dernière silhouette sous-estime sans le dire.
+ *
+ * ⚠️ Source unique, lue par l'écran ET par le test. `components/BodyFatPicker.tsx`
+ * la réexporte sous le nom `CHART_MAX_PCT` par commodité d'import, il n'y a pas
+ * deux tables.
+ */
+export const BF_CHART_MAX: Record<Sex, number> = { male: 35, female: 43 };
+
+/**
+ * La question de provenance (« mesuré avec un appareil, ou estimé ? ») est-elle posée
+ * pour ce %MG ? **Décision du fondateur, 2026-08-06 : seulement au-delà du plafond du
+ * sélecteur** — 35 % chez l'homme, 43 % chez la femme.
+ *
+ * ⚠️ CE QUE ÇA COÛTE, MESURÉ AVANT D'ÊTRE ARBITRÉ, pour que personne ne le
+ * redécouvre en croyant à un bug. Sous le seuil, la question n'existe pas, donc
+ * `body_fat_source` reste `undefined`, donc **Mifflin-St Jeor pour tout le monde** —
+ * y compris qui sort d'un DEXA. Écart de TDEE perdu par ces corps :
+ *
+ *     H 75 kg · 12 % (DEXA)   −94 kcal/j        F 58 kg · 20 %   −81 kcal/j
+ *     H 82 kg · 15 %          −99 kcal/j        F 62 kg · 25 %   −48 kcal/j
+ *
+ * Katch-McArdle est pourtant le plus précis sur ces corps-là. L'arbitrage assume donc
+ * de le réserver aux fortes adiposités, là où l'écart est le plus gros (+227 kcal/j
+ * sur un H de 110 kg à 38 %) et où la silhouette ment le plus.
+ * ➡️ **Ne pas « corriger » ce comportement sans le fondateur** : ce n'est pas un oubli.
+ */
+export function provenanceDemandee(sex: Sex, bodyFatPct: number | undefined): boolean {
+  return typeof bodyFatPct === 'number' && bodyFatPct >= BF_CHART_MAX[sex];
+}
+
+/**
+ * Provenance qu'on a le DROIT de garder pour ce %MG.
+ *
+ * ⚠️ Sans ça, le seuil crée un état FANTÔME : répondre « mesuré » à 40 %, puis
+ * corriger son chiffre à 20 %, laisserait `'measured'` enregistré alors que la
+ * question a disparu de l'écran. Katch-McArdle continuerait de s'appliquer via un
+ * réglage que la personne ne peut plus ni voir ni changer — mesuré, ~80 kcal/j sur
+ * un corps de 60 kg. Un réglage inatteignable ne doit pas décider d'une formule.
+ *
+ * Seul `'measured'` est retiré : `'estimated'` et `undefined` calculent tous deux en
+ * Mifflin, donc garder `'estimated'` ne déplace aucune cible — et c'est une
+ * information vraie (« cette personne a dit que c'était au jugé »), qu'on ne jette pas.
+ */
+export function provenanceRetenue(
+  sex: Sex,
+  bodyFatPct: number | undefined,
+  source: BodyFatSource | undefined,
+): BodyFatSource | undefined {
+  if (source === 'measured' && !provenanceDemandee(sex, bodyFatPct)) return undefined;
+  return source;
+}
+
+/**
  * Sous ce % de masse grasse, la valeur SAISIE À LA MAIN est atypique au point de
  * mériter un repère à l'écran — pas un blocage, la valeur reste physiologiquement
  * possible (athlètes, compétition).

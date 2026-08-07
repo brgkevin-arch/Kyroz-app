@@ -11,7 +11,10 @@
 //  4. la promesse de l'option A : le plancher de sécurité ne bouge PAS. C'est ce qui
 //     distingue ce chantier de l'option B, et sans test rien ne l'empêcherait de
 //     dériver ;
-//  5. le déterminisme : mêmes entrées = mêmes sorties.
+//  5. le déterminisme : mêmes entrées = mêmes sorties ;
+//  6. le SEUIL 35 % / 43 % (bloc 8) : la question n'est posée qu'au-delà du plafond
+//     du sélecteur, et une réponse « mesuré » ne survit pas à un %MG redescendu
+//     sous ce seuil — sinon Katch s'appliquerait via un réglage inatteignable.
 //
 // ⚠️ VÉRIFIÉ PAR MUTATION (cf. AGENTS.md) — un test qu'on n'a jamais vu rougir ne
 // prouve rien. TROIS mutations ont été jouées, parce qu'une seule ne couvrait que le
@@ -22,17 +25,24 @@
 //   M2 · `resolvedBodyFatPct` consulte la provenance (c'est l'option B, celle qu'on a
 //        ÉCARTÉE) → 3 tests rouges, tout le bloc 4.
 //   M3 · `MAX_DEFICIT_TDEE_RATIO` desserré de 0,25 à 0,90 → bloc 7 rouge.
+//   M4 · seuil `BF_CHART_MAX` mis à 0 (question posée partout) → 4 tests du bloc 8.
+//   M5 · `provenanceRetenue` cesse de nettoyer (l'état fantôme revient) → 2 tests.
+//   M6 · l'écran redéclare sa propre table de seuils → 1 test (le verrou de source).
 //
 // Le bloc 5 (déterminisme) ne rougit sous AUCUNE des trois, et c'est normal : il ne
 // garde pas ce chantier, il garde la contrainte transverse « mêmes entrées = mêmes
 // sorties », qui doit tenir quel que soit le prédicat.
 
+import { readFileSync } from 'node:fs';
 import { describe, it, expect } from 'vitest';
 import {
   calculateBMR, calculateTDEE, katchEligible, recalcProfile, computePlan,
   bodyFatTdeeImpact, leanBodyMass, ENGINE_REV,
 } from '../tdee';
-import { safetyFloorKcal, fatFreeMassKg, EA_HARD_FLOOR } from '../safety';
+import {
+  safetyFloorKcal, fatFreeMassKg, EA_HARD_FLOOR,
+  BF_CHART_MAX, provenanceDemandee, provenanceRetenue,
+} from '../safety';
 import { exerciseKcalPerDay } from '../sport';
 import { makeProfile } from './helpers';
 import { BodyFatSource, UserProfile } from '../types';
@@ -264,5 +274,63 @@ describe('7 — le plafond de déficit à 25 % cesse d\'être dormant', () => {
     expect(clamp.source).toBe('deficit_cap');
     expect(clamp.candidates.deficit_cap).toBeGreaterThan(clamp.candidates.energy_availability);
     expect(clamp.candidates.deficit_cap).toBeGreaterThan(clamp.candidates.bmr);
+  });
+});
+
+describe('8 — le SEUIL du sélecteur : la question n\'est posée qu\'au-delà de 35 % / 43 %', () => {
+  // Décision du fondateur, 2026-08-06, prise APRÈS mesure du coût (cf. `safety.ts`).
+  // Ce bloc existe pour deux raisons : figer le seuil, et surtout empêcher l'état
+  // FANTÔME — une provenance « mesuré » qui survivrait à un %MG redescendu sous le
+  // seuil déciderait de la formule sans que personne puisse la voir ni la changer.
+  it('le seuil est le plafond du sélecteur, pas un nombre écrit deux fois', () => {
+    expect(BF_CHART_MAX).toEqual({ male: 35, female: 43 });
+    // Verrou de SOURCE UNIQUE. On ne peut pas importer le composant (il tire
+    // `@expo/vector-icons`, que vitest ne résout pas), donc on lit son texte —
+    // même méthode que `profileCols.test.ts` face au SQL. Ce qu'on interdit est
+    // précis : que l'écran REDÉCLARE la table au lieu de la réexporter. Deux
+    // tables de seuils auraient divergé, et c'est le seuil qui décide de la formule.
+    const src = readFileSync(
+      new URL('../../components/BodyFatPicker.tsx', import.meta.url), 'utf8');
+    expect(src).toContain('export const CHART_MAX_PCT = BF_CHART_MAX;');
+    expect(src).not.toMatch(/CHART_MAX_PCT[^=]*=\s*\{/);
+  });
+
+  it('la question n\'apparaît qu\'À PARTIR du seuil, bornes comprises', () => {
+    expect(provenanceDemandee('male', 34.9)).toBe(false);
+    expect(provenanceDemandee('male', 35)).toBe(true);
+    expect(provenanceDemandee('female', 42.9)).toBe(false);
+    expect(provenanceDemandee('female', 43)).toBe(true);
+    // Un %MG absent ne pose pas de question non plus.
+    expect(provenanceDemandee('male', undefined)).toBe(false);
+  });
+
+  it('« mesuré » ne SURVIT pas à un %MG redescendu sous le seuil', () => {
+    // Le scénario exact : on répond « oui, avec un appareil » à 40 %, puis on corrige
+    // son chiffre à 20 %. La question disparaît de l'écran — la réponse doit partir
+    // avec elle, sinon Katch s'applique via un réglage devenu inatteignable.
+    expect(provenanceRetenue('male', 40, 'measured')).toBe('measured');
+    expect(provenanceRetenue('male', 20, 'measured')).toBeUndefined();
+    expect(provenanceRetenue('female', 45, 'measured')).toBe('measured');
+    expect(provenanceRetenue('female', 30, 'measured')).toBeUndefined();
+  });
+
+  it('« estimé » SURVIT, lui — et ce n\'est pas une incohérence', () => {
+    // `estimated` et `undefined` calculent tous deux en Mifflin : le garder ne déplace
+    // aucune cible. C'est une information vraie (« dit au jugé »), on ne la jette pas.
+    expect(provenanceRetenue('male', 20, 'estimated')).toBe('estimated');
+    expect(provenanceRetenue('female', 18, 'estimated')).toBe('estimated');
+    expect(calculateBMR({ sex: 'male', weight_kg: 80, height_cm: 178, age: 30, body_fat_pct: 20, body_fat_source: 'estimated' }))
+      .toBe(calculateBMR({ sex: 'male', weight_kg: 80, height_cm: 178, age: 30, body_fat_pct: 20 }));
+  });
+
+  it('conséquence ASSUMÉE : sous le seuil, une vraie mesure ne peut plus être déclarée', () => {
+    // Ce test ne défend pas un idéal, il CHIFFRE le prix de l'arbitrage pour que
+    // personne ne le redécouvre en croyant à un bug. H 75 kg, 12 % au DEXA.
+    const corpsMaigre = { sex: 'male' as const, age: 25, weight_kg: 75, height_cm: 175, body_fat_pct: 12 };
+    expect(provenanceDemandee('male', 12)).toBe(false);
+    const servi = calculateBMR({ ...corpsMaigre, body_fat_source: provenanceRetenue('male', 12, 'measured') });
+    const siKatch = calculateBMR({ ...corpsMaigre, body_fat_source: 'measured' });
+    expect(servi).toBeLessThan(siKatch);
+    expect(siKatch - servi).toBeGreaterThan(50); // ~72 kcal de BMR, ~94 de TDEE
   });
 });

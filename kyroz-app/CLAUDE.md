@@ -344,6 +344,19 @@ OUTPUT         → Plan + liste de courses + recettes
   sans que rien à l'écran ne dise que le chiffre était une estimation. Le %MG
   estimé reste **stocké et affiché** (suivi de progression) — il ne pilote plus
   que ce qu'il peut porter.
+  ⚠️ **La question n'est posée qu'au-delà du PLAFOND du sélecteur** — 35 % (H) / 43 % (F),
+  décision du fondateur du 2026-08-06, prise après mesure. Sous ce seuil elle n'apparaît
+  jamais, donc `body_fat_source` reste `undefined` et **tout le monde calcule en Mifflin**,
+  y compris qui sort d'un DEXA : mesuré, un H de 75 kg à 12 % perd **94 kcal/j**, un H de
+  82 kg à 15 % **99**, une F de 58 kg à 20 % **81**. L'arbitrage assume de réserver Katch
+  aux fortes adiposités, là où l'écart est le plus gros (**+227 kcal/j** sur un H de 110 kg
+  à 38 %) et où la silhouette ment le plus. ➡️ **Ce n'est pas un oubli : ne pas le
+  « corriger » sans le fondateur.** Règle pure et testée : `safety.ts::provenanceDemandee`.
+  ⚠️ Corollaire non négociable : une réponse « mesuré » **ne survit pas** à un %MG
+  redescendu sous le seuil (`safety.ts::provenanceRetenue`). Sinon Katch continuerait de
+  s'appliquer via un réglage que la personne ne peut plus ni voir ni changer — un réglage
+  inatteignable ne décide pas d'une formule. `'estimated'`, lui, survit : il calcule comme
+  `undefined`, donc il ne déplace aucune cible, et c'est une information vraie.
   ➡️ Prédicat unique : **`tdee.ts::katchEligible`**, et `calculateBMR` prend le
   CORPS entier (pas un `%MG` positionnel) pour qu'aucun appelant ne puisse passer
   le chiffre en oubliant sa provenance. Garde-fou : `bodyFatSource.test.ts`.

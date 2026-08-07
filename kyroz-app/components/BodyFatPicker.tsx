@@ -3,7 +3,10 @@ import { View, Text, TouchableOpacity, StyleSheet, Image, ImageSourcePropType } 
 import { ThemePalette, Radius, Type, Spacing, Trait, OPACITE_PRESSION } from '../constants/theme';
 import { Chip, Field } from './ui';
 import { BodyFatSource, Sex } from '../lib/types';
-import { bodyFatBounds, bodyFatConcern, fatFreeMassKg } from '../lib/safety';
+import {
+  BF_CHART_MAX, bodyFatBounds, bodyFatConcern, fatFreeMassKg,
+  provenanceDemandee, provenanceRetenue,
+} from '../lib/safety';
 import { bodyFatTdeeImpact, TdeeBody } from '../lib/tdee';
 
 // ── Sélecteur de masse grasse ────────────────────────────────────────────────
@@ -54,8 +57,12 @@ const LEVELS: Record<Sex, Level[]> = {
   ],
 };
 
-/** Le %MG le plus élevé que le sélecteur sait exprimer, par sexe. */
-export const CHART_MAX_PCT: Record<Sex, number> = { male: 35, female: 43 };
+/**
+ * Le %MG le plus élevé que le sélecteur sait exprimer, par sexe.
+ * ⚠️ RÉEXPORT — la table vit dans `lib/safety.ts`, qui est testable. Elle décide
+ * aussi du seuil de la question de provenance : deux tables auraient divergé.
+ */
+export const CHART_MAX_PCT = BF_CHART_MAX;
 
 interface Props {
   t: ThemePalette;
@@ -116,7 +123,7 @@ export function BodyFatPicker({ t, sex, value, source, onChange, body }: Props) 
     // La provenance est CONSERVÉE : re-borner un chiffre ne change pas d'où il vient.
     // La perdre ici ferait retomber en Mifflin un %MG mesuré, sur un simple
     // changement de sexe — un déplacement de cible sans le moindre geste de saisie.
-    if (clamped !== value) onChange(clamped, source);
+    if (clamped !== value) onChange(clamped, provenanceRetenue(sex, clamped, source));
   }, [sex]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Deux repères, une seule source (`safety.bodyFatConcern`) : le %MG sous la charte
@@ -132,7 +139,7 @@ export function BodyFatPicker({ t, sex, value, source, onChange, body }: Props) 
   // en silence). Le repère `lean_mass` le détecte déjà ; ce qu'il disait ne servait à
   // rien dans CE cas — « la silhouette la plus proche sera plus juste » à quelqu'un
   // qui vient de taper la dernière est un cul-de-sac.
-  const auPlafond = value != null && value >= CHART_MAX_PCT[sex];
+  const auPlafond = provenanceDemandee(sex, value);
 
   // Chiffré sur la MAINTENANCE (cf. bodyFatTdeeImpact) : à l'étape 3 de l'onboarding,
   // ni l'objectif ni les séances ne sont connus, donc la cible n'existe pas encore.
@@ -195,7 +202,8 @@ export function BodyFatPicker({ t, sex, value, source, onChange, body }: Props) 
           // est appliqué au blur pour ne pas casser la saisie progressive.
           // La provenance déjà répondue est CONSERVÉE — corriger un chiffre mesuré
           // ne le rend pas estimé.
-          onChange(Math.min(n, BF_MAX), source);
+          const borne = Math.min(n, BF_MAX);
+          onChange(borne, provenanceRetenue(sex, borne, source));
         }}
         // ⚠️ `onBlur` et NON `onEndEditing` : react-native-web ne câble PAS
         // onEndEditing (no-op sur le web déployé) — seul onBlur est appelé au blur.
@@ -205,22 +213,32 @@ export function BodyFatPicker({ t, sex, value, source, onChange, body }: Props) 
           const n = parseFloat(pctText.replace(',', '.'));
           if (Number.isNaN(n)) { onChange(undefined, undefined); setPctText(''); setSaisiManuel(false); return; }
           const clamped = Math.min(Math.max(n, BF_MIN), BF_MAX);
-          onChange(clamped, source);
+          onChange(clamped, provenanceRetenue(sex, clamped, source));
           setPctText(String(clamped));
         }}
         placeholder="ex. 18"
       />
 
       {/* ── Provenance ────────────────────────────────────────────────────────
-          Posée UNIQUEMENT sur une saisie manuelle : un tap de silhouette est déjà
-          une estimation, et lui poser la question inviterait à répondre « mesuré ».
+          DEUX conditions, et il faut les deux.
+
+          1. Saisie MANUELLE : un tap de silhouette est déjà une estimation, et lui
+             poser la question inviterait à répondre « mesuré ». Sans cette condition,
+             la DERNIÈRE silhouette (35 % H / 43 % F) déclencherait la question juste
+             après un tap sur un dessin — elle est pile sur le seuil.
+          2. Au-delà du plafond du sélecteur (`provenanceDemandee`) — décision du
+             fondateur du 2026-08-06. Sous le seuil la question n'est jamais posée,
+             donc `body_fat_source` reste `undefined` et tout le monde calcule en
+             Mifflin. Ce que ça coûte est CHIFFRÉ dans `lib/safety.ts` (un H de 75 kg
+             à 12 % sorti d'un DEXA perd 94 kcal/j).
+             ⚠️ Ce n'est pas un oubli — ne pas « réparer » sans le fondateur.
 
           Pas un mot de « Katch-McArdle » ni de « métabolisme de base » : la question
           porte sur ce que la personne A FAIT, pas sur ce que le moteur en fera. Et
           aucune option n'est pré-cochée — pré-cocher « mesuré » ferait basculer la
           formule sur un chiffre deviné, pré-cocher « estimé » répondrait à sa place.
           Sans réponse, le moteur calcule comme estimé : le défaut va vers la prudence. */}
-      {saisiManuel && value != null && (
+      {saisiManuel && provenanceDemandee(sex, value) && (
         <View style={{ gap: Spacing.sm }}>
           <Text style={{ color: t.text, ...Type.bodySmallStrong }}>
             Ce chiffre, tu l'as mesuré ?
