@@ -9,10 +9,19 @@ import Svg, { Rect, Path, Circle } from 'react-native-svg';
 //
 // **Pourquoi elles remplacent des émojis.** Un émoji n'est pas une icône : il
 // porte sa propre couleur (impossible de le faire suivre le thème ou l'accent),
-// son propre dessin selon la plateforme, et son propre poids visuel. Sur 55
-// émojis affichés, 39 tenaient la place d'une icône — ce sont ceux-là.
-// Les 16 autres n'étaient qu'une ponctuation (« Journée réadaptée 👊 ») : ils ont
-// été SUPPRIMÉS, pas remplacés. Aucun pictogramme ne remplace un ton de voix.
+// son propre dessin selon la plateforme, et son propre poids visuel. Sur les 55
+// émojis comptés dans `app/` et `components/`, 39 tenaient la place d'une icône —
+// ce sont ceux-là. Les 16 autres n'étaient qu'une ponctuation (« Journée
+// réadaptée 👊 ») : ils ont été SUPPRIMÉS, pas remplacés. Aucun pictogramme ne
+// remplace un ton de voix.
+//
+// 🔴 LA PASSE N'EST PAS FINIE, contrairement à ce que ce commentaire annonçait.
+// Le comptage portait sur `app/` + `components/` ; il reste 13 émojis AFFICHÉS
+// depuis `lib/streak.ts` (6 paliers rendus en 56 px par `StreakCelebration`, 2
+// dans `streakMessage`), `lib/notifications.ts` (4) et `constants/legal.ts` (1).
+// Un inventaire d'interface se compte sur ce qui est AFFICHÉ, pas sur les
+// fichiers qui ressemblent à de l'interface. Détail et décision en attente :
+// CLAUDE.md §8 « Aucun émoji dans l'interface ».
 //
 // ⚠️ Ce fichier ne dessine QUE des tracés. Il ne connaît ni le thème ni l'accent :
 // l'appelant passe `color`, exactement comme pour les onglets. C'est ce qui permet

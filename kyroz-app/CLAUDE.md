@@ -855,7 +855,8 @@ Profil (poids, objectif, régime) = **données de santé** au sens RGPD.
 > `lib/accentColor.ts`, réglage « Couleur d'accent » dans Profil → Préférences.
 > Six choix : monochrome (défaut), bleu, vert, orange, rouge, violet. Le monochrome
 > reste la DA de Kyroz : **le fond ne bouge jamais** (noir pur / `#F2F2F7`), seul
-> l'accent change — boutons, jour actif, pilule sélectionnée, onglet actif.
+> l'accent change — boutons, jour actif, pilule sélectionnée, onglet actif,
+> **et la barre de macros** (2026-08-06).
 >
 > **LOCAL-ONLY**, comme la préférence de thème : aucune colonne, **aucune migration
 > Supabase**. C'est un réglage d'APPAREIL, pas une donnée de profil — le même compte
@@ -884,6 +885,82 @@ Profil (poids, objectif, régime) = **données de santé** au sens RGPD.
 > écran fait `useMemo(() => makeStyles(t), [t])` : renvoyer un objet neuf à chaque
 > rendu invaliderait ce memo partout et reconstruirait toutes les feuilles de style à
 > chaque frappe.
+
+### La barre de macros suit l'accent, en TROIS NUANCES (2026-08-06)
+
+Décision fondateur. Le principe de la refonte ne change pas d'un iota — **trois
+nuances d'UNE couleur, jamais trois teintes** ; ce qui change, c'est que cette
+couleur n'est plus forcément le gris. `lib/accentColor.ts::macroShades` dérive
+`protein` / `carbs` / `fat` de l'accent choisi, et `paletteFor` les substitue.
+
+**En monochrome — le défaut, donc la DA que voit la majorité — les gris système
+restent EN DUR.** Les dériver du blanc ou de l'encre donnerait des gris différents
+en clair et en sombre, et ferait bouger la DA par défaut pour un changement qui ne
+concerne que ceux qui choisissent une couleur.
+
+🔴 **Une nuance ne se choisit pas « un peu plus claire », elle se MESURE contre le
+fond.** C'est le défaut déjà payé une fois : le 3ᵉ gris de la maquette (`#DDDDDF`)
+tombait à **1,21:1** contre le fond de page, le segment lipides était invisible et
+la barre semblait s'arrêter aux deux tiers. `macroShades` recule donc vers l'accent
+tant que la nuance ne tient pas **1,5:1** (`MACRO_SHADE_MIN_CONTRAST`).
+
+⚠️ **Mesuré sur les 6 accents × 2 thèmes : le plancher ne mord JAMAIS.** Le cas le
+plus serré est **orange en clair, à 1,53:1** — 0,03 de marge. Le mécanisme de recul
+n'est donc traversé par **aucun accent livré**, et un garde-fou que le chemin réel
+ne traverse jamais ne garde rien : `accentColor.test.ts` le traverse volontairement
+avec une couleur hostile, et fige la marge du pire cas pour que sa dégradation se
+remarque. Vérifié par mutation.
+
+### Aucun émoji dans l'interface — règle posée, passe INCOMPLÈTE (2026-08-06)
+
+La règle est tranchée : **pas d'émoji dans l'interface**. L'état du code, lui, ne
+la respecte pas encore — et ce paragraphe a annoncé le contraire.
+
+**Ce que la passe a fait**, sur `app/` et `components/` (les 55 émojis comptés là) :
+
+- **39 tenaient la place d'une ICÔNE** — avertissement, cadenas, chrono, type de
+  repas. Ils sont devenus **17 tracés** (`components/Icons.tsx`), dessinés par
+  Claude Design dans le gabarit des cinq icônes d'onglets, qui restent la référence
+  de la famille : viewBox 27, trait 1,7 (2,2 actif), bouts arrondis, `fill=none`,
+  **couleur passée de l'extérieur**. C'est précisément ce qu'un émoji ne sait pas
+  faire : il porte sa propre couleur, donc il ne peut ni suivre le thème ni prendre
+  l'accent choisi.
+- **16 n'étaient qu'un TON DE VOIX** (« Journée réadaptée 👊 », « + 450 kcal
+  assumées 😎 »). Ceux-là ont été **SUPPRIMÉS, pas remplacés** : aucun pictogramme
+  ne remplace une ponctuation, et la phrase doit tenir sans elle.
+
+🔴 **Ce qu'elle n'a PAS fait — re-mesuré le 2026-08-07 : 13 émojis sont encore
+AFFICHÉS**, dans trois modules que la passe n'a jamais ouverts.
+
+| Où | Combien | Ce qui l'affiche |
+|---|---|---|
+| `lib/streak.ts` (paliers) | 6 — 🔥 🎉 💪 🏆 ⭐ 👑 | `StreakCelebration.tsx` en **fontSize 56**, monté sur l'écran Plan |
+| `lib/streak.ts` (`streakMessage`) | 2 — 🎯 🎉 | `StreakProgress.tsx` |
+| `lib/notifications.ts` | 4 — 💪 🍽️ 🔥 ⚖️ | les notifications natives |
+| `constants/legal.ts` | 1 — ⚠️ | l'écran `/legal` (CGU) |
+
+⚠️ **Le compte de 55 n'était pas faux, il portait sur le mauvais périmètre.** Ces
+chaînes vivent dans `lib/` et `constants/` — des fichiers qui n'ont pas l'air
+d'interface — et remontent à l'écran via un composant qui, lui, n'en contient
+aucune. ➡️ **Un inventaire d'interface se compte sur ce qui est AFFICHÉ, pas sur
+les fichiers qui ressemblent à de l'interface.**
+
+⚠️ **Et « plus un seul émoji » a été écrit à trois endroits — le commit, `Icons.tsx`
+et ici — sans qu'aucun compteur ne l'exige.** Une passe qui n'a pas de test se
+déclare terminée toute seule, et les trois copies se confirment l'une l'autre.
+
+⚠️ **Un émoji vivant dans une CHAÎNE ne peut pas devenir une icône** — un toast est
+une string, pas du JSX. Ceux-là se retirent et la phrase se reformule (« Noté 👎 »
+→ « C'est noté »). Les autres deviennent une rangée icône + texte, plus verbeuse
+qu'un caractère collé devant une phrase : c'est le prix de la couleur héritée.
+
+➡️ **Règle : ne pas réintroduire d'émoji dans l'interface**, et **finir les 13
+restants** — chantier ouvert, pas un oubli à corriger en passant : la célébration
+de palier est un objet VISUEL de 56 px, la remplacer (icône `ReussiteIcon` ? rien
+du tout ?) est une décision de DA, pas une substitution mécanique. Le compte se
+refait en écartant les commentaires du code (les ⚠️ et 🔴 qui y vivent ne sont
+affichés nulle part) **et sans se limiter à `app/` + `components/`** — c'est
+exactement l'erreur ci-dessus.
 
 ### La FORME et la GRAISSE passent par un token, comme la couleur (2026-08-03)
 
@@ -1100,6 +1177,36 @@ puis se fige à une valeur intermédiaire **parfaitement plausible** — j'ai «
 et l'écran ne sert qu'à juger le rendu (opacité forcée à 1). Procédure :
 `docs/comparer-maquette.md`.
 
+### Le design system est POUSSÉ vers Claude Design, et il se REGÉNÈRE (2026-08-06)
+
+Projet « Kyroz — design system » sur le compte du fondateur : 6 pages — principes ·
+couleurs · accents · rayons · typographie · espacements. Claude Design les consulte
+au lieu de deviner.
+
+**Motif mesuré, pas théorique** : sur la maquette du 3 août, 4 valeurs divergeaient
+du thème et **une était un vrai bug** (le 3ᵉ gris à 1,21:1), plus un `blur(22px)`
+irréalisable sans dépendance native. Un design system n'embellit pas les maquettes —
+**il les empêche d'inventer des valeurs que personne ne vérifie.**
+
+⚠️ **LE MIROIR EST GÉNÉRÉ, JAMAIS ÉCRIT À LA MAIN** — `npm run design:build`
+(`scripts/design-system.mjs` lit `theme.ts` et `accentColor.ts`). Une copie écrite à
+la main serait exactement « une copie stockée que personne ne relit » (§10) : le jour
+où `theme.ts` change sans le miroir, Claude Design dessine contre une DA qui n'existe
+plus et rend des maquettes parfaitement plausibles. **Après tout changement de token :
+regénérer et repousser.**
+
+⚠️ **L'extraction lit `theme.ts` COMME DU TEXTE** (il tire react-native, donc pas
+importable sous node — même procédé que `accentColor.test.ts`). Elle s'est cassée
+DEUX fois pendant son écriture, et **aucune des deux ne lève d'erreur** : les
+sous-objets écrits sur une ligne ne rendaient qu'une clé sur trois ; et `ACCENTS`
+porte une annotation de type contenant des accolades, donc l'extracteur capturait le
+TYPE et rendait **zéro accent**. Garde-fou : `lib/__tests__/designSystem.test.ts`,
+vérifié par mutation.
+
+➡️ **La moitié d'une DA n'est pas une valeur, c'est une règle** : `principes.html`
+porte les 8 qui ne se déduisent d'aucune palette. Une règle absente du miroir sera
+enfreinte par la prochaine maquette.
+
 ### Largeurs — téléphone ET tablette (depuis le 2026-08-01)
 
 L'app est livrée pour iPad (`ios.supportsTablet: true`). **Tout écran passe par
@@ -1293,6 +1400,27 @@ téléphone.
 - **Supabase plafonne la création de comptes invités** (429 `over_request_rate_limit`, par
   heure et par IP). Enchaîner les passes de test fait échouer des parcours **sans que l'app
   ait quoi que ce soit à se reprocher**.
+- 🔴 **UN RÉGLAGE LU PAR UN AUTRE ÉCRAN QUE CELUI QUI LE POSE NE SE RELIT PAS
+  « AU FOCUS » — IL SE DIFFUSE.** Deux cas trouvés le même jour (2026-08-06), et les
+  deux étaient **dormants** : (1) le suivi d'hydratation se relisait via
+  `useFocusEffect`, et cette relecture n'atteignait jamais l'écran Plan — basculer
+  sur « Masqué » laissait la carte en place **jusqu'au redémarrage** ; (2) le
+  **prénom** ne s'écrivait qu'à la dernière étape de l'onboarding, aucun écran ne
+  permettait de le poser ou de le corriger, et le Plan le lisait une fois au montage
+  — un compte antérieur restait sur « Ton plan » **à perpétuité, sans recours**.
+  ⚠️ **Le défaut dort tant que la valeur par défaut le masque** : l'hydratation
+  valait « affiché », donc un réglage qui ne se propage pas ne se voyait pas — la
+  carte était là pour la seule raison qu'elle l'était au montage. Inverser le défaut
+  l'a révélé d'un coup.
+  ➡️ Patron obligatoire pour toute valeur d'APPAREIL : store externe hors React +
+  `useSyncExternalStore`, **chargé une fois dans le layout racine**. Kyroz le faisait
+  déjà pour le thème et l'accent ; l'hydratation et le prénom l'ont rejoint. ⚠️ Une
+  valeur oubliée dans ce chargement repart sur son défaut à chaque démarrage, et ça
+  ne se voit nulle part.
+  ⚠️ Se vérifie par le VRAI geste (basculer à l'écran, revenir sur l'autre écran),
+  jamais en écrivant dans le stockage. Et prouver d'abord que la sonde sait dire
+  OUI : `getByText('Hydratation', { exact: true })` ne trouve jamais `💧 Hydratation`
+  — j'ai annoncé un faux diagnostic sur cette base (cf. §11 « mesurer l'instrument »).
 - **Les sous-écrans du Profil sont des `Sheet`, pas des routes** : `goBack()` ne les ferme
   pas, il faut cliquer le fond.
 - **Un `require` PARESSEUX ne retire RIEN du bundle.** Metro analyse les `require`
