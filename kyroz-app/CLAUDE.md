@@ -1295,6 +1295,30 @@ téléphone.
   (`scripts/deploy-info.mjs`) et **sort en code 1** : le piège d'origine était un
   script qui réussissait sans rien faire, et il a produit un diagnostic entièrement
   faux (AGENTS.md A12). L'export local s'appelle désormais **`npm run build:web`**.
+- 🔴 **UN TEST VERT EN LOCAL NE DIT RIEN DE SA MARGE — le runner CI est ~3× plus lent.**
+  Mesuré le 2026-08-06 sur `varieteFamille` → « le PREMIER plan servi n'est pas le moins
+  varié » : **2 021 ms en local, 6 561 ms en CI**. Sur un Mac il consommait 40 % du délai
+  de 5 s et paraissait sain ; sur le runner il était à **131 %**, et `main` est resté
+  **rouge sur quatre commits d'affilée**. ➡️ Tout test au-delà de ~1,5 s en local est
+  déjà à risque, et aucun `npm test` ne le dira. Le délai est désormais un choix explicite
+  (`vitest.config.ts`, `testTimeout: 30_000`), plus la valeur par défaut de l'outil que
+  personne n'avait retenue pour une suite qui simule des centaines de semaines de plans.
+  ⚠️ **Et avant de relever un délai, MESURER LE PRODUIT, pas le test** : la durée du test
+  avait triplé, j'en ai conclu que le moteur avait ralenti — c'était FAUX. Coût d'un plan
+  réellement servi : **14,7 → 14,6 ms** (6 gabarits × 5 tirages), la contrainte « < 1 s »
+  du §4 garde trois ordres de grandeur. Relever un plafond est exactement le geste qui
+  masquerait une vraie régression ; c'est aussi celui qui fait accuser à tort le travail
+  d'une autre session.
+- ⚠️ **Un `git push` ne crée pas TOUJOURS un run** — et l'absence de run ressemble à un
+  déploiement qui n'a jamais fini. Pendant l'incident Actions du 2026-08-06 (8 h),
+  GitHub a bridé les webhooks à **15 %** : plusieurs pushes sur `main` n'ont déclenché
+  **aucun** workflow, sans le moindre message. Le déclenchement manuel, lui, passe par
+  l'API et pas par un webhook : **`gh workflow run deploy.yml --ref main`** — il a rendu
+  un run vert dans la minute là où trois pushes n'avaient rien produit. ➡️ Avant de
+  chercher une cause dans le dépôt, vérifier qu'un run EXISTE
+  (`gh api "…/actions/runs?head_sha=<sha>" --jq .total_count`) et lire
+  **githubstatus.com**. Corollaire : republier pour « réveiller » le déploiement ne sert
+  à rien et empile des runs qui échoueront ensemble.
 - **Build natif iOS** : `npx expo run:ios` (CocoaPods via brew).
 - **`Dimensions.get('window')` ment sur iPad.** La fenêtre change de taille **sans
   relancer l'app** (rotation, Split View, Slide Over) : une valeur lue au chargement du
