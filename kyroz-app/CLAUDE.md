@@ -831,12 +831,40 @@ composant. Audit complet des réglages : `npm run mesure:reglages`.
 > retomber le défaut d'origine — une date par défaut que la moitié des gabarits ne
 > peuvent pas tenir.
 >
-> 🟡 **Ce que le retrait COÛTE, et c'est assumé** : le raccourci « adopter en un tap la
-> date réellement tenable » (A14) disparaît. Il vivait dans la puce « N sem · tenable »,
-> puis dans la 1ʳᵉ marche de la rangée depuis A27. La phrase sous le champ continue
-> d'annoncer la date que Kyroz tiendra (« au rythme sûr, plutôt vers le … ») ; il faut
-> maintenant la **retaper à la main** pour la viser. Rouvrir ce raccourci se ferait par
-> un bouton sur la date projetée, pas par un retour des durées.
+> **L'ÉCRAN DONNE UNE ESTIMATION, ET C'EST ELLE QUI EXPOSE LE PLAFOND** (2026-08-07,
+> décision fondateur : *« on devrait peut-être donner une estimation, et l'user ajuste en
+> fonction de ce qu'il veut et des plafonds »*). Sous le poids cible :
+> *« À 79 kg, la première date que Kyroz peut tenir en sécurité : le 6 nov. 2026 »*, plus
+> un **« Viser cette date »** en un tap. Le plafond est dit en DATE plutôt qu'en règle —
+> la personne ajuste en le connaissant, au lieu de le découvrir en se faisant refuser.
+> Elle est attachée au POIDS, parce que c'est lui qui la détermine.
+> ➡️ Elle remplace le raccourci d'A14 perdu avec la rangée, et **sur une base plus
+> solide** : cette date est tenable PAR CONSTRUCTION (la sonde teste `reachableByDate`),
+> là où adopter la date projetée avait été mesuré comme glissant de 98 jours.
+>
+> 🔴 **CE N'EST PAS `status.projectedDate`, et confondre les deux remettrait deux dates
+> contradictoires à l'écran.** Mesuré le 2026-08-07 sur 8 corps : l'écart va de **12 à
+> 100 jours**, toujours dans le même sens.
+>
+> | | où j'arrive en GARDANT une date trop proche | première date TENABLE |
+> |---|---|---|
+> | `F 78 → 65` | 1ᵉʳ août 2027 | **28 mai 2027** |
+> | `H 95 → 82` | 27 juin 2027 | **19 mars 2027** |
+>
+> `projectedDate` simule qu'on garde l'échéance trop proche — donc qu'elle **expire**,
+> après quoi le plan retombe au déficit ordinaire de l'objectif. C'est vrai, et
+> inutilisable : ça dit que **viser trop tôt fait arriver plus tard**. La marche 1 de
+> l'échelle répond à la question réellement posée (« quand puis-je y être ? »). Les trois
+> surfaces de l'éditeur — ligne sous le champ, carte « objectif ambitieux », carte
+> « plancher » — servent donc **le même** chiffre.
+>
+> ⚠️ **Un cas mesuré au passage : « ambitieux » et « dans les clous » pouvaient
+> s'afficher ENSEMBLE.** La carte « au rythme le plus sûr tu atteins X kg …, après ta
+> date » se déclenchait sur `clamped` sans vérifier `reachableByDate`. Balayage de 1 600
+> échéances (8 corps × 200 semaines) : **1 cas** — `H 68 → 74`, **prise de masse**,
+> 17 semaines. Rare, mais deux phrases opposées dans le même écran. La carte est
+> désormais gardée par `!reachableByDate`. ➡️ Encore un prédicat écrit en pensant à la
+> sèche qui se trompe en PRISE : le réflexe de §6 vaut aussi pour les messages.
 >
 > ⚠️ **Pas de sélecteur de date, et c'est un choix** : dépendance NATIVE (donc build +
 > revue, §2) pour un service que trois nombres rendent partout. Même raison qu'à
