@@ -215,7 +215,8 @@ function qualite(seeds: number[]) {
         // ⚠️ Mesuré contre la cible DU JOUR, comme `mesure-variete.ts`. Depuis la
         // répartition par volume sportif (2026-08-06) le plan n'est plus isocalorique :
         // ce contrôle est resté sur `target_kcal` deux jours de plus que son jumeau et
-        // annonçait **7,00 %** d'écart là où le moteur sert 0,35 %. Il accusait donc le
+        // annonçait **7,00 %** d'écart là où le moteur sert **0,18 %** (canonique ;
+        // 0,39 % au régénéré — re-mesuré le 2026-08-07). Il accusait donc le
         // moteur d'une perte de précision de 20× qui n'existe pas — et c'est en
         // re-mesurant la doc, pas en lisant le code, qu'on l'a vu.
         for (const kcal of Object.entries(kcalJour)) {
