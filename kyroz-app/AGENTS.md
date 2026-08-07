@@ -3205,6 +3205,20 @@ produit en suspens — il ne reste qu'à coder.
   arrivé en `f4e9c6c`. Web et natif ne posent donc pas la question au même moment.
   Une 5ᵉ OTA est en attente d'arbitrage du fondateur.
 
+  ⚠️ **UNE SECONDE IMPLÉMENTATION DU MÊME CHANTIER EXISTE, ET ELLE EST MORTE.** Le
+  worktree `body-fat-provenance-audit-23f355` porte `lib/tdee.ts` et `lib/types.ts`
+  modifiés mais **jamais commités**, sur une base de 28 commits de retard (`9169c9a`).
+  Contenu vérifié le 2026-08-07, pas supposé : `BodyFatSource`, `BmrBody`,
+  `katchEligible`, `calculateBMR` prenant le corps entier — **la même conception, en
+  moins avancé**, sans `safety.ts`, sans la colonne, sans la migration, sans l'écran,
+  sans les 23 tests, sans le seuil 35/43. ➡️ **Rien à sauver, rien à fusionner.** La
+  reprendre produirait un conflit sur les deux fichiers les plus sensibles du dépôt,
+  contre une version déjà en production. Décision du fondateur attendue : jeter.
+  ➡️ Leçon générale : **deux sessions sur le même chantier ne se rattrapent pas, elles
+  divergent.** Celle-ci a coûté 20 h de travail parallèle pour zéro ligne livrée, et
+  n'était visible que par `npm run check:suspens` — `git status` ne montre que son
+  propre worktree.
+
   **Le défaut** : dès qu'un %MG était renseigné, le moteur basculait sur Katch-McArdle.
   Or ce chiffre pouvait venir de deux mondes qui n'ont rien à voir — un impédancemètre,
   ou **une tape sur une silhouette** dans `BodyFatPicker`, dont l'incertitude est de
