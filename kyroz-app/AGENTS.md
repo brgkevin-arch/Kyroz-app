@@ -68,7 +68,7 @@ qu'ils étaient périmés.
 | `ENGINE_VERSION` | **47** (invalide les plans en cache) — créneaux de repas LIBRES : l'ordre canonique de la journée devient CHRONOLOGIQUE (la collation de 16 h passe avant le dîner, elle était servie en dernier), donc le report de budget de repas en repas change d'ordre *(46 = le budget du jour suit la dépense RÉELLE du jour, `lib/dailyBudget.ts`)*. ⚠️ Cette ligne est restée à **45** pendant une journée entière après le bump : celui qui incrémente la constante est celui qui doit toucher cette case | `lib/planEngine.ts` |
 | `ENGINE_REV` | **6** (avertissement one-shot à l'utilisateur) — E16, Katch-McArdle ne prend plus le %MG posé au JUGÉ ; c'est la **provenance** (`body_fat_source`) qui décide, plus la présence du chiffre *(5 = A15, l'objectif daté hors de portée sert le rythme sûr MAXIMAL)* | `lib/tdee.ts` |
 | Objectif daté | la date affichée est un **POINT FIXE** : l'adopter ne la déplace plus (3 corps sur 8 glissaient de +96 j avant A15) | `npm run mesure:objectif` |
-| Échéances proposées | **dérivées du corps** (A27) — **40/40 tenables** et **40/40 servant un plan distinct**, contre **10/40** et **14/40** avec les 5 durées figées (re-mesuré le 2026-08-07 : la ligne annonçait 9/40, la répartition par volume en a rendu une tenable) | `npm run mesure:objectif` |
+| Échéances proposées | **dérivées du corps** (A27) — **40/40 tenables** et **40/40 servant un plan distinct**, contre **10/40** et **14/40** avec les 5 durées figées (re-mesuré le 2026-08-07 : la ligne annonçait 9/40, la répartition par volume en a rendu une tenable). ➕ **Une DATE libre s'écrit aussi** (A28, 2026-08-07) : trois champs sous la rangée, refus de la date passée et de l'au-delà de 5 ans — au-delà, le moteur creuse au MAXIMUM (−55 → −418 kcal/j sur `F 78 → 65`) | `npm run mesure:objectif` |
 | Tests | **1 241 verts**, 74 fichiers · `tsc` propre | `npm test && npx tsc --noEmit` |
 | Design | **6 passes livrées** — 5 onglets refaits (2026-08-03) · rayons (2026-08-03) · repli du grand titre (2026-08-04) · échelle typo, 333 sites (2026-08-05) · espacement + cibles tactiles 44 pt, 537 sites (2026-08-06) · finitions trait/icône/retour au toucher (2026-08-06) · **écran Plan allégé + accent étendu à la barre de macros (2026-08-06)**. **Design system poussé vers Claude Design** — 6 pages GÉNÉRÉES depuis `theme.ts` (`npm run design:build`), jamais écrites à la main. Maquette de référence : `mockups/kyroz-mockup.html` — **versionnée depuis le 2026-08-06**, à la RACINE du dépôt, hors du dossier `kyroz-app/`. *(La formulation d'avant, « hors dépôt app », se lisait « hors versionnement » : le fichier est resté 3 jours sur une seule machine tout en étant cité ici comme référence.)* ⚠️ Ni le rayon, ni la taille de texte, ni l'espacement ne se relisent — ils se **mesurent** | `npm test -- rayonsDA typoDA espacementDA finitionsDA` · `getComputedStyle` dans le panneau, cf. `docs/comparer-maquette.md` |
 | Plateformes | iPhone **+ iPad** (`supportsTablet: true` depuis le 2026-08-01). ⚠️ **portrait sur iPhone, MAIS les 4 orientations sur iPad** — Expo les force dès `supportsTablet`, le multitâche iPadOS l'impose, ce n'est pas refermable. Vérifié en natif (iPad Pro 13") et à 1366×1024 | `ios/Kyroz/Info.plist` généré, PAS `app.json` · `lib/layout.ts` |
@@ -906,6 +906,91 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
   converge : plus on la repousse, moins on creuse. Dans ce cas **aucune puce n'est
   proposée** — mieux vaut pas de raccourci qu'un raccourci qui ment. Verrouillé par
   `datedGoal.test.ts` → « A14 — adopter la date projetée ». 820 tests.
+
+- ~~**A28 · l'échéance ne pouvait pas être une DATE — seulement une des cinq puces**~~
+  ✅ **LIVRÉ le 2026-08-07** (demande fondateur : « date personnalisée pour l'objectif
+  date de poids »). `components/DateInput.tsx` · `goalLadder.ts::checkEcheance` ·
+  garde-fous `goalLadder.test.ts` + `harnaisEcrans.test.ts`. **Aucun `ENGINE_REV`** :
+  `datedGoalStatus` reçoit un stamp et se moque de sa provenance — pas une calorie ne
+  change de règle.
+
+  **Le manque.** A27 avait rendu la rangée honnête (chaque puce tient, chaque puce
+  pilote), mais elle ne propose que **cinq dates**, et **un événement réel ne tombe
+  jamais sur un multiple de semaines**. « Je me marie le 14 novembre » n'était pas
+  exprimable. Trois champs jour/mois/année, TOUJOURS visibles sous la rangée, portent
+  désormais la date visée : taper dedans devient le choix, la puce s'éteint.
+  ℹ️ Toujours visibles, jamais derrière une bascule — ils remplacent l'affichage de la
+  date qu'il fallait de toute façon faire. Une bascule aurait ajouté un geste pour
+  cacher une information qu'on montrait déjà.
+
+  🔎 **Un défaut TROUVÉ en chemin, et il était antérieur** : `closestHorizon` allumait la
+  puce la plus PROCHE de l'échéance enregistrée. Une cible au 14 novembre affichait donc
+  « 16 sem » en surbrillance **au-dessus d'une ligne annonçant une autre date** — deux
+  échéances à l'écran pour un seul objectif. Supprimé : une puce ne s'allume que si sa
+  date EST la date visée. ➡️ **La date libre n'a pas créé ce mensonge, elle l'a rendu
+  regardable** — jusque-là toutes les dates venaient des puces, donc l'écart restait
+  petit et personne ne le voyait.
+
+  📉 **La borne haute est MESURÉE, pas décrétée** (relevé du 2026-08-07). Au-delà de
+  l'horizon de projection, le moteur fait **l'inverse** de ce qu'on lui demande :
+
+  | corps | échéance à 5 ans (260 sem) | quelques semaines plus loin |
+  |---|---|---|
+  | `F 78 → 65` | **−55 kcal/j**, arrivée 2031 | **−418 kcal/j** (267 sem), arrivée mai 2027 |
+  | `H 80 → 74` | **−25 kcal/j** | **−298 kcal/j** (274 sem) |
+
+  Ce n'est pas un bug : passé 260 semaines la simulation ne peut plus atteindre la cible
+  dans son horizon, `reachableByDate` tombe, **A15 conclut « la date ne tient pas » et
+  sert le rythme sûr MAXIMAL**. Demander une échéance très lointaine ferait donc creuser
+  au maximum. La bascule tombe APRÈS l'horizon et sa position **dépend du corps** (267 /
+  274 sem) : on coupe à l'horizon, seul point défendable — au-delà, l'app n'a plus de
+  projection à opposer à la date. ℹ️ **Aucune régression existante** : la rangée de puces
+  ne dépasse jamais l'horizon. C'est une porte que la saisie libre OUVRAIT.
+
+  🔴 **Second refus : l'échéance PASSÉE — et il s'applique à la date ENREGISTRÉE.**
+  `datedGoalStatus` rend `active: false` dès que l'échéance est nulle ou dépassée :
+  ré-ouvrir un objectif périmé et appuyer sur Enregistrer produisait un objectif qui
+  **ne pilote rien tout en s'affichant comme s'il pilotait**. Le contrôle porte donc sur
+  la date EFFECTIVE, quelle que soit sa provenance — c'est ce qui ferme ce cas, qui
+  existait avant la saisie libre.
+
+  ⚠️ **Rien ne refuse une date très PROCHE, et c'est délibéré.** Sous une semaine,
+  `datedGoalStatus` raisonne sur une semaine pleine (garde-fou de division) : mesuré,
+  **1 / 3 / 7 jours servent le même plan au kcal près et la même arrivée**. La phrase
+  sous la rangée annonce l'arrivée réelle, donc la question reçoit une réponse vraie.
+  Refuser serait interdire sur le ton du reproche (CLAUDE.md §10). *Un test le fige :
+  si le garde-fou de division disparaissait, ces trois dates cesseraient de coïncider.*
+
+  ⚠️ **Pas de sélecteur de date** : dépendance NATIVE (build + revue, §2, voie OTA fermée
+  pour les anciens binaires) pour un service que trois nombres rendent partout. Même
+  arbitrage qu'à l'origine pour la date de naissance.
+
+  🧩 **`DateInput` est une EXTRACTION, et ce qui est mis en commun n'est pas la mise en
+  page** — c'est le garde anti-réécriture (`emitted`). Ce garde a été payé **trois fois**
+  (§11 : « %MG saisi 23, enregistré 33 », puis « taper 31/02 vide les trois champs ») :
+  le recopier dans un second fichier, c'était garantir qu'un des deux finisse par le
+  perdre. `BirthDateField` garde ce qui lui est propre (âge minimum, année aberrante,
+  repli des comptes sans date) et son API publique est **inchangée**.
+  ⚠️ **Un piège évité de justesse pendant l'extraction** : le message « cette date
+  n'existe pas » se déclenchait sur `age == null`, pas sur « aucun stamp produit ». Écrit
+  naïvement `value == null`, il aurait **cessé de parler** pour une naissance en 2030 ou
+  en 1800 — deux dates qui existent et ne donnent aucun âge lisible.
+
+  🔒 **Le verrou du harnais a rougi, et il avait raison.** Les scripts Playwright
+  remplissent la date de naissance **par son placeholder** (`fillPh('1994')`), et
+  `harnaisEcrans.test.ts` exige que la valeur vive dans le fichier qui la rend. Les
+  exemples étant devenus des propriétés, la table a gagné un `via` : la valeur doit être
+  choisie dans l'écran ET passée au champ dans `DateInput`.
+  ⚠️ **Première version vérifiée par mutation : elle ne gardait RIEN.** Elle cherchait
+  « un placeholder transmis quelque part » — supprimer celui du champ *Jour* passait, les
+  deux autres suffisant à la satisfaire. Chaque exemple est désormais lié à SON champ
+  (`placeholder={placeholders?.d}`), et les deux mutations rougissent séparément.
+  ➡️ **Un verrou qui accepte n'importe lequel des trois maillons ne garde aucun des trois.**
+
+  ✅ **Vérifié par mutation** (5 au total, toutes rouges) : refus de la date passée
+  retiré · borne haute ouverte d'une semaine · message découplé de `MAX_PROJECTION_WEEKS`
+  · placeholder du champ Jour supprimé · exemple d'année changé dans l'écran.
+  **1 152 tests verts, 70 fichiers, `tsc` propre.**
 
 - ~~**A27 · la rangée d'échéances ne proposait que de l'impossible à la moitié des
   gabarits**~~ *(publiée par erreur sous le numéro **A26**, déjà pris par « régénérer
@@ -4525,7 +4610,7 @@ restent dans le catalogue. Le chantier se mesure maintenant en une commande.
 - **▶ DÉCISION PRODUIT 2026-07-27 — SUPPORT TABLETTE.** ✅ **CHANTIER FAIT le 2026-08-01 (C1), vérifié en natif le 2026-08-02.** *Entrée conservée pour la trace ; ce qui suit décrit l'état d'AVANT et n'est plus une consigne — en particulier « supportsTablet reste false » et « l'app est portrait-only », tous deux faux aujourd'hui.* Usage : cuisiner avec la recette sous les yeux sur tablette (aligné North Star). À faire (autre session) : (1) `app.json > ios.supportsTablet: true` ; (2) layout tablette — au minimum l'écran recette/cuisine (largeur max, lisibilité, cibles ; envisager le **paysage**, l'app est portrait-only) via breakpoints `useWindowDimensions` ; (3) screenshots iPad 13" (2048×2732). ⚠️ Dès `supportsTablet:true`, Apple EXIGE des screenshots iPad ET teste réellement la mise en page tablette (plus le simple mode compatibilité) → **ne pas soumettre `true` sans layout tablette prêt** (rejet). `supportsTablet` **reste `false`** d'ici là (permet une soumission iPhone-only entre-temps). Détail : `STORE-RELEASE.md` §2/§7/§9 + [[project-ipad-support-decided]]. (Le mythe « faut coder l'iPad sinon rejet » était faux ; ici c'est un choix produit délibéré, pas la peur du rejet.)
   - **Session Kyroz+ — objectif daté / monétisation (2026-07-27), LIVRÉE + DÉPLOYÉE (`5a4fc63`)** :
     - **Valeur premium tranchée PUIS construite** (comble le trou « que vendre ? » de `MONETISATION.md`) : Kyroz+ = **« piloter son objectif dans le temps »**. 3 piliers livrés. Le core loop reste 100 % gratuit.
-    - **🎯 Objectif daté** (`lib/datedGoal.ts`, PUR + testé) : poids cible + date → **rythme SÛR** (⚠️ *re-vérifié le 2026-08-03 — cette ligne citait trois constantes qui n'existent plus* : `maxWeeklyLossPct()` **modulé par l'adiposité** (0,5 / 0,75 / 1,25 %/sem) et non un `MAX_LOSS_RATE_PCT` fixe à 1 ; `MAX_GAIN_RATE_PCT`=0,5 %/sem ; coût du kg **ASYMÉTRIQUE** `KCAL_PER_KG_FAT`=7700 / `KCAL_PER_KG_GAIN`=5000, pas un `KCAL_PER_KG` unique), delta calorique **branché dans le CERVEAU MACRO UNIQUE** : `recalcProfile` calcule un `kcalDeltaOverride` (via `datedGoalKcalDelta`) qui **remplace** `GOAL_CONFIG[goal].kcalDelta` dans `calculateMacros`/`macrosPercent` → **plancher `MIN_KCAL` (§6) préservé**, protéines inchangées. Échéance passée / poids atteint = inactif (retour au delta d'objectif normal). Éditeur « Objectif daté » (Profil : `GoalTarget`, **échéances DÉRIVÉES DU CORPS** depuis A27 — `lib/goalLadder.ts` ; les horizons 4/8/12/16/24 sem ne survivent qu'en repli → date dérivée, aperçu live des kcal ajustées + avertissement « objectif ambitieux » si bridé ; **date exacte préservée à la réouverture** — pas de re-arrondi de l'horizon). Carte de suivi **partagée** `components/DatedGoalCard.tsx` sur **Profil ET Plan** (deep-link `@kyroz:openEditor='dated_goal'`, même mécanisme que la perso macros).
+    - **🎯 Objectif daté** (`lib/datedGoal.ts`, PUR + testé) : poids cible + date → **rythme SÛR** (⚠️ *re-vérifié le 2026-08-03 — cette ligne citait trois constantes qui n'existent plus* : `maxWeeklyLossPct()` **modulé par l'adiposité** (0,5 / 0,75 / 1,25 %/sem) et non un `MAX_LOSS_RATE_PCT` fixe à 1 ; `MAX_GAIN_RATE_PCT`=0,5 %/sem ; coût du kg **ASYMÉTRIQUE** `KCAL_PER_KG_FAT`=7700 / `KCAL_PER_KG_GAIN`=5000, pas un `KCAL_PER_KG` unique), delta calorique **branché dans le CERVEAU MACRO UNIQUE** : `recalcProfile` calcule un `kcalDeltaOverride` (via `datedGoalKcalDelta`) qui **remplace** `GOAL_CONFIG[goal].kcalDelta` dans `calculateMacros`/`macrosPercent` → **plancher `MIN_KCAL` (§6) préservé**, protéines inchangées. Échéance passée / poids atteint = inactif (retour au delta d'objectif normal). Éditeur « Objectif daté » (Profil : `GoalTarget`, **échéances DÉRIVÉES DU CORPS** depuis A27 — `lib/goalLadder.ts` ; les horizons 4/8/12/16/24 sem ne survivent qu'en repli → date dérivée, aperçu live des kcal ajustées + avertissement « objectif ambitieux » si bridé ; **date exacte préservée à la réouverture** — pas de re-arrondi de l'horizon. **+ une DATE LIBRE depuis A28** (2026-08-07) : trois champs jour/mois/année toujours visibles sous la rangée — `components/DateInput.tsx`, partagé avec la date de naissance — et `checkEcheance` refuse l'échéance passée ainsi que l'au-delà de l'horizon de projection. Une puce ne s'allume plus que si sa date EST la date visée, `closestHorizon` supprimé). Carte de suivi **partagée** `components/DatedGoalCard.tsx` sur **Profil ET Plan** (deep-link `@kyroz:openEditor='dated_goal'`, même mécanisme que la perso macros).
     - **📈 Trajectoire + réassurance ANTI-CHARGE-MENTALE** (`components/Transformation.tsx`, `WeightChart` enrichi) — **décision produit clé** : la courbe montre une **ZONE ombrée SEULE** (couloir cible ± `TRACK_TOLERANCE_KG`=**1 kg**, large exprès car le poids fluctue de 1-2 kg/j), **NI ligne « à suivre » NI marqueur d'arrivée** (une ligne au pixel près = anxiogène = anti-North-Star). Verdict `TrackVerdict` **jamais alarmant** : « ✓ Dans ta zone » / « En avance » / « Ça descend à ton rythme » (le pire cas est NEUTRE, pas de ⚠️/ambre), ancré sur l'**acquis** (« Depuis le départ : −X kg ») + le mécanisme vrai qui rassure : « la pente est un repère, pas une règle — à chaque pesée Kyroz réajuste tes calories ». Recalage auto **gratuit** : `useWeightLog.logWeight` appelle déjà `recalcProfile` à chaque pesée du jour → la trajectoire se recalcule seule (`idealWeightAt`/`trackStatus`, purs + testés). ⚠️ En prise de masse le sens du « retard » s'inverse.
     - **📸 Module Transformation** : comparaison **photos avant/après** (1re vs dernière photo, datées + poids + Δ). **LOCAL-ONLY** (RGPD, `lib/photos.ts` inchangé — rien d'uploadé). Rangée plafonnée à 420 px (sinon photos géantes sur le web large).
     - **🐛 Fix pré-existant attrapé** : `WeightChart` se dessinait **HORS CADRE** quand `Dimensions.get('window').width` renvoyait 0 (largeur SVG négative → SVG invisible, bug silencieux) → largeur **auto-mesurée** via `onLayout` (la prop `width` n'est plus qu'une valeur initiale, plancher `MIN_CHART_WIDTH`). L'axe X est passé **proportionnel au TEMPS** (avant : indexé par point → une trajectoire superposée aurait menti sur pesées irrégulières).

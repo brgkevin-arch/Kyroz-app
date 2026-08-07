@@ -19,6 +19,7 @@ import { PremiumFeature, AccessReason } from '../../lib/premium';
 import { Sheet } from '../../components/Sheet';
 import { useDialog } from '../../components/Dialog';
 import { BirthDateField } from '../../components/BirthDateField';
+import { DateInput } from '../../components/DateInput';
 import { ageOn } from '../../lib/birthday';
 import { ActionSheet } from '../../components/ActionSheet';
 import { StreakProgress } from '../../components/StreakProgress';
@@ -58,8 +59,8 @@ import {
   lowEaWeeksForFloor, checkEligibility, eligibilityMessage, LowEaEscalation,
   AGE_BOUNDS, WEIGHT_BOUNDS, HEIGHT_BOUNDS,
 } from '../../lib/safety';
-import { datedGoalStatus, datedGoalKcalDelta, addDaysStamp, daysBetween } from '../../lib/datedGoal';
-import { deadlineLadder, formatHorizon } from '../../lib/goalLadder';
+import { datedGoalStatus, datedGoalKcalDelta, addDaysStamp } from '../../lib/datedGoal';
+import { deadlineLadder, formatHorizon, checkEcheance, messageEcheance } from '../../lib/goalLadder';
 import { DatedGoalCard, formatFR } from '../../components/DatedGoalCard';
 import { todayStamp } from '../../lib/weight';
 import {
@@ -174,9 +175,20 @@ const KYROZ_PLUS_VALEUR: Record<AccessReason, string> = {
 // un simple sélecteur, et c'est la phrase sous les puces qui dit la vérité.
 // La rangée réellement affichée est dérivée du corps — cf. `lib/goalLadder.ts`.
 const HORIZONS_REPLI = [4, 8, 12, 16, 24];
-function closestHorizon(horizons: number[], weeks: number): number {
-  return horizons.reduce((best, h) => (Math.abs(h - weeks) < Math.abs(best - weeks) ? h : best), horizons[0]);
-}
+
+/**
+ * Échéance CHOISIE dans l'éditeur d'objectif daté — par une puce, ou à la main.
+ *
+ * ⚠️ `closestHorizon` a été SUPPRIMÉ avec l'arrivée de la date libre (2026-08-07), et
+ * ce n'est pas un nettoyage : il surlignait la puce la plus PROCHE de l'échéance
+ * enregistrée. Une cible au 14 novembre affichait donc « 16 sem » en surbrillance
+ * au-dessus d'une ligne annonçant une autre date — deux échéances à l'écran pour un
+ * seul objectif. Une puce ne s'allume plus que si sa date EST la date visée.
+ */
+type Echeance =
+  | { par: 'puce'; semaines: number }
+  /** `stamp` absent = la saisie n'est pas (encore) une date ; `complete` dit pourquoi. */
+  | { par: 'saisie'; stamp?: string; complete: boolean };
 
 export default function ProfilScreen() {
   const t = useTheme();
@@ -1028,11 +1040,10 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }:
   const [targetWeight, setTargetWeight] = useState(
     String(existing?.target_weight_kg ?? Math.max(40, Math.round(profile.weight_kg) - 4)),
   );
-  // Échéance CHOISIE (semaines). `null` = l'utilisateur n'a pas encore touché la
-  // rangée : on garde alors la date EXACTE enregistrée, pour que ré-ouvrir et
+  // Échéance CHOISIE. `null` = l'utilisateur n'a encore touché ni la rangée ni les
+  // champs : on garde alors la date EXACTE enregistrée, pour que ré-ouvrir et
   // enregistrer sans rien changer ne décale pas l'échéance (comme RestDaysPicker).
-  const [weeks, setWeeks] = useState<number | null>(null);
-  const pickWeeks = (h: number) => setWeeks(h);
+  const [echeance, setEcheance] = useState<Echeance | null>(null);
 
   const twN = parseFloat(targetWeight.replace(',', '.'));
   const validWeight = twN >= 40 && twN <= 250;
@@ -1069,17 +1080,32 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }:
   // MAXIMAL — un défaut ne doit pas pousser d'office quelqu'un au plafond de ce que la
   // sécurité autorise (CLAUDE.md §10 : le suivi rassure, il ne met pas la pression).
   const defaultWeeks = horizons[Math.min(1, horizons.length - 1)];
-  // Semaines de l'échéance ENREGISTRÉE — sert à surligner la puce la plus proche,
-  // sans toucher à la date tant que l'utilisateur n'a rien choisi.
-  const storedWeeks = existing ? Math.max(1, Math.round(daysBetween(today, existing.target_date) / 7)) : null;
-  const effectiveWeeks = weeks ?? (existing ? storedWeeks! : defaultWeeks);
-  const selectedWeeks = weeks ?? closestHorizon(horizons, effectiveWeeks);
+  const dateDePuce = (h: number) => addDaysStamp(today, h * 7);
 
-  const targetDate = weeks == null && existing
-    ? existing.target_date
-    : addDaysStamp(today, effectiveWeeks * 7);
-  const provisional: GoalTarget | undefined = validWeight
-    ? { target_weight_kg: twN, target_date: targetDate, start_weight_kg: profile.weight_kg, start_date: existing?.start_date ?? today }
+  // La date que la rangée ET les champs désignent. `undefined` = ce qui est tapé n'est
+  // pas encore une date : on n'invente RIEN à sa place, sinon les champs se
+  // réécriraient sous les doigts (cf. le garde de `components/DateInput.tsx`).
+  const targetDate = echeance?.par === 'saisie'
+    ? echeance.stamp
+    : echeance?.par === 'puce'
+      ? dateDePuce(echeance.semaines)
+      : existing?.target_date ?? dateDePuce(defaultWeeks);
+
+  // Puce allumée = celle dont la date EST la date visée. Pas « la plus proche » : voir
+  // la note sur `closestHorizon` en tête de fichier.
+  const puceActive = targetDate ? horizons.find((h) => dateDePuce(h) === targetDate) ?? null : null;
+
+  // L'échéance est contrôlée QUELLE QUE SOIT sa provenance — saisie, puce, ou date déjà
+  // enregistrée. Un objectif ré-ouvert après son échéance tombe donc sur « choisis une
+  // date à venir » au lieu d'être ré-enregistré inactif, en silence.
+  const refus = checkEcheance(
+    targetDate, echeance?.par === 'saisie' ? echeance.complete : true, today,
+  );
+  /** La date retenue, ou `null` s'il y a quelque chose à corriger d'abord. */
+  const dateVisee = refus ? null : targetDate ?? null;
+
+  const provisional: GoalTarget | undefined = validWeight && dateVisee
+    ? { target_weight_kg: twN, target_date: dateVisee, start_weight_kg: profile.weight_kg, start_date: existing?.start_date ?? today }
     : undefined;
 
   // Aperçu calculé par le PRODUCTEUR UNIQUE (computePlan) et non par un chemin
@@ -1118,8 +1144,11 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }:
   };
   const remove = () => onSave(withRecalc({ ...profile, goal_target: undefined }));
 
+  // `canSave` suit `provisional`, qui exige un poids valide ET une échéance exploitable :
+  // enregistrer une date passée créerait un objectif INACTIF — un objectif qui ne pilote
+  // rien tout en s'affichant comme s'il pilotait.
   return (
-    <EditorShell t={t} title="Objectif daté" onSave={submit} canSave={validWeight && !goalBlockMsg} dragHandlers={dragHandlers} sheetScrollProps={sheetScrollProps}>
+    <EditorShell t={t} title="Objectif daté" onSave={submit} canSave={!!provisional && !goalBlockMsg} dragHandlers={dragHandlers} sheetScrollProps={sheetScrollProps}>
       <Text style={{ ...Type.caption, color: t.textSecondary, lineHeight: 18 }}>
         Fixe un poids et une échéance : Kyroz ajuste tes calories jour après jour pour t'y amener au rythme le plus rapide — mais sûr.
       </Text>
@@ -1131,9 +1160,26 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }:
           plan différent. La première est le plus rapide que la sécurité autorise. */}
       <View style={styles.wrap}>
         {horizons.map((h) => (
-          <Chip key={h} t={t} label={formatHorizon(h)} selected={selectedWeeks === h} onPress={() => pickWeeks(h)} />
+          <Chip key={h} t={t} label={formatHorizon(h)} selected={puceActive === h} onPress={() => setEcheance({ par: 'puce', semaines: h })} />
         ))}
       </View>
+      {/* ── La date libre (2026-08-07) ───────────────────────────────────────────
+          Les puces ne proposent que cinq dates, et un vrai événement — un mariage,
+          une compétition, des vacances — ne tombe jamais sur un multiple de semaines.
+          Les champs sont TOUJOURS visibles, jamais derrière une bascule : ils portent
+          la date visée, donc ils remplacent l'affichage qu'il fallait de toute façon
+          faire. Taper dedans devient le choix, et la puce s'éteint d'elle-même.
+          Pas de sélecteur de date : ce serait une dépendance NATIVE (build + revue,
+          CLAUDE.md §2) pour un service que trois nombres rendent partout. */}
+      <Text style={{ ...Type.caption, color: t.textSecondary, lineHeight: 18 }}>
+        Ou vise une date précise — un mariage, une compétition, des vacances.
+      </Text>
+      <DateInput
+        t={t}
+        value={targetDate}
+        placeholders={{ d: '14', mo: '11', y: String(parseInt(today.slice(0, 4), 10) + 1) }}
+        onChange={(stamp, complete) => setEcheance({ par: 'saisie', stamp, complete })}
+      />
       {/* ⚠️ C'est la ligne la plus lue de l'écran — collée sous les puces, au moment
           exact du choix. Elle ne peut donc pas AFFIRMER une date que le moteur ne
           tiendra pas. Mesuré le 2026-08-02 (H 83 kg, 18 %MG, 4 séances → 70 kg) :
@@ -1144,13 +1190,23 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }:
           phrase qui disait l'inverse, et hors du premier écran.
           Ton : on annonce ce qui va se passer, on ne reproche pas l'ambition — le
           moteur porte la charge, l'utilisateur n'est pas « en retard ». */}
-      <Text style={{ ...Type.caption, color: t.textSecondary, lineHeight: 18 }}>
-        {!goalBlockMsg && status && !status.reachableByDate && !status.directionMismatch
-          ? (status.projectable
-            ? `Cible le ${formatFR(targetDate)} — au rythme sûr, Kyroz t'y amène plutôt vers le ${formatFR(status.projectedDate)}.`
-            : `Cible le ${formatFR(targetDate)} — ce poids n'est pas atteignable au rythme sûr, quelle que soit la date.`)
-          : `Cible le ${formatFR(targetDate)}.`}
-      </Text>
+      {/* Une échéance à corriger prend la place de la ligne « Cible le … » : afficher
+          une trajectoire vers une date qu'on refuse d'enregistrer serait la valider à
+          l'œil. `incomplete` reste NEUTRE — il ne s'est rien passé de fautif, la
+          personne est en train de taper. */}
+      {dateVisee == null ? (
+        <Text style={{ ...Type.caption, color: refus === 'incomplete' ? t.textSecondary : t.warning, lineHeight: 18 }}>
+          {messageEcheance(refus ?? 'incomplete')}
+        </Text>
+      ) : (
+        <Text style={{ ...Type.caption, color: t.textSecondary, lineHeight: 18 }}>
+          {!goalBlockMsg && status && !status.reachableByDate && !status.directionMismatch
+            ? (status.projectable
+              ? `Cible le ${formatFR(dateVisee)} — au rythme sûr, Kyroz t'y amène plutôt vers le ${formatFR(status.projectedDate)}.`
+              : `Cible le ${formatFR(dateVisee)} — ce poids n'est pas atteignable au rythme sûr, quelle que soit la date.`)
+            : `Cible le ${formatFR(dateVisee)}.`}
+        </Text>
+      )}
 
       {/* Cible refusée → on affiche le motif SEUL. Montrer une trajectoire crédible
           (« Perdre 48 kg · 1982 kcal/j ») au-dessus d'un refus revient à valider

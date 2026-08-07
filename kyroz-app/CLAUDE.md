@@ -805,6 +805,48 @@ composant. Audit complet des réglages : `npm run mesure:reglages`.
 > décollage du plancher est `!==`. Une version orientée perte marchait sur la prise **par
 > accident**. Vaut au-delà de ce module.
 
+> **L'échéance s'écrit aussi À LA MAIN** (2026-08-07, `goalLadder.ts::checkEcheance`).
+> La rangée dérivée ci-dessus reste le chemin recommandé — chaque puce tient et chaque
+> puce pilote — mais elle ne propose que cinq dates, et **un événement réel ne tombe
+> jamais sur un multiple de semaines**. Trois champs jour/mois/année, toujours visibles
+> sous la rangée, portent la date visée : taper dedans devient le choix, et la puce
+> s'éteint. Aucune calorie ne change de règle, donc **pas d'`ENGINE_REV`** —
+> `datedGoalStatus` reçoit un stamp et se moque de sa provenance.
+>
+> ⚠️ **Pas de sélecteur de date, et c'est un choix** : dépendance NATIVE (donc build +
+> revue, §2) pour un service que trois nombres rendent partout. Même raison qu'à
+> l'origine pour la date de naissance ; la mécanique des deux vit désormais dans
+> `components/DateInput.tsx`, **son garde anti-réécriture compris** (§11, le champ qui
+> se vide sous les doigts — trois occurrences, dont deux dans ce garde-là).
+>
+> 🔴 **Deux dates sont REFUSÉES, et chacune couvre un mensonge — pas une maladresse :**
+>  1. **échéance passée ou du jour** → `datedGoalStatus` rend `active: false` : l'objectif
+>     serait enregistré et **ne piloterait rien, en silence**. Ce cas n'est pas une faute
+>     de frappe, c'est l'objectif qu'on ré-ouvre après sa date. Le contrôle s'applique
+>     donc à la date **enregistrée** aussi, pas seulement à la saisie.
+>  2. **au-delà de l'horizon de projection** (`MAX_PROJECTION_WEEKS`, 5 ans) → le moteur
+>     fait alors **l'INVERSE** de ce qu'on lui demande. Mesuré le 2026-08-07 : `F 78 → 65`
+>     sert **−55 kcal/j** à 5 ans et **−418 kcal/j** à 267 semaines ; `H 80 → 74`, −25 puis
+>     **−298**. Ce n'est pas un bug : passé 260 semaines la simulation ne peut plus
+>     atteindre la cible dans son horizon, `reachableByDate` tombe, et **A15 conclut « la
+>     date ne tient pas » et sert le rythme sûr MAXIMAL**. La bascule tombe quelques
+>     semaines APRÈS l'horizon et sa position dépend du corps (267 sem / 274 sem) : on
+>     coupe à l'horizon, seul point défendable. ℹ️ Aucune régression existante — la rangée
+>     de puces ne dépasse jamais l'horizon. **C'est une porte que la saisie libre ouvrait.**
+>
+> ⚠️ **Rien ne refuse une date très PROCHE, et c'est délibéré.** Sous une semaine,
+> `datedGoalStatus` raisonne sur une semaine pleine (garde-fou de division) : mesuré,
+> 1 / 3 / 7 jours servent le même plan et la même arrivée. La phrase sous la rangée
+> annonce l'arrivée réelle, donc la question reçoit une réponse vraie. Refuser serait
+> interdire sur le ton du reproche (§10).
+>
+> ⚠️ **`closestHorizon` a été SUPPRIMÉ, et ce n'est pas du nettoyage** : il allumait la
+> puce la plus PROCHE de l'échéance enregistrée, donc une cible au 14 novembre affichait
+> « 16 sem » en surbrillance au-dessus d'une ligne annonçant une autre date — **deux
+> échéances à l'écran pour un seul objectif**. Une puce ne s'allume plus que si sa date
+> EST la date visée. Le défaut existait avant ce chantier ; c'est la date libre qui l'a
+> rendu visible.
+
 - **Lipides sous le seuil de carence** — `lib/tdee.ts::fatTargetG`, plancher à
   0,8 g/kg de **poids de corps** (`FAT_MIN_PER_KG_BW`). Borné par le budget du
   jour, donc un plan reste toujours faisable.
