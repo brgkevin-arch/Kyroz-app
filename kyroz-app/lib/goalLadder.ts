@@ -1,4 +1,4 @@
-import { MAX_PROJECTION_WEEKS } from './datedGoal';
+import { MAX_PROJECTION_WEEKS, daysBetween } from './datedGoal';
 
 // ── Échéances proposées pour un objectif daté (A27) ──────────────────────────
 //
@@ -147,4 +147,84 @@ export function formatHorizon(weeks: number): string {
   if (mois < 24) return `${mois} mois`;
   const ans = Math.round((mois / 12) * 10) / 10;
   return `${String(ans).replace('.', ',')} ans`;
+}
+
+// ── Une échéance SAISIE À LA MAIN (2026-08-07) ───────────────────────────────
+//
+// La rangée ci-dessus est honnête, mais elle ne propose que cinq dates — et « je
+// me marie le 14 novembre » n'en fait pas partie. Les puces restent le chemin
+// recommandé (chacune tient, chacune pilote) ; la date libre existe pour un vrai
+// événement, qui ne tombe jamais sur un multiple de semaines.
+//
+// ⚠️ Aucun garde-fou du moteur ne dépend de la façon dont la date est ARRIVÉE :
+// `datedGoalStatus` reçoit un stamp, plafonne le rythme (modulé par l'adiposité),
+// laisse le plancher d'énergie disponible mordre en aval, et depuis A15 sert le
+// maximum SÛR quand la date ne tient pas. Une date saisie ne peut donc pas ouvrir
+// une porte que les puces fermaient. Ce qui suit ne refuse que les échéances dont
+// l'app ne peut rien dire de vrai.
+
+export type EcheanceRefus = 'incomplete' | 'impossible' | 'passee' | 'trop_loin';
+
+/** Horizon de projection en ANNÉES — dérivé, pas recopié (cf. `MAX_PROJECTION_WEEKS`). */
+export const HORIZON_ANS = Math.round(MAX_PROJECTION_WEEKS / 52);
+
+/**
+ * L'échéance saisie est-elle exploitable ? `null` = oui, on peut l'enregistrer.
+ *
+ * Deux refus de fond seulement, et chacun couvre un MENSONGE — pas une maladresse :
+ *
+ *  • `passee` — à échéance nulle ou dépassée, `datedGoalStatus` rend `active: false` :
+ *    l'objectif serait enregistré et ne piloterait **rien**, en silence. Ce cas n'est
+ *    pas qu'une faute de frappe : c'est l'objectif qu'on ré-ouvre après sa date.
+ *
+ *  • `trop_loin` — au-delà de l'horizon de simulation, le moteur fait l'INVERSE de ce
+ *    qu'on lui demande, et c'est mesuré (2026-08-07, `TODAY` = 2026-08-07) :
+ *
+ *      F 78 → 65 kg · échéance à 5 ans (260 sem) → **−55 kcal/j** servis, arrivée 2031
+ *                   · échéance à 267 sem         → **−418 kcal/j**, arrivée mai 2027
+ *      H 80 → 74 kg · 5 ans → −25 kcal/j  ·  274 sem → **−298 kcal/j**
+ *
+ *    La cause n'est pas un bug : passé 260 semaines, la simulation ne peut plus
+ *    atteindre la cible dans son horizon, donc `reachableByDate` tombe, donc A15
+ *    conclut « la date ne tient pas » et sert le rythme sûr MAXIMAL. Demander une
+ *    échéance très lointaine ferait donc creuser au maximum — le contraire de
+ *    l'intention. La bascule se situe quelques semaines APRÈS l'horizon et sa position
+ *    dépend du corps : on coupe à l'horizon, qui est le seul point défendable (au-delà,
+ *    l'app n'a plus de projection à opposer à la date).
+ *    ℹ️ Aucune régression existante : la rangée de puces ne dépasse jamais l'horizon.
+ *    C'est une porte que la saisie libre OUVRIRAIT, et qu'on referme avec elle.
+ *
+ * ⚠️ Rien ne refuse une date TRÈS proche, et c'est délibéré. Sous une semaine,
+ * `datedGoalStatus` raisonne sur une semaine pleine (son garde-fou de division) :
+ * mesuré, 1 / 3 / 7 jours servent exactement le même plan et la même date d'arrivée.
+ * L'échéance est donc servie honnêtement, et la phrase sous la rangée annonce l'arrivée
+ * réelle (« au rythme sûr, Kyroz t'y amène plutôt vers le … »). Refuser reviendrait à
+ * interdire une question à laquelle l'app sait très bien répondre — et à le faire sur
+ * le ton du reproche, ce que CLAUDE.md §10 écarte.
+ */
+export function checkEcheance(
+  stamp: string | undefined,
+  /** La saisie porte-t-elle ses trois nombres ? (cf. `components/DateInput.tsx`) */
+  complete: boolean,
+  today: string,
+): EcheanceRefus | null {
+  if (!complete) return 'incomplete';
+  if (!stamp) return 'impossible';
+  const jours = daysBetween(today, stamp);
+  if (jours <= 0) return 'passee';
+  if (jours > MAX_PROJECTION_WEEKS * 7) return 'trop_loin';
+  return null;
+}
+
+/**
+ * Message utilisateur (FR) — même patron que `safety.ts::eligibilityMessage`.
+ * Ton : on dit ce que l'app sait faire, jamais que la personne demande trop.
+ */
+export function messageEcheance(r: EcheanceRefus): string {
+  switch (r) {
+    case 'incomplete': return 'Complète la date : jour, mois et année.';
+    case 'impossible': return 'Cette date n’existe pas — vérifie le jour et le mois.';
+    case 'passee': return 'Choisis une date à venir : Kyroz ne peut pas piloter vers une échéance déjà passée.';
+    case 'trop_loin': return `Kyroz ne projette pas au-delà de ${HORIZON_ANS} ans. Choisis une date plus proche.`;
+  }
 }

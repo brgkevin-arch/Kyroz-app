@@ -23,6 +23,39 @@ un `200` prouve que l'upsert du profil ne peut pas être rejeté pour colonne ma
 
 ## État vérifié
 
+### 2026-08-07 — ✅ `meal_slots` jouée (17ᵉ migration)
+
+`2026-08-07_profiles_meal_slots.sql`, jouée par le fondateur dans le SQL Editor le
+**2026-08-07 en soirée**, AVANT le merge de la PR #46 — l'ordre imposé quand un change
+porte une migration (le merge déclenche l'auto-deploy, donc du code qui attend une
+colonne absente).
+
+Colonne `profiles.meal_slots jsonb` : les créneaux de repas **CRÉÉS** par l'utilisateur
+(le plafond de 4 repas par jour est levé). **Sans backfill** — `NULL` partout veut dire
+« aucun créneau créé », donc les 4 intégrés, donc le comportement d'avant au repas près.
+Les 4 intégrés ne sont **pas** dans cette colonne : ils restent en dur côté app
+(`lib/mealSlots.ts::BUILTIN_SLOTS`), pour qu'une correction future les atteigne tous.
+
+Mesuré **avant** et **après**, avec `npm run check:migrations` :
+
+| Contrôle | Avant | Après |
+|---|---|---|
+| Témoin négatif : une colonne inventée | `400` | `400` — la mesure discrimine |
+| Les 6 tables | `200` | `200` |
+| `meal_slots` isolée | `400` → **absente** | — |
+| Les **39 colonnes** de `PROFILE_COLS` + `id`, en une requête | `400` | **`200`** → aucune manquante |
+
+Re-mesuré le **2026-08-08** (le schéma se pilote hors du dépôt, une note écrite ne vaut
+rien) : toujours `200`.
+
+⚠️ **Le filet a été vu à l'œuvre AVANT la migration, et c'est la première fois** :
+`PROFILE_COLS_LAST_MIGRATION` a fait retomber la synchro sur « tout sauf `meal_slots` »
+en le journalisant (`[kyroz:sync] … MIGRATION NON JOUÉE en production`), au lieu de tuer
+le push profil entier en silence — le mode de panne qui s'est produit trois fois. Il a
+donc fonctionné comme prévu ; il ne dispense toujours pas de jouer le SQL.
+
+➡️ Procédure suivie : `supabase/PROCEDURE-2026-08-07-meal-slots.md`.
+
 ### 2026-08-06 — ✅ `body_fat_source` jouée (16ᵉ migration)
 
 `2026-08-06_profiles_body_fat_source.sql`, jouée par le fondateur dans le SQL Editor.
