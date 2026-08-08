@@ -175,12 +175,17 @@ export function coursesTour(): TourStep[] {
       text: "« Tout cocher » range la liste entière dans ton frigo. Dès qu'un article est coché, « Réinitialiser » apparaît : il décoche et retire du frigo, sans refaire ta liste.",
     },
     {
-      // Prouvé par : courses.tsx::toggle — le sens inverse (décocher retire du
-      // frigo la quantité exacte qui y était entrée) n'est écrit nulle part à
-      // l'écran, alors que l'aller l'est déjà sous les contrôles.
+      // Prouvé par : courses.tsx::toggle (décocher retire du frigo la quantité
+      // exacte qui y était entrée) et courses.tsx::ecarterArticle (l'appui long
+      // écarte sans toucher au plan, cf. lib/shoppingRemoved.ts).
+      // ⚠️ L'appui long n'a AUCUNE affordance — c'est précisément le genre de
+      // geste que cette visite existe pour dire. Fusionné avec l'aller-retour du
+      // cochage plutôt qu'ajouté en 4ᵉ étape : même ligne, même question (« que
+      // puis-je faire sur cet article ? »), et deux bulles sur une même cible ne
+      // se départageraient pas.
       targetId: 'courses-article',
-      title: 'Un article, un aller-retour',
-      text: "Coche un article : il entre au frigo avec sa quantité. Décoche-le et c'est cette même quantité qui repart — tu peux te tromper sans rien dérégler.",
+      title: 'Un article, deux gestes',
+      text: "Coche : l'article entre au frigo avec sa quantité, et décocher la fait repartir. Appui long : il quitte ta liste sans toucher à ton plan, et tu le récupères en tirant vers le bas.",
     },
   ];
 }
