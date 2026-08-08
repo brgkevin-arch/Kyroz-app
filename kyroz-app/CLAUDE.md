@@ -1600,10 +1600,24 @@ téléphone.
   rien ne signale l'erreur, et la conclusion naturelle est « ma migration n'a pas pris »,
   donc on part corriger du code sain. Deux indices : `--clear` ne change rien (ce n'est
   pas le cache), et le rendu correspond **exactement** à `git show HEAD:<fichier>`.
-  ➡️ Lancer avec `EXPO_ROUTER_APP_ROOT=$PWD/app` depuis `kyroz-app`. Et noter que
-  `preview_start` lit le `launch.json` du **dépôt principal**, pas celui du worktree —
-  y ajouter une config reviendrait à modifier la copie de travail d'une autre session.
+  ➡️ Lancer avec `EXPO_ROUTER_APP_ROOT=$PWD/app` depuis `kyroz-app`.
   *Même famille que « mesurer l'instrument » : la mesure était juste, sur le mauvais code.*
+  🔴 **ET CE QUE LIT `preview_start` DÉPEND DE COMMENT ON EST ENTRÉ DANS LE WORKTREE**
+  — tranché le 2026-08-08 après avoir vécu les deux cas dans la même session, ce qui
+  explique deux notes du dépôt qui se contredisaient :
+  | entrée dans le worktree | `launch.json` lu | écrire dans celui du principal |
+  |---|---|---|
+  | la session **démarre dedans** (répertoire de travail donné au lancement) | celui **du worktree** | — |
+  | **entrée en cours de session** (isolation stricte) | celui du **PRINCIPAL**, où il résout aussi le `cwd` | **refusé par l'outillage** |
+  ➡️ Dans le second cas la vérification à l'écran est **impossible depuis le worktree** :
+  le serveur sert le code du principal (donc la branche d'une autre session), et
+  l'isolation interdit d'ajouter une entrée là-bas — à raison, c'est sa copie de travail.
+  Trois issues : le **site déployé** une fois la PR mergée · le lancement à la main
+  ci-dessus · **sortir la décision en fonction PURE et la tester**, ce qui vaut mieux que
+  rien mais ne remplace pas de voir le câblage.
+  ⚠️ Et **le DIRE** — dans la PR et dans la fiche : « non vérifié à l'écran, voici
+  pourquoi, voici le contournement ». Une vérification manquante ANNONCÉE vaut mille
+  fois une vérification supposée.
 - **`Alert.alert` est une FONCTION VIDE sur react-native-web** — `class Alert { static
   alert() {} }`. Aucune erreur, aucune trace : l'appel ne fait RIEN. Découvert le
   2026-08-02, il tuait **dix** interactions, dont « Régénérer mon plan » et le REFUS
