@@ -522,6 +522,22 @@ on publie l'écart comme s'il n'y en avait qu'un.
 ➡️ **Prochaine vague de catalogue : des petits formats vegan / vegan+SG** (dîners et
 collations pour petits gabarits en sèche). C'est le seul levier qui reste.
 
+🔴 **CE QUE L'ÉCRAN EN DIT DOIT ÊTRE CONDITIONNÉ, ET ÇA NE L'ÉTAIT PAS** (corrigé le
+2026-08-08). L'écran Plan affichait « Jour de repos · un peu moins de calories et de
+glucides, tes protéines inchangées » dès que le jour affiché était un jour de repos —
+**jamais selon qu'un écart existe**. Or ce module ne module rien sans sport déclaré (voir
+ci-dessus, « aucune répartition n'est inventée »). Mesuré sur le moteur, H 30 ans, 83 kg,
+18 % MG, sèche, NEAT desk : **sans sport, 2042 kcal les sept jours, amplitude 0** ; avec
+3 séances de 60 min, 2042/2303 alternés, **amplitude 261**. Le nombre affiché deux lignes
+plus bas démentait donc la phrase, sur l'écran le plus regardé de l'app.
+➡️ La phrase passe désormais par le même prédicat que la bulle de visite guidée qui parle
+de la même chose (§8, `moduleParVolume` : amplitude ≥ 40 kcal, seuil et calcul partagés
+avec `FirstPlanReveal`). ⚠️ **Un jour de repos reste un jour de repos** — la lune de la
+rangée de jours ne bouge pas : c'est une déclaration de l'utilisateur, elle est vraie. Ce
+qui était faux, c'est la promesse CALORIQUE accrochée derrière.
+➡️ Et c'est la **capture des deux textes côte à côte** qui l'a montré, pas la relecture :
+la bulle se conditionnait déjà, l'écran non.
+
 ➡️ Contrôle : `npm run mesure:volume`. Garde-fou : `lib/__tests__/volumeConcentre.test.ts`.
 
 ### Les repas de la journée sont LIBRES (`lib/mealSlots.ts`, 2026-08-07)
@@ -1351,6 +1367,70 @@ puis se fige à une valeur intermédiaire **parfaitement plausible** — j'ai «
 ➡️ La décision vit donc dans une fonction PURE, testée (`lib/__tests__/repliTitre.test.ts`),
 et l'écran ne sert qu'à juger le rendu (opacité forcée à 1). Procédure :
 `docs/comparer-maquette.md`.
+
+### La visite guidée dit ce que le code FAIT (2026-08-08)
+
+Un tour par onglet, déclenché **à la première visite de CET onglet** — jamais tous au
+démarrage. 21 bulles au total (plan 6 · profil 6 · recettes 3 · courses 3 · frigo 3),
+mais une personne n'en voit que 6 le jour où elle ouvre le Plan. Servies d'un bloc, ce
+seraient 21 **interruptions modales** dans la même session : chaque bulle est une
+`Modal` dont les panneaux avalent les taps, pas une infobulle qu'on ignore.
+
+**Le contenu vit dans `lib/tours.ts`, pas dans les écrans.** Fichier sans aucun import,
+donc testable, là où `components/GuidedTour.tsx` tire react-native et ne l'est pas.
+Même procédé que `lib/collapsingTitle.ts` et `lib/accentColor.ts` : la décision est une
+fonction pure, l'écran ne fait que la rendre.
+
+🔴 **UNE BULLE EST UNE AFFIRMATION SUR LE CODE, et elle survit à ce qu'elle décrit.**
+Sur les cinq bulles d'origine, **trois étaient fausses** au moment de l'audit — chacune
+avait été vraie le jour où elle a été écrite :
+
+| Ce qu'elle promettait | Ce que faisait le code |
+|---|---|
+| « Kyroz recale **automatiquement** les repas restants » | `logOffPlan` enregistre sans toucher au plan, puis **demande** (`setAdaptPrompt`) ; refuser ne recale rien |
+| « la **barre** se remplit » | `MacroBar` est un ruban de PROPORTIONS toujours plein — c'est le chiffre héros qui se remplit |
+| « le bouton **Échanger** ce repas », « ses **badges** d'adaptation » | le libellé est « Remplacer » ; ces badges n'existent pas comme tels |
+
+➡️ **Chaque étape porte en commentaire le chemin de code qui la prouve.** Ne pas en
+ajouter une sans faire de même — c'est la seule chose qui rende l'affirmation
+re-vérifiable, et aucun test ne peut juger qu'une phrase est vraie.
+
+⚠️ **Une bulle dont l'énoncé n'est vrai que pour certains profils se CONDITIONNE.**
+Le précédent était déjà dans l'app (`planTour` est une fonction et non une constante,
+parce qu'elle annonçait « 7 jours » en dur). Rejoué ici pour la modulation par volume :
+sans sport déclaré, `dayExpenditures` retombe sur une cible plate, donc parler de
+« jours d'entraînement » mentirait. `moduleParVolume` (même seuil de 40 kcal et même
+calcul que `FirstPlanReveal`, pour que deux écrans ne se contredisent pas sur la même
+question).
+
+⚠️ **Et le même prédicat manquait à l'ÉCRAN**, corrigé dans la foulée : « Jour de repos ·
+un peu moins de calories et de glucides » n'était conditionnée qu'à `isRestDay`. Mesuré
+sur le moteur (H 30 ans, 83 kg, 18 % MG, sèche, NEAT desk) : **sans sport, 2042 kcal les
+sept jours, amplitude 0** ; avec 3 séances de 60 min, 2042/2303 alternés, amplitude 261.
+Le nombre affiché douze pixels plus bas démentait la phrase. ➡️ **C'est la CAPTURE des
+deux textes côte à côte qui l'a montré**, pas la relecture — la bulle, elle, se
+conditionnait déjà.
+
+⚠️ **Un tour AMPUTÉ est le défaut silencieux du moteur** : `startTour` écarte les étapes
+dont la cible n'est pas montée. Certaines absences sont légitimes (le bloc frigo n'existe
+pas quand le frigo est vide), mais un id mal orthographié, ou une ref perdue en
+refactorant un écran, fait disparaître une bulle **sans rien casser** — le tour se joue
+plus court en ayant l'air complet. D'où un avertissement en développement, et surtout le
+garde-fou ci-dessous.
+
+⚠️ **Tout écran qui reçoit un tour reçoit sa porte de sortie.** « Passer » marque le tour
+vu **définitivement** ; le « ? » de rejeu n'existait que sur le Plan, donc passer le tour
+d'un autre onglet le perdait à vie. Composant `TourButton` sur les cinq en-têtes, plus
+« Revoir les tutos » dans le Profil (`resetAllTours`).
+
+➡️ **Garde-fou : `lib/__tests__/visiteGuidee.test.ts`**, vérifié par 5 mutations. Il
+vérifie surtout qu'**aucune étape ne vise une cible absente du code** — c'est le chemin
+par lequel la dérive arrive vraiment. Plus : tours non vides, ids uniques, bornes de
+rédaction, aucun émoji, aucun ton de reproche (§10), et la table `TOURS` d'accord avec
+les écrans **dans les deux sens** (un tour déclaré mais jamais lancé, ou lancé sans être
+déclaré, sont deux défauts distincts).
+⚠️ Ce qu'il ne sait PAS faire, et c'est écrit dans le fichier : juger qu'une phrase est
+VRAIE. Il ferme la porte au chemin mécanique, pas au mensonge.
 
 ### Le design system est POUSSÉ vers Claude Design, et il se REGÉNÈRE (2026-08-06)
 
