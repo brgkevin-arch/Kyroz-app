@@ -32,6 +32,7 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { TOURS } from '../tours';
 
 const RACINE = join(__dirname, '..', '..');
 const lire = (rel: string) => readFileSync(join(RACINE, rel), 'utf8');
@@ -143,6 +144,40 @@ const CLES: { quoi: string; cle: string; dans: string }[] = [
   { quoi: 'consentement analytics (posé à « denied »)', cle: '@kyroz:analyticsConsent', dans: 'lib/analytics.ts' },
   { quoi: 'préfixe des visites guidées', cle: '@kyroz:tour:', dans: 'components/GuidedTour.tsx' },
 ];
+
+describe('harnais Playwright — il neutralise TOUS les tours, pas seulement le premier', () => {
+  // ⚠️ Ce test est né d'un manque REL, pas d'une précaution. `neutralizeFirstRun`
+  // ne posait que `@kyroz:tour:plan` — écrit à l'époque où il n'existait qu'un
+  // tour. Le tutoriel est passé à CINQ le 2026-08-08 (E20) sans que cette ligne
+  // bouge : les quatre autres se seraient armés à la première visite de LEUR
+  // onglet, au milieu d'un parcours. Un tour est une `Modal` dont les panneaux
+  // avalent les taps, donc le script aurait rendu « écran introuvable » — en
+  // accusant l'écran alors qu'il n'avait pas pu quitter le précédent.
+  //
+  // La liste du harnais est une COPIE (c'est du `.mjs`, il ne peut pas importer
+  // `lib/tours.ts`). Une copie que personne ne relit est une seconde source de
+  // vérité qui attend son bug (§10) — ce test est ce qui la relit.
+  const harnais = readFileSync(join(RACINE, HARNAIS), 'utf8');
+
+  it.each(TOURS.map((t) => t.id))('le tour « %s » est neutralisé avant le premier rendu', (id) => {
+    expect(
+      harnais.includes(`'${id}'`) || harnais.includes(`@kyroz:tour:${id}`),
+      `\`${HARNAIS}\` n'éteint pas le tour « ${id} » : il s'armera au milieu d'un parcours et avalera les taps.`,
+    ).toBe(true);
+  });
+
+  it('n\'éteint aucun tour qui n\'existe plus', () => {
+    // Le sens inverse : un id resté dans le harnais après la suppression d'un
+    // tour est du bruit qui survivra à sa raison d'être.
+    const connus = new Set(TOURS.map((t) => t.id as string));
+    const bloc = harnais.match(/for \(const id of \[([^\]]+)\]\)/)?.[1] ?? '';
+    const cites = [...bloc.matchAll(/'([\w-]+)'/g)].map((m) => m[1]);
+    expect(cites.filter((id) => !connus.has(id))).toEqual([]);
+    // Et la boucle doit bien exister : sans elle, le test ci-dessus passerait sur
+    // n'importe quelle occurrence du mot dans le fichier.
+    expect(cites.length, 'la boucle de neutralisation des tours a disparu du harnais').toBe(TOURS.length);
+  });
+});
 
 describe('harnais Playwright — les libellés cherchés existent encore', () => {
   it.each(ANCRES)('« $texte » — $quoi', ({ texte, dans, motif, cherche, script }) => {
