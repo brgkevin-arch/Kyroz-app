@@ -893,9 +893,14 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
   Vérifié à l'écran sur les 5 échéances. Garde-fou : `datedGoal.test.ts` → « A14 — cible
   hors de portée ». 819 tests.
   ⚠️ **CETTE PUCE N'EXISTE PLUS depuis A27 (2026-08-03)** — ce qui suit est de l'histoire,
-  pas l'état du code. La rangée entière est désormais dérivée du corps, donc sa PREMIÈRE
-  puce est par construction l'échéance la plus courte qui tienne : garder « N sem ·
-  tenable » afficherait deux fois la même offre. Ne pas la rechercher dans `profil.tsx`.
+  pas l'état du code. La rangée entière a alors été dérivée du corps, donc sa PREMIÈRE
+  puce était par construction l'échéance la plus courte qui tienne : garder « N sem ·
+  tenable » aurait affiché deux fois la même offre. Ne pas la rechercher dans `profil.tsx`.
+  🔴 **Et la rangée elle-même est partie le 2026-08-07 (A28)** : l'échéance se saisit, et
+  le raccourci d'A14 est REVENU sous une autre forme — l'**estimation** sous le poids
+  cible, « la première date que Kyroz peut tenir » + « Viser cette date » en un tap.
+  Sur une base plus solide que la puce d'origine : cette date-là est tenable PAR
+  CONSTRUCTION, là où celle d'A14 glissait de 98 jours quand on l'adoptait.
 
   **Suite tranchée par le fondateur (« 2 go ») et LIVRÉE le 2026-08-02** : la date
   réellement tenable est proposée **en un tap**, sous forme d'une puce de plus dans la
@@ -1019,7 +1024,7 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
   ⚠️ **Rien ne refuse une date très PROCHE, et c'est délibéré.** Sous une semaine,
   `datedGoalStatus` raisonne sur une semaine pleine (garde-fou de division) : mesuré,
   **1 / 3 / 7 jours servent le même plan au kcal près et la même arrivée**. La phrase
-  sous la rangée annonce l'arrivée réelle, donc la question reçoit une réponse vraie.
+  sous le champ annonce l'arrivée réelle, donc la question reçoit une réponse vraie.
   Refuser serait interdire sur le ton du reproche (CLAUDE.md §10). *Un test le fige :
   si le garde-fou de division disparaissait, ces trois dates cesseraient de coïncider.*
 
@@ -1052,7 +1057,9 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
   ✅ **Vérifié par mutation** (5 au total, toutes rouges) : refus de la date passée
   retiré · borne haute ouverte d'une semaine · message découplé de `MAX_PROJECTION_WEEKS`
   · placeholder du champ Jour supprimé · exemple d'année changé dans l'écran.
-  **1 152 tests verts, 70 fichiers, `tsc` propre.**
+  **1 248 tests verts, 74 fichiers, `tsc` propre** — mesuré après fusion. *(La fiche a
+  d'abord annoncé « 1 152 / 70 », vrai sur la branche isolée et faux dès le rebase : le
+  compte de tests n'appartient pas au chantier qui l'écrit.)*
 
 - ~~**A27 · la rangée d'échéances ne proposait que de l'impossible à la moitié des
   gabarits**~~ *(publiée par erreur sous le numéro **A26**, déjà pris par « régénérer
@@ -1061,6 +1068,13 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
   ✅ **TRANCHÉ ET LIVRÉ le 2026-08-03** (fondateur : « puces dynamiques »).
   `lib/goalLadder.ts` · garde-fou `lib/__tests__/goalLadder.test.ts` · contrôle
   **`npm run mesure:objectif`**.
+
+  🔴 **CETTE RANGÉE N'EST PLUS AFFICHÉE depuis le 2026-08-07 (A28)** — ne pas la
+  chercher dans `profil.tsx`, l'échéance se SAISIT. Le mécanisme, lui, tourne toujours :
+  il produit l'**estimation** (« la première date que Kyroz peut tenir ») et la date
+  **pré-remplie**. Tout ce qui suit sur les invariants, le coût des sondes et la
+  mémoïsation reste donc VRAI ; seul « la personne choisit dans la rangée » ne l'est
+  plus. ⚠️ Et c'est ce qui interdit de supprimer `goalLadder.ts` comme du code mort.
 
   **Le défaut.** La rangée offrait CINQ DURÉES FIGÉES (4 / 8 / 12 / 16 / 24 semaines).
   Mesuré : **4 corps de référence sur 8 n'avaient AUCUNE échéance tenable**, la première
@@ -1110,7 +1124,8 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
   La garder afficherait deux fois la même offre. Les cinq durées figées survivent en
   **repli** (`HORIZONS_REPLI`) pour le seul cas où rien n'est tenable dans l'horizon de
   projection — le poids visé est alors hors de portée quelle que soit la date, et c'est
-  la phrase sous la rangée qui le dit.
+  la phrase sous le champ qui le dit. *(« Sous la rangée » à l'époque : elle n'existe
+  plus depuis A28, et `HORIZONS_REPLI` ne sert plus qu'à pré-remplir le champ.)*
   ℹ️ Défaut d'un objectif neuf : la **2ᵉ** puce, pas la 1ʳᵉ. La première est le rythme
   sûr maximal, et un défaut ne pousse pas d'office quelqu'un au plafond de ce que la
   sécurité autorise (CLAUDE.md §10).
@@ -3353,6 +3368,58 @@ produit en suspens — il ne reste qu'à coder.
   chaque recette a 1 ou 2 objectifs, donc la ligne de tags n'est jamais vide.
 
 ### 🧹 E — Dette technique
+
+- **E19 · Le brief « fortes masses grasses » accusait les gros gabarits — le plancher
+  mord les MAIGRES** 📏 **MESURÉ le 2026-08-07, aucune ligne de moteur touchée.**
+  Contrôle : `npm run mesure:adiposite`.
+
+  Le brief du 07/08 suspectait quatre étages chez un H de 150 kg à 45 %MG, avec un
+  symptôme : « le plancher EA passe au-dessus de la cible, l'app rend un plan de
+  MAINTIEN à quelqu'un venu pour perdre ». Il prévenait lui-même qu'il était rédigé
+  contre une DESCRIPTION du moteur et pas contre le code, et imposait une étape 0
+  bloquante. Elle l'a invalidé — **ses quatre prémisses sont fausses** :
+
+  | ce que le brief suppose | ce que le code fait |
+  |---|---|
+  | Katch dès que le %MG est saisi | Katch **seulement** si `body_fat_source === 'measured'`, question posée au-delà de 35/43 % |
+  | NEAT sédentaire 1,20 | **1,30** |
+  | plancher EA = `30 × FFM + sport` | `min(30 × FFM + sport, **TDEE**)` — plafonné à la maintenance |
+  | cible plafonnée à −25 % | « Sèche » demande un delta **fixe de −300** : le cap ne mord pas sur le chemin gratuit |
+  | `bindingFloor` « manque aujourd'hui » | **existe déjà** — `ClampRecord.source`, les 5 valeurs demandées |
+  | protéines peut-être en g/kg de poids | poids **ajusté** (FFM + 25 % de la MG), clampé 1,6–2,6 g/kg FFM |
+
+  **Le cas de référence va bien** : TDEE 3416, plancher EA 2772 — il ne mord pas.
+  Déficit 300 kcal/j en « Sèche », **644 (18,9 %)** si un objectif daté demande le
+  maximum. Protéines 215 g (2,61 g/kg FFM), pas les 270 redoutés. Plan faisable :
+  écart calorique du jour **0,28 %**, 2 repas sur 140 en `protein_below_target`.
+
+  🔴 **CE QUI EST VRAI, ET C'EST L'INVERSE DU BRIEF.** Le plancher vaut `30 × masse
+  maigre` : il mord donc **d'autant plus fort que la masse maigre est GROSSE**. Sur
+  56 600 corps plausibles (IMC ≥ 18,5, FFMI sous le plafond naturel), **30 reçoivent
+  un déficit servi de ZÉRO** et 527 sont sous 5 % — tous entre **8 et 24 %MG,
+  médiane 14**, c'est-à-dire le public déclaré de Kyroz. Exemple : `H 88 kg · 185 cm
+  · 8 %MG · sédentaire · course 4×60` → TDEE 2891, **servi 2891**. `FLOOR_APPLIED` et
+  `LOW_EA_WARNING` sont bien levés et le Profil nomme le plancher, donc ce n'est pas
+  silencieux — mais le plan EST un maintien.
+  ➡️ **Décision fondateur du 2026-08-07 : on ne touche à rien, on attend les retours
+  utilisateurs.** 30 corps sur 56 600, et c'est précisément la population sur laquelle
+  le garde-fou RED-S est le plus justifié. Ne pas rouvrir sans rejouer la mesure.
+
+  ⚠️ **Un seul mécanisme du brief survit, dix fois plus petit qu'annoncé et par un
+  autre canal.** La sous-déclaration au plafond du sélecteur : un H de 150 kg qui tape
+  la dernière silhouette (35 %) au lieu de saisir 45 % voit son déficit tomber de 300 à
+  **194 kcal/j**. Le TDEE ne bouge PAS (Mifflin ne lit pas le %MG) — c'est le
+  **plancher** qui monte de 450 kcal. Coût réel **106 kcal/j**, pas les ~470 annoncés.
+  Le garde-fou existe déjà : à ce gabarit, taper 35 % lève le repère `lean_mass`, qui
+  invite explicitement à saisir un chiffre à la main.
+
+  ➡️ **La leçon de méthode** : un brief qui raisonne sur une description du moteur
+  invente des constantes plausibles et en déduit un coupable plausible. Ici il a
+  désigné la population exactement opposée à celle qui souffre. **L'étape 0 bloquante
+  était le bon réflexe** — c'est elle qui a évité de desserrer un garde-fou de sécurité
+  sur les seuls corps qu'il protège vraiment, et de contredire la décision E16 du
+  2026-08-06 (« réserver Katch aux fortes adiposités — ne pas corriger sans le
+  fondateur »), que l'étape 1 demandait frontalement.
 
 - ~~**E16 · Katch-McArdle prenait une DEVINETTE pour une mesure**~~ ✅ **LIVRÉ
   le 2026-08-06**, **amendé le 2026-08-07** — code, migration jouée, OTA `93fad600`,
