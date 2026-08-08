@@ -8,7 +8,7 @@ import { Meal, UserProfile } from '../lib/types';
 import { DISCLAIMER } from '../constants/legal';
 import { ReussiteIcon, IconeRepas } from './Icons';
 
-const MEAL_LABEL: Record<string, string> = { breakfast: 'Petit-déj', lunch: 'Déjeuner', dinner: 'Dîner', snack: 'Collation' };
+import { knownSlots, slotIconType, slotLabel, slotOrFallback } from '../lib/mealSlots';
 
 interface Props {
   visible: boolean;
@@ -28,6 +28,9 @@ interface Props {
 export function FirstPlanReveal({ visible, profile, firstName, previewMeals, onClose }: Props) {
   const t = useTheme();
   const s = makeStyles(t);
+  // Lus du PROFIL passé en propriété, et non du contexte : ce composant s'affiche
+  // juste après l'onboarding, sur le profil qu'on vient d'enregistrer.
+  const slots = useMemo(() => knownSlots(profile), [profile]);
   const scale = useRef(new Animated.Value(0.9)).current;
   const opacity = useRef(new Animated.Value(0)).current;
 
@@ -81,9 +84,9 @@ export function FirstPlanReveal({ visible, profile, firstName, previewMeals, onC
                 <View style={{ gap: Spacing.md }}>
                   {previewMeals.map((m) => (
                     <View key={m.id} style={s.mealRow}>
-                      <IconeRepas type={m.meal_type} color={t.textSecondary} size={Icone.standard} />
+                      <IconeRepas type={slotIconType(slotOrFallback(slots, m.meal_type))} color={t.textSecondary} size={Icone.standard} />
                       <View style={{ flex: 1 }}>
-                        <Text style={s.mealType}>{MEAL_LABEL[m.meal_type] ?? m.meal_type}</Text>
+                        <Text style={s.mealType}>{slotLabel(slots, m.meal_type)}</Text>
                         <Text style={s.mealName} numberOfLines={1}>{m.recipe.name_fr}</Text>
                       </View>
                       <Text style={s.mealKcal}>{Math.round(m.macros.kcal)} kcal</Text>

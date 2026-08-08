@@ -13,6 +13,8 @@ import { useRecipeOverrides } from '../../hooks/useRecipeOverrides';
 import { getBaseRecipe } from '../../lib/recipes';
 import { Recipe } from '../../lib/types';
 import { OBJ_LABEL } from '../../lib/recipeLabels';
+import { useTourTarget, useScreenTour, TourButton } from '../../components/GuidedTour';
+import { recettesTour } from '../../lib/tours';
 
 const TAGS = ['Tout', 'fav', 'breakfast', 'lunch', 'dinner', 'snack'];
 const TAG_LABELS: Record<string, string> = {
@@ -34,6 +36,14 @@ export default function RecettesScreen() {
   const [selected, setSelected] = useState<Recipe | null>(null);
   const [editing, setEditing] = useState<Recipe | null>(null);
 
+  // Cibles de la visite guidée. ⚠️ Les refs des CARTES se créent ici et non dans
+  // `renderItem` : celui-ci est une callback, pas un composant, donc y appeler un
+  // hook violerait les règles de React. Elles ne sont posées que sur la première
+  // ligne (`index === 0`), comme le fait déjà l'onglet Plan avec ses MealCard.
+  const rechercheRef = useTourTarget('recettes-recherche');
+  const carteRef = useTourTarget('recettes-carte');
+  const favoriRef = useTourTarget('recettes-favori');
+
   const q = norm(query.trim());
   const data = recipes.filter((r) => {
     if (q && !norm(r.name_fr).includes(q)) return false;
@@ -41,6 +51,11 @@ export default function RecettesScreen() {
     if (tag === 'fav') return isFavorite(r.id);
     return r.tags.includes(tag);
   });
+
+  // Après `data` : le tour a besoin de savoir s'il y a une carte à montrer. Sur
+  // une liste vide, ses deux dernières étapes seraient filtrées faute de cible et
+  // le tour se réduirait à sa barre de recherche.
+  const { rejouer: rejouerTour } = useScreenTour('recettes', recettesTour(), { pret: data.length > 0 });
 
   // ⚠️ L'en-tête, la recherche, les filtres et le compteur vivent DANS la liste
   // (`ListHeaderComponent`) et non au-dessus : c'est ce qui permet au grand titre
@@ -56,14 +71,17 @@ export default function RecettesScreen() {
         {/* Surtitre AU-DESSUS du grand titre : le chiffre pose le contexte, le mot
             reste la chose la plus grosse de l'écran. */}
         <View style={s.header}>
-          <Text style={s.sub}>
-            {recipes.length} recettes{favorites.length > 0 ? ` · ${favorites.length} en favori${favorites.length > 1 ? 's' : ''}` : ''}
-          </Text>
-          <Text style={s.h1}>Recettes</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={s.sub}>
+              {recipes.length} recettes{favorites.length > 0 ? ` · ${favorites.length} en favori${favorites.length > 1 ? 's' : ''}` : ''}
+            </Text>
+            <Text style={s.h1}>Recettes</Text>
+          </View>
+          <TourButton onPress={rejouerTour} />
         </View>
 
         <View style={s.searchWrap}>
-          <View style={s.searchBox}>
+          <View ref={rechercheRef} style={s.searchBox}>
             <Ionicons name="search" size={Icone.petite} color={t.textTertiary} />
             <TextInput
               value={query}
@@ -136,13 +154,14 @@ export default function RecettesScreen() {
             </Text>
           </View>
         }
-        renderItem={({ item }) => {
+        renderItem={({ item, index }) => {
           const fav = isFavorite(item.id);
+          const premier = index === 0;
           return (
-            <TouchableOpacity style={[s.recipe, layout.columns > 1 && s.recipeGrid, cardShadow(t)]} onPress={() => setSelected(item)} activeOpacity={OPACITE_PRESSION}>
+            <TouchableOpacity ref={premier ? carteRef : undefined} style={[s.recipe, layout.columns > 1 && s.recipeGrid, cardShadow(t)]} onPress={() => setSelected(item)} activeOpacity={OPACITE_PRESSION}>
               <View style={s.rTop}>
                 <Text style={s.rName}>{item.name_fr}</Text>
-                <TouchableOpacity onPress={() => toggle(item.id)} hitSlop={10} style={s.heart}>
+                <TouchableOpacity ref={premier ? favoriRef : undefined} onPress={() => toggle(item.id)} hitSlop={10} style={s.heart}>
                   <Ionicons name={fav ? 'heart' : 'heart-outline'} size={Icone.standard} color={fav ? t.text : t.textQuaternary} />
                 </TouchableOpacity>
               </View>
@@ -205,7 +224,9 @@ function makeStyles(t: ThemePalette) {
     safe: { flex: 1, backgroundColor: t.bg },
     // Plus de `paddingHorizontal` ici ni dans `searchWrap`/`countRow` : ces blocs
     // vivent dans le contentContainer de la liste, qui pose déjà les 20 pt.
-    header: { paddingTop: Spacing.xs, paddingBottom: Spacing.md },
+    // `row` + `flex-end` : le « ? » se pose sur la ligne de base du grand titre,
+    // comme sur les quatre autres onglets. Même patron que Courses.
+    header: { flexDirection: 'row', alignItems: 'flex-end', paddingTop: Spacing.xs, paddingBottom: Spacing.md },
     h1: { color: t.text, ...Type.display, marginTop: Spacing.xs },
     sub: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 19 },
     searchWrap: { paddingBottom: Spacing.md },

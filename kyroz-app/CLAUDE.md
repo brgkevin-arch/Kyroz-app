@@ -227,6 +227,7 @@ recipe_overrides (recettes personnalisées par l'utilisateur)
 | **Le plan de la semaine** | AsyncStorage `@kyroz:plan` | **déterministe** : re-dérivable du profil + du catalogue. `meal_plans` a été supprimée le 2026-06-14 pour cette raison |
 | **Les repas du plan** | dans l'objet plan ci-dessus | idem — jamais eu de table `meals` |
 | **La liste de courses** | recalculée à la volée depuis le plan moins le garde-manger | idem — jamais eu de table `shopping_lists` |
+| **L'historique des courses** | AsyncStorage `@kyroz:shoppingHistory`, l'appareil uniquement | ce qui est éphémère par nature (la liste est un CALCUL, son cache est effacé à chaque changement de plan) a besoin d'une trace, pas d'une table. Décision du 2026-08-07, même raisonnement que le journal hors plan : commencer local ne ferme aucune porte, le miroir se pose par-dessus la clé le jour où le besoin est mesuré. Borné à 30 sorties / 180 jours |
 | **Le catalogue de recettes** | `Recette/recettes-kyroz.json` → `lib/recipeMap.ts`, embarqué dans le bundle | il est le même pour tout le monde ; le servir depuis le réseau ajouterait une latence pour zéro bénéfice. Les fibres sont calculées à la volée (`lib/fiber.ts`), sourcées Ciqual par `ref`/`food_id`, jamais stockées |
 | **Les photos de progression** | AsyncStorage, l'appareil uniquement | donnée de santé sensible (RGPD) — décision explicite, cf. §7 |
 | **Le journal des repas hors plan** | AsyncStorage `@kyroz:offPlan`, l'appareil uniquement | donnée de **comportement alimentaire** (même traitement que les photos) ; et lui donner une table rouvrirait la porte fermée en supprimant `meal_plans`. Décision fondateur du 2026-08-05, cf. AGENTS.md E6 |
@@ -289,6 +290,7 @@ OUTPUT         → Plan + liste de courses + recettes
 - [x] Génération plan repas 7 jours (moteur local)
 - [x] Affichage recettes + macros
 - [x] Liste de courses
+- [x] Clôture des courses (« Courses terminées ») + historique des listes — LOCAL-ONLY
 - [x] Frigo / garde-manger
 - [x] Favoris recettes
 - [x] Streak tracker (7 jours consécutifs)
@@ -520,14 +522,92 @@ on publie l'écart comme s'il n'y en avait qu'un.
 ➡️ **Prochaine vague de catalogue : des petits formats vegan / vegan+SG** (dîners et
 collations pour petits gabarits en sèche). C'est le seul levier qui reste.
 
+🔴 **CE QUE L'ÉCRAN EN DIT DOIT ÊTRE CONDITIONNÉ, ET ÇA NE L'ÉTAIT PAS** (corrigé le
+2026-08-08). L'écran Plan affichait « Jour de repos · un peu moins de calories et de
+glucides, tes protéines inchangées » dès que le jour affiché était un jour de repos —
+**jamais selon qu'un écart existe**. Or ce module ne module rien sans sport déclaré (voir
+ci-dessus, « aucune répartition n'est inventée »). Mesuré sur le moteur, H 30 ans, 83 kg,
+18 % MG, sèche, NEAT desk : **sans sport, 2042 kcal les sept jours, amplitude 0** ; avec
+3 séances de 60 min, 2042/2303 alternés, **amplitude 261**. Le nombre affiché deux lignes
+plus bas démentait donc la phrase, sur l'écran le plus regardé de l'app.
+➡️ La phrase passe désormais par le même prédicat que la bulle de visite guidée qui parle
+de la même chose (§8, `moduleParVolume` : amplitude ≥ 40 kcal, seuil et calcul partagés
+avec `FirstPlanReveal`). ⚠️ **Un jour de repos reste un jour de repos** — la lune de la
+rangée de jours ne bouge pas : c'est une déclaration de l'utilisateur, elle est vraie. Ce
+qui était faux, c'est la promesse CALORIQUE accrochée derrière.
+➡️ Et c'est la **capture des deux textes côte à côte** qui l'a montré, pas la relecture :
+la bulle se conditionnait déjà, l'écran non.
+
 ➡️ Contrôle : `npm run mesure:volume`. Garde-fou : `lib/__tests__/volumeConcentre.test.ts`.
+
+### Les repas de la journée sont LIBRES (`lib/mealSlots.ts`, 2026-08-07)
+
+Un créneau de repas est une **donnée** (`MealSlot` : id, libellé, heure, vivier), plus une
+valeur de type. L'utilisateur en crée autant qu'il veut — « Shaker post-training », 18h30,
+vivier collation — à l'onboarding **et** dans Profil → Paramètres des repas, par le même
+composant (`components/MealSlotsPicker.tsx`).
+
+**Ce que ça corrige** : `MealType` était une union FERMÉE de quatre valeurs. Le plafond
+n'était écrit dans aucune spec — **il était dans le TYPE**. Quelqu'un qui mange six fois
+par jour ne pouvait pas le déclarer, et le moteur répartissait son budget sur quatre
+assiettes qu'il ne mangeait pas : un plan faux, sans le moindre message.
+
+⚠️ **Les 4 créneaux intégrés gardent leurs ids** (`breakfast`, `lunch`, `dinner`,
+`snack`), et c'est ce qui rend le changement non destructeur : `profiles.meals` (text[],
+aucune contrainte d'énumération), les plans en cache, les repas « je gère » et les tags
+de recettes désignent tous les mêmes créneaux. Ils restent **en dur côté app** — les
+stocker par utilisateur figerait une copie qu'une correction future n'atteindrait plus
+(CLAUDE.md §10, « la copie stockée que personne ne relit »). Seuls les créneaux **créés**
+vivent en base (`profiles.meal_slots` jsonb — migration 2026-08-07).
+
+🔴 **`MEAL_ORDER` est devenu CHRONOLOGIQUE** (la collation de 16 h passe avant le dîner ;
+elle était servie en dernier). Obligatoire : un ordre qui n'est pas celui de la journée
+rangeait une collation de 10 h après le dîner. Conséquence — le report de budget de repas
+en repas ne se fait plus dans le même ordre, donc **`ENGINE_VERSION` 46 → 47 et le plan de
+tout le monde se régénère une fois**. Aucune calorie ne bouge.
+
+⚠️ **`MEAL_DEFAULT_PRIORITY` existe à côté, et il ne doit PAS suivre.** Il ne sert qu'à
+répondre à « je veux N repas » sans savoir lesquels (`syncGuard::normalizeMeals`, une
+donnée réelle : `meals: 4`, un nombre). Sur l'ordre chronologique, N = 3 aurait rendu
+« petit-déj + déjeuner + collation » — donc **supprimé le dîner** de quelqu'un qui n'a
+rien demandé.
+
+⚠️ **Le plafond est de 8 repas/jour, et il vient du CATALOGUE, pas du type.** Mesuré
+(`npm run mesure:creneaux`, 5 gabarits × 5 tirages × 7 jours) : écart calorique du jour
+0,66 % à 4 repas · **0,92 % à 8** · 1,19 % à 9 · 4,94 % à 12 ; drapeaux vus par
+l'utilisateur 4 → **81** → 174 → 712. 8 est le dernier palier sous 1 % et le dernier avant
+que les drapeaux ne DOUBLENT. La dégradation est **graduelle et concentrée** : jusqu'à 8,
+74 des 81 drapeaux tombent sur F 55 kg en sèche **vegan** — la limite de vivier « petits
+formats vegan » déjà consignée plus haut. C'est à 9 que ça déborde sur les petits gabarits
+omnivores (6 → 30). *La mesure a aussi trouvé un défaut hors périmètre : à **3** repas, un
+H 95 en prise de masse est à 6,11 % d'écart — le catalogue n'a pas de plat à 1 060 kcal.
+Antérieur aux créneaux libres, noté, pas corrigé.*
+
+⚠️ Deux propriétés que le code garde et qu'il ne faut pas « simplifier » :
+- **Un créneau supprimé reste servable** (`slotOrFallback`, poids de collation). Un plan
+  en cache peut le contenir ; sans repli il recevrait un poids nul, donc une cible de
+  0 kcal, donc une assiette vide — un correctif pire que la donnée périmée.
+- **Le LIBELLÉ n'entre pas dans `profileSignature`**, l'heure et le vivier si. Renommer un
+  créneau ne doit pas régénérer la semaine pour une faute de frappe corrigée.
+
+➡️ Contrôle : `npm run mesure:creneaux`. Garde-fou : `lib/__tests__/mealSlots.test.ts`,
+**vérifié par 6 mutations** — et la 6ᵉ a montré qu'un premier test ne prouvait rien :
+neutraliser tout le filtre de vivier le laissait vert, parce que sur une cible de
+collation le moteur choisit une collation même quand le catalogue entier lui est ouvert.
+Il mesure désormais le VIVIER, pas la sortie.
 
 ### Répartition entre repas — plancher protéique (`lib/planEngine.ts`)
 
 La cible d'un repas est une part du budget **restant** du jour : le report de repas en
 repas est ce qui garde le total quotidien serré (0,05 % d'écart mesuré). Mais il a un
 effet de bord — chaque repas qui dépasse sa part rogne celle des suivants, et le
-**dernier servi** (la collation, dernière de `MEAL_ORDER`) encaisse toute la dérive.
+**dernier servi de la journée** encaisse toute la dérive.
+
+> ℹ️ Cette phrase disait « la collation, **dernière de `MEAL_ORDER`** ». C'était vrai
+> quand la mesure a été faite, et ça ne l'est plus depuis que l'ordre est chronologique
+> (2026-08-07) : le dernier servi est maintenant le **dîner**, ou le dernier créneau créé
+> de la soirée. Le mécanisme, lui, est inchangé — et le plancher ne dépend d'aucun
+> créneau en particulier, c'est justement ce qui fait qu'il tient encore.
 
 Depuis le 2026-08-02, la cible protéique d'un repas ne peut plus descendre sous
 **0,7 × sa part équitable** du budget du jour (`PROT_SHARE_FLOOR`), bornée par les
@@ -709,7 +789,15 @@ composant. Audit complet des réglages : `npm run mesure:reglages`.
 > ➡️ Contrôle : `npm run mesure:objectif`. Raisonnement complet et chiffres : AGENTS.md A15.
 
 > **Les échéances proposées sont DÉRIVÉES DU CORPS, jamais figées** (2026-08-03, A27,
-> `lib/goalLadder.ts`). La rangée offrait cinq durées en dur — 4 / 8 / 12 / 16 / 24
+> `lib/goalLadder.ts`).
+>
+> 🔴 **CE QUI SUIT DÉCRIT UNE RANGÉE QUI N'EST PLUS AFFICHÉE** — retirée le 2026-08-07
+> (décision fondateur, note « l'échéance est une DATE » plus bas). Le mécanisme, lui,
+> tourne toujours : il produit la date **pré-remplie**. Tout ce qui est dit ici des
+> invariants (tenable, distincte), du coût des sondes et de la mémoïsation reste donc
+> VRAI et applicable ; seul « la personne choisit dans la rangée » ne l'est plus.
+>
+> La rangée offrait cinq durées en dur — 4 / 8 / 12 / 16 / 24
 > semaines — et **9 puces sur 40 seulement étaient tenables** : sur 4 corps de référence
 > sur 8, AUCUNE ne l'était. La première échéance atteignable se situait entre 18 et
 > 82 semaines, hors de la rangée.
@@ -740,6 +828,96 @@ composant. Audit complet des réglages : `npm run mesure:reglages`.
 > prédicat écrit en pensant à la sèche (`>`, « plus de calories ») y est faux : le test de
 > décollage du plancher est `!==`. Une version orientée perte marchait sur la prise **par
 > accident**. Vaut au-delà de ce module.
+
+> 🔴 **L'ÉCHÉANCE EST UNE DATE, ET LA RANGÉE DE PUCES EST RETIRÉE** (2026-08-07,
+> décision fondateur — `goalLadder.ts::checkEcheance`, `components/DateInput.tsx`).
+> On ne demande plus « dans combien de semaines », on demande la date : c'est ce que la
+> personne a en tête, et **un événement réel ne tombe jamais sur un multiple de
+> semaines**. Trois champs jour/mois/année, qui sont aussi l'AFFICHAGE de la date visée.
+> Aucune calorie ne change de règle, donc **pas d'`ENGINE_REV`** — `datedGoalStatus`
+> reçoit un stamp et se moque de sa provenance.
+>
+> ⚠️ **L'échelle dérivée du corps (A27) N'EST PAS MORTE — elle n'est plus affichée.**
+> `deadlineLadder` est toujours appelé, pour une seule chose : la date **pré-remplie**,
+> prise sur sa 2ᵉ marche. C'est désormais la seule échéance que l'app propose, donc
+> c'est elle qui doit tenir — et la 1ʳᵉ marche est écartée à dessein (c'est le rythme
+> sûr MAXIMAL ; un défaut ne pousse pas d'office quelqu'un au plafond de la sécurité,
+> §10). Vérifié à l'écran : un objectif neuf s'ouvre sur « Rythme sûr, dans les clous
+> de ta date ». ➡️ Supprimer `goalLadder.ts` en croyant nettoyer du code mort ferait
+> retomber le défaut d'origine — une date par défaut que la moitié des gabarits ne
+> peuvent pas tenir.
+>
+> **L'ÉCRAN DONNE UNE ESTIMATION, ET C'EST ELLE QUI EXPOSE LE PLAFOND** (2026-08-07,
+> décision fondateur : *« on devrait peut-être donner une estimation, et l'user ajuste en
+> fonction de ce qu'il veut et des plafonds »*). Sous le poids cible :
+> *« À 79 kg, la première date que Kyroz peut tenir en sécurité : le 6 nov. 2026 »*, plus
+> un **« Viser cette date »** en un tap. Le plafond est dit en DATE plutôt qu'en règle —
+> la personne ajuste en le connaissant, au lieu de le découvrir en se faisant refuser.
+> Elle est attachée au POIDS, parce que c'est lui qui la détermine.
+> ➡️ Elle remplace le raccourci d'A14 perdu avec la rangée, et **sur une base plus
+> solide** : cette date est tenable PAR CONSTRUCTION (la sonde teste `reachableByDate`),
+> là où adopter la date projetée avait été mesuré comme glissant de 98 jours.
+>
+> 🔴 **CE N'EST PAS `status.projectedDate`, et confondre les deux remettrait deux dates
+> contradictoires à l'écran.** Mesuré le 2026-08-07 sur 8 corps : l'écart va de **12 à
+> 100 jours**, toujours dans le même sens.
+>
+> | | où j'arrive en GARDANT une date trop proche | première date TENABLE |
+> |---|---|---|
+> | `F 78 → 65` | 1ᵉʳ août 2027 | **28 mai 2027** |
+> | `H 95 → 82` | 27 juin 2027 | **19 mars 2027** |
+>
+> `projectedDate` simule qu'on garde l'échéance trop proche — donc qu'elle **expire**,
+> après quoi le plan retombe au déficit ordinaire de l'objectif. C'est vrai, et
+> inutilisable : ça dit que **viser trop tôt fait arriver plus tard**. La marche 1 de
+> l'échelle répond à la question réellement posée (« quand puis-je y être ? »). Les trois
+> surfaces de l'éditeur — ligne sous le champ, carte « objectif ambitieux », carte
+> « plancher » — servent donc **le même** chiffre.
+>
+> ⚠️ **Un cas mesuré au passage : « ambitieux » et « dans les clous » pouvaient
+> s'afficher ENSEMBLE.** La carte « au rythme le plus sûr tu atteins X kg …, après ta
+> date » se déclenchait sur `clamped` sans vérifier `reachableByDate`. Balayage de 1 600
+> échéances (8 corps × 200 semaines) : **1 cas** — `H 68 → 74`, **prise de masse**,
+> 17 semaines. Rare, mais deux phrases opposées dans le même écran. La carte est
+> désormais gardée par `!reachableByDate`. ➡️ Encore un prédicat écrit en pensant à la
+> sèche qui se trompe en PRISE : le réflexe de §6 vaut aussi pour les messages.
+>
+> ⚠️ **Pas de sélecteur de date, et c'est un choix** : dépendance NATIVE (donc build +
+> revue, §2) pour un service que trois nombres rendent partout. Même raison qu'à
+> l'origine pour la date de naissance ; la mécanique des deux vit désormais dans
+> `components/DateInput.tsx`, **son garde anti-réécriture compris** (§11, le champ qui
+> se vide sous les doigts — trois occurrences, dont deux dans ce garde-là).
+>
+> 🔴 **Deux dates sont REFUSÉES, et chacune couvre un mensonge — pas une maladresse :**
+>  1. **échéance passée ou du jour** → `datedGoalStatus` rend `active: false` : l'objectif
+>     serait enregistré et **ne piloterait rien, en silence**. Ce cas n'est pas une faute
+>     de frappe, c'est l'objectif qu'on ré-ouvre après sa date. Le contrôle s'applique
+>     donc à la date **enregistrée** aussi, pas seulement à la saisie.
+>  2. **au-delà de l'horizon de projection** (`MAX_PROJECTION_WEEKS`, 5 ans) → le moteur
+>     fait alors **l'INVERSE** de ce qu'on lui demande. Mesuré le 2026-08-07 : `F 78 → 65`
+>     sert **−55 kcal/j** à 5 ans et **−418 kcal/j** à 267 semaines ; `H 80 → 74`, −25 puis
+>     **−298**. Ce n'est pas un bug : passé 260 semaines la simulation ne peut plus
+>     atteindre la cible dans son horizon, `reachableByDate` tombe, et **A15 conclut « la
+>     date ne tient pas » et sert le rythme sûr MAXIMAL**. La bascule tombe quelques
+>     semaines APRÈS l'horizon et sa position dépend du corps (267 sem / 274 sem) : on
+>     coupe à l'horizon, seul point défendable. ℹ️ Aucune régression existante — la rangée
+>     de puces ne dépasse jamais l'horizon. **C'est une porte que la saisie libre ouvrait.**
+>
+> ⚠️ **Rien ne refuse une date très PROCHE, et c'est délibéré.** Sous une semaine,
+> `datedGoalStatus` raisonne sur une semaine pleine (garde-fou de division) : mesuré,
+> 1 / 3 / 7 jours servent le même plan et la même arrivée. La phrase sous le champ
+> annonce l'arrivée réelle, donc la question reçoit une réponse vraie. Refuser serait
+> interdire sur le ton du reproche (§10).
+>
+> ℹ️ **`closestHorizon` est parti avec la rangée.** Il allumait la puce la plus PROCHE de
+> l'échéance enregistrée : une cible au 14 novembre affichait « 16 sem » en surbrillance
+> au-dessus d'une ligne annonçant une autre date — **deux échéances à l'écran pour un
+> seul objectif**. Le défaut est antérieur à ce chantier ; c'est la saisie libre qui l'a
+> rendu regardable, et le retrait de la rangée qui l'a clos.
+>
+> ⚠️ **La ligne « Cible le … » est désormais le SEUL endroit qui dise si la date tient.**
+> Elle porte donc toute la charge d'honnêteté de l'écran (A14/A15) : ne jamais la
+> raccourcir, la déplacer sous le pli, ou la remplacer par un simple rappel de la date.
 
 - **Lipides sous le seuil de carence** — `lib/tdee.ts::fatTargetG`, plancher à
   0,8 g/kg de **poids de corps** (`FAT_MIN_PER_KG_BW`). Borné par le budget du
@@ -929,15 +1107,28 @@ la respecte pas encore — et ce paragraphe a annoncé le contraire.
   assumées 😎 »). Ceux-là ont été **SUPPRIMÉS, pas remplacés** : aucun pictogramme
   ne remplace une ponctuation, et la phrase doit tenir sans elle.
 
-🔴 **Ce qu'elle n'a PAS fait — re-mesuré le 2026-08-07 : 13 émojis sont encore
-AFFICHÉS**, dans trois modules que la passe n'a jamais ouverts.
+🔴 **Ce qu'elle n'a PAS fait — re-mesuré le 2026-08-07 : 13 émojis étaient encore
+AFFICHÉS**, dans trois modules que la passe n'a jamais ouverts. **Il en reste 9**
+(les 4 des notifications sont partis le 2026-08-07, cf. ci-dessous).
 
 | Où | Combien | Ce qui l'affiche |
 |---|---|---|
 | `lib/streak.ts` (paliers) | 6 — 🔥 🎉 💪 🏆 ⭐ 👑 | `StreakCelebration.tsx` en **fontSize 56**, monté sur l'écran Plan |
 | `lib/streak.ts` (`streakMessage`) | 2 — 🎯 🎉 | `StreakProgress.tsx` |
-| `lib/notifications.ts` | 4 — 💪 🍽️ 🔥 ⚖️ | les notifications natives |
+| ~~`lib/notifications.ts`~~ | ~~4 — 💪 🍽️ 🔥 ⚖️~~ → **0** | **FAIT** — les textes ont déménagé dans `lib/reminder.ts` et se sont reformulés sans eux |
 | `constants/legal.ts` | 1 — ⚠️ | l'écran `/legal` (CGU) |
+
+✅ **Les quatre des notifications sont tombés en passant, et c'est instructif :
+ils ne coûtaient rien à retirer** parce qu'on RÉÉCRIVAIT les phrases de toute
+façon (heure libre → un jeu de messages par créneau de journée). Aucun d'eux ne
+tenait la place d'une icône — ils étaient du ton de voix, exactement le cas que
+la passe dit de SUPPRIMER sans remplacer. Ce qui les protégeait n'était donc pas
+leur rôle, c'était que personne n'ouvrait ce fichier.
+
+➡️ Et cette fois **un test les compte** (`lib/__tests__/reminder.test.ts` →
+« aucun émoji »), avec le même motif que `typoDA`. C'est la réponse directe au
+reproche du paragraphe suivant : une règle qu'aucun compteur n'exige se déclare
+tenue toute seule.
 
 ⚠️ **Le compte de 55 n'était pas faux, il portait sur le mauvais périmètre.** Ces
 chaînes vivent dans `lib/` et `constants/` — des fichiers qui n'ont pas l'air
@@ -954,7 +1145,7 @@ une string, pas du JSX. Ceux-là se retirent et la phrase se reformule (« Noté
 → « C'est noté »). Les autres deviennent une rangée icône + texte, plus verbeuse
 qu'un caractère collé devant une phrase : c'est le prix de la couleur héritée.
 
-➡️ **Règle : ne pas réintroduire d'émoji dans l'interface**, et **finir les 13
+➡️ **Règle : ne pas réintroduire d'émoji dans l'interface**, et **finir les 9
 restants** — chantier ouvert, pas un oubli à corriger en passant : la célébration
 de palier est un objet VISUEL de 56 px, la remplacer (icône `ReussiteIcon` ? rien
 du tout ?) est une décision de DA, pas une substitution mécanique. Le compte se
@@ -1176,6 +1367,70 @@ puis se fige à une valeur intermédiaire **parfaitement plausible** — j'ai «
 ➡️ La décision vit donc dans une fonction PURE, testée (`lib/__tests__/repliTitre.test.ts`),
 et l'écran ne sert qu'à juger le rendu (opacité forcée à 1). Procédure :
 `docs/comparer-maquette.md`.
+
+### La visite guidée dit ce que le code FAIT (2026-08-08)
+
+Un tour par onglet, déclenché **à la première visite de CET onglet** — jamais tous au
+démarrage. 21 bulles au total (plan 6 · profil 6 · recettes 3 · courses 3 · frigo 3),
+mais une personne n'en voit que 6 le jour où elle ouvre le Plan. Servies d'un bloc, ce
+seraient 21 **interruptions modales** dans la même session : chaque bulle est une
+`Modal` dont les panneaux avalent les taps, pas une infobulle qu'on ignore.
+
+**Le contenu vit dans `lib/tours.ts`, pas dans les écrans.** Fichier sans aucun import,
+donc testable, là où `components/GuidedTour.tsx` tire react-native et ne l'est pas.
+Même procédé que `lib/collapsingTitle.ts` et `lib/accentColor.ts` : la décision est une
+fonction pure, l'écran ne fait que la rendre.
+
+🔴 **UNE BULLE EST UNE AFFIRMATION SUR LE CODE, et elle survit à ce qu'elle décrit.**
+Sur les cinq bulles d'origine, **trois étaient fausses** au moment de l'audit — chacune
+avait été vraie le jour où elle a été écrite :
+
+| Ce qu'elle promettait | Ce que faisait le code |
+|---|---|
+| « Kyroz recale **automatiquement** les repas restants » | `logOffPlan` enregistre sans toucher au plan, puis **demande** (`setAdaptPrompt`) ; refuser ne recale rien |
+| « la **barre** se remplit » | `MacroBar` est un ruban de PROPORTIONS toujours plein — c'est le chiffre héros qui se remplit |
+| « le bouton **Échanger** ce repas », « ses **badges** d'adaptation » | le libellé est « Remplacer » ; ces badges n'existent pas comme tels |
+
+➡️ **Chaque étape porte en commentaire le chemin de code qui la prouve.** Ne pas en
+ajouter une sans faire de même — c'est la seule chose qui rende l'affirmation
+re-vérifiable, et aucun test ne peut juger qu'une phrase est vraie.
+
+⚠️ **Une bulle dont l'énoncé n'est vrai que pour certains profils se CONDITIONNE.**
+Le précédent était déjà dans l'app (`planTour` est une fonction et non une constante,
+parce qu'elle annonçait « 7 jours » en dur). Rejoué ici pour la modulation par volume :
+sans sport déclaré, `dayExpenditures` retombe sur une cible plate, donc parler de
+« jours d'entraînement » mentirait. `moduleParVolume` (même seuil de 40 kcal et même
+calcul que `FirstPlanReveal`, pour que deux écrans ne se contredisent pas sur la même
+question).
+
+⚠️ **Et le même prédicat manquait à l'ÉCRAN**, corrigé dans la foulée : « Jour de repos ·
+un peu moins de calories et de glucides » n'était conditionnée qu'à `isRestDay`. Mesuré
+sur le moteur (H 30 ans, 83 kg, 18 % MG, sèche, NEAT desk) : **sans sport, 2042 kcal les
+sept jours, amplitude 0** ; avec 3 séances de 60 min, 2042/2303 alternés, amplitude 261.
+Le nombre affiché douze pixels plus bas démentait la phrase. ➡️ **C'est la CAPTURE des
+deux textes côte à côte qui l'a montré**, pas la relecture — la bulle, elle, se
+conditionnait déjà.
+
+⚠️ **Un tour AMPUTÉ est le défaut silencieux du moteur** : `startTour` écarte les étapes
+dont la cible n'est pas montée. Certaines absences sont légitimes (le bloc frigo n'existe
+pas quand le frigo est vide), mais un id mal orthographié, ou une ref perdue en
+refactorant un écran, fait disparaître une bulle **sans rien casser** — le tour se joue
+plus court en ayant l'air complet. D'où un avertissement en développement, et surtout le
+garde-fou ci-dessous.
+
+⚠️ **Tout écran qui reçoit un tour reçoit sa porte de sortie.** « Passer » marque le tour
+vu **définitivement** ; le « ? » de rejeu n'existait que sur le Plan, donc passer le tour
+d'un autre onglet le perdait à vie. Composant `TourButton` sur les cinq en-têtes, plus
+« Revoir les tutos » dans le Profil (`resetAllTours`).
+
+➡️ **Garde-fou : `lib/__tests__/visiteGuidee.test.ts`**, vérifié par 5 mutations. Il
+vérifie surtout qu'**aucune étape ne vise une cible absente du code** — c'est le chemin
+par lequel la dérive arrive vraiment. Plus : tours non vides, ids uniques, bornes de
+rédaction, aucun émoji, aucun ton de reproche (§10), et la table `TOURS` d'accord avec
+les écrans **dans les deux sens** (un tour déclaré mais jamais lancé, ou lancé sans être
+déclaré, sont deux défauts distincts).
+⚠️ Ce qu'il ne sait PAS faire, et c'est écrit dans le fichier : juger qu'une phrase est
+VRAIE. Il ferme la porte au chemin mécanique, pas au mensonge.
 
 ### Le design system est POUSSÉ vers Claude Design, et il se REGÉNÈRE (2026-08-06)
 

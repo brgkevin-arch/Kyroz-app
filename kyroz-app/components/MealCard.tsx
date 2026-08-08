@@ -5,7 +5,12 @@ import { useTheme, Radius, cardShadow, ThemePalette, Type, Spacing, Trait, Icone
 import { Meal } from '../lib/types';
 import { useTourTarget } from './GuidedTour';
 import { useFavorites } from '../hooks/useFavorites';
+import { useMealSlots } from '../hooks/useMealSlots';
+import { slotLabel } from '../lib/mealSlots';
 
+// Les libellés des 4 créneaux INTÉGRÉS, en version longue (« Petit-déjeuner »
+// plutôt que « Petit-déj ») : c'est le surtitre de la carte, il a la place. Un
+// créneau CRÉÉ, lui, porte le nom que l'utilisateur lui a donné.
 const MEAL_LABELS: Record<string, string> = {
   breakfast: 'Petit-déjeuner',
   lunch: 'Déjeuner',
@@ -14,7 +19,7 @@ const MEAL_LABELS: Record<string, string> = {
 };
 
 export function MealCard({
-  meal, onPress, onCook, onReload, onDislike, onShopping, missing, fridgeTracked, tourId, cookTourId,
+  meal, onPress, onCook, onReload, onDislike, onShopping, missing, fridgeTracked, tourId, cookTourId, actionsTourId,
 }: {
   meal: Meal;
   onPress?: () => void;
@@ -26,11 +31,14 @@ export function MealCard({
   fridgeTracked?: boolean;   // le frigo contient au moins 1 article
   tourId?: string;           // si fourni : rend la carte ciblable par la visite guidée
   cookTourId?: string;       // si fourni : rend le bouton « J'ai cuisiné » ciblable par la visite guidée
+  actionsTourId?: string;    // si fourni : rend la rangée favori / j'aime pas / changer ciblable
 }) {
   const t = useTheme();
   const rootRef = useTourTarget(tourId);
   const cookRef = useTourTarget(cookTourId);
+  const actionsRef = useTourTarget(actionsTourId);
   const { isFavorite, toggle } = useFavorites();
+  const slots = useMealSlots();
   const fav = isFavorite(meal.recipe.id);
   const isFixed = meal.fixed === true;
   const eaten = meal.status === 'eaten';
@@ -49,7 +57,7 @@ export function MealCard({
           du plat devient la première chose qu'on lit. Les états (mangé / sauté /
           tu gères) prennent la place de la durée — ils comptent plus qu'elle. */}
       <Text style={[styles.type, { color: t.textTertiary }]}>
-        {MEAL_LABELS[meal.meal_type]?.toUpperCase()}
+        {(MEAL_LABELS[meal.meal_type] ?? slotLabel(slots, meal.meal_type)).toLocaleUpperCase('fr-FR')}
         {isFixed ? ' · TU GÈRES'
           : eaten ? ' · ✓ MANGÉ'
           : skipped ? ' · ⊘ SAUTÉ'
@@ -108,9 +116,16 @@ export function MealCard({
       {planned && (onCook || onReload || onDislike) && (
         <View style={styles.actions}>
           {onCook && <CookButton t={t} onCook={onCook} lacks={lacks} cookRef={cookRef} />}
-          <ActionIcon t={t} name={fav ? 'heart' : 'heart-outline'} active={fav} onPress={() => toggle(meal.recipe.id)} label="J'aime cette recette" />
-          {onDislike && <ActionIcon t={t} name="thumbs-down-outline" onPress={onDislike} label="Je n'aime pas — changer" />}
-          {onReload && <ActionIcon t={t} name="refresh" onPress={onReload} label="Changer de recette" />}
+          {/* Les trois icônes sont GROUPÉES dans leur propre View — pas pour la
+              mise en page (le `gap` est le même dedans et dehors, le rendu ne
+              bouge pas d'un pixel), mais pour donner à la visite guidée une
+              cible qui n'engloutit PAS le bouton cuisiné : deux étapes qui se
+              chevauchent au spotlight ne s'expliquent plus l'une l'autre. */}
+          <View ref={actionsRef} style={styles.iconGroup}>
+            <ActionIcon t={t} name={fav ? 'heart' : 'heart-outline'} active={fav} onPress={() => toggle(meal.recipe.id)} label="J'aime cette recette" />
+            {onDislike && <ActionIcon t={t} name="thumbs-down-outline" onPress={onDislike} label="Je n'aime pas — changer" />}
+            {onReload && <ActionIcon t={t} name="refresh" onPress={onReload} label="Changer de recette" />}
+          </View>
         </View>
       )}
     </TouchableOpacity>
@@ -159,6 +174,7 @@ const styles = StyleSheet.create({
   fridgeLink: { ...Type.captionStrong, marginTop: Spacing.md },
   fixedNote: { ...Type.caption, marginTop: Spacing.sm },
   actions: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, marginTop: Spacing.lg },
+  iconGroup: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
   cookBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm, height: 44, paddingHorizontal: Spacing.md, borderRadius: Radius.button },
   cookTxt: { ...Type.bodyStrong },
   iconBtn: { width: 44, height: 44, borderRadius: Radius.button, alignItems: 'center', justifyContent: 'center' },

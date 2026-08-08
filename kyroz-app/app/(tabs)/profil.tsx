@@ -19,10 +19,13 @@ import { PremiumFeature, AccessReason } from '../../lib/premium';
 import { Sheet } from '../../components/Sheet';
 import { useDialog } from '../../components/Dialog';
 import { BirthDateField } from '../../components/BirthDateField';
+import { DateInput } from '../../components/DateInput';
 import { ageOn } from '../../lib/birthday';
 import { ActionSheet } from '../../components/ActionSheet';
 import { StreakProgress } from '../../components/StreakProgress';
 import { WeightSummaryCard } from '../../components/WeightSummaryCard';
+import { useTourTarget, useScreenTour, TourButton, resetAllTours } from '../../components/GuidedTour';
+import { profilTour, TOURS } from '../../lib/tours';
 import { BodyFatPicker } from '../../components/BodyFatPicker';
 import { DislikedFoodsField } from '../../components/DislikedFoodsField';
 import { MacroSplit } from '../../components/MacroSplit';
@@ -31,6 +34,8 @@ import { OffPlanHistory } from '../../components/OffPlanHistory';
 import { useHydrationEnabled } from '../../components/HydrationBar';
 import { useFirstName, saveFirstName } from '../../lib/profileName';
 import { ProtectionIcon, RepasLibreIcon } from '../../components/Icons';
+import { MealSlotsPicker } from '../../components/MealSlotsPicker';
+import { BUILTIN_SLOTS, knownSlots, slotLabel } from '../../lib/mealSlots';
 import { useAnalyticsConsent } from '../../hooks/useAnalyticsConsent';
 import { useProfile } from '../../hooks/useProfile';
 import { useStreak } from '../../hooks/useStreak';
@@ -40,7 +45,9 @@ import { journalSummary } from '../../lib/offPlanJournal';
 import { useReminder } from '../../hooks/useReminder';
 import { usePlanCheckin } from '../../hooks/usePlanCheckin';
 import { useAuth } from '../../hooks/useAuth';
-import { ReminderSlot, remindersSupported } from '../../lib/notifications';
+import { remindersSupported } from '../../lib/notifications';
+import { DEFAULT_REMINDER_TIME, ReminderTime, formatReminderTime } from '../../lib/reminder';
+import { ReminderTimeField } from '../../components/ReminderTimeField';
 import { deleteAccount, deleteCloudData } from '../../lib/sync';
 import { exportMyData } from '../../lib/exportData';
 import {
@@ -52,12 +59,12 @@ import {
   lowEaWeeksForFloor, checkEligibility, eligibilityMessage, LowEaEscalation,
   AGE_BOUNDS, WEIGHT_BOUNDS, HEIGHT_BOUNDS,
 } from '../../lib/safety';
-import { datedGoalStatus, datedGoalKcalDelta, addDaysStamp, daysBetween } from '../../lib/datedGoal';
-import { deadlineLadder, formatHorizon } from '../../lib/goalLadder';
+import { datedGoalStatus, datedGoalKcalDelta, addDaysStamp } from '../../lib/datedGoal';
+import { deadlineLadder, checkEcheance, messageEcheance } from '../../lib/goalLadder';
 import { DatedGoalCard, formatFR } from '../../components/DatedGoalCard';
 import { todayStamp } from '../../lib/weight';
 import {
-  ActivityLevel, BodyFatSource, DietaryRestriction, EngineNotice, FixedMeals, Goal, GoalTarget, MEAL_ORDER, MealEmphasis, MealType, NeatLevel, Sex, SportSession, UserProfile, VarietyPreference,
+  ActivityLevel, BodyFatSource, DietaryRestriction, EngineNotice, FixedMeals, Goal, GoalTarget, MealEmphasis, MealSlot, MealType, NeatLevel, Sex, SportSession, UserProfile, VarietyPreference,
 } from '../../lib/types';
 import { totalSessionsPerWeek } from '../../lib/sport';
 import { baseDayTargets, deducedRestWeekdays } from '../../lib/planEngine';
@@ -110,20 +117,33 @@ function effectiveRestWeekdays(profile: UserProfile): number[] {
   // pré-cochent la MÊME chose, sinon le réglage change de sens selon l'endroit.
   return orderedWeekdays(deducedRestWeekdays(wd, profile.training_days_per_week));
 }
-const MEAL_OPTS: { label: string; val: MealType }[] = [
-  { label: 'Petit-déj', val: 'breakfast' }, { label: 'Déjeuner', val: 'lunch' },
-  { label: 'Dîner', val: 'dinner' }, { label: 'Collation', val: 'snack' },
-];
-function orderedMeals(sel: MealType[]): MealType[] {
-  return MEAL_ORDER.filter((m) => sel.includes(m));
+// Repas retenus, dans l'ordre CHRONOLOGIQUE de la journée — créneaux créés compris.
+function orderedMeals(sel: MealType[], custom: MealSlot[]): MealType[] {
+  return knownSlots({ meal_slots: custom }).filter((s) => sel.includes(s.id)).map((s) => s.id);
 }
-const EMPHASIS_OPTS: { label: string; val: MealEmphasis }[] = [
-  { label: 'Équilibré', val: 'even' }, { label: 'Plus le matin', val: 'breakfast' },
-  { label: 'Plus le midi', val: 'lunch' }, { label: 'Plus le soir', val: 'dinner' },
-];
-const EMPHASIS_LABELS: Record<MealEmphasis, string> = {
-  even: 'Équilibré', breakfast: 'Matin', lunch: 'Midi', dinner: 'Soir',
+
+// Libellés d'emphase des 4 créneaux intégrés. Un créneau CRÉÉ n'en a pas — il prend
+// son propre nom (« Plus : Shaker post-training »), parce qu'inventer « Plus le soir »
+// pour un créneau que l'utilisateur a nommé lui-même effacerait précisément ce nom.
+const EMPHASIS_BUILTIN: Record<string, { opt: string; court: string }> = {
+  breakfast: { opt: 'Plus le matin', court: 'Matin' },
+  lunch: { opt: 'Plus le midi', court: 'Midi' },
+  dinner: { opt: 'Plus le soir', court: 'Soir' },
 };
+function emphasisOptions(slots: MealSlot[], sel: MealType[]): { label: string; val: MealEmphasis }[] {
+  return [
+    { label: 'Équilibré', val: 'even' as MealEmphasis },
+    ...slots.filter((s) => sel.includes(s.id)).map((s) => ({
+      label: EMPHASIS_BUILTIN[s.id]?.opt ?? `Plus : ${s.label}`,
+      val: s.id as MealEmphasis,
+    })),
+  ];
+}
+function emphasisResume(p: UserProfile): string {
+  const e = p.meal_emphasis ?? 'even';
+  if (e === 'even') return 'Équilibré';
+  return EMPHASIS_BUILTIN[e]?.court ?? slotLabel(knownSlots(p), e);
+}
 // Recalcule TDEE (toujours) et macros (si mode auto)
 // Délègue à la source unique (lib/tdee) — même calcul partout (profil + check-in).
 const withRecalc = recalcProfile;
@@ -146,18 +166,38 @@ const KYROZ_PLUS_VALEUR: Record<AccessReason, string> = {
   locked: 'En savoir plus',
 };
 
-// Objectif daté : horizons proposés (semaines) — évite un date-picker (lourd sur
-// web) et cadre l'UX sur « dans N semaines » ; la date exacte est dérivée + affichée.
+// Objectif daté : durées de REPLI (semaines).
 //
-// ⚠️ CES DURÉES NE SONT PLUS CELLES QU'ON PROPOSE (A27, 2026-08-03). Elles ne servent
-// plus que de REPLI, quand aucune échéance n'est tenable dans l'horizon de projection :
-// le poids visé est alors hors de portée quelle que soit la date, la rangée redevient
-// un simple sélecteur, et c'est la phrase sous les puces qui dit la vérité.
-// La rangée réellement affichée est dérivée du corps — cf. `lib/goalLadder.ts`.
+// ⚠️ PLUS AUCUNE DURÉE N'EST AFFICHÉE (2026-08-07) — la rangée de puces est retirée,
+// l'échéance se tape. L'échelle dérivée du corps (A27, `lib/goalLadder.ts`) survit
+// pour une seule chose : fournir la date PRÉ-REMPLIE, qui doit tenir. Ces cinq durées
+// en dur sont son repli, quand rien n'est tenable dans l'horizon de projection — le
+// poids visé est alors hors de portée quelle que soit la date, et c'est la phrase sous
+// le champ qui le dit.
 const HORIZONS_REPLI = [4, 8, 12, 16, 24];
-function closestHorizon(horizons: number[], weeks: number): number {
-  return horizons.reduce((best, h) => (Math.abs(h - weeks) < Math.abs(best - weeks) ? h : best), horizons[0]);
-}
+
+/**
+ * Échéance TAPÉE dans l'éditeur d'objectif daté.
+ * `stamp` absent = la saisie n'est pas (encore) une date ; `complete` dit pourquoi.
+ *
+ * ⚠️ **LA RANGÉE DE PUCES A ÉTÉ RETIRÉE le 2026-08-07 (décision fondateur)** : on ne
+ * propose plus de durées, on demande une date. Deux morceaux sont partis avec elle,
+ * et il faut savoir lequel est un manque :
+ *  • `closestHorizon` — bon débarras : il allumait la puce la plus PROCHE de
+ *    l'échéance enregistrée, donc une cible au 14 novembre affichait « 16 sem » en
+ *    surbrillance au-dessus d'une ligne annonçant une AUTRE date ;
+ *  • le raccourci « adopter la date réellement tenable en un tap » (A14) — celui-là
+ *    est une PERTE assumée. Il vivait dans la première puce depuis A27. La phrase
+ *    sous le champ continue d'annoncer la date que Kyroz tiendra ; il faut désormais
+ *    la retaper à la main pour la viser.
+ *
+ * ⚠️ `deadlineLadder` reste appelé, et ce n'est pas un reliquat : la date PRÉ-REMPLIE
+ * est maintenant la seule échéance que l'app propose, donc elle doit tenir. Elle est
+ * la 2ᵉ marche de l'échelle dérivée du corps — la 1ʳᵉ est le rythme sûr MAXIMAL, et
+ * un défaut ne pousse pas d'office quelqu'un au plafond de ce que la sécurité
+ * autorise (CLAUDE.md §10).
+ */
+type EcheanceSaisie = { stamp?: string; complete: boolean };
 
 export default function ProfilScreen() {
   const t = useTheme();
@@ -169,7 +209,7 @@ export default function ProfilScreen() {
   // Le suivi du poids est désormais une CARTE (courbe + écart) et non une ligne de
   // menu : il lui faut les pesées, pas seulement le poids courant du profil.
   const { entries: weightEntries, delta: weightDelta, due: weighInDue } = useWeightLog();
-  const { slot, choose, busy } = useReminder();
+  const { time: reminderTime, choose: chooseReminder } = useReminder();
   const { enabled: checkinEnabled, setEnabled: setCheckinEnabled } = usePlanCheckin();
   const { signOut } = useAuth();
   const { confirm, notify } = useDialog();
@@ -202,6 +242,7 @@ export default function ProfilScreen() {
   // seule fois (sinon il relit AsyncStorage à chaque rendu), mais il doit lire le
   // verdict À JOUR au moment du clic, pas celui du premier rendu.
   const premiumRef = useRef(premium);
+  const scrollRef = useRef<ScrollView>(null);
   premiumRef.current = premium;
 
   const openEditor = (key: EditorKey) => {
@@ -273,6 +314,19 @@ export default function ProfilScreen() {
     else notify({ title: 'Nous contacter', message: SUPPORT_EMAIL });
   };
 
+  // « Revoir les tutos » : on oublie les cinq tours, puis on relance TOUT DE SUITE
+  // celui de cet écran. Sans ce lancement immédiat, l'action n'aurait aucun effet
+  // visible — la personne resterait devant une ligne de menu qui a l'air de n'avoir
+  // rien fait, et les autres tours ne reviendraient qu'en changeant d'onglet.
+  // ⚠️ Pas de `notify` de confirmation : le dialogue est lui aussi une modale, et
+  // il se poserait PAR-DESSUS la bulle qu'on vient de lancer (ou l'inverse). Le
+  // tour qui démarre EST le retour visuel — c'est plus clair qu'un message qui
+  // annonce ce que l'écran est en train de faire.
+  const revoirTutos = async () => {
+    await resetAllTours();
+    rejouerTour();
+  };
+
   const appVersion = Constants.expoConfig?.version ?? '1.0.0';
 
   // Droit à la portabilité (RGPD art. 20) : exporter toutes ses données.
@@ -298,6 +352,17 @@ export default function ProfilScreen() {
     const haut = Math.max(...jours);
     return haut - bas >= 40 ? { bas, haut } : null;
   }, [profile]);
+
+  // Cibles de la visite guidée qui ne passent pas par un composant (les lignes de
+  // menu, elles, reçoivent un `tourId`). ⚠️ Comme `modulation` ci-dessus : AVANT
+  // le retour anticipé.
+  const tdeeRef = useTourTarget('profil-tdee');
+  const donneesRef = useTourTarget('profil-donnees');
+  const { rejouer: rejouerTour } = useScreenTour(
+    'profil',
+    profilTour({ objectifDateDisponible: premium.can('dated_goal') }),
+    { pret: !!profile, scrollRef },
+  );
 
   if (!profile) return null;
 
@@ -330,14 +395,21 @@ export default function ProfilScreen() {
 
   return (
     <SafeAreaView style={s.safe} edges={['top']}>
-      <ScrollView contentContainerStyle={[s.content, layout.content]} showsVerticalScrollIndicator={false} {...repli.scrollProps}>
+      {/* `ref` : la visite guidée en a besoin pour amener ses cibles basses (la
+          dépense estimée, le bloc « ce qui suit ton compte ») dans le champ
+          visible. En natif, sans cette ref, une cible sous la ligne de flottaison
+          se mesure hors écran et son étape s'ouvre sur le vide. */}
+      <ScrollView ref={scrollRef} contentContainerStyle={[s.content, layout.content]} showsVerticalScrollIndicator={false} {...repli.scrollProps}>
         {/* En-tête — l'écran n'en avait AUCUN : il démarrait direct sur la carte
             poids. Sur un écran aussi long, arriver sans savoir où on est coûte plus
             cher que les 60 px que ça prend. Le surtitre dit qui tu es, le titre dit
             où tu es. */}
         <View style={s.header} onLayout={repli.onHeaderLayout}>
-          <Text style={s.sub}>{SEX_LABELS[profile.sex]} · {profile.age} ans · {goalLabel(profile.goal)}</Text>
-          <Text style={s.h1}>Profil</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={s.sub}>{SEX_LABELS[profile.sex]} · {profile.age} ans · {goalLabel(profile.goal)}</Text>
+            <Text style={s.h1}>Profil</Text>
+          </View>
+          <TourButton onPress={rejouerTour} />
         </View>
 
         {/* ⚠️ ORDRE INVERSÉ le 2026-08-02 (décision fondateur), et ce n'est pas
@@ -353,6 +425,7 @@ export default function ProfilScreen() {
           due={weighInDue}
           goalTarget={trackingTarget(profile, todayStamp())}
           onPress={() => setWeighIn(true)}
+          tourId="profil-poids"
         />
 
         {/* Série — ligne discrète : le chaînon de 7 jours reste (North Star), le
@@ -433,28 +506,28 @@ export default function ProfilScreen() {
         <SectionTitle t={t}>Réglages</SectionTitle>
         <View style={s.menu}>
           <MenuRow t={t} label="Informations" value={`${SEX_LABELS[profile.sex]} · ${profile.age} ans · ${profile.weight_kg} kg${profile.body_fat_pct != null ? ` · ${profile.body_fat_pct}% MG` : ''}`} onPress={() => setEditor('info')} />
-          <MenuRow t={t} label="Sport & activité" value={`${profile.sports?.length ? `${profile.sports.length} sport${profile.sports.length > 1 ? 's' : ''}` : 'Aucun sport'} · ${NEAT_SHORT[profile.neat_level ?? DEFAULT_NEAT_LEVEL]}`} onPress={() => setEditor('sports')} />
+          <MenuRow t={t} label="Sport & activité" value={`${profile.sports?.length ? `${profile.sports.length} sport${profile.sports.length > 1 ? 's' : ''}` : 'Aucun sport'} · ${NEAT_SHORT[profile.neat_level ?? DEFAULT_NEAT_LEVEL]}`} onPress={() => setEditor('sports')} tourId="profil-sport" />
           <MenuRow t={t} label="Objectif" value={goalLabel(profile.goal)} onPress={() => setEditor('goal')} />
-          <MenuRow t={t} label="Objectif daté" value={profile.goal_target ? `${profile.goal_target.target_weight_kg} kg · ${formatFR(profile.goal_target.target_date)}` : (premium.can('dated_goal') ? 'Aucun' : 'Inclus dans Kyroz+')} onPress={() => openEditor('dated_goal')} last />
+          <MenuRow t={t} label="Objectif daté" value={profile.goal_target ? `${profile.goal_target.target_weight_kg} kg · ${formatFR(profile.goal_target.target_date)}` : (premium.can('dated_goal') ? 'Aucun' : 'Inclus dans Kyroz+')} onPress={() => openEditor('dated_goal')} tourId="profil-objectif-date" last />
         </View>
 
         <SectionLabel t={t}>TON PLAN</SectionLabel>
         <View style={s.menu}>
           <MenuRow t={t} label="Calories & macros" value={profile.macro_mode === 'percent' ? 'Perso %' : 'Calculées'} onPress={() => setEditor('macros')} />
           <MenuRow t={t} label="Préférences alimentaires" value={profile.dietary_restrictions.length || profile.disliked_foods.length || profile.hidden_recipes?.length ? 'Personnalisées' : 'Aucune'} onPress={() => setEditor('prefs')} />
-          <MenuRow t={t} label="Paramètres des repas" value={`${profile.plan_days} j · ${(profile.meals?.length || 4)} repas · ${EMPHASIS_LABELS[profile.meal_emphasis ?? 'even']}`} onPress={() => setEditor('meals')} />
+          <MenuRow t={t} label="Paramètres des repas" value={`${profile.plan_days} j · ${(profile.meals?.length || 4)} repas · ${emphasisResume(profile)}`} onPress={() => setEditor('meals')} />
           <MenuRow t={t} label="Banque de calories" value={premium.can('calorie_bank') ? bankResume(profile) : 'Inclus dans Kyroz+'} onPress={() => openEditor('calorie_bank')} />
           {/* La VALEUR ne compte pas les écarts (cf. `journalSummary`) : un score
               posé là mettrait la pression sans qu'on ouvre quoi que ce soit. */}
           <MenuRow t={t} label="Repas hors plan" value={journalSummary(journal.entries)} onPress={openOffPlan} />
           <MenuRow t={t} label="Kyroz+" value={KYROZ_PLUS_VALEUR[premium.reason]} onPress={() => router.push('/kyroz-plus')} />
-          <MenuRow t={t} label="Régénérer mon plan" value="Repartir de zéro" onPress={regenPlan} last />
+          <MenuRow t={t} label="Régénérer mon plan" value="Repartir de zéro" onPress={regenPlan} tourId="profil-regenerer" last />
         </View>
 
         {/* TDEE — le libellé prend la place qui reste, le chiffre ne se coupe jamais
             en deux lignes (`flexShrink: 0`). Sans ça, « 2 369 kcal » passait à la
             ligne au milieu de lui-même. */}
-        <View style={s.tdee}>
+        <View ref={tdeeRef} style={s.tdee}>
           <Text style={s.tdeeL}>Dépense estimée · maintenance (TDEE)</Text>
           <Text style={s.tdeeV}>{profile.tdee_kcal.toLocaleString('fr-FR')} kcal</Text>
         </View>
@@ -463,14 +536,19 @@ export default function ProfilScreen() {
             avaient chacun leur en-tête en capitales, ce qui donnait l'impression de
             quatre sections indépendantes là où il n'y a qu'une liste d'interrupteurs. */}
         <SectionTitle t={t}>Préférences</SectionTitle>
+        {/* Rappel quotidien — l'interrupteur, puis l'HEURE (libre, cf.
+            `ReminderTimeField`). Les trois créneaux d'avant n'ont pas disparu :
+            ils sont devenus les puces de raccourci du champ. */}
         <Text style={s.settingLabel}>Rappel quotidien</Text>
-        <Segmented<ReminderSlot>
+        <Segmented<'off' | 'on'>
           t={t}
-          value={slot}
+          value={reminderTime ? 'on' : 'off'}
           onChange={async (v) => {
-            if (busy) return;
-            const ok = await choose(v);
-            if (!ok && v !== 'off') {
+            // Réactiver reprend l'heure qu'on voit à l'écran ; c'est la première
+            // activation seulement qui pose le matin par défaut.
+            const next: ReminderTime | null = v === 'on' ? (reminderTime ?? DEFAULT_REMINDER_TIME) : null;
+            const ok = await chooseReminder(next);
+            if (!ok && next) {
               notify({
                 title: remindersSupported ? 'Notifications désactivées' : 'Indisponible sur le web',
                 message: remindersSupported
@@ -481,16 +559,21 @@ export default function ProfilScreen() {
           }}
           options={[
             { label: 'Aucun', value: 'off' },
-            { label: 'Matin', value: 'morning' },
-            { label: 'Midi', value: 'midday' },
-            { label: 'Soir', value: 'evening' },
+            { label: 'Activé', value: 'on' },
           ]}
         />
+        {/* Aucun geste ne se JETTE ici — ni sur l'interrupteur, ni sur l'heure.
+            Le garde « un choix est déjà en cours » a coûté les deux : une heure
+            saisie perdue (le champ affichait 05, le rappel était armé sur 15) et
+            un segment mort. Les choix s'empilent dans `useReminder`. */}
+        {reminderTime ? (
+          <ReminderTimeField t={t} value={reminderTime} onChange={chooseReminder} />
+        ) : null}
         <Text style={s.reminderHint}>
-          {slot === 'off'
-            ? 'Un rappel par jour pour ne pas casser ta série.'
-            : `Chaque jour à ${slot === 'morning' ? '8h00' : slot === 'midday' ? '12h00' : '18h30'}.`}
-          {!remindersSupported && slot !== 'off' ? ' La notif arrive sur l’app mobile (pas sur le web).' : ''}
+          {reminderTime
+            ? `Chaque jour à ${formatReminderTime(reminderTime)}, avec une citation.`
+            : 'Un rappel par jour, à l’heure que tu choisis, pour retrouver ton plan.'}
+          {!remindersSupported && reminderTime ? ' La notif arrive sur l’app mobile (pas sur le web).' : ''}
         </Text>
 
         {/* Propositions d'ajustement du plan (le check-in « ton plan te convient ? ») */}
@@ -581,8 +664,11 @@ export default function ProfilScreen() {
             : 'Aucune statistique d’usage n’est partagée.'}
         </Text>
 
-        <View style={s.menu}>
+        <View ref={donneesRef} style={s.menu}>
           <MenuRow t={t} label="Aide & contact" value={SUPPORT_EMAIL} onPress={contactSupport} />
+          {/* Rejouer les visites guidées : « Passer » par réflexe perdait un tour
+              à vie, et le « ? » d'un onglet ne se trouve que si on y retourne. */}
+          <MenuRow t={t} label="Revoir les tutos" value={`${TOURS.length} visites guidées`} onPress={revoirTutos} />
           <MenuRow t={t} label="Exporter mes données" value="Télécharger tout (RGPD)" onPress={doExport} />
           <MenuRow t={t} label="Confidentialité & CGU" value="RGPD, données de santé" onPress={() => router.push('/legal')} />
           <MenuRow t={t} label="Version" value={appVersion} onPress={() => {}} readonly last />
@@ -654,9 +740,13 @@ function SectionTitle({ t, children }: { t: ThemePalette; children: React.ReactN
 // dix pictogrammes empilés faisaient un mur de gris qui n'aidait personne à
 // trouver « Objectif daté ». Le chevron reste — lui dit qu'il se passe quelque
 // chose au toucher.
-function MenuRow({ t, label, value, onPress, last, readonly }: { t: ThemePalette; label: string; value: string; onPress: () => void; last?: boolean; readonly?: boolean }) {
+function MenuRow({ t, label, value, onPress, last, readonly, tourId }: { t: ThemePalette; label: string; value: string; onPress: () => void; last?: boolean; readonly?: boolean; tourId?: string }) {
+  // `tourId` optionnel : rend CETTE ligne ciblable par la visite guidée. Sept
+  // lignes de menu partagent ce composant, et sans lui aucune n'était ancrable —
+  // un TouchableOpacity rendu par une fonction n'expose pas de ref à l'appelant.
+  const tourRef = useTourTarget(tourId);
   return (
-    <TouchableOpacity onPress={onPress} activeOpacity={readonly ? 1 : 0.7} disabled={readonly}
+    <TouchableOpacity ref={tourRef} onPress={onPress} activeOpacity={readonly ? 1 : 0.7} disabled={readonly}
       style={[{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md, paddingVertical: Spacing.lg }, !last && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.line }]}>
       <View style={{ flex: 1 }}>
         <Text style={{ ...Type.h3, color: t.text, letterSpacing: -0.3 }}>{label}</Text>
@@ -959,31 +1049,32 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }:
   const [targetWeight, setTargetWeight] = useState(
     String(existing?.target_weight_kg ?? Math.max(40, Math.round(profile.weight_kg) - 4)),
   );
-  // Échéance CHOISIE (semaines). `null` = l'utilisateur n'a pas encore touché la
-  // rangée : on garde alors la date EXACTE enregistrée, pour que ré-ouvrir et
-  // enregistrer sans rien changer ne décale pas l'échéance (comme RestDaysPicker).
-  const [weeks, setWeeks] = useState<number | null>(null);
-  const pickWeeks = (h: number) => setWeeks(h);
+  // Échéance TAPÉE. `null` = l'utilisateur n'a pas encore touché les champs : on garde
+  // alors la date EXACTE enregistrée, pour que ré-ouvrir et enregistrer sans rien
+  // changer ne décale pas l'échéance (comme RestDaysPicker).
+  const [saisie, setSaisie] = useState<EcheanceSaisie | null>(null);
 
   const twN = parseFloat(targetWeight.replace(',', '.'));
   const validWeight = twN >= 40 && twN <= 250;
   const tdee = calculateTDEE(profile);
 
-  // ── Les échéances proposées, DÉRIVÉES DU CORPS (A27) ────────────────────────
+  // ── L'échelle dérivée du corps (A27) — ne sert plus qu'au PRÉ-REMPLISSAGE ────
   //
-  // La rangée offrait cinq durées figées (4/8/12/16/24 semaines) dont AUCUNE ne
-  // tenait chez la moitié des gabarits de référence. Elle est désormais calculée :
-  // la première puce est l'échéance la plus courte que les garde-fous laissent
-  // tenir, les suivantes sont autant de plans réellement différents.
+  // Elle a remplacé cinq durées figées (4/8/12/16/24 semaines) dont AUCUNE ne tenait
+  // chez la moitié des gabarits de référence : sa 1ʳᵉ marche est l'échéance la plus
+  // courte que les garde-fous laissent tenir, les suivantes sont autant de plans
+  // réellement différents. Depuis le retrait de la rangée (2026-08-07), rien de tout
+  // ça n'est AFFICHÉ — mais la date pré-remplie sort de sa 2ᵉ marche, donc l'échelle
+  // reste ce qui garantit que la seule échéance proposée par l'app est tenable.
   //
   // ⚠️ MÉMOÏSÉ SUR LE POIDS CIBLE, et c'est indispensable : `deadlineLadder` sonde
   // le moteur ~17 fois, chaque sonde simulant jusqu'à 260 semaines de trajectoire
   // (mesuré : 3 à 45 ms sur les gabarits courants, 283 ms sur le cas extrême d'un
   // écart de 30 kg). Le recalculer à chaque rendu rendrait la saisie saccadée.
   // L'échelle ne dépend PAS de la date choisie — aucune circularité.
-  const horizons = useMemo(() => {
-    if (!validWeight) return HORIZONS_REPLI;
-    const echelle = deadlineLadder((semaines) => {
+  const echelle = useMemo(() => {
+    if (!validWeight) return [];
+    return deadlineLadder((semaines) => {
       const gt: GoalTarget = {
         target_weight_kg: twN, target_date: addDaysStamp(today, Math.round(semaines * 7)),
         start_weight_kg: profile.weight_kg, start_date: existing?.start_date ?? today,
@@ -993,24 +1084,56 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }:
       const s = datedGoalStatus(gt, p, today, tdee, plan?.floor_kcal ?? null, makeWeeklyProjector(p));
       return { reachable: !!s?.reachableByDate, servedKcal: plan?.profile.target_kcal ?? 0 };
     });
-    return echelle.length ? echelle : HORIZONS_REPLI;
   }, [twN, validWeight, profile, today, tdee, existing?.start_date]);
 
-  // Défaut d'un objectif NEUF : la 2ᵉ puce, pas la 1ʳᵉ. La première est le rythme sûr
-  // MAXIMAL — un défaut ne doit pas pousser d'office quelqu'un au plafond de ce que la
-  // sécurité autorise (CLAUDE.md §10 : le suivi rassure, il ne met pas la pression).
-  const defaultWeeks = horizons[Math.min(1, horizons.length - 1)];
-  // Semaines de l'échéance ENREGISTRÉE — sert à surligner la puce la plus proche,
-  // sans toucher à la date tant que l'utilisateur n'a rien choisi.
-  const storedWeeks = existing ? Math.max(1, Math.round(daysBetween(today, existing.target_date) / 7)) : null;
-  const effectiveWeeks = weeks ?? (existing ? storedWeeks! : defaultWeeks);
-  const selectedWeeks = weeks ?? closestHorizon(horizons, effectiveWeeks);
+  // ⚠️ Échelle VIDE = rien n'est tenable dans l'horizon de projection, et il ne faut
+  // surtout pas le confondre avec le repli : `HORIZONS_REPLI` sert à pré-remplir un
+  // champ, PAS à annoncer une date. Annoncer « au plus tôt : dans 4 semaines » parce
+  // qu'on est retombé sur la première durée en dur serait le mensonge exact que A27 a
+  // retiré de la rangée.
+  const horizons = echelle.length ? echelle : HORIZONS_REPLI;
 
-  const targetDate = weeks == null && existing
-    ? existing.target_date
-    : addDaysStamp(today, effectiveWeeks * 7);
-  const provisional: GoalTarget | undefined = validWeight
-    ? { target_weight_kg: twN, target_date: targetDate, start_weight_kg: profile.weight_kg, start_date: existing?.start_date ?? today }
+  // ── L'ESTIMATION : la première date que Kyroz peut TENIR (2026-08-07) ────────
+  //
+  // C'est le plafond, dit en date plutôt qu'en règle — la personne ajuste ensuite ce
+  // qu'elle veut en le connaissant, au lieu de le découvrir en se faisant refuser.
+  //
+  // 🔴 **Ce n'est PAS `status.projectedDate`, et l'écart est mesuré** (2026-08-07,
+  // 8 corps de référence) : 12 à 100 jours, toujours dans le même sens.
+  //   `F 78 → 65` : projetée 1ᵉʳ août 2027 · première date tenable **28 mai 2027**
+  //   `H 95 → 82` : projetée 27 juin 2027 · première date tenable **19 mars 2027**
+  // `projectedDate` répond à « où j'arrive si je GARDE cette date trop proche ? » —
+  // donc en simulant une échéance qui EXPIRE, après quoi le plan retombe sur le déficit
+  // ordinaire de l'objectif. C'est vrai, et c'est inutilisable : viser trop tôt fait
+  // arriver PLUS TARD. La marche 1 de l'échelle répond à la question réellement posée,
+  // « quand puis-je y être ? », et elle est tenable PAR CONSTRUCTION (la sonde teste
+  // `reachableByDate`) — là où adopter `projectedDate` avait été mesuré comme glissant
+  // de 98 jours sur ce même gabarit (A14).
+  const dateAuPlusTot = echelle.length ? addDaysStamp(today, echelle[0] * 7) : null;
+
+  // Date PRÉ-REMPLIE d'un objectif neuf : la 2ᵉ marche de l'échelle, pas la 1ʳᵉ. La
+  // première est le rythme sûr MAXIMAL — un défaut ne doit pas pousser d'office
+  // quelqu'un au plafond de ce que la sécurité autorise (CLAUDE.md §10 : le suivi
+  // rassure, il ne met pas la pression). Depuis le retrait de la rangée, c'est la SEULE
+  // échéance que l'app propose : raison de plus pour qu'elle soit tenable.
+  const defaultWeeks = horizons[Math.min(1, horizons.length - 1)];
+
+  // La date que les champs portent. `undefined` = ce qui est tapé n'est pas encore une
+  // date : on n'invente RIEN à sa place, sinon les champs se réécriraient sous les
+  // doigts (cf. le garde de `components/DateInput.tsx`).
+  const targetDate = saisie
+    ? saisie.stamp
+    : existing?.target_date ?? addDaysStamp(today, defaultWeeks * 7);
+
+  // L'échéance est contrôlée QUELLE QUE SOIT sa provenance — tapée, pré-remplie, ou
+  // déjà enregistrée. Un objectif ré-ouvert après son échéance tombe donc sur « choisis
+  // une date à venir » au lieu d'être ré-enregistré inactif, en silence.
+  const refus = checkEcheance(targetDate, saisie ? saisie.complete : true, today);
+  /** La date retenue, ou `null` s'il y a quelque chose à corriger d'abord. */
+  const dateVisee = refus ? null : targetDate ?? null;
+
+  const provisional: GoalTarget | undefined = validWeight && dateVisee
+    ? { target_weight_kg: twN, target_date: dateVisee, start_weight_kg: profile.weight_kg, start_date: existing?.start_date ?? today }
     : undefined;
 
   // Aperçu calculé par le PRODUCTEUR UNIQUE (computePlan) et non par un chemin
@@ -1049,39 +1172,107 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }:
   };
   const remove = () => onSave(withRecalc({ ...profile, goal_target: undefined }));
 
+  // `canSave` suit `provisional`, qui exige un poids valide ET une échéance exploitable :
+  // enregistrer une date passée créerait un objectif INACTIF — un objectif qui ne pilote
+  // rien tout en s'affichant comme s'il pilotait.
   return (
-    <EditorShell t={t} title="Objectif daté" onSave={submit} canSave={validWeight && !goalBlockMsg} dragHandlers={dragHandlers} sheetScrollProps={sheetScrollProps}>
+    <EditorShell t={t} title="Objectif daté" onSave={submit} canSave={!!provisional && !goalBlockMsg} dragHandlers={dragHandlers} sheetScrollProps={sheetScrollProps}>
       <Text style={{ ...Type.caption, color: t.textSecondary, lineHeight: 18 }}>
         Fixe un poids et une échéance : Kyroz ajuste tes calories jour après jour pour t'y amener au rythme le plus rapide — mais sûr.
       </Text>
 
       <Field t={t} label="Poids cible" suffix="kg" value={targetWeight} onChangeText={setTargetWeight} keyboardType="decimal-pad" />
 
+      {/* ── L'ESTIMATION (2026-08-07) ────────────────────────────────────────────
+          Le plafond, dit en DATE plutôt qu'en règle : « voilà le plus tôt possible,
+          maintenant choisis ». Elle est attachée au POIDS et non à l'échéance, parce
+          que c'est le poids qui la détermine — la date saisie n'y change rien.
+          ⚠️ Elle remplace le raccourci d'A14 perdu avec la rangée, et sur une base
+          plus solide : cette date est tenable PAR CONSTRUCTION (la sonde teste
+          `reachableByDate`), là où adopter la date projetée glissait de 98 jours.
+          Ton : on annonce une possibilité, on ne pousse pas à aller vite (§10) —
+          d'où « peut tenir » et non « tu pourrais ». */}
+      {validWeight && !goalBlockMsg && (
+        dateAuPlusTot ? (
+          <View style={{ gap: Spacing.sm }}>
+            <Text style={{ ...Type.caption, color: t.textSecondary, lineHeight: 18 }}>
+              À {twN} kg, la première date que Kyroz peut tenir en sécurité : le {formatFR(dateAuPlusTot)}.
+            </Text>
+            {dateVisee !== dateAuPlusTot && (
+              <TouchableOpacity
+                onPress={() => setSaisie({ stamp: dateAuPlusTot, complete: true })}
+                activeOpacity={OPACITE_PRESSION}
+                style={{ alignSelf: 'flex-start', justifyContent: 'center', minHeight: CIBLE_TACTILE_MIN }}
+              >
+                <Text style={{ ...Type.captionStrong, color: t.accent }}>Viser cette date</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        ) : (
+          <Text style={{ ...Type.caption, color: t.textSecondary, lineHeight: 18 }}>
+            À {twN} kg, aucune date ne tient dans les cinq ans à venir, même au rythme le
+            plus rapide que la sécurité autorise. Vise un poids intermédiaire : le
+            plancher baissera avec ton poids, et la suite deviendra possible.
+          </Text>
+        )
+      )}
+
       <SectionLabel t={t}>Échéance</SectionLabel>
-      {/* Les durées sont DÉRIVÉES DU CORPS (A27) : chacune tient, et chacune sert un
-          plan différent. La première est le plus rapide que la sécurité autorise. */}
-      <View style={styles.wrap}>
-        {horizons.map((h) => (
-          <Chip key={h} t={t} label={formatHorizon(h)} selected={selectedWeeks === h} onPress={() => pickWeeks(h)} />
-        ))}
-      </View>
-      {/* ⚠️ C'est la ligne la plus lue de l'écran — collée sous les puces, au moment
-          exact du choix. Elle ne peut donc pas AFFIRMER une date que le moteur ne
-          tiendra pas. Mesuré le 2026-08-02 (H 83 kg, 18 %MG, 4 séances → 70 kg) :
-          les CINQ échéances servent toutes 0,3 kg/sem, parce que c'est le plancher
-          de sécurité — et non l'échéance — qui borne le déficit. « 4 sem » annonçait
-          le 30 août 2026 pour une atteinte réelle le 19 juin 2027 : 293 jours d'écart.
-          La vérité était déjà à l'écran (carte « plancher » plus bas), mais SOUS une
-          phrase qui disait l'inverse, et hors du premier écran.
+      {/* ── Une DATE, plus une durée (2026-08-07, décision fondateur) ────────────
+          La rangée de puces proposait cinq durées dérivées du corps ; elle est
+          retirée. On ne demande plus « dans combien de semaines », on demande la
+          date — parce que c'est ce que la personne a en tête, et qu'un événement
+          réel ne tombe jamais sur un multiple de semaines.
+          Les champs portent la date visée : ils sont donc aussi son AFFICHAGE.
+          Pas de sélecteur de date : ce serait une dépendance NATIVE (build + revue,
+          CLAUDE.md §2) pour un service que trois nombres rendent partout.
+          ⚠️ La date pré-remplie reste dérivée du corps (cf. `defaultWeeks`) : c'est
+          désormais la seule échéance que l'app propose, elle ne peut pas mentir. */}
+      <Text style={{ ...Type.caption, color: t.textSecondary, lineHeight: 18 }}>
+        Pose la date que tu vises — un mariage, une compétition, des vacances.
+      </Text>
+      <DateInput
+        t={t}
+        value={targetDate}
+        placeholders={{ d: '14', mo: '11', y: String(parseInt(today.slice(0, 4), 10) + 1) }}
+        onChange={(stamp, complete) => setSaisie({ stamp, complete })}
+      />
+      {/* ⚠️ C'est la ligne la plus lue de l'écran — collée sous le champ, au moment
+          exact du choix, et depuis le retrait de la rangée elle est le SEUL endroit qui
+          dise si la date tient. Elle ne peut donc pas AFFIRMER une date que le moteur
+          ne tiendra pas. Mesuré le 2026-08-02 (H 83 kg, 18 %MG, 4 séances → 70 kg) :
+          les CINQ échéances d'alors servaient toutes 0,3 kg/sem, parce que c'est le
+          plancher de sécurité — et non l'échéance — qui borne le déficit. « 4 sem »
+          annonçait le 30 août 2026 pour une atteinte réelle le 19 juin 2027 : 293 jours
+          d'écart. La vérité était déjà à l'écran (carte « plancher » plus bas), mais
+          SOUS une phrase qui disait l'inverse, et hors du premier écran.
           Ton : on annonce ce qui va se passer, on ne reproche pas l'ambition — le
           moteur porte la charge, l'utilisateur n'est pas « en retard ». */}
-      <Text style={{ ...Type.caption, color: t.textSecondary, lineHeight: 18 }}>
-        {!goalBlockMsg && status && !status.reachableByDate && !status.directionMismatch
-          ? (status.projectable
-            ? `Cible le ${formatFR(targetDate)} — au rythme sûr, Kyroz t'y amène plutôt vers le ${formatFR(status.projectedDate)}.`
-            : `Cible le ${formatFR(targetDate)} — ce poids n'est pas atteignable au rythme sûr, quelle que soit la date.`)
-          : `Cible le ${formatFR(targetDate)}.`}
-      </Text>
+      {/* Une échéance à corriger prend la place de la ligne « Cible le … » : afficher
+          une trajectoire vers une date qu'on refuse d'enregistrer serait la valider à
+          l'œil. `incomplete` reste NEUTRE — il ne s'est rien passé de fautif, la
+          personne est en train de taper. */}
+      {/* ⚠️ Depuis le 2026-08-07, la date annoncée quand l'échéance ne tient pas est la
+          PREMIÈRE DATE TENABLE (`dateAuPlusTot`), plus `status.projectedDate`. Les deux
+          diffèrent de 12 à 100 jours selon le gabarit, et pas par erreur :
+          `projectedDate` simule qu'on GARDE l'échéance trop proche, donc qu'elle EXPIRE
+          et que le plan retombe au déficit ordinaire de l'objectif — d'où une arrivée
+          PLUS TARDIVE que si l'on visait simplement la première date tenable. Annoncer
+          les deux mettrait deux dates contradictoires à l'écran ; annoncer celle qui est
+          ADOPTABLE est ce que la personne peut faire de l'information. */}
+      {dateVisee == null ? (
+        <Text style={{ ...Type.caption, color: refus === 'incomplete' ? t.textSecondary : t.warning, lineHeight: 18 }}>
+          {messageEcheance(refus ?? 'incomplete')}
+        </Text>
+      ) : (
+        <Text style={{ ...Type.caption, color: t.textSecondary, lineHeight: 18 }}>
+          {!goalBlockMsg && status && !status.reachableByDate && !status.directionMismatch
+            ? (dateAuPlusTot
+              ? `Cible le ${formatFR(dateVisee)} — c'est plus tôt que ce que Kyroz peut tenir : au rythme sûr, ce sera le ${formatFR(dateAuPlusTot)}.`
+              : `Cible le ${formatFR(dateVisee)} — ce poids n'est pas atteignable au rythme sûr, quelle que soit la date.`)
+            : `Cible le ${formatFR(dateVisee)}.`}
+        </Text>
+      )}
 
       {/* Cible refusée → on affiche le motif SEUL. Montrer une trajectoire crédible
           (« Perdre 48 kg · 1982 kcal/j ») au-dessus d'un refus revient à valider
@@ -1127,11 +1318,19 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }:
           « Kyroz garde le rythme sûr » dirait qu'il freine alors qu'il accélère. Et
           « garde » se lit comme un refus poli — §10 : le message doit dire que le
           moteur porte la charge, jamais que la personne en demande trop. */}
-      {!goalBlockMsg && status?.clamped && !status.directionMismatch && !status.floorCapped && (
+      {/* 🔴 `!reachableByDate` AJOUTÉ le 2026-08-07 : cette carte parlait d'une arrivée
+          « après ta date » sans vérifier que la date était effectivement dépassée.
+          Mesuré sur 1 600 échéances (8 corps × 200 semaines) : **1 cas** où elle
+          s'affichait en même temps que « Rythme sûr, dans les clous de ta date » —
+          H 68 → 74 kg, prise de masse, 17 semaines. Rare, mais deux phrases opposées
+          dans le même écran. ⚠️ Et c'est un cas de PRISE : encore un prédicat écrit en
+          pensant à la sèche (cf. §6, « en prise les calories servies BAISSENT quand la
+          date s'éloigne »). */}
+      {!goalBlockMsg && status?.clamped && !status.reachableByDate && !status.directionMismatch && !status.floorCapped && (
         <Card t={t}>
           <Text style={{ ...Type.caption, color: t.text, lineHeight: 19 }}>
             Objectif ambitieux : au rythme le plus sûr tu atteins {status.targetWeightKg} kg
-            {status.projectable ? ` vers le ${formatFR(status.projectedDate)}` : ' plus tard que prévu'}, après ta date.{' '}
+            {dateAuPlusTot ? ` le ${formatFR(dateAuPlusTot)}` : ' plus tard que prévu'}, après ta date.{' '}
             {status.maxRateApplied
               ? 'Kyroz avance au maximum de ce qui reste sûr, et cette date-là, il la tient.'
               : 'Kyroz garde le rythme sûr.'}
@@ -1141,13 +1340,20 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }:
       {/* Le PLANCHER qui mord n'est pas une ambition mal calibrée, c'est une contrainte
           physiologique : message distinct, et on propose la correction en un geste
           plutôt que de laisser l'utilisateur deviner quelle date serait tenable. */}
+      {/* Trois cas, et ils ne disent pas la même chose : le plancher peut mordre SANS
+          repousser la date (on explique le mécanisme, sans annoncer de retard), la
+          repousser vers une date tenable (on la donne, elle est en un tap plus haut),
+          ou la rendre inatteignable dans l'horizon (on le dit franchement). */}
       {!goalBlockMsg && status?.floorCapped && !status.directionMismatch && preview && (
         <Card t={t}>
           <Text style={{ ...Type.caption, color: t.text, lineHeight: 19 }}>
-            {status.projectable ? (
-              <>Ton plan ne peut pas descendre sous {preview.target_kcal} kcal/jour en sécurité — c'est ton plancher, pas un réglage. À ce rythme tu atteins {status.targetWeightKg} kg vers le {formatFR(status.projectedDate)}. Tu peux viser cette date-là, ou choisir un poids cible plus proche : Kyroz ne creusera pas davantage.</>
+            Ton plan ne peut pas descendre sous {preview.target_kcal} kcal/jour en sécurité — c'est ton plancher, pas un réglage.{' '}
+            {status.reachableByDate ? (
+              <>Ta date reste dans les clous : Kyroz ne creusera simplement pas plus que ça.</>
+            ) : dateAuPlusTot ? (
+              <>Au rythme qu'il autorise, tu atteins {status.targetWeightKg} kg le {formatFR(dateAuPlusTot)}. Tu peux viser cette date-là, ou choisir un poids cible plus proche : Kyroz ne creusera pas davantage.</>
             ) : (
-              <>Ton plan ne peut pas descendre sous {preview.target_kcal} kcal/jour en sécurité — c'est ton plancher, pas un réglage. À ce rythme, ce poids cible n'est pas atteignable quelle que soit la date. Choisis une cible plus proche, ou laisse le temps faire : ton poids qui baisse fera baisser le plancher avec lui.</>
+              <>À ce rythme, ce poids cible n'est pas atteignable quelle que soit la date. Choisis une cible plus proche, ou laisse le temps faire : ton poids qui baisse fera baisser le plancher avec lui.</>
             )}
           </Text>
         </Card>
@@ -1308,12 +1514,16 @@ function MealsEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: Edi
   // — Error Boundary, réglage inaccessible à vie. `normalizeMeals` (syncGuard) referme
   // la donnée en amont ; ce garde-fou-ci protège les chemins qui ne passent pas par là.
   const [meals, setMeals] = useState<MealType[]>(
-    Array.isArray(profile.meals) && profile.meals.length > 0 ? profile.meals : [...MEAL_ORDER]
+    Array.isArray(profile.meals) && profile.meals.length > 0 ? profile.meals : BUILTIN_SLOTS.map((s) => s.id)
+  );
+  const [customSlots, setCustomSlots] = useState<MealSlot[]>(
+    Array.isArray(profile.meal_slots) ? profile.meal_slots : []
   );
   const [emphasis, setEmphasis] = useState<MealEmphasis>(profile.meal_emphasis ?? 'even');
   const [variety, setVariety] = useState<VarietyPreference>(profile.variety);
   const [fixedMeals, setFixedMeals] = useState<FixedMeals>(profile.fixed_meals ?? {});
   const [definingMeal, setDefiningMeal] = useState<MealType | null>(null);
+  const slots = knownSlots({ meal_slots: customSlots });
   // Retirer un jour du plan le retire aussi des jours de repos (un repos doit être un jour planifié).
   const togDay = (v: number) => {
     const removing = weekdays.includes(v);
@@ -1329,15 +1539,38 @@ function MealsEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: Edi
     if (!next.includes(v)) setFixedMeals((prev) => { if (!prev[v]) return prev; const n = { ...prev }; delete n[v]; return n; });
   };
   const removeFixed = (mt: MealType) => setFixedMeals((prev) => { const n = { ...prev }; delete n[mt]; return n; });
-  const mealLabel = (mt: MealType) => MEAL_OPTS.find((o) => o.val === mt)?.label ?? mt;
-  const emphasisOpts = EMPHASIS_OPTS.filter((e) => e.val === 'even' || meals.includes(e.val as MealType));
+  const mealLabel = (mt: MealType) => slotLabel(slots, mt);
+  const emphasisOpts = emphasisOptions(slots, meals);
+
+  // Un créneau créé est RETENU d'office (même règle qu'à l'onboarding).
+  const saveSlot = (s: MealSlot) => {
+    setCustomSlots((arr) => arr.some((x) => x.id === s.id) ? arr.map((x) => (x.id === s.id ? s : x)) : [...arr, s]);
+    setMeals((arr) => (arr.includes(s.id) ? arr : [...arr, s.id]));
+  };
+  // Supprimer un créneau retire aussi sa sélection, son emphase et son repas « je gère » :
+  // les trois pointent vers un id qui n'existera plus, et un réglage qui désigne le vide
+  // ne se corrige plus par l'écran (il n'a plus de ligne à cocher).
+  const deleteSlot = (id: MealType) => {
+    setCustomSlots((arr) => arr.filter((x) => x.id !== id));
+    setMeals((arr) => arr.filter((x) => x !== id));
+    setEmphasis((e) => (e === id ? 'even' : e));
+    setFixedMeals((prev) => { if (!prev[id]) return prev; const n = { ...prev }; delete n[id]; return n; });
+  };
+
   const submit = () => {
+    const retenus = orderedMeals(meals, customSlots);
     const cleaned: FixedMeals = {};
-    for (const mt of orderedMeals(meals)) if (fixedMeals[mt]) cleaned[mt] = fixedMeals[mt];
+    for (const mt of retenus) if (fixedMeals[mt]) cleaned[mt] = fixedMeals[mt];
+    // On n'enregistre que les créneaux ENCORE retenus : un créneau créé puis décoché
+    // n'a plus de raison d'exister, et le garder ferait réapparaître sa ligne à chaque
+    // ouverture de l'écran comme si l'utilisateur ne l'avait jamais retirée.
+    const gardes = customSlots.filter((s) => retenus.includes(s.id));
     onSave({
       ...profile, plan_weekdays: orderedWeekdays(weekdays), plan_days: weekdays.length,
       rest_weekdays: orderedWeekdays(restDays.filter((d) => weekdays.includes(d))),
-      meals: orderedMeals(meals), meal_emphasis: emphasis, variety,
+      meals: retenus, meal_slots: gardes.length ? gardes : undefined,
+      meal_emphasis: retenus.includes(emphasis as MealType) || emphasis === 'even' ? emphasis : 'even',
+      variety,
       fixed_meals: Object.keys(cleaned).length ? cleaned : undefined,
     });
   };
@@ -1360,7 +1593,14 @@ function MealsEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: Edi
       <View style={styles.wrap}>{WEEKDAY_OPTS.map((d) => <Chip key={d.val} t={t} label={d.label} selected={weekdays.includes(d.val)} onPress={() => togDay(d.val)} />)}</View>
       <RestDaysPicker t={t} available={weekdays} value={restDays} onToggle={togRestDay} onNone={() => setRestDays([])} />
       <SectionLabel t={t}>Repas inclus</SectionLabel>
-      <View style={styles.wrap}>{MEAL_OPTS.map((m) => <Chip key={m.val} t={t} label={m.label} selected={meals.includes(m.val)} onPress={() => togMeal(m.val)} />)}</View>
+      <Text style={{ ...Type.caption, color: t.textTertiary, lineHeight: 17, marginTop: -Spacing.sm }}>
+        Tu manges plus de quatre fois par jour ? Ajoute tes propres repas : Kyroz répartit
+        ton budget de la journée sur tous, dans l'ordre où ils arrivent.
+      </Text>
+      <MealSlotsPicker
+        t={t} customSlots={customSlots} selected={meals}
+        onToggle={togMeal} onSaveSlot={saveSlot} onDeleteSlot={deleteSlot}
+      />
       {meals.length === 0 && <Text style={{ ...Type.caption, color: t.danger }}>Sélectionne au moins 1 repas.</Text>}
 
       <SectionLabel t={t}>Repas que tu gères toi-même</SectionLabel>
@@ -1368,7 +1608,7 @@ function MealsEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: Edi
         Définis-les une fois : Kyroz les compte dans ton total et cale tes autres repas autour, sans te les redemander chaque jour.
       </Text>
       <View style={{ gap: Spacing.sm }}>
-        {orderedMeals(meals).map((mt) => {
+        {orderedMeals(meals, customSlots).map((mt) => {
           const fm = fixedMeals[mt];
           return (
             <View key={mt} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: t.card, borderRadius: Radius.card, padding: Spacing.lg }}>
@@ -1424,7 +1664,7 @@ function makeStyles(t: ThemePalette) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: t.bg },
     content: { padding: Spacing.xl, gap: Spacing.lg, paddingBottom: Fond.barreOnglets },
-    header: { marginBottom: Spacing.xs },
+    header: { flexDirection: 'row', alignItems: 'flex-end', marginBottom: Spacing.xs },
     sub: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 19 },
     h1: { color: t.text, ...Type.display, marginTop: Spacing.xs },
     grid: { flexDirection: 'row', gap: Spacing.sm },
