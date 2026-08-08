@@ -4,6 +4,7 @@ import { ThemePalette, Radius, Spacing, Type, cardShadow, OPACITE_PRESSION } fro
 import { WeightChart } from './WeightChart';
 import { GoalTarget } from '../lib/types';
 import { WeightEntry } from '../lib/weight';
+import { useTourTarget } from './GuidedTour';
 
 interface Props {
   t: ThemePalette;
@@ -16,6 +17,8 @@ interface Props {
   due?: boolean;
   goalTarget?: GoalTarget;
   onPress: () => void;
+  /** Si fourni : rend la carte ciblable par la visite guidée. */
+  tourId?: string;
 }
 
 // ── Carte « Suivi du poids » ────────────────────────────────────────────────
@@ -32,16 +35,17 @@ interface Props {
 // dramatique, et l'absence de pesée n'est pas un reproche mais une invitation.
 
 export function WeightSummaryCard({
-  t, profileWeightKg, entries, delta, due, goalTarget, onPress,
+  t, profileWeightKg, entries, delta, due, goalTarget, onPress, tourId,
 }: Props) {
   const s = makeStyles(t);
+  const tourRef = useTourTarget(tourId);
   // On affiche le poids du PROFIL : c'est celui qui sert le plan. Il peut différer
   // d'une pesée rétroactive (backfill d'une date passée), et montrer autre chose que
   // ce que le moteur utilise serait un chiffre faux au sens de « pas de mensonge ».
   const poids = profileWeightKg;
 
   return (
-    <TouchableOpacity activeOpacity={OPACITE_PRESSION} onPress={onPress} style={[s.card, cardShadow(t)]}>
+    <TouchableOpacity ref={tourRef} activeOpacity={OPACITE_PRESSION} onPress={onPress} style={[s.card, cardShadow(t)]}>
       <View style={s.head}>
         <View style={{ flex: 1 }}>
           <Text style={s.label}>SUIVI DU POIDS</Text>

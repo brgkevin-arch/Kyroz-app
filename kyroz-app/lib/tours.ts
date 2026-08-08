@@ -1,0 +1,316 @@
+// ── Visite guidée : le CONTENU, séparé du moteur ─────────────────────────────
+//
+// Ce fichier ne contient que des fonctions PURES et aucun import : il est donc
+// testable sous vitest (`lib/__tests__/visiteGuidee.test.ts`), là où
+// `components/GuidedTour.tsx` tire react-native et ne l'est pas. Même procédé
+// que `lib/collapsingTitle.ts` pour le repli du titre et `lib/accentColor.ts`
+// pour la palette : la DÉCISION vit dans une fonction pure, l'écran ne fait que
+// la rendre.
+//
+// ⚠️ POURQUOI DES FONCTIONS ET NON DES CONSTANTES. Le précédent est écrit dans
+// l'app : la première bulle du Plan annonçait « Tes 7 jours de plan » EN DUR
+// alors que le plan suit `plan_days` (on peut n'en choisir que 3), donc le
+// tutoriel comptait des jours que l'écran ne montrait pas. Une étape dont le
+// texte dépend du profil DOIT se construire, et une étape qui ne serait vraie
+// que pour certains profils ne doit pas être servie aux autres.
+//
+// ⚠️ RÈGLE DE RÉDACTION, non négociable (CLAUDE.md §5 et §10) :
+// une bulle décrit ce que le code FAIT, jamais ce qu'on aimerait qu'il fasse.
+// Trois des cinq bulles d'origine ont été trouvées fausses le 2026-08-07 — dont
+// « Kyroz recale automatiquement les repas restants », alors que le code
+// DEMANDE d'abord (plan.tsx::logOffPlan → setAdaptPrompt, et « Non, je garde
+// mon plan » ne recale rien). Chaque affirmation ci-dessous porte en commentaire
+// le chemin de code qui la prouve. Ne pas en ajouter une sans faire de même.
+//
+// ⚠️ Et le ton RASSURE, il ne met pas la pression : aucune bulle ne doit se lire
+// comme un reproche ou une consigne à tenir.
+
+export interface TourStep {
+  targetId: string;
+  title: string;
+  text: string;
+}
+
+export type TourId = 'plan' | 'recettes' | 'courses' | 'frigo' | 'profil';
+
+/**
+ * Les tours rejouables, dans l'ordre où l'utilisateur rencontre les onglets.
+ * Sert au « ? » de chaque en-tête ET à l'écran « Revoir les tutos » du Profil :
+ * une seule table, sinon la liste du Profil oublie un tour le jour où on en
+ * ajoute un (le défaut « copie stockée que personne ne relit », CLAUDE.md §10).
+ */
+export const TOURS: { id: TourId; label: string }[] = [
+  { id: 'plan', label: 'Ton plan du jour' },
+  { id: 'recettes', label: 'Le catalogue de recettes' },
+  { id: 'courses', label: 'Tes courses' },
+  { id: 'frigo', label: 'Ton frigo' },
+  { id: 'profil', label: 'Ton profil et tes réglages' },
+];
+
+// ── Onglet Plan ──────────────────────────────────────────────────────────────
+
+export interface PlanTourContext {
+  /** `plan.days` — le nombre de jours réellement affichés. */
+  days: number;
+  /**
+   * Les cibles des jours diffèrent-elles réellement ? Faux sans sport déclaré :
+   * `dayExpenditures` retombe alors sur une cible plate et parler de jours
+   * d'entraînement mentirait à qui n'en a pas.
+   */
+  moduleParVolume: boolean;
+}
+
+export function planTour({ days, moduleParVolume }: PlanTourContext): TourStep[] {
+  return [
+    {
+      // Prouvé par : plan.tsx:198 (`markActiveToday()` au montage, donc à la
+      // simple ouverture) et lib/streak.ts::advanceStreak — série préservée si
+      // UN seul jour a été manqué et que le bouclier est disponible, bouclier
+      // rechargé à chaque palier de FREEZE_RECHARGE = 7.
+      targetId: 'plan-serie',
+      title: 'Ta série, sans pression',
+      text: "Elle avance dès que tu ouvres ton plan, cuisiné ou pas. Et si tu manques un jour, il est pardonné une fois : la protection revient tous les sept jours de série.",
+    },
+    {
+      // Prouvé par : MacroBar.tsx (le ruban est un jeu de PROPORTIONS, toujours
+      // plein — ce qui se remplit est le chiffre de gauche, alimenté par
+      // `consumedDayKcal`) et lib/planEngine.ts::dayExpenditures pour la
+      // modulation. L'ancien texte disait « la barre se remplit » et envoyait
+      // l'œil au mauvais endroit.
+      targetId: 'plan-macros',
+      title: 'Tes cibles du jour',
+      text: moduleParVolume
+        ? "Le grand chiffre, c'est ce que tu as déjà mangé sur ta cible du jour affiché. Tes jours de repos en reçoivent un peu moins, tes jours d'entraînement un peu plus, et ta semaine garde son total."
+        : `Le grand chiffre, c'est ce que tu as déjà mangé sur ta cible du jour affiché. En dessous, la répartition entre protéines, glucides et lipides ${days > 1 ? 'de ce jour' : 'de ta journée'}.`,
+    },
+    {
+      // ⚠️ CORRIGÉ le 2026-08-07 — l'ancien texte promettait un recalage
+      // automatique. Prouvé par plan.tsx::logOffPlan : l'écart est enregistré
+      // SANS toucher au plan, puis `setAdaptPrompt` ouvre une feuille Oui/Non ;
+      // `declineAdapt` ne recale rien. Et « sans casser ton objectif » était
+      // contredit par l'écran lui-même, qui annonce quand aucune option ne
+      // rentre dans la cible.
+      targetId: 'plan-offplan',
+      title: 'Mangé hors plan ?',
+      text: "Déclare un écart ici. Kyroz le compte à part, puis te propose de réadapter les repas qui restent — c'est toi qui décides, et rien ne bouge si tu préfères garder ton plan.",
+    },
+    {
+      // Prouvé par : plan.tsx, le bouton pose `@kyroz:openEditor = 'macros'`
+      // puis pousse vers le Profil ; et plan.tsx::carryTracking conserve les
+      // repas déjà marqués quand un changement de réglage refait le plan.
+      targetId: 'plan-repartition',
+      title: 'Ta répartition',
+      text: "Ce raccourci ouvre « Calories & macros » dans ton profil, où tu peux passer en pourcentages perso. Ton plan se refait alors seul, sans effacer ce que tu as déjà marqué aujourd'hui.",
+    },
+    {
+      // Prouvé par : plan.tsx::cookMeal — `deductIngredients` retire du
+      // garde-manger, `setMealStatus('eaten')` déclenche `rebalanceDay`.
+      targetId: 'plan-cook',
+      title: 'Marque-le comme cuisiné',
+      text: "Quand tu as préparé un plat, tape « J'ai cuisiné » : les ingrédients se déduisent de ton frigo et les repas qui restent se recalent tout seuls.",
+    },
+    {
+      // Prouvé par : plan.tsx::dislikeMealCore (la recette entre dans
+      // `hidden_recipes`, réversible depuis Profil → Préférences alimentaires,
+      // et l'élicitation s'ouvre quand le vivier du repas passe sous le seuil de
+      // lib/dislike.ts) et lib/planEngine.ts::swapMeal (même cible macro, biais
+      // favoris). Deux icônes voisines qui répondent à la même question — les
+      // séparer en deux bulles coûterait une étape pour rien.
+      targetId: 'plan-actions',
+      title: 'Tu veux autre chose',
+      text: "Le pouce écarte ce plat de tes prochains plans, et ça se défait dans ton profil. La flèche, elle, ne change que ce repas-ci, au même budget, en piochant d'abord dans tes favoris.",
+    },
+  ];
+}
+
+// ── Onglet Recettes ──────────────────────────────────────────────────────────
+
+export function recettesTour(): TourStep[] {
+  return [
+    {
+      // Prouvé par : recettes.tsx filtre sur le NOM seulement, et la liste sert
+      // tout le catalogue — le régime n'est appliqué qu'à la génération du plan
+      // (lib/planEngine.ts::recipeAllowed).
+      targetId: 'recettes-recherche',
+      title: 'Tout le catalogue',
+      text: "La recherche porte sur le nom du plat, et la liste montre tout le catalogue — y compris des recettes hors de ton régime. Ton plan, lui, ne retient que celles qui te vont.",
+    },
+    {
+      // Prouvé par : recettes.tsx affiche `macros_per_portion`, quand le plan
+      // sert des quantités mises à l'échelle de la cible du jour
+      // (lib/planEngine.ts::adaptRecipe → `adapted_ingredients`).
+      targetId: 'recettes-carte',
+      title: 'Macros de la recette',
+      text: "Ces chiffres sont ceux de la recette, pour une portion. Dans ton plan, les quantités sont ajustées à ta cible du jour : le même plat peut donc y afficher d'autres valeurs.",
+    },
+    {
+      // Prouvé par : lib/planEngine.ts::swapMeal reçoit les favoris et privilégie
+      // les recettes aimées à qualité d'ajustement comparable.
+      targetId: 'recettes-favori',
+      title: 'À quoi sert le cœur',
+      text: "Mettre une recette en favori ne l'impose pas à ton plan : quand tu changes un repas, Kyroz pioche d'abord parmi celles que tu as aimées.",
+    },
+  ];
+}
+
+// ── Onglet Courses ───────────────────────────────────────────────────────────
+
+export function coursesTour(): TourStep[] {
+  return [
+    {
+      // Prouvé par : lib/shoppingList.ts — somme des ingrédients des repas du
+      // plan, moins le garde-manger, hors condiments et hors repas que
+      // l'utilisateur gère lui-même. Et courses.tsx garde la liste entre deux
+      // visites, le RefreshControl la refait.
+      targetId: 'courses-source',
+      title: "D'où sort ta liste",
+      text: "Kyroz additionne les ingrédients de ton plan, retire ce que tu as déjà au frigo, et laisse de côté sel, huile et épices. Tire l'écran vers le bas pour la refaire.",
+    },
+    {
+      // Prouvé par : courses.tsx — `checkAll` coche tout et range au frigo,
+      // `reset` décoche et retire du frigo sans reconstruire la liste. Le bouton
+      // « Réinitialiser » n'apparaît qu'à partir d'un article coché.
+      targetId: 'courses-controles',
+      title: 'Cocher, masquer, défaire',
+      text: "« Tout cocher » range la liste entière dans ton frigo. Dès qu'un article est coché, « Réinitialiser » apparaît : il décoche et retire du frigo, sans refaire ta liste.",
+    },
+    {
+      // Prouvé par : courses.tsx::toggle (décocher retire du frigo la quantité
+      // exacte qui y était entrée) et courses.tsx::ecarterArticle (l'appui long
+      // écarte sans toucher au plan, cf. lib/shoppingRemoved.ts).
+      // ⚠️ L'appui long n'a AUCUNE affordance — c'est précisément le genre de
+      // geste que cette visite existe pour dire. Fusionné avec l'aller-retour du
+      // cochage plutôt qu'ajouté en 4ᵉ étape : même ligne, même question (« que
+      // puis-je faire sur cet article ? »), et deux bulles sur une même cible ne
+      // se départageraient pas.
+      targetId: 'courses-article',
+      title: 'Un article, deux gestes',
+      text: "Coche : l'article entre au frigo avec sa quantité, et décocher la fait repartir. Appui long : il quitte ta liste sans toucher à ton plan, et tu le récupères en tirant vers le bas.",
+    },
+  ];
+}
+
+// ── Onglet Frigo ─────────────────────────────────────────────────────────────
+
+export function frigoTour(): TourStep[] {
+  return [
+    {
+      // Prouvé par : lib/shoppingList.ts soustrait le garde-manger, et
+      // courses.tsx refait la liste au RefreshControl.
+      targetId: 'frigo-ajouter',
+      title: 'Dis ce que tu as',
+      text: "Ajoute ce que tu as déjà chez toi : ta liste de courses le déduira de ce qu'elle te propose, pour ne pas te faire racheter ce que tu as.",
+    },
+    {
+      // Prouvé par : lib/pantry.ts::recipeCoverage — une recette est « prête »
+      // quand aucun ingrédient ne manque, les condiments étant supposés présents.
+      // Et plan.tsx::cookMeal déduit du stock, donc ce compte baisse tout seul.
+      targetId: 'frigo-compteur',
+      title: 'Recettes prêtes',
+      text: "Le second chiffre compte les recettes dont il ne te manque aucun ingrédient, sel et épices mis à part. Il baisse aussi tout seul quand tu marques un repas cuisiné dans ton plan.",
+    },
+    {
+      // Prouvé par : garde-manger.tsx — la vue « À cuisiner » parcourt le
+      // catalogue et sépare `ready` (rien ne manque) de `almost` (un ou deux
+      // ingrédients manquants).
+      targetId: 'frigo-vue-cuisiner',
+      title: 'La vue À cuisiner',
+      text: "Bascule ici : Kyroz passe le catalogue en revue et te liste ces recettes prêtes. Juste en dessous, celles où il ne te manque qu'un ou deux ingrédients.",
+    },
+  ];
+}
+
+// ── Onglet Profil ────────────────────────────────────────────────────────────
+
+export interface ProfilTourContext {
+  /** L'utilisateur a-t-il déjà posé un objectif daté ? (la ligne existe toujours,
+   *  mais la bulle n'a d'intérêt que si la fonctionnalité lui est ouverte) */
+  objectifDateDisponible: boolean;
+}
+
+export function profilTour({ objectifDateDisponible }: ProfilTourContext): TourStep[] {
+  const steps: TourStep[] = [
+    {
+      // Prouvé par : hooks/useWeightLog.ts appelle `recalcProfile` à
+      // l'enregistrement d'une pesée, et le « Me peser » de WeightSummaryCard
+      // n'apparaît qu'à l'échéance de la cadence choisie.
+      targetId: 'profil-poids',
+      title: 'Ta pesée pilote tout',
+      text: "Enregistre ton poids et Kyroz recale calories, macros et plan dans la foulée. Quand le bouton passe à « Me peser », c'est juste que ta cadence est arrivée.",
+    },
+    {
+      // Prouvé par : lib/tdee.ts — `DEFAULT_NEAT_LEVEL = 'desk'` (1,30), et la
+      // question ne vit QUE dans le Profil : ce défaut est donc la valeur servie
+      // à la plupart des gens. Les séances, elles, se comptent à part en MET nets.
+      targetId: 'profil-sport',
+      title: 'Tes journées, hors sport',
+      text: "Décris ici tes journées en dehors des séances : tant que tu ne l'as pas fait, Kyroz part de journées assises. Tes entraînements, eux, se comptent à part.",
+    },
+  ];
+
+  if (objectifDateDisponible) {
+    steps.push({
+      // Prouvé par : lib/datedGoal.ts — le rythme servi est le plus rapide qui
+      // reste sûr, et la date affichée est celle de la trajectoire SIMULÉE, pas
+      // celle qui a été saisie.
+      targetId: 'profil-objectif-date',
+      title: 'Piloter dans le temps',
+      text: "Pose un poids et une date : Kyroz ajuste tes calories vers cette cible et t'annonce la date qu'il tiendra vraiment, plutôt que de creuser un déficit que ton corps refuserait.",
+    });
+  }
+
+  steps.push(
+    {
+      // Prouvé par : lib/planEngine.ts::carryTracking conserve les repas déjà
+      // marqués, y compris sur le chemin « Régénérer » (décision fondateur du
+      // 2026-08-02 : régénérer renouvelle les repas à venir, il n'efface pas la
+      // journée).
+      targetId: 'profil-regenerer',
+      title: 'Régénérer sans rien perdre',
+      text: "Cette ligne reconstruit une semaine complète de repas. Tes goûts, tes réglages et ce que tu as déjà marqué comme cuisiné aujourd'hui restent en place.",
+    },
+    {
+      // Prouvé par : lib/tdee.ts::calculateTDEE — métabolisme de base, multiplié
+      // par le niveau d'activité quotidienne, plus la dépense des séances.
+      // Recalculé par `recalcProfile` à chaque changement de corps ou d'activité.
+      targetId: 'profil-tdee',
+      title: 'Ta dépense estimée',
+      text: "Ton métabolisme, tes journées et tes séances réunis. Elle se recalcule dès que tu changes ton poids ou ton activité — tu n'as rien à relancer.",
+    },
+    {
+      // Prouvé par : lib/sync.ts synchronise profil, pesées et favoris ; les
+      // photos de progression et le journal des repas hors plan restent
+      // volontairement LOCAL-ONLY (CLAUDE.md §3 et §7, données de santé).
+      targetId: 'profil-donnees',
+      title: 'Ce qui suit ton compte',
+      text: "Ton profil, tes pesées et tes favoris te suivent d'un appareil à l'autre. Tes photos et ton journal hors plan, eux, ne quittent pas ce téléphone.",
+    },
+  );
+
+  return steps;
+}
+
+// ── Construction générique ───────────────────────────────────────────────────
+
+export interface TourContext extends PlanTourContext, ProfilTourContext {}
+
+/**
+ * Point d'entrée unique : un écran demande son tour par son id, sans connaître
+ * la forme des étapes. C'est ce qui permet à « Revoir les tutos » de proposer la
+ * liste complète sans dupliquer les définitions.
+ */
+export function tourSteps(id: TourId, ctx: TourContext): TourStep[] {
+  switch (id) {
+    case 'plan': return planTour(ctx);
+    case 'recettes': return recettesTour();
+    case 'courses': return coursesTour();
+    case 'frigo': return frigoTour();
+    case 'profil': return profilTour(ctx);
+  }
+}
+
+/** Bornes de rédaction, vérifiées par `lib/__tests__/visiteGuidee.test.ts`. */
+export const TITRE_MAX = 28;
+export const TEXTE_MAX = 220;
+/** Au-delà, un tour est abandonné en route — il ne s'agit plus d'aider. */
+export const ETAPES_MAX = 6;

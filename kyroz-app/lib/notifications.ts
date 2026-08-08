@@ -2,15 +2,20 @@ import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import { WeighInFrequency } from './types';
 import { nextWeighInAt } from './weight';
+import {
+  ReminderTime, dayIndex, nextReminderAt, pickReminderCopy, pickWeighInCopy,
+} from './reminder';
 
 // ── Rappels locaux (spec §5 — seules notifs autorisées) ──────────────────────
 // Deux notifications locales, gérées par identifiant pour qu'elles coexistent
 // (ré-armer l'une ne doit pas effacer l'autre) :
-//  • rappel QUOTIDIEN du plan (créneau choisi) → ramène sur le plan chaque jour
+//  • rappel QUOTIDIEN du plan (heure choisie) → ramène sur le plan chaque jour
 //  • rappel de PESÉE (à la cadence du profil) → garde le plan calé sur le poids
 // Pas de push serveur, pas de notif « avancée » (interdites). Local-only.
-
-export type ReminderSlot = 'off' | 'morning' | 'midday' | 'evening';
+//
+// ⚠️ Ce fichier ne décide plus NI de l'heure NI du texte : les deux vivent dans
+// `lib/reminder.ts`, qui est pur donc testable. Ici il ne reste que ce qui
+// touche au système — et qui, par construction, ne peut pas être testé.
 
 // Identifiants fixes → annulation/ré-armement ciblés (jamais cancelAll, qui
 // effacerait l'autre rappel).
@@ -19,18 +24,6 @@ const WEIGH_ID = 'kyroz-weigh-reminder';
 
 // Les notifications locales ne sont pas supportées sur le web par expo-notifications.
 export const remindersSupported = Platform.OS !== 'web';
-
-const REMINDER_TIME: Record<Exclude<ReminderSlot, 'off'>, { hour: number; minute: number }> = {
-  morning: { hour: 8, minute: 0 },
-  midday: { hour: 12, minute: 0 },
-  evening: { hour: 18, minute: 30 },
-};
-
-const COPY: Record<Exclude<ReminderSlot, 'off'>, { title: string; body: string }> = {
-  morning: { title: 'Ta journée Kyroz 💪', body: 'Jette un œil à ton plan du jour pour garder ta série.' },
-  midday: { title: 'C’est l’heure du déjeuner 🍽️', body: 'Ton plan t’attend — ne casse pas la chaîne.' },
-  evening: { title: 'Prépare ton dîner 🔥', body: 'Un repas suivi de plus = un jour de série gagné.' },
-};
 
 // Affichage même quand l'app est au premier plan.
 if (remindersSupported) {
@@ -55,25 +48,43 @@ async function ensurePermission(): Promise<boolean> {
 }
 
 /**
- * (Re)programme le rappel quotidien. On annule l'existant d'abord (une seule
- * notif vivante à la fois). `off` = aucun rappel. Renvoie `false` si la
- * permission est refusée ou la plateforme non supportée (→ l'appelant retombe
- * sur `off`).
+ * (Re)programme le rappel quotidien à l'heure demandée. On annule l'existant
+ * d'abord (une seule notif vivante à la fois). `null` = aucun rappel. Renvoie
+ * `false` si la permission est refusée ou la plateforme non supportée (→
+ * l'appelant retombe sur « aucun rappel »).
+ *
+ * ⚠️ **Le message est figé à la programmation, pas à l'affichage.** Un
+ * déclencheur `DAILY` répète le MÊME contenu jusqu'au prochain ré-armement — le
+ * système ne rappelle pas l'app pour lui demander quoi écrire. La rotation des
+ * messages tient donc à ce que `useReminder` ré-arme à chaque démarrage : le
+ * texte change d'un jour sur l'autre pour qui ouvre l'app, et reste le même pour
+ * qui ne l'ouvre pas.
+ *
+ * On a écarté l'alternative — programmer quinze notifications datées d'avance,
+ * une par jour, chacune avec son texte : elle ferait vraiment tourner le message
+ * sans l'app, mais le rappel S'ÉTEINDRAIT au bout de quinze jours sans
+ * ouverture, c'est-à-dire exactement au moment où il sert le plus. Un rappel qui
+ * lâche vaut moins qu'un message qui se répète.
  */
-export async function applyReminder(slot: ReminderSlot): Promise<boolean> {
+export async function applyReminder(time: ReminderTime | null, now: Date = new Date()): Promise<boolean> {
   if (!remindersSupported) return false;
   try { await Notifications.cancelScheduledNotificationAsync(DAILY_ID); } catch {}
-  if (slot === 'off') return true;
+  if (!time) return true;
 
   const granted = await ensurePermission();
   if (!granted) return false;
 
-  const { hour, minute } = REMINDER_TIME[slot];
-  const copy = COPY[slot];
+  // Index pris sur le jour où la notif TOMBERA (demain si l'heure est passée),
+  // pour que le message corresponde à ce jour-là.
+  const copy = pickReminderCopy(time, dayIndex(nextReminderAt(time, now)));
   await Notifications.scheduleNotificationAsync({
     identifier: DAILY_ID,
     content: { title: copy.title, body: copy.body },
-    trigger: { type: Notifications.SchedulableTriggerInputTypes.DAILY, hour, minute },
+    trigger: {
+      type: Notifications.SchedulableTriggerInputTypes.DAILY,
+      hour: time.hour,
+      minute: time.minute,
+    },
   });
   return true;
 }
@@ -92,13 +103,12 @@ export async function applyWeighInReminder(freq: WeighInFrequency, lastStamp: st
   const perm = await Notifications.getPermissionsAsync();
   if (!perm.granted) return false;
 
+  const date = nextWeighInAt(lastStamp, freq);
+  const copy = pickWeighInCopy(dayIndex(date));
   await Notifications.scheduleNotificationAsync({
     identifier: WEIGH_ID,
-    content: {
-      title: 'C’est l’heure de te peser ⚖️',
-      body: 'Note ton poids du jour : Kyroz réajuste tes calories et ton plan.',
-    },
-    trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: nextWeighInAt(lastStamp, freq) },
+    content: { title: copy.title, body: copy.body },
+    trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date },
   });
   return true;
 }

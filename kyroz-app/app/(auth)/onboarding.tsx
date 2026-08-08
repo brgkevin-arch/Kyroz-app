@@ -21,8 +21,10 @@ import {
 } from '../../lib/safety';
 import { DislikedFoodsField } from '../../components/DislikedFoodsField';
 import {
-  ActivityLevel, BodyFatSource, DietaryRestriction, Goal, MEAL_ORDER, MealType, Sex, SportSession, UserProfile, VarietyPreference,
+  ActivityLevel, BodyFatSource, DietaryRestriction, Goal, MealSlot, MealType, Sex, SportSession, UserProfile, VarietyPreference,
 } from '../../lib/types';
+import { MealSlotsPicker } from '../../components/MealSlotsPicker';
+import { knownSlots } from '../../lib/mealSlots';
 import {
   validateProfile, goalLabel, recalcProfile,
 } from '../../lib/tdee';
@@ -78,13 +80,9 @@ function orderedWeekdays(selected: number[]): number[] {
   return WEEKDAY_OPTS.map((o) => o.val).filter((v) => selected.includes(v));
 }
 
-// Repas sélectionnables + emphase
-const MEAL_OPTS: { label: string; val: MealType }[] = [
-  { label: 'Petit-déj', val: 'breakfast' }, { label: 'Déjeuner', val: 'lunch' },
-  { label: 'Dîner', val: 'dinner' }, { label: 'Collation', val: 'snack' },
-];
-function orderedMeals(selected: MealType[]): MealType[] {
-  return MEAL_ORDER.filter((m) => selected.includes(m));
+// Repas retenus, dans l'ordre CHRONOLOGIQUE de la journée — créneaux créés compris.
+function orderedMeals(selected: MealType[], custom: MealSlot[]): MealType[] {
+  return knownSlots({ meal_slots: custom }).filter((s) => selected.includes(s.id)).map((s) => s.id);
 }
 
 function activityFromDays(d: number): ActivityLevel {
@@ -142,6 +140,9 @@ export default function Onboarding() {
   // que pour les champs contrôlés : on ne resynchronise que ce qui vient du dehors.
   const [restTouched, setRestTouched] = useState(false);
   const [meals, setMeals] = useState<MealType[]>(['breakfast', 'lunch', 'dinner', 'snack']);
+  // Créneaux CRÉÉS à l'onboarding (« Shaker post-training », 18h30). Vide par défaut :
+  // les 4 intégrés couvrent la majorité, et qui mange 6 fois par jour l'ajoute ici.
+  const [customSlots, setCustomSlots] = useState<MealSlot[]>([]);
 
   const ageN = ageOn(birthDate, todayStamp()) ?? NaN;
   const wN = parseFloat(weight), hN = parseFloat(height);
@@ -173,6 +174,17 @@ export default function Onboarding() {
 
   const toggleMeal = (v: MealType) =>
     setMeals((arr) => arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
+
+  // Un créneau créé est RETENU d'office : on ne demande pas à quelqu'un qui vient
+  // d'ajouter « Shaker post-training » de le cocher ensuite pour qu'il compte.
+  const saveSlot = (s: MealSlot) => {
+    setCustomSlots((arr) => arr.some((x) => x.id === s.id) ? arr.map((x) => (x.id === s.id ? s : x)) : [...arr, s]);
+    setMeals((arr) => (arr.includes(s.id) ? arr : [...arr, s.id]));
+  };
+  const deleteSlot = (id: MealType) => {
+    setCustomSlots((arr) => arr.filter((x) => x.id !== id));
+    setMeals((arr) => arr.filter((x) => x !== id));
+  };
 
   // Toggle d'un jour du plan : le retirer le retire aussi des jours de repos
   // (un jour de repos doit rester un jour planifié).
@@ -250,7 +262,8 @@ export default function Onboarding() {
       // On filtre par sécurité contre planWeekdays. Repas fixes + emphase se règlent
       // dans le profil (MealsEditor) ; l'onboarding pose les valeurs neutres.
       rest_weekdays: orderedWeekdays(restWeekdays.filter((d) => planWeekdays.includes(d))),
-      meals: orderedMeals(meals),
+      meals: orderedMeals(meals, customSlots),
+      meal_slots: customSlots.length ? customSlots : undefined,
       meal_emphasis: 'even',
       variety,
       fixed_meals: undefined,
@@ -430,11 +443,14 @@ export default function Onboarding() {
             )}
 
             <SectionLabel t={t}>Repas inclus</SectionLabel>
-            <View style={s.wrap}>
-              {MEAL_OPTS.map((m) => (
-                <Chip key={m.val} t={t} label={m.label} selected={meals.includes(m.val)} onPress={() => toggleMeal(m.val)} />
-              ))}
-            </View>
+            <Text style={[s.sub, { ...Type.caption, marginTop: -Spacing.sm }]}>
+              Coche ce que tu manges dans une journée. Tu en fais plus de quatre ? Ajoute
+              tes propres repas — Kyroz répartit ton budget sur tous.
+            </Text>
+            <MealSlotsPicker
+              t={t} customSlots={customSlots} selected={meals}
+              onToggle={toggleMeal} onSaveSlot={saveSlot} onDeleteSlot={deleteSlot}
+            />
             {meals.length === 0 && <Text style={[s.sub, { marginTop: -Spacing.xs }]}>Sélectionne au moins 1 repas.</Text>}
           </View>
         )}

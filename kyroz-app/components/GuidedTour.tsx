@@ -1,21 +1,23 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import {
-  View, Text, StyleSheet, Modal, Pressable, useWindowDimensions, ViewStyle,
+  View, Text, StyleSheet, Modal, Pressable, TouchableOpacity, useWindowDimensions, ViewStyle,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useTheme, Radius, ThemePalette, Type, Spacing, CIBLE_TACTILE_MIN, Trait } from '../constants/theme';
+import { useTheme, Radius, ThemePalette, Type, Spacing, CIBLE_TACTILE_MIN, Trait, Icone, OPACITE_PRESSION } from '../constants/theme';
+import { TourStep, TOURS } from '../lib/tours';
 
 // ── Visite guidée (coachmark / spotlight) ────────────────────────────────────
 // Overlay sombre qui « découpe » un trou autour d'un élément cible et affiche
-// une bulle (titre + texte + Suivant / Passer). Générique : n'importe quel
-// écran enveloppe ses éléments dans <TourTarget id="…"> puis appelle
+// une bulle (titre + texte + Précédent / Suivant / Passer). Générique :
+// n'importe quel écran pose `useTourTarget('…')` sur ses éléments puis appelle
 // startTour(tourId, steps). « Déjà vu » mémorisé en AsyncStorage (@kyroz:tour:*).
+//
+// ⚠️ Ce fichier est le MOTEUR, pas le contenu : les étapes vivent dans
+// `lib/tours.ts`, qui n'importe rien et se teste. Le moteur, lui, tire
+// react-native et n'est vérifiable qu'à l'écran.
 
-export interface TourStep {
-  targetId: string;
-  title: string;
-  text: string;
-}
+export type { TourStep } from '../lib/tours';
 
 type Rect = { x: number; y: number; width: number; height: number };
 
@@ -50,6 +52,22 @@ async function markSeen(tourId: string) {
   try { await AsyncStorage.setItem(STORAGE_PREFIX + tourId, 'done'); } catch {}
 }
 
+/**
+ * Oublie un tour : il se relancera tout seul à la prochaine visite de son écran.
+ * Sans ça, « Passer » par réflexe perdait un tour À VIE — seul le Plan avait un
+ * « ? » de rejeu, les quatre autres onglets n'avaient aucun recours.
+ */
+export async function resetTour(tourId: string): Promise<void> {
+  try { await AsyncStorage.removeItem(STORAGE_PREFIX + tourId); } catch {}
+}
+
+/** Oublie TOUS les tours (« Revoir les tutos » dans le Profil). */
+export async function resetAllTours(): Promise<void> {
+  try {
+    await AsyncStorage.multiRemove(TOURS.map((t) => STORAGE_PREFIX + t.id));
+  } catch {}
+}
+
 export function useTour(): TourContextValue {
   const ctx = useContext(TourContext);
   if (!ctx) throw new Error('useTour doit être utilisé dans un <TourProvider>');
@@ -73,6 +91,76 @@ export function useTourTarget(id?: string): React.MutableRefObject<any> {
     return () => register(id, null);
   }, [id, register]);
   return ref;
+}
+
+/**
+ * Patron d'un tour d'ÉCRAN : il se lance tout seul à la première visite de cet
+ * écran, et se rejoue à la demande. C'est ce découpage qui rend un tutoriel
+ * étoffé tenable — 22 bulles servies d'un coup au premier lancement seraient 22
+ * interruptions ; réparties sur les onglets, chacune arrive quand la personne
+ * regarde justement l'écran dont on lui parle.
+ *
+ * ⚠️ `steps` est un tableau NEUF à chaque rendu (les tours sont construits par
+ * des fonctions). Le garder dans une ref est ce qui empêche l'effet de se
+ * redéclencher en boucle — le mettre en dépendance relancerait le tour à chaque
+ * frappe sur l'écran.
+ */
+export function useScreenTour(
+  tourId: string,
+  steps: TourStep[],
+  opts?: { pret?: boolean; delai?: number; scrollRef?: React.RefObject<any> },
+) {
+  const { startTour } = useTour();
+  const tried = useRef(false);
+  const stepsRef = useRef(steps);
+  const optsRef = useRef(opts);
+  stepsRef.current = steps;
+  optsRef.current = opts;
+
+  const pret = opts?.pret ?? true;
+
+  const lancer = useCallback(() => {
+    startTour(tourId, stepsRef.current, { scrollRef: optsRef.current?.scrollRef });
+  }, [tourId, startTour]);
+
+  useEffect(() => {
+    if (!pret || tried.current) return;
+    tried.current = true;
+    let annule = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    hasSeenTour(tourId).then((seen) => {
+      if (seen || annule) return;
+      // Délai : le temps que la mise en page se pose. Sans lui, la mesure de la
+      // première cible tombe sur une hauteur nulle et le tour s'ouvre sur un
+      // écran noir le temps des essais.
+      timer = setTimeout(() => { if (!annule) lancer(); }, optsRef.current?.delai ?? 650);
+    });
+    return () => { annule = true; if (timer) clearTimeout(timer); };
+  }, [pret, tourId, lancer]);
+
+  return { rejouer: lancer };
+}
+
+/**
+ * Le « ? » de rejeu, à poser dans l'en-tête d'un écran qui a un tour. Il vivait
+ * en dur dans l'en-tête du Plan, et seulement là : passer le tour d'un autre
+ * onglet par réflexe le perdait À VIE, sans aucun recours. Un composant, pour
+ * que le prochain écran à recevoir un tour ne puisse pas oublier sa porte de
+ * sortie.
+ */
+export function TourButton({ onPress }: { onPress: () => void }) {
+  const t = useTheme();
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      hitSlop={8}
+      activeOpacity={OPACITE_PRESSION}
+      accessibilityRole="button"
+      accessibilityLabel="Revoir la visite guidée de cet écran"
+    >
+      <Ionicons name="help-circle-outline" size={Icone.nav} color={t.textTertiary} />
+    </TouchableOpacity>
+  );
 }
 
 const PAD = 6;             // marge du « trou » autour de la cible
@@ -100,6 +188,17 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
   const startTour = useCallback((tourId: string, steps: TourStep[], opts?: TourOptions) => {
     const avail = steps.filter((s) => refs.current.has(s.targetId));
     if (avail.length === 0) return;
+    // ⚠️ Un tour AMPUTÉ est le défaut silencieux de ce filtre : une cible non
+    // montée (parce qu'elle est conditionnelle, ou parce qu'un renommage l'a
+    // détachée) fait disparaître son étape sans que rien ne le signale — le tour
+    // se joue plus court et paraît complet. Certaines absences sont légitimes
+    // (le bloc frigo n'existe pas quand le frigo est vide), d'où un simple
+    // avertissement de développement plutôt qu'un blocage. Le garde-fou qui
+    // compte vraiment est `lib/__tests__/visiteGuidee.test.ts`.
+    if (__DEV__ && avail.length < steps.length) {
+      const manquants = steps.filter((s) => !refs.current.has(s.targetId)).map((s) => s.targetId);
+      console.warn(`[GuidedTour] tour « ${tourId} » amputé de ${manquants.length} étape(s) : ${manquants.join(', ')} — cible non montée.`);
+    }
     scrollRef.current = opts?.scrollRef;
     setRect(null);
     setActive({ tourId, steps: avail, index: 0 });
@@ -120,6 +219,13 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
       markSeen(cur.tourId);
       return null;
     });
+  }, []);
+
+  // Revenir en arrière : une bulle lue trop vite était perdue pour toujours, il
+  // fallait relancer le tour entier depuis le « ? ». `setRect(null)` n'est pas
+  // nécessaire — l'effet de mesure se redéclenche sur `index`.
+  const prev = useCallback(() => {
+    setActive((cur) => (cur && cur.index > 0 ? { ...cur, index: cur.index - 1 } : cur));
   }, []);
 
   // Amène la cible dans le champ visible (sinon une cible sous la ligne de
@@ -188,7 +294,7 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
         {step && (
           rect
             ? <Spotlight t={t} rect={rect} step={step} index={active!.index}
-                total={active!.steps.length} isLast={isLast} onNext={next} onSkip={end} />
+                total={active!.steps.length} isLast={isLast} onNext={next} onPrev={prev} onSkip={end} />
             : <View style={[StyleSheet.absoluteFill, { backgroundColor: DIM }]} />
         )}
       </Modal>
@@ -201,7 +307,7 @@ function clamp(v: number, lo: number, hi: number) {
 }
 
 function Spotlight({
-  t, rect, step, index, total, isLast, onNext, onSkip,
+  t, rect, step, index, total, isLast, onNext, onPrev, onSkip,
 }: {
   t: ThemePalette;
   rect: Rect;
@@ -210,6 +316,7 @@ function Spotlight({
   total: number;
   isLast: boolean;
   onNext: () => void;
+  onPrev: () => void;
   onSkip: () => void;
 }) {
   // `useWindowDimensions` : la géométrie du trou est calculée en coordonnées
@@ -255,13 +362,28 @@ function Spotlight({
         <Text style={s.counter}>{index + 1} / {total}</Text>
         <Text style={s.title}>{step.title}</Text>
         <Text style={s.text}>{step.text}</Text>
+        {/* Trois zones : « Passer » à gauche (sortie), « Précédent » au milieu
+            (retour), « Suivant » à droite (avancée). « Précédent » n'occupe la
+            place que s'il mène quelque part — un bouton inerte à la 1re étape se
+            lit comme une panne. */}
         <View style={s.actions}>
-          <Pressable onPress={onSkip} hitSlop={8}>
+          <Pressable onPress={onSkip} hitSlop={8} accessibilityRole="button">
             <Text style={s.skip}>{isLast ? '' : 'Passer'}</Text>
           </Pressable>
-          <Pressable onPress={onNext} style={s.nextBtn}>
-            <Text style={s.nextTxt}>{isLast ? 'Terminer' : 'Suivant'}</Text>
-          </Pressable>
+          <View style={s.rightActions}>
+            {index > 0 && (
+              <Pressable onPress={onPrev} hitSlop={8} accessibilityRole="button" style={s.prevBtn}>
+                <Text style={s.prev}>Précédent</Text>
+              </Pressable>
+            )}
+            <Pressable
+              onPress={onNext}
+              style={({ pressed }) => [s.nextBtn, pressed && { opacity: OPACITE_PRESSION }]}
+              accessibilityRole="button"
+            >
+              <Text style={s.nextTxt}>{isLast ? 'Terminer' : 'Suivant'}</Text>
+            </Pressable>
+          </View>
         </View>
       </View>
     </View>
@@ -283,7 +405,10 @@ function makeStyles(t: ThemePalette) {
     title: { color: t.text, ...Type.h3, marginBottom: Spacing.sm },
     text: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 20 },
     actions: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: Spacing.lg },
+    rightActions: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
     skip: { ...Type.bodySmallStrong, color: t.textTertiary },
+    prevBtn: { minHeight: CIBLE_TACTILE_MIN, justifyContent: 'center', paddingHorizontal: Spacing.sm },
+    prev: { ...Type.bodySmallStrong, color: t.textSecondary },
     nextBtn: { backgroundColor: t.accent, borderRadius: Radius.button, paddingHorizontal: Spacing.xxl, paddingVertical: Spacing.md, minHeight: CIBLE_TACTILE_MIN, justifyContent: 'center' },
     nextTxt: { ...Type.bodySmallStrong, color: t.onAccent },
   });

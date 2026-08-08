@@ -107,14 +107,57 @@ export interface SportSession {
   minutes_per_session: number;  // durée moyenne d'une séance (min)
 }
 
-export type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
+// Les 4 créneaux INTÉGRÉS. Ce sont aussi les tags que portent les recettes du
+// catalogue (cf. recipeMap.ts) — ils ne sont donc pas renommables.
+export type BuiltinMealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
+export const BUILTIN_MEAL_TYPES: readonly BuiltinMealType[] = ['breakfast', 'lunch', 'dinner', 'snack'];
 
-// Ordre canonique des repas dans la journée — source unique de vérité
-// (importée par le moteur, l'onboarding et le profil).
-export const MEAL_ORDER: MealType[] = ['breakfast', 'lunch', 'dinner', 'snack'];
+/**
+ * Id d'un créneau de repas : un intégré, ou un créneau CRÉÉ par l'utilisateur
+ * (`custom-1`, `custom-2`…).
+ *
+ * ⚠️ C'était une union FERMÉE de 4 valeurs jusqu'au 2026-08-07, et ce plafond
+ * n'était écrit dans aucune spec : il était dans le TYPE. Qui mange 6 fois par
+ * jour ne pouvait pas le déclarer, et Kyroz répartissait sa journée sur 4
+ * assiettes qu'il ne mangeait pas. L'union reste dans le type — `BuiltinMealType
+ * | (string & {})` garde l'autocomplétion des 4 intégrés tout en acceptant les
+ * autres — pour que le code existant continue de se lire comme avant.
+ * Définition, libellé, heure et vivier d'un créneau : `lib/mealSlots.ts`.
+ */
+export type MealType = BuiltinMealType | (string & {});
 
-// Sur quel repas mettre l'accent (portion plus grosse). 'even' = équilibré.
-export type MealEmphasis = 'even' | 'breakfast' | 'lunch' | 'dinner';
+/** Vivier de recettes d'un créneau. `meal` = repas complet (midi OU soir). */
+export type MealPool = 'breakfast' | 'meal' | 'snack';
+
+/**
+ * Un créneau de repas. Les 4 intégrés sont en dur (`BUILTIN_SLOTS`), ceux que
+ * l'utilisateur crée vivent dans `UserProfile.meal_slots`.
+ */
+export interface MealSlot {
+  id: MealType;
+  label: string;      // « Shaker post-training » — ce que l'utilisateur lit
+  hour: number;       // 0–23
+  minute?: number;    // 0–59 (absent = 0)
+  pool: MealPool;     // dans quel vivier de recettes Kyroz pioche pour ce créneau
+}
+
+// Ordre canonique des 4 créneaux intégrés, CHRONOLOGIQUE — la collation de 16 h
+// passe donc avant le dîner. Elle était en dernier jusqu'au 2026-08-07, ce qui
+// l'affichait après le dîner sur l'écran Plan ; avec des créneaux libres, un ordre
+// qui n'est pas celui de la journée n'a plus aucun sens (une collation de 10 h se
+// serait rangée en fin de liste). L'ordre RÉEL se lit désormais des créneaux
+// eux-mêmes : `mealSlots.ts::activeSlots`.
+export const MEAL_ORDER: MealType[] = ['breakfast', 'lunch', 'snack', 'dinner'];
+
+// ⚠️ Ordre de PRIORITÉ des créneaux intégrés — distinct de l'ordre chronologique,
+// et il doit le rester. Il ne sert qu'à répondre à « je veux N repas » sans savoir
+// LESQUELS (cf. syncGuard::normalizeMeals) : à 3, on garde les trois repas
+// principaux, pas « petit-déj + déjeuner + collation ».
+export const MEAL_DEFAULT_PRIORITY: BuiltinMealType[] = ['breakfast', 'lunch', 'dinner', 'snack'];
+
+// Sur quel repas mettre l'accent (portion plus grosse). 'even' = équilibré,
+// sinon l'id d'un créneau RETENU (intégré ou créé).
+export type MealEmphasis = 'even' | MealType;
 
 // 'auto' = tout calculé · 'percent' = kcal+protéines calculés, glucides/lipides
 // répartis selon un % choisi · 'manual' = legacy (grammes fixes, plus proposé en UI).
@@ -359,7 +402,15 @@ export interface UserProfile {
    * grand-père du paywall (cf. lib/premium.ts), donc elle doit être infalsifiable.
    */
   created_at?: string;
-  meals: MealType[];            // repas choisis (petit-déj/midi/dîner/collation)
+  meals: MealType[];            // ids des créneaux retenus (intégrés + créés)
+  /**
+   * Créneaux CRÉÉS par l'utilisateur (« Shaker post-training », 18h30, vivier
+   * collation). Les 4 intégrés ne sont PAS stockés ici : ils sont en dur dans
+   * `mealSlots.ts::BUILTIN_SLOTS`, donc une future correction d'heure ou de
+   * libellé les atteint tous, y compris sur les comptes déjà enregistrés.
+   * `undefined` = aucun créneau créé (tous les comptes d'avant le 2026-08-07).
+   */
+  meal_slots?: MealSlot[];
   meal_emphasis: MealEmphasis;  // repas mis en avant (portion plus grosse)
   variety: VarietyPreference;
   fixed_meals?: FixedMeals;     // repas que l'user gère lui-même → soustraits du budget (cf. FixedMeal)

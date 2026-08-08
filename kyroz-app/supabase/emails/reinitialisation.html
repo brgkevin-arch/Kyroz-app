@@ -1,0 +1,118 @@
+<!--
+  ═══════════════════════════════════════════════════════════════════════════
+  KYROZ — e-mail de RÉINITIALISATION DE MOT DE PASSE
+  Dashboard Supabase → Authentication → Emails → « Reset Password »
+  ═══════════════════════════════════════════════════════════════════════════
+
+  ⚠️ CE FICHIER N'EST PAS LU PAR L'APP. C'est la SOURCE de vérité d'un contenu
+  qui vit dans le dashboard Supabase — il faut l'y COLLER à la main (procédure :
+  `supabase/PROCEDURE-2026-08-07-confirmation-email.md`, étape 7 bis). Le modifier
+  ici sans le recoller ne change rien à ce que reçoivent les gens.
+
+  🔴 UNE SEULE VARIABLE, ET AUCUN LIEN — C'EST VOULU :
+    - {{ .Token }}   le code à 6 chiffres, seule façon de réinitialiser
+    - PAS de {{ .ConfirmationURL }}
+
+  Pourquoi pas de lien, alors que l'e-mail de confirmation en a un : cliquer un
+  lien de réinitialisation CONSOMME le jeton **sans changer le mot de passe** (une
+  page statique ne peut pas appeler `updateUser`, et la session ainsi ouverte vit
+  dans le navigateur, jamais dans l'app native). La personne se retrouverait avec
+  un mot de passe inchangé ET un code mort : pire qu'avant sa demande. Les
+  antivirus de messagerie, qui pré-cliquent les liens, provoqueraient ça tout
+  seuls, à chaque envoi. Raisonnement complet : `lib/emailConfirmation.ts`.
+  Verrouillé par `lib/__tests__/emailConfirmation.test.ts`.
+
+  ⚠️ HTML D'E-MAIL, PAS HTML DE PAGE. Tables, styles en ligne, pas de flex, pas
+  de variables CSS : Outlook rend encore avec le moteur de Word.
+
+  DA : fond noir pur, accent monochrome blanc, aucun émoji (CLAUDE.md §8).
+-->
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="supported-color-schemes" content="dark">
+  <title>Ton code de réinitialisation — Kyroz</title>
+</head>
+<body style="margin:0; padding:0; background-color:#000000;">
+
+  <!-- Pré-en-tête : la ligne d'aperçu dans la boîte de réception. Masquée dans le corps. -->
+  <div style="display:none; max-height:0; overflow:hidden; opacity:0; color:transparent; height:0; width:0;">
+    Ton code de réinitialisation Kyroz : {{ .Token }}
+  </div>
+
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#000000" style="background-color:#000000;">
+    <tr>
+      <td align="center" style="padding:40px 16px 56px 16px;">
+
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:520px; width:100%;">
+
+          <!-- Logo -->
+          <tr>
+            <td align="center" style="padding-bottom:36px;">
+              <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:24px; font-weight:800; letter-spacing:6px; color:#FFFFFF;">
+                KYROZ
+              </div>
+            </td>
+          </tr>
+
+          <!-- Carte -->
+          <tr>
+            <td bgcolor="#1C1C1E" style="background-color:#1C1C1E; border-radius:22px; padding:32px 28px;">
+
+              <p style="margin:0 0 12px 0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:22px; line-height:28px; font-weight:700; color:#FFFFFF;">
+                Nouveau mot de passe.
+              </p>
+
+              <p style="margin:0 0 28px 0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:15px; line-height:22px; color:#8E8E93;">
+                Tu as demandé à changer le mot de passe de ton compte Kyroz. Voici ton code.
+              </p>
+
+              <!-- Code à 6 chiffres -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td align="center" bgcolor="#000000" style="background-color:#000000; border:1px solid #2E2E30; border-radius:14px; padding:20px 12px;">
+                    <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:11px; font-weight:700; letter-spacing:1.2px; text-transform:uppercase; color:#6E6E73; padding-bottom:12px;">
+                      Ton code
+                    </div>
+                    <div style="font-family:'SF Mono',SFMono-Regular,Menlo,Consolas,'Courier New',monospace; font-size:34px; line-height:40px; font-weight:700; letter-spacing:8px; color:#FFFFFF;">
+                      {{ .Token }}
+                    </div>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="margin:20px 0 0 0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:15px; line-height:22px; color:#8E8E93;">
+                Saisis-le dans Kyroz, sur l'écran qui l'attend, puis choisis ton nouveau mot de passe.
+              </p>
+
+              <p style="margin:24px 0 0 0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:13px; line-height:19px; color:#6E6E73;">
+                Le code expire au bout d'une heure. Passé ce délai, demande-en un nouveau depuis l'application.
+              </p>
+
+            </td>
+          </tr>
+
+          <!-- Pied -->
+          <tr>
+            <td style="padding:28px 8px 0 8px;">
+              <p style="margin:0 0 16px 0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:13px; line-height:19px; color:#6E6E73;">
+                Tu n'as rien demandé ? Ignore cet e-mail. Ton mot de passe actuel reste valable : il ne change que si ce code est saisi dans l'application.
+              </p>
+              <p style="margin:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:12px; line-height:18px; color:#48484A;">
+                Kyroz — ton plan nutrition, sans réfléchir.<br>
+                Une question : <a href="mailto:contact@kyroz.app" style="color:#8E8E93; text-decoration:underline;">contact@kyroz.app</a>
+              </p>
+            </td>
+          </tr>
+
+        </table>
+
+      </td>
+    </tr>
+  </table>
+
+</body>
+</html>

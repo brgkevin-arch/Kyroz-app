@@ -32,6 +32,7 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { TOURS } from '../tours';
 
 const RACINE = join(__dirname, '..', '..');
 const lire = (rel: string) => readFileSync(join(RACINE, rel), 'utf8');
@@ -107,12 +108,26 @@ const ANCRES: Ancre[] = [
  * Placeholders : un champ se remplit par son placeholder EXACT (`fillPh`), pas par
  * son libellé. C'est ce qui a cassé le 2026-08-02 — le champ d'âge (« 25 ») est
  * devenu trois champs de date, et le harnais a continué de viser le champ disparu.
+ *
+ * `via` = le composant qui rend l'attribut, quand la valeur est DÉCIDÉE ailleurs et
+ * passée en propriété. Cas des trois champs de date depuis le 2026-08-07 : leur
+ * mécanique vit dans `DateInput`, leurs exemples restent choisis par l'écran qui
+ * s'en sert. Le DOM porte le même attribut qu'avant, mais la chaîne a DEUX bouts —
+ * et il faut vérifier les deux, sinon elle peut se rompre au milieu sans rougir.
+ *
+ * ⚠️ `cle` désigne le champ PRÉCIS, et ce n'est pas du zèle : une première version
+ * cherchait seulement « un placeholder transmis quelque part » dans `DateInput`.
+ * Vérifiée par mutation, elle laissait passer la suppression du placeholder du champ
+ * *Jour* — les deux autres suffisaient à la satisfaire. Un verrou qui accepte
+ * n'importe lequel des trois maillons ne garde aucun des trois.
  */
-const PLACEHOLDERS: { quoi: string; valeur: string; dans: string }[] = [
+const champDate = (cle: 'd' | 'mo' | 'y') => ({ fichier: 'components/DateInput.tsx', cle });
+type Via = { fichier: string; cle: string };
+const PLACEHOLDERS: { quoi: string; valeur: string; dans: string; via?: Via }[] = [
   { quoi: 'prénom (étape 1)', valeur: 'Kévin', dans: 'app/(auth)/onboarding.tsx' },
-  { quoi: 'jour de naissance (étape 2)', valeur: '2', dans: 'components/BirthDateField.tsx' },
-  { quoi: 'mois de naissance (étape 2)', valeur: '8', dans: 'components/BirthDateField.tsx' },
-  { quoi: 'année de naissance (étape 2)', valeur: '1994', dans: 'components/BirthDateField.tsx' },
+  { quoi: 'jour de naissance (étape 2)', valeur: '2', dans: 'components/BirthDateField.tsx', via: champDate('d') },
+  { quoi: 'mois de naissance (étape 2)', valeur: '8', dans: 'components/BirthDateField.tsx', via: champDate('mo') },
+  { quoi: 'année de naissance (étape 2)', valeur: '1994', dans: 'components/BirthDateField.tsx', via: champDate('y') },
   { quoi: 'poids (étape 2)', valeur: '80', dans: 'app/(auth)/onboarding.tsx' },
   { quoi: 'taille (étape 2)', valeur: '178', dans: 'app/(auth)/onboarding.tsx' },
   { quoi: 'masse grasse (étape 3)', valeur: 'ex. 18', dans: 'components/BodyFatPicker.tsx' },
@@ -130,6 +145,40 @@ const CLES: { quoi: string; cle: string; dans: string }[] = [
   { quoi: 'préfixe des visites guidées', cle: '@kyroz:tour:', dans: 'components/GuidedTour.tsx' },
 ];
 
+describe('harnais Playwright — il neutralise TOUS les tours, pas seulement le premier', () => {
+  // ⚠️ Ce test est né d'un manque REL, pas d'une précaution. `neutralizeFirstRun`
+  // ne posait que `@kyroz:tour:plan` — écrit à l'époque où il n'existait qu'un
+  // tour. Le tutoriel est passé à CINQ le 2026-08-08 (E20) sans que cette ligne
+  // bouge : les quatre autres se seraient armés à la première visite de LEUR
+  // onglet, au milieu d'un parcours. Un tour est une `Modal` dont les panneaux
+  // avalent les taps, donc le script aurait rendu « écran introuvable » — en
+  // accusant l'écran alors qu'il n'avait pas pu quitter le précédent.
+  //
+  // La liste du harnais est une COPIE (c'est du `.mjs`, il ne peut pas importer
+  // `lib/tours.ts`). Une copie que personne ne relit est une seconde source de
+  // vérité qui attend son bug (§10) — ce test est ce qui la relit.
+  const harnais = readFileSync(join(RACINE, HARNAIS), 'utf8');
+
+  it.each(TOURS.map((t) => t.id))('le tour « %s » est neutralisé avant le premier rendu', (id) => {
+    expect(
+      harnais.includes(`'${id}'`) || harnais.includes(`@kyroz:tour:${id}`),
+      `\`${HARNAIS}\` n'éteint pas le tour « ${id} » : il s'armera au milieu d'un parcours et avalera les taps.`,
+    ).toBe(true);
+  });
+
+  it('n\'éteint aucun tour qui n\'existe plus', () => {
+    // Le sens inverse : un id resté dans le harnais après la suppression d'un
+    // tour est du bruit qui survivra à sa raison d'être.
+    const connus = new Set(TOURS.map((t) => t.id as string));
+    const bloc = harnais.match(/for \(const id of \[([^\]]+)\]\)/)?.[1] ?? '';
+    const cites = [...bloc.matchAll(/'([\w-]+)'/g)].map((m) => m[1]);
+    expect(cites.filter((id) => !connus.has(id))).toEqual([]);
+    // Et la boucle doit bien exister : sans elle, le test ci-dessus passerait sur
+    // n'importe quelle occurrence du mot dans le fichier.
+    expect(cites.length, 'la boucle de neutralisation des tours a disparu du harnais').toBe(TOURS.length);
+  });
+});
+
 describe('harnais Playwright — les libellés cherchés existent encore', () => {
   it.each(ANCRES)('« $texte » — $quoi', ({ texte, dans, motif, cherche, script }) => {
     const fichierScript = script ?? HARNAIS;
@@ -143,10 +192,21 @@ describe('harnais Playwright — les libellés cherchés existent encore', () =>
     ).toBe(true);
   });
 
-  it.each(PLACEHOLDERS)('placeholder « $valeur » — $quoi', ({ valeur, dans }) => {
+  it.each(PLACEHOLDERS)('placeholder « $valeur » — $quoi', ({ valeur, dans, via }) => {
+    // Écrit sur le champ (`placeholder="80"`), ou décidé dans un écran et transmis à un
+    // composant de saisie (`placeholders={{ y: '1994' }}` → `DateInput`). Les deux
+    // rendent le même attribut dans le DOM ; la seconde forme exige donc les DEUX bouts,
+    // et pour LE champ concerné : l'exemple là où il est choisi, et son passage effectif
+    // là où ce champ-là est rendu.
+    const direct = lire(dans).includes(`placeholder="${valeur}"`);
+    const transmis = !!via
+      && lire(dans).includes(`${via.cle}: '${valeur}'`)
+      && lire(via.fichier).includes(`placeholder={placeholders?.${via.cle}}`);
     expect(
-      lire(dans).includes(`placeholder="${valeur}"`),
-      `${dans} n'a plus de champ avec placeholder="${valeur}" → fillPh() ne remplira RIEN, en silence`,
+      direct || transmis,
+      via
+        ? `${dans} ne choisit plus « ${via.cle}: '${valeur}' », ou ${via.fichier} ne le passe plus à ce champ → fillPh() ne remplira RIEN, en silence`
+        : `${dans} n'a plus de champ avec placeholder="${valeur}" → fillPh() ne remplira RIEN, en silence`,
     ).toBe(true);
     expect(
       lire(HARNAIS).includes(`'${valeur}'`),
