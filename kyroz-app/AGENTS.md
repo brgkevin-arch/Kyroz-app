@@ -445,6 +445,49 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
 
 ### 🔴 A — En retard ou cassé en silence
 
+- 🔴 **A29 · Confirmation e-mail — CODE LIVRÉ, l'interrupteur reste à basculer (2026-08-07)**
+  ⚠️ *Numérotée **A28** à l'écriture, renommée **A29** à la fusion : `A28` était déjà pris
+  sur `main` par l'échéance datée. **Deuxième collision de la journée** (cf. E19/E20) —
+  le numéro se prend au moment de FUSIONNER, pas au moment d'écrire, parce qu'un
+  identifiant choisi sur une branche est une réservation que personne d'autre ne voit.*
+  **Mesuré, pas supposé** (`npm run check:auth`, nouveau) : `mailer_autoconfirm: true` —
+  **la confirmation e-mail est DÉSACTIVÉE**. Aucun e-mail ne part, tout compte créé est
+  actif immédiatement, et le message « Vérifie ta boîte mail » de `login.tsx` ne
+  s'affiche jamais. Ce n'était donc ni du spam ni de la délivrabilité.
+  ⚠️ **Piège de lecture** : `mailer_autoconfirm: true` = confirmation NON demandée,
+  l'inverse de la case du dashboard. Lu vite, il fait conclure le contraire.
+
+  **Livré dans cette PR** — confirmation par **code à 6 chiffres saisi dans l'app**
+  (`verifyOtp`), le lien restant en second chemin :
+  - `supabase/emails/confirmation.html` — gabarit Kyroz (fond noir, code en gros, zéro
+    émoji). ⚠️ **À COLLER dans le dashboard** : ce fichier n'est lu par personne d'autre.
+  - `public/confirme.html` — page d'atterrissage du lien, servie comme `legal.html`.
+  - `lib/emailConfirmation.ts` + l'écran de saisie dans `login.tsx` (renvoi avec compte
+    à rebours, retour connexion).
+  - `npm run check:auth` — l'état RÉEL de l'auth en prod, témoin négatif compris.
+
+  🔴 **Un défaut RGPD a été trouvé et corrigé au passage, et il ne se serait vu nulle
+  part** : le consentement santé était écrit juste après `signUp`, donc **sans session**
+  — ce que la RLS `auth.uid() = id` refuse, et que le `try/catch` avale. Activer la
+  confirmation aurait laissé `consent_health_data = false` sur tous les nouveaux comptes,
+  alors que la case était bien cochée à l'écran. L'écriture est désormais **reportée**
+  jusqu'à l'ouverture de session (les deux chemins : code saisi ET lien cliqué).
+
+  ⚠️ **Pourquoi le code plutôt que le seul lien** : aucun lien universel n'est configuré,
+  donc sur mobile le lien ouvre le NAVIGATEUR, pas l'app ; et les antivirus de messagerie
+  pré-cliquent les liens, ce qui **consomme** le jeton à usage unique — c'est la panne
+  « lien invalide ou expiré » classique, et elle ne se reproduit jamais chez soi.
+
+  **⏳ CE QUI RESTE, et c'est hors du dépôt** : `supabase/PROCEDURE-2026-08-07-confirmation-email.md`
+  (12 étapes, une à la fois). L'ordre n'est pas négociable — déployer l'app, **puis** un
+  SMTP dédié (le service intégré est bridé à ~2 envois/heure et déconseillé en prod par
+  Supabase : c'est le suspect n°1 du « ça ne marchait plus pour une personne »), **puis**
+  l'interrupteur. Décisions du fondateur : code à 6 chiffres + **Resend** en expéditeur.
+  ⚠️ **Non vérifié à l'écran** : l'écran de saisie n'a pas pu être ouvert dans un
+  navigateur (le preview d'un worktree sert l'app du dépôt PRINCIPAL, cf. §11). Garanties :
+  `tsc` vert, 1 165 tests verts dont les 4 tests de DA. Le gabarit et la page, eux, ont
+  été rendus et regardés.
+
 - ~~**A31 · Jouer la migration `meal_slots` en prod**~~ ✅ **JOUÉE le 2026-08-07, PR #46
   mergée, site déployé** — les créneaux de repas libres sont EN LIGNE.
   Séquence respectée, et c'est elle qui compte : SQL d'abord, merge ensuite (le merge
@@ -467,7 +510,6 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
   l'OTA » sans vérifier ce qu'une autre session venait de publier. Le contrôle est un
   `git merge-base --is-ancestor`, il coûte deux secondes : **avant d'annoncer un écart
   web/natif, comparer les COMMITS, pas les dates.**
-
 
 - ~~**A1 · Confirmer une écriture RÉELLE en prod**~~ ✅ **PROUVÉ le 2026-07-31, par
   mesure contre la prod** (REST + clé anonyme, aucun accès dashboard nécessaire) :

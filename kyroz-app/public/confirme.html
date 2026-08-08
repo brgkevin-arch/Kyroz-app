@@ -1,0 +1,89 @@
+<!doctype html>
+<!--
+  ⚠️ PAGE D'ATTERRISSAGE DE LA CONFIRMATION D'ADRESSE.
+  Servie en HTTP 200 à https://brgkevin-arch.github.io/Kyroz-app/confirme.html
+  (`expo export -p web` recopie `public/` tel quel dans `dist/`, comme legal.html).
+
+  Qui arrive ici : celui qui a CLIQUÉ le lien de l'e-mail plutôt que de saisir le
+  code à 6 chiffres dans l'app. Supabase a déjà vérifié le jeton AVANT de rediriger
+  ici — cette page ne valide rien, elle ANNONCE le résultat. Sans elle, le clic
+  atterrit sur la « Site URL » du projet, c'est-à-dire l'app, qui affiche un écran
+  de connexion muet : l'utilisateur ne sait pas si ça a marché.
+
+  ⚠️ Son URL doit figurer dans Supabase → Authentication → URL Configuration →
+  Redirect URLs, sinon Supabase l'ignore et retombe sur la Site URL. La constante
+  côté app est `lib/emailConfirmation.ts::URL_RETOUR_CONFIRMATION` — les deux
+  doivent dire la même chose, un test le vérifie.
+
+  ⚠️ Le fragment d'URL porte les jetons de session (`#access_token=…`). On ne les
+  lit pas, on ne les affiche pas, et on les EFFACE de la barre d'adresse : cette
+  page n'ouvre pas de session, l'app le fait de son côté.
+-->
+<html lang="fr" translate="no">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="google" content="notranslate" />
+  <meta name="robots" content="noindex" />
+  <title>Adresse confirmée — Kyroz</title>
+  <style>
+    :root { color-scheme: dark; }
+    body { margin: 0; background: #000; color: rgba(255,255,255,0.85);
+           font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+           line-height: 1.6; display: flex; min-height: 100vh; align-items: center; justify-content: center; }
+    .wrap { max-width: 420px; padding: 32px 20px 64px; text-align: center; }
+    .logo { font-size: 22px; font-weight: 800; letter-spacing: 6px; color: #fff; margin-bottom: 40px; }
+    h1 { font-size: 24px; font-weight: 700; color: #fff; margin: 0 0 12px; letter-spacing: -0.3px; }
+    p { font-size: 15px; color: rgba(235,235,245,0.6); margin: 0 0 10px; }
+    .card { background: #1C1C1E; border-radius: 22px; padding: 32px 24px; }
+    .foot { font-size: 12px; color: rgba(235,235,245,0.25); margin-top: 28px; }
+    a { color: rgba(235,235,245,0.6); }
+    #echec { display: none; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="logo">KYROZ</div>
+
+    <div class="card">
+      <div id="succes">
+        <h1>Adresse confirmée.</h1>
+        <p>Ton compte est actif. Retourne dans Kyroz et connecte-toi avec ton e-mail et ton mot de passe.</p>
+        <p>Tu peux fermer cet onglet.</p>
+      </div>
+
+      <div id="echec">
+        <h1>Ce lien n'est plus valable.</h1>
+        <p>Il a expiré, ou il a déjà servi. Rouvre Kyroz et demande un nouvel envoi depuis l'écran de confirmation.</p>
+      </div>
+    </div>
+
+    <p class="foot">
+      Une question : <a href="mailto:contact@kyroz.app">contact@kyroz.app</a>
+    </p>
+  </div>
+
+  <script>
+    (function () {
+      // Supabase signale un échec par `error` / `error_description`, dans le
+      // fragment le plus souvent, dans la query parfois. On regarde les deux :
+      // n'en lire qu'un afficherait « confirmée » sur un lien mort.
+      var frag = new URLSearchParams((location.hash || '').replace(/^#/, ''));
+      var query = new URLSearchParams(location.search || '');
+      var enErreur = frag.has('error') || query.has('error');
+
+      if (enErreur) {
+        document.getElementById('succes').style.display = 'none';
+        document.getElementById('echec').style.display = 'block';
+      }
+
+      // Le fragment porte les jetons de session en clair. Cette page n'en fait
+      // rien : on les retire de la barre d'adresse pour qu'ils ne partent pas
+      // dans un historique, un partage de lien ou un référent.
+      if (location.hash || location.search) {
+        history.replaceState(null, '', location.pathname);
+      }
+    })();
+  </script>
+</body>
+</html>
