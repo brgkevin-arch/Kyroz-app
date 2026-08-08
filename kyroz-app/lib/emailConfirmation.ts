@@ -1,4 +1,15 @@
-// ── Confirmation d'adresse e-mail — les règles, hors de tout écran ───────────
+// ── Les codes reçus par e-mail — les règles, hors de tout écran ──────────────
+//
+// ⚠️ Ce module sert DEUX parcours, pas un : la confirmation d'inscription et la
+// réinitialisation de mot de passe. Les deux reposent sur le même jeton Supabase
+// (`{{ .Token }}`, 6 chiffres) et la même saisie ; ce qui les sépare tient en deux
+// points, et les confondre produit des messages faux :
+//   - le TYPE passé à `verifyOtp` (`signup` vs `recovery`) — se tromper fait
+//     répondre « invalide » sur un code pourtant juste ;
+//   - la présence d'un LIEN dans l'e-mail. La confirmation en a un ; la
+//     réinitialisation n'en a pas, et c'est une décision — voir plus bas.
+//
+// Le nom du fichier dit « confirmation » parce qu'il est né avec ce parcours-là.
 //
 // Kyroz confirme une inscription par un CODE À 6 CHIFFRES saisi dans l'app, et
 // non par le seul clic sur un lien. Ce n'est pas une préférence esthétique, ce
@@ -40,6 +51,11 @@ export const URL_RETOUR_CONFIRMATION = 'https://brgkevin-arch.github.io/Kyroz-ap
 /** Longueur du code envoyé par Supabase (`{{ .Token }}`). */
 export const CODE_LONGUEUR = 6;
 
+/** Délai avant de pouvoir redemander un e-mail. Ce n'est pas un choix de confort :
+ *  Supabase refuse un second envoi avant 60 s. Sans compte à rebours à l'écran,
+ *  l'utilisateur appuie et reçoit une erreur technique qu'il lit comme une panne. */
+export const DELAI_RENVOI_S = 60;
+
 /**
  * Ce qu'on garde de ce que l'utilisateur tape : les chiffres, et pas plus de six.
  *
@@ -76,6 +92,68 @@ export function traduitErreurConfirmation(msg: string): string {
   }
   if (m.includes('network') || m.includes('fetch')) {
     return 'Pas de réseau. Réessaie dans un instant.';
+  }
+  return msg;
+}
+
+// ── Réinitialisation de mot de passe ─────────────────────────────────────────
+
+// 🔴 L'E-MAIL DE RÉINITIALISATION NE PORTE AUCUN LIEN, ET C'EST UNE DÉCISION.
+//
+// Pour une CONFIRMATION, cliquer le lien suffit : le compte devient actif, et la
+// personne se connecte ensuite normalement. Pour une RÉINITIALISATION, non — il
+// reste à choisir un nouveau mot de passe, et le clic ne le fait pas :
+//
+//  - la page d'atterrissage est un fichier STATIQUE : elle ne peut pas appeler
+//    `updateUser` (pas de client Supabase, pas de session) ;
+//  - la session ouverte par le clic vit dans le NAVIGATEUR, pas dans l'app native,
+//    qui n'en verra jamais rien (`detectSessionInUrl: false`, cf. lib/supabase.ts) ;
+//  - et le clic a CONSOMMÉ le jeton, donc le code à 6 chiffres est mort.
+//
+// ➡️ Résultat : mot de passe inchangé, code inutilisable, aucun recours. La
+// personne serait dans un état PIRE qu'avant sa demande. Et les antivirus de
+// messagerie qui pré-cliquent les liens (cf. plus haut) transformeraient chaque
+// demande en impasse, sans que personne ne touche à rien.
+//
+// Le code seul n'a aucun de ces défauts : rien à cliquer, donc rien à consommer.
+// ⚠️ Ne pas « améliorer » le gabarit en y remettant `{{ .ConfirmationURL }}` —
+// `lib/__tests__/emailConfirmation.test.ts` le refuse, avec cette raison.
+
+/** Longueur minimale d'un mot de passe. Même règle à l'inscription et à la
+ *  réinitialisation : deux exigences différentes pour le même champ seraient
+ *  vécues comme un bug. */
+export const MDP_LONGUEUR_MIN = 6;
+
+export function motDePasseValide(mdp: string): boolean {
+  return (mdp ?? '').length >= MDP_LONGUEUR_MIN;
+}
+
+/**
+ * Mêmes erreurs Supabase, autre parcours — donc autres consignes.
+ *
+ * ⚠️ Réutiliser `traduitErreurConfirmation` ici livrerait un mensonge : elle
+ * conseille « si tu as déjà cliqué le lien de l'e-mail… », or l'e-mail de
+ * réinitialisation n'en contient AUCUN. Un message d'erreur qui décrit un geste
+ * impossible fait douter de l'app, pas du code saisi.
+ */
+export function traduitErreurReinitialisation(msg: string): string {
+  const m = (msg ?? '').toLowerCase();
+  // Supabase refuse un mot de passe identique à l'ancien. C'est la seule erreur
+  // de ce parcours qui vienne de l'ÉTAPE 3, pas du code : elle passe en premier.
+  if (m.includes('should be different') || m.includes('same as the old')) {
+    return 'Ce mot de passe est déjà le tien. Choisis-en un autre.';
+  }
+  if (m.includes('expired') || m.includes('invalid')) {
+    return 'Code refusé. Vérifie les six chiffres — ou demande un nouveau code, celui-ci a peut-être expiré.';
+  }
+  if (m.includes('rate limit') || m.includes('after')) {
+    return 'Trop de demandes d\'affilée. Attends une minute avant de redemander un code.';
+  }
+  if (m.includes('network') || m.includes('fetch')) {
+    return 'Pas de réseau. Réessaie dans un instant.';
+  }
+  if (m.includes('password')) {
+    return `Mot de passe trop court (${MDP_LONGUEUR_MIN} caractères minimum).`;
   }
   return msg;
 }

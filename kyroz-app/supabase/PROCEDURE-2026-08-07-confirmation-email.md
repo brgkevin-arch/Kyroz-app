@@ -1,8 +1,13 @@
-# Procédure — remettre la confirmation e-mail (2026-08-07)
+# Procédure — les e-mails d'authentification (2026-08-07)
 
 > Une seule étape à la fois. Fais l'étape, dis-moi le résultat, je te donne la suivante.
 > Rien ici n'est faisable depuis le dépôt : tout demande l'accès au dashboard Supabase,
 > à Cloudflare et à un compte Resend.
+
+**Deux e-mails sont concernés**, et ils se posent dans la même session de dashboard :
+la **confirmation d'inscription** (le sujet d'origine) et la **réinitialisation de mot
+de passe** (étape 7 bis — le parcours n'existait pas du tout dans l'app avant le
+2026-08-07). Les deux reposent sur un code à 6 chiffres saisi dans Kyroz.
 
 ## L'état actuel, mesuré (pas supposé)
 
@@ -25,9 +30,17 @@ contraire de la réalité.
 
 ## L'ordre compte, et il n'est pas négociable
 
-1. **L'app d'abord.** L'e-mail contient un code à 6 chiffres, et c'est l'écran de
-   saisie qui l'attend. Activer la confirmation avant que cet écran soit en ligne
-   enverrait un code que personne ne peut saisir.
+1. **L'app avant l'INTERRUPTEUR** (étape 10, pas avant). L'e-mail contient un code à
+   6 chiffres, et c'est l'écran de saisie qui l'attend : activer la confirmation avant
+   que cet écran soit en ligne enverrait un code que personne ne peut taper.
+   ✅ **En revanche, les étapes 2 à 9 ne dépendent PAS du déploiement et peuvent se
+   faire tout de suite.** Aujourd'hui **aucun e-mail d'authentification ne part** de
+   Kyroz — confirmation coupée, réinitialisation inexistante, ni magic link ni
+   changement d'adresse. Tout ce paramétrage se fait donc à vide : rien ne s'envoie,
+   rien ne change pour personne. Les DNS de l'étape 3 ont même intérêt à être posés
+   tôt, le temps de se propager.
+   ➡️ Si l'étape 1 est reportée, **la reprendre avant l'étape 10** : c'est la seule
+   qui la réclame.
 2. **L'expéditeur ensuite.** Le service e-mail intégré de Supabase est bridé à
    ~2 envois par heure **pour tout le projet**, et Supabase le déconseille
    explicitement en production. C'est le suspect n°1 du « ça ne marchait plus pour
@@ -36,7 +49,7 @@ contraire de la réalité.
 
 ---
 
-## Étape 1 — livrer l'app (avant tout le reste)
+## Étape 1 — livrer l'app (reportable, mais AVANT l'étape 10)
 
 La PR de cette branche porte l'écran de saisie du code, la page d'atterrissage
 (`public/confirme.html`) et le gabarit d'e-mail.
@@ -173,6 +186,31 @@ e-mail impeccable, avec une case vide, en face d'un écran qui réclame six chif
 
 ---
 
+## Étape 7 bis — le second gabarit : mot de passe oublié
+
+Même écran, autre onglet : **Templates** → **Reset Password**.
+
+1. **Subject heading** : `Ton code de réinitialisation — Kyroz`
+2. **Message body** : remplacer **tout** le contenu par celui de
+   `supabase/emails/reinitialisation.html`.
+3. **Save**.
+
+🔴 **Ce gabarit-là ne contient AUCUN lien, et ce n'est pas un oubli.** Cliquer un lien
+de réinitialisation **consomme** le jeton **sans changer le mot de passe** : la page
+d'atterrissage est un fichier statique, elle ne peut pas en poser un, et la session
+ainsi ouverte vit dans le navigateur — jamais dans l'app. La personne se retrouverait
+avec son ancien mot de passe **et** un code mort : pire qu'avant sa demande. Les
+antivirus de messagerie, qui pré-cliquent les liens, provoqueraient ça tout seuls, à
+chaque envoi.
+
+⚠️ **Donc : ne « complète » pas ce gabarit avec le bouton de l'autre.** Si le contenu
+par défaut de Supabase apparaît encore après le collage, c'est que le collage a raté —
+recommence plutôt que d'ajouter.
+
+**→ Envoie-moi une capture de l'aperçu affiché par Supabase.**
+
+---
+
 ## Étape 8 — la durée de vie du code
 
 Supabase → **Authentication** → **Emails** → **Email OTP Expiration** : `3600` (secondes).
@@ -200,6 +238,10 @@ bas pour qu'un abus se voie.
 ---
 
 ## Étape 10 — l'interrupteur
+
+🔴 **L'étape 1 doit être faite AVANT celle-ci** (les deux PR mergées, le déploiement
+vert, `confirme.html` qui répond 200). Si elle a été reportée, y retourner maintenant :
+c'est le seul point de la procédure où l'ordre mord vraiment.
 
 Supabase → **Authentication** → **Sign In / Providers** → **Email** → cocher
 **Confirm email** → **Save**.
@@ -256,17 +298,33 @@ point de contrôle est ce qui le prouve **en prod**.
    - [ ] De retour dans l'app, « Revenir à la connexion » puis connexion classique : ça
          passe.
 
+7. **Mot de passe oublié**, avec le premier compte test (celui dont tu connais l'adresse) :
+   - [ ] Écran de connexion → le lien **« Mot de passe oublié ? »** est visible.
+         *(Il n'apparaît qu'en mode Connexion : à l'inscription, il n'y a pas encore de
+         mot de passe à oublier.)*
+   - [ ] **Recevoir un code** → l'e-mail arrive, expéditeur **Kyroz**, code affiché.
+   - [ ] **Aucun bouton, aucun lien** dans cet e-mail — seulement le code. S'il y a un
+         bouton, c'est le gabarit par défaut : l'étape 7 bis a raté.
+   - [ ] Code saisi → écran **« Nouveau mot de passe »** → enregistrer → l'app entre
+         directement.
+   - [ ] Se déconnecter, puis se reconnecter avec le **nouveau** mot de passe : ça passe.
+   - [ ] Et avec l'**ancien** : refusé.
+8. Avec une adresse **qui n'existe pas** : « Mot de passe oublié ? » → **Recevoir un code**.
+   - [ ] L'app passe quand même à l'écran de saisie, et dit « **si** un compte existe ».
+         C'est voulu : afficher « aucun compte avec cette adresse » transformerait ce
+         formulaire en outil pour savoir qui est inscrit chez Kyroz.
+
 **→ Colle-moi ce qui coince, s'il y a lieu.**
 
 ---
 
 ## Ce que cette procédure ne fait PAS, volontairement
 
-- **Pas de « mot de passe oublié ».** L'app n'a aucun parcours de réinitialisation
-  (`resetPasswordForEmail` n'est appelé nulle part) : le gabarit correspondant ne
-  partira jamais, donc le personnaliser serait du travail mort. ⚠️ **C'est un vrai
-  manque produit** — quelqu'un qui oublie son mot de passe n'a aujourd'hui aucun
-  recours — mais c'est un chantier à part, pas un sous-produit de celui-ci.
+- ~~**Pas de « mot de passe oublié »**~~ — **AJOUTÉ le 2026-08-07** (étape 7 bis, et
+  points 7-8 du test). La première version de cette procédure l'écartait au motif que
+  le gabarit « ne partirait jamais » : c'était vrai, et c'était surtout le symptôme.
+  L'app n'avait **aucun** recours pour un mot de passe perdu — le compte l'était avec
+  lui. Le parcours vit maintenant dans `components/MotDePasseOublie.tsx`.
 - **Pas de lien universel (Universal Link / App Link).** C'est ce qui permettrait au
   lien de l'e-mail de rouvrir l'app native au lieu du navigateur. Ça demande un fichier
   signé servi sur le domaine et un nouveau build natif — donc une revue de store. Le

@@ -445,6 +445,57 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
 
 ### 🔴 A — En retard ou cassé en silence
 
+- 🔴 **A30 · Mot de passe oublié — le parcours N'EXISTAIT PAS, il est livré (2026-08-07)**
+  ⚠️ *Numérotée **A29** à l'écriture — un choix qui était JUSTE au moment où il a été
+  fait (la confirmation e-mail était `A28`, celle-ci prenait la suite). Elle est
+  renommée **A30** parce que la résolution du conflit de `A28` l'a déplacée en `A29`,
+  sans regarder les PR EMPILÉES au-dessus. **Renuméroter dans une pile propage la
+  collision au lieu de la clore** : le numéro doit être choisi en regardant `main` ET
+  les branches en aval. Troisième collision de la journée, cf. E19/E20 et A28/A29.*
+  `resetPasswordForEmail` n'était appelé **nulle part**, et l'écran de connexion ne
+  proposait rien : **un mot de passe oublié = un compte perdu**, sans autre issue que
+  d'écrire à `contact@kyroz.app`. Repéré en livrant A29 (la confirmation e-mail), hors de son périmètre.
+
+  **Livré** — trois étapes dans `components/MotDePasseOublie.tsx` (demander le code ·
+  le vérifier · poser le nouveau mot de passe), branché depuis `login.tsx` par un lien
+  **« Mot de passe oublié ? »** visible en mode Connexion seulement. Même mécanique
+  que A28 : code à 6 chiffres, `verifyOtp({ type: 'recovery' })`, puis `updateUser`.
+  Gabarit `supabase/emails/reinitialisation.html` — **à coller** (procédure, étape 7 bis).
+
+  🔴 **L'e-mail de réinitialisation ne porte AUCUN lien, et c'est une décision.**
+  Cliquer un lien de recovery **consomme** le jeton **sans** changer le mot de passe :
+  une page statique ne peut pas appeler `updateUser`, et la session ainsi ouverte vit
+  dans le navigateur, jamais dans l'app. La personne se retrouverait avec son ancien
+  mot de passe ET un code mort — **pire qu'avant sa demande**. Les antivirus de
+  messagerie qui pré-cliquent les liens le provoqueraient à chaque envoi. Le code seul
+  n'a pas ce défaut : rien à cliquer, rien à consommer.
+  ⚠️ Corollaire : les messages d'erreur de ce parcours sont SÉPARÉS de ceux de la
+  confirmation (`traduitErreurReinitialisation`). Réutiliser les autres conseillerait
+  « si tu as déjà cliqué le lien… » — un geste impossible ici, donc un mensonge.
+
+  ⚠️ **Anti-énumération assumée** : on passe à l'écran de saisie **même si l'adresse est
+  inconnue**, et le message reste au conditionnel (« si un compte existe »). Afficher
+  « aucun compte » ferait de ce formulaire un outil pour savoir qui est inscrit chez
+  Kyroz. Prix payé : qui se trompe d'adresse attend un code qui ne viendra pas.
+
+  🔴 **DEUX DE MES PROPRES TESTS ÉTAIENT FAUX, et c'est l'enseignement de la session.**
+  Ils lisaient le fichier ENTIER — or un fichier bien commenté **cite** les chaînes que
+  le test cherche. `useAuth.tsx` explique « `type: 'recovery'` — surtout PAS 'signup' » :
+  supprimer l'appel réel laissait donc une occurrence, dans la ligne qui interdit de le
+  supprimer. **Le commentaire se portait garant du code qu'il décrit.** Idem pour les
+  gabarits (l'en-tête liste les variables obligatoires) — le garde-fou `{{ .Token }}` de
+  A28 était donc, lui aussi, un faux positif. Et un troisième : `resetPasswordForEmail\([^)]*\)`
+  s'arrêtait à la parenthèse de `email.trim()`, donc ne voyait jamais les options.
+  ➡️ Depuis : `sansCommentaires` / `sansCommentairesTS` avant toute recherche de chaîne.
+  ➡️ **Aucune des trois ne s'est vue à la relecture** — les mutations initiales frappaient
+  le fichier entier, commentaire compris, donc elles rougissaient pour la mauvaise raison.
+  **Une mutation doit frapper là où le code vit, pas là où il est décrit** ; sinon elle
+  valide le test qu'elle est censée mettre à l'épreuve. Les 8 garde-fous ont été
+  re-mutés ligne par ligne, avec un contrôle imprimé que la mutation avait bien pris.
+
+  ⚠️ **Non vérifié à l'écran** : les trois étapes n'ont pas pu être ouvertes dans un
+  navigateur (preview d'un worktree → app du dépôt PRINCIPAL, cf. §11). `tsc` vert,
+  1 178 tests verts, gabarit rendu et regardé.
 - 🔴 **A29 · Confirmation e-mail — CODE LIVRÉ, l'interrupteur reste à basculer (2026-08-07)**
   ⚠️ *Numérotée **A28** à l'écriture, renommée **A29** à la fusion : `A28` était déjà pris
   sur `main` par l'échéance datée. **Deuxième collision de la journée** (cf. E19/E20) —

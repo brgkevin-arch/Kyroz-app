@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView,
 } from 'react-native';
@@ -12,14 +12,14 @@ import { Field, PrimaryButton, Segmented } from '../../components/ui';
 import { useAuth } from '../../hooks/useAuth';
 import { DISCLAIMER } from '../../constants/legal';
 import { isReviewLogin } from '../../lib/reviewAccess';
-import { CODE_LONGUEUR, codeComplet, normaliseCode, traduitErreurConfirmation } from '../../lib/emailConfirmation';
+import {
+  CODE_LONGUEUR, DELAI_RENVOI_S, MDP_LONGUEUR_MIN,
+  codeComplet, normaliseCode, traduitErreurConfirmation,
+} from '../../lib/emailConfirmation';
+import { useCompteARebours } from '../../hooks/useCompteARebours';
+import MotDePasseOublie from '../../components/MotDePasseOublie';
 
 type Mode = 'signin' | 'signup';
-
-/** Délai avant de pouvoir redemander un e-mail. Supabase refuse plus vite que ça
- *  (60 s côté serveur) : sans compte à rebours visible, l'utilisateur appuie et
- *  reçoit une erreur qu'il lit comme une panne. */
-const DELAI_RENVOI_S = 60;
 
 export default function LoginScreen() {
   const t = useTheme();
@@ -40,16 +40,14 @@ export default function LoginScreen() {
   // saisie du code, pas le formulaire.
   const [aConfirmer, setAConfirmer] = useState<string | null>(null);
   const [code, setCode] = useState('');
-  const [renvoiDans, setRenvoiDans] = useState(0);
+  const [renvoiDans, setRenvoiDans] = useCompteARebours();
 
-  useEffect(() => {
-    if (renvoiDans <= 0) return;
-    const id = setInterval(() => setRenvoiDans((n) => (n <= 1 ? 0 : n - 1)), 1000);
-    return () => clearInterval(id);
-  }, [renvoiDans]);
+  // Parcours « mot de passe oublié » — un composant à part (components/MotDePasseOublie),
+  // parce qu'il porte trois étapes à lui seul et que cet écran en a déjà trois.
+  const [oubli, setOubli] = useState(false);
 
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
-  const canSubmit = emailValid && password.length >= 6 && (mode === 'signin' || consent);
+  const canSubmit = emailValid && password.length >= MDP_LONGUEUR_MIN && (mode === 'signin' || consent);
 
   const submit = async () => {
     if (!canSubmit || busy) return;
@@ -131,7 +129,13 @@ export default function LoginScreen() {
 
           <View style={{ height: 28 }} />
 
-          {aConfirmer ? (
+          {oubli ? (
+            <MotDePasseOublie
+              emailInitial={email}
+              onAnnuler={() => { setOubli(false); setError(null); setNotice(null); }}
+              onTermine={() => router.replace('/')}
+            />
+          ) : aConfirmer ? (
             <>
               {/* ── Confirmation d'adresse : le code reçu par e-mail ────────────
                   L'utilisateur reste ICI. Le lien de l'e-mail marche aussi, mais
@@ -224,6 +228,17 @@ export default function LoginScreen() {
             disabled={!canSubmit}
             loading={busy}
           />
+
+          {/* Sortie de secours du compte perdu. En CONNEXION seulement : à
+              l'inscription, il n'y a pas encore de mot de passe à oublier. */}
+          {mode === 'signin' && (
+            <TouchableOpacity
+              onPress={() => { setOubli(true); setError(null); setNotice(null); }}
+              activeOpacity={OPACITE_PRESSION} style={s.lienSecondaire}
+            >
+              <Text style={s.lienSecondaireTxt}>Mot de passe oublié ?</Text>
+            </TouchableOpacity>
+          )}
 
           <Text style={s.social}>Connexion Apple & Google bientôt — avec l'app iOS.</Text>
 
