@@ -109,7 +109,19 @@ export function bilanPannes() {
 export async function neutralizeFirstRun(context) {
   await context.addInitScript(() => {
     try {
-      localStorage.setItem('@kyroz:tour:plan', 'done');
+      // ⚠️ LES CINQ TOURS, pas seulement celui du Plan. Cette ligne n'en posait
+      // qu'un — elle a été écrite quand il n'existait qu'un tour, et le tutoriel
+      // est passé à cinq le 2026-08-08 (AGENTS.md E20). Les quatre autres se
+      // seraient armés à la première visite de LEUR onglet, c'est-à-dire au
+      // milieu d'un parcours, et un tour est une `Modal` dont les panneaux
+      // avalent les taps : le script aurait déclaré « écran introuvable » alors
+      // qu'il n'avait simplement pas pu quitter l'onglet précédent — le pire des
+      // diagnostics (CLAUDE.md §11).
+      // La liste est verrouillée contre `lib/tours.ts` par `harnaisEcrans.test.ts` :
+      // ajouter un tour sans l'ajouter ici fait rougir `npm test` le jour même.
+      for (const id of ['plan', 'recettes', 'courses', 'frigo', 'profil']) {
+        localStorage.setItem(`@kyroz:tour:${id}`, 'done');
+      }
       localStorage.setItem('@kyroz:analyticsConsent', 'denied');
     } catch {}
   });
