@@ -3871,6 +3871,33 @@ produit en suspens — il ne reste qu'à coder.
   route — pas la veille d'une sortie store.
   </details>
 
+- **E17 · 🤖 Finir la passe émoji — 13 en restent AFFICHÉS.** *Décision fondateur du
+  2026-08-07 : ils partent.* Ce n'est plus un arbitrage ouvert, c'est un chantier à
+  coder — ne pas re-demander l'autorisation. Raisonnement complet : `CLAUDE.md` §8.
+
+  | Fichier | Combien | Ce qui l'affiche |
+  |---|---|---|
+  | `lib/streak.ts` (paliers) | 6 — 🔥 🎉 💪 🏆 ⭐ 👑 | `StreakCelebration` en **56 px**, écran Plan |
+  | `lib/streak.ts` (`streakMessage`) | 2 — 🎯 🎉 | `StreakProgress` |
+  | `lib/notifications.ts` | 4 — 💪 🍽️ 🔥 ⚖️ | notifications natives |
+  | `constants/legal.ts` | 1 — ⚠️ | écran `/legal` (CGU) |
+
+  **Deux natures, pas une.** Les 5 de `notifications.ts` et `legal.ts` sont
+  mécaniques : la phrase se reformule et tient sans (patron « Noté 👎 » → « C'est
+  noté »). Les **6 paliers sont un objet VISUEL de 56 px** — les remplacer par
+  `ReussiteIcon`, par le seul chiffre, ou par rien, est un choix de DA à poser au
+  fondateur **au moment de le faire**. La décision acquise est « ça part », pas
+  « ça devient X ».
+
+  ⚠️ **Poser un COMPTEUR dans le même lot**, sinon la passe se redéclarera finie
+  toute seule — c'est exactement ce qui vient de se produire. La passe du
+  2026-08-06 a compté sur `app/` + `components/`, s'est déclarée terminée, et la
+  conclusion a été recopiée à trois endroits (message de commit, commentaire de
+  `Icons.tsx`, `CLAUDE.md` §8) où les trois copies se confirmaient l'une l'autre.
+  ➡️ **Un inventaire d'interface se compte sur ce qui est AFFICHÉ**, pas sur les
+  fichiers qui ressemblent à de l'interface : ces chaînes vivent dans `lib/` et
+  `constants/` et remontent à l'écran via un composant qui n'en contient aucune.
+
 ### 🚫 F — Volontairement reporté : NE PAS RELANCER
 
 Ce ne sont pas des oublis, ce sont des décisions. Les remonter dans un bilan fait perdre

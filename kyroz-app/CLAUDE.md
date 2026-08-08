@@ -955,12 +955,16 @@ une string, pas du JSX. Ceux-là se retirent et la phrase se reformule (« Noté
 qu'un caractère collé devant une phrase : c'est le prix de la couleur héritée.
 
 ➡️ **Règle : ne pas réintroduire d'émoji dans l'interface**, et **finir les 13
-restants** — chantier ouvert, pas un oubli à corriger en passant : la célébration
-de palier est un objet VISUEL de 56 px, la remplacer (icône `ReussiteIcon` ? rien
-du tout ?) est une décision de DA, pas une substitution mécanique. Le compte se
-refait en écartant les commentaires du code (les ⚠️ et 🔴 qui y vivent ne sont
-affichés nulle part) **et sans se limiter à `app/` + `components/`** — c'est
-exactement l'erreur ci-dessus.
+restants — tranché par le fondateur le 2026-08-07 : ils partent.** Ce n'est donc
+plus un arbitrage à rouvrir, c'est du code à écrire (AGENTS.md **E17**). Reste un
+choix de DA au moment de le faire, et un seul : la célébration de palier est un
+objet **VISUEL de 56 px** — `ReussiteIcon`, le seul chiffre, ou rien. Les 5 des
+notifications et des CGU sont mécaniques.
+
+⚠️ **Poser un COMPTEUR dans le même lot.** Le compte se refait en écartant les
+commentaires du code (les ⚠️ et 🔴 qui y vivent ne sont affichés nulle part) **et
+sans se limiter à `app/` + `components/`** — c'est exactement l'erreur ci-dessus,
+et sans test elle se rejouera.
 
 ### La FORME et la GRAISSE passent par un token, comme la couleur (2026-08-03)
 
@@ -1255,7 +1259,7 @@ téléphone.
 | Constantes | SCREAMING_SNAKE (`MAX_KCAL_PER_DAY`) |
 | Tables Supabase | snake_case (`weight_logs`) |
 | Branches Git | `feature/nom-court`, `fix/nom-court` |
-| Commits | `feat:`, `fix:`, `chore:`, `refactor:` |
+| Commits | `feat:`, `fix:`, `docs:`, `chore:`, `refactor:` + scope — **message en français** (§10) |
 
 ---
 
@@ -1315,14 +1319,8 @@ téléphone.
 ### Exécution
 
 - **« go », « fais », « merge » = exécuter sans revenir demander.** Le fondateur tranche,
-  puis attend le résultat, pas une confirmation de plus.
-- **Flux git** : branche → merge dans `main` → push. Ne jamais committer sur `main`
-  directement, ne jamais forcer l'historique.
-- **Ne committer QUE son propre travail.** Un fichier que je n'ai pas produit ne se
-  versionne pas : je le signale au fondateur, il décide. (Un `git add <dossier>` aveugle
-  a déjà emporté des fichiers qui n'étaient pas les miens.)
-- **Plusieurs sessions en parallèle → worktree.** Deux sessions dans le même dépôt se
-  marchent dessus ; s'isoler dans un worktree, et le nettoyer en fin de chantier.
+  puis attend le résultat, pas une confirmation de plus. *(Le flux git lui-même est
+  décrit dans la sous-section « Git » ci-dessous.)*
 - **Rappeler la migration Supabase** quand un changement en demande une : le schéma n'est
   pas auto-appliqué, et une migration non jouée tue la synchro **en silence** (§3).
   ⚠️ **Mais MESURER avant d'annoncer un blocage — `npm run check:migrations`.** Le dépôt
@@ -1332,6 +1330,37 @@ téléphone.
   session l'a répété au fondateur comme un blocage réel. La commande prend deux secondes.
 - **Mettre à jour `AGENTS.md`** en fin de session, dans la liste unique. Ne jamais laisser
   le doc diverger du code, et ne jamais créer une deuxième liste de tâches.
+
+### Git — le flux attendu (2026-08-07)
+
+> **Le fondateur n'est pas à l'aise avec git.** Donc : quand je lance une commande git
+> non triviale, je dis **en une phrase** ce qu'elle fait et pourquoi, avant de la lancer.
+> Pas de suite de commandes muettes qu'il devrait décoder après coup.
+
+- **Le merge dans `main` passe par une pull request, jamais en local.**
+  ⚠️ *Changement du 2026-08-07* — la règle écrite ici disait « branche → merge dans
+  `main` → push ». Ce n'est plus le flux. Ce qui ne change pas : ne jamais committer sur
+  `main` directement, ne jamais réécrire l'historique, et c'est toujours **l'arrivée sur
+  `main` qui déploie** via GitHub Actions (§11) — la PR déplace la porte, pas la
+  publication.
+- **Avant de pousser** : `git fetch origin` puis `git merge origin/main`. Une branche qui
+  n'a pas vu `main` depuis deux jours ouvre une PR pleine de conflits qui ne sont pas les
+  siens.
+- **Commits petits et cohérents**, message en **français**, format conventionnel
+  (`feat:` / `fix:` / `docs:` / `chore:` + scope) — cf. §9. Un commit = une intention,
+  pas un fourre-tout de fin de session.
+- **Jamais sans demander** : `push --force`, `reset --hard`, suppression de branche. Ces
+  trois-là détruisent du travail qui ne se récupère pas en cliquant.
+- **Conflit = arrêt.** Je m'arrête, je montre le conflit, j'attends la réponse. Je ne
+  choisis pas un côté à sa place.
+- **Ne committer QUE son propre travail.** Un fichier que je n'ai pas produit ne se
+  versionne pas : je le signale au fondateur, il décide. (Un `git add <dossier>` aveugle
+  a déjà emporté des fichiers qui n'étaient pas les miens.)
+- **Plusieurs sessions en parallèle → worktree.** Deux sessions dans le même dépôt se
+  marchent dessus ; s'isoler dans un worktree, et le nettoyer en fin de chantier.
+  **Quand la session tourne dans un worktree isolé, le dossier principal et `main` sont
+  hors de portée — c'est voulu, ne pas chercher à contourner.** (Et attention au piège du
+  preview qui sert l'app du dépôt PRINCIPAL, §11.)
 
 ---
 
