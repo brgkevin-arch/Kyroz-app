@@ -889,7 +889,7 @@ composant. Audit complet des réglages : `npm run mesure:reglages`.
 >
 > ⚠️ **Rien ne refuse une date très PROCHE, et c'est délibéré.** Sous une semaine,
 > `datedGoalStatus` raisonne sur une semaine pleine (garde-fou de division) : mesuré,
-> 1 / 3 / 7 jours servent le même plan et la même arrivée. La phrase sous la rangée
+> 1 / 3 / 7 jours servent le même plan et la même arrivée. La phrase sous le champ
 > annonce l'arrivée réelle, donc la question reçoit une réponse vraie. Refuser serait
 > interdire sur le ton du reproche (§10).
 >
