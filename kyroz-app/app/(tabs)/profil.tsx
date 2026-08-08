@@ -19,6 +19,7 @@ import { PremiumFeature, AccessReason } from '../../lib/premium';
 import { Sheet } from '../../components/Sheet';
 import { useDialog } from '../../components/Dialog';
 import { BirthDateField } from '../../components/BirthDateField';
+import { DateInput } from '../../components/DateInput';
 import { ageOn } from '../../lib/birthday';
 import { ActionSheet } from '../../components/ActionSheet';
 import { StreakProgress } from '../../components/StreakProgress';
@@ -58,8 +59,8 @@ import {
   lowEaWeeksForFloor, checkEligibility, eligibilityMessage, LowEaEscalation,
   AGE_BOUNDS, WEIGHT_BOUNDS, HEIGHT_BOUNDS,
 } from '../../lib/safety';
-import { datedGoalStatus, datedGoalKcalDelta, addDaysStamp, daysBetween } from '../../lib/datedGoal';
-import { deadlineLadder, formatHorizon } from '../../lib/goalLadder';
+import { datedGoalStatus, datedGoalKcalDelta, addDaysStamp } from '../../lib/datedGoal';
+import { deadlineLadder, checkEcheance, messageEcheance } from '../../lib/goalLadder';
 import { DatedGoalCard, formatFR } from '../../components/DatedGoalCard';
 import { todayStamp } from '../../lib/weight';
 import {
@@ -165,18 +166,38 @@ const KYROZ_PLUS_VALEUR: Record<AccessReason, string> = {
   locked: 'En savoir plus',
 };
 
-// Objectif daté : horizons proposés (semaines) — évite un date-picker (lourd sur
-// web) et cadre l'UX sur « dans N semaines » ; la date exacte est dérivée + affichée.
+// Objectif daté : durées de REPLI (semaines).
 //
-// ⚠️ CES DURÉES NE SONT PLUS CELLES QU'ON PROPOSE (A27, 2026-08-03). Elles ne servent
-// plus que de REPLI, quand aucune échéance n'est tenable dans l'horizon de projection :
-// le poids visé est alors hors de portée quelle que soit la date, la rangée redevient
-// un simple sélecteur, et c'est la phrase sous les puces qui dit la vérité.
-// La rangée réellement affichée est dérivée du corps — cf. `lib/goalLadder.ts`.
+// ⚠️ PLUS AUCUNE DURÉE N'EST AFFICHÉE (2026-08-07) — la rangée de puces est retirée,
+// l'échéance se tape. L'échelle dérivée du corps (A27, `lib/goalLadder.ts`) survit
+// pour une seule chose : fournir la date PRÉ-REMPLIE, qui doit tenir. Ces cinq durées
+// en dur sont son repli, quand rien n'est tenable dans l'horizon de projection — le
+// poids visé est alors hors de portée quelle que soit la date, et c'est la phrase sous
+// le champ qui le dit.
 const HORIZONS_REPLI = [4, 8, 12, 16, 24];
-function closestHorizon(horizons: number[], weeks: number): number {
-  return horizons.reduce((best, h) => (Math.abs(h - weeks) < Math.abs(best - weeks) ? h : best), horizons[0]);
-}
+
+/**
+ * Échéance TAPÉE dans l'éditeur d'objectif daté.
+ * `stamp` absent = la saisie n'est pas (encore) une date ; `complete` dit pourquoi.
+ *
+ * ⚠️ **LA RANGÉE DE PUCES A ÉTÉ RETIRÉE le 2026-08-07 (décision fondateur)** : on ne
+ * propose plus de durées, on demande une date. Deux morceaux sont partis avec elle,
+ * et il faut savoir lequel est un manque :
+ *  • `closestHorizon` — bon débarras : il allumait la puce la plus PROCHE de
+ *    l'échéance enregistrée, donc une cible au 14 novembre affichait « 16 sem » en
+ *    surbrillance au-dessus d'une ligne annonçant une AUTRE date ;
+ *  • le raccourci « adopter la date réellement tenable en un tap » (A14) — celui-là
+ *    est une PERTE assumée. Il vivait dans la première puce depuis A27. La phrase
+ *    sous le champ continue d'annoncer la date que Kyroz tiendra ; il faut désormais
+ *    la retaper à la main pour la viser.
+ *
+ * ⚠️ `deadlineLadder` reste appelé, et ce n'est pas un reliquat : la date PRÉ-REMPLIE
+ * est maintenant la seule échéance que l'app propose, donc elle doit tenir. Elle est
+ * la 2ᵉ marche de l'échelle dérivée du corps — la 1ʳᵉ est le rythme sûr MAXIMAL, et
+ * un défaut ne pousse pas d'office quelqu'un au plafond de ce que la sécurité
+ * autorise (CLAUDE.md §10).
+ */
+type EcheanceSaisie = { stamp?: string; complete: boolean };
 
 export default function ProfilScreen() {
   const t = useTheme();
@@ -1028,31 +1049,32 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }:
   const [targetWeight, setTargetWeight] = useState(
     String(existing?.target_weight_kg ?? Math.max(40, Math.round(profile.weight_kg) - 4)),
   );
-  // Échéance CHOISIE (semaines). `null` = l'utilisateur n'a pas encore touché la
-  // rangée : on garde alors la date EXACTE enregistrée, pour que ré-ouvrir et
-  // enregistrer sans rien changer ne décale pas l'échéance (comme RestDaysPicker).
-  const [weeks, setWeeks] = useState<number | null>(null);
-  const pickWeeks = (h: number) => setWeeks(h);
+  // Échéance TAPÉE. `null` = l'utilisateur n'a pas encore touché les champs : on garde
+  // alors la date EXACTE enregistrée, pour que ré-ouvrir et enregistrer sans rien
+  // changer ne décale pas l'échéance (comme RestDaysPicker).
+  const [saisie, setSaisie] = useState<EcheanceSaisie | null>(null);
 
   const twN = parseFloat(targetWeight.replace(',', '.'));
   const validWeight = twN >= 40 && twN <= 250;
   const tdee = calculateTDEE(profile);
 
-  // ── Les échéances proposées, DÉRIVÉES DU CORPS (A27) ────────────────────────
+  // ── L'échelle dérivée du corps (A27) — ne sert plus qu'au PRÉ-REMPLISSAGE ────
   //
-  // La rangée offrait cinq durées figées (4/8/12/16/24 semaines) dont AUCUNE ne
-  // tenait chez la moitié des gabarits de référence. Elle est désormais calculée :
-  // la première puce est l'échéance la plus courte que les garde-fous laissent
-  // tenir, les suivantes sont autant de plans réellement différents.
+  // Elle a remplacé cinq durées figées (4/8/12/16/24 semaines) dont AUCUNE ne tenait
+  // chez la moitié des gabarits de référence : sa 1ʳᵉ marche est l'échéance la plus
+  // courte que les garde-fous laissent tenir, les suivantes sont autant de plans
+  // réellement différents. Depuis le retrait de la rangée (2026-08-07), rien de tout
+  // ça n'est AFFICHÉ — mais la date pré-remplie sort de sa 2ᵉ marche, donc l'échelle
+  // reste ce qui garantit que la seule échéance proposée par l'app est tenable.
   //
   // ⚠️ MÉMOÏSÉ SUR LE POIDS CIBLE, et c'est indispensable : `deadlineLadder` sonde
   // le moteur ~17 fois, chaque sonde simulant jusqu'à 260 semaines de trajectoire
   // (mesuré : 3 à 45 ms sur les gabarits courants, 283 ms sur le cas extrême d'un
   // écart de 30 kg). Le recalculer à chaque rendu rendrait la saisie saccadée.
   // L'échelle ne dépend PAS de la date choisie — aucune circularité.
-  const horizons = useMemo(() => {
-    if (!validWeight) return HORIZONS_REPLI;
-    const echelle = deadlineLadder((semaines) => {
+  const echelle = useMemo(() => {
+    if (!validWeight) return [];
+    return deadlineLadder((semaines) => {
       const gt: GoalTarget = {
         target_weight_kg: twN, target_date: addDaysStamp(today, Math.round(semaines * 7)),
         start_weight_kg: profile.weight_kg, start_date: existing?.start_date ?? today,
@@ -1062,24 +1084,56 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }:
       const s = datedGoalStatus(gt, p, today, tdee, plan?.floor_kcal ?? null, makeWeeklyProjector(p));
       return { reachable: !!s?.reachableByDate, servedKcal: plan?.profile.target_kcal ?? 0 };
     });
-    return echelle.length ? echelle : HORIZONS_REPLI;
   }, [twN, validWeight, profile, today, tdee, existing?.start_date]);
 
-  // Défaut d'un objectif NEUF : la 2ᵉ puce, pas la 1ʳᵉ. La première est le rythme sûr
-  // MAXIMAL — un défaut ne doit pas pousser d'office quelqu'un au plafond de ce que la
-  // sécurité autorise (CLAUDE.md §10 : le suivi rassure, il ne met pas la pression).
-  const defaultWeeks = horizons[Math.min(1, horizons.length - 1)];
-  // Semaines de l'échéance ENREGISTRÉE — sert à surligner la puce la plus proche,
-  // sans toucher à la date tant que l'utilisateur n'a rien choisi.
-  const storedWeeks = existing ? Math.max(1, Math.round(daysBetween(today, existing.target_date) / 7)) : null;
-  const effectiveWeeks = weeks ?? (existing ? storedWeeks! : defaultWeeks);
-  const selectedWeeks = weeks ?? closestHorizon(horizons, effectiveWeeks);
+  // ⚠️ Échelle VIDE = rien n'est tenable dans l'horizon de projection, et il ne faut
+  // surtout pas le confondre avec le repli : `HORIZONS_REPLI` sert à pré-remplir un
+  // champ, PAS à annoncer une date. Annoncer « au plus tôt : dans 4 semaines » parce
+  // qu'on est retombé sur la première durée en dur serait le mensonge exact que A27 a
+  // retiré de la rangée.
+  const horizons = echelle.length ? echelle : HORIZONS_REPLI;
 
-  const targetDate = weeks == null && existing
-    ? existing.target_date
-    : addDaysStamp(today, effectiveWeeks * 7);
-  const provisional: GoalTarget | undefined = validWeight
-    ? { target_weight_kg: twN, target_date: targetDate, start_weight_kg: profile.weight_kg, start_date: existing?.start_date ?? today }
+  // ── L'ESTIMATION : la première date que Kyroz peut TENIR (2026-08-07) ────────
+  //
+  // C'est le plafond, dit en date plutôt qu'en règle — la personne ajuste ensuite ce
+  // qu'elle veut en le connaissant, au lieu de le découvrir en se faisant refuser.
+  //
+  // 🔴 **Ce n'est PAS `status.projectedDate`, et l'écart est mesuré** (2026-08-07,
+  // 8 corps de référence) : 12 à 100 jours, toujours dans le même sens.
+  //   `F 78 → 65` : projetée 1ᵉʳ août 2027 · première date tenable **28 mai 2027**
+  //   `H 95 → 82` : projetée 27 juin 2027 · première date tenable **19 mars 2027**
+  // `projectedDate` répond à « où j'arrive si je GARDE cette date trop proche ? » —
+  // donc en simulant une échéance qui EXPIRE, après quoi le plan retombe sur le déficit
+  // ordinaire de l'objectif. C'est vrai, et c'est inutilisable : viser trop tôt fait
+  // arriver PLUS TARD. La marche 1 de l'échelle répond à la question réellement posée,
+  // « quand puis-je y être ? », et elle est tenable PAR CONSTRUCTION (la sonde teste
+  // `reachableByDate`) — là où adopter `projectedDate` avait été mesuré comme glissant
+  // de 98 jours sur ce même gabarit (A14).
+  const dateAuPlusTot = echelle.length ? addDaysStamp(today, echelle[0] * 7) : null;
+
+  // Date PRÉ-REMPLIE d'un objectif neuf : la 2ᵉ marche de l'échelle, pas la 1ʳᵉ. La
+  // première est le rythme sûr MAXIMAL — un défaut ne doit pas pousser d'office
+  // quelqu'un au plafond de ce que la sécurité autorise (CLAUDE.md §10 : le suivi
+  // rassure, il ne met pas la pression). Depuis le retrait de la rangée, c'est la SEULE
+  // échéance que l'app propose : raison de plus pour qu'elle soit tenable.
+  const defaultWeeks = horizons[Math.min(1, horizons.length - 1)];
+
+  // La date que les champs portent. `undefined` = ce qui est tapé n'est pas encore une
+  // date : on n'invente RIEN à sa place, sinon les champs se réécriraient sous les
+  // doigts (cf. le garde de `components/DateInput.tsx`).
+  const targetDate = saisie
+    ? saisie.stamp
+    : existing?.target_date ?? addDaysStamp(today, defaultWeeks * 7);
+
+  // L'échéance est contrôlée QUELLE QUE SOIT sa provenance — tapée, pré-remplie, ou
+  // déjà enregistrée. Un objectif ré-ouvert après son échéance tombe donc sur « choisis
+  // une date à venir » au lieu d'être ré-enregistré inactif, en silence.
+  const refus = checkEcheance(targetDate, saisie ? saisie.complete : true, today);
+  /** La date retenue, ou `null` s'il y a quelque chose à corriger d'abord. */
+  const dateVisee = refus ? null : targetDate ?? null;
+
+  const provisional: GoalTarget | undefined = validWeight && dateVisee
+    ? { target_weight_kg: twN, target_date: dateVisee, start_weight_kg: profile.weight_kg, start_date: existing?.start_date ?? today }
     : undefined;
 
   // Aperçu calculé par le PRODUCTEUR UNIQUE (computePlan) et non par un chemin
@@ -1118,39 +1172,107 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }:
   };
   const remove = () => onSave(withRecalc({ ...profile, goal_target: undefined }));
 
+  // `canSave` suit `provisional`, qui exige un poids valide ET une échéance exploitable :
+  // enregistrer une date passée créerait un objectif INACTIF — un objectif qui ne pilote
+  // rien tout en s'affichant comme s'il pilotait.
   return (
-    <EditorShell t={t} title="Objectif daté" onSave={submit} canSave={validWeight && !goalBlockMsg} dragHandlers={dragHandlers} sheetScrollProps={sheetScrollProps}>
+    <EditorShell t={t} title="Objectif daté" onSave={submit} canSave={!!provisional && !goalBlockMsg} dragHandlers={dragHandlers} sheetScrollProps={sheetScrollProps}>
       <Text style={{ ...Type.caption, color: t.textSecondary, lineHeight: 18 }}>
         Fixe un poids et une échéance : Kyroz ajuste tes calories jour après jour pour t'y amener au rythme le plus rapide — mais sûr.
       </Text>
 
       <Field t={t} label="Poids cible" suffix="kg" value={targetWeight} onChangeText={setTargetWeight} keyboardType="decimal-pad" />
 
+      {/* ── L'ESTIMATION (2026-08-07) ────────────────────────────────────────────
+          Le plafond, dit en DATE plutôt qu'en règle : « voilà le plus tôt possible,
+          maintenant choisis ». Elle est attachée au POIDS et non à l'échéance, parce
+          que c'est le poids qui la détermine — la date saisie n'y change rien.
+          ⚠️ Elle remplace le raccourci d'A14 perdu avec la rangée, et sur une base
+          plus solide : cette date est tenable PAR CONSTRUCTION (la sonde teste
+          `reachableByDate`), là où adopter la date projetée glissait de 98 jours.
+          Ton : on annonce une possibilité, on ne pousse pas à aller vite (§10) —
+          d'où « peut tenir » et non « tu pourrais ». */}
+      {validWeight && !goalBlockMsg && (
+        dateAuPlusTot ? (
+          <View style={{ gap: Spacing.sm }}>
+            <Text style={{ ...Type.caption, color: t.textSecondary, lineHeight: 18 }}>
+              À {twN} kg, la première date que Kyroz peut tenir en sécurité : le {formatFR(dateAuPlusTot)}.
+            </Text>
+            {dateVisee !== dateAuPlusTot && (
+              <TouchableOpacity
+                onPress={() => setSaisie({ stamp: dateAuPlusTot, complete: true })}
+                activeOpacity={OPACITE_PRESSION}
+                style={{ alignSelf: 'flex-start', justifyContent: 'center', minHeight: CIBLE_TACTILE_MIN }}
+              >
+                <Text style={{ ...Type.captionStrong, color: t.accent }}>Viser cette date</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        ) : (
+          <Text style={{ ...Type.caption, color: t.textSecondary, lineHeight: 18 }}>
+            À {twN} kg, aucune date ne tient dans les cinq ans à venir, même au rythme le
+            plus rapide que la sécurité autorise. Vise un poids intermédiaire : le
+            plancher baissera avec ton poids, et la suite deviendra possible.
+          </Text>
+        )
+      )}
+
       <SectionLabel t={t}>Échéance</SectionLabel>
-      {/* Les durées sont DÉRIVÉES DU CORPS (A27) : chacune tient, et chacune sert un
-          plan différent. La première est le plus rapide que la sécurité autorise. */}
-      <View style={styles.wrap}>
-        {horizons.map((h) => (
-          <Chip key={h} t={t} label={formatHorizon(h)} selected={selectedWeeks === h} onPress={() => pickWeeks(h)} />
-        ))}
-      </View>
-      {/* ⚠️ C'est la ligne la plus lue de l'écran — collée sous les puces, au moment
-          exact du choix. Elle ne peut donc pas AFFIRMER une date que le moteur ne
-          tiendra pas. Mesuré le 2026-08-02 (H 83 kg, 18 %MG, 4 séances → 70 kg) :
-          les CINQ échéances servent toutes 0,3 kg/sem, parce que c'est le plancher
-          de sécurité — et non l'échéance — qui borne le déficit. « 4 sem » annonçait
-          le 30 août 2026 pour une atteinte réelle le 19 juin 2027 : 293 jours d'écart.
-          La vérité était déjà à l'écran (carte « plancher » plus bas), mais SOUS une
-          phrase qui disait l'inverse, et hors du premier écran.
+      {/* ── Une DATE, plus une durée (2026-08-07, décision fondateur) ────────────
+          La rangée de puces proposait cinq durées dérivées du corps ; elle est
+          retirée. On ne demande plus « dans combien de semaines », on demande la
+          date — parce que c'est ce que la personne a en tête, et qu'un événement
+          réel ne tombe jamais sur un multiple de semaines.
+          Les champs portent la date visée : ils sont donc aussi son AFFICHAGE.
+          Pas de sélecteur de date : ce serait une dépendance NATIVE (build + revue,
+          CLAUDE.md §2) pour un service que trois nombres rendent partout.
+          ⚠️ La date pré-remplie reste dérivée du corps (cf. `defaultWeeks`) : c'est
+          désormais la seule échéance que l'app propose, elle ne peut pas mentir. */}
+      <Text style={{ ...Type.caption, color: t.textSecondary, lineHeight: 18 }}>
+        Pose la date que tu vises — un mariage, une compétition, des vacances.
+      </Text>
+      <DateInput
+        t={t}
+        value={targetDate}
+        placeholders={{ d: '14', mo: '11', y: String(parseInt(today.slice(0, 4), 10) + 1) }}
+        onChange={(stamp, complete) => setSaisie({ stamp, complete })}
+      />
+      {/* ⚠️ C'est la ligne la plus lue de l'écran — collée sous le champ, au moment
+          exact du choix, et depuis le retrait de la rangée elle est le SEUL endroit qui
+          dise si la date tient. Elle ne peut donc pas AFFIRMER une date que le moteur
+          ne tiendra pas. Mesuré le 2026-08-02 (H 83 kg, 18 %MG, 4 séances → 70 kg) :
+          les CINQ échéances d'alors servaient toutes 0,3 kg/sem, parce que c'est le
+          plancher de sécurité — et non l'échéance — qui borne le déficit. « 4 sem »
+          annonçait le 30 août 2026 pour une atteinte réelle le 19 juin 2027 : 293 jours
+          d'écart. La vérité était déjà à l'écran (carte « plancher » plus bas), mais
+          SOUS une phrase qui disait l'inverse, et hors du premier écran.
           Ton : on annonce ce qui va se passer, on ne reproche pas l'ambition — le
           moteur porte la charge, l'utilisateur n'est pas « en retard ». */}
-      <Text style={{ ...Type.caption, color: t.textSecondary, lineHeight: 18 }}>
-        {!goalBlockMsg && status && !status.reachableByDate && !status.directionMismatch
-          ? (status.projectable
-            ? `Cible le ${formatFR(targetDate)} — au rythme sûr, Kyroz t'y amène plutôt vers le ${formatFR(status.projectedDate)}.`
-            : `Cible le ${formatFR(targetDate)} — ce poids n'est pas atteignable au rythme sûr, quelle que soit la date.`)
-          : `Cible le ${formatFR(targetDate)}.`}
-      </Text>
+      {/* Une échéance à corriger prend la place de la ligne « Cible le … » : afficher
+          une trajectoire vers une date qu'on refuse d'enregistrer serait la valider à
+          l'œil. `incomplete` reste NEUTRE — il ne s'est rien passé de fautif, la
+          personne est en train de taper. */}
+      {/* ⚠️ Depuis le 2026-08-07, la date annoncée quand l'échéance ne tient pas est la
+          PREMIÈRE DATE TENABLE (`dateAuPlusTot`), plus `status.projectedDate`. Les deux
+          diffèrent de 12 à 100 jours selon le gabarit, et pas par erreur :
+          `projectedDate` simule qu'on GARDE l'échéance trop proche, donc qu'elle EXPIRE
+          et que le plan retombe au déficit ordinaire de l'objectif — d'où une arrivée
+          PLUS TARDIVE que si l'on visait simplement la première date tenable. Annoncer
+          les deux mettrait deux dates contradictoires à l'écran ; annoncer celle qui est
+          ADOPTABLE est ce que la personne peut faire de l'information. */}
+      {dateVisee == null ? (
+        <Text style={{ ...Type.caption, color: refus === 'incomplete' ? t.textSecondary : t.warning, lineHeight: 18 }}>
+          {messageEcheance(refus ?? 'incomplete')}
+        </Text>
+      ) : (
+        <Text style={{ ...Type.caption, color: t.textSecondary, lineHeight: 18 }}>
+          {!goalBlockMsg && status && !status.reachableByDate && !status.directionMismatch
+            ? (dateAuPlusTot
+              ? `Cible le ${formatFR(dateVisee)} — c'est plus tôt que ce que Kyroz peut tenir : au rythme sûr, ce sera le ${formatFR(dateAuPlusTot)}.`
+              : `Cible le ${formatFR(dateVisee)} — ce poids n'est pas atteignable au rythme sûr, quelle que soit la date.`)
+            : `Cible le ${formatFR(dateVisee)}.`}
+        </Text>
+      )}
 
       {/* Cible refusée → on affiche le motif SEUL. Montrer une trajectoire crédible
           (« Perdre 48 kg · 1982 kcal/j ») au-dessus d'un refus revient à valider
@@ -1196,11 +1318,19 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }:
           « Kyroz garde le rythme sûr » dirait qu'il freine alors qu'il accélère. Et
           « garde » se lit comme un refus poli — §10 : le message doit dire que le
           moteur porte la charge, jamais que la personne en demande trop. */}
-      {!goalBlockMsg && status?.clamped && !status.directionMismatch && !status.floorCapped && (
+      {/* 🔴 `!reachableByDate` AJOUTÉ le 2026-08-07 : cette carte parlait d'une arrivée
+          « après ta date » sans vérifier que la date était effectivement dépassée.
+          Mesuré sur 1 600 échéances (8 corps × 200 semaines) : **1 cas** où elle
+          s'affichait en même temps que « Rythme sûr, dans les clous de ta date » —
+          H 68 → 74 kg, prise de masse, 17 semaines. Rare, mais deux phrases opposées
+          dans le même écran. ⚠️ Et c'est un cas de PRISE : encore un prédicat écrit en
+          pensant à la sèche (cf. §6, « en prise les calories servies BAISSENT quand la
+          date s'éloigne »). */}
+      {!goalBlockMsg && status?.clamped && !status.reachableByDate && !status.directionMismatch && !status.floorCapped && (
         <Card t={t}>
           <Text style={{ ...Type.caption, color: t.text, lineHeight: 19 }}>
             Objectif ambitieux : au rythme le plus sûr tu atteins {status.targetWeightKg} kg
-            {status.projectable ? ` vers le ${formatFR(status.projectedDate)}` : ' plus tard que prévu'}, après ta date.{' '}
+            {dateAuPlusTot ? ` le ${formatFR(dateAuPlusTot)}` : ' plus tard que prévu'}, après ta date.{' '}
             {status.maxRateApplied
               ? 'Kyroz avance au maximum de ce qui reste sûr, et cette date-là, il la tient.'
               : 'Kyroz garde le rythme sûr.'}
@@ -1210,13 +1340,20 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }:
       {/* Le PLANCHER qui mord n'est pas une ambition mal calibrée, c'est une contrainte
           physiologique : message distinct, et on propose la correction en un geste
           plutôt que de laisser l'utilisateur deviner quelle date serait tenable. */}
+      {/* Trois cas, et ils ne disent pas la même chose : le plancher peut mordre SANS
+          repousser la date (on explique le mécanisme, sans annoncer de retard), la
+          repousser vers une date tenable (on la donne, elle est en un tap plus haut),
+          ou la rendre inatteignable dans l'horizon (on le dit franchement). */}
       {!goalBlockMsg && status?.floorCapped && !status.directionMismatch && preview && (
         <Card t={t}>
           <Text style={{ ...Type.caption, color: t.text, lineHeight: 19 }}>
-            {status.projectable ? (
-              <>Ton plan ne peut pas descendre sous {preview.target_kcal} kcal/jour en sécurité — c'est ton plancher, pas un réglage. À ce rythme tu atteins {status.targetWeightKg} kg vers le {formatFR(status.projectedDate)}. Tu peux viser cette date-là, ou choisir un poids cible plus proche : Kyroz ne creusera pas davantage.</>
+            Ton plan ne peut pas descendre sous {preview.target_kcal} kcal/jour en sécurité — c'est ton plancher, pas un réglage.{' '}
+            {status.reachableByDate ? (
+              <>Ta date reste dans les clous : Kyroz ne creusera simplement pas plus que ça.</>
+            ) : dateAuPlusTot ? (
+              <>Au rythme qu'il autorise, tu atteins {status.targetWeightKg} kg le {formatFR(dateAuPlusTot)}. Tu peux viser cette date-là, ou choisir un poids cible plus proche : Kyroz ne creusera pas davantage.</>
             ) : (
-              <>Ton plan ne peut pas descendre sous {preview.target_kcal} kcal/jour en sécurité — c'est ton plancher, pas un réglage. À ce rythme, ce poids cible n'est pas atteignable quelle que soit la date. Choisis une cible plus proche, ou laisse le temps faire : ton poids qui baisse fera baisser le plancher avec lui.</>
+              <>À ce rythme, ce poids cible n'est pas atteignable quelle que soit la date. Choisis une cible plus proche, ou laisse le temps faire : ton poids qui baisse fera baisser le plancher avec lui.</>
             )}
           </Text>
         </Card>

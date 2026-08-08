@@ -1,22 +1,23 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { View, Text } from 'react-native';
 import { ThemePalette, Type, Spacing } from '../constants/theme';
-import { Field } from './ui';
-import { ageOn, toStamp, BIRTH_YEAR_MIN } from '../lib/birthday';
+import { DateInput } from './DateInput';
+import { ageOn, BIRTH_YEAR_MIN } from '../lib/birthday';
 import { todayStamp } from '../lib/weight';
 import { MIN_AGE } from '../lib/safety';
 
 // ── Saisie de la date de naissance ──────────────────────────────────────────
 //
-// Trois champs numériques plutôt qu'un sélecteur de date, pour la MÊME raison
-// que les puces d'échéance de l'objectif daté : un date-picker est lourd sur le
-// web, et le web est la version que les gens utilisent aujourd'hui. Trois
-// nombres se tapent au pavé numérique, partout, sans dépendance.
+// La mécanique des trois champs (et son garde anti-réécriture) vit dans
+// `DateInput` depuis le 2026-08-07 — l'échéance de l'objectif daté a besoin du
+// même champ, et ce garde ne doit exister qu'à un seul endroit. Ce fichier ne
+// garde que ce qui est propre à une date de NAISSANCE : l'âge minimum, l'année
+// aberrante, et le repli des comptes créés avant qu'on demande la date.
 //
 // Le composant ne rend une date que si elle EXISTE vraiment : « 31/02 » ne
-// produit rien (cf. `toStamp`). Il ne commente PAS une saisie valide — l'âge
-// reste lisible sur la ligne « Informations » du profil, donc une faute de frappe
-// se voit quand même. Il ne parle que pour ce qui bloque, ou ce qui manque.
+// produit rien. Il ne commente PAS une saisie valide — l'âge reste lisible sur la
+// ligne « Informations » du profil, donc une faute de frappe se voit quand même.
+// Il ne parle que pour ce qui bloque, ou ce qui manque.
 
 interface Props {
   t: ThemePalette;
@@ -32,68 +33,33 @@ interface Props {
   fallbackAge?: number;
 }
 
-const split = (stamp?: string) => {
-  const m = stamp ? /^(\d{4})-(\d{2})-(\d{2})$/.exec(stamp) : null;
-  return m ? { d: String(+m[3]), mo: String(+m[2]), y: m[1] } : { d: '', mo: '', y: '' };
-};
-
 export function BirthDateField({ t, value, onChange, fallbackAge }: Props) {
-  const init = split(value);
-  const [d, setD] = useState(init.d);
-  const [mo, setMo] = useState(init.mo);
-  const [y, setY] = useState(init.y);
-
-  // ⚠️ Resynchro UNIQUEMENT sur un changement venu de l'EXTÉRIEUR (ouverture de
-  // l'éditeur, profil tiré du cloud) — jamais sur notre propre émission.
-  //
-  // C'est le piège du « 23 → 33 », troisième occurrence : taper une date qui
-  // n'existe pas (31/02) fait émettre `undefined`, le parent le renvoie, et la
-  // synchro VIDAIT les trois champs sous les doigts. L'utilisateur voyait sa
-  // saisie disparaître, et l'écran affichait « renseigne ta date » au lieu de
-  // « cette date n'existe pas ». `emitted` mémorise ce qu'on vient d'envoyer :
-  // ce qui nous revient de nous-même ne réécrit rien.
-  const emitted = useRef<string | undefined>(value);
-  useEffect(() => {
-    if (value === emitted.current) return;
-    emitted.current = value;
-    const s = split(value);
-    setD(s.d); setMo(s.mo); setY(s.y);
-  }, [value]);
-
-  const push = (dd: string, mm: string, yy: string) => {
-    const stamp = (dd && mm && yy.length === 4)
-      ? toStamp(parseInt(yy, 10), parseInt(mm, 10), parseInt(dd, 10))
-      : null;
-    emitted.current = stamp ?? undefined;
-    onChange(stamp ?? undefined);
-  };
-  const num = (s: string, max: number) => s.replace(/[^0-9]/g, '').slice(0, max);
+  // « Saisie complète » vient du champ, et c'est ce qui distingue « il manque le
+  // mois » (on se taît) de « le 31 février n'existe pas » (on le dit). Une date
+  // déjà enregistrée est complète par construction.
+  const [complete, setComplete] = useState(value != null);
 
   const today = todayStamp();
   const age = ageOn(value, today);
-  // Saisie complète mais date inexistante (31/02, 29/02 hors bissextile) → on le dit
-  // au lieu de laisser un champ silencieusement sans effet.
-  const complete = d !== '' && mo !== '' && y.length === 4;
+  // Saisie complète mais date inexploitable → on le dit au lieu de laisser un champ
+  // silencieusement sans effet. Le test porte sur l'ÂGE et non sur la date : il attrape
+  // à la fois le 31 février (aucun stamp produit) et la date qui existe sans donner
+  // d'âge lisible — une naissance en 2030, ou en 1800.
   const impossible = complete && age == null;
   const tropJeune = age != null && age < MIN_AGE;
-  const anneeAberrante = y.length === 4 && parseInt(y, 10) < BIRTH_YEAR_MIN;
+  // L'année se relit sur la date ÉMISE : une année à 4 chiffres qui produit une date
+  // réelle est forcément en tête du stamp. Une saisie plus courte n'est pas complète,
+  // donc on ne l'a jamais commentée.
+  const anneeAberrante = value != null && parseInt(value.slice(0, 4), 10) < BIRTH_YEAR_MIN;
 
   return (
     <View style={{ gap: Spacing.sm }}>
-      <View style={{ flexDirection: 'row', gap: Spacing.sm }}>
-        <View style={{ flex: 1 }}>
-          <Field t={t} label="Jour" value={d} placeholder="2" keyboardType="number-pad"
-            onChangeText={(v) => { const n = num(v, 2); setD(n); push(n, mo, y); }} />
-        </View>
-        <View style={{ flex: 1 }}>
-          <Field t={t} label="Mois" value={mo} placeholder="8" keyboardType="number-pad"
-            onChangeText={(v) => { const n = num(v, 2); setMo(n); push(d, n, y); }} />
-        </View>
-        <View style={{ flex: 1.3 }}>
-          <Field t={t} label="Année" value={y} placeholder="1994" keyboardType="number-pad"
-            onChangeText={(v) => { const n = num(v, 4); setY(n); push(d, mo, n); }} />
-        </View>
-      </View>
+      <DateInput
+        t={t}
+        value={value}
+        placeholders={{ d: '2', mo: '8', y: '1994' }}
+        onChange={(stamp, complet) => { setComplete(complet); onChange(stamp); }}
+      />
 
       {/* On ne parle QUE quand il y a quelque chose à dire : ce qui bloque, ou ce
           qui manque. Une saisie valide n'a pas besoin d'être commentée — l'âge
