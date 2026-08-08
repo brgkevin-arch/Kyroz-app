@@ -57,7 +57,7 @@ de date et un en-tête `ARCHIVÉ` — pas à la racine sans date. C'est ce qui a
 le désordre : dix fichiers au même niveau dont seul le contenu, en ligne 10, révélait
 qu'ils étaient périmés.
 
-## 📍 OÙ ON EN EST — photo du 2026-08-07
+## 📍 OÙ ON EN EST — photo du 2026-08-08
 
 > Bloc à relire en premier dans une nouvelle session, et à **re-mesurer** avant de s'en
 > servir (les commandes sont données). Il ne remplace pas la liste unique ci-dessous.
@@ -78,7 +78,7 @@ qu'ils étaient périmés.
 | OTA publiées | **6** (la branche `production` était vide avant) : `28dce9c7` (gestes des feuilles) · `98d5217a` (défilement ↔ fermeture) · `93fad600` (provenance du %MG + refonte design sans émoji, commit `7baa943`) — les trois du **2026-08-06** — puis **`3afe091f`** le **2026-08-07 vers 01 h 45** (budget du jour ↔ dépense du jour, feuille qui ne se fermait plus, passe design du 5 août ; commit `fcebfcf`, iOS + Android). puis **`9d625d00`** le **2026-08-07** (seuil 35/43 de la question de provenance + contrôles de mesure recalés ; commit `751dd86`, iOS + Android). puis **`3dd045fe`** le **2026-08-08** — la plus grosse à ce jour, **12 commits** : courses terminées + historique des listes, repas paramétrables, tuto 5 tours, rappel à l'heure libre, objectif daté à la date (commit `9bac59a`, iOS + Android). Runtime `1.0.0` → atteignent le build TestFlight **3**. ✅ **L'écart web/natif du 2026-08-07 est RÉSOLU** — il a duré ~14 h. La 4ᵉ OTA portait `fcebfcf`, donc pas le seuil 35/43 arrivé en `f4e9c6c` : le web posait la question de provenance au-delà de 35 %/43 %, l'app native sur toute saisie manuelle. La 5ᵉ OTA (`9d625d00`, commit `751dd86`) les a réalignés. ⚠️ **Cet écart naît à chaque fois qu'on déploie le web sans publier d'OTA** — les deux surfaces ne sont pas solidaires, et rien ne le signale. Le vérifier fait partie d'une livraison. 🔴 **UNE OTA SE PUBLIE DEPUIS `main`, JAMAIS DEPUIS LA BRANCHE QU'ON VIENT DE MERGER** — évité de justesse le 2026-08-08. `eas update` empaquette **l'arbre de travail**, pas ce qui est sur GitHub : la branche `courses-terminees-historique`, mergée cinq minutes plus tôt, était déjà en retard de **trois PR** (créneaux de repas, tuto, objectif daté). Publier depuis elle aurait RETIRÉ ces trois chantiers de l'app des testeurs, en quelques minutes, sans revue pour l'arrêter — une régression que rien dans la sortie de la commande n'aurait signalée, puisque le build aurait été parfaitement vert. ➡️ Se remettre sur `main` (`git checkout main && git merge --ff-only origin/main`), vérifier `HEAD == origin/main`, et **réinstaller les dépendances sur CET arbre** (`npm ci`) : un `node_modules` lié vers un autre worktree fait résoudre l'entrée par ce worktree-là (mesuré dans le panneau : `../../<autre-worktree>/node_modules/expo-router/entry.js`) — tolérable pour un aperçu, pas pour ce qu'on envoie à tout le monde. ⚠️ **Et écarter `.env.local` avant la mesure préalable**, sinon elle prouve que le fichier local marche, pas que les variables EAS alimentent le bundle. ⚠️ **`--environment production` est OBLIGATOIRE** (SDK 55+) : sans lui les variables serveur ne sont pas chargées et le bundle part **sans URL Supabase**. ⚠️ Mesurer le bundle AVANT de clore (`strings -a` sur le `.hbc` de `dist/`) : attendu **1 / 1 / 0** (URL Supabase, `sb_publishable_`, `sk-ant-`). ➡️ **Et mesurer AVANT de publier, pas seulement après** : `eas-cli env:exec production 'npx expo export …'` rend le même bundle sans rien envoyer. Une OTA atteint tout le monde en minutes sans revue — la vérifier après coup, c'est la vérifier trop tard. Ajouter au relevé une chaîne du chantier en cours (ici `body_fat_source` → **1**) : trois zéros attendus se lisent comme un succès même quand `strings` ne trouve plus rien du tout. 🔴 **Et ce témoin doit être ASCII PUR** — mesuré le 2026-08-06 : `strings` ne rend AUCUNE chaîne contenant un accent ou un `·`, donc presque aucun texte d'interface français. « Jour de repos · … » rend 0 tout en étant dans le bundle. Prendre un identifiant (`baseDayTargets`, `rest_weekdays`), jamais une phrase accentuée | `npx eas-cli channel:view production` |
 | Ce qui traîne (tous worktrees) | ⚠️ `git status` dans un worktree ne montre QUE ce worktree — un fichier a dormi **4 jours** dans le dépôt principal sans que personne puisse le voir. Le contrôle parcourt TOUS les arbres et échoue au-delà de 24 h | `npm run check:suspens` |
 | Site déployé | **automatique** : GitHub Actions à chaque push `main` (`build_type: workflow`). Routes **pré-rendues** (`web.output: "static"`, E7) → un lien direct répond 200. ⚠️ Le pré-rendu tourne dans **Node** : un module qui touche `window` au chargement casse le déploiement (CLAUDE.md §11). ⚠️ **NE PAS lire `origin/gh-pages`** — branche morte, cf. A12 | `gh run list --workflow=deploy.yml` |
-| Migrations Supabase | les **16** jouées, `2026-08-06_profiles_body_fat_source.sql` comprise (jouée le 2026-08-06, mesurée avant ET après : 400 → 200). ⚠️ **Ne jamais annoncer une migration « en attente » sans lancer la commande** — le dépôt ne sait rien de la prod, et deux lignes d'ici l'ont dit à tort pendant des jours | `npm run check:migrations` |
+| Migrations Supabase | les **17** jouées, `2026-08-07_profiles_meal_slots.sql` comprise (jouée le 2026-08-07 AVANT le merge de la PR #46, mesurée avant ET après : 400 → 200 ; re-mesurée le 2026-08-08, toujours 200). Les 39 colonnes de `PROFILE_COLS` passent en une requête. ⚠️ **Ne jamais annoncer une migration « en attente » sans lancer la commande** — le dépôt ne sait rien de la prod, et deux lignes d'ici l'ont dit à tort pendant des jours | `npm run check:migrations` |
 | Variété perçue | semaines servant 2 recettes d'un même couple : **max 8,8 %** — re-mesuré le 2026-08-07 sur 240 semaines (7,9 % avant la répartition par volume · 9,2 % avant D22 · 10,0 % avant D21 · 11,7 % avant B9 · 12,5 % avant B8 · 20,8 % avant B7 · 27,5 / 26,3 % avant A25 · 56,3 % avant D18) | `npm run mesure:variete -- --variete=…` |
 | Variété perçue **par régime** | **vegan+SG 20,8 %** · vegan 10,4 % — re-mesuré le 2026-08-07 (la ligne annonçait 16,7 %, avant la répartition par volume). Trajectoire de la cible : **50 % → 35,4 % (B7) → 22,9 % (B8) → 16,7 % (B9) → 20,8 %** — c'est la seule de ces étapes qui REMONTE, et elle vient du moteur, pas du catalogue | `npm run mesure:variete -- --regime=vegan+SG` |
 | Premier plan servi | plan **canonique** (seed 0) : **16,7 %** de semaines avec quasi-doublon — re-mesuré le 2026-08-07 (6,7 % avant la répartition par volume · 8,3 % avant D22 · 23,3 % avant B7 · **45,0 % avant A25**, où le 1er plan était le PIRE des trois). ⚠️ Le canonique encaisse plus que la moyenne : les jours de repos y descendent bas, et c'est là que le vivier végétal s'épuise. Voir la ligne « drapeaux » ci-dessous | `npm run mesure:variete -- --seeds=0` |
@@ -445,19 +445,28 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
 
 ### 🔴 A — En retard ou cassé en silence
 
-- 🧑 **A31 · Jouer la migration `meal_slots` en prod** — **BLOQUANT pour la livraison
-  des créneaux de repas libres**, et c'est la seule chose qui manque : le code est écrit,
-  testé (32 tests, 6 mutations), mesuré et vérifié dans le navigateur.
-  **Mesuré le 2026-08-07** (`npm run check:migrations`) : `meal_slots` est la **seule**
-  colonne fautive (`400`) ; les 38 autres et les 6 tables répondent `200`, et le témoin
-  négatif discrimine.
-  Constaté à l'écran, le filet `PROFILE_COLS_LAST_MIGRATION` fonctionne — la synchro
-  retombe sur « tout sauf `meal_slots` » et le journalise au lieu de mourir en silence.
-  **Conséquence tant que ce n'est pas joué : les créneaux créés ne quittent pas
-  l'appareil** (perdus à la réinstallation, absents du second appareil).
-  ➡️ Procédure pas à pas : `supabase/PROCEDURE-2026-08-07-meal-slots.md`.
-  ⚠️ Le merge fera passer `ENGINE_VERSION` 46 → 47 : **le plan de tout le monde se
-  régénère une fois**. Aucune calorie ne bouge, la composition change.
+- ~~**A31 · Jouer la migration `meal_slots` en prod**~~ ✅ **JOUÉE le 2026-08-07, PR #46
+  mergée, site déployé** — les créneaux de repas libres sont EN LIGNE.
+  Séquence respectée, et c'est elle qui compte : SQL d'abord, merge ensuite (le merge
+  déclenche l'auto-deploy, donc déployer avant la migration casse le push profil).
+  Mesuré avant/après avec `npm run check:migrations` : les **39 colonnes** de
+  `PROFILE_COLS` en une requête passent de `400` à **`200`**, témoin négatif à `400`
+  dans les deux cas. Re-mesuré le 2026-08-08 : toujours `200`.
+  Vérifié aussi sur l'ARTEFACT en ligne (bundle téléchargé depuis GitHub Pages, témoins
+  **ASCII purs** — `meal_slots` ×8, `BUILTIN_SLOTS` ×6, `MAX_MEAL_SLOTS` ×2,
+  `nextCustomSlotId` ×2 ; témoins négatifs et `sk-ant-` à **0**, `BASE_WEIGHT` à **0**,
+  il a bien quitté le moteur).
+  ⚠️ **Le filet `PROFILE_COLS_LAST_MIGRATION` a été vu à l'œuvre pour la première fois**
+  (avant la migration) : la synchro est retombée sur « tout sauf `meal_slots` » **en le
+  journalisant**, au lieu de tuer le push profil en silence. Il fonctionne — il ne
+  dispense toujours pas de jouer le SQL.
+  ✅ **Le natif l'a aussi** — la **6ᵉ OTA** (`0d045fe`, 2026-08-08, commit `9bac59a`) le
+  contient (« repas paramétrables » y figure) : `f93c734` est un ancêtre de `9bac59a`,
+  vérifié. **Aucun écart web/natif sur ce chantier.**
+  ⚠️ Cette ligne a d'abord annoncé le contraire — j'avais ouvert une entrée « publier
+  l'OTA » sans vérifier ce qu'une autre session venait de publier. Le contrôle est un
+  `git merge-base --is-ancestor`, il coûte deux secondes : **avant d'annoncer un écart
+  web/natif, comparer les COMMITS, pas les dates.**
 
 
 - ~~**A1 · Confirmer une écriture RÉELLE en prod**~~ ✅ **PROUVÉ le 2026-07-31, par
@@ -2177,6 +2186,21 @@ produit en suspens — il ne reste qu'à coder.
   le monde en quelques minutes, **sans revue de store pour l'arrêter**. Le filet
   disparaît. Ne jamais publier sans `npm test` + `tsc` verts ; en cas de casse,
   republier l'update précédent (`eas update:rollback`).
+
+- ~~**C6 · Publier l'OTA des créneaux de repas libres**~~ ❌ **ENTRÉE OUVERTE À TORT le
+  2026-08-08, refermée dans la foulée. Il n'y avait rien à faire.** La **6ᵉ OTA**
+  (`0d045fe`, commit `9bac59a`, 12 commits) portait déjà « repas paramétrables » ; le
+  natif avait la feature avant que la tâche ne soit écrite.
+  ⚠️ **Le défaut de méthode vaut d'être gardé** : j'ai déduit l'écart de la CHRONOLOGIE
+  (« mon merge est du 7, la dernière OTA que je connais est du 7 ») au lieu de comparer
+  les commits. Une session parallèle avait publié entre-temps. Le contrôle tient en une
+  ligne et coûte deux secondes :
+  ```bash
+  git merge-base --is-ancestor <mon-commit> <commit-de-la-derniere-OTA>
+  ```
+  ➡️ **Un écart web/natif s'établit en comparant des COMMITS, jamais des dates** — et
+  d'autant moins quand plusieurs sessions poussent le même jour. Cette entrée reste ici
+  comme trace ; ne pas la rouvrir.
 
 - **C3 · 🧑 Classement d'âge : ADULTES UNIQUEMENT** — *tranché le 2026-07-30.*
   Apple 17+ · Google « Adultes uniquement », pour coller au blocage 18 ans de l'app.

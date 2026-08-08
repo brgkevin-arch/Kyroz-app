@@ -1,5 +1,17 @@
 # Procédure — jouer la migration `meal_slots` (2026-08-07)
 
+> ✅ **TERMINÉE le 2026-08-07.** SQL joué par le fondateur, vérifié (`check:migrations` :
+> 39 colonnes en une requête, `400` → `200`), PR #46 mergée, déploiement vert, bundle en
+> ligne vérifié. Consigné dans `supabase/JOURNAL-MIGRATIONS.md`.
+> **Ce fichier est conservé comme trace de ce qui a été fait** — il ne reste rien à
+> exécuter ici. Ne pas le rejouer comme une consigne.
+> ⚠️ Une seule chose n'a PAS été faite et vit ailleurs : **l'OTA n'est pas publiée**, donc
+> le natif n'a pas encore les créneaux libres (AGENTS.md **C6**).
+>
+> *Ce qui suit est le texte d'origine, à l'état où il a été suivi.*
+
+---
+
 > Une seule étape à la fois. Fais l'étape, dis-moi le résultat, je te donne la suivante.
 > Rien ici n'est faisable depuis le dépôt : le SQL demande l'accès au projet Supabase.
 
