@@ -57,6 +57,7 @@
     "mesure:variete": "npx tsx scripts/mesure-variete.ts",
     "mesure:creneaux": "npx tsx scripts/mesure-creneaux.ts",
     "mesure:volume": "npx tsx scripts/mesure-volume.ts",
+    "mesure:adiposite": "npx tsx scripts/mesure-adiposite.ts",
     "mesure:reroll": "npx tsx scripts/mesure-reroll.ts",
     "mesure:reglages": "npx tsx scripts/mesure-reglages.ts",
     "mesure:objectif": "npx tsx scripts/mesure-objectif-date.ts",
