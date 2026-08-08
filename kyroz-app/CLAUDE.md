@@ -1628,6 +1628,25 @@ téléphone.
   les conteneurs de modale, y compris celle qui est bien à l'écran.
   ℹ️ Mesuré sur le web ; sur natif, `Modal` est une modale de plateforme et l'ordre de
   présentation n'obéit pas au DOM.
+- 🔴 **UNE DONNÉE D'UTILISATEUR NE SE RANGE PAS DANS UN CACHE QUE QUELQU'UN D'AUTRE
+  EFFACE.** Trouvé le 2026-08-08 en rendant les articles de la liste de courses
+  supprimables. Le réflexe était de marquer l'article dans `@kyroz:shopping` — sauf
+  que **`plan.tsx` efface cette clé à CHAQUE `persistPlan`** : marquer un repas
+  cuisiné, déclarer un écart, changer une recette. La suppression aurait donc tenu
+  quelques minutes, puis l'article serait revenu **sans qu'aucune action de
+  l'utilisateur ne l'explique**.
+  ⚠️ **Le pire des défauts, parce qu'il passe la recette** : ça marche au moment du
+  geste, ça marche en test, et ça se défait plus tard chez l'utilisateur. Un bug qui
+  ne se reproduit jamais chez soi.
+  ➡️ **Avant de persister quoi que ce soit, chercher QUI EFFACE la clé visée**
+  (`grep -rn "removeItem(.*CLE" app/ lib/`). Un cache est la propriété de qui
+  l'invalide, pas de qui l'écrit. Une intention d'utilisateur va dans une clé qui lui
+  est propre — `lib/shoppingRemoved.ts` en est l'exemple.
+  ⚠️ Corollaire : **une liste DÉRIVÉE ne se corrige pas dans son rendu.** La liste de
+  courses vaut « plan moins garde-manger » ; en retirer une ligne ne veut rien dire
+  tant que le calcul, lui, la reproduit. Il faut soit changer l'entrée, soit poser un
+  filtre PERSISTANT au-dessus — et alors ce filtre doit se nettoyer, sinon il mord un
+  jour sur une donnée que personne ne lui a désignée.
 - **`onEndEditing` est un no-op sur react-native-web.** Pour normaliser ou borner une
   saisie en fin de frappe, utiliser **`onBlur`**. Le bug « %MG saisi 23 → enregistré 33 »
   venait de là.
