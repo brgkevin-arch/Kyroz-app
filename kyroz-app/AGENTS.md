@@ -4382,6 +4382,47 @@ produit en suspens — il ne reste qu'à coder.
   route — pas la veille d'une sortie store.
   </details>
 
+- **E22 · 🤖 Finir la passe émoji — 9 en restent AFFICHÉS.** *Décision fondateur du
+  2026-08-07 : ils partent.* Ce n'est plus un arbitrage ouvert, c'est un chantier à
+  coder — ne pas re-demander l'autorisation. Raisonnement complet : `CLAUDE.md` §8.
+  ⚠️ *Écrite sous le numéro **E17** — déjà pris sur `main` par « une case laissée vide
+  voulait dire je m'entraîne 7 j/7 ». Renumérotée **E22** à la fusion (2026-08-08),
+  **quatrième collision de la journée** : cf. E19/E20, A28/A29, A29/A30. Un identifiant
+  choisi sur une branche est une réservation que personne d'autre ne voit — il se prend
+  au moment de FUSIONNER, en regardant `main` ET les branches en aval.*
+
+  🔴 **Le compte disait 13, il en reste 9 — et les DEUX étaient justes à leur date.**
+  Les 4 de `notifications.ts` sont partis le 2026-08-07, agrafés au travail qui touchait
+  ce fichier pour une autre raison. **Re-mesuré le 2026-08-08 sur l'arbre fusionné**
+  (lignes de commentaire écartées, `\p{Extended_Pictographic}` sur le reste) :
+
+  | Fichier | Combien | Ce qui l'affiche |
+  |---|---|---|
+  | `lib/streak.ts` (paliers) | 6 — 🔥 🎉 💪 🏆 ⭐ 👑 | `StreakCelebration` en **56 px**, écran Plan |
+  | `lib/streak.ts` (`streakMessage`) | 2 — 🎯 🎉 | `StreakProgress` |
+  | ~~`lib/notifications.ts`~~ | ~~4~~ → **0** | ✅ partis le 2026-08-07 |
+  | `constants/legal.ts` | 1 — ⚠️ | écran `/legal` (CGU) |
+
+  ➡️ **Ce chiffre BAISSE tout seul** : il se re-compte avant d'être cité, jamais recopié.
+  C'est exactement le défaut que la fiche dénonce plus haut — un inventaire juste le jour
+  où il est écrit, faux le lendemain, et recopié entre-temps.
+
+  **Deux natures, pas une.** Le ⚠️ de `legal.ts` est mécanique : la phrase se reformule
+  et tient sans (patron « Noté 👎 » → « C'est noté »). Les **6 paliers sont un objet
+  VISUEL de 56 px** — les remplacer par
+  `ReussiteIcon`, par le seul chiffre, ou par rien, est un choix de DA à poser au
+  fondateur **au moment de le faire**. La décision acquise est « ça part », pas
+  « ça devient X ».
+
+  ⚠️ **Poser un COMPTEUR dans le même lot**, sinon la passe se redéclarera finie
+  toute seule — c'est exactement ce qui vient de se produire. La passe du
+  2026-08-06 a compté sur `app/` + `components/`, s'est déclarée terminée, et la
+  conclusion a été recopiée à trois endroits (message de commit, commentaire de
+  `Icons.tsx`, `CLAUDE.md` §8) où les trois copies se confirmaient l'une l'autre.
+  ➡️ **Un inventaire d'interface se compte sur ce qui est AFFICHÉ**, pas sur les
+  fichiers qui ressemblent à de l'interface : ces chaînes vivent dans `lib/` et
+  `constants/` et remontent à l'écran via un composant qui n'en contient aucune.
+
 ### 🚫 F — Volontairement reporté : NE PAS RELANCER
 
 Ce ne sont pas des oublis, ce sont des décisions. Les remonter dans un bilan fait perdre
