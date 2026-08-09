@@ -6,8 +6,14 @@
 // points, et les confondre produit des messages faux :
 //   - le TYPE passé à `verifyOtp` (`signup` vs `recovery`) — se tromper fait
 //     répondre « invalide » sur un code pourtant juste ;
-//   - la présence d'un LIEN dans l'e-mail. La confirmation en a un ; la
-//     réinitialisation n'en a pas, et c'est une décision — voir plus bas.
+//   - les MESSAGES d'erreur, qui doivent décrire des gestes réellement possibles.
+//
+// ⚠️ **AUCUN des deux e-mails ne porte plus de lien depuis le 2026-08-09.** La
+// réinitialisation n'en a jamais eu (voir plus bas) ; la confirmation en avait un,
+// retiré parce qu'il envoyait les messages en indésirable — un lien vers
+// `<ref>.supabase.co` dans un e-mail expédié depuis `kyroz.app`, c'est la signature
+// du phishing pour un filtre (Insights Resend : « Ensure link URLs match sending
+// domain »). Le code était déjà le chemin principal, donc le retrait ne coûte rien.
 //
 // Le nom du fichier dit « confirmation » parce qu'il est né avec ce parcours-là.
 //
@@ -26,14 +32,21 @@
 //  3. **Le lien traverse mal certaines messageries** (réécriture d'URL, coupure
 //     d'un lien long sur plusieurs lignes). Six chiffres, non.
 //
-// Le lien reste dans l'e-mail pour qui préfère cliquer — les deux chemins mènent
-// au même endroit. ⚠️ Mais ils ne sont pas interchangeables APRÈS COUP : le jeton
-// est à usage unique, donc cliquer le lien PUIS saisir le code rend le code
-// invalide (et l'inverse aussi). C'est ce que `traduitErreurConfirmation` doit
-// expliquer, sinon l'utilisateur croit s'être trompé de chiffres.
+// Ces trois raisons ont fait du code le chemin PRINCIPAL dès l'origine ; la
+// quatrième (le spam, cf. plus haut) a fini par supprimer le lien tout court.
 
 /**
- * Où atterrit celui qui CLIQUE le lien plutôt que de saisir le code.
+ * Où atterrirait celui qui CLIQUE un lien de confirmation.
+ *
+ * 🔴 **PLUS AUCUN E-MAIL DE KYROZ NE PORTE DE LIEN depuis le 2026-08-09** — cette
+ * constante, `emailRedirectTo` et `public/confirme.html` ne sont donc plus sur le
+ * chemin nominal. **Ils sont gardés comme FILET, pour deux cas réels :**
+ *   1. les e-mails **déjà partis** avant le changement de gabarit portent encore un
+ *      lien, et vivent une heure de plus. Supprimer la page les ferait tomber en 404 ;
+ *   2. le gabarit vit dans le DASHBOARD, hors du dépôt. Rien n'empêche un
+ *      `{{ .ConfirmationURL }}` d'y être recollé un jour ; sans redirection déclarée,
+ *      ce lien retomberait sur la « Site URL », c'est-à-dire un écran de connexion
+ *      muet. Le filet coûte un fichier statique — l'absence de filet coûte un parcours.
  *
  * ⚠️ Trois endroits doivent porter la même valeur, et rien ne le vérifie côté
  * Supabase — une divergence fait retomber silencieusement sur la « Site URL » :
@@ -76,16 +89,22 @@ export function codeComplet(code: string): boolean {
  * Messages Supabase (anglais, techniques) → français, et surtout : qui dit à
  * l'utilisateur QUOI FAIRE ensuite.
  *
- * ⚠️ « Token has expired or is invalid » recouvre DEUX situations opposées :
- * un code faux, et un compte DÉJÀ confirmé (le jeton a servi, via le lien).
- * Supabase ne les distingue pas — anti-énumération. Le message doit donc porter
- * les deux issues, sinon quelqu'un qui a cliqué le lien retape indéfiniment un
- * code correct en croyant s'être trompé.
+ * ⚠️ « Token has expired or is invalid » recouvre DEUX situations opposées : un code
+ * faux ou périmé, et un compte DÉJÀ confirmé (le jeton a servi). Supabase ne les
+ * distingue pas — anti-énumération. Le message doit donc porter les deux issues,
+ * sinon quelqu'un dont l'adresse est déjà validée retape indéfiniment un code
+ * correct en croyant s'être trompé.
+ *
+ * ⚠️ **Ce message CITAIT le lien de l'e-mail jusqu'au 2026-08-09** (« si tu as déjà
+ * cliqué le lien… »). Le lien ayant été retiré, la phrase décrivait un geste
+ * impossible — exactement le défaut qu'on avait su éviter côté réinitialisation, et
+ * qu'on a réintroduit ici en changeant le gabarit. ➡️ **Retirer un élément d'une
+ * interface, c'est aussi relire tout ce qui en parlait ailleurs.**
  */
 export function traduitErreurConfirmation(msg: string): string {
   const m = (msg ?? '').toLowerCase();
   if (m.includes('expired') || m.includes('invalid')) {
-    return 'Code refusé. Vérifie les six chiffres, ou demande un nouvel envoi. Si tu as déjà cliqué le lien de l\'e-mail, ton adresse est confirmée : connecte-toi.';
+    return 'Code refusé. Vérifie les six chiffres, ou demande un nouvel envoi. Si ton adresse est déjà confirmée, connecte-toi simplement.';
   }
   if (m.includes('rate limit') || m.includes('after')) {
     return 'Trop de tentatives d\'affilée. Attends une minute avant de redemander un e-mail.';

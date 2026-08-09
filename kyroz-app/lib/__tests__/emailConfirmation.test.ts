@@ -86,12 +86,23 @@ describe('Code de confirmation — ce que l\'utilisateur tape', () => {
 
 describe('Erreurs Supabase — traduites, et surtout ACTIONNABLES', () => {
   it('« expired or invalid » nomme les DEUX issues, dont le compte déjà confirmé', () => {
-    // Supabase ne distingue pas « code faux » de « jeton déjà consommé » (le lien
-    // a été cliqué). Sans les deux issues dans le message, quelqu'un qui a cliqué
-    // le lien retape indéfiniment un code correct en croyant s'être trompé.
+    // Supabase ne distingue pas « code faux » de « jeton déjà consommé ». Sans les
+    // deux issues dans le message, quelqu'un dont l'adresse est déjà validée retape
+    // indéfiniment un code correct en croyant s'être trompé.
     const msg = traduitErreurConfirmation('Token has expired or is invalid');
     expect(msg).toContain('connecte-toi');
     expect(msg).not.toContain('Token');
+  });
+
+  it('🔴 AUCUN message ne parle d\'un lien — il n\'y en a plus dans les e-mails', () => {
+    // Ce message conseillait « si tu as déjà cliqué le lien de l'e-mail… » jusqu'au
+    // 2026-08-09. Le lien retiré, la phrase décrivait un geste IMPOSSIBLE : le défaut
+    // qu'on avait su éviter côté réinitialisation, réintroduit ici en changeant le
+    // gabarit sans relire ce qui en parlait ailleurs.
+    // ➡️ Retirer un élément d'une interface, c'est aussi relire tout ce qui le cite.
+    for (const brut of ['Token has expired or is invalid', 'For security purposes, you can only request this after 47 seconds']) {
+      expect(traduitErreurConfirmation(brut).toLowerCase()).not.toContain('lien');
+    }
   });
 
   it('le plafond d\'envoi dit d\'attendre, pas « réessaie » (ce serait faux)', () => {
@@ -121,8 +132,21 @@ describe('Gabarit d\'e-mail — les variables sans lesquelles il ne sert à rien
     expect(html).toMatch(/\{\{\s*\.Token\s*\}\}/);
   });
 
-  it('porte {{ .ConfirmationURL }} : le lien reste le second chemin', () => {
-    expect(html).toMatch(/\{\{\s*\.ConfirmationURL\s*\}\}/);
+  it('🔴 ne porte PLUS {{ .ConfirmationURL }} — retiré le 2026-08-09', () => {
+    // Ce test exigeait l'INVERSE jusqu'à cette date : le lien était « le second
+    // chemin ». Il envoyait les e-mails en INDÉSIRABLE, et les Insights de Resend
+    // ont nommé la cause — « Ensure link URLs match sending domain » : l'e-mail part
+    // de `kyroz.app`, le lien de Supabase pointe vers `<ref>.supabase.co`, et un
+    // expéditeur qui diverge de sa destination est la signature du phishing.
+    // Mesuré : premier e-mail en boîte, second en indésirable.
+    expect(html).not.toMatch(/\{\{\s*\.ConfirmationURL\s*\}\}/);
+  });
+
+  it('ne contient aucun lien web cliquable', () => {
+    // Le garde ci-dessus ne suffit pas : on pourrait recoller une URL en dur, ou un
+    // « voir dans le navigateur ». Seul `mailto:` reste permis (le contact).
+    const liens = [...html.matchAll(/href="([^"]*)"/g)].map((m) => m[1]);
+    for (const href of liens) expect(href.startsWith('mailto:')).toBe(true);
   });
 
   it('n\'invente aucune autre variable de gabarit', () => {
@@ -235,14 +259,23 @@ describe('Mot de passe oublié — le seul recours quand le mot de passe est per
 
   it('les erreurs ne parlent JAMAIS d\'un lien — il n\'y en a pas', () => {
     // 🔴 Le vrai risque de ce parcours : réutiliser les messages de la confirmation.
-    // Celle-là conseille « si tu as déjà cliqué le lien de l'e-mail… », or l'e-mail
-    // de réinitialisation n'en contient AUCUN. Un message qui décrit un geste
+    // Celle-là conseillait « si tu as déjà cliqué le lien de l'e-mail… », or l'e-mail
+    // de réinitialisation n'en a jamais contenu. Un message qui décrit un geste
     // impossible fait douter de l'app, pas du code saisi.
     for (const brut of ['Token has expired or is invalid', 'For security purposes, you can only request this after 47 seconds']) {
       expect(traduitErreurReinitialisation(brut).toLowerCase()).not.toContain('lien');
     }
-    // …et la confirmation, elle, en parle bien : les deux ne sont pas interchangeables.
-    expect(traduitErreurConfirmation('Token has expired or is invalid').toLowerCase()).toContain('lien');
+    // ⚠️ Ce test exigeait AUSSI que la confirmation, elle, parle du lien — les deux
+    // n'étant pas interchangeables. Cette moitié est tombée le 2026-08-09 avec le
+    // retrait du lien : plus aucun e-mail n'en porte, donc plus aucun message ne doit
+    // en parler (le garde correspondant vit dans le bloc « Erreurs Supabase »).
+    // Ce qui reste vrai, et qu'on vérifie ici : les deux messages restent DISTINCTS,
+    // parce que les deux parcours n'offrent pas la même issue.
+    const conf = traduitErreurConfirmation('Token has expired or is invalid');
+    const reinit = traduitErreurReinitialisation('Token has expired or is invalid');
+    expect(conf).not.toBe(reinit);
+    expect(conf).toContain('connecte-toi');       // l'adresse est peut-être déjà validée
+    expect(reinit).toContain('nouveau code');     // là, il n'y a rien à quoi se connecter
   });
 
   it('« même mot de passe qu\'avant » est nommé, pas rendu tel quel', () => {
