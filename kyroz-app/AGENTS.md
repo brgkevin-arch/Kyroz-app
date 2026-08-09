@@ -2378,6 +2378,37 @@ produit en suspens — il ne reste qu'à coder.
 
 ### 🍽 D — Catalogue
 
+- **D23 · 🤖 La vague « petits formats vegan / vegan+SG » — et elle part en OTA, PAS
+  dans le binaire.** *Décision fondateur du 2026-08-09.*
+  ⚠️ *Numéro pris sur une branche, donc une RÉSERVATION que personne d'autre ne voit :
+  le vérifier contre `main` et les branches en aval au moment de fusionner. Quatre
+  collisions en une journée le 2026-08-08 (E19/E20, A28/A29, A29/A30, E16/E23).*
+
+  **La cible, mesurée le 2026-08-07** : les **25 drapeaux bloquants** sur les repas
+  servis (6 720 mesurés). Tous sur deux gabarits — **F 55 et F 65 en sèche** —, tous en
+  **vegan ou vegan+SG**, et tous les **JOURS DE REPOS** : les journées à 1 328 / 1 498
+  kcal, où le catalogue n'a ni dîner ni collation assez petits. Ce n'est pas un défaut de
+  sélection, c'est une limite de VIVIER que la répartition par volume a rendue visible.
+  ➡️ Donc des **dîners et des collations en petit format**, pas une vague large.
+  ⚠️ **Re-mesurer avant de commander** (`npm run mesure:variete`, `mesure:vivier`) : ces
+  chiffres datent du 2026-08-07 et cette table entière se périme dès qu'un chantier touche
+  les cibles. Et mesurer le vivier AVANT d'écrire, pas après — c'est la leçon de B7→B9.
+
+  🔴 **POURQUOI L'OTA, ET CE N'EST PAS UN REPORT.** Une vague catalogue est du **JS pur** —
+  pas une ligne de natif —, donc `expo-updates` sait la livrer en entier. La mettre dans le
+  binaire de la soumission coûterait un à deux jours de décalage pour un bénéfice que
+  **personne ne peut constater** : 30 recettes de plus dans un catalogue de 512 ne se voient
+  ni à la revue, ni sur une capture d'écran. ➡️ On soumet avec le catalogue actuel, la vague
+  part dès la revue passée.
+  ⚠️ **Ce raisonnement ne se généralise PAS à tout ce qui est du JS.** Il tient parce que le
+  changement est invisible au relecteur. `PAYWALL_LAUNCH` est du JS lui aussi, et poser sa
+  date pendant la revue mettrait un écran de vente en travers du test du relecteur (il crée
+  son compte pendant l'essai, donc après la date, donc non grand-péré). Le critère est
+  « est-ce que ça change ce que le relecteur VOIT ? », pas « est-ce que c'est du JS ? ».
+  ⚠️ Et une OTA atteint tout le monde en minutes **sans revue pour l'arrêter** : elle ne part
+  jamais sans `npm test` + `tsc` verts, et elle se publie **depuis `main`**, jamais depuis la
+  branche qu'on vient de merger (cf. la ligne « OTA publiées » de la photo).
+
 - ~~**D1 · Commande de rédaction : collations légères**~~ ✅ **LIVRÉ le 2026-08-01 —
   13 collations (`col67`→`col79`), catalogue 314 → 327.** Le trou était réel et pire
   qu'annoncé : sur 66 collations, **aucune** ne descendait sous 180 kcal (la plus légère
