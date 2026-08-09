@@ -278,12 +278,20 @@ export function profilTour({ objectifDateDisponible }: ProfilTourContext): TourS
       text: "Ton métabolisme, tes journées et tes séances réunis. Elle se recalcule dès que tu changes ton poids ou ton activité — tu n'as rien à relancer.",
     },
     {
+      // ⚠️ CETTE ÉTAPE A CHANGÉ DE CIBLE le 2026-08-10, en même temps que son
+      // sujet a déménagé. Elle visait le bloc de bas de page (« Exporter mes
+      // données », « Confidentialité & CGU ») ; ce bloc vit maintenant dans la
+      // feuille Réglages, donc il n'est PAS monté quand le tour se joue — et
+      // `startTour` écarte silencieusement une étape dont la cible manque. Elle
+      // pointe désormais la roue dentée, c'est-à-dire l'endroit où l'on trouve
+      // ce dont elle parle. Le texte suit : une bulle qui désigne un bouton doit
+      // dire ce qu'il y a derrière, sinon elle décrit un écran qui n'est plus là.
       // Prouvé par : lib/sync.ts synchronise profil, pesées et favoris ; les
       // photos de progression et le journal des repas hors plan restent
       // volontairement LOCAL-ONLY (CLAUDE.md §3 et §7, données de santé).
       targetId: 'profil-donnees',
-      title: 'Ce qui suit ton compte',
-      text: "Ton profil, tes pesées et tes favoris te suivent d'un appareil à l'autre. Tes photos et ton journal hors plan, eux, ne quittent pas ce téléphone.",
+      title: 'Tes réglages, et tes données',
+      text: "Derrière cette roue : notifications, apparence, confidentialité, compte. Ton profil, tes pesées et tes favoris te suivent d'un appareil à l'autre — tes photos et ton journal hors plan, eux, ne quittent pas ce téléphone.",
     },
   );
 

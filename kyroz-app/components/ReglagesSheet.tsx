@@ -1,0 +1,281 @@
+import React from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import Constants from 'expo-constants';
+import { ThemePalette, Spacing, Type, Radius, Trait, Icone, OPACITE_PRESSION, CIBLE_TACTILE_MIN, useTheme } from '../constants/theme';
+import { Segmented, SectionTitle, MenuRow } from './ui';
+import { useReminder } from '../hooks/useReminder';
+import { usePlanCheckin } from '../hooks/usePlanCheckin';
+import { useAnalyticsConsent } from '../hooks/useAnalyticsConsent';
+import { useThemeMode, setThemeMode, ThemeMode } from '../lib/themeMode';
+import { useAccentId, setAccentId, ACCENTS, ACCENT_IDS, readableOn } from '../lib/accentColor';
+import { useHydrationEnabled } from './HydrationBar';
+import { ReminderTimeField } from './ReminderTimeField';
+import { ReminderTime, formatReminderTime, DEFAULT_REMINDER_TIME } from '../lib/reminder';
+import { remindersSupported } from '../lib/notifications';
+import { useDialog } from './Dialog';
+import { TOURS } from '../lib/tours';
+import { SUPPORT_EMAIL } from '../lib/feedback';
+import { DISCLAIMER } from '../constants/legal';
+import { CIQUAL_ATTRIBUTION } from '../lib/foods';
+
+// ── La feuille « Réglages » — ce qui vivait au fond du Profil ────────────────
+//
+// Décision fondateur du 2026-08-09 : *« le profil est plus une section fourre-tout.
+// J'aimerais que le profil soit qu'avec les préférences et données de l'user, suivi
+// du poids etc, et avec une petite roue dentée on met le reste. »*
+//
+// L'écran Profil empilait, à la suite : le poids, la série, les cartes de sécurité,
+// les cibles, le TDEE, 11 lignes de menu, **6 interrupteurs système**, 5 lignes de
+// menu de bas de page, la déconnexion et la suppression de compte. « Couleur
+// d'accent » était à trois doigts de « Supprimer mon compte ».
+//
+// 🔴 TROIS PIÈGES ONT ÉTÉ VÉRIFIÉS AVANT D'ÉCRIRE CE FICHIER, parce qu'un réglage
+// qui déménage dans un composant MONTÉ À LA DEMANDE perd tout effet de bord attaché
+// à son montage. C'est E24 exactement — le rappel quotidien servait un texte de
+// plusieurs mois parce que son ré-armement vivait dans un hook monté par le seul
+// onglet Profil. Les quatre hooks déplacés ici ont donc été relus un par un :
+//
+//   • `useReminder`      → pur LECTEUR depuis E24 ; le ré-armement est dans
+//                          `loadReminder()`, appelé par le layout RACINE. Sûr.
+//   • `usePlanCheckin`   → son effet de montage ÉCRIT (il amorce `lastShown` à la
+//                          première fois). Mais `plan.tsx` le monte aussi, et c'est
+//                          l'écran d'arrivée de l'app : l'amorçage a déjà eu lieu.
+//                          Sûr — pour la même raison qu'`applyWeighInReminder`
+//                          n'a jamais eu le défaut d'E24.
+//   • `useAnalyticsConsent` → lecture seule. Sûr.
+//   • thème / accent / hydratation → chargés par le layout racine. Sûrs.
+//
+// ➡️ **Ne pas ajouter ici un hook sans refaire ce tour.** La question n'est pas
+// « est-ce que ça s'affiche ? » mais « est-ce que quelque chose se PRODUISAIT au
+// montage, et qui le déclenche maintenant ? ». Un effet qui n'a plus lieu ne se voit
+// ni à l'écran, ni dans une capture, ni dans un diff.
+//
+// ⚠️ Cette feuille est rendue par `profil.tsx` comme les éditeurs : `Sheet` clone son
+// enfant pour lui injecter `dragHandlers` et `sheetScrollProps` — d'où ces deux props,
+// sans lesquelles l'en-tête ne serait pas glissable et le défilement ne fermerait pas.
+
+interface Props {
+  t: ThemePalette;
+  version: string;
+  onClose: () => void;
+  onExport: () => void;
+  onRevoirTutos: () => void;
+  onLogout: () => void;
+  onDelete: () => void;
+  dragHandlers?: any;
+  sheetScrollProps?: any;
+}
+
+export function ReglagesSheet({
+  t, version, onClose, onExport, onRevoirTutos, onLogout, onDelete, dragHandlers, sheetScrollProps,
+}: Props) {
+  const router = useRouter();
+  const { notify } = useDialog();
+  const { time: reminderTime, choose: chooseReminder } = useReminder();
+  const { enabled: checkinEnabled, setEnabled: setCheckinEnabled } = usePlanCheckin();
+  const themeMode = useThemeMode();
+  const accentId = useAccentId();
+  const [hydrationOn, setHydrationOn] = useHydrationEnabled();
+  const { consent: analyticsConsent, choose: chooseConsent } = useAnalyticsConsent();
+  const s = React.useMemo(() => makeStyles(t), [t]);
+
+  // 🔴 ON FERME LA FEUILLE AVANT DE NAVIGUER, et ce n'est pas cosmétique. Une route
+  // poussée depuis l'intérieur d'une `Modal` ouverte naît SOUS elle : l'utilisateur
+  // taperait « Confidentialité & CGU » et ne verrait rien bouger. Même famille que
+  // l'empilement de deux feuilles corrigé dans `ActionSheet.tsx` le 2026-08-09 —
+  // ce qui décide, c'est l'ordre de montage, pas l'intention du code.
+  const versRoute = (chemin: string) => { onClose(); router.push(chemin as never); };
+
+  return (
+    <View style={{ flex: 1, backgroundColor: t.bg }}>
+      <View style={s.entete} {...(dragHandlers ?? {})}>
+        <Text style={{ color: t.text, ...Type.h2 }}>Réglages</Text>
+      </View>
+
+      <ScrollView contentContainerStyle={s.contenu} showsVerticalScrollIndicator={false} {...(sheetScrollProps ?? {})}>
+        {/* ── Notifications ────────────────────────────────────────────────── */}
+        <SectionTitle t={t}>Notifications</SectionTitle>
+
+        <Text style={s.label}>Rappel quotidien</Text>
+        <Segmented<'off' | 'on'>
+          t={t}
+          value={reminderTime ? 'on' : 'off'}
+          onChange={async (v) => {
+            // Réactiver reprend l'heure affichée ; seule la PREMIÈRE activation
+            // pose le matin par défaut.
+            const next: ReminderTime | null = v === 'on' ? (reminderTime ?? DEFAULT_REMINDER_TIME) : null;
+            const ok = await chooseReminder(next);
+            if (!ok && next) {
+              notify({
+                title: remindersSupported ? 'Notifications désactivées' : 'Indisponible sur le web',
+                message: remindersSupported
+                  ? 'Active les notifications de Kyroz dans les réglages de ton téléphone pour recevoir le rappel.'
+                  : 'Le rappel quotidien fonctionne sur l’app mobile (iOS/Android), pas dans le navigateur.',
+              });
+            }
+          }}
+          options={[{ label: 'Aucun', value: 'off' }, { label: 'Activé', value: 'on' }]}
+        />
+        {/* Aucun geste ne se JETTE ici — ni sur l'interrupteur, ni sur l'heure : les
+            choix s'empilent dans `useReminder`. Le garde « un choix est déjà en
+            cours » avait coûté une heure saisie perdue et un segment mort. */}
+        {reminderTime ? <ReminderTimeField t={t} value={reminderTime} onChange={chooseReminder} /> : null}
+        <Text style={s.aide}>
+          {reminderTime
+            ? `Chaque jour à ${formatReminderTime(reminderTime)}, avec une citation.`
+            : 'Un rappel par jour, à l’heure que tu choisis, pour retrouver ton plan.'}
+          {!remindersSupported && reminderTime ? ' La notif arrive sur l’app mobile (pas sur le web).' : ''}
+        </Text>
+
+        <Text style={s.label}>Propositions d'ajustement</Text>
+        <Segmented<'on' | 'off'>
+          t={t}
+          value={checkinEnabled ? 'on' : 'off'}
+          onChange={(v) => setCheckinEnabled(v === 'on')}
+          options={[{ label: 'Activées', value: 'on' }, { label: 'Désactivées', value: 'off' }]}
+        />
+        <Text style={s.aide}>
+          {checkinEnabled
+            ? 'On te demandera de temps en temps si ton plan te va, avec des ajustements en un tap.'
+            : 'On ne te proposera plus d’ajuster ton plan.'}
+        </Text>
+
+        {/* ── Affichage ────────────────────────────────────────────────────── */}
+        <SectionTitle t={t}>Affichage</SectionTitle>
+
+        <Text style={s.label}>Apparence</Text>
+        <Segmented<ThemeMode>
+          t={t}
+          value={themeMode}
+          onChange={setThemeMode}
+          options={[
+            { label: 'Système', value: 'system' },
+            { label: 'Clair', value: 'light' },
+            { label: 'Sombre', value: 'dark' },
+          ]}
+        />
+        <Text style={s.aide}>
+          {themeMode === 'system' ? 'Suit le réglage clair/sombre de ton téléphone.' : `Thème ${themeMode === 'light' ? 'clair' : 'sombre'} forcé.`}
+        </Text>
+
+        {/* Chaque pastille montre la couleur telle qu'elle sera DANS LE THÈME
+            COURANT — un même bleu n'a pas la même valeur sur fond noir et clair. */}
+        <Text style={s.label}>Couleur d'accent</Text>
+        <View style={s.pastilles}>
+          {ACCENT_IDS.map((id) => {
+            const on = accentId === id;
+            const couleur = ACCENTS[id][t.scheme];
+            return (
+              <TouchableOpacity
+                key={id}
+                onPress={() => setAccentId(id)}
+                activeOpacity={OPACITE_PRESSION}
+                accessibilityRole="button"
+                accessibilityState={{ selected: on }}
+                accessibilityLabel={`Couleur d'accent ${ACCENTS[id].label}`}
+                style={[s.pastille, { backgroundColor: couleur, borderColor: on ? t.text : t.line }]}
+              >
+                {/* La coche se calcule elle aussi : noir ou blanc selon la pastille. */}
+                {on && <Ionicons name="checkmark" size={Icone.standard} color={readableOn(couleur)} />}
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+        <Text style={s.aide}>
+          {accentId === 'mono'
+            ? 'Monochrome : encre sur fond clair, blanc sur fond sombre.'
+            : `${ACCENTS[accentId].label} — appliqué aux boutons et aux éléments actifs.`}
+        </Text>
+
+        <Text style={s.label}>Suivi d'hydratation</Text>
+        <Segmented<'on' | 'off'>
+          t={t}
+          value={hydrationOn ? 'on' : 'off'}
+          onChange={(v) => setHydrationOn(v === 'on')}
+          options={[{ label: 'Affiché', value: 'on' }, { label: 'Masqué', value: 'off' }]}
+        />
+        <Text style={s.aide}>
+          {hydrationOn
+            ? 'Une mini-barre de suivi d’hydratation s’affiche au-dessus de tes repas du jour.'
+            : 'La barre d’hydratation est masquée.'}
+        </Text>
+
+        {/* ── Aide et retours ──────────────────────────────────────────────── */}
+        <SectionTitle t={t}>Aide et retours</SectionTitle>
+        <View style={s.menu}>
+          {/* En tête du bloc, et c'est voulu : c'est la ligne qu'on veut qu'un
+              testeur trouve. « Aide & contact » n'affichait qu'une adresse à
+              recopier — personne n'écrit un retour à ce prix-là. */}
+          <MenuRow t={t} label="Donner mon avis" value="Un problème, une idée" onPress={() => versRoute('/avis')} />
+          <MenuRow t={t} label="Aide & contact" value={SUPPORT_EMAIL} onPress={() => versRoute('/avis')} />
+          <MenuRow t={t} label="Revoir les tutos" value={`${TOURS.length} visites guidées`} onPress={onRevoirTutos} last />
+        </View>
+
+        {/* ── Confidentialité ──────────────────────────────────────────────── */}
+        <SectionTitle t={t}>Confidentialité</SectionTitle>
+
+        <Text style={s.label}>Statistiques d'usage</Text>
+        <Segmented<'on' | 'off'>
+          t={t}
+          value={analyticsConsent === 'granted' ? 'on' : 'off'}
+          onChange={(v) => chooseConsent(v === 'on' ? 'granted' : 'denied')}
+          options={[{ label: 'Partagées', value: 'on' }, { label: 'Non', value: 'off' }]}
+        />
+        <Text style={s.aide}>
+          {analyticsConsent === 'granted'
+            ? 'Tu partages des stats d’usage anonymes (jamais ton nom ni tes données perso) pour aider à améliorer Kyroz.'
+            : 'Aucune statistique d’usage n’est partagée.'}
+        </Text>
+
+        <View style={s.menu}>
+          <MenuRow t={t} label="Exporter mes données" value="Télécharger tout (RGPD)" onPress={onExport} />
+          <MenuRow t={t} label="Confidentialité & CGU" value="RGPD, données de santé" onPress={() => versRoute('/legal')} last />
+        </View>
+
+        {/* ── Compte ───────────────────────────────────────────────────────── */}
+        <SectionTitle t={t}>Compte</SectionTitle>
+        <View style={s.menu}>
+          <MenuRow t={t} label="Version" value={version} onPress={() => {}} readonly last />
+        </View>
+
+        <TouchableOpacity style={s.deco} onPress={onLogout} activeOpacity={OPACITE_PRESSION}>
+          <Text style={s.decoTxt}>Se déconnecter</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={s.suppr} onPress={onDelete} activeOpacity={OPACITE_PRESSION}>
+          <Text style={s.supprTxt}>Supprimer mon compte</Text>
+        </TouchableOpacity>
+
+        {/* §6 impose le disclaimer « à l'onboarding, AUX PARAMÈTRES, et sur chaque
+            plan généré ». Cette feuille EST les paramètres : la règle est tenue
+            ici, pas contournée en le retirant du Profil. */}
+        <Text style={s.mention}>{DISCLAIMER}</Text>
+        <Text style={s.mention}>{CIQUAL_ATTRIBUTION}</Text>
+      </ScrollView>
+    </View>
+  );
+}
+
+function makeStyles(t: ThemePalette) {
+  return StyleSheet.create({
+    entete: { paddingHorizontal: Spacing.xxl, paddingBottom: Spacing.sm },
+    contenu: { padding: Spacing.xxl, paddingTop: Spacing.md, gap: Spacing.lg },
+    label: { ...Type.captionStrong, color: t.textSecondary, marginTop: Spacing.sm },
+    aide: { ...Type.caption, color: t.textTertiary, lineHeight: 18, marginTop: -Spacing.sm },
+    menu: { backgroundColor: t.card, borderRadius: Radius.card, paddingHorizontal: Spacing.lg },
+    pastilles: { flexDirection: 'row', gap: Spacing.sm, flexWrap: 'wrap' },
+    pastille: {
+      width: CIBLE_TACTILE_MIN, height: CIBLE_TACTILE_MIN, borderRadius: Radius.pill,
+      alignItems: 'center', justifyContent: 'center', borderWidth: Trait.controle,
+    },
+    deco: {
+      alignItems: 'center', justifyContent: 'center', minHeight: CIBLE_TACTILE_MIN,
+      backgroundColor: t.card, borderRadius: Radius.button, marginTop: Spacing.md,
+    },
+    decoTxt: { ...Type.label, color: t.text },
+    suppr: { alignItems: 'center', justifyContent: 'center', minHeight: CIBLE_TACTILE_MIN },
+    supprTxt: { ...Type.bodySmallStrong, color: t.danger },
+    mention: { ...Type.micro, color: t.textQuaternary, lineHeight: 16, textAlign: 'center' },
+  });
+}
