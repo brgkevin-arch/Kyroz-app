@@ -504,7 +504,7 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
   ⚠️ **Non vérifié à l'écran** : les trois étapes n'ont pas pu être ouvertes dans un
   navigateur (preview d'un worktree → app du dépôt PRINCIPAL, cf. §11). `tsc` vert,
   1 178 tests verts, gabarit rendu et regardé.
-- ~~**A29 · Confirmation e-mail**~~ ✅ **TERMINÉ ET ACTIF EN PROD LE 2026-08-09.**
+- ~~**A29 · Confirmation e-mail**~~ ✅ **TERMINÉ, ACTIF ET ÉPROUVÉ EN PROD LE 2026-08-09** — e-mail reçu EN BOÎTE, zéro Insight Resend.
   Les 12 étapes de `supabase/PROCEDURE-2026-08-07-confirmation-email.md` ont été
   déroulées avec le fondateur. **Mesure d'arrivée** (`npm run check:auth`) :
   `✓ confirmation e-mail  EXIGÉE` — exactement l'inverse du `✖ désactivée` qui a ouvert
@@ -528,18 +528,32 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
   on peut le voir, c'est quand quelqu'un le regarde — donc il faut l'inscrire dans une
   procédure, sinon personne ne le regarde jamais.
 
-  ⚠️ **RESTE : le premier e-mail est arrivé en boîte, le second en INDÉSIRABLE.** Cause
-  identifiée par les Insights de Resend, et ce n'est pas la réputation du domaine :
-  *« Ensure link URLs match sending domain »* — l'e-mail vient de `kyroz.app` mais son
-  bouton pointe vers `…supabase.co`, signature classique du phishing pour un filtre.
-  Second point : *« Include valid DMARC record »*, absent.
-  ➡️ Deux correctifs, tous deux gratuits : **poser le DMARC** (`_dmarc` TXT
-  `v=DMARC1; p=none;`, proposé par Resend) et **retirer le lien de l'e-mail de
-  confirmation** — le code est déjà le chemin principal, et l'e-mail de réinitialisation
-  n'a jamais eu de lien pour ces mêmes raisons. *Alternative écartée : domaine d'auth
-  personnalisé (`auth.kyroz.app`), réservé au plan Pro à 25 $/mois.*
+  ✅ **LE PASSAGE EN INDÉSIRABLE EST RÉSOLU (2026-08-09).** Le second e-mail était parti
+  en spam ; après correctifs, un envoi neuf arrive **en boîte de réception**, et Resend
+  n'affiche **plus aucun Insight**.
+  **La cause n'était PAS la réputation du domaine** — c'est ce que je supposais, et les
+  Insights de Resend ont dit autre chose : *« Ensure link URLs match sending domain »*.
+  L'e-mail partait de `kyroz.app` et son bouton pointait vers `…supabase.co` ; pour un
+  filtre, un expéditeur qui diverge de sa destination est la signature du phishing.
+  Second reproche : *« Include valid DMARC record »*, absent.
+  ➡️ Deux correctifs, tous deux gratuits : **DMARC posé** (`_dmarc` TXT
+  `v=DMARC1; p=none;`) et **lien retiré de l'e-mail de confirmation** — le code était
+  déjà le chemin principal, et l'e-mail de réinitialisation n'a jamais eu de lien pour
+  ces mêmes raisons. Vérifié depuis un résolveur public : SPF, DKIM et DMARC en place,
+  **et les MX iCloud de la racine INTACTS** (le seul vrai danger de la manœuvre).
+  *Alternative écartée : domaine d'auth personnalisé (`auth.kyroz.app`), plan Pro à
+  25 $/mois pour un bouton dont personne n'a besoin.*
   *Écarté aussi, malgré la suggestion de Resend : « Use a subdomain » — l'expéditeur
   cesserait d'être une vraie boîte, ce que Resend salue par ailleurs (« Don't use no-reply »).*
+  ⚠️ **Un envoi accepté n'est pas une garantie durable** : la réputation d'un domaine se
+  construit sur des semaines. Ce qui est acquis, ce sont les deux signaux techniques que
+  les filtres reprochaient explicitement — pas une immunité.
+  ⚠️ **Le retrait du lien a RÉINTRODUIT un défaut ailleurs** : `traduitErreurConfirmation`
+  conseillait encore « si tu as déjà cliqué le lien de l'e-mail… », un geste devenu
+  impossible — exactement ce que son homologue de réinitialisation existe pour ne pas
+  faire. ➡️ **Retirer un élément d'une interface, c'est aussi relire tout ce qui le CITE.**
+  `public/confirme.html`, `URL_RETOUR_CONFIRMATION` et `emailRedirectTo` sont gardés comme
+  FILET (e-mails déjà partis qui portent encore un lien ; gabarit du dashboard hors dépôt).
 
   ⏳ **DEUX SUITES, EN LISTE D'ATTENTE (décision fondateur du 2026-08-09 : « on le fera
   plus tard »). Ne pas les lancer, ne pas les remonter comme un retard :**
