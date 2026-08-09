@@ -56,9 +56,12 @@ async function ensurePermission(): Promise<boolean> {
  * ⚠️ **Le message est figé à la programmation, pas à l'affichage.** Un
  * déclencheur `DAILY` répète le MÊME contenu jusqu'au prochain ré-armement — le
  * système ne rappelle pas l'app pour lui demander quoi écrire. La rotation des
- * messages tient donc à ce que `useReminder` ré-arme à chaque démarrage : le
- * texte change d'un jour sur l'autre pour qui ouvre l'app, et reste le même pour
- * qui ne l'ouvre pas.
+ * messages tient donc au ré-armement de `rearmReminder`, appelé au démarrage
+ * depuis le layout racine : le texte change d'un jour sur l'autre pour qui ouvre
+ * l'app, et reste le même pour qui ne l'ouvre pas.
+ * *(Cette phrase disait « à ce que `useReminder` ré-arme à chaque démarrage ».
+ * C'était FAUX : ce hook n'est monté que par l'onglet Profil — cf. le préambule
+ * de `rearmReminder`.)*
  *
  * On a écarté l'alternative — programmer quinze notifications datées d'avance,
  * une par jour, chacune avec son texte : elle ferait vraiment tourner le message
@@ -74,8 +77,46 @@ export async function applyReminder(time: ReminderTime | null, now: Date = new D
   const granted = await ensurePermission();
   if (!granted) return false;
 
-  // Index pris sur le jour où la notif TOMBERA (demain si l'heure est passée),
-  // pour que le message corresponde à ce jour-là.
+  await programmerQuotidien(time, now);
+  return true;
+}
+
+/**
+ * Ré-arme le rappel quotidien avec le texte DU JOUR, au démarrage de l'app.
+ *
+ * 🔴 Pourquoi cette fonction existe (défaut signalé par le fondateur le
+ * 2026-08-09 : « la notification que j'ai reçue ce midi n'était pas celle qu'on
+ * avait changée »). Le contenu est figé à la programmation — donc le seul chemin
+ * qui fasse tourner le message, ET le seul qui fasse arriver un texte réécrit
+ * jusqu'à l'écran de verrouillage, c'est le ré-armement. Or il ne vivait que dans
+ * l'effet de montage de `useReminder`, hook monté par le SEUL onglet Profil. Qui
+ * ouvre l'app sur le Plan et n'entre jamais dans ses réglages recevait donc,
+ * indéfiniment, le message programmé des mois plus tôt — y compris après une
+ * mise à jour OTA parfaitement installée.
+ * *(Le rappel de PESÉE, lui, n'a jamais eu le défaut : `applyWeighInReminder` est
+ * appelé par `useWeightLog`, monté par l'écran Plan, donc à chaque démarrage.)*
+ *
+ * ⚠️ **Ne demande JAMAIS la permission** — même règle que le rappel de pesée. Un
+ * ré-armement se produit à chaque lancement : y brancher `requestPermissions`
+ * ferait surgir un prompt système au démarrage, sans le moindre geste de
+ * l'utilisateur. Sans permission accordée, no-op silencieux.
+ */
+export async function rearmReminder(time: ReminderTime | null, now: Date = new Date()): Promise<void> {
+  if (!remindersSupported || !time) return;
+
+  const perm = await Notifications.getPermissionsAsync();
+  if (!perm.granted) return;
+
+  try { await Notifications.cancelScheduledNotificationAsync(DAILY_ID); } catch {}
+  await programmerQuotidien(time, now);
+}
+
+/**
+ * Le déclencheur quotidien et son contenu. Index pris sur le jour où la notif
+ * TOMBERA (demain si l'heure est passée), pour que le message corresponde à ce
+ * jour-là. Partagé par les deux chemins : ils ne diffèrent que par la permission.
+ */
+async function programmerQuotidien(time: ReminderTime, now: Date): Promise<void> {
   const copy = pickReminderCopy(time, dayIndex(nextReminderAt(time, now)));
   await Notifications.scheduleNotificationAsync({
     identifier: DAILY_ID,
@@ -86,7 +127,6 @@ export async function applyReminder(time: ReminderTime | null, now: Date = new D
       minute: time.minute,
     },
   });
-  return true;
 }
 
 /**

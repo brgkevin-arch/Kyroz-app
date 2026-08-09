@@ -7,6 +7,7 @@ import { loadThemeMode } from '../lib/themeMode';
 import { loadAccentId } from '../lib/accentColor';
 import { loadHydrationEnabled } from '../components/HydrationBar';
 import { loadFirstName } from '../lib/profileName';
+import { loadReminder } from '../hooks/useReminder';
 import { AuthProvider } from '../hooks/useAuth';
 import { ProfileProvider } from '../hooks/useProfile';
 import { RecipeOverridesProvider } from '../hooks/useRecipeOverrides';
@@ -16,12 +17,17 @@ import { DialogProvider } from '../components/Dialog';
 
 export default function RootLayout() {
   const t = useTheme();
-  // Les quatre valeurs LOCALES à l'appareil (thème, accent, suivi d'hydratation,
-  // prénom) se chargent ici, une seule fois. Une valeur oubliée ici part sur son
-  // défaut à chaque démarrage — c'est exactement ce qui faisait que l'interrupteur
-  // d'hydratation ne prenait effet qu'au lancement suivant (cf. la note dans
-  // components/HydrationBar.tsx).
-  useEffect(() => { loadThemeMode(); loadAccentId(); loadHydrationEnabled(); loadFirstName(); }, []);
+  // Les cinq valeurs LOCALES à l'appareil (thème, accent, suivi d'hydratation,
+  // prénom, heure du rappel) se chargent ici, une seule fois. Une valeur oubliée
+  // ici part sur son défaut à chaque démarrage — c'est exactement ce qui faisait
+  // que l'interrupteur d'hydratation ne prenait effet qu'au lancement suivant
+  // (cf. la note dans components/HydrationBar.tsx).
+  //
+  // 🔴 `loadReminder` ne fait pas que LIRE : il RÉ-ARME la notification du jour.
+  // C'était le maillon manquant — le ré-armement ne vivait que dans l'onglet
+  // Profil, donc le texte du rappel quotidien pouvait dater de plusieurs mois
+  // chez qui n'y entre jamais (cf. `lib/notifications.ts::rearmReminder`).
+  useEffect(() => { loadThemeMode(); loadAccentId(); loadHydrationEnabled(); loadFirstName(); loadReminder(); }, []);
   return (
     <SafeAreaProvider>
       <ErrorBoundary>
