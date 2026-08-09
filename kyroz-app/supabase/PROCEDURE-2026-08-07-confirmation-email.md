@@ -28,6 +28,30 @@ Ce n'était donc ni un problème de spam ni de délivrabilité : l'interrupteur 
 demandée » — c'est l'inverse de la case du dashboard. Lu vite, il fait conclure le
 contraire de la réalité.
 
+## 🔴 Pourquoi un SMTP dédié n'est PAS une amélioration, mais un prérequis
+
+Découvert le 2026-08-07, dans la doc Supabase, et **ça explique la panne d'origine** :
+
+> Supabase Auth refuse de délivrer des messages à des adresses qui **ne font pas partie
+> de l'équipe du projet**. Les envois vers toute autre adresse échouent avec
+> « Email address not authorized ».
+
+Le service e-mail intégré n'est donc pas seulement **bridé** (2 messages/heure, non
+relevable) : il est **réservé aux membres du projet**. Toi, tu recevrais tes e-mails.
+Personne d'autre. C'est très probablement pour ça que « ça ne marchait plus pour une
+personne » — cette personne n'était pas membre du projet Supabase.
+
+➡️ **Conséquence directe : activer la confirmation (étape 10) sans SMTP dédié CASSERAIT
+les inscriptions** au lieu de les sécuriser. Et le « mot de passe oublié » livré en même
+temps ne servirait personne non plus — même service d'envoi, même restriction.
+
+**Expéditeur retenu par le fondateur le 2026-08-07 : Resend** (transactionnel pur,
+région EU au choix, 3 000 e-mails/mois gratuits, actif dès la vérification DNS).
+*Écartés, et pourquoi : Cloudflare Email Service (beta, 5 $/mois, région non documentée) ·
+Brevo (bon, français, mais l'envoi transactionnel demande une activation manuelle par
+le support, de délai inconnu) · Scaleway TEM (excellent sur la souveraineté, 300
+e-mails/mois gratuits seulement).*
+
 ## L'ordre compte, et il n'est pas négociable
 
 1. **L'app avant l'INTERRUPTEUR** (étape 10, pas avant). L'e-mail contient un code à
@@ -41,10 +65,9 @@ contraire de la réalité.
    tôt, le temps de se propager.
    ➡️ Si l'étape 1 est reportée, **la reprendre avant l'étape 10** : c'est la seule
    qui la réclame.
-2. **L'expéditeur ensuite.** Le service e-mail intégré de Supabase est bridé à
-   ~2 envois par heure **pour tout le projet**, et Supabase le déconseille
-   explicitement en production. C'est le suspect n°1 du « ça ne marchait plus pour
-   une personne » de l'époque où la confirmation était encore active.
+2. **L'expéditeur ensuite — et ce n'est pas une option** (voir l'encadré ci-dessus) :
+   le service intégré ne délivre qu'aux membres du projet, donc sans SMTP dédié
+   l'étape 10 casserait les inscriptions au lieu de les sécuriser.
 3. **L'interrupteur en dernier.** C'est lui qui change le parcours de tout le monde.
 
 ---
@@ -211,15 +234,42 @@ recommence plutôt que d'ajouter.
 
 ---
 
-## Étape 8 — la durée de vie du code
+## Étape 8 — la durée de vie du code, ET SA LONGUEUR
 
-Supabase → **Authentication** → **Emails** → **Email OTP Expiration** : `3600` (secondes).
+Supabase → **Authentication** → **Emails** (ou **Sign In / Providers** → **Email**) :
 
-C'est ce que l'e-mail annonce (« expirent au bout d'une heure »). Une valeur différente
-ferait mentir le texte — et un texte qui ment sur un délai est un texte qu'on n'ose plus
-croire sur le reste.
+| Réglage | Valeur attendue |
+|---|---|
+| **Email OTP Expiration** | `3600` (secondes) |
+| **Email OTP Length** | **`6`** |
 
-**→ Dis-moi la valeur que tu y trouves avant de la changer.**
+L'expiration vaut une heure parce que **c'est ce que les deux gabarits annoncent en
+toutes lettres**. Une autre valeur ferait mentir le texte — et un texte qui ment sur un
+délai est un texte qu'on n'ose plus croire sur le reste.
+
+🔴 **La LONGUEUR est le réglage le plus dangereux de toute la procédure**, et il ne
+figurait pas ici avant le 2026-08-07. `CODE_LONGUEUR = 6` côté app n'est pas une
+préférence d'affichage : le bouton ne s'arme qu'à six chiffres (`codeComplet`) et
+`normaliseCode` **tronque** au-delà. Réglé sur 8, Supabase enverrait huit chiffres,
+l'app n'en garderait que six, et **toute confirmation échouerait** — en affichant
+« code refusé » à quelqu'un qui a saisi exactement ce qu'il a reçu.
+➡️ Panne **indiagnosticable depuis l'app**, et invisible pour tous les tests du dépôt :
+ce réglage vit dans le dashboard, hors de portée du code comme des garde-fous.
+
+🔴 **ET LE PROJET ÉTAIT RÉGLÉ SUR 8 — mesuré le 2026-08-07, corrigé le jour même.**
+Ce n'était donc pas une formalité : le parcours aurait été **mort à la livraison**, sur
+un réglage que personne n'aurait pensé à regarder. 6 est pourtant la valeur par défaut
+de Supabase ; celle-ci avait été changée à un moment qu'aucune trace ne rapporte.
+➡️ **La leçon dépasse ce champ** : un réglage de dashboard n'a pas d'historique, pas de
+revue, pas de test. Le seul moment où on peut le voir, c'est quand quelqu'un le regarde
+— donc il faut l'écrire dans une procédure, sinon personne ne le regarde jamais.
+
+Vérifier aussi **Minimum password length = 6** sur le même écran : elle doit valoir
+`MDP_LONGUEUR_MIN` (app). Si Supabase exigeait plus, l'écran « Nouveau mot de passe »
+accepterait une saisie que le serveur refuserait ensuite, avec un message anglais sous
+un champ correctement rempli.
+
+**→ Dis-moi les valeurs que tu y trouves avant de changer quoi que ce soit.**
 
 ---
 
@@ -227,11 +277,13 @@ croire sur le reste.
 
 Supabase → **Authentication** → **Rate Limits** → **Rate limit for sending emails**.
 
-Par défaut : **2 par heure**, pour tout le projet. C'est le plafond du service intégré,
-et il reste appliqué même après le passage au SMTP dédié tant qu'on ne le relève pas.
+Le plafond de **2 par heure** est celui du service **intégré**, et il n'est pas
+relevable. Poser un SMTP dédié (étape 5) le remplace par une limite initiale de
+**30 par heure**, celle-ci ajustable.
 
-Monte-le à **30 par heure**. Assez pour ne jamais bloquer une inscription réelle, assez
-bas pour qu'un abus se voie.
+Vérifie donc simplement qu'elle affiche bien **30** après l'étape 5 : c'est le signe que
+Supabase a bien pris en compte ton SMTP. 30/heure est largement au-dessus de ton besoin,
+et assez bas pour qu'un abus se voie — laisse tel quel.
 
 **→ Dis-moi la valeur que tu y trouves avant de la changer.**
 
