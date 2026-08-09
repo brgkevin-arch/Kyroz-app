@@ -3532,6 +3532,41 @@ produit en suspens — il ne reste qu'à coder.
   programmation système, elle, N'EST PAS vérifiable sur le web** (`remindersSupported`
   est faux) — elle ne le sera qu'au simulateur ou sur l'appareil.
 
+  🟡 **VÉRIFICATION PARTIELLE SUR L'APPAREIL (2026-08-09, fondateur) — et la moitié qui
+  manque est justement celle du correctif.** Il a réglé son rappel **sur 14h** depuis le
+  Profil et confirme « c'est bon pour la notif ». Ce que ça démontre exactement :
+  - ✅ les citations arrivent bien jusqu'à l'écran de verrouillage — donc les textes du
+    2026-08-07 sont réels sur l'appareil, et le diagnostic (« ils n'étaient jamais
+    PROGRAMMÉS ») est confirmé de l'autre côté ;
+  - ❌ **rien sur le ré-armement au démarrage**, qui EST le correctif. Régler l'heure
+    passe par `chooseReminder` → `applyReminder`, le chemin qui a toujours marché —
+    c'est le chemin de l'onglet Profil, celui-là même dont le défaut disait qu'il
+    fonctionnait. Ça ne dit pas non plus si l'OTA du jour a été appliquée.
+
+  ➡️ **Le test qui trancherait, et il est gratuit : ne toucher à RIEN et regarder si le
+  message CHANGE d'un jour sur l'autre.** Si le ré-armement au démarrage fonctionne, le
+  couple titre × citation avance d'un cran chaque jour ; s'il ne fonctionne pas, la même
+  phrase revient à l'identique indéfiniment. La séquence attendue à 14h (créneau
+  **midi**, `periodOf(14) === 'midi'` — 11h à 14h inclus) :
+
+  | | titre | citation |
+  |---|---|---|
+  | dim. 9 août | Ton déjeuner t'attend | Ce n'est pas le repas parfait qui compte… |
+  | lun. 10 août | Ton midi est déjà prévu | Les résultats viennent des jours ordinaires… |
+  | mar. 11 août | C'est l'heure de manger | Tu as pouvoir sur ton esprit… — Marc Aurèle |
+  | mer. 12 août | Pause déjeuner | Un plan suivi à 80 % vaut mieux… |
+
+  ⚠️ **Écrit ici plutôt que déclaré « vérifié » parce que la nuance est exactement celle
+  qui a produit le défaut** : le chemin Profil marchait déjà, et c'est ce qui a fait
+  croire pendant des mois que le rappel allait bien. Reprendre cette vérification comme
+  une preuve du correctif rejouerait l'erreur d'origine à l'identique.
+
+  ℹ️ Au passage, un constat de PRODUIT tombé de ce réglage : **14h sert un titre de
+  déjeuner** (« Ton déjeuner t'attend »), les titres d'après-midi ne commençant qu'à 15h.
+  Les bornes de `periodOf` sont défendables, mais 14h est le cas limite le plus probable
+  d'un rappel réel. Pas corrigé, pas un bug — à trancher avec le fondateur s'il le
+  ressent.
+
   🔴 **CE CORRECTIF EST NATIF-ONLY : fusionner ne le livre PAS.** L'arrivée sur `main`
   déploie le site (§11) ; l'app du téléphone se met à jour par
   `npx eas-cli update --branch production`. Et il faudra **deux lancements** pour le
