@@ -97,8 +97,30 @@ export function ActionSheet({ visible, onClose, children }: Props) {
     })
   ).current;
 
+  // 🔴 RIEN N'EST MONTÉ TANT QUE LA FEUILLE N'A PAS SERVI — et ce n'est pas une
+  // optimisation. Une `Modal` de react-native-web crée son conteneur DOM à son
+  // MONTAGE, pas quand elle devient visible ; à `z-index` égal, c'est l'ORDRE DU
+  // DOM qui décide qui passe devant. Tant que ce composant rendait sa `Modal` en
+  // permanence (`visible={render}`), l'empilement de deux feuilles d'un même écran
+  // se jouait **à l'ordre de déclaration dans le JSX** — un ordre que rien
+  // n'exprime et que personne ne relit. Les cinq écrans concernés étaient corrects
+  // PAR ACCIDENT : `garde-manger.tsx` déclare sa confirmation après son éditeur,
+  // donc elle passe au-dessus ; l'inverse l'aurait rendue invisible, en silence.
+  // ⚠️ Le défaut est le même que celui payé sur `DialogProvider` le 2026-08-05 —
+  // « une surcouche qui doit passer AU-DESSUS se monte à la demande » —, sauf que
+  // là-bas il avait été corrigé chez l'APPELANT (`Dialog.tsx` garde son `monte`,
+  // qui devient une ceinture par-dessus les bretelles). Le corriger ici le règle
+  // pour les sept appels d'un coup, dont ceux qui n'existent pas encore.
+  // ➡️ `render` porte déjà exactement la bonne durée de vie : vrai dès l'ouverture,
+  // encore vrai pendant l'animation de sortie (sinon la feuille disparaîtrait d'un
+  // coup au lieu de redescendre), faux ensuite. Il n'y avait qu'à s'en servir.
+  // ⚠️ Ce retour anticipé est APRÈS tous les hooks, et ça n'est pas négociable :
+  // un `useMemo` placé après un `return null` a déjà produit un « Rendered more
+  // hooks than during the previous render » en pleine page d'accueil.
+  if (!render) return null;
+
   return (
-    <Modal visible={render} transparent animationType="none" onRequestClose={onClose}>
+    <Modal visible transparent animationType="none" onRequestClose={onClose}>
       <View style={styles.root}>
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose}>
           <Animated.View style={[styles.backdrop, { opacity: backdrop }]} />

@@ -54,4 +54,35 @@ describe('feuilles modales — les deux pannes qui ne se voyaient pas', () => {
         .toMatch(/if\s*\(\s*!visibleRef\.current\s*\)\s*setRender\(false\)/);
     }
   });
+
+  // 🔴 Le troisième chemin, fermé le 2026-08-09 en préparant la refonte du Profil.
+  //
+  // Une `Modal` de react-native-web crée son conteneur DOM à son MONTAGE, pas quand
+  // elle devient visible ; à `z-index` égal, l'ORDRE DU DOM tranche. Tant que
+  // l'`ActionSheet` rendait sa `Modal` en permanence (`visible={render}`), deux
+  // feuilles d'un même écran s'empilaient **dans l'ordre de leur déclaration JSX** —
+  // un ordre que rien n'exprime. Les cinq écrans concernés étaient corrects par
+  // ACCIDENT : `garde-manger.tsx` déclare sa confirmation après son éditeur, donc
+  // elle passe dessus ; l'inverse l'aurait rendue invisible, en silence.
+  //
+  // ⚠️ C'est le défaut déjà payé sur `DialogProvider` (cf. `noAlert.test.ts`), mais
+  // corrigé là-bas chez l'APPELANT. Le porter dans le composant règle les sept
+  // appels d'un coup — dont ceux qui n'existent pas encore, et c'est le point : la
+  // feuille « Réglages » à venir ouvrira une confirmation de suppression de compte
+  // depuis l'intérieur d'une autre feuille.
+  //
+  // ⚠️ Invisible sous vitest (pas de DOM) et à la relecture. Ce test ne mesure pas
+  // le symptôme — il empêche qu'on retire le correctif en croyant simplifier.
+  it('E11-bis — l’ActionSheet ne monte RIEN tant qu’il n’a pas servi', () => {
+    const src = lire('ActionSheet.tsx');
+    // Le retour anticipé, et il doit porter sur `render` (pas sur `visible`) :
+    // sinon la feuille se démonterait AVANT la fin de son animation de sortie.
+    expect(src, 'le retour anticipé sur `render` a disparu')
+      .toMatch(/if\s*\(\s*!render\s*\)\s*return null/);
+    // Et la `Modal` ne se pilote plus par `visible={render}` : une fois montée, elle
+    // est visible. Garder les deux laisserait croire que le montage est paresseux
+    // alors qu'il ne le serait plus.
+    expect(src, 'la Modal est de nouveau pilotée par `visible={render}`')
+      .not.toMatch(/<Modal\s+visible=\{render\}/);
+  });
 });

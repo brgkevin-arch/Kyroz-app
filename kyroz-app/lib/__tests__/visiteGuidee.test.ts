@@ -41,11 +41,14 @@ function fichiersSource(dir: string, acc: string[] = []): string[] {
   return acc;
 }
 
-/** Toutes les sources d'interface, concaténées une fois. */
-const SOURCES = DOSSIERS
+/** Toutes les sources d'interface, chemin RELATIF + contenu. Le chemin compte :
+ *  le test « chaque cible est posée dans l'écran qui lance son tour » en dépend. */
+const FICHIERS = DOSSIERS
   .flatMap((d) => fichiersSource(join(RACINE, d)))
-  .map((f) => readFileSync(f, 'utf8'))
-  .join('\n');
+  .map((f) => ({ chemin: f.slice(RACINE.length + 1), src: readFileSync(f, 'utf8') }));
+
+/** Toutes les sources d'interface, concaténées une fois. */
+const SOURCES = FICHIERS.map((f) => f.src).join('\n');
 
 /**
  * Les identifiants de cible réellement POSÉS dans l'interface. Trois formes :
@@ -55,12 +58,29 @@ const SOURCES = DOSSIERS
  * La dernière est la plus courue (première carte d'une liste), et c'est celle
  * qu'une expression trop stricte raterait.
  */
-function ciblesPosees(): Set<string> {
+function idsPosesDans(src: string): Set<string> {
   const ids = new Set<string>();
-  for (const m of SOURCES.matchAll(/useTourTarget\(\s*['"]([\w-]+)['"]/g)) ids.add(m[1]);
-  for (const m of SOURCES.matchAll(/\btourId\s*=\s*"([\w-]+)"/g)) ids.add(m[1]);
-  for (const m of SOURCES.matchAll(/\b(?:tourId|cookTourId|actionsTourId)\s*=\s*\{[^}]*?['"]([\w-]+)['"]/g)) ids.add(m[1]);
+  for (const m of src.matchAll(/useTourTarget\(\s*['"]([\w-]+)['"]/g)) ids.add(m[1]);
+  for (const m of src.matchAll(/\btourId\s*=\s*"([\w-]+)"/g)) ids.add(m[1]);
+  for (const m of src.matchAll(/\b(?:tourId|cookTourId|actionsTourId)\s*=\s*\{[^}]*?['"]([\w-]+)['"]/g)) ids.add(m[1]);
   return ids;
+}
+
+function ciblesPosees(): Set<string> {
+  return idsPosesDans(SOURCES);
+}
+
+/**
+ * Quel FICHIER lance quel tour — `useScreenTour('profil')` dans `profil.tsx`.
+ * C'est l'écran propriétaire du tour, et donc le seul dont les éléments sont
+ * garantis montés au moment où le tour se joue.
+ */
+function lanceurDeTour(): Map<string, string> {
+  const m = new Map<string, string>();
+  for (const f of FICHIERS) {
+    for (const t of f.src.matchAll(/useScreenTour\(\s*['"]([\w-]+)['"]/g)) m.set(t[1], f.chemin);
+  }
+  return m;
 }
 
 /** Un contexte qui ACTIVE toutes les branches : le test doit voir chaque étape. */
@@ -114,6 +134,44 @@ describe('Visite guidée — les tours existent et tiennent debout', () => {
       .filter((e) => !posees.has(e.targetId))
       .map((e) => `${e.tour} → ${e.targetId}`);
     expect(orphelines, 'ces étapes visent une cible qu\'aucun écran ne pose').toEqual([]);
+  });
+
+  // ⚠️ LE TEST CI-DESSUS A UN TROU, ET C'EST UNE REFONTE DU PROFIL QUI L'A MONTRÉ
+  // (2026-08-09). Il cherche l'id dans TOUTES les sources concaténées : déplacer un
+  // bloc de l'écran vers une feuille modale — « range le TDEE et les données du
+  // compte derrière une roue dentée » — laisse l'id bien présent quelque part, donc
+  // le test VERT, pendant que `startTour` écarte l'étape parce que sa cible n'est
+  // pas montée. Le tour se joue à 4 bulles au lieu de 6 en ayant l'air complet.
+  //
+  // ➡️ L'invariant qui ferme le trou : **une cible vit dans l'écran qui LANCE son
+  // tour.** Mesuré avant de l'écrire — il est vrai des 21 cibles des 5 tours, sans
+  // une exception, donc il décrit le code au lieu de le contraindre. Un élément qui
+  // quitte son écran quitte la portée de son tour : c'est ça, le fait.
+  //
+  // ⚠️ Ce qu'il ne sait PAS faire : dire qu'un élément est monté au MOMENT du tour.
+  // Une cible posée dans une branche conditionnelle du bon écran lui échappe encore
+  // (le bloc frigo quand le stock est vide, absence LÉGITIME). Il ferme le chemin
+  // par lequel la dérive arrive vraiment — le déménagement — pas tous les chemins.
+  it('chaque cible est posée DANS l\'écran qui lance son tour', () => {
+    const lanceurs = lanceurDeTour();
+    const parFichier = new Map(FICHIERS.map((f) => [f.chemin, idsPosesDans(f.src)]));
+
+    const exilees = TOUTES_LES_ETAPES.flatMap((e) => {
+      const ecran = lanceurs.get(e.tour);
+      if (!ecran) return [`${e.tour} → aucun écran n'appelle useScreenTour('${e.tour}')`];
+      if (parFichier.get(ecran)?.has(e.targetId)) return [];
+      const ailleurs = FICHIERS.filter((f) => parFichier.get(f.chemin)?.has(e.targetId)).map((f) => f.chemin);
+      return [`${e.tour} → « ${e.targetId} » attendu dans ${ecran}, trouvé dans ${ailleurs.join(', ') || 'nulle part'}`];
+    });
+
+    expect(
+      exilees,
+      'ces cibles ont quitté l\'écran qui lance leur tour — l\'étape sera écartée EN SILENCE :\n' +
+        `${exilees.join('\n')}\n\n` +
+        'Deux issues : ramener la cible dans l\'écran, ou scinder le tour et déclarer ' +
+        'le nouveau dans TOURS (un tour lancé sans être déclaré est un autre défaut, ' +
+        'compté plus bas).',
+    ).toEqual([]);
   });
 
   it('le tour du Plan et celui du Profil tiennent aussi dans leur variante minimale', () => {
