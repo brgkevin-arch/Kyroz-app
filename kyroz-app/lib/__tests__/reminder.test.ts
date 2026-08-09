@@ -1,4 +1,6 @@
 import { describe, it, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import {
   CITATIONS, REMINDER_PRESETS, REMINDER_PRESET_IDS, REMINDER_TITLES, WEIGH_IN_MESSAGES,
   ReminderPeriod, clampReminderTime, dayIndex, formatCitation, formatReminderTime,
@@ -306,5 +308,60 @@ describe('les règles d’écriture s’appliquent AUSSI aux notifications', () 
       expect(m.title.length, m.title).toBeLessThanOrEqual(40);
       expect(m.body.length, m.body).toBeLessThanOrEqual(140);
     }
+  });
+});
+
+// ── Le ré-armement, et pourquoi il ne peut pas vivre dans un écran ───────────
+//
+// 🔴 Défaut signalé par le fondateur le 2026-08-09 : « la notification que j'ai
+// reçue ce midi n'était pas celle qu'on avait changée ». Elle ne l'était pas, et
+// aucune ligne de `lib/reminder.ts` n'était en cause — les textes réécrits le
+// 2026-08-07 étaient bien partis en OTA le lendemain, bien installés sur
+// l'appareil, et **jamais programmés**.
+//
+// Le contenu d'un déclencheur `DAILY` est figé à la PROGRAMMATION : le système
+// ne rappelle jamais l'app pour lui demander quoi écrire. Le seul chemin qui
+// fasse arriver un texte neuf jusqu'à l'écran de verrouillage est donc le
+// ré-armement — et il ne vivait que dans l'effet de montage de `useReminder`,
+// hook monté par le SEUL onglet Profil. Qui ouvre l'app sur le Plan recevait le
+// message programmé la dernière fois qu'il était entré dans ses réglages.
+//
+// ⚠️ Rien de tout cela ne se voit dans un diff, ni dans le navigateur (les
+// notifications locales n'existent pas sur le web), ni dans une capture. C'est
+// le genre de panne qui dort jusqu'à ce que quelqu'un lise sa notification.
+// D'où ces deux tests, qui tiennent la MÉCANIQUE faute de pouvoir tenir le texte.
+describe('le rappel se ré-arme au DÉMARRAGE, pas en visitant un onglet', () => {
+  const RACINE = join(__dirname, '..', '..');
+  const lire = (rel: string) => readFileSync(join(RACINE, rel), 'utf8');
+
+  /** Le corps d'une fonction déclarée à la racine du module (jusqu'au `}` seul). */
+  function corps(src: string, declaration: string): string {
+    const debut = src.indexOf(declaration);
+    expect(debut, `déclaration introuvable : ${declaration}`).toBeGreaterThan(-1);
+    const fin = src.indexOf('\n}', debut);
+    return src.slice(debut, fin);
+  }
+
+  it('le layout racine charge ET ré-arme le rappel', () => {
+    const src = lire('app/_layout.tsx');
+    expect(src).toMatch(/import\s*\{[^}]*\bloadReminder\b[^}]*\}\s*from\s*['"]\.\.\/hooks\/useReminder['"]/);
+    expect(src).toMatch(/loadReminder\(\)/);
+  });
+
+  it('le chargement du démarrage passe par le ré-armement, pas par le chemin qui PROGRAMME un choix', () => {
+    const body = corps(lire('hooks/useReminder.ts'), 'export async function loadReminder');
+    expect(body).toContain('rearmReminder(');
+    // `applyReminder` demande la permission : il est réservé au geste de l'utilisateur.
+    expect(body).not.toContain('applyReminder(');
+  });
+
+  // ⚠️ Un ré-armement se produit à CHAQUE lancement. Y brancher la demande de
+  // permission ferait surgir un prompt système sans le moindre geste — la même
+  // règle que le rappel de pesée, qui la porte depuis toujours.
+  it('le ré-armement ne demande JAMAIS la permission (pas de prompt au lancement)', () => {
+    const body = corps(lire('lib/notifications.ts'), 'export async function rearmReminder');
+    expect(body).toContain('getPermissionsAsync()'); // il la RELIT…
+    expect(body).not.toContain('requestPermissionsAsync'); // …il ne la DEMANDE pas
+    expect(body).not.toContain('ensurePermission');
   });
 });

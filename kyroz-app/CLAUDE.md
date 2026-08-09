@@ -1740,9 +1740,27 @@ téléphone.
   l'a révélé d'un coup.
   ➡️ Patron obligatoire pour toute valeur d'APPAREIL : store externe hors React +
   `useSyncExternalStore`, **chargé une fois dans le layout racine**. Kyroz le faisait
-  déjà pour le thème et l'accent ; l'hydratation et le prénom l'ont rejoint. ⚠️ Une
-  valeur oubliée dans ce chargement repart sur son défaut à chaque démarrage, et ça
-  ne se voit nulle part.
+  déjà pour le thème et l'accent ; l'hydratation, le prénom et l'heure du rappel l'ont
+  rejoint. ⚠️ Une valeur oubliée dans ce chargement repart sur son défaut à chaque
+  démarrage, et ça ne se voit nulle part.
+  🔴 **ET CE N'EST PAS QUE LA VALEUR — UN EFFET DE BORD ACCROCHÉ À UN ÉCRAN TOMBE
+  PAREIL, EN PIRE** (2026-08-09, E24, signalé par le fondateur : « la notification de
+  ce midi n'était pas celle qu'on avait changée »). Le contenu d'une notification
+  `DAILY` est figé à la PROGRAMMATION ; le seul chemin qui le renouvelle est le
+  ré-armement, et il ne vivait que dans l'effet de montage de `useReminder` — hook
+  monté par le SEUL onglet Profil. Qui ouvre l'app sur le Plan recevait donc pendant
+  des mois le texte programmé la dernière fois qu'il était entré dans ses réglages,
+  **y compris après une mise à jour OTA parfaitement installée**.
+  ⚠️ La différence de gravité tient à ceci : une valeur non diffusée **se voit à
+  l'écran** dès qu'on regarde le bon écran ; un ré-armement qui n'a pas lieu ne se voit
+  **nulle part** — ni en preview (les notifs locales n'existent pas sur le web), ni
+  dans une capture, ni dans un diff. Le fichier affirmait même le contraire en
+  commentaire (« `useReminder` ré-arme à chaque démarrage ») ; un `grep` sur les
+  appelants le démentait.
+  ➡️ **Devant tout effet de bord qui doit se produire « au démarrage », vérifier QUI le
+  déclenche — pas ce que dit le commentaire.** Le contre-exemple vivait à côté :
+  `applyWeighInReminder` part de `useWeightLog`, monté par l'écran Plan, donc il n'a
+  jamais eu le défaut.
   ⚠️ Se vérifie par le VRAI geste (basculer à l'écran, revenir sur l'autre écran),
   jamais en écrivant dans le stockage. Et prouver d'abord que la sonde sait dire
   OUI : `getByText('Hydratation', { exact: true })` ne trouve jamais `💧 Hydratation`
