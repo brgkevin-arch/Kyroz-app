@@ -504,18 +504,57 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
   ⚠️ **Non vérifié à l'écran** : les trois étapes n'ont pas pu être ouvertes dans un
   navigateur (preview d'un worktree → app du dépôt PRINCIPAL, cf. §11). `tsc` vert,
   1 178 tests verts, gabarit rendu et regardé.
-- 🧑 **A29 · Confirmation e-mail — CODE EN LIGNE, l'interrupteur reste à basculer (2026-08-07)**
-  ✅ **Mergé (PR #41) et déployé le 2026-08-08** — `main` `e65ee32`, run vert, présence
-  vérifiée sur le bundle servi. **Re-mesuré le 2026-08-08 (`npm run check:auth`) : la
-  confirmation est TOUJOURS désactivée**, et c'est voulu — l'étape 1 de la procédure
-  (« l'app d'abord ») est faite, les étapes 2 et 3 (expéditeur, puis interrupteur)
-  demandent le dashboard.
-  🔴 **CHANTIER EN COURS CÔTÉ FONDATEUR (dit le 2026-08-08) : ne pas toucher à la
-  branche `claude/supabase-confirmation-email-c6b816` ni relancer ce sujet.** Il y
-  travaille lui-même. Le « désactivée » que rend `check:auth` n'est donc PAS une
-  anomalie à corriger — c'est l'état attendu tant qu'il n'a pas fini.
-  ⚠️ Passée de 🔴 à 🧑 le 2026-08-08, même raison qu'A30 : le rouge accusait un retard
-  qui n'existe pas.
+- ~~**A29 · Confirmation e-mail**~~ ✅ **TERMINÉ ET ACTIF EN PROD LE 2026-08-09.**
+  Les 12 étapes de `supabase/PROCEDURE-2026-08-07-confirmation-email.md` ont été
+  déroulées avec le fondateur. **Mesure d'arrivée** (`npm run check:auth`) :
+  `✓ confirmation e-mail  EXIGÉE` — exactement l'inverse du `✖ désactivée` qui a ouvert
+  le chantier. Expéditeur **Resend**, SMTP branché, les deux gabarits collés.
+  **Prouvé de bout en bout** : e-mail **Delivered** chez iCloud, expéditeur
+  `"Kyroz" <contact@kyroz.app>`, code à 6 chiffres saisi → compte confirmé,
+  `Confirmed at` renseigné, **et `consent_health_data = true`** — le correctif RGPD
+  vérifié en prod, pas seulement en test. Le parcours « mot de passe oublié » (A30)
+  fonctionne aussi.
+
+  🔴 **DEUX PIÈGES TROUVÉS EN DÉROULANT LA PROCÉDURE, et aucun n'était visible du code :**
+  1. **`Email OTP length` valait 8** sur le projet. L'app tronque à 6 et n'arme son
+     bouton qu'à 6 : le parcours aurait été **mort à la livraison**, en affichant
+     « code refusé » à quelqu'un ayant saisi exactement ce qu'il a reçu. 6 est pourtant
+     le défaut Supabase — la valeur avait été changée sans qu'aucune trace ne le dise.
+  2. **Le service e-mail intégré ne délivre QU'AUX membres du projet** (doc Supabase).
+     Ce n'est donc pas un bridage à 2/heure, c'est une restriction de destinataires —
+     **et c'est l'explication de la panne d'origine** : la personne qui n'a jamais rien
+     reçu n'était pas membre. Le SMTP dédié était un prérequis, pas une amélioration.
+  ➡️ **Un réglage de dashboard n'a ni historique, ni revue, ni test.** Le seul moment où
+  on peut le voir, c'est quand quelqu'un le regarde — donc il faut l'inscrire dans une
+  procédure, sinon personne ne le regarde jamais.
+
+  ⚠️ **RESTE : le premier e-mail est arrivé en boîte, le second en INDÉSIRABLE.** Cause
+  identifiée par les Insights de Resend, et ce n'est pas la réputation du domaine :
+  *« Ensure link URLs match sending domain »* — l'e-mail vient de `kyroz.app` mais son
+  bouton pointe vers `…supabase.co`, signature classique du phishing pour un filtre.
+  Second point : *« Include valid DMARC record »*, absent.
+  ➡️ Deux correctifs, tous deux gratuits : **poser le DMARC** (`_dmarc` TXT
+  `v=DMARC1; p=none;`, proposé par Resend) et **retirer le lien de l'e-mail de
+  confirmation** — le code est déjà le chemin principal, et l'e-mail de réinitialisation
+  n'a jamais eu de lien pour ces mêmes raisons. *Alternative écartée : domaine d'auth
+  personnalisé (`auth.kyroz.app`), réservé au plan Pro à 25 $/mois.*
+  *Écarté aussi, malgré la suggestion de Resend : « Use a subdomain » — l'expéditeur
+  cesserait d'être une vraie boîte, ce que Resend salue par ailleurs (« Don't use no-reply »).*
+
+  ⏳ **DEUX SUITES, EN LISTE D'ATTENTE (décision fondateur du 2026-08-09 : « on le fera
+  plus tard »). Ne pas les lancer, ne pas les remonter comme un retard :**
+  - **Changer son mot de passe DEPUIS l'app** (connecté). Aujourd'hui le seul chemin est
+    « Mot de passe oublié ? », donc se déconnecter et passer par un code — absurde quand
+    on connaît son mot de passe. ⚠️ Regarder d'abord le réglage **« Secure password
+    change »** : activé, il impose une session de moins de 24 h et ferait échouer
+    `updateUser` en silence pour un connecté de longue date. Il était DÉSACTIVÉ au 2026-08-09.
+  - **Connexion Apple et Google.** L'écran promet « bientôt » depuis des mois ; mesuré,
+    les deux providers sont à `false`. ⚠️ Apple l'EXIGE dès qu'un autre login social
+    existe (règle 4.8). ⚠️ Et le consentement santé n'a **aucun formulaire où se poser**
+    dans un parcours OAuth : ne pas laisser `consent_health_data` à `false` en silence,
+    c'est exactement le défaut corrigé ci-dessus.
+
+  <details><summary>Historique du chantier (état pendant la livraison)</summary>
   ⚠️ *Numérotée **A28** à l'écriture, renommée **A29** à la fusion : `A28` était déjà pris
   sur `main` par l'échéance datée. **Deuxième collision de la journée** (cf. E19/E20) —
   le numéro se prend au moment de FUSIONNER, pas au moment d'écrire, parce qu'un
@@ -557,6 +596,10 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
   navigateur (le preview d'un worktree sert l'app du dépôt PRINCIPAL, cf. §11). Garanties :
   `tsc` vert, 1 165 tests verts dont les 4 tests de DA. Le gabarit et la page, eux, ont
   été rendus et regardés.
+  *(Cette réserve est levée : le parcours a été éprouvé en PROD le 2026-08-09 par le
+  fondateur — inscription réelle, code saisi, compte confirmé.)*
+
+  </details>
 
 - ~~**A31 · Jouer la migration `meal_slots` en prod**~~ ✅ **JOUÉE le 2026-08-07, PR #46
   mergée, site déployé** — les créneaux de repas libres sont EN LIGNE.
