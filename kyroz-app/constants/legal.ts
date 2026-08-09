@@ -185,7 +185,9 @@ export const TERMS_OF_USE: LegalSection[] = [
     title: '8. Résiliation',
     paragraphs: [
       "Vous pouvez supprimer votre compte à tout moment depuis l’app (Profil → Supprimer mon compte), ce qui efface vos données.",
-      "⚠️ Supprimer votre compte Kyroz n’annule PAS un abonnement en cours : celui-ci continue d’être facturé tant qu’il n’est pas résilié dans les réglages de votre compte App Store ou Google Play.",
+      // E22 : le ⚠️ est parti et la phrase tient sans lui — l'emphase était déjà
+      // portée par le « PAS » en capitales, pas par le pictogramme.
+      "Supprimer votre compte Kyroz n’annule PAS un abonnement en cours : celui-ci continue d’être facturé tant qu’il n’est pas résilié dans les réglages de votre compte App Store ou Google Play.",
     ],
   },
   {

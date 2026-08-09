@@ -55,8 +55,20 @@ describe('streakMessage', () => {
 
 describe('celebrationCopy', () => {
   it('copy dédiée aux paliers connus, générique au-delà', () => {
-    expect(celebrationCopy(7).title).toContain('7');
-    expect(celebrationCopy(300).title).toContain('300');
+    expect(celebrationCopy(7).body).toContain('Une semaine pleine');
+    expect(celebrationCopy(300).body).toContain('hors norme');
+  });
+  // Ces deux-là vérifiaient `title` quand le titre portait le nombre. Depuis E22
+  // c'est le CHIFFRE qui est l'objet visuel, donc l'assertion suit le champ qui
+  // porte réellement l'information à l'écran — sinon elle continuerait de passer
+  // sur un titre que plus personne n'affiche.
+  it('le nombre de jours arrive à l’écran, palier connu ou non', () => {
+    expect(celebrationCopy(7).jours).toBe('7');
+    expect(celebrationCopy(300).jours).toBe('300');
+  });
+  it('accorde le libellé', () => {
+    expect(celebrationCopy(7).libelle).toBe('jours d’affilée');
+    expect(celebrationCopy(1).libelle).toBe('jour d’affilée');
   });
 });
 
