@@ -11,7 +11,16 @@ interface Props {
 
 /**
  * Moment de récompense quand un palier de série est franchi (3/7/14…). Centré,
- * animé (pop ressort + fondu), monochrome. Le palier 7 = le cap du North Star.
+ * animé (pop ressort + fondu). Le palier 7 = le cap du North Star.
+ *
+ * ⚠️ L'OBJET VISUEL EST LE NOMBRE DE JOURS, pas un emblème (E22, 2026-08-09). Il
+ * portait jusque-là un émoji différent par palier, rendu en 56 px — une échelle de
+ * badges, donc de la collection, interdite par CLAUDE.md §5. Le raisonnement est
+ * dans `lib/streak.ts::celebrationCopy`.
+ * ➡️ Conséquence de mise en page : la taille passe par `Type.hero` (40) et non par
+ * un 56 en dur. Un chiffre est de la TYPOGRAPHIE, là où un émoji dimensionné est une
+ * image — `typoDA.test.ts` laissait donc passer le 56 tant que le style s'appelait
+ * `emoji`, et le refuse maintenant, à juste titre.
  */
 export function StreakCelebration({ milestone, onClose }: Props) {
   const t = useTheme();
@@ -44,8 +53,8 @@ export function StreakCelebration({ milestone, onClose }: Props) {
             { backgroundColor: t.card, borderColor: t.line, opacity, transform: [{ scale }] },
           ]}
         >
-          <Text style={styles.emoji}>{copy.emoji}</Text>
-          <Text style={[styles.title, { color: t.text }]}>{copy.title}</Text>
+          <Text style={[styles.jours, { color: t.accent }]}>{copy.jours}</Text>
+          <Text style={[styles.libelle, { color: t.text }]}>{copy.libelle}</Text>
           <Text style={[styles.body, { color: t.textSecondary }]}>{copy.body}</Text>
           <View style={{ height: 8 }} />
           <PrimaryButton t={t} label="Continuer" onPress={onClose} />
@@ -65,7 +74,9 @@ const styles = StyleSheet.create({
     padding: Spacing.xxxl,
     alignItems: 'center',
   },
-  emoji: { fontSize: 56, marginBottom: Spacing.sm },
-  title: { ...Type.h2, textAlign: 'center' },
+  // Le chiffre et son libellé forment UN groupe : `xs` entre eux, `md` avant le
+  // corps de texte (cf. CLAUDE.md §8, « le blanc DIT ce qui va ensemble »).
+  jours: { ...Type.hero, textAlign: 'center' },
+  libelle: { ...Type.h2, textAlign: 'center', marginTop: Spacing.xs },
   body: { ...Type.body, lineHeight: 21, textAlign: 'center', marginTop: Spacing.md },
 });

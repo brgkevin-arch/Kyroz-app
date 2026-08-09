@@ -46,29 +46,49 @@ export function streakMessage(streak: number): string {
   if (streak <= 0) return 'Cuisine aujourd’hui pour lancer ta série';
   if (streak < 7) {
     const left = 7 - streak;
-    return `Plus que ${left} jour${left > 1 ? 's' : ''} pour ton objectif 7 jours 🎯`;
+    return `Plus que ${left} jour${left > 1 ? 's' : ''} pour ton objectif 7 jours`;
   }
-  if (streak === 7) return 'Objectif 7 jours atteint 🎉 Ne casse pas la chaîne.';
+  if (streak === 7) return 'Objectif 7 jours atteint. Ne casse pas la chaîne.';
   const next = nextMilestone(streak);
   const left = next - streak;
   return `${streak} jours d’affilée · prochain palier ${next} (${left} j)`;
 }
 
-/** Titre + texte de la célébration affichée quand un palier est franchi. */
-export function celebrationCopy(n: number): { emoji: string; title: string; body: string } {
+/**
+ * Chiffre + libellé + texte de la célébration affichée quand un palier est franchi.
+ *
+ * ⚠️ LE CHIFFRE A REMPLACÉ L'ÉMOJI (E22, décision fondateur du 2026-08-09), et le
+ * motif n'est pas seulement « pas d'émoji dans l'interface » (CLAUDE.md §8). Les six
+ * emblèmes servis ici — 🔥 3 j, 🎉 7 j, 💪 14 j, 🏆 30 j, ⭐ 60 j, 👑 au-delà —
+ * formaient une ÉCHELLE DE BADGES, c'est-à-dire de la **collection** : exactement la
+ * moitié de ce que CLAUDE.md §5 interdit (« compétition et collection »). Les
+ * remplacer par six TRACÉS aurait gardé le défaut en le rhabillant aux couleurs de
+ * la DA — un pictogramme par palier reste une vignette à débloquer.
+ * ➡️ Le nombre de jours dit le fait, et rien d'autre. Il n'y a plus rien à collectionner.
+ *
+ * Le libellé est séparé du chiffre parce que l'écran les compose à deux tailles :
+ * le nombre en `Type.hero`, le libellé sous lui. Les recoller ici obligerait
+ * `StreakCelebration` à redécouper une chaîne pour la mettre en page.
+ */
+export function celebrationCopy(n: number): { jours: string; libelle: string; body: string } {
+  // Le plus petit palier est 3 (`MILESTONES`), donc le pluriel est toujours vrai —
+  // le singulier est écrit quand même pour que la fonction reste juste si un jour
+  // un palier à 1 apparaît. Une ligne, contre une faute d'accord invisible en test.
+  const libelle = n > 1 ? 'jours d’affilée' : 'jour d’affilée';
+  const jours = String(n);
   switch (n) {
     case 3:
-      return { emoji: '🔥', title: '3 jours d’affilée', body: 'Tu prends le rythme. Encore 4 jours pour ton premier vrai palier.' };
+      return { jours, libelle, body: 'Tu prends le rythme. Encore 4 jours pour ton premier vrai palier.' };
     case 7:
-      return { emoji: '🎉', title: '7 jours d’affilée !', body: 'Une semaine pleine — tu as bouclé le cap qui compte. Continue sur ta lancée.' };
+      return { jours, libelle, body: 'Une semaine pleine — tu as bouclé le cap qui compte. Continue sur ta lancée.' };
     case 14:
-      return { emoji: '💪', title: '14 jours d’affilée', body: 'Deux semaines sans casser la chaîne. C’est devenu une habitude.' };
+      return { jours, libelle, body: 'Deux semaines sans casser la chaîne. C’est devenu une habitude.' };
     case 30:
-      return { emoji: '🏆', title: '30 jours d’affilée', body: 'Un mois complet. Tu es dans le club des réguliers.' };
+      return { jours, libelle, body: 'Un mois complet. Tu es dans le club des réguliers.' };
     case 60:
-      return { emoji: '⭐', title: '60 jours d’affilée', body: 'Deux mois pleins. La constance, c’est toi.' };
+      return { jours, libelle, body: 'Deux mois pleins. La constance, c’est toi.' };
     default:
-      return { emoji: '👑', title: `${n} jours d’affilée`, body: 'Une régularité hors norme. Respect.' };
+      return { jours, libelle, body: 'Une régularité hors norme. Respect.' };
   }
 }
 

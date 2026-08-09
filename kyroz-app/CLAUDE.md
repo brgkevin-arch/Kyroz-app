@@ -1089,10 +1089,11 @@ ne traverse jamais ne garde rien : `accentColor.test.ts` le traverse volontairem
 avec une couleur hostile, et fige la marge du pire cas pour que sa dégradation se
 remarque. Vérifié par mutation.
 
-### Aucun émoji dans l'interface — règle posée, passe INCOMPLÈTE (2026-08-06)
+### Aucun émoji dans l'interface — règle posée (2026-08-06), passe CLOSE (2026-08-09)
 
-La règle est tranchée : **pas d'émoji dans l'interface**. L'état du code, lui, ne
-la respecte pas encore — et ce paragraphe a annoncé le contraire.
+La règle est tranchée : **pas d'émoji dans l'interface**. Elle est désormais tenue
+par un COMPTEUR, `lib/__tests__/emojiInterface.test.ts`, et c'est lui la source —
+pas ce paragraphe, qui a annoncé la fin de la passe une fois avant qu'elle le soit.
 
 **Ce que la passe a fait**, sur `app/` et `components/` (les 55 émojis comptés là) :
 
@@ -1108,15 +1109,27 @@ la respecte pas encore — et ce paragraphe a annoncé le contraire.
   ne remplace une ponctuation, et la phrase doit tenir sans elle.
 
 🔴 **Ce qu'elle n'a PAS fait — re-mesuré le 2026-08-07 : 13 émojis étaient encore
-AFFICHÉS**, dans trois modules que la passe n'a jamais ouverts. **Il en reste 9**
-(les 4 des notifications sont partis le 2026-08-07, cf. ci-dessous).
+AFFICHÉS**, dans trois modules que la passe n'a jamais ouverts. ✅ **Les 13 sont
+partis, le dernier le 2026-08-09** (E22).
 
-| Où | Combien | Ce qui l'affiche |
-|---|---|---|
-| `lib/streak.ts` (paliers) | 6 — 🔥 🎉 💪 🏆 ⭐ 👑 | `StreakCelebration.tsx` en **fontSize 56**, monté sur l'écran Plan |
-| `lib/streak.ts` (`streakMessage`) | 2 — 🎯 🎉 | `StreakProgress.tsx` |
-| ~~`lib/notifications.ts`~~ | ~~4 — 💪 🍽️ 🔥 ⚖️~~ → **0** | **FAIT** — les textes ont déménagé dans `lib/reminder.ts` et se sont reformulés sans eux |
-| `constants/legal.ts` | 1 — ⚠️ | l'écran `/legal` (CGU) |
+| Où | Combien | Ce qui l'affichait | Sort |
+|---|---|---|---|
+| ~~`lib/streak.ts` (paliers)~~ | ~~6 — 🔥 🎉 💪 🏆 ⭐ 👑~~ → **0** | `StreakCelebration.tsx` en **fontSize 56**, écran Plan | remplacés par le **nombre de jours** en `Type.hero` (2026-08-09) |
+| ~~`lib/streak.ts` (`streakMessage`)~~ | ~~2 — 🎯 🎉~~ → **0** | `StreakProgress.tsx` | retirés, phrases reformulées (2026-08-09) |
+| ~~`lib/notifications.ts`~~ | ~~4 — 💪 🍽️ 🔥 ⚖️~~ → **0** | — | les textes ont déménagé dans `lib/reminder.ts` (2026-08-07) |
+| ~~`constants/legal.ts`~~ | ~~1 — ⚠️~~ → **0** | l'écran `/legal` (CGU) | retiré, + le miroir `public/legal.html` (2026-08-09) |
+
+🔴 **LE CHOIX DE DA SUR LES PALIERS EST TRANCHÉ, ET PAS SUR UN ARGUMENT
+D'ÉMOJI** (fondateur, 2026-08-09). Les trois options étaient `ReussiteIcon`, le
+seul chiffre, ou rien. C'est **le chiffre**, parce que six emblèmes différents —
+un par palier — sont une **échelle de badges**, donc de la *collection* : la
+moitié exacte de ce que §5 interdit. Les remplacer par six TRACÉS aurait gardé
+le défaut en le rhabillant aux couleurs de la DA. ➡️ **Le nombre dit le fait, et
+il n'y a plus rien à collectionner.** Il prend l'accent, et sa taille vient de
+`Type.hero` (40) : un chiffre est de la typographie, là où un émoji dimensionné
+est une image — ce qui explique que `typoDA` ait laissé passer un `fontSize: 56`
+pendant des semaines (le style s'appelait `emoji`, sa clause d'exemption) et le
+refuse maintenant.
 
 ✅ **Les quatre des notifications sont tombés en passant, et c'est instructif :
 ils ne coûtaient rien à retirer** parce qu'on RÉÉCRIVAIT les phrases de toute
@@ -1145,26 +1158,40 @@ une string, pas du JSX. Ceux-là se retirent et la phrase se reformule (« Noté
 → « C'est noté »). Les autres deviennent une rangée icône + texte, plus verbeuse
 qu'un caractère collé devant une phrase : c'est le prix de la couleur héritée.
 
-➡️ **Règle : ne pas réintroduire d'émoji dans l'interface**, et **finir les 9
-restants — tranché par le fondateur le 2026-08-07 : ils partent.** Ce n'est donc
-plus un arbitrage à rouvrir, c'est du code à écrire (AGENTS.md **E22**). Reste un
-choix de DA au moment de le faire, et un seul : la célébration de palier est un
-objet **VISUEL de 56 px** — `ReussiteIcon`, le seul chiffre, ou rien. Le ⚠️ des
-CGU, lui, est mécanique.
+➡️ **Règle : ne pas réintroduire d'émoji dans l'interface.** Ce n'est plus un
+chantier (AGENTS.md **E22**, clos le 2026-08-09), c'est un invariant.
 
-⚠️ **Le compte a valu 13 puis 9 en 24 h, et les deux étaient justes à leur date** :
-les 4 émojis des notifications sont partis le 2026-08-07, agrafés au travail qui
-touchait le fichier. **Re-mesuré le 2026-08-08 sur l'arbre fusionné** — `streak.ts`
-**8** (6 paliers + 2 de `streakMessage`) · `notifications.ts` **0** · `legal.ts`
-**1**. ➡️ Ce chiffre se RE-COMPTE avant d'être cité : il baisse tout seul, au gré
-des chantiers qui passent par ces fichiers pour d'autres raisons.
+⚠️ **Le compte a valu 55, puis 13, puis 9, puis 0 — et chacun était juste à sa
+date.** Le motif compte plus que les chiffres : ils baissaient **tout seuls**, au
+gré des chantiers qui passaient par ces fichiers pour d'autres raisons (les 4 des
+notifications sont tombés le 2026-08-07, agrafés à la réécriture du rappel). D'où
+la règle qui a servi tout du long : **ce chiffre se RE-COMPTE avant d'être cité**,
+jamais recopié.
 
-⚠️ **Poser un COMPTEUR dans le même lot.** Le compte se refait en écartant les
-commentaires du code (les ⚠️ et 🔴 qui y vivent ne sont affichés nulle part) **et
-sans se limiter à `app/` + `components/`** — c'est exactement l'erreur ci-dessus,
-et sans test elle se rejouera. La commande qui a servi ici, à reprendre :
-filtrer les lignes commençant par `//`, `*` ou `/*`, puis compter
-`\p{Extended_Pictographic}` sur ce qui reste.
+✅ **LE COMPTEUR EST POSÉ — `lib/__tests__/emojiInterface.test.ts`**, et c'est lui
+la source, pas ce paragraphe. Il balaye **cinq** dossiers (`app`, `components`,
+`lib`, `constants`, `hooks`) et non deux : se limiter à ce qui *ressemble* à de
+l'interface est l'erreur exacte qui a produit les 13 oubliés. Trois détails, chacun
+payé par une mesure en l'écrivant :
+
+- il **écarte les commentaires**, y compris ceux de FIN DE LIGNE. La méthode d'avant
+  ne filtrait que les lignes *commençant* par `//`, `*` ou `/*` : elle rend **58**
+  occurrences sur ce dépôt contre **11** — l'écart est fait des ⚠️ et 🔴 posés après
+  du code. Un compteur qui crie au loup 47 fois ne sera pas lu ;
+- il **autorise `®`, `©`, `™`**. Unicode les classe `Extended_Pictographic`, mais ce
+  sont des signes typographiques : ils suivent la fonte, donc le thème — le critère
+  même qui condamne les émojis. `lib/foods.ts` en porte un légitime (« Table
+  Ciqual® 2025 »), qu'on n'a pas le droit de réécrire ;
+- il **vérifie qu'il sait dire OUI** avant de dire non. Un compteur qu'on n'a jamais
+  vu rougir ne prouve rien, et celui-ci a eu deux versions fausses — l'une aveugle
+  aux commentaires de fin de ligne, l'autre condamnant le `®` de Ciqual. **Vérifié
+  par 3 mutations**, dont celle qui remet un `fontSize: 56` sur la célébration.
+
+⚠️ Corollaire, appris ici : **un `console.warn` n'est pas de l'interface, mais lui
+laisser un émoji obligeait le test à s'écrire une exception par fichier** — et une
+liste d'exceptions est une invitation à en ajouter une. Le ⚠️ de `sync.ts::RGPD_WARN`
+est donc parti aussi, pour que la réponse attendue soit **zéro, partout, sans
+dérogation**.
 
 ### La FORME et la GRAISSE passent par un token, comme la couleur (2026-08-03)
 

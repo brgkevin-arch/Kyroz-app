@@ -15,13 +15,18 @@ import Svg, { Rect, Path, Circle } from 'react-native-svg';
 // réadaptée 👊 ») : ils ont été SUPPRIMÉS, pas remplacés. Aucun pictogramme ne
 // remplace un ton de voix.
 //
-// 🔴 LA PASSE N'EST PAS FINIE, contrairement à ce que ce commentaire annonçait.
-// Le comptage portait sur `app/` + `components/` ; il reste 13 émojis AFFICHÉS
-// depuis `lib/streak.ts` (6 paliers rendus en 56 px par `StreakCelebration`, 2
-// dans `streakMessage`), `lib/notifications.ts` (4) et `constants/legal.ts` (1).
-// Un inventaire d'interface se compte sur ce qui est AFFICHÉ, pas sur les
-// fichiers qui ressemblent à de l'interface. Détail et décision en attente :
-// CLAUDE.md §8 « Aucun émoji dans l'interface ».
+// ✅ LA PASSE EST FINIE le 2026-08-09 (E22) — et ce commentaire l'avait déjà
+// annoncée une fois, à tort. Le comptage d'origine portait sur `app/` +
+// `components/` ; il restait 13 émojis AFFICHÉS depuis `lib/streak.ts`,
+// `lib/notifications.ts` et `constants/legal.ts`. Un inventaire d'interface se
+// compte sur ce qui est AFFICHÉ, pas sur les fichiers qui ressemblent à de
+// l'interface.
+//
+// ⚠️ NE PLUS JAMAIS L'ÉCRIRE ICI. C'est la triple copie — ce commentaire, le
+// message de commit et CLAUDE.md §8 — qui a fait tenir un « plus un seul émoji »
+// faux pendant deux jours : trois phrases qui se confirmaient l'une l'autre et
+// aucun compteur. La source est désormais `lib/__tests__/emojiInterface.test.ts`,
+// qui balaye les CINQ dossiers et échoue à la première réintroduction.
 //
 // ⚠️ Ce fichier ne dessine QUE des tracés. Il ne connaît ni le thème ni l'accent :
 // l'appelant passe `color`, exactement comme pour les onglets. C'est ce qui permet

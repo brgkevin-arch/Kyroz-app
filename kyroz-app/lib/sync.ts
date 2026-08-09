@@ -514,7 +514,7 @@ export async function deleteAccount(): Promise<{ error?: string }> {
 // serveur. On ne change ni le flux, ni la valeur de retour, ni l'ordre — on cesse de
 // l'effacer en silence. (Afficher quoi que ce soit à l'utilisateur est hors périmètre.)
 const RGPD_WARN =
-  '⚠️ RGPD : des données de SANTÉ peuvent SUBSISTER au serveur. L\'effacement demandé par l\'utilisateur n\'est PAS complet.';
+  'RGPD : des données de SANTÉ peuvent SUBSISTER au serveur. L\'effacement demandé par l\'utilisateur n\'est PAS complet.';
 
 /**
  * Ordre d'effacement : `profiles` en DERNIER — c'est la ligne qui porte l'identité, et
