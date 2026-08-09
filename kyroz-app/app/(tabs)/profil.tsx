@@ -12,11 +12,12 @@ import { ThemeMode, useThemeMode, setThemeMode } from '../../lib/themeMode';
 import { ACCENTS, ACCENT_IDS, useAccentId, setAccentId, readableOn } from '../../lib/accentColor';
 import { DISCLAIMER } from '../../constants/legal';
 import { CIQUAL_ATTRIBUTION } from '../../lib/foods';
-import { Card, PrimaryButton, Chip, OptionCard, Field, SectionLabel, Segmented } from '../../components/ui';
+import { Card, PrimaryButton, Chip, OptionCard, Field, SectionLabel, Segmented, SectionTitle, MenuRow } from '../../components/ui';
 import { bankedDailyTargets, offsetsForPlan } from '../../lib/calorieBank';
 import { usePremium } from '../../hooks/usePremium';
 import { PremiumFeature, AccessReason } from '../../lib/premium';
 import { Sheet } from '../../components/Sheet';
+import { ReglagesSheet } from '../../components/ReglagesSheet';
 import { useDialog } from '../../components/Dialog';
 import { BirthDateField } from '../../components/BirthDateField';
 import { DateInput } from '../../components/DateInput';
@@ -227,6 +228,7 @@ export default function ProfilScreen() {
   const openOffPlan = () => { journal.reload(); setOffPlanOpen(true); };
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [reglages, setReglages] = useState(false);
 
   const save = async (updated: UserProfile) => { await saveProfile(updated); setEditor(null); };
 
@@ -410,6 +412,26 @@ export default function ProfilScreen() {
             <Text style={s.h1}>Profil</Text>
           </View>
           <TourButton onPress={rejouerTour} />
+          {/* 🔴 LA ROUE DENTÉE — décision fondateur du 2026-08-09. Tout ce qui
+              n'est ni toi ni ton plan vit derrière : notifications, apparence,
+              accent, confidentialité, compte. L'écran empilait 6 interrupteurs
+              système entre « Régénérer mon plan » et « Supprimer mon compte ».
+              ⚠️ Elle porte la cible `profil-donnees` : l'étape de visite guidée
+              qui parle de synchronisation visait le bloc de bas de page, parti
+              dans la feuille. Une étape dont la cible n'est pas MONTÉE est
+              écartée en silence — le tour se serait joué plus court en ayant
+              l'air complet (cf. `visiteGuidee.test.ts`, qui l'exige désormais). */}
+          <TouchableOpacity
+            ref={donneesRef}
+            onPress={() => setReglages(true)}
+            hitSlop={10}
+            activeOpacity={OPACITE_PRESSION}
+            accessibilityRole="button"
+            accessibilityLabel="Réglages"
+            style={s.roue}
+          >
+            <Ionicons name="settings-outline" size={Icone.nav} color={t.textSecondary} />
+          </TouchableOpacity>
         </View>
 
         {/* ⚠️ ORDRE INVERSÉ le 2026-08-02 (décision fondateur), et ce n'est pas
@@ -532,156 +554,25 @@ export default function ProfilScreen() {
           <Text style={s.tdeeV}>{profile.tdee_kcal.toLocaleString('fr-FR')} kcal</Text>
         </View>
 
-        {/* Préférences — un seul titre pour les quatre réglages qui suivent. Ils
-            avaient chacun leur en-tête en capitales, ce qui donnait l'impression de
-            quatre sections indépendantes là où il n'y a qu'une liste d'interrupteurs. */}
-        <SectionTitle t={t}>Préférences</SectionTitle>
-        {/* Rappel quotidien — l'interrupteur, puis l'HEURE (libre, cf.
-            `ReminderTimeField`). Les trois créneaux d'avant n'ont pas disparu :
-            ils sont devenus les puces de raccourci du champ. */}
-        <Text style={s.settingLabel}>Rappel quotidien</Text>
-        <Segmented<'off' | 'on'>
-          t={t}
-          value={reminderTime ? 'on' : 'off'}
-          onChange={async (v) => {
-            // Réactiver reprend l'heure qu'on voit à l'écran ; c'est la première
-            // activation seulement qui pose le matin par défaut.
-            const next: ReminderTime | null = v === 'on' ? (reminderTime ?? DEFAULT_REMINDER_TIME) : null;
-            const ok = await chooseReminder(next);
-            if (!ok && next) {
-              notify({
-                title: remindersSupported ? 'Notifications désactivées' : 'Indisponible sur le web',
-                message: remindersSupported
-                  ? 'Active les notifications de Kyroz dans les réglages de ton téléphone pour recevoir le rappel.'
-                  : 'Le rappel quotidien fonctionne sur l’app mobile (iOS/Android), pas dans le navigateur.',
-              });
-            }
-          }}
-          options={[
-            { label: 'Aucun', value: 'off' },
-            { label: 'Activé', value: 'on' },
-          ]}
-        />
-        {/* Aucun geste ne se JETTE ici — ni sur l'interrupteur, ni sur l'heure.
-            Le garde « un choix est déjà en cours » a coûté les deux : une heure
-            saisie perdue (le champ affichait 05, le rappel était armé sur 15) et
-            un segment mort. Les choix s'empilent dans `useReminder`. */}
-        {reminderTime ? (
-          <ReminderTimeField t={t} value={reminderTime} onChange={chooseReminder} />
-        ) : null}
-        <Text style={s.reminderHint}>
-          {reminderTime
-            ? `Chaque jour à ${formatReminderTime(reminderTime)}, avec une citation.`
-            : 'Un rappel par jour, à l’heure que tu choisis, pour retrouver ton plan.'}
-          {!remindersSupported && reminderTime ? ' La notif arrive sur l’app mobile (pas sur le web).' : ''}
-        </Text>
-
-        {/* Propositions d'ajustement du plan (le check-in « ton plan te convient ? ») */}
-        <Text style={s.settingLabel}>Propositions d'ajustement</Text>
-        <Segmented<'on' | 'off'>
-          t={t}
-          value={checkinEnabled ? 'on' : 'off'}
-          onChange={(v) => setCheckinEnabled(v === 'on')}
-          options={[{ label: 'Activées', value: 'on' }, { label: 'Désactivées', value: 'off' }]}
-        />
-        <Text style={s.reminderHint}>
-          {checkinEnabled
-            ? 'On te demandera de temps en temps si ton plan te va, avec des ajustements en un tap.'
-            : 'On ne te proposera plus d’ajuster ton plan.'}
-        </Text>
-
-        <Text style={s.settingLabel}>Apparence</Text>
-        <Segmented<ThemeMode>
-          t={t}
-          value={themeMode}
-          onChange={setThemeMode}
-          options={[
-            { label: 'Système', value: 'system' },
-            { label: 'Clair', value: 'light' },
-            { label: 'Sombre', value: 'dark' },
-          ]}
-        />
-        <Text style={s.reminderHint}>
-          {themeMode === 'system' ? 'Suit le réglage clair/sombre de ton téléphone.' : `Thème ${themeMode === 'light' ? 'clair' : 'sombre'} forcé.`}
-        </Text>
-
-        {/* Couleur d'accent — ce qui se touche : boutons, jour actif, coches.
-            Monochrome par défaut : la DA de Kyroz ne bouge pas, c'est une
-            personnalisation qu'on OFFRE, pas un habillage imposé. Chaque pastille
-            montre la couleur telle qu'elle sera DANS LE THÈME COURANT — un même
-            bleu n'a pas la même valeur sur fond noir et sur fond clair. */}
-        <Text style={s.settingLabel}>Couleur d'accent</Text>
-        <View style={s.swatches}>
-          {ACCENT_IDS.map((id) => {
-            const on = accentId === id;
-            const couleur = ACCENTS[id][t.scheme];
-            return (
-              <TouchableOpacity
-                key={id}
-                onPress={() => setAccentId(id)}
-                activeOpacity={OPACITE_PRESSION}
-                accessibilityRole="button"
-                accessibilityState={{ selected: on }}
-                accessibilityLabel={`Couleur d'accent ${ACCENTS[id].label}`}
-                style={[s.swatch, { backgroundColor: couleur, borderColor: on ? t.text : t.line }]}
-              >
-                {/* La coche se calcule elle aussi : noir ou blanc selon la pastille. */}
-                {on && <Ionicons name="checkmark" size={Icone.standard} color={readableOn(couleur)} />}
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-        <Text style={s.reminderHint}>
-          {accentId === 'mono'
-            ? 'Monochrome : encre sur fond clair, blanc sur fond sombre.'
-            : `${ACCENTS[accentId].label} — appliqué aux boutons et aux éléments actifs.`}
-        </Text>
-
-        <Text style={s.settingLabel}>Suivi d'hydratation</Text>
-        <Segmented<'on' | 'off'>
-          t={t}
-          value={hydrationOn ? 'on' : 'off'}
-          onChange={(v) => setHydrationOn(v === 'on')}
-          options={[{ label: 'Affiché', value: 'on' }, { label: 'Masqué', value: 'off' }]}
-        />
-        <Text style={s.reminderHint}>
-          {hydrationOn
-            ? 'Une mini-barre de suivi d’hydratation s’affiche au-dessus de tes repas du jour.'
-            : 'La barre d’hydratation est masquée.'}
-        </Text>
-
-        {/* Consentement analytics (RGPD) — opt-in, modifiable à tout moment */}
-        <Text style={s.settingLabel}>Statistiques d'usage</Text>
-        <Segmented<'on' | 'off'>
-          t={t}
-          value={analyticsConsent === 'granted' ? 'on' : 'off'}
-          onChange={(v) => chooseConsent(v === 'on' ? 'granted' : 'denied')}
-          options={[{ label: 'Partagées', value: 'on' }, { label: 'Non', value: 'off' }]}
-        />
-        <Text style={s.reminderHint}>
-          {analyticsConsent === 'granted'
-            ? 'Tu partages des stats d’usage anonymes (jamais ton nom ni tes données perso) pour aider à améliorer Kyroz.'
-            : 'Aucune statistique d’usage n’est partagée.'}
-        </Text>
-
-        <View ref={donneesRef} style={s.menu}>
-          <MenuRow t={t} label="Aide & contact" value={SUPPORT_EMAIL} onPress={contactSupport} />
-          {/* Rejouer les visites guidées : « Passer » par réflexe perdait un tour
-              à vie, et le « ? » d'un onglet ne se trouve que si on y retourne. */}
-          <MenuRow t={t} label="Revoir les tutos" value={`${TOURS.length} visites guidées`} onPress={revoirTutos} />
-          <MenuRow t={t} label="Exporter mes données" value="Télécharger tout (RGPD)" onPress={doExport} />
-          <MenuRow t={t} label="Confidentialité & CGU" value="RGPD, données de santé" onPress={() => router.push('/legal')} />
-          <MenuRow t={t} label="Version" value={appVersion} onPress={() => {}} readonly last />
-        </View>
-
-        <TouchableOpacity style={s.logoutBtn} onPress={doLogout} activeOpacity={OPACITE_PRESSION}><Text style={s.logoutTxt}>Se déconnecter</Text></TouchableOpacity>
-        <TouchableOpacity style={s.delBtn} onPress={() => setConfirmDelete(true)}><Text style={s.delTxt}>Supprimer mon compte</Text></TouchableOpacity>
-
-        <Text style={s.disclaimer}>{DISCLAIMER}</Text>
-        <Text style={s.disclaimer}>{CIQUAL_ATTRIBUTION}</Text>
       </ScrollView>
 
       <CompactTitleBar t={t} title="Profil" opacity={repli.opacity} />
+
+      {/* Réglages — déclarée AVANT les éditeurs, sans conséquence : depuis le
+          2026-08-09 chaque feuille monte son conteneur à l'ouverture, donc
+          l'empilement suit l'ordre des GESTES et non celui du JSX. C'était l'un
+          des deux pièges de cette refonte (`ActionSheet.tsx`). */}
+      <Sheet visible={reglages} onClose={() => setReglages(false)}>
+        <ReglagesSheet
+          t={t}
+          version={appVersion}
+          onClose={() => setReglages(false)}
+          onExport={doExport}
+          onRevoirTutos={revoirTutos}
+          onLogout={doLogout}
+          onDelete={() => { setReglages(false); setConfirmDelete(true); }}
+        />
+      </Sheet>
 
       {/* Feuilles d'édition */}
       <Sheet visible={editor !== null} onClose={() => setEditor(null)}>
@@ -726,36 +617,12 @@ export default function ProfilScreen() {
 
 // ── Lignes / boîtes ──────────────────────────────────────────────────────────
 
-/** Titre de section, en casse normale. Distinct de `SectionLabel` (petites
- *  capitales) : celui-ci découpe l'écran, l'autre étiquette un bloc. */
-function SectionTitle({ t, children }: { t: ThemePalette; children: React.ReactNode }) {
-  return (
-    <Text style={{ ...Type.h2, color: t.text, letterSpacing: -0.4, marginTop: Spacing.sm }}>
-      {children}
-    </Text>
-  );
-}
-
-// Plus d'icône en tête de ligne : à 17 px semi-gras le libellé se lit seul, et
-// dix pictogrammes empilés faisaient un mur de gris qui n'aidait personne à
-// trouver « Objectif daté ». Le chevron reste — lui dit qu'il se passe quelque
-// chose au toucher.
-function MenuRow({ t, label, value, onPress, last, readonly, tourId }: { t: ThemePalette; label: string; value: string; onPress: () => void; last?: boolean; readonly?: boolean; tourId?: string }) {
-  // `tourId` optionnel : rend CETTE ligne ciblable par la visite guidée. Sept
-  // lignes de menu partagent ce composant, et sans lui aucune n'était ancrable —
-  // un TouchableOpacity rendu par une fonction n'expose pas de ref à l'appelant.
-  const tourRef = useTourTarget(tourId);
-  return (
-    <TouchableOpacity ref={tourRef} onPress={onPress} activeOpacity={readonly ? 1 : 0.7} disabled={readonly}
-      style={[{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md, paddingVertical: Spacing.lg }, !last && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.line }]}>
-      <View style={{ flex: 1 }}>
-        <Text style={{ ...Type.h3, color: t.text, letterSpacing: -0.3 }}>{label}</Text>
-        <Text style={{ ...Type.bodySmall, color: t.textTertiary, marginTop: Spacing.xs }} numberOfLines={1}>{value}</Text>
-      </View>
-      {!readonly && <Ionicons name="chevron-forward" size={Icone.standard} color={t.textQuaternary} />}
-    </TouchableOpacity>
-  );
-}
+// ⚠️ `SectionTitle` et `MenuRow` vivaient ICI. Ils sont montés dans
+// `components/ui.tsx` le 2026-08-10, en sortant le Profil du fourre-tout : la
+// moitié des lignes de menu est partie dans `ReglagesSheet`, et deux fichiers
+// avaient besoin du même composant. Les recopier aurait été « un style recopié
+// partout est un rôle qui n'a pas de nom » (CLAUDE.md §8) — sur le composant le
+// plus employé de l'app, donc l'endroit où une divergence se verrait le moins.
 
 // ⚠️ Plus de prop `c` (couleur) : les quatre macros portaient quatre teintes,
 // alors qu'il n'y a rien à comparer entre quatre boîtes côte à côte. Même encre
@@ -1665,6 +1532,9 @@ function makeStyles(t: ThemePalette) {
     safe: { flex: 1, backgroundColor: t.bg },
     content: { padding: Spacing.xl, gap: Spacing.lg, paddingBottom: Fond.barreOnglets },
     header: { flexDirection: 'row', alignItems: 'flex-end', marginBottom: Spacing.xs },
+    // La roue s'aligne sur le « ? » du tour, à droite du grand titre. Cible
+    // tactile pleine : `hitSlop` élargit au doigt, jamais à l'œil.
+    roue: { alignItems: 'center', justifyContent: 'center', minWidth: CIBLE_TACTILE_MIN, minHeight: CIBLE_TACTILE_MIN },
     sub: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 19 },
     h1: { color: t.text, ...Type.display, marginTop: Spacing.xs },
     grid: { flexDirection: 'row', gap: Spacing.sm },
