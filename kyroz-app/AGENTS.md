@@ -3569,6 +3569,60 @@ produit en suspens — il ne reste qu'à coder.
 
 ### 🧹 E — Dette technique
 
+- ~~**E25 · Le Profil était une section fourre-tout**~~ ✅ **LIVRÉ le 2026-08-10.**
+  *Décision fondateur du 2026-08-09 : « j'aimerais que le profil soit qu'avec les
+  préférences et données de l'user, suivi du poids etc, et avec une petite roue dentée
+  on met le reste ». Et, dans la foulée, « une section commentaire digne de ce nom ».*
+  ⚠️ *Numéro pris sur une branche : le vérifier contre `main` au moment de fusionner.*
+
+  **Le constat, chiffré** : l'écran empilait poids, série, cartes de sécurité, cibles,
+  TDEE, **11 lignes de menu**, **6 interrupteurs système**, **5 lignes de bas de page**,
+  déconnexion et suppression de compte. « Couleur d'accent » était à trois doigts de
+  « Supprimer mon compte ». 1 848 → **1 718 lignes**.
+
+  **La coupe** — reste : toi (Informations · Sport · Objectif · Objectif daté) et ton
+  plan (macros · préférences · repas · banque · hors plan · régénérer), plus le suivi.
+  Part derrière la roue (`components/ReglagesSheet.tsx`) : **Notifications · Affichage ·
+  Aide et retours · Confidentialité · Compte**, plus les deux mentions légales — §6
+  impose le disclaimer « aux paramètres », et cette feuille EST les paramètres.
+  ℹ️ **Kyroz+ reste sur le Profil** : c'est lui qui débloque l'objectif daté et la banque,
+  tous deux juste au-dessus. Derrière une roue, il devient invisible le jour où il doit
+  se vendre.
+
+  **Le canal de retour** (`app/avis.tsx`, `lib/feedback.ts`) : « Aide & contact »
+  AFFICHAIT une adresse à recopier — personne n'écrit un retour à ce prix-là depuis un
+  téléphone. Trois entrées, un champ, un `mailto:` pré-rempli. **Zéro backend**, donc
+  zéro table, zéro migration, zéro ligne de politique de confidentialité — une table
+  Supabase aurait coûté les six surfaces de `CLAUDE.md` §3, dont **deux relues par
+  Apple**, à deux jours de la soumission. Ce qui est joint (version + plateforme) est
+  AFFICHÉ mot pour mot au-dessus du bouton, **depuis la même fonction que ce qui part** :
+  deux listes divergeraient, et la première à mentir serait celle qu'on montre.
+  ⚠️ Le test qui compte le plus est celui du `&` : « macros & calories » aurait terminé
+  le paramètre `body` et tronqué le message **à l'endroit exact du caractère**, sans que
+  ni l'utilisateur ni nous puissions le savoir.
+
+  🔴 **LES TROIS PIÈGES ONT ÉTÉ FERMÉS AVANT (PR #66), ET LE PREMIER A SERVI LE JOUR
+  MÊME.** `profil-donnees` visait le bloc de bas de page, parti dans la feuille : une
+  étape dont la cible n'est pas MONTÉE est écartée en silence, le tour se serait joué à
+  5 bulles en ayant l'air complet. Elle pointe désormais la **roue**, et son texte dit ce
+  qu'il y a derrière — une bulle qui désigne un bouton doit nommer ce qu'il ouvre.
+  ➡️ **Un quatrième piège est apparu à l'écriture** : une ROUTE poussée depuis une modale
+  ouverte naît **SOUS** elle. `/avis` et `/legal` passent donc par `versRoute`, qui ferme
+  la feuille avant de pousser. Même famille que l'empilement — ce qui décide est l'ordre
+  de montage, jamais l'intention du code. Vérifié à l'écran.
+
+  ⚠️ **Et la vraie leçon du lot est une erreur de MÉTHODE, pas de code.** Ce chantier a
+  été écrit, testé et déclaré vert sur une base **périmée de quatre PR** : après un
+  `gh pr merge --delete-branch` refusé (la branche vivait dans un worktree), l'arbre était
+  reparti sur `claude/prep-next-week` à `0ebd6ec`. Le `npm test` rendait **1 323 / 78** et
+  paraissait sain — il l'était, pour un arbre sans la passe émoji, sans le montage
+  paresseux de l'`ActionSheet` et **sans le garde-fou de tours qui devait justement
+  valider ce chantier**. Rebasé sur `main` réel : **1 329 / 79**.
+  ➡️ **Après toute commande git qui ÉCHOUE partiellement, re-mesurer où l'on est**
+  (`git branch --show-current` + `git merge-base --is-ancestor origin/main HEAD`) avant
+  d'écrire une ligne. Un arbre sur la mauvaise base compile, passe les tests et rend un
+  écran parfaitement plausible — c'est le piège du worktree (§11), par une autre porte.
+
 - ~~**E24 · La notification quotidienne servait un texte de plusieurs mois — le
   ré-armement ne vivait que dans l'onglet Profil**~~ ✅ **LIVRÉ le 2026-08-09**
   (signalé par le fondateur : *« la notification que j'ai reçue ce midi n'était pas
