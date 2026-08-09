@@ -7,6 +7,56 @@
 
 ---
 
+## 0-bis. ▶️ LA SÉQUENCE DE DEMAIN — 2026-08-10
+
+> Écrite le 2026-08-09 à minuit, à la demande du fondateur. Objectif : **soumis à
+> l'App Store**, pas *publié* — la revue Apple prend de 24 h à 7 jours et ça ne
+> dépend pas de nous.
+>
+> 🧑 = toi seul · 🤖 = moi en session. **Une étape à la fois** : ne pas enchaîner
+> deux étapes 🧑 sans que la précédente soit constatée faite.
+
+**L'ordre n'est pas un choix.** Le relecteur Apple voit le JS **embarqué** dans le
+binaire (il ouvre l'app une fois ; une OTA ne s'applique qu'au lancement suivant), et
+les captures doivent montrer ce que contient ce binaire. Donc : tout le code d'abord,
+**les captures ensuite**, le build après, la soumission en dernier.
+
+| # | Qui | Étape | Pourquoi ça ne peut pas passer avant |
+|---|---|---|---|
+| 1 | 🧑 | `git checkout main && git pull` **dans le dépôt principal** | il est resté à `0ebd6ec` ; les captures se prennent depuis CET arbre, et sans le `pull` elles montreraient les émojis de série retirés hier soir — sans que rien ne le signale |
+| 2 | 🤖 | Corriger le gabarit iPhone (`390×844` → `430×932`, soit **1290×2796**) puis `npm run store:assets` **et** `npm run store:assets:ipad` | cf. §7 : les 5 captures sur disque datent du **30 juillet**, donc d'avant six passes de design, et le dossier iPad est **vide** |
+| 3 | 🧑 | Regarder les 10 captures et dire si elles vendent l'app | le seul jugement que je ne peux pas rendre à ta place |
+| 4 | 🤖 | Build EAS iOS production **1.0.0 (4)** | premier binaire à porter la clé RevenueCat ; le build 3 (2 août) est antérieur. **Ne PAS monter `expo.version`** : ça couperait la ligne OTA vers le build 3 des testeurs |
+| 5 | 🧑 | Formulaires App Store Connect : confidentialité (§4), classification **17+** (§6), fiche FR (§3), note relecteur (§11) | tout est déjà rédigé ci-dessous — c'est du copier-coller, pas de la rédaction |
+| 6 | 🧑 | « Submit for review » | — |
+
+**Compter ~1 h entre « build lancé » et « build sélectionnable dans la fiche »** (file
+EAS + traitement App Store Connect). C'est le seul aléa qui ne dépend ni de toi ni de
+moi ; s'il coince, c'est un jour de retard, pas une semaine.
+
+**Deux gestes indépendants, à faire quand tu veux :**
+- 🧑 coller `supabase/emails/reinitialisation.html` dans le dashboard Supabase (A30,
+  5 min) — sans lui l'e-mail part quand même, mais avec l'habillage Supabase par défaut ;
+- 🧑 confirmer la **célébration de série**. Les 6 émojis de palier sont partis (E22,
+  mergé) et c'est **le nombre de jours** qui les remplace, dans l'accent. Décision prise
+  par défaut le 2026-08-09 faute de réponse, et motivée : six emblèmes formaient une
+  échelle de badges, donc de la *collection*, interdite par `CLAUDE.md` §5.
+  ⚠️ **À trancher AVANT l'étape 2** — les captures vont le figer.
+
+🚫 **CE QU'ON NE TOUCHE PAS, ET CE N'EST PAS UN OUBLI :**
+- **`PAYWALL_LAUNCH` reste `null`.** Poser une date pendant la revue ferait tomber le
+  relecteur sur un paywall : il crée son compte au moment du test, donc APRÈS la date,
+  donc non grand-péré.
+- **L'auth anonyme reste active.** C'est la porte de l'accès relecteur, décrite dans les
+  notes de soumission (§11). Son remplacement est daté « le lendemain de la revue passée ».
+- **La vague catalogue vegan / vegan+SG part en OTA**, pas dans ce binaire — décision
+  fondateur du 2026-08-09, motif et bornes du raisonnement dans `AGENTS.md` **D23**.
+- **La refonte du Profil** (sortir le fourre-tout derrière une roue dentée) passe APRÈS
+  la soumission. Les deux pièges qu'elle armait sont déjà fermés (PR #66) ; la coupe
+  proposée est en attente d'arbitrage.
+
+---
+
 ## 0. État — prêt vs à toi
 
 | Élément | État |
@@ -18,7 +68,7 @@
 | URL politique de confidentialité (HTTP 200) | ✅ en ligne |
 | Textes de fiche (FR), réponses confidentialité, classification | ✅ ci-dessous (§3–6) |
 | **Comptes développeur Apple + Google** | ⛔ **toi** (§1) |
-| Screenshots (iPhone + iPad 13") + feature graphic | 🔴 **À REGÉNÉRER** — les 6 PNG sur disque datent du **30 juillet 21:59**, donc d'avant les **trois** passes de refonte (2026-08-03 et 04) ; `test/store-ipad/` est **vide** (§7) |
+| Screenshots (iPhone + iPad 13") + feature graphic | 🔴 **À REGÉNÉRER — re-mesuré sur le disque le 2026-08-09.** `test/store/` : 5 PNG + le feature graphic, tous du **30 juillet 21:59**, donc d'avant **six** passes de design (typo, espacement, finitions, accent sur la barre de macros…). `test/store-ipad/` : **VIDE**, il n'a jamais rien contenu — et ces captures-là sont **requises** depuis que `supportsTablet` est à `true`. ⚠️ Le gabarit iPhone produit du **1170×2532** (un 6.1"), pas une taille qu'App Store Connect accepte : corriger `PHONE` à `430×932` dans `test/store-assets.mjs` → 1290×2796 (§7) |
 | Accès reviewer (code) | ✅ code — toi : poser le secret au build (§9) |
 | **Lancer le build EAS** | ⛔ **toi** (§8) |
 
@@ -533,9 +583,21 @@ l'image du build portant déjà l'icône qui a désigné le vrai coupable — un
 - **Screenshots iPhone 6.7"** (1290×2796) : **min 1, jusqu'à 10**. Montre les écrans
   forts : (1) plan du jour, (2) une recette + macros, (3) liste de courses,
   (4) onboarding/objectif, (5) série.
+  🔴 **LE GÉNÉRATEUR NE SORT PAS CETTE TAILLE — mesuré le 2026-08-09.** `test/store-assets.mjs`
+  déclare `PHONE = { width: 390, height: 844 }` en `×3`, soit **1170×2532** : c'est un 6.1",
+  pas le 6.7" que cette ligne annonce depuis toujours. Correctif : `430×932`, qui rend
+  exactement 1290×2796. ⚠️ Et c'est le troisième défaut de dimension de ce script —
+  cf. le feature graphic sorti à 3072×1500 plus bas. **Vérifier la sortie, jamais la config.**
 - **Screenshots iPad 13"** (2048×2732) : **requis**, `supportsTablet` étant à `true`
-  (cf. §2). ✅ **Générés** : `npm run store:assets:ipad` → `test/store-ipad/`, au gabarit
-  exact. Ils montrent l'écran recette en deux colonnes, c'est-à-dire l'argument tablette.
+  (cf. §2). 🔴 **CETTE LIGNE A ANNONCÉ « ✅ Générés » PENDANT HUIT JOURS — c'est FAUX.**
+  Re-mesuré le 2026-08-09 : `test/store-ipad/` ne contient que son `README.txt`, il n'a
+  **jamais** contenu une seule image. La commande existe et elle est juste
+  (`npm run store:assets:ipad` → 1024×1366 en `×2`) ; personne ne l'avait lancée.
+  ➡️ Elles montreront l'écran recette en deux colonnes, c'est-à-dire l'argument tablette.
+  ⚠️ **Le motif compte plus que le fait** : une case cochée dans un playbook n'est pas une
+  mesure. Celle-ci disait « généré » parce que la COMMANDE avait été écrite — et la fiche
+  mémoire de la tablette, elle, disait correctement le contraire depuis le 4 août. Deux
+  documents en désaccord, et c'est le disque qui tranche.
   ℹ️ Ce sont des captures **portrait** — c'est le gabarit 2048×2732 qu'Apple demande, même
   si l'app tourne aussi en paysage.
 - **Google Play** : min **2 screenshots** téléphone + un **feature graphic 1024×500**
