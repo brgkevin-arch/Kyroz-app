@@ -3661,7 +3661,7 @@ produit en suspens — il ne reste qu'à coder.
   qui remonte une feuille quand le glissement n'a pas suffi. **Aucun ressort ne pilote
   une ouverture ni une fermeture.**
 
-  🚫 **Ce que ce chantier ne fait PAS.** Les 53 fichiers muets **restent muets** :
+  🚫 **Ce que ce chantier ne fait PAS.** Les **48** fichiers muets **restent muets** :
   animer parce que ça n'anime pas est le contraire du geste. La retenue est la règle, et
   les 4 seules occasions repérées valent d'être écrites — l'appui (#4, qui les couvre
   toutes), la feuille (#1/#5/#6), la bascule du titre compact (déjà faite, 160 ms, et
@@ -3711,6 +3711,43 @@ produit en suspens — il ne reste qu'à coder.
   ouvrante + fermante = 284 aujourd'hui), pas les **instances** — il y en a **127**. Et
   « 7 fichiers sur 60 » : le périmètre `app/` + `components/` en compte **55**. Même
   famille que l'inventaire émoji juste sur le mauvais périmètre (§8).*
+  ⚠️ *Et « 53 fichiers muets » en était DÉRIVÉ (60 − 7). Corrigé ici en **48** (55 − 7) :
+  la correction d'un chiffre doit descendre jusqu'à ceux qu'il a engendrés, sinon le faux
+  survit dans sa descendance. Même motif que les cinq nombres de `dailyBudget` devenus
+  faux « sans que le module bouge » (§6).*
+
+  ➡️ **ADDENDUM du 2026-08-10 — audit croisé, session parallèle
+  (`apple-motion-skills`).** Refait indépendamment avec `apple-design` +
+  `improve-animations`, il **confirme les 8 constats ci-dessus** (mêmes fichiers, mêmes
+  lignes) et n'ajoute que ceci :
+
+  🔴 **LE VERROU DE PUBLICATION A UNE ISSUE DE SECOURS, et elle est OTA aussi.** Le
+  contrôle IPA ci-dessus conclut « 0 = il faut un build ». **C'est trop dur** : mesuré sur
+  la RN 0.85.3 installée, le cœur de React Native — donc **déjà dans tout binaire, sans
+  aucun paquet** — sait faire l'essentiel :
+  - `Animated.spring` accepte **`velocity`**, et `stiffness` / `damping` / `mass`
+    (`SpringAnimation.js:45,73-76`) → la **vitesse héritée** (#1) et les ressorts sur
+    ouverture/fermeture (#6) ne dépendent PAS de Reanimated ;
+  - `AccessibilityInfo.isReduceMotionEnabled()` + l'événement `reduceMotionChanged` sont
+    dans le cœur (`AccessibilityInfo.d.ts:18,71`) → **#3 se traite sans rien installer**,
+    et sans dépendre du `ReduceMotion.System` de Reanimated ;
+  - `Pressable` est dans le cœur → **#4 aussi**.
+  ➡️ Donc si l'IPA rend 0, **le chantier n'est pas bloqué** : il se fait en `Animated`, et
+  seuls #8 (le pont de défilement) et l'interruption vraie sur le fil UI attendent le
+  build. Reanimated reste le meilleur outil ; il n'est pas le seul.
+
+  ⚠️ **Un 9ᵉ constat, absent de la liste : le DOUBLE FONDU des trois célébrations.**
+  `FirstPlanReveal`, `StreakCelebration` et `BirthdayCelebration` posent
+  `animationType="fade"` sur leur `Modal` **et** animent leur propre `opacity` 0→1.
+  Deux fondus superposés de durées différentes sur le même objet. `Sheet` et `ActionSheet`
+  sont corrects (`animationType="none"`) — le défaut n'est que sur les trois célébrations.
+
+  ⚠️ **Piège d'unités, à connaître avant d'écrire #1** : `vy` de `PanResponder` est en
+  **px/milliseconde** (`PanResponder.js:361`) et un ressort intègre en **secondes**
+  (`SpringAnimation.js:281`) → `velocity: g.vy * 1000`. Se tromper est un facteur 1000.
+  ℹ️ Le piège **disparaît** en migrant vers `gesture-handler`, dont `velocityY` est déjà
+  en px/seconde — donc il ne mord que sur les chemins qui gardent `PanResponder`, ce qui
+  sera le cas si la migration est incrémentale.
 - ~~**E26 · Le consentement analytics gâchait l'écran d'arrivée, et mesurait des données de santé**~~ ✅ **LIVRÉ le 2026-08-10.**
   *Décision fondateur : « enlever ce popup au-dessus du plan alimentaire […] le mettre
   autre part, mieux expliqué et à un meilleur moment ».*
