@@ -2,6 +2,11 @@
 
 > Écrit le 2026-08-10, pour la session suivante. Les chiffres viennent d'un
 > inventaire fait ce jour-là sur `main` ; **les re-compter avant de les citer**.
+>
+> 🔴 **Et les re-compter sur le dépôt PRINCIPAL, jamais depuis un worktree** : son
+> `node_modules` est vide, donc toute question « telle dépendance est-elle là ? » y
+> répond « non » — ce qui a produit une première version de ce brief entièrement
+> fausse sur son point central. Pour le natif, la source est **`ios/Podfile.lock`**.
 
 ## La bonne nouvelle d'abord : la moitié du travail est déjà faite
 
@@ -39,37 +44,52 @@ Le sujet, c'est **le mouvement, le geste et l'haptique**.
 - **288 `TouchableOpacity` contre 10 `Pressable`.** Le seul retour à l'appui est
   `OPACITE_PRESSION` (0,7). Un bouton Apple s'enfonce (échelle), il ne pâlit pas.
 
-## La décision à prendre AVANT d'écrire une ligne
+## Ce qui est déjà dans le binaire — et ça change tout
 
-**Aucune** des briques de mouvement Apple n'est installée — vérifié, elles ne sont même
-pas là en transitif :
+🔴 **La première rédaction de ce brief disait « les quatre briques sont absentes, donc
+il faut un build ». C'ÉTAIT FAUX**, et la faute mérite d'être lue avant la suite : la
+mesure avait été faite **dans un worktree, dont le `node_modules` est vide**. Le bon
+endroit n'est ni `package.json` ni `node_modules`, c'est **`ios/Podfile.lock`**.
 
-| | absent | ce qu'elle apporterait |
+Relevé sur le dépôt principal le 2026-08-10 :
+
+| | dans le binaire iOS | ce qu'elle apporte |
 |---|---|---|
-| `react-native-reanimated` | ❌ | ressorts sur le fil d'animation natif, interruptibles |
-| `react-native-gesture-handler` | ❌ | gestes natifs, vitesse, gestes simultanés |
-| `expo-haptics` | ❌ | le retour au doigt |
-| `expo-blur` | ❌ | matériaux translucides (déjà écarté une fois pour la barre de titre) |
+| `react-native-reanimated` **4.4.1** | ✅ **OUI** | ressorts sur le fil natif, **interruptibles** |
+| `react-native-gesture-handler` **3.0.2** | ✅ **OUI** | gestes natifs, vitesse, gestes simultanés |
+| `expo-haptics` | ❌ non | le retour au doigt |
+| `expo-blur` | ❌ non | matériaux translucides (déjà écarté pour la barre de titre) |
 
-Ce sont **quatre dépendances natives**. CLAUDE.md §2 est clair : le natif ne passe pas
-par OTA — il faut un nouveau build, et il coupe la ligne OTA vers les anciens binaires.
+Les deux premières sont tirées **par `expo-router` lui-même** (`npm ls` : en direct, plus
+via `@expo/ui` et `react-native-drawer-layout`). Elles sont compilées dans le binaire
+depuis toujours — Kyroz les embarque sans jamais s'en servir. La nouvelle architecture
+est active et **Fabric est bien compilé** (150 pods `React-Fabric`/`React-RuntimeApple`),
+donc Reanimated 4 fonctionnera. Il n'y a **pas de `babel.config.js`** à modifier : le
+préréglage Expo par défaut s'en charge — à confirmer d'un coup d'œil, pas à supposer.
 
-**Ma recommandation : viser le build, pas le contournement.** Deux raisons mesurables :
+➡️ **Conséquence : le cœur du mouvement Apple — ressorts interruptibles, gestes qui
+héritent de la vitesse — est atteignable EN OTA. Pas de build, pas de revue.**
 
-1. **Un build 1.0.0 (4) est déjà prévu** (AGENTS.md, ligne « OTA publiées » : les testeurs
-   sur le build 3 n'ont ni la passe émoji ni la refonte du Profil). Les dépendances
-   natives montent donc dans un train **déjà à quai**.
-2. **La revue bêta est acquise depuis le 2026-08-03** — les builds suivants passent sans
-   repasser par Apple. Le coût est donc *un build*, pas *une revue*.
+**La recommandation, donc :**
 
-⚠️ **À confirmer contre `TESTFLIGHT.md` en début de session** avant de s'engager : je
-n'ai vérifié ces deux points que dans AGENTS.md, pas sur le compte Apple.
+1. **Faire d'abord toute la passe OTA** avec Reanimated + Gesture Handler. C'est là que
+   se trouve l'essentiel de l'écart Apple, et ça atteint les testeurs en minutes.
+2. **Garder `expo-haptics` pour le build 1.0.0 (4) déjà prévu** (AGENTS.md, ligne « OTA
+   publiées » : les testeurs du build 3 n'ont ni la passe émoji ni la refonte du Profil).
+   La revue bêta étant acquise depuis le 2026-08-03, le coût est *un build*, pas *une
+   revue* — ⚠️ à confirmer contre `TESTFLIGHT.md`, je ne l'ai vérifié que dans AGENTS.md.
+3. **`expo-blur` reste écarté** tant que rien ne le justifie mieux que la barre de titre,
+   qui s'en passe très bien avec un fond opaque.
 
-**Si le fondateur préfère rester en OTA pur**, il reste du travail réel et non
-négligeable — vitesse injectée dans les durées, caoutchouc, `Pressable` avec échelle,
-respect de « Réduire les animations » — tout ça se fait avec l'`Animated` déjà en place.
-Ce serait un demi-pas honnête. Le ressort interruptible, lui, ne s'obtient pas sans
-Reanimated.
+⚠️ **Deux précautions avant d'importer une dépendance transitive :**
+- **L'inscrire explicitement dans `package.json`, à la version EXACTE déjà présente**
+  (4.4.1 et 3.0.2). Sinon elle disparaît le jour où `expo-router` change d'avis, et
+  l'app casse sans qu'aucune ligne du diff ne parle d'elle. Même version = binaire
+  inchangé = la voie OTA reste ouverte.
+- **Le vérifier sur l'artefact, pas sur l'intention** — un `npx expo export` et une
+  lecture du bundle, comme pour les clés Supabase (§2). Une dépendance native importée
+  dans un binaire qui ne la porte pas ne plante pas au build : elle plante **chez
+  l'utilisateur, après l'OTA**, sans revue pour l'arrêter.
 
 ## Les skills à utiliser, dans cet ordre
 
@@ -123,7 +143,9 @@ vérification manquante annoncée vaut mille fois une vérification supposée.
 
 ## Ce que j'attends en sortie de session
 
-1. **L'arbitrage tranché** natif ou OTA-pur, écrit noir sur blanc avec son coût.
+1. **La confirmation que la voie OTA est bien ouverte** — Reanimated et Gesture Handler
+   inscrits en dur dans `package.json` à leur version exacte, et le bundle exporté
+   vérifié. C'est le préalable à tout le reste.
 2. **L'audit d'`improve-animations`**, priorisé.
 3. **Le chantier inscrit dans `AGENTS.md`** sous l'id libre suivant — **E26** au
    2026-08-10. ⚠️ Ne créer **aucune** deuxième liste de tâches (§10) : ce brief n'en est
@@ -134,6 +156,10 @@ vérification manquante annoncée vaut mille fois une vérification supposée.
 
 - Repartir sur les couleurs, rayons, typographie ou espacements : c'est fait et verrouillé.
 - Animer les 53 fichiers muets parce qu'ils sont muets. La retenue est la règle.
-- Installer une dépendance native sans l'arbitrage du point 1 — ça engage un build et
-  coupe l'OTA des anciens binaires.
+- **Conclure qu'une dépendance est absente parce qu'elle n'est pas dans `package.json`.**
+  Reanimated et Gesture Handler n'y sont pas et sont pourtant dans le binaire. La preuve
+  est `ios/Podfile.lock`, lu sur le dépôt principal.
+- Installer `expo-haptics` ou `expo-blur` sans les rattacher au build déjà prévu — ceux-là
+  sont réellement absents du binaire, donc ils engagent un build et coupent l'OTA des
+  anciens.
 - Conclure quoi que ce soit sur du mouvement vu dans le panneau navigateur.
