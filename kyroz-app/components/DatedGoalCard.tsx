@@ -8,6 +8,7 @@ import { planFloorKcal, makeWeeklyProjector } from '../lib/tdee';
 import { todayStamp } from '../lib/weight';
 import { UserProfile } from '../lib/types';
 import { ObjectifIcon } from './Icons';
+import { frnum } from '../lib/units';
 
 // ── Carte de suivi d'objectif daté (premium « Kyroz+ ») ──────────────────────
 // Partagée par l'écran Plan (le geste quotidien) et le Profil. Lecture seule :
@@ -83,7 +84,7 @@ export function DatedGoalCard({ t, profile, onPress }: { t: ThemePalette; profil
                 finale reste dite juste en dessous : la masquer serait décider à sa
                 place ce qu'elle a le droit de savoir sur son propre objectif. */}
             <Text style={{ color: t.text, ...Type.h3 }}>
-              {profile.weight_kg} → {palier ? palier.weightKg : gt.target_weight_kg} kg
+              {frnum(profile.weight_kg)} → {frnum(palier ? palier.weightKg : gt.target_weight_kg)} kg
             </Text>
           </View>
           <Text style={{ ...Type.captionStrong, color: t.textSecondary }}>
@@ -104,27 +105,27 @@ export function DatedGoalCard({ t, profile, onPress }: { t: ThemePalette; profil
             ne donne jamais l'impression d'avoir remplacé l'objectif. */}
         {palier && (
           <Text style={{ ...Type.caption, color: t.text }}>
-            Prochaine étape : {palier.weightKg} kg
+            Prochaine étape : {frnum(palier.weightKg)} kg
             {palier.stamp ? ` vers le ${formatFR(palier.stamp)}` : ''}
-            {palier.index < palier.total ? ` · objectif ${gt.target_weight_kg} kg` : ''}
+            {palier.index < palier.total ? `\u00A0· objectif ${frnum(gt.target_weight_kg)} kg` : ''}
           </Text>
         )}
         <Text style={{ ...Type.caption, color: t.textSecondary }}>
           {/* `underweightBlocked` d'abord : le rythme y vaut 0 par sécurité, et
               « 0 kg/sem » sans motif se lit comme un plan cassé. */}
           {status.underweightBlocked
-            ? 'Plan ramené au maintien · poids sous la plage de référence'
+            ? 'Plan ramené au maintien\u00A0· poids sous la plage de référence'
             : status.direction === 'maintain'
-              ? 'Poids cible atteint · maintien'
+              ? 'Poids cible atteint\u00A0· maintien'
               // Date RÉELLE au rythme servi (P1.6) : annoncer `gt.target_date` quand le
               // plancher rogne le déficit affichait une échéance fausse de 32 jours en
               // médiane. Et sans projection crédible, on ne donne pas de date du tout
               // plutôt qu'un chiffre inventé.
               : status.reachableByDate
-                ? `Cible le ${formatFR(gt.target_date)} · ${Math.abs(status.safeWeeklyKg)} kg/sem`
+                ? `Cible le ${formatFR(gt.target_date)}\u00A0· ${frnum(Math.abs(status.safeWeeklyKg))} kg/sem`
                 : status.projectable
-                  ? `Plutôt le ${formatFR(status.projectedDate)} · ${Math.abs(status.safeWeeklyKg)} kg/sem`
-                  : 'Rythme sûr atteint · cette date n\'est pas tenable'}
+                  ? `Plutôt le ${formatFR(status.projectedDate)}\u00A0· ${frnum(Math.abs(status.safeWeeklyKg))} kg/sem`
+                  : 'Rythme sûr atteint\u00A0· cette date n\'est pas tenable'}
         </Text>
       </Card>
     </TouchableOpacity>
