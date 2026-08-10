@@ -87,10 +87,16 @@ const ANCRES: Ancre[] = [
   { quoi: 'bouton final de l\'étape 7', texte: 'Générer mon plan', dans: 'app/(auth)/onboarding.tsx' },
   { quoi: 'bouton d\'avancement', texte: 'Continuer', dans: 'app/(auth)/onboarding.tsx' },
 
+  // ⚠️ Le consentement analytics a CHANGÉ DE PLACE le 2026-08-10 : il ne s'affiche
+  // plus sur l'écran Plan mais AVANT l'assistant, entre le portail de dépistage et
+  // l'étape 1. Le harnais le neutralise en amont (`neutralizeFirstRun` pose
+  // `@kyroz:analyticsConsent = 'denied'`), donc l'écran ne surgit jamais pendant un
+  // parcours scripté ; « Non merci » reste le filet de `dismissOverlays`.
+  { quoi: 'refus du consentement analytics', texte: 'Non merci', dans: 'components/AnalyticsConsentStep.tsx' },
+
   // ── Arrivée sur le plan ──
   { quoi: 'reveal du 1er plan', texte: 'Voir mon plan', dans: 'components/FirstPlanReveal.tsx' },
   { quoi: 'sortie de la visite guidée', texte: 'Passer', dans: 'components/GuidedTour.tsx' },
-  { quoi: 'refus du consentement analytics', texte: 'Non merci', dans: 'components/AnalyticsConsentBanner.tsx' },
 
   // ── Sous-écrans du Profil (qa-deep / qa-settings) ──
   { quoi: 'carte de suivi du poids', texte: 'Suivi du poids', dans: 'components/WeightSummaryCard.tsx', script: 'test/qa-deep.mjs' },
