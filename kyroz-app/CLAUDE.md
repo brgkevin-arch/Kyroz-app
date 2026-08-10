@@ -1543,6 +1543,100 @@ boîte, donc l'alignement. Le risque ne se voit pas sur les 5 onglets : il se vo
 sur les ~25 feuilles modales, qu'aucune capture ne couvre encore. C'est un
 chantier à part, avec sa vérification à lui.
 
+### Le MOUVEMENT — cinquième axe, et le dernier (2026-08-10)
+
+Forme, texte, blanc et finitions ont chacun reçu un rôle, un token et un test. Le
+mouvement n'avait **rien** — ni token de durée, ni courbe, ni garde-fou — et il avait
+donc dérivé pour exactement la raison des quatre autres avant leur passe : rien ne
+l'obligeait. Mesuré : 7 fichiers animent, 16 `Animated.timing` dont **12 sans aucune
+courbe**, 7 durées écrites à la main, zéro entrée dans `theme.ts`.
+
+**Le modèle est celui d'Apple, deux paramètres au lieu du triplet physique** —
+`lib/motion.ts` :
+
+| Rôle | Ressort | Amortissement · réponse |
+|---|---|---|
+| déplacement, retour à sa place | `RESSORT.pose` | 1 · 0,4 s — **aucun dépassement** |
+| feuille et tiroir | `RESSORT.feuille` | 0,8 · 0,3 s |
+| l'appui d'un doigt | `RESSORT.appui` | 1 · 0,16 s |
+| le relâchement | `RESSORT.relache` | 0,72 · 0,32 s |
+| le « pop » des célébrations | `RESSORT.fete` | 0,55 · 0,45 s |
+
+⚠️ **LE REBOND SE MÉRITE.** Il n'est légitime que si le geste PORTAIT un élan — une
+feuille qu'on jette, un doigt qui part. Sur une surface qui apparaît sans qu'on l'ait
+poussée, un dépassement se lit comme un défaut. D'où `pose` à 1, qui est le défaut.
+La seule exception sans geste est `fete` : un moment rare a droit à son budget de
+plaisir, et c'est une décision, pas une dérive.
+
+⚠️ **Une DURÉE ne convient que si personne ne peut attraper l'objet pendant qu'elle
+tourne** (`DUREE.instant` 160 · `court` 200 · `moyen` 260 · `entree` 550 · `fete` 2200).
+Dès qu'un doigt peut s'en saisir, c'est un ressort — sinon l'animation ignore le geste
+jusqu'à son terme, puis saute.
+
+🔴 **CE FICHIER N'IMPORTE RIEN, ET C'EST LA CONDITION DE SON EXISTENCE.** `theme.ts`
+tire react-native, donc ce qui y vit ne se vérifie qu'en le lisant COMME DU TEXTE. Or le
+mouvement ne se résume pas à des constantes : il porte des DÉCISIONS — où atterrit un
+geste, quelle résistance à un bord — et une décision se teste en l'appelant. Même procédé
+que `collapsingTitle.ts`, `accentColor.ts` et `tours.ts`.
+
+**Les quatre règles que le code applique désormais :**
+1. **La vitesse du doigt n'est jamais jetée.** `decisionFeuille` PROJETTE où le geste
+   atterrirait s'il décélérait seul (la fonction d'Apple, pas la formule scolaire), choisit
+   la destination la plus proche de ce point, puis passe la vitesse au ressort. Avant :
+   `vy > 0.4` tranchait, et la sortie durait 240 ms fixes — effleurée ou balancée, pareil.
+2. **Toute `Animated.timing` déclare sa courbe.** Sans `easing`, RN applique `easeInOut`,
+   donc un démarrage LENT. `Easing.out` partout — sauf une chute libre, qui ne ralentit pas.
+3. **Un ressort part de la valeur COURANTE.** Poser la valeur de départ avant de lancer
+   l'animation rend l'ouverture non interruptible : rattraper une feuille la fait sauter.
+4. **Les bords résistent** (`caoutchouc`) au lieu de ne rien faire.
+
+🔴 **`vy` DE `PanResponder` EST EN PIXELS PAR MILLISECONDE**, un ressort intègre en
+SECONDES : `vitesseDepuisPan` fait le ×1000. L'oublier est un facteur mille — donc un
+correctif qui a l'air de n'avoir rien fait. ℹ️ Le piège disparaît avec
+`gesture-handler`, dont `velocityY` est déjà en px/s.
+
+🔴 **« RÉDUIRE LES ANIMATIONS » ÉTAIT IGNORÉ PAR TOUTE L'APP** — `AccessibilityInfo` :
+0 fichier. Réglage d'accessibilité qu'Apple teste en revue. `lib/reduceMotion.ts` suit le
+patron obligatoire des valeurs d'appareil (store externe + `useSyncExternalStore`, chargé
+une fois au layout racine), **plus un abonnement à `reduceMotionChanged`** : celle-ci
+change PENDANT que l'app tourne, ce qui la distingue des cinq autres.
+⚠️ **Réduire n'est pas supprimer.** On garde ce qui INFORME (opacité, apparition), on
+retire ce qui DÉPLACE (glissement, rebond). Retirer tout retour laisserait la personne
+sans le moindre signe que son geste a été pris — un second défaut, pas un correctif.
+
+**L'appui : un bouton s'ENFONCE, il ne pâlit pas** (`components/Presse.tsx`, échelle
+0,97). 129 pressables migrés d'un coup, `TouchableOpacity` → `Pressable` — c'est ce
+dernier qui expose l'état pressé, donc le seul qui puisse piloter autre chose que
+l'opacité.
+🔴 **ET LE `Pressable` LUI-MÊME EST ANIMÉ, PAS UNE VUE POSÉE DEDANS.** Une première
+version enveloppait les enfants dans une `Animated.View` : le `style` d'un pressable
+porte presque toujours un `flexDirection` ou un `gap`, qui s'appliquent à ses ENFANTS
+DIRECTS. Une vue intermédiaire les aurait tous regroupés en UN enfant — chaque rangée
+icône + texte serait devenue une colonne, **partout**, sans qu'aucun test ne le voie.
+
+⚠️ **Deux valeurs ne doivent JAMAIS être capturées dans le `PanResponder`** (créé une
+seule fois, donc figé au premier rendu) : la hauteur d'écran (rotation, Split View) et
+le réglage d'accessibilité. Les lire depuis une ref et depuis le store.
+
+🚫 **Ce que la passe n'a PAS fait, et c'est délibéré** : les 48 fichiers muets restent
+muets. Animer parce que ça n'anime pas est le contraire du geste — la retenue fait
+partie de la DA d'Apple autant que les ressorts.
+
+➡️ **Garde-fou : `lib/__tests__/mouvementDA.test.ts`** (14 cas, vérifié par 3 mutations) —
+aucune durée en dur, aucune `timing` sans courbe, aucun `bounciness`/`speed`/`tension`/
+`friction`, plus les propriétés des décisions du geste.
+⚠️ **Et il a fallu rebrancher `espacementDA`** : il cherchait les pressables par
+`TouchableOpacity|Pressable|TouchableHighlight` et ne reconnaissait plus **aucun** bouton
+de l'app après la migration — **vert, et aveugle**. *Un garde-fou nommé d'après une
+implémentation meurt le jour où on en change, en silence et dans le sens rassurant.*
+⚠️ Et la première version du nouveau test **mentait dans le sens alarmant** : sa regex
+s'arrêtait au premier `)`, donc elle accusait 10 fichiers de n'avoir aucune courbe alors
+qu'ils en ont une. Faire dire OUI à une sonde autant que NON.
+
+🔴 **Rien de tout ceci ne se vérifie dans le panneau navigateur** : `requestAnimationFrame`
+n'y tourne pas, et un GESTE ne se vérifie pas en web (§5). Ce qui est testé ci-dessus l'est
+parce que c'est PUR ; le ressenti se juge au simulateur.
+
 ### Le grand titre se replie (2026-08-04)
 
 Comportement des grands titres iOS, et ce que fait la maquette **sur ses cinq écrans à
