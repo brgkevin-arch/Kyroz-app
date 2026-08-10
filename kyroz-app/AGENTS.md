@@ -3634,7 +3634,15 @@ produit en suspens — il ne reste qu'à coder.
   - [ ] `RGPD-REGISTRE.md` — PostHog en **sous-traitant** à côté de Supabase, + les 18 mois
   - [ ] côté PostHog : **couper la collecte d'IP** (le client n'envoie rien pour ça, donc le
         défaut serveur s'applique — géolocalisation comprise), rétention à 18 mois, DPA signé
-  - [ ] les **seuils** du §10 (D1/D2/D4/D6) : une ligne vide = l'event correspondant ne se lit pas
+  - [x] les **seuils** du §10 — ÉCRITS le 2026-08-10 : D1 une étape qui perd > 20 % (4 sem.,
+        ≥ 50 entrées) · D2 médiane < 4 jours actifs sur 14 après 3 cohortes · D4 **−8 points
+        entre deux cohortes** · D6 ≥ 3 échecs en 7 j, ou ≥ 1 % passé 500 générations/sem.
+        ⚠️ **D4 est une TENDANCE et pas un absolu, et c'est un correctif** : la première
+        version proposait « ratio sous 25 % », ce que le §5 du même document interdit —
+        `meal_cooked` mesure un TAP, donc un ratio absolu bas peut décrire un produit qui
+        marche avec des gens qui ne cochent pas. ⚠️ D2 nomme sa définition (`plan_opened`)
+        parce que le §4.2 en laisse deux ouvertes — et **l'écart entre les deux est
+        justement la donnée qui tranchera §4.2**.
 
   📄 `docs/2026-08-10-brief-analytics-perimetre.md` (le brief) et
   `docs/2026-08-10-synthese-analytics-arbitrage.md` (l'arbitrage qui fait foi).

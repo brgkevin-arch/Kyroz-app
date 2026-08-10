@@ -261,13 +261,59 @@ Aucun état intermédiaire où le code ment.
 
 ---
 
-## 10. À écrire avant de poser la clé — les seuils
+## 10. Les seuils — écrits le 2026-08-10
 
-À remplir à la main. Tant qu'une ligne est vide, l'événement correspondant ne se pose pas.
+> ⚠️ **Ce sont des valeurs ARBITRAIRES, pas des mesures.** Aucune donnée Kyroz n'existe
+> encore pour les fonder — c'est la nature même de l'exercice : le §2 exige un seuil écrit
+> *avant* de poser l'événement, donc forcément avant d'avoir le chiffre. Ils ne servent pas
+> à avoir raison, ils servent à empêcher la rationalisation après coup. **Se relisent à la
+> première lecture réelle**, et se corrigent alors en le DISANT (un seuil déplacé en
+> silence pour éviter de conclure est exactement ce que le §2 interdit).
 
 | Décision | Seuil pré-écrit | Action si franchi |
 |---|---|---|
-| D1 — raccourcir l'onboarding | si l'étape __ perd plus de __ % en __ semaines | |
-| D2 — North Star | si les jours actifs médians sur 14 sont sous __ après __ cohortes | |
-| D4 — le plan est-il suivi | si le ratio cuisiné/affiché est sous __ % sur __ jours | |
-| D6 — santé technique | si le taux d'échec de génération dépasse __ % | correction immédiate |
+| **D1** — raccourcir l'onboarding | une étape perd **> 20 %** de ses arrivants, sur **4 semaines** et **≥ 50** installations entrées dans l'assistant | réécrire ou fusionner **cette étape-là**, et re-mesurer la cohorte suivante avant d'en toucher une autre |
+| **D2** — North Star | jours actifs médians sur 14 **< 4** (définition `plan_opened`), après **3 cohortes** mensuelles | revoir le rappel quotidien et la boucle de retour — pas le contenu du plan |
+| **D4** — le plan est-il suivi | le ratio cuisiné/affiché **perd ≥ 8 points** entre deux cohortes mensuelles consécutives (les 2 premières servent de référence) | **enquêter, ne pas refondre** — voir l'avertissement ci-dessous |
+| **D6** — santé technique | **≥ 3 échecs** de génération en 7 jours *(à tout volume)*, **ou ≥ 1 %** des générations une fois passé 500 générations/semaine | correction immédiate |
+
+### Pourquoi ces formes-là, et pas celles qu'on écrit d'instinct
+
+**D1 — pourquoi 20 %.** Un tunnel de 7 étapes qui perdrait 20 % à chaque marche finirait à
+21 % de complétion : c'est une catastrophe, pas une optimisation. 20 % **sur une seule
+étape** est donc une falaise, pas du bruit — exactement le calibre que le §2 dit lisible à
+petit volume. Le garde de 50 installations évite de réécrire un écran sur douze personnes.
+
+**D2 — le seuil nomme sa définition, parce qu'il y en a deux.** Le §4.2 laisse ouvert
+« actif = `plan_opened` ou `meal_cooked` ». Le seuil est posé sur **`plan_opened`** (la
+définition large, donc la plus indulgente : le franchir est un signal fort).
+➡️ **Et l'écart entre les deux définitions EST la donnée qui tranchera le §4.2** : afficher
+les deux médianes côte à côte. Si elles se suivent, la question ne se pose plus ; si elles
+divergent franchement, c'est que « ouvrir » et « suivre » sont deux produits différents, et
+c'est `meal_cooked` qui devient la North Star.
+
+🔴 **D4 — le seuil est une TENDANCE, et le passer en valeur absolue serait se contredire.**
+La première rédaction de ce chantier proposait « ratio sous 25 % sur 30 jours ». C'est faux
+**au regard du §5 de ce document même** : `meal_cooked` mesure *un tap sur un bouton*, et
+rien ne distingue « n'a pas cuisiné » de « a cuisiné sans cocher ». Un ratio absolu de 25 %
+peut donc décrire un produit qui marche très bien avec des gens qui ne cochent pas. Ce qui
+reste interprétable, c'est le **déplacement** : à taux de cochage constant, une cohorte qui
+perd 8 points par rapport à la précédente a changé de comportement.
+⚠️ Et même franchi, il ne déclenche **qu'une enquête** : il faut d'abord savoir si c'est le
+suivi qui baisse ou le geste de cocher qui s'est dégradé (un bouton déplacé suffit). Refondre
+le plan sur ce seul chiffre serait corriger l'instrument en croyant corriger le produit.
+
+**D6 — un compte ET un taux, parce qu'un pourcentage seul ment aux deux bouts.** Le moteur
+est local et déterministe : l'attendu est **zéro**. À 40 utilisateurs, un seul échec fait
+2,5 % et déclencherait une alerte sur un cas isolé ; à 4 000, 1 % fait des centaines
+d'échecs invisibles dans un compte brut. D'où les deux formes, celle qui mord dépendant du
+volume. `plan_generation_failed` porte l'`etape`, donc le franchissement nomme déjà l'endroit.
+
+### Ce que ces seuils ne couvrent pas, et c'est voulu
+
+`app_error`, `onboarding_blocked`, `streak_*`, `plan_regenerated` et `off_plan_logged`
+n'ont **pas** de seuil de déclenchement. Ils ne sont pas là pour alarmer mais pour *rendre
+lisible* un franchissement des quatre ci-dessus : beaucoup de `plan_regenerated
+{profil_modifie}` explique un D2 qui décroche ; `onboarding_blocked` dit quelle part du D1
+est un refus légitime et non un abandon. Un événement peut donc servir une décision sans
+porter son propre seuil — ce que le §2 n'interdit pas, tant qu'il sert une décision écrite.
