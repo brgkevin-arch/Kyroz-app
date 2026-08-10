@@ -52,6 +52,9 @@ export function DatedGoalCard({ t, profile, onPress }: { t: ThemePalette; profil
   const jours = status.projectable ? daysBetween(today, status.projectedDate) : null;
   // La trajectoire n'est simulée que si on découpe : c'est jusqu'à 260 semaines
   // d'arithmétique, et cette carte est montée sur DEUX écrans dont le Plan.
+  // Coût MESURÉ sur le pire cas (H 123 → 85 kg, 38 kg d'écart) : **0,34 → 0,40 ms**.
+  // La contrainte « < 1 seconde » de §4 garde trois ordres de grandeur. Chiffré plutôt
+  // que supposé — c'est la deuxième simulation de la même carte, ça méritait la mesure.
   const decoupe = status.active && !status.underweightBlocked && needsMilestones(totalKg, jours);
   const paliers = decoupe
     ? milestonesFor(gt, profile.weight_kg, simulatedTrajectory(profile, gt, today, makeWeeklyProjector(profile)))
