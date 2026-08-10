@@ -431,8 +431,15 @@ OUTPUT         → Plan + liste de courses + recettes
   sous 1,40 pour un mode de vie sédentaire), et Kyroz comptant le sport à part, il
   n'y a aucun risque de double-comptage à 1,30.
   La table est **resserrée** (pas de 0,05 au lieu de 0,08) pour rester monotone sous
-  le plafond de 1,45 : un cran vaut désormais ~90 kcal/j au lieu de ~140, donc se
-  tromper d'un cran coûte deux fois moins cher.
+  le plafond de 1,45 : se tromper d'un cran coûte donc deux fois moins cher qu'avant.
+  ⚠️ **« ~90 kcal/j le cran » était une estimation, RE-MESURÉE le 2026-08-10** sur
+  800 gabarits (2 sexes × 4 âges × 5 poids × 4 tailles × 5 objectifs, 2 400 écarts) :
+  un cran vaut **57 à 102 kcal/j de dépense, médiane 80**, et `desk → physical`
+  vaut **272 kcal/j** sur un H de 83 kg. Sur la cible SERVIE, la médiane tombe à
+  **79** : le plancher de sécurité amortit **274 crans sur 2 400** de plus de 5 kcal,
+  et en **efface 140 entièrement** — pour ceux-là, changer de niveau NEAT ne déplace
+  pas une seule calorie dans l'assiette. ➡️ Le chiffre à citer est **80**, pas 90, et
+  jamais sans dire qu'il s'agit de la DÉPENSE : la cible, elle, peut ne pas bouger.
 - **Sport** : méthode MET **NETTE** — `(MET − 1) × 3,5 × poids / 200 × minutes`. Le
   `− 1` retire le métabolisme de repos déjà compté par `BMR × NEAT` pendant l'heure
   de séance. C'est aussi la définition de l'EEE utilisée par le calcul d'énergie

@@ -3581,6 +3581,105 @@ produit en suspens — il ne reste qu'à coder.
 
 ### 🧹 E — Dette technique
 
+- ~~**E34 · Le rangement du Profil — lot 1**~~ ✅ **LIVRÉ le 2026-08-10.**
+  ⚠️ **NUMÉROS : E33 et E34, après TROIS renumérotations le même jour.** Ce lot est né
+  « E26 », puis « E27/E28 », puis « E30/E31 » — les trois fois faux. `main` a mergé E26
+  (consentement analytics), E29 (chantier mouvement) puis **E30–E32** (la PR #74, qui
+  s'était elle-même renumérotée) pendant que cette branche vivait.
+  ➡️ **Un numéro pris sur une branche n'est PAS réservé** : il se re-vérifie au moment de
+  fusionner, contre `main` **et** contre les PR ouvertes (`gh pr list`), et il peut sauter
+  plusieurs fois dans une même journée. L'avertissement était écrit sous chaque entrée
+  depuis le début ; s'y cogner trois fois aura été le seul moyen de le lire vraiment.
+  💡 Le coût réel n'est pas le numéro, c'est le REBASE qu'il impose à chaque fois — donc
+  la vraie leçon est de fusionner tôt, pas de mieux deviner.
+  *Décision fondateur, après contre-analyse en conversation : « on garde la coupe. Aucune
+  ligne ne change de surface. »*
+  ⚠️ *Numéro pris sur une branche : le vérifier contre `main` au moment de fusionner.*
+
+  **La question posée était « faut-il mettre les infos perso derrière la roue ? ». La
+  réponse est NON, et l'arbitrage est une asymétrie de coûts** : ne pas trouver sa taille
+  coûte 10 secondes une fois ; un mauvais NEAT coûte des dizaines de kcal/jour pendant des
+  mois. Tout ce qui éloigne le bloc TOI joue du mauvais côté. **Aucune ligne n'a donc
+  traversé la frontière Profil ↔ roue** — ce qui change est ce que l'écran DIT de lui-même.
+
+  **1 — Trois chapitres au lieu de deux, chacun avec un SOUS-TITRE.** C'est le sous-titre
+  qui fait le travail, pas le découpage : « TON PLAN » disait de quoi le bloc parlait,
+  jamais ce qu'il PILOTAIT.
+  `TOI — ce qui calcule ta dépense` (Informations · Sport & activité) ·
+  `TON OBJECTIF — ce qui fixe tes cibles` (Objectif · Objectif daté · Calories & macros) ·
+  `TES REPAS — ce qui remplit ton assiette` (Préférences · Paramètres des repas · Banque ·
+  Écarts passés). « Calories & macros » a changé de bloc : il ne remplit aucune assiette,
+  il fixe le nombre que les assiettes doivent atteindre.
+
+  **2 — La FORME d'une ligne dit sa nature.** Une action n'a pas de valeur à droite :
+  « Régénérer mon plan » devient un **bouton** pleine largeur hors liste (fond de carte, pas
+  l'accent — il ne doit pas crier plus fort que la pesée). « Repas hors plan » → **« Écarts
+  passés »**, collée à « Banque de calories » : la banque PRÉVOIT, l'historique CONSTATE.
+  Kyroz+ passe en **dernière ligne, hors chapitre** — une offre se range là où elle se vend.
+
+  🔴 **3 — LE SEUL DÉFAUT RÉEL DU LOT, ET IL ÉTAIT SILENCIEUX : le poids avait DEUX portes
+  d'entrée qui n'écrivaient pas la même chose.** « Me peser » (`useWeightLog::logWeight`)
+  ajoute un point à la série **et** recale le profil ; le champ « Poids » d'`InfoEditor` ne
+  recalait que le profil. Sur le MÊME écran et dans le même défilement, la carte du haut
+  affiche le poids du **profil** en grand, au-dessus d'une courbe et d'un « −0,9 kg depuis
+  la précédente » tirés de la **série**. Corriger 83 → 80 dans « Informations » affichait
+  donc « 80 kg », un écart calculé sur une série qui s'arrête à 83, et une courbe qui ne
+  descend pas jusqu'au chiffre écrit au-dessus d'elle. Le suivi de l'objectif daté lit la
+  même série : il continuait de projeter depuis un poids abandonné.
+  ➡️ Le champ devient une **ligne de renvoi** vers « Me peser ». ⚠️ La feuille de pesée est
+  poussée APRÈS fermeture de l'éditeur — une feuille ouverte depuis une feuille naîtrait
+  sous elle (le 4ᵉ piège d'E25, par une autre porte). **Vérifié à l'écran.**
+  ➡️ **La règle : une donnée qui alimente une SÉRIE ne se corrige pas par un champ qui
+  ignore la série.** Le défaut ne se voyait pas en lisant `InfoEditor`, qui est correct
+  isolément — il apparaît quand on regarde les deux écritures côte à côte.
+
+  ✅ **§4 du brief, vérifications faites** : visite guidée rejouée en entier, **6 bulles
+  sur 6**, défilement **0 → 365 → 576 → 789 → 1153 px** puis retour à 0 pour la roue —
+  monotone, aucune étape écartée. « Régénérer » ayant quitté `MenuRow`, son `tourId` est
+  devenu une `useTourTarget` posée sur le bouton : **sans elle, l'étape aurait disparu en
+  silence** et le tour se serait joué à 5 bulles en affichant « 5 / 5 ».
+
+  🟡 **CE QUI A ÉTÉ REFUSÉ DU BRIEF, ET POURQUOI** : il demandait que la valeur d'« Écarts
+  passés » devienne un COMPTE (« 2 ce mois-ci »). **Refusé** — une décision antérieure,
+  écrite dans le code, l'interdit : *« la valeur ne compte pas les écarts : un score posé là
+  mettrait la pression sans qu'on ouvre quoi que ce soit »* (règle anti charge mentale).
+  La valeur reste un **fait daté** (« Depuis le 3 août » / « Aucun pour l'instant »), ce qui
+  satisfait la règle de forme du brief — un fait, pas un état modifiable — sans rouvrir une
+  décision produit. ➡️ **Un brief écrit sans accès au code ne peut pas connaître les
+  décisions qui vivent dedans** : les appliquer à la lettre en aurait effacé une.
+
+  🔴 **§7 du brief — la contradiction est levée, et c'est MOI qui avais tort.** Le brief
+  source annonçait « ~90 kcal/j le cran », repris d'un commentaire ; la contre-analyse
+  citait `desk = 1,20`, vrai avant le 2026-07-31. **Table réellement en vigueur, lue dans
+  `tdee.ts`** : `desk 1,30 · light 1,35 · active 1,40 · physical 1,45`. **Mesuré** sur 800
+  gabarits (2 sexes × 4 âges × 5 poids × 4 tailles × 5 objectifs, 2 400 écarts) : un cran
+  vaut **57 à 102 kcal/j de dépense, médiane 80** ; `desk → physical` vaut **272 kcal/j**
+  sur un H de 83 kg. ⚠️ Sur la **cible servie**, le plancher amortit **274 crans sur 2 400**
+  de plus de 5 kcal et en **efface 140 entièrement**. ➡️ Citer **80**, jamais 90, et
+  toujours en disant « dépense » — la cible, elle, peut ne pas bouger d'une calorie.
+  `CLAUDE.md` §6 corrigé.
+
+  🔒 **Garde-fou : `profilSection.test.ts` passe de 8 à 11 cas.** Trois nouveaux, chacun
+  **vérifié par mutation** : « Régénérer » redevenu une ligne de menu (rouge) · un champ
+  « Poids » réintroduit (rouge) · un chapitre privé de son sous-titre (rouge).
+  ⚠️ **Et l'extraction des titres a dû être élargie** : `SectionLabel` porte désormais un
+  `sub`, or l'expression collée à `t={t}>` rendait **zéro titre** — donc un test VERT qui ne
+  regardait plus rien. Un scan de source se relit à chaque fois que la signature du
+  composant qu'il scanne bouge.
+  📊 **1 337 / 80 → 1 340 / 80**, `tsc` vert.
+
+  ⏭️ **Lot 2, après le lancement** (décidé, pas fait) : décomposer la carte « Dépense
+  estimée » en métabolisme + journées + sport, la part « journées » tapable → ouvre le
+  NEAT · poser la question du NEAT à l'inscription (⚠️ pas avant d'avoir re-mesuré, cf.
+  ci-dessus) · un événement `profile_row_opened` **avec l'identifiant de ligne seul, jamais
+  sa valeur** (l'id `objectif` n'est pas une donnée de santé, la valeur `Sèche` en est une)
+  · renommer l'onglet seulement si le Profil devient un vrai tableau de bord — renommer
+  oblige à refaire les captures de la fiche App Store.
+  📌 **Seuil à surveiller** : si la liste des réglages du Profil dépasse ~15 lignes, l'option
+  « Profil = tableau de bord pur, tous les réglages derrière la roue » redevient la bonne
+  réponse. Elle est écartée aujourd'hui parce qu'elle casse 4 bulles sur 6 et fait passer la
+  feuille de 13 à 24 contrôles.
+
 - ~~**E32 · Un objectif à douze mois ne renforçait rien pendant douze mois — les paliers**~~
   *(numérotés E30–E32 et non E26–E28 : `main` avait pris E26 pour le consentement
   analytics pendant que cette branche vivait, et E29 pour le mouvement. Le chantier
@@ -3988,7 +4087,7 @@ produit en suspens — il ne reste qu'à coder.
   📄 `docs/2026-08-10-brief-analytics-perimetre.md` (le brief) et
   `docs/2026-08-10-synthese-analytics-arbitrage.md` (l'arbitrage qui fait foi).
 
-- ~~**E27 · Ce que la refonte du Profil avait laissé derrière elle**~~ ✅ **LIVRÉ le
+- ~~**E33 · Ce que la refonte du Profil avait laissé derrière elle**~~ ✅ **LIVRÉ le
   2026-08-10.** *Demande du fondateur, le même jour : « continuons d'améliorer la
   section profil ».*
   ⚠️ *Numéro pris sur une branche : le vérifier contre `main` au moment de fusionner.*

@@ -46,11 +46,16 @@ function titreDeLaFeuille(): string {
   return m![1];
 }
 
-/** Tous les titres de section rendus par l'écran Profil lui-même. */
+/** Tous les titres de section rendus par l'écran Profil lui-même.
+ *  ⚠️ `[^>]*` : `SectionLabel` porte désormais un `sub`. Une expression collée à
+ *  `t={t}>` rendait 0 titre — donc un test VERT qui ne regardait plus rien. */
 function titresDeSection(src: string): string[] {
-  return [...src.matchAll(/<Section(?:Title|Label) t=\{t\}>\s*([^<{]+?)\s*<\/Section(?:Title|Label)>/g)]
+  return [...src.matchAll(/<Section(?:Title|Label) t=\{t\}[^>]*>\s*([^<{]+?)\s*<\/Section(?:Title|Label)>/g)]
     .map((m) => m[1]);
 }
+
+/** Les trois chapitres de réglage du Profil, dans l'ordre attendu à l'écran. */
+const CHAPITRES = ['TOI', 'TON OBJECTIF', 'TES REPAS'];
 
 describe('Profil — le mot « Réglages » ne désigne qu’un seul endroit', () => {
   it('aucun titre de section de l’écran ne porte le nom de la feuille qu’ouvre la roue', () => {
@@ -71,16 +76,57 @@ describe('Profil — le mot « Réglages » ne désigne qu’un seul endroit', (
     expect(norm(m![1])).toBe(norm(titreDeLaFeuille()));
   });
 
-  it('les deux blocs de réglages du moteur sont étiquetés au MÊME niveau', () => {
+  it('les blocs de réglages du moteur sont étiquetés au MÊME niveau', () => {
     // « Réglages » était un `SectionTitle` (« découpe l'écran ») et « TON PLAN »
     // un `SectionLabel` (« étiquette un bloc ») : le premier bloc n'avait donc
     // aucune étiquette à lui, il empruntait celle du chapitre.
-    for (const attendu of ['TOI', 'TON PLAN']) {
+    for (const attendu of CHAPITRES) {
       expect(
         SRC_PROFIL,
         `le bloc « ${attendu} » n'est plus étiqueté par un SectionLabel`,
-      ).toMatch(new RegExp(`<SectionLabel t=\\{t\\}>${attendu}</SectionLabel>`));
+      ).toMatch(new RegExp(`<SectionLabel t=\\{t\\}[^>]*>${attendu}</SectionLabel>`));
     }
+  });
+
+  it('chaque chapitre dit ce qu’il PILOTE, pas seulement de quoi il parle', () => {
+    // C'est le sous-titre qui fait le travail de cette passe, pas le découpage :
+    // sans lui, rien n'indique que « Sport & activité » décide de la dépense, donc
+    // rien n'y envoie qui doute de son chiffre. Le NEAT (80 kcal/j le cran en
+    // médiane, mesuré) n'est demandé nulle part ailleurs, pas même à l'inscription.
+    for (const chap of CHAPITRES) {
+      const m = SRC_PROFIL.match(new RegExp(`<SectionLabel t=\\{t\\}([^>]*)>${chap}</SectionLabel>`));
+      expect(m, `le chapitre « ${chap} » a disparu`).toBeTruthy();
+      const sub = m![1].match(/sub="([^"]+)"/);
+      expect(sub, `le chapitre « ${chap} » n'a plus de sous-titre`).toBeTruthy();
+      // ≤ 5 mots, pas de point final : c'est une adresse, pas une explication.
+      expect(sub![1].trim().split(/\s+/).length, `sous-titre trop long : « ${sub![1]} »`).toBeLessThanOrEqual(5);
+      expect(sub![1].trim().endsWith('.'), `sous-titre ponctué : « ${sub![1]} »`).toBe(false);
+    }
+  });
+});
+
+describe('Profil — la FORME d’une ligne dit sa nature', () => {
+  it('« Régénérer » est un bouton, pas une ligne de réglage', () => {
+    // Une action n'a pas de valeur à droite : la ranger dans une liste de réglages
+    // lui fait porter un état (« Repartir de zéro ») qu'elle n'a pas.
+    expect(SRC_PROFIL, '« Régénérer mon plan » est redevenu une ligne de menu')
+      .not.toMatch(/<MenuRow[^>]*label="Régénérer/);
+    expect(SRC_PROFIL, 'le bouton « Régénérer mon plan » a disparu')
+      .toMatch(/<Text style=\{s\.actionTxt\}>Régénérer mon plan<\/Text>/);
+  });
+
+  it('le poids n’a qu’UNE porte d’entrée, et c’est celle qui tient l’historique', () => {
+    // 🔴 Le seul défaut RÉEL de cette passe. « Me peser » ajoute un point à la série
+    // ET recale le profil ; un champ de saisie dans « Informations » ne recalait que
+    // le profil. Sur le même écran, la carte du haut affichait alors le poids du
+    // PROFIL en grand, au-dessus d'une courbe et d'un écart tirés d'une SÉRIE qui
+    // ignorait la correction. Le suivi de l'objectif daté lit la même série.
+    expect(SRC_PROFIL, 'le poids est redevenu saisissable hors de la pesée')
+      .not.toMatch(/<Field[^>]*label="Poids"/);
+    // Et le renvoi doit exister : retirer le champ SANS porte de sortie enfermerait
+    // qui veut corriger son poids depuis l'écran où il vient de lire son corps.
+    expect(SRC_PROFIL, 'le renvoi vers la pesée a disparu d’« Informations »')
+      .toMatch(/onPress=\{onWeighIn\}/);
   });
 });
 
@@ -136,7 +182,7 @@ describe('Profil — la visite guidée descend l’écran, elle ne fait pas d’
     // AVANT le premier bloc de réglages, donc dans le même coup d'œil que les
     // quatre boîtes de macros.
     const tdee = positionRendu('profil-tdee');
-    const premierBloc = SRC_PROFIL.indexOf('<SectionLabel t={t}>TOI</SectionLabel>');
+    const premierBloc = SRC_PROFIL.search(/<SectionLabel t=\{t\}[^>]*>TOI<\/SectionLabel>/);
     expect(premierBloc, 'le bloc « TOI » a disparu').toBeGreaterThan(0);
     expect(tdee, 'la dépense estimée est repassée sous les lignes de menu').toBeLessThan(premierBloc);
   });
