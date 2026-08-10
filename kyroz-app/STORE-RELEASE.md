@@ -16,32 +16,39 @@
 > 🧑 = toi seul · 🤖 = moi en session. **Une étape à la fois** : ne pas enchaîner
 > deux étapes 🧑 sans que la précédente soit constatée faite.
 
-**L'ordre n'est pas un choix.** Le relecteur Apple voit le JS **embarqué** dans le
-binaire (il ouvre l'app une fois ; une OTA ne s'applique qu'au lancement suivant), et
-les captures doivent montrer ce que contient ce binaire. Donc : tout le code d'abord,
-**les captures ensuite**, le build après, la soumission en dernier.
+**Ce qui contraint l'ordre, et c'est une seule chose.** Le relecteur Apple voit le JS
+**embarqué** dans le binaire (il ouvre l'app une fois ; une OTA ne s'applique qu'au
+lancement suivant). Donc **tout le code doit être sur `main` avant le build**, et les
+captures doivent montrer ce même code.
+
+⚠️ **Les captures, elles, ne bloquent QUE le remplissage de la fiche** — remarque du
+fondateur, 2026-08-10, et elle corrige une première rédaction qui les plaçait avant le
+build sans raison. Le build n'en a pas besoin. Comme il passe ~1 h en file d'attente,
+elles se génèrent **pendant** qu'il tourne : une heure gagnée, gratuitement.
 
 | # | Qui | Étape | Pourquoi ça ne peut pas passer avant |
 |---|---|---|---|
-| 1 | 🧑 | `git checkout main && git pull` **dans le dépôt principal** | il est resté à `0ebd6ec` ; les captures se prennent depuis CET arbre, et sans le `pull` elles montreraient les émojis de série retirés hier soir — sans que rien ne le signale |
-| 2 | 🤖 | Corriger le gabarit iPhone (`390×844` → `430×932`, soit **1290×2796**) puis `npm run store:assets` **et** `npm run store:assets:ipad` | cf. §7 : les 5 captures sur disque datent du **30 juillet**, donc d'avant six passes de design, et le dossier iPad est **vide** |
-| 3 | 🧑 | Regarder les 10 captures et dire si elles vendent l'app | le seul jugement que je ne peux pas rendre à ta place |
-| 4 | 🤖 | Build EAS iOS production **1.0.0 (4)** | premier binaire à porter la clé RevenueCat ; le build 3 (2 août) est antérieur. **Ne PAS monter `expo.version`** : ça couperait la ligne OTA vers le build 3 des testeurs |
-| 5 | 🧑 | Formulaires App Store Connect : confidentialité (§4), classification **17+** (§6), fiche FR (§3), note relecteur (§11) | tout est déjà rédigé ci-dessous — c'est du copier-coller, pas de la rédaction |
-| 6 | 🧑 | « Submit for review » | — |
+| 1 | 🧑 | **Trancher la célébration de série** (le chiffre — servi aujourd'hui — ou l'icône) | c'est du **CODE**, donc ça doit être dans le binaire, donc avant le build. C'est la seule décision qui bloque la journée |
+| 2 | 🧑 | `git checkout main && git pull` **dans le dépôt principal** | il a plusieurs merges de retard, et c'est depuis CET arbre que se prennent les captures **et** le build |
+| 3 | 🤖 | Build EAS iOS production **1.0.0 (4)** | premier binaire à porter la clé RevenueCat ; celui du 2 août est antérieur. **Ne PAS monter `expo.version`** : ça couperait la ligne OTA vers le build 3 des testeurs |
+| 4 | 🤖 | *Pendant le build* : corriger le gabarit iPhone (`390×844` → `430×932`, soit **1290×2796**), puis `npm run store:assets` **et** `npm run store:assets:ipad` | cf. §7 : les 5 captures sur disque datent du **30 juillet**, donc d'avant six passes de design **et** d'avant la refonte du Profil ; le dossier iPad est **vide** |
+| 5 | 🧑 | Regarder les 10 captures et dire si elles vendent l'app | le seul jugement que je ne peux pas rendre à ta place |
+| 6 | 🧑 | Formulaires App Store Connect : confidentialité (§4), classification **17+** (§6), fiche FR (§3), note relecteur (§11), et **les captures** | tout est déjà rédigé ci-dessous — c'est du copier-coller, pas de la rédaction |
+| 7 | 🧑 | « Submit for review » | — |
 
 **Compter ~1 h entre « build lancé » et « build sélectionnable dans la fiche »** (file
 EAS + traitement App Store Connect). C'est le seul aléa qui ne dépend ni de toi ni de
-moi ; s'il coince, c'est un jour de retard, pas une semaine.
+moi ; s'il coince, c'est un jour de retard, pas une semaine. C'est aussi la fenêtre
+dans laquelle l'étape 4 se glisse.
 
 **Deux gestes indépendants, à faire quand tu veux :**
 - 🧑 coller `supabase/emails/reinitialisation.html` dans le dashboard Supabase (A30,
   5 min) — sans lui l'e-mail part quand même, mais avec l'habillage Supabase par défaut ;
-- 🧑 confirmer la **célébration de série**. Les 6 émojis de palier sont partis (E22,
-  mergé) et c'est **le nombre de jours** qui les remplace, dans l'accent. Décision prise
-  par défaut le 2026-08-09 faute de réponse, et motivée : six emblèmes formaient une
-  échelle de badges, donc de la *collection*, interdite par `CLAUDE.md` §5.
-  ⚠️ **À trancher AVANT l'étape 2** — les captures vont le figer.
+- 🤖 passer le nouvel écran `/avis` au **simulateur** avant le build (accepté par le
+  fondateur le 2026-08-10, ~10 min). Motif : son champ multiligne et son
+  `KeyboardAvoidingView` n'ont été vus que dans le panneau navigateur, et le projet a
+  déjà payé une fois pour avoir cru le web sur un comportement natif (CLAUDE.md §5). Les
+  mécaniques de la feuille Réglages, elles, sont celles de `Sheet`, déjà éprouvé.
 
 🚫 **CE QU'ON NE TOUCHE PAS, ET CE N'EST PAS UN OUBLI :**
 - **`PAYWALL_LAUNCH` reste `null`.** Poser une date pendant la revue ferait tomber le
@@ -51,9 +58,13 @@ moi ; s'il coince, c'est un jour de retard, pas une semaine.
   notes de soumission (§11). Son remplacement est daté « le lendemain de la revue passée ».
 - **La vague catalogue vegan / vegan+SG part en OTA**, pas dans ce binaire — décision
   fondateur du 2026-08-09, motif et bornes du raisonnement dans `AGENTS.md` **D23**.
-- **La refonte du Profil** (sortir le fourre-tout derrière une roue dentée) passe APRÈS
-  la soumission. Les deux pièges qu'elle armait sont déjà fermés (PR #66) ; la coupe
-  proposée est en attente d'arbitrage.
+- ~~**La refonte du Profil** passe APRÈS la soumission.~~ ❌ **PLUS VRAI — elle est
+  LIVRÉE** (PR #69, mergée le 2026-08-10 : roue dentée, feuille Réglages, écran
+  « Donner mon avis »). Décision du fondateur dans la nuit : *« vasy on code ça ce
+  soir »*. ➡️ **Conséquence sur cette séquence : les captures doivent l'inclure**, donc
+  l'étape 2 (`git pull`) n'est plus une hygiène, c'est un prérequis dur — sans elle,
+  les captures montreraient un Profil qui n'existe plus et un écran qui n'existe pas
+  encore. Détail : `AGENTS.md` **E25**.
 
 ---
 
