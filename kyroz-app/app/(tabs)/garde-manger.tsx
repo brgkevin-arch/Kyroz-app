@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
+import { Presse } from '../../components/Presse';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
 } from 'react-native';
@@ -162,9 +163,9 @@ export default function GardeMangerScreen() {
           </View>
           <View style={s.headerActions}>
             <TourButton onPress={rejouerTour} />
-            <TouchableOpacity ref={ajouterRef} style={s.addBtn} onPress={() => setShowAdd(true)} activeOpacity={OPACITE_PRESSION}>
+            <Presse ref={ajouterRef} style={s.addBtn} onPress={() => setShowAdd(true)} activeOpacity={OPACITE_PRESSION}>
               <Ionicons name="add" size={Icone.action} color={t.onAccent} />
-            </TouchableOpacity>
+            </Presse>
           </View>
         </View>
 
@@ -187,9 +188,9 @@ export default function GardeMangerScreen() {
             <Text style={s.emptyTitle}>Ton frigo est vide</Text>
             <Text style={s.emptySub}>Ajoute ce que tu as déjà — ou coche tes articles dans l'onglet Courses, ils arrivent ici automatiquement.</Text>
             <View style={{ height: 8 }} />
-            <TouchableOpacity onPress={() => setShowAdd(true)} style={s.ghostBtn} activeOpacity={OPACITE_PRESSION}>
+            <Presse onPress={() => setShowAdd(true)} style={s.ghostBtn} activeOpacity={OPACITE_PRESSION}>
               <Text style={s.ghostTxt}>Ajouter un aliment</Text>
-            </TouchableOpacity>
+            </Presse>
           </View>
         ) : view === 'cook' ? (
           // ── À CUISINER ───────────────────────────────────────────────────────
@@ -204,10 +205,10 @@ export default function GardeMangerScreen() {
                         <Text style={s.rName}>{c.recipe.name_fr}</Text>
                         <Text style={s.rMeta}>{c.recipe.prep_time_min} min · {c.recipe.macros_per_portion.kcal} kcal · {c.recipe.macros_per_portion.protein_g}g P</Text>
                       </View>
-                      <TouchableOpacity style={s.cookBtn} onPress={() => cook(c)} activeOpacity={OPACITE_PRESSION}>
+                      <Presse style={s.cookBtn} onPress={() => cook(c)} activeOpacity={OPACITE_PRESSION}>
                         <Ionicons name="restaurant" size={Icone.petite} color={t.onAccent} />
                         <Text style={s.cookTxt}>Cuisiné</Text>
-                      </TouchableOpacity>
+                      </Presse>
                     </View>
                   ))}
                 </View>
@@ -246,7 +247,7 @@ export default function GardeMangerScreen() {
           <>
             <View style={s.invHeader}>
               <Text style={s.invHint}>Touche une quantité pour la modifier.</Text>
-              <TouchableOpacity onPress={clearAll}><Text style={[s.link, { color: t.danger }]}>Vider</Text></TouchableOpacity>
+              <Presse onPress={clearAll}><Text style={[s.link, { color: t.danger }]}>Vider</Text></Presse>
             </View>
 
             {grouped.map((g) => (
@@ -258,7 +259,7 @@ export default function GardeMangerScreen() {
                       croix sur chaque ligne, c'est une invitation à la faute de
                       frappe sur un geste irréversible. */}
                   {g.list.map((it, i) => (
-                    <TouchableOpacity
+                    <Presse
                       key={it.name + it.unit}
                       style={[s.invRow, i < g.list.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.line }]}
                       onPress={() => openEdit(it)}
@@ -266,7 +267,7 @@ export default function GardeMangerScreen() {
                     >
                       <Text style={s.invName} numberOfLines={1}>{it.name}</Text>
                       <Text style={s.invQty}>{formatQuantity(it.name, it.quantity, it.unit)}</Text>
-                    </TouchableOpacity>
+                    </Presse>
                   ))}
                 </View>
               </View>
@@ -294,13 +295,13 @@ export default function GardeMangerScreen() {
           return (
             <View style={{ borderWidth: Trait.fin, borderColor: t.line, borderRadius: Radius.sm, overflow: 'hidden' }}>
               {sug.map((f) => (
-                <TouchableOpacity
+                <Presse
                   key={f.id} activeOpacity={OPACITE_PRESSION}
                   onPress={() => { setName(f.name_fr); setSugDismissed(true); }}
                   style={{ paddingHorizontal: Spacing.lg, paddingVertical: Spacing.md, borderBottomWidth: Trait.fin, borderBottomColor: t.line }}
                 >
                   <Text style={{ ...Type.bodySmall, color: t.text }} numberOfLines={1}>{f.name_fr}</Text>
-                </TouchableOpacity>
+                </Presse>
               ))}
             </View>
           );
@@ -311,7 +312,7 @@ export default function GardeMangerScreen() {
         </View>
         <View style={{ height: 4 }} />
         <PrimaryButton t={t} label="Ajouter" onPress={addManual} disabled={!name.trim() || !(parseFloat(qty) > 0)} />
-        <TouchableOpacity onPress={() => setShowAdd(false)} style={s.cancel}><Text style={s.cancelTxt}>Annuler</Text></TouchableOpacity>
+        <Presse onPress={() => setShowAdd(false)} style={s.cancel}><Text style={s.cancelTxt}>Annuler</Text></Presse>
       </ActionSheet>
 
       {/* Édition de la quantité */}
@@ -319,15 +320,15 @@ export default function GardeMangerScreen() {
         <Text style={s.sheetTitle}>Modifier la quantité</Text>
         <Text style={s.editName}>{editItem?.name}</Text>
         <View style={s.stepRow}>
-          <TouchableOpacity onPress={() => bumpEditQty(-1)} style={s.stepBtn} activeOpacity={OPACITE_PRESSION} accessibilityLabel="Diminuer la quantité">
+          <Presse onPress={() => bumpEditQty(-1)} style={s.stepBtn} activeOpacity={OPACITE_PRESSION} accessibilityLabel="Diminuer la quantité">
             <Ionicons name="remove" size={Icone.action} color={t.text} />
-          </TouchableOpacity>
+          </Presse>
           <View style={{ flex: 1 }}>
             <Field t={t} label="Quantité" suffix={editUnit} value={editQty} onChangeText={setEditQty} placeholder="2" keyboardType="decimal-pad" />
           </View>
-          <TouchableOpacity onPress={() => bumpEditQty(1)} style={s.stepBtn} activeOpacity={OPACITE_PRESSION} accessibilityLabel="Augmenter la quantité">
+          <Presse onPress={() => bumpEditQty(1)} style={s.stepBtn} activeOpacity={OPACITE_PRESSION} accessibilityLabel="Augmenter la quantité">
             <Ionicons name="add" size={Icone.action} color={t.text} />
-          </TouchableOpacity>
+          </Presse>
         </View>
         <View style={s.unitRow}>
           {UNITS.map((u) => <Chip key={u} t={t} label={u} selected={editUnit === u} onPress={() => setEditUnit(u)} />)}
@@ -340,7 +341,7 @@ export default function GardeMangerScreen() {
           onPress={saveEdit}
           disabled={!(parseFloat(editQty) >= 0)}
         />
-        <TouchableOpacity onPress={() => setEditItem(null)} style={s.cancel}><Text style={s.cancelTxt}>Annuler</Text></TouchableOpacity>
+        <Presse onPress={() => setEditItem(null)} style={s.cancel}><Text style={s.cancelTxt}>Annuler</Text></Presse>
       </ActionSheet>
 
       {/* Confirmation (vider) */}
@@ -348,14 +349,14 @@ export default function GardeMangerScreen() {
         <Text style={s.sheetTitle}>{confirm?.title}</Text>
         <Text style={s.confirmMsg}>{confirm?.message}</Text>
         <View style={{ height: 6 }} />
-        <TouchableOpacity
+        <Presse
           activeOpacity={OPACITE_PRESSION}
           onPress={() => { confirm?.onYes(); setConfirm(null); }}
           style={[s.confirmBtn, { backgroundColor: confirm?.danger ? t.danger : t.accent }]}
         >
           <Text style={[s.confirmBtnTxt, { color: confirm?.danger ? t.onDanger : t.onAccent }]}>{confirm?.cta}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => setConfirm(null)} style={s.cancel}><Text style={s.cancelTxt}>Annuler</Text></TouchableOpacity>
+        </Presse>
+        <Presse onPress={() => setConfirm(null)} style={s.cancel}><Text style={s.cancelTxt}>Annuler</Text></Presse>
       </ActionSheet>
     </SafeAreaView>
   );

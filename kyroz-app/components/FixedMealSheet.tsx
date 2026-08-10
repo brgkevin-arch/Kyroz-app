@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
+import { Presse } from './Presse';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemePalette, Radius, Type, Spacing, CIBLE_TACTILE_MIN, Trait, Icone, OPACITE_PRESSION } from '../constants/theme';
 import { PrimaryButton, Segmented } from './ui';
@@ -101,9 +102,9 @@ export function FixedMealSheet({
           <View style={s.pickedCard}>
             <View style={s.pickedHead}>
               <Text style={s.pickedName}>{picked.name_fr}</Text>
-              <TouchableOpacity onPress={() => { setPicked(null); setQuery(''); }} hitSlop={8}>
+              <Presse onPress={() => { setPicked(null); setQuery(''); }} hitSlop={8}>
                 <Text style={s.change}>Changer</Text>
-              </TouchableOpacity>
+              </Presse>
             </View>
             <View style={s.gramsRow}>
               <Text style={s.gramsLabel}>Quantité</Text>
@@ -128,10 +129,10 @@ export function FixedMealSheet({
             {query.trim().length > 0 && (
               <View style={s.suggest}>
                 {searchFoods(query, 6).map((food) => (
-                  <TouchableOpacity key={food.id} style={s.suggestRow} onPress={() => { setPicked(food); setGrams(String(DEFAULT_GRAMS)); }} activeOpacity={OPACITE_PRESSION}>
+                  <Presse key={food.id} style={s.suggestRow} onPress={() => { setPicked(food); setGrams(String(DEFAULT_GRAMS)); }} activeOpacity={OPACITE_PRESSION}>
                     <Text style={s.suggestName}>{food.name_fr}</Text>
                     <Text style={s.suggestMacro}>{food.per100g.kcal} kcal /100g</Text>
-                  </TouchableOpacity>
+                  </Presse>
                 ))}
                 {searchFoods(query, 1).length === 0 && (
                   <Text style={s.suggestEmpty}>Aucun aliment trouvé — bascule sur « Saisir mon repas ».</Text>

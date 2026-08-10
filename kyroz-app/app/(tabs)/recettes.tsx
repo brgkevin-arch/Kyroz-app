@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ScrollView, TextInput } from 'react-native';
+import { Presse } from '../../components/Presse';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme, ThemePalette, Radius, Spacing, Type, cardShadow, Fond, Icone, OPACITE_PRESSION } from '../../constants/theme';
@@ -93,9 +94,9 @@ export default function RecettesScreen() {
               style={s.searchInput}
             />
             {query.length > 0 && (
-              <TouchableOpacity onPress={() => setQuery('')} hitSlop={10}>
+              <Presse onPress={() => setQuery('')} hitSlop={10}>
                 <Ionicons name="close-circle" size={Icone.standard} color={t.textTertiary} />
-              </TouchableOpacity>
+              </Presse>
             )}
           </View>
         </View>
@@ -108,10 +109,10 @@ export default function RecettesScreen() {
                 // Le filtre actif prend l'accent PLEIN, les autres restent neutres et
                 // sans bordure. « Favoris » perd son cœur : le mot suffit, et l'icône
                 // entrait en concurrence avec le cœur des cartes, qui lui agit.
-                <TouchableOpacity key={tg} onPress={() => setTag(tg)} activeOpacity={OPACITE_PRESSION}
+                <Presse key={tg} onPress={() => setTag(tg)} activeOpacity={OPACITE_PRESSION}
                   style={[s.chip, { backgroundColor: on ? t.accent : t.fill }]}>
                   <Text style={{ ...(on ? Type.bodyStrong : Type.body), color: on ? t.onAccent : t.text }}>{TAG_LABELS[tg]}</Text>
-                </TouchableOpacity>
+                </Presse>
               );
             })}
           </ScrollView>
@@ -158,12 +159,12 @@ export default function RecettesScreen() {
           const fav = isFavorite(item.id);
           const premier = index === 0;
           return (
-            <TouchableOpacity ref={premier ? carteRef : undefined} style={[s.recipe, layout.columns > 1 && s.recipeGrid, cardShadow(t)]} onPress={() => setSelected(item)} activeOpacity={OPACITE_PRESSION}>
+            <Presse ref={premier ? carteRef : undefined} style={[s.recipe, layout.columns > 1 && s.recipeGrid, cardShadow(t)]} onPress={() => setSelected(item)} activeOpacity={OPACITE_PRESSION}>
               <View style={s.rTop}>
                 <Text style={s.rName}>{item.name_fr}</Text>
-                <TouchableOpacity ref={premier ? favoriRef : undefined} onPress={() => toggle(item.id)} hitSlop={10} style={s.heart}>
+                <Presse ref={premier ? favoriRef : undefined} onPress={() => toggle(item.id)} hitSlop={10} style={s.heart}>
                   <Ionicons name={fav ? 'heart' : 'heart-outline'} size={Icone.standard} color={fav ? t.text : t.textQuaternary} />
-                </TouchableOpacity>
+                </Presse>
               </View>
               {/* Une seule ligne grise, durée comprise : dans une liste il n'y a
                   rien à comparer entre deux macros. C'est le nom du plat qu'on lit. */}
@@ -181,7 +182,7 @@ export default function RecettesScreen() {
                   {item.objectives.slice(0, 2).map((o) => <Text key={o} style={s.rTag}>{OBJ_LABEL[o]}</Text>)}
                 </View>
               ) : null}
-            </TouchableOpacity>
+            </Presse>
           );
         }}
       />

@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, useWindowDimensions, Image, TouchableOpacity } from 'react-native';
+import { Presse } from './Presse';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemePalette, Radius, Spacing, Type, Fond, Trait, Icone, OPACITE_PRESSION } from '../constants/theme';
 import { SHEET_MAX_WIDTH } from '../constants/layout';
@@ -207,7 +208,7 @@ export function WeightCheckin({ t, onClose, dragHandlers, sheetScrollProps }: Pr
               );
             }
             return (
-              <TouchableOpacity
+              <Presse
                 key={d.iso}
                 onPress={() => pickDate(d.iso)}
                 activeOpacity={OPACITE_PRESSION}
@@ -216,7 +217,7 @@ export function WeightCheckin({ t, onClose, dragHandlers, sheetScrollProps }: Pr
                 <Text style={[s.dateWd, { color: on ? t.onAccent : t.textTertiary }]}>{d.today ? 'Auj.' : d.wd}</Text>
                 <Text style={[s.dateNum, { color: on ? t.onAccent : t.textSecondary }]}>{d.num}</Text>
                 {has && <View style={[s.dateDot, { backgroundColor: on ? t.onAccent : t.textTertiary }]} />}
-              </TouchableOpacity>
+              </Presse>
             );
           })}
         </ScrollView>
@@ -247,15 +248,15 @@ export function WeightCheckin({ t, onClose, dragHandlers, sheetScrollProps }: Pr
         {pendingPhoto ? (
           <View style={s.photoPreview}>
             <Image source={{ uri: pendingPhoto }} style={s.photoBig} />
-            <TouchableOpacity onPress={() => setPendingPhoto(null)} style={s.photoRemove} hitSlop={8}>
+            <Presse onPress={() => setPendingPhoto(null)} style={s.photoRemove} hitSlop={8}>
               <Ionicons name="close-circle" size={Icone.nav} color={t.text} />
-            </TouchableOpacity>
+            </Presse>
           </View>
         ) : (
-          <TouchableOpacity onPress={choosePhoto} style={s.photoBtn} activeOpacity={OPACITE_PRESSION}>
+          <Presse onPress={choosePhoto} style={s.photoBtn} activeOpacity={OPACITE_PRESSION}>
             <Ionicons name="camera-outline" size={Icone.standard} color={t.text} />
             <Text style={s.photoBtnTxt}>Ajouter une photo de progression</Text>
-          </TouchableOpacity>
+          </Presse>
         )}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm }}>
           <LocalIcon color={t.textTertiary} size={Icone.petite} />
@@ -329,9 +330,9 @@ export function WeightCheckin({ t, onClose, dragHandlers, sheetScrollProps }: Pr
                       <Text style={[s.histD, { color: d == null ? t.textTertiary : d <= 0 ? t.success : t.warning }]}>
                         {d == null ? '—' : `${d > 0 ? '+' : ''}${d}`}
                       </Text>
-                      <TouchableOpacity onPress={() => confirmDelete(e.date, e.weight_kg)} hitSlop={8} style={s.histDel}>
+                      <Presse onPress={() => confirmDelete(e.date, e.weight_kg)} hitSlop={8} style={s.histDel}>
                         <Ionicons name="close" size={Icone.petite} color={t.textQuaternary} />
-                      </TouchableOpacity>
+                      </Presse>
                     </View>
                     {e.note ? <Text style={s.histNote}>{e.note}</Text> : null}
                     {photos[e.date] ? (

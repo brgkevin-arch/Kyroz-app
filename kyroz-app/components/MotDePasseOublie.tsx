@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { Presse } from './Presse';
 import { useTheme, ThemePalette, Spacing, Type, OPACITE_PRESSION, CIBLE_TACTILE_MIN } from '../constants/theme';
 import { Field, PrimaryButton } from './ui';
 import { useAuth } from '../hooks/useAuth';
@@ -146,11 +147,11 @@ export default function MotDePasseOublie({
           <View style={s.espacePetit} />
           <PrimaryButton t={t} label="Valider le code" onPress={validerCode} disabled={!codeComplet(code)} loading={busy} />
 
-          <TouchableOpacity onPress={renvoyer} disabled={renvoiDans > 0 || busy} activeOpacity={OPACITE_PRESSION} style={s.lien}>
+          <Presse onPress={renvoyer} disabled={renvoiDans > 0 || busy} activeOpacity={OPACITE_PRESSION} style={s.lien}>
             <Text style={[s.lienTxt, renvoiDans > 0 && { color: t.textQuaternary }]}>
               {renvoiDans > 0 ? `Renvoyer un code (${renvoiDans} s)` : 'Renvoyer un code'}
             </Text>
-          </TouchableOpacity>
+          </Presse>
 
           <Text style={s.aide}>Rien reçu ? Regarde dans les indésirables.</Text>
         </>
@@ -181,9 +182,9 @@ export default function MotDePasseOublie({
 
       {/* Sortie de secours, présente aux trois étapes : personne ne doit se
           retrouver coincé dans un parcours qu'il a ouvert par curiosité. */}
-      <TouchableOpacity onPress={onAnnuler} activeOpacity={OPACITE_PRESSION} style={s.lien}>
+      <Presse onPress={onAnnuler} activeOpacity={OPACITE_PRESSION} style={s.lien}>
         <Text style={s.lienTxt}>Revenir à la connexion</Text>
-      </TouchableOpacity>
+      </Presse>
     </>
   );
 }

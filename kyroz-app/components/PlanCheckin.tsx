@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { Presse } from './Presse';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemePalette, Radius, Spacing, Type, cardShadow, Trait, Icone, OPACITE_PRESSION } from '../constants/theme';
 
@@ -21,7 +22,7 @@ export function PlanCheckin({
   const Row = ({ icon, label, sub, onPress, primary }: {
     icon: keyof typeof Ionicons.glyphMap; label: string; sub?: string; onPress: () => void; primary?: boolean;
   }) => (
-    <TouchableOpacity activeOpacity={OPACITE_PRESSION} onPress={onPress} style={[s.row, cardShadow(t), primary && { borderColor: t.accent, borderWidth: Trait.controle }]}>
+    <Presse activeOpacity={OPACITE_PRESSION} onPress={onPress} style={[s.row, cardShadow(t), primary && { borderColor: t.accent, borderWidth: Trait.controle }]}>
       <View style={[s.icon, { backgroundColor: t.fill }]}>
         <Ionicons name={icon} size={Icone.standard} color={t.text} />
       </View>
@@ -30,7 +31,7 @@ export function PlanCheckin({
         {sub ? <Text style={s.sub}>{sub}</Text> : null}
       </View>
       <Ionicons name="chevron-forward" size={Icone.standard} color={t.textTertiary} />
-    </TouchableOpacity>
+    </Presse>
   );
 
   return (
@@ -46,9 +47,9 @@ export function PlanCheckin({
         <Row icon="flag-outline" label="Je veux changer d'objectif ou mes macros" sub="Ouvre les réglages du profil" onPress={onAdjustInProfile} />
         <Row icon="refresh-outline" label="Juste un nouveau plan" sub="Régénérer pour cette semaine" onPress={onNewPlan} />
 
-        <TouchableOpacity onPress={onOptOut} activeOpacity={OPACITE_PRESSION} style={s.optOut}>
+        <Presse onPress={onOptOut} activeOpacity={OPACITE_PRESSION} style={s.optOut}>
           <Text style={s.optOutTxt}>Ne plus me demander</Text>
-        </TouchableOpacity>
+        </Presse>
         <Text style={s.optOutHint}>Tu pourras réactiver ces propositions dans Profil.</Text>
       </View>
     </View>

@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useCallback, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform } from 'react-native';
+import { Presse } from '../../components/Presse';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
@@ -438,7 +439,7 @@ export default function ProfilScreen() {
               dans la feuille. Une étape dont la cible n'est pas MONTÉE est
               écartée en silence — le tour se serait joué plus court en ayant
               l'air complet (cf. `visiteGuidee.test.ts`, qui l'exige désormais). */}
-          <TouchableOpacity
+          <Presse
             ref={donneesRef}
             onPress={() => setReglages(true)}
             hitSlop={10}
@@ -448,7 +449,7 @@ export default function ProfilScreen() {
             style={s.roue}
           >
             <Ionicons name="settings-outline" size={Icone.nav} color={t.textSecondary} />
-          </TouchableOpacity>
+          </Presse>
         </View>
 
         {/* ⚠️ ORDRE INVERSÉ le 2026-08-02 (décision fondateur), et ce n'est pas
@@ -487,13 +488,13 @@ export default function ProfilScreen() {
             Ton informatif et non alarmant (anti charge mentale) : on explique et on
             offre l'action, on ne dramatise pas et on ne bloque rien. */}
         {underweightCapped && (
-          <TouchableOpacity activeOpacity={OPACITE_PRESSION} onPress={() => setEditor('goal')}>
+          <Presse activeOpacity={OPACITE_PRESSION} onPress={() => setEditor('goal')}>
             <Card t={t}>
               <Text style={{ ...Type.caption, color: t.text, lineHeight: 19 }}>
                 Ton poids est descendu sous la plage de référence pour ta taille. Kyroz a ramené ton plan à ta maintenance : plus de déficit tant que tu es dans cette zone. Tu n'as rien à faire dans l'immédiat — touche ici quand tu veux choisir un autre objectif.
               </Text>
             </Card>
-          </TouchableOpacity>
+          </Presse>
         )}
 
         {/* Semaine de pause à la maintenance (2026-08-10).
@@ -633,10 +634,10 @@ export default function ProfilScreen() {
             réglages : elle ne se règle pas, elle se déclenche. Bouton discret
             (`t.card`), pas l'accent — sinon il deviendrait l'élément le plus criard
             de l'écran, devant la pesée qui est l'entrée réellement quotidienne. */}
-        <TouchableOpacity ref={regenRef} onPress={regenPlan} activeOpacity={OPACITE_PRESSION} accessibilityRole="button"
+        <Presse ref={regenRef} onPress={regenPlan} activeOpacity={OPACITE_PRESSION} accessibilityRole="button"
           style={s.actionBtn}>
           <Text style={s.actionTxt}>Régénérer mon plan</Text>
-        </TouchableOpacity>
+        </Presse>
 
         {/* Kyroz+ — hors chapitre et en dernier. Ce n'est pas un réglage : c'est une
             offre, et une offre se range là où elle se vend, à deux lignes des deux 💎
@@ -699,13 +700,13 @@ export default function ProfilScreen() {
           Toutes tes données (profil, plans, série, favoris, frigo) seront définitivement supprimées, sur cet appareil et sur le serveur.
         </Text>
         <View style={{ height: 6 }} />
-        <TouchableOpacity onPress={doDelete} disabled={deleting} activeOpacity={OPACITE_PRESSION}
+        <Presse onPress={doDelete} disabled={deleting} activeOpacity={OPACITE_PRESSION}
           style={{ backgroundColor: t.danger, borderRadius: Radius.button, paddingVertical: Spacing.lg, alignItems: 'center', opacity: deleting ? 0.6 : 1 }}>
           <Text style={{ ...Type.h3, color: t.onDanger }}>{deleting ? 'Suppression…' : 'Supprimer définitivement'}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => setConfirmDelete(false)} style={{ alignItems: 'center', paddingVertical: Spacing.sm }}>
+        </Presse>
+        <Presse onPress={() => setConfirmDelete(false)} style={{ alignItems: 'center', paddingVertical: Spacing.sm }}>
           <Text style={{ ...Type.bodyStrong, color: t.textSecondary }}>Annuler</Text>
-        </TouchableOpacity>
+        </Presse>
       </ActionSheet>
     </SafeAreaView>
   );
@@ -837,7 +838,7 @@ function InfoEditor({ t, profile, onSave, onWeighIn, dragHandlers, sheetScrollPr
       {/* Renvoi, pas champ : le poids a UNE porte d'entrée, et c'est celle qui
           tient l'historique. Le libellé dit où l'on va, pas seulement que ça se
           passe ailleurs. */}
-      <TouchableOpacity onPress={onWeighIn} activeOpacity={OPACITE_PRESSION} accessibilityRole="button"
+      <Presse onPress={onWeighIn} activeOpacity={OPACITE_PRESSION} accessibilityRole="button"
         style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md, backgroundColor: t.card, borderRadius: Radius.card, padding: Spacing.lg, minHeight: CIBLE_TACTILE_MIN }}>
         <View style={{ flex: 1 }}>
           <Text style={{ ...Type.bodySmall, color: t.textSecondary }}>Poids</Text>
@@ -845,7 +846,7 @@ function InfoEditor({ t, profile, onSave, onWeighIn, dragHandlers, sheetScrollPr
         </View>
         <Text style={{ ...Type.captionStrong, color: t.accent }}>Me peser</Text>
         <Ionicons name="chevron-forward" size={Icone.standard} color={t.textQuaternary} />
-      </TouchableOpacity>
+      </Presse>
       <Text style={{ ...Type.caption, color: t.textTertiary, lineHeight: 17, marginTop: -Spacing.sm }}>
         Ton poids se met à jour en te pesant : c'est ce qui garde ta courbe et ton suivi justes.
       </Text>
@@ -881,7 +882,7 @@ function LowEaRiseCard({ t, rise, onPress }: {
 }) {
   const enCours = rise.weeksToPlateau > 0;
   return (
-    <TouchableOpacity activeOpacity={OPACITE_PRESSION} onPress={onPress}>
+    <Presse activeOpacity={OPACITE_PRESSION} onPress={onPress}>
       <Card t={t}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, marginBottom: Spacing.sm }}>
           <ProtectionIcon color={t.text} size={Icone.petite} />
@@ -899,7 +900,7 @@ function LowEaRiseCard({ t, rise, onPress }: {
           </Text>
         )}
       </Card>
-    </TouchableOpacity>
+    </Presse>
   );
 }
 
@@ -975,12 +976,12 @@ function EngineNoticeCard({ t, notice, onAdjust, onDismiss }: {
         {suite}
       </Text>
       <View style={{ flexDirection: 'row', gap: Spacing.md, marginTop: Spacing.lg }}>
-        <TouchableOpacity onPress={onAdjust} activeOpacity={OPACITE_PRESSION} style={{ flex: 1, backgroundColor: t.accent, borderRadius: Radius.sm, paddingVertical: Spacing.sm, minHeight: CIBLE_TACTILE_MIN, justifyContent: 'center', alignItems: 'center' }}>
+        <Presse onPress={onAdjust} activeOpacity={OPACITE_PRESSION} style={{ flex: 1, backgroundColor: t.accent, borderRadius: Radius.sm, paddingVertical: Spacing.sm, minHeight: CIBLE_TACTILE_MIN, justifyContent: 'center', alignItems: 'center' }}>
           <Text style={{ ...Type.bodySmallStrong, color: t.onAccent }}>Régler mon activité</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={onDismiss} activeOpacity={OPACITE_PRESSION} style={{ flex: 1, borderRadius: Radius.sm, paddingVertical: Spacing.sm, minHeight: CIBLE_TACTILE_MIN, justifyContent: 'center', alignItems: 'center', borderWidth: Trait.fin, borderColor: t.lineStrong }}>
+        </Presse>
+        <Presse onPress={onDismiss} activeOpacity={OPACITE_PRESSION} style={{ flex: 1, borderRadius: Radius.sm, paddingVertical: Spacing.sm, minHeight: CIBLE_TACTILE_MIN, justifyContent: 'center', alignItems: 'center', borderWidth: Trait.fin, borderColor: t.lineStrong }}>
           <Text style={{ ...Type.bodySmallStrong, color: t.text }}>C'est noté</Text>
-        </TouchableOpacity>
+        </Presse>
       </View>
     </Card>
   );
@@ -1205,13 +1206,13 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }:
               À {twN} kg, la première date que Kyroz peut tenir en sécurité : le {formatFR(dateAuPlusTot)}.
             </Text>
             {dateVisee !== dateAuPlusTot && (
-              <TouchableOpacity
+              <Presse
                 onPress={() => setSaisie({ stamp: dateAuPlusTot, complete: true })}
                 activeOpacity={OPACITE_PRESSION}
                 style={{ alignSelf: 'flex-start', justifyContent: 'center', minHeight: CIBLE_TACTILE_MIN }}
               >
                 <Text style={{ ...Type.captionStrong, color: t.accent }}>Viser cette date</Text>
-              </TouchableOpacity>
+              </Presse>
             )}
           </View>
         ) : (
@@ -1390,9 +1391,9 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }:
       )}
 
       {existing && (
-        <TouchableOpacity onPress={remove} style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: Spacing.sm, minHeight: CIBLE_TACTILE_MIN }}>
+        <Presse onPress={remove} style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: Spacing.sm, minHeight: CIBLE_TACTILE_MIN }}>
           <Text style={{ ...Type.bodyStrong, color: t.danger }}>Retirer l'objectif daté</Text>
-        </TouchableOpacity>
+        </Presse>
       )}
     </EditorShell>
   );
@@ -1629,13 +1630,13 @@ function MealsEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: Edi
               </View>
               <View style={{ flexDirection: 'row', gap: Spacing.lg, alignItems: 'center' }}>
                 {fm && (
-                  <TouchableOpacity onPress={() => removeFixed(mt)} hitSlop={8}>
+                  <Presse onPress={() => removeFixed(mt)} hitSlop={8}>
                     <Text style={{ ...Type.captionStrong, color: t.textTertiary }}>Retirer</Text>
-                  </TouchableOpacity>
+                  </Presse>
                 )}
-                <TouchableOpacity onPress={() => setDefiningMeal(mt)} hitSlop={8}>
+                <Presse onPress={() => setDefiningMeal(mt)} hitSlop={8}>
                   <Text style={{ ...Type.captionStrong, color: t.accent }}>{fm ? 'Modifier' : 'Je gère'}</Text>
-                </TouchableOpacity>
+                </Presse>
               </View>
             </View>
           );

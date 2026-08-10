@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, SectionList, TouchableOpacity, RefreshControl } from 'react-native';
+import { Presse } from '../../components/Presse';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -309,10 +310,10 @@ export default function CoursesScreen() {
               « tirer pour rafraîchir » n'y existe pas. Sans ce bouton, retirer le
               dernier article serait un cul-de-sac jusqu'au prochain plan. */}
           {toutEcarte && (
-            <TouchableOpacity style={s.ctrl} onPress={retablirTout} activeOpacity={OPACITE_PRESSION}>
+            <Presse style={s.ctrl} onPress={retablirTout} activeOpacity={OPACITE_PRESSION}>
               <Ionicons name="arrow-undo-outline" size={Icone.petite} color={t.textSecondary} />
               <Text style={s.ctrlTxt}>Rétablir ma liste</Text>
-            </TouchableOpacity>
+            </Presse>
           )}
 
           {/* L'historique se consulte surtout ICI : « rien à acheter » est
@@ -321,10 +322,10 @@ export default function CoursesScreen() {
               vide n'est pas un point d'entrée, c'est une déception. */}
           {history.length > 0 && (
             <>
-              <TouchableOpacity style={s.ctrl} onPress={() => setHistoryOpen(true)} activeOpacity={OPACITE_PRESSION}>
+              <Presse style={s.ctrl} onPress={() => setHistoryOpen(true)} activeOpacity={OPACITE_PRESSION}>
                 <Ionicons name="time-outline" size={Icone.petite} color={t.textSecondary} />
                 <Text style={s.ctrlTxt}>Mes courses passées</Text>
-              </TouchableOpacity>
+              </Presse>
               <Text style={s.emptyNote}>{historySummary(history)}</Text>
             </>
           )}
@@ -386,26 +387,26 @@ export default function CoursesScreen() {
         {/* Contrôles */}
         <View ref={controlesRef} style={s.controls}>
           {remaining > 0 && (
-            <TouchableOpacity style={s.ctrl} onPress={checkAll} activeOpacity={OPACITE_PRESSION}>
+            <Presse style={s.ctrl} onPress={checkAll} activeOpacity={OPACITE_PRESSION}>
               <Ionicons name="checkmark-done-outline" size={Icone.petite} color={t.textSecondary} />
               <Text style={s.ctrlTxt}>Tout cocher</Text>
-            </TouchableOpacity>
+            </Presse>
           )}
-          <TouchableOpacity style={[s.ctrl, hideChecked && s.ctrlOn]} onPress={() => setHideChecked((v) => !v)} activeOpacity={OPACITE_PRESSION}>
+          <Presse style={[s.ctrl, hideChecked && s.ctrlOn]} onPress={() => setHideChecked((v) => !v)} activeOpacity={OPACITE_PRESSION}>
             <Ionicons name={hideChecked ? 'eye-off-outline' : 'eye-outline'} size={Icone.petite} color={hideChecked ? t.onAccent : t.textSecondary} />
             <Text style={[s.ctrlTxt, hideChecked && { color: t.onAccent }]}>Masquer cochés</Text>
-          </TouchableOpacity>
+          </Presse>
           {checked > 0 && (
-            <TouchableOpacity style={s.ctrl} onPress={reset} activeOpacity={OPACITE_PRESSION}>
+            <Presse style={s.ctrl} onPress={reset} activeOpacity={OPACITE_PRESSION}>
               <Ionicons name="refresh-outline" size={Icone.petite} color={t.textSecondary} />
               <Text style={s.ctrlTxt}>Réinitialiser</Text>
-            </TouchableOpacity>
+            </Presse>
           )}
           {history.length > 0 && (
-            <TouchableOpacity style={s.ctrl} onPress={() => setHistoryOpen(true)} activeOpacity={OPACITE_PRESSION}>
+            <Presse style={s.ctrl} onPress={() => setHistoryOpen(true)} activeOpacity={OPACITE_PRESSION}>
               <Ionicons name="time-outline" size={Icone.petite} color={t.textSecondary} />
               <Text style={s.ctrlTxt}>Historique</Text>
-            </TouchableOpacity>
+            </Presse>
           )}
         </View>
 
@@ -415,7 +416,7 @@ export default function CoursesScreen() {
             en cours de route, un franc à la fin — auraient été deux libellés à
             garder d'accord pour un seul geste. */}
         {checked > 0 && (
-          <TouchableOpacity
+          <Presse
             style={[s.finir, done && { backgroundColor: t.accent }]}
             onPress={terminer}
             disabled={closing}
@@ -426,7 +427,7 @@ export default function CoursesScreen() {
             <Text style={[s.finirTxt, done && { color: t.onAccent }]}>
               {closing ? 'Un instant…' : 'Courses terminées'}
             </Text>
-          </TouchableOpacity>
+          </Presse>
         )}
 
         {/* Ce qui a été retiré doit rester VISIBLE quelque part, sinon un article
@@ -435,9 +436,9 @@ export default function CoursesScreen() {
         {nbEcartes > 0 && (
           <View style={s.retires}>
             <Text style={s.retiresTxt}>{resumeEcartes(nbEcartes)}</Text>
-            <TouchableOpacity onPress={retablirTout} hitSlop={8} accessibilityRole="button">
+            <Presse onPress={retablirTout} hitSlop={8} accessibilityRole="button">
               <Text style={s.retiresLien}>Rétablir</Text>
-            </TouchableOpacity>
+            </Presse>
           </View>
         )}
 
@@ -473,7 +474,7 @@ export default function CoursesScreen() {
           // pas le premier de chaque section.
           const premierDeLaListe = first && section.cat === sections[0]?.cat;
           return (
-            <TouchableOpacity
+            <Presse
               ref={premierDeLaListe ? articleRef : undefined}
               style={[
                 s.row,
@@ -499,7 +500,7 @@ export default function CoursesScreen() {
               </View>
               <Text style={[s.name, item.checked && { textDecorationLine: 'line-through', color: t.textTertiary }]} numberOfLines={1}>{item.name}</Text>
               <Text style={[s.qty, item.checked && { color: t.textQuaternary }]}>{formatQuantity(item.name, item.quantity, item.unit)}</Text>
-            </TouchableOpacity>
+            </Presse>
           );
         }}
       />

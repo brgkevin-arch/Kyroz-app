@@ -3,6 +3,8 @@ import { Modal, View, Text, StyleSheet, Animated, Easing, Pressable } from 'reac
 import { useTheme, Radius, Spacing, Type, Trait , Icone } from '../constants/theme';
 import { PrimaryButton } from './ui';
 import { AnniversaireIcon } from './Icons';
+import { RESSORT, DUREE, ressortRN, ressortReduit, dureeReduite } from '../lib/motion';
+import { reduceMotionActif } from '../lib/reduceMotion';
 
 interface Props {
   /** Âge atteint aujourd'hui ; `null` = masqué. */
@@ -53,17 +55,44 @@ export function BirthdayCelebration({ age, firstName, onClose }: Props) {
     scale.setValue(0.8);
     opacity.setValue(0);
     chute.setValue(0);
+    // 🔴 LE PIRE CAS DE TOUT LE CHANTIER D'ACCESSIBILITÉ, et c'est celui-ci :
+    // 2 200 ms de chute, douze éléments décalés, servis tels quels à quelqu'un
+    // qui a demandé qu'on réduise le mouvement. La fête ne DISPARAÎT pas pour
+    // autant — réduire n'est pas supprimer, et retirer la seule marque d'un
+    // anniversaire serait un second défaut : la carte apparaît, sans dépassement,
+    // et les confettis ne tombent simplement plus.
+    const reduire = reduceMotionActif();
     Animated.parallel([
-      Animated.spring(scale, { toValue: 1, useNativeDriver: true, bounciness: 10, speed: 11 }),
-      Animated.timing(opacity, { toValue: 1, duration: 240, useNativeDriver: true }),
-      Animated.timing(chute, { toValue: 1, duration: 2200, easing: Easing.linear, useNativeDriver: true }),
+      Animated.spring(scale, {
+        toValue: 1,
+        useNativeDriver: true,
+        ...ressortRN(ressortReduit(RESSORT.fete, reduire)),
+      }),
+      Animated.timing(opacity, {
+        toValue: 1,
+        duration: dureeReduite(DUREE.moyen, reduire),
+        easing: Easing.out(Easing.quad),
+        useNativeDriver: true,
+      }),
+      ...(reduire ? [] : [
+        // `Easing.linear` est ici le BON choix, contrairement au reste de l'app :
+        // une chute libre ne ralentit pas en arrivant. La règle « ease-out
+        // partout » vaut pour ce qui se pose, pas pour ce qui tombe.
+        Animated.timing(chute, {
+          toValue: 1,
+          duration: DUREE.fete,
+          easing: Easing.linear,
+          useNativeDriver: true,
+        }),
+      ]),
     ]).start();
   }, [visible]);
 
   if (!visible) return null;
 
   return (
-    <Modal visible transparent animationType="fade" onRequestClose={onClose}>
+    // Double fondu retiré : la `Modal` fondait en plus de la carte.
+    <Modal visible transparent animationType="none" onRequestClose={onClose}>
       <View style={styles.root}>
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
 

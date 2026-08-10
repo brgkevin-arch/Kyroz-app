@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
+import { Presse } from '../../components/Presse';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl,
 } from 'react-native';
@@ -661,38 +662,38 @@ export default function PlanScreen() {
 
         {/* Check-in poids hebdo : ramène l'utilisateur + garde le plan juste dans le temps */}
         {weighInDue && (
-          <TouchableOpacity style={s.weighBanner} onPress={() => setWeighIn(true)} activeOpacity={OPACITE_PRESSION}>
+          <Presse style={s.weighBanner} onPress={() => setWeighIn(true)} activeOpacity={OPACITE_PRESSION}>
             <PeseeIcon color={t.text} size={Icone.action} />
             <View style={{ flex: 1 }}>
               <Text style={s.weighTitle}>C'est le moment de te peser</Text>
               <Text style={s.weighSub}>Mets à jour ton poids — on réajuste tes macros et ton plan.</Text>
             </View>
             <Text style={s.bannerCta}>→</Text>
-          </TouchableOpacity>
+          </Presse>
         )}
 
         {/* Proposition d'ajustement périodique (opt-out réactivable dans Profil) */}
         {checkinDue && (
-          <TouchableOpacity style={s.weighBanner} onPress={() => setCheckinOpen(true)} activeOpacity={OPACITE_PRESSION}>
+          <Presse style={s.weighBanner} onPress={() => setCheckinOpen(true)} activeOpacity={OPACITE_PRESSION}>
             <RepasIcon color={t.text} size={Icone.action} />
             <View style={{ flex: 1 }}>
               <Text style={s.weighTitle}>Ton plan te convient toujours ?</Text>
               <Text style={s.weighSub}>Dis-nous ce qui coince — on ajuste en un tap.</Text>
             </View>
             <Text style={s.bannerCta}>→</Text>
-          </TouchableOpacity>
+          </Presse>
         )}
 
         {plan ? (
           <>
             {/* Plan désynchronisé du profil → mise à jour en 1 tap */}
             {planStale && !generating && (
-              <TouchableOpacity style={s.banner} onPress={() => generate(false, 'profil_modifie')} activeOpacity={OPACITE_PRESSION} disabled={generating}>
+              <Presse style={s.banner} onPress={() => generate(false, 'profil_modifie')} activeOpacity={OPACITE_PRESSION} disabled={generating}>
                 <Text style={s.bannerTxt}>
                   Ton plan ({plan.days} j) ne correspond plus à tes réglages ({clampDays(intendedDays)} j).
                 </Text>
                 <Text style={s.bannerCta}>{generating ? 'Mise à jour…' : 'Mettre à jour →'}</Text>
-              </TouchableOpacity>
+              </Presse>
             )}
 
             {/* Day strip — ÉPURÉ (2026-08-05, maquette). Chaque jour était une carte
@@ -707,7 +708,7 @@ export default function PlanScreen() {
                 const n = i + 1; const on = selectedDay === n; const meta = dayMeta(i);
                 const repos = restDayNums.has(n);
                 return (
-                  <TouchableOpacity
+                  <Presse
                     key={n}
                     onPress={() => setSelectedDay(n)}
                     activeOpacity={OPACITE_PRESSION}
@@ -725,7 +726,7 @@ export default function PlanScreen() {
                     <View style={s.dayMoon}>
                       {repos && <Ionicons name="moon" size={Icone.petite} color={t.textTertiary} />}
                     </View>
-                  </TouchableOpacity>
+                  </Presse>
                 );
               })}
             </View>
@@ -780,9 +781,9 @@ export default function PlanScreen() {
                           dit plus rien. Ton inchangé — on nomme, on ne reproche pas. */}
                       {dayExtraLabel ? <Text style={{ color: t.textTertiary }}>{` · ${dayExtraLabel}`}</Text> : null}
                     </Text>
-                    <TouchableOpacity onPress={clearOffPlan} hitSlop={8}>
+                    <Presse onPress={clearOffPlan} hitSlop={8}>
                       <Text style={{ ...Type.captionStrong, color: t.textTertiary }}>Retirer</Text>
-                    </TouchableOpacity>
+                    </Presse>
                   </View>
                 )}
                 {/* Les deux actions du jour sur UNE ligne (décision fondateur, 2026-08-05).
@@ -792,19 +793,19 @@ export default function PlanScreen() {
                     chiffre du jour pesaient plus que lui. Ce sont des sorties de route,
                     pas l'action principale de l'écran — elles se fondent dans la page. */}
                 <View style={s.actionsRow}>
-                  <TouchableOpacity ref={offplanRef} onPress={() => setOffPlanOpen(true)} activeOpacity={OPACITE_PRESSION} style={s.actionBtn}>
+                  <Presse ref={offplanRef} onPress={() => setOffPlanOpen(true)} activeOpacity={OPACITE_PRESSION} style={s.actionBtn}>
                     <Text style={s.actionTxt}>+ J'ai mangé hors plan</Text>
-                  </TouchableOpacity>
+                  </Presse>
                   {/* Découvrabilité de la perso macros (le fork a été retiré de l'onboarding) :
                       deep-link vers l'éditeur « Calories & macros » du Profil. */}
-                  <TouchableOpacity
+                  <Presse
                     ref={repartitionRef}
                     onPress={async () => { await AsyncStorage.setItem('@kyroz:openEditor', 'macros'); router.push('/(tabs)/profil'); }}
                     activeOpacity={OPACITE_PRESSION}
                     style={s.actionBtn}
                   >
                     <Text style={s.actionTxt}>Ma répartition (%)</Text>
-                  </TouchableOpacity>
+                  </Presse>
                 </View>
               </View>
             )}
@@ -980,9 +981,9 @@ export default function PlanScreen() {
                 <Text style={{ ...Type.bodySmall, color: t.textSecondary, lineHeight: 20 }}>
                   Tes repas du jour sont déjà passés — il n'y a plus rien à réadapter. On garde tout tel quel.
                 </Text>
-                <TouchableOpacity onPress={declineAdapt} style={{ alignItems: 'center', justifyContent: 'center', minHeight: 44 }}>
+                <Presse onPress={declineAdapt} style={{ alignItems: 'center', justifyContent: 'center', minHeight: 44 }}>
                   <Text style={{ ...Type.bodyStrong, color: t.textSecondary }}>Compris</Text>
-                </TouchableOpacity>
+                </Presse>
               </>
             );
           }
@@ -1001,7 +1002,7 @@ export default function PlanScreen() {
                   : 'Une seule journée ne peut pas tout reprendre — tes repas restants ont une taille minimale. Voilà ce qu\'on peut faire aujourd\'hui ; le reste ne se rattrape pas, et une journée ne fait pas ta semaine. Tes protéines restent pleines dans tous les cas.'}
               </Text>
               {opts.map((o) => (
-                <TouchableOpacity
+                <Presse
                   key={o.key} onPress={() => applyAdapt(o)} activeOpacity={OPACITE_PRESSION}
                   style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md, borderWidth: Trait.fin, borderColor: t.line, borderRadius: Radius.card, padding: Spacing.lg }}
                 >
@@ -1020,11 +1021,11 @@ export default function PlanScreen() {
                       </Text>
                     )}
                   </View>
-                </TouchableOpacity>
+                </Presse>
               ))}
-              <TouchableOpacity onPress={declineAdapt} style={{ alignItems: 'center', justifyContent: 'center', minHeight: 44 }}>
+              <Presse onPress={declineAdapt} style={{ alignItems: 'center', justifyContent: 'center', minHeight: 44 }}>
                 <Text style={{ ...Type.bodyStrong, color: t.textSecondary }}>Non, je garde mon plan</Text>
-              </TouchableOpacity>
+              </Presse>
             </>
           );
         })()}

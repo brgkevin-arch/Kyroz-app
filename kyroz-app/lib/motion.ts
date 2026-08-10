@@ -62,6 +62,16 @@ export const RESSORT = {
   appui: { amortissement: 1, reponse: 0.16 } as Ressort,
   /** Le relâchement, lui, rend un peu d'élan — le doigt qui part est un geste. */
   relache: { amortissement: 0.72, reponse: 0.32 } as Ressort,
+  /**
+   * Le « pop » des trois célébrations. C'est le SEUL endroit où un dépassement
+   * franc est autorisé sans qu'un geste l'ait précédé, et c'est une décision :
+   * un moment rare a droit à son budget de plaisir.
+   * ⚠️ Les trois valeurs qu'il remplace (`bounciness` 7, 9 et 10, `speed` 11 et
+   * 12) n'étaient pas trois décisions — c'était trois fois la même intention,
+   * écrite trois fois. Même diagnostic que les quatre `activeOpacity` : un seul
+   * effet mérite une seule valeur.
+   */
+  fete: { amortissement: 0.55, reponse: 0.45 } as Ressort,
 } as const;
 
 /**
@@ -82,6 +92,21 @@ export const DUREE = {
   court: 200,
   /** Sortie d'une modale, transition de contenu. */
   moyen: 260,
+  /**
+   * Entrée d'un écran d'onboarding — délibérément plus lente : c'est le seul
+   * moment où l'app se présente, et personne n'attend rien derrière.
+   * ⚠️ Valeur REPRISE telle quelle (550 ms) et non recalée sur la grille : la
+   * nommer ne doit rien changer à ce qui est servi aujourd'hui. Un token qui
+   * déplace le rendu en passant n'est plus un token, c'est un correctif.
+   */
+  entree: 550,
+  /**
+   * La chute des confettis d'anniversaire. La plus longue de l'app, et de loin.
+   * Elle n'était pas fautive — mais elle était servie telle quelle à quelqu'un
+   * qui a demandé qu'on réduise le mouvement, ce qui en faisait le pire cas de
+   * tout le chantier.
+   */
+  fete: 2200,
 } as const;
 
 /** L'échelle d'un élément pressé. 0,97 : perceptible, jamais spectaculaire. */

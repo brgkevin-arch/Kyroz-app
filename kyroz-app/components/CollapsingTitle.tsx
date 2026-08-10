@@ -1,8 +1,10 @@
 import React, { useRef } from 'react';
 import {
   Animated, LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent,
-  StyleSheet, Text, View,
+  StyleSheet, Text, View, Easing,
 } from 'react-native';
+import { DUREE, dureeReduite } from '../lib/motion';
+import { reduceMotionActif } from '../lib/reduceMotion';
 import { ThemePalette, Type, Spacing } from '../constants/theme';
 import { COMPACT_BAR_H, SEUIL_PAR_DEFAUT, seuilRepli } from '../lib/collapsingTitle';
 
@@ -71,9 +73,17 @@ export function useCollapsingTitle(): Collapsing {
     const doitEtreVisible = e.nativeEvent.contentOffset.y > seuil.current;
     if (doitEtreVisible === visible.current) return;
     visible.current = doitEtreVisible;
+    // ℹ️ La DURÉE ne change pas d'un millième : 160 ms était déjà un choix
+    // délibéré et documenté, elle reçoit seulement son nom (`DUREE.instant`).
+    // Ce qui manquait, c'est la COURBE — sans elle RN applique `easeInOut`,
+    // donc un départ lent sur une bascule qui doit être immédiate.
+    // ⚠️ Réduction du mouvement : cette bascule est une OPACITÉ, elle informe
+    // sans déplacer. On la raccourcit, on ne la retire pas — c'est le seul
+    // signe que le titre a changé de place.
     Animated.timing(opacity, {
       toValue: doitEtreVisible ? 1 : 0,
-      duration: 160,
+      duration: dureeReduite(DUREE.instant, reduceMotionActif()),
+      easing: Easing.out(Easing.quad),
       useNativeDriver: true,
     }).start();
   };

@@ -1,7 +1,10 @@
 import React, { useMemo, useState, useEffect, useRef } from 'react';
+import { Presse } from '../../components/Presse';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, Easing,
 } from 'react-native';
+import { DUREE, dureeReduite } from '../../lib/motion';
+import { reduceMotionActif } from '../../lib/reduceMotion';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -366,9 +369,9 @@ export default function Onboarding() {
 
       {/* Header : retour + progression */}
       <View style={[s.header, layout.header]}>
-        <TouchableOpacity onPress={back} disabled={step === 1} style={[s.backBtn, step === 1 && { opacity: 0 }]}>
+        <Presse onPress={back} disabled={step === 1} style={[s.backBtn, step === 1 && { opacity: 0 }]}>
           <Ionicons name="chevron-back" size={Icone.action} color={t.text} />
-        </TouchableOpacity>
+        </Presse>
         <View style={s.track}><View style={[s.fill, { width: `${(step / TOTAL_STEPS) * 100}%` }]} /></View>
       </View>
 
@@ -473,10 +476,10 @@ export default function Onboarding() {
               {WEEKDAY_OPTS.map((d) => {
                 const on = planWeekdays.includes(d.val);
                 return (
-                  <TouchableOpacity key={d.val} onPress={() => togglePlanDay(d.val)} activeOpacity={OPACITE_PRESSION}
+                  <Presse key={d.val} onPress={() => togglePlanDay(d.val)} activeOpacity={OPACITE_PRESSION}
                     style={[s.dayCircle, { backgroundColor: on ? t.accent : t.fill, borderColor: on ? t.accent : t.line }]}>
                     <Text style={{ ...Type.captionStrong, color: on ? t.onAccent : t.textTertiary }}>{d.label}</Text>
-                  </TouchableOpacity>
+                  </Presse>
                 );
               })}
             </View>
@@ -548,10 +551,20 @@ function NameStep({ t, value, onChange }: { t: ThemePalette; value: string; onCh
   const field = useRef(new Animated.Value(0)).current;  // apparition différée du champ
 
   useEffect(() => {
+    // ⚠️ Ces trois-là avaient DÉJÀ leur courbe (`Easing.out`) — ce sont les
+    // seules de l'app dans ce cas. Ce qui manquait : le token, et surtout la
+    // réduction du mouvement. `lift` DÉPLACE le bloc de 22 pt : c'est
+    // exactement ce qu'un réglage « Réduire les animations » vise. Il est donc
+    // posé à 0 d'emblée, pendant que les opacités, elles, restent — elles
+    // informent sans bouger.
+    const reduire = reduceMotionActif();
+    if (reduire) lift.setValue(0);
     Animated.parallel([
-      Animated.timing(fade, { toValue: 1, duration: 550, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
-      Animated.timing(lift, { toValue: 0, duration: 550, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
-      Animated.timing(field, { toValue: 1, duration: 500, delay: 320, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+      Animated.timing(fade, { toValue: 1, duration: dureeReduite(DUREE.entree, reduire), easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+      ...(reduire ? [] : [
+        Animated.timing(lift, { toValue: 0, duration: DUREE.entree, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+      ]),
+      Animated.timing(field, { toValue: 1, duration: dureeReduite(DUREE.entree, reduire), delay: reduire ? 0 : 320, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
     ]).start();
   }, [fade, lift, field]);
 

@@ -1,5 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
+import { Presse } from './Presse';
 import { useTheme, ThemePalette, Radius, Type, Spacing, Trait, OPACITE_PRESSION } from '../constants/theme';
 import { ActionSheet } from './ActionSheet';
 
@@ -163,7 +164,7 @@ function DialogButton({ t, b, onPress }: { t: ThemePalette; b: Btn<unknown>; onP
   const bg = b.destructive ? t.danger : b.primary ? t.accent : t.fill;
   const fg = b.destructive ? t.onAccent : b.primary ? t.onAccent : t.text;
   return (
-    <TouchableOpacity
+    <Presse
       activeOpacity={OPACITE_PRESSION}
       onPress={onPress}
       style={{
@@ -176,7 +177,7 @@ function DialogButton({ t, b, onPress }: { t: ThemePalette; b: Btn<unknown>; onP
       }}
     >
       <Text style={{ ...Type.label, color: fg }}>{b.label}</Text>
-    </TouchableOpacity>
+    </Presse>
   );
 }
 

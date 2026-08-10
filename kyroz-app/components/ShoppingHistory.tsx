@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { Presse } from './Presse';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemePalette, Radius, Type, Spacing, Trait, Icone, CIBLE_TACTILE_MIN, OPACITE_PRESSION } from '../constants/theme';
 import { useDialog } from './Dialog';
@@ -79,7 +80,7 @@ export function ShoppingHistory({
             const note = skippedNote(tr);
             return (
               <View key={tr.at} style={s.card}>
-                <TouchableOpacity
+                <Presse
                   style={s.head}
                   onPress={() => setOuverte(ouvert ? null : tr.at)}
                   activeOpacity={OPACITE_PRESSION}
@@ -95,7 +96,7 @@ export function ShoppingHistory({
                   </View>
                   <Text style={s.compte}>{tripHeadline(tr)}</Text>
                   <Ionicons name={ouvert ? 'chevron-up' : 'chevron-down'} size={Icone.standard} color={t.textTertiary} />
-                </TouchableOpacity>
+                </Presse>
 
                 {ouvert && (
                   <View style={s.detail}>
@@ -112,7 +113,7 @@ export function ShoppingHistory({
                         Kyroz ne sait pas qu'un paquet de 1 kg a été pris pour 700 g. */}
                     <Text style={s.precision}>Quantités demandées par ta liste ce jour-là.</Text>
 
-                    <TouchableOpacity
+                    <Presse
                       style={s.retirer}
                       onPress={() => demanderSuppression(tr)}
                       activeOpacity={OPACITE_PRESSION}
@@ -120,7 +121,7 @@ export function ShoppingHistory({
                     >
                       <Ionicons name="trash-outline" size={Icone.petite} color={t.textTertiary} />
                       <Text style={s.retirerTxt}>Retirer de l'historique</Text>
-                    </TouchableOpacity>
+                    </Presse>
                   </View>
                 )}
               </View>

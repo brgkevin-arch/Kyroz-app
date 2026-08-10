@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image, ImageSourcePropType } from 'react-native';
+import { Presse } from './Presse';
 import { ThemePalette, Radius, Type, Spacing, Trait, OPACITE_PRESSION } from '../constants/theme';
 import { Chip, Field } from './ui';
 import { BodyFatSource, Sex } from '../lib/types';
@@ -159,7 +160,7 @@ export function BodyFatPicker({ t, sex, value, source, onChange, body }: Props) 
         {levels.map((lv, i) => {
           const on = value === lv.pct;
           return (
-            <TouchableOpacity
+            <Presse
               key={lv.pct}
               activeOpacity={OPACITE_PRESSION}
               // Taper une silhouette EST une estimation : on ne pose pas la question,
@@ -180,7 +181,7 @@ export function BodyFatPicker({ t, sex, value, source, onChange, body }: Props) 
               </View>
               <Text style={[styles.pct, { color: on ? t.onAccent : t.text }]}>{lv.label}</Text>
               <Text style={[styles.desc, { color: on ? t.onAccent : t.textSecondary }]}>{lv.desc}</Text>
-            </TouchableOpacity>
+            </Presse>
           );
         })}
       </View>
@@ -294,9 +295,9 @@ export function BodyFatPicker({ t, sex, value, source, onChange, body }: Props) 
       )}
 
       {value != null && (
-        <TouchableOpacity onPress={() => { setSaisiManuel(false); onChange(undefined, undefined); }} activeOpacity={OPACITE_PRESSION} style={styles.clear}>
+        <Presse onPress={() => { setSaisiManuel(false); onChange(undefined, undefined); }} activeOpacity={OPACITE_PRESSION} style={styles.clear}>
           <Text style={{ ...Type.captionStrong, color: t.textTertiary }}>Effacer ma sélection</Text>
-        </TouchableOpacity>
+        </Presse>
       )}
     </View>
   );

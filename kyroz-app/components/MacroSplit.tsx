@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
+import { Presse } from './Presse';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemePalette, Radius, Type, cardShadow, Spacing, Trait, Icone } from '../constants/theme';
 import { Goal } from '../lib/types';
@@ -122,13 +123,13 @@ function Stepper({
 
   return (
     <View style={[styles.stepper, { backgroundColor: t.card, borderColor: t.line }]}>
-      <TouchableOpacity
+      <Presse
         onPress={() => onChange(clamp(round(value - step)))}
         disabled={value <= min}
         style={[styles.btn, { backgroundColor: t.fill, opacity: value <= min ? 0.4 : 1 }]}
       >
         <Ionicons name="remove" size={Icone.standard} color={t.text} />
-      </TouchableOpacity>
+      </Presse>
 
       <View style={styles.center}>
         <TextInput
@@ -146,13 +147,13 @@ function Stepper({
         <Text style={[styles.unit, { color: t.text }]}>{unit}</Text>
       </View>
 
-      <TouchableOpacity
+      <Presse
         onPress={() => onChange(clamp(round(value + step)))}
         disabled={value >= max}
         style={[styles.btn, { backgroundColor: t.fill, opacity: value >= max ? 0.4 : 1 }]}
       >
         <Ionicons name="add" size={Icone.standard} color={t.text} />
-      </TouchableOpacity>
+      </Presse>
     </View>
   );
 }

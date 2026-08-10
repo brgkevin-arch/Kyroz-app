@@ -1,4 +1,5 @@
 import React from 'react';
+import { Presse } from './Presse';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   ViewStyle, TextStyle, ActivityIndicator, TextInputProps,
@@ -33,7 +34,7 @@ export function PrimaryButton({
   t, label, onPress, disabled, loading, muted,
 }: { t: ThemePalette; label: string; onPress: () => void; disabled?: boolean; loading?: boolean; muted?: boolean }) {
   return (
-    <TouchableOpacity
+    <Presse
       activeOpacity={OPACITE_PRESSION}
       onPress={onPress}
       disabled={disabled || loading}
@@ -49,7 +50,7 @@ export function PrimaryButton({
       {loading
         ? <ActivityIndicator color={t.onAccent} />
         : <Text style={{ ...Type.h3, color: t.onAccent }}>{label}</Text>}
-    </TouchableOpacity>
+    </Presse>
   );
 }
 
@@ -57,7 +58,7 @@ export function Chip({
   t, label, selected, onPress,
 }: { t: ThemePalette; label: string; selected: boolean; onPress: () => void }) {
   return (
-    <TouchableOpacity
+    <Presse
       activeOpacity={OPACITE_PRESSION}
       onPress={onPress}
       style={{
@@ -75,7 +76,7 @@ export function Chip({
       <Text style={{ ...(selected ? Type.bodyStrong : Type.body), color: selected ? t.onAccent : t.text }}>
         {label}
       </Text>
-    </TouchableOpacity>
+    </Presse>
   );
 }
 
@@ -83,7 +84,7 @@ export function OptionCard({
   t, title, subtitle, selected, onPress,
 }: { t: ThemePalette; title: string; subtitle?: string; selected: boolean; onPress: () => void }) {
   return (
-    <TouchableOpacity
+    <Presse
       activeOpacity={OPACITE_PRESSION}
       onPress={onPress}
       style={[
@@ -113,7 +114,7 @@ export function OptionCard({
       }}>
         {selected && <Ionicons name="checkmark" size={Icone.petite} color={t.onAccent} />}
       </View>
-    </TouchableOpacity>
+    </Presse>
   );
 }
 
@@ -158,10 +159,10 @@ export function Segmented<T extends string | number>({
       {options.map((o) => {
         const on = o.value === value;
         return (
-          <TouchableOpacity key={String(o.value)} onPress={() => onChange(o.value)} activeOpacity={OPACITE_PRESSION}
+          <Presse key={String(o.value)} onPress={() => onChange(o.value)} activeOpacity={OPACITE_PRESSION}
             style={{ flex: 1, paddingVertical: Spacing.md, borderRadius: Radius.button - 4, alignItems: 'center', backgroundColor: on ? t.accent : 'transparent' }}>
             <Text style={{ ...Type.bodySmallStrong, color: on ? t.onAccent : t.textSecondary }}>{o.label}</Text>
-          </TouchableOpacity>
+          </Presse>
         );
       })}
     </View>
@@ -221,13 +222,13 @@ export function MenuRow({
   // pas de ref à l'appelant.
   const tourRef = useTourTarget(tourId);
   return (
-    <TouchableOpacity ref={tourRef} onPress={onPress} activeOpacity={readonly ? 1 : OPACITE_PRESSION} disabled={readonly}
+    <Presse ref={tourRef} onPress={onPress} activeOpacity={readonly ? 1 : OPACITE_PRESSION} disabled={readonly}
       style={[{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md, paddingVertical: Spacing.lg }, !last && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.line }]}>
       <View style={{ flex: 1 }}>
         <Text style={{ ...Type.h3, color: t.text, letterSpacing: -0.3 }}>{label}</Text>
         <Text style={{ ...Type.bodySmall, color: t.textTertiary, marginTop: Spacing.xs }} numberOfLines={1}>{value}</Text>
       </View>
       {!readonly && <Ionicons name="chevron-forward" size={Icone.standard} color={t.textQuaternary} />}
-    </TouchableOpacity>
+    </Presse>
   );
 }

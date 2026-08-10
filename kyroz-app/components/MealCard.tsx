@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { Presse } from './Presse';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme, Radius, cardShadow, ThemePalette, Type, Spacing, Trait, Icone, OPACITE_PRESSION } from '../constants/theme';
 import { Meal } from '../lib/types';
@@ -47,7 +48,7 @@ export function MealCard({
   const planned = !eaten && !skipped && !isFixed; // un repas fixe n'est ni cuisiné ni recalé par Kyroz
   const lacks = (missing?.length ?? 0) > 0;
   return (
-    <TouchableOpacity
+    <Presse
       ref={rootRef}
       onPress={onPress}
       activeOpacity={OPACITE_PRESSION}
@@ -95,14 +96,14 @@ export function MealCard({
               Il te manque : {missing!.join(', ')}
             </Text>
             {onShopping && (
-              <TouchableOpacity
+              <Presse
                 onPress={onShopping}
                 hitSlop={10}
                 accessibilityRole="link"
                 accessibilityLabel="Voir ces ingrédients dans ma liste de courses"
               >
                 <Text style={[styles.fridgeLink, { color: t.accent }]}>Mes courses ›</Text>
-              </TouchableOpacity>
+              </Presse>
             )}
           </View>
         ) : (
@@ -128,16 +129,16 @@ export function MealCard({
           </View>
         </View>
       )}
-    </TouchableOpacity>
+    </Presse>
   );
 }
 
 // Bouton-icône d'action (favori / j'aime pas / changer), aligné sur le bouton cuisiné.
 function ActionIcon({ t, name, active, onPress, label }: { t: ThemePalette; name: keyof typeof Ionicons.glyphMap; active?: boolean; onPress: () => void; label: string }) {
   return (
-    <TouchableOpacity onPress={onPress} activeOpacity={OPACITE_PRESSION} accessibilityLabel={label} style={[styles.iconBtn, { backgroundColor: t.fill }]}>
+    <Presse onPress={onPress} activeOpacity={OPACITE_PRESSION} accessibilityLabel={label} style={[styles.iconBtn, { backgroundColor: t.fill }]}>
       <Ionicons name={name} size={Icone.standard} color={active ? t.text : t.textSecondary} />
-    </TouchableOpacity>
+    </Presse>
   );
 }
 
@@ -145,7 +146,7 @@ function ActionIcon({ t, name, active, onPress, label }: { t: ThemePalette; name
 // que la visite guidée épouse exactement le bouton (sur la 1re carte du jour).
 function CookButton({ t, onCook, lacks, cookRef }: { t: ThemePalette; onCook: () => void; lacks: boolean; cookRef?: React.Ref<any> }) {
   return (
-    <TouchableOpacity
+    <Presse
       ref={cookRef}
       onPress={onCook}
       activeOpacity={OPACITE_PRESSION}
@@ -158,7 +159,7 @@ function CookButton({ t, onCook, lacks, cookRef }: { t: ThemePalette; onCook: ()
     >
       <Ionicons name="restaurant" size={Icone.petite} color={lacks ? t.text : t.onAccent} />
       <Text style={[styles.cookTxt, { color: lacks ? t.text : t.onAccent }]}>J'ai cuisiné</Text>
-    </TouchableOpacity>
+    </Presse>
   );
 }
 

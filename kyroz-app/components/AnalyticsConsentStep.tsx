@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { Presse } from './Presse';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
@@ -123,7 +124,7 @@ export default function AnalyticsConsentStep({ onChoose }: Props) {
           arraché, donc pas un consentement. */}
       <View style={[s.footer, layout.header]}>
         <View style={s.row}>
-          <TouchableOpacity
+          <Presse
             style={[s.btn, { backgroundColor: t.fill }]}
             onPress={() => repondre('denied')}
             disabled={busy}
@@ -131,8 +132,8 @@ export default function AnalyticsConsentStep({ onChoose }: Props) {
             accessibilityRole="button"
           >
             <Text style={{ ...Type.label, color: t.textSecondary }}>Non merci</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
+          </Presse>
+          <Presse
             style={[s.btn, { backgroundColor: t.accent }]}
             onPress={() => repondre('granted')}
             disabled={busy}
@@ -140,7 +141,7 @@ export default function AnalyticsConsentStep({ onChoose }: Props) {
             accessibilityRole="button"
           >
             <Text style={{ ...Type.label, color: t.onAccent }}>D’accord</Text>
-          </TouchableOpacity>
+          </Presse>
         </View>
         <Text style={s.micro}>Ton plan, tes recettes et tes courses fonctionnent pareil dans les deux cas.</Text>
       </View>

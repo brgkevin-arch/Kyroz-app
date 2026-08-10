@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { Presse } from './Presse';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemePalette, Radius, Type, Spacing, Trait, Icone } from '../constants/theme';
 import { useDialog } from './Dialog';
@@ -80,7 +81,7 @@ export function OffPlanHistory({
                     {e.label ? <Text style={s.label} numberOfLines={2}>{e.label}</Text> : null}
                   </View>
                   <Text style={s.kcal}>+{e.kcal.toLocaleString('fr-FR')} kcal</Text>
-                  <TouchableOpacity
+                  <Presse
                     onPress={() => demanderSuppression(i, e)}
                     hitSlop={10}
                     accessibilityRole="button"
@@ -89,7 +90,7 @@ export function OffPlanHistory({
                     accessibilityLabel={`Retirer cette ligne — ${frDate(e.date)}`}
                   >
                     <Ionicons name="close" size={Icone.standard} color={t.textQuaternary} />
-                  </TouchableOpacity>
+                  </Presse>
                 </View>
                 {/* Décision inconnue (app quittée avant l'arbitrage) → on se tait.
                     Écrire « journée gardée » serait affirmer ce qu'on n'a pas vu. */}
