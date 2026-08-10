@@ -3674,6 +3674,26 @@ produit en suspens — il ne reste qu'à coder.
   `lib/accentColor.ts`. C'est le seul mouvement vérifiable sans simulateur. Et **dire dans
   la PR ce qui n'a pas été vu à l'écran**.
 
+  🔴 **VERROU DE PUBLICATION — à lever AVANT le premier `eas update` de ce chantier,
+  pas avant d'écrire le code.** Toute la démonstration ci-dessus parle du **dépôt** (un
+  `Podfile.lock` de prebuild local, un lockfile, une config) ; aucune ligne ne parle de
+  **l'artefact qu'Apple a traité**. Le maillon non observé est le build qu'EAS a
+  réellement fait tourner.
+  ⚠️ **Et le symptôme d'une erreur ici n'est pas discret** : sans sa partie native,
+  Reanimated **lève au démarrage** — l'app ne s'ouvre plus du tout, chez tout le monde,
+  en quelques minutes, sans revue pour l'arrêter. C'est le seul défaut de ce chantier
+  qui coûte plus cher qu'un rollback.
+  ➡️ Télécharger l'IPA du build depuis EAS et chercher les symboles dans le binaire —
+  ce sont des identifiants **ASCII purs**, donc le piège `strings` de §2 ne mord pas ici :
+  ```bash
+  unzip -q -o build.ipa -d /tmp/ipa && strings -a /tmp/ipa/Payload/*.app/Kyroz | grep -cE "REAModule|RNGestureHandlerModule"
+  ```
+  **0 = l'arbitrage OTA est faux et il faut un build.** Non-zéro = confirmé sur l'objet
+  réel. Le contrôle est gratuit et n'atteint personne.
+  ⚠️ **Ne PAS le remplacer par « une petite OTA de test »** : le build 3 est sur le canal
+  `production`, donc une mise à jour dessus atteint aussi la testeuse externe — ce n'est
+  pas un essai à blanc.
+
   ⚠️ **Le garde-fou de sortie sera un test, pas un paragraphe** — c'est la leçon de la
   passe émoji, qui s'est déclarée finie trois fois avant de l'être. À compter : aucune
   durée de mouvement en dur, aucune `Animated.timing` sans courbe explicite, et
