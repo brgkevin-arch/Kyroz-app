@@ -31,7 +31,7 @@ elles se génèrent **pendant** qu'il tourne : une heure gagnée, gratuitement.
 | 1 | 🧑 | **Trancher la célébration de série** (le chiffre — servi aujourd'hui — ou l'icône) | c'est du **CODE**, donc ça doit être dans le binaire, donc avant le build. C'est la seule décision qui bloque la journée |
 | 2 | 🧑 | `git checkout main && git pull` **dans le dépôt principal** | il a plusieurs merges de retard, et c'est depuis CET arbre que se prennent les captures **et** le build |
 | 3 | 🤖 | Build EAS iOS production **1.0.0 (4)** | premier binaire à porter la clé RevenueCat ; celui du 2 août est antérieur. **Ne PAS monter `expo.version`** : ça couperait la ligne OTA vers le build 3 des testeurs |
-| 4 | 🤖 | *Pendant le build* : corriger le gabarit iPhone (`390×844` → `430×932`, soit **1290×2796**), puis `npm run store:assets` **et** `npm run store:assets:ipad` | cf. §7 : les 5 captures sur disque datent du **30 juillet**, donc d'avant six passes de design **et** d'avant la refonte du Profil ; le dossier iPad est **vide** |
+| 4 | 🤖 | ✅ **Gabarit iPhone corrigé et captures REFAITES le 2026-08-10** (`430×932` → sortie mesurée **1290×2796**, feature graphic 1024×500). Reste `npm run store:assets:ipad` | les 5 captures dataient du **30 juillet**, donc d'avant six passes de design **et** d'avant la refonte du Profil ; elles sont désormais prises sur `main` du 10 août. Le dossier iPad est **toujours vide** |
 | 5 | 🧑 | Regarder les 10 captures et dire si elles vendent l'app | le seul jugement que je ne peux pas rendre à ta place |
 | 6 | 🧑 | Formulaires App Store Connect : confidentialité (§4), classification **17+** (§6), fiche FR (§3), note relecteur (§11), et **les captures** | tout est déjà rédigé ci-dessous — c'est du copier-coller, pas de la rédaction |
 | 7 | 🧑 | « Submit for review » | — |
@@ -79,7 +79,7 @@ dans laquelle l'étape 4 se glisse.
 | URL politique de confidentialité (HTTP 200) | ✅ en ligne |
 | Textes de fiche (FR), réponses confidentialité, classification | ✅ ci-dessous (§3–6) |
 | **Comptes développeur Apple + Google** | ⛔ **toi** (§1) |
-| Screenshots (iPhone + iPad 13") + feature graphic | 🔴 **À REGÉNÉRER — re-mesuré sur le disque le 2026-08-09.** `test/store/` : 5 PNG + le feature graphic, tous du **30 juillet 21:59**, donc d'avant **six** passes de design (typo, espacement, finitions, accent sur la barre de macros…). `test/store-ipad/` : **VIDE**, il n'a jamais rien contenu — et ces captures-là sont **requises** depuis que `supportsTablet` est à `true`. ⚠️ Le gabarit iPhone produit du **1170×2532** (un 6.1"), pas une taille qu'App Store Connect accepte : corriger `PHONE` à `430×932` dans `test/store-assets.mjs` → 1290×2796 (§7) |
+| Screenshots (iPhone + iPad 13") + feature graphic | 🟡 **iPhone REFAIT le 2026-08-10, iPad toujours à faire.** `test/store/` : 5 PNG + le feature graphic, regénérés sur `main` du 10 août — sortie **mesurée** à `1290×2796` (et 1024×500 pour le feature graphic), après correction de `PHONE` à `430×932`. *(Ils dataient du 30 juillet 21:59, d'avant six passes de design et d'avant la refonte du Profil.)* 🔴 `test/store-ipad/` : **VIDE**, il n'a jamais rien contenu — et ces captures-là sont **requises** depuis que `supportsTablet` est à `true` : `npm run store:assets:ipad`, serveur allumé |
 | Accès reviewer (code) | ✅ code — toi : poser le secret au build (§9) |
 | **Lancer le build EAS** | ⛔ **toi** (§8) |
 
@@ -594,11 +594,15 @@ l'image du build portant déjà l'icône qui a désigné le vrai coupable — un
 - **Screenshots iPhone 6.7"** (1290×2796) : **min 1, jusqu'à 10**. Montre les écrans
   forts : (1) plan du jour, (2) une recette + macros, (3) liste de courses,
   (4) onboarding/objectif, (5) série.
-  🔴 **LE GÉNÉRATEUR NE SORT PAS CETTE TAILLE — mesuré le 2026-08-09.** `test/store-assets.mjs`
-  déclare `PHONE = { width: 390, height: 844 }` en `×3`, soit **1170×2532** : c'est un 6.1",
-  pas le 6.7" que cette ligne annonce depuis toujours. Correctif : `430×932`, qui rend
-  exactement 1290×2796. ⚠️ Et c'est le troisième défaut de dimension de ce script —
-  cf. le feature graphic sorti à 3072×1500 plus bas. **Vérifier la sortie, jamais la config.**
+  ✅ **CORRIGÉ le 2026-08-10, et la SORTIE est mesurée** : `PHONE` passe à `430×932`, les
+  5 PNG sur disque font **1290×2796**. *(Le générateur déclarait `390×844` en `×3`, soit
+  **1170×2532** — un 6.1", pas le 6.7" que cette ligne annonçait depuis toujours.)*
+  ⚠️ C'était le **troisième** défaut de dimension de ce script — cf. le feature graphic
+  sorti à 3072×1500 plus bas, dont le contexte en ×1 a d'ailleurs tenu bon ici (vérifié :
+  1024×500 après le changement, il ne suit pas le gabarit téléphone).
+  ➡️ **Vérifier la sortie, jamais la config** : c'est la règle qui a produit ce correctif
+  et c'est elle qui l'a validé. Une constante juste ne prouve rien — `sips -g pixelWidth
+  -g pixelHeight` sur les PNG, si.
 - **Screenshots iPad 13"** (2048×2732) : **requis**, `supportsTablet` étant à `true`
   (cf. §2). 🔴 **CETTE LIGNE A ANNONCÉ « ✅ Générés » PENDANT HUIT JOURS — c'est FAUX.**
   Re-mesuré le 2026-08-09 : `test/store-ipad/` ne contient que son `README.txt`, il n'a
@@ -613,7 +617,7 @@ l'image du build portant déjà l'icône qui a désigné le vrai coupable — un
   si l'app tourne aussi en paysage.
 - **Google Play** : min **2 screenshots** téléphone + un **feature graphic 1024×500**
   + l'icône 512×512 (déjà en asset). ✅ **Générés** : `npm run store:assets` →
-  `test/store` (captures **1170×2532**, feature graphic **1024×500**).
+  `test/store` (captures **1290×2796** depuis le 2026-08-10, feature graphic **1024×500**).
   ⚠️ **CORRIGÉ le 2026-08-01, et c'était un rejet assuré** : le feature graphic sortait à
   **3072×1500**, parce que sa page était créée dans le contexte des captures et héritait
   de son `deviceScaleFactor: 3`. Google exige EXACTEMENT 1024×500. Il a désormais son

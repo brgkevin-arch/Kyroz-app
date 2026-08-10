@@ -16,15 +16,21 @@ import { sleep, open, tap, bootToPlan, neutralizeFirstRun, dismissOverlays, DEFA
 const HERE = dirname(fileURLToPath(import.meta.url));
 
 // ── Gabarit de capture ───────────────────────────────────────────────────────
-// 390×844 = iPhone 12/13/14, rendu TÉLÉPHONE garanti.
+// 430×932 = iPhone 15/16 Pro Max, rendu TÉLÉPHONE garanti. En ×3 : 1290×2796,
+// la SEULE taille qu'App Store Connect accepte pour le créneau 6.9".
+// ⚠️ C'était 390×844 (un 6.1") jusqu'au 2026-08-10, donc du 1170×2532 — refusé
+// au dépôt, alors que §7 du playbook annonçait du 6.7" depuis toujours. Troisième
+// défaut de dimension de ce script : la config a l'air juste, seule la SORTIE
+// tranche (cf. le feature graphic sorti à 3072×1500).
 // ⚠️ Le seuil réel est TABLET_MIN_WIDTH = 700 (lib/layout.ts), pas « ~600 px »
 // comme l'annonçait ce commentaire — et avant le 2026-08-01 il n'y avait AUCUN
-// seuil, l'app était en pleine largeur à toute taille.
+// seuil, l'app était en pleine largeur à toute taille. 430 reste donc très en
+// dessous : la mise en page TÉLÉPHONE est bien celle qui est capturée.
 //
 // `--ipad` produit le gabarit exigé par Apple pour un binaire iPad : 2048×2732,
 // soit l'iPad Pro 13" (1024×1366 pt) en ×2.
 const IPAD = process.argv.includes('--ipad');
-const PHONE = { width: 390, height: 844 };
+const PHONE = { width: 430, height: 932 };
 const TABLET = { width: 1024, height: 1366 };
 const VIEWPORT = IPAD ? TABLET : PHONE;
 const SCALE = IPAD ? 2 : 3;
