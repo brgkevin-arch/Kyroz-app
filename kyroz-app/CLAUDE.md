@@ -1502,6 +1502,44 @@ vérifié par mutation.
 porte les 8 qui ne se déduisent d'aucune palette. Une règle absente du miroir sera
 enfreinte par la prochaine maquette.
 
+### Le Profil ne porte que TOI et TON PLAN (2026-08-10)
+
+Décision fondateur. L'écran empilait poids, série, cartes de sécurité, cibles, TDEE,
+**11 lignes de menu**, **6 interrupteurs système**, **5 lignes de bas de page**,
+déconnexion et suppression de compte — « Couleur d'accent » à trois doigts de
+« Supprimer mon compte ».
+
+**La règle de rangement, et elle se pose en une question** : *ce réglage change-t-il
+ce que Kyroz me SERT ?* Si oui il reste sur le Profil (corps, sport, objectif, macros,
+préférences, repas, banque, variété). Si non, il vit derrière la **roue dentée** —
+`components/ReglagesSheet.tsx`, cinq groupes : Notifications · Affichage · Aide et
+retours · Confidentialité · Compte.
+
+- ℹ️ **Kyroz+ reste sur le Profil** : il débloque l'objectif daté et la banque de
+  calories, tous deux juste au-dessus. Derrière une roue, il devient invisible le jour
+  où il doit se vendre.
+- ⚠️ **Le disclaimer §6 suit dans la feuille.** §6 impose « onboarding, **paramètres**,
+  chaque plan » : la feuille EST les paramètres, donc la règle est tenue là — pas
+  contournée en le retirant du Profil.
+
+🔴 **DÉPLACER UN BLOC DANS UNE FEUILLE N'EST PAS UN DÉMÉNAGEMENT NEUTRE**, et les trois
+pièges valent au-delà de cet écran :
+1. **Une étape de visite guidée dont la cible n'est pas MONTÉE est écartée en silence.**
+   Le tour se joue plus court en ayant l'air complet. Invariant désormais compté
+   (`visiteGuidee.test.ts`) : *une cible vit dans l'écran qui LANCE son tour.*
+2. **Une ROUTE poussée depuis une modale ouverte naît SOUS elle.** Fermer la feuille
+   avant de naviguer (`versRoute`). Même famille que l'empilement de deux feuilles.
+3. **Un hook déplacé dans un composant monté à la demande perd l'effet de bord attaché
+   à son montage** — c'est E24 exactement. Se demander « qu'est-ce qui se PRODUISAIT au
+   montage, et qui le déclenche maintenant ? », jamais « est-ce que ça s'affiche ? ».
+
+**Le canal de retour** (`app/avis.tsx`, `lib/feedback.ts`) part par **e-mail pré-rempli**,
+pas en base : une table aurait coûté les six surfaces de §3, dont deux relues par Apple.
+⚠️ Ce qui est joint au message (version + plateforme) est **affiché mot pour mot** à
+l'écran, **depuis la même fonction que ce qui part** — deux listes divergeraient, et la
+première à mentir serait celle qu'on montre. Rien du corps ni des données de santé n'y
+entre, et c'est une décision, pas un oubli.
+
 ### Largeurs — téléphone ET tablette (depuis le 2026-08-01)
 
 L'app est livrée pour iPad (`ios.supportsTablet: true`). **Tout écran passe par
