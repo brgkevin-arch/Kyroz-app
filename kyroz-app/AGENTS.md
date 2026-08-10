@@ -2279,7 +2279,11 @@ produit en suspens — il ne reste qu'à coder.
   (compte payé, site validé, fiche créée) · **visuels générés** (`npm run store:assets` :
   5 captures + feature graphic)
   ⚠️ **CORRIGÉ le 2026-08-01 — « aux specs » était FAUX, et sur les deux chiffres.**
-  Les captures font **1170×2532** (390×844 en ×3), pas 1424×2532. Surtout, le feature
+  Les captures faisaient **1170×2532** (390×844 en ×3), pas 1424×2532. *(Et ce 1170×2532
+  était lui-même hors specs — un 6.1" qu'App Store Connect refuse : `PHONE` est passé à
+  `430×932` le **2026-08-10**, sortie mesurée **1290×2796**. Donc **deux** rectifications
+  successives sur le même chiffre, chacune se croyant finale — cf. STORE-RELEASE §7.)*
+  Surtout, le feature
   graphic sortait à **3072×1500** et non 1024×500 : sa page était créée dans le contexte
   des captures, donc elle héritait de son `deviceScaleFactor: 3`. Google exige
   EXACTEMENT 1024×500 — le visuel livré aurait été refusé. Il a désormais son propre
