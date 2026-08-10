@@ -3579,6 +3579,56 @@ produit en suspens — il ne reste qu'à coder.
 
 ### 🧹 E — Dette technique
 
+- ~~**E28 · Un objectif à douze mois ne renforçait rien pendant douze mois — les paliers**~~
+  ✅ **LIVRÉ le 2026-08-10.** Aucun `ENGINE_REV` : **pas une calorie ne bouge.**
+
+  Au-delà de 15 kg d'écart **ou** de 6 mois de trajectoire, la carte d'objectif met en
+  avant l'étape suivante (~9 kg) au lieu de la cible lointaine, avec sa date et sa
+  jauge. `lib/goalMilestones.ts` — module PUR, sans import d'écran, comme `goalLadder`.
+
+  🔴 **C'EST UNE VUE, ET C'EST TOUTE LA DÉCISION DU CHANTIER.** Le geste évident est de
+  poser le palier dans `goal_target` : le moteur piloterait vers lui, la date serait
+  proche, tout serait cohérent. `npm run mesure:paliers` dit que c'est un piège, et il
+  ne se voit **que sur les gros écarts** — donc précisément sur la population visée :
+
+  | corps | écart | objectif final | palier | delta |
+  |---|---|---|---|---|
+  | H 105 → 85 | 20 kg | 2006 kcal | 2006 | **0** |
+  | F 95 → 78 | 17 kg | 1607 kcal | 1607 | **0** |
+  | H 123 → 85 | 38 kg | 2045 kcal | 2291 | **+246** |
+  | F 120 → 80 | 40 kg | 1751 kcal | 1968 | **+217** |
+
+  Sur 38 kg le rythme servi tomberait de **0,60 à 0,40 kg/sem**. Cause : une date proche
+  redevient « tenable » au calcul EN LIGNE DROITE (`diff / weeksRemaining`), donc A15
+  cesse de servir le rythme sûr maximal et retombe sur le « juste requis » — qui
+  sous-estime, l'arrivée étant SIMULÉE. **Le défaut A15 réintroduit par la porte de
+  derrière.** Un panel de gabarits ordinaires aurait rendu 0 partout et validé le piège.
+
+  🔴 **LA MESURE ELLE-MÊME S'EST TROMPÉE DEUX FOIS, et les deux dans le sens rassurant :**
+  1. datée à 4 ans « pour éviter le régime A15 », elle rendait un écart de 21 kcal — sauf
+     qu'à 4 ans, 38 kg ne demandent que 0,18 kg/sem : les deux objectifs comparés étaient
+     également mous et l'écart n'était qu'un arrondi de date. **Éviter un régime, c'est en
+     choisir un autre** ;
+  2. le garde `maxRateApplied` écartait **5 corps sur 5**. Ce drapeau ne se lève que quand
+     le moteur BASCULE d'un rythme requis trop mou vers le maximum ; avec une date
+     agressive le maximum est servi par le chemin ORDINAIRE, donc rien à basculer. Le bon
+     témoin du régime est `clamped`.
+  ➡️ *Une mesure qui rend « aucun écart » mérite qu'on vérifie qu'elle regarde le bon
+  régime — et une qui ne rend AUCUNE ligne mérite qu'on soupçonne son garde, pas la donnée.*
+
+  ⚠️ **Les dates de palier sont lues sur la trajectoire SIMULÉE**, jamais interpolées :
+  la ligne droite est ce que §10 interdit nommément. Les intervalles s'allongent donc
+  d'eux-mêmes (dépense qui baisse, pause toutes les 9 semaines). **Vérifié par mutation** :
+  remplacer les dates par une interpolation linéaire fait rougir le test.
+  ⚠️ **Le palier courant se LIT du poids actuel** — franchi puis reperdu, il redevient
+  courant. Le stocker serait la « copie que personne ne relit » de §10.
+  ⚠️ **La cible finale reste affichée** : la masquer, comme le proposait le brief,
+  déciderait à la place de la personne ce qu'elle a le droit de savoir de son objectif.
+
+  ✅ Garde-fous : `lib/__tests__/goalMilestones.test.ts` (14 tests), dont l'invariant
+  « découper ne déplace aucune calorie » — celui qui empêchera la prochaine session de
+  « simplifier » en posant le palier dans `goal_target`.
+
 - ~~**E27 · Rien ne sortait plus personne d'une sèche — la pause à la maintenance**~~
   ✅ **LIVRÉ le 2026-08-10** (décision fondateur, même `ENGINE_REV` 7 qu'E26).
   🔴 **MIGRATION À JOUER** : `supabase/migrations/2026-08-10_profiles_deficit_weeks.sql`.

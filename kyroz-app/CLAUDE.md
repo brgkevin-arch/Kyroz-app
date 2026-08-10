@@ -1009,6 +1009,43 @@ composant. Audit complet des réglages : `npm run mesure:reglages`.
   des calories en lipides ; son curseur est plafonné à 75 % de glucides et
   `carb_ratio` est **clampé à la lecture** (une borne d'écran ne migre aucun compte
   déjà enregistré).
+> **Les gros objectifs se découpent en PALIERS — et c'est une VUE** (2026-08-10,
+> `lib/goalMilestones.ts`). Au-delà de 15 kg d'écart **ou** de 6 mois de trajectoire,
+> la carte d'objectif met en avant l'étape suivante (~9 kg) au lieu de la cible
+> lointaine : un objectif à douze mois ne renforce rien pendant douze mois.
+>
+> 🔴 **`goal_target` N'EST JAMAIS REMPLACÉ PAR LE PALIER, et c'est mesuré** — c'est la
+> décision de tout le chantier. Faire du palier la vraie cible est le geste évident, et
+> `npm run mesure:paliers` dit que c'est un piège, visible seulement sur les GROS écarts
+> (donc précisément la population visée) :
+>
+> | corps | écart | objectif final | palier | delta |
+> |---|---|---|---|---|
+> | H 105 → 85 | 20 kg | 2006 kcal | 2006 | **0** |
+> | H 123 → 85 | 38 kg | 2045 kcal | 2291 | **+246** |
+> | F 120 → 80 | 40 kg | 1751 kcal | 1968 | **+217** |
+>
+> Sur 38 kg, le palier ferait tomber le rythme servi de **0,60 à 0,40 kg/semaine** : une
+> date proche redevient « tenable » AU CALCUL EN LIGNE DROITE (`diff / weeksRemaining`),
+> donc A15 cesse de servir le rythme sûr maximal et retombe sur le rythme « juste
+> requis » — qui sous-estime, puisque l'arrivée est SIMULÉE. **Le défaut A15 réintroduit
+> par la porte de derrière**, sur ceux qui ont le plus à perdre.
+>
+> ⚠️ **Les dates de palier sont lues sur la trajectoire simulée**, jamais interpolées :
+> une ligne droite est exactement ce que §10 interdit (elle annonce « en retard » à qui
+> suit le plan à la lettre). Les intervalles s'allongent donc naturellement — la dépense
+> baisse avec le poids, et une pause tombe toutes les 9 semaines. Vérifié par mutation.
+>
+> ⚠️ **Le palier courant se LIT du poids actuel, il ne se stocke pas** : un palier
+> franchi puis reperdu redevient le palier courant. Une copie stockée serait la « seconde
+> source de vérité » de §10, désynchronisée au premier écart de balance.
+>
+> ⚠️ **La cible finale reste affichée** sous le palier. La masquer (comme le proposait le
+> brief) reviendrait à décider à la place de la personne ce qu'elle a le droit de savoir
+> sur son propre objectif.
+>
+> ➡️ Contrôle : `npm run mesure:paliers`. Garde-fou : `lib/__tests__/goalMilestones.test.ts`.
+
 - **Sèche prolongée sans pause** — `lib/safety.ts::dietBreakDue`, registre
   `profiles.deficit_weeks` (**migration 2026-08-10_profiles_deficit_weeks.sql**).
   Après **8 semaines de déficit d'affilée, la 9ᵉ est servie à la MAINTENANCE.**
