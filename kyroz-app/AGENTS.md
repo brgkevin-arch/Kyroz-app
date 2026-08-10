@@ -83,13 +83,13 @@ qu'ils étaient périmés.
 | `ENGINE_REV` | **7** (avertissement one-shot à l'utilisateur) — E30, **DEUX causes** : (a) les planchers dérivés de la masse maigre (BMR + énergie disponible) se retirent au-delà de 30 %/40 % de MG, le cap 25 % du TDEE prend le relais ; (b) `bulk` refermé sur `lean_bulk`. ⚠️ **Première révision à porter deux causes** → `EngineNotice.cause` existe pour que l'écran ne serve pas à l'une l'explication de l'autre *(6 = E23, la provenance du %MG décide de Katch ; 5 = A15, l'objectif daté hors de portée sert le rythme sûr MAXIMAL)* | `lib/tdee.ts` |
 | Objectif daté | la date affichée est un **POINT FIXE** : l'adopter ne la déplace plus (3 corps sur 8 glissaient de +96 j avant A15) | `npm run mesure:objectif` |
 | Échéance de l'objectif daté | 🔴 **C'est une DATE, plus une durée** (A28, 2026-08-07, décision fondateur) : la rangée de 5 puces est **RETIRÉE**, on saisit jour/mois/année, et l'écran donne une **ESTIMATION** — « la première date que Kyroz peut tenir », + « Viser cette date » en un tap. Refus de la date passée et de l'au-delà de 5 ans (au-delà, le moteur creuse au MAXIMUM : −55 → −418 kcal/j sur `F 78 → 65`). ⚠️ L'estimation vient de la **marche 1 de `deadlineLadder`**, PAS de `status.projectedDate` — les deux diffèrent de **12 à 100 jours** et la seconde suppose une échéance qui expire. ⚠️ **`deadlineLadder` (A27) tourne donc toujours** : estimation + date pré-remplie (2ᵉ marche) — **ne pas le supprimer comme du code mort**. Ses invariants restent mesurés : **40/40 tenables**, **40/40 servant un plan distinct**, contre 10/40 et 14/40 avec les 5 durées figées d'avant A27 | `npm run mesure:objectif` |
-| Tests | **1 378 verts**, 83 fichiers · `tsc` propre — **mesuré le 2026-08-10 sur la branche E33/E34 REBASÉE sur `origin/main` (`bf5ecac`), donc après le merge de #74 ; sur `main` seul : 1 367 / 82.** Nouveau fichier : `profilSection.test.ts` (11 cas, 9 mutations — le rangement de l'onglet Profil). ⚠️ Re-mesuré TROIS fois dans la même session (1 340 → 1 345 → 1 378) : chaque valeur était juste sur sa base et fausse au rebase suivant. |
+| Tests | **1 378 verts**, 83 fichiers — *vérifié le 2026-08-10 sur `main` fusionné après #75/#80 : le chiffre est JUSTE.* 🔴 **CINQUIÈME dérive le même jour, et elle apporte une nuance que les quatre précédentes n'avaient pas** : une PR ouverte pour corriger ce compteur (#81, `1 367 / 82`) a été **fermée sans merger** parce qu'elle était devenue fausse ENTRE son ouverture et son merge — deux PR avaient fusionné entre-temps. ➡️ « Mesurer sur `main` fusionné » ne suffit donc pas : il faut mesurer **AU MOMENT DU MERGE**, pas à l'ouverture de la PR. Et une PR qui ne porte QUE ce compteur est structurellement condamnée à périmer — le mettre à jour dans la PR de contenu, au dernier commit avant le merge · `tsc` propre — **mesuré le 2026-08-10 sur la branche E33/E34 REBASÉE sur `origin/main` (`bf5ecac`), donc après le merge de #74 ; sur `main` seul : 1 367 / 82.** Nouveau fichier : `profilSection.test.ts` (11 cas, 9 mutations — le rangement de l'onglet Profil). ⚠️ Re-mesuré TROIS fois dans la même session (1 340 → 1 345 → 1 378) : chaque valeur était juste sur sa base et fausse au rebase suivant. |
 | Design | **7 passes livrées** — la 7ᵉ est la **refonte du Profil du 2026-08-10** (E25) : la moitié de l'écran passe derrière une roue dentée, 1 848 → 1 718 lignes, et un écran « Donner mon avis » apparaît. *(Les six précédentes :)* **6 passes** — 5 onglets refaits (2026-08-03) · rayons (2026-08-03) · repli du grand titre (2026-08-04) · échelle typo, 333 sites (2026-08-05) · espacement + cibles tactiles 44 pt, 537 sites (2026-08-06) · finitions trait/icône/retour au toucher (2026-08-06) · **écran Plan allégé + accent étendu à la barre de macros (2026-08-06)**. **Design system poussé vers Claude Design** — 6 pages GÉNÉRÉES depuis `theme.ts` (`npm run design:build`), jamais écrites à la main. Maquette de référence : `mockups/kyroz-mockup.html` — **versionnée depuis le 2026-08-06**, à la RACINE du dépôt, hors du dossier `kyroz-app/`. *(La formulation d'avant, « hors dépôt app », se lisait « hors versionnement » : le fichier est resté 3 jours sur une seule machine tout en étant cité ici comme référence.)* ⚠️ Ni le rayon, ni la taille de texte, ni l'espacement ne se relisent — ils se **mesurent** | `npm test -- rayonsDA typoDA espacementDA finitionsDA` · `getComputedStyle` dans le panneau, cf. `docs/comparer-maquette.md` |
 | Plateformes | iPhone **+ iPad** (`supportsTablet: true` depuis le 2026-08-01). ⚠️ **portrait sur iPhone, MAIS les 4 orientations sur iPad** — Expo les force dès `supportsTablet`, le multitâche iPadOS l'impose, ce n'est pas refermable. Vérifié en natif (iPad Pro 13") et à 1366×1024 | `ios/Kyroz/Info.plist` généré, PAS `app.json` · `lib/layout.ts` |
 | Sortie stores | iOS **1.0.0 (3)** en TestFlight, **revue bêta APPROUVÉE le 2026-08-03** — donc acquise : builds et testeurs suivants passent sans repasser par Apple. 2 testeurs `INSTALLED` (1 interne, 1 externe) · Android : 2 builds, rien de soumis. ⚠️ Ce build **reçoit les OTA** (voir ligne ci-dessous) : il ne porte donc plus le JS de son commit d'origine. La déclaration `ITSAppUsesNonExemptEncryption` est enfin **committée** (elle n'a vécu que sur une machine du 2026-08-02 au 2026-08-06) | `npx eas-cli build:list` · `TESTFLIGHT.md` |
 | Kyroz+ | **encaissement armé, verrou inerte.** Clé RevenueCat posée dans EAS et vérifiée dans le bundle ; `PAYWALL_LAUNCH` = `null`, donc **tout est gratuit pour tout le monde**. ⚠️ Le build TestFlight actuel est ANTÉRIEUR à la clé | `lib/premium.ts` · `npx eas-cli env:list production` |
 | Clés du build/OTA | **une seule source : les variables EAS.** `eas.json` ne porte plus aucune clé, chaque profil déclare son `environment`. ⚠️ **`eas update --clear-cache`** — le cache Metro ignore un changement de valeur `EXPO_PUBLIC_*` | `npx eas-cli config --profile production --platform ios` · `lib/__tests__/easEnv.test.ts` |
-| OTA publiées | **7** — la dernière est celle d'**E24** (« le rappel quotidien se re-arme au demarrage »), publiée le **2026-08-09 vers 14 h**, et cette ligne annonçait encore 6. ⚠️ **RIEN N'A ÉTÉ PUBLIÉ DEPUIS**, alors que `main` a reçu sept PR dans la nuit : le web sert la passe émoji et la refonte du Profil, **les testeurs sur le build 3 ne les ont pas**. Écart assumé — le build 1.0.0 (4) les portera. *(Historique : la branche `production` était vide avant)* : `28dce9c7` (gestes des feuilles) · `98d5217a` (défilement ↔ fermeture) · `93fad600` (provenance du %MG + refonte design sans émoji, commit `7baa943`) — les trois du **2026-08-06** — puis **`3afe091f`** le **2026-08-07 vers 01 h 45** (budget du jour ↔ dépense du jour, feuille qui ne se fermait plus, passe design du 5 août ; commit `fcebfcf`, iOS + Android). puis **`9d625d00`** le **2026-08-07** (seuil 35/43 de la question de provenance + contrôles de mesure recalés ; commit `751dd86`, iOS + Android). puis **`3dd045fe`** le **2026-08-08** — la plus grosse à ce jour, **12 commits** : courses terminées + historique des listes, repas paramétrables, tuto 5 tours, rappel à l'heure libre, objectif daté à la date (commit `9bac59a`, iOS + Android). Runtime `1.0.0` → atteignent le build TestFlight **3**. ✅ **L'écart web/natif du 2026-08-07 est RÉSOLU** — il a duré ~14 h. La 4ᵉ OTA portait `fcebfcf`, donc pas le seuil 35/43 arrivé en `f4e9c6c` : le web posait la question de provenance au-delà de 35 %/43 %, l'app native sur toute saisie manuelle. La 5ᵉ OTA (`9d625d00`, commit `751dd86`) les a réalignés. ⚠️ **Cet écart naît à chaque fois qu'on déploie le web sans publier d'OTA** — les deux surfaces ne sont pas solidaires, et rien ne le signale. Le vérifier fait partie d'une livraison. 🔴 **UNE OTA SE PUBLIE DEPUIS `main`, JAMAIS DEPUIS LA BRANCHE QU'ON VIENT DE MERGER** — évité de justesse le 2026-08-08. `eas update` empaquette **l'arbre de travail**, pas ce qui est sur GitHub : la branche `courses-terminees-historique`, mergée cinq minutes plus tôt, était déjà en retard de **trois PR** (créneaux de repas, tuto, objectif daté). Publier depuis elle aurait RETIRÉ ces trois chantiers de l'app des testeurs, en quelques minutes, sans revue pour l'arrêter — une régression que rien dans la sortie de la commande n'aurait signalée, puisque le build aurait été parfaitement vert. ➡️ Se remettre sur `main` (`git checkout main && git merge --ff-only origin/main`), vérifier `HEAD == origin/main`, et **réinstaller les dépendances sur CET arbre** (`npm ci`) : un `node_modules` lié vers un autre worktree fait résoudre l'entrée par ce worktree-là (mesuré dans le panneau : `../../<autre-worktree>/node_modules/expo-router/entry.js`) — tolérable pour un aperçu, pas pour ce qu'on envoie à tout le monde. ⚠️ **Et écarter `.env.local` avant la mesure préalable**, sinon elle prouve que le fichier local marche, pas que les variables EAS alimentent le bundle. ⚠️ **`--environment production` est OBLIGATOIRE** (SDK 55+) : sans lui les variables serveur ne sont pas chargées et le bundle part **sans URL Supabase**. ⚠️ Mesurer le bundle AVANT de clore (`strings -a` sur le `.hbc` de `dist/`) : attendu **1 / 1 / 0** (URL Supabase, `sb_publishable_`, `sk-ant-`). ➡️ **Et mesurer AVANT de publier, pas seulement après** : `eas-cli env:exec production 'npx expo export …'` rend le même bundle sans rien envoyer. Une OTA atteint tout le monde en minutes sans revue — la vérifier après coup, c'est la vérifier trop tard. Ajouter au relevé une chaîne du chantier en cours (ici `body_fat_source` → **1**) : trois zéros attendus se lisent comme un succès même quand `strings` ne trouve plus rien du tout. 🔴 **Et ce témoin doit être ASCII PUR** — mesuré le 2026-08-06 : `strings` ne rend AUCUNE chaîne contenant un accent ou un `·`, donc presque aucun texte d'interface français. « Jour de repos · … » rend 0 tout en étant dans le bundle. Prendre un identifiant (`baseDayTargets`, `rest_weekdays`), jamais une phrase accentuée | `npx eas-cli channel:view production` |
+| OTA publiées | **7** — la dernière est celle d'**E24** (« le rappel quotidien se re-arme au demarrage »), publiée le **2026-08-09 vers 14 h**, et cette ligne annonçait encore 6. 🔴 **RIEN N'A ÉTÉ PUBLIÉ DEPUIS, ET L'ÉCART A CHANGÉ DE NATURE le 2026-08-10** : `main` porte désormais **`ENGINE_REV` 7** (#74 — planchers retirés à forte adiposité, pause à la maintenance, `bulk` refermé). Jusqu'ici l'écart web/natif était **cosmétique** (passe émoji, refonte du Profil) ; il est maintenant **CALORIQUE** — le web sert des cibles que le natif ne sert pas, et l'avertissement one-shot qui les explique n'est parti que sur le web. Un testeur qui compare son téléphone au site voit deux plans différents pour le même profil, sans qu'aucun écran ne le dise. ⚠️ Et la **migration `deficit_weeks` est JOUÉE en base** : les profils synchronisés depuis le web écrivent déjà une colonne que le binaire des testeurs ne lit pas. Inoffensif (le champ est ignoré), mais c'est la seconde moitié du même décalage. Écart assumé — le build 1.0.0 (4) les portera. *(Historique : la branche `production` était vide avant)* : `28dce9c7` (gestes des feuilles) · `98d5217a` (défilement ↔ fermeture) · `93fad600` (provenance du %MG + refonte design sans émoji, commit `7baa943`) — les trois du **2026-08-06** — puis **`3afe091f`** le **2026-08-07 vers 01 h 45** (budget du jour ↔ dépense du jour, feuille qui ne se fermait plus, passe design du 5 août ; commit `fcebfcf`, iOS + Android). puis **`9d625d00`** le **2026-08-07** (seuil 35/43 de la question de provenance + contrôles de mesure recalés ; commit `751dd86`, iOS + Android). puis **`3dd045fe`** le **2026-08-08** — la plus grosse à ce jour, **12 commits** : courses terminées + historique des listes, repas paramétrables, tuto 5 tours, rappel à l'heure libre, objectif daté à la date (commit `9bac59a`, iOS + Android). Runtime `1.0.0` → atteignent le build TestFlight **3**. ✅ **L'écart web/natif du 2026-08-07 est RÉSOLU** — il a duré ~14 h. La 4ᵉ OTA portait `fcebfcf`, donc pas le seuil 35/43 arrivé en `f4e9c6c` : le web posait la question de provenance au-delà de 35 %/43 %, l'app native sur toute saisie manuelle. La 5ᵉ OTA (`9d625d00`, commit `751dd86`) les a réalignés. ⚠️ **Cet écart naît à chaque fois qu'on déploie le web sans publier d'OTA** — les deux surfaces ne sont pas solidaires, et rien ne le signale. Le vérifier fait partie d'une livraison. 🔴 **UNE OTA SE PUBLIE DEPUIS `main`, JAMAIS DEPUIS LA BRANCHE QU'ON VIENT DE MERGER** — évité de justesse le 2026-08-08. `eas update` empaquette **l'arbre de travail**, pas ce qui est sur GitHub : la branche `courses-terminees-historique`, mergée cinq minutes plus tôt, était déjà en retard de **trois PR** (créneaux de repas, tuto, objectif daté). Publier depuis elle aurait RETIRÉ ces trois chantiers de l'app des testeurs, en quelques minutes, sans revue pour l'arrêter — une régression que rien dans la sortie de la commande n'aurait signalée, puisque le build aurait été parfaitement vert. ➡️ Se remettre sur `main` (`git checkout main && git merge --ff-only origin/main`), vérifier `HEAD == origin/main`, et **réinstaller les dépendances sur CET arbre** (`npm ci`) : un `node_modules` lié vers un autre worktree fait résoudre l'entrée par ce worktree-là (mesuré dans le panneau : `../../<autre-worktree>/node_modules/expo-router/entry.js`) — tolérable pour un aperçu, pas pour ce qu'on envoie à tout le monde. ⚠️ **Et écarter `.env.local` avant la mesure préalable**, sinon elle prouve que le fichier local marche, pas que les variables EAS alimentent le bundle. ⚠️ **`--environment production` est OBLIGATOIRE** (SDK 55+) : sans lui les variables serveur ne sont pas chargées et le bundle part **sans URL Supabase**. ⚠️ Mesurer le bundle AVANT de clore (`strings -a` sur le `.hbc` de `dist/`) : attendu **1 / 1 / 0** (URL Supabase, `sb_publishable_`, `sk-ant-`). ➡️ **Et mesurer AVANT de publier, pas seulement après** : `eas-cli env:exec production 'npx expo export …'` rend le même bundle sans rien envoyer. Une OTA atteint tout le monde en minutes sans revue — la vérifier après coup, c'est la vérifier trop tard. Ajouter au relevé une chaîne du chantier en cours (ici `body_fat_source` → **1**) : trois zéros attendus se lisent comme un succès même quand `strings` ne trouve plus rien du tout. 🔴 **Et ce témoin doit être ASCII PUR** — mesuré le 2026-08-06 : `strings` ne rend AUCUNE chaîne contenant un accent ou un `·`, donc presque aucun texte d'interface français. « Jour de repos · … » rend 0 tout en étant dans le bundle. Prendre un identifiant (`baseDayTargets`, `rest_weekdays`), jamais une phrase accentuée | `npx eas-cli channel:view production` |
 | Ce qui traîne (tous worktrees) | **Relevé du 2026-08-08 : 2 modifications en cours** (`AGENTS.md` + `CLAUDE.md` dans le dépôt principal, branche `docs/e17-emojis-restants`, 20 h) — aucune au-delà de 24 h. ⚠️ `git status` dans un worktree ne montre QUE ce worktree : un fichier a dormi **4 jours** dans le principal sans que personne puisse le voir. Le contrôle parcourt TOUS les arbres et échoue au-delà de 24 h | `npm run check:suspens` |
 | Site déployé | **automatique** : GitHub Actions à chaque push `main` (`build_type: workflow`). Routes **pré-rendues** (`web.output: "static"`, E7) → un lien direct répond 200. ⚠️ Le pré-rendu tourne dans **Node** : un module qui touche `window` au chargement casse le déploiement (CLAUDE.md §11). ⚠️ **NE PAS lire `origin/gh-pages`** — branche morte, cf. A12 | `gh run list --workflow=deploy.yml` |
 | Auth — **ne pas y toucher** | 🔴 **CHANTIER DU FONDATEUR, dit le 2026-08-08.** Mesuré le même jour (`npm run check:auth`) : provider e-mail **ouvert** · création de compte **ouverte** · connexion invité (anonyme) **ouverte** · **confirmation e-mail DÉSACTIVÉE** (`mailer_autoconfirm: true`). ⚠️ **Ce « désactivée » n'est PAS une anomalie à corriger** — le code est en ligne (A29, PR #41 déployée), et la procédure impose *l'app d'abord, l'expéditeur ensuite, l'interrupteur en dernier*. Le fondateur pilote les étapes 2 et 3 lui-même. ➡️ **Ne pas relancer ce sujet, ne pas toucher à `claude/supabase-confirmation-email-c6b816`.** Le mot de passe oublié (A30) est livré et déployé ; il ne lui manque que son gabarit d'e-mail | `npm run check:auth` |
@@ -3583,6 +3583,21 @@ produit en suspens — il ne reste qu'à coder.
 
 ### 🧹 E — Dette technique
 
+> 🔴 **LE NUMÉRO SE CHOISIT EN REGARDANT `main` *ET* LES BRANCHES OUVERTES** — le
+> 2026-08-10, cette liste a été **renumérotée TROIS fois dans la même journée**. Trois
+> sessions parallèles ont pris E26 en même temps : le consentement analytics (#77, mergé
+> en premier, garde son numéro), le plancher d'adiposité (#74 → E30–E32), le rangement du
+> Profil (#75 → E33–E34). La #78 avait bien vu le problème et sauté à E29 ; les autres
+> non.
+>
+> ⚠️ **Le chantier DÉJÀ MERGÉ garde son numéro.** Renuméroter de l'histoire déjà partie
+> est pire que la collision — les commits, les PR et les autres fiches la citent.
+> ⚠️ **Et une série qui se cite se déplace EN BLOC** : décaler le seul numéro qui
+> collisionne met la fondation *après* ce qui en découle.
+> ⚠️ **Le conflit git qui en résulte n'est PAS un conflit de numéros** : les deux
+> branches insèrent en tête de cette section, donc git ne sait pas dans quel ordre. La
+> résolution est de garder les DEUX blocs, en ordre décroissant — jamais d'en choisir un.
+
 - ~~**E34 · Le rangement du Profil — lot 1**~~ ✅ **LIVRÉ le 2026-08-10.**
   ⚠️ **NUMÉROS : E33 et E34, après TROIS renumérotations le même jour.** Ce lot est né
   « E26 », puis « E27/E28 », puis « E30/E31 » — les trois fois faux. `main` a mergé E26
@@ -3685,6 +3700,70 @@ produit en suspens — il ne reste qu'à coder.
   « Profil = tableau de bord pur, tous les réglages derrière la roue » redevient la bonne
   réponse. Elle est écartée aujourd'hui parce qu'elle casse 4 bulles sur 6 et fait passer la
   feuille de 13 à 24 contrôles.
+
+- ~~**E33 · Ce que la refonte du Profil avait laissé derrière elle**~~ ✅ **LIVRÉ le
+  2026-08-10.** *Demande du fondateur, le même jour : « continuons d'améliorer la
+  section profil ».*
+  ⚠️ *Numéro pris sur une branche : le vérifier contre `main` au moment de fusionner.*
+
+  **Quatre défauts, tous trouvés À L'ÉCRAN** (profil seedé dans le panneau web : H 30 ans,
+  83 kg, 18 % MG, sèche, 3 × 60 min, 4 pesées) **et aucun en relisant le code.** Ils ont
+  ceci en commun : chaque morceau était juste isolément, c'est l'ASSEMBLAGE qui ne l'était
+  plus — la signature d'une refonte qui déplace des blocs sans relire ce qui les nommait.
+
+  🔴 **1 — « Réglages » désignait DEUX endroits sur le même écran.** La roue dentée
+  (`accessibilityLabel="Réglages"`) ouvre une feuille intitulée « Réglages » ; le milieu de
+  l'écran portait un `SectionTitle` « Réglages ». Depuis E25 les deux ensembles sont
+  **disjoints** — là-bas notifications / affichage / confidentialité / compte, ici ce qui
+  pilote le moteur. « Va dans les réglages » ne désignait donc plus rien. Le commit d'E25
+  nommait déjà les deux blocs **« Toi / Ton plan »** : c'est le CODE qui était resté sur
+  l'ancien nom, pas la décision.
+  ➡️ « TOI » est désormais un `SectionLabel`, comme « TON PLAN ». Avant, l'un était un
+  `SectionTitle` (« découpe l'écran ») et l'autre un `SectionLabel` (« étiquette un
+  bloc ») : le premier bloc n'avait **aucune étiquette à lui**, il empruntait celle du
+  chapitre — deux blocs frères à deux hauteurs différentes.
+
+  🟠 **2 — Deux lignes voisines poussaient la même route, et l'une promettait un mail.**
+  `Donner mon avis` → `/avis`, et juste dessous `Aide & contact · contact@kyroz.app` →
+  `/avis` **aussi**. E25 avait donné à l'ancienne ligne le `onPress` de la nouvelle en lui
+  laissant l'adresse comme VALEUR : elle affichait une action qu'elle ne faisait pas.
+  Retirée — `/avis` montre l'adresse lui-même en repli quand aucun client mail ne répond.
+  ➡️ **Et le mort-vivant symétrique dormait dans `profil.tsx`** : `contactSupport`, sa
+  constante `SUPPORT_EMAIL` en dur et l'import `Linking` n'étaient plus appelés par
+  personne depuis E25. Une adresse recopiée à côté de `lib/feedback.ts::SUPPORT_EMAIL`,
+  c'est la première des deux qui ment le jour où elle change.
+
+  🟡 **3 — Le TDEE était à ~900 px de la cible qu'il explique.** « Tes cibles · 2 293 kcal »
+  en haut, « Dépense estimée · maintenance · 2 593 kcal » tout en bas, **après les onze
+  lignes de menu**. C'est pourtant la seule ligne de l'écran qui réponde à « pourquoi
+  2 293 ? ». Remonté juste sous les quatre boîtes (après leurs notes, qui les annotent).
+
+  🟡 **4 — Le surtitre ne disait rien de neuf.** « Homme · 30 ans · Sèche » était **mot pour
+  mot** ce que `Informations` et `Objectif` redisent 600 px plus bas. Il porte maintenant le
+  **prénom** — la seule chose de cet écran qui ne soit écrite nulle part ailleurs. Pas de
+  prénom (compte antérieur à la question) → pas de ligne, plutôt qu'un remplissage.
+
+  ➡️ **LE PIÈGE ÉTAIT DANS LA CORRECTION, PAS DANS LE DÉFAUT.** L'ordre des étapes de la
+  visite guidée suit l'écran de haut en bas, et chaque bulle **fait défiler** jusqu'à sa
+  cible. `profil-tdee` était en avant-dernier — correct tant que le bloc vivait en bas.
+  Le remonter sans remonter l'étape aurait fait descendre l'écran jusqu'en bas, puis
+  remonter, puis redescendre : un va-et-vient qui se lit comme un bug, **introduit par un
+  correctif de lisibilité**. Mesuré après coup au panneau, défilement à chaque bulle :
+  **0 → 365 → 556 → 702 → 1045 px**, puis retour à 0 pour la roue, qui est en haut et où le
+  tour se termine. ➡️ **Déplacer un élément du Profil, c'est aussi relire `lib/tours.ts`.**
+
+  🔒 **Garde-fou : `lib/__tests__/profilSection.test.ts`** (8 cas), sur le patron des scans
+  de source de `tags.test.ts` / `feuilles.test.ts`. Il compte : aucun titre de section ne
+  porte le nom de la feuille qu'ouvre la roue · la roue est annoncée sous le nom de ce
+  qu'elle ouvre (sinon on « corrigerait » le premier cas en débaptisant le bouton) · les
+  deux blocs sont au même niveau · aucune route n'est poussée par deux lignes · aucune
+  adresse recopiée · **les étapes du tour suivent l'écran, la dernière exceptée** · la
+  dépense est rendue avant le premier bloc de menu.
+  ✅ **Vérifié par SIX mutations**, chacune vue rougir puis restaurée : le titre
+  « Réglages » remis (3 cas rouges) · la ligne « Aide & contact » réintroduite (1) · une
+  adresse recopiée en dur (1) · la roue débaptisée (1) · l'étape TDEE remise en
+  avant-dernier (1) · le bloc TDEE redescendu sous les menus (2).
+  📊 `tsc` vert ; le compte de tests de ce lot est repris dans E31 (les deux ont été re-mesurés ensemble après rebase sur `main`).
 
 - ~~**E32 · Un objectif à douze mois ne renforçait rien pendant douze mois — les paliers**~~
   *(numérotés E30–E32 et non E26–E28 : `main` avait pris E26 pour le consentement
@@ -4099,70 +4178,6 @@ produit en suspens — il ne reste qu'à coder.
 
   📄 `docs/2026-08-10-brief-analytics-perimetre.md` (le brief) et
   `docs/2026-08-10-synthese-analytics-arbitrage.md` (l'arbitrage qui fait foi).
-
-- ~~**E33 · Ce que la refonte du Profil avait laissé derrière elle**~~ ✅ **LIVRÉ le
-  2026-08-10.** *Demande du fondateur, le même jour : « continuons d'améliorer la
-  section profil ».*
-  ⚠️ *Numéro pris sur une branche : le vérifier contre `main` au moment de fusionner.*
-
-  **Quatre défauts, tous trouvés À L'ÉCRAN** (profil seedé dans le panneau web : H 30 ans,
-  83 kg, 18 % MG, sèche, 3 × 60 min, 4 pesées) **et aucun en relisant le code.** Ils ont
-  ceci en commun : chaque morceau était juste isolément, c'est l'ASSEMBLAGE qui ne l'était
-  plus — la signature d'une refonte qui déplace des blocs sans relire ce qui les nommait.
-
-  🔴 **1 — « Réglages » désignait DEUX endroits sur le même écran.** La roue dentée
-  (`accessibilityLabel="Réglages"`) ouvre une feuille intitulée « Réglages » ; le milieu de
-  l'écran portait un `SectionTitle` « Réglages ». Depuis E25 les deux ensembles sont
-  **disjoints** — là-bas notifications / affichage / confidentialité / compte, ici ce qui
-  pilote le moteur. « Va dans les réglages » ne désignait donc plus rien. Le commit d'E25
-  nommait déjà les deux blocs **« Toi / Ton plan »** : c'est le CODE qui était resté sur
-  l'ancien nom, pas la décision.
-  ➡️ « TOI » est désormais un `SectionLabel`, comme « TON PLAN ». Avant, l'un était un
-  `SectionTitle` (« découpe l'écran ») et l'autre un `SectionLabel` (« étiquette un
-  bloc ») : le premier bloc n'avait **aucune étiquette à lui**, il empruntait celle du
-  chapitre — deux blocs frères à deux hauteurs différentes.
-
-  🟠 **2 — Deux lignes voisines poussaient la même route, et l'une promettait un mail.**
-  `Donner mon avis` → `/avis`, et juste dessous `Aide & contact · contact@kyroz.app` →
-  `/avis` **aussi**. E25 avait donné à l'ancienne ligne le `onPress` de la nouvelle en lui
-  laissant l'adresse comme VALEUR : elle affichait une action qu'elle ne faisait pas.
-  Retirée — `/avis` montre l'adresse lui-même en repli quand aucun client mail ne répond.
-  ➡️ **Et le mort-vivant symétrique dormait dans `profil.tsx`** : `contactSupport`, sa
-  constante `SUPPORT_EMAIL` en dur et l'import `Linking` n'étaient plus appelés par
-  personne depuis E25. Une adresse recopiée à côté de `lib/feedback.ts::SUPPORT_EMAIL`,
-  c'est la première des deux qui ment le jour où elle change.
-
-  🟡 **3 — Le TDEE était à ~900 px de la cible qu'il explique.** « Tes cibles · 2 293 kcal »
-  en haut, « Dépense estimée · maintenance · 2 593 kcal » tout en bas, **après les onze
-  lignes de menu**. C'est pourtant la seule ligne de l'écran qui réponde à « pourquoi
-  2 293 ? ». Remonté juste sous les quatre boîtes (après leurs notes, qui les annotent).
-
-  🟡 **4 — Le surtitre ne disait rien de neuf.** « Homme · 30 ans · Sèche » était **mot pour
-  mot** ce que `Informations` et `Objectif` redisent 600 px plus bas. Il porte maintenant le
-  **prénom** — la seule chose de cet écran qui ne soit écrite nulle part ailleurs. Pas de
-  prénom (compte antérieur à la question) → pas de ligne, plutôt qu'un remplissage.
-
-  ➡️ **LE PIÈGE ÉTAIT DANS LA CORRECTION, PAS DANS LE DÉFAUT.** L'ordre des étapes de la
-  visite guidée suit l'écran de haut en bas, et chaque bulle **fait défiler** jusqu'à sa
-  cible. `profil-tdee` était en avant-dernier — correct tant que le bloc vivait en bas.
-  Le remonter sans remonter l'étape aurait fait descendre l'écran jusqu'en bas, puis
-  remonter, puis redescendre : un va-et-vient qui se lit comme un bug, **introduit par un
-  correctif de lisibilité**. Mesuré après coup au panneau, défilement à chaque bulle :
-  **0 → 365 → 556 → 702 → 1045 px**, puis retour à 0 pour la roue, qui est en haut et où le
-  tour se termine. ➡️ **Déplacer un élément du Profil, c'est aussi relire `lib/tours.ts`.**
-
-  🔒 **Garde-fou : `lib/__tests__/profilSection.test.ts`** (8 cas), sur le patron des scans
-  de source de `tags.test.ts` / `feuilles.test.ts`. Il compte : aucun titre de section ne
-  porte le nom de la feuille qu'ouvre la roue · la roue est annoncée sous le nom de ce
-  qu'elle ouvre (sinon on « corrigerait » le premier cas en débaptisant le bouton) · les
-  deux blocs sont au même niveau · aucune route n'est poussée par deux lignes · aucune
-  adresse recopiée · **les étapes du tour suivent l'écran, la dernière exceptée** · la
-  dépense est rendue avant le premier bloc de menu.
-  ✅ **Vérifié par SIX mutations**, chacune vue rougir puis restaurée : le titre
-  « Réglages » remis (3 cas rouges) · la ligne « Aide & contact » réintroduite (1) · une
-  adresse recopiée en dur (1) · la roue débaptisée (1) · l'étape TDEE remise en
-  avant-dernier (1) · le bloc TDEE redescendu sous les menus (2).
-  📊 `tsc` vert ; le compte de tests de ce lot est repris dans E31 (les deux ont été re-mesurés ensemble après rebase sur `main`).
 
 - ~~**E25 · Le Profil était une section fourre-tout**~~ ✅ **LIVRÉ le 2026-08-10.**
   *Décision fondateur du 2026-08-09 : « j'aimerais que le profil soit qu'avec les

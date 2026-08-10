@@ -1880,6 +1880,29 @@ téléphone.
   pas le cache), et le rendu correspond **exactement** à `git show HEAD:<fichier>`.
   ➡️ Lancer avec `EXPO_ROUTER_APP_ROOT=$PWD/app` depuis `kyroz-app`.
   *Même famille que « mesurer l'instrument » : la mesure était juste, sur le mauvais code.*
+  🔴 **ET AVANT MÊME CE PIÈGE-LÀ, LE PREVIEW NE DÉMARRE PAS : UN WORKTREE N'A PAS DE
+  `.env.local`** (2026-08-10). Le fichier est gitignoré, donc il ne suit pas l'arbre —
+  et `lib/supabase.ts` construit son client **au chargement du module**, ce qui jette
+  sans URL. Symptôme : **écran noir**, un 500 au rendu serveur, et dans les logs
+  `Metro error: supabaseUrl is required`. Rien n'accuse le fichier manquant, et l'écran
+  noir se lit comme « mon code est cassé » — on part corriger du code sain, exactement
+  comme pour le piège du dépôt principal juste au-dessus.
+  ➡️ **Poser un `.env.local` dans le worktree.** Des valeurs FACTICES suffisent dès que
+  ce qu'on vérifie est calculé en local (le moteur l'est entièrement) : il n'y a besoin
+  d'aucune vraie clé pour regarder une carte d'objectif. L'auth ne marchera pas contre
+  une URL factice — c'est le prix, et il faut le savoir avant de conclure que
+  l'inscription est cassée.
+  ⚠️ **Et la session n'est PAS déverrouillée par `@kyroz:profile`** : `app/index.tsx` et
+  `app/(tabs)/_layout.tsx` gardent sur la **session Supabase**, pas sur le profil. Il
+  faut donc aussi poser `sb-<ref>-auth-token` (le `<ref>` vient du nom d'hôte de l'URL
+  factice, cf. `AUTH_STORAGE_KEY`) ; `readPersistedSession` n'exige que `access_token`
+  et `user`, donc un objet minimal passe sans réseau.
+  ⚠️ **Vérifier QUEL code est servi avant de juger l'écran**, et le faire sur l'artefact :
+  `curl` le bundle et compter un témoin **ASCII pur** de la branche (un identifiant, pas
+  une phrase accentuée — cf. §11 « `strings` ne rend que l'ASCII »). Mesuré le
+  2026-08-10 : `deficit_weeks` **8**, `highAdiposity` **9**, et **0** occurrence d'un
+  libellé que la branche RETIRE. C'est ce contraste — un témoin présent ET un témoin
+  absent — qui prouve la branche ; un seul des deux ne prouve rien.
   🔴 **ET CE QUE LIT `preview_start` DÉPEND DE COMMENT ON EST ENTRÉ DANS LE WORKTREE**
   — tranché le 2026-08-08 après avoir vécu les deux cas dans la même session, ce qui
   explique deux notes du dépôt qui se contredisaient :
