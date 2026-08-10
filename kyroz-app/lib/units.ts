@@ -3,7 +3,14 @@
 // c'est plus naturel pour faire ses courses. Partagé par les courses, le frigo
 // et les fiches recette pour un affichage cohérent partout.
 
-function frnum(x: number): string {
+/**
+ * Nombre à une décimale, séparateur FRANÇAIS. Exporté depuis le 2026-08-10 : la carte
+ * d'objectif affichait « 113.5 kg » et « 0.7 kg/sem » avec un point, dans une app
+ * entièrement en français. Vu à l'écran, pas à la relecture.
+ * ⚠️ Un dixième de formateur de plus dans un composant ferait un neuvième endroit où
+ * la règle peut diverger — celui-ci existait déjà, il était seulement privé.
+ */
+export function frnum(x: number): string {
   const r = Math.round(x * 10) / 10;
   return (Number.isInteger(r) ? String(r) : r.toFixed(1)).replace('.', ',');
 }

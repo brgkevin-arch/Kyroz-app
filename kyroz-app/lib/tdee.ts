@@ -8,6 +8,7 @@ import { ageOn } from './birthday';
 import {
   BodyInput, MIN_AGE, MIN_KCAL, EA_OPTIMAL, LOW_EA_BUDGET_WEEKS, countsAsLowEaWeek,
   bodyFatBounds, clamp, collapseLowEaRegistry, deficitBlocked, energyAvailability,
+  highAdiposity, dietBreakDue, forgetCurrentWeek, DIET_BREAK_AFTER_WEEKS,
   fatFreeMassKg, isFemaleAtRisk, lowEaWeeksBefore, markLowEaWeek, safetyFloorKcal,
   settleLowEaExposure, lowEaEscalation, LowEaEscalation, readLowEaRegistry,
   safetyFloorBreakdown, SafetyFloorSource,
@@ -491,6 +492,18 @@ export interface MacroOptions {
    * le câbler, sinon c'est l'alarme absurde qui part en production.
    */
   isTrainingDay?: boolean;
+  /**
+   * Cette semaine est-elle la pause à la maintenance ? (cf. `safety.dietBreakDue`)
+   *
+   * ⚠️ **Défaut `false`, et ce défaut est un risque connu** — c'est exactement la
+   * forme du défaut `PROT_SHARE_FLOOR` (CLAUDE.md §6) : un paramètre de sécurité
+   * optionnel disparaît en silence chez l'appelant qui l'oublie. Il est optionnel ici
+   * parce que `floorAndFlags` sert aussi des APERÇUS (banque de calories, projections
+   * internes) qui n'ont pas de registre à consulter. Le seul chemin qui ENREGISTRE un
+   * profil est `computePlan`, et lui le passe toujours — c'est ce que vérifie
+   * `pauseMaintenance.test.ts`, faute de pouvoir le rendre obligatoire.
+   */
+  dietBreak?: boolean;
 }
 
 /** Un profil sans aucune séance déclarée n'a pas de « jour de séance ». */
@@ -577,10 +590,20 @@ function floorAndFlags(body: MacroBody, tdee: number, requestedKcal: number, opt
   // les autres, et ne peut par construction pas créer de surplus (75 % < 100 %).
   const deficitCapFloor = maintenance > 0 ? Math.round(maintenance * (1 - MAX_DEFICIT_TDEE_RATIO)) : 0;
 
+  // ── Pause à la maintenance ────────────────────────────────────────────────
+  // Après 8 semaines de déficit d'affilée, la semaine est servie à la maintenance
+  // (`safety.dietBreakDue`). C'est un PLANCHER comme les autres — donc il ne peut
+  // pas créer de surplus, et il ne s'applique que si un déficit était demandé : sur
+  // un maintien ou une prise de masse, il rejoindrait la cible sans rien changer et
+  // lèverait un drapeau pour un plan que rien ne contraint (même piège que
+  // `underweightCapped`, dont il copie la garde à dessein).
+  const dietBreakCapped = deficitRequested && (opts.dietBreak ?? false);
+
   const floor_kcal = Math.max(
     baseFloor,
     deficitCapFloor,
     underweightCapped ? maintenance : 0,
+    dietBreakCapped ? maintenance : 0,
   );
 
   const target_kcal = Math.max(requestedKcal, floor_kcal);
@@ -595,14 +618,19 @@ function floorAndFlags(body: MacroBody, tdee: number, requestedKcal: number, opt
   const candidates: Record<FloorSource, number> = {
     ...breakdown.candidates,
     deficit_cap: deficitCapFloor,
+    diet_break: dietBreakCapped ? maintenance : 0,
     underweight_maintenance: underweightCapped ? maintenance : 0,
   };
   // Même ordre de départage que `safetyFloorBreakdown`, prolongé aux deux plafonds
   // propres au moteur. `underweight_maintenance` passe en premier : quand il mord,
   // c'est LUI qu'il faut nommer (le plan est ramené à la maintenance), même si un
   // autre candidat atteint la même valeur.
+  // `diet_break` passe juste après `underweight_maintenance` et avant les minima
+  // physiologiques : quand il mord, c'est LUI qu'il faut nommer (« cette semaine est
+  // une pause »), même si un autre candidat atteint la même valeur. Un écran qui
+  // annoncerait « ton métabolisme de base » sur une semaine de pause serait faux.
   const ORDRE: FloorSource[] = [
-    'underweight_maintenance', 'bmr', 'energy_availability', 'deficit_cap', 'min_kcal',
+    'underweight_maintenance', 'diet_break', 'bmr', 'energy_availability', 'deficit_cap', 'min_kcal',
   ];
   // ⚠️ `floorBinding` teste un ÉTAT (« le plancher contraint la cible »), PAS une
   // transition (« la cible a été remontée à ce calcul-ci »). La distinction est le
@@ -629,6 +657,7 @@ function floorAndFlags(body: MacroBody, tdee: number, requestedKcal: number, opt
   const flags: PlanFlag[] = [];
   if (floorBinding) flags.push('FLOOR_APPLIED');
   if (underweightCapped) flags.push('UNDERWEIGHT_NO_DEFICIT');
+  if (dietBreakCapped) flags.push('DIET_BREAK_WEEK');
   const ea = energyAvailability(body, target_kcal, sportKcalPerDay);
   if (ea < EA_OPTIMAL) flags.push('LOW_EA_WARNING');
   if (isFemaleAtRisk(body) && lowEaWeeks > LOW_EA_BUDGET_WEEKS) flags.push('LOW_EA_BUDGET_EXCEEDED');
@@ -821,7 +850,32 @@ export function bodyFatTdeeImpact(
 function servedTargetAt(
   p: UserProfile, weightKg: number, stamp: string, lowEaWeeks: number,
   kcalDeltaOverride?: number,
+  /** Semaine de pause IMPOSÉE par le simulateur (cf. `WeeklyProjector.dietBreak`). */
+  dietBreak?: boolean,
 ): WeekPoint {
+  // 🔴 LE %MG RESTE CELUI DU DÉPART ICI, ET C'EST DÉLIBÉRÉ — mesuré le 2026-08-10.
+  //
+  // La tentation est de le faire suivre le poids (`safety.bodyAtWeight`, comme le fait
+  // `datedGoal.maxSafeDeltaAt` pour le plafond de rythme). Essayé, et **ça casse la
+  // projection de tout le monde** : le %MG ne sert pas qu'à la bande de rythme, il
+  // produit la MASSE MAIGRE, donc le plancher d'énergie disponible.
+  //
+  // Le raisonnement « on ne peut pas perdre plus de gras que de poids » implique une
+  // masse maigre CONSTANTE le long de la trajectoire — donc un plancher d'énergie
+  // disponible constant, là où il baissait jusqu'ici avec le poids. Conséquence
+  // mesurée : `F 78 → 65 kg` n'a plus **AUCUNE** échéance atteignable sur 5 ans
+  // (l'escalade de zone basse rattrape un plancher qui ne descend plus, la femme sort
+  // du déficit et n'arrive jamais), et l'échelle d'échéances rend une rangée vide.
+  //
+  // ⚠️ Ce n'est pas « la borne est fausse » : c'est qu'elle est CONSERVATRICE dans les
+  // deux sens, et que le second n'était pas le défaut qu'on corrigeait. Sur le rythme,
+  // conservateur = plus strict = sûr. Sur le plancher, conservateur = plancher plus
+  // haut = déficit plus petit = objectif inatteignable. Une même hypothèse, deux effets
+  // opposés selon ce qu'elle alimente.
+  //
+  // ➡️ La composition le long d'une sèche est une question ouverte, à calibrer à part
+  // (elle demande un coefficient de mobilisation, cf. `bodyFatPctAtWeight`). Elle ne se
+  // règle pas en passant une borne de garde-fou à un calcul de dépense.
   const body: UserProfile = { ...p, weight_kg: weightKg };
   const tdee = calculateTDEE(body);
   const sportKcalPerDay = exerciseKcalPerDay(p.sports, weightKg);
@@ -845,7 +899,7 @@ function servedTargetAt(
     ? kcalFromMacros(p.target_protein_g, p.target_carbs_g, p.target_fat_g)
     : tdee + kcalDelta;
 
-  const { target_kcal } = floorAndFlags(body, tdee, requested, { sportKcalPerDay, lowEaWeeks });
+  const { target_kcal } = floorAndFlags(body, tdee, requested, { sportKcalPerDay, lowEaWeeks, dietBreak });
   return { tdeeKcal: tdee, targetKcal: target_kcal, sportKcalPerDay };
 }
 
@@ -858,8 +912,8 @@ function servedTargetAt(
  * poids ni l'escalade de zone basse n'y figurent.
  */
 export function makeWeeklyProjector(p: UserProfile): WeeklyProjector {
-  return (weightKg, stamp, lowEaWeeks, kcalDeltaOverride) =>
-    servedTargetAt(p, weightKg, stamp, lowEaWeeks, kcalDeltaOverride);
+  return (weightKg, stamp, lowEaWeeks, kcalDeltaOverride, dietBreak) =>
+    servedTargetAt(p, weightKg, stamp, lowEaWeeks, kcalDeltaOverride, dietBreak);
 }
 
 /**
@@ -910,6 +964,23 @@ export const ENGINE_REV_LEGACY = 1;
 /**
  * Révision courante — à INCRÉMENTER à chaque correction qui déplace les cibles.
  *
+ * rev 6 → 7 (2026-08-10) : DEUX changements, tous deux déplaçant des cibles.
+ * · Les planchers dérivés de la masse maigre (BMR, énergie disponible) se retirent
+ *   au-delà de 30 % de MG chez l'homme, 40 % chez la femme (`safety.highAdiposity`).
+ *   Motif mesuré : le plancher d'énergie disponible gagnait sur les deux autres
+ *   contraintes **15 fois sur 15**, de 15 à 45 % de MG — tout le monde était plafonné
+ *   à 0,30–0,34 kg/semaine, et les deux autres garde-fous étaient décoratifs. Ne
+ *   déplace QUE les profils au-dessus du seuil ; le cap à 25 % du TDEE prend le relais.
+ * · `bulk` est refermé sur `lean_bulk` (`syncGuard::normalizeGoal`) : −200 kcal/j de
+ *   surplus, servis en entier faute de plancher pour les absorber.
+ * · **Pause à la maintenance** : après 8 semaines de déficit d'affilée, la 9ᵉ est
+ *   servie à la maintenance (`safety.dietBreakDue`, registre `deficit_weeks`). Prend
+ *   le relais de l'escalade RED-S là où elle ne peut rien — au-dessus du seuil
+ *   d'adiposité, et chez TOUT homme, qui n'a jamais eu aucune sortie de déficit.
+ *   Déplace la cible d'une semaine sur neuf, et allonge les dates annoncées de ~11 %.
+ * ⚠️ Le %MG suit désormais le poids DANS LA PROJECTION (`safety.bodyAtWeight`) : ça
+ * change les dates annoncées, pas la cible du jour.
+ *
  * rev 5 → 6 (2026-08-06) : Katch-McArdle exige désormais un %MG **MESURÉ**. Un %MG
  * estimé (silhouette tapée, chiffre au jugé) repasse sur Mifflin-St Jeor. Déplace
  * TOUS les profils dont la provenance n'est pas `measured` — c'est-à-dire, au
@@ -941,7 +1012,7 @@ export const ENGINE_REV_LEGACY = 1;
  * l'explication de la rev 2 à quelqu'un dont la cible a bougé pour une autre raison
  * serait un mensonge, pas une approximation.
  */
-export const ENGINE_REV = 6;
+export const ENGINE_REV = 7;
 
 /**
  * Seuil d'affichage (kcal/j, en valeur absolue). En dessous, l'écart tient dans le
@@ -957,14 +1028,33 @@ export const ENGINE_NOTICE_MIN_DELTA = 100;
  * encore) → aucun avertissement, on ne va pas expliquer un changement à quelqu'un
  * qui n'a jamais vu l'ancienne valeur.
  */
-function engineNoticeFor(prevRev: number | undefined, prevTarget: number, nextTarget: number): EngineNotice | undefined {
+function engineNoticeFor(
+  prevRev: number | undefined, prevTarget: number, nextTarget: number,
+  /**
+   * Le corps, pour départager les DEUX causes de la rev 7 (cf. `EngineNotice.cause`).
+   *
+   * ⚠️ Départage par PRIORITÉ, pas par exclusion : une personne peut être au-dessus du
+   * seuil d'adiposité ET venir de `bulk`. Le retrait des planchers passe alors devant,
+   * parce que c'est lui qui déplace le plus de calories — et parce que l'autre cause
+   * ne concerne que les surplus, où aucun plancher ne mordait de toute façon.
+   * ⚠️ `goal` est lu APRÈS `normalizeGoal` : un compte venu de `bulk` s'y présente déjà
+   * en `lean_bulk`. C'est donc « lean_bulk sans forte adiposité » qui sert d'indice, et
+   * il attrape aussi quelques `lean_bulk` d'origine — dont la cible, elle, n'a pas
+   * bougé, donc qui ne reçoivent aucune notice. L'indice est imprécis, la notice non.
+   */
+  b?: BodyInput & { goal?: Goal },
+): EngineNotice | undefined {
   const depuis = prevRev ?? ENGINE_REV_LEGACY;
   if (depuis === ENGINE_REV) return undefined;
   if (!(prevTarget > 0) || !(nextTarget > 0)) return undefined;
   if (Math.abs(nextTarget - prevTarget) < ENGINE_NOTICE_MIN_DELTA) return undefined;
+  const cause: EngineNotice['cause'] | undefined = !b ? undefined
+    : highAdiposity(b) ? 'floor_lifted'
+      : b.goal === 'lean_bulk' ? 'goal_merged'
+        : undefined;
   // `fromRev` est indispensable à l'écran : `rev` seul dit où l'on ARRIVE, jamais
   // d'où l'on vient — or c'est le trajet qui doit être expliqué.
-  return { rev: ENGINE_REV, from: prevTarget, to: nextTarget, fromRev: depuis };
+  return { rev: ENGINE_REV, from: prevTarget, to: nextTarget, fromRev: depuis, cause };
 }
 
 // ── Producteur unique du profil calculé ──────────────────────────────────────
@@ -1024,6 +1114,15 @@ export function computePlan(rawProfile: UserProfile, today: string = todayStamp(
   const settled = settleLowEaExposure(p.low_ea_weeks, today);
   const lowEaWeeks = lowEaWeeksBefore(settled, today);
 
+  // ── Registre des semaines en DÉFICIT → pause à la maintenance ──────────────
+  // Même solde et même lecture « semaines antérieures » que ci-dessus, et pour les
+  // mêmes deux raisons : les semaines écoulées entre deux ouvertures ont bien été
+  // vécues, et la semaine courante ne peut pas décider du plancher qui décide si elle
+  // compte. `settleLowEaExposure` est une fonction de REGISTRE, pas de zone basse —
+  // son nom est historique (cf. `UserProfile.deficit_weeks`).
+  const deficitSettled = settleLowEaExposure(p.deficit_weeks, today);
+  const dietBreak = dietBreakDue(p, deficitSettled, today);
+
   // Plancher de BASE — calculé ICI, avant la trajectoire datée (P1.6).
   // Il ne dépend que du corps, du BMR, de la dépense sportive et du TDEE : jamais de
   // la cible. Aucune circularité, donc, à le connaître avant de projeter une date.
@@ -1061,7 +1160,11 @@ export function computePlan(rawProfile: UserProfile, today: string = todayStamp(
   const datedDelta = datedStatus?.active ? datedStatus.dailyKcalDelta : undefined;
   const kcalDelta = datedDelta ?? GOAL_CONFIG[p.goal].kcalDelta;
 
-  const opts: MacroOptions = { kcalDeltaOverride: kcalDelta, sportKcalPerDay, lowEaWeeks };
+  // `dietBreak` entre ici, donc il traverse les TROIS modes de macros (`auto`,
+  // `percent`, `manual`) par le même chemin que les autres planchers. Un mode oublié
+  // serait un mode où la pause n'a jamais lieu — et `manual` est justement celui qui
+  // a déjà servi à contourner un plancher par le passé.
+  const opts: MacroOptions = { kcalDeltaOverride: kcalDelta, sportKcalPerDay, lowEaWeeks, dietBreak };
 
   let m: MacroPlan;
   if (p.macro_mode === 'auto') {
@@ -1140,6 +1243,25 @@ export function computePlan(rawProfile: UserProfile, today: string = todayStamp(
       )
     : p.low_ea_weeks;
 
+  // ── Historisation des semaines en DÉFICIT ─────────────────────────────────
+  // Le prédicat est le plan RÉELLEMENT SERVI (`m.target_kcal`), pas le delta demandé :
+  // une semaine où le plancher a tout absorbé n'est pas une semaine de déficit, et la
+  // compter avancerait la pause de quelqu'un qui n'a jamais creusé. C'est le même
+  // raisonnement que `countsAsLowEaWeek` juste au-dessus — d'où le seuil identique
+  // (`- 1e-6`, pour qu'un kcal d'arrondi ne fabrique pas un déficit).
+  //
+  // ⚠️ Et pendant la pause elle-même, `m.target_kcal` VAUT la maintenance (le plancher
+  // l'y a ramené) : la semaine n'entre donc pas au registre, la série casse, et la
+  // pause dure exactement une semaine. C'est ce qui remplace un champ « pause en
+  // cours » — l'état est entièrement porté par le registre, il ne peut pas désynchroniser.
+  //
+  // ⚠️ Historisé pour TOUT LE MONDE, contrairement à la zone basse : un homme n'a
+  // jamais eu le moindre mécanisme le sortant d'une sèche, et c'est le trou que ce
+  // registre comble en premier.
+  const deficit_weeks = collapseLowEaRegistry(
+    markLowEaWeek(forgetCurrentWeek(deficitSettled, today), today, m.target_kcal < tdee - 1e-6),
+  );
+
   const flags = [...m.flags];
   // Poids cible incohérent avec la famille d'objectif : le pilotage daté renvoie
   // alors 0 (pas de pilotage). On requalifie ici pour que l'UI puisse le DIRE, plutôt
@@ -1170,7 +1292,7 @@ export function computePlan(rawProfile: UserProfile, today: string = todayStamp(
   // que cette personne verra jamais du changement le plus récent.
   // On fusionne : `from` reste le point de départ le plus ANCIEN (ce que la personne
   // avait réellement sous les yeux), `to` devient la valeur servie aujourd'hui.
-  const nouvelleNotice = engineNoticeFor(p.engine_rev, p.target_kcal, m.target_kcal);
+  const nouvelleNotice = engineNoticeFor(p.engine_rev, p.target_kcal, m.target_kcal, p);
   const engine_notice = p.engine_notice && nouvelleNotice
     ? {
         ...nouvelleNotice,
@@ -1209,6 +1331,7 @@ export function computePlan(rawProfile: UserProfile, today: string = todayStamp(
     profile: {
       ...profilSansClamp,
       low_ea_weeks,
+      deficit_weeks,
       tdee_kcal: tdee,
       target_kcal: m.target_kcal,
       target_protein_g: m.protein_g,

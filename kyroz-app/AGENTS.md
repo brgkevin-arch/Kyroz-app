@@ -76,7 +76,7 @@ qu'ils étaient périmés.
 |---|---|---|
 | Catalogue | **512 recettes** — 122 petits-déj · 280 repas complets · 110 collations | `npm run mesure:couverture` |
 | `ENGINE_VERSION` | **47** (invalide les plans en cache) — créneaux de repas LIBRES : l'ordre canonique de la journée devient CHRONOLOGIQUE (la collation de 16 h passe avant le dîner, elle était servie en dernier), donc le report de budget de repas en repas change d'ordre *(46 = le budget du jour suit la dépense RÉELLE du jour, `lib/dailyBudget.ts`)*. ⚠️ Cette ligne est restée à **45** pendant une journée entière après le bump : celui qui incrémente la constante est celui qui doit toucher cette case | `lib/planEngine.ts` |
-| `ENGINE_REV` | **6** (avertissement one-shot à l'utilisateur) — E23, Katch-McArdle ne prend plus le %MG posé au JUGÉ ; c'est la **provenance** (`body_fat_source`) qui décide, plus la présence du chiffre *(5 = A15, l'objectif daté hors de portée sert le rythme sûr MAXIMAL)* | `lib/tdee.ts` |
+| `ENGINE_REV` | **7** (avertissement one-shot à l'utilisateur) — E30, **DEUX causes** : (a) les planchers dérivés de la masse maigre (BMR + énergie disponible) se retirent au-delà de 30 %/40 % de MG, le cap 25 % du TDEE prend le relais ; (b) `bulk` refermé sur `lean_bulk`. ⚠️ **Première révision à porter deux causes** → `EngineNotice.cause` existe pour que l'écran ne serve pas à l'une l'explication de l'autre *(6 = E23, la provenance du %MG décide de Katch ; 5 = A15, l'objectif daté hors de portée sert le rythme sûr MAXIMAL)* | `lib/tdee.ts` |
 | Objectif daté | la date affichée est un **POINT FIXE** : l'adopter ne la déplace plus (3 corps sur 8 glissaient de +96 j avant A15) | `npm run mesure:objectif` |
 | Échéance de l'objectif daté | 🔴 **C'est une DATE, plus une durée** (A28, 2026-08-07, décision fondateur) : la rangée de 5 puces est **RETIRÉE**, on saisit jour/mois/année, et l'écran donne une **ESTIMATION** — « la première date que Kyroz peut tenir », + « Viser cette date » en un tap. Refus de la date passée et de l'au-delà de 5 ans (au-delà, le moteur creuse au MAXIMUM : −55 → −418 kcal/j sur `F 78 → 65`). ⚠️ L'estimation vient de la **marche 1 de `deadlineLadder`**, PAS de `status.projectedDate` — les deux diffèrent de **12 à 100 jours** et la seconde suppose une échéance qui expire. ⚠️ **`deadlineLadder` (A27) tourne donc toujours** : estimation + date pré-remplie (2ᵉ marche) — **ne pas le supprimer comme du code mort**. Ses invariants restent mesurés : **40/40 tenables**, **40/40 servant un plan distinct**, contre 10/40 et 14/40 avec les 5 durées figées d'avant A27 | `npm run mesure:objectif` |
 | Tests | **1 329 verts**, 79 fichiers · `tsc` propre — **mesuré sur `main` FUSIONNÉ (`25275fe`), après le merge de #69 (la refonte du Profil)**, le 2026-08-10. ⚠️ **Et cette case a redérivé DANS LA MÊME NUIT** : elle disait 1 318, mesuré sur #65 quand #66 n'était pas encore fusionnée. Quatrième dérive, toujours identique — la mesure d'une branche est vraie chez son auteur et périmée au merge suivant. ➡️ **La seule mesure qui vaille est celle de `main` fusionné, prise APRÈS le merge, pas celle de la PR qu'on est en train d'écrire.** *(Historique de la journée, pour le motif : 1 309 annoncé sur `main` alors qu'il valait 1 314 · #65 seule 1 318 · les deux fusionnées 1 320.)* *(Historique : le 2026-08-08, 1 309 sur `main` + la PR E21, 1 281 / 75 sur `main` seul.)* ⚠️ Sur `main` seul le compte est 1 281 / 75 : ce chiffre-ci vaut APRÈS fusion, et se re-mesure au merge comme toujours. `main` contient A28, les créneaux de repas, le tuto (#44) et les courses. ⚠️ `main` annonçait 1 241 et A28 ajoute 6 tests : la somme donnerait 1 247, la mesure rend **1 248**. Encore une fois — et c'est la deuxième en deux rebases — **ce compte se re-mesure après fusion, il ne s'additionne pas**. ✅ **Les DEUX emplacements sont alignés** (ici et la ligne « Tests » de « Data / thème / qualité ») : l'autre était resté à 1 241 pendant que celui-ci disait 1 248 — le défaut décrit là-bas, rejoué le lendemain de son écriture | `npm test && npx tsc --noEmit` |
@@ -3579,6 +3579,176 @@ produit en suspens — il ne reste qu'à coder.
 
 ### 🧹 E — Dette technique
 
+- ~~**E32 · Un objectif à douze mois ne renforçait rien pendant douze mois — les paliers**~~
+  *(numérotés E30–E32 et non E26–E28 : `main` avait pris E26 pour le consentement
+  analytics pendant que cette branche vivait, et E29 pour le mouvement. Le chantier
+  DÉJÀ MERGÉ garde son numéro — renuméroter de l'histoire partie est pire que tout.
+  Les trois se déplacent EN BLOC parce qu'ils se citent entre eux.)*
+  ✅ **LIVRÉ le 2026-08-10.** Aucun `ENGINE_REV` : **pas une calorie ne bouge.**
+
+  Au-delà de 15 kg d'écart **ou** de 6 mois de trajectoire, la carte d'objectif met en
+  avant l'étape suivante (~9 kg) au lieu de la cible lointaine, avec sa date et sa
+  jauge. `lib/goalMilestones.ts` — module PUR, sans import d'écran, comme `goalLadder`.
+
+  🔴 **C'EST UNE VUE, ET C'EST TOUTE LA DÉCISION DU CHANTIER.** Le geste évident est de
+  poser le palier dans `goal_target` : le moteur piloterait vers lui, la date serait
+  proche, tout serait cohérent. `npm run mesure:paliers` dit que c'est un piège, et il
+  ne se voit **que sur les gros écarts** — donc précisément sur la population visée :
+
+  | corps | écart | objectif final | palier | delta |
+  |---|---|---|---|---|
+  | H 105 → 85 | 20 kg | 2006 kcal | 2006 | **0** |
+  | F 95 → 78 | 17 kg | 1607 kcal | 1607 | **0** |
+  | H 123 → 85 | 38 kg | 2045 kcal | 2291 | **+246** |
+  | F 120 → 80 | 40 kg | 1751 kcal | 1968 | **+217** |
+
+  Sur 38 kg le rythme servi tomberait de **0,60 à 0,40 kg/sem**. Cause : une date proche
+  redevient « tenable » au calcul EN LIGNE DROITE (`diff / weeksRemaining`), donc A15
+  cesse de servir le rythme sûr maximal et retombe sur le « juste requis » — qui
+  sous-estime, l'arrivée étant SIMULÉE. **Le défaut A15 réintroduit par la porte de
+  derrière.** Un panel de gabarits ordinaires aurait rendu 0 partout et validé le piège.
+
+  🔴 **LA MESURE ELLE-MÊME S'EST TROMPÉE DEUX FOIS, et les deux dans le sens rassurant :**
+  1. datée à 4 ans « pour éviter le régime A15 », elle rendait un écart de 21 kcal — sauf
+     qu'à 4 ans, 38 kg ne demandent que 0,18 kg/sem : les deux objectifs comparés étaient
+     également mous et l'écart n'était qu'un arrondi de date. **Éviter un régime, c'est en
+     choisir un autre** ;
+  2. le garde `maxRateApplied` écartait **5 corps sur 5**. Ce drapeau ne se lève que quand
+     le moteur BASCULE d'un rythme requis trop mou vers le maximum ; avec une date
+     agressive le maximum est servi par le chemin ORDINAIRE, donc rien à basculer. Le bon
+     témoin du régime est `clamped`.
+  ➡️ *Une mesure qui rend « aucun écart » mérite qu'on vérifie qu'elle regarde le bon
+  régime — et une qui ne rend AUCUNE ligne mérite qu'on soupçonne son garde, pas la donnée.*
+
+  ⚠️ **Les dates de palier sont lues sur la trajectoire SIMULÉE**, jamais interpolées :
+  la ligne droite est ce que §10 interdit nommément. Les intervalles s'allongent donc
+  d'eux-mêmes (dépense qui baisse, pause toutes les 9 semaines). **Vérifié par mutation** :
+  remplacer les dates par une interpolation linéaire fait rougir le test.
+  ⚠️ **Le palier courant se LIT du poids actuel** — franchi puis reperdu, il redevient
+  courant. Le stocker serait la « copie que personne ne relit » de §10.
+  ⚠️ **La cible finale reste affichée** : la masquer, comme le proposait le brief,
+  déciderait à la place de la personne ce qu'elle a le droit de savoir de son objectif.
+
+  ✅ Garde-fous : `lib/__tests__/goalMilestones.test.ts` (14 tests), dont l'invariant
+  « découper ne déplace aucune calorie » — celui qui empêchera la prochaine session de
+  « simplifier » en posant le palier dans `goal_target`.
+
+- ~~**E31 · Rien ne sortait plus personne d'une sèche — la pause à la maintenance**~~
+  ✅ **LIVRÉ le 2026-08-10** (décision fondateur, même `ENGINE_REV` 7 qu'E30).
+  🔴 **MIGRATION À JOUER** : `supabase/migrations/2026-08-10_profiles_deficit_weeks.sql`.
+
+  **Pourquoi.** E30 a retiré les planchers dérivés de la masse maigre au-dessus du seuil
+  d'adiposité, et avec eux l'escalade RED-S — la seule chose qui forçait une sortie de
+  déficit. Sans relève, on pouvait sécher indéfiniment. ⚠️ **Et le trou était plus vieux
+  que ça** : `effectiveEaPerKgFfm` n'escalade que pour `isFemaleAtRisk`. **Un HOMME n'a
+  jamais eu, à aucune adiposité, aucun mécanisme le sortant d'une sèche** — il pouvait
+  creuser trois ans. Invisible parce que le plancher le plafonnait à 0,3 kg/semaine.
+  *C'est un test EXISTANT qui l'a dit en rougissant* (« sa cible ne bouge pas d'un kcal
+  en 24 semaines » — vrai, et c'était précisément le défaut).
+
+  **Livré.** Après 8 semaines de déficit d'affilée, la 9ᵉ est servie à la maintenance.
+  Registre `deficit_weeks`, même forme que `low_ea_weeks` (donc aucune machinerie neuve)
+  mais prédicat CONSÉCUTIF et non cumulé. **Aucun champ « pause en cours »** : pendant la
+  pause le plan n'est pas un déficit, donc la semaine n'entre pas au registre, donc la
+  série repart de zéro — l'état est entièrement porté par le registre.
+
+  🔴 **UNE SEULE PROTECTION PAR PERSONNE (`dietBreakApplies`), appris en cassant.**
+  Livrée sans ce prédicat, la pause DÉSARMAIT l'escalade : pendant une pause le plan
+  n'est plus restrictif, `since` retombe à null, et l'escalade n'arrive jamais à son
+  terme. Trois tests rouges d'un coup, dont « la remontée annoncée vaut exactement la
+  hausse réelle » — la carte qui promet « ta cible montera de X par semaine jusqu'à la
+  semaine N » devenait fausse. **Un garde-fou qui désarme l'autre est pire que pas de
+  second garde-fou.** La pause va donc là où l'escalade ne peut rien : tout homme, et
+  quiconque au-dessus du seuil d'adiposité.
+
+  🔴 **LA PAUSE A DURÉ 2 SEMAINES PENDANT TOUTE LA PREMIÈRE VERSION.** Ni la relecture
+  ni la suite de tests ne l'ont vu — seule une trace semaine par semaine l'a montré.
+  `settleLowEaExposure` solde le temps écoulé depuis `since`, **semaine courante
+  comprise** : juste pour la zone basse, faux pour le déficit, où ça réinscrivait la
+  semaine de pause AVANT que le plan de pause soit calculé. Série = 9 la semaine
+  suivante, pause repartie pour un tour. Cadence réelle 8+2 quand tout le code et toute
+  la doc annonçaient 8+1. ➡️ `forgetCurrentWeek`, sur le SEUL registre de déficit.
+  *« Vérifier le résultat, pas la mécanique », littéralement.*
+
+  ⚠️ **La projection simule les pauses** (`WeeklyProjector.dietBreak`) : sinon la date
+  annoncée décrit une sèche sans pause quand le moteur en sert une toutes les 9 semaines
+  — **~11 %** d'écart, défaut A15/P1.6 rejoué. ⚠️ **Et une pause n'est pas un ARRÊT** :
+  à la maintenance le rythme vaut ~0, le test « à l'arrêt » du simulateur renvoyait
+  `Infinity` (« aucune date ») pour une semaine PRÉVUE sur une sèche saine.
+
+  ➡️ **Question ouverte** : l'escalade RED-S est décrite ici même comme déroutante (« ses
+  calories augmentent toutes les semaines : l'app dérive »), au point d'avoir exigé une
+  carte d'explication. La pause est probablement le meilleur mécanisme pour tout le
+  monde. **La substituer est une décision de sécurité à part entière**, pas un effet de
+  bord de ce chantier.
+
+  ✅ Garde-fous : `lib/__tests__/pauseMaintenance.test.ts` (15 tests), **vérifiés par
+  2 mutations** (retrait de `forgetCurrentWeek` → 2 rouges ; pause désactivée dans la
+  projection → 1 rouge). Carte d'explication sur le Profil (ton §10 : la pause est un
+  acquis, la fin est annoncée dès la première phrase, aucun bouton — il n'y a rien à faire).
+
+- ~~**E30 · Le plancher d'énergie disponible plafonnait TOUT LE MONDE à 0,3 kg/semaine**~~
+  ✅ **LIVRÉ le 2026-08-10** (décision fondateur), `ENGINE_REV` 6 → 7.
+
+  **Ce que la mesure a trouvé, et ce n'est pas ce qu'on cherchait.** Le point de départ
+  était un brief affirmant que le moteur s'INVERSE avec l'adiposité (« plus on est gras,
+  moins il autorise à perdre »). `npm run mesure:plancher` dit le contraire : le déficit
+  permis MONTE légèrement avec le %MG (318 → 375 kcal/j). Mais il dit surtout que le
+  plancher d'énergie disponible gagnait **15 fois sur 15**, de 15 à 45 % de MG, chez les
+  deux sexes — donc que le plafond de rythme gradué par l'adiposité (`maxWeeklyLossPct`)
+  et le cap à 25 % du TDEE ne mordaient **jamais**. Deux garde-fous entièrement
+  décoratifs, et tout le monde plafonné à **0,30–0,34 kg/semaine** : un homme de 123 kg
+  mettait ~2,5 ans à descendre à 85 kg. **Le défaut était uniforme, donc bien plus gros
+  que celui qu'on croyait corriger.**
+
+  ⚠️ **Et s'entraîner ne rapportait RIEN** : la dépense sportive s'ajoute au TDEE **et**
+  au plancher EA, et s'annule exactement — 0 séance et 4 séances donnaient 327 kcal/j au
+  kcal près. C'est la définition du seuil (manger plus quand on brûle plus), mais aucun
+  écran ne le disait, et le brief de départ affirmait l'inverse (« l'ajout d'activité est
+  la seule voie »). ⚠️ **Sous le seuil, c'est toujours vrai.**
+
+  **Livré** : au-delà de 30 % de MG (H) / 40 % (F), les deux planchers dérivés de la
+  masse maigre se retirent (`safety.ts::highAdiposity`, `HIGH_ADIPOSITY_PCT`) et le cap à
+  25 % du TDEE prend le relais. Mesuré après : **inchangé sous le seuil** (0,29 → 0,32),
+  0,30 → **0,62** kg/sem pour le H 123 kg, 0,35 → **0,44** pour une F 95 kg à 45 %, et le
+  sport achète enfin quelque chose (0,62 → 0,69 à 4 séances).
+
+  🔴 **CE QUE ÇA RETIRE, ET QUI EST À ASSUMER** : au-dessus du seuil, l'escalade RED-S ne
+  force plus la sortie de déficit à 12 semaines. Le budget de zone basse **cesse de se
+  consommer** (`countsAsLowEaWeek`) — sans ça il reviendrait **déjà épuisé** le jour où
+  la personne repasse sous le seuil et la sortirait du déficit au moment où sa sèche
+  redevient ordinaire, sans qu'aucun geste de sa part ne l'explique. Défaut dormant type.
+  ✅ **La relève est LIVRÉE le même jour — voir E31 juste au-dessus.**
+
+  ⚠️ **Le %MG GELÉ, corrigé à moitié — et la moitié laissée l'est pour une raison
+  mesurée.** `maxWeeklyLossPct` lit le %MG, qui ne bouge que si la personne le ressaisit :
+  un homme parti de 123 kg à 35 % gardait le plafond de 1,25 %/semaine jusqu'à 85 kg. Pour
+  que ce soit légitime il faudrait qu'il porte encore 25,5 kg de gras — donc que **20,5
+  des 38 kg perdus aient été du muscle**. Le plafond de rythme suit désormais le poids
+  projeté (`safety.bodyAtWeight` + `bodyFatPctAtWeight`, borne BASSE : « on ne peut pas
+  perdre plus de gras que de poids », donc bande la plus stricte, **aucune constante
+  physiologique introduite**).
+  🔴 **Mais PAS la dépense, et l'essayer casse tout** : le %MG produit la masse maigre,
+  donc le plancher EA. La borne implique une masse maigre CONSTANTE, donc un plancher qui
+  ne descend plus — mesuré, `F 78 → 65 kg` n'a plus **aucune** échéance atteignable sur
+  5 ans et l'échelle d'échéances rend une rangée vide. ➡️ **Une même hypothèse,
+  conservatrice dans les deux sens, et le second sens n'était pas le défaut** : sur le
+  rythme, conservateur = plus strict = sûr ; sur le plancher, conservateur = plancher plus
+  haut = objectif inatteignable.
+  ➡️ **Reste ouvert** : en vraie vie le %MG reste celui de la saisie. Le faire suivre
+  demanderait soit de stocker le poids auquel il a été mesuré (**migration**), soit de le
+  redemander. Non tranché.
+
+  ⚠️ **Deux causes dans une même révision, une première** — d'où `EngineNotice.cause` :
+  les planchers retirés et la fusion `bulk` touchent des gens différents et font toutes
+  deux BAISSER la cible, donc ni la révision ni le signe ne les séparent. Sans ce champ
+  l'écran servait à l'un l'explication de l'autre.
+
+  ✅ Garde-fous : `safety.test.ts` (3 tests neufs — au-delà du seuil, **les deux côtés de
+  la frontière**, et le budget qui ne se consomme pas), **vérifiés par 2 mutations**
+  (`highAdiposity` forcé à `false` → 4 rouges ; forcé à `true` → 21 rouges). Contrôle :
+  `npm run mesure:plancher`. **Aucune migration Supabase** (`cause` vit dans le jsonb
+  `engine_notice`, aucun objectif ajouté à l'énumération).
 - 🤖 **E29 · Le MOUVEMENT est le seul axe de DA sans règle ni garde-fou (2026-08-10)**
 
   ⚠️ *Numérotée **E26** à l'écriture, et le choix était juste ce matin-là : E25 était le

@@ -31,10 +31,13 @@ const ELLE = makeProfile({
 /** Rejoue N ouvertures d'app hebdomadaires, comme dans la vraie vie. */
 function vivre(p0: UserProfile, semaines: number) {
   let p = p0;
-  const suivi: { semaine: number; cible: number; escalade: ReturnType<typeof lowEaEscalation> }[] = [];
+  const suivi: { semaine: number; cible: number; tdee: number; escalade: ReturnType<typeof lowEaEscalation> }[] = [];
   for (let i = 0; i < semaines; i++) {
     const r = computePlan(p, jour(i));
-    suivi.push({ semaine: i + 1, cible: r.profile.target_kcal, escalade: r.low_ea_escalation ?? null });
+    suivi.push({
+      semaine: i + 1, cible: r.profile.target_kcal, tdee: r.profile.tdee_kcal,
+      escalade: r.low_ea_escalation ?? null,
+    });
     p = r.profile;
   }
   return suivi;
@@ -98,9 +101,24 @@ describe('qui reçoit l\'explication', () => {
   it('jamais un homme : son plancher ne remonte pas, il n\'y a rien à expliquer', () => {
     const lui = { ...ELLE, sex: 'male' } as UserProfile;
     expect(lowEaEscalation(lui, 30)).toBeNull();
-    // Et vérifié de bout en bout : sa cible ne bouge pas d'un kcal en 24 semaines.
+    // ⚠️ CE TEST A CHANGÉ DE SENS LE 2026-08-10, et le changement est le but.
+    // Il exigeait « sa cible ne bouge pas d'un kcal en 24 semaines » — vrai, et c'était
+    // précisément le TROU : un homme n'avait, à aucune adiposité, le moindre mécanisme
+    // le sortant d'une sèche. Il pouvait creuser trois ans d'affilée. La pause à la
+    // maintenance le comble.
+    // Ce qui est vérifié maintenant est plus fort que l'ancienne égalité : sa cible
+    // prend EXACTEMENT DEUX valeurs — son déficit, et sa maintenance les semaines de
+    // pause. Une escalade, elle, produirait un escalier de valeurs toutes différentes ;
+    // c'est ce que cette assertion continue d'interdire.
     const suivi = vivre({ ...lui, weight_kg: 78, body_fat_pct: 18 } as UserProfile, 24);
-    expect(new Set(suivi.map((s) => s.cible)).size).toBe(1);
+    const valeurs = [...new Set(suivi.map((s) => s.cible))].sort((a, b) => a - b);
+    expect(valeurs.length, `cibles servies : ${valeurs.join(' / ')}`).toBe(2);
+    // Et la haute est bien la MAINTENANCE, pas un cran d'escalade.
+    expect(valeurs[1]).toBe(suivi[0].tdee);
+    // La pause est rare et prévue : ~1 semaine sur 9, jamais la moitié du temps.
+    const pauses = suivi.filter((s) => s.cible === valeurs[1]).length;
+    expect(pauses).toBeGreaterThan(0);
+    expect(pauses).toBeLessThan(suivi.length / 4);
   });
 
   it('jamais une femme ménopausée déclarée : même raison', () => {

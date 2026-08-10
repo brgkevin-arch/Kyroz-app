@@ -1,8 +1,9 @@
 import { localStamp } from './weight';
 import { Goal, GoalTarget, LowEaRegistryStored } from './types';
 import {
-  BodyInput, clamp, countsAsLowEaWeek, deficitBlocked, readLowEaRegistry,
-  resolvedBodyFatPct, weekStartStamp, LOW_EA_WINDOW_DAYS,
+  BodyInput, bodyAtWeight, clamp, consecutiveDeficitWeeksBefore, countsAsLowEaWeek,
+  deficitBlocked, dietBreakApplies, highAdiposity, readLowEaRegistry, resolvedBodyFatPct,
+  weekStartStamp, DIET_BREAK_AFTER_WEEKS, LOW_EA_WINDOW_DAYS,
 } from './safety';
 
 // ── Objectif daté (feature premium « Kyroz+ ») ───────────────────────────────
@@ -34,9 +35,12 @@ export const MAX_GAIN_RATE_PCT = 0.5;
 export function maxWeeklyLossPct(b: BodyInput): number {
   const bf = resolvedBodyFatPct(b);
   const isLean = b.sex === 'male' ? bf < 12 : bf < 20;
-  const isHigh = b.sex === 'male' ? bf > 30 : bf > 40;
+  // ⚠️ La bande haute PARTAGE son seuil avec le retrait des planchers dérivés de la
+  // masse maigre (`safety.highAdiposity`) — il était écrit deux fois, en deux endroits
+  // que rien n'obligeait à rester d'accord. Une bande de rythme qui ne coïnciderait
+  // plus avec la bande de plancher créerait un régime que personne n'a dessiné.
   if (isLean) return 0.5;
-  if (isHigh) return 1.25;
+  if (highAdiposity(b)) return 1.25;
   return 0.75;
 }
 
@@ -98,7 +102,12 @@ export interface DatedGoalStatus {
 export const MAX_PROJECTION_WEEKS = 260; // 5 ans
 
 /** Profil minimal requis pour piloter un objectif daté. `UserProfile` le satisfait. */
-export type GoalBody = BodyInput & { goal: Goal; low_ea_weeks?: LowEaRegistryStored };
+export type GoalBody = BodyInput & {
+  goal: Goal;
+  low_ea_weeks?: LowEaRegistryStored;
+  /** Semaines en déficit déjà vécues — la simulation en SOLDE la série de départ. */
+  deficit_weeks?: LowEaRegistryStored;
+};
 
 /** Ce que le moteur SERVIRAIT à un corps donné, une date donnée. Cf. `WeeklyProjector`. */
 export interface WeekPoint {
@@ -126,6 +135,20 @@ export type WeeklyProjector = (
    * Absent = comportement d'origine (le projecteur déduit le delta de l'objectif).
    */
   kcalDeltaOverride?: number,
+  /**
+   * Cette semaine simulée est-elle une PAUSE à la maintenance ?
+   *
+   * ⚠️ Le simulateur ne peut pas la déduire du registre stocké : les pauses futures
+   * dépendent des semaines qu'il est en train de simuler, pas de celles déjà vécues.
+   * Il tient donc sa propre série et l'impose — même parti pris que `lowEaWeeks`, qui
+   * est déjà passé par le simulateur et non relu en base.
+   *
+   * 🔴 **Sans ça, la date annoncée MENT** : elle décrirait une trajectoire sans aucune
+   * pause quand le moteur en servira une toutes les 9 semaines, soit ~11 % de déficit
+   * en moins. C'est exactement le défaut A15/P1.6 — une projection qui ignore ce que
+   * le moteur va réellement servir — et CLAUDE.md §10 l'interdit nommément.
+   */
+  dietBreak?: boolean,
 ) => WeekPoint;
 
 // Différence en jours entre deux stamps 'YYYY-MM-DD' (heure LOCALE, cf. weight.ts).
@@ -183,7 +206,13 @@ const STALLED_KG_PER_WEEK = 0.0005;
 function maxSafeDeltaAt(
   p: GoalBody, weightKg: number, tdee: number, sens: number,
 ): { delta: number; deficitCapped: boolean } {
-  const body = { ...p, weight_kg: weightKg };
+  // ⚠️ Ce corps ne sert QU'AU PLAFOND DE RYTHME, et c'est une frontière à tenir.
+  // `bodyAtWeight` fait suivre le %MG au poids projeté (borne basse) : c'est ce qui
+  // empêche un homme parti de 123 kg à 35 % de garder le plafond de 1,25 %/semaine
+  // jusqu'à 85 kg. Mais la même borne appliquée à la DÉPENSE fige la masse maigre et
+  // rend des objectifs inatteignables (mesuré — cf. `tdee.ts::servedTargetAt`). Le
+  // plancher, le BMR et le compteur de zone basse lisent donc toujours le %MG déclaré.
+  const body = bodyAtWeight(p, weightKg);
   const rate = sens < 0
     ? -(maxWeeklyLossPct(body) / 100) * weightKg
     : (MAX_GAIN_RATE_PCT / 100) * weightKg;
@@ -223,6 +252,16 @@ function weeksToTargetSimulated(
     return n;
   };
 
+  // Série de semaines en déficit qui précède la simulation : elle est SOLDÉE depuis
+  // le registre vécu, sinon la première pause simulée tomberait 8 semaines après
+  // aujourd'hui même pour quelqu'un qui sèche déjà depuis deux mois — et la date
+  // annoncée serait trop optimiste précisément pour ceux qui en sont le plus loin.
+  // `dietBreakApplies` d'abord : sans lui, la simulation insérerait des pauses chez
+  // quelqu'un qui relève de l'escalade RED-S, donc annoncerait une date fondée sur des
+  // semaines que le moteur ne servira pas.
+  let serieDeficit = dietBreakApplies(p) ? consecutiveDeficitWeeksBefore(p.deficit_weeks, today) : 0;
+  const pausesActives = dietBreakApplies(p);
+
   let poids = p.weight_kg;
   for (let semaine = 0; semaine < MAX_PROJECTION_WEEKS; semaine++) {
     const stamp = addDaysStamp(today, semaine * 7);
@@ -238,11 +277,26 @@ function weeksToTargetSimulated(
 
     // Au rythme maximal, deux passes : la première ne sert qu'à connaître le TDEE de
     // la semaine (le plafond des 25 % s'y adosse), la seconde exécute le delta imposé.
-    const brut = project(poids, stamp, compteur(stamp));
+    const pause = pausesActives && serieDeficit >= DIET_BREAK_AFTER_WEEKS;
+    const brut = project(poids, stamp, compteur(stamp), undefined, pause);
     const point = forceMaxRate
-      ? project(poids, stamp, compteur(stamp), maxSafeDeltaAt(p, poids, brut.tdeeKcal, Math.sign(reste)).delta)
+      ? project(poids, stamp, compteur(stamp), maxSafeDeltaAt(p, poids, brut.tdeeKcal, Math.sign(reste)).delta, pause)
       : brut;
     const rythme = weeklyKgFor(point);
+    // La série se lit sur le plan SERVI, comme dans `computePlan` : une semaine que le
+    // plancher a ramenée à la maintenance n'est pas une semaine de déficit. C'est ce
+    // qui fait que la pause se termine toute seule au tour suivant.
+    serieDeficit = point.targetKcal < point.tdeeKcal - 1e-6 ? serieDeficit + 1 : 0;
+
+    // 🔴 UNE PAUSE N'EST PAS UN ARRÊT, et les confondre rendait « aucune date » à tout
+    // le monde. À la maintenance le rythme vaut ~0, donc le test « à l'arrêt » deux
+    // lignes plus bas concluait que la trajectoire ne bouge plus et renvoyait
+    // `Infinity` — pour une semaine PRÉVUE, sur une sèche parfaitement saine.
+    // On avance d'une semaine à poids constant, et rien d'autre : ni test d'arrivée
+    // (on n'a pas bougé), ni comptage de zone basse (le plan n'est pas restrictif).
+    // Le journal, lui, a déjà reçu le point plus haut — le couloir doit montrer ce
+    // palier, sinon il reprocherait un retard que le moteur a lui-même imposé (§10).
+    if (pause) continue;
 
     if (Math.abs(rythme) < STALLED_KG_PER_WEEK) return Infinity;   // à l'arrêt
     if (Math.sign(rythme) !== Math.sign(reste)) return Infinity;   // s'éloigne
@@ -251,6 +305,8 @@ function weeksToTargetSimulated(
     const utile = reste - Math.sign(reste) * MAINTAIN_EPS_KG;
     if (Math.abs(rythme) >= Math.abs(utile)) return semaine + utile / rythme;
 
+    // %MG du DÉPART, comme `servedTargetAt` — le compteur de zone basse se lit sur la
+    // même masse maigre que le plancher qu'il escalade, sinon les deux divergent.
     if (countsAsLowEaWeek({ ...p, weight_kg: poids }, point.targetKcal, point.tdeeKcal, point.sportKcalPerDay)) {
       semaines.add(weekStartStamp(stamp));
     }

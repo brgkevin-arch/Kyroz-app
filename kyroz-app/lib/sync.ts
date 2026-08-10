@@ -55,6 +55,12 @@ export const PROFILE_COLS = [
   // `is_post_menopausal` est VOLONTAIREMENT absent : LOCAL-ONLY et inerte tant que
   // l'onboarding ne pose pas la question (même parti pris que Streak.freeze_available).
   'low_ea_weeks',
+  // Pause à la maintenance — migration 2026-08-10_profiles_deficit_weeks.sql.
+  // SYNCHRONISÉ, contrairement au conseil « commencer local » de CLAUDE.md §3 : c'est
+  // de l'état de moteur, pas une préférence d'appareil. Laissé en local, changer de
+  // téléphone remettrait la série à zéro et rendrait jusqu'à 8 semaines de déficit
+  // supplémentaires à quelqu'un que le moteur devait mettre en pause.
+  'deficit_weeks',
   'sports',
   'goal', 'goal_target', 'macro_mode', 'carb_ratio', 'protein_per_kg', 'tdee_kcal', 'target_kcal', 'target_protein_g', 'target_carbs_g',
   'target_fat_g', 'plan_days', 'plan_weekdays', 'rest_weekdays', 'meals', 'meal_emphasis', 'variety',

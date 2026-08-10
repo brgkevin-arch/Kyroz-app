@@ -30,6 +30,30 @@ App mobile React Native (Expo Router, SDK 56) de plans repas macro-précis pour 
 > pour en servir 134, et donnerait une version gratuite dégradée de Kyroz+.
 > ⚠️ Ne pas re-proposer sans mesure nouvelle. Détail et chiffres : AGENTS.md.
 
+> **Et un seul rythme de PRISE de masse, depuis le 2026-08-10** (décision fondateur).
+> `bulk` est legacy à son tour, retiré des deux écrans (onboarding **et** Profil) et
+> refermé sur `lean_bulk` à la lecture. Il en reste **QUATRE** : Sèche · Recomposition ·
+> Maintien · Prise de masse.
+> **Le test appliqué**, et c'est celui à réappliquer : *ce choix change-t-il le plan
+> autrement qu'en VITESSE ?* `bulk` ne différait de `lean_bulk` que par +200 kcal/j —
+> donc par la vitesse, qui est le métier de l'objectif daté. Et sa seule autre
+> différence allait à l'envers : les protéines BAISSAIENT (2,0 → 1,8 g/kg) précisément
+> là où il en faut le plus pour que la prise soit du muscle. Cette case ne proposait pas
+> un plan différent, elle proposait un plan **moins bon**.
+> ⚠️ **`recomp` reste, et ce n'est pas une inconséquence** : c'est le seul objectif où
+> la personne ne veut PAS que son poids bouge, donc le seul sans poids cible — donc le
+> seul que le mécanisme « la date règle la vitesse » n'atteint pas. Le replier sous
+> Maintien forcerait un choix de protéines (1,8 vs 2,2) qui sur-sert l'un ou sous-sert
+> l'autre. La voie propre pour passer à trois cases serait de DÉDUIRE la recomposition
+> des séances déclarées (elle n'existe pas sans musculation), pas de la supprimer.
+> 🔴 Contrairement à la fusion des sèches, **des calories bougent** : un surplus n'est
+> borné par aucun plancher, donc les −200 kcal/j sont servis en entier. D'où
+> `ENGINE_REV` 6 → 7 et l'avertissement one-shot. Ne touche que les comptes en `bulk`
+> **sans** objectif daté — avec une date, le delta vient de la trajectoire.
+> ⚠️ **Les deux listes d'écrans doivent rester d'accord** (`onboarding.tsx::GOALS` et
+> `profil.tsx::GOALS`) : un objectif proposé ici et pas là serait refermé par
+> `normalizeGoal` au rechargement — un choix qui ne tient pas sous les doigts.
+
 ---
 
 ## 2. Stack technique
@@ -737,6 +761,35 @@ composant. Audit complet des réglages : `npm run mesure:reglages`.
 ### Bloqué (hard block)
 - **Plans sous le plancher d'énergie disponible** — `lib/safety.ts::safetyFloorKcal`.
   Plancher = `max(BMR, min(30 kcal/kg de masse maigre + dépense sportive, TDEE), 1500 H / 1200 F)`.
+  🔴 **SAUF AU-DELÀ DE 30 % DE MG CHEZ L'HOMME / 40 % CHEZ LA FEMME** — les deux
+  planchers dérivés de la masse maigre (BMR **et** énergie disponible) se retirent
+  alors, et le cap à 25 % du TDEE prend le relais (`safety.ts::highAdiposity`,
+  `HIGH_ADIPOSITY_PCT`). Décision fondateur du 2026-08-10, `ENGINE_REV` 6 → 7.
+  **Le défaut, mesuré** (`npm run mesure:plancher`) : le plancher d'énergie disponible
+  gagnait sur les deux autres contraintes **15 fois sur 15**, de 15 à 45 % de MG, chez
+  les deux sexes. Tout le monde était plafonné à **0,30–0,34 kg/semaine** — un homme de
+  123 kg mettait ~2,5 ans à descendre à 85 kg. Le plafond de rythme gradué par
+  l'adiposité et le cap à 25 % étaient **entièrement décoratifs** : ils ne mordaient
+  jamais. Après : inchangé sous le seuil (0,29 → 0,32), **0,30 → 0,62 kg/sem** pour le
+  H 123 kg, 0,35 → 0,44 pour une F 95 kg à 45 %.
+  ⚠️ **L'hypothèse de départ était FAUSSE et la mesure l'a dit** : on cherchait une
+  inversion (« plus on est gras, moins le moteur autorise »). Il n'y en a pas — le
+  déficit permis monte même légèrement avec l'adiposité (318 → 375 kcal/j). Le défaut
+  était **uniforme**, donc bien plus gros que celui qu'on croyait corriger.
+  ⚠️ **Justification physiologique** : 30 kcal/kg de masse maigre est un seuil conçu
+  pour des athlètes maigres, chez qui l'énergie DOIT venir de l'assiette faute de
+  réserve. Chez quelqu'un qui porte 43 kg de graisse, la réserve EST la source d'énergie
+  prévue — le plancher interdisait d'utiliser ce pour quoi elle existe.
+  🔴 **CE QUE ÇA RETIRE, ET QU'IL FAUT ASSUMER** : au-dessus du seuil, l'escalade
+  RED-S ne force plus la sortie de déficit au bout de 12 semaines (le budget de zone
+  basse **ne se consomme plus** — `countsAsLowEaWeek`, sinon il reviendrait déjà épuisé
+  le jour où la personne repasse sous le seuil, et la sortirait du déficit au moment où
+  sa sèche redevient ordinaire).
+  ✅ **La relève est livrée le même jour — voir « Pause à la maintenance » ci-dessous.**
+  ⚠️ **Et s'entraîner ne rapportait RIEN** : la dépense sportive s'ajoutait des deux
+  côtés (TDEE **et** plancher EA) et s'annulait exactement — 0 et 4 séances donnaient
+  327 kcal/j de déficit au kcal près. Corrigé de fait au-dessus du seuil (0,62 → 0,69
+  kg/sem) ; **sous le seuil, c'est toujours vrai**, et aucun écran ne le dit.
   ⚠️ La composante énergie disponible est **plafonnée à la maintenance** : un plancher
   de sécurité empêche un déficit excessif, il n'impose **jamais** un surplus. Sans ce
   plafond, l'escalade prescrivait +282 kcal/jour à une femme de 125 kg. Le BMR et le
@@ -956,6 +1009,82 @@ composant. Audit complet des réglages : `npm run mesure:reglages`.
   des calories en lipides ; son curseur est plafonné à 75 % de glucides et
   `carb_ratio` est **clampé à la lecture** (une borne d'écran ne migre aucun compte
   déjà enregistré).
+> **Les gros objectifs se découpent en PALIERS — et c'est une VUE** (2026-08-10,
+> `lib/goalMilestones.ts`). Au-delà de 15 kg d'écart **ou** de 6 mois de trajectoire,
+> la carte d'objectif met en avant l'étape suivante (~9 kg) au lieu de la cible
+> lointaine : un objectif à douze mois ne renforce rien pendant douze mois.
+>
+> 🔴 **`goal_target` N'EST JAMAIS REMPLACÉ PAR LE PALIER, et c'est mesuré** — c'est la
+> décision de tout le chantier. Faire du palier la vraie cible est le geste évident, et
+> `npm run mesure:paliers` dit que c'est un piège, visible seulement sur les GROS écarts
+> (donc précisément la population visée) :
+>
+> | corps | écart | objectif final | palier | delta |
+> |---|---|---|---|---|
+> | H 105 → 85 | 20 kg | 2006 kcal | 2006 | **0** |
+> | H 123 → 85 | 38 kg | 2045 kcal | 2291 | **+246** |
+> | F 120 → 80 | 40 kg | 1751 kcal | 1968 | **+217** |
+>
+> Sur 38 kg, le palier ferait tomber le rythme servi de **0,60 à 0,40 kg/semaine** : une
+> date proche redevient « tenable » AU CALCUL EN LIGNE DROITE (`diff / weeksRemaining`),
+> donc A15 cesse de servir le rythme sûr maximal et retombe sur le rythme « juste
+> requis » — qui sous-estime, puisque l'arrivée est SIMULÉE. **Le défaut A15 réintroduit
+> par la porte de derrière**, sur ceux qui ont le plus à perdre.
+>
+> ⚠️ **Les dates de palier sont lues sur la trajectoire simulée**, jamais interpolées :
+> une ligne droite est exactement ce que §10 interdit (elle annonce « en retard » à qui
+> suit le plan à la lettre). Les intervalles s'allongent donc naturellement — la dépense
+> baisse avec le poids, et une pause tombe toutes les 9 semaines. Vérifié par mutation.
+>
+> ⚠️ **Le palier courant se LIT du poids actuel, il ne se stocke pas** : un palier
+> franchi puis reperdu redevient le palier courant. Une copie stockée serait la « seconde
+> source de vérité » de §10, désynchronisée au premier écart de balance.
+>
+> ⚠️ **La cible finale reste affichée** sous le palier. La masquer (comme le proposait le
+> brief) reviendrait à décider à la place de la personne ce qu'elle a le droit de savoir
+> sur son propre objectif.
+>
+> ➡️ Contrôle : `npm run mesure:paliers`. Garde-fou : `lib/__tests__/goalMilestones.test.ts`.
+
+- **Sèche prolongée sans pause** — `lib/safety.ts::dietBreakDue`, registre
+  `profiles.deficit_weeks` (**migration 2026-08-10_profiles_deficit_weeks.sql**).
+  Après **8 semaines de déficit d'affilée, la 9ᵉ est servie à la MAINTENANCE.**
+  ⚠️ **C'est la relève de l'escalade RED-S, pas un ajout de confort** : `ENGINE_REV` 7
+  a retiré les planchers dérivés de la masse maigre au-dessus du seuil d'adiposité, et
+  avec eux la seule chose qui forçait une sortie de déficit.
+  ⚠️ **Et elle comble un trou bien plus ancien** : `effectiveEaPerKgFfm` n'escalade que
+  pour `isFemaleAtRisk`. **Un HOMME n'a jamais eu, à aucune adiposité, aucun mécanisme
+  le sortant d'une sèche** — il pouvait creuser trois ans. Le défaut ne se voyait pas
+  parce que le plancher le plafonnait à 0,3 kg/semaine.
+  🔴 **UNE SEULE PROTECTION PAR PERSONNE — `dietBreakApplies`.** Les empiler les fait se
+  battre : pendant une pause le plan n'est plus restrictif, donc `since` retombe à null
+  et l'escalade **n'arrive jamais à son terme**. Mesuré en livrant sans ce prédicat —
+  trois tests rouges d'un coup, dont « la remontée annoncée vaut exactement la hausse
+  réelle » : la carte qui promet « ta cible montera de X par semaine jusqu'à la semaine
+  N » devenait fausse. La pause va donc là où l'escalade ne peut rien (tout homme, et
+  quiconque au-dessus du seuil d'adiposité), jamais par-dessus elle.
+  ➡️ **Question ouverte** : l'escalade est décrite en AGENTS.md comme une expérience
+  déroutante (« ses calories augmentent toutes les semaines : l'app dérive »), au point
+  d'avoir exigé une carte dédiée. La pause est probablement meilleure pour tout le
+  monde. La substituer est une décision de sécurité à part, avec sa propre mesure.
+  ⚠️ **Elle se réinitialise toute seule, sans second champ** : pendant la pause le plan
+  n'est pas un déficit, donc la semaine n'entre pas au registre, donc la série repart de
+  zéro. L'état est entièrement porté par le registre — il ne peut pas désynchroniser.
+  🔴 **LA PAUSE A DURÉ DEUX SEMAINES PENDANT TOUTE LA PREMIÈRE VERSION**, et ça ne se
+  voyait ni à la relecture ni dans la suite de tests. `settleLowEaExposure` solde le
+  temps écoulé depuis `since`, **semaine courante comprise** — juste pour la zone basse
+  (le plan restrictif était bien en vigueur avant le recalcul), faux ici : elle
+  réinscrivait la semaine de pause AVANT que le plan de pause soit calculé, la série
+  valait 9 la semaine suivante, et la pause repartait pour un tour. Seule une trace
+  semaine par semaine l'a montré. ➡️ `forgetCurrentWeek`, appliqué au SEUL registre de
+  déficit. *Encore un cas de « vérifier le résultat, pas la mécanique ».*
+  ⚠️ **La projection SIMULE les pauses** (`WeeklyProjector.dietBreak`), sinon la date
+  annoncée décrit une sèche sans pause quand le moteur en sert une toutes les 9 semaines
+  — **~11 % d'écart**, le défaut A15/P1.6 rejoué, que §10 interdit nommément.
+  ⚠️ **Une pause n'est pas un ARRÊT** : à la maintenance le rythme vaut ~0, et le test
+  « à l'arrêt » du simulateur renvoyait `Infinity` — donc « aucune date » — pour une
+  semaine PRÉVUE sur une sèche saine. Le simulateur avance à poids constant.
+  ➡️ Garde-fou : `lib/__tests__/pauseMaintenance.test.ts`, **vérifié par 2 mutations**.
 - Pathologies (diabète, IRC, cardio)
 - Femmes enceintes / allaitantes
 - **Utilisateurs < 18 ans** (bloquer à l'onboarding) — relevé de 16 à 18 le

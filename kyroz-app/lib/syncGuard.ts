@@ -72,9 +72,28 @@ export function normalizeProfileActivity<T extends Partial<UserProfile>>(p: T | 
 // moins compensés en glucides à calories identiques) : les deux valeurs sont dans
 // la fourchette de la littérature, et le clamp [1,6 ; 2,6] g/kg de masse maigre
 // s'applique de la même façon. Aucune calorie ne bouge, donc aucun ENGINE_REV.
+// ── Fusion des deux prises de masse (2026-08-10) ────────────────────────────
+//
+// Même geste, même motif, un cran plus loin : `bulk` ne différait de `lean_bulk` que
+// par la VITESSE (+400 vs +200 kcal/j), et la vitesse se pilote par l'objectif daté.
+//
+// 🔴 **CONTRAIREMENT À LA FUSION DES SÈCHES, DES CALORIES BOUGENT ICI** — et c'est la
+// différence qui compte. Un surplus n'est borné par aucun plancher (les planchers sont
+// des minima : ils ne peuvent pas mordre au-dessus de la maintenance), donc les
+// −200 kcal/j sont servis EN ENTIER, sans rien pour les absorber. D'où `ENGINE_REV`
+// 6 → 7 et l'avertissement one-shot. Ne touchent que les comptes en `bulk` SANS
+// objectif daté : avec une date, le delta vient de la trajectoire, pas de GOAL_CONFIG.
+// ℹ️ Effet protéique inverse de celui des sèches : 1,8 → 2,0 g/kg, donc en HAUSSE —
+// c'est le sens correct en surplus, et c'est une des raisons du retrait.
+const OBJECTIFS_RETIRES: Partial<Record<NonNullable<UserProfile['goal']>, UserProfile['goal']>> = {
+  cut_aggressive: 'cut',
+  bulk: 'lean_bulk',
+};
+
 export function normalizeGoal<T extends Partial<UserProfile>>(p: T | null): T | null {
-  if (!p || p.goal !== 'cut_aggressive') return p;
-  return { ...p, goal: 'cut' };
+  if (!p || !p.goal) return p;
+  const vers = OBJECTIFS_RETIRES[p.goal];
+  return vers ? { ...p, goal: vers } : p;
 }
 
 // ── Préférence de variété hors barème (2026-08-02) ──────────────────────────

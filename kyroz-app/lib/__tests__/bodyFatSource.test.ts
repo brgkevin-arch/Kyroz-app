@@ -40,7 +40,7 @@ import {
   bodyFatTdeeImpact, leanBodyMass, ENGINE_REV,
 } from '../tdee';
 import {
-  safetyFloorKcal, fatFreeMassKg, EA_HARD_FLOOR,
+  safetyFloorKcal, fatFreeMassKg, EA_HARD_FLOOR, highAdiposity,
   BF_CHART_MAX, provenanceDemandee, provenanceRetenue,
 } from '../safety';
 import { exerciseKcalPerDay } from '../sport';
@@ -215,11 +215,18 @@ describe('4 — OPTION A : le plancher de sécurité ne bouge PAS', () => {
         const brut = (p: UserProfile) =>
           Math.round(EA_HARD_FLOOR * fatFreeMassKg(p) + exerciseKcalPerDay(p.sports, p.weight_kg));
 
+        // ⚠️ Depuis le 2026-08-10, le candidat NE CONCOURT PLUS au-delà du seuil
+        // d'adiposité (`safety.highAdiposity`) : il vaut alors 0. La promesse de
+        // l'option A porte sur la PROVENANCE et rien d'autre — elle reste donc
+        // vérifiable telle quelle, à ceci près que la valeur attendue devient 0 des
+        // deux côtés. Écrire `.toBe(min(brut, tdee))` en dur ferait rougir ce test
+        // pour une raison qui n'a rien à voir avec ce qu'il garde.
+        const attendu = (p: UserProfile) =>
+          highAdiposity(p) ? 0 : Math.min(brut(p), p.tdee_kcal);
+
         expect(brut(B.profile), cle).toBe(brut(A.profile));
-        expect(B.clamp.candidates.energy_availability, cle)
-          .toBe(Math.min(brut(B.profile), B.profile.tdee_kcal));
-        expect(A.clamp.candidates.energy_availability, cle)
-          .toBe(Math.min(brut(A.profile), A.profile.tdee_kcal));
+        expect(B.clamp.candidates.energy_availability, cle).toBe(attendu(B.profile));
+        expect(A.clamp.candidates.energy_availability, cle).toBe(attendu(A.profile));
       }
     }
   });

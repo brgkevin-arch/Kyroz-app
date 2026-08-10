@@ -49,6 +49,11 @@ create table if not exists public.profiles (
   activity_level text,
   training_days_per_week int,
   low_ea_weeks jsonb, -- registre d'exposition à l'énergie disponible basse (plancher P0.1). NULL = aucun historique
+  -- Registre des semaines EN DÉFICIT (série CONSÉCUTIVE) → pause à la maintenance après
+  -- 8 semaines. Même forme que `low_ea_weeks`, prédicat différent et non substituable :
+  -- la zone basse est cumulée sur 12 mois, et depuis ENGINE_REV 7 elle ne se compte plus
+  -- du tout au-dessus du seuil d'adiposité. Cf. migration 2026-08-10_profiles_deficit_weeks.sql
+  deficit_weeks jsonb,
   sports jsonb not null default '[]',   -- [{type, sessions_per_week, minutes_per_session}] → dépense sportive (MET nets)
   -- Vie quotidienne HORS sport : 'desk'|'light'|'active'|'physical' → 1,20/1,28/1,36/1,45.
   -- SANS contrainte d'énumération À DESSEIN : une valeur ajoutée côté app avant sa
