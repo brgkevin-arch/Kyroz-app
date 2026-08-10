@@ -3579,7 +3579,14 @@ produit en suspens — il ne reste qu'à coder.
 
 ### 🧹 E — Dette technique
 
-- 🤖 **E26 · Le MOUVEMENT est le seul axe de DA sans règle ni garde-fou (2026-08-10)**
+- 🤖 **E29 · Le MOUVEMENT est le seul axe de DA sans règle ni garde-fou (2026-08-10)**
+
+  ⚠️ *Numérotée **E26** à l'écriture, et le choix était juste ce matin-là : E25 était le
+  dernier pris sur `main`. La session « consentement analytics » a mergé E26 pendant
+  celle-ci. **E27 et E28 sont pris eux aussi, par deux PR encore OUVERTES** (#74, #75) —
+  d'où E29 et non E27 : le numéro se choisit en regardant `main` **ET** les branches en
+  aval, sinon renuméroter propage la collision au lieu de la clore. Quatrième collision
+  du même type, cf. E19/E20, A28/A29 et A29/A30.*
 
   Quatre axes de la DA ont reçu un rôle, un token et un test : la forme (`rayonsDA`),
   le texte (`typoDA`), le blanc (`espacementDA`), les finitions (`finitionsDA`). Le
