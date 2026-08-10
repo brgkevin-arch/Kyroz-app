@@ -16,12 +16,14 @@ import { sleep, open, tap, bootToPlan, neutralizeFirstRun, dismissOverlays, DEFA
 const HERE = dirname(fileURLToPath(import.meta.url));
 
 // ── Gabarit de capture ───────────────────────────────────────────────────────
-// 430×932 = iPhone 15/16 Pro Max, rendu TÉLÉPHONE garanti. En ×3 : 1290×2796,
-// la SEULE taille qu'App Store Connect accepte pour le créneau 6.9".
-// ⚠️ C'était 390×844 (un 6.1") jusqu'au 2026-08-10, donc du 1170×2532 — refusé
-// au dépôt, alors que §7 du playbook annonçait du 6.7" depuis toujours. Troisième
-// défaut de dimension de ce script : la config a l'air juste, seule la SORTIE
-// tranche (cf. le feature graphic sorti à 3072×1500).
+// 430×932 = iPhone 14/15 Pro Max (et 15/16 Plus), rendu TÉLÉPHONE garanti — en
+// ×3 il sort à 1290×2796, LE gabarit 6.7" attendu par App Store Connect.
+// ⚠️ Ce n'est PAS la seule taille acceptée pour le créneau 6.9" : 1320×2868
+// (iPhone 16 Pro Max, 440×956) l'est aussi. Ne pas écrire « la seule ».
+// ⚠️ C'était 390×844 (6.1") jusqu'au 2026-08-10, soit 1170×2532 en ×3 : une
+// taille qu'App Store Connect REFUSE à l'envoi. Troisième défaut de dimension
+// de ce script — d'où la règle : mesurer le PNG produit (`sips -g pixelWidth
+// -g pixelHeight`), jamais relire la config.
 // ⚠️ Le seuil réel est TABLET_MIN_WIDTH = 700 (lib/layout.ts), pas « ~600 px »
 // comme l'annonçait ce commentaire — et avant le 2026-08-01 il n'y avait AUCUN
 // seuil, l'app était en pleine largeur à toute taille. 430 reste donc très en
