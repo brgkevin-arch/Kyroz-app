@@ -3602,6 +3602,88 @@ produit en suspens — il ne reste qu'à coder.
 > branches insèrent en tête de cette section, donc git ne sait pas dans quel ordre. La
 > résolution est de garder les DEUX blocs, en ordre décroissant — jamais d'en choisir un.
 
+- 🤖 **E35 · Le MOUVEMENT reçoit son rôle, ses tokens et son compteur (2026-08-10)**
+
+  Cinquième et dernier axe de la DA à recevoir une passe, après la forme, le texte, le
+  blanc et les finitions. Il n'avait **rien** — ni token de durée, ni courbe, ni test —
+  et il avait donc dérivé pour exactement la raison des quatre autres avant eux : rien
+  ne l'obligeait. Périmètre exécuté : **le lot sans build** (E29 §1–7 et 9). Le retour
+  haptique et le verre dépoli attendent le build 1.0.0 (4).
+
+  **Ce qui est livré**, dans l'ordre du levier :
+  1. **La vitesse du doigt était lue puis JETÉE.** `vy > 0.4` décidait *si* on ferme,
+     la sortie durait ensuite 240/200 ms fixes — effleurée ou balancée, le même
+     mouvement. Elle entre désormais dans le calcul du point d'arrivée
+     (`decisionFeuille` projette avec la fonction d'Apple) **puis** devient la vitesse
+     d'entrée du ressort. Plus de couture entre le doigt et l'animation.
+  2. **12 des 16 `Animated.timing` n'avaient aucune courbe** → RN applique `easeInOut`,
+     donc un démarrage LENT sur toute entrée. Passées en `Easing.out`. Seule exception
+     gardée : la chute des confettis, en `linear` — une chute ne ralentit pas en
+     arrivant, la règle « ease-out partout » vaut pour ce qui se pose.
+  3. **« Réduire les animations » était ignoré par TOUTE l'app** (`AccessibilityInfo` :
+     0 fichier). Store diffusé + abonnement à `reduceMotionChanged` — ce réglage-ci
+     change PENDANT que l'app tourne, ce qui le distingue des cinq autres valeurs
+     d'appareil. Réduire ≠ supprimer : on garde ce qui informe, on retire ce qui déplace.
+  4. **129 pressables pâlissaient sans s'enfoncer.** `components/Presse.tsx`, échelle
+     0,97 au ressort, même surface d'API pour que la migration soit MÉCANIQUE.
+  5. Caoutchouc aux bords, 6. ouverture interruptible, 7. tokens `DUREE`/`RESSORT`,
+     9. double fondu des trois célébrations retiré.
+
+  **`lib/motion.ts` n'importe RIEN, et c'est la condition de son existence.** `theme.ts`
+  tire react-native, donc ce qui y vit ne se vérifie qu'en le lisant comme du texte. Or
+  le mouvement ne se résume pas à des constantes : il porte des DÉCISIONS (où atterrit
+  un geste, quelle résistance à un bord), et une décision se teste en l'appelant. Même
+  procédé que `collapsingTitle.ts` et `tours.ts`.
+
+  🔴 **UNE PREMIÈRE VERSION DE `Presse` AURAIT CASSÉ LA MISE EN PAGE DES 129 SITES.**
+  Elle enveloppait les enfants dans une `Animated.View` — or le `style` d'un pressable
+  porte presque toujours un `flexDirection` ou un `gap`, qui s'appliquent à ses ENFANTS
+  DIRECTS. Une vue intermédiaire les aurait tous regroupés en UN enfant : chaque rangée
+  icône + texte serait devenue une colonne, partout, sans qu'aucun test ne le voie.
+  C'est le `Pressable` lui-même qui est animé, au prix assumé de 3 % de zone tactile.
+
+  🔴 **LE GARDE-FOU DES 44 PT EST DEVENU AVEUGLE EN RESTANT VERT.** `espacementDA`
+  cherchait `TouchableOpacity|Pressable|TouchableHighlight` : après la migration il ne
+  reconnaissait plus AUCUN pressable de l'app et ne mesurait plus rien du tout.
+  ➡️ **Un garde-fou nommé d'après une IMPLÉMENTATION meurt le jour où on en change, et
+  il meurt en silence, dans le sens rassurant.** Tout composant pressable ajouté doit
+  être ajouté à cette liste le même jour. Rebranché, re-vérifié par mutation.
+
+  ⚠️ **Et le nouveau compteur a MENTI avant de dire vrai** — dans le sens ALARMANT,
+  celui qu'on remarque. Son expression régulière s'arrêtait au premier `)`, donc sur
+  `duration: dureeReduite(DUREE.court, reduire),` elle coupait AVANT le `easing:` posé
+  deux lignes plus bas : **10 fichiers accusés de n'avoir aucune courbe alors qu'ils en
+  ont une**. On équilibre les parenthèses, et la sonde sait désormais dire OUI autant
+  que NON. *Même famille que « mesurer l'instrument » (§11), sur un outil écrit le jour
+  même.*
+
+  ⚠️ **Deux captures dangereuses évitées** : le `PanResponder` est créé une seule fois,
+  donc la hauteur d'écran (rotation iPad) et le réglage d'accessibilité y seraient FIGÉS
+  au premier rendu. Lus depuis une ref et depuis le store — sinon le geste travaille
+  avec l'état du démarrage, et ça ne se voit sur aucune capture.
+
+  ⚠️ **Piège d'unités, facteur 1000** : `vy` de `PanResponder` est en px/MILLISECONDE,
+  un ressort intègre en secondes. `vitesseDepuisPan` fait la conversion. L'oublier donne
+  un correctif qui a l'air de n'avoir rien fait.
+
+  📊 **1 395 verts / 84 fichiers**, `tsc` propre — mesuré sur la branche
+  `feature/mouvement-apple`. ⚠️ À RE-MESURER au moment du merge, pas maintenant : c'est
+  la leçon de #81, fermée parce que devenue fausse entre son ouverture et son merge.
+  Nouveau fichier : `mouvementDA.test.ts` (14 cas, **3 mutations**).
+
+  🔴 **CE QUI N'EST PAS VÉRIFIÉ, ET IL FAUT LE LIRE AVANT DE PUBLIER** : le RESSENTI.
+  L'app a été construite et lancée au simulateur (iPhone 17 Pro, iOS 27) — la mise en
+  page des 129 sites migrés est intacte en natif comme en web, sur les écrans les plus
+  chargés. Mais **aucun geste n'a pu être injecté** : le panneau simulateur de
+  l'outillage a planté et refuse de rouvrir dans cette session. Donc le glissement des
+  feuilles, la vitesse héritée et l'enfoncement au doigt restent **à juger à la main**.
+  ⚠️ Deux obstacles rencontrés en chemin, notés parce qu'ils reviendront : `pod install`
+  crashe si `LANG` n'est pas en UTF-8 dans l'environnement de la session
+  (`Encoding::CompatibilityError`, la trace n'accuse que Ruby) ; et `expo run:ios` peut
+  finir en `openurl` expiré alors que **le build a réussi** — l'app est installée, il
+  suffit de relancer Metro et de rouvrir l'URL du dev client.
+
+
 - ~~**E34 · Le rangement du Profil — lot 1**~~ ✅ **LIVRÉ le 2026-08-10.**
   ⚠️ **NUMÉROS : E33 et E34, après TROIS renumérotations le même jour.** Ce lot est né
   « E26 », puis « E27/E28 », puis « E30/E31 » — les trois fois faux. `main` a mergé E26
