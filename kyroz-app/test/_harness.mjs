@@ -99,10 +99,17 @@ export function bilanPannes() {
 /**
  * Neutralise les surcouches de premier lancement AVANT que l'app ne les lise.
  *
- * Sans ça, l'arrivée sur le plan empile une visite guidée modale (« Passer /
- * Suivant », components/GuidedTour.tsx) et une carte de consentement analytics :
- * elles interceptent TOUS les clics, et un script se retrouve à déclarer chaque
- * écran « introuvable » alors qu'il n'a simplement jamais pu quitter le Plan.
+ * Sans ça, deux surcouches interceptent TOUS les clics et un script se retrouve à
+ * déclarer chaque écran « introuvable » alors qu'il n'a simplement jamais pu
+ * avancer : la visite guidée modale à l'arrivée sur le plan (« Passer / Suivant »,
+ * components/GuidedTour.tsx), et l'écran de consentement analytics.
+ *
+ * ⚠️ Ce dernier a CHANGÉ DE PLACE le 2026-08-10 : ce n'était plus une carte posée
+ * sur le Plan mais un écran plein servi AVANT l'assistant d'onboarding
+ * (components/AnalyticsConsentStep.tsx). Il bloque donc désormais une marche plus
+ * TÔT — entre le dépistage santé et l'étape 1. La ligne qui le neutralise ci-dessous
+ * n'a pas eu à changer (elle pose la réponse dans le stockage, pas à l'écran), mais
+ * un script qui l'attendrait sur le Plan chercherait au mauvais endroit.
  *
  * Le consentement est posé à « denied » : un robot ne consent pas à la télémétrie.
  */
