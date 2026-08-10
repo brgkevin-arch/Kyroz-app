@@ -70,10 +70,24 @@ describe('le choix était fantôme — c\'est CE fait qui justifie la fusion', (
 });
 
 describe('normalizeGoal — referme les comptes existants', () => {
-  it('ramène `cut_aggressive` sur `cut`, et ne touche à rien d\'autre', () => {
+  it('referme les DEUX objectifs retirés, et ne touche à rien d\'autre', () => {
     expect(normalizeGoal({ goal: 'cut_aggressive' })!.goal).toBe('cut');
-    for (const g of ['cut', 'recomp', 'maintain', 'lean_bulk', 'bulk'] as Goal[]) {
+    // `bulk` → `lean_bulk` (2026-08-10) : même geste que la fusion des sèches, porté
+    // aux prises de masse. Il ne différait que par +200 kcal — donc par la VITESSE,
+    // qui est le métier de l'objectif daté — et ses protéines BAISSAIENT (2,0 → 1,8).
+    expect(normalizeGoal({ goal: 'bulk' })!.goal).toBe('lean_bulk');
+    for (const g of ['cut', 'recomp', 'maintain', 'lean_bulk'] as Goal[]) {
       expect(normalizeGoal({ goal: g })!.goal).toBe(g);
+    }
+  });
+
+  it('la normalisation est un POINT FIXE — aucun objectif retiré n\'en ressort', () => {
+    // Un objectif retiré qui pointerait vers un autre objectif retiré ferait boucler
+    // la table (ou, pire, laisserait passer une valeur morte après un seul tour).
+    // Rien ne l'interdit dans le type : c'est ce test qui l'interdit.
+    for (const g of ['cut_aggressive', 'bulk', 'cut', 'recomp', 'maintain', 'lean_bulk'] as Goal[]) {
+      const une = normalizeGoal({ goal: g })!.goal!;
+      expect(normalizeGoal({ goal: une })!.goal, `${g} → ${une}`).toBe(une);
     }
   });
 

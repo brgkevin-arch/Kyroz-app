@@ -42,12 +42,22 @@ const TOTAL_STEPS = 7;
 // `cut_aggressive` retiré le 2026-07-29 : il servait le MÊME plan que `cut` (le
 // plancher de sécurité absorbait l'écart), donc le choix était fantôme. La vitesse
 // se pilote par l'objectif daté. Cf. lib/syncGuard.ts::normalizeGoal.
+//
+// `bulk` retiré le 2026-08-10 (décision fondateur), pour la MÊME raison portée d'un
+// cran plus loin : il ne diffère de `lean_bulk` que par +200 kcal, c'est-à-dire par
+// la VITESSE — et la vitesse est le métier de l'objectif daté, pas d'un cran de menu.
+// Et sa seule autre différence allait à l'envers : les protéines BAISSAIENT (2,0 →
+// 1,8 g/kg) précisément là où il en faut le plus pour que la prise soit du muscle.
+// Cette case ne proposait pas un plan différent, elle proposait un plan moins bon.
+//
+// ⚠️ `recomp` RESTE, et ce n'est pas une inconséquence : c'est le seul objectif où la
+// personne ne veut PAS que son poids bouge. Il n'a donc pas de poids cible, donc la
+// date n'a rien à piloter — le mécanisme qui absorbe les autres crans ne l'atteint pas.
 const GOALS: { value: Goal; sub: string }[] = [
   { value: 'cut', sub: 'Perdre du gras en gardant le muscle' },
   { value: 'recomp', sub: 'Affiner et prendre du muscle en parallèle' },
   { value: 'maintain', sub: 'Stabiliser poids et composition' },
   { value: 'lean_bulk', sub: 'Prendre du muscle avec un surplus propre' },
-  { value: 'bulk', sub: 'Maximiser la prise de masse' },
 ];
 
 const RESTRICTIONS: { label: string; value: DietaryRestriction }[] = [

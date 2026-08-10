@@ -30,6 +30,30 @@ App mobile React Native (Expo Router, SDK 56) de plans repas macro-précis pour 
 > pour en servir 134, et donnerait une version gratuite dégradée de Kyroz+.
 > ⚠️ Ne pas re-proposer sans mesure nouvelle. Détail et chiffres : AGENTS.md.
 
+> **Et un seul rythme de PRISE de masse, depuis le 2026-08-10** (décision fondateur).
+> `bulk` est legacy à son tour, retiré des deux écrans (onboarding **et** Profil) et
+> refermé sur `lean_bulk` à la lecture. Il en reste **QUATRE** : Sèche · Recomposition ·
+> Maintien · Prise de masse.
+> **Le test appliqué**, et c'est celui à réappliquer : *ce choix change-t-il le plan
+> autrement qu'en VITESSE ?* `bulk` ne différait de `lean_bulk` que par +200 kcal/j —
+> donc par la vitesse, qui est le métier de l'objectif daté. Et sa seule autre
+> différence allait à l'envers : les protéines BAISSAIENT (2,0 → 1,8 g/kg) précisément
+> là où il en faut le plus pour que la prise soit du muscle. Cette case ne proposait pas
+> un plan différent, elle proposait un plan **moins bon**.
+> ⚠️ **`recomp` reste, et ce n'est pas une inconséquence** : c'est le seul objectif où
+> la personne ne veut PAS que son poids bouge, donc le seul sans poids cible — donc le
+> seul que le mécanisme « la date règle la vitesse » n'atteint pas. Le replier sous
+> Maintien forcerait un choix de protéines (1,8 vs 2,2) qui sur-sert l'un ou sous-sert
+> l'autre. La voie propre pour passer à trois cases serait de DÉDUIRE la recomposition
+> des séances déclarées (elle n'existe pas sans musculation), pas de la supprimer.
+> 🔴 Contrairement à la fusion des sèches, **des calories bougent** : un surplus n'est
+> borné par aucun plancher, donc les −200 kcal/j sont servis en entier. D'où
+> `ENGINE_REV` 6 → 7 et l'avertissement one-shot. Ne touche que les comptes en `bulk`
+> **sans** objectif daté — avec une date, le delta vient de la trajectoire.
+> ⚠️ **Les deux listes d'écrans doivent rester d'accord** (`onboarding.tsx::GOALS` et
+> `profil.tsx::GOALS`) : un objectif proposé ici et pas là serait refermé par
+> `normalizeGoal` au rechargement — un choix qui ne tient pas sous les doigts.
+
 ---
 
 ## 2. Stack technique
@@ -737,6 +761,35 @@ composant. Audit complet des réglages : `npm run mesure:reglages`.
 ### Bloqué (hard block)
 - **Plans sous le plancher d'énergie disponible** — `lib/safety.ts::safetyFloorKcal`.
   Plancher = `max(BMR, min(30 kcal/kg de masse maigre + dépense sportive, TDEE), 1500 H / 1200 F)`.
+  🔴 **SAUF AU-DELÀ DE 30 % DE MG CHEZ L'HOMME / 40 % CHEZ LA FEMME** — les deux
+  planchers dérivés de la masse maigre (BMR **et** énergie disponible) se retirent
+  alors, et le cap à 25 % du TDEE prend le relais (`safety.ts::highAdiposity`,
+  `HIGH_ADIPOSITY_PCT`). Décision fondateur du 2026-08-10, `ENGINE_REV` 6 → 7.
+  **Le défaut, mesuré** (`npm run mesure:plancher`) : le plancher d'énergie disponible
+  gagnait sur les deux autres contraintes **15 fois sur 15**, de 15 à 45 % de MG, chez
+  les deux sexes. Tout le monde était plafonné à **0,30–0,34 kg/semaine** — un homme de
+  123 kg mettait ~2,5 ans à descendre à 85 kg. Le plafond de rythme gradué par
+  l'adiposité et le cap à 25 % étaient **entièrement décoratifs** : ils ne mordaient
+  jamais. Après : inchangé sous le seuil (0,29 → 0,32), **0,30 → 0,62 kg/sem** pour le
+  H 123 kg, 0,35 → 0,44 pour une F 95 kg à 45 %.
+  ⚠️ **L'hypothèse de départ était FAUSSE et la mesure l'a dit** : on cherchait une
+  inversion (« plus on est gras, moins le moteur autorise »). Il n'y en a pas — le
+  déficit permis monte même légèrement avec l'adiposité (318 → 375 kcal/j). Le défaut
+  était **uniforme**, donc bien plus gros que celui qu'on croyait corriger.
+  ⚠️ **Justification physiologique** : 30 kcal/kg de masse maigre est un seuil conçu
+  pour des athlètes maigres, chez qui l'énergie DOIT venir de l'assiette faute de
+  réserve. Chez quelqu'un qui porte 43 kg de graisse, la réserve EST la source d'énergie
+  prévue — le plancher interdisait d'utiliser ce pour quoi elle existe.
+  🔴 **CE QUE ÇA RETIRE, ET QU'IL FAUT ASSUMER** : au-dessus du seuil, l'escalade
+  RED-S ne force plus la sortie de déficit au bout de 12 semaines (le budget de zone
+  basse **ne se consomme plus** — `countsAsLowEaWeek`, sinon il reviendrait déjà épuisé
+  le jour où la personne repasse sous le seuil, et la sortirait du déficit au moment où
+  sa sèche redevient ordinaire). Une pause à la maintenance toutes les 6–8 semaines
+  reste à concevoir comme une feature produit : elle n'existe pas.
+  ⚠️ **Et s'entraîner ne rapportait RIEN** : la dépense sportive s'ajoutait des deux
+  côtés (TDEE **et** plancher EA) et s'annulait exactement — 0 et 4 séances donnaient
+  327 kcal/j de déficit au kcal près. Corrigé de fait au-dessus du seuil (0,62 → 0,69
+  kg/sem) ; **sous le seuil, c'est toujours vrai**, et aucun écran ne le dit.
   ⚠️ La composante énergie disponible est **plafonnée à la maintenance** : un plancher
   de sécurité empêche un déficit excessif, il n'impose **jamais** un surplus. Sans ce
   plafond, l'escalade prescrivait +282 kcal/jour à une femme de 125 kg. Le BMR et le

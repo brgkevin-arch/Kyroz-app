@@ -242,6 +242,105 @@ export function fatFreeMassKg(b: BodyInput): number {
   return b.weight_kg * (1 - resolvedBodyFatPct(b) / 100);
 }
 
+// ── Forte adiposité — le seuil au-delà duquel les planchers dérivés de la masse
+//    maigre cessent de s'appliquer (2026-08-10) ────────────────────────────────
+//
+// 🔴 CE SEUIL DÉCIDE D'UN HARD BLOCK DE §6. Ce qui suit est la justification, et
+// elle doit rester traçable (décision fondateur du 2026-08-10).
+//
+// **Le défaut mesuré** (`npm run mesure:plancher`) : le plancher d'énergie disponible
+// gagnait sur les DEUX autres contraintes dans 15 cas sur 15, de 15 % à 45 % de MG,
+// chez l'homme comme chez la femme. Tout le monde était plafonné autour de **0,30 à
+// 0,34 kg/semaine** — un homme de 123 kg mettait ~2,5 ans à descendre à 85 kg. Le
+// plafond de rythme gradué par l'adiposité (`maxWeeklyLossPct`) et le cap à 25 % du
+// TDEE ne mordaient JAMAIS : deux garde-fous entièrement décoratifs.
+//
+// ⚠️ **Ce n'est PAS l'inversion qu'on cherchait.** L'hypothèse de départ (« plus on
+// est gras, moins le moteur autorise à perdre ») est FAUSSE : le déficit permis monte
+// même légèrement avec l'adiposité (318 → 375 kcal/j). Le défaut réel est uniforme.
+//
+// **Pourquoi le retirer se défend.** 30 kcal/kg de masse maigre est un seuil de risque
+// clinique conçu pour des athlètes maigres, chez qui l'énergie DOIT venir de l'assiette
+// parce qu'il n'y a pas de réserve. Chez quelqu'un qui porte 43 kg de graisse, la
+// réserve corporelle EST la source d'énergie prévue — le plancher lui interdit
+// d'utiliser ce pour quoi la réserve existe. Le filet qui reste au-dessus du seuil :
+// `MIN_KCAL` (1500 H / 1200 F) et le cap à 25 % du TDEE, qui devient la contrainte
+// active — une contrainte déjà appliquée partout ailleurs dans le moteur.
+//
+// ⚠️ **MÊMES SEUILS QUE LA BANDE HAUTE DE `maxWeeklyLossPct`, et c'est délibéré** :
+// deux nombres différents pour « cette personne est grasse » finiraient par diverger,
+// et une bande de rythme qui ne coïncide pas avec la bande de plancher créerait un
+// régime intermédiaire que personne n'a dessiné.
+export const HIGH_ADIPOSITY_PCT: Record<Sex, number> = { male: 30, female: 40 };
+
+/**
+ * Adiposité assez haute pour que les planchers dérivés de la masse maigre (BMR,
+ * énergie disponible) cessent de décider ? Prédicat UNIQUE — `safetyFloorBreakdown`,
+ * `countsAsLowEaWeek` et `maxWeeklyLossPct` le partagent.
+ */
+export function highAdiposity(b: BodyInput): boolean {
+  return resolvedBodyFatPct(b) > HIGH_ADIPOSITY_PCT[b.sex];
+}
+
+/**
+ * %MG à un poids DIFFÉRENT du poids actuel — borne BASSE, jamais une prédiction.
+ *
+ * ⚠️ Le %MG déclaré ne bouge que si la personne le RESSAISIT. La projection, elle,
+ * fait descendre le poids semaine après semaine : sans cette fonction, elle applique
+ * la bande de rythme du corps de DÉPART jusqu'à l'arrivée. Mesuré : un homme parti de
+ * 123 kg à 35 % garde le plafond de 1,25 %/semaine jusqu'à 85 kg — pour que ce soit
+ * légitime, il faudrait qu'il porte encore 25,5 kg de gras, donc que 20,5 des 38 kg
+ * perdus aient été du MUSCLE.
+ *
+ * 🔴 **AUCUNE CONSTANTE PHYSIOLOGIQUE N'EST INTRODUITE ICI, et c'est le point.**
+ * Prédire la répartition gras/maigre d'une perte demande un coefficient de mobilisation
+ * (le modèle d'Alpert, ~31 kcal/kg de MG/jour) dont la valeur exacte est incertaine —
+ * c'est une DÉCISION, pas une mesure, et elle n'est pas prise ici. On applique la seule
+ * chose qui soit vraie sans coefficient : **on ne peut pas avoir perdu plus de gras que
+ * de poids**. Attribuer 100 % de la perte au gras donne donc le %MG le plus BAS
+ * atteignable, donc la bande de rythme la plus STRICTE. La borne est sûre par
+ * construction ; elle se resserre trop vite, jamais trop lentement.
+ *
+ * ⚠️ Ne JAMAIS afficher ce nombre à l'utilisateur — c'est une borne de garde-fou, pas
+ * une estimation de sa composition corporelle. L'afficher serait un mensonge au sens de
+ * §10 (« un chiffre affiché est celui qui sera servi »).
+ *
+ * ⚠️ Et surtout PAS Deurenberg : §6 l'a mesuré et écarté comme substitut d'un %MG
+ * déclaré (+12 points sur une femme de 65 kg à 18 %). Il ne distingue pas un muscle
+ * d'un kilo de gras — donc il ment dans le sens PERMISSIF sur les corps entraînés.
+ */
+export function bodyFatPctAtWeight(b: BodyInput, weightKg: number): number {
+  const [lo, hi] = bodyFatBounds(b.sex);
+  if (!(weightKg > 0) || !Number.isFinite(weightKg)) return resolvedBodyFatPct(b);
+  const grasActuel = b.weight_kg * (resolvedBodyFatPct(b) / 100);
+  // Une PRISE de poids ne renseigne rien : on ne sait pas ce qui a été gagné, et
+  // supposer que c'est du gras durcirait le plafond de quelqu'un qui prend du muscle.
+  // On garde alors le %MG déclaré — le seul fait dont on dispose.
+  if (weightKg >= b.weight_kg) return resolvedBodyFatPct(b);
+  const gras = Math.max(0, grasActuel - (b.weight_kg - weightKg));
+  return clamp((gras / weightKg) * 100, lo, hi);
+}
+
+/**
+ * Le corps, à un autre poids — **producteur unique** du corps projeté.
+ *
+ * ⚠️ Deux endroits reconstruisaient ce corps à la main (`tdee.ts::servedTargetAt` et
+ * `datedGoal.ts::maxSafeDeltaAt`), tous deux en `{ ...p, weight_kg }` : le poids
+ * suivait, le %MG restait au chiffre du départ. Les faire passer par ici est ce qui
+ * garantit qu'ils ne peuvent pas répondre deux choses différentes sur le même corps —
+ * la leçon `safetyFloorKcal` / `safetyFloorBreakdown`, rejouée.
+ *
+ * ⚠️ **Sans %MG DÉCLARÉ, on ne touche à rien** : `resolvedBodyFatPct` retombe alors sur
+ * Deurenberg, qui lit l'IMC — donc qui suit DÉJÀ le poids. Écrire un `body_fat_pct` ici
+ * le figerait à la valeur du poids courant et retirerait à ces profils la seule
+ * évolution qu'ils avaient. C'est le contraire du défaut qu'on corrige.
+ */
+export function bodyAtWeight<T extends BodyInput>(b: T, weightKg: number): T {
+  const declare = typeof b.body_fat_pct === 'number' && b.body_fat_pct > 0;
+  if (!declare) return { ...b, weight_kg: weightKg };
+  return { ...b, weight_kg: weightKg, body_fat_pct: bodyFatPctAtWeight(b, weightKg) };
+}
+
 // ── Plancher d'énergie disponible (EA) ───────────────────────────────────────
 //
 // EA = (apport − dépense d'exercice) / masse maigre. Le plancher historique
@@ -491,12 +590,23 @@ export function safetyFloorBreakdown(
   maintenanceKcal: number,
 ): SafetyFloorBreakdown {
   const eaFloor = effectiveEaPerKgFfm(b, weeksInLowEa) * fatFreeMassKg(b) + sportKcalPerDay;
+  // ── Forte adiposité : les deux planchers dérivés de la masse maigre se retirent ──
+  //
+  // Justification, mesures et périmètre : `HIGH_ADIPOSITY_PCT` ci-dessus. Ils sont
+  // mis à ZÉRO plutôt qu'omis du `max` : un candidat à 0 ne peut pas gagner, et il
+  // reste LISIBLE dans `candidates` — un écran qui explique le plancher doit pouvoir
+  // dire « celui-ci n'a pas concouru », pas trouver une clé manquante.
+  //
+  // ⚠️ Ce qui protège au-dessus du seuil, et il faut les DEUX : `MIN_KCAL` (ci-dessous)
+  // et le cap à 25 % du TDEE (`tdee.ts::floorAndFlags`, `deficitCapFloor`), qui devient
+  // la contrainte active. Retirer l'un des deux laisserait le déficit sans borne haute.
+  const grasse = highAdiposity(b);
   // Le plafond à la maintenance fait partie du candidat, pas d'un post-traitement :
   // sinon `candidates.energy_availability` annoncerait une valeur qui n'a jamais
   // concouru (cf. l'invariant « jamais de surplus » ci-dessus).
   const candidates: Record<SafetyFloorSource, number> = {
-    bmr: Math.round(bmr),
-    energy_availability: Math.round(Math.min(eaFloor, maintenanceKcal)),
+    bmr: grasse ? 0 : Math.round(bmr),
+    energy_availability: grasse ? 0 : Math.round(Math.min(eaFloor, maintenanceKcal)),
     min_kcal: MIN_KCAL[b.sex],
   };
   const floorKcal = Math.max(candidates.bmr, candidates.energy_availability, candidates.min_kcal);
@@ -549,6 +659,23 @@ export const EA_COUNT_TOLERANCE = LOW_EA_STEP_PER_WEEK / 2;
 export function countsAsLowEaWeek(
   b: BodyInput, targetKcal: number, maintenanceKcal: number, sportKcalPerDay: number,
 ): boolean {
+  // 🔴 LE BUDGET SUIT LE PLANCHER — sinon il arme une bombe à retardement (2026-08-10).
+  //
+  // Au-dessus du seuil d'adiposité, le plancher d'énergie disponible ne s'applique plus
+  // (`safetyFloorBreakdown`). Continuer à compter les semaines de zone basse ferait
+  // s'accumuler un budget pour une protection qui n'agit pas — puis, le jour où la
+  // personne repasse SOUS le seuil, l'escalade reviendrait **déjà épuisée** et
+  // remonterait son plancher vers la maintenance d'un coup. Elle sortirait du déficit
+  // au moment précis où sa sèche redevient normale, sans qu'aucun geste de sa part ne
+  // l'explique. C'est le défaut dormant type : invisible tant que le seuil n'est pas
+  // retraversé, et impossible à relier à sa cause quand il se déclenche.
+  //
+  // ⚠️ Ce n'est PAS « son exposition ne compte pas » : c'est que l'instrument ne
+  // s'applique pas à ce corps-là. L'énergie disponible se mesure en kcal par kg de
+  // masse maigre, et c'est précisément la métrique que §6 vient de déclarer inadaptée
+  // au-dessus du seuil. Compter une exposition sur un instrument qu'on a désactivé
+  // reviendrait à le réappliquer par la porte de derrière.
+  if (highAdiposity(b)) return false;
   const inDeficit = targetKcal < maintenanceKcal - 1e-6;
   return inDeficit
     && energyAvailability(b, targetKcal, sportKcalPerDay) < EA_OPTIMAL - EA_COUNT_TOLERANCE;

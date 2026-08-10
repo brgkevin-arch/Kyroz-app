@@ -189,7 +189,11 @@ describe('P0.1 — plancher d\'énergie disponible', () => {
     let prof = makeProfile({
       // %MG mesuré : les cibles attendues de cette régression ont été relevées sous
       // Katch. C'est l'escalade de zone basse qui est testée ici, pas la provenance.
-      sex: 'female', age: 35, weight_kg: 135, height_cm: 168, body_fat_pct: 45, body_fat_source: 'measured',
+      // ⚠️ 38 % et non 45 % depuis le 2026-08-10 : au-delà de 40 % chez la femme, le
+      // plancher d'énergie disponible ne s'applique plus, donc il n'y a plus d'escalade
+      // à tester (c'est l'objet du test suivant). Le corps a été ramené SOUS le seuil
+      // pour que ce test continue de garder ce qu'il gardait — et non désactivé.
+      sex: 'female', age: 35, weight_kg: 135, height_cm: 168, body_fat_pct: 38, body_fat_source: 'measured',
       goal: 'cut', macro_mode: 'auto', low_ea_weeks: [],
       sports: [{ type: 'musculation', sessions_per_week: 3, minutes_per_session: 60 }],
       training_days_per_week: 3,
@@ -207,6 +211,66 @@ describe('P0.1 — plancher d\'énergie disponible', () => {
     const after = recalcProfile(prof, far);
     expect(lowEaWeeksInWindow(after.low_ea_weeks, far)).toBeLessThanOrEqual(1);
     expect(after.target_kcal).toBeLessThan(after.tdee_kcal); // elle peut de nouveau sécher
+  });
+
+  // ── Forte adiposité : les planchers dérivés de la masse maigre se retirent ────
+  //    (2026-08-10, `ENGINE_REV` 7 — décision fondateur, justification `HIGH_ADIPOSITY_PCT`)
+
+  it('au-delà du seuil, les DEUX planchers dérivés de la masse maigre ne concourent plus', () => {
+    const p = recalcProfile(makeProfile({
+      sex: 'male', age: 35, weight_kg: 123, height_cm: 180,
+      body_fat_pct: 35, body_fat_source: 'measured', goal: 'cut', macro_mode: 'auto', sports: [],
+    }), TODAY);
+    const plan = computePlan(p, TODAY);
+    const c = plan.clamp.candidates;
+    expect(c.bmr).toBe(0);
+    expect(c.energy_availability).toBe(0);
+    // Ce qui reste, et il en faut DEUX : le filet absolu et le cap à 25 % du TDEE.
+    // Sans le second, le déficit n'aurait plus aucune borne haute.
+    expect(c.min_kcal).toBe(MIN_KCAL.male);
+    expect(c.deficit_cap).toBeGreaterThan(MIN_KCAL.male);
+    // ⚠️ C'est le PLANCHER qu'on mesure, pas la cible : sans objectif daté, `cut` ne
+    // demande que −300 kcal/j, et un plancher est une borne BASSE — il ne tire pas la
+    // cible vers lui. Confondre les deux ferait dire à ce test que le chantier n'a
+    // rien changé, alors qu'il a ouvert la marge dans laquelle une date peut creuser.
+    expect(plan.floor_kcal).toBe(c.deficit_cap);
+  });
+
+  it('le seuil est une FRONTIÈRE : juste en dessous, les planchers tiennent encore', () => {
+    // Un test qui ne vérifie que le côté « retiré » passerait aussi si le retrait
+    // s'appliquait à TOUT LE MONDE — le défaut le plus grave que ce chantier pourrait
+    // introduire. On vérifie donc les deux côtés de la même frontière.
+    const corps = (pct: number) => recalcProfile(makeProfile({
+      sex: 'male', age: 35, weight_kg: 123, height_cm: 180,
+      body_fat_pct: pct, body_fat_source: 'measured', goal: 'cut', macro_mode: 'auto', sports: [],
+    }), TODAY);
+    const sous = computePlan(corps(30), TODAY).clamp.candidates;
+    expect(sous.bmr).toBeGreaterThan(0);
+    expect(sous.energy_availability).toBeGreaterThan(0);
+    // Et la MARGE réellement autorisée s'ouvre en franchissant le seuil : c'est
+    // l'objet du chantier. On la lit sur le plancher (ce que le moteur permettrait à
+    // un objectif daté), pas sur la cible du jour (que le −300 de `cut` fixe seul).
+    const permis = (pct: number) => {
+      const p = corps(pct);
+      return p.tdee_kcal - computePlan(p, TODAY).floor_kcal;
+    };
+    expect(permis(31)).toBeGreaterThan(permis(30) * 1.5);
+  });
+
+  it('le budget de zone basse ne se consomme PAS quand son plancher ne s\'applique pas', () => {
+    // Sans ça, les semaines s'accumuleraient pour une protection inactive, et
+    // l'escalade reviendrait DÉJÀ ÉPUISÉE le jour où la personne repasse sous le
+    // seuil — sortie de déficit brutale, au moment où sa sèche redevient ordinaire,
+    // et sans le moindre geste de sa part pour l'expliquer.
+    let p = makeProfile({
+      sex: 'female', age: 30, weight_kg: 120, height_cm: 165,
+      body_fat_pct: 45, body_fat_source: 'measured', goal: 'cut', macro_mode: 'auto',
+      low_ea_weeks: [], sports: [], training_days_per_week: 0,
+    });
+    for (let w = 0; w < 30; w++) p = recalcProfile(p, addDaysStamp(TODAY, 7 * w));
+    expect(lowEaWeeksInWindow(p.low_ea_weeks, addDaysStamp(TODAY, 7 * 29))).toBe(0);
+    // Et elle sèche toujours au bout de 30 semaines — c'est le but.
+    expect(p.target_kcal).toBeLessThan(p.tdee_kcal);
   });
 
   it('RÉGRESSION : une semaine devenue « future » n\'est plus détruite du registre', () => {

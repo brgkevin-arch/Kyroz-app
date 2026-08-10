@@ -76,7 +76,12 @@ import { FixedMealSheet } from '../../components/FixedMealSheet';
 // ── Options ──────────────────────────────────────────────────────────────────
 // `cut_aggressive` retiré le 2026-07-29 (cf. lib/syncGuard.ts::normalizeGoal) : il
 // servait le même plan que `cut`. La vitesse se pilote par l'objectif daté.
-const GOALS: Goal[] = ['cut', 'recomp', 'maintain', 'lean_bulk', 'bulk'];
+// `bulk` retiré le 2026-08-10, même motif : +200 kcal sur `lean_bulk`, donc de la
+// VITESSE, et des protéines qui BAISSAIENT là où il en faut le plus.
+// ⚠️ Cette liste doit rester d'accord avec celle de l'onboarding : un objectif
+// proposé ici mais pas là (ou l'inverse) est un réglage que `normalizeGoal` refermerait
+// sous les doigts de la personne au rechargement — un choix qui ne tient pas.
+const GOALS: Goal[] = ['cut', 'recomp', 'maintain', 'lean_bulk'];
 const CUT_GOALS: Goal[] = ['cut', 'recomp'];
 const RESTRICTIONS: { label: string; value: DietaryRestriction }[] = [
   { label: 'Végétarien', value: 'vegetarian' }, { label: 'Vegan', value: 'vegan' },
@@ -803,7 +808,20 @@ function EngineNoticeCard({ t, notice, onAdjust, onDismiss }: {
   //    servie en entier » ne veut rien dire.
   const depuis = notice.fromRev ?? 1;
   const monte = notice.to > notice.from;
-  const explication = notice.rev >= 6 && depuis >= 5
+  const explication = notice.cause === 'floor_lifted'
+    // rev 7 (2026-08-10) — les planchers dérivés de la masse maigre se retirent à forte
+    // adiposité. La cible BAISSE, et c'est une bonne nouvelle : jusqu'ici Kyroz refusait
+    // le déficit demandé (0,30 kg/semaine maximum, quel que soit le corps). Le texte le
+    // dit sans jargon (« énergie disponible », « masse maigre ») et surtout SANS
+    // reproche : ce n'est pas la personne qui allait trop lentement, c'est le moteur.
+    ? 'Kyroz te retenait : sa limite de sécurité était calculée pour des gabarits secs, et elle t\'empêchait de creuser un vrai déficit. Elle ne s\'applique plus à toi — ton budget baisse, et ta perte de poids va enfin suivre le rythme que tu as demandé.'
+    : notice.cause === 'goal_merged'
+    // rev 7 (2026-08-10) — `bulk` refermé sur `lean_bulk`. Ne JAMAIS présenter ça comme
+    // une perte d'option : ce qui a disparu est un cran de vitesse, et la vitesse se
+    // règle maintenant par la date. La hausse de protéines est dite, parce que c'est le
+    // gain réel et qu'elle explique pourquoi le plan reste bon avec moins de calories.
+      ? 'Kyroz n\'a plus qu\'une prise de masse, et elle vise le muscle : un surplus plus mesuré, avec plus de protéines. Pour prendre plus vite, donne-toi un poids à atteindre et une date — c\'est elle qui règle le rythme désormais.'
+      : notice.rev >= 6 && depuis >= 5
     // rev 6 (2026-08-06) — Katch-McArdle exige désormais un %MG MESURÉ. La cible peut
     // monter ou baisser selon le sens de l'erreur d'estimation, donc le texte ne prend
     // PAS parti sur le signe : il explique la cause, qui est la même dans les deux cas.

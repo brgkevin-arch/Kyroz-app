@@ -1,8 +1,8 @@
 import { localStamp } from './weight';
 import { Goal, GoalTarget, LowEaRegistryStored } from './types';
 import {
-  BodyInput, clamp, countsAsLowEaWeek, deficitBlocked, readLowEaRegistry,
-  resolvedBodyFatPct, weekStartStamp, LOW_EA_WINDOW_DAYS,
+  BodyInput, bodyAtWeight, clamp, countsAsLowEaWeek, deficitBlocked, highAdiposity,
+  readLowEaRegistry, resolvedBodyFatPct, weekStartStamp, LOW_EA_WINDOW_DAYS,
 } from './safety';
 
 // ── Objectif daté (feature premium « Kyroz+ ») ───────────────────────────────
@@ -34,9 +34,12 @@ export const MAX_GAIN_RATE_PCT = 0.5;
 export function maxWeeklyLossPct(b: BodyInput): number {
   const bf = resolvedBodyFatPct(b);
   const isLean = b.sex === 'male' ? bf < 12 : bf < 20;
-  const isHigh = b.sex === 'male' ? bf > 30 : bf > 40;
+  // ⚠️ La bande haute PARTAGE son seuil avec le retrait des planchers dérivés de la
+  // masse maigre (`safety.highAdiposity`) — il était écrit deux fois, en deux endroits
+  // que rien n'obligeait à rester d'accord. Une bande de rythme qui ne coïnciderait
+  // plus avec la bande de plancher créerait un régime que personne n'a dessiné.
   if (isLean) return 0.5;
-  if (isHigh) return 1.25;
+  if (highAdiposity(b)) return 1.25;
   return 0.75;
 }
 
@@ -183,7 +186,13 @@ const STALLED_KG_PER_WEEK = 0.0005;
 function maxSafeDeltaAt(
   p: GoalBody, weightKg: number, tdee: number, sens: number,
 ): { delta: number; deficitCapped: boolean } {
-  const body = { ...p, weight_kg: weightKg };
+  // ⚠️ Ce corps ne sert QU'AU PLAFOND DE RYTHME, et c'est une frontière à tenir.
+  // `bodyAtWeight` fait suivre le %MG au poids projeté (borne basse) : c'est ce qui
+  // empêche un homme parti de 123 kg à 35 % de garder le plafond de 1,25 %/semaine
+  // jusqu'à 85 kg. Mais la même borne appliquée à la DÉPENSE fige la masse maigre et
+  // rend des objectifs inatteignables (mesuré — cf. `tdee.ts::servedTargetAt`). Le
+  // plancher, le BMR et le compteur de zone basse lisent donc toujours le %MG déclaré.
+  const body = bodyAtWeight(p, weightKg);
   const rate = sens < 0
     ? -(maxWeeklyLossPct(body) / 100) * weightKg
     : (MAX_GAIN_RATE_PCT / 100) * weightKg;
@@ -251,6 +260,8 @@ function weeksToTargetSimulated(
     const utile = reste - Math.sign(reste) * MAINTAIN_EPS_KG;
     if (Math.abs(rythme) >= Math.abs(utile)) return semaine + utile / rythme;
 
+    // %MG du DÉPART, comme `servedTargetAt` — le compteur de zone basse se lit sur la
+    // même masse maigre que le plancher qu'il escalade, sinon les deux divergent.
     if (countsAsLowEaWeek({ ...p, weight_kg: poids }, point.targetKcal, point.tdeeKcal, point.sportKcalPerDay)) {
       semaines.add(weekStartStamp(stamp));
     }

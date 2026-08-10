@@ -86,6 +86,19 @@ export interface EngineNotice {
    * `undefined` = notice déposée avant l'existence du champ (lire ENGINE_REV_LEGACY).
    */
   fromRev?: number;
+  /**
+   * Ce qui a déplacé la cible, quand la RÉVISION SEULE ne suffit plus à le dire.
+   *
+   * ⚠️ Jusqu'à la rev 6, une révision = une cause, donc l'écran pouvait déduire son
+   * texte du seul trajet `fromRev → rev`. La rev 7 en porte DEUX (planchers retirés
+   * à forte adiposité ; `bulk` refermé sur `lean_bulk`), qui touchent des personnes
+   * différentes et font toutes deux BAISSER la cible — le signe ne les sépare pas
+   * davantage. Sans ce champ, l'écran servirait à l'une l'explication de l'autre :
+   * exactement le mensonge que le commentaire d'`EngineNoticeCard` interdit.
+   *
+   * `undefined` = révision antérieure, ou cause non déterminée → texte générique.
+   */
+  cause?: 'floor_lifted' | 'goal_merged';
 }
 
 // Sports suivis pour estimer la dépense énergétique (méthode MET, cf. lib/sport.ts).

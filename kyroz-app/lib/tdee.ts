@@ -8,6 +8,7 @@ import { ageOn } from './birthday';
 import {
   BodyInput, MIN_AGE, MIN_KCAL, EA_OPTIMAL, LOW_EA_BUDGET_WEEKS, countsAsLowEaWeek,
   bodyFatBounds, clamp, collapseLowEaRegistry, deficitBlocked, energyAvailability,
+  highAdiposity,
   fatFreeMassKg, isFemaleAtRisk, lowEaWeeksBefore, markLowEaWeek, safetyFloorKcal,
   settleLowEaExposure, lowEaEscalation, LowEaEscalation, readLowEaRegistry,
   safetyFloorBreakdown, SafetyFloorSource,
@@ -822,6 +823,29 @@ function servedTargetAt(
   p: UserProfile, weightKg: number, stamp: string, lowEaWeeks: number,
   kcalDeltaOverride?: number,
 ): WeekPoint {
+  // 🔴 LE %MG RESTE CELUI DU DÉPART ICI, ET C'EST DÉLIBÉRÉ — mesuré le 2026-08-10.
+  //
+  // La tentation est de le faire suivre le poids (`safety.bodyAtWeight`, comme le fait
+  // `datedGoal.maxSafeDeltaAt` pour le plafond de rythme). Essayé, et **ça casse la
+  // projection de tout le monde** : le %MG ne sert pas qu'à la bande de rythme, il
+  // produit la MASSE MAIGRE, donc le plancher d'énergie disponible.
+  //
+  // Le raisonnement « on ne peut pas perdre plus de gras que de poids » implique une
+  // masse maigre CONSTANTE le long de la trajectoire — donc un plancher d'énergie
+  // disponible constant, là où il baissait jusqu'ici avec le poids. Conséquence
+  // mesurée : `F 78 → 65 kg` n'a plus **AUCUNE** échéance atteignable sur 5 ans
+  // (l'escalade de zone basse rattrape un plancher qui ne descend plus, la femme sort
+  // du déficit et n'arrive jamais), et l'échelle d'échéances rend une rangée vide.
+  //
+  // ⚠️ Ce n'est pas « la borne est fausse » : c'est qu'elle est CONSERVATRICE dans les
+  // deux sens, et que le second n'était pas le défaut qu'on corrigeait. Sur le rythme,
+  // conservateur = plus strict = sûr. Sur le plancher, conservateur = plancher plus
+  // haut = déficit plus petit = objectif inatteignable. Une même hypothèse, deux effets
+  // opposés selon ce qu'elle alimente.
+  //
+  // ➡️ La composition le long d'une sèche est une question ouverte, à calibrer à part
+  // (elle demande un coefficient de mobilisation, cf. `bodyFatPctAtWeight`). Elle ne se
+  // règle pas en passant une borne de garde-fou à un calcul de dépense.
   const body: UserProfile = { ...p, weight_kg: weightKg };
   const tdee = calculateTDEE(body);
   const sportKcalPerDay = exerciseKcalPerDay(p.sports, weightKg);
@@ -910,6 +934,18 @@ export const ENGINE_REV_LEGACY = 1;
 /**
  * Révision courante — à INCRÉMENTER à chaque correction qui déplace les cibles.
  *
+ * rev 6 → 7 (2026-08-10) : DEUX changements, tous deux déplaçant des cibles.
+ * · Les planchers dérivés de la masse maigre (BMR, énergie disponible) se retirent
+ *   au-delà de 30 % de MG chez l'homme, 40 % chez la femme (`safety.highAdiposity`).
+ *   Motif mesuré : le plancher d'énergie disponible gagnait sur les deux autres
+ *   contraintes **15 fois sur 15**, de 15 à 45 % de MG — tout le monde était plafonné
+ *   à 0,30–0,34 kg/semaine, et les deux autres garde-fous étaient décoratifs. Ne
+ *   déplace QUE les profils au-dessus du seuil ; le cap à 25 % du TDEE prend le relais.
+ * · `bulk` est refermé sur `lean_bulk` (`syncGuard::normalizeGoal`) : −200 kcal/j de
+ *   surplus, servis en entier faute de plancher pour les absorber.
+ * ⚠️ Le %MG suit désormais le poids DANS LA PROJECTION (`safety.bodyAtWeight`) : ça
+ * change les dates annoncées, pas la cible du jour.
+ *
  * rev 5 → 6 (2026-08-06) : Katch-McArdle exige désormais un %MG **MESURÉ**. Un %MG
  * estimé (silhouette tapée, chiffre au jugé) repasse sur Mifflin-St Jeor. Déplace
  * TOUS les profils dont la provenance n'est pas `measured` — c'est-à-dire, au
@@ -941,7 +977,7 @@ export const ENGINE_REV_LEGACY = 1;
  * l'explication de la rev 2 à quelqu'un dont la cible a bougé pour une autre raison
  * serait un mensonge, pas une approximation.
  */
-export const ENGINE_REV = 6;
+export const ENGINE_REV = 7;
 
 /**
  * Seuil d'affichage (kcal/j, en valeur absolue). En dessous, l'écart tient dans le
@@ -957,14 +993,33 @@ export const ENGINE_NOTICE_MIN_DELTA = 100;
  * encore) → aucun avertissement, on ne va pas expliquer un changement à quelqu'un
  * qui n'a jamais vu l'ancienne valeur.
  */
-function engineNoticeFor(prevRev: number | undefined, prevTarget: number, nextTarget: number): EngineNotice | undefined {
+function engineNoticeFor(
+  prevRev: number | undefined, prevTarget: number, nextTarget: number,
+  /**
+   * Le corps, pour départager les DEUX causes de la rev 7 (cf. `EngineNotice.cause`).
+   *
+   * ⚠️ Départage par PRIORITÉ, pas par exclusion : une personne peut être au-dessus du
+   * seuil d'adiposité ET venir de `bulk`. Le retrait des planchers passe alors devant,
+   * parce que c'est lui qui déplace le plus de calories — et parce que l'autre cause
+   * ne concerne que les surplus, où aucun plancher ne mordait de toute façon.
+   * ⚠️ `goal` est lu APRÈS `normalizeGoal` : un compte venu de `bulk` s'y présente déjà
+   * en `lean_bulk`. C'est donc « lean_bulk sans forte adiposité » qui sert d'indice, et
+   * il attrape aussi quelques `lean_bulk` d'origine — dont la cible, elle, n'a pas
+   * bougé, donc qui ne reçoivent aucune notice. L'indice est imprécis, la notice non.
+   */
+  b?: BodyInput & { goal?: Goal },
+): EngineNotice | undefined {
   const depuis = prevRev ?? ENGINE_REV_LEGACY;
   if (depuis === ENGINE_REV) return undefined;
   if (!(prevTarget > 0) || !(nextTarget > 0)) return undefined;
   if (Math.abs(nextTarget - prevTarget) < ENGINE_NOTICE_MIN_DELTA) return undefined;
+  const cause: EngineNotice['cause'] | undefined = !b ? undefined
+    : highAdiposity(b) ? 'floor_lifted'
+      : b.goal === 'lean_bulk' ? 'goal_merged'
+        : undefined;
   // `fromRev` est indispensable à l'écran : `rev` seul dit où l'on ARRIVE, jamais
   // d'où l'on vient — or c'est le trajet qui doit être expliqué.
-  return { rev: ENGINE_REV, from: prevTarget, to: nextTarget, fromRev: depuis };
+  return { rev: ENGINE_REV, from: prevTarget, to: nextTarget, fromRev: depuis, cause };
 }
 
 // ── Producteur unique du profil calculé ──────────────────────────────────────
@@ -1170,7 +1225,7 @@ export function computePlan(rawProfile: UserProfile, today: string = todayStamp(
   // que cette personne verra jamais du changement le plus récent.
   // On fusionne : `from` reste le point de départ le plus ANCIEN (ce que la personne
   // avait réellement sous les yeux), `to` devient la valeur servie aujourd'hui.
-  const nouvelleNotice = engineNoticeFor(p.engine_rev, p.target_kcal, m.target_kcal);
+  const nouvelleNotice = engineNoticeFor(p.engine_rev, p.target_kcal, m.target_kcal, p);
   const engine_notice = p.engine_notice && nouvelleNotice
     ? {
         ...nouvelleNotice,
