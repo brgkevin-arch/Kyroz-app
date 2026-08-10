@@ -255,3 +255,61 @@ describe('Visite guidée — la table des tours est la source unique', () => {
     expect(inconnus, 'ces tours sont lancés sans être déclarés dans TOURS').toEqual([]);
   });
 });
+
+describe('Visite guidée — un tour affiché compte comme VU', () => {
+  // ── Le défaut mesuré, le 2026-08-10 ───────────────────────────────────────
+  //
+  // Signalé par le fondateur : « le tuto s'ouvre encore alors que je l'ai fait
+  // 18 fois », et sur les CINQ tours. Le marquage ne vivait que dans `end`
+  // (« Passer ») et `next` (dernière étape) : toute autre fin de session
+  // n'écrivait RIEN. Reproduit dans le navigateur — tour affiché, page
+  // rechargée sans répondre, tour de retour à 1/3.
+  //
+  // Ce qui rendait le défaut inéluctable plutôt que rare : il n'existe AUCUNE
+  // autre porte de sortie. Les quatre panneaux sombres avalent le tap, y
+  // compris sur la barre d'onglets — mesuré. Donc sur iPhone, où le système
+  // termine l'app régulièrement, les cinq tours se relançaient à chaque
+  // ouverture.
+  //
+  // ⚠️ Et c'est pour ça que le marquage est à l'OUVERTURE et nulle part
+  // ailleurs : tout ce qui dépend d'une sortie propre (démontage, perte de
+  // focus, `onRequestClose`) n'est pas déclenché quand iOS tue le processus.
+  const SRC = readFileSync(join(RACINE, 'components', 'GuidedTour.tsx'), 'utf8');
+
+  /** Le corps de `startTour`, du `const startTour` jusqu'à sa parenthèse de fin. */
+  const corpsStartTour = (() => {
+    const debut = SRC.indexOf('const startTour');
+    expect(debut, 'startTour introuvable dans GuidedTour.tsx').toBeGreaterThan(-1);
+    const fin = SRC.indexOf('\n  }, []);', debut);
+    expect(fin, 'fin de startTour introuvable').toBeGreaterThan(debut);
+    return SRC.slice(debut, fin);
+  })();
+
+  it('le tour est marqué vu à son OUVERTURE', () => {
+    expect(
+      /markSeen\(\s*tourId\s*\)/.test(corpsStartTour),
+      'startTour n’appelle plus markSeen : un tour interrompu par une app tuée reviendra à chaque lancement',
+    ).toBe(true);
+  });
+
+  it('le marquage n’a qu’UNE source', () => {
+    // Un second `markSeen` ailleurs serait un endroit de plus à tenir d'accord,
+    // pour un cas que celui de `startTour` couvre déjà. Et surtout il ferait
+    // croire que la sortie compte, alors que c'est justement ce qui a manqué.
+    // `(?<!function )` écarte la DÉCLARATION `async function markSeen(tourId)`,
+    // qui n'est pas un appel — sans ça le compte vaut 2 pour un seul appel.
+    const appels = [...SRC.matchAll(/(?<!function )markSeen\(/g)].length;
+    expect(appels, 'markSeen doit être appelé exactement une fois, dans startTour').toBe(1);
+  });
+
+  it('la sonde sait dire NON', () => {
+    // Un compteur qu'on n'a jamais vu rougir ne prouve rien (CLAUDE.md §8).
+    // On rejoue ici la version FAUTIVE — le startTour d'avant le correctif,
+    // qui posait l'état sans rien marquer.
+    const avantCorrectif = `const startTour = useCallback((tourId, steps, opts) => {
+      const avail = steps.filter((s) => refs.current.has(s.targetId));
+      if (avail.length === 0) return;
+      setActive({ tourId, steps: avail, index: 0 });`;
+    expect(/markSeen\(\s*tourId\s*\)/.test(avantCorrectif)).toBe(false);
+  });
+});

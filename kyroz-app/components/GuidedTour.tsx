@@ -202,13 +202,31 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
     scrollRef.current = opts?.scrollRef;
     setRect(null);
     setActive({ tourId, steps: avail, index: 0 });
+    // 🔴 MARQUÉ VU DÈS L'AFFICHAGE, PAS À LA SORTIE — et c'est le seul endroit qui
+    // résiste à une app TUÉE. Le marquage ne vivait que dans `end` (« Passer ») et
+    // `next` (dernière étape) : toute autre fin de session n'écrivait RIEN, donc le
+    // tour revenait au lancement suivant, indéfiniment. Et il n'existe aucune autre
+    // porte de sortie — mesuré le 2026-08-10 : les quatre panneaux sombres avalent
+    // le tap, y compris sur la barre d'onglets, donc on ne peut pas s'échapper en
+    // changeant d'écran. Sur iPhone, où le système termine l'app régulièrement, les
+    // CINQ tours se relançaient à chaque ouverture (signalé par le fondateur :
+    // « le tuto s'ouvre encore alors que je l'ai fait 18 fois »).
+    // ⚠️ Tout correctif branché sur une sortie PROPRE (démontage, perte de focus,
+    // `onRequestClose`) ne corrige pas ce cas : iOS ne les déclenche pas quand il
+    // tue le processus. Le seul instant garanti est celui où le tour s'ouvre.
+    // ⚠️ Conséquence assumée : une bulle entrevue compte comme vue. Acceptable
+    // parce que le rejeu existe PARTOUT (le « ? » des cinq en-têtes + « Revoir les
+    // tutos » du Profil) — là où une bulle qu'on ne peut pas faire taire n'a, elle,
+    // aucun recours.
+    markSeen(tourId);
   }, []);
 
+  // ℹ️ Ni `end` ni `next` ne marquent le tour : c'est `startTour` qui le fait, à
+  // l'ouverture. Une seule source, et surtout la seule qui couvre les sorties que
+  // ces deux-là ne voient pas (app tuée, onglet fermé). Les rétablir ici serait un
+  // second endroit à tenir d'accord, pour un cas déjà couvert.
   const end = useCallback(() => {
-    setActive((cur) => {
-      if (cur) markSeen(cur.tourId);
-      return null;
-    });
+    setActive(null);
     setRect(null);
   }, []);
 
@@ -216,7 +234,6 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
     setActive((cur) => {
       if (!cur) return cur;
       if (cur.index < cur.steps.length - 1) return { ...cur, index: cur.index + 1 };
-      markSeen(cur.tourId);
       return null;
     });
   }, []);
