@@ -28,10 +28,10 @@ elles se génèrent **pendant** qu'il tourne : une heure gagnée, gratuitement.
 
 | # | Qui | Étape | Pourquoi ça ne peut pas passer avant |
 |---|---|---|---|
-| 1 | 🧑 | **Trancher la célébration de série** (le chiffre — servi aujourd'hui — ou l'icône) | c'est du **CODE**, donc ça doit être dans le binaire, donc avant le build. C'est la seule décision qui bloque la journée |
+| 1 | ~~🧑~~ | ~~**Trancher la célébration de série**~~ ✅ **DÉJÀ TRANCHÉ le 2026-08-09** — c'est le **nombre de jours** en `Type.hero` (`StreakCelebration.tsx`), et le motif n'était pas esthétique : six emblèmes, un par palier, sont une échelle de badges, donc de la *collection*, que CLAUDE.md §5 interdit. ⚠️ Cette ligne a survécu **un jour** à sa propre décision et annonçait « la seule décision qui bloque la journée » alors qu'elle ne bloquait plus rien | — |
 | 2 | 🧑 | `git checkout main && git pull` **dans le dépôt principal** | il a plusieurs merges de retard, et c'est depuis CET arbre que se prennent les captures **et** le build |
 | 3 | 🤖 | Build EAS iOS production **1.0.0 (4)** | premier binaire à porter la clé RevenueCat ; celui du 2 août est antérieur. **Ne PAS monter `expo.version`** : ça couperait la ligne OTA vers le build 3 des testeurs |
-| 4 | 🤖 | ✅ **Gabarit iPhone corrigé et captures REFAITES le 2026-08-10** (`430×932` → sortie mesurée **1290×2796**, feature graphic 1024×500). Reste `npm run store:assets:ipad` | les 5 captures dataient du **30 juillet**, donc d'avant six passes de design **et** d'avant la refonte du Profil ; elles sont désormais prises sur `main` du 10 août. Le dossier iPad est **toujours vide** |
+| 4 | 🤖 | ✅ **Gabarit iPhone corrigé et captures REFAITES le 2026-08-10** (`430×932` → sortie mesurée **1290×2796**, feature graphic 1024×500). ✅ **Et l'iPad AUSSI : 5 PNG en 2048×2732, mesurés au `sips` le 2026-08-10.** ⚠️ Cette ligne disait « le dossier iPad est toujours vide » — c'était vrai à l'écriture, faux depuis, et c'est le TROISIÈME état successif de cette même case (« générés » → « vide, jamais rien contenu » → « générés, mesurés »). Le disque tranche, pas la fiche | les 5 captures dataient du **30 juillet**, donc d'avant six passes de design **et** d'avant la refonte du Profil ; elles sont désormais prises sur `main` du 10 août. Le dossier iPad est **toujours vide** |
 | 5 | 🧑 | Regarder les 10 captures et dire si elles vendent l'app | le seul jugement que je ne peux pas rendre à ta place |
 | 6 | 🧑 | Formulaires App Store Connect : confidentialité (§4), classification **17+** (§6), fiche FR (§3), note relecteur (§11), et **les captures** | tout est déjà rédigé ci-dessous — c'est du copier-coller, pas de la rédaction |
 | 7 | 🧑 | « Submit for review » | — |
@@ -79,7 +79,7 @@ dans laquelle l'étape 4 se glisse.
 | URL politique de confidentialité (HTTP 200) | ✅ en ligne |
 | Textes de fiche (FR), réponses confidentialité, classification | ✅ ci-dessous (§3–6) |
 | **Comptes développeur Apple + Google** | ⛔ **toi** (§1) |
-| Screenshots (iPhone + iPad 13") + feature graphic | 🟡 **iPhone REFAIT le 2026-08-10, iPad toujours à faire.** `test/store/` : 5 PNG + le feature graphic, regénérés sur `main` du 10 août — sortie **mesurée** à `1290×2796` (et 1024×500 pour le feature graphic), après correction de `PHONE` à `430×932`. *(Ils dataient du 30 juillet 21:59, d'avant six passes de design et d'avant la refonte du Profil.)* 🔴 `test/store-ipad/` : **VIDE**, il n'a jamais rien contenu — et ces captures-là sont **requises** depuis que `supportsTablet` est à `true` : `npm run store:assets:ipad`, serveur allumé |
+| Screenshots (iPhone + iPad 13") + feature graphic | 🟡 **iPhone REFAIT le 2026-08-10, iPad toujours à faire.** `test/store/` : 5 PNG + le feature graphic, regénérés sur `main` du 10 août — sortie **mesurée** à `1290×2796` (et 1024×500 pour le feature graphic), après correction de `PHONE` à `430×932`. *(Ils dataient du 30 juillet 21:59, d'avant six passes de design et d'avant la refonte du Profil.)* ✅ `test/store-ipad/` : **5 PNG en 2048×2732**, générés et **mesurés** le 2026-08-10. *(Cette case a annoncé « générés » pendant huit jours alors que le dossier était vide, puis « vide » après qu'il a été rempli : la seule source qui vaille est `sips` sur les fichiers.)* |
 | Accès reviewer (code) | ✅ code — toi : poser le secret au build (§9) |
 | **Lancer le build EAS** | ⛔ **toi** (§8) |
 
@@ -604,9 +604,11 @@ l'image du build portant déjà l'icône qui a désigné le vrai coupable — un
   et c'est elle qui l'a validé. Une constante juste ne prouve rien — `sips -g pixelWidth
   -g pixelHeight` sur les PNG, si.
 - **Screenshots iPad 13"** (2048×2732) : **requis**, `supportsTablet` étant à `true`
-  (cf. §2). 🔴 **CETTE LIGNE A ANNONCÉ « ✅ Générés » PENDANT HUIT JOURS — c'est FAUX.**
-  Re-mesuré le 2026-08-09 : `test/store-ipad/` ne contient que son `README.txt`, il n'a
-  **jamais** contenu une seule image. La commande existe et elle est juste
+  (cf. §2). ✅ **GÉNÉRÉS ET MESURÉS le 2026-08-10** — 5 PNG à 2048×2732, vérifiés au
+  `sips`. ⚠️ **Cette case a porté trois états successifs, et deux étaient faux** :
+  « ✅ générés » pendant huit jours alors que le dossier ne contenait que son
+  `README.txt`, puis « VIDE, jamais rien contenu » — resté après qu'ils ont été produits.
+  ➡️ Ce n'est pas la fiche qui dit si un fichier existe, c'est le disque. La commande existe et elle est juste
   (`npm run store:assets:ipad` → 1024×1366 en `×2`) ; personne ne l'avait lancée.
   ➡️ Elles montreront l'écran recette en deux colonnes, c'est-à-dire l'argument tablette.
   ⚠️ **Le motif compte plus que le fait** : une case cochée dans un playbook n'est pas une
