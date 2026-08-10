@@ -1148,6 +1148,45 @@ Profil (poids, objectif, régime) = **données de santé** au sens RGPD.
 - Pas de revente, pas de pub, pas de tracking tiers sans consentement
 - Contact RGPD/DPO dans les CGU
 
+### Statistiques d'usage — le consentement se demande AVANT l'assistant (2026-08-10)
+
+Deux consentements distincts, à ne pas confondre : celui aux **données de santé** (case
+cochée à l'inscription, base légale du produit) et celui aux **statistiques d'usage**
+(`lib/analytics.ts`, facultatif). Ce paragraphe ne parle que du second.
+
+Il vivait sur une carte en tête de l'écran Plan. Il vit désormais dans
+`components/AnalyticsConsentStep.tsx`, écran plein posé **après le dépistage santé et
+avant l'étape 1** de l'onboarding. Décision fondateur : *« ça gâche la page principale de
+l'app »*.
+
+🔴 **LE PLACER PLUS TARD SUPPRIME UNE MESURE, ÇA NE LA DÉGRADE PAS.** `capture()` ne garde
+RIEN tant que la réponse n'est pas donnée, et le tampon local a été explicitement écarté
+(écrire des events sur l'appareil pour une finalité non essentielle relève probablement de
+l'art. 82). Tout ce qui précède la réponse est donc perdu **pour tout le monde,
+définitivement** — dont le tunnel d'entrée en entier. Or un décrochage d'onboarding est le
+seul signal lisible à 40 utilisateurs ; la rétention, elle, demande des mois.
+
+⚠️ **« PSEUDONYME », JAMAIS « ANONYME »** — dans le code, dans l'UI et dans les textes
+légaux. L'identifiant est stable, donc les events d'un même appareil se regroupent, et
+c'est précisément ce qui rend possible la suppression sur retrait promise à l'écran. Une
+donnée supprimable par individu n'est pas anonyme : promettre les deux, c'est se
+contredire. Corollaire : les métriques se lisent en **appareils**, jamais en personnes, et
+on ne fait **jamais** d'`identify`/`alias` vers l'id Supabase.
+
+⚠️ **Le §6 de `docs/2026-08-10-synthese-analytics-arbitrage.md` est un interdit ABSOLU** :
+aucune donnée de santé dans une propriété d'event (y compris un motif de blocage lié à
+l'une d'elles), aucun texte libre, aucune photo, ni e-mail ni prénom ni id de compte.
+Ce n'est pas théorique — `onboarding_completed` a envoyé `goal` et `restrictions` depuis
+son premier commit, **défaut dormant** faute de clé PostHog. Garde-fou :
+`lib/__tests__/analyticsPerimetre.test.ts`, vérifié par 4 mutations.
+
+⚠️ **La clé PostHog et la mise à jour des textes légaux partent ENSEMBLE.** Trois textes
+affirment qu'aucun outil d'analyse tiers n'est utilisé (`constants/legal.ts`,
+`public/legal.html`, `RGPD-REGISTRE.md`) : ils disent vrai aujourd'hui et deviennent faux à
+la seconde où la clé est posée. Aucun état intermédiaire où le code ment. La checklist
+complète (dont **couper la collecte d'IP côté PostHog** — le client n'envoie rien pour ça,
+donc le défaut serveur s'applique) est en AGENTS.md E26.
+
 ---
 
 ## 8. Thème UI et mise en page

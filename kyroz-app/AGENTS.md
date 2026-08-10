@@ -3749,6 +3749,242 @@ produit en suspens — il ne reste qu'à coder.
   (`highAdiposity` forcé à `false` → 4 rouges ; forcé à `true` → 21 rouges). Contrôle :
   `npm run mesure:plancher`. **Aucune migration Supabase** (`cause` vit dans le jsonb
   `engine_notice`, aucun objectif ajouté à l'énumération).
+- 🤖 **E29 · Le MOUVEMENT est le seul axe de DA sans règle ni garde-fou (2026-08-10)**
+
+  ⚠️ *Numérotée **E26** à l'écriture, et le choix était juste ce matin-là : E25 était le
+  dernier pris sur `main`. La session « consentement analytics » a mergé E26 pendant
+  celle-ci. **E27 et E28 sont pris eux aussi, par deux PR encore OUVERTES** (#74, #75) —
+  d'où E29 et non E27 : le numéro se choisit en regardant `main` **ET** les branches en
+  aval, sinon renuméroter propage la collision au lieu de la clore. Quatrième collision
+  du même type, cf. E19/E20, A28/A29 et A29/A30.*
+
+  Quatre axes de la DA ont reçu un rôle, un token et un test : la forme (`rayonsDA`),
+  le texte (`typoDA`), le blanc (`espacementDA`), les finitions (`finitionsDA`). Le
+  cinquième — **ce qui bouge et ce qui se sent** — n'a **rien** : ni token de durée, ni
+  token de courbe, ni test. Il a donc dérivé exactement comme les quatre autres avant
+  leur passe, et pour la même raison : rien ne l'obligeait.
+
+  🔴 **L'ARBITRAGE EST TRANCHÉ : C'EST DE L'OTA, PAS UN BUILD — et le brief qui a ouvert
+  ce chantier se trompait sur ce point.** Il annonçait quatre dépendances natives
+  absentes « même en transitif », donc un build et une coupure de la ligne OTA (§2).
+  Mesuré le 2026-08-10, c'est faux pour les deux qui portent tout le travail :
+
+  | | déclarée | dans `node_modules` | dans le binaire livré |
+  |---|---|---|---|
+  | `react-native-reanimated` **4.4.1** | non | **oui**, via `expo-router` | **oui** — `ios/Podfile.lock` |
+  | `react-native-gesture-handler` **3.0.2** | non | **oui**, via `expo-router` | **oui** — `ios/Podfile.lock` |
+  | `react-native-worklets` **0.9.2** | non | **oui** | oui |
+  | `expo-haptics` | non | **non** | **non** |
+  | `expo-blur` | non | **non** | **non** |
+
+  La chaîne de preuve, chaque maillon mesuré : `expo-router` (dépendance DIRECTE) tire
+  les trois · `ios/` est **gitignoré**, donc EAS refait un prebuild depuis
+  `node_modules`, donc l'autolink les embarque · `ios/Podfile.lock` porte bien
+  `RNReanimated (4.4.1)` et `RNGestureHandler (3.0.2)` · et le **lock du commit de la
+  soumission de revue** (`0f54ee7`, 2026-08-03) les contenait déjà tous les trois.
+  ➡️ **Le binaire 1.0.0 (3) que les testeurs ont sur leur téléphone contient déjà le
+  natif.** S'en servir depuis le JS n'ajoute aucun natif, donc **ne coûte ni build ni
+  revue** : `runtimeVersion` reste `1.0.0`, l'update atterrit sur le binaire existant.
+
+  Et le socle est là, entier, sans une ligne de configuration à écrire :
+  - **Nouvelle architecture ACTIVE** (`RCT_NEW_ARCH_ENABLED=1`, RN 0.85.3) — c'est
+    l'exigence dure de Reanimated 4, elle est satisfaite ;
+  - **`babel-preset-expo` ajoute le plugin worklets tout seul** dès que
+    `react-native-worklets` se résout (`configs/expo.js:109`) — d'où l'absence de
+    `babel.config.js`, qui n'est pas un manque ;
+  - `SpringConfig` expose **exactement le modèle Apple** : `dampingRatio` + `duration`
+    (= amortissement + réponse), plus `velocity` — les trois paramètres dont le chantier
+    a besoin, sans conversion ;
+  - `reduceMotion` vaut **`ReduceMotion.System` par défaut** : migrer vers `withSpring`
+    fait respecter « Réduire les animations » **gratuitement**.
+
+  ⚠️ **Ce qui reste vraiment natif, et attend donc le build 1.0.0 (4) déjà prévu** :
+  `expo-haptics` (le retour au doigt) et `expo-blur` (le flou de la barre compacte, déjà
+  écarté une fois pour ce motif exact — `CollapsingTitle.tsx:25`). Ni l'un ni l'autre ne
+  bloque le reste : ils s'agrafent au train quand il part.
+
+  ⚠️ **Le coût à mesurer AVANT de pousser, et il n'est pas nul** : importer Reanimated
+  depuis nos écrans le fait entrer dans le **bundle web**, qui aujourd'hui ne le contient
+  pas (aucun de nos fichiers ne l'importe). Même piège que `react-native-purchases`
+  (+900 Ko, §11) : un import statique embarque, une garde à l'exécution ne retire rien.
+  ➡️ Mesurer sur l'artefact (`npm run build:web`), pas sur l'intention, et prévoir une
+  **séparation de plateforme** (`.web.ts`) si le poids ne passe pas.
+
+  **L'audit, priorisé par levier (impact ÷ effort).** Périmètre re-compté le 2026-08-10 :
+  **7 fichiers sur 55** animent quoi que ce soit ; 16 `Animated.timing`, 8
+  `Animated.spring`, 0 `LayoutAnimation`.
+
+  | # | Gravité | Où | Le défaut, mesuré |
+  |---|---|---|---|
+  | 1 | 🔴 | `Sheet.tsx:111` · `ActionSheet.tsx:88` | **La vitesse du doigt est lue puis JETÉE.** `g.vy > 0.4` décide *si* on ferme ; la sortie qui suit dure **240 / 200 ms fixes**, qu'on ait effleuré ou balancé la feuille. C'est l'écart Apple le plus visible — chez Apple le mouvement HÉRITE de la vitesse (`withSpring(…, { velocity })`) |
+  | 2 | 🔴 | 12 des 16 `Animated.timing` | **Aucune courbe n'est déclarée**, donc RN applique `easeInOut` (`TimingAnimation.js:77`, vérifié). Toute entrée et toute sortie de feuille **démarre lentement** — la moitié d'une courbe `ease-in`, que le catalogue classe « toujours un défaut » sur de l'UI. Il faut `ease-out` |
+  | 3 | 🔴 | partout | **« Réduire les animations » est ignoré** — `AccessibilityInfo` : **0 fichier**. Réglage d'accessibilité iOS, et Apple le teste. Le pire cas est le confetti de `BirthdayCelebration` (**2 200 ms**, 12 éléments décalés) |
+  | 4 | 🟠 | 125 emplois d'`OPACITE_PRESSION` | **Un bouton pâlit, il ne s'enfonce pas.** Seul retour à l'appui : opacité 0,7. Apple attend `scale(0.97)` sur l'appui, en 100–160 ms. ⚠️ 127 `<TouchableOpacity>` contre 10 `<Pressable>` — et c'est `Pressable` qui donne l'état pressé |
+  | 5 | 🟠 | `Sheet.tsx:109` · `ActionSheet.tsx:86` | **Aucun caoutchouc.** `if (g.dy > 0)` : tirer une feuille vers le HAUT ne fait rien. Elle est morte au doigt au lieu de résister progressivement |
+  | 6 | 🟠 | `Sheet.tsx:64-68` | **L'ouverture n'est pas interruptible.** `ty.setValue(screenH)` puis un `timing` : saisir une feuille pendant qu'elle monte produit un saut. Un ressort part de la valeur COURANTE, c'est tout l'intérêt |
+  | 7 | 🟠 | 5 fichiers | **Aucun token de mouvement.** 7 durées distinctes écrites à la main (200 · 220 · 240 · 260 · 300 · 500 · 550) et **zéro** entrée « durée » ou « courbe » dans `theme.ts`. C'est le défaut de `rayonsDA` avant sa passe, rejoué |
+  | 8 | 🟡 | `Sheet.tsx:148-153` | `scrollEventThrottle: 16` + `ty.setValue()` fait passer **chaque frame** de défilement par le pont JS. `useAnimatedScrollHandler` fait le même travail sur le fil UI |
+
+  ⚠️ **Les 8 ressorts existants ne sont pas 8 décisions** : 3 « pop » d'entrée sur les
+  célébrations (`bounciness` 7 / 9 / 10, légitimes — moment rare, budget de plaisir
+  autorisé) et **5 fois exactement le même rattrapage** (`toValue: 0, bounciness: 2`)
+  qui remonte une feuille quand le glissement n'a pas suffi. **Aucun ressort ne pilote
+  une ouverture ni une fermeture.**
+
+  🚫 **Ce que ce chantier ne fait PAS.** Les **48** fichiers muets **restent muets** :
+  animer parce que ça n'anime pas est le contraire du geste. La retenue est la règle, et
+  les 4 seules occasions repérées valent d'être écrites — l'appui (#4, qui les couvre
+  toutes), la feuille (#1/#5/#6), la bascule du titre compact (déjà faite, 160 ms, et
+  documentée comme délibérée : ne pas y toucher), et rien d'autre. Ne pas non plus
+  rouvrir couleur / rayon / typo / espacement : c'est fait et verrouillé par 6 tests.
+
+  🔴 **LES TROIS PIÈGES DE VÉRIFICATION TOMBENT TOUS LES TROIS SUR CE CHANTIER**, et ils
+  sont déjà payés ailleurs dans ce fichier :
+  1. **Un geste ne se vérifie pas dans le navigateur** (§5). Le glissement des feuilles
+     était mort en natif **depuis le commit initial** et le web l'a caché des mois.
+  2. **`requestAnimationFrame` ne tourne pas dans le panneau navigateur** — 0 frame en
+     7,2 s, mesuré. Une animation s'y fige à une valeur intermédiaire **plausible**, et
+     on part corriger du code sain. Un chantier d'animation vérifié là ne prouve **rien**.
+  3. **Depuis un worktree, le preview sert l'app du dépôt PRINCIPAL** (§11).
+  ➡️ Simulateur (`npx expo run:ios`, capture par `xcrun simctl io booted screenshot`), et
+  **sortir chaque décision en fonction PURE testée** — comme `lib/collapsingTitle.ts` et
+  `lib/accentColor.ts`. C'est le seul mouvement vérifiable sans simulateur. Et **dire dans
+  la PR ce qui n'a pas été vu à l'écran**.
+
+  🔴 **VERROU DE PUBLICATION — à lever AVANT le premier `eas update` de ce chantier,
+  pas avant d'écrire le code.** Toute la démonstration ci-dessus parle du **dépôt** (un
+  `Podfile.lock` de prebuild local, un lockfile, une config) ; aucune ligne ne parle de
+  **l'artefact qu'Apple a traité**. Le maillon non observé est le build qu'EAS a
+  réellement fait tourner.
+  ⚠️ **Et le symptôme d'une erreur ici n'est pas discret** : sans sa partie native,
+  Reanimated **lève au démarrage** — l'app ne s'ouvre plus du tout, chez tout le monde,
+  en quelques minutes, sans revue pour l'arrêter. C'est le seul défaut de ce chantier
+  qui coûte plus cher qu'un rollback.
+  ➡️ Télécharger l'IPA du build depuis EAS et chercher les symboles dans le binaire —
+  ce sont des identifiants **ASCII purs**, donc le piège `strings` de §2 ne mord pas ici :
+  ```bash
+  unzip -q -o build.ipa -d /tmp/ipa && strings -a /tmp/ipa/Payload/*.app/Kyroz | grep -cE "REAModule|RNGestureHandlerModule"
+  ```
+  **0 = l'arbitrage OTA est faux et il faut un build.** Non-zéro = confirmé sur l'objet
+  réel. Le contrôle est gratuit et n'atteint personne.
+  ⚠️ **Ne PAS le remplacer par « une petite OTA de test »** : le build 3 est sur le canal
+  `production`, donc une mise à jour dessus atteint aussi la testeuse externe — ce n'est
+  pas un essai à blanc.
+
+  ⚠️ **Le garde-fou de sortie sera un test, pas un paragraphe** — c'est la leçon de la
+  passe émoji, qui s'est déclarée finie trois fois avant de l'être. À compter : aucune
+  durée de mouvement en dur, aucune `Animated.timing` sans courbe explicite, et
+  `feuilles.test.ts` (3 cas) étendu à la vitesse héritée.
+
+  ⚠️ *Les deux chiffres du brief d'ouverture qui étaient faux, notés pour qu'on ne les
+  recopie pas : « 288 `TouchableOpacity` » comptait les **occurrences** (import + balise
+  ouvrante + fermante = 284 aujourd'hui), pas les **instances** — il y en a **127**. Et
+  « 7 fichiers sur 60 » : le périmètre `app/` + `components/` en compte **55**. Même
+  famille que l'inventaire émoji juste sur le mauvais périmètre (§8).*
+  ⚠️ *Et « 53 fichiers muets » en était DÉRIVÉ (60 − 7). Corrigé ici en **48** (55 − 7) :
+  la correction d'un chiffre doit descendre jusqu'à ceux qu'il a engendrés, sinon le faux
+  survit dans sa descendance. Même motif que les cinq nombres de `dailyBudget` devenus
+  faux « sans que le module bouge » (§6).*
+
+  ➡️ **ADDENDUM du 2026-08-10 — audit croisé, session parallèle
+  (`apple-motion-skills`).** Refait indépendamment avec `apple-design` +
+  `improve-animations`, il **confirme les 8 constats ci-dessus** (mêmes fichiers, mêmes
+  lignes) et n'ajoute que ceci :
+
+  🔴 **LE VERROU DE PUBLICATION A UNE ISSUE DE SECOURS, et elle est OTA aussi.** Le
+  contrôle IPA ci-dessus conclut « 0 = il faut un build ». **C'est trop dur** : mesuré sur
+  la RN 0.85.3 installée, le cœur de React Native — donc **déjà dans tout binaire, sans
+  aucun paquet** — sait faire l'essentiel :
+  - `Animated.spring` accepte **`velocity`**, et `stiffness` / `damping` / `mass`
+    (`SpringAnimation.js:45,73-76`) → la **vitesse héritée** (#1) et les ressorts sur
+    ouverture/fermeture (#6) ne dépendent PAS de Reanimated ;
+  - `AccessibilityInfo.isReduceMotionEnabled()` + l'événement `reduceMotionChanged` sont
+    dans le cœur (`AccessibilityInfo.d.ts:18,71`) → **#3 se traite sans rien installer**,
+    et sans dépendre du `ReduceMotion.System` de Reanimated ;
+  - `Pressable` est dans le cœur → **#4 aussi**.
+  ➡️ Donc si l'IPA rend 0, **le chantier n'est pas bloqué** : il se fait en `Animated`, et
+  seuls #8 (le pont de défilement) et l'interruption vraie sur le fil UI attendent le
+  build. Reanimated reste le meilleur outil ; il n'est pas le seul.
+
+  ⚠️ **Un 9ᵉ constat, absent de la liste : le DOUBLE FONDU des trois célébrations.**
+  `FirstPlanReveal`, `StreakCelebration` et `BirthdayCelebration` posent
+  `animationType="fade"` sur leur `Modal` **et** animent leur propre `opacity` 0→1.
+  Deux fondus superposés de durées différentes sur le même objet. `Sheet` et `ActionSheet`
+  sont corrects (`animationType="none"`) — le défaut n'est que sur les trois célébrations.
+
+  ⚠️ **Piège d'unités, à connaître avant d'écrire #1** : `vy` de `PanResponder` est en
+  **px/milliseconde** (`PanResponder.js:361`) et un ressort intègre en **secondes**
+  (`SpringAnimation.js:281`) → `velocity: g.vy * 1000`. Se tromper est un facteur 1000.
+  ℹ️ Le piège **disparaît** en migrant vers `gesture-handler`, dont `velocityY` est déjà
+  en px/seconde — donc il ne mord que sur les chemins qui gardent `PanResponder`, ce qui
+  sera le cas si la migration est incrémentale.
+- ~~**E26 · Le consentement analytics gâchait l'écran d'arrivée, et mesurait des données de santé**~~ ✅ **LIVRÉ le 2026-08-10.**
+  *Décision fondateur : « enlever ce popup au-dessus du plan alimentaire […] le mettre
+  autre part, mieux expliqué et à un meilleur moment ».*
+  ⚠️ *Numéro pris sur une branche : le vérifier contre `main` au moment de fusionner.*
+
+  **Deux défauts, pas un.** La PLACE (une carte de consentement en tête de l'écran Plan,
+  la première chose vue à l'arrivée) et le MOMENT (juste après le premier plan, pile sur
+  l'instant que tout l'onboarding sert à préparer). Un troisième, trouvé en chemin, était
+  plus grave que les deux : `onboarding_completed` envoyait `goal`, `restrictions` et
+  `has_sport` — **objectif, régime et pratique sportive, trois données de santé (art. 9)**,
+  depuis le tout premier commit du fichier. **Défaut DORMANT** : sans clé PostHog rien ne
+  partait, donc rien ne se voyait. Il se serait allumé le jour de la pose de la clé.
+
+  **Ce qui est livré** — `components/AnalyticsConsentStep.tsx`, un écran plein posé
+  **AVANT l'assistant** (après le dépistage santé, avant l'étape 1), qui dit ce qui est
+  mesuré et ce qui ne l'est jamais, avec deux boutons de MÊME taille. L'écran Plan n'est
+  plus touché. Les events passent de 7 à **13**, tous porteurs de `jour_depuis_install`.
+
+  🔴 **LE MOMENT EST STRUCTURANT, PAS COSMÉTIQUE.** `capture()` ne garde RIEN avant la
+  réponse et le tampon local a été écarté (§3.2 de la synthèse). Tout ce qui précède le
+  consentement est donc perdu **pour tout le monde, définitivement**. Demander après le
+  premier plan aurait supprimé d'un coup la décision D1 (« où l'inscription
+  décroche-t-elle ? ») — or un décrochage d'onboarding est justement le seul signal
+  lisible à 40 utilisateurs, là où la rétention demande des mois.
+  ➡️ **Déplacer cet écran plus tard, c'est supprimer D1. Pas la dégrader : la supprimer.**
+
+  ⚠️ **La synthèse d'arbitrage se CONTREDIT sur `onboarding_blocked`**, et c'est §6 qui
+  gagne : son §5 proposait `motif: age | volume | autre`, son §6 interdit « tout motif de
+  blocage lié à » l'âge, au sport ou à l'IMC. L'event part donc **sans aucune propriété** —
+  le compte seul répond à la question posée, et le pourquoi ne changerait aucune décision
+  (ces garde-fous ne sont pas négociables). Même famille : `origine: recalage` proposé pour
+  `plan_regenerated` ne correspond à **aucun chemin du code** (recaler sa journée
+  rééquilibre les repas, ça ne régénère pas) — il aurait créé un zéro qu'on aurait fini par
+  lire comme « personne ne recale ».
+
+  ⚠️ **`duree_generation_ms` chronomètre LE MOTEUR, pas la pause de transition de 600 ms.**
+  Les additionner rendrait ~608 ms à chaque fois : une régression du moteur (8 → 80 ms) se
+  lirait 608 → 680, noyée dans une constante qu'on a choisie nous-mêmes. Mesuré à l'écran :
+  **25 ms**.
+
+  ➡️ **Garde-fou : `lib/__tests__/analyticsPerimetre.test.ts`**, vérifié par **4 mutations**
+  (remettre `goal` · lire `profile.` sous un nom innocent · ajouter un 14ᵉ event · écrire un
+  nom d'event à la main). Il compte les noms de propriétés interdits, interdit toute lecture
+  de `profile.` dans un bloc d'event, fige la liste des 13, et vérifie que tout event envoyé
+  existe dans `Events`. Sans lui, ces règles restaient un paragraphe de .md — et c'est
+  exactement comme ça que `goal` a survécu si longtemps.
+
+  🟡 **RESTE À FAIRE, et ça part avec la clé PostHog, pas avant** (§8 de la synthèse : aucun
+  état intermédiaire où le code ment). Aujourd'hui les textes disent vrai — rien n'est
+  envoyé ; ils ne mentiront qu'une fois la clé posée :
+  - [ ] `constants/legal.ts` §5 — « aucun outil d'analyse tiers » devient faux
+  - [ ] `public/legal.html` — le miroir statique, à la main
+  - [ ] `RGPD-REGISTRE.md` — PostHog en **sous-traitant** à côté de Supabase, + les 18 mois
+  - [ ] côté PostHog : **couper la collecte d'IP** (le client n'envoie rien pour ça, donc le
+        défaut serveur s'applique — géolocalisation comprise), rétention à 18 mois, DPA signé
+  - [x] les **seuils** du §10 — ÉCRITS le 2026-08-10 : D1 une étape qui perd > 20 % (4 sem.,
+        ≥ 50 entrées) · D2 médiane < 4 jours actifs sur 14 après 3 cohortes · D4 **−8 points
+        entre deux cohortes** · D6 ≥ 3 échecs en 7 j, ou ≥ 1 % passé 500 générations/sem.
+        ⚠️ **D4 est une TENDANCE et pas un absolu, et c'est un correctif** : la première
+        version proposait « ratio sous 25 % », ce que le §5 du même document interdit —
+        `meal_cooked` mesure un TAP, donc un ratio absolu bas peut décrire un produit qui
+        marche avec des gens qui ne cochent pas. ⚠️ D2 nomme sa définition (`plan_opened`)
+        parce que le §4.2 en laisse deux ouvertes — et **l'écart entre les deux est
+        justement la donnée qui tranchera §4.2**.
+
+  📄 `docs/2026-08-10-brief-analytics-perimetre.md` (le brief) et
+  `docs/2026-08-10-synthese-analytics-arbitrage.md` (l'arbitrage qui fait foi).
 
 - ~~**E25 · Le Profil était une section fourre-tout**~~ ✅ **LIVRÉ le 2026-08-10.**
   *Décision fondateur du 2026-08-09 : « j'aimerais que le profil soit qu'avec les
@@ -5195,6 +5431,7 @@ c'est une décision, pas un défaut).
 - **Fait (code)** : consentement explicite horodaté à l'inscription ; droit à l'effacement (compte + cascade + purge locale à la déconnexion ET suppression) ; **droit à la portabilité** (export JSON, `lib/exportData.ts`) ; **politique de confidentialité + CGU** (`constants/legal.ts` → écran in-app `/legal` + page statique 200 `public/legal.html` pour stores/partage, liés login + profil) ; isolation RLS (vérifiée en prod) ; aucun SDK de tracking (partage IA Supabase = Disabled) ; photos local-only. **Registre** : `kyroz-app/RGPD-REGISTRE.md`. Coordonnées : Kévin Berger, micro-entreprise, 2 rue du moulin 64570 Arette, `contact@kyroz.app`.
 - **Fait (fondateur, hors code) — 2026-06-15/16** : DPA Supabase signé (données de santé déclarées, rôle Controller) ; région UE confirmée (`eu-central-1` Frankfurt) ; 2FA activée ; e-mail unifié sur l'adresse publique unique `contact@kyroz.app` (+ perso `brgkevin@kyroz.app`), en cours de migration Cloudflare Email Routing → iCloud+ Domaine perso (2026-07-15).
 - ~~**Reste** : renseigner le SIREN~~ **FAIT 2026-07-16** : SIREN `106386162` (Luhn OK) renseigné dans `constants/legal.ts` (objet `LEGAL`), `public/legal.html` (miroir) et `RGPD-REGISTRE.md`. Reste : relecture juriste idéale (non bloquante). Cf. [[rgpd-placeholders-a-completer]].
+- **Analytics — arbitré le 2026-08-10** (E26, `docs/2026-08-10-synthese-analytics-arbitrage.md`) : consentement pour TOUT (l'exemption CNIL « mesure d'audience » est écartée, elle exige des stats anonymes) ; identifiant **pseudonyme et non anonyme** — c'est ce qui rend possible la suppression sur retrait, et les deux promesses ne peuvent pas tenir ensemble ; conservation **18 mois** ; jamais d'`identify`/`alias` vers l'id Supabase. ⚠️ Les métriques se lisent en **appareils**, jamais en personnes (réinstaller tire un nouvel identifiant) — le biais est structurel, il doit être nommé partout où un chiffre est cité. La relecture juriste porte désormais aussi sur : formulation de l'écran de consentement, qualification pseudonyme, 18 mois, suppression sur retrait.
 
 ## Setup & déploiement
 - Expo Router (file-based), SDK 56, TS strict. Lancer : `npm run web` (8081) / `npm run ios`. Tests : `npm test` (vitest). Preview agent : port **8090** (pas 8081, occupé par le fondateur).

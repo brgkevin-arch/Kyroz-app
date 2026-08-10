@@ -34,7 +34,9 @@ import SportsEditor from '../../components/SportsEditor';
 import { useProfile } from '../../hooks/useProfile';
 import { saveFirstName } from '../../lib/profileName';
 import { capture, Events } from '../../lib/analytics';
+import { useAnalyticsConsent } from '../../hooks/useAnalyticsConsent';
 import HealthScreening from '../../components/HealthScreening';
+import AnalyticsConsentStep from '../../components/AnalyticsConsentStep';
 import { hasPassedScreening } from '../../lib/healthScreening';
 
 const TOTAL_STEPS = 7;
@@ -111,17 +113,41 @@ export default function Onboarding() {
   const { saveProfile } = useProfile();
   const { notify } = useDialog();
 
-  // Analytics : début du tunnel (no-op tant que non consenti/configuré).
-  useEffect(() => { capture(Events.onboardingStarted); }, []);
-
   // Dépistage santé bloquant (CLAUDE.md §6). null = flag pas encore lu ; false =
   // à faire (on affiche le portail avant l'assistant) ; true = passé.
   const [screened, setScreened] = useState<boolean | null>(null);
   useEffect(() => { hasPassedScreening().then(setScreened); }, []);
 
+  // Consentement aux statistiques d'usage. `undefined` = en cours de lecture ;
+  // `null` = pas encore répondu → l'écran de consentement remplace l'assistant.
+  const { consent, choose: chooseConsent } = useAnalyticsConsent();
+
+  // 🔴 `onboarding_started` NE PEUT PAS partir au montage, et ce n'est pas un détail
+  // de placement. Au montage, la question du consentement n'a pas encore été posée :
+  // `capture` sortirait à sa première ligne et l'event serait perdu pour tout le
+  // monde, y compris pour ceux qui acceptent trois secondes plus tard. Il part donc
+  // quand l'assistant DÉMARRE vraiment — dépistage passé et consentement répondu.
+  const tunnelOuvert = useRef(false);
+  useEffect(() => {
+    if (screened !== true || consent === undefined || consent === null) return;
+    if (tunnelOuvert.current) return;
+    tunnelOuvert.current = true;
+    capture(Events.onboardingStarted);
+  }, [screened, consent]);
+
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
   const [hint, setHint] = useState<string | null>(null); // message affiché si on tente d'avancer sans tout remplir
+
+  // D1 : l'étape ATTEINTE. C'est la seule mesure qui dise OÙ l'assistant fait
+  // abandonner — `onboarding_completed` seul ne compte que ceux qui sont allés au
+  // bout, donc il ne peut rien dire de ceux qui partent. Même garde que ci-dessus :
+  // rien ne part tant que l'assistant n'est pas réellement à l'écran.
+  const assistantActif = screened === true && consent !== undefined && consent !== null;
+  useEffect(() => {
+    if (!assistantActif) return;
+    capture(Events.onboardingStepViewed, { step });
+  }, [step, assistantActif]);
 
   // État formulaire
   const [firstName, setFirstName] = useState('');
@@ -289,15 +315,33 @@ export default function Onboarding() {
     // ⚠️ `Alert.alert` est une fonction VIDE sur le web : un profil REFUSÉ (mineur,
     // IMC de départ, volume d'entraînement) voyait le bouton final ne rien faire,
     // sans le moindre message. Un refus muet se lit comme une app cassée.
-    if (blocked) { await notify({ title: 'Attention', message: blocked }); return; }
+    if (blocked) {
+      // 🔴 AUCUNE PROPRIÉTÉ, ET C'EST DÉLIBÉRÉ — la synthèse du 2026-08-10 se
+      // contredit sur ce point. Son §5 propose `motif: age | volume | autre`, son §6
+      // interdit « tout motif de blocage lié à » l'âge, au sport ou à l'IMC. Les
+      // trois motifs proposés tombent donc sous l'interdit absolu, et §6 gagne : dire
+      // « cette installation a été refusée pour un motif non-âge » désigne un corps
+      // (IMC bas, grossesse, cible hors bornes) sur un identifiant qui, lui, est
+      // supprimable — donc pas anonyme. Le COMPTE seul répond déjà à la question
+      // posée (« est-ce que je perds du monde au portail ? ») ; le POURQUOI ne
+      // changerait aucune décision, ces garde-fous n'étant pas négociables (§6).
+      capture(Events.onboardingBlocked);
+      await notify({ title: 'Attention', message: blocked });
+      return;
+    }
     const err = validateProfile(sex, ageN, profile.target_kcal);
     if (err) { await notify({ title: 'Attention', message: err }); return; }
     setSaving(true);
     await saveFirstName(firstName);
     await saveProfile(profile);
+    // ⚠️ `goal`, `restrictions` et `has_sport` ONT ÉTÉ RETIRÉS le 2026-08-10. Ce sont
+    // l'objectif, le régime et la pratique sportive — trois données de santé au sens
+    // de l'art. 9, nommées une par une dans l'interdit absolu (§6). Elles partaient
+    // depuis la première version de ce fichier, sans que rien ne les envoie jamais
+    // (clé PostHog absente) : le défaut était DORMANT, pas inexistant. Ne restent que
+    // deux COMPTES — combien de jours, combien de repas — qui ne décrivent aucun corps.
     capture(Events.onboardingCompleted, {
-      goal, plan_days: planWeekdays.length, meals: meals.length,
-      restrictions: restrictions.length, has_sport: !noSport,
+      plan_days: planWeekdays.length, meals: meals.length,
     });
     setSaving(false);
     router.replace('/(tabs)/plan');
@@ -307,6 +351,14 @@ export default function Onboarding() {
   // (Placé APRÈS tous les hooks → règles React respectées.)
   if (screened === null) return null; // lecture du flag (AsyncStorage, quasi instantané)
   if (!screened) return <HealthScreening onPass={() => setScreened(true)} />;
+
+  // Consentement analytics — APRÈS le dépistage, AVANT la première question du profil.
+  // L'ordre n'est pas cosmétique : le dépistage décide si Kyroz a le droit de servir un
+  // plan (§6), le consentement décide seulement si on a le droit de MESURER. Poser le
+  // second en premier ferait passer une question de confort avant une question de
+  // sécurité. Et le poser plus tard supprimerait D1 (cf. AnalyticsConsentStep).
+  if (consent === undefined) return null; // lecture du stockage, quasi instantané
+  if (consent === null) return <AnalyticsConsentStep onChoose={chooseConsent} />;
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'bottom']}>

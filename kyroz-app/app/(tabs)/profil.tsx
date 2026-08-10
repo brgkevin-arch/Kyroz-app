@@ -37,7 +37,6 @@ import { useFirstName, saveFirstName } from '../../lib/profileName';
 import { ProtectionIcon, RepasLibreIcon } from '../../components/Icons';
 import { MealSlotsPicker } from '../../components/MealSlotsPicker';
 import { BUILTIN_SLOTS, knownSlots, slotLabel } from '../../lib/mealSlots';
-import { useAnalyticsConsent } from '../../hooks/useAnalyticsConsent';
 import { useProfile } from '../../hooks/useProfile';
 import { useStreak } from '../../hooks/useStreak';
 import { useWeightLog } from '../../hooks/useWeightLog';
@@ -222,7 +221,6 @@ export default function ProfilScreen() {
   const themeMode = useThemeMode();
   const accentId = useAccentId();
   const [hydrationOn, setHydrationOn] = useHydrationEnabled();
-  const { consent: analyticsConsent, choose: chooseConsent } = useAnalyticsConsent();
   const router = useRouter();
   const [editor, setEditor] = useState<EditorKey | null>(null);
   const [weighIn, setWeighIn] = useState(false);

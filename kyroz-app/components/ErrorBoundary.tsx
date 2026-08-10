@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTheme, Radius, Spacing, Type, OPACITE_PRESSION , Icone } from '../constants/theme';
 import { AvertissementIcon } from './Icons';
+import { captureErreur } from '../lib/analytics';
 
 // Frontière d'erreur globale : un crash de rendu n'affiche plus un écran rouge
 // mais un fallback propre avec « Réessayer » (re-monte l'arbre). Les données
@@ -37,8 +38,15 @@ export class ErrorBoundary extends React.Component<{ children: React.ReactNode }
   }
 
   componentDidCatch(error: unknown, info: unknown) {
-    // Log console uniquement (pas de télémétrie tierce sans consentement — RGPD).
     console.error('ErrorBoundary:', error, info);
+    // D6 — depuis le 2026-08-10, l'erreur est aussi COMPTÉE. `captureErreur` reste
+    // no-op sans consentement (RGPD), donc l'ancienne mention « pas de télémétrie
+    // tierce sans consentement » tient toujours : c'est `capture` qui la garantit,
+    // pas l'absence d'appel ici.
+    // ⚠️ Ni le message, ni la pile, ni `info` ne partent — seulement le NOM DE CLASSE
+    // de l'erreur et la route. Un message brut contient régulièrement une valeur
+    // saisie par l'utilisateur, ce qui en ferait du texte libre (§6).
+    captureErreur(error);
   }
 
   render() {

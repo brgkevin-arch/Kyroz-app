@@ -93,3 +93,28 @@ export function lienAvis(texte: string, sujet: AvisSujet, ctx: AvisContexte): st
   const { sujet: s, corps } = composerAvis(texte, sujet, ctx);
   return `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(s)}&body=${encodeURIComponent(corps)}`;
 }
+
+/**
+ * Demande de suppression des statistiques d'usage (RGPD art. 17), pré-remplie.
+ *
+ * L'écran de consentement promet « tu peux demander la suppression de ce qui a déjà
+ * été envoyé » — cette fonction est ce qui rend la phrase vraie. Sans elle, ce serait
+ * exactement le mensonge que CLAUDE.md interdit, sur la promesse la plus sensible de
+ * l'app.
+ *
+ * ⚠️ **Le pseudonyme est INDISPENSABLE dans le corps du message**, et c'est la seule
+ * chose qui y entre. Les événements ne portent ni compte, ni e-mail, ni prénom
+ * (`lib/analytics.ts`) : sans cet identifiant, une demande de suppression ne désigne
+ * rien de repérable côté PostHog, et elle serait donc impossible à honorer. C'est le
+ * revers assumé du choix « pseudonyme, pas anonyme ».
+ *
+ * ⚠️ Passer par la boîte mail de la personne est délibéré, même raison qu'au-dessus :
+ * une suppression côté PostHog exige une clé d'API PRIVÉE, qu'un client public ne peut
+ * pas porter. Prétendre supprimer depuis le téléphone demanderait de poser ce secret
+ * dans le bundle — ce serait pire que le problème résolu.
+ */
+export function lienSuppressionStats(pseudonyme: string): string {
+  const sujet = 'Kyroz — suppression de mes statistiques d’usage';
+  const corps = `Bonjour,\n\nJe demande la suppression des statistiques d’usage associées à mon appareil.\n\nIdentifiant pseudonyme : ${pseudonyme}\n\nMerci.\n`;
+  return `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(sujet)}&body=${encodeURIComponent(corps)}`;
+}

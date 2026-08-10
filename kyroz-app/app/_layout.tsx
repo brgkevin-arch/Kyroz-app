@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Stack } from 'expo-router';
+import { Stack, usePathname } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useTheme } from '../constants/theme';
@@ -14,6 +14,22 @@ import { RecipeOverridesProvider } from '../hooks/useRecipeOverrides';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { TourProvider } from '../components/GuidedTour';
 import { DialogProvider } from '../components/Dialog';
+import { noterEcran } from '../lib/analytics';
+
+/**
+ * Dépose la route courante pour que `app_error` puisse dire OÙ ça a cassé.
+ *
+ * ⚠️ Composant à part, et rendu SOUS le `Stack`, pour deux raisons : `usePathname`
+ * exige le contexte de navigation (il n'existe pas au-dessus), et un composant isolé
+ * qui ne rend rien ne peut pas entraîner l'arbre avec lui. `ErrorBoundary` enveloppe
+ * toute l'app : une exception levée dans le layout racine lui-même remplacerait
+ * l'app entière par l'écran « quelque chose a cassé », pour une ligne de mesure.
+ */
+function SuiviEcran() {
+  const chemin = usePathname();
+  useEffect(() => { noterEcran(chemin); }, [chemin]);
+  return null;
+}
 
 export default function RootLayout() {
   const t = useTheme();
@@ -46,6 +62,7 @@ export default function RootLayout() {
                     contentStyle: { backgroundColor: t.bg },
                   }}
                 />
+                <SuiviEcran />
               </DialogProvider>
             </TourProvider>
           </RecipeOverridesProvider>
