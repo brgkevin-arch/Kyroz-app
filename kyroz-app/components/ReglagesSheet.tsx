@@ -16,6 +16,11 @@ import { ReminderTime, formatReminderTime, DEFAULT_REMINDER_TIME } from '../lib/
 import { remindersSupported } from '../lib/notifications';
 import { useDialog } from './Dialog';
 import { TOURS } from '../lib/tours';
+// ⚠️ `SUPPORT_EMAIL` était importé pour la ligne « Aide & contact », retirée le
+// 2026-08-10 (elle poussait la même route que « Donner mon avis » en affichant une
+// adresse qu'elle n'ouvrait pas). L'import a bien failli partir avec elle — il a
+// entre-temps trouvé un SECOND lecteur : le repli « aucune application e-mail » de
+// la suppression des statistiques. On garde donc la source unique, pas la ligne.
 import { SUPPORT_EMAIL, lienSuppressionStats } from '../lib/feedback';
 import { pseudonymeExistant } from '../lib/analytics';
 import { DISCLAIMER } from '../constants/legal';
@@ -226,9 +231,16 @@ export function ReglagesSheet({
         <View style={s.menu}>
           {/* En tête du bloc, et c'est voulu : c'est la ligne qu'on veut qu'un
               testeur trouve. « Aide & contact » n'affichait qu'une adresse à
-              recopier — personne n'écrit un retour à ce prix-là. */}
+              recopier — personne n'écrit un retour à ce prix-là.
+              🔴 ET ELLE EST RESTÉE JUSTE EN DESSOUS, VIDÉE DE SON RÔLE. E25 lui a
+              donné le même `onPress` que la ligne du dessus (`/avis`) tout en lui
+              laissant l'adresse comme VALEUR : deux lignes voisines, une seule
+              destination, et la seconde promettait un mail qu'elle n'ouvrait pas.
+              Retirée le 2026-08-10. L'adresse n'est pas perdue — `/avis` la montre
+              en repli quand aucun client mail ne répond (app/avis.tsx). Un doublon
+              qui affiche une action qu'il ne fait pas est un mensonge d'interface,
+              pas une commodité. */}
           <MenuRow t={t} label="Donner mon avis" value="Un problème, une idée" onPress={() => versRoute('/avis')} />
-          <MenuRow t={t} label="Aide & contact" value={SUPPORT_EMAIL} onPress={() => versRoute('/avis')} />
           <MenuRow t={t} label="Revoir les tutos" value={`${TOURS.length} visites guidées`} onPress={onRevoirTutos} last />
         </View>
 

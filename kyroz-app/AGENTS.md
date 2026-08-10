@@ -63,7 +63,9 @@ qu'ils étaient périmés.
 > déployées.** À lire avant de se fier à une ligne ancienne de cette table :
 > **E22** (les 9 derniers émojis + le compteur qui manquait) · **les deux pièges de
 > la refonte du Profil**, fermés AVANT elle · **E25, la refonte du Profil** (roue
-> dentée, feuille Réglages, écran « Donner mon avis ») · **D23** (la vague catalogue
+> dentée, feuille Réglages, écran « Donner mon avis ») **puis E26, ce qu'elle avait
+> laissé derrière elle** (le mot « Réglages » désignait deux endroits, deux lignes
+> menaient à la même route, le TDEE était à 900 px de sa cible) · **D23** (la vague catalogue
 > part en OTA, pas dans le binaire) · la **séquence de soumission** écrite dans
 > `STORE-RELEASE.md` §0-bis, et deux affirmations de ce playbook démenties par le
 > disque. `main` porte tout ça ; **le dépôt principal, lui, peut être en retard** —
@@ -3985,6 +3987,70 @@ produit en suspens — il ne reste qu'à coder.
 
   📄 `docs/2026-08-10-brief-analytics-perimetre.md` (le brief) et
   `docs/2026-08-10-synthese-analytics-arbitrage.md` (l'arbitrage qui fait foi).
+
+- ~~**E27 · Ce que la refonte du Profil avait laissé derrière elle**~~ ✅ **LIVRÉ le
+  2026-08-10.** *Demande du fondateur, le même jour : « continuons d'améliorer la
+  section profil ».*
+  ⚠️ *Numéro pris sur une branche : le vérifier contre `main` au moment de fusionner.*
+
+  **Quatre défauts, tous trouvés À L'ÉCRAN** (profil seedé dans le panneau web : H 30 ans,
+  83 kg, 18 % MG, sèche, 3 × 60 min, 4 pesées) **et aucun en relisant le code.** Ils ont
+  ceci en commun : chaque morceau était juste isolément, c'est l'ASSEMBLAGE qui ne l'était
+  plus — la signature d'une refonte qui déplace des blocs sans relire ce qui les nommait.
+
+  🔴 **1 — « Réglages » désignait DEUX endroits sur le même écran.** La roue dentée
+  (`accessibilityLabel="Réglages"`) ouvre une feuille intitulée « Réglages » ; le milieu de
+  l'écran portait un `SectionTitle` « Réglages ». Depuis E25 les deux ensembles sont
+  **disjoints** — là-bas notifications / affichage / confidentialité / compte, ici ce qui
+  pilote le moteur. « Va dans les réglages » ne désignait donc plus rien. Le commit d'E25
+  nommait déjà les deux blocs **« Toi / Ton plan »** : c'est le CODE qui était resté sur
+  l'ancien nom, pas la décision.
+  ➡️ « TOI » est désormais un `SectionLabel`, comme « TON PLAN ». Avant, l'un était un
+  `SectionTitle` (« découpe l'écran ») et l'autre un `SectionLabel` (« étiquette un
+  bloc ») : le premier bloc n'avait **aucune étiquette à lui**, il empruntait celle du
+  chapitre — deux blocs frères à deux hauteurs différentes.
+
+  🟠 **2 — Deux lignes voisines poussaient la même route, et l'une promettait un mail.**
+  `Donner mon avis` → `/avis`, et juste dessous `Aide & contact · contact@kyroz.app` →
+  `/avis` **aussi**. E25 avait donné à l'ancienne ligne le `onPress` de la nouvelle en lui
+  laissant l'adresse comme VALEUR : elle affichait une action qu'elle ne faisait pas.
+  Retirée — `/avis` montre l'adresse lui-même en repli quand aucun client mail ne répond.
+  ➡️ **Et le mort-vivant symétrique dormait dans `profil.tsx`** : `contactSupport`, sa
+  constante `SUPPORT_EMAIL` en dur et l'import `Linking` n'étaient plus appelés par
+  personne depuis E25. Une adresse recopiée à côté de `lib/feedback.ts::SUPPORT_EMAIL`,
+  c'est la première des deux qui ment le jour où elle change.
+
+  🟡 **3 — Le TDEE était à ~900 px de la cible qu'il explique.** « Tes cibles · 2 293 kcal »
+  en haut, « Dépense estimée · maintenance · 2 593 kcal » tout en bas, **après les onze
+  lignes de menu**. C'est pourtant la seule ligne de l'écran qui réponde à « pourquoi
+  2 293 ? ». Remonté juste sous les quatre boîtes (après leurs notes, qui les annotent).
+
+  🟡 **4 — Le surtitre ne disait rien de neuf.** « Homme · 30 ans · Sèche » était **mot pour
+  mot** ce que `Informations` et `Objectif` redisent 600 px plus bas. Il porte maintenant le
+  **prénom** — la seule chose de cet écran qui ne soit écrite nulle part ailleurs. Pas de
+  prénom (compte antérieur à la question) → pas de ligne, plutôt qu'un remplissage.
+
+  ➡️ **LE PIÈGE ÉTAIT DANS LA CORRECTION, PAS DANS LE DÉFAUT.** L'ordre des étapes de la
+  visite guidée suit l'écran de haut en bas, et chaque bulle **fait défiler** jusqu'à sa
+  cible. `profil-tdee` était en avant-dernier — correct tant que le bloc vivait en bas.
+  Le remonter sans remonter l'étape aurait fait descendre l'écran jusqu'en bas, puis
+  remonter, puis redescendre : un va-et-vient qui se lit comme un bug, **introduit par un
+  correctif de lisibilité**. Mesuré après coup au panneau, défilement à chaque bulle :
+  **0 → 365 → 556 → 702 → 1045 px**, puis retour à 0 pour la roue, qui est en haut et où le
+  tour se termine. ➡️ **Déplacer un élément du Profil, c'est aussi relire `lib/tours.ts`.**
+
+  🔒 **Garde-fou : `lib/__tests__/profilSection.test.ts`** (8 cas), sur le patron des scans
+  de source de `tags.test.ts` / `feuilles.test.ts`. Il compte : aucun titre de section ne
+  porte le nom de la feuille qu'ouvre la roue · la roue est annoncée sous le nom de ce
+  qu'elle ouvre (sinon on « corrigerait » le premier cas en débaptisant le bouton) · les
+  deux blocs sont au même niveau · aucune route n'est poussée par deux lignes · aucune
+  adresse recopiée · **les étapes du tour suivent l'écran, la dernière exceptée** · la
+  dépense est rendue avant le premier bloc de menu.
+  ✅ **Vérifié par SIX mutations**, chacune vue rougir puis restaurée : le titre
+  « Réglages » remis (3 cas rouges) · la ligne « Aide & contact » réintroduite (1) · une
+  adresse recopiée en dur (1) · la roue débaptisée (1) · l'étape TDEE remise en
+  avant-dernier (1) · le bloc TDEE redescendu sous les menus (2).
+  📊 **1 329 / 79 → 1 337 / 80**, `tsc` vert.
 
 - ~~**E25 · Le Profil était une section fourre-tout**~~ ✅ **LIVRÉ le 2026-08-10.**
   *Décision fondateur du 2026-08-09 : « j'aimerais que le profil soit qu'avec les

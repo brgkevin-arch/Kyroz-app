@@ -228,6 +228,15 @@ export interface ProfilTourContext {
   objectifDateDisponible: boolean;
 }
 
+// ⚠️ L'ORDRE DES ÉTAPES SUIT L'ÉCRAN, DE HAUT EN BAS — poids · dépense · sport ·
+// objectif daté · régénérer, puis la roue. Ce n'est pas une préférence de
+// rédaction : chaque étape fait DÉFILER l'écran jusqu'à sa cible, donc une étape
+// mal placée fait remonter puis redescendre, et ce va-et-vient se lit comme un
+// bug plutôt que comme une visite. `profil-tdee` était en avant-dernier quand le
+// bloc TDEE vivait tout en bas ; il a suivi le bloc quand celui-ci est remonté
+// sous « Tes cibles » (2026-08-10). ➡️ Déplacer un élément de l'écran Profil, c'est
+// aussi relire cette liste. Seule la dernière étape remonte volontairement : la
+// roue est en haut, et c'est là que le tour se termine.
 export function profilTour({ objectifDateDisponible }: ProfilTourContext): TourStep[] {
   const steps: TourStep[] = [
     {
@@ -237,6 +246,14 @@ export function profilTour({ objectifDateDisponible }: ProfilTourContext): TourS
       targetId: 'profil-poids',
       title: 'Ta pesée pilote tout',
       text: "Enregistre ton poids et Kyroz recale calories, macros et plan dans la foulée. Quand le bouton passe à « Me peser », c'est juste que ta cadence est arrivée.",
+    },
+    {
+      // Prouvé par : lib/tdee.ts::calculateTDEE — métabolisme de base, multiplié
+      // par le niveau d'activité quotidienne, plus la dépense des séances.
+      // Recalculé par `recalcProfile` à chaque changement de corps ou d'activité.
+      targetId: 'profil-tdee',
+      title: 'Ta dépense estimée',
+      text: "Ton métabolisme, tes journées et tes séances réunis. Elle se recalcule dès que tu changes ton poids ou ton activité — tu n'as rien à relancer.",
     },
     {
       // Prouvé par : lib/tdee.ts — `DEFAULT_NEAT_LEVEL = 'desk'` (1,30), et la
@@ -268,14 +285,6 @@ export function profilTour({ objectifDateDisponible }: ProfilTourContext): TourS
       targetId: 'profil-regenerer',
       title: 'Régénérer sans rien perdre',
       text: "Cette ligne reconstruit une semaine complète de repas. Tes goûts, tes réglages et ce que tu as déjà marqué comme cuisiné aujourd'hui restent en place.",
-    },
-    {
-      // Prouvé par : lib/tdee.ts::calculateTDEE — métabolisme de base, multiplié
-      // par le niveau d'activité quotidienne, plus la dépense des séances.
-      // Recalculé par `recalcProfile` à chaque changement de corps ou d'activité.
-      targetId: 'profil-tdee',
-      title: 'Ta dépense estimée',
-      text: "Ton métabolisme, tes journées et tes séances réunis. Elle se recalcule dès que tu changes ton poids ou ton activité — tu n'as rien à relancer.",
     },
     {
       // ⚠️ CETTE ÉTAPE A CHANGÉ DE CIBLE le 2026-08-10, en même temps que son

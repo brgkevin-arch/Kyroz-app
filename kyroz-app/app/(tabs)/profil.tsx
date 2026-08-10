@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useCallback, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, Linking } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
@@ -210,6 +210,10 @@ export default function ProfilScreen() {
   const layout = useLayout();
   const repli = useCollapsingTitle();
   const { profile, saveProfile, clearProfile } = useProfile();
+  // Prénom : DIFFUSÉ, pas lu au montage (lib/profileName.ts) — il se pose depuis
+  // l'éditeur « Informations » de cet écran même, donc le surtitre doit suivre
+  // sans changer d'onglet ni redémarrer.
+  const prenom = useFirstName();
   const { streak } = useStreak();
   // Le suivi du poids est désormais une CARTE (courbe + écart) et non une ligne de
   // menu : il lui faut les pesées, pas seulement le poids courant du profil.
@@ -309,15 +313,13 @@ export default function ProfilScreen() {
     router.replace('/(auth)/login');
   };
 
-  // Contact support : ouvre le client mail. Si rien ne peut l'ouvrir (web sans
-  // client mail), on copie l'adresse dans une alerte plutôt que d'échouer en silence.
-  const SUPPORT_EMAIL = 'contact@kyroz.app';
-  const contactSupport = async () => {
-    const url = `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent('Kyroz — aide')}`;
-    const ok = await Linking.canOpenURL(url).catch(() => false);
-    if (ok) Linking.openURL(url);
-    else notify({ title: 'Nous contacter', message: SUPPORT_EMAIL });
-  };
+  // ⚠️ `contactSupport` vivait ici et N'ÉTAIT PLUS APPELÉ depuis E25 (2026-08-10) :
+  // la ligne « Aide & contact » est partie dans `ReglagesSheet`, où elle pousse
+  // `/avis` au lieu d'ouvrir un `mailto:`. Le helper, sa constante d'adresse et
+  // l'import `Linking` sont donc restés en place à faire semblant. Retirés le
+  // 2026-08-10 — l'adresse a une source unique, `lib/feedback.ts::SUPPORT_EMAIL`,
+  // et l'écran `/avis` la montre lui-même en repli quand aucun client mail ne
+  // répond. Deux adresses en dur, c'est la première qui ment le jour où elle change.
 
   // « Revoir les tutos » : on oublie les cinq tours, puis on relance TOUT DE SUITE
   // celui de cet écran. Sans ce lancement immédiat, l'action n'aurait aucun effet
@@ -409,10 +411,16 @@ export default function ProfilScreen() {
         {/* En-tête — l'écran n'en avait AUCUN : il démarrait direct sur la carte
             poids. Sur un écran aussi long, arriver sans savoir où on est coûte plus
             cher que les 60 px que ça prend. Le surtitre dit qui tu es, le titre dit
-            où tu es. */}
+            où tu es.
+            ⚠️ Le surtitre disait « Homme · 30 ans · Sèche » — soit MOT POUR MOT ce
+            que les lignes « Informations » et « Objectif » redisent 600 px plus bas.
+            Une ligne qui répète n'informe pas, elle occupe. Il porte désormais le
+            prénom, la seule chose de cet écran qui ne soit écrite nulle part
+            ailleurs. Pas de prénom (compte antérieur à la question) → pas de ligne :
+            mieux vaut un en-tête plus court qu'un remplissage. */}
         <View style={s.header} onLayout={repli.onHeaderLayout}>
           <View style={{ flex: 1 }}>
-            <Text style={s.sub}>{SEX_LABELS[profile.sex]} · {profile.age} ans · {goalLabel(profile.goal)}</Text>
+            {!!prenom && <Text style={s.sub}>{prenom}</Text>}
             <Text style={s.h1}>Profil</Text>
           </View>
           <TourButton onPress={rejouerTour} />
@@ -545,11 +553,39 @@ export default function ProfilScreen() {
           </Text>
         )}
 
+        {/* TDEE — le libellé prend la place qui reste, le chiffre ne se coupe jamais
+            en deux lignes (`flexShrink: 0`). Sans ça, « 2 369 kcal » passait à la
+            ligne au milieu de lui-même.
+            ⚠️ REMONTÉ ICI le 2026-08-10. Il vivait tout en bas, APRÈS les onze
+            lignes de menu — à peu près 900 px sous les cibles qu'il explique. C'est
+            pourtant la seule ligne de l'écran qui réponde à « pourquoi 2 293 ? » :
+            la dépense et la cible se lisent ensemble ou ne se lisent pas.
+            ➡️ L'étape de visite guidée qui le vise a suivi (lib/tours.ts) : laissée
+            en avant-dernier, elle aurait fait remonter l'écran de tout en bas vers
+            le haut, puis redescendre. Une bulle qui déplace l'écran à contresens de
+            sa propre progression se lit comme un bug, pas comme une visite. */}
+        <View ref={tdeeRef} style={s.tdee}>
+          <Text style={s.tdeeL}>Dépense estimée · maintenance (TDEE)</Text>
+          <Text style={s.tdeeV}>{profile.tdee_kcal.toLocaleString('fr-FR')} kcal</Text>
+        </View>
+
         {/* Réglages — TOI d'abord (corps, sport, objectif), TON PLAN ensuite. Dix
             lignes d'affilée étaient un mur : les couper en deux blocs nommés donne
             un repère, et ça ne coûte rien. Les icônes sont parties — à 17 px
-            semi-gras le libellé suffit, et la ligne respire. */}
-        <SectionTitle t={t}>Réglages</SectionTitle>
+            semi-gras le libellé suffit, et la ligne respire.
+            🔴 CE TITRE DISAIT « Réglages », ET C'ÉTAIT LE NOM D'AUTRE CHOSE. Depuis
+            E25, la roue dentée en haut de cet écran ouvre une feuille intitulée
+            « Réglages » (ReglagesSheet) dont le contenu est DISJOINT de ce bloc-ci :
+            là-bas notifications, affichage, confidentialité, compte ; ici ce qui
+            pilote le moteur. Deux destinations, un seul mot, sur le même écran —
+            « va dans les réglages » ne désignait plus rien. Le commit d'E25 nommait
+            déjà les deux blocs « Toi / Ton plan » ; le code, lui, était resté sur
+            l'ancien nom.
+            ➡️ « TOI » est un `SectionLabel`, comme « TON PLAN » : deux blocs frères
+            au même niveau. Avant, l'un était un `SectionTitle` (« découpe l'écran »)
+            et l'autre un `SectionLabel` (« étiquette un bloc ») — le premier bloc
+            n'avait donc aucune étiquette à lui, il empruntait celle du chapitre. */}
+        <SectionLabel t={t}>TOI</SectionLabel>
         <View style={s.menu}>
           <MenuRow t={t} label="Informations" value={`${SEX_LABELS[profile.sex]} · ${profile.age} ans · ${profile.weight_kg} kg${profile.body_fat_pct != null ? ` · ${profile.body_fat_pct}% MG` : ''}`} onPress={() => setEditor('info')} />
           <MenuRow t={t} label="Sport & activité" value={`${profile.sports?.length ? `${profile.sports.length} sport${profile.sports.length > 1 ? 's' : ''}` : 'Aucun sport'} · ${NEAT_SHORT[profile.neat_level ?? DEFAULT_NEAT_LEVEL]}`} onPress={() => setEditor('sports')} tourId="profil-sport" />
@@ -568,14 +604,6 @@ export default function ProfilScreen() {
           <MenuRow t={t} label="Repas hors plan" value={journalSummary(journal.entries)} onPress={openOffPlan} />
           <MenuRow t={t} label="Kyroz+" value={KYROZ_PLUS_VALEUR[premium.reason]} onPress={() => router.push('/kyroz-plus')} />
           <MenuRow t={t} label="Régénérer mon plan" value="Repartir de zéro" onPress={regenPlan} tourId="profil-regenerer" last />
-        </View>
-
-        {/* TDEE — le libellé prend la place qui reste, le chiffre ne se coupe jamais
-            en deux lignes (`flexShrink: 0`). Sans ça, « 2 369 kcal » passait à la
-            ligne au milieu de lui-même. */}
-        <View ref={tdeeRef} style={s.tdee}>
-          <Text style={s.tdeeL}>Dépense estimée · maintenance (TDEE)</Text>
-          <Text style={s.tdeeV}>{profile.tdee_kcal.toLocaleString('fr-FR')} kcal</Text>
         </View>
 
       </ScrollView>
