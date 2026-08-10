@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Presse } from './Presse';
 import { useTheme, Radius, Spacing, Type, OPACITE_PRESSION , Icone } from '../constants/theme';
 import { AvertissementIcon } from './Icons';
 import { captureErreur } from '../lib/analytics';
@@ -17,13 +18,13 @@ function Fallback({ onRetry }: { onRetry: () => void }) {
       <Text style={[styles.sub, { color: t.textSecondary }]}>
         Ce n'est pas toi, c'est nous. Tes données sont intactes.
       </Text>
-      <TouchableOpacity
+      <Presse
         onPress={onRetry}
         activeOpacity={OPACITE_PRESSION}
         style={[styles.btn, { backgroundColor: t.accent }]}
       >
         <Text style={[styles.btnTxt, { color: t.onAccent }]}>Réessayer</Text>
-      </TouchableOpacity>
+      </Presse>
     </View>
   );
 }

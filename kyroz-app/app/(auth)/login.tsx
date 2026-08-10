@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { Presse } from '../../components/Presse';
 import {
   View, Text, StyleSheet, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView,
 } from 'react-native';
@@ -167,22 +168,22 @@ export default function LoginScreen() {
                 disabled={!codeComplet(code)} loading={busy}
               />
 
-              <TouchableOpacity
+              <Presse
                 onPress={renvoyer} disabled={renvoiDans > 0 || busy}
                 activeOpacity={OPACITE_PRESSION} style={s.lienSecondaire}
               >
                 <Text style={[s.lienSecondaireTxt, renvoiDans > 0 && { color: t.textQuaternary }]}>
                   {renvoiDans > 0 ? `Renvoyer l'e-mail (${renvoiDans} s)` : 'Renvoyer l\'e-mail'}
                 </Text>
-              </TouchableOpacity>
+              </Presse>
 
               <Text style={s.aideConfirmation}>
                 Rien reçu ? Regarde dans les indésirables. Si tu as cliqué le lien de l'e-mail, ton adresse est déjà confirmée : connecte-toi.
               </Text>
 
-              <TouchableOpacity onPress={retourConnexion} activeOpacity={OPACITE_PRESSION} style={s.lienSecondaire}>
+              <Presse onPress={retourConnexion} activeOpacity={OPACITE_PRESSION} style={s.lienSecondaire}>
                 <Text style={s.lienSecondaireTxt}>Revenir à la connexion</Text>
-              </TouchableOpacity>
+              </Presse>
             </>
           ) : (
           <>
@@ -207,14 +208,14 @@ export default function LoginScreen() {
           />
 
           {mode === 'signup' && (
-            <TouchableOpacity style={s.consent} onPress={() => setConsent((c) => !c)} activeOpacity={OPACITE_PRESSION}>
+            <Presse style={s.consent} onPress={() => setConsent((c) => !c)} activeOpacity={OPACITE_PRESSION}>
               <View style={[s.check, { borderColor: consent ? t.accent : t.lineStrong, backgroundColor: consent ? t.accent : 'transparent' }]}>
                 {consent && <Ionicons name="checkmark" size={Icone.petite} color={t.onAccent} />}
               </View>
               <Text style={s.consentTxt}>
                 J'accepte que mes données (poids, objectif, régime) — des <Text style={{ fontWeight: '700', color: t.textSecondary }}>données de santé</Text> — soient traitées pour générer mes plans. Stockage en Europe, supprimables à tout moment.
               </Text>
-            </TouchableOpacity>
+            </Presse>
           )}
 
           {error && <Text style={s.error}>{error}</Text>}
@@ -232,12 +233,12 @@ export default function LoginScreen() {
           {/* Sortie de secours du compte perdu. En CONNEXION seulement : à
               l'inscription, il n'y a pas encore de mot de passe à oublier. */}
           {mode === 'signin' && (
-            <TouchableOpacity
+            <Presse
               onPress={() => { setOubli(true); setError(null); setNotice(null); }}
               activeOpacity={OPACITE_PRESSION} style={s.lienSecondaire}
             >
               <Text style={s.lienSecondaireTxt}>Mot de passe oublié ?</Text>
-            </TouchableOpacity>
+            </Presse>
           )}
 
           <Text style={s.social}>Connexion Apple & Google bientôt — avec l'app iOS.</Text>
@@ -253,18 +254,18 @@ export default function LoginScreen() {
                 <Text style={s.guestOr}>ou</Text>
                 <View style={s.guestLine} />
               </View>
-              <TouchableOpacity onPress={guest} disabled={busy} activeOpacity={OPACITE_PRESSION} testID="guest-login">
+              <Presse onPress={guest} disabled={busy} activeOpacity={OPACITE_PRESSION} testID="guest-login">
                 <Text style={s.guest}>Continuer en invité</Text>
-              </TouchableOpacity>
+              </Presse>
             </>
           )}
           </>
           )}
 
           <Text style={s.disclaimer}>{DISCLAIMER}</Text>
-          <TouchableOpacity onPress={() => router.push('/legal')} activeOpacity={OPACITE_PRESSION}>
+          <Presse onPress={() => router.push('/legal')} activeOpacity={OPACITE_PRESSION}>
             <Text style={s.legalLink}>Politique de confidentialité & CGU</Text>
-          </TouchableOpacity>
+          </Presse>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>

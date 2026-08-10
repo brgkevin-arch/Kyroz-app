@@ -1,4 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { Presse } from './Presse';
 import {
   View, Text, StyleSheet, Modal, Pressable, TouchableOpacity, useWindowDimensions, ViewStyle,
 } from 'react-native';
@@ -76,7 +77,7 @@ export function useTour(): TourContextValue {
 
 /**
  * Rend un élément ciblable par la visite guidée. Renvoie une ref à brancher
- * DIRECTEMENT sur l'élément à surligner (`<View ref={ref}>`, `<TouchableOpacity
+ * DIRECTEMENT sur l'élément à surligner (`<View ref={ref}>`, `<Presse
  * ref={ref}>`…). On évite ainsi une View englobante qui inclurait les marges de
  * l'enfant → le spotlight épouse exactement la border box de l'élément.
  * `id` optionnel : si absent, rien n'est enregistré (pratique dans une liste où
@@ -151,7 +152,7 @@ export function useScreenTour(
 export function TourButton({ onPress }: { onPress: () => void }) {
   const t = useTheme();
   return (
-    <TouchableOpacity
+    <Presse
       onPress={onPress}
       hitSlop={8}
       activeOpacity={OPACITE_PRESSION}
@@ -159,7 +160,7 @@ export function TourButton({ onPress }: { onPress: () => void }) {
       accessibilityLabel="Revoir la visite guidée de cet écran"
     >
       <Ionicons name="help-circle-outline" size={Icone.nav} color={t.textTertiary} />
-    </TouchableOpacity>
+    </Presse>
   );
 }
 

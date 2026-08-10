@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useRef } from 'react';
-import { Modal, View, Text, StyleSheet, Animated, ScrollView } from 'react-native';
+import { Modal, View, Text, StyleSheet, Animated, ScrollView, Easing } from 'react-native';
+import { RESSORT, DUREE, ressortRN, ressortReduit, dureeReduite } from '../lib/motion';
+import { reduceMotionActif } from '../lib/reduceMotion';
 import { useTheme, Radius, Spacing, Type, ThemePalette, Trait , Icone } from '../constants/theme';
 import { PrimaryButton, SectionLabel } from './ui';
 import { goalLabel } from '../lib/tdee';
@@ -38,9 +40,19 @@ export function FirstPlanReveal({ visible, profile, firstName, previewMeals, onC
     if (visible) {
       scale.setValue(0.9);
       opacity.setValue(0);
+      const reduire = reduceMotionActif();
       Animated.parallel([
-        Animated.spring(scale, { toValue: 1, useNativeDriver: true, bounciness: 7, speed: 12 }),
-        Animated.timing(opacity, { toValue: 1, duration: 240, useNativeDriver: true }),
+        Animated.spring(scale, {
+          toValue: 1,
+          useNativeDriver: true,
+          ...ressortRN(ressortReduit(RESSORT.fete, reduire)),
+        }),
+        Animated.timing(opacity, {
+          toValue: 1,
+          duration: dureeReduite(DUREE.moyen, reduire),
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        }),
       ]).start();
     }
   }, [visible]);
@@ -59,7 +71,13 @@ export function FirstPlanReveal({ visible, profile, firstName, previewMeals, onC
   if (!visible) return null;
 
   return (
-    <Modal visible transparent animationType="fade" onRequestClose={onClose}>
+    // 🔴 `animationType="none"` — la `Modal` fondait DÉJÀ (`"fade"`) pendant que
+    // la carte animait sa propre opacité : deux fondus superposés de durées
+    // différentes sur le même objet. `Sheet` et `ActionSheet` étaient corrects
+    // depuis toujours ; le défaut ne touchait que les trois célébrations, et il
+    // ne se voit pas en lisant un diff — il se voit à l'écran, comme un départ
+    // qui traîne.
+    <Modal visible transparent animationType="none" onRequestClose={onClose}>
       <View style={s.root}>
         <Animated.View style={[s.card, { opacity, transform: [{ scale }] }]}>
           <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>

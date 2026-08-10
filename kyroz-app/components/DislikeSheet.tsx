@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
+import { Presse } from './Presse';
 import { ThemePalette, Radius, Type, Spacing, Trait, OPACITE_PRESSION } from '../constants/theme';
 import { PrimaryButton } from './ui';
 
@@ -38,7 +39,7 @@ export function DislikeSheet({
           {candidates.map((c) => {
             const on = !custom.trim() && sel === c.kw;
             return (
-              <TouchableOpacity
+              <Presse
                 key={c.kw} activeOpacity={OPACITE_PRESSION}
                 onPress={() => { setSel(c.kw); setCustom(''); }}
                 style={[s.chip, { backgroundColor: on ? t.accent : t.card, borderColor: on ? t.accent : t.line }]}
@@ -47,7 +48,7 @@ export function DislikeSheet({
                 <Text style={[s.chipSub, { color: on ? t.onAccent : t.textTertiary }]}>
                   dans {c.count} plat{c.count > 1 ? 's' : ''} écarté{c.count > 1 ? 's' : ''}
                 </Text>
-              </TouchableOpacity>
+              </Presse>
             );
           })}
         </View>
@@ -69,9 +70,9 @@ export function DislikeSheet({
         label={chosen ? `Éviter « ${chosen} »` : 'Choisis un ingrédient'}
         onPress={() => { if (chosen) { onPick(chosen); onClose(); } }}
       />
-      <TouchableOpacity onPress={onClose} hitSlop={8} style={{ alignSelf: 'center' }}>
+      <Presse onPress={onClose} hitSlop={8} style={{ alignSelf: 'center' }}>
         <Text style={s.skip}>Plus tard</Text>
-      </TouchableOpacity>
+      </Presse>
     </View>
   );
 }

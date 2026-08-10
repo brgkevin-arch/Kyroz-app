@@ -1,9 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  Modal, View, StyleSheet, Animated, PanResponder, Pressable,
+  Modal, View, StyleSheet, Animated, PanResponder, Pressable, Easing,
 } from 'react-native';
 import { useTheme, Spacing, Fond } from '../constants/theme';
 import { useLayout } from '../constants/layout';
+import {
+  RESSORT, DUREE, ressortRN, ressortReduit, dureeReduite,
+  vitesseDepuisPan, caoutchouc, decisionFeuille,
+} from '../lib/motion';
+import { useReduceMotion, reduceMotionActif } from '../lib/reduceMotion';
 
 interface Props {
   visible: boolean;
@@ -17,6 +22,20 @@ interface Props {
  * - Taper le fond ferme aussi.
  * Utilisée pour les formulaires courts (ajout / édition de quantité, confirmation).
  */
+// Distance de rangement de la feuille — au-delà de toute hauteur de contenu
+// plausible, donc elle sort de l'écran quoi qu'elle contienne. Sert aussi
+// d'échelle à la résistance du bord haut.
+const HAUTEUR_NOMINALE = 700;
+
+// 🔴 CE N'EST PAS LA HAUTEUR RÉELLE, ET C'EST VOLONTAIRE. `decisionFeuille`
+// ferme quand le point PROJETÉ dépasse la moitié de ce qu'on lui passe. Le code
+// d'avant fermait à `dy > 80` ; on lui passe donc 160 pour retrouver EXACTEMENT
+// le même seuil de position, et ne changer qu'une chose à la fois — ce qui
+// s'ajoute, c'est la projection de l'élan. Une feuille d'action se dimensionne
+// sur son contenu : mesurer sa hauteur réelle déplacerait le seuil d'un menu à
+// l'autre, donc rendrait le geste imprévisible d'un écran au suivant.
+const SEUIL_HAUTEUR = 160;
+
 export function ActionSheet({ visible, onClose, children }: Props) {
   const t = useTheme();
   const layout = useLayout();
@@ -46,18 +65,49 @@ export function ActionSheet({ visible, onClose, children }: Props) {
   const visibleRef = useRef(visible);
   visibleRef.current = visible;
 
+  const reduire = useReduceMotion();
+
+  // La vitesse du geste, déposée au relâchement et consommée par la sortie —
+  // même mécanique et même motif que dans `Sheet.tsx` : `onClose` remonte au
+  // parent, donc c'est l'effet ci-dessous qui anime, et c'est le seul chemin qui
+  // reste pour lui transmettre l'élan du doigt.
+  const vitesseSortie = useRef(0);
+
   useEffect(() => {
     if (visible) {
+      // On ne repart du bas que si la feuille n'était pas déjà à l'écran :
+      // rattraper une feuille en cours de sortie ne doit pas la faire sauter.
+      if (!render) ty.setValue(700);
       setRender(true);
-      ty.setValue(700);
       Animated.parallel([
-        Animated.timing(ty, { toValue: 0, duration: 260, useNativeDriver: true }),
-        Animated.timing(backdrop, { toValue: 1, duration: 260, useNativeDriver: true }),
+        Animated.spring(ty, {
+          toValue: 0,
+          useNativeDriver: true,
+          ...ressortRN(ressortReduit(RESSORT.feuille, reduire)),
+        }),
+        Animated.timing(backdrop, {
+          toValue: 1,
+          duration: dureeReduite(DUREE.court, reduire),
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        }),
       ]).start();
     } else if (render) {
+      const v = vitesseSortie.current;
+      vitesseSortie.current = 0;
       Animated.parallel([
-        Animated.timing(ty, { toValue: 700, duration: 200, useNativeDriver: true }),
-        Animated.timing(backdrop, { toValue: 0, duration: 200, useNativeDriver: true }),
+        Animated.spring(ty, {
+          toValue: 700,
+          useNativeDriver: true,
+          velocity: v,
+          ...ressortRN(ressortReduit(RESSORT.feuille, reduire)),
+        }),
+        Animated.timing(backdrop, {
+          toValue: 0,
+          duration: dureeReduite(DUREE.court, reduire),
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        }),
       ]).start(() => { if (!visibleRef.current) setRender(false); });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -83,16 +133,38 @@ export function ActionSheet({ visible, onClose, children }: Props) {
       // démontage insensible à l'interruption — les deux se valident seuls.
       onStartShouldSetPanResponder: () => visibleRef.current,
       onMoveShouldSetPanResponder: (_, g) => visibleRef.current && g.dy > 8 && Math.abs(g.dy) > Math.abs(g.dx) * 1.5,
-      onPanResponderMove: (_, g) => { if (g.dy > 0) ty.setValue(g.dy); },
+      // Tirer vers le HAUT ne faisait rien : la feuille était morte au doigt.
+      // Elle résiste désormais, échelonnée sur sa propre hauteur (700) et non
+      // sur celle de l'écran — c'est une feuille d'action, elle n'occupe qu'une
+      // partie de la vue.
+      onPanResponderMove: (_, g) => {
+        ty.setValue(g.dy > 0 ? g.dy : -caoutchouc(-g.dy, HAUTEUR_NOMINALE));
+      },
       onPanResponderRelease: (_, g) => {
-        if (g.dy > 80 || g.vy > 0.4) onClose();
-        else Animated.spring(ty, { toValue: 0, useNativeDriver: true, bounciness: 2 }).start();
+        // Décision par PROJECTION, et la vitesse est ensuite passée au ressort
+        // au lieu d'être jetée — cf. le commentaire détaillé dans `Sheet.tsx`.
+        const v = vitesseDepuisPan(g.vy);
+        if (decisionFeuille(Math.max(0, g.dy), v, SEUIL_HAUTEUR) === 'fermer') {
+          vitesseSortie.current = v;
+          onClose();
+        } else {
+          Animated.spring(ty, {
+            toValue: 0,
+            useNativeDriver: true,
+            velocity: v,
+            ...ressortRN(ressortReduit(RESSORT.pose, reduceMotionActif())),
+          }).start();
+        }
       },
       // Même garde-fou que dans `Sheet.tsx` : sans ça, un geste repris par un
       // scroll (ou par le système) laisse la feuille figée à mi-course.
       onPanResponderTerminationRequest: () => false,
       onPanResponderTerminate: () => {
-        Animated.spring(ty, { toValue: 0, useNativeDriver: true, bounciness: 2 }).start();
+        Animated.spring(ty, {
+          toValue: 0,
+          useNativeDriver: true,
+          ...ressortRN(ressortReduit(RESSORT.pose, reduceMotionActif())),
+        }).start();
       },
     })
   ).current;

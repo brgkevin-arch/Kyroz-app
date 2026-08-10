@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity } from 'react-native';
+import { Presse } from './Presse';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemePalette, Radius, Spacing, Type, CIBLE_TACTILE_MIN, Trait, Icone, OPACITE_PRESSION } from '../constants/theme';
 import { Field, PrimaryButton, Segmented } from './ui';
@@ -136,9 +137,9 @@ export function RecipeEditor({ t, recipe, isCustom, onSave, onReset, onCancel, d
                 style={[s.input, s.qty]} value={ing.quantity_g} onChangeText={(v) => setIng(i, { quantity_g: v })}
                 placeholder="g" placeholderTextColor={t.textQuaternary} keyboardType="decimal-pad"
               />
-              <TouchableOpacity onPress={() => removeIng(i)} style={s.del} hitSlop={8}>
+              <Presse onPress={() => removeIng(i)} style={s.del} hitSlop={8}>
                 <Ionicons name="close-circle" size={Icone.action} color={t.textTertiary} />
-              </TouchableOpacity>
+              </Presse>
             </View>
             {ing.food_id && (
               <Text style={s.linkedTag}><Ionicons name="checkmark-circle" size={Icone.petite} color={t.success} /> macros liées à la base</Text>
@@ -146,10 +147,10 @@ export function RecipeEditor({ t, recipe, isCustom, onSave, onReset, onCancel, d
             {searchRow === i && ing.name.trim().length > 0 && (
               <View style={s.suggest}>
                 {searchFoods(ing.name, 6).map((f) => (
-                  <TouchableOpacity key={f.id} style={s.suggestRow} onPress={() => pickFood(i, f.id, f.name_fr)} activeOpacity={OPACITE_PRESSION}>
+                  <Presse key={f.id} style={s.suggestRow} onPress={() => pickFood(i, f.id, f.name_fr)} activeOpacity={OPACITE_PRESSION}>
                     <Text style={s.suggestName}>{f.name_fr}</Text>
                     <Text style={s.suggestMacro}>{f.per100g.kcal} kcal · {f.per100g.protein_g}P /100g</Text>
-                  </TouchableOpacity>
+                  </Presse>
                 ))}
                 {searchFoods(ing.name, 1).length === 0 && (
                   <Text style={s.suggestEmpty}>Aucun aliment trouvé — il restera libre (macros à saisir à la main).</Text>
@@ -158,10 +159,10 @@ export function RecipeEditor({ t, recipe, isCustom, onSave, onReset, onCancel, d
             )}
           </View>
         ))}
-        <TouchableOpacity onPress={addIng} style={s.addBtn} activeOpacity={OPACITE_PRESSION}>
+        <Presse onPress={addIng} style={s.addBtn} activeOpacity={OPACITE_PRESSION}>
           <Ionicons name="add" size={Icone.standard} color={t.text} />
           <Text style={s.addTxt}>Ajouter un ingrédient</Text>
-        </TouchableOpacity>
+        </Presse>
 
         <Text style={s.section}>MACROS / PORTION</Text>
         <Segmented
@@ -210,29 +211,29 @@ export function RecipeEditor({ t, recipe, isCustom, onSave, onReset, onCancel, d
               style={[s.input, { flex: 1 }]} value={step} onChangeText={(v) => setStep(i, v)}
               placeholder="Étape…" placeholderTextColor={t.textQuaternary} multiline
             />
-            <TouchableOpacity onPress={() => removeStep(i)} style={s.del} hitSlop={8}>
+            <Presse onPress={() => removeStep(i)} style={s.del} hitSlop={8}>
               <Ionicons name="close-circle" size={Icone.action} color={t.textTertiary} />
-            </TouchableOpacity>
+            </Presse>
           </View>
         ))}
-        <TouchableOpacity onPress={addStep} style={s.addBtn} activeOpacity={OPACITE_PRESSION}>
+        <Presse onPress={addStep} style={s.addBtn} activeOpacity={OPACITE_PRESSION}>
           <Ionicons name="add" size={Icone.standard} color={t.text} />
           <Text style={s.addTxt}>Ajouter une étape</Text>
-        </TouchableOpacity>
+        </Presse>
 
         {isCustom && (
-          <TouchableOpacity onPress={onReset} style={s.reset} activeOpacity={OPACITE_PRESSION}>
+          <Presse onPress={onReset} style={s.reset} activeOpacity={OPACITE_PRESSION}>
             <Ionicons name="refresh" size={Icone.petite} color={t.danger} />
             <Text style={s.resetTxt}>Réinitialiser à la recette d'origine</Text>
-          </TouchableOpacity>
+          </Presse>
         )}
       </ScrollView>
 
       <View style={s.footer}>
         <PrimaryButton t={t} label="Enregistrer ma version" onPress={save} disabled={!valid} />
-        <TouchableOpacity onPress={onCancel} style={s.cancel} activeOpacity={OPACITE_PRESSION}>
+        <Presse onPress={onCancel} style={s.cancel} activeOpacity={OPACITE_PRESSION}>
           <Text style={s.cancelTxt}>Annuler</Text>
-        </TouchableOpacity>
+        </Presse>
       </View>
     </View>
   );

@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
+import { Presse } from './Presse';
 import { ThemePalette, Type, Spacing, OPACITE_PRESSION , Icone } from '../constants/theme';
 import { Card } from './ui';
 import { datedGoalStatus, simulatedTrajectory, daysBetween } from '../lib/datedGoal';
@@ -71,7 +72,7 @@ export function DatedGoalCard({ t, profile, onPress }: { t: ThemePalette; profil
     : denom !== 0 ? Math.min(Math.max((gt.start_weight_kg - profile.weight_kg) / denom, 0), 1) : 1;
 
   return (
-    <TouchableOpacity activeOpacity={OPACITE_PRESSION} onPress={onPress}>
+    <Presse activeOpacity={OPACITE_PRESSION} onPress={onPress}>
       <Card t={t} style={{ gap: Spacing.md }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
           {/* Fusion 2026-08-06 : l'ICÔNE vient de main (le 🎯 a été retiré partout),
@@ -128,6 +129,6 @@ export function DatedGoalCard({ t, profile, onPress }: { t: ThemePalette; profil
                   : 'Rythme sûr atteint\u00A0· cette date n\'est pas tenable'}
         </Text>
       </Card>
-    </TouchableOpacity>
+    </Presse>
   );
 }

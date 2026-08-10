@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Platform, Linking, KeyboardAvoidingView } from 'react-native';
+import { Presse } from '../components/Presse';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -68,9 +69,9 @@ export default function AvisScreen() {
     <SafeAreaView style={s.safe} edges={['top']}>
       <StatusBar style={t.scheme === 'dark' ? 'light' : 'dark'} />
       <View style={[s.header, layout.header]}>
-        <TouchableOpacity onPress={() => router.back()} hitSlop={10} activeOpacity={OPACITE_PRESSION}>
+        <Presse onPress={() => router.back()} hitSlop={10} activeOpacity={OPACITE_PRESSION}>
           <Ionicons name="chevron-back" size={Icone.nav} color={t.text} />
-        </TouchableOpacity>
+        </Presse>
         <Text style={s.headerTitle}>Donner mon avis</Text>
       </View>
 
@@ -87,7 +88,7 @@ export default function AvisScreen() {
             {AVIS_SUJETS.map((o) => {
               const on = sujet === o.id;
               return (
-                <TouchableOpacity
+                <Presse
                   key={o.id}
                   onPress={() => setSujet(o.id)}
                   activeOpacity={OPACITE_PRESSION}
@@ -96,7 +97,7 @@ export default function AvisScreen() {
                   style={[s.sujet, { borderColor: on ? t.accent : t.line, borderWidth: on ? Trait.controle : Trait.fin }]}
                 >
                   <Text style={[s.sujetTxt, { color: on ? t.text : t.textSecondary }]}>{o.label}</Text>
-                </TouchableOpacity>
+                </Presse>
               );
             })}
           </View>

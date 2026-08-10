@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useSyncExternalStore } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Presse } from './Presse';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme, Radius, Spacing, Type, cardShadow, Icone, OPACITE_PRESSION } from '../constants/theme';
@@ -140,13 +141,13 @@ export function HydrationBar() {
           <Text style={[styles.count, { color: t.textSecondary }]}>
             {fmtL(consumedMl)} / {fmtL(goalMl)} L · {count} verre{count > 1 ? 's' : ''}{done ? '  ✓' : ''}
           </Text>
-          <TouchableOpacity
+          <Presse
             onPress={() => setSettingsOpen(true)}
             hitSlop={10}
             accessibilityLabel="Réglages de l'hydratation"
           >
             <Ionicons name="options-outline" size={Icone.standard} color={t.textSecondary} />
-          </TouchableOpacity>
+          </Presse>
         </View>
       </View>
 
@@ -155,22 +156,22 @@ export function HydrationBar() {
       </View>
 
       <View style={styles.controls}>
-        <TouchableOpacity
+        <Presse
           onPress={() => updateCount(count - 1)}
           style={[styles.btn, { backgroundColor: t.fill }]}
           hitSlop={8}
           accessibilityLabel="Retirer un verre"
         >
           <Text style={[styles.btnTxt, { color: t.text }]}>−</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
+        </Presse>
+        <Presse
           onPress={() => updateCount(count + 1)}
           style={[styles.btn, styles.btnAdd, { backgroundColor: t.accent }]}
           hitSlop={8}
           accessibilityLabel="Ajouter un verre d'eau"
         >
           <Text style={[styles.btnTxt, { color: t.onAccent }]}>+ un verre</Text>
-        </TouchableOpacity>
+        </Presse>
       </View>
 
       <ActionSheet visible={settingsOpen} onClose={() => setSettingsOpen(false)}>
@@ -192,13 +193,13 @@ export function HydrationBar() {
           <Segmented t={t} options={GLASS_OPTIONS} value={glassMl} onChange={updateGlass} />
         </View>
 
-        <TouchableOpacity
+        <Presse
           onPress={() => setSettingsOpen(false)}
           style={[styles.doneBtn, { backgroundColor: t.accent }]}
           activeOpacity={OPACITE_PRESSION}
         >
           <Text style={[styles.btnTxt, { color: t.onAccent }]}>OK</Text>
-        </TouchableOpacity>
+        </Presse>
       </ActionSheet>
     </View>
   );

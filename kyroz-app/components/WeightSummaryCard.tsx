@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { Presse } from './Presse';
 import { ThemePalette, Radius, Spacing, Type, cardShadow, OPACITE_PRESSION } from '../constants/theme';
 import { WeightChart } from './WeightChart';
 import { GoalTarget } from '../lib/types';
@@ -45,7 +46,7 @@ export function WeightSummaryCard({
   const poids = profileWeightKg;
 
   return (
-    <TouchableOpacity ref={tourRef} activeOpacity={OPACITE_PRESSION} onPress={onPress} style={[s.card, cardShadow(t)]}>
+    <Presse ref={tourRef} activeOpacity={OPACITE_PRESSION} onPress={onPress} style={[s.card, cardShadow(t)]}>
       <View style={s.head}>
         <View style={{ flex: 1 }}>
           <Text style={s.label}>SUIVI DU POIDS</Text>
@@ -73,7 +74,7 @@ export function WeightSummaryCard({
             : 'Note ta première pesée : Kyroz recale calories, macros et plan à chaque fois.'}
         </Text>
       )}
-    </TouchableOpacity>
+    </Presse>
   );
 }
 

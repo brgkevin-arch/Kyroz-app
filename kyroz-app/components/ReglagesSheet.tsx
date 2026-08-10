@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking } from 'react-native';
+import { Presse } from './Presse';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
@@ -192,7 +193,7 @@ export function ReglagesSheet({
             const on = accentId === id;
             const couleur = ACCENTS[id][t.scheme];
             return (
-              <TouchableOpacity
+              <Presse
                 key={id}
                 onPress={() => setAccentId(id)}
                 activeOpacity={OPACITE_PRESSION}
@@ -203,7 +204,7 @@ export function ReglagesSheet({
               >
                 {/* La coche se calcule elle aussi : noir ou blanc selon la pastille. */}
                 {on && <Ionicons name="checkmark" size={Icone.standard} color={readableOn(couleur)} />}
-              </TouchableOpacity>
+              </Presse>
             );
           })}
         </View>
@@ -284,12 +285,12 @@ export function ReglagesSheet({
           <MenuRow t={t} label="Version" value={version} onPress={() => {}} readonly last />
         </View>
 
-        <TouchableOpacity style={s.deco} onPress={onLogout} activeOpacity={OPACITE_PRESSION}>
+        <Presse style={s.deco} onPress={onLogout} activeOpacity={OPACITE_PRESSION}>
           <Text style={s.decoTxt}>Se déconnecter</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={s.suppr} onPress={onDelete} activeOpacity={OPACITE_PRESSION}>
+        </Presse>
+        <Presse style={s.suppr} onPress={onDelete} activeOpacity={OPACITE_PRESSION}>
           <Text style={s.supprTxt}>Supprimer mon compte</Text>
-        </TouchableOpacity>
+        </Presse>
 
         {/* §6 impose le disclaimer « à l'onboarding, AUX PARAMÈTRES, et sur chaque
             plan généré ». Cette feuille EST les paramètres : la règle est tenue

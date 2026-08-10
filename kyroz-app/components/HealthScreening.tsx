@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { Presse } from './Presse';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
@@ -104,9 +105,9 @@ export default function HealthScreening({ onPass }: { onPass: () => void }) {
         </ScrollView>
         <View style={[s.footer, layout.header]}>
           <PrimaryButton t={t} label="Se déconnecter" onPress={logout} loading={busy} />
-          <TouchableOpacity onPress={() => setShowBlock(false)} style={s.linkBtn} disabled={busy}>
+          <Presse onPress={() => setShowBlock(false)} style={s.linkBtn} disabled={busy}>
             <Text style={s.linkTxt}>Revenir aux questions</Text>
-          </TouchableOpacity>
+          </Presse>
         </View>
       </SafeAreaView>
     );
@@ -153,14 +154,14 @@ export default function HealthScreening({ onPass }: { onPass: () => void }) {
           // et cherchent le bouton avant de lire les questions.
           <Text style={s.pending}>Réponds aux deux questions pour continuer.</Text>
         ) : (
-          <TouchableOpacity style={s.attest} onPress={() => setAttested((a) => !a)} activeOpacity={OPACITE_PRESSION}>
+          <Presse style={s.attest} onPress={() => setAttested((a) => !a)} activeOpacity={OPACITE_PRESSION}>
             <View style={[s.check, { borderColor: attested ? t.accent : t.lineStrong, backgroundColor: attested ? t.accent : 'transparent' }]}>
               {attested && <Ionicons name="checkmark" size={Icone.petite} color={t.onAccent} />}
             </View>
             <Text style={s.attestTxt}>
               Je confirme être un adulte en bonne santé et n'être concerné·e par aucune de ces situations.
             </Text>
-          </TouchableOpacity>
+          </Presse>
         )}
       </ScrollView>
 

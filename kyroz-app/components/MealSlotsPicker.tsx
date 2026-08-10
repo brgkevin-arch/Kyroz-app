@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
+import { Presse } from './Presse';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemePalette, Radius, Type, Spacing, Trait, Icone, CIBLE_TACTILE_MIN, OPACITE_PRESSION } from '../constants/theme';
 import { Field, Segmented, PrimaryButton } from './ui';
@@ -71,7 +72,7 @@ export function MealSlotsPicker({
               borderWidth: Trait.controle, borderColor: on ? t.accent : 'transparent',
             }}
           >
-            <TouchableOpacity
+            <Presse
               activeOpacity={OPACITE_PRESSION}
               onPress={() => onToggle(slot.id)}
               style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: Spacing.md, minHeight: CIBLE_TACTILE_MIN }}
@@ -97,16 +98,16 @@ export function MealSlotsPicker({
               }}>
                 {on && <Ionicons name="checkmark" size={Icone.petite} color={t.onAccent} />}
               </View>
-            </TouchableOpacity>
+            </Presse>
             {perso && (
-              <TouchableOpacity
+              <Presse
                 activeOpacity={OPACITE_PRESSION}
                 onPress={() => setDraft(slot)}
                 hitSlop={Spacing.sm}
                 style={{ minHeight: CIBLE_TACTILE_MIN, justifyContent: 'center' }}
               >
                 <Text style={{ ...Type.captionStrong, color: t.accent }}>Modifier</Text>
-              </TouchableOpacity>
+              </Presse>
             )}
           </View>
         );
@@ -122,7 +123,7 @@ export function MealSlotsPicker({
           onDelete={() => { onDeleteSlot(draft.id); setDraft(null); }}
         />
       ) : (
-        <TouchableOpacity
+        <Presse
           activeOpacity={OPACITE_PRESSION}
           onPress={ouvrirNeuf}
           disabled={plein}
@@ -134,7 +135,7 @@ export function MealSlotsPicker({
         >
           <Ionicons name="add" size={Icone.standard} color={plein ? t.textTertiary : t.text} />
           <Text style={{ ...Type.bodyStrong, color: plein ? t.textTertiary : t.text }}>Ajouter un repas</Text>
-        </TouchableOpacity>
+        </Presse>
       )}
 
       {plein && !draft && (
@@ -221,15 +222,15 @@ function SlotForm({
       )}
       <PrimaryButton t={t} label="Enregistrer ce repas" onPress={enregistrer} muted={!valide} />
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-        <TouchableOpacity activeOpacity={OPACITE_PRESSION} onPress={onCancel} hitSlop={Spacing.sm}
+        <Presse activeOpacity={OPACITE_PRESSION} onPress={onCancel} hitSlop={Spacing.sm}
           style={{ minHeight: CIBLE_TACTILE_MIN, justifyContent: 'center' }}>
           <Text style={{ ...Type.captionStrong, color: t.textSecondary }}>Annuler</Text>
-        </TouchableOpacity>
+        </Presse>
         {existant && (
-          <TouchableOpacity activeOpacity={OPACITE_PRESSION} onPress={onDelete} hitSlop={Spacing.sm}
+          <Presse activeOpacity={OPACITE_PRESSION} onPress={onDelete} hitSlop={Spacing.sm}
             style={{ minHeight: CIBLE_TACTILE_MIN, justifyContent: 'center' }}>
             <Text style={{ ...Type.captionStrong, color: t.danger }}>Supprimer</Text>
-          </TouchableOpacity>
+          </Presse>
         )}
       </View>
     </View>

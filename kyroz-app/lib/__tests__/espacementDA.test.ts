@@ -104,7 +104,16 @@ describe('Espacement — le blanc est un token, pas un chiffre', () => {
       for (const f of fichiersTsx(join(RACINE, d))) {
         const src = readFileSync(f, 'utf8');
         const noms = new Set<string>();
-        for (const m of src.matchAll(/<(?:TouchableOpacity|Pressable|TouchableHighlight)\b[\s\S]{0,400}?>/g)) {
+        // 🔴 `Presse` A ÉTÉ AJOUTÉ LE 2026-08-10, ET SON ABSENCE A RENDU CE TEST
+        // AVEUGLE PENDANT LA MIGRATION. Les 129 `TouchableOpacity` sont devenus
+        // 129 `<Presse>` (le pressable qui s'enfonce sous le doigt) : cette liste
+        // ne reconnaissait plus AUCUN élément pressable de l'app, et le test est
+        // resté **vert** — il ne mesurait plus rien du tout.
+        // ➡️ Un garde-fou nommé d'après une IMPLÉMENTATION meurt le jour où on
+        // change d'implémentation, et il meurt en silence, dans le sens
+        // rassurant. Tout composant pressable ajouté à l'app doit être ajouté
+        // ici le même jour.
+        for (const m of src.matchAll(/<(?:TouchableOpacity|Pressable|TouchableHighlight|Presse)\b[\s\S]{0,400}?>/g)) {
           for (const st of m[0].matchAll(/\b[a-zA-Z]\.([a-zA-Z][a-zA-Z0-9]*)/g)) noms.add(st[1]);
           const inline = m[0].match(/style=\{\{([^}]*)\}\}/);
           if (!inline) continue;

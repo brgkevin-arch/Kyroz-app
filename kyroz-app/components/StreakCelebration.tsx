@@ -1,5 +1,7 @@
 import React, { useEffect, useRef } from 'react';
-import { Modal, View, Text, StyleSheet, Animated, Pressable } from 'react-native';
+import { Modal, View, Text, StyleSheet, Animated, Pressable, Easing } from 'react-native';
+import { RESSORT, DUREE, ressortRN, ressortReduit, dureeReduite } from '../lib/motion';
+import { reduceMotionActif } from '../lib/reduceMotion';
 import { useTheme, Radius, Spacing, Type, Trait, Fond } from '../constants/theme';
 import { PrimaryButton } from './ui';
 import { celebrationCopy } from '../lib/streak';
@@ -32,9 +34,19 @@ export function StreakCelebration({ milestone, onClose }: Props) {
     if (visible) {
       scale.setValue(0.8);
       opacity.setValue(0);
+      const reduire = reduceMotionActif();
       Animated.parallel([
-        Animated.spring(scale, { toValue: 1, useNativeDriver: true, bounciness: 9, speed: 12 }),
-        Animated.timing(opacity, { toValue: 1, duration: 220, useNativeDriver: true }),
+        Animated.spring(scale, {
+          toValue: 1,
+          useNativeDriver: true,
+          ...ressortRN(ressortReduit(RESSORT.fete, reduire)),
+        }),
+        Animated.timing(opacity, {
+          toValue: 1,
+          duration: dureeReduite(DUREE.court, reduire),
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        }),
       ]).start();
     }
   }, [visible]);
@@ -43,7 +55,8 @@ export function StreakCelebration({ milestone, onClose }: Props) {
   const copy = celebrationCopy(milestone);
 
   return (
-    <Modal visible transparent animationType="fade" onRequestClose={onClose}>
+    // Double fondu retiré : la `Modal` fondait en plus de la carte.
+    <Modal visible transparent animationType="none" onRequestClose={onClose}>
       <View style={styles.root}>
         {/* Fond tapable pour fermer ; la carte au-dessus absorbe ses propres taps. */}
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />

@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform } from 'react-native';
+import { Presse } from '../components/Presse';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -157,9 +158,9 @@ export default function KyrozPlusScreen() {
     <SafeAreaView style={s.safe} edges={['top']}>
       <StatusBar style={t.scheme === 'dark' ? 'light' : 'dark'} />
       <View style={[s.header, layout.header]}>
-        <TouchableOpacity onPress={() => router.back()} hitSlop={10} activeOpacity={OPACITE_PRESSION}>
+        <Presse onPress={() => router.back()} hitSlop={10} activeOpacity={OPACITE_PRESSION}>
           <Ionicons name="chevron-back" size={Icone.nav} color={t.text} />
-        </TouchableOpacity>
+        </Presse>
         <Text style={s.headerTitle}>Kyroz+</Text>
       </View>
 
@@ -229,7 +230,7 @@ export default function KyrozPlusScreen() {
                   onPress={acheter}
                   disabled={!encaissable || enCours}
                 />
-                <TouchableOpacity
+                <Presse
                   onPress={restaurer}
                   activeOpacity={OPACITE_PRESSION}
                   disabled={!encaissable || enCours}
@@ -237,7 +238,7 @@ export default function KyrozPlusScreen() {
                   <Text style={[s.lienSecondaire, (!encaissable || enCours) && { opacity: 0.5 }]}>
                     Restaurer mes achats
                   </Text>
-                </TouchableOpacity>
+                </Presse>
                 {!encaissable && (
                   <Text style={s.mentions}>
                     L'abonnement n'est pas encore ouvert sur cette version de l'app. Tes trois
@@ -262,9 +263,9 @@ export default function KyrozPlusScreen() {
           </View>
         )}
 
-        <TouchableOpacity onPress={() => router.push('/legal')} activeOpacity={OPACITE_PRESSION} style={{ marginTop: Spacing.xxl }}>
+        <Presse onPress={() => router.push('/legal')} activeOpacity={OPACITE_PRESSION} style={{ marginTop: Spacing.xxl }}>
           <Text style={s.lienSecondaire}>Conditions d'utilisation · Confidentialité</Text>
-        </TouchableOpacity>
+        </Presse>
 
         <Text style={s.disclaimer}>{DISCLAIMER}</Text>
       </ScrollView>

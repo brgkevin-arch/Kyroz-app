@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { Presse } from './Presse';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme, ThemePalette, Radius, Spacing, Type, cardShadow, CIBLE_TACTILE_MIN, Trait, Icone, OPACITE_PRESSION } from '../constants/theme';
 import { useLayout } from '../constants/layout';
@@ -84,21 +85,21 @@ export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adapted
           </View>
           <View style={s.headerBtns}>
             {onEdit && (
-              <TouchableOpacity onPress={onEdit} style={s.close}>
+              <Presse onPress={onEdit} style={s.close}>
                 <Ionicons name="create-outline" size={Icone.standard} color={t.textSecondary} />
-              </TouchableOpacity>
+              </Presse>
             )}
-            <TouchableOpacity onPress={() => toggle(recipe.id)} style={s.close} accessibilityLabel="J'aime cette recette">
+            <Presse onPress={() => toggle(recipe.id)} style={s.close} accessibilityLabel="J'aime cette recette">
               <Ionicons name={fav ? 'heart' : 'heart-outline'} size={Icone.standard} color={fav ? t.text : t.textSecondary} />
-            </TouchableOpacity>
+            </Presse>
             {onDislike && (
-              <TouchableOpacity onPress={onDislike} style={s.close} accessibilityLabel="Je n'aime pas — changer">
+              <Presse onPress={onDislike} style={s.close} accessibilityLabel="Je n'aime pas — changer">
                 <Ionicons name="thumbs-down-outline" size={Icone.petite} color={t.textSecondary} />
-              </TouchableOpacity>
+              </Presse>
             )}
-            <TouchableOpacity onPress={onClose} style={s.close}>
+            <Presse onPress={onClose} style={s.close}>
               <Ionicons name="close" size={Icone.standard} color={t.textSecondary} />
-            </TouchableOpacity>
+            </Presse>
           </View>
         </View>
 
@@ -177,9 +178,9 @@ export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adapted
               {status === 'eaten' ? '✓ Marqué comme mangé' : '⊘ Repas sauté — journée recalée'}
             </Text>
             {onResetStatus && (
-              <TouchableOpacity onPress={onResetStatus} hitSlop={8}>
+              <Presse onPress={onResetStatus} hitSlop={8}>
                 <Text style={s.statusUndo}>Annuler</Text>
-              </TouchableOpacity>
+              </Presse>
             )}
           </View>
         )}
@@ -188,10 +189,10 @@ export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adapted
           <View style={{ marginTop: Spacing.xxl, gap: Spacing.md }}>
             {onSwap && (
               <>
-                <TouchableOpacity onPress={onSwap} activeOpacity={OPACITE_PRESSION} style={s.swapBtn}>
+                <Presse onPress={onSwap} activeOpacity={OPACITE_PRESSION} style={s.swapBtn}>
                   <Ionicons name="swap-horizontal" size={Icone.standard} color={t.text} />
                   <Text style={s.swapTxt}>Remplacer ce repas</Text>
-                </TouchableOpacity>
+                </Presse>
                 {/* Disclaimer assumé, pas un aveu de bug : un remplacement n'est pas
                     mémorisé (rien ne le distingue d'un repas proposé), donc une
                     régénération peut ramener le plat écarté. On le DIT, et on donne
@@ -202,10 +203,10 @@ export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adapted
               </>
             )}
             {onSkip && (
-              <TouchableOpacity onPress={onSkip} activeOpacity={OPACITE_PRESSION} style={s.swapBtn}>
+              <Presse onPress={onSkip} activeOpacity={OPACITE_PRESSION} style={s.swapBtn}>
                 <Ionicons name="close-circle-outline" size={Icone.standard} color={t.text} />
                 <Text style={s.swapTxt}>Je l'ai sauté</Text>
-              </TouchableOpacity>
+              </Presse>
             )}
             {onCook && <PrimaryButton t={t} label="J'ai mangé — retirer du frigo" onPress={onCook} />}
           </View>
