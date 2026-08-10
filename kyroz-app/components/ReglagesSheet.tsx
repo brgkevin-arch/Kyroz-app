@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
@@ -16,7 +16,8 @@ import { ReminderTime, formatReminderTime, DEFAULT_REMINDER_TIME } from '../lib/
 import { remindersSupported } from '../lib/notifications';
 import { useDialog } from './Dialog';
 import { TOURS } from '../lib/tours';
-import { SUPPORT_EMAIL } from '../lib/feedback';
+import { SUPPORT_EMAIL, lienSuppressionStats } from '../lib/feedback';
+import { pseudonymeExistant } from '../lib/analytics';
 import { DISCLAIMER } from '../constants/legal';
 import { CIQUAL_ATTRIBUTION } from '../lib/foods';
 
@@ -80,6 +81,24 @@ export function ReglagesSheet({
   const [hydrationOn, setHydrationOn] = useHydrationEnabled();
   const { consent: analyticsConsent, choose: chooseConsent } = useAnalyticsConsent();
   const s = React.useMemo(() => makeStyles(t), [t]);
+
+  // Identifiant pseudonyme, s'il en existe un. `pseudonymeExistant` ne le CRÉE pas :
+  // ouvrir ses réglages ne doit pas fabriquer l'identifiant qu'on n'avait pas.
+  const [pseudonyme, setPseudonyme] = React.useState<string | null>(null);
+  React.useEffect(() => { pseudonymeExistant().then(setPseudonyme); }, []);
+
+  const demanderSuppressionStats = async () => {
+    if (!pseudonyme) return;
+    const url = lienSuppressionStats(pseudonyme);
+    const ok = await Linking.canOpenURL(url).catch(() => false);
+    if (!ok) {
+      // Même repli que l'écran « Donner mon avis » : sans client mail configuré,
+      // `openURL` échouerait en silence et le bouton passerait pour mort.
+      notify({ title: 'Aucune application e-mail', message: `Écris-nous à ${SUPPORT_EMAIL} en précisant ton identifiant : ${pseudonyme}` });
+      return;
+    }
+    Linking.openURL(url);
+  };
 
   // 🔴 ON FERME LA FEUILLE AVANT DE NAVIGUER, et ce n'est pas cosmétique. Une route
   // poussée depuis l'intérieur d'une `Modal` ouverte naît SOUS elle : l'utilisateur
@@ -223,13 +242,26 @@ export function ReglagesSheet({
           onChange={(v) => chooseConsent(v === 'on' ? 'granted' : 'denied')}
           options={[{ label: 'Partagées', value: 'on' }, { label: 'Non', value: 'off' }]}
         />
+        {/* ⚠️ « PSEUDONYME », PAS « ANONYME » — cette ligne disait « anonymes » et c'était
+            faux par construction : l'identifiant est stable, donc les mesures d'un même
+            téléphone se regroupent, et c'est précisément ce qui rend possible la
+            suppression proposée juste en dessous. Une donnée supprimable par individu
+            n'est pas anonyme ; promettre les deux, c'est se contredire dans le même
+            écran. Le vocabulaire fait partie de la promesse (synthèse §3.3). */}
         <Text style={s.aide}>
           {analyticsConsent === 'granted'
-            ? 'Tu partages des stats d’usage anonymes (jamais ton nom ni tes données perso) pour aider à améliorer Kyroz.'
+            ? 'Tu partages comment tu utilises l’app — écrans ouverts, repas cochés, erreurs. Jamais tes données de santé, ton prénom ni ton e-mail. C’est rattaché à un identifiant pseudonyme tiré sur cet appareil, hébergé dans l’UE, conservé 18 mois.'
             : 'Aucune statistique d’usage n’est partagée.'}
         </Text>
 
         <View style={s.menu}>
+          {/* La ligne n'apparaît QUE si un identifiant existe, c'est-à-dire seulement
+              si quelque chose a pu partir. Proposer d'effacer un néant serait une
+              fausse réassurance ; et la faire dépendre du consentement COURANT la
+              retirerait pile à qui vient de le retirer — le cas où elle sert le plus. */}
+          {pseudonyme && (
+            <MenuRow t={t} label="Supprimer mes statistiques" value="Demande par e-mail (RGPD)" onPress={demanderSuppressionStats} />
+          )}
           <MenuRow t={t} label="Exporter mes données" value="Télécharger tout (RGPD)" onPress={onExport} />
           <MenuRow t={t} label="Confidentialité & CGU" value="RGPD, données de santé" onPress={() => versRoute('/legal')} last />
         </View>

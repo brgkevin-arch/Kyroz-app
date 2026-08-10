@@ -25,7 +25,6 @@ import { DislikeSheet } from '../../components/DislikeSheet';
 import { ActionSheet } from '../../components/ActionSheet';
 import { PrimaryButton, SectionLabel } from '../../components/ui';
 import { HydrationBar, useHydrationEnabled } from '../../components/HydrationBar';
-import { AnalyticsConsentBanner } from '../../components/AnalyticsConsentBanner';
 import { DatedGoalCard } from '../../components/DatedGoalCard';
 import { useTourTarget, useScreenTour, TourButton } from '../../components/GuidedTour';
 import { planTour } from '../../lib/tours';
@@ -50,6 +49,20 @@ import { DayExtra, Macros, Meal, MealPlan, MealStatus, Recipe } from '../../lib/
 const PLAN_KEY = '@kyroz:plan';
 const LIST_KEY = '@kyroz:shopping';
 const SEED_KEY = '@kyroz:planSeed';
+
+/**
+ * Ce qui a DÉCLENCHÉ une régénération (propriété de `plan_regenerated`, D4).
+ * Beaucoup de `profil_modifie` = les réglages ne collent pas ; beaucoup de `manuel`
+ * = le plan servi ne convient pas. Deux diagnostics opposés que le compte seul
+ * confondrait.
+ *
+ * ⚠️ La synthèse du 2026-08-10 proposait un troisième motif, `recalage`. Il ne
+ * correspond à AUCUN chemin du code : « recaler ma journée » rééquilibre les repas
+ * restants (`applyAdapt` → `rebalanceDay`) et ne régénère jamais le plan. Le poser
+ * aurait créé une valeur qui ne sort jamais — donc un zéro qu'on aurait fini par
+ * lire comme « personne ne recale », alors que `off_plan_logged` le mesure déjà.
+ */
+type PlanOrigine = 'profil_modifie' | 'manuel';
 // Drapeau posé par Profil (« Régénérer mon plan ») → l'écran Plan rejoue une
 // génération « reroll » au prochain focus. Découple les deux écrans sans prop.
 const REROLL_KEY = '@kyroz:planReroll';
@@ -211,7 +224,7 @@ export default function PlanScreen() {
     const sig = profileSignature(profile);
     if (plan.profile_sig === sig || syncedSig.current === sig) return;
     syncedSig.current = sig;
-    generate();
+    generate(false, 'profil_modifie');
   }, [profile, plan, generating]);
 
   // On ouvre le plan sur AUJOURD'HUI s'il fait partie des jours du plan, sinon
@@ -297,9 +310,13 @@ export default function PlanScreen() {
   // 0,00 → 0,11 % des repas, aucun créneau monopolisé — et fait GAGNER sur la variété
   // (semaines avec quasi-doublon 26,7 % au canonique contre 20,7 % au régénéré).
   // Un nouvel utilisateur n'a pas de seed enregistré → 0 → plan canonique, inchangé.
-  const generate = async (reroll = false) => {
+  const generate = async (reroll = false, origine: PlanOrigine = 'manuel') => {
     if (!profile) return;
     setGenerating(true);
+    // D6 : l'étape en cours, pour que `plan_generation_failed` dise OÙ ça a cassé.
+    // Sans elle, D4 est ininterprétable — un plan qui n'est pas suivi parce qu'il n'a
+    // jamais réussi à se générer se lit exactement comme un désintérêt.
+    let etape: 'seed' | 'moteur' | 'persistance' = 'seed';
     try {
       const seed = nextPlanSeed(await AsyncStorage.getItem(SEED_KEY), reroll);
       await AsyncStorage.setItem(SEED_KEY, String(seed));
@@ -320,19 +337,39 @@ export default function PlanScreen() {
       // par `resetTracking` (effet dédié plus haut).
       const ancienRaw = await AsyncStorage.getItem(PLAN_KEY);
       const ancien = ancienRaw ? (JSON.parse(ancienRaw) as MealPlan) : null;
+      etape = 'moteur';
+      // ⏱ D5 — ON CHRONOMÈTRE LE MOTEUR, PAS LA PAUSE DE 600 ms CI-DESSUS, et c'est
+      // le cœur de la mesure. Les additionner rendrait ~608 ms à chaque fois : une
+      // régression du moteur (8 → 80 ms, dix fois pire) se lirait 608 → 680, noyée
+      // dans une constante qu'on a choisie nous-mêmes. On ne mesure que ce qu'on ne
+      // connaît pas — le temps du moteur sur un vrai téléphone.
+      const t0 = Date.now();
       const p = carryTracking(profile, ancien, buildLocalPlan(profile, seed));
+      const dureeMoteurMs = Date.now() - t0;
+      etape = 'persistance';
       await AsyncStorage.setItem(PLAN_KEY, JSON.stringify(p));
       await AsyncStorage.removeItem(LIST_KEY);
+      // Une REgénération suppose qu'un plan existait déjà : sinon c'est la première,
+      // et `first_plan_viewed` la porte. Compter les deux gonflerait le compteur de
+      // régénérations d'exactement une par installation.
+      if (ancien) capture(Events.planRegenerated, { origine });
       // Reveal J1 : seulement à la 1re génération (pas un reroll) et jamais revu.
       // setShowReveal AVANT setPlan → le tour guidé ne s'arme pas tant que le
       // reveal est ouvert (cf. effet du tour).
       if (!reroll && !(await AsyncStorage.getItem(FIRST_PLAN_KEY))) {
         await AsyncStorage.setItem(FIRST_PLAN_KEY, '1');
         setShowReveal(true);
-        capture(Events.firstPlanViewed);
+        capture(Events.firstPlanViewed, { duree_generation_ms: dureeMoteurMs });
       }
       setPlan(p);
       await markActiveToday();
+    } catch (e) {
+      // On CAPTURE puis on relance : le comportement d'avant est inchangé (rien
+      // n'attrapait ici, la frontière d'erreur globale reste seule maîtresse).
+      // Avaler l'exception pour « faire propre » masquerait le défaut au lieu de le
+      // mesurer — et §4 exige un fallback, pas un silence.
+      capture(Events.planGenerationFailed, { etape });
+      throw e;
     } finally { setGenerating(false); }
   };
 
@@ -431,6 +468,12 @@ export default function PlanScreen() {
     // Ce que le recalage REPREND est la seule chose que l'historique a besoin de
     // retenir : sans elle, il ne resterait qu'une liste de dérapages.
     await resolveOffPlan(selectedDay, opt.absorbedKcal);
+    // D4 : l'écart part au moment de la DÉCISION, pas à `logOffPlan` — c'est le
+    // « oui / non » qui porte l'information, et il n'existe pas encore quand l'écart
+    // est enregistré. ⚠️ Aucun kcal n'accompagne l'event : combien quelqu'un a mangé
+    // hors plan est un comportement alimentaire, donc §6 (« aucun texte libre, aucune
+    // donnée de santé ») — le libellé de l'écart encore moins.
+    capture(Events.offPlanLogged, { recale: true });
     setAdaptPrompt(null);
     toast('Journée réadaptée');
   };
@@ -438,6 +481,7 @@ export default function PlanScreen() {
   const declineAdapt = async () => {
     setAdaptPrompt(null);
     toast('Ok, on garde ton plan');
+    capture(Events.offPlanLogged, { recale: false });
     await resolveOffPlan(selectedDay, 0); // 0 = journée gardée telle quelle
   };
 
@@ -607,8 +651,13 @@ export default function PlanScreen() {
             bandeau complet vit toujours dans le Profil (variant="card") — le
             composant n'est donc pas mort, il n'a plus sa place ICI. */}
 
-        {/* Consentement analytics (RGPD) — prompt une fois, post-onboarding */}
-        <AnalyticsConsentBanner />
+        {/* ⚠️ La carte de consentement analytics a été RETIRÉE d'ici le 2026-08-10
+            (décision fondateur : « ça gâche la page principale de l'app »). Elle est
+            devenue un écran à part entière, posé AVANT l'assistant d'onboarding —
+            `components/AnalyticsConsentStep.tsx`, monté par `(auth)/onboarding.tsx`.
+            🔴 Ne pas la « remettre au cas où » : le consentement demandé APRÈS le
+            premier plan supprimerait la mesure du tunnel d'entrée, définitivement,
+            faute de tampon local. Le raisonnement complet est dans le composant. */}
 
         {/* Check-in poids hebdo : ramène l'utilisateur + garde le plan juste dans le temps */}
         {weighInDue && (
@@ -638,7 +687,7 @@ export default function PlanScreen() {
           <>
             {/* Plan désynchronisé du profil → mise à jour en 1 tap */}
             {planStale && !generating && (
-              <TouchableOpacity style={s.banner} onPress={() => generate()} activeOpacity={OPACITE_PRESSION} disabled={generating}>
+              <TouchableOpacity style={s.banner} onPress={() => generate(false, 'profil_modifie')} activeOpacity={OPACITE_PRESSION} disabled={generating}>
                 <Text style={s.bannerTxt}>
                   Ton plan ({plan.days} j) ne correspond plus à tes réglages ({clampDays(intendedDays)} j).
                 </Text>

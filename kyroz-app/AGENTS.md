@@ -3579,6 +3579,74 @@ produit en suspens — il ne reste qu'à coder.
 
 ### 🧹 E — Dette technique
 
+- ~~**E26 · Le consentement analytics gâchait l'écran d'arrivée, et mesurait des données de santé**~~ ✅ **LIVRÉ le 2026-08-10.**
+  *Décision fondateur : « enlever ce popup au-dessus du plan alimentaire […] le mettre
+  autre part, mieux expliqué et à un meilleur moment ».*
+  ⚠️ *Numéro pris sur une branche : le vérifier contre `main` au moment de fusionner.*
+
+  **Deux défauts, pas un.** La PLACE (une carte de consentement en tête de l'écran Plan,
+  la première chose vue à l'arrivée) et le MOMENT (juste après le premier plan, pile sur
+  l'instant que tout l'onboarding sert à préparer). Un troisième, trouvé en chemin, était
+  plus grave que les deux : `onboarding_completed` envoyait `goal`, `restrictions` et
+  `has_sport` — **objectif, régime et pratique sportive, trois données de santé (art. 9)**,
+  depuis le tout premier commit du fichier. **Défaut DORMANT** : sans clé PostHog rien ne
+  partait, donc rien ne se voyait. Il se serait allumé le jour de la pose de la clé.
+
+  **Ce qui est livré** — `components/AnalyticsConsentStep.tsx`, un écran plein posé
+  **AVANT l'assistant** (après le dépistage santé, avant l'étape 1), qui dit ce qui est
+  mesuré et ce qui ne l'est jamais, avec deux boutons de MÊME taille. L'écran Plan n'est
+  plus touché. Les events passent de 7 à **13**, tous porteurs de `jour_depuis_install`.
+
+  🔴 **LE MOMENT EST STRUCTURANT, PAS COSMÉTIQUE.** `capture()` ne garde RIEN avant la
+  réponse et le tampon local a été écarté (§3.2 de la synthèse). Tout ce qui précède le
+  consentement est donc perdu **pour tout le monde, définitivement**. Demander après le
+  premier plan aurait supprimé d'un coup la décision D1 (« où l'inscription
+  décroche-t-elle ? ») — or un décrochage d'onboarding est justement le seul signal
+  lisible à 40 utilisateurs, là où la rétention demande des mois.
+  ➡️ **Déplacer cet écran plus tard, c'est supprimer D1. Pas la dégrader : la supprimer.**
+
+  ⚠️ **La synthèse d'arbitrage se CONTREDIT sur `onboarding_blocked`**, et c'est §6 qui
+  gagne : son §5 proposait `motif: age | volume | autre`, son §6 interdit « tout motif de
+  blocage lié à » l'âge, au sport ou à l'IMC. L'event part donc **sans aucune propriété** —
+  le compte seul répond à la question posée, et le pourquoi ne changerait aucune décision
+  (ces garde-fous ne sont pas négociables). Même famille : `origine: recalage` proposé pour
+  `plan_regenerated` ne correspond à **aucun chemin du code** (recaler sa journée
+  rééquilibre les repas, ça ne régénère pas) — il aurait créé un zéro qu'on aurait fini par
+  lire comme « personne ne recale ».
+
+  ⚠️ **`duree_generation_ms` chronomètre LE MOTEUR, pas la pause de transition de 600 ms.**
+  Les additionner rendrait ~608 ms à chaque fois : une régression du moteur (8 → 80 ms) se
+  lirait 608 → 680, noyée dans une constante qu'on a choisie nous-mêmes. Mesuré à l'écran :
+  **25 ms**.
+
+  ➡️ **Garde-fou : `lib/__tests__/analyticsPerimetre.test.ts`**, vérifié par **4 mutations**
+  (remettre `goal` · lire `profile.` sous un nom innocent · ajouter un 14ᵉ event · écrire un
+  nom d'event à la main). Il compte les noms de propriétés interdits, interdit toute lecture
+  de `profile.` dans un bloc d'event, fige la liste des 13, et vérifie que tout event envoyé
+  existe dans `Events`. Sans lui, ces règles restaient un paragraphe de .md — et c'est
+  exactement comme ça que `goal` a survécu si longtemps.
+
+  🟡 **RESTE À FAIRE, et ça part avec la clé PostHog, pas avant** (§8 de la synthèse : aucun
+  état intermédiaire où le code ment). Aujourd'hui les textes disent vrai — rien n'est
+  envoyé ; ils ne mentiront qu'une fois la clé posée :
+  - [ ] `constants/legal.ts` §5 — « aucun outil d'analyse tiers » devient faux
+  - [ ] `public/legal.html` — le miroir statique, à la main
+  - [ ] `RGPD-REGISTRE.md` — PostHog en **sous-traitant** à côté de Supabase, + les 18 mois
+  - [ ] côté PostHog : **couper la collecte d'IP** (le client n'envoie rien pour ça, donc le
+        défaut serveur s'applique — géolocalisation comprise), rétention à 18 mois, DPA signé
+  - [x] les **seuils** du §10 — ÉCRITS le 2026-08-10 : D1 une étape qui perd > 20 % (4 sem.,
+        ≥ 50 entrées) · D2 médiane < 4 jours actifs sur 14 après 3 cohortes · D4 **−8 points
+        entre deux cohortes** · D6 ≥ 3 échecs en 7 j, ou ≥ 1 % passé 500 générations/sem.
+        ⚠️ **D4 est une TENDANCE et pas un absolu, et c'est un correctif** : la première
+        version proposait « ratio sous 25 % », ce que le §5 du même document interdit —
+        `meal_cooked` mesure un TAP, donc un ratio absolu bas peut décrire un produit qui
+        marche avec des gens qui ne cochent pas. ⚠️ D2 nomme sa définition (`plan_opened`)
+        parce que le §4.2 en laisse deux ouvertes — et **l'écart entre les deux est
+        justement la donnée qui tranchera §4.2**.
+
+  📄 `docs/2026-08-10-brief-analytics-perimetre.md` (le brief) et
+  `docs/2026-08-10-synthese-analytics-arbitrage.md` (l'arbitrage qui fait foi).
+
 - ~~**E25 · Le Profil était une section fourre-tout**~~ ✅ **LIVRÉ le 2026-08-10.**
   *Décision fondateur du 2026-08-09 : « j'aimerais que le profil soit qu'avec les
   préférences et données de l'user, suivi du poids etc, et avec une petite roue dentée
@@ -5024,6 +5092,7 @@ c'est une décision, pas un défaut).
 - **Fait (code)** : consentement explicite horodaté à l'inscription ; droit à l'effacement (compte + cascade + purge locale à la déconnexion ET suppression) ; **droit à la portabilité** (export JSON, `lib/exportData.ts`) ; **politique de confidentialité + CGU** (`constants/legal.ts` → écran in-app `/legal` + page statique 200 `public/legal.html` pour stores/partage, liés login + profil) ; isolation RLS (vérifiée en prod) ; aucun SDK de tracking (partage IA Supabase = Disabled) ; photos local-only. **Registre** : `kyroz-app/RGPD-REGISTRE.md`. Coordonnées : Kévin Berger, micro-entreprise, 2 rue du moulin 64570 Arette, `contact@kyroz.app`.
 - **Fait (fondateur, hors code) — 2026-06-15/16** : DPA Supabase signé (données de santé déclarées, rôle Controller) ; région UE confirmée (`eu-central-1` Frankfurt) ; 2FA activée ; e-mail unifié sur l'adresse publique unique `contact@kyroz.app` (+ perso `brgkevin@kyroz.app`), en cours de migration Cloudflare Email Routing → iCloud+ Domaine perso (2026-07-15).
 - ~~**Reste** : renseigner le SIREN~~ **FAIT 2026-07-16** : SIREN `106386162` (Luhn OK) renseigné dans `constants/legal.ts` (objet `LEGAL`), `public/legal.html` (miroir) et `RGPD-REGISTRE.md`. Reste : relecture juriste idéale (non bloquante). Cf. [[rgpd-placeholders-a-completer]].
+- **Analytics — arbitré le 2026-08-10** (E26, `docs/2026-08-10-synthese-analytics-arbitrage.md`) : consentement pour TOUT (l'exemption CNIL « mesure d'audience » est écartée, elle exige des stats anonymes) ; identifiant **pseudonyme et non anonyme** — c'est ce qui rend possible la suppression sur retrait, et les deux promesses ne peuvent pas tenir ensemble ; conservation **18 mois** ; jamais d'`identify`/`alias` vers l'id Supabase. ⚠️ Les métriques se lisent en **appareils**, jamais en personnes (réinstaller tire un nouvel identifiant) — le biais est structurel, il doit être nommé partout où un chiffre est cité. La relecture juriste porte désormais aussi sur : formulation de l'écran de consentement, qualification pseudonyme, 18 mois, suppression sur retrait.
 
 ## Setup & déploiement
 - Expo Router (file-based), SDK 56, TS strict. Lancer : `npm run web` (8081) / `npm run ios`. Tests : `npm test` (vitest). Preview agent : port **8090** (pas 8081, occupé par le fondateur).
