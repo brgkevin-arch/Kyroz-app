@@ -1,10 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Modal, View, StyleSheet, Animated, PanResponder, useWindowDimensions,
-  Pressable, Platform,
+  Pressable, Platform, Easing,
 } from 'react-native';
 import { useTheme, Radius, Spacing } from '../constants/theme';
 import { useLayout } from '../constants/layout';
+import {
+  RESSORT, DUREE, ressortRN, ressortReduit, dureeReduite,
+  vitesseDepuisPan, caoutchouc, decisionFeuille,
+} from '../lib/motion';
+import { useReduceMotion, reduceMotionActif } from '../lib/reduceMotion';
 
 interface Props {
   visible: boolean;
@@ -58,18 +63,76 @@ export function Sheet({ visible, onClose, children }: Props) {
   const visibleRef = useRef(visible);
   visibleRef.current = visible;
 
+  const reduire = useReduceMotion();
+
+  // 🔴 LA VITESSE DU DOIGT VOYAGEAIT JUSQU'ICI PUIS ÉTAIT JETÉE.
+  // `onPanResponderRelease` lisait `g.vy` pour décider *si* on ferme, appelait
+  // `onClose()`, et la sortie qui suivait durait 240 ms — les mêmes 240 ms qu'on
+  // ait effleuré la feuille ou qu'on l'ait balancée. C'était l'écart le plus
+  // visible avec iOS, où le mouvement HÉRITE de l'élan du geste.
+  // Cette ref est le seul chemin qui restait : `onClose` remonte au parent, qui
+  // repasse `visible: false`, et c'est CET effet qui anime. On y dépose donc la
+  // vitesse mesurée, en px/seconde, et on la consomme ici.
+  // ⚠️ Elle se REMET À ZÉRO après usage : une fermeture par le bouton « fermer »
+  // ou par le fond ne doit pas hériter de la vitesse d'un geste d'il y a dix
+  // minutes.
+  const vitesseSortie = useRef(0);
+
+  // 🔴 LE `PanResponder` EST CRÉÉ UNE SEULE FOIS (`useRef`), DONC TOUT CE QU'IL
+  // CAPTURE EST FIGÉ AU PREMIER RENDU. Deux valeurs le traversent désormais et
+  // changent en cours de vie : la hauteur de l'écran (rotation, Split View sur
+  // iPad — `Dimensions.get()` ment pour cette raison exacte, cf. §11) et le
+  // réglage « Réduire les animations », que l'utilisateur peut basculer sans
+  // quitter l'app. Les lire depuis une ref / depuis le store, jamais depuis la
+  // variable de rendu : sinon le geste travaille avec l'état du démarrage, et
+  // ça ne se voit sur aucune capture.
+  const screenHRef = useRef(screenH);
+  screenHRef.current = screenH;
+
   useEffect(() => {
     if (visible) {
+      // ⚠️ On ne repart du bas QUE si la feuille n'était pas déjà à l'écran.
+      // `ty.setValue(screenH)` inconditionnel était ce qui rendait l'ouverture
+      // NON INTERRUPTIBLE : rattraper une feuille en train de sortir la faisait
+      // d'abord sauter tout en bas. Un ressort part de la valeur COURANTE — c'est
+      // tout son intérêt, et c'est le principe n°1 du catalogue Apple.
+      if (!render) ty.setValue(screenH);
       setRender(true);
-      ty.setValue(screenH);
       Animated.parallel([
-        Animated.timing(ty, { toValue: 0, duration: 300, useNativeDriver: true }),
-        Animated.timing(backdrop, { toValue: 1, duration: 300, useNativeDriver: true }),
+        Animated.spring(ty, {
+          toValue: 0,
+          useNativeDriver: true,
+          ...ressortRN(ressortReduit(RESSORT.feuille, reduire)),
+        }),
+        // Le fond n'est pas saisissable au doigt : une durée y est légitime.
+        // `Easing.out` — une entrée démarre vite et ralentit en arrivant. Sans
+        // courbe déclarée, RN applique `easeInOut`, donc un départ LENT : c'est
+        // ce que faisaient les 12 `timing` du code d'avant.
+        Animated.timing(backdrop, {
+          toValue: 1,
+          duration: dureeReduite(DUREE.court, reduire),
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        }),
       ]).start();
     } else if (render) {
+      const v = vitesseSortie.current;
+      vitesseSortie.current = 0;
       Animated.parallel([
-        Animated.timing(ty, { toValue: screenH, duration: 240, useNativeDriver: true }),
-        Animated.timing(backdrop, { toValue: 0, duration: 240, useNativeDriver: true }),
+        Animated.spring(ty, {
+          toValue: screenH,
+          useNativeDriver: true,
+          // La vitesse du doigt devient la vitesse d'ENTRÉE du ressort : plus
+          // aucune couture entre le glissement et l'animation.
+          velocity: v,
+          ...ressortRN(ressortReduit(RESSORT.feuille, reduire)),
+        }),
+        Animated.timing(backdrop, {
+          toValue: 0,
+          duration: dureeReduite(DUREE.moyen, reduire),
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        }),
       ]).start(() => { if (!visibleRef.current) setRender(false); });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -106,12 +169,36 @@ export function Sheet({ visible, onClose, children }: Props) {
       // démontage insensible à l'interruption — les deux se valident seuls.
       onStartShouldSetPanResponder: () => visibleRef.current,
       onMoveShouldSetPanResponder: (_, g) => visibleRef.current && g.dy > 6 && Math.abs(g.dy) > Math.abs(g.dx),
-      onPanResponderMove: (_, g) => { if (g.dy > 0) ty.setValue(g.dy); },
+      // ⚠️ TIRER VERS LE HAUT NE FAISAIT RIEN — `if (g.dy > 0)` ignorait purement
+      // le geste. Une feuille morte au doigt se lit comme un écran FIGÉ : rien ne
+      // dit si on a atteint une limite ou si l'app a planté. Elle résiste
+      // désormais de plus en plus, ce qui dit « il n'y a rien de plus par là »
+      // sans un mot. La résistance s'échelonne sur la hauteur de l'écran.
+      onPanResponderMove: (_, g) => {
+        ty.setValue(g.dy > 0 ? g.dy : -caoutchouc(-g.dy, screenHRef.current));
+      },
       onPanResponderRelease: (_, g) => {
-        if (g.dy > 90 || g.vy > 0.4) {
+        // 🔴 LA DÉCISION SE PREND SUR LA PROJECTION, PAS SUR LA POSITION.
+        // Avant : `g.dy > 90 || g.vy > 0.4` — deux seuils indépendants, dont l'un
+        // ne lisait la vitesse que pour TRANCHER, après quoi elle était perdue.
+        // `decisionFeuille` projette d'abord où le geste atterrirait s'il
+        // décélérait tout seul (la fonction d'Apple, pas la formule scolaire),
+        // puis choisit la destination la plus proche de ce point.
+        // ⚠️ `vitesseDepuisPan` : `vy` est en px/MILLISECONDE et un ressort
+        // intègre en secondes. Oublier ce ×1000 est un facteur mille, donc un
+        // correctif qui a l'air de ne rien faire.
+        const v = vitesseDepuisPan(g.vy);
+        const hauteur = screenHRef.current * 0.94; // la feuille fait 94 % de l'écran
+        if (decisionFeuille(Math.max(0, g.dy), v, hauteur) === 'fermer') {
+          vitesseSortie.current = v;
           onClose();
         } else {
-          Animated.spring(ty, { toValue: 0, useNativeDriver: true, bounciness: 2 }).start();
+          Animated.spring(ty, {
+            toValue: 0,
+            useNativeDriver: true,
+            velocity: v,
+            ...ressortRN(ressortReduit(RESSORT.pose, reduceMotionActif())),
+          }).start();
         }
       },
       // ⚠️ Ces deux-là ne sont pas décoratifs — sans eux la feuille RESTE COINCÉE
@@ -124,7 +211,14 @@ export function Sheet({ visible, onClose, children }: Props) {
       // malgré tout (l'appel entrant, par exemple).
       onPanResponderTerminationRequest: () => false,
       onPanResponderTerminate: () => {
-        Animated.spring(ty, { toValue: 0, useNativeDriver: true, bounciness: 2 }).start();
+        // Geste repris par le système (appel entrant, scroll natif) : la feuille
+        // revient à sa place. Aucune vitesse à hériter — il n'y a pas eu de
+        // relâchement, donc rien à projeter.
+        Animated.spring(ty, {
+          toValue: 0,
+          useNativeDriver: true,
+          ...ressortRN(ressortReduit(RESSORT.pose, reduceMotionActif())),
+        }).start();
       },
     })
   ).current;
@@ -155,8 +249,18 @@ export function Sheet({ visible, onClose, children }: Props) {
     onScrollEndDrag: (e: any) => {
       dragging.current = false;
       const depasse = -e.nativeEvent.contentOffset.y;
+      // ℹ️ Ce chemin-ci n'a PAS de vitesse à hériter, et ce n'est pas un oubli :
+      // le geste appartient au `ScrollView` natif, qui ne la rend pas dans
+      // `onScrollEndDrag`. On garde donc le seuil de position, seule information
+      // disponible. C'est la raison pour laquelle `onScroll` suit le rebond
+      // élastique plutôt que de reprendre le geste — on lit ce que le système a
+      // déjà mesuré, on ne le lui reprend pas.
       if (depasse > SEUIL_FERMETURE) onClose();
-      else Animated.spring(ty, { toValue: 0, useNativeDriver: true, bounciness: 2 }).start();
+      else Animated.spring(ty, {
+        toValue: 0,
+        useNativeDriver: true,
+        ...ressortRN(ressortReduit(RESSORT.pose, reduceMotionActif())),
+      }).start();
     },
   };
 
