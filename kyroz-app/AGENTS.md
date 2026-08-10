@@ -76,7 +76,7 @@ qu'ils étaient périmés.
 |---|---|---|
 | Catalogue | **512 recettes** — 122 petits-déj · 280 repas complets · 110 collations | `npm run mesure:couverture` |
 | `ENGINE_VERSION` | **47** (invalide les plans en cache) — créneaux de repas LIBRES : l'ordre canonique de la journée devient CHRONOLOGIQUE (la collation de 16 h passe avant le dîner, elle était servie en dernier), donc le report de budget de repas en repas change d'ordre *(46 = le budget du jour suit la dépense RÉELLE du jour, `lib/dailyBudget.ts`)*. ⚠️ Cette ligne est restée à **45** pendant une journée entière après le bump : celui qui incrémente la constante est celui qui doit toucher cette case | `lib/planEngine.ts` |
-| `ENGINE_REV` | **7** (avertissement one-shot à l'utilisateur) — E26, **DEUX causes** : (a) les planchers dérivés de la masse maigre (BMR + énergie disponible) se retirent au-delà de 30 %/40 % de MG, le cap 25 % du TDEE prend le relais ; (b) `bulk` refermé sur `lean_bulk`. ⚠️ **Première révision à porter deux causes** → `EngineNotice.cause` existe pour que l'écran ne serve pas à l'une l'explication de l'autre *(6 = E23, la provenance du %MG décide de Katch ; 5 = A15, l'objectif daté hors de portée sert le rythme sûr MAXIMAL)* | `lib/tdee.ts` |
+| `ENGINE_REV` | **7** (avertissement one-shot à l'utilisateur) — E30, **DEUX causes** : (a) les planchers dérivés de la masse maigre (BMR + énergie disponible) se retirent au-delà de 30 %/40 % de MG, le cap 25 % du TDEE prend le relais ; (b) `bulk` refermé sur `lean_bulk`. ⚠️ **Première révision à porter deux causes** → `EngineNotice.cause` existe pour que l'écran ne serve pas à l'une l'explication de l'autre *(6 = E23, la provenance du %MG décide de Katch ; 5 = A15, l'objectif daté hors de portée sert le rythme sûr MAXIMAL)* | `lib/tdee.ts` |
 | Objectif daté | la date affichée est un **POINT FIXE** : l'adopter ne la déplace plus (3 corps sur 8 glissaient de +96 j avant A15) | `npm run mesure:objectif` |
 | Échéance de l'objectif daté | 🔴 **C'est une DATE, plus une durée** (A28, 2026-08-07, décision fondateur) : la rangée de 5 puces est **RETIRÉE**, on saisit jour/mois/année, et l'écran donne une **ESTIMATION** — « la première date que Kyroz peut tenir », + « Viser cette date » en un tap. Refus de la date passée et de l'au-delà de 5 ans (au-delà, le moteur creuse au MAXIMUM : −55 → −418 kcal/j sur `F 78 → 65`). ⚠️ L'estimation vient de la **marche 1 de `deadlineLadder`**, PAS de `status.projectedDate` — les deux diffèrent de **12 à 100 jours** et la seconde suppose une échéance qui expire. ⚠️ **`deadlineLadder` (A27) tourne donc toujours** : estimation + date pré-remplie (2ᵉ marche) — **ne pas le supprimer comme du code mort**. Ses invariants restent mesurés : **40/40 tenables**, **40/40 servant un plan distinct**, contre 10/40 et 14/40 avec les 5 durées figées d'avant A27 | `npm run mesure:objectif` |
 | Tests | **1 329 verts**, 79 fichiers · `tsc` propre — **mesuré sur `main` FUSIONNÉ (`25275fe`), après le merge de #69 (la refonte du Profil)**, le 2026-08-10. ⚠️ **Et cette case a redérivé DANS LA MÊME NUIT** : elle disait 1 318, mesuré sur #65 quand #66 n'était pas encore fusionnée. Quatrième dérive, toujours identique — la mesure d'une branche est vraie chez son auteur et périmée au merge suivant. ➡️ **La seule mesure qui vaille est celle de `main` fusionné, prise APRÈS le merge, pas celle de la PR qu'on est en train d'écrire.** *(Historique de la journée, pour le motif : 1 309 annoncé sur `main` alors qu'il valait 1 314 · #65 seule 1 318 · les deux fusionnées 1 320.)* *(Historique : le 2026-08-08, 1 309 sur `main` + la PR E21, 1 281 / 75 sur `main` seul.)* ⚠️ Sur `main` seul le compte est 1 281 / 75 : ce chiffre-ci vaut APRÈS fusion, et se re-mesure au merge comme toujours. `main` contient A28, les créneaux de repas, le tuto (#44) et les courses. ⚠️ `main` annonçait 1 241 et A28 ajoute 6 tests : la somme donnerait 1 247, la mesure rend **1 248**. Encore une fois — et c'est la deuxième en deux rebases — **ce compte se re-mesure après fusion, il ne s'additionne pas**. ✅ **Les DEUX emplacements sont alignés** (ici et la ligne « Tests » de « Data / thème / qualité ») : l'autre était resté à 1 241 pendant que celui-ci disait 1 248 — le défaut décrit là-bas, rejoué le lendemain de son écriture | `npm test && npx tsc --noEmit` |
@@ -3579,7 +3579,11 @@ produit en suspens — il ne reste qu'à coder.
 
 ### 🧹 E — Dette technique
 
-- ~~**E28 · Un objectif à douze mois ne renforçait rien pendant douze mois — les paliers**~~
+- ~~**E32 · Un objectif à douze mois ne renforçait rien pendant douze mois — les paliers**~~
+  *(numérotés E30–E32 et non E26–E28 : `main` avait pris E26 pour le consentement
+  analytics pendant que cette branche vivait, et E29 pour le mouvement. Le chantier
+  DÉJÀ MERGÉ garde son numéro — renuméroter de l'histoire partie est pire que tout.
+  Les trois se déplacent EN BLOC parce qu'ils se citent entre eux.)*
   ✅ **LIVRÉ le 2026-08-10.** Aucun `ENGINE_REV` : **pas une calorie ne bouge.**
 
   Au-delà de 15 kg d'écart **ou** de 6 mois de trajectoire, la carte d'objectif met en
@@ -3629,11 +3633,11 @@ produit en suspens — il ne reste qu'à coder.
   « découper ne déplace aucune calorie » — celui qui empêchera la prochaine session de
   « simplifier » en posant le palier dans `goal_target`.
 
-- ~~**E27 · Rien ne sortait plus personne d'une sèche — la pause à la maintenance**~~
-  ✅ **LIVRÉ le 2026-08-10** (décision fondateur, même `ENGINE_REV` 7 qu'E26).
+- ~~**E31 · Rien ne sortait plus personne d'une sèche — la pause à la maintenance**~~
+  ✅ **LIVRÉ le 2026-08-10** (décision fondateur, même `ENGINE_REV` 7 qu'E30).
   🔴 **MIGRATION À JOUER** : `supabase/migrations/2026-08-10_profiles_deficit_weeks.sql`.
 
-  **Pourquoi.** E26 a retiré les planchers dérivés de la masse maigre au-dessus du seuil
+  **Pourquoi.** E30 a retiré les planchers dérivés de la masse maigre au-dessus du seuil
   d'adiposité, et avec eux l'escalade RED-S — la seule chose qui forçait une sortie de
   déficit. Sans relève, on pouvait sécher indéfiniment. ⚠️ **Et le trou était plus vieux
   que ça** : `effectiveEaPerKgFfm` n'escalade que pour `isFemaleAtRisk`. **Un HOMME n'a
@@ -3683,7 +3687,7 @@ produit en suspens — il ne reste qu'à coder.
   projection → 1 rouge). Carte d'explication sur le Profil (ton §10 : la pause est un
   acquis, la fin est annoncée dès la première phrase, aucun bouton — il n'y a rien à faire).
 
-- ~~**E26 · Le plancher d'énergie disponible plafonnait TOUT LE MONDE à 0,3 kg/semaine**~~
+- ~~**E30 · Le plancher d'énergie disponible plafonnait TOUT LE MONDE à 0,3 kg/semaine**~~
   ✅ **LIVRÉ le 2026-08-10** (décision fondateur), `ENGINE_REV` 6 → 7.
 
   **Ce que la mesure a trouvé, et ce n'est pas ce qu'on cherchait.** Le point de départ
@@ -3714,7 +3718,7 @@ produit en suspens — il ne reste qu'à coder.
   consommer** (`countsAsLowEaWeek`) — sans ça il reviendrait **déjà épuisé** le jour où
   la personne repasse sous le seuil et la sortirait du déficit au moment où sa sèche
   redevient ordinaire, sans qu'aucun geste de sa part ne l'explique. Défaut dormant type.
-  ✅ **La relève est LIVRÉE le même jour — voir E27 juste au-dessus.**
+  ✅ **La relève est LIVRÉE le même jour — voir E31 juste au-dessus.**
 
   ⚠️ **Le %MG GELÉ, corrigé à moitié — et la moitié laissée l'est pour une raison
   mesurée.** `maxWeeklyLossPct` lit le %MG, qui ne bouge que si la personne le ressaisit :
