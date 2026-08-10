@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useCallback, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, Linking } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
@@ -210,6 +210,10 @@ export default function ProfilScreen() {
   const layout = useLayout();
   const repli = useCollapsingTitle();
   const { profile, saveProfile, clearProfile } = useProfile();
+  // Prénom : DIFFUSÉ, pas lu au montage (lib/profileName.ts) — il se pose depuis
+  // l'éditeur « Informations » de cet écran même, donc le surtitre doit suivre
+  // sans changer d'onglet ni redémarrer.
+  const prenom = useFirstName();
   const { streak } = useStreak();
   // Le suivi du poids est désormais une CARTE (courbe + écart) et non une ligne de
   // menu : il lui faut les pesées, pas seulement le poids courant du profil.
@@ -309,15 +313,13 @@ export default function ProfilScreen() {
     router.replace('/(auth)/login');
   };
 
-  // Contact support : ouvre le client mail. Si rien ne peut l'ouvrir (web sans
-  // client mail), on copie l'adresse dans une alerte plutôt que d'échouer en silence.
-  const SUPPORT_EMAIL = 'contact@kyroz.app';
-  const contactSupport = async () => {
-    const url = `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent('Kyroz — aide')}`;
-    const ok = await Linking.canOpenURL(url).catch(() => false);
-    if (ok) Linking.openURL(url);
-    else notify({ title: 'Nous contacter', message: SUPPORT_EMAIL });
-  };
+  // ⚠️ `contactSupport` vivait ici et N'ÉTAIT PLUS APPELÉ depuis E25 (2026-08-10) :
+  // la ligne « Aide & contact » est partie dans `ReglagesSheet`, où elle pousse
+  // `/avis` au lieu d'ouvrir un `mailto:`. Le helper, sa constante d'adresse et
+  // l'import `Linking` sont donc restés en place à faire semblant. Retirés le
+  // 2026-08-10 — l'adresse a une source unique, `lib/feedback.ts::SUPPORT_EMAIL`,
+  // et l'écran `/avis` la montre lui-même en repli quand aucun client mail ne
+  // répond. Deux adresses en dur, c'est la première qui ment le jour où elle change.
 
   // « Revoir les tutos » : on oublie les cinq tours, puis on relance TOUT DE SUITE
   // celui de cet écran. Sans ce lancement immédiat, l'action n'aurait aucun effet
@@ -362,6 +364,11 @@ export default function ProfilScreen() {
   // menu, elles, reçoivent un `tourId`). ⚠️ Comme `modulation` ci-dessus : AVANT
   // le retour anticipé.
   const tdeeRef = useTourTarget('profil-tdee');
+  // « Régénérer » est devenu un BOUTON, hors de la liste de réglages : il ne peut
+  // donc plus porter le `tourId` de `MenuRow`, il lui faut sa propre ref. Sans elle
+  // l'étape n'aurait pas de cible montée — et une étape sans cible est écartée EN
+  // SILENCE, laissant un tour plus court qui a l'air complet (cf. E25).
+  const regenRef = useTourTarget('profil-regenerer');
   const donneesRef = useTourTarget('profil-donnees');
   const { rejouer: rejouerTour } = useScreenTour(
     'profil',
@@ -409,10 +416,16 @@ export default function ProfilScreen() {
         {/* En-tête — l'écran n'en avait AUCUN : il démarrait direct sur la carte
             poids. Sur un écran aussi long, arriver sans savoir où on est coûte plus
             cher que les 60 px que ça prend. Le surtitre dit qui tu es, le titre dit
-            où tu es. */}
+            où tu es.
+            ⚠️ Le surtitre disait « Homme · 30 ans · Sèche » — soit MOT POUR MOT ce
+            que les lignes « Informations » et « Objectif » redisent 600 px plus bas.
+            Une ligne qui répète n'informe pas, elle occupe. Il porte désormais le
+            prénom, la seule chose de cet écran qui ne soit écrite nulle part
+            ailleurs. Pas de prénom (compte antérieur à la question) → pas de ligne :
+            mieux vaut un en-tête plus court qu'un remplissage. */}
         <View style={s.header} onLayout={repli.onHeaderLayout}>
           <View style={{ flex: 1 }}>
-            <Text style={s.sub}>{SEX_LABELS[profile.sex]} · {profile.age} ans · {goalLabel(profile.goal)}</Text>
+            {!!prenom && <Text style={s.sub}>{prenom}</Text>}
             <Text style={s.h1}>Profil</Text>
           </View>
           <TourButton onPress={rejouerTour} />
@@ -545,37 +558,93 @@ export default function ProfilScreen() {
           </Text>
         )}
 
-        {/* Réglages — TOI d'abord (corps, sport, objectif), TON PLAN ensuite. Dix
-            lignes d'affilée étaient un mur : les couper en deux blocs nommés donne
-            un repère, et ça ne coûte rien. Les icônes sont parties — à 17 px
-            semi-gras le libellé suffit, et la ligne respire. */}
-        <SectionTitle t={t}>Réglages</SectionTitle>
-        <View style={s.menu}>
-          <MenuRow t={t} label="Informations" value={`${SEX_LABELS[profile.sex]} · ${profile.age} ans · ${profile.weight_kg} kg${profile.body_fat_pct != null ? ` · ${profile.body_fat_pct}% MG` : ''}`} onPress={() => setEditor('info')} />
-          <MenuRow t={t} label="Sport & activité" value={`${profile.sports?.length ? `${profile.sports.length} sport${profile.sports.length > 1 ? 's' : ''}` : 'Aucun sport'} · ${NEAT_SHORT[profile.neat_level ?? DEFAULT_NEAT_LEVEL]}`} onPress={() => setEditor('sports')} tourId="profil-sport" />
-          <MenuRow t={t} label="Objectif" value={goalLabel(profile.goal)} onPress={() => setEditor('goal')} />
-          <MenuRow t={t} label="Objectif daté" value={profile.goal_target ? `${profile.goal_target.target_weight_kg} kg · ${formatFR(profile.goal_target.target_date)}` : (premium.can('dated_goal') ? 'Aucun' : 'Inclus dans Kyroz+')} onPress={() => openEditor('dated_goal')} tourId="profil-objectif-date" last />
-        </View>
-
-        <SectionLabel t={t}>TON PLAN</SectionLabel>
-        <View style={s.menu}>
-          <MenuRow t={t} label="Calories & macros" value={profile.macro_mode === 'percent' ? 'Perso %' : 'Calculées'} onPress={() => setEditor('macros')} />
-          <MenuRow t={t} label="Préférences alimentaires" value={profile.dietary_restrictions.length || profile.disliked_foods.length || profile.hidden_recipes?.length ? 'Personnalisées' : 'Aucune'} onPress={() => setEditor('prefs')} />
-          <MenuRow t={t} label="Paramètres des repas" value={`${profile.plan_days} j · ${(profile.meals?.length || 4)} repas · ${emphasisResume(profile)}`} onPress={() => setEditor('meals')} />
-          <MenuRow t={t} label="Banque de calories" value={premium.can('calorie_bank') ? bankResume(profile) : 'Inclus dans Kyroz+'} onPress={() => openEditor('calorie_bank')} />
-          {/* La VALEUR ne compte pas les écarts (cf. `journalSummary`) : un score
-              posé là mettrait la pression sans qu'on ouvre quoi que ce soit. */}
-          <MenuRow t={t} label="Repas hors plan" value={journalSummary(journal.entries)} onPress={openOffPlan} />
-          <MenuRow t={t} label="Kyroz+" value={KYROZ_PLUS_VALEUR[premium.reason]} onPress={() => router.push('/kyroz-plus')} />
-          <MenuRow t={t} label="Régénérer mon plan" value="Repartir de zéro" onPress={regenPlan} tourId="profil-regenerer" last />
-        </View>
-
         {/* TDEE — le libellé prend la place qui reste, le chiffre ne se coupe jamais
             en deux lignes (`flexShrink: 0`). Sans ça, « 2 369 kcal » passait à la
-            ligne au milieu de lui-même. */}
+            ligne au milieu de lui-même.
+            ⚠️ REMONTÉ ICI le 2026-08-10. Il vivait tout en bas, APRÈS les onze
+            lignes de menu — à peu près 900 px sous les cibles qu'il explique. C'est
+            pourtant la seule ligne de l'écran qui réponde à « pourquoi 2 293 ? » :
+            la dépense et la cible se lisent ensemble ou ne se lisent pas.
+            ➡️ L'étape de visite guidée qui le vise a suivi (lib/tours.ts) : laissée
+            en avant-dernier, elle aurait fait remonter l'écran de tout en bas vers
+            le haut, puis redescendre. Une bulle qui déplace l'écran à contresens de
+            sa propre progression se lit comme un bug, pas comme une visite. */}
         <View ref={tdeeRef} style={s.tdee}>
           <Text style={s.tdeeL}>Dépense estimée · maintenance (TDEE)</Text>
           <Text style={s.tdeeV}>{profile.tdee_kcal.toLocaleString('fr-FR')} kcal</Text>
+        </View>
+
+        {/* Réglages — TOI d'abord (corps, sport, objectif), TON PLAN ensuite. Dix
+            lignes d'affilée étaient un mur : les couper en deux blocs nommés donne
+            un repère, et ça ne coûte rien. Les icônes sont parties — à 17 px
+            semi-gras le libellé suffit, et la ligne respire.
+            🔴 CE TITRE DISAIT « Réglages », ET C'ÉTAIT LE NOM D'AUTRE CHOSE. Depuis
+            E25, la roue dentée en haut de cet écran ouvre une feuille intitulée
+            « Réglages » (ReglagesSheet) dont le contenu est DISJOINT de ce bloc-ci :
+            là-bas notifications, affichage, confidentialité, compte ; ici ce qui
+            pilote le moteur. Deux destinations, un seul mot, sur le même écran —
+            « va dans les réglages » ne désignait plus rien. Le commit d'E25 nommait
+            déjà les deux blocs « Toi / Ton plan » ; le code, lui, était resté sur
+            l'ancien nom.
+            ➡️ « TOI » est un `SectionLabel`, comme « TON PLAN » : deux blocs frères
+            au même niveau. Avant, l'un était un `SectionTitle` (« découpe l'écran »)
+            et l'autre un `SectionLabel` (« étiquette un bloc ») — le premier bloc
+            n'avait donc aucune étiquette à lui, il empruntait celle du chapitre. */}
+        {/* ⚠️ TROIS blocs depuis le 2026-08-10, et chacun porte un SOUS-TITRE — c'est
+            lui qui fait le travail, pas le découpage. « TON PLAN » disait de quoi le
+            bloc parlait, jamais ce qu'il PILOTAIT : rien n'indiquait que « Sport &
+            activité » décide de la dépense, donc rien n'y envoyait qui doute de son
+            chiffre. Le réglage le plus lourd de l'app vit derrière cette ligne-là —
+            le NEAT, **80 kcal/j le cran** en médiane (57 à 102, mesuré sur 800
+            gabarits le 2026-08-10) — et il n'est demandé NULLE PART ailleurs, pas
+            même à l'inscription. Un sous-titre de cinq mots lui donne enfin une
+            adresse. */}
+        <SectionLabel t={t} sub="ce qui calcule ta dépense">TOI</SectionLabel>
+        <View style={s.menu}>
+          <MenuRow t={t} label="Informations" value={`${SEX_LABELS[profile.sex]} · ${profile.age} ans · ${profile.weight_kg} kg${profile.body_fat_pct != null ? ` · ${profile.body_fat_pct}% MG` : ''}`} onPress={() => setEditor('info')} />
+          <MenuRow t={t} label="Sport & activité" value={`${profile.sports?.length ? `${profile.sports.length} sport${profile.sports.length > 1 ? 's' : ''}` : 'Aucun sport'} · ${NEAT_SHORT[profile.neat_level ?? DEFAULT_NEAT_LEVEL]}`} onPress={() => setEditor('sports')} tourId="profil-sport" last />
+        </View>
+
+        {/* « Calories & macros » a quitté le bloc des repas pour celui-ci : il ne
+            remplit aucune assiette, il fixe le nombre que les assiettes doivent
+            atteindre. Il se lit avec l'objectif, pas avec les préférences. */}
+        <SectionLabel t={t} sub="ce qui fixe tes cibles">TON OBJECTIF</SectionLabel>
+        <View style={s.menu}>
+          <MenuRow t={t} label="Objectif" value={goalLabel(profile.goal)} onPress={() => setEditor('goal')} />
+          <MenuRow t={t} label="Objectif daté" value={profile.goal_target ? `${profile.goal_target.target_weight_kg} kg · ${formatFR(profile.goal_target.target_date)}` : (premium.can('dated_goal') ? 'Aucun' : 'Inclus dans Kyroz+')} onPress={() => openEditor('dated_goal')} tourId="profil-objectif-date" />
+          <MenuRow t={t} label="Calories & macros" value={profile.macro_mode === 'percent' ? 'Perso %' : 'Calculées'} onPress={() => setEditor('macros')} last />
+        </View>
+
+        <SectionLabel t={t} sub="ce qui remplit ton assiette">TES REPAS</SectionLabel>
+        <View style={s.menu}>
+          <MenuRow t={t} label="Préférences alimentaires" value={profile.dietary_restrictions.length || profile.disliked_foods.length || profile.hidden_recipes?.length ? 'Personnalisées' : 'Aucune'} onPress={() => setEditor('prefs')} />
+          <MenuRow t={t} label="Paramètres des repas" value={`${profile.plan_days} j · ${(profile.meals?.length || 4)} repas · ${emphasisResume(profile)}`} onPress={() => setEditor('meals')} />
+          {/* La banque PRÉVOIT un écart, l'historique le CONSTATE : la paire se lit
+              toute seule, d'où le voisinage. */}
+          <MenuRow t={t} label="Banque de calories" value={premium.can('calorie_bank') ? bankResume(profile) : 'Inclus dans Kyroz+'} onPress={() => openEditor('calorie_bank')} />
+          {/* ⚠️ La VALEUR ne COMPTE PAS les écarts, et ce n'est pas un oubli de
+              rangement : un score posé là mettrait la pression sans qu'on ouvre quoi
+              que ce soit (règle anti charge mentale). Elle reste un FAIT daté — ce
+              que la nouvelle règle de forme demande — sans devenir un score. */}
+          <MenuRow t={t} label="Écarts passés" value={journalSummary(journal.entries)} onPress={openOffPlan} last />
+        </View>
+
+        {/* Une ACTION n'a pas de valeur à droite, donc pas sa place dans une liste de
+            réglages : elle ne se règle pas, elle se déclenche. Bouton discret
+            (`t.card`), pas l'accent — sinon il deviendrait l'élément le plus criard
+            de l'écran, devant la pesée qui est l'entrée réellement quotidienne. */}
+        <TouchableOpacity ref={regenRef} onPress={regenPlan} activeOpacity={OPACITE_PRESSION} accessibilityRole="button"
+          style={s.actionBtn}>
+          <Text style={s.actionTxt}>Régénérer mon plan</Text>
+        </TouchableOpacity>
+
+        {/* Kyroz+ — hors chapitre et en dernier. Ce n'est pas un réglage : c'est une
+            offre, et une offre se range là où elle se vend, à deux lignes des deux 💎
+            qu'elle débloque. Elle reste une LIGNE tant que « tout est déjà ouvert » :
+            une carte promotionnelle de 100 px qui ne vend rien est du bruit. Elle
+            deviendra une carte le jour où le paywall s'allumera, pas avant. */}
+        <View style={s.menu}>
+          <MenuRow t={t} label="Kyroz+" value={KYROZ_PLUS_VALEUR[premium.reason]} onPress={() => router.push('/kyroz-plus')} last />
         </View>
 
       </ScrollView>
@@ -600,7 +669,10 @@ export default function ProfilScreen() {
 
       {/* Feuilles d'édition */}
       <Sheet visible={editor !== null} onClose={() => setEditor(null)}>
-        {editor === 'info' && <InfoEditor t={t} profile={profile} onSave={save} />}
+        {/* `onWeighIn` : le poids ne se saisit plus dans cet éditeur, il s'y RENVOIE.
+            On ferme l'éditeur AVANT d'ouvrir la pesée — une feuille poussée depuis
+            une feuille ouverte naîtrait sous elle (même piège que les routes, E25). */}
+        {editor === 'info' && <InfoEditor t={t} profile={profile} onSave={save} onWeighIn={() => { setEditor(null); setWeighIn(true); }} />}
         {editor === 'sports' && <SportsProfileEditor t={t} profile={profile} onSave={save} />}
         {editor === 'goal' && <GoalEditor t={t} profile={profile} onSave={save} />}
         {editor === 'dated_goal' && <DatedGoalEditor t={t} profile={profile} onSave={save} />}
@@ -686,7 +758,7 @@ function EditorShell({
 type EditorProps = { t: ThemePalette; profile: UserProfile; onSave: (p: UserProfile) => void; dragHandlers?: any; sheetScrollProps?: any };
 
 // ── Éditeurs ─────────────────────────────────────────────────────────────────
-function InfoEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: EditorProps) {
+function InfoEditor({ t, profile, onSave, onWeighIn, dragHandlers, sheetScrollProps }: EditorProps & { onWeighIn: () => void }) {
   // Prénom — LOCAL à l'appareil, hors profil synchronisé (cf. lib/profileName.ts).
   // Il ne s'écrivait qu'à l'onboarding : un compte antérieur à cette étape restait
   // sur « Ton plan » sans aucun recours. Il vit ici désormais.
@@ -698,12 +770,28 @@ function InfoEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: Edit
   // on ne l'invente pas (un âge ne donne qu'une fourchette d'un an) : ces profils
   // gardent leur âge saisi tant qu'ils n'ont pas renseigné leur date.
   const [birthDate, setBirthDate] = useState<string | undefined>(profile.birth_date);
-  const [weight, setWeight] = useState(String(profile.weight_kg));
+  // 🔴 LE POIDS N'EST PLUS SAISISSABLE ICI (2026-08-10) — il l'était, et c'était le
+  // seul défaut RÉEL de cette passe de rangement, les autres n'étant que de la
+  // lisibilité. Deux chemins écrivaient le même chiffre, et ils n'écrivaient PAS
+  // la même chose :
+  //   · « Me peser » (WeightCheckin → useWeightLog::logWeight) ajoute un point à
+  //     l'historique ET recale le profil ;
+  //   · ce champ-ci ne recalait que le profil — l'historique n'en savait rien.
+  // Conséquence, sur le MÊME écran et dans le même défilement : la carte du haut
+  // affiche le poids du PROFIL en grand, mais la courbe et le « −0,9 kg depuis la
+  // précédente » sortent de l'HISTORIQUE. Corriger 83 → 80 ici affichait donc
+  // « 80 kg », un écart calculé sur une série qui s'arrête à 83, et une courbe qui
+  // ne descend pas jusqu'au chiffre écrit au-dessus d'elle. Le suivi de l'objectif
+  // daté lit la même série : il continuait de projeter depuis un poids abandonné.
+  // ➡️ Une donnée qui alimente une SÉRIE ne se corrige pas par un champ qui ignore
+  // la série. Le poids devient une ligne de renvoi vers son unique porte d'entrée.
   const [height, setHeight] = useState(String(profile.height_cm));
   const [bodyFat, setBodyFat] = useState<number | undefined>(profile.body_fat_pct);
   const [bodyFatSource, setBodyFatSource] = useState<BodyFatSource | undefined>(profile.body_fat_source);
   const aN = ageOn(birthDate, todayStamp()) ?? profile.age;
-  const wN = parseFloat(weight), hN = parseFloat(height);
+  // Le poids n'est plus une saisie : il reste dans le brouillon (bornes, repère de
+  // plausibilité du %MG, recalcul) mais sa valeur vient du profil, jamais d'un champ.
+  const wN = profile.weight_kg, hN = parseFloat(height);
   // Bornes tirées de lib/safety.ts, PAS réécrites en dur : elles divergeaient de
   // l'onboarding (16 ans ici contre 18 là-bas — le relèvement MIN_AGE n'avait été
   // câblé que côté onboarding, donc on pouvait saisir 18 puis repasser à 16 ici ;
@@ -746,7 +834,21 @@ function InfoEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: Edit
       <Segmented t={t} options={[{ label: 'Homme', value: 'male' }, { label: 'Femme', value: 'female' }]} value={sex} onChange={setSex} />
       <SectionLabel t={t}>Date de naissance</SectionLabel>
       <BirthDateField t={t} value={birthDate} onChange={setBirthDate} fallbackAge={profile.birth_date ? undefined : profile.age} />
-      <Field t={t} label="Poids" suffix="kg" value={weight} onChangeText={setWeight} keyboardType="decimal-pad" />
+      {/* Renvoi, pas champ : le poids a UNE porte d'entrée, et c'est celle qui
+          tient l'historique. Le libellé dit où l'on va, pas seulement que ça se
+          passe ailleurs. */}
+      <TouchableOpacity onPress={onWeighIn} activeOpacity={OPACITE_PRESSION} accessibilityRole="button"
+        style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md, backgroundColor: t.card, borderRadius: Radius.card, padding: Spacing.lg, minHeight: CIBLE_TACTILE_MIN }}>
+        <View style={{ flex: 1 }}>
+          <Text style={{ ...Type.bodySmall, color: t.textSecondary }}>Poids</Text>
+          <Text style={{ ...Type.h3, color: t.text, marginTop: Spacing.xs }}>{profile.weight_kg} kg</Text>
+        </View>
+        <Text style={{ ...Type.captionStrong, color: t.accent }}>Me peser</Text>
+        <Ionicons name="chevron-forward" size={Icone.standard} color={t.textQuaternary} />
+      </TouchableOpacity>
+      <Text style={{ ...Type.caption, color: t.textTertiary, lineHeight: 17, marginTop: -Spacing.sm }}>
+        Ton poids se met à jour en te pesant : c'est ce qui garde ta courbe et ton suivi justes.
+      </Text>
       <Field t={t} label="Taille" suffix="cm" value={height} onChangeText={setHeight} keyboardType="number-pad" />
       <SectionLabel t={t}>Masse grasse (optionnel)</SectionLabel>
       {/* `draft` : le repère de plausibilité chiffre l'impact sur le corps EN COURS
@@ -1580,6 +1682,14 @@ function makeStyles(t: ThemePalette) {
     floorNote: { ...Type.caption, color: t.textSecondary, lineHeight: 18, marginTop: -Spacing.xs },
     tdeeL: { ...Type.bodySmall, flex: 1, color: t.textSecondary, lineHeight: 19 },
     tdeeV: { ...Type.h3, flexShrink: 0, color: t.text },
+    // Bouton d'action pleine largeur, sur le patron de « Se déconnecter » : fond de
+    // carte et non l'accent — une action de repli ne doit pas crier plus fort que la
+    // pesée, qui est la vraie entrée quotidienne de l'écran.
+    actionBtn: {
+      alignItems: 'center', justifyContent: 'center', minHeight: CIBLE_TACTILE_MIN,
+      backgroundColor: t.card, borderRadius: Radius.button,
+    },
+    actionTxt: { ...Type.label, color: t.text },
     reminderHint: { ...Type.caption, color: t.textTertiary, lineHeight: 18, marginTop: -Spacing.sm },
     settingLabel: { ...Type.h3, color: t.text, letterSpacing: -0.3, marginBottom: -Spacing.sm },
     swatches: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.md },

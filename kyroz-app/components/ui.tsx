@@ -168,13 +168,28 @@ export function Segmented<T extends string | number>({
   );
 }
 
-export function SectionLabel({ t, children }: { t: ThemePalette; children: React.ReactNode }) {
+/**
+ * Étiquette de bloc, en petites capitales.
+ *
+ * `sub` — une ligne de sous-titre en casse normale, sous l'étiquette. Elle existe
+ * pour une raison précise : sur le Profil, un nom de bloc (« TOI ») dit de QUOI il
+ * parle, jamais ce qu'il PILOTE. « ce qui calcule ta dépense » rend le moteur
+ * lisible sans le nommer, et donne une adresse mentale aux réglages qu'on ne
+ * viendrait pas chercher — le NEAT en tête. Le sous-titre n'est PAS en capitales :
+ * ce n'est pas une seconde étiquette, c'est une phrase.
+ */
+export function SectionLabel({ t, sub, children }: { t: ThemePalette; sub?: string; children: React.ReactNode }) {
   return (
-    <Text style={{
-      ...Type.overline, color: t.textTertiary, textTransform: 'uppercase',
-    }}>
-      {children}
-    </Text>
+    <View style={{ gap: Spacing.xs }}>
+      <Text style={{
+        ...Type.overline, color: t.textTertiary, textTransform: 'uppercase',
+      }}>
+        {children}
+      </Text>
+      {!!sub && (
+        <Text style={{ ...Type.caption, color: t.textTertiary, lineHeight: 17 }}>{sub}</Text>
+      )}
+    </View>
   );
 }
 
