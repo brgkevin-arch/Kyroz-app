@@ -16,7 +16,12 @@ import { sleep, open, tap, bootToPlan, neutralizeFirstRun, dismissOverlays, DEFA
 const HERE = dirname(fileURLToPath(import.meta.url));
 
 // ── Gabarit de capture ───────────────────────────────────────────────────────
-// 390×844 = iPhone 12/13/14, rendu TÉLÉPHONE garanti.
+// 430×932 = iPhone 14/15/16 Pro Max, rendu TÉLÉPHONE garanti — en ×3 il sort
+// à 1290×2796, LE gabarit 6.7" attendu par App Store Connect.
+// ⚠️ C'était 390×844 (6.1") jusqu'au 2026-08-10, soit 1170×2532 en ×3 : une
+// taille qu'App Store Connect REFUSE à l'envoi. Troisième défaut de dimension
+// de ce script — d'où la règle : mesurer le PNG produit (`sips -g pixelWidth
+// -g pixelHeight`), jamais relire la config.
 // ⚠️ Le seuil réel est TABLET_MIN_WIDTH = 700 (lib/layout.ts), pas « ~600 px »
 // comme l'annonçait ce commentaire — et avant le 2026-08-01 il n'y avait AUCUN
 // seuil, l'app était en pleine largeur à toute taille.
@@ -24,7 +29,7 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 // `--ipad` produit le gabarit exigé par Apple pour un binaire iPad : 2048×2732,
 // soit l'iPad Pro 13" (1024×1366 pt) en ×2.
 const IPAD = process.argv.includes('--ipad');
-const PHONE = { width: 390, height: 844 };
+const PHONE = { width: 430, height: 932 };
 const TABLET = { width: 1024, height: 1366 };
 const VIEWPORT = IPAD ? TABLET : PHONE;
 const SCALE = IPAD ? 2 : 3;
