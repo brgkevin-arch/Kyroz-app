@@ -382,6 +382,7 @@ export default function ProfilScreen() {
   // calcul. Deux appels, c'était deux vérités possibles à un instant de bascule.
   const plan = computePlan(profile);
   const underweightCapped = plan.flags.includes('UNDERWEIGHT_NO_DEFICIT');
+  const dietBreakWeek = plan.flags.includes('DIET_BREAK_WEEK');
   const lowEaRise = plan.low_ea_escalation;
 
   // La cible affichée EST le plancher de sécurité, et rien ne le disait ici.
@@ -482,6 +483,26 @@ export default function ProfilScreen() {
               </Text>
             </Card>
           </TouchableOpacity>
+        )}
+
+        {/* Semaine de pause à la maintenance (2026-08-10).
+
+            SANS cette carte, la personne voit son budget monter de plusieurs centaines
+            de kcal du jour au lendemain, en pleine sèche, sans avoir rien changé — et
+            elle en conclut que l'app déraille. C'est exactement le défaut que
+            `LowEaRiseCard` a été écrite pour fermer, sur un mécanisme voisin.
+
+            ⚠️ Ton de §10 : la pause est un ACQUIS, pas une sanction ni un retard. On ne
+            dit ni « tu dois », ni « tu as trop », ni « rattrapage ». Et on annonce la
+            FIN dès la première phrase — un palier dont on ne voit pas le bout se lit
+            comme un échec. Aucun bouton : il n'y a rien à faire, et proposer une action
+            suggérerait qu'il faut la corriger. */}
+        {dietBreakWeek && (
+          <Card t={t}>
+            <Text style={{ ...Type.caption, color: t.text, lineHeight: 19 }}>
+              Cette semaine, tu manges à ta maintenance. C'est prévu : après huit semaines de déficit d'affilée, Kyroz en intercale une à l'équilibre. Ton déficit reprend tout seul la semaine prochaine, et ta date d'objectif en tient déjà compte.
+            </Text>
+          </Card>
         )}
 
         {/* Sortie de déficit après un long séjour en énergie disponible basse.

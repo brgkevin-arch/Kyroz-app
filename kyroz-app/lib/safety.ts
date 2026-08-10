@@ -799,9 +799,122 @@ export function markLowEaWeek(reg: LowEaRegistry, today: string, isLowEa: boolea
   return weeks === reg.weeks && since === reg.since ? reg : { weeks, since };
 }
 
+/**
+ * Retire la semaine COURANTE du registre, pour que `markLowEaWeek` la réinscrive (ou
+ * non) selon le plan RÉELLEMENT SERVI.
+ *
+ * 🔴 SANS ÇA, LA PAUSE DURE DEUX SEMAINES AU LIEU D'UNE — mesuré le 2026-08-10, et
+ * invisible à la relecture. `settleLowEaExposure` solde le temps écoulé depuis `since`,
+ * semaine courante COMPRISE : c'est juste pour la zone basse (le plan restrictif était
+ * bien en vigueur les jours précédant le recalcul), mais ça réinscrit la semaine de
+ * pause dans le registre de déficit **avant même** que le plan de pause soit calculé.
+ * La semaine suivante la voyait donc comme une semaine de déficit, la série valait 9,
+ * et la pause repartait pour un tour. Cadence réelle constatée : 8 semaines de déficit
+ * + **2** de pause, quand tout le code et toute la doc annonçaient 1.
+ *
+ * ⚠️ Ne s'applique QU'au registre de déficit. Sur la zone basse, le solde de la semaine
+ * courante est le correctif P0.5 lui-même (« compter des semaines vécues, pas des
+ * enregistrements ») : le lui retirer ferait dépendre le compteur de la fréquence
+ * d'ouverture de l'app, le défaut exact qu'il a été écrit pour fermer.
+ */
+export function forgetCurrentWeek(reg: LowEaRegistry, today: string): LowEaRegistry {
+  const current = weekStartStamp(today);
+  if (!reg.weeks.includes(current)) return reg;
+  return { ...reg, weeks: reg.weeks.filter((w) => w !== current) };
+}
+
 /** Registre sans aucune information → `undefined`, pour ne rien persister d'inutile. */
 export function collapseLowEaRegistry(reg: LowEaRegistry): LowEaRegistry | undefined {
   return reg.weeks.length || reg.since ? reg : undefined;
+}
+
+// ── Pause à la maintenance (2026-08-10) ──────────────────────────────────────
+//
+// 🔴 CE QUE CE MÉCANISME REMPLACE. `ENGINE_REV` 7 a retiré les planchers dérivés de
+// la masse maigre au-dessus du seuil d'adiposité — et avec eux l'escalade RED-S, qui
+// était la SEULE chose forçant une sortie de déficit. Sans remplacement, quelqu'un
+// pouvait sécher indéfiniment. Ce n'est pas un ajout de confort : c'est la protection
+// qui prend le relais de celle qu'on a retirée.
+//
+// ⚠️ ET ELLE COMBLE UN TROU PLUS ANCIEN, chez tout le monde : `effectiveEaPerKgFfm`
+// n'escalade que pour `isFemaleAtRisk`. Un HOMME n'a jamais eu, à aucune adiposité,
+// le moindre mécanisme le sortant d'une sèche — il pouvait rester en déficit trois ans.
+// Le défaut ne se voyait pas parce que le plancher le plafonnait à 0,3 kg/semaine.
+//
+// **La règle, et elle se réinitialise toute seule** : si les 8 semaines qui PRÉCÈDENT
+// la semaine courante ont toutes été en déficit, la semaine courante est servie à la
+// maintenance. Pendant cette semaine le plan n'est plus un déficit, donc elle n'entre
+// pas au registre, donc la série repart de zéro la semaine suivante. Aucun second
+// champ « pause en cours » : l'état est entièrement porté par le registre.
+//
+// ⚠️ **On lit les semaines ANTÉRIEURES, jamais la semaine courante** — exactement
+// comme `lowEaWeeksBefore`, et pour la même raison : la semaine courante ne peut pas
+// décider du plancher qui décide si elle compte. C'est ce qui rend le calcul idempotent
+// (deux recalculs le même jour donnent le même plan) et ce qui borne la pause à UNE
+// semaine pile au lieu de la faire durer jusqu'au prochain recalcul.
+export const DIET_BREAK_AFTER_WEEKS = 8;
+
+/**
+ * Longueur de la série de semaines en déficit qui se termine juste AVANT la semaine
+ * de `today`. S'arrête au premier trou — c'est une série, pas un cumul.
+ *
+ * ⚠️ On ne remonte QUE vers le passé, donc les stamps futurs que le registre peut
+ * contenir (horloge qui recule, fuseau, réglage manuel — cf. `pruneWeeks`, qui les
+ * conserve à dessein) ne sont jamais consultés : ils ne peuvent pas combler un trou
+ * ni prolonger une série que la personne n'a pas vécue.
+ */
+export function consecutiveDeficitWeeksBefore(
+  stored: LowEaRegistryStored | undefined | null, today: string,
+): number {
+  const { weeks } = readLowEaRegistry(stored);
+  if (!weeks.length) return 0;
+  const vues = new Set(weeks);
+  let n = 0;
+  // On part de la semaine PRÉCÉDENTE et on remonte tant qu'elle est au registre.
+  // La borne d'arrêt est la longueur du registre : il est purgé à ~52 entrées, donc
+  // la boucle ne peut pas s'emballer même sur une donnée corrompue.
+  for (let i = 1; i <= weeks.length; i++) {
+    if (!vues.has(weekStartStamp(addDays(today, -7 * i)))) break;
+    n++;
+  }
+  return n;
+}
+
+/**
+ * Cette personne relève-t-elle de la pause, ou de l'escalade RED-S ?
+ *
+ * 🔴 **UNE SEULE PROTECTION PAR PERSONNE — les empiler les fait se battre.** Mesuré en
+ * livrant la pause sans ce prédicat : pendant une semaine de pause le plan n'est plus
+ * restrictif, donc `countsAsLowEaWeek` rend `false`, donc `since` retombe à null et
+ * l'escalade de zone basse **n'arrive jamais à son terme**. Trois tests l'ont dit d'un
+ * coup, dont « la remontée annoncée vaut exactement la hausse réelle » : la carte qui
+ * promet « ta cible montera de 23 kcal/semaine jusqu'à la semaine N » devenait fausse.
+ * Un garde-fou qui désarme l'autre est pire que pas de second garde-fou.
+ *
+ * **Qui reçoit quoi, et pourquoi ce découpage-là** : l'escalade n'a JAMAIS protégé que
+ * `isFemaleAtRisk` (`effectiveEaPerKgFfm` rend le plancher dur à tous les autres). Et
+ * depuis `ENGINE_REV` 7 elle ne protège plus personne au-dessus du seuil d'adiposité,
+ * puisque le budget ne s'y consomme plus. La pause va donc exactement là où l'escalade
+ * ne peut rien — un homme (à toute adiposité : il n'a jamais rien eu, il pouvait sécher
+ * trois ans), et toute personne au-dessus du seuil.
+ *
+ * ➡️ **Question ouverte, pas tranchée ici** : l'escalade est décrite dans AGENTS.md
+ * comme une expérience déroutante (« elle est en sèche et ses calories augmentent
+ * toutes les semaines : de son point de vue, l'app dérive »), au point d'avoir exigé une
+ * carte d'explication dédiée. La pause est probablement le meilleur mécanisme des deux
+ * pour tout le monde. La substituer est une décision de SÉCURITÉ à part entière, avec sa
+ * propre mesure — pas un effet de bord de ce chantier.
+ */
+export function dietBreakApplies(b: BodyInput): boolean {
+  return !isFemaleAtRisk(b) || highAdiposity(b);
+}
+
+/** La semaine de `today` doit-elle être servie à la maintenance ? */
+export function dietBreakDue(
+  b: BodyInput, stored: LowEaRegistryStored | undefined | null, today: string,
+): boolean {
+  return dietBreakApplies(b)
+    && consecutiveDeficitWeeksBefore(stored, today) >= DIET_BREAK_AFTER_WEEKS;
 }
 
 /** Semaines passées en zone basse sur les 12 derniers mois. */

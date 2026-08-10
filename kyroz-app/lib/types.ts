@@ -261,6 +261,7 @@ export type PlanFlag =
   | 'UNDERWEIGHT_NO_DEFICIT'     // IMC < 18,5 → déficit annulé, plan ramené à la maintenance
   | 'MACRO_BUDGET_OVERFLOW'      // protéines + lipides dépassent le budget du jour
   | 'CARBS_BELOW_TRAINING_FLOOR' // glucides < 3 g/kg un jour de séance
+  | 'DIET_BREAK_WEEK'            // semaine à la maintenance, prévue après 8 semaines de déficit
   | 'GOAL_DIRECTION_MISMATCH';   // le poids cible contredit la famille de l'objectif
 
 /**
@@ -275,6 +276,7 @@ export type FloorSource =
   | 'energy_availability'      // 30 kcal/kg de masse maigre + dépense sportive
   | 'min_kcal'                 // filet absolu 1500 H / 1200 F
   | 'deficit_cap'              // plafond de déficit à 25 % du TDEE
+  | 'diet_break'               // 9ᵉ semaine de déficit d'affilée → une semaine à la maintenance
   | 'underweight_maintenance'; // IMC < 18,5 → plan ramené à la maintenance
 
 /**
@@ -357,6 +359,22 @@ export interface UserProfile {
   // (colonne Supabase `jsonb` inchangée) alors que la charge utile a évolué vers
   // `LowEaRegistry` — cf. lib/safety.ts.
   low_ea_weeks?: LowEaRegistryStored;
+  /**
+   * Registre des semaines passées EN DÉFICIT — sert la pause à la maintenance.
+   *
+   * ⚠️ **Même FORME que `low_ea_weeks`, prédicat DIFFÉRENT, et les deux sont
+   * nécessaires.** La zone basse est cumulée sur 12 mois et non consécutive (une pause
+   * ne l'efface pas, sinon le garde-fou RED-S ne servirait à rien). Le déficit, lui,
+   * se lit en série CONSÉCUTIVE : c'est la pause elle-même qui doit remettre à zéro,
+   * c'est son objet. Et depuis `ENGINE_REV` 7, la zone basse ne se compte plus du tout
+   * au-dessus du seuil d'adiposité — donc chez ceux qui ont le plus besoin d'une pause,
+   * le registre de zone basse est vide par construction. On ne pouvait pas le réutiliser.
+   *
+   * La forme partagée l'est à dessein : `settleLowEaExposure`, `markLowEaWeek`,
+   * `readLowEaRegistry` et `collapseLowEaRegistry` sont des fonctions de REGISTRE, pas
+   * de zone basse — elles servent les deux, et leur nom est historique.
+   */
+  deficit_weeks?: LowEaRegistryStored;
 
   // Activité
   // ⚠️ `activity_level` et `training_days_per_week` ne servent PLUS au TDEE depuis

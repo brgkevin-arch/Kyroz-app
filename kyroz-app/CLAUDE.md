@@ -784,8 +784,8 @@ composant. Audit complet des réglages : `npm run mesure:reglages`.
   RED-S ne force plus la sortie de déficit au bout de 12 semaines (le budget de zone
   basse **ne se consomme plus** — `countsAsLowEaWeek`, sinon il reviendrait déjà épuisé
   le jour où la personne repasse sous le seuil, et la sortirait du déficit au moment où
-  sa sèche redevient ordinaire). Une pause à la maintenance toutes les 6–8 semaines
-  reste à concevoir comme une feature produit : elle n'existe pas.
+  sa sèche redevient ordinaire).
+  ✅ **La relève est livrée le même jour — voir « Pause à la maintenance » ci-dessous.**
   ⚠️ **Et s'entraîner ne rapportait RIEN** : la dépense sportive s'ajoutait des deux
   côtés (TDEE **et** plancher EA) et s'annulait exactement — 0 et 4 séances donnaient
   327 kcal/j de déficit au kcal près. Corrigé de fait au-dessus du seuil (0,62 → 0,69
@@ -1009,6 +1009,45 @@ composant. Audit complet des réglages : `npm run mesure:reglages`.
   des calories en lipides ; son curseur est plafonné à 75 % de glucides et
   `carb_ratio` est **clampé à la lecture** (une borne d'écran ne migre aucun compte
   déjà enregistré).
+- **Sèche prolongée sans pause** — `lib/safety.ts::dietBreakDue`, registre
+  `profiles.deficit_weeks` (**migration 2026-08-10_profiles_deficit_weeks.sql**).
+  Après **8 semaines de déficit d'affilée, la 9ᵉ est servie à la MAINTENANCE.**
+  ⚠️ **C'est la relève de l'escalade RED-S, pas un ajout de confort** : `ENGINE_REV` 7
+  a retiré les planchers dérivés de la masse maigre au-dessus du seuil d'adiposité, et
+  avec eux la seule chose qui forçait une sortie de déficit.
+  ⚠️ **Et elle comble un trou bien plus ancien** : `effectiveEaPerKgFfm` n'escalade que
+  pour `isFemaleAtRisk`. **Un HOMME n'a jamais eu, à aucune adiposité, aucun mécanisme
+  le sortant d'une sèche** — il pouvait creuser trois ans. Le défaut ne se voyait pas
+  parce que le plancher le plafonnait à 0,3 kg/semaine.
+  🔴 **UNE SEULE PROTECTION PAR PERSONNE — `dietBreakApplies`.** Les empiler les fait se
+  battre : pendant une pause le plan n'est plus restrictif, donc `since` retombe à null
+  et l'escalade **n'arrive jamais à son terme**. Mesuré en livrant sans ce prédicat —
+  trois tests rouges d'un coup, dont « la remontée annoncée vaut exactement la hausse
+  réelle » : la carte qui promet « ta cible montera de X par semaine jusqu'à la semaine
+  N » devenait fausse. La pause va donc là où l'escalade ne peut rien (tout homme, et
+  quiconque au-dessus du seuil d'adiposité), jamais par-dessus elle.
+  ➡️ **Question ouverte** : l'escalade est décrite en AGENTS.md comme une expérience
+  déroutante (« ses calories augmentent toutes les semaines : l'app dérive »), au point
+  d'avoir exigé une carte dédiée. La pause est probablement meilleure pour tout le
+  monde. La substituer est une décision de sécurité à part, avec sa propre mesure.
+  ⚠️ **Elle se réinitialise toute seule, sans second champ** : pendant la pause le plan
+  n'est pas un déficit, donc la semaine n'entre pas au registre, donc la série repart de
+  zéro. L'état est entièrement porté par le registre — il ne peut pas désynchroniser.
+  🔴 **LA PAUSE A DURÉ DEUX SEMAINES PENDANT TOUTE LA PREMIÈRE VERSION**, et ça ne se
+  voyait ni à la relecture ni dans la suite de tests. `settleLowEaExposure` solde le
+  temps écoulé depuis `since`, **semaine courante comprise** — juste pour la zone basse
+  (le plan restrictif était bien en vigueur avant le recalcul), faux ici : elle
+  réinscrivait la semaine de pause AVANT que le plan de pause soit calculé, la série
+  valait 9 la semaine suivante, et la pause repartait pour un tour. Seule une trace
+  semaine par semaine l'a montré. ➡️ `forgetCurrentWeek`, appliqué au SEUL registre de
+  déficit. *Encore un cas de « vérifier le résultat, pas la mécanique ».*
+  ⚠️ **La projection SIMULE les pauses** (`WeeklyProjector.dietBreak`), sinon la date
+  annoncée décrit une sèche sans pause quand le moteur en sert une toutes les 9 semaines
+  — **~11 % d'écart**, le défaut A15/P1.6 rejoué, que §10 interdit nommément.
+  ⚠️ **Une pause n'est pas un ARRÊT** : à la maintenance le rythme vaut ~0, et le test
+  « à l'arrêt » du simulateur renvoyait `Infinity` — donc « aucune date » — pour une
+  semaine PRÉVUE sur une sèche saine. Le simulateur avance à poids constant.
+  ➡️ Garde-fou : `lib/__tests__/pauseMaintenance.test.ts`, **vérifié par 2 mutations**.
 - Pathologies (diabète, IRC, cardio)
 - Femmes enceintes / allaitantes
 - **Utilisateurs < 18 ans** (bloquer à l'onboarding) — relevé de 16 à 18 le

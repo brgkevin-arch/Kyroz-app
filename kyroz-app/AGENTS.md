@@ -3579,6 +3579,60 @@ produit en suspens — il ne reste qu'à coder.
 
 ### 🧹 E — Dette technique
 
+- ~~**E27 · Rien ne sortait plus personne d'une sèche — la pause à la maintenance**~~
+  ✅ **LIVRÉ le 2026-08-10** (décision fondateur, même `ENGINE_REV` 7 qu'E26).
+  🔴 **MIGRATION À JOUER** : `supabase/migrations/2026-08-10_profiles_deficit_weeks.sql`.
+
+  **Pourquoi.** E26 a retiré les planchers dérivés de la masse maigre au-dessus du seuil
+  d'adiposité, et avec eux l'escalade RED-S — la seule chose qui forçait une sortie de
+  déficit. Sans relève, on pouvait sécher indéfiniment. ⚠️ **Et le trou était plus vieux
+  que ça** : `effectiveEaPerKgFfm` n'escalade que pour `isFemaleAtRisk`. **Un HOMME n'a
+  jamais eu, à aucune adiposité, aucun mécanisme le sortant d'une sèche** — il pouvait
+  creuser trois ans. Invisible parce que le plancher le plafonnait à 0,3 kg/semaine.
+  *C'est un test EXISTANT qui l'a dit en rougissant* (« sa cible ne bouge pas d'un kcal
+  en 24 semaines » — vrai, et c'était précisément le défaut).
+
+  **Livré.** Après 8 semaines de déficit d'affilée, la 9ᵉ est servie à la maintenance.
+  Registre `deficit_weeks`, même forme que `low_ea_weeks` (donc aucune machinerie neuve)
+  mais prédicat CONSÉCUTIF et non cumulé. **Aucun champ « pause en cours »** : pendant la
+  pause le plan n'est pas un déficit, donc la semaine n'entre pas au registre, donc la
+  série repart de zéro — l'état est entièrement porté par le registre.
+
+  🔴 **UNE SEULE PROTECTION PAR PERSONNE (`dietBreakApplies`), appris en cassant.**
+  Livrée sans ce prédicat, la pause DÉSARMAIT l'escalade : pendant une pause le plan
+  n'est plus restrictif, `since` retombe à null, et l'escalade n'arrive jamais à son
+  terme. Trois tests rouges d'un coup, dont « la remontée annoncée vaut exactement la
+  hausse réelle » — la carte qui promet « ta cible montera de X par semaine jusqu'à la
+  semaine N » devenait fausse. **Un garde-fou qui désarme l'autre est pire que pas de
+  second garde-fou.** La pause va donc là où l'escalade ne peut rien : tout homme, et
+  quiconque au-dessus du seuil d'adiposité.
+
+  🔴 **LA PAUSE A DURÉ 2 SEMAINES PENDANT TOUTE LA PREMIÈRE VERSION.** Ni la relecture
+  ni la suite de tests ne l'ont vu — seule une trace semaine par semaine l'a montré.
+  `settleLowEaExposure` solde le temps écoulé depuis `since`, **semaine courante
+  comprise** : juste pour la zone basse, faux pour le déficit, où ça réinscrivait la
+  semaine de pause AVANT que le plan de pause soit calculé. Série = 9 la semaine
+  suivante, pause repartie pour un tour. Cadence réelle 8+2 quand tout le code et toute
+  la doc annonçaient 8+1. ➡️ `forgetCurrentWeek`, sur le SEUL registre de déficit.
+  *« Vérifier le résultat, pas la mécanique », littéralement.*
+
+  ⚠️ **La projection simule les pauses** (`WeeklyProjector.dietBreak`) : sinon la date
+  annoncée décrit une sèche sans pause quand le moteur en sert une toutes les 9 semaines
+  — **~11 %** d'écart, défaut A15/P1.6 rejoué. ⚠️ **Et une pause n'est pas un ARRÊT** :
+  à la maintenance le rythme vaut ~0, le test « à l'arrêt » du simulateur renvoyait
+  `Infinity` (« aucune date ») pour une semaine PRÉVUE sur une sèche saine.
+
+  ➡️ **Question ouverte** : l'escalade RED-S est décrite ici même comme déroutante (« ses
+  calories augmentent toutes les semaines : l'app dérive »), au point d'avoir exigé une
+  carte d'explication. La pause est probablement le meilleur mécanisme pour tout le
+  monde. **La substituer est une décision de sécurité à part entière**, pas un effet de
+  bord de ce chantier.
+
+  ✅ Garde-fous : `lib/__tests__/pauseMaintenance.test.ts` (15 tests), **vérifiés par
+  2 mutations** (retrait de `forgetCurrentWeek` → 2 rouges ; pause désactivée dans la
+  projection → 1 rouge). Carte d'explication sur le Profil (ton §10 : la pause est un
+  acquis, la fin est annoncée dès la première phrase, aucun bouton — il n'y a rien à faire).
+
 - ~~**E26 · Le plancher d'énergie disponible plafonnait TOUT LE MONDE à 0,3 kg/semaine**~~
   ✅ **LIVRÉ le 2026-08-10** (décision fondateur), `ENGINE_REV` 6 → 7.
 
@@ -3610,8 +3664,7 @@ produit en suspens — il ne reste qu'à coder.
   consommer** (`countsAsLowEaWeek`) — sans ça il reviendrait **déjà épuisé** le jour où
   la personne repasse sous le seuil et la sortirait du déficit au moment où sa sèche
   redevient ordinaire, sans qu'aucun geste de sa part ne l'explique. Défaut dormant type.
-  ➡️ Une **pause à la maintenance toutes les 6–8 semaines** reste à concevoir : elle
-  n'existe pas, et c'est ce qui remplacerait la protection retirée.
+  ✅ **La relève est LIVRÉE le même jour — voir E27 juste au-dessus.**
 
   ⚠️ **Le %MG GELÉ, corrigé à moitié — et la moitié laissée l'est pour une raison
   mesurée.** `maxWeeklyLossPct` lit le %MG, qui ne bouge que si la personne le ressaisit :

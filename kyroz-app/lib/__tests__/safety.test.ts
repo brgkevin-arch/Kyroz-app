@@ -267,10 +267,18 @@ describe('P0.1 — plancher d\'énergie disponible', () => {
       body_fat_pct: 45, body_fat_source: 'measured', goal: 'cut', macro_mode: 'auto',
       low_ea_weeks: [], sports: [], training_days_per_week: 0,
     });
-    for (let w = 0; w < 30; w++) p = recalcProfile(p, addDaysStamp(TODAY, 7 * w));
+    const cibles: { cible: number; tdee: number }[] = [];
+    for (let w = 0; w < 30; w++) {
+      p = recalcProfile(p, addDaysStamp(TODAY, 7 * w));
+      cibles.push({ cible: p.target_kcal, tdee: p.tdee_kcal });
+    }
     expect(lowEaWeeksInWindow(p.low_ea_weeks, addDaysStamp(TODAY, 7 * 29))).toBe(0);
-    // Et elle sèche toujours au bout de 30 semaines — c'est le but.
-    expect(p.target_kcal).toBeLessThan(p.tdee_kcal);
+    // ⚠️ Et elle sèche toujours au bout de 30 semaines — mais on ne peut PAS le lire
+    // sur la dernière semaine seule : depuis la pause à la maintenance, une semaine sur
+    // neuf est servie à la maintenance, et tomber dessus ferait rougir ce test une fois
+    // sur neuf selon la date d'ancrage. On compte donc sur toute la série.
+    const enDeficit = cibles.filter((c) => c.cible < c.tdee).length;
+    expect(enDeficit).toBeGreaterThan(cibles.length * 0.8);
   });
 
   it('RÉGRESSION : une semaine devenue « future » n\'est plus détruite du registre', () => {
@@ -1010,6 +1018,7 @@ describe('trace du clamp — quel plancher a gagné, et de combien (2026-07-31)'
       energy_availability: 2112,      // 30 × 64 kg de masse maigre + 192 de sport
       min_kcal: 1200,
       deficit_cap: 1853,              // 75 % du TDEE (2470 depuis le relèvement NEAT)
+      diet_break: 0,                  // 1ʳᵉ semaine de déficit — la série n'a rien à casser
       underweight_maintenance: 0,
     });
     // Le gagnant EST le max des candidats — la trace ne peut pas désigner un perdant.
