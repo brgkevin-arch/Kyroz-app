@@ -3579,6 +3579,112 @@ produit en suspens — il ne reste qu'à coder.
 
 ### 🧹 E — Dette technique
 
+- 🤖 **E26 · Le MOUVEMENT est le seul axe de DA sans règle ni garde-fou (2026-08-10)**
+
+  Quatre axes de la DA ont reçu un rôle, un token et un test : la forme (`rayonsDA`),
+  le texte (`typoDA`), le blanc (`espacementDA`), les finitions (`finitionsDA`). Le
+  cinquième — **ce qui bouge et ce qui se sent** — n'a **rien** : ni token de durée, ni
+  token de courbe, ni test. Il a donc dérivé exactement comme les quatre autres avant
+  leur passe, et pour la même raison : rien ne l'obligeait.
+
+  🔴 **L'ARBITRAGE EST TRANCHÉ : C'EST DE L'OTA, PAS UN BUILD — et le brief qui a ouvert
+  ce chantier se trompait sur ce point.** Il annonçait quatre dépendances natives
+  absentes « même en transitif », donc un build et une coupure de la ligne OTA (§2).
+  Mesuré le 2026-08-10, c'est faux pour les deux qui portent tout le travail :
+
+  | | déclarée | dans `node_modules` | dans le binaire livré |
+  |---|---|---|---|
+  | `react-native-reanimated` **4.4.1** | non | **oui**, via `expo-router` | **oui** — `ios/Podfile.lock` |
+  | `react-native-gesture-handler` **3.0.2** | non | **oui**, via `expo-router` | **oui** — `ios/Podfile.lock` |
+  | `react-native-worklets` **0.9.2** | non | **oui** | oui |
+  | `expo-haptics` | non | **non** | **non** |
+  | `expo-blur` | non | **non** | **non** |
+
+  La chaîne de preuve, chaque maillon mesuré : `expo-router` (dépendance DIRECTE) tire
+  les trois · `ios/` est **gitignoré**, donc EAS refait un prebuild depuis
+  `node_modules`, donc l'autolink les embarque · `ios/Podfile.lock` porte bien
+  `RNReanimated (4.4.1)` et `RNGestureHandler (3.0.2)` · et le **lock du commit de la
+  soumission de revue** (`0f54ee7`, 2026-08-03) les contenait déjà tous les trois.
+  ➡️ **Le binaire 1.0.0 (3) que les testeurs ont sur leur téléphone contient déjà le
+  natif.** S'en servir depuis le JS n'ajoute aucun natif, donc **ne coûte ni build ni
+  revue** : `runtimeVersion` reste `1.0.0`, l'update atterrit sur le binaire existant.
+
+  Et le socle est là, entier, sans une ligne de configuration à écrire :
+  - **Nouvelle architecture ACTIVE** (`RCT_NEW_ARCH_ENABLED=1`, RN 0.85.3) — c'est
+    l'exigence dure de Reanimated 4, elle est satisfaite ;
+  - **`babel-preset-expo` ajoute le plugin worklets tout seul** dès que
+    `react-native-worklets` se résout (`configs/expo.js:109`) — d'où l'absence de
+    `babel.config.js`, qui n'est pas un manque ;
+  - `SpringConfig` expose **exactement le modèle Apple** : `dampingRatio` + `duration`
+    (= amortissement + réponse), plus `velocity` — les trois paramètres dont le chantier
+    a besoin, sans conversion ;
+  - `reduceMotion` vaut **`ReduceMotion.System` par défaut** : migrer vers `withSpring`
+    fait respecter « Réduire les animations » **gratuitement**.
+
+  ⚠️ **Ce qui reste vraiment natif, et attend donc le build 1.0.0 (4) déjà prévu** :
+  `expo-haptics` (le retour au doigt) et `expo-blur` (le flou de la barre compacte, déjà
+  écarté une fois pour ce motif exact — `CollapsingTitle.tsx:25`). Ni l'un ni l'autre ne
+  bloque le reste : ils s'agrafent au train quand il part.
+
+  ⚠️ **Le coût à mesurer AVANT de pousser, et il n'est pas nul** : importer Reanimated
+  depuis nos écrans le fait entrer dans le **bundle web**, qui aujourd'hui ne le contient
+  pas (aucun de nos fichiers ne l'importe). Même piège que `react-native-purchases`
+  (+900 Ko, §11) : un import statique embarque, une garde à l'exécution ne retire rien.
+  ➡️ Mesurer sur l'artefact (`npm run build:web`), pas sur l'intention, et prévoir une
+  **séparation de plateforme** (`.web.ts`) si le poids ne passe pas.
+
+  **L'audit, priorisé par levier (impact ÷ effort).** Périmètre re-compté le 2026-08-10 :
+  **7 fichiers sur 55** animent quoi que ce soit ; 16 `Animated.timing`, 8
+  `Animated.spring`, 0 `LayoutAnimation`.
+
+  | # | Gravité | Où | Le défaut, mesuré |
+  |---|---|---|---|
+  | 1 | 🔴 | `Sheet.tsx:111` · `ActionSheet.tsx:88` | **La vitesse du doigt est lue puis JETÉE.** `g.vy > 0.4` décide *si* on ferme ; la sortie qui suit dure **240 / 200 ms fixes**, qu'on ait effleuré ou balancé la feuille. C'est l'écart Apple le plus visible — chez Apple le mouvement HÉRITE de la vitesse (`withSpring(…, { velocity })`) |
+  | 2 | 🔴 | 12 des 16 `Animated.timing` | **Aucune courbe n'est déclarée**, donc RN applique `easeInOut` (`TimingAnimation.js:77`, vérifié). Toute entrée et toute sortie de feuille **démarre lentement** — la moitié d'une courbe `ease-in`, que le catalogue classe « toujours un défaut » sur de l'UI. Il faut `ease-out` |
+  | 3 | 🔴 | partout | **« Réduire les animations » est ignoré** — `AccessibilityInfo` : **0 fichier**. Réglage d'accessibilité iOS, et Apple le teste. Le pire cas est le confetti de `BirthdayCelebration` (**2 200 ms**, 12 éléments décalés) |
+  | 4 | 🟠 | 125 emplois d'`OPACITE_PRESSION` | **Un bouton pâlit, il ne s'enfonce pas.** Seul retour à l'appui : opacité 0,7. Apple attend `scale(0.97)` sur l'appui, en 100–160 ms. ⚠️ 127 `<TouchableOpacity>` contre 10 `<Pressable>` — et c'est `Pressable` qui donne l'état pressé |
+  | 5 | 🟠 | `Sheet.tsx:109` · `ActionSheet.tsx:86` | **Aucun caoutchouc.** `if (g.dy > 0)` : tirer une feuille vers le HAUT ne fait rien. Elle est morte au doigt au lieu de résister progressivement |
+  | 6 | 🟠 | `Sheet.tsx:64-68` | **L'ouverture n'est pas interruptible.** `ty.setValue(screenH)` puis un `timing` : saisir une feuille pendant qu'elle monte produit un saut. Un ressort part de la valeur COURANTE, c'est tout l'intérêt |
+  | 7 | 🟠 | 5 fichiers | **Aucun token de mouvement.** 7 durées distinctes écrites à la main (200 · 220 · 240 · 260 · 300 · 500 · 550) et **zéro** entrée « durée » ou « courbe » dans `theme.ts`. C'est le défaut de `rayonsDA` avant sa passe, rejoué |
+  | 8 | 🟡 | `Sheet.tsx:148-153` | `scrollEventThrottle: 16` + `ty.setValue()` fait passer **chaque frame** de défilement par le pont JS. `useAnimatedScrollHandler` fait le même travail sur le fil UI |
+
+  ⚠️ **Les 8 ressorts existants ne sont pas 8 décisions** : 3 « pop » d'entrée sur les
+  célébrations (`bounciness` 7 / 9 / 10, légitimes — moment rare, budget de plaisir
+  autorisé) et **5 fois exactement le même rattrapage** (`toValue: 0, bounciness: 2`)
+  qui remonte une feuille quand le glissement n'a pas suffi. **Aucun ressort ne pilote
+  une ouverture ni une fermeture.**
+
+  🚫 **Ce que ce chantier ne fait PAS.** Les 53 fichiers muets **restent muets** :
+  animer parce que ça n'anime pas est le contraire du geste. La retenue est la règle, et
+  les 4 seules occasions repérées valent d'être écrites — l'appui (#4, qui les couvre
+  toutes), la feuille (#1/#5/#6), la bascule du titre compact (déjà faite, 160 ms, et
+  documentée comme délibérée : ne pas y toucher), et rien d'autre. Ne pas non plus
+  rouvrir couleur / rayon / typo / espacement : c'est fait et verrouillé par 6 tests.
+
+  🔴 **LES TROIS PIÈGES DE VÉRIFICATION TOMBENT TOUS LES TROIS SUR CE CHANTIER**, et ils
+  sont déjà payés ailleurs dans ce fichier :
+  1. **Un geste ne se vérifie pas dans le navigateur** (§5). Le glissement des feuilles
+     était mort en natif **depuis le commit initial** et le web l'a caché des mois.
+  2. **`requestAnimationFrame` ne tourne pas dans le panneau navigateur** — 0 frame en
+     7,2 s, mesuré. Une animation s'y fige à une valeur intermédiaire **plausible**, et
+     on part corriger du code sain. Un chantier d'animation vérifié là ne prouve **rien**.
+  3. **Depuis un worktree, le preview sert l'app du dépôt PRINCIPAL** (§11).
+  ➡️ Simulateur (`npx expo run:ios`, capture par `xcrun simctl io booted screenshot`), et
+  **sortir chaque décision en fonction PURE testée** — comme `lib/collapsingTitle.ts` et
+  `lib/accentColor.ts`. C'est le seul mouvement vérifiable sans simulateur. Et **dire dans
+  la PR ce qui n'a pas été vu à l'écran**.
+
+  ⚠️ **Le garde-fou de sortie sera un test, pas un paragraphe** — c'est la leçon de la
+  passe émoji, qui s'est déclarée finie trois fois avant de l'être. À compter : aucune
+  durée de mouvement en dur, aucune `Animated.timing` sans courbe explicite, et
+  `feuilles.test.ts` (3 cas) étendu à la vitesse héritée.
+
+  ⚠️ *Les deux chiffres du brief d'ouverture qui étaient faux, notés pour qu'on ne les
+  recopie pas : « 288 `TouchableOpacity` » comptait les **occurrences** (import + balise
+  ouvrante + fermante = 284 aujourd'hui), pas les **instances** — il y en a **127**. Et
+  « 7 fichiers sur 60 » : le périmètre `app/` + `components/` en compte **55**. Même
+  famille que l'inventaire émoji juste sur le mauvais périmètre (§8).*
+
 - ~~**E25 · Le Profil était une section fourre-tout**~~ ✅ **LIVRÉ le 2026-08-10.**
   *Décision fondateur du 2026-08-09 : « j'aimerais que le profil soit qu'avec les
   préférences et données de l'user, suivi du poids etc, et avec une petite roue dentée
