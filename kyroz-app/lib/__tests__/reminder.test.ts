@@ -5,7 +5,7 @@ import {
   CITATIONS, REMINDER_PRESETS, REMINDER_PRESET_IDS, REMINDER_TITLES, WEIGH_IN_MESSAGES,
   ReminderPeriod, clampReminderTime, dayIndex, formatCitation, formatReminderTime,
   nextReminderAt, parseReminder, periodOf, pickCitation, pickReminderCopy, pickWeighInCopy,
-  presetOf, serializeReminder,
+  presetOf, serializeReminder, intentFromData,
 } from '../reminder';
 
 // ── Ce que ce fichier tient fermé ───────────────────────────────────────────
@@ -363,5 +363,65 @@ describe('le rappel se ré-arme au DÉMARRAGE, pas en visitant un onglet', () =>
     expect(body).toContain('getPermissionsAsync()'); // il la RELIT…
     expect(body).not.toContain('requestPermissionsAsync'); // …il ne la DEMANDE pas
     expect(body).not.toContain('ensurePermission');
+  });
+
+  // ── Le tap conduit à l'écran demandé ──────────────────────────────────────
+  //
+  // Même angle mort que ci-dessus : rien de ceci ne se voit dans un diff ni dans
+  // le navigateur. Ce qui se tient, c'est le CÂBLAGE — que la réponse au tap soit
+  // lue, qu'elle le soit sur les DEUX chemins, et que l'écran qui sait ouvrir la
+  // feuille de pesée la consomme.
+  it('le layout racine écoute les taps et emmène sur le Plan', () => {
+    const src = lire('app/_layout.tsx');
+    expect(src).toMatch(/subscribeNotificationTaps\(/);
+    expect(src).toMatch(/poserNotificationIntent\(/);
+    expect(src).toMatch(/router\.navigate\(/);
+  });
+
+  it('les DEUX chemins sont câblés — le démarrage à froid en fait partie', () => {
+    const body = corps(lire('lib/notifications.ts'), 'export function subscribeNotificationTaps');
+    // L'écouteur seul rate le tap qui a LANCÉ l'app : il n'existait pas encore.
+    expect(body).toContain('addNotificationResponseReceivedListener');
+    expect(body).toContain('getLastNotificationResponseAsync');
+    // …et la dernière réponse survit au redémarrage : sans mémoire, la feuille
+    // de pesée se rouvrirait à chaque lancement, pour toujours.
+    //
+    // ⚠️ **Les DEUX moitiés, et c'est une mutation qui l'a exigé.** La première
+    // version se contentait de trouver `DERNIER_TAP_KEY` quelque part dans le
+    // corps : retirer l'ÉCRITURE la laissait verte, puisque la LECTURE mentionne
+    // la même clé — le garde-fou aurait laissé passer exactement le défaut qu'il
+    // existe pour fermer.
+    expect(body).toContain('setItem(DERNIER_TAP_KEY');
+    expect(body).toContain('getItem(DERNIER_TAP_KEY');
+  });
+
+  it('les deux rappels se DÉCLARENT dans leur charge utile', () => {
+    const src = lire('lib/notifications.ts');
+    expect(src).toContain("data: { kind: 'daily' }");
+    expect(src).toContain("data: { kind: 'weigh' }");
+  });
+
+  it('l’écran Plan consomme l’intention (sinon la feuille se rouvre sans raison)', () => {
+    const src = lire('app/(tabs)/plan.tsx');
+    expect(src).toMatch(/useNotificationIntent\(\)/);
+    expect(src).toMatch(/consommerNotificationIntent\(\)/);
+  });
+});
+
+// ── Une notification demande un geste : elle doit y conduire ────────────────
+describe('intentFromData — où mène le tap', () => {
+  it('le rappel de pesée ouvre la pesée, le quotidien ouvre le plan', () => {
+    expect(intentFromData({ kind: 'weigh' })).toBe('weigh-in');
+    expect(intentFromData({ kind: 'daily' })).toBe('plan');
+  });
+
+  // 🔴 Une notification programmée AVANT ce chantier n'a aucune donnée, et le
+  // système la garde en attente : elle sera touchée par le code d'AUJOURD'HUI.
+  // Un `null` la rendrait inerte — c'est le défaut qu'on corrige, rejoué sur le
+  // parc existant.
+  it('une notification sans marque reste ouvrable — repli sur le plan', () => {
+    for (const inconnu of [undefined, null, {}, { kind: 'zzz' }, 'texte', 42]) {
+      expect(intentFromData(inconnu)).toBe('plan');
+    }
   });
 });

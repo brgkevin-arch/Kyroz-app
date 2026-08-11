@@ -198,6 +198,42 @@ export function formatCitation(c: Citation): string {
   return c.auteur ? `${c.texte} — ${c.auteur}` : c.texte;
 }
 
+// ── Une notification demande un GESTE : elle doit y conduire ──────────────────
+//
+// 🔴 Elle n'y conduisait pas. Le rappel de pesée dit « Note ton poids : trente
+// secondes », et le toucher déposait l'utilisateur là où l'app était restée —
+// l'onglet Recettes, la liste de courses, une feuille de réglages ouverte. Le
+// dépôt ne portait AUCUN `addNotificationResponseReceivedListener` : la réponse
+// au tap n'était lue nulle part.
+//
+// La contrainte de CLAUDE.md §4 (« friction décroissante ») ne parle pas d'autre
+// chose : une notification qui réclame trente secondes ne peut pas commencer par
+// faire chercher son écran.
+//
+// ⚠️ **Ce marqueur voyage dans la notification, donc il SURVIT aux mises à jour**
+// — une notification programmée hier est lue par le code d'aujourd'hui. D'où un
+// repli explicite plutôt qu'un `switch` exhaustif : une notification programmée
+// AVANT ce chantier n'a aucune donnée, et elle doit rester ouvrable.
+
+/** Ce que porte une notification pour qu'on sache où l'ouvrir. */
+export type NotifKind = 'daily' | 'weigh';
+
+/** Là où le tap doit conduire. */
+export type NotificationIntent = 'plan' | 'weigh-in';
+
+/**
+ * L'écran que le tap doit ouvrir, lu sur la charge utile de la notification.
+ *
+ * ⚠️ Repli sur `'plan'` — jamais `null`. Un tap qui ne mène nulle part est le
+ * défaut qu'on corrige ; une notification inconnue (programmée par une version
+ * antérieure, ou par une version future installée puis rétrogradée) doit au pire
+ * ouvrir le plan, qui est la destination utile des deux rappels existants.
+ */
+export function intentFromData(data: unknown): NotificationIntent {
+  const kind = (data as { kind?: unknown } | null | undefined)?.kind;
+  return kind === 'weigh' ? 'weigh-in' : 'plan';
+}
+
 export const WEIGH_IN_MESSAGES: ReminderCopy[] = [
   { title: 'Ta pesée du jour', body: 'Note ton poids : Kyroz réajuste tes calories et ton plan tout seul.' },
   { title: 'Un chiffre, rien de plus', body: 'La pesée sert à caler ton plan, pas à te juger.' },
