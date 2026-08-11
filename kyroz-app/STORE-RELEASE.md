@@ -147,9 +147,34 @@ Sans ces deux comptes, rien ne peut être soumis. Le reste (§2–7) peut se pr�
 > (nom d'affichage + description localisés FR sur chaque abonnement), pour que la
 > question ne se pose pas. Seule la capture de review dépend vraiment du build.
 >
-> ⚠️ **À surveiller** : la conformité **DSA** était « En cours de vérification ».
-> Tant qu'elle n'est pas validée, **aucune distribution dans l'UE** — donc pas en
-> France. Ça bloque la publication, pas seulement les abonnements.
+> ✅ **Conformité DSA : VALIDÉE** — *App Store Connect → Business → Conformité :*
+> « La législation sur les services numériques · **27 pays ou régions** · Active »,
+> mise à jour le **30 juillet 2026**. Vérifié sur capture le 2026-08-11.
+>
+> 🔴 **CETTE LIGNE A ANNONCÉ UN BLOCAGE INEXISTANT PENDANT DOUZE JOURS.** Elle disait
+> « était En cours de vérification · tant qu'elle n'est pas validée, aucune
+> distribution dans l'UE, donc pas en France ». C'était vrai le jour où ça a été
+> écrit ; ça a cessé de l'être le 30 juillet, et **personne n'est allé regarder**.
+> Le coût n'est pas nul : ce point a été présenté au fondateur comme *le* chemin
+> critique — au-dessus du build — alors qu'il était réglé. Une fiche qui annonce un
+> obstacle fait renoncer aussi sûrement qu'un obstacle réel. ➡️ **Un état qui dépend
+> d'un TIERS (Apple, une banque, un registre) ne se recopie pas : il se relit.** Et
+> le « était » d'une phrase est le signe qu'elle a déjà cessé d'être une mesure.
+> Même famille que [prémisse jamais re-mesurée] : la question n'est pas « qu'est-ce
+> qui bloque ? » mais « est-ce que ça bloque **encore** ? ».
+>
+> ✅ **Et les autres prérequis administratifs sont réunis** (même capture) :
+> contrat applications **gratuites** Actif · contrat applications **payantes** Actif
+> (30 juil. 2026 → 29 juil. 2027) · compte bancaire Actif · formulaires fiscaux
+> (W-8BEN + Certificate of Foreign Status) Actifs · 175 pays ou régions.
+> ➡️ **Plus aucun verrou administratif** entre le binaire et la soumission.
+>
+> ⚠️ **Ce que la DSA implique et qui n'est pas réversible** : les coordonnées
+> déclarées au titre du statut « trader » sont **publiées sur la fiche App Store**.
+> C'est le but du texte — que l'acheteur sache à qui il achète. Pour un fondateur
+> solo qui déclare une adresse personnelle, c'est une donnée publique de plus ; une
+> adresse de domiciliation est le contournement habituel, et il se décide **avant**
+> de remplir le formulaire, pas après.
 >
 > ℹ️ Redevances en **USD** sur un compte bancaire en **EUR** (Revolut Bank UAB) :
 > chaque versement subira une conversion. Changer la devise exige un autre compte →
