@@ -227,7 +227,7 @@ export default function LoginScreen() {
                 {consent && <Ionicons name="checkmark" size={Icone.petite} color={t.onAccent} />}
               </View>
               <Text style={s.consentTxt}>
-                J'accepte que mes données (poids, objectif, régime) — des <Text style={{ fontWeight: '700', color: t.textSecondary }}>données de santé</Text> — soient traitées pour générer mes plans. Stockage en Europe, supprimables à tout moment.
+                J'accepte que mes données (poids, taille, composition corporelle, objectif, régime) — des <Text style={{ fontWeight: '700', color: t.textSecondary }}>données de santé</Text> — soient traitées pour générer mes plans. Stockage en Europe, supprimables à tout moment.
               </Text>
             </Presse>
           )}

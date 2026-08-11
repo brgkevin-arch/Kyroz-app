@@ -1,38 +1,41 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// ── Dépistage santé BLOQUANT à l'onboarding (CLAUDE.md §6 — hard block dans le code) ──
-// Kyroz est réservé aux adultes en bonne santé. Grossesse/allaitement et pathologies
-// chroniques sont EXCLUS (un plan macro auto-généré ne peut pas s'y substituer). Le
-// blocage vit ici (logique pure + persistance, testé), dans components/HealthScreening.tsx
-// (l'écran-portail) et app/(auth)/onboarding.tsx (qui affiche le portail avant l'assistant).
-// Le hard block d'âge (lib/safety.ts::MIN_AGE, relevé à 18 ans le 2026-07-28) et
-// « < MIN_KCAL » restent, eux, dans lib/tdee.ts (validateProfile).
+// ── Avertissement santé à l'entrée (CLAUDE.md §6) ────────────────────────────
+//
+// 🔴 CE MODULE NE POSE PLUS AUCUNE QUESTION — changement du 2026-08-11, décision
+// fondateur sur avis juridique (AGENTS.md E39). Il portait un DÉPISTAGE bloquant :
+// deux questions (grossesse/allaitement, pathologie chronique suivie) dont un « oui »
+// menait à un cul-de-sac. Deux motifs l'ont fait tomber, et le second est le vrai :
+//   1. subordonner l'accès à un service à la grossesse ou à l'état de santé tombe
+//      sous les critères de discrimination du code pénal (art. 225-1 / 225-2) ;
+//   2. la réponse elle-même est une donnée de santé (RGPD art. 9), et AUCUN texte —
+//      ni Apple, ni Google, ni le règlement dispositifs médicaux — n'exige de la
+//      recueillir. On la traitait donc sans obligation qui la justifie.
+//
+// ⚠️ CE QUI RESTE, ET CE N'EST PAS UN RESTE : l'avertissement. Apple (1.4.1) et Google
+// exigent le renvoi vers un professionnel de santé ; il est désormais DIT au lieu
+// d'être VÉRIFIÉ. C'est la seule chose que le portail apportait vraiment — un « non »
+// déclaré n'a jamais rien prouvé de personne.
+//
+// ⚠️ Les hard blocks qui subsistent vivent ailleurs et ne sont PAS touchés : l'âge
+// (lib/safety.ts::MIN_AGE, 18 ans), l'IMC de départ, le volume d'entraînement, et tous
+// les planchers caloriques du moteur (lib/safety.ts, lib/tdee.ts). Ce sont eux la
+// défense de fond, et ils ne demandent rien à personne : ils MESURENT.
 
 export const SCREENING_KEY = '@kyroz:healthScreening';
 
-// Version des critères : l'incrémenter si les situations dépistées changent → re-dépistage
-// forcé des utilisateurs ayant validé une version antérieure.
+// Version de l'avertissement : l'incrémenter le fait RÉAPPARAÎTRE à qui l'a déjà vu.
+//
+// ⚠️ Volontairement laissée à 1 en passant du dépistage à l'avertissement. Ceux qui ont
+// franchi l'ancien portail ont vu un texte PLUS strict que celui-ci (ils ont dû attester
+// être des adultes en bonne santé) : leur re-montrer un avertissement plus léger ne leur
+// apprendrait rien. Une bascule de version se paie par un écran de plus pour tout le
+// monde ; elle se réserve à un avertissement dont le CONTENU change.
 export const SCREENING_VERSION = 1;
-
-// Situations médicales incompatibles avec un plan Kyroz.
-export interface ScreeningFlags {
-  pregnant_or_breastfeeding: boolean; // grossesse ou allaitement
-  chronic_condition: boolean;         // diabète, maladie rénale/cardiaque, TCA, autre pathologie chronique suivie
-}
-
-export const EMPTY_FLAGS: ScreeningFlags = {
-  pregnant_or_breastfeeding: false,
-  chronic_condition: false,
-};
-
-// Bloqué dès qu'UNE situation à risque est déclarée.
-export function screeningBlocked(flags: ScreeningFlags): boolean {
-  return Object.values(flags).some(Boolean);
-}
 
 export interface ScreeningRecord { passedAt: string; version: number }
 
-// L'utilisateur a-t-il déjà passé le dépistage (version courante) ? → ne pas le remontrer.
+// L'avertissement a-t-il déjà été vu (version courante) ? → ne pas le remontrer.
 export async function hasPassedScreening(): Promise<boolean> {
   try {
     const raw = await AsyncStorage.getItem(SCREENING_KEY);
@@ -42,7 +45,14 @@ export async function hasPassedScreening(): Promise<boolean> {
   } catch { return false; }
 }
 
-// Enregistre l'attestation (adulte en bonne santé, aucune situation à risque), horodatée.
+// Enregistre que l'avertissement a été lu, horodaté.
+//
+// ⚠️ C'est la SEULE chose que ce module écrit, et c'est déjà ce qu'il écrivait avant :
+// un instant et un numéro de version. Les réponses aux deux questions ne quittaient
+// jamais l'état de l'écran — ni AsyncStorage, ni Supabase, ni PROFILE_COLS. Il n'y a
+// donc AUCUNE donnée de santé à effacer chez les comptes existants, et ce commentaire
+// est là pour qu'on ne reparte pas en chercher.
+//
 // `passedAt` = instant (toISOString OK : c'est un timestamp, pas une date-calendrier —
 // cf. le piège localStamp de lib/weight.ts qui ne concerne QUE les jours).
 export async function recordScreeningPassed(now: Date = new Date()): Promise<void> {
