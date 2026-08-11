@@ -9,6 +9,7 @@ import {
   vitesseDepuisPan, caoutchouc, decisionFeuille,
 } from '../lib/motion';
 import { useReduceMotion, reduceMotionActif } from '../lib/reduceMotion';
+import { retour } from '../lib/retourHaptique';
 
 interface Props {
   visible: boolean;
@@ -146,6 +147,9 @@ export function ActionSheet({ visible, onClose, children }: Props) {
         const v = vitesseDepuisPan(g.vy);
         if (decisionFeuille(Math.max(0, g.dy), v, SEUIL_HAUTEUR) === 'fermer') {
           vitesseSortie.current = v;
+          // Même déclic que dans `Sheet.tsx`, et pour la même raison : le seuil
+          // est franchi avant que la feuille ne bouge.
+          retour('declic');
           onClose();
         } else {
           Animated.spring(ty, {

@@ -483,6 +483,13 @@ export default function CoursesScreen() {
                 !last && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.line },
               ]}
               onPress={() => toggle(item)}
+              // Le geste le plus RÉPÉTÉ de l'app : on coche une trentaine
+              // d'articles d'affilée, en magasin, souvent sans regarder l'écran.
+              // D'où `choix` et non `validation` : `selectionAsync` est le tic
+              // léger du sélecteur iOS, celui qu'on peut sentir trente fois de
+              // suite. Un retour de succès à chaque ligne serait épuisant — c'est
+              // la même raison qui interdit un retour par défaut sur `Presse`.
+              retour="choix"
               // ⚠️ `onLongPress`, PAS un balayage : un glissement passe par le
               // système de responder et se vérifie au simulateur uniquement (§5,
               // « un GESTE ne se vérifie pas en web »). L'appui long, lui, n'est

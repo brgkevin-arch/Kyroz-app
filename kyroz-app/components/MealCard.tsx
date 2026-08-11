@@ -149,6 +149,10 @@ function CookButton({ t, onCook, lacks, cookRef }: { t: ThemePalette; onCook: ()
     <Presse
       ref={cookRef}
       onPress={onCook}
+      // Le geste central de l'app : cocher un repas, c'est ce que Kyroz existe
+      // pour faire arriver. S'il ne devait y avoir qu'un seul retour au toucher
+      // dans toute l'app, ce serait celui-là.
+      retour="validation"
       activeOpacity={OPACITE_PRESSION}
       style={[
         styles.cookBtn,
