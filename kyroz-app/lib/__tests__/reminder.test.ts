@@ -189,20 +189,36 @@ describe('les citations — ce qui porte un nom doit le mériter', () => {
     expect(suites).toEqual([]);
   });
 
-  it('le couple titre + citation ne se répète pas avant un mois', () => {
+  it('le couple titre + citation tient son cycle ENTIER — titres × citations', () => {
     // ⚠️ Ce test tient une propriété ARITHMÉTIQUE, pas une liste : le cycle vaut
     // le produit des deux compteurs seulement s'ils sont PREMIERS ENTRE EUX.
     // Il a rougi pour de vrai en retirant une citation (16 → 15, avec 3 titres) :
     // le cycle est tombé de 48 à 15 jours, alors que rien dans le diff ne parlait
     // de variété. Ajouter ou retirer une citation peut donc coûter deux tiers de
     // la rotation — c'est ce test qui le dira, personne ne le verrait à la relecture.
+    //
+    // 🔴 **IL NE COMPTAIT QUE 30 JOURS, ET ÇA NE SUFFISAIT PLUS.** À 15 citations,
+    // 30 jours dépassaient le cycle, donc le défaut de parité tombait dedans. En
+    // passant à 45 (2026-08-11), une 46ᵉ citation ferait chuter le cycle de 180 à
+    // 92 jours — et l'ancien test, qui s'arrêtait à 30, serait resté VERT. Le
+    // garde-fou qui avait désigné la régression cessait de la voir en grandissant.
+    // ➡️ On exige désormais le cycle ENTIER : `4 × citations` jours tous distincts.
+    // Toute quantité PAIRE de citations le fait rougir, quelle que soit sa taille.
+    const attendu = REMINDER_TITLES.matin.length * CITATIONS.length;
     const vus = new Set<string>();
     const heure = { hour: 8, minute: 0 };
-    for (let j = 0; j < 30; j++) {
+    for (let j = 0; j < attendu; j++) {
       const m = pickReminderCopy(heure, j);
       vus.add(`${m.title}|${m.body}`);
     }
-    expect(vus.size).toBe(30);
+    expect(vus.size, `cycle réel sur ${attendu} jours`).toBe(attendu);
+  });
+
+  // Le lot du 2026-08-11 a fait passer le recueil de 15 à 45. Ce cas ne fige pas
+  // un chiffre — il tient le fait qu'un recueil MAIGRE se remarque : en dessous,
+  // la même phrase revient dans le même trimestre.
+  it('le recueil couvre plus d’un trimestre', () => {
+    expect(REMINDER_TITLES.matin.length * CITATIONS.length).toBeGreaterThanOrEqual(120);
   });
 });
 

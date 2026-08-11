@@ -136,9 +136,16 @@ export function periodOf(time: ReminderTime): ReminderPeriod {
 // tourne au rythme du plus petit dénominateur commun et non de leur produit.
 // Mesuré : retirer UNE citation (16 → 15) avec 3 titres a fait tomber le cycle
 // de 48 à 15 jours — un tiers de la variété perdu par une suppression qui n'avait
-// rien à voir. 4 titres et 15 citations sont premiers entre eux → **60 jours**.
+// rien à voir. 4 titres et **45 citations** sont premiers entre eux → **180 jours**.
 // Le test « le couple ne se répète pas avant un mois » tient cette propriété :
 // c'est lui qui a désigné la régression, pas une relecture.
+//
+// 🔴 **C'EST LA PARITÉ QUI COMPTE, PAS LA TAILLE.** 4 titres se divisent par 2 et
+// par 4 : toute quantité PAIRE de citations écroule le cycle de moitié ou des
+// trois quarts. Passer de 15 à 44 aurait rendu 44 jours au lieu de 180 — donc
+// TROIS FOIS MOINS de variété en ajoutant vingt-neuf citations. Le nombre de
+// citations doit rester **impair**, et c'est la seule contrainte qui ne se voit
+// pas en lisant la liste.
 export const REMINDER_TITLES: Record<ReminderPeriod, string[]> = {
   matin: ['Ta journée commence', 'Le plan du jour est prêt', 'On y va', 'Un coup d’œil et c’est parti'],
   midi: ['C’est l’heure de manger', 'Pause déjeuner', 'Ton déjeuner t’attend', 'Ton midi est déjà prévu'],
@@ -160,19 +167,34 @@ export interface Citation {
 // sont pas ici. Un auteur faux est un mensonge affiché, au même titre qu'un
 // chiffre faux (cf. la règle « pas de mensonge » de CLAUDE.md).
 //
-// Ce qui porte un auteur ci-dessous est du domaine public et sourcé :
-// Sénèque (Lettres à Lucilius), Ovide (Pontiques), Marc Aurèle (Pensées),
-// Épictète (Manuel), Lao Tseu (Tao Te King 64). Le reste n'a PAS d'auteur —
+// Ce qui porte un auteur ci-dessous est du domaine public : Sénèque (Lettres à
+// Lucilius), Ovide (Pontiques, L'Art d'aimer), Marc Aurèle (Pensées), Épictète
+// (Manuel), Lao Tseu (Tao Te King 33 et 64), Hésiode (Les Travaux et les Jours),
+// Cicéron, Publilius Syrus (Sentences), Vauvenargues (Réflexions et maximes),
+// Montaigne (Essais), La Rochefoucauld (Maximes). Le reste n'a PAS d'auteur —
 // ce sont des maximes écrites pour Kyroz, et elles s'affichent sans signature
 // plutôt que sous un nom emprunté.
+//
+// ⚠️ **Le critère de sélection des signatures ajoutées le 2026-08-11 : la formule
+// doit être BRÈVE et archi-documentée.** Plus une citation est longue, plus elle
+// dépend d'une traduction particulière — et une traduction récente n'est pas du
+// domaine public, même quand l'auteur l'est depuis deux mille ans. Les formules
+// retenues sont courtes, stables, et circulent sous cette forme depuis des
+// siècles. ➡️ **Au moindre doute sur une attribution, elle devient une maxime
+// SANS signature** — c'est gratuit, et ça ne fait mentir personne.
 //
 // ⚠️ Une citation d'auteur ne se RACCOURCIT pas pour tenir dans une bannière :
 // la tronquer ferait dire à Sénèque ce qu'il n'a pas écrit. Une seule
 // (« Ce n'est pas parce que les choses sont difficiles… », 141 caractères)
 // dépassait le plafond de 140 — elle a été RETIRÉE, pas rognée, et le plafond
 // n'a pas bougé d'un caractère pour l'accueillir.
-// ⚠️ **L'ORDRE DU TABLEAU EST L'ORDRE DES JOURS** — il n'est pas décoratif.
-// Rangées par famille (les 6 signées, puis les 9 maximes), elles donnaient trois
+// ⚠️ **L'ORDRE DU TABLEAU EST L'ORDRE DES JOURS** — il n'est pas décoratif, et
+// c'est ce qui rend l'ajout d'un lot plus délicat qu'un copier-coller en fin de
+// liste : vingt maximes ajoutées à la suite donneraient vingt jours sans une
+// seule signature. Le lot du 2026-08-11 est donc ENTRELACÉ à la main, une signée
+// toutes les deux ou trois citations.
+// Historique du même piège : rangées par famille (les 6 signées, puis les 9
+// maximes), elles donnaient trois
 // philosophes d'affilée en ouverture puis neuf jours de maximes : « semaine
 // antique, puis semaine Kyroz ». Ça ne se voit pas dans le fichier, ça se voit
 // sur un aperçu de 14 jours. Elles sont donc ENTRELACÉES, et un test tient la
@@ -181,18 +203,48 @@ export const CITATIONS: Citation[] = [
   { texte: 'Tu n’as pas besoin de motivation aujourd’hui. Tu as un plan.' },
   { texte: 'La goutte d’eau creuse la pierre, non par la force, mais en tombant souvent.', auteur: 'Ovide' },
   { texte: 'La régularité bat l’intensité, tous les jours de la semaine.' },
-  { texte: 'Un voyage de mille lieues commence toujours par un premier pas.', auteur: 'Lao Tseu' },
   { texte: 'Ce n’est pas le repas parfait qui compte, c’est le suivant.' },
+  { texte: 'Un voyage de mille lieues commence toujours par un premier pas.', auteur: 'Lao Tseu' },
   { texte: 'Les résultats viennent des jours ordinaires, pas des jours exceptionnels.' },
-  { texte: 'Tu as pouvoir sur ton esprit, non sur les événements extérieurs. Comprends-le, et tu trouveras la force.', auteur: 'Marc Aurèle' },
   { texte: 'Un plan suivi à 80 % vaut mieux qu’un plan parfait abandonné.' },
-  { texte: 'Il n’est pas de vent favorable pour qui ne sait où il va.', auteur: 'Sénèque' },
+  { texte: 'Rien n’est plus fort que l’habitude.', auteur: 'Ovide' },
   { texte: 'Ce que tu répètes devient facile. C’est tout le secret.' },
   { texte: 'Trois mois passent de toute façon. Autant qu’ils comptent.' },
-  { texte: 'Ce ne sont pas les choses qui troublent les hommes, mais les opinions qu’ils en ont.', auteur: 'Épictète' },
+  { texte: 'Tu as pouvoir sur ton esprit, non sur les événements extérieurs. Comprends-le, et tu trouveras la force.', auteur: 'Marc Aurèle' },
   { texte: 'Manger comme prévu, c’est déjà une victoire de la journée.' },
-  { texte: 'Ce n’est pas que nous ayons peu de temps, c’est que nous en perdons beaucoup.', auteur: 'Sénèque' },
   { texte: 'Personne ne se transforme en un jour. Tout le monde se transforme en un an.' },
+  { texte: 'Il n’est pas de vent favorable pour qui ne sait où il va.', auteur: 'Sénèque' },
+  { texte: 'Une journée ordinaire bien suivie vaut mieux qu’une semaine héroïque.' },
+  { texte: 'Le plan est déjà fait. Il ne te reste qu’à passer à table.' },
+  { texte: 'Ajoute peu à peu sur peu, et bientôt cela fera beaucoup.', auteur: 'Hésiode' },
+  { texte: 'Ce que tu fais souvent compte plus que ce que tu fais parfaitement.' },
+  { texte: 'Il n’y a pas de journée décisive. Il y a des journées qui s’additionnent.' },
+  { texte: 'Ce ne sont pas les choses qui troublent les hommes, mais les opinions qu’ils en ont.', auteur: 'Épictète' },
+  { texte: 'Reviens au plan quand tu veux. Il t’attend sans rien te demander.' },
+  { texte: 'Le corps change lentement, puis d’un coup.' },
+  { texte: 'L’habitude est une seconde nature.', auteur: 'Cicéron' },
+  { texte: 'Un écart ne défait pas une semaine. Il en fait partie.' },
+  { texte: 'Le plus dur est déjà derrière toi : décider quoi manger.' },
+  { texte: 'Ce n’est pas que nous ayons peu de temps, c’est que nous en perdons beaucoup.', auteur: 'Sénèque' },
+  { texte: 'Avance à ton rythme. Le moteur porte la charge, pas toi.' },
+  { texte: 'Le progrès n’est pas spectaculaire. Il est régulier.' },
+  { texte: 'La pratique est le meilleur des maîtres.', auteur: 'Publilius Syrus' },
+  { texte: 'Ce qui est prévu se fait tout seul. Le reste se discute.' },
+  { texte: 'Les bonnes journées se ressemblent. C’est ce qui les rend faciles.' },
+  { texte: 'La patience est l’art d’espérer.', auteur: 'Vauvenargues' },
+  { texte: 'Tu n’as rien à prouver aujourd’hui. Juste à manger ce qui est prévu.' },
+  { texte: 'Ton assiette du jour est déjà calculée. Il reste à en profiter.' },
+  { texte: 'Qui se vainc soi-même est fort.', auteur: 'Lao Tseu' },
+  { texte: 'Prends ton temps. Rien dans ce plan ne se périme.' },
+  { texte: 'La faim se prévoit. C’est tout l’intérêt d’avoir un plan.' },
+  { texte: 'Tant que tu vis, apprends à vivre.', auteur: 'Sénèque' },
+  { texte: 'Chaque semaine ressemble à la précédente. C’est exactement le but.' },
+  { texte: 'La discipline, c’est surtout de ne plus avoir à choisir.' },
+  { texte: 'Ce qui fait obstacle à l’action fait avancer l’action.', auteur: 'Marc Aurèle' },
+  { texte: 'Un plan qu’on suit sans y penser est un plan qui a gagné.' },
+  { texte: 'La plus grande chose du monde, c’est de savoir être à soi.', auteur: 'Montaigne' },
+  { texte: 'Deux repas prévus valent mieux qu’une bonne résolution.' },
+  { texte: 'La parfaite valeur est de faire sans témoins ce qu’on serait capable de faire devant tout le monde.', auteur: 'La Rochefoucauld' },
 ];
 
 /** Le corps affiché : la citation, suivie de son auteur s'il y en a un. */
