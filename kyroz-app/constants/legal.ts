@@ -22,7 +22,10 @@ export const LEGAL = {
   supportEmail: 'contact@kyroz.app',
   host: 'Supabase Inc.',
   hostRegion: 'Union européenne (UE)',
-  effectiveDate: '2 août 2026',
+  // Expéditeur des e-mails de service (confirmation d'inscription, réinitialisation
+  // de mot de passe), branché en SMTP dédié le 2026-08-09.
+  emailProvider: 'Resend',
+  effectiveDate: '11 août 2026',
 } as const;
 
 export interface LegalSection {
@@ -75,10 +78,25 @@ export const PRIVACY_POLICY: LegalSection[] = [
   //
   // ⚠️ Autre phrase datée ici : « aucun outil d'analyse tiers » devient FAUSSE le jour
   // où `EXPO_PUBLIC_POSTHOG_KEY` est posée (`lib/analytics.ts`, dormant aujourd'hui).
+  //
+  // 🔴 ET UN SOUS-TRAITANT A MANQUÉ ICI PENDANT DEUX JOURS — ajouté le 2026-08-11.
+  // L'expéditeur e-mail (Resend) est en production depuis le 2026-08-09 : il traite
+  // l'adresse e-mail de chaque inscription. Cette section ne le nommait pas, et le
+  // registre RGPD non plus. Le motif d'omission est instructif : la checklist qui l'a
+  // trouvé le rangeait au FUTUR (« avant d'activer PostHog / Resend »), alors qu'il
+  // était déjà branché. ➡️ Un sous-traitant se déclare le jour où il traite, pas le
+  // jour où on l'avait prévu — et la phrase « aucun outil d'analyse tiers », elle,
+  // restait vraie, ce qui rendait l'omission d'autant plus facile à ne pas voir.
+  // ⚠️ Ce que ce texte NE dit PAS, faute de l'avoir vérifié : le cadre du transfert
+  // hors UE (clauses contractuelles types / Data Privacy Framework), exigé par
+  // l'art. 13-1-f. Il ne peut se lire que dans le DPA signé avec Resend — à compléter
+  // ici une fois le contrat consulté. Même règle que pour le prestataire d'abonnement
+  // ci-dessus : on nomme ce qu'on sait, on ne suppose pas ce qu'on n'a pas lu.
   {
     title: '5. Destinataires et sous-traitants',
     paragraphs: [
       `Vos données synchronisées sont hébergées par ${LEGAL.host}, sur des serveurs situés en ${LEGAL.hostRegion}.`,
+      `L’envoi des e-mails de service (confirmation d’inscription, réinitialisation de mot de passe) est assuré par ${LEGAL.emailProvider}. Seules votre adresse e-mail et le contenu de ces messages lui sont transmis — aucune donnée de santé.`,
       "Si vous souscrivez un jour un abonnement Kyroz+, sa gestion technique pourra être confiée à un prestataire spécialisé. Ne lui seraient transmis que l’identifiant technique de votre compte et l’état de votre abonnement — ni votre adresse email, ni vos données de santé, ni aucune coordonnée bancaire. Ce prestataire sera nommé ici avant toute mise en vente.",
       "Le paiement lui-même est traité par l’App Store (Apple) ou Google Play. Kyroz ne voit ni ne conserve aucune coordonnée bancaire.",
       "Nous ne vendons, ne louons et ne partageons vos données avec aucun tiers à des fins commerciales. Aucun traceur publicitaire ni outil d’analyse tiers n’est utilisé.",

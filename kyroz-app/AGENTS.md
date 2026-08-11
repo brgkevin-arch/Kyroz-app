@@ -83,7 +83,7 @@ qu'ils étaient périmés.
 | `ENGINE_REV` | **7** (avertissement one-shot à l'utilisateur) — E30, **DEUX causes** : (a) les planchers dérivés de la masse maigre (BMR + énergie disponible) se retirent au-delà de 30 %/40 % de MG, le cap 25 % du TDEE prend le relais ; (b) `bulk` refermé sur `lean_bulk`. ⚠️ **Première révision à porter deux causes** → `EngineNotice.cause` existe pour que l'écran ne serve pas à l'une l'explication de l'autre *(6 = E23, la provenance du %MG décide de Katch ; 5 = A15, l'objectif daté hors de portée sert le rythme sûr MAXIMAL)* | `lib/tdee.ts` |
 | Objectif daté | la date affichée est un **POINT FIXE** : l'adopter ne la déplace plus (3 corps sur 8 glissaient de +96 j avant A15) | `npm run mesure:objectif` |
 | Échéance de l'objectif daté | 🔴 **C'est une DATE, plus une durée** (A28, 2026-08-07, décision fondateur) : la rangée de 5 puces est **RETIRÉE**, on saisit jour/mois/année, et l'écran donne une **ESTIMATION** — « la première date que Kyroz peut tenir », + « Viser cette date » en un tap. Refus de la date passée et de l'au-delà de 5 ans (au-delà, le moteur creuse au MAXIMUM : −55 → −418 kcal/j sur `F 78 → 65`). ⚠️ L'estimation vient de la **marche 1 de `deadlineLadder`**, PAS de `status.projectedDate` — les deux diffèrent de **12 à 100 jours** et la seconde suppose une échéance qui expire. ⚠️ **`deadlineLadder` (A27) tourne donc toujours** : estimation + date pré-remplie (2ᵉ marche) — **ne pas le supprimer comme du code mort**. Ses invariants restent mesurés : **40/40 tenables**, **40/40 servant un plan distinct**, contre 10/40 et 14/40 avec les 5 durées figées d'avant A27 | `npm run mesure:objectif` |
-| Tests | **1 445 verts**, 87 fichiers — *mesuré le 2026-08-11 sur la branche `feature/methodologie-sources` (E40), rebasée sur `main` (`770187d`), au dernier commit avant le merge. Nouveau fichier : `methodologie.test.ts` (13 cas, **5 mutations** — dont une VERTE à dessein : déplacer une constante du moteur ne doit pas faire rougir la page, puisqu'elle la LIT). ⚠️ **La PR #96 (E39) est ouverte en parallèle et retire 1 test net** — ce compteur sera donc faux dès qu'elle fusionne, dans un sens ou dans l'autre. Le re-mesurer au merge, pas le recopier.* Historique : 1 432 / 86 — *re-mesuré le 2026-08-11 sur `main` FUSIONNÉ (`0d91966`), après #92 (notifications) et #94 (canal de retour). ⚠️ **Septième dérive, et de mon fait** : #94 annonçait 1 414, juste sur sa branche et faux dès la fusion — elle n'avait pas touché ce compteur, ce que la règle ci-dessous exige. Et #92 avait écrit 1 429, juste avant que #94 n'ajoute ses 3 cas.* Historique : 1 429 verts, 86 fichiers — *mesuré le 2026-08-11 sur l'arbre FUSIONNÉ : notifications (E38) **plus** matériaux (E36) **plus** haptique (E37), au dernier commit avant le merge. 🔴 **HUITIÈME dérive, et la troisième du même jour** : trois branches ont annoncé 1 413 / 84, 1 403 / 85 et 1 411 / 86 — chacune juste chez son auteur, aucune vraie après fusion, et git a levé un conflit sur cette ligne même **deux fois de suite**. Nouveaux fichiers venus d'à côté : `materiauxDA.test.ts` et `haptiqueDA.test.ts` ; les +26 cas des notifications vont dans deux fichiers existants. ➡️ **Ce compteur ne se recopie jamais, il se RE-MESURE au dernier commit avant le merge** — et si `main` bouge entre-temps, on recommence.* Historique : 1 395 / 84 — re-mesuré le 2026-08-10 sur la branche du mouvement (E35) REBASÉE sur `origin/main`, au DERNIER commit avant le merge — c'est la seule fenêtre où ce chiffre est vrai, cf. #81 fermée pour l'avoir mesuré à l'ouverture. Nouveau fichier : `mouvementDA.test.ts` (14 cas, 3 mutations). SIXIÈME dérive : la PR #86 (tuto) avait déplacé le chiffre sans toucher la case.* Historique : 1 378 / 83 le 2026-08-10 après #75/#80. 🔴 **CINQUIÈME dérive le même jour, et elle apporte une nuance que les quatre précédentes n'avaient pas** : une PR ouverte pour corriger ce compteur (#81, `1 367 / 82`) a été **fermée sans merger** parce qu'elle était devenue fausse ENTRE son ouverture et son merge — deux PR avaient fusionné entre-temps. ➡️ « Mesurer sur `main` fusionné » ne suffit donc pas : il faut mesurer **AU MOMENT DU MERGE**, pas à l'ouverture de la PR. Et une PR qui ne porte QUE ce compteur est structurellement condamnée à périmer — le mettre à jour dans la PR de contenu, au dernier commit avant le merge · `tsc` propre — **mesuré le 2026-08-10 sur la branche E33/E34 REBASÉE sur `origin/main` (`bf5ecac`), donc après le merge de #74 ; sur `main` seul : 1 367 / 82.** Nouveau fichier : `profilSection.test.ts` (11 cas, 9 mutations — le rangement de l'onglet Profil). ⚠️ Re-mesuré TROIS fois dans la même session (1 340 → 1 345 → 1 378) : chaque valeur était juste sur sa base et fausse au rebase suivant. |
+| Tests | **1 444 verts**, 87 fichiers — *mesuré le 2026-08-11 sur l'arbre FUSIONNÉ `feature/methodologie-sources` + `main` (`13acf4d`, donc après E39), au dernier commit avant le merge. Nouveau fichier : `methodologie.test.ts` (13 cas, **5 mutations** — dont une VERTE à dessein : déplacer une constante du moteur ne doit PAS faire rougir la page, puisqu'elle la LIT ; c'est cette mutation-là qui a révélé qu'un chiffre retapé à l'identique passait, d'où un second test sur le NOM des constantes). ⚠️ La branche annonçait **1 445** avant de fusionner E39, qui retire 1 test net — les deux chiffres étaient justes, sur deux arbres différents.* Historique : 1 431 / 86 — *mesuré le 2026-08-11 sur l'arbre FUSIONNÉ `feature/conformite-legale` + `main` (`770187d`), au dernier commit avant le merge. ⚠️ **Ce chiffre DESCEND de 1 par rapport à `main`, et aucun test n'est perdu** : `harnaisEcrans.test.ts` génère un cas par ANCRE, et E39 en retire 3 (la question du portail, les réponses « Non », l'attestation) pour en ajouter 2. Une baisse se vérifie au lieu de s'expliquer.* Historique : 1 432 / 86 — *re-mesuré le 2026-08-11 sur `main` FUSIONNÉ (`0d91966`), après #92 (notifications) et #94 (canal de retour). ⚠️ **Septième dérive, et de mon fait** : #94 annonçait 1 414, juste sur sa branche et faux dès la fusion — elle n'avait pas touché ce compteur, ce que la règle ci-dessous exige. Et #92 avait écrit 1 429, juste avant que #94 n'ajoute ses 3 cas.* Historique : 1 429 verts, 86 fichiers — *mesuré le 2026-08-11 sur l'arbre FUSIONNÉ : notifications (E38) **plus** matériaux (E36) **plus** haptique (E37), au dernier commit avant le merge. 🔴 **HUITIÈME dérive, et la troisième du même jour** : trois branches ont annoncé 1 413 / 84, 1 403 / 85 et 1 411 / 86 — chacune juste chez son auteur, aucune vraie après fusion, et git a levé un conflit sur cette ligne même **deux fois de suite**. Nouveaux fichiers venus d'à côté : `materiauxDA.test.ts` et `haptiqueDA.test.ts` ; les +26 cas des notifications vont dans deux fichiers existants. ➡️ **Ce compteur ne se recopie jamais, il se RE-MESURE au dernier commit avant le merge** — et si `main` bouge entre-temps, on recommence.* Historique : 1 395 / 84 — re-mesuré le 2026-08-10 sur la branche du mouvement (E35) REBASÉE sur `origin/main`, au DERNIER commit avant le merge — c'est la seule fenêtre où ce chiffre est vrai, cf. #81 fermée pour l'avoir mesuré à l'ouverture. Nouveau fichier : `mouvementDA.test.ts` (14 cas, 3 mutations). SIXIÈME dérive : la PR #86 (tuto) avait déplacé le chiffre sans toucher la case.* Historique : 1 378 / 83 le 2026-08-10 après #75/#80. 🔴 **CINQUIÈME dérive le même jour, et elle apporte une nuance que les quatre précédentes n'avaient pas** : une PR ouverte pour corriger ce compteur (#81, `1 367 / 82`) a été **fermée sans merger** parce qu'elle était devenue fausse ENTRE son ouverture et son merge — deux PR avaient fusionné entre-temps. ➡️ « Mesurer sur `main` fusionné » ne suffit donc pas : il faut mesurer **AU MOMENT DU MERGE**, pas à l'ouverture de la PR. Et une PR qui ne porte QUE ce compteur est structurellement condamnée à périmer — le mettre à jour dans la PR de contenu, au dernier commit avant le merge · `tsc` propre — **mesuré le 2026-08-10 sur la branche E33/E34 REBASÉE sur `origin/main` (`bf5ecac`), donc après le merge de #74 ; sur `main` seul : 1 367 / 82.** Nouveau fichier : `profilSection.test.ts` (11 cas, 9 mutations — le rangement de l'onglet Profil). ⚠️ Re-mesuré TROIS fois dans la même session (1 340 → 1 345 → 1 378) : chaque valeur était juste sur sa base et fausse au rebase suivant. |
 | Design | **7 passes livrées** — la 7ᵉ est la **refonte du Profil du 2026-08-10** (E25) : la moitié de l'écran passe derrière une roue dentée, 1 848 → 1 718 lignes, et un écran « Donner mon avis » apparaît. *(Les six précédentes :)* **6 passes** — 5 onglets refaits (2026-08-03) · rayons (2026-08-03) · repli du grand titre (2026-08-04) · échelle typo, 333 sites (2026-08-05) · espacement + cibles tactiles 44 pt, 537 sites (2026-08-06) · finitions trait/icône/retour au toucher (2026-08-06) · **écran Plan allégé + accent étendu à la barre de macros (2026-08-06)**. **Design system poussé vers Claude Design** — 6 pages GÉNÉRÉES depuis `theme.ts` (`npm run design:build`), jamais écrites à la main. Maquette de référence : `mockups/kyroz-mockup.html` — **versionnée depuis le 2026-08-06**, à la RACINE du dépôt, hors du dossier `kyroz-app/`. *(La formulation d'avant, « hors dépôt app », se lisait « hors versionnement » : le fichier est resté 3 jours sur une seule machine tout en étant cité ici comme référence.)* ⚠️ Ni le rayon, ni la taille de texte, ni l'espacement ne se relisent — ils se **mesurent** | `npm test -- rayonsDA typoDA espacementDA finitionsDA` · `getComputedStyle` dans le panneau, cf. `docs/comparer-maquette.md` |
 | Plateformes | iPhone **+ iPad** (`supportsTablet: true` depuis le 2026-08-01). ⚠️ **portrait sur iPhone, MAIS les 4 orientations sur iPad** — Expo les force dès `supportsTablet`, le multitâche iPadOS l'impose, ce n'est pas refermable. Vérifié en natif (iPad Pro 13") et à 1366×1024 | `ios/Kyroz/Info.plist` généré, PAS `app.json` · `lib/layout.ts` |
 | Sortie stores | iOS **1.0.0 (3)** en TestFlight, **revue bêta APPROUVÉE le 2026-08-03** — donc acquise : builds et testeurs suivants passent sans repasser par Apple. 2 testeurs `INSTALLED` (1 interne, 1 externe) · Android : 2 builds, rien de soumis. ⚠️ Ce build **reçoit les OTA** (voir ligne ci-dessous) : il ne porte donc plus le JS de son commit d'origine. La déclaration `ITSAppUsesNonExemptEncryption` est enfin **committée** (elle n'a vécu que sur une machine du 2026-08-02 au 2026-08-06) | `npx eas-cli build:list` · `TESTFLIGHT.md` |
@@ -2389,6 +2389,57 @@ produit en suspens — il ne reste qu'à coder.
   d'autant moins quand plusieurs sessions poussent le même jour. Cette entrée reste ici
   comme trace ; ne pas la rouvrir.
 
+- **C7 · Checklist légale — ce qui RESTE (2026-08-11)**
+  La checklist a été arbitrée contre le code (fiche **E39**) : A1, A2, A3 et le volet
+  registre sont clos, **et A4 l'est depuis E40**. Ce qui suit est le reliquat, et il
+  n'entre PAS dans une liste à part — c'est ici que vivent les tâches.
+  🔴 **PLUS AUCUN POINT CODABLE : tout ce qui reste est administratif ou côté Google.**
+  - ~~🤖 **A4 · Page « Méthodologie & sources »**~~ ✅ **LIVRÉE le 2026-08-11 (E40)** —
+    route `/methodologie`, Profil → roue dentée → Aide et retours, et l'essentiel repris
+    dans les notes de soumission (`STORE-RELEASE.md` §11). **Aucun chiffre n'y est
+    écrit** : `lib/methodologie.ts` les LIT dans le moteur, et deux tests l'exigent —
+    dont celui qui a fallu ajouter après mutation, parce que retirer du texte les
+    valeurs venues des constantes ne distingue pas une interpolation d'un littéral de
+    même valeur.
+    ⚠️ *Cette ligne a annoncé « le seul chantier codable qui reste » pendant l'heure qui
+    a séparé les deux PR. Elle est barrée plutôt que supprimée : c'est la trace que le
+    dernier point app de la checklist est tombé, et l'entrée entière peut maintenant se
+    lire comme « il ne reste rien à coder ».*
+  - 🧑 **B1 · Compte Google Play en « Organisation » (numéro D-U-N-S)** — les health
+    apps l'exigent. **Le seul point à délai EXTERNE de toute la liste** (D-U-N-S gratuit
+    auprès de Dun & Bradstreet, de quelques jours à plusieurs semaines). ➡️ À lancer en
+    premier, en parallèle de tout le reste : si le compte a été créé en « individuel »,
+    c'est lui qui fixera la date de sortie Android, pas le code.
+  - 🧑 **B1-bis · Formulaire « Health apps declaration »** (Play Console → App content)
+    + disclaimer « Kyroz n'est pas un dispositif médical » dans le **1er paragraphe** de
+    la description de la fiche.
+  - 🧑 **B3 · Mentions légales LCEN sur `kyroz.app`** (nom, SIREN, adresse, contact,
+    hébergeur). ⚠️ **Dépôt SÉPARÉ `kyroz-site`**, pas dans cet arbre — les valeurs se
+    reprennent de `constants/legal.ts::LEGAL`, source unique.
+  - 🧑 **C1 · Médiateur de la consommation** (L.612-1), **avant la première vente
+    Kyroz+**. ~50–200 €/an. ⚠️ Les CGU (§10) citent déjà « un médiateur » de façon
+    GÉNÉRIQUE : la loi demande de nommer celui auquel on a adhéré, avec ses
+    coordonnées. ➡️ C'est donc une ligne à COMPLÉTER dans `constants/legal.ts` **et**
+    son miroir `public/legal.html` le jour de l'adhésion, pas une ligne à créer.
+  - 🧑 **C2 · Dépôt de marque INPI** (~190 €) — clearance faite (classes 9 et 44), dépôt
+    non fait. Avant de pousser la communication.
+  - 🧑 **C3-bis · RC professionnelle** — non obligatoire, recommandée. Quelques centaines
+    d'euros par an.
+  - 🧑 **DPA Resend** — voir `RGPD-REGISTRE.md`, suivi des actions. Deux lignes du
+    registre en dépendent et restent volontairement EN SUSPENS.
+  - 🧑 **E · Consultation avocat (300–600 €)** — trois zones grises, dans l'ordre de coût
+    si la lecture est fausse : (1) périmètre **HDS** — a priori hors champ (pas de
+    parcours de soins, aucun professionnel de santé impliqué), et c'est le point le plus
+    cher si c'est faux ; (2) statut art. 9 de données traitées 100 % en local sans
+    persistance ; (3) relecture CGU + politique. ⏳ **Une AIPD légère** quand le volume
+    décollera (données sensibles + grande échelle).
+  ⚠️ **Plus rien de tout ceci ne bloque le build 1.0.0 (4) ni la soumission iOS** — A4
+  était le seul à devoir y être, et il est sur `main`. Le reste est administratif ou
+  côté Google. ➡️ **Le chemin critique redevient le BUILD**, qui embarquera d'un coup le
+  verre (E36), le retour au toucher (E37), les notifications (E38), le retrait du
+  portail (E39) et la page méthodologie (E40) — cinq chantiers qu'aucun testeur ne verra
+  dans son binaire actuel, quelles que soient les OTA publiées.
+
 - **C3 · 🧑 Classement d'âge : ADULTES UNIQUEMENT** — *tranché le 2026-07-30.*
   Apple 17+ · Google « Adultes uniquement », pour coller au blocage 18 ans de l'app.
   Répondre au questionnaire de façon à **atteindre** ce classement (le thème « gestion du
@@ -3662,6 +3713,91 @@ produit en suspens — il ne reste qu'à coder.
   RESTANT. Si elle fusionne après celle-ci, cette ligne est fausse à son arrivée — la
   retirer à la fusion.
 
+- 🤖 **E39 · Le portail de dépistage santé cesse de dépister — et un sous-traitant manquait au registre (2026-08-11)**
+
+  ⚠️ **Écrit et COMMITÉ sous le numéro E37, renuméroté en E39 à la fusion** — le commit
+  `3447bb4` et les commentaires de code le citaient ainsi. Entre l'écriture et le merge,
+  **trois PR sont passées** : #92 (notifications, qui a elle-même glissé E36 → E37 → E38),
+  #93 (haptique, qui a pris E37 et mergé la première, donc elle le garde) et #94.
+  **Quatrième renumérotation en deux jours, et cette fois la collision s'est produite
+  pendant la résolution du conflit précédent.** ➡️ Le numéro ne se réserve pas : il se
+  prend en regardant `main` **au moment de fusionner**. Le commit garde E37, cette fiche
+  dit E39, et l'écart est écrit ici plutôt que corrigé en réécrivant l'historique — règle
+  en tête de cette section.
+
+  Arbitrage d'une checklist légale revenue de Claude chat, **mesurée contre le code avant
+  d'en appliquer une ligne**. Sur ses cinq points « app », **deux étaient déjà faits, un
+  reposait sur une prémisse fausse**, et le seul vrai manque qu'elle listait était rangé
+  au FUTUR alors qu'il était déjà en production.
+
+  🔴 **CE QUI EST RETIRÉ : les deux questions du portail** (grossesse/allaitement,
+  pathologie chronique suivie) et le cul-de-sac derrière. Décision fondateur. Motif :
+  subordonner l'accès au service à ces deux critères est un refus de service fondé sur
+  des critères de discrimination (art. 225-1 / 225-2), et la réponse est elle-même une
+  donnée de santé (RGPD art. 9) qu'aucun texte n'oblige à recueillir. L'écran garde son
+  titre, son avertissement, **une phrase de renvoi vers un médecin** et un bouton unique
+  « J'ai compris ». `PREGNANCY_OR_NURSING` disparaît de `checkEligibility`.
+
+  ⚠️ **CE N'EST PAS UN GARDE-FOU EN MOINS, C'EST UN GARDE-FOU DÉCLARATIF EN MOINS.** Une
+  case cochée n'a jamais rien prouvé de personne. Ce qui protège continue de tourner et
+  n'a pas bougé d'une ligne : `MIN_AGE`, l'IMC de départ, le volume d'entraînement, les
+  planchers caloriques du moteur. **Ceux-là mesurent au lieu de demander.** Et le renvoi
+  vers un professionnel de santé — le seul apport réel du portail, exigé par Apple 1.4.1
+  et Google — est CONSERVÉ, simplement dit au lieu d'être vérifié.
+
+  🔴 **TROIS AFFIRMATIONS DE LA CHECKLIST ÉTAIENT FAUSSES, ET AUCUNE N'ÉTAIT DE MAUVAISE
+  FOI** — chacune décrivait un état plausible du produit :
+  | Ce qu'elle disait | Ce que le disque dit |
+  |---|---|
+  | « Bloquer les mineurs — vérifier ce que fait le code, **probablement rien** » | bloqué à **trois étages** depuis le 2026-07-28 (`BirthDateField` pendant la saisie, `checkEligibility` → `MINOR`, refus final via `notify`), `MIN_AGE = 18`, et la politique de confidentialité §10 le dit déjà |
+  | « Consentement explicite art. 9 : case dédiée, non pré-cochée, séparée des CGU » | **livré** (`login.tsx`), non pré-cochée, exigée par `canSubmit`, et l'écriture est même REPORTÉE jusqu'à l'ouverture de session (sinon la RLS la refuse en silence — corrigé le 2026-08-09) |
+  | « Vérifier si les réponses du dépistage ont été persistées → **supprimer le champ ET les données déjà écrites** » | **rien n'a jamais été persisté** : `{passedAt, version}` en AsyncStorage local, et seulement pour qui PASSAIT. Zéro colonne Supabase, zéro entrée dans `PROFILE_COLS` |
+  ➡️ **Une checklist rédigée hors du dépôt décrit le produit qu'elle imagine.** Les trois
+  se seraient traduites par du travail inutile — dont une chasse à des données de santé
+  qui n'existent nulle part. C'est le même motif que « mesurer ce que l'utilisateur reçoit
+  AVANT d'exécuter une fiche », rejoué sur un document juridique.
+
+  🔴 **ET LE VRAI MANQUE ÉTAIT RANGÉ AU FUTUR.** La checklist écrivait « ajouter PostHog
+  et Resend au registre **avant de les activer** ». Or **Resend est en production depuis
+  le 2026-08-09** — il traite l'adresse e-mail de chaque inscription — et il n'était ni
+  au §5 « Destinataires et sous-traitants », ni au registre RGPD. Deux jours de retard sur
+  la production. ⚠️ Ce qui l'a caché : les mettre **dans le même sac** alors que l'un
+  tourne et l'autre dort, et le fait que la phrase « aucun outil d'analyse tiers » restait
+  **vraie** — la page se relisait donc sans alarme. ➡️ **Un sous-traitant se déclare le
+  jour où il traite, pas le jour où on avait prévu de l'activer.**
+  ⚠️ **Ce qui N'A PAS été écrit, faute de l'avoir lu** : le cadre du transfert hors UE de
+  Resend (clauses types / DPF, art. 13-1-f). Il ne vit que dans le DPA. La ligne
+  « Transferts hors UE » du registre reste donc explicitement EN SUSPENS, avec une case
+  🧑 pour le fondateur — même règle que le prestataire d'abonnement, jamais nommé tant
+  qu'aucun contrat n'existait. **Une politique de confidentialité n'est pas l'endroit où
+  supposer.**
+
+  **Livré aussi (A3 de la checklist, une ligne)** : le libellé du consentement nommait
+  « poids, objectif, régime » alors que la taille et le %MG sont traités eux aussi →
+  « poids, taille, composition corporelle, objectif, régime ».
+
+  🔴 **DEUX PIÈGES DE MÉTHODE PAYÉS DANS LA SESSION, et le second est le plus utile :**
+  1. **`git checkout <fichier>` pour défaire une mutation restaure depuis l'INDEX** — donc
+     il a effacé le travail non indexé sur `HealthScreening.tsx` et `safety.ts`. Les deux
+     mutations suivantes ont alors tourné sur le fichier d'ORIGINE : elles rougissaient,
+     mais pour la mauvaise raison, et le relevé avait l'air bon (« 2 failed », « 3 failed »).
+     ➡️ Sauvegarder hors de git avant de muter, et se méfier d'un compteur de rouges qui
+     MONTE d'une mutation à l'autre — c'est le signe qu'on cumule au lieu d'isoler.
+  2. **Le test qui vérifie l'ABSENCE d'un libellé s'accusait lui-même** : la note qui
+     explique le retrait CITE « Es-tu concerné·e ». C'est le défaut d'A30 rejoué (« le
+     commentaire se porte garant de ce qu'il décrit »), mais dans le sens ALARMANT cette
+     fois — donc la version chanceuse : il rougit au lieu de verdir à tort. ➡️
+     `sansCommentairesJS` avant toute recherche de chaîne, et la mutation M4 le prouve
+     dans les deux sens : commentaire seul → vert, commentaire + code → rouge.
+
+  ✅ **Vérifié** : **1 402 tests verts, 85 fichiers**, `tsc` propre. `healthScreening.test.ts`
+  réécrit (5 cas, **4 mutations, 4 rouges** — un seul test rouge par mutation), harnais
+  Playwright `passScreening` recâblé sur le nouveau bouton, et son ancre de contrôle
+  changée de cible plutôt que supprimée : le risque « écran introuvable » qui a fait dormir
+  la panne du 2026-08-05 est intact, seule la question posée a changé.
+  ⚠️ **Non vérifié à l'écran** : le worktree ne peut pas ouvrir le preview (il sert l'app du
+  dépôt PRINCIPAL, §11). L'écran est simple — un titre, un encart, un bouton — mais le
+  **verdict d'appareil manque**.
 - 🤖 **E38 · Les notifications : proposées, increvables, et elles mènent quelque part (2026-08-11)**
 
   ⚠️ **Ce chantier a été écrit et COMMITÉ sous le numéro E36, puis renuméroté DEUX fois** — ses huit messages de
