@@ -199,6 +199,54 @@ export interface Citation {
 // antique, puis semaine Kyroz ». Ça ne se voit pas dans le fichier, ça se voit
 // sur un aperçu de 14 jours. Elles sont donc ENTRELACÉES, et un test tient la
 // propriété (jamais 3 de la même famille de suite, bouclage compris).
+// ── Le plafond des TRADUCTIONS — le seul vrai risque juridique ───────────────
+//
+// Les ŒUVRES citées ici sont toutes dans le domaine public : le plus récent des
+// auteurs est Vauvenargues, mort en 1747. Ce n'est pas la question.
+//
+// 🔴 **UNE TRADUCTION EST UNE ŒUVRE À PART, protégée 70 ans après la mort du
+// TRADUCTEUR.** Marc Aurèle est libre ; une traduction parue en 1992 ne l'est pas.
+// C'est le seul endroit où citer un ancien peut coincer, et il n'apparaît nulle
+// part quand on lit la liste — les deux noms qui comptent, l'auteur et le
+// traducteur, un seul est écrit.
+//
+// ➡️ Deux façons pour une citation d'être hors d'atteinte, et il en faut UNE :
+//  1. **son auteur écrivait en français** (`AUTEURS_DE_LANGUE_FRANCAISE`) — il n'y
+//     a alors pas de traducteur du tout ; moderniser une graphie ne crée aucun
+//     droit nouveau ;
+//  2. **elle est assez COURTE** pour qu'aucune empreinte personnelle de traducteur
+//     n'y tienne. « L'habitude est une seconde nature » n'a pas dix rédactions
+//     possibles : il n'y a rien d'original à protéger.
+//
+// ⚠️ **90 et non 60, et l'écart est un arbitrage, pas une approximation.** À 60, il
+// aurait fallu remplacer quatre citations de plus — dont « la goutte d'eau creuse
+// la pierre » (Ovide) et « il n'est pas de vent favorable pour qui ne sait où il
+// va » (Sénèque), qui sont des PROVERBES français dont la forme circule bien avant
+// toute traduction vivante. Les retirer n'achetait aucune sécurité : ça coûtait
+// deux bonnes citations pour rien. Le risque réel est la rédaction LONGUE, littéraire
+// et moderne — c'est elle que ce plafond arrête.
+// ⚠️ Et il n'est pas décoratif : la plus longue traduite en service (Épictète, 84)
+// passe à **6 caractères** du plafond. Un test fige cette marge, pour que sa
+// dégradation se remarque.
+//
+// 🔴 **UNE CITATION NE SE RACCOURCIT PAS POUR PASSER SOUS LE PLAFOND** — c'est la
+// règle écrite plus haut, et elle prime sur celle-ci. Une traduction trop longue se
+// REMPLACE par une autre du même auteur, ou perd sa signature pour devenir une
+// maxime maison. La tronquer ferait dire à Sénèque ce qu'il n'a pas écrit, ce qui
+// est précisément le mensonge qu'on cherche à éviter.
+//
+// *(Appliqué le 2026-08-11 : « Tu as pouvoir sur ton esprit, non sur les événements
+// extérieurs… » — 104 caractères — a été REMPLACÉE par un Marc Aurèle bref et
+// littéral (Pensées VII, 59). Elle cumulait les deux défauts : la plus exposée côté
+// traduction, et une forme qui circule surtout comme condensation moderne des
+// Pensées plutôt que comme un passage qu'on y retrouve tel quel.)*
+
+/** Ceux qui ont écrit EN FRANÇAIS — donc sans traducteur entre eux et l'écran. */
+export const AUTEURS_DE_LANGUE_FRANCAISE = ['Montaigne', 'La Rochefoucauld', 'Vauvenargues'];
+
+/** Longueur maximale d'une citation TRADUITE. Voir le raisonnement ci-dessus. */
+export const TRADUCTION_MAX = 90;
+
 export const CITATIONS: Citation[] = [
   { texte: 'Tu n’as pas besoin de motivation aujourd’hui. Tu as un plan.' },
   { texte: 'La goutte d’eau creuse la pierre, non par la force, mais en tombant souvent.', auteur: 'Ovide' },
@@ -210,7 +258,7 @@ export const CITATIONS: Citation[] = [
   { texte: 'Rien n’est plus fort que l’habitude.', auteur: 'Ovide' },
   { texte: 'Ce que tu répètes devient facile. C’est tout le secret.' },
   { texte: 'Trois mois passent de toute façon. Autant qu’ils comptent.' },
-  { texte: 'Tu as pouvoir sur ton esprit, non sur les événements extérieurs. Comprends-le, et tu trouveras la force.', auteur: 'Marc Aurèle' },
+  { texte: 'Regarde au-dedans : au-dedans est la source du bien.', auteur: 'Marc Aurèle' },
   { texte: 'Manger comme prévu, c’est déjà une victoire de la journée.' },
   { texte: 'Personne ne se transforme en un jour. Tout le monde se transforme en un an.' },
   { texte: 'Il n’est pas de vent favorable pour qui ne sait où il va.', auteur: 'Sénèque' },

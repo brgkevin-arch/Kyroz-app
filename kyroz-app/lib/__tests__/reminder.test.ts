@@ -5,7 +5,7 @@ import {
   CITATIONS, REMINDER_TITLES, WEIGH_IN_MESSAGES,
   ReminderPeriod, clampReminderTime, dayIndex, formatCitation, formatReminderTime,
   nextReminderAt, parseReminder, periodOf, pickCitation, pickReminderCopy, pickWeighInCopy,
-  serializeReminder, intentFromData,
+  serializeReminder, intentFromData, AUTEURS_DE_LANGUE_FRANCAISE, TRADUCTION_MAX,
 } from '../reminder';
 
 // ── Ce que ce fichier tient fermé ───────────────────────────────────────────
@@ -167,6 +167,44 @@ describe('les citations — ce qui porte un nom doit le mériter', () => {
     const signee = CITATIONS.find((c) => c.auteur)!;
     expect(formatCitation(signee)).toBe(`${signee.texte} — ${signee.auteur}`);
     expect(CITATIONS.filter((c) => c.auteur).length).toBeGreaterThanOrEqual(5);
+  });
+
+  // ── Le seul vrai risque juridique : la TRADUCTION, pas l'œuvre ─────────────
+  //
+  // Les œuvres sont toutes dans le domaine public (Vauvenargues, mort en 1747, est
+  // le plus récent des auteurs). Mais une TRADUCTION est une œuvre à part, protégée
+  // 70 ans après la mort du traducteur — et ce second nom n'apparaît nulle part dans
+  // la liste. Une citation est donc hors d'atteinte si son auteur écrivait en
+  // français (pas de traducteur du tout), ou si elle est assez COURTE pour qu'aucune
+  // empreinte personnelle n'y tienne.
+  it('une citation TRADUITE reste courte — sinon c’est la plume du traducteur', () => {
+    const trop = CITATIONS.filter(
+      (c) => c.auteur
+        && !AUTEURS_DE_LANGUE_FRANCAISE.includes(c.auteur)
+        && c.texte.length > TRADUCTION_MAX,
+    );
+    expect(trop.map((c) => `${c.auteur} (${c.texte.length}) : ${c.texte}`)).toEqual([]);
+  });
+
+  // ⚠️ **Un plafond que rien n'approche ne garde rien** — la leçon de `accentColor`,
+  // où le plancher de contraste n'était traversé par aucun accent livré. On fige donc
+  // la marge du PIRE cas : si quelqu'un relève `TRADUCTION_MAX` pour faire entrer une
+  // citation, ce cas rougit et l'oblige à le dire.
+  it('le plafond des traductions MORD — la marge du pire cas est figée', () => {
+    const traduites = CITATIONS.filter((c) => c.auteur && !AUTEURS_DE_LANGUE_FRANCAISE.includes(c.auteur));
+    const pire = Math.max(...traduites.map((c) => c.texte.length));
+    expect(TRADUCTION_MAX - pire, `plus longue traduite : ${pire} car`).toBeLessThanOrEqual(10);
+  });
+
+  // ⚠️ Une signature ne se pose pas au hasard : `AUTEURS_DE_LANGUE_FRANCAISE` exempte
+  // du plafond, donc y ajouter un nom est une DÉCISION, pas une formalité. Ce cas
+  // interdit d'y glisser quelqu'un qui ne cite personne — le cas où on l'aurait
+  // rempli pour faire taire le test ci-dessus.
+  it('aucun nom dormant dans la liste des auteurs de langue française', () => {
+    const signataires = new Set(CITATIONS.map((c) => c.auteur).filter(Boolean));
+    for (const nom of AUTEURS_DE_LANGUE_FRANCAISE) {
+      expect(signataires.has(nom), `${nom} n’a aucune citation`).toBe(true);
+    }
   });
 
   it('assez de citations pour ne pas tourner en boucle, et aucune en double', () => {
