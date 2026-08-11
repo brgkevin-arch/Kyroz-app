@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, useCallback } from 'react';
+import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { Presse } from '../../components/Presse';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl,
@@ -19,6 +19,7 @@ import { StreakCelebration } from '../../components/StreakCelebration';
 import { PeseeIcon, RepasIcon } from '../../components/Icons';
 import { BirthdayCelebration } from '../../components/BirthdayCelebration';
 import { FirstPlanReveal } from '../../components/FirstPlanReveal';
+import { ReminderOffer, offrirLeRappel } from '../../components/ReminderOffer';
 import { WeightCheckin } from '../../components/WeightCheckin';
 import { PlanCheckin } from '../../components/PlanCheckin';
 import { OffPlanSheet } from '../../components/OffPlanSheet';
@@ -27,13 +28,15 @@ import { ActionSheet } from '../../components/ActionSheet';
 import { PrimaryButton, SectionLabel } from '../../components/ui';
 import { HydrationBar, useHydrationEnabled } from '../../components/HydrationBar';
 import { DatedGoalCard } from '../../components/DatedGoalCard';
-import { useTourTarget, useScreenTour, TourButton } from '../../components/GuidedTour';
+import { useTourTarget, useScreenTour, TourButton, hasSeenTour } from '../../components/GuidedTour';
 import { planTour } from '../../lib/tours';
 import { useProfile } from '../../hooks/useProfile';
 import { useFavorites } from '../../hooks/useFavorites';
 import { useStreak } from '../../hooks/useStreak';
 import { useWeightLog } from '../../hooks/useWeightLog';
 import { usePlanCheckin } from '../../hooks/usePlanCheckin';
+import { useNotificationIntent, consommerNotificationIntent } from '../../hooks/useNotificationIntent';
+import { useReminder } from '../../hooks/useReminder';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { buildLocalPlan, carryTracking, nextPlanSeed, profileSignature, swapMeal, computeDailyTotals, rebalanceDay, resetTracking, adaptDayOptions, AdaptOption, mealIngredients, reAdaptMealRecipe, mealPoolSize, dayTargetKcal, baseDayTargets, ON_TARGET_TOLERANCE_KCAL } from '../../lib/planEngine';
 import { DISLIKE_THRESHOLD, dislikeCandidates, applyDislikedIngredient } from '../../lib/dislike';
@@ -71,6 +74,10 @@ const REROLL_KEY = '@kyroz:planReroll';
 // l'onboarding) → l'overlay ne s'affiche QU'UNE fois. Backfillé pour les profils
 // qui ont déjà un plan (ne pas le montrer aux utilisateurs existants).
 const FIRST_PLAN_KEY = '@kyroz:firstPlanSeen';
+// Le rappel quotidien a été PROPOSÉ (accepté ou non — c'est la proposition qu'on
+// ne répète pas). Clé distincte de `FIRST_PLAN_KEY`, qui est backfillé pour les
+// comptes existants : le rappel, lui, doit pouvoir leur être proposé.
+const REMINDER_OFFER_KEY = '@kyroz:reminderOffered';
 // Anniversaire déjà fêté — on stocke l'ANNÉE, pas un booléen : un booléen serait à
 // remettre à zéro quelque part, et ce « quelque part » n'existe pas (personne ne
 // tourne un cron dans une app locale). Comparer l'année stockée à l'année courante
@@ -121,6 +128,19 @@ export default function PlanScreen() {
   const { streak, markActiveToday, celebration, clearCelebration, froze, clearFroze } = useStreak();
   const { due: weighInDue } = useWeightLog();
   const [weighIn, setWeighIn] = useState(false);
+  // Lecteur seul : le ré-armement vit au layout racine (E24). Sert ici à ne pas
+  // proposer un rappel à quelqu'un qui en a déjà un.
+  const { time: reminderTime } = useReminder();
+  // Tap sur le rappel de pesée → la feuille s'ouvre ici. La notification demande
+  // « trente secondes » : elle ne peut pas commencer par faire chercher l'écran.
+  // ⚠️ L'intention se CONSOMME dans le même geste, sinon la feuille se rouvrirait
+  // à chaque retour sur l'onglet.
+  const notifIntent = useNotificationIntent();
+  useEffect(() => {
+    if (notifIntent === null) return;
+    if (notifIntent === 'weigh-in') setWeighIn(true);
+    consommerNotificationIntent();
+  }, [notifIntent]);
   const { due: checkinDue, snooze: snoozeCheckin, optOutForever: optOutCheckin } = usePlanCheckin();
   const [checkinOpen, setCheckinOpen] = useState(false);
   const { overrides, saveOverride, resetOverride, isCustom } = useRecipeOverrides();
@@ -143,6 +163,33 @@ export default function PlanScreen() {
   const [adaptPrompt, setAdaptPrompt] = useState<number | null>(null); // kcal de l'écart en attente de décision Oui/Non
   const [refreshing, setRefreshing] = useState(false);
   const [showReveal, setShowReveal] = useState(false); // overlay « 1er plan prêt » (J1)
+  const [showOffer, setShowOffer] = useState(false);   // « un rappel par jour ? », juste après
+
+  /**
+   * Propose le rappel quotidien, une seule fois.
+   *
+   * 🔴 **C'est le SEUL endroit où le rappel est proposé de lui-même.** Avant, il
+   * n'existait qu'à Profil → roue dentée → Notifications : la permission n'était
+   * quasiment jamais demandée, donc le levier de rétention du North Star restait
+   * éteint. On le pose juste après le reveal parce que c'est le premier instant
+   * où la valeur est livrée — le plan vient d'apparaître derrière la carte.
+   *
+   * ⚠️ **Le web ne marque RIEN.** Il n'y a pas de notification locale dans un
+   * navigateur (`offrirLeRappel` le sait) ; poser le drapeau là ferait perdre
+   * l'offre à quelqu'un qui a découvert Kyroz sur le web — donc à la plupart des
+   * testeurs — pour toujours. Sans marque, elle l'attend sur mobile.
+   */
+  const proposerLeRappel = async () => {
+    if (!offrirLeRappel(reminderTime !== null)) return;
+    if (await AsyncStorage.getItem(REMINDER_OFFER_KEY)) return;
+    await AsyncStorage.setItem(REMINDER_OFFER_KEY, '1');
+    setShowOffer(true);
+  };
+
+  const fermerReveal = async () => {
+    setShowReveal(false);
+    await proposerLeRappel();
+  };
   const [birthdayAge, setBirthdayAge] = useState<number | null>(null); // 🎂 une fois l'an
   const autoTried = React.useRef(false);
   const tourTried = React.useRef(false);
@@ -173,8 +220,29 @@ export default function PlanScreen() {
   const { rejouer: rejouerTour } = useScreenTour(
     'plan',
     planTour({ days: plan?.days ?? 7, moduleParVolume }),
-    { pret: !loading && !!plan && !showReveal, scrollRef },
+    // ⚠️ `showOffer` compte autant que `showReveal` : les trois surfaces se
+    // suivent (reveal → offre → tour) et deux modales superposées avalent les
+    // taps l'une de l'autre.
+    { pret: !loading && !!plan && !showReveal && !showOffer, scrollRef },
   );
+
+  // ── L'offre du rappel doit aussi atteindre les comptes DÉJÀ créés ──────────
+  //
+  // Le chemin ci-dessus (`fermerReveal`) ne sert que les primo-arrivants : le
+  // reveal est marqué comme vu d'office pour quiconque a déjà un plan. Sans ce
+  // second chemin, tous les testeurs actuels — c'est-à-dire tout le monde
+  // aujourd'hui — ne verraient jamais la proposition, et le défaut qu'on corrige
+  // resterait entier pour eux.
+  //
+  // ⚠️ **Après le tour, jamais avant** : la visite guidée est une `Modal` et une
+  // proposition posée par-dessus lui volerait ses taps. Si le tour n'a pas encore
+  // été vu, on ne propose pas cette fois-ci — la prochaine ouverture le fera.
+  const offreTentee = useRef(false);
+  useEffect(() => {
+    if (loading || !plan || showReveal || offreTentee.current) return;
+    offreTentee.current = true;
+    hasSeenTour('plan').then((vu) => { if (vu) proposerLeRappel(); });
+  }, [loading, plan, showReveal]);
 
   // Garde-manger : rechargé à chaque fois qu'on revient sur l'onglet Plan, pour
   // refléter ce qui a été coché dans Courses (synchro plan ↔ frigo).
@@ -955,9 +1023,12 @@ export default function PlanScreen() {
           profile={profile}
           firstName={firstName}
           previewMeals={plan ? plan.meals.filter((m) => m.day === 1) : []}
-          onClose={() => setShowReveal(false)}
+          onClose={fermerReveal}
         />
       )}
+
+      {/* « Un rappel par jour ? » — une seule fois, juste après le reveal. */}
+      <ReminderOffer visible={showOffer} onClose={() => setShowOffer(false)} />
 
       {/* Célébration quand un palier de série est franchi (3/7/14…) */}
       <StreakCelebration milestone={celebration} onClose={clearCelebration} />

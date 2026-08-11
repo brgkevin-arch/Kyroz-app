@@ -9,9 +9,14 @@
 //
 //  1. **L'heure est un nombre, plus un créneau.** Le rappel se réglait sur trois
 //     valeurs en dur (8h00 · 12h00 · 18h30). Quelqu'un qui déjeune à 13h ou
-//     dîne à 20h30 recevait donc un rappel à côté de sa vie. Les trois créneaux
-//     survivent comme RACCOURCIS (`REMINDER_PRESETS`), pas comme le modèle : ce
-//     qu'on stocke est une heure libre, et le raccourci se DÉDUIT d'elle.
+//     dîne à 20h30 recevait donc un rappel à côté de sa vie. Ce qu'on stocke est
+//     une heure libre, point.
+//     *(Les trois créneaux ont survécu quelque temps comme RACCOURCIS en puces.
+//     Elles sont retirées depuis le 2026-08-11 : deux champs et une rangée de
+//     puces posaient la même question deux fois, et les puces gardaient trois
+//     heures particulières au rang de proposition alors que le modèle ne les
+//     distingue plus. Il n'en reste que `ANCIENS_CRENEAUX`, une migration de
+//     lecture — voir le commentaire qui l'accompagne.)*
 //
 //  2. **Le message tourne.** Une notification qui répète la même phrase pendant
 //     six mois devient un bruit qu'on balaie sans lire. Chaque créneau de la
@@ -37,25 +42,8 @@ export interface ReminderCopy {
   body: string;
 }
 
-/** Raccourcis d'un tap. Ce ne sont QUE des heures — le modèle reste l'heure. */
-export const REMINDER_PRESETS = {
-  morning: { hour: 8, minute: 0 },
-  midday: { hour: 12, minute: 0 },
-  evening: { hour: 18, minute: 30 },
-} as const;
-
-export type ReminderPresetId = keyof typeof REMINDER_PRESETS;
-
-export const REMINDER_PRESET_IDS: ReminderPresetId[] = ['morning', 'midday', 'evening'];
-
-export const REMINDER_PRESET_LABELS: Record<ReminderPresetId, string> = {
-  morning: 'Matin',
-  midday: 'Midi',
-  evening: 'Soir',
-};
-
 /** Heure posée quand on active le rappel sans rien préciser. */
-export const DEFAULT_REMINDER_TIME: ReminderTime = REMINDER_PRESETS.morning;
+export const DEFAULT_REMINDER_TIME: ReminderTime = { hour: 8, minute: 0 };
 
 /** Ramène n'importe quelle paire dans un cadran valide (0–23 h, 0–59 min). */
 export function clampReminderTime(hour: number, minute: number): ReminderTime {
@@ -65,17 +53,39 @@ export function clampReminderTime(hour: number, minute: number): ReminderTime {
 }
 
 /**
- * Lit la préférence stockée. `null` = aucun rappel.
+ * Ce que valaient les trois créneaux de l'ANCIEN modèle.
  *
- * ⚠️ Reprend les valeurs de l'ANCIEN format (`'morning' | 'midday' | 'evening'`) :
- * la clé `@kyroz:reminder` survit à la purge des données (cf. le `KEEP` du
- * Profil), donc elle contient encore un créneau chez tous ceux qui avaient réglé
- * leur rappel avant l'heure libre. Sans cette reprise, leur rappel s'éteignait
- * en silence à la mise à jour.
+ * 🔴 **CE N'EST PAS DU CODE MORT, ET CE N'EST PAS UNE TABLE DE RACCOURCIS** — les
+ * deux malentendus qu'elle a déjà provoqués. C'est une **migration de lecture**,
+ * relue à chaque démarrage, et elle ne pourra jamais être supprimée : la clé
+ * `@kyroz:reminder` survit à la purge des données (cf. le `KEEP` du Profil) et
+ * contient encore la chaîne `'morning'` chez tous ceux qui ont réglé leur rappel
+ * avant l'heure libre (2026-08-07). Ils n'ont rien à faire pour que ça se
+ * réécrive : personne ne repasse par le champ.
+ *
+ * ⚠️ Et ce que coûterait sa suppression **ne se verrait nulle part** : leur
+ * rappel s'éteindrait sans un mot, et une notification qui n'arrive pas ne se
+ * signale pas. Trois lignes contre une panne silencieuse — c'est réglé.
+ *
+ * *(Elle s'appelait `REMINDER_PRESETS` et était EXPORTÉE, avec son type et sa
+ * liste d'ids. Le nom annonçait des raccourcis d'interface qui n'existent plus
+ * depuis le retrait des puces : elle vit désormais dans le seul lecteur qu'elle
+ * ait, sous le nom de ce qu'elle fait.)*
+ */
+const ANCIENS_CRENEAUX: Record<string, ReminderTime> = {
+  morning: { hour: 8, minute: 0 },
+  midday: { hour: 12, minute: 0 },
+  evening: { hour: 18, minute: 30 },
+};
+
+/**
+ * Lit la préférence stockée. `null` = aucun rappel. Reprend l'ancien format
+ * (`'morning' | 'midday' | 'evening'`) — voir ci-dessus.
  */
 export function parseReminder(raw: string | null | undefined): ReminderTime | null {
   if (!raw || raw === 'off') return null;
-  if (raw in REMINDER_PRESETS) return { ...REMINDER_PRESETS[raw as ReminderPresetId] };
+  const ancien = ANCIENS_CRENEAUX[raw];
+  if (ancien) return { ...ancien };
   const m = /^(\d{1,2}):(\d{2})$/.exec(raw);
   if (!m) return null;
   const h = parseInt(m[1], 10);
@@ -93,14 +103,6 @@ export function serializeReminder(time: ReminderTime | null): string {
 /** Affichage français : `8h00`, `18h30`. L'heure ne se pave pas, les minutes si. */
 export function formatReminderTime(time: ReminderTime): string {
   return `${time.hour}h${String(time.minute).padStart(2, '0')}`;
-}
-
-/** Le raccourci qui correspond EXACTEMENT à cette heure, sinon `null` (= perso). */
-export function presetOf(time: ReminderTime | null): ReminderPresetId | null {
-  if (!time) return null;
-  return REMINDER_PRESET_IDS.find(
-    (id) => REMINDER_PRESETS[id].hour === time.hour && REMINDER_PRESETS[id].minute === time.minute,
-  ) ?? null;
 }
 
 // ── Le moment de la journée décide de ce qu'on dit ───────────────────────────
@@ -134,9 +136,16 @@ export function periodOf(time: ReminderTime): ReminderPeriod {
 // tourne au rythme du plus petit dénominateur commun et non de leur produit.
 // Mesuré : retirer UNE citation (16 → 15) avec 3 titres a fait tomber le cycle
 // de 48 à 15 jours — un tiers de la variété perdu par une suppression qui n'avait
-// rien à voir. 4 titres et 15 citations sont premiers entre eux → **60 jours**.
+// rien à voir. 4 titres et **45 citations** sont premiers entre eux → **180 jours**.
 // Le test « le couple ne se répète pas avant un mois » tient cette propriété :
 // c'est lui qui a désigné la régression, pas une relecture.
+//
+// 🔴 **C'EST LA PARITÉ QUI COMPTE, PAS LA TAILLE.** 4 titres se divisent par 2 et
+// par 4 : toute quantité PAIRE de citations écroule le cycle de moitié ou des
+// trois quarts. Passer de 15 à 44 aurait rendu 44 jours au lieu de 180 — donc
+// TROIS FOIS MOINS de variété en ajoutant vingt-neuf citations. Le nombre de
+// citations doit rester **impair**, et c'est la seule contrainte qui ne se voit
+// pas en lisant la liste.
 export const REMINDER_TITLES: Record<ReminderPeriod, string[]> = {
   matin: ['Ta journée commence', 'Le plan du jour est prêt', 'On y va', 'Un coup d’œil et c’est parti'],
   midi: ['C’est l’heure de manger', 'Pause déjeuner', 'Ton déjeuner t’attend', 'Ton midi est déjà prévu'],
@@ -158,44 +167,173 @@ export interface Citation {
 // sont pas ici. Un auteur faux est un mensonge affiché, au même titre qu'un
 // chiffre faux (cf. la règle « pas de mensonge » de CLAUDE.md).
 //
-// Ce qui porte un auteur ci-dessous est du domaine public et sourcé :
-// Sénèque (Lettres à Lucilius), Ovide (Pontiques), Marc Aurèle (Pensées),
-// Épictète (Manuel), Lao Tseu (Tao Te King 64). Le reste n'a PAS d'auteur —
+// Ce qui porte un auteur ci-dessous est du domaine public : Sénèque (Lettres à
+// Lucilius), Ovide (Pontiques, L'Art d'aimer), Marc Aurèle (Pensées), Épictète
+// (Manuel), Lao Tseu (Tao Te King 33 et 64), Hésiode (Les Travaux et les Jours),
+// Cicéron, Publilius Syrus (Sentences), Vauvenargues (Réflexions et maximes),
+// Montaigne (Essais), La Rochefoucauld (Maximes). Le reste n'a PAS d'auteur —
 // ce sont des maximes écrites pour Kyroz, et elles s'affichent sans signature
 // plutôt que sous un nom emprunté.
+//
+// ⚠️ **Le critère de sélection des signatures ajoutées le 2026-08-11 : la formule
+// doit être BRÈVE et archi-documentée.** Plus une citation est longue, plus elle
+// dépend d'une traduction particulière — et une traduction récente n'est pas du
+// domaine public, même quand l'auteur l'est depuis deux mille ans. Les formules
+// retenues sont courtes, stables, et circulent sous cette forme depuis des
+// siècles. ➡️ **Au moindre doute sur une attribution, elle devient une maxime
+// SANS signature** — c'est gratuit, et ça ne fait mentir personne.
 //
 // ⚠️ Une citation d'auteur ne se RACCOURCIT pas pour tenir dans une bannière :
 // la tronquer ferait dire à Sénèque ce qu'il n'a pas écrit. Une seule
 // (« Ce n'est pas parce que les choses sont difficiles… », 141 caractères)
 // dépassait le plafond de 140 — elle a été RETIRÉE, pas rognée, et le plafond
 // n'a pas bougé d'un caractère pour l'accueillir.
-// ⚠️ **L'ORDRE DU TABLEAU EST L'ORDRE DES JOURS** — il n'est pas décoratif.
-// Rangées par famille (les 6 signées, puis les 9 maximes), elles donnaient trois
+// ⚠️ **L'ORDRE DU TABLEAU EST L'ORDRE DES JOURS** — il n'est pas décoratif, et
+// c'est ce qui rend l'ajout d'un lot plus délicat qu'un copier-coller en fin de
+// liste : vingt maximes ajoutées à la suite donneraient vingt jours sans une
+// seule signature. Le lot du 2026-08-11 est donc ENTRELACÉ à la main, une signée
+// toutes les deux ou trois citations.
+// Historique du même piège : rangées par famille (les 6 signées, puis les 9
+// maximes), elles donnaient trois
 // philosophes d'affilée en ouverture puis neuf jours de maximes : « semaine
 // antique, puis semaine Kyroz ». Ça ne se voit pas dans le fichier, ça se voit
 // sur un aperçu de 14 jours. Elles sont donc ENTRELACÉES, et un test tient la
 // propriété (jamais 3 de la même famille de suite, bouclage compris).
+// ── Le plafond des TRADUCTIONS — le seul vrai risque juridique ───────────────
+//
+// Les ŒUVRES citées ici sont toutes dans le domaine public : le plus récent des
+// auteurs est Vauvenargues, mort en 1747. Ce n'est pas la question.
+//
+// 🔴 **UNE TRADUCTION EST UNE ŒUVRE À PART, protégée 70 ans après la mort du
+// TRADUCTEUR.** Marc Aurèle est libre ; une traduction parue en 1992 ne l'est pas.
+// C'est le seul endroit où citer un ancien peut coincer, et il n'apparaît nulle
+// part quand on lit la liste — les deux noms qui comptent, l'auteur et le
+// traducteur, un seul est écrit.
+//
+// ➡️ Deux façons pour une citation d'être hors d'atteinte, et il en faut UNE :
+//  1. **son auteur écrivait en français** (`AUTEURS_DE_LANGUE_FRANCAISE`) — il n'y
+//     a alors pas de traducteur du tout ; moderniser une graphie ne crée aucun
+//     droit nouveau ;
+//  2. **elle est assez COURTE** pour qu'aucune empreinte personnelle de traducteur
+//     n'y tienne. « L'habitude est une seconde nature » n'a pas dix rédactions
+//     possibles : il n'y a rien d'original à protéger.
+//
+// ⚠️ **90 et non 60, et l'écart est un arbitrage, pas une approximation.** À 60, il
+// aurait fallu remplacer quatre citations de plus — dont « la goutte d'eau creuse
+// la pierre » (Ovide) et « il n'est pas de vent favorable pour qui ne sait où il
+// va » (Sénèque), qui sont des PROVERBES français dont la forme circule bien avant
+// toute traduction vivante. Les retirer n'achetait aucune sécurité : ça coûtait
+// deux bonnes citations pour rien. Le risque réel est la rédaction LONGUE, littéraire
+// et moderne — c'est elle que ce plafond arrête.
+// ⚠️ Et il n'est pas décoratif : la plus longue traduite en service (Épictète, 84)
+// passe à **6 caractères** du plafond. Un test fige cette marge, pour que sa
+// dégradation se remarque.
+//
+// 🔴 **UNE CITATION NE SE RACCOURCIT PAS POUR PASSER SOUS LE PLAFOND** — c'est la
+// règle écrite plus haut, et elle prime sur celle-ci. Une traduction trop longue se
+// REMPLACE par une autre du même auteur, ou perd sa signature pour devenir une
+// maxime maison. La tronquer ferait dire à Sénèque ce qu'il n'a pas écrit, ce qui
+// est précisément le mensonge qu'on cherche à éviter.
+//
+// *(Appliqué le 2026-08-11 : « Tu as pouvoir sur ton esprit, non sur les événements
+// extérieurs… » — 104 caractères — a été REMPLACÉE par un Marc Aurèle bref et
+// littéral (Pensées VII, 59). Elle cumulait les deux défauts : la plus exposée côté
+// traduction, et une forme qui circule surtout comme condensation moderne des
+// Pensées plutôt que comme un passage qu'on y retrouve tel quel.)*
+
+/** Ceux qui ont écrit EN FRANÇAIS — donc sans traducteur entre eux et l'écran. */
+export const AUTEURS_DE_LANGUE_FRANCAISE = ['Montaigne', 'La Rochefoucauld', 'Vauvenargues'];
+
+/** Longueur maximale d'une citation TRADUITE. Voir le raisonnement ci-dessus. */
+export const TRADUCTION_MAX = 90;
+
 export const CITATIONS: Citation[] = [
   { texte: 'Tu n’as pas besoin de motivation aujourd’hui. Tu as un plan.' },
   { texte: 'La goutte d’eau creuse la pierre, non par la force, mais en tombant souvent.', auteur: 'Ovide' },
   { texte: 'La régularité bat l’intensité, tous les jours de la semaine.' },
-  { texte: 'Un voyage de mille lieues commence toujours par un premier pas.', auteur: 'Lao Tseu' },
   { texte: 'Ce n’est pas le repas parfait qui compte, c’est le suivant.' },
+  { texte: 'Un voyage de mille lieues commence toujours par un premier pas.', auteur: 'Lao Tseu' },
   { texte: 'Les résultats viennent des jours ordinaires, pas des jours exceptionnels.' },
-  { texte: 'Tu as pouvoir sur ton esprit, non sur les événements extérieurs. Comprends-le, et tu trouveras la force.', auteur: 'Marc Aurèle' },
   { texte: 'Un plan suivi à 80 % vaut mieux qu’un plan parfait abandonné.' },
-  { texte: 'Il n’est pas de vent favorable pour qui ne sait où il va.', auteur: 'Sénèque' },
+  { texte: 'Rien n’est plus fort que l’habitude.', auteur: 'Ovide' },
   { texte: 'Ce que tu répètes devient facile. C’est tout le secret.' },
   { texte: 'Trois mois passent de toute façon. Autant qu’ils comptent.' },
-  { texte: 'Ce ne sont pas les choses qui troublent les hommes, mais les opinions qu’ils en ont.', auteur: 'Épictète' },
+  { texte: 'Regarde au-dedans : au-dedans est la source du bien.', auteur: 'Marc Aurèle' },
   { texte: 'Manger comme prévu, c’est déjà une victoire de la journée.' },
-  { texte: 'Ce n’est pas que nous ayons peu de temps, c’est que nous en perdons beaucoup.', auteur: 'Sénèque' },
   { texte: 'Personne ne se transforme en un jour. Tout le monde se transforme en un an.' },
+  { texte: 'Il n’est pas de vent favorable pour qui ne sait où il va.', auteur: 'Sénèque' },
+  { texte: 'Une journée ordinaire bien suivie vaut mieux qu’une semaine héroïque.' },
+  { texte: 'Le plan est déjà fait. Il ne te reste qu’à passer à table.' },
+  { texte: 'Ajoute peu à peu sur peu, et bientôt cela fera beaucoup.', auteur: 'Hésiode' },
+  { texte: 'Ce que tu fais souvent compte plus que ce que tu fais parfaitement.' },
+  { texte: 'Il n’y a pas de journée décisive. Il y a des journées qui s’additionnent.' },
+  { texte: 'Ce ne sont pas les choses qui troublent les hommes, mais les opinions qu’ils en ont.', auteur: 'Épictète' },
+  { texte: 'Reviens au plan quand tu veux. Il t’attend sans rien te demander.' },
+  { texte: 'Le corps change lentement, puis d’un coup.' },
+  { texte: 'L’habitude est une seconde nature.', auteur: 'Cicéron' },
+  { texte: 'Un écart ne défait pas une semaine. Il en fait partie.' },
+  { texte: 'Le plus dur est déjà derrière toi : décider quoi manger.' },
+  { texte: 'Ce n’est pas que nous ayons peu de temps, c’est que nous en perdons beaucoup.', auteur: 'Sénèque' },
+  { texte: 'Avance à ton rythme. Le moteur porte la charge, pas toi.' },
+  { texte: 'Le progrès n’est pas spectaculaire. Il est régulier.' },
+  { texte: 'La pratique est le meilleur des maîtres.', auteur: 'Publilius Syrus' },
+  { texte: 'Ce qui est prévu se fait tout seul. Le reste se discute.' },
+  { texte: 'Les bonnes journées se ressemblent. C’est ce qui les rend faciles.' },
+  { texte: 'La patience est l’art d’espérer.', auteur: 'Vauvenargues' },
+  { texte: 'Tu n’as rien à prouver aujourd’hui. Juste à manger ce qui est prévu.' },
+  { texte: 'Ton assiette du jour est déjà calculée. Il reste à en profiter.' },
+  { texte: 'Qui se vainc soi-même est fort.', auteur: 'Lao Tseu' },
+  { texte: 'Prends ton temps. Rien dans ce plan ne se périme.' },
+  { texte: 'La faim se prévoit. C’est tout l’intérêt d’avoir un plan.' },
+  { texte: 'Tant que tu vis, apprends à vivre.', auteur: 'Sénèque' },
+  { texte: 'Chaque semaine ressemble à la précédente. C’est exactement le but.' },
+  { texte: 'La discipline, c’est surtout de ne plus avoir à choisir.' },
+  { texte: 'Ce qui fait obstacle à l’action fait avancer l’action.', auteur: 'Marc Aurèle' },
+  { texte: 'Un plan qu’on suit sans y penser est un plan qui a gagné.' },
+  { texte: 'La plus grande chose du monde, c’est de savoir être à soi.', auteur: 'Montaigne' },
+  { texte: 'Deux repas prévus valent mieux qu’une bonne résolution.' },
+  { texte: 'La parfaite valeur est de faire sans témoins ce qu’on serait capable de faire devant tout le monde.', auteur: 'La Rochefoucauld' },
 ];
 
 /** Le corps affiché : la citation, suivie de son auteur s'il y en a un. */
 export function formatCitation(c: Citation): string {
   return c.auteur ? `${c.texte} — ${c.auteur}` : c.texte;
+}
+
+// ── Une notification demande un GESTE : elle doit y conduire ──────────────────
+//
+// 🔴 Elle n'y conduisait pas. Le rappel de pesée dit « Note ton poids : trente
+// secondes », et le toucher déposait l'utilisateur là où l'app était restée —
+// l'onglet Recettes, la liste de courses, une feuille de réglages ouverte. Le
+// dépôt ne portait AUCUN `addNotificationResponseReceivedListener` : la réponse
+// au tap n'était lue nulle part.
+//
+// La contrainte de CLAUDE.md §4 (« friction décroissante ») ne parle pas d'autre
+// chose : une notification qui réclame trente secondes ne peut pas commencer par
+// faire chercher son écran.
+//
+// ⚠️ **Ce marqueur voyage dans la notification, donc il SURVIT aux mises à jour**
+// — une notification programmée hier est lue par le code d'aujourd'hui. D'où un
+// repli explicite plutôt qu'un `switch` exhaustif : une notification programmée
+// AVANT ce chantier n'a aucune donnée, et elle doit rester ouvrable.
+
+/** Ce que porte une notification pour qu'on sache où l'ouvrir. */
+export type NotifKind = 'daily' | 'weigh';
+
+/** Là où le tap doit conduire. */
+export type NotificationIntent = 'plan' | 'weigh-in';
+
+/**
+ * L'écran que le tap doit ouvrir, lu sur la charge utile de la notification.
+ *
+ * ⚠️ Repli sur `'plan'` — jamais `null`. Un tap qui ne mène nulle part est le
+ * défaut qu'on corrige ; une notification inconnue (programmée par une version
+ * antérieure, ou par une version future installée puis rétrogradée) doit au pire
+ * ouvrir le plan, qui est la destination utile des deux rappels existants.
+ */
+export function intentFromData(data: unknown): NotificationIntent {
+  const kind = (data as { kind?: unknown } | null | undefined)?.kind;
+  return kind === 'weigh' ? 'weigh-in' : 'plan';
 }
 
 export const WEIGH_IN_MESSAGES: ReminderCopy[] = [

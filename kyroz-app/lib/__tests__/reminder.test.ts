@@ -2,10 +2,10 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import {
-  CITATIONS, REMINDER_PRESETS, REMINDER_PRESET_IDS, REMINDER_TITLES, WEIGH_IN_MESSAGES,
+  CITATIONS, REMINDER_TITLES, WEIGH_IN_MESSAGES,
   ReminderPeriod, clampReminderTime, dayIndex, formatCitation, formatReminderTime,
   nextReminderAt, parseReminder, periodOf, pickCitation, pickReminderCopy, pickWeighInCopy,
-  presetOf, serializeReminder,
+  serializeReminder, intentFromData, AUTEURS_DE_LANGUE_FRANCAISE, TRADUCTION_MAX,
 } from '../reminder';
 
 // ── Ce que ce fichier tient fermé ───────────────────────────────────────────
@@ -83,12 +83,29 @@ describe('heure du rappel — lecture et écriture de la préférence', () => {
     expect(formatReminderTime({ hour: 0, minute: 5 })).toBe('0h05');
   });
 
-  it('la puce de raccourci ne s’allume que sur son heure EXACTE', () => {
-    for (const id of REMINDER_PRESET_IDS) expect(presetOf(REMINDER_PRESETS[id])).toBe(id);
-    // Une minute d'écart = heure perso : aucune puce allumée.
-    expect(presetOf({ hour: 8, minute: 1 })).toBeNull();
-    expect(presetOf({ hour: 18, minute: 0 })).toBeNull();
-    expect(presetOf(null)).toBeNull();
+  // ⚠️ La reprise de l'ancien format est déjà tenue par le tout premier cas de ce
+  // bloc, AVEC DES LITTÉRAUX. C'est volontaire et c'est le seul montage qui vaille :
+  // la table de migration n'est plus exportée (elle vit dans son unique lecteur), et
+  // un test qui la relirait pour se vérifier ne prouverait rien de ses VALEURS.
+  it('un ancien créneau ne se RÉÉCRIT jamais — on ne stocke qu’une heure', () => {
+    for (const raw of ['morning', 'midday', 'evening']) {
+      expect(serializeReminder(parseReminder(raw)), raw).toMatch(/^\d{2}:\d{2}$/);
+    }
+  });
+
+  // 🔴 Les puces « Matin · Midi · Soir » sont RETIRÉES de l'écran (2026-08-11) — il
+  // ne reste que l'heure. Rien dans le TYPE ne l'empêche de revenir : c'est ce test
+  // qui tient la décision.
+  it('le champ d’heure ne propose plus AUCUN raccourci', () => {
+    // Les libellés ne pouvaient venir que d'ici : ce module est le seul à en avoir
+    // porté. Leur absence est donc la preuve que la rangée ne peut pas se rallumer
+    // sans qu'on la réécrive entièrement — et alors ce test rougit.
+    const src = readFileSync(join(__dirname, '..', 'reminder.ts'), 'utf8');
+    for (const libelle of ['Matin', 'Midi', 'Soir']) {
+      expect(src.includes(`'${libelle}'`), libelle).toBe(false);
+    }
+    const champ = readFileSync(join(__dirname, '..', '..', 'components', 'ReminderTimeField.tsx'), 'utf8');
+    expect(champ).not.toMatch(/<Chip/);
   });
 });
 
@@ -152,6 +169,44 @@ describe('les citations — ce qui porte un nom doit le mériter', () => {
     expect(CITATIONS.filter((c) => c.auteur).length).toBeGreaterThanOrEqual(5);
   });
 
+  // ── Le seul vrai risque juridique : la TRADUCTION, pas l'œuvre ─────────────
+  //
+  // Les œuvres sont toutes dans le domaine public (Vauvenargues, mort en 1747, est
+  // le plus récent des auteurs). Mais une TRADUCTION est une œuvre à part, protégée
+  // 70 ans après la mort du traducteur — et ce second nom n'apparaît nulle part dans
+  // la liste. Une citation est donc hors d'atteinte si son auteur écrivait en
+  // français (pas de traducteur du tout), ou si elle est assez COURTE pour qu'aucune
+  // empreinte personnelle n'y tienne.
+  it('une citation TRADUITE reste courte — sinon c’est la plume du traducteur', () => {
+    const trop = CITATIONS.filter(
+      (c) => c.auteur
+        && !AUTEURS_DE_LANGUE_FRANCAISE.includes(c.auteur)
+        && c.texte.length > TRADUCTION_MAX,
+    );
+    expect(trop.map((c) => `${c.auteur} (${c.texte.length}) : ${c.texte}`)).toEqual([]);
+  });
+
+  // ⚠️ **Un plafond que rien n'approche ne garde rien** — la leçon de `accentColor`,
+  // où le plancher de contraste n'était traversé par aucun accent livré. On fige donc
+  // la marge du PIRE cas : si quelqu'un relève `TRADUCTION_MAX` pour faire entrer une
+  // citation, ce cas rougit et l'oblige à le dire.
+  it('le plafond des traductions MORD — la marge du pire cas est figée', () => {
+    const traduites = CITATIONS.filter((c) => c.auteur && !AUTEURS_DE_LANGUE_FRANCAISE.includes(c.auteur));
+    const pire = Math.max(...traduites.map((c) => c.texte.length));
+    expect(TRADUCTION_MAX - pire, `plus longue traduite : ${pire} car`).toBeLessThanOrEqual(10);
+  });
+
+  // ⚠️ Une signature ne se pose pas au hasard : `AUTEURS_DE_LANGUE_FRANCAISE` exempte
+  // du plafond, donc y ajouter un nom est une DÉCISION, pas une formalité. Ce cas
+  // interdit d'y glisser quelqu'un qui ne cite personne — le cas où on l'aurait
+  // rempli pour faire taire le test ci-dessus.
+  it('aucun nom dormant dans la liste des auteurs de langue française', () => {
+    const signataires = new Set(CITATIONS.map((c) => c.auteur).filter(Boolean));
+    for (const nom of AUTEURS_DE_LANGUE_FRANCAISE) {
+      expect(signataires.has(nom), `${nom} n’a aucune citation`).toBe(true);
+    }
+  });
+
   it('assez de citations pour ne pas tourner en boucle, et aucune en double', () => {
     expect(CITATIONS.length).toBeGreaterThanOrEqual(12);
     expect(new Set(CITATIONS.map((c) => c.texte)).size).toBe(CITATIONS.length);
@@ -172,20 +227,36 @@ describe('les citations — ce qui porte un nom doit le mériter', () => {
     expect(suites).toEqual([]);
   });
 
-  it('le couple titre + citation ne se répète pas avant un mois', () => {
+  it('le couple titre + citation tient son cycle ENTIER — titres × citations', () => {
     // ⚠️ Ce test tient une propriété ARITHMÉTIQUE, pas une liste : le cycle vaut
     // le produit des deux compteurs seulement s'ils sont PREMIERS ENTRE EUX.
     // Il a rougi pour de vrai en retirant une citation (16 → 15, avec 3 titres) :
     // le cycle est tombé de 48 à 15 jours, alors que rien dans le diff ne parlait
     // de variété. Ajouter ou retirer une citation peut donc coûter deux tiers de
     // la rotation — c'est ce test qui le dira, personne ne le verrait à la relecture.
+    //
+    // 🔴 **IL NE COMPTAIT QUE 30 JOURS, ET ÇA NE SUFFISAIT PLUS.** À 15 citations,
+    // 30 jours dépassaient le cycle, donc le défaut de parité tombait dedans. En
+    // passant à 45 (2026-08-11), une 46ᵉ citation ferait chuter le cycle de 180 à
+    // 92 jours — et l'ancien test, qui s'arrêtait à 30, serait resté VERT. Le
+    // garde-fou qui avait désigné la régression cessait de la voir en grandissant.
+    // ➡️ On exige désormais le cycle ENTIER : `4 × citations` jours tous distincts.
+    // Toute quantité PAIRE de citations le fait rougir, quelle que soit sa taille.
+    const attendu = REMINDER_TITLES.matin.length * CITATIONS.length;
     const vus = new Set<string>();
     const heure = { hour: 8, minute: 0 };
-    for (let j = 0; j < 30; j++) {
+    for (let j = 0; j < attendu; j++) {
       const m = pickReminderCopy(heure, j);
       vus.add(`${m.title}|${m.body}`);
     }
-    expect(vus.size).toBe(30);
+    expect(vus.size, `cycle réel sur ${attendu} jours`).toBe(attendu);
+  });
+
+  // Le lot du 2026-08-11 a fait passer le recueil de 15 à 45. Ce cas ne fige pas
+  // un chiffre — il tient le fait qu'un recueil MAIGRE se remarque : en dessous,
+  // la même phrase revient dans le même trimestre.
+  it('le recueil couvre plus d’un trimestre', () => {
+    expect(REMINDER_TITLES.matin.length * CITATIONS.length).toBeGreaterThanOrEqual(120);
   });
 });
 
@@ -363,5 +434,65 @@ describe('le rappel se ré-arme au DÉMARRAGE, pas en visitant un onglet', () =>
     expect(body).toContain('getPermissionsAsync()'); // il la RELIT…
     expect(body).not.toContain('requestPermissionsAsync'); // …il ne la DEMANDE pas
     expect(body).not.toContain('ensurePermission');
+  });
+
+  // ── Le tap conduit à l'écran demandé ──────────────────────────────────────
+  //
+  // Même angle mort que ci-dessus : rien de ceci ne se voit dans un diff ni dans
+  // le navigateur. Ce qui se tient, c'est le CÂBLAGE — que la réponse au tap soit
+  // lue, qu'elle le soit sur les DEUX chemins, et que l'écran qui sait ouvrir la
+  // feuille de pesée la consomme.
+  it('le layout racine écoute les taps et emmène sur le Plan', () => {
+    const src = lire('app/_layout.tsx');
+    expect(src).toMatch(/subscribeNotificationTaps\(/);
+    expect(src).toMatch(/poserNotificationIntent\(/);
+    expect(src).toMatch(/router\.navigate\(/);
+  });
+
+  it('les DEUX chemins sont câblés — le démarrage à froid en fait partie', () => {
+    const body = corps(lire('lib/notifications.ts'), 'export function subscribeNotificationTaps');
+    // L'écouteur seul rate le tap qui a LANCÉ l'app : il n'existait pas encore.
+    expect(body).toContain('addNotificationResponseReceivedListener');
+    expect(body).toContain('getLastNotificationResponseAsync');
+    // …et la dernière réponse survit au redémarrage : sans mémoire, la feuille
+    // de pesée se rouvrirait à chaque lancement, pour toujours.
+    //
+    // ⚠️ **Les DEUX moitiés, et c'est une mutation qui l'a exigé.** La première
+    // version se contentait de trouver `DERNIER_TAP_KEY` quelque part dans le
+    // corps : retirer l'ÉCRITURE la laissait verte, puisque la LECTURE mentionne
+    // la même clé — le garde-fou aurait laissé passer exactement le défaut qu'il
+    // existe pour fermer.
+    expect(body).toContain('setItem(DERNIER_TAP_KEY');
+    expect(body).toContain('getItem(DERNIER_TAP_KEY');
+  });
+
+  it('les deux rappels se DÉCLARENT dans leur charge utile', () => {
+    const src = lire('lib/notifications.ts');
+    expect(src).toContain("data: { kind: 'daily' }");
+    expect(src).toContain("data: { kind: 'weigh' }");
+  });
+
+  it('l’écran Plan consomme l’intention (sinon la feuille se rouvre sans raison)', () => {
+    const src = lire('app/(tabs)/plan.tsx');
+    expect(src).toMatch(/useNotificationIntent\(\)/);
+    expect(src).toMatch(/consommerNotificationIntent\(\)/);
+  });
+});
+
+// ── Une notification demande un geste : elle doit y conduire ────────────────
+describe('intentFromData — où mène le tap', () => {
+  it('le rappel de pesée ouvre la pesée, le quotidien ouvre le plan', () => {
+    expect(intentFromData({ kind: 'weigh' })).toBe('weigh-in');
+    expect(intentFromData({ kind: 'daily' })).toBe('plan');
+  });
+
+  // 🔴 Une notification programmée AVANT ce chantier n'a aucune donnée, et le
+  // système la garde en attente : elle sera touchée par le code d'AUJOURD'HUI.
+  // Un `null` la rendrait inerte — c'est le défaut qu'on corrige, rejoué sur le
+  // parc existant.
+  it('une notification sans marque reste ouvrable — repli sur le plan', () => {
+    for (const inconnu of [undefined, null, {}, { kind: 'zzz' }, 'texte', 42]) {
+      expect(intentFromData(inconnu)).toBe('plan');
+    }
   });
 });

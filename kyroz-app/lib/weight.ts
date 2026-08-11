@@ -37,6 +37,9 @@ export function frequencyDays(freq?: WeighInFrequency): number {
   return WEIGH_IN_INTERVALS[freq ?? DEFAULT_WEIGH_IN_FREQUENCY];
 }
 
+/** Heure locale à laquelle tombe le rappel de pesée. */
+export const WEIGH_IN_HOUR = 9;
+
 /**
  * Prochaine échéance de pesée (Date, heure locale), à 9h00 : dernière pesée +
  * cadence. Si l'échéance est déjà passée (pesée en retard), vise le prochain
@@ -46,12 +49,92 @@ export function frequencyDays(freq?: WeighInFrequency): number {
 export function nextWeighInAt(lastStamp: string | null, freq?: WeighInFrequency, now: Date = new Date()): Date {
   const due = new Date(lastStamp ? Date.parse(lastStamp + 'T00:00:00') : now.getTime());
   due.setDate(due.getDate() + frequencyDays(freq));
-  due.setHours(9, 0, 0, 0);
+  due.setHours(WEIGH_IN_HOUR, 0, 0, 0);
   if (due.getTime() > now.getTime()) return due;
   const next = new Date(now);
-  next.setHours(9, 0, 0, 0);
+  next.setHours(WEIGH_IN_HOUR, 0, 0, 0);
   if (next.getTime() <= now.getTime()) next.setDate(next.getDate() + 1);
   return next;
+}
+
+// ── Le rappel de pesée doit SURVIVRE à quelqu'un qui n'ouvre plus l'app ───────
+//
+// 🔴 Il ne le faisait pas. Une seule notification `DATE` était programmée, et le
+// SEUL chemin qui en programmait la suivante était `useWeightLog`, monté par
+// l'écran Plan — donc « ouvrir l'app ». Quelqu'un qui décroche recevait UNE
+// notification de pesée, puis plus jamais : le rappel s'éteignait exactement au
+// moment où il sert.
+//
+// Le raisonnement inverse était déjà écrit, mot pour mot, pour le rappel
+// QUOTIDIEN (`lib/notifications.ts::applyReminder`, « un rappel qui lâche vaut
+// moins qu'un message qui se répète ») — il n'avait jamais été appliqué au
+// voisin, qui est pourtant le seul des deux à en avoir eu besoin.
+//
+// ⚠️ **Ce module ne connaît RIEN du système** : il rend une DÉCISION, que
+// `lib/notifications.ts` traduit en déclencheurs expo. C'est ce qui la rend
+// testable, comme `collapsingTitle.ts` ou `motion.ts`.
+
+/** Comment programmer le rappel de pesée, en termes neutres. */
+export type WeighInSchedule =
+  /** Répétitif natif — ne s'éteint jamais, mais son texte est figé (cf. ci-dessous). */
+  | { kind: 'daily'; hour: number; minute: number }
+  /** `weekday` suit la convention d'expo/iOS : **1 = dimanche**, pas `getDay()`. */
+  | { kind: 'weekly'; weekday: number; hour: number; minute: number }
+  /** Série d'occurrences datées, chacune avec le texte de SON jour. */
+  | { kind: 'dates'; dates: Date[] };
+
+/**
+ * Nombre d'occurrences programmées d'avance pour les cadences que le système ne
+ * sait pas répéter (quinzaine, mois) — soit **84 jours** et **180 jours** de
+ * couverture. *(La première rédaction annonçait « ~3 mois » pour la quinzaine :
+ * c'est 12 semaines, et c'est le TEST qui l'a dit — 6 occurrences espacées de
+ * 14 jours couvrent 5 × 14 = 70 jours à partir de la première échéance.)*
+ *
+ * ⚠️ Ce plafond est le compromis que `applyReminder` refuse pour le rappel
+ * quotidien, et il tient ici pour une raison de cadence, pas de goût : 15 jours
+ * de couverture sur un rappel quotidien s'épuisent en deux semaines, six mois de
+ * couverture sur un rappel mensuel s'épuisent après quelqu'un qui n'a pas ouvert
+ * Kyroz depuis six mois — et celui-là ne revient pas sur une notification.
+ * En échange, chaque occurrence porte le texte de SON jour : la rotation des
+ * messages, elle, continue de tourner sans l'app.
+ */
+export const WEIGH_IN_AHEAD = 6;
+
+/**
+ * La façon de programmer le rappel de pesée pour une cadence donnée.
+ *
+ * ⚠️ **`daily` et `weekly` figent leur texte**, comme le rappel quotidien et pour
+ * la même raison : le système ne rappelle pas l'app pour lui demander quoi
+ * écrire. C'est le prix d'un rappel qui ne s'éteint pas, et c'est le bon prix —
+ * il se paie au ré-armement (chaque ouverture de l'app renouvelle le message).
+ *
+ * ⚠️ En cadence `daily`, le déclencheur tombe à 9h **tous les jours**, y compris
+ * le matin d'une pesée déjà faite à 7h. C'est assumé : « je me pèse chaque jour »
+ * est précisément la demande d'un rappel quotidien.
+ */
+export function weighInSchedule(
+  lastStamp: string | null,
+  freq?: WeighInFrequency,
+  now: Date = new Date(),
+): WeighInSchedule {
+  const premiere = nextWeighInAt(lastStamp, freq, now);
+  const cadence = freq ?? DEFAULT_WEIGH_IN_FREQUENCY;
+
+  if (cadence === 'daily') return { kind: 'daily', hour: WEIGH_IN_HOUR, minute: 0 };
+  // `getDay()` rend 0 pour dimanche, expo attend 1 — l'oublier décale le rappel
+  // d'un jour, en silence, une fois par semaine.
+  if (cadence === 'weekly') {
+    return { kind: 'weekly', weekday: premiere.getDay() + 1, hour: WEIGH_IN_HOUR, minute: 0 };
+  }
+
+  const pas = frequencyDays(cadence);
+  const dates: Date[] = [];
+  for (let i = 0; i < WEIGH_IN_AHEAD; i++) {
+    const d = new Date(premiere);
+    d.setDate(d.getDate() + i * pas);
+    dates.push(d);
+  }
+  return { kind: 'dates', dates };
 }
 
 // Date au format 'YYYY-MM-DD' en heure LOCALE (surtout pas toISOString, qui
