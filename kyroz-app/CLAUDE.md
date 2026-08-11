@@ -1724,6 +1724,53 @@ tranché**.
 les commentaires avant toute recherche de chaîne — les notes de `Materiau.tsx` citent
 `expo-glass-effect`, la chaîne même qu'il interdit ailleurs.
 
+### Le RETOUR AU TOUCHER — septième axe, et le seul qu'on ne voit pas (2026-08-11)
+
+Kyroz ne rendait **rien** à la main : ni sur le geste central (cocher un repas), ni
+sur le plus répété (cocher un article de courses), ni quand une action est refusée.
+
+🔴 **LA RÈGLE PREMIÈRE EST UNE RÈGLE DE RARETÉ.** Apple écrit « use haptics
+sparingly », et la raison n'est pas le confort : un retour que l'on sent partout ne
+signale plus rien, il devient le bruit de fond de l'app. `Presse` porte donc une
+prop `retour` **sans valeur par défaut** — brancher une vibration par défaut aurait
+mis les 129 boutons à vibrer en une ligne, sans qu'aucun test ne le voie. Chaque
+site qui en veut un le NOMME, et `haptiqueDA` les compte.
+
+| Rôle | Le moment | Où, aujourd'hui |
+|---|---|---|
+| `choix` | on choisit parmi plusieurs | cocher un article de courses (30 d'affilée) |
+| `validation` | une action ABOUTIT | « J'ai cuisiné » — le geste central |
+| `refus` | une action est refusée | échec de connexion / de confirmation |
+| `declic` | un SEUIL de geste est franchi | la feuille décide qu'elle part |
+
+⚠️ **Deux rôles ne peuvent pas partager une sensation** — ce serait deux noms pour
+un seul cran, la faute que l'échelle d'espacement interdit depuis le 2026-08-06.
+Et **un rôle jamais employé est un token sans rôle** : compté aussi.
+
+⚠️ **Pas de store d'accessibilité ici**, contrairement au verre et au mouvement :
+`UIFeedbackGenerator` respecte tout seul « Retour haptique du système ». Dupliquer
+une décision déjà prise par le système, c'est créer un endroit où elle diverge.
+
+⚠️ **Le web est coupé, et ce n'est pas un oubli.** `expo-haptics` n'y est pas
+neutre : il appelle `navigator.vibrate`, et sur iOS Safari il injecte un faux
+interrupteur caché pour arracher une vibration au système. Un SITE qui fait vibrer
+un téléphone est une surprise, pas une affordance. À relire si Kyroz devient une PWA.
+
+🔴 **ET « UNE DÉPENDANCE NATIVE FERME LA VOIE OTA » EST FAUX ICI — mesuré.** C'était
+l'argument qui plaçait ce lot après le build. Sur le simulateur, dont le dev client
+ne contient PAS `ExpoHaptics` (0 occurrence dans `ios/Podfile.lock`), cocher un
+repas marche et l'app tient debout. **Deux** mécanismes, qu'il fallait distinguer :
+le paquet utilise `requireOptionalNativeModule` (rend `null`, donc **l'import ne
+crashe pas** — c'est le gros du risque), mais l'appel, lui, **rejette** — et seul le
+`.catch` de `lib/retourHaptique.ts` évite un `unhandledrejection` à chaque appui.
+➡️ Le lot est publiable en OTA ; il ne vibrera pas sur les binaires d'avant et
+s'activera au build 1.0.0 (4). ➡️ **Généralisation** : la question n'est jamais
+« ce module est-il dans le binaire ? » mais « que fait le paquet quand il n'y est
+pas ? » — `requireNativeModule` lève, `requireOptionalNativeModule` non, et les deux
+se lisent en trois lignes de source.
+
+➡️ **Garde-fou : `lib/__tests__/haptiqueDA.test.ts`**, vérifié par 9 mutations.
+
 ### Le grand titre se replie (2026-08-04)
 
 Comportement des grands titres iOS, et ce que fait la maquette **sur ses cinq écrans à
@@ -2205,6 +2252,36 @@ téléphone.
   déclenche — pas ce que dit le commentaire.** Le contre-exemple vivait à côté :
   `applyWeighInReminder` part de `useWeightLog`, monté par l'écran Plan, donc il n'a
   jamais eu le défaut.
+  🔴 **ET LE CONTRE-EXEMPLE EN ÉTAIT UN AUTRE, PIRE — corrigé le 2026-08-11 (E38).**
+  `applyWeighInReminder` partait bien à chaque démarrage, mais c'est justement de là
+  que venait son défaut : son déclencheur était une notification `DATE`, **qui ne se
+  rejoue pas**. Le seul chemin qui programmait la suivante était donc « ouvrir l'app ».
+  Qui décroche recevait UNE notification de pesée, puis plus jamais — le rappel
+  s'éteignait exactement au moment où il sert. ➡️ Déclencheurs répétitifs (`DAILY`,
+  `WEEKLY`) ou série datée d'avance, décidés par `weight.ts::weighInSchedule`, qui est
+  PUR donc testé. ⚠️ Le raisonnement était écrit **douze lignes plus haut dans le même
+  fichier**, pour le rappel quotidien (« un rappel qui lâche vaut moins qu'un message
+  qui se répète ») : *un principe écrit en corrigeant UN cas ne s'applique pas tout seul
+  à son voisin, même quand le voisin est dans le même écran de code.*
+- 🔴 **`getLastNotificationResponseAsync` REND LA DERNIÈRE RÉPONSE, PAS UNE RÉPONSE
+  NOUVELLE — et elle survit au redémarrage** (2026-08-11, E38). Il faut les deux chemins
+  pour lire un tap sur notification : l'écouteur
+  (`addNotificationResponseReceivedListener`) rate celui qui a **lancé** l'app, puisqu'il
+  n'existait pas encore. Mais brancher le second sans mémoire fait rouvrir l'écran visé
+  **à chaque lancement suivant, pour toujours** — un écran qui s'ouvre sans qu'aucun
+  geste ne l'explique, c'est-à-dire un défaut qui passe la recette et se manifeste des
+  jours plus tard. ➡️ Retenir la réponse déjà servie (`@kyroz:lastNotifTap`). ⚠️ Et
+  l'identifiant NE SUFFIT PAS comme marque : il est fixe par construction
+  (`kyroz-daily-reminder`), donc le tap de demain porterait la même — c'est le couple
+  **identifiant + heure de LIVRAISON** qui distingue deux taps.
+  ⚠️ **Une notification transporte sa charge utile dans le temps** : celle programmée
+  hier sera lue par le code d'aujourd'hui. Tout marqueur qu'on y met doit donc avoir un
+  REPLI explicite pour les notifications d'avant, sinon on livre la panne qu'on corrige
+  à tout le parc existant.
+  ℹ️ Deux inquiétudes voisines ont été MESURÉES et sont sans objet : sans champ `sound`,
+  iOS pose `.default` (donc les rappels ne sont pas muets), et le canal Android de repli
+  d'expo est déjà `IMPORTANCE_HIGH` avec vibration. Des canaux nommés seraient un confort
+  (couper la pesée sans couper le rappel), pas un correctif.
   ⚠️ Se vérifie par le VRAI geste (basculer à l'écran, revenir sur l'autre écran),
   jamais en écrivant dans le stockage. Et prouver d'abord que la sonde sait dire
   OUI : `getByText('Hydratation', { exact: true })` ne trouve jamais `💧 Hydratation`

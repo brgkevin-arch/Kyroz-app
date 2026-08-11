@@ -1,9 +1,11 @@
 import { Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Notifications from 'expo-notifications';
 import { WeighInFrequency } from './types';
-import { nextWeighInAt } from './weight';
+import { WEIGH_IN_AHEAD, weighInSchedule } from './weight';
 import {
-  ReminderTime, dayIndex, nextReminderAt, pickReminderCopy, pickWeighInCopy,
+  NotificationIntent, ReminderTime, dayIndex, intentFromData, nextReminderAt,
+  pickReminderCopy, pickWeighInCopy,
 } from './reminder';
 
 // ── Rappels locaux (spec §5 — seules notifs autorisées) ──────────────────────
@@ -21,6 +23,13 @@ import {
 // effacerait l'autre rappel).
 const DAILY_ID = 'kyroz-daily-reminder';
 const WEIGH_ID = 'kyroz-weigh-reminder';
+
+// ⚠️ La pesée peut occuper PLUSIEURS notifications (série datée). Tous ces
+// identifiants s'annulent ensemble, **`WEIGH_ID` nu compris** : c'est celui que
+// portent les appareils déjà armés par la version d'avant. L'oublier laisserait
+// un ancien one-shot vivre à côté de la nouvelle série — donc un doublon le jour
+// de la première échéance, chez tout le parc existant.
+const WEIGH_IDS = [WEIGH_ID, ...Array.from({ length: WEIGH_IN_AHEAD }, (_, i) => `${WEIGH_ID}-${i}`)];
 
 // Les notifications locales ne sont pas supportées sur le web par expo-notifications.
 export const remindersSupported = Platform.OS !== 'web';
@@ -120,7 +129,7 @@ async function programmerQuotidien(time: ReminderTime, now: Date): Promise<void>
   const copy = pickReminderCopy(time, dayIndex(nextReminderAt(time, now)));
   await Notifications.scheduleNotificationAsync({
     identifier: DAILY_ID,
-    content: { title: copy.title, body: copy.body },
+    content: { title: copy.title, body: copy.body, data: { kind: 'daily' } },
     trigger: {
       type: Notifications.SchedulableTriggerInputTypes.DAILY,
       hour: time.hour,
@@ -130,25 +139,124 @@ async function programmerQuotidien(time: ReminderTime, now: Date): Promise<void>
 }
 
 /**
- * (Re)programme le rappel de PESÉE selon la cadence du profil. Notification
- * one-shot à la prochaine échéance (`nextWeighInAt`), à ré-armer après chaque
- * pesée et au démarrage de l'app. Réutilise la permission DÉJÀ accordée (par le
- * rappel quotidien) — ne la redemande pas, pour éviter un prompt surprise.
- * Renvoie `false` si non supporté / permission absente (→ no-op silencieux).
+ * (Re)programme le rappel de PESÉE selon la cadence du profil, à ré-armer après
+ * chaque pesée et au démarrage de l'app. Réutilise la permission DÉJÀ accordée
+ * (par le rappel quotidien) — ne la redemande pas, pour éviter un prompt
+ * surprise. Renvoie `false` si non supporté / permission absente (→ no-op
+ * silencieux).
+ *
+ * 🔴 **Le déclencheur n'est plus une date unique, et c'est tout l'objet du
+ * changement.** Une notification `DATE` ne se rejoue pas : le seul chemin qui
+ * programmait la suivante était `useWeightLog`, monté par l'écran Plan. Qui
+ * cessait d'ouvrir Kyroz recevait donc UNE notification de pesée puis plus
+ * jamais — l'inverse exact de ce que `applyReminder` explique plus haut pour le
+ * rappel quotidien. La forme du déclencheur se décide dans
+ * `weight.ts::weighInSchedule`, qui est pur donc testable ; ici on ne fait que
+ * la traduire.
  */
 export async function applyWeighInReminder(freq: WeighInFrequency, lastStamp: string | null): Promise<boolean> {
   if (!remindersSupported) return false;
-  try { await Notifications.cancelScheduledNotificationAsync(WEIGH_ID); } catch {}
+  for (const id of WEIGH_IDS) {
+    try { await Notifications.cancelScheduledNotificationAsync(id); } catch {}
+  }
 
   const perm = await Notifications.getPermissionsAsync();
   if (!perm.granted) return false;
 
-  const date = nextWeighInAt(lastStamp, freq);
-  const copy = pickWeighInCopy(dayIndex(date));
+  const plan = weighInSchedule(lastStamp, freq);
+  // L'index de rotation est pris sur le jour où la notification TOMBERA, comme
+  // pour le rappel quotidien — pas sur le jour où on l'arme.
+  const contenu = (date: Date) => {
+    const copy = pickWeighInCopy(dayIndex(date));
+    return { title: copy.title, body: copy.body, data: { kind: 'weigh' } };
+  };
+
+  if (plan.kind === 'dates') {
+    for (const [i, date] of plan.dates.entries()) {
+      await Notifications.scheduleNotificationAsync({
+        identifier: `${WEIGH_ID}-${i}`,
+        content: contenu(date),
+        trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date },
+      });
+    }
+    return true;
+  }
+
+  // Répétitif : le texte est figé jusqu'au prochain ré-armement (le système ne
+  // rappelle pas l'app pour lui demander quoi écrire). On l'indexe donc sur la
+  // PREMIÈRE occurrence, celle qui est certaine d'être juste.
+  const premiere = new Date();
+  premiere.setHours(plan.hour, plan.minute, 0, 0);
+  if (premiere.getTime() <= Date.now()) premiere.setDate(premiere.getDate() + 1);
+
   await Notifications.scheduleNotificationAsync({
-    identifier: WEIGH_ID,
-    content: { title: copy.title, body: copy.body },
-    trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date },
+    identifier: `${WEIGH_ID}-0`,
+    content: contenu(premiere),
+    trigger: plan.kind === 'daily'
+      ? { type: Notifications.SchedulableTriggerInputTypes.DAILY, hour: plan.hour, minute: plan.minute }
+      : {
+        type: Notifications.SchedulableTriggerInputTypes.WEEKLY,
+        weekday: plan.weekday,
+        hour: plan.hour,
+        minute: plan.minute,
+      },
   });
   return true;
+}
+
+/**
+ * S'abonne aux TAPS sur les notifications de Kyroz et rend de quoi se
+ * désabonner. Appelé une fois par le layout racine.
+ *
+ * ⚠️ **Deux chemins, pas un** — et n'en câbler qu'un laisse la moitié du défaut :
+ *  • `getLastNotificationResponseAsync` couvre le démarrage à FROID (l'app était
+ *    tuée, c'est le tap qui l'a lancée). L'écouteur, lui, n'a rien vu : il n'y
+ *    avait personne pour écouter.
+ *  • `addNotificationResponseReceivedListener` couvre l'app déjà vivante,
+ *    au premier plan comme en arrière-plan.
+ *
+ * 🔴 **`getLastNotificationResponseAsync` rend la DERNIÈRE réponse, pas une
+ * réponse NOUVELLE** — et elle survit au redémarrage. Sans mémoire, un tap sur le
+ * rappel de pesée rouvrirait la feuille de pesée à CHAQUE lancement suivant, pour
+ * toujours : un écran qui s'ouvre sans qu'aucun geste ne l'explique, c'est-à-dire
+ * exactement le genre de défaut qui passe la recette et se manifeste des jours
+ * plus tard.
+ *
+ * ⚠️ L'identifiant NE SUFFIT PAS comme marque : il est fixe par construction
+ * (`kyroz-daily-reminder`), donc le tap de demain porterait la même. C'est le
+ * couple identifiant + heure de LIVRAISON qui distingue deux taps.
+ *
+ * ⚠️ Ne fait rien sur le web (`remindersSupported`) : il n'y a pas de
+ * notification locale à toucher, donc pas de réponse à lire.
+ */
+const DERNIER_TAP_KEY = '@kyroz:lastNotifTap';
+
+export function subscribeNotificationTaps(onIntent: (intent: NotificationIntent) => void): () => void {
+  if (!remindersSupported) return () => {};
+
+  let vivant = true;
+
+  const marque = (r: Notifications.NotificationResponse) =>
+    `${r.notification.request.identifier}:${r.notification.date}`;
+
+  const servir = (r: Notifications.NotificationResponse) => {
+    AsyncStorage.setItem(DERNIER_TAP_KEY, marque(r)).catch(() => {});
+    onIntent(intentFromData(r.notification.request.content.data));
+  };
+
+  // Démarrage à froid : l'app était tuée, c'est le tap qui l'a lancée — donc
+  // l'écouteur ci-dessous n'a rien vu, il n'existait pas encore.
+  (async () => {
+    try {
+      const r = await Notifications.getLastNotificationResponseAsync();
+      if (!vivant || !r) return;
+      const dejaVu = await AsyncStorage.getItem(DERNIER_TAP_KEY);
+      if (dejaVu === marque(r)) return;
+      servir(r);
+    } catch {}
+  })();
+
+  const sub = Notifications.addNotificationResponseReceivedListener((r) => { servir(r); });
+
+  return () => { vivant = false; sub.remove(); };
 }

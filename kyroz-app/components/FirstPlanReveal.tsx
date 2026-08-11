@@ -24,8 +24,15 @@ interface Props {
  * Reveal du 1er plan (J1) : moment de révélation après l'onboarding. Met en avant
  * ce qui est NOUVEAU — la vraie semaine de repas calée sur les cibles — et absorbe
  * le récap + le disclaimer (l'étape « récap » de l'onboarding a été supprimée,
- * redondante). Le RAPPEL QUOTIDIEN, lui, vit uniquement dans le Profil → Réglages.
+ * redondante).
  * Affiché UNE seule fois (flag `@kyroz:firstPlanSeen`), puis laisse place à la visite guidée.
+ *
+ * ⚠️ **Sa fermeture enchaîne sur `ReminderOffer`** (« un rappel par jour ? »), et
+ * c'est le seul endroit d'où le rappel quotidien est proposé. Cette carte est le
+ * premier instant où la valeur est livrée — donc le seul moment défendable pour
+ * déclencher un prompt de permission, qui ne se pose qu'une fois.
+ * *(Ce préambule disait « le RAPPEL QUOTIDIEN vit uniquement dans le Profil →
+ * Réglages ». C'était vrai, et c'était le défaut : personne n'y allait.)*
  */
 export function FirstPlanReveal({ visible, profile, firstName, previewMeals, onClose }: Props) {
   const t = useTheme();

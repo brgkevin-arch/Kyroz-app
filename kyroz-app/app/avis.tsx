@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import Constants from 'expo-constants';
+import * as Updates from 'expo-updates';
 import { useTheme, ThemePalette, Spacing, Type, Radius, Fond, Icone, Trait, OPACITE_PRESSION, CIBLE_TACTILE_MIN } from '../constants/theme';
 import { useLayout } from '../constants/layout';
 import { PrimaryButton } from '../components/ui';
@@ -43,6 +44,10 @@ export default function AvisScreen() {
   const ctx = {
     version: Constants.expoConfig?.version ?? '1.0.0',
     plateforme: Platform.OS,
+    // `updateId` vaut `null` sur le bundle embarqué dans le binaire et en
+    // développement — c'est une information, pas un manque, et `mentionContexte`
+    // lui donne ses propres mots.
+    maj: Updates.updateId,
   };
   const envoyable = avisValide(texte);
 

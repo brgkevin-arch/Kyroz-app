@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Stack, usePathname } from 'expo-router';
+import { Stack, router, usePathname } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useTheme } from '../constants/theme';
@@ -9,6 +9,8 @@ import { loadHydrationEnabled } from '../components/HydrationBar';
 import { loadFirstName } from '../lib/profileName';
 import { loadReminder } from '../hooks/useReminder';
 import { loadReduceMotion } from '../lib/reduceMotion';
+import { subscribeNotificationTaps } from '../lib/notifications';
+import { poserNotificationIntent } from '../hooks/useNotificationIntent';
 import { loadReduceTransparency } from '../lib/reduceTransparency';
 import { AuthProvider } from '../hooks/useAuth';
 import { ProfileProvider } from '../hooks/useProfile';
@@ -30,6 +32,27 @@ import { noterEcran } from '../lib/analytics';
 function SuiviEcran() {
   const chemin = usePathname();
   useEffect(() => { noterEcran(chemin); }, [chemin]);
+  return null;
+}
+
+/**
+ * Le tap sur une notification conduit à l'écran qu'elle demande.
+ *
+ * ⚠️ **Rendu SOUS le `Stack`, comme `SuiviEcran`, et pour la même raison** :
+ * `router.navigate` exige le contexte de navigation, qui n'existe pas au-dessus.
+ * Posé dans l'effet de `RootLayout`, un tap reçu au démarrage à froid tenterait
+ * de naviguer avant que le navigateur ne soit monté.
+ *
+ * ⚠️ La destination est toujours le Plan : la feuille de pesée n'est pas une
+ * route, elle vit DANS cet écran (c'est déjà vrai du bouton qui l'ouvre). C'est
+ * lui qui lit l'intention et ouvre la feuille — d'où le store partagé.
+ * Naviguer là sans session est sans risque : `(tabs)/_layout` garde la porte.
+ */
+function RoutageNotification() {
+  useEffect(() => subscribeNotificationTaps((intent) => {
+    poserNotificationIntent(intent);
+    router.navigate('/(tabs)/plan');
+  }), []);
   return null;
 }
 
@@ -76,6 +99,7 @@ export default function RootLayout() {
                   }}
                 />
                 <SuiviEcran />
+                <RoutageNotification />
               </DialogProvider>
             </TourProvider>
           </RecipeOverridesProvider>
