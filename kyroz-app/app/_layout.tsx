@@ -11,6 +11,7 @@ import { loadReminder } from '../hooks/useReminder';
 import { loadReduceMotion } from '../lib/reduceMotion';
 import { subscribeNotificationTaps } from '../lib/notifications';
 import { poserNotificationIntent } from '../hooks/useNotificationIntent';
+import { loadReduceTransparency } from '../lib/reduceTransparency';
 import { AuthProvider } from '../hooks/useAuth';
 import { ProfileProvider } from '../hooks/useProfile';
 import { RecipeOverridesProvider } from '../hooks/useRecipeOverrides';
@@ -72,10 +73,12 @@ export default function RootLayout() {
   // l'événement système. Le réglage d'accessibilité peut basculer pendant que
   // l'app est ouverte (on sort dans les Réglages, on revient) — sans
   // l'abonnement, il ne prendrait qu'au prochain démarrage, ce qui est le défaut
-  // même que ce chargement groupé existe pour empêcher.
+  // même que ce chargement groupé existe pour empêcher. `loadReduceTransparency`
+  // est son jumeau, ajouté le 2026-08-11 avec le verre : même patron, même
+  // abonnement, et Apple teste les deux réglages en revue.
   useEffect(() => {
     loadThemeMode(); loadAccentId(); loadHydrationEnabled();
-    loadFirstName(); loadReminder(); loadReduceMotion();
+    loadFirstName(); loadReminder(); loadReduceMotion(); loadReduceTransparency();
   }, []);
   return (
     <SafeAreaProvider>
