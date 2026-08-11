@@ -24,16 +24,32 @@ export { COMPACT_BAR_H, SEUIL_PAR_DEFAUT, seuilRepli };
 // et Frigo il était en dehors, donc le gros titre restait planté en haut à
 // perpétuité. Deux comportements opposés pour le même objet.
 //
-// ⚠️ La maquette floute le fond de sa barre (`blur(22px)`). On ne le fait PAS :
-// le flou demande `expo-blur`, donc une dépendance NATIVE — un nouveau build et
-// une nouvelle revue de store, et la voie OTA fermée pour les anciens binaires
-// (cf. CLAUDE.md §2). Pour une barre de 52 pt, ça ne vaut pas le prix. Le fond
-// opaque `t.bg` rend le même service : le contenu passe dessous et disparaît.
+// 🔴 CETTE BARRE RESTE PEINTE, ET LES DEUX RAISONS ÉCRITES ICI ÉTAIENT FAUSSES.
+// Passage au verre tenté puis ANNULÉ le 2026-08-11 (chantier matériaux, E36).
+// Ce qui était écrit, et ce que la mesure a dit :
 //
-// ⚠️ Le filet sous la barre est le SEUL trait qu'on garde dans cette DA, et il
-// porte du sens : sans lui, le contenu semble s'évaporer à mi-hauteur au lieu
-// de passer sous quelque chose. C'est exactement le rôle que le flou joue dans
-// la maquette.
+//   1. « Le flou demande `expo-blur`, donc un nouveau build et la voie OTA
+//      fermée. » ➡️ FAUX. `expo-router` tire `expo-glass-effect` sans le
+//      déclarer dans `package.json` (comme reanimated), donc le Liquid Glass
+//      était disponible en OTA depuis le binaire du 3 août. La prémisse n'avait
+//      jamais été mesurée — une phrase qui commence par « ça demanderait »
+//      choisit la question à la place de celui qui la lit.
+//
+//   2. « Le fond opaque rend le même service : le contenu passe dessous et
+//      disparaît. » ➡️ FAUX AUSSI, et c'est ce qui a annulé le chantier. Mesuré
+//      au simulateur en teintant cette barre en rouge translucide : **rien ne
+//      passe derrière elle**. `plan.tsx` monte son `ScrollView` dans un
+//      `SafeAreaView edges={['top']}`, donc le contenu commence SOUS la zone
+//      sûre, c'est-à-dire sous la barre. Un matériau translucide n'a alors rien
+//      à laisser voir : il rend exactement le même noir, en coûtant une vue
+//      native de plus — et en faisant disparaître le filet.
+//
+// ⚠️ Le filet sous la barre est le SEUL trait qu'on garde dans cette DA, et la
+// mesure ci-dessus le rend INDISPENSABLE plutôt que décoratif : puisque le
+// contenu ne glisse pas dessous, le filet est la seule chose qui explique
+// pourquoi il s'arrête là. C'est le rôle que le flou joue dans la maquette, et
+// c'est pour ça que le verre l'aurait remplacé sur une barre d'onglets — où le
+// contenu défile réellement au travers (cf. `app/(tabs)/_layout.tsx`).
 
 interface Collapsing {
   /** À étaler sur le ScrollView / FlatList / SectionList de l'écran. */
