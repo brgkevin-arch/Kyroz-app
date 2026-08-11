@@ -983,9 +983,15 @@ export function lowEaWeeksForFloor(
 
 // ── Éligibilité ──────────────────────────────────────────────────────────────
 
+// 🔴 `PREGNANCY_OR_NURSING` A ÉTÉ RETIRÉ le 2026-08-11 (décision fondateur, avis
+// juridique — AGENTS.md E37). Il n'était alimenté que par le portail de dépistage, qui
+// posait la question ; celle-ci est supprimée, donc plus rien ne pouvait le produire et
+// il serait devenu un motif que le code sait dire et que rien ne déclenche. La grossesse
+// et l'allaitement relèvent désormais de l'AVERTISSEMENT (components/HealthScreening.tsx),
+// pas du refus. ⚠️ Ne pas le réintroduire sans rouvrir la décision : ce n'est pas un
+// garde-fou oublié, c'est un refus de service qu'on a retiré exprès.
 export type EligibilityBlock =
   | 'MINOR'                        // < 18 ans — bloque la génération de plan
-  | 'PREGNANCY_OR_NURSING'         // grossesse/allaitement — bloque (cf. lib/healthScreening.ts)
   | 'UNDERWEIGHT_CUT_BLOCKED'      // IMC de départ < 18,5 avec un objectif de sèche
   | 'TARGET_BMI_OUT_OF_RANGE'      // poids cible hors plage saine
   | 'TRAINING_VOLUME_IMPLAUSIBLE'; // > 20 h/semaine déclarées
@@ -1040,19 +1046,16 @@ export function deficitBlocked(b: Pick<BodyInput, 'weight_kg' | 'height_cm'>): b
 export interface EligibilityInput extends BodyInput {
   goal: Goal;
   sports?: SportSession[];
-  /** Déclaré au portail de dépistage santé (cf. lib/healthScreening.ts). */
-  pregnant_or_breastfeeding?: boolean;
 }
 
 /**
  * Situations où le moteur ne doit pas produire de plan (ou pas CET objectif).
- * `MINOR` et `PREGNANCY_OR_NURSING` bloquent la génération ; les autres bloquent
- * l'objectif concerné, pas l'app entière.
+ * `MINOR` bloque la génération ; les autres bloquent l'objectif concerné, pas
+ * l'app entière.
  */
 export function checkEligibility(p: EligibilityInput, dated?: GoalTarget): EligibilityBlock[] {
   const blocks: EligibilityBlock[] = [];
   if (p.age < MIN_AGE) blocks.push('MINOR');
-  if (p.pregnant_or_breastfeeding) blocks.push('PREGNANCY_OR_NURSING');
 
   // Même prédicat que le moteur (`deficitBlocked`) : le refus à l'entrée et
   // l'annulation du déficit en cours de route ne peuvent pas diverger.
@@ -1078,18 +1081,22 @@ export function checkEligibility(p: EligibilityInput, dated?: GoalTarget): Eligi
   return blocks;
 }
 
-/** Ces blocages empêchent la génération d'un plan, ils ne se contentent pas d'avertir. */
+/**
+ * Ces blocages empêchent la génération d'un plan, ils ne se contentent pas d'avertir.
+ *
+ * ⚠️ Il n'en reste qu'UN depuis le 2026-08-11 (retrait de `PREGNANCY_OR_NURSING`), et
+ * la fonction est gardée telle quelle plutôt que remplacée par un test d'égalité : les
+ * appelants n'ont pas à savoir combien de motifs sont bloquants, et le jour où un
+ * second revient, il s'ajoute ici et nulle part ailleurs.
+ */
 export function blocksPlanGeneration(blocks: EligibilityBlock[]): boolean {
-  return blocks.includes('MINOR') || blocks.includes('PREGNANCY_OR_NURSING');
+  return blocks.includes('MINOR');
 }
 
 /** Message utilisateur (FR) du blocage le plus prioritaire, ou null si éligible. */
 export function eligibilityMessage(blocks: EligibilityBlock[]): string | null {
   if (blocks.includes('MINOR')) {
     return `Kyroz est réservé aux ${MIN_AGE} ans et plus.`;
-  }
-  if (blocks.includes('PREGNANCY_OR_NURSING')) {
-    return 'Kyroz ne convient pas pendant la grossesse ou l\'allaitement. Parles-en à un professionnel de santé.';
   }
   if (blocks.includes('UNDERWEIGHT_CUT_BLOCKED')) {
     return 'Ton poids est déjà sous la plage de référence : Kyroz ne propose pas de sèche dans cette situation.';

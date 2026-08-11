@@ -47,6 +47,12 @@ const HARNAIS = 'test/_harness.mjs';
  */
 const contient = (src: string, txt: string) => src.toLowerCase().includes(txt.toLowerCase());
 
+// Retire blocs `/* */` et lignes `//` avant de chercher une chaîne dans du code.
+// Même remède qu'`emailConfirmation.test.ts` : sans ça, une note qui CITE un libellé
+// se porte garante de son existence (ou de sa disparition).
+const sansCommentairesJS = (src: string) =>
+  src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+
 /**
  * Une ancre = un texte que les scripts cherchent À L'ÉCRAN.
  *
@@ -74,10 +80,13 @@ const ANCRES: Ancre[] = [
   { quoi: 'champ e-mail (preuve « toujours sur le login »)', texte: 'toi@email.com', dans: 'app/(auth)/login.tsx' },
   { quoi: 'champ mot de passe (QA écran de login)', texte: '6 caractères minimum', dans: 'app/(auth)/login.tsx', script: 'test/qa-full.mjs' },
 
-  // ── Portail de dépistage santé (passScreening) ──
-  { quoi: 'question du portail', texte: 'Es-tu concerné·e', dans: 'components/HealthScreening.tsx' },
-  { quoi: 'réponse « Non » de chaque condition', texte: 'Non', motif: "label: 'Non'", cherche: "getByText('Non'", dans: 'components/HealthScreening.tsx' },
-  { quoi: 'attestation (rendue APRÈS les réponses)', texte: 'Je confirme être un adulte', dans: 'components/HealthScreening.tsx' },
+  // ── Écran d'avertissement santé (passScreening) ──
+  // ⚠️ Trois ancres ont disparu ici le 2026-08-11 (E37) : la question du portail, les
+  // réponses « Non » et l'attestation. Elles ne sont pas « à remettre » — l'écran ne
+  // pose plus de question. Il n'en reste que deux, et ce sont les deux qu'il faut :
+  // le repère de reconnaissance et le bouton unique.
+  { quoi: 'repère de l\'écran d\'avertissement', texte: 'Avant de commencer', dans: 'components/HealthScreening.tsx' },
+  { quoi: 'bouton unique de l\'avertissement', texte: 'J\'ai compris', dans: 'components/HealthScreening.tsx' },
 
   // ── Assistant d'onboarding (runOnboarding) ──
   { quoi: 'repère de l\'étape 1', texte: 'Ton prénom', dans: 'app/(auth)/onboarding.tsx' },
@@ -268,24 +277,37 @@ describe('harnais Playwright — les tables recopiées suivent la source', () =>
     ).toBe(false);
   });
 
-  // Le portail ne rend son attestation qu'une fois TOUTES les conditions répondues :
-  // c'est la règle qui a fait dormir la panne du 2026-08-05. Le harnais doit donc
-  // cliquer AUTANT de « Non » qu'il y a de conditions — il les compte à l'écran
-  // plutôt que d'en écrire le nombre, et ce test interdit le retour à un nombre figé.
-  it('passScreening répond à toutes les conditions avant de chercher l\'attestation', () => {
-    const harnais = lire(HARNAIS);
+  // 🔴 CE TEST A CHANGÉ DE CIBLE LE 2026-08-11 (E37), IL N'A PAS ÉTÉ SUPPRIMÉ.
+  // Il exigeait que `passScreening` clique un « Non » par condition avant de chercher
+  // l'attestation — la règle qui avait fait dormir la panne du 2026-08-05. L'écran ne
+  // pose plus de question, donc cette exigence n'a plus d'objet ; mais le RISQUE, lui,
+  // est intact : un harnais qui vise un libellé disparu rend « écran introuvable » et
+  // accuse la cible au lieu du parcours. Il vérifie donc désormais que la fonction
+  // franchit l'écran par son bouton, et qu'elle ne traîne aucun reste de l'ancien
+  // portail — un « Non » cliqué dans le vide serait vert et sans effet.
+  it('passScreening franchit l\'avertissement par son bouton, sans reste du portail', () => {
+    // 🔴 LES COMMENTAIRES SE RETIRENT AVANT TOUTE RECHERCHE DE CHAÎNE, et ce test
+    // en est la démonstration : la note qui explique le retrait CITE « Es-tu
+    // concerné·e », donc la première version s'accusait elle-même. C'est le défaut
+    // d'A30 rejoué — le commentaire se porte garant de ce qu'il décrit — mais ici
+    // dans le sens alarmant, ce qui est la version chanceuse : il rougit au lieu de
+    // verdir à tort. Un test qui cherche l'ABSENCE d'un libellé doit lire le CODE.
+    const harnais = sansCommentairesJS(lire(HARNAIS));
     const sequence = /export async function passScreening[\s\S]*?\n}/.exec(harnais)?.[0] ?? '';
     expect(sequence, 'passScreening introuvable').not.toBe('');
-    const posNon = sequence.indexOf('getByText(\'Non\'');
-    const posAttestation = sequence.indexOf('Je confirme être un adulte');
-    expect(posNon, 'passScreening ne clique plus les réponses « Non »').toBeGreaterThan(-1);
+    // ⚠️ On cherche « ai compris » et PAS le libellé entier : dans un `.mjs`, une
+    // apostrophe à l'intérieur d'une chaîne simple s'écrit `J\'ai compris`, donc un
+    // `includes("J'ai compris")` rend faux sur un harnais parfaitement juste. Premier
+    // jet rouge pour cette seule raison — la sonde accusait le code au lieu d'elle-même.
     expect(
-      posNon < posAttestation,
-      'l\'attestation est cherchée AVANT les réponses : elle n\'est rendue qu\'une fois les deux questions répondues (HealthScreening.tsx, allAnswered)',
+      /ai compris/.test(sequence),
+      'passScreening ne clique plus le bouton unique de l\'écran d\'avertissement',
     ).toBe(true);
-    expect(
-      /const n = await nons\.count\(\)/.test(sequence),
-      'le nombre de conditions doit être COMPTÉ à l\'écran, pas écrit en dur',
-    ).toBe(true);
+    for (const reste of ['getByText(\'Non\'', 'Je confirme être un adulte', 'Es-tu concerné']) {
+      expect(
+        sequence.includes(reste),
+        `passScreening cherche encore « ${reste} » : ce libellé n'existe plus depuis E37, le harnais échouerait en accusant l'écran`,
+      ).toBe(false);
+    }
   });
 });

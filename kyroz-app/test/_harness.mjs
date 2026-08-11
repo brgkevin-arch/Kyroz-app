@@ -198,18 +198,24 @@ export async function guestLogin(page) {
 }
 
 /**
- * Portail de dépistage santé (components/HealthScreening.tsx).
+ * Écran d'avertissement santé (components/HealthScreening.tsx).
  * Il REMPLACE l'assistant tant qu'il n'est pas passé : sans lui, aucun script
  * d'onboarding ne voit jamais l'étape 1.
  *
- * SÉQUENCE : un « Non » par situation, PUIS l'attestation, PUIS « Continuer ».
+ * SÉQUENCE : un seul bouton, « J'ai compris ».
  *
- * ⚠️ L'ordre n'est pas cosmétique. Cette fonction cherchait l'attestation en
- * PREMIER (« Je confirme être un adulte en bonne santé ») ; or l'écran ne la rend
- * que lorsque les DEUX questions ont reçu une réponse (`allAnswered`,
- * HealthScreening.tsx L144-164) — avant ça il affiche « Réponds aux deux questions
- * pour continuer. ». Le portail était donc INFRANCHISSABLE, et comme la fonction
- * rendait `false` sans rien dire, tous les scripts concluaient « écran introuvable ».
+ * ⚠️ Le nom de la fonction est conservé (`passScreening`) bien que l'écran ne
+ * dépiste plus rien : cinq scripts l'appellent, et un renommage de confort ferait
+ * du bruit dans un chantier légal. Ce qu'elle franchit a changé, pas où elle sert.
+ *
+ * 📌 L'HISTOIRE VAUT D'ÊTRE GARDÉE, parce que la classe de panne, elle, reste.
+ * Quand l'écran était un portail à deux questions, cette fonction cherchait
+ * l'attestation en PREMIER ; or l'écran ne la rendait qu'une fois les deux réponses
+ * données. Le portail était donc INFRANCHISSABLE, la fonction rendait `false` sans
+ * rien dire, et tous les scripts concluaient « écran introuvable » — un faux
+ * diagnostic qui a dormi des jours. ➡️ D'où les trois états ci-dessous, et
+ * `lib/__tests__/harnaisEcrans.test.ts`, qui verrouille les libellés dont ce
+ * harnais dépend pour qu'un renommage rougisse dans `npm test` le jour même.
  *
  * Trois états, parce qu'ils appellent trois conduites différentes :
  *   'ok'     — franchi, l'assistant d'onboarding suit ;
@@ -217,35 +223,22 @@ export async function guestLogin(page) {
  *   'echec'  — rencontré et pas franchi : ça, c'est une panne, et elle se voit.
  */
 export async function passScreening(page) {
-  const prompt = page.getByText('Es-tu concerné·e', { exact: false }).first();
+  const prompt = page.getByText('Avant de commencer', { exact: false }).first();
   if (!(await prompt.isVisible({ timeout: 5000 }).catch(() => false))) return 'absent';
 
-  // Un « Non » par situation. On clique CE QUI EXISTE plutôt qu'un nombre écrit en
-  // dur : ajouter une 3ᵉ condition à CONDITIONS ne doit pas re-casser le harnais.
-  const nons = page.getByText('Non', { exact: true });
-  const n = await nons.count();
-  if (n === 0) {
-    await panne(page, 'depistage-reponses', 'aucune réponse « Non » sur le portail de dépistage santé');
-    return 'echec';
-  }
-  for (let i = 0; i < n; i++) {
-    await nons.nth(i).click({ timeout: 2000 }).catch(() => {});
-    await sleep(350);
-  }
+  // 🔴 L'ÉCRAN NE POSE PLUS DE QUESTION depuis le 2026-08-11 (E37) : un seul bouton.
+  // La séquence d'avant — cliquer un « Non » par condition, puis l'attestation, puis
+  // « Continuer » — est retirée avec elles. ⚠️ Le repère de reconnaissance a changé
+  // lui aussi (« Es-tu concerné·e » → « Avant de commencer ») : c'est précisément le
+  // renommage qui fait conclure « écran introuvable » quand on l'oublie, et les
+  // ancres de lib/__tests__/harnaisEcrans.test.ts existent pour le faire rougir
+  // le jour même plutôt que des jours plus tard.
+  await tapPrimary(page, 'J\'ai compris');
 
-  const attest = page.getByText('Je confirme être un adulte', { exact: false }).first();
-  if (!(await attest.isVisible({ timeout: 3000 }).catch(() => false))) {
-    await panne(page, 'depistage-attestation', `attestation absente après ${n} réponse(s) — les questions n'ont pas toutes été renseignées`);
-    return 'echec';
-  }
-  await attest.click().catch(() => {});
-  await sleep(400);
-  await tapPrimary(page, 'Continuer');
-
-  // Preuve de franchissement : l'assistant est là. Sans ce contrôle, une case
-  // cochée mais un bouton resté désactivé passerait pour un succès.
+  // Preuve de franchissement : l'assistant est là. Sans ce contrôle, un bouton resté
+  // inerte passerait pour un succès.
   if ((await etapeCourante(page)) !== 1) {
-    await panne(page, 'depistage-continuer', '« Continuer » n\'a pas ouvert l\'assistant d\'onboarding');
+    await panne(page, 'avertissement-continuer', '« J\'ai compris » n\'a pas ouvert l\'assistant d\'onboarding');
     return 'echec';
   }
   return 'ok';

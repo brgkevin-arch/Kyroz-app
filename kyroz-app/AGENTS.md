@@ -83,7 +83,7 @@ qu'ils étaient périmés.
 | `ENGINE_REV` | **7** (avertissement one-shot à l'utilisateur) — E30, **DEUX causes** : (a) les planchers dérivés de la masse maigre (BMR + énergie disponible) se retirent au-delà de 30 %/40 % de MG, le cap 25 % du TDEE prend le relais ; (b) `bulk` refermé sur `lean_bulk`. ⚠️ **Première révision à porter deux causes** → `EngineNotice.cause` existe pour que l'écran ne serve pas à l'une l'explication de l'autre *(6 = E23, la provenance du %MG décide de Katch ; 5 = A15, l'objectif daté hors de portée sert le rythme sûr MAXIMAL)* | `lib/tdee.ts` |
 | Objectif daté | la date affichée est un **POINT FIXE** : l'adopter ne la déplace plus (3 corps sur 8 glissaient de +96 j avant A15) | `npm run mesure:objectif` |
 | Échéance de l'objectif daté | 🔴 **C'est une DATE, plus une durée** (A28, 2026-08-07, décision fondateur) : la rangée de 5 puces est **RETIRÉE**, on saisit jour/mois/année, et l'écran donne une **ESTIMATION** — « la première date que Kyroz peut tenir », + « Viser cette date » en un tap. Refus de la date passée et de l'au-delà de 5 ans (au-delà, le moteur creuse au MAXIMUM : −55 → −418 kcal/j sur `F 78 → 65`). ⚠️ L'estimation vient de la **marche 1 de `deadlineLadder`**, PAS de `status.projectedDate` — les deux diffèrent de **12 à 100 jours** et la seconde suppose une échéance qui expire. ⚠️ **`deadlineLadder` (A27) tourne donc toujours** : estimation + date pré-remplie (2ᵉ marche) — **ne pas le supprimer comme du code mort**. Ses invariants restent mesurés : **40/40 tenables**, **40/40 servant un plan distinct**, contre 10/40 et 14/40 avec les 5 durées figées d'avant A27 | `npm run mesure:objectif` |
-| Tests | **1 403 verts**, 85 fichiers — *re-mesuré le 2026-08-11 sur la branche des matériaux (E36) rebasée sur `origin/main` (`e68c867`), aucune autre PR ouverte. Nouveau fichier : `materiauxDA.test.ts` (8 cas, **8 mutations, 8 rouges**).* Historique : 1 395 / 84 — *re-mesuré le 2026-08-10 sur la branche du mouvement (E35) REBASÉE sur `origin/main`, au DERNIER commit avant le merge — c'est la seule fenêtre où ce chiffre est vrai, cf. #81 fermée pour l'avoir mesuré à l'ouverture. Nouveau fichier : `mouvementDA.test.ts` (14 cas, 3 mutations). SIXIÈME dérive : la PR #86 (tuto) avait déplacé le chiffre sans toucher la case.* Historique : 1 378 / 83 le 2026-08-10 après #75/#80. 🔴 **CINQUIÈME dérive le même jour, et elle apporte une nuance que les quatre précédentes n'avaient pas** : une PR ouverte pour corriger ce compteur (#81, `1 367 / 82`) a été **fermée sans merger** parce qu'elle était devenue fausse ENTRE son ouverture et son merge — deux PR avaient fusionné entre-temps. ➡️ « Mesurer sur `main` fusionné » ne suffit donc pas : il faut mesurer **AU MOMENT DU MERGE**, pas à l'ouverture de la PR. Et une PR qui ne porte QUE ce compteur est structurellement condamnée à périmer — le mettre à jour dans la PR de contenu, au dernier commit avant le merge · `tsc` propre — **mesuré le 2026-08-10 sur la branche E33/E34 REBASÉE sur `origin/main` (`bf5ecac`), donc après le merge de #74 ; sur `main` seul : 1 367 / 82.** Nouveau fichier : `profilSection.test.ts` (11 cas, 9 mutations — le rangement de l'onglet Profil). ⚠️ Re-mesuré TROIS fois dans la même session (1 340 → 1 345 → 1 378) : chaque valeur était juste sur sa base et fausse au rebase suivant. |
+| Tests | **1 402 verts**, 85 fichiers — *re-mesuré le 2026-08-11 sur la branche `feature/conformite-legale` (E37), au dernier commit avant le merge. ⚠️ **Ce chiffre BAISSE de 1, et c'est normal — il fallait le vérifier plutôt que le supposer** : `harnaisEcrans.test.ts` génère un test par ANCRE, or E37 en retire 3 (la question du portail, les réponses « Non », l'attestation) et en ajoute 2. La ligne de base a été mesurée en mettant le travail de côté (`git stash`) : `main` seul rend bien **1 403**. Un compteur qui descend n'est pas forcément un test perdu.* Historique : 1 403 / 85 — *re-mesuré le 2026-08-11 sur la branche des matériaux (E36) rebasée sur `origin/main` (`e68c867`). Nouveau fichier : `materiauxDA.test.ts` (8 cas, **8 mutations, 8 rouges**).* Historique : 1 395 / 84 — *re-mesuré le 2026-08-10 sur la branche du mouvement (E35) REBASÉE sur `origin/main`, au DERNIER commit avant le merge — c'est la seule fenêtre où ce chiffre est vrai, cf. #81 fermée pour l'avoir mesuré à l'ouverture. Nouveau fichier : `mouvementDA.test.ts` (14 cas, 3 mutations). SIXIÈME dérive : la PR #86 (tuto) avait déplacé le chiffre sans toucher la case.* Historique : 1 378 / 83 le 2026-08-10 après #75/#80. 🔴 **CINQUIÈME dérive le même jour, et elle apporte une nuance que les quatre précédentes n'avaient pas** : une PR ouverte pour corriger ce compteur (#81, `1 367 / 82`) a été **fermée sans merger** parce qu'elle était devenue fausse ENTRE son ouverture et son merge — deux PR avaient fusionné entre-temps. ➡️ « Mesurer sur `main` fusionné » ne suffit donc pas : il faut mesurer **AU MOMENT DU MERGE**, pas à l'ouverture de la PR. Et une PR qui ne porte QUE ce compteur est structurellement condamnée à périmer — le mettre à jour dans la PR de contenu, au dernier commit avant le merge · `tsc` propre — **mesuré le 2026-08-10 sur la branche E33/E34 REBASÉE sur `origin/main` (`bf5ecac`), donc après le merge de #74 ; sur `main` seul : 1 367 / 82.** Nouveau fichier : `profilSection.test.ts` (11 cas, 9 mutations — le rangement de l'onglet Profil). ⚠️ Re-mesuré TROIS fois dans la même session (1 340 → 1 345 → 1 378) : chaque valeur était juste sur sa base et fausse au rebase suivant. |
 | Design | **7 passes livrées** — la 7ᵉ est la **refonte du Profil du 2026-08-10** (E25) : la moitié de l'écran passe derrière une roue dentée, 1 848 → 1 718 lignes, et un écran « Donner mon avis » apparaît. *(Les six précédentes :)* **6 passes** — 5 onglets refaits (2026-08-03) · rayons (2026-08-03) · repli du grand titre (2026-08-04) · échelle typo, 333 sites (2026-08-05) · espacement + cibles tactiles 44 pt, 537 sites (2026-08-06) · finitions trait/icône/retour au toucher (2026-08-06) · **écran Plan allégé + accent étendu à la barre de macros (2026-08-06)**. **Design system poussé vers Claude Design** — 6 pages GÉNÉRÉES depuis `theme.ts` (`npm run design:build`), jamais écrites à la main. Maquette de référence : `mockups/kyroz-mockup.html` — **versionnée depuis le 2026-08-06**, à la RACINE du dépôt, hors du dossier `kyroz-app/`. *(La formulation d'avant, « hors dépôt app », se lisait « hors versionnement » : le fichier est resté 3 jours sur une seule machine tout en étant cité ici comme référence.)* ⚠️ Ni le rayon, ni la taille de texte, ni l'espacement ne se relisent — ils se **mesurent** | `npm test -- rayonsDA typoDA espacementDA finitionsDA` · `getComputedStyle` dans le panneau, cf. `docs/comparer-maquette.md` |
 | Plateformes | iPhone **+ iPad** (`supportsTablet: true` depuis le 2026-08-01). ⚠️ **portrait sur iPhone, MAIS les 4 orientations sur iPad** — Expo les force dès `supportsTablet`, le multitâche iPadOS l'impose, ce n'est pas refermable. Vérifié en natif (iPad Pro 13") et à 1366×1024 | `ios/Kyroz/Info.plist` généré, PAS `app.json` · `lib/layout.ts` |
 | Sortie stores | iOS **1.0.0 (3)** en TestFlight, **revue bêta APPROUVÉE le 2026-08-03** — donc acquise : builds et testeurs suivants passent sans repasser par Apple. 2 testeurs `INSTALLED` (1 interne, 1 externe) · Android : 2 builds, rien de soumis. ⚠️ Ce build **reçoit les OTA** (voir ligne ci-dessous) : il ne porte donc plus le JS de son commit d'origine. La déclaration `ITSAppUsesNonExemptEncryption` est enfin **committée** (elle n'a vécu que sur une machine du 2026-08-02 au 2026-08-06) | `npx eas-cli build:list` · `TESTFLIGHT.md` |
@@ -2389,6 +2389,52 @@ produit en suspens — il ne reste qu'à coder.
   d'autant moins quand plusieurs sessions poussent le même jour. Cette entrée reste ici
   comme trace ; ne pas la rouvrir.
 
+- **C7 · Checklist légale — ce qui RESTE après E37 (2026-08-11)**
+  La checklist a été arbitrée contre le code (fiche **E37**) : A1, A2, A3 et le volet
+  registre sont clos. Ce qui suit est le reliquat, et il n'entre PAS dans une liste à
+  part — c'est ici que vivent les tâches.
+  - 🤖 **A4 · Page « Méthodologie & sources »** — le seul chantier codable qui reste.
+    Absente, mesuré : seule l'attribution Ciqual existe, en bas de la feuille Réglages.
+    Doit citer Mifflin-St Jeor, Katch-McArdle **et sa condition de provenance du %MG**,
+    la table Ciqual (ANSES), les planchers 1200/1500, le cap de déficit à 25 %. Apple
+    (1.4.1) rejette en boucle les apps nutrition sans citations précises — être
+    spécifique, pas se contenter de « OMS/EFSA ». À reprendre dans les notes de
+    soumission (§11 de `STORE-RELEASE.md`).
+    ⚠️ **Chaque chiffre de cet écran devient une affirmation sur le code**, exactement
+    comme une bulle de visite guidée (CLAUDE.md §8) : les valeurs se LISENT depuis
+    `safety.ts` / `tdee.ts`, elles ne se recopient pas — sinon elles périment au
+    premier `ENGINE_REV`.
+  - 🧑 **B1 · Compte Google Play en « Organisation » (numéro D-U-N-S)** — les health
+    apps l'exigent. **Le seul point à délai EXTERNE de toute la liste** (D-U-N-S gratuit
+    auprès de Dun & Bradstreet, de quelques jours à plusieurs semaines). ➡️ À lancer en
+    premier, en parallèle de tout le reste : si le compte a été créé en « individuel »,
+    c'est lui qui fixera la date de sortie Android, pas le code.
+  - 🧑 **B1-bis · Formulaire « Health apps declaration »** (Play Console → App content)
+    + disclaimer « Kyroz n'est pas un dispositif médical » dans le **1er paragraphe** de
+    la description de la fiche.
+  - 🧑 **B3 · Mentions légales LCEN sur `kyroz.app`** (nom, SIREN, adresse, contact,
+    hébergeur). ⚠️ **Dépôt SÉPARÉ `kyroz-site`**, pas dans cet arbre — les valeurs se
+    reprennent de `constants/legal.ts::LEGAL`, source unique.
+  - 🧑 **C1 · Médiateur de la consommation** (L.612-1), **avant la première vente
+    Kyroz+**. ~50–200 €/an. ⚠️ Les CGU (§10) citent déjà « un médiateur » de façon
+    GÉNÉRIQUE : la loi demande de nommer celui auquel on a adhéré, avec ses
+    coordonnées. ➡️ C'est donc une ligne à COMPLÉTER dans `constants/legal.ts` **et**
+    son miroir `public/legal.html` le jour de l'adhésion, pas une ligne à créer.
+  - 🧑 **C2 · Dépôt de marque INPI** (~190 €) — clearance faite (classes 9 et 44), dépôt
+    non fait. Avant de pousser la communication.
+  - 🧑 **C3-bis · RC professionnelle** — non obligatoire, recommandée. Quelques centaines
+    d'euros par an.
+  - 🧑 **DPA Resend** — voir `RGPD-REGISTRE.md`, suivi des actions. Deux lignes du
+    registre en dépendent et restent volontairement EN SUSPENS.
+  - 🧑 **E · Consultation avocat (300–600 €)** — trois zones grises, dans l'ordre de coût
+    si la lecture est fausse : (1) périmètre **HDS** — a priori hors champ (pas de
+    parcours de soins, aucun professionnel de santé impliqué), et c'est le point le plus
+    cher si c'est faux ; (2) statut art. 9 de données traitées 100 % en local sans
+    persistance ; (3) relecture CGU + politique. ⏳ **Une AIPD légère** quand le volume
+    décollera (données sensibles + grande échelle).
+  ⚠️ **Rien de tout ceci ne bloque le build 1.0.0 (4) ni la soumission iOS**, sauf A4
+  qui doit y être : le reste est administratif ou côté Google.
+
 - **C3 · 🧑 Classement d'âge : ADULTES UNIQUEMENT** — *tranché le 2026-07-30.*
   Apple 17+ · Google « Adultes uniquement », pour coller au blocage 18 ans de l'app.
   Répondre au questionnaire de façon à **atteindre** ce classement (le thème « gestion du
@@ -3601,6 +3647,82 @@ produit en suspens — il ne reste qu'à coder.
 > ⚠️ **Le conflit git qui en résulte n'est PAS un conflit de numéros** : les deux
 > branches insèrent en tête de cette section, donc git ne sait pas dans quel ordre. La
 > résolution est de garder les DEUX blocs, en ordre décroissant — jamais d'en choisir un.
+
+- 🤖 **E37 · Le portail de dépistage santé cesse de dépister — et un sous-traitant manquait au registre (2026-08-11)**
+
+  Arbitrage d'une checklist légale revenue de Claude chat, **mesurée contre le code avant
+  d'en appliquer une ligne**. Sur ses cinq points « app », **deux étaient déjà faits, un
+  reposait sur une prémisse fausse**, et le seul vrai manque qu'elle listait était rangé
+  au FUTUR alors qu'il était déjà en production.
+
+  🔴 **CE QUI EST RETIRÉ : les deux questions du portail** (grossesse/allaitement,
+  pathologie chronique suivie) et le cul-de-sac derrière. Décision fondateur. Motif :
+  subordonner l'accès au service à ces deux critères est un refus de service fondé sur
+  des critères de discrimination (art. 225-1 / 225-2), et la réponse est elle-même une
+  donnée de santé (RGPD art. 9) qu'aucun texte n'oblige à recueillir. L'écran garde son
+  titre, son avertissement, **une phrase de renvoi vers un médecin** et un bouton unique
+  « J'ai compris ». `PREGNANCY_OR_NURSING` disparaît de `checkEligibility`.
+
+  ⚠️ **CE N'EST PAS UN GARDE-FOU EN MOINS, C'EST UN GARDE-FOU DÉCLARATIF EN MOINS.** Une
+  case cochée n'a jamais rien prouvé de personne. Ce qui protège continue de tourner et
+  n'a pas bougé d'une ligne : `MIN_AGE`, l'IMC de départ, le volume d'entraînement, les
+  planchers caloriques du moteur. **Ceux-là mesurent au lieu de demander.** Et le renvoi
+  vers un professionnel de santé — le seul apport réel du portail, exigé par Apple 1.4.1
+  et Google — est CONSERVÉ, simplement dit au lieu d'être vérifié.
+
+  🔴 **TROIS AFFIRMATIONS DE LA CHECKLIST ÉTAIENT FAUSSES, ET AUCUNE N'ÉTAIT DE MAUVAISE
+  FOI** — chacune décrivait un état plausible du produit :
+  | Ce qu'elle disait | Ce que le disque dit |
+  |---|---|
+  | « Bloquer les mineurs — vérifier ce que fait le code, **probablement rien** » | bloqué à **trois étages** depuis le 2026-07-28 (`BirthDateField` pendant la saisie, `checkEligibility` → `MINOR`, refus final via `notify`), `MIN_AGE = 18`, et la politique de confidentialité §10 le dit déjà |
+  | « Consentement explicite art. 9 : case dédiée, non pré-cochée, séparée des CGU » | **livré** (`login.tsx`), non pré-cochée, exigée par `canSubmit`, et l'écriture est même REPORTÉE jusqu'à l'ouverture de session (sinon la RLS la refuse en silence — corrigé le 2026-08-09) |
+  | « Vérifier si les réponses du dépistage ont été persistées → **supprimer le champ ET les données déjà écrites** » | **rien n'a jamais été persisté** : `{passedAt, version}` en AsyncStorage local, et seulement pour qui PASSAIT. Zéro colonne Supabase, zéro entrée dans `PROFILE_COLS` |
+  ➡️ **Une checklist rédigée hors du dépôt décrit le produit qu'elle imagine.** Les trois
+  se seraient traduites par du travail inutile — dont une chasse à des données de santé
+  qui n'existent nulle part. C'est le même motif que « mesurer ce que l'utilisateur reçoit
+  AVANT d'exécuter une fiche », rejoué sur un document juridique.
+
+  🔴 **ET LE VRAI MANQUE ÉTAIT RANGÉ AU FUTUR.** La checklist écrivait « ajouter PostHog
+  et Resend au registre **avant de les activer** ». Or **Resend est en production depuis
+  le 2026-08-09** — il traite l'adresse e-mail de chaque inscription — et il n'était ni
+  au §5 « Destinataires et sous-traitants », ni au registre RGPD. Deux jours de retard sur
+  la production. ⚠️ Ce qui l'a caché : les mettre **dans le même sac** alors que l'un
+  tourne et l'autre dort, et le fait que la phrase « aucun outil d'analyse tiers » restait
+  **vraie** — la page se relisait donc sans alarme. ➡️ **Un sous-traitant se déclare le
+  jour où il traite, pas le jour où on avait prévu de l'activer.**
+  ⚠️ **Ce qui N'A PAS été écrit, faute de l'avoir lu** : le cadre du transfert hors UE de
+  Resend (clauses types / DPF, art. 13-1-f). Il ne vit que dans le DPA. La ligne
+  « Transferts hors UE » du registre reste donc explicitement EN SUSPENS, avec une case
+  🧑 pour le fondateur — même règle que le prestataire d'abonnement, jamais nommé tant
+  qu'aucun contrat n'existait. **Une politique de confidentialité n'est pas l'endroit où
+  supposer.**
+
+  **Livré aussi (A3 de la checklist, une ligne)** : le libellé du consentement nommait
+  « poids, objectif, régime » alors que la taille et le %MG sont traités eux aussi →
+  « poids, taille, composition corporelle, objectif, régime ».
+
+  🔴 **DEUX PIÈGES DE MÉTHODE PAYÉS DANS LA SESSION, et le second est le plus utile :**
+  1. **`git checkout <fichier>` pour défaire une mutation restaure depuis l'INDEX** — donc
+     il a effacé le travail non indexé sur `HealthScreening.tsx` et `safety.ts`. Les deux
+     mutations suivantes ont alors tourné sur le fichier d'ORIGINE : elles rougissaient,
+     mais pour la mauvaise raison, et le relevé avait l'air bon (« 2 failed », « 3 failed »).
+     ➡️ Sauvegarder hors de git avant de muter, et se méfier d'un compteur de rouges qui
+     MONTE d'une mutation à l'autre — c'est le signe qu'on cumule au lieu d'isoler.
+  2. **Le test qui vérifie l'ABSENCE d'un libellé s'accusait lui-même** : la note qui
+     explique le retrait CITE « Es-tu concerné·e ». C'est le défaut d'A30 rejoué (« le
+     commentaire se porte garant de ce qu'il décrit »), mais dans le sens ALARMANT cette
+     fois — donc la version chanceuse : il rougit au lieu de verdir à tort. ➡️
+     `sansCommentairesJS` avant toute recherche de chaîne, et la mutation M4 le prouve
+     dans les deux sens : commentaire seul → vert, commentaire + code → rouge.
+
+  ✅ **Vérifié** : **1 402 tests verts, 85 fichiers**, `tsc` propre. `healthScreening.test.ts`
+  réécrit (5 cas, **4 mutations, 4 rouges** — un seul test rouge par mutation), harnais
+  Playwright `passScreening` recâblé sur le nouveau bouton, et son ancre de contrôle
+  changée de cible plutôt que supprimée : le risque « écran introuvable » qui a fait dormir
+  la panne du 2026-08-05 est intact, seule la question posée a changé.
+  ⚠️ **Non vérifié à l'écran** : le worktree ne peut pas ouvrir le preview (il sert l'app du
+  dépôt PRINCIPAL, §11). L'écran est simple — un titre, un encart, un bouton — mais le
+  **verdict d'appareil manque**.
 
 - 🤖 **E36 · Le MATÉRIAU — la barre d'onglets passe au verre, et une prémisse tombe (2026-08-11)**
 

@@ -437,7 +437,8 @@ describe('P0.4 — éligibilité et bornes d\'entrée', () => {
 
   it('bloque les profils inéligibles', () => {
     expect(checkEligibility({ ...adult, age: 17 })).toContain('MINOR');
-    expect(checkEligibility({ ...adult, pregnant_or_breastfeeding: true })).toContain('PREGNANCY_OR_NURSING');
+    // ⚠️ La grossesse/l'allaitement ne figurent PLUS ici (E37, 2026-08-11) : ce n'est
+    // pas un oubli de test, c'est un refus de service retiré volontairement.
     // IMC 16,5 avec un objectif de sèche
     expect(checkEligibility({ ...adult, weight_kg: 45, height_cm: 165 })).toContain('UNDERWEIGHT_CUT_BLOCKED');
     expect(checkEligibility(adult)).toEqual([]);

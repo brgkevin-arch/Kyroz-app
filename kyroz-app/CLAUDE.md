@@ -1092,8 +1092,33 @@ composant. Audit complet des réglages : `npm run mesure:reglages`.
   « à l'arrêt » du simulateur renvoyait `Infinity` — donc « aucune date » — pour une
   semaine PRÉVUE sur une sèche saine. Le simulateur avance à poids constant.
   ➡️ Garde-fou : `lib/__tests__/pauseMaintenance.test.ts`, **vérifié par 2 mutations**.
-- Pathologies (diabète, IRC, cardio)
-- Femmes enceintes / allaitantes
+> 🔴 **DEUX LIGNES DE CE BLOC ONT ÉTÉ RETIRÉES LE 2026-08-11** — « Pathologies
+> (diabète, IRC, cardio) » et « Femmes enceintes / allaitantes ». Décision fondateur
+> sur avis juridique, détail en AGENTS.md **E37**. Elles sont conservées ici, barrées,
+> parce qu'un hard block supprimé se relit comme un oubli : sans cette trace, la
+> prochaine session le « rétablit ».
+>
+> ~~Pathologies (diabète, IRC, cardio)~~ · ~~Femmes enceintes / allaitantes~~
+>
+> **Le motif, et il tient en deux points.** (1) Subordonner l'accès au service à la
+> grossesse ou à l'état de santé est un refus de service fondé sur deux critères de
+> discrimination du code pénal (art. 225-1 / 225-2). (2) La réponse recueillie était
+> elle-même une **donnée de santé** (RGPD art. 9), traitée sans qu'aucun texte — ni
+> Apple, ni Google, ni le règlement dispositifs médicaux — ne l'exige.
+>
+> ⚠️ **CE QUI REMPLACE N'EST PAS RIEN, ET C'EST LE POINT** : l'avertissement. Il est
+> désormais **DIT** au lieu d'être **VÉRIFIÉ** (`components/HealthScreening.tsx` :
+> « Enceinte, allaitante, ou suivie pour une pathologie chronique ? Parles-en à un
+> médecin avant de suivre un plan »). C'est aussi ce qu'exigent Apple 1.4.1 et Google.
+> ➡️ Une déclaration cochée n'a jamais rien prouvé de personne — ce qui protège
+> réellement, ce sont les blocages qui **MESURENT** : l'âge (`MIN_AGE`), l'IMC de
+> départ, le volume d'entraînement, les planchers caloriques. Eux ne demandent rien.
+>
+> ⚠️ **Aucune donnée n'était persistée** — mesuré avant de toucher au code :
+> `lib/healthScreening.ts` n'écrivait qu'un `{passedAt, version}` local, et seulement
+> pour qui PASSAIT. Les réponses ne quittaient jamais l'état de l'écran. Il n'y a donc
+> rien à effacer chez les comptes existants, et rien à supprimer côté Supabase.
+
 - **Utilisateurs < 18 ans** (bloquer à l'onboarding) — relevé de 16 à 18 le
   2026-07-28 : Mifflin-St Jeor n'est pas validée sous 19 ans, et servir un moteur
   de déficit calorique à un mineur est un risque de conformité App Store autant
@@ -1154,6 +1179,22 @@ Profil (poids, objectif, régime) = **données de santé** au sens RGPD.
 - Consentement explicite à la collecte (onboarding)
 - Pas de revente, pas de pub, pas de tracking tiers sans consentement
 - Contact RGPD/DPO dans les CGU
+
+> **Un sous-traitant se déclare le jour où il TRAITE** (2026-08-11). Resend, expéditeur
+> des e-mails de service, est en production depuis le 2026-08-09 : il reçoit l'adresse
+> e-mail de chaque inscription. Il ne figurait ni au §5 de la politique
+> (`constants/legal.ts`, `public/legal.html`), ni au registre — deux jours de retard.
+> ⚠️ **Le motif de l'omission vaut plus que l'omission** : la checklist qui l'a trouvé le
+> rangeait avec PostHog, donc **au futur** (« avant d'activer PostHog / Resend »), alors
+> que l'un était branché et l'autre dormant. Et la phrase « aucun outil d'analyse tiers »
+> restait vraie, ce qui rendait la page rassurante à la relecture.
+> ➡️ Devant une liste de sous-traitants, la question n'est pas « qu'a-t-on prévu ? » mais
+> **« qu'est-ce qui tourne aujourd'hui ? »**. Les trois surfaces se tiennent à jour
+> ensemble : `constants/legal.ts`, son miroir `public/legal.html`, `RGPD-REGISTRE.md`.
+> ⚠️ **Ce qu'on ne sait pas ne s'écrit pas** : le cadre du transfert hors UE de Resend
+> (clauses contractuelles types / DPF, art. 13-1-f) ne peut se lire que dans son DPA. La
+> ligne reste explicitement EN SUSPENS au registre plutôt que remplie au jugé — même
+> règle que le prestataire d'abonnement, jamais nommé tant qu'aucun contrat n'existait.
 
 ### Statistiques d'usage — le consentement se demande AVANT l'assistant (2026-08-10)
 
