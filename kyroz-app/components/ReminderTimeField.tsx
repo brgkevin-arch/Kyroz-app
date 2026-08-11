@@ -1,11 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, TextInput } from 'react-native';
 import { ThemePalette, Radius, Spacing, Type, Trait, CIBLE_TACTILE_MIN } from '../constants/theme';
-import { Chip } from './ui';
-import {
-  ReminderTime, REMINDER_PRESETS, REMINDER_PRESET_IDS, REMINDER_PRESET_LABELS,
-  clampReminderTime, presetOf,
-} from '../lib/reminder';
+import { ReminderTime, clampReminderTime } from '../lib/reminder';
 
 // ── Heure du rappel quotidien ───────────────────────────────────────────────
 //
@@ -14,11 +10,15 @@ import {
 // sur le web, qui est la version que les gens utilisent aujourd'hui. Deux
 // nombres se tapent au pavé numérique, partout.
 //
-// Les trois anciens créneaux (Matin · Midi · Soir) restent en PUCES, comme
-// raccourcis. Ils ne sont plus le modèle : la puce se rallume quand l'heure
-// tombe pile dessus, et s'éteint dès qu'on s'en écarte — donc une heure perso ne
-// laisse aucune puce allumée, ce qu'un sélecteur segmenté ne saurait pas montrer
-// sans un cran « Perso » qui, lui, ne ferait rien quand on le touche.
+// ⚠️ **Les trois puces de raccourci (Matin · Midi · Soir) sont RETIRÉES**
+// (décision fondateur, 2026-08-11) : il ne reste que l'heure. Elles étaient le
+// dernier vestige du modèle d'avant — le rappel se réglait sur trois valeurs en
+// dur — et gardaient trois heures particulières au rang de proposition alors que
+// le modèle est une heure libre depuis le 2026-08-07. Deux champs et une rangée
+// de puces posent la même question deux fois.
+// ➡️ `REMINDER_PRESETS` SURVIT quand même, et il ne faut pas le supprimer en
+// croyant nettoyer : il porte la reprise de l'ancien format stocké et l'heure par
+// défaut. Voir le commentaire qui l'accompagne dans `lib/reminder.ts`.
 //
 // ⚠️ La saisie ne se valide qu'au `onBlur`, jamais à la frappe : chaque
 // changement REPROGRAMME la notification système, et taper « 20 » émettrait
@@ -57,9 +57,9 @@ export function ReminderTimeField({ t, value, onChange }: Props) {
   const poserH = (v: string) => { hhRef.current = v; setHh(v); };
   const poserM = (v: string) => { mmRef.current = v; setMm(v); };
 
-  // Resynchro UNIQUEMENT sur un changement venu de l'EXTÉRIEUR (préférence
-  // relue du stockage après le montage, puce touchée) — jamais sur notre propre
-  // émission, qui viderait les champs sous les doigts.
+  // Resynchro UNIQUEMENT sur un changement venu de l'EXTÉRIEUR (préférence relue
+  // du stockage après le montage) — jamais sur notre propre émission, qui
+  // viderait les champs sous les doigts.
   const emitted = useRef(value);
   useEffect(() => {
     if (value.hour === emitted.current.hour && value.minute === emitted.current.minute) return;
@@ -83,16 +83,6 @@ export function ReminderTimeField({ t, value, onChange }: Props) {
     emitted.current = next;
     onChange(next);
   };
-
-  const choisirPuce = (h: number, m: number) => {
-    const next = { hour: h, minute: m };
-    poserH(pad(h));
-    poserM(pad(m));
-    emitted.current = next;
-    onChange(next);
-  };
-
-  const actif = presetOf(value);
 
   // ⚠️ Largeur POSÉE, et le champ en `flex: 1, minWidth: 0` dedans — exactement
   // le montage de `Field` (components/ui.tsx) et pour la même raison : un
@@ -118,49 +108,35 @@ export function ReminderTimeField({ t, value, onChange }: Props) {
   };
 
   return (
-    <View style={{ gap: Spacing.md }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm }}>
-        <View style={cadre}>
-          <TextInput
-            value={hh}
-            onChangeText={(v) => poserH(digits(v))}
-            onBlur={commit}
-            onFocus={() => poserH('')}
-            keyboardType="number-pad"
-            maxLength={2}
-            accessibilityLabel="Heure du rappel"
-            placeholder={pad(value.hour)}
-            placeholderTextColor={t.textQuaternary}
-            style={saisie}
-          />
-        </View>
-        <Text style={{ ...Type.h3, color: t.textSecondary }}>h</Text>
-        <View style={cadre}>
-          <TextInput
-            value={mm}
-            onChangeText={(v) => poserM(digits(v))}
-            onBlur={commit}
-            onFocus={() => poserM('')}
-            keyboardType="number-pad"
-            maxLength={2}
-            accessibilityLabel="Minutes du rappel"
-            placeholder={pad(value.minute)}
-            placeholderTextColor={t.textQuaternary}
-            style={saisie}
-          />
-        </View>
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm }}>
+      <View style={cadre}>
+        <TextInput
+          value={hh}
+          onChangeText={(v) => poserH(digits(v))}
+          onBlur={commit}
+          onFocus={() => poserH('')}
+          keyboardType="number-pad"
+          maxLength={2}
+          accessibilityLabel="Heure du rappel"
+          placeholder={pad(value.hour)}
+          placeholderTextColor={t.textQuaternary}
+          style={saisie}
+        />
       </View>
-
-      <View style={{ flexDirection: 'row', gap: Spacing.sm, flexWrap: 'wrap' }}>
-        {REMINDER_PRESET_IDS.map((id) => (
-          <Chip
-            key={id}
-            t={t}
-            label={REMINDER_PRESET_LABELS[id]}
-            selected={actif === id}
-            onPress={() => choisirPuce(REMINDER_PRESETS[id].hour, REMINDER_PRESETS[id].minute)}
-          />
-        ))}
+      <Text style={{ ...Type.h3, color: t.textSecondary }}>h</Text>
+      <View style={cadre}>
+        <TextInput
+          value={mm}
+          onChangeText={(v) => poserM(digits(v))}
+          onBlur={commit}
+          onFocus={() => poserM('')}
+          keyboardType="number-pad"
+          maxLength={2}
+          accessibilityLabel="Minutes du rappel"
+          placeholder={pad(value.minute)}
+          placeholderTextColor={t.textQuaternary}
+          style={saisie}
+        />
       </View>
     </View>
   );

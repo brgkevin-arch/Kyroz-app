@@ -2,10 +2,10 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import {
-  CITATIONS, REMINDER_PRESETS, REMINDER_PRESET_IDS, REMINDER_TITLES, WEIGH_IN_MESSAGES,
+  CITATIONS, REMINDER_PRESETS, REMINDER_TITLES, WEIGH_IN_MESSAGES,
   ReminderPeriod, clampReminderTime, dayIndex, formatCitation, formatReminderTime,
   nextReminderAt, parseReminder, periodOf, pickCitation, pickReminderCopy, pickWeighInCopy,
-  presetOf, serializeReminder, intentFromData,
+  serializeReminder, intentFromData,
 } from '../reminder';
 
 // ── Ce que ce fichier tient fermé ───────────────────────────────────────────
@@ -83,12 +83,34 @@ describe('heure du rappel — lecture et écriture de la préférence', () => {
     expect(formatReminderTime({ hour: 0, minute: 5 })).toBe('0h05');
   });
 
-  it('la puce de raccourci ne s’allume que sur son heure EXACTE', () => {
-    for (const id of REMINDER_PRESET_IDS) expect(presetOf(REMINDER_PRESETS[id])).toBe(id);
-    // Une minute d'écart = heure perso : aucune puce allumée.
-    expect(presetOf({ hour: 8, minute: 1 })).toBeNull();
-    expect(presetOf({ hour: 18, minute: 0 })).toBeNull();
-    expect(presetOf(null)).toBeNull();
+  // 🔴 Les puces « Matin · Midi · Soir » sont RETIRÉES de l'écran (2026-08-11) —
+  // il ne reste que l'heure. Ce test ne parle donc plus d'interface : il tient la
+  // seule raison pour laquelle `REMINDER_PRESETS` survit, et sans laquelle un
+  // futur nettoyage le supprimerait comme du code mort.
+  //
+  // ⚠️ Ce que ça casserait est INVISIBLE : la clé `@kyroz:reminder` de tous ceux
+  // qui ont réglé leur rappel avant l'heure libre contient encore `'morning'`.
+  // Sans la table, `parseReminder` rend `null`, leur rappel s'éteint — et une
+  // notification qui n'arrive pas ne se signale jamais.
+  it('les trois créneaux ne sont plus des puces, mais leur STOCKAGE se relit encore', () => {
+    for (const [cle, heure] of Object.entries(REMINDER_PRESETS)) {
+      expect(parseReminder(cle), cle).toEqual({ hour: heure.hour, minute: heure.minute });
+    }
+    // Et l'écriture, elle, ne les reproduit JAMAIS : on ne stocke qu'une heure.
+    for (const heure of Object.values(REMINDER_PRESETS)) {
+      expect(serializeReminder(heure)).toMatch(/^\d{2}:\d{2}$/);
+    }
+  });
+
+  it('le champ d’heure ne propose plus AUCUN raccourci', () => {
+    // Un composant qui garderait la rangée de puces la remplirait depuis ce
+    // module — c'est le seul endroit d'où les libellés pouvaient venir.
+    const src = readFileSync(join(__dirname, '..', 'reminder.ts'), 'utf8');
+    for (const libelle of ['Matin', 'Midi', 'Soir']) {
+      expect(src.includes(`'${libelle}'`), libelle).toBe(false);
+    }
+    const champ = readFileSync(join(__dirname, '..', '..', 'components', 'ReminderTimeField.tsx'), 'utf8');
+    expect(champ).not.toMatch(/<Chip/);
   });
 });
 

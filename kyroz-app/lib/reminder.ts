@@ -9,9 +9,14 @@
 //
 //  1. **L'heure est un nombre, plus un créneau.** Le rappel se réglait sur trois
 //     valeurs en dur (8h00 · 12h00 · 18h30). Quelqu'un qui déjeune à 13h ou
-//     dîne à 20h30 recevait donc un rappel à côté de sa vie. Les trois créneaux
-//     survivent comme RACCOURCIS (`REMINDER_PRESETS`), pas comme le modèle : ce
-//     qu'on stocke est une heure libre, et le raccourci se DÉDUIT d'elle.
+//     dîne à 20h30 recevait donc un rappel à côté de sa vie. Ce qu'on stocke est
+//     une heure libre, point.
+//     *(Les trois créneaux ont survécu quelque temps comme RACCOURCIS en puces.
+//     Elles sont retirées depuis le 2026-08-11 : deux champs et une rangée de
+//     puces posaient la même question deux fois, et les puces gardaient trois
+//     heures particulières au rang de proposition alors que le modèle ne les
+//     distingue plus. `REMINDER_PRESETS` reste — pour la migration, pas pour
+//     l'écran ; voir le commentaire qui l'accompagne.)*
 //
 //  2. **Le message tourne.** Une notification qui répète la même phrase pendant
 //     six mois devient un bruit qu'on balaie sans lire. Chaque créneau de la
@@ -37,7 +42,25 @@ export interface ReminderCopy {
   body: string;
 }
 
-/** Raccourcis d'un tap. Ce ne sont QUE des heures — le modèle reste l'heure. */
+/**
+ * Les trois créneaux de l'ANCIEN modèle, avec les heures qu'ils désignaient.
+ *
+ * 🔴 **CE N'EST PLUS DE L'INTERFACE — NE PAS LE SUPPRIMER EN CROYANT NETTOYER.**
+ * Les puces « Matin · Midi · Soir » ont été retirées de l'écran le 2026-08-11
+ * (décision fondateur : *« enlever le matin midi soir, et juste mettre l'heure »*).
+ * Cette table, elle, garde deux rôles qui n'ont rien d'un raccourci :
+ *
+ *  1. **La reprise du format stocké.** `@kyroz:reminder` survit à la purge des
+ *     données (cf. le `KEEP` du Profil), donc la clé contient encore la chaîne
+ *     `'morning'` chez tous ceux qui ont réglé leur rappel avant l'heure libre.
+ *     Sans cette table, `parseReminder` rendrait `null` et **leur rappel
+ *     s'éteindrait en silence** — une notification qui n'arrive pas ne se
+ *     signale pas, donc personne ne le dirait.
+ *  2. **L'heure par défaut** (`DEFAULT_REMINDER_TIME`).
+ *
+ * ⚠️ Les LIBELLÉS, eux, sont bien partis : c'est ce qui était de l'interface.
+ * Ce qui reste est de la donnée de migration.
+ */
 export const REMINDER_PRESETS = {
   morning: { hour: 8, minute: 0 },
   midday: { hour: 12, minute: 0 },
@@ -45,14 +68,6 @@ export const REMINDER_PRESETS = {
 } as const;
 
 export type ReminderPresetId = keyof typeof REMINDER_PRESETS;
-
-export const REMINDER_PRESET_IDS: ReminderPresetId[] = ['morning', 'midday', 'evening'];
-
-export const REMINDER_PRESET_LABELS: Record<ReminderPresetId, string> = {
-  morning: 'Matin',
-  midday: 'Midi',
-  evening: 'Soir',
-};
 
 /** Heure posée quand on active le rappel sans rien préciser. */
 export const DEFAULT_REMINDER_TIME: ReminderTime = REMINDER_PRESETS.morning;
@@ -93,14 +108,6 @@ export function serializeReminder(time: ReminderTime | null): string {
 /** Affichage français : `8h00`, `18h30`. L'heure ne se pave pas, les minutes si. */
 export function formatReminderTime(time: ReminderTime): string {
   return `${time.hour}h${String(time.minute).padStart(2, '0')}`;
-}
-
-/** Le raccourci qui correspond EXACTEMENT à cette heure, sinon `null` (= perso). */
-export function presetOf(time: ReminderTime | null): ReminderPresetId | null {
-  if (!time) return null;
-  return REMINDER_PRESET_IDS.find(
-    (id) => REMINDER_PRESETS[id].hour === time.hour && REMINDER_PRESETS[id].minute === time.minute,
-  ) ?? null;
 }
 
 // ── Le moment de la journée décide de ce qu'on dit ───────────────────────────
