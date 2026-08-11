@@ -1094,7 +1094,7 @@ composant. Audit complet des réglages : `npm run mesure:reglages`.
   ➡️ Garde-fou : `lib/__tests__/pauseMaintenance.test.ts`, **vérifié par 2 mutations**.
 > 🔴 **DEUX LIGNES DE CE BLOC ONT ÉTÉ RETIRÉES LE 2026-08-11** — « Pathologies
 > (diabète, IRC, cardio) » et « Femmes enceintes / allaitantes ». Décision fondateur
-> sur avis juridique, détail en AGENTS.md **E37**. Elles sont conservées ici, barrées,
+> sur avis juridique, détail en AGENTS.md **E39**. Elles sont conservées ici, barrées,
 > parce qu'un hard block supprimé se relit comme un oubli : sans cette trace, la
 > prochaine session le « rétablit ».
 >

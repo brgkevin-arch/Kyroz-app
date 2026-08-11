@@ -81,7 +81,7 @@ const ANCRES: Ancre[] = [
   { quoi: 'champ mot de passe (QA écran de login)', texte: '6 caractères minimum', dans: 'app/(auth)/login.tsx', script: 'test/qa-full.mjs' },
 
   // ── Écran d'avertissement santé (passScreening) ──
-  // ⚠️ Trois ancres ont disparu ici le 2026-08-11 (E37) : la question du portail, les
+  // ⚠️ Trois ancres ont disparu ici le 2026-08-11 (E39) : la question du portail, les
   // réponses « Non » et l'attestation. Elles ne sont pas « à remettre » — l'écran ne
   // pose plus de question. Il n'en reste que deux, et ce sont les deux qu'il faut :
   // le repère de reconnaissance et le bouton unique.
@@ -277,7 +277,7 @@ describe('harnais Playwright — les tables recopiées suivent la source', () =>
     ).toBe(false);
   });
 
-  // 🔴 CE TEST A CHANGÉ DE CIBLE LE 2026-08-11 (E37), IL N'A PAS ÉTÉ SUPPRIMÉ.
+  // 🔴 CE TEST A CHANGÉ DE CIBLE LE 2026-08-11 (E39), IL N'A PAS ÉTÉ SUPPRIMÉ.
   // Il exigeait que `passScreening` clique un « Non » par condition avant de chercher
   // l'attestation — la règle qui avait fait dormir la panne du 2026-08-05. L'écran ne
   // pose plus de question, donc cette exigence n'a plus d'objet ; mais le RISQUE, lui,
@@ -306,7 +306,7 @@ describe('harnais Playwright — les tables recopiées suivent la source', () =>
     for (const reste of ['getByText(\'Non\'', 'Je confirme être un adulte', 'Es-tu concerné']) {
       expect(
         sequence.includes(reste),
-        `passScreening cherche encore « ${reste} » : ce libellé n'existe plus depuis E37, le harnais échouerait en accusant l'écran`,
+        `passScreening cherche encore « ${reste} » : ce libellé n'existe plus depuis E39, le harnais échouerait en accusant l'écran`,
       ).toBe(false);
     }
   });

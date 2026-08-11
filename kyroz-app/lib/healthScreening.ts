@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // ── Avertissement santé à l'entrée (CLAUDE.md §6) ────────────────────────────
 //
 // 🔴 CE MODULE NE POSE PLUS AUCUNE QUESTION — changement du 2026-08-11, décision
-// fondateur sur avis juridique (AGENTS.md E37). Il portait un DÉPISTAGE bloquant :
+// fondateur sur avis juridique (AGENTS.md E39). Il portait un DÉPISTAGE bloquant :
 // deux questions (grossesse/allaitement, pathologie chronique suivie) dont un « oui »
 // menait à un cul-de-sac. Deux motifs l'ont fait tomber, et le second est le vrai :
 //   1. subordonner l'accès à un service à la grossesse ou à l'état de santé tombe

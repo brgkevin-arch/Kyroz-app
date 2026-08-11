@@ -14,10 +14,10 @@ const lire = (p: string) =>
     .replace(/\{\/\*[\s\S]*?\*\/\}/g, ''); // commentaires JSX
 
 // Le module ne porte plus de logique de décision (le dépistage bloquant est retiré —
-// AGENTS.md E37) : il ne reste qu'une mémoire « avertissement vu ». Ce qu'il y a à
+// AGENTS.md E39) : il ne reste qu'une mémoire « avertissement vu ». Ce qu'il y a à
 // verrouiller a donc changé de nature — ce n'est plus « bloque-t-il bien ? » mais
 // « n'a-t-on pas reconstruit un questionnaire par la bande ? ».
-describe('avertissement santé — plus aucune question posée (E37)', () => {
+describe('avertissement santé — plus aucune question posée (E39)', () => {
   it('l\'écran ne pose AUCUNE question et n\'a pas de cul-de-sac', () => {
     const ecran = lire('components/HealthScreening.tsx');
     // Les trois marques de l'ancien portail. Chacune est le symptôme d'un retour en

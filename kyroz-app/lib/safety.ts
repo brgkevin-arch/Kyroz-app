@@ -984,7 +984,7 @@ export function lowEaWeeksForFloor(
 // ── Éligibilité ──────────────────────────────────────────────────────────────
 
 // 🔴 `PREGNANCY_OR_NURSING` A ÉTÉ RETIRÉ le 2026-08-11 (décision fondateur, avis
-// juridique — AGENTS.md E37). Il n'était alimenté que par le portail de dépistage, qui
+// juridique — AGENTS.md E39). Il n'était alimenté que par le portail de dépistage, qui
 // posait la question ; celle-ci est supprimée, donc plus rien ne pouvait le produire et
 // il serait devenu un motif que le code sait dire et que rien ne déclenche. La grossesse
 // et l'allaitement relèvent désormais de l'AVERTISSEMENT (components/HealthScreening.tsx),

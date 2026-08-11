@@ -226,7 +226,7 @@ export async function passScreening(page) {
   const prompt = page.getByText('Avant de commencer', { exact: false }).first();
   if (!(await prompt.isVisible({ timeout: 5000 }).catch(() => false))) return 'absent';
 
-  // 🔴 L'ÉCRAN NE POSE PLUS DE QUESTION depuis le 2026-08-11 (E37) : un seul bouton.
+  // 🔴 L'ÉCRAN NE POSE PLUS DE QUESTION depuis le 2026-08-11 (E39) : un seul bouton.
   // La séquence d'avant — cliquer un « Non » par condition, puis l'attestation, puis
   // « Continuer » — est retirée avec elles. ⚠️ Le repère de reconnaissance a changé
   // lui aussi (« Es-tu concerné·e » → « Avant de commencer ») : c'est précisément le
