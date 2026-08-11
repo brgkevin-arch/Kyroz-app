@@ -5,6 +5,8 @@ import {
   RESSORT, ECHELLE_APPUI, ressortRN, ressortReduit,
 } from '../lib/motion';
 import { reduceMotionActif } from '../lib/reduceMotion';
+import { retour as emettreRetour } from '../lib/retourHaptique';
+import type { RoleHaptique } from '../lib/haptique';
 
 // ── Un bouton pressé s'ENFONCE, il ne se contente pas de pâlir ───────────────
 //
@@ -44,6 +46,17 @@ export interface PresseProps extends Omit<PressableProps, 'style'> {
    * inerte s'animerait sous le doigt en promettant une action qui n'existe pas.
    */
   activeOpacity?: number;
+  /**
+   * Retour au toucher, **à déclarer explicitement** — voir `lib/haptique.ts`.
+   *
+   * 🔴 IL N'Y A VOLONTAIREMENT PAS DE VALEUR PAR DÉFAUT. Brancher une vibration
+   * ici pour les 129 sites d'un coup était l'occasion évidente, et c'est
+   * exactement la faute : un retour que l'on sent sur chaque bouton ne signale
+   * plus rien, il devient le bruit de fond de l'app (Apple : « use haptics
+   * sparingly »). Chaque site qui en veut un le NOMME, et `haptiqueDA` les
+   * compte — un `retour` par défaut ferait disparaître ce comptage.
+   */
+  retour?: RoleHaptique;
 }
 
 // 🔴 LE `Pressable` LUI-MÊME EST ANIMÉ — PAS UNE VUE POSÉE À L'INTÉRIEUR.
@@ -59,7 +72,7 @@ export interface PresseProps extends Omit<PressableProps, 'style'> {
 const PressableAnime = Animated.createAnimatedComponent(Pressable);
 
 export const Presse = forwardRef<any, PresseProps>(function Presse(
-  { style, activeOpacity = OPACITE_PRESSION, disabled, onPressIn, onPressOut, ...rest },
+  { style, activeOpacity = OPACITE_PRESSION, disabled, retour, onPressIn, onPressOut, ...rest },
   ref,
 ) {
   const echelle = useRef(new Animated.Value(1)).current;
@@ -88,6 +101,13 @@ export const Presse = forwardRef<any, PresseProps>(function Presse(
         if (!inerte) {
           animer(ECHELLE_APPUI, RESSORT.appui);
           opacite.setValue(activeOpacity);
+          // ⚠️ Sur l'APPUI, avec l'enfoncement — pas au relâchement, et pas dans
+          // `onPress`. Le doigt doit sentir au même instant qu'il voit, sinon les
+          // deux retours se dédoublent et l'appui paraît mou. Même règle que
+          // l'échelle, pour la même raison.
+          // ⚠️ Et sous la garde `inerte` : une ligne non cliquable ne vibre pas
+          // plus qu'elle ne s'enfonce — elle promettrait une action inexistante.
+          if (retour) emettreRetour(retour);
         }
         onPressIn?.(e);
       }}

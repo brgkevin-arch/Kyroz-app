@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Presse } from '../../components/Presse';
+import { retour } from '../../lib/retourHaptique';
 import {
   View, Text, StyleSheet, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView,
 } from 'react-native';
@@ -37,6 +38,19 @@ export default function LoginScreen() {
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
+  /**
+   * Pose un message d'erreur ET le fait sentir. Un seul point d'entrée, pour deux
+   * raisons : les cinq branches d'échec de cet écran doivent se comporter pareil,
+   * et surtout `setError(null)` — qui NETTOIE — ne doit rien émettre. Deux
+   * fonctions plutôt qu'un `if` dans une seule : c'est l'appelant qui sait s'il
+   * annonce un échec ou s'il fait le ménage.
+   *
+   * ℹ️ Un mot de passe refusé est le cas d'école du retour d'erreur : le message
+   * s'affiche sous le champ, c'est-à-dire hors du regard de quelqu'un qui vient
+   * d'appuyer sur le bouton — la main l'apprend avant l'œil.
+   */
+  const refuser = (message: string) => { retour('refus'); setError(message); };
+
   // Adresse dont la confirmation est en attente. Non nulle = l'écran affiche la
   // saisie du code, pas le formulaire.
   const [aConfirmer, setAConfirmer] = useState<string | null>(null);
@@ -63,7 +77,7 @@ export default function LoginScreen() {
       ? await signIn(email, password)
       : await signUp(email, password, consent);
     setBusy(false);
-    if (res.error) { setError(translate(res.error)); return; }
+    if (res.error) { refuser(translate(res.error)); return; }
     // Inscription sans session = confirmation e-mail à valider. On enchaîne SUR PLACE
     // avec la saisie du code reçu — l'utilisateur ne quitte pas l'app, et il n'a rien
     // à retenir. Renvoyer ici sur un formulaire de connexion vide ferait croire à un bug.
@@ -82,7 +96,7 @@ export default function LoginScreen() {
     setBusy(true); setError(null); setNotice(null);
     const res = await confirmEmail(aConfirmer, code);
     setBusy(false);
-    if (res.error) { setError(traduitErreurConfirmation(res.error)); return; }
+    if (res.error) { refuser(traduitErreurConfirmation(res.error)); return; }
     // `verifyOtp` ouvre la session : rien à ressaisir, on entre directement.
     router.replace('/');
   };
@@ -93,7 +107,7 @@ export default function LoginScreen() {
     const res = await resendConfirmation(aConfirmer);
     setBusy(false);
     setRenvoiDans(DELAI_RENVOI_S);
-    if (res.error) { setError(traduitErreurConfirmation(res.error)); return; }
+    if (res.error) { refuser(traduitErreurConfirmation(res.error)); return; }
     // ⚠️ Le nouvel envoi INVALIDE le code précédent : le dire, sinon quelqu'un
     // saisit celui du premier e-mail et croit que l'app se trompe.
     setCode('');
@@ -114,7 +128,7 @@ export default function LoginScreen() {
     const res = await signInGuest();
     setBusy(false);
     if (res.error) {
-      setError('Connexion invité indisponible. Active l\'auth anonyme dans Supabase (Authentication → Providers → Anonymous).');
+      refuser('Connexion invité indisponible. Active l\'auth anonyme dans Supabase (Authentication → Providers → Anonymous).');
       return;
     }
     router.replace('/'); // session anonyme ouverte → l'index route vers l'onboarding
