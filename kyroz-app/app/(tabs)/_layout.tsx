@@ -1,6 +1,8 @@
 import { Tabs, Redirect } from 'expo-router';
-import { Platform, ColorValue } from 'react-native';
+import { Platform, ColorValue, StyleSheet } from 'react-native';
 import { useTheme, Type, Spacing, Trait } from '../../constants/theme';
+import Materiau, { useVerre } from '../../components/Materiau';
+import { styleBarre } from '../../lib/materiau';
 import { useAuth } from '../../hooks/useAuth';
 import { useProfile } from '../../hooks/useProfile';
 import Splash from '../../components/Splash';
@@ -17,6 +19,7 @@ const icon = (Cmp: TabIcon) =>
 
 export default function TabLayout() {
   const t = useTheme();
+  const verre = useVerre();
   const { session, ready, hydrating } = useAuth();
   const { profile, loading } = useProfile();
 
@@ -38,14 +41,32 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
+        // 🔴 LA BARRE CHANGE DE MATÉRIAU, PAS DE HAUTEUR. Hauteur, dégagements
+        // et couleurs d'onglet sont ceux d'avant : seuls le fond et le trait
+        // supérieur bougent, et uniquement là où le verre existe (iOS 26+, sans
+        // « Réduire la transparence »). Partout ailleurs, `styleBarre` rend très
+        // exactement les cinq lignes d'avant ce chantier.
+        //
+        // ⚠️ `position: 'absolute'` est la moitié du travail qu'on oublie : le
+        // verre n'a de sens que si l'on voit du contenu AU TRAVERS, donc la barre
+        // doit sortir du flux et laisser le contenu défiler dessous. Les cinq
+        // écrans portaient déjà `paddingBottom: Fond.barreOnglets` (120 pt) —
+        // 88 de barre + 32 d'air — donc rien ne finit caché. Ce n'est pas une
+        // coïncidence heureuse à laisser sans surveillance : `materiauxDA` compte
+        // ces cinq dégagements, parce qu'un sixième onglet qui les oublierait
+        // ferait disparaître sa dernière ligne, tout en bas, là où aucune capture
+        // ne regarde.
         tabBarStyle: {
-          backgroundColor: t.card,
-          borderTopColor: t.line,
-          borderTopWidth: Trait.fin,
+          ...styleBarre(verre, t.card, t.line, Trait.fin),
           height: Platform.OS === 'ios' ? 88 : 68,
           paddingBottom: Platform.OS === 'ios' ? 28 : 10,
           paddingTop: Spacing.sm,
         },
+        // Le verre lui-même. `tabBarBackground` se rend DERRIÈRE les onglets,
+        // c'est le point d'accroche prévu par react-navigation pour un matériau.
+        tabBarBackground: verre
+          ? () => <Materiau style={StyleSheet.absoluteFill} />
+          : undefined,
         // L'onglet actif porte l'ACCENT, pas l'encre : c'est la convention iOS, et
         // c'est ce qu'attend quelqu'un qui vient de choisir une couleur. En
         // monochrome, `accent` vaut déjà l'encre — le rendu ne bouge pas d'un pixel.

@@ -1637,6 +1637,52 @@ qu'ils en ont une. Faire dire OUI à une sonde autant que NON.
 n'y tourne pas, et un GESTE ne se vérifie pas en web (§5). Ce qui est testé ci-dessus l'est
 parce que c'est PUR ; le ressenti se juge au simulateur.
 
+### Le MATÉRIAU — sixième axe (2026-08-11)
+
+Kyroz ne connaissait qu'un matériau : **la peinture opaque**. Une barre d'onglets peinte
+cache ce qu'il y a dessous ; celle d'iOS 26 le laisse deviner, et c'est ce flou qui dit à
+l'œil « il y a encore du contenu par là ».
+
+**LA RÈGLE : le verre est réservé à ce qui FLOTTE au-dessus du contenu.** Une barre
+d'onglets, oui. Une feuille modale pleine posée sur un fond assombri, non — elle ne
+recouvre rien d'intéressant, et son texte y perdrait en lisibilité. Apple lui-même n'en
+met pas là.
+
+| | Où | État |
+|---|---|---|
+| Barre d'onglets | `app/(tabs)/_layout.tsx` | **en verre** — le contenu défile au travers |
+| Barre de titre compacte | `CollapsingTitle.tsx` | **peinte** — rien ne passe derrière (mesuré) |
+| Feuilles modales | `Sheet` / `ActionSheet` | **peintes** — fond assombri à 55 %, rien à voir |
+
+**Le module natif était DÉJÀ dans le binaire.** `expo-router` tire `expo-glass-effect`
+(et `expo-symbols`) sans les déclarer dans `package.json`, comme il tire reanimated. Le
+pod est compilé dans le build 1.0.0 (3) — donc ce chantier est parti **en OTA**. ➡️ « Pas
+dans `package.json` » ne veut jamais dire « pas dans le binaire » : la preuve est
+`ios/Podfile.lock`. Voir aussi §2.
+
+🔴 **TROIS conditions avant de servir du verre, et la première évite un CRASH** —
+`lib/materiau.ts::doitServirDuVerre` : l'API native répond (`requireNativeModule` lève sur
+un binaire d'avant, et une OTA peut y atterrir), le design Liquid Glass est actif (faux
+sous iOS 26), « Réduire la transparence » est éteint (Apple le teste en revue, comme
+« Réduire les animations »). **Le repli rend l'app d'avant au pixel près** — c'est ce qui
+autorise l'OTA sans risquer un écran illisible.
+
+⚠️ **Une barre en verre FLOTTE, donc le contenu passe dessous.** Sans dégagement de bas,
+la dernière ligne d'une liste finit cachée — un défaut qui ne se voit qu'en fin de
+défilement, jamais sur une capture. Les cinq onglets portent `paddingBottom:
+Fond.barreOnglets`, et `materiauxDA` les **compte**.
+
+⚠️ **Ne poser du verre que là où quelque chose passe derrière — et le VÉRIFIER.** La barre
+de titre compacte devait en recevoir : mesuré en la teignant en rouge translucide, rien ne
+défile derrière elle (`SafeAreaView edges={['top']}` fait commencer le contenu en dessous).
+Le verre y rendait le même noir, en supprimant le filet. Chantier annulé sur ce fichier.
+Deux hypothèses plausibles donnaient la même capture noire ; **seule la sonde colorée a
+tranché**.
+
+➡️ **Garde-fou : `lib/__tests__/materiauxDA.test.ts`**, vérifié par 8 mutations. Il écarte
+les commentaires avant toute recherche de chaîne — les notes de `Materiau.tsx` citent
+`expo-glass-effect`, la chaîne même qu'il interdit ailleurs.
+
 ### Le grand titre se replie (2026-08-04)
 
 Comportement des grands titres iOS, et ce que fait la maquette **sur ses cinq écrans à
