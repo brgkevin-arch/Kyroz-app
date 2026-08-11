@@ -519,9 +519,20 @@ export default function Onboarding() {
             {meals.length === 0 && <Text style={[s.sub, { marginTop: -Spacing.xs }]}>Sélectionne au moins 1 repas.</Text>}
           </View>
         )}
-        {/* L'étape « récap » a été supprimée (2026-06-20) : le récap + le rappel
-            quotidien + le disclaimer vivent désormais dans le reveal du 1er plan
-            (components/FirstPlanReveal.tsx), affiché à l'arrivée sur l'écran Plan. */}
+        {/* L'étape « récap » a été supprimée (2026-06-20) : le récap et le
+            disclaimer vivent dans le reveal du 1er plan
+            (components/FirstPlanReveal.tsx), affiché à l'arrivée sur l'écran Plan.
+
+            🔴 Cette phrase disait « le récap + LE RAPPEL QUOTIDIEN + le
+            disclaimer ». C'était FAUX, et ça l'a été des mois : le rappel n'a
+            jamais atteint le reveal, il n'existait qu'à Profil → roue dentée →
+            Notifications. Conséquence — la permission n'était quasiment jamais
+            demandée, donc le seul levier de rétention que §5 autorise restait
+            éteint pour presque tout le monde. Il est désormais proposé, juste
+            APRÈS le reveal : components/ReminderOffer.tsx.
+            ⚠️ Et pas ici : un prompt de permission iOS ne se pose qu'UNE fois. Le
+            demander avant d'avoir livré quoi que ce soit, c'est le faire refuser
+            sans recours. */}
       </ScrollView>
 
       <View style={[s.footer, layout.header]}>
