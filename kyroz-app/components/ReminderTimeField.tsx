@@ -16,9 +16,10 @@ import { ReminderTime, clampReminderTime } from '../lib/reminder';
 // dur — et gardaient trois heures particulières au rang de proposition alors que
 // le modèle est une heure libre depuis le 2026-08-07. Deux champs et une rangée
 // de puces posent la même question deux fois.
-// ➡️ `REMINDER_PRESETS` SURVIT quand même, et il ne faut pas le supprimer en
-// croyant nettoyer : il porte la reprise de l'ancien format stocké et l'heure par
-// défaut. Voir le commentaire qui l'accompagne dans `lib/reminder.ts`.
+// ➡️ Les trois HEURES, elles, survivent dans `lib/reminder.ts::ANCIENS_CRENEAUX`
+// — pas comme des raccourcis, comme une migration de lecture : la préférence
+// stockée vaut encore la chaîne `'morning'` chez qui a réglé son rappel avant
+// l'heure libre. Voir le commentaire qui l'accompagne là-bas.
 //
 // ⚠️ La saisie ne se valide qu'au `onBlur`, jamais à la frappe : chaque
 // changement REPROGRAMME la notification système, et taper « 20 » émettrait

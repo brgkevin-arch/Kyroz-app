@@ -15,8 +15,8 @@
 //     Elles sont retirées depuis le 2026-08-11 : deux champs et une rangée de
 //     puces posaient la même question deux fois, et les puces gardaient trois
 //     heures particulières au rang de proposition alors que le modèle ne les
-//     distingue plus. `REMINDER_PRESETS` reste — pour la migration, pas pour
-//     l'écran ; voir le commentaire qui l'accompagne.)*
+//     distingue plus. Il n'en reste que `ANCIENS_CRENEAUX`, une migration de
+//     lecture — voir le commentaire qui l'accompagne.)*
 //
 //  2. **Le message tourne.** Une notification qui répète la même phrase pendant
 //     six mois devient un bruit qu'on balaie sans lire. Chaque créneau de la
@@ -42,35 +42,8 @@ export interface ReminderCopy {
   body: string;
 }
 
-/**
- * Les trois créneaux de l'ANCIEN modèle, avec les heures qu'ils désignaient.
- *
- * 🔴 **CE N'EST PLUS DE L'INTERFACE — NE PAS LE SUPPRIMER EN CROYANT NETTOYER.**
- * Les puces « Matin · Midi · Soir » ont été retirées de l'écran le 2026-08-11
- * (décision fondateur : *« enlever le matin midi soir, et juste mettre l'heure »*).
- * Cette table, elle, garde deux rôles qui n'ont rien d'un raccourci :
- *
- *  1. **La reprise du format stocké.** `@kyroz:reminder` survit à la purge des
- *     données (cf. le `KEEP` du Profil), donc la clé contient encore la chaîne
- *     `'morning'` chez tous ceux qui ont réglé leur rappel avant l'heure libre.
- *     Sans cette table, `parseReminder` rendrait `null` et **leur rappel
- *     s'éteindrait en silence** — une notification qui n'arrive pas ne se
- *     signale pas, donc personne ne le dirait.
- *  2. **L'heure par défaut** (`DEFAULT_REMINDER_TIME`).
- *
- * ⚠️ Les LIBELLÉS, eux, sont bien partis : c'est ce qui était de l'interface.
- * Ce qui reste est de la donnée de migration.
- */
-export const REMINDER_PRESETS = {
-  morning: { hour: 8, minute: 0 },
-  midday: { hour: 12, minute: 0 },
-  evening: { hour: 18, minute: 30 },
-} as const;
-
-export type ReminderPresetId = keyof typeof REMINDER_PRESETS;
-
 /** Heure posée quand on active le rappel sans rien préciser. */
-export const DEFAULT_REMINDER_TIME: ReminderTime = REMINDER_PRESETS.morning;
+export const DEFAULT_REMINDER_TIME: ReminderTime = { hour: 8, minute: 0 };
 
 /** Ramène n'importe quelle paire dans un cadran valide (0–23 h, 0–59 min). */
 export function clampReminderTime(hour: number, minute: number): ReminderTime {
@@ -80,17 +53,39 @@ export function clampReminderTime(hour: number, minute: number): ReminderTime {
 }
 
 /**
- * Lit la préférence stockée. `null` = aucun rappel.
+ * Ce que valaient les trois créneaux de l'ANCIEN modèle.
  *
- * ⚠️ Reprend les valeurs de l'ANCIEN format (`'morning' | 'midday' | 'evening'`) :
- * la clé `@kyroz:reminder` survit à la purge des données (cf. le `KEEP` du
- * Profil), donc elle contient encore un créneau chez tous ceux qui avaient réglé
- * leur rappel avant l'heure libre. Sans cette reprise, leur rappel s'éteignait
- * en silence à la mise à jour.
+ * 🔴 **CE N'EST PAS DU CODE MORT, ET CE N'EST PAS UNE TABLE DE RACCOURCIS** — les
+ * deux malentendus qu'elle a déjà provoqués. C'est une **migration de lecture**,
+ * relue à chaque démarrage, et elle ne pourra jamais être supprimée : la clé
+ * `@kyroz:reminder` survit à la purge des données (cf. le `KEEP` du Profil) et
+ * contient encore la chaîne `'morning'` chez tous ceux qui ont réglé leur rappel
+ * avant l'heure libre (2026-08-07). Ils n'ont rien à faire pour que ça se
+ * réécrive : personne ne repasse par le champ.
+ *
+ * ⚠️ Et ce que coûterait sa suppression **ne se verrait nulle part** : leur
+ * rappel s'éteindrait sans un mot, et une notification qui n'arrive pas ne se
+ * signale pas. Trois lignes contre une panne silencieuse — c'est réglé.
+ *
+ * *(Elle s'appelait `REMINDER_PRESETS` et était EXPORTÉE, avec son type et sa
+ * liste d'ids. Le nom annonçait des raccourcis d'interface qui n'existent plus
+ * depuis le retrait des puces : elle vit désormais dans le seul lecteur qu'elle
+ * ait, sous le nom de ce qu'elle fait.)*
+ */
+const ANCIENS_CRENEAUX: Record<string, ReminderTime> = {
+  morning: { hour: 8, minute: 0 },
+  midday: { hour: 12, minute: 0 },
+  evening: { hour: 18, minute: 30 },
+};
+
+/**
+ * Lit la préférence stockée. `null` = aucun rappel. Reprend l'ancien format
+ * (`'morning' | 'midday' | 'evening'`) — voir ci-dessus.
  */
 export function parseReminder(raw: string | null | undefined): ReminderTime | null {
   if (!raw || raw === 'off') return null;
-  if (raw in REMINDER_PRESETS) return { ...REMINDER_PRESETS[raw as ReminderPresetId] };
+  const ancien = ANCIENS_CRENEAUX[raw];
+  if (ancien) return { ...ancien };
   const m = /^(\d{1,2}):(\d{2})$/.exec(raw);
   if (!m) return null;
   const h = parseInt(m[1], 10);

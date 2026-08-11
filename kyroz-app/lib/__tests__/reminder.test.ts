@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import {
-  CITATIONS, REMINDER_PRESETS, REMINDER_TITLES, WEIGH_IN_MESSAGES,
+  CITATIONS, REMINDER_TITLES, WEIGH_IN_MESSAGES,
   ReminderPeriod, clampReminderTime, dayIndex, formatCitation, formatReminderTime,
   nextReminderAt, parseReminder, periodOf, pickCitation, pickReminderCopy, pickWeighInCopy,
   serializeReminder, intentFromData,
@@ -83,28 +83,23 @@ describe('heure du rappel — lecture et écriture de la préférence', () => {
     expect(formatReminderTime({ hour: 0, minute: 5 })).toBe('0h05');
   });
 
-  // 🔴 Les puces « Matin · Midi · Soir » sont RETIRÉES de l'écran (2026-08-11) —
-  // il ne reste que l'heure. Ce test ne parle donc plus d'interface : il tient la
-  // seule raison pour laquelle `REMINDER_PRESETS` survit, et sans laquelle un
-  // futur nettoyage le supprimerait comme du code mort.
-  //
-  // ⚠️ Ce que ça casserait est INVISIBLE : la clé `@kyroz:reminder` de tous ceux
-  // qui ont réglé leur rappel avant l'heure libre contient encore `'morning'`.
-  // Sans la table, `parseReminder` rend `null`, leur rappel s'éteint — et une
-  // notification qui n'arrive pas ne se signale jamais.
-  it('les trois créneaux ne sont plus des puces, mais leur STOCKAGE se relit encore', () => {
-    for (const [cle, heure] of Object.entries(REMINDER_PRESETS)) {
-      expect(parseReminder(cle), cle).toEqual({ hour: heure.hour, minute: heure.minute });
-    }
-    // Et l'écriture, elle, ne les reproduit JAMAIS : on ne stocke qu'une heure.
-    for (const heure of Object.values(REMINDER_PRESETS)) {
-      expect(serializeReminder(heure)).toMatch(/^\d{2}:\d{2}$/);
+  // ⚠️ La reprise de l'ancien format est déjà tenue par le tout premier cas de ce
+  // bloc, AVEC DES LITTÉRAUX. C'est volontaire et c'est le seul montage qui vaille :
+  // la table de migration n'est plus exportée (elle vit dans son unique lecteur), et
+  // un test qui la relirait pour se vérifier ne prouverait rien de ses VALEURS.
+  it('un ancien créneau ne se RÉÉCRIT jamais — on ne stocke qu’une heure', () => {
+    for (const raw of ['morning', 'midday', 'evening']) {
+      expect(serializeReminder(parseReminder(raw)), raw).toMatch(/^\d{2}:\d{2}$/);
     }
   });
 
+  // 🔴 Les puces « Matin · Midi · Soir » sont RETIRÉES de l'écran (2026-08-11) — il
+  // ne reste que l'heure. Rien dans le TYPE ne l'empêche de revenir : c'est ce test
+  // qui tient la décision.
   it('le champ d’heure ne propose plus AUCUN raccourci', () => {
-    // Un composant qui garderait la rangée de puces la remplirait depuis ce
-    // module — c'est le seul endroit d'où les libellés pouvaient venir.
+    // Les libellés ne pouvaient venir que d'ici : ce module est le seul à en avoir
+    // porté. Leur absence est donc la preuve que la rangée ne peut pas se rallumer
+    // sans qu'on la réécrive entièrement — et alors ce test rougit.
     const src = readFileSync(join(__dirname, '..', 'reminder.ts'), 'utf8');
     for (const libelle of ['Matin', 'Midi', 'Soir']) {
       expect(src.includes(`'${libelle}'`), libelle).toBe(false);
