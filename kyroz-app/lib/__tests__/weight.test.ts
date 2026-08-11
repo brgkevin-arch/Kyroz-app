@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   localStamp, todayStamp, upsertEntry, removeEntry, latest, checkinDue, lastDelta,
   loadWeights, saveWeights, frequencyDays, nextWeighInAt, WEIGH_IN_INTERVALS, WeightEntry,
+  weighInSchedule, WEIGH_IN_AHEAD, WEIGH_IN_HOUR,
 } from '../weight';
 
 const day = (offset: number) => {
@@ -120,6 +121,83 @@ describe('nextWeighInAt (programmation de la notif de pesée)', () => {
     const r = nextWeighInAt(null, 'daily', now);
     expect(localStamp(r)).toBe('2026-06-14');               // now + 1 jour
     expect(at9(r)).toBe(true);
+  });
+});
+
+// ── Le rappel de pesée ne doit pas s'éteindre ────────────────────────────────
+// Le défaut corrigé : une seule notification `DATE`, ré-armée uniquement quand
+// l'app s'ouvre. Qui décroche recevait UNE pesée puis plus rien. Ce que ces cas
+// tiennent, c'est qu'AUCUNE cadence ne rend une programmation à occurrence unique.
+describe('weighInSchedule — un rappel qui survit à quelqu’un qui n’ouvre plus l’app', () => {
+  it('aucune cadence ne rend une seule occurrence datée', () => {
+    const now = new Date(2026, 4, 15, 10, 0, 0);
+    for (const freq of ['daily', 'weekly', 'biweekly', 'monthly'] as const) {
+      const p = weighInSchedule('2026-05-15', freq, now);
+      const unique = p.kind === 'dates' && p.dates.length < 2;
+      expect(`${freq}:${unique}`).toBe(`${freq}:false`);
+    }
+  });
+
+  it('quotidien → déclencheur répétitif natif, à 9h', () => {
+    const p = weighInSchedule('2026-05-15', 'daily', new Date(2026, 4, 15, 10, 0, 0));
+    expect(p).toEqual({ kind: 'daily', hour: WEIGH_IN_HOUR, minute: 0 });
+  });
+
+  it('hebdo → le MÊME jour de semaine que la prochaine échéance', () => {
+    const now = new Date(2026, 4, 15, 10, 0, 0);            // vendredi 15 mai
+    const echeance = nextWeighInAt('2026-05-15', 'weekly', now);
+    const p = weighInSchedule('2026-05-15', 'weekly', now);
+    expect(p.kind).toBe('weekly');
+    if (p.kind !== 'weekly') return;
+    // 🔴 Convention d'expo/iOS : 1 = DIMANCHE, là où `getDay()` rend 0. L'oublier
+    // décale le rappel d'un jour, une fois par semaine, sans rien casser d'autre.
+    expect(p.weekday).toBe(echeance.getDay() + 1);
+    expect(p.weekday).toBeGreaterThanOrEqual(1);
+    expect(p.weekday).toBeLessThanOrEqual(7);
+  });
+
+  it('dimanche tombe sur 1, pas sur 0', () => {
+    // 17 mai 2026 est un dimanche → pesée le 10, échéance hebdo le 17.
+    const p = weighInSchedule('2026-05-10', 'weekly', new Date(2026, 4, 10, 10, 0, 0));
+    expect(p).toMatchObject({ kind: 'weekly', weekday: 1 });
+  });
+
+  it('quinzaine / mois → une série datée, espacée de la cadence, à partir de l’échéance', () => {
+    const now = new Date(2026, 4, 15, 10, 0, 0);
+    for (const freq of ['biweekly', 'monthly'] as const) {
+      const p = weighInSchedule('2026-05-15', freq, now);
+      expect(p.kind).toBe('dates');
+      if (p.kind !== 'dates') continue;
+      expect(p.dates).toHaveLength(WEIGH_IN_AHEAD);
+      expect(localStamp(p.dates[0])).toBe(localStamp(nextWeighInAt('2026-05-15', freq, now)));
+      const pas = frequencyDays(freq);
+      for (let i = 1; i < p.dates.length; i++) {
+        const ecart = Math.round((p.dates[i].getTime() - p.dates[i - 1].getTime()) / 86_400_000);
+        expect(ecart).toBe(pas);
+      }
+      // Toutes à 9h : une pesée réclamée à 3h du matin n'est pas un rappel.
+      expect(p.dates.every((d) => d.getHours() === WEIGH_IN_HOUR && d.getMinutes() === 0)).toBe(true);
+    }
+  });
+
+  // Ce que la série doit garantir, c'est une COUVERTURE — pas un joli chiffre.
+  // Le seuil est posé à 80 jours parce que c'est ce que la quinzaine sert
+  // réellement (84) : viser 90 aurait été une promesse que le code ne tient pas,
+  // et c'est ce test qui l'a dit avant que le commentaire ne parte en OTA.
+  it('la série couvre au moins 80 jours — sinon elle s’éteint comme avant', () => {
+    const now = new Date(2026, 4, 15, 10, 0, 0);
+    for (const [freq, mini] of [['biweekly', 80], ['monthly', 170]] as const) {
+      const p = weighInSchedule('2026-05-15', freq, now);
+      if (p.kind !== 'dates') throw new Error(`${freq} : série datée attendue`);
+      const jours = (p.dates[p.dates.length - 1].getTime() - now.getTime()) / 86_400_000;
+      expect(jours, freq).toBeGreaterThanOrEqual(mini);
+    }
+  });
+
+  it('cadence absente = hebdo, comme partout ailleurs', () => {
+    const now = new Date(2026, 4, 15, 10, 0, 0);
+    expect(weighInSchedule('2026-05-15', undefined, now))
+      .toEqual(weighInSchedule('2026-05-15', 'weekly', now));
   });
 });
 
