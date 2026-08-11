@@ -39,6 +39,29 @@ export interface AvisContexte {
   version: string;
   /** `Platform.OS` — ios | android | web. */
   plateforme: string;
+  /**
+   * 🔴 QUEL CODE TOURNE RÉELLEMENT — l'identifiant de la mise à jour OTA
+   * appliquée (`Updates.updateId`), ou `null` si l'app fait tourner le bundle
+   * livré dans son binaire.
+   *
+   * Mesuré le 2026-08-11 en passant l'écran au simulateur : le message joignait
+   * « Version 1.0.0 · ios » et **rien d'autre**, alors que **dix OTA** avaient
+   * été publiées sous cette même version. Dix états du code portaient donc la
+   * même étiquette — et c'est le canal de diagnostic principal du produit. Un
+   * signalement ne disait pas si la personne tournait sur le code du 3 août ou
+   * sur celui du jour, ce qui est exactement l'information qu'on cherche quand
+   * quelque chose casse.
+   *
+   * ⚠️ Le numéro de BUILD natif n'y est volontairement pas. Il faudrait
+   * `expo-application`, qui passe par `requireNativeModule` — lequel **lève**
+   * quand le module n'est pas compilé (contrairement à la variante `Optional`
+   * qu'utilise `expo-haptics`). Une OTA l'important atterrirait tôt ou tard sur
+   * un binaire sans ce module et casserait l'app **au démarrage**, chez tout le
+   * monde, sans revue pour l'arrêter. Le prix est sans commune mesure avec le
+   * gain. ➡️ La question n'est jamais « ce module est-il dans le binaire ? »
+   * mais « que fait le paquet quand il n'y est pas ? ».
+   */
+  maj: string | null;
 }
 
 export type AvisSujet = 'bug' | 'idee' | 'autre';
@@ -62,7 +85,15 @@ export function avisValide(texte: string): boolean {
  *  part réellement (`composerAvis`) : deux listes divergeraient, et la première
  *  à mentir serait celle qu'on montre. */
 export function mentionContexte(ctx: AvisContexte): string {
-  return `Version ${ctx.version} · ${ctx.plateforme}`;
+  // ⚠️ Les 8 premiers caractères suffisent à retrouver un groupe d'update dans
+  // le tableau de bord EAS, et l'identifiant complet (36 caractères) rendrait la
+  // ligne illisible dans l'aperçu d'un client mail — qui est justement l'endroit
+  // où on la lit sans ouvrir le message.
+  // ⚠️ Et il faut un mot pour l'ABSENCE d'update, pas un champ vide : « on ne
+  // sait pas » et « le bundle d'origine » sont deux réponses différentes, et
+  // c'est la seconde qui est vraie quand l'app n'a encore rien téléchargé.
+  const code = ctx.maj ? `maj ${ctx.maj.slice(0, 8)}` : "bundle d'origine";
+  return `Version ${ctx.version} · ${ctx.plateforme} · ${code}`;
 }
 
 /** Sujet + corps de l'e-mail. Le contexte est en TÊTE : les clients mail des
