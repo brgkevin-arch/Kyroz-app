@@ -2118,6 +2118,36 @@ téléphone.
   déclenche — pas ce que dit le commentaire.** Le contre-exemple vivait à côté :
   `applyWeighInReminder` part de `useWeightLog`, monté par l'écran Plan, donc il n'a
   jamais eu le défaut.
+  🔴 **ET LE CONTRE-EXEMPLE EN ÉTAIT UN AUTRE, PIRE — corrigé le 2026-08-11 (E36).**
+  `applyWeighInReminder` partait bien à chaque démarrage, mais c'est justement de là
+  que venait son défaut : son déclencheur était une notification `DATE`, **qui ne se
+  rejoue pas**. Le seul chemin qui programmait la suivante était donc « ouvrir l'app ».
+  Qui décroche recevait UNE notification de pesée, puis plus jamais — le rappel
+  s'éteignait exactement au moment où il sert. ➡️ Déclencheurs répétitifs (`DAILY`,
+  `WEEKLY`) ou série datée d'avance, décidés par `weight.ts::weighInSchedule`, qui est
+  PUR donc testé. ⚠️ Le raisonnement était écrit **douze lignes plus haut dans le même
+  fichier**, pour le rappel quotidien (« un rappel qui lâche vaut moins qu'un message
+  qui se répète ») : *un principe écrit en corrigeant UN cas ne s'applique pas tout seul
+  à son voisin, même quand le voisin est dans le même écran de code.*
+- 🔴 **`getLastNotificationResponseAsync` REND LA DERNIÈRE RÉPONSE, PAS UNE RÉPONSE
+  NOUVELLE — et elle survit au redémarrage** (2026-08-11, E36). Il faut les deux chemins
+  pour lire un tap sur notification : l'écouteur
+  (`addNotificationResponseReceivedListener`) rate celui qui a **lancé** l'app, puisqu'il
+  n'existait pas encore. Mais brancher le second sans mémoire fait rouvrir l'écran visé
+  **à chaque lancement suivant, pour toujours** — un écran qui s'ouvre sans qu'aucun
+  geste ne l'explique, c'est-à-dire un défaut qui passe la recette et se manifeste des
+  jours plus tard. ➡️ Retenir la réponse déjà servie (`@kyroz:lastNotifTap`). ⚠️ Et
+  l'identifiant NE SUFFIT PAS comme marque : il est fixe par construction
+  (`kyroz-daily-reminder`), donc le tap de demain porterait la même — c'est le couple
+  **identifiant + heure de LIVRAISON** qui distingue deux taps.
+  ⚠️ **Une notification transporte sa charge utile dans le temps** : celle programmée
+  hier sera lue par le code d'aujourd'hui. Tout marqueur qu'on y met doit donc avoir un
+  REPLI explicite pour les notifications d'avant, sinon on livre la panne qu'on corrige
+  à tout le parc existant.
+  ℹ️ Deux inquiétudes voisines ont été MESURÉES et sont sans objet : sans champ `sound`,
+  iOS pose `.default` (donc les rappels ne sont pas muets), et le canal Android de repli
+  d'expo est déjà `IMPORTANCE_HIGH` avec vibration. Des canaux nommés seraient un confort
+  (couper la pesée sans couper le rappel), pas un correctif.
   ⚠️ Se vérifie par le VRAI geste (basculer à l'écran, revenir sur l'autre écran),
   jamais en écrivant dans le stockage. Et prouver d'abord que la sonde sait dire
   OUI : `getByText('Hydratation', { exact: true })` ne trouve jamais `💧 Hydratation`
