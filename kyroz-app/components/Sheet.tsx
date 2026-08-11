@@ -10,6 +10,7 @@ import {
   vitesseDepuisPan, caoutchouc, decisionFeuille,
 } from '../lib/motion';
 import { useReduceMotion, reduceMotionActif } from '../lib/reduceMotion';
+import { retour } from '../lib/retourHaptique';
 
 interface Props {
   visible: boolean;
@@ -191,6 +192,11 @@ export function Sheet({ visible, onClose, children }: Props) {
         const hauteur = screenHRef.current * 0.94; // la feuille fait 94 % de l'écran
         if (decisionFeuille(Math.max(0, g.dy), v, hauteur) === 'fermer') {
           vitesseSortie.current = v;
+          // Un SEUIL vient d'être franchi, et c'est le seul moment de ce geste
+          // où la main ne sait pas encore ce qui a été décidé : la feuille est
+          // toujours à l'écran, elle n'a pas commencé à partir. Le déclic dit
+          // « c'est parti » avant que l'œil ne le voie.
+          retour('declic');
           onClose();
         } else {
           Animated.spring(ty, {
