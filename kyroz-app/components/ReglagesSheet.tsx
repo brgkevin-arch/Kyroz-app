@@ -242,7 +242,11 @@ export function ReglagesSheet({
               qui affiche une action qu'il ne fait pas est un mensonge d'interface,
               pas une commodité. */}
           <MenuRow t={t} label="Donner mon avis" value="Un problème, une idée" onPress={() => versRoute('/avis')} />
-          <MenuRow t={t} label="Revoir les tutos" value={`${TOURS.length} visites guidées`} onPress={onRevoirTutos} last />
+          <MenuRow t={t} label="Revoir les tutos" value={`${TOURS.length} visites guidées`} onPress={onRevoirTutos} />
+          {/* Exigée par Apple 1.4.1 (divulgation des méthodes derrière une mesure de
+              santé). Elle vit ici plutôt que sous « Confidentialité » : elle explique
+              comment le plan est CALCULÉ, pas ce qu'on fait des données. */}
+          <MenuRow t={t} label="Méthodologie & sources" value="Formules, seuils, références" onPress={() => versRoute('/methodologie')} last />
         </View>
 
         {/* ── Confidentialité ──────────────────────────────────────────────── */}

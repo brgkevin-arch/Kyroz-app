@@ -777,7 +777,38 @@ NOTES
 - Data (email, profile) is stored in the EU (Supabase). Users can delete their
   account and data in-app (Profil → delete account). Progress photos never leave
   the device.
+
+METHODOLOGY AND SOURCES (guideline 1.4.1)
+A dedicated in-app screen discloses every formula, threshold and reference behind the
+numbers we display: Profil → gear icon → "Aide et retours" → "Méthodologie & sources".
+Summary of what it documents:
+- Resting metabolic rate: Mifflin-St Jeor (Am J Clin Nutr, 1990;51(2):241-247).
+  Katch-McArdle is used only when the user states their body-fat percentage was
+  MEASURED, never when it was estimated from a silhouette.
+- Activity factor excludes exercise and is capped at 1.45; training expenditure is
+  computed separately with net MET values (Ainsworth et al., Compendium of Physical
+  Activities, MSSE 2011;43(8):1575-1581).
+- Food composition: Ciqual 2025 table (ANSES, French food safety agency), reused
+  under Open Licence 2.0 (Etalab).
+- Hard safety limits enforced on every calculation, whatever the user asks for:
+  energy availability never below 30 kcal/kg fat-free mass (IOC RED-S consensus,
+  BJSM 2018;52(11):687-697), absolute floor of 1500 kcal (men) / 1200 kcal (women),
+  deficit capped at 25% of estimated expenditure, dietary fat never below 0.8 g/kg
+  body weight, and a maintenance week enforced after 8 consecutive deficit weeks.
+- Protein targets are bounded to 1.6-2.6 g/kg fat-free mass (ISSN position stand,
+  JISSN 2017;14:20).
+- The screen states explicitly which values come from the literature and which are
+  Kyroz's own conservative choices, and that recipes are NOT dietitian-validated.
+
+Kyroz is a wellness app. It is not a medical device: it does not diagnose, treat,
+cure or prevent any condition, and makes no such claim anywhere in the app.
 ```
+
+⚠️ **Les chiffres ci-dessus sont RECOPIÉS d'un écran qui, lui, les lit dans le moteur**
+(`lib/methodologie.ts`). C'est le seul endroit du dépôt où ils sont écrits à la main, et
+c'est assumé : une note de soumission est un texte figé, collé une fois dans un
+formulaire. ➡️ **Les relire avant de coller**, et se fier à l'écran en cas d'écart —
+lui ne peut pas mentir, il est verrouillé par `lib/__tests__/methodologie.test.ts`.
 
 *Playbook préparé le 2026-07-17. Config technique prête ; le chemin critique = comptes
 développeur (§1) + compte de test reviewer (§9).*

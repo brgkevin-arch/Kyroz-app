@@ -83,7 +83,7 @@ qu'ils étaient périmés.
 | `ENGINE_REV` | **7** (avertissement one-shot à l'utilisateur) — E30, **DEUX causes** : (a) les planchers dérivés de la masse maigre (BMR + énergie disponible) se retirent au-delà de 30 %/40 % de MG, le cap 25 % du TDEE prend le relais ; (b) `bulk` refermé sur `lean_bulk`. ⚠️ **Première révision à porter deux causes** → `EngineNotice.cause` existe pour que l'écran ne serve pas à l'une l'explication de l'autre *(6 = E23, la provenance du %MG décide de Katch ; 5 = A15, l'objectif daté hors de portée sert le rythme sûr MAXIMAL)* | `lib/tdee.ts` |
 | Objectif daté | la date affichée est un **POINT FIXE** : l'adopter ne la déplace plus (3 corps sur 8 glissaient de +96 j avant A15) | `npm run mesure:objectif` |
 | Échéance de l'objectif daté | 🔴 **C'est une DATE, plus une durée** (A28, 2026-08-07, décision fondateur) : la rangée de 5 puces est **RETIRÉE**, on saisit jour/mois/année, et l'écran donne une **ESTIMATION** — « la première date que Kyroz peut tenir », + « Viser cette date » en un tap. Refus de la date passée et de l'au-delà de 5 ans (au-delà, le moteur creuse au MAXIMUM : −55 → −418 kcal/j sur `F 78 → 65`). ⚠️ L'estimation vient de la **marche 1 de `deadlineLadder`**, PAS de `status.projectedDate` — les deux diffèrent de **12 à 100 jours** et la seconde suppose une échéance qui expire. ⚠️ **`deadlineLadder` (A27) tourne donc toujours** : estimation + date pré-remplie (2ᵉ marche) — **ne pas le supprimer comme du code mort**. Ses invariants restent mesurés : **40/40 tenables**, **40/40 servant un plan distinct**, contre 10/40 et 14/40 avec les 5 durées figées d'avant A27 | `npm run mesure:objectif` |
-| Tests | **1 431 verts**, 86 fichiers — *mesuré le 2026-08-11 sur l'arbre FUSIONNÉ `feature/conformite-legale` + `main` (`770187d`), au dernier commit avant le merge. ⚠️ **Ce chiffre DESCEND de 1 par rapport à `main`, et aucun test n'est perdu** : `harnaisEcrans.test.ts` génère un cas par ANCRE, et E39 en retire 3 (la question du portail, les réponses « Non », l'attestation) pour en ajouter 2. Une baisse se vérifie au lieu de s'expliquer.* Historique : 1 432 / 86 — *re-mesuré le 2026-08-11 sur `main` FUSIONNÉ (`0d91966`), après #92 (notifications) et #94 (canal de retour). ⚠️ **Septième dérive, et de mon fait** : #94 annonçait 1 414, juste sur sa branche et faux dès la fusion — elle n'avait pas touché ce compteur, ce que la règle ci-dessous exige. Et #92 avait écrit 1 429, juste avant que #94 n'ajoute ses 3 cas.* Historique : 1 429 verts, 86 fichiers — *mesuré le 2026-08-11 sur l'arbre FUSIONNÉ : notifications (E38) **plus** matériaux (E36) **plus** haptique (E37), au dernier commit avant le merge. 🔴 **HUITIÈME dérive, et la troisième du même jour** : trois branches ont annoncé 1 413 / 84, 1 403 / 85 et 1 411 / 86 — chacune juste chez son auteur, aucune vraie après fusion, et git a levé un conflit sur cette ligne même **deux fois de suite**. Nouveaux fichiers venus d'à côté : `materiauxDA.test.ts` et `haptiqueDA.test.ts` ; les +26 cas des notifications vont dans deux fichiers existants. ➡️ **Ce compteur ne se recopie jamais, il se RE-MESURE au dernier commit avant le merge** — et si `main` bouge entre-temps, on recommence.* Historique : 1 395 / 84 — re-mesuré le 2026-08-10 sur la branche du mouvement (E35) REBASÉE sur `origin/main`, au DERNIER commit avant le merge — c'est la seule fenêtre où ce chiffre est vrai, cf. #81 fermée pour l'avoir mesuré à l'ouverture. Nouveau fichier : `mouvementDA.test.ts` (14 cas, 3 mutations). SIXIÈME dérive : la PR #86 (tuto) avait déplacé le chiffre sans toucher la case.* Historique : 1 378 / 83 le 2026-08-10 après #75/#80. 🔴 **CINQUIÈME dérive le même jour, et elle apporte une nuance que les quatre précédentes n'avaient pas** : une PR ouverte pour corriger ce compteur (#81, `1 367 / 82`) a été **fermée sans merger** parce qu'elle était devenue fausse ENTRE son ouverture et son merge — deux PR avaient fusionné entre-temps. ➡️ « Mesurer sur `main` fusionné » ne suffit donc pas : il faut mesurer **AU MOMENT DU MERGE**, pas à l'ouverture de la PR. Et une PR qui ne porte QUE ce compteur est structurellement condamnée à périmer — le mettre à jour dans la PR de contenu, au dernier commit avant le merge · `tsc` propre — **mesuré le 2026-08-10 sur la branche E33/E34 REBASÉE sur `origin/main` (`bf5ecac`), donc après le merge de #74 ; sur `main` seul : 1 367 / 82.** Nouveau fichier : `profilSection.test.ts` (11 cas, 9 mutations — le rangement de l'onglet Profil). ⚠️ Re-mesuré TROIS fois dans la même session (1 340 → 1 345 → 1 378) : chaque valeur était juste sur sa base et fausse au rebase suivant. |
+| Tests | **1 444 verts**, 87 fichiers — *mesuré le 2026-08-11 sur l'arbre FUSIONNÉ `feature/methodologie-sources` + `main` (`13acf4d`, donc après E39), au dernier commit avant le merge. Nouveau fichier : `methodologie.test.ts` (13 cas, **5 mutations** — dont une VERTE à dessein : déplacer une constante du moteur ne doit PAS faire rougir la page, puisqu'elle la LIT ; c'est cette mutation-là qui a révélé qu'un chiffre retapé à l'identique passait, d'où un second test sur le NOM des constantes). ⚠️ La branche annonçait **1 445** avant de fusionner E39, qui retire 1 test net — les deux chiffres étaient justes, sur deux arbres différents.* Historique : 1 431 / 86 — *mesuré le 2026-08-11 sur l'arbre FUSIONNÉ `feature/conformite-legale` + `main` (`770187d`), au dernier commit avant le merge. ⚠️ **Ce chiffre DESCEND de 1 par rapport à `main`, et aucun test n'est perdu** : `harnaisEcrans.test.ts` génère un cas par ANCRE, et E39 en retire 3 (la question du portail, les réponses « Non », l'attestation) pour en ajouter 2. Une baisse se vérifie au lieu de s'expliquer.* Historique : 1 432 / 86 — *re-mesuré le 2026-08-11 sur `main` FUSIONNÉ (`0d91966`), après #92 (notifications) et #94 (canal de retour). ⚠️ **Septième dérive, et de mon fait** : #94 annonçait 1 414, juste sur sa branche et faux dès la fusion — elle n'avait pas touché ce compteur, ce que la règle ci-dessous exige. Et #92 avait écrit 1 429, juste avant que #94 n'ajoute ses 3 cas.* Historique : 1 429 verts, 86 fichiers — *mesuré le 2026-08-11 sur l'arbre FUSIONNÉ : notifications (E38) **plus** matériaux (E36) **plus** haptique (E37), au dernier commit avant le merge. 🔴 **HUITIÈME dérive, et la troisième du même jour** : trois branches ont annoncé 1 413 / 84, 1 403 / 85 et 1 411 / 86 — chacune juste chez son auteur, aucune vraie après fusion, et git a levé un conflit sur cette ligne même **deux fois de suite**. Nouveaux fichiers venus d'à côté : `materiauxDA.test.ts` et `haptiqueDA.test.ts` ; les +26 cas des notifications vont dans deux fichiers existants. ➡️ **Ce compteur ne se recopie jamais, il se RE-MESURE au dernier commit avant le merge** — et si `main` bouge entre-temps, on recommence.* Historique : 1 395 / 84 — re-mesuré le 2026-08-10 sur la branche du mouvement (E35) REBASÉE sur `origin/main`, au DERNIER commit avant le merge — c'est la seule fenêtre où ce chiffre est vrai, cf. #81 fermée pour l'avoir mesuré à l'ouverture. Nouveau fichier : `mouvementDA.test.ts` (14 cas, 3 mutations). SIXIÈME dérive : la PR #86 (tuto) avait déplacé le chiffre sans toucher la case.* Historique : 1 378 / 83 le 2026-08-10 après #75/#80. 🔴 **CINQUIÈME dérive le même jour, et elle apporte une nuance que les quatre précédentes n'avaient pas** : une PR ouverte pour corriger ce compteur (#81, `1 367 / 82`) a été **fermée sans merger** parce qu'elle était devenue fausse ENTRE son ouverture et son merge — deux PR avaient fusionné entre-temps. ➡️ « Mesurer sur `main` fusionné » ne suffit donc pas : il faut mesurer **AU MOMENT DU MERGE**, pas à l'ouverture de la PR. Et une PR qui ne porte QUE ce compteur est structurellement condamnée à périmer — le mettre à jour dans la PR de contenu, au dernier commit avant le merge · `tsc` propre — **mesuré le 2026-08-10 sur la branche E33/E34 REBASÉE sur `origin/main` (`bf5ecac`), donc après le merge de #74 ; sur `main` seul : 1 367 / 82.** Nouveau fichier : `profilSection.test.ts` (11 cas, 9 mutations — le rangement de l'onglet Profil). ⚠️ Re-mesuré TROIS fois dans la même session (1 340 → 1 345 → 1 378) : chaque valeur était juste sur sa base et fausse au rebase suivant. |
 | Design | **7 passes livrées** — la 7ᵉ est la **refonte du Profil du 2026-08-10** (E25) : la moitié de l'écran passe derrière une roue dentée, 1 848 → 1 718 lignes, et un écran « Donner mon avis » apparaît. *(Les six précédentes :)* **6 passes** — 5 onglets refaits (2026-08-03) · rayons (2026-08-03) · repli du grand titre (2026-08-04) · échelle typo, 333 sites (2026-08-05) · espacement + cibles tactiles 44 pt, 537 sites (2026-08-06) · finitions trait/icône/retour au toucher (2026-08-06) · **écran Plan allégé + accent étendu à la barre de macros (2026-08-06)**. **Design system poussé vers Claude Design** — 6 pages GÉNÉRÉES depuis `theme.ts` (`npm run design:build`), jamais écrites à la main. Maquette de référence : `mockups/kyroz-mockup.html` — **versionnée depuis le 2026-08-06**, à la RACINE du dépôt, hors du dossier `kyroz-app/`. *(La formulation d'avant, « hors dépôt app », se lisait « hors versionnement » : le fichier est resté 3 jours sur une seule machine tout en étant cité ici comme référence.)* ⚠️ Ni le rayon, ni la taille de texte, ni l'espacement ne se relisent — ils se **mesurent** | `npm test -- rayonsDA typoDA espacementDA finitionsDA` · `getComputedStyle` dans le panneau, cf. `docs/comparer-maquette.md` |
 | Plateformes | iPhone **+ iPad** (`supportsTablet: true` depuis le 2026-08-01). ⚠️ **portrait sur iPhone, MAIS les 4 orientations sur iPad** — Expo les force dès `supportsTablet`, le multitâche iPadOS l'impose, ce n'est pas refermable. Vérifié en natif (iPad Pro 13") et à 1366×1024 | `ios/Kyroz/Info.plist` généré, PAS `app.json` · `lib/layout.ts` |
 | Sortie stores | iOS **1.0.0 (3)** en TestFlight, **revue bêta APPROUVÉE le 2026-08-03** — donc acquise : builds et testeurs suivants passent sans repasser par Apple. 2 testeurs `INSTALLED` (1 interne, 1 externe) · Android : 2 builds, rien de soumis. ⚠️ Ce build **reçoit les OTA** (voir ligne ci-dessous) : il ne porte donc plus le JS de son commit d'origine. La déclaration `ITSAppUsesNonExemptEncryption` est enfin **committée** (elle n'a vécu que sur une machine du 2026-08-02 au 2026-08-06) | `npx eas-cli build:list` · `TESTFLIGHT.md` |
@@ -2389,21 +2389,22 @@ produit en suspens — il ne reste qu'à coder.
   d'autant moins quand plusieurs sessions poussent le même jour. Cette entrée reste ici
   comme trace ; ne pas la rouvrir.
 
-- **C7 · Checklist légale — ce qui RESTE après E37 (2026-08-11)**
+- **C7 · Checklist légale — ce qui RESTE (2026-08-11)**
   La checklist a été arbitrée contre le code (fiche **E39**) : A1, A2, A3 et le volet
-  registre sont clos. Ce qui suit est le reliquat, et il n'entre PAS dans une liste à
-  part — c'est ici que vivent les tâches.
-  - 🤖 **A4 · Page « Méthodologie & sources »** — le seul chantier codable qui reste.
-    Absente, mesuré : seule l'attribution Ciqual existe, en bas de la feuille Réglages.
-    Doit citer Mifflin-St Jeor, Katch-McArdle **et sa condition de provenance du %MG**,
-    la table Ciqual (ANSES), les planchers 1200/1500, le cap de déficit à 25 %. Apple
-    (1.4.1) rejette en boucle les apps nutrition sans citations précises — être
-    spécifique, pas se contenter de « OMS/EFSA ». À reprendre dans les notes de
-    soumission (§11 de `STORE-RELEASE.md`).
-    ⚠️ **Chaque chiffre de cet écran devient une affirmation sur le code**, exactement
-    comme une bulle de visite guidée (CLAUDE.md §8) : les valeurs se LISENT depuis
-    `safety.ts` / `tdee.ts`, elles ne se recopient pas — sinon elles périment au
-    premier `ENGINE_REV`.
+  registre sont clos, **et A4 l'est depuis E40**. Ce qui suit est le reliquat, et il
+  n'entre PAS dans une liste à part — c'est ici que vivent les tâches.
+  🔴 **PLUS AUCUN POINT CODABLE : tout ce qui reste est administratif ou côté Google.**
+  - ~~🤖 **A4 · Page « Méthodologie & sources »**~~ ✅ **LIVRÉE le 2026-08-11 (E40)** —
+    route `/methodologie`, Profil → roue dentée → Aide et retours, et l'essentiel repris
+    dans les notes de soumission (`STORE-RELEASE.md` §11). **Aucun chiffre n'y est
+    écrit** : `lib/methodologie.ts` les LIT dans le moteur, et deux tests l'exigent —
+    dont celui qui a fallu ajouter après mutation, parce que retirer du texte les
+    valeurs venues des constantes ne distingue pas une interpolation d'un littéral de
+    même valeur.
+    ⚠️ *Cette ligne a annoncé « le seul chantier codable qui reste » pendant l'heure qui
+    a séparé les deux PR. Elle est barrée plutôt que supprimée : c'est la trace que le
+    dernier point app de la checklist est tombé, et l'entrée entière peut maintenant se
+    lire comme « il ne reste rien à coder ».*
   - 🧑 **B1 · Compte Google Play en « Organisation » (numéro D-U-N-S)** — les health
     apps l'exigent. **Le seul point à délai EXTERNE de toute la liste** (D-U-N-S gratuit
     auprès de Dun & Bradstreet, de quelques jours à plusieurs semaines). ➡️ À lancer en
@@ -2432,8 +2433,12 @@ produit en suspens — il ne reste qu'à coder.
     cher si c'est faux ; (2) statut art. 9 de données traitées 100 % en local sans
     persistance ; (3) relecture CGU + politique. ⏳ **Une AIPD légère** quand le volume
     décollera (données sensibles + grande échelle).
-  ⚠️ **Rien de tout ceci ne bloque le build 1.0.0 (4) ni la soumission iOS**, sauf A4
-  qui doit y être : le reste est administratif ou côté Google.
+  ⚠️ **Plus rien de tout ceci ne bloque le build 1.0.0 (4) ni la soumission iOS** — A4
+  était le seul à devoir y être, et il est sur `main`. Le reste est administratif ou
+  côté Google. ➡️ **Le chemin critique redevient le BUILD**, qui embarquera d'un coup le
+  verre (E36), le retour au toucher (E37), les notifications (E38), le retrait du
+  portail (E39) et la page méthodologie (E40) — cinq chantiers qu'aucun testeur ne verra
+  dans son binaire actuel, quelles que soient les OTA publiées.
 
 - **C3 · 🧑 Classement d'âge : ADULTES UNIQUEMENT** — *tranché le 2026-07-30.*
   Apple 17+ · Google « Adultes uniquement », pour coller au blocage 18 ans de l'app.
@@ -3647,6 +3652,66 @@ produit en suspens — il ne reste qu'à coder.
 > ⚠️ **Le conflit git qui en résulte n'est PAS un conflit de numéros** : les deux
 > branches insèrent en tête de cette section, donc git ne sait pas dans quel ordre. La
 > résolution est de garder les DEUX blocs, en ordre décroissant — jamais d'en choisir un.
+
+- 🤖 **E40 · La page « Méthodologie & sources » — et pourquoi elle ne contient aucun chiffre (2026-08-11)**
+
+  Point A4 de la checklist légale, et **le seul de ses points « app » qui restait à
+  coder** (les autres sont arbitrés en E39). Apple 1.4.1 exige la divulgation des
+  données et des méthodes derrière toute mesure liée à la santé, et rejette en boucle
+  les apps nutrition dont les sources restent vagues — y compris celles qui se
+  contentent de citer « OMS / EFSA ». Route `/methodologie`, atteignable par
+  Profil → roue dentée → Aide et retours.
+
+  🔴 **AUCUN CHIFFRE N'EST ÉCRIT DANS CETTE PAGE — ILS SONT TOUS LUS DANS LE MOTEUR.**
+  C'est la décision structurante du chantier, et elle vient d'un précédent mesuré : une
+  page de méthodologie est une **affirmation sur le code**, exactement comme une bulle
+  de visite guidée — et à l'audit, **trois bulles sur cinq étaient fausses**, chacune
+  vraie le jour de son écriture. Un plancher annoncé « 1 200 kcal » en dur survivrait au
+  jour où la constante change, et cette page-ci est lue par le relecteur Apple.
+  ➡️ `lib/methodologie.ts` (pur, sans import react-native) importe `MIN_KCAL`,
+  `EA_HARD_FLOOR`, `MAX_DEFICIT_TDEE_RATIO`, `NEAT_PAL`, `BF_CHART_MAX`,
+  `DIET_BREAK_AFTER_WEEKS`, `CIQUAL_ATTRIBUTION`… et interpole. L'écran ne fait que
+  rendre. **Corollaire pour la suite : si un chiffre n'est pas importable, c'est qu'il
+  n'a pas de source unique — l'exporter d'abord, l'afficher ensuite.**
+
+  **Ce que la page distingue explicitement, et c'est ce qui la rend défendable** : ce
+  qui vient de la LITTÉRATURE (Mifflin-St Jeor, Katch-McArdle, valeurs MET, seuil de
+  30 kcal/kg de masse maigre du consensus RED-S, fourchettes protéiques ISSN/Helms) et
+  ce qui est un CHOIX de Kyroz, prudent par construction (plafond d'activité à 1,45,
+  déficit borné à 25 %, pause à la maintenance, retrait des planchers dérivés au-delà du
+  seuil d'adiposité). Elle dit aussi, en toutes lettres, que les recettes **ne sont pas
+  validées par un diététicien** — `validated_by_dietitian` est `false` en dur, et aucun
+  écran n'a le droit de laisser croire l'inverse (CLAUDE.md §6).
+
+  🔴 **LA MUTATION QUI A TROUVÉ LE TROU, et c'est l'apport méthodologique du chantier.**
+  Le premier garde-fou retirait du texte toute valeur venant d'une constante et exigeait
+  qu'il ne reste aucun chiffre. Vérifié par mutation : changer `MIN_KCAL` à 1 600 laisse
+  le test **VERT** — normal, la page suit, c'est le but. Mais la même mesure montre que
+  **« 1 500 » tapé à la main passerait aussi**, puisque c'est exactement ce qu'on
+  retire : indiscernable d'une interpolation, et faux au premier changement. ➡️ Second
+  test : **le NOM de chaque constante doit apparaître dans la source**. Un chiffre
+  substitué à son interpolation fait disparaître le nom, et rougir.
+  ⚠️ **Un test vert n'est pas une preuve tant qu'on n'a pas cherché ce qu'il laisse
+  passer** — ici le vert était CORRECT et le garde-fou incomplet en même temps.
+
+  ⚠️ **Et la première sonde accusait les SOURCES.** Elle cherchait les littéraux chiffrés
+  dans le fichier : elle a signalé « 1990;51(2):241-247 » — l'année et la pagination
+  d'une référence, que toute citation doit évidemment porter — et se faisait couper par
+  les apostrophes françaises. ➡️ Mesurer le **texte rendu**, pas la syntaxe. Deux nombres
+  restent sans constante (`18,5`, la borne OMS du sous-poids ; `5`, les ±5 points d'un
+  %MG lu sur silhouette) : ils sont **déclarés en exception nommée**, pas tolérés en
+  silence.
+
+  ✅ **Vérifié** : **1 445 tests verts, 87 fichiers**, `tsc` propre. Nouveau fichier
+  `methodologie.test.ts` (13 cas, **5 mutations** : chiffre en dur → rouge · source
+  amputée → rouge · page injoignable depuis les réglages → rouge · valeur retapée à
+  l'identique → rouge · constante du moteur déplacée → **vert, à dessein**).
+  ⚠️ **Non vérifié à l'écran** : le worktree sert l'app du dépôt principal (§11). C'est
+  un écran de texte défilant, calqué sur `/legal` déjà éprouvé, mais **le verdict
+  d'appareil manque** — et il vaudrait la peine ici, la page étant longue.
+  ⚠️ **Dépendance entre PR** : la #96 (E39) ajoute une entrée **C7** qui liste A4 comme
+  RESTANT. Si elle fusionne après celle-ci, cette ligne est fausse à son arrivée — la
+  retirer à la fusion.
 
 - 🤖 **E39 · Le portail de dépistage santé cesse de dépister — et un sous-traitant manquait au registre (2026-08-11)**
 
