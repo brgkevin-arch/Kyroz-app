@@ -192,6 +192,11 @@ export default function Onboarding() {
     hN >= HEIGHT_BOUNDS[0] && hN <= HEIGHT_BOUNDS[1]; // étape 2 — infos
   const bodyFatValid = bodyFat != null;                                                   // étape 3 — masse grasse
   const trainingValid = noSport || sports.length >= 1;                                     // étape 4 — activité (sports ou « aucun »)
+  // Du sport a-t-il été DÉCLARÉ ? C'est ce qui décide si les jours de repos changent
+  // quoi que ce soit (cf. le texte de l'étape 7) : `saveProfile` envoie
+  // `sports: noSport ? [] : sports`, et sans séance `dayExpenditures` rend une cible
+  // plate — sept jours identiques.
+  const sportDeclare = !noSport && sports.length > 0;
   const trainingDaysEq = noSport ? 0 : Math.min(totalSessionsPerWeek(sports), 7);          // repli legacy (activity_level / training_days)
   const mealsValid = planWeekdays.length >= 1 && meals.length >= 1;                        // étape 7 — jours + repas
   const profileReady = basicsValid && bodyFatValid; // suffisant pour les calculs TDEE/macros
@@ -469,8 +474,11 @@ export default function Onboarding() {
 
         {step === 7 && (
           <View style={s.block}>
+            {/* Le sous-titre « Choisis les jours où tu veux suivre ton plan » est parti
+                (2026-08-12) : il paraphrasait le titre au-dessus d'une rangée de jours
+                qu'on ne peut que taper. La ligne « N jours par semaine » sous la rangée
+                dit, elle, quelque chose que le titre ne dit pas. */}
             <Text style={s.title}>Tes jours de plan</Text>
-            <Text style={s.sub}>Choisis les jours où tu veux suivre ton plan.</Text>
             <View style={s.daysRow}>
               {WEEKDAY_OPTS.map((d) => {
                 const on = planWeekdays.includes(d.val);
@@ -486,13 +494,25 @@ export default function Onboarding() {
 
             {/* Jours de repos = sous-ensemble des jours du plan → carb-cycling. */}
             <SectionLabel t={t}>Jours de repos</SectionLabel>
-            {/* ⚠️ Ce texte promettait deux choses fausses — « (mêmes calories) », plus
+            {/* ⚠️ Ce texte a déjà promis deux choses fausses — « (mêmes calories) », plus
                 vrai depuis la répartition par volume, et « recettes récup », plus vrai
-                depuis la suppression du tag `rest_day_ok` le 2026-08-03. Le STYLE vient
-                de la passe de DA, le TEXTE du correctif moteur : deux axes, pas deux
-                versions. */}
+                depuis la suppression du tag `rest_day_ok` le 2026-08-03.
+
+                🔴 IL EN PROMETTAIT UNE TROISIÈME, ET C'EST LE MÊME DÉFAUT QUE SUR
+                L'ÉCRAN PLAN (CLAUDE.md §8, corrigé là-bas le 2026-08-08) : la modulation
+                par volume n'existe QUE si du sport est déclaré — sans lui,
+                `dayExpenditures` retombe sur une cible plate et les sept jours sont
+                identiques. La phrase annonçait pourtant « moins de calories les jours de
+                repos » à tout le monde, y compris à qui vient de cocher « Je ne fais pas
+                de sport » deux étapes plus tôt.
+                ➡️ Le prédicat est ici la DÉCLARATION de sport, et non le seuil de 40 kcal
+                de `moduleParVolume` : à cette étape le profil n'existe pas encore, donc
+                aucune amplitude n'est calculable. C'est le même fait, lu à la seule
+                source disponible à ce moment-là. */}
             <Text style={[s.sub, { ...Type.caption, marginTop: -Spacing.sm }]}>
-              Tes jours sans entraînement : Kyroz y sert un peu moins de calories et de glucides, et reporte la différence sur tes jours d'entraînement. Tes protéines ne bougent pas, et ta semaine garde son total.
+              {sportDeclare
+                ? "Moins de calories et de glucides ces jours-là, reportées sur tes jours d'entraînement. Tes protéines et ton total de la semaine ne bougent pas."
+                : "Tes jours sans entraînement. Ils ne changeront tes calories que si tu déclares du sport."}
             </Text>
             <View style={s.wrap}>
               {(planWeekdays.length ? WEEKDAY_OPTS.filter((o) => planWeekdays.includes(o.val)) : []).map((d) => (
@@ -507,9 +527,11 @@ export default function Onboarding() {
             )}
 
             <SectionLabel t={t}>Repas inclus</SectionLabel>
+            {/* La deuxième phrase — « Tu en fais plus de quatre ? Ajoute tes propres
+                repas » — est partie le 2026-08-12 : le bouton « + Ajouter un repas »
+                est juste en dessous et le dit mieux qu'elle. */}
             <Text style={[s.sub, { ...Type.caption, marginTop: -Spacing.sm }]}>
-              Coche ce que tu manges dans une journée. Tu en fais plus de quatre ? Ajoute
-              tes propres repas — Kyroz répartit ton budget sur tous.
+              Coche ce que tu manges dans une journée.
             </Text>
             <MealSlotsPicker
               t={t} customSlots={customSlots} selected={meals}
