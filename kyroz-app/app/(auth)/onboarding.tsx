@@ -605,7 +605,11 @@ function NameStep({ t, value, onChange }: { t: ThemePalette; value: string; onCh
         On va te bâtir un plan nutrition sur-mesure en moins d'une minute. D'abord, comment on t'appelle ?
       </Animated.Text>
       <Animated.View style={{ opacity: field, marginTop: Spacing.sm }}>
-        <Field t={t} label="Ton prénom" value={value} onChangeText={onChange} placeholder="Kévin" autoCapitalize="words" autoFocus />
+        {/* ⚠️ Le placeholder REPREND le libellé, il ne donne pas d'exemple. C'était
+            « Kévin » — le prénom du fondateur, servi comme suggestion à tout le monde.
+            Décision du 2026-08-12 : aucun prénom réel dans un champ vide. Même
+            correction dans Profil → Prénom, qui portait le même. */}
+        <Field t={t} label="Ton prénom" value={value} onChangeText={onChange} placeholder="Ton prénom" autoCapitalize="words" autoFocus />
       </Animated.View>
     </View>
   );

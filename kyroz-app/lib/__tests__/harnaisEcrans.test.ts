@@ -141,7 +141,11 @@ const ANCRES: Ancre[] = [
 const champDate = (cle: 'd' | 'mo' | 'y') => ({ fichier: 'components/DateInput.tsx', cle });
 type Via = { fichier: string; cle: string };
 const PLACEHOLDERS: { quoi: string; valeur: string; dans: string; via?: Via }[] = [
-  { quoi: 'prénom (étape 1)', valeur: 'Kévin', dans: 'app/(auth)/onboarding.tsx' },
+  // ⚠️ Ce placeholder REPREND le libellé du champ depuis le 2026-08-12 (il valait
+  // « Kévin »). Il reste une ancre valable — le harnais remplit le champ PAR son
+  // placeholder — mais il ne se distingue plus du libellé : `fillPh` doit viser
+  // l'attribut, pas le texte à l'écran.
+  { quoi: 'prénom (étape 1)', valeur: 'Ton prénom', dans: 'app/(auth)/onboarding.tsx' },
   { quoi: 'jour de naissance (étape 2)', valeur: '2', dans: 'components/BirthDateField.tsx', via: champDate('d') },
   { quoi: 'mois de naissance (étape 2)', valeur: '8', dans: 'components/BirthDateField.tsx', via: champDate('mo') },
   { quoi: 'année de naissance (étape 2)', valeur: '1994', dans: 'components/BirthDateField.tsx', via: champDate('y') },

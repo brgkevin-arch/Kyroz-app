@@ -305,7 +305,11 @@ export async function runOnboarding(page, p = DEFAULT_PERSONA) {
   };
 
   // 1 — prénom
-  await fillPh(page, 'Kévin', p.name);
+  // ⚠️ Le placeholder vaut « Ton prénom » depuis le 2026-08-12 — il valait « Kévin ».
+  // Il est donc IDENTIQUE au libellé du champ, ce qui ne gêne pas `fillPh`
+  // (`getByPlaceholder` lit l'attribut, jamais le texte à l'écran) mais interdit de
+  // basculer ce remplissage sur `getByText` : il attraperait le libellé.
+  await fillPh(page, 'Ton prénom', p.name);
   await sleep(300);
   if (!(await suivant(1))) return { ok: false, etape: 1, repas: 0 };
 
