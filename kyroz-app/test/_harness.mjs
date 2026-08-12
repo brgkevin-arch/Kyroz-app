@@ -197,52 +197,26 @@ export async function guestLogin(page) {
   return !stillLogin;
 }
 
-/**
- * Écran d'avertissement santé (components/HealthScreening.tsx).
- * Il REMPLACE l'assistant tant qu'il n'est pas passé : sans lui, aucun script
- * d'onboarding ne voit jamais l'étape 1.
+/*
+ * 📌 `passScreening` A ÉTÉ RETIRÉE LE 2026-08-12, avec l'écran qu'elle franchissait.
+ * La note reste, parce que la classe de panne, elle, reste — c'est le seul contenu
+ * de cette fonction qui avait de la valeur.
  *
- * SÉQUENCE : un seul bouton, « J'ai compris ».
+ * Il y a eu, entre la connexion et l'étape 1, un écran « Avant de commencer ». Quand
+ * il posait encore deux questions, cette fonction cherchait l'attestation en PREMIER,
+ * or l'écran ne la rendait qu'une fois les deux réponses données : le portail était
+ * INFRANCHISSABLE, la fonction rendait `false` sans rien dire, et tous les scripts
+ * concluaient « écran introuvable » — un faux diagnostic qui a dormi des jours.
  *
- * ⚠️ Le nom de la fonction est conservé (`passScreening`) bien que l'écran ne
- * dépiste plus rien : cinq scripts l'appellent, et un renommage de confort ferait
- * du bruit dans un chantier légal. Ce qu'elle franchit a changé, pas où elle sert.
+ * ➡️ D'où les deux règles qui gouvernent tout ce fichier : une marche qui n'aboutit
+ * pas se NOMME (`panne`), et les libellés dont ce harnais dépend sont verrouillés
+ * contre les écrans par `lib/__tests__/harnaisEcrans.test.ts`, pour qu'un renommage
+ * rougisse dans `npm test` le jour même.
  *
- * 📌 L'HISTOIRE VAUT D'ÊTRE GARDÉE, parce que la classe de panne, elle, reste.
- * Quand l'écran était un portail à deux questions, cette fonction cherchait
- * l'attestation en PREMIER ; or l'écran ne la rendait qu'une fois les deux réponses
- * données. Le portail était donc INFRANCHISSABLE, la fonction rendait `false` sans
- * rien dire, et tous les scripts concluaient « écran introuvable » — un faux
- * diagnostic qui a dormi des jours. ➡️ D'où les trois états ci-dessous, et
- * `lib/__tests__/harnaisEcrans.test.ts`, qui verrouille les libellés dont ce
- * harnais dépend pour qu'un renommage rougisse dans `npm test` le jour même.
- *
- * Trois états, parce qu'ils appellent trois conduites différentes :
- *   'ok'     — franchi, l'assistant d'onboarding suit ;
- *   'absent' — pas rencontré (session déjà onboardée) : ce n'est PAS un échec ;
- *   'echec'  — rencontré et pas franchi : ça, c'est une panne, et elle se voit.
+ * Aujourd'hui la connexion invité débouche directement sur l'assistant — plus rien
+ * à franchir. Le renvoi médical que cet écran portait est servi sous le bouton de
+ * l'étape 1 (constants/legal.ts, gardé par lib/__tests__/avertissementMedical.test.ts).
  */
-export async function passScreening(page) {
-  const prompt = page.getByText('Avant de commencer', { exact: false }).first();
-  if (!(await prompt.isVisible({ timeout: 5000 }).catch(() => false))) return 'absent';
-
-  // 🔴 L'ÉCRAN NE POSE PLUS DE QUESTION depuis le 2026-08-11 (E39) : un seul bouton.
-  // La séquence d'avant — cliquer un « Non » par condition, puis l'attestation, puis
-  // « Continuer » — est retirée avec elles. ⚠️ Le repère de reconnaissance a changé
-  // lui aussi (« Es-tu concerné·e » → « Avant de commencer ») : c'est précisément le
-  // renommage qui fait conclure « écran introuvable » quand on l'oublie, et les
-  // ancres de lib/__tests__/harnaisEcrans.test.ts existent pour le faire rougir
-  // le jour même plutôt que des jours plus tard.
-  await tapPrimary(page, 'J\'ai compris');
-
-  // Preuve de franchissement : l'assistant est là. Sans ce contrôle, un bouton resté
-  // inerte passerait pour un succès.
-  if ((await etapeCourante(page)) !== 1) {
-    await panne(page, 'avertissement-continuer', '« J\'ai compris » n\'a pas ouvert l\'assistant d\'onboarding');
-    return 'echec';
-  }
-  return 'ok';
-}
 
 /**
  * Étape courante de l'assistant (1 à 7), `null` si on n'y est pas.
@@ -258,6 +232,18 @@ export const etapeCourante = (page) => page.evaluate(() => {
   if (m) return Number(m[1]) + 1;
   return /Ton prénom/i.test(txt) ? 1 : null;
 }).catch(() => null);
+
+/**
+ * Attend que l'étape 1 de l'assistant soit à l'écran. Rend `false` sans rien casser
+ * quand elle ne vient pas — c'est le cas légitime d'une session déjà onboardée.
+ *
+ * ⚠️ Son délai remplace celui que portait l'écran d'avertissement supprimé le
+ * 2026-08-12 : sans lui, un script conclurait « déjà onboardé » sur une page qui
+ * n'a simplement pas fini de monter.
+ */
+export const attendreEtape1 = (page, maxMs = 5000) =>
+  page.getByText('Ton prénom', { exact: false }).first()
+    .isVisible({ timeout: maxMs }).catch(() => false);
 
 /** Attend que le plan soit PERSISTÉ (la génération suit l'onboarding d'une poignée de secondes). */
 export async function attendrePlan(page, maxMs = 15000) {
@@ -456,11 +442,14 @@ export async function bootToPlan(page, persona = DEFAULT_PERSONA) {
     return false;
   }
 
-  const depistage = await passScreening(page);
-  if (depistage === 'echec') return false;
-  // 'absent' = session déjà onboardée… ou assistant déjà ouvert par une passe
-  // précédente restée en plan : dans ce cas seulement, on rejoue l'onboarding.
-  if (depistage === 'ok' || (await etapeCourante(page)) === 1) {
+  // L'assistant suit directement la connexion depuis le 2026-08-12 (plus d'écran
+  // d'avertissement à franchir).
+  // ⚠️ ATTENDRE, pas sonder une fois : l'assistant met une poignée de centaines de
+  // millisecondes à monter, et une sonde instantanée rendrait `null` — donc « session
+  // déjà onboardée », donc onboarding sauté EN SILENCE. C'est exactement la panne que
+  // ce fichier existe pour rendre impossible. L'écran d'avant absorbait ce délai avec
+  // son `isVisible({ timeout: 5000 })`.
+  if ((await attendreEtape1(page)) || (await etapeCourante(page)) === 1) {
     if (!(await runOnboarding(page, persona)).ok) return false;
   }
 

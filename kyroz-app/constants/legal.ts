@@ -8,6 +8,19 @@
 export const DISCLAIMER =
   "Kyroz est conçu pour des adultes en bonne santé. Ces informations ne remplacent pas l'avis d'un médecin ou diététicien-nutritionniste.";
 
+// Renvoi vers un professionnel de santé exigé par Apple (1.4.1) et Google.
+//
+// 🔴 IL DOIT RESTER SUR LE PARCOURS, PAS DANS UNE PAGE LÉGALE. Il portait un ÉCRAN
+// entier (« Avant de commencer » + bouton « J'ai compris »), supprimé le 2026-08-12
+// sur décision fondateur : depuis le 2026-08-11 cet écran ne posait plus de question
+// et ne bloquait plus personne — c'était un tap de plus pour deux phrases. Les deux
+// phrases, elles, ne sont pas facultatives : elles sont désormais servies en clair
+// sous le bouton de la première étape de l'onboarding.
+// ➡️ « Discret » veut dire petit et gris, JAMAIS derrière un lien ou un dépliant.
+// Garde-fou : lib/__tests__/avertissementMedical.test.ts.
+export const AVERTISSEMENT_MEDICAL =
+  "Enceinte, allaitante, ou suivie pour une pathologie chronique ? Parles-en à un médecin avant de suivre un plan.";
+
 // ── Identité du responsable de traitement ───────────────────────────────────
 // Identité du responsable de traitement (RGPD art. 13 / mentions légales). Tout
 // est regroupé ici : ne pas dupliquer ailleurs. Le miroir statique

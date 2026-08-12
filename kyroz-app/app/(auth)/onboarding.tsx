@@ -38,9 +38,8 @@ import { useProfile } from '../../hooks/useProfile';
 import { saveFirstName } from '../../lib/profileName';
 import { capture, Events } from '../../lib/analytics';
 import { useAnalyticsConsent } from '../../hooks/useAnalyticsConsent';
-import HealthScreening from '../../components/HealthScreening';
 import AnalyticsConsentStep from '../../components/AnalyticsConsentStep';
-import { hasPassedScreening } from '../../lib/healthScreening';
+import { DISCLAIMER, AVERTISSEMENT_MEDICAL } from '../../constants/legal';
 
 const TOTAL_STEPS = 7;
 
@@ -116,11 +115,6 @@ export default function Onboarding() {
   const { saveProfile } = useProfile();
   const { notify } = useDialog();
 
-  // Dépistage santé bloquant (CLAUDE.md §6). null = flag pas encore lu ; false =
-  // à faire (on affiche le portail avant l'assistant) ; true = passé.
-  const [screened, setScreened] = useState<boolean | null>(null);
-  useEffect(() => { hasPassedScreening().then(setScreened); }, []);
-
   // Consentement aux statistiques d'usage. `undefined` = en cours de lecture ;
   // `null` = pas encore répondu → l'écran de consentement remplace l'assistant.
   const { consent, choose: chooseConsent } = useAnalyticsConsent();
@@ -129,14 +123,16 @@ export default function Onboarding() {
   // de placement. Au montage, la question du consentement n'a pas encore été posée :
   // `capture` sortirait à sa première ligne et l'event serait perdu pour tout le
   // monde, y compris pour ceux qui acceptent trois secondes plus tard. Il part donc
-  // quand l'assistant DÉMARRE vraiment — dépistage passé et consentement répondu.
+  // quand l'assistant DÉMARRE vraiment — c'est-à-dire une fois le consentement
+  // répondu, seule chose qui le précède encore depuis la suppression de l'écran
+  // d'avertissement santé (2026-08-12).
   const tunnelOuvert = useRef(false);
   useEffect(() => {
-    if (screened !== true || consent === undefined || consent === null) return;
+    if (consent === undefined || consent === null) return;
     if (tunnelOuvert.current) return;
     tunnelOuvert.current = true;
     capture(Events.onboardingStarted);
-  }, [screened, consent]);
+  }, [consent]);
 
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
@@ -146,7 +142,7 @@ export default function Onboarding() {
   // abandonner — `onboarding_completed` seul ne compte que ceux qui sont allés au
   // bout, donc il ne peut rien dire de ceux qui partent. Même garde que ci-dessus :
   // rien ne part tant que l'assistant n'est pas réellement à l'écran.
-  const assistantActif = screened === true && consent !== undefined && consent !== null;
+  const assistantActif = consent !== undefined && consent !== null;
   useEffect(() => {
     if (!assistantActif) return;
     capture(Events.onboardingStepViewed, { step });
@@ -312,8 +308,11 @@ export default function Onboarding() {
     };
     const profile = recalcProfile(draft); // ← source unique du TDEE et des macros
     // Éligibilité (P0.4) : mineur, IMC de départ, volume d'entraînement. La grossesse
-    // et l'allaitement sont déjà bloqués en amont par le portail de dépistage santé
-    // (lib/healthScreening.ts) — on ne duplique pas le champ dans le profil.
+    // et l'allaitement n'y figurent PAS et ne doivent pas y revenir (CLAUDE.md §6,
+    // AGENTS.md E39) : subordonner l'accès à l'un ou l'autre est un refus de service
+    // fondé sur un critère de discrimination, et la réponse serait elle-même une
+    // donnée de santé. Ce qui reste est DIT (AVERTISSEMENT_MEDICAL, sous le bouton de
+    // l'étape 1) ; ce qui protège, ce sont les blocages qui MESURENT.
     const blocked = eligibilityMessage(checkEligibility(profile));
     // ⚠️ `Alert.alert` est une fonction VIDE sur le web : un profil REFUSÉ (mineur,
     // IMC de départ, volume d'entraînement) voyait le bouton final ne rien faire,
@@ -350,16 +349,16 @@ export default function Onboarding() {
     router.replace('/(tabs)/plan');
   };
 
-  // Portail de dépistage santé : tant qu'il n'est pas passé, il remplace l'assistant.
+  // Consentement analytics — AVANT la première question du profil, et c'est le SEUL
+  // écran qui précède encore l'assistant. Le poser plus tard supprimerait D1 (cf.
+  // AnalyticsConsentStep).
+  //
+  // ⚠️ L'écran d'avertissement santé le précédait ; il a été SUPPRIMÉ le 2026-08-12
+  // (décision fondateur). Ses deux phrases sont servies sous le bouton de l'étape 1 —
+  // voir le pied de page plus bas et constants/legal.ts. Ne pas le « rétablir » :
+  // depuis le 2026-08-11 il ne posait plus aucune question et ne bloquait plus
+  // personne, donc il coûtait un tap pour un texte qui n'a pas besoin d'un écran.
   // (Placé APRÈS tous les hooks → règles React respectées.)
-  if (screened === null) return null; // lecture du flag (AsyncStorage, quasi instantané)
-  if (!screened) return <HealthScreening onPass={() => setScreened(true)} />;
-
-  // Consentement analytics — APRÈS le dépistage, AVANT la première question du profil.
-  // L'ordre n'est pas cosmétique : le dépistage décide si Kyroz a le droit de servir un
-  // plan (§6), le consentement décide seulement si on a le droit de MESURER. Poser le
-  // second en premier ferait passer une question de confort avant une question de
-  // sécurité. Et le poser plus tard supprimerait D1 (cf. AnalyticsConsentStep).
   if (consent === undefined) return null; // lecture du stockage, quasi instantané
   if (consent === null) return <AnalyticsConsentStep onChoose={chooseConsent} />;
 
@@ -547,6 +546,18 @@ export default function Onboarding() {
           loading={saving}
           muted={!canProceed}
         />
+        {/* Les deux phrases de l'ancien écran « Avant de commencer », servies là où il
+            servait : juste avant que quiconque commence. Le renvoi vers un médecin est
+            exigé par Apple (1.4.1) et Google, le disclaimer par §6 (« onboarding,
+            paramètres, chaque plan »).
+            ⚠️ Étape 1 SEULEMENT — les répéter sur les sept étapes en ferait du décor
+            qu'on ne lit plus. Garde-fou : lib/__tests__/avertissementMedical.test.ts. */}
+        {step === 1 && (
+          <View style={s.mentions}>
+            <Text style={s.disclaimer}>{AVERTISSEMENT_MEDICAL}</Text>
+            <Text style={s.disclaimer}>{DISCLAIMER}</Text>
+          </View>
+        )}
       </View>
     </SafeAreaView>
   );
@@ -616,6 +627,7 @@ function makeStyles(t: ThemePalette) {
     dayCircle: { flex: 1, height: 52, borderRadius: Radius.button, borderWidth: Trait.fin, alignItems: 'center', justifyContent: 'center' },
     footer: { padding: Spacing.xl, paddingTop: Spacing.sm, backgroundColor: t.bg },
     hint: { ...Type.captionStrong, color: t.warning, lineHeight: 18, marginBottom: Spacing.md, textAlign: 'center' },
-    disclaimer: { ...Type.micro, color: t.textTertiary, lineHeight: 16, textAlign: 'center', marginTop: Spacing.xs },
+    mentions: { gap: Spacing.xs, marginTop: Spacing.md },
+    disclaimer: { ...Type.micro, color: t.textTertiary, lineHeight: 16, textAlign: 'center' },
   });
 }

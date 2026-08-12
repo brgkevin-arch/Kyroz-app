@@ -987,7 +987,9 @@ export function lowEaWeeksForFloor(
 // juridique — AGENTS.md E39). Il n'était alimenté que par le portail de dépistage, qui
 // posait la question ; celle-ci est supprimée, donc plus rien ne pouvait le produire et
 // il serait devenu un motif que le code sait dire et que rien ne déclenche. La grossesse
-// et l'allaitement relèvent désormais de l'AVERTISSEMENT (components/HealthScreening.tsx),
+// et l'allaitement relèvent désormais de l'AVERTISSEMENT (`AVERTISSEMENT_MEDICAL`,
+// constants/legal.ts — servi sous le bouton de l'étape 1 de l'onboarding depuis que
+// l'écran qui le portait a été supprimé, le 2026-08-12),
 // pas du refus. ⚠️ Ne pas le réintroduire sans rouvrir la décision : ce n'est pas un
 // garde-fou oublié, c'est un refus de service qu'on a retiré exprès.
 export type EligibilityBlock =
