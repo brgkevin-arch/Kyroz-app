@@ -394,7 +394,7 @@ export default function Onboarding() {
           <View style={s.block}>
             <Text style={s.title}>Ta masse grasse</Text>
             <Text style={s.sub}>
-              Indispensable pour un plan vraiment adapté : deux personnes du même poids n'ont pas les mêmes besoins. Choisis la silhouette la plus proche de toi, ou saisis ton % si tu le connais.
+              Choisis la silhouette la plus proche de toi, ou saisis ton % si tu le connais.
             </Text>
             {/* Le corps est déjà saisi à l'étape 2 → le repère de plausibilité peut
                 chiffrer l'impact. Les séances (étape 4) ne comptent pas ici : elles

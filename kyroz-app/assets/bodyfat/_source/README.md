@@ -38,3 +38,41 @@ rendus individuels, et le redimensionnement au gabarit servi.
 ⚠️ **Ne pas adopter à moitié.** Servir des silhouettes masculines d'une génération
 et féminines de l'autre ferait deux styles dans le même sélecteur — c'est-à-dire
 exactement ce qu'on corrige partout ailleurs dans la DA.
+
+---
+
+## 🔴 CE QU'IL FAUT EXIGER DE LA PROCHAINE GÉNÉRATION (2026-08-12)
+
+**À refaire AVANT la mise en ligne** — décision fondateur. Les 12 images servies
+portent une « corne » au-dessus des épaules, visible sur les six cartes du
+sélecteur, et elle se lit comme un défaut de modèle 3D.
+
+**Le défaut est dans la SOURCE, pas dans la découpe, et c'est mesuré.** Sur les
+planches actuelles, les facettes ombrées du cou et des trapèzes valent **exactement
+le gris du fond** — écart de 1 à 3 par canal sur 255. Deux conséquences :
+
+- aucun détourage par **couleur** ne peut les séparer (c'est la même couleur) ;
+- le détourage par **connexité** (diffusion depuis les bords, meilleur en théorie)
+  échoue aussi : mesuré aux tolérances 4, 6, 8 et 10, il fuit dans le corps par le
+  haut des épaules à chacune. **Il n'existe pas de réglage qui marche.**
+
+➡️ **La seule demande qui compte pour un nouveau jeu d'assets :**
+
+| exigence | pourquoi |
+|---|---|
+| **fond contrasté** (vert, magenta, noir) ou **PNG déjà transparent** | c'est le point unique qui rend le détourage possible ; un fond gris clair derrière un modèle gris clair est indécoupable |
+| **une planche par sexe**, mêmes 6 paliers (≈10/15/20/25/30/+35 %) | le sélecteur en sert 12, et deux styles dans la même grille est le défaut qu'on corrige partout ailleurs |
+| **même cadrage, même échelle, même socle** d'un palier à l'autre | un corps à 35 % doit être PLUS LARGE qu'un corps à 10 % — c'est la seule chose que ce sélecteur montre. Si chaque rendu est recadré pour remplir son image, l'information disparaît |
+| **pas de titre, pas de libellés, pas de watermark** dans l'image | les libellés viennent du code (`BodyFatPicker`), et les paillettes du coin bas-droit des planches actuelles sont un artefact à découper autour |
+
+**Une fois les nouvelles planches déposées ici**, la découpe est automatisée :
+
+```bash
+python3 scripts/decouper-silhouettes.py            # aperçu, n'écrit rien
+python3 scripts/decouper-silhouettes.py --ecrire   # remplace les 12 images
+```
+
+Ce script mesure lui-même la bande et les six colonnes (rien n'est écrit en dur),
+pose un canevas commun, aligne les socles et garde **une seule échelle** pour les
+douze. Il compose aussi un aperçu sur le vrai fond de carte sombre — le liseré
+clair d'un mauvais détourage ne se voit sur aucun fond blanc.

@@ -460,6 +460,32 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
 
 ### 🔴 A — En retard ou cassé en silence
 
+- 🧑 **A32 · Les 12 silhouettes du sélecteur de %MG sont à REFAIRE avant la mise en
+  ligne (2026-08-12)** — décision fondateur, il cherche un outil qui rende de bons
+  assets. Les images servies portent une « corne » au-dessus des épaules, visible sur
+  les six cartes, qui se lit comme un défaut de modèle 3D.
+  🔴 **LE DÉFAUT EST DANS LA SOURCE, ET AUCUNE RE-DÉCOUPE NE LE RATTRAPE — mesuré.**
+  Sur `assets/bodyfat/_source/*-models.png`, les facettes ombrées du cou et des
+  trapèzes valent **exactement** le gris du fond (écart 1 à 3 par canal sur 255).
+  Donc : aucun critère de COULEUR ne peut séparer deux choses de la même couleur ; et
+  le critère de CONNEXITÉ (diffusion depuis les bords, pourtant le bon en théorie)
+  fuit dans le corps par le haut des épaules aux tolérances **4, 6, 8 ET 10** — 1 410
+  pixels dès la plus stricte. ➡️ **Ne pas repartir sur « mieux régler le seuil » : ce
+  chemin est mesuré et fermé.**
+  ✅ **Ce qui est prêt côté dépôt** : `scripts/decouper-silhouettes.py` (Pillow, mode
+  aperçu par défaut, `--ecrire` pour remplacer) mesure lui-même la bande et les six
+  colonnes, pose un canevas commun, aligne les socles et garde **une seule échelle**
+  pour les douze. Le jour où les planches sont bonnes, la découpe est une commande.
+  📋 **Ce qu'il faut exiger du nouveau jeu** (détail : `assets/bodyfat/_source/README.md`) :
+  **fond contrasté ou PNG déjà transparent** (le point unique qui débloque tout) ·
+  une planche par sexe, mêmes 6 paliers · **même cadrage et même échelle** d'un palier
+  à l'autre, sinon on perd la seule information du sélecteur (un corps à 35 % est plus
+  large qu'un corps à 10 %) · ni titre, ni libellés, ni watermark.
+  ⚠️ Une piste écartée en séance : servir des **tuiles au fond gris plat** au lieu de
+  détourer. Techniquement propre (les pixels ambigus gardent leur teinte, donc
+  l'erreur devient invisible) et vérifié en aperçu — mais c'est un changement de DA
+  (un rectangle clair dans une carte sombre), et le fondateur préfère de vrais assets.
+
 - 🧑 **A30 · Mot de passe oublié — CODE EN LIGNE, reste UN geste hors dépôt (2026-08-07)**
   ✅ **Mergé (PR #43) et déployé le 2026-08-08** — `main` `085166d`, run de déploiement
   vert, écran vérifié sur le bundle réellement servi (« Recevoir un code » **2**,
