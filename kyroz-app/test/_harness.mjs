@@ -234,6 +234,70 @@ export const etapeCourante = (page) => page.evaluate(() => {
 }).catch(() => null);
 
 /**
+ * Choisit une date de naissance dans la ROULETTE (2026-08-12 : les trois champs
+ * tapés ont été remplacés par une ligne qui ouvre une feuille).
+ *
+ * 🔴 ON POSE LE DÉFILEMENT, ON NE POSE PAS L'ÉTAT. `scrollTop = i × 44` émet un
+ * vrai événement `scroll`, donc traverse le VRAI `onScroll` du composant — c'est
+ * le seul chemin que react-native-web câble au DOM. Écrire dans un état React à
+ * la place testerait le harnais, pas l'app : c'est la règle « vérifier le
+ * résultat, pas la mécanique ».
+ *
+ * ⚠️ L'ordre année → mois → jour n'est pas cosmétique : changer de mois RAMÈNE le
+ * jour dans le mois (31 janvier → 28 février). Poser le jour en dernier évite de
+ * le faire clamper par les colonnes suivantes.
+ *
+ * ⚠️ Et on attend plus que le délai de pose du composant (120 ms) avant de
+ * valider — sinon la dernière colonne n'a pas encore été prise en compte, et la
+ * date validée est celle d'avant. Panne silencieuse : le parcours continue.
+ */
+export async function choisirDateNaissance(page, birth) {
+  const ligne = page.getByText('À renseigner', { exact: true }).first();
+  if (!(await ligne.isVisible({ timeout: 3000 }).catch(() => false))) {
+    await panne(page, 'date-naissance-ligne', 'la ligne « À renseigner » de la date de naissance est introuvable à l\'étape 2');
+    return false;
+  }
+  await ligne.click().catch(() => {});
+  await sleep(500);
+
+  const anneeCourante = new Date().getFullYear();
+  const cibles = [
+    ['wheel-annee', anneeCourante - Number(birth.y)],
+    ['wheel-mois', Number(birth.m) - 1],
+    ['wheel-jour', Number(birth.d) - 1],
+  ];
+  for (const [id, index] of cibles) {
+    const ok = await page.evaluate(([tid, i]) => {
+      const noeud = document.querySelector(`[data-testid="${tid}"]`);
+      if (!noeud) return false;
+      // Le nœud porteur du testID n'est pas forcément celui qui défile : on prend
+      // le premier de la chaîne (lui ou un descendant) qui déborde vraiment.
+      const scrollable = [noeud, ...noeud.querySelectorAll('*')]
+        .find((n) => n.scrollHeight > n.clientHeight + 1);
+      if (!scrollable) return false;
+      scrollable.scrollTop = i * 44;
+      scrollable.dispatchEvent(new Event('scroll', { bubbles: true }));
+      return true;
+    }, [id, index]).catch(() => false);
+    if (!ok) {
+      await panne(page, `date-naissance-${id}`, `colonne ${id} introuvable ou non défilante dans la roulette`);
+      return false;
+    }
+    await sleep(300); // > POSE_MS (120) : le composant doit avoir eu le temps de commettre
+  }
+
+  await tapPrimary(page, 'Valider');
+  // Preuve : la ligne ne dit plus « À renseigner ». Sans ce contrôle, une roulette
+  // qui ne commet rien passerait pour un succès — exactement la panne que ce
+  // fichier existe pour rendre visible.
+  if (await page.getByText('À renseigner', { exact: true }).first().isVisible({ timeout: 1000 }).catch(() => false)) {
+    await panne(page, 'date-naissance-validee', '« Valider » n\'a rien enregistré : la ligne dit toujours « À renseigner »');
+    return false;
+  }
+  return true;
+}
+
+/**
  * Attend que l'étape 1 de l'assistant soit à l'écran. Rend `false` sans rien casser
  * quand elle ne vient pas — c'est le cas légitime d'une session déjà onboardée.
  *
@@ -315,9 +379,7 @@ export async function runOnboarding(page, p = DEFAULT_PERSONA) {
 
   // 2 — sexe + infos de base (date de naissance, poids, taille)
   if (p.sex === 'female') { await tap(page, 'Femme', { exact: true }); await sleep(250); }
-  await fillPh(page, '2', p.birth.d);
-  await fillPh(page, '8', p.birth.m);
-  await fillPh(page, '1994', p.birth.y);
+  if (!(await choisirDateNaissance(page, p.birth))) return { ok: false, etape: 2, repas: 0 };
   await fillPh(page, '80', p.weight);
   await fillPh(page, '178', p.height);
   await sleep(400);

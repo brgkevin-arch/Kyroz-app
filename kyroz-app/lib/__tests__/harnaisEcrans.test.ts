@@ -33,6 +33,7 @@ import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { TOURS } from '../tours';
+import { CIBLE_TACTILE_MIN } from '../../constants/theme';
 
 const RACINE = join(__dirname, '..', '..');
 const lire = (rel: string) => readFileSync(join(RACINE, rel), 'utf8');
@@ -138,7 +139,10 @@ const ANCRES: Ancre[] = [
  * *Jour* — les deux autres suffisaient à la satisfaire. Un verrou qui accepte
  * n'importe lequel des trois maillons ne garde aucun des trois.
  */
-const champDate = (cle: 'd' | 'mo' | 'y') => ({ fichier: 'components/DateInput.tsx', cle });
+// ℹ️ `champDate` (le pont vers `DateInput`) a servi aux trois cases de la date de
+// naissance jusqu'au 2026-08-12, où elles sont devenues une roulette. La forme
+// `via` reste décrite ci-dessous : `DateInput` est toujours en service pour
+// l'échéance de l'objectif daté, que le harnais ne remplit pas aujourd'hui.
 type Via = { fichier: string; cle: string };
 const PLACEHOLDERS: { quoi: string; valeur: string; dans: string; via?: Via }[] = [
   // ⚠️ Ce placeholder REPREND le libellé du champ depuis le 2026-08-12 (il valait
@@ -146,9 +150,13 @@ const PLACEHOLDERS: { quoi: string; valeur: string; dans: string; via?: Via }[] 
   // placeholder — mais il ne se distingue plus du libellé : `fillPh` doit viser
   // l'attribut, pas le texte à l'écran.
   { quoi: 'prénom (étape 1)', valeur: 'Ton prénom', dans: 'app/(auth)/onboarding.tsx' },
-  { quoi: 'jour de naissance (étape 2)', valeur: '2', dans: 'components/BirthDateField.tsx', via: champDate('d') },
-  { quoi: 'mois de naissance (étape 2)', valeur: '8', dans: 'components/BirthDateField.tsx', via: champDate('mo') },
-  { quoi: 'année de naissance (étape 2)', valeur: '1994', dans: 'components/BirthDateField.tsx', via: champDate('y') },
+  // ⚠️ LES TROIS PLACEHOLDERS DE LA DATE DE NAISSANCE ONT DISPARU LE 2026-08-12 :
+  // ce n'est plus une saisie, c'est une ROULETTE (`components/Wheel.tsx`), et une
+  // roulette ne se remplit pas par un placeholder. Le harnais la pilote par les
+  // repères `wheel-*` — vérifiés plus bas, dans leur propre table, parce qu'ils
+  // se prouvent autrement (un `testID`, pas un attribut `placeholder`).
+  // ℹ️ `champDate` reste employé : l'échéance de l'objectif daté, elle, se tape
+  // toujours dans `DateInput`.
   { quoi: 'poids (étape 2)', valeur: '80', dans: 'app/(auth)/onboarding.tsx' },
   { quoi: 'taille (étape 2)', valeur: '178', dans: 'app/(auth)/onboarding.tsx' },
   { quoi: 'masse grasse (étape 3)', valeur: 'ex. 18', dans: 'components/BodyFatPicker.tsx' },
@@ -232,6 +240,51 @@ describe('harnais Playwright — les libellés cherchés existent encore', () =>
     expect(
       lire(HARNAIS).includes(`'${valeur}'`),
       `${HARNAIS} ne vise plus le placeholder « ${valeur} » : mettre à jour cette table`,
+    ).toBe(true);
+  });
+
+  // ── La roulette de date de naissance (choisirDateNaissance) ──────────────
+  //
+  // Elle ne se remplit ni par un placeholder ni par un texte : le harnais pose le
+  // défilement de CHAQUE colonne par son `testID`, puis valide. Trois choses
+  // peuvent donc casser en silence — un repère renommé, la ligne qui ouvre la
+  // feuille, et le bouton qui commet. Les trois sont ici.
+  //
+  // ⚠️ La HAUTEUR DE LIGNE est recopiée dans le harnais (`i * 44`) parce qu'un
+  // script Playwright ne peut pas importer un token TypeScript. Une recopie qui
+  // dérive donnerait un défilement au mauvais endroit — donc une date fausse, pas
+  // une erreur. D'où le contrôle croisé ci-dessous contre `CIBLE_TACTILE_MIN`.
+  it.each([
+    { quoi: 'colonne des jours', repere: 'wheel-jour' },
+    { quoi: 'colonne des mois', repere: 'wheel-mois' },
+    { quoi: 'colonne des années', repere: 'wheel-annee' },
+  ])('repère de roulette « $repere » — $quoi', ({ repere }) => {
+    expect(
+      lire('components/BirthDatePicker.tsx').includes(`testID="${repere}"`),
+      `components/BirthDatePicker.tsx ne pose plus testID="${repere}" → le harnais ne trouvera pas la colonne`,
+    ).toBe(true);
+    expect(
+      lire(HARNAIS).includes(repere),
+      `${HARNAIS} ne vise plus « ${repere} » : mettre à jour cette table`,
+    ).toBe(true);
+  });
+
+  it('la ligne qui OUVRE la roulette, et le bouton qui la VALIDE', () => {
+    expect(lire('components/BirthDateField.tsx')).toContain('À renseigner');
+    expect(lire('components/BirthDatePicker.tsx')).toContain('label="Valider"');
+    const harnais = lire(HARNAIS);
+    expect(harnais).toContain('À renseigner');
+    expect(harnais).toContain('Valider');
+  });
+
+  it('🔴 la hauteur de ligne recopiée dans le harnais suit la cible tactile', () => {
+    // Le harnais calcule `scrollTop = i × 44`. Si la roulette changeait de hauteur
+    // de ligne, il défilerait au mauvais endroit et choisirait une AUTRE date —
+    // sans erreur, sans capture, avec un plan calculé sur un âge faux.
+    expect(lire('components/Wheel.tsx')).toContain('const HAUTEUR_LIGNE = CIBLE_TACTILE_MIN');
+    expect(
+      lire(HARNAIS).includes(`i * ${CIBLE_TACTILE_MIN}`),
+      `${HARNAIS} ne défile plus par pas de ${CIBLE_TACTILE_MIN} pt — il choisirait une autre date en silence`,
     ).toBe(true);
   });
 
