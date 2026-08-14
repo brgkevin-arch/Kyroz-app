@@ -85,9 +85,14 @@ describe('Aucune feuille ne s’ouvre par-dessus une feuille ouverte', () => {
 // montre pas ce défaut, il empile sans se plaindre), donc ils attendent un build.
 // ➡️ Ne JAMAIS ajouter un nom ici pour faire passer le test.
 const CHANTIER_DIALOGUES_EN_FEUILLE = [
-  'OffPlanHistory',   // « Retirer cette ligne ? » — journal des écarts
-  'ReglagesSheet',    // 2 `notify` : pas d'app e-mail, rappel refusé
-  'WeightCheckin',    // « Supprimer cette pesée ? »
+  // ⚠️ IL N'EN RESTE QU'UN, et c'est le moins grave : deux `notify` PUREMENT
+  // INFORMATIFS (« aucune application e-mail », « rappel refusé »). Rien ne se
+  // perd si l'un ne s'affiche pas — contrairement à une confirmation, qui laisse
+  // un geste sans réponse. Les trois autres sont corrigés depuis le 2026-08-14 :
+  // ShoppingHistory, OffPlanHistory et WeightCheckin posent leur question DANS
+  // la feuille (`ConfirmationEnLigne`), et « Supprimer mon compte » attend que
+  // la feuille Réglages soit DÉMONTÉE (`Sheet.onClosed`).
+  'ReglagesSheet',
 ];
 
 /**
@@ -149,12 +154,37 @@ describe('Aucune boîte de dialogue ne s’ouvre depuis une feuille', () => {
     expect(fautifs, 'ces composants vivent dans une feuille ET ouvrent une modale').toEqual([]);
   });
 
-  it('le chantier ne GRANDIT pas — et « Mes courses passées » en est sorti', () => {
-    expect(CHANTIER_DIALOGUES_EN_FEUILLE.length).toBeLessThanOrEqual(3);
-    expect(CHANTIER_DIALOGUES_EN_FEUILLE).not.toContain('ShoppingHistory');
+  it('le chantier ne GRANDIT pas — trois des quatre en sont sortis', () => {
+    expect(CHANTIER_DIALOGUES_EN_FEUILLE.length).toBeLessThanOrEqual(1);
+    for (const c of ['ShoppingHistory', 'OffPlanHistory', 'WeightCheckin']) {
+      expect(CHANTIER_DIALOGUES_EN_FEUILLE).not.toContain(c);
+    }
     // Corrigé le 2026-08-14 : la question se pose désormais DANS la feuille.
     const histo = FICHIERS.find((f) => f.nom.endsWith('ShoppingHistory.tsx'))!;
     expect(histo.code).not.toMatch(/\buseDialog\(/);
     expect(histo.code).toContain('aConfirmer');
+  });
+});
+
+describe('Enchaîner une feuille et une modale passe par onClosed', () => {
+  const RACINE2 = join(__dirname, '..', '..');
+  const l = (...p: string[]) => readFileSync(join(RACINE2, ...p), 'utf8');
+
+  it('« Supprimer mon compte » n’ouvre pas sa confirmation dans le même lot d’état', () => {
+    // 🔴 Le défaut, VU au simulateur le 2026-08-14 : `setReglages(false)` et
+    // `setConfirmDelete(true)` partaient ensemble. La feuille gardait sa `Modal`
+    // montée le temps de sa sortie, iOS refusait la seconde, et la confirmation
+    // n'apparaissait JAMAIS — geste RGPD et point de revue App Store.
+    const src = l('app', '(tabs)', 'profil.tsx');
+    expect(src).not.toMatch(/setReglages\(false\);\s*setConfirmDelete\(true\)/);
+    expect(src).toMatch(/onClosed=\{[^}]*setConfirmDelete\(true\)/);
+  });
+
+  it('`Sheet` prévient APRÈS l’animation, et seulement s’il reste fermé', () => {
+    const src = l('components', 'Sheet.tsx');
+    expect(src).toMatch(/if\s*\(\s*!visibleRef\.current\s*\)\s*\{\s*setRender\(false\);\s*onClosedRef\.current/);
+    // Le rappel passe par une REF : l'effet ne dépend que de `visible`, donc il
+    // figerait la version du premier rendu.
+    expect(src).toContain('onClosedRef.current = onClosed');
   });
 });

@@ -1,9 +1,9 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Presse } from './Presse';
+import { ConfirmationEnLigne } from './ConfirmationEnLigne';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemePalette, Radius, Type, Spacing, Trait, Icone } from '../constants/theme';
-import { useDialog } from './Dialog';
 import { OffPlanEntry, describeOutcome, newestFirst } from '../lib/offPlanJournal';
 import { frDateLongue } from '../lib/dateLabel';
 
@@ -36,20 +36,15 @@ export function OffPlanHistory({
   sheetScrollProps?: any;     // injecté par <Sheet> : lie le défilement à la fermeture
 }) {
   const s = useMemo(() => makeStyles(t), [t]);
-  const { confirm } = useDialog();
   const liste = useMemo(() => newestFirst(entries), [entries]);
+  const [aConfirmer, setAConfirmer] = useState<number | null>(null);
 
-  // `Alert.alert` est un no-op sur react-native-web (CLAUDE.md §11) : un seul
-  // chemin, web et natif.
-  const demanderSuppression = async (index: number, e: OffPlanEntry) => {
-    const ok = await confirm({
-      title: 'Retirer cette ligne ?',
-      message: `${frDate(e.date)}${e.label ? ` · ${e.label}` : ''} · +${e.kcal} kcal`,
-      confirmLabel: 'Retirer',
-      destructive: true,
-    });
-    if (ok) onRemove(index);
-  };
+  // 🔴 LA CONFIRMATION VIT DANS LA FEUILLE, PLUS DANS UNE BOÎTE DE DIALOGUE
+  // (2026-08-14). `useDialog().confirm` monte sa propre `Modal` ; cet écran vit
+  // déjà dans une feuille, donc dans une modale, et iOS refuse d'en présenter une
+  // seconde par-dessus — sans erreur ni trace. Mesuré au simulateur sur le même
+  // mécanisme (« Supprimer mon compte » : deux captures identiques à l'horloge
+  // près). ⚠️ Invisible au navigateur, qui empile sans se plaindre.
 
   return (
     <View style={s.wrap}>
@@ -82,7 +77,7 @@ export function OffPlanHistory({
                   </View>
                   <Text style={s.kcal}>+{e.kcal.toLocaleString('fr-FR')} kcal</Text>
                   <Presse
-                    onPress={() => demanderSuppression(i, e)}
+                    onPress={() => setAConfirmer(i)}
                     hitSlop={10}
                     accessibilityRole="button"
                     // « du ${date} » donnait « du Aujourd'hui » : le tiret évite
@@ -95,6 +90,15 @@ export function OffPlanHistory({
                 {/* Décision inconnue (app quittée avant l'arbitrage) → on se tait.
                     Écrire « journée gardée » serait affirmer ce qu'on n'a pas vu. */}
                 {phrase ? <Text style={s.outcome}>{phrase}</Text> : null}
+                {aConfirmer === i && (
+                  <ConfirmationEnLigne
+                    t={t}
+                    question={`Retirer cette ligne ? ${frDate(e.date)}${e.label ? ` · ${e.label}` : ''} · +${e.kcal} kcal. Ton plan ne change pas — seule la trace disparaît.`}
+                    confirmLabel="Retirer"
+                    onCancel={() => setAConfirmer(null)}
+                    onConfirm={() => { setAConfirmer(null); onRemove(i); }}
+                  />
+                )}
               </View>
             );
           })}

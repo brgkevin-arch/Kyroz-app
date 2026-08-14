@@ -9,6 +9,7 @@ import {
 } from '../lib/shoppingHistory';
 import { frDateLongue } from '../lib/dateLabel';
 import { formatQuantity } from '../lib/units';
+import { ConfirmationEnLigne } from './ConfirmationEnLigne';
 
 // ── Historique des listes de courses ─────────────────────────────────────────
 //
@@ -119,29 +120,13 @@ export function ShoppingHistory({
                     <Text style={s.precision}>Quantités demandées par ta liste ce jour-là.</Text>
 
                     {aConfirmer === tr.at ? (
-                      <View style={s.confirmation}>
-                        <Text style={s.confirmationTxt}>
-                          Retirer ces courses de l'historique ? Ton frigo n'y touche pas — seule la trace disparaît.
-                        </Text>
-                        <View style={s.confirmationBtns}>
-                          <Presse
-                            style={[s.confirmationBtn, { backgroundColor: t.fill }]}
-                            onPress={() => setAConfirmer(null)}
-                            activeOpacity={OPACITE_PRESSION}
-                            accessibilityRole="button"
-                          >
-                            <Text style={s.annulerTxt}>Annuler</Text>
-                          </Presse>
-                          <Presse
-                            style={[s.confirmationBtn, { backgroundColor: t.danger }]}
-                            onPress={() => { setAConfirmer(null); onRemove(tr.at); }}
-                            activeOpacity={OPACITE_PRESSION}
-                            accessibilityRole="button"
-                          >
-                            <Text style={s.confirmerTxt}>Retirer</Text>
-                          </Presse>
-                        </View>
-                      </View>
+                      <ConfirmationEnLigne
+                        t={t}
+                        question="Retirer ces courses de l'historique ? Ton frigo n'y touche pas — seule la trace disparaît."
+                        confirmLabel="Retirer"
+                        onCancel={() => setAConfirmer(null)}
+                        onConfirm={() => { setAConfirmer(null); onRemove(tr.at); }}
+                      />
                     ) : (
                       <Presse
                         style={s.retirer}
@@ -214,15 +199,6 @@ function makeStyles(t: ThemePalette) {
     },
     retirerTxt: { ...Type.bodySmall, color: t.textSecondary },
 
-    confirmation: { gap: Spacing.md, marginTop: Spacing.sm },
-    confirmationTxt: { ...Type.bodySmall, color: t.text, lineHeight: 20 },
-    confirmationBtns: { flexDirection: 'row', gap: Spacing.sm },
-    confirmationBtn: {
-      flex: 1, alignItems: 'center', justifyContent: 'center',
-      minHeight: CIBLE_TACTILE_MIN, borderRadius: Radius.button,
-    },
-    annulerTxt: { ...Type.bodySmallStrong, color: t.text },
-    confirmerTxt: { ...Type.bodySmallStrong, color: t.onAccent },
 
     videCard: { borderWidth: Trait.fin, borderColor: t.line, borderRadius: Radius.card, padding: Spacing.xl, gap: Spacing.sm },
     videTitre: { ...Type.label, color: t.text },

@@ -50,8 +50,16 @@ describe('feuilles modales — les deux pannes qui ne se voyaient pas', () => {
         .not.toMatch(/if\s*\(\s*finished\s*\)\s*setRender\(false\)/);
       // Et le démontage doit rester CONDITIONNEL à la fermeture : le retirer tout à
       // fait démonterait une feuille rouverte pendant sa propre sortie.
+      //
+      // ⚠️ L'expression ne fige plus la LIGNE ENTIÈRE (2026-08-14). Elle exigeait
+      // `if (!visibleRef.current) setRender(false)` au caractère près, donc elle a
+      // rougi le jour où `Sheet` a ajouté `onClosed()` DANS la même garde — un
+      // ajout qui respecte pourtant exactement ce que ce test protège. Un garde-fou
+      // qui interdit d'ajouter quoi que ce soit à côté de ce qu'il surveille finit
+      // par se faire contourner plutôt que corriger. On tient l'INVARIANT — la
+      // garde lit `visibleRef`, pas `visible` — et rien de plus.
       expect(src, `${f} : le démontage ne relit pas l'état d'ouverture`)
-        .toMatch(/if\s*\(\s*!visibleRef\.current\s*\)\s*setRender\(false\)/);
+        .toMatch(/if\s*\(\s*!visibleRef\.current\s*\)\s*\{?\s*setRender\(false\)/);
     }
   });
 

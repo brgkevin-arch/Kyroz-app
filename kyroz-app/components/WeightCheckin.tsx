@@ -1,11 +1,11 @@
 import React, { useMemo, useState, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, useWindowDimensions, Image, TouchableOpacity } from 'react-native';
 import { Presse } from './Presse';
+import { ConfirmationEnLigne } from './ConfirmationEnLigne';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemePalette, Radius, Spacing, Type, Fond, Trait, Icone, OPACITE_PRESSION } from '../constants/theme';
 import { SHEET_MAX_WIDTH } from '../constants/layout';
 import { Field, PrimaryButton, SectionLabel, Segmented } from './ui';
-import { useDialog } from './Dialog';
 import { WeightChart } from './WeightChart';
 import { TrackVerdict, PhotoCompare } from './Transformation';
 import { planFlags, trackingTarget } from '../lib/tdee';
@@ -35,19 +35,25 @@ const CHIP_GAP = 6;
 export function WeightCheckin({ t, onClose, dragHandlers, sheetScrollProps }: Props) {
   const s = useMemo(() => makeStyles(t), [t]);
   const { entries, photos, last, logWeight, removeWeight, setPhoto } = useWeightLog();
-  const { confirm, choose } = useDialog();
+  // Quelle pesée attend sa confirmation (par sa DATE, qui est sa clé).
+  const [aConfirmer, setAConfirmer] = useState<string | null>(null);
+  // Le choix de la source de photo, posé DANS la feuille pour la même raison.
+  const [choixPhoto, setChoixPhoto] = useState(false);
 
-  // Un seul chemin, web ET natif. Cet écran avait déjà dû contourner `Alert` avec
-  // un `window.confirm` — la boîte grise du navigateur, hors charte, et une
-  // solution locale à un piège qui touchait dix appels (cf. components/Dialog.tsx).
-  const confirmDelete = async (d: string, w: number) => {
-    const ok = await confirm({
-      title: 'Supprimer cette pesée ?',
-      message: `${frDate(d)} · ${w} kg`,
-      confirmLabel: 'Supprimer',
-      destructive: true,
-    });
-    if (!ok) return;
+  // 🔴 LA CONFIRMATION VIT DANS LA FEUILLE, PLUS DANS UNE BOÎTE DE DIALOGUE
+  // (2026-08-14). Cet écran vit dans une feuille, donc dans une `Modal` ; la
+  // boîte de dialogue en monte une seconde, et iOS refuse de la présenter —
+  // silencieusement. Mesuré au simulateur sur le même mécanisme.
+  // ⚠️ Ce fichier avait DÉJÀ contourné un piège de la même famille une fois, avec
+  // un `window.confirm` (la boîte grise du navigateur, hors charte). C'est la
+  // deuxième fois que la confirmation d'une pesée tombe : le motif n'est pas la
+  // malchance, c'est qu'une modale ouverte depuis une modale ne tient nulle part.
+  // ⚠️ ET LE CHOIX DE LA PHOTO TOMBAIT PAREIL — trouvé en écrivant le garde-fou,
+  // pas en regardant l'écran : `choosePhoto` ouvrait un `choose()`, donc une
+  // troisième modale, depuis la même feuille. « Ajouter une photo de progression »
+  // ne répondait donc pas non plus sur iPhone. C'est le compteur qui l'a désigné.
+  const supprimerPesee = (d: string) => {
+    setAConfirmer(null);
     removeWeight(d);
     setSaved(null);
   };
@@ -135,18 +141,12 @@ export function WeightCheckin({ t, onClose, dragHandlers, sheetScrollProps }: Pr
     const uri = await pickProgressPhoto(src);
     if (uri) { setPendingPhoto(uri); setSaved(null); }
   };
-  const choosePhoto = async () => {
+  const choosePhoto = () => {
+    // Sans appareil photo, il n'y a pas de choix à poser : on va droit au but.
     if (!cameraAvailable) { pick('library'); return; }
-    const src = await choose<PhotoSource>({
-      title: 'Photo de progression',
-      message: 'Elle reste sur ton téléphone.',
-      options: [
-        { label: 'Prendre une photo', value: 'camera' },
-        { label: 'Choisir dans la galerie', value: 'library' },
-      ],
-    });
-    if (src) pick(src);
+    setChoixPhoto(true);
   };
+  const choisirSource = (src: PhotoSource) => { setChoixPhoto(false); pick(src); };
 
   // ⚠️ La largeur du graphe est celle de la FEUILLE, pas de l'écran : sur iPad
   // la feuille est bornée à SHEET_MAX_WIDTH, et lire l'écran (1024) faisait
@@ -258,6 +258,16 @@ export function WeightCheckin({ t, onClose, dragHandlers, sheetScrollProps }: Pr
             <Text style={s.photoBtnTxt}>Ajouter une photo de progression</Text>
           </Presse>
         )}
+        {choixPhoto && (
+          <View style={{ flexDirection: 'row', gap: Spacing.sm }}>
+            <Presse style={[s.photoBtn, { flex: 1 }]} onPress={() => choisirSource('camera')} activeOpacity={OPACITE_PRESSION}>
+              <Text style={s.photoBtnTxt}>Prendre une photo</Text>
+            </Presse>
+            <Presse style={[s.photoBtn, { flex: 1 }]} onPress={() => choisirSource('library')} activeOpacity={OPACITE_PRESSION}>
+              <Text style={s.photoBtnTxt}>Ma galerie</Text>
+            </Presse>
+          </View>
+        )}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm }}>
           <LocalIcon color={t.textTertiary} size={Icone.petite} />
           <Text style={[s.photoHint, { flex: 1 }]}>Tes photos restent sur ton téléphone, jamais envoyées.</Text>
@@ -330,10 +340,19 @@ export function WeightCheckin({ t, onClose, dragHandlers, sheetScrollProps }: Pr
                       <Text style={[s.histD, { color: d == null ? t.textTertiary : d <= 0 ? t.success : t.warning }]}>
                         {d == null ? '—' : `${d > 0 ? '+' : ''}${d}`}
                       </Text>
-                      <Presse onPress={() => confirmDelete(e.date, e.weight_kg)} hitSlop={8} style={s.histDel}>
+                      <Presse onPress={() => setAConfirmer(e.date)} hitSlop={8} style={s.histDel}>
                         <Ionicons name="close" size={Icone.petite} color={t.textQuaternary} />
                       </Presse>
                     </View>
+                    {aConfirmer === e.date && (
+                      <ConfirmationEnLigne
+                        t={t}
+                        question={`Supprimer cette pesée ? ${frDate(e.date)} · ${e.weight_kg} kg. Tes cibles se recalculent sur les pesées restantes.`}
+                        confirmLabel="Supprimer"
+                        onCancel={() => setAConfirmer(null)}
+                        onConfirm={() => supprimerPesee(e.date)}
+                      />
+                    )}
                     {e.note ? <Text style={s.histNote}>{e.note}</Text> : null}
                     {photos[e.date] ? (
                       <Image source={{ uri: photos[e.date] }} style={s.histPhoto} />
