@@ -389,3 +389,67 @@ export function pickReminderCopy(time: ReminderTime, index: number): ReminderCop
 export function pickWeighInCopy(index: number): ReminderCopy {
   return WEIGH_IN_MESSAGES[rang(index, WEIGH_IN_MESSAGES.length)];
 }
+
+// ── Le rappel quotidien est une SÉRIE DATÉE, plus un déclencheur répétitif ────
+//
+// 🔴 CE CHANGEMENT RENVERSE UN ARBITRAGE, et il faut savoir lequel (2026-08-12,
+// décision fondateur, sur un signalement de testeur : « je reçois la même longue
+// citation de Marc Aurèle tous les jours »).
+//
+// Avant : UN déclencheur `DAILY`, qui se rejoue tout seul indéfiniment. Son
+// contenu est figé à la PROGRAMMATION — le système ne rappelle jamais l'app pour
+// lui demander quoi écrire. Le texte ne tournait donc que pour qui OUVRE l'app,
+// puisque seul le ré-armement au démarrage le renouvelle. Qui décroche recevait
+// la même phrase, mot pour mot, pendant des semaines. C'est-à-dire exactement la
+// personne que le rappel existe pour ramener.
+//
+// L'alternative avait été écartée en son temps au motif que « un rappel qui lâche
+// vaut moins qu'un message qui se répète ». Le signalement tranche autrement : une
+// notification identique tous les matins n'est pas un rappel, c'est du bruit — et
+// le bruit se termine par les notifications coupées, ce qui est pire que
+// l'extinction qu'on cherchait à éviter.
+//
+// ⚠️ CE QUE ÇA COÛTE, ET IL FAUT L'ASSUMER : la série a une FIN. Sans ouverture
+// pendant `RAPPELS_A_L_AVANCE` jours, le rappel s'éteint pour de bon. Le
+// ré-armement au démarrage (`loadReminder`, layout racine) la remet à niveau à
+// chaque lancement, donc le compteur ne descend que chez quelqu'un de totalement
+// silencieux.
+//
+// 🔴 LE NOMBRE VIENT D'UN BUDGET, PAS D'UNE INTUITION : **iOS ne garde que 64
+// notifications en attente par app**, les plus lointaines sont jetées en silence.
+// La pesée en réserve déjà jusqu'à 6 (`WEIGH_IN_AHEAD`). 30 laisse donc une marge
+// large, couvre un mois complet de silence, et reste sous le plafond même si la
+// pesée passait à une série plus longue. Monter à 60 tiendrait tout juste
+// aujourd'hui et casserait au premier rappel ajouté — sans erreur, en perdant les
+// dernières.
+export const RAPPELS_A_L_AVANCE = 30;
+
+/** Une notification datée de la série : quand elle tombe, et ce qu'elle dit. */
+export interface RappelPrevu extends ReminderCopy { date: Date }
+
+/**
+ * La série des prochains rappels : `jours` notifications datées, une par jour, à
+ * l'heure choisie, chacune portant DÉJÀ le texte de son jour.
+ *
+ * ⚠️ Chaque date est construite en heure LOCALE par `setDate(+1)`, jamais par un
+ * ajout de 86 400 000 ms : au changement d'heure, l'ajout en millisecondes
+ * décalerait le rappel d'une heure pour le reste de la série. On veut la même
+ * heure au cadran, pas la même durée écoulée.
+ */
+export function serieQuotidienne(
+  time: ReminderTime,
+  now: Date = new Date(),
+  jours: number = RAPPELS_A_L_AVANCE,
+): RappelPrevu[] {
+  const premiere = nextReminderAt(time, now);
+  const out: RappelPrevu[] = [];
+  for (let i = 0; i < Math.max(0, jours); i++) {
+    const date = new Date(premiere);
+    date.setDate(date.getDate() + i);
+    // L'index est pris sur le jour où la notification TOMBE — c'est ce qui fait
+    // que le texte du 3ᵉ jour est bien celui du 3ᵉ jour, et non trois fois celui
+    // du jour où on a armé la série.
+    out.push({ date, ...pickReminderCopy(time, dayIndex(date)) });
+  }
+  return out;
+}

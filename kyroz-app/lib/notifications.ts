@@ -4,8 +4,8 @@ import * as Notifications from 'expo-notifications';
 import { WeighInFrequency } from './types';
 import { WEIGH_IN_AHEAD, weighInSchedule } from './weight';
 import {
-  NotificationIntent, ReminderTime, dayIndex, intentFromData, nextReminderAt,
-  pickReminderCopy, pickWeighInCopy,
+  NotificationIntent, RAPPELS_A_L_AVANCE, ReminderTime, dayIndex, intentFromData,
+  pickWeighInCopy, serieQuotidienne,
 } from './reminder';
 
 // ── Rappels locaux (spec §5 — seules notifs autorisées) ──────────────────────
@@ -30,6 +30,16 @@ const WEIGH_ID = 'kyroz-weigh-reminder';
 // un ancien one-shot vivre à côté de la nouvelle série — donc un doublon le jour
 // de la première échéance, chez tout le parc existant.
 const WEIGH_IDS = [WEIGH_ID, ...Array.from({ length: WEIGH_IN_AHEAD }, (_, i) => `${WEIGH_ID}-${i}`)];
+
+// 🔴 MÊME PIÈGE, ET IL EST PIRE ICI (2026-08-12). Le rappel quotidien est passé
+// d'UN déclencheur répétitif à une SÉRIE datée. `DAILY_ID` nu est l'identifiant
+// que portent tous les appareils déjà armés — et sa notification est `DAILY`,
+// donc elle se rejoue TOUTE SEULE, indéfiniment, sans que l'app y soit pour rien.
+// L'oublier ne ferait pas un doublon d'un jour : il laisserait l'ancienne
+// citation figée tomber tous les matins À CÔTÉ de la nouvelle série, pour
+// toujours, chez tout le parc existant. C'est exactement le défaut qu'on corrige,
+// livré une deuxième fois par la porte de derrière.
+const DAILY_IDS = [DAILY_ID, ...Array.from({ length: RAPPELS_A_L_AVANCE }, (_, i) => `${DAILY_ID}-${i}`)];
 
 // Les notifications locales ne sont pas supportées sur le web par expo-notifications.
 export const remindersSupported = Platform.OS !== 'web';
@@ -62,25 +72,27 @@ async function ensurePermission(): Promise<boolean> {
  * `false` si la permission est refusée ou la plateforme non supportée (→
  * l'appelant retombe sur « aucun rappel »).
  *
- * ⚠️ **Le message est figé à la programmation, pas à l'affichage.** Un
- * déclencheur `DAILY` répète le MÊME contenu jusqu'au prochain ré-armement — le
- * système ne rappelle pas l'app pour lui demander quoi écrire. La rotation des
- * messages tient donc au ré-armement de `rearmReminder`, appelé au démarrage
- * depuis le layout racine : le texte change d'un jour sur l'autre pour qui ouvre
- * l'app, et reste le même pour qui ne l'ouvre pas.
- * *(Cette phrase disait « à ce que `useReminder` ré-arme à chaque démarrage ».
- * C'était FAUX : ce hook n'est monté que par l'onglet Profil — cf. le préambule
- * de `rearmReminder`.)*
+ * ⚠️ **Le message est figé à la programmation, pas à l'affichage** — le système
+ * ne rappelle jamais l'app pour lui demander quoi écrire. C'est la contrainte de
+ * fond, et elle n'a pas changé. Ce qui a changé, c'est ce qu'on en fait : au lieu
+ * d'UN déclencheur répétitif dont le texte ne tournait que pour qui ouvre l'app,
+ * on programme une SÉRIE datée (`reminder.ts::serieQuotidienne`) où chaque jour
+ * porte déjà son texte. La rotation ne dépend donc plus d'une ouverture.
+ * *(Décision fondateur du 2026-08-12, sur signalement d'un testeur qui recevait
+ * la même citation tous les matins. L'alternative « un rappel qui lâche vaut
+ * moins qu'un message qui se répète » est renversée : une notification identique
+ * chaque matin n'est pas un rappel, c'est du bruit — et le bruit finit en
+ * notifications coupées.)*
  *
- * On a écarté l'alternative — programmer quinze notifications datées d'avance,
- * une par jour, chacune avec son texte : elle ferait vraiment tourner le message
- * sans l'app, mais le rappel S'ÉTEINDRAIT au bout de quinze jours sans
- * ouverture, c'est-à-dire exactement au moment où il sert le plus. Un rappel qui
- * lâche vaut moins qu'un message qui se répète.
+ * ⚠️ Le ré-armement au démarrage (`rearmReminder`) reste indispensable : c'est
+ * lui qui REMPLIT la série au fur et à mesure. Sans ouverture pendant
+ * `RAPPELS_A_L_AVANCE` jours, le rappel s'éteint — coût assumé, chiffré là-bas.
  */
 export async function applyReminder(time: ReminderTime | null, now: Date = new Date()): Promise<boolean> {
   if (!remindersSupported) return false;
-  try { await Notifications.cancelScheduledNotificationAsync(DAILY_ID); } catch {}
+  for (const id of DAILY_IDS) {
+    try { await Notifications.cancelScheduledNotificationAsync(id); } catch {}
+  }
   if (!time) return true;
 
   const granted = await ensurePermission();
@@ -91,19 +103,26 @@ export async function applyReminder(time: ReminderTime | null, now: Date = new D
 }
 
 /**
- * Ré-arme le rappel quotidien avec le texte DU JOUR, au démarrage de l'app.
+ * REMPLIT la série des rappels au démarrage de l'app.
  *
  * 🔴 Pourquoi cette fonction existe (défaut signalé par le fondateur le
  * 2026-08-09 : « la notification que j'ai reçue ce midi n'était pas celle qu'on
- * avait changée »). Le contenu est figé à la programmation — donc le seul chemin
- * qui fasse tourner le message, ET le seul qui fasse arriver un texte réécrit
- * jusqu'à l'écran de verrouillage, c'est le ré-armement. Or il ne vivait que dans
- * l'effet de montage de `useReminder`, hook monté par le SEUL onglet Profil. Qui
- * ouvre l'app sur le Plan et n'entre jamais dans ses réglages recevait donc,
- * indéfiniment, le message programmé des mois plus tôt — y compris après une
- * mise à jour OTA parfaitement installée.
+ * avait changée »). Le contenu est figé à la programmation, donc le seul chemin
+ * qui fasse arriver un texte RÉÉCRIT jusqu'à l'écran de verrouillage, c'est le
+ * ré-armement. Or il ne vivait que dans l'effet de montage de `useReminder`, hook
+ * monté par le SEUL onglet Profil. Qui ouvre l'app sur le Plan et n'entre jamais
+ * dans ses réglages recevait donc, indéfiniment, le message programmé des mois
+ * plus tôt — y compris après une mise à jour OTA parfaitement installée.
  * *(Le rappel de PESÉE, lui, n'a jamais eu le défaut : `applyWeighInReminder` est
  * appelé par `useWeightLog`, monté par l'écran Plan, donc à chaque démarrage.)*
+ *
+ * ⚠️ **SON RÔLE A CHANGÉ LE 2026-08-12, il n'a pas disparu.** Il ne sert plus à
+ * faire TOURNER le texte — la série datée le fait toute seule, sans ouverture.
+ * Il sert à la RECHARGER : à chaque lancement, la fenêtre de 30 jours repart de
+ * zéro. C'est ce qui empêche le rappel de s'éteindre chez qui ouvre l'app ne
+ * serait-ce qu'une fois par mois. Le supprimer en croyant nettoyer du code devenu
+ * inutile ferait expirer le rappel de tout le monde, silencieusement, un mois
+ * plus tard.
  *
  * ⚠️ **Ne demande JAMAIS la permission** — même règle que le rappel de pesée. Un
  * ré-armement se produit à chaque lancement : y brancher `requestPermissions`
@@ -116,26 +135,29 @@ export async function rearmReminder(time: ReminderTime | null, now: Date = new D
   const perm = await Notifications.getPermissionsAsync();
   if (!perm.granted) return;
 
-  try { await Notifications.cancelScheduledNotificationAsync(DAILY_ID); } catch {}
+  for (const id of DAILY_IDS) {
+    try { await Notifications.cancelScheduledNotificationAsync(id); } catch {}
+  }
   await programmerQuotidien(time, now);
 }
 
 /**
- * Le déclencheur quotidien et son contenu. Index pris sur le jour où la notif
- * TOMBERA (demain si l'heure est passée), pour que le message corresponde à ce
- * jour-là. Partagé par les deux chemins : ils ne diffèrent que par la permission.
+ * La série des prochains rappels — une notification DATÉE par jour, chacune avec
+ * le texte de SON jour. Partagée par les deux chemins : ils ne diffèrent que par
+ * la permission.
+ *
+ * ⚠️ Ce qui se décide (combien de jours, quelles dates, quel texte) vit dans
+ * `reminder.ts::serieQuotidienne`, qui est PUR donc testé. Ici on ne fait que
+ * traduire en appels système — même partage que pour la pesée.
  */
 async function programmerQuotidien(time: ReminderTime, now: Date): Promise<void> {
-  const copy = pickReminderCopy(time, dayIndex(nextReminderAt(time, now)));
-  await Notifications.scheduleNotificationAsync({
-    identifier: DAILY_ID,
-    content: { title: copy.title, body: copy.body, data: { kind: 'daily' } },
-    trigger: {
-      type: Notifications.SchedulableTriggerInputTypes.DAILY,
-      hour: time.hour,
-      minute: time.minute,
-    },
-  });
+  for (const [i, rappel] of serieQuotidienne(time, now).entries()) {
+    await Notifications.scheduleNotificationAsync({
+      identifier: `${DAILY_ID}-${i}`,
+      content: { title: rappel.title, body: rappel.body, data: { kind: 'daily' } },
+      trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: rappel.date },
+    });
+  }
 }
 
 /**
