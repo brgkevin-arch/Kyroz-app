@@ -51,15 +51,48 @@ describe('feuilles modales — les deux pannes qui ne se voyaient pas', () => {
       // Et le démontage doit rester CONDITIONNEL à la fermeture : le retirer tout à
       // fait démonterait une feuille rouverte pendant sa propre sortie.
       //
-      // ⚠️ L'expression ne fige plus la LIGNE ENTIÈRE (2026-08-14). Elle exigeait
-      // `if (!visibleRef.current) setRender(false)` au caractère près, donc elle a
-      // rougi le jour où `Sheet` a ajouté `onClosed()` DANS la même garde — un
-      // ajout qui respecte pourtant exactement ce que ce test protège. Un garde-fou
-      // qui interdit d'ajouter quoi que ce soit à côté de ce qu'il surveille finit
-      // par se faire contourner plutôt que corriger. On tient l'INVARIANT — la
-      // garde lit `visibleRef`, pas `visible` — et rien de plus.
-      expect(src, `${f} : le démontage ne relit pas l'état d'ouverture`)
-        .toMatch(/if\s*\(\s*!visibleRef\.current\s*\)\s*\{?\s*setRender\(false\)/);
+      // ⚠️ L'expression ne fige NI la ligne, NI sa forme — et elle a dû être
+      // relâchée DEUX fois pour la même raison. D'abord le 2026-08-14 quand
+      // `onClosed()` est entré dans la garde ; puis le même jour, quand le
+      // démontage est devenu une fonction (`demonter`) appelée par le rappel
+      // d'animation ET par un filet de sécurité. Les deux ajouts respectaient
+      // pourtant exactement ce que ce test protège.
+      // ➡️ Un garde-fou qui interdit d'ajouter quoi que ce soit à côté de ce
+      // qu'il surveille finit par se faire contourner plutôt que corriger. On
+      // tient l'INVARIANT et rien d'autre : le démontage relit `visibleRef`
+      // (la valeur du MOMENT), jamais `visible` (celle capturée à la création).
+      const bloc = src.slice(src.indexOf('const demonter'), src.indexOf('const demonter') + 300);
+      expect(bloc, `${f} : \`demonter\` est introuvable`).toContain('setRender(false)');
+      expect(bloc, `${f} : le démontage ne relit pas l'état d'ouverture`)
+        .toContain('visibleRef.current');
+      // Et il est IDEMPOTENT : deux sources l'appellent désormais (le rappel
+      // d'animation et le filet). Sans verrou, `onClosed` partirait deux fois —
+      // donc « Supprimer mon compte » ouvrirait sa confirmation en double.
+      expect(bloc, `${f} : le démontage n'est plus idempotent`).toMatch(/if\s*\(\s*fait\b/);
+    }
+  });
+
+  it('E45 — le démontage a un FILET, il ne dépend pas que du rappel d’animation', () => {
+    // 🔴 E18 avait retiré la condition `finished` — « un état qui doit converger ne
+    // se confie pas à un événement qui peut ne pas arriver ». Mais le rappel de
+    // `Animated.parallel` EST encore un événement. S'il n'arrive jamais, la `Modal`
+    // reste présentée, transparente, plein écran : elle avale TOUS les taps (barre
+    // d'onglets comprise), et son fond appelle un `onClose` qui remet à `false` un
+    // état déjà `false` — React ne re-rend pas. **L'app est figée jusqu'à ce qu'on
+    // la tue.** Deux signalements du fondateur le 2026-08-14, tous deux en FERMANT
+    // une feuille, aucun rejouable (cf. AGENTS.md E45).
+    //
+    // ⚠️ Ce filet n'est PAS un correctif : la cause reste inconnue. Il transforme un
+    // gel définitif en accroc d'une seconde et demie. Le compter ici parce qu'un
+    // garde-fou que rien n'exige se fait « simplifier » à la première relecture —
+    // et celui-ci a l'air inutile, puisqu'il ne sert dans AUCUN chemin sain.
+    for (const f of FEUILLES) {
+      const src = lire(f);
+      expect(src, `${f} : le filet de démontage a disparu`)
+        .toMatch(/setTimeout\(demonter,\s*FILET_DEMONTAGE_MS\)/);
+      // Et il se nettoie : un minuteur laissé courir rouvrirait la question à
+      // chaque cycle d'ouverture/fermeture.
+      expect(src, `${f} : le filet n'est pas nettoyé`).toMatch(/clearTimeout\(filet\)/);
     }
   });
 

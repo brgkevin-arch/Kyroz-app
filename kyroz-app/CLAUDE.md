@@ -2393,6 +2393,17 @@ téléphone.
   déjà pour le thème et l'accent ; l'hydratation, le prénom et l'heure du rappel l'ont
   rejoint. ⚠️ Une valeur oubliée dans ce chargement repart sur son défaut à chaque
   démarrage, et ça ne se voit nulle part.
+  🔴 **ET LA RÈGLE NE S'EST PAS APPLIQUÉE TOUTE SEULE À SES VOISINS — quatrième
+  cas, le 2026-08-14.** `useWeightLog` gardait ses pesées dans un `useState` de hook,
+  avec TROIS instances (Profil, Plan, `WeightCheckin`). Enregistrer une pesée dans la
+  feuille affichait la courbe DEDANS pendant que la carte du Profil, derrière,
+  continuait d'annoncer « encore une pesée et ta courbe apparaît ici ».
+  ⚠️ **Il ne se voyait que sur un BACKFILL** : une pesée du JOUR modifie
+  `profile.weight_kg`, donc l'effet du hook se redéclenchait par la bande et tout
+  paraissait sain. Une pesée d'un jour passé ne touche pas le profil, à dessein —
+  et là plus rien ne rafraîchissait rien. Encore un défaut dormant que le chemin
+  courant masquait. ➡️ Compté depuis par `lib/__tests__/diffusion.test.ts`.
+
   🔴 **ET CE N'EST PAS QUE LA VALEUR — UN EFFET DE BORD ACCROCHÉ À UN ÉCRAN TOMBE
   PAREIL, EN PIRE** (2026-08-09, E24, signalé par le fondateur : « la notification de
   ce midi n'était pas celle qu'on avait changée »). Le contenu d'une notification

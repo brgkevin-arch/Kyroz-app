@@ -3756,6 +3756,55 @@ produit en suspens — il ne reste qu'à coder.
 > branches insèrent en tête de cette section, donc git ne sait pas dans quel ordre. La
 > résolution est de garder les DEUX blocs, en ordre décroissant — jamais d'en choisir un.
 
+- 🤖 **E48 · Le Profil : la série s'efface, le poids prend la place (2026-08-14)**
+
+  Quatre retouches dictées par le fondateur, plus un défaut trouvé en les faisant.
+
+  1. **Le « ? » du tuto est parti de l'en-tête.** ⚠️ La porte de sortie ne disparaît
+     pas avec lui : « Revoir les tutos » vit dans la roue dentée, sur ce même écran.
+     CLAUDE.md §8 exige qu'un écran à tour garde un recours — il en garde un, il
+     change d'endroit.
+  2. **La série devient la pastille discrète du Plan** (« 1 j / de série »), à la
+     place du « ? ». 🔴 **Conséquence à connaître : le chaînon de 7 jours n'existe
+     plus NULLE PART dans l'app** — il avait quitté le Plan le 2026-08-05, il quitte
+     le Profil aujourd'hui. `components/StreakProgress.tsx` est supprimé (plus aucun
+     lecteur). Le North Star reste MESURÉ et le compteur reste affiché ; c'est sa
+     visualisation en sept segments qui part. ➡️ `chainProgress` et `streakMessage`
+     survivent dans `lib/streak.ts`, testés : le jour où le chaînon revient, il n'y a
+     rien à réécrire.
+  3. **La carte du poids est refondue et devient le sujet de l'écran** : le chiffre
+     seul sur sa ligne, l'écart dessous, la courbe, et un VRAI bouton pleine largeur
+     à l'accent. 🔴 **Au passage, un défaut de mise en page qui datait :
+     `width={260}` ÉCRIT EN DUR** — donc un blanc à droite sur tout iPhone récent et
+     une courbe minuscule sur iPad. Elle se mesure désormais
+     (`useWindowDimensions`, pas `Dimensions.get` : §11).
+  4. **Les deux paragraphes entre les macros et le TDEE sont retirés** (modulation
+     par volume, plancher de sécurité). ⚠️ **Ce qu'on a troqué** : le second
+     répondait à « pourquoi ma cible ne bouge plus quand je change mes réglages ? »,
+     et son absence fait lire une cible bornée comme un moteur en panne — c'est le
+     motif écrit dans CLAUDE.md §6 le jour où il a été ajouté. Les deux survivent en
+     entier dans **Méthodologie & sources**.
+
+  🔴 **LE DÉFAUT TROUVÉ EN CHEMIN — les pesées ne se DIFFUSAIENT pas.**
+  `useWeightLog` gardait ses points dans l'état LOCAL du hook, et ce hook a TROIS
+  instances (Profil, Plan, `WeightCheckin`). Vu à l'écran : on enregistre une pesée
+  du 12 août dans la feuille, **la courbe s'affiche dedans**, et la carte du Profil
+  continue d'annoncer « encore une pesée et ta courbe apparaît ici ». Indéfiniment.
+  ⚠️ **Ce qui l'a fait vivre : le défaut ne se voit que sur un BACKFILL.** Une pesée
+  du JOUR modifie `profile.weight_kg`, donc l'effet du hook se redéclenchait par la
+  bande et tout paraissait sain. Une pesée d'un jour passé ne touche pas le profil —
+  à dessein — et là plus rien ne rafraîchissait rien. Encore un défaut dormant que le
+  chemin courant masquait.
+  ➡️ Store hors React + `useSyncExternalStore`, le patron écrit dans CLAUDE.md §11
+  **depuis le 2026-08-06** et que le thème, l'accent, l'hydratation, le prénom et
+  l'heure de rappel suivaient déjà. L'API du hook ne change pas d'un caractère —
+  c'est ce qui permet de corriger les trois écrans sans en toucher aucun.
+  ⚠️ *Une règle écrite ne s'applique pas toute seule à ses voisins* : celle-ci était
+  au bon endroit, illustrée par trois cas, et un quatrième vivait à côté sans
+  personne pour le voir. ➡️ Garde-fou : `lib/__tests__/diffusion.test.ts`.
+
+  ✅ Vérifié au simulateur, les cinq points, capture à l'appui.
+
 - 🤖 **E47 · « Cuisiné » depuis le Frigo cuisinait ce qu'on n'avait pas choisi (2026-08-14)**
 
   Signalé par le fondateur avec une **capture vidéo** — *« voici ce que ça fait quand
@@ -3910,6 +3959,28 @@ produit en suspens — il ne reste qu'à coder.
     mais le rappel de `Animated.parallel` part AUSSI quand l'animation est interrompue
     (c'est le correctif E18), donc le trou reste à démontrer.
   ➡️ Livrer l'un des deux ferait passer une hypothèse pour un correctif.
+
+  🔴 **SECOND SIGNALEMENT LE MÊME JOUR — et il donne la signature commune.**
+  *« j'ai l'écran qui a freeze quand j'ai fermé la feuille du suivi du poids »*.
+  Non reproduit non plus : six cycles ouverture/fermeture, dont un glissement
+  interrompu à mi-course, tous sains.
+  ➡️ **Le point commun des deux est FERMER UNE FEUILLE** (l'écran « Rien à acheter »
+  monte lui aussi une `Sheet`, celle de l'historique). Ça ne prouve pas la cause,
+  mais ça désigne l'état : une `Modal` de `Sheet` restée PRÉSENTÉE alors que sa
+  feuille est animée hors écran — transparente, plein écran, avalant tous les taps,
+  et dont le fond appelle un `onClose` qui remet à `false` un état déjà `false`
+  (donc React ne re-rend pas, donc rien ne peut plus la fermer).
+  ✅ **UN FILET A ÉTÉ POSÉ, ET CE N'EST PAS UN CORRECTIF.** `Sheet` et `ActionSheet`
+  démontent désormais au plus tard après `FILET_DEMONTAGE_MS` (1,5 s), sans attendre
+  le rappel d'animation. E18 avait retiré la condition `finished` au motif qu'« un
+  état qui doit converger ne se confie pas à un événement qui peut ne pas arriver » —
+  mais le rappel EST encore un événement, et le raisonnement n'avait pas été poussé
+  jusqu'au bout. Inerte dans tous les chemins sains ; dans le chemin pathologique, il
+  transforme un gel définitif en accroc d'une seconde et demie.
+  ⚠️ **La cause reste INCONNUE.** Ne pas lire ce filet comme une clôture : il rend le
+  symptôme survivable, il n'explique rien. Compté par `feuilles.test.ts` — un
+  garde-fou qui ne sert dans aucun chemin sain se fait « simplifier » à la première
+  relecture.
 
   **CE QU'IL FAUT FAIRE À LA PROCHAINE OCCURRENCE — et ça se joue en 5 secondes :**
   **glisser vers le bas au MILIEU de l'écran.** Si quelque chose descend, ou si l'app

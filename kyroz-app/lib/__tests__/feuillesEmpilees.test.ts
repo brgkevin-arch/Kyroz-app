@@ -261,7 +261,13 @@ describe('Enchaîner une feuille et une modale passe par onClosed', () => {
 
   it('`Sheet` prévient APRÈS l’animation, et seulement s’il reste fermé', () => {
     const src = l('components', 'Sheet.tsx');
-    expect(src).toMatch(/if\s*\(\s*!visibleRef\.current\s*\)\s*\{\s*setRender\(false\);\s*onClosedRef\.current/);
+    // ⚠️ L'INVARIANT, pas la forme : le démontage relit `visibleRef` (la valeur
+    // du moment) et c'est LUI qui prévient. Figer la ligne au caractère près a
+    // déjà rougi deux fois sur des ajouts parfaitement conformes.
+    const bloc = src.slice(src.indexOf('const demonter'), src.indexOf('const demonter') + 300);
+    expect(bloc).toContain('visibleRef.current');
+    expect(bloc).toContain('setRender(false)');
+    expect(bloc).toContain('onClosedRef.current');
     // Le rappel passe par une REF : l'effet ne dépend que de `visible`, donc il
     // figerait la version du premier rendu.
     expect(src).toContain('onClosedRef.current = onClosed');

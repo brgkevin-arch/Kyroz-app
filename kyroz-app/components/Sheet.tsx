@@ -6,7 +6,7 @@ import {
 import { useTheme, Radius, Spacing } from '../constants/theme';
 import { useLayout } from '../constants/layout';
 import {
-  RESSORT, DUREE, ressortRN, ressortReduit, dureeReduite,
+  RESSORT, DUREE, FILET_DEMONTAGE_MS, ressortRN, ressortReduit, dureeReduite,
   vitesseDepuisPan, caoutchouc, decisionFeuille,
 } from '../lib/motion';
 import { useReduceMotion, reduceMotionActif } from '../lib/reduceMotion';
@@ -141,6 +141,20 @@ export function Sheet({ visible, onClose, children, onClosed }: Props) {
     } else if (render) {
       const v = vitesseSortie.current;
       vitesseSortie.current = 0;
+      // ⚠️ UNE SEULE FOIS, quelle que soit la source. Le rappel d'animation et le
+      // filet ci-dessous appellent tous deux ceci : sans ce verrou, `onClosed`
+      // partirait DEUX fois — donc « Supprimer mon compte » ouvrirait sa
+      // confirmation en double.
+      // ⚠️ `visibleRef` et non `visible` : la feuille a pu être ROUVERTE pendant
+      // la sortie. On ne démonte — et on ne prévient — que si elle est toujours
+      // fermée à l'arrivée.
+      let fait = false;
+      const demonter = () => {
+        if (fait || visibleRef.current) return;
+        fait = true;
+        setRender(false);
+        onClosedRef.current?.();
+      };
       Animated.parallel([
         Animated.spring(ty, {
           toValue: screenH,
@@ -156,12 +170,14 @@ export function Sheet({ visible, onClose, children, onClosed }: Props) {
           easing: Easing.out(Easing.quad),
           useNativeDriver: true,
         }),
-      ]).start(() => {
-        // ⚠️ `visibleRef` et non `visible` : la feuille a pu être ROUVERTE
-        // pendant la sortie. On ne démonte — et on ne prévient — que si elle est
-        // toujours fermée à l'arrivée.
-        if (!visibleRef.current) { setRender(false); onClosedRef.current?.(); }
-      });
+      ]).start(demonter);
+      // 🔴 LE FILET. Le rappel ci-dessus est encore un ÉVÉNEMENT, et E18 a appris
+      // qu'un état qui doit converger ne s'y confie pas. S'il n'arrive jamais, la
+      // `Modal` reste présentée, transparente, et avale tous les taps — l'app est
+      // figée jusqu'à ce qu'on la tue (deux signalements le 2026-08-14, cf. E45).
+      // Inerte dans tous les chemins sains : `demonter` s'est déjà exécuté.
+      const filet = setTimeout(demonter, FILET_DEMONTAGE_MS);
+      return () => clearTimeout(filet);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible]);

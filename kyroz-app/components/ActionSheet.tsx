@@ -5,7 +5,7 @@ import {
 import { useTheme, Spacing, Fond } from '../constants/theme';
 import { useLayout } from '../constants/layout';
 import {
-  RESSORT, DUREE, ressortRN, ressortReduit, dureeReduite,
+  RESSORT, DUREE, FILET_DEMONTAGE_MS, ressortRN, ressortReduit, dureeReduite,
   vitesseDepuisPan, caoutchouc, decisionFeuille,
 } from '../lib/motion';
 import { useReduceMotion, reduceMotionActif } from '../lib/reduceMotion';
@@ -96,6 +96,12 @@ export function ActionSheet({ visible, onClose, children }: Props) {
     } else if (render) {
       const v = vitesseSortie.current;
       vitesseSortie.current = 0;
+      let fait = false;
+      const demonter = () => {
+        if (fait || visibleRef.current) return;
+        fait = true;
+        setRender(false);
+      };
       Animated.parallel([
         Animated.spring(ty, {
           toValue: 700,
@@ -109,7 +115,10 @@ export function ActionSheet({ visible, onClose, children }: Props) {
           easing: Easing.out(Easing.quad),
           useNativeDriver: true,
         }),
-      ]).start(() => { if (!visibleRef.current) setRender(false); });
+      ]).start(demonter);
+      // Même filet que dans `Sheet` : le rappel est un événement, pas une garantie.
+      const filet = setTimeout(demonter, FILET_DEMONTAGE_MS);
+      return () => clearTimeout(filet);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible]);
