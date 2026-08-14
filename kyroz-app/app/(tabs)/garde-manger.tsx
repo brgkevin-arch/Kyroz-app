@@ -56,7 +56,10 @@ export default function GardeMangerScreen() {
   // Cibles de la visite guidée.
   const ajouterRef = useTourTarget('frigo-ajouter');
   const compteurRef = useTourTarget('frigo-compteur');
-  const vueRef = useTourTarget('frigo-vue-cuisiner');
+  // ⚠️ `frigo-vue-cuisiner` est parti avec sa bulle le 2026-08-14 (décision
+  // fondateur, cf. `lib/tours.ts`). Une cible enregistrée que plus aucune étape ne
+  // vise n'est pas inoffensive : elle se relit comme une bulle perdue en route —
+  // exactement le « tour amputé » que `GuidedTour` avertit de ne pas confondre.
   // ⚠️ Sur un frigo VIDE, le compteur ne dit rien et le sélecteur de vue n'est
   // même pas monté : le tour se réduirait au bouton « + ». On attend qu'il y ait
   // un stock — l'écran vide, lui, s'explique déjà tout seul en toutes lettres.
@@ -170,7 +173,7 @@ export default function GardeMangerScreen() {
         </View>
 
         {visible.length > 0 && (
-          <View ref={vueRef} style={s.segment}>
+          <View style={s.segment}>
             <Segmented
               t={t}
               options={[{ label: 'Mon stock', value: 'stock' }, { label: 'À cuisiner', value: 'cook' }]}

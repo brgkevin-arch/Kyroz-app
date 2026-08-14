@@ -1836,10 +1836,14 @@ et l'écran ne sert qu'à juger le rendu (opacité forcée à 1). Procédure :
 ### La visite guidée dit ce que le code FAIT (2026-08-08)
 
 Un tour par onglet, déclenché **à la première visite de CET onglet** — jamais tous au
-démarrage. 21 bulles au total (plan 6 · profil 6 · recettes 3 · courses 3 · frigo 3),
+démarrage. 20 bulles au total (plan 6 · profil 6 · recettes 3 · courses 3 · frigo 2),
 mais une personne n'en voit que 6 le jour où elle ouvre le Plan. Servies d'un bloc, ce
-seraient 21 **interruptions modales** dans la même session : chaque bulle est une
+seraient 20 **interruptions modales** dans la même session : chaque bulle est une
 `Modal` dont les panneaux avalent les taps, pas une infobulle qu'on ignore.
+⚠️ **CE DÉCOMPTE EST VERROUILLÉ CONTRE LE CODE** (`visiteGuidee.test.ts`) et il ne se
+recopie pas : il a valu 21 jusqu'au 2026-08-14, où la 3ᵉ bulle du Frigo a été retirée.
+Un inventaire écrit à trois endroits finit par se confirmer tout seul (CLAUDE.md §8,
+le compteur d'émojis) — celui-ci rougit le jour où une bulle part ou arrive.
 
 **Le contenu vit dans `lib/tours.ts`, pas dans les écrans.** Fichier sans aucun import,
 donc testable, là où `components/GuidedTour.tsx` tire react-native et ne l'est pas.

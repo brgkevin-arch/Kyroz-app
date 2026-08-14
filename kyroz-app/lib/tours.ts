@@ -269,23 +269,26 @@ export function frigoTour(): TourStep[] {
     {
       // Prouvé par : lib/pantry.ts::recipeCoverage — une recette est « prête »
       // quand aucun ingrédient ne manque, les condiments étant supposés présents.
-      // Et plan.tsx::cookMeal déduit du stock, donc ce compte baisse tout seul.
       targetId: 'frigo-compteur',
       // Forme : garde-manger.tsx — bloc sans fond.
       forme: 'carte',
       title: 'Recettes prêtes',
-      text: "Le second chiffre compte les recettes dont il ne te manque aucun ingrédient, sel et épices mis à part. Il baisse aussi tout seul quand tu marques un repas cuisiné dans ton plan.",
+      // ⚠️ LA SECONDE PHRASE A ÉTÉ RETIRÉE le 2026-08-14 (décision fondateur). Elle
+      // disait « Il baisse aussi tout seul quand tu marques un repas cuisiné dans ton
+      // plan » — vrai (`plan.tsx::cookMeal` déduit du stock), mais c'est une
+      // conséquence de deuxième ordre expliquée avant que la personne ait vu le
+      // chiffre bouger une seule fois. La bulle définit ce que compte le nombre ;
+      // c'est tout ce qu'on lui demande.
+      text: "Le second chiffre compte les recettes dont il ne te manque aucun ingrédient, sel et épices mis à part.",
     },
-    {
-      // Prouvé par : garde-manger.tsx — la vue « À cuisiner » parcourt le
-      // catalogue et sépare `ready` (rien ne manque) de `almost` (un ou deux
-      // ingrédients manquants).
-      targetId: 'frigo-vue-cuisiner',
-      // Forme : garde-manger.tsx::segment — une rangee de puces.
-      forme: 'pastille',
-      title: 'La vue À cuisiner',
-      text: "Bascule ici : Kyroz passe le catalogue en revue et te liste ces recettes prêtes. Juste en dessous, celles où il ne te manque qu'un ou deux ingrédients.",
-    },
+    // 🔴 LA TROISIÈME BULLE A ÉTÉ SUPPRIMÉE le 2026-08-14 (décision fondateur) —
+    // « La vue À cuisiner », qui surlignait le sélecteur « Mon stock / À cuisiner ».
+    // Elle décrivait un onglet dont le libellé dit déjà ce qu'il fait, et elle
+    // arrivait juste après une bulle qui venait d'expliquer le même comptage : deux
+    // bulles pour une seule idée. Le tour du Frigo passe de 3 à 2 étapes.
+    // ⚠️ La cible `frigo-vue-cuisiner` est partie avec elle dans `garde-manger.tsx` :
+    // une cible enregistrée que plus aucune étape ne vise est une ref qui ne sert
+    // rien, et elle donnerait à croire qu'une bulle a été perdue en route.
   ];
 }
 
