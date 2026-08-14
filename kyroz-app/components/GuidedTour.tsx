@@ -6,7 +6,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme, Radius, ThemePalette, Type, Spacing, CIBLE_TACTILE_MIN, Trait, Icone, OPACITE_PRESSION } from '../constants/theme';
-import { TourStep, TOURS } from '../lib/tours';
+import { TourStep, TOURS, FormeCible } from '../lib/tours';
 
 // ── Visite guidée (coachmark / spotlight) ────────────────────────────────────
 // Overlay sombre qui « découpe » un trou autour d'un élément cible et affiche
@@ -167,6 +167,21 @@ export function TourButton({ onPress }: { onPress: () => void }) {
 const PAD = 6;             // marge du « trou » autour de la cible
 const BUBBLE_MAX_W = 360;
 const DIM = 'rgba(0,0,0,0.72)';
+
+/**
+ * La forme déclarée par l'étape, traduite en rayon de la DA. C'est ICI que vivent
+ * les pixels : `lib/tours.ts` reste pur (il ne peut pas importer `theme.ts`, qui
+ * tire react-native), donc il nomme la forme et le moteur la dessine.
+ *
+ * ⚠️ `Record<FormeCible, …>` n'est pas décoratif : ajouter une forme dans
+ * `tours.ts` sans lui donner de rayon ici fait échouer `tsc`. Sans ça, la forme
+ * nouvelle retomberait silencieusement sur `undefined`, donc sur un angle droit.
+ */
+const RAYON_CIBLE: Record<FormeCible, number> = {
+  carte: Radius.card,
+  bouton: Radius.button,
+  pastille: Radius.pill,
+};
 
 interface ActiveTour {
   tourId: string;
@@ -348,6 +363,15 @@ function Spotlight({
   const cw = Math.min(rect.width + PAD * 2, SCREEN_W - cx);
   const ch = Math.min(rect.height + PAD * 2, SCREEN_H - cy);
 
+  // Épaisseur du cadre sombre : de quoi couvrir l'écran depuis n'importe quelle
+  // position du trou. Le trou étant toujours dans l'écran, la plus grande de ses
+  // deux dimensions suffit des quatre côtés.
+  const DEBORD = Math.max(SCREEN_W, SCREEN_H);
+
+  // Le rayon de l'anneau ET du trou : une seule valeur, sinon les deux formes
+  // divergent — c'est exactement le défaut corrigé le 2026-08-14.
+  const rayonAnneau = RAYON_CIBLE[step.forme ?? 'carte'] + PAD;
+
   // Bulle : sous la cible si la place le permet, sinon au-dessus.
   const bubbleW = Math.min(SCREEN_W - 32, BUBBLE_MAX_W);
   const centerX = rect.x + rect.width / 2;
@@ -360,11 +384,32 @@ function Spotlight({
 
   return (
     <View style={StyleSheet.absoluteFill}>
-      {/* 4 panneaux sombres autour du trou (la cible reste éclairée). */}
-      <View style={[s.dim, { top: 0, left: 0, right: 0, height: cy }]} />
-      <View style={[s.dim, { top: cy + ch, left: 0, right: 0, bottom: 0 }]} />
-      <View style={[s.dim, { top: cy, left: 0, width: cx, height: ch }]} />
-      <View style={[s.dim, { top: cy, left: cx + cw, right: 0, height: ch }]} />
+      {/* 🔴 LE TROU EST ARRONDI, ET IL ÉTAIT CARRÉ — corrigé le 2026-08-14
+          (signalé par le fondateur sur capture). L'assombrissement se faisait par
+          QUATRE panneaux rectangulaires posés autour de la cible : le trou qu'ils
+          laissaient était donc forcément un rectangle, pendant que l'anneau, lui,
+          était arrondi. Aux quatre coins, une pointe de l'écran restait EN PLEINE
+          LUMIÈRE en dehors de l'anneau — sur fond sombre, une équerre claire qui
+          dépasse d'un bouton en pilule. Ça ne se voit pas en relisant le code : il
+          n'y a pas de bug, il y a deux géométries qui ne se parlent pas.
+          ➡️ Un SEUL panneau, dont la BORDURE fait l'assombrissement. Le vide
+          intérieur d'une bordure épaisse est arrondi du rayon extérieur moins
+          l'épaisseur — donc exactement le rayon de l'anneau, par construction et
+          non par recopie. `DEBORD` couvre l'écran depuis n'importe quelle position
+          du trou (le trou est toujours DANS l'écran, donc un débord de la plus
+          grande dimension suffit des quatre côtés).
+          ⚠️ Ce panneau avale les taps comme les quatre d'avant, y compris au
+          milieu du trou : c'est ce qui empêche de s'échapper du tour en tapant
+          l'écran, et `startTour` compte là-dessus (cf. le marquage à l'ouverture). */}
+      <View
+        style={{
+          position: 'absolute',
+          top: cy - DEBORD, left: cx - DEBORD,
+          width: cw + DEBORD * 2, height: ch + DEBORD * 2,
+          borderWidth: DEBORD, borderColor: DIM,
+          borderRadius: rayonAnneau + DEBORD,
+        }}
+      />
 
       {/* Anneau de surbrillance autour de la cible.
           🔴 LE RAYON N'EST PAS CELUI DE LA CIBLE, C'EST LE SIEN — corrigé le
@@ -377,7 +422,7 @@ function Spotlight({
       <View
         style={{
           position: 'absolute', top: cy, left: cx, width: cw, height: ch,
-          borderRadius: (step.rayon ?? Radius.card) + PAD,
+          borderRadius: rayonAnneau,
           borderWidth: Trait.controle, borderColor: t.accent,
           pointerEvents: 'none',
         }}
@@ -421,7 +466,6 @@ function Spotlight({
 
 function makeStyles(t: ThemePalette) {
   return StyleSheet.create({
-    dim: { position: 'absolute', backgroundColor: DIM },
     bubble: {
       position: 'absolute',
       backgroundColor: t.cardElevated,
