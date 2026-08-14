@@ -1213,7 +1213,12 @@ function makeStyles(t: ThemePalette) {
     regenHint: { marginTop: Spacing.sm, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm },
     regenHintTxt: { ...Type.bodySmallStrong, color: t.textTertiary },
     disclaimer: { color: t.textTertiary, lineHeight: 16, textAlign: 'center' },
-    toast: { position: 'absolute', left: 20, right: 20, bottom: 28, backgroundColor: t.accent, borderRadius: Radius.button, paddingVertical: Spacing.lg, paddingHorizontal: Spacing.xl, alignItems: 'center' },
+    // 🔴 Même correctif que dans le Frigo, et c'est le MÊME style recopié : à
+    // 28 pt du bas, ce bandeau était dessiné derrière la barre d'onglets, qui
+    // FLOTTE au-dessus du contenu depuis la passe matériaux (§8). Deux écrans,
+    // une faute, deux fois — « un style recopié partout est un rôle qui n'a pas
+    // de nom » (§8), sur le seul retour que reçoit un geste sans confirmation.
+    toast: { position: 'absolute', left: 20, right: 20, bottom: Fond.barreOnglets, backgroundColor: t.accent, borderRadius: Radius.button, paddingVertical: Spacing.lg, paddingHorizontal: Spacing.xl, alignItems: 'center' },
     toastTxt: { ...Type.bodyStrong, color: t.onAccent },
   });
 }

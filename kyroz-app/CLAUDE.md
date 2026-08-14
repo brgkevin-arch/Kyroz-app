@@ -2517,6 +2517,21 @@ téléphone.
   (`gh api "…/actions/runs?head_sha=<sha>" --jq .total_count`) et lire
   **githubstatus.com**. Corollaire : republier pour « réveiller » le déploiement ne sert
   à rien et empile des runs qui échoueront ensemble.
+- 🔴 **UN BANDEAU DE 2,4 s NE SE CAPTURE PAS AVEC `xcrun simctl io screenshot`**
+  (2026-08-14). La capture met plus longtemps que le toast ne dure : il est déjà
+  parti à chaque prise, et l'écran rendu est parfaitement plausible. J'en ai conclu
+  qu'il ne s'affichait pas du tout, et j'ai failli l'écrire.
+  ➡️ **L'absence sur une capture ne prouve rien quand ce qu'on cherche dure moins
+  longtemps que la capture.** Sonder d'abord que le code s'exécute (`console.log`),
+  puis ALLONGER la durée le temps de la mesure — c'est seulement là qu'un avant/après
+  devient possible. Même famille que `requestAnimationFrame` qui ne tourne pas dans
+  le panneau navigateur (plus bas) : la mesure était juste, l'instrument non.
+- 🔴 **CE QUI FLOTTE EN BAS D'UN ÉCRAN D'ONGLET DOIT DÉGAGER `Fond.barreOnglets`.**
+  La barre d'onglets flotte au-dessus du contenu depuis la passe matériaux (§8) : un
+  `position: absolute` à `bottom: 28` est dessiné DERRIÈRE elle, lisible seulement
+  comme une tache floue à travers le verre. Les deux bandeaux « cuisiné » (Frigo et
+  Plan) étaient dans ce cas — même style recopié, même faute, jamais vue. ➡️ Compté
+  par `lib/__tests__/cuisinerDepuisLeFrigo.test.ts`.
 - **Build natif iOS** : `npx expo run:ios` (CocoaPods via brew).
   🔴 **AVEC `LANG=en_US.UTF-8`, SINON `pod install` PLANTE — et l'erreur accuse le
   mauvais fichier** (2026-08-14). Le shell des sessions tourne avec `LANG=""` et

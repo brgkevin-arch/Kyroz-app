@@ -3756,6 +3756,64 @@ produit en suspens — il ne reste qu'à coder.
 > branches insèrent en tête de cette section, donc git ne sait pas dans quel ordre. La
 > résolution est de garder les DEUX blocs, en ordre décroissant — jamais d'en choisir un.
 
+- 🤖 **E47 · « Cuisiné » depuis le Frigo cuisinait ce qu'on n'avait pas choisi (2026-08-14)**
+
+  Signalé par le fondateur avec une **capture vidéo** — *« voici ce que ça fait quand
+  je cuisine des recettes depuis le frigo »*. Le fichier étant dans un dossier protégé
+  par macOS (Photos), il était illisible : le geste a été **rejoué au simulateur**, et
+  il a rendu deux défauts qui se cachaient l'un l'autre.
+
+  🔴 **1. LA LISTE REMONTAIT SOUS LE DOIGT.** Cuisiner déduit les ingrédients, donc la
+  recette quitte les réalisables — et tout le dessous monte d'un cran. Le bouton
+  suivant arrive **exactement** là où le doigt vient de se poser.
+  **Mesuré : QUATRE appuis au MÊME pixel ont cuisiné QUATRE recettes différentes**,
+  frigo 35 → 28 aliments, prêtes 19 → 15. Aucune n'était choisie, et la déduction est
+  irréversible (ni confirmation, ni annulation — c'est un choix documenté).
+  ⚠️ **L'effet dépasse la recette touchée** : le premier appui a fait tomber la liste
+  de 19 à 17, parce qu'une AUTRE recette avait perdu un ingrédient au passage. Retirer
+  seulement la carte pressée n'aurait donc rien figé — c'est l'ORDRE entier qu'il faut
+  tenir.
+  ➡️ `lib/pantry.ts::listeStable` gèle l'**ORDRE**, jamais le **CONTENU** : chaque carte
+  garde sa place, son état est relu à chaque rendu. Une recette devenue infaisable
+  reste où elle est **et le dit**. Geler le contenu aurait affiché « réalisable
+  maintenant » sur une recette dont on venait de manger le riz — le mensonge de §10.
+  ⚠️ Le gel se pose au **PREMIER geste**, pas au montage : tant qu'on n'a rien cuisiné,
+  un article ajouté doit débloquer ses recettes tout de suite. Le dégel se fait **en
+  revenant sur l'onglet**, jamais sur un minuteur deviné.
+  ⚠️ Et la recette cuisinée porte un **instantané** : la déduction peut vider son
+  dernier ingrédient, `cookableRecipes` ne la rend alors plus du tout, et la carte
+  qu'on vient de toucher s'évaporerait — le trou refermant la liste sous le doigt,
+  c'est-à-dire le défaut qu'on corrige.
+  ✅ Vérifié au simulateur : la carte reste en place, atténuée, « ✓ Cuisiné » à la
+  place du bouton — et **deux appuis de plus au même pixel ne font plus rien** (26
+  aliments, 12 prêtes, inchangés).
+
+  🔴 **2. LE BANDEAU DE CONFIRMATION ÉTAIT DESSINÉ DERRIÈRE LA BARRE D'ONGLETS.** Posé
+  à `bottom: 28` alors que la barre **flotte** au-dessus du contenu depuis la passe
+  matériaux (§8, `Fond.barreOnglets = 120`). Le seul retour qui disait CE QUI venait
+  d'être cuisiné n'était lisible que comme une tache floue derrière le verre.
+  ⚠️ **Le même style, recopié à l'identique dans `plan.tsx`** (« J'ai cuisiné ») : une
+  faute, deux écrans, jamais vue — « un style recopié partout est un rôle qui n'a pas
+  de nom » (§8), cette fois sur le seul retour d'un geste sans confirmation.
+  ➡️ Les deux se renforçaient : rien ne confirmait le geste, **donc on retapait** — et
+  le second appui cuisinait autre chose.
+
+  🔴 **ET L'INSTRUMENT A FAILLI ME FAIRE PUBLIER UNE ERREUR.** `xcrun simctl io
+  screenshot` met plus de 2,4 s à capturer sur cette machine : **le bandeau était déjà
+  parti à chaque prise**, et j'en ai d'abord conclu qu'il ne s'affichait pas du tout.
+  Une sonde (`console.log`) a montré que `flashToast` était bien atteint, puis une
+  seconde (durée portée à 60 s) l'a rendu visible. C'est seulement là que la vraie
+  mesure a pu se faire, dans les deux sens : à `bottom: 28` on lit son fantôme flou
+  sous « Courses / Frigo / Recettes » ; à `Fond.barreOnglets` il est net, au-dessus.
+  ➡️ **L'ABSENCE SUR UNE CAPTURE NE PROUVE RIEN QUAND CE QU'ON CHERCHE DURE MOINS
+  LONGTEMPS QUE LA CAPTURE.** Même famille que `requestAnimationFrame` qui ne tourne
+  pas dans le panneau navigateur (§11) : la mesure était juste, l'instrument non.
+
+  ➡️ Garde-fou : `lib/__tests__/cuisinerDepuisLeFrigo.test.ts` (11 cas, **5 mutations**),
+  dont un compteur général — **aucun `position: absolute` ancré en bas d'un écran
+  d'onglet ne descend sous `Fond.barreOnglets`**. C'est ce compteur qui aurait trouvé
+  les deux bandeaux sans qu'on ait à les chercher.
+
 - 🤖 **E46 · Trois listes qui étaient des murs — le Frigo se replie, les recettes se dévoilent (2026-08-14)**
 
   Décision fondateur, sur captures : le Frigo affichait **69 aliments** d'un bloc et
