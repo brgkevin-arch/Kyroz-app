@@ -3756,6 +3756,130 @@ produit en suspens — il ne reste qu'à coder.
 > branches insèrent en tête de cette section, donc git ne sait pas dans quel ordre. La
 > résolution est de garder les DEUX blocs, en ordre décroissant — jamais d'en choisir un.
 
+- 🤖 **E42 · Revue page par page du Plan et des Courses — et CINQ gestes morts en natif (2026-08-14)**
+
+  Suite d'E41, même méthode : le fondateur dicte écran par écran sur captures.
+  Six commits, branche `claude/plan-epure-1ed3ff0`. Les retouches d'écran sont la
+  partie visible ; ce qui compte est ce que deux d'entre elles ont déterré.
+
+  **Les retouches, dans l'ordre des écrans :**
+  1. **Le titre du Plan est devenu une SALUTATION qui tourne** (`lib/salutation.ts`,
+     pur, indexé sur le moment de la journée et sur `dayIndex` — le même compteur
+     que les notifications). Le repli « Ton plan » disparaît : il servait un titre
+     d'écran à qui n'a pas renseigné son prénom pendant que les autres recevaient
+     un bonjour. Un « Bonjour » à 22 h serait un texte faux, donc le créneau se
+     calcule. Garde-fou : `salutation.test.ts`, 4 mutations.
+  2. **Les lunes de la rangée de jours étaient ROGNÉES** — conteneur de 13 pt pour
+     une icône de 16. Ça ne se voit que sur une capture : un croissant tronqué
+     reste un croissant plausible.
+  3. **Trois chiffres redondants retirés** : « X kcal prévus sur la journée, rien
+     de coché », « Cible X kcal · +N », et le compteur à droite de « Repas du
+     jour ». Le même nombre trois fois sur un écran où chaque carte porte déjà ses
+     kcal. ⚠️ Ce qui reste dit toujours l'écart quand il existe — `SousCibleNote`
+     sous la cible, une phrase dédiée au-dessus. Les retirer ferait mentir l'écran
+     par omission.
+  4. **La carte d'objectif daté quitte le Plan** (elle reste au Profil). Cet écran
+     répond à « qu'est-ce que je mange aujourd'hui » ; le rendez-vous avec la
+     trajectoire est le rappel de pesée.
+  5. **Le nom d'une recette a sa propre ligne** : les quatre boutons ronds
+     mangeaient 200 pt sur 390, un nom à rallonge tombait sur CINQ lignes.
+  6. **Historique des courses** : une seule phrase en tête, pied de page retiré.
+     ⚠️ La purge à six mois qu'il annonçait TOURNE TOUJOURS — la phrase part, pas
+     le comportement.
+  7. **Tuto** : `TourStep.forme` remplace `rayon` — voir plus bas.
+
+  🔴 **LE TROU DU SURLIGNAGE ÉTAIT CARRÉ, ET SON RAYON NE SERVAIT À RIEN.** Deux
+  défauts qui se cachaient l'un l'autre. (a) L'assombrissement se faisait par
+  QUATRE panneaux rectangulaires : le vide qu'ils laissaient ne pouvait pas être
+  arrondi, donc aux quatre coins une pointe d'écran restait **en pleine lumière**
+  hors de l'anneau. (b) `TourStep.rayon`, ajouté deux jours plus tôt avec sa doc et
+  son calcul, **n'était renseigné par AUCUNE des 21 étapes** : toutes retombaient
+  sur le rayon de carte, donc l'anneau dessinait une carte autour d'un bouton.
+  ➡️ Un SEUL panneau, dont la BORDURE fait l'ombre : le vide intérieur d'une
+  bordure épaisse est arrondi du rayon extérieur moins l'épaisseur, donc du même
+  rayon que l'anneau **par construction**. Et `rayon: number` devient
+  `forme: 'carte' | 'bouton' | 'pastille'`, OBLIGATOIRE, chaque étape portant en
+  commentaire la ligne de style qui la prouve. Un NOM et pas un nombre : `tours.ts`
+  doit rester pur, donc il ne peut pas importer `Radius` — y écrire 22 aurait
+  recopié un token de la DA dans un fichier qui ne le voit pas.
+  ⚠️ *Un réglage optionnel que personne ne renseigne est un réglage qui ne pilote
+  rien* (A23), et il se re-oublie tant qu'il reste optionnel.
+
+  🔴 **« MÉLANGE WOK (POIVRON/BROCOLI/CAROTTE) » MANGEAIT LES CAROTTES DU FRIGO.**
+  Signalé comme « la carotte ne se range pas dans l'historique une fois les courses
+  terminées ». `pantry.ts::matches` apparie deux noms par INCLUSION dans les deux
+  sens — c'est ce qui permet à un « oeufs » saisi à la main de retrouver les
+  « Œufs entiers » d'une recette. Le prix : un nom COMPOSÉ avale le nom simple
+  qu'il contient. La soustraction du frigo parcourt les ingrédients dans l'ordre du
+  plan, le mélange passait d'abord, et la carotte revenait à chaque recalcul —
+  chaque « Courses terminées » archivait UN article, en boucle.
+  **Périmètre mesuré** (`npm run mesure:collisions`, nouveau) : **9 couples sur 125
+  ingrédients**. Quatre franchement faux — **Pomme ⟷ Pomme de terre**, et Carotte /
+  Brocoli / Poivron ⟷ Mélange wok. Cinq sont des variantes du même aliment (Pois
+  chiches ⟷ en conserve, Tomate ⟷ concassée) : elles se confondaient « utilement »,
+  mais 100 g de secs ne valent pas 100 g d'égouttés — les séparer est un correctif
+  aussi, et c'est le seul effet de bord.
+  ➡️ `memeAliment()` : quand les deux noms désignent des ingrédients du CATALOGUE,
+  c'est leur `ref` qui tranche. Le nom ne sert plus que pour ce que le catalogue ne
+  connaît pas — les articles saisis à la main.
+  ⚠️ **La `ref` se DÉDUIT du nom, elle n'est pas stockée** : c'est ce qui rend le
+  correctif rétroactif. La stocker aurait demandé une migration, les frigos
+  existants n'en auraient pas eu, et le bug aurait survécu à son correctif.
+  ➡️ Garde-fou : `collisionsIngredients.test.ts` (10 cas, 4 mutations), dont un
+  contre-contrôle qui exige que le NOM, lui, confonde bien ses 9 couples — sans
+  lui, le test passerait aussi si le frigo cessait de couvrir quoi que ce soit.
+
+  🔴 **CINQ GESTES ÉTAIENT MORTS SUR IPHONE, DONT « SUPPRIMER MON COMPTE ».**
+  C'est la vraie récolte de la session, et **elle a demandé un build natif**.
+  iOS refuse de présenter une `Modal` par-dessus une `Modal` déjà en place, sans
+  erreur ni trace. Or `useDialog()` monte la sienne, et quatre écrans qui
+  l'appellent vivent DÉJÀ dans une feuille.
+
+  | Geste | Avant | Correctif |
+  |---|---|---|
+  | Supprimer mon compte | rien | `Sheet.onClosed` — la confirmation attend le DÉMONTAGE |
+  | Personnaliser une recette (crayon) | rien | l'éditeur REMPLACE la fiche dans la même feuille |
+  | Retirer de l'historique de courses | rien | `ConfirmationEnLigne` |
+  | Supprimer cette pesée | rien | `ConfirmationEnLigne` |
+  | Retirer une ligne du journal d'écarts | rien | `ConfirmationEnLigne` |
+  | Ajouter une photo de progression | rien | choix de source posé en ligne |
+
+  ⚠️ **CE DÉFAUT EST INVISIBLE AU NAVIGATEUR** — mesuré, pas supposé : sur le code
+  d'AVANT, le crayon ouvrait parfaitement l'éditeur dans le panneau web. RNW rend
+  une `Modal` en `<div>` et empile sans se plaindre. **C'est ce contraste qui a
+  désigné la cause** : composant sain, empilement fautif. Sans lui, le diagnostic
+  évident était « l'éditeur est cassé ».
+  🔴 **ET E11 AVAIT ÉCRIT L'ANGLE MORT, MOT POUR MOT** : « Mesuré sur le WEB
+  uniquement — sur natif, `Modal` est une modale de plateforme… **Non re-testé sur
+  iOS.** » La note était juste, elle est restée neuf jours, et personne n'est allé
+  voir. *Une inconnue consignée n'est pas une inconnue traitée.*
+  ⚠️ **Le sixième n'a été signalé par personne** : le choix appareil/galerie de la
+  photo de progression ouvrait une TROISIÈME modale depuis la même feuille. C'est
+  le garde-fou en cours d'écriture qui l'a désigné, pas l'écran — *un compteur
+  trouve ce qu'une revue ne voit pas.*
+  ✅ **Vérifié un par un AU SIMULATEUR** : « Supprimer mon compte ? » ne s'affichait
+  pas (deux captures à six secondes d'écart identiques à l'horloge près), elle
+  s'affiche maintenant ; le crayon ouvre l'éditeur et « Annuler » ramène à la
+  fiche ; le choix de source et « Supprimer cette pesée ? » apparaissent en ligne.
+  **Non re-joué** : le journal des écarts (il faut un écart enregistré) — même
+  composant, même patron, tests verts, mais je ne l'ai pas VU.
+  ➡️ Garde-fou : `feuillesEmpilees.test.ts`. La liste du chantier y est écrite et
+  **ne peut que rétrécir**.
+
+  ✅ **LA ROULETTE DE DATE A ENFIN ÉTÉ JUGÉE EN NATIF** (elle attendait depuis
+  E41) : elle défile, s'aimante sur la ligne de sélection, et « Valider » écrit la
+  date. Le geste vit.
+
+  ⏭ **CE QUI RESTE, vu en passant et non corrigé :**
+  - la feuille de la roulette (`BirthDatePicker`) est **décalée à gauche** : titre
+    et bouton touchent le bord alors qu'il reste ~25 pt à droite. La fiche recette,
+    elle, est correctement margée — c'est donc ce composant, pas `Sheet` ;
+  - le message après une pesée dit « Point **du** aujourd'hui mis à jour » ;
+  - les deux `notify` de la feuille Réglages (« aucune application e-mail »,
+    « rappel refusé ») restent des modales dans une modale. Purement informatifs :
+    rien ne se perd si l'un ne s'affiche pas, contrairement à une confirmation qui
+    laisse un geste sans réponse.
+
 - 🤖 **E41 · Revue page par page de l'onboarding, du reveal et du tuto (2026-08-12)**
 
   Session de corrections dictées écran par écran par le fondateur, sur captures.
@@ -5983,8 +6107,14 @@ produit en suspens — il ne reste qu'à coder.
   montage conditionnel en croyant simplifier. Vérifié par mutation.
   ➡️ **Un composant qui a corrigé un piège peut en porter un du même genre.** Ici, le
   remplaçant d'`Alert` échouait dans le même silence qu'`Alert`.
-  ℹ️ Mesuré sur le WEB uniquement — sur natif, `Modal` est une modale de plateforme et
-  l'ordre de présentation n'obéit pas au DOM. Non re-testé sur iOS.
+  🔴 **CETTE LIGNE DISAIT « Non re-testé sur iOS », ET C'ÉTAIT LE VRAI SUJET.**
+  Mesuré sur le WEB uniquement — sur natif, `Modal` est une modale de plateforme et
+  l'ordre de présentation n'obéit pas au DOM. **Neuf jours plus tard (E42), le
+  build natif a montré que le natif avait sa propre panne, plus grave : iOS refuse
+  purement et simplement la seconde modale, et CINQ gestes étaient morts — dont
+  « Supprimer mon compte ».** Le correctif d'ici règle le web et ne dit rien du
+  natif. ➡️ *Une inconnue consignée n'est pas une inconnue traitée* : cette note
+  était juste, lisible, et personne n'est allé voir.
 - ~~**E7 · Deep links web → HTTP 404** (le rendu était bon, le statut était faux)~~
   ✅ **CORRIGÉ le 2026-08-04.** `app.json > expo.web.output: "static"` — chaque route est
   pré-rendue en HTML, donc GitHub Pages sert un fichier réel au lieu de retomber sur

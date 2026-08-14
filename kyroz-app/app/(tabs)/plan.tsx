@@ -27,7 +27,6 @@ import { DislikeSheet } from '../../components/DislikeSheet';
 import { ActionSheet } from '../../components/ActionSheet';
 import { PrimaryButton, SectionLabel } from '../../components/ui';
 import { HydrationBar, useHydrationEnabled } from '../../components/HydrationBar';
-import { DatedGoalCard } from '../../components/DatedGoalCard';
 import { useTourTarget, useScreenTour, TourButton, hasSeenTour } from '../../components/GuidedTour';
 import { planTour } from '../../lib/tours';
 import { useProfile } from '../../hooks/useProfile';
@@ -47,6 +46,7 @@ import { getRecipeById, getBaseRecipe } from '../../lib/recipes';
 import { useRecipeOverrides } from '../../hooks/useRecipeOverrides';
 import { loadPantry, savePantry, deductIngredients, recipeCoverage, PantryItem } from '../../lib/pantry';
 import { useFirstName } from '../../lib/profileName';
+import { salutation } from '../../lib/salutation';
 import { capture, Events } from '../../lib/analytics';
 import { DayExtra, Macros, Meal, MealPlan, MealStatus, Recipe } from '../../lib/types';
 
@@ -698,8 +698,14 @@ export default function PlanScreen() {
           <View style={{ flex: 1 }}>
             <Text style={s.date}>{todayLabel.charAt(0).toUpperCase() + todayLabel.slice(1)}</Text>
             {/* Sans émoji (2026-08-06) : chantier de fond, on les retire partout
-                progressivement. Un titre d'écran n'a pas besoin d'être illustré. */}
-            <Text style={s.h1}>{firstName ? `Salut ${firstName}` : 'Ton plan'}</Text>
+                progressivement. Un titre d'écran n'a pas besoin d'être illustré.
+                ⚠️ CE N'EST PLUS UN TITRE D'ÉCRAN depuis le 2026-08-14 (décision
+                fondateur) : c'est une SALUTATION, elle tourne avec le moment de la
+                journée et avec le jour, et elle tient même sans prénom. L'ancien
+                repli « Ton plan » servait un titre à qui n'avait pas renseigné son
+                prénom pendant que les autres recevaient un bonjour. Le mot vient de
+                `lib/salutation.ts` — pas d'en dur ici, sinon il redevient figé. */}
+            <Text style={s.h1}>{salutation(firstName, new Date())}</Text>
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md }}>
             {plan && (
@@ -878,27 +884,29 @@ export default function PlanScreen() {
               </View>
             )}
 
-            {/* Objectif daté (premium) — la trajectoire dans le geste quotidien.
-                Ne s'affiche que s'il est posé ; tap = deep-link vers son éditeur. */}
-            {profile?.goal_target && (
-              <DatedGoalCard
-                t={t}
-                profile={profile}
-                onPress={async () => { await AsyncStorage.setItem('@kyroz:openEditor', 'dated_goal'); router.push('/(tabs)/profil'); }}
-              />
-            )}
+            {/* ⚠️ LA CARTE D'OBJECTIF DATÉ A ÉTÉ RETIRÉE D'ICI le 2026-08-14
+                (décision fondateur : « l'objectif daté je ne le veux pas ici, on
+                aura juste le rappel de pesée le jour où il devra y être »). Elle
+                vit toujours dans le Profil — `profil.tsx`, juste au-dessus de
+                Kyroz+ — donc rien n'est perdu : ce qui change est l'endroit où on
+                la consulte, pas son existence.
+                🔴 Ne pas la « remettre au cas où » : cet écran répond à « qu'est-ce
+                que je mange aujourd'hui ». Une échéance à 13,6 semaines n'y répond
+                pas, et un objectif lointain rappelé chaque matin met la pression au
+                lieu de rassurer (CLAUDE.md §10, règle produit).
+                ➡️ Le rendez-vous avec la trajectoire, c'est le RAPPEL DE PESÉE —
+                `weighInDue` plus haut dans cet écran, qui n'apparaît que le jour
+                où il a quelque chose à demander. */}
 
             {/* Suivi d'hydratation (feature test — voir components/HydrationBar.tsx) */}
             {hydrationEnabled && <HydrationBar />}
 
-            {/* Meals — le titre de section porte le total prévu à droite, comme un
-                compteur de résultats (même grammaire que Courses et Recettes). */}
-            <View style={s.sectionRow}>
-              <SectionLabel t={t}>Repas du jour</SectionLabel>
-              {dayMacros && (
-                <Text style={s.sectionCount}>{dayMacros.kcal.toLocaleString('fr-FR')} kcal prévus</Text>
-              )}
-            </View>
+            {/* Meals. ⚠️ Le total prévu qui vivait à DROITE de ce titre a été
+                retiré le 2026-08-14, en même temps que le sous-titre de la barre de
+                macros qui disait la même chose douze pixels plus haut. Deux fois le
+                même nombre sur un écran, c'est une redondance, pas une information —
+                et chaque carte de repas porte déjà ses propres kcal. */}
+            <SectionLabel t={t}>Repas du jour</SectionLabel>
             <View style={{ gap: Spacing.md }}>
               {dayMeals.map((m, i) => {
                 const fridgeTracked = pantry.length > 0;
@@ -958,9 +966,46 @@ export default function PlanScreen() {
         </View>
       )}
 
-      {/* Fiche recette du repas sélectionné */}
-      <Sheet visible={!!selectedMeal} onClose={() => setSelectedMeal(null)}>
-        {selectedMeal && (
+      {/* Fiche recette du repas sélectionné — ET son éditeur, dans LA MÊME
+          feuille depuis le 2026-08-14. Deux `Sheet` = deux `Modal`, et sur iOS
+          présenter une modale par-dessus une modale en place échoue en silence :
+          le crayon « ne fonctionnait pas » alors que son code s'exécutait. Le
+          raisonnement complet est en tête du même correctif dans `recettes.tsx`.
+          ⚠️ ET « C'est quoi qui te gêne ? » A REJOINT LA MÊME FEUILLE, alors que
+          personne ne l'avait signalée : `dislikeSelectedMeal` ferme la fiche et
+          ouvre l'élicitation DANS LE MÊME LOT d'état, donc les deux modales se
+          chevauchaient le temps de l'animation de sortie — exactement la
+          collision d'à côté, sur un chemin qui ne se déclenche que quand un 👎
+          vide trop le vivier. Ici les deux états ne sont jamais posés ensemble
+          (`dislikeMealCore` rend 'elicit' APRÈS avoir mis `selectedMeal` à null,
+          et le chemin depuis la carte n'ouvre jamais la fiche), donc la feuille ne
+          se ferme même plus : elle change de contenu. */}
+      <Sheet
+        visible={!!selectedMeal || !!dislikeElicit}
+        onClose={() => { setSelectedMeal(null); setEditingRecipe(null); setDislikeElicit(null); }}
+      >
+        {dislikeElicit ? (
+          <DislikeSheet
+            t={t}
+            candidates={dislikeElicit}
+            onPick={applyDislikeIngredient}
+            onClose={() => setDislikeElicit(null)}
+          />
+        ) : editingRecipe ? (
+          <RecipeEditor
+            t={t}
+            recipe={editingRecipe}
+            isCustom={isCustom(editingRecipe.id)}
+            onSave={(r) => { saveOverride(r); applyRecipeToSelected(r); setEditingRecipe(null); }}
+            onReset={() => {
+              const base = getBaseRecipe(editingRecipe.id);
+              resetOverride(editingRecipe.id);
+              if (base) applyRecipeToSelected(base);
+              setEditingRecipe(null);
+            }}
+            onCancel={() => setEditingRecipe(null)}
+          />
+        ) : selectedMeal ? (
           <RecipeDetail
             recipe={selectedMeal.recipe}
             portions={selectedMeal.portions}
@@ -979,38 +1024,7 @@ export default function PlanScreen() {
             onSwap={swapSelectedMeal}
             onDislike={dislikeSelectedMeal}
           />
-        )}
-      </Sheet>
-
-      {/* « C'est quoi qui te gêne ? » — déclenchée par un 👎 qui vide trop le pool */}
-      <Sheet visible={!!dislikeElicit} onClose={() => setDislikeElicit(null)}>
-        {dislikeElicit && (
-          <DislikeSheet
-            t={t}
-            candidates={dislikeElicit}
-            onPick={applyDislikeIngredient}
-            onClose={() => setDislikeElicit(null)}
-          />
-        )}
-      </Sheet>
-
-      {/* Personnalisation de la recette du repas */}
-      <Sheet visible={!!editingRecipe} onClose={() => setEditingRecipe(null)}>
-        {editingRecipe && (
-          <RecipeEditor
-            t={t}
-            recipe={editingRecipe}
-            isCustom={isCustom(editingRecipe.id)}
-            onSave={(r) => { saveOverride(r); applyRecipeToSelected(r); setEditingRecipe(null); }}
-            onReset={() => {
-              const base = getBaseRecipe(editingRecipe.id);
-              resetOverride(editingRecipe.id);
-              if (base) applyRecipeToSelected(base);
-              setEditingRecipe(null);
-            }}
-            onCancel={() => setEditingRecipe(null)}
-          />
-        )}
+        ) : null}
       </Sheet>
 
       {/* Reveal du 1er plan (J1) : une seule fois, avant la visite guidée.
@@ -1178,11 +1192,12 @@ function makeStyles(t: ThemePalette) {
     // taille FIXE — c'est la condition posée par lib/__tests__/rayonsDA.test.ts.
     dayDot: { width: 40, height: 40, borderRadius: Radius.pill, alignItems: 'center', justifyContent: 'center' },
     dayNum: {  },
-    dayMoon: { height: 13, alignItems: 'center', justifyContent: 'center' },
+    // ⚠️ La hauteur SUIT la taille de l'icône (2026-08-14). Elle valait 13 pour
+    // une lune de 16 : la lune était rognée en haut et en bas, et ça ne se voit
+    // que sur une capture — un croissant tronqué reste un croissant plausible.
+    dayMoon: { height: Icone.petite, alignItems: 'center', justifyContent: 'center' },
     restRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, marginTop: Spacing.xs },
     restTxt: { flex: 1, color: t.textSecondary, lineHeight: 19 },
-    sectionRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
-    sectionCount: { color: t.textTertiary,  },
     extraRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: Spacing.md },
     // Les deux actions du jour partagent EXACTEMENT le même gabarit : elles sont de
     // même rang, donc rien ne doit laisser croire que l'une prime sur l'autre.

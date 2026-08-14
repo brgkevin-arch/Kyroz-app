@@ -187,19 +187,25 @@ export default function RecettesScreen() {
         }}
       />
 
-      <Sheet visible={!!selected} onClose={() => setSelected(null)}>
-        {selected && (
-          <RecipeDetail
-            recipe={selected}
-            custom={isCustom(selected.id)}
-            onEdit={() => setEditing(selected)}
-            onClose={() => setSelected(null)}
-          />
-        )}
-      </Sheet>
-
-      <Sheet visible={!!editing} onClose={() => setEditing(null)}>
-        {editing && (
+      {/* 🔴 UNE SEULE FEUILLE POUR LA FICHE ET SON ÉDITEUR — corrigé le 2026-08-14
+          (« le bouton modifier les recettes ne fonctionne pas »). Ils vivaient dans
+          DEUX `Sheet`, donc deux `Modal`. Taper le crayon ouvrait la seconde
+          pendant que la première était encore présentée : sur iOS, présenter une
+          modale par-dessus une modale en place ÉCHOUE SANS RIEN DIRE. Le code
+          s'exécutait — `setEditing` passait bien — et l'écran ne bougeait pas.
+          ⚠️ Fermer la fiche d'abord n'aurait pas suffi : `Sheet` garde son `Modal`
+          MONTÉ le temps de l'animation de sortie (`render`), donc les deux se
+          seraient encore chevauchées. Il fallait supprimer l'empilement, pas le
+          décaler dans le temps.
+          ➡️ L'éditeur REMPLACE la fiche dans la même feuille : « Annuler » revient
+          à la fiche, la croix ferme tout. Aucune course, et c'est aussi la bonne
+          lecture — on ne superpose pas deux panneaux sur le même objet.
+          ⚠️ Ce défaut est de la famille déjà consignée en CLAUDE.md §8 (« une route
+          poussée depuis une modale ouverte naît SOUS elle ») et §11 (l'ordre du DOM
+          des modales web). Il ne se voit PAS dans le panneau navigateur : sur le
+          web les deux modales coexistent et la seconde passe devant. */}
+      <Sheet visible={!!selected} onClose={() => { setSelected(null); setEditing(null); }}>
+        {editing ? (
           <RecipeEditor
             t={t}
             recipe={editing}
@@ -212,7 +218,14 @@ export default function RecettesScreen() {
             }}
             onCancel={() => setEditing(null)}
           />
-        )}
+        ) : selected ? (
+          <RecipeDetail
+            recipe={selected}
+            custom={isCustom(selected.id)}
+            onEdit={() => setEditing(selected)}
+            onClose={() => setSelected(null)}
+          />
+        ) : null}
       </Sheet>
 
       <CompactTitleBar t={t} title="Recettes" opacity={repli.opacity} />

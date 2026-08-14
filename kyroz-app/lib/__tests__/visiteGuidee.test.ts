@@ -313,3 +313,54 @@ describe('Visite guidée — un tour affiché compte comme VU', () => {
     expect(/markSeen\(\s*tourId\s*\)/.test(avantCorrectif)).toBe(false);
   });
 });
+
+describe('Visite guidée — l’anneau épouse la forme de sa cible', () => {
+  // 🔴 LE DÉFAUT QUE CE BLOC FERME, mesuré le 2026-08-14 sur capture iPhone :
+  // le champ existait (`rayon?: number`), il n'était renseigné par AUCUNE des 21
+  // étapes, donc toutes retombaient sur le rayon de CARTE. L'anneau dessinait une
+  // lozange autour d'un bouton et une carte autour d'un cœur.
+  //
+  // C'est le défaut « un réglage qui ne pilote rien » : rien ne cassait, rien ne
+  // rougissait, et la seule façon de s'en apercevoir était de regarder l'écran.
+  // Le champ est devenu OBLIGATOIRE — un défaut optionnel se re-oublie.
+  const FORMES = ['carte', 'bouton', 'pastille'];
+
+  it('chaque étape DÉCLARE sa forme — un défaut implicite se re-oublie', () => {
+    for (const { id, steps } of TOUS_LES_TOURS) {
+      for (const e of steps) {
+        expect(e.forme, `${id} / ${e.targetId} : forme absente`).toBeDefined();
+        expect(FORMES, `${id} / ${e.targetId} : forme inconnue`).toContain(e.forme);
+      }
+    }
+  });
+
+  it('chaque forme déclarée SERT au moins une fois — sinon c’est un token sans rôle', () => {
+    const servies = new Set(TOUS_LES_TOURS.flatMap(({ steps }) => steps.map((e) => e.forme)));
+    for (const f of FORMES) expect(servies, `forme « ${f} » jamais employée`).toContain(f);
+  });
+
+  it('le moteur traduit les trois formes — aucune ne retombe sur un angle droit', () => {
+    // `GuidedTour.tsx` tire react-native : il se lit COMME DU TEXTE, même procédé
+    // que `accentColor.test.ts` et `designSystem.test.ts`.
+    const moteur = readFileSync(join(RACINE, 'components', 'GuidedTour.tsx'), 'utf8');
+    const table = moteur.match(/RAYON_CIBLE: Record<FormeCible, number> = \{([^}]*)\}/);
+    expect(table, 'la table de rayons du moteur est introuvable').not.toBeNull();
+    for (const f of FORMES) expect(table![1]).toContain(`${f}:`);
+  });
+
+  it('le TROU et l’ANNEAU partagent leur rayon — deux valeurs divergeraient', () => {
+    // Le trou était fait de QUATRE panneaux rectangulaires : il ne pouvait donc
+    // pas être arrondi, et ses coins restaient éclairés hors de l'anneau. Un seul
+    // panneau bordé les remplace, et les deux formes lisent `rayonAnneau`.
+    const moteur = readFileSync(join(RACINE, 'components', 'GuidedTour.tsx'), 'utf8');
+    const code = moteur
+      .split('\n')
+      .filter((l) => !/^\s*(\/\/|\*|\/\*)/.test(l))
+      .join('\n');
+    expect(code).toContain('const rayonAnneau =');
+    // Deux lectures : celle du trou, celle de l'anneau.
+    expect(code.match(/rayonAnneau/g)?.length).toBeGreaterThanOrEqual(3);
+    // Et plus aucun panneau rectangulaire : c'était la géométrie fautive.
+    expect(code).not.toMatch(/style=\{\[s\.dim,/);
+  });
+});

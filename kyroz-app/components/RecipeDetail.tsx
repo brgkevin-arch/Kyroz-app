@@ -73,19 +73,19 @@ export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adapted
   return (
     <View style={s.safe}>
       <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false} {...(sheetScrollProps ?? {})}>
+        {/* ⚠️ LE TITRE A SA PROPRE LIGNE depuis le 2026-08-14 (décision fondateur :
+            « j'aimerais que les noms de recettes prennent l'espace de gauche à
+            droite »). Les quatre boutons ronds partageaient sa rangée : ils
+            mangeaient 200 pt sur 390, donc le nom disposait d'à peine la moitié de
+            la feuille. « Fromage blanc – muesli – kiwi – graines de courge »
+            tombait sur CINQ lignes, et le catalogue est plein de noms à rallonge —
+            le titre est ce qu'on lit en premier, il ne peut pas être la colonne la
+            plus étroite de l'écran. Les boutons passent au-dessus, alignés à
+            droite : la croix reste là où l'œil la cherche dans une feuille. */}
         <View style={s.header} {...(dragHandlers ?? {})}>
-          <View style={{ flex: 1, gap: Spacing.sm }}>
-            <Text style={s.name}>{recipe.name_fr}</Text>
-            {custom && (
-              <View style={s.badge}>
-                <Ionicons name="create" size={Icone.petite} color={t.textSecondary} />
-                <Text style={s.badgeTxt}>Personnalisée</Text>
-              </View>
-            )}
-          </View>
           <View style={s.headerBtns}>
             {onEdit && (
-              <Presse onPress={onEdit} style={s.close}>
+              <Presse onPress={onEdit} style={s.close} accessibilityLabel="Personnaliser cette recette">
                 <Ionicons name="create-outline" size={Icone.standard} color={t.textSecondary} />
               </Presse>
             )}
@@ -97,10 +97,17 @@ export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adapted
                 <Ionicons name="thumbs-down-outline" size={Icone.petite} color={t.textSecondary} />
               </Presse>
             )}
-            <Presse onPress={onClose} style={s.close}>
+            <Presse onPress={onClose} style={s.close} accessibilityLabel="Fermer">
               <Ionicons name="close" size={Icone.standard} color={t.textSecondary} />
             </Presse>
           </View>
+          <Text style={s.name}>{recipe.name_fr}</Text>
+          {custom && (
+            <View style={s.badge}>
+              <Ionicons name="create" size={Icone.petite} color={t.textSecondary} />
+              <Text style={s.badgeTxt}>Personnalisée</Text>
+            </View>
+          )}
         </View>
 
         <View style={s.meta}>
@@ -242,11 +249,11 @@ function makeStyles(t: ThemePalette, isTablet: boolean) {
     // téléphone. Verrouillé par lib/__tests__/layout.test.ts.
     cookColWide: isTablet ? { flex: 1, gap: Spacing.xl } : { gap: Spacing.xl },
     content: { padding: Spacing.xxl, gap: Spacing.xl, paddingBottom: Spacing.xxxl },
-    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: Spacing.md },
+    header: { gap: Spacing.sm },
     name: { color: t.text, ...Type.h2 },
     badge: { flexDirection: 'row', alignItems: 'center', gap: Spacing.xs, alignSelf: 'flex-start', backgroundColor: t.fill, paddingHorizontal: Spacing.sm, paddingVertical: Spacing.xs, borderRadius: Radius.pill },
     badgeTxt: { ...Type.microStrong, color: t.textSecondary },
-    headerBtns: { flexDirection: 'row', gap: Spacing.sm },
+    headerBtns: { flexDirection: 'row', justifyContent: 'flex-end', gap: Spacing.sm },
     close: { width: CIBLE_TACTILE_MIN, height: CIBLE_TACTILE_MIN, borderRadius: Radius.pill, backgroundColor: t.fill, alignItems: 'center', justifyContent: 'center' },
     meta: { flexDirection: 'row', gap: Spacing.lg },
     metaTxt: { ...Type.bodySmall, color: t.textSecondary },

@@ -3,13 +3,13 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { Presse } from './Presse';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemePalette, Radius, Type, Spacing, Trait, Icone, CIBLE_TACTILE_MIN, OPACITE_PRESSION } from '../constants/theme';
-import { useDialog } from './Dialog';
 import {
   ShoppingTrip, ShoppingTripItem,
   newestFirst, boughtItems, skippedItems, tripHeadline, skippedNote,
 } from '../lib/shoppingHistory';
 import { frDateLongue } from '../lib/dateLabel';
 import { formatQuantity } from '../lib/units';
+import { ConfirmationEnLigne } from './ConfirmationEnLigne';
 
 // ── Historique des listes de courses ─────────────────────────────────────────
 //
@@ -38,29 +38,35 @@ export function ShoppingHistory({
   sheetScrollProps?: any;     // injecté par <Sheet> : lie le défilement à la fermeture
 }) {
   const s = useMemo(() => makeStyles(t), [t]);
-  const { confirm } = useDialog();
   const liste = useMemo(() => newestFirst(trips), [trips]);
   const [ouverte, setOuverte] = useState<string | null>(null);
+  const [aConfirmer, setAConfirmer] = useState<string | null>(null);
 
-  // `Alert.alert` est un no-op sur react-native-web (CLAUDE.md §11) : un seul
-  // chemin, web et natif.
-  const demanderSuppression = async (tr: ShoppingTrip) => {
-    const ok = await confirm({
-      title: 'Retirer ces courses ?',
-      message: `${frDateLongue(tr.date)} · ${tripHeadline(tr)}. Ton frigo n'y touche pas — seule la trace disparaît.`,
-      confirmLabel: 'Retirer',
-      destructive: true,
-    });
-    if (ok) onRemove(tr.at);
-  };
+  // 🔴 LA CONFIRMATION VIT DANS LA FEUILLE, PLUS DANS UNE BOÎTE DE DIALOGUE —
+  // corrigé le 2026-08-14 (fondateur : « retirer de l'historique ne fonctionne
+  // pas »). `useDialog().confirm` monte sa propre `Modal` ; cet écran vit DÉJÀ
+  // dans une `Modal` (la feuille qui l'affiche). Sur iOS, présenter une modale
+  // par-dessus une modale en place ne donne rien — pas d'erreur, pas de trace :
+  // le bouton s'exécutait, la promesse attendait une réponse que personne ne
+  // pouvait donner, et l'écran ne bougeait pas.
+  // ⚠️ CE DÉFAUT EST INVISIBLE SUR LE WEB : mesuré avant correctif, la
+  // confirmation s'affichait et la sortie disparaissait. `react-native-web` rend
+  // une `Modal` en `<div>` et empile sans se plaindre — c'est même pour ça que
+  // `DialogProvider` monte sa boîte à la demande (CLAUDE.md §11). Ce contournement
+  // règle l'ordre du DOM ; il ne règle pas l'empilement natif.
+  // ➡️ Même famille que la fiche recette et son éditeur (`recettes.tsx`). Ici on
+  // ne peut pas « remplacer » le contenu : la question porte sur UNE ligne, donc
+  // elle se pose SUR cette ligne. Deux boutons, pas de modale.
 
   return (
     <View style={s.wrap}>
       <View {...(dragHandlers ?? {})}>
         <Text style={s.title}>Mes courses passées</Text>
-        <Text style={s.sub}>
-          Chaque liste terminée s'archive ici. Pratique pour retrouver ce que tu avais pris la dernière fois.
-        </Text>
+        {/* ⚠️ UNE SEULE PHRASE depuis le 2026-08-14 (décision fondateur). La
+            seconde — « Pratique pour retrouver ce que tu avais pris la dernière
+            fois » — expliquait à quoi sert un écran qui s'explique tout seul :
+            son titre le dit, et les cartes datées en dessous le montrent. */}
+        <Text style={s.sub}>Chaque liste terminée s'archive ici.</Text>
       </View>
 
       {liste.length === 0 ? (
@@ -113,15 +119,25 @@ export function ShoppingHistory({
                         Kyroz ne sait pas qu'un paquet de 1 kg a été pris pour 700 g. */}
                     <Text style={s.precision}>Quantités demandées par ta liste ce jour-là.</Text>
 
-                    <Presse
-                      style={s.retirer}
-                      onPress={() => demanderSuppression(tr)}
-                      activeOpacity={OPACITE_PRESSION}
-                      accessibilityRole="button"
-                    >
-                      <Ionicons name="trash-outline" size={Icone.petite} color={t.textTertiary} />
-                      <Text style={s.retirerTxt}>Retirer de l'historique</Text>
-                    </Presse>
+                    {aConfirmer === tr.at ? (
+                      <ConfirmationEnLigne
+                        t={t}
+                        question="Retirer ces courses de l'historique ? Ton frigo n'y touche pas — seule la trace disparaît."
+                        confirmLabel="Retirer"
+                        onCancel={() => setAConfirmer(null)}
+                        onConfirm={() => { setAConfirmer(null); onRemove(tr.at); }}
+                      />
+                    ) : (
+                      <Presse
+                        style={s.retirer}
+                        onPress={() => setAConfirmer(tr.at)}
+                        activeOpacity={OPACITE_PRESSION}
+                        accessibilityRole="button"
+                      >
+                        <Ionicons name="trash-outline" size={Icone.petite} color={t.textTertiary} />
+                        <Text style={s.retirerTxt}>Retirer de l'historique</Text>
+                      </Presse>
+                    )}
                   </View>
                 )}
               </View>
@@ -130,10 +146,16 @@ export function ShoppingHistory({
         </ScrollView>
       )}
 
-      <Text style={s.pied}>
-        Gardé sur ton téléphone uniquement, jamais envoyé — comme tes photos de progression. Les listes de
-        plus de six mois s'effacent toutes seules.
-      </Text>
+      {/* ⚠️ LE PIED DE PAGE A ÉTÉ RETIRÉ le 2026-08-14 (décision fondateur). Il
+          disait deux choses vraies — l'historique reste sur l'appareil, et les
+          listes de plus de six mois s'effacent seules — mais aucune n'est
+          OBLIGATOIRE ici : le local-only est déclaré dans la politique de
+          confidentialité (`constants/legal.ts` §, et son miroir `public/legal.html`),
+          qui est la surface que la conformité regarde. Ce n'est pas l'avertissement
+          médical de CLAUDE.md §6, qui, lui, ne se retire d'aucun écran.
+          🔴 Le comportement, lui, N'A PAS CHANGÉ : la purge à six mois vit dans
+          `lib/shoppingHistory.ts` et continue de tourner. Ne pas en déduire, en
+          relisant cet écran, qu'elle a disparu avec sa phrase. */}
     </View>
   );
 }
@@ -177,9 +199,9 @@ function makeStyles(t: ThemePalette) {
     },
     retirerTxt: { ...Type.bodySmall, color: t.textSecondary },
 
+
     videCard: { borderWidth: Trait.fin, borderColor: t.line, borderRadius: Radius.card, padding: Spacing.xl, gap: Spacing.sm },
     videTitre: { ...Type.label, color: t.text },
     videTexte: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 20 },
-    pied: { ...Type.caption, color: t.textQuaternary, lineHeight: 17 },
   });
 }

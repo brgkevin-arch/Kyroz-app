@@ -1874,6 +1874,28 @@ refactorant un écran, fait disparaître une bulle **sans rien casser** — le t
 plus court en ayant l'air complet. D'où un avertissement en développement, et surtout le
 garde-fou ci-dessous.
 
+🔴 **L'ANNEAU ÉPOUSE LA FORME DE SA CIBLE, ET LE TROU AUSSI** (2026-08-14). Deux
+défauts qui se cachaient l'un l'autre. (a) L'assombrissement se faisait par QUATRE
+panneaux rectangulaires : le vide qu'ils laissaient ne pouvait pas être arrondi,
+donc aux quatre coins une pointe d'écran restait **en pleine lumière** hors de
+l'anneau — une équerre claire qui dépasse d'un bouton en pilule, sur fond sombre.
+(b) `TourStep.rayon` n'était renseigné par **aucune** des 21 étapes : toutes
+retombaient sur le rayon de carte, donc l'anneau dessinait une carte autour d'un
+bouton et une lozange autour d'un cœur.
+➡️ Un SEUL panneau, dont la **bordure** fait l'ombre : le vide intérieur d'une
+bordure épaisse est arrondi du rayon extérieur moins l'épaisseur, donc du même
+rayon que l'anneau **par construction** et non par recopie.
+➡️ `forme: 'carte' | 'bouton' | 'pastille'`, **obligatoire**, chaque étape portant
+en commentaire la ligne de style qui la prouve. Un NOM et pas un nombre : ce
+fichier doit rester pur, donc il ne peut pas importer `Radius` — y écrire 22 aurait
+recopié un token de la DA dans un fichier qui ne le voit pas, et les deux auraient
+divergé à la première refonte. Le contenu déclare, le moteur traduit.
+⚠️ *Un réglage optionnel que personne ne renseigne ne pilote rien*, et il se
+re-oublie tant qu'il reste optionnel. C'est pour ça que `forme` est exigée, et
+comptée : `visiteGuidee.test.ts` (4 cas, 4 mutations).
+🔴 Rien de tout ceci ne se juge au navigateur : c'est de la géométrie sur fond
+sombre. Vérifié au simulateur.
+
 ⚠️ **Tout écran qui reçoit un tour reçoit sa porte de sortie.** « Passer » marque le tour
 vu **définitivement** ; le « ? » de rejeu n'existait que sur le Plan, donc passer le tour
 d'un autre onglet le perdait à vie. Composant `TourButton` sur les cinq en-têtes, plus
@@ -2184,6 +2206,41 @@ téléphone.
   les conteneurs de modale, y compris celle qui est bien à l'écran.
   ℹ️ Mesuré sur le web ; sur natif, `Modal` est une modale de plateforme et l'ordre de
   présentation n'obéit pas au DOM.
+- 🔴 **ET SUR IOS, UNE MODALE NE S'OUVRE PAS DU TOUT PAR-DESSUS UNE MODALE.** C'est
+  la moitié NATIVE du piège ci-dessus, et elle est pire — corrigée le 2026-08-14
+  après un build simulateur. iOS refuse de présenter une seconde `Modal` quand une
+  autre est en place : rien n'apparaît, aucune erreur, aucune trace. Le code
+  s'exécute, la promesse attend un arbitrage que personne ne peut rendre.
+  **CINQ gestes en sont morts**, dont **« Supprimer mon compte »** — obligation RGPD
+  et point de revue App Store — plus le crayon de la fiche recette, deux
+  suppressions de ligne et le choix d'une photo de progression.
+  ⚠️ **LE WEB NE MONTRE RIEN DE CE DÉFAUT** : `react-native-web` rend une `Modal` en
+  `<div>` et empile sans se plaindre. Mesuré sur le code d'avant correctif, le
+  crayon ouvrait parfaitement l'éditeur dans le panneau navigateur. **C'est ce
+  contraste — sain sur le web, mort en natif — qui a désigné la cause** ; sans lui,
+  le diagnostic évident était « le composant est cassé ».
+  ⚠️ **Fermer la première d'abord NE SUFFIT PAS** : `Sheet` et `ActionSheet` gardent
+  leur `Modal` MONTÉE le temps de leur animation de sortie. Enchaîner les deux dans
+  le même lot d'état donne exactement la même panne. D'où **`Sheet.onClosed`**,
+  appelé quand la feuille est réellement démontée — jamais un délai deviné.
+  ➡️ **Les deux issues, et le choix se fait sur le SENS :**
+  · la seconde surface REMPLACE la première → même feuille, contenu qui change
+    (fiche recette ⇄ son éditeur) ;
+  · la question porte sur UNE ligne de la feuille → elle se pose SUR cette ligne,
+    `components/ConfirmationEnLigne.tsx`, deux boutons et pas de modale.
+  ⚠️ `useDialog()` reste le bon outil **depuis un écran plein** : la boîte se pose
+  au-dessus de tout et se rate difficilement, ce qu'on veut pour un geste
+  irréversible. L'interdit ne vaut que DEPUIS une feuille.
+  ➡️ Garde-fou : `lib/__tests__/feuillesEmpilees.test.ts` — il compte les
+  composants qui vivent dans une feuille ET ouvrent un dialogue, et sa liste ne
+  peut que rétrécir. Il a lui-même désigné un sixième cas que personne n'avait
+  signalé (le choix appareil/galerie) : **un compteur trouve ce qu'une revue ne
+  voit pas.**
+  🔴 **CE DÉFAUT A VÉCU NEUF JOURS AVEC SON ANGLE MORT ÉCRIT NOIR SUR BLANC** —
+  AGENTS.md E11 finissait par « Non re-testé sur iOS ». La note était juste, elle
+  était lisible, et personne n'est allé voir. *Une inconnue consignée n'est pas une
+  inconnue traitée* : ce qui n'a pas été mesuré doit être porté au chantier, pas
+  seulement au commentaire.
 - 🔴 **UNE DONNÉE D'UTILISATEUR NE SE RANGE PAS DANS UN CACHE QUE QUELQU'UN D'AUTRE
   EFFACE.** Trouvé le 2026-08-08 en rendant les articles de la liste de courses
   supprimables. Le réflexe était de marquer l'article dans `@kyroz:shopping` — sauf
@@ -2372,6 +2429,23 @@ téléphone.
   **githubstatus.com**. Corollaire : republier pour « réveiller » le déploiement ne sert
   à rien et empile des runs qui échoueront ensemble.
 - **Build natif iOS** : `npx expo run:ios` (CocoaPods via brew).
+  🔴 **AVEC `LANG=en_US.UTF-8`, SINON `pod install` PLANTE — et l'erreur accuse le
+  mauvais fichier** (2026-08-14). Le shell des sessions tourne avec `LANG=""` et
+  `LC_CTYPE="C"` ; CocoaPods appelle `unicode_normalize` sur son chemin
+  d'installation et lève `Encoding::CompatibilityError: Unicode Normalization not
+  appropriate for ASCII-8BIT`. Le build s'arrête ensuite sur **« The sandbox is not
+  in sync with the Podfile.lock »**, qui envoie chercher un problème de
+  dépendances alors que la vraie cause est vingt lignes plus haut, dans une trace
+  Ruby que personne ne lit. ➡️ `LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 pod install`,
+  puis relancer.
+  ⚠️ **`expo run:ios` NE REND JAMAIS LA MAIN** : après avoir installé et lancé
+  l'app, il reste vivant comme serveur Metro. Une commande lancée en tâche de fond
+  et lue par son code de sortie a donc l'air de « prendre très longtemps » alors
+  que le build est fini depuis quarante minutes. ➡️ Vérifier l'ARTEFACT
+  (`xcrun simctl listapps <udid> | grep <bundleId>`), pas la fin du processus.
+  ⚠️ Le clavier du simulateur est en **AZERTY** : ce qu'on « tape » par
+  automatisation arrive permuté (« Marc » → « ?qrc »). Sans conséquence sur un
+  champ cosmétique, faux dès qu'on vérifie une saisie.
 - **`Dimensions.get('window')` ment sur iPad.** La fenêtre change de taille **sans
   relancer l'app** (rotation, Split View, Slide Over) : une valeur lue au chargement du
   module reste fausse jusqu'au prochain démarrage. Utiliser `useWindowDimensions()`.

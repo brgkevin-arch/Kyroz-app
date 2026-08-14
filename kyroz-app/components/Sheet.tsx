@@ -16,6 +16,22 @@ interface Props {
   visible: boolean;
   onClose: () => void;
   children: React.ReactNode;
+  /**
+   * Appelé quand la feuille est réellement DÉMONTÉE, animation de sortie
+   * comprise — pas quand on lui demande de se fermer.
+   *
+   * 🔴 POURQUOI CE RAPPEL EXISTE, et ce n'est pas du confort : une `Modal` iOS
+   * ne se laisse pas présenter par-dessus une `Modal` déjà en place. Or `Sheet`
+   * garde la sienne MONTÉE le temps de son animation de sortie. Enchaîner
+   * « je ferme cette feuille » et « j'en ouvre une autre » dans le même geste
+   * donne donc RIEN À L'ÉCRAN, sans erreur ni trace.
+   * ⚠️ Mesuré au simulateur le 2026-08-14 sur « Supprimer mon compte » : la
+   * feuille Réglages se fermait, la confirmation n'apparaissait jamais, et deux
+   * captures à six secondes d'intervalle ne différaient que par l'horloge. Le
+   * geste que la revue App Store teste ne répondait pas.
+   * ➡️ Tout enchaînement feuille → autre modale passe par ici.
+   */
+  onClosed?: () => void;
 }
 
 // Distance à dépasser pour que la feuille se ferme — même seuil que le glissement
@@ -31,7 +47,7 @@ const SUIVI = 0.5;
  * Feuille modale « à la Trade Republic » : glisser vers le bas (poignée) ou
  * taper le fond pour fermer. Animée, compatible web + natif.
  */
-export function Sheet({ visible, onClose, children }: Props) {
+export function Sheet({ visible, onClose, children, onClosed }: Props) {
   const t = useTheme();
   const layout = useLayout();
   // ⚠️ `useWindowDimensions` et non `Dimensions.get()` au chargement du module :
@@ -90,6 +106,12 @@ export function Sheet({ visible, onClose, children }: Props) {
   const screenHRef = useRef(screenH);
   screenHRef.current = screenH;
 
+  // ⚠️ Le rappel de démontage passe par une ref, pour la même raison que la
+  // hauteur d'écran : l'effet d'animation ne dépend QUE de `visible`, donc il
+  // capturerait la version du rappel qui existait au premier rendu.
+  const onClosedRef = useRef(onClosed);
+  onClosedRef.current = onClosed;
+
   useEffect(() => {
     if (visible) {
       // ⚠️ On ne repart du bas QUE si la feuille n'était pas déjà à l'écran.
@@ -134,7 +156,12 @@ export function Sheet({ visible, onClose, children }: Props) {
           easing: Easing.out(Easing.quad),
           useNativeDriver: true,
         }),
-      ]).start(() => { if (!visibleRef.current) setRender(false); });
+      ]).start(() => {
+        // ⚠️ `visibleRef` et non `visible` : la feuille a pu être ROUVERTE
+        // pendant la sortie. On ne démonte — et on ne prévient — que si elle est
+        // toujours fermée à l'arrivée.
+        if (!visibleRef.current) { setRender(false); onClosedRef.current?.(); }
+      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible]);

@@ -235,6 +235,8 @@ export default function ProfilScreen() {
   const [offPlanOpen, setOffPlanOpen] = useState(false);
   const openOffPlan = () => { journal.reload(); setOffPlanOpen(true); };
   const [confirmDelete, setConfirmDelete] = useState(false);
+  // Ce qu'il faudra ouvrir UNE FOIS la feuille Réglages démontée (cf. son `onClosed`).
+  const [apresReglages, setApresReglages] = useState<'supprimer' | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [reglages, setReglages] = useState(false);
 
@@ -656,7 +658,26 @@ export default function ProfilScreen() {
           2026-08-09 chaque feuille monte son conteneur à l'ouverture, donc
           l'empilement suit l'ordre des GESTES et non celui du JSX. C'était l'un
           des deux pièges de cette refonte (`ActionSheet.tsx`). */}
-      <Sheet visible={reglages} onClose={() => setReglages(false)}>
+      {/* 🔴 « SUPPRIMER MON COMPTE » NE S'OUVRE QU'UNE FOIS CETTE FEUILLE DÉMONTÉE
+          — corrigé le 2026-08-14, après l'avoir vu échouer au simulateur. Le code
+          posait `setReglages(false)` et `setConfirmDelete(true)` dans le même lot
+          d'état : la feuille partait en animation de sortie tout en gardant sa
+          `Modal` montée, et iOS refuse d'en présenter une seconde par-dessus.
+          Résultat mesuré : la feuille se fermait, la confirmation n'apparaissait
+          JAMAIS, sans erreur ni trace — deux captures à six secondes d'écart ne
+          différaient que par l'horloge.
+          ⚠️ Le web ne montrait rien de ce défaut : il empile les modales sans se
+          plaindre. C'est une obligation RGPD et un point de revue App Store, donc
+          le seul chemin acceptable est celui qui ne dépend d'aucun délai deviné —
+          `onClosed` part quand l'animation est TERMINÉE.
+          ⚠️ `apresReglages` plutôt qu'un appel direct : au moment où la feuille se
+          ferme, il faut se souvenir de POURQUOI. « Se déconnecter » ne passe pas
+          par là (il ne rouvre aucune modale). */}
+      <Sheet
+        visible={reglages}
+        onClose={() => setReglages(false)}
+        onClosed={() => { if (apresReglages === 'supprimer') setConfirmDelete(true); setApresReglages(null); }}
+      >
         <ReglagesSheet
           t={t}
           version={appVersion}
@@ -664,7 +685,7 @@ export default function ProfilScreen() {
           onExport={doExport}
           onRevoirTutos={revoirTutos}
           onLogout={doLogout}
-          onDelete={() => { setReglages(false); setConfirmDelete(true); }}
+          onDelete={() => { setApresReglages('supprimer'); setReglages(false); }}
         />
       </Sheet>
 

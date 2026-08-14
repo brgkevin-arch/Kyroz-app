@@ -1,5 +1,5 @@
 import { MealPlan, ShoppingItem, ShoppingList } from './types';
-import { isStaple, categorize, matches, PantryItem } from './pantry';
+import { isStaple, categorize, memeAliment, PantryItem } from './pantry';
 import { mealIngredients } from './planEngine';
 
 // Construit la liste de courses agrégée d'un plan.
@@ -32,7 +32,11 @@ export function buildShoppingList(plan: MealPlan, pantry: PantryItem[] = []): Sh
   const avail = pantry.filter((p) => !isStaple(p.name)).map((p) => ({ ...p }));
   for (const entry of aggregated.values()) {
     for (const p of avail) {
-      if (p.quantity <= 0 || p.unit !== entry.unit || !matches(p.name, entry.name)) continue;
+      // ⚠️ `memeAliment` et non `matches` : sur deux ingrédients du catalogue,
+      // c'est leur `ref` qui tranche. Sinon « Mélange wok (poivron/brocoli/
+      // carotte) » mange le stock de carotte du frigo, et la carotte revient sur
+      // la liste à chaque recalcul — mesuré le 2026-08-14.
+      if (p.quantity <= 0 || p.unit !== entry.unit || !memeAliment(p.name, entry.name)) continue;
       const used = Math.min(p.quantity, entry.quantity);
       entry.quantity -= used;
       p.quantity -= used;
