@@ -1107,9 +1107,22 @@ composant. Audit complet des réglages : `npm run mesure:reglages`.
 > Apple, ni Google, ni le règlement dispositifs médicaux — ne l'exige.
 >
 > ⚠️ **CE QUI REMPLACE N'EST PAS RIEN, ET C'EST LE POINT** : l'avertissement. Il est
-> désormais **DIT** au lieu d'être **VÉRIFIÉ** (`components/HealthScreening.tsx` :
+> désormais **DIT** au lieu d'être **VÉRIFIÉ** (`constants/legal.ts::AVERTISSEMENT_MEDICAL` :
 > « Enceinte, allaitante, ou suivie pour une pathologie chronique ? Parles-en à un
 > médecin avant de suivre un plan »). C'est aussi ce qu'exigent Apple 1.4.1 et Google.
+>
+> 🔴 **ET IL N'A PLUS D'ÉCRAN À LUI — supprimé le 2026-08-12, décision fondateur.**
+> `components/HealthScreening.tsx` et `lib/healthScreening.ts` n'existent plus. Une fois
+> les questions retirées, il ne restait qu'un titre, deux phrases et un bouton « J'ai
+> compris » : **un tap de plus pour du texte**, sur le parcours d'entrée. Les deux
+> phrases (celle-ci + `DISCLAIMER`) sont servies **sous le bouton de l'étape 1** de
+> l'onboarding, en `Type.micro` gris.
+> ⚠️ **« Discret » veut dire petit et gris, JAMAIS derrière un lien ou un dépliant** :
+> Apple 1.4.1 veut le renvoi visible SUR le parcours, pas dans une page de CGU.
+> ⚠️ Étape 1 seulement — le répéter sur les sept étapes en ferait du décor.
+> ➡️ Garde-fou : `lib/__tests__/avertissementMedical.test.ts` (vérifié par 3 mutations).
+> Sans lui, un nettoyage d'écran emporterait la phrase sans qu'aucun test ne rougisse,
+> et personne ne s'en apercevrait avant une revue de store.
 > ➡️ Une déclaration cochée n'a jamais rien prouvé de personne — ce qui protège
 > réellement, ce sont les blocages qui **MESURENT** : l'âge (`MIN_AGE`), l'IMC de
 > départ, le volume d'entraînement, les planchers caloriques. Eux ne demandent rien.

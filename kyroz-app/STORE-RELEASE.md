@@ -544,10 +544,17 @@ Un chiffre faux dans une fiche de store est une allégation fausse, pas une coqu
     de 16 à 18 le 2026-07-28 : Mifflin-St Jeor n'est pas validée sous 19 ans, et servir
     un moteur de déficit calorique à un mineur est un risque de conformité autant que
     de sécurité.
-  - **Portail de dépistage santé AVANT l'onboarding** (`components/HealthScreening.tsx`) :
-    grossesse/allaitement et pathologie chronique suivie (diabète, maladie rénale ou
-    cardiaque, trouble du comportement alimentaire) → cul-de-sac, renvoi vers un
-    professionnel de santé. Aucun plan n'est généré.
+  - **Renvoi vers un professionnel de santé** (`constants/legal.ts::AVERTISSEMENT_MEDICAL`,
+    servi sous le bouton de l'étape 1 de l'onboarding) : « Enceinte, allaitante, ou suivie
+    pour une pathologie chronique ? Parles-en à un médecin avant de suivre un plan. »
+    🔴 **CETTE LIGNE DÉCRIVAIT UN PORTAIL BLOQUANT — il n'existe plus.** Il posait deux
+    questions et menait à un cul-de-sac ; retiré le 2026-08-11 sur avis juridique
+    (subordonner l'accès à la grossesse ou à l'état de santé est un refus de service
+    fondé sur un critère de discrimination, et la réponse était elle-même une donnée de
+    santé art. 9 collectée sans obligation). L'écran qui restait a été supprimé le
+    2026-08-12. ➡️ **Ne pas le décrire à Apple comme un garde-fou : ce qui protège, ce
+    sont les blocages qui MESURENT** — âge, IMC de départ, volume d'entraînement,
+    planchers caloriques, tous listés ici.
   - **Plancher d'énergie disponible** (`lib/safety.ts::safetyFloorKcal`) :
     `max(BMR, 30 kcal/kg de masse maigre + dépense sportive, 1500 H / 1200 F)`. Le
     1500/1200 n'est plus que le **filet absolu** — il autorisait 1200 kcal à une femme

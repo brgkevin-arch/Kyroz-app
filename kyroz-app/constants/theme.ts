@@ -325,7 +325,8 @@ export const Type = {
 
 // La mention de bas d'écran — « Kyroz n'est pas un dispositif médical », etc.
 // Le style était RECOPIÉ à l'identique dans sept fichiers (login, onboarding,
-// plan, profil, kyroz-plus, FirstPlanReveal, HealthScreening) : même corps, même
+// plan, profil, kyroz-plus, FirstPlanReveal, et l'écran d'avertissement santé
+// supprimé depuis) : même corps, même
 // interligne, même centrage. Sept copies d'un texte de prudence, c'est sept
 // occasions qu'une seule dérive et que la phrase la plus sensible de l'app soit
 // composée différemment d'un écran à l'autre.

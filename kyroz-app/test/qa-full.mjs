@@ -4,8 +4,10 @@
 //  · l'onboarding est passé de 10 à 7 étapes (l'étape « récap » a sauté le
 //    2026-06-20, macros/préférences/variété ont fusionné) — le script jouait
 //    encore l'ancien enchaînement et se perdait dès l'étape 6 ;
-//  · le portail de dépistage santé (HealthScreening) s'interpose désormais entre
-//    la connexion et l'étape 1 — sans lui, aucun persona ne voyait l'assistant.
+//  · un écran d'avertissement santé s'interposait entre la connexion et l'étape 1 —
+//    sans lui, aucun persona ne voyait l'assistant. ⚠️ Il a été SUPPRIMÉ le
+//    2026-08-12 : la connexion débouche maintenant sur l'assistant, et c'est
+//    `attendreEtape1` qui absorbe le délai de montage que cet écran masquait.
 //
 // Les chiffres du plan étaient lus dans le DOM de l'écran de récap, qui n'existe
 // plus. Ils sont désormais lus dans le profil persisté (@kyroz:profile) : valeurs
@@ -18,7 +20,7 @@ import { chromium } from 'playwright';
 import { writeFileSync } from 'node:fs';
 import {
   SHOT, PHONE, HEADLESS, BASE_URL, sleep, ensureDirs, open,
-  guestLogin, passScreening, runOnboarding, dismissReveal, dismissOverlays, neutralizeFirstRun, plannedMeals,
+  guestLogin, attendreEtape1, runOnboarding, dismissReveal, dismissOverlays, neutralizeFirstRun, plannedMeals,
   bilanPannes,
 } from './_harness.mjs';
 
@@ -157,13 +159,13 @@ async function runPersona(p) {
     await ctx.close();
     return;
   }
-  // Portail de dépistage santé. 'absent' = session déjà onboardée (ne devrait pas
-  // arriver ici, le contexte est neuf) ; 'echec' = le harnais ne sait plus le
-  // franchir — inutile de jouer un onboarding fantôme derrière.
-  const depistage = await passScreening(page);
-  if (depistage === 'echec') {
-    await snap(page, `${p.key}-DEPISTAGE-BLOQUE`);
-    report.personas.push({ key: p.key, sex: p.sex, weight: p.weight, bodyFat: p.bodyFat, goal: p.goal, planMeals: 0, blocked: 'portail de dépistage santé non franchi' });
+  // L'assistant suit directement la connexion (l'écran d'avertissement santé a été
+  // supprimé le 2026-08-12). Le contexte est neuf, donc l'étape 1 DOIT venir : ne pas
+  // la voir est une panne, pas un cas légitime — la nommer ici évite de jouer un
+  // onboarding fantôme derrière et de conclure « écran introuvable ».
+  if (!(await attendreEtape1(page))) {
+    await snap(page, `${p.key}-ASSISTANT-ABSENT`);
+    report.personas.push({ key: p.key, sex: p.sex, weight: p.weight, bodyFat: p.bodyFat, goal: p.goal, planMeals: 0, blocked: "l'assistant d'onboarding n'est jamais apparu après la connexion" });
     await ctx.close();
     return;
   }

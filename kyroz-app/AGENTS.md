@@ -460,6 +460,84 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
 
 ### 🔴 A — En retard ou cassé en silence
 
+- 🧑 **A33 · UN CORRECTIF MERGÉ DEPUIS LE 11 AOÛT N'EST JAMAIS PARTI EN OTA
+  (trouvé le 2026-08-12, en diagnostiquant un signalement de testeur)**
+  Signalement : *« la personne reçoit la citation longue de Marc Aurèle tous les
+  jours »*. Le diagnostic a montré deux causes, et la première est un ÉCART DE
+  PUBLICATION, pas un défaut de code.
+  📋 **Mesuré, pas supposé** : les commits `145065b` et `8dac3c7` (le recueil passe
+  de 15 à 45 citations, et la citation de 104 caractères — « Tu as pouvoir sur ton
+  esprit… » — est retirée) ne sont **ancêtres d'aucune OTA publiée**
+  (`git merge-base --is-ancestor <commit> 117f13c` → faux). Le bundle réellement
+  servi porte **15 citations**, la longue comprise ; `main` en porte **45** et ne la
+  garde que dans un commentaire.
+  ➡️ **Rien à coder : il faut PUBLIER.** Tant que l'OTA n'est pas partie, le
+  correctif d'aujourd'hui (A34) ne change rien non plus pour les testeurs.
+  ⚠️ **Ce que ce cas apprend, au-delà de lui** : « mergé » ne veut pas dire
+  « servi ». Trois surfaces vivent à des rythmes différents (site / OTA / binaire),
+  et rien dans le dépôt ne signale qu'un correctif attend depuis un jour. Le
+  réflexe à prendre devant tout signalement de testeur est de **demander d'abord ce
+  qu'il a réellement dans les mains**, avant de chercher dans le code — ici, la
+  moitié du diagnostic était là.
+
+- 🤖 **A34 · Le rappel quotidien ne tournait que pour qui OUVRE l'app — CORRIGÉ le
+  2026-08-12** (`75ab678`, décision fondateur), *reste à publier (cf. A33)*.
+  Le contenu d'une notification est **figé à la programmation** : le système ne
+  redemande jamais à l'app quoi écrire. Avec UN déclencheur `DAILY` qui se rejoue
+  seul, le texte ne changeait qu'au ré-armement, donc qu'à l'ouverture de l'app.
+  Qui décroche recevait la même phrase pendant des semaines — **exactement la
+  personne que le rappel existe pour ramener**.
+  ✅ **Renversement d'arbitrage assumé** : une SÉRIE DATÉE de 30 notifications, une
+  par jour, chacune portant déjà son texte (`reminder.ts::serieQuotidienne`, pur
+  donc testé). L'argument qui avait écarté cette option en son temps — « un rappel
+  qui lâche vaut moins qu'un message qui se répète » — est renversé : une
+  notification identique chaque matin n'est pas un rappel, c'est du bruit, et le
+  bruit finit en **notifications coupées**, ce qui est pire que l'extinction qu'on
+  voulait éviter.
+  ⚠️ **Coût assumé** : sans ouverture pendant 30 jours, le rappel s'éteint. Le
+  ré-armement au démarrage CHANGE DE RÔLE — il ne fait plus tourner le texte, il
+  **recharge la fenêtre**. Le supprimer en croyant nettoyer du code devenu inutile
+  ferait expirer le rappel de tout le monde, un mois plus tard, en silence.
+  🔴 **30 vient d'un BUDGET** : iOS ne garde que **64 notifications en attente** par
+  app et jette les plus lointaines **sans erreur**. La pesée en réserve déjà 7. Un
+  test fige l'arithmétique.
+  🔴 **Et le parc déjà armé est DÉSAMORCÉ** : `kyroz-daily-reminder` nu est
+  l'identifiant que portent tous les appareils installés, et sa notification est
+  `DAILY` — elle se rejoue toute seule, sans l'app. L'oublier n'aurait pas fait un
+  doublon d'un jour : l'ancienne citation figée serait tombée tous les matins **à
+  côté** de la nouvelle série, pour toujours. Même piège que `WEIGH_ID` nu (E38),
+  même remède. **Vérifié par 5 mutations.**
+  ⚠️ **Deux pistes écartées en les MESURANT**, à ne pas re-explorer : le format de
+  stockage de l'heure (migré par `ANCIENS_CRENEAUX`, donc pas de rappel fantôme),
+  et l'identifiant de notification (`kyroz-daily-reminder` n'a jamais changé, donc
+  le ré-armement annule bien l'ancienne).
+
+- 🧑 **A32 · Les 12 silhouettes du sélecteur de %MG sont à REFAIRE avant la mise en
+  ligne (2026-08-12)** — décision fondateur, il cherche un outil qui rende de bons
+  assets. Les images servies portent une « corne » au-dessus des épaules, visible sur
+  les six cartes, qui se lit comme un défaut de modèle 3D.
+  🔴 **LE DÉFAUT EST DANS LA SOURCE, ET AUCUNE RE-DÉCOUPE NE LE RATTRAPE — mesuré.**
+  Sur `assets/bodyfat/_source/*-models.png`, les facettes ombrées du cou et des
+  trapèzes valent **exactement** le gris du fond (écart 1 à 3 par canal sur 255).
+  Donc : aucun critère de COULEUR ne peut séparer deux choses de la même couleur ; et
+  le critère de CONNEXITÉ (diffusion depuis les bords, pourtant le bon en théorie)
+  fuit dans le corps par le haut des épaules aux tolérances **4, 6, 8 ET 10** — 1 410
+  pixels dès la plus stricte. ➡️ **Ne pas repartir sur « mieux régler le seuil » : ce
+  chemin est mesuré et fermé.**
+  ✅ **Ce qui est prêt côté dépôt** : `scripts/decouper-silhouettes.py` (Pillow, mode
+  aperçu par défaut, `--ecrire` pour remplacer) mesure lui-même la bande et les six
+  colonnes, pose un canevas commun, aligne les socles et garde **une seule échelle**
+  pour les douze. Le jour où les planches sont bonnes, la découpe est une commande.
+  📋 **Ce qu'il faut exiger du nouveau jeu** (détail : `assets/bodyfat/_source/README.md`) :
+  **fond contrasté ou PNG déjà transparent** (le point unique qui débloque tout) ·
+  une planche par sexe, mêmes 6 paliers · **même cadrage et même échelle** d'un palier
+  à l'autre, sinon on perd la seule information du sélecteur (un corps à 35 % est plus
+  large qu'un corps à 10 %) · ni titre, ni libellés, ni watermark.
+  ⚠️ Une piste écartée en séance : servir des **tuiles au fond gris plat** au lieu de
+  détourer. Techniquement propre (les pixels ambigus gardent leur teinte, donc
+  l'erreur devient invisible) et vérifié en aperçu — mais c'est un changement de DA
+  (un rectangle clair dans une carte sombre), et le fondateur préfère de vrais assets.
+
 - 🧑 **A30 · Mot de passe oublié — CODE EN LIGNE, reste UN geste hors dépôt (2026-08-07)**
   ✅ **Mergé (PR #43) et déployé le 2026-08-08** — `main` `085166d`, run de déploiement
   vert, écran vérifié sur le bundle réellement servi (« Recevoir un code » **2**,
@@ -3670,6 +3748,90 @@ produit en suspens — il ne reste qu'à coder.
 > ⚠️ **Le conflit git qui en résulte n'est PAS un conflit de numéros** : les deux
 > branches insèrent en tête de cette section, donc git ne sait pas dans quel ordre. La
 > résolution est de garder les DEUX blocs, en ordre décroissant — jamais d'en choisir un.
+
+- 🤖 **E41 · Revue page par page de l'onboarding, du reveal et du tuto (2026-08-12)**
+
+  Session de corrections dictées écran par écran par le fondateur, sur captures.
+  Neuf commits, branche `claude/corrections-par-page-7a0afb`. Ce qui mérite d'être
+  retenu n'est pas la liste des retouches — c'est ce que trois d'entre elles ont
+  découvert en passant.
+
+  **Ce qui a changé, dans l'ordre des écrans :**
+  1. **L'écran d'avertissement santé est SUPPRIMÉ** (`components/HealthScreening.tsx`
+     et `lib/healthScreening.ts` n'existent plus). Depuis E39 il ne posait plus
+     aucune question et ne bloquait plus personne : un tap de plus pour deux
+     phrases. Elles sont servies **sous le bouton de l'étape 1**
+     (`constants/legal.ts::AVERTISSEMENT_MEDICAL` + `DISCLAIMER`).
+     ⚠️ « Discret » veut dire petit et gris, **jamais derrière un lien** : Apple
+     1.4.1 veut le renvoi visible SUR le parcours. Garde-fou :
+     `avertissementMedical.test.ts` (3 mutations).
+  2. **Plus aucun prénom réel en placeholder** — « Kévin » valait sur DEUX écrans
+     (étape 1 **et** Profil → Prénom, celui qui sert justement à le corriger).
+  3. **La date de naissance se choisit à la ROULETTE** (`components/Wheel.tsx`,
+     `lib/wheelDate.ts`). Voir les trois points ci-dessous, c'est là qu'est la
+     matière.
+  4. Sous-titre du %MG raccourci · **les silhouettes sont à refaire** (A32) ·
+     textes de la dernière étape allégés · ligne de stats du reveal resserrée.
+  5. **Tuto** : la bulle de la série garde sa première phrase, l'anneau de
+     surbrillance épouse la forme de sa cible.
+
+  🔴 **TROIS NO-OP WEB, MESURÉS DANS `react-native-web` ET NON SUPPOSÉS.** C'est la
+  vraie récolte de cette session, et les trois sont de la famille d'`Alert.alert`
+  (§11) : aucune erreur, aucune trace, un écran parfaitement plausible.
+  - `onMomentumScrollEnd` et `onScrollEndDrag` **ne sont jamais déclenchés** — RNW
+    ne câble au DOM que `onScroll` (`ScrollView/index.js:588`). Une roulette bâtie
+    dessus défile, s'aimante… et ne commet **rien**. Sur le web, c'est-à-dire sur
+    la version que les testeurs utilisent.
+  - `contentOffset` **n'existe pas du tout** dans RNW (0 occurrence). La roulette
+    s'ouvrait sur 2026 — un nouveau-né — en ayant l'air de marcher. **Vu à l'écran,
+    pas dans le code.**
+  - *(Rappel du même jour : `onEndEditing` était déjà connu comme no-op web.)*
+  ➡️ Un seul chemin partout : `onScroll` + délai de pose, et `scrollTo` au montage.
+
+  🔴 **UNE ROULETTE N'A PAS D'ÉTAT « VIDE », ET C'EST LA DÉCISION STRUCTURANTE.**
+  Elle affiche toujours quelque chose. Posée en ligne dans le formulaire, elle
+  aurait soit **enregistré** une date que personne n'a choisie (donc un âge faux,
+  donc un BMR faux, en silence), soit **affiché** une date que le moteur n'a pas
+  (CLAUDE.md §10). D'où la feuille : la ligne dit « À renseigner » tant qu'on n'a
+  pas validé, et le bouton « Continuer » reste atténué exactement comme avec les
+  trois champs vides d'avant. Ça coûte un tap ; c'est le prix de l'honnêteté sur un
+  champ qui alimente le moteur.
+
+  🔴 **LES ANNÉES MONTENT JUSQU'À L'ANNÉE COURANTE, PAS JUSQU'À `MIN_AGE`.** Le
+  geste évident — n'offrir que les années donnant 18 ans — rendrait le hard block
+  mineur **inatteignable** : plus personne ne pourrait déclarer son âge réel, donc
+  plus personne ne serait refusé, et `checkEligibility::MINOR` resterait vert en ne
+  gardant plus rien. Un test le dit nommément.
+
+  ⚠️ **Et le harnais Playwright ne peut plus remplir un placeholder.**
+  `choisirDateNaissance` POSE LE DÉFILEMENT (`scrollTop`, donc le vrai `onScroll`)
+  plutôt que d'écrire un état — sinon on testerait le harnais, pas l'app. Les
+  repères `wheel-*` et le pas de 44 pt recopié dans le script sont verrouillés
+  contre le composant (`harnaisEcrans.test.ts`).
+  ⚠️ **Le délai supprimé avec l'écran d'avertissement a dû être remplacé** : son
+  `isVisible({ timeout })` absorbait le temps de MONTAGE de l'assistant. Sans
+  attente derrière, une sonde instantanée conclurait « session déjà onboardée » et
+  sauterait l'onboarding **en silence** — la panne exacte que ce harnais existe
+  pour rendre visible. D'où `attendreEtape1`, et un test qui l'exige.
+
+  ⚠️ **Un principe écrit pour un cas ne s'applique pas tout seul à son voisin**,
+  troisième récidive : la phrase « Kyroz sert un peu moins de calories les jours de
+  repos » était conditionnée sur l'écran Plan (2026-08-08) et **pas** à
+  l'onboarding, où elle s'affichait à qui venait de cocher « Je ne fais pas de
+  sport » deux étapes plus tôt. Corrigé, les deux branches vérifiées à l'écran.
+
+  ⚠️ **Un libellé long peut se retirer sans que son INFORMATION se perde** :
+  « kcal en moyenne » est devenu « kcal », et la nuance a changé de PLACE (la
+  phrase d'accroche du reveal), pas de statut. La supprimer aurait ouvert la
+  relation sur un nombre que le plan juste en dessous contredit.
+
+  ✅ **Vérifié** : 1 463 tests verts, 88 fichiers, `tsc` propre. Chaque écran touché
+  a été **regardé en preview**, pas seulement relu — c'est la capture qui a montré
+  le `contentOffset` mort, la césure « Recompositi / on » et les deux branches de la
+  phrase des jours de repos.
+  🔴 **NON VÉRIFIÉ AU SIMULATEUR — et c'est la seule chose qui reste** : la roulette
+  est un GESTE, son inertie et son aimantation ne se jugent pas dans le panneau
+  navigateur (CLAUDE.md §5). À faire avant de se fier au ressenti.
 
 - 🤖 **E40 · La page « Méthodologie & sources » — et pourquoi elle ne contient aucun chiffre (2026-08-11)**
 

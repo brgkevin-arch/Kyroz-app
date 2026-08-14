@@ -831,7 +831,9 @@ function InfoEditor({ t, profile, onSave, onWeighIn, dragHandlers, sheetScrollPr
           </Text>
         </Card>
       )}
-      <Field t={t} label="Prénom" value={prenom} onChangeText={setPrenom} placeholder="Kévin" autoCapitalize="words" />
+      {/* Même correction que l'étape 1 de l'onboarding (2026-08-12) : le placeholder
+          reprend le libellé au lieu de suggérer « Kévin », le prénom du fondateur. */}
+      <Field t={t} label="Prénom" value={prenom} onChangeText={setPrenom} placeholder="Ton prénom" autoCapitalize="words" />
       <Segmented t={t} options={[{ label: 'Homme', value: 'male' }, { label: 'Femme', value: 'female' }]} value={sex} onChange={setSex} />
       <SectionLabel t={t}>Date de naissance</SectionLabel>
       <BirthDateField t={t} value={birthDate} onChange={setBirthDate} fallbackAge={profile.birth_date ? undefined : profile.age} />

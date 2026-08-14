@@ -6,6 +6,7 @@ import {
   ReminderPeriod, clampReminderTime, dayIndex, formatCitation, formatReminderTime,
   nextReminderAt, parseReminder, periodOf, pickCitation, pickReminderCopy, pickWeighInCopy,
   serializeReminder, intentFromData, AUTEURS_DE_LANGUE_FRANCAISE, TRADUCTION_MAX,
+  RAPPELS_A_L_AVANCE, serieQuotidienne,
 } from '../reminder';
 
 // ── Ce que ce fichier tient fermé ───────────────────────────────────────────
@@ -494,5 +495,130 @@ describe('intentFromData — où mène le tap', () => {
     for (const inconnu of [undefined, null, {}, { kind: 'zzz' }, 'texte', 42]) {
       expect(intentFromData(inconnu)).toBe('plan');
     }
+  });
+});
+
+// ── La série datée : le texte tourne SANS ouvrir l'app ──────────────────────
+//
+// 🔴 CE BLOC TIENT UN RENVERSEMENT D'ARBITRAGE, pas un détail d'implémentation.
+// Le rappel était UN déclencheur `DAILY` qui se rejoue seul — mais dont le
+// contenu est figé à la programmation. Le texte ne tournait donc que pour qui
+// OUVRE l'app. Un testeur a reçu la même citation tous les matins pendant des
+// semaines (2026-08-12), et c'est ce signalement qui a fait basculer la
+// décision : on programme désormais une notification DATÉE par jour, chacune
+// portant déjà son texte.
+//
+// Ce que ces tests empêchent de perdre en silence :
+//  · la rotation elle-même — une série où tous les jours disent la même chose
+//    serait le défaut d'origine, rhabillé en série ;
+//  · la fenêtre de 30 jours — la raccourcir éteint le rappel plus tôt, et une
+//    notification qui n'arrive pas ne se remarque JAMAIS ;
+//  · le budget iOS — 64 notifications en attente, pesée comprise. Le dépasser
+//    fait jeter les plus lointaines, sans erreur.
+describe('série quotidienne — la rotation ne dépend plus d’une ouverture', () => {
+  const HEURE = { hour: 8, minute: 0 };
+  const MIDI_10H = new Date(2026, 7, 12, 10, 0, 0);   // 12 août 2026, 10h : 8h est passée
+
+  it('un rappel par jour, à l’heure choisie, à partir de la prochaine occurrence', () => {
+    const serie = serieQuotidienne(HEURE, MIDI_10H);
+    expect(serie).toHaveLength(RAPPELS_A_L_AVANCE);
+    expect(serie[0].date).toEqual(nextReminderAt(HEURE, MIDI_10H));
+    serie.forEach((r, i) => {
+      expect(r.date.getHours(), `jour ${i}`).toBe(8);
+      expect(r.date.getMinutes(), `jour ${i}`).toBe(0);
+      if (i > 0) {
+        const veille = serie[i - 1].date;
+        const ecart = Math.round((r.date.getTime() - veille.getTime()) / 3_600_000);
+        expect([23, 24, 25], `jour ${i}`).toContain(ecart);
+      }
+    });
+  });
+
+  // ⚠️ CE TEST LIT LA SOURCE, ET C'EST UN AVEU ASSUMÉ. La vérification naturelle
+  // serait « l'heure au cadran ne bouge pas sur toute la série » — sauf qu'elle ne
+  // DISCRIMINE RIEN : la fenêtre de 30 jours ne croise un changement d'heure que
+  // deux semaines par an, et un runner en UTC n'en a jamais. Le test passerait au
+  // vert avec un calcul faux, 50 semaines sur 52, et rougirait tout seul fin
+  // octobre — le pire des deux mondes.
+  // Ce qu'on ferme donc, c'est le CHEMIN par lequel la faute arrive : ajouter
+  // 86 400 000 ms au lieu d'un jour civil. Aux deux changements d'heure, ça
+  // décale le rappel d'une heure pour tout le reste de la série.
+  it('les jours s’ajoutent en jours CIVILS, jamais en millisecondes', () => {
+    const src = readFileSync(join(__dirname, '..', 'reminder.ts'), 'utf8')
+      .replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+    const bloc = /export function serieQuotidienne[\s\S]*?\n}/.exec(src)?.[0] ?? '';
+    expect(bloc, 'serieQuotidienne introuvable').not.toBe('');
+    expect(bloc).toContain('setDate(');
+    expect(bloc).not.toMatch(/86[_ ]?400[_ ]?000|24 \* 60 \* 60 \* 1000/);
+  });
+
+  it('🔴 deux jours d’affilée ne disent JAMAIS la même chose', () => {
+    // Le cœur du correctif. Sans lui, la série serait 30 copies du même message —
+    // exactement ce que le testeur recevait, en plus coûteux.
+    for (const heure of HEURES) {
+      const serie = serieQuotidienne({ hour: heure, minute: 0 }, MIDI_10H);
+      for (let i = 1; i < serie.length; i++) {
+        expect({ t: serie[i].title, b: serie[i].body }, `${heure}h jour ${i}`)
+          .not.toEqual({ t: serie[i - 1].title, b: serie[i - 1].body });
+      }
+    }
+  });
+
+  it('chaque jour porte le texte de SON jour, pas celui du jour d’armement', () => {
+    const serie = serieQuotidienne(HEURE, MIDI_10H);
+    serie.forEach((r, i) => {
+      expect(r, `jour ${i}`).toMatchObject(pickReminderCopy(HEURE, dayIndex(r.date)));
+    });
+  });
+
+  it('armer la série trois fois dans la journée ne la fait pas défiler', () => {
+    // `dayIndex` est le garde-fou : même jour → même index → même texte.
+    const a = serieQuotidienne(HEURE, new Date(2026, 7, 12, 9, 0, 0));
+    const b = serieQuotidienne(HEURE, new Date(2026, 7, 12, 22, 30, 0));
+    expect(b.map((r) => r.body)).toEqual(a.map((r) => r.body));
+  });
+
+  it('🔴 la série tient dans le budget iOS, rappel de pesée compris', () => {
+    // 64 notifications en attente par app sur iOS, les plus lointaines jetées en
+    // SILENCE. La pesée en réserve jusqu'à WEIGH_IN_AHEAD (+1 pour l'identifiant
+    // nu des appareils déjà armés).
+    const pesee = 6 + 1;
+    expect(RAPPELS_A_L_AVANCE + pesee).toBeLessThanOrEqual(64);
+    // Et elle couvre au moins un mois : en dessous, le rappel s'éteint chez qui
+    // n'ouvre pas l'app pendant quelques semaines — le cas même qu'on traite.
+    expect(RAPPELS_A_L_AVANCE).toBeGreaterThanOrEqual(28);
+  });
+
+  it('une fenêtre nulle ou négative ne rend rien plutôt que de planter', () => {
+    expect(serieQuotidienne(HEURE, MIDI_10H, 0)).toEqual([]);
+    expect(serieQuotidienne(HEURE, MIDI_10H, -3)).toEqual([]);
+  });
+});
+
+// ── Le parc DÉJÀ ARMÉ doit être désamorcé ───────────────────────────────────
+describe('migration — l’ancienne notification répétitive ne survit pas', () => {
+  const src = readFileSync(join(__dirname, '..', 'notifications.ts'), 'utf8');
+  const code = src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+
+  it('🔴 l’identifiant NU est annulé, pas seulement les nouveaux suffixés', () => {
+    // Tous les appareils déjà installés portent une notification `DAILY` sous
+    // `kyroz-daily-reminder` — elle se rejoue TOUTE SEULE, indéfiniment, sans que
+    // l'app y soit pour rien. L'oublier ferait tomber l'ancienne citation figée
+    // tous les matins À CÔTÉ de la nouvelle série, pour toujours : le défaut
+    // qu'on corrige, relivré par la porte de derrière.
+    expect(code).toMatch(/DAILY_IDS\s*=\s*\[\s*DAILY_ID\s*,/);
+    // Et les deux chemins (choix d'une heure, ré-armement au démarrage) doivent
+    // annuler la LISTE, jamais l'identifiant seul.
+    expect(code).not.toMatch(/cancelScheduledNotificationAsync\(DAILY_ID\)/);
+    expect((code.match(/for \(const id of DAILY_IDS\)/g) ?? []).length).toBe(2);
+  });
+
+  it('plus aucun déclencheur répétitif pour le rappel quotidien', () => {
+    // `programmerQuotidien` doit poser des dates. Un `DAILY` qui reviendrait ici
+    // ré-installerait le texte figé sans qu'aucun autre test ne s'en aperçoive.
+    const bloc = /async function programmerQuotidien[\s\S]*?\n}/.exec(code)?.[0] ?? '';
+    expect(bloc, 'programmerQuotidien introuvable').not.toBe('');
+    expect(bloc).toContain('SchedulableTriggerInputTypes.DATE');
+    expect(bloc).not.toContain('SchedulableTriggerInputTypes.DAILY');
   });
 });

@@ -29,6 +29,15 @@ export interface TourStep {
   targetId: string;
   title: string;
   text: string;
+  /**
+   * Rayon de la CIBLE elle-même (défaut : `Radius.card`, le rayon dominant de la
+   * DA). L'anneau de surbrillance s'en sert pour épouser sa forme.
+   *
+   * ⚠️ Ce n'est pas le rayon de l'anneau : celui-ci est plus GRAND que la cible
+   * (marge tout autour), donc reprendre le même rayon à l'identique donne une
+   * forme plus carrée que l'objet surligné. `GuidedTour` ajoute la marge.
+   */
+  rayon?: number;
 }
 
 export type TourId = 'plan' | 'recettes' | 'courses' | 'frigo' | 'profil';
@@ -63,13 +72,21 @@ export interface PlanTourContext {
 export function planTour({ days, moduleParVolume }: PlanTourContext): TourStep[] {
   return [
     {
-      // Prouvé par : plan.tsx:198 (`markActiveToday()` au montage, donc à la
-      // simple ouverture) et lib/streak.ts::advanceStreak — série préservée si
-      // UN seul jour a été manqué et que le bouclier est disponible, bouclier
-      // rechargé à chaque palier de FREEZE_RECHARGE = 7.
+      // Prouvé par : plan.tsx:198 — `markActiveToday()` part au MONTAGE, donc à
+      // la simple ouverture de l'onglet, cuisiné ou pas.
+      //
+      // ⚠️ LA DEUXIÈME PHRASE A ÉTÉ RETIRÉE LE 2026-08-12 (décision fondateur).
+      // Elle décrivait le bouclier : « si tu manques un jour, il est pardonné une
+      // fois, la protection revient tous les sept jours ». Ce n'était pas faux —
+      // `streak.ts::advanceStreak` le fait, et `FREEZE_RECHARGE` vaut bien 7 —
+      // c'était une RÈGLE DE JEU expliquée à quelqu'un qui vient d'ouvrir l'app
+      // pour la première fois. Le titre promet « sans pression » ; détailler un
+      // mécanisme de rattrapage à ce moment-là fait exactement l'inverse.
+      // ➡️ Ne pas la remettre en croyant compléter une bulle incomplète : ce qui
+      // reste est ce qu'il faut savoir, le reste s'apprend en s'en servant.
       targetId: 'plan-serie',
       title: 'Ta série, sans pression',
-      text: "Elle avance dès que tu ouvres ton plan, cuisiné ou pas. Et si tu manques un jour, il est pardonné une fois : la protection revient tous les sept jours de série.",
+      text: "Elle avance dès que tu ouvres ton plan, cuisiné ou pas.",
     },
     {
       // Prouvé par : MacroBar.tsx (le ruban est un jeu de PROPORTIONS, toujours

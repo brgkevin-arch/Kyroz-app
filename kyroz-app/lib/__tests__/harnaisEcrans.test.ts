@@ -33,6 +33,7 @@ import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { TOURS } from '../tours';
+import { CIBLE_TACTILE_MIN } from '../../constants/theme';
 
 const RACINE = join(__dirname, '..', '..');
 const lire = (rel: string) => readFileSync(join(RACINE, rel), 'utf8');
@@ -80,13 +81,15 @@ const ANCRES: Ancre[] = [
   { quoi: 'champ e-mail (preuve « toujours sur le login »)', texte: 'toi@email.com', dans: 'app/(auth)/login.tsx' },
   { quoi: 'champ mot de passe (QA écran de login)', texte: '6 caractères minimum', dans: 'app/(auth)/login.tsx', script: 'test/qa-full.mjs' },
 
-  // ── Écran d'avertissement santé (passScreening) ──
-  // ⚠️ Trois ancres ont disparu ici le 2026-08-11 (E39) : la question du portail, les
-  // réponses « Non » et l'attestation. Elles ne sont pas « à remettre » — l'écran ne
-  // pose plus de question. Il n'en reste que deux, et ce sont les deux qu'il faut :
-  // le repère de reconnaissance et le bouton unique.
-  { quoi: 'repère de l\'écran d\'avertissement', texte: 'Avant de commencer', dans: 'components/HealthScreening.tsx' },
-  { quoi: 'bouton unique de l\'avertissement', texte: 'J\'ai compris', dans: 'components/HealthScreening.tsx' },
+  // ── Écran d'avertissement santé : PLUS D'ANCRES, PARCE QU'IL N'Y A PLUS D'ÉCRAN ──
+  // Cinq ancres ont vécu ici. Trois sont parties le 2026-08-11 (E39, l'écran cesse de
+  // poser des questions), les deux dernières — « Avant de commencer » et « J'ai
+  // compris » — le 2026-08-12 avec l'écran lui-même. Les scripts ne franchissent donc
+  // plus rien entre la connexion et l'étape 1.
+  // ⚠️ Ne pas les « remettre au cas où » : une ancre qui désigne un écran supprimé
+  // rougit pour de bonnes raisons le jour où on la lit, et pour de mauvaises tous les
+  // autres jours. Ce que l'écran portait est gardé ailleurs, par
+  // `lib/__tests__/avertissementMedical.test.ts`.
 
   // ── Assistant d'onboarding (runOnboarding) ──
   { quoi: 'repère de l\'étape 1', texte: 'Ton prénom', dans: 'app/(auth)/onboarding.tsx' },
@@ -136,13 +139,24 @@ const ANCRES: Ancre[] = [
  * *Jour* — les deux autres suffisaient à la satisfaire. Un verrou qui accepte
  * n'importe lequel des trois maillons ne garde aucun des trois.
  */
-const champDate = (cle: 'd' | 'mo' | 'y') => ({ fichier: 'components/DateInput.tsx', cle });
+// ℹ️ `champDate` (le pont vers `DateInput`) a servi aux trois cases de la date de
+// naissance jusqu'au 2026-08-12, où elles sont devenues une roulette. La forme
+// `via` reste décrite ci-dessous : `DateInput` est toujours en service pour
+// l'échéance de l'objectif daté, que le harnais ne remplit pas aujourd'hui.
 type Via = { fichier: string; cle: string };
 const PLACEHOLDERS: { quoi: string; valeur: string; dans: string; via?: Via }[] = [
-  { quoi: 'prénom (étape 1)', valeur: 'Kévin', dans: 'app/(auth)/onboarding.tsx' },
-  { quoi: 'jour de naissance (étape 2)', valeur: '2', dans: 'components/BirthDateField.tsx', via: champDate('d') },
-  { quoi: 'mois de naissance (étape 2)', valeur: '8', dans: 'components/BirthDateField.tsx', via: champDate('mo') },
-  { quoi: 'année de naissance (étape 2)', valeur: '1994', dans: 'components/BirthDateField.tsx', via: champDate('y') },
+  // ⚠️ Ce placeholder REPREND le libellé du champ depuis le 2026-08-12 (il valait
+  // « Kévin »). Il reste une ancre valable — le harnais remplit le champ PAR son
+  // placeholder — mais il ne se distingue plus du libellé : `fillPh` doit viser
+  // l'attribut, pas le texte à l'écran.
+  { quoi: 'prénom (étape 1)', valeur: 'Ton prénom', dans: 'app/(auth)/onboarding.tsx' },
+  // ⚠️ LES TROIS PLACEHOLDERS DE LA DATE DE NAISSANCE ONT DISPARU LE 2026-08-12 :
+  // ce n'est plus une saisie, c'est une ROULETTE (`components/Wheel.tsx`), et une
+  // roulette ne se remplit pas par un placeholder. Le harnais la pilote par les
+  // repères `wheel-*` — vérifiés plus bas, dans leur propre table, parce qu'ils
+  // se prouvent autrement (un `testID`, pas un attribut `placeholder`).
+  // ℹ️ `champDate` reste employé : l'échéance de l'objectif daté, elle, se tape
+  // toujours dans `DateInput`.
   { quoi: 'poids (étape 2)', valeur: '80', dans: 'app/(auth)/onboarding.tsx' },
   { quoi: 'taille (étape 2)', valeur: '178', dans: 'app/(auth)/onboarding.tsx' },
   { quoi: 'masse grasse (étape 3)', valeur: 'ex. 18', dans: 'components/BodyFatPicker.tsx' },
@@ -229,6 +243,51 @@ describe('harnais Playwright — les libellés cherchés existent encore', () =>
     ).toBe(true);
   });
 
+  // ── La roulette de date de naissance (choisirDateNaissance) ──────────────
+  //
+  // Elle ne se remplit ni par un placeholder ni par un texte : le harnais pose le
+  // défilement de CHAQUE colonne par son `testID`, puis valide. Trois choses
+  // peuvent donc casser en silence — un repère renommé, la ligne qui ouvre la
+  // feuille, et le bouton qui commet. Les trois sont ici.
+  //
+  // ⚠️ La HAUTEUR DE LIGNE est recopiée dans le harnais (`i * 44`) parce qu'un
+  // script Playwright ne peut pas importer un token TypeScript. Une recopie qui
+  // dérive donnerait un défilement au mauvais endroit — donc une date fausse, pas
+  // une erreur. D'où le contrôle croisé ci-dessous contre `CIBLE_TACTILE_MIN`.
+  it.each([
+    { quoi: 'colonne des jours', repere: 'wheel-jour' },
+    { quoi: 'colonne des mois', repere: 'wheel-mois' },
+    { quoi: 'colonne des années', repere: 'wheel-annee' },
+  ])('repère de roulette « $repere » — $quoi', ({ repere }) => {
+    expect(
+      lire('components/BirthDatePicker.tsx').includes(`testID="${repere}"`),
+      `components/BirthDatePicker.tsx ne pose plus testID="${repere}" → le harnais ne trouvera pas la colonne`,
+    ).toBe(true);
+    expect(
+      lire(HARNAIS).includes(repere),
+      `${HARNAIS} ne vise plus « ${repere} » : mettre à jour cette table`,
+    ).toBe(true);
+  });
+
+  it('la ligne qui OUVRE la roulette, et le bouton qui la VALIDE', () => {
+    expect(lire('components/BirthDateField.tsx')).toContain('À renseigner');
+    expect(lire('components/BirthDatePicker.tsx')).toContain('label="Valider"');
+    const harnais = lire(HARNAIS);
+    expect(harnais).toContain('À renseigner');
+    expect(harnais).toContain('Valider');
+  });
+
+  it('🔴 la hauteur de ligne recopiée dans le harnais suit la cible tactile', () => {
+    // Le harnais calcule `scrollTop = i × 44`. Si la roulette changeait de hauteur
+    // de ligne, il défilerait au mauvais endroit et choisirait une AUTRE date —
+    // sans erreur, sans capture, avec un plan calculé sur un âge faux.
+    expect(lire('components/Wheel.tsx')).toContain('const HAUTEUR_LIGNE = CIBLE_TACTILE_MIN');
+    expect(
+      lire(HARNAIS).includes(`i * ${CIBLE_TACTILE_MIN}`),
+      `${HARNAIS} ne défile plus par pas de ${CIBLE_TACTILE_MIN} pt — il choisirait une autre date en silence`,
+    ).toBe(true);
+  });
+
   it.each(CLES)('clé $cle — $quoi', ({ cle, dans }) => {
     expect(lire(dans).includes(cle), `${dans} n'emploie plus ${cle}`).toBe(true);
     expect(lire(HARNAIS).includes(cle), `${HARNAIS} n'emploie plus ${cle}`).toBe(true);
@@ -277,37 +336,48 @@ describe('harnais Playwright — les tables recopiées suivent la source', () =>
     ).toBe(false);
   });
 
-  // 🔴 CE TEST A CHANGÉ DE CIBLE LE 2026-08-11 (E39), IL N'A PAS ÉTÉ SUPPRIMÉ.
-  // Il exigeait que `passScreening` clique un « Non » par condition avant de chercher
-  // l'attestation — la règle qui avait fait dormir la panne du 2026-08-05. L'écran ne
-  // pose plus de question, donc cette exigence n'a plus d'objet ; mais le RISQUE, lui,
-  // est intact : un harnais qui vise un libellé disparu rend « écran introuvable » et
-  // accuse la cible au lieu du parcours. Il vérifie donc désormais que la fonction
-  // franchit l'écran par son bouton, et qu'elle ne traîne aucun reste de l'ancien
-  // portail — un « Non » cliqué dans le vide serait vert et sans effet.
-  it('passScreening franchit l\'avertissement par son bouton, sans reste du portail', () => {
-    // 🔴 LES COMMENTAIRES SE RETIRENT AVANT TOUTE RECHERCHE DE CHAÎNE, et ce test
-    // en est la démonstration : la note qui explique le retrait CITE « Es-tu
-    // concerné·e », donc la première version s'accusait elle-même. C'est le défaut
-    // d'A30 rejoué — le commentaire se porte garant de ce qu'il décrit — mais ici
-    // dans le sens alarmant, ce qui est la version chanceuse : il rougit au lieu de
+  // 🔴 CE TEST A CHANGÉ DE CIBLE DEUX FOIS, IL N'A JAMAIS ÉTÉ SUPPRIMÉ — et c'est
+  // le point. Version 1 : `passScreening` devait cliquer un « Non » par condition
+  // avant de chercher l'attestation (la règle née de la panne du 2026-08-05).
+  // Version 2 (E39) : l'écran ne pose plus de question, il devait le franchir par
+  // son bouton unique. Version 3 (2026-08-12) : l'écran n'existe plus du tout.
+  //
+  // Le RISQUE, lui, n'a pas bougé d'un pouce à travers les trois : un harnais qui
+  // vise un libellé disparu rend « écran introuvable » et accuse la CIBLE au lieu du
+  // PARCOURS. Ce qu'il faut donc vérifier aujourd'hui, c'est qu'aucun reste de cet
+  // écran ne traîne dans le harnais, et que ce qui absorbait son délai de montage a
+  // bien été remplacé — sinon l'onboarding se saute en silence sur une page lente.
+  it('le harnais ne cherche plus l\'écran d\'avertissement supprimé', () => {
+    // 🔴 LES COMMENTAIRES SE RETIRENT AVANT TOUTE RECHERCHE DE CHAÎNE, et ce test en
+    // est la démonstration : la note du harnais qui explique le retrait CITE
+    // « Avant de commencer », donc une version naïve s'accuserait elle-même. C'est le
+    // défaut d'A30 rejoué — le commentaire se porte garant de ce qu'il décrit — ici
+    // dans le sens alarmant, qui est la version chanceuse : il rougit au lieu de
     // verdir à tort. Un test qui cherche l'ABSENCE d'un libellé doit lire le CODE.
     const harnais = sansCommentairesJS(lire(HARNAIS));
-    const sequence = /export async function passScreening[\s\S]*?\n}/.exec(harnais)?.[0] ?? '';
-    expect(sequence, 'passScreening introuvable').not.toBe('');
-    // ⚠️ On cherche « ai compris » et PAS le libellé entier : dans un `.mjs`, une
-    // apostrophe à l'intérieur d'une chaîne simple s'écrit `J\'ai compris`, donc un
-    // `includes("J'ai compris")` rend faux sur un harnais parfaitement juste. Premier
-    // jet rouge pour cette seule raison — la sonde accusait le code au lieu d'elle-même.
-    expect(
-      /ai compris/.test(sequence),
-      'passScreening ne clique plus le bouton unique de l\'écran d\'avertissement',
-    ).toBe(true);
-    for (const reste of ['getByText(\'Non\'', 'Je confirme être un adulte', 'Es-tu concerné']) {
+    for (const reste of ['Avant de commencer', 'ai compris', 'getByText(\'Non\'', 'Je confirme être un adulte', 'Es-tu concerné']) {
       expect(
-        sequence.includes(reste),
-        `passScreening cherche encore « ${reste} » : ce libellé n'existe plus depuis E39, le harnais échouerait en accusant l'écran`,
+        harnais.includes(reste),
+        `le harnais cherche encore « ${reste} » : cet écran a été supprimé le 2026-08-12, le script échouerait en accusant l'app`,
       ).toBe(false);
     }
+  });
+
+  // ⚠️ CE QUI REMPLACE L'ÉCRAN N'EST PAS RIEN : son `isVisible({ timeout })` absorbait
+  // le temps de montage de l'assistant. Sans attente explicite derrière, une sonde
+  // instantanée rendrait « pas d'assistant » sur une page qui n'a pas fini de monter —
+  // donc onboarding SAUTÉ, donc un plan jamais généré, sans une ligne pour le dire.
+  it('l\'entrée dans l\'assistant ATTEND l\'étape 1, elle ne la sonde pas', () => {
+    const harnais = sansCommentairesJS(lire(HARNAIS));
+    const boot = /export async function bootToPlan[\s\S]*?\n}/.exec(harnais)?.[0] ?? '';
+    expect(boot, 'bootToPlan introuvable').not.toBe('');
+    expect(
+      boot.includes('attendreEtape1'),
+      'bootToPlan n\'attend plus l\'étape 1 : un assistant lent à monter serait pris pour une session déjà onboardée',
+    ).toBe(true);
+    expect(
+      /isVisible\(\{\s*timeout/.test(harnais.slice(harnais.indexOf('attendreEtape1'))),
+      'attendreEtape1 ne pose aucun délai — elle ne remplace donc pas ce que l\'écran supprimé absorbait',
+    ).toBe(true);
   });
 });

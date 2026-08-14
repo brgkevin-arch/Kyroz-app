@@ -38,9 +38,8 @@ import { useProfile } from '../../hooks/useProfile';
 import { saveFirstName } from '../../lib/profileName';
 import { capture, Events } from '../../lib/analytics';
 import { useAnalyticsConsent } from '../../hooks/useAnalyticsConsent';
-import HealthScreening from '../../components/HealthScreening';
 import AnalyticsConsentStep from '../../components/AnalyticsConsentStep';
-import { hasPassedScreening } from '../../lib/healthScreening';
+import { DISCLAIMER, AVERTISSEMENT_MEDICAL } from '../../constants/legal';
 
 const TOTAL_STEPS = 7;
 
@@ -116,11 +115,6 @@ export default function Onboarding() {
   const { saveProfile } = useProfile();
   const { notify } = useDialog();
 
-  // Dépistage santé bloquant (CLAUDE.md §6). null = flag pas encore lu ; false =
-  // à faire (on affiche le portail avant l'assistant) ; true = passé.
-  const [screened, setScreened] = useState<boolean | null>(null);
-  useEffect(() => { hasPassedScreening().then(setScreened); }, []);
-
   // Consentement aux statistiques d'usage. `undefined` = en cours de lecture ;
   // `null` = pas encore répondu → l'écran de consentement remplace l'assistant.
   const { consent, choose: chooseConsent } = useAnalyticsConsent();
@@ -129,14 +123,16 @@ export default function Onboarding() {
   // de placement. Au montage, la question du consentement n'a pas encore été posée :
   // `capture` sortirait à sa première ligne et l'event serait perdu pour tout le
   // monde, y compris pour ceux qui acceptent trois secondes plus tard. Il part donc
-  // quand l'assistant DÉMARRE vraiment — dépistage passé et consentement répondu.
+  // quand l'assistant DÉMARRE vraiment — c'est-à-dire une fois le consentement
+  // répondu, seule chose qui le précède encore depuis la suppression de l'écran
+  // d'avertissement santé (2026-08-12).
   const tunnelOuvert = useRef(false);
   useEffect(() => {
-    if (screened !== true || consent === undefined || consent === null) return;
+    if (consent === undefined || consent === null) return;
     if (tunnelOuvert.current) return;
     tunnelOuvert.current = true;
     capture(Events.onboardingStarted);
-  }, [screened, consent]);
+  }, [consent]);
 
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
@@ -146,7 +142,7 @@ export default function Onboarding() {
   // abandonner — `onboarding_completed` seul ne compte que ceux qui sont allés au
   // bout, donc il ne peut rien dire de ceux qui partent. Même garde que ci-dessus :
   // rien ne part tant que l'assistant n'est pas réellement à l'écran.
-  const assistantActif = screened === true && consent !== undefined && consent !== null;
+  const assistantActif = consent !== undefined && consent !== null;
   useEffect(() => {
     if (!assistantActif) return;
     capture(Events.onboardingStepViewed, { step });
@@ -196,6 +192,11 @@ export default function Onboarding() {
     hN >= HEIGHT_BOUNDS[0] && hN <= HEIGHT_BOUNDS[1]; // étape 2 — infos
   const bodyFatValid = bodyFat != null;                                                   // étape 3 — masse grasse
   const trainingValid = noSport || sports.length >= 1;                                     // étape 4 — activité (sports ou « aucun »)
+  // Du sport a-t-il été DÉCLARÉ ? C'est ce qui décide si les jours de repos changent
+  // quoi que ce soit (cf. le texte de l'étape 7) : `saveProfile` envoie
+  // `sports: noSport ? [] : sports`, et sans séance `dayExpenditures` rend une cible
+  // plate — sept jours identiques.
+  const sportDeclare = !noSport && sports.length > 0;
   const trainingDaysEq = noSport ? 0 : Math.min(totalSessionsPerWeek(sports), 7);          // repli legacy (activity_level / training_days)
   const mealsValid = planWeekdays.length >= 1 && meals.length >= 1;                        // étape 7 — jours + repas
   const profileReady = basicsValid && bodyFatValid; // suffisant pour les calculs TDEE/macros
@@ -312,8 +313,11 @@ export default function Onboarding() {
     };
     const profile = recalcProfile(draft); // ← source unique du TDEE et des macros
     // Éligibilité (P0.4) : mineur, IMC de départ, volume d'entraînement. La grossesse
-    // et l'allaitement sont déjà bloqués en amont par le portail de dépistage santé
-    // (lib/healthScreening.ts) — on ne duplique pas le champ dans le profil.
+    // et l'allaitement n'y figurent PAS et ne doivent pas y revenir (CLAUDE.md §6,
+    // AGENTS.md E39) : subordonner l'accès à l'un ou l'autre est un refus de service
+    // fondé sur un critère de discrimination, et la réponse serait elle-même une
+    // donnée de santé. Ce qui reste est DIT (AVERTISSEMENT_MEDICAL, sous le bouton de
+    // l'étape 1) ; ce qui protège, ce sont les blocages qui MESURENT.
     const blocked = eligibilityMessage(checkEligibility(profile));
     // ⚠️ `Alert.alert` est une fonction VIDE sur le web : un profil REFUSÉ (mineur,
     // IMC de départ, volume d'entraînement) voyait le bouton final ne rien faire,
@@ -350,16 +354,16 @@ export default function Onboarding() {
     router.replace('/(tabs)/plan');
   };
 
-  // Portail de dépistage santé : tant qu'il n'est pas passé, il remplace l'assistant.
+  // Consentement analytics — AVANT la première question du profil, et c'est le SEUL
+  // écran qui précède encore l'assistant. Le poser plus tard supprimerait D1 (cf.
+  // AnalyticsConsentStep).
+  //
+  // ⚠️ L'écran d'avertissement santé le précédait ; il a été SUPPRIMÉ le 2026-08-12
+  // (décision fondateur). Ses deux phrases sont servies sous le bouton de l'étape 1 —
+  // voir le pied de page plus bas et constants/legal.ts. Ne pas le « rétablir » :
+  // depuis le 2026-08-11 il ne posait plus aucune question et ne bloquait plus
+  // personne, donc il coûtait un tap pour un texte qui n'a pas besoin d'un écran.
   // (Placé APRÈS tous les hooks → règles React respectées.)
-  if (screened === null) return null; // lecture du flag (AsyncStorage, quasi instantané)
-  if (!screened) return <HealthScreening onPass={() => setScreened(true)} />;
-
-  // Consentement analytics — APRÈS le dépistage, AVANT la première question du profil.
-  // L'ordre n'est pas cosmétique : le dépistage décide si Kyroz a le droit de servir un
-  // plan (§6), le consentement décide seulement si on a le droit de MESURER. Poser le
-  // second en premier ferait passer une question de confort avant une question de
-  // sécurité. Et le poser plus tard supprimerait D1 (cf. AnalyticsConsentStep).
   if (consent === undefined) return null; // lecture du stockage, quasi instantané
   if (consent === null) return <AnalyticsConsentStep onChoose={chooseConsent} />;
 
@@ -395,7 +399,7 @@ export default function Onboarding() {
           <View style={s.block}>
             <Text style={s.title}>Ta masse grasse</Text>
             <Text style={s.sub}>
-              Indispensable pour un plan vraiment adapté : deux personnes du même poids n'ont pas les mêmes besoins. Choisis la silhouette la plus proche de toi, ou saisis ton % si tu le connais.
+              Choisis la silhouette la plus proche de toi, ou saisis ton % si tu le connais.
             </Text>
             {/* Le corps est déjà saisi à l'étape 2 → le repère de plausibilité peut
                 chiffrer l'impact. Les séances (étape 4) ne comptent pas ici : elles
@@ -470,8 +474,11 @@ export default function Onboarding() {
 
         {step === 7 && (
           <View style={s.block}>
+            {/* Le sous-titre « Choisis les jours où tu veux suivre ton plan » est parti
+                (2026-08-12) : il paraphrasait le titre au-dessus d'une rangée de jours
+                qu'on ne peut que taper. La ligne « N jours par semaine » sous la rangée
+                dit, elle, quelque chose que le titre ne dit pas. */}
             <Text style={s.title}>Tes jours de plan</Text>
-            <Text style={s.sub}>Choisis les jours où tu veux suivre ton plan.</Text>
             <View style={s.daysRow}>
               {WEEKDAY_OPTS.map((d) => {
                 const on = planWeekdays.includes(d.val);
@@ -487,13 +494,25 @@ export default function Onboarding() {
 
             {/* Jours de repos = sous-ensemble des jours du plan → carb-cycling. */}
             <SectionLabel t={t}>Jours de repos</SectionLabel>
-            {/* ⚠️ Ce texte promettait deux choses fausses — « (mêmes calories) », plus
+            {/* ⚠️ Ce texte a déjà promis deux choses fausses — « (mêmes calories) », plus
                 vrai depuis la répartition par volume, et « recettes récup », plus vrai
-                depuis la suppression du tag `rest_day_ok` le 2026-08-03. Le STYLE vient
-                de la passe de DA, le TEXTE du correctif moteur : deux axes, pas deux
-                versions. */}
+                depuis la suppression du tag `rest_day_ok` le 2026-08-03.
+
+                🔴 IL EN PROMETTAIT UNE TROISIÈME, ET C'EST LE MÊME DÉFAUT QUE SUR
+                L'ÉCRAN PLAN (CLAUDE.md §8, corrigé là-bas le 2026-08-08) : la modulation
+                par volume n'existe QUE si du sport est déclaré — sans lui,
+                `dayExpenditures` retombe sur une cible plate et les sept jours sont
+                identiques. La phrase annonçait pourtant « moins de calories les jours de
+                repos » à tout le monde, y compris à qui vient de cocher « Je ne fais pas
+                de sport » deux étapes plus tôt.
+                ➡️ Le prédicat est ici la DÉCLARATION de sport, et non le seuil de 40 kcal
+                de `moduleParVolume` : à cette étape le profil n'existe pas encore, donc
+                aucune amplitude n'est calculable. C'est le même fait, lu à la seule
+                source disponible à ce moment-là. */}
             <Text style={[s.sub, { ...Type.caption, marginTop: -Spacing.sm }]}>
-              Tes jours sans entraînement : Kyroz y sert un peu moins de calories et de glucides, et reporte la différence sur tes jours d'entraînement. Tes protéines ne bougent pas, et ta semaine garde son total.
+              {sportDeclare
+                ? "Moins de calories et de glucides ces jours-là, reportées sur tes jours d'entraînement. Tes protéines et ton total de la semaine ne bougent pas."
+                : "Tes jours sans entraînement. Ils ne changeront tes calories que si tu déclares du sport."}
             </Text>
             <View style={s.wrap}>
               {(planWeekdays.length ? WEEKDAY_OPTS.filter((o) => planWeekdays.includes(o.val)) : []).map((d) => (
@@ -508,9 +527,11 @@ export default function Onboarding() {
             )}
 
             <SectionLabel t={t}>Repas inclus</SectionLabel>
+            {/* La deuxième phrase — « Tu en fais plus de quatre ? Ajoute tes propres
+                repas » — est partie le 2026-08-12 : le bouton « + Ajouter un repas »
+                est juste en dessous et le dit mieux qu'elle. */}
             <Text style={[s.sub, { ...Type.caption, marginTop: -Spacing.sm }]}>
-              Coche ce que tu manges dans une journée. Tu en fais plus de quatre ? Ajoute
-              tes propres repas — Kyroz répartit ton budget sur tous.
+              Coche ce que tu manges dans une journée.
             </Text>
             <MealSlotsPicker
               t={t} customSlots={customSlots} selected={meals}
@@ -547,6 +568,18 @@ export default function Onboarding() {
           loading={saving}
           muted={!canProceed}
         />
+        {/* Les deux phrases de l'ancien écran « Avant de commencer », servies là où il
+            servait : juste avant que quiconque commence. Le renvoi vers un médecin est
+            exigé par Apple (1.4.1) et Google, le disclaimer par §6 (« onboarding,
+            paramètres, chaque plan »).
+            ⚠️ Étape 1 SEULEMENT — les répéter sur les sept étapes en ferait du décor
+            qu'on ne lit plus. Garde-fou : lib/__tests__/avertissementMedical.test.ts. */}
+        {step === 1 && (
+          <View style={s.mentions}>
+            <Text style={s.disclaimer}>{AVERTISSEMENT_MEDICAL}</Text>
+            <Text style={s.disclaimer}>{DISCLAIMER}</Text>
+          </View>
+        )}
       </View>
     </SafeAreaView>
   );
@@ -594,7 +627,11 @@ function NameStep({ t, value, onChange }: { t: ThemePalette; value: string; onCh
         On va te bâtir un plan nutrition sur-mesure en moins d'une minute. D'abord, comment on t'appelle ?
       </Animated.Text>
       <Animated.View style={{ opacity: field, marginTop: Spacing.sm }}>
-        <Field t={t} label="Ton prénom" value={value} onChangeText={onChange} placeholder="Kévin" autoCapitalize="words" autoFocus />
+        {/* ⚠️ Le placeholder REPREND le libellé, il ne donne pas d'exemple. C'était
+            « Kévin » — le prénom du fondateur, servi comme suggestion à tout le monde.
+            Décision du 2026-08-12 : aucun prénom réel dans un champ vide. Même
+            correction dans Profil → Prénom, qui portait le même. */}
+        <Field t={t} label="Ton prénom" value={value} onChangeText={onChange} placeholder="Ton prénom" autoCapitalize="words" autoFocus />
       </Animated.View>
     </View>
   );
@@ -616,6 +653,7 @@ function makeStyles(t: ThemePalette) {
     dayCircle: { flex: 1, height: 52, borderRadius: Radius.button, borderWidth: Trait.fin, alignItems: 'center', justifyContent: 'center' },
     footer: { padding: Spacing.xl, paddingTop: Spacing.sm, backgroundColor: t.bg },
     hint: { ...Type.captionStrong, color: t.warning, lineHeight: 18, marginBottom: Spacing.md, textAlign: 'center' },
-    disclaimer: { ...Type.micro, color: t.textTertiary, lineHeight: 16, textAlign: 'center', marginTop: Spacing.xs },
+    mentions: { gap: Spacing.xs, marginTop: Spacing.md },
+    disclaimer: { ...Type.micro, color: t.textTertiary, lineHeight: 16, textAlign: 'center' },
   });
 }
