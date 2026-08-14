@@ -3756,6 +3756,57 @@ produit en suspens — il ne reste qu'à coder.
 > branches insèrent en tête de cette section, donc git ne sait pas dans quel ordre. La
 > résolution est de garder les DEUX blocs, en ordre décroissant — jamais d'en choisir un.
 
+- 🤖 **E46 · Trois listes qui étaient des murs — le Frigo se replie, les recettes se dévoilent (2026-08-14)**
+
+  Décision fondateur, sur captures : le Frigo affichait **69 aliments** d'un bloc et
+  **185 recettes prêtes** à la suite ; l'onglet Recettes servait **512 cartes**. Trois
+  listes qu'on ne parcourt pas — on les subit.
+
+  **1. Le stock du Frigo se replie par rayon.** Tap sur « PRODUITS LAITIERS & ŒUFS »
+  et le rayon se ferme, le compte reste visible. **Ouvert par défaut**, sur sa
+  demande — un inventaire qui s'ouvre fermé cache ce qu'on vient vérifier.
+  ⚠️ On mémorise les rayons **FERMÉS**, pas les ouverts : un ensemble vide porte le
+  défaut sans qu'aucune ligne ne l'initialise, et un rayon qui apparaît (un premier
+  produit laitier acheté) est ouvert d'office, sans que rien n'ait à y penser.
+  ⚠️ **NON persisté, et c'est une décision** : c'est un pli de lecture, pas un
+  réglage. Le stocker imposerait le patron des valeurs d'appareil (CLAUDE.md §11,
+  store externe + `useSyncExternalStore`) pour un état qui ne survit à rien — et le
+  frigo se rouvrirait à moitié replié sans que personne se souvienne de l'avoir
+  demandé.
+
+  **2. Les deux listes « À cuisiner » se dévoilent par 8**, la troisième **par 10**
+  (`lib/revelation.ts`, pur et testé ; `ui.tsx::BoutonRevelation` pour le rendu).
+  Séquence dictée : *10 · voir + · 10 · voir + · voir tout*. Trois listes, une seule
+  arithmétique — trois copies auraient divergé à la première retouche.
+
+  🔴 **UN PLAFOND MUET EST TOMBÉ AU PASSAGE, et c'est la vraie trouvaille.** Les
+  presque-prêtes étaient tronquées à 5 par un `.slice(0, 5)` que **rien n'annonçait**
+  — mesuré sur le simulateur après correctif : **202 recettes**, donc **194 qui
+  n'existaient nulle part à l'écran**. C'est exactement le « no silent caps » que le
+  dépôt s'impose : une liste bornée doit le DIRE. Le bouton dit maintenant « Voir les
+  194 restantes ».
+
+  ⚠️ **Deux règles §10 tenues par le libellé, pas par l'intention :**
+  · « Voir + de recettes » **ne s'affiche pas** quand le tap révélerait déjà tout le
+    reste — il devient « Voir les N restantes ». Un bouton dit ce qu'il fait ;
+  · le compteur de l'en-tête Recettes affiche le **total filtré**, jamais la tranche
+    visible. Sans ça, un filtre qui trouve 512 recettes en annonce 10, et le chiffre
+    change à chaque « Voir + » **sans qu'aucun filtre n'ait bougé**.
+
+  🔴 **ET LES PALIERS SE REMETTENT À ZÉRO QUAND LA LISTE CHANGE** (filtre, recherche,
+  catalogue). Sinon le bouton annonce un reste calculé sur l'ancien filtre — le même
+  défaut que le compteur, par une autre porte.
+
+  ⚠️ `PALIERS_AVANT_TOUT = 2` est **exporté**, pas enterré dans un `n >= 2` : il porte
+  une décision du fondateur, et sans nom il se ferait « simplifier » à la première
+  relecture. Au-delà, atteindre la fin de 512 recettes demanderait cinquante appuis.
+
+  **Vérifié au simulateur** (le seul juge, §5) : rayon replié, compte conservé ·
+  Frigo 8 → « Voir + » → 16 → « Voir + » → « Voir les 194 restantes » · Recettes
+  10 → 20 → 30 → « Voir les 482 restantes » → liste entière, bouton disparu.
+  ➡️ Garde-fou : `lib/__tests__/revelation.test.ts` (13 cas), qui fige la séquence
+  dictée — elle n'est pas un détail d'implémentation.
+
 - 🔴 **E45 · OUVERT — l'app se fige sur « Rien à acheter », non reproduite (2026-08-14)**
 
   **Signalé par le fondateur**, avec capture, sur son iPhone (OTA #13) : *« une fois

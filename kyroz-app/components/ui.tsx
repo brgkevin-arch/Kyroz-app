@@ -232,3 +232,33 @@ export function MenuRow({
     </Presse>
   );
 }
+
+// ── Le bouton qui dévoile la suite d'une liste ──────────────────────────────
+//
+// Trois listes s'en servent — les recettes prêtes du Frigo, les presque-prêtes, et
+// le catalogue des 512. Trois copies auraient divergé au premier ajustement, sur
+// la seule chose qu'un tel bouton doit faire : DIRE COMBIEN il en reste.
+//
+// ⚠️ Le libellé et l'arithmétique ne vivent PAS ici mais dans `lib/revelation.ts`,
+// qui est pur et testé. Ce composant ne fait que le rendre — même découpage que la
+// visite guidée (le contenu dans `tours.ts`, le moteur dans `GuidedTour.tsx`).
+export function BoutonRevelation({
+  t, libelle, onPress,
+}: { t: ThemePalette; libelle: string; onPress: () => void }) {
+  if (!libelle) return null;
+  return (
+    <Presse
+      onPress={onPress}
+      activeOpacity={OPACITE_PRESSION}
+      accessibilityRole="button"
+      style={{
+        flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm,
+        minHeight: CIBLE_TACTILE_MIN, borderRadius: Radius.button,
+        backgroundColor: t.fill, marginTop: Spacing.md,
+      }}
+    >
+      <Text style={{ ...Type.bodySmallStrong, color: t.text }}>{libelle}</Text>
+      <Ionicons name="chevron-down" size={Icone.petite} color={t.textSecondary} />
+    </Presse>
+  );
+}

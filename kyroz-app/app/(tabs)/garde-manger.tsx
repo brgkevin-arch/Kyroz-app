@@ -9,7 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme, ThemePalette, Radius, Spacing, Type, cardShadow, Fond, CIBLE_TACTILE_MIN, Trait, Icone, OPACITE_PRESSION } from '../../constants/theme';
 import { useCollapsingTitle, CompactTitleBar } from '../../components/CollapsingTitle';
 import { useLayout } from '../../constants/layout';
-import { PrimaryButton, Chip, Field, SectionLabel, Segmented } from '../../components/ui';
+import { PrimaryButton, Chip, Field, SectionLabel, Segmented, BoutonRevelation } from '../../components/ui';
 import { ActionSheet } from '../../components/ActionSheet';
 import { formatQuantity, toBaseUnit } from '../../lib/units';
 import { pushPantry } from '../../lib/sync';
@@ -21,6 +21,10 @@ import {
 } from '../../lib/pantry';
 import { useTourTarget, useScreenTour, TourButton } from '../../components/GuidedTour';
 import { frigoTour } from '../../lib/tours';
+import { revelation, libelleRevelation } from '../../lib/revelation';
+
+/** Combien de recettes on montre avant de proposer d'en voir plus (fondateur, 2026-08-14). */
+const PAS_RECETTES = 8;
 
 const CATEGORY_ORDER: PantryCategory[] = ['viandes', 'légumes', 'féculents', 'laitiers', 'autres'];
 const CATEGORY_LABELS: Record<PantryCategory, string> = {
@@ -43,6 +47,29 @@ export default function GardeMangerScreen() {
   const [editItem, setEditItem] = useState<PantryItem | null>(null);
   const [confirm, setConfirm] = useState<{ title: string; message: string; cta: string; danger?: boolean; onYes: () => void } | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+
+  // ── Rayons repliables (décision fondateur, 2026-08-14) ───────────────────
+  //
+  // On mémorise les rayons FERMÉS, pas les ouverts : le défaut demandé est
+  // « ouvert », et un ensemble vide le dit sans qu'aucune ligne de code n'ait à
+  // l'initialiser. Un rayon qui apparaît (un premier produit laitier acheté) est
+  // donc ouvert d'office, sans que rien n'ait à y penser.
+  // ⚠️ Volontairement NON PERSISTÉ : c'est un pli de lecture, pas un réglage.
+  // Le stocker en ferait une valeur d'appareil, donc le patron obligatoire de
+  // CLAUDE.md §11 (store externe + `useSyncExternalStore`) pour un état qui ne
+  // survit à rien d'important — et le frigo se rouvrirait à moitié replié sans
+  // que personne ne se souvienne de l'avoir demandé.
+  const [rayonsFermes, setRayonsFermes] = useState<PantryCategory[]>([]);
+  const basculerRayon = (cat: PantryCategory) =>
+    setRayonsFermes((prev) => (prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]));
+
+  // Combien de fois « Voir + » a été pressé sur chacune des deux listes, et si
+  // « Voir tout » l'a été. Deux compteurs séparés : dérouler les recettes prêtes
+  // ne doit pas dérouler les presque-prêtes, ce sont deux questions différentes.
+  const [pretesPlus, setPretesPlus] = useState(0);
+  const [pretesTout, setPretesTout] = useState(false);
+  const [presquePlus, setPresquePlus] = useState(0);
+  const [presqueTout, setPresqueTout] = useState(false);
 
   // Formulaire d'ajout
   const [name, setName] = useState('');
@@ -140,7 +167,14 @@ export default function GardeMangerScreen() {
 
   const coverage = useMemo(() => cookableRecipes(items), [items]);
   const ready = coverage.filter((c) => c.missing.length === 0);
-  const almost = coverage.filter((c) => c.missing.length >= 1 && c.missing.length <= 2).slice(0, 5);
+  // 🔴 LE `.slice(0, 5)` A ÉTÉ RETIRÉ ICI le 2026-08-14. C'était un plafond MUET :
+  // les presque-prêtes au-delà de la cinquième n'existaient nulle part à l'écran,
+  // et rien ne le disait — exactement le « no silent caps » que le dépôt s'impose.
+  // Le bouton de révélation dit maintenant combien il en reste.
+  const almost = coverage.filter((c) => c.missing.length >= 1 && c.missing.length <= 2);
+
+  const vuePretes = revelation(ready.length, PAS_RECETTES, pretesPlus, pretesTout);
+  const vuePresque = revelation(almost.length, PAS_RECETTES, presquePlus, presqueTout);
 
   const visible = useMemo(() => visiblePantry(items), [items]);
   const grouped = CATEGORY_ORDER
@@ -202,7 +236,7 @@ export default function GardeMangerScreen() {
               <>
                 <SectionLabel t={t}>Réalisable maintenant</SectionLabel>
                 <View style={{ gap: Spacing.md, marginTop: Spacing.md }}>
-                  {ready.map((c) => (
+                  {ready.slice(0, vuePretes.visibles).map((c) => (
                     <View key={c.recipe.id} style={[s.recipe, cardShadow(t)]}>
                       <View style={{ flex: 1 }}>
                         <Text style={s.rName}>{c.recipe.name_fr}</Text>
@@ -215,6 +249,15 @@ export default function GardeMangerScreen() {
                     </View>
                   ))}
                 </View>
+                {/* Le bouton fait passer aux presque-prêtes plutôt que de servir
+                    185 cartes d'affilée : la question « qu'est-ce que je peux
+                    faire ce soir » se répond en huit propositions, pas en deux
+                    cents. */}
+                <BoutonRevelation
+                  t={t}
+                  libelle={libelleRevelation(vuePretes.action, vuePretes.reste)}
+                  onPress={() => (vuePretes.action === 'tout' ? setPretesTout(true) : setPretesPlus((n) => n + 1))}
+                />
               </>
             )}
 
@@ -224,7 +267,7 @@ export default function GardeMangerScreen() {
                   <SectionLabel t={t}>Presque — quelques ingrédients en plus</SectionLabel>
                 </View>
                 <View style={{ gap: Spacing.md, marginTop: Spacing.md }}>
-                  {almost.map((c) => (
+                  {almost.slice(0, vuePresque.visibles).map((c) => (
                     <View key={c.recipe.id} style={[s.recipe, cardShadow(t), { opacity: 0.92 }]}>
                       <View style={{ flex: 1 }}>
                         <Text style={s.rName}>{c.recipe.name_fr}</Text>
@@ -236,6 +279,11 @@ export default function GardeMangerScreen() {
                     </View>
                   ))}
                 </View>
+                <BoutonRevelation
+                  t={t}
+                  libelle={libelleRevelation(vuePresque.action, vuePresque.reste)}
+                  onPress={() => (vuePresque.action === 'tout' ? setPresqueTout(true) : setPresquePlus((n) => n + 1))}
+                />
               </>
             )}
 
@@ -253,28 +301,57 @@ export default function GardeMangerScreen() {
               <Presse onPress={clearAll}><Text style={[s.link, { color: t.danger }]}>Vider</Text></Presse>
             </View>
 
-            {grouped.map((g) => (
-              <View key={g.cat} style={{ marginTop: Spacing.sm }}>
-                <Text style={s.catLabel}>{CATEGORY_LABELS[g.cat].toUpperCase()}</Text>
-                <View style={[s.invCard, cardShadow(t)]}>
-                  {/* Plus de croix de suppression par ligne : toucher la quantité
-                      ouvre le pas-à-pas, et tomber à zéro retire l'aliment. Une
-                      croix sur chaque ligne, c'est une invitation à la faute de
-                      frappe sur un geste irréversible. */}
-                  {g.list.map((it, i) => (
-                    <Presse
-                      key={it.name + it.unit}
-                      style={[s.invRow, i < g.list.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.line }]}
-                      onPress={() => openEdit(it)}
-                      activeOpacity={OPACITE_PRESSION}
-                    >
-                      <Text style={s.invName} numberOfLines={1}>{it.name}</Text>
-                      <Text style={s.invQty}>{formatQuantity(it.name, it.quantity, it.unit)}</Text>
-                    </Presse>
-                  ))}
+            {/* ── Rayons repliables (décision fondateur, 2026-08-14) ────────────
+                Le frigo d'un utilisateur nourri par l'onglet Courses monte vite à
+                69 lignes : le replier par rayon rend la liste parcourable sans
+                rien lui retirer. **Ouvert par défaut**, sur sa demande — un
+                inventaire qui s'ouvre fermé cache ce qu'on vient vérifier.
+                ⚠️ L'en-tête devient un BOUTON, donc il lui faut la cible tactile
+                des 44 pt : sans `minHeight`, une étiquette en petites capitales
+                fait 15 pt de haut et se rate une fois sur deux. */}
+            {grouped.map((g) => {
+              const ferme = rayonsFermes.includes(g.cat);
+              return (
+                <View key={g.cat} style={{ marginTop: Spacing.sm }}>
+                  <Presse
+                    style={s.catHeader}
+                    onPress={() => basculerRayon(g.cat)}
+                    activeOpacity={OPACITE_PRESSION}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${CATEGORY_LABELS[g.cat]}, ${g.list.length} aliment${g.list.length > 1 ? 's' : ''} — ${ferme ? 'déplier' : 'replier'}`}
+                  >
+                    <Text style={s.catLabel}>{CATEGORY_LABELS[g.cat].toUpperCase()}</Text>
+                    {/* Le compte reste visible RAYON FERMÉ : replié, c'est la seule
+                        chose qui dise ce qu'on vient de cacher. */}
+                    <Text style={s.catCount}>{g.list.length}</Text>
+                    <Ionicons
+                      name={ferme ? 'chevron-down' : 'chevron-up'}
+                      size={Icone.petite}
+                      color={t.textTertiary}
+                    />
+                  </Presse>
+                  {!ferme && (
+                    <View style={[s.invCard, cardShadow(t)]}>
+                      {/* Plus de croix de suppression par ligne : toucher la quantité
+                          ouvre le pas-à-pas, et tomber à zéro retire l'aliment. Une
+                          croix sur chaque ligne, c'est une invitation à la faute de
+                          frappe sur un geste irréversible. */}
+                      {g.list.map((it, i) => (
+                        <Presse
+                          key={it.name + it.unit}
+                          style={[s.invRow, i < g.list.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.line }]}
+                          onPress={() => openEdit(it)}
+                          activeOpacity={OPACITE_PRESSION}
+                        >
+                          <Text style={s.invName} numberOfLines={1}>{it.name}</Text>
+                          <Text style={s.invQty}>{formatQuantity(it.name, it.quantity, it.unit)}</Text>
+                        </Presse>
+                      ))}
+                    </View>
+                  )}
                 </View>
-              </View>
-            ))}
+              );
+            })}
           </>
         )}
       </ScrollView>
@@ -401,7 +478,15 @@ function makeStyles(t: ThemePalette) {
     invHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: Spacing.xs },
     invHint: { ...Type.caption, color: t.textTertiary },
     link: { ...Type.bodySmall, color: t.textSecondary },
-    catLabel: { ...Type.overline, color: t.textTertiary, marginBottom: Spacing.sm, marginTop: Spacing.md },
+    // ⚠️ `minHeight` : l'étiquette de rayon est devenue un BOUTON le 2026-08-14.
+    // En petites capitales elle fait 15 pt de haut ; sans hauteur minimale, le
+    // pli du frigo se raterait une fois sur deux (et `espacementDA` le compte).
+    catHeader: {
+      flexDirection: 'row', alignItems: 'center', gap: Spacing.sm,
+      minHeight: CIBLE_TACTILE_MIN, marginTop: Spacing.sm,
+    },
+    catLabel: { ...Type.overline, color: t.textTertiary, flex: 1 },
+    catCount: { ...Type.caption, color: t.textQuaternary },
     invCard: { backgroundColor: t.card, borderRadius: Radius.card, paddingHorizontal: Spacing.lg },
     invRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.md, paddingVertical: Spacing.lg },
     invName: { ...Type.body, flex: 1, color: t.text },

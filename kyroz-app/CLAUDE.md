@@ -1793,6 +1793,54 @@ se lisent en trois lignes de source.
 
 ➡️ **Garde-fou : `lib/__tests__/haptiqueDA.test.ts`**, vérifié par 9 mutations.
 
+### Les longues listes se dévoilent par PALIERS (2026-08-14)
+
+Décision fondateur, sur captures : *« dans les recettes que l'on peut faire, en
+mettre 8 puis passer aux presque. Et si on veut plus, "voir + de recettes". Pareil
+pour les 512 recettes : 10, puis voir +, puis 10, puis voir +, et après voir tout. »*
+
+**`lib/revelation.ts`** — pur, sans aucun import, donc testé. Trois listes s'en
+servent : les recettes prêtes du Frigo (pas de 8), les presque-prêtes (8), et le
+catalogue (10). Le bouton commun est `ui.tsx::BoutonRevelation`.
+
+⚠️ **CE N'EST PAS UNE PAGINATION.** Rien n'est chargé à la demande — le catalogue
+est embarqué dans le bundle (§3). On ne réduit pas un coût réseau, on réduit ce
+qu'on demande à l'œil : 512 cartes d'un coup, ce n'est pas une liste, c'est un mur,
+et le filtre juste au-dessus devient décoratif puisque personne ne descend au bout.
+
+⚠️ **`PALIERS_AVANT_TOUT = 2` est le chiffre du fondateur, pas un réglage.** Il est
+EXPORTÉ plutôt qu'enterré dans un `n >= 2` : sans nom, il se ferait « simplifier »
+à la première relecture. Au-delà, atteindre la fin d'un catalogue de 512 demanderait
+cinquante appuis — le palier « tout » n'est pas un confort, c'est ce qui empêche la
+liste d'être un cul-de-sac.
+
+🔴 **LE LIBELLÉ DIT LE RESTE, ET LE COMPTEUR DIT LE TOTAL.** Deux règles §10 :
+· « Voir + de recettes » ne s'affiche pas quand le tap révélerait déjà tout le
+  reste — il devient « Voir les N restantes ». Un bouton dit ce qu'il fait ;
+· le compteur de l'en-tête Recettes affiche le total FILTRÉ, jamais la tranche
+  visible : sinon un filtre qui trouve 512 recettes en annonce 10, et le chiffre
+  change à chaque « Voir + » sans qu'aucun filtre n'ait bougé.
+
+🔴 **LES PALIERS SE REMETTENT À ZÉRO QUAND LA LISTE CHANGE** (filtre, recherche).
+Sans ça, le bouton annonce un reste calculé sur l'ancien filtre.
+
+⚠️ **Un plafond MUET a été retiré au passage** : les presque-prêtes du Frigo étaient
+tronquées à 5 par un `.slice(0, 5)` que rien n'annonçait — 194 recettes n'existaient
+nulle part à l'écran. C'est le « no silent caps » du dépôt : si une liste est bornée,
+elle doit le DIRE.
+
+**Et le stock du Frigo se replie par rayon** (`garde-manger.tsx`). **Ouvert par
+défaut**, sur demande du fondateur — un inventaire qui s'ouvre fermé cache ce qu'on
+vient vérifier. On mémorise les rayons FERMÉS, pas les ouverts : un ensemble vide
+porte le défaut sans qu'aucune ligne ne l'initialise, et un rayon qui apparaît est
+ouvert d'office. ⚠️ **Volontairement NON persisté** : c'est un pli de lecture, pas un
+réglage — le stocker imposerait le patron des valeurs d'appareil (§11) pour un état
+qui ne survit à rien d'important. ⚠️ L'en-tête est devenu un BOUTON, donc il porte
+`minHeight: CIBLE_TACTILE_MIN` : en petites capitales il faisait 15 pt de haut.
+
+➡️ Garde-fou : `lib/__tests__/revelation.test.ts` (13 cas), qui fige la séquence
+dictée — elle n'est pas un détail d'implémentation.
+
 ### Le grand titre se replie (2026-08-04)
 
 Comportement des grands titres iOS, et ce que fait la maquette **sur ses cinq écrans à
