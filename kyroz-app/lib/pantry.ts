@@ -263,3 +263,41 @@ export function cookableRecipes(items: PantryItem[]): Coverage[] {
     .filter((c) => c.total > 0 && c.have > 0)
     .sort((a, b) => b.ratio - a.ratio || a.missing.length - b.missing.length || a.recipe.name_fr.localeCompare(b.recipe.name_fr));
 }
+
+// ── L'ORDRE NE BOUGE PLUS PENDANT QU'ON CUISINE ─────────────────────────────
+//
+// 🔴 LE DÉFAUT MESURÉ, le 2026-08-14 (signalé par le fondateur, capture vidéo à
+// l'appui). « Cuisiné » déduit les ingrédients, donc la recette quitte la liste
+// des réalisables — et TOUTES celles du dessous remontent d'un cran. Le bouton
+// suivant arrive exactement là où le doigt vient de se poser.
+// **Mesuré au simulateur : quatre appuis au MÊME pixel ont cuisiné QUATRE
+// recettes différentes**, frigo 35 → 28 aliments, prêtes 19 → 15. Aucune n'était
+// choisie, et la déduction est irréversible (ni confirmation, ni annulation).
+// ⚠️ Et l'effet dépasse la recette cuisinée : le premier appui a fait tomber la
+// liste de 19 à 17, parce qu'une AUTRE recette a perdu un ingrédient au passage.
+// Retirer seulement la carte touchée n'aurait donc pas suffi à figer la mise en
+// page — c'est l'ORDRE entier qu'il faut tenir.
+//
+// ➡️ On gèle l'ORDRE, jamais le CONTENU. Chaque carte garde sa place, mais son
+// état est relu à chaque rendu : une recette devenue infaisable reste où elle est
+// et le dit. Geler le contenu aurait affiché « réalisable maintenant » sur une
+// recette dont on vient de manger le riz — le mensonge que §10 interdit.
+//
+// ⚠️ Les recettes CUISINÉES ne sortent plus de `cookableRecipes` par hasard : si
+// la déduction vide leur dernier ingrédient, leur `Coverage` disparaît. D'où
+// l'instantané `figes` — sans lui, la carte qu'on vient de toucher s'évaporerait,
+// et le trou refermerait la liste sous le doigt.
+export function listeStable(
+  ordre: string[] | null,
+  courant: Coverage[],
+  figes: Record<string, Coverage>,
+): Coverage[] {
+  if (!ordre) return courant;
+  const parId = new Map(courant.map((c) => [c.recipe.id, c]));
+  const out: Coverage[] = [];
+  for (const id of ordre) {
+    const c = parId.get(id) ?? figes[id];
+    if (c) out.push(c);
+  }
+  return out;
+}

@@ -1530,6 +1530,15 @@ bloc. Le coût n'est pas « moins joli », c'est **plus lent à comprendre**.
 | marge intérieure d'une feuille modale | `Spacing.xxl` (24) |
 | séparation de deux sections | `Spacing.xxxl` (32) |
 
+🔴 **LA DERNIÈRE LIGNE EST DÉSORMAIS COMPTÉE — `lib/__tests__/margeFeuilles.test.ts`**
+(2026-08-14). `Sheet` ne pose **aucun** padding horizontal : chacun de ses enfants
+apporte le sien, ce qui permet un en-tête FIXE margé et un `ScrollView` margé
+séparément. Aucun mécanisme ne l'exigeait — donc `BirthDatePicker` a été écrit sans,
+et son titre collait au bord de l'écran. Sur les **18** composants rendus directement
+dans un `<Sheet>`, **17** portaient `Spacing.xxl` chacun de leur côté ; le
+dix-huitième était unique **par accident**. ⚠️ Le corriger dans `Sheet` aurait doublé
+la marge des dix-sept autres. ➡️ Vu au simulateur, invisible au navigateur.
+
 ⚠️ **Les valeurs hors grille ont été ABSORBÉES, pas adoptées — et c'est la
 différence avec la typographie.** Là-bas, 14 avait un rôle propre (le texte
 secondaire) et a mérité son token. Ici, 10 n'est pas « un cran entre 8 et 12 » :
@@ -1784,6 +1793,54 @@ se lisent en trois lignes de source.
 
 ➡️ **Garde-fou : `lib/__tests__/haptiqueDA.test.ts`**, vérifié par 9 mutations.
 
+### Les longues listes se dévoilent par PALIERS (2026-08-14)
+
+Décision fondateur, sur captures : *« dans les recettes que l'on peut faire, en
+mettre 8 puis passer aux presque. Et si on veut plus, "voir + de recettes". Pareil
+pour les 512 recettes : 10, puis voir +, puis 10, puis voir +, et après voir tout. »*
+
+**`lib/revelation.ts`** — pur, sans aucun import, donc testé. Trois listes s'en
+servent : les recettes prêtes du Frigo (pas de 8), les presque-prêtes (8), et le
+catalogue (10). Le bouton commun est `ui.tsx::BoutonRevelation`.
+
+⚠️ **CE N'EST PAS UNE PAGINATION.** Rien n'est chargé à la demande — le catalogue
+est embarqué dans le bundle (§3). On ne réduit pas un coût réseau, on réduit ce
+qu'on demande à l'œil : 512 cartes d'un coup, ce n'est pas une liste, c'est un mur,
+et le filtre juste au-dessus devient décoratif puisque personne ne descend au bout.
+
+⚠️ **`PALIERS_AVANT_TOUT = 2` est le chiffre du fondateur, pas un réglage.** Il est
+EXPORTÉ plutôt qu'enterré dans un `n >= 2` : sans nom, il se ferait « simplifier »
+à la première relecture. Au-delà, atteindre la fin d'un catalogue de 512 demanderait
+cinquante appuis — le palier « tout » n'est pas un confort, c'est ce qui empêche la
+liste d'être un cul-de-sac.
+
+🔴 **LE LIBELLÉ DIT LE RESTE, ET LE COMPTEUR DIT LE TOTAL.** Deux règles §10 :
+· « Voir + de recettes » ne s'affiche pas quand le tap révélerait déjà tout le
+  reste — il devient « Voir les N restantes ». Un bouton dit ce qu'il fait ;
+· le compteur de l'en-tête Recettes affiche le total FILTRÉ, jamais la tranche
+  visible : sinon un filtre qui trouve 512 recettes en annonce 10, et le chiffre
+  change à chaque « Voir + » sans qu'aucun filtre n'ait bougé.
+
+🔴 **LES PALIERS SE REMETTENT À ZÉRO QUAND LA LISTE CHANGE** (filtre, recherche).
+Sans ça, le bouton annonce un reste calculé sur l'ancien filtre.
+
+⚠️ **Un plafond MUET a été retiré au passage** : les presque-prêtes du Frigo étaient
+tronquées à 5 par un `.slice(0, 5)` que rien n'annonçait — 194 recettes n'existaient
+nulle part à l'écran. C'est le « no silent caps » du dépôt : si une liste est bornée,
+elle doit le DIRE.
+
+**Et le stock du Frigo se replie par rayon** (`garde-manger.tsx`). **Ouvert par
+défaut**, sur demande du fondateur — un inventaire qui s'ouvre fermé cache ce qu'on
+vient vérifier. On mémorise les rayons FERMÉS, pas les ouverts : un ensemble vide
+porte le défaut sans qu'aucune ligne ne l'initialise, et un rayon qui apparaît est
+ouvert d'office. ⚠️ **Volontairement NON persisté** : c'est un pli de lecture, pas un
+réglage — le stocker imposerait le patron des valeurs d'appareil (§11) pour un état
+qui ne survit à rien d'important. ⚠️ L'en-tête est devenu un BOUTON, donc il porte
+`minHeight: CIBLE_TACTILE_MIN` : en petites capitales il faisait 15 pt de haut.
+
+➡️ Garde-fou : `lib/__tests__/revelation.test.ts` (13 cas), qui fige la séquence
+dictée — elle n'est pas un détail d'implémentation.
+
 ### Le grand titre se replie (2026-08-04)
 
 Comportement des grands titres iOS, et ce que fait la maquette **sur ses cinq écrans à
@@ -1827,10 +1884,14 @@ et l'écran ne sert qu'à juger le rendu (opacité forcée à 1). Procédure :
 ### La visite guidée dit ce que le code FAIT (2026-08-08)
 
 Un tour par onglet, déclenché **à la première visite de CET onglet** — jamais tous au
-démarrage. 21 bulles au total (plan 6 · profil 6 · recettes 3 · courses 3 · frigo 3),
+démarrage. 20 bulles au total (plan 6 · profil 6 · recettes 3 · courses 3 · frigo 2),
 mais une personne n'en voit que 6 le jour où elle ouvre le Plan. Servies d'un bloc, ce
-seraient 21 **interruptions modales** dans la même session : chaque bulle est une
+seraient 20 **interruptions modales** dans la même session : chaque bulle est une
 `Modal` dont les panneaux avalent les taps, pas une infobulle qu'on ignore.
+⚠️ **CE DÉCOMPTE EST VERROUILLÉ CONTRE LE CODE** (`visiteGuidee.test.ts`) et il ne se
+recopie pas : il a valu 21 jusqu'au 2026-08-14, où la 3ᵉ bulle du Frigo a été retirée.
+Un inventaire écrit à trois endroits finit par se confirmer tout seul (CLAUDE.md §8,
+le compteur d'émojis) — celui-ci rougit le jour où une bulle part ou arrive.
 
 **Le contenu vit dans `lib/tours.ts`, pas dans les écrans.** Fichier sans aucun import,
 donc testable, là où `components/GuidedTour.tsx` tire react-native et ne l'est pas.
@@ -2206,14 +2267,38 @@ téléphone.
   les conteneurs de modale, y compris celle qui est bien à l'écran.
   ℹ️ Mesuré sur le web ; sur natif, `Modal` est une modale de plateforme et l'ordre de
   présentation n'obéit pas au DOM.
-- 🔴 **ET SUR IOS, UNE MODALE NE S'OUVRE PAS DU TOUT PAR-DESSUS UNE MODALE.** C'est
+- 🔴 **ET SUR IOS, UNE MODALE NE S'OUVRE PAS PAR-DESSUS SA VOISINE.** C'est
   la moitié NATIVE du piège ci-dessus, et elle est pire — corrigée le 2026-08-14
-  après un build simulateur. iOS refuse de présenter une seconde `Modal` quand une
-  autre est en place : rien n'apparaît, aucune erreur, aucune trace. Le code
+  après un build simulateur. Une seconde `Modal` demandée pendant qu'une autre est
+  présentée n'apparaît pas : rien à l'écran, aucune erreur, aucune trace. Le code
   s'exécute, la promesse attend un arbitrage que personne ne peut rendre.
-  **CINQ gestes en sont morts**, dont **« Supprimer mon compte »** — obligation RGPD
+  **SEPT gestes en sont morts**, dont **« Supprimer mon compte »** — obligation RGPD
   et point de revue App Store — plus le crayon de la fiche recette, deux
-  suppressions de ligne et le choix d'une photo de progression.
+  suppressions de ligne, le choix d'une photo de progression, et **« Me peser »**
+  depuis l'éditeur Informations (trouvé le même jour, en allant vérifier les six
+  autres au simulateur).
+  🔴 **LE CRITÈRE EST *OÙ LA `Modal` EST DÉCLARÉE*, PAS « UNE MODALE EST-ELLE
+  OUVERTE » — et la première rédaction de cette règle était trop large** (amendée le
+  2026-08-14, mesuré) :
+  · déclarée **À CÔTÉ** de la première — deux `<Sheet>` frères au niveau de l'écran,
+    ou la `Modal` d'un fournisseur monté à la racine — les deux demandent à être
+    présentées par le **même** contrôleur, la seconde est refusée → **geste mort** ;
+  · déclarée **À L'INTÉRIEUR** de la première — le `<Sheet>` de la roulette de date
+    vit dans les enfants de la feuille d'édition — elle est présentée par le
+    contrôleur de cette feuille-là, **en chaîne** → **ça marche**, vérifié sur
+    capture (elle s'ouvre, puis rend la main à l'éditeur).
+  ⚠️ L'ancienne formulation ne casse rien (elle interdit plus que nécessaire), mais
+  elle ferait « corriger » du code sain et rendrait `ConfirmationEnLigne` obligatoire
+  là où il ne l'est pas. *Une prémisse écrite en corrigeant cinq cas n'a été mesurée
+  que sur ces cinq-là.*
+  🔴 **ÉCRIRE LES SETTERS DANS LE BON ORDRE NE FERME PAS CETTE PORTE.** C'est
+  l'illusion qui a produit le septième geste : `setEditor(null); setWeighIn(true);`
+  était commenté « on ferme l'éditeur AVANT d'ouvrir la pesée », et c'était sincère —
+  mais les deux setters partent dans le **même lot d'état**, et la feuille garde sa
+  `Modal` montée le temps de sa sortie. Seul le démontage RÉEL ferme la porte
+  (`Sheet.onClosed`). ➡️ Compté par `feuillesEmpilees.test.ts` : fermer un état de
+  feuille puis en OUVRIR un autre dans le même corps de fonction est interdit — les
+  fermetures en série, elles, restent légitimes.
   ⚠️ **LE WEB NE MONTRE RIEN DE CE DÉFAUT** : `react-native-web` rend une `Modal` en
   `<div>` et empile sans se plaindre. Mesuré sur le code d'avant correctif, le
   crayon ouvrait parfaitement l'éditeur dans le panneau navigateur. **C'est ce
@@ -2228,6 +2313,10 @@ téléphone.
     (fiche recette ⇄ son éditeur) ;
   · la question porte sur UNE ligne de la feuille → elle se pose SUR cette ligne,
     `components/ConfirmationEnLigne.tsx`, deux boutons et pas de modale.
+  · la feuille n'a rien à DEMANDER, seulement à annoncer → `components/MessageEnLigne.tsx`,
+    posé sous le réglage qui vient d'échouer. ⚠️ **Il se ferme** : un `notify` a son
+    « OK » ; en ligne, un message qui ne part jamais devient un morceau d'écran, et
+    le réglage d'à côté se lit comme s'il était en panne.
   ⚠️ `useDialog()` reste le bon outil **depuis un écran plein** : la boîte se pose
   au-dessus de tout et se rate difficilement, ce qu'on veut pour un geste
   irréversible. L'interdit ne vaut que DEPUIS une feuille.
@@ -2304,6 +2393,17 @@ téléphone.
   déjà pour le thème et l'accent ; l'hydratation, le prénom et l'heure du rappel l'ont
   rejoint. ⚠️ Une valeur oubliée dans ce chargement repart sur son défaut à chaque
   démarrage, et ça ne se voit nulle part.
+  🔴 **ET LA RÈGLE NE S'EST PAS APPLIQUÉE TOUTE SEULE À SES VOISINS — quatrième
+  cas, le 2026-08-14.** `useWeightLog` gardait ses pesées dans un `useState` de hook,
+  avec TROIS instances (Profil, Plan, `WeightCheckin`). Enregistrer une pesée dans la
+  feuille affichait la courbe DEDANS pendant que la carte du Profil, derrière,
+  continuait d'annoncer « encore une pesée et ta courbe apparaît ici ».
+  ⚠️ **Il ne se voyait que sur un BACKFILL** : une pesée du JOUR modifie
+  `profile.weight_kg`, donc l'effet du hook se redéclenchait par la bande et tout
+  paraissait sain. Une pesée d'un jour passé ne touche pas le profil, à dessein —
+  et là plus rien ne rafraîchissait rien. Encore un défaut dormant que le chemin
+  courant masquait. ➡️ Compté depuis par `lib/__tests__/diffusion.test.ts`.
+
   🔴 **ET CE N'EST PAS QUE LA VALEUR — UN EFFET DE BORD ACCROCHÉ À UN ÉCRAN TOMBE
   PAREIL, EN PIRE** (2026-08-09, E24, signalé par le fondateur : « la notification de
   ce midi n'était pas celle qu'on avait changée »). Le contenu d'une notification
@@ -2428,6 +2528,21 @@ téléphone.
   (`gh api "…/actions/runs?head_sha=<sha>" --jq .total_count`) et lire
   **githubstatus.com**. Corollaire : republier pour « réveiller » le déploiement ne sert
   à rien et empile des runs qui échoueront ensemble.
+- 🔴 **UN BANDEAU DE 2,4 s NE SE CAPTURE PAS AVEC `xcrun simctl io screenshot`**
+  (2026-08-14). La capture met plus longtemps que le toast ne dure : il est déjà
+  parti à chaque prise, et l'écran rendu est parfaitement plausible. J'en ai conclu
+  qu'il ne s'affichait pas du tout, et j'ai failli l'écrire.
+  ➡️ **L'absence sur une capture ne prouve rien quand ce qu'on cherche dure moins
+  longtemps que la capture.** Sonder d'abord que le code s'exécute (`console.log`),
+  puis ALLONGER la durée le temps de la mesure — c'est seulement là qu'un avant/après
+  devient possible. Même famille que `requestAnimationFrame` qui ne tourne pas dans
+  le panneau navigateur (plus bas) : la mesure était juste, l'instrument non.
+- 🔴 **CE QUI FLOTTE EN BAS D'UN ÉCRAN D'ONGLET DOIT DÉGAGER `Fond.barreOnglets`.**
+  La barre d'onglets flotte au-dessus du contenu depuis la passe matériaux (§8) : un
+  `position: absolute` à `bottom: 28` est dessiné DERRIÈRE elle, lisible seulement
+  comme une tache floue à travers le verre. Les deux bandeaux « cuisiné » (Frigo et
+  Plan) étaient dans ce cas — même style recopié, même faute, jamais vue. ➡️ Compté
+  par `lib/__tests__/cuisinerDepuisLeFrigo.test.ts`.
 - **Build natif iOS** : `npx expo run:ios` (CocoaPods via brew).
   🔴 **AVEC `LANG=en_US.UTF-8`, SINON `pod install` PLANTE — et l'erreur accuse le
   mauvais fichier** (2026-08-14). Le shell des sessions tourne avec `LANG=""` et

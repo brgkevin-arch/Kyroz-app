@@ -9,7 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme, ThemePalette, Radius, Spacing, Type, cardShadow, Fond, CIBLE_TACTILE_MIN, Trait, Icone, OPACITE_PRESSION } from '../../constants/theme';
 import { useCollapsingTitle, CompactTitleBar } from '../../components/CollapsingTitle';
 import { useLayout } from '../../constants/layout';
-import { PrimaryButton, Chip, Field, SectionLabel, Segmented } from '../../components/ui';
+import { PrimaryButton, Chip, Field, SectionLabel, Segmented, BoutonRevelation } from '../../components/ui';
 import { ActionSheet } from '../../components/ActionSheet';
 import { formatQuantity, toBaseUnit } from '../../lib/units';
 import { pushPantry } from '../../lib/sync';
@@ -17,10 +17,14 @@ import { searchFoods } from '../../lib/foods';
 import {
   PantryItem, PantryCategory, Coverage,
   loadPantry, savePantry, addOrMerge, removeItem, categorize,
-  deductRecipe, cookableRecipes, visiblePantry,
+  deductRecipe, cookableRecipes, visiblePantry, listeStable,
 } from '../../lib/pantry';
 import { useTourTarget, useScreenTour, TourButton } from '../../components/GuidedTour';
 import { frigoTour } from '../../lib/tours';
+import { revelation, libelleRevelation } from '../../lib/revelation';
+
+/** Combien de recettes on montre avant de proposer d'en voir plus (fondateur, 2026-08-14). */
+const PAS_RECETTES = 8;
 
 const CATEGORY_ORDER: PantryCategory[] = ['viandes', 'légumes', 'féculents', 'laitiers', 'autres'];
 const CATEGORY_LABELS: Record<PantryCategory, string> = {
@@ -44,6 +48,39 @@ export default function GardeMangerScreen() {
   const [confirm, setConfirm] = useState<{ title: string; message: string; cta: string; danger?: boolean; onYes: () => void } | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
+  // ── Rayons repliables (décision fondateur, 2026-08-14) ───────────────────
+  //
+  // On mémorise les rayons FERMÉS, pas les ouverts : le défaut demandé est
+  // « ouvert », et un ensemble vide le dit sans qu'aucune ligne de code n'ait à
+  // l'initialiser. Un rayon qui apparaît (un premier produit laitier acheté) est
+  // donc ouvert d'office, sans que rien n'ait à y penser.
+  // ⚠️ Volontairement NON PERSISTÉ : c'est un pli de lecture, pas un réglage.
+  // Le stocker en ferait une valeur d'appareil, donc le patron obligatoire de
+  // CLAUDE.md §11 (store externe + `useSyncExternalStore`) pour un état qui ne
+  // survit à rien d'important — et le frigo se rouvrirait à moitié replié sans
+  // que personne ne se souvienne de l'avoir demandé.
+  const [rayonsFermes, setRayonsFermes] = useState<PantryCategory[]>([]);
+  const basculerRayon = (cat: PantryCategory) =>
+    setRayonsFermes((prev) => (prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]));
+
+  // ── Ce qui a été cuisiné À L'INSTANT, et l'ordre gelé pendant ce temps ────
+  //
+  // 🔴 Voir `lib/pantry.ts::listeStable` pour le défaut mesuré (quatre appuis au
+  // même pixel, quatre recettes cuisinées). Ici on ne garde que l'état :
+  // l'ordre d'affichage au moment du PREMIER geste, et un instantané de chaque
+  // recette cuisinée — sans lui, la carte qu'on vient de toucher disparaît quand
+  // la déduction vide son dernier ingrédient.
+  const [ordreFige, setOrdreFige] = useState<string[] | null>(null);
+  const [cuisinees, setCuisinees] = useState<Record<string, Coverage>>({});
+
+  // Combien de fois « Voir + » a été pressé sur chacune des deux listes, et si
+  // « Voir tout » l'a été. Deux compteurs séparés : dérouler les recettes prêtes
+  // ne doit pas dérouler les presque-prêtes, ce sont deux questions différentes.
+  const [pretesPlus, setPretesPlus] = useState(0);
+  const [pretesTout, setPretesTout] = useState(false);
+  const [presquePlus, setPresquePlus] = useState(0);
+  const [presqueTout, setPresqueTout] = useState(false);
+
   // Formulaire d'ajout
   const [name, setName] = useState('');
   const [qty, setQty] = useState('');
@@ -56,7 +93,10 @@ export default function GardeMangerScreen() {
   // Cibles de la visite guidée.
   const ajouterRef = useTourTarget('frigo-ajouter');
   const compteurRef = useTourTarget('frigo-compteur');
-  const vueRef = useTourTarget('frigo-vue-cuisiner');
+  // ⚠️ `frigo-vue-cuisiner` est parti avec sa bulle le 2026-08-14 (décision
+  // fondateur, cf. `lib/tours.ts`). Une cible enregistrée que plus aucune étape ne
+  // vise n'est pas inoffensive : elle se relit comme une bulle perdue en route —
+  // exactement le « tour amputé » que `GuidedTour` avertit de ne pas confondre.
   // ⚠️ Sur un frigo VIDE, le compteur ne dit rien et le sélecteur de vue n'est
   // même pas monté : le tour se réduirait au bouton « + ». On attend qu'il y ait
   // un stock — l'écran vide, lui, s'explique déjà tout seul en toutes lettres.
@@ -68,7 +108,15 @@ export default function GardeMangerScreen() {
     setItems(await loadPantry());
   }, []);
 
-  useFocusEffect(useCallback(() => { refresh(); }, [refresh]));
+  // ⚠️ LE DÉGEL SE FAIT EN REVENANT SUR L'ONGLET, pas sur un minuteur : tant que
+  // la personne est devant sa liste, rien ne doit bouger sous ses doigts ; dès
+  // qu'elle en repart, la question « qu'est-ce que je peux faire » se repose à
+  // neuf. Un délai deviné aurait rendu la liste imprévisible.
+  useFocusEffect(useCallback(() => {
+    refresh();
+    setOrdreFige(null);
+    setCuisinees({});
+  }, [refresh]));
 
   const persist = async (next: PantryItem[]) => { setItems(next); await savePantry(next); pushPantry(next); };
   const flashToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 2400); };
@@ -122,6 +170,11 @@ export default function GardeMangerScreen() {
 
   // Cuisiné : déduction directe, sans confirmation (juste un retour visuel).
   const cook = async (c: Coverage) => {
+    // L'ordre se gèle au PREMIER geste et pas au montage : tant qu'on n'a rien
+    // cuisiné, la liste doit suivre le frigo (un article ajouté doit débloquer
+    // ses recettes tout de suite).
+    if (!ordreFige) setOrdreFige(pretes.map((x) => x.recipe.id));
+    setCuisinees((prev) => ({ ...prev, [c.recipe.id]: c }));
     await persist(deductRecipe(items, c.recipe, 1));
     flashToast(`✓ ${c.recipe.name_fr} cuisiné`);
   };
@@ -137,7 +190,19 @@ export default function GardeMangerScreen() {
 
   const coverage = useMemo(() => cookableRecipes(items), [items]);
   const ready = coverage.filter((c) => c.missing.length === 0);
-  const almost = coverage.filter((c) => c.missing.length >= 1 && c.missing.length <= 2).slice(0, 5);
+  // 🔴 LE `.slice(0, 5)` A ÉTÉ RETIRÉ ICI le 2026-08-14. C'était un plafond MUET :
+  // les presque-prêtes au-delà de la cinquième n'existaient nulle part à l'écran,
+  // et rien ne le disait — exactement le « no silent caps » que le dépôt s'impose.
+  // Le bouton de révélation dit maintenant combien il en reste.
+  const almost = coverage.filter((c) => c.missing.length >= 1 && c.missing.length <= 2);
+
+  // L'ordre affiché : celui du frigo tant qu'on n'a rien cuisiné, gelé ensuite.
+  // Le CONTENU de chaque carte, lui, est toujours relu — une recette devenue
+  // infaisable garde sa place et le dit.
+  const pretes = listeStable(ordreFige, ready, cuisinees);
+
+  const vuePretes = revelation(pretes.length, PAS_RECETTES, pretesPlus, pretesTout);
+  const vuePresque = revelation(almost.length, PAS_RECETTES, presquePlus, presqueTout);
 
   const visible = useMemo(() => visiblePantry(items), [items]);
   const grouped = CATEGORY_ORDER
@@ -170,7 +235,7 @@ export default function GardeMangerScreen() {
         </View>
 
         {visible.length > 0 && (
-          <View ref={vueRef} style={s.segment}>
+          <View style={s.segment}>
             <Segmented
               t={t}
               options={[{ label: 'Mon stock', value: 'stock' }, { label: 'À cuisiner', value: 'cook' }]}
@@ -195,23 +260,44 @@ export default function GardeMangerScreen() {
         ) : view === 'cook' ? (
           // ── À CUISINER ───────────────────────────────────────────────────────
           <>
-            {ready.length > 0 && (
+            {pretes.length > 0 && (
               <>
                 <SectionLabel t={t}>Réalisable maintenant</SectionLabel>
                 <View style={{ gap: Spacing.md, marginTop: Spacing.md }}>
-                  {ready.map((c) => (
-                    <View key={c.recipe.id} style={[s.recipe, cardShadow(t)]}>
+                  {pretes.slice(0, vuePretes.visibles).map((c) => (
+                    <View key={c.recipe.id} style={[s.recipe, cardShadow(t), !!cuisinees[c.recipe.id] && { opacity: 0.55 }]}>
                       <View style={{ flex: 1 }}>
                         <Text style={s.rName}>{c.recipe.name_fr}</Text>
                         <Text style={s.rMeta}>{c.recipe.prep_time_min} min · {c.recipe.macros_per_portion.kcal} kcal · {c.recipe.macros_per_portion.protein_g}g P</Text>
                       </View>
-                      <Presse style={s.cookBtn} onPress={() => cook(c)} activeOpacity={OPACITE_PRESSION}>
-                        <Ionicons name="restaurant" size={Icone.petite} color={t.onAccent} />
-                        <Text style={s.cookTxt}>Cuisiné</Text>
-                      </Presse>
+                      {/* 🔴 LA CARTE CUISINÉE RESTE À SA PLACE ET LE DIT. Avant, elle
+                          quittait la liste : tout remontait d'un cran et le bouton
+                          suivant arrivait sous le doigt. C'est ici que se lit le
+                          retour du geste — le bandeau du bas, lui, était masqué par
+                          la barre d'onglets, donc rien ne confirmait rien. */}
+                      {cuisinees[c.recipe.id] ? (
+                        <View style={s.cookDone}>
+                          <Ionicons name="checkmark" size={Icone.petite} color={t.success} />
+                          <Text style={s.cookDoneTxt}>Cuisiné</Text>
+                        </View>
+                      ) : (
+                        <Presse style={s.cookBtn} onPress={() => cook(c)} activeOpacity={OPACITE_PRESSION}>
+                          <Ionicons name="restaurant" size={Icone.petite} color={t.onAccent} />
+                          <Text style={s.cookTxt}>Cuisiné</Text>
+                        </Presse>
+                      )}
                     </View>
                   ))}
                 </View>
+                {/* Le bouton fait passer aux presque-prêtes plutôt que de servir
+                    185 cartes d'affilée : la question « qu'est-ce que je peux
+                    faire ce soir » se répond en huit propositions, pas en deux
+                    cents. */}
+                <BoutonRevelation
+                  t={t}
+                  libelle={libelleRevelation(vuePretes.action, vuePretes.reste)}
+                  onPress={() => (vuePretes.action === 'tout' ? setPretesTout(true) : setPretesPlus((n) => n + 1))}
+                />
               </>
             )}
 
@@ -221,7 +307,7 @@ export default function GardeMangerScreen() {
                   <SectionLabel t={t}>Presque — quelques ingrédients en plus</SectionLabel>
                 </View>
                 <View style={{ gap: Spacing.md, marginTop: Spacing.md }}>
-                  {almost.map((c) => (
+                  {almost.slice(0, vuePresque.visibles).map((c) => (
                     <View key={c.recipe.id} style={[s.recipe, cardShadow(t), { opacity: 0.92 }]}>
                       <View style={{ flex: 1 }}>
                         <Text style={s.rName}>{c.recipe.name_fr}</Text>
@@ -233,6 +319,11 @@ export default function GardeMangerScreen() {
                     </View>
                   ))}
                 </View>
+                <BoutonRevelation
+                  t={t}
+                  libelle={libelleRevelation(vuePresque.action, vuePresque.reste)}
+                  onPress={() => (vuePresque.action === 'tout' ? setPresqueTout(true) : setPresquePlus((n) => n + 1))}
+                />
               </>
             )}
 
@@ -250,28 +341,57 @@ export default function GardeMangerScreen() {
               <Presse onPress={clearAll}><Text style={[s.link, { color: t.danger }]}>Vider</Text></Presse>
             </View>
 
-            {grouped.map((g) => (
-              <View key={g.cat} style={{ marginTop: Spacing.sm }}>
-                <Text style={s.catLabel}>{CATEGORY_LABELS[g.cat].toUpperCase()}</Text>
-                <View style={[s.invCard, cardShadow(t)]}>
-                  {/* Plus de croix de suppression par ligne : toucher la quantité
-                      ouvre le pas-à-pas, et tomber à zéro retire l'aliment. Une
-                      croix sur chaque ligne, c'est une invitation à la faute de
-                      frappe sur un geste irréversible. */}
-                  {g.list.map((it, i) => (
-                    <Presse
-                      key={it.name + it.unit}
-                      style={[s.invRow, i < g.list.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.line }]}
-                      onPress={() => openEdit(it)}
-                      activeOpacity={OPACITE_PRESSION}
-                    >
-                      <Text style={s.invName} numberOfLines={1}>{it.name}</Text>
-                      <Text style={s.invQty}>{formatQuantity(it.name, it.quantity, it.unit)}</Text>
-                    </Presse>
-                  ))}
+            {/* ── Rayons repliables (décision fondateur, 2026-08-14) ────────────
+                Le frigo d'un utilisateur nourri par l'onglet Courses monte vite à
+                69 lignes : le replier par rayon rend la liste parcourable sans
+                rien lui retirer. **Ouvert par défaut**, sur sa demande — un
+                inventaire qui s'ouvre fermé cache ce qu'on vient vérifier.
+                ⚠️ L'en-tête devient un BOUTON, donc il lui faut la cible tactile
+                des 44 pt : sans `minHeight`, une étiquette en petites capitales
+                fait 15 pt de haut et se rate une fois sur deux. */}
+            {grouped.map((g) => {
+              const ferme = rayonsFermes.includes(g.cat);
+              return (
+                <View key={g.cat} style={{ marginTop: Spacing.sm }}>
+                  <Presse
+                    style={s.catHeader}
+                    onPress={() => basculerRayon(g.cat)}
+                    activeOpacity={OPACITE_PRESSION}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${CATEGORY_LABELS[g.cat]}, ${g.list.length} aliment${g.list.length > 1 ? 's' : ''} — ${ferme ? 'déplier' : 'replier'}`}
+                  >
+                    <Text style={s.catLabel}>{CATEGORY_LABELS[g.cat].toUpperCase()}</Text>
+                    {/* Le compte reste visible RAYON FERMÉ : replié, c'est la seule
+                        chose qui dise ce qu'on vient de cacher. */}
+                    <Text style={s.catCount}>{g.list.length}</Text>
+                    <Ionicons
+                      name={ferme ? 'chevron-down' : 'chevron-up'}
+                      size={Icone.petite}
+                      color={t.textTertiary}
+                    />
+                  </Presse>
+                  {!ferme && (
+                    <View style={[s.invCard, cardShadow(t)]}>
+                      {/* Plus de croix de suppression par ligne : toucher la quantité
+                          ouvre le pas-à-pas, et tomber à zéro retire l'aliment. Une
+                          croix sur chaque ligne, c'est une invitation à la faute de
+                          frappe sur un geste irréversible. */}
+                      {g.list.map((it, i) => (
+                        <Presse
+                          key={it.name + it.unit}
+                          style={[s.invRow, i < g.list.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.line }]}
+                          onPress={() => openEdit(it)}
+                          activeOpacity={OPACITE_PRESSION}
+                        >
+                          <Text style={s.invName} numberOfLines={1}>{it.name}</Text>
+                          <Text style={s.invQty}>{formatQuantity(it.name, it.quantity, it.unit)}</Text>
+                        </Presse>
+                      ))}
+                    </View>
+                  )}
                 </View>
-              </View>
-            ))}
+              );
+            })}
           </>
         )}
       </ScrollView>
@@ -398,7 +518,15 @@ function makeStyles(t: ThemePalette) {
     invHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: Spacing.xs },
     invHint: { ...Type.caption, color: t.textTertiary },
     link: { ...Type.bodySmall, color: t.textSecondary },
-    catLabel: { ...Type.overline, color: t.textTertiary, marginBottom: Spacing.sm, marginTop: Spacing.md },
+    // ⚠️ `minHeight` : l'étiquette de rayon est devenue un BOUTON le 2026-08-14.
+    // En petites capitales elle fait 15 pt de haut ; sans hauteur minimale, le
+    // pli du frigo se raterait une fois sur deux (et `espacementDA` le compte).
+    catHeader: {
+      flexDirection: 'row', alignItems: 'center', gap: Spacing.sm,
+      minHeight: CIBLE_TACTILE_MIN, marginTop: Spacing.sm,
+    },
+    catLabel: { ...Type.overline, color: t.textTertiary, flex: 1 },
+    catCount: { ...Type.caption, color: t.textQuaternary },
     invCard: { backgroundColor: t.card, borderRadius: Radius.card, paddingHorizontal: Spacing.lg },
     invRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.md, paddingVertical: Spacing.lg },
     invName: { ...Type.body, flex: 1, color: t.text },
@@ -407,7 +535,14 @@ function makeStyles(t: ThemePalette) {
     stepBtn: { width: 48, height: 48, borderRadius: Radius.button, backgroundColor: t.fill, alignItems: 'center', justifyContent: 'center' },
     stepHint: { ...Type.caption, color: t.textTertiary, lineHeight: 18 },
 
-    toast: { position: 'absolute', left: 20, right: 20, bottom: 28, backgroundColor: t.accent, borderRadius: Radius.button, paddingVertical: Spacing.lg, paddingHorizontal: Spacing.xl, alignItems: 'center' },
+    cookDone: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, minHeight: CIBLE_TACTILE_MIN, paddingHorizontal: Spacing.lg },
+    cookDoneTxt: { ...Type.bodySmallStrong, color: t.textSecondary },
+    // 🔴 `Fond.barreOnglets` ET NON 28. La barre d'onglets FLOTTE au-dessus du
+    // contenu depuis la passe matériaux (§8) : à 28 pt du bas, ce bandeau était
+    // dessiné DERRIÈRE elle — visible seulement comme une tache floue à travers le
+    // verre. Le seul retour qui disait CE QUI venait d'être cuisiné n'a donc jamais
+    // été lisible. Mesuré au simulateur, capture zoomée à l'appui.
+    toast: { position: 'absolute', left: 20, right: 20, bottom: Fond.barreOnglets, backgroundColor: t.accent, borderRadius: Radius.button, paddingVertical: Spacing.lg, paddingHorizontal: Spacing.xl, alignItems: 'center' },
     toastTxt: { ...Type.bodySmallStrong, color: t.onAccent },
 
     sheetTitle: { color: t.text, ...Type.h2 },

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ScrollView, TextInput } from 'react-native';
 import { Presse } from '../../components/Presse';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -16,11 +16,16 @@ import { Recipe } from '../../lib/types';
 import { OBJ_LABEL } from '../../lib/recipeLabels';
 import { useTourTarget, useScreenTour, TourButton } from '../../components/GuidedTour';
 import { recettesTour } from '../../lib/tours';
+import { revelation, libelleRevelation } from '../../lib/revelation';
+import { BoutonRevelation } from '../../components/ui';
 
 const TAGS = ['Tout', 'fav', 'breakfast', 'lunch', 'dinner', 'snack'];
 const TAG_LABELS: Record<string, string> = {
   Tout: 'Tout', fav: 'Favoris', breakfast: 'Petit-déj', lunch: 'Déjeuner', dinner: 'Dîner', snack: 'Collation',
 };
+
+/** Le premier palier du catalogue, et le pas de chaque « Voir + ». */
+const PAS_RECETTES = 10;
 
 const norm = (s: string) =>
   s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
@@ -46,17 +51,36 @@ export default function RecettesScreen() {
   const favoriRef = useTourTarget('recettes-favori');
 
   const q = norm(query.trim());
-  const data = recipes.filter((r) => {
+  const tous = recipes.filter((r) => {
     if (q && !norm(r.name_fr).includes(q)) return false;
     if (tag === 'Tout') return true;
     if (tag === 'fav') return isFavorite(r.id);
     return r.tags.includes(tag);
   });
 
+  // ── Révélation par paliers (décision fondateur, 2026-08-14) ───────────────
+  //
+  // « 10, puis voir +, puis 10, puis voir +, et après voir tout. » 512 cartes
+  // servies d'un coup, ce n'est pas une liste : c'est un mur, et le filtre juste
+  // au-dessus devient décoratif puisque personne ne descend jusqu'au bout.
+  //
+  // 🔴 LE COMPTEUR SE REMET À ZÉRO DÈS QUE LA LISTE CHANGE. Sans ça, chercher
+  // « poulet » après avoir déplié trois paliers servirait tout le résultat d'un
+  // coup — et surtout, le bouton du bas annoncerait un reste calculé sur l'ancien
+  // filtre. Un chiffre affiché est celui qui sera servi (CLAUDE.md §10).
+  const [paliers, setPaliers] = useState(0);
+  const [tout, setTout] = useState(false);
+  const cle = `${tag}·${q}·${recipes.length}`;
+  const cleVue = useRef(cle);
+  if (cleVue.current !== cle) { cleVue.current = cle; if (paliers !== 0) setPaliers(0); if (tout) setTout(false); }
+
+  const vue = revelation(tous.length, PAS_RECETTES, paliers, tout);
+  const data = tous.slice(0, vue.visibles);
+
   // Après `data` : le tour a besoin de savoir s'il y a une carte à montrer. Sur
   // une liste vide, ses deux dernières étapes seraient filtrées faute de cible et
   // le tour se réduirait à sa barre de recherche.
-  const { rejouer: rejouerTour } = useScreenTour('recettes', recettesTour(), { pret: data.length > 0 });
+  const { rejouer: rejouerTour } = useScreenTour('recettes', recettesTour(), { pret: tous.length > 0 });
 
   // ⚠️ L'en-tête, la recherche, les filtres et le compteur vivent DANS la liste
   // (`ListHeaderComponent`) et non au-dessus : c'est ce qui permet au grand titre
@@ -124,7 +148,11 @@ export default function RecettesScreen() {
           <Text style={s.countLabel}>
             {q ? 'RÉSULTATS' : tag === 'Tout' ? 'TOUTES LES RECETTES' : TAG_LABELS[tag].toUpperCase()}
           </Text>
-          <Text style={s.countN}>{data.length} recette{data.length > 1 ? 's' : ''}</Text>
+          {/* ⚠️ LE TOTAL FILTRÉ, PAS CE QUI EST À L'ÉCRAN. Depuis la révélation par
+              paliers, `data` n'est qu'une tranche : afficher sa longueur ferait dire
+              « 10 recettes » à un filtre qui en trouve 512, et le chiffre changerait
+              à chaque « Voir + » sans qu'aucun filtre n'ait bougé. */}
+          <Text style={s.countN}>{tous.length} recette{tous.length > 1 ? 's' : ''}</Text>
         </View>
     </View>
   );
@@ -144,6 +172,17 @@ export default function RecettesScreen() {
         contentContainerStyle={[s.list, layout.grid]}
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={enTete}
+        // Le bouton vit dans le PIED de la liste : posé au-dessus, il serait un
+        // réglage ; posé dessous, il est la suite de la lecture. Sur tablette la
+        // grille a deux colonnes — un pied traverse toute la largeur, donc rien
+        // à faire de particulier.
+        ListFooterComponent={
+          <BoutonRevelation
+            t={t}
+            libelle={libelleRevelation(vue.action, vue.reste)}
+            onPress={() => (vue.action === 'tout' ? setTout(true) : setPaliers((n) => n + 1))}
+          />
+        }
         {...repli.scrollProps}
         ListEmptyComponent={
           <View style={s.empty}>

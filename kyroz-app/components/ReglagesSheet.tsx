@@ -15,7 +15,17 @@ import { useHydrationEnabled } from './HydrationBar';
 import { ReminderTimeField } from './ReminderTimeField';
 import { ReminderTime, formatReminderTime, DEFAULT_REMINDER_TIME } from '../lib/reminder';
 import { remindersSupported } from '../lib/notifications';
-import { useDialog } from './Dialog';
+import { WeighInFrequency } from '../lib/types';
+import { WEIGH_IN_LABELS } from '../lib/weight';
+// 🔴 `useDialog` A ÉTÉ RETIRÉ D'ICI le 2026-08-14, et ce n'est pas un nettoyage.
+// Cette feuille est rendue par `profil.tsx` DANS un `<Sheet>`, donc dans une
+// `Modal`. Sur iOS, une modale ne se présente pas par-dessus une modale en place :
+// les deux `notify` de ce fichier ne s'affichaient sur AUCUN iPhone — sans erreur,
+// sans trace, et sans que le navigateur puisse le montrer (§11). Ils sont devenus
+// des messages EN LIGNE, posés sous le réglage qui vient d'échouer.
+// ➡️ Compté par `lib/__tests__/feuillesEmpilees.test.ts`, dont le chantier est
+// désormais VIDE : plus aucun composant de feuille n'ouvre de boîte de dialogue.
+import { MessageEnLigne } from './MessageEnLigne';
 import { TOURS } from '../lib/tours';
 // ⚠️ `SUPPORT_EMAIL` était importé pour la ligne « Aide & contact », retirée le
 // 2026-08-10 (elle poussait la même route que « Donner mon avis » en affichant une
@@ -71,15 +81,18 @@ interface Props {
   onRevoirTutos: () => void;
   onLogout: () => void;
   onDelete: () => void;
+  /** Cadence de pesée — remontée ici le 2026-08-14 (cf. `WeightCheckin`). */
+  weighInFrequency: WeighInFrequency;
+  onWeighInFrequency: (f: WeighInFrequency) => void;
   dragHandlers?: any;
   sheetScrollProps?: any;
 }
 
 export function ReglagesSheet({
-  t, version, onClose, onExport, onRevoirTutos, onLogout, onDelete, dragHandlers, sheetScrollProps,
+  t, version, onClose, onExport, onRevoirTutos, onLogout, onDelete,
+  weighInFrequency, onWeighInFrequency, dragHandlers, sheetScrollProps,
 }: Props) {
   const router = useRouter();
-  const { notify } = useDialog();
   const { time: reminderTime, choose: chooseReminder } = useReminder();
   const { enabled: checkinEnabled, setEnabled: setCheckinEnabled } = usePlanCheckin();
   const themeMode = useThemeMode();
@@ -93,6 +106,13 @@ export function ReglagesSheet({
   const [pseudonyme, setPseudonyme] = React.useState<string | null>(null);
   React.useEffect(() => { pseudonymeExistant().then(setPseudonyme); }, []);
 
+  // Les deux messages que cette feuille peut avoir à donner. Chacun vit à côté du
+  // réglage qui l'a produit — un avis posé en haut d'écran n'aurait rien dit du
+  // bouton qu'on vient de toucher.
+  type Avis = { titre: string; message: string };
+  const [avisMail, setAvisMail] = React.useState<Avis | null>(null);
+  const [avisRappel, setAvisRappel] = React.useState<Avis | null>(null);
+
   const demanderSuppressionStats = async () => {
     if (!pseudonyme) return;
     const url = lienSuppressionStats(pseudonyme);
@@ -100,9 +120,13 @@ export function ReglagesSheet({
     if (!ok) {
       // Même repli que l'écran « Donner mon avis » : sans client mail configuré,
       // `openURL` échouerait en silence et le bouton passerait pour mort.
-      notify({ title: 'Aucune application e-mail', message: `Écris-nous à ${SUPPORT_EMAIL} en précisant ton identifiant : ${pseudonyme}` });
+      setAvisMail({
+        titre: 'Aucune application e-mail',
+        message: `Écris-nous à ${SUPPORT_EMAIL} en précisant ton identifiant : ${pseudonyme}`,
+      });
       return;
     }
+    setAvisMail(null);
     Linking.openURL(url);
   };
 
@@ -128,13 +152,16 @@ export function ReglagesSheet({
           t={t}
           value={reminderTime ? 'on' : 'off'}
           onChange={async (v) => {
+            // Un nouvel essai efface l'avis du précédent : sinon un « refusé »
+            // resterait à l'écran par-dessus une activation qui, elle, a marché.
+            setAvisRappel(null);
             // Réactiver reprend l'heure affichée ; seule la PREMIÈRE activation
             // pose le matin par défaut.
             const next: ReminderTime | null = v === 'on' ? (reminderTime ?? DEFAULT_REMINDER_TIME) : null;
             const ok = await chooseReminder(next);
             if (!ok && next) {
-              notify({
-                title: remindersSupported ? 'Notifications désactivées' : 'Indisponible sur le web',
+              setAvisRappel({
+                titre: remindersSupported ? 'Notifications désactivées' : 'Indisponible sur le web',
                 message: remindersSupported
                   ? 'Active les notifications de Kyroz dans les réglages de ton téléphone pour recevoir le rappel.'
                   : 'Le rappel quotidien fonctionne sur l’app mobile (iOS/Android), pas dans le navigateur.',
@@ -143,6 +170,9 @@ export function ReglagesSheet({
           }}
           options={[{ label: 'Aucun', value: 'off' }, { label: 'Activé', value: 'on' }]}
         />
+        {avisRappel && (
+          <MessageEnLigne t={t} titre={avisRappel.titre} message={avisRappel.message} onFermer={() => setAvisRappel(null)} />
+        )}
         {/* Aucun geste ne se JETTE ici — ni sur l'interrupteur, ni sur l'heure : les
             choix s'empilent dans `useReminder`. Le garde « un choix est déjà en
             cours » avait coûté une heure saisie perdue et un segment mort. */}
@@ -153,6 +183,27 @@ export function ReglagesSheet({
             : 'Un rappel par jour, à l’heure que tu choisis, pour retrouver ton plan.'}
           {!remindersSupported && reminderTime ? ' La notif arrive sur l’app mobile (pas sur le web).' : ''}
         </Text>
+
+        {/* 🔴 REMONTÉ DEPUIS LA FEUILLE DU SUIVI DU POIDS le 2026-08-14 (décision
+            fondateur : « non, dans la roue dentée »). Il vivait au milieu d'une
+            saisie, entre une courbe et un historique — le fondateur ne savait même
+            pas qu'il était là. La règle de rangement du Profil s'applique mot pour
+            mot (§8) : *ce réglage change-t-il ce que Kyroz me SERT ?* Non — il
+            change quand Kyroz me PARLE. Sa place est donc ici, avec le rappel
+            quotidien, et pas dans le geste de se peser. */}
+        <Text style={s.label}>Rappel de pesée</Text>
+        <Segmented<WeighInFrequency>
+          t={t}
+          value={weighInFrequency}
+          onChange={onWeighInFrequency}
+          options={[
+            { label: 'Jour', value: 'daily' },
+            { label: 'Sem.', value: 'weekly' },
+            { label: '2 sem.', value: 'biweekly' },
+            { label: 'Mois', value: 'monthly' },
+          ]}
+        />
+        <Text style={s.aide}>On te proposera un check-in : {WEIGH_IN_LABELS[weighInFrequency].toLowerCase()}.</Text>
 
         <Text style={s.label}>Propositions d'ajustement</Text>
         <Segmented<'on' | 'off'>
@@ -282,6 +333,9 @@ export function ReglagesSheet({
           <MenuRow t={t} label="Exporter mes données" value="Télécharger tout (RGPD)" onPress={onExport} />
           <MenuRow t={t} label="Confidentialité & CGU" value="RGPD, données de santé" onPress={() => versRoute('/legal')} last />
         </View>
+        {avisMail && (
+          <MessageEnLigne t={t} titre={avisMail.titre} message={avisMail.message} onFermer={() => setAvisMail(null)} />
+        )}
 
         {/* ── Compte ───────────────────────────────────────────────────────── */}
         <SectionTitle t={t}>Compte</SectionTitle>

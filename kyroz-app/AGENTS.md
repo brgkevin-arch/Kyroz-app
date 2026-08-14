@@ -3756,35 +3756,413 @@ produit en suspens — il ne reste qu'à coder.
 > branches insèrent en tête de cette section, donc git ne sait pas dans quel ordre. La
 > résolution est de garder les DEUX blocs, en ordre décroissant — jamais d'en choisir un.
 
-- 🤖 **E43 · Trois finitions vues au simulateur, non corrigées (2026-08-14)**
+- 🤖 **E49 · La feuille du suivi du poids : trois choses au lieu d'une (2026-08-14)**
 
-  Sorties de la fiche E42 pour qu'elles ne se perdent pas dans sa prose : ce sont
-  des chantiers OUVERTS, chacun vu de mes yeux sur le build natif, aucun signalé
-  par le fondateur. Ils ne bloquent rien — c'est pour ça qu'ils n'ont pas été
-  faits dans la foulée, et c'est aussi pour ça qu'ils s'oublient.
+  Le fondateur : *« j'aime les fonctionnalités, mais c'est pas ergonomique. »* Plutôt
+  que de proposer une refonte à l'aveugle, quatre questions lui ont été posées. Ses
+  réponses, parce qu'elles valent plus que le correctif :
+  · il vient **enregistrer une pesée** (pas lire, pas corriger) ;
+  · ce qui l'irrite : **la rangée de dates**, **trop de choses ensemble**, **la
+    courbe trop bas** — et PAS la position du bouton, qu'on aurait juré coupable ;
+  · le rappel de pesée : **« non, dans la roue dentée »** ;
+  · la forme : *« soit deux onglets, soit mieux rangé »* — arbitrage rendu.
+
+  🔴 **ARBITRÉ : « MIEUX RANGÉ », ET C'EST UN CHOIX CONTRE L'INTUITION.** Deux
+  onglets rangent mieux sur le papier — mais ils mettraient la courbe DERRIÈRE un
+  tap, alors que le grief est justement qu'elle est trop loin. Il vient enregistrer
+  ET veut voir sa courbe : le bon geste est de les rapprocher, pas de les séparer.
+  ➡️ Ranger fort produit ici l'effet des deux onglets sans leur coût.
+
+  **Ce que la feuille est devenue**, dans l'ordre : date (une LIGNE) → poids →
+  Enregistrer → confirmation → **courbe** → le facultatif replié (note, photo) →
+  historique. **Tout tient sans défiler**, vérifié au simulateur.
+
+  · **La rangée de dates se replie** derrière « Une autre date ». 🔴 Et elle a perdu
+    ses **sept jours FUTURS grisés** : trois cases intouchables occupaient la moitié
+    du sélecteur — d'où « on ne sait pas où taper ». On pèse aujourd'hui ou on
+    rattrape un jour passé, jamais demain. Aujourd'hui est désormais la PREMIÈRE
+    case et on remonte le temps : plus rien à centrer, donc `stripRef`,
+    `centerOnToday` et l'arithmétique de `CHIP_W` disparaissent. *Du code de
+    positionnement en moins est un défaut de positionnement en moins.*
+  · **Note et photo se replient** : facultatives, elles séparaient le poids de son
+    bouton et poussaient la courbe hors de l'écran.
+  · **Le sous-titre passe de trois lignes à une.** Ce qui saute n'est pas faux, c'est
+    redondant : « Kyroz réajuste calories, macros et plan » est déjà dit par la
+    confirmation, AU MOMENT où ça arrive.
+  · **« Rappel de pesée » remonte dans la roue dentée**, avec le rappel quotidien.
+    La règle de rangement du Profil s'applique mot pour mot (CLAUDE.md §8) : *ce
+    réglage change-t-il ce que Kyroz me SERT ?* Non — il change quand Kyroz me
+    PARLE. ⚠️ Le fondateur **ne savait pas qu'il existait** : un réglage rangé au
+    mauvais endroit n'est pas seulement mal rangé, il est introuvable.
+
+  ⚠️ **CE QUE LES QUESTIONS ONT CORRIGÉ DANS MON DIAGNOSTIC.** J'avais identifié « le
+  bouton Enregistrer est trop bas, il faut passer la note et la photo » comme le
+  grief principal — c'est le seul des quatre qu'il n'a **pas** coché. Le correctif
+  le règle quand même (le facultatif descend), mais par la bande. ➡️ *Demander coûte
+  quatre questions ; supposer coûte une refonte qui déplace le problème.*
+
+- 🤖 **E48 · Le Profil : la série s'efface, le poids prend la place (2026-08-14)**
+
+  Quatre retouches dictées par le fondateur, plus un défaut trouvé en les faisant.
+
+  1. **Le « ? » du tuto est parti de l'en-tête.** ⚠️ La porte de sortie ne disparaît
+     pas avec lui : « Revoir les tutos » vit dans la roue dentée, sur ce même écran.
+     CLAUDE.md §8 exige qu'un écran à tour garde un recours — il en garde un, il
+     change d'endroit.
+  2. **La série devient la pastille discrète du Plan** (« 1 j / de série »), à la
+     place du « ? ». 🔴 **Conséquence à connaître : le chaînon de 7 jours n'existe
+     plus NULLE PART dans l'app** — il avait quitté le Plan le 2026-08-05, il quitte
+     le Profil aujourd'hui. `components/StreakProgress.tsx` est supprimé (plus aucun
+     lecteur). Le North Star reste MESURÉ et le compteur reste affiché ; c'est sa
+     visualisation en sept segments qui part. ➡️ `chainProgress` et `streakMessage`
+     survivent dans `lib/streak.ts`, testés : le jour où le chaînon revient, il n'y a
+     rien à réécrire.
+  3. **La carte du poids est refondue et devient le sujet de l'écran** : le chiffre
+     seul sur sa ligne, l'écart dessous, la courbe, et un VRAI bouton pleine largeur
+     à l'accent. 🔴 **Au passage, un défaut de mise en page qui datait :
+     `width={260}` ÉCRIT EN DUR** — donc un blanc à droite sur tout iPhone récent et
+     une courbe minuscule sur iPad. Elle se mesure désormais
+     (`useWindowDimensions`, pas `Dimensions.get` : §11).
+  4. **Les deux paragraphes entre les macros et le TDEE sont retirés** (modulation
+     par volume, plancher de sécurité). ⚠️ **Ce qu'on a troqué** : le second
+     répondait à « pourquoi ma cible ne bouge plus quand je change mes réglages ? »,
+     et son absence fait lire une cible bornée comme un moteur en panne — c'est le
+     motif écrit dans CLAUDE.md §6 le jour où il a été ajouté. Les deux survivent en
+     entier dans **Méthodologie & sources**.
+
+  🔴 **LE DÉFAUT TROUVÉ EN CHEMIN — les pesées ne se DIFFUSAIENT pas.**
+  `useWeightLog` gardait ses points dans l'état LOCAL du hook, et ce hook a TROIS
+  instances (Profil, Plan, `WeightCheckin`). Vu à l'écran : on enregistre une pesée
+  du 12 août dans la feuille, **la courbe s'affiche dedans**, et la carte du Profil
+  continue d'annoncer « encore une pesée et ta courbe apparaît ici ». Indéfiniment.
+  ⚠️ **Ce qui l'a fait vivre : le défaut ne se voit que sur un BACKFILL.** Une pesée
+  du JOUR modifie `profile.weight_kg`, donc l'effet du hook se redéclenchait par la
+  bande et tout paraissait sain. Une pesée d'un jour passé ne touche pas le profil —
+  à dessein — et là plus rien ne rafraîchissait rien. Encore un défaut dormant que le
+  chemin courant masquait.
+  ➡️ Store hors React + `useSyncExternalStore`, le patron écrit dans CLAUDE.md §11
+  **depuis le 2026-08-06** et que le thème, l'accent, l'hydratation, le prénom et
+  l'heure de rappel suivaient déjà. L'API du hook ne change pas d'un caractère —
+  c'est ce qui permet de corriger les trois écrans sans en toucher aucun.
+  ⚠️ *Une règle écrite ne s'applique pas toute seule à ses voisins* : celle-ci était
+  au bon endroit, illustrée par trois cas, et un quatrième vivait à côté sans
+  personne pour le voir. ➡️ Garde-fou : `lib/__tests__/diffusion.test.ts`.
+
+  ✅ Vérifié au simulateur, les cinq points, capture à l'appui.
+
+- 🤖 **E47 · « Cuisiné » depuis le Frigo cuisinait ce qu'on n'avait pas choisi (2026-08-14)**
+
+  Signalé par le fondateur avec une **capture vidéo** — *« voici ce que ça fait quand
+  je cuisine des recettes depuis le frigo »*. Le fichier étant dans un dossier protégé
+  par macOS (Photos), il était illisible : le geste a été **rejoué au simulateur**, et
+  il a rendu deux défauts qui se cachaient l'un l'autre.
+
+  🔴 **1. LA LISTE REMONTAIT SOUS LE DOIGT.** Cuisiner déduit les ingrédients, donc la
+  recette quitte les réalisables — et tout le dessous monte d'un cran. Le bouton
+  suivant arrive **exactement** là où le doigt vient de se poser.
+  **Mesuré : QUATRE appuis au MÊME pixel ont cuisiné QUATRE recettes différentes**,
+  frigo 35 → 28 aliments, prêtes 19 → 15. Aucune n'était choisie, et la déduction est
+  irréversible (ni confirmation, ni annulation — c'est un choix documenté).
+  ⚠️ **L'effet dépasse la recette touchée** : le premier appui a fait tomber la liste
+  de 19 à 17, parce qu'une AUTRE recette avait perdu un ingrédient au passage. Retirer
+  seulement la carte pressée n'aurait donc rien figé — c'est l'ORDRE entier qu'il faut
+  tenir.
+  ➡️ `lib/pantry.ts::listeStable` gèle l'**ORDRE**, jamais le **CONTENU** : chaque carte
+  garde sa place, son état est relu à chaque rendu. Une recette devenue infaisable
+  reste où elle est **et le dit**. Geler le contenu aurait affiché « réalisable
+  maintenant » sur une recette dont on venait de manger le riz — le mensonge de §10.
+  ⚠️ Le gel se pose au **PREMIER geste**, pas au montage : tant qu'on n'a rien cuisiné,
+  un article ajouté doit débloquer ses recettes tout de suite. Le dégel se fait **en
+  revenant sur l'onglet**, jamais sur un minuteur deviné.
+  ⚠️ Et la recette cuisinée porte un **instantané** : la déduction peut vider son
+  dernier ingrédient, `cookableRecipes` ne la rend alors plus du tout, et la carte
+  qu'on vient de toucher s'évaporerait — le trou refermant la liste sous le doigt,
+  c'est-à-dire le défaut qu'on corrige.
+  ✅ Vérifié au simulateur : la carte reste en place, atténuée, « ✓ Cuisiné » à la
+  place du bouton — et **deux appuis de plus au même pixel ne font plus rien** (26
+  aliments, 12 prêtes, inchangés).
+
+  🔴 **2. LE BANDEAU DE CONFIRMATION ÉTAIT DESSINÉ DERRIÈRE LA BARRE D'ONGLETS.** Posé
+  à `bottom: 28` alors que la barre **flotte** au-dessus du contenu depuis la passe
+  matériaux (§8, `Fond.barreOnglets = 120`). Le seul retour qui disait CE QUI venait
+  d'être cuisiné n'était lisible que comme une tache floue derrière le verre.
+  ⚠️ **Le même style, recopié à l'identique dans `plan.tsx`** (« J'ai cuisiné ») : une
+  faute, deux écrans, jamais vue — « un style recopié partout est un rôle qui n'a pas
+  de nom » (§8), cette fois sur le seul retour d'un geste sans confirmation.
+  ➡️ Les deux se renforçaient : rien ne confirmait le geste, **donc on retapait** — et
+  le second appui cuisinait autre chose.
+
+  🔴 **ET L'INSTRUMENT A FAILLI ME FAIRE PUBLIER UNE ERREUR.** `xcrun simctl io
+  screenshot` met plus de 2,4 s à capturer sur cette machine : **le bandeau était déjà
+  parti à chaque prise**, et j'en ai d'abord conclu qu'il ne s'affichait pas du tout.
+  Une sonde (`console.log`) a montré que `flashToast` était bien atteint, puis une
+  seconde (durée portée à 60 s) l'a rendu visible. C'est seulement là que la vraie
+  mesure a pu se faire, dans les deux sens : à `bottom: 28` on lit son fantôme flou
+  sous « Courses / Frigo / Recettes » ; à `Fond.barreOnglets` il est net, au-dessus.
+  ➡️ **L'ABSENCE SUR UNE CAPTURE NE PROUVE RIEN QUAND CE QU'ON CHERCHE DURE MOINS
+  LONGTEMPS QUE LA CAPTURE.** Même famille que `requestAnimationFrame` qui ne tourne
+  pas dans le panneau navigateur (§11) : la mesure était juste, l'instrument non.
+
+  ➡️ Garde-fou : `lib/__tests__/cuisinerDepuisLeFrigo.test.ts` (11 cas, **5 mutations**),
+  dont un compteur général — **aucun `position: absolute` ancré en bas d'un écran
+  d'onglet ne descend sous `Fond.barreOnglets`**. C'est ce compteur qui aurait trouvé
+  les deux bandeaux sans qu'on ait à les chercher.
+
+- 🤖 **E46 · Trois listes qui étaient des murs — le Frigo se replie, les recettes se dévoilent (2026-08-14)**
+
+  Décision fondateur, sur captures : le Frigo affichait **69 aliments** d'un bloc et
+  **185 recettes prêtes** à la suite ; l'onglet Recettes servait **512 cartes**. Trois
+  listes qu'on ne parcourt pas — on les subit.
+
+  **1. Le stock du Frigo se replie par rayon.** Tap sur « PRODUITS LAITIERS & ŒUFS »
+  et le rayon se ferme, le compte reste visible. **Ouvert par défaut**, sur sa
+  demande — un inventaire qui s'ouvre fermé cache ce qu'on vient vérifier.
+  ⚠️ On mémorise les rayons **FERMÉS**, pas les ouverts : un ensemble vide porte le
+  défaut sans qu'aucune ligne ne l'initialise, et un rayon qui apparaît (un premier
+  produit laitier acheté) est ouvert d'office, sans que rien n'ait à y penser.
+  ⚠️ **NON persisté, et c'est une décision** : c'est un pli de lecture, pas un
+  réglage. Le stocker imposerait le patron des valeurs d'appareil (CLAUDE.md §11,
+  store externe + `useSyncExternalStore`) pour un état qui ne survit à rien — et le
+  frigo se rouvrirait à moitié replié sans que personne se souvienne de l'avoir
+  demandé.
+
+  **2. Les deux listes « À cuisiner » se dévoilent par 8**, la troisième **par 10**
+  (`lib/revelation.ts`, pur et testé ; `ui.tsx::BoutonRevelation` pour le rendu).
+  Séquence dictée : *10 · voir + · 10 · voir + · voir tout*. Trois listes, une seule
+  arithmétique — trois copies auraient divergé à la première retouche.
+
+  🔴 **UN PLAFOND MUET EST TOMBÉ AU PASSAGE, et c'est la vraie trouvaille.** Les
+  presque-prêtes étaient tronquées à 5 par un `.slice(0, 5)` que **rien n'annonçait**
+  — mesuré sur le simulateur après correctif : **202 recettes**, donc **194 qui
+  n'existaient nulle part à l'écran**. C'est exactement le « no silent caps » que le
+  dépôt s'impose : une liste bornée doit le DIRE. Le bouton dit maintenant « Voir les
+  194 restantes ».
+
+  ⚠️ **Deux règles §10 tenues par le libellé, pas par l'intention :**
+  · « Voir + de recettes » **ne s'affiche pas** quand le tap révélerait déjà tout le
+    reste — il devient « Voir les N restantes ». Un bouton dit ce qu'il fait ;
+  · le compteur de l'en-tête Recettes affiche le **total filtré**, jamais la tranche
+    visible. Sans ça, un filtre qui trouve 512 recettes en annonce 10, et le chiffre
+    change à chaque « Voir + » **sans qu'aucun filtre n'ait bougé**.
+
+  🔴 **ET LES PALIERS SE REMETTENT À ZÉRO QUAND LA LISTE CHANGE** (filtre, recherche,
+  catalogue). Sinon le bouton annonce un reste calculé sur l'ancien filtre — le même
+  défaut que le compteur, par une autre porte.
+
+  ⚠️ `PALIERS_AVANT_TOUT = 2` est **exporté**, pas enterré dans un `n >= 2` : il porte
+  une décision du fondateur, et sans nom il se ferait « simplifier » à la première
+  relecture. Au-delà, atteindre la fin de 512 recettes demanderait cinquante appuis.
+
+  **Vérifié au simulateur** (le seul juge, §5) : rayon replié, compte conservé ·
+  Frigo 8 → « Voir + » → 16 → « Voir + » → « Voir les 194 restantes » · Recettes
+  10 → 20 → 30 → « Voir les 482 restantes » → liste entière, bouton disparu.
+  ➡️ Garde-fou : `lib/__tests__/revelation.test.ts` (13 cas), qui fige la séquence
+  dictée — elle n'est pas un détail d'implémentation.
+
+- 🔴 **E45 · OUVERT — l'app se fige sur « Rien à acheter », non reproduite (2026-08-14)**
+
+  **Signalé par le fondateur**, avec capture, sur son iPhone (OTA #13) : *« une fois
+  que j'ai appuyé sur terminer les courses, je suis arrivé sur l'écran où je n'ai
+  rien à acheter et je suis resté bloqué — impossible d'aller sur une autre page
+  sans fermer l'app »*. **Vu UNE seule fois.**
+
+  🔴 **NON REPRODUITE, ET C'EST LA PREMIÈRE CHOSE À SAVOIR.** Trois chemins joués au
+  simulateur (iPhone 17 / iOS 27), chacun jusqu'à l'écran vide puis tap sur un autre
+  onglet — **la navigation répond à chaque fois** :
+  1. « Tout cocher » → « Courses terminées » → « Rien à acheter » ;
+  2. « Rien à acheter » → « Mes courses passées » → fermeture au glissement ;
+  3. cocher 1 article → « Courses terminées » → la question « 34 articles ne sont pas
+     cochés » → « Les retirer de ma liste » → « Liste vidée ».
+  ➡️ C'est donc une **COURSE**, même famille que la feuille du frigo (E18), elle aussi
+  vue une seule fois et jamais rejouée à la main.
+
+  **Ce que le symptôme dit, structurellement.** Écran d'apparence normale + aucun tap
+  qui répond, **barre d'onglets comprise** + seul le redémarrage débloque : dans cette
+  app une seule chose peut produire ça, une `Modal` restée PRÉSENTÉE mais peinte
+  invisible. La barre d'onglets vit sous toutes les modales, d'où sa mort en premier.
+  Il y en a **sept** (`grep -rn "<Modal" app components`) : `Sheet`, `ActionSheet`,
+  `GuidedTour`, `FirstPlanReveal`, `ReminderOffer`, `StreakCelebration`,
+  `BirthdayCelebration`.
+
+  ⚠️ **ÉCARTÉ PAR MESURE — le voile du tuto.** C'était le candidat le plus sérieux :
+  `GuidedTour` rend `<View absoluteFill backgroundColor: rgba(0,0,0,0.72)>` quand sa
+  cible ne se mesure plus, sans bulle et sans sortie — et sur un fond noir un voile
+  noir se devine mal. **La capture tranche** : sous 72 % de noir, tout l'écran serait
+  à 28 % de sa luminosité ; or le titre « Rien à acheter » y est blanc plein et le
+  double-check vert vif, identiques à mes captures sans voile. ➡️ *Une capture n'est
+  pas qu'une illustration : ses NIVEAUX sont une mesure.*
+
+  ⚠️ **AUCUN CORRECTIF LIVRÉ, ET C'EST DÉLIBÉRÉ.** Deux durcissements plausibles ont
+  été écrits puis **écartés faute de preuve** :
+  · donner à `Sheet` le montage paresseux d'`ActionSheet` (`if (!render) return null`,
+    E11-bis) — vrai défaut de symétrie entre deux jumeaux, mais **il ne corrige pas un
+    `render` bloqué à `true`**, et surtout il change QUAND les enfants se montent :
+    c'est exactement le piège E24 (un effet de bord attaché à un montage qui n'a plus
+    lieu). `WeightCheckin` et `useWeightLog` sont dans ce cas. À ne pas faire sans
+    refaire le tour des hooks concernés ;
+  · faire converger `render` sur un minuteur plutôt que sur le rappel d'animation —
+    mais le rappel de `Animated.parallel` part AUSSI quand l'animation est interrompue
+    (c'est le correctif E18), donc le trou reste à démontrer.
+  ➡️ Livrer l'un des deux ferait passer une hypothèse pour un correctif.
+
+  🔴 **SECOND SIGNALEMENT LE MÊME JOUR — et il donne la signature commune.**
+  *« j'ai l'écran qui a freeze quand j'ai fermé la feuille du suivi du poids »*.
+  Non reproduit non plus : six cycles ouverture/fermeture, dont un glissement
+  interrompu à mi-course, tous sains.
+  ➡️ **Le point commun des deux est FERMER UNE FEUILLE** (l'écran « Rien à acheter »
+  monte lui aussi une `Sheet`, celle de l'historique). Ça ne prouve pas la cause,
+  mais ça désigne l'état : une `Modal` de `Sheet` restée PRÉSENTÉE alors que sa
+  feuille est animée hors écran — transparente, plein écran, avalant tous les taps,
+  et dont le fond appelle un `onClose` qui remet à `false` un état déjà `false`
+  (donc React ne re-rend pas, donc rien ne peut plus la fermer).
+  ✅ **UN FILET A ÉTÉ POSÉ, ET CE N'EST PAS UN CORRECTIF.** `Sheet` et `ActionSheet`
+  démontent désormais au plus tard après `FILET_DEMONTAGE_MS` (1,5 s), sans attendre
+  le rappel d'animation. E18 avait retiré la condition `finished` au motif qu'« un
+  état qui doit converger ne se confie pas à un événement qui peut ne pas arriver » —
+  mais le rappel EST encore un événement, et le raisonnement n'avait pas été poussé
+  jusqu'au bout. Inerte dans tous les chemins sains ; dans le chemin pathologique, il
+  transforme un gel définitif en accroc d'une seconde et demie.
+  ⚠️ **La cause reste INCONNUE.** Ne pas lire ce filet comme une clôture : il rend le
+  symptôme survivable, il n'explique rien. Compté par `feuilles.test.ts` — un
+  garde-fou qui ne sert dans aucun chemin sain se fait « simplifier » à la première
+  relecture.
+
+  **CE QU'IL FAUT FAIRE À LA PROCHAINE OCCURRENCE — et ça se joue en 5 secondes :**
+  **glisser vers le bas au MILIEU de l'écran.** Si quelque chose descend, ou si l'app
+  redevient vivante, c'est une **feuille invisible restée montée** (`Sheet`) et le
+  chantier se referme sur `render`. Si rien ne bouge du tout, c'est le **fil JS** qui
+  est bloqué, et le suspect n'est plus une modale mais une boucle de rendu — deux
+  familles opposées, que rien d'autre ne sépare. ➡️ Sans ce test, la prochaine session
+  refera les trois reproductions ci-dessus pour rien.
+
+- 🤖 **E44 · Les trois finitions — et un SEPTIÈME geste mort trouvé en les vérifiant (2026-08-14)**
+
+  Les trois points d'E43 sont faits, et **vérifiés un par un au simulateur** (c'est
+  là qu'ils avaient été vus). Ce qui mérite d'être retenu n'est pas la liste : c'est
+  ce que la vérification a trouvé en chemin, et ce qu'elle a corrigé d'une règle
+  qu'on croyait acquise.
+
+  **Les trois finitions :**
+  1. **La roulette de date a sa marge** (`components/BirthDatePicker.tsx`,
+     `padding: Spacing.xxl`). `Sheet` ne pose AUCUN padding horizontal : chacun de
+     ses enfants apporte le sien, et c'est ce qui permet à `WeightCheckin` ou
+     `RecipeEditor` d'avoir un en-tête fixe margé et un `ScrollView` margé
+     séparément. Recensé : sur les **18** composants rendus directement dans un
+     `<Sheet>`, **17** portaient déjà `Spacing.xxl` — les sept éditeurs du Profil
+     par leur `EditorShell` commun. Celui-là était le dix-huitième, et le seul sans
+     rien. ⚠️ **Corriger dans `Sheet` aurait doublé la marge des dix-sept autres.**
+  2. **« Point du aujourd'hui » est devenu « Aujourd'hui — point mis à jour ».**
+     Même remède que dans `OffPlanHistory` : un tiret, la date devant, sa majuscule
+     conservée. « du 5 août » et « d'aujourd'hui » ne prennent pas le même article,
+     donc aucune phrase collée ne peut être juste pour les deux.
+  3. **Les deux `notify` de la feuille Réglages sont des messages EN LIGNE**
+     (`components/MessageEnLigne.tsx`, le pendant de `ConfirmationEnLigne` pour ce
+     qui n'appelle pas de réponse). `CHANTIER_DIALOGUES_EN_FEUILLE` est **VIDE** :
+     plus aucun composant de feuille n'ouvre de boîte de dialogue, et le tableau vide
+     rend le test strict.
+     ⚠️ **Pourquoi un composant plutôt qu'un `ConfirmationEnLigne` détourné** : ces
+     deux-là n'interrogent pas, ils annoncent. Sans nom pour ce rôle, le prochain
+     écran serait retourné à `notify`, c'est-à-dire au défaut. Et il **se ferme** —
+     un `notify` a son « OK » ; posé en ligne, un message qui ne part jamais devient
+     un morceau d'écran, et le réglage d'à côté se lit comme s'il était en panne.
+
+  🔴 **LE SEPTIÈME GESTE MORT — « Me peser », depuis l'éditeur Informations.**
+  Trouvé en allant vérifier la finition 1, sur le chemin. `onWeighIn` faisait
+  `setEditor(null); setWeighIn(true);` et **son commentaire affirmait « on ferme
+  l'éditeur AVANT d'ouvrir la pesée »**. C'était sincère : les deux setters étaient
+  bien écrits dans cet ordre. Mais ils partent dans le **même lot d'état**, et
+  `Sheet` garde sa `Modal` montée le temps de son animation de sortie — donc iOS
+  voyait arriver la seconde pendant que la première était encore présentée, et n'en
+  présentait aucune. **Preuve : deux captures à cinq secondes d'intervalle,
+  identiques au bit près, l'éditeur refermé et rien d'ouvert.**
+  ➡️ Corrigé par `Sheet.onClosed` + `apresEditeur`, exactement comme « Supprimer mon
+  compte » vingt lignes plus haut dans le même fichier.
+  ⚠️ **Écrire les setters dans le bon ordre ne ferme pas cette porte** — c'est la
+  formulation à retenir, parce que c'est précisément l'illusion qui a produit ce
+  défaut-ci.
+  ℹ️ Le geste n'était pas perdu (la pesée s'ouvre aussi depuis l'en-tête du Profil et
+  depuis le Plan) ; c'est le raccourci qui ne répondait pas.
+
+  🔴 **ET LA RÈGLE D'E42 ÉTAIT TROP LARGE — MESURÉ.** E42 a écrit « iOS refuse de
+  présenter une seconde `Modal` quand une autre est en place ». C'est faux tel quel,
+  et la roulette de date le prouve : son `<Sheet>` est déclaré **DANS** les enfants de
+  la feuille d'édition, et il s'ouvre parfaitement (capture à l'appui) — puis se
+  referme et rend la main à l'éditeur.
+  ➡️ **Le critère est OÙ la `Modal` est DÉCLARÉE dans l'arbre**, pas « une modale
+  est-elle ouverte » :
+  · déclarée **à côté** de la première (deux `<Sheet>` frères au niveau de l'écran,
+    ou une `Modal` de `DialogProvider` montée à la racine) → les deux demandent à
+    être présentées par le **même** contrôleur, le second est refusé → geste MORT ;
+  · déclarée **à l'intérieur** de la première → elle est présentée par le contrôleur
+    de cette feuille-là, en chaîne → ça marche.
+  ⚠️ L'ancienne formulation est **conservatrice** : elle interdit plus que nécessaire,
+  donc rien ne casse en la suivant. Mais elle ferait « corriger » du code sain, et
+  elle rendrait `ConfirmationEnLigne` obligatoire là où il ne l'est pas. CLAUDE.md §11
+  est amendé.
+  ➡️ *Une prémisse écrite en corrigeant cinq cas n'a été mesurée que sur ces cinq-là.*
+
+  **Ce qui est vérifié, et comment.** Simulateur iPhone 17 / iOS 27, Metro lancé sur
+  le worktree (`EXPO_ROUTER_APP_ROOT=$PWD/app`), app relancée entre chaque lot :
+  roulette margée ✓ · « Aujourd'hui — point mis à jour » après une pesée réelle ✓ ·
+  « Me peser » ouvre la feuille ✓ · message « Notifications désactivées » sous le
+  réglage, avec son « Fermer » qui marche ✓ · message « Aucune application e-mail »
+  sous la ligne RGPD ✓.
+  ⚠️ **Ce dernier a demandé une SONDE, et il faut savoir pourquoi** : la ligne
+  « Supprimer mes statistiques » ne s'affiche que si un identifiant pseudonyme
+  existe, or `distinctId()` n'est appelé **qu'après** le test `POSTHOG_KEY` dans
+  `capture()`. Sans clé — l'état actuel, analytics dormant — **aucun pseudonyme n'est
+  jamais créé, donc cette ligne est INATTEIGNABLE en production aujourd'hui**. Elle
+  le deviendra le jour où la clé sera posée (E26). La vérification s'est donc faite
+  en forçant l'identifiant le temps d'une capture, puis en le retirant.
+
+  **Garde-fous, tous vérifiés par mutation :**
+  · `lib/__tests__/margeFeuilles.test.ts` (nouveau) — tout composant rendu dans un
+    `<Sheet>` déclare un `padding`/`paddingHorizontal` à `Spacing.xxl` ;
+  · `feuillesEmpilees.test.ts` — chantier vide, `ReglagesSheet` sans `useDialog`,
+    fermeture non inerte du message, le cas « Me peser », et surtout un **compteur
+    général** : fermer un état de feuille puis en ouvrir un autre dans le même corps
+    de fonction est interdit (les fermetures en série restent légitimes) ;
+  · `shoppingHistory.test.ts` → « Date lisible » — aucun article collé devant une date
+    nommée.
+  ⚠️ **La sonde de `feuillesEmpilees` s'est accusée elle-même à la première version** :
+  la note qui explique le correctif de « Me peser » cite la ligne fautive mot pour
+  mot. Troisième fois que cette famille de test se fait piéger par sa propre
+  documentation (compteur d'émojis, puis `ShoppingHistory`) — on lit du CODE, jamais
+  de la prose, et `sansCommentaires` est passé sur TOUS les lecteurs du fichier.
+  ⚠️ **Ce que la finition 2 n'a PAS reçu, et c'est délibéré** : le compteur d'articles
+  ne voit que l'article ACCOLÉ à l'interpolation. La faute d'origine se construisait en
+  deux endroits (l'étiquette ici, la phrase là) — une sonde qui lit le source ne peut
+  pas la voir sans mentir sur ce qu'elle couvre. C'est écrit dans le test.
+
+  📦 Reste ouvert après cette fiche : **A32** (les 12 silhouettes de masse grasse,
+  tâche du fondateur), et la revue page par page, arrêtée après Courses — restent
+  Frigo, Recettes et Profil.
+
+- ~~**E43 · Trois finitions vues au simulateur, non corrigées**~~ ✅ **LIVRÉ le
+  2026-08-14 → voir E44.** Sorties de la fiche E42 pour qu'elles ne se perdent pas
+  dans sa prose : trois chantiers vus sur le build natif, aucun signalé par le
+  fondateur, aucun bloquant — c'est pour ça qu'ils n'avaient pas été faits dans la
+  foulée, et c'est aussi pour ça qu'ils s'oubliaient.
 
   1. **La feuille de la roulette de date est DÉCALÉE À GAUCHE.** Le titre « Ta date
-     de naissance » et le bouton « Valider » touchent le bord gauche, alors qu'il
-     reste ~25 pt de marge à droite. ⚠️ **Ce n'est pas `Sheet`** : la fiche recette,
-     servie par la même feuille, est correctement margée sur la même capture. C'est
-     donc `components/BirthDatePicker.tsx` (ou son enveloppe) qu'il faut regarder.
-     ➡️ Invisible au navigateur — vu au simulateur, sur capture.
+     de naissance » et le bouton « Valider » touchent le bord gauche. ⚠️ **Ce n'est
+     pas `Sheet`** : la fiche recette, servie par la même feuille, est correctement
+     margée sur la même capture. ✅ C'était `BirthDatePicker`, sans aucun padding.
+     ℹ️ La fiche disait aussi « ~25 pt de marge à droite » — **c'était une lecture
+     approximative de la capture, et elle est fausse** : sans padding, le contenu
+     touchait les DEUX bords ; ce qui restait à droite, c'était la fin du texte du
+     titre. Une mesure à l'œil sur une capture n'est pas une mesure.
 
   2. **« Point du aujourd'hui mis à jour ».** Le message de confirmation après une
      pesée colle un article devant une date variable. Même faute que celle déjà
-     corrigée dans `OffPlanHistory` (« du ${date} » donnait « du Aujourd'hui »), où
-     la solution retenue avait été un **tiret** plutôt qu'un accord impossible.
-     ➡️ `components/WeightCheckin.tsx`, autour de `setSaved`.
+     corrigée dans `OffPlanHistory`, et même remède : un **tiret**. ✅ Fait.
 
   3. **Les deux `notify` de la feuille Réglages restent des modales dans une
      modale** (« aucune application e-mail », « rappel refusé »). Donc morts sur
-     iPhone, comme les cinq d'E42. **Laissés volontairement** : ils sont purement
-     INFORMATIFS — rien ne se perd si l'un ne s'affiche pas, contrairement à une
-     confirmation, qui laisse un geste sans réponse. C'est la seule raison pour
-     laquelle ils ne sont pas dans le lot corrigé.
-     ⚠️ Ils sont la dernière entrée de `CHANTIER_DIALOGUES_EN_FEUILLE` dans
-     `lib/__tests__/feuillesEmpilees.test.ts` — la liste **ne peut que rétrécir**,
-     donc ce point-ci se referme en la vidant.
+     iPhone, comme les cinq d'E42. **Laissés volontairement** à l'époque : purement
+     INFORMATIFS, rien ne se perd si l'un ne s'affiche pas — contrairement à une
+     confirmation, qui laisse un geste sans réponse. ✅ Devenus des `MessageEnLigne`,
+     et `CHANTIER_DIALOGUES_EN_FEUILLE` est **vide**.
 
 - 🤖 **E42 · Revue page par page du Plan et des Courses — et CINQ gestes morts en natif (2026-08-14)**
 
@@ -6516,7 +6894,7 @@ Plancher = énergie disponible (30 kcal/kg de masse maigre + sport, **plafonné 
 - **Streak** (`lib/streak.ts`, `useStreak`) : paliers 3/7/14…, `StreakProgress`/`StreakCelebration`, écritures sérialisées (verrou anti double-comptage J1). **Bouclier de série (`advanceStreak`, pur & testé, 2026-06-20)** : un jour manqué est PARDONNÉ (gel) si le bouclier est dispo ; il se recharge tous les 7 jours (1 gel / semaine). 2+ jours manqués (ou 1 sans bouclier) → reset à 1. `Streak.freeze_available` **LOCAL-ONLY** (non poussé par `pushStreak` → AUCUNE migration ; `undefined`=dispo, rétro-compat). Le gel → `froze` exposé par le hook → toast « Série protégée » sur le Plan. Carte `variant='card'` (Profil) enrichie : rangée Record · Prochain palier · **Bouclier** + note. Tests : `streak.test.ts` (gel/reset/recharge/legacy).
 - **Rappel quotidien** (`lib/reminder.ts` + `lib/notifications.ts`, `useReminder`) : 1 notif locale/jour, no-op web. ⚠️ Sur web la **préférence est conservée** (ne retombe plus sur « Aucun ») + note « la notif arrive sur l'app mobile » — la vraie notif s'arme sur natif. **Refondu le 2026-08-07** : l'heure est LIBRE (interrupteur + champs `HH h MM`, `components/ReminderTimeField.tsx`), les trois créneaux d'avant (8h00 · 12h00 · 18h30) ne sont plus que des **puces de raccourci** dont l'allumage se DÉDUIT de l'heure. Stockage `'off'` ou `'HH:MM'` sous la même clé `@kyroz:reminder` ; `parseReminder` reprend les anciennes valeurs `morning|midday|evening` (la clé survit à la purge des données — sans reprise, le rappel de tous les réglages existants s'éteignait en silence). Le texte est **un titre ancré au moment de la journée + une CITATION** (`REMINDER_TITLES` 4 × 4, `CITATIONS` 15 — 6 signées du domaine public, 9 maximes maison ; + 3 messages de pesée, qui restent factuels parce qu'ils demandent un geste). Les deux index sont pris sur le JOUR de l'échéance, donc déterministes et testables. ⚠️ **Les deux compteurs doivent rester PREMIERS ENTRE EUX** — retirer une citation (16 → 15, avec 3 titres) a fait tomber le cycle du couple de 48 à 15 jours ; 4 × 15 = **60 jours**. ⚠️ **On n'attribue que ce qui tient** : « Que ton aliment soit ta seule médecine » n'est pas d'Hippocrate et « l'excellence est une habitude » est de Will Durant, pas d'Aristote — les deux que le registre pousse à mettre, absentes ici. Une maxime sans auteur s'affiche SANS signature, jamais sous un nom emprunté. ⚠️ Et **l'ORDRE du tableau est l'ordre des jours** : rangé par famille, il servait trois philosophes d'affilée puis neuf jours de maximes — invisible à la relecture, flagrant sur un aperçu de 14 jours. Entrelacé, et tenu par un test (jamais 3 de la même famille de suite, bouclage compris). ⚠️ **Le message est figé à la programmation** : un déclencheur `DAILY` répète le même contenu jusqu'au prochain ré-armement, et c'est le ré-armement au démarrage qui le fait tourner. L'alternative (N notifs datées d'avance, une par jour) a été écartée : elle S'ÉTEINT au bout de N jours sans ouverture, c'est-à-dire quand le rappel sert le plus.
 
-- **Visite guidée** (`components/GuidedTour.tsx` = le moteur, `lib/tours.ts` = le contenu) : **5 tours, 21 bulles**, chacun déclenché **à la 1re visite de SON onglet** (`useScreenTour`) — plan 6 · profil 6 · recettes 3 · courses 3 · frigo 3. Étendu le **2026-08-08** (E20) : il n'existait qu'un tour, sur le Plan, et 3 de ses 5 bulles étaient FAUSSES. **Le contenu est une fonction PURE sans import**, donc testable — `GuidedTour.tsx` tire react-native et ne l'est pas. Une étape conditionnelle se construit (`planTour({days, moduleParVolume})`, `profilTour({objectifDateDisponible})`) : une bulle vraie pour certains profils seulement se conditionne, elle ne se sert pas à tout le monde. **Ancrage** : `useTourTarget('id')` posé DIRECTEMENT sur l'élément (pas de View englobante → le spotlight épouse la border box) ; les composants qui n'exposent pas de ref reçoivent une prop `tourId` optionnelle (`MealCard.cookTourId`/`actionsTourId`, `MenuRow`, `WeightSummaryCard`). Dans une liste, la ref se crée au niveau de l'ÉCRAN et se pose sur `index === 0` — `renderItem` est une callback, pas un composant, on n'y appelle pas de hook. **Rejeu** : `TourButton` (le « ? ») sur les 5 en-têtes + « Revoir les tutos » dans le Profil (`resetAllTours`) — « Passer » marque le tour vu DÉFINITIVEMENT, et sans porte de sortie un tour passé par réflexe était perdu à vie. Bouton **« Précédent »** depuis E20. Mémorisé en AsyncStorage `@kyroz:tour:*`, **LOCAL-ONLY** (réglage d'appareil, aucune migration). ⚠️ **`startTour` écarte silencieusement les étapes dont la cible n'est pas montée** — légitime pour un bloc conditionnel (frigo vide), mais un id mal orthographié ou une ref perdue en refactorant fait disparaître une bulle SANS rien casser : le tour se joue plus court en ayant l'air complet. Avertissement en dev + `visiteGuidee.test.ts` qui exige que chaque cible citée existe dans le code. ⚠️ **Le portail de dépistage santé et la visite guidée interceptent les clics** : tout script qui pilote l'app doit les neutraliser (cf. `test/README.md`) — multiplier les tours multiplie les portes à fermer. 🔴 **Et le harnais n'en fermait qu'UNE** : `neutralizeFirstRun` posait le seul `:tour:plan`, écrit du temps où il n'existait qu'un tour. Les quatre autres se seraient armés au milieu d'un parcours, et un tour est une `Modal` dont les panneaux avalent les taps → « écran introuvable » en accusant l'écran. Corrigé le 2026-08-08, et la copie du harnais (du `.mjs`, il ne peut pas importer `lib/tours.ts`) est désormais VERROUILLÉE contre `TOURS` par `harnaisEcrans.test.ts`, dans les deux sens — vérifié par mutation, remettre l'ancienne ligne fait rougir 6 tests. ⚠️ Le tour du Plan attend la fermeture du reveal (`pret: !showReveal`), et celui du Profil reçoit un `scrollRef` sans lequel ses cibles basses (TDEE, bloc données) se mesureraient hors écran en natif.
+- **Visite guidée** (`components/GuidedTour.tsx` = le moteur, `lib/tours.ts` = le contenu) : **5 tours, 20 bulles**, chacun déclenché **à la 1re visite de SON onglet** (`useScreenTour`) — plan 6 · profil 6 · recettes 3 · courses 3 · frigo 2 (la 3ᵉ du Frigo, « La vue À cuisiner », retirée le 2026-08-14 sur décision du fondateur ; le décompte est VERROUILLÉ contre le code par `visiteGuidee.test.ts`, il ne se recopie plus). Étendu le **2026-08-08** (E20) : il n'existait qu'un tour, sur le Plan, et 3 de ses 5 bulles étaient FAUSSES. **Le contenu est une fonction PURE sans import**, donc testable — `GuidedTour.tsx` tire react-native et ne l'est pas. Une étape conditionnelle se construit (`planTour({days, moduleParVolume})`, `profilTour({objectifDateDisponible})`) : une bulle vraie pour certains profils seulement se conditionne, elle ne se sert pas à tout le monde. **Ancrage** : `useTourTarget('id')` posé DIRECTEMENT sur l'élément (pas de View englobante → le spotlight épouse la border box) ; les composants qui n'exposent pas de ref reçoivent une prop `tourId` optionnelle (`MealCard.cookTourId`/`actionsTourId`, `MenuRow`, `WeightSummaryCard`). Dans une liste, la ref se crée au niveau de l'ÉCRAN et se pose sur `index === 0` — `renderItem` est une callback, pas un composant, on n'y appelle pas de hook. **Rejeu** : `TourButton` (le « ? ») sur les 5 en-têtes + « Revoir les tutos » dans le Profil (`resetAllTours`) — « Passer » marque le tour vu DÉFINITIVEMENT, et sans porte de sortie un tour passé par réflexe était perdu à vie. Bouton **« Précédent »** depuis E20. Mémorisé en AsyncStorage `@kyroz:tour:*`, **LOCAL-ONLY** (réglage d'appareil, aucune migration). ⚠️ **`startTour` écarte silencieusement les étapes dont la cible n'est pas montée** — légitime pour un bloc conditionnel (frigo vide), mais un id mal orthographié ou une ref perdue en refactorant fait disparaître une bulle SANS rien casser : le tour se joue plus court en ayant l'air complet. Avertissement en dev + `visiteGuidee.test.ts` qui exige que chaque cible citée existe dans le code. ⚠️ **Le portail de dépistage santé et la visite guidée interceptent les clics** : tout script qui pilote l'app doit les neutraliser (cf. `test/README.md`) — multiplier les tours multiplie les portes à fermer. 🔴 **Et le harnais n'en fermait qu'UNE** : `neutralizeFirstRun` posait le seul `:tour:plan`, écrit du temps où il n'existait qu'un tour. Les quatre autres se seraient armés au milieu d'un parcours, et un tour est une `Modal` dont les panneaux avalent les taps → « écran introuvable » en accusant l'écran. Corrigé le 2026-08-08, et la copie du harnais (du `.mjs`, il ne peut pas importer `lib/tours.ts`) est désormais VERROUILLÉE contre `TOURS` par `harnaisEcrans.test.ts`, dans les deux sens — vérifié par mutation, remettre l'ancienne ligne fait rougir 6 tests. ⚠️ Le tour du Plan attend la fermeture du reveal (`pret: !showReveal`), et celui du Profil reçoit un `scrollRef` sans lequel ses cibles basses (TDEE, bloc données) se mesureraient hors écran en natif.
 
 ## Data / thème / qualité
 - **Base d'aliments** (`lib/foods.ts`, type `Food`) — **Phases 1→3a livrées** : dataset = **Table Ciqual 2025 officielle (ANSES), ~3341 aliments** dans `lib/foods.generated.ts` (AUTO-GÉNÉRÉ, ne pas éditer). Source brute (`data/ciqual/`, ~80 Mo) **gitignorée** ; régénérer via `python3 scripts/convert-ciqual.py` (stdlib, parse le `.xlsx` à plat → nom + kcal/prot/gluc/lip + groupe ; nettoie virgules/`traces`/`< X`/`-` ; ignore les aliments sans énergie). `searchFoods` (recherche libre accents/casse, classée préfixe>mot>sous-chaîne), `macrosFromIngredients`/`recipeMacrosPerPortion` (recalcul depuis `Ingredient.food_id`). ⚠️ **Licence Ouverte 2.0 (Etalab)** : `CIQUAL_ATTRIBUTION` affichée dans le profil (obligatoire — paternité, pas d'endossement). `Food.category` = groupe Ciqual (string libre). **Couche de curation (`lib/foods.curation.ts`, livrée)** : `FOODS = applyCuration(CIQUAL_FOODS)` — masque (catégories/motifs/ids : `aliments infantiles`, `pour bébé`, `nectar`…), renomme (« Banane, chair sans peau, crue » → « Banane »), corrige (`overrides`), et AJOUTE des aliments absents de Ciqual (`extraFoods` : `kyroz-whey`, `kyroz-skyr`). `foods.generated.ts` reste la copie ANSES intacte (recrachée par le script, jamais éditée) ; toute perso vit dans la curation (survit aux régénérations). Provenance honnête : ajouts/corrections marqués `Food.source='kyroz'`, attribution mise à jour en conséquence. **Phase 2 livrée** : le `RecipeEditor` lie les ingrédients à la base (recherche par ligne → `food_id`), toggle macros **Auto (calculées depuis les ingrédients)** / **Manuel** (repli). En Auto, `macros_per_portion` = `recipeMacrosPerPortion` au save → le plan suit. Non-breaking : les 50 recettes de base (sans `food_id`) s'ouvrent en Manuel, inchangées. **Décisions** : approche A (moyenne) d'abord, B (fourchette) après tests utilisateurs. **Phase 3b livrée** : marge honnête `± kcal` sur le total du jour — `kcalMargin()` (`DAILY_KCAL_MARGIN_PCT = 7%`, plus bas que l'incertitude par aliment car les écarts se compensent), affichée discrètement sous le total (`MarginNote` → « Valeurs estimées (moyennes alimentaires) » ; la fourchette « ≈ X–Y kcal · marge ± » a été RETIRÉE 2026-06-18 — elle donnait l'impression d'un plan imprécis, retour fondateur ; `kcalMargin()` conservé mais plus affiché). Feature base d'aliments **complète** (reste seulement l'approche B fourchette = post-tests utilisateurs).

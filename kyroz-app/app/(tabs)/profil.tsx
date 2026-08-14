@@ -24,7 +24,6 @@ import { BirthDateField } from '../../components/BirthDateField';
 import { DateInput } from '../../components/DateInput';
 import { ageOn } from '../../lib/birthday';
 import { ActionSheet } from '../../components/ActionSheet';
-import { StreakProgress } from '../../components/StreakProgress';
 import { WeightSummaryCard } from '../../components/WeightSummaryCard';
 import { useTourTarget, useScreenTour, TourButton, resetAllTours } from '../../components/GuidedTour';
 import { profilTour, TOURS } from '../../lib/tours';
@@ -63,7 +62,8 @@ import {
 import { datedGoalStatus, datedGoalKcalDelta, addDaysStamp } from '../../lib/datedGoal';
 import { deadlineLadder, checkEcheance, messageEcheance } from '../../lib/goalLadder';
 import { DatedGoalCard, formatFR } from '../../components/DatedGoalCard';
-import { todayStamp } from '../../lib/weight';
+import { todayStamp, DEFAULT_WEIGH_IN_FREQUENCY } from '../../lib/weight';
+import { applyWeighInReminder } from '../../lib/notifications';
 import {
   ActivityLevel, BodyFatSource, DietaryRestriction, EngineNotice, FixedMeals, Goal, GoalTarget, MealEmphasis, MealSlot, MealType, NeatLevel, Sex, SportSession, UserProfile, VarietyPreference,
 } from '../../lib/types';
@@ -237,6 +237,18 @@ export default function ProfilScreen() {
   const [confirmDelete, setConfirmDelete] = useState(false);
   // Ce qu'il faudra ouvrir UNE FOIS la feuille Réglages démontée (cf. son `onClosed`).
   const [apresReglages, setApresReglages] = useState<'supprimer' | null>(null);
+  // 🔴 MÊME MÉCANIQUE POUR L'ÉDITEUR, et elle manquait — « Me peser » était MORT sur
+  // iPhone. Mesuré au simulateur le 2026-08-14 : deux captures à cinq secondes
+  // d'intervalle, IDENTIQUES AU BIT PRÈS, l'éditeur refermé et aucune feuille de
+  // pesée. Le geste ne rendait rien depuis le jour où le poids a quitté cet
+  // éditeur pour y être RENVOYÉ.
+  // ⚠️ Le commentaire de l'appelant disait pourtant « on ferme l'éditeur AVANT
+  // d'ouvrir la pesée » — et c'était sincère : les deux `set` étaient bien écrits
+  // dans cet ordre. Mais ils partent dans le MÊME lot d'état, et `Sheet` garde sa
+  // `Modal` montée le temps de son animation de sortie : au moment où iOS reçoit
+  // la seconde, la première est encore présentée. **Écrire les setters dans le bon
+  // ordre ne ferme pas cette porte** — seul le démontage réel la ferme.
+  const [apresEditeur, setApresEditeur] = useState<'peser' | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [reglages, setReglages] = useState(false);
 
@@ -431,7 +443,16 @@ export default function ProfilScreen() {
             {!!prenom && <Text style={s.sub}>{prenom}</Text>}
             <Text style={s.h1}>Profil</Text>
           </View>
-          <TourButton onPress={rejouerTour} />
+          {/* 🔴 LE « ? » EST PARTI le 2026-08-14 (décision fondateur), et LA SÉRIE
+              prend sa place — très discrète, exactement comme l'en-tête du Plan.
+              ⚠️ La porte de sortie du tuto ne disparaît PAS avec lui : « Revoir
+              les tutos » vit dans la roue dentée juste à droite, sur ce même
+              écran. CLAUDE.md §8 exige qu'un écran à tour garde un recours ; il
+              en garde un, il change simplement d'endroit. */}
+          <View style={s.serie}>
+            <Text style={s.serieN}>{streak.current_streak_days} j</Text>
+            <Text style={s.serieLbl}>de série</Text>
+          </View>
           {/* 🔴 LA ROUE DENTÉE — décision fondateur du 2026-08-09. Tout ce qui
               n'est ni toi ni ton plan vit derrière : notifications, apparence,
               accent, confidentialité, compte. L'écran empilait 6 interrupteurs
@@ -469,10 +490,6 @@ export default function ProfilScreen() {
           onPress={() => setWeighIn(true)}
           tourId="profil-poids"
         />
-
-        {/* Série — ligne discrète : le chaînon de 7 jours reste (North Star), le
-            reste a été retiré (cf. StreakProgress). */}
-        <StreakProgress t={t} streak={streak} variant="card" />
 
         {/* Révision du moteur : la cible a bougé sans que l'utilisateur touche à rien.
             On l'explique UNE fois, factuellement, avec l'action qui permet d'affiner —
@@ -537,29 +554,20 @@ export default function ProfilScreen() {
           <Box t={t} v={profile.target_fat_g} l="lipides" u=" g" />
         </View>
 
-        {modulation && (
-          <Text style={s.floorNote}>
-            Ton plan module ces calories selon tes journées : <Text style={{ fontWeight: '700' }}>{modulation.bas} à {modulation.haut} kcal</Text> — plus les jours où tu t'entraînes, moins les jours de repos. Le total de ta semaine, lui, ne change pas. Tes protéines non plus.
-          </Text>
-        )}
-
-        {/* Ton informatif, pas alarmant : c'est une borne qui protège, pas un échec.
-            On dit d'où vient le chiffre ET s'il bougera — sinon une cible qui ne
-            réagit plus aux réglages se lit comme un moteur en panne. Le texte suit
-            le plancher NOMMÉ (clamp.source) : chacun a une raison et un avenir
-            différents, et les confondre serait mentir sur l'un des trois. */}
-        {clamp && (
-          <Text style={s.floorNote}>
-            Ces {clamp.servedKcal} kcal, c'est ton <Text style={{ fontWeight: '700' }}>plancher de sécurité</Text> — pas le résultat de ton déficit{clamp.clampedByKcal > 0 ? `, qui demandait ${clamp.requestedKcal}` : ''}. Kyroz ne descend pas plus bas :{' '}
-            {clamp.source === 'energy_availability'
-              ? 'en dessous, il ne te resterait plus assez d\'énergie une fois tes séances payées. Il est calculé sur ta masse maigre, donc il baissera avec elle.'
-              : clamp.source === 'bmr'
-                ? 'c\'est ce que ton corps dépense au repos, avant le moindre mouvement. Aucun plan ne passe sous cette ligne.'
-                : clamp.source === 'min_kcal'
-                  ? 'c\'est le minimum absolu de Kyroz, tous gabarits confondus. Il ne bougera pas avec ton poids.'
-                  : 'c\'est le déficit maximum que Kyroz s\'autorise — un quart de ta dépense, pas davantage. Il suivra ta dépense si elle change.'}
-          </Text>
-        )}
+        {/* 🔴 DEUX PARAGRAPHES ONT ÉTÉ RETIRÉS ICI le 2026-08-14 (décision
+            fondateur : « enlève le blabla entre les macro et le TDEE »).
+            · la modulation par volume (« ton plan module ces calories… ») ;
+            · l'explication du plancher de sécurité (« ces N kcal, c'est ton
+              plancher — pas le résultat de ton déficit… »).
+            ⚠️ CE QU'ON A TROQUÉ, pour que personne ne le redécouvre par surprise :
+            la seconde répondait à « pourquoi ma cible ne bouge plus quand je change
+            mes réglages ? ». Sans elle, une cible bornée par la sécurité se lit
+            comme un moteur en panne — c'est le motif écrit dans CLAUDE.md §6 le jour
+            où elle a été ajoutée. Les deux explications survivent en entier dans
+            **Méthodologie & sources** (roue dentée → Aide et retours), qui est la
+            surface qu'Apple 1.4.1 impose de toute façon.
+            ➡️ Ne pas les remettre ici sans nouvelle décision : c'est cet écran-ci
+            que le fondateur voulait alléger. */}
 
         {/* TDEE — le libellé prend la place qui reste, le chiffre ne se coupe jamais
             en deux lignes (`flexShrink: 0`). Sans ça, « 2 369 kcal » passait à la
@@ -686,15 +694,30 @@ export default function ProfilScreen() {
           onRevoirTutos={revoirTutos}
           onLogout={doLogout}
           onDelete={() => { setApresReglages('supprimer'); setReglages(false); }}
+          weighInFrequency={profile.weigh_in_frequency ?? DEFAULT_WEIGH_IN_FREQUENCY}
+          onWeighInFrequency={(f) => {
+            saveProfile({ ...profile, weigh_in_frequency: f });
+            // Ré-arme la notification sur la nouvelle cadence — même geste que celui
+            // que faisait `WeightCheckin` avant que le réglage ne déménage.
+            applyWeighInReminder(f, weightEntries[weightEntries.length - 1]?.date ?? null);
+          }}
         />
       </Sheet>
 
       {/* Feuilles d'édition */}
-      <Sheet visible={editor !== null} onClose={() => setEditor(null)}>
+      <Sheet
+        visible={editor !== null}
+        onClose={() => setEditor(null)}
+        onClosed={() => { if (apresEditeur === 'peser') setWeighIn(true); setApresEditeur(null); }}
+      >
         {/* `onWeighIn` : le poids ne se saisit plus dans cet éditeur, il s'y RENVOIE.
-            On ferme l'éditeur AVANT d'ouvrir la pesée — une feuille poussée depuis
-            une feuille ouverte naîtrait sous elle (même piège que les routes, E25). */}
-        {editor === 'info' && <InfoEditor t={t} profile={profile} onSave={save} onWeighIn={() => { setEditor(null); setWeighIn(true); }} />}
+            🔴 ET LA PESÉE N'EST DEMANDÉE QU'UNE FOIS L'ÉDITEUR DÉMONTÉ (`onClosed`).
+            La version d'avant faisait `setEditor(null); setWeighIn(true);` — deux
+            setters dans le bon ordre, mais un seul lot d'état : iOS voyait la
+            seconde `Modal` arriver pendant que la première jouait sa sortie, et
+            n'en présentait AUCUNE. Bouton mort, sans erreur ni trace, invisible au
+            navigateur. Même correctif que « Supprimer mon compte » juste au-dessus. */}
+        {editor === 'info' && <InfoEditor t={t} profile={profile} onSave={save} onWeighIn={() => { setApresEditeur('peser'); setEditor(null); }} />}
         {editor === 'sports' && <SportsProfileEditor t={t} profile={profile} onSave={save} />}
         {editor === 'goal' && <GoalEditor t={t} profile={profile} onSave={save} />}
         {editor === 'dated_goal' && <DatedGoalEditor t={t} profile={profile} onSave={save} />}
@@ -1700,6 +1723,11 @@ function makeStyles(t: ThemePalette) {
     roue: { alignItems: 'center', justifyContent: 'center', minWidth: CIBLE_TACTILE_MIN, minHeight: CIBLE_TACTILE_MIN },
     sub: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 19 },
     h1: { color: t.text, ...Type.display, marginTop: Spacing.xs },
+    // Même gabarit que l'en-tête du Plan, au pixel près : deux écrans qui montrent
+    // la même chose ne peuvent pas la montrer de deux façons.
+    serie: { alignItems: 'center', backgroundColor: t.card, borderWidth: Trait.fin, borderColor: t.line, paddingHorizontal: Spacing.lg, paddingVertical: Spacing.sm, borderRadius: Radius.card },
+    serieN: { color: t.text },
+    serieLbl: { color: t.textTertiary, marginTop: Spacing.xs },
     grid: { flexDirection: 'row', gap: Spacing.sm },
     menu: { backgroundColor: t.card, borderRadius: Radius.card, paddingHorizontal: Spacing.lg },
     tdee: { backgroundColor: t.card, borderRadius: Radius.card, padding: Spacing.lg, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: Spacing.md },

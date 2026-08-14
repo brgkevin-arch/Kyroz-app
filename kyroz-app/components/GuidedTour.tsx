@@ -97,9 +97,12 @@ export function useTourTarget(id?: string): React.MutableRefObject<any> {
 /**
  * Patron d'un tour d'ÉCRAN : il se lance tout seul à la première visite de cet
  * écran, et se rejoue à la demande. C'est ce découpage qui rend un tutoriel
- * étoffé tenable — 22 bulles servies d'un coup au premier lancement seraient 22
- * interruptions ; réparties sur les onglets, chacune arrive quand la personne
+ * étoffé tenable — TOUTES les bulles servies d'un coup au premier lancement seraient
+ * autant d'interruptions ; réparties sur les onglets, chacune arrive quand la personne
  * regarde justement l'écran dont on lui parle.
+ * ⚠️ Cette phrase citait « 22 bulles » alors qu'il y en avait 21, puis 20 : un nombre
+ * recopié dans un commentaire périme sans que rien ne le dise. Le décompte vit à UN
+ * endroit vérifié — CLAUDE.md §8, verrouillé contre le code par `visiteGuidee.test.ts`.
  *
  * ⚠️ `steps` est un tableau NEUF à chaque rendu (les tours sont construits par
  * des fonctions). Le garder dans une ref est ce qui empêche l'effet de se

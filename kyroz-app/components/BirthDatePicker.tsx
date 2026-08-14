@@ -25,6 +25,16 @@ import {
 // ⚠️ Ça coûte un tap de plus qu'un champ en ligne. C'est le prix de l'honnêteté
 // sur un champ qui alimente le moteur — et c'est le patron de toutes les autres
 // feuilles de Kyroz.
+//
+// 🔴 LA MARGE INTÉRIEURE EST ICI, ET ELLE MANQUAIT (2026-08-14, vu au simulateur).
+// `Sheet` ne pose AUCUN padding horizontal : chacun de ses enfants apporte le
+// sien. Ce fichier ne le faisait pas — donc le titre et « Valider » collaient au
+// bord de l'écran, sur la seule feuille de l'app dans ce cas. Recensés : sur les
+// 18 composants rendus directement dans un `<Sheet>`, 17 portaient `Spacing.xxl`
+// (« marge intérieure d'une feuille modale », CLAUDE.md §8), les sept éditeurs du
+// Profil par leur `EditorShell` commun. Celui-ci était le dix-huitième.
+// ⚠️ Le corriger dans `Sheet` aurait DOUBLÉ la marge des dix-sept autres.
+// ➡️ Compté depuis : `lib/__tests__/margeFeuilles.test.ts`.
 
 interface Props {
   t: ThemePalette;
@@ -58,7 +68,7 @@ export function BirthDatePicker({ t, value, anneeCourante, onValider, dragHandle
   const majAnnee = (na: number) => { setA(na); setJ((v) => clampJour(v, na, m)); };
 
   return (
-    <View style={{ gap: Spacing.lg }}>
+    <View style={{ padding: Spacing.xxl, gap: Spacing.lg }}>
       <View {...(dragHandlers ?? {})} style={{ gap: Spacing.xs }}>
         <Text style={{ ...Type.h2, color: t.text }}>Ta date de naissance</Text>
         <Text style={{ ...Type.caption, color: t.textSecondary, lineHeight: 18 }}>

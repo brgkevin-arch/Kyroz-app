@@ -85,6 +85,31 @@ export const RESSORT = {
  * qu'elle tourne. Dès qu'un doigt peut s'en saisir, c'est un ressort — sinon
  * l'animation ignore le geste jusqu'à son terme, puis saute.
  */
+/**
+ * 🔴 FILET DE DÉMONTAGE D'UNE FEUILLE — CE N'EST PAS UNE DURÉE D'ANIMATION.
+ *
+ * `Sheet` et `ActionSheet` gardent leur `Modal` MONTÉE le temps de leur sortie, et
+ * la remise à zéro de ce drapeau est confiée au rappel de `Animated.parallel`. E18
+ * avait déjà retiré la condition `finished` — « un état qui doit converger ne se
+ * confie pas à un événement qui peut ne pas arriver » — mais le rappel EST encore
+ * un événement.
+ *
+ * ⚠️ Ce que ça coûte quand il n'arrive pas : une `Modal` transparente reste
+ * présentée en plein écran, elle avale TOUS les taps (barre d'onglets comprise), et
+ * son fond appelle un `onClose` qui remet à `false` un état déjà `false` — donc
+ * React ne re-rend pas. **L'app est figée jusqu'à ce qu'on la tue.** Deux
+ * signalements du fondateur le 2026-08-14, tous deux en FERMANT une feuille (E45).
+ * Aucun n'a pu être rejoué : ni les trois chemins de l'écran Courses, ni six
+ * cycles d'ouverture/fermeture du suivi du poids.
+ *
+ * ➡️ Ce délai n'est donc PAS un correctif — c'est un filet. Dans tous les chemins
+ * sains il ne sert à rien (le rappel a déjà démonté bien avant). Dans le chemin
+ * pathologique, il transforme un gel définitif en accroc d'une seconde et demie.
+ * Généreux à dessein : la sortie s'achève en ~600–800 ms, il ne doit jamais couper
+ * une animation qui se déroule normalement.
+ */
+export const FILET_DEMONTAGE_MS = 1500;
+
 export const DUREE = {
   /** Retour d'appui, bascule d'un titre compact. */
   instant: 160,

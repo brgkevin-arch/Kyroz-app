@@ -364,3 +364,62 @@ describe('Visite guidée — l’anneau épouse la forme de sa cible', () => {
     expect(code).not.toMatch(/style=\{\[s\.dim,/);
   });
 });
+
+// ── Le DÉCOMPTE des bulles, verrouillé contre la spec ───────────────────────
+//
+// 🔴 POURQUOI CE BLOC EXISTE. Le nombre de bulles était écrit à QUATRE endroits —
+// CLAUDE.md §8, la fiche de référence d'AGENTS.md, un commentaire de
+// `GuidedTour.tsx` et un autre de `tours.ts`. Aucun n'était calculé, tous se
+// citaient l'un l'autre, et le commentaire du moteur annonçait « 22 bulles »
+// quand il y en avait 21. Le 2026-08-14, en retirant la 3ᵉ du Frigo (décision
+// fondateur), il aurait fallu penser aux quatre.
+//
+// ⚠️ C'est exactement « un inventaire recopié trois fois se confirme tout seul »
+// (CLAUDE.md §8, le compteur d'émojis). La réponse est la même : UN endroit qui
+// fait foi, et un test qui le compare au code. Les commentaires ne citent plus
+// de nombre — ils renvoient ici.
+//
+// ⚠️ CE QUE CE TEST NE FAIT PAS : figer un total. Il ne dit pas « il doit y avoir
+// 20 bulles » — retirer ou ajouter une bulle est une décision de produit, pas une
+// régression. Il exige que la SPEC dise ce que le CODE fait. Ajouter une bulle
+// sans toucher CLAUDE.md rougit ; ajouter les deux passe.
+
+describe('Le décompte des bulles ne se recopie pas — il se mesure', () => {
+  const SPEC = readFileSync(join(RACINE, 'CLAUDE.md'), 'utf8');
+  const LIGNE = SPEC.match(
+    /(\d+) bulles au total \(plan (\d+) · profil (\d+) · recettes (\d+) · courses (\d+) · frigo (\d+)\)/,
+  );
+
+  it('la sonde trouve bien la phrase de CLAUDE.md — sinon elle passerait à vide', () => {
+    // Sans ce cas, reformuler la phrase rendrait le test vert en ne mesurant plus
+    // rien : le défaut d'`espacementDA` après la migration vers `Presse`.
+    expect(LIGNE, 'la phrase de décompte de CLAUDE.md §8 est introuvable ou reformulée').not.toBeNull();
+  });
+
+  it('🔴 la spec annonce EXACTEMENT ce que le code sert', () => {
+    const [, total, plan, profil, recettes, courses, frigo] = LIGNE!.map(Number);
+    // Contexte COMPLET : c'est le décompte maximal, celui que la spec décrit.
+    const reel = {
+      plan: tourSteps('plan', CTX_COMPLET).length,
+      profil: tourSteps('profil', CTX_COMPLET).length,
+      recettes: tourSteps('recettes', CTX_COMPLET).length,
+      courses: tourSteps('courses', CTX_COMPLET).length,
+      frigo: tourSteps('frigo', CTX_COMPLET).length,
+    };
+    expect({ ...reel, total: Object.values(reel).reduce((a, b) => a + b, 0) })
+      .toEqual({ plan, profil, recettes, courses, frigo, total });
+  });
+
+  it('aucun commentaire ne recite un nombre de bulles — il périmerait en silence', () => {
+    // `GuidedTour.tsx` en a porté un faux pendant des semaines. Un nombre dans un
+    // commentaire n'a aucun lecteur qui le vérifie.
+    for (const f of ['components/GuidedTour.tsx', 'lib/tours.ts']) {
+      const src = readFileSync(join(RACINE, f), 'utf8');
+      const lignes = src.split('\n').filter((l) => /^\s*(\/\/|\*|\/\*)/.test(l));
+      for (const l of lignes) {
+        expect(l, `${f} : un décompte de bulles recopié en commentaire`)
+          .not.toMatch(/\b\d+\s+bulles\s+(au total|servies|sur)/i);
+      }
+    }
+  });
+});
