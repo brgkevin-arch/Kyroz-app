@@ -1344,7 +1344,7 @@ partis, le dernier le 2026-08-09** (E22).
 | Où | Combien | Ce qui l'affichait | Sort |
 |---|---|---|---|
 | ~~`lib/streak.ts` (paliers)~~ | ~~6 — 🔥 🎉 💪 🏆 ⭐ 👑~~ → **0** | `StreakCelebration.tsx` en **fontSize 56**, écran Plan | remplacés par le **nombre de jours** en `Type.hero` (2026-08-09) |
-| ~~`lib/streak.ts` (`streakMessage`)~~ | ~~2 — 🎯 🎉~~ → **0** | `StreakProgress.tsx` | retirés, phrases reformulées (2026-08-09) |
+| ~~`lib/streak.ts` (`streakMessage`)~~ | ~~2 — 🎯 🎉~~ → **0** | `StreakProgress.tsx` *(supprimé le 2026-08-14)* | retirés, phrases reformulées (2026-08-09) |
 | ~~`lib/notifications.ts`~~ | ~~4 — 💪 🍽️ 🔥 ⚖️~~ → **0** | — | les textes ont déménagé dans `lib/reminder.ts` (2026-08-07) |
 | ~~`constants/legal.ts`~~ | ~~1 — ⚠️~~ → **0** | l'écran `/legal` (CGU) | retiré, + le miroir `public/legal.html` (2026-08-09) |
 
@@ -2014,6 +2014,36 @@ préférences, repas, banque, variété). Si non, il vit derrière la **roue den
 `components/ReglagesSheet.tsx`, cinq groupes : Notifications · Affichage · Aide et
 retours · Confidentialité · Compte.
 
+⚠️ **CETTE RÈGLE A RESSERVI LE 2026-08-14, sur un réglage qu'on n'avait pas vu.**
+« Rappel de pesée » (Jour / Sem. / 2 sem. / Mois) vivait DANS la feuille du suivi du
+poids, entre une courbe et un historique. Il change quand Kyroz **PARLE**, pas ce
+qu'il **SERT** : sa place est avec le rappel quotidien, sous Notifications.
+🔴 **Le fondateur ne savait pas qu'il existait.** Un réglage rangé au mauvais endroit
+n'est pas seulement mal rangé — il est **introuvable**, et on le recrée ailleurs ou on
+s'en plaint sans savoir qu'on l'a déjà. ➡️ Devant un réglage, poser la question même
+quand il n'est pas dans une liste de réglages.
+
+🔴 **CE QUE PORTE L'ÉCRAN, DEPUIS LE 2026-08-14** (décisions fondateur, cf. AGENTS.md
+E48) — l'ordre compte, il dit ce qui est important :
+· la **série** est une pastille discrète dans l'EN-TÊTE, identique à celle du Plan
+  (« 1 j / de série ») ; le « ? » du tuto lui a cédé sa place, et la porte de sortie
+  du tutoriel vit désormais dans « Revoir les tutos », derrière la roue ;
+· la **carte du poids** est le sujet de l'écran : chiffre en `Type.hero`, écart,
+  courbe MESURÉE (jamais une largeur en dur — cf. §11, `useWindowDimensions`), et un
+  bouton pleine largeur à l'accent ;
+· entre les macros et le TDEE, **plus de paragraphe explicatif**. ⚠️ Ce qui a été
+  troqué : l'explication du plancher de sécurité répondait à « pourquoi ma cible ne
+  bouge plus quand je change mes réglages ? », et sans elle une cible bornée se lit
+  comme un moteur en panne — c'est le motif de §6 le jour où elle a été écrite. Elle
+  survit en entier dans **Méthodologie & sources**. Ne pas la remettre ici sans
+  nouvelle décision : c'est cet écran-là que le fondateur voulait alléger.
+🔴 **ET LE CHAÎNON DE 7 JOURS N'EXISTE PLUS NULLE PART** : retiré du Plan le
+2026-08-05, du Profil le 2026-08-14. `components/StreakProgress.tsx` est supprimé —
+toute mention ailleurs dans ces fichiers est **historique**. Le North Star reste
+mesuré et le compteur reste affiché ; c'est sa visualisation qui part.
+➡️ `chainProgress` et `streakMessage` survivent dans `lib/streak.ts`, testés : le jour
+où le chaînon revient, il n'y a rien à réécrire.
+
 - ℹ️ **Kyroz+ reste sur le Profil** : il débloque l'objectif daté et la banque de
   calories, tous deux juste au-dessus. Derrière une roue, il devient invisible le jour
   où il doit se vendre.
@@ -2243,6 +2273,19 @@ téléphone.
   ⚠️ Et **le DIRE** — dans la PR et dans la fiche : « non vérifié à l'écran, voici
   pourquoi, voici le contournement ». Une vérification manquante ANNONCÉE vaut mille
   fois une vérification supposée.
+- 🔴 **APRÈS UN MERGE, VÉRIFIER OÙ EST L'ARBRE AVANT DE MONTRER QUOI QUE CE SOIT**
+  (2026-08-14). Après avoir mergé deux PR, ce worktree s'est retrouvé sur une
+  **vieille branche** — 6 commits de retard — au moment précis où le fondateur allait
+  relire les modifications. Rien n'était perdu (aucun travail non commité, tout le
+  contenu bien sur `main`), mais l'arbre **affichait du code périmé**, et il l'aurait
+  relu en croyant regarder ce qui venait d'être livré.
+  ⚠️ **`git status` NE LE DIT PAS** : l'arbre était parfaitement propre. C'est la
+  même famille que le preview qui sert l'app du dépôt principal — *le piège n'est pas
+  l'écran cassé, c'est l'écran PLAUSIBLE*.
+  ⚠️ La cause n'est pas établie : `gh pr merge --squash` a été employé **sans**
+  `--delete-branch` (la variante déjà consignée). Ne pas conclure à la même cause.
+  ➡️ Deux secondes, deux commandes : `git log --oneline -1` et
+  `git diff --stat origin/main HEAD` (vide = on regarde bien ce qui est livré).
 - **`Alert.alert` est une FONCTION VIDE sur react-native-web** — `class Alert { static
   alert() {} }`. Aucune erreur, aucune trace : l'appel ne fait RIEN. Découvert le
   2026-08-02, il tuait **dix** interactions, dont « Régénérer mon plan » et le REFUS
