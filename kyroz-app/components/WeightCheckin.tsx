@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, useWindowDimensions, Image, Touchab
 import { Presse } from './Presse';
 import { ConfirmationEnLigne } from './ConfirmationEnLigne';
 import { Ionicons } from '@expo/vector-icons';
-import { ThemePalette, Radius, Spacing, Type, Fond, Trait, Icone, OPACITE_PRESSION } from '../constants/theme';
+import { ThemePalette, Radius, Spacing, Type, Fond, Trait, Icone, CIBLE_TACTILE_MIN, OPACITE_PRESSION } from '../constants/theme';
 import { SHEET_MAX_WIDTH } from '../constants/layout';
 import { Field, PrimaryButton, SectionLabel, Segmented } from './ui';
 import { WeightChart } from './WeightChart';
@@ -28,7 +28,12 @@ const frDate = (iso: string) =>
   new Date(iso + 'T00:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
 
 // Timeline du sélecteur de date.
-const FUTURE_DAYS = 7;   // jours futurs grisés (aperçu) à gauche
+// 🔴 PLUS AUCUN JOUR FUTUR (2026-08-14, grief du fondateur : « la rangée de
+// dates »). Trois cases grisées et intouchables occupaient la moitié du sélecteur :
+// on ne savait pas où taper, et la moitié du contrôle ne servait à rien. On pèse
+// aujourd'hui ou on rattrape un jour passé — jamais demain.
+// ⚠️ Et la rangée est REPLIÉE par défaut : la pesée du jour est le cas de très loin
+// le plus courant, elle n'a pas à coûter un choix de date.
 const CHIP_W = 46;
 const CHIP_GAP = 6;
 
@@ -39,6 +44,10 @@ export function WeightCheckin({ t, onClose, dragHandlers, sheetScrollProps }: Pr
   const [aConfirmer, setAConfirmer] = useState<string | null>(null);
   // Le choix de la source de photo, posé DANS la feuille pour la même raison.
   const [choixPhoto, setChoixPhoto] = useState(false);
+  /** La rangée de dates est repliée : on pèse aujourd'hui, sauf exception. */
+  const [choixDate, setChoixDate] = useState(false);
+  /** Note et photo aussi : facultatives, elles ne doivent pas séparer le poids du bouton. */
+  const [details, setDetails] = useState(false);
 
   // 🔴 LA CONFIRMATION VIT DANS LA FEUILLE, PLUS DANS UNE BOÎTE DE DIALOGUE
   // (2026-08-14). Cet écran vit dans une feuille, donc dans une `Modal` ; la
@@ -110,23 +119,17 @@ export function WeightCheckin({ t, onClose, dragHandlers, sheetScrollProps }: Pr
       back = Math.min(Math.max(back, span), 400);
     }
     const out = [];
-    for (let i = back; i >= 1; i--) out.push(mk(-i));         // passé (gauche, du + ancien au + récent)
-    out.push(mk(0));                                          // aujourd'hui (centre)
-    for (let i = 1; i <= FUTURE_DAYS; i++) out.push(mk(i));   // futur grisé (droite)
+    // AUJOURD'HUI EN PREMIER, puis on remonte le temps. C'est l'ordre dans lequel
+    // on cherche (« aujourd'hui, hier, avant-hier… ») et il rend le centrage
+    // inutile : la case qu'on veut est déjà sous le pouce, à gauche.
+    out.push(mk(0));
+    for (let i = 1; i <= back; i++) out.push(mk(-i));
     return out;
   }, [entries]);
 
-  const stripRef = useRef<ScrollView | null>(null);
-  const centered = useRef(false);
-  // Centre la timeline sur « aujourd'hui » au premier rendu (position = nb de jours passés).
-  const centerOnToday = () => {
-    if (centered.current) return;
-    const idx = days.findIndex((d) => d.today);
-    if (idx < 0) return;
-    centered.current = true;
-    const x = idx * (CHIP_W + CHIP_GAP) + CHIP_W / 2 - (width / 2);
-    stripRef.current?.scrollTo({ x: Math.max(0, x), animated: false });
-  };
+  // ⚠️ `stripRef` / `centerOnToday` ont disparu avec le centrage : aujourd'hui est
+  // désormais la PREMIÈRE case, donc il n'y a plus rien à centrer. Du code de
+  // positionnement en moins, c'est un défaut de positionnement en moins.
 
   // Sélectionne une date et préremplit avec la pesée existante de ce jour, le cas échéant.
   const pickDate = (iso: string) => {
@@ -187,47 +190,49 @@ export function WeightCheckin({ t, onClose, dragHandlers, sheetScrollProps }: Pr
     <View style={{ flex: 1, backgroundColor: t.bg }}>
       <View style={s.header} {...(dragHandlers ?? {})}>
         <Text style={s.title}>Suivi du poids</Text>
-        <Text style={s.sub}>
-          Renseigne ton poids chaque semaine : Kyroz réajuste automatiquement tes calories, tes macros et ton plan à mesure que tu évolues.
-        </Text>
+        {/* ⚠️ TROIS LIGNES D'EXPLICATION SONT DEVENUES UNE (2026-08-14). Elles
+            poussaient la saisie ET la courbe vers le bas — deux des trois griefs
+            du fondateur sur cette feuille. Ce qui a sauté n'est pas faux, c'est
+            redondant : « Kyroz réajuste calories, macros et plan » est déjà dit
+            par la confirmation, AU MOMENT où ça arrive. */}
+        <Text style={s.sub}>Chaque pesée recale ton plan.</Text>
       </View>
 
       {/* Seul le ScrollView VERTICAL reçoit `sheetScrollProps` — la timeline
           horizontale juste en dessous ne doit pas fermer la feuille. */}
       <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" {...(sheetScrollProps ?? {})}>
-        {/* Sélecteur de date : aujourd'hui centré · passé à droite · futur grisé à gauche */}
-        <ScrollView
-          ref={stripRef}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={s.dateRow}
-          onContentSizeChange={centerOnToday}
-        >
-          {days.map((d) => {
-            const on = d.iso === date;
-            const has = entries.some((e) => e.date === d.iso);
-            if (d.future) {
+        {/* ── LA DATE : une LIGNE, pas un sélecteur ─────────────────────────
+            La rangée de sept cases était le premier grief du fondateur. Elle
+            s'ouvre désormais à la demande : le jour même est le cas de très loin
+            le plus courant, il ne doit rien coûter. Le rattrapage reste à un tap. */}
+        <View style={s.dateLigne}>
+          <Text style={s.dateTexte}>{date === todayStamp() ? "Aujourd'hui" : frDate(date)}</Text>
+          <Presse onPress={() => setChoixDate((v) => !v)} activeOpacity={OPACITE_PRESSION} style={s.dateBtn} accessibilityRole="button">
+            <Text style={s.dateBtnTxt}>{choixDate ? 'Fermer' : 'Une autre date'}</Text>
+            <Ionicons name={choixDate ? 'chevron-up' : 'chevron-down'} size={Icone.petite} color={t.textSecondary} />
+          </Presse>
+        </View>
+
+        {choixDate && (
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.dateRow}>
+            {days.map((d) => {
+              const on = d.iso === date;
+              const has = entries.some((e) => e.date === d.iso);
               return (
-                <View key={d.iso} style={[s.dateChip, s.dateChipFuture]}>
-                  <Text style={[s.dateWd, { color: t.textQuaternary }]}>{d.wd}</Text>
-                  <Text style={[s.dateNum, { color: t.textQuaternary }]}>{d.num}</Text>
-                </View>
+                <Presse
+                  key={d.iso}
+                  onPress={() => { pickDate(d.iso); setChoixDate(false); }}
+                  activeOpacity={OPACITE_PRESSION}
+                  style={[s.dateChip, { backgroundColor: on ? t.accent : t.card, borderColor: on ? t.accent : t.line }]}
+                >
+                  <Text style={[s.dateWd, { color: on ? t.onAccent : t.textTertiary }]}>{d.today ? 'Auj.' : d.wd}</Text>
+                  <Text style={[s.dateNum, { color: on ? t.onAccent : t.textSecondary }]}>{d.num}</Text>
+                  {has && <View style={[s.dateDot, { backgroundColor: on ? t.onAccent : t.textTertiary }]} />}
+                </Presse>
               );
-            }
-            return (
-              <Presse
-                key={d.iso}
-                onPress={() => pickDate(d.iso)}
-                activeOpacity={OPACITE_PRESSION}
-                style={[s.dateChip, { backgroundColor: on ? t.accent : t.card, borderColor: on ? t.accent : t.line }]}
-              >
-                <Text style={[s.dateWd, { color: on ? t.onAccent : t.textTertiary }]}>{d.today ? 'Auj.' : d.wd}</Text>
-                <Text style={[s.dateNum, { color: on ? t.onAccent : t.textSecondary }]}>{d.num}</Text>
-                {has && <View style={[s.dateDot, { backgroundColor: on ? t.onAccent : t.textTertiary }]} />}
-              </Presse>
-            );
-          })}
-        </ScrollView>
+            })}
+          </ScrollView>
+        )}
 
         <View style={s.inputRow}>
           <View style={{ flex: 1 }}>
@@ -242,6 +247,47 @@ export function WeightCheckin({ t, onClose, dragHandlers, sheetScrollProps }: Pr
             />
           </View>
         </View>
+        <PrimaryButton t={t} label="Enregistrer" onPress={save} disabled={!valid} />
+
+        {saved && (
+          <View style={s.confirm}>
+            <Text style={s.confirmTitle}>
+              {`✓ ${saved.label} — point ${saved.updated ? 'mis à jour' : 'enregistré'}`}
+              {saved.delta != null ? `  ·  ${saved.delta > 0 ? '+' : ''}${saved.delta} kg` : ''}
+            </Text>
+            <Text style={s.confirmSub}>{planStatusMsg(saved.date)}</Text>
+          </View>
+        )}
+
+        <SectionLabel t={t}>Évolution</SectionLabel>
+        {/* ⚠️ `trackingTarget`, PAS `profile.goal_target` : le couloir vise la date que
+            le moteur tiendra, pas celle qui a été saisie. Sans ça, on affiche « en
+            retard » à quelqu'un qui suit le plan à la lettre — mesuré, dès J+7. */}
+        <WeightChart t={t} entries={entries} width={width} goalTarget={suiviTarget} />
+        {profile && suiviTarget && (
+          // `paused` vient du PRODUCTEUR UNIQUE : quand le moteur a cessé de piloter
+          // la trajectoire (insuffisance pondérale, poids cible à contresens), la
+          // ligne idéale continue de descendre alors que le plan est au maintien —
+          // sans ce drapeau on affichait « en retard » à quelqu'un à qui l'app venait
+          // d'interdire tout déficit.
+          <TrackVerdict
+            t={t} goalTarget={suiviTarget} currentWeightKg={profile.weight_kg}
+            paused={planFlags(profile).some((f) => f === 'UNDERWEIGHT_NO_DEFICIT' || f === 'GOAL_DIRECTION_MISMATCH')}
+          />
+        )}
+
+        {/* ── LE FACULTATIF, REPLIÉ ────────────────────────────────────────
+            Note et photo séparaient le poids de son bouton et poussaient la courbe
+            hors de l'écran — deux des trois griefs du fondateur. Elles ne
+            disparaissent pas : elles cessent d'être sur le chemin de tout le monde
+            pour un usage qui n'est celui de personne tous les jours. */}
+        <Presse onPress={() => setDetails((v) => !v)} activeOpacity={OPACITE_PRESSION} style={s.detailsBtn} accessibilityRole="button">
+          <Ionicons name={details ? 'chevron-up' : 'add'} size={Icone.petite} color={t.textSecondary} />
+          <Text style={s.detailsTxt}>{details ? 'Masquer' : 'Ajouter une note ou une photo'}</Text>
+        </Presse>
+
+        {details && (
+          <>
         <Field
           t={t}
           label="Note (optionnel)"
@@ -279,34 +325,7 @@ export function WeightCheckin({ t, onClose, dragHandlers, sheetScrollProps }: Pr
           <LocalIcon color={t.textTertiary} size={Icone.petite} />
           <Text style={[s.photoHint, { flex: 1 }]}>Tes photos restent sur ton téléphone, jamais envoyées.</Text>
         </View>
-
-        <PrimaryButton t={t} label="Enregistrer" onPress={save} disabled={!valid} />
-
-        {saved && (
-          <View style={s.confirm}>
-            <Text style={s.confirmTitle}>
-              {`✓ ${saved.label} — point ${saved.updated ? 'mis à jour' : 'enregistré'}`}
-              {saved.delta != null ? `  ·  ${saved.delta > 0 ? '+' : ''}${saved.delta} kg` : ''}
-            </Text>
-            <Text style={s.confirmSub}>{planStatusMsg(saved.date)}</Text>
-          </View>
-        )}
-
-        <SectionLabel t={t}>Évolution</SectionLabel>
-        {/* ⚠️ `trackingTarget`, PAS `profile.goal_target` : le couloir vise la date que
-            le moteur tiendra, pas celle qui a été saisie. Sans ça, on affiche « en
-            retard » à quelqu'un qui suit le plan à la lettre — mesuré, dès J+7. */}
-        <WeightChart t={t} entries={entries} width={width} goalTarget={suiviTarget} />
-        {profile && suiviTarget && (
-          // `paused` vient du PRODUCTEUR UNIQUE : quand le moteur a cessé de piloter
-          // la trajectoire (insuffisance pondérale, poids cible à contresens), la
-          // ligne idéale continue de descendre alors que le plan est au maintien —
-          // sans ce drapeau on affichait « en retard » à quelqu'un à qui l'app venait
-          // d'interdire tout déficit.
-          <TrackVerdict
-            t={t} goalTarget={suiviTarget} currentWeightKg={profile.weight_kg}
-            paused={planFlags(profile).some((f) => f === 'UNDERWEIGHT_NO_DEFICIT' || f === 'GOAL_DIRECTION_MISMATCH')}
-          />
+          </>
         )}
 
         {/* Transformation : la preuve visuelle (photos LOCAL-ONLY, cf. lib/photos.ts) */}
@@ -317,20 +336,13 @@ export function WeightCheckin({ t, onClose, dragHandlers, sheetScrollProps }: Pr
           </>
         )}
 
-        {/* Cadence de pesée choisie par l'utilisateur → pilote le rappel de check-in */}
-        <SectionLabel t={t}>Rappel de pesée</SectionLabel>
-        <Segmented<WeighInFrequency>
-          t={t}
-          value={freq}
-          onChange={setFreq}
-          options={[
-            { label: 'Jour', value: 'daily' },
-            { label: 'Sem.', value: 'weekly' },
-            { label: '2 sem.', value: 'biweekly' },
-            { label: 'Mois', value: 'monthly' },
-          ]}
-        />
-        <Text style={s.freqHint}>On te proposera un check-in : {WEIGH_IN_LABELS[freq].toLowerCase()}.</Text>
+        {/* 🔴 « RAPPEL DE PESÉE » EST PARTI DANS LA ROUE DENTÉE le 2026-08-14
+            (décision fondateur). C'est un réglage de NOTIFICATION : il vivait au
+            milieu d'une saisie, entre une courbe et un historique, et le fondateur
+            ne savait même pas qu'il était là. La règle de rangement du Profil
+            s'applique mot pour mot (CLAUDE.md §8) : *ce réglage change-t-il ce que
+            Kyroz me SERT ?* Non — il change quand Kyroz me PARLE. Il rejoint donc
+            les notifications, avec le rappel quotidien. */}
 
         {reversed.length > 0 && (
           <>
@@ -382,6 +394,12 @@ function makeStyles(t: ThemePalette) {
     sub: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 20 },
     content: { padding: Spacing.xxl, paddingTop: Spacing.md, gap: Spacing.lg, paddingBottom: Fond.feuille },
     dateRow: { gap: CHIP_GAP, paddingVertical: Spacing.xs },
+    dateLigne: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, minHeight: CIBLE_TACTILE_MIN },
+    dateTexte: { ...Type.bodyStrong, color: t.text, flex: 1 },
+    dateBtn: { flexDirection: 'row', alignItems: 'center', gap: Spacing.xs, minHeight: CIBLE_TACTILE_MIN, justifyContent: 'center' },
+    dateBtnTxt: { ...Type.bodySmallStrong, color: t.textSecondary },
+    detailsBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm, minHeight: CIBLE_TACTILE_MIN, borderRadius: Radius.button, backgroundColor: t.fill },
+    detailsTxt: { ...Type.bodySmallStrong, color: t.textSecondary },
     dateChip: { width: CHIP_W, height: 56, borderRadius: Radius.button, borderWidth: Trait.fin, alignItems: 'center', justifyContent: 'center', gap: Spacing.xs },
     dateChipFuture: { backgroundColor: t.fill, borderColor: t.line, opacity: 0.5 },
     dateWd: { ...Type.microStrong, textTransform: 'capitalize' },

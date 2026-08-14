@@ -15,6 +15,8 @@ import { useHydrationEnabled } from './HydrationBar';
 import { ReminderTimeField } from './ReminderTimeField';
 import { ReminderTime, formatReminderTime, DEFAULT_REMINDER_TIME } from '../lib/reminder';
 import { remindersSupported } from '../lib/notifications';
+import { WeighInFrequency } from '../lib/types';
+import { WEIGH_IN_LABELS } from '../lib/weight';
 // 🔴 `useDialog` A ÉTÉ RETIRÉ D'ICI le 2026-08-14, et ce n'est pas un nettoyage.
 // Cette feuille est rendue par `profil.tsx` DANS un `<Sheet>`, donc dans une
 // `Modal`. Sur iOS, une modale ne se présente pas par-dessus une modale en place :
@@ -79,12 +81,16 @@ interface Props {
   onRevoirTutos: () => void;
   onLogout: () => void;
   onDelete: () => void;
+  /** Cadence de pesée — remontée ici le 2026-08-14 (cf. `WeightCheckin`). */
+  weighInFrequency: WeighInFrequency;
+  onWeighInFrequency: (f: WeighInFrequency) => void;
   dragHandlers?: any;
   sheetScrollProps?: any;
 }
 
 export function ReglagesSheet({
-  t, version, onClose, onExport, onRevoirTutos, onLogout, onDelete, dragHandlers, sheetScrollProps,
+  t, version, onClose, onExport, onRevoirTutos, onLogout, onDelete,
+  weighInFrequency, onWeighInFrequency, dragHandlers, sheetScrollProps,
 }: Props) {
   const router = useRouter();
   const { time: reminderTime, choose: chooseReminder } = useReminder();
@@ -177,6 +183,27 @@ export function ReglagesSheet({
             : 'Un rappel par jour, à l’heure que tu choisis, pour retrouver ton plan.'}
           {!remindersSupported && reminderTime ? ' La notif arrive sur l’app mobile (pas sur le web).' : ''}
         </Text>
+
+        {/* 🔴 REMONTÉ DEPUIS LA FEUILLE DU SUIVI DU POIDS le 2026-08-14 (décision
+            fondateur : « non, dans la roue dentée »). Il vivait au milieu d'une
+            saisie, entre une courbe et un historique — le fondateur ne savait même
+            pas qu'il était là. La règle de rangement du Profil s'applique mot pour
+            mot (§8) : *ce réglage change-t-il ce que Kyroz me SERT ?* Non — il
+            change quand Kyroz me PARLE. Sa place est donc ici, avec le rappel
+            quotidien, et pas dans le geste de se peser. */}
+        <Text style={s.label}>Rappel de pesée</Text>
+        <Segmented<WeighInFrequency>
+          t={t}
+          value={weighInFrequency}
+          onChange={onWeighInFrequency}
+          options={[
+            { label: 'Jour', value: 'daily' },
+            { label: 'Sem.', value: 'weekly' },
+            { label: '2 sem.', value: 'biweekly' },
+            { label: 'Mois', value: 'monthly' },
+          ]}
+        />
+        <Text style={s.aide}>On te proposera un check-in : {WEIGH_IN_LABELS[weighInFrequency].toLowerCase()}.</Text>
 
         <Text style={s.label}>Propositions d'ajustement</Text>
         <Segmented<'on' | 'off'>

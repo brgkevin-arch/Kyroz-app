@@ -3756,6 +3756,51 @@ produit en suspens — il ne reste qu'à coder.
 > branches insèrent en tête de cette section, donc git ne sait pas dans quel ordre. La
 > résolution est de garder les DEUX blocs, en ordre décroissant — jamais d'en choisir un.
 
+- 🤖 **E49 · La feuille du suivi du poids : trois choses au lieu d'une (2026-08-14)**
+
+  Le fondateur : *« j'aime les fonctionnalités, mais c'est pas ergonomique. »* Plutôt
+  que de proposer une refonte à l'aveugle, quatre questions lui ont été posées. Ses
+  réponses, parce qu'elles valent plus que le correctif :
+  · il vient **enregistrer une pesée** (pas lire, pas corriger) ;
+  · ce qui l'irrite : **la rangée de dates**, **trop de choses ensemble**, **la
+    courbe trop bas** — et PAS la position du bouton, qu'on aurait juré coupable ;
+  · le rappel de pesée : **« non, dans la roue dentée »** ;
+  · la forme : *« soit deux onglets, soit mieux rangé »* — arbitrage rendu.
+
+  🔴 **ARBITRÉ : « MIEUX RANGÉ », ET C'EST UN CHOIX CONTRE L'INTUITION.** Deux
+  onglets rangent mieux sur le papier — mais ils mettraient la courbe DERRIÈRE un
+  tap, alors que le grief est justement qu'elle est trop loin. Il vient enregistrer
+  ET veut voir sa courbe : le bon geste est de les rapprocher, pas de les séparer.
+  ➡️ Ranger fort produit ici l'effet des deux onglets sans leur coût.
+
+  **Ce que la feuille est devenue**, dans l'ordre : date (une LIGNE) → poids →
+  Enregistrer → confirmation → **courbe** → le facultatif replié (note, photo) →
+  historique. **Tout tient sans défiler**, vérifié au simulateur.
+
+  · **La rangée de dates se replie** derrière « Une autre date ». 🔴 Et elle a perdu
+    ses **sept jours FUTURS grisés** : trois cases intouchables occupaient la moitié
+    du sélecteur — d'où « on ne sait pas où taper ». On pèse aujourd'hui ou on
+    rattrape un jour passé, jamais demain. Aujourd'hui est désormais la PREMIÈRE
+    case et on remonte le temps : plus rien à centrer, donc `stripRef`,
+    `centerOnToday` et l'arithmétique de `CHIP_W` disparaissent. *Du code de
+    positionnement en moins est un défaut de positionnement en moins.*
+  · **Note et photo se replient** : facultatives, elles séparaient le poids de son
+    bouton et poussaient la courbe hors de l'écran.
+  · **Le sous-titre passe de trois lignes à une.** Ce qui saute n'est pas faux, c'est
+    redondant : « Kyroz réajuste calories, macros et plan » est déjà dit par la
+    confirmation, AU MOMENT où ça arrive.
+  · **« Rappel de pesée » remonte dans la roue dentée**, avec le rappel quotidien.
+    La règle de rangement du Profil s'applique mot pour mot (CLAUDE.md §8) : *ce
+    réglage change-t-il ce que Kyroz me SERT ?* Non — il change quand Kyroz me
+    PARLE. ⚠️ Le fondateur **ne savait pas qu'il existait** : un réglage rangé au
+    mauvais endroit n'est pas seulement mal rangé, il est introuvable.
+
+  ⚠️ **CE QUE LES QUESTIONS ONT CORRIGÉ DANS MON DIAGNOSTIC.** J'avais identifié « le
+  bouton Enregistrer est trop bas, il faut passer la note et la photo » comme le
+  grief principal — c'est le seul des quatre qu'il n'a **pas** coché. Le correctif
+  le règle quand même (le facultatif descend), mais par la bande. ➡️ *Demander coûte
+  quatre questions ; supposer coûte une refonte qui déplace le problème.*
+
 - 🤖 **E48 · Le Profil : la série s'efface, le poids prend la place (2026-08-14)**
 
   Quatre retouches dictées par le fondateur, plus un défaut trouvé en les faisant.

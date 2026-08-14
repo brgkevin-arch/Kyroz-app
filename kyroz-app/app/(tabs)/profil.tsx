@@ -62,7 +62,8 @@ import {
 import { datedGoalStatus, datedGoalKcalDelta, addDaysStamp } from '../../lib/datedGoal';
 import { deadlineLadder, checkEcheance, messageEcheance } from '../../lib/goalLadder';
 import { DatedGoalCard, formatFR } from '../../components/DatedGoalCard';
-import { todayStamp } from '../../lib/weight';
+import { todayStamp, DEFAULT_WEIGH_IN_FREQUENCY } from '../../lib/weight';
+import { applyWeighInReminder } from '../../lib/notifications';
 import {
   ActivityLevel, BodyFatSource, DietaryRestriction, EngineNotice, FixedMeals, Goal, GoalTarget, MealEmphasis, MealSlot, MealType, NeatLevel, Sex, SportSession, UserProfile, VarietyPreference,
 } from '../../lib/types';
@@ -693,6 +694,13 @@ export default function ProfilScreen() {
           onRevoirTutos={revoirTutos}
           onLogout={doLogout}
           onDelete={() => { setApresReglages('supprimer'); setReglages(false); }}
+          weighInFrequency={profile.weigh_in_frequency ?? DEFAULT_WEIGH_IN_FREQUENCY}
+          onWeighInFrequency={(f) => {
+            saveProfile({ ...profile, weigh_in_frequency: f });
+            // Ré-arme la notification sur la nouvelle cadence — même geste que celui
+            // que faisait `WeightCheckin` avant que le réglage ne déménage.
+            applyWeighInReminder(f, weightEntries[weightEntries.length - 1]?.date ?? null);
+          }}
         />
       </Sheet>
 
