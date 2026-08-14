@@ -966,9 +966,46 @@ export default function PlanScreen() {
         </View>
       )}
 
-      {/* Fiche recette du repas sélectionné */}
-      <Sheet visible={!!selectedMeal} onClose={() => setSelectedMeal(null)}>
-        {selectedMeal && (
+      {/* Fiche recette du repas sélectionné — ET son éditeur, dans LA MÊME
+          feuille depuis le 2026-08-14. Deux `Sheet` = deux `Modal`, et sur iOS
+          présenter une modale par-dessus une modale en place échoue en silence :
+          le crayon « ne fonctionnait pas » alors que son code s'exécutait. Le
+          raisonnement complet est en tête du même correctif dans `recettes.tsx`.
+          ⚠️ ET « C'est quoi qui te gêne ? » A REJOINT LA MÊME FEUILLE, alors que
+          personne ne l'avait signalée : `dislikeSelectedMeal` ferme la fiche et
+          ouvre l'élicitation DANS LE MÊME LOT d'état, donc les deux modales se
+          chevauchaient le temps de l'animation de sortie — exactement la
+          collision d'à côté, sur un chemin qui ne se déclenche que quand un 👎
+          vide trop le vivier. Ici les deux états ne sont jamais posés ensemble
+          (`dislikeMealCore` rend 'elicit' APRÈS avoir mis `selectedMeal` à null,
+          et le chemin depuis la carte n'ouvre jamais la fiche), donc la feuille ne
+          se ferme même plus : elle change de contenu. */}
+      <Sheet
+        visible={!!selectedMeal || !!dislikeElicit}
+        onClose={() => { setSelectedMeal(null); setEditingRecipe(null); setDislikeElicit(null); }}
+      >
+        {dislikeElicit ? (
+          <DislikeSheet
+            t={t}
+            candidates={dislikeElicit}
+            onPick={applyDislikeIngredient}
+            onClose={() => setDislikeElicit(null)}
+          />
+        ) : editingRecipe ? (
+          <RecipeEditor
+            t={t}
+            recipe={editingRecipe}
+            isCustom={isCustom(editingRecipe.id)}
+            onSave={(r) => { saveOverride(r); applyRecipeToSelected(r); setEditingRecipe(null); }}
+            onReset={() => {
+              const base = getBaseRecipe(editingRecipe.id);
+              resetOverride(editingRecipe.id);
+              if (base) applyRecipeToSelected(base);
+              setEditingRecipe(null);
+            }}
+            onCancel={() => setEditingRecipe(null)}
+          />
+        ) : selectedMeal ? (
           <RecipeDetail
             recipe={selectedMeal.recipe}
             portions={selectedMeal.portions}
@@ -987,38 +1024,7 @@ export default function PlanScreen() {
             onSwap={swapSelectedMeal}
             onDislike={dislikeSelectedMeal}
           />
-        )}
-      </Sheet>
-
-      {/* « C'est quoi qui te gêne ? » — déclenchée par un 👎 qui vide trop le pool */}
-      <Sheet visible={!!dislikeElicit} onClose={() => setDislikeElicit(null)}>
-        {dislikeElicit && (
-          <DislikeSheet
-            t={t}
-            candidates={dislikeElicit}
-            onPick={applyDislikeIngredient}
-            onClose={() => setDislikeElicit(null)}
-          />
-        )}
-      </Sheet>
-
-      {/* Personnalisation de la recette du repas */}
-      <Sheet visible={!!editingRecipe} onClose={() => setEditingRecipe(null)}>
-        {editingRecipe && (
-          <RecipeEditor
-            t={t}
-            recipe={editingRecipe}
-            isCustom={isCustom(editingRecipe.id)}
-            onSave={(r) => { saveOverride(r); applyRecipeToSelected(r); setEditingRecipe(null); }}
-            onReset={() => {
-              const base = getBaseRecipe(editingRecipe.id);
-              resetOverride(editingRecipe.id);
-              if (base) applyRecipeToSelected(base);
-              setEditingRecipe(null);
-            }}
-            onCancel={() => setEditingRecipe(null)}
-          />
-        )}
+        ) : null}
       </Sheet>
 
       {/* Reveal du 1er plan (J1) : une seule fois, avant la visite guidée.
