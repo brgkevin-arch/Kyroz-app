@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { Presse } from './Presse';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemePalette, Radius, Type, Spacing, Trait, Icone, CIBLE_TACTILE_MIN, OPACITE_PRESSION } from '../constants/theme';
-import { useDialog } from './Dialog';
 import {
   ShoppingTrip, ShoppingTripItem,
   newestFirst, boughtItems, skippedItems, tripHeadline, skippedNote,
@@ -38,21 +37,25 @@ export function ShoppingHistory({
   sheetScrollProps?: any;     // injecté par <Sheet> : lie le défilement à la fermeture
 }) {
   const s = useMemo(() => makeStyles(t), [t]);
-  const { confirm } = useDialog();
   const liste = useMemo(() => newestFirst(trips), [trips]);
   const [ouverte, setOuverte] = useState<string | null>(null);
+  const [aConfirmer, setAConfirmer] = useState<string | null>(null);
 
-  // `Alert.alert` est un no-op sur react-native-web (CLAUDE.md §11) : un seul
-  // chemin, web et natif.
-  const demanderSuppression = async (tr: ShoppingTrip) => {
-    const ok = await confirm({
-      title: 'Retirer ces courses ?',
-      message: `${frDateLongue(tr.date)} · ${tripHeadline(tr)}. Ton frigo n'y touche pas — seule la trace disparaît.`,
-      confirmLabel: 'Retirer',
-      destructive: true,
-    });
-    if (ok) onRemove(tr.at);
-  };
+  // 🔴 LA CONFIRMATION VIT DANS LA FEUILLE, PLUS DANS UNE BOÎTE DE DIALOGUE —
+  // corrigé le 2026-08-14 (fondateur : « retirer de l'historique ne fonctionne
+  // pas »). `useDialog().confirm` monte sa propre `Modal` ; cet écran vit DÉJÀ
+  // dans une `Modal` (la feuille qui l'affiche). Sur iOS, présenter une modale
+  // par-dessus une modale en place ne donne rien — pas d'erreur, pas de trace :
+  // le bouton s'exécutait, la promesse attendait une réponse que personne ne
+  // pouvait donner, et l'écran ne bougeait pas.
+  // ⚠️ CE DÉFAUT EST INVISIBLE SUR LE WEB : mesuré avant correctif, la
+  // confirmation s'affichait et la sortie disparaissait. `react-native-web` rend
+  // une `Modal` en `<div>` et empile sans se plaindre — c'est même pour ça que
+  // `DialogProvider` monte sa boîte à la demande (CLAUDE.md §11). Ce contournement
+  // règle l'ordre du DOM ; il ne règle pas l'empilement natif.
+  // ➡️ Même famille que la fiche recette et son éditeur (`recettes.tsx`). Ici on
+  // ne peut pas « remplacer » le contenu : la question porte sur UNE ligne, donc
+  // elle se pose SUR cette ligne. Deux boutons, pas de modale.
 
   return (
     <View style={s.wrap}>
@@ -115,15 +118,41 @@ export function ShoppingHistory({
                         Kyroz ne sait pas qu'un paquet de 1 kg a été pris pour 700 g. */}
                     <Text style={s.precision}>Quantités demandées par ta liste ce jour-là.</Text>
 
-                    <Presse
-                      style={s.retirer}
-                      onPress={() => demanderSuppression(tr)}
-                      activeOpacity={OPACITE_PRESSION}
-                      accessibilityRole="button"
-                    >
-                      <Ionicons name="trash-outline" size={Icone.petite} color={t.textTertiary} />
-                      <Text style={s.retirerTxt}>Retirer de l'historique</Text>
-                    </Presse>
+                    {aConfirmer === tr.at ? (
+                      <View style={s.confirmation}>
+                        <Text style={s.confirmationTxt}>
+                          Retirer ces courses de l'historique ? Ton frigo n'y touche pas — seule la trace disparaît.
+                        </Text>
+                        <View style={s.confirmationBtns}>
+                          <Presse
+                            style={[s.confirmationBtn, { backgroundColor: t.fill }]}
+                            onPress={() => setAConfirmer(null)}
+                            activeOpacity={OPACITE_PRESSION}
+                            accessibilityRole="button"
+                          >
+                            <Text style={s.annulerTxt}>Annuler</Text>
+                          </Presse>
+                          <Presse
+                            style={[s.confirmationBtn, { backgroundColor: t.danger }]}
+                            onPress={() => { setAConfirmer(null); onRemove(tr.at); }}
+                            activeOpacity={OPACITE_PRESSION}
+                            accessibilityRole="button"
+                          >
+                            <Text style={s.confirmerTxt}>Retirer</Text>
+                          </Presse>
+                        </View>
+                      </View>
+                    ) : (
+                      <Presse
+                        style={s.retirer}
+                        onPress={() => setAConfirmer(tr.at)}
+                        activeOpacity={OPACITE_PRESSION}
+                        accessibilityRole="button"
+                      >
+                        <Ionicons name="trash-outline" size={Icone.petite} color={t.textTertiary} />
+                        <Text style={s.retirerTxt}>Retirer de l'historique</Text>
+                      </Presse>
+                    )}
                   </View>
                 )}
               </View>
@@ -184,6 +213,16 @@ function makeStyles(t: ThemePalette) {
       minHeight: CIBLE_TACTILE_MIN, borderRadius: Radius.button, backgroundColor: t.fill, marginTop: Spacing.sm,
     },
     retirerTxt: { ...Type.bodySmall, color: t.textSecondary },
+
+    confirmation: { gap: Spacing.md, marginTop: Spacing.sm },
+    confirmationTxt: { ...Type.bodySmall, color: t.text, lineHeight: 20 },
+    confirmationBtns: { flexDirection: 'row', gap: Spacing.sm },
+    confirmationBtn: {
+      flex: 1, alignItems: 'center', justifyContent: 'center',
+      minHeight: CIBLE_TACTILE_MIN, borderRadius: Radius.button,
+    },
+    annulerTxt: { ...Type.bodySmallStrong, color: t.text },
+    confirmerTxt: { ...Type.bodySmallStrong, color: t.onAccent },
 
     videCard: { borderWidth: Trait.fin, borderColor: t.line, borderRadius: Radius.card, padding: Spacing.xl, gap: Spacing.sm },
     videTitre: { ...Type.label, color: t.text },
