@@ -3756,6 +3756,60 @@ produit en suspens — il ne reste qu'à coder.
 > branches insèrent en tête de cette section, donc git ne sait pas dans quel ordre. La
 > résolution est de garder les DEUX blocs, en ordre décroissant — jamais d'en choisir un.
 
+- 🔴 **E45 · OUVERT — l'app se fige sur « Rien à acheter », non reproduite (2026-08-14)**
+
+  **Signalé par le fondateur**, avec capture, sur son iPhone (OTA #13) : *« une fois
+  que j'ai appuyé sur terminer les courses, je suis arrivé sur l'écran où je n'ai
+  rien à acheter et je suis resté bloqué — impossible d'aller sur une autre page
+  sans fermer l'app »*. **Vu UNE seule fois.**
+
+  🔴 **NON REPRODUITE, ET C'EST LA PREMIÈRE CHOSE À SAVOIR.** Trois chemins joués au
+  simulateur (iPhone 17 / iOS 27), chacun jusqu'à l'écran vide puis tap sur un autre
+  onglet — **la navigation répond à chaque fois** :
+  1. « Tout cocher » → « Courses terminées » → « Rien à acheter » ;
+  2. « Rien à acheter » → « Mes courses passées » → fermeture au glissement ;
+  3. cocher 1 article → « Courses terminées » → la question « 34 articles ne sont pas
+     cochés » → « Les retirer de ma liste » → « Liste vidée ».
+  ➡️ C'est donc une **COURSE**, même famille que la feuille du frigo (E18), elle aussi
+  vue une seule fois et jamais rejouée à la main.
+
+  **Ce que le symptôme dit, structurellement.** Écran d'apparence normale + aucun tap
+  qui répond, **barre d'onglets comprise** + seul le redémarrage débloque : dans cette
+  app une seule chose peut produire ça, une `Modal` restée PRÉSENTÉE mais peinte
+  invisible. La barre d'onglets vit sous toutes les modales, d'où sa mort en premier.
+  Il y en a **sept** (`grep -rn "<Modal" app components`) : `Sheet`, `ActionSheet`,
+  `GuidedTour`, `FirstPlanReveal`, `ReminderOffer`, `StreakCelebration`,
+  `BirthdayCelebration`.
+
+  ⚠️ **ÉCARTÉ PAR MESURE — le voile du tuto.** C'était le candidat le plus sérieux :
+  `GuidedTour` rend `<View absoluteFill backgroundColor: rgba(0,0,0,0.72)>` quand sa
+  cible ne se mesure plus, sans bulle et sans sortie — et sur un fond noir un voile
+  noir se devine mal. **La capture tranche** : sous 72 % de noir, tout l'écran serait
+  à 28 % de sa luminosité ; or le titre « Rien à acheter » y est blanc plein et le
+  double-check vert vif, identiques à mes captures sans voile. ➡️ *Une capture n'est
+  pas qu'une illustration : ses NIVEAUX sont une mesure.*
+
+  ⚠️ **AUCUN CORRECTIF LIVRÉ, ET C'EST DÉLIBÉRÉ.** Deux durcissements plausibles ont
+  été écrits puis **écartés faute de preuve** :
+  · donner à `Sheet` le montage paresseux d'`ActionSheet` (`if (!render) return null`,
+    E11-bis) — vrai défaut de symétrie entre deux jumeaux, mais **il ne corrige pas un
+    `render` bloqué à `true`**, et surtout il change QUAND les enfants se montent :
+    c'est exactement le piège E24 (un effet de bord attaché à un montage qui n'a plus
+    lieu). `WeightCheckin` et `useWeightLog` sont dans ce cas. À ne pas faire sans
+    refaire le tour des hooks concernés ;
+  · faire converger `render` sur un minuteur plutôt que sur le rappel d'animation —
+    mais le rappel de `Animated.parallel` part AUSSI quand l'animation est interrompue
+    (c'est le correctif E18), donc le trou reste à démontrer.
+  ➡️ Livrer l'un des deux ferait passer une hypothèse pour un correctif.
+
+  **CE QU'IL FAUT FAIRE À LA PROCHAINE OCCURRENCE — et ça se joue en 5 secondes :**
+  **glisser vers le bas au MILIEU de l'écran.** Si quelque chose descend, ou si l'app
+  redevient vivante, c'est une **feuille invisible restée montée** (`Sheet`) et le
+  chantier se referme sur `render`. Si rien ne bouge du tout, c'est le **fil JS** qui
+  est bloqué, et le suspect n'est plus une modale mais une boucle de rendu — deux
+  familles opposées, que rien d'autre ne sépare. ➡️ Sans ce test, la prochaine session
+  refera les trois reproductions ci-dessus pour rien.
+
 - 🤖 **E44 · Les trois finitions — et un SEPTIÈME geste mort trouvé en les vérifiant (2026-08-14)**
 
   Les trois points d'E43 sont faits, et **vérifiés un par un au simulateur** (c'est
