@@ -1530,6 +1530,15 @@ bloc. Le coût n'est pas « moins joli », c'est **plus lent à comprendre**.
 | marge intérieure d'une feuille modale | `Spacing.xxl` (24) |
 | séparation de deux sections | `Spacing.xxxl` (32) |
 
+🔴 **LA DERNIÈRE LIGNE EST DÉSORMAIS COMPTÉE — `lib/__tests__/margeFeuilles.test.ts`**
+(2026-08-14). `Sheet` ne pose **aucun** padding horizontal : chacun de ses enfants
+apporte le sien, ce qui permet un en-tête FIXE margé et un `ScrollView` margé
+séparément. Aucun mécanisme ne l'exigeait — donc `BirthDatePicker` a été écrit sans,
+et son titre collait au bord de l'écran. Sur les **18** composants rendus directement
+dans un `<Sheet>`, **17** portaient `Spacing.xxl` chacun de leur côté ; le
+dix-huitième était unique **par accident**. ⚠️ Le corriger dans `Sheet` aurait doublé
+la marge des dix-sept autres. ➡️ Vu au simulateur, invisible au navigateur.
+
 ⚠️ **Les valeurs hors grille ont été ABSORBÉES, pas adoptées — et c'est la
 différence avec la typographie.** Là-bas, 14 avait un rôle propre (le texte
 secondaire) et a mérité son token. Ici, 10 n'est pas « un cran entre 8 et 12 » :
@@ -2206,14 +2215,38 @@ téléphone.
   les conteneurs de modale, y compris celle qui est bien à l'écran.
   ℹ️ Mesuré sur le web ; sur natif, `Modal` est une modale de plateforme et l'ordre de
   présentation n'obéit pas au DOM.
-- 🔴 **ET SUR IOS, UNE MODALE NE S'OUVRE PAS DU TOUT PAR-DESSUS UNE MODALE.** C'est
+- 🔴 **ET SUR IOS, UNE MODALE NE S'OUVRE PAS PAR-DESSUS SA VOISINE.** C'est
   la moitié NATIVE du piège ci-dessus, et elle est pire — corrigée le 2026-08-14
-  après un build simulateur. iOS refuse de présenter une seconde `Modal` quand une
-  autre est en place : rien n'apparaît, aucune erreur, aucune trace. Le code
+  après un build simulateur. Une seconde `Modal` demandée pendant qu'une autre est
+  présentée n'apparaît pas : rien à l'écran, aucune erreur, aucune trace. Le code
   s'exécute, la promesse attend un arbitrage que personne ne peut rendre.
-  **CINQ gestes en sont morts**, dont **« Supprimer mon compte »** — obligation RGPD
+  **SEPT gestes en sont morts**, dont **« Supprimer mon compte »** — obligation RGPD
   et point de revue App Store — plus le crayon de la fiche recette, deux
-  suppressions de ligne et le choix d'une photo de progression.
+  suppressions de ligne, le choix d'une photo de progression, et **« Me peser »**
+  depuis l'éditeur Informations (trouvé le même jour, en allant vérifier les six
+  autres au simulateur).
+  🔴 **LE CRITÈRE EST *OÙ LA `Modal` EST DÉCLARÉE*, PAS « UNE MODALE EST-ELLE
+  OUVERTE » — et la première rédaction de cette règle était trop large** (amendée le
+  2026-08-14, mesuré) :
+  · déclarée **À CÔTÉ** de la première — deux `<Sheet>` frères au niveau de l'écran,
+    ou la `Modal` d'un fournisseur monté à la racine — les deux demandent à être
+    présentées par le **même** contrôleur, la seconde est refusée → **geste mort** ;
+  · déclarée **À L'INTÉRIEUR** de la première — le `<Sheet>` de la roulette de date
+    vit dans les enfants de la feuille d'édition — elle est présentée par le
+    contrôleur de cette feuille-là, **en chaîne** → **ça marche**, vérifié sur
+    capture (elle s'ouvre, puis rend la main à l'éditeur).
+  ⚠️ L'ancienne formulation ne casse rien (elle interdit plus que nécessaire), mais
+  elle ferait « corriger » du code sain et rendrait `ConfirmationEnLigne` obligatoire
+  là où il ne l'est pas. *Une prémisse écrite en corrigeant cinq cas n'a été mesurée
+  que sur ces cinq-là.*
+  🔴 **ÉCRIRE LES SETTERS DANS LE BON ORDRE NE FERME PAS CETTE PORTE.** C'est
+  l'illusion qui a produit le septième geste : `setEditor(null); setWeighIn(true);`
+  était commenté « on ferme l'éditeur AVANT d'ouvrir la pesée », et c'était sincère —
+  mais les deux setters partent dans le **même lot d'état**, et la feuille garde sa
+  `Modal` montée le temps de sa sortie. Seul le démontage RÉEL ferme la porte
+  (`Sheet.onClosed`). ➡️ Compté par `feuillesEmpilees.test.ts` : fermer un état de
+  feuille puis en OUVRIR un autre dans le même corps de fonction est interdit — les
+  fermetures en série, elles, restent légitimes.
   ⚠️ **LE WEB NE MONTRE RIEN DE CE DÉFAUT** : `react-native-web` rend une `Modal` en
   `<div>` et empile sans se plaindre. Mesuré sur le code d'avant correctif, le
   crayon ouvrait parfaitement l'éditeur dans le panneau navigateur. **C'est ce
@@ -2228,6 +2261,10 @@ téléphone.
     (fiche recette ⇄ son éditeur) ;
   · la question porte sur UNE ligne de la feuille → elle se pose SUR cette ligne,
     `components/ConfirmationEnLigne.tsx`, deux boutons et pas de modale.
+  · la feuille n'a rien à DEMANDER, seulement à annoncer → `components/MessageEnLigne.tsx`,
+    posé sous le réglage qui vient d'échouer. ⚠️ **Il se ferme** : un `notify` a son
+    « OK » ; en ligne, un message qui ne part jamais devient un morceau d'écran, et
+    le réglage d'à côté se lit comme s'il était en panne.
   ⚠️ `useDialog()` reste le bon outil **depuis un écran plein** : la boîte se pose
   au-dessus de tout et se rate difficilement, ce qu'on veut pour un geste
   irréversible. L'interdit ne vaut que DEPUIS une feuille.

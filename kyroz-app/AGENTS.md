@@ -3756,35 +3756,134 @@ produit en suspens — il ne reste qu'à coder.
 > branches insèrent en tête de cette section, donc git ne sait pas dans quel ordre. La
 > résolution est de garder les DEUX blocs, en ordre décroissant — jamais d'en choisir un.
 
-- 🤖 **E43 · Trois finitions vues au simulateur, non corrigées (2026-08-14)**
+- 🤖 **E44 · Les trois finitions — et un SEPTIÈME geste mort trouvé en les vérifiant (2026-08-14)**
 
-  Sorties de la fiche E42 pour qu'elles ne se perdent pas dans sa prose : ce sont
-  des chantiers OUVERTS, chacun vu de mes yeux sur le build natif, aucun signalé
-  par le fondateur. Ils ne bloquent rien — c'est pour ça qu'ils n'ont pas été
-  faits dans la foulée, et c'est aussi pour ça qu'ils s'oublient.
+  Les trois points d'E43 sont faits, et **vérifiés un par un au simulateur** (c'est
+  là qu'ils avaient été vus). Ce qui mérite d'être retenu n'est pas la liste : c'est
+  ce que la vérification a trouvé en chemin, et ce qu'elle a corrigé d'une règle
+  qu'on croyait acquise.
+
+  **Les trois finitions :**
+  1. **La roulette de date a sa marge** (`components/BirthDatePicker.tsx`,
+     `padding: Spacing.xxl`). `Sheet` ne pose AUCUN padding horizontal : chacun de
+     ses enfants apporte le sien, et c'est ce qui permet à `WeightCheckin` ou
+     `RecipeEditor` d'avoir un en-tête fixe margé et un `ScrollView` margé
+     séparément. Recensé : sur les **18** composants rendus directement dans un
+     `<Sheet>`, **17** portaient déjà `Spacing.xxl` — les sept éditeurs du Profil
+     par leur `EditorShell` commun. Celui-là était le dix-huitième, et le seul sans
+     rien. ⚠️ **Corriger dans `Sheet` aurait doublé la marge des dix-sept autres.**
+  2. **« Point du aujourd'hui » est devenu « Aujourd'hui — point mis à jour ».**
+     Même remède que dans `OffPlanHistory` : un tiret, la date devant, sa majuscule
+     conservée. « du 5 août » et « d'aujourd'hui » ne prennent pas le même article,
+     donc aucune phrase collée ne peut être juste pour les deux.
+  3. **Les deux `notify` de la feuille Réglages sont des messages EN LIGNE**
+     (`components/MessageEnLigne.tsx`, le pendant de `ConfirmationEnLigne` pour ce
+     qui n'appelle pas de réponse). `CHANTIER_DIALOGUES_EN_FEUILLE` est **VIDE** :
+     plus aucun composant de feuille n'ouvre de boîte de dialogue, et le tableau vide
+     rend le test strict.
+     ⚠️ **Pourquoi un composant plutôt qu'un `ConfirmationEnLigne` détourné** : ces
+     deux-là n'interrogent pas, ils annoncent. Sans nom pour ce rôle, le prochain
+     écran serait retourné à `notify`, c'est-à-dire au défaut. Et il **se ferme** —
+     un `notify` a son « OK » ; posé en ligne, un message qui ne part jamais devient
+     un morceau d'écran, et le réglage d'à côté se lit comme s'il était en panne.
+
+  🔴 **LE SEPTIÈME GESTE MORT — « Me peser », depuis l'éditeur Informations.**
+  Trouvé en allant vérifier la finition 1, sur le chemin. `onWeighIn` faisait
+  `setEditor(null); setWeighIn(true);` et **son commentaire affirmait « on ferme
+  l'éditeur AVANT d'ouvrir la pesée »**. C'était sincère : les deux setters étaient
+  bien écrits dans cet ordre. Mais ils partent dans le **même lot d'état**, et
+  `Sheet` garde sa `Modal` montée le temps de son animation de sortie — donc iOS
+  voyait arriver la seconde pendant que la première était encore présentée, et n'en
+  présentait aucune. **Preuve : deux captures à cinq secondes d'intervalle,
+  identiques au bit près, l'éditeur refermé et rien d'ouvert.**
+  ➡️ Corrigé par `Sheet.onClosed` + `apresEditeur`, exactement comme « Supprimer mon
+  compte » vingt lignes plus haut dans le même fichier.
+  ⚠️ **Écrire les setters dans le bon ordre ne ferme pas cette porte** — c'est la
+  formulation à retenir, parce que c'est précisément l'illusion qui a produit ce
+  défaut-ci.
+  ℹ️ Le geste n'était pas perdu (la pesée s'ouvre aussi depuis l'en-tête du Profil et
+  depuis le Plan) ; c'est le raccourci qui ne répondait pas.
+
+  🔴 **ET LA RÈGLE D'E42 ÉTAIT TROP LARGE — MESURÉ.** E42 a écrit « iOS refuse de
+  présenter une seconde `Modal` quand une autre est en place ». C'est faux tel quel,
+  et la roulette de date le prouve : son `<Sheet>` est déclaré **DANS** les enfants de
+  la feuille d'édition, et il s'ouvre parfaitement (capture à l'appui) — puis se
+  referme et rend la main à l'éditeur.
+  ➡️ **Le critère est OÙ la `Modal` est DÉCLARÉE dans l'arbre**, pas « une modale
+  est-elle ouverte » :
+  · déclarée **à côté** de la première (deux `<Sheet>` frères au niveau de l'écran,
+    ou une `Modal` de `DialogProvider` montée à la racine) → les deux demandent à
+    être présentées par le **même** contrôleur, le second est refusé → geste MORT ;
+  · déclarée **à l'intérieur** de la première → elle est présentée par le contrôleur
+    de cette feuille-là, en chaîne → ça marche.
+  ⚠️ L'ancienne formulation est **conservatrice** : elle interdit plus que nécessaire,
+  donc rien ne casse en la suivant. Mais elle ferait « corriger » du code sain, et
+  elle rendrait `ConfirmationEnLigne` obligatoire là où il ne l'est pas. CLAUDE.md §11
+  est amendé.
+  ➡️ *Une prémisse écrite en corrigeant cinq cas n'a été mesurée que sur ces cinq-là.*
+
+  **Ce qui est vérifié, et comment.** Simulateur iPhone 17 / iOS 27, Metro lancé sur
+  le worktree (`EXPO_ROUTER_APP_ROOT=$PWD/app`), app relancée entre chaque lot :
+  roulette margée ✓ · « Aujourd'hui — point mis à jour » après une pesée réelle ✓ ·
+  « Me peser » ouvre la feuille ✓ · message « Notifications désactivées » sous le
+  réglage, avec son « Fermer » qui marche ✓ · message « Aucune application e-mail »
+  sous la ligne RGPD ✓.
+  ⚠️ **Ce dernier a demandé une SONDE, et il faut savoir pourquoi** : la ligne
+  « Supprimer mes statistiques » ne s'affiche que si un identifiant pseudonyme
+  existe, or `distinctId()` n'est appelé **qu'après** le test `POSTHOG_KEY` dans
+  `capture()`. Sans clé — l'état actuel, analytics dormant — **aucun pseudonyme n'est
+  jamais créé, donc cette ligne est INATTEIGNABLE en production aujourd'hui**. Elle
+  le deviendra le jour où la clé sera posée (E26). La vérification s'est donc faite
+  en forçant l'identifiant le temps d'une capture, puis en le retirant.
+
+  **Garde-fous, tous vérifiés par mutation :**
+  · `lib/__tests__/margeFeuilles.test.ts` (nouveau) — tout composant rendu dans un
+    `<Sheet>` déclare un `padding`/`paddingHorizontal` à `Spacing.xxl` ;
+  · `feuillesEmpilees.test.ts` — chantier vide, `ReglagesSheet` sans `useDialog`,
+    fermeture non inerte du message, le cas « Me peser », et surtout un **compteur
+    général** : fermer un état de feuille puis en ouvrir un autre dans le même corps
+    de fonction est interdit (les fermetures en série restent légitimes) ;
+  · `shoppingHistory.test.ts` → « Date lisible » — aucun article collé devant une date
+    nommée.
+  ⚠️ **La sonde de `feuillesEmpilees` s'est accusée elle-même à la première version** :
+  la note qui explique le correctif de « Me peser » cite la ligne fautive mot pour
+  mot. Troisième fois que cette famille de test se fait piéger par sa propre
+  documentation (compteur d'émojis, puis `ShoppingHistory`) — on lit du CODE, jamais
+  de la prose, et `sansCommentaires` est passé sur TOUS les lecteurs du fichier.
+  ⚠️ **Ce que la finition 2 n'a PAS reçu, et c'est délibéré** : le compteur d'articles
+  ne voit que l'article ACCOLÉ à l'interpolation. La faute d'origine se construisait en
+  deux endroits (l'étiquette ici, la phrase là) — une sonde qui lit le source ne peut
+  pas la voir sans mentir sur ce qu'elle couvre. C'est écrit dans le test.
+
+  📦 Reste ouvert après cette fiche : **A32** (les 12 silhouettes de masse grasse,
+  tâche du fondateur), et la revue page par page, arrêtée après Courses — restent
+  Frigo, Recettes et Profil.
+
+- ~~**E43 · Trois finitions vues au simulateur, non corrigées**~~ ✅ **LIVRÉ le
+  2026-08-14 → voir E44.** Sorties de la fiche E42 pour qu'elles ne se perdent pas
+  dans sa prose : trois chantiers vus sur le build natif, aucun signalé par le
+  fondateur, aucun bloquant — c'est pour ça qu'ils n'avaient pas été faits dans la
+  foulée, et c'est aussi pour ça qu'ils s'oubliaient.
 
   1. **La feuille de la roulette de date est DÉCALÉE À GAUCHE.** Le titre « Ta date
-     de naissance » et le bouton « Valider » touchent le bord gauche, alors qu'il
-     reste ~25 pt de marge à droite. ⚠️ **Ce n'est pas `Sheet`** : la fiche recette,
-     servie par la même feuille, est correctement margée sur la même capture. C'est
-     donc `components/BirthDatePicker.tsx` (ou son enveloppe) qu'il faut regarder.
-     ➡️ Invisible au navigateur — vu au simulateur, sur capture.
+     de naissance » et le bouton « Valider » touchent le bord gauche. ⚠️ **Ce n'est
+     pas `Sheet`** : la fiche recette, servie par la même feuille, est correctement
+     margée sur la même capture. ✅ C'était `BirthDatePicker`, sans aucun padding.
+     ℹ️ La fiche disait aussi « ~25 pt de marge à droite » — **c'était une lecture
+     approximative de la capture, et elle est fausse** : sans padding, le contenu
+     touchait les DEUX bords ; ce qui restait à droite, c'était la fin du texte du
+     titre. Une mesure à l'œil sur une capture n'est pas une mesure.
 
   2. **« Point du aujourd'hui mis à jour ».** Le message de confirmation après une
      pesée colle un article devant une date variable. Même faute que celle déjà
-     corrigée dans `OffPlanHistory` (« du ${date} » donnait « du Aujourd'hui »), où
-     la solution retenue avait été un **tiret** plutôt qu'un accord impossible.
-     ➡️ `components/WeightCheckin.tsx`, autour de `setSaved`.
+     corrigée dans `OffPlanHistory`, et même remède : un **tiret**. ✅ Fait.
 
   3. **Les deux `notify` de la feuille Réglages restent des modales dans une
      modale** (« aucune application e-mail », « rappel refusé »). Donc morts sur
-     iPhone, comme les cinq d'E42. **Laissés volontairement** : ils sont purement
-     INFORMATIFS — rien ne se perd si l'un ne s'affiche pas, contrairement à une
-     confirmation, qui laisse un geste sans réponse. C'est la seule raison pour
-     laquelle ils ne sont pas dans le lot corrigé.
-     ⚠️ Ils sont la dernière entrée de `CHANTIER_DIALOGUES_EN_FEUILLE` dans
-     `lib/__tests__/feuillesEmpilees.test.ts` — la liste **ne peut que rétrécir**,
-     donc ce point-ci se referme en la vidant.
+     iPhone, comme les cinq d'E42. **Laissés volontairement** à l'époque : purement
+     INFORMATIFS, rien ne se perd si l'un ne s'affiche pas — contrairement à une
+     confirmation, qui laisse un geste sans réponse. ✅ Devenus des `MessageEnLigne`,
+     et `CHANTIER_DIALOGUES_EN_FEUILLE` est **vide**.
 
 - 🤖 **E42 · Revue page par page du Plan et des Courses — et CINQ gestes morts en natif (2026-08-14)**
 
