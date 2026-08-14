@@ -58,9 +58,11 @@ export function ShoppingHistory({
     <View style={s.wrap}>
       <View {...(dragHandlers ?? {})}>
         <Text style={s.title}>Mes courses passées</Text>
-        <Text style={s.sub}>
-          Chaque liste terminée s'archive ici. Pratique pour retrouver ce que tu avais pris la dernière fois.
-        </Text>
+        {/* ⚠️ UNE SEULE PHRASE depuis le 2026-08-14 (décision fondateur). La
+            seconde — « Pratique pour retrouver ce que tu avais pris la dernière
+            fois » — expliquait à quoi sert un écran qui s'explique tout seul :
+            son titre le dit, et les cartes datées en dessous le montrent. */}
+        <Text style={s.sub}>Chaque liste terminée s'archive ici.</Text>
       </View>
 
       {liste.length === 0 ? (
@@ -130,10 +132,16 @@ export function ShoppingHistory({
         </ScrollView>
       )}
 
-      <Text style={s.pied}>
-        Gardé sur ton téléphone uniquement, jamais envoyé — comme tes photos de progression. Les listes de
-        plus de six mois s'effacent toutes seules.
-      </Text>
+      {/* ⚠️ LE PIED DE PAGE A ÉTÉ RETIRÉ le 2026-08-14 (décision fondateur). Il
+          disait deux choses vraies — l'historique reste sur l'appareil, et les
+          listes de plus de six mois s'effacent seules — mais aucune n'est
+          OBLIGATOIRE ici : le local-only est déclaré dans la politique de
+          confidentialité (`constants/legal.ts` §, et son miroir `public/legal.html`),
+          qui est la surface que la conformité regarde. Ce n'est pas l'avertissement
+          médical de CLAUDE.md §6, qui, lui, ne se retire d'aucun écran.
+          🔴 Le comportement, lui, N'A PAS CHANGÉ : la purge à six mois vit dans
+          `lib/shoppingHistory.ts` et continue de tourner. Ne pas en déduire, en
+          relisant cet écran, qu'elle a disparu avec sa phrase. */}
     </View>
   );
 }
@@ -180,6 +188,5 @@ function makeStyles(t: ThemePalette) {
     videCard: { borderWidth: Trait.fin, borderColor: t.line, borderRadius: Radius.card, padding: Spacing.xl, gap: Spacing.sm },
     videTitre: { ...Type.label, color: t.text },
     videTexte: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 20 },
-    pied: { ...Type.caption, color: t.textQuaternary, lineHeight: 17 },
   });
 }
