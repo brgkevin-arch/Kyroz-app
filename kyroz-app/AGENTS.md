@@ -3756,6 +3756,36 @@ produit en suspens — il ne reste qu'à coder.
 > branches insèrent en tête de cette section, donc git ne sait pas dans quel ordre. La
 > résolution est de garder les DEUX blocs, en ordre décroissant — jamais d'en choisir un.
 
+- 🤖 **E43 · Trois finitions vues au simulateur, non corrigées (2026-08-14)**
+
+  Sorties de la fiche E42 pour qu'elles ne se perdent pas dans sa prose : ce sont
+  des chantiers OUVERTS, chacun vu de mes yeux sur le build natif, aucun signalé
+  par le fondateur. Ils ne bloquent rien — c'est pour ça qu'ils n'ont pas été
+  faits dans la foulée, et c'est aussi pour ça qu'ils s'oublient.
+
+  1. **La feuille de la roulette de date est DÉCALÉE À GAUCHE.** Le titre « Ta date
+     de naissance » et le bouton « Valider » touchent le bord gauche, alors qu'il
+     reste ~25 pt de marge à droite. ⚠️ **Ce n'est pas `Sheet`** : la fiche recette,
+     servie par la même feuille, est correctement margée sur la même capture. C'est
+     donc `components/BirthDatePicker.tsx` (ou son enveloppe) qu'il faut regarder.
+     ➡️ Invisible au navigateur — vu au simulateur, sur capture.
+
+  2. **« Point du aujourd'hui mis à jour ».** Le message de confirmation après une
+     pesée colle un article devant une date variable. Même faute que celle déjà
+     corrigée dans `OffPlanHistory` (« du ${date} » donnait « du Aujourd'hui »), où
+     la solution retenue avait été un **tiret** plutôt qu'un accord impossible.
+     ➡️ `components/WeightCheckin.tsx`, autour de `setSaved`.
+
+  3. **Les deux `notify` de la feuille Réglages restent des modales dans une
+     modale** (« aucune application e-mail », « rappel refusé »). Donc morts sur
+     iPhone, comme les cinq d'E42. **Laissés volontairement** : ils sont purement
+     INFORMATIFS — rien ne se perd si l'un ne s'affiche pas, contrairement à une
+     confirmation, qui laisse un geste sans réponse. C'est la seule raison pour
+     laquelle ils ne sont pas dans le lot corrigé.
+     ⚠️ Ils sont la dernière entrée de `CHANTIER_DIALOGUES_EN_FEUILLE` dans
+     `lib/__tests__/feuillesEmpilees.test.ts` — la liste **ne peut que rétrécir**,
+     donc ce point-ci se referme en la vidant.
+
 - 🤖 **E42 · Revue page par page du Plan et des Courses — et CINQ gestes morts en natif (2026-08-14)**
 
   Suite d'E41, même méthode : le fondateur dicte écran par écran sur captures.
@@ -3870,15 +3900,9 @@ produit en suspens — il ne reste qu'à coder.
   E41) : elle défile, s'aimante sur la ligne de sélection, et « Valider » écrit la
   date. Le geste vit.
 
-  ⏭ **CE QUI RESTE, vu en passant et non corrigé :**
-  - la feuille de la roulette (`BirthDatePicker`) est **décalée à gauche** : titre
-    et bouton touchent le bord alors qu'il reste ~25 pt à droite. La fiche recette,
-    elle, est correctement margée — c'est donc ce composant, pas `Sheet` ;
-  - le message après une pesée dit « Point **du** aujourd'hui mis à jour » ;
-  - les deux `notify` de la feuille Réglages (« aucune application e-mail »,
-    « rappel refusé ») restent des modales dans une modale. Purement informatifs :
-    rien ne se perd si l'un ne s'affiche pas, contrairement à une confirmation qui
-    laisse un geste sans réponse.
+  ⏭ **CE QUI RESTE, vu en passant et non corrigé → fiche E43.** Trois finitions
+  repérées sur le build natif ; elles vivent dans leur propre entrée pour ne pas se
+  perdre en fin de fiche.
 
 - 🤖 **E41 · Revue page par page de l'onboarding, du reveal et du tuto (2026-08-12)**
 
