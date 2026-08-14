@@ -237,6 +237,18 @@ export default function ProfilScreen() {
   const [confirmDelete, setConfirmDelete] = useState(false);
   // Ce qu'il faudra ouvrir UNE FOIS la feuille Réglages démontée (cf. son `onClosed`).
   const [apresReglages, setApresReglages] = useState<'supprimer' | null>(null);
+  // 🔴 MÊME MÉCANIQUE POUR L'ÉDITEUR, et elle manquait — « Me peser » était MORT sur
+  // iPhone. Mesuré au simulateur le 2026-08-14 : deux captures à cinq secondes
+  // d'intervalle, IDENTIQUES AU BIT PRÈS, l'éditeur refermé et aucune feuille de
+  // pesée. Le geste ne rendait rien depuis le jour où le poids a quitté cet
+  // éditeur pour y être RENVOYÉ.
+  // ⚠️ Le commentaire de l'appelant disait pourtant « on ferme l'éditeur AVANT
+  // d'ouvrir la pesée » — et c'était sincère : les deux `set` étaient bien écrits
+  // dans cet ordre. Mais ils partent dans le MÊME lot d'état, et `Sheet` garde sa
+  // `Modal` montée le temps de son animation de sortie : au moment où iOS reçoit
+  // la seconde, la première est encore présentée. **Écrire les setters dans le bon
+  // ordre ne ferme pas cette porte** — seul le démontage réel la ferme.
+  const [apresEditeur, setApresEditeur] = useState<'peser' | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [reglages, setReglages] = useState(false);
 
@@ -690,11 +702,19 @@ export default function ProfilScreen() {
       </Sheet>
 
       {/* Feuilles d'édition */}
-      <Sheet visible={editor !== null} onClose={() => setEditor(null)}>
+      <Sheet
+        visible={editor !== null}
+        onClose={() => setEditor(null)}
+        onClosed={() => { if (apresEditeur === 'peser') setWeighIn(true); setApresEditeur(null); }}
+      >
         {/* `onWeighIn` : le poids ne se saisit plus dans cet éditeur, il s'y RENVOIE.
-            On ferme l'éditeur AVANT d'ouvrir la pesée — une feuille poussée depuis
-            une feuille ouverte naîtrait sous elle (même piège que les routes, E25). */}
-        {editor === 'info' && <InfoEditor t={t} profile={profile} onSave={save} onWeighIn={() => { setEditor(null); setWeighIn(true); }} />}
+            🔴 ET LA PESÉE N'EST DEMANDÉE QU'UNE FOIS L'ÉDITEUR DÉMONTÉ (`onClosed`).
+            La version d'avant faisait `setEditor(null); setWeighIn(true);` — deux
+            setters dans le bon ordre, mais un seul lot d'état : iOS voyait la
+            seconde `Modal` arriver pendant que la première jouait sa sortie, et
+            n'en présentait AUCUNE. Bouton mort, sans erreur ni trace, invisible au
+            navigateur. Même correctif que « Supprimer mon compte » juste au-dessus. */}
+        {editor === 'info' && <InfoEditor t={t} profile={profile} onSave={save} onWeighIn={() => { setApresEditeur('peser'); setEditor(null); }} />}
         {editor === 'sports' && <SportsProfileEditor t={t} profile={profile} onSave={save} />}
         {editor === 'goal' && <GoalEditor t={t} profile={profile} onSave={save} />}
         {editor === 'dated_goal' && <DatedGoalEditor t={t} profile={profile} onSave={save} />}

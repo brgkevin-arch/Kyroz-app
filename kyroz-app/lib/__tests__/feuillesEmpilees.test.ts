@@ -79,21 +79,22 @@ describe('Aucune feuille ne s’ouvre par-dessus une feuille ouverte', () => {
 // « Retirer de l'historique ».
 //
 // 🔴 CETTE LISTE NE PEUT QUE RÉTRÉCIR. Ce n'est pas une liste d'exceptions
-// tolérées — c'est un CHANTIER, mesuré le 2026-08-14, écrit ici pour qu'il ne se
-// perde pas dans une note. Chacun de ces trois appels est mort sur iPhone
-// aujourd'hui. Les corriger demande une vérification AU SIMULATEUR (le web ne
-// montre pas ce défaut, il empile sans se plaindre), donc ils attendent un build.
+// tolérées — c'était un CHANTIER, mesuré le 2026-08-14, écrit ici pour qu'il ne
+// se perde pas dans une note. Les quatre appels qu'elle portait étaient morts sur
+// iPhone, et le web ne pouvait pas le montrer.
 // ➡️ Ne JAMAIS ajouter un nom ici pour faire passer le test.
-const CHANTIER_DIALOGUES_EN_FEUILLE = [
-  // ⚠️ IL N'EN RESTE QU'UN, et c'est le moins grave : deux `notify` PUREMENT
-  // INFORMATIFS (« aucune application e-mail », « rappel refusé »). Rien ne se
-  // perd si l'un ne s'affiche pas — contrairement à une confirmation, qui laisse
-  // un geste sans réponse. Les trois autres sont corrigés depuis le 2026-08-14 :
-  // ShoppingHistory, OffPlanHistory et WeightCheckin posent leur question DANS
-  // la feuille (`ConfirmationEnLigne`), et « Supprimer mon compte » attend que
-  // la feuille Réglages soit DÉMONTÉE (`Sheet.onClosed`).
-  'ReglagesSheet',
-];
+//
+// ✅ **VIDE DEPUIS LE 2026-08-14** — plus aucun composant de feuille n'ouvre de
+// boîte de dialogue. Dans l'ordre où ils sont tombés : ShoppingHistory,
+// OffPlanHistory et WeightCheckin posent leur question DANS la feuille
+// (`ConfirmationEnLigne`) ; « Supprimer mon compte » attend que la feuille
+// Réglages soit DÉMONTÉE (`Sheet.onClosed`) ; et les deux derniers `notify` de
+// `ReglagesSheet` — purement informatifs, donc gardés pour la fin — sont devenus
+// des `MessageEnLigne` posés sous le réglage qui vient d'échouer.
+// ⚠️ Un tableau vide rend ce test STRICT : le prochain `useDialog()` écrit dans un
+// composant de feuille rougit le jour même. C'est le but, et c'est le seul état
+// dans lequel cette liste ne se relit pas comme une permission.
+const CHANTIER_DIALOGUES_EN_FEUILLE: string[] = [];
 
 /**
  * ⚠️ LES COMMENTAIRES SONT ÉCARTÉS AVANT TOUTE RECHERCHE. Première version sans
@@ -120,15 +121,16 @@ function fichiersSource(dir: string, acc: string[] = []): string[] {
   return acc;
 }
 
-describe('Aucune boîte de dialogue ne s’ouvre depuis une feuille', () => {
-  const RACINE_APP = join(__dirname, '..', '..');
-  const FICHIERS = ['app', 'components']
-    .flatMap((d) => fichiersSource(join(RACINE_APP, d)))
-    .map((f) => {
-      const src = readFileSync(f, 'utf8');
-      return { nom: f.slice(RACINE_APP.length + 1), src, code: sansCommentaires(src) };
-    });
+const RACINE_APP = join(__dirname, '..', '..');
+/** Tout `app/` + `components/`, source brute ET source privée de commentaires. */
+const FICHIERS = ['app', 'components']
+  .flatMap((d) => fichiersSource(join(RACINE_APP, d)))
+  .map((f) => {
+    const src = readFileSync(f, 'utf8');
+    return { nom: f.slice(RACINE_APP.length + 1), src, code: sansCommentaires(src) };
+  });
 
+describe('Aucune boîte de dialogue ne s’ouvre depuis une feuille', () => {
   /** Les composants rendus À L'INTÉRIEUR d'un `<Sheet>` ou d'un `<ActionSheet>`. */
   const dansUneFeuille = new Set<string>();
   for (const { code } of FICHIERS) {
@@ -154,21 +156,45 @@ describe('Aucune boîte de dialogue ne s’ouvre depuis une feuille', () => {
     expect(fautifs, 'ces composants vivent dans une feuille ET ouvrent une modale').toEqual([]);
   });
 
-  it('le chantier ne GRANDIT pas — trois des quatre en sont sortis', () => {
-    expect(CHANTIER_DIALOGUES_EN_FEUILLE.length).toBeLessThanOrEqual(1);
-    for (const c of ['ShoppingHistory', 'OffPlanHistory', 'WeightCheckin']) {
-      expect(CHANTIER_DIALOGUES_EN_FEUILLE).not.toContain(c);
-    }
+  it('le chantier est CLOS — les quatre en sont sortis', () => {
+    expect(CHANTIER_DIALOGUES_EN_FEUILLE).toEqual([]);
     // Corrigé le 2026-08-14 : la question se pose désormais DANS la feuille.
     const histo = FICHIERS.find((f) => f.nom.endsWith('ShoppingHistory.tsx'))!;
     expect(histo.code).not.toMatch(/\buseDialog\(/);
     expect(histo.code).toContain('aConfirmer');
+    // Et le dernier tombé : deux `notify` purement informatifs, devenus des
+    // messages posés sous le réglage qui vient d'échouer.
+    const reglages = FICHIERS.find((f) => f.nom.endsWith('ReglagesSheet.tsx'))!;
+    expect(reglages.code).not.toMatch(/\buseDialog\(/);
+    expect(reglages.code).toContain('MessageEnLigne');
+  });
+
+  it('le message en ligne se FERME — sinon il devient un morceau d’écran', () => {
+    // Un `notify` a son bouton « OK ». Posé en ligne, un message sans sortie
+    // resterait pour toujours, et le réglage d'à côté se lirait comme s'il était
+    // en défaut. La fermeture n'est donc pas une option du composant.
+    const src = readFileSync(join(RACINE_APP, 'components', 'MessageEnLigne.tsx'), 'utf8');
+    expect(src, 'onFermer est devenu optionnel').toMatch(/onFermer:\s*\(\)\s*=>\s*void;/);
+    expect(sansCommentaires(src)).toContain('onPress={onFermer}');
+    // Et chaque appelant en fournit une : un `<MessageEnLigne` sans `onFermer`
+    // ne compile pas, mais un `onFermer={() => {}}` compilerait très bien.
+    for (const { nom, code } of FICHIERS) {
+      for (const m of code.matchAll(/<MessageEnLigne[\s\S]{0,400}?\/>/g)) {
+        expect(m[0], `${nom} : fermeture inerte`).not.toMatch(/onFermer=\{\(\)\s*=>\s*\{\s*\}\}/);
+        expect(m[0], `${nom} : pas de fermeture`).toMatch(/onFermer=\{/);
+      }
+    }
   });
 });
 
 describe('Enchaîner une feuille et une modale passe par onClosed', () => {
   const RACINE2 = join(__dirname, '..', '..');
-  const l = (...p: string[]) => readFileSync(join(RACINE2, ...p), 'utf8');
+  // ⚠️ COMMENTAIRES ÉCARTÉS, et ce n'est pas de la précaution : la note qui
+  // explique le correctif de « Me peser » CITE la ligne fautive mot pour mot, donc
+  // la première version de ce cas s'est accusée elle-même. Troisième fois que
+  // cette sonde-là se fait piéger par sa propre documentation (compteur d'émojis,
+  // puis `ShoppingHistory`) — la règle est : on lit du CODE, jamais de la prose.
+  const l = (...p: string[]) => sansCommentaires(readFileSync(join(RACINE2, ...p), 'utf8'));
 
   it('« Supprimer mon compte » n’ouvre pas sa confirmation dans le même lot d’état', () => {
     // 🔴 Le défaut, VU au simulateur le 2026-08-14 : `setReglages(false)` et
@@ -178,6 +204,59 @@ describe('Enchaîner une feuille et une modale passe par onClosed', () => {
     const src = l('app', '(tabs)', 'profil.tsx');
     expect(src).not.toMatch(/setReglages\(false\);\s*setConfirmDelete\(true\)/);
     expect(src).toMatch(/onClosed=\{[^}]*setConfirmDelete\(true\)/);
+  });
+
+  it('« Me peser » attend le démontage de l’éditeur, lui aussi', () => {
+    // 🔴 SEPTIÈME GESTE MORT, trouvé le 2026-08-14 en VÉRIFIANT les trois autres
+    // correctifs au simulateur. `onWeighIn` faisait `setEditor(null);
+    // setWeighIn(true);` — et son commentaire affirmait « on ferme l'éditeur AVANT
+    // d'ouvrir la pesée ». Les setters étaient bien dans cet ordre ; ils partaient
+    // dans le même LOT. Preuve : deux captures à cinq secondes d'intervalle,
+    // identiques au bit près, aucune feuille ouverte.
+    const src = l('app', '(tabs)', 'profil.tsx');
+    expect(src).not.toMatch(/setEditor\(null\);\s*setWeighIn\(true\)/);
+    expect(src).toMatch(/onClosed=\{[^}]*setWeighIn\(true\)/);
+  });
+
+  it('🔴 aucune feuille ne s’en ouvre une autre dans le même lot d’état', () => {
+    // Le compteur, plutôt qu'un cas par cas : les deux occurrences connues ont été
+    // écrites à des semaines d'écart, dans le même fichier, par le même
+    // raisonnement — « je ferme, puis j'ouvre ». La troisième s'écrira pareil.
+    //
+    // Règle : dans un même corps de fonction, FERMER un état de feuille
+    // (`false`/`null`) puis en toucher un autre avec une valeur ouvrante. Les
+    // fermetures en série sont légitimes et ne sont pas comptées — `plan.tsx`
+    // remet trois états à `null` pour refermer sa feuille unique.
+    const fautifs: string[] = [];
+    for (const { nom, src } of FICHIERS) {
+      const code = sansCommentaires(src);
+      const etats = new Set(
+        [...code.matchAll(/<(?:Sheet|ActionSheet)\b[\s\S]{0,200}?visible=\{([^}]*)\}/g)]
+          .flatMap((m) => [...m[1].matchAll(/[a-z][A-Za-z0-9]*/g)].map((x) => x[0])),
+      );
+      const setter = (n: string) => `set${n[0].toUpperCase()}${n.slice(1)}`;
+      const ouvrants = new Set([...etats].map(setter));
+      for (const m of code.matchAll(/\b(set[A-Z][A-Za-z0-9]*)\(\s*(?:false|null)\s*\)\s*;\s*(set[A-Z][A-Za-z0-9]*)\(\s*([^)]*)\)/g)) {
+        const [, ferme, ouvre, arg] = m;
+        if (!ouvrants.has(ferme) || !ouvrants.has(ouvre) || ferme === ouvre) continue;
+        if (/^\s*(?:false|null)\s*$/.test(arg)) continue;      // deux fermetures : légitime
+        fautifs.push(`${nom} — ${ferme}(…) puis ${ouvre}(${arg.trim()}) : passer par \`onClosed\``);
+      }
+    }
+    expect(fautifs, fautifs.join('\n')).toEqual([]);
+  });
+
+  it('sait dire NON : la version d’avant correctif est bien vue comme fautive', () => {
+    // Un compteur qu'on n'a jamais vu rougir ne prouve rien — et celui-ci a deux
+    // clauses d'exemption (fermetures en série, état hors feuille) dont chacune
+    // pourrait le rendre aveugle sans qu'on s'en aperçoive.
+    const ETAT = /<(?:Sheet|ActionSheet)\b[\s\S]{0,200}?visible=\{([^}]*)\}/;
+    const CHAINE = /\b(set[A-Z][A-Za-z0-9]*)\(\s*(?:false|null)\s*\)\s*;\s*(set[A-Z][A-Za-z0-9]*)\(\s*([^)]*)\)/;
+    expect(ETAT.test('<Sheet visible={weighIn} onClose={…}>')).toBe(true);
+    const avant = 'onWeighIn={() => { setEditor(null); setWeighIn(true); }}';
+    expect(CHAINE.test(avant)).toBe(true);
+    // …et la fermeture en série reste blanchie par la clause, pas par hasard.
+    expect(CHAINE.exec('setSelectedMeal(null); setDislikeElicit(null)')![3].trim()).toBe('null');
   });
 
   it('`Sheet` prévient APRÈS l’animation, et seulement s’il reste fermé', () => {
