@@ -167,7 +167,14 @@ export function WeightCheckin({ t, onClose, dragHandlers, sheetScrollProps }: Pr
     await logWeight(wN, note, date);
     if (pendingPhoto) await setPhoto(date, pendingPhoto);
 
-    const label = date === todayStamp() ? "aujourd'hui" : frDate(date);
+    // ⚠️ AUCUN ARTICLE DEVANT CETTE ÉTIQUETTE — la phrase disait « Point du
+    // ${label} mis à jour », ce qui donnait « Point du aujourd'hui mis à jour ».
+    // Même faute que celle déjà corrigée dans `OffPlanHistory`, et même remède :
+    // un TIRET plutôt qu'un accord impossible. « du 5 août » et « d'aujourd'hui »
+    // ne prennent pas le même article, donc aucune formulation collée ne peut
+    // être juste pour les deux valeurs. La date se met devant, elle garde sa
+    // majuscule, et la phrase la suit.
+    const label = date === todayStamp() ? "Aujourd'hui" : frDate(date);
     setSaved({ updated, label, delta, date });
     setVal('');
     setNote('');
@@ -278,7 +285,7 @@ export function WeightCheckin({ t, onClose, dragHandlers, sheetScrollProps }: Pr
         {saved && (
           <View style={s.confirm}>
             <Text style={s.confirmTitle}>
-              {`✓ Point du ${saved.label} ${saved.updated ? 'mis à jour' : 'enregistré'}`}
+              {`✓ ${saved.label} — point ${saved.updated ? 'mis à jour' : 'enregistré'}`}
               {saved.delta != null ? `  ·  ${saved.delta > 0 ? '+' : ''}${saved.delta} kg` : ''}
             </Text>
             <Text style={s.confirmSub}>{planStatusMsg(saved.date)}</Text>

@@ -1,4 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
+import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { join } from 'node:path';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   ShoppingTrip, SHOPPING_HISTORY_KEY, MAX_AGE_DAYS, MAX_TRIPS,
@@ -184,5 +186,44 @@ describe('Date lisible', () => {
 
   it('le passage de mois se calcule en calendrier, pas en soustraction de jours', () => {
     expect(frDateLongue('2026-07-31', '2026-08-01')).toBe('Hier');
+  });
+
+  // 🔴 AUCUN ARTICLE COLLÉ DEVANT UNE DATE VARIABLE. Le défaut a été livré DEUX
+  // fois : « Retirer la ligne du ${date} » (OffPlanHistory) donnait « du
+  // Aujourd'hui », et « Point du ${label} mis à jour » (WeightCheckin, corrigé le
+  // 2026-08-14) donnait « Point du aujourd'hui mis à jour ». La cause est
+  // structurelle, pas une inattention : « du 5 août » et « d'aujourd'hui » ne
+  // prennent pas le même article, donc AUCUNE phrase collée ne peut être juste
+  // pour les deux valeurs que rend `frDateLongue`. Le remède retenu les deux fois
+  // est le TIRET.
+  //
+  // ⚠️ CE QUE CE CAS NE COUVRE PAS, et il faut le savoir pour ne pas s'y fier : il
+  // lit le source, donc il ne voit que l'article ACCOLÉ à l'interpolation. Une
+  // phrase construite en deux temps (l'article ici, la date trois fonctions plus
+  // loin) lui échappe. Il ferme le chemin par lequel la faute est arrivée deux
+  // fois — pas la faute elle-même.
+  // ℹ️ Le `frDate` COURT de `WeightCheckin` (« 5 août ») est hors périmètre à
+  // dessein : il ne rend jamais « Aujourd'hui », donc son « Ton poids le … » est
+  // juste. Ce sont les formateurs qui NOMMENT le jour qui interdisent l'article.
+  it('aucune phrase ne colle un article devant une date nommée', () => {
+    const ARTICLE_COLLE = /\b(?:du|de|le|au|ce)\s+\$\{[^}]*(?:frDateLongue|\.label)/;
+    const fautifs: string[] = [];
+    const racine = join(__dirname, '..', '..');
+    const parcourir = (dir: string) => {
+      for (const e of readdirSync(dir)) {
+        if (e === 'node_modules' || e === '__tests__') continue;
+        const p = join(dir, e);
+        if (statSync(p).isDirectory()) { parcourir(p); continue; }
+        if (!/\.tsx?$/.test(e)) continue;
+        const src = readFileSync(p, 'utf8');
+        src.split('\n').forEach((l, i) => {
+          if (ARTICLE_COLLE.test(l)) fautifs.push(`${p.slice(racine.length + 1)}:${i + 1} — ${l.trim()}`);
+        });
+      }
+    };
+    for (const d of ['app', 'components']) parcourir(join(racine, d));
+    expect(fautifs, fautifs.join('\n')).toEqual([]);
+    // Sait dire NON : la phrase d'avant correctif est bien vue comme fautive.
+    expect(ARTICLE_COLLE.test('`✓ Point du ${saved.label} mis à jour`')).toBe(true);
   });
 });
