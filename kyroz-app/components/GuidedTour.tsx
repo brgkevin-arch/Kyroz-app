@@ -366,18 +366,29 @@ function Spotlight({
       <View style={[s.dim, { top: cy, left: 0, width: cx, height: ch }]} />
       <View style={[s.dim, { top: cy, left: cx + cw, right: 0, height: ch }]} />
 
-      {/* Anneau de surbrillance autour de la cible. */}
+      {/* Anneau de surbrillance autour de la cible.
+          🔴 LE RAYON N'EST PAS CELUI DE LA CIBLE, C'EST LE SIEN — corrigé le
+          2026-08-12 (décision fondateur : « l'encadrement doit être de la même
+          forme que le cercle »). L'anneau est plus GRAND que ce qu'il entoure
+          (`PAD` tout autour) : lui donner le rayon de la cible à l'identique
+          dessine un coin plus carré, et le décalage se voit d'autant plus que
+          l'objet est petit. Pour garder la MÊME forme, le rayon suit la taille —
+          d'où `+ PAD`. Une pastille ronde reste ronde, une carte reste une carte. */}
       <View
         style={{
           position: 'absolute', top: cy, left: cx, width: cw, height: ch,
-          borderRadius: Radius.card, borderWidth: Trait.controle, borderColor: t.accent,
+          borderRadius: (step.rayon ?? Radius.card) + PAD,
+          borderWidth: Trait.controle, borderColor: t.accent,
           pointerEvents: 'none',
         }}
       />
 
       {/* Bulle d'explication. */}
       <View style={[s.bubble, { width: bubbleW, left: bubbleLeft }, bubblePos]}>
-        <Text style={s.counter}>{index + 1} / {total}</Text>
+        {/* Un « 1 / 1 » ne compte rien : il annonce une progression là où il n'y a
+            pas de parcours. Le compteur n'apparaît qu'à partir de deux étapes —
+            devenu visible quand le tour du Plan est passé à une seule bulle. */}
+        {total > 1 && <Text style={s.counter}>{index + 1} / {total}</Text>}
         <Text style={s.title}>{step.title}</Text>
         <Text style={s.text}>{step.text}</Text>
         {/* Trois zones : « Passer » à gauche (sortie), « Précédent » au milieu
