@@ -69,45 +69,76 @@ export interface PlanTourContext {
   moduleParVolume: boolean;
 }
 
-export function planTour(_ctx: PlanTourContext): TourStep[] {
+export function planTour({ days, moduleParVolume }: PlanTourContext): TourStep[] {
   return [
     {
-      // Prouvé par : plan.tsx:198 (`markActiveToday()` au montage, donc à la
-      // simple ouverture) et lib/streak.ts::advanceStreak — série préservée si
-      // UN seul jour a été manqué et que le bouclier est disponible, bouclier
-      // rechargé à chaque palier de FREEZE_RECHARGE = 7.
+      // Prouvé par : plan.tsx:198 — `markActiveToday()` part au MONTAGE, donc à
+      // la simple ouverture de l'onglet, cuisiné ou pas.
+      //
+      // ⚠️ LA DEUXIÈME PHRASE A ÉTÉ RETIRÉE LE 2026-08-12 (décision fondateur).
+      // Elle décrivait le bouclier : « si tu manques un jour, il est pardonné une
+      // fois, la protection revient tous les sept jours ». Ce n'était pas faux —
+      // `streak.ts::advanceStreak` le fait, et `FREEZE_RECHARGE` vaut bien 7 —
+      // c'était une RÈGLE DE JEU expliquée à quelqu'un qui vient d'ouvrir l'app
+      // pour la première fois. Le titre promet « sans pression » ; détailler un
+      // mécanisme de rattrapage à ce moment-là fait exactement l'inverse.
+      // ➡️ Ne pas la remettre en croyant compléter une bulle incomplète : ce qui
+      // reste est ce qu'il faut savoir, le reste s'apprend en s'en servant.
       targetId: 'plan-serie',
       title: 'Ta série, sans pression',
-      text: "Elle avance dès que tu ouvres ton plan, cuisiné ou pas. Et si tu manques un jour, il est pardonné une fois : la protection revient tous les sept jours de série.",
-      // Pas de `rayon` ici : le badge de série porte `Radius.card`
-      // (plan.tsx::streak), qui est justement le défaut appliqué par
-      // `GuidedTour`. ⚠️ Et il ne PEUT pas être écrit ici — ce fichier n'a aucun
-      // import par construction (c'est ce qui le rend testable), donc les tokens
-      // de thème lui sont inaccessibles. Une cible d'une autre forme déclarera un
-      // nombre, pas un token.
+      text: "Elle avance dès que tu ouvres ton plan, cuisiné ou pas.",
+    },
+    {
+      // Prouvé par : MacroBar.tsx (le ruban est un jeu de PROPORTIONS, toujours
+      // plein — ce qui se remplit est le chiffre de gauche, alimenté par
+      // `consumedDayKcal`) et lib/planEngine.ts::dayExpenditures pour la
+      // modulation. L'ancien texte disait « la barre se remplit » et envoyait
+      // l'œil au mauvais endroit.
+      targetId: 'plan-macros',
+      title: 'Tes cibles du jour',
+      text: moduleParVolume
+        ? "Le grand chiffre, c'est ce que tu as déjà mangé sur ta cible du jour affiché. Tes jours de repos en reçoivent un peu moins, tes jours d'entraînement un peu plus, et ta semaine garde son total."
+        : `Le grand chiffre, c'est ce que tu as déjà mangé sur ta cible du jour affiché. En dessous, la répartition entre protéines, glucides et lipides ${days > 1 ? 'de ce jour' : 'de ta journée'}.`,
+    },
+    {
+      // ⚠️ CORRIGÉ le 2026-08-07 — l'ancien texte promettait un recalage
+      // automatique. Prouvé par plan.tsx::logOffPlan : l'écart est enregistré
+      // SANS toucher au plan, puis `setAdaptPrompt` ouvre une feuille Oui/Non ;
+      // `declineAdapt` ne recale rien. Et « sans casser ton objectif » était
+      // contredit par l'écran lui-même, qui annonce quand aucune option ne
+      // rentre dans la cible.
+      targetId: 'plan-offplan',
+      title: 'Mangé hors plan ?',
+      text: "Déclare un écart ici. Kyroz le compte à part, puis te propose de réadapter les repas qui restent — c'est toi qui décides, et rien ne bouge si tu préfères garder ton plan.",
+    },
+    {
+      // Prouvé par : plan.tsx, le bouton pose `@kyroz:openEditor = 'macros'`
+      // puis pousse vers le Profil ; et plan.tsx::carryTracking conserve les
+      // repas déjà marqués quand un changement de réglage refait le plan.
+      targetId: 'plan-repartition',
+      title: 'Ta répartition',
+      text: "Ce raccourci ouvre « Calories & macros » dans ton profil, où tu peux passer en pourcentages perso. Ton plan se refait alors seul, sans effacer ce que tu as déjà marqué aujourd'hui.",
+    },
+    {
+      // Prouvé par : plan.tsx::cookMeal — `deductIngredients` retire du
+      // garde-manger, `setMealStatus('eaten')` déclenche `rebalanceDay`.
+      targetId: 'plan-cook',
+      title: 'Marque-le comme cuisiné',
+      text: "Quand tu as préparé un plat, tape « J'ai cuisiné » : les ingrédients se déduisent de ton frigo et les repas qui restent se recalent tout seuls.",
+    },
+    {
+      // Prouvé par : plan.tsx::dislikeMealCore (la recette entre dans
+      // `hidden_recipes`, réversible depuis Profil → Préférences alimentaires,
+      // et l'élicitation s'ouvre quand le vivier du repas passe sous le seuil de
+      // lib/dislike.ts) et lib/planEngine.ts::swapMeal (même cible macro, biais
+      // favoris). Deux icônes voisines qui répondent à la même question — les
+      // séparer en deux bulles coûterait une étape pour rien.
+      targetId: 'plan-actions',
+      title: 'Tu veux autre chose',
+      text: "Le pouce écarte ce plat de tes prochains plans, et ça se défait dans ton profil. La flèche, elle, ne change que ce repas-ci, au même budget, en piochant d'abord dans tes favoris.",
     },
   ];
 }
-
-// 🔴 CINQ ÉTAPES ONT ÉTÉ RETIRÉES ICI LE 2026-08-12 (décision fondateur : « le
-// reste est faux et pas nécessaire ») — cibles / macros, hors plan, répartition,
-// cuisiné, actions du repas. Trace gardée parce qu'un tour qui rétrécit se relit
-// comme un tour CASSÉ : `startTour` écarte en silence les étapes dont la cible
-// n'est pas montée, donc la prochaine session pourrait conclure à une régression
-// et « rétablir » ce qui a été retiré exprès.
-//
-// ⚠️ LEURS ANCRES RESTENT POSÉES dans les écrans (`useTourTarget('plan-macros')`
-// et les autres). C'est délibéré : elles ne coûtent qu'une entrée dans une table,
-// et les retirer rendrait le retour en arrière beaucoup plus cher qu'un ajout de
-// ligne ici. Aucun test ne s'en plaint — ils vérifient qu'une ÉTAPE vise une
-// cible réelle, jamais qu'une cible sert à une étape.
-//
-// 🔴 ET `moduleParVolume` NE DOIT PAS PARTIR AVEC ELLES. Le paramètre ne sert
-// plus à aucune bulle, d'où le `_ctx` — mais le prédicat, lui, est calculé dans
-// `plan.tsx` et sert AUSSI à la phrase « Jour de repos · un peu moins de calories
-// et de glucides » affichée à l'écran. Le supprimer en croyant nettoyer ferait
-// réapparaître le défaut du 2026-08-08 : une promesse calorique servie à qui n'a
-// déclaré aucun sport (CLAUDE.md §8).
 
 // ── Onglet Recettes ──────────────────────────────────────────────────────────
 
