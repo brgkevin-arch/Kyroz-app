@@ -7,6 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme, Radius, ThemePalette, Type, Spacing, CIBLE_TACTILE_MIN, Trait, Icone, OPACITE_PRESSION } from '../constants/theme';
 import { TourStep, TOURS, FormeCible } from '../lib/tours';
+import { Cadre, dejaVisible, memeCadre, ESSAIS_MESURE, PAS_MESURE_MS } from '../lib/visee';
 
 // ── Visite guidée (coachmark / spotlight) ────────────────────────────────────
 // Overlay sombre qui « découpe » un trou autour d'un élément cible et affiche
@@ -20,7 +21,7 @@ import { TourStep, TOURS, FormeCible } from '../lib/tours';
 
 export type { TourStep } from '../lib/tours';
 
-type Rect = { x: number; y: number; width: number; height: number };
+type Rect = Cadre;
 
 interface TourOptions {
   /** ScrollView de l'écran : permet de défiler jusqu'à une cible hors écran. */
@@ -198,14 +199,30 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
   const scrollRef = useRef<React.RefObject<any> | undefined>(undefined);
   const [active, setActive] = useState<ActiveTour | null>(null);
   const [rect, setRect] = useState<Rect | null>(null);
+  // 🔴 « JE CHERCHE ENCORE » ET « IL N'Y A RIEN À MONTRER » SONT DEUX ÉTATS, et
+  // les confondre laissait un écran NOIR SANS AUCUNE SORTIE (voir le rendu en
+  // bas de ce fichier).
+  const [sansCible, setSansCible] = useState(false);
+  const { height: hauteurEcran } = useWindowDimensions();
 
   const register = useCallback((id: string, ref: React.RefObject<Measurable | null> | null) => {
     if (ref) refs.current.set(id, ref);
     else refs.current.delete(id);
   }, []);
 
+  // 🔴 « ENREGISTRÉE » N'EST PAS « MONTÉE », et confondre les deux a produit
+  // les deux défauts signalés le 2026-08-15. `useTourTarget` appelle `register`
+  // depuis le CORPS du composant : l'id entre dans la table dès que le composant
+  // vit, que l'élément visé soit rendu ou non. `refs.current.has(id)` rendait
+  // donc `true` pour `plan-cook` alors que le bouton « J'ai cuisiné » n'existait
+  // pas — repas déjà mangé — et l'étape entrait dans le tour avec une ref vide.
+  // ➡️ La seule preuve qu'une cible est là, c'est `.current`.
+  const montee = useCallback((id: string) => !!refs.current.get(id)?.current, []);
+
   const startTour = useCallback((tourId: string, steps: TourStep[], opts?: TourOptions) => {
-    const avail = steps.filter((s) => refs.current.has(s.targetId));
+    const avail = steps.filter((s) => montee(s.targetId));
+    // ℹ️ Aucune cible montée = on ne lance RIEN, et surtout on ne marque pas le
+    // tour vu : il se rejouera de lui-même quand l'écran aura de quoi le porter.
     if (avail.length === 0) return;
     // ⚠️ Un tour AMPUTÉ est le défaut silencieux de ce filtre : une cible non
     // montée (parce qu'elle est conditionnelle, ou parce qu'un renommage l'a
@@ -215,7 +232,7 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
     // avertissement de développement plutôt qu'un blocage. Le garde-fou qui
     // compte vraiment est `lib/__tests__/visiteGuidee.test.ts`.
     if (__DEV__ && avail.length < steps.length) {
-      const manquants = steps.filter((s) => !refs.current.has(s.targetId)).map((s) => s.targetId);
+      const manquants = steps.filter((s) => !montee(s.targetId)).map((s) => s.targetId);
       console.warn(`[GuidedTour] tour « ${tourId} » amputé de ${manquants.length} étape(s) : ${manquants.join(', ')} — cible non montée.`);
     }
     scrollRef.current = opts?.scrollRef;
@@ -238,7 +255,7 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
     // tutos » du Profil) — là où une bulle qu'on ne peut pas faire taire n'a, elle,
     // aucun recours.
     markSeen(tourId);
-  }, []);
+  }, [montee]);
 
   // ℹ️ Ni `end` ni `next` ne marquent le tour : c'est `startTour` qui le fait, à
   // l'ouverture. Une seule source, et surtout la seule qui couvre les sorties que
@@ -296,28 +313,68 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
     done();
   };
 
-  // Mesure la cible de l'étape courante (scroll si besoin, puis quelques essais
-  // le temps que la mise en page se stabilise).
+  // ── Mesure de la cible de l'étape courante ─────────────────────────────────
+  // 🔴 TROIS DÉFAUTS CORRIGÉS ICI LE 2026-08-15, signalés sur capture par le
+  // fondateur (« bug sur le tuto, regarde les screens »). Aucun ne se voyait en
+  // relisant ce fichier : ils ne se manifestent que sur des états d'écran
+  // particuliers, et le rendu resté à l'écran était à chaque fois PLAUSIBLE.
+  //
+  // 1. **On ne défile que si la cible n'est pas déjà là.** Le code appelait
+  //    `scrollIntoView` à chaque étape, même pour un bouton sous les yeux — donc
+  //    260 ms d'attente pour zéro pixel de déplacement, pendant lesquelles
+  //    l'anneau de l'étape PRÉCÉDENTE restait sous le texte de la nouvelle.
+  // 2. **Une mesure ne se croit qu'une fois STABLE.** `scrollTo` est animé et
+  //    260 ms était un délai DEVINÉ : la lecture tombait en plein vol et
+  //    l'anneau se posait 72 pt sous sa cible (capture 2, étape 3/6).
+  // 3. **Une cible introuvable RETIRE l'anneau, elle ne garde pas le précédent.**
+  //    `rect` n'était jamais remis à zéro entre deux étapes : quand la mesure
+  //    échouait, la bulle « Marque-le comme cuisiné » s'affichait avec l'anneau
+  //    de « Ma répartition (%) » — le texte d'une étape désignant l'objet d'une
+  //    autre (capture 1, étape 5/6).
   useEffect(() => {
-    if (!active) { setRect(null); return; }
-    let cancelled = false;
-    let tries = 0;
-    const measure = () => {
-      const node = refs.current.get(active.steps[active.index].targetId)?.current;
-      if (!node) { retry(); return; }
-      node.measureInWindow((x, y, w, h) => {
-        if (cancelled) return;
-        if (w === 0 && h === 0) { retry(); return; }
-        setRect({ x, y, width: w, height: h });
+    if (!active) { setRect(null); setSansCible(false); return; }
+    let annule = false;
+    let essais = 0;
+    let precedent: Rect | null = null;
+
+    const noeud = () => refs.current.get(active.steps[active.index].targetId)?.current;
+
+    const poser = (c: Rect) => { if (annule) return; setRect(c); setSansCible(false); };
+    const renoncer = () => { if (annule) return; setRect(null); setSansCible(true); };
+
+    const reessayer = (suite: () => void) => {
+      essais += 1;
+      if (essais > ESSAIS_MESURE) { renoncer(); return; }
+      setTimeout(() => { if (!annule) suite(); }, PAS_MESURE_MS);
+    };
+
+    const lire = (suite: (c: Rect) => void) => {
+      const n = noeud();
+      if (!n) { reessayer(() => lire(suite)); return; }
+      n.measureInWindow((x, y, w, h) => {
+        if (annule) return;
+        if (w === 0 && h === 0) { reessayer(() => lire(suite)); return; }
+        suite({ x, y, width: w, height: h });
       });
     };
-    const retry = () => {
-      tries += 1;
-      if (tries <= 10) setTimeout(measure, 70);
-    };
-    const node = refs.current.get(active.steps[active.index].targetId)?.current;
-    scrollIntoView(node, () => { if (!cancelled) measure(); });
-    return () => { cancelled = true; };
+
+    // 2ᵉ temps, après un défilement : deux lectures identiques d'affilée valent
+    // « l'écran s'est arrêté ». Aucune durée n'est supposée.
+    const stabiliser = () => lire((c) => {
+      if (precedent && memeCadre(precedent, c)) { poser(c); return; }
+      precedent = c;
+      reessayer(stabiliser);
+    });
+
+    // 1er temps : la cible est-elle déjà sous les yeux ? Alors on ne bouge rien,
+    // et l'anneau se pose dans la foulée — pas d'attente, donc pas de fenêtre
+    // pendant laquelle l'anneau d'avant traîne.
+    lire((c) => {
+      if (dejaVisible(c, hauteurEcran)) { poser(c); return; }
+      scrollIntoView(noeud(), () => { if (!annule) stabiliser(); });
+    });
+
+    return () => { annule = true; };
   }, [active?.tourId, active?.index]);
 
   const step = active ? active.steps[active.index] : null;
@@ -326,9 +383,19 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
   return (
     <TourContext.Provider value={{ register, startTour }}>
       {children}
+      {/* 🔴 CE `?:` A ÉTÉ UN PIÈGE À UTILISATEUR, et c'est un correctif de
+          BLOCAGE, pas de finition. Le panneau sombre s'affichait dès qu'un tour
+          démarrait, la bulle seulement une fois la cible mesurée — donc une
+          cible introuvable donnait un écran assombri SANS bulle, SANS « Passer »,
+          et le panneau avale les taps, barre d'onglets comprise. Il n'existait
+          alors aucune sortie : il fallait tuer l'app. Et comme `startTour` marque
+          le tour vu à l'ouverture, ça n'arrivait qu'UNE fois — donc irreproductible.
+          ➡️ Trois états, plus deux : on cherche (sombre), on a trouvé (spotlight),
+          on renonce (la bulle SANS anneau, qui garde sa sortie). Un tutoriel qu'on
+          ne peut pas quitter est pire que pas de tutoriel. */}
       <Modal visible={!!active} transparent animationType="fade" onRequestClose={end}>
         {step && (
-          rect
+          rect || sansCible
             ? <Spotlight t={t} rect={rect} step={step} index={active!.index}
                 total={active!.steps.length} isLast={isLast} onNext={next} onPrev={prev} onSkip={end} />
             : <View style={[StyleSheet.absoluteFill, { backgroundColor: DIM }]} />
@@ -346,7 +413,8 @@ function Spotlight({
   t, rect, step, index, total, isLast, onNext, onPrev, onSkip,
 }: {
   t: ThemePalette;
-  rect: Rect;
+  /** `null` = la cible n'a pas pu être mesurée : la bulle s'affiche sans anneau. */
+  rect: Rect | null;
   step: TourStep;
   index: number;
   total: number;
@@ -359,6 +427,24 @@ function Spotlight({
   // écran, et sur iPad l'écran change de taille sans relancer l'app.
   const { width: SCREEN_W, height: SCREEN_H } = useWindowDimensions();
   const s = makeStyles(t);
+
+  const bulle = (
+    <Bulle s={s} step={step} index={index} total={total} isLast={isLast}
+      onNext={onNext} onPrev={onPrev} onSkip={onSkip} />
+  );
+
+  // Sans cadre : pas de trou, pas d'anneau — la bulle seule, au centre. Elle
+  // reste vraie (elle décrit l'écran, pas un objet précis) et surtout elle garde
+  // son « Passer ». Ne JAMAIS remplacer ça par un simple panneau sombre : c'est
+  // exactement le blocage corrigé le 2026-08-15.
+  if (!rect) {
+    const w = Math.min(SCREEN_W - 32, BUBBLE_MAX_W);
+    return (
+      <View style={[StyleSheet.absoluteFill, { backgroundColor: DIM, alignItems: 'center', justifyContent: 'center' }]}>
+        <View style={[s.bubble, { width: w, position: 'relative' }]}>{bulle}</View>
+      </View>
+    );
+  }
 
   // Trou (cible + marge), borné à l'écran.
   const cx = clamp(rect.x - PAD, 0, SCREEN_W);
@@ -432,38 +518,64 @@ function Spotlight({
       />
 
       {/* Bulle d'explication. */}
-      <View style={[s.bubble, { width: bubbleW, left: bubbleLeft }, bubblePos]}>
-        {/* Un « 1 / 1 » ne compte rien : il annonce une progression là où il n'y a
-            pas de parcours. Le compteur n'apparaît qu'à partir de deux étapes —
-            devenu visible quand le tour du Plan est passé à une seule bulle. */}
-        {total > 1 && <Text style={s.counter}>{index + 1} / {total}</Text>}
-        <Text style={s.title}>{step.title}</Text>
-        <Text style={s.text}>{step.text}</Text>
-        {/* Trois zones : « Passer » à gauche (sortie), « Précédent » au milieu
-            (retour), « Suivant » à droite (avancée). « Précédent » n'occupe la
-            place que s'il mène quelque part — un bouton inerte à la 1re étape se
-            lit comme une panne. */}
-        <View style={s.actions}>
-          <Pressable onPress={onSkip} hitSlop={8} accessibilityRole="button">
-            <Text style={s.skip}>{isLast ? '' : 'Passer'}</Text>
-          </Pressable>
-          <View style={s.rightActions}>
-            {index > 0 && (
-              <Pressable onPress={onPrev} hitSlop={8} accessibilityRole="button" style={s.prevBtn}>
-                <Text style={s.prev}>Précédent</Text>
-              </Pressable>
-            )}
-            <Pressable
-              onPress={onNext}
-              style={({ pressed }) => [s.nextBtn, pressed && { opacity: OPACITE_PRESSION }]}
-              accessibilityRole="button"
-            >
-              <Text style={s.nextTxt}>{isLast ? 'Terminer' : 'Suivant'}</Text>
+      <View style={[s.bubble, { width: bubbleW, left: bubbleLeft }, bubblePos]}>{bulle}</View>
+    </View>
+  );
+}
+
+/**
+ * Le CONTENU de la bulle, séparé de son placement.
+ * ⚠️ Séparé pour une raison de fond, pas de rangement : il est rendu à DEUX
+ * endroits — dans la bulle posée près de sa cible, et dans celle du repli sans
+ * cible. Deux copies auraient divergé, et la première à perdre son « Passer »
+ * aurait rendu le tour inquittable — le blocage même qu'on vient de corriger.
+ */
+function Bulle({
+  s, step, index, total, isLast, onNext, onPrev, onSkip,
+}: {
+  /** Les styles du parent — pas le thème : `makeStyles` construit une feuille
+   *  StyleSheet, et la rappeler ici la reconstruirait à chaque rendu de bulle. */
+  s: ReturnType<typeof makeStyles>;
+  step: TourStep;
+  index: number;
+  total: number;
+  isLast: boolean;
+  onNext: () => void;
+  onPrev: () => void;
+  onSkip: () => void;
+}) {
+  return (
+    <>
+      {/* Un « 1 / 1 » ne compte rien : il annonce une progression là où il n'y a
+          pas de parcours. Le compteur n'apparaît qu'à partir de deux étapes —
+          devenu visible quand le tour du Plan est passé à une seule bulle. */}
+      {total > 1 && <Text style={s.counter}>{index + 1} / {total}</Text>}
+      <Text style={s.title}>{step.title}</Text>
+      <Text style={s.text}>{step.text}</Text>
+      {/* Trois zones : « Passer » à gauche (sortie), « Précédent » au milieu
+          (retour), « Suivant » à droite (avancée). « Précédent » n'occupe la
+          place que s'il mène quelque part — un bouton inerte à la 1re étape se
+          lit comme une panne. */}
+      <View style={s.actions}>
+        <Pressable onPress={onSkip} hitSlop={8} accessibilityRole="button">
+          <Text style={s.skip}>{isLast ? '' : 'Passer'}</Text>
+        </Pressable>
+        <View style={s.rightActions}>
+          {index > 0 && (
+            <Pressable onPress={onPrev} hitSlop={8} accessibilityRole="button" style={s.prevBtn}>
+              <Text style={s.prev}>Précédent</Text>
             </Pressable>
-          </View>
+          )}
+          <Pressable
+            onPress={onNext}
+            style={({ pressed }) => [s.nextBtn, pressed && { opacity: OPACITE_PRESSION }]}
+            accessibilityRole="button"
+          >
+            <Text style={s.nextTxt}>{isLast ? 'Terminer' : 'Suivant'}</Text>
+          </Pressable>
         </View>
       </View>
-    </View>
+    </>
   );
 }
 

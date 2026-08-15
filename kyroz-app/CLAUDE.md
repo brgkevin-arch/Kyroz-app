@@ -1957,6 +1957,34 @@ comptée : `visiteGuidee.test.ts` (4 cas, 4 mutations).
 🔴 Rien de tout ceci ne se juge au navigateur : c'est de la géométrie sur fond
 sombre. Vérifié au simulateur.
 
+🔴 **L'ANNEAU NE DÉSIGNE JAMAIS L'OBJET D'UNE AUTRE BULLE** (2026-08-15, AGENTS.md
+E50, signalé sur captures). Trois invariants, chacun payé par un défaut :
+1. **« Enregistrée » n'est pas « montée ».** `useTourTarget` appelle `register`
+   depuis le CORPS du composant : l'id est dans la table dès que le composant vit,
+   même si l'élément visé n'est pas rendu. `refs.current.has(id)` laissait donc
+   entrer `plan-cook` alors que le bouton « J'ai cuisiné » n'existait pas — repas
+   déjà mangé. **La seule preuve qu'une cible est là, c'est `.current`.**
+   ⚠️ Corollaire côté écran : une cible posée sur le « premier élément d'une
+   liste » doit suivre le premier élément qui la PORTE, pas l'indice 0. Trois
+   familles sont dans ce cas (`plan-cook`/`plan-actions`, `courses-article`,
+   `recettes-carte`/`recettes-favori`).
+2. **Aucune durée devinée ne décide qu'un défilement est fini.** `scrollTo` est
+   animé ; mesurer 260 ms plus tard fait tomber la lecture EN PLEIN VOL, et
+   l'anneau se pose à côté. On attend que **deux lectures coïncident**
+   (`lib/visee.ts::memeCadre`), et on ne défile pas du tout quand la cible est
+   déjà visible (`dejaVisible`) — un défilement inutile coûtait 260 ms pendant
+   lesquelles l'anneau de l'étape d'avant restait affiché.
+3. 🔴 **UN TUTO SE QUITTE TOUJOURS.** Le voile sombre s'affichait dès l'ouverture,
+   la bulle seulement une fois la cible mesurée : une cible introuvable donnait un
+   écran assombri **sans bulle et sans « Passer »**, et le panneau avale les taps,
+   barre d'onglets comprise. Aucune sortie — il fallait tuer l'app. Et comme
+   `startTour` marque le tour vu à l'ouverture, **ça n'arrive qu'une fois**, donc
+   c'est irreproductible par construction. ➡️ Trois états et non deux : on cherche
+   (sombre), on a trouvé (spotlight), **on renonce (la bulle sans anneau)**. Ne
+   jamais rendre un état de ce moteur qui n'offre pas de sortie.
+➡️ Les décisions vivent dans **`lib/visee.ts`** (pur, testé) ; le moteur ne fait
+que les appeler. Garde-fous : `visee.test.ts` + `visiteGuidee.test.ts`.
+
 ⚠️ **Tout écran qui reçoit un tour reçoit sa porte de sortie.** « Passer » marque le tour
 vu **définitivement** ; le « ? » de rejeu n'existait que sur le Plan, donc passer le tour
 d'un autre onglet le perdait à vie. Composant `TourButton` sur les cinq en-têtes, plus
@@ -2571,10 +2599,18 @@ téléphone.
   (`gh api "…/actions/runs?head_sha=<sha>" --jq .total_count`) et lire
   **githubstatus.com**. Corollaire : republier pour « réveiller » le déploiement ne sert
   à rien et empile des runs qui échoueront ensemble.
-- 🔴 **UN BANDEAU DE 2,4 s NE SE CAPTURE PAS AVEC `xcrun simctl io screenshot`**
-  (2026-08-14). La capture met plus longtemps que le toast ne dure : il est déjà
-  parti à chaque prise, et l'écran rendu est parfaitement plausible. J'en ai conclu
-  qu'il ne s'affichait pas du tout, et j'ai failli l'écrire.
+- 🔴 **UN BANDEAU DE 2,4 s NE SE CAPTURE PAS À LA MAIN** (2026-08-14). Le temps de
+  lancer la prise, le toast est déjà parti, et l'écran rendu est parfaitement
+  plausible. J'en ai conclu qu'il ne s'affichait pas du tout, et j'ai failli l'écrire.
+  ⚠️ **LA CAUSE ÉCRITE ICI ÉTAIT FAUSSE, RE-MESURÉE LE 2026-08-15** : elle accusait
+  la lenteur de `xcrun simctl io screenshot`. **Cet outil est rapide** — 14 captures
+  d'affilée ont tenu dans **~3 secondes** sur la même machine, soit ~0,2 s pièce
+  (constaté en capturant un tutoriel qui changeait d'étape toutes les 6 s : les 14
+  captures sont tombées dans la MÊME étape, ce qui a d'abord fait croire à un tour
+  bloqué). Le délai est ailleurs — l'aller-retour de la session, pas la commande.
+  ➡️ Le conseil ci-dessous ne change pas d'un mot ; **l'outil, lui, est disculpé.**
+  Une note d'instrument nomme souvent le mauvais coupable : ce qui compte, c'est
+  qu'on ne peut pas viser un événement plus court que sa propre boucle de décision.
   ➡️ **L'absence sur une capture ne prouve rien quand ce qu'on cherche dure moins
   longtemps que la capture.** Sonder d'abord que le code s'exécute (`console.log`),
   puis ALLONGER la durée le temps de la mesure — c'est seulement là qu'un avant/après

@@ -3756,6 +3756,82 @@ produit en suspens — il ne reste qu'à coder.
 > branches insèrent en tête de cette section, donc git ne sait pas dans quel ordre. La
 > résolution est de garder les DEUX blocs, en ordre décroissant — jamais d'en choisir un.
 
+- 🤖 **E50 · Le tuto désignait l'objet d'une AUTRE bulle (2026-08-15)**
+
+  **Signalé par le fondateur, sur deux captures de l'onglet Plan** : *« bug sur le
+  tuto, regarde les screens. Vérifie toutes les pages des tutos et corrige ce qu'il
+  y a à corriger. »* Deux symptômes distincts, et un troisième trouvé en cherchant.
+
+  | capture | ce qu'on lit | ce que l'anneau entoure |
+  |---|---|---|
+  | 5/6 « Marque-le comme cuisiné » | tape « J'ai cuisiné » | **« Ma répartition (%) »** |
+  | 3/6 « Mangé hors plan ? » | déclare un écart ici | le bon bouton, **72 pt trop bas** |
+
+  🔴 **1. « ENREGISTRÉE » N'EST PAS « MONTÉE ».** `useTourTarget` appelle `register`
+  depuis le CORPS du composant : l'id entre dans la table dès que le composant vit,
+  que l'élément visé soit rendu ou non. `startTour` filtrait sur
+  `refs.current.has(id)` — donc `plan-cook` était « disponible » alors que le bouton
+  « J'ai cuisiné » n'existait pas (journée entièrement mangée, 2825/2843 sur la
+  capture). La mesure échouait après ses essais, et **`rect` n'était jamais remis à
+  zéro entre deux étapes** : l'anneau de l'étape précédente restait, sous le texte
+  de la nouvelle. Deux défauts qui se cachaient l'un l'autre, comme pour l'anneau
+  carré d'E42.
+  ➡️ La disponibilité se juge sur `.current`. Et **côté écran** : `plan-cook` était
+  accroché au repas d'INDICE 0, alors que `MealCard` ne rend ses boutons que sur un
+  repas encore à faire — la cible disparaissait dès le petit-déjeuner coché, même
+  quand le dîner juste en dessous les affichait toujours. Elle suit désormais
+  `premierCuisinable`.
+
+  🔴 **2. UN DÉLAI DEVINÉ DÉCIDAIT QU'UN DÉFILEMENT ÉTAIT FINI.** `scrollIntoView`
+  lançait un `scrollTo` **animé** puis mesurait 260 ms plus tard. Quand l'animation
+  dure plus longtemps, la lecture tombe **en plein vol** : bon élément, bonne
+  taille, mauvaise hauteur. ➡️ On n'invente plus de durée — deux lectures identiques
+  d'affilée valent « l'écran s'est arrêté » (`lib/visee.ts::memeCadre`). Et on ne
+  défile plus du tout quand la cible est déjà sous les yeux (`dejaVisible`), ce qui
+  supprime 260 ms d'attente par étape — la fenêtre pendant laquelle l'anneau d'avant
+  traînait.
+
+  🔴 **3. ET LE PIRE N'ÉTAIT SUR AUCUNE DES DEUX CAPTURES : UN TUTO QU'ON NE POUVAIT
+  PAS QUITTER.** Le rendu était `rect ? <Spotlight> : <voile sombre>`. Tant que la
+  cible n'était pas mesurée — et **à jamais** si elle ne l'était pas — l'utilisateur
+  voyait l'écran assombri **sans bulle, donc sans « Passer »**. Le panneau avale les
+  taps, barre d'onglets comprise (c'est voulu, et `startTour` compte dessus) : plus
+  aucune sortie, il faut tuer l'app. Et comme le tour est marqué vu à l'OUVERTURE,
+  **ça n'arrive qu'une fois** — donc c'est irreproductible par construction, la pire
+  forme de défaut. ➡️ Trois états au lieu de deux : on cherche (sombre), on a trouvé
+  (spotlight), on renonce (**la bulle sans anneau**, qui garde sa sortie).
+  ⚠️ Ce n'est PAS E45 — la luminance de la capture du fondateur l'avait déjà écarté,
+  et ce raisonnement reste juste. C'est un piège voisin, que personne n'avait signalé.
+
+  **Les cinq tours ont été revus, comme demandé.** Toutes les cibles sont montées sans
+  condition **sauf trois familles**, toutes « premier élément d'une liste » :
+  `plan-cook`/`plan-actions`, `courses-article`, `recettes-carte`/`recettes-favori`.
+  Elles ne laissent plus un anneau menteur — l'étape est écartée, et si plus AUCUNE
+  cible n'est montée le tour ne démarre pas du tout (donc il n'est pas marqué vu : il
+  se rejouera quand l'écran aura de quoi le porter).
+
+  ✅ **VÉRIFIÉ AU SIMULATEUR** (iPhone 17 / iOS 27), Metro servant ce worktree via
+  `EXPO_ROUTER_APP_ROOT` : les 6 étapes du Plan, chaque anneau sur sa cible ; puis le
+  cas EXACT du fondateur, reproduit en marquant les repas mangés dans AsyncStorage —
+  petit-déjeuner mangé → la cible suit jusqu'au déjeuner, l'écran défile, l'anneau est
+  juste ; journée entière mangée → le tour passe à **4/4** et se termine proprement.
+  ⚠️ **Les quatre autres tours n'ont PAS été rejoués à l'écran, et voici pourquoi** :
+  le MCP de pilotage du simulateur a crashé, AppleScript n'a pas le droit de cliquer
+  (erreur -25204), et le lien profond ouvre un dialogue système qu'on ne peut pas taper
+  non plus. Ils partagent le même moteur, et leurs cibles ont été relues une par une.
+  🔴 **Deux pièges d'instrument, chacun payé** : `xcrun simctl io screenshot` est
+  **rapide** ici — 14 captures d'affilée ont tenu dans 3 secondes, donc toutes dans la
+  même étape, et le tour a paru « bloqué au 2/6 ». *(La note « une capture met plus de
+  2,4 s » d'E44 portait sur un AUTRE outil : ne pas la généraliser.)* Et le test qui
+  découpe `startTour` se bornait sur `'\n  }, []);'`, c'est-à-dire sur la **liste de
+  dépendances** d'un `useCallback` — ajouter une dépendance l'aurait cassé **en
+  silence** (la recherche serait tombée sur le `useCallback` suivant). Troisième fois
+  que cette famille fige la FORME du code au lieu de son invariant.
+
+  ➡️ Décisions extraites en pur : **`lib/visee.ts`** (`dejaVisible`, `memeCadre`,
+  budget de recherche), testé par `visee.test.ts`. Câblage relu par
+  `visiteGuidee.test.ts`. **7 mutations, 7 rougissements.**
+
 - 🤖 **E49 · La feuille du suivi du poids : trois choses au lieu d'une (2026-08-14)**
 
   Le fondateur : *« j'aime les fonctionnalités, mais c'est pas ergonomique. »* Plutôt
@@ -3991,6 +4067,13 @@ produit en suspens — il ne reste qu'à coder.
   à 28 % de sa luminosité ; or le titre « Rien à acheter » y est blanc plein et le
   double-check vert vif, identiques à mes captures sans voile. ➡️ *Une capture n'est
   pas qu'une illustration : ses NIVEAUX sont une mesure.*
+  ✅ **Ce voile SANS SORTIE n'existe plus depuis le 2026-08-15 (E50)** — il rend
+  désormais sa bulle, donc son « Passer ». Ça ne rouvre PAS cette fiche et ça ne
+  disculpe rien de plus : le raisonnement par la luminance l'avait déjà écarté pour
+  CE signalement-ci, et il reste juste. Ce qui change, c'est qu'un piège capable de
+  produire exactement ce symptôme — écran figé, barre d'onglets morte, une seule
+  fois puis plus jamais parce que `startTour` marque le tour vu à l'ouverture — a
+  été fermé au passage, sans avoir jamais été signalé par personne.
 
   ⚠️ **AUCUN CORRECTIF LIVRÉ, ET C'EST DÉLIBÉRÉ.** Deux durcissements plausibles ont
   été écrits puis **écartés faute de preuve** :
