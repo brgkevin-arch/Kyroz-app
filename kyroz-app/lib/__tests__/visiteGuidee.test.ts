@@ -54,9 +54,9 @@ const SOURCES = FICHIERS.map((f) => f.src).join('\n');
  * Les identifiants de cible réellement POSÉS dans l'interface. Trois formes :
  *   useTourTarget('plan-serie')      — ref créée sur place
  *   tourId="plan-actions"            — passée à un composant en littéral JSX
- *   tourId={i === 0 ? 'plan-cook' : undefined}  — posée conditionnellement
- * La dernière est la plus courue (première carte d'une liste), et c'est celle
- * qu'une expression trop stricte raterait.
+ *   cookTourId={i === premierCuisinable ? 'plan-cook' : undefined}  — conditionnelle
+ * La dernière est la plus courue (une carte d'une liste), et c'est celle qu'une
+ * expression trop stricte raterait.
  */
 function idsPosesDans(src: string): Set<string> {
   const ids = new Set<string>();
@@ -276,12 +276,20 @@ describe('Visite guidée — un tour affiché compte comme VU', () => {
   // focus, `onRequestClose`) n'est pas déclenché quand iOS tue le processus.
   const SRC = readFileSync(join(RACINE, 'components', 'GuidedTour.tsx'), 'utf8');
 
-  /** Le corps de `startTour`, du `const startTour` jusqu'à sa parenthèse de fin. */
+  /** Le corps de `startTour`, du `const startTour` jusqu'à la déclaration suivante.
+   *  ⚠️ La borne de fin était `'\n  }, []);'` — la LISTE DE DÉPENDANCES du
+   *  `useCallback`, c'est-à-dire un détail que n'importe quel correctif conforme
+   *  déplace. Elle a cassé le 2026-08-15 en ajoutant une dépendance, et elle
+   *  aurait cassé en SILENCE (la recherche serait tombée sur le `}, []);` du
+   *  `useCallback` suivant, donc sur un extrait trop long mais contenant quand
+   *  même `markSeen`). C'est la troisième fois que cette famille de tests fige la
+   *  FORME du code au lieu de son invariant — on borne désormais sur « la
+   *  déclaration d'après », qui existe quelles que soient les dépendances. */
   const corpsStartTour = (() => {
     const debut = SRC.indexOf('const startTour');
     expect(debut, 'startTour introuvable dans GuidedTour.tsx').toBeGreaterThan(-1);
-    const fin = SRC.indexOf('\n  }, []);', debut);
-    expect(fin, 'fin de startTour introuvable').toBeGreaterThan(debut);
+    const suivant = SRC.indexOf('\n  const ', debut + 1);
+    const fin = suivant > debut ? suivant : SRC.length;
     return SRC.slice(debut, fin);
   })();
 
@@ -362,6 +370,104 @@ describe('Visite guidée — l’anneau épouse la forme de sa cible', () => {
     expect(code.match(/rayonAnneau/g)?.length).toBeGreaterThanOrEqual(3);
     // Et plus aucun panneau rectangulaire : c'était la géométrie fautive.
     expect(code).not.toMatch(/style=\{\[s\.dim,/);
+  });
+});
+
+describe('Visite guidée — l’anneau ne désigne jamais l’objet d’une autre bulle', () => {
+  // ── Les trois défauts que ce bloc ferme, mesurés le 2026-08-15 ─────────────
+  //
+  // Signalés par le fondateur sur DEUX captures de l'onglet Plan, et c'est la
+  // capture qui les a montrés — aucun ne se voit en relisant le moteur.
+  //
+  //  1. bulle « Marque-le comme cuisiné » (5/6), anneau autour de « Ma
+  //     répartition (%) » : le texte d'une étape désignant l'objet d'une autre.
+  //     Cause — `useTourTarget` enregistre son id depuis le CORPS du composant,
+  //     donc `plan-cook` était « disponible » alors que le bouton « J'ai
+  //     cuisiné » n'était pas rendu (repas déjà mangé). La mesure échouait, et
+  //     `rect` n'étant jamais remis à zéro, l'anneau de l'étape d'avant restait.
+  //  2. bulle « Mangé hors plan ? » (3/6), anneau à la bonne taille 72 pt trop
+  //     bas : la mesure tombait EN PLEIN VOL d'un `scrollTo` animé, parce qu'un
+  //     délai de 260 ms était supposé suffire.
+  //  3. et le pire, qui n'était pas sur les captures : une cible introuvable
+  //     donnait un écran assombri SANS bulle et SANS « Passer ». Le panneau
+  //     avale les taps, barre d'onglets comprise : plus aucune sortie, il faut
+  //     tuer l'app. Comme `startTour` marque le tour vu à l'ouverture, ça
+  //     n'arrive qu'UNE fois — donc c'est irreproductible par construction.
+  //
+  // ⚠️ CE SONT DES LECTURES DE SOURCE, et il faut le dire : `GuidedTour.tsx`
+  // tire react-native, donc il ne se rend pas sous vitest. Les DÉCISIONS, elles,
+  // vivent dans `lib/visee.ts` et sont testées pour de vrai (`visee.test.ts`) —
+  // même découpage que `tours.ts` pour le contenu. Ce qui reste ici, c'est le
+  // câblage : que le moteur appelle bien ces décisions, et qu'il garde sa porte.
+  const SRC = readFileSync(join(RACINE, 'components', 'GuidedTour.tsx'), 'utf8');
+
+  /** ⚠️ Les commentaires de ce fichier CITENT le code fautif, y compris en fin
+   *  de ligne. Sans les écarter, le test s'accuserait lui-même — c'est arrivé
+   *  trois fois dans cette famille de garde-fous. */
+  const sansCommentaires = (src: string) =>
+    src
+      .split('\n')
+      .filter((l) => !/^\s*(\/\/|\*|\/\*)/.test(l))
+      .map((l) => l.replace(/\s\/\/.*$/, ''))
+      .join('\n');
+
+  const CODE = sansCommentaires(SRC);
+
+  it('une cible « enregistrée » ne suffit pas — c’est `.current` qui décide', () => {
+    // `refs.current.has(id)` rend `true` dès que le composant vit, que l'élément
+    // visé soit rendu ou non. C'était la porte d'entrée du défaut 1.
+    expect(
+      CODE,
+      'la disponibilité d’une cible se juge sur sa ref MONTÉE, pas sur la présence de sa clé',
+    ).not.toContain('refs.current.has(');
+    expect(CODE).toMatch(/refs\.current\.get\([^)]*\)\?\.current/);
+  });
+
+  it('aucun délai deviné ne décide qu’un défilement est fini', () => {
+    // Le moteur attendait 260 ms puis mesurait, quoi qu'il arrive. On exige les
+    // deux décisions pures : ne défiler que si besoin, ne croire une mesure
+    // qu'une fois stable.
+    expect(CODE, 'le moteur ne consulte plus `memeCadre` — la mesure peut retomber en plein vol').toContain('memeCadre(');
+    expect(CODE, 'le moteur ne consulte plus `dejaVisible` — il défile même pour une cible sous les yeux').toContain('dejaVisible(');
+  });
+
+  it('renoncer RETIRE l’anneau — il ne laisse pas celui d’avant', () => {
+    expect(CODE).toMatch(/setRect\(null\)[\s\S]{0,60}setSansCible\(true\)/);
+  });
+
+  it('🔴 sans cible, la bulle s’affiche quand même — un tuto se quitte TOUJOURS', () => {
+    // L'invariant vital de ce fichier : il ne doit exister aucun état où
+    // l'utilisateur voit le voile sombre sans le bouton « Passer ».
+    expect(CODE, 'Spotlight doit accepter une mesure absente').toMatch(/rect: Rect \| null/);
+    expect(
+      CODE,
+      'le rendu ne consulte plus `sansCible` : une cible introuvable redevient un écran sans sortie',
+    ).toMatch(/rect \|\| sansCible/);
+  });
+
+  it('la sonde sait dire NON — on rejoue les deux versions fautives', () => {
+    // Un compteur qu'on n'a jamais vu rougir ne prouve rien (CLAUDE.md §8).
+    const avant = `
+      const avail = steps.filter((s) => refs.current.has(s.targetId));
+      scrollIntoView(node, () => { if (!cancelled) measure(); });
+      {step && (rect ? <Spotlight rect={rect} /> : <View style={dim} />)}`;
+    expect(avant).toContain('refs.current.has(');
+    expect(avant).not.toContain('memeCadre(');
+    expect(/rect \|\| sansCible/.test(avant)).toBe(false);
+  });
+
+  it('les cibles d’une CARTE de repas suivent l’état du repas, pas son rang', () => {
+    // Défaut 1, côté écran : `plan-cook` était accroché au repas d'indice 0.
+    // `MealCard` ne rend ses boutons que sur un repas encore à faire — donc la
+    // cible disparaissait dès le petit-déjeuner coché, même quand le dîner juste
+    // en dessous les affichait toujours.
+    const plan = sansCommentaires(readFileSync(join(RACINE, 'app', '(tabs)', 'plan.tsx'), 'utf8'));
+    for (const prop of ['cookTourId', 'actionsTourId']) {
+      expect(plan, `${prop} est accroché à un RANG fixe`).not.toMatch(
+        new RegExp(`${prop}=\\{\\s*i\\s*===\\s*\\d`),
+      );
+    }
+    expect(plan, 'le repas ciblé doit se DÉDUIRE de l’état des repas').toContain('premierCuisinable');
   });
 });
 

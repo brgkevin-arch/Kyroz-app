@@ -614,6 +614,18 @@ export default function PlanScreen() {
   };
 
   const dayMeals = plan?.meals.filter((m) => m.day === selectedDay) ?? [];
+  // 🔴 LES CIBLES DU TUTO SUIVENT LE PREMIER REPAS QUI PORTE VRAIMENT SES BOUTONS,
+  // et pas le premier de la liste. Corrigé le 2026-08-15, signalé sur capture.
+  // `MealCard` ne rend « J'ai cuisiné » et la rangée d'icônes que sur un repas
+  // encore À FAIRE (ni mangé, ni sauté, ni « tu gères ») — donc les accrocher au
+  // repas d'indice 0 les faisait disparaître dès que le petit-déjeuner était
+  // coché, y compris quand un dîner juste en dessous les affichait toujours.
+  // ⚠️ `-1` quand la journée est entièrement mangée : aucune carte ne porte alors
+  // la cible, et les deux étapes sont écartées du tour — c'est la bonne réponse,
+  // le bouton dont elles parlent n'est réellement plus à l'écran.
+  const premierCuisinable = dayMeals.findIndex(
+    (m) => m.status !== 'eaten' && m.status !== 'skipped' && m.fixed !== true,
+  );
   const dayMacros = plan?.total_macros_per_day[selectedDay - 1];
   // Cible DU JOUR, banque de calories comprise (= la cible du profil s'il n'y a pas
   // de banque). Avec la cible plate, un jour déclaré « resto +600 » s'affichait comme
@@ -922,8 +934,8 @@ export default function PlanScreen() {
                     onShopping={() => router.push('/(tabs)/courses')}
                     missing={m.fixed ? undefined : missing}
                     fridgeTracked={fridgeTracked}
-                    cookTourId={i === 0 ? 'plan-cook' : undefined}
-                    actionsTourId={i === 0 ? 'plan-actions' : undefined}
+                    cookTourId={i === premierCuisinable ? 'plan-cook' : undefined}
+                    actionsTourId={i === premierCuisinable ? 'plan-actions' : undefined}
                   />
                 );
               })}
