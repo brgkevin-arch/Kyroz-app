@@ -10,6 +10,7 @@ import { useTheme, ThemePalette, Radius, Spacing, Type, cardShadow, Fond, CIBLE_
 import { useCollapsingTitle, CompactTitleBar } from '../../components/CollapsingTitle';
 import { useLayout } from '../../constants/layout';
 import { PrimaryButton, Chip, Field, SectionLabel, Segmented, BoutonRevelation } from '../../components/ui';
+import { animerMiseEnPage } from '../../components/Mouvement';
 import { ActionSheet } from '../../components/ActionSheet';
 import { formatQuantity, toBaseUnit } from '../../lib/units';
 import { pushPantry } from '../../lib/sync';
@@ -60,8 +61,24 @@ export default function GardeMangerScreen() {
   // survit à rien d'important — et le frigo se rouvrirait à moitié replié sans
   // que personne ne se souvienne de l'avoir demandé.
   const [rayonsFermes, setRayonsFermes] = useState<PantryCategory[]>([]);
-  const basculerRayon = (cat: PantryCategory) =>
+  // Un accordéon qui claque ne dit pas OÙ le contenu est parti : les aliments se
+  // fondent et l'en-tête du rayon suivant remonte à leur place.
+  const basculerRayon = (cat: PantryCategory) => {
+    animerMiseEnPage();
     setRayonsFermes((prev) => (prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]));
+  };
+
+  // « Voir + de recettes » : huit cartes de plus apparaissaient d'un coup, et le
+  // bouton sautait d'un demi-écran vers le bas sous le doigt qui venait de le
+  // toucher. Elles se fondent, et le bouton descend avec elles.
+  const revelerPretes = () => {
+    animerMiseEnPage();
+    if (vuePretes.action === 'tout') setPretesTout(true); else setPretesPlus((n) => n + 1);
+  };
+  const revelerPresque = () => {
+    animerMiseEnPage();
+    if (vuePresque.action === 'tout') setPresqueTout(true); else setPresquePlus((n) => n + 1);
+  };
 
   // ── Ce qui a été cuisiné À L'INSTANT, et l'ordre gelé pendant ce temps ────
   //
@@ -173,6 +190,8 @@ export default function GardeMangerScreen() {
     // L'ordre se gèle au PREMIER geste et pas au montage : tant qu'on n'a rien
     // cuisiné, la liste doit suivre le frigo (un article ajouté doit débloquer
     // ses recettes tout de suite).
+    // La carte cuisinée quitte les « prêtes » et les suivantes remontent.
+    animerMiseEnPage();
     if (!ordreFige) setOrdreFige(pretes.map((x) => x.recipe.id));
     setCuisinees((prev) => ({ ...prev, [c.recipe.id]: c }));
     await persist(deductRecipe(items, c.recipe, 1));
@@ -296,7 +315,7 @@ export default function GardeMangerScreen() {
                 <BoutonRevelation
                   t={t}
                   libelle={libelleRevelation(vuePretes.action, vuePretes.reste)}
-                  onPress={() => (vuePretes.action === 'tout' ? setPretesTout(true) : setPretesPlus((n) => n + 1))}
+                  onPress={revelerPretes}
                 />
               </>
             )}
@@ -322,7 +341,7 @@ export default function GardeMangerScreen() {
                 <BoutonRevelation
                   t={t}
                   libelle={libelleRevelation(vuePresque.action, vuePresque.reste)}
-                  onPress={() => (vuePresque.action === 'tout' ? setPresqueTout(true) : setPresquePlus((n) => n + 1))}
+                  onPress={revelerPresque}
                 />
               </>
             )}

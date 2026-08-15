@@ -28,6 +28,18 @@ import {
 // prouve : `lib/tours.ts` porte cette preuve en commentaire au-dessus de chaque
 // étape, et c'est cette discipline-là qu'on ne peut pas automatiser.
 
+/**
+ * ⚠️ LES COMMENTAIRES DE CES FICHIERS CITENT LE CODE FAUTIF, y compris en fin de
+ * ligne. Sans les écarter, un test s'accuse lui-même — c'est arrivé trois fois
+ * dans cette famille de garde-fous.
+ */
+const sansCommentaires = (src: string) =>
+  src
+    .split('\n')
+    .filter((l) => !/^\s*(\/\/|\*|\/\*)/.test(l))
+    .map((l) => l.replace(/\s\/\/.*$/, ''))
+    .join('\n');
+
 const RACINE = join(__dirname, '..', '..');
 const DOSSIERS = ['app', 'components'];
 
@@ -359,16 +371,38 @@ describe('Visite guidée — l’anneau épouse la forme de sa cible', () => {
   it('le TROU et l’ANNEAU partagent leur rayon — deux valeurs divergeraient', () => {
     // Le trou était fait de QUATRE panneaux rectangulaires : il ne pouvait donc
     // pas être arrondi, et ses coins restaient éclairés hors de l'anneau. Un seul
-    // panneau bordé les remplace, et les deux formes lisent `rayonAnneau`.
+    // panneau bordé les remplace, et les deux formes lisent la MÊME valeur.
+    //
+    // ⚠️ CE TEST A ÉTÉ REBASÉ LE 2026-08-15, POUR LA RAISON HABITUELLE — la
+    // QUATRIÈME fois dans cette famille. Il exigeait littéralement
+    // `const rayonAnneau =` et trois occurrences de ce nom : rendre l'anneau
+    // ANIMÉ (le rayon voyage désormais avec la position) est un correctif
+    // parfaitement conforme, et il l'a fait rougir. Un test qui nomme une
+    // VARIABLE fige la forme du code ; l'invariant, lui, est qu'il n'existe
+    // qu'UNE source de rayon et que les deux formes la lisent.
+    // ➡️ Et il a servi : en rebasant, on a trouvé que l'ancien calcul survivait
+    // en double, devenu inerte. Une copie inerte est ce qui redevient fausse.
     const moteur = readFileSync(join(RACINE, 'components', 'GuidedTour.tsx'), 'utf8');
-    const code = moteur
-      .split('\n')
-      .filter((l) => !/^\s*(\/\/|\*|\/\*)/.test(l))
-      .join('\n');
-    expect(code).toContain('const rayonAnneau =');
-    // Deux lectures : celle du trou, celle de l'anneau.
-    expect(code.match(/rayonAnneau/g)?.length).toBeGreaterThanOrEqual(3);
-    // Et plus aucun panneau rectangulaire : c'était la géométrie fautive.
+    const code = sansCommentaires(moteur);
+
+    // 1. UNE seule source : la table de formes n'est consultée qu'une fois.
+    const sources = [...code.matchAll(/RAYON_CIBLE\[/g)].length;
+    expect(sources, 'le rayon se calcule à plus d’un endroit — les deux copies divergeront').toBe(1);
+
+    // 2. Les DEUX géométries lisent une valeur issue de cette source. On ne
+    //    nomme pas la variable : on exige que le même symbole serve aux deux.
+    const rayons = [...code.matchAll(/borderRadius:\s*([^,\n]+)/g)]
+      .map((m) => m[1].trim())
+      .filter((v) => !/^Radius\./.test(v));   // les rayons de la bulle, hors sujet
+    expect(rayons.length, 'le trou et l’anneau doivent porter un rayon chacun').toBe(2);
+    const symbole = (v: string) => v.match(/\b(\w+(?:\.\w+)*)\b(?![\w.]*\()/g)?.slice(-1)[0];
+    const [trou, anneau] = rayons;
+    expect(
+      trou.includes(symbole(anneau) ?? ' '),
+      `le trou (${trou}) et l’anneau (${anneau}) ne partagent aucune valeur`,
+    ).toBe(true);
+
+    // 3. Et plus aucun panneau rectangulaire : c'était la géométrie fautive.
     expect(code).not.toMatch(/style=\{\[s\.dim,/);
   });
 });
@@ -400,16 +434,6 @@ describe('Visite guidée — l’anneau ne désigne jamais l’objet d’une aut
   // même découpage que `tours.ts` pour le contenu. Ce qui reste ici, c'est le
   // câblage : que le moteur appelle bien ces décisions, et qu'il garde sa porte.
   const SRC = readFileSync(join(RACINE, 'components', 'GuidedTour.tsx'), 'utf8');
-
-  /** ⚠️ Les commentaires de ce fichier CITENT le code fautif, y compris en fin
-   *  de ligne. Sans les écarter, le test s'accuserait lui-même — c'est arrivé
-   *  trois fois dans cette famille de garde-fous. */
-  const sansCommentaires = (src: string) =>
-    src
-      .split('\n')
-      .filter((l) => !/^\s*(\/\/|\*|\/\*)/.test(l))
-      .map((l) => l.replace(/\s\/\/.*$/, ''))
-      .join('\n');
 
   const CODE = sansCommentaires(SRC);
 

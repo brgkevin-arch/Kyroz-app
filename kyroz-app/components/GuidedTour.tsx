@@ -1,13 +1,15 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { Presse } from './Presse';
 import {
-  View, Text, StyleSheet, Modal, Pressable, TouchableOpacity, useWindowDimensions, ViewStyle,
+  Animated, Easing, View, Text, StyleSheet, Modal, Pressable, TouchableOpacity, useWindowDimensions, ViewStyle,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme, Radius, ThemePalette, Type, Spacing, CIBLE_TACTILE_MIN, Trait, Icone, OPACITE_PRESSION } from '../constants/theme';
 import { TourStep, TOURS, FormeCible } from '../lib/tours';
 import { Cadre, dejaVisible, memeCadre, ESSAIS_MESURE, PAS_MESURE_MS } from '../lib/visee';
+import { RESSORT, DUREE, ressortRN, ressortReduit, dureeReduite } from '../lib/motion';
+import { useReduceMotion } from '../lib/reduceMotion';
 
 // ── Visite guidée (coachmark / spotlight) ────────────────────────────────────
 // Overlay sombre qui « découpe » un trou autour d'un élément cible et affiche
@@ -433,6 +435,84 @@ function Spotlight({
       onNext={onNext} onPrev={onPrev} onSkip={onSkip} />
   );
 
+  // ── L'anneau GLISSE d'une cible à l'autre ──────────────────────────────────
+  //
+  // Ajouté le 2026-08-15. Il TÉLÉPORTAIT : d'un bout de l'écran à l'autre, sans
+  // rien qui relie les deux. Or c'est le même objet — le faire voyager dit
+  // « regarde maintenant ICI », là où un saut oblige à retrouver l'anneau des
+  // yeux à chaque bulle. C'est la seule animation de l'app dont le rôle soit
+  // d'EXPLIQUER, et le tutoriel est justement le moment où on a le droit.
+  //
+  // ⚠️ `RESSORT.pose`, donc AUCUN dépassement : le rebond se mérite, et personne
+  // n'a lancé cet anneau du doigt. Un anneau qui dépasserait sa cible puis
+  // reviendrait dessus se lirait comme une hésitation du tutoriel.
+  // ⚠️ Le RAYON voyage avec la position : sans lui, l'anneau glisse en pilule
+  // puis claque en carte à l'arrivée — deux mouvements pour une transition.
+  // ⚠️ `useNativeDriver: false` est ici obligatoire (position, taille et rayon
+  // ne sont pas des propriétés natives). C'est admissible parce que rien d'autre
+  // ne tourne pendant un tour : l'écran est figé sous un voile.
+  const reduire = useReduceMotion();
+  const cible = rect
+    ? {
+        x: clamp(rect.x - PAD, 0, SCREEN_W),
+        y: clamp(rect.y - PAD, 0, SCREEN_H),
+        w: Math.min(rect.width + PAD * 2, SCREEN_W - clamp(rect.x - PAD, 0, SCREEN_W)),
+        h: Math.min(rect.height + PAD * 2, SCREEN_H - clamp(rect.y - PAD, 0, SCREEN_H)),
+        r: RAYON_CIBLE[step.forme ?? 'carte'] + PAD,
+      }
+    : null;
+
+  const anim = useRef({
+    x: new Animated.Value(0), y: new Animated.Value(0),
+    w: new Animated.Value(0), h: new Animated.Value(0),
+    r: new Animated.Value(0),
+  }).current;
+  // La PREMIÈRE mesure se pose, elle ne voyage pas : un anneau qui viendrait du
+  // coin supérieur gauche à l'ouverture du tour n'expliquerait rien.
+  const pose = useRef(false);
+
+  useEffect(() => {
+    if (!cible) return;
+    const cles = ['x', 'y', 'w', 'h', 'r'] as const;
+    if (!pose.current) {
+      pose.current = true;
+      cles.forEach((k) => anim[k].setValue(cible[k]));
+      return;
+    }
+    const ressort = ressortReduit(RESSORT.pose, reduire);
+    Animated.parallel(
+      cles.map((k) => Animated.spring(anim[k], {
+        toValue: cible[k],
+        useNativeDriver: false,
+        ...ressortRN(ressort),
+      })),
+    ).start();
+  }, [cible?.x, cible?.y, cible?.w, cible?.h, cible?.r, reduire]);
+
+  // ── Et la BULLE se pose en fondu ───────────────────────────────────────────
+  //
+  // 🔴 ELLE A ÉTÉ LAISSÉE DE CÔTÉ D'ABORD, ET LA MESURE A DIT QUE C'ÉTAIT FAUX.
+  // Le raisonnement de départ tenait : l'anneau est « le même objet qui voyage »
+  // (donc il glisse), la bulle est un CONTENU qui change entièrement (donc elle
+  // n'a pas à se déplacer). Vrai — mais elle est aussi le plus gros objet de
+  // l'écran. Relevé image par image sur une vidéo du tour à 30 i/s : l'anneau
+  // rendait une fenêtre de mouvement de 200 ms, et la bulle un SAUT d'une seule
+  // image à pic 25 — soit, à l'œil, une transition qui claque quand même.
+  // ➡️ Elle ne se déplace toujours pas (son texte a changé : la faire glisser
+  // dirait qu'elle est la même, ce qui serait faux). Elle se POSE, en fondu.
+  // C'est la règle « ce qui informe reste, ce qui déplace se retire » appliquée
+  // à un objet dont le déplacement n'aurait rien informé.
+  const fondu = useRef(new Animated.Value(1)).current;
+  useEffect(() => {
+    fondu.setValue(0);
+    Animated.timing(fondu, {
+      toValue: 1,
+      duration: dureeReduite(DUREE.court, reduire),
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+  }, [index, reduire, fondu]);
+
   // Sans cadre : pas de trou, pas d'anneau — la bulle seule, au centre. Elle
   // reste vraie (elle décrit l'écran, pas un objet précis) et surtout elle garde
   // son « Passer ». Ne JAMAIS remplacer ça par un simple panneau sombre : c'est
@@ -457,9 +537,11 @@ function Spotlight({
   // deux dimensions suffit des quatre côtés.
   const DEBORD = Math.max(SCREEN_W, SCREEN_H);
 
-  // Le rayon de l'anneau ET du trou : une seule valeur, sinon les deux formes
-  // divergent — c'est exactement le défaut corrigé le 2026-08-14.
-  const rayonAnneau = RAYON_CIBLE[step.forme ?? 'carte'] + PAD;
+  // ℹ️ Le rayon de l'anneau ET du trou vit une seule fois, dans `cible.r`
+  // ci-dessus, et voyage par `anim.r` — sinon les deux formes divergent, ce qui
+  // est exactement le défaut corrigé le 2026-08-14. Il était calculé une SECONDE
+  // fois ici jusqu'au 2026-08-15 ; le rendre animé a rendu cette copie inerte, et
+  // une copie inerte est précisément ce qui redevient fausse un jour.
 
   // Bulle : sous la cible si la place le permet, sinon au-dessus.
   const bubbleW = Math.min(SCREEN_W - 32, BUBBLE_MAX_W);
@@ -490,13 +572,13 @@ function Spotlight({
           ⚠️ Ce panneau avale les taps comme les quatre d'avant, y compris au
           milieu du trou : c'est ce qui empêche de s'échapper du tour en tapant
           l'écran, et `startTour` compte là-dessus (cf. le marquage à l'ouverture). */}
-      <View
+      <Animated.View
         style={{
           position: 'absolute',
-          top: cy - DEBORD, left: cx - DEBORD,
-          width: cw + DEBORD * 2, height: ch + DEBORD * 2,
+          top: Animated.subtract(anim.y, DEBORD), left: Animated.subtract(anim.x, DEBORD),
+          width: Animated.add(anim.w, DEBORD * 2), height: Animated.add(anim.h, DEBORD * 2),
           borderWidth: DEBORD, borderColor: DIM,
-          borderRadius: rayonAnneau + DEBORD,
+          borderRadius: Animated.add(anim.r, DEBORD),
         }}
       />
 
@@ -508,17 +590,17 @@ function Spotlight({
           dessine un coin plus carré, et le décalage se voit d'autant plus que
           l'objet est petit. Pour garder la MÊME forme, le rayon suit la taille —
           d'où `+ PAD`. Une pastille ronde reste ronde, une carte reste une carte. */}
-      <View
+      <Animated.View
         style={{
-          position: 'absolute', top: cy, left: cx, width: cw, height: ch,
-          borderRadius: rayonAnneau,
+          position: 'absolute', top: anim.y, left: anim.x, width: anim.w, height: anim.h,
+          borderRadius: anim.r,
           borderWidth: Trait.controle, borderColor: t.accent,
           pointerEvents: 'none',
         }}
       />
 
       {/* Bulle d'explication. */}
-      <View style={[s.bubble, { width: bubbleW, left: bubbleLeft }, bubblePos]}>{bulle}</View>
+      <Animated.View style={[s.bubble, { width: bubbleW, left: bubbleLeft, opacity: fondu }, bubblePos]}>{bulle}</Animated.View>
     </View>
   );
 }

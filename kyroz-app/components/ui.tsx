@@ -1,7 +1,9 @@
 import React from 'react';
 import { Presse } from './Presse';
+import { RESSORT, ressortRN, ressortReduit } from '../lib/motion';
+import { useReduceMotion } from '../lib/reduceMotion';
 import {
-  View, Text, TextInput, TouchableOpacity, StyleSheet,
+  Animated, View, Text, TextInput, TouchableOpacity, StyleSheet,
   ViewStyle, TextStyle, ActivityIndicator, TextInputProps,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -148,20 +150,103 @@ export function Field({
   );
 }
 
+/** Le retrait du curseur dans son rail — et donc l'écart entre les deux rayons. */
+const RETRAIT_CURSEUR = 4;
+
+/**
+ * 🔴 **LE CURSEUR GLISSE, IL NE TÉLÉPORTE PAS** (2026-08-15). Le fond en accent
+ * sautait d'une option à l'autre, sur **17 sélecteurs** — le contrôle le plus
+ * répandu de l'app après le bouton. C'est le geste d'iOS depuis toujours, et il
+ * ne relève pas du décor : le curseur qui voyage dit que les options sont les
+ * cases d'un MÊME rail, là où un fond qui s'allume ailleurs les fait lire comme
+ * deux boutons indépendants.
+ *
+ * 🔴 **ET LA COULEUR DU TEXTE VOYAGE AVEC LUI.** C'est le piège de ce chantier,
+ * et il ne se voit qu'en le construisant : garder la bascule instantanée
+ * (`on ? onAccent : textSecondary`) donnerait, pendant tout le trajet, un
+ * libellé en couleur-sur-accent posé sur un rail sombre — donc **illisible
+ * pendant 300 ms**, exactement sur l'élément qu'on vient de choisir. Une seule
+ * valeur animée pilote donc les deux : la position du curseur ET la teinte de
+ * chaque libellé, qui s'interpole sur sa distance à lui.
+ *
+ * ⚠️ `useNativeDriver: false` est obligatoire — une couleur ne s'interpole pas
+ * sur le fil natif. Le coût est nul ici : un sélecteur ne bouge qu'au tap.
+ * ⚠️ La première position se POSE (pas d'animation au montage) : un curseur qui
+ * viendrait de la gauche à chaque affichage d'écran serait une animation
+ * d'entrée déguisée, et la retenue est ce que la DA demande.
+ */
 export function Segmented<T extends string | number>({
   t, options, value, onChange,
 }: { t: ThemePalette; options: { label: string; value: T }[]; value: T; onChange: (v: T) => void }) {
+  const reduire = useReduceMotion();
+  const [larg, setLarg] = React.useState(0);
+  const index = Math.max(0, options.findIndex((o) => o.value === value));
+  const position = React.useRef(new Animated.Value(index)).current;
+  const pose = React.useRef(false);
+
+  // Chaque option occupe une part égale du rail, moins les gouttières.
+  const utile = Math.max(0, larg - Spacing.xs * 2 - Spacing.xs * (options.length - 1));
+  const pas = options.length > 0 ? utile / options.length : 0;
+
+  React.useEffect(() => {
+    if (!pose.current) { pose.current = true; position.setValue(index); return; }
+    Animated.spring(position, {
+      toValue: index,
+      useNativeDriver: false,
+      ...ressortRN(ressortReduit(RESSORT.pose, reduire)),
+    }).start();
+  }, [index, reduire, position]);
+
+  // Une seule option : rien à départager, donc rien à faire glisser.
+  const glissant = options.length > 1 && larg > 0;
+
   return (
-    <View style={{ flexDirection: 'row', backgroundColor: t.fill, borderRadius: Radius.button, padding: Spacing.xs, gap: Spacing.xs }}>
+    <View
+      onLayout={(e) => setLarg(e.nativeEvent.layout.width)}
+      style={{ flexDirection: 'row', backgroundColor: t.fill, borderRadius: Radius.button, padding: Spacing.xs, gap: Spacing.xs }}
+    >
       {/* Rayon INTÉRIEUR = extérieur − le retrait (4) : c'est ce qui rend les deux
           courbes concentriques. Il était écrit 11 pour un cadre à 14, donc le
           curseur ne suivait pas tout à fait la courbe de son rail. */}
-      {options.map((o) => {
+      {glissant && (
+        <Animated.View
+          pointerEvents="none"
+          style={{
+            position: 'absolute',
+            top: Spacing.xs, bottom: Spacing.xs, left: Spacing.xs,
+            width: pas,
+            borderRadius: Radius.button - RETRAIT_CURSEUR,
+            backgroundColor: t.accent,
+            transform: [{
+              translateX: position.interpolate({
+                inputRange: options.map((_, i) => i),
+                outputRange: options.map((_, i) => i * (pas + Spacing.xs)),
+              }),
+            }],
+          }}
+        />
+      )}
+      {options.map((o, i) => {
         const on = o.value === value;
         return (
           <Presse key={String(o.value)} onPress={() => onChange(o.value)} activeOpacity={OPACITE_PRESSION}
-            style={{ flex: 1, paddingVertical: Spacing.md, borderRadius: Radius.button - 4, alignItems: 'center', backgroundColor: on ? t.accent : 'transparent' }}>
-            <Text style={{ ...Type.bodySmallStrong, color: on ? t.onAccent : t.textSecondary }}>{o.label}</Text>
+            style={{ flex: 1, paddingVertical: Spacing.md, borderRadius: Radius.button - RETRAIT_CURSEUR, alignItems: 'center' }}>
+            <Animated.Text
+              style={{
+                ...Type.bodySmallStrong,
+                color: glissant
+                  ? position.interpolate({
+                      // L'option i est à l'accent quand le curseur est SUR elle,
+                      // et redevient secondaire dès qu'il s'en éloigne d'un cran.
+                      inputRange: [i - 1, i, i + 1],
+                      outputRange: [t.textSecondary, t.onAccent, t.textSecondary],
+                      extrapolate: 'clamp',
+                    })
+                  : (on ? t.onAccent : t.textSecondary),
+              }}
+            >
+              {o.label}
+            </Animated.Text>
           </Presse>
         );
       })}

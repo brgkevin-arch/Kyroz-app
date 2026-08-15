@@ -28,6 +28,7 @@ import { ActionSheet } from '../../components/ActionSheet';
 import { PrimaryButton, SectionLabel } from '../../components/ui';
 import { HydrationBar, useHydrationEnabled } from '../../components/HydrationBar';
 import { useTourTarget, useScreenTour, TourButton, hasSeenTour } from '../../components/GuidedTour';
+import { animerMiseEnPage } from '../../components/Mouvement';
 import { planTour } from '../../lib/tours';
 import { useProfile } from '../../hooks/useProfile';
 import { useFavorites } from '../../hooks/useFavorites';
@@ -485,6 +486,12 @@ export default function PlanScreen() {
   // « J'ai mangé » : verrouille le repas (compte dans le consommé), déduit du
   // garde-manger, recale les repas restants, compte pour la série.
   const cookMeal = async (meal: Meal) => {
+    // 🔴 LE GESTE CENTRAL DE L'APP, et le plus gros saut de mise en page : la
+    // carte perd son bouton « J'ai cuisiné » et sa rangée d'icônes, donc elle
+    // RÉTRÉCIT, et les cartes du dessous remontaient d'un coup — au moment
+    // précis où l'on cherche à savoir si le tap a été pris. La transition dit
+    // « c'est fait », là où la téléportation laisse un doute.
+    animerMiseEnPage();
     const items = await loadPantry();
     const next = deductIngredients(items, mealIngredients(meal));
     await savePantry(next);
@@ -499,6 +506,7 @@ export default function PlanScreen() {
   // « Je l'ai sauté » : le repas ne compte pas, son budget bascule sur les
   // repas restants (qui grossissent). On garde la fiche ouverte (état + annuler).
   const skipMeal = async (meal: Meal) => {
+    animerMiseEnPage();
     await setMealStatus(meal, 'skipped');
     toast('Repas sauté — journée recalée');
   };

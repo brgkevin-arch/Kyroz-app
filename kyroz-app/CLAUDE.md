@@ -1681,9 +1681,75 @@ icône + texte serait devenue une colonne, **partout**, sans qu'aucun test ne le
 seule fois, donc figé au premier rendu) : la hauteur d'écran (rotation, Split View) et
 le réglage d'accessibilité. Les lire depuis une ref et depuis le store.
 
-🚫 **Ce que la passe n'a PAS fait, et c'est délibéré** : les 48 fichiers muets restent
-muets. Animer parce que ça n'anime pas est le contraire du geste — la retenue fait
-partie de la DA d'Apple autant que les ressorts.
+🚫 **Ce que la passe n'a PAS fait, et c'était délibéré** : les 48 fichiers muets
+restaient muets. Animer parce que ça n'anime pas est le contraire du geste — la
+retenue fait partie de la DA d'Apple autant que les ressorts.
+
+### Les TRANSITIONS, sixième passe de mouvement (2026-08-15)
+
+Le fondateur : *« fais un check de toutes les animations, ou là il faudrait des
+petites animations — ça va fluidifier les transitions de l'app. »* La retenue
+ci-dessus n'est pas annulée : elle est **précisée**. Ce qui manquait n'était pas
+du mouvement en général, c'était une classe précise — les moments où la mise en
+page **change d'un bloc** sans que rien ne relie l'avant et l'après.
+
+**Six sites retenus, sur un balayage de toute l'app.** Le critère appliqué est
+celui d'Emil Kowalski, dans cet ordre : *fréquence* (au-delà de quelques dizaines
+de fois par jour, on n'anime pas), *rôle nommé* (retour, cohérence spatiale,
+lisibilité d'un changement d'état, ou éviter une téléportation — « c'est joli »
+n'est pas un rôle), *budget* (< 300 ms), *fonction* (ce qu'on LIT ne bouge pas).
+
+| Où | Ce qui téléportait | Rôle |
+|---|---|---|
+| `Segmented` — **17 sélecteurs** | le fond en accent sautait d'une case à l'autre | cohérence spatiale |
+| `MealCard` via `cookMeal` | la carte rétrécit, les suivantes remontaient d'un coup | changement d'état |
+| Frigo — repli d'un rayon | l'accordéon claquait | éviter une téléportation |
+| Les 3 listes à paliers | 8 ou 10 cartes surgissaient sous le doigt | éviter une téléportation |
+| Jauge des Courses | « Tout cocher » : 0 → 100 % en une image | changement d'état |
+| Anneau de la visite guidée | il sautait d'un bout de l'écran à l'autre | **explication** |
+
+🔴 **`components/Mouvement.tsx::animerMiseEnPage()` — à appeler AVANT le `setState`
+qui déplace l'écran.** Ce qui saute dans ces cas n'est pas une propriété, c'est une
+MISE EN PAGE de hauteur variable : `LayoutAnimation` la calcule exactement, là où
+un `Animated.Value` par élément demanderait un `onLayout` et un état de plus.
+⚠️ C'est **global au prochain rendu** : réservé à un geste précis, jamais à un
+rafraîchissement de fond. Et le réglage d'accessibilité se relit **à chaque appel**.
+
+🔴 **LA COULEUR D'UN LIBELLÉ VOYAGE AVEC LE CURSEUR QUI PASSE DESSOUS.** Le piège de
+cette passe, invisible avant de construire : garder la bascule instantanée
+(`on ? onAccent : textSecondary`) sur un curseur qui glisse donne, pendant tout le
+trajet, un libellé en couleur-sur-accent posé sur le rail sombre — **illisible
+pendant 300 ms**, sur l'élément qu'on vient justement de choisir. Une seule valeur
+animée pilote donc la position ET les N teintes, chacune interpolée sur sa distance
+au curseur.
+
+🔴 **ET UNE DÉCISION DE GOÛT A ÉTÉ RENVERSÉE PAR LA MESURE.** La bulle de la visite
+guidée avait été laissée immobile, sur un raisonnement juste : l'anneau est le même
+objet qui voyage, la bulle est un contenu qui change — la faire glisser dirait
+qu'elle est la même. Relevé à **30 images/seconde sur une vidéo du simulateur** :
+l'anneau rendait une fenêtre de mouvement de 200 ms, et la bulle un **saut d'une
+seule image, pic 25,5** — donc la transition claquait quand même, parce que la
+bulle est le plus gros objet de l'écran. Elle se POSE désormais en fondu (elle ne
+se déplace toujours pas) : pic **25,5 → 12**, et le changement se répartit sur
+plusieurs images. ➡️ *Le raisonnement disait « pas de déplacement » et il avait
+raison ; il ne disait rien de « pas de transition », et c'est la mesure qui l'a dit.*
+
+➡️ **Comment on mesure une animation ici.** Ni à l'œil, ni au navigateur
+(`requestAnimationFrame` n'y tourne pas) : `xcrun simctl io recordVideo`, puis
+`ffmpeg -vf fps=30`, puis la **différence moyenne entre images consécutives**. Un
+glissement laisse une TRAÎNÉE de plusieurs images, un saut laisse un PIC isolé —
+et ça se lit sans hypothèse sur ce qu'on cherche. Pour une position précise
+(le curseur d'un `Segmented`), on relève le centre de la zone claire image par
+image : trois positions de repos et des positions INTERMÉDIAIRES prouvent le
+glissement.
+
+🚫 **Écartés, et il faut savoir pourquoi** : le grand chiffre kcal qui compterait
+(c'est de la donnée qu'on LIT — un compteur qui roule empêche de la lire) · le
+fondu au changement de jour du Plan (même raison : il retarderait la lecture de ce
+qu'on vient de demander) · la transition entre onglets (navigation cœur, plusieurs
+dizaines de fois par jour — iOS ne l'anime pas non plus) · la case à cocher des
+Courses (trente fois d'affilée en magasin ; le retour haptique `choix` fait déjà
+le travail, et `Presse` enfonce déjà).
 
 ➡️ **Garde-fou : `lib/__tests__/mouvementDA.test.ts`** (14 cas, vérifié par 3 mutations) —
 aucune durée en dur, aucune `timing` sans courbe, aucun `bounciness`/`speed`/`tension`/

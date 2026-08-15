@@ -24,6 +24,7 @@ import {
 } from '../../lib/shoppingRemoved';
 import { pushPantry } from '../../lib/sync';
 import { useTourTarget, useScreenTour, TourButton } from '../../components/GuidedTour';
+import { animerMiseEnPage, Jauge } from '../../components/Mouvement';
 import { coursesTour } from '../../lib/tours';
 
 const PLAN_KEY = '@kyroz:plan';
@@ -382,7 +383,10 @@ export default function CoursesScreen() {
             piège d'origine — `marginHorizontal` qui s'ajoute À L'EXTÉRIEUR d'un
             `maxWidth`, et la barre qui dépassait des cartes de 40 pt — disparaît
             avec la marge (cf. CLAUDE.md §11). */}
-        <View style={s.track}><View style={[s.fill, { width: `${pct}%`, backgroundColor: done ? t.success : t.accent }]} /></View>
+        {/* La jauge rattrapait le doigt d'un saut. « Tout cocher » la faisait
+            passer de 0 à 100 % en une frame — le seul geste de l'écran qui dise
+            « ça avance » n'avait aucune durée pour le dire. */}
+        <Jauge style={s.track} remplissage={s.fill} pct={pct} couleur={done ? t.success : t.accent} />
 
         {/* Contrôles */}
         <View ref={controlesRef} style={s.controls}>
@@ -392,7 +396,7 @@ export default function CoursesScreen() {
               <Text style={s.ctrlTxt}>Tout cocher</Text>
             </Presse>
           )}
-          <Presse style={[s.ctrl, hideChecked && s.ctrlOn]} onPress={() => setHideChecked((v) => !v)} activeOpacity={OPACITE_PRESSION}>
+          <Presse style={[s.ctrl, hideChecked && s.ctrlOn]} onPress={() => { animerMiseEnPage(); setHideChecked((v) => !v); }} activeOpacity={OPACITE_PRESSION}>
             <Ionicons name={hideChecked ? 'eye-off-outline' : 'eye-outline'} size={Icone.petite} color={hideChecked ? t.onAccent : t.textSecondary} />
             <Text style={[s.ctrlTxt, hideChecked && { color: t.onAccent }]}>Masquer cochés</Text>
           </Presse>
