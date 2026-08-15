@@ -18,6 +18,7 @@ import { useTourTarget, useScreenTour, TourButton } from '../../components/Guide
 import { recettesTour } from '../../lib/tours';
 import { revelation, libelleRevelation } from '../../lib/revelation';
 import { BoutonRevelation } from '../../components/ui';
+import { animerMiseEnPage } from '../../components/Mouvement';
 
 const TAGS = ['Tout', 'fav', 'breakfast', 'lunch', 'dinner', 'snack'];
 const TAG_LABELS: Record<string, string> = {
@@ -75,6 +76,13 @@ export default function RecettesScreen() {
   if (cleVue.current !== cle) { cleVue.current = cle; if (paliers !== 0) setPaliers(0); if (tout) setTout(false); }
 
   const vue = revelation(tous.length, PAS_RECETTES, paliers, tout);
+
+  // Dix cartes de plus surgissaient sous le doigt, et le bouton qu'on venait de
+  // toucher sautait d'un écran vers le bas. Elles se fondent, il descend avec.
+  const reveler = () => {
+    animerMiseEnPage();
+    if (vue.action === 'tout') setTout(true); else setPaliers((n) => n + 1);
+  };
   const data = tous.slice(0, vue.visibles);
 
   // Après `data` : le tour a besoin de savoir s'il y a une carte à montrer. Sur
@@ -180,7 +188,7 @@ export default function RecettesScreen() {
           <BoutonRevelation
             t={t}
             libelle={libelleRevelation(vue.action, vue.reste)}
-            onPress={() => (vue.action === 'tout' ? setTout(true) : setPaliers((n) => n + 1))}
+            onPress={reveler}
           />
         }
         {...repli.scrollProps}

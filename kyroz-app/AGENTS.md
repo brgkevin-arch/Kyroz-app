@@ -3756,6 +3756,69 @@ produit en suspens — il ne reste qu'à coder.
 > branches insèrent en tête de cette section, donc git ne sait pas dans quel ordre. La
 > résolution est de garder les DEUX blocs, en ordre décroissant — jamais d'en choisir un.
 
+- 🤖 **E51 · Les transitions : six endroits où l'app téléportait (2026-08-15)**
+
+  Le fondateur : *« fais un check de toutes les animations, ou là il faudrait des
+  petites animations — ça va fluidifier les transitions de l'app. »*
+
+  **La retenue de la passe mouvement (E35) n'est pas annulée, elle est précisée.**
+  « Les 48 fichiers muets restent muets » visait le fait d'animer pour animer. Ce
+  qui manquait est une classe précise, et elle n'avait jamais été balayée : les
+  moments où la **mise en page change d'un bloc** sans rien entre l'avant et
+  l'après. Six retenus, sur toute l'app — détail, valeurs et rejets en CLAUDE.md §8.
+
+  🔴 **LE PLUS GROS LEVIER N'ÉTAIT PAS UN ÉCRAN, C'ÉTAIT UN COMPOSANT** :
+  `Segmented`, **17 sélecteurs**, dont tous ceux de la feuille Réglages. Son fond
+  en accent sautait d'une case à l'autre — donc les options se lisaient comme des
+  boutons indépendants, pas comme les cases d'un même rail.
+
+  🔴 **ET LE PIÈGE ÉTAIT DANS LA COULEUR DU TEXTE, PAS DANS LE MOUVEMENT.** Faire
+  glisser le curseur en gardant la bascule instantanée du libellé
+  (`on ? onAccent : textSecondary`) donne, pendant tout le trajet, un texte
+  couleur-sur-accent posé sur le rail SOMBRE : illisible ~300 ms, précisément sur
+  l'option qu'on vient de choisir. Une seule valeur animée pilote donc la position
+  du curseur ET les N teintes. *Ça ne se voit pas en écrivant l'animation — ça se
+  voit en la regardant.*
+
+  🔴 **UNE DÉCISION DE GOÛT RENVERSÉE PAR LA MESURE.** La bulle de la visite guidée
+  avait été laissée immobile sur un raisonnement juste (l'anneau est le même objet
+  qui voyage ; la bulle est un contenu qui change, la faire glisser mentirait).
+  Relevé à 30 i/s sur vidéo : l'anneau rendait une fenêtre de mouvement de 200 ms,
+  la bulle un **saut d'une seule image, pic 25,5**. La transition claquait quand
+  même — la bulle est le plus gros objet de l'écran. Elle se pose désormais en
+  fondu, sans se déplacer : **pic 25,5 → 12**. ➡️ *Le raisonnement disait « pas de
+  déplacement » et il avait raison ; il ne disait rien de « pas de transition ».*
+
+  ✅ **MESURÉ AU SIMULATEUR, PAS JUGÉ À L'ŒIL.** Deux instruments, tous deux
+  reproductibles : (1) `recordVideo` + `ffmpeg -vf fps=30` + différence moyenne
+  entre images consécutives — une traînée de plusieurs images = un glissement, un
+  pic isolé = un saut ; (2) pour une position précise, le centre de la zone claire
+  image par image — le curseur du `Segmented` rend trois positions de repos
+  (244 · 602 · 960 px) **et deux positions intermédiaires** (774, 519), ce qui
+  prouve le glissement sans rien supposer.
+  ⚠️ **Le pilotage du simulateur reste cassé de trois façons** (MCP crashé,
+  AppleScript sans droit de clic −25204, lien profond bloqué par un dialogue
+  système) : les gestes ont été déclenchés par des **sondes temporaires** posées
+  dans le code, puis retirées. `initialRouteName` n'a AUCUN effet sur les onglets
+  d'expo-router — mesuré, deux fois.
+  ⚠️ **Non vérifiés à l'écran** : le repli des rayons du Frigo, les trois listes à
+  paliers, la jauge des Courses et « J'ai cuisiné » — même mécanisme
+  (`animerMiseEnPage`), mais leurs écrans sont hors d'atteinte sans taps. À
+  regarder au prochain build. ⚠️ **Point d'attention nommé** : `LayoutAnimation`
+  sur la `FlatList` des Recettes (512 entrées, virtualisée) est le seul des six où
+  le risque de scintillement au recyclage existe.
+
+  🔴 **ET UN GARDE-FOU A ROUGI SUR UN CORRECTIF CONFORME — LA QUATRIÈME FOIS.**
+  `visiteGuidee.test.ts` exigeait littéralement `const rayonAnneau =` et trois
+  occurrences de ce nom. Rendre l'anneau animé (le rayon voyage avec la position)
+  l'a fait échouer. Rebasé sur l'invariant : **une seule source de rayon, et les
+  deux géométries la lisent**. ➡️ Et le rebasage a PAYÉ : il a trouvé que l'ancien
+  calcul survivait en double, devenu inerte — *une copie inerte est exactement ce
+  qui redevient fausse un jour.*
+
+  ➡️ `components/Mouvement.tsx` (`animerMiseEnPage`, `Jauge`). 5 mutations,
+  5 rougissements. 1557 tests, `tsc` verts.
+
 - 🤖 **E50 · Le tuto désignait l'objet d'une AUTRE bulle (2026-08-15)**
 
   **Signalé par le fondateur, sur deux captures de l'onglet Plan** : *« bug sur le
