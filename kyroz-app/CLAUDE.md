@@ -2308,6 +2308,26 @@ téléphone.
 - **Ne committer QUE son propre travail.** Un fichier que je n'ai pas produit ne se
   versionne pas : je le signale au fondateur, il décide. (Un `git add <dossier>` aveugle
   a déjà emporté des fichiers qui n'étaient pas les miens.)
+- 🔴 **« RESTE-T-IL DES COMMITS EN RETARD ? » NE SE RÉPOND PAS EN COMPTANT DES
+  COMMITS** (2026-08-15). `git rev-list origin/main..<branche>` a rendu une trentaine
+  de branches « non fusionnées », et elles l'ont été montrées comme telles avant
+  vérification. C'était faux : le dépôt fusionne en **squash**, donc les commits
+  d'origine ne deviennent JAMAIS ancêtres de `main` — **toute branche déjà livrée
+  paraît en retard, à vie**. Et le `git diff origin/main <branche>` qui l'accompagne
+  mélange deux choses opposées : ce que la branche a en PLUS, et ce qui lui MANQUE.
+  Des branches simplement périmées sortaient donc avec 17 000 lignes de différence,
+  parfaitement alarmantes et vides de sens.
+  ➡️ **La réponse est dans les PR** : `gh pr list --state all`. Si `OPEN = 0` et que
+  chaque branche en avance correspond à une PR `MERGED`, rien n'est en retard. Il ne
+  reste à examiner une par une que **les PR fermées SANS merge** et **les branches
+  sans aucune PR** — et là seulement, `git diff` depuis leur `merge-base`.
+  ⚠️ Avant de supprimer des branches : protéger `main` **et toute branche verrouillée
+  par un worktree** (`git worktree list --porcelain | grep '^branch'`), écrire un filet
+  `sha nom` **hors du dépôt** (un fichier non versionné qui y reste est le pire des
+  trois états, §10), et vérifier la config Pages avant de toucher à `gh-pages`
+  (`gh api repos/:owner/:repo/pages`).
+  ℹ️ `%(refname:short)` rend `refs/remotes/origin/HEAD` sous la forme **`origin`** :
+  ça ressemble à une branche fantôme, ce n'est que le pointeur. Ne pas le supprimer.
 - **Plusieurs sessions en parallèle → worktree.** Deux sessions dans le même dépôt se
   marchent dessus ; s'isoler dans un worktree, et le nettoyer en fin de chantier.
   **Quand la session tourne dans un worktree isolé, le dossier principal et `main` sont
