@@ -118,8 +118,23 @@
         n°2 en dépendent et ne peuvent pas s'écrire sans lui : le périmètre des **sous-traitants
         internes** (présumé, non lu) et le cadre applicable à **Cloudflare**, seul sous-traitant
         hors UE de la liste.
-  - [ ] **Rétention configurée à 18 mois** dans le projet PostHog — pas seulement écrite ici et
-        dans la politique. Une durée promise que le serveur ne tient pas est un mensonge de plus.
+  - [ ] 🔴 **Rétention 18 mois — AUCUN MÉCANISME CONNU, arbitrage requis (2026-08-18).**
+        Ce verrou était formulé « cocher un réglage ». Vérification faite : la doc PostHog ne
+        documente **aucune rétention d'events configurable**. Le plan gratuit *garantit* 1 an,
+        après quoi les données « peuvent passer en stockage froid » — **elles ne sont pas
+        supprimées**. Les seules suppressions documentées sont manuelles : projet entier,
+        personne par personne, ou via l'API.
+        ➡️ Or « conservées 18 mois, puis supprimées » est écrit dans la politique, sur l'écran
+        de consentement, dans les Réglages et ici. **Une durée affichée doit être celle qui
+        sera servie.** Rien ne ment aujourd'hui — aucune donnée n'est collectée — et c'est
+        exactement ce que ce verrou est censé empêcher.
+        Trois issues, à trancher avant la clé : (1) vérifier dans la console si un réglage
+        non documenté existe — gratuit, à faire en premier ; (2) une suppression périodique
+        via l'API PostHog, qui tient la promesse mais demande une clé secrète donc du code
+        serveur ; (3) réécrire la durée dans les quatre surfaces.
+        ⚠️ La synthèse analytics §3.5 justifiait 18 mois par la comparaison d'une saison à
+        l'autre — avec une conservation d'un an, **cet argument tombe**, et c'est lui qui
+        avait écarté les 12 mois.
   - [x] Non-rotation de l'UUID **assumée et documentée** (synthèse §7.2) : une rotation
         périodique renforcerait la position mais casserait les cohortes longues.
 - [ ] (Idéal) Relecture du texte légal par un juriste avant lancement à grande échelle.
@@ -134,9 +149,10 @@ aucun test ne les attrapera. Elles font pourtant partie du même lot.
 📄 **Procédure détaillée, étape par étape** : `PROCEDURE-2026-08-18-activation-posthog.md`
 (libellés exacts des champs, ordre, et ce qui bloque quoi).
 
-- [ ] **App Store Connect** → App Privacy : déclarer **Données d'usage → Interaction avec le
-      produit**, usage *Analytics*, **non liée à l'identité**, **Tracking : non** (pas d'ATT,
-      aucun suivi inter-applications). Les réponses rédigées sont dans `STORE-RELEASE.md` §4.
+- [x] **App Store Connect** → App Privacy : **publié le 2026-08-18**. Première déclaration
+      de l'app (elle n'en avait aucune) : e-mail, santé et ID utilisateur en *Fonctionnalité
+      de l'app* et liés à l'identité ; **Interaction avec le produit** en *Analyses*, **non
+      liée**, **sans suivi**. Photos non déclarées — elles ne quittent pas l'appareil.
 - [ ] **Play Console** → Sécurité des données : ajouter les **actions dans l'app**, consenties,
       non partagées à des fins publicitaires. Même source : `STORE-RELEASE.md` §4.
 - [x] **URL de politique — App Store Connect** → `https://kyroz.app/legal.html`, posée le

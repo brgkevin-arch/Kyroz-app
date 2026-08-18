@@ -153,7 +153,16 @@ Ajouter, dans *Activité dans l'application* :
 
 ### 4.1 — Couper la collecte d'adresse IP
 
-*Projet → Settings → Project → **Anonymize IP data*** (ou équivalent selon la version).
+*Settings → Project → **IP data capture*** → activer **Discard client IP data**.
+Un défaut existe aussi au niveau organisation : *Settings → Organization → General*.
+
+⚠️ **VÉRIFIER AVANT DE BASCULER — le réglage est peut-être déjà bon.** La doc PostHog
+dit que « les organisations EU ont par défaut la capture d'IP désactivée pour la
+conformité RGPD ». Si c'est le cas ici, le commentaire de `lib/analytics.ts` (« le
+comportement PAR DÉFAUT de PostHog s'applique : collecte + géolocalisation ») est
+**faux**, et c'est lui qu'il faudra corriger — ainsi que la ligne « Adresse IP » du
+registre. Regarder l'état réel avant de conclure : cette prémisse a été écrite d'après
+le défaut *général* de PostHog, jamais re-mesurée sur un projet EU.
 
 **Pourquoi c'est bloquant** : PostHog collecte et géolocalise l'IP **par défaut**, côté
 serveur. Le client de Kyroz n'envoie rien pour la neutraliser — le défaut s'applique
@@ -179,11 +188,34 @@ Conserver le PDF hors dépôt, comme celui de Supabase.
 
 ### 4.3 — Configurer la rétention à 18 mois
 
-*Project → Settings → **Data management / retention***.
+🔴 **Ce verrou n'est pas un réglage à cocher — il demande un arbitrage.**
 
-18 mois est écrit dans la politique, sur l'écran de consentement et dans les Réglages.
-Une durée promise que le serveur ne tient pas est un mensonge de plus — et celui-là se
-vérifie d'un clic.
+Vérification du 2026-08-18 : la doc PostHog **ne documente aucune rétention d'events
+configurable**. Le plan gratuit *garantit* 1 an de conservation, après quoi les données
+« peuvent passer en stockage froid » — **elles ne sont pas supprimées**. Les seules
+suppressions documentées sont manuelles : projet entier, personne par personne, ou via
+l'API.
+
+Or « conservées 18 mois, puis supprimées » est écrit à **quatre** endroits : la
+politique, l'écran de consentement, les Réglages, ce registre. Une durée affichée doit
+être celle qui sera servie. Rien ne ment aujourd'hui — aucune donnée n'est collectée —
+et c'est précisément ce que ce verrou est là pour empêcher.
+
+**Trois issues, dans l'ordre où les essayer :**
+
+1. **Regarder dans la console** s'il existe un réglage que la doc ne mentionne pas.
+   Gratuit, et ça peut clore le sujet.
+2. **Suppression périodique via l'API PostHog.** Tient la promesse telle qu'elle est
+   écrite. Demande une clé API personnelle — donc secrète, donc du code serveur, pas
+   du client.
+3. **Réécrire la durée** dans les quatre surfaces pour dire ce qui se passe vraiment.
+   Gratuit et honnête, mais le RGPD (art. 13-2-a) exige une durée ou des critères : la
+   nouvelle formule devra en donner une, pas botter en touche.
+
+⚠️ Et une conséquence produit à ne pas manquer : la synthèse analytics §3.5 justifiait
+les 18 mois par la comparaison d'une saison à l'autre. Avec une conservation d'un an
+sans garantie au-delà, **cette justification tombe** — c'est l'argument même qui avait
+écarté les 12 mois.
 
 ---
 
