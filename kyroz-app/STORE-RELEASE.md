@@ -451,6 +451,14 @@ verrouillé par deux tests (`lib/__tests__/premium.test.ts`, `purchases.test.ts`
 
 **Nom** (30 car. max) : `Kyroz`
 
+> **ASO — 25 des 30 caractères du Nom ne portent aucun terme de recherche (2026-08-18).**
+> Apple pèse le champ Nom plus lourd que le sous-titre et que les mots-clés pour le
+> classement recherche ; un nom mono-mot ne capte donc rien. **Recommandation** :
+> `Kyroz — Plan repas & macros` (27 car.) — decision de MARQUE, pas technique, donc pas
+> appliquée ici tant que tu n'as pas tranché. Le sous-titre couvre déjà « repas »/« macros » ;
+> les reprendre dans le nom coûte un peu de budget caractères mais rend la fiche lisible
+> d'un coup d'œil pour une marque encore inconnue — un arbitrage, pas un calcul.
+
 **Sous-titre Apple / titre court** (30 car. max) :
 `Repas calés sur tes macros`
 
@@ -484,9 +492,34 @@ CHAQUE vague » était déjà écrit ici la première fois — et il n'a pas suf
 ➡️ **Le mesurer, pas le relire** : `npm run mesure:couverture`, ou
 `node -e "console.log(require('./Recette/recettes-kyroz.json').recipes.length)"`.
 Un chiffre faux dans une fiche de store est une allégation fausse, pas une coquille.
+✅ **Re-mesuré le 2026-08-18** : toujours **512**. Rien n'a dérivé depuis le 2026-08-03.
+
+**Description courte Google Play** (80 car. max — champ distinct du texte promotionnel
+Apple, affiché SOUS le titre avant le « en savoir plus », **manquait à cette fiche**) :
+`Ton plan de repas 7 jours, précis à la macro, selon ton objectif et ton sport.` (78 car.)
 
 **Mots-clés Apple** (100 car., séparés par des virgules, sans espaces) :
-`macros,nutrition,repas,fitness,muscu,prise de masse,seche,calories,proteine,meal prep,regime,sport`
+`rééquilibrage alimentaire,macros,musculation,seche,prise de masse,proteine,calories,nutrition,regime`
+
+> ⚠️ **Compte mesuré à EXACTEMENT 100/100** (`[...chaine].length`, pas une lecture à l'œil)
+> — zéro marge. Toute retouche ultérieure devra couper avant d'ajouter ; `regime` est le
+> premier candidat. Revu le 2026-08-18 :
+> - **Retirés** : `fitness` (redondant avec la catégorie Santé et forme elle-même, très
+>   concurrentiel) · `sport` (trop générique pour capter une recherche précise) ·
+>   `meal prep` (terme anglophone, plus faible sur un marché francophone que l'équivalent
+>   français) · `repas` (déjà couvert par le SOUS-TITRE — le répéter dans les mots-clés
+>   n'ajoute aucun terme neuf à ce que l'algorithme indexe déjà).
+> - **Ajoutés** : `rééquilibrage alimentaire` — la formulation la plus cherchée en France
+>   pour « mieux manger durablement », plus large que « régime » et sans sa connotation ;
+>   absente de toute la fiche jusqu'ici. `musculation` en toutes lettres à la place de
+>   l'abréviation `muscu` seule — plus long mais plus cherché tel quel.
+> - **Gardés** : les termes bodybuilding/nutrition à fort volume et propres à Kyroz
+>   (`seche`, `prise de masse`, `proteine`, `calories`, `macros`, `nutrition`) et `regime`
+>   — connotation à éviter dans les textes VISIBLES (§10 CLAUDE.md), mais ce champ est
+>   invisible à l'utilisateur : il ne sert qu'à matcher une recherche, pas à donner le ton.
+> - **Non résolu par manque de place** : `objectif`, pourtant central à la promesse Kyroz
+>   (objectif daté). Retenu pour le NOM plutôt que les mots-clés, cf. note ci-dessus — un
+>   mot seul et abstrait a peu de valeur de recherche isolé, il porte mieux dans un titre.
 
 **Catégorie** : Santé et forme (Health & Fitness). Secondaire (Google) : Nutrition.
 
