@@ -13,7 +13,7 @@ iPhone **et iPad**. La mise en page tablette passe par `useLayout()` — cf. `ky
 
 Ouvre simplement ce lien dans le navigateur de ton téléphone — rien à installer :
 
-> **https://brgkevin-arch.github.io/Kyroz-app/**
+> **https://legal.kyroz.app/**
 
 Crée un compte (email) à l'arrivée, complète l'onboarding, et le plan se génère tout seul.
 

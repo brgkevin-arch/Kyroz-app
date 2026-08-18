@@ -41,12 +41,53 @@ jobs:
           # DPA signé, rétention réécrite — RGPD-REGISTRE.md). Jeton write-only,
           # public par conception : l'inliner dans le bundle web est normal.
           EXPO_PUBLIC_POSTHOG_KEY: ${{ secrets.EXPO_PUBLIC_POSTHOG_KEY }}
-      # Expo génère la page en lang="en" (mode SPA, +html.tsx ignoré). On force le
-      # français + on désactive la traduction auto, sinon les navigateurs traduisent
-      # les faux-amis (« pain complet » → « douleur complète », « sèche » → « sèche-cheveux »).
-      - run: |
-          sed -i 's|<html lang="en">|<html lang="fr" translate="no">|' dist/index.html
-          sed -i 's|<head>|<head><meta name="google" content="notranslate" />|' dist/index.html
+      # Expo génère chaque page en lang="en" (+html.tsx ignoré). On force le français
+      # + on désactive la traduction auto, sinon les navigateurs traduisent les faux-amis
+      # (« pain complet » → « douleur complète », « sèche » → « sèche-cheveux »).
+      #
+      # 🔴 CETTE ÉTAPE A MENTI EN SILENCE JUSQU'AU 2026-08-18, sur DEUX points :
+      #   1. le motif cherchait `<html lang="en">` avec UNE espace — Expo en écrit DEUX
+      #      (`<html  lang="en">`). Un sed qui ne trouve rien sort en 0 : la CI restait
+      #      verte et la page partait en anglais, avec la seule balise meta pour garde ;
+      #   2. il ne traitait que `dist/index.html`, alors que `web.output: "static"`
+      #      pré-rend UNE PAGE PAR ROUTE — `legal.html`, `plan.html`… toutes en `en`.
+      # ➡️ D'où le motif tolérant, le passage sur toutes les pages, et surtout la
+      #    VÉRIFICATION en fin d'étape : une substitution muette ne doit plus passer.
+      - name: Forcer lang="fr" + notranslate sur toutes les pages pré-rendues
+        run: |
+          set -euo pipefail
+          pages=$(find dist -name '*.html' | wc -l)
+          # Sans ce plancher, un changement de forme de `dist` viderait la boucle et
+          # la vérification ci-dessous passerait au vert sans avoir rien contrôlé.
+          if [ "$pages" -lt 2 ]; then
+            echo "::error::seulement $pages page(s) HTML dans dist — l'export a changé de forme"
+            exit 1
+          fi
+          # ⚠️ `sed -i` sans suffixe est du GNU : sur BSD/macOS il avale le fichier
+          # suivant comme suffixe de sauvegarde. On écrit donc via un fichier temporaire,
+          # forme POSIX — c'est ce qui rend cette étape REJOUABLE en local, et un
+          # garde-fou qu'on ne peut pas rejouer est un garde-fou qu'on ne teste jamais.
+          find dist -name '*.html' | while read -r f; do
+            sed 's|<html[[:space:]]*lang="en">|<html lang="fr" translate="no">|' "$f" > "$f.tmp"
+            # `public/confirme.html` porte déjà la balise : ne pas la doubler.
+            if ! grep -q 'content="notranslate"' "$f.tmp"; then
+              sed 's|<head>|<head><meta name="google" content="notranslate" />|' "$f.tmp" > "$f.tmp2"
+              mv "$f.tmp2" "$f.tmp"
+            fi
+            mv "$f.tmp" "$f"
+          done
+          # ⚠️ ON VÉRIFIE UNE PRÉSENCE, PAS UNE ABSENCE — et c'est une correction mesurée.
+          # La première version de ce contrôle cherchait s'il restait du `lang="en"` :
+          # elle laissait passer `lang="en-US"` (le guillemet fermant ne suit pas), soit
+          # exactement la variante de balise qui avait produit le bug d'origine. Chercher
+          # ce qu'on ATTEND attrape toutes les formes que ce qu'on redoute peut prendre.
+          manquantes=$(find dist -name '*.html' ! -exec grep -q '<html lang="fr" translate="no">' {} \; -print)
+          if [ -n "$manquantes" ]; then
+            echo "::error::pages non forcées en français — le motif ne correspond plus :"
+            echo "$manquantes"
+            exit 1
+          fi
+          echo "$pages page(s) forcée(s) en lang=\"fr\""
       - run: cp dist/index.html dist/404.html
       - uses: actions/upload-pages-artifact@v3
         with:
