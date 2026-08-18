@@ -165,12 +165,18 @@ Ajouter, dans *Activité dans l'application* :
 
 ### 4.1 — Couper la collecte d'adresse IP
 
-**Settings** (Réglages) → **Project** (Projet) → onglet **General** → section
-**IP data capture** (capture de l'adresse IP) → interrupteur **Discard client IP data**
+**Settings** (icône en bas de la barre latérale) → colonne du milieu, section
+**Products** → **Privacy**. C'est là qu'est l'interrupteur **Discard client IP data**
 (« ne pas conserver l'IP du client »).
 
-Le même réglage a un défaut au niveau organisation : **Settings → Organization →
-General** → **IP data capture default**.
+⚠️ **Vérifié le 2026-08-19 sur une capture d'écran réelle — la doc PostHog disait
+« Settings → Project → General », ce qui ne correspond pas à cette version de
+l'interface.** Sur le projet Kyroz (`251977`, région `EU Cloud`), le réglage vit sous
+**Products → Privacy**, pas sous un onglet « General ». Toujours se fier à ce qui
+s'affiche à l'écran plutôt qu'à une doc qui peut décrire une version antérieure.
+
+Le même réglage a un défaut au niveau organisation : **Organization → General** →
+**IP data capture default**.
 
 ⚠️ **REGARDER AVANT DE BASCULER — c'est probablement déjà fait.** La doc PostHog est
 explicite pour notre cas : sur **PostHog Cloud EU**, « IP data capture is automatically
@@ -197,15 +203,13 @@ Une fois coupée : supprimer la ligne « Adresse IP » du traitement n°2 dans
 
 ### 4.2 — Signer le DPA
 
-**<https://eu.posthog.com/legal>** — connecté à l'organisation Kyroz.
+**Settings** → colonne du milieu, section **Organization** → **Legal documents**.
 
-Le DPA ne se télécharge pas depuis le site : il se **génère, se signe et se
-contresigne dans l'app**. La version publiée sur `posthog.com/dpa` est explicitement
-non contraignante — « It's not binding on its own — only the one you generate and
-countersign through the app counts. »
-
-⚠️ Le bouton « Generate a DPA in PostHog » du site pointe vers `app.posthog.com`, le
-cloud **US**. Passer par `eu.posthog.com` pour une organisation EU.
+⚠️ **Vérifié le 2026-08-19** : contrairement à ce que suggérait `posthog.com/dpa`
+(un site public qui renvoie vers `app.posthog.com/legal`, le cloud US), le DPA se
+génère et se signe **directement dans les réglages du projet**, sous
+**Organization → Legal documents** — visible et confirmé sur le projet EU de Kyroz.
+Pas besoin de sortir de l'app ni de chercher une page séparée.
 
 **Deux lignes du registre en dépendent** et ne peuvent pas s'écrire sans lui :
 - le **périmètre des sous-traitants internes** — la page publique de PostHog a une
