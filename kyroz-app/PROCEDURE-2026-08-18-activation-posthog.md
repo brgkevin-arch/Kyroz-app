@@ -179,24 +179,26 @@ IP » de `RGPD-REGISTRE.md` supposaient le défaut général de PostHog (collect
 géolocalisation). Faux pour ce projet précisément — les deux disent maintenant
 « écartée, vérifiée le 2026-08-18 ».
 
-### 4.2 — Signer le DPA
+### 4.2 — Signer le DPA ✅ FAIT — signé et contresigné le 2026-08-18
 
-**Settings** → colonne du milieu, section **Organization** → **Legal documents**.
+Généré sur `eu.posthog.com` → **Organization → Legal documents** → *New Data
+Processing Agreement*. Signataire Kyroz : Kévin Berger, Founder. Contresigné côté
+PostHog par **Charles Cook (VP Operations)**, le même jour.
 
-⚠️ **Vérifié le 2026-08-18** : contrairement à ce que suggérait `posthog.com/dpa`
-(un site public qui renvoie vers `app.posthog.com/legal`, le cloud US), le DPA se
-génère et se signe **directement dans les réglages du projet**, sous
-**Organization → Legal documents** — visible et confirmé sur le projet EU de Kyroz.
-Pas besoin de sortir de l'app ni de chercher une page séparée.
+⚠️ Le chemin de `posthog.com/dpa` (un site public qui renvoie vers
+`app.posthog.com/legal`, le cloud US) ne correspondait pas — le document se génère
+**dans les réglages du projet EU**, pas sur une page séparée.
 
-**Deux lignes du registre en dépendent** et ne peuvent pas s'écrire sans lui :
-- le **périmètre des sous-traitants internes** — la page publique de PostHog a une
-  section « Internal Subprocessors » dont le contenu n'a pas pu être lu (deux
-  tentatives). Nature présumée : entités affiliées et filiales. **Présumé, pas lu.**
-- le **cadre applicable à Cloudflare**, seul sous-traitant de leur liste dont la
-  localisation est « points de présence mondiaux ».
+**PDF à conserver hors dépôt**, comme celui de Supabase.
 
-Conserver le PDF hors dépôt, comme celui de Supabase.
+✅ **Les deux lignes qui restaient « présumé, non lu » sont closes, le jour même** —
+le fondateur a partagé le PDF signé et il a été lu :
+- **§10.3–10.4** donne le cadre de transfert hors UE : DPF (auto-certification) **+**
+  Clauses Contractuelles Types (EU module 2, UK Addendum, adaptations FADP), les deux
+  cumulés, pas un choix. Couvre Cloudflare.
+- **L'onglet « Internal Subprocessors »** de la page publique (raté aux deux premières
+  tentatives — contenu chargé au clic, pas un tableau vide) nomme **Hiberly Ltd.**
+  (Royaume-Uni) et **PostHog GmbH** (Allemagne).
 
 ### 4.3 — Configurer la rétention à 18 mois
 
