@@ -163,7 +163,7 @@ Ajouter, dans *Activité dans l'application* :
 **Rien ne se pose tant que les trois ne sont pas faits.** Ce sont les conditions
 écrites dans `RGPD-REGISTRE.md` et rappelées dans `.env.example`.
 
-### 4.1 — Couper la collecte d'adresse IP ✅ FAIT — vérifié le 2026-08-19
+### 4.1 — Couper la collecte d'adresse IP ✅ FAIT — vérifié le 2026-08-18
 
 **Rien à faire.** Capture d'écran du projet Kyroz (`251977`, région `EU Cloud`),
 `Settings → Products → Privacy` : l'interrupteur **Discard client IP data** est déjà
@@ -177,13 +177,13 @@ s'affiche à l'écran plutôt qu'à une doc qui peut décrire une autre version.
 Corrigé dans la foulée : le commentaire de `lib/analytics.ts` et la ligne « Adresse
 IP » de `RGPD-REGISTRE.md` supposaient le défaut général de PostHog (collecte +
 géolocalisation). Faux pour ce projet précisément — les deux disent maintenant
-« écartée, vérifiée le 2026-08-19 ».
+« écartée, vérifiée le 2026-08-18 ».
 
 ### 4.2 — Signer le DPA
 
 **Settings** → colonne du milieu, section **Organization** → **Legal documents**.
 
-⚠️ **Vérifié le 2026-08-19** : contrairement à ce que suggérait `posthog.com/dpa`
+⚠️ **Vérifié le 2026-08-18** : contrairement à ce que suggérait `posthog.com/dpa`
 (un site public qui renvoie vers `app.posthog.com/legal`, le cloud US), le DPA se
 génère et se signe **directement dans les réglages du projet**, sous
 **Organization → Legal documents** — visible et confirmé sur le projet EU de Kyroz.

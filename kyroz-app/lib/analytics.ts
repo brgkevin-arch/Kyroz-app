@@ -23,7 +23,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // ⚠️ NE JAMAIS appeler `identify`/`alias` vers l'id Supabase : ça rebrancherait le
 // pseudonyme sur le compte et ferait tomber toute la promesse d'un coup.
 //
-// ✅ ADRESSE IP — VÉRIFIÉ LE 2026-08-19 sur le projet EU de Kyroz (capture d'écran,
+// ✅ ADRESSE IP — VÉRIFIÉ LE 2026-08-18 sur le projet EU de Kyroz (capture d'écran,
 // Settings → Products → Privacy) : « Discard client IP data » est ACTIVÉ. Ce n'était
 // pas une supposition à corriger après coup : le commentaire précédent affirmait que
 // le défaut PAR DÉFAUT de PostHog s'appliquait (collecte + géolocalisation) — c'était
