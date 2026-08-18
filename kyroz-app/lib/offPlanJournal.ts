@@ -33,7 +33,11 @@ import { todayStamp } from './weight';
 // recalage et leurs tests restent en place et verts. C'est une mise de côté, pas
 // une dépose.
 //
-// POUR LE REMETTRE : repasser cette constante à `true`, PUIS remettre les deux
+// ⚠️ L'INTERRUPTEUR A DÉMÉNAGÉ vers `lib/featureFlags.ts` (2026-08-18) — un seul
+// fichier répond à « qu'est-ce qui est éteint ? ». Ce commentaire reste ici parce
+// que c'est le module du parcours ; la constante, elle, n'y est plus.
+//
+// POUR LE REMETTRE : repasser `PARCOURS_HORS_PLAN_ACTIF` à `true`, PUIS remettre les deux
 // choses qui ne sont pas gardées par elle (elles sont marquées du même mot-clé,
 // `PARCOURS_HORS_PLAN_ACTIF`, donc elles se retrouvent en une recherche) :
 //  · `lib/tours.ts` — l'étape `plan-offplan` de la visite guidée ;
@@ -47,8 +51,6 @@ import { todayStamp } from './weight';
 // ⚠️ Les écarts DÉJÀ posés continuent de s'afficher sur le Plan (le bloc
 // « + N kcal assumées » et son « Retirer ») : on ne fait pas disparaître une
 // donnée que quelqu'un a saisie. Simplement, on ne peut plus en créer.
-export const PARCOURS_HORS_PLAN_ACTIF = false;
-
 export interface OffPlanEntry {
   /** 'YYYY-MM-DD' LOCAL, jour où l'écart a été posé. */
   date: string;

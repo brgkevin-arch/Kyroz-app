@@ -41,7 +41,8 @@ import { useProfile } from '../../hooks/useProfile';
 import { useStreak } from '../../hooks/useStreak';
 import { useWeightLog } from '../../hooks/useWeightLog';
 import { useOffPlanJournal } from '../../hooks/useOffPlanJournal';
-import { journalSummary, PARCOURS_HORS_PLAN_ACTIF } from '../../lib/offPlanJournal';
+import { journalSummary } from '../../lib/offPlanJournal';
+import { PARCOURS_HORS_PLAN_ACTIF, RYTHME_HEBDOMADAIRE_ACTIF } from '../../lib/featureFlags';
 import { useReminder } from '../../hooks/useReminder';
 import { usePlanCheckin } from '../../hooks/usePlanCheckin';
 import { useAuth } from '../../hooks/useAuth';
@@ -631,12 +632,17 @@ export default function ProfilScreen() {
         <SectionLabel t={t} sub="ce qui remplit ton assiette">TES REPAS</SectionLabel>
         <View style={s.menu}>
           <MenuRow t={t} label="Préférences alimentaires" value={profile.dietary_restrictions.length || profile.disliked_foods.length || profile.hidden_recipes?.length ? 'Personnalisées' : 'Aucune'} onPress={() => setEditor('prefs')} />
-          <MenuRow t={t} label="Paramètres des repas" value={`${profile.plan_days} j · ${(profile.meals?.length || 4)} repas · ${emphasisResume(profile)}`} onPress={() => setEditor('meals')} />
+          {/* ⚠️ `last` CALCULÉ, pas écrit en dur : les deux lignes qui suivaient sont
+              éteintes (cf. lib/featureFlags.ts). Sans ça, le bloc se termine par un
+              séparateur qui pend dans le vide — déjà corrigé une fois le 2026-08-18. */}
+          <MenuRow t={t} label="Paramètres des repas" value={`${profile.plan_days} j · ${(profile.meals?.length || 4)} repas · ${emphasisResume(profile)}`} onPress={() => setEditor('meals')} last={!RYTHME_HEBDOMADAIRE_ACTIF && !PARCOURS_HORS_PLAN_ACTIF} />
           {/* Le rythme PRÉVOIT un jour plus copieux, l'historique CONSTATE un écart
               subi : la paire se lit toute seule, d'où le voisinage.
               ⚠️ Plus aucun verrou premium ici depuis le 2026-08-18 (cf. `lib/premium.ts`) :
               `openEditor` n'ouvre donc plus le paywall pour cette ligne, il ouvre l'éditeur. */}
-          <MenuRow t={t} label="Jours plus copieux" value={bankResume(profile)} onPress={() => setEditor('calorie_bank')} last={!PARCOURS_HORS_PLAN_ACTIF} />
+          {RYTHME_HEBDOMADAIRE_ACTIF && (
+            <MenuRow t={t} label="Jours plus copieux" value={bankResume(profile)} onPress={() => setEditor('calorie_bank')} last={!PARCOURS_HORS_PLAN_ACTIF} />
+          )}
           {/* ⚠️ La VALEUR ne COMPTE PAS les écarts, et ce n'est pas un oubli de
               rangement : un score posé là mettrait la pression sans qu'on ouvre quoi
               que ce soit (règle anti charge mentale). Elle reste un FAIT daté — ce
@@ -730,7 +736,7 @@ export default function ProfilScreen() {
         {editor === 'macros' && <MacroEditor t={t} profile={profile} onSave={save} />}
         {editor === 'prefs' && <PrefEditor t={t} profile={profile} onSave={save} />}
         {editor === 'meals' && <MealsEditor t={t} profile={profile} onSave={save} />}
-        {editor === 'calorie_bank' && <CalorieBankEditor t={t} profile={profile} onSave={save} />}
+        {RYTHME_HEBDOMADAIRE_ACTIF && editor === 'calorie_bank' && <CalorieBankEditor t={t} profile={profile} onSave={save} />}
       </Sheet>
 
       {/* Suivi du poids */}
