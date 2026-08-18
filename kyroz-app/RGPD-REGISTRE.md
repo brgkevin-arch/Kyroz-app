@@ -110,9 +110,11 @@
   volontairement en suspens. ⚠️ Ne pas la compléter au jugé : une politique de
   confidentialité n'est pas l'endroit où supposer (même règle que le prestataire
   d'abonnement, `constants/legal.ts` §5).
-- [x] ✅ **LES TROIS VERROUS DE LA CLÉ POSTHOG — levés le 2026-08-18.** `EXPO_PUBLIC_POSTHOG_KEY`
-  ne se posait pas tant que les trois n'étaient pas faits ; ils le sont. La poser reste un
-  geste séparé, qui n'est pas fait par le seul fait que les verrous le soient :
+- [x] ✅ **LES TROIS VERROUS DE LA CLÉ POSTHOG — levés le 2026-08-18, et la clé posée le
+  jour même.** `EXPO_PUBLIC_POSTHOG_KEY` est un secret du dépôt GitHub (déploiement web,
+  `deploy.yml`) et une variable EAS sur les trois environnements (builds natifs). La
+  mesure d'audience quitte l'état dormant — sous réserve du consentement, toujours
+  demandé et refusable avant tout envoi (`lib/analytics.ts::capture`) :
   - [x] **Couper la collecte d'IP** — **déjà fait, vérifié le 2026-08-18.** Les projets
         Cloud EU désactivent ce réglage par défaut à la création ; confirmé par capture
         d'écran (`Settings → Products → Privacy → Discard client IP data`, activé).
@@ -167,6 +169,9 @@ aucun test ne les attrapera. Elles font pourtant partie du même lot.
       fondateur**, à faire avant la prochaine soumission Android. Remplace l'URL
       `brgkevin-arch.github.io` sous pseudo personnel.
 - [x] **Console PostHog** : les trois verrous ci-dessus — **levés le 2026-08-18** (IP déjà
-      écartée par défaut, DPA signé et lu, rétention réécrite plutôt qu'automatisée). Poser
-      `EXPO_PUBLIC_POSTHOG_KEY` reste un geste séparé, non fait par ce commit.
+      écartée par défaut, DPA signé et lu, rétention réécrite plutôt qu'automatisée).
+- [x] **Poser `EXPO_PUBLIC_POSTHOG_KEY`** — **fait le 2026-08-18.** Secret GitHub Actions
+      (`deploy.yml`) + variable EAS sur `production`, `preview` et `development`. Le
+      prochain déploiement web et le prochain build natif enverront des événements pour
+      qui a consenti — rien avant.
 
