@@ -224,11 +224,25 @@ function main(): void {
 // le fichier généré au lieu d'en être une recopie. Elle mentait depuis deux mois
 // (16 ans au lieu de 18, Resend absent) faute que personne ne la rouvre.
 //
-// ⚠️ L'option écartée, et pourquoi : poser un domaine personnalisé sur le site Pages de
-// l'app (`legal.kyroz.app`) aurait redirigé TOUT ce Pages — `confirme.html` compris,
-// l'URL de retour de confirmation d'e-mail, codée en dur dans `lib/emailConfirmation.ts`
-// donc gravée dans les binaires déjà distribués, et en liste blanche Supabase. Un
-// domaine personnalisé s'applique à un SITE, jamais à un fichier.
+// ⚠️ CE PARAGRAPHE A DÉCRIT UN MONDE QUI N'EXISTAIT PAS — corrigé le 2026-08-18 au soir.
+// Il disait « option écartée » : poser un domaine personnalisé sur le site Pages de l'app
+// (`legal.kyroz.app`) redirigerait TOUT ce Pages, `confirme.html` compris — l'URL de retour
+// de confirmation d'e-mail, codée en dur dans `lib/emailConfirmation.ts`, donc gravée dans
+// les binaires déjà distribués, et en liste blanche Supabase. Un domaine personnalisé
+// s'applique à un SITE, jamais à un fichier.
+//
+// 🔴 **Le raisonnement était juste ; le domaine, lui, était DÉJÀ POSÉ.** Il l'avait été
+// avant cet arbitrage, et l'arbitrage a été écrit sans vérifier l'état réel. Mesuré :
+// `https://brgkevin-arch.github.io/Kyroz-app/*` répond 301 vers `legal.kyroz.app/*`, et
+// l'app web ne démarrait plus du tout (`baseUrl` pointant sur un sous-chemin disparu).
+// ➡️ **Décision fondateur : garder le domaine, réparer le code** — `baseUrl` vidé, garde-fou
+// dans `lib/__tests__/deploiementWeb.test.ts`.
+// ➡️ Et la leçon qui vaut au-delà de ce fichier : une décision peut être impeccablement
+// motivée et fausse quand même, parce que personne n'a mesuré ce qui était déjà en place.
+//
+// Ce que ça NE change PAS : l'URL canonique déclarée aux stores reste `kyroz.app/legal.html`
+// (dépôt `kyroz-site`). Le Pages de l'app pré-rend sa propre `/legal` et écraserait le
+// fichier ci-dessous — c'est précisément pourquoi la page publique vit dans l'autre dépôt.
 //
 // Le dépôt n'étant pas forcément cloné, la cible est OPTIONNELLE : pose `KYROZ_SITE`
 // sur le chemin du clone et le fichier s'y écrit avec les autres.

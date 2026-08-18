@@ -169,8 +169,15 @@ describe('Page de retour — celle qu\'atteint le clic sur le lien', () => {
   });
 
   it('sert bien depuis le site déployé (même racine que legal.html)', () => {
-    // `public/` est recopié tel quel par `expo export -p web`, et GitHub Pages
-    // sert `dist/` sous /Kyroz-app/ — c'est le chemin déjà éprouvé par legal.html.
+    // `public/` est recopié tel quel par `expo export -p web`, et GitHub Pages sert
+    // `dist/` — à la RACINE de `legal.kyroz.app` depuis que le domaine personnalisé est
+    // posé (2026-08-18), plus sous `/Kyroz-app/`.
+    // ⚠️ **Cette attente reste volontairement sur l'ancienne URL**, et ce n'est pas un
+    // oubli : c'est la valeur gravée dans les binaires déjà distribués ET inscrite en
+    // liste blanche Supabase. Elle répond 301 vers le nouveau domaine, et Supabase la
+    // valide AVANT que le navigateur ne suive — le filet tient donc par la redirection.
+    // ➡️ La changer ici sans l'avoir d'abord ajoutée à la liste blanche Supabase la ferait
+    // IGNORER en silence (repli sur la « Site URL »). Les deux bougent ensemble ou pas.
     expect(URL_RETOUR_CONFIRMATION).toMatch(/^https:\/\/brgkevin-arch\.github\.io\/Kyroz-app\//);
   });
 

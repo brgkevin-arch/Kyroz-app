@@ -12,7 +12,12 @@
 
 ---
 
-## Étape 1 — L'URL de politique, dans les deux consoles
+## Étape 1 — L'URL de politique, dans les deux consoles ⚠️ À MOITIÉ FAITE
+
+> ✅ **App Store Connect : posée le 2026-08-18.**
+> ❌ **Play Console : reportée par le fondateur**, à faire avant la prochaine soumission
+> Android. ⚠️ Une seule des deux consoles remplie, c'est exactement la divergence entre
+> deux déclarations publiques que l'encadré de la Play Console ci-dessous met en garde.
 
 **Nouvelle valeur, identique des deux côtés :**
 
@@ -61,9 +66,13 @@ généré depuis la même source.
 
 ---
 
-## Étape 2 — App Store Connect → App Privacy
+## Étape 2 — App Store Connect → App Privacy ✅ PUBLIÉE le 2026-08-18
 
-⚠️ **C'est une PREMIÈRE déclaration, pas un ajout** — constaté à l'écran le
+> ✅ **Faite et publiée** : les quatre types déclarés, Photos non cochées. Ce qui suit
+> reste la référence des réponses — elle est **re-publiable à tout moment**, et c'est
+> elle qu'on relit avant de toucher à un event.
+
+⚠️ **C'était une PREMIÈRE déclaration, pas un ajout** — constaté à l'écran le
 2026-08-18 : la page ne montre aucune section « Types de données », seulement le texte
 d'introduction d'Apple et un bouton **Démarrer**. Il faut donc déclarer **tout** ce que
 Kyroz collecte, pas seulement la mesure d'audience.
@@ -102,7 +111,7 @@ Le débat « sur-déclare-t-on ? » qui figurait ici est **sans objet** : l'app 
 version en ligne dont les réponses devraient refléter la collecte. La déclaration
 partira avec la première soumission. Elle reste re-publiable à tout moment.
 
-Ajouter **un** type de données (tout le reste est déjà déclaré et ne bouge pas) :
+Le détail des réponses pour la ligne qui porte la mesure d'audience :
 
 | Champ | Valeur |
 |---|---|
@@ -123,7 +132,10 @@ Les réponses complètes sont dans `STORE-RELEASE.md` §4, à recopier.
 
 ---
 
-## Étape 3 — Play Console → Sécurité des données
+## Étape 3 — Play Console → Sécurité des données ❌ RESTE À FAIRE
+
+> ❌ **Non faite au 2026-08-18.** C'est, avec l'URL de l'étape 1, la moitié Android du
+> lot — et les deux se remplissent dans la même console, en une fois.
 
 **Play Console** → ton app → *Règles* → *Contenu de l'application* → **Sécurité des
 données**.
@@ -163,6 +175,10 @@ Ajouter, dans *Activité dans l'application* :
 **Rien ne se pose tant que les trois ne sont pas faits.** Ce sont les conditions
 écrites dans `RGPD-REGISTRE.md` et rappelées dans `.env.example`.
 
+> ✅ **LES TROIS SONT LEVÉS DEPUIS LE 2026-08-18** — et la clé est posée (étape 5). Ce
+> qui suit est donc l'archive de comment ils l'ont été, pas une liste à faire. Le
+> troisième n'a PAS été réglé par un réglage : il a été **arbitré**, cf. 4.3.
+
 ### 4.1 — Couper la collecte d'adresse IP ✅ FAIT — vérifié le 2026-08-18
 
 **Rien à faire.** Capture d'écran du projet Kyroz (`251977`, région `EU Cloud`),
@@ -200,9 +216,18 @@ le fondateur a partagé le PDF signé et il a été lu :
   tentatives — contenu chargé au clic, pas un tableau vide) nomme **Hiberly Ltd.**
   (Royaume-Uni) et **PostHog GmbH** (Allemagne).
 
-### 4.3 — Configurer la rétention à 18 mois
+### 4.3 — La rétention ✅ ARBITRÉ le 2026-08-18 — issue 3 retenue
 
-🔴 **Ce verrou n'est pas un réglage à cocher — il demande un arbitrage.**
+🔴 **Ce verrou n'était pas un réglage à cocher — il demandait un arbitrage.**
+
+> ✅ **Décision fondateur : réécrire la promesse plutôt que construire la purge**
+> (issue 3 ci-dessous). Les quatre surfaces disent maintenant **« au moins un an, sans
+> limite haute fixe »** — ce qui est vrai — au lieu de « 18 mois, puis supprimées », qui
+> ne l'était pas. ⚠️ **Ce n'est pas une régression de rétention, c'est le retrait d'une
+> fausse borne** : sans purge automatique, les données persistent au moins aussi
+> longtemps qu'avant. Aucune tâche récurrente créée ; la suppression reste **sur demande
+> individuelle**, par le mécanisme déjà en place (Réglages → Supprimer mes statistiques).
+> Détail et motif : `RGPD-REGISTRE.md`, et l'amendement du §3.5 de la synthèse.
 
 Vérification du 2026-08-18 : la doc PostHog **ne documente aucune rétention d'events
 configurable**. Le plan gratuit *garantit* 1 an de conservation, après quoi les données
@@ -230,6 +255,11 @@ et c'est précisément ce que ce verrou est là pour empêcher.
 les 18 mois par la comparaison d'une saison à l'autre. Avec une conservation d'un an
 sans garantie au-delà, **cette justification tombe** — c'est l'argument même qui avait
 écarté les 12 mois.
+
+> 📌 **Tranché depuis** (amendement du §3.5) : l'argument est en fait toujours servi.
+> Sans purge automatique, rien ne RACCOURCIT la durée réelle — seule la borne haute
+> **promise** change. On promet moins que ce qu'on garde, ce qui est le bon sens de
+> l'erreur.
 
 ---
 

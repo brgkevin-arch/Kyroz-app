@@ -73,5 +73,5 @@
     "design:build": "node scripts/design-system.mjs"
   },
   "private": true,
-  "homepage": "https://brgkevin-arch.github.io/Kyroz-app"
+  "homepage": "https://legal.kyroz.app"
 }

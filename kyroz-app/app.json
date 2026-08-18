@@ -56,9 +56,7 @@
       ],
       "expo-font"
     ],
-    "experiments": {
-      "baseUrl": "/Kyroz-app"
-    },
+    "experiments": {},
     "extra": {
       "router": {},
       "eas": {
