@@ -5,9 +5,10 @@
 > et LIVRÉE + DÉPLOYÉE** (`5a4fc63`). **Kyroz+ = « piloter son objectif dans le temps »**,
 > en **2 piliers** (cf. AGENTS.md, session Kyroz+ 2026-07-27). ⚠️ **Ils étaient 3 jusqu'au
 > 2026-08-18** : la banque de calories a été retirée de Kyroz+ ce jour-là (décision
-> fondateur). Le moteur reste, dégaté et renommé « Jours plus copieux » — un réglage
-> gratuit du rythme de la semaine. Ce n'est pas une suppression de fonction, c'est la fin
-> de sa vente.
+> fondateur). Le moteur reste, dégaté et renommé « Jours plus copieux », **puis ÉTEINT le
+> même jour** (`lib/featureFlags.ts::RYTHME_HEBDOMADAIRE_ACTIF`). Ce n'est pas une
+> suppression de fonction : le moteur, ses tests et la colonne restent intacts, et un
+> compte qui portait déjà un réglage n'en garde aucune trace, ni affichée ni servie.
 > 1. **🎯 Objectif daté** — poids cible + date → trajectoire calorique au rythme le plus
 >    rapide mais sûr (le « coffre » : le gratuit donne les clés, le premium le contenu).
 > 2. **📈 Trajectoire + réassurance** — zone ombrée sur la courbe (pas une ligne à suivre :
