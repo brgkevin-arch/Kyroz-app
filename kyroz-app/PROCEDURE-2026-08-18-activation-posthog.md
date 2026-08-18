@@ -63,8 +63,25 @@ généré depuis la même source.
 
 ## Étape 2 — App Store Connect → App Privacy
 
-**App Store Connect** → ton app → *Confidentialité de l'app* → *Données collectées* →
-**Modifier**.
+**App Store Connect** → ton app → *Confidentialité de l'app* → section **Types de
+données** → **Modifier** en face.
+
+Puis : sélectionner le type, **Enregistrer**, cliquer sur le type ajouté pour répondre
+à ses questions, et **Publier**.
+
+⚠️ **Publier prend effet IMMÉDIATEMENT sur la fiche produit — sans nouvelle version.**
+C'est l'inverse de l'URL de l'étape 1, qui attend la prochaine soumission. Deux
+conséquences :
+- la mention « Données d'utilisation » apparaîtra publiquement **le jour où tu
+  publies**, donc avant que la clé soit posée et qu'un seul événement parte ;
+- la doc Apple demande que les réponses reflètent *« the data collected only from that
+  app version »* — la version en ligne, elle, ne collecte rien.
+
+➡️ **Décision assumée : déclarer quand même maintenant.** Sur-déclarer est bénin et
+va dans le sens de l'utilisateur ; l'inverse — collecter avant d'avoir déclaré — est la
+faute qu'on ne peut pas rattraper. Et comme la publication est immédiate et
+re-publiable, rien n'est verrouillé. Si tu préfères l'autre lecture, cette étape se
+déplace telle quelle à l'étape 5, au moment de poser la clé.
 
 Ajouter **un** type de données (tout le reste est déjà déclaré et ne bouge pas) :
 

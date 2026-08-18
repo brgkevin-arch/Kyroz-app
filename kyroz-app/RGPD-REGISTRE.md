@@ -139,7 +139,12 @@ aucun test ne les attrapera. Elles font pourtant partie du même lot.
       aucun suivi inter-applications). Les réponses rédigées sont dans `STORE-RELEASE.md` §4.
 - [ ] **Play Console** → Sécurité des données : ajouter les **actions dans l'app**, consenties,
       non partagées à des fins publicitaires. Même source : `STORE-RELEASE.md` §4.
-- [ ] **URL de politique de confidentialité** dans les deux consoles → `https://kyroz.app/legal.html`
-      (répond 200). Remplace l'URL `brgkevin-arch.github.io` sous pseudo personnel.
+- [x] **URL de politique — App Store Connect** → `https://kyroz.app/legal.html`, posée le
+      2026-08-18 (*Confidentialité de l'app* → Politique de confidentialité → Modifier).
+      ⏳ Ne s'affichera sur la fiche qu'à la **prochaine version publiée** : d'ici là,
+      l'ancienne URL reste montrée, et elle répond toujours 200.
+- [ ] **URL de politique — Play Console** → même valeur. **Reporté au 2026-08-18 par le
+      fondateur**, à faire avant la prochaine soumission Android. Remplace l'URL
+      `brgkevin-arch.github.io` sous pseudo personnel.
 - [ ] **Console PostHog** : les trois verrous ci-dessus.
 
