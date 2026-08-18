@@ -163,43 +163,21 @@ Ajouter, dans *Activité dans l'application* :
 **Rien ne se pose tant que les trois ne sont pas faits.** Ce sont les conditions
 écrites dans `RGPD-REGISTRE.md` et rappelées dans `.env.example`.
 
-### 4.1 — Couper la collecte d'adresse IP
+### 4.1 — Couper la collecte d'adresse IP ✅ FAIT — vérifié le 2026-08-19
 
-**Settings** (icône en bas de la barre latérale) → colonne du milieu, section
-**Products** → **Privacy**. C'est là qu'est l'interrupteur **Discard client IP data**
-(« ne pas conserver l'IP du client »).
+**Rien à faire.** Capture d'écran du projet Kyroz (`251977`, région `EU Cloud`),
+`Settings → Products → Privacy` : l'interrupteur **Discard client IP data** est déjà
+**activé**. Les projets Cloud EU le désactivent par défaut à la création — ce verrou
+était une vérification, pas une action, et il est passé du premier coup.
 
-⚠️ **Vérifié le 2026-08-19 sur une capture d'écran réelle — la doc PostHog disait
-« Settings → Project → General », ce qui ne correspond pas à cette version de
-l'interface.** Sur le projet Kyroz (`251977`, région `EU Cloud`), le réglage vit sous
-**Products → Privacy**, pas sous un onglet « General ». Toujours se fier à ce qui
-s'affiche à l'écran plutôt qu'à une doc qui peut décrire une version antérieure.
+⚠️ **Le chemin documenté par PostHog (« Settings → Project → General ») ne
+correspondait pas à cette version de l'interface.** Toujours se fier à ce qui
+s'affiche à l'écran plutôt qu'à une doc qui peut décrire une autre version.
 
-Le même réglage a un défaut au niveau organisation : **Organization → General** →
-**IP data capture default**.
-
-⚠️ **REGARDER AVANT DE BASCULER — c'est probablement déjà fait.** La doc PostHog est
-explicite pour notre cas : sur **PostHog Cloud EU**, « IP data capture is automatically
-disabled by default for all new projects ». Si l'interrupteur est déjà dans cet état,
-il n'y a rien à cocher — mais deux choses écrites chez nous deviennent **fausses** et
-doivent être corrigées :
-- le commentaire de `lib/analytics.ts` : « le comportement PAR DÉFAUT de PostHog
-  s'applique (collecte + géolocalisation) » ;
-- la ligne **Adresse IP** du traitement n°2 dans `RGPD-REGISTRE.md`, qui la consigne
-  comme « collectée en l'état ».
-
-Cette prémisse avait été écrite d'après le défaut **général** de PostHog, jamais
-re-mesurée sur un projet **EU**. Le résultat compte dans les deux sens : si l'IP est
-déjà écartée, c'est une bonne nouvelle **et** une correction à faire.
-
-**Pourquoi c'est bloquant** : PostHog collecte et géolocalise l'IP **par défaut**, côté
-serveur. Le client de Kyroz n'envoie rien pour la neutraliser — le défaut s'applique
-donc entièrement. La politique de confidentialité ne parle pas d'IP : sans la coupure,
-elle devient fausse **par omission** dès le premier événement. Tant qu'aucune clé n'est
-posée, ce silence n'est pas une omission ; le jour de la clé, si.
-
-Une fois coupée : supprimer la ligne « Adresse IP » du traitement n°2 dans
-`RGPD-REGISTRE.md`.
+Corrigé dans la foulée : le commentaire de `lib/analytics.ts` et la ligne « Adresse
+IP » de `RGPD-REGISTRE.md` supposaient le défaut général de PostHog (collecte +
+géolocalisation). Faux pour ce projet précisément — les deux disent maintenant
+« écartée, vérifiée le 2026-08-19 ».
 
 ### 4.2 — Signer le DPA
 

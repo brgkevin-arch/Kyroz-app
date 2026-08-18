@@ -23,10 +23,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // ⚠️ NE JAMAIS appeler `identify`/`alias` vers l'id Supabase : ça rebrancherait le
 // pseudonyme sur le compte et ferait tomber toute la promesse d'un coup.
 //
-// ⚠️ L'ADRESSE IP EST UN RÉGLAGE SERVEUR, PAS CLIENT. Ce client n'envoie rien pour
-// la neutraliser, donc le comportement PAR DÉFAUT de PostHog s'applique (collecte +
-// géolocalisation). À couper côté projet PostHog AVANT de poser la clé — sinon la
-// promesse faite à l'écran de consentement est fausse dès le premier event.
+// ✅ ADRESSE IP — VÉRIFIÉ LE 2026-08-19 sur le projet EU de Kyroz (capture d'écran,
+// Settings → Products → Privacy) : « Discard client IP data » est ACTIVÉ. Ce n'était
+// pas une supposition à corriger après coup : le commentaire précédent affirmait que
+// le défaut PAR DÉFAUT de PostHog s'appliquait (collecte + géolocalisation) — c'était
+// vrai pour un projet générique, faux pour un projet Cloud EU, où ce réglage est
+// désactivé par défaut à la création. Ce client n'envoie toujours rien pour l'IP —
+// il n'en a pas besoin, le serveur ne la conserve pas.
 
 const POSTHOG_KEY = process.env.EXPO_PUBLIC_POSTHOG_KEY ?? '';
 const POSTHOG_HOST = 'https://eu.i.posthog.com';
