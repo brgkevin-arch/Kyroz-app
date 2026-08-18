@@ -1,4 +1,15 @@
-import { describe, it, expect, afterEach } from 'vitest';
+import { describe, it, expect, afterEach, vi } from 'vitest';
+
+// ⚠️ « Jours plus copieux » est ÉTEINT en production depuis le 2026-08-18
+// (`lib/featureFlags.ts`), et `planEngine::bankOf` cesse alors de lire la banque.
+// Ce fichier force l'interrupteur à `true` pour continuer de défendre le CONTRAT DU
+// MOTEUR — ce qu'il devra faire le jour où le parcours est rallumé. Le comportement
+// réel de l'app, interrupteur éteint, est couvert à part par `rythmeEteint.test.ts` :
+// sans ce second fichier, la suite entière décrirait une app qui n'existe plus.
+vi.mock('../featureFlags', () => ({
+  PARCOURS_HORS_PLAN_ACTIF: false,
+  RYTHME_HEBDOMADAIRE_ACTIF: true,
+}));
 import { buildLocalPlan, mealPoolSize, computeDailyTotals, profileSignature, swapMeal, computeDistribution, rebalanceDay, adaptDayOptions, effectiveMacros, resetTracking, mealIngredients, reAdaptMealRecipe, restDaySet, restDaysForProfile, goalDirection, dayTargetKcal, ON_TARGET_TOLERANCE_KCAL } from '../planEngine';
 import { setRecipeOverrides, RECIPES } from '../recipes';
 import { makeProfile } from './helpers';

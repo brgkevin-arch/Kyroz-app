@@ -14,7 +14,7 @@ App mobile React Native (Expo Router, SDK 56) de plans repas macro-précis pour 
 
 ## 1. Modèle économique
 
-**Freemium large.** Le core loop (génération de plan, plan, courses, recettes) est gratuit et fonctionne sans aucune clé API. La monétisation vient de features avancées, pas du blocage du cœur. **Valeur premium (Kyroz+) tranchée + construite (2026-07-27)** : *« piloter son objectif dans le temps »* — objectif daté (trajectoire calorique vers un poids à une date), suivi de transformation (zone/photos), et à venir la banque de calories. **Paiement = achat in-app Apple/Google via RevenueCat (pas Stripe seul, refusé par les stores). Le SDK est CÂBLÉ depuis le 2026-08-02 et DORMANT** : sans clé RevenueCat rien n'encaisse, et sans date dans `PAYWALL_LAUNCH` rien n'est verrouillé — les features restent gratuites pour tout le monde. Reste les comptes stores, un build natif et une revue (AGENTS.md B2). Détail : `MONETISATION.md` + AGENTS.md.
+**Freemium large.** Le core loop (génération de plan, plan, courses, recettes) est gratuit et fonctionne sans aucune clé API. La monétisation vient de features avancées, pas du blocage du cœur. **Valeur premium (Kyroz+) tranchée + construite (2026-07-27)** : *« piloter son objectif dans le temps »* — objectif daté (trajectoire calorique vers un poids à une date) et suivi de transformation (zone/photos). ⚠️ **Ils étaient TROIS jusqu'au 2026-08-18** : la banque de calories a été retirée de Kyroz+ (décision fondateur). Son moteur (`lib/calorieBank.ts`) est INTACT et branché, renommé « **Jours plus copieux** » — mais **ÉTEINT depuis le 2026-08-18** (décision fondateur), via `lib/featureFlags.ts::RYTHME_HEBDOMADAIRE_ACTIF = false`. L'écran ne le propose plus ET le moteur cesse de LIRE `calorie_bank` (`planEngine::bankOf`) : un compte qui portait déjà un réglage reçoit désormais la même semaine que s'il n'en avait jamais posé — sinon il resterait avec une valeur qu'aucun écran ne montre et que personne ne peut annuler. Le remettre derrière le paywall exige de repasser sur les CGU, qui énumèrent le contenu de Kyroz+. **Paiement = achat in-app Apple/Google via RevenueCat (pas Stripe seul, refusé par les stores). Le SDK est CÂBLÉ depuis le 2026-08-02 et DORMANT** : sans clé RevenueCat rien n'encaisse, et sans date dans `PAYWALL_LAUNCH` rien n'est verrouillé — les features restent gratuites pour tout le monde. Reste les comptes stores, un build natif et une revue (AGENTS.md B2). Détail : `MONETISATION.md` + AGENTS.md.
 
 > **Un seul rythme de sèche, et c'est structurant** (arbitré le 2026-07-31). Il n'y a
 > qu'un objectif « Sèche ». `cut_aggressive` est legacy, retiré des écrans et refermé
@@ -1962,7 +1962,7 @@ et l'écran ne sert qu'à juger le rendu (opacité forcée à 1). Procédure :
 ### La visite guidée dit ce que le code FAIT (2026-08-08)
 
 Un tour par onglet, déclenché **à la première visite de CET onglet** — jamais tous au
-démarrage. 20 bulles au total (plan 6 · profil 6 · recettes 3 · courses 3 · frigo 2),
+démarrage. 19 bulles au total (plan 5 · profil 6 · recettes 3 · courses 3 · frigo 2),
 mais une personne n'en voit que 6 le jour où elle ouvre le Plan. Servies d'un bloc, ce
 seraient 20 **interruptions modales** dans la même session : chaque bulle est une
 `Modal` dont les panneaux avalent les taps, pas une infobulle qu'on ignore.

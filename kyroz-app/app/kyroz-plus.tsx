@@ -52,13 +52,6 @@ const BRIQUES = [
       "réajuste tes calories à chaque pesée, et te dit franchement quand la date ne l'est pas.",
   },
   {
-    icone: 'wallet-outline' as const,
-    titre: 'Banque de calories',
-    corps:
-      "Un resto samedi ? Tu le déclares, Kyroz reprend l'écart sur tes autres jours. " +
-      "Tes protéines ne bougent pas, et aucun jour ne descend sous ton plancher de sécurité.",
-  },
-  {
     icone: 'trending-up-outline' as const,
     titre: 'Suivi de transformation',
     corps:
@@ -70,7 +63,8 @@ const BRIQUES = [
 const GRATUIT =
   "Ton plan de la semaine macro par macro, ta liste de courses, toutes les recettes, " +
   "ton frigo, tes favoris, ta série, ta pesée et le recalcul de tes calories, " +
-  "et la synchro de ton compte. Rien de tout ça ne passera jamais derrière un abonnement.";
+  "le réglage de tes jours plus copieux, et la synchro de ton compte. " +
+  "Rien de tout ça ne passera jamais derrière un abonnement.";
 
 export default function KyrozPlusScreen() {
   const t = useTheme();
@@ -119,7 +113,7 @@ export default function KyrozPlusScreen() {
       await dialog.notify({
         title: r.entitled ? 'Kyroz+ est actif' : 'Achat enregistré',
         message: r.entitled
-          ? 'Tes trois outils sont débloqués. Le renouvellement se gère dans ton compte ' + store + '.'
+          ? 'Tes deux outils sont débloqués. Le renouvellement se gère dans ton compte ' + store + '.'
           : "L'achat est passé mais le droit n'est pas encore actif. Il le sera d'ici quelques instants.",
       });
       return;
@@ -241,7 +235,7 @@ export default function KyrozPlusScreen() {
                 </Presse>
                 {!encaissable && (
                   <Text style={s.mentions}>
-                    L'abonnement n'est pas encore ouvert sur cette version de l'app. Tes trois
+                    L'abonnement n'est pas encore ouvert sur cette version de l'app. Tes deux
                     outils restent actifs en attendant.
                   </Text>
                 )}

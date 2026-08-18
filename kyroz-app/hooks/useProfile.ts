@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { UserProfile } from '../lib/types';
 import { useAuth } from './useAuth';
 import { pushProfile, markProfileDirty, clearProfileDirty } from '../lib/sync';
-import { normalizeGoal, normalizeMeals, normalizeMealSlots, normalizeProfileActivity, normalizeVariety } from '../lib/syncGuard';
+import { normalizeCalorieBank, normalizeGoal, normalizeMeals, normalizeMealSlots, normalizeProfileActivity, normalizeVariety } from '../lib/syncGuard';
 import { recalcProfile } from '../lib/tdee';
 
 const PROFILE_KEY = '@kyroz:profile';
@@ -50,7 +50,7 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
       // profil RÉEL (`variety: 'high'`, `meals: 4` au lieu d'un tableau). Le moteur les
       // absorbait en silence, mais l'écran « Paramètres des repas » CRASHAIT dessus —
       // donc le réglage était impossible à ouvrir, sans explication. On les referme ici.
-      const stored = raw ? normalizeMeals(normalizeMealSlots(normalizeVariety(normalizeGoal(normalizeProfileActivity(JSON.parse(raw)))))) : null;
+      const stored = raw ? normalizeCalorieBank(normalizeMeals(normalizeMealSlots(normalizeVariety(normalizeGoal(normalizeProfileActivity(JSON.parse(raw))))))) : null;
       // fix P0.1 : le plancher de sécurité doit être RÉTROACTIF. Les cibles étaient
       // figées en base et ne repassaient par `safetyFloorKcal` qu'à la prochaine
       // édition ou pesée : un profil dormant continuait d'être servi à 1200 kcal
