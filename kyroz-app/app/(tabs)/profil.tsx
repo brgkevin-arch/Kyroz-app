@@ -14,7 +14,7 @@ import { ACCENTS, ACCENT_IDS, useAccentId, setAccentId, readableOn } from '../..
 import { DISCLAIMER } from '../../constants/legal';
 import { CIQUAL_ATTRIBUTION } from '../../lib/foods';
 import { Card, PrimaryButton, Chip, OptionCard, Field, SectionLabel, Segmented, SectionTitle, MenuRow } from '../../components/ui';
-import { bankedDailyTargets, offsetsForPlan } from '../../lib/calorieBank';
+import { bankedDailyTargets, offsetsForPlan, servedWeekdays } from '../../lib/calorieBank';
 import { usePremium } from '../../hooks/usePremium';
 import { PremiumFeature, AccessReason } from '../../lib/premium';
 import { Sheet } from '../../components/Sheet';
@@ -1783,7 +1783,12 @@ function makeStyles(t: ThemePalette) {
 /** Résumé d'une ligne de menu : « Samedi +600 » / « Tous mes jours pareils ». */
 function bankResume(p: UserProfile): string {
   const bank = p.calorie_bank ?? {};
-  const jours = WEEKDAY_OPTS.filter((o) => bank[String(o.val)]);
+  // ⚠️ NE PAS revenir à `WEEKDAY_OPTS` tout court : c'était le bug du 2026-08-18.
+  // Les 7 jours annonçaient « Sam +600 » alors que le moteur ignore un jour absent
+  // du plan — un chiffre affiché qui n'était pas celui qui allait être servi (§10).
+  // `servedWeekdays` EST la règle du moteur (`offsetsForPlan` l'appelle aussi).
+  const servis = new Set(servedWeekdays(p.plan_weekdays, Math.min(Math.max(p.plan_days ?? 7, 1), 7)));
+  const jours = WEEKDAY_OPTS.filter((o) => servis.has(o.val) && bank[String(o.val)]);
   if (!jours.length) return 'Tous mes jours pareils';
   return jours
     .map((o) => `${o.label} ${bank[String(o.val)]! > 0 ? '+' : ''}${bank[String(o.val)]}`)

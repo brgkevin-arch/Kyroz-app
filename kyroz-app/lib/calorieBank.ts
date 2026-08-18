@@ -91,6 +91,22 @@ export interface BankResult {
  * le moteur en « jour 6 du plan ». Un écart posé sur un jour hors du plan est
  * simplement ignoré — il ne peut pas être servi.
  */
+/**
+ * Les jours de la semaine que le plan SERT réellement — **règle unique**.
+ *
+ * Elle existe parce qu'elle était implicite, et qu'un écran l'avait perdue :
+ * `profil.tsx::bankResume` annonçait « Sam +600 » en lisant la banque brute,
+ * alors que le moteur ignore un jour absent du plan. Un chiffre affiché doit
+ * être celui qui sera servi (CLAUDE.md §10) — donc tout ce qui décide « ce jour
+ * compte-t-il ? » passe par ici, moteur comme affichage.
+ *
+ * ⚠️ La troncature à `days` n'est pas décorative : `plan_weekdays` peut être plus
+ * long que `plan_days`, et seuls les `days` PREMIERS jours sont servis.
+ */
+export function servedWeekdays(planWeekdays: number[] | undefined, days: number): number[] {
+  return (planWeekdays ?? []).slice(0, Math.max(0, days));
+}
+
 export function offsetsForPlan(
   bank: Record<string, number> | undefined,
   planWeekdays: number[] | undefined,
@@ -98,8 +114,8 @@ export function offsetsForPlan(
 ): DayOffsets {
   const out: DayOffsets = {};
   if (!bank) return out;
-  const wd = planWeekdays ?? [];
-  for (let i = 0; i < days; i++) {
+  const wd = servedWeekdays(planWeekdays, days);
+  for (let i = 0; i < wd.length; i++) {
     const kcal = bank[String(wd[i])];
     if (typeof kcal === 'number' && Number.isFinite(kcal) && kcal !== 0) out[i + 1] = kcal;
   }

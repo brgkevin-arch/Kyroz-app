@@ -62,7 +62,19 @@ menée à la ressemblance l'emporterait.
 | Événement analytics `offPlanLogged` | `lib/analytics.ts:214` | **MORT** | (PostHog est de toute façon dormant) |
 | Étape de visite guidée `plan-offplan` | `lib/tours.ts` | **SUPPRIMÉE par #114** | son texte est conservé en commentaire |
 | Tests | `offPlanJournal.test.ts` (**20 cas**) + blocs dans `planEngine.test.ts`, `carryTracking.test.ts`, `feuillesEmpilees.test.ts` | VERTS | couvrent du code inatteignable |
-| **Données utilisateur** | AsyncStorage `@kyroz:offPlan` (180 j / 200 entrées max) | **PERSISTE** | plus rien ne l'écrit ; `pruneJournal` ne tourne qu'au chargement, donc l'élagage ne s'exécute plus non plus |
+| **Données utilisateur** | AsyncStorage `@kyroz:offPlan` (180 j / 200 entrées max) | **GELÉ** | voir la précision ci-dessous |
+
+### ⚠️ Précision mesurée sur le journal stocké — il est GELÉ, pas en décroissance
+
+`loadJournal` élague bien (`pruneJournal`) et il tourne encore : `useOffPlanJournal` est
+appelé à chaque montage du Profil. **Mais il élague EN MÉMOIRE et n'écrit jamais.** Seuls
+`recordOffPlan` / `resolveOffPlan` / `forgetOffPlan` / `removeDisplayed` appellent
+`saveJournal` — et aucun n'a plus d'appelant. Conséquence : la liste stockée sur le
+téléphone est **figée telle quelle**, y compris ses entrées de plus de 180 jours, qui ne
+seront jamais réellement effacées. Avant #114 elle se purgeait par effet de bord, à chaque
+nouvel écart écrit.
+
+➡️ **La règle de rétention de 180 jours que le produit s'est donnée ne s'applique donc plus.**
 
 ### ⚠️ Le partagé à ne pas supprimer par ricochet
 

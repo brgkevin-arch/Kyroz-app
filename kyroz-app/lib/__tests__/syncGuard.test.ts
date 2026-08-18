@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { decideProfileHydration, normalizeMeals, normalizeProfileActivity, normalizeVariety, reconcileCloudSports } from '../syncGuard';
-import { SportSession } from '../types';
+import { decideProfileHydration, normalizeCalorieBank, normalizeMeals, normalizeProfileActivity, normalizeVariety, reconcileCloudSports } from '../syncGuard';
+import { offsetsForPlan, servedWeekdays } from '../calorieBank';
+import { SportSession, UserProfile } from '../types';
 
 const SPORTS: SportSession[] = [
   { type: 'musculation', sessions_per_week: 4, minutes_per_session: 60 },
@@ -162,5 +163,75 @@ describe('normalizeMeals — un `meals` non-tableau tuait un écran entier', () 
     const p = { weight_kg: 84 };
     expect(normalizeMeals(p)).toBe(p);
     expect(normalizeMeals(null)).toBeNull();
+  });
+});
+
+
+// ── Écart orphelin de « Jours plus copieux » (2026-08-18) ────────────────────
+//
+// Le défaut MESURÉ : « Sam +600 » posé, puis samedi retiré du plan. Le moteur
+// servait une semaine plate ([2000 ×5]) pendant que la ligne du Profil continuait
+// d'annoncer « Sam +600 » — et l'écart ressuscitait le jour où samedi revenait.
+describe('normalizeCalorieBank — un écart orphelin ne doit pas survivre au chargement', () => {
+  type P = Partial<UserProfile>;
+  const base: P = { plan_weekdays: [1, 2, 3, 4, 5], plan_days: 5 };
+
+  it('retire l’écart posé sur un jour ABSENT du plan', () => {
+    const p = { ...base, calorie_bank: { '6': 600 } };
+    expect(normalizeCalorieBank(p)!.calorie_bank).toBeUndefined();
+  });
+
+  it('garde l’écart posé sur un jour PRÉSENT dans le plan', () => {
+    const p = { ...base, calorie_bank: { '3': 500 } };
+    expect(normalizeCalorieBank(p)!.calorie_bank).toEqual({ '3': 500 });
+  });
+
+  it('ne garde que les jours servis quand les deux coexistent', () => {
+    const p = { ...base, calorie_bank: { '3': 500, '6': 600 } };
+    expect(normalizeCalorieBank(p)!.calorie_bank).toEqual({ '3': 500 });
+  });
+
+  it('retire une valeur nulle ou illisible — elle n’aurait rien servi non plus', () => {
+    const p = { ...base, calorie_bank: { '3': 0, '4': NaN, '5': 300 } };
+    expect(normalizeCalorieBank(p)!.calorie_bank).toEqual({ '5': 300 });
+  });
+
+  it('🔴 CONSERVATEUR : `plan_weekdays` absent ou vide = aucune information, on ne touche à RIEN', () => {
+    // Sans cette garde, un profil chargé avant que les jours ne soient hydratés
+    // perdrait son réglage — le normaliseur ferait plus de dégâts que le défaut.
+    const sansJours: P = { calorie_bank: { '6': 600 } };
+    expect(normalizeCalorieBank(sansJours)!.calorie_bank).toEqual({ '6': 600 });
+    const joursVides: P = { plan_weekdays: [], calorie_bank: { '6': 600 } };
+    expect(normalizeCalorieBank(joursVides)!.calorie_bank).toEqual({ '6': 600 });
+  });
+
+  it('rend l’IDENTITÉ quand rien ne change (pas de re-rendu ni de push inutile)', () => {
+    const p = { ...base, calorie_bank: { '3': 500 } };
+    expect(normalizeCalorieBank(p)).toBe(p);
+  });
+
+  it('un profil sans banque traverse sans être touché', () => {
+    const p = { ...(base as object) };
+    expect(normalizeCalorieBank(p)).toBe(p);
+  });
+
+  it('🔴 CE QUE LE NORMALISEUR GARDE = CE QUE LE MOTEUR SERT (anti-divergence)', () => {
+    // C'est LA propriété qui manquait : l'affichage et la donnée lisaient une règle,
+    // le moteur une autre. Si les deux se remettent à diverger, ce cas rougit.
+    const p: P = { plan_weekdays: [1, 2, 3, 4, 5], plan_days: 5, calorie_bank: { '3': 500, '6': 600 } };
+    const gardés = Object.keys(normalizeCalorieBank(p)!.calorie_bank ?? {});
+    const servis = servedWeekdays(p.plan_weekdays, 5).map(String).filter((j) => p.calorie_bank![j]);
+    expect(gardés).toEqual(servis);
+    expect(Object.keys(offsetsForPlan(p.calorie_bank, p.plan_weekdays, 5))).toHaveLength(gardés.length);
+  });
+});
+
+describe('servedWeekdays — la règle unique « ce jour compte-t-il ? »', () => {
+  it('tronque à `days` : plan_weekdays peut être plus long que plan_days', () => {
+    expect(servedWeekdays([1, 2, 3, 4, 5, 6, 0], 5)).toEqual([1, 2, 3, 4, 5]);
+  });
+  it('tolère l’absence et les bornes absurdes', () => {
+    expect(servedWeekdays(undefined, 5)).toEqual([]);
+    expect(servedWeekdays([1, 2], -3)).toEqual([]);
   });
 });

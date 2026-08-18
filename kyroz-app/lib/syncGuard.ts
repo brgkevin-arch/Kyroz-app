@@ -127,6 +127,39 @@ export function normalizeVariety<T extends Partial<UserProfile>>(p: T | null): T
   return { ...p, variety: VARIETES_ALIAS[String(p.variety)] ?? 'balanced' };
 }
 
+// ── Écart orphelin dans « Jours plus copieux » (2026-08-18) ─────────────────
+//
+// `profiles.calorie_bank` est indexé par jour de semaine. Retirer ce jour du plan
+// ne retire pas l'écart : le moteur l'ignore (`offsetsForPlan` ne lit que les jours
+// servis), mais la valeur reste en base. Deux dégâts, dont un mesuré :
+//  · la ligne du Profil annonçait « Sam +600 » sur un plan qui servait une semaine
+//    plate — un chiffre affiché qui n'est pas celui qui sera servi (§10) ;
+//  · et l'écart RESSUSCITAIT en silence le jour où le samedi revenait dans le plan,
+//    des mois plus tard, sans que rien ne l'ait redemandé.
+//
+// L'affichage est corrigé à part (`profil.tsx::bankResume` lit désormais la même
+// règle que le moteur) ; ici on referme la donnée, comme `normalizeVariety`.
+//
+// ⚠️ VOLONTAIREMENT CONSERVATEUR : on ne retire que les jours ABSENTS de
+// `plan_weekdays`, jamais ceux qui en sortent par la troncature à `plan_days` —
+// le compteur de jours bouge d'un écran à l'autre, l'appartenance au plan non.
+// Un normaliseur qui supprime plus que le moteur n'ignore ferait perdre un réglage
+// valide, ce qui est pire que le défaut qu'il corrige.
+// ⚠️ `plan_weekdays` absent ou vide = AUCUNE information → on ne touche à rien.
+export function normalizeCalorieBank<T extends Partial<UserProfile>>(p: T | null): T | null {
+  if (!p || !p.calorie_bank) return p;
+  const jours = p.plan_weekdays;
+  if (!Array.isArray(jours) || jours.length === 0) return p;
+  const gardés = new Set(jours.map(String));
+  const propre: Record<string, number> = {};
+  for (const [k, v] of Object.entries(p.calorie_bank)) {
+    if (gardés.has(k) && typeof v === 'number' && Number.isFinite(v) && v !== 0) propre[k] = v;
+  }
+  const inchangé = Object.keys(propre).length === Object.keys(p.calorie_bank).length;
+  if (inchangé) return p;                                   // identité : pas de re-rendu inutile
+  return { ...p, calorie_bank: Object.keys(propre).length ? propre : undefined };
+}
+
 // ── `meals` qui n'est pas un tableau (2026-08-02) ───────────────────────────
 //
 // Trouvé sur le même profil réel, et c'est le plus grave des deux : `meals: 4`,
