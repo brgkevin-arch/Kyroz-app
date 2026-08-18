@@ -20,10 +20,37 @@
 https://kyroz.app/legal.html
 ```
 
-- **App Store Connect** → ton app → *Informations sur l'app* → **URL de politique de
-  confidentialité**.
-- **Play Console** → ton app → *Contenu de l'application* → *Politique de
-  confidentialité* → **URL**.
+### App Store Connect
+
+⚠️ **Ce n'est PAS dans « Informations sur l'app »** — c'est l'erreur qu'a faite la
+première version de cette procédure, et le champ est introuvable si on le cherche là.
+
+1. **Apps** → sélectionner Kyroz
+2. Dans la **barre latérale** → **Confidentialité de l'app** (*App privacy*)
+3. En face de **Politique de confidentialité** (*Privacy Policy*) → **Modifier**
+4. Coller l'URL → **Enregistrer**
+
+Le champ est **par plateforme**, pas par version, et il est localisable. Rôle requis :
+Account Holder, Admin, App Manager ou Marketing.
+
+⏳ **Le changement ne s'applique qu'à la prochaine version publiée** (« Any changes to
+the URLs releases with your next app version »). La fiche App Store continuera donc
+d'afficher l'ancienne URL jusqu'à la prochaine soumission — sans conséquence : elle
+répond toujours 200 et sert le même texte. Ce qui compte, c'est que la nouvelle soit
+posée **avant** cette soumission.
+📄 <https://developer.apple.com/help/app-store-connect/manage-app-information/manage-app-privacy>
+
+### Play Console
+
+1. **Règles et programmes** → **Contenu de l'application** (*App content*)
+2. Carte **Politique de confidentialité** → **Démarrer** (ou **Gérer** si déjà remplie)
+3. Coller l'URL → **Enregistrer**
+
+> ⚠️ Il existe aussi un champ « Politique de confidentialité » dans la **fiche Store**
+> (*Store listing*) selon les versions de l'interface. Si tu le vois, mets la même
+> valeur aux deux endroits : deux champs qui divergent, c'est la contradiction publique
+> qu'on passe justement ce lot à supprimer.
+📄 <https://support.google.com/googleplay/android-developer/answer/9859455>
 
 **Pourquoi** : l'ancienne (`https://brgkevin-arch.github.io/Kyroz-app/legal.html`)
 reste servie et valide, mais elle affiche un **pseudo personnel** dans un champ public
