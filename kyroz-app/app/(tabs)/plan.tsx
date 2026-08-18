@@ -41,7 +41,7 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { buildLocalPlan, carryTracking, nextPlanSeed, profileSignature, swapMeal, computeDailyTotals, rebalanceDay, resetTracking, adaptDayOptions, AdaptOption, mealIngredients, reAdaptMealRecipe, mealPoolSize, dayTargetKcal, baseDayTargets, ON_TARGET_TOLERANCE_KCAL } from '../../lib/planEngine';
 import { DISLIKE_THRESHOLD, dislikeCandidates, applyDislikedIngredient } from '../../lib/dislike';
 import { todayStamp } from '../../lib/weight';
-import { recordOffPlan, resolveOffPlan, forgetOffPlan } from '../../lib/offPlanJournal';
+import { recordOffPlan, resolveOffPlan, forgetOffPlan, PARCOURS_HORS_PLAN_ACTIF } from '../../lib/offPlanJournal';
 import { isBirthday, ageOn } from '../../lib/birthday';
 import { getRecipeById, getBaseRecipe } from '../../lib/recipes';
 import { useRecipeOverrides } from '../../hooks/useRecipeOverrides';
@@ -199,7 +199,8 @@ export default function PlanScreen() {
   // Cibles de la visite guidée (ref directe sur l'élément → spotlight aligné).
   const serieRef = useTourTarget('plan-serie');
   const macrosRef = useTourTarget('plan-macros');
-  const offplanRef = useTourTarget('plan-offplan');
+  // ⚠️ `useTourTarget('plan-offplan')` a été RETIRÉ avec l'étape de visite guidée
+  // qui s'y ancrait (cf. PARCOURS_HORS_PLAN_ACTIF, lib/offPlanJournal.ts).
   const repartitionRef = useTourTarget('plan-repartition');
 
   // Les cibles des jours diffèrent-elles réellement ? Sans sport déclaré, non —
@@ -887,9 +888,11 @@ export default function PlanScreen() {
                     chiffre du jour pesaient plus que lui. Ce sont des sorties de route,
                     pas l'action principale de l'écran — elles se fondent dans la page. */}
                 <View style={s.actionsRow}>
-                  <Presse ref={offplanRef} onPress={() => setOffPlanOpen(true)} activeOpacity={OPACITE_PRESSION} style={s.actionBtn}>
-                    <Text style={s.actionTxt}>+ J'ai mangé hors plan</Text>
-                  </Presse>
+                  {PARCOURS_HORS_PLAN_ACTIF && (
+                    <Presse onPress={() => setOffPlanOpen(true)} activeOpacity={OPACITE_PRESSION} style={s.actionBtn}>
+                      <Text style={s.actionTxt}>+ J'ai mangé hors plan</Text>
+                    </Presse>
+                  )}
                   {/* Découvrabilité de la perso macros (le fork a été retiré de l'onboarding) :
                       deep-link vers l'éditeur « Calories & macros » du Profil. */}
                   <Presse

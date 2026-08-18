@@ -25,6 +25,30 @@ import { todayStamp } from './weight';
 // le produit refuse (CLAUDE.md §10, règle produit). Le message est « le moteur a
 // encaissé », pas « tu as dérapé ».
 
+// ── 🔴 PARCOURS MIS DE CÔTÉ LE 2026-08-18 (décision fondateur) ───────────────
+//
+// Le parcours « J'ai mangé hors plan » n'est plus OUVRABLE : le bouton de l'écran
+// Plan et la ligne « Écarts passés » du Profil sont retirés. RIEN N'EST SUPPRIMÉ —
+// ce module, `plan.tsx::logOffPlan`, `planEngine::adaptDayOptions`, la feuille de
+// recalage et leurs tests restent en place et verts. C'est une mise de côté, pas
+// une dépose.
+//
+// POUR LE REMETTRE : repasser cette constante à `true`, PUIS remettre les deux
+// choses qui ne sont pas gardées par elle (elles sont marquées du même mot-clé,
+// `PARCOURS_HORS_PLAN_ACTIF`, donc elles se retrouvent en une recherche) :
+//  · `lib/tours.ts` — l'étape `plan-offplan` de la visite guidée ;
+//  · `app/(tabs)/plan.tsx` — le `useTourTarget('plan-offplan')` qui l'ancre.
+//
+// ⚠️ POURQUOI L'ÉTAPE DE VISITE DOIT PARTIR AVEC LE BOUTON, et pas seulement se
+// cacher : une étape dont la cible n'existe pas assombrissait l'écran SANS bulle
+// ni « Passer » — donc sans aucune sortie (défaut mesuré, AGENTS.md E50). Laisser
+// l'étape en place aurait transformé une mise de côté en écran bloquant.
+//
+// ⚠️ Les écarts DÉJÀ posés continuent de s'afficher sur le Plan (le bloc
+// « + N kcal assumées » et son « Retirer ») : on ne fait pas disparaître une
+// donnée que quelqu'un a saisie. Simplement, on ne peut plus en créer.
+export const PARCOURS_HORS_PLAN_ACTIF = false;
+
 export interface OffPlanEntry {
   /** 'YYYY-MM-DD' LOCAL, jour où l'écart a été posé. */
   date: string;

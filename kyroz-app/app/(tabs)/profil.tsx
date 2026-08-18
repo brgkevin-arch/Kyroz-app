@@ -41,7 +41,7 @@ import { useProfile } from '../../hooks/useProfile';
 import { useStreak } from '../../hooks/useStreak';
 import { useWeightLog } from '../../hooks/useWeightLog';
 import { useOffPlanJournal } from '../../hooks/useOffPlanJournal';
-import { journalSummary } from '../../lib/offPlanJournal';
+import { journalSummary, PARCOURS_HORS_PLAN_ACTIF } from '../../lib/offPlanJournal';
 import { useReminder } from '../../hooks/useReminder';
 import { usePlanCheckin } from '../../hooks/usePlanCheckin';
 import { useAuth } from '../../hooks/useAuth';
@@ -636,12 +636,14 @@ export default function ProfilScreen() {
               subi : la paire se lit toute seule, d'où le voisinage.
               ⚠️ Plus aucun verrou premium ici depuis le 2026-08-18 (cf. `lib/premium.ts`) :
               `openEditor` n'ouvre donc plus le paywall pour cette ligne, il ouvre l'éditeur. */}
-          <MenuRow t={t} label="Jours plus copieux" value={bankResume(profile)} onPress={() => setEditor('calorie_bank')} />
+          <MenuRow t={t} label="Jours plus copieux" value={bankResume(profile)} onPress={() => setEditor('calorie_bank')} last={!PARCOURS_HORS_PLAN_ACTIF} />
           {/* ⚠️ La VALEUR ne COMPTE PAS les écarts, et ce n'est pas un oubli de
               rangement : un score posé là mettrait la pression sans qu'on ouvre quoi
               que ce soit (règle anti charge mentale). Elle reste un FAIT daté — ce
               que la nouvelle règle de forme demande — sans devenir un score. */}
-          <MenuRow t={t} label="Écarts passés" value={journalSummary(journal.entries)} onPress={openOffPlan} last />
+          {PARCOURS_HORS_PLAN_ACTIF && (
+            <MenuRow t={t} label="Écarts passés" value={journalSummary(journal.entries)} onPress={openOffPlan} last />
+          )}
         </View>
 
         {/* Une ACTION n'a pas de valeur à droite, donc pas sa place dans une liste de
