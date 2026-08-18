@@ -4,6 +4,7 @@ import { Presse } from './Presse';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
+import { useRouter } from 'expo-router';
 import { useTheme, ThemePalette, Spacing, Radius, Type, Trait, Icone, OPACITE_PRESSION, CIBLE_TACTILE_MIN } from '../constants/theme';
 import { useLayout } from '../constants/layout';
 import { AnalyticsConsent } from '../lib/analytics';
@@ -59,6 +60,7 @@ export default function AnalyticsConsentStep({ onChoose }: Props) {
   const t = useTheme();
   const s = useMemo(() => makeStyles(t), [t]);
   const layout = useLayout();
+  const router = useRouter();
   const [busy, setBusy] = useState(false);
 
   const repondre = (c: AnalyticsConsent) => {
@@ -108,15 +110,37 @@ export default function AnalyticsConsentStep({ onChoose }: Props) {
             mesures d'un même téléphone se regroupent — c'est ce qui rend possible
             la suppression sur demande. Promettre l'anonymat ET la suppression
             serait se contredire (synthèse §3.3). */}
+        {/* ⚠️ CETTE NOTE NE NOMMAIT PERSONNE, et c'est le trou qu'on ne voit pas en la
+            relisant : « hébergées dans l'Union européenne » se lit « hébergées par
+            Kyroz, en Europe ». Un consentement qui ne dit pas À QUI les données vont
+            n'est pas éclairé (RGPD art. 13-1-e) — et c'est le seul écran où il se
+            donne. ➡️ Le destinataire se nomme ICI, pas seulement dans la politique.
+            ⚠️ Et « dans l'UE » ne suffit pas non plus : le STOCKAGE est à Francfort,
+            le transit passe par des points de présence mondiaux. On dit ce qu'on
+            sait — le stockage — sans transformer une localisation de serveurs en
+            promesse plus large que ce qu'elle couvre. */}
         <Text style={s.note}>
-          Les mesures sont rattachées à un identifiant tiré au hasard sur ton téléphone —
-          jamais à ton compte, jamais à ton e-mail. Elles sont hébergées dans l’Union
-          européenne et conservées 18 mois.
+          Les mesures sont rattachées à un identifiant pseudonyme tiré au hasard sur ton
+          téléphone — jamais à ton compte, jamais à ton e-mail. Elles sont envoyées à
+          PostHog, l’outil qui nous sert à les lire, et stockées sur ses serveurs de
+          Francfort pendant 18 mois.
         </Text>
         <Text style={s.note}>
           Tu peux changer d’avis quand tu veux dans Réglages, et demander la suppression
           de ce qui a déjà été envoyé.
         </Text>
+        {/* Le lien vise la route IN-APP, jamais une URL web : Kyroz fonctionne hors
+            ligne, et `/legal` est rendu depuis `constants/legal.ts` — la même source
+            que la page publique. Un lien web serait mort dans l'avion et pourrait
+            servir un texte plus vieux que celui de l'app. */}
+        <Presse
+          onPress={() => router.push('/legal')}
+          hitSlop={10}
+          activeOpacity={OPACITE_PRESSION}
+          accessibilityRole="link"
+        >
+          <Text style={s.lien}>Tout est détaillé dans Confidentialité &amp; CGU</Text>
+        </Presse>
       </ScrollView>
 
       {/* Deux boutons de MÊME taille : refuser doit coûter exactement le même geste
@@ -164,6 +188,7 @@ function makeStyles(t: ThemePalette) {
     puce: { width: 4, height: 4, borderRadius: 2, marginTop: Spacing.sm },
     ligneTxt: { ...Type.bodySmall, color: t.textSecondary, flex: 1, lineHeight: 20 },
     note: { ...Type.caption, color: t.textTertiary, lineHeight: 18 },
+    lien: { ...Type.caption, color: t.accent, lineHeight: 18, textDecorationLine: 'underline' },
     footer: { padding: Spacing.xl, paddingTop: Spacing.sm, backgroundColor: t.bg, borderTopWidth: Trait.fin, borderTopColor: t.line, gap: Spacing.md },
     row: { flexDirection: 'row', gap: Spacing.md },
     btn: { flex: 1, minHeight: CIBLE_TACTILE_MIN, paddingVertical: Spacing.lg, borderRadius: Radius.button, alignItems: 'center', justifyContent: 'center' },

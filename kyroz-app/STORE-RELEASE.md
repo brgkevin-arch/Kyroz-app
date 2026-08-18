@@ -491,7 +491,15 @@ Un chiffre faux dans une fiche de store est une allégation fausse, pas une coqu
 **Catégorie** : Santé et forme (Health & Fitness). Secondaire (Google) : Nutrition.
 
 **URL politique de confidentialité** (obligatoire, déjà en ligne, HTTP 200) :
-`https://brgkevin-arch.github.io/Kyroz-app/legal.html`
+`https://kyroz.app/legal.html`
+
+> Changée le 2026-08-18. L'ancienne (`https://brgkevin-arch.github.io/Kyroz-app/legal.html`)
+> reste servie et valide, mais elle expose un **pseudo personnel** dans un champ public de
+> fiche produit. La nouvelle est sur le domaine de la marque et sert le **même fichier
+> généré** depuis `constants/legal.ts`. ⚠️ Ne PAS déplacer le site Pages de l'app derrière un
+> domaine personnalisé pour arriver au même résultat : ce Pages sert aussi `confirme.html`,
+> l'URL de retour de confirmation d'e-mail, codée en dur (`lib/emailConfirmation.ts`) donc
+> gravée dans les binaires déjà distribués, et inscrite en liste blanche Supabase.
 
 **Support / contact** : `contact@kyroz.app`
 
@@ -500,9 +508,14 @@ Un chiffre faux dans une fiche de store est une allégation fausse, pas une coqu
 ## 4. Confidentialité — réponses aux formulaires (fondées sur le vrai flux de données)
 
 > Base factuelle : compte Supabase (UE), profil = données de santé, photos
-> **local-only jamais envoyées**, **aucune analytics active** (PostHog câblé mais
-> DORMANT, sans clé), pas de pub, pas de tracking tiers. Suppression du compte +
-> données possible **dans l'app** (Profil → supprimer le compte).
+> **local-only jamais envoyées**, **mesure d'audience consentie** (PostHog Cloud EU,
+> stockage à Francfort — traitement n°2 du registre), pas de pub, pas de tracking
+> inter-applications. Suppression du compte + données possible **dans l'app**
+> (Profil → supprimer le compte).
+>
+> ⚠️ **Ces deux formulaires se remplissent ENSEMBLE.** Ils décrivent le même flux de
+> données dans deux vocabulaires ; n'en mettre qu'un à jour crée une contradiction que
+> personne ne relit — et ce sont deux déclarations publiques, pas deux brouillons.
 
 ### Apple — « App Privacy »
 | Donnée | Collectée ? | Usage | Liée à l'identité ? | Tracking ? |
@@ -511,20 +524,30 @@ Un chiffre faux dans une fiche de store est une allégation fausse, pas une coqu
 | Santé & forme (poids, objectif, régime) | Oui | Fonctionnement de l'app | Oui | Non |
 | Identifiant utilisateur (ID compte) | Oui | Fonctionnement de l'app | Oui | Non |
 | Photos (progression) | **Non collectée** | — | — | — (restent sur l'appareil) |
-| Données d'usage / analytics | **Non** (dormant) | — | — | — |
+| Données d'usage / analytics | **Oui** — *Product Interaction*, **uniquement si consenti** | **Analytics** | **Non** — identifiant pseudonyme d'appareil, jamais le compte ni l'e-mail | **Non** |
 | **Suivi (tracking)** | **NON** — pas d'ATT, pas de pub, pas de partage tiers | | | |
 
 ### Google Play — « Sécurité des données »
-- **Collectées** : e-mail ; infos de santé (poids, objectif, régime) ; ID compte.
-- **Chiffrées en transit** : oui. **Stockage** : UE (Supabase Frankfurt).
+- **Collectées** : e-mail ; infos de santé (poids, objectif, régime) ; ID compte ;
+  **actions dans l'app** (« App interactions »), **uniquement si l'utilisateur les accepte**.
+- **Facultatives** : les actions dans l'app le sont — à la question « la collecte de ces
+  données est-elle obligatoire ? », répondre **non** : l'app fonctionne à l'identique en cas
+  de refus.
+- **Chiffrées en transit** : oui. **Stockage** : Supabase à Francfort (UE) ; les statistiques
+  d'usage sont stockées par PostHog à Francfort également.
 - **Partagées avec des tiers** : **NON**.
 - **L'utilisateur peut demander la suppression** : **OUI, dans l'app** (Profil →
   supprimer le compte → cascade + purge locale). Indiquer aussi `contact@kyroz.app`.
 - **Photos** : non collectées (restent sur l'appareil).
 
-> ⚠️ **Le jour où tu actives PostHog** (analytics), il faudra **mettre à jour ces
-> deux formulaires** (ajouter « Données d'usage », consenties). Tant que la clé
-> n'est pas posée, rien n'est collecté → déclarer « non » est exact aujourd'hui.
+> ✅ **Fait le 2026-08-18** — les deux formulaires déclarent la mesure d'audience.
+> Elle est déclarée **avant** la pose de la clé, et c'est délibéré : l'app demande déjà
+> le consentement en production, et un formulaire de store se met à jour avant la
+> première collecte, pas après. Sur-déclarer va dans le sens sûr pour l'utilisateur.
+>
+> 🧑 **Ces deux formulaires se remplissent à la main dans les consoles** : rien ici ne
+> les met à jour. Voir « À faire hors dépôt par le fondateur » dans `RGPD-REGISTRE.md`,
+> qui les liste avec l'URL de politique à changer.
 
 ---
 
