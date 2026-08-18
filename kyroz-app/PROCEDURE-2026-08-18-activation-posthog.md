@@ -148,21 +148,43 @@ Ajouter, dans *Activité dans l'application* :
 
 ## Étape 4 — PostHog : les trois verrous
 
+> 🇬🇧 **La console PostHog n'existe qu'en anglais** — aucune traduction de l'interface,
+> les libellés ci-dessous sont donc donnés tels qu'ils s'affichent, avec le sens entre
+> parenthèses.
+> ⚠️ **Ne pas activer la traduction automatique de Chrome dessus** : leur propre doc
+> signale qu'elle modifie le DOM et fait planter l'app
+> (`NotFoundError: Failed to execute 'removeChild' on 'Node'`).
+>
+> 🇪🇺 **Et l'app du Cloud EU n'est pas `app.posthog.com`** (qui est le cloud US), mais
+> **`eu.posthog.com`**. Les liens de la doc PostHog pointent par défaut vers le US : y
+> aller connecté à une organisation EU montre soit une organisation vide, soit la
+> mauvaise.
+
 **Rien ne se pose tant que les trois ne sont pas faits.** Ce sont les conditions
 écrites dans `RGPD-REGISTRE.md` et rappelées dans `.env.example`.
 
 ### 4.1 — Couper la collecte d'adresse IP
 
-*Settings → Project → **IP data capture*** → activer **Discard client IP data**.
-Un défaut existe aussi au niveau organisation : *Settings → Organization → General*.
+**Settings** (Réglages) → **Project** (Projet) → onglet **General** → section
+**IP data capture** (capture de l'adresse IP) → interrupteur **Discard client IP data**
+(« ne pas conserver l'IP du client »).
 
-⚠️ **VÉRIFIER AVANT DE BASCULER — le réglage est peut-être déjà bon.** La doc PostHog
-dit que « les organisations EU ont par défaut la capture d'IP désactivée pour la
-conformité RGPD ». Si c'est le cas ici, le commentaire de `lib/analytics.ts` (« le
-comportement PAR DÉFAUT de PostHog s'applique : collecte + géolocalisation ») est
-**faux**, et c'est lui qu'il faudra corriger — ainsi que la ligne « Adresse IP » du
-registre. Regarder l'état réel avant de conclure : cette prémisse a été écrite d'après
-le défaut *général* de PostHog, jamais re-mesurée sur un projet EU.
+Le même réglage a un défaut au niveau organisation : **Settings → Organization →
+General** → **IP data capture default**.
+
+⚠️ **REGARDER AVANT DE BASCULER — c'est probablement déjà fait.** La doc PostHog est
+explicite pour notre cas : sur **PostHog Cloud EU**, « IP data capture is automatically
+disabled by default for all new projects ». Si l'interrupteur est déjà dans cet état,
+il n'y a rien à cocher — mais deux choses écrites chez nous deviennent **fausses** et
+doivent être corrigées :
+- le commentaire de `lib/analytics.ts` : « le comportement PAR DÉFAUT de PostHog
+  s'applique (collecte + géolocalisation) » ;
+- la ligne **Adresse IP** du traitement n°2 dans `RGPD-REGISTRE.md`, qui la consigne
+  comme « collectée en l'état ».
+
+Cette prémisse avait été écrite d'après le défaut **général** de PostHog, jamais
+re-mesurée sur un projet **EU**. Le résultat compte dans les deux sens : si l'IP est
+déjà écartée, c'est une bonne nouvelle **et** une correction à faire.
 
 **Pourquoi c'est bloquant** : PostHog collecte et géolocalise l'IP **par défaut**, côté
 serveur. Le client de Kyroz n'envoie rien pour la neutraliser — le défaut s'applique
@@ -175,7 +197,15 @@ Une fois coupée : supprimer la ligne « Adresse IP » du traitement n°2 dans
 
 ### 4.2 — Signer le DPA
 
-*Settings → Organization → **Data processing agreement***.
+**<https://eu.posthog.com/legal>** — connecté à l'organisation Kyroz.
+
+Le DPA ne se télécharge pas depuis le site : il se **génère, se signe et se
+contresigne dans l'app**. La version publiée sur `posthog.com/dpa` est explicitement
+non contraignante — « It's not binding on its own — only the one you generate and
+countersign through the app counts. »
+
+⚠️ Le bouton « Generate a DPA in PostHog » du site pointe vers `app.posthog.com`, le
+cloud **US**. Passer par `eu.posthog.com` pour une organisation EU.
 
 **Deux lignes du registre en dépendent** et ne peuvent pas s'écrire sans lui :
 - le **périmètre des sous-traitants internes** — la page publique de PostHog a une
