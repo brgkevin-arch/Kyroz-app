@@ -6818,9 +6818,11 @@ du temps au fondateur.
   prérequis. (Ce qui reste vrai : `validated_by_dietitian` est `false` en dur, donc **aucun
   écran ne doit prétendre le contraire**.)
 - ~~**PostHog** — câblé et dormant, il manque la clé.~~ ✅ **ACTIF depuis le 2026-08-18** —
-  trois verrous levés (IP, DPA, rétention réécrite), clé posée. ⚠️ **Sur le WEB seulement :
-  l'OTA n'est pas publié** (report du fondateur), donc les binaires n'ont ni la clé ni les
-  nouveaux textes — et ils ne mentent pas pour autant, voir ci-dessous.
+  trois verrous levés (IP, DPA, rétention réécrite), clé posée. ✅ **Et sur LES DEUX
+  surfaces JS : web au merge, puis OTA publié le soir même** (groupe `f01b56ba`, runtime
+  1.0.0, iOS + Android) — les binaires en circulation ont donc la clé ET les nouveaux
+  textes, ensemble. ⚠️ Publier l'OTA n'allume pas la mesure pour le parc existant : le
+  consentement ne se demande qu'à l'onboarding, voir ci-dessous.
   Voir `RGPD-REGISTRE.md` et `PROCEDURE-2026-08-18-activation-posthog.md` §6.
 - **Photos cloud / premium** — le MVP local existe ; le reste ne devient intéressant que
   si le premium existe.
@@ -7539,12 +7541,20 @@ restent dans le catalogue. Le chantier se mesure maintenant en une commande.
   déclaré dans les textes légaux et le registre, trois verrous levés (IP, DPA, rétention
   réécrite pour dire le vrai), clé posée en secret GitHub + variable EAS.
 
-  🔴 **MAIS SUR UNE SEULE DES TROIS SURFACES — à lire avant d'en conclure quoi que ce
-  soit.** Site web : ✅ en ligne (déploiement automatique au merge, CI verte, vérifié en
-  prod). **OTA : ❌ non publié**, report explicite du fondateur le 2026-08-18. Binaire :
-  sans objet, le lot est 100 % JS.
-  ➡️ Les binaires TestFlight en circulation (canal `production`, runtime `1.0.0`) n'ont
-  **ni la clé ni les nouveaux textes**. ⚠️ **Ce n'est pas une incohérence** : sans clé,
+  ✅ **SUR LES DEUX SURFACES QUI COMPTENT, ET DANS CET ORDRE.** Site web : en ligne
+  (déploiement automatique au merge, CI verte, vérifié en prod). **OTA : publié le
+  2026-08-18** — groupe `f01b56ba`, runtime `1.0.0`, iOS + Android, vérifié sur l'ARTEFACT
+  (les trois témoins ASCII dans les deux bundles Hermes, pas sur la configuration).
+  Binaire : sans objet, le lot est 100 % JS.
+  ➡️ Les binaires TestFlight en circulation (canal `production`, runtime `1.0.0`) ont donc
+  **la clé ET les nouveaux textes**, ensemble — ce que la règle du dépôt exige.
+  ⚠️ **Deux lancements** sont nécessaires pour que l'update s'applique
+  (`fallbackToCacheTimeout: 0`), et il **n'allume pas** la mesure chez les comptes déjà
+  créés : le consentement ne se demande qu'à l'onboarding, donc il reste `null` et
+  `capture()` no-op tant que la personne ne bascule pas elle-même « Statistiques d'usage »
+  dans les Réglages. La mesure démarre avec les nouvelles installations.
+  ℹ️ Ce qui suit décrit l'état d'AVANT la publication, gardé parce que le raisonnement
+  vaut pour le prochain lot : ⚠️ **Ce n'est pas une incohérence** : sans clé,
   `capture()` est un no-op, donc leur ancien « aucun outil d'analyse tiers » reste VRAI
   chez eux. Clé et textes sont absents *ensemble* — la règle du dépôt joue dans le bon
   sens, rien ne ment nulle part.

@@ -174,11 +174,14 @@ aucun test ne les attrapera. Elles font pourtant partie du même lot.
       (`deploy.yml`) + variable EAS sur `production`, `preview` et `development`.
       ✅ **Site web : en ligne** (déployé au merge, CI verte, vérifié en production) — la
       mesure y est active pour qui a consenti.
-- [ ] **Publier l'OTA** (`eas update --branch production --clear-cache`) — **reporté par
-      le fondateur le 2026-08-18.** Tant qu'il ne l'est pas, les binaires en circulation
-      n'ont ni la clé ni les nouveaux textes. ⚠️ **Aucune non-conformité** : sans clé,
-      `capture()` est un no-op, donc leur ancien texte « aucun outil d'analyse tiers »
-      reste exact chez eux — clé et textes sont absents *ensemble*. Cette case n'est donc
-      pas un retard à rattraper, c'est un état à connaître.
-      Procédure et pièges : `PROCEDURE-2026-08-18-activation-posthog.md` §6.
+- [x] **OTA PUBLIÉ le 2026-08-18** — `eas update --branch production --clear-cache
+      --environment production`, runtime **1.0.0**, iOS + Android, groupe `f01b56ba`,
+      commit `1078c94`. **Vérifié sur l'ARTEFACT** et pas sur la configuration : les trois
+      témoins ASCII (clé `phc_qELCvYG4…`, hôte `eu.i.posthog.com`, réf. Supabase) sont
+      présents dans les deux bundles Hermes.
+      ⚠️ **Ça n'allume pas la mesure pour le parc existant** : l'écran de consentement ne
+      vit que dans l'onboarding, donc qui l'a déjà terminé garde un consentement `null` et
+      `capture()` reste no-op chez lui. Il faut qu'il bascule lui-même « Statistiques
+      d'usage » dans les Réglages. La mesure démarre avec les **nouvelles installations**.
+      ⚠️ Et il faut **deux lancements** pour la voir appliquée (`fallbackToCacheTimeout: 0`).
 
