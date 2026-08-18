@@ -5,10 +5,14 @@
   Toute correction se fait dans la source, jamais ici : la prochaine génération
   écraserait cette page sans prévenir.
 
-  Sa raison d'être : une URL PUBLIQUE servie en HTTP 200
-  (https://brgkevin-arch.github.io/Kyroz-app/legal.html), utilisable comme URL de
-  politique de confidentialité pour les stores et pour le partage de lien. L'app
-  garde son écran in-app (/legal), rendu depuis la même source.
+  Sa raison d'être : servir l'URL PUBLIQUE de politique de confidentialité déclarée
+  aux stores — https://kyroz.app/legal.html — depuis le dépôt kyroz-site, un Pages
+  statique. L'app garde son écran in-app (/legal), rendu depuis la même source.
+
+  ⚠️ Ce fichier n'est PAS ce que sert le Pages de l'app : web.output "static" fait
+  pré-rendre la route /legal par Expo Router, et le HTML qu'il génère écrase celui-ci
+  dans dist/. Les deux disent la même chose (même source), mais l'exemplaire servi
+  sur github.io est le rendu de la route, pas cette page.
 -->
 <html lang="fr" translate="no">
 <head>

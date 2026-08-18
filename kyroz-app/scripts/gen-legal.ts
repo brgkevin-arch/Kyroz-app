@@ -58,9 +58,24 @@ const sectionsHtml = (sections: LegalSection[]) =>
     .join('\n\n');
 
 /**
- * La page publique servie en HTTP 200 — l'URL de politique de confidentialité
- * exigée par l'App Store et Google Play. Elle existe parce que le web est exporté
- * en SPA : `/legal` y renverrait un 404, ce qu'un formulaire de store refuse.
+ * La page publique servie en HTTP 200 — l'URL de politique de confidentialité exigée
+ * par l'App Store et Google Play.
+ *
+ * ⚠️ SA RAISON D'ÊTRE A CHANGÉ, ET LA PHRASE D'AVANT ÉTAIT FAUSSE (mesuré le
+ * 2026-08-18). Elle disait : « elle existe parce que le web est exporté en SPA :
+ * `/legal` y renverrait un 404 ». Or `app.json` porte `web.output: "static"` — Expo
+ * Router **pré-rend une page HTML par route**, donc `/legal` répond 200 tout seul, et
+ * le `dist/legal.html` qu'il génère **écrase** ce fichier-ci. Vérifié sur la page
+ * réellement servie par le Pages de l'app : zéro marqueur de ce fichier
+ * (`class="wrap"`, `class="logo"`), un marqueur de bundle Expo. Elle n'a donc JAMAIS
+ * été servie là-bas depuis le passage en `static`.
+ *
+ * ➡️ Son vrai consommateur est `kyroz.app/legal.html` (dépôt `kyroz-site`), URL
+ * canonique déclarée aux stores depuis le 2026-08-18 : un Pages purement statique, où
+ * rien ne l'écrase. Le contenu, lui, n'a jamais menti — les deux surfaces sortent de
+ * la même source, ce qui a rendu la prémisse périmée totalement indolore… et donc
+ * invisible pendant des mois. Une justification ne se relit pas quand ce qu'elle
+ * justifie a l'air juste.
  */
 export function renderHtml(): string {
   return `<!doctype html>
@@ -70,10 +85,14 @@ export function renderHtml(): string {
   Toute correction se fait dans la source, jamais ici : la prochaine génération
   écraserait cette page sans prévenir.
 
-  Sa raison d'être : une URL PUBLIQUE servie en HTTP 200
-  (https://brgkevin-arch.github.io/Kyroz-app/legal.html), utilisable comme URL de
-  politique de confidentialité pour les stores et pour le partage de lien. L'app
-  garde son écran in-app (/legal), rendu depuis la même source.
+  Sa raison d'être : servir l'URL PUBLIQUE de politique de confidentialité déclarée
+  aux stores — https://kyroz.app/legal.html — depuis le dépôt kyroz-site, un Pages
+  statique. L'app garde son écran in-app (/legal), rendu depuis la même source.
+
+  ⚠️ Ce fichier n'est PAS ce que sert le Pages de l'app : web.output "static" fait
+  pré-rendre la route /legal par Expo Router, et le HTML qu'il génère écrase celui-ci
+  dans dist/. Les deux disent la même chose (même source), mais l'exemplaire servi
+  sur github.io est le rendu de la route, pas cette page.
 -->
 <html lang="fr" translate="no">
 <head>
