@@ -1,0 +1,152 @@
+# Procédure — déclarer la mesure d'audience, puis allumer PostHog
+
+> Écrite le 2026-08-18, après le lot `feat(rgpd)` (PR #115). Les textes, le registre et
+> les garde-fous sont livrés ; **ces cinq étapes-ci ne vivent dans aucun fichier** :
+> elles se font à la main dans des consoles, avec tes comptes. Aucun test ne les
+> attrapera, et personne ne les verra en relisant le code.
+>
+> 🧑 **Une étape à la fois.** Fais l'étape, dis-le, on passe à la suivante. L'ordre n'est
+> pas décoratif : les étapes 1 à 3 déclarent ce qui est **déjà vrai** aujourd'hui
+> (l'app demande le consentement, les textes le disent) ; l'étape 4 lève les verrous ;
+> l'étape 5 seulement met la mesure en marche.
+
+---
+
+## Étape 1 — L'URL de politique, dans les deux consoles
+
+**Nouvelle valeur, identique des deux côtés :**
+
+```
+https://kyroz.app/legal.html
+```
+
+- **App Store Connect** → ton app → *Informations sur l'app* → **URL de politique de
+  confidentialité**.
+- **Play Console** → ton app → *Contenu de l'application* → *Politique de
+  confidentialité* → **URL**.
+
+**Pourquoi** : l'ancienne (`https://brgkevin-arch.github.io/Kyroz-app/legal.html`)
+reste servie et valide, mais elle affiche un **pseudo personnel** dans un champ public
+de fiche produit. La nouvelle est sur le domaine de la marque et sert le même fichier,
+généré depuis la même source.
+
+**Vérifier avant de valider** : la page répond 200 et porte la date du 18 août 2026.
+
+---
+
+## Étape 2 — App Store Connect → App Privacy
+
+**App Store Connect** → ton app → *Confidentialité de l'app* → *Données collectées* →
+**Modifier**.
+
+Ajouter **un** type de données (tout le reste est déjà déclaré et ne bouge pas) :
+
+| Champ | Valeur |
+|---|---|
+| Type de données | **Données d'utilisation → Interaction avec le produit** (*Usage Data → Product Interaction*) |
+| Utilisation | **Analyses** (*Analytics*) — et rien d'autre |
+| Liée à l'identité de l'utilisateur | **Non** |
+| Utilisée pour le suivi (tracking) | **Non** |
+
+**Les deux « non » comptent, et ils sont vrais** : les mesures sont rattachées à un
+identifiant pseudonyme tiré sur l'appareil, jamais au compte ni à l'e-mail ; et il n'y
+a ni ATT, ni publicité, ni suivi inter-applications.
+
+> ⚠️ Ne coche **pas** « Diagnostics » : `app_error` n'envoie que le nom de classe de
+> l'erreur et l'écran, jamais un message brut — mais surtout, Apple range les rapports
+> de plantage sous Diagnostics, et Kyroz n'en envoie aucun.
+
+Les réponses complètes sont dans `STORE-RELEASE.md` §4, à recopier.
+
+---
+
+## Étape 3 — Play Console → Sécurité des données
+
+**Play Console** → ton app → *Règles* → *Contenu de l'application* → **Sécurité des
+données**.
+
+Ajouter, dans *Activité dans l'application* :
+
+| Champ | Valeur |
+|---|---|
+| Type | **Interactions dans l'application** (*App interactions*) |
+| Collectées | **Oui** |
+| Partagées | **Non** |
+| Obligatoire ? | **Non — l'utilisateur peut choisir** (l'app fonctionne à l'identique en cas de refus) |
+| Finalité | **Analyses** |
+| Chiffrées en transit | **Oui** |
+| Suppression possible | **Oui**, sur demande |
+
+> ⚠️ **Les deux formulaires se remplissent ensemble.** Ils décrivent le même flux dans
+> deux vocabulaires : n'en mettre qu'un à jour crée une contradiction entre deux
+> déclarations publiques, que personne ne relit ensuite.
+
+---
+
+## Étape 4 — PostHog : les trois verrous
+
+**Rien ne se pose tant que les trois ne sont pas faits.** Ce sont les conditions
+écrites dans `RGPD-REGISTRE.md` et rappelées dans `.env.example`.
+
+### 4.1 — Couper la collecte d'adresse IP
+
+*Projet → Settings → Project → **Anonymize IP data*** (ou équivalent selon la version).
+
+**Pourquoi c'est bloquant** : PostHog collecte et géolocalise l'IP **par défaut**, côté
+serveur. Le client de Kyroz n'envoie rien pour la neutraliser — le défaut s'applique
+donc entièrement. La politique de confidentialité ne parle pas d'IP : sans la coupure,
+elle devient fausse **par omission** dès le premier événement. Tant qu'aucune clé n'est
+posée, ce silence n'est pas une omission ; le jour de la clé, si.
+
+Une fois coupée : supprimer la ligne « Adresse IP » du traitement n°2 dans
+`RGPD-REGISTRE.md`.
+
+### 4.2 — Signer le DPA
+
+*Settings → Organization → **Data processing agreement***.
+
+**Deux lignes du registre en dépendent** et ne peuvent pas s'écrire sans lui :
+- le **périmètre des sous-traitants internes** — la page publique de PostHog a une
+  section « Internal Subprocessors » dont le contenu n'a pas pu être lu (deux
+  tentatives). Nature présumée : entités affiliées et filiales. **Présumé, pas lu.**
+- le **cadre applicable à Cloudflare**, seul sous-traitant de leur liste dont la
+  localisation est « points de présence mondiaux ».
+
+Conserver le PDF hors dépôt, comme celui de Supabase.
+
+### 4.3 — Configurer la rétention à 18 mois
+
+*Project → Settings → **Data management / retention***.
+
+18 mois est écrit dans la politique, sur l'écran de consentement et dans les Réglages.
+Une durée promise que le serveur ne tient pas est un mensonge de plus — et celui-là se
+vérifie d'un clic.
+
+---
+
+## Étape 5 — Poser la clé
+
+Seulement une fois 4.1, 4.2 et 4.3 faits.
+
+1. Récupérer le token d'ingestion `phc_…` (*Project → Settings → Project API key*).
+   Il est **write-only et public par conception** : l'inliner dans le bundle web est
+   normal.
+2. Le poser en secret de dépôt GitHub, à côté des deux clés Supabase déjà là
+   (`deploy.yml` les injecte à l'export) :
+   `EXPO_PUBLIC_POSTHOG_KEY`.
+3. Ajouter la variable au bloc `env:` de l'étape `npx expo export -p web` dans
+   `.github/workflows/deploy.yml` — sinon elle ne part pas dans le bundle web.
+4. Pour les binaires : la poser aussi dans les variables d'environnement EAS.
+
+**Le jour où elle est posée** : cocher les cases du suivi des actions dans
+`RGPD-REGISTRE.md`, et retirer de `.env.example` le bloc des trois verrous — il aura
+fait son travail.
+
+---
+
+## Ce que ces étapes ne sont pas
+
+Elles ne rendent **pas** la mesure obligatoire : `capture()` reste un no-op sans
+consentement « granted », et le refus n'a aucune conséquence sur l'usage de l'app.
+Elles ne changent **pas** ce qui est mesuré : les 13 événements et leurs interdits sont
+tenus par `lib/__tests__/analyticsPerimetre.test.ts`.

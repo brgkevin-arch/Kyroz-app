@@ -131,6 +131,9 @@
 Ces actions ne vivent dans aucun fichier : personne ne les verra en relisant le code, et
 aucun test ne les attrapera. Elles font pourtant partie du même lot.
 
+📄 **Procédure détaillée, étape par étape** : `PROCEDURE-2026-08-18-activation-posthog.md`
+(libellés exacts des champs, ordre, et ce qui bloque quoi).
+
 - [ ] **App Store Connect** → App Privacy : déclarer **Données d'usage → Interaction avec le
       produit**, usage *Analytics*, **non liée à l'identité**, **Tracking : non** (pas d'ATT,
       aucun suivi inter-applications). Les réponses rédigées sont dans `STORE-RELEASE.md` §4.
