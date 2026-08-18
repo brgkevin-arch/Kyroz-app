@@ -288,7 +288,7 @@ sans garantie au-delà, **cette justification tombe** — c'est l'argument même
 | Surface | Comment elle se met à jour | État au 2026-08-18 |
 |---|---|---|
 | **Site web** (GitHub Pages) | automatique au merge sur `main` (`deploy.yml`) | ✅ **en ligne**, CI verte, vérifié en production |
-| **OTA** (`eas update`) | manuel — atteint les binaires déjà installés | ❌ **non publié** — report explicite du fondateur |
+| **OTA** (`eas update`) | manuel — atteint les binaires déjà installés | ✅ **publié le 2026-08-18** — groupe `f01b56ba`, runtime 1.0.0, iOS + Android |
 | **Binaire** (`eas build`) | manuel — nouvelle soumission | ❌ pas nécessaire : le lot est 100 % JS |
 
 **Ce que ça veut dire concrètement** : les binaires TestFlight en circulation (canal
