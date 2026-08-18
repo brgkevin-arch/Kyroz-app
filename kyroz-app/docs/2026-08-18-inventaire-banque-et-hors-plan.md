@@ -1,9 +1,35 @@
 # Inventaire — banque de calories & déclaration hors plan
 
-> Écrit le 2026-08-18 à la demande du fondateur, **avant arbitrage**. Rien n'est supprimé.
-> État de référence : branche `claude/degater-rythme-semaine` ([PR #114](https://github.com/brgkevin-arch/Kyroz-app/pull/114), **non mergée**),
-> qui a déjà dégaté la banque et mis le parcours hors plan de côté. Sur `main`, les deux
-> fonctions sont encore pleinement ouvertes — les statuts ci-dessous décrivent l'après-#114.
+> Écrit le 2026-08-18 à la demande du fondateur, **avant arbitrage**. Rien n'a été supprimé
+> au moment de l'écriture. État de référence à cette date-là : branche
+> `claude/degater-rythme-semaine`, qui avait déjà dégaté la banque et mis le parcours hors
+> plan de côté. Sur `main` à cette date, les deux fonctions étaient encore pleinement
+> ouvertes — les statuts ci-dessous décrivaient l'après-#114 tel qu'il existait alors.
+>
+> ## ✅ RÉSOLU — [PR #114](https://github.com/brgkevin-arch/Kyroz-app/pull/114) mergée le 2026-08-18 (`0089d4e`)
+>
+> Le fondateur a tranché **au-delà** des deux options de cette page : ni suppression franche,
+> ni isolation-mais-visible-et-gratuite — **la banque est éteinte**, au même régime que le
+> hors plan. `lib/featureFlags.ts` porte désormais les deux interrupteurs
+> (`RYTHME_HEBDOMADAIRE_ACTIF`, `PARCOURS_HORS_PLAN_ACTIF`), tous deux à `false`. Le moteur,
+> lui, est resté intact comme prévu par l'option retenue.
+>
+> **Effet sur la lecture de ce document : les statuts « VIVANT (UI) » de la section (a)
+> ci-dessous sont PÉRIMÉS** — la ligne de menu et l'éditeur ne sont plus atteignables, et
+> `planEngine::bankOf` (nouveau) coupe aussi la LECTURE du champ, pas seulement l'écran. Les
+> statuts du moteur pur (`lib/calorieBank.ts`) restent exacts : rien n'y a changé.
+>
+> **Le bug de la question ouverte n°2 (écart orphelin affiché) a été corrigé** avant
+> l'extinction — `servedWeekdays` unifie la règle moteur/affichage, `normalizeCalorieBank`
+> referme la donnée au chargement — puis rendu sans objet PAR l'extinction elle-même : plus
+> aucun écran ne lit ni n'affiche la banque.
+>
+> **Question n°3 (journal hors plan) tranchée : dormir.** Deux comptes TestFlight seulement
+> au moment de la décision — l'enjeu de rétention RGPD était réel en principe, nul en
+> pratique. Reconsidérer si le parcours est encore éteint au lancement public.
+>
+> **Question n°1 (que doit être la donnée) reste ouverte**, mais n'est plus urgente : la
+> banque étant éteinte, aucun écran ne dépend plus de sa réponse.
 
 ## Vocabulaire des statuts
 

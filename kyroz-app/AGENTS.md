@@ -5959,9 +5959,11 @@ produit en suspens — il ne reste qu'à coder.
 
   📌 **Ce que l'audit a levé et qui N'A PAS été traité** (hors périmètre « tuto » — c'est du
   code manquant, pas de la pédagogie) :
-  - la **banque de calories** ne se voit nulle part sur le Plan : poser « samedi +600 » fait
-    baisser lundi→vendredi en silence, et **`uncompensatedKcal` est calculé mais affiché
-    NULLE PART** — alors que `lib/calorieBank.ts` écrit lui-même que l'UI doit le dire ;
+  - ✅ **SANS OBJET depuis le 2026-08-18** : la **banque de calories** a été éteinte
+    (`lib/featureFlags.ts::RYTHME_HEBDOMADAIRE_ACTIF = false`), donc il n'y a plus de
+    ligne « samedi +600 » à faire apparaître sur le Plan. `uncompensatedKcal`, lui, avait
+    déjà été affiché entre-temps (`profil.tsx`, sous l'éditeur, avant son extinction) —
+    le point était donc traité avant de devenir sans objet ;
   - un **repas fixe disparaît de la liste de courses** (`shoppingList.ts` : `if (meal.fixed)
     continue`) et aucun écran ne le mentionne ;
   - le **plan ne se renouvelle jamais** tout seul : `dayMeta` re-date la rangée sur la
@@ -7438,11 +7440,13 @@ restent dans le catalogue. Le chantier se mesure maintenant en une commande.
 > ## ⚠️ ARCHIVE — ne pas y prendre de consigne
 >
 > Les deux sections qui suivent sont les **anciennes listes de tâches**, conservées pour la
-> trace de ce qui a été fait et pourquoi. Elles sont **périmées sur trois points** et se
+> trace de ce qui a été fait et pourquoi. Elles sont **périmées sur quatre points** et se
 > contredisent entre elles : la **tablette** (« décision en attente, reco false » → en
 > réalité décidée le 2026-07-27, build à faire), la **monétisation** (« prix non tranchés »
 > → tranchée le 2026-07-27), la **diététicienne** (« contacter 2-3 diététiciennes » →
-> écartée le 2026-07-29). Ce qui reste à faire est **en haut du fichier**.
+> écartée le 2026-07-29), et la **banque de calories** (« prochain chantier code » → livrée,
+> retirée de Kyroz+ et ÉTEINTE le 2026-08-18, cf. `MONETISATION.md`). Ce qui reste à faire
+> est **en haut du fichier**.
 
 ## RESTE (Phase 2)
 - **▶ REPRISE DE SESSION — état au 2026-07-27.** Tout ce qui suit est **livré, testé (413 tests), mergé sur `main` et déployé**. Arbre git propre, rien en cours. Derniers lots sur `main` : recettes 314 + variété + fibres Ciqual + biais fibres sèche (`ENGINE_VERSION` 18, jusqu'à `d70af49`) ; **feature « objectif daté » / Kyroz+ mergée + déployée** (`5a4fc63`, migration `goal_target` **JOUÉE EN PROD** par le fondateur). ✅ **P0.2 résolu** : la CI (`deploy.yml`) lance désormais tsc + les 413 tests AVANT de déployer → un rouge bloque la prod (ce n'est plus « validé qu'en local »). **Session 2026-07-27 (recettes/moteur) : rien en attente. ✅ P3.3 (TDEE qui saute) RÉSOLU — normalisation `sports ↔ training_days_per_week` à la persistance, `sports` = source de vérité (`lib/syncGuard.ts` + câblage `sync.ts`/`useProfile.ts`), 413 tests. Reste sur la branche `fix/tdee-jump-p33` à merger.**
