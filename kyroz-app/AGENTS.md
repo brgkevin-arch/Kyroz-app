@@ -6812,7 +6812,10 @@ du temps au fondateur.
   prérequis. (Ce qui reste vrai : `validated_by_dietitian` est `false` en dur, donc **aucun
   écran ne doit prétendre le contraire**.)
 - ~~**PostHog** — câblé et dormant, il manque la clé.~~ ✅ **ACTIF depuis le 2026-08-18** —
-  trois verrous levés (IP, DPA, rétention réécrite), clé posée. Voir `RGPD-REGISTRE.md`.
+  trois verrous levés (IP, DPA, rétention réécrite), clé posée. ⚠️ **Sur le WEB seulement :
+  l'OTA n'est pas publié** (report du fondateur), donc les binaires n'ont ni la clé ni les
+  nouveaux textes — et ils ne mentent pas pour autant, voir ci-dessous.
+  Voir `RGPD-REGISTRE.md` et `PROCEDURE-2026-08-18-activation-posthog.md` §6.
 - **Photos cloud / premium** — le MVP local existe ; le reste ne devient intéressant que
   si le premium existe.
 - **Volume concentré** — le plan sous-alimente le jour de la séance longue. Chantier
@@ -7524,8 +7527,23 @@ restent dans le catalogue. Le chantier se mesure maintenant en une commande.
 - ~~**P3.6 — Hors-plan : seules les kcal sont enregistrées**, pas le nom de l'aliment → aucun historique d'écarts possible.~~ ✅ **RÉSOLU** — libellé gardé le 2026-08-04, journal local-only livré le 2026-08-05. Voir **E6**.
 - ~~**P3.6 — PostHog** : câblé + dormant, il manque la clé.~~ ✅ **ACTIVÉ le 2026-08-18** —
   déclaré dans les textes légaux et le registre, trois verrous levés (IP, DPA, rétention
-  réécrite pour dire le vrai), clé posée en secret GitHub + variable EAS. Détail complet :
-  `RGPD-REGISTRE.md`, `PROCEDURE-2026-08-18-activation-posthog.md`.
+  réécrite pour dire le vrai), clé posée en secret GitHub + variable EAS.
+
+  🔴 **MAIS SUR UNE SEULE DES TROIS SURFACES — à lire avant d'en conclure quoi que ce
+  soit.** Site web : ✅ en ligne (déploiement automatique au merge, CI verte, vérifié en
+  prod). **OTA : ❌ non publié**, report explicite du fondateur le 2026-08-18. Binaire :
+  sans objet, le lot est 100 % JS.
+  ➡️ Les binaires TestFlight en circulation (canal `production`, runtime `1.0.0`) n'ont
+  **ni la clé ni les nouveaux textes**. ⚠️ **Ce n'est pas une incohérence** : sans clé,
+  `capture()` est un no-op, donc leur ancien « aucun outil d'analyse tiers » reste VRAI
+  chez eux. Clé et textes sont absents *ensemble* — la règle du dépôt joue dans le bon
+  sens, rien ne ment nulle part.
+  ⚠️ Le jour de l'OTA : **`--clear-cache` obligatoire** (le cache Metro ne s'invalide pas
+  sur un changement de valeur `EXPO_PUBLIC_*` — sinon l'update part sans la clé, en
+  silence), et la mesure ne démarrera que pour les **nouvelles installations** (un compte
+  qui a fini l'onboarding ne revoit jamais l'écran de consentement, donc reste `null`).
+
+  Détail complet : `RGPD-REGISTRE.md`, `PROCEDURE-2026-08-18-activation-posthog.md` §6.
 
 #### 🧹 P4 — Dette technique
 - ~~**P4.1 — Trancher le sort de `lib/generatePlan.ts` (chemin IA).**~~ ✅ **FAIT le 2026-07-31 — le fichier est SUPPRIMÉ** (vérifié le 2026-08-05 : il n'existe plus sur `main`). Gain mesuré à l'époque : **−224 Ko (−6,6 %)** sur le bundle web, et un piège de sécurité en moins (une clé posée là aurait été inlinée EN CLAIR dans le bundle public). Si l'IA revient un jour → **Edge Function Supabase, jamais côté client** (cf. CLAUDE.md §2).
