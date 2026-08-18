@@ -65,7 +65,7 @@ App mobile React Native (Expo Router, SDK 56) de plans repas macro-précis pour 
 | Persistance locale | AsyncStorage (clés `@kyroz:*`) | En place |
 | Backend / Auth | **Supabase** (région EU) — création de compte email + suppression de compte (RGPD) | Auth OK |
 | Base nutritionnelle | **Ciqual (ANSES) + table maison** — voir la note ci-dessous | En place |
-| Analytics | PostHog (cloud EU) | **Câblé (dormant)** — `lib/analytics.ts`, consent-gated RGPD ; s'active en posant `EXPO_PUBLIC_POSTHOG_KEY` |
+| Analytics | PostHog (cloud EU) | **Actif depuis le 2026-08-18** — `lib/analytics.ts`, consent-gated RGPD ; clé posée (secret GitHub + variable EAS), rien ne part sans consentement |
 | Achats in-app | **RevenueCat** (`react-native-purchases`) | **Câblé (dormant)** — `lib/purchases.ts` ; s'active en posant `EXPO_PUBLIC_REVENUECAT_IOS_KEY` / `_ANDROID_KEY`. Le verrou, lui, dépend de `PAYWALL_LAUNCH` : deux interrupteurs séparés |
 | Mises à jour OTA | **`expo-updates`** — correctifs JS sans repasser par la revue des stores | **Actif** (2026-08-01) — voir la note ci-dessous |
 
@@ -1243,17 +1243,19 @@ Ce n'est pas théorique — `onboarding_completed` a envoyé `goal` et `restrict
 son premier commit, **défaut dormant** faute de clé PostHog. Garde-fou :
 `lib/__tests__/analyticsPerimetre.test.ts`, vérifié par 4 mutations.
 
-✅ **LES TEXTES SONT À JOUR DEPUIS LE 2026-08-18 — la clé, non.** La règle disait « la clé
-PostHog et les textes partent ensemble » ; sa moitié textes est faite, et elle l'a été
-**avant** la clé, délibérément : l'app DEMANDE déjà le consentement en production pour un
-outil que les textes déclaraient inexistant. Deux surfaces se contredisaient — on corrige un
-énoncé faux, on n'anticipe pas un traitement.
-➡️ **La règle qui reste, et elle est plus dure** : `EXPO_PUBLIC_POSTHOG_KEY` ne se pose pas
-tant que les **trois verrous** ne sont pas levés — **couper la collecte d'IP** côté projet
-(le client n'envoie rien pour ça, donc le défaut serveur s'applique), **DPA signé**,
-**rétention 18 mois configurée**. Ils sont en cases à cocher dans `RGPD-REGISTRE.md`, et
-rappelés à trois lignes de la variable dans `.env.example` — un verrou qu'on ne lit qu'en
-ouvrant un document RGPD ne sera pas lu par la main qui pose la clé.
+✅ **LE LOT EST CLOS DEPUIS LE 2026-08-18 — textes, trois verrous, et la clé elle-même.**
+La règle disait « la clé PostHog et les textes partent ensemble », dans cet ordre précis :
+les textes ont été corrigés **avant** la clé, délibérément, parce que l'app DEMANDAIT déjà
+le consentement en production pour un outil que les textes déclaraient inexistant — deux
+surfaces se contredisaient, on corrigeait un énoncé faux, pas une anticipation. Puis les
+trois verrous (IP écartée par défaut, DPA signé et lu, rétention réécrite pour dire le
+vrai — « au moins un an, sans limite haute fixe », PostHog n'offrant aucune purge
+automatique) ont été levés.
+Puis `EXPO_PUBLIC_POSTHOG_KEY` a été posée : secret GitHub Actions (`deploy.yml`) et
+variable EAS sur les trois environnements.
+➡️ **L'analytics est ACTIF, pas dormant** — `capture()` envoie désormais, pour qui a
+consenti (l'écran de consentement reste avant l'assistant, refusable sans conséquence,
+retirable à tout moment). Détail complet et dates : `RGPD-REGISTRE.md`.
 ⚠️ **Le décompte « trois textes » était faux** : le recensement du 2026-08-18 en a trouvé
 **six**, dont deux qui mentaient déjà en production. Les surfaces se recensent par leur
 RÔLE, pas en cherchant la phrase à corriger — c'est un manque, et un manque ne se grep pas.

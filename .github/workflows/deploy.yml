@@ -37,6 +37,10 @@ jobs:
           # imposait un commit, et rien ne distinguait celle-ci d'une vraie.
           EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
           EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
+          # Posée le 2026-08-18, une fois les trois verrous RGPD levés (IP écartée,
+          # DPA signé, rétention réécrite — RGPD-REGISTRE.md). Jeton write-only,
+          # public par conception : l'inliner dans le bundle web est normal.
+          EXPO_PUBLIC_POSTHOG_KEY: ${{ secrets.EXPO_PUBLIC_POSTHOG_KEY }}
       # Expo génère la page en lang="en" (mode SPA, +html.tsx ignoré). On force le
       # français + on désactive la traduction auto, sinon les navigateurs traduisent
       # les faux-amis (« pain complet » → « douleur complète », « sèche » → « sèche-cheveux »).

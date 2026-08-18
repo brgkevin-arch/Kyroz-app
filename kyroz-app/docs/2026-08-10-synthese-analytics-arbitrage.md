@@ -101,6 +101,14 @@ saisonnier (janvier, avant-été). 18 mois couvre une saison complète plus une 
 sous le plafond de référence de 25 mois. À inscrire dans `RGPD-REGISTRE.md` et dans la
 politique de confidentialité.
 
+> ⚠️ **Amendé le 2026-08-18.** PostHog ne propose aucun réglage de rétention automatique
+> (vérifié en console) : « 18 mois, puis suppression » ne pouvait pas être tenu tel quel.
+> Décision fondateur : réécrire la promesse (« au moins un an, sans limite haute fixe »)
+> plutôt que construire une purge par API. L'argument ci-dessus — comparer une saison à
+> l'autre — reste servi : sans purge automatique, rien ne raccourcit la durée réelle de
+> conservation, seule la borne haute PROMISE change. Source à jour :
+> `constants/legal.ts::LEGAL.analyticsRetention` et `RGPD-REGISTRE.md`, pas cette ligne.
+
 ### 3.6 Rituel de lecture
 
 - **Coup d'œil hebdomadaire** sur trois nombres, pas plus.

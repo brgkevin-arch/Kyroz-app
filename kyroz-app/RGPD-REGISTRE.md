@@ -73,11 +73,12 @@
 | **Base légale** | **Consentement** (RGPD art. 6-1-a), **distinct** de celui du traitement n°1. Demandé avant toute collecte, refusable sans conséquence sur l'usage de l'app (deux boutons de même taille), retirable à tout moment dans Réglages → Confidentialité, sans supprimer le compte. |
 | **Destinataire** | **PostHog** (PostHog, Inc.), offre Cloud EU. |
 | **Localisation** | **Stockage à Francfort** (Allemagne) ; **transit routé par Cloudflare sur des points de présence mondiaux**. ⚠️ Cette ligne ne dit ni « hébergement UE » ni « aucun transfert hors UE » : le stockage est en Allemagne, le transit ne l'est pas, et une localisation de serveurs ne se transforme pas en promesse plus large qu'elle. |
+| **Transferts hors UE** | **Cadre trouvé — lu dans le DPA signé le 2026-08-18** (§10.3–10.4), pas supposé. Deux mécanismes cumulés, pas un choix entre les deux : (1) PostHog **auto-certifié au EU-US Data Privacy Framework** (+ extension UK, + Swiss-US DPF) ; (2) **Clauses Contractuelles Types** appliquées *« notwithstanding »* le DPF — EU SCC (module 2, contrôleur → sous-traitant), UK SCC (International Data Transfer Addendum), adaptations FADP pour la Suisse — les signatures et la date du DPA valant signature et date des CCT elles-mêmes. Couvre tout traitement hors UE : Cloudflare (points de présence mondiaux) et Hiberly Ltd. (Royaume-Uni, voir sous-traitants internes ci-dessous). |
 | **Sous-traitants ultérieurs** | Tableau « services de base » publié par PostHog, **consulté le 2026-08-18** — <https://posthog.com/subprocessors> (page datée du 12 juin 2026) :<br>• **Amazon Web Services, Inc.** — stockage cloud — Allemagne (EU Cloud).<br>• **Wiz, Inc.** — détection de vulnérabilités — Allemagne, France.<br>• **PlanetScale, Inc.** — supervision des bases — Allemagne (EU Cloud).<br>• **Modal Labs, Inc.** — calcul serverless isolé — Allemagne (EU Cloud).<br>• **Cloudflare, Inc.** — reverse proxy, CDN, routage — **points de présence mondiaux (dynamique)**.<br>🔁 **À revérifier avant le 2027-02-18** (6 mois), et à chaque évolution du traitement : une liste de sous-traitants recopiée est juste le jour où on la lit. |
 | **Fonctions IA de PostHog** | **Non activées — deux preuves, pas une.** (1) Réglage vérifié dans la console du projet PostHog (case du suivi des actions, à cocher le jour de la pose de la clé) ; (2) l'application n'appelle **que** l'endpoint d'ingestion `/capture/` — `POSTHOG_HOST` n'apparaît qu'une fois dans tout le code (`lib/analytics.ts`), sans `/decide/`, `/flags/` ni `/query/`. Le réglage seul serait révocable d'un clic en console ; le code seul ne dirait rien du serveur. Les deux ensemble tiennent. Le tableau « AI Subprocessors » de PostHog ne s'applique donc pas. |
-| **Sous-traitants internes (PostHog)** | Section distincte de la page ci-dessus, dont le **périmètre n'a pas pu être extrait** (deux tentatives, 2026-08-18). Nature présumée : **entités affiliées et filiales de PostHog, Inc.** — la page mentionne « PostHog, Inc. together with any of its affiliates and/or subsidiaries ». ⚠️ **Présumé, non lu : à confirmer au DPA.** Ce qu'on ne sait pas ne s'écrit pas comme un fait. |
-| **Adresse IP** | **Collectée en l'état.** PostHog la collecte et la géolocalise par défaut côté ingestion ; le client n'envoie rien pour la neutraliser, donc le comportement serveur s'applique. ⚠️ **Aucune clé n'est posée tant que la coupure n'est pas effective** — coupure IP et pose de clé forment un seul lot. Cette ligne disparaîtra le jour de la coupure, pas avant. |
-| **Durée de conservation** | **18 mois**, puis suppression. Choix motivé : 12 mois interdiraient toute comparaison d'une année sur l'autre sur un marché très saisonnier ; 18 mois couvrent une saison complète plus une marge, sous le plafond de référence de 25 mois. Suppression sur demande à tout moment avant ce terme (Réglages → Supprimer mes statistiques, avec l'identifiant pseudonyme). |
+| **Sous-traitants internes (PostHog)** | ✅ **Extrait le 2026-08-18** (onglet « Internal Subprocessors » de la même page — les deux premières tentatives avaient manqué un contenu chargé au clic, pas un tableau vide) — **deux entités nommées, plus des « affiliés » présumés** :<br>• **Hiberly Ltd.** — fourniture du service PostHog — **Royaume-Uni**.<br>• **PostHog GmbH** — fourniture du service PostHog — **Allemagne**.<br>Le DPA (§5.1) autorise génériquement l'usage de cette page ; il ne liste pas ces entités lui-même, il y renvoie. |
+| **Adresse IP** | **Écartée — vérifié le 2026-08-18** (capture d'écran du projet EU, `Settings → Products → Privacy → Discard client IP data`, activé). Les projets Cloud EU désactivent ce réglage par défaut à la création ; ce n'était pas encore vérifié pour Kyroz, d'où la ligne précédente qui la consignait par prudence comme collectée. Le client n'envoie de toute façon rien pour l'IP — il n'en a jamais eu besoin. |
+| **Durée de conservation** | **Au moins un an**, garantie par l'offre PostHog souscrite ; **sans limite haute fixe au-delà** (données déplacées en stockage froid, non supprimées). ⚠️ **Arbitrage du 2026-08-18** : PostHog ne propose aucun réglage de rétention automatique, et aucune purge n'est construite côté Kyroz — décision assumée, pour ne pas ajouter une pièce serveur (clé API, tâche planifiée) à surveiller pour une fonctionnalité encore éteinte. Ce que ça veut dire concrètement : les données ne raccourcissent pas de vie, elles n'en ont simplement plus de terme fixe promis — en pratique, rien ne les efface plus tôt qu'avant. Suppression **sur demande individuelle**, à tout moment (Réglages → Supprimer mes statistiques, avec l'identifiant pseudonyme) — ce mécanisme est manuel et existait déjà, indépendant de ce choix. |
 | **Mesures de sécurité** | • Client écrit à la main, **aucun SDK tiers** embarqué.<br>• `capture()` est un **no-op** tant que le consentement n'est pas « granted » — vérifié par test.<br>• Aucun appel `identify`/`alias` vers l'identifiant de compte Supabase : le pseudonyme ne peut pas être rebranché sur le compte.<br>• Périmètre des propriétés d'événement tenu par un test de mutation (`analyticsPerimetre.test.ts`).<br>• Chiffrement en transit (HTTPS). |
 
 ---
@@ -109,17 +110,37 @@
   volontairement en suspens. ⚠️ Ne pas la compléter au jugé : une politique de
   confidentialité n'est pas l'endroit où supposer (même règle que le prestataire
   d'abonnement, `constants/legal.ts` §5).
-- [ ] 🔴 **LES TROIS VERROUS DE LA CLÉ POSTHOG.** `EXPO_PUBLIC_POSTHOG_KEY` ne se pose pas
-  tant que les trois ne sont pas faits — ils partent dans le même lot qu'elle, jamais après :
-  - [ ] **Couper la collecte d'IP** côté projet PostHog (géolocalisation comprise). Sans ça,
-        la ligne « Adresse IP » du traitement n°2 reste vraie et la politique publique, qui
-        n'en parle pas, deviendrait fausse par omission le jour du premier événement.
-  - [ ] **DPA PostHog signé**, au même titre que celui de Supabase. Deux lignes du traitement
-        n°2 en dépendent et ne peuvent pas s'écrire sans lui : le périmètre des **sous-traitants
-        internes** (présumé, non lu) et le cadre applicable à **Cloudflare**, seul sous-traitant
-        hors UE de la liste.
-  - [ ] **Rétention configurée à 18 mois** dans le projet PostHog — pas seulement écrite ici et
-        dans la politique. Une durée promise que le serveur ne tient pas est un mensonge de plus.
+- [x] ✅ **LES TROIS VERROUS DE LA CLÉ POSTHOG — levés le 2026-08-18, et la clé posée le
+  jour même.** `EXPO_PUBLIC_POSTHOG_KEY` est un secret du dépôt GitHub (déploiement web,
+  `deploy.yml`) et une variable EAS sur les trois environnements (builds natifs). La
+  mesure d'audience quitte l'état dormant — sous réserve du consentement, toujours
+  demandé et refusable avant tout envoi (`lib/analytics.ts::capture`) :
+  - [x] **Couper la collecte d'IP** — **déjà fait, vérifié le 2026-08-18.** Les projets
+        Cloud EU désactivent ce réglage par défaut à la création ; confirmé par capture
+        d'écran (`Settings → Products → Privacy → Discard client IP data`, activé).
+  - [x] **DPA PostHog signé — signé et contresigné le 2026-08-18.** Généré sur
+        `eu.posthog.com` (Settings → Organization → Legal documents), contresigné côté
+        PostHog par Charles Cook (VP Operations). PDF à conserver hors dépôt, comme
+        celui de Supabase.
+        ✅ **Signer n'était pas lire, et c'est fait depuis** : les deux lignes du
+        traitement n°2 qui restaient « présumé, non lu » (sous-traitants internes,
+        cadre applicable à Cloudflare) sont closes ci-dessus — le fondateur a partagé
+        le PDF signé le jour même, lu en entier.
+  - [x] **Rétention — arbitrage tranché le 2026-08-18, PAS de mécanisme construit.**
+        La doc PostHog ne documente **aucune rétention d'events configurable** ; le
+        plan gratuit *garantit* 1 an, puis les données passent en stockage froid —
+        **jamais supprimées automatiquement**. Les seules suppressions documentées
+        sont manuelles : projet entier, personne par personne, ou via l'API.
+        ➡️ **Décision fondateur : réécrire la promesse plutôt que construire une
+        purge.** Les quatre surfaces (`constants/legal.ts`, l'écran de consentement,
+        les Réglages, ce registre) disent maintenant « au moins un an, sans limite
+        haute fixe » — ce qui est vrai — au lieu de « 18 mois, puis supprimées », qui
+        ne l'était pas. Aucune tâche récurrente n'est créée : la suppression reste
+        **sur demande individuelle**, via le mécanisme déjà existant.
+        ⚠️ **Ce n'est pas une régression de rétention, c'est le retrait d'une fausse
+        borne.** La justification d'origine (synthèse §3.5, comparer une saison à
+        l'autre) reste servie — sans purge automatique, les données persistent au
+        moins aussi longtemps qu'avant, souvent plus.
   - [x] Non-rotation de l'UUID **assumée et documentée** (synthèse §7.2) : une rotation
         périodique renforcerait la position mais casserait les cohortes longues.
 - [ ] (Idéal) Relecture du texte légal par un juriste avant lancement à grande échelle.
@@ -131,12 +152,26 @@
 Ces actions ne vivent dans aucun fichier : personne ne les verra en relisant le code, et
 aucun test ne les attrapera. Elles font pourtant partie du même lot.
 
-- [ ] **App Store Connect** → App Privacy : déclarer **Données d'usage → Interaction avec le
-      produit**, usage *Analytics*, **non liée à l'identité**, **Tracking : non** (pas d'ATT,
-      aucun suivi inter-applications). Les réponses rédigées sont dans `STORE-RELEASE.md` §4.
+📄 **Procédure détaillée, étape par étape** : `PROCEDURE-2026-08-18-activation-posthog.md`
+(libellés exacts des champs, ordre, et ce qui bloque quoi).
+
+- [x] **App Store Connect** → App Privacy : **publié le 2026-08-18**. Première déclaration
+      de l'app (elle n'en avait aucune) : e-mail, santé et ID utilisateur en *Fonctionnalité
+      de l'app* et liés à l'identité ; **Interaction avec le produit** en *Analyses*, **non
+      liée**, **sans suivi**. Photos non déclarées — elles ne quittent pas l'appareil.
 - [ ] **Play Console** → Sécurité des données : ajouter les **actions dans l'app**, consenties,
       non partagées à des fins publicitaires. Même source : `STORE-RELEASE.md` §4.
-- [ ] **URL de politique de confidentialité** dans les deux consoles → `https://kyroz.app/legal.html`
-      (répond 200). Remplace l'URL `brgkevin-arch.github.io` sous pseudo personnel.
-- [ ] **Console PostHog** : les trois verrous ci-dessus.
+- [x] **URL de politique — App Store Connect** → `https://kyroz.app/legal.html`, posée le
+      2026-08-18 (*Confidentialité de l'app* → Politique de confidentialité → Modifier).
+      ⏳ Ne s'affichera sur la fiche qu'à la **prochaine version publiée** : d'ici là,
+      l'ancienne URL reste montrée, et elle répond toujours 200.
+- [ ] **URL de politique — Play Console** → même valeur. **Reporté au 2026-08-18 par le
+      fondateur**, à faire avant la prochaine soumission Android. Remplace l'URL
+      `brgkevin-arch.github.io` sous pseudo personnel.
+- [x] **Console PostHog** : les trois verrous ci-dessus — **levés le 2026-08-18** (IP déjà
+      écartée par défaut, DPA signé et lu, rétention réécrite plutôt qu'automatisée).
+- [x] **Poser `EXPO_PUBLIC_POSTHOG_KEY`** — **fait le 2026-08-18.** Secret GitHub Actions
+      (`deploy.yml`) + variable EAS sur `production`, `preview` et `development`. Le
+      prochain déploiement web et le prochain build natif enverront des événements pour
+      qui a consenti — rien avant.
 
