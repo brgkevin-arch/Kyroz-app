@@ -233,23 +233,61 @@ sans garantie au-delà, **cette justification tombe** — c'est l'argument même
 
 ---
 
-## Étape 5 — Poser la clé
+## Étape 5 — Poser la clé ✅ FAIT le 2026-08-18
 
-Seulement une fois 4.1, 4.2 et 4.3 faits.
+- [x] Token d'ingestion `phc_…` récupéré (*Settings → Project → SDK setup*).
+      **Write-only et public par conception** : l'inliner dans le bundle est normal.
+- [x] **Secret de dépôt GitHub** `EXPO_PUBLIC_POSTHOG_KEY`, à côté des deux clés
+      Supabase.
+- [x] **Ajoutée au bloc `env:`** de l'étape `npx expo export -p web` dans
+      `.github/workflows/deploy.yml` — sans ça elle ne part pas dans le bundle web.
+- [x] **Variable EAS** sur les trois environnements (`production`, `preview`,
+      `development`), vérifiée par `eas env:list` sur chacun.
+- [x] Cases cochées dans `RGPD-REGISTRE.md` ; le bloc des trois verrous retiré de
+      `.env.example`, qui explique désormais pourquoi le champ y reste **vide en
+      local** (un `.env` de dev avec la vraie clé polluerait le projet de prod).
 
-1. Récupérer le token d'ingestion `phc_…` (*Project → Settings → Project API key*).
-   Il est **write-only et public par conception** : l'inliner dans le bundle web est
-   normal.
-2. Le poser en secret de dépôt GitHub, à côté des deux clés Supabase déjà là
-   (`deploy.yml` les injecte à l'export) :
-   `EXPO_PUBLIC_POSTHOG_KEY`.
-3. Ajouter la variable au bloc `env:` de l'étape `npx expo export -p web` dans
-   `.github/workflows/deploy.yml` — sinon elle ne part pas dans le bundle web.
-4. Pour les binaires : la poser aussi dans les variables d'environnement EAS.
+---
 
-**Le jour où elle est posée** : cocher les cases du suivi des actions dans
-`RGPD-REGISTRE.md`, et retirer de `.env.example` le bloc des trois verrous — il aura
-fait son travail.
+## Étape 6 — Les trois surfaces : où le lot est-il RÉELLEMENT arrivé ?
+
+> 🔴 **Poser la clé ne la met pas partout.** Kyroz a trois surfaces de déploiement
+> indépendantes, et à ce jour **une seule** porte le lot. Ne pas conclure de « c'est
+> mergé » que c'est en ligne chez les utilisateurs.
+
+| Surface | Comment elle se met à jour | État au 2026-08-18 |
+|---|---|---|
+| **Site web** (GitHub Pages) | automatique au merge sur `main` (`deploy.yml`) | ✅ **en ligne**, CI verte, vérifié en production |
+| **OTA** (`eas update`) | manuel — atteint les binaires déjà installés | ❌ **non publié** — report explicite du fondateur |
+| **Binaire** (`eas build`) | manuel — nouvelle soumission | ❌ pas nécessaire : le lot est 100 % JS |
+
+**Ce que ça veut dire concrètement** : les binaires TestFlight en circulation (canal
+`production`, runtime `1.0.0`) n'ont **ni les nouveaux textes légaux, ni la clé**.
+⚠️ **Et ce n'est PAS une incohérence** : sans clé, `capture()` est un no-op, donc leur
+ancien texte « aucun outil d'analyse tiers » reste **vrai pour eux**. La règle du dépôt
+joue dans le bon sens — clé et textes sont absents ensemble. Rien ne ment nulle part.
+
+### Le jour où l'OTA se publie
+
+```bash
+npx eas-cli update --branch production --clear-cache --message "…"
+```
+
+🔴 **`--clear-cache` N'EST PAS OPTIONNEL ICI.** Le cache de Metro **ne s'invalide pas**
+quand la valeur d'une `EXPO_PUBLIC_*` change (CLAUDE.md §2, mesuré). C'est exactement
+notre cas : une variable qui vient d'apparaître. Sans le drapeau, l'update peut partir
+**sans la clé** — et ça ne se verrait pas, `capture()` ne plantant jamais.
+
+**Vérifier l'ARTEFACT, pas la configuration** (même méthode qu'en CLAUDE.md §2) :
+`eas env:exec production 'npx expo export …'` puis `strings -a` sur le `.hbc`. Le témoin
+`phc_qELCvYG4…` est **ASCII pur**, donc `strings` le trouve — contrairement à toute
+phrase accentuée, qui rendrait 0 à tort.
+
+⚠️ **Et l'OTA ne déclenchera pas la mesure pour les comptes existants.** L'écran de
+consentement ne vit que dans l'onboarding : qui l'a déjà terminé ne le reverra jamais,
+donc son consentement reste `null`, donc `capture()` reste no-op. Il faudrait qu'il
+bascule lui-même « Statistiques d'usage » dans les Réglages. Concrètement, la mesure
+démarrera avec les **nouvelles installations**, pas d'un coup pour tout le parc.
 
 ---
 

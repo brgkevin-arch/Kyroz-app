@@ -171,7 +171,14 @@ aucun test ne les attrapera. Elles font pourtant partie du même lot.
 - [x] **Console PostHog** : les trois verrous ci-dessus — **levés le 2026-08-18** (IP déjà
       écartée par défaut, DPA signé et lu, rétention réécrite plutôt qu'automatisée).
 - [x] **Poser `EXPO_PUBLIC_POSTHOG_KEY`** — **fait le 2026-08-18.** Secret GitHub Actions
-      (`deploy.yml`) + variable EAS sur `production`, `preview` et `development`. Le
-      prochain déploiement web et le prochain build natif enverront des événements pour
-      qui a consenti — rien avant.
+      (`deploy.yml`) + variable EAS sur `production`, `preview` et `development`.
+      ✅ **Site web : en ligne** (déployé au merge, CI verte, vérifié en production) — la
+      mesure y est active pour qui a consenti.
+- [ ] **Publier l'OTA** (`eas update --branch production --clear-cache`) — **reporté par
+      le fondateur le 2026-08-18.** Tant qu'il ne l'est pas, les binaires en circulation
+      n'ont ni la clé ni les nouveaux textes. ⚠️ **Aucune non-conformité** : sans clé,
+      `capture()` est un no-op, donc leur ancien texte « aucun outil d'analyse tiers »
+      reste exact chez eux — clé et textes sont absents *ensemble*. Cette case n'est donc
+      pas un retard à rattraper, c'est un état à connaître.
+      Procédure et pièges : `PROCEDURE-2026-08-18-activation-posthog.md` §6.
 
