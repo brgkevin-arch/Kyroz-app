@@ -1,139 +1,114 @@
+<!-- ⚠️ FICHIER GÉNÉRÉ — NE PAS ÉDITER À LA MAIN.
+     Source : kyroz-app/constants/legal.ts · Régénérer : cd kyroz-app && npm run gen:legal
+     Ce document a divergé de l'app du 2026-08-05 au 2026-08-18 (10 sections contre 11,
+     § Mineurs absente, gabarits jamais remplis). Il ne peut plus : il se fabrique. -->
+
 # Politique de confidentialité — Kyroz
 
-**Dernière mise à jour : 2 août 2026**
-
-> 🔴 **CE DOCUMENT N'EST PAS CELUI QUE L'APP AFFICHE, et les deux ont divergé.**
-> Le texte servi aux utilisateurs vit dans `kyroz-app/constants/legal.ts`
-> (`PRIVACY_POLICY`), rendu par l'écran `/legal`. Celui-ci est la version destinée à
-> une page **publique** (URL exigée par les stores). Comparés le 2026-08-05 :
->
-> | | app (`constants/legal.ts`) | ce document |
-> |---|---|---|
-> | sections | **11** | **10** |
-> | **§ Mineurs** | ✅ « réservé aux 18 ans et plus, aucun compte en deçà » | ❌ **absente** |
-> | hébergement | § dédié (6) | fondu dans le § 5 |
-> | contact | dans le § 1 | § 10 dédié |
-> | date | `LEGAL.effectiveDate` = **2 août 2026** | était le gabarit `[JJ/MM/AAAA]` |
->
-> ⚠️ **L'absence du § Mineurs est la divergence qui compte** : le blocage des moins de
-> 18 ans est un garde-fou DUR du produit (CLAUDE.md §6, `lib/safety.ts::MIN_AGE`), et
-> Apple comme le RGPD regardent ce point. Une page publique qui ne le dit pas promet
-> autre chose que ce que l'app fait.
->
-> 🧑 **Décision fondateur attendue** : soit ce fichier devient une simple copie générée
-> depuis `constants/legal.ts` (une seule source, plus de dérive possible), soit il est
-> aligné à la main — mais alors quelqu'un devra le refaire à chaque changement. Je n'ai
-> pas réécrit un texte juridique de ma propre initiative ; j'ai daté et mesuré l'écart.
-
-La présente politique de confidentialité décrit comment l'application **Kyroz** (« l'Application ») collecte, utilise et protège tes données personnelles, conformément au Règlement Général sur la Protection des Données (RGPD — Règlement UE 2016/679).
+**Dernière mise à jour : 18 août 2026**
 
 ---
 
 ## 1. Responsable de traitement
 
-Le responsable du traitement de tes données est :
+Le responsable du traitement de vos données est Kévin Berger, Entrepreneur individuel (micro-entreprise), SIREN 106386162, 2 rue du moulin, 64570 Arette.
 
-- **[Nom / Raison sociale]** — [ex. Kévin [Nom], entrepreneur individuel] ou [SAS Kyroz, SIREN n° XXX]
-- **Adresse** : [Adresse postale]
-- **Contact** : contact@kyroz.app
-
-**Délégué à la protection des données (DPO)** : au lancement, le contact pour toute question relative à tes données est :
-
-- **Email** : contact@kyroz.app
+Pour toute question relative à vos données ou pour exercer vos droits : contact@kyroz.app.
 
 ---
 
-## 2. Données que nous collectons
+## 2. Données collectées
 
-Nous collectons uniquement les données nécessaires au fonctionnement de l'Application :
+Données de compte : adresse email (lors d’une inscription par email).
 
-**Données de compte**
-- Adresse email (identification et connexion)
+Données de santé : sexe, âge, poids, taille, taux de masse grasse, niveau d’activité et sport pratiqué, objectif, restrictions et préférences alimentaires. Ces informations sont des données de santé au sens de l’article 9 du RGPD.
 
-**Données de santé**
-- Poids
-- Taux de masse grasse (% MG)
-- Taille
-- Âge
-- Objectif (perte, maintien, prise de masse…)
-- Régime / préférences alimentaires
+Données d’usage de l’app : plans générés, suivi du poids, série (streak), favoris, garde-manger.
 
-**Données d'usage**
-- Données techniques liées à l'utilisation de l'Application (logs, interactions) nécessaires à son bon fonctionnement.
+Photos de progression (facultatives) : elles restent stockées UNIQUEMENT sur votre appareil et ne sont jamais transmises à nos serveurs.
 
-**Photos de progression**
-- Les photos de progression que tu importes **restent stockées exclusivement sur ton appareil (local-only)**. Elles **ne sont jamais transmises à nos serveurs ni à un tiers**, et nous n'y avons aucun accès.
+Données d’abonnement, uniquement si vous souscrivez à Kyroz+ : l’identifiant technique de votre compte et l’état de votre abonnement. Aucune coordonnée bancaire ne transite par Kyroz.
+
+Mesures d’usage, uniquement si vous les acceptez : des événements techniques (étape d’inscription atteinte, plan ouvert, repas coché, palier de série, échec de génération, erreur technique), des comptes (nombre de jours du plan, nombre de repas) et le rang du jour depuis l’installation. Ils sont rattachés à un identifiant pseudonyme tiré au hasard sur votre appareil, jamais relié à votre compte ni à votre adresse e-mail.
 
 ---
 
-## 3. Finalités du traitement
+## 3. Finalités
 
-Tes données sont traitées exclusivement pour :
+Vos données de compte et de santé servent exclusivement à : calculer vos besoins nutritionnels (calories, macros), générer vos plans repas, votre liste de courses et le suivi associé.
 
-- **Générer tes plans repas personnalisés**
-- **Calculer tes besoins nutritionnels** (apports caloriques et macronutriments adaptés à ton profil et ton objectif)
+Les mesures d’usage, si vous les acceptez, servent uniquement à comprendre comment l’application est utilisée — où l’inscription décroche, si les plans sont suivis, quelles erreurs surviennent — afin de l’améliorer. Aucune donnée de santé et aucun contenu de plan (aliment, recette, quantité, liste de courses) n’y figure. Elles ne servent ni au profilage, ni à la personnalisation de votre plan.
 
-Nous n'utilisons pas tes données à des fins publicitaires et ne les revendons pas.
+Aucune donnée n’est utilisée à des fins publicitaires.
 
 ---
 
 ## 4. Base légale
 
-Tes données de santé (poids, % MG, taille, âge, objectif, régime) constituent des données sensibles au sens de l'article 9 du RGPD.
+Le traitement des données de santé repose sur votre consentement explicite (RGPD art. 9-2-a), recueilli à l’inscription. Vous pouvez le retirer à tout moment en supprimant votre compte.
 
-Leur traitement repose sur ton **consentement explicite**, conformément à l'**article 9-2-a du RGPD**. Ce consentement t'est demandé lors de la création de ton compte, et tu peux le retirer à tout moment (voir section 7).
-
----
-
-## 5. Sous-traitants et hébergement
-
-Pour fournir le service, nous faisons appel au sous-traitant suivant :
-
-- **Supabase** — hébergement de la base de données et authentification.
-  - **Localisation des données : région Union européenne (UE).**
-
-Ce sous-traitant agit conformément à nos instructions et présente des garanties appropriées en matière de protection des données (article 28 du RGPD).
+La mesure d’usage repose sur un consentement distinct de celui portant sur vos données de santé. Il vous est demandé avant toute collecte, se refuse sans aucune conséquence sur l’usage de l’application, et se retire à tout moment dans Réglages → Confidentialité → Statistiques d’usage, sans avoir à supprimer votre compte.
 
 ---
 
-## 6. Durée de conservation
+## 5. Destinataires et sous-traitants
 
-Tes données sont conservées **tant que ton compte est actif**.
+Vos données synchronisées sont hébergées par Supabase Inc., sur des serveurs situés en Union européenne (UE).
 
-Lorsque tu supprimes ton compte, l'ensemble de tes données personnelles est **effacé** de nos serveurs.
+L’envoi des e-mails de service (confirmation d’inscription, réinitialisation de mot de passe) est assuré par Resend. Seules votre adresse e-mail et le contenu de ces messages lui sont transmis — aucune donnée de santé.
+
+Si vous acceptez le partage des statistiques d’usage, celles-ci sont traitées par PostHog. Elles sont stockées sur ses serveurs de Francfort, en Allemagne. Lui sont transmis l’identifiant pseudonyme de votre appareil et les événements décrits au point 2 — aucune donnée de santé, aucun contenu de plan, ni votre adresse e-mail, ni l’identifiant de votre compte.
+
+Si vous souscrivez un jour un abonnement Kyroz+, sa gestion technique pourra être confiée à un prestataire spécialisé. Ne lui seraient transmis que l’identifiant technique de votre compte et l’état de votre abonnement — ni votre adresse email, ni vos données de santé, ni aucune coordonnée bancaire. Ce prestataire sera nommé ici avant toute mise en vente.
+
+Le paiement lui-même est traité par l’App Store (Apple) ou Google Play. Kyroz ne voit ni ne conserve aucune coordonnée bancaire.
+
+Nous ne vendons, ne louons et ne partageons vos données avec aucun tiers à des fins commerciales. Aucun traceur publicitaire n’est utilisé, et aucun suivi ne vous relie à d’autres applications ou sites.
 
 ---
 
-## 7. Tes droits
+## 6. Hébergement et localisation
 
-Conformément au RGPD, tu disposes des droits suivants :
+Les données synchronisées sont stockées dans l’Union européenne. Une copie de travail réside localement sur votre appareil (fonctionnement hors-ligne).
 
-- **Droit d'accès** : obtenir une copie des données que nous détenons sur toi.
-- **Droit de rectification** : corriger des données inexactes ou incomplètes.
-- **Droit à l'effacement** : supprimer tes données (fonction de suppression de compte disponible directement dans l'Application).
-- **Droit à la portabilité** : recevoir tes données dans un format structuré et lisible par machine.
-- **Droit de retrait du consentement** : retirer ton consentement à tout moment, sans affecter la licéité des traitements effectués avant ce retrait.
-- **Droit de réclamation** : introduire une réclamation auprès de la **CNIL** (Commission Nationale de l'Informatique et des Libertés), autorité de contrôle française — [www.cnil.fr](https://www.cnil.fr).
+---
 
-Pour exercer ces droits, contacte-nous à : **contact@kyroz.app**.
+## 7. Durée de conservation
+
+Vos données sont conservées tant que votre compte est actif. Elles sont supprimées (serveur + appareil) lorsque vous supprimez votre compte.
+
+Les mesures d’usage, si vous les avez acceptées, sont conservées 18 mois, puis supprimées. Vous pouvez en demander la suppression avant ce terme à tout moment (Réglages → Supprimer mes statistiques).
+
+Une exception : si vous avez souscrit un abonnement, l’historique de facturation correspondant est conservé par le store concerné (Apple, Google) et par le prestataire mentionné au point 5, pour la durée qu’imposent leurs obligations légales et comptables. Cet historique ne contient aucune donnée de santé.
 
 ---
 
 ## 8. Sécurité
 
-Nous mettons en œuvre des mesures techniques et organisationnelles appropriées pour protéger tes données contre tout accès, modification ou divulgation non autorisés. Les appels aux services d'intelligence artificielle utilisés pour générer tes plans sont sécurisés et ne transmettent que les données strictement nécessaires.
+Les échanges avec nos serveurs sont chiffrés en transit (HTTPS). L’accès aux données est cloisonné par utilisateur : un utilisateur ne peut accéder qu’à ses propres données.
+
+Les données stockées localement sur votre appareil ne sont pas chiffrées : protégez l’accès à votre appareil, en particulier sur un ordinateur partagé.
 
 ---
 
-## 9. Modifications
+## 9. Vos droits
 
-Cette politique peut être mise à jour. Toute modification substantielle te sera notifiée, et la date de dernière mise à jour figurera en haut de ce document.
+Conformément au RGPD, vous disposez des droits d’accès, de rectification, d’effacement, de limitation, d’opposition et de portabilité, ainsi que du droit de retirer votre consentement.
+
+Le droit à l’effacement s’exerce directement dans l’app (Profil → Supprimer mon compte) ou par email à contact@kyroz.app.
+
+La suppression des statistiques d’usage déjà envoyées se demande depuis l’app (Réglages → Supprimer mes statistiques), qui prépare l’e-mail avec votre identifiant pseudonyme.
+
+Vous pouvez introduire une réclamation auprès de la CNIL (www.cnil.fr).
 
 ---
 
-## 10. Contact
+## 10. Mineurs
 
-Pour toute question concernant cette politique ou tes données personnelles :
+Kyroz est réservé aux personnes âgées de 18 ans et plus. Aucun compte ne peut être créé en deçà de cet âge.
 
-**[Nom / Raison sociale]**
-Email : contact@kyroz.app
+---
+
+## 11. Modifications
+
+La présente politique peut évoluer. Date de dernière mise à jour : 18 août 2026.
