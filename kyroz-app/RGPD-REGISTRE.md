@@ -1,7 +1,7 @@
 # Registre des activités de traitement — Kyroz
 
 > Document obligatoire (RGPD art. 30). Modèle simplifié CNIL pour TPE/micro-entreprise.
-> À tenir à jour à chaque évolution du traitement des données. Dernière mise à jour : **11 août 2026**.
+> À tenir à jour à chaque évolution du traitement des données. Dernière mise à jour : **18 août 2026**.
 >
 > 🔴 **Ce registre a eu DEUX JOURS DE RETARD sur la production, et le motif vaut d'être
 > gardé.** L'expéditeur e-mail (Resend) est branché depuis le 2026-08-09 — il traite
@@ -11,6 +11,18 @@
 > encore dormant. ➡️ **Un sous-traitant se déclare le jour où il TRAITE, pas le jour où
 > on avait prévu de l'activer** — et un registre ne se relit jamais tout seul : c'est le
 > jour où l'on branche un prestataire qu'il faut l'ouvrir.
+>
+> 🔵 **ET LA RÈGLE VAUT DANS L'AUTRE SENS — ajout du 2026-08-18.** Le traitement n°2
+> (mesure d'audience) est déclaré ici alors qu'**aucune clé PostHog n'est posée** :
+> rien ne part encore. Ce n'est pas la même faute à l'envers, et la raison tient en
+> une phrase — **l'app DEMANDE déjà le consentement en production** (écran
+> d'onboarding + Réglages) pour un outil que les textes déclaraient inexistant. Deux
+> surfaces se contredisaient : on corrige un énoncé faux, on n'anticipe pas un
+> traitement. ➡️ Le texte utilisateur est donc écrit au **conditionnel de
+> consentement** (« si vous acceptez »), jamais au conditionnel d'existence — il reste
+> vrai que la clé soit posée ou non. Ce registre, lui, dit l'état réel : déclaré le
+> 2026-08-18, **actif à compter de la pose de la clé**, elle-même conditionnée aux
+> trois verrous du suivi des actions.
 
 ## Responsable de traitement
 
@@ -36,11 +48,37 @@
 | **Catégories de personnes** | Utilisateurs de l'application (adultes, 18 ans et plus — âge minimum bloqué à l'inscription, `lib/safety.ts::MIN_AGE`). |
 | **Catégories de données** | • Identification : adresse email.<br>• **Données de santé (art. 9)** : sexe, âge, poids, taille, taux de masse grasse, niveau d'activité, sport, objectif, restrictions et préférences alimentaires.<br>• Usage : plans générés, suivi du poids, série (streak), favoris, frigo (garde-manger). |
 | **Base légale** | Consentement explicite (art. 9-2-a), recueilli à l'inscription et horodaté (`consent_health_data`, `consent_at`). |
-| **Destinataires** | Le responsable de traitement, et les sous-traitants listés ci-dessous dans la stricte limite de leur mission. Aucun partage commercial, aucune revente, aucun traceur publicitaire ou outil d'analyse tiers. |
+| **Destinataires** | Le responsable de traitement, et les sous-traitants listés ci-dessous dans la stricte limite de leur mission. Aucun partage commercial, aucune revente, aucun traceur publicitaire. La mesure d'audience fait l'objet d'un traitement séparé (n°2) : **aucune donnée de ce traitement-ci ne lui est transmise**. |
 | **Sous-traitants** | • **Supabase Inc.** — hébergement de la base et de l'authentification (données de santé comprises).<br>• **Resend** — envoi des e-mails de service (confirmation d'inscription, réinitialisation de mot de passe), branché en SMTP dédié le 2026-08-09. Reçoit l'**adresse e-mail** et le contenu de ces messages, **aucune donnée de santé**. |
 | **Transferts hors UE** | Données de santé : **aucun** — hébergement Supabase dans l'Union européenne (`eu-central-1`). ⚠️ **À VÉRIFIER pour Resend** : le cadre du transfert (clauses contractuelles types / Data Privacy Framework) ne peut se lire que dans son DPA, qui n'a pas encore été consulté. Tant qu'il ne l'est pas, cette ligne ne dit pas « aucun » pour ce sous-traitant — voir le suivi des actions en fin de document. |
 | **Durée de conservation** | Pendant toute la durée de vie du compte. Suppression définitive (serveur + appareil) à la suppression du compte ou sur demande. |
-| **Mesures de sécurité** | • Cloisonnement par utilisateur (Row Level Security PostgreSQL — un utilisateur n'accède qu'à ses données).<br>• Chiffrement des échanges en transit (HTTPS).<br>• Droit à l'effacement self-service (suppression de compte + cascade).<br>• Purge des données locales à la déconnexion.<br>• Aucun SDK de tracking/publicité embarqué.<br>• Photos de progression **stockées uniquement sur l'appareil**, jamais transmises au serveur. |
+| **Mesures de sécurité** | • Cloisonnement par utilisateur (Row Level Security PostgreSQL — un utilisateur n'accède qu'à ses données).<br>• Chiffrement des échanges en transit (HTTPS).<br>• Droit à l'effacement self-service (suppression de compte + cascade).<br>• Purge des données locales à la déconnexion.<br>• Aucun SDK tiers de tracking/publicité embarqué — le client de mesure du traitement n°2 est écrit à la main (`lib/analytics.ts`), sans SDK, et reste inerte sans consentement.<br>• Photos de progression **stockées uniquement sur l'appareil**, jamais transmises au serveur. |
+
+---
+
+## Traitement n°2 — Mesure d'audience (statistiques d'usage)
+
+> **Déclaré le 2026-08-18. Actif à compter de la pose de la clé PostHog**, elle-même
+> conditionnée aux trois verrous du suivi des actions. Traitement séparé du n°1, et
+> ce n'est pas une commodité de présentation : la finalité, la base légale, les
+> données, le destinataire et la durée y sont tous différents. Les fondre dans le n°1
+> reviendrait à couvrir une mesure d'audience par un consentement donné pour des
+> données de santé.
+
+| Rubrique | Détail |
+|---|---|
+| **Finalités** | Comprendre comment l'application est utilisée, pour l'améliorer : où le parcours d'inscription décroche, si les plans générés sont réellement suivis, quelles erreurs techniques surviennent. Aucun profilage, aucune personnalisation du plan, aucune publicité. |
+| **Catégories de personnes** | Utilisateurs ayant explicitement accepté le partage des statistiques d'usage. |
+| **Catégories de données** | • Identifiant **pseudonyme** d'appareil (UUID tiré localement, jamais relié au compte ni à l'e-mail).<br>• 13 événements techniques et leurs propriétés (étape d'inscription, plan ouvert, repas coché, palier de série, échec de génération, erreur — type de classe, jamais le message brut).<br>• Comptes (nombre de jours du plan, nombre de repas) et rang du jour depuis l'installation.<br>• **Adresse IP** — voir la ligne dédiée ci-dessous.<br>➡️ **Aucune donnée de santé, aucun contenu de plan** (aliment, recette, quantité, liste de courses), aucun texte libre, aucune photo, ni e-mail ni identifiant de compte. Interdits absolus, tenus par `lib/__tests__/analyticsPerimetre.test.ts`. |
+| **Base légale** | **Consentement** (RGPD art. 6-1-a), **distinct** de celui du traitement n°1. Demandé avant toute collecte, refusable sans conséquence sur l'usage de l'app (deux boutons de même taille), retirable à tout moment dans Réglages → Confidentialité, sans supprimer le compte. |
+| **Destinataire** | **PostHog** (PostHog, Inc.), offre Cloud EU. |
+| **Localisation** | **Stockage à Francfort** (Allemagne) ; **transit routé par Cloudflare sur des points de présence mondiaux**. ⚠️ Cette ligne ne dit ni « hébergement UE » ni « aucun transfert hors UE » : le stockage est en Allemagne, le transit ne l'est pas, et une localisation de serveurs ne se transforme pas en promesse plus large qu'elle. |
+| **Sous-traitants ultérieurs** | Tableau « services de base » publié par PostHog, **consulté le 2026-08-18** — <https://posthog.com/subprocessors> (page datée du 12 juin 2026) :<br>• **Amazon Web Services, Inc.** — stockage cloud — Allemagne (EU Cloud).<br>• **Wiz, Inc.** — détection de vulnérabilités — Allemagne, France.<br>• **PlanetScale, Inc.** — supervision des bases — Allemagne (EU Cloud).<br>• **Modal Labs, Inc.** — calcul serverless isolé — Allemagne (EU Cloud).<br>• **Cloudflare, Inc.** — reverse proxy, CDN, routage — **points de présence mondiaux (dynamique)**.<br>🔁 **À revérifier avant le 2027-02-18** (6 mois), et à chaque évolution du traitement : une liste de sous-traitants recopiée est juste le jour où on la lit. |
+| **Fonctions IA de PostHog** | **Non activées — deux preuves, pas une.** (1) Réglage vérifié dans la console du projet PostHog (case du suivi des actions, à cocher le jour de la pose de la clé) ; (2) l'application n'appelle **que** l'endpoint d'ingestion `/capture/` — `POSTHOG_HOST` n'apparaît qu'une fois dans tout le code (`lib/analytics.ts`), sans `/decide/`, `/flags/` ni `/query/`. Le réglage seul serait révocable d'un clic en console ; le code seul ne dirait rien du serveur. Les deux ensemble tiennent. Le tableau « AI Subprocessors » de PostHog ne s'applique donc pas. |
+| **Sous-traitants internes (PostHog)** | Section distincte de la page ci-dessus, dont le **périmètre n'a pas pu être extrait** (deux tentatives, 2026-08-18). Nature présumée : **entités affiliées et filiales de PostHog, Inc.** — la page mentionne « PostHog, Inc. together with any of its affiliates and/or subsidiaries ». ⚠️ **Présumé, non lu : à confirmer au DPA.** Ce qu'on ne sait pas ne s'écrit pas comme un fait. |
+| **Adresse IP** | **Collectée en l'état.** PostHog la collecte et la géolocalise par défaut côté ingestion ; le client n'envoie rien pour la neutraliser, donc le comportement serveur s'applique. ⚠️ **Aucune clé n'est posée tant que la coupure n'est pas effective** — coupure IP et pose de clé forment un seul lot. Cette ligne disparaîtra le jour de la coupure, pas avant. |
+| **Durée de conservation** | **18 mois**, puis suppression. Choix motivé : 12 mois interdiraient toute comparaison d'une année sur l'autre sur un marché très saisonnier ; 18 mois couvrent une saison complète plus une marge, sous le plafond de référence de 25 mois. Suppression sur demande à tout moment avant ce terme (Réglages → Supprimer mes statistiques, avec l'identifiant pseudonyme). |
+| **Mesures de sécurité** | • Client écrit à la main, **aucun SDK tiers** embarqué.<br>• `capture()` est un **no-op** tant que le consentement n'est pas « granted » — vérifié par test.<br>• Aucun appel `identify`/`alias` vers l'identifiant de compte Supabase : le pseudonyme ne peut pas être rebranché sur le compte.<br>• Périmètre des propriétés d'événement tenu par un test de mutation (`analyticsPerimetre.test.ts`).<br>• Chiffrement en transit (HTTPS). |
 
 ---
 
@@ -51,7 +89,8 @@
 | Accès / Portabilité | Bouton « Exporter mes données » (Profil) → fichier JSON complet. |
 | Rectification | Édition du profil dans l'app. |
 | Effacement | « Supprimer mon compte » (Profil) → suppression serveur + locale. |
-| Retrait du consentement | Suppression du compte. |
+| Retrait du consentement | **Données de santé** (traitement n°1) : suppression du compte.<br>**Statistiques d'usage** (traitement n°2) : interrupteur dans Réglages → Confidentialité, sans supprimer le compte ni perdre quoi que ce soit. |
+| Effacement des statistiques d'usage | « Supprimer mes statistiques » (Réglages) → prépare l'e-mail avec l'identifiant pseudonyme, seule clé permettant de retrouver les événements d'un appareil. |
 | Réclamation | CNIL — www.cnil.fr. |
 
 ---
@@ -70,4 +109,34 @@
   volontairement en suspens. ⚠️ Ne pas la compléter au jugé : une politique de
   confidentialité n'est pas l'endroit où supposer (même règle que le prestataire
   d'abonnement, `constants/legal.ts` §5).
+- [ ] 🔴 **LES TROIS VERROUS DE LA CLÉ POSTHOG.** `EXPO_PUBLIC_POSTHOG_KEY` ne se pose pas
+  tant que les trois ne sont pas faits — ils partent dans le même lot qu'elle, jamais après :
+  - [ ] **Couper la collecte d'IP** côté projet PostHog (géolocalisation comprise). Sans ça,
+        la ligne « Adresse IP » du traitement n°2 reste vraie et la politique publique, qui
+        n'en parle pas, deviendrait fausse par omission le jour du premier événement.
+  - [ ] **DPA PostHog signé**, au même titre que celui de Supabase. Deux lignes du traitement
+        n°2 en dépendent et ne peuvent pas s'écrire sans lui : le périmètre des **sous-traitants
+        internes** (présumé, non lu) et le cadre applicable à **Cloudflare**, seul sous-traitant
+        hors UE de la liste.
+  - [ ] **Rétention configurée à 18 mois** dans le projet PostHog — pas seulement écrite ici et
+        dans la politique. Une durée promise que le serveur ne tient pas est un mensonge de plus.
+  - [x] Non-rotation de l'UUID **assumée et documentée** (synthèse §7.2) : une rotation
+        périodique renforcerait la position mais casserait les cohortes longues.
 - [ ] (Idéal) Relecture du texte légal par un juriste avant lancement à grande échelle.
+
+---
+
+## 🧑 À faire hors dépôt par le fondateur
+
+Ces actions ne vivent dans aucun fichier : personne ne les verra en relisant le code, et
+aucun test ne les attrapera. Elles font pourtant partie du même lot.
+
+- [ ] **App Store Connect** → App Privacy : déclarer **Données d'usage → Interaction avec le
+      produit**, usage *Analytics*, **non liée à l'identité**, **Tracking : non** (pas d'ATT,
+      aucun suivi inter-applications). Les réponses rédigées sont dans `STORE-RELEASE.md` §4.
+- [ ] **Play Console** → Sécurité des données : ajouter les **actions dans l'app**, consenties,
+      non partagées à des fins publicitaires. Même source : `STORE-RELEASE.md` §4.
+- [ ] **URL de politique de confidentialité** dans les deux consoles → `https://kyroz.app/legal.html`
+      (répond 200). Remplace l'URL `brgkevin-arch.github.io` sous pseudo personnel.
+- [ ] **Console PostHog** : les trois verrous ci-dessus.
+
