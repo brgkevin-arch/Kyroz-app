@@ -1,171 +1,88 @@
-# Procédure — rendre `legal.kyroz.app` à la page légale
+# Le domaine `legal.kyroz.app` — épisode CLOS le 2026-08-18
 
-> Écrite le 2026-08-18 au soir. **L'ordre compte, et il y a une fenêtre de casse** :
-> lis la section « L'ordre » avant de cliquer quoi que ce soit.
->
-> 🧑 **Une étape à la fois.** Fais l'étape, dis-le, on passe à la suivante.
+> ⚠️ **Ce document n'est plus une procédure : il n'y a rien à faire.** Il est gardé
+> parce qu'un domaine posé, retiré, et une panne de plusieurs heures ne laissent aucune
+> trace dans le code — et que la prochaine session qui verra un CNAME orphelin chez
+> Cloudflare aura besoin de savoir pourquoi.
 
 ---
 
-## Ce qui s'est passé, et pourquoi on revient en arrière
+## L'état final, mesuré
 
-Le Pages de l'app a reçu le domaine personnalisé `legal.kyroz.app`. Un domaine
-personnalisé s'applique à un **SITE**, jamais à une page : toute la racine s'est déplacée
-de `/Kyroz-app/` à `/`, et `brgkevin-arch.github.io/Kyroz-app/*` s'est mis à répondre 301
+| | |
+|---|---|
+| **L'app** | `https://brgkevin-arch.github.io/Kyroz-app/` — 200, bundle en 200, console propre |
+| **La page légale** | `https://kyroz.app/legal.html` — 200, « Confidentialité & CGU », dépôt `kyroz-site` |
+| **`legal.kyroz.app`** | ne sert plus rien. Domaine personnalisé retiré côté GitHub |
+
+C'est **l'état d'avant l'épisode**, et c'est celui qui répondait déjà au besoin : une
+page légale sur le domaine de la marque, sans pseudo personnel, **déjà déclarée à Apple**.
+
+---
+
+## Ce qui s'est passé
+
+Le domaine `legal.kyroz.app` a été posé sur le Pages du dépôt de **l'app**. Un domaine
+personnalisé GitHub s'applique à un **SITE entier**, jamais à une page : toute l'app a
+donc déménagé dessus, et `brgkevin-arch.github.io/Kyroz-app/*` s'est mis à répondre 301
 vers lui.
 
-Or `app.json` déclarait encore `baseUrl: "/Kyroz-app"`. Le HTML appelait donc son bundle
-sous un sous-chemin disparu : **404 sur le JS, splash KYROZ et spinner à l'infini**. Rien
-n'a rougi — la CI déploie un artefact, elle ne visite pas la page.
+Or `app.json` déclarait `baseUrl: "/Kyroz-app"`. Le HTML servi appelait son bundle sous
+un sous-chemin qui n'existait plus : **404 sur le JS, splash KYROZ et spinner à
+l'infini**. Le site public n'a plus rien chargé pendant des heures.
 
-Ça a d'abord été réparé en gardant le domaine (`baseUrl` vidé, PR #122). Puis
-l'évidence : **un nom d'hôte ne peut pas être à la fois la maison de l'app et le
-raccourci vers une page.** `legal.kyroz.app` s'appelle `legal` parce qu'il devait porter
-la politique de confidentialité. Pour qu'il le fasse, l'app doit habiter ailleurs.
+🔴 **Et rien n'a rougi.** La CI construit et téléverse un artefact — elle ne visite pas
+la page. Bon commit, run vert, bonne surface : tous les contrôles existants répondaient
+« oui ».
 
-➡️ **Décision : l'app revient sous `brgkevin-arch.github.io/Kyroz-app/`**, `baseUrl` avec
-elle, et `legal.kyroz.app` est libéré.
-
----
-
-## L'ordre — et la fenêtre de casse
-
-Les deux moitiés (le code et le réglage GitHub) doivent bouger ensemble, mais elles ne
-peuvent pas bouger **au même instant**. Entre les deux, le site est cassé. On place donc
-cette fenêtre là où elle dure quelques secondes, pas quelques minutes :
-
-| Ordre | Fenêtre de casse |
-|---|---|
-| ✅ **Déployer, PUIS retirer le domaine** | de la fin du déploiement au clic « Remove » — **quelques secondes** |
-| ❌ Retirer le domaine, puis déployer | toute la durée du build — **2 à 4 minutes** |
-
-⚠️ Donc : **ne retire pas le domaine avant que le run soit vert.** Tant qu'il tourne, le
-site fonctionne encore sur l'ancien bundle.
+⚠️ **Ça ne fonctionnait pas non plus AVANT, contrairement aux apparences.** La page
+légale qu'on voyait sur `legal.kyroz.app/legal.html` était l'app affichant sa propre
+route `/legal` — le domaine était sur l'app depuis le début. Ça semblait sain parce que
+personne n'avait ouvert la racine, le seul endroit où ça cassait.
 
 ---
 
-## Étape 1 — Déployer le retour de `baseUrl`
+## Les trois choses à ne pas refaire
 
-Merger la PR de ce lot. Le run `deploy.yml` republie l'app avec `baseUrl: "/Kyroz-app"`,
-c'est-à-dire les chemins d'assets de `…github.io/Kyroz-app/`.
+**1. Ne pas reposer un domaine personnalisé sur le Pages de l'app.** Il emporte tout le
+site, `confirme.html` compris — l'URL de retour de confirmation d'e-mail, codée en dur
+dans `lib/emailConfirmation.ts`, gravée dans les binaires déjà distribués et inscrite en
+liste blanche Supabase.
 
-```bash
-gh run list --workflow=deploy.yml --limit 3
-```
+**2. `baseUrl` et l'hébergement sont inséparables.** Servi sous `…github.io/Kyroz-app/`,
+`baseUrl` vaut `/Kyroz-app` ; servi à la racine d'un domaine, il doit être **vide**. N'en
+changer qu'un rend la même page blanche, dans un sens ou dans l'autre. Le couplage est
+tenu par `lib/__tests__/deploiementWeb.test.ts` (constante `PREFIXE_SERVI`).
 
-⏳ **Attendre qu'il soit `completed/success`.** À cet instant précis, le site sera cassé
-sur `legal.kyroz.app` — c'est normal, et c'est l'étape 2 qui le répare. Enchaîne sans
-attendre.
-
----
-
-## Étape 2 — Retirer le domaine personnalisé
-
-1. GitHub → dépôt **`brgkevin-arch/Kyroz-app`** → **Settings** → **Pages**
-2. Section **Custom domain** → **Remove**
-
-Le site redevient immédiatement `https://brgkevin-arch.github.io/Kyroz-app/`, et
-`legal.kyroz.app` cesse d'être servi par ce Pages.
-
-**Vérifier** — l'app doit charger, et l'ancienne redirection avoir disparu :
-
-```bash
-curl -sSI https://brgkevin-arch.github.io/Kyroz-app/ | head -3
-```
-
-> ⚠️ **`legal.kyroz.app` rendra un 404 entre l'étape 2 et l'étape 3.** Son CNAME pointe
-> toujours vers `brgkevin-arch.github.io`, mais plus aucun dépôt ne réclame ce nom
-> d'hôte — GitHub trie par nom d'hôte. Ce n'est pas une panne, c'est un intervalle.
+**3. Un changement d'origine déconnecte tous les utilisateurs web.** Mesuré : après le
+passage sur `legal.kyroz.app`, `localStorage` de la nouvelle origine contenait **0 clé**
+et l'app s'ouvrait sur *Inscription*. Les comptes vivent chez Supabase — une reconnexion
+suffit — mais le symptôme ressemble trait pour trait à « il a perdu mon compte ». Vaut
+aussi pour un raccourci d'écran d'accueil posé depuis l'autre domaine.
 
 ---
 
-## Étape 3 — Donner à `legal.kyroz.app` son rôle : la politique
+## Le reliquat, sans urgence
 
-Deux voies. **La voie B ne demande aucun changement DNS** ; la voie A demande un seul
-basculement d'enregistrement.
+Un enregistrement `legal` peut subsister chez Cloudflare. Symptôme : `legal.kyroz.app`
+résout vers des IP `188.114.x` (Cloudflare) et rend **HTTP 530, `error code: 1016`** —
+« origine introuvable ». Ça ne casse rien : aucune surface de Kyroz ne pointe vers ce
+nom. Le supprimer est du ménage, pas un correctif.
 
-### Voie A — Règle de redirection Cloudflare *(la plus simple, aucun dépôt)*
-
-1. Cloudflare → `kyroz.app` → **DNS → Enregistrements** → ligne `legal` → **Modifier**
-2. Basculer **État du proxy** sur **Proxyfié** (nuage orange), enregistrer
-3. **Règles → Règles de redirection → Créer une règle**
-   - Si : *Nom d'hôte* **égal à** `legal.kyroz.app`
-   - Alors : redirection **statique** vers `https://kyroz.app/legal.html`, code **301**
-
-> ⚠️ **Le nuage orange est correct ICI, et seulement ici.** La règle du dépôt — « nuage
-> gris » — protège le certificat des hôtes servis par **GitHub Pages** ; `legal` cesse
-> justement d'en être un, et c'est Cloudflare qui fournit le certificat sur cet hôte. Les
-> autres enregistrements (`kyroz.app`, `www`) restent en **DNS uniquement**.
-
-### Voie B — Un petit dépôt dédié *(garde le nuage gris)*
-
-Un dépôt public contenant un seul `index.html`, Pages activé dessus (branche `main`,
-dossier `/`), et `legal.kyroz.app` en domaine personnalisé. Le fichier tient ici :
-
-```html
-<!doctype html>
-<html lang="fr" translate="no">
-<head>
-  <meta charset="utf-8" />
-  <meta name="google" content="notranslate" />
-  <!-- Redirection SANS JavaScript : elle doit marcher pour un robot de store
-       comme pour un navigateur sans JS. Le refresh à 0 s est le seul moyen
-       d'émettre une redirection depuis une page statique GitHub Pages. -->
-  <meta http-equiv="refresh" content="0; url=https://kyroz.app/legal.html" />
-  <link rel="canonical" href="https://kyroz.app/legal.html" />
-  <title>Confidentialite &amp; CGU — Kyroz</title>
-</head>
-<body>
-  <!-- Le lien reste cliquable si le refresh est bloque. Ne JAMAIS mettre le texte
-       legal ici : cette page est un panneau indicateur, pas une copie. -->
-  <p>Redirection vers <a href="https://kyroz.app/legal.html">la politique de
-  confidentialite et les CGU de Kyroz</a>.</p>
-</body>
-</html>
-```
-
-⚠️ **Une page de redirection, jamais une copie du texte légal.** Une copie réintroduirait
-exactement ce que le lot « source unique » a passé la journée à supprimer. Une
-redirection, elle, n'a rien qui puisse diverger.
+⚠️ **Ne pas le remplacer par une redirection sans décision explicite.** Ce serait une
+seconde adresse vers une page qui en a déjà une, et c'est la multiplication d'adresses
+qui a produit tout cet épisode.
 
 ---
 
-## Vérifier, à la fin
+## Ce qui reste vrai et ne bouge pas
 
-```bash
-curl -sSL -o /dev/null -w "%{url_effective} → %{http_code}\n" https://legal.kyroz.app/
-```
-
-Attendu : arrivée sur `https://kyroz.app/legal.html`, en **200**.
-
-Et dans un navigateur, l'app : <https://brgkevin-arch.github.io/Kyroz-app/> doit dépasser
-le splash, sans 404 sur `_expo/static/…` dans la console.
-
----
-
-## Ce qu'il faut savoir avant de constater
-
-### Le changement d'origine déconnecte les sessions web
-
-Mesuré le 2026-08-18 : après le passage sur `legal.kyroz.app`, `localStorage` de la
-nouvelle origine contenait **0 clé** et l'app s'ouvrait sur *Inscription*. Un navigateur
-cloisonne son stockage **par origine** — changer de domaine, c'est repartir d'un stockage
-vide. **Le retour sur `github.io` refait exactement pareil, en sens inverse.**
-
-➡️ Les comptes ne sont pas perdus, ils vivent chez Supabase : une reconnexion suffit. Mais
-le symptôme ressemble trait pour trait à « il a perdu mon compte ».
-⚠️ Vaut aussi pour un **raccourci d'écran d'accueil** posé depuis l'autre domaine.
-
-### Ce que ce lot NE change pas
-
-- **L'URL de politique déclarée aux stores reste `https://kyroz.app/legal.html`** (dépôt
-  `kyroz-site`), servie par un Pages purement statique où rien ne l'écrase.
-  ⚠️ Ne pas la remplacer par `legal.kyroz.app` : ce dernier n'est qu'une redirection vers
-  elle, et une URL de fiche produit ne devrait pas dépendre d'un saut de plus.
-- **`URL_RETOUR_CONFIRMATION` redevient exacte.** Elle vaut
-  `https://brgkevin-arch.github.io/Kyroz-app/confirme.html` — codée en dur, gravée dans
-  les binaires distribués, inscrite en liste blanche Supabase. Pendant l'épisode du
-  domaine elle passait par deux redirections ; elle redevient directe. **Rien à changer**,
-  ni dans le code ni chez Supabase.
-- **Enforce HTTPS** disparaît avec le domaine personnalisé — `github.io` est servi en
-  HTTPS de toute façon, et sans domaine personnalisé la case n'a plus d'objet.
+- **L'URL déclarée aux stores est `https://kyroz.app/legal.html`** (dépôt `kyroz-site`),
+  servie par un Pages purement statique où rien ne l'écrase. Le Pages de l'app pré-rend
+  sa propre route `/legal` et écraserait le fichier généré — c'est pourquoi la page
+  publique vit dans l'autre dépôt.
+- **`URL_RETOUR_CONFIRMATION` est de nouveau exacte et directe** :
+  `https://brgkevin-arch.github.io/Kyroz-app/confirme.html`. Rien à changer, ni dans le
+  code ni chez Supabase.
+- **Enforce HTTPS** n'a plus d'objet : il ne concernait que le domaine personnalisé, et
+  `github.io` est servi en HTTPS de toute façon.
