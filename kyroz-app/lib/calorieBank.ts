@@ -1,8 +1,40 @@
-// ── Banque de calories ───────────────────────────────────────────────────────
+// ── Jours plus copieux (ex-« banque de calories ») ───────────────────────────
 //
-// « Resto samedi soir » : l'utilisateur déclare un écart calorique sur un jour
-// donné, et la semaine se rééquilibre autour. C'est le 4ᵉ pilier de Kyroz+ (cf.
-// MONETISATION.md), et le seul qui touche le moteur.
+// L'utilisateur déclare qu'un JOUR DE LA SEMAINE est plus copieux, et la semaine
+// se rééquilibre autour. Gratuit depuis le 2026-08-18 — ce n'est plus un pilier
+// Kyroz+ (cf. `lib/premium.ts`), mais ça reste le seul réglage qui touche le moteur.
+//
+// ┌───────────────────────────────────────────────────────────────────────────┐
+// │ TODO(banque-cle-jour-de-semaine) — DETTE CONNUE, NON CORRIGÉE.            │
+// └───────────────────────────────────────────────────────────────────────────┘
+// `profiles.calorie_bank` est indexé par `getDay()` (0–6) : **ni date, ni
+// expiration**. Trois conséquences, dont une est un bug d'affichage franc.
+//
+//  1. AUCUN MOYEN D'EXPRIMER UN ÉVÉNEMENT PONCTUEL. Poser « samedi +600 » vaut
+//     pour TOUS les samedis, à vie. Ce n'est plus un mensonge depuis que
+//     l'éditeur le dit (« c'est un rythme, pas un événement »), mais le besoin
+//     d'origine — un resto, un anniversaire — n'a plus AUCUNE réponse dans le
+//     produit depuis que « J'ai mangé hors plan » est mis de côté.
+//
+//  2. 🔴 UN ÉCART ORPHELIN RESTE AFFICHÉ ALORS QUE LE MOTEUR L'IGNORE.
+//     `offsetsForPlan` ne lit que les jours PRÉSENTS dans `plan_weekdays` — un
+//     écart posé sur un jour retiré du plan est silencieusement ignoré (c'est
+//     documenté et volontaire). Mais `profil.tsx::bankResume` lit la banque
+//     BRUTE, tous jours confondus : la ligne du Profil continue d'annoncer
+//     « Samedi +600 » pendant que le plan n'en tient aucun compte. Pire, les
+//     puces de l'éditeur ne montrent que les jours du plan — la valeur ne peut
+//     donc plus être ni vue ni effacée depuis l'écran. C'est un « chiffre affiché
+//     qui n'est pas celui qui sera servi » (CLAUDE.md §10).
+//     ➡️ Reproduction : poser samedi +600, puis retirer samedi de `plan_weekdays`.
+//
+//  3. LA RÉPARTITION IGNORE LE TEMPS. `bankedDailyTargets` étale l'écart sur tous
+//     les autres jours du plan, y compris ceux DÉJÀ PASSÉS dans la semaine en
+//     cours. Sans conséquence tant que le réglage est posé à l'avance (c'est son
+//     usage prévu) ; bloquant le jour où on voudrait s'en servir après coup.
+//
+// ⚠️ Aucune de ces trois n'est corrigeable sans DÉCIDER d'abord ce que la donnée
+// doit être (un rythme permanent, une date, ou les deux). Cf. le brief
+// `docs/2026-08-18-inventaire-banque-et-hors-plan.md`, question ouverte n°1.
 //
 // CE QUE CE MODULE FAIT : répartir un écart déclaré sur les autres jours du plan,
 // sans jamais descendre sous le plancher de sécurité.
