@@ -235,8 +235,10 @@ function main(): void {
 // avant cet arbitrage, et l'arbitrage a été écrit sans vérifier l'état réel. Mesuré :
 // `https://brgkevin-arch.github.io/Kyroz-app/*` répond 301 vers `legal.kyroz.app/*`, et
 // l'app web ne démarrait plus du tout (`baseUrl` pointant sur un sous-chemin disparu).
-// ➡️ **Décision fondateur : garder le domaine, réparer le code** — `baseUrl` vidé, garde-fou
-// dans `lib/__tests__/deploiementWeb.test.ts`.
+// ➡️ **Le domaine a été RETIRÉ le soir même** : il ne pouvait pas à la fois être la maison
+// de l'app et le raccourci vers la politique. Le site est revenu sous
+// `brgkevin-arch.github.io/Kyroz-app/`, `baseUrl` avec lui, et le couplage est tenu par
+// `lib/__tests__/deploiementWeb.test.ts`.
 // ➡️ Et la leçon qui vaut au-delà de ce fichier : une décision peut être impeccablement
 // motivée et fausse quand même, parce que personne n'a mesuré ce qui était déjà en place.
 //

@@ -21,14 +21,32 @@ import { join } from 'node:path';
  * page. Un déploiement vert ne dit rien de ce que voit un navigateur — ce test est
  * ce qui reste quand on ne peut pas visiter la page depuis la CI.
  *
- * ⚠️ **CE FICHIER EST UN COUPLAGE, PAS UNE PRÉFÉRENCE.** Si le domaine personnalisé
- * est un jour RETIRÉ (le site redevient `brgkevin-arch.github.io/Kyroz-app/`), il
- * faut remettre `baseUrl: "/Kyroz-app"` **et** corriger l'attente ci-dessous, dans
- * le même commit. Les deux moitiés sont inséparables : n'en changer qu'une remet
- * exactement la même page blanche, dans l'autre sens.
+ * ── L'état ACTUEL, et pourquoi il a changé une seconde fois (2026-08-18, soir) ──
+ * Le domaine a d'abord été gardé (`baseUrl` vidé), puis **retiré** : `legal.kyroz.app`
+ * reprend son rôle d'origine — servir la politique de confidentialité — et il ne peut
+ * pas le faire tant qu'il est le domaine du site de l'app. Un nom d'hôte ne peut pas
+ * être à la fois la maison d'une app et le raccourci vers une page.
+ * ➡️ Le site est donc revenu sous `brgkevin-arch.github.io/Kyroz-app/`, et `baseUrl`
+ * avec lui.
+ *
+ * ⚠️ **CE FICHIER EST UN COUPLAGE, PAS UNE PRÉFÉRENCE.** Les deux moitiés sont
+ * inséparables, et le sens de la faute s'inverse selon l'hébergement :
+ *   • servi sous `…github.io/Kyroz-app/` → `baseUrl` DOIT valoir `/Kyroz-app` ;
+ *   • servi à la racine d'un domaine personnalisé → `baseUrl` DOIT être vide.
+ * N'en changer qu'une remet exactement la même page blanche, dans un sens ou dans
+ * l'autre. Ce test est là pour que personne ne puisse en oublier une.
  */
 
 const RACINE = join(__dirname, '../..');
+
+/**
+ * Le préfixe sous lequel GitHub Pages sert `dist/`.
+ *
+ * 🔴 **À CHANGER EN MÊME TEMPS QUE LE RÉGLAGE GITHUB, JAMAIS SEUL.** Si un domaine
+ * personnalisé est un jour reposé sur le Pages de l'app, la racine redevient `/` et
+ * cette constante doit passer à `''` — dans le même commit que `app.json`.
+ */
+const PREFIXE_SERVI = '/Kyroz-app';
 
 const APP = JSON.parse(readFileSync(join(RACINE, 'app.json'), 'utf8')) as {
   expo: { experiments?: { baseUrl?: string } };
@@ -36,16 +54,15 @@ const APP = JSON.parse(readFileSync(join(RACINE, 'app.json'), 'utf8')) as {
 
 const DEPLOY = readFileSync(join(RACINE, '../.github/workflows/deploy.yml'), 'utf8');
 
-describe('le site est servi à la RACINE de son domaine', () => {
-  it('ne déclare aucun `baseUrl`', () => {
-    // Toute valeur non vide préfixerait les URL d'assets d'un sous-chemin qui
-    // n'existe pas sur `legal.kyroz.app` — donc un 404 sur le bundle, donc une
-    // page qui ne dépasse jamais le splash.
-    const baseUrl = APP.expo.experiments?.baseUrl;
+describe('le `baseUrl` décrit la racine RÉELLEMENT servie', () => {
+  it(`vaut « ${PREFIXE_SERVI} »`, () => {
+    // Toute autre valeur préfixe les URL d'assets d'un chemin qui n'existe pas là où
+    // le site est servi — donc un 404 sur le bundle, donc une page qui ne dépasse
+    // jamais le splash. C'est vrai dans les deux sens : trop de préfixe comme pas assez.
     expect(
-      baseUrl ?? '',
-      'le site est servi à la racine de legal.kyroz.app : un baseUrl y rend le bundle 404',
-    ).toBe('');
+      APP.expo.experiments?.baseUrl ?? '',
+      `le site est servi sous « ${PREFIXE_SERVI}/ » : un baseUrl différent y rend le bundle 404`,
+    ).toBe(PREFIXE_SERVI);
   });
 });
 
@@ -56,8 +73,8 @@ describe('le forçage du français ne peut plus échouer en silence', () => {
   // sans qu'aucune ligne ne rougisse, et `AGENTS.md` la documentait comme active.
 
   it('passe sur TOUTES les pages pré-rendues, pas seulement index.html', () => {
-    // `web.output: "static"` pré-rend une page par route : viser index.html seul
-    // laisse `legal.html`, `plan.html` et les autres en anglais.
+    // `web.output: "static"` pré-rend une page par route — 22 au dernier export.
+    // Viser index.html seul laisse `legal.html`, `recettes.html` et les autres en anglais.
     expect(DEPLOY).toMatch(/find dist -name '\*\.html'/);
   });
 

@@ -498,15 +498,15 @@ Un chiffre faux dans une fiche de store est une allégation fausse, pas une coqu
 > fiche produit. La nouvelle est sur le domaine de la marque et sert le **même fichier
 > généré** depuis `constants/legal.ts`.
 >
-> 🔴 **Et le site Pages de l'app EST derrière un domaine personnalisé** (`legal.kyroz.app`),
-> constaté le 2026-08-18 au soir — ce document affirmait le contraire, en avertissant de ne
-> surtout pas le faire. Un domaine personnalisé s'applique à un SITE : tout le Pages a suivi,
+> ⚠️ **Ne PAS déplacer le site Pages de l'app derrière un domaine personnalisé** pour
+> arriver au même résultat — et ce n'est pas une précaution théorique : ça a été fait le
+> 2026-08-18, et **le site public n'a plus rien chargé** pendant des heures. Un domaine
+> personnalisé s'applique à un SITE, jamais à un fichier : tout le Pages suit,
 > `confirme.html` compris — l'URL de retour de confirmation d'e-mail, codée en dur
-> (`lib/emailConfirmation.ts`), gravée dans les binaires déjà distribués et inscrite en liste
-> blanche Supabase. Elle fonctionne toujours (Supabase valide l'URL **avant** que le
-> navigateur ne suive la redirection), mais par une chaîne de deux sauts, plus en direct.
-> ⚠️ **Ça ne change rien au champ des stores** : la valeur à déclarer reste
-> `https://kyroz.app/legal.html`, servie par le dépôt `kyroz-site`, où rien ne l'écrase.
+> (`lib/emailConfirmation.ts`), gravée dans les binaires déjà distribués et inscrite en
+> liste blanche Supabase. Le domaine a été retiré le soir même.
+> ➡️ La valeur à déclarer reste `https://kyroz.app/legal.html`, servie par le dépôt
+> `kyroz-site`, où rien ne l'écrase.
 
 **Support / contact** : `contact@kyroz.app`
 
