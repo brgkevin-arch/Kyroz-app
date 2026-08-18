@@ -15,8 +15,10 @@
 >    anti-charge-mentale), verdict jamais alarmant, « Kyroz réajuste tes calories tout seul ».
 > 3. **📸 Transformation** — photos avant/après (local-only).
 >
-> **Restent à faire** (prochaine session dédiée) : la **banque de calories** (4ᵉ pilier, le
-> fidélisant — touche le moteur) + le **paywall**. **Paiement TRANCHÉ = achat in-app via les
+> **Restent à faire** (prochaine session dédiée) : le **paywall** — le seul chantier encore
+> ouvert. ⚠️ **La banque de calories N'EST PLUS ce 4ᵉ pilier attendu** : elle a été livrée,
+> puis retirée de Kyroz+ ET éteinte le 2026-08-18 (cf. la note tout en haut de ce fichier).
+> **Paiement TRANCHÉ = achat in-app via les
 > stores (Apple App Store + Google Play), emballé par RevenueCat** — PAS Stripe seul (les
 > stores refusent Stripe pour les abos numériques). Puis **gating `is_premium`** (la feature
 > est fonctionnelle mais GRATUITE tant que le paywall n'est pas câblé).
@@ -214,15 +216,17 @@ A (comptes/produits) → B (SDK + init web-safe) → C (hook `usePremium` + poin
 D (écran paywall) → E (sandbox + review).
 ✅ **B, C et D sont faits.** Il reste, dans l'ordre : **RevenueCat** (état inconnu) →
 **clés dans le build EAS** → **build natif** → **bac à sable** → **poser `PAYWALL_LAUNCH`**.
-⚠️ La date se pose en DERNIER, et elle ne se recule jamais. Sans impact `ENGINE_VERSION` (le moteur n'est touché
-que par la banque de calories, chantier séparé). `profiles.stripe_customer_id` = vestige
+⚠️ La date se pose en DERNIER, et elle ne se recule jamais. Sans impact `ENGINE_VERSION` — le seul
+chantier qui touchait le moteur, la banque de calories, est CLOS (livrée puis éteinte le
+2026-08-18, `lib/featureFlags.ts`). `profiles.stripe_customer_id` = vestige
 (RevenueCat porte l'entitlement) : garder ou renommer au câblage, non bloquant.
 
 ## Décisions TRANCHÉES (2026-07-27) — plus rien en attente côté produit
 
 1. **Valeur premium** = Kyroz+ « piloter son objectif dans le temps » (objectif daté +
    trajectoire + transformation) — **construite + déployée**. ⚠️ La banque de calories en
-   faisait partie ; elle en est sortie le 2026-08-18 et est devenue gratuite.
+   faisait partie ; elle en est sortie le 2026-08-18, est devenue gratuite, puis a été
+   ÉTEINTE le même jour (`lib/featureFlags.ts::RYTHME_HEBDOMADAIRE_ACTIF`) — moteur intact.
 2. **Les 4 features déjà livrées restent GRATUITES** (carb cycling, recalc macros au poids,
    recettes perso, catalogue complet) : les reprendre casserait la confiance et le North Star.
 3. **Paiement = achat in-app Apple App Store + Google Play, via RevenueCat** (pas Stripe seul).
