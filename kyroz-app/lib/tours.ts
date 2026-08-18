@@ -126,19 +126,16 @@ export function planTour({ days, moduleParVolume }: PlanTourContext): TourStep[]
         ? "Le grand chiffre, c'est ce que tu as déjà mangé sur ta cible du jour affiché. Tes jours de repos en reçoivent un peu moins, tes jours d'entraînement un peu plus, et ta semaine garde son total."
         : `Le grand chiffre, c'est ce que tu as déjà mangé sur ta cible du jour affiché. En dessous, la répartition entre protéines, glucides et lipides ${days > 1 ? 'de ce jour' : 'de ta journée'}.`,
     },
-    {
-      // ⚠️ CORRIGÉ le 2026-08-07 — l'ancien texte promettait un recalage
-      // automatique. Prouvé par plan.tsx::logOffPlan : l'écart est enregistré
-      // SANS toucher au plan, puis `setAdaptPrompt` ouvre une feuille Oui/Non ;
-      // `declineAdapt` ne recale rien. Et « sans casser ton objectif » était
-      // contredit par l'écran lui-même, qui annonce quand aucune option ne
-      // rentre dans la cible.
-      targetId: 'plan-offplan',
-      // Forme : plan.tsx::s.actionBtn — pressable de 44 pt, sans fond.
-      forme: 'bouton',
-      title: 'Mangé hors plan ?',
-      text: "Déclare un écart ici. Kyroz le compte à part, puis te propose de réadapter les repas qui restent — c'est toi qui décides, et rien ne bouge si tu préfères garder ton plan.",
-    },
+    // 🔴 L'ÉTAPE `plan-offplan` A ÉTÉ RETIRÉE ICI le 2026-08-18, avec le bouton
+    // qu'elle désignait (cf. PARCOURS_HORS_PLAN_ACTIF, lib/offPlanJournal.ts).
+    // Elle NE POUVAIT PAS rester : une étape dont la cible n'est pas montée
+    // assombrit l'écran sans bulle ni « Passer », donc sans sortie (AGENTS.md E50).
+    // Son texte, à remettre tel quel le jour où le bouton revient :
+    //   title : « Mangé hors plan ? »
+    //   text  : « Déclare un écart ici. Kyroz le compte à part, puis te propose de
+    //            réadapter les repas qui restent — c'est toi qui décides, et rien
+    //            ne bouge si tu préfères garder ton plan. »
+    //   forme : 'bouton'
     {
       // Prouvé par : plan.tsx, le bouton pose `@kyroz:openEditor = 'macros'`
       // puis pousse vers le Profil ; et plan.tsx::carryTracking conserve les

@@ -417,7 +417,12 @@ export interface UserProfile {
   //  - [n,…] → ces jours de semaine sont des jours de repos (carb-cycling).
   rest_weekdays?: number[];
   /**
-   * BANQUE DE CALORIES (Kyroz+) — écart calorique déclaré sur un jour de semaine
+   * JOURS PLUS COPIEUX (gratuit depuis le 2026-08-18, ex-« banque de calories »)
+   * ⚠️ TODO(banque-cle-jour-de-semaine) : cette clé n'a NI DATE NI EXPIRATION, et
+   * un écart posé sur un jour retiré du plan reste AFFICHÉ tout en étant ignoré
+   * par le moteur. Détail et reproduction en tête de `lib/calorieBank.ts`.
+   *
+   * Écart calorique déclaré sur un jour de semaine
    * (format getDay() : « 6 » = samedi), compensé sur les AUTRES jours du plan.
    * Ex. `{ "6": 600 }` = « resto samedi soir ». Valeur négative = mettre de côté.
    *

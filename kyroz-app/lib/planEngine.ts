@@ -7,6 +7,7 @@ import { adaptRecipe, AdaptTarget, goalToObjectives, sportsToBuckets, needMatch,
 import { MIN_KCAL, bankFloorKcal, calculateBMR, neatPal, FAT_MIN_PER_KG_BW, FAT_FLOOR_AIM_MARGIN } from './tdee';
 import { exerciseKcalPerWeek, exerciseKcalPerDay } from './sport';
 import { bankedDailyTargets, offsetsForPlan, BankResult } from './calorieBank';
+import { RYTHME_HEBDOMADAIRE_ACTIF } from './featureFlags';
 import { dailyBudgets } from './dailyBudget';
 import { recipeContainsFood } from './avoidance';
 
@@ -990,7 +991,7 @@ export function profileSignature(p: UserProfile): string {
     // Banque de calories : elle déplace des kcal entre les jours → le plan en cache
     // ne correspond plus dès qu'elle change. Sans ça, déclarer « resto samedi »
     // n'aurait aucun effet visible tant que rien d'autre ne périme le plan.
-    cb: p.calorie_bank ?? null,
+    cb: bankOf(p) ?? null,
   });
 }
 
@@ -1112,12 +1113,31 @@ export function baseDayTargets(profile: UserProfile, days: number): number[] {
   }).targets;
 }
 
+/**
+ * La banque telle que le moteur doit la voir — **source unique**.
+ *
+ * Éteinte (`RYTHME_HEBDOMADAIRE_ACTIF === false`), elle rend `undefined` : le
+ * moteur se comporte exactement comme pour un compte qui n'en a jamais posé.
+ *
+ * ⚠️ POURQUOI COUPER LA LECTURE ET PAS SEULEMENT L'ÉCRAN. Cacher la ligne du
+ * Profil en continuant de servir la valeur laisserait un compte portant
+ * « samedi +600 » avec une semaine déformée par un réglage que plus aucun écran
+ * ne montre et que personne ne peut annuler. C'est le défaut qu'on venait de
+ * corriger (l'écart orphelin affiché), retourné dans l'autre sens.
+ *
+ * ⚠️ Lu à DEUX endroits et pas un de plus : ici, et dans `profileSignature` —
+ * sinon le plan en CACHE continuerait de servir la répartition d'avant.
+ */
+function bankOf(profile: UserProfile): UserProfile['calorie_bank'] {
+  return RYTHME_HEBDOMADAIRE_ACTIF ? profile.calorie_bank : undefined;
+}
+
 export function bankedTargets(profile: UserProfile, days: number): BankResult {
   const base = baseDayTargets(profile, days);
   return bankedDailyTargets({
     days,
     baseTargetKcal: base,
-    offsets: offsetsForPlan(profile.calorie_bank, profile.plan_weekdays, days),
+    offsets: offsetsForPlan(bankOf(profile), profile.plan_weekdays, days),
     // Même bornage qu'à la génération : la banque ne contraint que la
     // COMPENSATION (vers le bas), elle ne relève jamais la cible.
     // ⚠️ Borné à la plus BASSE des cibles du jour et non à `target_kcal` depuis la

@@ -3,7 +3,12 @@
 > ## ✅ TRANCHÉ + CONSTRUIT (2026-07-27) — la valeur premium existe
 > La question ouverte de ce doc (« que construit-on qui vaille 5 € ? ») est **répondue
 > et LIVRÉE + DÉPLOYÉE** (`5a4fc63`). **Kyroz+ = « piloter son objectif dans le temps »**,
-> en 3 piliers (cf. AGENTS.md, session Kyroz+ 2026-07-27) :
+> en **2 piliers** (cf. AGENTS.md, session Kyroz+ 2026-07-27). ⚠️ **Ils étaient 3 jusqu'au
+> 2026-08-18** : la banque de calories a été retirée de Kyroz+ ce jour-là (décision
+> fondateur). Le moteur reste, dégaté et renommé « Jours plus copieux », **puis ÉTEINT le
+> même jour** (`lib/featureFlags.ts::RYTHME_HEBDOMADAIRE_ACTIF`). Ce n'est pas une
+> suppression de fonction : le moteur, ses tests et la colonne restent intacts, et un
+> compte qui portait déjà un réglage n'en garde aucune trace, ni affichée ni servie.
 > 1. **🎯 Objectif daté** — poids cible + date → trajectoire calorique au rythme le plus
 >    rapide mais sûr (le « coffre » : le gratuit donne les clés, le premium le contenu).
 > 2. **📈 Trajectoire + réassurance** — zone ombrée sur la courbe (pas une ligne à suivre :
@@ -175,7 +180,7 @@ core tuerait le North Star — donc interdit.
       ⏭️ **Non fait, assumé** : appeler leur API d'effacement depuis `delete-account`. Elle
       demande la clé SECRÈTE, donc du code serveur, et ne sert à rien sans abonné.
 - [x] ✅ **Ce qu'on verrouille = features Kyroz+ uniquement** : `PREMIUM_FEATURES` =
-      `dated_goal` · `transformation` · `calorie_bank` (livrée, plus « à venir »). Le reste
+      `dated_goal` · `transformation` — ⚠️ **`calorie_bank` en est SORTI le 2026-08-18**. Le reste
       — core loop, courses, recettes, frigo, favoris, série, pesée, synchro — **reste
       libre**, et l'écran l'énumère noir sur blanc.
 - [x] ✅ **North Star sacré** : le paywall ne s'ouvre que sur **INTENTION** — un seul point
@@ -216,7 +221,8 @@ que par la banque de calories, chantier séparé). `profiles.stripe_customer_id`
 ## Décisions TRANCHÉES (2026-07-27) — plus rien en attente côté produit
 
 1. **Valeur premium** = Kyroz+ « piloter son objectif dans le temps » (objectif daté +
-   trajectoire + transformation) — **construite + déployée** (+ banque de calories à venir).
+   trajectoire + transformation) — **construite + déployée**. ⚠️ La banque de calories en
+   faisait partie ; elle en est sortie le 2026-08-18 et est devenue gratuite.
 2. **Les 4 features déjà livrées restent GRATUITES** (carb cycling, recalc macros au poids,
    recettes perso, catalogue complet) : les reprendre casserait la confiance et le North Star.
 3. **Paiement = achat in-app Apple App Store + Google Play, via RevenueCat** (pas Stripe seul).

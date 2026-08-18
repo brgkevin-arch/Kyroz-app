@@ -93,7 +93,7 @@ const REGLAGES: { nom: string; ou: string; variantes: { v: string; p: Partial<Us
   { nom: 'Repas du jour', ou: 'Profil › Repas', variantes: [
     { v: '4 repas', p: { meals: ['breakfast', 'lunch', 'dinner', 'snack'] } },
     { v: '3 repas', p: { meals: ['breakfast', 'lunch', 'dinner'] } } ] },
-  { nom: 'Banque de calories', ou: 'Plan › Banque (Kyroz+)', variantes: [
+  { nom: 'Jours plus copieux', ou: 'Profil › Jours plus copieux', variantes: [
     { v: 'aucune', p: { calorie_bank: undefined } },
     { v: 'samedi +600', p: { calorie_bank: { '6': 600 } } } ] },
   { nom: 'Repas fixe', ou: 'Profil › Repas', variantes: [

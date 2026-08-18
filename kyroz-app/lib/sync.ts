@@ -3,7 +3,7 @@ import { supabase } from './supabase';
 import { Recipe, Streak, UserProfile } from './types';
 import { PantryItem } from './pantry';
 import { WeightEntry } from './weight';
-import { decideProfileHydration, normalizeGoal, normalizeMeals, normalizeMealSlots, normalizeProfileActivity, normalizeVariety, reconcileCloudSports, reconcileCloudLowEaWeeks, reconcileCloudNeat, mergeWeightEntries, mergeStreak, mergeRecipeOverrides, PROFILE_PENDING_KEY } from './syncGuard';
+import { decideProfileHydration, normalizeCalorieBank, normalizeGoal, normalizeMeals, normalizeMealSlots, normalizeProfileActivity, normalizeVariety, reconcileCloudSports, reconcileCloudLowEaWeeks, reconcileCloudNeat, mergeWeightEntries, mergeStreak, mergeRecipeOverrides, PROFILE_PENDING_KEY } from './syncGuard';
 
 /** La fusion a-t-elle produit autre chose que ce que le cloud détenait ? */
 const differs = (a: unknown, b: unknown): boolean => JSON.stringify(a) !== JSON.stringify(b);
@@ -69,7 +69,9 @@ export const PROFILE_COLS = [
   'weigh_in_frequency', 'fixed_meals',
   // Créneaux de repas créés par l'utilisateur — migration 2026-08-07_profiles_meal_slots.sql.
   'meal_slots',
-  // Banque de calories (Kyroz+) — migration 2026-07-30_profiles_calorie_bank.sql.
+  // Jours plus copieux — migration 2026-07-30_profiles_calorie_bank.sql. La colonne garde
+  // son nom d'origine (« banque de calories », un pilier Kyroz+ jusqu'au 2026-08-18) : le
+  // réglage est gratuit depuis, mais renommer une colonne coûte une migration pour rien.
   'calorie_bank',
   // Étape 3 du moteur — migration 2026-07-28_profiles_neat_engine_rev.sql.
   'neat_level', 'engine_rev', 'engine_notice',
@@ -398,7 +400,7 @@ export async function hydrateFromCloud(uid: string): Promise<void> {
         // quels ids de créneau existent, et `normalizeMeals` valide `meals` contre eux.
         // Dans l'autre sens, un créneau abîmé nettoyé après coup laisserait `meals`
         // désigner un id qui vient de disparaître.
-        ...normalizeMeals(normalizeMealSlots(normalizeVariety(normalizeGoal(normalizeProfileActivity(cloud))))),
+        ...normalizeCalorieBank(normalizeMeals(normalizeMealSlots(normalizeVariety(normalizeGoal(normalizeProfileActivity(cloud)))))),
       }));
     } else if (local && (action === 'keep_local' || action === 'push_local')) {
       await pushProfile(local); // (re)pousse le local ; lève le flag si succès

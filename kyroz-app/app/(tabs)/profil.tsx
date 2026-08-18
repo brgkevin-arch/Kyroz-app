@@ -14,7 +14,7 @@ import { ACCENTS, ACCENT_IDS, useAccentId, setAccentId, readableOn } from '../..
 import { DISCLAIMER } from '../../constants/legal';
 import { CIQUAL_ATTRIBUTION } from '../../lib/foods';
 import { Card, PrimaryButton, Chip, OptionCard, Field, SectionLabel, Segmented, SectionTitle, MenuRow } from '../../components/ui';
-import { bankedDailyTargets, offsetsForPlan } from '../../lib/calorieBank';
+import { bankedDailyTargets, offsetsForPlan, servedWeekdays } from '../../lib/calorieBank';
 import { usePremium } from '../../hooks/usePremium';
 import { PremiumFeature, AccessReason } from '../../lib/premium';
 import { Sheet } from '../../components/Sheet';
@@ -42,6 +42,7 @@ import { useStreak } from '../../hooks/useStreak';
 import { useWeightLog } from '../../hooks/useWeightLog';
 import { useOffPlanJournal } from '../../hooks/useOffPlanJournal';
 import { journalSummary } from '../../lib/offPlanJournal';
+import { PARCOURS_HORS_PLAN_ACTIF, RYTHME_HEBDOMADAIRE_ACTIF } from '../../lib/featureFlags';
 import { useReminder } from '../../hooks/useReminder';
 import { usePlanCheckin } from '../../hooks/usePlanCheckin';
 import { useAuth } from '../../hooks/useAuth';
@@ -158,9 +159,11 @@ type EditorKey = 'info' | 'sports' | 'goal' | 'dated_goal' | 'macros' | 'prefs' 
 
 // Éditeurs réservés à Kyroz+ une fois le paywall lancé. Les autres n'y figurent
 // pas et restent ouverts à tout le monde, définitivement.
+// ⚠️ `calorie_bank` en est SORTI le 2026-08-18 : le réglage « Jours plus copieux »
+// est gratuit. La map reste une map (plutôt qu'un test sur `dated_goal`) parce que
+// l'éditeur de transformation viendra s'y ranger.
 const EDITEURS_PREMIUM: Partial<Record<EditorKey, PremiumFeature>> = {
   dated_goal: 'dated_goal',
-  calorie_bank: 'calorie_bank',
 };
 
 // Valeur de la ligne de menu « Kyroz+ », selon la raison de l'accès. Aujourd'hui
@@ -629,15 +632,24 @@ export default function ProfilScreen() {
         <SectionLabel t={t} sub="ce qui remplit ton assiette">TES REPAS</SectionLabel>
         <View style={s.menu}>
           <MenuRow t={t} label="Préférences alimentaires" value={profile.dietary_restrictions.length || profile.disliked_foods.length || profile.hidden_recipes?.length ? 'Personnalisées' : 'Aucune'} onPress={() => setEditor('prefs')} />
-          <MenuRow t={t} label="Paramètres des repas" value={`${profile.plan_days} j · ${(profile.meals?.length || 4)} repas · ${emphasisResume(profile)}`} onPress={() => setEditor('meals')} />
-          {/* La banque PRÉVOIT un écart, l'historique le CONSTATE : la paire se lit
-              toute seule, d'où le voisinage. */}
-          <MenuRow t={t} label="Banque de calories" value={premium.can('calorie_bank') ? bankResume(profile) : 'Inclus dans Kyroz+'} onPress={() => openEditor('calorie_bank')} />
+          {/* ⚠️ `last` CALCULÉ, pas écrit en dur : les deux lignes qui suivaient sont
+              éteintes (cf. lib/featureFlags.ts). Sans ça, le bloc se termine par un
+              séparateur qui pend dans le vide — déjà corrigé une fois le 2026-08-18. */}
+          <MenuRow t={t} label="Paramètres des repas" value={`${profile.plan_days} j · ${(profile.meals?.length || 4)} repas · ${emphasisResume(profile)}`} onPress={() => setEditor('meals')} last={!RYTHME_HEBDOMADAIRE_ACTIF && !PARCOURS_HORS_PLAN_ACTIF} />
+          {/* Le rythme PRÉVOIT un jour plus copieux, l'historique CONSTATE un écart
+              subi : la paire se lit toute seule, d'où le voisinage.
+              ⚠️ Plus aucun verrou premium ici depuis le 2026-08-18 (cf. `lib/premium.ts`) :
+              `openEditor` n'ouvre donc plus le paywall pour cette ligne, il ouvre l'éditeur. */}
+          {RYTHME_HEBDOMADAIRE_ACTIF && (
+            <MenuRow t={t} label="Jours plus copieux" value={bankResume(profile)} onPress={() => setEditor('calorie_bank')} last={!PARCOURS_HORS_PLAN_ACTIF} />
+          )}
           {/* ⚠️ La VALEUR ne COMPTE PAS les écarts, et ce n'est pas un oubli de
               rangement : un score posé là mettrait la pression sans qu'on ouvre quoi
               que ce soit (règle anti charge mentale). Elle reste un FAIT daté — ce
               que la nouvelle règle de forme demande — sans devenir un score. */}
-          <MenuRow t={t} label="Écarts passés" value={journalSummary(journal.entries)} onPress={openOffPlan} last />
+          {PARCOURS_HORS_PLAN_ACTIF && (
+            <MenuRow t={t} label="Écarts passés" value={journalSummary(journal.entries)} onPress={openOffPlan} last />
+          )}
         </View>
 
         {/* Une ACTION n'a pas de valeur à droite, donc pas sa place dans une liste de
@@ -724,7 +736,7 @@ export default function ProfilScreen() {
         {editor === 'macros' && <MacroEditor t={t} profile={profile} onSave={save} />}
         {editor === 'prefs' && <PrefEditor t={t} profile={profile} onSave={save} />}
         {editor === 'meals' && <MealsEditor t={t} profile={profile} onSave={save} />}
-        {editor === 'calorie_bank' && <CalorieBankEditor t={t} profile={profile} onSave={save} />}
+        {RYTHME_HEBDOMADAIRE_ACTIF && editor === 'calorie_bank' && <CalorieBankEditor t={t} profile={profile} onSave={save} />}
       </Sheet>
 
       {/* Suivi du poids */}
@@ -1754,20 +1766,36 @@ function makeStyles(t: ThemePalette) {
   });
 }
 
-// ── Banque de calories (Kyroz+) ──────────────────────────────────────────────
-// « Resto samedi » : l'utilisateur déclare un écart sur un jour, Kyroz le reprend
-// sur les autres jours du plan. Le calcul vit dans lib/calorieBank.ts ; ici on ne
-// fait que le montrer et l'éditer.
+// ── Jours plus copieux (gratuit) ─────────────────────────────────────────────
+// L'utilisateur dit que tel JOUR DE LA SEMAINE est plus copieux, Kyroz reprend
+// l'écart sur les autres jours du plan. Le calcul vit dans lib/calorieBank.ts ;
+// ici on ne fait que le montrer et l'éditer.
+//
+// 🔴 CE MODULE S'APPELAIT « BANQUE DE CALORIES » ET SE VENDAIT AVEC KYROZ+
+// (retiré le 2026-08-18, décision fondateur). Le renommage n'est PAS cosmétique :
+// l'ancien texte promettait un événement PONCTUEL (« un resto, un anniversaire »),
+// alors que la donnée est indexée par jour de semaine et n'expire jamais — poser
+// « samedi +600 » valait pour TOUS les samedis, à vie. Le nom décrit désormais ce
+// que le code fait. ⚠️ Ne pas réintroduire de vocabulaire d'événement ici sans
+// donner d'abord une date à la donnée (CLAUDE.md §10, « pas de mensonge »).
 //
 // TON : la règle produit anti-charge-mentale s'applique (CLAUDE.md §10). Ce
-// module sert à s'autoriser un écart SANS culpabiliser — donc on annonce ce qui
-// est repris, on ne reproche rien, et le pire cas reste une phrase neutre.
+// module sert à s'autoriser un jour plus généreux SANS culpabiliser — donc on
+// annonce ce qui est repris, on ne reproche rien, et le pire cas reste une
+// phrase neutre. Les identifiants (`calorie_bank`, `CalorieBankEditor`) ne
+// bougent PAS : la colonne en base porte ce nom, et la renommer coûterait une
+// migration pour zéro gain utilisateur.
 
-/** Résumé d'une ligne de menu : « Samedi +600 » / « Aucun écart ». */
+/** Résumé d'une ligne de menu : « Samedi +600 » / « Tous mes jours pareils ». */
 function bankResume(p: UserProfile): string {
   const bank = p.calorie_bank ?? {};
-  const jours = WEEKDAY_OPTS.filter((o) => bank[String(o.val)]);
-  if (!jours.length) return 'Aucun écart prévu';
+  // ⚠️ NE PAS revenir à `WEEKDAY_OPTS` tout court : c'était le bug du 2026-08-18.
+  // Les 7 jours annonçaient « Sam +600 » alors que le moteur ignore un jour absent
+  // du plan — un chiffre affiché qui n'était pas celui qui allait être servi (§10).
+  // `servedWeekdays` EST la règle du moteur (`offsetsForPlan` l'appelle aussi).
+  const servis = new Set(servedWeekdays(p.plan_weekdays, Math.min(Math.max(p.plan_days ?? 7, 1), 7)));
+  const jours = WEEKDAY_OPTS.filter((o) => servis.has(o.val) && bank[String(o.val)]);
+  if (!jours.length) return 'Tous mes jours pareils';
   return jours
     .map((o) => `${o.label} ${bank[String(o.val)]! > 0 ? '+' : ''}${bank[String(o.val)]}`)
     .join(' · ');
@@ -1810,11 +1838,22 @@ function CalorieBankEditor({ t, profile, onSave, dragHandlers, sheetScrollProps 
   const marge = profile.target_kcal - bankFloorKcal(profile);
 
   return (
-    <EditorShell t={t} title="Banque de calories" onSave={() => onSave({ ...profile, calorie_bank: Object.keys(bank).length ? bank : undefined })} dragHandlers={dragHandlers} sheetScrollProps={sheetScrollProps}>
+    <EditorShell t={t} title="Jours plus copieux" onSave={() => onSave({ ...profile, calorie_bank: Object.keys(bank).length ? bank : undefined })} dragHandlers={dragHandlers} sheetScrollProps={sheetScrollProps}>
       <Text style={{ ...Type.bodySmall, color: t.textSecondary, lineHeight: 20 }}>
-        Un resto, un anniversaire ? Dis-le à Kyroz : il répartit l'écart sur tes autres
-        jours de la semaine. Tes protéines ne bougent pas, et aucun jour ne descend sous
-        ton plancher de sécurité.
+        Certains jours sont plus copieux que d'autres — le repas de famille du dimanche,
+        la soirée du samedi. Dis-le à Kyroz : il sert plus ce jour-là et reprend l'écart
+        sur tes autres jours. Le total de ta semaine ne bouge pas, tes protéines non plus,
+        et aucun jour ne descend sous ton plancher de sécurité.
+      </Text>
+
+      {/* ⚠️ CETTE PHRASE EST LA CORRECTION D'UN MENSONGE, pas une précision de confort.
+          L'écart est stocké par JOUR DE LA SEMAINE, sans date ni expiration : il revient
+          chaque semaine. L'ancien texte (« un resto, un anniversaire ») laissait croire
+          au contraire — quelqu'un déclarait un samedi exceptionnel et le portait ensuite
+          tous les samedis sans le savoir. Ne pas la retirer sans dater la donnée. */}
+      <Text style={{ ...Type.bodySmall, color: t.textSecondary, lineHeight: 20, marginTop: Spacing.sm }}>
+        C'est un rythme, pas un événement : ton réglage vaut pour chaque semaine, tant que
+        tu ne le changes pas.
       </Text>
 
       {marge <= 0 && (
