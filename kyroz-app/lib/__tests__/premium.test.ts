@@ -79,8 +79,17 @@ describe('canUse', () => {
   it('lit la date de création DU PROFIL', () => {
     const ancien = { created_at: AVANT } as never;
     const recent = { created_at: APRES } as never;
-    expect(canUse('calorie_bank', { entitled: false, profile: ancien, launch: LANCEMENT })).toBe(true);
-    expect(canUse('calorie_bank', { entitled: false, profile: recent, launch: LANCEMENT })).toBe(false);
+    expect(canUse('dated_goal', { entitled: false, profile: ancien, launch: LANCEMENT })).toBe(true);
+    expect(canUse('dated_goal', { entitled: false, profile: recent, launch: LANCEMENT })).toBe(false);
+  });
+
+  // Verrou de non-régression du 2026-08-18 : la banque de calories a été DÉGATÉE.
+  // Le `as never` est nécessaire — elle n'est plus un `PremiumFeature`, et c'est
+  // précisément ce que ce test défend. Sans lui, la remettre dans `PREMIUM_FEATURES`
+  // passerait en silence : un compte récent se verrait refuser un réglage gratuit.
+  it('la banque de calories n’est PLUS payante, même pour un compte récent', () => {
+    const recent = { created_at: APRES } as never;
+    expect(canUse('calorie_bank' as never, { entitled: false, profile: recent, launch: LANCEMENT })).toBe(true);
   });
 });
 

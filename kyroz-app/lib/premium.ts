@@ -34,10 +34,20 @@ import { UserProfile } from './types';
  */
 export const PAYWALL_LAUNCH: string | null = null;
 
-/** Features réservées à Kyroz+ une fois le paywall lancé. */
-export type PremiumFeature = 'dated_goal' | 'transformation' | 'calorie_bank';
+// 🔴 `calorie_bank` A ÉTÉ RETIRÉ D'ICI le 2026-08-18 (décision fondateur). Ce n'est PAS
+// une suppression de fonction : le moteur reste en place et INCHANGÉ (`lib/calorieBank.ts`,
+// branché dans `planEngine.ts`), ses tests aussi. C'est sa VENTE qui disparaît — elle
+// cesse d'être un pilier Kyroz+ et devient un réglage gratuit du rythme de la semaine
+// (« Jours plus copieux », onglet Profil), ce qui décrit enfin ce que le code fait
+// vraiment : la clé est un JOUR DE LA SEMAINE et l'écart est PERMANENT.
+// ⚠️ Ne pas le remettre ici sans rouvrir la décision — et sans repasser sur les CGU
+// (`constants/legal.ts` + `public/legal.html`), qui ÉNUMÈRENT ce que Kyroz+ contient :
+// elles sont contractuelles, et publiées.
 
-export const PREMIUM_FEATURES: PremiumFeature[] = ['dated_goal', 'transformation', 'calorie_bank'];
+/** Features réservées à Kyroz+ une fois le paywall lancé. */
+export type PremiumFeature = 'dated_goal' | 'transformation';
+
+export const PREMIUM_FEATURES: PremiumFeature[] = ['dated_goal', 'transformation'];
 
 /** Pourquoi l'accès est (ou n'est pas) accordé — sert aussi à l'affichage. */
 export type AccessReason =
@@ -233,7 +243,7 @@ export function paywallBanner(reason: AccessReason): { title: string; body: stri
       return {
         title: "Kyroz+ n'est pas encore en vente",
         body:
-          "Ces trois outils sont actifs dans ton compte aujourd'hui, et ils y resteront : " +
+          "Ces deux outils sont actifs dans ton compte aujourd'hui, et ils y resteront : " +
           'les comptes ouverts avant la mise en vente gardent tout, à vie.',
       };
     case 'grandfathered':

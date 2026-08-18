@@ -69,7 +69,9 @@ export const PROFILE_COLS = [
   'weigh_in_frequency', 'fixed_meals',
   // Créneaux de repas créés par l'utilisateur — migration 2026-08-07_profiles_meal_slots.sql.
   'meal_slots',
-  // Banque de calories (Kyroz+) — migration 2026-07-30_profiles_calorie_bank.sql.
+  // Jours plus copieux — migration 2026-07-30_profiles_calorie_bank.sql. La colonne garde
+  // son nom d'origine (« banque de calories », un pilier Kyroz+ jusqu'au 2026-08-18) : le
+  // réglage est gratuit depuis, mais renommer une colonne coûte une migration pour rien.
   'calorie_bank',
   // Étape 3 du moteur — migration 2026-07-28_profiles_neat_engine_rev.sql.
   'neat_level', 'engine_rev', 'engine_notice',

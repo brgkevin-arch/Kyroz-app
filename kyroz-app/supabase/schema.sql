@@ -89,7 +89,7 @@ create table if not exists public.profiles (
   max_prep_time_min int,
   hidden_recipes text[], -- ids de recettes masquées (👎). NULL/'{}' = aucune ; SOUPLE, réversible
   fixed_meals jsonb, -- repas gérés par l'user (type → {label,macros,source,ingredients?})
-  calorie_bank jsonb, -- banque de calories (Kyroz+) : {"<getDay>": écart kcal}. Ex. {"6": 600} = resto samedi
+  calorie_bank jsonb, -- jours plus copieux (gratuit depuis le 2026-08-18) : {"<getDay>": écart kcal}. Ex. {"6": 600} = samedi plus copieux, CHAQUE samedi
 
   -- Révision du moteur ayant produit les cibles ci-dessus, et avertissement one-shot
   -- déposé quand une révision déplace la cible de ≥ 100 kcal/j (cf. lib/tdee.ts).
@@ -136,7 +136,7 @@ alter table public.profiles
 alter table public.profiles
   add column if not exists engine_rev int;
 
--- Banque de calories (cf. migrations/2026-07-30_profiles_calorie_bank.sql)
+-- Jours plus copieux (cf. migrations/2026-07-30_profiles_calorie_bank.sql)
 alter table public.profiles
   add column if not exists calorie_bank jsonb;
 

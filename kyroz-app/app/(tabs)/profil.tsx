@@ -158,9 +158,11 @@ type EditorKey = 'info' | 'sports' | 'goal' | 'dated_goal' | 'macros' | 'prefs' 
 
 // Éditeurs réservés à Kyroz+ une fois le paywall lancé. Les autres n'y figurent
 // pas et restent ouverts à tout le monde, définitivement.
+// ⚠️ `calorie_bank` en est SORTI le 2026-08-18 : le réglage « Jours plus copieux »
+// est gratuit. La map reste une map (plutôt qu'un test sur `dated_goal`) parce que
+// l'éditeur de transformation viendra s'y ranger.
 const EDITEURS_PREMIUM: Partial<Record<EditorKey, PremiumFeature>> = {
   dated_goal: 'dated_goal',
-  calorie_bank: 'calorie_bank',
 };
 
 // Valeur de la ligne de menu « Kyroz+ », selon la raison de l'accès. Aujourd'hui
@@ -630,9 +632,11 @@ export default function ProfilScreen() {
         <View style={s.menu}>
           <MenuRow t={t} label="Préférences alimentaires" value={profile.dietary_restrictions.length || profile.disliked_foods.length || profile.hidden_recipes?.length ? 'Personnalisées' : 'Aucune'} onPress={() => setEditor('prefs')} />
           <MenuRow t={t} label="Paramètres des repas" value={`${profile.plan_days} j · ${(profile.meals?.length || 4)} repas · ${emphasisResume(profile)}`} onPress={() => setEditor('meals')} />
-          {/* La banque PRÉVOIT un écart, l'historique le CONSTATE : la paire se lit
-              toute seule, d'où le voisinage. */}
-          <MenuRow t={t} label="Banque de calories" value={premium.can('calorie_bank') ? bankResume(profile) : 'Inclus dans Kyroz+'} onPress={() => openEditor('calorie_bank')} />
+          {/* Le rythme PRÉVOIT un jour plus copieux, l'historique CONSTATE un écart
+              subi : la paire se lit toute seule, d'où le voisinage.
+              ⚠️ Plus aucun verrou premium ici depuis le 2026-08-18 (cf. `lib/premium.ts`) :
+              `openEditor` n'ouvre donc plus le paywall pour cette ligne, il ouvre l'éditeur. */}
+          <MenuRow t={t} label="Jours plus copieux" value={bankResume(profile)} onPress={() => setEditor('calorie_bank')} />
           {/* ⚠️ La VALEUR ne COMPTE PAS les écarts, et ce n'est pas un oubli de
               rangement : un score posé là mettrait la pression sans qu'on ouvre quoi
               que ce soit (règle anti charge mentale). Elle reste un FAIT daté — ce
@@ -1754,20 +1758,31 @@ function makeStyles(t: ThemePalette) {
   });
 }
 
-// ── Banque de calories (Kyroz+) ──────────────────────────────────────────────
-// « Resto samedi » : l'utilisateur déclare un écart sur un jour, Kyroz le reprend
-// sur les autres jours du plan. Le calcul vit dans lib/calorieBank.ts ; ici on ne
-// fait que le montrer et l'éditer.
+// ── Jours plus copieux (gratuit) ─────────────────────────────────────────────
+// L'utilisateur dit que tel JOUR DE LA SEMAINE est plus copieux, Kyroz reprend
+// l'écart sur les autres jours du plan. Le calcul vit dans lib/calorieBank.ts ;
+// ici on ne fait que le montrer et l'éditer.
+//
+// 🔴 CE MODULE S'APPELAIT « BANQUE DE CALORIES » ET SE VENDAIT AVEC KYROZ+
+// (retiré le 2026-08-18, décision fondateur). Le renommage n'est PAS cosmétique :
+// l'ancien texte promettait un événement PONCTUEL (« un resto, un anniversaire »),
+// alors que la donnée est indexée par jour de semaine et n'expire jamais — poser
+// « samedi +600 » valait pour TOUS les samedis, à vie. Le nom décrit désormais ce
+// que le code fait. ⚠️ Ne pas réintroduire de vocabulaire d'événement ici sans
+// donner d'abord une date à la donnée (CLAUDE.md §10, « pas de mensonge »).
 //
 // TON : la règle produit anti-charge-mentale s'applique (CLAUDE.md §10). Ce
-// module sert à s'autoriser un écart SANS culpabiliser — donc on annonce ce qui
-// est repris, on ne reproche rien, et le pire cas reste une phrase neutre.
+// module sert à s'autoriser un jour plus généreux SANS culpabiliser — donc on
+// annonce ce qui est repris, on ne reproche rien, et le pire cas reste une
+// phrase neutre. Les identifiants (`calorie_bank`, `CalorieBankEditor`) ne
+// bougent PAS : la colonne en base porte ce nom, et la renommer coûterait une
+// migration pour zéro gain utilisateur.
 
-/** Résumé d'une ligne de menu : « Samedi +600 » / « Aucun écart ». */
+/** Résumé d'une ligne de menu : « Samedi +600 » / « Tous mes jours pareils ». */
 function bankResume(p: UserProfile): string {
   const bank = p.calorie_bank ?? {};
   const jours = WEEKDAY_OPTS.filter((o) => bank[String(o.val)]);
-  if (!jours.length) return 'Aucun écart prévu';
+  if (!jours.length) return 'Tous mes jours pareils';
   return jours
     .map((o) => `${o.label} ${bank[String(o.val)]! > 0 ? '+' : ''}${bank[String(o.val)]}`)
     .join(' · ');
@@ -1810,11 +1825,22 @@ function CalorieBankEditor({ t, profile, onSave, dragHandlers, sheetScrollProps 
   const marge = profile.target_kcal - bankFloorKcal(profile);
 
   return (
-    <EditorShell t={t} title="Banque de calories" onSave={() => onSave({ ...profile, calorie_bank: Object.keys(bank).length ? bank : undefined })} dragHandlers={dragHandlers} sheetScrollProps={sheetScrollProps}>
+    <EditorShell t={t} title="Jours plus copieux" onSave={() => onSave({ ...profile, calorie_bank: Object.keys(bank).length ? bank : undefined })} dragHandlers={dragHandlers} sheetScrollProps={sheetScrollProps}>
       <Text style={{ ...Type.bodySmall, color: t.textSecondary, lineHeight: 20 }}>
-        Un resto, un anniversaire ? Dis-le à Kyroz : il répartit l'écart sur tes autres
-        jours de la semaine. Tes protéines ne bougent pas, et aucun jour ne descend sous
-        ton plancher de sécurité.
+        Certains jours sont plus copieux que d'autres — le repas de famille du dimanche,
+        la soirée du samedi. Dis-le à Kyroz : il sert plus ce jour-là et reprend l'écart
+        sur tes autres jours. Le total de ta semaine ne bouge pas, tes protéines non plus,
+        et aucun jour ne descend sous ton plancher de sécurité.
+      </Text>
+
+      {/* ⚠️ CETTE PHRASE EST LA CORRECTION D'UN MENSONGE, pas une précision de confort.
+          L'écart est stocké par JOUR DE LA SEMAINE, sans date ni expiration : il revient
+          chaque semaine. L'ancien texte (« un resto, un anniversaire ») laissait croire
+          au contraire — quelqu'un déclarait un samedi exceptionnel et le portait ensuite
+          tous les samedis sans le savoir. Ne pas la retirer sans dater la donnée. */}
+      <Text style={{ ...Type.bodySmall, color: t.textSecondary, lineHeight: 20, marginTop: Spacing.sm }}>
+        C'est un rythme, pas un événement : ton réglage vaut pour chaque semaine, tant que
+        tu ne le changes pas.
       </Text>
 
       {marge <= 0 && (
