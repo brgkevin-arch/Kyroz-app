@@ -1202,8 +1202,10 @@ Profil (poids, objectif, régime) = **données de santé** au sens RGPD.
 > que l'un était branché et l'autre dormant. Et la phrase « aucun outil d'analyse tiers »
 > restait vraie, ce qui rendait la page rassurante à la relecture.
 > ➡️ Devant une liste de sous-traitants, la question n'est pas « qu'a-t-on prévu ? » mais
-> **« qu'est-ce qui tourne aujourd'hui ? »**. Les trois surfaces se tiennent à jour
-> ensemble : `constants/legal.ts`, son miroir `public/legal.html`, `RGPD-REGISTRE.md`.
+> **« qu'est-ce qui tourne aujourd'hui ? »**. La source est `constants/legal.ts` ;
+> `public/legal.html` et `docs/politique-confidentialite-kyroz.md` s'en GÉNÈRENT
+> (`npm run gen:legal`, depuis le 2026-08-18) — ne les édite jamais à la main.
+> `RGPD-REGISTRE.md` reste tenu à part : c'est un document interne, pas une copie.
 > ⚠️ **Ce qu'on ne sait pas ne s'écrit pas** : le cadre du transfert hors UE de Resend
 > (clauses contractuelles types / DPF, art. 13-1-f) ne peut se lire que dans son DPA. La
 > ligne reste explicitement EN SUSPENS au registre plutôt que remplie au jugé — même
@@ -1241,12 +1243,22 @@ Ce n'est pas théorique — `onboarding_completed` a envoyé `goal` et `restrict
 son premier commit, **défaut dormant** faute de clé PostHog. Garde-fou :
 `lib/__tests__/analyticsPerimetre.test.ts`, vérifié par 4 mutations.
 
-⚠️ **La clé PostHog et la mise à jour des textes légaux partent ENSEMBLE.** Trois textes
-affirment qu'aucun outil d'analyse tiers n'est utilisé (`constants/legal.ts`,
-`public/legal.html`, `RGPD-REGISTRE.md`) : ils disent vrai aujourd'hui et deviennent faux à
-la seconde où la clé est posée. Aucun état intermédiaire où le code ment. La checklist
-complète (dont **couper la collecte d'IP côté PostHog** — le client n'envoie rien pour ça,
-donc le défaut serveur s'applique) est en AGENTS.md E26.
+✅ **LES TEXTES SONT À JOUR DEPUIS LE 2026-08-18 — la clé, non.** La règle disait « la clé
+PostHog et les textes partent ensemble » ; sa moitié textes est faite, et elle l'a été
+**avant** la clé, délibérément : l'app DEMANDE déjà le consentement en production pour un
+outil que les textes déclaraient inexistant. Deux surfaces se contredisaient — on corrige un
+énoncé faux, on n'anticipe pas un traitement.
+➡️ **La règle qui reste, et elle est plus dure** : `EXPO_PUBLIC_POSTHOG_KEY` ne se pose pas
+tant que les **trois verrous** ne sont pas levés — **couper la collecte d'IP** côté projet
+(le client n'envoie rien pour ça, donc le défaut serveur s'applique), **DPA signé**,
+**rétention 18 mois configurée**. Ils sont en cases à cocher dans `RGPD-REGISTRE.md`, et
+rappelés à trois lignes de la variable dans `.env.example` — un verrou qu'on ne lit qu'en
+ouvrant un document RGPD ne sera pas lu par la main qui pose la clé.
+⚠️ **Le décompte « trois textes » était faux** : le recensement du 2026-08-18 en a trouvé
+**six**, dont deux qui mentaient déjà en production. Les surfaces se recensent par leur
+RÔLE, pas en cherchant la phrase à corriger — c'est un manque, et un manque ne se grep pas.
+Deux d'entre elles se **génèrent** désormais (`npm run gen:legal`) ; les autres sont listées
+en AGENTS.md E26.
 
 ---
 

@@ -2236,8 +2236,9 @@ produit en suspens — il ne reste qu'à coder.
      ⚠️ **CE QUI MANQUE ENCORE, et c'est volontaire** : le cadre du transfert hors UE
      (clauses contractuelles types / DPF), que le RGPD art. 13-1-f exige. Il ne se lit
      que dans le contrat. À écrire EN MÊME TEMPS que le nom, le jour de la signature.
-     ⚠️ Autre phrase datée, repérée au passage : « aucun outil d'analyse tiers n'est
-     utilisé » devient fausse le jour où la clé PostHog est posée.
+     ✅ Autre phrase datée, repérée au passage : « aucun outil d'analyse tiers n'est
+     utilisé » — RETIRÉE le 2026-08-18, PostHog est nommé au §5. Elle n'a pas attendu la
+     pose de la clé : l'app demandait déjà le consentement en production.
      ⏭️ **Non fait, et assumé** : appeler l'API d'effacement de RevenueCat depuis
      `delete-account`. Elle demande leur clé SECRÈTE, donc du code serveur, et ne sert
      à rien tant qu'il n'y a aucun abonné. Le RGPD impose de DIRE ce qu'on conserve,
@@ -5661,12 +5662,23 @@ produit en suspens — il ne reste qu'à coder.
   existe dans `Events`. Sans lui, ces règles restaient un paragraphe de .md — et c'est
   exactement comme ça que `goal` a survécu si longtemps.
 
-  🟡 **RESTE À FAIRE, et ça part avec la clé PostHog, pas avant** (§8 de la synthèse : aucun
-  état intermédiaire où le code ment). Aujourd'hui les textes disent vrai — rien n'est
-  envoyé ; ils ne mentiront qu'une fois la clé posée :
-  - [ ] `constants/legal.ts` §5 — « aucun outil d'analyse tiers » devient faux
-  - [ ] `public/legal.html` — le miroir statique, à la main
-  - [ ] `RGPD-REGISTRE.md` — PostHog en **sous-traitant** à côté de Supabase, + les 18 mois
+  ✅ **TEXTES FAITS LE 2026-08-18 — la clé, non** (et l'ordre s'est inversé pour une raison :
+  l'app demandait déjà le consentement en production pour un outil que les textes déclaraient
+  inexistant ; ce n'était plus « anticiper », c'était corriger un énoncé faux) :
+  - [x] `constants/legal.ts` — §2, §3, §4, §5, §7, §9 : PostHog nommé, stockage à Francfort,
+        consentement distinct et refusable, 18 mois. Écrit au **conditionnel de consentement**
+        (« si vous acceptez »), jamais au conditionnel d'existence → vrai clé posée ou non.
+  - [x] `public/legal.html` — **généré** (`npm run gen:legal`), plus recopié
+  - [x] `docs/politique-confidentialite-kyroz.md` — **généré** aussi
+  - [x] `RGPD-REGISTRE.md` — **traitement n°2** séparé (finalité, base légale, données,
+        destinataire et durée diffèrent tous du n°1), les 5 sous-traitants ultérieurs avec
+        leur date de consultation, l'IP consignée comme collectée, les 3 verrous
+  - [x] `STORE-RELEASE.md` §4 — **5ᵉ surface, trouvée le 2026-08-18** : les deux formulaires
+        (Apple *Product Interaction* + Google *actions dans l'app*) et l'URL de politique
+  - [x] `kyroz.app/legal.html` — **6ᵉ surface**, dépôt séparé `kyroz-site`. Elle mentait
+        depuis deux mois (16 ans au lieu de 18, Resend absent) : personne ne l'avait rouverte
+  - [x] garde-fous : PostHog nommé · « outil d'analyse tiers » absent · « anonyme » banni ·
+        aucun gabarit `[Majuscule]` — 4 assertions, vérifiées par mutation
   - [ ] 🔴 **`docs/politique-confidentialite-kyroz.md` — la QUATRIÈME surface, que le §8 de la
         synthèse ne compte pas.** Elle n'affirme rien de faux aujourd'hui (elle ne parle pas
         du tout d'analytics), donc elle échappe à toute recherche de la phrase à corriger —
@@ -7141,7 +7153,7 @@ Reste volontairement en l'état : l'écrasement des favoris et du garde-manger (
 c'est une décision, pas un défaut).
 
 ## Conformité RGPD
-- **Fait (code)** : consentement explicite horodaté à l'inscription ; droit à l'effacement (compte + cascade + purge locale à la déconnexion ET suppression) ; **droit à la portabilité** (export JSON, `lib/exportData.ts`) ; **politique de confidentialité + CGU** (`constants/legal.ts` → écran in-app `/legal` + page statique 200 `public/legal.html` pour stores/partage, liés login + profil) ; isolation RLS (vérifiée en prod) ; aucun SDK de tracking (partage IA Supabase = Disabled) ; photos local-only. **Registre** : `kyroz-app/RGPD-REGISTRE.md`. Coordonnées : Kévin Berger, micro-entreprise, 2 rue du moulin 64570 Arette, `contact@kyroz.app`.
+- **Fait (code)** : consentement explicite horodaté à l'inscription ; droit à l'effacement (compte + cascade + purge locale à la déconnexion ET suppression) ; **droit à la portabilité** (export JSON, `lib/exportData.ts`) ; **politique de confidentialité + CGU** (`constants/legal.ts` → écran in-app `/legal` + page statique 200 `public/legal.html` pour stores/partage, liés login + profil) ; isolation RLS (vérifiée en prod) ; aucun SDK tiers de tracking (partage IA Supabase = Disabled ; la mesure d'audience du traitement n°2 est un client écrit à la main, inerte sans consentement et sans clé) ; photos local-only. **Registre** : `kyroz-app/RGPD-REGISTRE.md`. Coordonnées : Kévin Berger, micro-entreprise, 2 rue du moulin 64570 Arette, `contact@kyroz.app`.
 - **Fait (fondateur, hors code) — 2026-06-15/16** : DPA Supabase signé (données de santé déclarées, rôle Controller) ; région UE confirmée (`eu-central-1` Frankfurt) ; 2FA activée ; e-mail unifié sur l'adresse publique unique `contact@kyroz.app` (+ perso `brgkevin@kyroz.app`), en cours de migration Cloudflare Email Routing → iCloud+ Domaine perso (2026-07-15).
 - ~~**Reste** : renseigner le SIREN~~ **FAIT 2026-07-16** : SIREN `106386162` (Luhn OK) renseigné dans `constants/legal.ts` (objet `LEGAL`), `public/legal.html` (miroir) et `RGPD-REGISTRE.md`. Reste : relecture juriste idéale (non bloquante). Cf. [[rgpd-placeholders-a-completer]].
 - **Analytics — arbitré le 2026-08-10** (E26, `docs/2026-08-10-synthese-analytics-arbitrage.md`) : consentement pour TOUT (l'exemption CNIL « mesure d'audience » est écartée, elle exige des stats anonymes) ; identifiant **pseudonyme et non anonyme** — c'est ce qui rend possible la suppression sur retrait, et les deux promesses ne peuvent pas tenir ensemble ; conservation **18 mois** ; jamais d'`identify`/`alias` vers l'id Supabase. ⚠️ Les métriques se lisent en **appareils**, jamais en personnes (réinstaller tire un nouvel identifiant) — le biais est structurel, il doit être nommé partout où un chiffre est cité. La relecture juriste porte désormais aussi sur : formulation de l'écran de consentement, qualification pseudonyme, 18 mois, suppression sur retrait.

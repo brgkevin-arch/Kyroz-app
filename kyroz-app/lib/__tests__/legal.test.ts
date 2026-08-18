@@ -1,72 +1,53 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
 import { LEGAL, PRIVACY_POLICY, TERMS_OF_USE } from '../../constants/legal';
+import { CIBLES, renderHtml, renderMarkdown } from '../../scripts/gen-legal';
 
 /**
- * Le texte légal existe en DEUX exemplaires, et c'est voulu :
- *   • `constants/legal.ts` → l'écran in-app `/legal` ;
- *   • `public/legal.html` → une URL publique servie en HTTP 200, exigée par les
- *     stores (le web est exporté en SPA, donc `/legal` y renverrait un 404).
+ * Le texte légal a UNE source — `constants/legal.ts` — et toutes les autres surfaces
+ * s'en fabriquent (`npm run gen:legal`).
  *
- * ⚠️ Les deux fichiers se recopient À LA MAIN. Leur en-tête le dit depuis toujours
- * (« mets à jour LES DEUX ») — mais rien ne l'attrapait, et une politique de
- * confidentialité qui dit deux choses différentes selon l'endroit où on la lit
- * est exactement le mensonge que `CLAUDE.md` §10 interdit. Ce fichier est le
- * garde-fou : le miroir HTML doit contenir CHAQUE paragraphe de la source.
- *
- * Écrit le 2026-08-02, en ajoutant RevenueCat aux sous-traitants — c'est-à-dire au
- * moment précis où les deux copies pouvaient diverger pour de bon.
+ * ⚠️ CE FICHIER A CHANGÉ DE MÉTIER LE 2026-08-18, et le motif compte. Il vérifiait
+ * jusque-là que chaque paragraphe de la source se retrouvait dans `public/legal.html`,
+ * recopié à la main. Il a tenu son poste — mais un test qui DÉTECTE une dérive suppose
+ * encore quelqu'un pour la réparer juste, et il ne pouvait rien dire des surfaces qu'il
+ * ne connaissait pas. Le recensement du 2026-08-18 en a trouvé six, dont deux qui
+ * mentaient en production :
+ *   • `docs/politique-confidentialite-kyroz.md` — 10 sections contre 11, § Mineurs
+ *     absente, gabarits `[Nom / Raison sociale]` jamais remplis (depuis le 2026-08-05) ;
+ *   • `https://kyroz.app/legal.html` — figée au 15 juin 2026, Resend absent, et un
+ *     § Mineurs à **16 ans** quand l'app bloque à **18** (`lib/safety.ts::MIN_AGE`).
+ * ➡️ Une copie régénérée ne peut pas diverger. Ce fichier ne surveille donc plus une
+ * recopie : il vérifie qu'on n'a pas oublié de RÉGÉNÉRER.
  */
 
-const HTML = readFileSync(join(__dirname, '../../public/legal.html'), 'utf8');
-
-/** Apostrophes, guillemets et espaces insécables varient d'une copie à l'autre. */
-const norm = (s: string) =>
-  s.replace(/[‘’ʼ]/g, "'")
-    .replace(/[“”]/g, '"')
-    .replace(/[  ]/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-
-const htmlNorm = norm(HTML);
-
-describe('le miroir HTML ne peut pas diverger de la source', () => {
-  it('contient chaque paragraphe de la politique de confidentialité', () => {
-    for (const sec of PRIVACY_POLICY) {
-      expect(htmlNorm, `titre manquant : ${sec.title}`).toContain(norm(sec.title));
-      for (const p of sec.paragraphs) {
-        expect(htmlNorm, `§${sec.title} — paragraphe absent du miroir`).toContain(norm(p));
-      }
-    }
-  });
-
-  it('contient chaque paragraphe des CGU', () => {
-    for (const sec of TERMS_OF_USE) {
-      expect(htmlNorm, `titre manquant : ${sec.title}`).toContain(norm(sec.title));
-      for (const p of sec.paragraphs) {
-        expect(htmlNorm, `§${sec.title} — paragraphe absent du miroir`).toContain(norm(p));
-      }
-    }
-  });
-
-  it('porte la même date de dernière mise à jour', () => {
-    // Modifier le texte sans bouger la date ferait mentir la page sur sa fraîcheur.
-    expect(htmlNorm).toContain(norm(LEGAL.effectiveDate));
+describe('les surfaces générées sont à jour', () => {
+  // Le test que l'ancien garde-fou ne pouvait pas écrire : non pas « le miroir
+  // contient les paragraphes » (vrai même s'il en contient d'autres, périmés), mais
+  // « le fichier sur le disque est EXACTEMENT ce que la source produit ».
+  it.each([
+    ['public/legal.html', CIBLES.html, renderHtml],
+    ['docs/politique-confidentialite-kyroz.md', CIBLES.markdown, renderMarkdown],
+  ])('%s correspond à constants/legal.ts', (_nom, chemin, rendre) => {
+    expect(
+      readFileSync(chemin as string, 'utf8'),
+      'fichier légal périmé → corrige constants/legal.ts, puis : npm run gen:legal'
+    ).toBe((rendre as () => string)());
   });
 });
+
+/** Tout ce qu'un lecteur peut lire, quelle que soit la surface. */
+const TOUS_LES_PARAS = [...PRIVACY_POLICY, ...TERMS_OF_USE].flatMap((s) => s.paragraphs).join(' ');
 
 describe("ce que le texte doit dire avant qu'un abonnement puisse être vendu", () => {
   // Ces phrases ne sont pas décoratives : deux d'entre elles sont contrôlées par
   // la revue Apple (Guideline 3.1.2), la troisième est une obligation RGPD.
 
-  const tousLesParas = [...PRIVACY_POLICY, ...TERMS_OF_USE].flatMap((s) => s.paragraphs).join(' ');
-
   it('annonce qu’un prestataire recevra l’identifiant du compte', () => {
     // Sans ça, §5 promet « aucun tiers » alors qu'un tiers recevra l'identifiant du
     // compte. La politique deviendrait fausse le jour du premier abonné.
-    expect(tousLesParas).toMatch(/prestataire/);
-    expect(tousLesParas).toMatch(/identifiant technique de votre compte/);
+    expect(TOUS_LES_PARAS).toMatch(/prestataire/);
+    expect(TOUS_LES_PARAS).toMatch(/identifiant technique de votre compte/);
   });
 
   it('ne NOMME aucun prestataire tant qu’aucun contrat n’existe', () => {
@@ -77,20 +58,65 @@ describe("ce que le texte doit dire avant qu'un abonnement puisse être vendu", 
     // celui qui l'est. Le RGPD autorise les CATÉGORIES de destinataires (art. 13-1-e).
     // ➡️ Le jour où le contrat existe : on met le nom ICI et dans le texte, ensemble,
     // avec le cadre du transfert hors UE (art. 13-1-f) qui ne se lit que dans le contrat.
-    expect(tousLesParas).not.toMatch(/RevenueCat|Stripe|Adapty|Superwall/i);
+    expect(TOUS_LES_PARAS).not.toMatch(/RevenueCat|Stripe|Adapty|Superwall/i);
   });
 
   it('dit que le renouvellement est automatique ET comment y échapper', () => {
-    expect(tousLesParas).toMatch(/renouvelle automatiquement/);
-    expect(tousLesParas).toMatch(/24 heures/);
+    expect(TOUS_LES_PARAS).toMatch(/renouvelle automatiquement/);
+    expect(TOUS_LES_PARAS).toMatch(/24 heures/);
   });
 
   it('dit que supprimer son compte Kyroz n’annule PAS l’abonnement', () => {
     // Le piège coûte de l'argent réel à quelqu'un qui croit avoir tout arrêté.
-    expect(tousLesParas).toMatch(/n’annule PAS un abonnement|n'annule PAS un abonnement/);
+    expect(TOUS_LES_PARAS).toMatch(/n’annule PAS un abonnement|n'annule PAS un abonnement/);
   });
 
   it('ne promet AUCUNE donnée bancaire chez Kyroz', () => {
-    expect(tousLesParas).toMatch(/coordonnée bancaire/);
+    expect(TOUS_LES_PARAS).toMatch(/coordonnée bancaire/);
+  });
+});
+
+describe('la déclaration de mesure d’audience ne peut plus disparaître', () => {
+  // Ces trois assertions gardent le lot du 2026-08-18. Elles ne testent pas du code :
+  // elles comptent une règle qui, sans elles, resterait un paragraphe de .md — et
+  // c'est exactement comme ça que « aucun outil d'analyse tiers » a survécu jusqu'au
+  // jour où l'app demandait déjà le consentement en production.
+
+  it('NOMME le destinataire des mesures', () => {
+    // RGPD art. 13-1-e : un consentement qui ne dit pas à qui les données vont n'est
+    // pas éclairé. Le nom doit vivre dans le texte, pas seulement au registre.
+    expect(TOUS_LES_PARAS).toMatch(/PostHog/);
+  });
+
+  it('n’affirme plus qu’aucun outil d’analyse tiers n’est utilisé', () => {
+    // La phrase a été vraie pendant des mois, ce qui la rendait rassurante à la
+    // relecture — et invisible le jour où elle a cessé de l'être.
+    expect(TOUS_LES_PARAS).not.toMatch(/outil d’analyse tiers|outil d'analyse tiers/);
+  });
+
+  it('dit « pseudonyme », jamais « anonyme »', () => {
+    // ⚠️ L'identifiant est STABLE et SUPPRIMABLE sur demande : les deux affirmations
+    // ne peuvent pas tenir ensemble. Une donnée qu'on sait rattacher à un individu
+    // pour l'effacer n'est pas anonyme (synthèse analytics §3.3). Le vocabulaire fait
+    // partie de la promesse.
+    expect(TOUS_LES_PARAS).toMatch(/pseudonyme/);
+    expect(TOUS_LES_PARAS).not.toMatch(/anonyme/i);
+  });
+});
+
+describe('aucun gabarit ne part en production', () => {
+  // `docs/politique-confidentialite-kyroz.md` a porté `[Nom / Raison sociale]`,
+  // `[SAS Kyroz, SIREN n° XXX]` et `[Adresse postale]` pendant des mois, sur la
+  // version destinée à l'URL publique. Un gabarit ne se voit pas à la relecture :
+  // il ressemble à du texte, et il ne fait rougir aucun outil. Maintenant, si.
+  const GABARIT = /\[[A-ZÉÈÀÎÔ][^\]]{2,}\]/;
+
+  it.each([
+    ['les paragraphes de la source', TOUS_LES_PARAS],
+    ['les valeurs de LEGAL', Object.values(LEGAL).join(' ')],
+    ['la page publique générée', renderHtml()],
+    ['le markdown généré', renderMarkdown()],
+  ])('%s ne contient aucun [Gabarit] non rempli', (_nom, texte) => {
+    expect(texte as string).not.toMatch(GABARIT);
   });
 });
