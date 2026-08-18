@@ -52,7 +52,7 @@ export const LEGAL = {
   // localisation de serveurs ne se transforme pas en promesse plus large qu'elle.
   analyticsProvider: 'PostHog',
   analyticsStorage: 'Francfort, en Allemagne',
-  analyticsRetention: '18 mois',
+  analyticsRetention: 'au moins un an',
   effectiveDate: '18 août 2026',
 } as const;
 
@@ -154,7 +154,7 @@ export const PRIVACY_POLICY: LegalSection[] = [
     title: '7. Durée de conservation',
     paragraphs: [
       "Vos données sont conservées tant que votre compte est actif. Elles sont supprimées (serveur + appareil) lorsque vous supprimez votre compte.",
-      `Les mesures d’usage, si vous les avez acceptées, sont conservées ${LEGAL.analyticsRetention}, puis supprimées. Vous pouvez en demander la suppression avant ce terme à tout moment (Réglages → Supprimer mes statistiques).`,
+      `Les mesures d’usage, si vous les avez acceptées, sont conservées ${LEGAL.analyticsRetention} par PostHog — la durée garantie par son offre —, sans limite haute fixe au-delà. Vous pouvez à tout moment en demander la suppression (Réglages → Supprimer mes statistiques).`,
       "Une exception : si vous avez souscrit un abonnement, l’historique de facturation correspondant est conservé par le store concerné (Apple, Google) et par le prestataire mentionné au point 5, pour la durée qu’imposent leurs obligations légales et comptables. Cet historique ne contient aucune donnée de santé.",
     ],
   },

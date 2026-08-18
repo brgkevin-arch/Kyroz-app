@@ -78,7 +78,7 @@
 | **Fonctions IA de PostHog** | **Non activées — deux preuves, pas une.** (1) Réglage vérifié dans la console du projet PostHog (case du suivi des actions, à cocher le jour de la pose de la clé) ; (2) l'application n'appelle **que** l'endpoint d'ingestion `/capture/` — `POSTHOG_HOST` n'apparaît qu'une fois dans tout le code (`lib/analytics.ts`), sans `/decide/`, `/flags/` ni `/query/`. Le réglage seul serait révocable d'un clic en console ; le code seul ne dirait rien du serveur. Les deux ensemble tiennent. Le tableau « AI Subprocessors » de PostHog ne s'applique donc pas. |
 | **Sous-traitants internes (PostHog)** | ✅ **Extrait le 2026-08-18** (onglet « Internal Subprocessors » de la même page — les deux premières tentatives avaient manqué un contenu chargé au clic, pas un tableau vide) — **deux entités nommées, plus des « affiliés » présumés** :<br>• **Hiberly Ltd.** — fourniture du service PostHog — **Royaume-Uni**.<br>• **PostHog GmbH** — fourniture du service PostHog — **Allemagne**.<br>Le DPA (§5.1) autorise génériquement l'usage de cette page ; il ne liste pas ces entités lui-même, il y renvoie. |
 | **Adresse IP** | **Écartée — vérifié le 2026-08-18** (capture d'écran du projet EU, `Settings → Products → Privacy → Discard client IP data`, activé). Les projets Cloud EU désactivent ce réglage par défaut à la création ; ce n'était pas encore vérifié pour Kyroz, d'où la ligne précédente qui la consignait par prudence comme collectée. Le client n'envoie de toute façon rien pour l'IP — il n'en a jamais eu besoin. |
-| **Durée de conservation** | **18 mois**, puis suppression. Choix motivé : 12 mois interdiraient toute comparaison d'une année sur l'autre sur un marché très saisonnier ; 18 mois couvrent une saison complète plus une marge, sous le plafond de référence de 25 mois. Suppression sur demande à tout moment avant ce terme (Réglages → Supprimer mes statistiques, avec l'identifiant pseudonyme). |
+| **Durée de conservation** | **Au moins un an**, garantie par l'offre PostHog souscrite ; **sans limite haute fixe au-delà** (données déplacées en stockage froid, non supprimées). ⚠️ **Arbitrage du 2026-08-18** : PostHog ne propose aucun réglage de rétention automatique, et aucune purge n'est construite côté Kyroz — décision assumée, pour ne pas ajouter une pièce serveur (clé API, tâche planifiée) à surveiller pour une fonctionnalité encore éteinte. Ce que ça veut dire concrètement : les données ne raccourcissent pas de vie, elles n'en ont simplement plus de terme fixe promis — en pratique, rien ne les efface plus tôt qu'avant. Suppression **sur demande individuelle**, à tout moment (Réglages → Supprimer mes statistiques, avec l'identifiant pseudonyme) — ce mécanisme est manuel et existait déjà, indépendant de ce choix. |
 | **Mesures de sécurité** | • Client écrit à la main, **aucun SDK tiers** embarqué.<br>• `capture()` est un **no-op** tant que le consentement n'est pas « granted » — vérifié par test.<br>• Aucun appel `identify`/`alias` vers l'identifiant de compte Supabase : le pseudonyme ne peut pas être rebranché sur le compte.<br>• Périmètre des propriétés d'événement tenu par un test de mutation (`analyticsPerimetre.test.ts`).<br>• Chiffrement en transit (HTTPS). |
 
 ---
@@ -110,8 +110,9 @@
   volontairement en suspens. ⚠️ Ne pas la compléter au jugé : une politique de
   confidentialité n'est pas l'endroit où supposer (même règle que le prestataire
   d'abonnement, `constants/legal.ts` §5).
-- [ ] 🔴 **LES TROIS VERROUS DE LA CLÉ POSTHOG.** `EXPO_PUBLIC_POSTHOG_KEY` ne se pose pas
-  tant que les trois ne sont pas faits — ils partent dans le même lot qu'elle, jamais après :
+- [x] ✅ **LES TROIS VERROUS DE LA CLÉ POSTHOG — levés le 2026-08-18.** `EXPO_PUBLIC_POSTHOG_KEY`
+  ne se posait pas tant que les trois n'étaient pas faits ; ils le sont. La poser reste un
+  geste séparé, qui n'est pas fait par le seul fait que les verrous le soient :
   - [x] **Couper la collecte d'IP** — **déjà fait, vérifié le 2026-08-18.** Les projets
         Cloud EU désactivent ce réglage par défaut à la création ; confirmé par capture
         d'écran (`Settings → Products → Privacy → Discard client IP data`, activé).
@@ -119,28 +120,25 @@
         `eu.posthog.com` (Settings → Organization → Legal documents), contresigné côté
         PostHog par Charles Cook (VP Operations). PDF à conserver hors dépôt, comme
         celui de Supabase.
-        ⚠️ **Signer n'est pas lire.** Deux lignes du traitement n°2 restent « présumé,
-        non lu » — le périmètre des **sous-traitants internes** et le cadre applicable
-        à **Cloudflare** — parce que personne n'a encore extrait ces clauses du texte
-        signé. C'est une action séparée, pas une conséquence automatique de la
-        signature.
-  - [ ] 🔴 **Rétention 18 mois — AUCUN MÉCANISME CONNU, arbitrage requis (2026-08-18).**
-        Ce verrou était formulé « cocher un réglage ». Vérification faite : la doc PostHog ne
-        documente **aucune rétention d'events configurable**. Le plan gratuit *garantit* 1 an,
-        après quoi les données « peuvent passer en stockage froid » — **elles ne sont pas
-        supprimées**. Les seules suppressions documentées sont manuelles : projet entier,
-        personne par personne, ou via l'API.
-        ➡️ Or « conservées 18 mois, puis supprimées » est écrit dans la politique, sur l'écran
-        de consentement, dans les Réglages et ici. **Une durée affichée doit être celle qui
-        sera servie.** Rien ne ment aujourd'hui — aucune donnée n'est collectée — et c'est
-        exactement ce que ce verrou est censé empêcher.
-        Trois issues, à trancher avant la clé : (1) vérifier dans la console si un réglage
-        non documenté existe — gratuit, à faire en premier ; (2) une suppression périodique
-        via l'API PostHog, qui tient la promesse mais demande une clé secrète donc du code
-        serveur ; (3) réécrire la durée dans les quatre surfaces.
-        ⚠️ La synthèse analytics §3.5 justifiait 18 mois par la comparaison d'une saison à
-        l'autre — avec une conservation d'un an, **cet argument tombe**, et c'est lui qui
-        avait écarté les 12 mois.
+        ✅ **Signer n'était pas lire, et c'est fait depuis** : les deux lignes du
+        traitement n°2 qui restaient « présumé, non lu » (sous-traitants internes,
+        cadre applicable à Cloudflare) sont closes ci-dessus — le fondateur a partagé
+        le PDF signé le jour même, lu en entier.
+  - [x] **Rétention — arbitrage tranché le 2026-08-18, PAS de mécanisme construit.**
+        La doc PostHog ne documente **aucune rétention d'events configurable** ; le
+        plan gratuit *garantit* 1 an, puis les données passent en stockage froid —
+        **jamais supprimées automatiquement**. Les seules suppressions documentées
+        sont manuelles : projet entier, personne par personne, ou via l'API.
+        ➡️ **Décision fondateur : réécrire la promesse plutôt que construire une
+        purge.** Les quatre surfaces (`constants/legal.ts`, l'écran de consentement,
+        les Réglages, ce registre) disent maintenant « au moins un an, sans limite
+        haute fixe » — ce qui est vrai — au lieu de « 18 mois, puis supprimées », qui
+        ne l'était pas. Aucune tâche récurrente n'est créée : la suppression reste
+        **sur demande individuelle**, via le mécanisme déjà existant.
+        ⚠️ **Ce n'est pas une régression de rétention, c'est le retrait d'une fausse
+        borne.** La justification d'origine (synthèse §3.5, comparer une saison à
+        l'autre) reste servie — sans purge automatique, les données persistent au
+        moins aussi longtemps qu'avant, souvent plus.
   - [x] Non-rotation de l'UUID **assumée et documentée** (synthèse §7.2) : une rotation
         périodique renforcerait la position mais casserait les cohortes longues.
 - [ ] (Idéal) Relecture du texte légal par un juriste avant lancement à grande échelle.
@@ -168,5 +166,7 @@ aucun test ne les attrapera. Elles font pourtant partie du même lot.
 - [ ] **URL de politique — Play Console** → même valeur. **Reporté au 2026-08-18 par le
       fondateur**, à faire avant la prochaine soumission Android. Remplace l'URL
       `brgkevin-arch.github.io` sous pseudo personnel.
-- [ ] **Console PostHog** : les trois verrous ci-dessus.
+- [x] **Console PostHog** : les trois verrous ci-dessus — **levés le 2026-08-18** (IP déjà
+      écartée par défaut, DPA signé et lu, rétention réécrite plutôt qu'automatisée). Poser
+      `EXPO_PUBLIC_POSTHOG_KEY` reste un geste séparé, non fait par ce commit.
 

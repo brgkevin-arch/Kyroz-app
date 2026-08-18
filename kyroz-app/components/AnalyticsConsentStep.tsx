@@ -123,7 +123,7 @@ export default function AnalyticsConsentStep({ onChoose }: Props) {
           Les mesures sont rattachées à un identifiant pseudonyme tiré au hasard sur ton
           téléphone — jamais à ton compte, jamais à ton e-mail. Elles sont envoyées à
           PostHog, l’outil qui nous sert à les lire, et stockées sur ses serveurs de
-          Francfort pendant 18 mois.
+          Francfort au moins un an.
         </Text>
         <Text style={s.note}>
           Tu peux changer d’avis quand tu veux dans Réglages, et demander la suppression
