@@ -2754,6 +2754,28 @@ téléphone.
   ⚠️ Le clavier du simulateur est en **AZERTY** : ce qu'on « tape » par
   automatisation arrive permuté (« Marc » → « ?qrc »). Sans conséquence sur un
   champ cosmétique, faux dès qu'on vérifie une saisie.
+- 🔴 **UN DÉPLOIEMENT VERT NE DIT RIEN DE CE QUE VOIT UN NAVIGATEUR** (2026-08-18).
+  `deploy.yml` construit et téléverse un ARTEFACT ; il ne **visite** pas la page. Le
+  jour où un domaine personnalisé a été posé sur le Pages de l'app, la racine servie
+  est passée de `/Kyroz-app/` à `/` pendant que `app.json` déclarait toujours
+  `baseUrl: "/Kyroz-app"` : **404 sur le bundle, splash et spinner à l'infini**,
+  pendant des heures, avec bon commit, run vert et bonne surface.
+  ➡️ **Le dernier contrôle est une REQUÊTE, pas un run** : `curl -sSI <url>` (une 301
+  inattendue trahit un domaine posé ailleurs) puis la console du navigateur — une 404
+  sur `_expo/static/…` est le symptôme exact.
+  ⚠️ **`baseUrl` et l'hébergement sont INSÉPARABLES**, et la faute s'inverse selon le
+  côté : servi sous `…github.io/Kyroz-app/` il vaut `/Kyroz-app`, servi à la racine
+  d'un domaine il doit être **vide**. Les deux moitiés bougent dans le même commit ;
+  le couplage est compté par `lib/__tests__/deploiementWeb.test.ts` (`PREFIXE_SERVI`).
+  ⚠️ **Un domaine personnalisé s'applique à un SITE, jamais à un fichier** : il
+  emporte `confirme.html`, dont l'URL est codée en dur (`lib/emailConfirmation.ts`),
+  gravée dans les binaires distribués et en liste blanche Supabase.
+  ⚠️ **Et changer d'origine déconnecte tous les utilisateurs web** — `localStorage`
+  est cloisonné par origine, mesuré à **0 clé** sur la nouvelle. Les comptes vivent
+  chez Supabase, mais le symptôme ressemble à « il a perdu mon compte ».
+  ➡️ Et la leçon qui dépasse le web : **« option écartée » décrit une INTENTION**, le
+  dépôt documentait la décision de NE PAS poser ce domaine, écrite sans vérifier
+  qu'il l'était déjà.
 - **`Dimensions.get('window')` ment sur iPad.** La fenêtre change de taille **sans
   relancer l'app** (rotation, Split View, Slide Over) : une valeur lue au chargement du
   module reste fausse jusqu'au prochain démarrage. Utiliser `useWindowDimensions()`.

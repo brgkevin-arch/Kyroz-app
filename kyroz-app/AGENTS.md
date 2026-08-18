@@ -519,6 +519,79 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
   et l'identifiant de notification (`kyroz-daily-reminder` n'a jamais changé, donc
   le ré-armement annule bien l'ancienne).
 
+- ✅ **A35 · Le site public était MORT et rien ne l'a dit — CORRIGÉ le 2026-08-18**
+  (PR #122 puis #123, publié en OTA le soir même).
+  Le Pages de l'app avait reçu le domaine personnalisé `legal.kyroz.app`. Un domaine
+  personnalisé s'applique à un **SITE**, jamais à une page : la racine servie est
+  passée de `/Kyroz-app/` à `/`, pendant que `app.json` déclarait toujours
+  `baseUrl: "/Kyroz-app"`. Le HTML appelait donc son bundle sous un sous-chemin
+  disparu — **404 sur le JS, splash KYROZ et spinner à l'infini, pendant des heures**.
+  🔴 **AUCUN CONTRÔLE EXISTANT NE POUVAIT LE VOIR, et c'est la leçon.** Bon commit,
+  run vert, bonne surface : les trois questions de la fiche de fraîcheur répondaient
+  « oui ». `deploy.yml` construit et téléverse un ARTEFACT — il ne **visite** pas la
+  page. ➡️ Le dernier contrôle d'un déploiement ne peut pas être un run, c'est une
+  requête : `curl -sSI <url>` (une 301 inattendue trahit un domaine posé ailleurs)
+  puis la console du navigateur (une 404 sur `_expo/static/…` est le symptôme exact).
+  🔴 **ET LE DÉPÔT DOCUMENTAIT LA DÉCISION DE NE PAS POSER CE DOMAINE** — un « ⚠️ ne
+  PAS le faire » motivé, dans `gen-legal.ts` et `STORE-RELEASE.md`, écrit sans
+  vérifier qu'il l'était **déjà**. Un arbitrage peut être impeccablement raisonné et
+  faux : « option écartée » décrit une INTENTION, seul le réseau dit l'ÉTAT.
+  ✅ **Issue retenue après deux arbitrages successifs du fondateur** : garder le
+  domaine (`baseUrl` vidé), puis le **retirer** — un nom d'hôte ne peut pas être à la
+  fois la maison de l'app et le raccourci vers une page. Le site est revenu sous
+  `brgkevin-arch.github.io/Kyroz-app/`, `baseUrl` avec lui.
+  ⚠️ **Le couplage est désormais COMPTÉ** (`lib/__tests__/deploiementWeb.test.ts`,
+  constante `PREFIXE_SERVI`) : servi sous `…github.io/Kyroz-app/` → `baseUrl`
+  = `/Kyroz-app` ; servi à la racine d'un domaine → **vide**. La faute s'inverse
+  selon le côté, et n'en changer qu'une moitié rend la même page blanche à l'envers.
+  Vérifié par mutation.
+  🔴 **UN CHANGEMENT D'ORIGINE DÉCONNECTE TOUS LES UTILISATEURS WEB** — mesuré :
+  `localStorage` de la nouvelle origine contenait **0 clé** et l'app s'ouvrait sur
+  *Inscription*. Les comptes vivent chez Supabase, une reconnexion suffit — mais le
+  symptôme ressemble trait pour trait à « il a perdu mon compte ». Vaut aussi pour un
+  raccourci d'écran d'accueil posé depuis l'autre domaine. Consigné dans
+  `PROCEDURE-2026-08-18-domaine-legal-kyroz-app.md`, qui est une TRACE et non une
+  procédure : il n'y a rien à faire.
+  ⚠️ **Ce que le fondateur voulait était livré depuis le matin** : `kyroz.app/legal.html`,
+  sur le domaine de la marque, sans pseudo, **déjà déclarée à Apple**. Tout l'épisode
+  courait après un raccourci vers une page qui existait. ➡️ Devant une demande de
+  MOYEN, mesurer d'abord si le BUT est déjà atteint — un `curl` de deux secondes.
+
+- ✅ **A36 · Le forçage `lang="fr"` du déploiement était mort deux fois — CORRIGÉ le
+  2026-08-18** (PR #122). Trouvé en mesurant la page réellement servie, pas en
+  relisant `deploy.yml`.
+  Deux fautes cumulées, chacune suffisante : le motif cherchait `<html lang="en">`
+  avec **UNE** espace là où Expo en écrit **DEUX** ; et l'étape ne traitait que
+  `dist/index.html` alors que `web.output: "static"` pré-rend **une page par route**
+  — **22 au dernier export, donc 1 sur 22 traitée**. Un `sed` qui ne trouve pas sa
+  cible **sort en 0** : CI verte, pages servies en anglais, et `AGENTS.md` qui
+  documentait le garde-fou comme actif.
+  ✅ L'étape passe sur toutes les pages, en **POSIX** (donc rejouable en local — un
+  garde-fou qu'on ne peut pas rejouer est un garde-fou qu'on ne teste jamais), et
+  **vérifie son propre résultat**.
+  🔴 **LE PREMIER CONTRÔLE ÉCRIT ÉTAIT FAUX, et sa faute vaut d'être gardée** : il
+  cherchait s'il restait du `lang="en"` — donc il laissait passer `lang="en-US"`,
+  c'est-à-dire **la panne d'origine déguisée**. Inversé en « toutes les pages
+  portent-elles `lang="fr"` ? ». ➡️ **Vérifier une PRÉSENCE attendue, pas l'absence
+  d'une forme redoutée** : l'attendu attrape toutes les formes que le redouté peut
+  prendre. Rouge sur 3 mutations, vert sur un vrai `dist` (22/22).
+
+- ✅ **A37 · Deux chiffres NEAT contradictoires dans ce fichier, à 1,8× d'écart —
+  CORRIGÉ le 2026-08-18.** Une passation affirmait que l'étape 4 de l'inscription
+  demandait le NEAT et qu'une note du 10/08 disait l'inverse. **Vérification : aucun
+  bug.** `neat_level` n'apparaît pas une fois dans `onboarding.tsx` ; il ne s'écrit
+  que dans Profil → *Sport & activité*. `lib/tdee.ts` et `brief-profil-et-parametres.md`
+  le disent déjà noir sur blanc — les deux surfaces concordent, et avec le code.
+  ⚠️ **Le vrai défaut était ici** : ce fichier portait « un cran = 126 à 165 kcal/j,
+  médiane 142 » (mesuré le 2026-07-29) **à côté** de « 57 à 102, médiane 80 »
+  (re-mesuré le 2026-08-10). Le premier date de **deux jours avant que la table NEAT
+  ne soit relevée** (`desk` 1,20 → 1,30) : il mesure un moteur qui n'existe plus.
+  Re-mesuré indépendamment le 2026-08-18 sur 1 000 gabarits : **78 kcal/j de médiane**
+  (57–106), `desk → physical` **234**. L'ancien est marqué périmé, la leçon gardée.
+  ➡️ Un chiffre se **re-mesure** avant d'être cité, jamais recopié — et deux valeurs
+  du même indicateur dans un même fichier se confirment l'une l'autre à qui les lit
+  séparément.
+
 - 🧑 **A32 · Les 12 silhouettes du sélecteur de %MG sont à REFAIRE avant la mise en
   ligne (2026-08-12)** — décision fondateur, il cherche un outil qui rende de bons
   assets. Les images servies portent une « corne » au-dessus des épaules, visible sur
@@ -7175,7 +7248,7 @@ c'est une décision, pas un défaut).
 
 ## Setup & déploiement
 - Expo Router (file-based), SDK 56, TS strict. Lancer : `npm run web` (8081) / `npm run ios`. Tests : `npm test` (vitest). Preview agent : port **8090** (pas 8081, occupé par le fondateur).
-- **En ligne** : web sur GitHub Pages → **https://brgkevin-arch.github.io/Kyroz-app/** (repo public `brgkevin-arch/Kyroz-app`, auto-deploy `deploy.yml` à chaque push `main`). ⚠️ **Le domaine `legal.kyroz.app` a été posé puis RETIRÉ le 2026-08-18** : posé, il servait toute l'app (un domaine personnalisé s'applique à un SITE), ce qui contredisait son nom et empêchait la page légale d'y vivre. Il est rendu à son rôle d'origine — un raccourci vers la politique. La page légale déclarée aux stores reste `https://kyroz.app/legal.html`, dépôt `kyroz-site`. Le fondateur publie via **GitHub Desktop** (Commit→Push), pas le terminal.
+- **En ligne** : web sur GitHub Pages → **https://brgkevin-arch.github.io/Kyroz-app/** (repo public `brgkevin-arch/Kyroz-app`, auto-deploy `deploy.yml` à chaque push `main`). ⚠️ **Le domaine `legal.kyroz.app` a été posé puis RETIRÉ le 2026-08-18** : posé, il servait toute l'app (un domaine personnalisé s'applique à un SITE), ce qui contredisait son nom et empêchait la page légale d'y vivre. Décision fondateur : **on en reste là, il ne sert plus rien** — la page légale déclarée aux stores est `https://kyroz.app/legal.html` (dépôt `kyroz-site`), et une seconde adresse vers la même page est exactement ce qui a produit la panne. ⚠️ Un enregistrement `legal` peut subsister chez Cloudflare (symptôme : HTTP 530 / `error code: 1016`) ; il ne casse rien, aucune surface ne pointe dessus. Trace complète : `PROCEDURE-2026-08-18-domaine-legal-kyroz-app.md`. Le fondateur publie via **GitHub Desktop** (Commit→Push), pas le terminal.
 - ⚠️ **PUBLIER = POUSSER SUR `main`. Rien d'autre.** GitHub Pages sert l'**artefact du workflow** (`build_type: "workflow"`), pas une branche. Deux conséquences : (1) la branche **`origin/gh-pages` est MORTE** — vestige de l'ancien flux, figée au 2026-07-03 ; lire sa date pour juger la fraîcheur du site est un piège avéré (cf. A12) ; (2) **`npm run deploy` (`gh-pages -d dist`) ne publie RIEN** — il pousse sur cette branche morte. Vérifier un déploiement : `gh run list --workflow=deploy.yml`. ⚠️ Le hash du bundle ne prouve PAS qui a déployé : `expo export` est déterministe, build local et build CI donnent le même nom de fichier.
 - 🔴 **Pièges déploiement — LES DEUX ONT CHANGÉ DE SENS LE 2026-08-18, lire avant de toucher :**
   - **`baseUrl` doit décrire la racine RÉELLEMENT servie** — aujourd'hui `/Kyroz-app`, et la faute s'inverse selon l'hébergement. Un domaine personnalisé s'applique à un SITE : posé, il fait passer la racine de `/Kyroz-app/` à `/`, et un `baseUrl="/Kyroz-app"` fait alors chercher le bundle sous un sous-chemin inexistant → **404 sur le JS, splash KYROZ et spinner à l'infini**. C'est arrivé le 2026-08-18, et le site public est resté ainsi sans que rien ne rougisse : la CI déploie un artefact, elle ne visite pas la page. ⚠️ **Couplage inséparable** : `app.json` et le réglage GitHub bougent dans le MÊME commit, avec `lib/__tests__/deploiementWeb.test.ts` (qui porte la constante `PREFIXE_SERVI`). Servi sous `…github.io/Kyroz-app/` → `baseUrl = "/Kyroz-app"` ; servi à la racine d'un domaine → `baseUrl` vide.
