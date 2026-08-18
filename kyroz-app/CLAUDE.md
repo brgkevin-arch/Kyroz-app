@@ -1256,6 +1256,15 @@ variable EAS sur les trois environnements.
 ➡️ **L'analytics est ACTIF, pas dormant** — `capture()` envoie désormais, pour qui a
 consenti (l'écran de consentement reste avant l'assistant, refusable sans conséquence,
 retirable à tout moment). Détail complet et dates : `RGPD-REGISTRE.md`.
+🔴 **MAIS SUR LE WEB SEULEMENT — l'OTA n'est pas publié** (report du fondateur,
+2026-08-18). Les binaires en circulation n'ont ni la clé ni les nouveaux textes, et
+**ne mentent pas pour autant** : sans clé, `capture()` est un no-op, donc leur ancien
+« aucun outil d'analyse tiers » reste vrai chez eux — clé et textes sont absents
+*ensemble*. Ne pas conclure de « c'est mergé » que c'est chez les utilisateurs : les
+trois surfaces (site / OTA / binaire) se déploient séparément. Le jour de l'OTA,
+**`--clear-cache` est obligatoire** (§2 : le cache Metro ne s'invalide pas sur un
+changement de valeur `EXPO_PUBLIC_*`, donc l'update partirait sans la clé, en silence).
+Tableau des trois surfaces : `PROCEDURE-2026-08-18-activation-posthog.md` §6.
 ⚠️ **Le décompte « trois textes » était faux** : le recensement du 2026-08-18 en a trouvé
 **six**, dont deux qui mentaient déjà en production. Les surfaces se recensent par leur
 RÔLE, pas en cherchant la phrase à corriger — c'est un manque, et un manque ne se grep pas.
