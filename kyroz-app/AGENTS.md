@@ -591,6 +591,11 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
   ➡️ Un chiffre se **re-mesure** avant d'être cité, jamais recopié — et deux valeurs
   du même indicateur dans un même fichier se confirment l'une l'autre à qui les lit
   séparément.
+  ⚠️ **LE CONSTAT DE CETTE FICHE A ÉTÉ RENDU FAUX LE 2026-08-19 (E52)** — et par une
+  décision, pas par une erreur : `neat_level` s'écrit désormais AUSSI depuis
+  `onboarding.tsx`, la question étant posée à l'étape 4. Ce qui reste vrai : elle ne
+  l'était pas jusque-là, et la vérification qui le disait était juste. La leçon sur le
+  chiffre re-mesuré, elle, ne dépend pas de ça.
 
 - 🧑 **A32 · Les 12 silhouettes du sélecteur de %MG sont à REFAIRE avant la mise en
   ligne (2026-08-12)** — décision fondateur, il cherche un outil qui rende de bons
@@ -3830,6 +3835,79 @@ produit en suspens — il ne reste qu'à coder.
 > branches insèrent en tête de cette section, donc git ne sait pas dans quel ordre. La
 > résolution est de garder les DEUX blocs, en ordre décroissant — jamais d'en choisir un.
 
+- 🤖 **E52 · Le réglage le plus lourd de l'app n'était jamais demandé — POSÉ À
+  L'INSCRIPTION le 2026-08-19**
+
+  Le fondateur, sur la tâche 8 de son plan d'action : *« go pour le neat »*.
+
+  **L'état d'avant, re-vérifié avant d'y toucher** (c'est la conclusion d'A37, elle
+  tenait toujours) : `neat_level` ne s'écrivait QUE depuis Profil → *Sport & activité*.
+  L'inscription ne posait pas la question, `neatPal(undefined)` rendait `desk` (1,30),
+  et ce défaut était donc la valeur servie à tous ceux qui n'allaient pas chercher un
+  réglage à deux touchers de profondeur — c'est-à-dire à presque tout le monde.
+
+  📊 **RE-MESURÉ sur le moteur d'aujourd'hui** (12 gabarits de `PROFILS_REF` × 3
+  profils sportifs = 108 crans, `recalcProfile`) : **un cran vaut 79 kcal/j de médiane**
+  (62 → 106), `desk` → `physical` **238** (187 → 318). ⚠️ **Et sur ce périmètre-là, le
+  plancher de sécurité n'en amortit AUCUN — 0 cran sur 108** : dépense et cible servie
+  bougent du même montant. Ce n'est pas une contradiction avec la mesure du 2026-08-10
+  (274 crans amortis sur 2 400, 140 effacés), c'est un périmètre différent : ces
+  12 gabarits sont des profils courants, le plancher mord sur les masses maigres basses.
+  ➡️ Citer 79, en disant « dépense », et ne jamais promettre que le cran arrive
+  entier dans l'assiette pour tout le monde.
+
+  ✅ **CE QUI A ÉTÉ LIVRÉ**
+  - `components/NeatPicker.tsx` — **un seul composant pour les deux écrans**, comme
+    `MealSlotsPicker` et pour la même raison. La rédaction des libellés est un
+    garde-fou anti-inflation vérifié par `neat-libelles.test.ts` ; deux copies du bloc,
+    c'est un garde-fou qui ne couvre plus qu'un écran sur deux.
+  - L'étape 4 pose la question **avant** les séances, et **la réponse est exigée**.
+  - Profil → *Sport & activité* rend désormais le même composant. Rien n'y change à l'œil.
+
+  🔴 **RIEN N'EST PRÉ-COCHÉ, ET C'EST TOUT LE CHANTIER.** `useState<NeatLevel | null>(null)`,
+  pas `useState(DEFAULT_NEAT_LEVEL)`. Pré-cocher aurait rendu un écran identique à l'œil
+  et laissé « journées assises » être servi à qui ne touche à rien : l'état d'avant, avec
+  une question de plus. La garde est dans `trainingValid` (`neat !== null && …`), donc
+  dans `canProceed`, donc dans le bouton.
+
+  ⚠️ **DANS L'ÉTAPE 4, PAS DANS UNE 8ᵉ ÉTAPE.** `TOTAL_STEPS` reste à 7 : le compteur
+  « ÉTAPE n / 6 » ne bouge pas, le harnais qui le lit non plus, et surtout
+  `onboarding_step_viewed { step }` garde sa ligne de base — une 8ᵉ étape aurait rendu
+  l'entonnoir d'avant/après incomparable le jour même où on commence à le lire.
+
+  🔴 **LE HARNAIS PLAYWRIGHT A DÛ SUIVRE, ET C'ÉTAIT LE VRAI RISQUE.** `test/_harness.mjs`
+  tapait « Je ne fais pas de sport » puis « Continuer ». Avec une réponse exigée en plus,
+  le bouton ne fait plus rien : les 7 scripts se seraient arrêtés là **en accusant
+  l'étape 5** — la panne exacte que `harnaisEcrans.test.ts` existe pour rendre visible le
+  jour même. Le script tape maintenant le cran `desk`, qui est la valeur servie avant ce
+  chantier : **aucun chiffre attendu en aval ne bouge**. Ancre ajoutée dans la table du
+  verrou (`dans: 'lib/tdee.ts'` — le libellé vit dans `NEAT_LABEL`, pas dans l'écran).
+
+  ✅ **`lib/__tests__/neatOnboarding.test.ts`** (8 cas) ferme les cinq chemins par
+  lesquels la question peut disparaître sans bruit : plus rendue, plus enregistrée,
+  pré-cochée, garde retirée, ou re-dupliquée dans un écran. **Vérifié par 4 mutations**
+  — chacune rougit. Il lit la source SANS ses commentaires : les deux écrans *parlent*
+  de `NeatPicker` dans une note, et une note ne doit pas se porter garante du code.
+  📊 **1 591 tests / 99 fichiers verts, `tsc` vert** (mesuré sur l'arbre poussé).
+
+  ℹ️ **Effet de bord sur la contradiction du plan d'action** : `docs/2026-08-15-synthese-
+  kyroz-cote-utilisateur.md` annonçait déjà « étape 4 : sports + niveau d'activité
+  quotidienne hors sport ». C'était FAUX à l'écriture (la note du 10/08 avait raison
+  contre lui) ; c'est vrai depuis aujourd'hui. Le doc n'a pas été corrigé — c'est le
+  code qui l'a rejoint. Les autres sections de cette synthèse restent périmées.
+
+  ⚠️ **CE QUI N'A PAS ÉTÉ FAIT, ET VOLONTAIREMENT**
+  - **Aucun événement analytics sur la réponse.** Le métier et la posture d'une journée
+    décrivent une personne ; §6 interdit d'attacher ça à un identifiant. La mesure utile
+    (« l'étape 4 fait-elle abandonner ? ») est déjà rendue par `onboarding_step_viewed`.
+  - **Aucun backfill des comptes existants**, et aucune migration : la colonne
+    `neat_level` existe depuis le 2026-07-28. Les comptes d'avant gardent `undefined`,
+    donc le cran le plus prudent — « jamais demandé » doit rester distinguable d'une
+    réponse, sinon la question ne peut plus être reposée (même règle que
+    `body_fat_source`).
+  - **La carte « Dépense estimée » décomposée** (l'autre moitié du lot 2 d'E34) reste à
+    faire. Elle n'était pas nécessaire pour poser la question.
+
 - 🤖 **E51 · Les transitions : six endroits où l'app téléportait (2026-08-15)**
 
   Le fondateur : *« fais un check de toutes les animations, ou là il faudrait des
@@ -5259,8 +5337,10 @@ produit en suspens — il ne reste qu'à coder.
 
   ⏭️ **Lot 2, après le lancement** (décidé, pas fait) : décomposer la carte « Dépense
   estimée » en métabolisme + journées + sport, la part « journées » tapable → ouvre le
-  NEAT · poser la question du NEAT à l'inscription (⚠️ pas avant d'avoir re-mesuré, cf.
-  ci-dessus) · un événement `profile_row_opened` **avec l'identifiant de ligne seul, jamais
+  NEAT · ~~poser la question du NEAT à l'inscription~~ ✅ **LIVRÉ le 2026-08-19 (E52)** —
+  la re-mesure exigée ici a été faite deux fois (A37 le 2026-08-18, puis 108 crans sur le
+  moteur du jour), et la question n'a PAS attendu la décomposition de la carte : elle vit
+  à l'étape 4, la carte reste à faire · un événement `profile_row_opened` **avec l'identifiant de ligne seul, jamais
   sa valeur** (l'id `objectif` n'est pas une donnée de santé, la valeur `Sèche` en est une)
   · renommer l'onglet seulement si le Profil devient un vrai tableau de bord — renommer
   oblige à refaire les captures de la fiche App Store.

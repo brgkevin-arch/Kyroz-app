@@ -24,12 +24,13 @@ import {
 } from '../../lib/safety';
 import { DislikedFoodsField } from '../../components/DislikedFoodsField';
 import {
-  ActivityLevel, BodyFatSource, DietaryRestriction, Goal, MealSlot, MealType, Sex, SportSession, UserProfile, VarietyPreference,
+  ActivityLevel, BodyFatSource, DietaryRestriction, Goal, MealSlot, MealType, NeatLevel, Sex, SportSession, UserProfile, VarietyPreference,
 } from '../../lib/types';
 import { MealSlotsPicker } from '../../components/MealSlotsPicker';
+import { NeatPicker } from '../../components/NeatPicker';
 import { knownSlots } from '../../lib/mealSlots';
 import {
-  validateProfile, goalLabel, recalcProfile,
+  validateProfile, goalLabel, recalcProfile, DEFAULT_NEAT_LEVEL,
 } from '../../lib/tdee';
 import { totalSessionsPerWeek } from '../../lib/sport';
 import { deducedRestWeekdays } from '../../lib/planEngine';
@@ -166,6 +167,11 @@ export default function Onboarding() {
   const [restrictions, setRestrictions] = useState<DietaryRestriction[]>([]);
   const [proteins, setProteins] = useState<string[]>([]);
   const [dislikes, setDislikes] = useState<string[]>([]);
+  // ⚠️ `null` ET PAS `DEFAULT_NEAT_LEVEL` : rien n'est présélectionné, et l'étape ne
+  // se valide pas tant que la réponse manque. Pré-cocher « journées assises » aurait
+  // laissé le défaut passer pour une réponse — c'est exactement le défaut que poser
+  // la question corrige (cf. `DEFAULT_NEAT_LEVEL` dans lib/tdee.ts).
+  const [neat, setNeat] = useState<NeatLevel | null>(null);
   const [variety, setVariety] = useState<VarietyPreference>('balanced');
   const [planWeekdays, setPlanWeekdays] = useState<number[]>([]); // rien coché par défaut → l'user sélectionne (noir = off, blanc = on)
   const [restWeekdays, setRestWeekdays] = useState<number[]>([]);  // jours de repos (sous-ensemble des jours du plan) → cyclage
@@ -191,7 +197,11 @@ export default function Onboarding() {
     wN >= WEIGHT_BOUNDS[0] && wN <= WEIGHT_BOUNDS[1] &&
     hN >= HEIGHT_BOUNDS[0] && hN <= HEIGHT_BOUNDS[1]; // étape 2 — infos
   const bodyFatValid = bodyFat != null;                                                   // étape 3 — masse grasse
-  const trainingValid = noSport || sports.length >= 1;                                     // étape 4 — activité (sports ou « aucun »)
+  // Étape 4 — DEUX réponses, comptées séparément par le moteur (`TDEE = BMR × NEAT +
+  // dépense sportive`) : les journées hors sport, et les séances. La première est
+  // EXIGÉE depuis le 2026-08-19 ; jusque-là elle ne vivait que dans le Profil, donc
+  // le défaut le plus prudent était la valeur réellement servie à presque tout le monde.
+  const trainingValid = neat !== null && (noSport || sports.length >= 1);
   // Du sport a-t-il été DÉCLARÉ ? C'est ce qui décide si les jours de repos changent
   // quoi que ce soit (cf. le texte de l'étape 7) : `saveProfile` envoie
   // `sports: noSport ? [] : sports`, et sans séance `dayExpenditures` rend une cible
@@ -267,7 +277,10 @@ export default function Onboarding() {
     }
     if (step === 3 && !bodyFatValid)
       return 'On a besoin de ta masse grasse pour te calculer le plan le plus juste possible — choisis la silhouette la plus proche de toi, ou saisis ton % si tu le connais.';
-    if (step === 4 && !trainingValid) return 'Choisis au moins un sport, ou indique que tu n\'en fais pas.';
+    if (step === 4 && !trainingValid) {
+      if (neat === null) return 'Choisis à quoi ressemblent tes journées, hors sport.';
+      return 'Choisis au moins un sport, ou indique que tu n\'en fais pas.';
+    }
     if (step === 7 && !mealsValid) return 'Choisis au moins un jour et un repas.';
     return null;
   };
@@ -292,6 +305,11 @@ export default function Onboarding() {
       body_fat_source: bodyFatSource,
       activity_level: activityFromDays(trainingDaysEq),
       training_days_per_week: trainingDaysEq,
+      // Le repli `??` n'est jamais emprunté — `trainingValid` interdit d'atteindre
+      // `finish()` avec `neat === null`. Il est là pour que le type reste honnête,
+      // pas pour couvrir un cas : si l'étape 4 perdait sa garde, un profil partirait
+      // au cran le plus prudent plutôt qu'à un cran inventé.
+      neat_level: neat ?? DEFAULT_NEAT_LEVEL,
       sports: noSport ? [] : sports,
       goal,
       macro_mode: 'auto', // onboarding = macros calculées ; le mode « perso % » se règle dans le profil
@@ -415,7 +433,13 @@ export default function Onboarding() {
         {step === 4 && (
           <View style={s.block}>
             <Text style={s.title}>Ton activité</Text>
-            <Text style={s.sub}>Quels sports pratiques-tu, et à quelle fréquence ? On en déduit tes calories dépensées pour un plan plus juste.</Text>
+            <Text style={s.sub}>Deux choses, comptées séparément : ce que tu dépenses dans une journée ordinaire, et ce que tes séances y ajoutent.</Text>
+            {/* Le NEAT AVANT les séances, et le composant est partagé avec le Profil :
+                voir l'en-tête de `NeatPicker` — l'ordre et la rédaction sont des
+                garde-fous contre le double-comptage sport/journées, pas une mise en page. */}
+            <NeatPicker t={t} value={neat} onChange={setNeat} />
+
+            <SectionLabel t={t}>TES SÉANCES</SectionLabel>
             <SportsEditor
               sports={sports}
               weight={profileReady ? wN : undefined}

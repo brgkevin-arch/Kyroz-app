@@ -110,9 +110,20 @@ export const NEAT_PAL: Record<NeatLevel, number> = {
 };
 
 /**
- * Défaut quand la question n'a pas été posée — et c'est le cas de la grande
- * majorité des profils, la question vivant dans le profil et pas à l'onboarding.
- * Ce défaut EST donc la valeur servie en pratique : ce n'est pas un détail.
+ * Défaut quand la question n'a pas été posée.
+ *
+ * ⚠️ CE QU'IL COUVRE A CHANGÉ LE 2026-08-19 — la phrase d'avant (« la question vit
+ * dans le profil et pas à l'onboarding, ce défaut EST donc la valeur servie en
+ * pratique ») était vraie et ne l'est plus. L'étape 4 de l'inscription pose la
+ * question (`components/NeatPicker.tsx`, réponse EXIGÉE, rien de pré-coché). Ce
+ * défaut ne couvre donc plus que : les comptes créés AVANT cette date — ils ne sont
+ * **pas backfillés**, « jamais demandé » devant rester distinguable d'une réponse,
+ * sinon la question ne peut plus être reposée — et le repli de `neatPal` sur une
+ * valeur inconnue.
+ *
+ * Il reste le cran le PLUS PRUDENT de la table, et c'est ce qui le rend tenable
+ * comme repli : un profil qui n'a pas répondu doit être sous-estimé, jamais
+ * sur-estimé. L'argument complet est ci-dessous, il n'a pas bougé.
  *
  * ⚠️ RELEVÉ DE 1,20 À 1,30 LE 2026-07-31 (décision fondateur). L'argument d'origine
  * — reproduit plus bas — reste valable dans ses termes, mais il répondait à une
