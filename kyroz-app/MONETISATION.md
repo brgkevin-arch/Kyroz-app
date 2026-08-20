@@ -33,8 +33,9 @@
 Le **core loop reste 100 % gratuit, sans clé API** : profil → plan 7 jours
 macro-précis → courses → recettes → frigo → favoris → **streak**.
 
-Conséquence directe sur le **North Star** (% d'utilisateurs à 7 jours consécutifs
-dans les 14 premiers jours) : **le paywall ne doit JAMAIS bloquer la fenêtre des
+Conséquence directe sur le **North Star** (% d'appareils à **7 jours actifs — un repas
+cuisiné — dans les 14 premiers jours** ; définition et calcul dans `METRICS.md`, précisée
+le 2026-08-20) : **le paywall ne doit JAMAIS bloquer la fenêtre des
 14 premiers jours ni le geste quotidien**. On ne monétise que des features de
 confort/puissance qui arrivent *après* que l'habitude est prise. Monétiser le
 core tuerait le North Star — donc interdit.

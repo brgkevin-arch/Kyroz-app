@@ -13,7 +13,8 @@ interface Props {
 
 /**
  * Moment de récompense quand un palier de série est franchi (3/7/14…). Centré,
- * animé (pop ressort + fondu). Le palier 7 = le cap du North Star.
+ * animé (pop ressort + fondu). Le palier 7 = le cap d'habitude (METRICS.md §1 —
+ * la série n'est PAS la north star, elle compte des ouvertures).
  *
  * ⚠️ L'OBJET VISUEL EST LE NOMBRE DE JOURS, pas un emblème (E22, 2026-08-09). Il
  * portait jusque-là un émoji différent par palier, rendu en 56 px — une échelle de

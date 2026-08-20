@@ -16,8 +16,9 @@ listes contradictoires.
 
 ## Carte des docs — lire ceci d'abord (rangé le 2026-07-30)
 
-**Les 12 docs VIVANTS, et rien d'autre** (recomptés le 2026-07-30 : la carte en annonçait
-6, en listait 8 et en oubliait 4 — `TESTFLIGHT.md` ajouté le 2026-08-03) :
+**Les 13 docs VIVANTS, et rien d'autre** (recomptés le 2026-07-30 : la carte en annonçait
+6, en listait 8 et en oubliait 4 — `TESTFLIGHT.md` ajouté le 2026-08-03, `METRICS.md` le
+2026-08-20) :
 
 *Ce qui pilote le travail — à lire d'abord*
 
@@ -35,6 +36,7 @@ listes contradictoires.
 | `Recette/BRIEF-GENERATION-RECETTES.md` | Spec de génération, auto-portante. **§4.12 = les 5 règles de la collation**, §4.2 les ancres, §6 l'anti-doublons. Certains blocs du §5 sont des commandes LIVRÉES, marquées comme telles. |
 | `MONETISATION.md` | Kyroz+ : tranché, et **le code est livré en entier** (écran, verrou, SDK). ⚠️ **DEUX piliers depuis le 2026-08-18, plus trois** : la banque de calories est sortie de Kyroz+ (décision fondateur) — moteur intact, dégaté, renommé « Jours plus copieux », **puis ÉTEINT le même jour** (`lib/featureFlags.ts`). Ne restent que des étapes de COMPTES et de revue — cf. AGENTS.md B2. |
 | `test/README.md` | Parcours Playwright — **ne tournent pas dans `npm test`**, pièges du socle. |
+| `METRICS.md` | **Ce que chaque chiffre mesure** (2026-08-20) — la north star, sa définition exacte, sa recette de calcul PostHog, et pourquoi la SÉRIE affichée n'est pas elle. À ouvrir avant d'écrire une phrase contenant « north star » ou « jour actif ». |
 
 *Sortie, conformité, exploitation*
 
@@ -3834,6 +3836,68 @@ produit en suspens — il ne reste qu'à coder.
 > ⚠️ **Le conflit git qui en résulte n'est PAS un conflit de numéros** : les deux
 > branches insèrent en tête de cette section, donc git ne sait pas dans quel ordre. La
 > résolution est de garder les DEUX blocs, en ordre décroissant — jamais d'en choisir un.
+
+- 🤖 **E53 · « North Star » désignait TROIS choses différentes — tranché le 2026-08-20**
+
+  Le fondateur, tâche 6 de son plan d'action : *« rendre la north star réellement
+  calculable »*, puis, après mesure : *« les séparer »*.
+
+  🔴 **CE QU'A DONNÉ LE RECENSEMENT** — trois formulations, aucune absurde, aucune
+  d'accord avec les autres :
+  1. `CLAUDE.md` + `MONETISATION.md` : « % d'utilisateurs à **7 jours consécutifs
+     d'usage** dans les 14 premiers » — la cible du produit, forme *streak*, sur l'USAGE ;
+  2. l'arbitrage du 2026-08-10 §10 : « **jours actifs médians sur 14**, seuil < 4 » —
+     forme *médiane*, définition `plan_opened`, et le §4.2 laissait explicitement le
+     choix ouvert entre `plan_opened` et `meal_cooked` ;
+  3. `lib/streak.ts` + `plan.tsx` : la SÉRIE affichée, appelée « North Star » dans leurs
+     commentaires — alors qu'elle compte des **ouvertures d'onglet**.
+
+  ✅ **TRANCHÉ** : la north star est « **% d'appareils atteignant 7 jours actifs dans
+  leurs 14 premiers**, un jour actif = **au moins un repas cuisiné** ». Pas consécutifs
+  (un week-end de mariage n'est pas un abandon), pas des ouvertures, et « appareils »
+  jamais « personnes » (§3.4 de l'arbitrage). Écrite dans **`METRICS.md`**, nouveau doc
+  vivant, qui fait foi — les autres surfaces pointent vers lui.
+
+  🔴 **LA SÉRIE N'A PAS BOUGÉ, ET C'EST LA DÉCISION**, pas un renoncement. Elle dit déjà
+  la vérité sur ce qu'elle compte : la bulle `plan-serie` annonce « elle avance dès que
+  tu ouvres ton plan, **cuisiné ou pas** ». La rendre exigeante ferait perdre sa série à
+  qui suit son plan sans cocher — une punition pour un tap manqué, l'inverse de la charte
+  (§5). Ce qui était faux n'était pas le compteur : c'était son NOM dans le code.
+
+  🔴 **CE QUE J'AI CRU TROUVER ET QUI ÉTAIT FAUX** : j'ai d'abord annoncé au fondateur que
+  l'app « félicitait des gens pour une chose qu'ils n'avaient pas faite ». La bulle du
+  tutoriel dit la règle, mot pour mot. **Un chiffre qui annonce ce qu'il compte ne ment
+  pas** — même s'il compte autre chose que ce qu'on voudrait mesurer. Le défaut réel était
+  une COLLISION DE NOMS entre deux indicateurs légitimes, pas un mensonge à l'utilisateur.
+
+  📊 **CALCULABLE, VÉRIFIÉ, ET RIEN NE MANQUE** : `meal_cooked` est capturé au seul endroit
+  où un repas passe à `eaten`, et `jour_depuis_install` part sur tous les événements.
+  ⚠️ **Et le calcul « évident » est FAUX** : `timestamp` part en UTC
+  (`new Date().toISOString()`) alors que `jour_depuis_install` est calculé en heure LOCALE
+  (`stampLocal`). Grouper par date d'événement décale tout repas coché après 22 h locale —
+  donc précisément ceux qui cuisinent le soir. **Compter des `jour_depuis_install`
+  distincts**, jamais des dates. Même piège que `useStreak::dayStamp`, déjà payé une fois.
+
+  ⚠️ **AUCUN SEUIL N'A ÉTÉ POSÉ, ET C'EST VOLONTAIRE.** Le `< 4` du §10 est écrit pour
+  `plan_opened` ; le transposer à la définition exigeante durcirait le seuil en silence,
+  ce que le §2 de l'arbitrage interdit. Le §10 prescrit déjà le bon geste d'ici là :
+  afficher les DEUX médianes côte à côte, leur écart est la donnée.
+
+  ✅ **`lib/__tests__/metrics.test.ts`** tient les quatre paris que la page prend sur le
+  code. **Vérifié par 5 mutations**, et le passage au mutant a trouvé **trois défauts dans
+  le test lui-même** — les trois du même genre :
+  • deux assertions d'ABSENCE (« le fichier ne dit plus North Star ») rougissaient sur la
+    NOTE QUI CORRIGE le défaut, puis sur le TITRE QUI LE DÉMENT : une absence ne sait pas
+    distinguer une affirmation de sa rétractation. Remplacées par la vérification du
+    démenti (A38, une fois de plus, et deux fois dans le même fichier) ;
+  • la citation de la bulle se vérifiait sur `tours.ts` **brut** — or la phrase y est
+    DEUX fois, dans la bulle et dans le commentaire qui l'explique. Réécrire la bulle
+    laissait le test vert, le commentaire se portant garant du libellé. **Sans mutation,
+    ce garde-fou entrait au dépôt en ne gardant rien.**
+
+  ℹ️ Portée : `METRICS.md` (neuf), commentaires de `lib/streak.ts`, `plan.tsx`,
+  `StreakCelebration.tsx`, pointeurs dans `CLAUDE.md` et `MONETISATION.md`, carte des docs
+  (12 → 13). **Aucun changement de comportement, aucun pixel déplacé.**
 
 - 🤖 **E52 · Le réglage le plus lourd de l'app n'était jamais demandé — POSÉ À
   L'INSCRIPTION le 2026-08-19**
