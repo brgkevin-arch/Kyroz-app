@@ -337,9 +337,13 @@ OUTPUT         → Plan + liste de courses + recettes
 > elle a servi à refuser d'office des mécaniques de rétention parfaitement saines.
 > Ce qui est interdit, c'est la **compétition et la collection** : badges, points,
 > classements, comparaison aux autres. Ce qui est **autorisé** : les mécaniques
-> sobres qui servent directement le North Star (7 jours consécutifs) et qui
+> sobres qui servent directement le North Star (`METRICS.md` §1) et qui
 > **rassurent au lieu de mettre la pression** — la série elle-même, et son gel
 > d'un jour manqué (`advanceStreak`), en font partie et sont **déjà livrés**.
+> ⚠️ **La série N'EST PAS la north star** (séparées le 2026-08-20, décision
+> fondateur) : elle compte les jours où le plan est OUVERT, la north star compte
+> les jours où un repas a été CUISINÉ. Les deux servent la rétention, l'une à
+> l'écran sans pression, l'autre dans PostHog pour décider. Détail : `METRICS.md` §2.
 >
 > Test à appliquer en cas de doute : *est-ce que ça compare l'utilisateur à
 > quelqu'un d'autre, ou est-ce que ça l'aide à ne pas décrocher ?* Le second
@@ -2260,8 +2264,12 @@ téléphone.
 ### Fond
 
 - **Décisions tranchées** : pas de « ça dépend » sans proposition concrète.
-- **North Star en tête** : % d'utilisateurs avec 7 jours consécutifs d'usage dans les
-  14 premiers. Si une implémentation ne le sert pas, le dire.
+- **North Star en tête** : % d'appareils atteignant **7 jours actifs dans leurs 14
+  premiers**, un jour actif étant un jour où **au moins un repas a été cuisiné**.
+  Si une implémentation ne le sert pas, le dire.
+  ⚠️ **Définition changée le 2026-08-20** — elle disait « 7 jours consécutifs d'usage »,
+  ce qui comptait de simples ouvertures et ne se calculait pas. La définition qui fait
+  foi, sa recette de calcul et son seuil (non posé) vivent dans **`METRICS.md`**.
 - **Le fondateur est solo et non-développeur.** Répondre en français, clair, avec des
   analogies ou des schémas quand ça aide. Ne pas noyer une décision sous du jargon.
 - **Ne pas le rassurer — le rendre capable de comprendre vite.** Dit par lui le

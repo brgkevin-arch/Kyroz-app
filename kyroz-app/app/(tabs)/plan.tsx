@@ -259,9 +259,12 @@ export default function PlanScreen() {
     }
   }, [loading, plan, profile, generating]);
 
-  // North Star (jours d'usage consécutifs) : un utilisateur actif qui OUVRE son
-  // plan compte pour la journée — qu'il régénère ou non. C'est l'usage qu'on
-  // veut récompenser (suivre son plan), pas le fait de cliquer « Nouveau plan ».
+  // La SÉRIE (pas la north star — cf. METRICS.md §2, séparées le 2026-08-20) : un
+  // utilisateur qui OUVRE son plan compte pour la journée, qu'il régénère ou non.
+  // C'est l'usage qu'on récompense, pas le fait de cliquer « Nouveau plan », et la
+  // bulle `plan-serie` l'annonce telle quelle (« cuisiné ou pas »).
+  // ⚠️ La north star, elle, ne compte QUE les jours avec un repas cuisiné, et elle
+  // se lit dans PostHog — jamais ici. Ce que cette ligne incrémente n'est pas elle.
   useEffect(() => { if (profile) { markActiveToday(); capture(Events.planOpened); } }, [profile]);
 
   // Analytics : palier de série franchi (3/7/14…) — no-op tant que non consenti.

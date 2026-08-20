@@ -1,6 +1,14 @@
 import { Streak } from './types';
 
-// ── Logique du streak (North Star : 7 jours consécutifs) ─────────────────────
+// ── Logique du streak — UN OUTIL DE RÉTENTION, PAS LA NORTH STAR ─────────────
+//
+// ⚠️ CE FICHIER S'APPELAIT « North Star : 7 jours consécutifs » JUSQU'AU 2026-08-20,
+// et c'était faux : la série avance dès qu'on OUVRE le plan (`plan.tsx`,
+// `markActiveToday` au montage), cuisiné ou pas. Elle compte donc des ouvertures.
+// La north star, elle, compte des jours où un repas a été CUISINÉ — c'est un autre
+// indicateur, décidé séparé le 2026-08-20 (fondateur). Voir `METRICS.md`.
+// ➡️ Ne pas recoller les deux noms : c'est en les confondant qu'on lirait « 7 jours
+// d'affilée » comme « a suivi son plan 7 jours », ce que ce compteur ne dit pas.
 // Source unique de vérité pour : paliers à célébrer, progression visuelle vers
 // le prochain palier, et microcopie de motivation. Séparée du hook (état) et de
 // l'UI (rendu) pour rester testable et réutilisable plan ⇄ profil.
@@ -8,13 +16,13 @@ import { Streak } from './types';
 // Recharge du bouclier : tous les 7 jours de série (1 gel pardonné par semaine).
 const FREEZE_RECHARGE = 7;
 
-// Paliers célébrés. 7 est LE palier du North Star (% d'utilisateurs à 7 jours
-// consécutifs dans les 14 premiers jours) ; 3 récompense tôt pour amorcer
-// l'habitude, les suivants entretiennent la rétention longue.
+// Paliers célébrés. 7 est le cap visé — c'est la fenêtre d'habitude que la north
+// star mesure aussi, par un autre compte (METRICS.md §1) ; 3 récompense tôt pour
+// amorcer l'habitude, les suivants entretiennent la rétention longue.
 const STREAK_MILESTONES = [3, 7, 14, 30, 60, 100] as const;
 
 // Fenêtre du chaînon visuel : on affiche toujours une « semaine » de 7 points.
-// Les 7 premiers jours (la fenêtre North Star) se remplissent donc 1→7.
+// Les 7 premiers jours (la fenêtre d'habitude) se remplissent donc 1→7.
 const CHAIN_WINDOW = 7;
 
 /** Le prochain palier que l'utilisateur cherche à atteindre. */
