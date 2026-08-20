@@ -1150,6 +1150,14 @@ composant. Audit complet des réglages : `npm run mesure:reglages`.
   que de sécurité. Source unique : `lib/safety.ts::MIN_AGE`.
 - IMC de départ < 18,5 avec un objectif de sèche ; poids cible hors plage saine ;
   volume d'entraînement > 20 h/semaine (`lib/safety.ts::checkEligibility`)
+  ⚠️ **CES TROIS-LÀ BLOQUENT L'OBJECTIF, PAS L'APP** — `checkEligibility` le dit depuis
+  toujours ; l'inscription, elle, ne le faisait pas. Corrigé le 2026-08-20 (E54) : sous
+  IMC 18,5 la sèche est refusée **à l'étape 5**, au moment du choix, avec la porte
+  ouverte NOMMÉE dans le message (Maintien, plan complet sans déficit — c'est déjà ce que
+  le moteur sert via `deficitBlocked` → `UNDERWEIGHT_NO_DEFICIT`) et une sortie en un tap.
+  Le renvoi vers un médecin ou un diététicien-nutritionniste vient en dernier, conditionné
+  à la durée. **Seul `MINOR` bloque la génération entière**, et c'est le seul qui n'a pas
+  de porte à nommer.
 
 ### Allergènes — le produit n'en promet AUCUN, et c'est une décision
 

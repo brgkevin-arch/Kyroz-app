@@ -1101,7 +1101,19 @@ export function eligibilityMessage(blocks: EligibilityBlock[]): string | null {
     return `Kyroz est réservé aux ${MIN_AGE} ans et plus.`;
   }
   if (blocks.includes('UNDERWEIGHT_CUT_BLOCKED')) {
-    return 'Ton poids est déjà sous la plage de référence : Kyroz ne propose pas de sèche dans cette situation.';
+    // ⚠️ CE MESSAGE NOMME LA PORTE OUVERTE, et c'est le correctif du 2026-08-20.
+    // Il disait « Kyroz ne propose pas de sèche dans cette situation », point — un
+    // refus sans issue, alors que `checkEligibility` ne bloque QUE cet objectif-là
+    // (cf. son en-tête : « les autres bloquent l'objectif concerné, pas l'app
+    // entière ») et que le moteur, lui, sait déjà servir un plan à la maintenance
+    // dans cette zone (`deficitBlocked` → `UNDERWEIGHT_NO_DEFICIT`). La personne
+    // lisait donc une porte close devant une porte ouverte, et repartait ressaisir
+    // d'autres chiffres — c'est-à-dire qu'on perdait de vue le profil le plus fragile.
+    // ➡️ Trois choses, dans cet ordre : le fait, l'issue, et alors seulement le
+    // renvoi vers un professionnel — conditionné à la DURÉE, parce qu'un IMC bas
+    // n'est pas en soi un problème médical et qu'un signal alarmant est interdit
+    // (CLAUDE.md §10).
+    return 'Ton poids est sous la plage de référence pour ta taille : Kyroz ne propose pas de sèche dans cette zone. Les autres objectifs restent ouverts — Maintien te donne un plan complet, sans déficit. Si cette situation dure, parles-en à un médecin ou à un diététicien-nutritionniste.';
   }
   if (blocks.includes('TARGET_BMI_OUT_OF_RANGE')) {
     return 'Ce poids cible sort de la plage saine pour ta taille. Choisis une cible intermédiaire.';

@@ -3837,6 +3837,64 @@ produit en suspens — il ne reste qu'à coder.
 > branches insèrent en tête de cette section, donc git ne sait pas dans quel ordre. La
 > résolution est de garder les DEUX blocs, en ordre décroissant — jamais d'en choisir un.
 
+- 🤖 **E54 · Le refus de la sèche était un mur au 7ᵉ tap — il devient une bifurcation
+  (2026-08-20)**
+
+  Tâche 12 du plan d'action du fondateur : *« un mode maintien seul, sans objectif de
+  perte, avec orientation vers un professionnel, garde le contrôle là où le mur le cède »*.
+
+  🔴 **LE MODE DÉGRADÉ EXISTAIT DÉJÀ DE BOUT EN BOUT — seule l'ENTRÉE le cachait.** Deux
+  endroits du code le disaient noir sur blanc avant ce chantier :
+  · `checkEligibility`, en en-tête — « `MINOR` bloque la génération ; **les autres bloquent
+    l'objectif concerné, pas l'app entière** » ;
+  · `deficitBlocked` — « **pas de blocage de l'app**, pas de surplus imposé : le plan cesse
+    simplement de creuser, et l'UI dit pourquoi » (drapeau `UNDERWEIGHT_NO_DEFICIT`, carte
+    dédiée dans le Profil depuis longtemps).
+  L'inscription, elle, refusait à `finish()` — donc au **septième tap**, par une boîte de
+  dialogue, sur un message qui ne nommait aucune porte : « Kyroz ne propose pas de sèche
+  dans cette situation », point. Sept étapes remplies pour une porte close **devant une
+  porte ouverte**. Ce qui se perdait là est exactement le profil le plus fragile.
+
+  ✅ **CE QUI A ÉTÉ LIVRÉ**
+  - Le message d'`eligibilityMessage` dit trois choses **dans cet ordre** : le fait,
+    l'issue (« Maintien te donne un plan complet, sans déficit »), et **alors seulement**
+    le renvoi vers un médecin ou un diététicien-nutritionniste — conditionné à la DURÉE,
+    parce qu'un IMC bas n'est pas en soi un problème médical et qu'un signal alarmant est
+    interdit (CLAUDE.md §10). Le même texte sert l'inscription ET l'éditeur d'objectif du
+    Profil : une seule rédaction du refus.
+  - **L'objectif s'éprouve à l'étape 5, pas au dernier tap** : le corps nécessaire est
+    connu depuis l'étape 2, donc la question se pose au moment où la personne CHOISIT.
+  - **Une sortie en UN tap** — « Passer en Maintien » dans la carte. Sans elle, la seule
+    issue reste de deviner lequel des trois autres objectifs l'app accepte.
+
+  ⚠️ **Les séances ne remontent PAS à l'étape 5** : `TRAINING_VOLUME_IMPLAUSIBLE` reste au
+  filet de `finish()`. Faire apparaître « plus de 20 h d'entraînement » sur l'écran de
+  l'objectif y collerait un reproche qui ne le concerne pas.
+  ⚠️ **`MINOR` ne bouge pas** : c'est le seul blocage qui n'a pas de porte à nommer, et il
+  garde la génération entière. Un test l'exige, pour que « assouplir le refus » ne se
+  généralise pas à celui-là.
+
+  🔴 **UN DÉFAUT TROUVÉ À L'ÉCRAN, ET INVISIBLE AUTREMENT** : la première version renvoyait
+  le message COMPLET comme motif de blocage du bouton. Résultat capturé — le paragraphe de
+  quatre lignes s'affichait **deux fois**, dont une en accent, **par-dessus la carte qu'il
+  répétait**. Le bandeau du bouton avait été écrit pour des phrases d'une ligne (« Choisis
+  au moins un jour et un repas »). ➡️ Le bandeau dit l'**ACTION**, la carte dit le
+  **POURQUOI**, et le pourquoi n'a toujours qu'une rédaction.
+  ⚠️ **Et Metro a servi une version PÉRIMÉE du correctif** : après l'édition, le bundle
+  contenait encore l'ancien texte (`grep` sur le bundle servi : 0 occurrence du nouveau).
+  Seul un redémarrage `--clear` l'a rendu. *Vérifier la correction sur le BUNDLE avant de
+  conclure qu'elle ne marche pas* — même famille que le piège du preview qui sert l'app du
+  dépôt principal (§11).
+
+  ✅ **`lib/__tests__/murRefusMaintien.test.ts`** (10 cas) — dont un **comportemental** :
+  sous IMC 18,5, `computePlan` rend bien un plan servi à la maintenance
+  (`target_kcal === tdee_kcal`, drapeau `UNDERWEIGHT_NO_DEFICIT`). C'est ce qui prouve que
+  la porte nommée par le message **mène quelque part** ; sans lui, on garantirait une
+  phrase, pas une issue. **Vérifié par 7 mutations**, chacune rouge.
+  📊 **1 609 tests / 101 fichiers verts**, `tsc` vert. Vérifié à l'écran en 375 pt, parcours
+  complet avec un corps à IMC 16,5 : la carte s'affiche, le bandeau tient sur deux lignes,
+  « Passer en Maintien » sélectionne l'objectif en un tap et l'inscription continue.
+
 - 🤖 **E53 · « North Star » désignait TROIS choses différentes — tranché le 2026-08-20**
 
   Le fondateur, tâche 6 de son plan d'action : *« rendre la north star réellement
