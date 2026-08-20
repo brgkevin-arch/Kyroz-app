@@ -36,6 +36,7 @@ import { useHydrationEnabled } from '../../components/HydrationBar';
 import { useFirstName, saveFirstName } from '../../lib/profileName';
 import { ProtectionIcon, RepasLibreIcon } from '../../components/Icons';
 import { MealSlotsPicker } from '../../components/MealSlotsPicker';
+import { NeatPicker } from '../../components/NeatPicker';
 import { BUILTIN_SLOTS, knownSlots, slotLabel } from '../../lib/mealSlots';
 import { useProfile } from '../../hooks/useProfile';
 import { useStreak } from '../../hooks/useStreak';
@@ -53,7 +54,7 @@ import { deleteAccount, deleteCloudData } from '../../lib/sync';
 import { exportMyData } from '../../lib/exportData';
 import {
   calculateTDEE, computePlan, goalLabel, planFlags, validateProfile, recalcProfile, DEFAULT_CARB_RATIO, recommendedProteinPerKg,
-  DEFAULT_NEAT_LEVEL, NEAT_ORDER, NEAT_LABEL, NEAT_HINT, NEAT_SHORT, dismissEngineNotice,
+  DEFAULT_NEAT_LEVEL, NEAT_SHORT, dismissEngineNotice,
   bankFloorKcal, makeWeeklyProjector, trackingTarget,
 } from '../../lib/tdee';
 import {
@@ -1059,16 +1060,10 @@ function SportsProfileEditor({ t, profile, onSave, dragHandlers, sheetScrollProp
   }));
   return (
     <EditorShell t={t} title="Sport & activité" onSave={submit} dragHandlers={dragHandlers} sheetScrollProps={sheetScrollProps}>
-      {/* Le NEAT vient EN PREMIER : c'est la base sur laquelle le sport s'ajoute, et
-          l'ordre inverse invite à répondre « je suis actif » en pensant à ses séances
-          — qui sont déjà comptées juste en dessous. */}
-      <SectionLabel t={t}>TES JOURNÉES, HORS SPORT</SectionLabel>
-      <Text style={{ ...Type.caption, color: t.textSecondary, lineHeight: 18, marginBottom: Spacing.xs }}>
-        Ce que tu dépenses sans y penser : boulot, trajets, courses. Ne compte pas tes séances ici, elles sont comptées juste en dessous.
-      </Text>
-      {NEAT_ORDER.map((lvl) => (
-        <OptionCard key={lvl} t={t} title={NEAT_LABEL[lvl]} subtitle={NEAT_HINT[lvl]} selected={neat === lvl} onPress={() => setNeat(lvl)} />
-      ))}
+      {/* La question vit dans `NeatPicker`, partagé avec l'inscription : c'est le même
+          réglage, il se pose de la même façon aux deux endroits (cf. l'en-tête du
+          composant pour l'ordre NEAT-avant-séances, qui est une règle, pas un goût). */}
+      <NeatPicker t={t} value={neat} onChange={setNeat} />
 
       <SectionLabel t={t}>TES SÉANCES</SectionLabel>
       <Text style={{ ...Type.caption, color: t.textSecondary, lineHeight: 18, marginBottom: Spacing.xs }}>Tes sports servent à estimer tes calories dépensées. Plus c'est précis, plus ton plan l'est.</Text>

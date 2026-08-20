@@ -96,6 +96,12 @@ const ANCRES: Ancre[] = [
   { quoi: 'compteur d\'étapes lu par etapeCourante', texte: 'ÉTAPE n / 6', motif: 'ÉTAPE {step - 1} / {TOTAL_STEPS - 1}', cherche: '[ÉE]TAPE', dans: 'app/(auth)/onboarding.tsx' },
   { quoi: 'sexe féminin (seule branche des personas F)', texte: 'Femme', motif: "label: 'Femme'", dans: 'app/(auth)/onboarding.tsx' },
   { quoi: 'activité — au moins un choix exigé', texte: 'Je ne fais pas de sport', dans: 'app/(auth)/onboarding.tsx' },
+  // ⚠️ Le libellé du NEAT ne vit PAS dans l'écran : `NEAT_LABEL` est la source unique
+  // (lib/tdee.ts), rendue par `components/NeatPicker.tsx` à l'inscription ET dans le
+  // Profil. C'est donc lui que cette ancre garde. Qu'il soit rendu à l'étape 4, et
+  // qu'on ne puisse plus la passer sans répondre, est prouvé ailleurs —
+  // `neatOnboarding.test.ts` — parce qu'une ancre ne sait dire que « ce texte existe ».
+  { quoi: 'NEAT — réponse exigée à l\'étape 4', texte: 'Assis la majeure partie de la journée', dans: 'lib/tdee.ts' },
   { quoi: 'bouton final de l\'étape 7', texte: 'Générer mon plan', dans: 'app/(auth)/onboarding.tsx' },
   { quoi: 'bouton d\'avancement', texte: 'Continuer', dans: 'app/(auth)/onboarding.tsx' },
 

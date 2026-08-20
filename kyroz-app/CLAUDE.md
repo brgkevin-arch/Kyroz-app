@@ -411,9 +411,17 @@ OUTPUT         → Plan + liste de courses + recettes
 - **NEAT** (`neat_level`) : la vie quotidienne **hors sport** — `desk` 1,30 / `light` 1,35 /
   `active` 1,40 / `physical` 1,45. La table s'arrête à 1,45 : au-delà, les niveaux
   classiques (1,50, 1,65) sont « exercice inclus » et recouvriraient les MET.
-  Le défaut est **`desk` = 1,30** et ce n'est pas un réglage cosmétique — la question
-  vivant dans le profil et non à l'onboarding, ce défaut EST la valeur servie à la
-  plupart des gens.
+  Le défaut est **`desk` = 1,30**, et ce n'est pas un réglage cosmétique : **un cran vaut
+  79 kcal/j de dépense** (médiane sur 108 crans, re-mesurée le 2026-08-19), `desk` →
+  `physical` 238.
+  ⚠️ **LA QUESTION EST POSÉE À L'INSCRIPTION DEPUIS LE 2026-08-19** (étape 4,
+  `components/NeatPicker.tsx`, réponse **exigée**, rien de pré-coché) — jusque-là elle
+  ne vivait que dans le Profil, et ce défaut était donc la valeur servie à la plupart
+  des gens. Il ne couvre plus que les comptes créés AVANT cette date : ils ne sont
+  **pas backfillés**, « jamais demandé » devant rester distinguable d'une réponse.
+  Le même composant sert les deux écrans — les libellés sont un garde-fou
+  anti-inflation (ancrés sur le métier et la posture, jamais sur le sport), et un
+  garde-fou qui ne couvre qu'un écran sur deux ne couvre rien.
   ⚠️ **Relevé de 1,20 à 1,30 le 2026-07-31 (décision fondateur), `ENGINE_REV` 2 → 3.**
   Le motif d'origine du 1,20 — sur-estimer le NEAT fait manger à sa maintenance en
   croyant sécher, échec silencieux — reste vrai, mais il répondait à une autre

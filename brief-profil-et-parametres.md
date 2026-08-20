@@ -133,6 +133,11 @@ corrige. Sauf **deux**, qui n'existent QUE dans le Profil :
   métabolisme de base : **1,30** (bureau) · 1,35 · 1,40 · **1,45** (travail physique).
   Comme la question n'est jamais posée à l'inscription, **le défaut « journées assises »
   est la valeur réellement servie à la plupart des gens**.
+  ⚠️ **PÉRIMÉ DEPUIS LE 2026-08-19 — la question EST posée à l'inscription** (étape 4,
+  réponse exigée, rien de pré-coché). Ce défaut ne couvre plus que les comptes créés
+  avant cette date. Le reste du paragraphe — le poids du réglage, l'amortissement par
+  le plancher — reste exact. ⚠️ Ne pas coller cette page dans une conversation sans
+  cette ligne : c'est la prémisse la plus lourde du document.
   ✅ **Chiffres RE-MESURÉS le 2026-08-10** (800 gabarits, 2 400 écarts) — la première
   version de ce brief disait « environ 90 kcal/jour le cran », c'était une estimation
   reprise d'un commentaire, pas une mesure : un cran vaut **57 à 102 kcal/j de dépense,
@@ -234,7 +239,8 @@ n'est pas neutre.
 1. **Un principe de rangement énonçable en une phrase**, du point de vue de l'utilisateur
    — pas du moteur. Il doit répondre sans hésiter à ces cinq cas limites :
    - *Informations* (le corps : lourd pour le calcul, rarement modifié)
-   - *Sport & activité* (contient le NEAT, jamais demandé ailleurs, défaut lourd)
+   - *Sport & activité* (contient le NEAT — ⚠️ demandé AUSSI à l'inscription depuis le
+     2026-08-19, cf. la note du §5 ; défaut lourd)
    - *Repas hors plan* (une consultation rangée avec des réglages)
    - *Régénérer mon plan* (une action rangée avec des réglages)
    - *Kyroz+* (une offre commerciale rangée avec des réglages)

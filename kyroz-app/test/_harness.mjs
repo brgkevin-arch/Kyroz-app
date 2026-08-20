@@ -390,7 +390,13 @@ export async function runOnboarding(page, p = DEFAULT_PERSONA) {
   await sleep(300);
   if (!(await suivant(3))) return { ok: false, etape: 3, repas: 0 };
 
-  // 4 — activité : « Je ne fais pas de sport » (au moins un choix est exigé)
+  // 4 — activité : DEUX réponses exigées depuis le 2026-08-19. Les journées hors
+  // sport (NEAT) d'abord — sans elle, « Continuer » ne fait plus rien et le script
+  // s'arrêterait ici en accusant l'étape 5. On tape le cran `desk`, qui était la
+  // valeur servie par défaut avant que la question soit posée : les calories
+  // attendues par les scripts en aval ne bougent donc pas d'un iota.
+  await tap(page, 'Assis la majeure partie de la journée');
+  await sleep(300);
   await tap(page, 'Je ne fais pas de sport');
   await sleep(300);
   if (!(await suivant(4))) return { ok: false, etape: 4, repas: 0 };
