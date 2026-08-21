@@ -56,15 +56,30 @@ export function MealCard({
     >
       {/* Un seul surtitre « TYPE · DURÉE » au lieu de deux coins opposés : le nom
           du plat devient la première chose qu'on lit. Les états (mangé / sauté /
-          tu gères) prennent la place de la durée — ils comptent plus qu'elle. */}
+          tu gères) prennent la place de la durée — ils comptent plus qu'elle.
+
+          ⚠️ LES DEUX ÉTATS SE RESSEMBLENT, ET C'EST LE POINT (2026-08-20). Ils
+          portaient deux signes opposés : « ✓ MANGÉ » contre « ⊘ SAUTÉ » — une
+          récompense contre un panneau d'interdiction, sur deux faits également
+          neutres. Sauter un repas n'est pas une faute : c'est une information que
+          le moteur utilise (`effectiveMacros` rend 0, la journée se recale). Les
+          deux mots suffisent à dire l'état ; un pictogramme ne remplace pas une
+          ponctuation (CLAUDE.md §8), et celui-là ajoutait un jugement. */}
       <Text style={[styles.type, { color: t.textTertiary }]}>
         {(MEAL_LABELS[meal.meal_type] ?? slotLabel(slots, meal.meal_type)).toLocaleUpperCase('fr-FR')}
         {isFixed ? ' · TU GÈRES'
-          : eaten ? ' · ✓ MANGÉ'
-          : skipped ? ' · ⊘ SAUTÉ'
+          : eaten ? ' · MANGÉ'
+          : skipped ? ' · SAUTÉ'
           : ` · ${meal.recipe.prep_time_min} MIN`}
       </Text>
-      <Text style={[styles.name, { color: t.text, textDecorationLine: skipped ? 'line-through' : 'none' }]}>
+      {/* 🔴 LE NOM N'EST PLUS BARRÉ QUAND LE REPAS EST SAUTÉ (2026-08-20). Le barré
+          est la grammaire de la TÂCHE RAYÉE — c'est celle de la liste de courses, où
+          il est juste (`courses.tsx`, un article coché est acheté). Sur un repas, il
+          transforme une journée où l'on a mangé autrement en une ligne de plus qu'on
+          n'a pas faite : exactement le signal de reproche que la charte interdit
+          (CLAUDE.md §10). L'état est déjà dit par le surtitre et par l'opacité, qui
+          traite « mangé » et « sauté » de la même façon. */}
+      <Text style={[styles.name, { color: t.text }]}>
         {meal.recipe.name_fr}
       </Text>
       {isFixed && (

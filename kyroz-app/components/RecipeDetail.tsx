@@ -182,7 +182,9 @@ export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adapted
         {status && status !== 'planned' && (onResetStatus || onCook || onSkip) && (
           <View style={[s.statusBanner, { borderColor: t.line }]}>
             <Text style={s.statusTxt}>
-              {status === 'eaten' ? '✓ Marqué comme mangé' : '⊘ Repas sauté — journée recalée'}
+              {/* Mêmes signes retirés qu'en `MealCard` (2026-08-20) : deux états de
+                  suivi, deux faits, aucune médaille et aucun panneau d'interdiction. */}
+              {status === 'eaten' ? 'Marqué comme mangé' : 'Repas sauté — journée recalée'}
             </Text>
             {onResetStatus && (
               <Presse onPress={onResetStatus} hitSlop={8}>

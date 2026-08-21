@@ -3837,6 +3837,60 @@ produit en suspens — il ne reste qu'à coder.
 > branches insèrent en tête de cette section, donc git ne sait pas dans quel ordre. La
 > résolution est de garder les DEUX blocs, en ordre décroissant — jamais d'en choisir un.
 
+- 🤖 **E55 · « Sauté » était écrit comme une faute — il redevient un fait (2026-08-20)**
+
+  Tâche 9 du plan d'action : *« un état pas-cuisiné posable en un geste, neutre
+  visuellement, qui n'interrompt pas la série »*.
+  ⚠️ **Numéro pris en sautant E54, réservé par la branche ouverte de la tâche 12.**
+
+  🔴 **LE MÉCANISME EXISTAIT EN ENTIER — c'est sa RÉDACTION VISUELLE qui disait le
+  contraire.** `skipMeal` est vivant, atteignable en un tap depuis la fiche, non gaté
+  par `PARCOURS_HORS_PLAN_ACTIF` ; la journée se recale (`effectiveMacros` rend 0, le
+  budget bascule sur les repas restants) et la série ne casse pas (elle compte des
+  ouvertures — METRICS.md §2). Mais l'écran, lui, opposait :
+  · **« ✓ MANGÉ » contre « ⊘ SAUTÉ »** — une récompense contre un panneau
+    d'interdiction, sur deux faits également neutres ;
+  · **le nom du plat BARRÉ** quand le repas était sauté, c'est-à-dire la grammaire de
+    la TÂCHE RAYÉE : une ligne de plus qu'on n'a pas faite.
+  Une journée où l'on a mangé autrement se lisait donc comme une journée ratée —
+  exactement le signal de reproche que CLAUDE.md §10 interdit.
+
+  ✅ **LIVRÉ** : les deux signes retirés (`MealCard` et `RecipeDetail`), le barré
+  retiré, l'atténuation (`muted`, opacité 0,6) inchangée et **identique pour les deux
+  états** — c'est elle qui dit « ce repas est réglé », et elle ne juge pas lequel.
+
+  ⚠️ **LE ✓ DE « MANGÉ » EST PARTI AUSSI, ET C'EST DÉLIBÉRÉ.** Ne retirer que le ⊘
+  aurait laissé une médaille d'un côté et rien de l'autre : la neutralité demandée
+  porte sur la COMPARAISON des deux états, pas sur l'un des deux. Les deux mots
+  suffisent, et §8 le dit déjà — un pictogramme ne remplace pas une ponctuation.
+  ⚠️ **LE BARRÉ RESTE JUSTE AILLEURS** : un article de courses coché est barré, et
+  doit le rester (`courses.tsx`). C'est la même forme pour deux grammaires opposées —
+  là-bas l'article est acheté et sort de la liste, ici il jugeait une journée. Un test
+  fige ce littéral pour qu'on ne le retire pas « par symétrie » avec ce chantier.
+  ⚠️ **L'ICÔNE DU BOUTON « Je l'ai sauté » NE BOUGE PAS** (`close-circle-outline`) :
+  sur une ACTION qu'on choisit, une croix est juste ; c'est sur l'ÉTAT qu'on subit
+  ensuite qu'elle devient un verdict.
+
+  ℹ️ **Les deux autres points de la tâche 9 étaient DÉJÀ satisfaits, vérifié :**
+  · aucune récapitulation de fin de journée de ce qui n'a pas été fait — le seul
+    chiffre servi est le budget RESTANT, tourné vers l'avant ;
+  · le message demandé (« une journée ne fait pas ta semaine ») existe déjà, à sa
+    place et dans le ton : *« Ta journée s'arrête N kcal sous ta cible… Une journée
+    sous la cible ne compromet rien. »* En ajouter un second **créerait** le cadre de
+    reproche qu'on vient de retirer — rassurer sur un fait neutre laisse entendre
+    qu'il fallait rassurer.
+
+  ✅ **`lib/__tests__/repasSauteNeutre.test.ts`** (7 cas), **vérifié par 7 mutations**.
+  Il fige les FORMES NEUTRES et non l'absence des signes : un test « le fichier ne
+  contient plus ⊘ » rougirait sur la note datée qui explique le retrait (cf. la leçon
+  d'E53, où deux vérifications d'absence de suite se sont trompées de cible).
+  📊 **1 616 tests / 102 fichiers verts**, `tsc` vert — **re-mesuré après rebase sur
+  `main`**. La première rédaction annonçait 1 606 / 101 : juste sur l'arbre d'avant la
+  fusion de la tâche 12, faux dès qu'elle est arrivée. *Tout compteur pris avant fusion
+  périme au merge suivant ; le seul qui vaille est mesuré sur l'arbre qu'on pousse.*
+  **Vu à l'écran en 375 pt**,
+  parcours complet : la carte affiche « COLLATION · SAUTÉ », le nom n'est pas barré,
+  la série reste à 1 j, et la fiche dit « Repas sauté — journée recalée » avec Annuler.
 - 🤖 **E54 · Le refus de la sèche était un mur au 7ᵉ tap — il devient une bifurcation
   (2026-08-20)**
 
