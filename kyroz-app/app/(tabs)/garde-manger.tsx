@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme, ThemePalette, Radius, Spacing, Type, cardShadow, Fond, CIBLE_TACTILE_MIN, Trait, Icone, OPACITE_PRESSION } from '../../constants/theme';
+import { useFridgeTracking } from '../../lib/fridgeTracking';
 import { useCollapsingTitle, CompactTitleBar } from '../../components/CollapsingTitle';
 import { useLayout } from '../../constants/layout';
 import { PrimaryButton, Chip, Field, SectionLabel, Segmented, BoutonRevelation } from '../../components/ui';
@@ -43,6 +44,7 @@ export default function GardeMangerScreen() {
   const repli = useCollapsingTitle();
 
   const [items, setItems] = useState<PantryItem[]>([]);
+  const [suivreFrigo] = useFridgeTracking();
   const [view, setView] = useState<ViewMode>('stock');
   const [showAdd, setShowAdd] = useState(false);
   const [editItem, setEditItem] = useState<PantryItem | null>(null);
@@ -244,6 +246,12 @@ export default function GardeMangerScreen() {
           <View ref={compteurRef} style={{ flex: 1 }}>
             <Text style={s.sub}>{visible.length} aliment{visible.length > 1 ? 's' : ''} · {ready.length} recette{ready.length > 1 ? 's' : ''} prête{ready.length > 1 ? 's' : ''}</Text>
             <Text style={s.h1}>Frigo</Text>
+            {/* Sans cette ligne, quelqu'un qui remplit son frigo se demande pourquoi
+                sa liste de courses l'ignore — et conclut que le frigo est cassé. On
+                DIT ce que le réglage fait, et où il se trouve. */}
+            {!suivreFrigo && (
+              <Text style={s.noteSuivi}>Tes courses ne le déduisent pas — l'option est dans Courses</Text>
+            )}
           </View>
           <View style={s.headerActions}>
             <TourButton onPress={rejouerTour} />
@@ -270,7 +278,16 @@ export default function GardeMangerScreen() {
               <Ionicons name="file-tray-full-outline" size={Icone.vide} color={t.textSecondary} />
             </View>
             <Text style={s.emptyTitle}>Ton frigo est vide</Text>
-            <Text style={s.emptySub}>Ajoute ce que tu as déjà — ou coche tes articles dans l'onglet Courses, ils arrivent ici automatiquement.</Text>
+            {/* Troisième phrase de l'app à devenir fausse le jour où le suivi du frigo
+                est devenu optionnel — après la ligne d'aide des Courses et le titre de
+                cet écran. Elles promettaient toutes un automatisme que l'interrupteur
+                éteint. ➡️ Quand un réglage coupe un MÉCANISME, chercher toutes les
+                phrases qui le DÉCRIVENT, pas seulement le code qui l'exécute. */}
+            <Text style={s.emptySub}>
+              {suivreFrigo
+                ? "Ajoute ce que tu as déjà — ou coche tes articles dans l'onglet Courses, ils arrivent ici automatiquement."
+                : "Ajoute ce que tu as déjà pour voir ce que tu peux cuisiner tout de suite."}
+            </Text>
             <View style={{ height: 8 }} />
             <Presse onPress={() => setShowAdd(true)} style={s.ghostBtn} activeOpacity={OPACITE_PRESSION}>
               <Text style={s.ghostTxt}>Ajouter un aliment</Text>
@@ -508,6 +525,7 @@ function makeStyles(t: ThemePalette) {
     // contentContainer du ScrollView, qui pose déjà les 20 pt. L'y laisser les
     // aurait doublés.
     header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: Spacing.xs, paddingBottom: Spacing.md },
+    noteSuivi: { ...Type.caption, color: t.textTertiary, marginTop: Spacing.xs },
     headerActions: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
     h1: { color: t.text, ...Type.display, marginTop: Spacing.xs },
     sub: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 19 },

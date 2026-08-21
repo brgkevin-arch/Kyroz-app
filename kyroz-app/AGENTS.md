@@ -3838,6 +3838,62 @@ produit en suspens — il ne reste qu'à coder.
 > branches insèrent en tête de cette section, donc git ne sait pas dans quel ordre. La
 > résolution est de garder les DEUX blocs, en ordre décroissant — jamais d'en choisir un.
 
+- 🤖 **E58 · Le frigo n'est plus soustrait par défaut — et TROIS phrases promettaient
+  encore l'automatisme (2026-08-21)**
+
+  Tâche 10 du plan d'action : *« rends le frigo optionnel, désactivé par défaut »*.
+
+  🔴 **LA PRÉMISSE EST STRUCTURELLE, PAS UN PARI SUR LES USAGES** — et c'est ce qui
+  autorise à changer un défaut sans attendre de cohorte. Mesuré dans le code :
+  · `buildShoppingList` **MASQUE** un article que le frigo dit couvert
+    (`filter(quantity > 0)`) — il ne l'affiche pas « à 0 », il le fait disparaître ;
+  · le frigo se **CRÉDITE** par un geste qu'on fait toujours (cocher en magasin :
+    `toggle`, `checkAll`, et la clôture) ;
+  · il se **DÉBITE** par un geste qu'on peut sauter (« J'ai cuisiné », ou cuisiner
+    depuis le Frigo).
+  ⇒ L'inventaire **ne peut dériver que vers la sur-estimation**, et sa conséquence
+  n'est pas un chiffre un peu faux : c'est une ligne qui n'existe plus sur l'écran
+  qu'on emmène en magasin. On ne l'achète pas, on le découvre en cuisinant.
+
+  ✅ **`lib/fridgeTracking.ts`** — réglage d'APPAREIL, patron obligatoire (store hors
+  React + `useSyncExternalStore`, chargé une fois au layout racine), **défaut `false`**.
+  ⚠️ **L'argument du défaut est l'asymétrie de l'erreur**, comme pour `DEFAULT_NEAT_LEVEL` :
+  suivi actif + frigo périmé → il MANQUE un ingrédient, silencieux ; suivi éteint → on
+  rachète peut-être ce qu'on a, visible et décochable. **On choisit la panne qui se voit.**
+
+  ⚠️ **L'INTERRUPTEUR VIT SUR L'ÉCRAN COURSES, pas derrière la roue d'un autre écran** :
+  c'est la liste qu'il change. Et il **n'éteint pas l'onglet Frigo** — le garde-manger
+  garde son autre métier (« qu'est-ce que je peux cuisiner maintenant »), qui ne fait
+  disparaître aucune ligne. Ce qui est optionnel, c'est la SOUSTRACTION.
+  ⚠️ **Basculer INVALIDE le cache de liste** (sinon le réglage ne pilote rien jusqu'à la
+  prochaine clôture — A23) **et préserve les articles déjà cochés** : basculer au milieu
+  d'un rayon ne doit pas effacer le travail du magasin.
+
+  🔴 **TROIS PHRASES SONT DEVENUES FAUSSES LE JOUR OÙ L'INTERRUPTEUR EST NÉ, et les
+  trois ont été trouvées À L'ÉCRAN, aucune dans le diff :**
+  1. la ligne d'aide des Courses — « coche un article → **il part direct dans ton
+     frigo** », affichée douze pixels sous l'interrupteur éteint qui la dément ;
+  2. l'état vide du Frigo — « coche tes articles dans l'onglet Courses, **ils arrivent
+     ici automatiquement** » ;
+  3. rien ne disait, sur le Frigo, que la liste ne le déduisait plus — donc le remplir
+     semblait sans effet, et le frigo passait pour cassé.
+  ➡️ **Quand un réglage coupe un MÉCANISME, chercher toutes les phrases qui le
+  DÉCRIVENT, pas seulement le code qui l'exécute.** C'est la version « interface » du
+  recensement légal (« trois textes » → six surfaces) et du doc produit (E56).
+
+  ✅ **`lib/__tests__/frigoOptionnel.test.ts`** (11 cas) — dont deux **comportementaux**
+  qui prouvent la prémisse : un article couvert n'apparaît nulle part, et sans frigo la
+  liste rend l'intégralité du plan. **Vérifié par 9 mutations**, chacune rouge (défaut
+  rallumé, préchargement retiré, chacun des trois gestes dégardé, cache non invalidé,
+  cochés perdus, et les deux phrases redevenues inconditionnelles).
+  📊 **1 640 tests / 106 fichiers verts**, `tsc` vert. Vu à l'écran en 375 pt : liste
+  complète (23 articles), bascule qui allume l'interrupteur ET change la phrase, note du
+  Frigo présente quand le suivi est éteint.
+  ⚠️ **Metro a ressservi une transformation PÉRIMÉE pendant cette vérification** —
+  l'interrupteur était dans le bundle, la phrase corrigée non. Seul un redémarrage
+  `--clear` l'a rendue. Deuxième fois dans la même journée : **mesurer le BUNDLE avant de
+  juger l'écran**.
+
 - 🤖 **E57 · Deux événements de diagnostic — et l'ID de recette qu'ils ne portent PAS
   (2026-08-21)**
 
