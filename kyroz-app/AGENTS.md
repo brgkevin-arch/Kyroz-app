@@ -3838,6 +3838,50 @@ produit en suspens — il ne reste qu'à coder.
 > branches insèrent en tête de cette section, donc git ne sait pas dans quel ordre. La
 > résolution est de garder les DEUX blocs, en ordre décroissant — jamais d'en choisir un.
 
+- 🤖 **E57 · Deux événements de diagnostic — et l'ID de recette qu'ils ne portent PAS
+  (2026-08-21)**
+
+  Tâche 7 du plan d'action : *« sans eux, tu verras le décrochage au jour 3 sans jamais
+  savoir pourquoi »*. Elle en demandait **trois** ; deux sont posés.
+
+  ✅ **`meal_swapped`** (l'utilisateur demande une autre recette) et **`recipe_disliked`**
+  (👎, la recette est masquée). Propriété : **`meal_type` seulement**, comme `meal_cooked`.
+
+  ❌ **Le troisième — « liste de courses clôturée » — n'a PAS été ajouté**, et il ne s'agit
+  pas d'un oubli : `shopping_completed` a été **explicitement écarté le 2026-08-10** au
+  motif qu'« aucun seuil de décision ne lui est associé » (§5 de l'arbitrage). Le plan le
+  reproposait sans seuil. Le rouvrir demande de lui en écrire un d'abord — pas l'inverse.
+
+  🔴 **L'ID DE RECETTE EST REFUSÉ, ALORS QUE LA DEMANDE LE NOMMAIT** (« avec l'ID de
+  recette d'origine, pas le profil »). Le raisonnement, en trois pas :
+  · toutes les recettes servies à quelqu'un **respectent déjà son régime** — c'est le
+    moteur qui les choisit ainsi ;
+  · l'identifiant PostHog est **pseudonyme et stable**, donc les événements se regroupent ;
+  · ⇒ une dizaine d'ID rattachés au même identifiant **reconstituent le régime**, et
+    « régime, restrictions » est dans l'interdit ABSOLU du §6.
+  C'est mot pour mot le raisonnement qui avait fait retirer le MOTIF d'`onboarding_blocked`.
+  ➡️ Si le besoin réel est la qualité du catalogue, il ne se porte pas par l'analytics :
+  canal de retour ou mesure locale. ➡️ Et pas de propriété « vivier bas » non plus — un
+  vivier mince est un proxy direct du régime.
+
+  ⚠️ **DEUX REFUS, DEUX SEUILS, ET UN PIÈGE DE CÂBLAGE** : `dislikeMealCore` appelle
+  `swapMeal` (le moteur) et **non** `swapMealCore` (l'écran). Capturer le remplacement dans
+  le moteur ferait donc compter chaque 👎 comme un remplacement — deux seuils sur la même
+  donnée, sans que rien ne le signale. Chaque capture est posée dans SON cœur d'écran, et
+  un test tient les deux séparés.
+
+  📋 **Seuils D7 et D8 écrits AVANT de poser les events** (§2), dans **`METRICS.md` §6** —
+  pas dans l'arbitrage du 10/08, qui est une trace datée : les seuils vivants vont dans le
+  doc vivant. Valeurs arbitraires et marquées comme telles, à relire à la première lecture
+  réelle. ⚠️ Ils se lisent **ensemble** : beaucoup de remplacements et peu de 👎 est un
+  signal tiède ; beaucoup des deux dit que le vivier ne convient pas à cette personne.
+
+  ✅ **`lib/__tests__/evenementsDiagnostic.test.ts`** (6 cas) + la liste arbitrée passée de
+  **13 à 15** dans `analyticsPerimetre.test.ts` — ce compteur est précisément ce qui oblige
+  à venir relire la règle avant d'ajouter un event. **Vérifié par 6 mutations**, chacune
+  rouge, dont « un event posé sans passer par la liste » et « le moteur se met à capturer ».
+  📊 **1 629 tests / 104 fichiers verts**, `tsc` vert.
+
 - 🤖 **E56 · Le doc produit décrivait une app qui n'existe plus — il devient VIVANT
   (2026-08-21)**
 

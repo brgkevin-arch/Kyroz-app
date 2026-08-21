@@ -137,7 +137,62 @@ génération** (D6). Leurs seuils sont au §10 de l'arbitrage, qui reste la réf
 
 ---
 
-## 6. Ce que ce fichier périme
+## 6. Les deux événements de diagnostic (2026-08-21)
+
+Le rituel du §5 dit **quand** ça décroche. Ces deux-là commencent à dire **pourquoi** —
+c'est leur seule raison d'exister, et ils n'en ont pas d'autre.
+
+| Événement | Propriété | Ce qu'il mesure |
+|---|---|---|
+| `meal_swapped` | `meal_type` | « ce plat-là, non » — l'utilisateur demande une alternative |
+| `recipe_disliked` | `meal_type` | « ce plat-là, plus jamais » — la recette est masquée (👎), réversible depuis le Profil |
+
+**Ils ne se confondent pas avec `plan_regenerated`**, qui refait la semaine entière : ici
+c'est UN repas qu'on refuse. Un plan qu'on régénère dit « cette semaine ne me va pas » ;
+dix repas remplacés disent « le vivier est trop mince pour moi », et ce n'est pas la même
+correction.
+
+### 🔴 Ce qu'ils ne portent PAS, et pourquoi — l'ID de recette
+
+La demande d'origine disait « avec l'ID de recette d'origine, pas le profil ». **L'ID n'est
+pas envoyé**, et ce n'est pas de la prudence de principe :
+
+- toutes les recettes servies à quelqu'un **respectent déjà son régime** — c'est le moteur
+  qui les choisit ainsi ;
+- l'identifiant PostHog est **pseudonyme et stable**, donc les événements d'un même
+  appareil se regroupent ;
+- ⇒ une dizaine d'ID de recettes rattachés au même identifiant **reconstituent le régime**,
+  et « régime, restrictions » est dans l'interdit ABSOLU du §6 de l'arbitrage.
+
+C'est le raisonnement déjà appliqué à `onboarding_blocked`, dont le motif a été retiré pour
+la même raison : désigner un corps ou un régime sur un identifiant supprimable, ce n'est
+pas anonyme.
+➡️ **Si le besoin réel est la qualité du CATALOGUE** (« quelle recette se fait rejeter ? »),
+ce n'est pas à l'analytics de le porter : c'est le canal de retour (`app/avis.tsx`) ou une
+mesure locale, pas un événement attaché à un identifiant.
+➡️ Pour la même raison, **pas de propriété « vivier bas »** sur `recipe_disliked` : un
+vivier mince est un proxy direct du régime.
+
+### Les seuils — écrits AVANT, comme l'exige le §2
+
+> ⚠️ **Valeurs ARBITRAIRES, pas des mesures** — même statut que celles du §10 de
+> l'arbitrage, et pour la même raison : aucune donnée Kyroz n'existe encore. Elles ne
+> servent pas à avoir raison, elles servent à empêcher la rationalisation après coup.
+> **Se relisent à la première lecture réelle**, et se corrigent alors **en le disant**.
+
+| Décision | Seuil pré-écrit | Action si franchi |
+|---|---|---|
+| **D7** — le plan proposé ne convient pas | **médiane ≥ 10 `meal_swapped`** par appareil sur ses 14 premiers jours, sur une cohorte mensuelle | **Enquêter sur le VIVIER avant le moteur** : `npm run mesure:vivier`, régime par régime. Un catalogue trop mince ne se corrige pas en changeant la sélection |
+| **D8** — le catalogue rejette trop | **médiane ≥ 5 `recipe_disliked`** par appareil sur 14 jours, mêmes conditions | Commander une vague de recettes sur les créneaux les plus touchés — le `meal_type` est là pour ça |
+
+⚠️ **Les deux se lisent ensemble, jamais l'un sans l'autre.** Beaucoup de remplacements et
+peu de 👎 = « je cherche autre chose aujourd'hui », un signal tiède. Beaucoup des deux = le
+vivier ne convient pas à cette personne. Peu des deux avec un décrochage quand même = la
+cause est ailleurs, et ces deux événements auront fait leur travail en l'écartant.
+
+---
+
+## 7. Ce que ce fichier périme
 
 Trois formulations coexistaient. Aucune n'était absurde ; elles ne parlaient simplement
 pas du même objet.
