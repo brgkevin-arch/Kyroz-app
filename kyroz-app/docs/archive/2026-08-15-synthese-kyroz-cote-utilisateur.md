@@ -1,3 +1,32 @@
+# ARCHIVÉ — PÉRIMÉ · Kyroz, vu par la personne qui l'utilise (2026-08-15)
+
+> # 🛑 NE PAS CITER CE DOCUMENT COMME COURANT.
+>
+> **Archivé le 2026-08-21.** Remplacé par **`../../PRODUIT.md`**, qui est vivant et sans
+> date dans son nom — précisément parce que celui-ci a pourri en cinq jours sans que rien
+> ne le signale, pendant qu'il continuait d'être collé dans des briefs.
+>
+> **Six de ses neuf sections étaient fausses**, et le plan d'action du fondateur n'en
+> avait repéré que trois (3, 5, 7) :
+>
+> | § | Ce qu'il affirme | Ce qui est vrai depuis |
+> |---|---|---|
+> | 1 | l'inscription refuse les IMC bas avec objectif de perte | **2026-08-20** — la sèche n'est plus proposée, mais l'app nomme la porte ouverte et la propose en un tap |
+> | 3 | l'écran Plan porte « J'ai mangé hors plan » | **2026-08-18** — parcours ÉTEINT, injoignable |
+> | 4 | la boucle quotidienne inclut la déclaration d'un écart | idem |
+> | 5 | « l'historique des écarts ne compte pas les dérapages » + la phrase « une journée ne fait pas ta semaine » | idem — l'historique ET la phrase citée sont derrière le même interrupteur, donc **invisibles** |
+> | 7 | Kyroz+ ajoute **trois** choses, dont la banque de calories | **2026-08-18** — deux piliers, la banque est sortie de l'offre puis éteinte |
+> | 9 | la north star est « 7 jours d'affilée » d'usage | **2026-08-20** — 7 jours ACTIFS (un repas cuisiné), pas consécutifs, par appareil (cf. `METRICS.md`) |
+>
+> ⚠️ **Une seule de ses phrases est devenue vraie APRÈS coup** : son étape 4 annonçait
+> « + niveau d'activité quotidienne hors sport », ce qui était faux à l'écriture — le code
+> l'a rejointe le 2026-08-19. *Un document faux peut le rester en ayant l'air de se
+> confirmer ; ce n'est pas une raison de lui faire confiance.*
+>
+> Conservé comme trace de ce qu'était le produit au 15 août.
+
+---
+
 # Kyroz, vu par la personne qui l'utilise
 
 > Synthèse écrite le 2026-08-15 pour accompagner un brainstorm. Décrit le produit **tel qu'il est
