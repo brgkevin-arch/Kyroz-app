@@ -572,6 +572,11 @@ export default function PlanScreen() {
   const swapMealCore = async (meal: Meal) => {
     if (!plan || !profile) return;
     await persistPlan(swapMeal(profile, plan, meal, favorites)); // resync la fiche si ouverte
+    // Un seul point de capture pour la carte ET la fiche — elles passent toutes les
+    // deux par ici. ⚠️ `dislikeMealCore` appelle `swapMeal` sans passer par cette
+    // fonction : un 👎 ne compte donc pas comme un remplacement, et c'est voulu (ce
+    // sont deux refus différents, avec deux seuils différents — METRICS.md §6).
+    capture(Events.mealSwapped, { meal_type: meal.meal_type });
   };
 
   // Cœur du « j'aime pas » (👎, carte ET fiche) : masque la recette (souple,
@@ -586,6 +591,7 @@ export default function PlanScreen() {
     const newPlan = swapMeal(nextProfile, plan, meal, favorites);
     await saveProfile(nextProfile); // persiste le 👎 (hors signature → ne régénère pas tout)
     await persistPlan(newPlan, false);
+    capture(Events.recipeDisliked, { meal_type: meal.meal_type });
     if (mealPoolSize(nextProfile, meal.meal_type) < DISLIKE_THRESHOLD) {
       const candidates = dislikeCandidates(nextProfile);
       if (candidates.length > 0) { setDislikeElicit(candidates); return 'elicit'; }

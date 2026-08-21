@@ -214,6 +214,14 @@ export const Events = {
   planOpened: 'plan_opened',
   mealCooked: 'meal_cooked',
   planRegenerated: 'plan_regenerated',
+  // ── Diagnostic : POURQUOI ça décroche (2026-08-21) ─────────────────────────
+  // Deux refus d'UN repas, à ne pas confondre avec `plan_regenerated` qui refait la
+  // semaine. Seuils D7/D8 écrits avant de les poser — METRICS.md §6.
+  // ⚠️ `meal_type` SEULEMENT : l'ID de recette reconstituerait le régime sur un
+  // identifiant stable, et « régime, restrictions » est dans l'interdit absolu (§6
+  // de l'arbitrage). Le raisonnement est celui d'`onboarding_blocked`.
+  mealSwapped: 'meal_swapped',
+  recipeDisliked: 'recipe_disliked',
   offPlanLogged: 'off_plan_logged',
   // D2 — rétention
   streakMilestone: 'streak_milestone',

@@ -129,7 +129,7 @@ describe('Périmètre de mesure — les interdits du §6 sont COMPTÉS', () => {
     expect(fautes, fautes.join('\n')).toEqual([]);
   });
 
-  it('les 13 events sont ceux qui ont été arbitrés — ni plus, ni moins', () => {
+  it('les 15 events sont ceux qui ont été arbitrés — ni plus, ni moins', () => {
     // Le nombre n'est pas un caprice : chaque event doit porter un seuil de décision
     // écrit AVANT d'être posé (§2 et §10 de la synthèse). En ajouter un sans y penser
     // est exactement ce que ce compte rend impossible — il faut venir ici, donc
@@ -138,6 +138,7 @@ describe('Périmètre de mesure — les interdits du §6 sont COMPTÉS', () => {
       'app_error',
       'first_plan_viewed',
       'meal_cooked',
+      'meal_swapped',
       'off_plan_logged',
       'onboarding_blocked',
       'onboarding_completed',
@@ -146,6 +147,7 @@ describe('Périmètre de mesure — les interdits du §6 sont COMPTÉS', () => {
       'plan_generation_failed',
       'plan_opened',
       'plan_regenerated',
+      'recipe_disliked',
       'streak_frozen',
       'streak_milestone',
     ]);
