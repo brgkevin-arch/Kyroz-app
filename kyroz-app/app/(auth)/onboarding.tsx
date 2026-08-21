@@ -12,7 +12,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useTheme, ThemePalette, Spacing, Radius, Type, CIBLE_TACTILE_MIN, Trait, Icone, OPACITE_PRESSION } from '../../constants/theme';
 import { useLayout } from '../../constants/layout';
 import {
-  PrimaryButton, Chip, OptionCard, Field, SectionLabel, Segmented,
+  PrimaryButton, Chip, OptionCard, Field, SectionLabel, Segmented, Card,
 } from '../../components/ui';
 import { BodyFatPicker } from '../../components/BodyFatPicker';
 import { useDialog } from '../../components/Dialog';
@@ -211,13 +211,30 @@ export default function Onboarding() {
   const mealsValid = planWeekdays.length >= 1 && meals.length >= 1;                        // étape 7 — jours + repas
   const profileReady = basicsValid && bodyFatValid; // suffisant pour les calculs TDEE/macros
 
+  // Étape 5 — L'OBJECTIF SE REFUSE ICI, PAS AU DERNIER TAP (2026-08-20).
+  //
+  // 🔴 Le défaut : sous IMC 18,5, `finish()` refusait la sèche à la SEPTIÈME étape,
+  // par une boîte de dialogue, sans issue autre que revenir en arrière deviner quoi
+  // changer. Sept étapes remplies pour un mur — et `checkEligibility` dit pourtant
+  // noir sur blanc que ce blocage-là vise « l'objectif concerné, pas l'app entière ».
+  // Le corps nécessaire est connu dès l'étape 2 : la question se pose donc au moment
+  // où la personne CHOISIT, avec la porte de sortie sous les yeux.
+  //
+  // ⚠️ On ne passe PAS les séances : elles se déclarent à l'étape 4, mais faire
+  // remonter ici « plus de 20 h d'entraînement » brouillerait l'écran de l'objectif
+  // avec un reproche qui ne le concerne pas. Ce blocage-là reste au filet de `finish()`.
+  const objectifBloque = profileReady
+    ? eligibilityMessage(checkEligibility({ sex, age: ageN, weight_kg: wN, height_cm: hN, goal }))
+    : null;
+
   const canProceed =
     (step === 1 && firstNameValid) ||
     (step === 2 && basicsValid) ||
     (step === 3 && bodyFatValid) ||
     (step === 4 && trainingValid) ||
+    (step === 5 && !objectifBloque) ||
     (step === 7 && mealsValid) ||
-    ![1, 2, 3, 4, 7].includes(step);
+    ![1, 2, 3, 4, 5, 7].includes(step);
 
   const toggle = <T,>(arr: T[], v: T, set: (x: T[]) => void) =>
     set(arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
@@ -281,6 +298,12 @@ export default function Onboarding() {
       if (neat === null) return 'Choisis à quoi ressemblent tes journées, hors sport.';
       return 'Choisis au moins un sport, ou indique que tu n\'en fais pas.';
     }
+    // ⚠️ UNE LIGNE COURTE, PAS LE MESSAGE COMPLET — vu à l'écran le 2026-08-20.
+    // Renvoyer `objectifBloque` ici affichait le même paragraphe de quatre lignes
+    // DEUX fois : dans la carte, et en accent juste au-dessus du bouton, où il
+    // recouvrait la carte qu'il répétait. Le bandeau dit l'ACTION, la carte dit le
+    // POURQUOI — et le pourquoi n'a toujours qu'une seule rédaction.
+    if (step === 5 && objectifBloque) return 'Sèche n\'est pas disponible ici — choisis Maintien, ou un autre objectif.';
     if (step === 7 && !mealsValid) return 'Choisis au moins un jour et un repas.';
     return null;
   };
@@ -462,6 +485,26 @@ export default function Onboarding() {
                 <OptionCard key={g.value} t={t} title={goalLabel(g.value)} subtitle={g.sub} selected={goal === g.value} onPress={() => setGoal(g.value)} />
               ))}
             </View>
+            {/* L'objectif refusé s'explique ICI, avec sa sortie en un tap — c'est ce
+                qui distingue une bifurcation d'un mur. Le bouton n'est pas un confort :
+                sans lui, la seule issue est de deviner lequel des trois autres objectifs
+                l'app accepte, et la personne repart ressaisir ses chiffres. */}
+            {!!objectifBloque && (
+              <Card t={t}>
+                <Text style={{ ...Type.caption, color: t.text, lineHeight: 19 }}>{objectifBloque}</Text>
+                <Presse
+                  onPress={() => setGoal('maintain')}
+                  activeOpacity={OPACITE_PRESSION}
+                  style={{
+                    marginTop: Spacing.md, borderRadius: Radius.button, minHeight: CIBLE_TACTILE_MIN,
+                    justifyContent: 'center', alignItems: 'center',
+                    borderWidth: Trait.fin, borderColor: t.lineStrong,
+                  }}
+                >
+                  <Text style={{ ...Type.bodySmallStrong, color: t.text }}>Passer en Maintien</Text>
+                </Presse>
+              </Card>
+            )}
           </View>
         )}
 
