@@ -16,9 +16,9 @@ listes contradictoires.
 
 ## Carte des docs — lire ceci d'abord (rangé le 2026-07-30)
 
-**Les 13 docs VIVANTS, et rien d'autre** (recomptés le 2026-07-30 : la carte en annonçait
+**Les 14 docs VIVANTS, et rien d'autre** (recomptés le 2026-07-30 : la carte en annonçait
 6, en listait 8 et en oubliait 4 — `TESTFLIGHT.md` ajouté le 2026-08-03, `METRICS.md` le
-2026-08-20) :
+2026-08-20, `PRODUIT.md` le 2026-08-21) :
 
 *Ce qui pilote le travail — à lire d'abord*
 
@@ -27,6 +27,7 @@ listes contradictoires.
 | `CLAUDE.md` | **Spec stable** — décisions de fond, garde-fous §6 non négociables. Le *pourquoi*. |
 | `AGENTS.md` | **Ce fichier** — état d'avancement, chantiers ouverts, pièges. Le *où on en est*. |
 | `docs/INVENTAIRE-CODE-2026-07-30.md` | **Photo factuelle du code** — duplications, points d'écriture, zones risquées. Mesurée. |
+| `PRODUIT.md` | **Le produit vu par l'utilisateur** (2026-08-21) — les sept étapes, les cinq écrans, le ton, gratuit/payant, et **ce qui est éteint**. Autonome : c'est LUI qu'on colle dans un brief ou une fiche store, jamais un doc daté de `docs/`. ⚠️ Il remplace `docs/2026-08-15-synthese-…` (archivé), faux sur **6 sections sur 9** en cinq jours. Toute fonction retirée ou renommée y passe le jour même — `produitDoc.test.ts` compte ce qui est vérifiable. |
 
 *Chantiers spécialisés — à ouvrir quand on touche au domaine*
 
@@ -3836,6 +3837,58 @@ produit en suspens — il ne reste qu'à coder.
 > ⚠️ **Le conflit git qui en résulte n'est PAS un conflit de numéros** : les deux
 > branches insèrent en tête de cette section, donc git ne sait pas dans quel ordre. La
 > résolution est de garder les DEUX blocs, en ordre décroissant — jamais d'en choisir un.
+
+- 🤖 **E56 · Le doc produit décrivait une app qui n'existe plus — il devient VIVANT
+  (2026-08-21)**
+
+  Tâche 4 du plan d'action : *« un doc qui ment sur le produit est pire que pas de doc »*.
+  Le fondateur le colle dans des conversations pour briefer, et s'en sert pour la fiche store.
+
+  🔴 **LE PLAN EN ANNONÇAIT TROIS SECTIONS PÉRIMÉES ; MESURÉ, C'EST SIX SUR NEUF.** Même
+  écart que le recensement légal du 2026-08-18 (« trois textes » → six surfaces) : on
+  cherche les sections dont on SE SOUVIENT qu'elles ont bougé, pas celles dont le produit
+  a bougé sous elles.
+
+  | § | Ce qu'il affirmait | Depuis |
+  |---|---|---|
+  | 1 | l'inscription REFUSE un IMC bas avec objectif de perte | 2026-08-20 (E54) |
+  | 3 | l'écran Plan porte « J'ai mangé hors plan » | 2026-08-18, éteint |
+  | 4 | la boucle quotidienne inclut la déclaration d'un écart | idem |
+  | 5 | l'historique des écarts + la phrase « une journée ne fait pas ta semaine » | idem |
+  | 7 | Kyroz+ ajoute **trois** choses, dont la banque de calories | 2026-08-18, deux piliers |
+  | 9 | north star = « 7 jours d'affilée » d'usage | 2026-08-20 (E53) |
+
+  🔴 **ET LE §5 CITAIT UNE PHRASE QUE PERSONNE NE PEUT PLUS VOIR.** « Le reste ne se
+  rattrape pas, et une journée ne fait pas ta semaine » existe toujours dans `plan.tsx`,
+  mais elle vit dans la feuille de recalage, dont le SEUL déclencheur est `logOffPlan` —
+  éteint. Idem pour « Écarts passés » : le composant est monté, sa feuille est là, et
+  `openOffPlan` n'est appelé que depuis la ligne de menu gatée. ➡️ **Une chaîne présente
+  dans le code ne prouve pas qu'un écran l'affiche** : c'est le chemin d'appel qu'il faut
+  suivre, pas le `grep`. Trois affirmations du document reposaient là-dessus.
+
+  ✅ **LIVRÉ : `PRODUIT.md`**, à la racine, **sans date dans son nom** — et c'est la
+  correction structurelle, pas un détail de rangement. La règle du dépôt dit qu'un document
+  daté est une TRACE et vit dans `docs/` ; une référence courante vit à la racine. Le
+  fichier s'appelait `docs/2026-08-15-synthese-…` : sa date invitait à le lire comme une
+  photo pendant qu'on continuait de le coller comme une référence. L'ancien est archivé
+  avec un en-tête qui liste ses six erreurs.
+  📋 Carte des docs **13 → 14**.
+
+  ⚠️ **UNE PHRASE DU VIEUX DOC EST DEVENUE VRAIE APRÈS COUP** : son étape 4 annonçait
+  « + niveau d'activité quotidienne hors sport », faux à l'écriture, rejoint par le code le
+  2026-08-19 (E52). *Un document faux peut se retrouver confirmé par hasard ; ça n'en fait
+  pas une source.*
+
+  ✅ **`lib/__tests__/produitDoc.test.ts`** (7 cas, **6 mutations**, chacune rouge) — il
+  compte la part VÉRIFIABLE : le catalogue annoncé (512) contre `RECIPES.length`, les sept
+  étapes contre `TOTAL_STEPS` **et** contre les lignes du tableau, les deux interrupteurs
+  éteints, les deux piliers de Kyroz+, les quatre libellés d'objectif contre `goalLabel`,
+  et la north star contre `METRICS.md`. ⚠️ Il ne sait PAS juger qu'une phrase est vraie —
+  il ferme les chemins mécaniques, ceux par lesquels la dérive est arrivée les trois fois
+  précédentes.
+  ℹ️ Sa première assertion cherchait « pas CONSÉCUTIFS » là où les deux pages écrivent
+  « pas 7 jours d'affilée » : rouge sur une rédaction juste. *Devant un test rouge, la
+  première hypothèse reste que l'assertion se trompe.*
 
 - 🤖 **E55 · « Sauté » était écrit comme une faute — il redevient un fait (2026-08-20)**
 
