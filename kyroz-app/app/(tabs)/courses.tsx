@@ -15,6 +15,7 @@ import { MealPlan, ShoppingItem, ShoppingList } from '../../lib/types';
 import { buildShoppingList } from '../../lib/shoppingList';
 import { formatQuantity } from '../../lib/units';
 import { loadPantry, savePantry, addOrMerge, subtractQuantity, isStaple } from '../../lib/pantry';
+import { useFridgeTracking } from '../../lib/fridgeTracking';
 import {
   ShoppingTrip, loadHistory, saveHistory, recordTrip, removeTrip, historySummary,
 } from '../../lib/shoppingHistory';
@@ -61,6 +62,8 @@ export default function CoursesScreen() {
   const [ecartes, setEcartes] = useState<string[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [hideChecked, setHideChecked] = useState(false);
+  // Réglage d'APPAREIL, éteint par défaut — cf. lib/fridgeTracking.ts pour le motif.
+  const [suivreFrigo, setSuivreFrigo] = useFridgeTracking();
   const [history, setHistory] = useState<ShoppingTrip[]>([]);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [closing, setClosing] = useState(false);
@@ -101,7 +104,10 @@ export default function CoursesScreen() {
     const planRaw = await AsyncStorage.getItem(PLAN_KEY);
     if (!planRaw) return null;
     const plan: MealPlan = JSON.parse(planRaw);
-    const pantry = await loadPantry();             // ne proposer que ce qui manque
+    // ⚠️ Frigo soustrait SEULEMENT si le suivi est actif. Éteint, la liste montre
+    // l'intégralité de ce que le plan demande : on peut racheter ce qu'on a déjà
+    // (visible, décochable) plutôt que manquer ce qu'on croyait avoir (silencieux).
+    const pantry = suivreFrigo ? await loadPantry() : [];
     const l = buildShoppingList(plan, pantry);
     // Ne pas mettre en cache une liste vide (tout couvert) : sinon l'onglet
     // resterait bloqué sur « rien à acheter » même après avoir vidé le frigo.
@@ -151,6 +157,7 @@ export default function CoursesScreen() {
     const willCheck = !item.checked;
     await persist({ ...list, items: list.items.map((i) => (i.name === item.name ? { ...i, checked: willCheck } : i)) });
     if (isStaple(item.name)) return; // sel, huile, épices… : pas dans le frigo
+    if (!suivreFrigo) return;        // suivi éteint : cocher veut dire « je l'ai », pas « au frigo »
     const pantry = await loadPantry();
     const next = willCheck
       ? addOrMerge(pantry, { name: item.name, quantity: item.quantity, unit: item.unit, category: item.category })
@@ -170,7 +177,7 @@ export default function CoursesScreen() {
   const checkAll = async () => {
     if (!list) return;
     const toAdd = list.items.filter((i) => visible(i) && !i.checked && !isStaple(i.name));
-    if (toAdd.length) {
+    if (suivreFrigo && toAdd.length) {
       let pantry = await loadPantry();
       for (const it of toAdd) {
         pantry = addOrMerge(pantry, { name: it.name, quantity: it.quantity, unit: it.unit, category: it.category });
@@ -188,7 +195,7 @@ export default function CoursesScreen() {
   const reset = async () => {
     if (!list) return;
     const toRemove = list.items.filter((i) => visible(i) && i.checked && !isStaple(i.name));
-    if (toRemove.length) {
+    if (suivreFrigo && toRemove.length) {
       let pantry = await loadPantry();
       for (const it of toRemove) pantry = subtractQuantity(pantry, it.name, it.unit, it.quantity);
       await savePantry(pantry);
@@ -208,6 +215,27 @@ export default function CoursesScreen() {
     await load();
     setRefreshing(false);
   }, []);
+
+  // ── Basculer « tenir compte du frigo » ───────────────────────────────────
+  //
+  // ⚠️ LE CACHE DOIT PARTIR : la liste enregistrée a été bâtie AVEC ou SANS la
+  // soustraction. Sans l'invalider, l'interrupteur ne changerait rien à l'écran
+  // jusqu'au prochain « Courses terminées » — un réglage qui ne pilote rien
+  // (CLAUDE.md, A23).
+  //
+  // ⚠️ ET LES ARTICLES COCHÉS SURVIVENT À LA BASCULE. Recalculer la liste les
+  // décocherait tous : basculer au milieu d'un rayon effacerait le travail du
+  // magasin. Ce sont des NOMS qu'on repose, pas la liste d'avant — un article que
+  // le frigo couvre désormais disparaît quand même, c'est le but du réglage.
+  const basculerSuiviFrigo = async () => {
+    animerMiseEnPage();
+    const coches = new Set((list?.items ?? []).filter((i) => i.checked).map((i) => i.name));
+    setSuivreFrigo(!suivreFrigo);
+    await AsyncStorage.removeItem(LIST_KEY);
+    const brut = await lireListe();
+    if (brut) await persist({ ...brut, items: brut.items.map((i) => (coches.has(i.name) ? { ...i, checked: true } : i)) });
+    else setList(brut);
+  };
 
   // ── « Courses terminées » : on CLÔT la sortie ────────────────────────────
   //
@@ -412,6 +440,13 @@ export default function CoursesScreen() {
               <Text style={s.ctrlTxt}>Historique</Text>
             </Presse>
           )}
+          {/* Le réglage vit LÀ OÙ SON EFFET SE VOIT — pas derrière la roue d'un autre
+              écran. C'est la liste qu'il change ; l'enterrer dans les réglages en
+              ferait un interrupteur que personne ne relie à ce qu'il regarde. */}
+          <Presse style={[s.ctrl, suivreFrigo && s.ctrlOn]} onPress={basculerSuiviFrigo} activeOpacity={OPACITE_PRESSION}>
+            <Ionicons name={suivreFrigo ? 'snow' : 'snow-outline'} size={Icone.petite} color={suivreFrigo ? t.onAccent : t.textSecondary} />
+            <Text style={[s.ctrlTxt, suivreFrigo && { color: t.onAccent }]}>Tenir compte du frigo</Text>
+          </Presse>
         </View>
 
         {/* UN seul bouton, deux poids. Tant qu'il reste des articles à cocher,
@@ -446,7 +481,16 @@ export default function CoursesScreen() {
           </View>
         )}
 
-        <Text style={s.hint}>Coche un article → il part direct dans ton frigo. Appui long → tu le retires.</Text>
+        {/* 🔴 CETTE LIGNE DEVIENT FAUSSE SI ON L'OUBLIE. Elle annonçait « il part direct
+            dans ton frigo » sans condition — vrai depuis toujours, faux à la seconde où
+            le suivi du frigo est devenu optionnel (2026-08-21). Vu à l'écran, pas en
+            relisant le diff : l'interrupteur était juste au-dessus, éteint, et la phrase
+            promettait quand même. Une phrase d'aide est une affirmation sur le code. */}
+        <Text style={s.hint}>
+          {suivreFrigo
+            ? 'Coche un article → il part direct dans ton frigo. Appui long → tu le retires.'
+            : 'Coche ce que tu as déjà ou ce que tu as pris. Appui long → tu le retires de la liste.'}
+        </Text>
     </View>
   );
 
