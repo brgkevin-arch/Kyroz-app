@@ -105,13 +105,20 @@ et un suivi d'hydratation **optionnel** (activable dans les réglages).
 
 ### Courses
 
-La liste se calcule toute seule : **ce que le plan demande, moins ce qu'il y a déjà dans le
-frigo**. On coche en magasin, on clôture, et la sortie part dans un historique local.
+La liste se calcule toute seule à partir du plan : **tout ce qu'il demande**, condiments
+mis à part. On coche en magasin, on clôture, et la sortie part dans un historique local.
+
+⚠️ **Le frigo n'est PAS déduit par défaut** (depuis le 2026-08-21). Une option
+« Tenir compte du frigo », sur cet écran, l'active — la liste ne propose alors que ce qui
+manque. Elle est éteinte au départ pour une raison précise : un frigo qui n'est plus à
+jour fait **disparaître** des articles de la liste, et ça ne se voit qu'au moment de
+cuisiner. Racheter ce qu'on a déjà, au moins, ça se voit et ça se décoche.
 
 ### Frigo
 
-L'inventaire de ce qu'on a. Il alimente la liste de courses, et il propose ce qu'on peut
-cuisiner **maintenant** avec ce qu'il reste — puis ce qui manque d'un ou deux ingrédients.
+L'inventaire de ce qu'on a. Il propose ce qu'on peut cuisiner **maintenant** avec ce qu'il
+reste — puis ce qui manque d'un ou deux ingrédients. Il n'alimente la liste de courses que
+si l'option ci-dessus est activée, et l'écran le dit quand ce n'est pas le cas.
 
 ### Recettes
 

@@ -60,7 +60,55 @@ de date et un en-tête `ARCHIVÉ` — pas à la racine sans date. C'est ce qui a
 le désordre : dix fichiers au même niveau dont seul le contenu, en ligne 10, révélait
 qu'ils étaient périmés.
 
-## 📍 OÙ ON EN EST — photo du 2026-08-10
+## 📍 OÙ ON EN EST
+
+### ▶️ Photo du 2026-08-21 — À LIRE EN PREMIER
+
+> **Sept PR mergées dans la journée, toutes issues du plan d'action du fondateur.**
+> Elles sont sur `main` ; **rien n'est parti en OTA** — donc rien de tout ça n'est chez
+> les testeurs (le binaire TestFlight date du 3 août).
+
+| # | Ce qui a changé | Fiche |
+|---|---|---|
+| 127 | La question du **NEAT** est posée à l'inscription (étape 4, réponse exigée) | E52 |
+| 128 | **`METRICS.md`** — « north star » désignait trois choses, une seule définition désormais | E53 |
+| 129 | Sous IMC 18,5 le refus de la sèche devient une **bifurcation** (étape 5, sortie en un tap) | E54 |
+| 130 | « **Sauté** » est écrit comme un fait, plus comme une faute | E55 |
+| 131 | **`PRODUIT.md`** remplace la synthèse datée, qui était fausse sur 6 sections sur 9 | E56 |
+| 132 | Deux **événements de diagnostic** (`meal_swapped`, `recipe_disliked`) — 13 → 15 events | E57 |
+| 133 | Le **frigo n'est plus soustrait** de la liste de courses par défaut | E58 |
+
+🔴 **NE PAS RE-PROPOSER LES TÂCHES DU PLAN D'ACTION : elles sont toutes livrées côté
+code.** 4, 6, 7, 8, 9, 10 et 12 sont faites ; 3, 5, 11 et 14 l'étaient **avant** que le
+plan ne les demande (mesuré le 2026-08-20 — le plan décrivait un dépôt d'un jour en
+retard). Ne restent que **13** (décision, déjà tranchée de fait : le paiement a deux
+interrupteurs, tous deux éteints), **15** et **16**, qui sont hors du dépôt.
+
+**Ce qui bloque réellement la sortie est côté fondateur** : formulaire « Health apps
+declaration » (Play), mentions légales LCEN sur `kyroz.app` (dépôt `kyroz-site`), et les
+**captures d'écran** — elles datent du 10 août, donc d'avant sept changements visibles.
+Le D-U-N-S / compte Play en Organisation est **écarté volontairement** : Android passe
+après l'App Store (décision du 2026-08-21).
+
+⚠️ **Deux pièges du dépôt se sont rejoués dans cette seule journée**, les deux déjà
+consignés en §11 de CLAUDE.md :
+· **Metro ressert une transformation PÉRIMÉE** — deux fois, sur deux correctifs
+  différents. Le bundle contenait l'ancien texte alors que le fichier portait le
+  nouveau. Seul `--clear` l'a rendu. ➡️ **Mesurer le BUNDLE avant de juger l'écran.**
+· **Le répertoire courant du shell peut glisser dans le dépôt PRINCIPAL** — un
+  `checkout -b` y a déplacé la copie de travail du fondateur, et tous les symptômes
+  suivants (« branche introuvable », commit sur la mauvaise branche) en découlaient.
+  ➡️ `pwd` avant toute commande git depuis un worktree, et **lire ce que git dit** :
+  « used by worktree at … » n'est pas une métadonnée périmée, c'est un fait.
+
+ℹ️ **La carte des docs est passée à 14** : `METRICS.md` (ce que chaque chiffre mesure) et
+`PRODUIT.md` (le produit vu par l'utilisateur, **sans date dans son nom, à tenir à jour le
+jour même**) sont les deux nouveaux. Trois tests comptent ce qu'ils affirment —
+`metrics.test.ts`, `produitDoc.test.ts`, `evenementsDiagnostic.test.ts`.
+
+---
+
+### Photo du 2026-08-10 — la table de référence
 
 > 🔴 **CE QUI A CHANGÉ DANS LA NUIT DU 9 AU 10 AOÛT — sept PR, toutes mergées et
 > déployées.** À lire avant de se fier à une ligne ancienne de cette table :
