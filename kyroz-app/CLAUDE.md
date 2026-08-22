@@ -315,12 +315,17 @@ OUTPUT         → Plan + liste de courses + recettes
 - [x] Affichage recettes + macros
 - [x] Liste de courses
 - [x] Clôture des courses (« Courses terminées ») + historique des listes — LOCAL-ONLY
-- [x] Frigo / garde-manger
+- [x] Frigo / garde-manger — ⚠️ **il n'alimente la liste de courses que si l'option
+      « Tenir compte du frigo » est activée, ÉTEINTE par défaut depuis le 2026-08-21**
+      (`lib/fridgeTracking.ts`, E58). Son autre métier — « qu'est-ce que je peux cuisiner
+      maintenant » — est inchangé.
 - [x] Favoris recettes
 - [x] Streak tracker (7 jours consécutifs)
 - [x] Sync cloud Supabase
 - [x] Recaler ma journée (re-plan instantané)
-- [x] Banque de calories (« resto samedi » compensé sur la semaine — `lib/calorieBank.ts`)
+- [x] ~~Banque de calories~~ — moteur intact (`lib/calorieBank.ts`) mais **ÉTEINTE depuis
+      le 2026-08-18** (`featureFlags.ts`), et sortie de Kyroz+ : cf. §1. La case reste
+      cochée parce que le travail EST livré ; elle n'est plus atteignable.
 - [ ] Monétisation features avancées (freemium)
 
 ### Features INTERDITES (scope creep)

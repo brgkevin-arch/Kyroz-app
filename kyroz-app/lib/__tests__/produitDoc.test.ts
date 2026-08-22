@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { RECIPES } from '../recipeMap';
 import { goalLabel } from '../tdee';
 import { PARCOURS_HORS_PLAN_ACTIF, RYTHME_HEBDOMADAIRE_ACTIF } from '../featureFlags';
+import { getFridgeTracking } from '../fridgeTracking';
 
 // ── PRODUIT.md EST UNE AFFIRMATION SUR LE PRODUIT — ce test en compte la part
 //    vérifiable ────────────────────────────────────────────────────────────────
@@ -60,6 +61,24 @@ describe('PRODUIT.md — ce qu’il annonce comme ÉTEINT l’est vraiment', () 
     // retiré de l'offre. Le compte est écrit noir sur blanc, donc vérifiable.
     expect(produit).toMatch(/ajoute \*\*deux\*\* choses/);
     expect(produit).toContain('Il y en avait TROIS');
+  });
+});
+
+describe('PRODUIT.md — les DÉFAUTS qu’il décrit', () => {
+  it('ce qu’il dit de la liste de courses suit le défaut réel du frigo', () => {
+    // 🔴 CE CAS EST NÉ SIX HEURES APRÈS L'ÉCRITURE DE LA PAGE. Elle annonçait « le plan
+    // moins ce qu'il y a déjà dans le frigo » — vrai le matin, faux l'après-midi quand
+    // la soustraction est devenue optionnelle et ÉTEINTE par défaut. Le test d'alors ne
+    // regardait pas ce paragraphe : il vérifiait des comptes et des interrupteurs, pas
+    // les DÉFAUTS décrits en prose.
+    // ➡️ Un doc produit ne rote pas en semaines, il rote en heures. Ce qui le tient,
+    // c'est d'attacher chaque affirmation de comportement à la valeur qui la décide.
+    expect(getFridgeTracking()).toBe(false);
+    // ⚠️ Le motif ne contient PAS les `**` : ils entourent la phrase entière, pas le
+    // mot. Une première version les plaçait autour de « PAS » et rougissait sur un
+    // texte juste — le balisage n'est pas le sens.
+    expect(produit).toMatch(/frigo n['’]est PAS déduit par défaut/i);
+    expect(produit).toContain('Tenir compte du frigo');
   });
 });
 
