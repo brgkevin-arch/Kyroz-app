@@ -14,6 +14,18 @@ import { join } from 'node:path';
 
 const FEUILLES = ['Sheet.tsx', 'ActionSheet.tsx'];
 const lire = (f: string) => readFileSync(join(__dirname, '..', '..', 'components', f), 'utf8');
+const lireOnglet = (f: string) => readFileSync(join(__dirname, '..', '..', 'app', '(tabs)', f), 'utf8');
+
+// ⚠️ Même précaution que `materiauxDA.test.ts`, et elle a servi dès l'écriture : le
+// commentaire de `courses.tsx` cite `<Ecran corps={…} />` pour dire de ne PAS l'écrire,
+// donc un compteur naïf accuse la note qui met en garde. On mesure le code, pas ce qui
+// en parle.
+function sansCommentaires(src: string): string {
+  return src
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/^[ \t]*\/\/.*$/gm, '')
+    .replace(/\{\/\*[\s\S]*?\*\/\}/g, '');
+}
 
 describe('feuilles modales — les deux pannes qui ne se voyaient pas', () => {
   it('E12 — le glissement n’est jamais tué par un `false` constant au contact', () => {
@@ -94,6 +106,50 @@ describe('feuilles modales — les deux pannes qui ne se voyaient pas', () => {
       // chaque cycle d'ouverture/fermeture.
       expect(src, `${f} : le filet n'est pas nettoyé`).toMatch(/clearTimeout\(filet\)/);
     }
+  });
+
+  it('E45 — la feuille des Courses garde son INSTANCE entre les deux états de l’écran', () => {
+    // 🔴 LA CAUSE, trouvée le 2026-08-23 — et le filet ci-dessus n'en était pas une.
+    // `courses.tsx` a DEUX rendus (liste pleine / « Rien à acheter »), et il posait
+    // sa feuille d'historique à des positions différentes sous le même parent :
+    // dernier des DEUX enfants dans l'état vide, dernier des TROIS dans la liste
+    // (`SectionList` + `CompactTitleBar` la précèdent). React réconcilie des enfants
+    // sans `key` PAR INDEX : à chaque bascule, la `Sheet` de l'index 2 était
+    // DÉTRUITE et une neuve montée à l'index 1 — donc sa `Modal`, celle d'UIKit,
+    // détruite et recréée. Or la bascule arrive exactement quand « Courses
+    // terminées » vide la liste, c'est-à-dire dans les millisecondes où la modale
+    // de choix (« X articles ne sont pas cochés ») est encore en train de se
+    // fermer : deux transitions modales dans la même frame, ce qu'iOS ne garantit
+    // pas. Écran d'apparence normale, aucun tap qui répond, barre d'onglets
+    // comprise — le symptôme exact des deux signalements.
+    //
+    // ⚠️ Balayage des 15 fichiers qui montent une feuille : `courses.tsx` était le
+    // SEUL dans ce cas. `plan.tsx` a bien un retour anticipé (`loading`), mais ses
+    // feuilles ne vivent que dans l'autre branche et `setLoading(false)` n'est
+    // appelé qu'une fois, avant qu'aucune feuille ne puisse être ouverte.
+    //
+    // ⚠️ Le commentaire du fichier affirmait déjà l'invariant — « une seule
+    // définition, montée par les DEUX rendus ». Une seule DÉFINITION ne fait pas
+    // une seule INSTANCE, et rien ne comptait la différence. D'où ce cas.
+    const src = sansCommentaires(lireOnglet('courses.tsx'));
+    // Et la sonde sait dire OUI autant que NON — sinon elle serait verte par
+    // aveuglement : `sansCommentaires` ne doit pas manger le code qu'elle traverse.
+    expect(sansCommentaires('// on cite <Ecran corps={x} /> ici')).not.toContain('<Ecran');
+    expect(sansCommentaires('const ecran = (c) => <SafeAreaView>{c}</SafeAreaView>')).toContain('<SafeAreaView');
+    // UNE enveloppe, donc une seule position possible pour la feuille. C'est
+    // l'invariant structurel : le reste en découle sans qu'on ait à le vérifier.
+    const enveloppes = src.match(/<SafeAreaView/g) ?? [];
+    expect(enveloppes.length, `courses.tsx : ${enveloppes.length} \`SafeAreaView\` — les deux rendus ne partagent plus leur enveloppe`)
+      .toBe(1);
+    // Et la feuille n'est rendue qu'à un seul endroit : dedans.
+    const rendus = src.match(/\{feuilleHistorique\}/g) ?? [];
+    expect(rendus.length, `courses.tsx : la feuille est rendue ${rendus.length} fois`).toBe(1);
+    // 🔴 L'enveloppe est une FONCTION APPELÉE, jamais un composant. Un composant
+    // défini dans le corps du rendu change d'identité à chaque rendu : React
+    // remonterait tout l'écran à chaque frappe — le défaut qu'on vient de retirer,
+    // réintroduit par la porte d'à côté et en pire.
+    expect(src, 'courses.tsx : l’enveloppe `ecran` a disparu').toMatch(/const ecran = \(/);
+    expect(src, 'courses.tsx : l’enveloppe est devenue un composant JSX').not.toMatch(/<Ecran\b/);
   });
 
   // 🔴 Le troisième chemin, fermé le 2026-08-09 en préparant la refonte du Profil.

@@ -298,10 +298,38 @@ export default function CoursesScreen() {
   // Une seule définition de la feuille, montée par les DEUX rendus (liste pleine
   // et état vide) : l'historique se consulte surtout quand il n'y a plus rien à
   // acheter, c'est-à-dire justement dans la branche vide.
+  //
+  // 🔴 ET CETTE PHRASE ÉTAIT FAUSSE — corrigé le 2026-08-23 (E45). Une seule
+  // *définition* ne fait pas une seule *instance*. Les deux rendus la posaient à
+  // des positions différentes sous le même `SafeAreaView` : dernier des DEUX
+  // enfants dans l'état vide, dernier des TROIS dans la liste (`SectionList` +
+  // `CompactTitleBar` la précèdent). React réconcilie des enfants sans `key` PAR
+  // INDEX : à chaque bascule entre les deux états, la `Sheet` de l'index 2
+  // disparaissait et une neuve naissait à l'index 1. Donc sa `Modal` — la vraie,
+  // celle d'UIKit — était DÉTRUITE puis RECRÉÉE, au moment précis où « Courses
+  // terminées » vide la liste. Et ce geste-là passe par une modale de choix qui
+  // est encore en train d'être fermée : deux transitions modales dans la même
+  // frame, ce qu'iOS ne garantit pas. C'était le seul écran de l'app dans ce cas,
+  // et c'est celui où le gel a été signalé deux fois.
+  //
+  // ➡️ La feuille n'est donc plus rendue QUE dans cette enveloppe, une seule fois
+  // dans le fichier, forcément à la même place. L'invariant devient structurel
+  // au lieu d'être une intention écrite en commentaire.
+  // ⚠️ `ecran` est une FONCTION APPELÉE, jamais un composant (`<Ecran corps={…} />`) :
+  // un composant défini dans le corps du rendu change d'identité à chaque rendu,
+  // donc React remonterait tout l'écran à chaque frappe — l'exact défaut que ce
+  // correctif supprime, réintroduit par la porte d'à côté.
   const feuilleHistorique = (
     <Sheet visible={historyOpen} onClose={() => setHistoryOpen(false)}>
       <ShoppingHistory t={t} trips={history} onRemove={retirerSortie} />
     </Sheet>
+  );
+
+  const ecran = (corps: React.ReactNode) => (
+    <SafeAreaView style={s.safe} edges={['top']}>
+      {corps}
+      {feuilleHistorique}
+    </SafeAreaView>
   );
 
   // Ce que l'écran montre : la liste MOINS les articles écartés.
@@ -316,51 +344,48 @@ export default function CoursesScreen() {
     // « tirer pour rafraîchir » (ce n'est pas une liste défilante).
     const toutEcarte = !!list && visibles.length === 0 && nbEcartes > 0;
     const covered = !!list && list.items.length === 0;
-    return (
-      <SafeAreaView style={s.safe} edges={['top']}>
-        <View style={[s.center, layout.content]}>
-          <View style={[s.emptyIcon, { backgroundColor: t.fill }]}>
-            <Ionicons
-              name={toutEcarte ? 'file-tray-outline' : covered ? 'checkmark-done-outline' : 'cart-outline'}
-              size={Icone.vide}
-              color={toutEcarte ? t.textSecondary : covered ? t.success : t.textSecondary}
-            />
-          </View>
-          <Text style={s.emptyT}>{toutEcarte ? 'Liste vidée' : covered ? 'Rien à acheter' : 'Aucune liste'}</Text>
-          <Text style={s.emptyS}>
-            {toutEcarte
-              ? `Tu as retiré ${nbEcartes > 1 ? 'tous les articles' : "le dernier article"} de ta liste. Ton plan de repas, lui, n'a pas changé.`
-              : covered
-              ? 'Ton frigo couvre déjà tout le plan de la semaine. La liste réapparaîtra dès qu\'il te manquera quelque chose.'
-              : 'Génère un plan repas et ta liste de courses apparaît ici, triée par rayon.'}
-          </Text>
-
-          {/* La seule sortie de cet état : l'écran vide n'est pas défilant, donc
-              « tirer pour rafraîchir » n'y existe pas. Sans ce bouton, retirer le
-              dernier article serait un cul-de-sac jusqu'au prochain plan. */}
-          {toutEcarte && (
-            <Presse style={s.ctrl} onPress={retablirTout} activeOpacity={OPACITE_PRESSION}>
-              <Ionicons name="arrow-undo-outline" size={Icone.petite} color={t.textSecondary} />
-              <Text style={s.ctrlTxt}>Rétablir ma liste</Text>
-            </Presse>
-          )}
-
-          {/* L'historique se consulte surtout ICI : « rien à acheter » est
-              exactement le moment où on se demande ce qu'on a pris la dernière
-              fois. Masqué tant qu'il n'y a rien dedans — un bouton qui ouvre du
-              vide n'est pas un point d'entrée, c'est une déception. */}
-          {history.length > 0 && (
-            <>
-              <Presse style={s.ctrl} onPress={() => setHistoryOpen(true)} activeOpacity={OPACITE_PRESSION}>
-                <Ionicons name="time-outline" size={Icone.petite} color={t.textSecondary} />
-                <Text style={s.ctrlTxt}>Mes courses passées</Text>
-              </Presse>
-              <Text style={s.emptyNote}>{historySummary(history)}</Text>
-            </>
-          )}
+    return ecran(
+      <View style={[s.center, layout.content]}>
+        <View style={[s.emptyIcon, { backgroundColor: t.fill }]}>
+          <Ionicons
+            name={toutEcarte ? 'file-tray-outline' : covered ? 'checkmark-done-outline' : 'cart-outline'}
+            size={Icone.vide}
+            color={toutEcarte ? t.textSecondary : covered ? t.success : t.textSecondary}
+          />
         </View>
-        {feuilleHistorique}
-      </SafeAreaView>
+        <Text style={s.emptyT}>{toutEcarte ? 'Liste vidée' : covered ? 'Rien à acheter' : 'Aucune liste'}</Text>
+        <Text style={s.emptyS}>
+          {toutEcarte
+            ? `Tu as retiré ${nbEcartes > 1 ? 'tous les articles' : "le dernier article"} de ta liste. Ton plan de repas, lui, n'a pas changé.`
+            : covered
+            ? 'Ton frigo couvre déjà tout le plan de la semaine. La liste réapparaîtra dès qu\'il te manquera quelque chose.'
+            : 'Génère un plan repas et ta liste de courses apparaît ici, triée par rayon.'}
+        </Text>
+
+        {/* La seule sortie de cet état : l'écran vide n'est pas défilant, donc
+            « tirer pour rafraîchir » n'y existe pas. Sans ce bouton, retirer le
+            dernier article serait un cul-de-sac jusqu'au prochain plan. */}
+        {toutEcarte && (
+          <Presse style={s.ctrl} onPress={retablirTout} activeOpacity={OPACITE_PRESSION}>
+            <Ionicons name="arrow-undo-outline" size={Icone.petite} color={t.textSecondary} />
+            <Text style={s.ctrlTxt}>Rétablir ma liste</Text>
+          </Presse>
+        )}
+
+        {/* L'historique se consulte surtout ICI : « rien à acheter » est
+            exactement le moment où on se demande ce qu'on a pris la dernière
+            fois. Masqué tant qu'il n'y a rien dedans — un bouton qui ouvre du
+            vide n'est pas un point d'entrée, c'est une déception. */}
+        {history.length > 0 && (
+          <>
+            <Presse style={s.ctrl} onPress={() => setHistoryOpen(true)} activeOpacity={OPACITE_PRESSION}>
+              <Ionicons name="time-outline" size={Icone.petite} color={t.textSecondary} />
+              <Text style={s.ctrlTxt}>Mes courses passées</Text>
+            </Presse>
+            <Text style={s.emptyNote}>{historySummary(history)}</Text>
+          </>
+        )}
+      </View>
     );
   }
 
@@ -494,8 +519,8 @@ export default function CoursesScreen() {
     </View>
   );
 
-  return (
-    <SafeAreaView style={s.safe} edges={['top']}>
+  return ecran(
+    <>
       <SectionList<ShoppingItem, CoursesSection>
         sections={sections}
         keyExtractor={(item) => item.name}
@@ -561,8 +586,7 @@ export default function CoursesScreen() {
       />
 
       <CompactTitleBar t={t} title="Courses" opacity={repli.opacity} />
-      {feuilleHistorique}
-    </SafeAreaView>
+    </>
   );
 }
 
