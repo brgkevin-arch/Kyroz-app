@@ -5,7 +5,7 @@
 
 # Politique de confidentialité — Kyroz
 
-**Dernière mise à jour : 18 août 2026**
+**Dernière mise à jour : 23 août 2026**
 
 ---
 
@@ -55,7 +55,9 @@ La mesure d’usage repose sur un consentement distinct de celui portant sur vos
 
 Vos données synchronisées sont hébergées par Supabase Inc., sur des serveurs situés en Union européenne (UE).
 
-L’envoi des e-mails de service (confirmation d’inscription, réinitialisation de mot de passe) est assuré par Resend. Seules votre adresse e-mail et le contenu de ces messages lui sont transmis — aucune donnée de santé.
+L’envoi des e-mails de service (confirmation d’inscription, réinitialisation de mot de passe) est assuré par Resend (Plus Five Five, Inc.). Seules votre adresse e-mail et le contenu de ces messages lui sont transmis — aucune donnée de santé.
+
+Ces e-mails, ainsi que les journaux d’envoi correspondants, sont stockés par Resend aux États-Unis. Ce transfert hors de l’Union européenne est encadré par les clauses contractuelles types de la Commission européenne et par l’adhésion de ce prestataire au cadre de protection des données UE–États-Unis (EU-U.S. Data Privacy Framework).
 
 Si vous acceptez le partage des statistiques d’usage, celles-ci sont traitées par PostHog. Elles sont stockées sur ses serveurs de Francfort, en Allemagne. Lui sont transmis l’identifiant pseudonyme de votre appareil et les événements décrits au point 2 — aucune donnée de santé, aucun contenu de plan, ni votre adresse e-mail, ni l’identifiant de votre compte.
 
@@ -69,7 +71,9 @@ Nous ne vendons, ne louons et ne partageons vos données avec aucun tiers à des
 
 ## 6. Hébergement et localisation
 
-Les données synchronisées sont stockées dans l’Union européenne. Une copie de travail réside localement sur votre appareil (fonctionnement hors-ligne).
+Les données synchronisées — profil, objectif, suivi du poids — sont stockées dans l’Union européenne. Une copie de travail réside localement sur votre appareil (fonctionnement hors-ligne).
+
+Deux exceptions, décrites au point 5 : les e-mails de service sont stockés aux États-Unis, et les statistiques d’usage, si vous les avez acceptées, à Francfort, en Allemagne. Aucune donnée de santé ne quitte l’Union européenne.
 
 ---
 
@@ -111,4 +115,4 @@ Kyroz est réservé aux personnes âgées de 18 ans et plus. Aucun compte ne peu
 
 ## 11. Modifications
 
-La présente politique peut évoluer. Date de dernière mise à jour : 18 août 2026.
+La présente politique peut évoluer. Date de dernière mise à jour : 23 août 2026.
