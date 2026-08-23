@@ -2544,6 +2544,24 @@ téléphone.
   était lisible, et personne n'est allé voir. *Une inconnue consignée n'est pas une
   inconnue traitée* : ce qui n'a pas été mesuré doit être porté au chantier, pas
   seulement au commentaire.
+- 🔴 **DEUX RENDUS D'UN MÊME ÉCRAN DOIVENT POSER LEURS SURFACES PERSISTANTES À LA
+  MÊME POSITION** (2026-08-23, E45). Un écran qui a un retour anticipé — « liste
+  pleine » vs « état vide » — rend deux arbres différents. React réconcilie des
+  enfants sans `key` **par INDEX** : une `Sheet` dernière de DEUX enfants d'un côté
+  et dernière de TROIS de l'autre n'est pas la même instance, elle est **détruite et
+  recréée à chaque bascule**. Sur `courses.tsx`, ça détruisait et recréait une `Modal`
+  d'UIKit au moment exact où « Courses terminées » vide la liste — c'est-à-dire dans
+  les ~300 ms où la modale de choix qui précède est encore en train de se fermer.
+  ⚠️ **Le commentaire du fichier affirmait l'invariant** (« une seule définition,
+  montée par les DEUX rendus ») : une seule *définition* ne fait pas une seule
+  *instance*, et rien ne comptait la différence.
+  ➡️ **Une enveloppe unique** (`const ecran = (corps) => …`), appelée par les deux
+  retours : la surface persistante n'est écrite qu'une fois dans le fichier, donc
+  forcément à la même place. ⚠️ Une **fonction appelée**, jamais un composant
+  (`<Ecran corps={…} />`) — un composant défini dans le corps du rendu change
+  d'identité à chaque rendu, donc remonte tout l'écran à chaque frappe : le même
+  défaut, en pire. Compté par `feuilles.test.ts` (3 mutations).
+  ⚠️ Balayage fait : `courses.tsx` était le SEUL des 15 fichiers à feuille dans ce cas.
 - 🔴 **UNE DONNÉE D'UTILISATEUR NE SE RANGE PAS DANS UN CACHE QUE QUELQU'UN D'AUTRE
   EFFACE.** Trouvé le 2026-08-08 en rendant les articles de la liste de courses
   supprimables. Le réflexe était de marquer l'article dans `@kyroz:shopping` — sauf
