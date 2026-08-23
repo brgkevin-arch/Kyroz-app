@@ -15,8 +15,17 @@ compris est un dossier qui sera mal rangé la fois suivante.
 
 | fichier | quoi |
 |---|---|
-| `male-models.png` | les 6 paliers masculins (≈10 / 15 / 20 / 25 / 30 / +35 %), style facetté « low-poly », planche recalibrée |
-| `female-models.png` | idem pour les silhouettes féminines |
+| `male-models.png` | les 6 paliers masculins (**10 / 15 / 20 / 25 / 30 / 35 %**), style facetté « low-poly », planche recalibrée |
+| `female-models.png` | les 6 paliers féminins — **18 / 23 / 28 / 33 / 38 / 43 %** |
+
+🔴 **LES PALIERS FÉMININS NE SONT PAS LES MÊMES, et cette table disait le contraire**
+(corrigé le 2026-08-23). Elle écrivait « idem pour les silhouettes féminines » sous une
+ligne annonçant 10–35 % : la source de vérité est `components/BodyFatPicker.tsx::LEVELS`,
+qui sert **18 à 43 %** aux femmes. À physiologie égale, une femme porte structurellement
+plus de masse grasse — 20 % n'y est pas « tonique » mais très athlétique. ➡️ Quiconque
+aurait commandé une nouvelle planche d'après cette ligne aurait obtenu un sélecteur
+féminin faux **sur toute sa plage**, sans que rien ne le signale : les images auraient
+l'air correctes, seuls les %MG servis au moteur seraient décalés d'un cran et demi.
 
 C'est de ces deux planches que viennent les 12 images du sélecteur.
 
@@ -61,7 +70,7 @@ le gris du fond** — écart de 1 à 3 par canal sur 255. Deux conséquences :
 | exigence | pourquoi |
 |---|---|
 | **fond contrasté** (vert, magenta, noir) ou **PNG déjà transparent** | c'est le point unique qui rend le détourage possible ; un fond gris clair derrière un modèle gris clair est indécoupable |
-| **une planche par sexe**, mêmes 6 paliers (≈10/15/20/25/30/+35 %) | le sélecteur en sert 12, et deux styles dans la même grille est le défaut qu'on corrige partout ailleurs |
+| **une planche par sexe**, 6 paliers **propres à chaque sexe** (H 10/15/20/25/30/35 · F 18/23/28/33/38/43) | le sélecteur en sert 12, et deux styles dans la même grille est le défaut qu'on corrige partout ailleurs. ⚠️ Les paliers se relisent dans `BodyFatPicker.tsx::LEVELS`, jamais ici |
 | **même cadrage, même échelle, même socle** d'un palier à l'autre | un corps à 35 % doit être PLUS LARGE qu'un corps à 10 % — c'est la seule chose que ce sélecteur montre. Si chaque rendu est recadré pour remplir son image, l'information disparaît |
 | **pas de titre, pas de libellés, pas de watermark** dans l'image | les libellés viennent du code (`BodyFatPicker`), et les paillettes du coin bas-droit des planches actuelles sont un artefact à découper autour |
 
