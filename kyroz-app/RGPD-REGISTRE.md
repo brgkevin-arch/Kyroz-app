@@ -1,7 +1,7 @@
 # Registre des activités de traitement — Kyroz
 
 > Document obligatoire (RGPD art. 30). Modèle simplifié CNIL pour TPE/micro-entreprise.
-> À tenir à jour à chaque évolution du traitement des données. Dernière mise à jour : **18 août 2026**.
+> À tenir à jour à chaque évolution du traitement des données. Dernière mise à jour : **23 août 2026**.
 >
 > 🔴 **Ce registre a eu DEUX JOURS DE RETARD sur la production, et le motif vaut d'être
 > gardé.** L'expéditeur e-mail (Resend) est branché depuis le 2026-08-09 — il traite
@@ -49,8 +49,8 @@
 | **Catégories de données** | • Identification : adresse email.<br>• **Données de santé (art. 9)** : sexe, âge, poids, taille, taux de masse grasse, niveau d'activité, sport, objectif, restrictions et préférences alimentaires.<br>• Usage : plans générés, suivi du poids, série (streak), favoris, frigo (garde-manger). |
 | **Base légale** | Consentement explicite (art. 9-2-a), recueilli à l'inscription et horodaté (`consent_health_data`, `consent_at`). |
 | **Destinataires** | Le responsable de traitement, et les sous-traitants listés ci-dessous dans la stricte limite de leur mission. Aucun partage commercial, aucune revente, aucun traceur publicitaire. La mesure d'audience fait l'objet d'un traitement séparé (n°2) : **aucune donnée de ce traitement-ci ne lui est transmise**. |
-| **Sous-traitants** | • **Supabase Inc.** — hébergement de la base et de l'authentification (données de santé comprises).<br>• **Resend** — envoi des e-mails de service (confirmation d'inscription, réinitialisation de mot de passe), branché en SMTP dédié le 2026-08-09. Reçoit l'**adresse e-mail** et le contenu de ces messages, **aucune donnée de santé**. |
-| **Transferts hors UE** | Données de santé : **aucun** — hébergement Supabase dans l'Union européenne (`eu-central-1`). ⚠️ **À VÉRIFIER pour Resend** : le cadre du transfert (clauses contractuelles types / Data Privacy Framework) ne peut se lire que dans son DPA, qui n'a pas encore été consulté. Tant qu'il ne l'est pas, cette ligne ne dit pas « aucun » pour ce sous-traitant — voir le suivi des actions en fin de document. |
+| **Sous-traitants** | • **Supabase Inc.** — hébergement de la base et de l'authentification (données de santé comprises).<br>• **Resend** — nom légal **Plus Five Five, Inc.** (États-Unis) — envoi des e-mails de service (confirmation d'inscription, réinitialisation de mot de passe), branché en SMTP dédié le 2026-08-09. Reçoit l'**adresse e-mail** et le contenu de ces messages, **aucune donnée de santé**. Stockage aux **États-Unis** (voir « Transferts hors UE »).<br>**Sous-traitants ultérieurs de Resend** — page publique consultée le 2026-08-23, datée du **15 juillet 2026** : **22 entités, toutes aux États-Unis**, dont Amazon Web Services (hébergement et envoi), Cloudflare (pare-feu applicatif), PlanetScale (base de données), Vercel (hébergement serveur), Snowflake (entrepôt de données), Datadog, Stripe. Le DPA (§4.2) impose un **préavis de 14 jours** avant tout changement.<br>🔴 **QUESTION OUVERTE, non écrite dans la politique tant qu'elle n'est pas mesurée** : deux de ces 22 sous-traitants sont des fournisseurs d'IA — **Anthropic, PBC** (« Artificial Intelligence ») et **RunPod, Inc.** (« Self hosted LLM's »). La page ne dit pas à quoi l'IA sert ni si le **contenu des messages** y passe. ➡️ Se tranche comme pour PostHog : **deux preuves, pas une** (une réponse écrite du prestataire, et une vérification de ce que l'app envoie réellement). 🔁 À revérifier à chaque évolution, et **avant le 2027-02-23** (6 mois) — une liste de sous-traitants recopiée n'est juste que le jour où on la lit. |
+| **Transferts hors UE** | Données de santé : **aucun** — hébergement Supabase dans l'Union européenne (`eu-central-1`).<br>**Adresses e-mail et contenu des e-mails de service : OUI, vers les États-Unis** — *cadre lu dans le DPA le 2026-08-23, plus supposé.* Deux mécanismes cumulés : (1) **clauses contractuelles types** §6.2–6.5 (modules UE 1/2/3 pour les transferts hors EEE, addendum UK §6.4, adaptations suisses §6.5) ; (2) **EU-U.S. Data Privacy Framework** §11.1–11.4, extension UK comprise. Plus des mesures supplémentaires §6.6 (traitement des demandes gouvernementales).<br>🔴 **Et le fait qui pèse plus que le cadre** : Resend stocke **toutes** les données client aux États-Unis — contenu des messages, journaux de livraison, charges utiles de webhooks, données de compte. La **région d'envoi** choisie pour un domaine (`eu-west-1`) *« does not control where data is stored »*, et **aucun réglage ne déplace aujourd'hui le stockage dans l'UE** (page RGPD de Resend, consultée le 2026-08-23). ➡️ Ce n'est donc pas un paramètre mal posé qu'on pourrait corriger : c'est une propriété du prestataire, à assumer ou à changer de prestataire. |
 | **Durée de conservation** | Pendant toute la durée de vie du compte. Suppression définitive (serveur + appareil) à la suppression du compte ou sur demande. |
 | **Mesures de sécurité** | • Cloisonnement par utilisateur (Row Level Security PostgreSQL — un utilisateur n'accède qu'à ses données).<br>• Chiffrement des échanges en transit (HTTPS).<br>• Droit à l'effacement self-service (suppression de compte + cascade).<br>• Purge des données locales à la déconnexion.<br>• Aucun SDK tiers de tracking/publicité embarqué — le client de mesure du traitement n°2 est écrit à la main (`lib/analytics.ts`), sans SDK, et reste inerte sans consentement.<br>• Photos de progression **stockées uniquement sur l'appareil**, jamais transmises au serveur. |
 
@@ -103,13 +103,26 @@
 - [x] **2FA** activée sur le compte Supabase.
 - [x] Adresse + email de contact renseignés (2 rue du moulin, 64570 Arette · contact@kyroz.app).
 - [x] **SIREN complété** (106386162) ici, dans `constants/legal.ts` (objet `LEGAL`) et `public/legal.html`.
-- [ ] 🧑 **DPA Resend — à consulter et à conserver** (branché le 2026-08-09, déclaré ici
-  le 2026-08-11). Deux choses en dépendent, et elles ne peuvent pas s'écrire sans lui :
-  le **cadre du transfert hors UE** (clauses contractuelles types / Data Privacy
-  Framework, art. 13-1-f) et la ligne « Transferts hors UE » ci-dessus, qui reste
-  volontairement en suspens. ⚠️ Ne pas la compléter au jugé : une politique de
-  confidentialité n'est pas l'endroit où supposer (même règle que le prestataire
-  d'abonnement, `constants/legal.ts` §5).
+- [x] ✅ **DPA Resend — CONSULTÉ le 2026-08-23, et il n'y avait RIEN À SIGNER.** Le cadre
+  du transfert hors UE (art. 13-1-f) et la ligne « Transferts hors UE » ci-dessus sont
+  désormais renseignés d'après le contrat lui-même : CCT §6.2–6.5, DPF §11.1–11.4,
+  sous-traitants §4.2. Les surfaces publiques suivent (`constants/legal.ts` §5 et §6,
+  régénérées par `npm run gen:legal`).
+  🔴 **CETTE CASE ATTENDAIT UN GESTE QUI N'EXISTE PAS, ET C'EST LA LEÇON.** Elle était
+  rédigée « à consulter **et à conserver** », sur le modèle de Supabase et de PostHog —
+  deux DPA qu'il fallait effectivement générer et faire contresigner. Celui de Resend
+  est **public** et devient contraignant à l'entrée en vigueur du contrat (préambule et
+  §12 ; ses blocs de signature sont explicitement *« for reference purposes only »*).
+  Il liait donc les parties depuis l'inscription du 2026-08-07, et douze jours de
+  « en suspens » n'ont rien attendu de réel. ➡️ **Avant de porter un point comme
+  bloquant, mesurer ce qu'il demande vraiment** — même défaut que la DSA, présentée
+  douze jours comme le chemin critique alors qu'elle était validée depuis le 30 juillet.
+  ⚠️ **Ce qui reste, et ce n'est pas la même chose** : 🧑 conserver le PDF hors dépôt
+  (preuve, comme pour Supabase et PostHog), et 🧑 **arbitrer** le stockage aux
+  États-Unis — légal et déclaré, mais c'est un choix de prestataire, pas une fatalité.
+- [ ] 🧑 **Resend : à quoi sert l'IA chez le sous-traitant ?** Deux fournisseurs d'IA
+  figurent à sa liste (Anthropic PBC, RunPod). Tant que ce n'est pas mesuré, rien n'en
+  est écrit dans la politique — la question vit au tableau des sous-traitants ci-dessus.
 - [x] ✅ **LES TROIS VERROUS DE LA CLÉ POSTHOG — levés le 2026-08-18, et la clé posée le
   jour même.** `EXPO_PUBLIC_POSTHOG_KEY` est un secret du dépôt GitHub (déploiement web,
   `deploy.yml`) et une variable EAS sur les trois environnements (builds natifs). La

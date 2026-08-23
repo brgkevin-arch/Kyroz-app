@@ -43,7 +43,18 @@ export const LEGAL = {
   hostRegion: 'Union européenne (UE)',
   // Expéditeur des e-mails de service (confirmation d'inscription, réinitialisation
   // de mot de passe), branché en SMTP dédié le 2026-08-09.
+  // ⚠️ Le nom commercial n'est pas le nom légal, et c'est le second qui engage : le
+  // DPA est conclu avec `Plus Five Five, Inc.`, qui exploite le service « Resend ».
   emailProvider: 'Resend',
+  emailProviderLegalName: 'Plus Five Five, Inc.',
+  // 🔴 STOCKAGE AUX ÉTATS-UNIS, et ce n'est pas un réglage qu'on a mal posé : la page
+  // RGPD de Resend écrit que TOUTES les données client y sont stockées (contenu des
+  // messages, journaux de livraison, webhooks, données de compte), et que la région
+  // d'envoi choisie pour un domaine « does not control where data is stored ». Il
+  // n'existe aujourd'hui aucun réglage qui déplace le stockage dans l'UE.
+  // ➡️ Donc le §6 ne peut PAS dire « tout est en Europe » : la promesse ne vaut que
+  // pour les données synchronisées (Supabase). Vérifié le 2026-08-23.
+  emailProviderStorage: 'aux États-Unis',
   // Mesure d'audience (PostHog Cloud EU) — cf. `lib/analytics.ts`. Le consentement
   // est demandé séparément à l'onboarding et se retire dans Réglages.
   // ⚠️ On écrit le STOCKAGE, pas « hébergé dans l'UE » : les données sont stockées à
@@ -53,7 +64,7 @@ export const LEGAL = {
   analyticsProvider: 'PostHog',
   analyticsStorage: 'Francfort, en Allemagne',
   analyticsRetention: 'au moins un an',
-  effectiveDate: '18 août 2026',
+  effectiveDate: '23 août 2026',
 } as const;
 
 export interface LegalSection {
@@ -128,16 +139,30 @@ export const PRIVACY_POLICY: LegalSection[] = [
   // était déjà branché. ➡️ Un sous-traitant se déclare le jour où il traite, pas le
   // jour où on l'avait prévu — et la phrase « aucun outil d'analyse tiers », elle,
   // restait vraie, ce qui rendait l'omission d'autant plus facile à ne pas voir.
-  // ⚠️ Ce que ce texte NE dit PAS, faute de l'avoir vérifié : le cadre du transfert
-  // hors UE (clauses contractuelles types / Data Privacy Framework), exigé par
-  // l'art. 13-1-f. Il ne peut se lire que dans le DPA signé avec Resend — à compléter
-  // ici une fois le contrat consulté. Même règle que pour le prestataire d'abonnement
-  // ci-dessus : on nomme ce qu'on sait, on ne suppose pas ce qu'on n'a pas lu.
+  // ✅ **LE CADRE DE TRANSFERT EST LU — 2026-08-23, il n'est plus supposé.** Cette
+  // note disait « à compléter une fois le contrat consulté » et attendait une
+  // signature : le DPA de Resend ne se signe pas. Il devient contraignant à l'entrée
+  // en vigueur du contrat (préambule + §12, ses blocs de signature étant « for
+  // reference purposes only »), donc il liait déjà les parties depuis l'inscription.
+  // ➡️ **Une case qui attend un geste inexistant reste cochée « à faire » pour
+  // toujours.** Avant de porter un point comme bloquant, vérifier ce qu'il demande
+  // vraiment — c'est le défaut déjà payé sur la DSA, présentée douze jours comme le
+  // chemin critique alors qu'elle était validée.
+  // Ce que le DPA dit, avec ses sections : clauses contractuelles types §6.2–6.5
+  // (modules UE 1/2/3, addendum UK §6.4, Suisse §6.5), EU-U.S. Data Privacy Framework
+  // §11.1–11.4 (extension UK comprise), mesures supplémentaires §6.6, sous-traitants
+  // ultérieurs §4.2 avec préavis de 14 jours.
+  // ⚠️ **Ce que ce texte ne dit toujours PAS, faute de l'avoir mesuré** : deux des 22
+  // sous-traitants de Resend sont des fournisseurs d'IA (Anthropic PBC, RunPod), et
+  // leur page ne dit pas si le contenu des messages y passe. Question ouverte au
+  // registre, pas une phrase à écrire ici — même règle que pour le prestataire
+  // d'abonnement ci-dessus : on nomme ce qu'on sait.
   {
     title: '5. Destinataires et sous-traitants',
     paragraphs: [
       `Vos données synchronisées sont hébergées par ${LEGAL.host}, sur des serveurs situés en ${LEGAL.hostRegion}.`,
-      `L’envoi des e-mails de service (confirmation d’inscription, réinitialisation de mot de passe) est assuré par ${LEGAL.emailProvider}. Seules votre adresse e-mail et le contenu de ces messages lui sont transmis — aucune donnée de santé.`,
+      `L’envoi des e-mails de service (confirmation d’inscription, réinitialisation de mot de passe) est assuré par ${LEGAL.emailProvider} (${LEGAL.emailProviderLegalName}). Seules votre adresse e-mail et le contenu de ces messages lui sont transmis — aucune donnée de santé.`,
+      `Ces e-mails, ainsi que les journaux d’envoi correspondants, sont stockés par ${LEGAL.emailProvider} ${LEGAL.emailProviderStorage}. Ce transfert hors de l’Union européenne est encadré par les clauses contractuelles types de la Commission européenne et par l’adhésion de ce prestataire au cadre de protection des données UE–États-Unis (EU-U.S. Data Privacy Framework).`,
       `Si vous acceptez le partage des statistiques d’usage, celles-ci sont traitées par ${LEGAL.analyticsProvider}. Elles sont stockées sur ses serveurs de ${LEGAL.analyticsStorage}. Lui sont transmis l’identifiant pseudonyme de votre appareil et les événements décrits au point 2 — aucune donnée de santé, aucun contenu de plan, ni votre adresse e-mail, ni l’identifiant de votre compte.`,
       "Si vous souscrivez un jour un abonnement Kyroz+, sa gestion technique pourra être confiée à un prestataire spécialisé. Ne lui seraient transmis que l’identifiant technique de votre compte et l’état de votre abonnement — ni votre adresse email, ni vos données de santé, ni aucune coordonnée bancaire. Ce prestataire sera nommé ici avant toute mise en vente.",
       "Le paiement lui-même est traité par l’App Store (Apple) ou Google Play. Kyroz ne voit ni ne conserve aucune coordonnée bancaire.",
@@ -147,7 +172,8 @@ export const PRIVACY_POLICY: LegalSection[] = [
   {
     title: '6. Hébergement et localisation',
     paragraphs: [
-      `Les données synchronisées sont stockées dans l’Union européenne. Une copie de travail réside localement sur votre appareil (fonctionnement hors-ligne).`,
+      `Les données synchronisées — profil, objectif, suivi du poids — sont stockées dans l’Union européenne. Une copie de travail réside localement sur votre appareil (fonctionnement hors-ligne).`,
+      `Deux exceptions, décrites au point 5 : les e-mails de service sont stockés ${LEGAL.emailProviderStorage}, et les statistiques d’usage, si vous les avez acceptées, à ${LEGAL.analyticsStorage}. Aucune donnée de santé ne quitte l’Union européenne.`,
     ],
   },
   {
