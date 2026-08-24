@@ -48,8 +48,13 @@ installation neuve part du binaire, donc du (6).
 
 - **Binaire** : le dernier build iOS est toujours le **(6)** — `ceec1b17`, commit
   `1047b9f`, terminé le 2026-08-11 à 20 h 37. Il a **40 commits de retard** sur `main` — chiffre du 2026-08-23, qui **grandit à chaque merge** : le relire avec `git rev-list --count 1047b9f..origin/main` plutôt que de le recopier (même défaut que le décompte d'OTA tenu à la main).
-- **OTA** : la dernière est la **20ᵉ** (groupe `a3a119de`, 2026-08-23), publiée sur le
-  commit `5dbef80` — soit `origin/main` au bit près. Contrôlée sur l'artefact avant envoi.
+- **OTA** : la dernière est la **21ᵉ** (groupe `4d38f61c`, 2026-08-24), publiée sur le
+  commit `788ab09` — contenu PROUVÉ identique à `origin/main` (`git diff` vide). Contrôlée sur
+  l'artefact avant envoi. Elle porte **A38, « R6 lissée »** (`ENGINE_REV` 7 → 8) : c'est la
+  **première OTA à déplacer des calories** depuis celle de la rev 7 — les cibles des testeurs
+  peuvent MONTER au premier recalcul (max +100 en sèche, ~+390 en maintien), **aucune ne baisse**,
+  et l'avertissement one-shot de la rev 8 l'explique à l'écran.
+  *(20ᵉ : `a3a119de`, 2026-08-23, commit `5dbef80`.)*
 
 **Ce qui reste, dans cet ordre :**
 
