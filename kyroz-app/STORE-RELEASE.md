@@ -508,7 +508,7 @@ régime. Pas de blabla : un plan crédible dès le premier jour.
 • 512 recettes, adaptées à ton régime (végétarien, vegan, sans gluten, sans
   lactose, sans porc, halal, pescétarien)
 • Quantités ajustées automatiquement pour tomber sur tes macros
-• Liste de courses (qui déduit ce que tu as déjà) + frigo
+• Liste de courses (qui déduit ce que tu as déjà) + réserve, le frais et le sec
 • « Recale ma journée » : un imprévu, un repas sauté ? Le plan se réajuste
 • Suivi de série pour tenir le rythme
 • 100 % gratuit sur le cœur, fonctionne hors-ligne

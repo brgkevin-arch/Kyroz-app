@@ -23,7 +23,7 @@ Données de compte : adresse email (lors d’une inscription par email).
 
 Données de santé : sexe, âge, poids, taille, taux de masse grasse, niveau d’activité et sport pratiqué, objectif, restrictions et préférences alimentaires. Ces informations sont des données de santé au sens de l’article 9 du RGPD.
 
-Données d’usage de l’app : plans générés, suivi du poids, série (streak), favoris, garde-manger.
+Données d’usage de l’app : plans générés, suivi du poids, série (streak), favoris, réserve alimentaire.
 
 Photos de progression (facultatives) : elles restent stockées UNIQUEMENT sur votre appareil et ne sont jamais transmises à nos serveurs.
 

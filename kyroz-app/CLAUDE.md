@@ -245,7 +245,7 @@ streaks
 favorites
   └── user_id, recipe_id
 
-pantry (garde-manger)
+pantry (la RÉSERVE — ex-« garde-manger »)
   └── user_id, items[] (jsonb)
 
 weight_logs (suivi du poids)
@@ -262,7 +262,7 @@ recipe_overrides (recettes personnalisées par l'utilisateur)
 | **Le compte** (id, e-mail) | `auth.users`, schéma géré par Supabase | on ne double pas la table d'auth ; `profiles.id` la référence |
 | **Le plan de la semaine** | AsyncStorage `@kyroz:plan` | **déterministe** : re-dérivable du profil + du catalogue. `meal_plans` a été supprimée le 2026-06-14 pour cette raison |
 | **Les repas du plan** | dans l'objet plan ci-dessus | idem — jamais eu de table `meals` |
-| **La liste de courses** | recalculée à la volée depuis le plan moins le garde-manger | idem — jamais eu de table `shopping_lists` |
+| **La liste de courses** | recalculée à la volée depuis le plan moins la réserve | idem — jamais eu de table `shopping_lists` |
 | **L'historique des courses** | AsyncStorage `@kyroz:shoppingHistory`, l'appareil uniquement | ce qui est éphémère par nature (la liste est un CALCUL, son cache est effacé à chaque changement de plan) a besoin d'une trace, pas d'une table. Décision du 2026-08-07, même raisonnement que le journal hors plan : commencer local ne ferme aucune porte, le miroir se pose par-dessus la clé le jour où le besoin est mesuré. Borné à 30 sorties / 180 jours |
 | **Le catalogue de recettes** | `Recette/recettes-kyroz.json` → `lib/recipeMap.ts`, embarqué dans le bundle | il est le même pour tout le monde ; le servir depuis le réseau ajouterait une latence pour zéro bénéfice. Les fibres sont calculées à la volée (`lib/fiber.ts`), sourcées Ciqual par `ref`/`food_id`, jamais stockées |
 | **Les photos de progression** | AsyncStorage, l'appareil uniquement | donnée de santé sensible (RGPD) — décision explicite, cf. §7 |
@@ -327,10 +327,35 @@ OUTPUT         → Plan + liste de courses + recettes
 - [x] Affichage recettes + macros
 - [x] Liste de courses
 - [x] Clôture des courses (« Courses terminées ») + historique des listes — LOCAL-ONLY
-- [x] Frigo / garde-manger — ⚠️ **il n'alimente la liste de courses que si l'option
-      « Tenir compte du frigo » est activée, ÉTEINTE par défaut depuis le 2026-08-21**
-      (`lib/fridgeTracking.ts`, E58). Son autre métier — « qu'est-ce que je peux cuisiner
-      maintenant » — est inchangé.
+- [x] **La RÉSERVE** (ex-« Frigo / garde-manger », renommée le 2026-08-24) — inventaire
+      **séparé en frais et en sec**, classé automatiquement d'après la catégorie de
+      l'aliment et corrigeable d'une touche (`lib/pantry.ts::conservationDe`, champ
+      optionnel donc rétroactif, aucune migration).
+      🔴 **TROIS RÈGLES ONT CHANGÉ LE MÊME JOUR, et elles se tiennent** (décisions
+      fondateur, E59) :
+      · elle ne se remplit qu'à **« Courses terminées »**, avec ce qui est coché —
+        cocher/décocher en magasin ne l'écrit plus (`courses.tsx::terminer`) ;
+      · elle est **TOUJOURS soustraite** de la liste de courses : l'option « Tenir
+        compte du frigo » et `lib/fridgeTracking.ts` sont **supprimés**. Ce qui rendait
+        la soustraction risquée n'était pas la soustraction, c'était une réserve qui ne
+        pouvait que sur-estimer (créditée à chaque case cochée, débitée seulement en
+        cuisine). Les deux moitiés ont bougé, la dérive n'a plus de moteur ;
+      · « qu'est-ce que je peux cuisiner maintenant » a **déménagé dans Recettes**, sous
+        le filtre « Ma réserve ». Il compte désormais les **QUANTITÉS** (tolérance 95 %,
+        pièces ↔ grammes via `units.ts::poidsUnitaire`) et **filtre le régime** avec le
+        prédicat du moteur (`planEngine::recipeAllowed`, exporté pour ça). Avant, 10 g
+        de riz déclaraient réalisable une recette qui en demande 200, et l'écran
+        proposait du poulet à un végétarien.
+- [x] **Auto-coche des repas** (2026-08-24, `lib/repasAuto.ts`) — un repas non tranché
+      passe en « mangé » quand le repas SUIVANT commence, et le dernier de la journée à
+      **23 h 59** (jamais minuit : `resetTracking` efface le suivi au changement de date).
+      Les heures sont lues sur les créneaux RÉELS du profil, jamais écrites en dur.
+      C'est **exactement** « J'ai cuisiné » (réserve, macros verrouillées, recalage,
+      série), avec `auto: true` sur `meal_cooked` pour que la north star reste lisible
+      (METRICS.md §3). Réglage d'appareil **ALLUMÉ par défaut**, dans Profil → Paramètres
+      des repas. ⚠️ Défaut inverse de feu « Tenir compte du frigo », et pour la même
+      méthode : on choisit la panne qui SE VOIT — un repas coché à tort se décoche d'une
+      touche, une réserve périmée faisait disparaître un article en silence.
 - [x] Favoris recettes
 - [x] Streak tracker (7 jours consécutifs)
 - [x] Sync cloud Supabase
@@ -1782,7 +1807,7 @@ n'est pas un rôle), *budget* (< 300 ms), *fonction* (ce qu'on LIT ne bouge pas)
 |---|---|---|
 | `Segmented` — **17 sélecteurs** | le fond en accent sautait d'une case à l'autre | cohérence spatiale |
 | `MealCard` via `cookMeal` | la carte rétrécit, les suivantes remontaient d'un coup | changement d'état |
-| Frigo — repli d'un rayon | l'accordéon claquait | éviter une téléportation |
+| Réserve — repli d'un rayon | l'accordéon claquait | éviter une téléportation |
 | Les 3 listes à paliers | 8 ou 10 cartes surgissaient sous le doigt | éviter une téléportation |
 | Jauge des Courses | « Tout cocher » : 0 → 100 % en une image | changement d'état |
 | Anneau de la visite guidée | il sautait d'un bout de l'écran à l'autre | **explication** |
@@ -1945,7 +1970,8 @@ mettre 8 puis passer aux presque. Et si on veut plus, "voir + de recettes". Pare
 pour les 512 recettes : 10, puis voir +, puis 10, puis voir +, et après voir tout. »*
 
 **`lib/revelation.ts`** — pur, sans aucun import, donc testé. Trois listes s'en
-servent : les recettes prêtes du Frigo (pas de 8), les presque-prêtes (8), et le
+servent : les recettes réalisables du filtre « Ma réserve » (pas de 8), les
+presque-réalisables (8), et le
 catalogue (10). Le bouton commun est `ui.tsx::BoutonRevelation`.
 
 ⚠️ **CE N'EST PAS UNE PAGINATION.** Rien n'est chargé à la demande — le catalogue
@@ -1969,12 +1995,13 @@ liste d'être un cul-de-sac.
 🔴 **LES PALIERS SE REMETTENT À ZÉRO QUAND LA LISTE CHANGE** (filtre, recherche).
 Sans ça, le bouton annonce un reste calculé sur l'ancien filtre.
 
-⚠️ **Un plafond MUET a été retiré au passage** : les presque-prêtes du Frigo étaient
+⚠️ **Un plafond MUET a été retiré au passage** : les presque-prêtes étaient
 tronquées à 5 par un `.slice(0, 5)` que rien n'annonçait — 194 recettes n'existaient
 nulle part à l'écran. C'est le « no silent caps » du dépôt : si une liste est bornée,
 elle doit le DIRE.
 
-**Et le stock du Frigo se replie par rayon** (`garde-manger.tsx`). **Ouvert par
+**Et le stock de la Réserve se replie par rayon** (`reserve.tsx`, un rayon = une
+catégorie, à l'intérieur du frais ou du sec). **Ouvert par
 défaut**, sur demande du fondateur — un inventaire qui s'ouvre fermé cache ce qu'on
 vient vérifier. On mémorise les rayons FERMÉS, pas les ouverts : un ensemble vide
 porte le défaut sans qu'aucune ligne ne l'initialise, et un rayon qui apparaît est
@@ -1994,7 +2021,7 @@ compact (17) dans une barre collée en haut qui, elle, ne bouge jamais.
 
 **Ce que ça corrige, et le défaut était pire que « ça manque »** : les cinq onglets ne
 faisaient PAS la même chose. Plan et Profil avaient leur en-tête DANS la zone défilante —
-le titre partait et rien ne le remplaçait. Recettes, Courses et Frigo l'avaient en dehors —
+le titre partait et rien ne le remplaçait. Recettes, Courses et Réserve l'avaient en dehors —
 le titre de 34 restait planté en haut à perpétuité. **Deux comportements opposés pour le
 même objet**, sur cinq écrans d'une même barre d'onglets.
 
@@ -2014,7 +2041,7 @@ cette DA et il porte du sens : sans lui, le contenu semble s'évaporer au lieu d
 sous quelque chose.
 
 ⚠️ **Le seuil ne peut pas être négatif** (`lib/collapsingTitle.ts::seuilRepli`, plancher à
-24) : sur un écran dont l'en-tête est plus COURT que la barre — le Frigo quand le stock est
+24) : sur un écran dont l'en-tête est plus COURT que la barre — la Réserve quand le stock est
 vide — le calcul donnerait un seuil négatif, donc un titre compact affiché en permanence,
 **posé par-dessus le grand titre**.
 
@@ -2034,7 +2061,7 @@ mais une personne n'en voit que 6 le jour où elle ouvre le Plan. Servies d'un b
 seraient 20 **interruptions modales** dans la même session : chaque bulle est une
 `Modal` dont les panneaux avalent les taps, pas une infobulle qu'on ignore.
 ⚠️ **CE DÉCOMPTE EST VERROUILLÉ CONTRE LE CODE** (`visiteGuidee.test.ts`) et il ne se
-recopie pas : il a valu 21 jusqu'au 2026-08-14, où la 3ᵉ bulle du Frigo a été retirée.
+recopie pas : il a valu 21 jusqu'au 2026-08-14, où la 3ᵉ bulle de la Réserve a été retirée.
 Un inventaire écrit à trois endroits finit par se confirmer tout seul (CLAUDE.md §8,
 le compteur d'émojis) — celui-ci rougit le jour où une bulle part ou arrive.
 
@@ -2074,8 +2101,8 @@ deux textes côte à côte qui l'a montré**, pas la relecture — la bulle, ell
 conditionnait déjà.
 
 ⚠️ **Un tour AMPUTÉ est le défaut silencieux du moteur** : `startTour` écarte les étapes
-dont la cible n'est pas montée. Certaines absences sont légitimes (le bloc frigo n'existe
-pas quand le frigo est vide), mais un id mal orthographié, ou une ref perdue en
+dont la cible n'est pas montée. Certaines absences sont légitimes (le bloc n'existe
+pas quand la réserve est vide), mais un id mal orthographié, ou une ref perdue en
 refactorant un écran, fait disparaître une bulle **sans rien casser** — le tour se joue
 plus court en ayant l'air complet. D'où un avertissement en développement, et surtout le
 garde-fou ci-dessous.
@@ -2603,7 +2630,7 @@ téléphone.
   l'invalide, pas de qui l'écrit. Une intention d'utilisateur va dans une clé qui lui
   est propre — `lib/shoppingRemoved.ts` en est l'exemple.
   ⚠️ Corollaire : **une liste DÉRIVÉE ne se corrige pas dans son rendu.** La liste de
-  courses vaut « plan moins garde-manger » ; en retirer une ligne ne veut rien dire
+  courses vaut « plan moins la réserve » ; en retirer une ligne ne veut rien dire
   tant que le calcul, lui, la reproduit. Il faut soit changer l'entrée, soit poser un
   filtre PERSISTANT au-dessus — et alors ce filtre doit se nettoyer, sinon il mord un
   jour sur une donnée que personne ne lui a désignée.
@@ -2806,9 +2833,10 @@ téléphone.
 - 🔴 **CE QUI FLOTTE EN BAS D'UN ÉCRAN D'ONGLET DOIT DÉGAGER `Fond.barreOnglets`.**
   La barre d'onglets flotte au-dessus du contenu depuis la passe matériaux (§8) : un
   `position: absolute` à `bottom: 28` est dessiné DERRIÈRE elle, lisible seulement
-  comme une tache floue à travers le verre. Les deux bandeaux « cuisiné » (Frigo et
+  comme une tache floue à travers le verre. Les deux bandeaux « cuisiné » (Réserve et
   Plan) étaient dans ce cas — même style recopié, même faute, jamais vue. ➡️ Compté
-  par `lib/__tests__/cuisinerDepuisLeFrigo.test.ts`.
+  par `lib/__tests__/cuisinerDepuisLaReserve.test.ts`, qui balaye TOUS les écrans
+  d'onglet (le bandeau a depuis suivi le geste jusqu'à `recettes.tsx`).
 - **Build natif iOS** : `npx expo run:ios` (CocoaPods via brew).
   🔴 **AVEC `LANG=en_US.UTF-8`, SINON `pod install` PLANTE — et l'erreur accuse le
   mauvais fichier** (2026-08-14). Le shell des sessions tourne avec `LANG=""` et

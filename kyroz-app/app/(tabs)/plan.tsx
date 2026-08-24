@@ -559,7 +559,11 @@ export default function PlanScreen() {
     setPantry(next);
     await setMealStatus(meal, 'eaten', meal.macros);
     await markActiveToday(); // manger selon le plan = adhésion réelle
-    capture(Events.mealCooked, { meal_type: meal.meal_type });
+    // ⚠️ `auto: false` EXPLICITE, et pas une propriété absente : la north star se lit
+    // sur ce drapeau (METRICS.md §3), et « absent » ne se filtre pas de la même façon
+    // que « faux » dans PostHog. Deux formes pour un même fait, c'est une requête qui
+    // se trompe un jour.
+    capture(Events.mealCooked, { meal_type: meal.meal_type, auto: false });
     setSelectedMeal(null);
     toast('✓ Mangé — journée recalée');
   };
