@@ -29,8 +29,9 @@
 | Accès relecteur | code posé au build, auth anonyme active, notes rédigées (§11) |
 | Migrations Supabase | **rien en attente** — la dernière date du 2026-08-10 et elle est en prod |
 
-**🔴 CE QUI EST LIVRÉ MAIS QUE PERSONNE NE VOIT ENCORE.** Trois chantiers sont sur
-`main` et sur le site web, mais **ni en OTA ni dans un binaire** :
+**✅ LES TROIS CHANTIERS SONT PARTIS EN OTA le 2026-08-23** (groupe `a3a119de`, commit
+`5dbef80`). Ils restent **absents du BINAIRE** — le relecteur, lui, ouvre l'app une fois
+et voit le JS embarqué, donc seul le (7) les lui montrera :
 
 | Livré sur `main` | Ce que c'est |
 |---|---|
@@ -38,14 +39,17 @@
 | **Textes légaux** | le transfert Resend vers les USA, nommé dans la politique |
 | **A32** | les 12 silhouettes du sélecteur de %MG, refaites |
 
-➡️ **Les trois partiront dans le build (7)**, ou plus tôt en OTA si le fondateur le
-décide. Rien ne l'impose : aucun n'est un correctif d'urgence.
+➡️ **Publiés en OTA le 2026-08-23**, sur décision du fondateur — le parc installé les a.
+⚠️ **Ça ne dispense pas du (7)** : une OTA ne s'applique qu'au lancement SUIVANT, et le
+relecteur n'en ouvre qu'un. ⚠️ Et elle n'atteint que les appareils DÉJÀ installés : une
+installation neuve part du binaire, donc du (6).
 
 **L'état des deux surfaces qui comptent, RELU chez le prestataire :**
 
 - **Binaire** : le dernier build iOS est toujours le **(6)** — `ceec1b17`, commit
   `1047b9f`, terminé le 2026-08-11 à 20 h 37. Il a **40 commits de retard** sur `main` — chiffre du 2026-08-23, qui **grandit à chaque merge** : le relire avec `git rev-list --count 1047b9f..origin/main` plutôt que de le recopier (même défaut que le décompte d'OTA tenu à la main).
-- **OTA** : la dernière est la **19ᵉ** (groupe `87a65d34`, 2026-08-21). Aucune depuis.
+- **OTA** : la dernière est la **20ᵉ** (groupe `a3a119de`, 2026-08-23), publiée sur le
+  commit `5dbef80` — soit `origin/main` au bit près. Contrôlée sur l'artefact avant envoi.
 
 **Ce qui reste, dans cet ordre :**
 
