@@ -67,33 +67,96 @@ export function katchEligible(b: Pick<BmrBody, 'body_fat_pct' | 'body_fat_source
     && typeof b.body_fat_pct === 'number' && b.body_fat_pct > 0;
 }
 
+// ── Sélection de la formule de BMR — règle « R6 lissée » (2026-08-24) ────────
+//
+// Katch-McArdle s'écrit `370 + 21,6 × masse maigre`. Les deux nombres sont des
+// CONSTANTES CALIBRABLES, pas des vérités : la littérature athlète (Cunningham,
+// ten Haaf) place l'ordonnée ~130–150 kcal plus haut à masse maigre égale. R6
+// sous-corrige donc d'autant côté sec — direction sûre en déficit, assumée, à
+// revisiter avec les données de calibration P2. Ne pas les « corriger » sans
+// mesure nouvelle et décision fondateur (handoff du 2026-08-24, §8).
+export const KATCH_INTERCEPT = 370;
+export const KATCH_SLOPE = 21.6;
+
+/** Incertitude d'une silhouette tapée au jugé, en points de %MG (±5, cf. §6). */
+export const BF_UNCERTAINTY_PTS = 5;
+/** Début de la fenêtre de mélange, en multiples de bande d'incertitude. */
+export const BLEND_START = 0.5;
+/** Largeur de la fenêtre — fin = BLEND_START + BLEND_WIDTH = 1,5 bande. */
+export const BLEND_WIDTH = 1.0;
+
 /**
- * BMR — Katch-McArdle si le %MG est **MESURÉ** (basé sur la masse maigre, donc bien
- * plus précis quand deux personnes de même poids ont des compositions différentes),
- * sinon Mifflin-St Jeor (différenciée par sexe).
+ * Mifflin-St Jeor, NON ARRONDIE. Toutes les opérations de sélection se font sur
+ * valeurs brutes ; l'arrondi half-up (`Math.round`) ne s'applique qu'au BMR final
+ * servi — sinon les vecteurs de référence divergent de ±1-2 kcal.
+ */
+export function mifflinRaw(b: Pick<BmrBody, 'sex' | 'weight_kg' | 'height_cm' | 'age'>): number {
+  return 10 * b.weight_kg + 6.25 * b.height_cm - 5 * b.age + (b.sex === 'male' ? 5 : -161);
+}
+
+/** Katch-McArdle, NON ARRONDIE — %MG clampé par sexe via `leanBodyMass`, comme toujours. */
+export function katchRaw(b: Pick<BmrBody, 'sex' | 'weight_kg' | 'body_fat_pct'>): number {
+  return KATCH_INTERCEPT + KATCH_SLOPE * leanBodyMass(b.sex, b.weight_kg, b.body_fat_pct as number);
+}
+
+/**
+ * Bande d'incertitude d'une silhouette, exprimée en BMR (kcal/j) — PAS en TDEE :
+ * comparer en BMR rend la bascule invariante au facteur NEAT et à la dépense
+ * sportive, qui multiplient ou s'ajoutent APRÈS. Vaut `1,08 × poids`.
+ */
+export const bandeBmr = (poidsKg: number) => KATCH_SLOPE * poidsKg * (BF_UNCERTAINTY_PTS / 100);
+
+/**
+ * Poids de mélange `w ∈ [0;1]` du BMR d'un %MG NON mesuré : 0 = Mifflin pur,
+ * 1 = Katch pur. Lecture : `w = 0` tant que `katch − mifflin ≤ 0,5 bande` — donc
+ * sur TOUT le côté gras (`d ≤ 0`), quel que soit l'écart — puis linéaire jusqu'à
+ * `1,5 bande` (`w = 0,5` à exactement 1 bande, l'ancien seuil dur).
  *
- * ⚠️ « connu » ne suffit plus, il faut « mesuré » (2026-08-06, `ENGINE_REV` 5 → 6).
- * Le %MG est OBLIGATOIRE à l'onboarding et le chemin par défaut y est le tap sur une
- * silhouette : « connu » désignait donc, pour la quasi-totalité du parc, une
- * ESTIMATION VISUELLE. Le %MG estimé continue d'être stocké, affiché, et de porter la
- * masse maigre (plancher, protéines, rythme de perte) — il ne pilote plus le BMR.
+ * L'asymétrie est le cœur de la règle : Katch compte le tissu adipeux à ZÉRO
+ * kcal, donc son erreur CROÎT avec la masse grasse — côté gras, Mifflin est la
+ * plus précise des deux (mesuré sur n=3001 et n=731, cf. handoff §10) et on n'y
+ * touche pas. Côté sec, c'est Mifflin qui sous-sert les profils nettement plus
+ * musclés que la moyenne de leur gabarit, et la bascule ne se déclenche qu'au-delà
+ * du bruit de la silhouette (±5 pts), pour ne pas transformer une incertitude en
+ * calories.
+ */
+export function melangeVersKatch(b: BmrBody): number {
+  if (!(typeof b.body_fat_pct === 'number' && b.body_fat_pct > 0)) return 0;
+  const d = katchRaw(b) - mifflinRaw(b);
+  const bande = bandeBmr(b.weight_kg);
+  if (d <= BLEND_START * bande) return 0;
+  return Math.min(1, (d - BLEND_START * bande) / (BLEND_WIDTH * bande));
+}
+
+/**
+ * BMR — trois chemins, dans cet ordre :
+ *  1. %MG **MESURÉ** → Katch-McArdle directement (règle du 2026-08-06, inchangée) ;
+ *  2. %MG estimé — ou provenance absente — dont Katch dépasse Mifflin AU-DELÀ du
+ *     bruit d'une silhouette → mélange progressif vers Katch (« R6 lissée »,
+ *     `ENGINE_REV` 7 → 8, 2026-08-24) ;
+ *  3. tout le reste, côté gras compris → Mifflin-St Jeor, jamais de baisse.
  *
- * Ce que ça déplace, mesuré sur les 12 silhouettes du sélecteur : cible servie médiane
- * **+43 kcal/j**, min −80, max +363 (TDEE : −217 à +363 — le plancher amortit toujours
- * les baisses). L'écart croît avec le %MG déclaré : négatif sur les silhouettes sèches,
- * où Katch donnait plus, positif sur les grasses.
- * Le plancher BRUT (30 kcal/kg de masse maigre + sport) ne bouge d'aucun kcal — la masse
- * maigre ne lit pas la provenance. ⚠️ Le CANDIDAT `energy_availability`, lui, peut
- * bouger : il est plafonné à la maintenance (§6), et ce plafond suit le TDEE. Mesuré :
- * 1 corps sur 12, un gabarit implausible (F 82 kg à 10 % de MG). Voir
- * `bodyFatSource.test.ts`, bloc 4 — la formulation naïve de ce test était FAUSSE.
+ * ⚠️ Historique qui reste vrai (2026-08-06, `ENGINE_REV` 5 → 6) : « connu » ne
+ * suffit pas pour Katch PUR, il faut « mesuré ». Le chemin par défaut de
+ * l'onboarding est le tap sur une silhouette (±5 points d'incertitude, soit
+ * ±13 kcal/j de BMR par point). Le %MG estimé continue d'être stocké, affiché, et
+ * de porter la masse maigre (plancher, protéines, rythme de perte).
+ *
+ * Ce que R6 lissée corrige (2026-08-24) : la règle binaire « estimé ⇒ toujours
+ * Mifflin » sous-servait les profils nettement plus musclés que la moyenne de leur
+ * gabarit, et le seuil dur envisagé sautait de ±70 kcal sur une pesée de ±500 g.
+ * Mesuré sur 357 corps plausibles : 36 % (H) / 37 % (F) des corps prennent du BMR,
+ * Δcible médian +8 (cut) / +64 (maintain) kcal/j, max +83 / +301, AUCUNE baisse.
+ * Le plancher BRUT (30 kcal/kg de masse maigre + sport) ne bouge d'aucun kcal — la
+ * masse maigre ne lit pas la provenance. ⚠️ Le CANDIDAT `energy_availability`, lui,
+ * peut bouger par son PLAFOND (la maintenance, qui suit le TDEE — cf.
+ * `bodyFatSource.test.ts`, bloc 4).
  */
 export function calculateBMR(b: BmrBody): number {
-  if (katchEligible(b)) {
-    return Math.round(370 + 21.6 * leanBodyMass(b.sex, b.weight_kg, b.body_fat_pct as number));
-  }
-  const base = 10 * b.weight_kg + 6.25 * b.height_cm - 5 * b.age;
-  return Math.round(base + (b.sex === 'male' ? 5 : -161));
+  if (katchEligible(b)) return Math.round(katchRaw(b));
+  const w = melangeVersKatch(b);
+  if (w === 0) return Math.round(mifflinRaw(b));
+  return Math.round(mifflinRaw(b) + w * (katchRaw(b) - mifflinRaw(b)));
 }
 
 // ── NEAT : la vie quotidienne HORS sport ─────────────────────────────────────
@@ -287,8 +350,10 @@ export type TdeeBody = {
  * exactement ce qu'elle coûte, et `training_days_per_week` ne pilote plus rien ici
  * (il reste utile aux jours de repos et à la génération du plan).
  *
- * BMR : Katch-McArdle si `body_fat_pct` est **mesuré** (`body_fat_source`), sinon
- * Mifflin-St Jeor. Cf. `calculateBMR`.
+ * BMR : Katch-McArdle si `body_fat_pct` est **mesuré** (`body_fat_source`) ; sinon
+ * Mifflin-St Jeor, avec glissement progressif vers Katch quand la silhouette
+ * indique nettement plus de masse maigre que la moyenne du gabarit (« R6 lissée »).
+ * Cf. `calculateBMR`.
  *
  * Cette fonction est l'UNIQUE source de calcul du TDEE, et `recalcProfile` en est
  * l'UNIQUE producteur de la valeur stockée `tdee_kcal`. Tout écran lit la valeur
@@ -831,11 +896,16 @@ export function macrosPercent(
  * ordre, souvent plus grand (le plancher de sécurité suit la masse maigre), donc
  * l'annonce reste PRUDENTE. Ne pas la présenter comme l'écart de cible.
  *
- * ⚠️ `source` N'EST PAS DÉCORATIF (2026-08-06). Depuis que Katch-McArdle exige un %MG
- * mesuré, un %MG ESTIMÉ ne déplace plus la dépense : cette fonction rend alors 0, et
- * l'écran ne doit pas annoncer de kcal. Sans ce paramètre elle continuerait de
- * chiffrer un impact qui n'existe plus — « un chiffre affiché est celui qui sera
- * servi », et ici il ne le serait plus.
+ * ⚠️ `source` N'EST PAS DÉCORATIF (2026-08-06). Katch-McArdle PUR exige un %MG
+ * mesuré ; sans ce paramètre la fonction chiffrerait un impact qui ne sera pas
+ * servi — « un chiffre affiché est celui qui sera servi ».
+ *
+ * ⚠️ AMENDÉ PAR R6 LISSÉE (2026-08-24) : un %MG estimé peut désormais déplacer la
+ * dépense VERS LE HAUT, quand la silhouette indique nettement plus de masse maigre
+ * que la moyenne du gabarit (cf. `melangeVersKatch`). Cette fonction rend donc :
+ * 0 côté gras et sous le seuil de mélange, un impact POSITIF en zone de mélange —
+ * jamais négatif en estimé, le mélange ne descendant jamais sous Mifflin. Le
+ * chiffre annoncé reste, dans tous les cas, celui qui sera servi.
  */
 export function bodyFatTdeeImpact(
   body: TdeeBody, declaredPct: number, source?: BodyFatSource,
@@ -975,6 +1045,16 @@ export const ENGINE_REV_LEGACY = 1;
 /**
  * Révision courante — à INCRÉMENTER à chaque correction qui déplace les cibles.
  *
+ * rev 7 → 8 (2026-08-24, « R6 lissée ») : pour un %MG estimé — ou sans provenance —
+ * le BMR glisse de Mifflin vers Katch-McArdle quand Katch dépasse Mifflin au-delà
+ * du bruit d'une silhouette (±5 pts de %MG, fenêtre 0,5 → 1,5 bande). Jamais
+ * l'inverse : côté gras, Mifflin reste servi tel quel. Ne déplace donc les cibles
+ * que VERS LE HAUT, et uniquement chez les profils nettement plus musclés que la
+ * moyenne de leur gabarit — 36 % des corps H, 37 % F sur la grille de 357 corps
+ * plausibles ; Δcible médian +8 (cut) / +64 (maintain) kcal/j, max +83 / +301,
+ * AUCUNE baisse. La branche `measured` et la masse maigre (plancher, protéines,
+ * rythme) ne bougent pas d'un kcal. Décision fondateur, handoff du 2026-08-24.
+ *
  * rev 6 → 7 (2026-08-10) : DEUX changements, tous deux déplaçant des cibles.
  * · Les planchers dérivés de la masse maigre (BMR, énergie disponible) se retirent
  *   au-delà de 30 % de MG chez l'homme, 40 % chez la femme (`safety.highAdiposity`).
@@ -1023,7 +1103,7 @@ export const ENGINE_REV_LEGACY = 1;
  * l'explication de la rev 2 à quelqu'un dont la cible a bougé pour une autre raison
  * serait un mensonge, pas une approximation.
  */
-export const ENGINE_REV = 7;
+export const ENGINE_REV = 8;
 
 /**
  * Seuil d'affichage (kcal/j, en valeur absolue). En dessous, l'écart tient dans le
@@ -1059,7 +1139,11 @@ function engineNoticeFor(
   if (depuis === ENGINE_REV) return undefined;
   if (!(prevTarget > 0) || !(nextTarget > 0)) return undefined;
   if (Math.abs(nextTarget - prevTarget) < ENGINE_NOTICE_MIN_DELTA) return undefined;
-  const cause: EngineNotice['cause'] | undefined = !b ? undefined
+  // ⚠️ Les deux causes départagent un trajet qui TRAVERSE la rev 7 — elles ne
+  // valent rien pour qui vient de la rev 7 ou plus : sa cible n'a bougé que par la
+  // rev 8 (R6 lissée), et lui servir « la limite de sécurité ne s'applique plus »
+  // ou « une seule prise de masse » serait un mensonge, pas une approximation.
+  const cause: EngineNotice['cause'] | undefined = (!b || depuis >= 7) ? undefined
     : highAdiposity(b) ? 'floor_lifted'
       : b.goal === 'lean_bulk' ? 'goal_merged'
         : undefined;

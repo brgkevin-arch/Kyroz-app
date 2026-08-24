@@ -940,12 +940,28 @@ describe('repère de MASSE MAIGRE — le trou que le seuil plat laissait (A6, 20
   });
 
   it('ne déplace AUCUNE cible : c\'est un repère, pas une formule', () => {
+    // ⚠️ RÉÉCRIT POUR R6 LISSÉE (2026-08-24). L'ancienne sonde était « mêmes cibles
+    // pour les deux sexes » — une égalité d'ARTEFACT : le plancher d'énergie
+    // disponible (égal à masse maigre égale) retenait les DEUX cibles. Depuis R6,
+    // 20 % chez une femme de 80 kg est loin de la moyenne de SON gabarit — le cas
+    // même que ce repère signale — et son BMR glisse à Katch pur, pendant que
+    // l'homme, ordinaire à 20 %, reste près de Mifflin : les cibles divergent par
+    // le MOTEUR. Ce que ce test garde n'a pas changé : le repère n'est LU par aucun
+    // chemin de calcul — il vit à l'écran (`BodyFatPicker`), pas dans une formule.
+    for (const f of ['tdee.ts', 'planEngine.ts', 'datedGoal.ts', 'dailyBudget.ts', 'safety.ts']) {
+      const src = readFileSync(new URL(`../${f}`, import.meta.url), 'utf8');
+      // Dans safety.ts, on saute sa propre déclaration : ce qu'on interdit est un APPEL.
+      const apresDef = src.slice(f === 'safety.ts' ? src.indexOf('export function bodyFatConcern') + 40 : 0);
+      expect(apresDef.includes('bodyFatConcern('), f).toBe(false);
+    }
+    // Et les cibles valent ce que le moteur SEUL produit (mesuré le 2026-08-24) :
+    // 1920 = plancher d'énergie disponible (30 × 64 kg de masse maigre, identique
+    // pour les deux sexes) ; 1978 = TDEE Katch pur − 300, au-dessus du plancher.
     const cible = (sex: 'male' | 'female') => recalcProfile(makeProfile({
       ...corps, sex, body_fat_pct: 20, goal: 'cut', macro_mode: 'auto',
     }), TODAY).target_kcal;
-    // Le constat d'origine, verrouillé tel quel : on ne l'a PAS corrigé par la
-    // formule (mesuré, aucune variante n'améliorait sans casser autre chose).
-    expect(cible('female')).toBe(cible('male'));
+    expect(cible('male')).toBe(1920);
+    expect(cible('female')).toBe(1978);
   });
 
   it('rien à signaler sur une valeur absente ou absurde', () => {

@@ -1,10 +1,20 @@
 // ── PROVENANCE DU %MG — Katch-McArdle ne prend plus une devinette (2026-08-06) ──
 //
+// ⚠️ AMENDÉ PAR « R6 LISSÉE » (2026-08-24, `ENGINE_REV` 7 → 8) : un %MG estimé ne
+// donne plus TOUJOURS Mifflin — quand Katch dépasse Mifflin au-delà du bruit d'une
+// silhouette, le BMR glisse progressivement vers Katch (jamais l'inverse, jamais de
+// baisse). Les vecteurs et invariants de cette règle vivent dans `r6Lissee.test.ts` ;
+// les blocs 1, 3, 6 et 8 ci-dessous ont été réécrits pour dire la règle NOUVELLE.
+// Ce qui n'a pas bougé d'un kcal : la branche `measured` (Katch pur), le côté gras
+// (Mifflin tel quel), et l'option A (bloc 4 — la masse maigre ignore la provenance).
+//
 // Ce que ce fichier défend, et pourquoi chaque test existe :
 //
-//  1. la BRANCHE : Katch uniquement si `body_fat_source === 'measured'` ;
+//  1. la BRANCHE : Katch PUR uniquement si `body_fat_source === 'measured'` ; un
+//     estimé reste borné dans [Mifflin ; Katch], et vaut Mifflin dès que Katch ne
+//     dépasse pas nettement ;
 //  2. le DÉFAUT : `undefined` (tous les comptes d'avant la migration) calcule comme
-//     estimé, donc Mifflin — jamais l'inverse ;
+//     estimé — jamais comme mesuré ;
 //  3. la NON-RÉGRESSION que le fondateur a demandée : un profil existant sans
 //     provenance ne voit pas son TDEE changer « de façon inattendue ». Il change de
 //     façon EXPLICABLE et bornée, et c'est mesuré ici, pas affirmé ;
@@ -37,7 +47,7 @@ import { readFileSync } from 'node:fs';
 import { describe, it, expect } from 'vitest';
 import {
   calculateBMR, calculateTDEE, katchEligible, recalcProfile, computePlan,
-  bodyFatTdeeImpact, leanBodyMass, ENGINE_REV,
+  bodyFatTdeeImpact, leanBodyMass, ENGINE_REV, katchRaw, mifflinRaw,
 } from '../tdee';
 import {
   safetyFloorKcal, fatFreeMassKg, EA_HARD_FLOOR, highAdiposity,
@@ -68,19 +78,21 @@ describe('1 — la branche du BMR suit la PROVENANCE, pas la présence du chiffr
     expect(calculateBMR({ ...bf, body_fat_source: 'measured' })).toBe(katch);
   });
 
-  it('estimé → Mifflin-St Jeor, alors que le %MG est bien là', () => {
+  it('estimé, silhouette côté gras → Mifflin-St Jeor, alors que le %MG est bien là', () => {
+    // Sur CE corps (F 33 %), Katch donne MOINS que Mifflin : côté gras, le %MG estimé
+    // ne pilote pas le BMR — R6 lissée ne mélange que côté sec (cf. r6Lissee.test.ts).
     expect(calculateBMR({ ...bf, body_fat_source: 'estimated' })).toBe(mifflin);
-    // Le point de tout le chantier : le chiffre est présent, il ne pilote plus le BMR.
     expect(bf.body_fat_pct).toBeGreaterThan(0);
   });
 
-  it('provenance ABSENTE → Mifflin (le défaut va vers la prudence)', () => {
+  it('provenance ABSENTE → même chemin que l\'estimé (le défaut va vers la prudence)', () => {
     expect(calculateBMR(bf)).toBe(mifflin);
   });
 
-  it('une provenance INCONNUE ne rouvre pas Katch (égalité, pas négation)', () => {
+  it('une provenance INCONNUE ne rouvre pas Katch PUR (égalité, pas négation)', () => {
     // Une ligne cloud d'une version future, ou une valeur corrompue, ne doit pas
-    // tomber du côté permissif. `katchEligible` teste l'ÉGALITÉ à 'measured'.
+    // tomber du côté permissif. `katchEligible` teste l'ÉGALITÉ à 'measured' : tout
+    // le reste emprunte le chemin estimé — mélange borné côté sec, Mifflin ici.
     const exotique = { ...bf, body_fat_source: 'dexa_2027' as unknown as BodyFatSource };
     expect(katchEligible(exotique)).toBe(false);
     expect(calculateBMR(exotique)).toBe(mifflin);
@@ -112,7 +124,10 @@ describe('3 — un profil existant SANS provenance : ce qui bouge, et de combien
   // renseignée ne voit pas son TDEE changer de façon inattendue après migration ».
   // Il change — c'est l'objet du correctif — mais de façon EXPLICABLE : il vaut
   // exactement le TDEE Mifflin, et l'écart est borné.
-  it('son TDEE vaut EXACTEMENT celui d\'un %MG absent : le chiffre ne le pilote plus', () => {
+  it('côté gras, son TDEE vaut EXACTEMENT celui d\'un %MG absent', () => {
+    // Ce corps (F 33 %) est côté gras : le chiffre estimé n'y pilote pas le BMR.
+    // Côté sec, R6 lissée le fait remonter — vers le haut uniquement, jamais
+    // au-delà de Katch (cf. r6Lissee.test.ts, invariants §4).
     const legacy = recalcProfile(corps(undefined), T);
     const sansMG = recalcProfile(corps(undefined, { body_fat_pct: undefined }), T);
     expect(legacy.tdee_kcal).toBe(sansMG.tdee_kcal);
@@ -126,14 +141,17 @@ describe('3 — un profil existant SANS provenance : ce qui bouge, et de combien
     expect(legacy.body_fat_source).toBeUndefined();
   });
 
-  it('l\'écart est ORDONNÉ et BORNÉ, et le plancher AMORTIT les baisses', () => {
+  it('l\'écart vs `measured` a le signe de l\'ERREUR de Katch, et le plancher AMORTIT les baisses', () => {
     // Balayage sur les 12 valeurs du sélecteur de silhouettes, deux sexes.
-    // Ce qui est vérifié n'est pas une fourchette tombée du ciel mais la FORME de
-    // l'écart, qui est ce qui le rend explicable :
-    //   · après migration, le TDEE ne dépend plus DU TOUT du %MG (constant par sexe) ;
-    //   · l'écart croît donc avec le %MG déclaré — négatif chez les silhouettes les
-    //     plus sèches (Katch donnait plus), positif chez les plus grasses (Katch
-    //     donnait moins). Personne ne « perd » ou ne « gagne » au hasard ;
+    // ⚠️ RÉÉCRIT POUR R6 LISSÉE (2026-08-24) — la version d'avant vérifiait « six
+    // silhouettes, un seul chiffre » et un écart monotone : deux affirmations de la
+    // règle binaire, fausses depuis que le côté sec se mélange. Ce qui est vérifié
+    // reste la FORME de l'écart, qui est ce qui le rend explicable :
+    //   · quand Katch donne PLUS que Mifflin (silhouettes sèches), le profil sans
+    //     provenance sert un mélange ≤ Katch : l'écart vs `measured` est ≤ 0 ;
+    //   · quand Katch donne MOINS (silhouettes grasses), Mifflin est servi tel quel,
+    //     donc l'écart est ≥ 0 — c'est l'asymétrie même de la règle ;
+    //   · le BMR servi ne descend jamais sous Mifflin, quelle que soit la silhouette ;
     //   · et sur la CIBLE SERVIE, le plancher de sécurité amortit toujours la baisse.
     const ecartsTdee: number[] = [];
     const ecartsCible: number[] = [];
@@ -141,30 +159,31 @@ describe('3 — un profil existant SANS provenance : ce qui bouge, et de combien
       ['male', [10, 15, 20, 25, 30, 35]],
       ['female', [18, 23, 28, 33, 38, 43]],
     ] as const) {
-      const apresParPct = new Set<number>();
       for (const pct of pcts) {
         const o = { sex, weight_kg: sex === 'male' ? 82 : 68, height_cm: sex === 'male' ? 180 : 166, age: 30, body_fat_pct: pct };
         const avant = recalcProfile(corps('measured', o), T);
         const apres = recalcProfile(corps(undefined, o), T);
-        apresParPct.add(apres.tdee_kcal);
         ecartsTdee.push(apres.tdee_kcal - avant.tdee_kcal);
         ecartsCible.push(apres.target_kcal - avant.target_kcal);
+        const cle = `${sex} ${pct}%`;
+        const b = { sex, weight_kg: o.weight_kg, height_cm: o.height_cm, age: 30, body_fat_pct: pct };
+        const d = katchRaw(b) - mifflinRaw(b);
+        if (d > 0) expect(apres.tdee_kcal - avant.tdee_kcal, cle).toBeLessThanOrEqual(0);
+        else expect(apres.tdee_kcal - avant.tdee_kcal, cle).toBeGreaterThanOrEqual(0);
+        // Jamais de baisse en estimé : le BMR servi reste ≥ Mifflin.
+        expect(calculateBMR(b), cle).toBeGreaterThanOrEqual(Math.round(mifflinRaw(b)));
         // Une baisse de dépense n'est jamais répercutée en entier sur l'assiette.
-        expect(apres.target_kcal - avant.target_kcal, `${sex} ${pct}%`)
+        expect(apres.target_kcal - avant.target_kcal, cle)
           .toBeGreaterThanOrEqual(apres.tdee_kcal - avant.tdee_kcal);
       }
-      // Le %MG ne pilote plus le TDEE : six silhouettes, un seul chiffre.
-      expect(apresParPct.size, sex).toBe(1);
     }
-    // Croissant avec le %MG, sexe par sexe (6 + 6 valeurs, dans l'ordre du balayage).
-    for (const debut of [0, 6]) {
-      const bloc = ecartsTdee.slice(debut, debut + 6);
-      expect(bloc, `bloc ${debut}`).toEqual([...bloc].sort((x, y) => x - y));
-    }
-    // Bornes MESURÉES le 2026-08-06 — elles se resserrent si le moteur change, et
-    // c'est voulu : ce sont des chiffres qu'on doit pouvoir citer au fondateur.
-    expect([Math.min(...ecartsTdee), Math.max(...ecartsTdee)]).toEqual([-217, 363]);
-    expect([Math.min(...ecartsCible), Math.max(...ecartsCible)]).toEqual([-80, 363]);
+    // Bornes MESURÉES le 2026-08-24 (moteur, pas réplique) — elles se resserrent si
+    // le moteur change, et c'est voulu : ce sont des chiffres qu'on doit pouvoir
+    // citer au fondateur. R6 lissée les a resserrées d'elle-même : le pire écart vs
+    // `measured` était de −217 kcal de TDEE sous la règle binaire, il est de −64 —
+    // le mélange rend au corps sec l'essentiel de ce que la règle binaire lui prenait.
+    expect([Math.min(...ecartsTdee), Math.max(...ecartsTdee)]).toEqual([-64, 363]);
+    expect([Math.min(...ecartsCible), Math.max(...ecartsCible)]).toEqual([-48, 363]);
   });
 
   it('l\'avertissement one-shot part bien (ENGINE_REV a été incrémenté)', () => {
@@ -254,13 +273,32 @@ describe('5 — déterminisme : mêmes entrées, mêmes sorties', () => {
 describe('6 — le repère affiché ne peut plus annoncer des kcal qui ne seront pas servis', () => {
   const body = { sex: 'female' as const, age: 35, weight_kg: 80, height_cm: 170, neat_level: 'desk' as const };
 
-  it('%MG estimé → impact 0 : l\'écran ne doit annoncer aucun kcal', () => {
-    expect(bodyFatTdeeImpact(body, 20, 'estimated')).toBe(0);
-    expect(bodyFatTdeeImpact(body, 20, undefined)).toBe(0);
+  it('%MG estimé côté gras → impact 0 : rien ne bouge, rien à annoncer', () => {
+    // À 40 % sur ce corps, Katch donne moins que Mifflin : côté gras, l'estimé ne
+    // pilote rien, l'écran n'annonce aucun kcal — et c'est vrai.
+    expect(bodyFatTdeeImpact(body, 40, 'estimated')).toBe(0);
+    expect(bodyFatTdeeImpact(body, 40, undefined)).toBe(0);
+  });
+
+  it('%MG estimé côté sec → l\'impact est POSITIF, et c\'est celui qui sera servi', () => {
+    // ⚠️ RÉÉCRIT POUR R6 LISSÉE — l'ancienne version exigeait 0 ici : c'était la
+    // règle binaire. À 20 % sur ce corps, la silhouette indique nettement plus de
+    // masse maigre que la moyenne du gabarit, le BMR glisse vers Katch et la dépense
+    // MONTE. Le chiffre annoncé est servi : l'impact doit le dire, pas le taire.
+    const impact = bodyFatTdeeImpact(body, 20, 'estimated');
+    expect(impact).toBeGreaterThan(0);
+    expect(bodyFatTdeeImpact(body, 20, undefined)).toBe(impact);
+    // Et jamais négatif en estimé : le mélange ne descend jamais sous Mifflin.
+    for (const pct of [15, 20, 25, 30, 35, 40, 45, 50]) {
+      expect(bodyFatTdeeImpact(body, pct, 'estimated'), `${pct}%`).toBeGreaterThanOrEqual(0);
+    }
   });
 
   it('%MG mesuré → l\'impact existe toujours et reste chiffrable', () => {
     expect(bodyFatTdeeImpact(body, 20, 'measured')).toBeGreaterThan(200);
+    // Et l'estimé reste ≤ au mesuré à silhouette égale : le mélange est borné par Katch.
+    expect(bodyFatTdeeImpact(body, 20, 'estimated'))
+      .toBeLessThanOrEqual(bodyFatTdeeImpact(body, 20, 'measured'));
   });
 });
 
@@ -333,11 +371,15 @@ describe('8 — le SEUIL du sélecteur : la question n\'est posée qu\'au-delà 
   it('conséquence ASSUMÉE : sous le seuil, une vraie mesure ne peut plus être déclarée', () => {
     // Ce test ne défend pas un idéal, il CHIFFRE le prix de l'arbitrage pour que
     // personne ne le redécouvre en croyant à un bug. H 75 kg, 12 % au DEXA.
+    // ⚠️ Le prix a BAISSÉ avec R6 lissée (2026-08-24) : il valait ~72 kcal de BMR
+    // sous la règle binaire ; le mélange en rend une partie au corps sec, il en
+    // reste 44 — le mélange est borné par Katch mais n'y arrive pas sur ce corps
+    // (w ≈ 0,39), et l'ordonnée de Katch est elle-même conservatrice (handoff §8).
     const corpsMaigre = { sex: 'male' as const, age: 25, weight_kg: 75, height_cm: 175, body_fat_pct: 12 };
     expect(provenanceDemandee('male', 12)).toBe(false);
     const servi = calculateBMR({ ...corpsMaigre, body_fat_source: provenanceRetenue('male', 12, 'measured') });
     const siKatch = calculateBMR({ ...corpsMaigre, body_fat_source: 'measured' });
     expect(servi).toBeLessThan(siKatch);
-    expect(siKatch - servi).toBeGreaterThan(50); // ~72 kcal de BMR, ~94 de TDEE
+    expect(siKatch - servi).toBe(44);
   });
 });
