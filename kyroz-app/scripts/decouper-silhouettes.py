@@ -68,9 +68,36 @@ T_PLEIN = 22       # au-delà : franchement du modèle (α = 255) ; entre les de
 
 MARGE = 14         # points de respiration autour de la figure, dans le canevas final
 
+# 🔴 SEUIL DE BASCULE ENTRE DEUX MÉTHODES DE DÉTOURAGE — ajouté le 2026-08-23, et
+# c'est ce fichier qui l'annonçait : « ce qu'on reprendra le jour où les sources
+# seront correctes ». Les nouvelles planches sont sur MAGENTA, plus sur gris clair,
+# et la rampe d'origine y produit un liseré rose — mesuré, **5,0 % des pixels du
+# sujet teintés, pire écart 131 sur 255**, criant sur la carte sombre.
+#
+# **Pourquoi la rampe échoue sur un fond coloré** : elle mesure la part de fond par
+# l'ÉCART GLOBAL au fond. Un pixel de bord mélangé moitié-moitié avec du magenta est
+# à ~127 du fond, donc bien au-delà de `T_PLEIN` (22) — le script le déclare « du
+# modèle », le garde opaque, et conserve sa teinte rose. La règle « être près du bord
+# ne suffit pas, il faut en avoir la couleur » est juste quand le fond est gris ; elle
+# n'a plus de sens quand fond et sujet ne partagent aucune couleur.
+#
+# ➡️ Sur un fond coloré, la part de fond ne se lit pas dans l'écart mais dans la
+# **CHROMATICITÉ**. Le sujet est un mannequin gris (max−min ≈ 0) ; le fond est saturé
+# (max−min = 255). Un pixel `P = α·S + (1−α)·F` avec S gris a donc
+# `chroma(P) = (1−α)·chroma(F)`, d'où **α = 1 − chroma(P)/chroma(F)** — exact, et sans
+# aucun seuil à régler à la main.
+# ⚠️ Ça suppose le sujet ACHROMATIQUE. C'est vrai des mannequins gris et c'est exigé
+# par le brief ; une planche colorée casserait cette hypothèse en silence.
+CHROMA_FOND_MIN = 100
+
 
 def ecart(c, fond):
     return max(abs(c[0] - fond[0]), abs(c[1] - fond[1]), abs(c[2] - fond[2]))
+
+
+def chroma(c):
+    """Saturation brute : 0 pour un gris, 255 pour une couleur pure."""
+    return max(c) - min(c)
 
 
 def bande_et_colonnes(im, fond):
@@ -139,6 +166,8 @@ def detourer(vignette, fond):
     dst = out.load()
 
     # 1 — fond certain
+    chroma_fond = chroma(fond)
+    colore = chroma_fond >= CHROMA_FOND_MIN
     dehors = bytearray(w * h)
     file = deque()
     bords = [(x, y) for x in range(w) for y in (0, h - 1)] + \
@@ -147,6 +176,21 @@ def detourer(vignette, fond):
         if not dehors[y * w + x] and ecart(src[x, y], fond) <= T_DIFFUSION:
             dehors[y * w + x] = 1
             file.append((x, y))
+
+    # 🔴 LES POCHES FERMÉES — visibles à l'aperçu, entre les cuisses des corps 5 et 6 :
+    # un magenta enclavé par le corps n'est relié à AUCUN bord, donc la diffusion ne
+    # l'atteint jamais et il restait à l'écran, rose vif sur la carte sombre.
+    # ➡️ Avec un fond COLORÉ on peut le reconnaître à sa seule couleur, sans passer par
+    # la connexité — ce que le gris d'origine interdisait précisément (c'est pour ça
+    # que la diffusion existe : un gris-fond au milieu du cou N'EST PAS du fond).
+    # La marge est énorme et mesurée : chroma du sujet p99 = 21 au cœur du torse, seuil
+    # ici à 204. Aucun pixel de modèle ne peut y tomber.
+    if colore:
+        for y in range(h):
+            for x in range(w):
+                if not dehors[y * w + x] and chroma(src[x, y]) >= chroma_fond * 0.8:
+                    dehors[y * w + x] = 1
+                    file.append((x, y))
     while file:
         x, y = file.popleft()
         for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
@@ -172,27 +216,62 @@ def detourer(vignette, fond):
                 profondeur[(nx, ny)] = d + 1
                 file.append((nx, ny))
 
-    # 3 — rampe et décontamination
+    # 3 — rampe et décontamination (chroma_fond / colore : calculés à l’étape 1)
     for y in range(h):
         for x in range(w):
             r, g, b = src[x, y]
             if not bord[y * w + x]:
                 dst[x, y] = (r, g, b, 255)     # loin du fond certain → c'est le modèle
                 continue
-            d = ecart((r, g, b), fond)
-            if d <= T_OPAQUE:
-                dst[x, y] = (0, 0, 0, 0)
-                continue
-            if d >= T_PLEIN:
-                dst[x, y] = (r, g, b, 255)
-                continue
-            a = round((d - T_OPAQUE) * 255 / (T_PLEIN - T_OPAQUE))
+            if colore:
+                # Fond coloré : la part de fond est la CHROMATICITÉ, pas l'écart.
+                a = round(max(0.0, min(1.0, 1 - chroma((r, g, b)) / chroma_fond)) * 255)
+                if a == 0:
+                    dst[x, y] = (0, 0, 0, 0)
+                    continue
+                if a == 255:
+                    dst[x, y] = (r, g, b, 255)
+                    continue
+            else:
+                d = ecart((r, g, b), fond)
+                if d <= T_OPAQUE:
+                    dst[x, y] = (0, 0, 0, 0)
+                    continue
+                if d >= T_PLEIN:
+                    dst[x, y] = (r, g, b, 255)
+                    continue
+                a = round((d - T_OPAQUE) * 255 / (T_PLEIN - T_OPAQUE))
             # Décontamination : retirer la part de fond mélangée dans ce pixel de bord.
             # Sans elle, le bord reste un gris CLAIR et dessine un liseré autour de la
             # figure — invisible sur fond blanc, criant sur une carte sombre.
             k = a / 255
-            couleur = tuple(min(255, max(0, round((c - (1 - k) * f) / k)))
-                            for c, f in zip((r, g, b), fond))
+            couleur = [min(255, max(0, round((c - (1 - k) * f) / k)))
+                       for c, f in zip((r, g, b), fond)]
+            if colore:
+                # 🔴 BORNE ANTI-SUR-CORRECTION — et elle a été trouvée par la mesure,
+                # après un premier correctif qui déplaçait le défaut au lieu de le
+                # régler : le liseré rose (5,0 % des pixels, pire 131) était devenu un
+                # liseré VERT (7,1 %, pire 61). Ma sonde ne cherchait que la dominante
+                # magenta, donc elle annonçait « 0,06 %, c'est réglé ».
+                # ➡️ *Une sonde qui ne mesure qu'un SENS déclare résolu ce qu'elle a
+                # seulement retourné.*
+                #
+                # **La cause** : `α = 1 − chroma(P)/chroma(F)` suppose le sujet
+                # parfaitement gris. Mesuré, il ne l'est pas — chroma médiane 4, p90 11
+                # au cœur du torse. Sa chroma propre est donc comptée comme du fond, α
+                # est sous-estimé, et la décontamination retire plus de magenta qu'il
+                # n'y en avait. Le résidu part dans la couleur COMPLÉMENTAIRE.
+                #
+                # ➡️ La borne dit une évidence physique : **on ne peut pas retirer du
+                # magenta et obtenir du vert.** Le canal creux du fond (le vert, ici)
+                # ne peut pas ressortir au-dessus de la moyenne des deux autres — au
+                # pire, le pixel est gris. Rien de légitime n'est écrêté : une nuance
+                # réelle du sujet dans une AUTRE direction passe intacte.
+                creux = fond.index(min(fond))
+                autres = [i for i in (0, 1, 2) if i != creux]
+                plafond = (couleur[autres[0]] + couleur[autres[1]]) // 2
+                if couleur[creux] > plafond:
+                    couleur[creux] = plafond
             dst[x, y] = (*couleur, a)
     return out
 

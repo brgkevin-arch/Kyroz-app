@@ -650,9 +650,51 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
   l'était pas jusque-là, et la vérification qui le disait était juste. La leçon sur le
   chiffre re-mesuré, elle, ne dépend pas de ça.
 
-- 🧑 **A32 · Les 12 silhouettes du sélecteur de %MG sont à REFAIRE avant la mise en
-  ligne (2026-08-12)** — décision fondateur, il cherche un outil qui rende de bons
-  assets. Les images servies portent une « corne » au-dessus des épaules, visible sur
+- ✅ **A32 · LES 12 SILHOUETTES SONT REFAITES — 2026-08-23.** Planches générées par le
+  fondateur (IA d'image, brief `brief-silhouettes-masse-grasse.md`), sur fond **magenta**
+  comme la fiche l'exigeait. La « corne » a disparu : le défaut était bien dans la
+  SOURCE, pas dans la découpe, et il suffisait d'un fond que le sujet ne puisse pas
+  imiter.
+  **Mesuré avant de découper, et c'est ce qui a validé les planches** : échelle
+  constante à **0,7 %** (hommes) et **1,8 %** (femmes), socles alignés à **0 et 1 px**,
+  largeur de tronc **strictement croissante** aux quatre hauteurs mesurées.
+  ⚠️ **Ma première sonde accusait les hommes d'une progression non monotone** — elle
+  mesurait la boîte englobante, donc les BRAS écartés. La largeur qui compte est celle
+  du tronc (segment central continu, bras exclus). *Une métrique qui inclut ce qu'on ne
+  compare pas rend un verdict faux avec l'autorité d'un chiffre.*
+  🔴 **TROIS DÉFAUTS TROUVÉS EN CHAÎNE, chacun invisible sans la mesure suivante :**
+  1. **Le fond n'était pas plat** (le brief le demandait « parfaitement uniforme »).
+     Vignettage mesuré à 18 d'amplitude, quand le script diffuse à `T_DIFFUSION = 10` :
+     **7 135 pixels sur 7 650** d'une colonne inter-corps auraient été pris pour du
+     sujet, et le détourage aurait gardé tout le magenta. ➡️ Aplati en amont plutôt que
+     de toucher aux seuils, qui sont justes pour un fond plat.
+  2. **Liseré rose**, 5,0 % des pixels du sujet, pire écart 131. La rampe du script
+     mesure la part de fond par l'ÉCART GLOBAL : un pixel mélangé moitié-moitié avec du
+     magenta est à ~127, donc au-delà de `T_PLEIN` (22) → gardé opaque **avec sa
+     teinte**. ➡️ Sur fond coloré, la part de fond se lit dans la CHROMATICITÉ.
+  3. 🔴 **Et le correctif a d'abord DÉPLACÉ le défaut** : le rose est devenu **vert**
+     (7,1 %, pire 61), parce que le mannequin n'est pas parfaitement gris (chroma
+     médiane 4, p90 11) — sa chroma propre était comptée comme du fond, donc α
+     sous-estimé, donc sur-décontamination. **Ma sonde ne cherchait que la dominante
+     magenta : elle annonçait « 0,06 %, c'est réglé ».** ➡️ *Une sonde qui ne mesure
+     qu'un SENS déclare résolu ce qu'elle a seulement retourné.* Borné par une évidence
+     physique — on ne peut pas retirer du magenta et obtenir du vert. **État final :
+     0,06 % + 0,01 %**, dispersés sur 32 zones, la plus dense à 21 px — soit ~1 px à la
+     taille d'affichage.
+  🔴 **ET UN COUPLAGE SILENCIEUX A FAILLI PASSER** : `BodyFatPicker` figeait
+  `aspectRatio: 220 / 462`, les dimensions du jeu PRÉCÉDENT. Le canevas se CALCULE (le
+  plus large des douze + marge) et vaut désormais **273 × 479**. Avec `resizeMode:
+  'contain'`, rien n'aurait été déformé ni signalé — les silhouettes auraient
+  simplement été **rétrécies** dans une boîte trop étroite. ➡️ Compté par
+  `lib/__tests__/silhouettes.test.ts` (3 cas, **vérifié par 3 mutations**) : canevas
+  commun aux douze, ratio de l'écran égal aux fichiers, canal alpha présent.
+  ℹ️ Le script porte maintenant DEUX méthodes de détourage, choisies sur la
+  chromaticité du fond (`CHROMA_FOND_MIN`) : la rampe historique pour un fond gris,
+  la voie chroma pour un fond coloré. L'ancienne n'est pas supprimée — elle reste juste
+  pour ce qu'elle faisait.
+  *(Fiche d'origine, pour mémoire :)* 🧑 **Les 12 silhouettes du sélecteur de %MG sont à
+  REFAIRE avant la mise en ligne (2026-08-12)** — décision fondateur, il cherche un
+  outil qui rende de bons assets. Les images servies portent une « corne » au-dessus des épaules, visible sur
   les six cartes, qui se lit comme un défaut de modèle 3D.
   🔴 **LE DÉFAUT EST DANS LA SOURCE, ET AUCUNE RE-DÉCOUPE NE LE RATTRAPE — mesuré.**
   Sur `assets/bodyfat/_source/*-models.png`, les facettes ombrées du cou et des
