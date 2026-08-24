@@ -145,8 +145,12 @@ export function melangeVersKatch(b: BmrBody): number {
  * Ce que R6 lissée corrige (2026-08-24) : la règle binaire « estimé ⇒ toujours
  * Mifflin » sous-servait les profils nettement plus musclés que la moyenne de leur
  * gabarit, et le seuil dur envisagé sautait de ±70 kcal sur une pesée de ±500 g.
- * Mesuré sur 357 corps plausibles : 36 % (H) / 37 % (F) des corps prennent du BMR,
- * Δcible médian +8 (cut) / +64 (maintain) kcal/j, max +83 / +301, AUCUNE baisse.
+ * Mesuré SUR LE MOTEUR le 2026-08-24 (avant/après du même arbre, 636 corps jugés
+ * plausibles par `safety.bodyFatConcern`) : **25 % (H) / 26 % (F)** des corps
+ * prennent du BMR ; Δcible médian +27 (cut) / +116 (maintain) kcal/j, max **+100
+ * (cut) / +393 (maintain)**, **AUCUNE baisse**. ⚠️ Le handoff annonçait 36/37 % et
+ * un max de +301 sur une autre grille : les INVARIANTS se reproduisent, les
+ * amplitudes non — un tableau d'impact se re-mesure, il ne se recopie pas (A38).
  * Le plancher BRUT (30 kcal/kg de masse maigre + sport) ne bouge d'aucun kcal — la
  * masse maigre ne lit pas la provenance. ⚠️ Le CANDIDAT `energy_availability`, lui,
  * peut bouger par son PLAFOND (la maintenance, qui suit le TDEE — cf.
@@ -1050,9 +1054,10 @@ export const ENGINE_REV_LEGACY = 1;
  * du bruit d'une silhouette (±5 pts de %MG, fenêtre 0,5 → 1,5 bande). Jamais
  * l'inverse : côté gras, Mifflin reste servi tel quel. Ne déplace donc les cibles
  * que VERS LE HAUT, et uniquement chez les profils nettement plus musclés que la
- * moyenne de leur gabarit — 36 % des corps H, 37 % F sur la grille de 357 corps
- * plausibles ; Δcible médian +8 (cut) / +64 (maintain) kcal/j, max +83 / +301,
- * AUCUNE baisse. La branche `measured` et la masse maigre (plancher, protéines,
+ * moyenne de leur gabarit — **25 % des corps H, 26 % F** (mesuré sur le moteur le
+ * 2026-08-24, 636 corps plausibles ; le handoff annonçait 36/37 % sur une autre
+ * grille) ; Δcible médian +27 (cut) / +116 (maintain) kcal/j, max **+100 / +393**,
+ * AUCUNE baisse. Le pire cas est le sportif ÂGÉ et SEC — Mifflin retranche 5 × l'âge. La branche `measured` et la masse maigre (plancher, protéines,
  * rythme) ne bougent pas d'un kcal. Décision fondateur, handoff du 2026-08-24.
  *
  * rev 6 → 7 (2026-08-10) : DEUX changements, tous deux déplaçant des cibles.

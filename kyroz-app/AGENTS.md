@@ -536,11 +536,37 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
   qui déplace les cibles incrémente — est non négociable, et le départage des causes
   rev 7 est borné au trajet qui la traverse (sinon un compte rev 7 → 8 recevait le
   texte « ta limite de sécurité ne s'applique plus »).
+  🔴 **LE TABLEAU §6 DU HANDOFF NE SE REPRODUIT PAS SUR LE MOTEUR — re-mesuré le
+  2026-08-24, avant/après pris sur le MÊME arbre** (le « avant » obtenu en portant
+  `BLEND_START` à 999, ce qui rend `w = 0` partout, donc exactement la règle rev 7 ;
+  aucune formule répliquée). Grille : 864 corps × 2 objectifs, filtrée par le critère
+  de plausibilité de l'app elle-même (`safety.bodyFatConcern`, FFMI ≤ 25 H / 21 F) →
+  **636 corps plausibles**.
+  | | handoff §6 | **mesuré ici** |
+  |---|---|---|
+  | part touchée (w > 0) | 36 % H · 37 % F | **25 % H · 26 % F** |
+  | Δcible `cut` méd / max | +41 / +83 (H) · +83 / +101 (F) | **+27 / +93 (H) · +50 / +100 (F)** |
+  | Δcible `maintain` méd / max | +192 / +301 (H) · +148 / +265 (F) | **+116 / +393 (H) · +116 / +350 (F)** |
+  | baisses | 0 | **0** ✅ |
+  ✅ **Les INVARIANTS, eux, sont confirmés exactement** : zéro baisse de cible, zéro
+  baisse de TDEE, sur les 864 corps (filtre ou non). C'est ce qui devait tenir.
+  ⚠️ **Ce sont les AMPLITUDES qui diffèrent, et c'est une affaire de GRILLE** — le
+  handoff décrivait 357 corps dont la composition n'est pas dans le dépôt, la mienne
+  en a 636 après filtre. Ne pas lire ça comme « le handoff avait tort » : lire ça
+  comme *un tableau d'impact ne se recopie pas d'un brief, il se re-mesure sur le
+  moteur* (A37, même leçon que les deux chiffres NEAT contradictoires).
+  🔴 **CONSÉQUENCE CONCRÈTE SUR LA RELEASE NOTE** : le plafond réel est **+100 en
+  sèche et +393 en maintien**, pas « ~+85 / ~+300 » que j'avais recopiés du handoff
+  dans la première version de cette fiche. Le corps qui le produit est plausible et
+  instructif — **H 45 ans, 86 kg, 1 m 76, 10 % de MG (FFMI 25,0), maintien : 2417 →
+  2810**. C'est logique : Mifflin retranche 5 × l'âge, donc l'écart est maximal chez
+  le sportif **âgé et sec**, exactement celui que la règle binaire sous-servait le plus.
   ⏳ **Reste, hors moteur** : une ligne de release note à la prochaine OTA / au
-  prochain binaire (les cibles TestFlight peuvent monter au premier recalcul, jusqu'à
-  ~+85 kcal en sèche, ~+300 en maintien/prise) ; et la dette §8 du handoff (ordonnée
-  370/21,6 vs Cunningham côté sec, branche `measured` aux fortes adiposités, bande
-  croissante) est documentée dans `tdee.ts` — **v2, décision fondateur requise**.
+  prochain binaire — les cibles TestFlight peuvent monter au premier recalcul,
+  **jusqu'à +100 kcal en sèche et ~+390 en maintien/prise** (chiffres ci-dessus, à
+  re-mesurer si la grille change) ; et la dette §8 du handoff (ordonnée 370/21,6 vs
+  Cunningham côté sec, branche `measured` aux fortes adiposités, bande croissante)
+  est documentée dans `tdee.ts` — **v2, décision fondateur requise**.
 
 - ✅ **A33 · MON DIAGNOSTIC ÉTAIT FAUX — et c'est LUI qui vaut d'être gardé
   (2026-08-12, corrigé le 2026-08-14)**
