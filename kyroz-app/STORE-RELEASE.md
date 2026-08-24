@@ -7,57 +7,89 @@
 
 ---
 
-## 0-ter. ▶️ REPRISE — état au 2026-08-11, 21 h
+## 0-ter. ▶️ REPRISE — état au 2026-08-23
 
-> Écrit à la demande du fondateur, qui termine **dans une autre session**. Objectif de
-> ce bloc : qu'on puisse reprendre sans relire toute la journée, et surtout **sans
-> refaire les erreurs qu'elle a coûtées**.
+> Bloc réécrit **entièrement** ce jour. Le précédent datait du 2026-08-11 et il a été
+> faux sur ses trois points pendant douze jours : il annonçait le build (6) « à jour »,
+> les captures à refaire « après les retouches front du 11 », et A32 comme le chantier
+> ouvert. ➡️ **Un bloc de REPRISE est le seul du dossier qui n'a pas le droit de
+> vieillir** — c'est celui qu'on lit en premier, donc celui dont l'erreur oriente tout
+> le reste. Les leçons du 11 août, elles, sont conservées plus bas : elles ne périment
+> pas.
 
-**Ce qui est acquis, et qu'il ne faut pas re-vérifier :**
+**Ce qui est acquis, relu ce jour et non recopié :**
 
 | | |
 |---|---|
-| `main` | `1047b9f` — **1 444 tests verts / 87 fichiers**, `tsc` propre, **0 PR ouverte** |
-| Build **(6)** | `ceec1b17`, commit `1047b9f`, `finished`, **téléversé à App Store Connect** |
-| Build **(5)** | aussi chez Apple — **à TESTER**, jamais à envoyer en revue (notes du relecteur incohérentes) |
-| **DSA** | ✅ **validée depuis le 30 juillet** (27 pays, « Active »). Elle a été présentée à tort comme bloquante pendant douze jours |
-| Contrats, banque, fiscal | tous **actifs** → **plus aucun verrou administratif** |
-| OTA | **10ᵉ publiée** le 2026-08-11 (verre, groupe `7ac2496a`) |
+| `main` | `7b0818b` — **1 645 tests verts / 106 fichiers**, `tsc` propre, **0 PR ouverte** |
+| Administratif | comptes, contrats (gratuit + payant), banque, fiscal, **DSA** (27 pays) : **plus aucun verrou** |
+| App Store Connect | fiche créée, **App Privacy publié** (2026-08-18, PostHog compris), URL de politique posée, abonnements Kyroz+ créés |
+| Secrets EAS `production` | `EXPO_PUBLIC_REVIEW_CODE`, RevenueCat iOS, PostHog, Supabase — **posés** |
+| Revue bêta TestFlight | **approuvée le 2026-08-03** — les builds suivants passent sans y repasser |
+| Accès relecteur | code posé au build, auth anonyme active, notes rédigées (§11) |
+| Migrations Supabase | **rien en attente** — la dernière date du 2026-08-10 et elle est en prod |
 
-**Ce qui reste, dans cet ordre — et l'ordre n'est pas négociable :**
+**🔴 CE QUI EST LIVRÉ MAIS QUE PERSONNE NE VOIT ENCORE.** Trois chantiers sont sur
+`main` et sur le site web, mais **ni en OTA ni dans un binaire** :
 
-1. 🧑 **Retouches front** annoncées le 11 au soir. **Rien ne se builde avant.**
+| Livré sur `main` | Ce que c'est |
+|---|---|
+| **E45** | la cause du gel de l'écran « Rien à acheter » — une feuille qui perdait son instance |
+| **Textes légaux** | le transfert Resend vers les USA, nommé dans la politique |
+| **A32** | les 12 silhouettes du sélecteur de %MG, refaites |
+
+➡️ **Les trois partiront dans le build (7)**, ou plus tôt en OTA si le fondateur le
+décide. Rien ne l'impose : aucun n'est un correctif d'urgence.
+
+**L'état des deux surfaces qui comptent, RELU chez le prestataire :**
+
+- **Binaire** : le dernier build iOS est toujours le **(6)** — `ceec1b17`, commit
+  `1047b9f`, terminé le 2026-08-11 à 20 h 37. Il a **40 commits de retard** sur `main` — chiffre du 2026-08-23, qui **grandit à chaque merge** : le relire avec `git rev-list --count 1047b9f..origin/main` plutôt que de le recopier (même défaut que le décompte d'OTA tenu à la main).
+- **OTA** : la dernière est la **19ᵉ** (groupe `87a65d34`, 2026-08-21). Aucune depuis.
+
+**Ce qui reste, dans cet ordre :**
+
+1. 🧑 **Décider quand figer le code.** Un build est une PHOTO de `main` : tant que des
+   chantiers arrivent, il périme en naissant. *(Le fondateur a demandé le 2026-08-23
+   d'attendre encore.)*
 2. 🤖 **UN build (7)**, une fois le code figé. Pas deux.
-3. 🤖 **Regénérer les captures** — les actuelles datent du 10 août 19 h 41, donc d'avant
-   le verre : elles montrent une barre d'onglets opaque. À faire **après** le (7), pour
-   qu'elles ne périment pas une seconde fois.
+3. 🤖 **Regénérer les 10 captures** — elles datent du 2026-08-10 (iPhone 19 h 41, iPad
+   11 h 20) et ne montrent donc ni le verre, ni l'inscription actuelle, ni les nouvelles
+   silhouettes. À faire **après** le (7), pour qu'elles ne périment pas une fois de plus.
 4. 🧑 Juger les captures · remplir les formulaires ASC (tout est rédigé §3–6, §11) ·
    **sélectionner le (7)** · « Submit for review ».
 
-🔴 **LES TROIS PIÈGES QUE CETTE JOURNÉE A PAYÉS — les relire avant d'agir :**
+**Points ouverts au registre RGPD — aucun ne bloque Apple :** TLS Resend en
+« Opportunistic » (à basculer en « Enforced » **après** la soumission), la purge d'une
+adresse individuelle chez Resend, et l'usage de l'IA chez deux de ses sous-traitants.
 
-1. **Un binaire se périme PENDANT qu'il compile.** Trois builds lancés le 11 ; les deux
-   premiers étaient morts à la naissance, dépassés par des merges d'autres sessions en
-   **six minutes**. ➡️ Avant un build : `git status` vide **et** `HEAD == origin/main`
-   **et** `gh pr list --state open` à **0** (+ `git worktree list`). Après : le commit du
-   build doit encore valoir `origin/main`. **Un build est une PHOTO de `main`** — on n'en
-   regroupe pas plusieurs, on en fait un seul quand plus rien ne bouge.
+🔴 **LES TROIS PIÈGES QUE LA JOURNÉE DU 11 AOÛT A PAYÉS — ils ne périment pas :**
+
+1. **Un binaire se périme PENDANT qu'il compile.** Trois builds lancés le 11 ; deux
+   étaient morts à la naissance, dépassés par des merges en **six minutes**. ➡️ Avant un
+   build : `git status` vide **et** `HEAD == origin/main` **et** `gh pr list --state open`
+   à **0** (+ `git worktree list` — il y a **trois** autres arbres actifs). Après : le
+   commit du build doit encore valoir `origin/main`.
 2. **Un état qui dépend d'un TIERS ne se recopie pas, il se relit.** La DSA, la revue
-   bêta externe, un statut TestFlight : ces fiches ont menti trois fois dans la journée,
-   toujours dans le sens qui fait renoncer ou qui rassure. Le mot « était » dans une
-   phrase signale qu'elle a cessé d'être une mesure.
+   bêta, un statut TestFlight : ces fiches ont menti trois fois dans la journée, toujours
+   dans le sens qui fait renoncer ou qui rassure. Le mot « était » signale une phrase qui
+   a cessé d'être une mesure.
 3. **Une sortie vide n'est pas une panne.** `eas-cli` bufferise hors terminal : un
-   `eas submit` en arrière-plan n'a rien écrit pendant des heures et avait pourtant
-   réussi. Vérifier que le processus VIT avant de conclure qu'il est bloqué.
+   `eas submit` en arrière-plan n'a rien écrit pendant des heures et avait réussi.
 
-⚠️ **Point ouvert, non tranché** : le (6) est visible en **interne** mais pas pour les
-**testeurs externes**. Trois causes possibles, indiscernables sans l'écran d'ASC — voir
-la note dans `AGENTS.md` (revue bêta). **Ne pas conclure sans relever le statut affiché.**
-Ça ne bloque ni la revue App Store, ni la sortie.
+⚠️ **Point ouvert, non tranché depuis le 11 août** : le (6) est visible en **interne**
+mais pas pour les **testeurs externes**. Trois causes possibles, indiscernables sans
+l'écran d'ASC. Ça ne bloque ni la revue, ni la sortie — et le (7) rebattra les cartes.
 
 ---
 
 ## 0-bis. ▶️ LA SÉQUENCE DE DEMAIN — 2026-08-10
+
+> 🔴 **BLOC HISTORIQUE — NE PAS S'EN SERVIR POUR AGIR.** Il décrit la journée du
+> 2026-08-10 et plusieurs de ses cases sont périmées : elles annoncent le build (6)
+> « fait, à jour », et les captures comme refaites. **L'état courant est au §0-ter**,
+> plus haut. Ce bloc est gardé pour son RAISONNEMENT — l'ordre des étapes et pourquoi
+> il ne se négocie pas — pas pour ses états.
 
 > Écrite le 2026-08-09 à minuit, à la demande du fondateur. Objectif : **soumis à
 > l'App Store**, pas *publié* — la revue Apple prend de 24 h à 7 jours et ça ne
@@ -129,9 +161,9 @@ dans laquelle l'étape 4 se glisse.
 | URL politique de confidentialité (HTTP 200) | ✅ en ligne |
 | Textes de fiche (FR), réponses confidentialité, classification | ✅ ci-dessous (§3–6) |
 | **Comptes développeur Apple + Google** | ⛔ **toi** (§1) |
-| Screenshots (iPhone + iPad 13") + feature graphic | 🔴 **À REFAIRE — ET LA DETTE A GRANDI LE 2026-08-21.** Aux changements ci-dessous s'ajoutent **sept livraisons visibles du 19 au 21 août** : la question du NEAT à l'étape 4 de l'inscription, le refus de la sèche devenu une bifurcation à l'étape 5, « ⊘ SAUTÉ » barré devenu « SAUTÉ » neutre, et le nouvel interrupteur « Tenir compte du frigo » sur l'écran Courses. Les captures montrent donc une inscription et deux écrans qui n'existent plus tels quels. ➡️ Les regénérer **après l'OTA**, pas avant. *(État antérieur :)* **ELLES DATENT D'AVANT LE VERRE.** Les 6 PNG iPhone sont horodatés **2026-08-10 19 h 41**, donc antérieurs à E36 (2026-08-11) — la barre d'onglets y est **opaque**, alors que l'app en installe une **translucide** sur iOS 26+. Ce n'est pas trompeur au sens d'Apple, mais c'est le seul changement du 11 qui SE VOIE sur une capture. ➡️ Les regénérer **après** les retouches front annoncées le 11 au soir, jamais avant : sinon elles périment une seconde fois. *(État antérieur, toujours vrai sur le reste :)* 🟡 **iPhone REFAIT le 2026-08-10, iPad toujours à faire.** `test/store/` : 5 PNG + le feature graphic, regénérés sur `main` du 10 août — sortie **mesurée** à `1290×2796` (et 1024×500 pour le feature graphic), après correction de `PHONE` à `430×932`. *(Ils dataient du 30 juillet 21:59, d'avant six passes de design et d'avant la refonte du Profil.)* ✅ `test/store-ipad/` : **5 PNG en 2048×2732**, générés et **mesurés** le 2026-08-10. *(Cette case a annoncé « générés » pendant huit jours alors que le dossier était vide, puis « vide » après qu'il a été rempli : la seule source qui vaille est `sips` sur les fichiers.)* |
+| Screenshots (iPhone + iPad 13") + feature graphic | 🔴 **À REFAIRE, et la dette a encore grandi le 2026-08-23.** Les 6 PNG iPhone sont horodatés **2026-08-10 19 h 41**, les 5 iPad **2026-08-10 11 h 20**. Depuis, l'app a changé sur trois plans qui SE VOIENT : la barre d'onglets est passée au **verre** (E36, le 11), l'**inscription** a gagné la question du NEAT et la bifurcation de la sèche (19-21), et les **12 silhouettes** du sélecteur de %MG sont refaites (A32, le 23). Les captures montrent donc une inscription et des écrans qui n'existent plus. ➡️ Les regénérer **après le build (7)**, jamais avant : c'est la troisième fois qu'elles périment pour avoir été prises trop tôt. *(Historique : iPhone refait le 2026-08-10 — sortie mesurée à 1290×2796 après correction d'un gabarit qui rendait du 6.1" ; iPad généré et mesuré le même jour à 2048×2732. Cette case a porté trois états successifs dont deux faux — c'est `sips` sur les fichiers qui tranche, jamais la fiche.)* |
 | Accès reviewer (code) | ✅ code — toi : poser le secret au build (§9) |
-| **Lancer le build EAS** | ✅ **(6) fait, à jour et TÉLÉVERSÉ** (`ceec1b17`, commit `1047b9f`, 2026-08-11 20 h 37) — le seul des trois à porter E39 et E40. Le (5) est aussi chez Apple, mais **ne doit PAS partir en revue** (notes du relecteur incohérentes). ⚠️ **Un (7) sera requis après les retouches front annoncées le 11 au soir** — et un seul (§0-bis, étape 3) |
+| **Lancer le build EAS** | 🔴 **UN (7) EST REQUIS — le (6) a 40 commits de retard.** Relu chez EAS le 2026-08-23 (40 commits de retard, `git rev-list --count 1047b9f..origin/main`) : le dernier build iOS reste `ceec1b17`, commit `1047b9f`, terminé le 2026-08-11 à 20 h 37 et téléversé à App Store Connect. Il ne porte donc ni le correctif du gel (E45), ni les textes légaux à jour, ni les 12 nouvelles silhouettes. ⚠️ **Le relecteur ouvre l'app UNE fois** : il voit le JS EMBARQUÉ, et une OTA ne s'applique qu'au lancement suivant. Ce qui n'est pas dans le binaire n'existe pas pour lui. 🧑 **En attente d'une décision du fondateur** (2026-08-23) : le code n'est pas figé. ⚠️ Le (5) est aussi chez Apple et ne doit **PAS** partir en revue (notes du relecteur incohérentes). ⚠️ Un build se constate avec `npx eas-cli build:list --platform ios` depuis `kyroz-app/`, **et on lit son COMMIT, pas sa date**. |
 
 ---
 
