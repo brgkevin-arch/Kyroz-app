@@ -230,7 +230,7 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
     // montée (parce qu'elle est conditionnelle, ou parce qu'un renommage l'a
     // détachée) fait disparaître son étape sans que rien ne le signale — le tour
     // se joue plus court et paraît complet. Certaines absences sont légitimes
-    // (le bloc frigo n'existe pas quand le frigo est vide), d'où un simple
+    // (le bloc n'existe pas quand la réserve est vide), d'où un simple
     // avertissement de développement plutôt qu'un blocage. Le garde-fou qui
     // compte vraiment est `lib/__tests__/visiteGuidee.test.ts`.
     if (__DEV__ && avail.length < steps.length) {

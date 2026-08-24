@@ -517,7 +517,7 @@ describe('Visite guidée — l’anneau ne désigne jamais l’objet d’une aut
 describe('Le décompte des bulles ne se recopie pas — il se mesure', () => {
   const SPEC = readFileSync(join(RACINE, 'CLAUDE.md'), 'utf8');
   const LIGNE = SPEC.match(
-    /(\d+) bulles au total \(plan (\d+) · profil (\d+) · recettes (\d+) · courses (\d+) · frigo (\d+)\)/,
+    /(\d+) bulles au total \(plan (\d+) · profil (\d+) · recettes (\d+) · courses (\d+) · réserve (\d+)\)/,
   );
 
   it('la sonde trouve bien la phrase de CLAUDE.md — sinon elle passerait à vide', () => {
@@ -527,17 +527,17 @@ describe('Le décompte des bulles ne se recopie pas — il se mesure', () => {
   });
 
   it('🔴 la spec annonce EXACTEMENT ce que le code sert', () => {
-    const [, total, plan, profil, recettes, courses, frigo] = LIGNE!.map(Number);
+    const [, total, plan, profil, recettes, courses, reserve] = LIGNE!.map(Number);
     // Contexte COMPLET : c'est le décompte maximal, celui que la spec décrit.
     const reel = {
       plan: tourSteps('plan', CTX_COMPLET).length,
       profil: tourSteps('profil', CTX_COMPLET).length,
       recettes: tourSteps('recettes', CTX_COMPLET).length,
       courses: tourSteps('courses', CTX_COMPLET).length,
-      frigo: tourSteps('frigo', CTX_COMPLET).length,
+      reserve: tourSteps('reserve', CTX_COMPLET).length,
     };
     expect({ ...reel, total: Object.values(reel).reduce((a, b) => a + b, 0) })
-      .toEqual({ plan, profil, recettes, courses, frigo, total });
+      .toEqual({ plan, profil, recettes, courses, reserve, total });
   });
 
   it('aucun commentaire ne recite un nombre de bulles — il périmerait en silence', () => {

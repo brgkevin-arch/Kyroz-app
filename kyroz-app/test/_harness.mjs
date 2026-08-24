@@ -39,7 +39,7 @@ export const PHONE = { width: 430, height: 932 };
 // Onglets réellement montés — source : app/(tabs)/_layout.tsx.
 // (« Favoris », « Réglages », « Paramètres » traînaient dans les vieux scripts :
 //  ces onglets n'existent pas, les boucles tournaient dans le vide.)
-export const TABS = ['Plan', 'Courses', 'Frigo', 'Recettes', 'Profil'];
+export const TABS = ['Plan', 'Courses', 'Réserve', 'Recettes', 'Profil'];
 
 export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -126,7 +126,7 @@ export async function neutralizeFirstRun(context) {
       // diagnostics (CLAUDE.md §11).
       // La liste est verrouillée contre `lib/tours.ts` par `harnaisEcrans.test.ts` :
       // ajouter un tour sans l'ajouter ici fait rougir `npm test` le jour même.
-      for (const id of ['plan', 'recettes', 'courses', 'frigo', 'profil']) {
+      for (const id of ['plan', 'recettes', 'courses', 'reserve', 'profil']) {
         localStorage.setItem(`@kyroz:tour:${id}`, 'done');
       }
       localStorage.setItem('@kyroz:analyticsConsent', 'denied');

@@ -12,7 +12,7 @@ import { loadReduceMotion } from '../lib/reduceMotion';
 import { subscribeNotificationTaps } from '../lib/notifications';
 import { poserNotificationIntent } from '../hooks/useNotificationIntent';
 import { loadReduceTransparency } from '../lib/reduceTransparency';
-import { loadFridgeTracking } from '../lib/fridgeTracking';
+import { loadRepasAuto } from '../lib/repasAuto';
 import { AuthProvider } from '../hooks/useAuth';
 import { ProfileProvider } from '../hooks/useProfile';
 import { RecipeOverridesProvider } from '../hooks/useRecipeOverrides';
@@ -80,7 +80,7 @@ export default function RootLayout() {
   useEffect(() => {
     loadThemeMode(); loadAccentId(); loadHydrationEnabled();
     loadFirstName(); loadReminder(); loadReduceMotion(); loadReduceTransparency();
-    loadFridgeTracking();
+    loadRepasAuto();
   }, []);
   return (
     <SafeAreaProvider>

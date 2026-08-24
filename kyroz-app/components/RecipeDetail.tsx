@@ -217,7 +217,7 @@ export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adapted
                 <Text style={s.swapTxt}>Je l'ai sauté</Text>
               </Presse>
             )}
-            {onCook && <PrimaryButton t={t} label="J'ai mangé — retirer du frigo" onPress={onCook} />}
+            {onCook && <PrimaryButton t={t} label="J'ai mangé — retirer de ma réserve" onPress={onCook} />}
           </View>
         )}
       </ScrollView>

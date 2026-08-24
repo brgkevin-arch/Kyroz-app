@@ -1,19 +1,62 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Ingredient, Recipe, ShoppingItem } from './types';
+import { Ingredient, Recipe, ShoppingItem, UserProfile } from './types';
 import { getEffectiveRecipes } from './recipes';
 import { RECIPE_INGREDIENTS } from './recipeData';
+import { poidsUnitaire } from './units';
+import { recipeAllowed } from './planEngine';
 
-// ── Garde-manger ─────────────────────────────────────────────────────────────
-// Module isolé : inventaire de ce qu'il reste en cuisine, déduit automatiquement
-// après chaque repas cuisiné, et propose les recettes réalisables avec les restes.
+// ── La RÉSERVE ───────────────────────────────────────────────────────────────
+// Module isolé : inventaire de ce qu'il reste en cuisine, alimenté à la clôture
+// des courses, déduit automatiquement après chaque repas mangé, et qui dit quelles
+// recettes sont réalisables avec ce qu'il reste.
+//
+// ⚠️ Le mot « frigo » a été retiré de l'interface le 2026-08-24 (décision fondateur) :
+// la réserve porte AUSSI le placard, et un frigo ne peut pas contenir du riz sec.
+// Le nom du module et la clé de stockage, eux, ne bougent pas — renommer la clé
+// aurait demandé une migration, donc perdu la réserve de tous ceux qui en ont une.
 
 export type PantryCategory = ShoppingItem['category'];
+
+/** Où l'aliment se garde. Deux rangements physiques, deux listes à l'écran. */
+export type Conservation = 'frais' | 'sec';
 
 export interface PantryItem {
   name: string;
   quantity: number;
   unit: string;            // 'g' | 'ml' | 'pièce'
   category: PantryCategory;
+  /** Absent = déduit de la catégorie (`conservationDe`). N'est écrit que si
+   *  l'utilisateur a CORRIGÉ le classement automatique. */
+  conservation?: Conservation;
+}
+
+// ── Frais ou sec : déduit de la catégorie, corrigeable en une touche ─────────
+//
+// Le classement automatique porte les articles qui arrivent des courses — personne
+// ne va trier 69 lignes à la main. Il se trompe forcément quelque part (le tofu est
+// dans « autres », donc annoncé sec ; le riz CUIT d'hier est un féculent, donc
+// annoncé sec alors qu'il est au frigo), d'où la correction manuelle.
+//
+// ⚠️ Le champ est OPTIONNEL et n'est écrit qu'à la correction : c'est ce qui rend le
+// classement rétroactif. Les réserves déjà enregistrées n'ont pas ce champ et se
+// rangent quand même dès la première ouverture — même raison que la `ref` déduite du
+// nom plus bas : une valeur stockée aurait demandé une migration, et les stocks
+// existants seraient restés non classés jusqu'à ce qu'on les retouche un par un.
+const CONSERVATION_PAR_CATEGORIE: Record<PantryCategory, Conservation> = {
+  viandes: 'frais',
+  légumes: 'frais',
+  laitiers: 'frais',
+  féculents: 'sec',
+  autres: 'sec',
+};
+
+export function conservationDe(item: PantryItem): Conservation {
+  return item.conservation ?? CONSERVATION_PAR_CATEGORIE[item.category] ?? 'sec';
+}
+
+/** Le stock d'un seul rangement, dans l'ordre où il a été saisi. */
+export function parConservation(items: PantryItem[], c: Conservation): PantryItem[] {
+  return items.filter((i) => conservationDe(i) === c);
 }
 
 export const PANTRY_KEY = '@kyroz:pantry';
@@ -176,6 +219,16 @@ export function removeItem(items: PantryItem[], name: string, unit: string): Pan
   return items.filter((i) => !(norm(i.name) === norm(name) && i.unit === unit));
 }
 
+/** Corrige le rangement d'un aliment. Écrit le champ, donc fige le classement :
+ *  un aliment corrigé ne repasse plus jamais par la déduction automatique. */
+export function setConservation(
+  items: PantryItem[], name: string, unit: string, conservation: Conservation,
+): PantryItem[] {
+  return items.map((i) =>
+    norm(i.name) === norm(name) && i.unit === unit ? { ...i, conservation } : i,
+  );
+}
+
 /** Inverse de addOrMerge : retire `qty` du stock d'un article sans passer sous 0,
  *  et ne supprime l'entrée que si elle atteint 0. Décocher un article de courses
  *  ne doit effacer que ce que le cochage avait ajouté, pas le stock déjà saisi à
@@ -231,12 +284,57 @@ export function deductRecipe(items: PantryItem[], recipe: Recipe, portions: numb
 export interface Coverage {
   recipe: Recipe;
   total: number;          // nb d'ingrédients non-staples
-  have: number;           // nb présents dans le garde-manger
-  missing: Ingredient[];  // ingrédients manquants
+  have: number;           // nb couverts par la réserve, EN QUANTITÉ
+  missing: Ingredient[];  // ce qui manque — `quantity_g` = le MANQUE, pas le besoin
   ratio: number;          // have / total
 }
 
-export function recipeCoverage(recipe: Recipe, items: PantryItem[]): Coverage {
+// ── « RÉALISABLE » COMPTE LES GRAMMES DEPUIS LE 2026-08-24 ───────────────────
+//
+// 🔴 LE DÉFAUT, signalé par le fondateur : `recipeCoverage` faisait un `some()` sur
+// les noms. **10 g de riz oubliés au fond d'un paquet déclaraient réalisable une
+// recette qui en demande 200.** L'écran annonçait donc un plat qu'on ne peut pas
+// faire — et il l'annonçait au moment exact où l'on cherche quoi manger ce soir.
+// C'est le mensonge que §10 interdit, et il était structurel : la présence ne dit
+// rien de la quantité.
+//
+// ⚠️ La liste de courses, elle, comptait DÉJÀ les grammes (`buildShoppingList`
+// soustrait quantité par quantité). Les deux écrans lisaient la même réserve et en
+// tiraient deux vérités différentes : l'un achetait 190 g de riz pendant que
+// l'autre disait « tu peux la faire ».
+//
+// ⚠️ TOLÉRANCE : une cuisine n'est pas un laboratoire. On considère couvert dès
+// **95 %** du besoin — sinon 495 g de riz sur 500 g feraient échouer une recette
+// que n'importe qui réussirait. Au-delà, ce qui manque est annoncé en clair.
+const TOLERANCE_COUVERTURE = 0.95;
+
+/**
+ * Le stock disponible pour un ingrédient, converti dans SON unité.
+ * `undefined` = un stock existe mais n'est pas comparable (pièces d'un aliment dont
+ * on ne connaît pas le poids) — dans ce cas on retient la présence, comme avant, et
+ * on n'invente ni un manque ni une couverture.
+ */
+function stockPour(items: PantryItem[], ing: Ingredient): number | undefined {
+  const besoinUnit = ing.unit ?? 'g';
+  let total = 0;
+  let incomparable = false;
+
+  for (const it of items) {
+    if (!memeAliment(it.name, ing.name)) continue;
+    if (it.unit === besoinUnit) { total += it.quantity; continue; }
+    // Pièces ↔ grammes : convertible pour les aliments qui se comptent (œufs,
+    // bananes…), via la MÊME table que l'affichage (`lib/units.ts`).
+    const pu = poidsUnitaire(ing.name);
+    if (pu && it.unit === 'pièce' && besoinUnit === 'g') { total += it.quantity * pu; continue; }
+    if (pu && it.unit === 'g' && besoinUnit === 'pièce') { total += it.quantity / pu; continue; }
+    incomparable = true;
+  }
+
+  if (total > 0) return total;
+  return incomparable ? undefined : 0;
+}
+
+export function recipeCoverage(recipe: Recipe, items: PantryItem[], portions = 1): Coverage {
   let have = 0;
   let total = 0;
   const missing: Ingredient[] = [];
@@ -244,9 +342,14 @@ export function recipeCoverage(recipe: Recipe, items: PantryItem[]): Coverage {
   for (const ing of recipe.ingredients) {
     if (isStaple(ing.name)) continue;
     total++;
-    const present = items.some((i) => memeAliment(i.name, ing.name));
-    if (present) have++;
-    else missing.push(ing);
+    const besoin = ing.quantity_g * portions;
+    const stock = stockPour(items, ing);
+
+    if (stock === undefined) { have++; continue; }          // présent mais incomparable
+    if (stock >= besoin * TOLERANCE_COUVERTURE) { have++; continue; }
+
+    // Le manque, pas le besoin : « il te manque 120 g de riz », pas « 200 g ».
+    missing.push({ ...ing, quantity_g: Math.max(1, Math.round(besoin - stock)) });
   }
 
   return { recipe, total, have, missing, ratio: total > 0 ? have / total : 0 };
@@ -255,49 +358,18 @@ export function recipeCoverage(recipe: Recipe, items: PantryItem[]): Coverage {
 /**
  * Recettes ordonnées par couverture décroissante (réalisables d'abord).
  * On exclut celles dont rien n'est disponible.
+ *
+ * ⚠️ `profile` FILTRE LE RÉGIME ET LES ALIMENTS ÉVITÉS depuis le 2026-08-24, avec le
+ * prédicat du moteur de plan (`recipeAllowed`) et non une copie. Sans lui, la réserve
+ * proposait du poulet à un végétarien : le moteur tenait sa promesse dans le plan et
+ * l'écran d'à côté la reniait. Un profil absent (chargement) ne filtre rien — c'est le
+ * comportement d'avant, jamais une autorisation implicite.
  */
-export function cookableRecipes(items: PantryItem[]): Coverage[] {
+export function cookableRecipes(items: PantryItem[], profile?: UserProfile | null): Coverage[] {
   if (items.length === 0) return [];
   return getEffectiveRecipes()
+    .filter((r) => !profile || recipeAllowed(r, profile))
     .map((r) => recipeCoverage(r, items))
     .filter((c) => c.total > 0 && c.have > 0)
     .sort((a, b) => b.ratio - a.ratio || a.missing.length - b.missing.length || a.recipe.name_fr.localeCompare(b.recipe.name_fr));
-}
-
-// ── L'ORDRE NE BOUGE PLUS PENDANT QU'ON CUISINE ─────────────────────────────
-//
-// 🔴 LE DÉFAUT MESURÉ, le 2026-08-14 (signalé par le fondateur, capture vidéo à
-// l'appui). « Cuisiné » déduit les ingrédients, donc la recette quitte la liste
-// des réalisables — et TOUTES celles du dessous remontent d'un cran. Le bouton
-// suivant arrive exactement là où le doigt vient de se poser.
-// **Mesuré au simulateur : quatre appuis au MÊME pixel ont cuisiné QUATRE
-// recettes différentes**, frigo 35 → 28 aliments, prêtes 19 → 15. Aucune n'était
-// choisie, et la déduction est irréversible (ni confirmation, ni annulation).
-// ⚠️ Et l'effet dépasse la recette cuisinée : le premier appui a fait tomber la
-// liste de 19 à 17, parce qu'une AUTRE recette a perdu un ingrédient au passage.
-// Retirer seulement la carte touchée n'aurait donc pas suffi à figer la mise en
-// page — c'est l'ORDRE entier qu'il faut tenir.
-//
-// ➡️ On gèle l'ORDRE, jamais le CONTENU. Chaque carte garde sa place, mais son
-// état est relu à chaque rendu : une recette devenue infaisable reste où elle est
-// et le dit. Geler le contenu aurait affiché « réalisable maintenant » sur une
-// recette dont on vient de manger le riz — le mensonge que §10 interdit.
-//
-// ⚠️ Les recettes CUISINÉES ne sortent plus de `cookableRecipes` par hasard : si
-// la déduction vide leur dernier ingrédient, leur `Coverage` disparaît. D'où
-// l'instantané `figes` — sans lui, la carte qu'on vient de toucher s'évaporerait,
-// et le trou refermerait la liste sous le doigt.
-export function listeStable(
-  ordre: string[] | null,
-  courant: Coverage[],
-  figes: Record<string, Coverage>,
-): Coverage[] {
-  if (!ordre) return courant;
-  const parId = new Map(courant.map((c) => [c.recipe.id, c]));
-  const out: Coverage[] = [];
-  for (const id of ordre) {
-    const c = parId.get(id) ?? figes[id];
-    if (c) out.push(c);
-  }
-  return out;
 }

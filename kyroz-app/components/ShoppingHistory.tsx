@@ -122,7 +122,7 @@ export function ShoppingHistory({
                     {aConfirmer === tr.at ? (
                       <ConfirmationEnLigne
                         t={t}
-                        question="Retirer ces courses de l'historique ? Ton frigo n'y touche pas — seule la trace disparaît."
+                        question="Retirer ces courses de l'historique ? Ta réserve n'y touche pas — seule la trace disparaît."
                         confirmLabel="Retirer"
                         onCancel={() => setAConfirmer(null)}
                         onConfirm={() => { setAConfirmer(null); onRemove(tr.at); }}

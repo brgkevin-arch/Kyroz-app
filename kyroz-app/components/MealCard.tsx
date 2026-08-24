@@ -20,7 +20,7 @@ const MEAL_LABELS: Record<string, string> = {
 };
 
 export function MealCard({
-  meal, onPress, onCook, onReload, onDislike, onShopping, missing, fridgeTracked, tourId, cookTourId, actionsTourId,
+  meal, onPress, onCook, onReload, onDislike, onShopping, missing, reserveNonVide, tourId, cookTourId, actionsTourId,
 }: {
   meal: Meal;
   onPress?: () => void;
@@ -28,8 +28,8 @@ export function MealCard({
   onReload?: () => void;     // 🔄 changer cette recette (sans ouvrir la fiche)
   onDislike?: () => void;    // 👎 je n'aime pas → masque + change
   onShopping?: () => void;   // → liste de courses (raccourci depuis « il te manque »)
-  missing?: string[];        // ingrédients absents du frigo (undefined si frigo non suivi)
-  fridgeTracked?: boolean;   // le frigo contient au moins 1 article
+  missing?: string[];        // ce qui manque en réserve, quantités comprises (undefined si réserve vide)
+  reserveNonVide?: boolean;  // la réserve contient au moins 1 aliment
   tourId?: string;           // si fourni : rend la carte ciblable par la visite guidée
   cookTourId?: string;       // si fourni : rend le bouton « J'ai cuisiné » ciblable par la visite guidée
   actionsTourId?: string;    // si fourni : rend la rangée favori / j'aime pas / changer ciblable
@@ -94,17 +94,17 @@ export function MealCard({
         </Text>
       )}
 
-      {/* Synchro frigo (uniquement si l'user suit son garde-manger) — informatif,
+      {/* État de la réserve (seulement si elle contient quelque chose) — informatif,
           jamais bloquant : « J'ai cuisiné » reste toujours cliquable.
           ⚠️ Le raccourci dit « Mes courses », PAS « Ajouter » — et ce n'est pas une
           nuance de vocabulaire. La liste de courses n'est pas une liste où l'on
-          ajoute : `buildShoppingList` prend les repas du plan et SOUSTRAIT le frigo,
+          ajoute : `buildShoppingList` prend les repas du plan et SOUSTRAIT la réserve,
           en excluant les condiments et les repas que l'user gère lui-même. Or
           `recipeCoverage`, qui produit ce « il te manque », applique EXACTEMENT les
           deux mêmes exclusions. Ce qui s'affiche ici est donc déjà dans la liste, par
           construction : un bouton « Ajouter » n'ajouterait rien et confirmerait un
           geste qui n'a pas eu lieu. */}
-      {planned && fridgeTracked && (
+      {planned && reserveNonVide && (
         lacks ? (
           <View style={styles.fridgeRow}>
             <Text style={[styles.fridge, { color: t.textSecondary, flex: 1 }]} numberOfLines={1}>
@@ -122,7 +122,7 @@ export function MealCard({
             )}
           </View>
         ) : (
-          <Text style={[styles.fridge, { color: t.textTertiary }]}>Tout est dans ton frigo</Text>
+          <Text style={[styles.fridge, { color: t.textTertiary }]}>Tout est dans ta réserve</Text>
         )
       )}
 

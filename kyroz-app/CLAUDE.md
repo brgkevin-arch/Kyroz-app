@@ -2029,7 +2029,7 @@ et l'écran ne sert qu'à juger le rendu (opacité forcée à 1). Procédure :
 ### La visite guidée dit ce que le code FAIT (2026-08-08)
 
 Un tour par onglet, déclenché **à la première visite de CET onglet** — jamais tous au
-démarrage. 19 bulles au total (plan 5 · profil 6 · recettes 3 · courses 3 · frigo 2),
+démarrage. 19 bulles au total (plan 5 · profil 6 · recettes 3 · courses 3 · réserve 2),
 mais une personne n'en voit que 6 le jour où elle ouvre le Plan. Servies d'un bloc, ce
 seraient 20 **interruptions modales** dans la même session : chaque bulle est une
 `Modal` dont les panneaux avalent les taps, pas une infobulle qu'on ignore.

@@ -349,8 +349,8 @@ export async function pushPantry(items: PantryItem[]): Promise<void> {
   const uid = await currentUserId(); if (!uid) return;
   try {
     const { error } = await supabase.from('pantry').upsert({ user_id: uid, items });
-    if (error) warnSyncFailure('garde-manger', error);
-  } catch (e) { warnSyncFailure('garde-manger (exception)', e); }
+    if (error) warnSyncFailure('réserve', error);
+  } catch (e) { warnSyncFailure('réserve (exception)', e); }
 }
 
 export async function pushWeights(entries: WeightEntry[]): Promise<void> {
@@ -449,7 +449,7 @@ export async function hydrateFromCloud(uid: string): Promise<void> {
     }
   } catch {}
 
-  // GARDE-MANGER — écrasement CONSERVÉ, à dessein (décision 2026-07-30).
+  // RÉSERVE — écrasement CONSERVÉ, à dessein (décision 2026-07-30).
   //
   // C'est un STOCK, pas un historique : les quantités sont décrémentées à chaque plat
   // cuisiné (`pantry.deductRecipe`). Une union ferait réapparaître les ingrédients déjà

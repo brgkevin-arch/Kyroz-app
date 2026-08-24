@@ -1,32 +1,27 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { Presse } from '../../components/Presse';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity,
+  View, Text, StyleSheet, ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme, ThemePalette, Radius, Spacing, Type, cardShadow, Fond, CIBLE_TACTILE_MIN, Trait, Icone, OPACITE_PRESSION } from '../../constants/theme';
-import { useFridgeTracking } from '../../lib/fridgeTracking';
 import { useCollapsingTitle, CompactTitleBar } from '../../components/CollapsingTitle';
 import { useLayout } from '../../constants/layout';
-import { PrimaryButton, Chip, Field, SectionLabel, Segmented, BoutonRevelation } from '../../components/ui';
+import { PrimaryButton, Chip, Field, Segmented } from '../../components/ui';
 import { animerMiseEnPage } from '../../components/Mouvement';
 import { ActionSheet } from '../../components/ActionSheet';
 import { formatQuantity, toBaseUnit } from '../../lib/units';
 import { pushPantry } from '../../lib/sync';
 import { searchFoods } from '../../lib/foods';
 import {
-  PantryItem, PantryCategory, Coverage,
+  PantryItem, PantryCategory, Conservation,
   loadPantry, savePantry, addOrMerge, removeItem, categorize,
-  deductRecipe, cookableRecipes, visiblePantry, listeStable,
+  visiblePantry, conservationDe, parConservation, setConservation,
 } from '../../lib/pantry';
 import { useTourTarget, useScreenTour, TourButton } from '../../components/GuidedTour';
-import { frigoTour } from '../../lib/tours';
-import { revelation, libelleRevelation } from '../../lib/revelation';
-
-/** Combien de recettes on montre avant de proposer d'en voir plus (fondateur, 2026-08-14). */
-const PAS_RECETTES = 8;
+import { reserveTour } from '../../lib/tours';
 
 const CATEGORY_ORDER: PantryCategory[] = ['viandes', 'légumes', 'féculents', 'laitiers', 'autres'];
 const CATEGORY_LABELS: Record<PantryCategory, string> = {
@@ -35,17 +30,28 @@ const CATEGORY_LABELS: Record<PantryCategory, string> = {
 };
 const UNITS = ['g', 'kg', 'ml', 'pièce'];
 
-type ViewMode = 'stock' | 'cook';
+// ── LE FRAIS ET LE SEC SONT SÉPARÉS (2026-08-24, décision fondateur) ─────────
+//
+// Une réserve n'est pas un frigo : le riz, les conserves et les pâtes ne se
+// rangent pas au même endroit que la viande. Les mélanger dans une seule liste
+// obligeait à trier de tête ce que la cuisine sépare déjà physiquement.
+//
+// Le classement est AUTOMATIQUE (par catégorie, `lib/pantry.ts`) et corrigeable
+// depuis la fiche d'un aliment : personne ne va trier à la main les 69 lignes
+// qu'une clôture de courses peut poser d'un coup.
+const CONSERVATIONS: { value: Conservation; label: string }[] = [
+  { value: 'frais', label: 'Au frais' },
+  { value: 'sec', label: 'Au sec' },
+];
 
-export default function GardeMangerScreen() {
+export default function ReserveScreen() {
   const t = useTheme();
   const s = useMemo(() => makeStyles(t), [t]);
   const layout = useLayout();
   const repli = useCollapsingTitle();
 
   const [items, setItems] = useState<PantryItem[]>([]);
-  const [suivreFrigo] = useFridgeTracking();
-  const [view, setView] = useState<ViewMode>('stock');
+  const [vue, setVue] = useState<Conservation>('frais');
   const [showAdd, setShowAdd] = useState(false);
   const [editItem, setEditItem] = useState<PantryItem | null>(null);
   const [confirm, setConfirm] = useState<{ title: string; message: string; cta: string; danger?: boolean; onYes: () => void } | null>(null);
@@ -60,7 +66,7 @@ export default function GardeMangerScreen() {
   // ⚠️ Volontairement NON PERSISTÉ : c'est un pli de lecture, pas un réglage.
   // Le stocker en ferait une valeur d'appareil, donc le patron obligatoire de
   // CLAUDE.md §11 (store externe + `useSyncExternalStore`) pour un état qui ne
-  // survit à rien d'important — et le frigo se rouvrirait à moitié replié sans
+  // survit à rien d'important — et la réserve se rouvrirait à moitié repliée sans
   // que personne ne se souvienne de l'avoir demandé.
   const [rayonsFermes, setRayonsFermes] = useState<PantryCategory[]>([]);
   // Un accordéon qui claque ne dit pas OÙ le contenu est parti : les aliments se
@@ -70,36 +76,6 @@ export default function GardeMangerScreen() {
     setRayonsFermes((prev) => (prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]));
   };
 
-  // « Voir + de recettes » : huit cartes de plus apparaissaient d'un coup, et le
-  // bouton sautait d'un demi-écran vers le bas sous le doigt qui venait de le
-  // toucher. Elles se fondent, et le bouton descend avec elles.
-  const revelerPretes = () => {
-    animerMiseEnPage();
-    if (vuePretes.action === 'tout') setPretesTout(true); else setPretesPlus((n) => n + 1);
-  };
-  const revelerPresque = () => {
-    animerMiseEnPage();
-    if (vuePresque.action === 'tout') setPresqueTout(true); else setPresquePlus((n) => n + 1);
-  };
-
-  // ── Ce qui a été cuisiné À L'INSTANT, et l'ordre gelé pendant ce temps ────
-  //
-  // 🔴 Voir `lib/pantry.ts::listeStable` pour le défaut mesuré (quatre appuis au
-  // même pixel, quatre recettes cuisinées). Ici on ne garde que l'état :
-  // l'ordre d'affichage au moment du PREMIER geste, et un instantané de chaque
-  // recette cuisinée — sans lui, la carte qu'on vient de toucher disparaît quand
-  // la déduction vide son dernier ingrédient.
-  const [ordreFige, setOrdreFige] = useState<string[] | null>(null);
-  const [cuisinees, setCuisinees] = useState<Record<string, Coverage>>({});
-
-  // Combien de fois « Voir + » a été pressé sur chacune des deux listes, et si
-  // « Voir tout » l'a été. Deux compteurs séparés : dérouler les recettes prêtes
-  // ne doit pas dérouler les presque-prêtes, ce sont deux questions différentes.
-  const [pretesPlus, setPretesPlus] = useState(0);
-  const [pretesTout, setPretesTout] = useState(false);
-  const [presquePlus, setPresquePlus] = useState(0);
-  const [presqueTout, setPresqueTout] = useState(false);
-
   // Formulaire d'ajout
   const [name, setName] = useState('');
   const [qty, setQty] = useState('');
@@ -108,18 +84,15 @@ export default function GardeMangerScreen() {
   // Formulaire d'édition
   const [editQty, setEditQty] = useState('');
   const [editUnit, setEditUnit] = useState('g');
+  const [editConservation, setEditConservation] = useState<Conservation>('frais');
 
   // Cibles de la visite guidée.
-  const ajouterRef = useTourTarget('frigo-ajouter');
-  const compteurRef = useTourTarget('frigo-compteur');
-  // ⚠️ `frigo-vue-cuisiner` est parti avec sa bulle le 2026-08-14 (décision
-  // fondateur, cf. `lib/tours.ts`). Une cible enregistrée que plus aucune étape ne
-  // vise n'est pas inoffensive : elle se relit comme une bulle perdue en route —
-  // exactement le « tour amputé » que `GuidedTour` avertit de ne pas confondre.
-  // ⚠️ Sur un frigo VIDE, le compteur ne dit rien et le sélecteur de vue n'est
+  const ajouterRef = useTourTarget('reserve-ajouter');
+  const compteurRef = useTourTarget('reserve-compteur');
+  // ⚠️ Sur une réserve VIDE, le compteur ne dit rien et le sélecteur de vue n'est
   // même pas monté : le tour se réduirait au bouton « + ». On attend qu'il y ait
   // un stock — l'écran vide, lui, s'explique déjà tout seul en toutes lettres.
-  const { rejouer: rejouerTour } = useScreenTour('frigo', frigoTour(), {
+  const { rejouer: rejouerTour } = useScreenTour('reserve', reserveTour(), {
     pret: items.length > 0,
   });
 
@@ -127,15 +100,7 @@ export default function GardeMangerScreen() {
     setItems(await loadPantry());
   }, []);
 
-  // ⚠️ LE DÉGEL SE FAIT EN REVENANT SUR L'ONGLET, pas sur un minuteur : tant que
-  // la personne est devant sa liste, rien ne doit bouger sous ses doigts ; dès
-  // qu'elle en repart, la question « qu'est-ce que je peux faire » se repose à
-  // neuf. Un délai deviné aurait rendu la liste imprévisible.
-  useFocusEffect(useCallback(() => {
-    refresh();
-    setOrdreFige(null);
-    setCuisinees({});
-  }, [refresh]));
+  useFocusEffect(useCallback(() => { refresh(); }, [refresh]));
 
   const persist = async (next: PantryItem[]) => { setItems(next); await savePantry(next); pushPantry(next); };
   const flashToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 2400); };
@@ -152,11 +117,16 @@ export default function GardeMangerScreen() {
     setEditItem(it);
     setEditQty(String(it.quantity));
     setEditUnit(it.unit);
+    setEditConservation(conservationDe(it));
   };
 
   // Tomber à ZÉRO retire l'aliment : c'est le seul chemin de suppression depuis que
-  // les lignes n'ont plus de croix. La quantité et la présence dans le frigo sont la
+  // les lignes n'ont plus de croix. La quantité et la présence en réserve sont la
   // même information — « je n'en ai plus » et « retire-le » sont le même geste.
+  //
+  // ⚠️ Le rangement (frais / sec) est REPOSÉ à l'enregistrement : `removeItem` puis
+  // `addOrMerge` reconstruit la ligne, donc une correction faite ici serait perdue
+  // si on ne la passait pas explicitement.
   const saveEdit = async () => {
     if (!editItem) return;
     const q = parseFloat(editQty);
@@ -168,8 +138,17 @@ export default function GardeMangerScreen() {
     }
     const base = toBaseUnit(q, editUnit);
     let next = removeItem(items, editItem.name, editItem.unit);
-    next = addOrMerge(next, { name: editItem.name, quantity: base.quantity, unit: base.unit, category: editItem.category });
+    next = addOrMerge(next, {
+      name: editItem.name, quantity: base.quantity, unit: base.unit,
+      category: editItem.category, conservation: editConservation,
+    });
+    next = setConservation(next, editItem.name, base.unit, editConservation);
     await persist(next);
+    // Changer de rangement fait SORTIR l'aliment de la liste qu'on regarde. Sans
+    // un mot, il a l'air d'avoir disparu.
+    if (editConservation !== conservationDe(editItem)) {
+      flashToast(editConservation === 'sec' ? `${editItem.name} rangé au sec` : `${editItem.name} rangé au frais`);
+    }
     setEditItem(null);
   };
 
@@ -187,47 +166,21 @@ export default function GardeMangerScreen() {
     });
   };
 
-  // Cuisiné : déduction directe, sans confirmation (juste un retour visuel).
-  const cook = async (c: Coverage) => {
-    // L'ordre se gèle au PREMIER geste et pas au montage : tant qu'on n'a rien
-    // cuisiné, la liste doit suivre le frigo (un article ajouté doit débloquer
-    // ses recettes tout de suite).
-    // La carte cuisinée quitte les « prêtes » et les suivantes remontent.
-    animerMiseEnPage();
-    if (!ordreFige) setOrdreFige(pretes.map((x) => x.recipe.id));
-    setCuisinees((prev) => ({ ...prev, [c.recipe.id]: c }));
-    await persist(deductRecipe(items, c.recipe, 1));
-    flashToast(`✓ ${c.recipe.name_fr} cuisiné`);
-  };
-
   const clearAll = () => {
     setConfirm({
-      title: 'Vider le frigo ?',
-      message: 'Tous les aliments seront supprimés.',
+      title: 'Vider la réserve ?',
+      message: 'Tous les aliments seront supprimés, au frais comme au sec.',
       cta: 'Vider', danger: true,
       onYes: () => persist([]),
     });
   };
 
-  const coverage = useMemo(() => cookableRecipes(items), [items]);
-  const ready = coverage.filter((c) => c.missing.length === 0);
-  // 🔴 LE `.slice(0, 5)` A ÉTÉ RETIRÉ ICI le 2026-08-14. C'était un plafond MUET :
-  // les presque-prêtes au-delà de la cinquième n'existaient nulle part à l'écran,
-  // et rien ne le disait — exactement le « no silent caps » que le dépôt s'impose.
-  // Le bouton de révélation dit maintenant combien il en reste.
-  const almost = coverage.filter((c) => c.missing.length >= 1 && c.missing.length <= 2);
-
-  // L'ordre affiché : celui du frigo tant qu'on n'a rien cuisiné, gelé ensuite.
-  // Le CONTENU de chaque carte, lui, est toujours relu — une recette devenue
-  // infaisable garde sa place et le dit.
-  const pretes = listeStable(ordreFige, ready, cuisinees);
-
-  const vuePretes = revelation(pretes.length, PAS_RECETTES, pretesPlus, pretesTout);
-  const vuePresque = revelation(almost.length, PAS_RECETTES, presquePlus, presqueTout);
-
   const visible = useMemo(() => visiblePantry(items), [items]);
+  const frais = useMemo(() => parConservation(visible, 'frais'), [visible]);
+  const sec = useMemo(() => parConservation(visible, 'sec'), [visible]);
+  const courant = vue === 'frais' ? frais : sec;
   const grouped = CATEGORY_ORDER
-    .map((cat) => ({ cat, list: visible.filter((i) => i.category === cat) }))
+    .map((cat) => ({ cat, list: courant.filter((i) => i.category === cat) }))
     .filter((g) => g.list.length > 0);
 
   return (
@@ -237,21 +190,15 @@ export default function GardeMangerScreen() {
             maquette : c'est ce qui permet au gros titre de s'effacer au profit de
             la barre compacte. Ils étaient au-dessus du ScrollView, donc le titre
             de 34 restait planté en haut pour toujours. */}
-        {/* « Frigo », le mot de la barre d'onglets — un même objet ne peut pas avoir
-            deux noms selon l'endroit d'où on le regarde. */}
+        {/* « Réserve », le mot de la barre d'onglets — un même objet ne peut pas
+            avoir deux noms selon l'endroit d'où on le regarde. */}
         <View style={s.header} onLayout={repli.onHeaderLayout}>
           {/* La ref du compteur est posée sur ce bloc et non sur le `+` qui suit :
               le spotlight épouse alors le sous-titre et le titre, c'est-à-dire ce
               dont la bulle parle. */}
           <View ref={compteurRef} style={{ flex: 1 }}>
-            <Text style={s.sub}>{visible.length} aliment{visible.length > 1 ? 's' : ''} · {ready.length} recette{ready.length > 1 ? 's' : ''} prête{ready.length > 1 ? 's' : ''}</Text>
-            <Text style={s.h1}>Frigo</Text>
-            {/* Sans cette ligne, quelqu'un qui remplit son frigo se demande pourquoi
-                sa liste de courses l'ignore — et conclut que le frigo est cassé. On
-                DIT ce que le réglage fait, et où il se trouve. */}
-            {!suivreFrigo && (
-              <Text style={s.noteSuivi}>Tes courses ne le déduisent pas — l'option est dans Courses</Text>
-            )}
+            <Text style={s.sub}>{visible.length} aliment{visible.length > 1 ? 's' : ''} · {frais.length} au frais · {sec.length} au sec</Text>
+            <Text style={s.h1}>Réserve</Text>
           </View>
           <View style={s.headerActions}>
             <TourButton onPress={rejouerTour} />
@@ -265,9 +212,9 @@ export default function GardeMangerScreen() {
           <View style={s.segment}>
             <Segmented
               t={t}
-              options={[{ label: 'Mon stock', value: 'stock' }, { label: 'À cuisiner', value: 'cook' }]}
-              value={view}
-              onChange={(v) => setView(v as ViewMode)}
+              options={CONSERVATIONS.map((c) => ({ label: c.label, value: c.value }))}
+              value={vue}
+              onChange={(v) => { animerMiseEnPage(); setVue(v as Conservation); }}
             />
           </View>
         )}
@@ -277,164 +224,93 @@ export default function GardeMangerScreen() {
             <View style={[s.emptyIcon, { backgroundColor: t.fill }]}>
               <Ionicons name="file-tray-full-outline" size={Icone.vide} color={t.textSecondary} />
             </View>
-            <Text style={s.emptyTitle}>Ton frigo est vide</Text>
-            {/* Troisième phrase de l'app à devenir fausse le jour où le suivi du frigo
-                est devenu optionnel — après la ligne d'aide des Courses et le titre de
-                cet écran. Elles promettaient toutes un automatisme que l'interrupteur
-                éteint. ➡️ Quand un réglage coupe un MÉCANISME, chercher toutes les
-                phrases qui le DÉCRIVENT, pas seulement le code qui l'exécute. */}
+            <Text style={s.emptyTitle}>Ta réserve est vide</Text>
             <Text style={s.emptySub}>
-              {suivreFrigo
-                ? "Ajoute ce que tu as déjà — ou coche tes articles dans l'onglet Courses, ils arrivent ici automatiquement."
-                : "Ajoute ce que tu as déjà pour voir ce que tu peux cuisiner tout de suite."}
+              Ajoute ce que tu as déjà — ou fais tes courses : « Courses terminées » range
+              tout ce que tu as coché ici, au frais ou au sec.
             </Text>
             <View style={{ height: 8 }} />
             <Presse onPress={() => setShowAdd(true)} style={s.ghostBtn} activeOpacity={OPACITE_PRESSION}>
               <Text style={s.ghostTxt}>Ajouter un aliment</Text>
             </Presse>
           </View>
-        ) : view === 'cook' ? (
-          // ── À CUISINER ───────────────────────────────────────────────────────
-          <>
-            {pretes.length > 0 && (
-              <>
-                <SectionLabel t={t}>Réalisable maintenant</SectionLabel>
-                <View style={{ gap: Spacing.md, marginTop: Spacing.md }}>
-                  {pretes.slice(0, vuePretes.visibles).map((c) => (
-                    <View key={c.recipe.id} style={[s.recipe, cardShadow(t), !!cuisinees[c.recipe.id] && { opacity: 0.55 }]}>
-                      <View style={{ flex: 1 }}>
-                        <Text style={s.rName}>{c.recipe.name_fr}</Text>
-                        <Text style={s.rMeta}>{c.recipe.prep_time_min} min · {c.recipe.macros_per_portion.kcal} kcal · {c.recipe.macros_per_portion.protein_g}g P</Text>
-                      </View>
-                      {/* 🔴 LA CARTE CUISINÉE RESTE À SA PLACE ET LE DIT. Avant, elle
-                          quittait la liste : tout remontait d'un cran et le bouton
-                          suivant arrivait sous le doigt. C'est ici que se lit le
-                          retour du geste — le bandeau du bas, lui, était masqué par
-                          la barre d'onglets, donc rien ne confirmait rien. */}
-                      {cuisinees[c.recipe.id] ? (
-                        <View style={s.cookDone}>
-                          <Ionicons name="checkmark" size={Icone.petite} color={t.success} />
-                          <Text style={s.cookDoneTxt}>Cuisiné</Text>
-                        </View>
-                      ) : (
-                        <Presse style={s.cookBtn} onPress={() => cook(c)} activeOpacity={OPACITE_PRESSION}>
-                          <Ionicons name="restaurant" size={Icone.petite} color={t.onAccent} />
-                          <Text style={s.cookTxt}>Cuisiné</Text>
-                        </Presse>
-                      )}
-                    </View>
-                  ))}
-                </View>
-                {/* Le bouton fait passer aux presque-prêtes plutôt que de servir
-                    185 cartes d'affilée : la question « qu'est-ce que je peux
-                    faire ce soir » se répond en huit propositions, pas en deux
-                    cents. */}
-                <BoutonRevelation
-                  t={t}
-                  libelle={libelleRevelation(vuePretes.action, vuePretes.reste)}
-                  onPress={revelerPretes}
-                />
-              </>
-            )}
-
-            {almost.length > 0 && (
-              <>
-                <View style={{ marginTop: ready.length > 0 ? 28 : 0 }}>
-                  <SectionLabel t={t}>Presque — quelques ingrédients en plus</SectionLabel>
-                </View>
-                <View style={{ gap: Spacing.md, marginTop: Spacing.md }}>
-                  {almost.slice(0, vuePresque.visibles).map((c) => (
-                    <View key={c.recipe.id} style={[s.recipe, cardShadow(t), { opacity: 0.92 }]}>
-                      <View style={{ flex: 1 }}>
-                        <Text style={s.rName}>{c.recipe.name_fr}</Text>
-                        <Text style={s.rMissing}>Il te manque : {c.missing.map((m) => m.name).join(', ')}</Text>
-                      </View>
-                      <View style={s.missingBadge}>
-                        <Text style={s.missingBadgeTxt}>{c.missing.length}</Text>
-                      </View>
-                    </View>
-                  ))}
-                </View>
-                <BoutonRevelation
-                  t={t}
-                  libelle={libelleRevelation(vuePresque.action, vuePresque.reste)}
-                  onPress={revelerPresque}
-                />
-              </>
-            )}
-
-            {ready.length === 0 && almost.length === 0 && (
-              <View style={[s.note, { backgroundColor: t.fill }]}>
-                <Text style={s.noteTxt}>Aucune recette réalisable avec ces aliments pour l'instant. Ajoute des ingrédients pour débloquer des idées de repas.</Text>
-              </View>
-            )}
-          </>
         ) : (
-          // ── MON STOCK ────────────────────────────────────────────────────────
           <>
             <View style={s.invHeader}>
               <Text style={s.invHint}>Touche une quantité pour la modifier.</Text>
               <Presse onPress={clearAll}><Text style={[s.link, { color: t.danger }]}>Vider</Text></Presse>
             </View>
 
-            {/* ── Rayons repliables (décision fondateur, 2026-08-14) ────────────
-                Le frigo d'un utilisateur nourri par l'onglet Courses monte vite à
-                69 lignes : le replier par rayon rend la liste parcourable sans
-                rien lui retirer. **Ouvert par défaut**, sur sa demande — un
-                inventaire qui s'ouvre fermé cache ce qu'on vient vérifier.
-                ⚠️ L'en-tête devient un BOUTON, donc il lui faut la cible tactile
-                des 44 pt : sans `minHeight`, une étiquette en petites capitales
-                fait 15 pt de haut et se rate une fois sur deux. */}
-            {grouped.map((g) => {
-              const ferme = rayonsFermes.includes(g.cat);
-              return (
-                <View key={g.cat} style={{ marginTop: Spacing.sm }}>
-                  <Presse
-                    style={s.catHeader}
-                    onPress={() => basculerRayon(g.cat)}
-                    activeOpacity={OPACITE_PRESSION}
-                    accessibilityRole="button"
-                    accessibilityLabel={`${CATEGORY_LABELS[g.cat]}, ${g.list.length} aliment${g.list.length > 1 ? 's' : ''} — ${ferme ? 'déplier' : 'replier'}`}
-                  >
-                    <Text style={s.catLabel}>{CATEGORY_LABELS[g.cat].toUpperCase()}</Text>
-                    {/* Le compte reste visible RAYON FERMÉ : replié, c'est la seule
-                        chose qui dise ce qu'on vient de cacher. */}
-                    <Text style={s.catCount}>{g.list.length}</Text>
-                    <Ionicons
-                      name={ferme ? 'chevron-down' : 'chevron-up'}
-                      size={Icone.petite}
-                      color={t.textTertiary}
-                    />
-                  </Presse>
-                  {!ferme && (
-                    <View style={[s.invCard, cardShadow(t)]}>
-                      {/* Plus de croix de suppression par ligne : toucher la quantité
-                          ouvre le pas-à-pas, et tomber à zéro retire l'aliment. Une
-                          croix sur chaque ligne, c'est une invitation à la faute de
-                          frappe sur un geste irréversible. */}
-                      {g.list.map((it, i) => (
-                        <Presse
-                          key={it.name + it.unit}
-                          style={[s.invRow, i < g.list.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.line }]}
-                          onPress={() => openEdit(it)}
-                          activeOpacity={OPACITE_PRESSION}
-                        >
-                          <Text style={s.invName} numberOfLines={1}>{it.name}</Text>
-                          <Text style={s.invQty}>{formatQuantity(it.name, it.quantity, it.unit)}</Text>
-                        </Presse>
-                      ))}
-                    </View>
-                  )}
-                </View>
-              );
-            })}
+            {courant.length === 0 ? (
+              // Un côté vide n'est pas un écran vide : l'autre est plein, et le
+              // sélecteur juste au-dessus dit où est le reste.
+              <View style={[s.note, { backgroundColor: t.fill }]}>
+                <Text style={s.noteTxt}>
+                  {vue === 'frais'
+                    ? 'Rien au frais pour l\'instant — tout ce que tu as est rangé au sec.'
+                    : 'Rien au sec pour l\'instant — tout ce que tu as est au frais.'}
+                </Text>
+              </View>
+            ) : (
+              // ── Rayons repliables (décision fondateur, 2026-08-14) ────────────
+              // Une réserve nourrie par l'onglet Courses monte vite à 69 lignes :
+              // la replier par rayon rend la liste parcourable sans rien lui
+              // retirer. **Ouverte par défaut**, sur sa demande — un inventaire qui
+              // s'ouvre fermé cache ce qu'on vient vérifier.
+              // ⚠️ L'en-tête devient un BOUTON, donc il lui faut la cible tactile
+              // des 44 pt : sans `minHeight`, une étiquette en petites capitales
+              // fait 15 pt de haut et se rate une fois sur deux.
+              grouped.map((g) => {
+                const ferme = rayonsFermes.includes(g.cat);
+                return (
+                  <View key={g.cat} style={{ marginTop: Spacing.sm }}>
+                    <Presse
+                      style={s.catHeader}
+                      onPress={() => basculerRayon(g.cat)}
+                      activeOpacity={OPACITE_PRESSION}
+                      accessibilityRole="button"
+                      accessibilityLabel={`${CATEGORY_LABELS[g.cat]}, ${g.list.length} aliment${g.list.length > 1 ? 's' : ''} — ${ferme ? 'déplier' : 'replier'}`}
+                    >
+                      <Text style={s.catLabel}>{CATEGORY_LABELS[g.cat].toUpperCase()}</Text>
+                      {/* Le compte reste visible RAYON FERMÉ : replié, c'est la seule
+                          chose qui dise ce qu'on vient de cacher. */}
+                      <Text style={s.catCount}>{g.list.length}</Text>
+                      <Ionicons
+                        name={ferme ? 'chevron-down' : 'chevron-up'}
+                        size={Icone.petite}
+                        color={t.textTertiary}
+                      />
+                    </Presse>
+                    {!ferme && (
+                      <View style={[s.invCard, cardShadow(t)]}>
+                        {/* Plus de croix de suppression par ligne : toucher la quantité
+                            ouvre le pas-à-pas, et tomber à zéro retire l'aliment. Une
+                            croix sur chaque ligne, c'est une invitation à la faute de
+                            frappe sur un geste irréversible. */}
+                        {g.list.map((it, i) => (
+                          <Presse
+                            key={it.name + it.unit}
+                            style={[s.invRow, i < g.list.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.line }]}
+                            onPress={() => openEdit(it)}
+                            activeOpacity={OPACITE_PRESSION}
+                          >
+                            <Text style={s.invName} numberOfLines={1}>{it.name}</Text>
+                            <Text style={s.invQty}>{formatQuantity(it.name, it.quantity, it.unit)}</Text>
+                          </Presse>
+                        ))}
+                      </View>
+                    )}
+                  </View>
+                );
+              })
+            )}
           </>
         )}
       </ScrollView>
 
-      <CompactTitleBar t={t} title="Frigo" opacity={repli.opacity} />
+      <CompactTitleBar t={t} title="Réserve" opacity={repli.opacity} />
 
-      {/* Toast « cuisiné » */}
+      {/* Toast (changement de rangement) */}
       {toast && (
         <View style={[s.toast, { pointerEvents: 'none' }]}>
           <Text style={s.toastTxt}>{toast}</Text>
@@ -466,6 +342,9 @@ export default function GardeMangerScreen() {
         <View style={s.unitRow}>
           {UNITS.map((u) => <Chip key={u} t={t} label={u} selected={unit === u} onPress={() => setUnit(u)} />)}
         </View>
+        {/* Pas de choix frais/sec à l'ajout : Kyroz range seul d'après l'aliment, et
+            la fiche permet de corriger. Une question de plus à chaque ajout pour un
+            classement juste presque toujours, c'est une friction qu'on ne paye pas. */}
         <View style={{ height: 4 }} />
         <PrimaryButton t={t} label="Ajouter" onPress={addManual} disabled={!name.trim() || !(parseFloat(qty) > 0)} />
         <Presse onPress={() => setShowAdd(false)} style={s.cancel}><Text style={s.cancelTxt}>Annuler</Text></Presse>
@@ -489,11 +368,17 @@ export default function GardeMangerScreen() {
         <View style={s.unitRow}>
           {UNITS.map((u) => <Chip key={u} t={t} label={u} selected={editUnit === u} onPress={() => setEditUnit(u)} />)}
         </View>
-        <Text style={s.stepHint}>Descends à 0 pour retirer cet aliment du frigo.</Text>
+        <Text style={s.editLabel}>RANGEMENT</Text>
+        <View style={s.unitRow}>
+          {CONSERVATIONS.map((c) => (
+            <Chip key={c.value} t={t} label={c.label} selected={editConservation === c.value} onPress={() => setEditConservation(c.value)} />
+          ))}
+        </View>
+        <Text style={s.stepHint}>Descends à 0 pour retirer cet aliment de ta réserve.</Text>
         <View style={{ height: 4 }} />
         <PrimaryButton
           t={t}
-          label={parseFloat(editQty) === 0 ? 'Retirer du frigo' : 'Enregistrer'}
+          label={parseFloat(editQty) === 0 ? 'Retirer de ma réserve' : 'Enregistrer'}
           onPress={saveEdit}
           disabled={!(parseFloat(editQty) >= 0)}
         />
@@ -525,7 +410,6 @@ function makeStyles(t: ThemePalette) {
     // contentContainer du ScrollView, qui pose déjà les 20 pt. L'y laisser les
     // aurait doublés.
     header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: Spacing.xs, paddingBottom: Spacing.md },
-    noteSuivi: { ...Type.caption, color: t.textTertiary, marginTop: Spacing.xs },
     headerActions: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
     h1: { color: t.text, ...Type.display, marginTop: Spacing.xs },
     sub: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 19 },
@@ -540,15 +424,6 @@ function makeStyles(t: ThemePalette) {
     ghostBtn: { paddingVertical: Spacing.lg, alignItems: 'center' },
     ghostTxt: { ...Type.bodyStrong, color: t.textSecondary },
 
-    recipe: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, backgroundColor: t.card, borderRadius: Radius.card, padding: Spacing.lg },
-    rName: { ...Type.label, color: t.text, letterSpacing: -0.3 },
-    rMeta: { ...Type.caption, color: t.textSecondary, marginTop: Spacing.xs },
-    rMissing: { ...Type.caption, color: t.textTertiary, marginTop: Spacing.xs },
-    cookBtn: { flexDirection: 'row', alignItems: 'center', gap: Spacing.xs, backgroundColor: t.accent, paddingHorizontal: Spacing.lg, paddingVertical: Spacing.sm, minHeight: CIBLE_TACTILE_MIN, justifyContent: 'center', borderRadius: Radius.pill },
-    cookTxt: { ...Type.captionStrong, color: t.onAccent },
-    missingBadge: { width: 28, height: 28, borderRadius: 14, backgroundColor: t.fill, alignItems: 'center', justifyContent: 'center' },
-    missingBadgeTxt: { ...Type.captionStrong, color: t.textSecondary },
-
     note: { borderRadius: Radius.card, padding: Spacing.lg, marginTop: Spacing.xs },
     noteTxt: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 20 },
 
@@ -557,7 +432,7 @@ function makeStyles(t: ThemePalette) {
     link: { ...Type.bodySmall, color: t.textSecondary },
     // ⚠️ `minHeight` : l'étiquette de rayon est devenue un BOUTON le 2026-08-14.
     // En petites capitales elle fait 15 pt de haut ; sans hauteur minimale, le
-    // pli du frigo se raterait une fois sur deux (et `espacementDA` le compte).
+    // pli de la réserve se raterait une fois sur deux (et `espacementDA` le compte).
     catHeader: {
       flexDirection: 'row', alignItems: 'center', gap: Spacing.sm,
       minHeight: CIBLE_TACTILE_MIN, marginTop: Spacing.sm,
@@ -572,18 +447,17 @@ function makeStyles(t: ThemePalette) {
     stepBtn: { width: 48, height: 48, borderRadius: Radius.button, backgroundColor: t.fill, alignItems: 'center', justifyContent: 'center' },
     stepHint: { ...Type.caption, color: t.textTertiary, lineHeight: 18 },
 
-    cookDone: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, minHeight: CIBLE_TACTILE_MIN, paddingHorizontal: Spacing.lg },
-    cookDoneTxt: { ...Type.bodySmallStrong, color: t.textSecondary },
     // 🔴 `Fond.barreOnglets` ET NON 28. La barre d'onglets FLOTTE au-dessus du
     // contenu depuis la passe matériaux (§8) : à 28 pt du bas, ce bandeau était
     // dessiné DERRIÈRE elle — visible seulement comme une tache floue à travers le
-    // verre. Le seul retour qui disait CE QUI venait d'être cuisiné n'a donc jamais
+    // verre. Le seul retour qui disait ce qui venait de se passer n'a donc jamais
     // été lisible. Mesuré au simulateur, capture zoomée à l'appui.
     toast: { position: 'absolute', left: 20, right: 20, bottom: Fond.barreOnglets, backgroundColor: t.accent, borderRadius: Radius.button, paddingVertical: Spacing.lg, paddingHorizontal: Spacing.xl, alignItems: 'center' },
     toastTxt: { ...Type.bodySmallStrong, color: t.onAccent },
 
     sheetTitle: { color: t.text, ...Type.h2 },
     editName: { ...Type.bodyStrong, color: t.textSecondary, marginTop: -Spacing.sm },
+    editLabel: { ...Type.overline, color: t.textTertiary },
     unitRow: { flexDirection: 'row', gap: Spacing.sm },
     cancel: { alignItems: 'center', paddingVertical: Spacing.sm },
     cancelTxt: { ...Type.bodyStrong, color: t.textSecondary },
