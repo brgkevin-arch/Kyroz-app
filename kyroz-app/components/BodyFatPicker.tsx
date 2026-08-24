@@ -317,7 +317,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   figure: { height: 104, alignItems: 'center', justifyContent: 'center' },
-  img: { height: 104, aspectRatio: 220 / 462 },
+  // 🔴 CE RATIO EST CELUI DES FICHIERS SERVIS, ET IL PÉRIME QUAND ON LES REGÉNÈRE.
+  // Il valait `220 / 462` — les dimensions du jeu d'avant. Les planches redécoupées
+  // le 2026-08-23 sortent en **273 × 479** (le canevas commun est calculé sur le plus
+  // large des douze, il ne se choisit pas). Avec l'ancien ratio et `resizeMode:
+  // 'contain'`, la silhouette n'aurait pas été déformée — elle aurait été RÉTRÉCIE
+  // dans une boîte trop étroite, avec du vide au-dessus et en dessous. Un défaut qui
+  // ne casse rien, ne lève aucune erreur, et se lit comme « les nouvelles images sont
+  // plus petites ».
+  // ➡️ Compté par `lib/__tests__/silhouettes.test.ts`, qui lit les PNG sur le disque :
+  // le jour où la découpe rend d'autres dimensions, le test rougit au lieu de laisser
+  // l'écran rapetisser en silence.
+  img: { height: 104, aspectRatio: 273 / 479 },
   pct: { ...Type.h3 },
   desc: { ...Type.caption, lineHeight: 16, textAlign: 'center' },
   clear: { alignSelf: 'flex-start', paddingVertical: Spacing.xs },
