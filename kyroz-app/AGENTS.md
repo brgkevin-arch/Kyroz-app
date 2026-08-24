@@ -4087,17 +4087,47 @@ produit en suspens — il ne reste qu'à coder.
   plutôt que sur quatre heures écrites en dur. Si c'est trop tôt à l'usage, le correctif
   est une marge unique dans `heuresLimites`, pas une table d'heures.
 
-  ✅ **Tests** : `reserveCouverture` (16 cas — quantités, tolérance, pièces, régime,
-  frais/sec), `repasAuto` (23 cas), `reserveCourses` (12 cas, remplace `frigoOptionnel`),
-  `cuisinerDepuisLaReserve` (remplace `cuisinerDepuisLeFrigo`). **Vérifiés par 6
-  mutations** (présence au lieu de quantité, filtre régime retiré, correction manuelle
-  ignorée, minuit rétabli, tri des créneaux retiré, repas fixe coché) — toutes rouges.
-  📊 **1 692 tests / 109 fichiers verts**, `tsc` vert.
-  ⚠️ **Non vérifié à l'écran** : la session tourne dans un worktree entré en cours de
-  route, donc `preview_start` sert l'app du dépôt PRINCIPAL (CLAUDE.md §11). Ce qui est
-  testé ci-dessus l'est parce que c'est PUR ou lisible dans la source ; **le rendu de la
-  Réserve, du filtre « Ma réserve » et du bandeau de l'auto-coche restent à voir**, au
-  simulateur ou sur le site une fois la PR mergée.
+  🔴 **ET L'ÉCRAN A TROUVÉ UN DÉFAUT QUE 1 692 TESTS VERTS NE VOYAIENT PAS : LA WHEY
+  ÉTAIT UN CONDIMENT.** Le filtre « Ma réserve » annonçait « tu as tout ce qu'il faut »
+  sur une barre protéinée alors que la réserve n'avait pas un gramme de whey. Cause —
+  l'ingrédient du catalogue s'appelle **« Whey (neutre/vanille) »**, et `isStaple`
+  mordait sur son PARFUM (`vanille` était dans `STAPLES`).
+  ⚠️ **Le manque était SILENCIEUX sur les trois surfaces à la fois** : `buildShoppingList`
+  ne proposait jamais d'en acheter, la réserve ne la déduisait jamais, la couverture la
+  comptait pour acquise. **23 recettes** en contiennent, à 25–30 g la portion — c'est la
+  source de protéines du repas, pas une épice. Balayage des 125 ingrédients : ce mot ne
+  servait **QU'À** ce faux positif ; restent `huile_olive` (168 recettes) et `miel` (14).
+  ➡️ *Une règle qui ne se déclenche que sur son erreur ne protège rien.* Et c'est le
+  deuxième cas de la même famille en dix jours (`bœuf` contient `œuf`) : **un prédicat
+  par sous-chaîne sur un nom d'aliment se mesure sur le catalogue entier, jamais sur les
+  exemples qui l'ont inspiré.**
+
+  ✅ **Tests** : `reserveCouverture` (17 cas — quantités, tolérance, pièces, régime,
+  frais/sec, whey), `repasAuto` (23 cas), `reserveCourses` (12 cas, remplace
+  `frigoOptionnel`), `cuisinerDepuisLaReserve` (remplace `cuisinerDepuisLeFrigo`).
+  **Vérifiés par 6 mutations** (présence au lieu de quantité, filtre régime retiré,
+  correction manuelle ignorée, minuit rétabli, tri des créneaux retiré, repas fixe coché)
+  — toutes rouges. 📊 **1 693 tests / 109 fichiers verts**, `tsc` vert.
+
+  ✅ **VU À L'ÉCRAN, en 375 pt** — le preview du worktree a pu être lancé (entrée
+  `kyroz-worktree` du `launch.json`, plus un `.env.local` de valeurs FACTICES, cf. §11) :
+  · **Réserve** — « 10 aliments · 6 au frais · 4 au sec », segment Au frais / Au sec, les
+    rayons pliés par catégorie de chaque côté ;
+  · **correction du rangement** — riz basmati passé au frais depuis sa fiche : il quitte
+    la liste « Au sec », le compteur passe à 7/3, et le bandeau « Riz basmati rangé au
+    frais » s'affiche **au-dessus** de la barre d'onglets ;
+  · **Recettes → Ma réserve** — « 1 réalisable · 42 presque », manques chiffrés sur les
+    cartes (« Il te manque : Millet (80 g) ») ; après le correctif whey, « **0 réalisable
+    · 38 presque** » et « Il te manque : Whey (neutre/vanille) (25 g) » ;
+  · **Plan à 23 h 28** — petit-déj, déjeuner et collation **auto-cochés** (limites 13 h /
+    16 h / 20 h), dîner encore planifié (limite 23 h 59), « 1 455 / 2 040 kcal · reste
+    595 » : la journée est recalée sur ce qui a été supposé mangé ;
+  · **Courses** — plus aucune puce « Tenir compte du frigo », et la clôture d'une sortie
+    fait bien entrer l'article coché en réserve (« Crevettes cuites 185 g »), après quoi
+    la liste recalculée le fait disparaître (57 → 56).
+  ⚠️ **Ce que le web ne peut PAS dire, et qui reste à voir au simulateur** : l'anneau de
+  la visite guidée s'y fige à une position intermédiaire **parfaitement plausible**
+  (`requestAnimationFrame` n'y tourne pas, §11) — ne pas en conclure une cible mal visée.
 
 - 🤖 **E58 · Le frigo n'est plus soustrait par défaut — et TROIS phrases promettaient
   encore l'automatisme (2026-08-21)**

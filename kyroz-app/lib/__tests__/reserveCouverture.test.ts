@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   recipeCoverage, cookableRecipes, conservationDe, parConservation, setConservation,
-  PantryItem,
+  isStaple, PantryItem,
 } from '../pantry';
 import { makeProfile } from './helpers';
 import type { Recipe } from '../types';
@@ -56,6 +56,21 @@ describe('la quantité décide, plus la présence', () => {
 
   it('deux lignes du même aliment s’additionnent', () => {
     expect(recipeCoverage(riz, [stock('Riz', 120), stock('Riz', 120)]).missing).toHaveLength(0);
+  });
+
+  it('🔴 la whey n’est PAS un condiment — son parfum la rendait invisible', () => {
+    // L'ingrédient du catalogue s'appelle « Whey (neutre/vanille) », et `isStaple`
+    // mordait sur « vanille ». Trois surfaces mentaient d'un coup : la liste de
+    // courses ne la proposait jamais, la réserve ne la déduisait jamais, et la
+    // couverture la comptait pour acquise — « tu as tout ce qu'il faut » sur une
+    // barre protéinée sans un gramme de whey. 23 recettes concernées.
+    expect(isStaple('Whey (neutre/vanille)')).toBe(false);
+    const barre = recette([
+      { name: "Flocons d'avoine", quantity_g: 45 },
+      { name: 'Whey (neutre/vanille)', quantity_g: 25 },
+    ]);
+    const c = recipeCoverage(barre, [stock("Flocons d'avoine", 900, 'g', { category: 'féculents' })]);
+    expect(c.missing.map((m) => m.name)).toEqual(['Whey (neutre/vanille)']);
   });
 
   it('les condiments restent supposés présents', () => {

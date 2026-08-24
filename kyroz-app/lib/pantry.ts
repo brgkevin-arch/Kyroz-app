@@ -61,9 +61,27 @@ export function parConservation(items: PantryItem[], c: Conservation): PantryIte
 
 export const PANTRY_KEY = '@kyroz:pantry';
 
-// Condiments toujours supposés disponibles : on les ignore pour la couverture
-// et on ne les déduit pas (sel, huile, épices…).
-const STAPLES = ['sel', 'poivre', 'épice', 'epice', 'huile', 'citron', 'moutarde', 'miel', 'vinaigre', 'cannelle', 'aneth', 'vanille'];
+// Condiments toujours supposés disponibles : on les ignore pour la couverture,
+// on ne les déduit pas, et la liste de courses ne les propose pas (sel, huile…).
+//
+// 🔴 « VANILLE » A ÉTÉ RETIRÉ LE 2026-08-24, ET IL RENDAIT LA WHEY INVISIBLE.
+// Trouvé à l'écran, pas dans le code : le filtre « Ma réserve » annonçait « tu as
+// tout ce qu'il faut » sur une barre protéinée alors que la réserve n'avait pas un
+// gramme de whey. Cause — l'ingrédient du catalogue s'appelle **« Whey
+// (neutre/vanille) »**, donc `isStaple` mordait sur son PARFUM.
+//
+// ⚠️ La conséquence dépassait cet écran, et c'était un manque SILENCIEUX sur les
+// trois surfaces à la fois : `buildShoppingList` ne proposait jamais d'acheter de
+// whey, la réserve ne la déduisait jamais, et la couverture la comptait pour
+// acquise. **23 recettes** du catalogue en contiennent, à 25–30 g la portion : ce
+// n'est pas une épice, c'est la source de protéines du repas.
+//
+// ⚠️ Balayage des 125 ingrédients du catalogue : ce mot ne servait QU'À ce faux
+// positif — aucun autre ingrédient ne contient « vanille ». Une règle qui ne se
+// déclenche que sur son erreur ne protège rien. Restent `huile_olive` (168
+// recettes) et `miel` (14), deux vrais fonds de placard.
+// ➡️ Compté par `reserveCouverture.test.ts` (« la whey n'est pas un condiment »).
+const STAPLES = ['sel', 'poivre', 'épice', 'epice', 'huile', 'citron', 'moutarde', 'miel', 'vinaigre', 'cannelle', 'aneth'];
 
 export function isStaple(name: string): boolean {
   const n = name.toLowerCase();
