@@ -147,6 +147,18 @@ App mobile React Native (Expo Router, SDK 56) de plans repas macro-précis pour 
 > de chantier doit donc être **ASCII pur** — un identifiant, de préférence. Un zéro
 > sur une phrase accentuée ne veut RIEN dire, et se lit comme un défaut : c'est
 > exactement le piège de « mesurer l'instrument » (§11), rejoué sur cet outil-ci.
+> 🔴 **ET « ASCII pur » VEUT DIRE LA CHAÎNE ENTIÈRE, PAS UN MORCEAU — mesuré le
+> 2026-08-24 en publiant la 21ᵉ OTA.** La phrase ci-dessus se lit naturellement comme
+> « prends un fragment sans accent dans la phrase » : **c'est faux, et ça rend zéro**.
+> Hermes range en UTF-16 la chaîne ENTIÈRE dès qu'elle contient un seul caractère non
+> ASCII, donc ses fragments ASCII sont invisibles avec elle. Mesuré : « glisse
+> progressivement » et « Ta silhouette indique plus de muscle » (tous deux sans le
+> moindre accent, mais pris dans des paragraphes accentués) rendent **0**, et le témoin
+> de contrôle « Katch-McArdle » aussi. ➡️ Un témoin Hermes est un **identifiant** ou une
+> chaîne ASCII **de bout en bout** — jamais un extrait. ⚠️ Et c'est le témoin de CONTRÔLE
+> qui a dit que la sonde était fausse : sans lui, six zéros d'affilée se lisaient comme
+> « le chantier n'est pas dans l'OTA », soit un diagnostic entièrement faux menant à
+> chercher un défaut dans du code sain.
 > ⚠️ Corollaire : cette vérification prouve que les CLÉS sont inlinées et qu'aucune
 > clé d'IA n'a fuité — c'est son objet. Elle ne prouve pas qu'un écran contient le
 > bon texte. Pour ça, la garantie est ailleurs : le bundle est exporté depuis l'arbre
