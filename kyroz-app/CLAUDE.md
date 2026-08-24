@@ -367,7 +367,21 @@ OUTPUT         → Plan + liste de courses + recettes
 
 `TDEE = BMR × NEAT + dépense sportive/jour`, **pour tous les profils sans exception**.
 
-- **BMR** : Katch-McArdle si le %MG est **MESURÉ**, sinon Mifflin-St Jeor.
+- **BMR** : Katch-McArdle si le %MG est **MESURÉ**, sinon Mifflin-St Jeor —
+  **avec, depuis le 2026-08-24, un glissement progressif vers Katch côté sec**.
+  🔴 **AMENDÉ LE 2026-08-24 — « R6 lissée » (décision fondateur, `ENGINE_REV` 7 → 8,
+  `tdee.ts::melangeVersKatch`).** Le « sinon Mifflin » n'est plus absolu : pour un
+  %MG estimé (ou sans provenance), quand Katch dépasse Mifflin **au-delà du bruit
+  d'une silhouette** (±5 pts de %MG, soit une bande de `1,08 × poids` kcal/j de BMR),
+  le BMR glisse linéairement de Mifflin vers Katch (fenêtre 0,5 → 1,5 bande).
+  **Jamais l'inverse** : côté gras, Mifflin est servi tel quel, quel que soit l'écart
+  — Katch compte le tissu adipeux à zéro kcal, son erreur croît avec la masse grasse.
+  Conséquences : plus de baisse possible en estimé ; plus de saut de ±70 kcal sur une
+  pesée de ±500 g (continuité ≤ 15 kcal / 500 g, testée) ; la bande se compare en BMR
+  donc la bascule est invariante au NEAT et au sport. Ce qui suit (provenance,
+  seuil 35/43, masse maigre sur %MG déclaré) reste vrai et s'applique tel quel —
+  seul le « toujours Mifflin » de la branche estimée est amendé. Vecteurs et
+  invariants : `lib/__tests__/r6Lissee.test.ts` ; rationale complet : AGENTS.md A38.
   ⚠️ **C'est la PROVENANCE qui décide, pas la présence du chiffre** (2026-08-06,
   `ENGINE_REV` 5 → 6, `body_fat_source`). Avant, tout %MG renseigné basculait le
   moteur sur Katch — y compris celui posé en tapant sur une **silhouette**, dont

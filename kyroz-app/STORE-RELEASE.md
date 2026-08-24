@@ -931,8 +931,11 @@ A dedicated in-app screen discloses every formula, threshold and reference behin
 numbers we display: Profil → gear icon → "Aide et retours" → "Méthodologie & sources".
 Summary of what it documents:
 - Resting metabolic rate: Mifflin-St Jeor (Am J Clin Nutr, 1990;51(2):241-247).
-  Katch-McArdle is used only when the user states their body-fat percentage was
-  MEASURED, never when it was estimated from a silhouette.
+  Katch-McArdle is used as-is only when the user states their body-fat percentage
+  was MEASURED. When it was estimated from a silhouette, the calculation blends
+  progressively from Mifflin-St Jeor toward Katch-McArdle only if the latter is
+  clearly higher (beyond the ±5-point uncertainty of a silhouette), and never the
+  other way around.
 - Activity factor excludes exercise and is capped at 1.45; training expenditure is
   computed separately with net MET values (Ainsworth et al., Compendium of Physical
   Activities, MSSE 2011;43(8):1575-1581).

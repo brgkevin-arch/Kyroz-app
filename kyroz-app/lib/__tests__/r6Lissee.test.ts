@@ -18,12 +18,16 @@
 //  5. la MIGRATION rev 7 → 8 : la cible ne peut que monter, et l'avertissement
 //     one-shot part sans recevoir un texte de la rev 7 (cause laissée vide).
 //
-// ⚠️ VÉRIFIÉ PAR MUTATION — un test qu'on n'a jamais vu rougir ne prouve rien :
+// ⚠️ VÉRIFIÉ PAR MUTATION le 2026-08-24 — un test qu'on n'a jamais vu rougir ne
+// prouve rien. Trois mutations jouées, relevé OBSERVÉ (pas espéré) :
 //   M1 · `BLEND_START` 0,5 → 1,0 (la fenêtre alternative REJETÉE au §6 du handoff)
-//        → vecteurs rouges (w et servi des 4 corps en zone de mélange).
-//   M2 · bande exprimée en TDEE (× 1,3) au lieu de BMR → vecteurs + invariance NEAT.
-//   M3 · mélange autorisé côté gras (suppression du `d ≤ 0,5 bande → Mifflin`)
-//        → « côté gras intouchable » et « jamais de baisse » rouges.
+//        → 6 rouges : constantes, vecteurs, encadrement de fenêtre, continuité,
+//        plus les blocs 3 et 8 de bodyFatSource.test.ts.
+//   M2 · bande multipliée par le facteur NEAT (« bande en TDEE ») → 4 rouges,
+//        dont l'invariance NEAT/sport et les vecteurs.
+//   M3 · mélange autorisé côté gras (garde `d ≤ 0,5 bande → Mifflin` retirée)
+//        → 8 rouges, dont « côté gras intouchable / jamais de baisse » (bloc 3)
+//        et quatre tests de bodyFatSource.test.ts.
 
 import { describe, it, expect } from 'vitest';
 import {

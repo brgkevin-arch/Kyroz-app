@@ -32,7 +32,7 @@
  *   npx tsx scripts/mesure-plancher-adiposite.ts          les deux mesures
  *   npx tsx scripts/mesure-plancher-adiposite.ts --csv    sortie machine
  */
-import { calculateBMR, recalcProfile, katchEligible } from '../lib/tdee';
+import { calculateBMR, recalcProfile, katchEligible, melangeVersKatch } from '../lib/tdee';
 import { safetyFloorBreakdown, resolvedBodyFatPct, fatFreeMassKg } from '../lib/safety';
 import { exerciseKcalPerDay } from '../lib/sport';
 import { maxWeeklyLossPct, MAX_DEFICIT_TDEE_RATIO, KCAL_PER_KG_FAT } from '../lib/datedGoal';
@@ -83,7 +83,7 @@ function contraintes(c: Corps) {
     : effectif === parCap ? 'cap 25 %' : 'rythme';
 
   return {
-    ffm: fatFreeMassKg(p), bmr, tdee, formule: katchEligible(p) ? 'katch' : 'mifflin',
+    ffm: fatFreeMassKg(p), bmr, tdee, formule: katchEligible(p) ? 'katch' : melangeVersKatch(p) > 0 ? 'melange' : 'mifflin',
     floor: br.floorKcal, source: br.source,
     parRythme, parCap, parPlancher, effectif, qui,
     kgSem: (effectif * 7) / KCAL_PER_KG_FAT,

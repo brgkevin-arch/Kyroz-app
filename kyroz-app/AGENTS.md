@@ -513,6 +513,35 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
 
 ### 🔴 A — En retard ou cassé en silence
 
+- ✅ **A38 · SÉLECTION BMR « R6 LISSÉE » — LIVRÉE le 2026-08-24** (décision fondateur,
+  handoff « Mifflin vs Katch », `ENGINE_REV` 7 → 8). La règle binaire « %MG estimé ⇒
+  toujours Mifflin » devient une bascule asymétrique et continue : le BMR glisse de
+  Mifflin vers Katch **uniquement** quand Katch dépasse Mifflin au-delà du bruit d'une
+  silhouette (±5 pts de %MG, fenêtre 0,5 → 1,5 bande, comparée en BMR donc invariante
+  au NEAT et au sport). Côté gras : Mifflin tel quel, **jamais de baisse**. `measured`
+  et la masse maigre (plancher, protéines, rythme) ne bougent pas d'un kcal.
+  Spec, vecteurs et invariants : `lib/__tests__/r6Lissee.test.ts` (11 vecteurs, grille
+  de 1 344 corps, continuité ≤ 15 kcal / 500 g, **vérifié par 3 mutations**).
+  ⚠️ **Une prémisse du handoff était fausse** : il annonçait `KATCH_SLOPE` « existe
+  déjà (constante calibrable) » — la pente était en dur dans `calculateBMR`. Créée
+  (`KATCH_INTERCEPT` / `KATCH_SLOPE`), comportement identique au bit près.
+  ⚠️ **Une égalité d'artefact est tombée avec la règle** : `safety.test.ts` prouvait
+  « le repère de masse maigre ne déplace aucune cible » par « mêmes cibles pour les
+  deux sexes » — vrai seulement parce que le plancher retenait les DEUX. Sous R6, une
+  F 80 kg à 20 % (loin de la moyenne de SON gabarit) passe à Katch pur pendant que
+  l'homme reste près de Mifflin : la sonde est refondée sur ce que le test gardait
+  vraiment (aucun chemin de calcul ne lit `bodyFatConcern`).
+  ℹ️ `ENGINE_REV` 8 + texte de notice dédié : le handoff n'en parlait pas (« une ligne
+  de release note suffit » pour TestFlight), mais la règle du dépôt — toute correction
+  qui déplace les cibles incrémente — est non négociable, et le départage des causes
+  rev 7 est borné au trajet qui la traverse (sinon un compte rev 7 → 8 recevait le
+  texte « ta limite de sécurité ne s'applique plus »).
+  ⏳ **Reste, hors moteur** : une ligne de release note à la prochaine OTA / au
+  prochain binaire (les cibles TestFlight peuvent monter au premier recalcul, jusqu'à
+  ~+85 kcal en sèche, ~+300 en maintien/prise) ; et la dette §8 du handoff (ordonnée
+  370/21,6 vs Cunningham côté sec, branche `measured` aux fortes adiposités, bande
+  croissante) est documentée dans `tdee.ts` — **v2, décision fondateur requise**.
+
 - ✅ **A33 · MON DIAGNOSTIC ÉTAIT FAUX — et c'est LUI qui vaut d'être gardé
   (2026-08-12, corrigé le 2026-08-14)**
   J'ai annoncé au fondateur qu'un correctif mergé le 11 août « n'était jamais parti
