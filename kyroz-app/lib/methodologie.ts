@@ -4,6 +4,7 @@ import {
 } from './safety';
 import {
   NEAT_PAL, FAT_MIN_PER_KG_BW, PROTEIN_MIN_PER_KG_FFM, PROTEIN_MAX_PER_KG_FFM,
+  BF_UNCERTAINTY_PTS,
 } from './tdee';
 import { MAX_DEFICIT_TDEE_RATIO } from './datedGoal';
 import { CIQUAL_ATTRIBUTION } from './foods';
@@ -68,7 +69,7 @@ export function methodologie(): MethodoSection[] {
       paragraphes: [
         'La dépense est la somme de trois termes : le métabolisme de base, multiplié par un facteur d\'activité quotidienne hors sport, auquel s\'ajoute la dépense des séances déclarées.',
         'Le métabolisme de base est estimé par l\'équation de Mifflin-St Jeor, à partir du sexe, de l\'âge, du poids et de la taille.',
-        `L'équation de Katch-McArdle, qui repose sur la masse maigre, n'est utilisée que si le taux de masse grasse a été MESURÉ (impédancemétrie, DEXA, plis cutanés) et déclaré comme tel. Un taux estimé à partir d'une silhouette ne la déclenche pas : sa marge d'erreur est de l'ordre de ±5 points, et Katch-McArdle ne lit que cette seule entrée là où Mifflin-St Jeor en lit quatre certaines. La question de provenance n'est posée qu'au-delà de ${BF_CHART_MAX.male} % (homme) et ${BF_CHART_MAX.female} % (femme).`,
+        `L'équation de Katch-McArdle, qui repose sur la masse maigre, est utilisée telle quelle si le taux de masse grasse a été MESURÉ (impédancemétrie, DEXA, plis cutanés) et déclaré comme tel. Un taux estimé à partir d'une silhouette porte une marge d'erreur de l'ordre de ±${BF_UNCERTAINTY_PTS} points : quand il indique nettement plus de masse maigre que la moyenne du gabarit — au-delà de ce bruit —, le calcul glisse progressivement de Mifflin-St Jeor vers Katch-McArdle. Jamais l'inverse : si la formule à masse maigre donne une dépense plus basse, c'est Mifflin-St Jeor qui reste servie. La question de provenance n'est posée qu'au-delà de ${BF_CHART_MAX.male} % (homme) et ${BF_CHART_MAX.female} % (femme).`,
         `Le facteur d'activité hors sport va de ${nb(NEAT_PAL.desk)} (travail assis) à ${nb(NEAT_PAL.physical)} (métier physique). La table s'arrête volontairement à ${nb(NEAT_PAL.physical)} : les valeurs plus hautes des tables classiques incluent l'exercice, qui est déjà compté à part.`,
         'La dépense des séances est calculée par la méthode des équivalents métaboliques (MET), en valeur NETTE : le métabolisme de repos de l\'heure de séance est retiré, parce qu\'il est déjà compté par les deux premiers termes.',
       ],

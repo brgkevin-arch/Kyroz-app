@@ -1002,6 +1002,14 @@ function EngineNoticeCard({ t, notice, onAdjust, onDismiss }: {
     // règle maintenant par la date. La hausse de protéines est dite, parce que c'est le
     // gain réel et qu'elle explique pourquoi le plan reste bon avec moins de calories.
       ? 'Kyroz n\'a plus qu\'une prise de masse, et elle vise le muscle : un surplus plus mesuré, avec plus de protéines. Pour prendre plus vite, donne-toi un poids à atteindre et une date — c\'est elle qui règle le rythme désormais.'
+      : notice.rev >= 8 && depuis >= 7 && monte
+    // rev 8 (2026-08-24, « R6 lissée ») — le BMR d'un %MG estimé glisse vers la formule
+    // à masse maigre quand la silhouette indique nettement plus de muscle que la moyenne
+    // du gabarit. Sur ce trajet la cible ne peut que MONTER (jamais de baisse en estimé),
+    // donc le texte peut prendre parti sur le signe. Aucun jargon (« Katch », « BMR »),
+    // aucun reproche — c'est le moteur qui sous-estimait, pas la personne qui a mal
+    // choisi sa silhouette.
+      ? 'Ta silhouette indique plus de muscle que la moyenne des gabarits comme le tien, et Kyroz en tient maintenant compte : ta dépense était sous-estimée, ton budget remonte d\'autant.'
       : notice.rev >= 6 && depuis >= 5
     // rev 6 (2026-08-06) — Katch-McArdle exige désormais un %MG MESURÉ. La cible peut
     // monter ou baisser selon le sens de l'erreur d'estimation, donc le texte ne prend

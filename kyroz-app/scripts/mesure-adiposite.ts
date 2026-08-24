@@ -24,7 +24,7 @@
  *
  *   npm run mesure:adiposite
  */
-import { calculateBMR, calculateTDEE, calculateMacros, computePlan, proteinTarget } from '../lib/tdee';
+import { calculateBMR, calculateTDEE, calculateMacros, computePlan, katchEligible, melangeVersKatch, proteinTarget } from '../lib/tdee';
 import { exerciseKcalPerDay } from '../lib/sport';
 import { buildLocalPlan, baseDayTargets } from '../lib/planEngine';
 import { FLAG_AUDIENCE } from '../lib/adaptRecipe';
@@ -96,7 +96,8 @@ function mesure(c: Corps, demande: 'cut_plat' | 'max_autorise') {
   return {
     tdee, bmr: calculateBMR(body), sportKcalPerDay,
     ffm: fatFreeMassKg(body),
-    formule: (c.body_fat_source === 'measured' && c.body_fat_pct > 0 ? 'katch' : 'mifflin') as 'katch' | 'mifflin',
+    // `melange` = zone R6 lissée (2026-08-24) : le BMR n'est ni Mifflin ni Katch purs.
+    formule: (katchEligible(body) ? 'katch' : melangeVersKatch(body) > 0 ? 'melange' : 'mifflin') as 'katch' | 'melange' | 'mifflin',
     demande: m.clamp.requestedKcal, servi: m.target_kcal,
     candidats: m.clamp.candidates, source: m.clamp.source, mord: m.clamp.floorBinding,
     deficit, deficitPct: tdee > 0 ? deficit / tdee : 0,
