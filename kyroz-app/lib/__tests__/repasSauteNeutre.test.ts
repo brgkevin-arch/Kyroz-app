@@ -75,11 +75,13 @@ describe('« sauté » est une information que le moteur utilise', () => {
   });
 
   it('sauter un repas ne nourrit pas la série', () => {
-    // La série compte des ouvertures (METRICS.md §2) : trois appels, et aucun dans
-    // le geste « je l'ai sauté ». Un quatrième appel ici ferait d'un repas non
-    // cuisiné une raison de féliciter — l'inverse exact de ce qu'on vient de retirer.
+    // La série compte des ouvertures (METRICS.md §2) : QUATRE appels — ouverture du
+    // plan, fin de génération, « J'ai cuisiné », et l'auto-coche depuis le
+    // 2026-08-24 (décision fondateur : elle vaut exactement « J'ai cuisiné »).
+    // Aucun dans le geste « je l'ai sauté » : un appel là ferait d'un repas NON
+    // cuisiné une raison de féliciter — l'inverse exact de ce qu'on a retiré.
     const appels = [...plan.matchAll(/markActiveToday\(\)/g)];
-    expect(appels.length, 'appels à markActiveToday()').toBe(3);
+    expect(appels.length, 'appels à markActiveToday()').toBe(4);
     const skip = plan.slice(plan.indexOf('const skipMeal'));
     expect(skip.slice(0, 260)).toContain("setMealStatus(meal, 'skipped')");
     expect(skip.slice(0, 260)).not.toContain('markActiveToday');

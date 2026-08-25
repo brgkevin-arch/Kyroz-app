@@ -62,7 +62,7 @@ const BRIQUES = [
 
 const GRATUIT =
   "Ton plan de la semaine macro par macro, ta liste de courses, toutes les recettes, " +
-  "ton frigo, tes favoris, ta série, ta pesée et le recalcul de tes calories, " +
+  "ta réserve, tes favoris, ta série, ta pesée et le recalcul de tes calories, " +
   "le réglage de tes jours plus copieux, et la synchro de ton compte. " +
   "Rien de tout ça ne passera jamais derrière un abonnement.";
 

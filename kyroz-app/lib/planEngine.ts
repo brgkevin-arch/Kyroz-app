@@ -548,7 +548,14 @@ function ingredientText(recipe: Recipe): string {
  * contre une trahison qui ne l'était pas. `temps_min` reste AFFICHÉ sur chaque fiche.
  * Le curseur sera peut-être réintroduit — en préférence pondérée, jamais en filtre dur.
  */
-function recipeAllowed(recipe: Recipe, profile: UserProfile): boolean {
+/**
+ * ⚠️ EXPORTÉ depuis le 2026-08-24 pour la réserve (`lib/pantry.ts::cookableRecipes`).
+ * Elle proposait du poulet à un végétarien parce qu'elle balayait le catalogue entier.
+ * On partage LE prédicat plutôt que d'en recopier la règle : une copie aurait vieilli
+ * seule, et c'est exactement le « mesurer sur le moteur, jamais sur une réplique » de
+ * §10 appliqué à un filtre.
+ */
+export function recipeAllowed(recipe: Recipe, profile: UserProfile): boolean {
   const text = ingredientText(recipe);
 
   // Régimes : restrictions_ok autoritaire si présent (recettes Kyroz), sinon repli

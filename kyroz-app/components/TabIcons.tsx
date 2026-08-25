@@ -5,9 +5,9 @@ import Svg, { Rect, Path, Circle } from 'react-native-svg';
 // Reprises TRAIT POUR TRAIT de la maquette (viewBox 27, trait 1,7, bouts arrondis).
 //
 // Pourquoi dessinées ici plutôt que prises dans une librairie :
-//  1. Ionicons n'a NI frigo NI bol — les deux objets que la maquette dessine. Il
-//     aurait fallu approximer, et c'est exactement ce qui clochait avant : une
-//     corbeille de courrier pour « Frigo », une flamme pour « Profil ».
+//  1. Ionicons n'a NI meuble de rangement NI bol — les deux objets que la maquette
+//     dessine. Il aurait fallu approximer, et c'est exactement ce qui clochait
+//     avant : une corbeille de courrier pour la réserve, une flamme pour « Profil ».
 //  2. MaterialCommunityIcons les a tous les deux, mais embarque **1,2 Mo** de
 //     police pour deux glyphes — le triple du poids d'icônes de toute l'app
 //     (Ionicons : 381 Ko). Mesuré sur les .ttf livrés.
@@ -49,8 +49,8 @@ export function CoursesIcon({ color, focused, size = 26 }: Props) {
   );
 }
 
-/** Frigo — deux compartiments et une poignée. */
-export function FrigoIcon({ color, focused, size = 26 }: Props) {
+/** Réserve — deux compartiments (le frais, le sec) et une poignée. */
+export function ReserveIcon({ color, focused, size = 26 }: Props) {
   return (
     <Frame size={size}>
       <Rect x="6" y="4" width="15" height="19" rx="4" stroke={color} strokeWidth={stroke(focused)} />

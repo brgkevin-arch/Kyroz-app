@@ -14,8 +14,7 @@ import { ShoppingHistory } from '../../components/ShoppingHistory';
 import { MealPlan, ShoppingItem, ShoppingList } from '../../lib/types';
 import { buildShoppingList } from '../../lib/shoppingList';
 import { formatQuantity } from '../../lib/units';
-import { loadPantry, savePantry, addOrMerge, subtractQuantity, isStaple } from '../../lib/pantry';
-import { useFridgeTracking } from '../../lib/fridgeTracking';
+import { loadPantry, savePantry, addOrMerge, isStaple } from '../../lib/pantry';
 import {
   ShoppingTrip, loadHistory, saveHistory, recordTrip, removeTrip, historySummary,
 } from '../../lib/shoppingHistory';
@@ -62,8 +61,6 @@ export default function CoursesScreen() {
   const [ecartes, setEcartes] = useState<string[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [hideChecked, setHideChecked] = useState(false);
-  // Réglage d'APPAREIL, éteint par défaut — cf. lib/fridgeTracking.ts pour le motif.
-  const [suivreFrigo, setSuivreFrigo] = useFridgeTracking();
   const [history, setHistory] = useState<ShoppingTrip[]>([]);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [closing, setClosing] = useState(false);
@@ -72,8 +69,9 @@ export default function CoursesScreen() {
   // ligne de la première section — `renderItem` étant une callback, le hook vit
   // ici (même contrainte que l'onglet Recettes).
   const sourceRef = useTourTarget('courses-source');
-  const controlesRef = useTourTarget('courses-controles');
-  const articleRef = useTourTarget('courses-article');
+  // ⚠️ `courses-controles` et `courses-article` sont partis avec leurs bulles
+  // (coupe des tutos, 2026-08-25) : la seconde répétait mot pour mot la ligne d'aide
+  // affichée sous les boutons. Une cible sans étape se relit comme une bulle perdue.
   // ⚠️ AVANT le `return` de l'état vide, plus bas : un hook posé après un retour
   // n'existe qu'aux rendus qui l'atteignent → « Rendered more hooks than during
   // the previous render », et l'écran tombe dans l'ErrorBoundary. Le même piège a
@@ -104,15 +102,20 @@ export default function CoursesScreen() {
     const planRaw = await AsyncStorage.getItem(PLAN_KEY);
     if (!planRaw) return null;
     const plan: MealPlan = JSON.parse(planRaw);
-    // ⚠️ Frigo soustrait SEULEMENT si le suivi est actif. Éteint, la liste montre
-    // l'intégralité de ce que le plan demande : on peut racheter ce qu'on a déjà
-    // (visible, décochable) plutôt que manquer ce qu'on croyait avoir (silencieux).
-    const pantry = suivreFrigo ? await loadPantry() : [];
+    // ── LA RÉSERVE EST TOUJOURS SOUSTRAITE (2026-08-24) ──────────────────────
+    //
+    // L'interrupteur « Tenir compte du frigo » a été RETIRÉ (décision fondateur).
+    // Ce qui rendait la soustraction risquée n'était pas la soustraction : c'était
+    // une réserve qui se créditait à chaque case cochée en magasin et ne se débitait
+    // qu'à la cuisine — elle ne pouvait donc que sur-estimer, et un article
+    // sur-estimé DISPARAÎT de la liste. Depuis, elle ne se remplit qu'à la CLÔTURE
+    // d'une sortie (`terminer`), c'est-à-dire une fois les courses réellement faites.
+    const pantry = await loadPantry();
     const l = buildShoppingList(plan, pantry);
     // Ne pas mettre en cache une liste vide (tout couvert) : sinon l'onglet
-    // resterait bloqué sur « rien à acheter » même après avoir vidé le frigo.
+    // resterait bloqué sur « rien à acheter » même après avoir vidé la réserve.
     // Sans cache, load() la reconstruit à chaque focus et les articles
-    // réapparaissent dès que le garde-manger se dépeuple.
+    // réapparaissent dès qu'elle se dépeuple.
     if (l.items.length > 0) await AsyncStorage.setItem(LIST_KEY, JSON.stringify(l));
     return l;
   };
@@ -121,14 +124,12 @@ export default function CoursesScreen() {
 
   // ── Écarter un article ───────────────────────────────────────────────────
   //
-  // « Je ne veux pas acheter ça. » L'article quitte la liste SANS partir au
-  // frigo (il n'a pas été acheté) et SANS toucher au plan (les repas ne
-  // changent pas — le retirer du plan serait un tout autre geste).
+  // « Je ne veux pas acheter ça. » L'article quitte la liste sans toucher au plan
+  // (les repas ne changent pas — le retirer du plan serait un tout autre geste) et
+  // sans entrer en réserve : `terminer` n'y range que les articles VISIBLES.
   //
-  // ⚠️ Un article COCHÉ est déjà au frigo : l'écarter le laisserait en stock
-  // alors qu'il disparaît de la vue. On le décoche donc d'abord (`toggle`
-  // retire du frigo exactement la quantité que le cochage y avait mise), sinon
-  // le frigo garderait un article que l'utilisateur croit avoir annulé.
+  // On le décoche au passage, pour qu'un article rétabli plus tard ne revienne pas
+  // coché d'un achat qui n'a pas eu lieu.
   const ecarterArticle = async (item: ShoppingItem) => {
     const ok = await confirm({
       title: `Retirer ${item.name} ?`,
@@ -148,62 +149,37 @@ export default function CoursesScreen() {
     await viderEcartes();
   };
 
-  // Cocher un article = « je l'ai acheté » → il part DIRECTEMENT au frigo.
-  // Décocher = retour en arrière → on retire SEULEMENT la quantité que le cochage
-  // avait ajoutée (et on ne supprime l'entrée que si elle retombe à 0), pour ne
-  // pas effacer le stock déjà saisi à la main. (Plus d'étape d'import.)
+  // ── COCHER NE REMPLIT PLUS LA RÉSERVE (2026-08-24, décision fondateur) ─────
+  //
+  // Cocher veut dire « je l'ai pris », pas « c'est rangé ». Ce qui entre en réserve,
+  // c'est **ce qui est coché AU MOMENT DE LA CLÔTURE** (`terminer`) — une seule
+  // écriture, à un moment où la sortie est finie.
+  //
+  // ⚠️ Ce que ça corrige, et c'est structurel : une case cochée est un geste qu'on
+  // fait dans les rayons, décoché dix fois, repris plus tard. Chaque bascule
+  // écrivait le stock, donc la réserve suivait les hésitations du magasin — et une
+  // réserve qui gonfle fait DISPARAÎTRE des articles de la liste suivante.
   const toggle = async (item: ShoppingItem) => {
     if (!list) return;
     const willCheck = !item.checked;
     await persist({ ...list, items: list.items.map((i) => (i.name === item.name ? { ...i, checked: willCheck } : i)) });
-    if (isStaple(item.name)) return; // sel, huile, épices… : pas dans le frigo
-    if (!suivreFrigo) return;        // suivi éteint : cocher veut dire « je l'ai », pas « au frigo »
-    const pantry = await loadPantry();
-    const next = willCheck
-      ? addOrMerge(pantry, { name: item.name, quantity: item.quantity, unit: item.unit, category: item.category })
-      : subtractQuantity(pantry, item.name, item.unit, item.quantity);
-    await savePantry(next);
-    pushPantry(next);
   };
 
-  // Tout cocher = tout est acheté → tous les articles (non-condiments) filent au
-  // frigo d'un coup, puis on coche toute la liste.
   // ⚠️ `visible()` partout où l'on agit en masse : un article ÉCARTÉ ne doit être
   // ni coché par « Tout cocher », ni décoché par « Réinitialiser », ni inscrit à
-  // l'historique. Sans ce filtre, « Tout cocher » enverrait au frigo des articles
-  // que l'utilisateur venait justement de retirer de sa liste.
+  // l'historique — ni rangé en réserve à la clôture.
   const visible = (i: ShoppingItem) => !ecartes.includes(i.name);
 
   const checkAll = async () => {
     if (!list) return;
-    const toAdd = list.items.filter((i) => visible(i) && !i.checked && !isStaple(i.name));
-    if (suivreFrigo && toAdd.length) {
-      let pantry = await loadPantry();
-      for (const it of toAdd) {
-        pantry = addOrMerge(pantry, { name: it.name, quantity: it.quantity, unit: it.unit, category: it.category });
-      }
-      await savePantry(pantry);
-      pushPantry(pantry);
-    }
     await persist({ ...list, items: list.items.map((i) => (visible(i) ? { ...i, checked: true } : i)) });
   };
 
-  // Tout décocher = annuler les achats → on RETIRE du frigo les quantités des
-  // articles cochés (symétrie avec checkAll/toggle ; subtractQuantity borne à 0 et
-  // ne touche que ce que le cochage avait ajouté → aucune perte de stock saisi à la
-  // main), puis on décoche toute la liste.
   const reset = async () => {
     if (!list) return;
-    const toRemove = list.items.filter((i) => visible(i) && i.checked && !isStaple(i.name));
-    if (suivreFrigo && toRemove.length) {
-      let pantry = await loadPantry();
-      for (const it of toRemove) pantry = subtractQuantity(pantry, it.name, it.unit, it.quantity);
-      await savePantry(pantry);
-      pushPantry(pantry);
-    }
     await persist({ ...list, items: list.items.map((i) => (visible(i) ? { ...i, checked: false } : i)) });
   };
-  // Tirer = « refaire la liste à partir de mon plan et de mon frigo du moment ».
+  // Tirer = « refaire la liste à partir de mon plan et de ma réserve du moment ».
   // Les articles écartés reviennent donc, et c'est le SEUL geste qui les ramène
   // tous d'un coup sans passer par le bandeau — c'est aussi ce que la bulle de
   // visite guidée annonce.
@@ -216,40 +192,24 @@ export default function CoursesScreen() {
     setRefreshing(false);
   }, []);
 
-  // ── Basculer « tenir compte du frigo » ───────────────────────────────────
-  //
-  // ⚠️ LE CACHE DOIT PARTIR : la liste enregistrée a été bâtie AVEC ou SANS la
-  // soustraction. Sans l'invalider, l'interrupteur ne changerait rien à l'écran
-  // jusqu'au prochain « Courses terminées » — un réglage qui ne pilote rien
-  // (CLAUDE.md, A23).
-  //
-  // ⚠️ ET LES ARTICLES COCHÉS SURVIVENT À LA BASCULE. Recalculer la liste les
-  // décocherait tous : basculer au milieu d'un rayon effacerait le travail du
-  // magasin. Ce sont des NOMS qu'on repose, pas la liste d'avant — un article que
-  // le frigo couvre désormais disparaît quand même, c'est le but du réglage.
-  const basculerSuiviFrigo = async () => {
-    animerMiseEnPage();
-    const coches = new Set((list?.items ?? []).filter((i) => i.checked).map((i) => i.name));
-    setSuivreFrigo(!suivreFrigo);
-    await AsyncStorage.removeItem(LIST_KEY);
-    const brut = await lireListe();
-    if (brut) await persist({ ...brut, items: brut.items.map((i) => (coches.has(i.name) ? { ...i, checked: true } : i)) });
-    else setList(brut);
-  };
-
   // ── « Courses terminées » : on CLÔT la sortie ────────────────────────────
   //
   // Sans ce geste, une liste entièrement cochée restait à l'écran, barrée, pour
   // toujours : le seul moyen de la solder était de tirer pour rafraîchir — donc
-  // de connaître un geste que rien n'annonce. Terminer fait deux choses, et rien
-  // d'autre :
-  //   1. la liste s'inscrit à l'historique (ce qui a été pris, ce qui ne l'a pas) ;
-  //   2. le cache est vidé, donc `load()` la RECALCULE depuis le plan moins le
-  //      garde-manger. Les articles cochés sont déjà au frigo (`toggle`), ils
-  //      disparaissent d'eux-mêmes ; les autres reviennent, non cochés.
+  // de connaître un geste que rien n'annonce. Terminer fait trois choses :
+  //   1. **ce qui est coché entre en RÉSERVE** — c'est le seul chemin depuis le
+  //      2026-08-24 (décision fondateur), et le seul moment où « acheté » est vrai ;
+  //   2. la liste s'inscrit à l'historique (ce qui a été pris, ce qui ne l'a pas) ;
+  //   3. le cache est vidé, donc `load()` la RECALCULE depuis le plan moins la
+  //      réserve. Les articles rangés à l'étape 1 en sont donc déduits et
+  //      disparaissent ; les autres reviennent, non cochés.
   //
-  // ⚠️ Rien n'est ajouté au frigo ICI : chaque article y est parti au moment où
-  // il a été coché. Le refaire doublerait les stocks.
+  // ⚠️ L'ORDRE COMPTE : ranger AVANT de vider le cache. L'inverse recalculerait la
+  // liste sur une réserve qui n'a pas encore reçu les achats — elle reviendrait
+  // entière, et le rangement d'après la ferait disparaître une seconde plus tard.
+  //
+  // ⚠️ Les condiments (sel, huile, épices) n'entrent jamais en réserve : ils sont
+  // supposés toujours présents, donc ils ne sont ni comptés ni déduits nulle part.
   const terminer = async () => {
     if (!list || closing) return;
     const restants = list.items.filter((i) => visible(i) && !i.checked);
@@ -273,14 +233,24 @@ export default function CoursesScreen() {
     }
     setClosing(true);
     try {
-      // L'historique n'enregistre que ce que la liste DEMANDAIT vraiment : un
+      // ① Les achats rejoignent la réserve.
+      const achetes = list.items.filter((i) => visible(i) && i.checked && !isStaple(i.name));
+      if (achetes.length) {
+        let pantry = await loadPantry();
+        for (const it of achetes) {
+          pantry = addOrMerge(pantry, { name: it.name, quantity: it.quantity, unit: it.unit, category: it.category });
+        }
+        await savePantry(pantry);
+        pushPantry(pantry);
+      }
+      // ② L'historique n'enregistre que ce que la liste DEMANDAIT vraiment : un
       // article écarté en cours de route n'a pas fait partie de cette sortie.
       await recordTrip({ ...list, items: list.items.filter(visible) });
       await AsyncStorage.removeItem(LIST_KEY);
       // ⚠️ Les écartés se rejouent APRÈS le recalcul, et c'est tout le mécanisme :
-      // vider le cache fait revenir les non-cochés depuis le plan (les cochés,
-      // eux, sont déjà au frigo et disparaissent d'eux-mêmes). Pour qu'un « retire-
-      // les » tienne, il faut donc que ces noms soient écartés — sinon la liste
+      // vider le cache fait revenir les non-cochés depuis le plan (les cochés, eux,
+      // viennent d'entrer en réserve à l'étape ① et en sont donc déduits). Pour qu'un
+      // « retire-les » tienne, il faut que ces noms soient écartés — sinon la liste
       // les ramènerait aussitôt et le choix n'aurait servi à rien.
       const suivants = ecartesApresCloture(sort, restants);
       await saveEcartes(suivants);
@@ -337,9 +307,9 @@ export default function CoursesScreen() {
   const nbEcartes = list ? list.items.length - visibles.length : 0;
 
   if (!list || visibles.length === 0) {
-    // TROIS cas, et le troisième est nouveau : aucun plan · tout est déjà au
-    // frigo · tout a été RETIRÉ à la main. Les confondre ferait dire à l'écran
-    // « ton frigo couvre déjà tout le plan » à quelqu'un qui vient simplement de
+    // TROIS cas, et le troisième est nouveau : aucun plan · tout est déjà en
+    // réserve · tout a été RETIRÉ à la main. Les confondre ferait dire à l'écran
+    // « ta réserve couvre déjà tout le plan » à quelqu'un qui vient simplement de
     // vider sa liste — un mensonge, et sans issue puisque l'état vide n'a pas de
     // « tirer pour rafraîchir » (ce n'est pas une liste défilante).
     const toutEcarte = !!list && visibles.length === 0 && nbEcartes > 0;
@@ -358,7 +328,7 @@ export default function CoursesScreen() {
           {toutEcarte
             ? `Tu as retiré ${nbEcartes > 1 ? 'tous les articles' : "le dernier article"} de ta liste. Ton plan de repas, lui, n'a pas changé.`
             : covered
-            ? 'Ton frigo couvre déjà tout le plan de la semaine. La liste réapparaîtra dès qu\'il te manquera quelque chose.'
+            ? 'Ta réserve couvre déjà tout le plan de la semaine. La liste réapparaîtra dès qu\'il te manquera quelque chose.'
             : 'Génère un plan repas et ta liste de courses apparaît ici, triée par rayon.'}
         </Text>
 
@@ -423,10 +393,11 @@ export default function CoursesScreen() {
         {/* « Courses », pas « Liste de courses » : le mot de la barre d'onglets, pour
             qu'un même objet n'ait pas deux noms selon l'endroit où on le regarde. */}
         <View ref={sourceRef} style={s.header}>
-          <View style={{ flex: 1 }}>
-            <Text style={s.sub}>{done ? 'Tout est coché' : `${remaining} restant${remaining > 1 ? 's' : ''} sur ${total}`}</Text>
-            <Text style={s.h1}>Courses</Text>
-          </View>
+          {/* 🔴 PLUS DE COMPTEUR AU-DESSUS DU TITRE (2026-08-25, décision fondateur).
+              Celui-ci disait « 36 restants sur 37 » — soit EXACTEMENT ce que le
+              « 1 / 37 cochés » de droite dit déjà, à l'envers. Deux fois le même
+              fait, dont une au-dessus du nom de l'écran. */}
+          <Text style={[s.h1, { flex: 1 }]}>Courses</Text>
           <Text style={s.counter}>{checked}<Text style={s.counterTot}> / {total} cochés</Text></Text>
           <TourButton onPress={rejouerTour} />
         </View>
@@ -442,7 +413,7 @@ export default function CoursesScreen() {
         <Jauge style={s.track} remplissage={s.fill} pct={pct} couleur={done ? t.success : t.accent} />
 
         {/* Contrôles */}
-        <View ref={controlesRef} style={s.controls}>
+        <View style={s.controls}>
           {remaining > 0 && (
             <Presse style={s.ctrl} onPress={checkAll} activeOpacity={OPACITE_PRESSION}>
               <Ionicons name="checkmark-done-outline" size={Icone.petite} color={t.textSecondary} />
@@ -465,13 +436,6 @@ export default function CoursesScreen() {
               <Text style={s.ctrlTxt}>Historique</Text>
             </Presse>
           )}
-          {/* Le réglage vit LÀ OÙ SON EFFET SE VOIT — pas derrière la roue d'un autre
-              écran. C'est la liste qu'il change ; l'enterrer dans les réglages en
-              ferait un interrupteur que personne ne relie à ce qu'il regarde. */}
-          <Presse style={[s.ctrl, suivreFrigo && s.ctrlOn]} onPress={basculerSuiviFrigo} activeOpacity={OPACITE_PRESSION}>
-            <Ionicons name={suivreFrigo ? 'snow' : 'snow-outline'} size={Icone.petite} color={suivreFrigo ? t.onAccent : t.textSecondary} />
-            <Text style={[s.ctrlTxt, suivreFrigo && { color: t.onAccent }]}>Tenir compte du frigo</Text>
-          </Presse>
         </View>
 
         {/* UN seul bouton, deux poids. Tant qu'il reste des articles à cocher,
@@ -506,15 +470,14 @@ export default function CoursesScreen() {
           </View>
         )}
 
-        {/* 🔴 CETTE LIGNE DEVIENT FAUSSE SI ON L'OUBLIE. Elle annonçait « il part direct
-            dans ton frigo » sans condition — vrai depuis toujours, faux à la seconde où
-            le suivi du frigo est devenu optionnel (2026-08-21). Vu à l'écran, pas en
-            relisant le diff : l'interrupteur était juste au-dessus, éteint, et la phrase
-            promettait quand même. Une phrase d'aide est une affirmation sur le code. */}
+        {/* 🔴 UNE PHRASE D'AIDE EST UNE AFFIRMATION SUR LE CODE. Celle-ci a déjà été
+            fausse deux fois — « il part direct dans ton frigo » quand le cochage a
+            cessé de remplir le stock, puis quand ce suivi est devenu optionnel. Elle
+            décrit désormais les DEUX moments du geste, parce que c'est ce que le code
+            fait : cocher marque, terminer range. */}
         <Text style={s.hint}>
-          {suivreFrigo
-            ? 'Coche un article → il part direct dans ton frigo. Appui long → tu le retires.'
-            : 'Coche ce que tu as déjà ou ce que tu as pris. Appui long → tu le retires de la liste.'}
+          Coche ce que tu prends. « Courses terminées » range le tout dans ta réserve.
+          Appui long → tu retires un article de la liste.
         </Text>
     </View>
   );
@@ -548,7 +511,6 @@ export default function CoursesScreen() {
           const premierDeLaListe = first && section.cat === sections[0]?.cat;
           return (
             <Presse
-              ref={premierDeLaListe ? articleRef : undefined}
               style={[
                 s.row,
                 first && { borderTopLeftRadius: Radius.card, borderTopRightRadius: Radius.card },

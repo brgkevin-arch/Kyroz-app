@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { Presse } from '../../components/Presse';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl,
+  View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl, AppState,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -40,13 +40,18 @@ import { useReminder } from '../../hooks/useReminder';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { buildLocalPlan, carryTracking, nextPlanSeed, profileSignature, swapMeal, computeDailyTotals, rebalanceDay, resetTracking, adaptDayOptions, AdaptOption, mealIngredients, reAdaptMealRecipe, mealPoolSize, dayTargetKcal, baseDayTargets, ON_TARGET_TOLERANCE_KCAL } from '../../lib/planEngine';
 import { DISLIKE_THRESHOLD, dislikeCandidates, applyDislikedIngredient } from '../../lib/dislike';
-import { todayStamp } from '../../lib/weight';
+import { todayStamp, localStamp } from '../../lib/weight';
 import { recordOffPlan, resolveOffPlan, forgetOffPlan } from '../../lib/offPlanJournal';
 import { PARCOURS_HORS_PLAN_ACTIF } from '../../lib/featureFlags';
 import { isBirthday, ageOn } from '../../lib/birthday';
 import { getRecipeById, getBaseRecipe } from '../../lib/recipes';
 import { useRecipeOverrides } from '../../hooks/useRecipeOverrides';
 import { loadPantry, savePantry, deductIngredients, recipeCoverage, PantryItem } from '../../lib/pantry';
+import { pushPantry } from '../../lib/sync';
+import { activeSlots } from '../../lib/mealSlots';
+import {
+  useRepasAuto, repasEchus, repasEchusVeille, minutesDepuisMinuit, dejaSolde, marquerSolde,
+} from '../../lib/repasAuto';
 import { useFirstName } from '../../lib/profileName';
 import { salutation } from '../../lib/salutation';
 import { capture, Events } from '../../lib/analytics';
@@ -150,6 +155,8 @@ export default function PlanScreen() {
 
   const [plan, setPlan] = useState<MealPlan | null>(null);
   const [pantry, setPantry] = useState<PantryItem[]>([]);
+  // Réglage d'appareil, ALLUMÉ par défaut — cf. lib/repasAuto.ts pour le motif.
+  const [repasAuto] = useRepasAuto();
   // Diffusé, pas lu au montage : le prénom se pose aussi depuis Profil →
   // Informations, et le titre doit suivre sans redémarrage (cf. lib/profileName.ts).
   const firstName = useFirstName();
@@ -198,11 +205,13 @@ export default function PlanScreen() {
   const scrollRef = React.useRef<ScrollView>(null);
   const repli = useCollapsingTitle();
   // Cibles de la visite guidée (ref directe sur l'élément → spotlight aligné).
-  const serieRef = useTourTarget('plan-serie');
-  const macrosRef = useTourTarget('plan-macros');
+  // ⚠️ Les cibles `plan-serie`, `plan-macros`, `plan-repartition` et `plan-actions`
+  // sont parties avec leurs bulles (coupe des tutos, 2026-08-25). Une cible que plus
+  // aucune étape ne vise n'est pas inoffensive : elle se relit comme une bulle perdue
+  // en route. Restent les deux que le tour du Plan sert, selon le réglage d'auto-coche
+  // — `plan-auto` (le surtitre d'une carte) et `plan-cook` (le bouton).
   // ⚠️ `useTourTarget('plan-offplan')` a été RETIRÉ avec l'étape de visite guidée
   // qui s'y ancrait (cf. PARCOURS_HORS_PLAN_ACTIF, lib/offPlanJournal.ts).
-  const repartitionRef = useTourTarget('plan-repartition');
 
   // Les cibles des jours diffèrent-elles réellement ? Sans sport déclaré, non —
   // `dayExpenditures` retombe alors sur une cible plate, et la bulle qui parle de
@@ -222,7 +231,7 @@ export default function PlanScreen() {
   // tour n'est pas « prêt » → il démarre à sa fermeture, pas par-dessus.
   const { rejouer: rejouerTour } = useScreenTour(
     'plan',
-    planTour({ days: plan?.days ?? 7, moduleParVolume }),
+    planTour({ days: plan?.days ?? 7, moduleParVolume, repasAuto }),
     // ⚠️ `showOffer` compte autant que `showReveal` : les trois surfaces se
     // suivent (reveal → offre → tour) et deux modales superposées avalent les
     // taps l'une de l'autre.
@@ -248,7 +257,7 @@ export default function PlanScreen() {
   }, [loading, plan, showReveal]);
 
   // Garde-manger : rechargé à chaque fois qu'on revient sur l'onglet Plan, pour
-  // refléter ce qui a été coché dans Courses (synchro plan ↔ frigo).
+  // refléter ce qui a été coché dans Courses (synchro plan ↔ réserve).
   useFocusEffect(useCallback(() => { loadPantry().then(setPantry); }, []));
 
   // Première arrivée (depuis l'onboarding) : génère automatiquement le plan
@@ -302,6 +311,22 @@ export default function PlanScreen() {
     generate(false, 'profil_modifie');
   }, [profile, plan, generating]);
 
+  // Le jour de plan qui correspond EXACTEMENT à un jour de la semaine (0 = dimanche),
+  // ou `null` si ce jour-là n'est pas un jour de plan.
+  //
+  // ⚠️ Séparé de `todayIdx` À DESSEIN. `todayIdx` sert l'AFFICHAGE : il retombe sur le
+  // prochain jour à venir pour ne jamais ouvrir sur une page vide. L'auto-coche, elle,
+  // a besoin de la vérité : sur un plan du lundi au vendredi, un samedi ferait pointer
+  // `todayIdx` vers le lundi SUIVANT — et l'auto-coche aurait mangé les repas de lundi
+  // pendant le week-end.
+  const idxDuJour = useCallback((wd: number): number | null => {
+    if (!plan) return null;
+    const wds = profile?.plan_weekdays;
+    if (!wds || wds.length === 0) return 1;          // repli legacy : aujourd'hui = jour 1
+    const exact = wds.slice(0, plan.days).indexOf(wd);
+    return exact >= 0 ? exact + 1 : null;
+  }, [plan, profile]);
+
   // On ouvre le plan sur AUJOURD'HUI s'il fait partie des jours du plan, sinon
   // sur le prochain jour de plan à venir (et non toujours le jour 1).
   const todayIdx = useMemo(() => {
@@ -333,7 +358,7 @@ export default function PlanScreen() {
         if (eff && !sameRecipe(eff, m.recipe)) {
           changed = true;
           // Ré-adapte la recette au budget macro courant du repas → ingrédients +
-          // macros cohérents avec la recette affichée tout de suite (courses/frigo
+          // macros cohérents avec la recette affichée tout de suite (courses/réserve
           // /fibres lisent adapted_ingredients). Repli legacy géré dans le helper.
           return reAdaptMealRecipe(m, eff);
         }
@@ -349,6 +374,18 @@ export default function PlanScreen() {
   // Nouvelle journée → page blanche : si le suivi (mangé/sauté/hors plan) date
   // d'un jour calendaire passé, on l'efface et on restaure les portions
   // canoniques. Sans ça, un repas marqué « mangé » hier resterait verrouillé.
+  //
+  // ⚠️ ET LA JOURNÉE RÉVOLUE SE SOLDE D'ABORD (auto-coche, 2026-08-24). Le dernier
+  // repas du jour se coche à 23 h 59 : sans ce solde, il ne se cocherait que pour qui
+  // ouvre l'app dans cette minute-là. On retire donc de la réserve ce que la journée
+  // écoulée a consommé AVANT d'effacer son suivi — l'ordre compte, `resetTracking`
+  // remet tous les repas à « planifié » et on ne saurait plus lesquels étaient dus.
+  //
+  // ⚠️ Ce qui n'est PAS fait ici, et c'est délibéré : ni statut « mangé » (il serait
+  // effacé dans la foulée), ni série. La série dit « tu as ouvert Kyroz ce jour-là » —
+  // la créditer après coup pour un jour où personne n'a ouvert l'app en ferait un
+  // compteur de jours calendaires. Et on ne solde QUE la veille : au-delà, l'app n'a
+  // pas été ouverte depuis deux jours et rien ne dit que le plan a été suivi.
   const resetTried = React.useRef<string | null>(null);
   useEffect(() => {
     if (!plan || !profile) return;
@@ -356,8 +393,29 @@ export default function PlanScreen() {
     if (!plan.tracking_date || plan.tracking_date === today) return;
     if (resetTried.current === today) return;
     resetTried.current = today;
-    persistPlan(resetTracking(profile, plan), false);
+    (async () => {
+      await solderLaVeille(plan);
+      persistPlan(resetTracking(profile, plan), false);
+    })();
   }, [plan, profile]);
+
+  /** Retire de la réserve les repas non tranchés d'une journée écoulée. */
+  const solderLaVeille = async (p: MealPlan) => {
+    if (!repasAuto || !p.tracking_date) return;
+    const hier = localStamp(new Date(Date.now() - 86400000));
+    if (p.tracking_date !== hier) return;              // plus vieux qu'hier : on ne suppose rien
+    if (await dejaSolde(hier)) return;                 // déjà soldé (deux écrans, un seul débit)
+    await marquerSolde(hier);
+    const jour = idxDuJour(new Date(Date.now() - 86400000).getDay());
+    if (jour === null) return;
+    const dus = repasEchusVeille(p.meals.filter((m) => m.day === jour));
+    if (dus.length === 0) return;
+    let items = await loadPantry();
+    for (const m of dus) items = deductIngredients(items, mealIngredients(m));
+    await savePantry(items);
+    setPantry(items);
+    pushPantry(items);
+  };
 
   const load = async () => {
     const raw = await AsyncStorage.getItem(PLAN_KEY);
@@ -489,7 +547,7 @@ export default function PlanScreen() {
   };
 
   // « J'ai mangé » : verrouille le repas (compte dans le consommé), déduit du
-  // garde-manger, recale les repas restants, compte pour la série.
+  // réserve, recale les repas restants, compte pour la série.
   const cookMeal = async (meal: Meal) => {
     // 🔴 LE GESTE CENTRAL DE L'APP, et le plus gros saut de mise en page : la
     // carte perd son bouton « J'ai cuisiné » et sa rangée d'icônes, donc elle
@@ -503,10 +561,69 @@ export default function PlanScreen() {
     setPantry(next);
     await setMealStatus(meal, 'eaten', meal.macros);
     await markActiveToday(); // manger selon le plan = adhésion réelle
-    capture(Events.mealCooked, { meal_type: meal.meal_type });
+    // ⚠️ `auto: false` EXPLICITE, et pas une propriété absente : la north star se lit
+    // sur ce drapeau (METRICS.md §3), et « absent » ne se filtre pas de la même façon
+    // que « faux » dans PostHog. Deux formes pour un même fait, c'est une requête qui
+    // se trompe un jour.
+    capture(Events.mealCooked, { meal_type: meal.meal_type, auto: false });
     setSelectedMeal(null);
     toast('✓ Mangé — journée recalée');
   };
+
+  // ── L'AUTO-COCHE : un repas dont l'heure est passée est réputé mangé ────────
+  //
+  // Règle et heures : `lib/repasAuto.ts` (le repas se coche quand le SUIVANT commence).
+  // Ici, ce qui se passe quand elle se déclenche — et c'est exactement « J'ai cuisiné »,
+  // décision fondateur du 2026-08-24 : déduction de la réserve, macros verrouillées,
+  // recalage de la journée, série, mesure.
+  //
+  // ⚠️ UNE SEULE ÉCRITURE POUR TOUS LES REPAS DUS. Boucler sur `cookMeal` aurait
+  // enchaîné N `rebalanceDay` sur des états successifs — et surtout N rendus avec une
+  // animation de mise en page chacun, au premier affichage de l'écran.
+  //
+  // ⚠️ La mesure porte `auto: true`. Sans ce drapeau, la north star (« un jour où un
+  // repas a été CUISINÉ ») deviendrait « un jour où l'app était installée » : PostHog
+  // ne pourrait plus séparer un geste d'une échéance. Le nom de la propriété reste
+  // hors du périmètre interdit de §6 (`analyticsPerimetre`).
+  const autoCocher = useCallback(async () => {
+    if (!plan || !profile || !repasAuto) return;
+    const jour = idxDuJour(new Date().getDay());
+    if (jour === null) return;                 // aujourd'hui n'est pas un jour de plan
+    const dus = repasEchus(
+      plan.meals.filter((m) => m.day === jour),
+      activeSlots(profile),
+      minutesDepuisMinuit(),
+    );
+    if (dus.length === 0) return;
+
+    animerMiseEnPage();
+    let items = await loadPantry();
+    for (const m of dus) items = deductIngredients(items, mealIngredients(m));
+    await savePantry(items);
+    setPantry(items);
+    pushPantry(items);
+
+    const cochés = new Set(dus.map((m) => m.id));
+    const meals = plan.meals.map((m) =>
+      cochés.has(m.id) ? { ...m, status: 'eaten' as MealStatus, locked_macros: m.macros } : m,
+    );
+    await persistPlan(rebalanceDay(profile, { ...plan, meals, tracking_date: todayStamp() }, jour));
+    await markActiveToday();
+    for (const m of dus) capture(Events.mealCooked, { meal_type: m.meal_type, auto: true });
+    // On le DIT. Un statut qui change tout seul sans un mot se lit comme un bug —
+    // et la phrase dit aussi comment le défaire, puisque décocher est une touche.
+    toast(dus.length > 1
+      ? `${dus.length} repas cochés — leur heure était passée`
+      : 'Repas coché — son heure était passée');
+  }, [plan, profile, repasAuto, idxDuJour]);
+
+  // Au montage, à chaque retour sur l'onglet, et au réveil de l'app : les trois
+  // moments où l'heure a pu franchir une limite sans que personne ne regarde.
+  useFocusEffect(useCallback(() => { autoCocher(); }, [autoCocher]));
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (st) => { if (st === 'active') autoCocher(); });
+    return () => sub.remove();
+  }, [autoCocher]);
 
   // « Je l'ai sauté » : le repas ne compte pas, son budget bascule sur les
   // repas restants (qui grossissent). On garde la fiche ouverte (état + annuler).
@@ -726,8 +843,12 @@ export default function PlanScreen() {
       >
         {/* Header */}
         <View style={s.header} onLayout={repli.onHeaderLayout}>
+          {/* 🔴 LE GRAND TITRE PASSE EN PREMIER (2026-08-25, décision fondateur).
+              La date était au-dessus : elle se lisait donc avant la salutation, sur
+              l'écran qu'on ouvre chaque matin. Elle n'est pas SUPPRIMÉE comme les
+              compteurs des autres onglets — une date n'est pas un décompte, et
+              c'est la seule de l'app écrite en toutes lettres. Elle passe dessous. */}
           <View style={{ flex: 1 }}>
-            <Text style={s.date}>{todayLabel.charAt(0).toUpperCase() + todayLabel.slice(1)}</Text>
             {/* Sans émoji (2026-08-06) : chantier de fond, on les retire partout
                 progressivement. Un titre d'écran n'a pas besoin d'être illustré.
                 ⚠️ CE N'EST PLUS UN TITRE D'ÉCRAN depuis le 2026-08-14 (décision
@@ -737,6 +858,7 @@ export default function PlanScreen() {
                 prénom pendant que les autres recevaient un bonjour. Le mot vient de
                 `lib/salutation.ts` — pas d'en dur ici, sinon il redevient figé. */}
             <Text style={s.h1}>{salutation(firstName, new Date())}</Text>
+            <Text style={s.date}>{todayLabel.charAt(0).toUpperCase() + todayLabel.slice(1)}</Text>
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md }}>
             {plan && (
@@ -744,7 +866,7 @@ export default function PlanScreen() {
             )}
             {/* La série se dit en toutes lettres, sans 🔥 : le compteur porte seul.
                 La progression vers l'objectif 7 jours reste juste dessous. */}
-            <View ref={serieRef} style={s.streak}>
+            <View style={s.streak}>
               <Text style={s.streakN}>{streak.current_streak_days} j</Text>
               <Text style={s.streakLbl}>de série</Text>
             </View>
@@ -841,7 +963,7 @@ export default function PlanScreen() {
                 pour qu'un coup d'œil suffise à distinguer « le résumé » de « la
                 liste ». */}
             {dayMacros && (
-              <View ref={macrosRef}>
+              <View>
                 <SectionLabel t={t}>Jour {selectedDay}</SectionLabel>
                 {/* Même symbole que dans la rangée de jours : deux marqueurs différents
                     pour la même chose sur un même écran, c'est ce qu'on corrige.
@@ -906,7 +1028,6 @@ export default function PlanScreen() {
                   {/* Découvrabilité de la perso macros (le fork a été retiré de l'onboarding) :
                       deep-link vers l'éditeur « Calories & macros » du Profil. */}
                   <Presse
-                    ref={repartitionRef}
                     onPress={async () => { await AsyncStorage.setItem('@kyroz:openEditor', 'macros'); router.push('/(tabs)/profil'); }}
                     activeOpacity={OPACITE_PRESSION}
                     style={s.actionBtn}
@@ -942,8 +1063,8 @@ export default function PlanScreen() {
             <SectionLabel t={t}>Repas du jour</SectionLabel>
             <View style={{ gap: Spacing.md }}>
               {dayMeals.map((m, i) => {
-                const fridgeTracked = pantry.length > 0;
-                const missing = fridgeTracked ? recipeCoverage(m.recipe, pantry).missing.map((i) => i.name) : undefined;
+                const reserveNonVide = pantry.length > 0;
+                const missing = reserveNonVide ? recipeCoverage(m.recipe, pantry).missing.map((i) => i.name) : undefined;
                 return (
                   <MealCard
                     key={m.id}
@@ -954,9 +1075,9 @@ export default function PlanScreen() {
                     onDislike={m.fixed ? undefined : () => dislikeMealOnCard(m)}
                     onShopping={() => router.push('/(tabs)/courses')}
                     missing={m.fixed ? undefined : missing}
-                    fridgeTracked={fridgeTracked}
+                    reserveNonVide={reserveNonVide}
+                    statutTourId={i === premierCuisinable ? 'plan-auto' : undefined}
                     cookTourId={i === premierCuisinable ? 'plan-cook' : undefined}
-                    actionsTourId={i === premierCuisinable ? 'plan-actions' : undefined}
                   />
                 );
               })}
@@ -1246,7 +1367,7 @@ function makeStyles(t: ThemePalette) {
     regenHint: { marginTop: Spacing.sm, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm },
     regenHintTxt: { ...Type.bodySmallStrong, color: t.textTertiary },
     disclaimer: { color: t.textTertiary, lineHeight: 16, textAlign: 'center' },
-    // 🔴 Même correctif que dans le Frigo, et c'est le MÊME style recopié : à
+    // 🔴 Même correctif que dans la Réserve, et c'est le MÊME style recopié : à
     // 28 pt du bas, ce bandeau était dessiné derrière la barre d'onglets, qui
     // FLOTTE au-dessus du contenu depuis la passe matériaux (§8). Deux écrans,
     // une faute, deux fois — « un style recopié partout est un rôle qui n'a pas

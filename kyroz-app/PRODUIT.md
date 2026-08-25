@@ -90,8 +90,14 @@ d'où ils viennent, en lisant les vraies constantes du moteur.
 
 La journée, repas par repas, avec ses macros. Une rangée de jours en haut. Sur chaque repas :
 
-- **« J'ai cuisiné »** — le repas est validé, les ingrédients sortent du frigo, les repas
-  restants se recalent pour tenir la cible du jour.
+- **« J'ai cuisiné »** — le repas est validé, les ingrédients sortent de la réserve, les
+  repas restants se recalent pour tenir la cible du jour.
+  ⚠️ **Un repas se coche aussi TOUT SEUL quand son heure est passée** (depuis le
+  2026-08-24) : **une heure après le début du repas suivant**, et en fin de journée
+  (23 h 59) pour le dernier. Sur les créneaux par défaut, ça donne 14 h · 17 h · 21 h ·
+  23 h 59 à quatre repas, et 14 h · 21 h · 23 h 59 à trois. C'est exactement le même
+  geste qu'un tap — déduction, macros, recalage — le tutoriel du Plan l'annonce, et il se
+  coupe dans Profil → Paramètres des repas. Un repas coché à tort se décoche d'une touche.
 - **« Je l'ai sauté »** — le repas ne compte pas, son budget bascule sur les suivants.
   ⚠️ **C'est un fait, pas une faute** : la carte l'écrit sans signe de jugement, le nom du
   plat n'est pas barré, et la série n'est pas cassée. On peut annuler.
@@ -105,25 +111,39 @@ et un suivi d'hydratation **optionnel** (activable dans les réglages).
 
 ### Courses
 
-La liste se calcule toute seule à partir du plan : **tout ce qu'il demande**, condiments
-mis à part. On coche en magasin, on clôture, et la sortie part dans un historique local.
+La liste se calcule toute seule : **ce que le plan demande, moins ce que la réserve
+contient**, condiments mis à part. On coche en magasin, on clôture, et la sortie part dans
+un historique local.
 
-⚠️ **Le frigo n'est PAS déduit par défaut** (depuis le 2026-08-21). Une option
-« Tenir compte du frigo », sur cet écran, l'active — la liste ne propose alors que ce qui
-manque. Elle est éteinte au départ pour une raison précise : un frigo qui n'est plus à
-jour fait **disparaître** des articles de la liste, et ça ne se voit qu'au moment de
-cuisiner. Racheter ce qu'on a déjà, au moins, ça se voit et ça se décoche.
+⚠️ **Cocher ne range rien — c'est « Courses terminées » qui remplit la réserve** (depuis le
+2026-08-24). L'interrupteur « Tenir compte du frigo » a disparu avec ce changement : ce qui
+rendait la soustraction risquée n'était pas la soustraction, c'était une réserve créditée à
+chaque case cochée dans les rayons et débitée seulement à la cuisine. Elle ne pouvait que
+sur-estimer — et un article sur-estimé **disparaît** de la liste sans qu'on le voie.
 
-### Frigo
+### Réserve
 
-L'inventaire de ce qu'on a. Il propose ce qu'on peut cuisiner **maintenant** avec ce qu'il
-reste — puis ce qui manque d'un ou deux ingrédients. Il n'alimente la liste de courses que
-si l'option ci-dessus est activée, et l'écran le dit quand ce n'est pas le cas.
+L'inventaire de ce qu'on a, **séparé en deux : le frais et le sec**. Le rangement est deviné
+d'après l'aliment et se corrige d'une touche. Il se remplit à la clôture des courses, se
+vide quand un repas est marqué mangé, et la liste de courses le déduit toujours.
+
+⚠️ **« Qu'est-ce que je peux cuisiner maintenant » a déménagé dans Recettes** (2026-08-24),
+sous la liste « Réalisable » : c'est une question de recettes, pas d'inventaire.
 
 ### Recettes
 
-Le catalogue complet — **512 recettes** (compté le 2026-08-21) — filtrable, et dévoilé par
-paliers plutôt qu'en un mur. On met en favori 👍, on masque ce qu'on n'aime pas 👎, et le
+**Deux listes, choisies par un sélecteur en haut de l'écran** (2026-08-25) :
+· **Catalogue** — les **512 recettes** (compté le 2026-08-21), filtrables par créneau ou
+  par favori, dévoilées par paliers plutôt qu'en un mur ;
+· **Réalisable** — seulement ce qui est faisable avec ce qu'on a : d'abord les recettes
+  réalisables maintenant, puis celles où il manque un ou deux ingrédients (annoncés avec
+  leur quantité). Elle compte les **quantités**, pas seulement la présence — 10 g de riz
+  ne rendent pas un plat réalisable — et respecte le régime comme le fait le plan.
+  ⚠️ Le mot dit ce que la liste RÉPOND, pas d'où elle tire sa réponse : « Ma réserve »
+  nommait la source, et la source a déjà son onglet deux crans plus à gauche.
+⚠️ Deux listes et non deux filtres : les puces (« Favoris », « Dîner ») répondent à
+« quel genre de plat ? », la réserve à « qu'est-ce que je peux faire ce soir ? ». Rangées
+ensemble, la seconde disparaissait dans la rangée. On met en favori 👍, on masque ce qu'on n'aime pas 👎, et le
 moteur en tient compte pour les plans suivants. On peut aussi modifier une recette pour soi.
 
 ### Profil
@@ -201,7 +221,7 @@ atteindre**, et c'est ce qui avait rendu la version précédente de ce document 
 
 ## 7. Ce qui est gratuit, ce qui est payant
 
-**Tout le cœur est gratuit** : le plan, les recettes, les courses, le frigo, la pesée. Aucune
+**Tout le cœur est gratuit** : le plan, les recettes, les courses, la réserve, la pesée. Aucune
 limite de génération, aucun compte à rebours.
 
 **Kyroz+** (abonnement) ajoute **deux** choses, qui servent toutes deux à *piloter son objectif

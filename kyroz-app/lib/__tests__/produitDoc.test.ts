@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { RECIPES } from '../recipeMap';
 import { goalLabel } from '../tdee';
 import { PARCOURS_HORS_PLAN_ACTIF, RYTHME_HEBDOMADAIRE_ACTIF } from '../featureFlags';
-import { getFridgeTracking } from '../fridgeTracking';
+import { getRepasAuto } from '../repasAuto';
 
 // ── PRODUIT.md EST UNE AFFIRMATION SUR LE PRODUIT — ce test en compte la part
 //    vérifiable ────────────────────────────────────────────────────────────────
@@ -65,20 +65,27 @@ describe('PRODUIT.md — ce qu’il annonce comme ÉTEINT l’est vraiment', () 
 });
 
 describe('PRODUIT.md — les DÉFAUTS qu’il décrit', () => {
-  it('ce qu’il dit de la liste de courses suit le défaut réel du frigo', () => {
+  it('ce qu’il dit du remplissage de la réserve suit le code', () => {
     // 🔴 CE CAS EST NÉ SIX HEURES APRÈS L'ÉCRITURE DE LA PAGE. Elle annonçait « le plan
     // moins ce qu'il y a déjà dans le frigo » — vrai le matin, faux l'après-midi quand
-    // la soustraction est devenue optionnelle et ÉTEINTE par défaut. Le test d'alors ne
-    // regardait pas ce paragraphe : il vérifiait des comptes et des interrupteurs, pas
-    // les DÉFAUTS décrits en prose.
+    // la soustraction est devenue optionnelle. Puis l'interrupteur a disparu à son tour
+    // (2026-08-24) et la phrase est redevenue fausse, dans l'autre sens.
     // ➡️ Un doc produit ne rote pas en semaines, il rote en heures. Ce qui le tient,
-    // c'est d'attacher chaque affirmation de comportement à la valeur qui la décide.
-    expect(getFridgeTracking()).toBe(false);
-    // ⚠️ Le motif ne contient PAS les `**` : ils entourent la phrase entière, pas le
-    // mot. Une première version les plaçait autour de « PAS » et rougissait sur un
-    // texte juste — le balisage n'est pas le sens.
-    expect(produit).toMatch(/frigo n['’]est PAS déduit par défaut/i);
-    expect(produit).toContain('Tenir compte du frigo');
+    // c'est d'attacher chaque affirmation de comportement au code qui la décide.
+    expect(produit).toMatch(/c['’]est « Courses terminées » qui remplit la réserve/i);
+    // Le doc ne doit plus décrire un interrupteur qui n'existe plus : la seule
+    // occurrence tolérée est celle qui annonce sa disparition.
+    expect(produit).toMatch(/« Tenir compte du frigo » a disparu/);
+  });
+
+  it('ce qu’il dit de l’auto-coche suit le défaut réel du réglage', () => {
+    // Même attache que ci-dessus, sur le réglage qui a remplacé l'autre : la page
+    // annonce un repas qui se coche seul, donc le défaut doit être ALLUMÉ.
+    expect(getRepasAuto()).toBe(true);
+    expect(produit).toMatch(/se coche aussi TOUT SEUL quand son heure est passée/i);
+    // Et elle doit dire OÙ on l'éteint — un réglage dont personne ne trouve la porte
+    // se lit comme une app qui décide à votre place.
+    expect(produit).toContain('Profil → Paramètres des repas');
   });
 });
 

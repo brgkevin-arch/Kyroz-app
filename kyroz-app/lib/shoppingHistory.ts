@@ -5,7 +5,7 @@ import { todayStamp } from './weight';
 // ── Historique des listes de courses ─────────────────────────────────────────
 //
 // POURQUOI CE MODULE. La liste de courses n'est pas une donnée, c'est un CALCUL
-// (plan − garde-manger, `lib/shoppingList.ts`), et son cache `@kyroz:shopping`
+// (plan − réserve, `lib/shoppingList.ts`), et son cache `@kyroz:shopping`
 // est effacé à chaque changement de plan (`plan.tsx::persistPlan`). Une liste
 // terminée ne laissait donc aucune trace : une fois les articles cochés et partis
 // au frigo, plus rien ne répondait à « qu'est-ce que j'ai acheté samedi ? ».

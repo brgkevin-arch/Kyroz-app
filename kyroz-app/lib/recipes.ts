@@ -8,7 +8,7 @@ export { RECIPES };
 
 // ── Overrides perso (recettes éditées par l'utilisateur) ─────────────────────
 // Registre module-level : la base reste figée (RECIPES), l'utilisateur peut
-// remplacer une recette par SA version. Le moteur, le garde-manger et les écrans
+// remplacer une recette par SA version. Le moteur, la réserve et les écrans
 // lisent les recettes EFFECTIVES (base ⊕ overrides) via ces accesseurs. Le
 // registre est hydraté au démarrage depuis AsyncStorage (cf. useRecipeOverrides)
 // pour que la génération (fonction pure, hors React) voie les overrides.

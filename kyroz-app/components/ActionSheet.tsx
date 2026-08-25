@@ -54,9 +54,9 @@ export function ActionSheet({ visible, onClose, children }: Props) {
   // La feuille est remontée à 0 par le ressort, donc PLEINEMENT VISIBLE, et
   // `onClose` ne peut plus rien : il remet à `null` un état déjà `null`, React ne
   // re-rend pas. **Feuille impossible à fermer, ni au glissement ni au fond.**
-  // Signalé par le fondateur le 2026-08-06 sur l'édition d'une quantité du frigo,
+  // Signalé par le fondateur le 2026-08-06 sur l'édition d'une quantité en réserve,
   // et vu UNE seule fois — c'est une course, elle demande un second geste pendant
-  // la sortie. Le défaut n'est pas dans le frigo : il est dans les DEUX feuilles.
+  // la sortie. Le défaut n'est pas dans la réserve : il est dans les DEUX feuilles.
   //
   // ➡️ Le correctif ne cherche pas à gagner la course : il retire la condition. On
   // démonte dès que l'animation s'arrête, quelle qu'en soit la raison, **à moins
@@ -189,7 +189,7 @@ export function ActionSheet({ visible, onClose, children }: Props) {
   // permanence (`visible={render}`), l'empilement de deux feuilles d'un même écran
   // se jouait **à l'ordre de déclaration dans le JSX** — un ordre que rien
   // n'exprime et que personne ne relit. Les cinq écrans concernés étaient corrects
-  // PAR ACCIDENT : `garde-manger.tsx` déclare sa confirmation après son éditeur,
+  // PAR ACCIDENT : `reserve.tsx` déclare sa confirmation après son éditeur,
   // donc elle passe au-dessus ; l'inverse l'aurait rendue invisible, en silence.
   // ⚠️ Le défaut est le même que celui payé sur `DialogProvider` le 2026-08-05 —
   // « une surcouche qui doit passer AU-DESSUS se monte à la demande » —, sauf que

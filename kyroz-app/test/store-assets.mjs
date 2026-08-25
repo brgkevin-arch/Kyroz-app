@@ -65,12 +65,12 @@ await sleep(1500);
 
 // Écrans retenus, dans l'ordre où ils racontent le produit : ce qu'on reçoit
 // (le plan), puis ce qui le rend crédible (recettes), puis ce qu'il fait gagner
-// (courses, frigo).
+// (courses, réserve).
 const ECRANS = [
   ['1-plan', 'Plan'],
   ['2-recettes', 'Recettes'],
   ['3-courses', 'Courses'],
-  ['4-frigo', 'Frigo'],
+  ['4-reserve', 'Réserve'],
   ['5-profil', 'Profil'],
 ];
 

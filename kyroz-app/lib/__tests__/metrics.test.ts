@@ -84,7 +84,7 @@ describe('METRICS.md — la série et la north star restent DEUX choses', () => 
     expect(plan).toMatch(/if \(profile\) \{ markActiveToday\(\); capture\(Events\.planOpened\)/);
   });
 
-  it('la citation du §2 est encore le texte que l’app affiche', () => {
+  it('le §2 ne s’appuie plus sur une bulle qui n’existe plus', () => {
     // La page se sert de cette phrase comme PREUVE que la règle est annoncée à
     // l'utilisateur. Si la bulle change, l'argument tombe — et il faut le savoir
     // avant de continuer à s'appuyer dessus.
@@ -95,8 +95,19 @@ describe('METRICS.md — la série et la north star restent DEUX choses', () => 
     // portant garant du libellé qu'il décrit. Exactement la panne
     // qu'`harnaisEcrans.test.ts` documente. Sans le passage au mutant, ce garde-fou
     // serait entré au dépôt en ne gardant rien.
-    expect(metrics).toContain('cuisiné ou pas');
-    expect(sansCommentairesJS(lire('lib/tours.ts'))).toContain('cuisiné ou pas');
+    // 🔴 ET C'EST EXACTEMENT CE QUI EST ARRIVÉ le 2026-08-25 : la bulle `plan-serie`
+    // est partie avec la coupe des tutos, donc la preuve a disparu. Le test tenait —
+    // il a rougi le jour même. Ce qu'il compte désormais : ou bien la phrase est
+    // AFFICHÉE quelque part et la page peut s'en réclamer, ou bien la page DIT
+    // qu'elle ne l'est plus. Ce qui est interdit, c'est de continuer à s'appuyer sur
+    // une bulle supprimée.
+    const affichee = sansCommentairesJS(lire('lib/tours.ts')).includes('cuisiné ou pas');
+    if (affichee) {
+      expect(metrics).toContain('cuisiné ou pas');
+    } else {
+      expect(metrics, 'METRICS §2 cite une bulle que l’app n’affiche plus')
+        .toMatch(/L['’]APP NE LE DIT PLUS/);
+    }
   });
 
   it('les fichiers de la série renvoient à METRICS.md au lieu de se dire north star', () => {

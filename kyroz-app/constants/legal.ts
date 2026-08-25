@@ -86,7 +86,7 @@ export const PRIVACY_POLICY: LegalSection[] = [
     paragraphs: [
       "Données de compte : adresse email (lors d’une inscription par email).",
       "Données de santé : sexe, âge, poids, taille, taux de masse grasse, niveau d’activité et sport pratiqué, objectif, restrictions et préférences alimentaires. Ces informations sont des données de santé au sens de l’article 9 du RGPD.",
-      "Données d’usage de l’app : plans générés, suivi du poids, série (streak), favoris, garde-manger.",
+      "Données d’usage de l’app : plans générés, suivi du poids, série (streak), favoris, réserve alimentaire.",
       "Photos de progression (facultatives) : elles restent stockées UNIQUEMENT sur votre appareil et ne sont jamais transmises à nos serveurs.",
       "Données d’abonnement, uniquement si vous souscrivez à Kyroz+ : l’identifiant technique de votre compte et l’état de votre abonnement. Aucune coordonnée bancaire ne transite par Kyroz.",
       "Mesures d’usage, uniquement si vous les acceptez : des événements techniques (étape d’inscription atteinte, plan ouvert, repas coché, palier de série, échec de génération, erreur technique), des comptes (nombre de jours du plan, nombre de repas) et le rang du jour depuis l’installation. Ils sont rattachés à un identifiant pseudonyme tiré au hasard sur votre appareil, jamais relié à votre compte ni à votre adresse e-mail.",
@@ -245,7 +245,7 @@ export const TERMS_OF_USE: LegalSection[] = [
   {
     title: '3. Abonnement Kyroz+',
     paragraphs: [
-      "Le cœur du service reste gratuit : plan de la semaine, liste de courses, recettes, garde-manger, favoris, série, pesée, réglage du rythme de la semaine et synchronisation. Kyroz+ est un abonnement facultatif qui donne accès à des outils complémentaires — objectif daté et suivi de transformation.",
+      "Le cœur du service reste gratuit : plan de la semaine, liste de courses, recettes, réserve, favoris, série, pesée, réglage du rythme de la semaine et synchronisation. Kyroz+ est un abonnement facultatif qui donne accès à des outils complémentaires — objectif daté et suivi de transformation.",
       "L’abonnement est vendu par l’App Store ou Google Play, jamais directement par Kyroz. Le prix affiché au moment de l’achat fait foi. Le paiement, le renouvellement et la résiliation se gèrent dans les réglages de votre compte App Store ou Google Play.",
       "L’abonnement se renouvelle automatiquement à la fin de chaque période, sauf résiliation au moins 24 heures avant l’échéance. Les demandes de remboursement relèvent du store, pas de Kyroz.",
       "Le tarif de votre abonnement est celui affiché au moment où vous souscrivez, et il reste inchangé tant que votre abonnement demeure actif. Une évolution de nos tarifs ne s’applique qu’aux nouvelles souscriptions. En revanche, si vous résiliez puis souscrivez à nouveau plus tard, c’est le tarif en vigueur à cette date qui s’applique.",

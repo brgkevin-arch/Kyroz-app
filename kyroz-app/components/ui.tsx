@@ -320,7 +320,8 @@ export function MenuRow({
 
 // ── Le bouton qui dévoile la suite d'une liste ──────────────────────────────
 //
-// Trois listes s'en servent — les recettes prêtes du Frigo, les presque-prêtes, et
+// Trois listes s'en servent — les réalisables et les presque-réalisables de la liste
+// « Réalisable », et
 // le catalogue des 512. Trois copies auraient divergé au premier ajustement, sur
 // la seule chose qu'un tel bouton doit faire : DIRE COMBIEN il en reste.
 //

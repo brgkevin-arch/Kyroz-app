@@ -20,7 +20,7 @@ const MEAL_LABELS: Record<string, string> = {
 };
 
 export function MealCard({
-  meal, onPress, onCook, onReload, onDislike, onShopping, missing, fridgeTracked, tourId, cookTourId, actionsTourId,
+  meal, onPress, onCook, onReload, onDislike, onShopping, missing, reserveNonVide, tourId, cookTourId, statutTourId,
 }: {
   meal: Meal;
   onPress?: () => void;
@@ -28,16 +28,21 @@ export function MealCard({
   onReload?: () => void;     // 🔄 changer cette recette (sans ouvrir la fiche)
   onDislike?: () => void;    // 👎 je n'aime pas → masque + change
   onShopping?: () => void;   // → liste de courses (raccourci depuis « il te manque »)
-  missing?: string[];        // ingrédients absents du frigo (undefined si frigo non suivi)
-  fridgeTracked?: boolean;   // le frigo contient au moins 1 article
-  tourId?: string;           // si fourni : rend la carte ciblable par la visite guidée
+  missing?: string[];        // ce qui manque en réserve, quantités comprises (undefined si réserve vide)
+  reserveNonVide?: boolean;  // la réserve contient au moins 1 aliment
+  tourId?: string;
+  statutTourId?: string;     // si fourni : rend le SURTITRE (« PETIT-DÉJEUNER · 15 MIN ») ciblable           // si fourni : rend la carte ciblable par la visite guidée
   cookTourId?: string;       // si fourni : rend le bouton « J'ai cuisiné » ciblable par la visite guidée
   actionsTourId?: string;    // si fourni : rend la rangée favori / j'aime pas / changer ciblable
 }) {
   const t = useTheme();
   const rootRef = useTourTarget(tourId);
   const cookRef = useTourTarget(cookTourId);
-  const actionsRef = useTourTarget(actionsTourId);
+  // ⚠️ Cible SÉPARÉE du bouton « J'ai cuisiné », et c'est la condition pour qu'une
+  // bulle de plus soit lisible : deux spotlights qui se chevauchent ne s'expliquent
+  // plus l'un l'autre (même raison que le groupe d'icônes plus bas). Le surtitre vit
+  // en HAUT de la carte, le bouton en bas.
+  const statutRef = useTourTarget(statutTourId);
   const { isFavorite, toggle } = useFavorites();
   const slots = useMealSlots();
   const fav = isFavorite(meal.recipe.id);
@@ -65,13 +70,19 @@ export function MealCard({
           le moteur utilise (`effectiveMacros` rend 0, la journée se recale). Les
           deux mots suffisent à dire l'état ; un pictogramme ne remplace pas une
           ponctuation (CLAUDE.md §8), et celui-là ajoutait un jugement. */}
-      <Text style={[styles.type, { color: t.textTertiary }]}>
-        {(MEAL_LABELS[meal.meal_type] ?? slotLabel(slots, meal.meal_type)).toLocaleUpperCase('fr-FR')}
-        {isFixed ? ' · TU GÈRES'
-          : eaten ? ' · MANGÉ'
-          : skipped ? ' · SAUTÉ'
-          : ` · ${meal.recipe.prep_time_min} MIN`}
-      </Text>
+      {/* ⚠️ Enveloppé dans une View pour la visite guidée : un `Text` de RN ne
+          s'auto-mesure pas de façon fiable sur les deux plateformes, et l'anneau a
+          besoin d'un cadre. La View est un bloc pleine largeur — la mise en page ne
+          bouge pas d'un pixel. */}
+      <View ref={statutRef}>
+        <Text style={[styles.type, { color: t.textTertiary }]}>
+          {(MEAL_LABELS[meal.meal_type] ?? slotLabel(slots, meal.meal_type)).toLocaleUpperCase('fr-FR')}
+          {isFixed ? ' · TU GÈRES'
+            : eaten ? ' · MANGÉ'
+            : skipped ? ' · SAUTÉ'
+            : ` · ${meal.recipe.prep_time_min} MIN`}
+        </Text>
+      </View>
       {/* 🔴 LE NOM N'EST PLUS BARRÉ QUAND LE REPAS EST SAUTÉ (2026-08-20). Le barré
           est la grammaire de la TÂCHE RAYÉE — c'est celle de la liste de courses, où
           il est juste (`courses.tsx`, un article coché est acheté). Sur un repas, il
@@ -94,17 +105,17 @@ export function MealCard({
         </Text>
       )}
 
-      {/* Synchro frigo (uniquement si l'user suit son garde-manger) — informatif,
+      {/* État de la réserve (seulement si elle contient quelque chose) — informatif,
           jamais bloquant : « J'ai cuisiné » reste toujours cliquable.
           ⚠️ Le raccourci dit « Mes courses », PAS « Ajouter » — et ce n'est pas une
           nuance de vocabulaire. La liste de courses n'est pas une liste où l'on
-          ajoute : `buildShoppingList` prend les repas du plan et SOUSTRAIT le frigo,
+          ajoute : `buildShoppingList` prend les repas du plan et SOUSTRAIT la réserve,
           en excluant les condiments et les repas que l'user gère lui-même. Or
           `recipeCoverage`, qui produit ce « il te manque », applique EXACTEMENT les
           deux mêmes exclusions. Ce qui s'affiche ici est donc déjà dans la liste, par
           construction : un bouton « Ajouter » n'ajouterait rien et confirmerait un
           geste qui n'a pas eu lieu. */}
-      {planned && fridgeTracked && (
+      {planned && reserveNonVide && (
         lacks ? (
           <View style={styles.fridgeRow}>
             <Text style={[styles.fridge, { color: t.textSecondary, flex: 1 }]} numberOfLines={1}>
@@ -122,7 +133,7 @@ export function MealCard({
             )}
           </View>
         ) : (
-          <Text style={[styles.fridge, { color: t.textTertiary }]}>Tout est dans ton frigo</Text>
+          <Text style={[styles.fridge, { color: t.textTertiary }]}>Tout est dans ta réserve</Text>
         )
       )}
 
@@ -137,7 +148,7 @@ export function MealCard({
               bouge pas d'un pixel), mais pour donner à la visite guidée une
               cible qui n'engloutit PAS le bouton cuisiné : deux étapes qui se
               chevauchent au spotlight ne s'expliquent plus l'une l'autre. */}
-          <View ref={actionsRef} style={styles.iconGroup}>
+          <View style={styles.iconGroup}>
             <ActionIcon t={t} name={fav ? 'heart' : 'heart-outline'} active={fav} onPress={() => toggle(meal.recipe.id)} label="J'aime cette recette" />
             {onDislike && <ActionIcon t={t} name="thumbs-down-outline" onPress={onDislike} label="Je n'aime pas — changer" />}
             {onReload && <ActionIcon t={t} name="refresh" onPress={onReload} label="Changer de recette" />}
