@@ -49,12 +49,21 @@ comme un taux d'adhésion réel. (Avertissement repris de l'arbitrage du 2026-08
 | Sert à | la rétention, sans pression | décider ce qu'on construit |
 | Pardonne | oui — un gel par semaine (`FREEZE_RECHARGE`) | non, rien à pardonner : personne ne la voit |
 
-**La série n'a pas été changée, et c'est délibéré.** Elle dit déjà la vérité sur ce
-qu'elle compte : la bulle du tutoriel `plan-serie` annonce *« Ta série, sans pression —
-elle avance dès que tu ouvres ton plan, cuisiné ou pas »*. La rendre exigeante ferait
-perdre sa série à quelqu'un qui suit son plan mais oublie de cocher — une punition pour
-un tap manqué, exactement l'inverse de la charte (« rassurer au lieu de mettre la
-pression », CLAUDE.md §5).
+**La série n'a pas été changée, et c'est délibéré.** La rendre exigeante ferait perdre
+sa série à quelqu'un qui suit son plan mais oublie de cocher — une punition pour un tap
+manqué, exactement l'inverse de la charte (« rassurer au lieu de mettre la pression »,
+CLAUDE.md §5).
+
+🔴 **MAIS L'APP NE LE DIT PLUS À L'UTILISATEUR, DEPUIS LE 2026-08-25.** Ce paragraphe
+s'appuyait sur une bulle de tutoriel — *« Ta série, sans pression — elle avance dès que
+tu ouvres ton plan, cuisiné ou pas »* — pour affirmer que la règle était ANNONCÉE. Cette
+bulle est partie avec la coupe des tutos (20 → 5, décision fondateur). La règle reste
+vraie dans le code ; **elle n'est plus écrite nulle part à l'écran**, et la pastille
+« 1 j de série » ne dit pas ce qu'elle compte.
+⚠️ Ce n'est pas un mensonge — rien n'affirme le contraire — mais ce n'est plus une
+preuve : si quelqu'un se demande un jour pourquoi sa série monte sans qu'il ait cuisiné,
+aucun écran ne lui répond. À rouvrir si la question remonte, **et à ne pas citer comme
+argument entre-temps.**
 
 🔴 **NE PAS LES RENOMMER L'UN DANS L'AUTRE.** Le défaut que cette page ferme est né de
 là : `lib/streak.ts` s'annonçait « Logique du streak (North Star : 7 jours consécutifs) »

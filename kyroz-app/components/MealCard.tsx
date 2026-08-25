@@ -20,7 +20,7 @@ const MEAL_LABELS: Record<string, string> = {
 };
 
 export function MealCard({
-  meal, onPress, onCook, onReload, onDislike, onShopping, missing, reserveNonVide, tourId, cookTourId, actionsTourId, statutTourId,
+  meal, onPress, onCook, onReload, onDislike, onShopping, missing, reserveNonVide, tourId, cookTourId, statutTourId,
 }: {
   meal: Meal;
   onPress?: () => void;
@@ -38,7 +38,6 @@ export function MealCard({
   const t = useTheme();
   const rootRef = useTourTarget(tourId);
   const cookRef = useTourTarget(cookTourId);
-  const actionsRef = useTourTarget(actionsTourId);
   // ⚠️ Cible SÉPARÉE du bouton « J'ai cuisiné », et c'est la condition pour qu'une
   // bulle de plus soit lisible : deux spotlights qui se chevauchent ne s'expliquent
   // plus l'un l'autre (même raison que le groupe d'icônes plus bas). Le surtitre vit
@@ -149,7 +148,7 @@ export function MealCard({
               bouge pas d'un pixel), mais pour donner à la visite guidée une
               cible qui n'engloutit PAS le bouton cuisiné : deux étapes qui se
               chevauchent au spotlight ne s'expliquent plus l'une l'autre. */}
-          <View ref={actionsRef} style={styles.iconGroup}>
+          <View style={styles.iconGroup}>
             <ActionIcon t={t} name={fav ? 'heart' : 'heart-outline'} active={fav} onPress={() => toggle(meal.recipe.id)} label="J'aime cette recette" />
             {onDislike && <ActionIcon t={t} name="thumbs-down-outline" onPress={onDislike} label="Je n'aime pas — changer" />}
             {onReload && <ActionIcon t={t} name="refresh" onPress={onReload} label="Changer de recette" />}

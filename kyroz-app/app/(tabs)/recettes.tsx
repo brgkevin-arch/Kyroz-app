@@ -24,18 +24,27 @@ import { OBJ_LABEL } from '../../lib/recipeLabels';
 import { useTourTarget, useScreenTour, TourButton } from '../../components/GuidedTour';
 import { recettesTour } from '../../lib/tours';
 import { revelation, libelleRevelation } from '../../lib/revelation';
-import { BoutonRevelation } from '../../components/ui';
+import { BoutonRevelation, Segmented } from '../../components/ui';
 import { animerMiseEnPage } from '../../components/Mouvement';
 
-// ── « MA RÉSERVE » A REJOINT LES FILTRES (2026-08-24, décision fondateur) ────
+// ── DEUX LISTES, PAS UN FILTRE DE PLUS (2026-08-25, décision fondateur) ─────
 //
 // « Qu'est-ce que je peux cuisiner avec ce que j'ai » vivait dans un second onglet
-// de l'écran Frigo. C'est une question de RECETTES, pas d'inventaire : elle se pose
-// ici, à côté de « Favoris » et « Dîner », et elle rend l'écran Réserve à son seul
-// métier — dire ce qu'on a.
-const TAGS = ['Tout', 'reserve', 'fav', 'breakfast', 'lunch', 'dinner', 'snack'];
+// de l'écran Frigo. C'est une question de RECETTES, pas d'inventaire — mais en
+// faire une PUCE au milieu de « Favoris », « Petit-déj » et « Dîner » était faux
+// aussi : ces puces répondent toutes à « quel genre de plat ? », la réserve répond
+// à « qu'est-ce que je peux faire ce soir ? ». Deux questions rangées comme une
+// seule, et la seconde disparaissait dans la rangée horizontale.
+//
+// ➡️ Un SÉLECTEUR, comme le Frais/Sec de la Réserve : deux listes qui ne se
+// mélangent pas, chacune avec ses propres filtres. Le catalogue garde ses puces ;
+// « Ma réserve » n'en a pas besoin — sa liste est déjà l'ordre de ce qui est
+// faisable.
+type VueRecettes = 'catalogue' | 'reserve';
+
+const TAGS = ['Tout', 'fav', 'breakfast', 'lunch', 'dinner', 'snack'];
 const TAG_LABELS: Record<string, string> = {
-  Tout: 'Tout', reserve: 'Ma réserve', fav: 'Favoris', breakfast: 'Petit-déj', lunch: 'Déjeuner', dinner: 'Dîner', snack: 'Collation',
+  Tout: 'Tout', fav: 'Favoris', breakfast: 'Petit-déj', lunch: 'Déjeuner', dinner: 'Dîner', snack: 'Collation',
 };
 
 /** Au-delà de deux ingrédients manquants, ce n'est plus « presque ». */
@@ -54,6 +63,7 @@ export default function RecettesScreen() {
   const repli = useCollapsingTitle();
   const { isFavorite, toggle, favorites } = useFavorites();
   const { recipes, saveOverride, resetOverride, isCustom } = useRecipeOverrides();
+  const [vueListe, setVueListe] = useState<VueRecettes>('catalogue');
   const [tag, setTag] = useState('Tout');
   const [query, setQuery] = useState('');
   const [selected, setSelected] = useState<Recipe | null>(null);
@@ -73,8 +83,8 @@ export default function RecettesScreen() {
   // évités, avec le prédicat du moteur de plan. Sans lui, cet écran proposait du poulet
   // à un végétarien pendant que le plan tenait sa promesse.
   const couverture = useMemo(
-    () => (tag === 'reserve' ? cookableRecipes(reserve, profile) : null),
-    [tag, reserve, profile],
+    () => (vueListe === 'reserve' ? cookableRecipes(reserve, profile) : null),
+    [vueListe, reserve, profile],
   );
   const pretes = useMemo(() => couverture?.filter((c) => c.missing.length === 0) ?? [], [couverture]);
   const presque = useMemo(
@@ -92,14 +102,20 @@ export default function RecettesScreen() {
   // `renderItem` : celui-ci est une callback, pas un composant, donc y appeler un
   // hook violerait les règles de React. Elles ne sont posées que sur la première
   // ligne (`index === 0`), comme le fait déjà l'onglet Plan avec ses MealCard.
-  const rechercheRef = useTourTarget('recettes-recherche');
-  const carteRef = useTourTarget('recettes-carte');
-  const favoriRef = useTourTarget('recettes-favori');
+  // Une seule cible depuis la coupe des tutos (2026-08-25) : le sélecteur des deux
+  // listes. ⚠️ Les trois d'avant ont été RETIRÉES avec leurs bulles — une cible
+  // enregistrée que plus aucune étape ne vise se relit comme une bulle perdue en
+  // route (même motif que `frigo-vue-cuisiner` le 2026-08-14).
+  const vuesRef = useTourTarget('recettes-vues');
 
   const q = norm(query.trim());
-  const tous = (tag === 'reserve' ? parReserve.map((c) => c.recipe) : recipes).filter((r) => {
+  const surReserve = vueListe === 'reserve';
+  const tous = (surReserve ? parReserve.map((c) => c.recipe) : recipes).filter((r) => {
     if (q && !norm(r.name_fr).includes(q)) return false;
-    if (tag === 'Tout' || tag === 'reserve') return true;
+    // ⚠️ Les puces de genre ne s'appliquent QU'AU catalogue : sur « Ma réserve »,
+    // l'ordre est déjà celui de la faisabilité, et filtrer par créneau y ferait
+    // disparaître des plats réalisables sans rien dire.
+    if (surReserve || tag === 'Tout') return true;
     if (tag === 'fav') return isFavorite(r.id);
     return r.tags.includes(tag);
   });
@@ -116,7 +132,7 @@ export default function RecettesScreen() {
   // filtre. Un chiffre affiché est celui qui sera servi (CLAUDE.md §10).
   const [paliers, setPaliers] = useState(0);
   const [tout, setTout] = useState(false);
-  const cle = `${tag}·${q}·${recipes.length}·${parReserve.length}`;
+  const cle = `${vueListe}·${tag}·${q}·${recipes.length}·${parReserve.length}`;
   const cleVue = useRef(cle);
   if (cleVue.current !== cle) { cleVue.current = cle; if (paliers !== 0) setPaliers(0); if (tout) setTout(false); }
 
@@ -130,12 +146,11 @@ export default function RecettesScreen() {
   };
   const data = tous.slice(0, vue.visibles);
 
-  // Après `data` : le tour a besoin de savoir s'il y a une carte à montrer. Sur
-  // une liste vide, ses deux dernières étapes seraient filtrées faute de cible et
-  // le tour se réduirait à sa barre de recherche.
-  const { rejouer: rejouerTour } = useScreenTour('recettes', recettesTour(), { pret: tous.length > 0 });
+  // La bulle vise le SÉLECTEUR, qui est monté dès que l'écran l'est — plus besoin
+  // d'attendre une carte comme au temps où le tour désignait la première de la liste.
+  const { rejouer: rejouerTour } = useScreenTour('recettes', recettesTour());
 
-  // « J'ai mangé » depuis une fiche ouverte sous le filtre « Ma réserve » : c'est le
+  // « J'ai mangé » depuis une fiche ouverte sur la liste « Ma réserve » : c'est le
   // geste qui vivait sur les cartes du Frigo, déplacé avec la liste.
   //
   // ⚠️ Il n'est proposé QUE sur une recette réalisable. Déduire une recette dont on n'a
@@ -166,20 +181,31 @@ export default function RecettesScreen() {
   // focus à chaque frappe.
   const enTete = (
     <View onLayout={repli.onHeaderLayout}>
-        {/* Surtitre AU-DESSUS du grand titre : le chiffre pose le contexte, le mot
-            reste la chose la plus grosse de l'écran. */}
+        {/* 🔴 PLUS DE SURTITRE AU-DESSUS DU GRAND TITRE (2026-08-25, décision
+            fondateur : « je veux le gros titre de l'onglet en haut »). La règle
+            d'avant disait « le chiffre pose le contexte, le mot reste la chose la
+            plus grosse de l'écran » — sauf que le chiffre se lisait EN PREMIER, et
+            qu'un compteur n'est pas ce qu'on vient chercher en ouvrant un onglet.
+            ⚠️ Le compte du catalogue n'est pas perdu : il vit dans la ligne de
+            section, juste sous les filtres, là où il CHANGE quand on filtre. */}
         <View style={s.header}>
-          <View style={{ flex: 1 }}>
-            <Text style={s.sub}>
-              {recipes.length} recettes{favorites.length > 0 ? ` · ${favorites.length} en favori${favorites.length > 1 ? 's' : ''}` : ''}
-            </Text>
-            <Text style={s.h1}>Recettes</Text>
-          </View>
+          <Text style={[s.h1, { flex: 1 }]}>Recettes</Text>
           <TourButton onPress={rejouerTour} />
         </View>
 
+        {/* Les deux listes. Même composant que le Frais/Sec de la Réserve : deux
+            questions séparées se choisissent, elles ne se filtrent pas. */}
+        <View ref={vuesRef} style={s.vues}>
+          <Segmented<VueRecettes>
+            t={t}
+            value={vueListe}
+            onChange={(v) => { animerMiseEnPage(); setVueListe(v); }}
+            options={[{ label: 'Catalogue', value: 'catalogue' }, { label: 'Ma réserve', value: 'reserve' }]}
+          />
+        </View>
+
         <View style={s.searchWrap}>
-          <View ref={rechercheRef} style={s.searchBox}>
+          <View style={s.searchBox}>
             <Ionicons name="search" size={Icone.petite} color={t.textTertiary} />
             <TextInput
               value={query}
@@ -198,6 +224,7 @@ export default function RecettesScreen() {
           </View>
         </View>
 
+        {!surReserve && (
         <View style={s.filtersWrap}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.filters}>
             {TAGS.map((tg) => {
@@ -214,12 +241,13 @@ export default function RecettesScreen() {
             })}
           </ScrollView>
         </View>
+        )}
 
         {/* Le compteur de résultats vit SOUS les filtres, comme un titre de section :
             c'est là qu'il change, donc là qu'on le regarde. */}
         <View style={s.countRow}>
           <Text style={s.countLabel}>
-            {q ? 'RÉSULTATS' : tag === 'Tout' ? 'TOUTES LES RECETTES' : TAG_LABELS[tag].toUpperCase()}
+            {surReserve ? 'AVEC MA RÉSERVE' : q ? 'RÉSULTATS' : tag === 'Tout' ? 'TOUTES LES RECETTES' : TAG_LABELS[tag].toUpperCase()}
           </Text>
           {/* ⚠️ LE TOTAL FILTRÉ, PAS CE QUI EST À L'ÉCRAN. Depuis la révélation par
               paliers, `data` n'est qu'une tranche : afficher sa longueur ferait dire
@@ -228,7 +256,7 @@ export default function RecettesScreen() {
           {/* Sous « Ma réserve », un total ne dit rien : ce qui compte est la coupure
               entre ce qui est faisable MAINTENANT et ce qui demande une course. */}
           <Text style={s.countN}>
-            {tag === 'reserve'
+            {surReserve
               ? `${pretes.length} réalisable${pretes.length > 1 ? 's' : ''} · ${presque.length} presque`
               : `${tous.length} recette${tous.length > 1 ? 's' : ''}`}
           </Text>
@@ -265,11 +293,11 @@ export default function RecettesScreen() {
         {...repli.scrollProps}
         ListEmptyComponent={
           <View style={s.empty}>
-            <Ionicons name={q ? 'search-outline' : tag === 'reserve' ? 'file-tray-outline' : 'heart-outline'} size={Icone.nav} color={t.textTertiary} />
+            <Ionicons name={q ? 'search-outline' : surReserve ? 'file-tray-outline' : 'heart-outline'} size={Icone.nav} color={t.textTertiary} />
             <Text style={s.emptyTxt}>
               {q
                 ? `Aucune recette pour « ${query.trim()} ».`
-                : tag === 'reserve'
+                : surReserve
                 ? reserve.length === 0
                   ? "Ta réserve est vide. Remplis-la depuis l'onglet Réserve, ou termine une sortie de courses."
                   : "Rien de réalisable avec ce que tu as pour l'instant, même à un ou deux ingrédients près."
@@ -281,10 +309,10 @@ export default function RecettesScreen() {
           const fav = isFavorite(item.id);
           const premier = index === 0;
           return (
-            <Presse ref={premier ? carteRef : undefined} style={[s.recipe, layout.columns > 1 && s.recipeGrid, cardShadow(t)]} onPress={() => setSelected(item)} activeOpacity={OPACITE_PRESSION}>
+            <Presse style={[s.recipe, layout.columns > 1 && s.recipeGrid, cardShadow(t)]} onPress={() => setSelected(item)} activeOpacity={OPACITE_PRESSION}>
               <View style={s.rTop}>
                 <Text style={s.rName}>{item.name_fr}</Text>
-                <Presse ref={premier ? favoriRef : undefined} onPress={() => toggle(item.id)} hitSlop={10} style={s.heart}>
+                <Presse onPress={() => toggle(item.id)} hitSlop={10} style={s.heart}>
                   <Ionicons name={fav ? 'heart' : 'heart-outline'} size={Icone.standard} color={fav ? t.text : t.textQuaternary} />
                 </Presse>
               </View>
@@ -303,7 +331,7 @@ export default function RecettesScreen() {
                   réalisables et presque-réalisables se ressemblent trait pour trait et
                   l'ordre de la liste devient la seule différence — invisible dès qu'on
                   fait défiler. La quantité annoncée est le MANQUE, pas le besoin. */}
-              {tag === 'reserve' && (() => {
+              {surReserve && (() => {
                 const c = couvertureParId.get(item.id);
                 if (!c) return null;
                 return c.missing.length === 0 ? (
@@ -391,6 +419,7 @@ function makeStyles(t: ThemePalette) {
     header: { flexDirection: 'row', alignItems: 'flex-end', paddingTop: Spacing.xs, paddingBottom: Spacing.md },
     h1: { color: t.text, ...Type.display, marginTop: Spacing.xs },
     sub: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 19 },
+    vues: { paddingBottom: Spacing.md },
     searchWrap: { paddingBottom: Spacing.md },
     searchBox: {
       flexDirection: 'row', alignItems: 'center', gap: Spacing.sm,

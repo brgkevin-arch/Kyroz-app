@@ -65,7 +65,7 @@ export const PANTRY_KEY = '@kyroz:pantry';
 // on ne les déduit pas, et la liste de courses ne les propose pas (sel, huile…).
 //
 // 🔴 « VANILLE » A ÉTÉ RETIRÉ LE 2026-08-24, ET IL RENDAIT LA WHEY INVISIBLE.
-// Trouvé à l'écran, pas dans le code : le filtre « Ma réserve » annonçait « tu as
+// Trouvé à l'écran, pas dans le code : la liste « Ma réserve » annonçait « tu as
 // tout ce qu'il faut » sur une barre protéinée alors que la réserve n'avait pas un
 // gramme de whey. Cause — l'ingrédient du catalogue s'appelle **« Whey
 // (neutre/vanille) »**, donc `isStaple` mordait sur son PARFUM.
