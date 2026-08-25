@@ -84,7 +84,7 @@ Changer le prix d'un produit qui a déjà des abonnés rendrait cette phrase fau
 | 1 | Trancher l'annuel payé au mois | 0 |
 | 2 | Créer les deux produits early bird | 1 |
 | 3 | Libellés FR sur les deux NOUVEAUX produits | 2 |
-| 3-bis | Corriger la description du mensuel | — *(maintenant)* |
+| 3-bis | ✅ Corriger la description du mensuel | *fait* |
 | 3-ter | Vérifier le sens des changements de formule | — *(constat)* |
 | 4 | RevenueCat : rattacher les nouveaux produits | 2 |
 | 5 | Le code recopie les identifiants *(moi)* | 2 |
@@ -138,7 +138,16 @@ avant.
 **Quoi** : sur la fiche de `kyroz_plus_yearly`, retirer le prix mensuel avec engagement,
 en ne gardant que le paiement d'avance.
 
-**Ce que tu dois voir** : `kyroz_plus_yearly` n'affiche plus qu'un seul prix, 39,99 €.
+🔴 **À FAIRE DANS L'INTERFACE, PAS PAR L'API — et c'est une mesure, pas une préférence.**
+Relevé le 2026-08-25 : ce mode de paiement existe sur **173 territoires** (contre 175 pour
+le paiement d'avance — Singapour et les États-Unis ne le proposent pas). Par l'API, c'est
+**173 opérations** une par une, chacune pouvant échouer à mi-parcours et laisser le
+produit dans un état mixte. L'interface le traite comme UN réglage du produit.
+➡️ C'est le cas type où le dashboard bat l'automatisation : quand une seule case couvre
+ce qui demande cent appels, l'automatisation n'ajoute que du risque.
+
+**Ce que tu dois voir** : `npm run check:abonnements` n'affiche plus qu'une ligne de prix
+sur l'annuel, « 39,99 € — payé d'avance ».
 
 ⚠️ **Si Apple ne permet pas de le retirer**, ne force pas et dis-le moi. Le repli est
 simple et sans risque : cette formule n'étant affichée nulle part dans l'app, elle reste
@@ -189,23 +198,23 @@ review manque — c'est normal, et c'est l'étape 6.
 
 ---
 
-## Étape 3-bis — Corriger la description du mensuel *(indépendante, à faire maintenant)*
+## Étape 3-bis — Corriger la description du mensuel ✅ FAITE le 2026-08-25
 
-🔴 **La fiche produit vend une fonctionnalité qui n'existe plus.** La description de
-`kyroz_plus_monthly` dit aujourd'hui :
+🔴 **La fiche produit vendait une fonctionnalité qui n'existe plus.** La description de
+`kyroz_plus_monthly` disait :
 
 > Objectif daté, transformation, banque
 
 La **banque de calories** est sortie de Kyroz+ le 2026-08-18 et éteinte le même jour
-(`featureFlags.ts`). C'est un texte que le client lit **au moment d'acheter**, sur la
-boutique — pas un commentaire interne. La règle « aucun chiffre, aucune promesse qui ne
-soit servie » ne s'arrête pas à la frontière de l'app.
+(`featureFlags.ts`). C'était un texte lu **au moment d'acheter**, sur la boutique — pas
+un commentaire interne. La règle « aucune promesse qui ne soit servie » ne s'arrête pas
+à la frontière de l'app.
 
-**Quoi** : remplacer par ce que Kyroz+ contient réellement — l'objectif daté et le suivi
-de transformation. Le plus simple est de reprendre la description de l'annuel.
-
-**Ce que tu dois voir** : plus aucune mention de « banque » dans les libellés retournés
-par `npm run check:abonnements`.
+✅ **Corrigée par l'API** (`PATCH /v1/subscriptionLocalizations/…`, HTTP 200), et
+vérifiée par `npm run check:abonnements` : les deux produits portent désormais
+**« Pilote ton objectif dans le temps »**. Ce texte n'est pas inventé — c'est celui que
+le fondateur avait écrit pour l'annuel, repris mot pour mot : les deux formules donnent
+accès exactement à la même chose, elles doivent le dire pareil.
 
 ---
 
