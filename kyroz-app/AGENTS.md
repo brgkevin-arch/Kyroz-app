@@ -79,6 +79,7 @@ qu'ils étaient périmés.
 | 131 | **`PRODUIT.md`** remplace la synthèse datée, qui était fausse sur 6 sections sur 9 | E56 |
 | 132 | Deux **événements de diagnostic** (`meal_swapped`, `recipe_disliked`) — 13 → 15 events | E57 |
 | 133 | Le **frigo n'est plus soustrait** de la liste de courses par défaut | E58 |
+| 134 | Le frigo devient la **Réserve** (frais/sec), remplie à la clôture des courses ; **auto-coche** des repas | E59 |
 
 🔴 **NE PAS RE-PROPOSER LES TÂCHES DU PLAN D'ACTION : elles sont toutes livrées côté
 code.** 4, 6, 7, 8, 9, 10 et 12 sont faites ; 3, 5, 11 et 14 l'étaient **avant** que le
@@ -136,7 +137,7 @@ jour même**) sont les deux nouveaux. Trois tests comptent ce qu'ils affirment �
 | `ENGINE_REV` | **8** (avertissement one-shot à l'utilisateur) — A38, « R6 lissée » (2026-08-24) : pour un %MG **estimé**, le BMR glisse de Mifflin vers Katch quand la silhouette indique nettement plus de muscle que la moyenne du gabarit (fenêtre 0,5 → 1,5 bande, la bande valant les ±5 pts d'incertitude d'une silhouette), **jamais l'inverse** — côté gras Mifflin est servi tel quel. Les cibles ne peuvent donc que **MONTER** (mesuré sur le moteur : max +100 en sèche, +393 en maintien, **aucune baisse**). ⚠️ **Sa notice n'a PAS de `cause`, et c'est délibéré** : les deux causes de la rev 7 sont réservées aux trajets qui la TRAVERSENT (`depuis < 7`) — sans cette garde, un compte rev 7 → 8 recevrait « ta limite de sécurité ne s'applique plus », qui serait un mensonge. *(7 = E30, **DEUX causes** : (a) les planchers dérivés de la masse maigre (BMR + énergie disponible) se retirent au-delà de 30 %/40 % de MG, le cap 25 % du TDEE prend le relais ; (b) `bulk` refermé sur `lean_bulk` — première révision à porter deux causes, d'où `EngineNotice.cause` ; 6 = E23, la provenance du %MG décide de Katch ; 5 = A15, l'objectif daté hors de portée sert le rythme sûr MAXIMAL)* | `lib/tdee.ts` |
 | Objectif daté | la date affichée est un **POINT FIXE** : l'adopter ne la déplace plus (3 corps sur 8 glissaient de +96 j avant A15) | `npm run mesure:objectif` |
 | Échéance de l'objectif daté | 🔴 **C'est une DATE, plus une durée** (A28, 2026-08-07, décision fondateur) : la rangée de 5 puces est **RETIRÉE**, on saisit jour/mois/année, et l'écran donne une **ESTIMATION** — « la première date que Kyroz peut tenir », + « Viser cette date » en un tap. Refus de la date passée et de l'au-delà de 5 ans (au-delà, le moteur creuse au MAXIMUM : −55 → −418 kcal/j sur `F 78 → 65`). ⚠️ L'estimation vient de la **marche 1 de `deadlineLadder`**, PAS de `status.projectedDate` — les deux diffèrent de **12 à 100 jours** et la seconde suppose une échéance qui expire. ⚠️ **`deadlineLadder` (A27) tourne donc toujours** : estimation + date pré-remplie (2ᵉ marche) — **ne pas le supprimer comme du code mort**. Ses invariants restent mesurés : **40/40 tenables**, **40/40 servant un plan distinct**, contre 10/40 et 14/40 avec les 5 durées figées d'avant A27 | `npm run mesure:objectif` |
-| Tests | **1 645 verts, 106 fichiers** — mesuré le 2026-08-23 sur `main` (`7b0818b`), `tsc` propre. Le 106ᵉ fichier est `silhouettes.test.ts` (A32). ⚠️ Cette case annonçait **1 557 / 96**, mesuré huit jours plus tôt : elle n'était pas fausse, elle avait vieilli — un compteur tenu à la main dérive sans que rien ne le dise (même famille que le décompte d'OTA). ➡️ **Se relit, ne se recopie pas** : `npm test`. *(Historique :)* **1 557 verts, 96 fichiers** — mesuré le 2026-08-15 sur `main` (`7c554d1`), `tsc` propre. Un seul fichier nouveau depuis, et il porte les deux décisions de VISÉE de la visite guidée : `visee.test.ts` (`dejaVisible`, `memeCadre`, budget de recherche), **vérifié par mutation**. `visiteGuidee.test.ts` a été ÉTENDU de six cas — dont celui qui exige qu'un tuto se quitte toujours — et son contrôle de rayon **rebasé sur l'invariant** après avoir rougi sur un correctif conforme (4ᵉ fois de cette famille, cf. E51). *(Historique : 1 539 verts, 95 fichiers — mesuré le 2026-08-14 sur `main` (`89b53aa`). Les six nouveaux fichiers de cette session-là, tous **vérifiés par mutation** : `margeFeuilles` (la marge d'un contenu de feuille), `revelation` (la séquence de paliers dictée), `cuisinerDepuisLeFrigo` (l'ordre gelé + aucun bandeau sous la barre d'onglets), `diffusion` (un état partagé passe par un store, pas par `useState`), plus `feuillesEmpilees` et `feuilles` étendus (le chantier des dialogues en feuille est CLOS, et le filet de démontage est compté). ⚠️ **Ce chiffre se RE-MESURE avant d'être cité** — il a valu 1 402, 1 445, 1 463, 1 499 puis 1 539 en quatre jours, et l'ancienne ligne était périmée de 95 tests. *(Historique : **1 444 verts**, 87 fichiers — *mesuré le 2026-08-11 sur l'arbre FUSIONNÉ `feature/methodologie-sources` + `main` (`13acf4d`, donc après E39), au dernier commit avant le merge. Nouveau fichier : `methodologie.test.ts` (13 cas, **5 mutations** — dont une VERTE à dessein : déplacer une constante du moteur ne doit PAS faire rougir la page, puisqu'elle la LIT ; c'est cette mutation-là qui a révélé qu'un chiffre retapé à l'identique passait, d'où un second test sur le NOM des constantes). ⚠️ La branche annonçait **1 445** avant de fusionner E39, qui retire 1 test net — les deux chiffres étaient justes, sur deux arbres différents.* Historique : 1 431 / 86 — *mesuré le 2026-08-11 sur l'arbre FUSIONNÉ `feature/conformite-legale` + `main` (`770187d`), au dernier commit avant le merge. ⚠️ **Ce chiffre DESCEND de 1 par rapport à `main`, et aucun test n'est perdu** : `harnaisEcrans.test.ts` génère un cas par ANCRE, et E39 en retire 3 (la question du portail, les réponses « Non », l'attestation) pour en ajouter 2. Une baisse se vérifie au lieu de s'expliquer.* Historique : 1 432 / 86 — *re-mesuré le 2026-08-11 sur `main` FUSIONNÉ (`0d91966`), après #92 (notifications) et #94 (canal de retour). ⚠️ **Septième dérive, et de mon fait** : #94 annonçait 1 414, juste sur sa branche et faux dès la fusion — elle n'avait pas touché ce compteur, ce que la règle ci-dessous exige. Et #92 avait écrit 1 429, juste avant que #94 n'ajoute ses 3 cas.* Historique : 1 429 verts, 86 fichiers — *mesuré le 2026-08-11 sur l'arbre FUSIONNÉ : notifications (E38) **plus** matériaux (E36) **plus** haptique (E37), au dernier commit avant le merge. 🔴 **HUITIÈME dérive, et la troisième du même jour** : trois branches ont annoncé 1 413 / 84, 1 403 / 85 et 1 411 / 86 — chacune juste chez son auteur, aucune vraie après fusion, et git a levé un conflit sur cette ligne même **deux fois de suite**. Nouveaux fichiers venus d'à côté : `materiauxDA.test.ts` et `haptiqueDA.test.ts` ; les +26 cas des notifications vont dans deux fichiers existants. ➡️ **Ce compteur ne se recopie jamais, il se RE-MESURE au dernier commit avant le merge** — et si `main` bouge entre-temps, on recommence.* Historique : 1 395 / 84 — re-mesuré le 2026-08-10 sur la branche du mouvement (E35) REBASÉE sur `origin/main`, au DERNIER commit avant le merge — c'est la seule fenêtre où ce chiffre est vrai, cf. #81 fermée pour l'avoir mesuré à l'ouverture. Nouveau fichier : `mouvementDA.test.ts` (14 cas, 3 mutations). SIXIÈME dérive : la PR #86 (tuto) avait déplacé le chiffre sans toucher la case.* Historique : 1 378 / 83 le 2026-08-10 après #75/#80. 🔴 **CINQUIÈME dérive le même jour, et elle apporte une nuance que les quatre précédentes n'avaient pas** : une PR ouverte pour corriger ce compteur (#81, `1 367 / 82`) a été **fermée sans merger** parce qu'elle était devenue fausse ENTRE son ouverture et son merge — deux PR avaient fusionné entre-temps. ➡️ « Mesurer sur `main` fusionné » ne suffit donc pas : il faut mesurer **AU MOMENT DU MERGE**, pas à l'ouverture de la PR. Et une PR qui ne porte QUE ce compteur est structurellement condamnée à périmer — le mettre à jour dans la PR de contenu, au dernier commit avant le merge · `tsc` propre — **mesuré le 2026-08-10 sur la branche E33/E34 REBASÉE sur `origin/main` (`bf5ecac`), donc après le merge de #74 ; sur `main` seul : 1 367 / 82.** Nouveau fichier : `profilSection.test.ts` (11 cas, 9 mutations — le rangement de l'onglet Profil). ⚠️ Re-mesuré TROIS fois dans la même session (1 340 → 1 345 → 1 378) : chaque valeur était juste sur sa base et fausse au rebase suivant.)* |
+| Tests | **1 698 verts, 109 fichiers** — mesuré le 2026-08-24 sur `feature/reserve`, `tsc` propre. *(Historique : 1 645 / 106 le 2026-08-23 sur `main` (`7b0818b`).)* Le 106ᵉ fichier est `silhouettes.test.ts` (A32). ⚠️ Cette case annonçait **1 557 / 96**, mesuré huit jours plus tôt : elle n'était pas fausse, elle avait vieilli — un compteur tenu à la main dérive sans que rien ne le dise (même famille que le décompte d'OTA). ➡️ **Se relit, ne se recopie pas** : `npm test`. *(Historique :)* **1 557 verts, 96 fichiers** — mesuré le 2026-08-15 sur `main` (`7c554d1`), `tsc` propre. Un seul fichier nouveau depuis, et il porte les deux décisions de VISÉE de la visite guidée : `visee.test.ts` (`dejaVisible`, `memeCadre`, budget de recherche), **vérifié par mutation**. `visiteGuidee.test.ts` a été ÉTENDU de six cas — dont celui qui exige qu'un tuto se quitte toujours — et son contrôle de rayon **rebasé sur l'invariant** après avoir rougi sur un correctif conforme (4ᵉ fois de cette famille, cf. E51). *(Historique : 1 539 verts, 95 fichiers — mesuré le 2026-08-14 sur `main` (`89b53aa`). Les six nouveaux fichiers de cette session-là, tous **vérifiés par mutation** : `margeFeuilles` (la marge d'un contenu de feuille), `revelation` (la séquence de paliers dictée), `cuisinerDepuisLeFrigo` (l'ordre gelé + aucun bandeau sous la barre d'onglets), `diffusion` (un état partagé passe par un store, pas par `useState`), plus `feuillesEmpilees` et `feuilles` étendus (le chantier des dialogues en feuille est CLOS, et le filet de démontage est compté). ⚠️ **Ce chiffre se RE-MESURE avant d'être cité** — il a valu 1 402, 1 445, 1 463, 1 499 puis 1 539 en quatre jours, et l'ancienne ligne était périmée de 95 tests. *(Historique : **1 444 verts**, 87 fichiers — *mesuré le 2026-08-11 sur l'arbre FUSIONNÉ `feature/methodologie-sources` + `main` (`13acf4d`, donc après E39), au dernier commit avant le merge. Nouveau fichier : `methodologie.test.ts` (13 cas, **5 mutations** — dont une VERTE à dessein : déplacer une constante du moteur ne doit PAS faire rougir la page, puisqu'elle la LIT ; c'est cette mutation-là qui a révélé qu'un chiffre retapé à l'identique passait, d'où un second test sur le NOM des constantes). ⚠️ La branche annonçait **1 445** avant de fusionner E39, qui retire 1 test net — les deux chiffres étaient justes, sur deux arbres différents.* Historique : 1 431 / 86 — *mesuré le 2026-08-11 sur l'arbre FUSIONNÉ `feature/conformite-legale` + `main` (`770187d`), au dernier commit avant le merge. ⚠️ **Ce chiffre DESCEND de 1 par rapport à `main`, et aucun test n'est perdu** : `harnaisEcrans.test.ts` génère un cas par ANCRE, et E39 en retire 3 (la question du portail, les réponses « Non », l'attestation) pour en ajouter 2. Une baisse se vérifie au lieu de s'expliquer.* Historique : 1 432 / 86 — *re-mesuré le 2026-08-11 sur `main` FUSIONNÉ (`0d91966`), après #92 (notifications) et #94 (canal de retour). ⚠️ **Septième dérive, et de mon fait** : #94 annonçait 1 414, juste sur sa branche et faux dès la fusion — elle n'avait pas touché ce compteur, ce que la règle ci-dessous exige. Et #92 avait écrit 1 429, juste avant que #94 n'ajoute ses 3 cas.* Historique : 1 429 verts, 86 fichiers — *mesuré le 2026-08-11 sur l'arbre FUSIONNÉ : notifications (E38) **plus** matériaux (E36) **plus** haptique (E37), au dernier commit avant le merge. 🔴 **HUITIÈME dérive, et la troisième du même jour** : trois branches ont annoncé 1 413 / 84, 1 403 / 85 et 1 411 / 86 — chacune juste chez son auteur, aucune vraie après fusion, et git a levé un conflit sur cette ligne même **deux fois de suite**. Nouveaux fichiers venus d'à côté : `materiauxDA.test.ts` et `haptiqueDA.test.ts` ; les +26 cas des notifications vont dans deux fichiers existants. ➡️ **Ce compteur ne se recopie jamais, il se RE-MESURE au dernier commit avant le merge** — et si `main` bouge entre-temps, on recommence.* Historique : 1 395 / 84 — re-mesuré le 2026-08-10 sur la branche du mouvement (E35) REBASÉE sur `origin/main`, au DERNIER commit avant le merge — c'est la seule fenêtre où ce chiffre est vrai, cf. #81 fermée pour l'avoir mesuré à l'ouverture. Nouveau fichier : `mouvementDA.test.ts` (14 cas, 3 mutations). SIXIÈME dérive : la PR #86 (tuto) avait déplacé le chiffre sans toucher la case.* Historique : 1 378 / 83 le 2026-08-10 après #75/#80. 🔴 **CINQUIÈME dérive le même jour, et elle apporte une nuance que les quatre précédentes n'avaient pas** : une PR ouverte pour corriger ce compteur (#81, `1 367 / 82`) a été **fermée sans merger** parce qu'elle était devenue fausse ENTRE son ouverture et son merge — deux PR avaient fusionné entre-temps. ➡️ « Mesurer sur `main` fusionné » ne suffit donc pas : il faut mesurer **AU MOMENT DU MERGE**, pas à l'ouverture de la PR. Et une PR qui ne porte QUE ce compteur est structurellement condamnée à périmer — le mettre à jour dans la PR de contenu, au dernier commit avant le merge · `tsc` propre — **mesuré le 2026-08-10 sur la branche E33/E34 REBASÉE sur `origin/main` (`bf5ecac`), donc après le merge de #74 ; sur `main` seul : 1 367 / 82.** Nouveau fichier : `profilSection.test.ts` (11 cas, 9 mutations — le rangement de l'onglet Profil). ⚠️ Re-mesuré TROIS fois dans la même session (1 340 → 1 345 → 1 378) : chaque valeur était juste sur sa base et fausse au rebase suivant.)* |
 | Design | **9 passes livrées** — la 9ᵉ est celle des **TRANSITIONS** (2026-08-15, E51) : six endroits où la mise en page changeait d'un bloc sans rien entre l'avant et l'après, dont le curseur des **17 sélecteurs** de l'app. ⚠️ Elle ne renie PAS la retenue de la passe mouvement (« les 48 fichiers muets restent muets ») — elle la précise : ce qui manquait n'était pas du mouvement, c'était une classe précise, jamais balayée. Quatre candidats ont été écartés à dessein, et le pourquoi compte autant que les six retenus (CLAUDE.md §8). *(La 8ᵉ était la **revue page par page du Frigo, des Recettes, du Profil et de la feuille de pesée** (2026-08-14, E46/E48/E49) : rayons repliables, listes dévoilées par paliers, série réduite à une pastille, carte du poids devenue le sujet de l'écran, feuille de pesée qui tient sans défiler. ⚠️ Trois défauts de MISE EN PAGE trouvés en la faisant, tous invisibles à la relecture : une courbe à `width={260}` en dur, un bandeau dessiné sous la barre d'onglets, une marge de feuille absente. *(Historique : la 7ᵉ était la **refonte du Profil du 2026-08-10** (E25) : la moitié de l'écran passe derrière une roue dentée, 1 848 → 1 718 lignes, et un écran « Donner mon avis » apparaît. *(Les six précédentes :)* **6 passes** — 5 onglets refaits (2026-08-03) · rayons (2026-08-03) · repli du grand titre (2026-08-04) · échelle typo, 333 sites (2026-08-05) · espacement + cibles tactiles 44 pt, 537 sites (2026-08-06) · finitions trait/icône/retour au toucher (2026-08-06) · **écran Plan allégé + accent étendu à la barre de macros (2026-08-06)**. **Design system poussé vers Claude Design** — 6 pages GÉNÉRÉES depuis `theme.ts` (`npm run design:build`), jamais écrites à la main. Maquette de référence : `mockups/kyroz-mockup.html` — **versionnée depuis le 2026-08-06**, à la RACINE du dépôt, hors du dossier `kyroz-app/`. *(La formulation d'avant, « hors dépôt app », se lisait « hors versionnement » : le fichier est resté 3 jours sur une seule machine tout en étant cité ici comme référence.)* ⚠️ Ni le rayon, ni la taille de texte, ni l'espacement ne se relisent — ils se **mesurent** | `npm test -- rayonsDA typoDA espacementDA finitionsDA` · `getComputedStyle` dans le panneau, cf. `docs/comparer-maquette.md` |
 | Plateformes | iPhone **+ iPad** (`supportsTablet: true` depuis le 2026-08-01). ⚠️ **portrait sur iPhone, MAIS les 4 orientations sur iPad** — Expo les force dès `supportsTablet`, le multitâche iPadOS l'impose, ce n'est pas refermable. Vérifié en natif (iPad Pro 13") et à 1366×1024 | `ios/Kyroz/Info.plist` généré, PAS `app.json` · `lib/layout.ts` |
 | Sortie stores | 🔴 **UN (7) EST REQUIS — relu chez EAS le 2026-08-23 : le dernier build iOS est toujours le (6), et il a 40 COMMITS DE RETARD** (`git rev-list --count 1047b9f..origin/main` — le chiffre grandit à chaque merge, il se relit). Trois chantiers sont sur `main` sans être dans aucun binaire : **E45** (la cause du gel de « Rien à acheter »), les **textes légaux** (transfert Resend vers les USA nommé dans la politique) et **A32** (les 12 silhouettes refaites). ⚠️ Le relecteur ouvre l'app UNE fois et voit le JS EMBARQUÉ : une OTA ne s'applique qu'au lancement suivant, donc ce qui n'est pas dans le binaire n'existe pas pour lui. 🧑 **Le fondateur a demandé le 2026-08-23 d'attendre encore** — le code n'est pas figé, et un build est une PHOTO de `main`. *(État antérieur :)* iOS **1.0.0 (6)** — `ceec1b17`, commit **`1047b9f`**, `finished` le 2026-08-11 à 20 h 37, **téléversé à App Store Connect**. C'est le **seul des trois** builds du jour à porter E39 (retrait du portail) et E40 (page méthodologie), donc le seul cohérent avec les notes du relecteur. Le (5) est aussi chez Apple — **utile à TESTER, à ne PAS envoyer en revue**. 🔴 **Un (7) sera nécessaire** : le fondateur a annoncé le 11 au soir vouloir retoucher le front avant les captures ; le (6) périmera à ce moment-là. **Un seul build, après que le code est figé.** 🔴 **LEÇON DU JOUR — un binaire se périme PENDANT qu'il compile.** Le (4) a été dépassé **six minutes** après son lancement (#92), puis par #94 ; le (5) par #96 et #97. La cause n'est pas le système mais le contrôle : on vérifiait « l'arbre est propre » sans vérifier « rien n'est en vol ». ➡️ **Deux mesures avant un build** — `git status` vide **et** `HEAD == origin/main` **et** `gh pr list --state open` à **0** (+ `git worktree list`) — **et une après** : `git rev-parse origin/main` doit encore valoir le commit du build. ⚠️ **Un build n'est ni gros ni petit, c'est une PHOTO de `main`** : on n'en regroupe pas plusieurs, on en fait UN quand le code ne bouge plus. *(Historique :)* DEUX builds lancés le 2026-08-11 (13 h 18 et 13 h 41), tous deux `finished`, profil `production`. 🔴 **CETTE CASE ANNONÇAIT ENCORE « (3) », soit DEUX builds de retard — et c'est la deuxième fois qu'elle ment dans ce sens** (déjà le 2026-08-03 : « build à faire » alors qu'il était fait). ➡️ **Un build se constate en interrogeant EAS, jamais en relisant cette ligne** : `npx eas-cli build:list --platform ios` depuis `kyroz-app/` (depuis la racine du monorepo il rend « Run this command inside a project directory »). 🔴 **ET LE PLUS IMPORTANT N'EST PAS LE NUMÉRO, C'EST LE COMMIT.** Le (5) est bâti sur `770187d`, donc **AVANT** les merges de #96 (E39) et #97 (E40) : **ni le retrait du portail de dépistage, ni la page « Méthodologie & sources » ne sont dans un binaire.** Vérifié par ancêtre git, pas par la date. *(Le (4), lui, est sur `10d6096` : mouvement, verre, retour au toucher.)* ⚠️ **Conséquence sur la soumission, et elle est bloquante** : les notes du relecteur (`STORE-RELEASE.md` §11) lui indiquent où trouver la page méthodologie — or il ouvre l'app UNE fois, et une OTA ne s'applique qu'au lancement SUIVANT. Avec le (5), il suivrait les instructions et ne trouverait pas l'écran. **Un build (6) depuis `main` est requis avant de soumettre**, ou les notes doivent cesser de le promettre. ⚠️ ✅ Écart web/natif **REFERMÉ** par la 11ᵉ OTA (`c0e63d50`, 2026-08-11) — il avait duré quelques heures. *(Il était rouvert : le site servait E39 + E40, aucun binaire ne les avait.)* Écart de comportement (le portail de dépistage tourne encore chez les testeurs) et non calorique. **revue bêta APPROUVÉE le 2026-08-03** — donc acquise : **revue bêta APPROUVÉE le 2026-08-03** — donc acquise : builds et testeurs suivants passent sans repasser par Apple. 2 testeurs `INSTALLED` (1 interne, 1 externe) · Android : 2 builds, rien de soumis. ⚠️ Ce build **reçoit les OTA** (voir ligne ci-dessous) : il ne porte donc plus le JS de son commit d'origine. La déclaration `ITSAppUsesNonExemptEncryption` est enfin **committée** (elle n'a vécu que sur une machine du 2026-08-02 au 2026-08-06) | `npx eas-cli build:list` · `TESTFLIGHT.md` |
@@ -3994,6 +3995,171 @@ produit en suspens — il ne reste qu'à coder.
 > ⚠️ **Le conflit git qui en résulte n'est PAS un conflit de numéros** : les deux
 > branches insèrent en tête de cette section, donc git ne sait pas dans quel ordre. La
 > résolution est de garder les DEUX blocs, en ordre décroissant — jamais d'en choisir un.
+
+- 🤖 **E59 · Le frigo devient la RÉSERVE — et cinq règles changent ensemble (2026-08-24)**
+
+  Demandes du fondateur, en une passe : renommer, séparer le sec du frais, sortir « à
+  cuisiner » vers Recettes, ne remplir la réserve qu'à la clôture des courses, retirer
+  « Tenir compte du frigo », et faire cocher les repas tout seuls. Plus les deux défauts
+  qu'il a relevés dans le fonctionnement décrit : « réalisable » ne comptait pas les
+  quantités, et rien ne filtrait le régime.
+
+  🔴 **LE RENOMMAGE N'EST PAS COSMÉTIQUE — il rend le sec possible.** Un frigo ne
+  contient pas de riz sec : tant que l'objet s'appelait « frigo », un inventaire qui
+  porte le placard était un contresens. `Conservation = 'frais' | 'sec'` se **DÉDUIT** de
+  la catégorie (`CONSERVATION_PAR_CATEGORIE`), et le champ n'est écrit **qu'à la
+  correction** — donc le classement est **rétroactif** : les réserves déjà enregistrées
+  se rangent à la première ouverture, sans migration ni ligne à retoucher. Même
+  raisonnement que la `ref` déduite du nom (E-carotte du 2026-08-14).
+  ⚠️ **La clé `@kyroz:pantry` et la table `pantry` ne bougent PAS.** Renommer la clé
+  aurait vidé la réserve de tout le monde pour un gain de vocabulaire interne.
+
+  🔴 **« COCHER » ET « RANGER » ÉTAIENT LE MÊME GESTE, ET C'ÉTAIT LA CAUSE.** Une case se
+  coche, se décoche, se recoche dans un rayon : la réserve suivait ces hésitations, et
+  chaque bascule écrivait le stock. Depuis, **`terminer` est le seul chemin** — ce qui
+  est coché à la clôture entre en réserve, une fois. ⚠️ **L'ordre compte** : ranger AVANT
+  de vider le cache de liste, sinon la liste est recalculée sur une réserve qui n'a pas
+  encore reçu les achats — elle revient entière, puis se vide une seconde plus tard.
+
+  ✅ **`lib/fridgeTracking.ts` est SUPPRIMÉ, la soustraction devient la règle.** Ce n'est
+  pas un retour en arrière sur E58, et il faut le comprendre pour ne pas le « corriger » :
+  E58 avait raison **sur les prémisses de l'époque** — la réserve ne pouvait que
+  sur-estimer, parce qu'elle se créditait par un geste qu'on fait toujours et se débitait
+  par un geste qu'on peut sauter. **Les deux moitiés ont bougé le même jour** : elle ne
+  se crédite plus qu'à la clôture (geste rare, délibéré), et elle se débite toute seule
+  dès qu'un repas est réputé mangé (auto-coche). La dérive n'a plus de moteur, donc la
+  soustraction n'a plus besoin d'interrupteur. ➡️ Le raisonnement d'E58 est **conservé
+  en tête de `reserveCourses.test.ts`**, sinon la prochaine session le remettra.
+
+  🔴 **« RÉALISABLE » COMPTAIT LA PRÉSENCE, PAS LES GRAMMES.** `recipeCoverage` faisait un
+  `some()` sur les noms : **10 g de riz oubliés déclaraient réalisable une recette qui en
+  demande 200**. ⚠️ Et la liste de courses, elle, comptait DÉJÀ les quantités — deux
+  écrans lisaient la même réserve et en tiraient deux vérités opposées : l'un achetait
+  190 g de riz pendant que l'autre disait « tu peux la faire ». Depuis : comparaison en
+  quantité, **tolérance 95 %** (une cuisine n'est pas un laboratoire), manque annoncé en
+  clair (« il te manque 120 g de riz », le MANQUE et non le besoin), et conversion
+  pièces ↔ grammes par **la table de `units.ts`** (`poidsUnitaire`, exportée pour ça —
+  deux tables auraient divergé). Un stock incomparable retombe sur la présence : on ne
+  fabrique ni un manque ni une couverture qu'on ne sait pas calculer.
+
+  🔴 **ET RIEN NE FILTRAIT LE RÉGIME** : la réserve balayait le catalogue entier, donc
+  elle proposait du poulet à un végétarien pendant que le moteur de plan tenait sa
+  promesse à côté. `planEngine::recipeAllowed` est **exporté et partagé**, jamais
+  recopié — c'est « mesurer sur le moteur, jamais sur une réplique » (§10) appliqué à un
+  filtre. Il emporte aussi les aliments évités.
+
+  ✅ **« À cuisiner » a déménagé dans Recettes**, filtre « Ma réserve » : réalisables
+  d'abord, presque-réalisables (1 à 2 manquants) ensuite, chaque carte disant où elle en
+  est. Le geste « J'ai mangé » suit dans la FICHE, et **seulement sur une réalisable**.
+  ⚠️ **`listeStable` (ordre gelé) est retiré avec lui**, et c'est une décision : il
+  protégeait un bouton posé sur une LIGNE DE LISTE (quatre appuis au même pixel, quatre
+  recettes cuisinées, 2026-08-14). Le bouton vit maintenant dans une feuille qui se
+  referme : ce qui se trouve sous le tap suivant est une carte, et l'ouvrir est
+  réversible. **Le danger a disparu, donc la garde aussi** — un gel que plus personne
+  n'appelle se relit comme actif. La mémoire du défaut reste dans le test.
+
+  ✅ **AUTO-COCHE — `lib/repasAuto.ts`.** Règle : *un repas se coche quand le repas
+  SUIVANT commence ; le dernier de la journée en fin de journée.* Lue sur les créneaux
+  RÉELS du profil (`activeSlots`), donc juste pour qui dîne à 22 h ou s'est créé un
+  « shaker post-training ». C'est **exactement** « J'ai cuisiné » (décision fondateur) :
+  déduction, macros verrouillées, recalage, série, mesure.
+  🔴 **JAMAIS MINUIT, ET C'EST STRUCTUREL** : `plan.tsx` efface le suivi au changement de
+  date (`resetTracking`), donc un dîner coché à 00 h 00 serait effacé dans la seconde.
+  D'où **23 h 59** — et, comme personne n'ouvre l'app à cette minute-là, un **solde de la
+  veille** au premier lancement du lendemain, joué AVANT l'effacement. ⚠️ Ce solde ne
+  crédite **ni statut** (il serait effacé) **ni série** (elle dit « tu as ouvert Kyroz ce
+  jour-là » : la créditer après coup en ferait un compteur de jours calendaires), et ne
+  remonte **pas au-delà de la veille**.
+  ⚠️ **`idxDuJour` est séparé de `todayIdx`** : ce dernier retombe sur le prochain jour de
+  plan pour ne pas ouvrir sur une page vide. Le réutiliser aurait fait **manger les repas
+  de lundi pendant le week-end** d'un plan du lundi au vendredi.
+  ⚠️ **Défaut ALLUMÉ**, à l'inverse d'E58, par la MÊME méthode : on choisit la panne qui
+  se voit. Un repas coché à tort est sur le plan et se décoche d'une touche ; une réserve
+  périmée faisait disparaître un article de la liste, en silence, en magasin.
+  📊 **`meal_cooked` porte désormais `auto`** (`true` / `false` explicite, jamais absent) :
+  sans lui, la north star — « un jour où un repas a été CUISINÉ » — deviendrait « un jour
+  où l'app était installée », le réglage étant allumé par défaut. Consigné en METRICS.md §3.
+
+  ✅ **LA MARGE D'UNE HEURE A ÉTÉ POSÉE LE MÊME JOUR** (« adapte ça à ceux qui ne prennent
+  que 2 ou 3 repas »). La première version fermait un repas au DÉBUT du suivant, et ça
+  donnait deux comportements pour un seul réglage : à 4 repas le déjeuner se fermait à
+  16 h — trois heures après son début, une collation passant derrière lui — quand à
+  2 repas il avait sept heures. **Le nombre de repas n'a rien à voir avec l'heure à
+  laquelle on a fini de manger.**
+  ➡️ Limite = début du suivant **+ `GRACE_HOURS`**, bornée à la fin de journée. La
+  constante est CELLE de `lib/mealtime.ts` (« ce repas est passé »), pas un nombre écrit
+  ici : deux valeurs auraient donné deux définitions du même fait dans la même app.
+  📊 Mesuré : 4 repas → **14 h · 17 h · 21 h · 23 h 59** · 3 repas → 14 h · 21 h · 23 h 59
+  · 2 repas → 21 h · 23 h 59 · avec un « shaker » à 17 h 30 → 14 h · 17 h · 18 h 30 ·
+  21 h · 23 h 59. Deux créneaux tardifs (20 h et 23 h) sont **bornés** à 23 h 59 — sans
+  ça, 23 h + 1 h dépasse minuit et ce repas ne se cocherait JAMAIS.
+  ⚠️ L'invariant compté n'est pas la table d'heures (elle changerait avec les créneaux)
+  mais **« aucun repas ne se ferme moins de deux heures après son début »**, sur cinq
+  configurations. Une table figée dans un test aurait re-créé les heures en dur qu'on
+  vient d'éviter.
+
+  ✅ **ET L'AUTO-COCHE A SA PROPRE BULLE DE TUTORIEL** (fondateur : « sans le savoir c'est
+  compliqué »). Elle avait d'abord été glissée en seconde phrase de la bulle « J'ai
+  cuisiné » — c'était l'erreur : **un mécanisme qui agit tout seul sur le suivi de
+  quelqu'un ne s'annonce pas en incise du geste qu'il remplace.**
+  ⚠️ Elle vise le **SURTITRE** de la carte (« PETIT-DÉJEUNER · 8 MIN »), pas le bouton :
+  c'est le mot qui va changer en « MANGÉ », et deux anneaux qui se chevauchent cessent de
+  s'expliquer l'un l'autre (même raison que le groupe d'icônes de `MealCard`). Le tour du
+  Plan passe de 5 à 6 bulles, 19 → **20 au total**.
+  ⚠️ **Elle est CONDITIONNÉE au réglage** : éteinte, elle promettrait un automatisme qui
+  n'a pas lieu — le défaut exact d'E58, où trois phrases survivaient à leur mécanisme.
+  🔴 **ET LE GARDE-FOU DES CIBLES A FAILLI MENTIR** : `visiteGuidee.test.ts` cherchait les
+  ids par une LISTE de noms de props (`tourId|cookTourId|actionsTourId`). La nouvelle
+  prop `statutTourId` n'y était pas, donc le test a déclaré la cible « posée nulle part »
+  — alarmant, et faux. Il compte désormais **toute prop en `*TourId`**. *Un garde-fou
+  nommé d'après les implémentations qu'il connaît meurt à la suivante* — c'est
+  `espacementDA` après la migration `Presse`, rejoué.
+
+  🔴 **ET L'ÉCRAN A TROUVÉ UN DÉFAUT QUE 1 692 TESTS VERTS NE VOYAIENT PAS : LA WHEY
+  ÉTAIT UN CONDIMENT.** Le filtre « Ma réserve » annonçait « tu as tout ce qu'il faut »
+  sur une barre protéinée alors que la réserve n'avait pas un gramme de whey. Cause —
+  l'ingrédient du catalogue s'appelle **« Whey (neutre/vanille) »**, et `isStaple`
+  mordait sur son PARFUM (`vanille` était dans `STAPLES`).
+  ⚠️ **Le manque était SILENCIEUX sur les trois surfaces à la fois** : `buildShoppingList`
+  ne proposait jamais d'en acheter, la réserve ne la déduisait jamais, la couverture la
+  comptait pour acquise. **23 recettes** en contiennent, à 25–30 g la portion — c'est la
+  source de protéines du repas, pas une épice. Balayage des 125 ingrédients : ce mot ne
+  servait **QU'À** ce faux positif ; restent `huile_olive` (168 recettes) et `miel` (14).
+  ➡️ *Une règle qui ne se déclenche que sur son erreur ne protège rien.* Et c'est le
+  deuxième cas de la même famille en dix jours (`bœuf` contient `œuf`) : **un prédicat
+  par sous-chaîne sur un nom d'aliment se mesure sur le catalogue entier, jamais sur les
+  exemples qui l'ont inspiré.**
+
+  ✅ **Tests** : `reserveCouverture` (17 cas — quantités, tolérance, pièces, régime,
+  frais/sec, whey), `repasAuto` (23 cas), `reserveCourses` (12 cas, remplace
+  `frigoOptionnel`), `cuisinerDepuisLaReserve` (remplace `cuisinerDepuisLeFrigo`).
+  **Vérifiés par 6 mutations** (présence au lieu de quantité, filtre régime retiré,
+  correction manuelle ignorée, minuit rétabli, tri des créneaux retiré, repas fixe coché)
+  — toutes rouges. 📊 **1 698 tests / 109 fichiers verts**, `tsc` vert.
+
+  ✅ **VU À L'ÉCRAN, en 375 pt** — le preview du worktree a pu être lancé (entrée
+  `kyroz-worktree` du `launch.json`, plus un `.env.local` de valeurs FACTICES, cf. §11) :
+  · **Réserve** — « 10 aliments · 6 au frais · 4 au sec », segment Au frais / Au sec, les
+    rayons pliés par catégorie de chaque côté ;
+  · **correction du rangement** — riz basmati passé au frais depuis sa fiche : il quitte
+    la liste « Au sec », le compteur passe à 7/3, et le bandeau « Riz basmati rangé au
+    frais » s'affiche **au-dessus** de la barre d'onglets ;
+  · **Recettes → Ma réserve** — « 1 réalisable · 42 presque », manques chiffrés sur les
+    cartes (« Il te manque : Millet (80 g) ») ; après le correctif whey, « **0 réalisable
+    · 38 presque** » et « Il te manque : Whey (neutre/vanille) (25 g) » ;
+  · **Plan à 23 h 28** — petit-déj, déjeuner et collation **auto-cochés** (limites 13 h /
+    16 h / 20 h), dîner encore planifié (limite 23 h 59), « 1 455 / 2 040 kcal · reste
+    595 » : la journée est recalée sur ce qui a été supposé mangé ;
+  · **Courses** — plus aucune puce « Tenir compte du frigo », et la clôture d'une sortie
+    fait bien entrer l'article coché en réserve (« Crevettes cuites 185 g »), après quoi
+    la liste recalculée le fait disparaître (57 → 56).
+  · **la bulle de l'auto-coche** — vue à l'écran, « 4 / 6 · Ils se cochent tout seuls »,
+    anneau posé sur le surtitre de la première carte cuisinable, sans chevaucher le
+    bouton du bas.
+  ⚠️ **Ce que le web ne peut PAS dire, et qui reste à voir au simulateur** : l'anneau de
+  la visite guidée s'y fige à une position intermédiaire **parfaitement plausible**
+  (`requestAnimationFrame` n'y tourne pas, §11) — ne pas juger le CENTRAGE de l'anneau
+  sur une capture web, seulement sa cible.
 
 - 🤖 **E58 · Le frigo n'est plus soustrait par défaut — et TROIS phrases promettaient
   encore l'automatisme (2026-08-21)**

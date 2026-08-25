@@ -21,7 +21,7 @@ export { COMPACT_BAR_H, SEUIL_PAR_DEFAUT, seuilRepli };
 // L'app ne le faisait sur aucun des cinq — et pas de la même façon, ce qui est
 // le vrai défaut : sur Plan et Profil l'en-tête était DANS la zone défilante,
 // donc le titre disparaissait et rien ne le remplaçait ; sur Recettes, Courses
-// et Frigo il était en dehors, donc le gros titre restait planté en haut à
+// et Réserve il était en dehors, donc le gros titre restait planté en haut à
 // perpétuité. Deux comportements opposés pour le même objet.
 //
 // 🔴 CETTE BARRE RESTE PEINTE, ET LES DEUX RAISONS ÉCRITES ICI ÉTAIENT FAUSSES.

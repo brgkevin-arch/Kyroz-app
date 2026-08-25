@@ -13,7 +13,7 @@ import { reduceMotionActif, useReduceMotion } from '../lib/reduceMotion';
 // bloc sans que rien ne relie l'avant et l'après.
 //
 // 🔴 POURQUOI `LayoutAnimation` ET PAS UN `Animated.Value` PAR ÉLÉMENT. Ce qui
-// saute ici n'est pas une propriété, c'est une MISE EN PAGE : un rayon du frigo
+// saute ici n'est pas une propriété, c'est une MISE EN PAGE : un rayon de la réserve
 // qui se replie, dix recettes qui s'ajoutent, une carte de repas qui perd ses
 // boutons et fait remonter les trois cartes du dessous. Animer ça à la main
 // demanderait de mesurer des hauteurs variables, donc un `onLayout` par bloc et

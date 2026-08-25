@@ -62,7 +62,7 @@ export interface TourStep {
   forme?: FormeCible;
 }
 
-export type TourId = 'plan' | 'recettes' | 'courses' | 'frigo' | 'profil';
+export type TourId = 'plan' | 'recettes' | 'courses' | 'reserve' | 'profil';
 
 /**
  * Les tours rejouables, dans l'ordre où l'utilisateur rencontre les onglets.
@@ -74,7 +74,7 @@ export const TOURS: { id: TourId; label: string }[] = [
   { id: 'plan', label: 'Ton plan du jour' },
   { id: 'recettes', label: 'Le catalogue de recettes' },
   { id: 'courses', label: 'Tes courses' },
-  { id: 'frigo', label: 'Ton frigo' },
+  { id: 'reserve', label: 'Ta réserve' },
   { id: 'profil', label: 'Ton profil et tes réglages' },
 ];
 
@@ -89,9 +89,16 @@ export interface PlanTourContext {
    * d'entraînement mentirait à qui n'en a pas.
    */
   moduleParVolume: boolean;
+  /**
+   * L'auto-coche est-elle allumée ? (`lib/repasAuto.ts`, défaut `true`)
+   * ⚠️ La bulle qui l'explique est CONDITIONNÉE : éteinte, elle promettrait un
+   * automatisme qui n'a pas lieu — le défaut exact qu'E58 avait laissé passer sur
+   * trois phrases du frigo. Une bulle est une affirmation sur le code.
+   */
+  repasAuto: boolean;
 }
 
-export function planTour({ days, moduleParVolume }: PlanTourContext): TourStep[] {
+export function planTour({ days, moduleParVolume, repasAuto }: PlanTourContext): TourStep[] {
   return [
     {
       // Prouvé par : plan.tsx:198 — `markActiveToday()` part au MONTAGE, donc à
@@ -146,14 +153,32 @@ export function planTour({ days, moduleParVolume }: PlanTourContext): TourStep[]
       title: 'Ta répartition',
       text: "Ce raccourci ouvre « Calories & macros » dans ton profil, où tu peux passer en pourcentages perso. Ton plan se refait alors seul, sans effacer ce que tu as déjà marqué aujourd'hui.",
     },
+    // 🔴 L'AUTO-COCHE A SA PROPRE BULLE (2026-08-24, demande du fondateur : « sans le
+    // savoir c'est compliqué »). Elle avait d'abord été glissée en seconde phrase de
+    // la bulle « J'ai cuisiné » — c'était l'erreur : un mécanisme qui agit TOUT SEUL
+    // sur le suivi de quelqu'un ne s'annonce pas en incise du geste qu'il remplace.
+    // ⚠️ Elle vise le SURTITRE de la carte, pas le bouton : c'est le mot qui va
+    // changer (« · 15 MIN » → « · MANGÉ »), et deux anneaux ne peuvent pas se
+    // chevaucher sans cesser de s'expliquer l'un l'autre.
+    ...(repasAuto ? [{
+      // Prouvé par : plan.tsx::autoCocher — `repasEchus` (lib/repasAuto.ts) rend les
+      // repas dont l'heure limite est passée, puis le même traitement que `cookMeal`
+      // (déduction, `locked_macros`, `rebalanceDay`). Heure limite = début du repas
+      // suivant + 1 h, fin de journée pour le dernier.
+      targetId: 'plan-auto',
+      // Forme : MealCard.tsx::styles.type — une ligne de texte, pas un bloc à fond.
+      forme: 'carte' as const,
+      title: 'Ils se cochent tout seuls',
+      text: "Pas besoin de tout marquer : un repas passe en « mangé » une heure après le début du suivant, le dernier en fin de journée. Ta journée se recale et ta réserve suit. Tu peux décocher, ou couper ça dans ton profil.",
+    }] : []),
     {
-      // Prouvé par : plan.tsx::cookMeal — `deductIngredients` retire du
-      // garde-manger, `setMealStatus('eaten')` déclenche `rebalanceDay`.
+      // Prouvé par : plan.tsx::cookMeal — `deductIngredients` retire de la
+      // réserve, `setMealStatus('eaten')` déclenche `rebalanceDay`.
       targetId: 'plan-cook',
       // Forme : MealCard.tsx::cookBtn — `borderRadius: Radius.button`.
       forme: 'bouton',
       title: 'Marque-le comme cuisiné',
-      text: "Quand tu as préparé un plat, tape « J'ai cuisiné » : les ingrédients se déduisent de ton frigo et les repas qui restent se recalent tout seuls.",
+      text: "Quand tu as préparé un plat, tape « J'ai cuisiné » : les ingrédients quittent ta réserve et les repas qui restent se recalent pour tenir ta cible du jour.",
     },
     {
       // Prouvé par : plan.tsx::dislikeMealCore (la recette entre dans
@@ -213,29 +238,30 @@ export function coursesTour(): TourStep[] {
   return [
     {
       // Prouvé par : lib/shoppingList.ts — somme des ingrédients des repas du
-      // plan, moins le garde-manger, hors condiments et hors repas que
-      // l'utilisateur gère lui-même. Et courses.tsx garde la liste entre deux
-      // visites, le RefreshControl la refait.
+      // plan, moins la réserve, hors condiments et hors repas que l'utilisateur
+      // gère lui-même. Et courses.tsx garde la liste entre deux visites, le
+      // RefreshControl la refait.
       targetId: 'courses-source',
       // Forme : courses.tsx::header — bloc sans fond.
       forme: 'carte',
       title: "D'où sort ta liste",
-      text: "Kyroz additionne les ingrédients de ton plan, retire ce que tu as déjà au frigo, et laisse de côté sel, huile et épices. Tire l'écran vers le bas pour la refaire.",
+      text: "Kyroz additionne les ingrédients de ton plan, retire ce que tu as déjà en réserve, et laisse de côté sel, huile et épices. Tire l'écran vers le bas pour la refaire.",
     },
     {
-      // Prouvé par : courses.tsx — `checkAll` coche tout et range au frigo,
-      // `reset` décoche et retire du frigo sans reconstruire la liste. Le bouton
-      // « Réinitialiser » n'apparaît qu'à partir d'un article coché.
+      // Prouvé par : courses.tsx — `checkAll` coche tout, `reset` décoche, ni
+      // l'un ni l'autre ne touche à la réserve (c'est `terminer` qui range). Le
+      // bouton « Réinitialiser » n'apparaît qu'à partir d'un article coché.
       targetId: 'courses-controles',
       // Forme : courses.tsx::controls — une rangee de puces.
       forme: 'pastille',
       title: 'Cocher, masquer, défaire',
-      text: "« Tout cocher » range la liste entière dans ton frigo. Dès qu'un article est coché, « Réinitialiser » apparaît : il décoche et retire du frigo, sans refaire ta liste.",
+      text: "« Tout cocher » coche la liste entière. Dès qu'un article est coché, « Réinitialiser » apparaît : il décoche tout, sans refaire ta liste.",
     },
     {
-      // Prouvé par : courses.tsx::toggle (décocher retire du frigo la quantité
-      // exacte qui y était entrée) et courses.tsx::ecarterArticle (l'appui long
-      // écarte sans toucher au plan, cf. lib/shoppingRemoved.ts).
+      // Prouvé par : courses.tsx::toggle (cocher ne touche qu'à la liste) et
+      // courses.tsx::terminer (les articles cochés entrent en réserve à la
+      // clôture, et seulement là) ; courses.tsx::ecarterArticle pour l'appui long,
+      // qui écarte sans toucher au plan (cf. lib/shoppingRemoved.ts).
       // ⚠️ L'appui long n'a AUCUNE affordance — c'est précisément le genre de
       // geste que cette visite existe pour dire. Fusionné avec l'aller-retour du
       // cochage plutôt qu'ajouté en 4ᵉ étape : même ligne, même question (« que
@@ -245,47 +271,34 @@ export function coursesTour(): TourStep[] {
       // Forme : courses.tsx — 1re ligne d'une carte groupee.
       forme: 'carte',
       title: 'Un article, deux gestes',
-      text: "Coche : l'article entre au frigo avec sa quantité, et décocher la fait repartir. Appui long : il quitte ta liste sans toucher à ton plan, et tu le récupères en tirant vers le bas.",
+      text: "Coche ce que tu prends : « Courses terminées » rangera le tout dans ta réserve. Appui long : l'article quitte ta liste sans toucher à ton plan, et tu le récupères en tirant vers le bas.",
     },
   ];
 }
 
-// ── Onglet Frigo ─────────────────────────────────────────────────────────────
+// ── Onglet Réserve ───────────────────────────────────────────────────────────
 
-export function frigoTour(): TourStep[] {
+export function reserveTour(): TourStep[] {
   return [
     {
-      // Prouvé par : lib/shoppingList.ts soustrait le garde-manger, et
-      // courses.tsx refait la liste au RefreshControl.
-      targetId: 'frigo-ajouter',
-      // Forme : garde-manger.tsx::addBtn — `borderRadius: Radius.pill`, 44x44.
+      // Prouvé par : lib/shoppingList.ts soustrait la réserve à CHAQUE calcul
+      // (plus d'interrupteur depuis le 2026-08-24), et courses.tsx::terminer la
+      // remplit avec ce qui est coché.
+      targetId: 'reserve-ajouter',
+      // Forme : reserve.tsx::addBtn — `borderRadius: Radius.pill`, 44x44.
       forme: 'pastille',
       title: 'Dis ce que tu as',
-      text: "Ajoute ce que tu as déjà chez toi : ta liste de courses le déduira de ce qu'elle te propose, pour ne pas te faire racheter ce que tu as.",
+      text: "Ajoute ce que tu as déjà chez toi : ta liste de courses le déduit de ce qu'elle te propose, pour ne pas te faire racheter ce que tu as.",
     },
     {
-      // Prouvé par : lib/pantry.ts::recipeCoverage — une recette est « prête »
-      // quand aucun ingrédient ne manque, les condiments étant supposés présents.
-      targetId: 'frigo-compteur',
-      // Forme : garde-manger.tsx — bloc sans fond.
+      // Prouvé par : lib/pantry.ts::conservationDe — le rangement se déduit de la
+      // catégorie de l'aliment, et le champ n'est écrit qu'à la correction.
+      targetId: 'reserve-compteur',
+      // Forme : reserve.tsx — bloc sans fond.
       forme: 'carte',
-      title: 'Recettes prêtes',
-      // ⚠️ LA SECONDE PHRASE A ÉTÉ RETIRÉE le 2026-08-14 (décision fondateur). Elle
-      // disait « Il baisse aussi tout seul quand tu marques un repas cuisiné dans ton
-      // plan » — vrai (`plan.tsx::cookMeal` déduit du stock), mais c'est une
-      // conséquence de deuxième ordre expliquée avant que la personne ait vu le
-      // chiffre bouger une seule fois. La bulle définit ce que compte le nombre ;
-      // c'est tout ce qu'on lui demande.
-      text: "Le second chiffre compte les recettes dont il ne te manque aucun ingrédient, sel et épices mis à part.",
+      title: 'Le frais et le sec',
+      text: "Kyroz range chaque aliment au frais ou au sec selon ce que c'est. Touche une quantité pour la corriger — ou pour changer de rangement.",
     },
-    // 🔴 LA TROISIÈME BULLE A ÉTÉ SUPPRIMÉE le 2026-08-14 (décision fondateur) —
-    // « La vue À cuisiner », qui surlignait le sélecteur « Mon stock / À cuisiner ».
-    // Elle décrivait un onglet dont le libellé dit déjà ce qu'il fait, et elle
-    // arrivait juste après une bulle qui venait d'expliquer le même comptage : deux
-    // bulles pour une seule idée. Le tour du Frigo passe de 3 à 2 étapes.
-    // ⚠️ La cible `frigo-vue-cuisiner` est partie avec elle dans `garde-manger.tsx` :
-    // une cible enregistrée que plus aucune étape ne vise est une ref qui ne sert
-    // rien, et elle donnerait à croire qu'une bulle a été perdue en route.
   ];
 }
 
@@ -402,7 +415,7 @@ export function tourSteps(id: TourId, ctx: TourContext): TourStep[] {
     case 'plan': return planTour(ctx);
     case 'recettes': return recettesTour();
     case 'courses': return coursesTour();
-    case 'frigo': return frigoTour();
+    case 'reserve': return reserveTour();
     case 'profil': return profilTour(ctx);
   }
 }

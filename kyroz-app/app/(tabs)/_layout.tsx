@@ -6,7 +6,7 @@ import { styleBarre } from '../../lib/materiau';
 import { useAuth } from '../../hooks/useAuth';
 import { useProfile } from '../../hooks/useProfile';
 import Splash from '../../components/Splash';
-import { PlanIcon, CoursesIcon, FrigoIcon, RecettesIcon, ProfilIcon } from '../../components/TabIcons';
+import { PlanIcon, CoursesIcon, ReserveIcon, RecettesIcon, ProfilIcon } from '../../components/TabIcons';
 
 // Chaque onglet nomme un OBJET, pas une ambiance. Les icônes viennent de
 // `components/TabIcons.tsx` (tracés de la maquette) — voir la note qui y explique
@@ -77,7 +77,7 @@ export default function TabLayout() {
     >
       <Tabs.Screen name="plan" options={{ title: 'Plan', tabBarIcon: icon(PlanIcon) }} />
       <Tabs.Screen name="courses" options={{ title: 'Courses', tabBarIcon: icon(CoursesIcon) }} />
-      <Tabs.Screen name="garde-manger" options={{ title: 'Frigo', tabBarIcon: icon(FrigoIcon) }} />
+      <Tabs.Screen name="reserve" options={{ title: 'Réserve', tabBarIcon: icon(ReserveIcon) }} />
       <Tabs.Screen name="recettes" options={{ title: 'Recettes', tabBarIcon: icon(RecettesIcon) }} />
       <Tabs.Screen name="profil" options={{ title: 'Profil', tabBarIcon: icon(ProfilIcon) }} />
     </Tabs>

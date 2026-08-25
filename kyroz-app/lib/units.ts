@@ -27,6 +27,31 @@ function halfStr(x: number, one: string, many: string): string {
   return `${c === 0.5 ? '½' : frnum(c)} ${label}`;
 }
 
+/** Un nom désigne-t-il un œuf ? ⚠️ « bœuf » contient « œuf » → exclusion explicite,
+ *  sinon le steak haché se retrouve compté en œufs dans les courses. */
+function estOeuf(n: string): boolean {
+  return (n.includes('œuf') || n.includes('oeuf')) && !n.includes('bœuf') && !n.includes('boeuf');
+}
+
+/**
+ * Poids moyen d'UNE pièce, pour les aliments qu'on compte à l'unité.
+ * `undefined` = aliment qui ne se compte pas (riz, huile…).
+ *
+ * ⚠️ SOURCE UNIQUE, et elle a désormais DEUX lecteurs qui ne font pas la même chose :
+ * `formatQuantity` s'en sert pour AFFICHER (« 3 œufs »), et `lib/pantry.ts` pour
+ * COMPARER un stock saisi en pièces au besoin d'une recette exprimé en grammes.
+ * Deux tables auraient divergé sans que rien ne le dise — et la seconde aurait
+ * déclaré « réalisable » une recette qu'on ne peut pas faire.
+ */
+export function poidsUnitaire(name: string): number | undefined {
+  const n = (name || '').toLowerCase();
+  if (estOeuf(n)) return n.includes('blanc') ? 33 : 55;
+  if (n.includes('banane')) return 120;
+  if (n.includes('tortilla')) return 60;
+  if (n.includes('avocat')) return 150;
+  return undefined;
+}
+
 /**
  * Quantité lisible pour un aliment.
  *  - ml → ml / L ; 'pièce' → « pc »
@@ -39,15 +64,14 @@ export function formatQuantity(name: string, quantity: number, unit: string = 'g
   if (unit === 'ml') return quantity >= 1000 ? `${frnum(quantity / 1000)} L` : `${Math.round(quantity)} ml`;
   if (unit === 'pièce' || unit === 'pc') return `${frnum(quantity)} pc`;
 
-  // Aliments naturellement comptés à l'unité.
-  // ⚠️ « bœuf » contient « œuf » → on exclut explicitement, sinon le steak haché
-  // se retrouve compté en œufs dans les courses.
-  const egg = (n.includes('œuf') || n.includes('oeuf')) && !n.includes('bœuf') && !n.includes('boeuf');
-  if (egg && n.includes('blanc')) return countStr(quantity / 33, "blanc d'œuf", "blancs d'œuf");
-  if (egg) return countStr(quantity / 55, 'œuf', 'œufs');
-  if (n.includes('banane')) return countStr(quantity / 120, 'banane', 'bananes');
-  if (n.includes('tortilla')) return countStr(quantity / 60, 'tortilla', 'tortillas');
-  if (n.includes('avocat')) return halfStr(quantity / 150, 'avocat', 'avocats');
+  // Aliments naturellement comptés à l'unité (poids de la pièce : `poidsUnitaire`).
+  const pu = poidsUnitaire(name);
+  const egg = estOeuf(n);
+  if (pu && egg && n.includes('blanc')) return countStr(quantity / pu, "blanc d'œuf", "blancs d'œuf");
+  if (pu && egg) return countStr(quantity / pu, 'œuf', 'œufs');
+  if (pu && n.includes('banane')) return countStr(quantity / pu, 'banane', 'bananes');
+  if (pu && n.includes('tortilla')) return countStr(quantity / pu, 'tortilla', 'tortillas');
+  if (pu && n.includes('avocat')) return halfStr(quantity / pu, 'avocat', 'avocats');
 
   // Poids
   if (quantity >= 1000) return `${frnum(quantity / 1000)} kg`;

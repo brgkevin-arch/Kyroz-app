@@ -1,4 +1,4 @@
-// QA approfondie : Frigo + tous les sous-écrans du Profil, captures + erreurs.
+// QA approfondie : Réserve + tous les sous-écrans du Profil, captures + erreurs.
 //
 // Ce script attendait un login MANUEL de 3 minutes quand il n'avait pas de session
 // sauvegardée. Il amorce désormais lui-même une session invité, puis la range dans
@@ -38,7 +38,7 @@ await open(page);
 const onPlan = await bootToPlan(page);
 log(onPlan ? 'session prête' : 'ATTENTION : écran Plan jamais atteint');
 if (!onPlan) {
-  // Sans session, le Frigo et les sous-écrans du Profil n'existent pas : la suite
+  // Sans session, la Réserve et les sous-écrans du Profil n'existent pas : la suite
   // ne produirait qu'une liste de « introuvable » qui accuse les écrans alors que
   // c'est le PARCOURS qui est cassé. On s'arrête sur le vrai diagnostic.
   await context.close();
@@ -53,12 +53,12 @@ if (!haveState) {
 await sleep(1200);
 
 // ---- FRIGO ----
-if (await tap(page, 'Frigo', { which: 'last' })) {
-  await sleep(1800); await snap('D-frigo-top');
+if (await tap(page, 'Réserve', { which: 'last' })) {
+  await sleep(1800); await snap('D-reserve-top');
   for (let i = 0; i < 3; i++) { await page.mouse.wheel(0, 500); await sleep(600); }
-  await snap('D-frigo-scrolled');
+  await snap('D-reserve-scrolled');
   await page.mouse.wheel(0, -1600); await sleep(500);
-} else log('onglet Frigo introuvable');
+} else log('onglet Réserve introuvable');
 
 // ---- PROFIL + sous-écrans ----
 await goToProfil(page); await snap('D-profil');

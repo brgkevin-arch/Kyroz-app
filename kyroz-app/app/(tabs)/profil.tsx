@@ -14,6 +14,7 @@ import { ACCENTS, ACCENT_IDS, useAccentId, setAccentId, readableOn } from '../..
 import { DISCLAIMER } from '../../constants/legal';
 import { CIQUAL_ATTRIBUTION } from '../../lib/foods';
 import { Card, PrimaryButton, Chip, OptionCard, Field, SectionLabel, Segmented, SectionTitle, MenuRow } from '../../components/ui';
+import { useRepasAuto } from '../../lib/repasAuto';
 import { bankedDailyTargets, offsetsForPlan, servedWeekdays } from '../../lib/calorieBank';
 import { usePremium } from '../../hooks/usePremium';
 import { PremiumFeature, AccessReason } from '../../lib/premium';
@@ -754,7 +755,7 @@ export default function ProfilScreen() {
       <ActionSheet visible={confirmDelete} onClose={() => setConfirmDelete(false)}>
         <Text style={{ color: t.text, ...Type.h2 }}>Supprimer mon compte ?</Text>
         <Text style={{ ...Type.body, color: t.textSecondary, lineHeight: 21 }}>
-          Toutes tes données (profil, plans, série, favoris, frigo) seront définitivement supprimées, sur cet appareil et sur le serveur.
+          Toutes tes données (profil, plans, série, favoris, réserve) seront définitivement supprimées, sur cet appareil et sur le serveur.
         </Text>
         <View style={{ height: 6 }} />
         <Presse onPress={doDelete} disabled={deleting} activeOpacity={OPACITE_PRESSION}
@@ -1575,6 +1576,11 @@ function RestDaysPicker({ t, available, value, onToggle, onNone }: { t: ThemePal
 }
 
 function MealsEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: EditorProps) {
+  // ⚠️ Réglage d'APPAREIL (store externe + `useSyncExternalStore`, cf. §11) : il
+  // s'applique dès la bascule, sans attendre « Enregistrer » — il ne fait pas partie
+  // du profil qu'on soumet, et le faire passer par `submit` l'aurait perdu si on
+  // fermait l'éditeur sans enregistrer.
+  const [repasAuto, setRepasAuto] = useRepasAuto();
   const [weekdays, setWeekdays] = useState<number[]>(profile.plan_weekdays ?? [1, 2, 3, 4, 5, 6, 0]);
   const [restDays, setRestDays] = useState<number[]>(effectiveRestWeekdays(profile));
   // ⚠️ `?? [...]` ne suffit PAS : un `meals` non-tableau (vu en vrai : le NOMBRE 4) est
@@ -1670,6 +1676,25 @@ function MealsEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: Edi
         onToggle={togMeal} onSaveSlot={saveSlot} onDeleteSlot={deleteSlot}
       />
       {meals.length === 0 && <Text style={{ ...Type.caption, color: t.danger }}>Sélectionne au moins 1 repas.</Text>}
+
+      {/* ── L'auto-coche vit ICI, et pas derrière la roue dentée ──────────────
+          Test de rangement de §8 : *ce réglage change-t-il ce que Kyroz me SERT ?*
+          Oui — un repas coché verrouille ses macros, recale la journée et débite la
+          réserve. Sa place est donc sur le Profil ; et parmi ses éditeurs, celui qui
+          porte déjà les créneaux et LEURS HEURES, puisque ce sont ces heures-là qui
+          déclenchent l'auto-coche. */}
+      <SectionLabel t={t}>Repas cochés automatiquement</SectionLabel>
+      <Segmented<'on' | 'off'>
+        t={t}
+        value={repasAuto ? 'on' : 'off'}
+        onChange={(v) => setRepasAuto(v === 'on')}
+        options={[{ label: 'Automatique', value: 'on' }, { label: 'À la main', value: 'off' }]}
+      />
+      <Text style={{ ...Type.caption, color: t.textTertiary, lineHeight: 17, marginTop: -Spacing.sm }}>
+        {repasAuto
+          ? "Un repas non marqué passe en « mangé » une heure après le début du repas suivant — le dernier de la journée en fin de journée. Ses ingrédients quittent ta réserve, comme si tu avais tapé « J'ai cuisiné ». Tu peux toujours le décocher."
+          : "Tes repas ne se cochent que si tu tapes « J'ai cuisiné ». Ta journée n'est recalée que sur ce que tu as marqué toi-même."}
+      </Text>
 
       <SectionLabel t={t}>Repas que tu gères toi-même</SectionLabel>
       <Text style={{ ...Type.caption, color: t.textTertiary, lineHeight: 17, marginTop: -Spacing.sm }}>

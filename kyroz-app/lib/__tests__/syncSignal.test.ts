@@ -221,7 +221,7 @@ describe('pushProfile — le mode de panne « migration non jouée » est nommé
 describe('les cinq pushs muets ont retrouvé une voix', () => {
   const cas: { nom: string; libelle: string; run: () => Promise<void>; key: string }[] = [
     { nom: 'série', libelle: 'série', key: 'streaks.upsert', run: () => pushStreak(streak) },
-    { nom: 'garde-manger', libelle: 'garde-manger', key: 'pantry.upsert', run: () => pushPantry([]) },
+    { nom: 'réserve', libelle: 'réserve', key: 'pantry.upsert', run: () => pushPantry([]) },
     { nom: 'poids', libelle: 'suivi du poids', key: 'weight_logs.upsert', run: () => pushWeights([]) },
     { nom: 'recettes perso', libelle: 'recettes personnalisées', key: 'recipe_overrides.upsert', run: () => pushRecipeOverrides({}) },
     { nom: 'favoris', libelle: 'favoris', key: 'favorites.upsert', run: () => pushFavorites(['rep1']) },

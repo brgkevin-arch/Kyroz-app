@@ -101,10 +101,22 @@ d'AVANT le 2026-08-10 n'ont pas de jour 0 stocké — la propriété est alors *
 à zéro. Ces appareils ne peuvent pas entrer dans une cohorte. Leur donner J0 daterait
 toutes leurs cohortes de plusieurs mois : mieux vaut un trou visible qu'un chiffre faux.
 
-⚠️ **« Cuisiné » depuis le Frigo ne compte pas** (`app/(tabs)/garde-manger.tsx::cook`) :
-ce geste déduit des ingrédients, il ne marque aucun repas du plan. C'est un autre acte —
-cuisiner ce qu'on a, pas suivre son plan. Si un jour il doit compter, il lui faudra son
-propre événement, pas un détournement de `meal_cooked`.
+⚠️ **« J'ai mangé » depuis le filtre « Ma réserve » ne compte pas**
+(`app/(tabs)/recettes.tsx::cuisiner`, ex-`garde-manger.tsx::cook`) : ce geste déduit des
+ingrédients, il ne marque aucun repas du plan. C'est un autre acte — cuisiner ce qu'on a,
+pas suivre son plan. Si un jour il doit compter, il lui faudra son propre événement, pas
+un détournement de `meal_cooked`.
+
+🔴 **`meal_cooked` PORTE DÉSORMAIS `auto`, ET LA NORTH STAR DOIT LE LIRE** (2026-08-24).
+Depuis l'auto-coche, un repas dont l'heure est passée se marque « mangé » tout seul et
+émet `meal_cooked` — décision fondateur : c'est le même acte, on ne le mesure pas
+autrement. Mais un jour actif ne veut plus dire la même chose selon la propriété :
+`auto: false`, quelqu'un a TAPÉ « J'ai cuisiné » ; `auto: true`, l'app a conclu qu'un
+repas planifié avait eu lieu. ⚠️ **Une north star qui les additionne sans les distinguer
+compte des installations, pas des adhésions** — le réglage étant allumé par défaut, tout
+appareil qui garde l'app ouverte émet l'événement. ➡️ Lire la north star sur
+`auto = false` en référence, et suivre le taux d'auto-coche à côté : c'est lui qui dit si
+les gens ont cessé de marquer leurs repas.
 
 ---
 

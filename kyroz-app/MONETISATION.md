@@ -31,7 +31,7 @@
 ## Principe directeur (non négociable)
 
 Le **core loop reste 100 % gratuit, sans clé API** : profil → plan 7 jours
-macro-précis → courses → recettes → frigo → favoris → **streak**.
+macro-précis → courses → recettes → réserve → favoris → **streak**.
 
 Conséquence directe sur le **North Star** (% d'appareils à **7 jours actifs — un repas
 cuisiné — dans les 14 premiers jours** ; définition et calcul dans `METRICS.md`, précisée
@@ -65,7 +65,7 @@ core tuerait le North Star — donc interdit.
 | Capacité | Gratuit | **Kyroz+** (payant) | État réel |
 |---|---|---|---|
 | Génération plan 7 j macro-précis | ✅ | ✅ | livré |
-| Recettes + macros + courses + frigo | ✅ | ✅ | livré |
+| Recettes + macros + courses + réserve | ✅ | ✅ | livré |
 | Favoris + streak + rappel quotidien | ✅ | ✅ | livré |
 | Régénérer / remplacer un repas | ✅ (illimité) | ✅ | livré |
 | **Historique des plans** (semaines passées) | semaine en cours | ✅ illimité | **non construit** → monétisable |
@@ -184,7 +184,7 @@ core tuerait le North Star — donc interdit.
       demande la clé SECRÈTE, donc du code serveur, et ne sert à rien sans abonné.
 - [x] ✅ **Ce qu'on verrouille = features Kyroz+ uniquement** : `PREMIUM_FEATURES` =
       `dated_goal` · `transformation` — ⚠️ **`calorie_bank` en est SORTI le 2026-08-18**. Le reste
-      — core loop, courses, recettes, frigo, favoris, série, pesée, synchro — **reste
+      — core loop, courses, recettes, réserve, favoris, série, pesée, synchro — **reste
       libre**, et l'écran l'énumère noir sur blanc.
 - [x] ✅ **North Star sacré** : le paywall ne s'ouvre que sur **INTENTION** — un seul point
       d'étranglement, `openEditor()` dans `app/(tabs)/profil.tsx` (ligne 187), plus l'entrée
