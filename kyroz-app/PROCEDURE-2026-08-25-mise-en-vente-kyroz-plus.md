@@ -85,7 +85,7 @@ Changer le prix d'un produit qui a déjà des abonnés rendrait cette phrase fau
 | 2 | Créer les deux produits early bird | 1 |
 | 3 | Libellés FR sur les deux NOUVEAUX produits | 2 |
 | 3-bis | ✅ Corriger la description du mensuel | *fait* |
-| 3-ter | Vérifier le sens des changements de formule | — *(constat)* |
+| 3-ter | Remettre l'annuel au-dessus du mensuel | — *(tranché, à appliquer)* |
 | 4 | RevenueCat : rattacher les nouveaux produits | 2 |
 | 5 | Le code recopie les identifiants *(moi)* | 2 |
 | 6 | Build natif + capture de review | 5 |
@@ -218,7 +218,7 @@ accès exactement à la même chose, elles doivent le dire pareil.
 
 ---
 
-## Étape 3-ter — Vérifier le sens des changements de formule
+## Étape 3-ter — Remettre l'annuel au-dessus du mensuel
 
 **Ce que l'étape 0 a relevé** : le mensuel est au **niveau 1** du groupe, l'annuel au
 **niveau 2**. Chez Apple, le niveau 1 est le **plus haut** — et le sens compte :
@@ -231,11 +231,30 @@ accès exactement à la même chose, elles doivent le dire pareil.
 Avec cet ordre, quelqu'un qui passe du mensuel à l'annuel — exactement ce qu'on veut
 encourager — **attendrait la fin de son mois** au lieu de basculer tout de suite.
 
-⚠️ **À CONSTATER avant de toucher quoi que ce soit.** Je donne ici la règle telle que je
-la comprends, pas un fait mesuré : l'interface d'App Store Connect nomme et ordonne ces
-niveaux à sa façon. Ouvre le groupe `Kyroz+`, regarde comment il présente l'ordre des
-formules, et dis-moi ce que tu vois. Si l'ordre est bien inversé, il se corrige — c'est
-un réglage de groupe, pas un produit à recréer.
+✅ **CONFIRMÉ PAR LA DOCUMENTATION APPLE le 2026-08-25**, ce n'est plus une supposition :
+*« Level 1 represents the subscription that offers the most »* — les abonnements se
+rangent du plus offrant (niveau 1) au moins offrant, et le SENS d'un changement en
+découle. Vers un niveau plus haut : montée en gamme, **immédiate et au prorata**. Vers un
+niveau plus bas : rétrogradation, appliquée **seulement à la prochaine échéance**.
+
+🔴 **L'ordre actuel est donc à l'envers** : Apple traite le mensuel comme l'offre
+supérieure, et « je passe à l'annuel » — précisément ce qu'on veut encourager — fait
+attendre la fin du mois en cours.
+
+⚠️ **Les mettre au MÊME niveau ne suffirait pas.** À niveau égal, un changement est un
+« crossgrade », et un crossgrade entre deux **durées différentes** prend lui aussi effet
+au renouvellement suivant. Seul un annuel réellement plus haut rend la bascule immédiate.
+
+**Quoi** : `kyroz_plus_yearly` → niveau **1** · `kyroz_plus_monthly` → niveau **2**.
+Dans l'interface, c'est l'ordre des formules dans le groupe d'abonnement (on remonte
+l'annuel au-dessus du mensuel).
+
+ℹ️ **Et ça se généralise aux quatre produits** : early bird et standard donnent le même
+droit, donc chacun se range au niveau de sa DURÉE — les deux annuels au niveau 1, les
+deux mensuels au niveau 2.
+
+**Ce que tu dois voir** : `npm run check:abonnements` affiche « niveau 1 » sur l'annuel
+et « niveau 2 » sur le mensuel.
 
 ---
 
