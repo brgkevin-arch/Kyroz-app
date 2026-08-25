@@ -82,12 +82,12 @@ Changer le prix d'un produit qui a déjà des abonnés rendrait cette phrase fau
 |---|---|---|
 | 0 | ✅ Relever l'état réel | *fait* |
 | 1 | ✅ Trancher l'annuel payé au mois | *fait* |
-| 2 | Créer les deux produits early bird | 1 |
-| 3 | Libellés FR sur les deux NOUVEAUX produits | 2 |
+| 2 | ✅ Créer les deux produits early bird | *fait* |
+| 3 | ✅ Libellés FR sur les deux NOUVEAUX produits | *fait avec l'étape 2* |
 | 3-bis | ✅ Corriger la description du mensuel | *fait* |
 | 3-ter | ✅ Remettre l'annuel au-dessus du mensuel | *fait* |
 | 4 | RevenueCat : rattacher les nouveaux produits | 2 |
-| 5 | Le code recopie les identifiants *(moi)* | 2 |
+| 5 | ✅ Le code recopie les identifiants | *fait* |
 | 6 | Build natif + capture de review | 5 |
 | 7 | Bac à sable | 4, **6** — la capture bloque « Prêt à soumettre » |
 | 8 | Apple Small Business Program | — *(en parallèle)* |
@@ -176,7 +176,7 @@ mensuel à un autre prix ».
 
 ---
 
-## Étape 2 — Créer les deux produits early bird
+## Étape 2 — Créer les deux produits early bird ✅ FAITE le 2026-08-25
 
 **Où** : même groupe d'abonnement `Kyroz+`. **Surtout pas un autre groupe** — deux
 abonnements d'un même groupe s'excluent, ce qui est le comportement voulu (on ne peut pas
@@ -207,8 +207,28 @@ s'appellera `..._v3`.
    lire le nom de la formule, pas celui d'une cohorte interne. Le suffixe `_early` ne
    vit que dans l'identifiant, que personne ne voit.
 
-**Ce que tu dois voir** : `npm run check:abonnements` affiche quatre produits, chacun
-avec un seul prix, son libellé fr-FR, et le bon niveau.
+✅ **CRÉÉS PAR L'API**, et c'est finalement le meilleur moyen — l'argument « l'interface
+montre les paliers imposés » ne tenait pas, ils se lisent très bien. Sur les trois pièges
+ci-dessus, l'API est même plus sûre : on pose l'identifiant exact, le niveau exact, et
+**seulement** le prix payé d'avance — donc la facturation mensuelle n'existe jamais, au
+lieu d'être créée puis irretirable.
+
+Relevé après création : quatre produits, chacun avec un seul prix, son libellé fr-FR et
+le bon niveau.
+
+🔴 **DEUX PIÈGES PAYÉS AU PASSAGE, tous deux du même genre — l'outil accuse le mauvais
+coupable :**
+
+1. **La disponibilité vient AVANT le prix.** Un produit neuf n'est vendable dans aucun
+   pays, et Apple refuse alors de lui poser un prix — mais son erreur est
+   `ENTITY_ERROR.RELATIONSHIP.INVALID` **sur le price point**, c'est-à-dire sur l'objet
+   qu'on vient de lire et de vérifier. Trois variantes de la requête ont été essayées
+   avant de comprendre que le défaut n'était pas dans la requête. ➡️ Créer d'abord la
+   disponibilité, en **recopiant la liste de territoires du produit standard** (175) :
+   un early bird vendable là où le standard ne l'est pas serait incohérent.
+2. **Les paliers de prix se PAGINENT.** Un annuel en propose **800** en France, et l'API
+   en rend 200 par page. Sans pagination, la sonde a répondu « aucun palier à 29,99 € » —
+   ce qui est faux, et se lit comme un refus d'Apple. *La sonde mentait, pas le store.*
 
 ---
 
@@ -316,11 +336,17 @@ voulu.
 
 ---
 
-## Étape 5 — Le code recopie les identifiants *(c'est moi)*
+## Étape 5 — Le code recopie les identifiants ✅ FAITE le 2026-08-25
 
-**Rien à faire de ton côté.** Je mets à jour `lib/premium.ts` avec les deux identifiants
-early bird — **recopiés depuis le dashboard**, jamais inventés ici. C'est la règle qui a
-manqué quatre fois.
+✅ `lib/premium.ts` pointe désormais sur `kyroz_plus_monthly_early` (3,99 €) et
+`kyroz_plus_yearly_early` (29,99 €), **recopiés depuis Apple** et vérifiés par
+`npm run check:abonnements`.
+
+L'écran affiche donc « −37 % » et « soit 2,50 € par mois ». Deux tests ont rougi
+volontairement en changeant le palier (identifiants, montants), plus un troisième
+ajouté au passage : **l'équivalent mensuel annoncé ne doit jamais être INFÉRIEUR au
+vrai** — 29,99 ÷ 12 vaut 2,4992, on annonce 2,50 €, et l'arrondi doit aller vers le
+haut. Annoncer moins cher que la réalité est le seul sens qui trompe.
 
 Ce que ça change : l'écran affichera le palier en vente, avec son équivalent mensuel et
 son économie recalculée (2,50 €/mois, −37 %).

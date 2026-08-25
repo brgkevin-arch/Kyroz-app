@@ -151,12 +151,40 @@ export interface PremiumPlan {
   billed: string;
 }
 
+/**
+ * ── LE PALIER EN VENTE ───────────────────────────────────────────────────────
+ *
+ * Kyroz+ se vend par PALIERS tarifaires, et chaque palier a ses PROPRES identifiants
+ * produits. Ce tableau désigne celui qui est en vente aujourd'hui — le palier de
+ * lancement (« early bird »), créé chez Apple le 2026-08-25.
+ *
+ * | palier   | mensuel                    | annuel                    |
+ * |----------|----------------------------|---------------------------|
+ * | lancement| `kyroz_plus_monthly_early` | `kyroz_plus_yearly_early` |
+ * | standard | `kyroz_plus_monthly`       | `kyroz_plus_yearly`       |
+ *
+ * ⚠️ **POURQUOI UN PALIER = DES IDENTIFIANTS NEUFS, et pas un prix qu'on change.**
+ * Les CGU §3 promettent que le tarif reste celui de la souscription tant que
+ * l'abonnement est actif. Changer le prix d'un produit qui a des abonnés rendrait
+ * cette phrase fausse. Un produit qui sort de la vente n'est PAS supprimé : ses
+ * abonnés continuent de se renouveler à leur prix, sans une ligne de code — c'est
+ * le comportement natif d'Apple et de Google.
+ *
+ * ➡️ **Le jour du retrait de l'offre de lancement**, on bascule les deux
+ * `storeProductId` (et les deux `price`) vers le palier standard. C'est du
+ * JavaScript, donc ça part en **OTA**, sans nouvelle revue.
+ *
+ * 🔴 **CES CHAÎNES SE RECOPIENT DEPUIS APPLE, ELLES NE SE CHOISISSENT PAS ICI.**
+ * Quatre identifiants faux ont déjà été inventés dans ce fichier, chacun échouant
+ * en SILENCE (produit introuvable → achat « indisponible » → prix de repli affiché).
+ * Le contrôle qui tranche : `npm run check:abonnements`.
+ */
 export const PREMIUM_PRICES: PremiumPlan[] = [
   {
     id: 'monthly',
-    storeProductId: 'kyroz_plus_monthly',
+    storeProductId: 'kyroz_plus_monthly_early',
     label: 'Mensuel',
-    price: '4,99 €',
+    price: '3,99 €',
     billed: 'Débité chaque mois. Sans engagement, tu arrêtes quand tu veux.',
   },
   {
@@ -169,10 +197,10 @@ export const PREMIUM_PRICES: PremiumPlan[] = [
     // « indisponible » et le prix reste au tarif de repli — un échec SILENCIEUX. C'est
     // exactement le piège que `STORE-RELEASE.md` appelle « la source d'erreur n°1 ».
     id: 'annual',
-    storeProductId: 'kyroz_plus_yearly',
+    storeProductId: 'kyroz_plus_yearly_early',
     label: 'Annuel',
-    price: '39,99 €',
-    billed: 'Débité une fois par an, soit 3,33 € par mois.',
+    price: '29,99 €',
+    billed: 'Débité une fois par an, soit 2,50 € par mois.',
   },
 ];
 
