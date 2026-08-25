@@ -24,7 +24,12 @@ interface Props {
   onClose: () => void;
   onCook?: () => void;        // si fourni, affiche « J'ai mangé / cuisiné »
   onSkip?: () => void;        // si fourni, affiche « Je l'ai sauté »
-  onResetStatus?: () => void; // si fourni + statut posé, affiche « Annuler »
+  // 🔴 `onResetStatus` RETIRÉ le 2026-08-25 (décision fondateur : « enlève le bouton
+  // pour annuler le marqué comme mangé »). Le bandeau reste — il DIT l'état — mais il
+  // ne propose plus de revenir en arrière.
+  // ⚠️ Conséquence, et elle dépasse ce composant : il n'existe plus AUCUN chemin de
+  // « mangé » vers « planifié ». Cf. `app/(tabs)/plan.tsx`, où `resetMealStatus`
+  // disparaît avec lui.
   status?: MealStatus;        // suivi d'adhésion (eaten/skipped) → état affiché
   onSwap?: () => void;        // si fourni, affiche « Remplacer ce repas »
   onDislike?: () => void;     // si fourni, affiche le bouton « j'aime pas » (👎) → masque + change
@@ -34,7 +39,7 @@ interface Props {
   sheetScrollProps?: any;     // injecté par <Sheet> : lie le défilement à la fermeture
 }
 
-export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adaptedMacros, adaptFlags, adaptGap, restrictionRelaxed, onClose, onCook, onSkip, onResetStatus, status, onSwap, onDislike, onEdit, custom, dragHandlers, sheetScrollProps }: Props) {
+export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adaptedMacros, adaptFlags, adaptGap, restrictionRelaxed, onClose, onCook, onSkip, status, onSwap, onDislike, onEdit, custom, dragHandlers, sheetScrollProps }: Props) {
   const t = useTheme();
   const layout = useLayout();
   const s = useMemo(() => makeStyles(t, layout.isTablet), [t, layout.isTablet]);
@@ -179,18 +184,13 @@ export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adapted
         </View>
 
         {/* Repas déjà suivi (mangé / sauté) → état + annulation */}
-        {status && status !== 'planned' && (onResetStatus || onCook || onSkip) && (
+        {status && status !== 'planned' && (onCook || onSkip) && (
           <View style={[s.statusBanner, { borderColor: t.line }]}>
             <Text style={s.statusTxt}>
               {/* Mêmes signes retirés qu'en `MealCard` (2026-08-20) : deux états de
                   suivi, deux faits, aucune médaille et aucun panneau d'interdiction. */}
               {status === 'eaten' ? 'Marqué comme mangé' : 'Repas sauté — journée recalée'}
             </Text>
-            {onResetStatus && (
-              <Presse onPress={onResetStatus} hitSlop={8}>
-                <Text style={s.statusUndo}>Annuler</Text>
-              </Presse>
-            )}
           </View>
         )}
 
@@ -281,6 +281,5 @@ function makeStyles(t: ThemePalette, isTablet: boolean) {
     swapHint: { ...Type.caption, color: t.textSecondary, lineHeight: 18, marginTop: -Spacing.xs, paddingHorizontal: Spacing.xs },
     statusBanner: { marginTop: Spacing.xxl, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.md, paddingVertical: Spacing.lg, paddingHorizontal: Spacing.lg, borderRadius: Radius.card, borderWidth: Trait.fin },
     statusTxt: { ...Type.bodySmallStrong, flex: 1, color: t.textSecondary },
-    statusUndo: { ...Type.bodySmallStrong, color: t.text },
   });
 }

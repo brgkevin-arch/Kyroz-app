@@ -182,14 +182,17 @@ export function planTour({ days, moduleParVolume, repasAuto }: PlanTourContext):
       // est passée, puis le même traitement que `cookMeal` (déduction de la réserve,
       // `locked_macros`, `rebalanceDay`). Heure limite = début du repas suivant + 1 h,
       // fin de journée pour le dernier. Décocher : MealCard::onPress → feuille du repas.
-      // ⚠️ « et tu peux toujours décocher » a été RETIRÉ le 2026-08-25 (fondateur :
-      // « ce n'est pas clair »). Le mot était faux au sens strict : il n'existe
-      // aucune case à décocher. Le vrai geste est d'ouvrir le repas et de taper
-      // « Annuler » sur le bandeau « Marqué comme mangé » (RecipeDetail.tsx:190).
-      // ➡️ Une bulle nomme le geste et le mot EXACT qui est à l'écran, sinon elle
-      // décrit une app qui n'existe pas.
+      // 🔴 CETTE PHRASE A PERDU SA FIN DEUX FOIS DANS LA MÊME JOURNÉE, et les deux
+      // fois pour la même raison de fond : elle promettait un retour en arrière.
+      //  1. « et tu peux toujours décocher » — retiré, le mot était faux (il n'existe
+      //     aucune case à décocher) ;
+      //  2. « ouvre le repas et tape Annuler » — exact au moment où il a été écrit,
+      //     périmé deux heures plus tard : le bouton « Annuler » a été retiré du
+      //     bandeau (décision fondateur). ➡️ **Il n'existe plus AUCUN chemin de
+      //     « mangé » vers « planifié »**, donc la bulle n'en propose plus.
+      // ⚠️ Ne pas y remettre une échappatoire sans rouvrir `RecipeDetail`.
       title: 'Coche, ou laisse faire',
-      text: "Tu as mangé ? Tape « J'ai cuisiné ». Si tu oublies, Kyroz le coche pour toi une heure après le début du repas suivant. Et s'il se trompe, ouvre le repas et tape « Annuler ».",
+      text: "Tu as mangé ? Tape « J'ai cuisiné ». Et si tu oublies, Kyroz le coche pour toi une heure après le début du repas suivant : ta journée se recale et ta réserve suit.",
     }];
   }
 

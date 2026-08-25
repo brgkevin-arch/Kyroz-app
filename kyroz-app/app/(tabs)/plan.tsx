@@ -536,7 +536,10 @@ export default function PlanScreen() {
 
   // Pose un statut de suivi (mangé / sauté / re-planifié) sur un repas et recale
   // aussitôt les repas restants du jour pour rester dans la cible.
-  const setMealStatus = async (meal: Meal, status: MealStatus | undefined, locked?: Macros) => {
+  // ⚠️ `status` n'est plus optionnel : le seul appelant qui passait `undefined` était
+  // `resetMealStatus`, retiré le 2026-08-25. Un paramètre dont aucune valeur ne sert
+  // plus se relit comme un chemin encore ouvert.
+  const setMealStatus = async (meal: Meal, status: MealStatus, locked?: Macros) => {
     if (!plan || !profile) return plan;
     const meals = plan.meals.map((m) =>
       m.id === meal.id ? { ...m, status, locked_macros: status === 'eaten' ? locked : undefined } : m
@@ -610,8 +613,10 @@ export default function PlanScreen() {
     await persistPlan(rebalanceDay(profile, { ...plan, meals, tracking_date: todayStamp() }, jour));
     await markActiveToday();
     for (const m of dus) capture(Events.mealCooked, { meal_type: m.meal_type, auto: true });
-    // On le DIT. Un statut qui change tout seul sans un mot se lit comme un bug —
-    // et la phrase dit aussi comment le défaire, puisque décocher est une touche.
+    // On le DIT. Un statut qui change tout seul sans un mot se lit comme un bug.
+    // ⚠️ La phrase ne dit PLUS comment le défaire, et ce n'est pas un oubli : depuis le
+    // retrait du bouton « Annuler » (2026-08-25), il n'y a plus rien à proposer. Un
+    // bandeau qui suggérerait un retour arrière décrirait une app qui n'existe pas.
     toast(dus.length > 1
       ? `${dus.length} repas cochés — leur heure était passée`
       : 'Repas coché — son heure était passée');
@@ -633,10 +638,16 @@ export default function PlanScreen() {
     toast('Repas sauté — journée recalée');
   };
 
-  // Annule le suivi d'un repas (revient à « planifié ») + recale.
-  const resetMealStatus = async (meal: Meal) => {
-    await setMealStatus(meal, undefined);
-  };
+  // 🔴 `resetMealStatus` A ÉTÉ RETIRÉ LE 2026-08-25 (décision fondateur : « enlève le
+  // bouton pour annuler le marqué comme mangé »). C'était le SEUL chemin de « mangé »
+  // vers « planifié » — il n'en existe plus.
+  // ⚠️ Deux conséquences à connaître avant de le rétablir ou de s'en étonner :
+  //  · l'auto-coche est ALLUMÉE par défaut, et sa justification écrite reposait sur
+  //    la réversibilité (« un repas coché à tort se VOIT et se défait d'une touche »,
+  //    lib/repasAuto.ts). Cette phrase-là ne tient plus ; le réglage, lui, reste.
+  //  · l'annulation ne rendait DÉJÀ PAS les ingrédients à la réserve — `setMealStatus`
+  //    ne touche pas au stock, seul `cookMeal` le débite. Le retour arrière était donc
+  //    partiel bien avant d'être retiré.
 
   // « J'ai mangé hors plan » : on ENREGISTRE l'écart (compté à part dans le total)
   // SANS toucher au plan, puis on PROPOSE de réadapter (Oui/Non). Avant, ça recalait
@@ -1174,7 +1185,6 @@ export default function PlanScreen() {
             onClose={() => setSelectedMeal(null)}
             onCook={() => cookMeal(selectedMeal)}
             onSkip={() => skipMeal(selectedMeal)}
-            onResetStatus={() => resetMealStatus(selectedMeal)}
             onSwap={swapSelectedMeal}
             onDislike={dislikeSelectedMeal}
           />

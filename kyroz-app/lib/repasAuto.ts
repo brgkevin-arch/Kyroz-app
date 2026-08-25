@@ -43,11 +43,22 @@ export const FIN_DE_JOURNEE = 23 * 60 + 59;
 // ── Le réglage : ALLUMÉ par défaut ──────────────────────────────────────────
 //
 // ⚠️ Contrairement à feu « Tenir compte du frigo », le défaut est ici à `true`
-// (décision fondateur). L'erreur n'a pas la même forme : un repas coché à tort se
-// VOIT sur le plan et se décoche d'une touche, là où une réserve périmée faisait
+// (décision fondateur). Le critère était « on choisit la panne qui se VOIT » : un
+// repas coché à tort s'affiche sur le plan, là où une réserve périmée faisait
 // DISPARAÎTRE un article de la liste de courses, en silence, sur l'écran qu'on
-// emmène en magasin. On choisit la panne qui se voit — c'est le même critère qui
-// avait donné `false` à l'autre réglage, appliqué à un risque différent.
+// emmène en magasin.
+//
+// 🔴 **MAIS LA MOITIÉ DE CETTE JUSTIFICATION EST TOMBÉE LE 2026-08-25.** Elle disait
+// aussi « … et se décoche d'une touche ». Ce n'est plus vrai : le bouton « Annuler »
+// du bandeau « Marqué comme mangé » a été retiré (décision fondateur), et il était le
+// SEUL chemin de « mangé » vers « planifié ». Un repas coché par l'automatisme est
+// donc désormais DÉFINITIF pour la journée.
+// ➡️ Le défaut `true` n'est pas remis en cause ici — c'est une décision produit, et le
+// réglage reste à un tap. Mais l'argument qui le portait est amputé : celui qui le
+// rouvrira doit repartir de « visible mais irréversible », pas de la phrase d'avant.
+// ⚠️ Et le retour arrière était DÉJÀ partiel : annuler ne rendait pas les ingrédients
+// à la réserve (`setMealStatus` ne touche pas au stock). On a retiré un bouton qui ne
+// défaisait que la moitié de ce qu'il avait l'air de défaire.
 //
 // ⚠️ Réglage d'APPAREIL (pas de colonne Supabase, donc pas de migration), et il se
 // DIFFUSE : le Plan l'applique, le Profil l'affiche. Un `useState` local aurait
