@@ -26,7 +26,7 @@ import { DateInput } from '../../components/DateInput';
 import { ageOn } from '../../lib/birthday';
 import { ActionSheet } from '../../components/ActionSheet';
 import { WeightSummaryCard } from '../../components/WeightSummaryCard';
-import { useTourTarget, useScreenTour, TourButton, resetAllTours } from '../../components/GuidedTour';
+import { useScreenTour, TourButton, resetAllTours } from '../../components/GuidedTour';
 import { profilTour, TOURS } from '../../lib/tours';
 import { BodyFatPicker } from '../../components/BodyFatPicker';
 import { DislikedFoodsField } from '../../components/DislikedFoodsField';
@@ -510,7 +510,6 @@ export default function ProfilScreen() {
           due={weighInDue}
           goalTarget={trajectoireVisible ? trackingTarget(profile, todayStamp()) : undefined}
           onPress={() => setWeighIn(true)}
-          tourId="profil-poids"
         />
 
         {/* Révision du moteur : la cible a bougé sans que l'utilisateur touche à rien.

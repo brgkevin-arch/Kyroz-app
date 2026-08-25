@@ -117,6 +117,16 @@ const TOUS_LES_TOURS: { id: TourId; steps: TourStep[] }[] = TOURS.map((t) => ({
 
 const TOUTES_LES_ETAPES = TOUS_LES_TOURS.flatMap((t) => t.steps.map((s) => ({ tour: t.id, ...s })));
 
+/** Comment NOMMER une étape dans un message d'échec. Elle n'a plus forcément de
+ *  cible (`targetId` est facultatif depuis le 2026-08-25) : sans ce repli, la
+ *  moitié des messages d'erreur diraient « undefined ». */
+const nom = (e: { tour: string; targetId?: string; title: string }) => e.targetId ?? `${e.tour} / « ${e.title} »`;
+
+/** Les étapes qui visent un objet. Une étape SANS cible se pose au CENTRE, sans
+ *  anneau : les contrôles de ciblage ne la concernent pas, et les lui appliquer
+ *  la ferait passer pour orpheline. */
+const ETAPES_CIBLEES = TOUTES_LES_ETAPES.filter((e) => e.targetId);
+
 describe('Visite guidée — les tours existent et tiennent debout', () => {
   it('chaque tour déclaré rend au moins une étape', () => {
     for (const { id, steps } of TOUS_LES_TOURS) {
@@ -133,11 +143,14 @@ describe('Visite guidée — les tours existent et tiennent debout', () => {
   it('les identifiants de cible sont uniques dans toute l\'app', () => {
     // Deux étapes qui partagent un id ne se départagent pas : la seconde
     // surlignerait la cible de la première, sans que rien ne le signale.
+    // ⚠️ Sur les étapes CIBLÉES seulement : deux bulles centrées partagent la même
+    // absence de cible, ce qui n'est pas un conflit — le contrôle rougirait sur des
+    // étapes parfaitement conformes.
     const vus = new Map<string, string>();
-    for (const e of TOUTES_LES_ETAPES) {
-      const deja = vus.get(e.targetId);
+    for (const e of ETAPES_CIBLEES) {
+      const deja = vus.get(e.targetId!);
       expect(deja, `« ${e.targetId} » est utilisé par « ${deja} » ET « ${e.tour} »`).toBeUndefined();
-      vus.set(e.targetId, e.tour);
+      vus.set(e.targetId!, e.tour);
     }
   });
 
@@ -147,8 +160,8 @@ describe('Visite guidée — les tours existent et tiennent debout', () => {
     // en refactorant un écran, fait DISPARAÎTRE une bulle sans casser quoi que ce
     // soit. Le tour se joue plus court et paraît complet.
     const posees = ciblesPosees();
-    const orphelines = TOUTES_LES_ETAPES
-      .filter((e) => !posees.has(e.targetId))
+    const orphelines = ETAPES_CIBLEES
+      .filter((e) => !posees.has(e.targetId!))
       .map((e) => `${e.tour} → ${e.targetId}`);
     expect(orphelines, 'ces étapes visent une cible qu\'aucun écran ne pose').toEqual([]);
   });
@@ -173,11 +186,11 @@ describe('Visite guidée — les tours existent et tiennent debout', () => {
     const lanceurs = lanceurDeTour();
     const parFichier = new Map(FICHIERS.map((f) => [f.chemin, idsPosesDans(f.src)]));
 
-    const exilees = TOUTES_LES_ETAPES.flatMap((e) => {
+    const exilees = ETAPES_CIBLEES.flatMap((e) => {
       const ecran = lanceurs.get(e.tour);
       if (!ecran) return [`${e.tour} → aucun écran n'appelle useScreenTour('${e.tour}')`];
-      if (parFichier.get(ecran)?.has(e.targetId)) return [];
-      const ailleurs = FICHIERS.filter((f) => parFichier.get(f.chemin)?.has(e.targetId)).map((f) => f.chemin);
+      if (parFichier.get(ecran)?.has(e.targetId!)) return [];
+      const ailleurs = FICHIERS.filter((f) => parFichier.get(f.chemin)?.has(e.targetId!)).map((f) => f.chemin);
       return [`${e.tour} → « ${e.targetId} » attendu dans ${ecran}, trouvé dans ${ailleurs.join(', ') || 'nulle part'}`];
     });
 
@@ -205,8 +218,8 @@ describe('Visite guidée — les tours existent et tiennent debout', () => {
 describe('Visite guidée — la rédaction respecte ses bornes', () => {
   it('aucun titre ni texte vide', () => {
     for (const e of TOUTES_LES_ETAPES) {
-      expect(e.title.trim().length, `titre vide sur ${e.targetId}`).toBeGreaterThan(0);
-      expect(e.text.trim().length, `texte vide sur ${e.targetId}`).toBeGreaterThan(0);
+      expect(e.title.trim().length, `titre vide sur ${nom(e)}`).toBeGreaterThan(0);
+      expect(e.text.trim().length, `texte vide sur ${nom(e)}`).toBeGreaterThan(0);
     }
   });
 
@@ -215,8 +228,8 @@ describe('Visite guidée — la rédaction respecte ses bornes', () => {
     // le rendu, elle déborde ou pousse le bouton « Suivant » hors de l'écran sur
     // un petit téléphone.
     for (const e of TOUTES_LES_ETAPES) {
-      expect(e.title.length, `titre trop long sur ${e.targetId} : « ${e.title} »`).toBeLessThanOrEqual(TITRE_MAX);
-      expect(e.text.length, `texte trop long sur ${e.targetId} (${e.text.length} car.)`).toBeLessThanOrEqual(TEXTE_MAX);
+      expect(e.title.length, `titre trop long sur ${nom(e)} : « ${e.title} »`).toBeLessThanOrEqual(TITRE_MAX);
+      expect(e.text.length, `texte trop long sur ${nom(e)} (${e.text.length} car.)`).toBeLessThanOrEqual(TEXTE_MAX);
     }
   });
 
@@ -226,8 +239,8 @@ describe('Visite guidée — la rédaction respecte ses bornes', () => {
     // la phrase se reformule.
     const EMOJI = /\p{Extended_Pictographic}/u;
     for (const e of TOUTES_LES_ETAPES) {
-      expect(EMOJI.test(e.title), `émoji dans le titre de ${e.targetId}`).toBe(false);
-      expect(EMOJI.test(e.text), `émoji dans le texte de ${e.targetId}`).toBe(false);
+      expect(EMOJI.test(e.title), `émoji dans le titre de ${nom(e)}`).toBe(false);
+      expect(EMOJI.test(e.text), `émoji dans le texte de ${nom(e)}`).toBe(false);
     }
   });
 
@@ -239,7 +252,7 @@ describe('Visite guidée — la rédaction respecte ses bornes', () => {
     const REPROCHE = /\b(tu dois|il faut que tu|attention à|retard|échec|raté|faute|interdit de)\b/i;
     for (const e of TOUTES_LES_ETAPES) {
       const trouve = e.text.match(REPROCHE) ?? e.title.match(REPROCHE);
-      expect(trouve?.[0], `ton de reproche sur ${e.targetId}`).toBeUndefined();
+      expect(trouve?.[0], `ton de reproche sur ${nom(e)}`).toBeUndefined();
     }
   });
 });
@@ -350,18 +363,35 @@ describe('Visite guidée — l’anneau épouse la forme de sa cible', () => {
   // Le champ est devenu OBLIGATOIRE — un défaut optionnel se re-oublie.
   const FORMES = ['carte', 'bouton', 'pastille'];
 
-  it('chaque étape DÉCLARE sa forme — un défaut implicite se re-oublie', () => {
-    for (const { id, steps } of TOUS_LES_TOURS) {
-      for (const e of steps) {
-        expect(e.forme, `${id} / ${e.targetId} : forme absente`).toBeDefined();
-        expect(FORMES, `${id} / ${e.targetId} : forme inconnue`).toContain(e.forme);
-      }
+  it('chaque étape CIBLÉE déclare sa forme — un défaut implicite se re-oublie', () => {
+    for (const e of ETAPES_CIBLEES) {
+      expect(e.forme, `${nom(e)} : forme absente`).toBeDefined();
+      expect(FORMES, `${nom(e)} : forme inconnue`).toContain(e.forme);
     }
   });
 
-  it('chaque forme déclarée SERT au moins une fois — sinon c’est un token sans rôle', () => {
-    const servies = new Set(TOUS_LES_TOURS.flatMap(({ steps }) => steps.map((e) => e.forme)));
-    for (const f of FORMES) expect(servies, `forme « ${f} » jamais employée`).toContain(f);
+  it('🔴 une étape SANS cible ne déclare AUCUNE forme — il n’y a rien à épouser', () => {
+    // Le pendant du cas ci-dessus, et il ferme une vraie confusion : une bulle
+    // centrée n'a ni trou ni anneau (`GuidedTour::Spotlight`, branche `!rect`).
+    // Une `forme` posée là serait un réglage qui ne pilote rien — le défaut A23,
+    // celui-là même qui avait laissé `rayon` inerte sur les 21 étapes de juillet.
+    const fautives = TOUTES_LES_ETAPES.filter((e) => !e.targetId && e.forme !== undefined);
+    expect(fautives.map(nom), 'ces bulles centrées déclarent une forme que rien ne dessine').toEqual([]);
+  });
+
+  it('aucune forme déclarée n’est inconnue du moteur', () => {
+    // 🔴 CE CAS A REMPLACÉ « chaque forme SERT au moins une fois », et la perte est
+    // réelle : il ne compte plus les tokens inemployés. Il est devenu INTENABLE le
+    // 2026-08-25 — il ne reste que DEUX étapes ciblées (un sélecteur, un bouton
+    // rond) pour TROIS rayons de la DA, donc le contrôle exigeait mécaniquement une
+    // bulle de plus. L'autre issue aurait été de retirer `carte` du vocabulaire :
+    // ce serait effacer un rayon que la DA porte vraiment, et la prochaine bulle
+    // qui viserait une carte retomberait en silence sur un autre.
+    // ➡️ Ce qui reste vérifié : aucune forme SERVIE n'échappe au moteur. Le contrôle
+    // « le moteur traduit les trois formes » ci-dessous garde l'autre sens.
+    const servies = new Set(ETAPES_CIBLEES.map((e) => e.forme));
+    for (const f of servies) expect(FORMES, `forme « ${f} » inconnue du moteur`).toContain(f);
+    expect(servies.size, 'plus aucune étape ne déclare de forme — la table de rayons ne sert plus à rien').toBeGreaterThan(0);
   });
 
   it('le moteur traduit les trois formes — aucune ne retombe sur un angle droit', () => {
@@ -485,18 +515,44 @@ describe('Visite guidée — l’anneau ne désigne jamais l’objet d’une aut
     expect(/rect \|\| sansCible/.test(avant)).toBe(false);
   });
 
-  it('les cibles d’une CARTE de repas suivent l’état du repas, pas son rang', () => {
+  it('aucune cible n’est accrochée à un RANG fixe dans une liste', () => {
     // Défaut 1, côté écran : `plan-cook` était accroché au repas d'indice 0.
     // `MealCard` ne rend ses boutons que sur un repas encore à faire — donc la
     // cible disparaissait dès le petit-déjeuner coché, même quand le dîner juste
     // en dessous les affichait toujours.
-    const plan = sansCommentaires(readFileSync(join(RACINE, 'app', '(tabs)', 'plan.tsx'), 'utf8'));
-    for (const prop of ['cookTourId', 'actionsTourId']) {
-      expect(plan, `${prop} est accroché à un RANG fixe`).not.toMatch(
-        new RegExp(`${prop}=\\{\\s*i\\s*===\\s*\\d`),
-      );
+    //
+    // ⚠️ CE CAS A ÉTÉ GÉNÉRALISÉ LE 2026-08-25, et il a fallu le faire parce que
+    // son sujet a disparu : il lisait `plan.tsx` et exigeait `premierCuisinable`,
+    // or le Plan n'a plus aucune cible sur une carte (la bulle se pose au centre).
+    // Tel quel, il aurait rougi sur un correctif conforme — la CINQUIÈME fois de
+    // cette famille. L'invariant, lui, ne dépend d'aucun écran : une cible posée
+    // sur le n-ième élément d'une liste vit et meurt avec cet élément.
+    const fautifs: string[] = [];
+    for (const f of FICHIERS) {
+      for (const m of sansCommentaires(f.src).matchAll(/\b(\w*[Tt]ourId)=\{\s*\w+\s*===\s*\d/g)) {
+        fautifs.push(`${f.chemin} : ${m[1]} accroché à un rang fixe`);
+      }
     }
-    expect(plan, 'le repas ciblé doit se DÉDUIRE de l’état des repas').toContain('premierCuisinable');
+    expect(fautifs, fautifs.join('\n')).toEqual([]);
+  });
+
+  it('la sonde de rang sait dire NON', () => {
+    const avant = `cookTourId={i === 0 ? 'plan-cook' : undefined}`;
+    expect(/\b(\w*[Tt]ourId)=\{\s*\w+\s*===\s*\d/.test(avant)).toBe(true);
+  });
+
+  it('🔴 une étape sans cible traverse le filtre de disponibilité', () => {
+    // `startTour` écarte les étapes dont la cible n'est pas montée, et renonce si
+    // AUCUNE ne survit. Sans exception pour les étapes sans cible, une bulle
+    // centrée serait écartée à tous les coups et le tour ne se jouerait jamais —
+    // ce qui est arrivé au Plan autrement (cible sur une carte disparue).
+    expect(CODE, 'le filtre de `startTour` ignore les étapes sans cible').toMatch(
+      /steps\.filter\(\(s\) => !s\.targetId \|\| montee\(s\.targetId\)\)/,
+    );
+    // Et la boucle de mesure ne s'acharne pas sur une cible qui n'existe pas.
+    expect(CODE, 'la mesure doit court-circuiter quand l’étape n’a pas de cible').toMatch(
+      /if \(!idCible\) \{ setRect\(null\); setSansCible\(true\); return; \}/,
+    );
   });
 });
 
@@ -522,7 +578,7 @@ describe('Visite guidée — l’anneau ne désigne jamais l’objet d’une aut
 describe('Le décompte des bulles ne se recopie pas — il se mesure', () => {
   const SPEC = readFileSync(join(RACINE, 'CLAUDE.md'), 'utf8');
   const LIGNE = SPEC.match(
-    /(\d+) bulles au total \(plan (\d+) · profil (\d+) · recettes (\d+) · courses (\d+) · réserve (\d+)\)/,
+    /(\d+) bulles au total \(plan (\d+) · profil (\d+) · recettes (\d+) · réserve (\d+)\)/,
   );
 
   it('la sonde trouve bien la phrase de CLAUDE.md — sinon elle passerait à vide', () => {
@@ -532,17 +588,19 @@ describe('Le décompte des bulles ne se recopie pas — il se mesure', () => {
   });
 
   it('🔴 la spec annonce EXACTEMENT ce que le code sert', () => {
-    const [, total, plan, profil, recettes, courses, reserve] = LIGNE!.map(Number);
+    const [, total, plan, profil, recettes, reserve] = LIGNE!.map(Number);
     // Contexte COMPLET : c'est le décompte maximal, celui que la spec décrit.
+    // ⚠️ Les Courses ont quitté cette liste le 2026-08-25 avec leur tour. La phrase
+    // de CLAUDE.md a suivi — et c'est le fait que le contrôle porte sur la PHRASE
+    // (pas sur un total figé) qui a rendu la coupe visible au lieu de silencieuse.
     const reel = {
       plan: tourSteps('plan', CTX_COMPLET).length,
       profil: tourSteps('profil', CTX_COMPLET).length,
       recettes: tourSteps('recettes', CTX_COMPLET).length,
-      courses: tourSteps('courses', CTX_COMPLET).length,
       reserve: tourSteps('reserve', CTX_COMPLET).length,
     };
     expect({ ...reel, total: Object.values(reel).reduce((a, b) => a + b, 0) })
-      .toEqual({ plan, profil, recettes, courses, reserve, total });
+      .toEqual({ plan, profil, recettes, reserve, total });
   });
 
   it('aucun commentaire ne recite un nombre de bulles — il périmerait en silence', () => {

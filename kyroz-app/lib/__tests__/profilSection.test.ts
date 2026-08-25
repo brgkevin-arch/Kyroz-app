@@ -156,19 +156,37 @@ describe('Profil — la visite guidée descend l’écran, elle ne fait pas d’
   }
 
   const etapes = profilTour({ objectifDateDisponible: true });
+  /** Les étapes qui visent un objet. Une étape SANS `targetId` se pose au centre
+   *  (`lib/tours.ts`) : elle ne fait défiler nulle part, donc l'ordre ne la concerne pas. */
+  const ciblees = etapes.filter((e) => e.targetId);
 
-  it('chaque étape vise un élément réellement rendu par l’écran', () => {
-    for (const e of etapes) {
-      expect(positionRendu(e.targetId), `« ${e.targetId} » n'est attachée à aucun élément rendu`).toBeGreaterThanOrEqual(0);
+  // 🔴 ET C'EST LE CAS AUJOURD'HUI : le tour du Profil ne compte plus qu'une bulle,
+  // au centre, sans cible (2026-08-25). Le contrôle d'ordre ci-dessous n'a donc plus
+  // d'objet — mais le laisser boucler sur une liste vide le rendrait VERT en ne
+  // mesurant plus rien, ce qui est le défaut d'`espacementDA` après la migration
+  // `Presse`. ➡️ On assène le fait : zéro cible. Le jour où une étape ciblée revient,
+  // ce cas rougit et oblige à rétablir la vérification d'ordre au lieu de la
+  // découvrir absente. Le va-et-vient de défilement qu'elle évitait, lui, existe
+  // toujours.
+  it('le tour du Profil n’a AUCUNE cible — sinon le contrôle d’ordre ci-dessous redevient obligatoire', () => {
+    expect(
+      ciblees.map((e) => e.targetId),
+      'une étape du Profil vise de nouveau un objet : rétablis le contrôle d’ordre de ce bloc',
+    ).toEqual([]);
+  });
+
+  it('chaque étape CIBLÉE vise un élément réellement rendu par l’écran', () => {
+    for (const e of ciblees) {
+      expect(positionRendu(e.targetId!), `« ${e.targetId} » n'est attachée à aucun élément rendu`).toBeGreaterThanOrEqual(0);
     }
   });
 
-  it('les étapes suivent l’écran de haut en bas — la dernière exceptée', () => {
+  it('les étapes ciblées suivent l’écran de haut en bas — la dernière exceptée', () => {
     // Chaque étape fait DÉFILER jusqu'à sa cible : une étape mal placée fait
     // remonter puis redescendre, et ce va-et-vient se lit comme un bug. Seule la
     // dernière remonte volontairement (la roue est en haut, le tour s'y termine).
-    const descente = etapes.slice(0, -1);
-    const positions = descente.map((e) => positionRendu(e.targetId));
+    const descente = ciblees.slice(0, -1);
+    const positions = descente.map((e) => positionRendu(e.targetId!));
     for (let i = 1; i < positions.length; i++) {
       expect(
         positions[i],
@@ -181,7 +199,15 @@ describe('Profil — la visite guidée descend l’écran, elle ne fait pas d’
     // Elle vivait après les onze lignes de menu. Le repère : elle est rendue
     // AVANT le premier bloc de réglages, donc dans le même coup d'œil que les
     // quatre boîtes de macros.
-    const tdee = positionRendu('profil-tdee');
+    //
+    // 🔴 CE CAS A MESURÉ LE VIDE PENDANT UNE JOURNÉE. Il localisait le bloc par
+    // `positionRendu('profil-tdee')` — un id de visite guidée retiré le 2026-08-24
+    // avec sa bulle. `positionRendu` rend alors `-1`, qui est bien « plus petit que
+    // le premier bloc » : VERT, quel que soit l'ordre réel de l'écran. Un test qui
+    // se repère sur l'outil d'un AUTRE mécanisme meurt avec lui, en silence.
+    // ➡️ On se repère désormais sur le LIBELLÉ affiché, qui est le sujet du test.
+    const tdee = SRC_PROFIL.indexOf('Dépense estimée · maintenance (TDEE)');
+    expect(tdee, 'le libellé de la dépense estimée est introuvable — le repère a bougé').toBeGreaterThan(0);
     const premierBloc = SRC_PROFIL.search(/<SectionLabel t=\{t\}[^>]*>TOI<\/SectionLabel>/);
     expect(premierBloc, 'le bloc « TOI » a disparu').toBeGreaterThan(0);
     expect(tdee, 'la dépense estimée est repassée sous les lignes de menu').toBeLessThan(premierBloc);

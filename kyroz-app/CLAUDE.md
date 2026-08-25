@@ -2093,22 +2093,43 @@ et l'écran ne sert qu'à juger le rendu (opacité forcée à 1). Procédure :
 ### La visite guidée dit ce que le code FAIT (2026-08-08)
 
 Un tour par onglet, déclenché **à la première visite de CET onglet** — jamais tous au
-démarrage. 5 bulles au total (plan 1 · profil 1 · recettes 1 · courses 1 · réserve 1),
-soit UNE par onglet : chaque bulle est une `Modal` dont les panneaux avalent les taps,
-pas une infobulle qu'on ignore.
+démarrage. 4 bulles au total (plan 1 · profil 1 · recettes 1 · réserve 1), soit UNE par
+onglet **sauf les Courses, qui n'en ont plus** : chaque bulle est une `Modal` dont les
+panneaux avalent les taps, pas une infobulle qu'on ignore.
 
-🔴 **DE 20 À 5, LE 2026-08-25** (décision fondateur : « on enlève les 3/4 »). Le critère,
-à rejouer avant d'en rajouter une : **une bulle ne se garde que si elle explique quelque
-chose d'INVISIBLE.** Ce qui est parti tenait dans deux familles — celles qui COMMENTENT
-un écran qui se lit tout seul (« Cocher, masquer, défaire » décrivait trois boutons
-libellés), et celles qui RÉPÈTENT une phrase déjà affichée (« Un article, deux gestes »
-redisait mot pour mot la ligne d'aide posée douze pixels plus bas).
+🔴 **DE 20 À 5 PUIS À 4, LE 2026-08-25** (décision fondateur : « on enlève les 3/4 »,
+puis « supprime le tuto des courses »). Le critère, à rejouer avant d'en rajouter une :
+**une bulle ne se garde que si elle explique quelque chose d'INVISIBLE.** Ce qui est
+parti tenait dans deux familles — celles qui COMMENTENT un écran qui se lit tout seul
+(« Cocher, masquer, défaire » décrivait trois boutons libellés), et celles qui RÉPÈTENT
+une phrase déjà affichée (« Un article, deux gestes » redisait mot pour mot la ligne
+d'aide posée douze pixels plus bas).
+⚠️ **Le critère ne voit pas les DOUBLONS entre onglets, et c'est ce qui a coûté une passe
+de plus.** « D'où sort ta liste » (Courses) le passait sans peine — un article absent
+parce que la réserve le couvre ne laisse rien à voir à l'écran. Mais elle disait le
+mécanisme réserve ↔ liste que la bulle de la Réserve dit déjà dans l'autre sens, et que
+la ligne d'aide de l'écran écrit en toutes lettres. ➡️ Une bulle s'évalue **contre les
+autres bulles**, pas seulement contre son écran.
 ⚠️ **Le coût d'une bulle de trop n'est pas le temps qu'elle prend** : c'est qu'elle fait
 passer les autres pour du décor. Vingt interruptions apprennent qu'on peut toutes les
 passer sans rien perdre — y compris celle qui, elle, disait quelque chose.
 ⚠️ **Une bulle retirée emporte SA CIBLE.** Les `useTourTarget` orphelins ont été retirés
 des cinq écrans dans le même commit : une cible que plus aucune étape ne vise se relit
 comme une bulle perdue en route, et c'est le symptôme exact du « tour amputé » plus bas.
+
+🔴 **UNE BULLE PEUT N'AVOIR AUCUNE CIBLE — elle se pose alors AU CENTRE** (`TourStep.targetId`
+facultatif, 2026-08-25). Le Plan et le Profil sont dans ce cas. Ce n'est pas un repli
+technique, c'est le bon rendu quand la phrase parle de l'ÉCRAN et non d'un objet : « tes
+repas se cochent tout seuls » ne désigne pas un bouton, et l'anneau posé sur la carte du
+prochain repas cuisinable désignait UN repas pour une phrase qui parle de TOUS.
+⚠️ **Et ça ferme un trou qui rendait le tutoriel du Plan INEXISTANT certains jours.**
+`startTour` écarte les étapes dont la cible n'est pas montée, et renonce si aucune ne
+survit. La cible du Plan vivait sur une carte de repas ; une journée entièrement cochée
+n'en a aucune — donc aucun tour, aucune trace, aucun marquage. Mesuré dans le navigateur
+le 2026-08-25 : table de cibles VIDE, quatre onglets sur cinq marqués « vu », le Plan
+jamais. ➡️ **Une cible qui vit dans une liste meurt avec sa ligne** : quand la bulle
+n'est plus une bulle parmi d'autres mais LA bulle de l'onglet, ce filtre ne dégrade plus
+le tour — il le supprime.
 ⚠️ **Et elle peut emporter une PREUVE citée ailleurs** : `METRICS.md` §2 s'appuyait sur
 la bulle `plan-serie` pour affirmer que la règle de la série était annoncée à
 l'utilisateur. Elle ne l'est plus — la page le dit désormais, au lieu de citer une bulle

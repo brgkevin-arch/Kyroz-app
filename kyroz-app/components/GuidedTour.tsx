@@ -222,7 +222,11 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
   const montee = useCallback((id: string) => !!refs.current.get(id)?.current, []);
 
   const startTour = useCallback((tourId: string, steps: TourStep[], opts?: TourOptions) => {
-    const avail = steps.filter((s) => montee(s.targetId));
+    // ⚠️ Une étape SANS cible est toujours disponible : elle parle de l'écran, pas
+    // d'un objet (cf. `TourStep.targetId`). C'est aussi ce qui la met à l'abri du
+    // filtre ci-dessous — le Plan ne se jouait plus du tout les soirs où tous les
+    // repas étaient cochés, faute de carte à surligner.
+    const avail = steps.filter((s) => !s.targetId || montee(s.targetId));
     // ℹ️ Aucune cible montée = on ne lance RIEN, et surtout on ne marque pas le
     // tour vu : il se rejouera de lui-même quand l'écran aura de quoi le porter.
     if (avail.length === 0) return;
@@ -234,7 +238,7 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
     // avertissement de développement plutôt qu'un blocage. Le garde-fou qui
     // compte vraiment est `lib/__tests__/visiteGuidee.test.ts`.
     if (__DEV__ && avail.length < steps.length) {
-      const manquants = steps.filter((s) => !montee(s.targetId)).map((s) => s.targetId);
+      const manquants = steps.filter((s) => s.targetId && !montee(s.targetId)).map((s) => s.targetId);
       console.warn(`[GuidedTour] tour « ${tourId} » amputé de ${manquants.length} étape(s) : ${manquants.join(', ')} — cible non montée.`);
     }
     scrollRef.current = opts?.scrollRef;
@@ -335,11 +339,16 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
   //    autre (capture 1, étape 5/6).
   useEffect(() => {
     if (!active) { setRect(null); setSansCible(false); return; }
+    // Étape sans cible : rien à mesurer, la bulle se pose au centre. Le court-circuit
+    // est volontaire — laisser la boucle de mesure conclure ferait attendre
+    // `ESSAIS_MESURE` tours pour un échec certain, et la bulle arriverait en retard.
+    const idCible = active.steps[active.index].targetId;
+    if (!idCible) { setRect(null); setSansCible(true); return; }
     let annule = false;
     let essais = 0;
     let precedent: Rect | null = null;
 
-    const noeud = () => refs.current.get(active.steps[active.index].targetId)?.current;
+    const noeud = () => refs.current.get(idCible)?.current;
 
     const poser = (c: Rect) => { if (annule) return; setRect(c); setSansCible(false); };
     const renoncer = () => { if (annule) return; setRect(null); setSansCible(true); };

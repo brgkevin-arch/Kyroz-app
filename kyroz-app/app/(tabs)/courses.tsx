@@ -23,9 +23,7 @@ import {
   ecarter, appliquerEcartes, nettoyerEcartes, resumeEcartes, ecartesApresCloture,
 } from '../../lib/shoppingRemoved';
 import { pushPantry } from '../../lib/sync';
-import { useTourTarget, useScreenTour, TourButton } from '../../components/GuidedTour';
 import { animerMiseEnPage, Jauge } from '../../components/Mouvement';
-import { coursesTour } from '../../lib/tours';
 
 const PLAN_KEY = '@kyroz:plan';
 const LIST_KEY = '@kyroz:shopping';
@@ -65,20 +63,13 @@ export default function CoursesScreen() {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [closing, setClosing] = useState(false);
 
-  // Cibles de la visite guidée. La ref d'article se pose sur la toute première
-  // ligne de la première section — `renderItem` étant une callback, le hook vit
-  // ici (même contrainte que l'onglet Recettes).
-  const sourceRef = useTourTarget('courses-source');
-  // ⚠️ `courses-controles` et `courses-article` sont partis avec leurs bulles
-  // (coupe des tutos, 2026-08-25) : la seconde répétait mot pour mot la ligne d'aide
-  // affichée sous les boutons. Une cible sans étape se relit comme une bulle perdue.
-  // ⚠️ AVANT le `return` de l'état vide, plus bas : un hook posé après un retour
-  // n'existe qu'aux rendus qui l'atteignent → « Rendered more hooks than during
-  // the previous render », et l'écran tombe dans l'ErrorBoundary. Le même piège a
-  // déjà coûté l'écran de bienvenue (cf. FirstPlanReveal).
-  const { rejouer: rejouerTour } = useScreenTour('courses', coursesTour(), {
-    pret: !!list && list.items.length > 0,
-  });
+  // 🔴 CET ÉCRAN N'A PLUS DE VISITE GUIDÉE (2026-08-25, décision fondateur :
+  // « supprime le tuto des courses »). Sa dernière bulle, « D'où sort ta liste »,
+  // disait le mécanisme réserve → liste que la bulle de la Réserve dit déjà dans
+  // l'autre sens, et que la ligne d'aide sous les boutons écrit en toutes lettres.
+  // ➡️ Donc plus de « ? » dans l'en-tête non plus : un bouton de rejeu qui n'ouvre
+  // rien est pire que pas de bouton. Le tour est retiré de `TOURS`, donc il ne
+  // figure plus dans « Revoir les tutos » — c'est la même source (`lib/tours.ts`).
 
   useFocusEffect(useCallback(() => { load(); }, []));
 
@@ -392,14 +383,13 @@ export default function CoursesScreen() {
         {/* En-tête + progression */}
         {/* « Courses », pas « Liste de courses » : le mot de la barre d'onglets, pour
             qu'un même objet n'ait pas deux noms selon l'endroit où on le regarde. */}
-        <View ref={sourceRef} style={s.header}>
+        <View style={s.header}>
           {/* 🔴 PLUS DE COMPTEUR AU-DESSUS DU TITRE (2026-08-25, décision fondateur).
               Celui-ci disait « 36 restants sur 37 » — soit EXACTEMENT ce que le
               « 1 / 37 cochés » de droite dit déjà, à l'envers. Deux fois le même
               fait, dont une au-dessus du nom de l'écran. */}
           <Text style={[s.h1, { flex: 1 }]}>Courses</Text>
           <Text style={s.counter}>{checked}<Text style={s.counterTot}> / {total} cochés</Text></Text>
-          <TourButton onPress={rejouerTour} />
         </View>
 
         {/* La barre n'a plus besoin de conteneur porteur de colonne : elle est dans

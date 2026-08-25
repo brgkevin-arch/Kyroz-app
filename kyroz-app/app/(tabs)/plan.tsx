@@ -27,7 +27,7 @@ import { DislikeSheet } from '../../components/DislikeSheet';
 import { ActionSheet } from '../../components/ActionSheet';
 import { PrimaryButton, SectionLabel } from '../../components/ui';
 import { HydrationBar, useHydrationEnabled } from '../../components/HydrationBar';
-import { useTourTarget, useScreenTour, TourButton, hasSeenTour } from '../../components/GuidedTour';
+import { useScreenTour, TourButton, hasSeenTour } from '../../components/GuidedTour';
 import { animerMiseEnPage } from '../../components/Mouvement';
 import { planTour } from '../../lib/tours';
 import { useProfile } from '../../hooks/useProfile';
@@ -750,18 +750,16 @@ export default function PlanScreen() {
   };
 
   const dayMeals = plan?.meals.filter((m) => m.day === selectedDay) ?? [];
-  // 🔴 LES CIBLES DU TUTO SUIVENT LE PREMIER REPAS QUI PORTE VRAIMENT SES BOUTONS,
-  // et pas le premier de la liste. Corrigé le 2026-08-15, signalé sur capture.
-  // `MealCard` ne rend « J'ai cuisiné » et la rangée d'icônes que sur un repas
-  // encore À FAIRE (ni mangé, ni sauté, ni « tu gères ») — donc les accrocher au
-  // repas d'indice 0 les faisait disparaître dès que le petit-déjeuner était
-  // coché, y compris quand un dîner juste en dessous les affichait toujours.
-  // ⚠️ `-1` quand la journée est entièrement mangée : aucune carte ne porte alors
-  // la cible, et les deux étapes sont écartées du tour — c'est la bonne réponse,
-  // le bouton dont elles parlent n'est réellement plus à l'écran.
-  const premierCuisinable = dayMeals.findIndex(
-    (m) => m.status !== 'eaten' && m.status !== 'skipped' && m.fixed !== true,
-  );
+  // 🔴 PLUS AUCUNE CIBLE DE TUTO SUR UNE CARTE DE REPAS (2026-08-25). Il y en avait
+  // une, accrochée au premier repas encore à faire (`premierCuisinable`) — d'abord
+  // le bouton « J'ai cuisiné », puis le surtitre. Deux raisons de la retirer, et la
+  // seconde est un défaut mesuré :
+  //  1. la bulle parle de TOUS les repas ; l'anneau en désignait UN (« COLLATION »).
+  //  2. une cible qui vit sur une carte disparaît avec elle. Journée entièrement
+  //     cochée = aucune carte cuisinable = `startTour` renonce, et le Plan n'avait
+  //     alors AUCUN tutoriel — ce qui, l'auto-coche allumée, arrive tous les soirs.
+  //     Mesuré dans le navigateur le 2026-08-25 : table de cibles vide, aucune trace.
+  // ➡️ La bulle du Plan se pose au centre, sans cible (`lib/tours.ts`).
   const dayMacros = plan?.total_macros_per_day[selectedDay - 1];
   // Cible DU JOUR, banque de calories comprise (= la cible du profil s'il n'y a pas
   // de banque). Avec la cible plate, un jour déclaré « resto +600 » s'affichait comme
@@ -1076,8 +1074,6 @@ export default function PlanScreen() {
                     onShopping={() => router.push('/(tabs)/courses')}
                     missing={m.fixed ? undefined : missing}
                     reserveNonVide={reserveNonVide}
-                    statutTourId={i === premierCuisinable ? 'plan-auto' : undefined}
-                    cookTourId={i === premierCuisinable ? 'plan-cook' : undefined}
                   />
                 );
               })}

@@ -126,7 +126,7 @@ export async function neutralizeFirstRun(context) {
       // diagnostics (CLAUDE.md §11).
       // La liste est verrouillée contre `lib/tours.ts` par `harnaisEcrans.test.ts` :
       // ajouter un tour sans l'ajouter ici fait rougir `npm test` le jour même.
-      for (const id of ['plan', 'recettes', 'courses', 'reserve', 'profil']) {
+      for (const id of ['plan', 'recettes', 'reserve', 'profil']) {
         localStorage.setItem(`@kyroz:tour:${id}`, 'done');
       }
       localStorage.setItem('@kyroz:analyticsConsent', 'denied');
