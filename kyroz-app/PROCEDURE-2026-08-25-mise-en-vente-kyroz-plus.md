@@ -81,7 +81,7 @@ Changer le prix d'un produit qui a déjà des abonnés rendrait cette phrase fau
 | # | Étape | Ne peut pas commencer avant |
 |---|---|---|
 | 0 | ✅ Relever l'état réel | *fait* |
-| 1 | Trancher l'annuel payé au mois | 0 — ⚠️ **l'API refuse**, interface seulement |
+| 1 | ✅ Trancher l'annuel payé au mois | *fait* |
 | 2 | Créer les deux produits early bird | 1 |
 | 3 | Libellés FR sur les deux NOUVEAUX produits | 2 |
 | 3-bis | ✅ Corriger la description du mensuel | *fait* |
@@ -116,7 +116,7 @@ nulle part. Recopie ce que tu lis, ne retape pas de mémoire.
 
 ---
 
-## Étape 1 — Trancher l'annuel payé au mois
+## Étape 1 — Trancher l'annuel payé au mois ✅ FAITE le 2026-08-25
 
 **Confirmé par l'étape 0** : Apple porte bien deux prix sur `kyroz_plus_yearly`, l'un
 `UPFRONT` (39,99 €), l'autre `MONTHLY` (3,99 €).
@@ -158,8 +158,16 @@ accepté, c'eût été 173 opérations contre une seule case.
   collision à la source. ⚠️ Contrainte Apple sur ce mode : le total annuel doit rester
   dans `[prix d'avance ; 1,5 × prix d'avance]`, soit ici entre 39,99 € et 59,98 €.
 
-**Ce que tu dois voir** : `npm run check:abonnements` n'affiche plus qu'une ligne de prix
-sur l'annuel, « 39,99 € — payé d'avance ».
+✅ **RETIRÉE, et vérifiée** : `kyroz_plus_yearly` ne porte plus qu'une ligne de prix,
+« 39,99 € — payé d'avance ». La collision sur 3,99 € est levée : l'early bird mensuel
+peut garder ce prix.
+
+📍 **Où c'est, parce que ce n'est pas là où on le cherche** : fiche du produit → section
+**Disponibilité** → colonne de DROITE (« Facturation mensuelle avec engagement de
+12 mois ») → lien **« Supprimer la facturation mensuelle »**.
+⚠️ **Pas le lien voisin.** La colonne de GAUCHE (« 1 an à l'avance ») porte
+« Retirer de la vente », à la même hauteur et de la même couleur — celui-là supprimerait
+l'annuel de la vente en entier.
 
 ⚠️ **Si Apple ne permet pas de le retirer**, ne force pas et dis-le moi. Le repli est
 simple et sans risque : cette formule n'étant affichée nulle part dans l'app, elle reste
@@ -186,10 +194,21 @@ standard. C'est asymétrique, et c'est assumé — un identifiant de produit ne 
 pas chez Apple, donc on ne touche pas à ce qui existe. Le palier suivant, le jour venu,
 s'appellera `..._v3`.
 
-**Ce que tu dois voir** : quatre abonnements dans le groupe `Kyroz+`.
+**Trois réglages à ne pas rater à la création**, tous appris sur les deux premiers :
 
-⚠️ Si Apple redemande un prix mensuel avec engagement pour l'annuel early bird, applique
-la même décision qu'à l'étape 1.
+1. 🔴 **Refuser la facturation mensuelle** sur l'annuel early bird. Apple la propose par
+   défaut ; une fois posée, **l'API ne sait plus la retirer** (« Only future price changes
+   can be deleted ») et il faut repasser par le lien de l'étape 1.
+2. 🔴 **Le NIVEAU de groupe** : l'annuel early bird au **1**, le mensuel early bird au
+   **2** — au niveau de leur DURÉE, à côté de leur équivalent standard. Un produit créé
+   sans y penser atterrit au mauvais rang, et ça ne se voit pas à l'écran (cf. 3-ter).
+3. **Le nom d'affichage reste « Kyroz+ annuel » / « Kyroz+ mensuel »**, identique au
+   standard. C'est voulu : un seul palier est en vente à la fois, et la personne doit
+   lire le nom de la formule, pas celui d'une cohorte interne. Le suffixe `_early` ne
+   vit que dans l'identifiant, que personne ne voit.
+
+**Ce que tu dois voir** : `npm run check:abonnements` affiche quatre produits, chacun
+avec un seul prix, son libellé fr-FR, et le bon niveau.
 
 ---
 
