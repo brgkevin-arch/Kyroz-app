@@ -86,7 +86,7 @@ Changer le prix d'un produit qui a déjà des abonnés rendrait cette phrase fau
 | 3 | ✅ Libellés FR sur les deux NOUVEAUX produits | *fait avec l'étape 2* |
 | 3-bis | ✅ Corriger la description du mensuel | *fait* |
 | 3-ter | ✅ Remettre l'annuel au-dessus du mensuel | *fait* |
-| 4 | RevenueCat : rattacher les nouveaux produits | 2 |
+| 4 | ✅ RevenueCat : rattacher les nouveaux produits | *fait* |
 | 5 | ✅ Le code recopie les identifiants | *fait* |
 | 6 | Build natif + capture de review | 5 |
 | 7 | Bac à sable | 4, **6** — la capture bloque « Prêt à soumettre » |
@@ -315,14 +315,27 @@ qu'ils partagent le même rang, donc que tout changement de formule reste diffé
 
 ---
 
-## Étape 4 — RevenueCat : rattacher les deux nouveaux produits
+## Étape 4 — RevenueCat : rattacher les deux nouveaux produits ✅ FAITE le 2026-08-25
 
 **Où** : dashboard RevenueCat → projet *Kyroz* → app App Store (`app.kyroz.mobile`).
 
 **Quoi** : déclarer les deux nouveaux identifiants produits, puis les attacher à
 l'entitlement **`premium`** — celui qui porte déjà les deux existants.
 
-**Ce que tu dois voir** : l'entitlement `premium` contient **quatre** produits.
+✅ **FAIT par l'API v2**, et vérifié : l'entitlement `premium` porte quatre produits —
+`kyroz_plus_monthly`, `kyroz_plus_yearly`, `kyroz_plus_monthly_early`,
+`kyroz_plus_yearly_early`.
+
+🔑 **La clé secrète v2 se crée dans Project settings → API keys → + New**, et le champ
+qui compte est **« version : V2 »**. ⚠️ Les clés v1 et v2 portent **le même préfixe
+`sk_`** : impossible de les distinguer en les regardant, et une v1 rend `401 Invalid API
+key` sur les endpoints v2 — un message qui accuse la clé alors que le problème est sa
+VERSION. Droits nécessaires : Products + Entitlements. La clé vit hors du dépôt
+(`~/.revenuecat/`), jamais dans une variable `EXPO_PUBLIC_*` ni dans EAS.
+
+ℹ️ **Ménage possible, sans urgence** : le projet porte encore deux produits `monthly` et
+`yearly` — les faux produits du Test Store créés par l'onboarding RevenueCat le
+2026-08-02. Ils ne sont **pas** attachés à `premium`, donc ils n'ouvrent rien.
 
 ⚠️ **`premium`, en minuscules, sans espace.** L'onboarding RevenueCat l'avait nommé
 « Kyroz Premium » et rempli de faux produits de test — corrigé le 2026-08-02. Un
