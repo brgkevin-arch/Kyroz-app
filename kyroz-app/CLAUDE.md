@@ -341,7 +341,8 @@ OUTPUT         → Plan + liste de courses + recettes
         pouvait que sur-estimer (créditée à chaque case cochée, débitée seulement en
         cuisine). Les deux moitiés ont bougé, la dérive n'a plus de moteur ;
       · « qu'est-ce que je peux cuisiner maintenant » a **déménagé dans Recettes**, sous
-        le filtre « Ma réserve ». Il compte désormais les **QUANTITÉS** (tolérance 95 %,
+        la liste **« Réalisable »** (une des deux du sélecteur, cf. plus bas). Elle compte
+        désormais les **QUANTITÉS** (tolérance 95 %,
         pièces ↔ grammes via `units.ts::poidsUnitaire`) et **filtre le régime** avec le
         prédicat du moteur (`planEngine::recipeAllowed`, exporté pour ça). Avant, 10 g
         de riz déclaraient réalisable une recette qui en demande 200, et l'écran
@@ -1979,7 +1980,7 @@ mettre 8 puis passer aux presque. Et si on veut plus, "voir + de recettes". Pare
 pour les 512 recettes : 10, puis voir +, puis 10, puis voir +, et après voir tout. »*
 
 **`lib/revelation.ts`** — pur, sans aucun import, donc testé. Trois listes s'en
-servent : les recettes réalisables du filtre « Ma réserve » (pas de 8), les
+servent : les recettes réalisables de la liste « Réalisable » (pas de 8), les
 presque-réalisables (8), et le
 catalogue (10). Le bouton commun est `ui.tsx::BoutonRevelation`.
 
@@ -2021,6 +2022,33 @@ qui ne survit à rien d'important. ⚠️ L'en-tête est devenu un BOUTON, donc 
 
 ➡️ Garde-fou : `lib/__tests__/revelation.test.ts` (13 cas), qui fige la séquence
 dictée — elle n'est pas un détail d'implémentation.
+
+### Le grand titre OUVRE l'écran (2026-08-25)
+
+Décision fondateur : *« je veux le gros titre de l'onglet en haut et ne pas avoir les
+détails du stock au-dessus. »* **Rien ne se lit avant le nom de l'écran**, sur les cinq
+onglets.
+
+Ce que ça renverse : la règle d'avant, écrite dans `recettes.tsx`, disait « le chiffre
+pose le contexte, le mot reste la chose la plus grosse de l'écran ». Elle raisonnait sur
+la TAILLE et oubliait l'ORDRE DE LECTURE — le compteur était petit, mais il était
+premier. Ouvrir la Réserve commençait par « 59 aliments · 28 au frais · 31 au sec »,
+trois nombres avant le nom de l'écran, sur un inventaire qu'on ouvre justement pour
+regarder ce qu'il contient.
+
+| Onglet | Ce qui était au-dessus | Devenu |
+|---|---|---|
+| Réserve | « 59 aliments · 28 au frais · 31 au sec » | **supprimé** — chaque rayon porte déjà son compte |
+| Recettes | « 512 recettes · 1 en favori » | **supprimé** — le total vit sous les filtres, là où il CHANGE |
+| Courses | « 36 restants sur 37 » | **supprimé** — le « 1 / 37 cochés » de droite disait déjà la même chose, à l'envers |
+| Plan | la date du jour | **passée dessous** — une date n'est pas un décompte |
+| Profil | le prénom | **passé dessous** — seule chose de l'écran écrite nulle part ailleurs |
+
+⚠️ **Ce qui est compté n'est pas « plus de compteur » mais l'ORDRE** : deux écrans
+gardent une ligne SOUS leur titre, et ils ont raison. `enTeteOnglets.test.ts` vérifie
+qu'aucun `<Text>` ne précède le grand titre sur les cinq onglets — et qu'aucun sous-titre
+ne revient sournoisement en dessous là où le compteur a été supprimé. **Vérifié par
+mutation.**
 
 ### Le grand titre se replie (2026-08-04)
 
@@ -2065,14 +2093,31 @@ et l'écran ne sert qu'à juger le rendu (opacité forcée à 1). Procédure :
 ### La visite guidée dit ce que le code FAIT (2026-08-08)
 
 Un tour par onglet, déclenché **à la première visite de CET onglet** — jamais tous au
-démarrage. 20 bulles au total (plan 6 · profil 6 · recettes 3 · courses 3 · réserve 2),
-mais une personne n'en voit que 6 le jour où elle ouvre le Plan. Servies d'un bloc, ce
-seraient 20 **interruptions modales** dans la même session : chaque bulle est une
-`Modal` dont les panneaux avalent les taps, pas une infobulle qu'on ignore.
+démarrage. 5 bulles au total (plan 1 · profil 1 · recettes 1 · courses 1 · réserve 1),
+soit UNE par onglet : chaque bulle est une `Modal` dont les panneaux avalent les taps,
+pas une infobulle qu'on ignore.
+
+🔴 **DE 20 À 5, LE 2026-08-25** (décision fondateur : « on enlève les 3/4 »). Le critère,
+à rejouer avant d'en rajouter une : **une bulle ne se garde que si elle explique quelque
+chose d'INVISIBLE.** Ce qui est parti tenait dans deux familles — celles qui COMMENTENT
+un écran qui se lit tout seul (« Cocher, masquer, défaire » décrivait trois boutons
+libellés), et celles qui RÉPÈTENT une phrase déjà affichée (« Un article, deux gestes »
+redisait mot pour mot la ligne d'aide posée douze pixels plus bas).
+⚠️ **Le coût d'une bulle de trop n'est pas le temps qu'elle prend** : c'est qu'elle fait
+passer les autres pour du décor. Vingt interruptions apprennent qu'on peut toutes les
+passer sans rien perdre — y compris celle qui, elle, disait quelque chose.
+⚠️ **Une bulle retirée emporte SA CIBLE.** Les `useTourTarget` orphelins ont été retirés
+des cinq écrans dans le même commit : une cible que plus aucune étape ne vise se relit
+comme une bulle perdue en route, et c'est le symptôme exact du « tour amputé » plus bas.
+⚠️ **Et elle peut emporter une PREUVE citée ailleurs** : `METRICS.md` §2 s'appuyait sur
+la bulle `plan-serie` pour affirmer que la règle de la série était annoncée à
+l'utilisateur. Elle ne l'est plus — la page le dit désormais, au lieu de citer une bulle
+supprimée. C'est `metrics.test.ts` qui l'a signalé le jour même.
+
 ⚠️ **CE DÉCOMPTE EST VERROUILLÉ CONTRE LE CODE** (`visiteGuidee.test.ts`) et il ne se
-recopie pas : il a valu 21 jusqu'au 2026-08-14, où la 3ᵉ bulle de la Réserve a été retirée.
-Un inventaire écrit à trois endroits finit par se confirmer tout seul (CLAUDE.md §8,
-le compteur d'émojis) — celui-ci rougit le jour où une bulle part ou arrive.
+recopie pas : il a valu 21, puis 19, puis 20, puis 5. Un inventaire écrit à trois endroits
+finit par se confirmer tout seul (CLAUDE.md §8, le compteur d'émojis) — celui-ci rougit
+le jour où une bulle part ou arrive.
 
 **Le contenu vit dans `lib/tours.ts`, pas dans les écrans.** Fichier sans aucun import,
 donc testable, là où `components/GuidedTour.tsx` tire react-native et ne l'est pas.

@@ -49,12 +49,21 @@ comme un taux d'adhésion réel. (Avertissement repris de l'arbitrage du 2026-08
 | Sert à | la rétention, sans pression | décider ce qu'on construit |
 | Pardonne | oui — un gel par semaine (`FREEZE_RECHARGE`) | non, rien à pardonner : personne ne la voit |
 
-**La série n'a pas été changée, et c'est délibéré.** Elle dit déjà la vérité sur ce
-qu'elle compte : la bulle du tutoriel `plan-serie` annonce *« Ta série, sans pression —
-elle avance dès que tu ouvres ton plan, cuisiné ou pas »*. La rendre exigeante ferait
-perdre sa série à quelqu'un qui suit son plan mais oublie de cocher — une punition pour
-un tap manqué, exactement l'inverse de la charte (« rassurer au lieu de mettre la
-pression », CLAUDE.md §5).
+**La série n'a pas été changée, et c'est délibéré.** La rendre exigeante ferait perdre
+sa série à quelqu'un qui suit son plan mais oublie de cocher — une punition pour un tap
+manqué, exactement l'inverse de la charte (« rassurer au lieu de mettre la pression »,
+CLAUDE.md §5).
+
+🔴 **MAIS L'APP NE LE DIT PLUS À L'UTILISATEUR, DEPUIS LE 2026-08-25.** Ce paragraphe
+s'appuyait sur une bulle de tutoriel — *« Ta série, sans pression — elle avance dès que
+tu ouvres ton plan, cuisiné ou pas »* — pour affirmer que la règle était ANNONCÉE. Cette
+bulle est partie avec la coupe des tutos (20 → 5, décision fondateur). La règle reste
+vraie dans le code ; **elle n'est plus écrite nulle part à l'écran**, et la pastille
+« 1 j de série » ne dit pas ce qu'elle compte.
+⚠️ Ce n'est pas un mensonge — rien n'affirme le contraire — mais ce n'est plus une
+preuve : si quelqu'un se demande un jour pourquoi sa série monte sans qu'il ait cuisiné,
+aucun écran ne lui répond. À rouvrir si la question remonte, **et à ne pas citer comme
+argument entre-temps.**
 
 🔴 **NE PAS LES RENOMMER L'UN DANS L'AUTRE.** Le défaut que cette page ferme est né de
 là : `lib/streak.ts` s'annonçait « Logique du streak (North Star : 7 jours consécutifs) »
@@ -101,7 +110,7 @@ d'AVANT le 2026-08-10 n'ont pas de jour 0 stocké — la propriété est alors *
 à zéro. Ces appareils ne peuvent pas entrer dans une cohorte. Leur donner J0 daterait
 toutes leurs cohortes de plusieurs mois : mieux vaut un trou visible qu'un chiffre faux.
 
-⚠️ **« J'ai mangé » depuis le filtre « Ma réserve » ne compte pas**
+⚠️ **« J'ai mangé » depuis la liste « Réalisable » ne compte pas**
 (`app/(tabs)/recettes.tsx::cuisiner`, ex-`garde-manger.tsx::cook`) : ce geste déduit des
 ingrédients, il ne marque aucun repas du plan. C'est un autre acte — cuisiner ce qu'on a,
 pas suivre son plan. Si un jour il doit compter, il lui faudra son propre événement, pas

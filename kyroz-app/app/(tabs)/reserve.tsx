@@ -88,13 +88,14 @@ export default function ReserveScreen() {
 
   // Cibles de la visite guidée.
   const ajouterRef = useTourTarget('reserve-ajouter');
-  const compteurRef = useTourTarget('reserve-compteur');
-  // ⚠️ Sur une réserve VIDE, le compteur ne dit rien et le sélecteur de vue n'est
-  // même pas monté : le tour se réduirait au bouton « + ». On attend qu'il y ait
-  // un stock — l'écran vide, lui, s'explique déjà tout seul en toutes lettres.
-  const { rejouer: rejouerTour } = useScreenTour('reserve', reserveTour(), {
-    pret: items.length > 0,
-  });
+  // ⚠️ `reserve-compteur` est parti avec sa bulle (coupe des tutos, 2026-08-25) :
+  // elle disait « touche une quantité pour la corriger », phrase déjà affichée en
+  // toutes lettres au-dessus de la liste. Et le compteur qu'elle visait n'existe
+  // plus. Une cible sans étape se relit comme une bulle perdue en route.
+  // La bulle vise le bouton « + », monté quel que soit le stock : plus besoin
+  // d'attendre qu'il y ait des aliments comme au temps où une seconde bulle visait
+  // le compteur.
+  const { rejouer: rejouerTour } = useScreenTour('reserve', reserveTour());
 
   const refresh = useCallback(async () => {
     setItems(await loadPantry());
@@ -193,13 +194,14 @@ export default function ReserveScreen() {
         {/* « Réserve », le mot de la barre d'onglets — un même objet ne peut pas
             avoir deux noms selon l'endroit d'où on le regarde. */}
         <View style={s.header} onLayout={repli.onHeaderLayout}>
-          {/* La ref du compteur est posée sur ce bloc et non sur le `+` qui suit :
-              le spotlight épouse alors le sous-titre et le titre, c'est-à-dire ce
-              dont la bulle parle. */}
-          <View ref={compteurRef} style={{ flex: 1 }}>
-            <Text style={s.sub}>{visible.length} aliment{visible.length > 1 ? 's' : ''} · {frais.length} au frais · {sec.length} au sec</Text>
-            <Text style={s.h1}>Réserve</Text>
-          </View>
+          {/* 🔴 PLUS DE COMPTEUR AU-DESSUS DU TITRE (2026-08-25, décision fondateur :
+              « je veux le gros titre de l'onglet en haut et ne pas avoir les détails
+              du stock au-dessus »). Il annonçait « 59 aliments · 28 au frais · 31 au
+              sec » — trois chiffres à lire avant le nom de l'écran, sur un inventaire
+              qu'on ouvre justement pour REGARDER ce qu'il contient.
+              ⚠️ Le compte n'est pas rapatrié ailleurs : chaque rayon porte déjà le
+              sien, et le fondateur a explicitement accepté de perdre le total. */}
+          <Text style={[s.h1, { flex: 1 }]}>Réserve</Text>
           <View style={s.headerActions}>
             <TourButton onPress={rejouerTour} />
             <Presse ref={ajouterRef} style={s.addBtn} onPress={() => setShowAdd(true)} activeOpacity={OPACITE_PRESSION}>

@@ -205,11 +205,13 @@ export default function PlanScreen() {
   const scrollRef = React.useRef<ScrollView>(null);
   const repli = useCollapsingTitle();
   // Cibles de la visite guidée (ref directe sur l'élément → spotlight aligné).
-  const serieRef = useTourTarget('plan-serie');
-  const macrosRef = useTourTarget('plan-macros');
+  // ⚠️ Les cibles `plan-serie`, `plan-macros`, `plan-repartition` et `plan-actions`
+  // sont parties avec leurs bulles (coupe des tutos, 2026-08-25). Une cible que plus
+  // aucune étape ne vise n'est pas inoffensive : elle se relit comme une bulle perdue
+  // en route. Restent les deux que le tour du Plan sert, selon le réglage d'auto-coche
+  // — `plan-auto` (le surtitre d'une carte) et `plan-cook` (le bouton).
   // ⚠️ `useTourTarget('plan-offplan')` a été RETIRÉ avec l'étape de visite guidée
   // qui s'y ancrait (cf. PARCOURS_HORS_PLAN_ACTIF, lib/offPlanJournal.ts).
-  const repartitionRef = useTourTarget('plan-repartition');
 
   // Les cibles des jours diffèrent-elles réellement ? Sans sport déclaré, non —
   // `dayExpenditures` retombe alors sur une cible plate, et la bulle qui parle de
@@ -841,8 +843,12 @@ export default function PlanScreen() {
       >
         {/* Header */}
         <View style={s.header} onLayout={repli.onHeaderLayout}>
+          {/* 🔴 LE GRAND TITRE PASSE EN PREMIER (2026-08-25, décision fondateur).
+              La date était au-dessus : elle se lisait donc avant la salutation, sur
+              l'écran qu'on ouvre chaque matin. Elle n'est pas SUPPRIMÉE comme les
+              compteurs des autres onglets — une date n'est pas un décompte, et
+              c'est la seule de l'app écrite en toutes lettres. Elle passe dessous. */}
           <View style={{ flex: 1 }}>
-            <Text style={s.date}>{todayLabel.charAt(0).toUpperCase() + todayLabel.slice(1)}</Text>
             {/* Sans émoji (2026-08-06) : chantier de fond, on les retire partout
                 progressivement. Un titre d'écran n'a pas besoin d'être illustré.
                 ⚠️ CE N'EST PLUS UN TITRE D'ÉCRAN depuis le 2026-08-14 (décision
@@ -852,6 +858,7 @@ export default function PlanScreen() {
                 prénom pendant que les autres recevaient un bonjour. Le mot vient de
                 `lib/salutation.ts` — pas d'en dur ici, sinon il redevient figé. */}
             <Text style={s.h1}>{salutation(firstName, new Date())}</Text>
+            <Text style={s.date}>{todayLabel.charAt(0).toUpperCase() + todayLabel.slice(1)}</Text>
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md }}>
             {plan && (
@@ -859,7 +866,7 @@ export default function PlanScreen() {
             )}
             {/* La série se dit en toutes lettres, sans 🔥 : le compteur porte seul.
                 La progression vers l'objectif 7 jours reste juste dessous. */}
-            <View ref={serieRef} style={s.streak}>
+            <View style={s.streak}>
               <Text style={s.streakN}>{streak.current_streak_days} j</Text>
               <Text style={s.streakLbl}>de série</Text>
             </View>
@@ -956,7 +963,7 @@ export default function PlanScreen() {
                 pour qu'un coup d'œil suffise à distinguer « le résumé » de « la
                 liste ». */}
             {dayMacros && (
-              <View ref={macrosRef}>
+              <View>
                 <SectionLabel t={t}>Jour {selectedDay}</SectionLabel>
                 {/* Même symbole que dans la rangée de jours : deux marqueurs différents
                     pour la même chose sur un même écran, c'est ce qu'on corrige.
@@ -1021,7 +1028,6 @@ export default function PlanScreen() {
                   {/* Découvrabilité de la perso macros (le fork a été retiré de l'onboarding) :
                       deep-link vers l'éditeur « Calories & macros » du Profil. */}
                   <Presse
-                    ref={repartitionRef}
                     onPress={async () => { await AsyncStorage.setItem('@kyroz:openEditor', 'macros'); router.push('/(tabs)/profil'); }}
                     activeOpacity={OPACITE_PRESSION}
                     style={s.actionBtn}
@@ -1072,7 +1078,6 @@ export default function PlanScreen() {
                     reserveNonVide={reserveNonVide}
                     statutTourId={i === premierCuisinable ? 'plan-auto' : undefined}
                     cookTourId={i === premierCuisinable ? 'plan-cook' : undefined}
-                    actionsTourId={i === premierCuisinable ? 'plan-actions' : undefined}
                   />
                 );
               })}

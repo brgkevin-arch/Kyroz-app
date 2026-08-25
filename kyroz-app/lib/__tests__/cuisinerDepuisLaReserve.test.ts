@@ -3,7 +3,7 @@ import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { Fond } from '../../constants/theme';
 
-// ── « J'ai mangé » depuis le filtre « Ma réserve » ──────────────────────────
+// ── « J'ai mangé » depuis la liste « Réalisable » ───────────────────────────
 //
 // 🔴 CE FICHIER GARDE LA MÉMOIRE D'UN DÉFAUT MESURÉ LE 2026-08-14 (fondateur,
 // capture vidéo), et il faut la garder même si le mécanisme a changé d'écran :

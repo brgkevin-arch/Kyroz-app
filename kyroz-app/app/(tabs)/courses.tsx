@@ -69,8 +69,9 @@ export default function CoursesScreen() {
   // ligne de la première section — `renderItem` étant une callback, le hook vit
   // ici (même contrainte que l'onglet Recettes).
   const sourceRef = useTourTarget('courses-source');
-  const controlesRef = useTourTarget('courses-controles');
-  const articleRef = useTourTarget('courses-article');
+  // ⚠️ `courses-controles` et `courses-article` sont partis avec leurs bulles
+  // (coupe des tutos, 2026-08-25) : la seconde répétait mot pour mot la ligne d'aide
+  // affichée sous les boutons. Une cible sans étape se relit comme une bulle perdue.
   // ⚠️ AVANT le `return` de l'état vide, plus bas : un hook posé après un retour
   // n'existe qu'aux rendus qui l'atteignent → « Rendered more hooks than during
   // the previous render », et l'écran tombe dans l'ErrorBoundary. Le même piège a
@@ -392,10 +393,11 @@ export default function CoursesScreen() {
         {/* « Courses », pas « Liste de courses » : le mot de la barre d'onglets, pour
             qu'un même objet n'ait pas deux noms selon l'endroit où on le regarde. */}
         <View ref={sourceRef} style={s.header}>
-          <View style={{ flex: 1 }}>
-            <Text style={s.sub}>{done ? 'Tout est coché' : `${remaining} restant${remaining > 1 ? 's' : ''} sur ${total}`}</Text>
-            <Text style={s.h1}>Courses</Text>
-          </View>
+          {/* 🔴 PLUS DE COMPTEUR AU-DESSUS DU TITRE (2026-08-25, décision fondateur).
+              Celui-ci disait « 36 restants sur 37 » — soit EXACTEMENT ce que le
+              « 1 / 37 cochés » de droite dit déjà, à l'envers. Deux fois le même
+              fait, dont une au-dessus du nom de l'écran. */}
+          <Text style={[s.h1, { flex: 1 }]}>Courses</Text>
           <Text style={s.counter}>{checked}<Text style={s.counterTot}> / {total} cochés</Text></Text>
           <TourButton onPress={rejouerTour} />
         </View>
@@ -411,7 +413,7 @@ export default function CoursesScreen() {
         <Jauge style={s.track} remplissage={s.fill} pct={pct} couleur={done ? t.success : t.accent} />
 
         {/* Contrôles */}
-        <View ref={controlesRef} style={s.controls}>
+        <View style={s.controls}>
           {remaining > 0 && (
             <Presse style={s.ctrl} onPress={checkAll} activeOpacity={OPACITE_PRESSION}>
               <Ionicons name="checkmark-done-outline" size={Icone.petite} color={t.textSecondary} />
@@ -509,7 +511,6 @@ export default function CoursesScreen() {
           const premierDeLaListe = first && section.cat === sections[0]?.cat;
           return (
             <Presse
-              ref={premierDeLaListe ? articleRef : undefined}
               style={[
                 s.row,
                 first && { borderTopLeftRadius: Radius.card, borderTopRightRadius: Radius.card },

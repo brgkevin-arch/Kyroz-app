@@ -383,13 +383,14 @@ export default function ProfilScreen() {
   // Cibles de la visite guidée qui ne passent pas par un composant (les lignes de
   // menu, elles, reçoivent un `tourId`). ⚠️ Comme `modulation` ci-dessus : AVANT
   // le retour anticipé.
-  const tdeeRef = useTourTarget('profil-tdee');
+  // ⚠️ `profil-tdee`, `profil-sport`, `profil-objectif-date`, `profil-regenerer` et
+  // `profil-donnees` sont partis avec leurs bulles (coupe des tutos, 2026-08-25) :
+  // cinq bulles qui commentaient des lignes de menu déjà intitulées. Une cible que
+  // plus aucune étape ne vise se relit comme une bulle perdue en route.
   // « Régénérer » est devenu un BOUTON, hors de la liste de réglages : il ne peut
   // donc plus porter le `tourId` de `MenuRow`, il lui faut sa propre ref. Sans elle
   // l'étape n'aurait pas de cible montée — et une étape sans cible est écartée EN
   // SILENCE, laissant un tour plus court qui a l'air complet (cf. E25).
-  const regenRef = useTourTarget('profil-regenerer');
-  const donneesRef = useTourTarget('profil-donnees');
   const { rejouer: rejouerTour } = useScreenTour(
     'profil',
     profilTour({ objectifDateDisponible: premium.can('dated_goal') }),
@@ -444,9 +445,13 @@ export default function ProfilScreen() {
             ailleurs. Pas de prénom (compte antérieur à la question) → pas de ligne :
             mieux vaut un en-tête plus court qu'un remplissage. */}
         <View style={s.header} onLayout={repli.onHeaderLayout}>
+          {/* 🔴 LE TITRE PASSE DEVANT LE PRÉNOM (2026-08-25, décision fondateur :
+              le gros titre en haut, sur les cinq onglets). Le prénom n'est pas
+              supprimé comme les compteurs des autres écrans — c'est la seule chose
+              de cet écran qui ne soit écrite nulle part ailleurs. Il passe dessous. */}
           <View style={{ flex: 1 }}>
-            {!!prenom && <Text style={s.sub}>{prenom}</Text>}
             <Text style={s.h1}>Profil</Text>
+            {!!prenom && <Text style={s.sub}>{prenom}</Text>}
           </View>
           {/* 🔴 LE « ? » EST PARTI le 2026-08-14 (décision fondateur), et LA SÉRIE
               prend sa place — très discrète, exactement comme l'en-tête du Plan.
@@ -468,7 +473,6 @@ export default function ProfilScreen() {
               écartée en silence — le tour se serait joué plus court en ayant
               l'air complet (cf. `visiteGuidee.test.ts`, qui l'exige désormais). */}
           <Presse
-            ref={donneesRef}
             onPress={() => setReglages(true)}
             hitSlop={10}
             activeOpacity={OPACITE_PRESSION}
@@ -585,7 +589,7 @@ export default function ProfilScreen() {
             en avant-dernier, elle aurait fait remonter l'écran de tout en bas vers
             le haut, puis redescendre. Une bulle qui déplace l'écran à contresens de
             sa propre progression se lit comme un bug, pas comme une visite. */}
-        <View ref={tdeeRef} style={s.tdee}>
+        <View style={s.tdee}>
           <Text style={s.tdeeL}>Dépense estimée · maintenance (TDEE)</Text>
           <Text style={s.tdeeV}>{profile.tdee_kcal.toLocaleString('fr-FR')} kcal</Text>
         </View>
@@ -618,7 +622,7 @@ export default function ProfilScreen() {
         <SectionLabel t={t} sub="ce qui calcule ta dépense">TOI</SectionLabel>
         <View style={s.menu}>
           <MenuRow t={t} label="Informations" value={`${SEX_LABELS[profile.sex]} · ${profile.age} ans · ${profile.weight_kg} kg${profile.body_fat_pct != null ? ` · ${profile.body_fat_pct}% MG` : ''}`} onPress={() => setEditor('info')} />
-          <MenuRow t={t} label="Sport & activité" value={`${profile.sports?.length ? `${profile.sports.length} sport${profile.sports.length > 1 ? 's' : ''}` : 'Aucun sport'} · ${NEAT_SHORT[profile.neat_level ?? DEFAULT_NEAT_LEVEL]}`} onPress={() => setEditor('sports')} tourId="profil-sport" last />
+          <MenuRow t={t} label="Sport & activité" value={`${profile.sports?.length ? `${profile.sports.length} sport${profile.sports.length > 1 ? 's' : ''}` : 'Aucun sport'} · ${NEAT_SHORT[profile.neat_level ?? DEFAULT_NEAT_LEVEL]}`} onPress={() => setEditor('sports')} last />
         </View>
 
         {/* « Calories & macros » a quitté le bloc des repas pour celui-ci : il ne
@@ -627,7 +631,7 @@ export default function ProfilScreen() {
         <SectionLabel t={t} sub="ce qui fixe tes cibles">TON OBJECTIF</SectionLabel>
         <View style={s.menu}>
           <MenuRow t={t} label="Objectif" value={goalLabel(profile.goal)} onPress={() => setEditor('goal')} />
-          <MenuRow t={t} label="Objectif daté" value={profile.goal_target ? `${profile.goal_target.target_weight_kg} kg · ${formatFR(profile.goal_target.target_date)}` : (premium.can('dated_goal') ? 'Aucun' : 'Inclus dans Kyroz+')} onPress={() => openEditor('dated_goal')} tourId="profil-objectif-date" />
+          <MenuRow t={t} label="Objectif daté" value={profile.goal_target ? `${profile.goal_target.target_weight_kg} kg · ${formatFR(profile.goal_target.target_date)}` : (premium.can('dated_goal') ? 'Aucun' : 'Inclus dans Kyroz+')} onPress={() => openEditor('dated_goal')} />
           <MenuRow t={t} label="Calories & macros" value={profile.macro_mode === 'percent' ? 'Perso %' : 'Calculées'} onPress={() => setEditor('macros')} last />
         </View>
 
@@ -658,7 +662,7 @@ export default function ProfilScreen() {
             réglages : elle ne se règle pas, elle se déclenche. Bouton discret
             (`t.card`), pas l'accent — sinon il deviendrait l'élément le plus criard
             de l'écran, devant la pesée qui est l'entrée réellement quotidienne. */}
-        <Presse ref={regenRef} onPress={regenPlan} activeOpacity={OPACITE_PRESSION} accessibilityRole="button"
+        <Presse onPress={regenPlan} activeOpacity={OPACITE_PRESSION} accessibilityRole="button"
           style={s.actionBtn}>
           <Text style={s.actionTxt}>Régénérer mon plan</Text>
         </Presse>
