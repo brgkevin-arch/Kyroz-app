@@ -81,11 +81,11 @@ Changer le prix d'un produit qui a déjà des abonnés rendrait cette phrase fau
 | # | Étape | Ne peut pas commencer avant |
 |---|---|---|
 | 0 | ✅ Relever l'état réel | *fait* |
-| 1 | Trancher l'annuel payé au mois | 0 |
+| 1 | Trancher l'annuel payé au mois | 0 — ⚠️ **l'API refuse**, interface seulement |
 | 2 | Créer les deux produits early bird | 1 |
 | 3 | Libellés FR sur les deux NOUVEAUX produits | 2 |
 | 3-bis | ✅ Corriger la description du mensuel | *fait* |
-| 3-ter | Remettre l'annuel au-dessus du mensuel | — *(tranché, à appliquer)* |
+| 3-ter | ✅ Remettre l'annuel au-dessus du mensuel | *fait* |
 | 4 | RevenueCat : rattacher les nouveaux produits | 2 |
 | 5 | Le code recopie les identifiants *(moi)* | 2 |
 | 6 | Build natif + capture de review | 5 |
@@ -138,13 +138,25 @@ avant.
 **Quoi** : sur la fiche de `kyroz_plus_yearly`, retirer le prix mensuel avec engagement,
 en ne gardant que le paiement d'avance.
 
-🔴 **À FAIRE DANS L'INTERFACE, PAS PAR L'API — et c'est une mesure, pas une préférence.**
-Relevé le 2026-08-25 : ce mode de paiement existe sur **173 territoires** (contre 175 pour
-le paiement d'avance — Singapour et les États-Unis ne le proposent pas). Par l'API, c'est
-**173 opérations** une par une, chacune pouvant échouer à mi-parcours et laisser le
-produit dans un état mixte. L'interface le traite comme UN réglage du produit.
-➡️ C'est le cas type où le dashboard bat l'automatisation : quand une seule case couvre
-ce qui demande cent appels, l'automatisation n'ajoute que du risque.
+🔴 **L'API NE SAIT PAS LE FAIRE — essayé le 2026-08-25, Apple répond :**
+
+> HTTP 409 · `STATE_ERROR` — *« Cannot delete Subscription Price … **Only future price
+> changes can be deleted.** »*
+
+Un prix EN VIGUEUR ne se supprime pas ; seuls les changements de prix **programmés à
+venir** le peuvent. Le retrait doit donc passer par l'interface — si tant est qu'elle le
+propose, ce qui reste à constater.
+
+ℹ️ Pour mémoire, ce mode existe sur **173 territoires** (contre 175 pour le paiement
+d'avance — Singapour et les États-Unis ne le proposent pas). Même si l'API l'avait
+accepté, c'eût été 173 opérations contre une seule case.
+
+**Si Apple ne permet pas de le retirer**, deux issues, et aucune n'est bloquante :
+· **le laisser dormir** — l'écran Kyroz+ n'affiche que deux formules, donc celle-ci n'est
+  jamais présentée. Le risque de confusion n'existe que si on l'affiche un jour ;
+· **décaler l'early bird mensuel** à un autre prix que 3,99 €, ce qui supprime la
+  collision à la source. ⚠️ Contrainte Apple sur ce mode : le total annuel doit rester
+  dans `[prix d'avance ; 1,5 × prix d'avance]`, soit ici entre 39,99 € et 59,98 €.
 
 **Ce que tu dois voir** : `npm run check:abonnements` n'affiche plus qu'une ligne de prix
 sur l'annuel, « 39,99 € — payé d'avance ».
@@ -218,7 +230,7 @@ accès exactement à la même chose, elles doivent le dire pareil.
 
 ---
 
-## Étape 3-ter — Remettre l'annuel au-dessus du mensuel
+## Étape 3-ter — Remettre l'annuel au-dessus du mensuel ✅ FAITE le 2026-08-25
 
 **Ce que l'étape 0 a relevé** : le mensuel est au **niveau 1** du groupe, l'annuel au
 **niveau 2**. Chez Apple, le niveau 1 est le **plus haut** — et le sens compte :
@@ -253,8 +265,14 @@ l'annuel au-dessus du mensuel).
 droit, donc chacun se range au niveau de sa DURÉE — les deux annuels au niveau 1, les
 deux mensuels au niveau 2.
 
-**Ce que tu dois voir** : `npm run check:abonnements` affiche « niveau 1 » sur l'annuel
-et « niveau 2 » sur le mensuel.
+✅ **Appliqué par l'API et VÉRIFIÉ** : `kyroz_plus_yearly` niveau **1**,
+`kyroz_plus_monthly` niveau **2**.
+
+⚠️ **Le passage par l'interface avait donné les DEUX au niveau 1** — c'est le piège
+exact décrit au-dessus, et il ne se voit pas : l'écran affiche l'annuel en haut de la
+liste, ce qui donne l'impression que l'ordre est bon. Seul `check:abonnements` dit
+qu'ils partagent le même rang, donc que tout changement de formule reste différé.
+➡️ *Un ordre visuel n'est pas un rang.*
 
 ---
 
