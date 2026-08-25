@@ -131,7 +131,7 @@ describe('prix du store', () => {
     // qui sera facturé ailleurs.
     const { plans, fallback } = withStorePrices({ monthly: '$4.99' });
     expect(plans.find((p) => p.id === 'monthly')!.price).toBe('$4.99');
-    expect(plans.find((p) => p.id === 'annual')!.price).toBe('39,99 €');
+    expect(plans.find((p) => p.id === 'annual')!.price).toBe('29,99 €');
     expect(fallback).toBe(true);
   });
 
@@ -145,7 +145,7 @@ describe('prix du store', () => {
     // Un store peut renvoyer une chaîne vide sur un produit mal configuré :
     // l'afficher donnerait « Mensuel — », un prix qui ne veut rien dire.
     const { plans, fallback } = withStorePrices({ monthly: '   ' });
-    expect(plans.find((p) => p.id === 'monthly')!.price).toBe('4,99 €');
+    expect(plans.find((p) => p.id === 'monthly')!.price).toBe('3,99 €');
     expect(fallback).toBe(true);
   });
 

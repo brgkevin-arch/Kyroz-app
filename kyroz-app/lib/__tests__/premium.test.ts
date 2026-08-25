@@ -114,20 +114,36 @@ describe('tarifs Kyroz+', () => {
     // `MONETISATION.md` §A). Le test protégeait donc le bug au lieu du produit.
     // La source de vérité est le DASHBOARD, jamais le code : ces chaînes se recopient
     // depuis App Store Connect, elles ne se choisissent pas ici.
+    // ⚠️ Ce sont les identifiants du PALIER EN VENTE — celui de lancement depuis le
+    // 2026-08-25. Le palier standard (`kyroz_plus_monthly` / `_yearly`) existe chez
+    // Apple et reste hors vente : ses abonnés s'y renouvelleront à leur prix le jour
+    // où on basculera. Ce test rougit donc VOLONTAIREMENT à chaque changement de
+    // palier — c'est le rappel d'aller recopier les chaînes depuis le dashboard, et
+    // non de les retaper de mémoire.
     expect(PREMIUM_PRICES.map((p) => p.storeProductId)).toEqual([
-      'kyroz_plus_monthly', 'kyroz_plus_yearly',
+      'kyroz_plus_monthly_early', 'kyroz_plus_yearly_early',
     ]);
   });
 
-  it('les montants sont ceux tarifés côté Apple (4,99 / 39,99)', () => {
-    expect(PREMIUM_PRICES.find((p) => p.id === 'monthly')!.price).toBe('4,99 €');
-    expect(PREMIUM_PRICES.find((p) => p.id === 'annual')!.price).toBe('39,99 €');
+  it('les montants sont ceux tarifés côté Apple (lancement : 3,99 / 29,99)', () => {
+    expect(PREMIUM_PRICES.find((p) => p.id === 'monthly')!.price).toBe('3,99 €');
+    expect(PREMIUM_PRICES.find((p) => p.id === 'annual')!.price).toBe('29,99 €');
+  });
+
+  it('l’équivalent mensuel annoncé n’est jamais INFÉRIEUR au vrai', () => {
+    // « soit 2,50 € par mois » pour 29,99 €/an, alors que le calcul donne 2,4992.
+    // L'arrondi doit aller vers le HAUT : annoncer moins cher que la réalité serait
+    // le seul sens qui trompe. (Même exigence que `annualSavingPct`, en miroir.)
+    const annuel = PREMIUM_PRICES.find((p) => p.id === 'annual')!;
+    const eur = (t: string) => Number(t.replace(/[^0-9,.]/g, '').replace(',', '.'));
+    const annonce = eur(annuel.billed.match(/soit ([0-9,.]+) €/)![1]);
+    expect(annonce).toBeGreaterThanOrEqual(eur(annuel.price) / 12);
   });
 
   it('l’économie annoncée est VRAIE et jamais surestimée', () => {
-    // 4,99 × 12 = 59,88 · 39,99 → 33,2 % → on annonce 33, pas 34.
-    expect(annualSavingPct()).toBe(33);
-    const reel = (1 - 39.99 / (4.99 * 12)) * 100;
+    // 3,99 × 12 = 47,88 · 29,99 → 37,4 % → on annonce 37, pas 38.
+    expect(annualSavingPct()).toBe(37);
+    const reel = (1 - 29.99 / (3.99 * 12)) * 100;
     expect(annualSavingPct()!).toBeLessThanOrEqual(reel);
   });
 

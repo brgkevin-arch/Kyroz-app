@@ -15,14 +15,20 @@
 >    anti-charge-mentale), verdict jamais alarmant, « Kyroz réajuste tes calories tout seul ».
 > 3. **📸 Transformation** — photos avant/après (local-only).
 >
-> **Restent à faire** (prochaine session dédiée) : le **paywall** — le seul chantier encore
-> ouvert. ⚠️ **La banque de calories N'EST PLUS ce 4ᵉ pilier attendu** : elle a été livrée,
+> ✅ **LE PAYWALL EST LIVRÉ** — écran, verrou, SDK, prix du store. ⚠️ Cette ligne a annoncé
+> « le seul chantier encore ouvert » longtemps après sa livraison. **Ce qui reste n'est plus
+> du code** : les fiches produits chez Apple, un build pour la capture de review, le bac à
+> sable, puis la date. Procédure : `PROCEDURE-2026-08-25-mise-en-vente-kyroz-plus.md`.
+> ⚠️ **La banque de calories N'EST PLUS ce 4ᵉ pilier attendu** : elle a été livrée,
 > puis retirée de Kyroz+ ET éteinte le 2026-08-18 (cf. la note tout en haut de ce fichier).
 > **Paiement TRANCHÉ = achat in-app via les
 > stores (Apple App Store + Google Play), emballé par RevenueCat** — PAS Stripe seul (les
-> stores refusent Stripe pour les abos numériques). Puis **gating `is_premium`** (la feature
-> est fonctionnelle mais GRATUITE tant que le paywall n'est pas câblé).
-> **Tarif** : 4,99 €/mois · 39,99 €/an. Le reste du doc ci-dessous = archive de la réflexion.
+> stores refusent Stripe pour les abos numériques).
+> **Tarif, tranché le 2026-08-25** : standard **4,99 €/mois · 39,99 €/an**, précédé d'un
+> palier **early bird 3,99 € · 29,99 €** retiré à date annoncée. **Un identifiant produit
+> par palier** — jamais un prix changé en place : les CGU §3 promettent désormais le tarif
+> bloqué à la souscription, ce qui l'interdit contractuellement.
+> Le reste du doc ci-dessous = archive de la réflexion.
 
 > Statut historique : **proposition à valider** (décision produit non tranchée — CLAUDE.md §1).
 > Rien n'est codé : ce doc sert à trancher le découpage gratuit / payant avant
@@ -125,8 +131,8 @@ core tuerait le North Star — donc interdit.
       la série.
       ⚠️ **Pas d'offering, volontairement** : le code adresse les produits par identifiant et
       ne lit jamais les offerings.
-      🧑 Reste la clé publique **`appl_…`** à récupérer (Project settings → API keys), et
-      l'app Android le jour où Google Play existera.
+      ✅ **Clé publique `appl_…` POSÉE** (variable EAS `production`, vérifiée dans le
+      bundle). Reste l'app Android le jour où Google Play existera.
 
 ### B. Intégration SDK (code) — ✅ LIVRÉE le 2026-08-02
 - [x] `react-native-purchases` **v10.6.0** installé. ⚠️ Module **natif** → build EAS / dev
@@ -202,9 +208,16 @@ core tuerait le North Star — donc interdit.
 - [x] États gérés : achat en cours, succès, **annulation traitée comme un cas NORMAL** (aucun
       message), erreur, indisponible. Via `useDialog()` et **jamais `Alert.alert`**, qui est
       une fonction vide sur web (`CLAUDE.md` §11).
-- [ ] 🧑 **TROIS formules, pas deux** — Apple porte aussi l'annuel payé au mois (3,99 €/mois,
-      engagement 12 mois), que l'écran n'affiche pas. `STORE-RELEASE.md` §4 dit qu'il devrait.
-      Décision commerciale, à trancher avant la mise en vente.
+- [x] ✅ **DEUX formules, et c'est réglé le 2026-08-25.** Apple portait aussi l'annuel payé
+      au mois (3,99 €/mois, engagement 12 mois), que l'écran n'affichait pas. Il a été
+      **retiré chez Apple** : avec l'early bird mensuel à 3,99 €, deux offres auraient porté
+      le même prix mensuel dont l'une engageait douze mois.
+      ⚠️ **L'API ne sait PAS le faire** — « Only future price changes can be deleted » : un
+      prix en vigueur ne se supprime que dans l'interface (Disponibilité → colonne de droite
+      → « Supprimer la facturation mensuelle »). À refuser DÈS la création des prochains
+      produits.
+- [x] ✅ **L'annuel est présélectionné** sur l'écran (2026-08-25). Le mensuel l'était, donc
+      la formule dont l'économie affichée juste en dessous ne parle pas.
 
 ### E. Conformité review & tests
 - [ ] Le reviewer doit **atteindre le paywall** (via l'accès reviewer existant) → le documenter
@@ -215,8 +228,14 @@ core tuerait le North Star — donc interdit.
 ### F. Ordre de bataille
 A (comptes/produits) → B (SDK + init web-safe) → C (hook `usePremium` + points de gate) →
 D (écran paywall) → E (sandbox + review).
-✅ **B, C et D sont faits.** Il reste, dans l'ordre : **RevenueCat** (état inconnu) →
-**clés dans le build EAS** → **build natif** → **bac à sable** → **poser `PAYWALL_LAUNCH`**.
+✅ **B, C, D et RevenueCat sont faits, et les clés sont dans EAS.** Il reste, dans l'ordre :
+**créer les produits early bird** → **build natif** → **capture de review** →
+**bac à sable** → **poser `PAYWALL_LAUNCH`**.
+🔴 **Et c'est la CAPTURE qui bloque « Prêt à soumettre », pas les libellés** — mesuré le
+2026-08-25 par `npm run check:abonnements` : les descriptions fr-FR existent depuis
+toujours, `appStoreReviewScreenshot` est vide. Comme elle montre le paywall, elle exige un
+binaire : **le bac à sable ne peut donc pas passer avant le build**, contrairement à ce que
+ce fichier et `STORE-RELEASE.md` ont laissé croire.
 ⚠️ La date se pose en DERNIER, et elle ne se recule jamais. Sans impact `ENGINE_VERSION` — le seul
 chantier qui touchait le moteur, la banque de calories, est CLOS (livrée puis éteinte le
 2026-08-18, `lib/featureFlags.ts`). `profiles.stripe_customer_id` = vestige
