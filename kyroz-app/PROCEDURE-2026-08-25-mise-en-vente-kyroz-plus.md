@@ -15,6 +15,41 @@
 
 ---
 
+## ✅ Étape 0 — FAITE le 2026-08-25, par mesure
+
+`npm run check:abonnements` interroge l'App Store Connect API en **lecture seule** et
+confronte ce qu'Apple porte à ce que le code demande. Ce qu'il a trouvé :
+
+| | `kyroz_plus_monthly` | `kyroz_plus_yearly` |
+|---|---|---|
+| Prix FR | 4,99 € payé d'avance | 39,99 € payé d'avance **+ 3,99 €/mois engagé** |
+| Net qui reste | 2,91 € *(taux réduit : 3,53 €)* | 23,33 € *(taux réduit : 28,33 €)* |
+| Libellé fr-FR | ✅ présent | ✅ présent |
+| Capture de review | 🔴 absente | 🔴 absente |
+| État | Métadonnées manquantes | Métadonnées manquantes |
+| Niveau de groupe | **1** | **2** |
+| Partage familial | inactif | inactif |
+
+Les deux identifiants que le code demande existent bien chez Apple, au caractère près.
+
+**Trois choses que ce relevé change**, et qui étaient fausses dans la première version de
+ce document :
+
+1. 🔴 **Les libellés FR sont DÉJÀ écrits.** Ce n'est donc pas eux qui retiennent
+   « Métadonnées manquantes » — c'est la **capture de review**, absente sur les deux.
+   Elle montre le paywall, donc elle demande un binaire. **Le bac à sable ne peut pas
+   passer avant le build** : ce document promettait le contraire.
+2. 🔴 **La description du mensuel vend une fonctionnalité qui n'existe plus** :
+   *« Objectif daté, transformation, banque »*. La banque de calories est sortie de
+   Kyroz+ le 2026-08-18 et éteinte le même jour. C'est un texte lu au moment d'acheter.
+   → nouvelle **étape 3-bis**, et elle n'attend rien.
+3. ✅ **Le 3,99 € est confirmé, pas supposé** : Apple le porte comme `planType: MONTHLY`
+   sur l'annuel. La collision décrite à l'étape 1 est réelle.
+
+⚠️ **Ce tableau périme.** Il se relit avec `npm run check:abonnements`, il ne se recopie pas.
+
+---
+
 ## La grille tarifaire décidée (2026-08-25)
 
 |  | Early bird | Standard |
@@ -45,14 +80,16 @@ Changer le prix d'un produit qui a déjà des abonnés rendrait cette phrase fau
 
 | # | Étape | Ne peut pas commencer avant |
 |---|---|---|
-| 0 | Relever l'état réel | — |
+| 0 | ✅ Relever l'état réel | *fait* |
 | 1 | Trancher l'annuel payé au mois | 0 |
 | 2 | Créer les deux produits early bird | 1 |
-| 3 | Métadonnées FR sur les quatre produits | 2 |
+| 3 | Libellés FR sur les deux NOUVEAUX produits | 2 |
+| 3-bis | Corriger la description du mensuel | — *(maintenant)* |
+| 3-ter | Vérifier le sens des changements de formule | — *(constat)* |
 | 4 | RevenueCat : rattacher les nouveaux produits | 2 |
 | 5 | Le code recopie les identifiants *(moi)* | 2 |
 | 6 | Build natif + capture de review | 5 |
-| 7 | Bac à sable | 3, 4, 6 |
+| 7 | Bac à sable | 4, **6** — la capture bloque « Prêt à soumettre » |
 | 8 | Apple Small Business Program | — *(en parallèle)* |
 | 9 | Médiateur → les trois surfaces légales | — *(en parallèle)* |
 | 10 | Poser la date de lancement | 7, 9, **et revue App Store acquise** |
@@ -62,15 +99,15 @@ veux, en parallèle du reste.
 
 ---
 
-## Étape 0 — Relever l'état réel
+## Étape 0 — Relever l'état réel ✅
 
-**Où** : App Store Connect → *Kyroz* → **Monétisation → Abonnements** → groupe `Kyroz+`.
+**Rien à faire à la main** : `npm run check:abonnements` le fait, en lecture seule, et le
+résultat est en tête de ce document. À relancer après chaque étape qui touche Apple.
 
-**Quoi** : ne rien modifier. Juste noter, pour chacun des deux abonnements existants :
-son identifiant exact, son prix, son **état** (probablement « Métadonnées manquantes »),
-et — c'est le point de l'étape 1 — **quels modes de paiement l'annuel porte réellement**.
-
-**Ce que tu dois voir** : deux abonnements, `kyroz_plus_monthly` et `kyroz_plus_yearly`.
+⚠️ **Le script n'écrit jamais rien**, et c'est délibéré : la clé porte le rôle App Manager,
+donc elle *pourrait* créer des produits et soumettre l'app. Un identifiant produit ne se
+supprime jamais chez Apple — une erreur d'écriture se garderait à vie. Les créations se
+font dans l'interface, qui montre les paliers de prix imposés et les marchés indisponibles.
 
 ⚠️ **`kyroz_plus_yearly`, pas `_annual`.** Ce dépôt a payé quatre identifiants faux, et
 chacun a échoué de la même façon : en **silence**. Le produit n'est pas trouvé, l'achat
@@ -80,6 +117,9 @@ nulle part. Recopie ce que tu lis, ne retape pas de mémoire.
 ---
 
 ## Étape 1 — Trancher l'annuel payé au mois
+
+**Confirmé par l'étape 0** : Apple porte bien deux prix sur `kyroz_plus_yearly`, l'un
+`UPFRONT` (39,99 €), l'autre `MONTHLY` (3,99 €).
 
 **Le contexte** : quand l'annuel a été créé le 2026-07-30, Apple a demandé **deux prix** —
 un « payé d'avance » (39,99 €) et un « payé au mois avec engagement 12 mois » (3,99 €/mois,
@@ -132,19 +172,61 @@ la même décision qu'à l'étape 1.
 
 ---
 
-## Étape 3 — Métadonnées FR sur les quatre produits
+## Étape 3 — Libellés FR sur les deux NOUVEAUX produits seulement
 
-**Pourquoi maintenant, et pas plus tard** : Apple ne sert normalement un produit à
-StoreKit qu'à partir de l'état « Prêt à soumettre ». Tant qu'un produit est en
-« Métadonnées manquantes », **le bac à sable de l'étape 7 peut rendre une liste vide** —
-et on imputerait au code un échec qui vient du dashboard. C'est le piège le plus coûteux
-de toute cette liste, parce qu'il ressemble trait pour trait à un bug.
+🔴 **Corrigé après mesure.** Ce document disait « sur les quatre produits ». Les deux
+existants ont **déjà** leur nom et leur description en fr-FR : il n'y a rien à y faire.
 
-**Quoi** : sur chacun des quatre abonnements, renseigner le **nom d'affichage** et la
-**description**, localisés en français.
+**Quoi** : sur les deux produits early bird créés à l'étape 2, renseigner le nom
+d'affichage et la description, en français.
 
-**Ce que tu dois voir** : les quatre produits quittent « Métadonnées manquantes ». Il
-restera la **capture de review**, qui dépend du build (étape 6) — c'est normal à ce stade.
+⚠️ **Reprends la formulation de l'annuel existant** — *« Pilote ton objectif dans le
+temps »* — et surtout **pas** celle du mensuel, qui est fausse (voir l'étape 3-bis).
+
+**Ce que tu dois voir** : `npm run check:abonnements` affiche un libellé fr-FR sur les
+quatre. L'état restera « Métadonnées manquantes » sur les quatre tant que la capture de
+review manque — c'est normal, et c'est l'étape 6.
+
+---
+
+## Étape 3-bis — Corriger la description du mensuel *(indépendante, à faire maintenant)*
+
+🔴 **La fiche produit vend une fonctionnalité qui n'existe plus.** La description de
+`kyroz_plus_monthly` dit aujourd'hui :
+
+> Objectif daté, transformation, banque
+
+La **banque de calories** est sortie de Kyroz+ le 2026-08-18 et éteinte le même jour
+(`featureFlags.ts`). C'est un texte que le client lit **au moment d'acheter**, sur la
+boutique — pas un commentaire interne. La règle « aucun chiffre, aucune promesse qui ne
+soit servie » ne s'arrête pas à la frontière de l'app.
+
+**Quoi** : remplacer par ce que Kyroz+ contient réellement — l'objectif daté et le suivi
+de transformation. Le plus simple est de reprendre la description de l'annuel.
+
+**Ce que tu dois voir** : plus aucune mention de « banque » dans les libellés retournés
+par `npm run check:abonnements`.
+
+---
+
+## Étape 3-ter — Vérifier le sens des changements de formule
+
+**Ce que l'étape 0 a relevé** : le mensuel est au **niveau 1** du groupe, l'annuel au
+**niveau 2**. Chez Apple, le niveau 1 est le **plus haut** — et le sens compte :
+
+| Changement | Effet |
+|---|---|
+| vers un niveau **plus haut** | montée en gamme, **immédiate**, au prorata |
+| vers un niveau **plus bas** | descente, appliquée **à la fin de la période en cours** |
+
+Avec cet ordre, quelqu'un qui passe du mensuel à l'annuel — exactement ce qu'on veut
+encourager — **attendrait la fin de son mois** au lieu de basculer tout de suite.
+
+⚠️ **À CONSTATER avant de toucher quoi que ce soit.** Je donne ici la règle telle que je
+la comprends, pas un fait mesuré : l'interface d'App Store Connect nomme et ordonne ces
+niveaux à sa façon. Ouvre le groupe `Kyroz+`, regarde comment il présente l'ordre des
+formules, et dis-moi ce que tu vois. Si l'ordre est bien inversé, il se corrige — c'est
+un réglage de groupe, pas un produit à recréer.
 
 ---
 
@@ -223,8 +305,16 @@ depuis le build de l'étape 6.
 
 ## Étape 8 — Apple Small Business Program *(en parallèle)*
 
-**Pourquoi** : **15 % de commission au lieu de 30 %** sous 1 M$ de revenus annuels. C'est
-purement déclaratif, et ça double presque ce qui reste sur chaque abonnement.
+**Pourquoi, en chiffres relevés chez Apple** (étape 0) — ce n'est plus un ordre de
+grandeur, c'est ce qu'Apple renvoie pour ces produits :
+
+| Formule | Net aujourd'hui | Net au taux réduit | Écart |
+|---|---|---|---|
+| Mensuel 4,99 € | 2,91 € | 3,53 € | **+21 %** |
+| Annuel 39,99 € | 23,33 € | 28,33 € | **+21 %** |
+
+Sans le programme, ce taux réduit ne s'applique qu'**après un an** d'abonnement continu.
+Avec, il s'applique **dès le premier jour**. C'est purement déclaratif.
 
 **Où** : App Store Connect → *Business* → App Store Small Business Program.
 

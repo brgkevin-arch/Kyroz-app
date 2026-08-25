@@ -53,6 +53,7 @@
     "gen:lots": "npx tsx scripts/gen-brief-lot.ts",
     "gen:legal": "npx tsx scripts/gen-legal.ts",
     "check:auth": "node scripts/check-auth.mjs",
+    "check:abonnements": "node scripts/check-abonnements.mjs",
     "check:migrations": "node scripts/check-migrations.mjs",
     "check:suspens": "node scripts/check-suspens.mjs",
     "store:assets": "node test/store-assets.mjs",
