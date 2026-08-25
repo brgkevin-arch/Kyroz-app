@@ -221,11 +221,24 @@ Sans ces deux comptes, rien ne peut être soumis. Le reste (§2–7) peut se pr�
 
 ### 1-bis. Créer les abonnements Kyroz+ (ordre IMPOSÉ)
 
-> ## ✅ CÔTÉ APPLE : TERMINÉ (2026-07-30)
+> ## ✅ CÔTÉ APPLE : TERMINÉ (2026-07-30, complété le 2026-08-25)
 > Bundle ID enregistré · fiche d'app créée · Paid Applications Agreement **Actif**
-> (compte bancaire + W-8BEN actifs) · groupe `Kyroz+` et les deux abonnements créés
-> et tarifés. Reste la **capture de review**, impossible avant que le paywall existe —
-> les produits restent en « Métadonnées manquantes ».
+> (compte bancaire + W-8BEN actifs) · groupe `Kyroz+` et **QUATRE** abonnements créés,
+> tarifés, libellés en français et attachés à l'entitlement `premium` chez RevenueCat.
+>
+> 🔴 **CE QUI RETIENT « MÉTADONNÉES MANQUANTES », C'EST LA CAPTURE DE REVIEW — PAS LES
+> LIBELLÉS.** Mesuré le 2026-08-25 (`npm run check:abonnements`, relation
+> `appStoreReviewScreenshot`) : les descriptions fr-FR existaient depuis toujours, la
+> capture est vide sur les quatre produits. Ce document et `MONETISATION.md` laissaient
+> entendre qu'il fallait d'abord « compléter les métadonnées ».
+> ➡️ **Conséquence sur l'ordre, et elle est structurante** : cette capture montre le
+> PAYWALL, donc elle exige un binaire. **Le bac à sable ne peut donc PAS passer avant le
+> build**, contrairement à ce qu'annonçait le paragraphe ci-dessous.
+> ⚠️ Et la fiche d'app elle-même n'a **AUCUNE capture** (version 1.0,
+> `PREPARE_FOR_SUBMISSION`, mesuré par l'API le 2026-08-25). Deux familles de captures
+> distinctes, toutes deux manquantes : celles de la FICHE (ce que voient les acheteurs,
+> produites par `npm run store:assets` — cinq écrans qui **n'incluent pas le paywall**)
+> et celle de REVIEW (par abonnement, montre le paywall).
 >
 > ⚠️ **Cette phrase disait « ce qui n'empêche NI RevenueCat NI les tests sandbox ».
 > La moitié est établie, l'autre ne l'est pas** (corrigé le 2026-08-02).
@@ -289,28 +302,43 @@ un identifiant enregistré, puis une fiche d'app. Dans cet ordre, sinon le menu
 4. **Groupe d'abonnement puis produits** — fiche de l'app → *Monetization* →
    *Subscriptions* → créer un groupe nommé **Kyroz+**, puis dedans :
 
-   | Product ID | Nom de référence | Durée | Prix |
-   |---|---|---|---|
-   | `kyroz_plus_monthly` | Kyroz+ mensuel | 1 mois | 4,99 € |
-   | `kyroz_plus_yearly` | Kyroz+ annuel | 1 an | 39,99 € d'avance **ou 3,99 €/mois** |
+   ✅ **QUATRE produits existent, en DEUX paliers tarifaires** (état au 2026-08-25,
+   mesuré par `npm run check:abonnements` — cette table ne se recopie pas, elle se relit) :
 
-   ⚠️ **L'annuel a DEUX modes de paiement** (créés le 2026-07-30) : Apple demande un
-   « prix avec facturation à l'avance » ET un « prix mensuel » avec engagement 12 mois.
-   Le paywall devra donc présenter **trois** formules, pas deux :
+   | Product ID | Durée | Prix FR | Niveau | En vente |
+   |---|---|---|---|---|
+   | `kyroz_plus_yearly_early` | 1 an | **29,99 €** | 1 | ✅ lancement |
+   | `kyroz_plus_monthly_early` | 1 mois | **3,99 €** | 2 | ✅ lancement |
+   | `kyroz_plus_yearly` | 1 an | 39,99 € | 1 | standard, en réserve |
+   | `kyroz_plus_monthly` | 1 mois | 4,99 € | 2 | standard, en réserve |
 
-   | Formule | Sur un an | vs mensuel | Engagement |
-   |---|---|---|---|
-   | Mensuel | 59,88 € | — | aucun |
-   | Annuel payé au mois (3,99 €) | 47,88 € | −20 % | 12 mois |
-   | Annuel payé d'avance | 39,99 € | −33 % | 12 mois |
+   🔴 **DEUX formules à l'écran, pas trois.** L'annuel portait un second mode de paiement
+   — « payé au mois, engagement 12 mois », 3,99 €/mois — que le paywall n'a jamais affiché.
+   **Retiré le 2026-08-25** : avec l'early bird mensuel à 3,99 €, deux offres auraient
+   porté le même prix mensuel dont l'une engageait douze mois.
+   ⚠️ **L'API NE SAIT PAS le retirer** (« Only future price changes can be deleted ») : ça
+   se fait dans l'interface, fiche produit → **Disponibilité** → colonne de DROITE →
+   « Supprimer la facturation mensuelle ». ⚠️ Son voisin de gauche s'appelle « Retirer de
+   la vente » et supprimerait l'annuel en entier.
+   ➡️ **À REFUSER DÈS LA CRÉATION** des prochains produits — Apple le propose par défaut,
+   et créer un produit par l'API ne le pose jamais.
 
-   Le piège évité : Apple proposait **4,99 €/mois** par défaut, soit 59,88 € sur
-   l'année — exactement le prix du mensuel sans engagement, mais en enfermant le
-   client 12 mois. Strictement défavorable, et le genre de détail qui produit des
-   remboursements. La contrainte d'Apple est : total ∈ [prix d'avance ; 1,5 × prix
-   d'avance], donc ici entre 39,99 € et 59,98 €.
+   🔴 **LE NIVEAU DE GROUPE COMPTE, et il est contre-intuitif.** Apple : *« Level 1
+   represents the subscription that offers the most »*. Vers un niveau plus haut = montée
+   en gamme immédiate au prorata ; vers un plus bas = différée à la prochaine échéance.
+   Les annuels sont donc au **niveau 1**, les mensuels au **2** — sinon « je passe à
+   l'annuel » ferait attendre la fin du mois. ⚠️ Les mettre au MÊME niveau ne suffit pas :
+   à rang égal c'est un crossgrade, différé lui aussi entre deux durées différentes.
+   ⚠️ **Et ça ne se voit pas à l'écran** : l'interface affiche l'annuel en haut de liste
+   même quand les deux partagent le rang 1. Seul `check:abonnements` le dit.
+
+   ⚠️ **Créer un produit par l'API : la DISPONIBILITÉ vient AVANT le prix.** Un produit
+   neuf n'est vendable nulle part, et Apple refuse alors le prix — mais son erreur est
+   `ENTITY_ERROR.RELATIONSHIP.INVALID` **sur le price point**, donc elle accuse l'objet
+   qu'on vient de vérifier. Reprendre la liste de territoires (175) du produit standard.
+   ⚠️ Et les paliers de prix se **paginent** : 800 pour un annuel, 200 par page.
    ℹ️ La facturation mensuelle avec engagement n'est **pas disponible** à Singapour
-   ni aux États-Unis — ces marchés ne verront que le paiement d'avance.
+   ni aux États-Unis — 173 territoires sur 175.
 
    ⚠️ **Les `Product ID` doivent être identiques au caractère près côté Google et
    dans RevenueCat.** C'est la source d'erreur n°1 : un `_yearly` écrit `_annual`
@@ -382,9 +410,13 @@ réalisée : le code portait `kyroz_plus_annual` et `kyroz_plus` là où Apple p
 verrouillé par deux tests (`lib/__tests__/premium.test.ts`, `purchases.test.ts`).
 **Ces chaînes se recopient depuis le dashboard, elles ne se choisissent pas dans le code.**
 
-⚠️ **L'écart qui reste, et c'est une décision produit** : l'étape 4 dit que le paywall
-« devra présenter trois formules, pas deux ». Il en présente deux — l'annuel payé au mois
-(3,99 €/mois, engagement 12 mois) n'est pas affiché. À trancher avant la mise en vente.
+✅ **L'écart est CLOS le 2026-08-25.** Ce paragraphe disait que le paywall « devra
+présenter trois formules » alors qu'il en présentait deux. C'est le TROISIÈME mode de
+paiement qui est parti, pas l'écran : l'annuel payé au mois a été retiré chez Apple.
+L'écran en présente donc deux, et c'est désormais exact.
+ℹ️ Le code adresse le palier **en vente** (`_early`). Le jour du retrait de l'offre de
+lancement, on bascule les deux `storeProductId` de `lib/premium.ts` vers le standard :
+c'est du JavaScript, donc une **OTA**, sans nouvelle revue.
 
 ---
 

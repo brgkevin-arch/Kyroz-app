@@ -235,8 +235,15 @@ dans le temps* :
 ⚠️ **Il y en avait TROIS jusqu'au 2026-08-18** : la banque de calories est sortie de l'offre
 (cf. §6). Ne pas la citer.
 ⚠️ **Le paiement n'est pas lancé, et ce sont DEUX interrupteurs séparés** : la clé du
-prestataire d'achat, et la date d'entrée en vigueur du verrou. Les deux sont éteints —
-aujourd'hui tout est ouvert à tout le monde, gratuitement.
+prestataire d'achat, et la date d'entrée en vigueur du verrou. 🔴 **Cette ligne disait
+« les deux sont éteints » — c'est faux depuis le 2026-08-03** : la clé est posée, l'app
+*peut* encaisser. **Seule la date manque**, donc aujourd'hui tout reste ouvert à tout le
+monde, gratuitement — mais un seul geste sépare désormais de la vente.
+
+**Tarifs tranchés le 2026-08-25** : un palier de **lancement** (3,99 €/mois ·
+29,99 €/an), retiré à date annoncée, puis le **standard** (4,99 € · 39,99 €). Chaque
+palier a ses propres produits : un abonné garde son prix tant qu'il reste abonné, ce que
+les CGU §3 promettent noir sur blanc.
 
 ---
 
