@@ -66,6 +66,27 @@ describe("ce que le texte doit dire avant qu'un abonnement puisse être vendu", 
     expect(TOUS_LES_PARAS).toMatch(/24 heures/);
   });
 
+  // Ajouté le 2026-08-25 avec la mécanique early bird. Ce n'est pas une obligation
+  // Apple : c'est l'ENGAGEMENT qui rend la hausse par cohortes acceptable. La seule
+  // zone où la mécanique pouvait être perçue comme un piège est la reprise après
+  // résiliation — une ligne suffit à l'éliminer, à condition qu'elle soit écrite.
+  it('promet un tarif BLOQUÉ à la souscription', () => {
+    expect(TOUS_LES_PARAS).toMatch(/tarif de votre abonnement est celui affiché au moment où vous souscrivez/i);
+    expect(TOUS_LES_PARAS).toMatch(/reste inchangé tant que votre abonnement demeure actif/i);
+  });
+
+  it('dit qu’une hausse ne touche QUE les nouvelles souscriptions', () => {
+    expect(TOUS_LES_PARAS).toMatch(/ne s’applique qu’aux nouvelles souscriptions/i);
+  });
+
+  it('dit ce qui se passe si on résilie puis revient — le seul point qui pourrait piéger', () => {
+    // Sans cette phrase, un abonné de la première heure découvre le tarif courant le
+    // jour où ça lui arrive. C'est le comportement natif des stores, pas une décision
+    // Kyroz — mais le taire reviendrait à laisser croire l'inverse.
+    expect(TOUS_LES_PARAS).toMatch(/si vous résiliez puis souscrivez à nouveau/i);
+    expect(TOUS_LES_PARAS).toMatch(/tarif en vigueur à cette date/i);
+  });
+
   it('dit que supprimer son compte Kyroz n’annule PAS l’abonnement', () => {
     // Le piège coûte de l'argent réel à quelqu'un qui croit avoir tout arrêté.
     expect(TOUS_LES_PARAS).toMatch(/n’annule PAS un abonnement|n'annule PAS un abonnement/);
