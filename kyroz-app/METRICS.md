@@ -110,7 +110,7 @@ d'AVANT le 2026-08-10 n'ont pas de jour 0 stocké — la propriété est alors *
 à zéro. Ces appareils ne peuvent pas entrer dans une cohorte. Leur donner J0 daterait
 toutes leurs cohortes de plusieurs mois : mieux vaut un trou visible qu'un chiffre faux.
 
-⚠️ **« J'ai mangé » depuis le filtre « Ma réserve » ne compte pas**
+⚠️ **« J'ai mangé » depuis la liste « Réalisable » ne compte pas**
 (`app/(tabs)/recettes.tsx::cuisiner`, ex-`garde-manger.tsx::cook`) : ce geste déduit des
 ingrédients, il ne marque aucun repas du plan. C'est un autre acte — cuisiner ce qu'on a,
 pas suivre son plan. Si un jour il doit compter, il lui faudra son propre événement, pas

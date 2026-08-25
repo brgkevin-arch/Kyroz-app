@@ -169,7 +169,7 @@ export function planTour({ days, moduleParVolume, repasAuto }: PlanTourContext):
 export function recettesTour(): TourStep[] {
   return [
     {
-      // Prouvé par : recettes.tsx — le sélecteur bascule `vue`, et « Ma réserve »
+      // Prouvé par : recettes.tsx — le sélecteur bascule `vueListe`, et « Réalisable »
       // sert `cookableRecipes(reserve, profile)` (lib/pantry.ts), qui compte les
       // QUANTITÉS et écarte le régime. Le catalogue, lui, montre tout, y compris
       // ce que le plan ne servirait pas — c'est ce contraste que la bulle explique.
@@ -177,7 +177,7 @@ export function recettesTour(): TourStep[] {
       // Forme : ui.tsx::Segmented — le rail porte `borderRadius: Radius.button`.
       forme: 'bouton',
       title: 'Deux listes, deux questions',
-      text: "« Catalogue » montre les 512 recettes, y compris hors de ton régime. « Ma réserve » ne garde que ce que tu peux cuisiner avec ce que tu as — quantités comptées, régime respecté.",
+      text: "« Catalogue » montre les 512 recettes, y compris hors de ton régime. « Réalisable » ne garde que ce que tu peux cuisiner avec ce que tu as — quantités comptées, régime respecté.",
     },
   ];
 }

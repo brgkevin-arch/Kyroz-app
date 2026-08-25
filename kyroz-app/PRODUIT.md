@@ -128,17 +128,19 @@ d'après l'aliment et se corrige d'une touche. Il se remplit à la clôture des 
 vide quand un repas est marqué mangé, et la liste de courses le déduit toujours.
 
 ⚠️ **« Qu'est-ce que je peux cuisiner maintenant » a déménagé dans Recettes** (2026-08-24),
-sous le filtre « Ma réserve » : c'est une question de recettes, pas d'inventaire.
+sous la liste « Réalisable » : c'est une question de recettes, pas d'inventaire.
 
 ### Recettes
 
 **Deux listes, choisies par un sélecteur en haut de l'écran** (2026-08-25) :
 · **Catalogue** — les **512 recettes** (compté le 2026-08-21), filtrables par créneau ou
   par favori, dévoilées par paliers plutôt qu'en un mur ;
-· **Ma réserve** — seulement ce qui est faisable avec ce qu'on a : d'abord les recettes
-  réalisables, puis celles où il manque un ou deux ingrédients (annoncés avec leur
-  quantité). Elle compte les **quantités**, pas seulement la présence — 10 g de riz ne
-  rendent pas un plat réalisable — et respecte le régime comme le fait le plan.
+· **Réalisable** — seulement ce qui est faisable avec ce qu'on a : d'abord les recettes
+  réalisables maintenant, puis celles où il manque un ou deux ingrédients (annoncés avec
+  leur quantité). Elle compte les **quantités**, pas seulement la présence — 10 g de riz
+  ne rendent pas un plat réalisable — et respecte le régime comme le fait le plan.
+  ⚠️ Le mot dit ce que la liste RÉPOND, pas d'où elle tire sa réponse : « Ma réserve »
+  nommait la source, et la source a déjà son onglet deux crans plus à gauche.
 ⚠️ Deux listes et non deux filtres : les puces (« Favoris », « Dîner ») répondent à
 « quel genre de plat ? », la réserve à « qu'est-ce que je peux faire ce soir ? ». Rangées
 ensemble, la seconde disparaissait dans la rangée. On met en favori 👍, on masque ce qu'on n'aime pas 👎, et le

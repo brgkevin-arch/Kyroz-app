@@ -4009,9 +4009,15 @@ produit en suspens — il ne reste qu'à coder.
   se dit en une phrase : **ces puces répondent toutes à « quel genre de plat ? », la
   réserve répond à « qu'est-ce que je peux faire ce soir ? »** — deux questions rangées
   comme une seule, et la seconde disparaissait dans une rangée qui défile.
-  ➡️ Un `Segmented` **Catalogue | Ma réserve**, le même composant que le Frais/Sec de la
+  ➡️ Un `Segmented` **Catalogue | Réalisable**, le même composant que le Frais/Sec de la
   Réserve. Les puces de créneau ne sortent que sur le catalogue : les appliquer à la
-  réserve ferait disparaître des plats réalisables sans rien dire — un plafond muet.
+  seconde ferait disparaître des plats réalisables sans rien dire — un plafond muet.
+  ⚠️ **Elle s'appelle « Réalisable », pas « Ma réserve »** (renommée le jour même, à la
+  relecture des captures) : le mot dit ce que la liste RÉPOND, pas d'où elle tire sa
+  réponse — et la source, elle, a déjà son onglet deux crans plus à gauche. Le libellé
+  de section suit (« RÉALISABLE ») et le compteur cesse de bégayer : « 3 maintenant ·
+  42 presque » et non « 3 réalisables » sous un titre qui dit déjà réalisable. La valeur
+  interne reste `'reserve'` — renommer un identifiant n'apporterait qu'un diff.
   ⚠️ **Écarté : un 6ᵉ onglet en bas.** Proposé et refusé par le fondateur — six icônes
   sur un téléphone, et un onglet « À cuisiner » collé à « Réserve » se confondrait avec
   elle.
@@ -4059,7 +4065,7 @@ produit en suspens — il ne reste qu'à coder.
   elle* — sinon il continue de plaider avec un témoin qui n'existe plus.
 
   ✅ **Vu à l'écran, en 375 pt** : les deux segments de Recettes (Catalogue → puces +
-  « 512 recettes » ; Ma réserve → pas de puces, « 0 réalisable · 17 presque », manques
+  « 512 recettes » ; Réalisable → pas de puces, « 0 maintenant · 17 presque », manques
   chiffrés), les cinq en-têtes titre en premier, et les cinq bulles restantes à leur
   cible (dont celle des Recettes, posée sur le sélecteur).
   📊 **1 705 tests / 110 fichiers verts**, `tsc` vert.
@@ -4116,7 +4122,7 @@ produit en suspens — il ne reste qu'à coder.
   recopié — c'est « mesurer sur le moteur, jamais sur une réplique » (§10) appliqué à un
   filtre. Il emporte aussi les aliments évités.
 
-  ✅ **« À cuisiner » a déménagé dans Recettes**, filtre « Ma réserve » : réalisables
+  ✅ **« À cuisiner » a déménagé dans Recettes** (liste « Réalisable ») : réalisables
   d'abord, presque-réalisables (1 à 2 manquants) ensuite, chaque carte disant où elle en
   est. Le geste « J'ai mangé » suit dans la FICHE, et **seulement sur une réalisable**.
   ⚠️ **`listeStable` (ordre gelé) est retiré avec lui**, et c'est une décision : il
@@ -4184,7 +4190,7 @@ produit en suspens — il ne reste qu'à coder.
   `espacementDA` après la migration `Presse`, rejoué.
 
   🔴 **ET L'ÉCRAN A TROUVÉ UN DÉFAUT QUE 1 692 TESTS VERTS NE VOYAIENT PAS : LA WHEY
-  ÉTAIT UN CONDIMENT.** Le filtre « Ma réserve » annonçait « tu as tout ce qu'il faut »
+  ÉTAIT UN CONDIMENT.** La liste des réalisables annonçait « tu as tout ce qu'il faut »
   sur une barre protéinée alors que la réserve n'avait pas un gramme de whey. Cause —
   l'ingrédient du catalogue s'appelle **« Whey (neutre/vanille) »**, et `isStaple`
   mordait sur son PARFUM (`vanille` était dans `STAPLES`).
@@ -4212,7 +4218,7 @@ produit en suspens — il ne reste qu'à coder.
   · **correction du rangement** — riz basmati passé au frais depuis sa fiche : il quitte
     la liste « Au sec », le compteur passe à 7/3, et le bandeau « Riz basmati rangé au
     frais » s'affiche **au-dessus** de la barre d'onglets ;
-  · **Recettes → Ma réserve** — « 1 réalisable · 42 presque », manques chiffrés sur les
+  · **Recettes → la liste des réalisables** — « 1 réalisable · 42 presque », manques chiffrés sur les
     cartes (« Il te manque : Millet (80 g) ») ; après le correctif whey, « **0 réalisable
     · 38 presque** » et « Il te manque : Whey (neutre/vanille) (25 g) » ;
   · **Plan à 23 h 28** — petit-déj, déjeuner et collation **auto-cochés** (limites 13 h /

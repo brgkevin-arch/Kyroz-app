@@ -37,8 +37,16 @@ import { animerMiseEnPage } from '../../components/Mouvement';
 // seule, et la seconde disparaissait dans la rangée horizontale.
 //
 // ➡️ Un SÉLECTEUR, comme le Frais/Sec de la Réserve : deux listes qui ne se
-// mélangent pas, chacune avec ses propres filtres. Le catalogue garde ses puces ;
-// « Ma réserve » n'en a pas besoin — sa liste est déjà l'ordre de ce qui est
+// mélangent pas, chacune avec ses propres filtres.
+//
+// ⚠️ La seconde s'appelle **« Réalisable »** et non « Ma réserve » (renommée le
+// 2026-08-25, décision fondateur) : le mot dit ce que la liste RÉPOND, pas d'où elle
+// tire sa réponse. « Ma réserve » nommait la source — et la source a déjà son onglet,
+// deux crans plus à gauche dans la barre.
+// ⚠️ La valeur reste `'reserve'` : c'est un identifiant interne, et le renommer
+// n'apporterait rien qu'un diff.
+// Le catalogue garde ses puces ;
+// « Réalisable » n'en a pas besoin — sa liste est déjà l'ordre de ce qui est
 // faisable.
 type VueRecettes = 'catalogue' | 'reserve';
 
@@ -150,7 +158,7 @@ export default function RecettesScreen() {
   // d'attendre une carte comme au temps où le tour désignait la première de la liste.
   const { rejouer: rejouerTour } = useScreenTour('recettes', recettesTour());
 
-  // « J'ai mangé » depuis une fiche ouverte sur la liste « Ma réserve » : c'est le
+  // « J'ai mangé » depuis une fiche ouverte sur la liste « Réalisable » : c'est le
   // geste qui vivait sur les cartes du Frigo, déplacé avec la liste.
   //
   // ⚠️ Il n'est proposé QUE sur une recette réalisable. Déduire une recette dont on n'a
@@ -200,7 +208,7 @@ export default function RecettesScreen() {
             t={t}
             value={vueListe}
             onChange={(v) => { animerMiseEnPage(); setVueListe(v); }}
-            options={[{ label: 'Catalogue', value: 'catalogue' }, { label: 'Ma réserve', value: 'reserve' }]}
+            options={[{ label: 'Catalogue', value: 'catalogue' }, { label: 'Réalisable', value: 'reserve' }]}
           />
         </View>
 
@@ -247,17 +255,17 @@ export default function RecettesScreen() {
             c'est là qu'il change, donc là qu'on le regarde. */}
         <View style={s.countRow}>
           <Text style={s.countLabel}>
-            {surReserve ? 'AVEC MA RÉSERVE' : q ? 'RÉSULTATS' : tag === 'Tout' ? 'TOUTES LES RECETTES' : TAG_LABELS[tag].toUpperCase()}
+            {surReserve ? 'RÉALISABLE' : q ? 'RÉSULTATS' : tag === 'Tout' ? 'TOUTES LES RECETTES' : TAG_LABELS[tag].toUpperCase()}
           </Text>
           {/* ⚠️ LE TOTAL FILTRÉ, PAS CE QUI EST À L'ÉCRAN. Depuis la révélation par
               paliers, `data` n'est qu'une tranche : afficher sa longueur ferait dire
               « 10 recettes » à un filtre qui en trouve 512, et le chiffre changerait
               à chaque « Voir + » sans qu'aucun filtre n'ait bougé. */}
-          {/* Sous « Ma réserve », un total ne dit rien : ce qui compte est la coupure
+          {/* Sous « Réalisable », un total ne dit rien : ce qui compte est la coupure
               entre ce qui est faisable MAINTENANT et ce qui demande une course. */}
           <Text style={s.countN}>
             {surReserve
-              ? `${pretes.length} réalisable${pretes.length > 1 ? 's' : ''} · ${presque.length} presque`
+              ? `${pretes.length} maintenant · ${presque.length} presque`
               : `${tous.length} recette${tous.length > 1 ? 's' : ''}`}
           </Text>
         </View>
@@ -327,7 +335,7 @@ export default function RecettesScreen() {
                   `item.sports` n'est plus affiché depuis le 2026-08-03 : diversifieur
                   interne, pas une promesse (cf. lib/recipeLabels.ts). Les deux règles
                   vont dans le même sens — la carte ne porte que ce qu'elle tient. */}
-              {/* Sous « Ma réserve », la carte DIT où elle en est. Sans cette ligne,
+              {/* Sous « Réalisable », la carte DIT où elle en est. Sans cette ligne,
                   réalisables et presque-réalisables se ressemblent trait pour trait et
                   l'ordre de la liste devient la seule différence — invisible dès qu'on
                   fait défiler. La quantité annoncée est le MANQUE, pas le besoin. */}

@@ -341,7 +341,8 @@ OUTPUT         → Plan + liste de courses + recettes
         pouvait que sur-estimer (créditée à chaque case cochée, débitée seulement en
         cuisine). Les deux moitiés ont bougé, la dérive n'a plus de moteur ;
       · « qu'est-ce que je peux cuisiner maintenant » a **déménagé dans Recettes**, sous
-        le filtre « Ma réserve ». Il compte désormais les **QUANTITÉS** (tolérance 95 %,
+        la liste **« Réalisable »** (une des deux du sélecteur, cf. plus bas). Elle compte
+        désormais les **QUANTITÉS** (tolérance 95 %,
         pièces ↔ grammes via `units.ts::poidsUnitaire`) et **filtre le régime** avec le
         prédicat du moteur (`planEngine::recipeAllowed`, exporté pour ça). Avant, 10 g
         de riz déclaraient réalisable une recette qui en demande 200, et l'écran
@@ -1979,7 +1980,7 @@ mettre 8 puis passer aux presque. Et si on veut plus, "voir + de recettes". Pare
 pour les 512 recettes : 10, puis voir +, puis 10, puis voir +, et après voir tout. »*
 
 **`lib/revelation.ts`** — pur, sans aucun import, donc testé. Trois listes s'en
-servent : les recettes réalisables du filtre « Ma réserve » (pas de 8), les
+servent : les recettes réalisables de la liste « Réalisable » (pas de 8), les
 presque-réalisables (8), et le
 catalogue (10). Le bouton commun est `ui.tsx::BoutonRevelation`.
 

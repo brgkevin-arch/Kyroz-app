@@ -102,10 +102,10 @@ describe('Recettes — deux listes, pas un filtre de plus', () => {
 
   it('le sélecteur existe et porte les deux listes', () => {
     expect(recettes).toContain("{ label: 'Catalogue', value: 'catalogue' }");
-    expect(recettes).toContain("{ label: 'Ma réserve', value: 'reserve' }");
+    expect(recettes).toContain("{ label: 'Réalisable', value: 'reserve' }");
   });
 
-  it('🔴 « Ma réserve » n’est plus une puce parmi les créneaux', () => {
+  it('🔴 « Réalisable » n’est plus une puce parmi les créneaux', () => {
     // C'était le défaut : deux questions rangées comme une seule. Les puces
     // répondent à « quel genre de plat ? », la réserve à « qu'est-ce que je peux
     // faire ce soir ? » — et la seconde disparaissait dans la rangée horizontale.
@@ -114,7 +114,7 @@ describe('Recettes — deux listes, pas un filtre de plus', () => {
   });
 
   it('les puces de créneau ne sortent que sur le catalogue', () => {
-    // Filtrer « Ma réserve » par créneau ferait disparaître des plats réalisables
+    // Filtrer « Réalisable » par créneau ferait disparaître des plats réalisables
     // sans rien dire — un plafond muet, ce que le dépôt s'interdit.
     expect(recettes).toContain('{!surReserve && (');
   });
