@@ -273,6 +273,19 @@ export default function ProfilScreen() {
   const scrollRef = useRef<ScrollView>(null);
   premiumRef.current = premium;
 
+  // ⚠️ RECENSÉ PAR RÔLE, PAS PAR GREP (2026-08-25). Le verrou de `openEditor` garde
+  // les ÉDITEURS ; il ne dit rien de ce qui s'AFFICHE. Trois surfaces montrent la
+  // trajectoire vendue avec Kyroz+, et deux vivent ici : la zone posée sur la mini-
+  // courbe du suivi, et la carte d'objectif daté. La troisième est la feuille de
+  // pesée (`WeightCheckin`). Trouvées en basculant `PAYWALL_LAUNCH` sur une date
+  // passée et en REGARDANT l'écran — la relecture du code les avait laissées passer.
+  // ⚠️ Deux features distinctes à dessein, même si elles rendent le même verdict
+  // aujourd'hui : la ZONE sur la courbe est vendue comme « suivi de transformation »,
+  // la CARTE est l'objectif daté lui-même. Le jour où les deux se séparent, chaque
+  // surface part du bon côté.
+  const trajectoireVisible = premium.can('transformation');
+  const objectifDateVisible = premium.can('dated_goal');
+
   const openEditor = (key: EditorKey) => {
     const feature = EDITEURS_PREMIUM[key];
     if (feature && !premiumRef.current.can(feature)) { router.push('/kyroz-plus'); return; }
@@ -490,7 +503,7 @@ export default function ProfilScreen() {
           entries={weightEntries}
           delta={weightDelta}
           due={weighInDue}
-          goalTarget={trackingTarget(profile, todayStamp())}
+          goalTarget={trajectoireVisible ? trackingTarget(profile, todayStamp()) : undefined}
           onPress={() => setWeighIn(true)}
           tourId="profil-poids"
         />
@@ -505,7 +518,7 @@ export default function ProfilScreen() {
         )}
 
         {/* Objectif daté (premium) — suivi de trajectoire quand il est posé */}
-        {profile.goal_target && <DatedGoalCard t={t} profile={profile} onPress={() => setEditor('dated_goal')} />}
+        {profile.goal_target && objectifDateVisible && <DatedGoalCard t={t} profile={profile} onPress={() => setEditor('dated_goal')} />}
 
         {/* Sécurité : plan ramené au maintien parce que le poids est descendu trop bas.
             Ton informatif et non alarmant (anti charge mentale) : on explique et on

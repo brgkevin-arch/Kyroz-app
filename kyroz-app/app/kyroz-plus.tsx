@@ -73,7 +73,12 @@ export default function KyrozPlusScreen() {
   const router = useRouter();
   const dialog = useDialog();
   const { reason } = usePremium();
-  const [plan, setPlan] = useState<'monthly' | 'annual'>('monthly');
+  // ⚠️ L'ANNUEL EST PRÉSÉLECTIONNÉ (2026-08-25) — une décision, pas un défaut
+  // d'écriture. Le mensuel l'était jusque-là, ce qui mettait en avant la seule
+  // formule dont l'économie affichée juste en dessous (`annualSavingPct`) ne parle
+  // pas. Le mensuel reste à UN TAP et n'est jamais masqué : on met en avant, on
+  // n'enferme pas — c'est la limite entre présélectionner et piéger.
+  const [plan, setPlan] = useState<'monthly' | 'annual'>('annual');
   const [prixStore, setPrixStore] = useState<StorePrices>({});
   const [enCours, setEnCours] = useState(false);
 
@@ -175,8 +180,14 @@ export default function KyrozPlusScreen() {
               </Card>
             ))}
           </View>
+          {/* 🔴 LA FRAGILITÉ EST ANNONCÉE SUR L'ÉCRAN QUI VEND (2026-08-25). Les trois
+              surfaces qui parlent des photos promettaient « restent sur ton téléphone »
+              sans jamais dire « et tu les perds en changeant de téléphone ». Sur un
+              écran de vente, taire la limite d'une fonctionnalité payante est un
+              mensonge par omission — la règle produit ne distingue pas les deux. */}
           <Text style={s.confid}>
-            Tes photos de progression restent sur ton téléphone. Elles ne sont jamais envoyées.
+            Tes photos de progression restent sur ton téléphone. Elles ne sont jamais envoyées —
+            et ne sont pas sauvegardées : un changement de téléphone les perd.
           </Text>
         </View>
 

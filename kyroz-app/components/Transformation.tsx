@@ -95,7 +95,8 @@ export function PhotoCompare({ t, photos, entries }: {
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm }}>
         <LocalIcon color={t.textTertiary} size={Icone.petite} />
         <Text style={{ ...Type.micro, color: t.textTertiary, flex: 1 }}>
-          Tes photos restent sur ton téléphone, jamais envoyées.
+          Tes photos restent sur ton téléphone, jamais envoyées — et ne sont pas
+          sauvegardées : un changement de téléphone les perd.
         </Text>
       </View>
     </View>

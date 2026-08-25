@@ -233,14 +233,22 @@ export const TERMS_OF_USE: LegalSection[] = [
   // au conditionnel pour rester VRAIE aujourd'hui. Deux points qu'Apple contrôle à la
   // revue (Guideline 3.1.2) et qui doivent rester dans le texte : le renouvellement
   // automatique avec son délai de résiliation, et le fait que les remboursements
-  // relèvent du store. Un troisième point est une décision fondateur, pas une
-  // obligation : la gratuité à vie des comptes antérieurs (`lib/premium.ts`).
+  // relèvent du store. Deux autres points sont des décisions fondateur, pas des
+  // obligations : la gratuité à vie des comptes antérieurs (`lib/premium.ts`), et le
+  // TARIF BLOQUÉ à la souscription (2026-08-25).
+  // ⚠️ Ce dernier paragraphe est un ENGAGEMENT, pas une description : il nous
+  // interdit de relever le prix d'un produit qui a déjà des abonnés. La mécanique
+  // qui le tient est « un identifiant produit par palier tarifaire » — le palier
+  // précédent sort de la vente sans être supprimé, et ses abonnés se renouvellent à
+  // leur prix (comportement natif Apple / Google, rien à coder). Le jour où on
+  // change un prix EN PLACE au lieu de créer un palier, ce paragraphe devient faux.
   {
     title: '3. Abonnement Kyroz+',
     paragraphs: [
       "Le cœur du service reste gratuit : plan de la semaine, liste de courses, recettes, garde-manger, favoris, série, pesée, réglage du rythme de la semaine et synchronisation. Kyroz+ est un abonnement facultatif qui donne accès à des outils complémentaires — objectif daté et suivi de transformation.",
       "L’abonnement est vendu par l’App Store ou Google Play, jamais directement par Kyroz. Le prix affiché au moment de l’achat fait foi. Le paiement, le renouvellement et la résiliation se gèrent dans les réglages de votre compte App Store ou Google Play.",
       "L’abonnement se renouvelle automatiquement à la fin de chaque période, sauf résiliation au moins 24 heures avant l’échéance. Les demandes de remboursement relèvent du store, pas de Kyroz.",
+      "Le tarif de votre abonnement est celui affiché au moment où vous souscrivez, et il reste inchangé tant que votre abonnement demeure actif. Une évolution de nos tarifs ne s’applique qu’aux nouvelles souscriptions. En revanche, si vous résiliez puis souscrivez à nouveau plus tard, c’est le tarif en vigueur à cette date qui s’applique.",
       "Les comptes créés avant la mise en vente de Kyroz+ conservent l’accès à ces outils gratuitement, à vie, sans démarche à effectuer.",
     ],
   },
