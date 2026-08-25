@@ -5,6 +5,7 @@ import {
   heuresLimites, repasEchus, repasEchusVeille, getRepasAuto, FIN_DE_JOURNEE, minutesDepuisMinuit,
 } from '../repasAuto';
 import { BUILTIN_SLOTS } from '../mealSlots';
+import { GRACE_HOURS } from '../mealtime';
 import type { Meal, MealSlot } from '../types';
 
 // ── LES REPAS SE COCHENT TOUT SEULS QUAND LEUR HEURE EST PASSÉE ─────────────
@@ -27,13 +28,16 @@ const plan = lire('app/(tabs)/plan.tsx');
 const repas = (meal_type: string, over: Partial<Meal> = {}): Meal =>
   ({ id: meal_type, day: 1, meal_type, portions: 1, recipe: { id: 'r', ingredients: [] }, macros: {} , ...over }) as unknown as Meal;
 
-describe('l’heure limite d’un repas est le DÉBUT du suivant', () => {
+const creneau = (id: string, hour: number, minute = 0): MealSlot =>
+  ({ id, label: id, hour, minute, pool: 'meal' }) as MealSlot;
+
+describe('l’heure limite = début du suivant + une heure de marge', () => {
   const limites = heuresLimites(BUILTIN_SLOTS);
 
-  it('les trois premiers créneaux passent la main au suivant', () => {
-    expect(limites.get('breakfast')).toBe(13 * 60);   // le déjeuner commence
-    expect(limites.get('lunch')).toBe(16 * 60);       // la collation commence
-    expect(limites.get('snack')).toBe(20 * 60);       // le dîner commence
+  it('les trois premiers créneaux passent la main au suivant, marge comprise', () => {
+    expect(limites.get('breakfast')).toBe(14 * 60);   // déjeuner 13 h + 1 h
+    expect(limites.get('lunch')).toBe(17 * 60);       // collation 16 h + 1 h
+    expect(limites.get('snack')).toBe(21 * 60);       // dîner 20 h + 1 h
   });
 
   it('🔴 le dernier repas se coche à 23 h 59, JAMAIS à minuit', () => {
@@ -43,29 +47,76 @@ describe('l’heure limite d’un repas est le DÉBUT du suivant', () => {
     expect(FIN_DE_JOURNEE).toBeLessThan(24 * 60);
   });
 
+  it('🔴 la marge est CELLE de `mealtime`, pas un nombre écrit ici', () => {
+    // Deux valeurs auraient donné deux définitions de « ce repas a eu lieu » dans la
+    // même app, sans qu'aucune ne fasse foi.
+    expect(limites.get('breakfast')).toBe(13 * 60 + GRACE_HOURS * 60);
+  });
+
   it('un créneau créé après coup se range à son HEURE, pas à sa position', () => {
-    // « Shaker post-training » ajouté en dernier dans la liste, mais à 17 h : sans
+    // « Shaker post-training » ajouté en dernier dans la liste, mais à 17 h 30 : sans
     // le tri, il hériterait de l'heure limite du petit-déjeuner.
-    const slots: MealSlot[] = [
-      ...BUILTIN_SLOTS,
-      { id: 'shaker', label: 'Shaker', hour: 17, minute: 30, pool: 'snack' },
-    ];
-    const l = heuresLimites(slots);
-    expect(l.get('snack')).toBe(17 * 60 + 30);   // la collation passe la main au shaker
-    expect(l.get('shaker')).toBe(20 * 60);       // et le shaker au dîner
+    const l = heuresLimites([...BUILTIN_SLOTS, creneau('shaker', 17, 30)]);
+    expect(l.get('snack')).toBe(18 * 60 + 30);   // la collation passe la main au shaker
+    expect(l.get('shaker')).toBe(21 * 60);       // et le shaker au dîner
     expect(l.get('dinner')).toBe(FIN_DE_JOURNEE);
+  });
+
+  it('🔴 deux créneaux tardifs ne poussent pas une limite APRÈS minuit', () => {
+    // 23 h + 1 h = minuit passé : la limite ne serait jamais atteinte avant
+    // l'effacement du suivi, donc ce repas ne se cocherait JAMAIS.
+    const l = heuresLimites([creneau('dinner', 20), creneau('shaker', 23)]);
+    expect(l.get('dinner')).toBe(FIN_DE_JOURNEE);
+    expect(l.get('shaker')).toBe(FIN_DE_JOURNEE);
+  });
+});
+
+describe('🔴 la règle tient à 2 et 3 repas comme à 4 (demande fondateur)', () => {
+  // Sans marge, le nombre de repas changeait le comportement : à 4 repas le déjeuner
+  // se fermait 3 h après son début (une collation passait derrière), à 2 repas il
+  // avait sept heures. Un réglage ne doit pas dépendre d'un choix qui n'a rien à voir.
+  it('3 repas : chacun garde au moins quatre heures', () => {
+    const l = heuresLimites([creneau('breakfast', 8), creneau('lunch', 13), creneau('dinner', 20)]);
+    expect(l.get('breakfast')).toBe(14 * 60);
+    expect(l.get('lunch')).toBe(21 * 60);
+    expect(l.get('dinner')).toBe(FIN_DE_JOURNEE);
+  });
+
+  it('2 repas : le déjeuner tient jusqu’au soir', () => {
+    const l = heuresLimites([creneau('lunch', 13), creneau('dinner', 20)]);
+    expect(l.get('lunch')).toBe(21 * 60);
+    expect(l.get('dinner')).toBe(FIN_DE_JOURNEE);
+  });
+
+  it('🔴 aucun repas ne se ferme moins de DEUX heures après son début', () => {
+    // Le vrai invariant, celui qui vaut pour toutes les configurations : une journée
+    // dense (5 créneaux, dont deux à 1 h 30 d'écart) ne doit pas cocher un repas
+    // pendant qu'on est encore en train de le manger.
+    for (const slots of [
+      [...BUILTIN_SLOTS],
+      [creneau('breakfast', 8), creneau('lunch', 13), creneau('dinner', 20)],
+      [creneau('lunch', 13), creneau('dinner', 20)],
+      [...BUILTIN_SLOTS, creneau('shaker', 17, 30)],
+      [creneau('a', 7), creneau('b', 10), creneau('c', 13), creneau('d', 16), creneau('e', 19)],
+    ]) {
+      const l = heuresLimites(slots);
+      for (const s of slots) {
+        const debut = s.hour * 60 + (s.minute ?? 0);
+        expect(l.get(s.id)! - debut, `${s.id} de ${slots.length} repas`).toBeGreaterThanOrEqual(120);
+      }
+    }
   });
 });
 
 describe('ce qui est échu, et ce qu’on ne touche jamais', () => {
   const jour = [repas('breakfast'), repas('lunch'), repas('snack'), repas('dinner')];
 
-  it('à 13 h, seul le petit-déjeuner est échu', () => {
-    expect(repasEchus(jour, BUILTIN_SLOTS, 13 * 60).map((m) => m.meal_type)).toEqual(['breakfast']);
+  it('à 14 h, seul le petit-déjeuner est échu', () => {
+    expect(repasEchus(jour, BUILTIN_SLOTS, 14 * 60).map((m) => m.meal_type)).toEqual(['breakfast']);
   });
 
-  it('à 12 h 59, rien ne l’est encore', () => {
-    expect(repasEchus(jour, BUILTIN_SLOTS, 12 * 60 + 59)).toHaveLength(0);
+  it('à 13 h 59, rien ne l’est encore — le déjeuner vient à peine de commencer', () => {
+    expect(repasEchus(jour, BUILTIN_SLOTS, 13 * 60 + 59)).toHaveLength(0);
   });
 
   it('en fin de journée, tout ce qui reste l’est', () => {

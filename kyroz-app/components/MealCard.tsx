@@ -20,7 +20,7 @@ const MEAL_LABELS: Record<string, string> = {
 };
 
 export function MealCard({
-  meal, onPress, onCook, onReload, onDislike, onShopping, missing, reserveNonVide, tourId, cookTourId, actionsTourId,
+  meal, onPress, onCook, onReload, onDislike, onShopping, missing, reserveNonVide, tourId, cookTourId, actionsTourId, statutTourId,
 }: {
   meal: Meal;
   onPress?: () => void;
@@ -30,7 +30,8 @@ export function MealCard({
   onShopping?: () => void;   // → liste de courses (raccourci depuis « il te manque »)
   missing?: string[];        // ce qui manque en réserve, quantités comprises (undefined si réserve vide)
   reserveNonVide?: boolean;  // la réserve contient au moins 1 aliment
-  tourId?: string;           // si fourni : rend la carte ciblable par la visite guidée
+  tourId?: string;
+  statutTourId?: string;     // si fourni : rend le SURTITRE (« PETIT-DÉJEUNER · 15 MIN ») ciblable           // si fourni : rend la carte ciblable par la visite guidée
   cookTourId?: string;       // si fourni : rend le bouton « J'ai cuisiné » ciblable par la visite guidée
   actionsTourId?: string;    // si fourni : rend la rangée favori / j'aime pas / changer ciblable
 }) {
@@ -38,6 +39,11 @@ export function MealCard({
   const rootRef = useTourTarget(tourId);
   const cookRef = useTourTarget(cookTourId);
   const actionsRef = useTourTarget(actionsTourId);
+  // ⚠️ Cible SÉPARÉE du bouton « J'ai cuisiné », et c'est la condition pour qu'une
+  // bulle de plus soit lisible : deux spotlights qui se chevauchent ne s'expliquent
+  // plus l'un l'autre (même raison que le groupe d'icônes plus bas). Le surtitre vit
+  // en HAUT de la carte, le bouton en bas.
+  const statutRef = useTourTarget(statutTourId);
   const { isFavorite, toggle } = useFavorites();
   const slots = useMealSlots();
   const fav = isFavorite(meal.recipe.id);
@@ -65,13 +71,19 @@ export function MealCard({
           le moteur utilise (`effectiveMacros` rend 0, la journée se recale). Les
           deux mots suffisent à dire l'état ; un pictogramme ne remplace pas une
           ponctuation (CLAUDE.md §8), et celui-là ajoutait un jugement. */}
-      <Text style={[styles.type, { color: t.textTertiary }]}>
-        {(MEAL_LABELS[meal.meal_type] ?? slotLabel(slots, meal.meal_type)).toLocaleUpperCase('fr-FR')}
-        {isFixed ? ' · TU GÈRES'
-          : eaten ? ' · MANGÉ'
-          : skipped ? ' · SAUTÉ'
-          : ` · ${meal.recipe.prep_time_min} MIN`}
-      </Text>
+      {/* ⚠️ Enveloppé dans une View pour la visite guidée : un `Text` de RN ne
+          s'auto-mesure pas de façon fiable sur les deux plateformes, et l'anneau a
+          besoin d'un cadre. La View est un bloc pleine largeur — la mise en page ne
+          bouge pas d'un pixel. */}
+      <View ref={statutRef}>
+        <Text style={[styles.type, { color: t.textTertiary }]}>
+          {(MEAL_LABELS[meal.meal_type] ?? slotLabel(slots, meal.meal_type)).toLocaleUpperCase('fr-FR')}
+          {isFixed ? ' · TU GÈRES'
+            : eaten ? ' · MANGÉ'
+            : skipped ? ' · SAUTÉ'
+            : ` · ${meal.recipe.prep_time_min} MIN`}
+        </Text>
+      </View>
       {/* 🔴 LE NOM N'EST PLUS BARRÉ QUAND LE REPAS EST SAUTÉ (2026-08-20). Le barré
           est la grammaire de la TÂCHE RAYÉE — c'est celle de la liste de courses, où
           il est juste (`courses.tsx`, un article coché est acheté). Sur un repas, il

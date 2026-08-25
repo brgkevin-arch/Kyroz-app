@@ -347,9 +347,18 @@ OUTPUT         → Plan + liste de courses + recettes
         de riz déclaraient réalisable une recette qui en demande 200, et l'écran
         proposait du poulet à un végétarien.
 - [x] **Auto-coche des repas** (2026-08-24, `lib/repasAuto.ts`) — un repas non tranché
-      passe en « mangé » quand le repas SUIVANT commence, et le dernier de la journée à
-      **23 h 59** (jamais minuit : `resetTracking` efface le suivi au changement de date).
-      Les heures sont lues sur les créneaux RÉELS du profil, jamais écrites en dur.
+      passe en « mangé » **une heure après le début du repas SUIVANT**, et le dernier de
+      la journée à **23 h 59** (jamais minuit : `resetTracking` efface le suivi au
+      changement de date). Les heures sont lues sur les créneaux RÉELS du profil, jamais
+      écrites en dur.
+      ⚠️ **La marge d'une heure vient du NOMBRE DE REPAS** (demande fondateur, le même
+      jour) : sans elle, une journée à 4 repas fermait le déjeuner à 16 h — une collation
+      passait derrière lui — quand une journée à 2 repas lui laissait sept heures. Le même
+      réglage devenait deux comportements selon un choix qui n'a rien à voir avec l'heure
+      des repas. C'est `GRACE_HOURS` (`lib/mealtime.ts`), **la même constante** que « ce
+      repas est passé » ailleurs dans l'app, et elle est bornée à la fin de journée.
+      Invariant compté : aucun repas ne se ferme moins de deux heures après son début,
+      quelle que soit la configuration.
       C'est **exactement** « J'ai cuisiné » (réserve, macros verrouillées, recalage,
       série), avec `auto: true` sur `meal_cooked` pour que la north star reste lisible
       (METRICS.md §3). Réglage d'appareil **ALLUMÉ par défaut**, dans Profil → Paramètres
@@ -2056,7 +2065,7 @@ et l'écran ne sert qu'à juger le rendu (opacité forcée à 1). Procédure :
 ### La visite guidée dit ce que le code FAIT (2026-08-08)
 
 Un tour par onglet, déclenché **à la première visite de CET onglet** — jamais tous au
-démarrage. 19 bulles au total (plan 5 · profil 6 · recettes 3 · courses 3 · réserve 2),
+démarrage. 20 bulles au total (plan 6 · profil 6 · recettes 3 · courses 3 · réserve 2),
 mais une personne n'en voit que 6 le jour où elle ouvre le Plan. Servies d'un bloc, ce
 seraient 20 **interruptions modales** dans la même session : chaque bulle est une
 `Modal` dont les panneaux avalent les taps, pas une infobulle qu'on ignore.

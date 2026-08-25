@@ -93,9 +93,11 @@ La journée, repas par repas, avec ses macros. Une rangée de jours en haut. Sur
 - **« J'ai cuisiné »** — le repas est validé, les ingrédients sortent de la réserve, les
   repas restants se recalent pour tenir la cible du jour.
   ⚠️ **Un repas se coche aussi TOUT SEUL quand son heure est passée** (depuis le
-  2026-08-24) : à l'heure du repas suivant, et en fin de journée pour le dernier. C'est
-  exactement le même geste — déduction, macros, recalage — et il se coupe dans
-  Profil → Paramètres des repas. Un repas coché à tort se décoche d'une touche.
+  2026-08-24) : **une heure après le début du repas suivant**, et en fin de journée
+  (23 h 59) pour le dernier. Sur les créneaux par défaut, ça donne 14 h · 17 h · 21 h ·
+  23 h 59 à quatre repas, et 14 h · 21 h · 23 h 59 à trois. C'est exactement le même
+  geste qu'un tap — déduction, macros, recalage — le tutoriel du Plan l'annonce, et il se
+  coupe dans Profil → Paramètres des repas. Un repas coché à tort se décoche d'une touche.
 - **« Je l'ai sauté »** — le repas ne compte pas, son budget bascule sur les suivants.
   ⚠️ **C'est un fait, pas une faute** : la carte l'écrit sans signe de jugement, le nom du
   plat n'est pas barré, et la série n'est pas cassée. On peut annuler.

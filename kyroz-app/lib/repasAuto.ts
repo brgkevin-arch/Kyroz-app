@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Meal, MealSlot, MealType } from './types';
+import { GRACE_HOURS } from './mealtime';
 
 // ── Les repas se cochent tout seuls quand leur heure est passée ──────────────
 //
@@ -9,18 +10,23 @@ import { Meal, MealSlot, MealType } from './types';
 // toute la journée ne recale rien, ne déduit rien de la réserve, et finit par
 // mentir à l'écran (« il te reste 2 400 kcal » à 22 h).
 //
-// ➡️ LA RÈGLE, en une phrase : **un repas se coche quand le repas SUIVANT commence ;
-// le dernier de la journée se coche à la fin de la journée.** C'est exactement ce
+// ➡️ LA RÈGLE, en une phrase : **un repas se coche une heure après le début du repas
+// SUIVANT ; le dernier de la journée se coche à la fin de la journée.** C'est ce
 // qu'énonçait le fondateur (« le petit-déj à midi, le midi à 19 h, le soir à
 // minuit ») — mais lu sur les créneaux RÉELS du profil, pas sur des heures écrites
 // en dur. Celui qui dîne à 22 h ou qui a créé un « shaker post-training » à 17 h
 // obtient le même comportement sans qu'on ait à prévoir son cas.
 //
+// ⚠️ L'heure de marge n'est pas un ornement : sans elle, une journée à 4 repas
+// fermait le déjeuner à 16 h (une collation passait derrière) là où une journée à
+// 2 repas lui laissait sept heures — le même réglage devenait deux comportements
+// selon le nombre de repas. Détail et mesure : `heuresLimites`.
+//
 // ⚠️ MINUIT EST INTERDIT, et ce n'est pas un détail d'implémentation. À minuit,
 // `plan.tsx` efface le suivi de la journée (`resetTracking`) : un dîner coché
 // « à 00 h 00 » serait effacé dans la même seconde. Le dernier repas se coche donc
 // à **23 h 59**, et la journée manquée se solde au premier lancement du lendemain
-// (`repasAEncaisserVeille`), AVANT l'effacement.
+// (`repasEchusVeille`), AVANT l'effacement.
 //
 // ⚠️ Un repas FIXE (géré par l'utilisateur) n'est jamais coché : l'app ne le suit
 // pas, il n'a même pas de bouton « J'ai cuisiné ». Un repas déjà mangé ou sauté non
@@ -93,7 +99,26 @@ export function minutesDepuisMinuit(d: Date = new Date()): number {
 }
 
 /**
- * Heure limite de chaque créneau = début du suivant, fin de journée pour le dernier.
+ * Heure limite de chaque créneau = **début du suivant + une heure de marge**, et fin
+ * de journée pour le dernier.
+ *
+ * 🔴 LA MARGE A ÉTÉ AJOUTÉE LE 2026-08-24, ET C'EST LE NOMBRE DE REPAS QUI L'EXIGE
+ * (demande du fondateur : « adapte ça à ceux qui ne prennent que 2 ou 3 repas »).
+ * Sans elle, la règle se resserre à mesure que les créneaux se rapprochent : sur une
+ * journée à 4 repas (8 · 13 · 16 · 20), le déjeuner se fermait à **16 h**, soit trois
+ * heures après son début, parce qu'une collation passait derrière lui. À 2 repas, le
+ * même calcul laissait sept heures. **Le même réglage devenait deux comportements
+ * différents selon un choix qui n'a rien à voir avec l'heure des repas.**
+ *
+ * ⚠️ La marge est `GRACE_HOURS` (`lib/mealtime.ts`), et c'est volontairement LA MÊME
+ * constante que celle qui décide qu'un repas est « passé » pour l'adaptation d'un
+ * écart hors plan. Deux valeurs auraient donné deux définitions de « ce repas a eu
+ * lieu » dans la même app, et rien n'aurait dit laquelle fait foi.
+ *
+ * ⚠️ Bornée à la fin de journée : deux créneaux tardifs (20 h et 23 h) donneraient
+ * sinon une limite après minuit, donc un repas qui ne se coche JAMAIS — l'effacement
+ * du suivi passerait avant.
+ *
  * ⚠️ Calculée sur les créneaux TRIÉS par heure, pas sur l'ordre de la liste : un
  * créneau créé après coup (« shaker de 17 h » ajouté en dernier) se range à sa place
  * réelle, sinon il hériterait de l'heure limite du petit-déjeuner.
@@ -103,7 +128,9 @@ export function heuresLimites(slots: readonly MealSlot[]): Map<MealType, number>
   const out = new Map<MealType, number>();
   tries.forEach((s, i) => {
     const suivant = tries[i + 1];
-    out.set(s.id, suivant ? minutesDuCreneau(suivant) : FIN_DE_JOURNEE);
+    out.set(s.id, suivant
+      ? Math.min(minutesDuCreneau(suivant) + GRACE_HOURS * 60, FIN_DE_JOURNEE)
+      : FIN_DE_JOURNEE);
   });
   return out;
 }

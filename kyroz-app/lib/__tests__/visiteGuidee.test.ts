@@ -73,8 +73,13 @@ const SOURCES = FICHIERS.map((f) => f.src).join('\n');
 function idsPosesDans(src: string): Set<string> {
   const ids = new Set<string>();
   for (const m of src.matchAll(/useTourTarget\(\s*['"]([\w-]+)['"]/g)) ids.add(m[1]);
-  for (const m of src.matchAll(/\btourId\s*=\s*"([\w-]+)"/g)) ids.add(m[1]);
-  for (const m of src.matchAll(/\b(?:tourId|cookTourId|actionsTourId)\s*=\s*\{[^}]*?['"]([\w-]+)['"]/g)) ids.add(m[1]);
+  // ⚠️ TOUTE prop en `*TourId`, jamais une LISTE de noms. La version d'avant
+  // énumérait `tourId|cookTourId|actionsTourId` : le jour où `statutTourId` est né
+  // (l'auto-coche, 2026-08-24), le test a déclaré la cible « posée nulle part » —
+  // alarmant et faux. Un garde-fou nommé d'après les implémentations qu'il connaît
+  // meurt à la suivante (CLAUDE.md §8, `espacementDA` après la migration `Presse`).
+  for (const m of src.matchAll(/\b\w*[Tt]ourId\s*=\s*"([\w-]+)"/g)) ids.add(m[1]);
+  for (const m of src.matchAll(/\b\w*[Tt]ourId\s*=\s*\{[^}]*?['"]([\w-]+)['"]/g)) ids.add(m[1]);
   return ids;
 }
 
@@ -96,9 +101,9 @@ function lanceurDeTour(): Map<string, string> {
 }
 
 /** Un contexte qui ACTIVE toutes les branches : le test doit voir chaque étape. */
-const CTX_COMPLET = { days: 7, moduleParVolume: true, objectifDateDisponible: true };
+const CTX_COMPLET = { days: 7, moduleParVolume: true, objectifDateDisponible: true, repasAuto: true };
 /** Le contexte inverse, pour vérifier que les variantes tiennent aussi. */
-const CTX_MINIMAL = { days: 1, moduleParVolume: false, objectifDateDisponible: false };
+const CTX_MINIMAL = { days: 1, moduleParVolume: false, objectifDateDisponible: false, repasAuto: false };
 
 // ⚠️ `?? []` : un id absent du `switch` de `tourSteps` rend `undefined`, et sans
 // ce repli l'erreur remontait à l'IMPORT du module — vitest affichait alors

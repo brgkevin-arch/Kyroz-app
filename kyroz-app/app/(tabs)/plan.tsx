@@ -229,7 +229,7 @@ export default function PlanScreen() {
   // tour n'est pas « prêt » → il démarre à sa fermeture, pas par-dessus.
   const { rejouer: rejouerTour } = useScreenTour(
     'plan',
-    planTour({ days: plan?.days ?? 7, moduleParVolume }),
+    planTour({ days: plan?.days ?? 7, moduleParVolume, repasAuto }),
     // ⚠️ `showOffer` compte autant que `showReveal` : les trois surfaces se
     // suivent (reveal → offre → tour) et deux modales superposées avalent les
     // taps l'une de l'autre.
@@ -1070,6 +1070,7 @@ export default function PlanScreen() {
                     onShopping={() => router.push('/(tabs)/courses')}
                     missing={m.fixed ? undefined : missing}
                     reserveNonVide={reserveNonVide}
+                    statutTourId={i === premierCuisinable ? 'plan-auto' : undefined}
                     cookTourId={i === premierCuisinable ? 'plan-cook' : undefined}
                     actionsTourId={i === premierCuisinable ? 'plan-actions' : undefined}
                   />

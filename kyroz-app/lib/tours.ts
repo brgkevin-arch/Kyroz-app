@@ -89,9 +89,16 @@ export interface PlanTourContext {
    * d'entraînement mentirait à qui n'en a pas.
    */
   moduleParVolume: boolean;
+  /**
+   * L'auto-coche est-elle allumée ? (`lib/repasAuto.ts`, défaut `true`)
+   * ⚠️ La bulle qui l'explique est CONDITIONNÉE : éteinte, elle promettrait un
+   * automatisme qui n'a pas lieu — le défaut exact qu'E58 avait laissé passer sur
+   * trois phrases du frigo. Une bulle est une affirmation sur le code.
+   */
+  repasAuto: boolean;
 }
 
-export function planTour({ days, moduleParVolume }: PlanTourContext): TourStep[] {
+export function planTour({ days, moduleParVolume, repasAuto }: PlanTourContext): TourStep[] {
   return [
     {
       // Prouvé par : plan.tsx:198 — `markActiveToday()` part au MONTAGE, donc à
@@ -146,16 +153,32 @@ export function planTour({ days, moduleParVolume }: PlanTourContext): TourStep[]
       title: 'Ta répartition',
       text: "Ce raccourci ouvre « Calories & macros » dans ton profil, où tu peux passer en pourcentages perso. Ton plan se refait alors seul, sans effacer ce que tu as déjà marqué aujourd'hui.",
     },
+    // 🔴 L'AUTO-COCHE A SA PROPRE BULLE (2026-08-24, demande du fondateur : « sans le
+    // savoir c'est compliqué »). Elle avait d'abord été glissée en seconde phrase de
+    // la bulle « J'ai cuisiné » — c'était l'erreur : un mécanisme qui agit TOUT SEUL
+    // sur le suivi de quelqu'un ne s'annonce pas en incise du geste qu'il remplace.
+    // ⚠️ Elle vise le SURTITRE de la carte, pas le bouton : c'est le mot qui va
+    // changer (« · 15 MIN » → « · MANGÉ »), et deux anneaux ne peuvent pas se
+    // chevaucher sans cesser de s'expliquer l'un l'autre.
+    ...(repasAuto ? [{
+      // Prouvé par : plan.tsx::autoCocher — `repasEchus` (lib/repasAuto.ts) rend les
+      // repas dont l'heure limite est passée, puis le même traitement que `cookMeal`
+      // (déduction, `locked_macros`, `rebalanceDay`). Heure limite = début du repas
+      // suivant + 1 h, fin de journée pour le dernier.
+      targetId: 'plan-auto',
+      // Forme : MealCard.tsx::styles.type — une ligne de texte, pas un bloc à fond.
+      forme: 'carte' as const,
+      title: 'Ils se cochent tout seuls',
+      text: "Pas besoin de tout marquer : un repas passe en « mangé » une heure après le début du suivant, le dernier en fin de journée. Ta journée se recale et ta réserve suit. Tu peux décocher, ou couper ça dans ton profil.",
+    }] : []),
     {
       // Prouvé par : plan.tsx::cookMeal — `deductIngredients` retire de la
-      // réserve, `setMealStatus('eaten')` déclenche `rebalanceDay`. Et
-      // plan.tsx::autoCocher fait exactement la même chose quand l'heure du repas
-      // suivant est passée (lib/repasAuto.ts), sauf si le réglage est éteint.
+      // réserve, `setMealStatus('eaten')` déclenche `rebalanceDay`.
       targetId: 'plan-cook',
       // Forme : MealCard.tsx::cookBtn — `borderRadius: Radius.button`.
       forme: 'bouton',
       title: 'Marque-le comme cuisiné',
-      text: "Tape « J'ai cuisiné » : les ingrédients quittent ta réserve et les repas qui restent se recalent. Un repas dont l'heure est passée se coche seul — tu peux couper ça dans ton profil.",
+      text: "Quand tu as préparé un plat, tape « J'ai cuisiné » : les ingrédients quittent ta réserve et les repas qui restent se recalent pour tenir ta cible du jour.",
     },
     {
       // Prouvé par : plan.tsx::dislikeMealCore (la recette entre dans

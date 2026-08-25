@@ -1692,7 +1692,7 @@ function MealsEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: Edi
       />
       <Text style={{ ...Type.caption, color: t.textTertiary, lineHeight: 17, marginTop: -Spacing.sm }}>
         {repasAuto
-          ? "Un repas non marqué passe en « mangé » quand l'heure du repas suivant arrive — le dernier de la journée en fin de journée. Ses ingrédients quittent ta réserve, comme si tu avais tapé « J'ai cuisiné ». Tu peux toujours le décocher."
+          ? "Un repas non marqué passe en « mangé » une heure après le début du repas suivant — le dernier de la journée en fin de journée. Ses ingrédients quittent ta réserve, comme si tu avais tapé « J'ai cuisiné ». Tu peux toujours le décocher."
           : "Tes repas ne se cochent que si tu tapes « J'ai cuisiné ». Ta journée n'est recalée que sur ce que tu as marqué toi-même."}
       </Text>
 
