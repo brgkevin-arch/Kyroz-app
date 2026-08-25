@@ -21,8 +21,6 @@ import {
 } from '../../lib/pantry';
 import { Recipe } from '../../lib/types';
 import { OBJ_LABEL } from '../../lib/recipeLabels';
-import { useTourTarget, useScreenTour, TourButton } from '../../components/GuidedTour';
-import { recettesTour } from '../../lib/tours';
 import { revelation, libelleRevelation } from '../../lib/revelation';
 import { BoutonRevelation, Segmented } from '../../components/ui';
 import { animerMiseEnPage } from '../../components/Mouvement';
@@ -114,7 +112,6 @@ export default function RecettesScreen() {
   // listes. ⚠️ Les trois d'avant ont été RETIRÉES avec leurs bulles — une cible
   // enregistrée que plus aucune étape ne vise se relit comme une bulle perdue en
   // route (même motif que `frigo-vue-cuisiner` le 2026-08-14).
-  const vuesRef = useTourTarget('recettes-vues');
 
   const q = norm(query.trim());
   const surReserve = vueListe === 'reserve';
@@ -156,7 +153,6 @@ export default function RecettesScreen() {
 
   // La bulle vise le SÉLECTEUR, qui est monté dès que l'écran l'est — plus besoin
   // d'attendre une carte comme au temps où le tour désignait la première de la liste.
-  const { rejouer: rejouerTour } = useScreenTour('recettes', recettesTour());
 
   // « J'ai mangé » depuis une fiche ouverte sur la liste « Réalisable » : c'est le
   // geste qui vivait sur les cartes du Frigo, déplacé avec la liste.
@@ -196,14 +192,18 @@ export default function RecettesScreen() {
             qu'un compteur n'est pas ce qu'on vient chercher en ouvrant un onglet.
             ⚠️ Le compte du catalogue n'est pas perdu : il vit dans la ligne de
             section, juste sous les filtres, là où il CHANGE quand on filtre. */}
+        {/* 🔴 PLUS DE TUTO NI DE « ? » SUR CET ÉCRAN (2026-08-25, décision fondateur).
+            Les deux libellés « Catalogue » et « Réalisable » se lisent seuls, et le
+            « ? » supposait qu'on veuille REVOIR une bulle — or on ne la revoit pas :
+            « une fois que l'user a lu, c'est bon ». Le rejeu reste possible depuis
+            « Revoir les tutos » du Profil, qui est le seul recours nécessaire. */}
         <View style={s.header}>
           <Text style={[s.h1, { flex: 1 }]}>Recettes</Text>
-          <TourButton onPress={rejouerTour} />
         </View>
 
         {/* Les deux listes. Même composant que le Frais/Sec de la Réserve : deux
             questions séparées se choisissent, elles ne se filtrent pas. */}
-        <View ref={vuesRef} style={s.vues}>
+        <View style={s.vues}>
           <Segmented<VueRecettes>
             t={t}
             value={vueListe}

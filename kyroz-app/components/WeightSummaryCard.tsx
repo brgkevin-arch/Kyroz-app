@@ -10,7 +10,6 @@ import { CONTENT_MAX_WIDTH } from '../constants/layout';
 import { WeightChart } from './WeightChart';
 import { GoalTarget } from '../lib/types';
 import { WeightEntry } from '../lib/weight';
-import { useTourTarget } from './GuidedTour';
 
 interface Props {
   t: ThemePalette;
@@ -23,8 +22,9 @@ interface Props {
   due?: boolean;
   goalTarget?: GoalTarget;
   onPress: () => void;
-  /** Si fourni : rend la carte ciblable par la visite guidée. */
-  tourId?: string;
+  // 🔴 `tourId` retiré le 2026-08-25 : la bulle du Profil se pose au CENTRE, sans
+  // anneau (décision fondateur). Une prop de ciblage que plus aucune étape ne vise
+  // se relit comme une bulle perdue — cf. `lib/tours.ts`.
 }
 
 // ── Carte « Suivi du poids » ────────────────────────────────────────────────
@@ -57,10 +57,9 @@ interface Props {
 const MARGES_COURBE = Spacing.xl * 2 + Spacing.xl * 2;
 
 export function WeightSummaryCard({
-  t, profileWeightKg, entries, delta, due, goalTarget, onPress, tourId,
+  t, profileWeightKg, entries, delta, due, goalTarget, onPress,
 }: Props) {
   const s = makeStyles(t);
-  const tourRef = useTourTarget(tourId);
   const { width: winW } = useWindowDimensions();
   // ⚠️ MESURÉE, jamais écrite en dur (et `useWindowDimensions`, pas
   // `Dimensions.get` : sur iPad la fenêtre change de taille sans relancer l'app —
@@ -73,7 +72,7 @@ export function WeightSummaryCard({
   const poids = profileWeightKg;
 
   return (
-    <Presse ref={tourRef} activeOpacity={OPACITE_PRESSION} onPress={onPress} style={[s.card, cardShadow(t)]}>
+    <Presse activeOpacity={OPACITE_PRESSION} onPress={onPress} style={[s.card, cardShadow(t)]}>
       <Text style={s.label}>SUIVI DU POIDS</Text>
 
       {/* Le chiffre seul sur sa ligne : c'est le sujet de la carte. L'écart passe

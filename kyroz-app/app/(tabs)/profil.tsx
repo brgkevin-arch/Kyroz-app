@@ -26,7 +26,7 @@ import { DateInput } from '../../components/DateInput';
 import { ageOn } from '../../lib/birthday';
 import { ActionSheet } from '../../components/ActionSheet';
 import { WeightSummaryCard } from '../../components/WeightSummaryCard';
-import { useTourTarget, useScreenTour, TourButton, resetAllTours } from '../../components/GuidedTour';
+import { useScreenTour, resetAllTours } from '../../components/GuidedTour';
 import { profilTour, TOURS } from '../../lib/tours';
 import { BodyFatPicker } from '../../components/BodyFatPicker';
 import { DislikedFoodsField } from '../../components/DislikedFoodsField';
@@ -510,7 +510,6 @@ export default function ProfilScreen() {
           due={weighInDue}
           goalTarget={trajectoireVisible ? trackingTarget(profile, todayStamp()) : undefined}
           onPress={() => setWeighIn(true)}
-          tourId="profil-poids"
         />
 
         {/* Révision du moteur : la cible a bougé sans que l'utilisateur touche à rien.
@@ -1709,7 +1708,7 @@ function MealsEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: Edi
       />
       <Text style={{ ...Type.caption, color: t.textTertiary, lineHeight: 17, marginTop: -Spacing.sm }}>
         {repasAuto
-          ? "Un repas non marqué passe en « mangé » une heure après le début du repas suivant — le dernier de la journée en fin de journée. Ses ingrédients quittent ta réserve, comme si tu avais tapé « J'ai cuisiné ». Tu peux toujours le décocher."
+          ? "Un repas non marqué passe en « mangé » une heure après le début du repas suivant — le dernier de la journée en fin de journée. Ses ingrédients quittent ta réserve, comme si tu avais tapé « J'ai cuisiné ». Un repas coché ne revient pas en arrière : si tu préfères décider toi-même, passe sur « À la main »."
           : "Tes repas ne se cochent que si tu tapes « J'ai cuisiné ». Ta journée n'est recalée que sur ce que tu as marqué toi-même."}
       </Text>
 

@@ -8,10 +8,6 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemePalette, Radius, Spacing, Type, cardShadow, CIBLE_TACTILE_MIN, Trait, Icone, OPACITE_PRESSION } from '../constants/theme';
-// ⚠️ Pas de cycle : `GuidedTour` n'importe rien d'ici (vérifié le 2026-08-10 en
-// montant `MenuRow`). Si ça changeait, `useTourTarget` devrait déménager dans un
-// module sans dépendance — c'est déjà le patron de `lib/tours.ts`.
-import { useTourTarget } from './GuidedTour';
 
 // ── Primitives UI thémées, réutilisables partout ─────────────────────────────
 
@@ -299,15 +295,15 @@ export function SectionTitle({ t, children }: { t: ThemePalette; children: React
 // fichiers avaient besoin du même composant. Le recopier aurait été « un style
 // recopié partout est un rôle qui n'a pas de nom » (CLAUDE.md §8), sur le
 // composant le plus employé de l'app.
+// ⚠️ `tourId` RETIRÉ le 2026-08-25 : il rendait une ligne de menu ciblable par la
+// visite guidée, et plus aucune bulle ne vise d'objet depuis la seconde coupe des
+// tutos. La prop n'avait déjà plus d'appelant — c'est le garde-fou de dormance de
+// `visiteGuidee.test.ts` qui l'a trouvée, pas une relecture.
 export function MenuRow({
-  t, label, value, onPress, last, readonly, tourId,
-}: { t: ThemePalette; label: string; value: string; onPress: () => void; last?: boolean; readonly?: boolean; tourId?: string }) {
-  // `tourId` optionnel : rend CETTE ligne ciblable par la visite guidée. Sans lui
-  // aucune n'était ancrable — un TouchableOpacity rendu par une fonction n'expose
-  // pas de ref à l'appelant.
-  const tourRef = useTourTarget(tourId);
+  t, label, value, onPress, last, readonly,
+}: { t: ThemePalette; label: string; value: string; onPress: () => void; last?: boolean; readonly?: boolean }) {
   return (
-    <Presse ref={tourRef} onPress={onPress} activeOpacity={readonly ? 1 : OPACITE_PRESSION} disabled={readonly}
+    <Presse onPress={onPress} activeOpacity={readonly ? 1 : OPACITE_PRESSION} disabled={readonly}
       style={[{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md, paddingVertical: Spacing.lg }, !last && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.line }]}>
       <View style={{ flex: 1 }}>
         <Text style={{ ...Type.h3, color: t.text, letterSpacing: -0.3 }}>{label}</Text>
