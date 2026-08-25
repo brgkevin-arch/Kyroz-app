@@ -4,7 +4,6 @@ import { Presse } from './Presse';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme, Radius, cardShadow, ThemePalette, Type, Spacing, Trait, Icone, OPACITE_PRESSION } from '../constants/theme';
 import { Meal } from '../lib/types';
-import { useTourTarget } from './GuidedTour';
 import { useFavorites } from '../hooks/useFavorites';
 import { useMealSlots } from '../hooks/useMealSlots';
 import { slotLabel } from '../lib/mealSlots';
@@ -20,7 +19,7 @@ const MEAL_LABELS: Record<string, string> = {
 };
 
 export function MealCard({
-  meal, onPress, onCook, onReload, onDislike, onShopping, missing, reserveNonVide, tourId, cookTourId, statutTourId,
+  meal, onPress, onCook, onReload, onDislike, onShopping, missing, reserveNonVide,
 }: {
   meal: Meal;
   onPress?: () => void;
@@ -30,19 +29,17 @@ export function MealCard({
   onShopping?: () => void;   // → liste de courses (raccourci depuis « il te manque »)
   missing?: string[];        // ce qui manque en réserve, quantités comprises (undefined si réserve vide)
   reserveNonVide?: boolean;  // la réserve contient au moins 1 aliment
-  tourId?: string;
-  statutTourId?: string;     // si fourni : rend le SURTITRE (« PETIT-DÉJEUNER · 15 MIN ») ciblable           // si fourni : rend la carte ciblable par la visite guidée
-  cookTourId?: string;       // si fourni : rend le bouton « J'ai cuisiné » ciblable par la visite guidée
-  actionsTourId?: string;    // si fourni : rend la rangée favori / j'aime pas / changer ciblable
+  // 🔴 PLUS AUCUNE CIBLE DE VISITE GUIDÉE ICI (2026-08-25). La carte portait quatre
+  // props `*TourId` — dont DEUX que plus personne ne passait (`tourId`,
+  // `actionsTourId`), survivantes des bulles retirées la veille. La dernière encore
+  // branchée (`statutTourId`) posait l'anneau sur le surtitre du prochain repas
+  // cuisinable pour une phrase qui parle de TOUS les repas ; la bulle du Plan se
+  // pose désormais au centre, sans cible (cf. `lib/tours.ts`).
+  // ⚠️ Ce n'est pas qu'un nettoyage : une cible accrochée à une carte DISPARAÎT avec
+  // elle, et `startTour` renonce alors au tour entier. Le Plan n'avait plus de
+  // tutoriel du tout dès que la journée était entièrement cochée.
 }) {
   const t = useTheme();
-  const rootRef = useTourTarget(tourId);
-  const cookRef = useTourTarget(cookTourId);
-  // ⚠️ Cible SÉPARÉE du bouton « J'ai cuisiné », et c'est la condition pour qu'une
-  // bulle de plus soit lisible : deux spotlights qui se chevauchent ne s'expliquent
-  // plus l'un l'autre (même raison que le groupe d'icônes plus bas). Le surtitre vit
-  // en HAUT de la carte, le bouton en bas.
-  const statutRef = useTourTarget(statutTourId);
   const { isFavorite, toggle } = useFavorites();
   const slots = useMealSlots();
   const fav = isFavorite(meal.recipe.id);
@@ -54,7 +51,6 @@ export function MealCard({
   const lacks = (missing?.length ?? 0) > 0;
   return (
     <Presse
-      ref={rootRef}
       onPress={onPress}
       activeOpacity={OPACITE_PRESSION}
       style={[{ backgroundColor: t.card, borderRadius: Radius.card, padding: Spacing.xl, opacity: muted ? 0.6 : 1 }, cardShadow(t)]}
@@ -74,7 +70,7 @@ export function MealCard({
           s'auto-mesure pas de façon fiable sur les deux plateformes, et l'anneau a
           besoin d'un cadre. La View est un bloc pleine largeur — la mise en page ne
           bouge pas d'un pixel. */}
-      <View ref={statutRef}>
+      <View>
         <Text style={[styles.type, { color: t.textTertiary }]}>
           {(MEAL_LABELS[meal.meal_type] ?? slotLabel(slots, meal.meal_type)).toLocaleUpperCase('fr-FR')}
           {isFixed ? ' · TU GÈRES'
@@ -142,7 +138,7 @@ export function MealCard({
           Bouton cuisiné en contour quand il manque des ingrédients. */}
       {planned && (onCook || onReload || onDislike) && (
         <View style={styles.actions}>
-          {onCook && <CookButton t={t} onCook={onCook} lacks={lacks} cookRef={cookRef} />}
+          {onCook && <CookButton t={t} onCook={onCook} lacks={lacks} />}
           {/* Les trois icônes sont GROUPÉES dans leur propre View — pas pour la
               mise en page (le `gap` est le même dedans et dehors, le rendu ne
               bouge pas d'un pixel), mais pour donner à la visite guidée une
@@ -168,12 +164,10 @@ function ActionIcon({ t, name, active, onPress, label }: { t: ThemePalette; name
   );
 }
 
-// Bouton « J'ai cuisiné ». La ref (cookRef) est posée directement dessus pour
-// que la visite guidée épouse exactement le bouton (sur la 1re carte du jour).
-function CookButton({ t, onCook, lacks, cookRef }: { t: ThemePalette; onCook: () => void; lacks: boolean; cookRef?: React.Ref<any> }) {
+// Bouton « J'ai cuisiné ».
+function CookButton({ t, onCook, lacks }: { t: ThemePalette; onCook: () => void; lacks: boolean }) {
   return (
     <Presse
-      ref={cookRef}
       onPress={onCook}
       // Le geste central de l'app : cocher un repas, c'est ce que Kyroz existe
       // pour faire arriver. S'il ne devait y avoir qu'un seul retour au toucher

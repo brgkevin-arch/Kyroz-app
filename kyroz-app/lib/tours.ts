@@ -25,27 +25,44 @@
 // ⚠️ Et le ton RASSURE, il ne met pas la pression : aucune bulle ne doit se lire
 // comme un reproche ou une consigne à tenir.
 //
-// 🔴 **DE 20 BULLES À 5, LE 2026-08-25** (décision fondateur : « on enlève les 3/4 »).
-// Le critère appliqué, et c'est lui qu'il faut rejouer avant d'en rajouter une :
-// **une bulle ne se garde que si elle explique quelque chose d'INVISIBLE.**
+// 🔴 **DE 20 À 5, PUIS 4, PUIS 2 — LE 2026-08-25** (trois décisions du fondateur dans
+// la même journée : « on enlève les 3/4 », « supprime le tuto des courses », puis
+// « Réserve / Recettes : supprime le tuto »).
 //
-// Ce qui est parti tenait dans deux familles, et les deux se lisaient comme du
-// remplissage :
-//  · celles qui COMMENTENT un écran qui se lit tout seul — « Cocher, masquer,
-//    défaire » décrivait trois boutons dont les libellés disent exactement ça ;
-//  · celles qui RÉPÈTENT une phrase déjà affichée — « Un article, deux gestes »
-//    redisait mot pour mot la ligne d'aide posée douze pixels plus bas, et
-//    « Le frais et le sec » redisait « Touche une quantité pour la modifier ».
+// Le critère de la première coupe, et il tient toujours pour en RAJOUTER une :
+// **une bulle ne se garde que si elle explique quelque chose d'INVISIBLE.** Ce qui
+// est parti ce jour-là tenait dans deux familles — celles qui COMMENTENT un écran qui
+// se lit tout seul (« Cocher, masquer, défaire » décrivait trois boutons dont les
+// libellés disent exactement ça), et celles qui RÉPÈTENT une phrase déjà affichée
+// (« Un article, deux gestes » redisait mot pour mot la ligne d'aide posée douze
+// pixels plus bas).
+//
+// ⚠️ **Mais les deux coupes suivantes ont montré que ce critère ne suffit pas**, et
+// c'est la leçon à garder :
+//  · « D'où sort ta liste » (Courses) le passait — un article absent parce que la
+//    réserve le couvre ne laisse rien à voir à l'écran. Elle disait pourtant le
+//    mécanisme réserve ↔ liste que la bulle de la Réserve dit déjà à l'envers.
+//    ➡️ **Un critère appliqué bulle par bulle ne voit pas les DOUBLONS entre onglets.**
+//  · « Deux listes, deux questions » (Recettes) et « Dis ce que tu as » (Réserve) le
+//    passaient aussi. Elles sont parties quand même : au-delà d'un certain nombre, ce
+//    n'est plus le contenu d'une bulle qu'on arbitre, c'est le NOMBRE d'interruptions
+//    qu'on accepte de poser entre quelqu'un et son app.
 //
 // ⚠️ Le coût d'une bulle de trop n'est pas le temps qu'elle prend : c'est qu'elle
 // fait passer les autres pour du décor. Vingt interruptions modales apprennent
 // qu'on peut toutes les passer sans rien perdre — y compris celle qui, elle,
 // disait quelque chose.
 //
-// ➡️ Il en reste UNE PAR ONGLET, et chacune répond à une question que l'écran ne
-// peut pas répondre : pourquoi mes repas se cochent seuls · d'où sort ma liste et
-// pourquoi un article en disparaît · à quoi sert de remplir ma réserve · ce que
-// contiennent les deux listes de Recettes · ce que déclenche une pesée.
+// ➡️ **Il en reste DEUX**, et chacune répond à une question que son écran ne peut pas
+// répondre : comment un repas passe en « mangé » (Plan) · ce qu'une pesée déclenche
+// (Profil). Les deux se posent AU CENTRE, sans cible — voir `TourStep.targetId`.
+//
+// ⚠️ **Conséquence sur le moteur, et elle est mesurée** : plus aucune étape ne vise
+// d'objet, donc tout le mécanisme de ciblage de `GuidedTour.tsx` (mesure, défilement,
+// anneau, trou) et `lib/visee.ts` tournent à VIDE. Ils sont conservés à dessein — ils
+// portent trois correctifs durement acquis — et `visiteGuidee.test.ts` porte un cas qui
+// ASSÈNE cette dormance, pour que ses autres contrôles ne passent pas au vert en ne
+// mesurant plus rien.
 
 /**
  * La FORME de l'objet surligné, dans le vocabulaire de la DA (CLAUDE.md §8) —
@@ -77,14 +94,29 @@ export type FormeCible =
   | 'pastille';
 
 export interface TourStep {
-  targetId: string;
+  /**
+   * 🔴 **FACULTATIF DEPUIS LE 2026-08-25** (décision fondateur : « enlève le cercle
+   * et mets le texte au milieu de la page en mode pop-up »).
+   *
+   * Absent = la bulle se pose au CENTRE, sans anneau et sans trou. Ce n'est pas un
+   * repli technique — c'est le bon rendu quand la bulle parle de l'ÉCRAN et non
+   * d'un objet : « tes repas se cochent » ne désigne pas un bouton, et l'anneau
+   * qu'on posait sur la carte du prochain repas racontait autre chose que le texte.
+   *
+   * ⚠️ Et il ferme un trou RÉEL, mesuré le 2026-08-25 dans le navigateur : une
+   * étape ciblée est écartée quand sa cible n'est pas montée (`startTour`), donc le
+   * tour du Plan ne se jouait PAS du tout quand la journée était entièrement
+   * mangée — ce qui, l'auto-coche allumée, arrive tous les soirs. Une bulle sans
+   * cible ne peut plus disparaître pour cette raison.
+   */
+  targetId?: string;
   title: string;
   text: string;
-  /** Défaut : `'carte'`, le rayon dominant de la DA. */
+  /** Obligatoire QUAND il y a une cible, interdit sinon (rien à épouser). */
   forme?: FormeCible;
 }
 
-export type TourId = 'plan' | 'recettes' | 'courses' | 'reserve' | 'profil';
+export type TourId = 'plan' | 'profil';
 
 /**
  * Les tours rejouables, dans l'ordre où l'utilisateur rencontre les onglets.
@@ -94,9 +126,6 @@ export type TourId = 'plan' | 'recettes' | 'courses' | 'reserve' | 'profil';
  */
 export const TOURS: { id: TourId; label: string }[] = [
   { id: 'plan', label: 'Ton plan du jour' },
-  { id: 'recettes', label: 'Le catalogue de recettes' },
-  { id: 'courses', label: 'Tes courses' },
-  { id: 'reserve', label: 'Ta réserve' },
   { id: 'profil', label: 'Ton profil et tes réglages' },
 ];
 
@@ -125,11 +154,20 @@ export function planTour({ days, moduleParVolume, repasAuto }: PlanTourContext):
   // du 2026-08-25) : celle qui dit COMMENT un repas passe en « mangé », parce que
   // c'est le seul mécanisme de cet écran qu'on ne peut pas deviner en le regardant.
   //
-  // ⚠️ Deux versions et non une bulle conditionnée à moitié : réglage ALLUMÉ, le
-  // sujet est l'automatisme ; réglage ÉTEINT, c'est le bouton. Servir la première à
-  // qui a coupé l'auto-coche promettrait un automatisme qui n'a pas lieu — le défaut
-  // d'E58, où trois phrases ont survécu au mécanisme qu'elles décrivaient. Et ne
-  // rien servir du tout laisserait un onglet avec un « ? » qui n'ouvre rien.
+  // ⚠️ Deux versions et non une bulle conditionnée à moitié : réglage ALLUMÉ, les
+  // deux chemins existent (le bouton ET l'heure) ; réglage ÉTEINT, seul le bouton
+  // coche, et promettre l'automatisme serait faux — le défaut d'E58, où trois
+  // phrases ont survécu au mécanisme qu'elles décrivaient. Chaque version dit
+  // quand même que l'AUTRE façon de faire existe : c'est ce que le fondateur a
+  // demandé le 2026-08-25 (« soit tu coches, soit c'est automatique »), et ça
+  // reste vrai dans les deux sens puisque le réglage se change.
+  //
+  // 🔴 **SANS CIBLE, DONC AU CENTRE** (même décision). L'anneau se posait sur le
+  // surtitre du prochain repas cuisinable — « COLLATION · 25 MIN » — et désignait
+  // donc UN repas pour une phrase qui parle de TOUS. Et il coûtait plus que ça :
+  // pas de repas cuisinable, pas de cible, donc `startTour` renonçait et la bulle
+  // ne se jouait pas du tout. Mesuré le 2026-08-25 dans le navigateur, journée
+  // entièrement mangée : aucun tour, aucune trace. Sans cible, ce cas n'existe plus.
   //
   // ℹ️ `days` et `moduleParVolume` ne sont plus lus ici : ils l'étaient par les
   // bulles retirées (« Tes cibles du jour » parlait des jours d'entraînement). Le
@@ -139,15 +177,22 @@ export function planTour({ days, moduleParVolume, repasAuto }: PlanTourContext):
 
   if (repasAuto) {
     return [{
-      // Prouvé par : plan.tsx::autoCocher — `repasEchus` (lib/repasAuto.ts) rend les
-      // repas dont l'heure limite est passée, puis le même traitement que `cookMeal`
-      // (déduction de la réserve, `locked_macros`, `rebalanceDay`). Heure limite =
-      // début du repas suivant + 1 h, fin de journée pour le dernier.
-      targetId: 'plan-auto',
-      // Forme : MealCard.tsx::styles.type — une ligne de texte, pas un bloc à fond.
-      forme: 'carte',
-      title: 'Ils se cochent tout seuls',
-      text: "Pas besoin de tout marquer : un repas passe en « mangé » une heure après le début du suivant, le dernier en fin de journée. Ta journée se recale et ta réserve suit. Tu peux décocher, ou couper ça dans ton profil.",
+      // Prouvé par : plan.tsx::cookMeal pour le bouton, et plan.tsx::autoCocher pour
+      // l'heure — `repasEchus` (lib/repasAuto.ts) rend les repas dont l'heure limite
+      // est passée, puis le même traitement que `cookMeal` (déduction de la réserve,
+      // `locked_macros`, `rebalanceDay`). Heure limite = début du repas suivant + 1 h,
+      // fin de journée pour le dernier. Décocher : MealCard::onPress → feuille du repas.
+      // 🔴 CETTE PHRASE A PERDU SA FIN DEUX FOIS DANS LA MÊME JOURNÉE, et les deux
+      // fois pour la même raison de fond : elle promettait un retour en arrière.
+      //  1. « et tu peux toujours décocher » — retiré, le mot était faux (il n'existe
+      //     aucune case à décocher) ;
+      //  2. « ouvre le repas et tape Annuler » — exact au moment où il a été écrit,
+      //     périmé deux heures plus tard : le bouton « Annuler » a été retiré du
+      //     bandeau (décision fondateur). ➡️ **Il n'existe plus AUCUN chemin de
+      //     « mangé » vers « planifié »**, donc la bulle n'en propose plus.
+      // ⚠️ Ne pas y remettre une échappatoire sans rouvrir `RecipeDetail`.
+      title: 'Coche, ou laisse faire',
+      text: "Tu as mangé ? Tape « J'ai cuisiné ». Et si tu oublies, Kyroz le coche pour toi une heure après le début du repas suivant : ta journée se recale et ta réserve suit.",
     }];
   }
 
@@ -155,71 +200,12 @@ export function planTour({ days, moduleParVolume, repasAuto }: PlanTourContext):
     // Prouvé par : plan.tsx::cookMeal — `deductIngredients` retire de la réserve,
     // `setMealStatus('eaten')` déclenche `rebalanceDay`. C'est la version servie
     // quand l'auto-coche est éteint (lib/repasAuto.ts), donc quand ce bouton est le
-    // SEUL chemin.
-    targetId: 'plan-cook',
-    // Forme : MealCard.tsx::cookBtn — `borderRadius: Radius.button`.
-    forme: 'bouton',
-    title: 'Marque-le comme cuisiné',
-    text: "Quand tu as préparé un plat, tape « J'ai cuisiné » : les ingrédients quittent ta réserve et les repas qui restent se recalent pour tenir ta cible du jour.",
+    // SEUL chemin. Le renvoi « tes réglages de repas » est exact : le sélecteur
+    // Automatique / À la main vit dans l'éditeur des repas du Profil, sous
+    // « Repas cochés automatiquement ».
+    title: "C'est toi qui coches",
+    text: "Quand tu as mangé, tape « J'ai cuisiné » : les ingrédients quittent ta réserve et le reste de ta journée se recale. Si tu préfères que ça se fasse tout seul, ça s'allume dans tes réglages de repas.",
   }];
-}
-
-// ── Onglet Recettes ─────────────────────────────────────────────────────────
-
-export function recettesTour(): TourStep[] {
-  return [
-    {
-      // Prouvé par : recettes.tsx — le sélecteur bascule `vueListe`, et « Réalisable »
-      // sert `cookableRecipes(reserve, profile)` (lib/pantry.ts), qui compte les
-      // QUANTITÉS et écarte le régime. Le catalogue, lui, montre tout, y compris
-      // ce que le plan ne servirait pas — c'est ce contraste que la bulle explique.
-      targetId: 'recettes-vues',
-      // Forme : ui.tsx::Segmented — le rail porte `borderRadius: Radius.button`.
-      forme: 'bouton',
-      title: 'Deux listes, deux questions',
-      text: "« Catalogue » montre les 512 recettes, y compris hors de ton régime. « Réalisable » ne garde que ce que tu peux cuisiner avec ce que tu as — quantités comptées, régime respecté.",
-    },
-  ];
-}
-
-// ── Onglet Courses ──────────────────────────────────────────────────────────
-
-export function coursesTour(): TourStep[] {
-  return [
-    {
-      // Prouvé par : lib/shoppingList.ts — somme des ingrédients des repas du
-      // plan, moins la réserve, hors condiments et hors repas que l'utilisateur
-      // gère lui-même. Et courses.tsx garde la liste entre deux visites, le
-      // RefreshControl la refait.
-      //
-      // ⚠️ C'est LA bulle qu'on garde ici, et pas celle des gestes : un article qui
-      // n'apparaît pas parce que la réserve le couvre est le seul cas où l'écran ne
-      // peut rien dire — il n'y a rien à voir. Les gestes, eux, sont écrits en toutes
-      // lettres sous les boutons.
-      targetId: 'courses-source',
-      // Forme : courses.tsx::header — bloc sans fond.
-      forme: 'carte',
-      title: "D'où sort ta liste",
-      text: "Kyroz additionne les ingrédients de ton plan, retire ce que tu as déjà en réserve, et laisse de côté sel, huile et épices. Tire l'écran vers le bas pour la refaire.",
-    },
-  ];
-}
-
-// ── Onglet Réserve ──────────────────────────────────────────────────────────
-
-export function reserveTour(): TourStep[] {
-  return [
-    {
-      // Prouvé par : lib/shoppingList.ts soustrait la réserve à CHAQUE calcul
-      // (plus d'interrupteur depuis le 2026-08-24), et courses.tsx::terminer la
-      // remplit avec ce qui est coché.
-      targetId: 'reserve-ajouter',
-      // Forme : reserve.tsx::addBtn — `borderRadius: Radius.pill`, 44x44.
-      forme: 'pastille',
-      title: 'Dis ce que tu as',
-      text: "Ajoute ce que tu as déjà chez toi : ta liste de courses le déduit de ce qu'elle te propose, pour ne pas te faire racheter ce que tu as.",
-    },
-  ];
 }
 
 // ── Onglet Profil ────────────────────────────────────────────────────────────
@@ -235,11 +221,18 @@ export interface ProfilTourContext {
 
 export function profilTour({ objectifDateDisponible }: ProfilTourContext): TourStep[] {
   void objectifDateDisponible;
-  // 🔴 UNE SEULE BULLE (coupe du 2026-08-25). Le Profil en portait SIX, cinq
-  // desquelles commentaient des lignes de menu qui disent déjà ce qu'elles font
-  // (« Ta dépense estimée » sur une ligne intitulée « TDEE »). Reste ce que rien
-  // à l'écran ne dit : qu'une pesée ne se contente pas d'être enregistrée, elle
-  // RECALCULE la cible et le plan.
+  // 🔴 UNE SEULE BULLE (coupe du 2026-08-25), ET AU CENTRE (même décision que le
+  // Plan). Le Profil en portait SIX, cinq desquelles commentaient des lignes de
+  // menu qui disent déjà ce qu'elles font (« Ta dépense estimée » sur une ligne
+  // intitulée « TDEE »). Reste ce que rien à l'écran ne dit : qu'une pesée ne se
+  // contente pas d'être enregistrée, elle RECALCULE la cible et le plan.
+  //
+  // ⚠️ Le texte a été réécrit le 2026-08-25 (« on voit beaucoup que c'est toi qui
+  // parles ») : il disait « Enregistre ton poids et Kyroz recale calories, macros
+  // et plan » — l'app se citant elle-même à la troisième personne, et trois noms
+  // techniques à la file. La phrase part maintenant de ce que la personne FAIT, et
+  // la dernière proposition existe pour désamorcer, pas pour informer : un bouton
+  // qui change de nom tout seul inquiète plus qu'il n'aide.
   //
   // ⚠️ Avec une seule étape, la note d'ordre (« l'ordre suit l'écran, de haut en
   // bas ») n'a plus d'objet — elle est retirée avec les étapes qu'elle réglait. À
@@ -250,11 +243,8 @@ export function profilTour({ objectifDateDisponible }: ProfilTourContext): TourS
       // Prouvé par : hooks/useWeightLog.ts appelle `recalcProfile` à
       // l'enregistrement d'une pesée, et le « Me peser » de WeightSummaryCard
       // n'apparaît qu'à l'échéance de la cadence choisie.
-      targetId: 'profil-poids',
-      // Forme : WeightSummaryCard.tsx::card — `borderRadius: Radius.card`.
-      forme: 'carte',
-      title: 'Ta pesée pilote tout',
-      text: "Enregistre ton poids et Kyroz recale calories, macros et plan dans la foulée. Quand le bouton passe à « Me peser », c'est juste que ta cadence est arrivée à échéance.",
+      title: 'Ta pesée met tout à jour',
+      text: "Note ton poids quand tu veux : tes calories, tes macros et ton plan se recalent dans la foulée. Et si le bouton passe à « Me peser », c'est juste que le moment est venu — rien de plus.",
     },
   ];
 }
@@ -271,9 +261,6 @@ export interface TourContext extends PlanTourContext, ProfilTourContext {}
 export function tourSteps(id: TourId, ctx: TourContext): TourStep[] {
   switch (id) {
     case 'plan': return planTour(ctx);
-    case 'recettes': return recettesTour();
-    case 'courses': return coursesTour();
-    case 'reserve': return reserveTour();
     case 'profil': return profilTour(ctx);
   }
 }

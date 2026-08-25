@@ -1,11 +1,9 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
-import { Presse } from './Presse';
 import {
   Animated, Easing, View, Text, StyleSheet, Modal, Pressable, TouchableOpacity, useWindowDimensions, ViewStyle,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useTheme, Radius, ThemePalette, Type, Spacing, CIBLE_TACTILE_MIN, Trait, Icone, OPACITE_PRESSION } from '../constants/theme';
+import { useTheme, Radius, ThemePalette, Type, Spacing, CIBLE_TACTILE_MIN, Trait, OPACITE_PRESSION } from '../constants/theme';
 import { TourStep, TOURS, FormeCible } from '../lib/tours';
 import { Cadre, dejaVisible, memeCadre, ESSAIS_MESURE, PAS_MESURE_MS } from '../lib/visee';
 import { RESSORT, DUREE, ressortRN, ressortReduit, dureeReduite } from '../lib/motion';
@@ -148,27 +146,16 @@ export function useScreenTour(
   return { rejouer: lancer };
 }
 
-/**
- * Le « ? » de rejeu, à poser dans l'en-tête d'un écran qui a un tour. Il vivait
- * en dur dans l'en-tête du Plan, et seulement là : passer le tour d'un autre
- * onglet par réflexe le perdait À VIE, sans aucun recours. Un composant, pour
- * que le prochain écran à recevoir un tour ne puisse pas oublier sa porte de
- * sortie.
- */
-export function TourButton({ onPress }: { onPress: () => void }) {
-  const t = useTheme();
-  return (
-    <Presse
-      onPress={onPress}
-      hitSlop={8}
-      activeOpacity={OPACITE_PRESSION}
-      accessibilityRole="button"
-      accessibilityLabel="Revoir la visite guidée de cet écran"
-    >
-      <Ionicons name="help-circle-outline" size={Icone.nav} color={t.textTertiary} />
-    </Presse>
-  );
-}
+// 🔴 `TourButton` (le « ? » de rejeu) A ÉTÉ SUPPRIMÉ LE 2026-08-25, décision
+// fondateur : « une fois que l'user a lu, c'est bon, il n'a pas besoin de le revoir ».
+// Il vivait dans les cinq en-têtes.
+//
+// ⚠️ IL RESTE UNE PORTE DE REJEU, ET ELLE N'EST PAS OPTIONNELLE : « Revoir les tutos »
+// dans les réglages du Profil (`resetAllTours` + relance). Un tour est marqué VU dès
+// son OUVERTURE (`startTour`, plus bas) — c'est le seul instant qui résiste à une app
+// tuée par iOS. Conséquence assumée depuis ce jour-là : une bulle ENTREVUE compte comme
+// lue. Elle n'était acceptable que parce qu'un recours existait. Retirer aussi celui du
+// Profil rendrait un tuto passé par erreur perdu À VIE.
 
 const PAD = 6;             // marge du « trou » autour de la cible
 const BUBBLE_MAX_W = 360;
@@ -222,7 +209,11 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
   const montee = useCallback((id: string) => !!refs.current.get(id)?.current, []);
 
   const startTour = useCallback((tourId: string, steps: TourStep[], opts?: TourOptions) => {
-    const avail = steps.filter((s) => montee(s.targetId));
+    // ⚠️ Une étape SANS cible est toujours disponible : elle parle de l'écran, pas
+    // d'un objet (cf. `TourStep.targetId`). C'est aussi ce qui la met à l'abri du
+    // filtre ci-dessous — le Plan ne se jouait plus du tout les soirs où tous les
+    // repas étaient cochés, faute de carte à surligner.
+    const avail = steps.filter((s) => !s.targetId || montee(s.targetId));
     // ℹ️ Aucune cible montée = on ne lance RIEN, et surtout on ne marque pas le
     // tour vu : il se rejouera de lui-même quand l'écran aura de quoi le porter.
     if (avail.length === 0) return;
@@ -234,7 +225,7 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
     // avertissement de développement plutôt qu'un blocage. Le garde-fou qui
     // compte vraiment est `lib/__tests__/visiteGuidee.test.ts`.
     if (__DEV__ && avail.length < steps.length) {
-      const manquants = steps.filter((s) => !montee(s.targetId)).map((s) => s.targetId);
+      const manquants = steps.filter((s) => s.targetId && !montee(s.targetId)).map((s) => s.targetId);
       console.warn(`[GuidedTour] tour « ${tourId} » amputé de ${manquants.length} étape(s) : ${manquants.join(', ')} — cible non montée.`);
     }
     scrollRef.current = opts?.scrollRef;
@@ -335,11 +326,16 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
   //    autre (capture 1, étape 5/6).
   useEffect(() => {
     if (!active) { setRect(null); setSansCible(false); return; }
+    // Étape sans cible : rien à mesurer, la bulle se pose au centre. Le court-circuit
+    // est volontaire — laisser la boucle de mesure conclure ferait attendre
+    // `ESSAIS_MESURE` tours pour un échec certain, et la bulle arriverait en retard.
+    const idCible = active.steps[active.index].targetId;
+    if (!idCible) { setRect(null); setSansCible(true); return; }
     let annule = false;
     let essais = 0;
     let precedent: Rect | null = null;
 
-    const noeud = () => refs.current.get(active.steps[active.index].targetId)?.current;
+    const noeud = () => refs.current.get(idCible)?.current;
 
     const poser = (c: Rect) => { if (annule) return; setRect(c); setSansCible(false); };
     const renoncer = () => { if (annule) return; setRect(null); setSansCible(true); };

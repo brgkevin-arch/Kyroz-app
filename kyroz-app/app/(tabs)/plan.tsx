@@ -27,7 +27,7 @@ import { DislikeSheet } from '../../components/DislikeSheet';
 import { ActionSheet } from '../../components/ActionSheet';
 import { PrimaryButton, SectionLabel } from '../../components/ui';
 import { HydrationBar, useHydrationEnabled } from '../../components/HydrationBar';
-import { useTourTarget, useScreenTour, TourButton, hasSeenTour } from '../../components/GuidedTour';
+import { useScreenTour, hasSeenTour } from '../../components/GuidedTour';
 import { animerMiseEnPage } from '../../components/Mouvement';
 import { planTour } from '../../lib/tours';
 import { useProfile } from '../../hooks/useProfile';
@@ -229,7 +229,7 @@ export default function PlanScreen() {
   // Visite guidée : au 1er affichage d'un plan, s'il n'a jamais été vu.
   // ⚠️ Le reveal du 1er plan passe AVANT le tour : tant qu'il est affiché, le
   // tour n'est pas « prêt » → il démarre à sa fermeture, pas par-dessus.
-  const { rejouer: rejouerTour } = useScreenTour(
+  useScreenTour(
     'plan',
     planTour({ days: plan?.days ?? 7, moduleParVolume, repasAuto }),
     // ⚠️ `showOffer` compte autant que `showReveal` : les trois surfaces se
@@ -536,7 +536,10 @@ export default function PlanScreen() {
 
   // Pose un statut de suivi (mangé / sauté / re-planifié) sur un repas et recale
   // aussitôt les repas restants du jour pour rester dans la cible.
-  const setMealStatus = async (meal: Meal, status: MealStatus | undefined, locked?: Macros) => {
+  // ⚠️ `status` n'est plus optionnel : le seul appelant qui passait `undefined` était
+  // `resetMealStatus`, retiré le 2026-08-25. Un paramètre dont aucune valeur ne sert
+  // plus se relit comme un chemin encore ouvert.
+  const setMealStatus = async (meal: Meal, status: MealStatus, locked?: Macros) => {
     if (!plan || !profile) return plan;
     const meals = plan.meals.map((m) =>
       m.id === meal.id ? { ...m, status, locked_macros: status === 'eaten' ? locked : undefined } : m
@@ -610,8 +613,10 @@ export default function PlanScreen() {
     await persistPlan(rebalanceDay(profile, { ...plan, meals, tracking_date: todayStamp() }, jour));
     await markActiveToday();
     for (const m of dus) capture(Events.mealCooked, { meal_type: m.meal_type, auto: true });
-    // On le DIT. Un statut qui change tout seul sans un mot se lit comme un bug —
-    // et la phrase dit aussi comment le défaire, puisque décocher est une touche.
+    // On le DIT. Un statut qui change tout seul sans un mot se lit comme un bug.
+    // ⚠️ La phrase ne dit PLUS comment le défaire, et ce n'est pas un oubli : depuis le
+    // retrait du bouton « Annuler » (2026-08-25), il n'y a plus rien à proposer. Un
+    // bandeau qui suggérerait un retour arrière décrirait une app qui n'existe pas.
     toast(dus.length > 1
       ? `${dus.length} repas cochés — leur heure était passée`
       : 'Repas coché — son heure était passée');
@@ -633,10 +638,16 @@ export default function PlanScreen() {
     toast('Repas sauté — journée recalée');
   };
 
-  // Annule le suivi d'un repas (revient à « planifié ») + recale.
-  const resetMealStatus = async (meal: Meal) => {
-    await setMealStatus(meal, undefined);
-  };
+  // 🔴 `resetMealStatus` A ÉTÉ RETIRÉ LE 2026-08-25 (décision fondateur : « enlève le
+  // bouton pour annuler le marqué comme mangé »). C'était le SEUL chemin de « mangé »
+  // vers « planifié » — il n'en existe plus.
+  // ⚠️ Deux conséquences à connaître avant de le rétablir ou de s'en étonner :
+  //  · l'auto-coche est ALLUMÉE par défaut, et sa justification écrite reposait sur
+  //    la réversibilité (« un repas coché à tort se VOIT et se défait d'une touche »,
+  //    lib/repasAuto.ts). Cette phrase-là ne tient plus ; le réglage, lui, reste.
+  //  · l'annulation ne rendait DÉJÀ PAS les ingrédients à la réserve — `setMealStatus`
+  //    ne touche pas au stock, seul `cookMeal` le débite. Le retour arrière était donc
+  //    partiel bien avant d'être retiré.
 
   // « J'ai mangé hors plan » : on ENREGISTRE l'écart (compté à part dans le total)
   // SANS toucher au plan, puis on PROPOSE de réadapter (Oui/Non). Avant, ça recalait
@@ -750,18 +761,16 @@ export default function PlanScreen() {
   };
 
   const dayMeals = plan?.meals.filter((m) => m.day === selectedDay) ?? [];
-  // 🔴 LES CIBLES DU TUTO SUIVENT LE PREMIER REPAS QUI PORTE VRAIMENT SES BOUTONS,
-  // et pas le premier de la liste. Corrigé le 2026-08-15, signalé sur capture.
-  // `MealCard` ne rend « J'ai cuisiné » et la rangée d'icônes que sur un repas
-  // encore À FAIRE (ni mangé, ni sauté, ni « tu gères ») — donc les accrocher au
-  // repas d'indice 0 les faisait disparaître dès que le petit-déjeuner était
-  // coché, y compris quand un dîner juste en dessous les affichait toujours.
-  // ⚠️ `-1` quand la journée est entièrement mangée : aucune carte ne porte alors
-  // la cible, et les deux étapes sont écartées du tour — c'est la bonne réponse,
-  // le bouton dont elles parlent n'est réellement plus à l'écran.
-  const premierCuisinable = dayMeals.findIndex(
-    (m) => m.status !== 'eaten' && m.status !== 'skipped' && m.fixed !== true,
-  );
+  // 🔴 PLUS AUCUNE CIBLE DE TUTO SUR UNE CARTE DE REPAS (2026-08-25). Il y en avait
+  // une, accrochée au premier repas encore à faire (`premierCuisinable`) — d'abord
+  // le bouton « J'ai cuisiné », puis le surtitre. Deux raisons de la retirer, et la
+  // seconde est un défaut mesuré :
+  //  1. la bulle parle de TOUS les repas ; l'anneau en désignait UN (« COLLATION »).
+  //  2. une cible qui vit sur une carte disparaît avec elle. Journée entièrement
+  //     cochée = aucune carte cuisinable = `startTour` renonce, et le Plan n'avait
+  //     alors AUCUN tutoriel — ce qui, l'auto-coche allumée, arrive tous les soirs.
+  //     Mesuré dans le navigateur le 2026-08-25 : table de cibles vide, aucune trace.
+  // ➡️ La bulle du Plan se pose au centre, sans cible (`lib/tours.ts`).
   const dayMacros = plan?.total_macros_per_day[selectedDay - 1];
   // Cible DU JOUR, banque de calories comprise (= la cible du profil s'il n'y a pas
   // de banque). Avec la cible plate, un jour déclaré « resto +600 » s'affichait comme
@@ -860,10 +869,14 @@ export default function PlanScreen() {
             <Text style={s.h1}>{salutation(firstName, new Date())}</Text>
             <Text style={s.date}>{todayLabel.charAt(0).toUpperCase() + todayLabel.slice(1)}</Text>
           </View>
+          {/* 🔴 LE « ? » DE REJEU EST PARTI DES CINQ EN-TÊTES (2026-08-25, décision
+              fondateur : « une fois que l'user a lu, c'est bon, il n'a pas besoin de le
+              revoir »). Il reste UNE porte de rejeu, « Revoir les tutos » dans les
+              réglages du Profil — et il en faut au moins une, parce qu'une bulle
+              entrevue compte comme VUE (`startTour` marque à l'ouverture, cf.
+              GuidedTour.tsx). Sans aucun recours, un tuto passé par erreur serait
+              perdu à vie. */}
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md }}>
-            {plan && (
-              <TourButton onPress={rejouerTour} />
-            )}
             {/* La série se dit en toutes lettres, sans 🔥 : le compteur porte seul.
                 La progression vers l'objectif 7 jours reste juste dessous. */}
             <View style={s.streak}>
@@ -1076,8 +1089,6 @@ export default function PlanScreen() {
                     onShopping={() => router.push('/(tabs)/courses')}
                     missing={m.fixed ? undefined : missing}
                     reserveNonVide={reserveNonVide}
-                    statutTourId={i === premierCuisinable ? 'plan-auto' : undefined}
-                    cookTourId={i === premierCuisinable ? 'plan-cook' : undefined}
                   />
                 );
               })}
@@ -1174,7 +1185,6 @@ export default function PlanScreen() {
             onClose={() => setSelectedMeal(null)}
             onCook={() => cookMeal(selectedMeal)}
             onSkip={() => skipMeal(selectedMeal)}
-            onResetStatus={() => resetMealStatus(selectedMeal)}
             onSwap={swapSelectedMeal}
             onDislike={dislikeSelectedMeal}
           />

@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import {
   heuresLimites, repasEchus, repasEchusVeille, getRepasAuto, FIN_DE_JOURNEE, minutesDepuisMinuit,
 } from '../repasAuto';
+import { planTour } from '../tours';
 import { BUILTIN_SLOTS } from '../mealSlots';
 import { GRACE_HOURS } from '../mealtime';
 import type { Meal, MealSlot } from '../types';
@@ -235,5 +236,72 @@ describe('🔴 la veille se solde AVANT que le suivi soit effacé', () => {
     const bloc = plan.slice(plan.indexOf('const solderLaVeille'), plan.indexOf('const load = async'));
     expect(bloc).not.toContain('markActiveToday');
     expect(bloc).not.toContain('setMealStatus');
+  });
+});
+
+// ── 🔴 CE QUI SE COCHE NE SE DÉCOCHE PLUS — et trois textes en dépendaient ──
+//
+// Le 2026-08-25, le fondateur a fait retirer le bouton « Annuler » du bandeau
+// « Marqué comme mangé » (`RecipeDetail.tsx`). C'était le SEUL chemin de « mangé »
+// vers « planifié » : `resetMealStatus` n'avait pas d'autre appelant.
+//
+// ⚠️ Le retrait d'un bouton a rendu FAUX trois textes écrits ailleurs, dont deux
+// servis à l'utilisateur :
+//  · la bulle du Plan disait « ouvre le repas et tape Annuler » ;
+//  · le réglage du Profil disait « Tu peux toujours le décocher » ;
+//  · le commentaire qui justifie le défaut ALLUMÉ disait « … et se décoche d'une
+//    touche ».
+// Aucun des trois ne vit dans le fichier modifié. C'est la forme exacte du défaut
+// d'E58 (trois phrases ont survécu au mécanisme qu'elles décrivaient), et rien ne
+// l'aurait signalé : ni `tsc`, ni un test, ni une relecture du diff.
+//
+// ➡️ Ce bloc verrouille la DÉPENDANCE, pas le bouton. Le bouton peut revenir — mais
+// alors les textes peuvent en reparler, et pas avant.
+describe('🔴 aucun texte ne promet un retour arrière qui n’existe pas', () => {
+  /** Commentaires exclus — et ce n'est pas un détail de forme : la première version
+   *  de ce bloc lisait les sources BRUTES et se déclarait « chemin de retour
+   *  réapparu » parce que les commentaires du correctif NOMMENT `onResetStatus` pour
+   *  expliquer son retrait. Un garde-fou qui lit ce qu'on écrit à son sujet mesure sa
+   *  propre documentation. Quatrième fois dans cette famille. */
+  const sansCommentaires = (src: string) =>
+    src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\{\/\*[\s\S]*?\*\/\}/g, '')
+      .split('\n').map((l) => l.replace(/(?<!:)\/\/.*$/, '')).join('\n');
+
+  const detail = sansCommentaires(lire('components/RecipeDetail.tsx'));
+  const profil = lire('app/(tabs)/profil.tsx');
+
+  /** Le chemin de retour existe-t-il ? Deux preuves, pas une : la prop côté écran
+   *  ET l'appelant côté Plan. L'une sans l'autre est un mécanisme à moitié posé. */
+  const retourPossible = /onResetStatus/.test(detail) && /resetMealStatus/.test(sansCommentaires(plan));
+
+  const PROMESSE = /décoch|revenir en arrière|tape « Annuler »/i;
+
+  it('la sonde voit bien l’état du jour : plus aucun chemin de retour', () => {
+    // Sans ce cas, le jour où `onResetStatus` revient, tout le bloc passerait au vert
+    // en ne mesurant plus rien — et personne ne saurait que les textes ont le droit
+    // d'en reparler.
+    expect(retourPossible, 'un chemin « mangé » → « planifié » est réapparu : les textes peuvent le dire').toBe(false);
+  });
+
+  it('la bulle du Plan ne propose pas d’annuler', () => {
+    if (retourPossible) return;
+    for (const variante of [true, false]) {
+      const [etape] = planTour({ days: 7, moduleParVolume: false, repasAuto: variante });
+      expect(PROMESSE.test(etape.text), `la bulle (repasAuto=${variante}) promet un retour arrière`).toBe(false);
+    }
+  });
+
+  it('le réglage du Profil ne promet pas de décocher', () => {
+    if (retourPossible) return;
+    const bloc = sansCommentaires(profil);
+    const i = bloc.indexOf('Repas cochés automatiquement');
+    expect(i, 'la section du réglage est introuvable — le repère a bougé').toBeGreaterThan(0);
+    expect(PROMESSE.test(bloc.slice(i, i + 1200)), 'le texte du réglage promet un retour arrière').toBe(false);
+  });
+
+  it('sait dire NON : les phrases d’avant correctif sont bien vues comme fautives', () => {
+    // Un compteur qu'on n'a jamais vu rougir ne prouve rien (CLAUDE.md §8).
+    expect(PROMESSE.test("Et s'il se trompe, ouvre le repas et tape « Annuler ».")).toBe(true);
+    expect(PROMESSE.test('Tu peux toujours le décocher.')).toBe(true);
   });
 });

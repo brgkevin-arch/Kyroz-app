@@ -57,7 +57,7 @@ CLAUDE.md §5).
 🔴 **MAIS L'APP NE LE DIT PLUS À L'UTILISATEUR, DEPUIS LE 2026-08-25.** Ce paragraphe
 s'appuyait sur une bulle de tutoriel — *« Ta série, sans pression — elle avance dès que
 tu ouvres ton plan, cuisiné ou pas »* — pour affirmer que la règle était ANNONCÉE. Cette
-bulle est partie avec la coupe des tutos (20 → 5, décision fondateur). La règle reste
+bulle est partie avec la coupe des tutos (20 → 5, puis 4, décision fondateur). La règle reste
 vraie dans le code ; **elle n'est plus écrite nulle part à l'écran**, et la pastille
 « 1 j de série » ne dit pas ce qu'elle compte.
 ⚠️ Ce n'est pas un mensonge — rien n'affirme le contraire — mais ce n'est plus une

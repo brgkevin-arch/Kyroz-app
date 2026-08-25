@@ -20,8 +20,6 @@ import {
   loadPantry, savePantry, addOrMerge, removeItem, categorize,
   visiblePantry, conservationDe, parConservation, setConservation,
 } from '../../lib/pantry';
-import { useTourTarget, useScreenTour, TourButton } from '../../components/GuidedTour';
-import { reserveTour } from '../../lib/tours';
 
 const CATEGORY_ORDER: PantryCategory[] = ['viandes', 'légumes', 'féculents', 'laitiers', 'autres'];
 const CATEGORY_LABELS: Record<PantryCategory, string> = {
@@ -87,7 +85,6 @@ export default function ReserveScreen() {
   const [editConservation, setEditConservation] = useState<Conservation>('frais');
 
   // Cibles de la visite guidée.
-  const ajouterRef = useTourTarget('reserve-ajouter');
   // ⚠️ `reserve-compteur` est parti avec sa bulle (coupe des tutos, 2026-08-25) :
   // elle disait « touche une quantité pour la corriger », phrase déjà affichée en
   // toutes lettres au-dessus de la liste. Et le compteur qu'elle visait n'existe
@@ -95,7 +92,6 @@ export default function ReserveScreen() {
   // La bulle vise le bouton « + », monté quel que soit le stock : plus besoin
   // d'attendre qu'il y ait des aliments comme au temps où une seconde bulle visait
   // le compteur.
-  const { rejouer: rejouerTour } = useScreenTour('reserve', reserveTour());
 
   const refresh = useCallback(async () => {
     setItems(await loadPantry());
@@ -202,9 +198,10 @@ export default function ReserveScreen() {
               ⚠️ Le compte n'est pas rapatrié ailleurs : chaque rayon porte déjà le
               sien, et le fondateur a explicitement accepté de perdre le total. */}
           <Text style={[s.h1, { flex: 1 }]}>Réserve</Text>
+          {/* 🔴 PLUS DE TUTO NI DE « ? » (2026-08-25, décision fondateur). Il ne reste
+              donc qu'une action dans l'en-tête : le « + ». */}
           <View style={s.headerActions}>
-            <TourButton onPress={rejouerTour} />
-            <Presse ref={ajouterRef} style={s.addBtn} onPress={() => setShowAdd(true)} activeOpacity={OPACITE_PRESSION}>
+            <Presse style={s.addBtn} onPress={() => setShowAdd(true)} activeOpacity={OPACITE_PRESSION}>
               <Ionicons name="add" size={Icone.action} color={t.onAccent} />
             </Presse>
           </View>
