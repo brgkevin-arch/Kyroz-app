@@ -26,7 +26,7 @@ import { DateInput } from '../../components/DateInput';
 import { ageOn } from '../../lib/birthday';
 import { ActionSheet } from '../../components/ActionSheet';
 import { WeightSummaryCard } from '../../components/WeightSummaryCard';
-import { useScreenTour, TourButton, resetAllTours } from '../../components/GuidedTour';
+import { useScreenTour, resetAllTours } from '../../components/GuidedTour';
 import { profilTour, TOURS } from '../../lib/tours';
 import { BodyFatPicker } from '../../components/BodyFatPicker';
 import { DislikedFoodsField } from '../../components/DislikedFoodsField';

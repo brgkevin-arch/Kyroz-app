@@ -27,7 +27,7 @@ import { DislikeSheet } from '../../components/DislikeSheet';
 import { ActionSheet } from '../../components/ActionSheet';
 import { PrimaryButton, SectionLabel } from '../../components/ui';
 import { HydrationBar, useHydrationEnabled } from '../../components/HydrationBar';
-import { useScreenTour, TourButton, hasSeenTour } from '../../components/GuidedTour';
+import { useScreenTour, hasSeenTour } from '../../components/GuidedTour';
 import { animerMiseEnPage } from '../../components/Mouvement';
 import { planTour } from '../../lib/tours';
 import { useProfile } from '../../hooks/useProfile';
@@ -229,7 +229,7 @@ export default function PlanScreen() {
   // Visite guidée : au 1er affichage d'un plan, s'il n'a jamais été vu.
   // ⚠️ Le reveal du 1er plan passe AVANT le tour : tant qu'il est affiché, le
   // tour n'est pas « prêt » → il démarre à sa fermeture, pas par-dessus.
-  const { rejouer: rejouerTour } = useScreenTour(
+  useScreenTour(
     'plan',
     planTour({ days: plan?.days ?? 7, moduleParVolume, repasAuto }),
     // ⚠️ `showOffer` compte autant que `showReveal` : les trois surfaces se
@@ -858,10 +858,14 @@ export default function PlanScreen() {
             <Text style={s.h1}>{salutation(firstName, new Date())}</Text>
             <Text style={s.date}>{todayLabel.charAt(0).toUpperCase() + todayLabel.slice(1)}</Text>
           </View>
+          {/* 🔴 LE « ? » DE REJEU EST PARTI DES CINQ EN-TÊTES (2026-08-25, décision
+              fondateur : « une fois que l'user a lu, c'est bon, il n'a pas besoin de le
+              revoir »). Il reste UNE porte de rejeu, « Revoir les tutos » dans les
+              réglages du Profil — et il en faut au moins une, parce qu'une bulle
+              entrevue compte comme VUE (`startTour` marque à l'ouverture, cf.
+              GuidedTour.tsx). Sans aucun recours, un tuto passé par erreur serait
+              perdu à vie. */}
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md }}>
-            {plan && (
-              <TourButton onPress={rejouerTour} />
-            )}
             {/* La série se dit en toutes lettres, sans 🔥 : le compteur porte seul.
                 La progression vers l'objectif 7 jours reste juste dessous. */}
             <View style={s.streak}>

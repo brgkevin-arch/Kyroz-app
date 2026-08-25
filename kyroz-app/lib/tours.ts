@@ -25,38 +25,44 @@
 // ⚠️ Et le ton RASSURE, il ne met pas la pression : aucune bulle ne doit se lire
 // comme un reproche ou une consigne à tenir.
 //
-// 🔴 **DE 20 BULLES À 5 PUIS À 4, LE 2026-08-25** (décision fondateur : « on
-// enlève les 3/4 », puis « supprime le tuto des courses »).
-// Le critère appliqué, et c'est lui qu'il faut rejouer avant d'en rajouter une :
-// **une bulle ne se garde que si elle explique quelque chose d'INVISIBLE.**
+// 🔴 **DE 20 À 5, PUIS 4, PUIS 2 — LE 2026-08-25** (trois décisions du fondateur dans
+// la même journée : « on enlève les 3/4 », « supprime le tuto des courses », puis
+// « Réserve / Recettes : supprime le tuto »).
 //
-// Ce qui est parti tenait dans deux familles, et les deux se lisaient comme du
-// remplissage :
-//  · celles qui COMMENTENT un écran qui se lit tout seul — « Cocher, masquer,
-//    défaire » décrivait trois boutons dont les libellés disent exactement ça ;
-//  · celles qui RÉPÈTENT une phrase déjà affichée — « Un article, deux gestes »
-//    redisait mot pour mot la ligne d'aide posée douze pixels plus bas, et
-//    « Le frais et le sec » redisait « Touche une quantité pour la modifier ».
+// Le critère de la première coupe, et il tient toujours pour en RAJOUTER une :
+// **une bulle ne se garde que si elle explique quelque chose d'INVISIBLE.** Ce qui
+// est parti ce jour-là tenait dans deux familles — celles qui COMMENTENT un écran qui
+// se lit tout seul (« Cocher, masquer, défaire » décrivait trois boutons dont les
+// libellés disent exactement ça), et celles qui RÉPÈTENT une phrase déjà affichée
+// (« Un article, deux gestes » redisait mot pour mot la ligne d'aide posée douze
+// pixels plus bas).
+//
+// ⚠️ **Mais les deux coupes suivantes ont montré que ce critère ne suffit pas**, et
+// c'est la leçon à garder :
+//  · « D'où sort ta liste » (Courses) le passait — un article absent parce que la
+//    réserve le couvre ne laisse rien à voir à l'écran. Elle disait pourtant le
+//    mécanisme réserve ↔ liste que la bulle de la Réserve dit déjà à l'envers.
+//    ➡️ **Un critère appliqué bulle par bulle ne voit pas les DOUBLONS entre onglets.**
+//  · « Deux listes, deux questions » (Recettes) et « Dis ce que tu as » (Réserve) le
+//    passaient aussi. Elles sont parties quand même : au-delà d'un certain nombre, ce
+//    n'est plus le contenu d'une bulle qu'on arbitre, c'est le NOMBRE d'interruptions
+//    qu'on accepte de poser entre quelqu'un et son app.
 //
 // ⚠️ Le coût d'une bulle de trop n'est pas le temps qu'elle prend : c'est qu'elle
 // fait passer les autres pour du décor. Vingt interruptions modales apprennent
 // qu'on peut toutes les passer sans rien perdre — y compris celle qui, elle,
 // disait quelque chose.
 //
-// ⚠️ **Et « D'où sort ta liste » est partie APRÈS COUP** : elle avait passé le
-// critère (un article absent parce que la réserve le couvre ne laisse rien à voir
-// à l'écran), mais elle disait le mécanisme réserve → liste que la bulle de la
-// Réserve dit déjà dans l'autre sens, et que l'aide de l'écran Courses écrit en
-// toutes lettres. ➡️ Un critère appliqué bulle par bulle ne voit pas les DOUBLONS
-// entre onglets : deux phrases peuvent être vraies, utiles et redondantes.
+// ➡️ **Il en reste DEUX**, et chacune répond à une question que son écran ne peut pas
+// répondre : comment un repas passe en « mangé » (Plan) · ce qu'une pesée déclenche
+// (Profil). Les deux se posent AU CENTRE, sans cible — voir `TourStep.targetId`.
 //
-// ➡️ Il en reste une par onglet SAUF les Courses, et chacune répond à une question
-// que l'écran ne peut pas répondre : comment un repas passe en « mangé » · ce que
-// contiennent les deux listes de Recettes · à quoi sert de remplir ma réserve · ce
-// que déclenche une pesée.
-//
-// ⚠️ **Deux d'entre elles n'ont plus de cible** (Plan et Profil) : elles parlent de
-// l'écran, pas d'un objet, et se posent donc au centre. Voir `TourStep.targetId`.
+// ⚠️ **Conséquence sur le moteur, et elle est mesurée** : plus aucune étape ne vise
+// d'objet, donc tout le mécanisme de ciblage de `GuidedTour.tsx` (mesure, défilement,
+// anneau, trou) et `lib/visee.ts` tournent à VIDE. Ils sont conservés à dessein — ils
+// portent trois correctifs durement acquis — et `visiteGuidee.test.ts` porte un cas qui
+// ASSÈNE cette dormance, pour que ses autres contrôles ne passent pas au vert en ne
+// mesurant plus rien.
 
 /**
  * La FORME de l'objet surligné, dans le vocabulaire de la DA (CLAUDE.md §8) —
@@ -110,7 +116,7 @@ export interface TourStep {
   forme?: FormeCible;
 }
 
-export type TourId = 'plan' | 'recettes' | 'reserve' | 'profil';
+export type TourId = 'plan' | 'profil';
 
 /**
  * Les tours rejouables, dans l'ordre où l'utilisateur rencontre les onglets.
@@ -120,8 +126,6 @@ export type TourId = 'plan' | 'recettes' | 'reserve' | 'profil';
  */
 export const TOURS: { id: TourId; label: string }[] = [
   { id: 'plan', label: 'Ton plan du jour' },
-  { id: 'recettes', label: 'Le catalogue de recettes' },
-  { id: 'reserve', label: 'Ta réserve' },
   { id: 'profil', label: 'Ton profil et tes réglages' },
 ];
 
@@ -178,8 +182,14 @@ export function planTour({ days, moduleParVolume, repasAuto }: PlanTourContext):
       // est passée, puis le même traitement que `cookMeal` (déduction de la réserve,
       // `locked_macros`, `rebalanceDay`). Heure limite = début du repas suivant + 1 h,
       // fin de journée pour le dernier. Décocher : MealCard::onPress → feuille du repas.
+      // ⚠️ « et tu peux toujours décocher » a été RETIRÉ le 2026-08-25 (fondateur :
+      // « ce n'est pas clair »). Le mot était faux au sens strict : il n'existe
+      // aucune case à décocher. Le vrai geste est d'ouvrir le repas et de taper
+      // « Annuler » sur le bandeau « Marqué comme mangé » (RecipeDetail.tsx:190).
+      // ➡️ Une bulle nomme le geste et le mot EXACT qui est à l'écran, sinon elle
+      // décrit une app qui n'existe pas.
       title: 'Coche, ou laisse faire',
-      text: "Tu as mangé ? Tape « J'ai cuisiné ». Et si tu oublies, Kyroz coche le repas une heure après le début du suivant. Ta journée se recale, ta réserve suit, et tu peux toujours décocher.",
+      text: "Tu as mangé ? Tape « J'ai cuisiné ». Si tu oublies, Kyroz le coche pour toi une heure après le début du repas suivant. Et s'il se trompe, ouvre le repas et tape « Annuler ».",
     }];
   }
 
@@ -193,41 +203,6 @@ export function planTour({ days, moduleParVolume, repasAuto }: PlanTourContext):
     title: "C'est toi qui coches",
     text: "Quand tu as mangé, tape « J'ai cuisiné » : les ingrédients quittent ta réserve et le reste de ta journée se recale. Si tu préfères que ça se fasse tout seul, ça s'allume dans tes réglages de repas.",
   }];
-}
-
-// ── Onglet Recettes ─────────────────────────────────────────────────────────
-
-export function recettesTour(): TourStep[] {
-  return [
-    {
-      // Prouvé par : recettes.tsx — le sélecteur bascule `vueListe`, et « Réalisable »
-      // sert `cookableRecipes(reserve, profile)` (lib/pantry.ts), qui compte les
-      // QUANTITÉS et écarte le régime. Le catalogue, lui, montre tout, y compris
-      // ce que le plan ne servirait pas — c'est ce contraste que la bulle explique.
-      targetId: 'recettes-vues',
-      // Forme : ui.tsx::Segmented — le rail porte `borderRadius: Radius.button`.
-      forme: 'bouton',
-      title: 'Deux listes, deux questions',
-      text: "« Catalogue » montre les 512 recettes, y compris hors de ton régime. « Réalisable » ne garde que ce que tu peux cuisiner avec ce que tu as — quantités comptées, régime respecté.",
-    },
-  ];
-}
-
-// ── Onglet Réserve ──────────────────────────────────────────────────────────
-
-export function reserveTour(): TourStep[] {
-  return [
-    {
-      // Prouvé par : lib/shoppingList.ts soustrait la réserve à CHAQUE calcul
-      // (plus d'interrupteur depuis le 2026-08-24), et courses.tsx::terminer la
-      // remplit avec ce qui est coché.
-      targetId: 'reserve-ajouter',
-      // Forme : reserve.tsx::addBtn — `borderRadius: Radius.pill`, 44x44.
-      forme: 'pastille',
-      title: 'Dis ce que tu as',
-      text: "Ajoute ce que tu as déjà chez toi : ta liste de courses le déduit de ce qu'elle te propose, pour ne pas te faire racheter ce que tu as.",
-    },
-  ];
 }
 
 // ── Onglet Profil ────────────────────────────────────────────────────────────
@@ -283,8 +258,6 @@ export interface TourContext extends PlanTourContext, ProfilTourContext {}
 export function tourSteps(id: TourId, ctx: TourContext): TourStep[] {
   switch (id) {
     case 'plan': return planTour(ctx);
-    case 'recettes': return recettesTour();
-    case 'reserve': return reserveTour();
     case 'profil': return profilTour(ctx);
   }
 }

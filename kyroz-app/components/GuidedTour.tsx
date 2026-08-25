@@ -1,11 +1,9 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
-import { Presse } from './Presse';
 import {
   Animated, Easing, View, Text, StyleSheet, Modal, Pressable, TouchableOpacity, useWindowDimensions, ViewStyle,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useTheme, Radius, ThemePalette, Type, Spacing, CIBLE_TACTILE_MIN, Trait, Icone, OPACITE_PRESSION } from '../constants/theme';
+import { useTheme, Radius, ThemePalette, Type, Spacing, CIBLE_TACTILE_MIN, Trait, OPACITE_PRESSION } from '../constants/theme';
 import { TourStep, TOURS, FormeCible } from '../lib/tours';
 import { Cadre, dejaVisible, memeCadre, ESSAIS_MESURE, PAS_MESURE_MS } from '../lib/visee';
 import { RESSORT, DUREE, ressortRN, ressortReduit, dureeReduite } from '../lib/motion';
@@ -148,27 +146,16 @@ export function useScreenTour(
   return { rejouer: lancer };
 }
 
-/**
- * Le « ? » de rejeu, à poser dans l'en-tête d'un écran qui a un tour. Il vivait
- * en dur dans l'en-tête du Plan, et seulement là : passer le tour d'un autre
- * onglet par réflexe le perdait À VIE, sans aucun recours. Un composant, pour
- * que le prochain écran à recevoir un tour ne puisse pas oublier sa porte de
- * sortie.
- */
-export function TourButton({ onPress }: { onPress: () => void }) {
-  const t = useTheme();
-  return (
-    <Presse
-      onPress={onPress}
-      hitSlop={8}
-      activeOpacity={OPACITE_PRESSION}
-      accessibilityRole="button"
-      accessibilityLabel="Revoir la visite guidée de cet écran"
-    >
-      <Ionicons name="help-circle-outline" size={Icone.nav} color={t.textTertiary} />
-    </Presse>
-  );
-}
+// 🔴 `TourButton` (le « ? » de rejeu) A ÉTÉ SUPPRIMÉ LE 2026-08-25, décision
+// fondateur : « une fois que l'user a lu, c'est bon, il n'a pas besoin de le revoir ».
+// Il vivait dans les cinq en-têtes.
+//
+// ⚠️ IL RESTE UNE PORTE DE REJEU, ET ELLE N'EST PAS OPTIONNELLE : « Revoir les tutos »
+// dans les réglages du Profil (`resetAllTours` + relance). Un tour est marqué VU dès
+// son OUVERTURE (`startTour`, plus bas) — c'est le seul instant qui résiste à une app
+// tuée par iOS. Conséquence assumée depuis ce jour-là : une bulle ENTREVUE compte comme
+// lue. Elle n'était acceptable que parce qu'un recours existait. Retirer aussi celui du
+// Profil rendrait un tuto passé par erreur perdu À VIE.
 
 const PAD = 6;             // marge du « trou » autour de la cible
 const BUBBLE_MAX_W = 360;

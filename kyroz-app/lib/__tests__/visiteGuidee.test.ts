@@ -380,18 +380,48 @@ describe('Visite guidée — l’anneau épouse la forme de sa cible', () => {
   });
 
   it('aucune forme déclarée n’est inconnue du moteur', () => {
-    // 🔴 CE CAS A REMPLACÉ « chaque forme SERT au moins une fois », et la perte est
-    // réelle : il ne compte plus les tokens inemployés. Il est devenu INTENABLE le
-    // 2026-08-25 — il ne reste que DEUX étapes ciblées (un sélecteur, un bouton
-    // rond) pour TROIS rayons de la DA, donc le contrôle exigeait mécaniquement une
-    // bulle de plus. L'autre issue aurait été de retirer `carte` du vocabulaire :
-    // ce serait effacer un rayon que la DA porte vraiment, et la prochaine bulle
-    // qui viserait une carte retomberait en silence sur un autre.
-    // ➡️ Ce qui reste vérifié : aucune forme SERVIE n'échappe au moteur. Le contrôle
-    // « le moteur traduit les trois formes » ci-dessous garde l'autre sens.
+    // 🔴 CE CAS A REMPLACÉ « chaque forme SERT au moins une fois ». Ce dernier est
+    // devenu intenable le 2026-08-25 : il ne restait que DEUX étapes ciblées pour
+    // TROIS rayons de la DA, donc il exigeait mécaniquement une bulle de plus. Puis,
+    // le même jour, la seconde coupe a ramené les étapes ciblées à ZÉRO.
+    // ➡️ Ce qui reste vérifié : aucune forme SERVIE n'échappe au moteur (vide
+    // aujourd'hui, donc vrai sans rien dire — et c'est le cas ci-dessous qui le DIT).
     const servies = new Set(ETAPES_CIBLEES.map((e) => e.forme));
     for (const f of servies) expect(FORMES, `forme « ${f} » inconnue du moteur`).toContain(f);
-    expect(servies.size, 'plus aucune étape ne déclare de forme — la table de rayons ne sert plus à rien').toBeGreaterThan(0);
+  });
+
+  it('🔴 le CIBLAGE est DORMANT — aucune bulle ne vise plus d’objet', () => {
+    // ── Pourquoi ce cas existe, et pourquoi il est le plus important du bloc ────
+    //
+    // Après la double coupe du 2026-08-25, les deux bulles restantes (Plan, Profil)
+    // se posent au CENTRE. Plus personne n'appelle `useTourTarget`, donc la table de
+    // cibles reste vide, donc TOUT le mécanisme de ciblage tourne à vide :
+    // ≈ 227 lignes de `GuidedTour.tsx` (mesure, défilement, anneau, trou), plus
+    // `lib/visee.ts` (85) et son test (108). Les contrôles de ce fichier qui parlent
+    // de cibles, de formes et de rayons gardent donc du code que rien n'exécute.
+    //
+    // ⚠️ Sans ce cas, ils seraient tous VERTS EN NE MESURANT RIEN — une famille de
+    // garde-fous devenue décorative sans qu'aucune ligne ne change. C'est exactement
+    // le défaut d'`espacementDA` après la migration `Presse`, et celui qu'on vient de
+    // trouver dans `profilSection` (un repère posé sur un id de tuto supprimé).
+    //
+    // ➡️ Il ASSÈNE l'état du jour. Le jour où une bulle vise de nouveau un objet, ce
+    // cas rougit — et c'est le signal que les autres redeviennent vivants, pas qu'il
+    // faut le supprimer. Le mécanisme est CONSERVÉ à dessein (il porte trois
+    // correctifs durement acquis : le trou arrondi, la mesure stable, la sortie
+    // garantie) ; sa suppression est une décision de produit, pas un nettoyage.
+    expect(
+      ETAPES_CIBLEES.map(nom),
+      'une bulle vise de nouveau un objet : les contrôles de ciblage de ce fichier redeviennent vivants',
+    ).toEqual([]);
+    // ⚠️ Hors du moteur, et hors commentaires : `GuidedTour.tsx` DÉCLARE le hook (il
+    // est conservé), et deux commentaires le citent. Compter les occurrences brutes
+    // ferait rougir ce cas sur du texte — il doit compter les APPELS.
+    const appelants = FICHIERS
+      .filter((f) => f.chemin !== 'components/GuidedTour.tsx')
+      .filter((f) => /useTourTarget\(/.test(sansCommentaires(f.src)))
+      .map((f) => f.chemin);
+    expect(appelants, 'ces fichiers reposent une cible de visite guidée').toEqual([]);
   });
 
   it('le moteur traduit les trois formes — aucune ne retombe sur un angle droit', () => {
@@ -578,7 +608,7 @@ describe('Visite guidée — l’anneau ne désigne jamais l’objet d’une aut
 describe('Le décompte des bulles ne se recopie pas — il se mesure', () => {
   const SPEC = readFileSync(join(RACINE, 'CLAUDE.md'), 'utf8');
   const LIGNE = SPEC.match(
-    /(\d+) bulles au total \(plan (\d+) · profil (\d+) · recettes (\d+) · réserve (\d+)\)/,
+    /(\d+) bulles au total \(plan (\d+) · profil (\d+)\)/,
   );
 
   it('la sonde trouve bien la phrase de CLAUDE.md — sinon elle passerait à vide', () => {
@@ -588,19 +618,19 @@ describe('Le décompte des bulles ne se recopie pas — il se mesure', () => {
   });
 
   it('🔴 la spec annonce EXACTEMENT ce que le code sert', () => {
-    const [, total, plan, profil, recettes, reserve] = LIGNE!.map(Number);
+    const [, total, plan, profil] = LIGNE!.map(Number);
     // Contexte COMPLET : c'est le décompte maximal, celui que la spec décrit.
-    // ⚠️ Les Courses ont quitté cette liste le 2026-08-25 avec leur tour. La phrase
-    // de CLAUDE.md a suivi — et c'est le fait que le contrôle porte sur la PHRASE
-    // (pas sur un total figé) qui a rendu la coupe visible au lieu de silencieuse.
+    // ⚠️ Courses, Recettes et Réserve ont quitté cette liste le 2026-08-25 avec leurs
+    // tours (deux coupes successives, même journée). La phrase de CLAUDE.md a suivi à
+    // chaque fois — et c'est parce que le contrôle porte sur la PHRASE, pas sur un
+    // total figé, que chaque coupe a rendu la spec fausse tout de suite au lieu de la
+    // laisser dériver.
     const reel = {
       plan: tourSteps('plan', CTX_COMPLET).length,
       profil: tourSteps('profil', CTX_COMPLET).length,
-      recettes: tourSteps('recettes', CTX_COMPLET).length,
-      reserve: tourSteps('reserve', CTX_COMPLET).length,
     };
     expect({ ...reel, total: Object.values(reel).reduce((a, b) => a + b, 0) })
-      .toEqual({ plan, profil, recettes, reserve, total });
+      .toEqual({ plan, profil, total });
   });
 
   it('aucun commentaire ne recite un nombre de bulles — il périmerait en silence', () => {

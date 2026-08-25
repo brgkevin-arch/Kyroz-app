@@ -2093,9 +2093,15 @@ et l'écran ne sert qu'à juger le rendu (opacité forcée à 1). Procédure :
 ### La visite guidée dit ce que le code FAIT (2026-08-08)
 
 Un tour par onglet, déclenché **à la première visite de CET onglet** — jamais tous au
-démarrage. 4 bulles au total (plan 1 · profil 1 · recettes 1 · réserve 1), soit UNE par
-onglet **sauf les Courses, qui n'en ont plus** : chaque bulle est une `Modal` dont les
-panneaux avalent les taps, pas une infobulle qu'on ignore.
+démarrage. **2 bulles au total (plan 1 · profil 1)** : seuls ces deux onglets en ont
+encore une. Chaque bulle est une `Modal` dont les panneaux avalent les taps, pas une
+infobulle qu'on ignore — et les deux se posent **au centre**, sans anneau.
+
+🔴 **PLUS DE « ? » DE REJEU DANS LES EN-TÊTES** (2026-08-25 : « une fois que l'user a lu,
+c'est bon »). Il reste **une** porte, « Revoir les tutos » dans les réglages du Profil,
+et elle n'est pas optionnelle : un tour est marqué VU dès son OUVERTURE (seul instant
+qui résiste à une app tuée par iOS), donc une bulle ENTREVUE compte comme lue. Sans
+aucun recours, un tuto passé par erreur serait perdu à vie.
 
 🔴 **DE 20 À 5 PUIS À 4, LE 2026-08-25** (décision fondateur : « on enlève les 3/4 »,
 puis « supprime le tuto des courses »). Le critère, à rejouer avant d'en rajouter une :
