@@ -16,6 +16,8 @@ import { todayStamp, localStamp, DEFAULT_WEIGH_IN_FREQUENCY, WEIGH_IN_LABELS } f
 import { applyWeighInReminder } from '../lib/notifications';
 import { WeighInFrequency } from '../lib/types';
 import { LocalIcon } from './Icons';
+import { useRouter } from 'expo-router';
+import { usePremium } from '../hooks/usePremium';
 
 interface Props {
   t: ThemePalette;
@@ -39,6 +41,36 @@ const CHIP_GAP = 6;
 
 export function WeightCheckin({ t, onClose, dragHandlers, sheetScrollProps }: Props) {
   const s = useMemo(() => makeStyles(t), [t]);
+
+  // ── Verrou Kyroz+ « suivi de transformation » (2026-08-25) ─────────────────
+  //
+  // 🔴 CE VERROU MANQUAIT, et c'est le trou que l'audit du paywall a trouvé :
+  // `transformation` était dans `PREMIUM_FEATURES` depuis le 2026-07-27, mais
+  // `can('transformation')` n'était appelé NULLE PART. Le jour où `PAYWALL_LAUNCH`
+  // reçoit une date, l'objectif daté se serait verrouillé et les photos seraient
+  // restées ouvertes — un paywall qui annonce deux briques et n'en garde qu'une.
+  //
+  // ⚠️ POURQUOI ÇA A ÉCHAPPÉ, et c'est réutilisable : le verrou de l'app est branché
+  // sur `profil.tsx::openEditor`, qui garde les ÉDITEURS du Profil. Les photos n'en
+  // sont pas un — elles vivent dans la feuille de PESÉE, atteignable depuis Profil
+  // ET depuis Plan. Un point d'étranglement ne garde que ce qui passe par lui.
+  //
+  // ⚠️ CE QUI EST VERROUILLÉ, ET CE QUI NE L'EST JAMAIS. La pesée, la courbe, la
+  // note et l'historique sont GRATUITS et le restent — sans pesée, le TDEE ne se
+  // corrige jamais et les garde-fous de perte rapide n'ont plus de signal. Ce qui
+  // se vend, c'est la TRANSFORMATION : prendre de nouvelles photos, la comparaison
+  // avant/après, et la trajectoire posée sur la courbe.
+  //
+  // ⚠️ LA VIGNETTE DE L'HISTORIQUE RESTE, elle, et c'est délibéré : elle montre une
+  // photo que la personne a DÉJÀ prise. La masquer lui retirerait sa propre donnée.
+  // On vend la comparaison, jamais la possession.
+  const router = useRouter();
+  const premium = usePremium();
+  const transfoOk = premium.can('transformation');
+  // ⚠️ Fermer la feuille AVANT de pousser la route. Ce fichier a déjà payé deux fois
+  // le fait qu'une modale ouverte depuis une modale ne tient nulle part sur iOS —
+  // une route poussée sous une feuille encore montée est la même famille de panne.
+  const ouvrirKyrozPlus = () => { onClose?.(); router.push('/kyroz-plus'); };
   const { entries, photos, last, logWeight, removeWeight, setPhoto } = useWeightLog();
   // Quelle pesée attend sa confirmation (par sa DATE, qui est sa clé).
   const [aConfirmer, setAConfirmer] = useState<string | null>(null);
@@ -82,10 +114,17 @@ export function WeightCheckin({ t, onClose, dragHandlers, sheetScrollProps }: Pr
 
   // Objectif de SUIVI : la date que le moteur tiendra, pas celle qui a été saisie.
   // Coûte une simulation, d'où le mémo — elle ne bouge que si le profil bouge.
+  // ⚠️ `suiviAffiche` (plus bas) et non `suiviTarget` dans le rendu : la TRAJECTOIRE
+  // est vendue avec Kyroz+, la COURBE ne l'est jamais. Aujourd'hui le cas ne se
+  // produit qu'après une résiliation — un compte verrouillé ne peut pas créer
+  // d'objectif daté, donc `suiviTarget` y est déjà vide. C'est justement le cas
+  // résiduel qu'un verrou branché sur le seul éditeur laissait passer.
   const suiviTarget = useMemo(
     () => (profile ? trackingTarget(profile, todayStamp()) : undefined),
     [profile?.goal_target?.target_date, profile?.goal_target?.target_weight_kg, profile?.weight_kg, profile?.target_kcal], // eslint-disable-line react-hooks/exhaustive-deps
   );
+  /** La trajectoire réellement AFFICHÉE : rien sans Kyroz+. La courbe, elle, reste. */
+  const suiviAffiche = transfoOk ? suiviTarget : undefined;
 
   // Message honnête : explique si (et pourquoi) le plan a été ajusté.
   const planStatusMsg = (d: string) => {
@@ -263,15 +302,15 @@ export function WeightCheckin({ t, onClose, dragHandlers, sheetScrollProps }: Pr
         {/* ⚠️ `trackingTarget`, PAS `profile.goal_target` : le couloir vise la date que
             le moteur tiendra, pas celle qui a été saisie. Sans ça, on affiche « en
             retard » à quelqu'un qui suit le plan à la lettre — mesuré, dès J+7. */}
-        <WeightChart t={t} entries={entries} width={width} goalTarget={suiviTarget} />
-        {profile && suiviTarget && (
+        <WeightChart t={t} entries={entries} width={width} goalTarget={suiviAffiche} />
+        {profile && suiviAffiche && (
           // `paused` vient du PRODUCTEUR UNIQUE : quand le moteur a cessé de piloter
           // la trajectoire (insuffisance pondérale, poids cible à contresens), la
           // ligne idéale continue de descendre alors que le plan est au maintien —
           // sans ce drapeau on affichait « en retard » à quelqu'un à qui l'app venait
           // d'interdire tout déficit.
           <TrackVerdict
-            t={t} goalTarget={suiviTarget} currentWeightKg={profile.weight_kg}
+            t={t} goalTarget={suiviAffiche} currentWeightKg={profile.weight_kg}
             paused={planFlags(profile).some((f) => f === 'UNDERWEIGHT_NO_DEFICIT' || f === 'GOAL_DIRECTION_MISMATCH')}
           />
         )}
@@ -283,7 +322,9 @@ export function WeightCheckin({ t, onClose, dragHandlers, sheetScrollProps }: Pr
             pour un usage qui n'est celui de personne tous les jours. */}
         <Presse onPress={() => setDetails((v) => !v)} activeOpacity={OPACITE_PRESSION} style={s.detailsBtn} accessibilityRole="button">
           <Ionicons name={details ? 'chevron-up' : 'add'} size={Icone.petite} color={t.textSecondary} />
-          <Text style={s.detailsTxt}>{details ? 'Masquer' : 'Ajouter une note ou une photo'}</Text>
+          {/* ⚠️ Le libellé suit le VERROU : promettre « ou une photo » à quelqu'un qui
+              ne peut pas en ajouter est exactement le mensonge que la charte interdit. */}
+          <Text style={s.detailsTxt}>{details ? 'Masquer' : (transfoOk ? 'Ajouter une note ou une photo' : 'Ajouter une note')}</Text>
         </Presse>
 
         {details && (
@@ -298,7 +339,12 @@ export function WeightCheckin({ t, onClose, dragHandlers, sheetScrollProps }: Pr
         />
 
         {/* Photo de progression (optionnelle, reste sur l'appareil) */}
-        {pendingPhoto ? (
+        {!transfoOk ? (
+          <Presse onPress={ouvrirKyrozPlus} style={s.photoBtn} activeOpacity={OPACITE_PRESSION} accessibilityRole="button">
+            <Ionicons name="camera-outline" size={Icone.standard} color={t.textSecondary} />
+            <Text style={[s.photoBtnTxt, { color: t.textSecondary }]}>Les photos de progression font partie de Kyroz+</Text>
+          </Presse>
+        ) : pendingPhoto ? (
           <View style={s.photoPreview}>
             <Image source={{ uri: pendingPhoto }} style={s.photoBig} />
             <Presse onPress={() => setPendingPhoto(null)} style={s.photoRemove} hitSlop={8}>
@@ -321,10 +367,15 @@ export function WeightCheckin({ t, onClose, dragHandlers, sheetScrollProps }: Pr
             </Presse>
           </View>
         )}
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm }}>
-          <LocalIcon color={t.textTertiary} size={Icone.petite} />
-          <Text style={[s.photoHint, { flex: 1 }]}>Tes photos restent sur ton téléphone, jamais envoyées.</Text>
-        </View>
+        {transfoOk && (
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm }}>
+            <LocalIcon color={t.textTertiary} size={Icone.petite} />
+            {/* 🔴 « restent sur ton téléphone » ne dit PAS « tu les perdras en changeant
+                de téléphone » (audit paywall, 2026-08-25) : vendre une fonctionnalité
+                sans annoncer sa fragilité est un mensonge par omission. */}
+            <Text style={[s.photoHint, { flex: 1 }]}>Tes photos restent sur ton téléphone, jamais envoyées — et ne sont pas sauvegardées : un changement de téléphone les perd.</Text>
+          </View>
+        )}
           </>
         )}
 
@@ -332,7 +383,18 @@ export function WeightCheckin({ t, onClose, dragHandlers, sheetScrollProps }: Pr
         {Object.keys(photos).filter((d) => photos[d]).length >= 2 && (
           <>
             <SectionLabel t={t}>Transformation</SectionLabel>
-            <PhotoCompare t={t} photos={photos} entries={entries} />
+            {transfoOk ? (
+              <PhotoCompare t={t} photos={photos} entries={entries} />
+            ) : (
+              // Cas de l'ancien abonné : ses photos sont toujours sur son téléphone et
+              // toujours visibles une par une dans l'historique. Seule la COMPARAISON
+              // s'en va. On le DIT, plutôt que de faire disparaître un bloc sans un mot.
+              <Presse onPress={ouvrirKyrozPlus} style={s.photoBtn} activeOpacity={OPACITE_PRESSION} accessibilityRole="button">
+                <Text style={[s.photoBtnTxt, { color: t.textSecondary, flex: 1, textAlign: 'center' }]}>
+                  Tes photos sont toujours sur ton téléphone. La comparaison avant/après fait partie de Kyroz+.
+                </Text>
+              </Presse>
+            )}
           </>
         )}
 
