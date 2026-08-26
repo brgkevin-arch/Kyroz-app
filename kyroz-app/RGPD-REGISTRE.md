@@ -157,10 +157,20 @@
   ➡️ **Ne pas rouvrir cette case en cherchant « où signer ».** C'est le défaut déjà payé
   deux fois : *une case qui attend un geste inexistant reste cochée « à faire » pour
   toujours.*
-  🧑 **CE QUI RESTE, ET QUI EST POUR LE FONDATEUR** : vérifier **au nom de qui** le compte
-  RevenueCat a été ouvert. Le DPA lie « Customer », c'est-à-dire l'entité qui a accepté
-  les conditions — si le compte est au nom propre, c'est cette personne, pas une société.
-  C'est le seul point qui ne se lit pas dans le contrat.
+  ✅ **TRANCHÉ LE 2026-08-26 : le compte est au NOM PROPRE du fondateur, et c'est
+  COHÉRENT.** Le responsable de traitement déclaré en tête de ce registre est *Kévin
+  Berger, entrepreneur individuel (micro-entreprise), SIREN 106386162*. Une entreprise
+  individuelle **n'a pas de personnalité juridique distincte** : la personne EST
+  l'entreprise. Le « Customer » que lie le DPA de RevenueCat et le responsable de
+  traitement déclaré sont donc la **même entité en droit**. Rien à régulariser.
+  ⚠️ **CE QUI CHANGERAIT SI KYROZ DEVENAIT UNE SOCIÉTÉ** (SAS, SARL…), et il vaut mieux
+  le savoir avant qu'après : une société est une personne juridique NOUVELLE. Les
+  comptes prestataires resteraient contractuellement liés à la personne physique,
+  pendant que le responsable de traitement déclaré serait la société — deux entités
+  différentes de part et d'autre de chaque DPA. Il faudrait alors **transférer chaque
+  compte** (RevenueCat, Supabase, Resend, PostHog, Apple, Google) à la nouvelle entité
+  et ré-entrer dans les contrats, pas seulement changer le nom sur la politique.
+  ➡️ À rouvrir le jour d'un changement de statut, et pas plus tôt.
   📄 Pour le classement (validité non concernée) : chercher l'équivalent du
   *Settings → Documents* de Resend dans la console RevenueCat.
 - [x] ✅ **DPA Resend — CONSULTÉ le 2026-08-23, et il n'y avait RIEN À SIGNER.** Le cadre
