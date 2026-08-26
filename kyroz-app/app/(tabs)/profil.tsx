@@ -1725,7 +1725,16 @@ function MealsEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: Edi
       />
       <Text style={{ ...Type.caption, color: t.textTertiary, lineHeight: 17, marginTop: -Spacing.sm }}>
         {repasAuto
-          ? "Un repas non marqué passe en « mangé » une heure après le début du repas suivant — le dernier de la journée en fin de journée. Ses ingrédients quittent ta réserve, comme si tu avais tapé « J'ai cuisiné ». Un repas coché ne revient pas en arrière : si tu préfères décider toi-même, passe sur « À la main »."
+          // ⚠️ RACCOURCI le 2026-08-26 (305 → 186 caractères), pas vidé. Ce qui part
+          // n'apportait rien : « comme si tu avais tapé J'ai cuisiné » redit le
+          // mécanisme, et « si tu préfères décider toi-même, passe sur À la main »
+          // décrit le segment posé DEUX LIGNES plus haut.
+          // ⚠️ Ce qui RESTE, en revanche, ne pouvait pas partir — quatre faits qu'on
+          // ne devine pas et dont trois modifient des données : l'heure de bascule,
+          // la règle du DERNIER repas (sans elle on croit qu'il ne se coche jamais),
+          // la sortie de réserve, et l'irréversibilité. Taire l'un d'eux sur une
+          // action irréversible serait un mensonge par omission.
+          ? "Un repas non marqué passe en « mangé » une heure après le début du suivant — le dernier, en fin de journée. Ses ingrédients quittent ta réserve, et un repas coché ne revient pas en arrière."
           : "Tes repas ne se cochent que si tu tapes « J'ai cuisiné ». Ta journée n'est recalée que sur ce que tu as marqué toi-même."}
       </Text>
 
@@ -1776,9 +1785,12 @@ function MealsEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: Edi
       </View>
       <SectionLabel t={t}>Variété</SectionLabel>
       <View style={{ gap: Spacing.md }}>{VARIETY.map((v) => <OptionCard key={v.value} t={t} title={v.title} subtitle={v.sub} selected={variety === v.value} onPress={() => setVariety(v.value)} />)}</View>
-      <Text style={{ ...Type.caption, color: t.textTertiary, textAlign: 'center', lineHeight: 17 }}>
-        Ton plan se met à jour automatiquement après enregistrement.
-      </Text>
+      {/* 🔴 « Ton plan se met à jour automatiquement après enregistrement. » RETIRÉ
+          le 2026-08-26 (relecture des textes, décision fondateur). C'était la
+          description du bouton « Enregistrer » posé juste dessous, et le seul texte
+          CENTRÉ de l'écran — donc celui qui attirait l'œil pour ne rien apprendre.
+          ⚠️ Le comportement n'a pas changé : `withRecalc` recalcule, et la signature
+          de profil invalide le plan en cache. C'est la phrase qui part. */}
     </EditorShell>
   );
 }

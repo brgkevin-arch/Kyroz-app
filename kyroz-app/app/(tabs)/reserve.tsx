@@ -245,9 +245,17 @@ export default function ReserveScreen() {
               // sélecteur juste au-dessus dit où est le reste.
               <View style={[s.note, { backgroundColor: t.fill }]}>
                 <Text style={s.noteTxt}>
+                  {/* ⚠️ LES DEUX PHRASES SONT JUMELLES, DONC ELLES SE CONSTRUISENT PAREIL.
+                      Une seule portait « rangé » (relecture des textes, 2026-08-26) : à
+                      l'usage on bascule d'un côté à l'autre en un tap, donc les deux se
+                      lisent à quelques secondes d'intervalle, et l'écart de construction
+                      s'entend. Elles ne sont pas assemblées par gabarit pour autant —
+                      « au frais » et « au sec » ne sont pas deux valeurs d'une même
+                      variable, ce sont deux mots que le français décline différemment
+                      selon la phrase. Les écrire en entier, c'est pouvoir les corriger. */}
                   {vue === 'frais'
                     ? 'Rien au frais pour l\'instant — tout ce que tu as est rangé au sec.'
-                    : 'Rien au sec pour l\'instant — tout ce que tu as est au frais.'}
+                    : 'Rien au sec pour l\'instant — tout ce que tu as est rangé au frais.'}
                 </Text>
               </View>
             ) : (

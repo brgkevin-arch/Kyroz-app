@@ -34,3 +34,21 @@ export async function pickProgressPhoto(source: PhotoSource): Promise<string | n
 }
 
 export const cameraAvailable = Platform.OS !== 'web';
+
+/**
+ * Ce que Kyroz promet — et ce qu'il ne promet PAS — sur les photos de progression.
+ *
+ * 🔴 **SOURCE UNIQUE, depuis le 2026-08-26.** Cette phrase vivait en TROIS copies :
+ * `Transformation::PhotoCompare`, `WeightCheckin` et l'écran de vente `kyroz-plus`,
+ * la dernière dans une variante légèrement différente. Trois textes qui disent la
+ * même chose sont trois textes libres de diverger sans que personne ne le voie —
+ * c'est l'histoire du `disclaimer` recopié sept fois (CLAUDE.md §8), reprise.
+ *
+ * ⚠️ Elle porte DEUX faits, et le second est le plus important : les photos ne
+ * quittent pas l'appareil, ET elles ne sont pas sauvegardées. Sur l'écran qui VEND,
+ * taire cette fragilité serait un mensonge par omission (audit paywall 2026-08-25).
+ * Ne pas raccourcir en « restent sur ton téléphone » : c'est ce qu'elle disait avant,
+ * et c'était incomplet.
+ */
+export const PHOTOS_NOTICE_LOCALE =
+  'Tes photos de progression restent sur ton téléphone, jamais envoyées — et ne sont pas sauvegardées : un changement de téléphone les perd.';

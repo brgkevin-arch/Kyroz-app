@@ -1,4 +1,5 @@
 import { MAX_PROJECTION_WEEKS, daysBetween } from './datedGoal';
+import { DATE_IMPOSSIBLE } from './dateLabel';
 
 // ── Échéances proposées pour un objectif daté (A27) ──────────────────────────
 //
@@ -223,7 +224,7 @@ export function checkEcheance(
 export function messageEcheance(r: EcheanceRefus): string {
   switch (r) {
     case 'incomplete': return 'Complète la date : jour, mois et année.';
-    case 'impossible': return 'Cette date n’existe pas — vérifie le jour et le mois.';
+    case 'impossible': return DATE_IMPOSSIBLE;
     case 'passee': return 'Choisis une date à venir : Kyroz ne peut pas piloter vers une échéance déjà passée.';
     case 'trop_loin': return `Kyroz ne projette pas au-delà de ${HORIZON_ANS} ans. Choisis une date plus proche.`;
   }
