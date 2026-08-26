@@ -231,6 +231,14 @@ import { STATISTIQUES_USAGE_ACTIVES } from '../featureFlags';
  */
 const DERNIERE_REVISION = {
   date: '26 août 2026',
+  // ⚠️ **QUATRIÈME RÉVISION DU MÊME JOUR** (2026-08-26) : le §6 cesse d'affirmer
+  // « Aucune donnée de santé ne quitte l'Union européenne » — c'était FAUX, les
+  // sauvegardes du système emportaient les données locales (audit V1, constat 09-02).
+  // Android est traité (`android.allowBackup: false`), iOS attend un plugin natif, donc la
+  // phrase est PRUDENTE au lieu d'être absolue, et elle dit à l'utilisateur comment
+  // couper lui-même. 🔴 **Ne pas la re-durcir avant que les DEUX plateformes soient
+  // traitées** : c'est l'erreur qu'elle vient de payer.
+  //
   // ⚠️ **TROISIÈME RÉVISION DU MÊME JOUR** (2026-08-26) : la mention du médiateur de
   // la consommation est retirée du §10 (audit V1, constat 09-04) — elle promettait un
   // recours qui n'existe pas, l'adhésion n'étant obligatoire (L.612-1) qu'à partir de
@@ -258,7 +266,7 @@ const DERNIERE_REVISION = {
   // d'être déclaré le jour où il ne traite plus, données effacées. C'est la même règle
   // dans l'autre sens ; la garder à sens unique ferait décrire un traitement inexistant.
   // ➡️ La date ne bouge pas — même jour de livraison.
-  empreinte: 'eb56e8f6f8c4',
+  empreinte: '25bf850053c2',
 };
 
 /**
