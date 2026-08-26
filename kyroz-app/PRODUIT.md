@@ -115,6 +115,15 @@ La liste se calcule toute seule : **ce que le plan demande, moins ce que la rés
 contient**, condiments mis à part. On coche en magasin, on clôture, et la sortie part dans
 un historique local.
 
+**Et ce que le plan ne sait pas demander s'ajoute à la main** (2026-08-26) : un « + » dans
+l'en-tête, au même endroit et de la même forme que celui de la Réserve, pour le café, le
+pain, le papier absorbant. La quantité est **facultative** — sans elle la ligne n'affiche
+aucun chiffre plutôt qu'un « 0 g », et l'article n'entre pas en réserve une fois acheté :
+on ne sait pas combien a été pris. Ces articles-là **survivent au rafraîchissement** (ce
+qui vient du plan se refait, ce qui vient de toi ne se refait pas) et ne partent qu'à la
+clôture. Un appui long les supprime — et le message le dit, parce qu'eux ne reviennent
+pas tout seuls.
+
 ⚠️ **Cocher ne range rien — c'est « Courses terminées » qui remplit la réserve** (depuis le
 2026-08-24). L'interrupteur « Tenir compte du frigo » a disparu avec ce changement : ce qui
 rendait la soustraction risquée n'était pas la soustraction, c'était une réserve créditée à

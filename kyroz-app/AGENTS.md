@@ -84,6 +84,7 @@ qu'ils étaient périmés.
 | 136 | **Kyroz+ : le verrou « transformation »** — livré par une autre session ([PR #148](https://github.com/brgkevin-arch/Kyroz-app/pull/148)) | ⚠️ fiche à écrire |
 | 137 | Tuto : **5 → 2 bulles** · Plan et Profil en **pop-up centré** · plus de « ? » de rejeu · 🔴 **un repas coché ne se décoche plus** | E61 |
 | 138 | **Les fiches d'OTA sont COMPTÉES** — un test les compare entre elles, `npm run check:ota` les confronte au canal EAS | E62 |
+| 139 | **Un « + » dans les courses** — la liste n'est plus seulement dérivée, on y ajoute ses propres articles | E63 |
 
 🔴 **NE PAS RE-PROPOSER LES TÂCHES DU PLAN D'ACTION : elles sont toutes livrées côté
 code.** 4, 6, 7, 8, 9, 10 et 12 sont faites ; 3, 5, 11 et 14 l'étaient **avant** que le
@@ -4034,6 +4035,67 @@ produit en suspens — il ne reste qu'à coder.
 > ➡️ Ce qui EST vérifié ici : `tsc` propre et **1 712 tests verts sur `main`** une fois
 > les deux PR fusionnées, donc les deux chantiers ne se marchent pas dessus (ils
 > touchaient tous les deux `profil.tsx` et `constants/legal.ts`).
+
+- 🤖 **E63 · Le « + » des courses — un ajout manuel ne peut pas vivre dans un cache
+  qui s'efface tout seul (2026-08-26)**
+
+  Demande du fondateur : *« j'aimerai rajouter un petit + dans la liste de courses pour
+  rajouter des choses à sa liste. ça n'y est pas et pourtant c'est important. »* La liste
+  était entièrement **DÉRIVÉE** — plan moins réserve — donc tout ce qu'elle proposait
+  sortait d'une recette. Le café, le pain, le papier absorbant n'avaient nulle part où
+  aller : il fallait une seconde liste, ailleurs, et une liste de courses qu'on double
+  d'un pense-bête est celle qu'on oublie de sortir du sac.
+
+  🔴 **LA CLÉ EST À PART, ET C'EST TOUT LE CHANTIER.** Le cache `@kyroz:shopping` est
+  effacé par `plan.tsx` à **CHAQUE `persistPlan`** — dès qu'un repas est marqué cuisiné,
+  qu'un écart est déclaré, qu'une recette change — puis par « tirer pour rafraîchir » et
+  par « Courses terminées ». Un article saisi au clavier et rangé là-dedans aurait
+  disparu quelques minutes après la frappe, **sans qu'aucun geste de l'utilisateur ne
+  l'explique**. C'est le piège déjà consigné pour les écartés (`shoppingRemoved.ts`),
+  avec un enjeu plus lourd : un écarté perdu, la liste le reconstruit depuis le plan ;
+  **un ajout perdu, personne ne peut le deviner**. D'où `lib/shoppingAjouts.ts` et
+  `@kyroz:shopping:ajouts`, que rien d'autre ne touche.
+
+  ⚠️ **ET ILS SURVIVENT AU RAFRAÎCHISSEMENT, CONTRAIREMENT AUX ÉCARTÉS** — c'est la seule
+  règle des deux modules qui diverge, et elle se déduit de la même phrase : tirer vers le
+  bas veut dire « refais ma liste à partir de mon plan ». Ce qui vient du plan se refait ;
+  ce qui vient de l'utilisateur ne se refait pas, donc l'effacer là serait **une
+  suppression déguisée en actualisation**. Seule la clôture les solde — coché il est
+  acheté et quitte la liste, sinon il suit le choix « garder / retirer » déjà posé pour
+  les restants. Sans cette étape rien ne les ferait jamais partir : un article du plan
+  disparaît parce que la liste se RECALCULE, un ajout manuel ne se recalcule pas.
+
+  🔴 **UN NOM = UNE LIGNE.** Le nom est la clé de la liste (`keyExtractor`), la cible du
+  cochage (`i.name === item.name`) et l'identité d'un écarté : deux homonymes, et cocher
+  l'un coche l'autre — sur l'écran où l'on coche trente fois d'affilée sans regarder. Un
+  ajout homonyme d'un article du plan est donc refusé, **avec le message DANS la feuille
+  et jamais un dialogue** (une `Modal` sur une `Modal` ne donne rien sur iOS, cf. E45 et
+  `feuillesEmpilees.test.ts`).
+  ⚠️ Et le cas qui ne se voit qu'en le construisant : si l'homonyme était **ÉCARTÉ**,
+  l'ajout aurait été avalé par la fusion et **il ne se serait rien passé du tout** — une
+  saisie qui disparaît sans un mot. Le retaper le **rétablit**.
+
+  ⚠️ **LA QUANTITÉ EST FACULTATIVE, ET ÇA SE PAYE EN TROIS ENDROITS.** On note « café »,
+  pas « café 250 g ». Zéro veut donc dire « non précisée », pas « zéro gramme » :
+  `formatQuantity` rendrait « 0 g », donc l'écran **et l'historique** taisent la colonne,
+  et la clôture n'en range rien en réserve — un stock inventé fait disparaître des
+  articles de la liste suivante, c'est exactement la dérive corrigée le 2026-08-24 (E59).
+
+  ⚠️ **L'APPUI LONG NE DIT PLUS LA MÊME CHOSE SELON L'ORIGINE.** Le message promettait
+  « tu le retrouveras en tirant la liste vers le bas » : vrai d'un article du plan, **faux**
+  d'un article que l'utilisateur a tapé lui-même. Deux portées derrière le même geste,
+  donc deux phrases — et la seconde dit la suppression.
+
+  📋 **Vérifié à l'écran** (preview du worktree, code de la branche confirmé dans les
+  logs), pas seulement par les tests : ajout sans quantité · avec quantité (« Banane
+  500 g » → « 4 bananes », rangée au bon rayon) · doublon refusé même écrit `  CAFE  ` ·
+  **cochage qui survit à un rechargement complet** (la preuve qu'il est écrit dans la
+  bonne clé) · « Tout cocher » qui atteint 17/17 en emportant les ajouts · clôture qui
+  solde l'acheté **sans rien poser en réserve** · appui long qui supprime.
+  **22 tests neufs**, suite verte, `tsc` propre.
+  ✅ Deux correctifs mineurs embarqués : l'historique affichait « 0 g » pour un article
+  sans quantité, et le « Annuler » copié de la Réserve faisait 36 pt — **c'est ce
+  contraste qui a mené à E64**.
 
 - 🤖 **E62 · Les fiches d'OTA se comptent — et le premier ancrage aurait mesuré
   une phrase morte (2026-08-26)**

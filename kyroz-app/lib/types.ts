@@ -624,6 +624,14 @@ export interface ShoppingItem {
   unit: string;
   category: 'viandes' | 'légumes' | 'féculents' | 'laitiers' | 'autres';
   checked: boolean;
+  /**
+   * Ajouté à la main par l'utilisateur (`lib/shoppingAjouts.ts`), donc absent du
+   * plan. Le champ n'est pas décoratif : il dit DANS QUEL STOCKAGE la case cochée
+   * doit être écrite — le cache de la liste dérivée pour les autres, une clé qui
+   * survit aux recalculs pour ceux-là. Optionnel, donc rétroactif : une liste
+   * mise en cache avant le 2026-08-26 se relit sans migration.
+   */
+  manuel?: boolean;
 }
 
 export interface ShoppingList {
