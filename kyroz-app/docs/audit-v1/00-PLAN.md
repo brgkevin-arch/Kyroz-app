@@ -136,7 +136,7 @@ Le plan est appliqué tel quel, à quatre réserves **mesurées** :
 
 | Étape | Statut | Date | Commit | P0 | P1 | P2 | P3 | Reste à couvrir |
 |---|---|---|---|---|---|---|---|---|
-| 1 | ✅ terminée | 2026-08-26 | `c17e667` | **1** | 4 | 4 | 3 | 0 |
+| 1 | ✅ terminée | 2026-08-26 | `c17e667` | **1** | 4 | 4 | 3 | 0 · ⚠️ 01-03 corrigé par 08-04 |
 | 2 | ✅ terminée | 2026-08-26 | `39385dd` | **2** | 1 | 2 | 3 | 0 |
 | 3 | ✅ terminée | 2026-08-26 | `6cb1c5c` | 0 | **4** | 3 | 2 | 0 |
 | 4 | ✅ terminée | 2026-08-26 | `abf39cf` | 0 | **1** | 5 | 5 | 0 |
@@ -144,7 +144,7 @@ Le plan est appliqué tel quel, à quatre réserves **mesurées** :
 | 6a | ✅ terminée | 2026-08-26 | `e731e80` | 0 | 0 | 2 | 1 | 0 |
 | 6b | ✅ terminée (Claude.ai + arbitrage) | 2026-08-26 | `83367bd` | 0 | **4** | 12 | 4 | 0 |
 | 7 | ✅ terminée | 2026-08-26 | `d095397` | 0 | **1** | 2 | 2 | 0 |
-| 8 | | | | | | | | |
+| 8 | ✅ terminée (re-cadrée) | 2026-08-26 | `e6dda33` | 0 | 0 | 2 | 1 | 0 |
 | 9 | | | | | | | | |
 | 10 | | | | | | | | |
 | 11 | | | | | | | | |
