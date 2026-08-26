@@ -1338,7 +1338,23 @@ Profil (poids, objectif, régime) = **données de santé** au sens RGPD.
 > ligne reste explicitement EN SUSPENS au registre plutôt que remplie au jugé — même
 > règle que le prestataire d'abonnement, jamais nommé tant qu'aucun contrat n'existait.
 
-### Statistiques d'usage — le consentement se demande AVANT l'assistant (2026-08-10)
+### Statistiques d'usage — ÉTEINTES depuis le 2026-08-26
+
+> 🔴 **PLUS RIEN N'EST MESURÉ** (décision fondateur : *« on enlève le posthog pour
+> l'instant »*). `STATISTIQUES_USAGE_ACTIVES = false` (`lib/featureFlags.ts`) coupe
+> l'envoi **avant même la lecture du consentement**, retire l'écran de l'inscription et
+> l'interrupteur des Réglages. Le paragraphe ci-dessous décrit le mécanisme tel qu'il
+> reste câblé — il redevient vrai le jour où la constante repasse à `true`, et il est
+> conservé pour ça.
+> ⚠️ **La garde de code est ce qui compte, pas la clé.** `EXPO_PUBLIC_POSTHOG_KEY` est
+> inlinée dans le bundle à la compilation : la retirer d'EAS ne concerne que les builds
+> FUTURS, alors que la garde s'applique aux binaires déjà installés dès la prochaine OTA.
+> ⚠️ **Ce qui RESTE monté** : « Supprimer mes statistiques » dans les Réglages, tant
+> qu'un pseudonyme existe sur l'appareil. Des mesures ont pu partir entre le 2026-08-18
+> et l'extinction ; le droit à l'effacement ne s'arrête pas avec la collecte.
+> 🔁 **Restent à trancher** : la clé dans l'environnement EAS, le sort des données déjà
+> chez PostHog, et les textes légaux (politique in-app, politique publique, registre)
+> qui décrivent encore un traitement actif.
 
 Deux consentements distincts, à ne pas confondre : celui aux **données de santé** (case
 cochée à l'inscription, base légale du produit) et celui aux **statistiques d'usage**

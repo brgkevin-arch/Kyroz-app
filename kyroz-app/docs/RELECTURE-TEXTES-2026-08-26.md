@@ -254,8 +254,12 @@ sport ») existe précisément pour ne pas mentir à qui n'a coché aucun sport.
 
 ## 5. À NE PAS TOUCHER
 
-- `constants/legal.ts`, `components/AnalyticsConsentStep.tsx`, la carte analytics de
-  `ReglagesSheet` : obligations RGPD, longueur assumée.
+- `constants/legal.ts` : obligations RGPD, longueur assumée.
+  ⚠️ **Plus tard le même jour**, la mesure d'audience a été éteinte (AGENTS.md E66) :
+  `AnalyticsConsentStep` et la carte analytics de `ReglagesSheet` ne se rendent plus, et
+  les paragraphes analytics de `legal.ts` sont supprimés. Cette ligne visait donc trois
+  surfaces dont deux ont disparu de l'écran dans la journée — elle reste ici parce
+  qu'une relecture est datée : elle dit ce qui a été relu, pas ce qui existe aujourd'hui.
 - `lib/safety.ts` et les avis de sécurité du Profil (sortie de déficit, IMC bas,
   énergie disponible) : textes de santé. Leur longueur EST leur fonction.
 - `lib/methodologie.ts` : chiffres interpolés, aucun risque de péremption.

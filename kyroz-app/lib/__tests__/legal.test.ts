@@ -141,30 +141,42 @@ describe("ce que le texte doit dire avant qu'un abonnement puisse être vendu", 
   });
 });
 
-describe('la déclaration de mesure d’audience ne peut plus disparaître', () => {
-  // Ces trois assertions gardent le lot du 2026-08-18. Elles ne testent pas du code :
-  // elles comptent une règle qui, sans elles, resterait un paragraphe de .md — et
-  // c'est exactement comme ça que « aucun outil d'analyse tiers » a survécu jusqu'au
-  // jour où l'app demandait déjà le consentement en production.
+describe('le texte et la mesure d’audience disent la MÊME chose', () => {
+  // 🔴 CE BLOC A CHANGÉ DE SENS LE 2026-08-26, ET C'EST LE POINT.
+  //
+  // Il gardait le lot du 2026-08-18 : « le texte doit NOMMER PostHog », parce que
+  // l'app demandait alors le consentement en production pour un outil que la
+  // politique déclarait inexistant. La mesure étant éteinte et les textes purgés
+  // (décision fondateur, « fais comme si posthog n'existait pas »), exiger ce nom
+  // reviendrait à imposer la déclaration d'un traitement qui n'a plus lieu.
+  //
+  // ➡️ CE QUI EST GARDÉ EST L'INVARIANT, pas la formulation d'un jour donné : le
+  // texte et le code doivent dire la même chose, dans les DEUX sens. C'est la
+  // version symétrique de la leçon Resend — un sous-traitant se déclare le jour où
+  // il traite, et cesse d'être déclaré le jour où il ne traite plus.
 
-  it('NOMME le destinataire des mesures', () => {
-    // RGPD art. 13-1-e : un consentement qui ne dit pas à qui les données vont n'est
-    // pas éclairé. Le nom doit vivre dans le texte, pas seulement au registre.
-    expect(TOUS_LES_PARAS).toMatch(/PostHog/);
+  it('🔴 la politique nomme PostHog SI ET SEULEMENT SI la mesure est active', () => {
+    const nomme = /PostHog/.test(TOUS_LES_PARAS);
+    expect(
+      nomme,
+      STATISTIQUES_USAGE_ACTIVES
+        ? 'la mesure est ACTIVE mais le texte ne nomme pas son destinataire (RGPD art. 13-1-e)'
+        : 'la mesure est ÉTEINTE mais le texte déclare encore un traitement qui n’a plus lieu'
+    ).toBe(STATISTIQUES_USAGE_ACTIVES);
   });
 
-  it('n’affirme plus qu’aucun outil d’analyse tiers n’est utilisé', () => {
+  it('n’affirme jamais qu’aucun outil d’analyse tiers n’est utilisé', () => {
     // La phrase a été vraie pendant des mois, ce qui la rendait rassurante à la
-    // relecture — et invisible le jour où elle a cessé de l'être.
+    // relecture — et invisible le jour où elle a cessé de l'être. On ne la
+    // réintroduit pas maintenant que c'est redevenu vrai : la prochaine bascule
+    // ferait le même chemin, en silence.
     expect(TOUS_LES_PARAS).not.toMatch(/outil d’analyse tiers|outil d'analyse tiers/);
   });
 
-  it('dit « pseudonyme », jamais « anonyme »', () => {
-    // ⚠️ L'identifiant est STABLE et SUPPRIMABLE sur demande : les deux affirmations
-    // ne peuvent pas tenir ensemble. Une donnée qu'on sait rattacher à un individu
-    // pour l'effacer n'est pas anonyme (synthèse analytics §3.3). Le vocabulaire fait
-    // partie de la promesse.
-    expect(TOUS_LES_PARAS).toMatch(/pseudonyme/);
+  it('ne dit jamais « anonyme » — le mot est banni des textes', () => {
+    // ⚠️ Un identifiant STABLE et SUPPRIMABLE sur demande n'est pas anonyme : les deux
+    // affirmations ne peuvent pas tenir ensemble (synthèse analytics §3.3). La règle
+    // survit à l'extinction, parce que c'est le mot qui est piégeux, pas l'outil.
     expect(TOUS_LES_PARAS).not.toMatch(/anonyme/i);
   });
 });
@@ -209,6 +221,7 @@ describe('aucun gabarit ne part en production', () => {
 // lisant le message de la première.
 
 import { createHash } from 'node:crypto';
+import { STATISTIQUES_USAGE_ACTIVES } from '../featureFlags';
 
 /**
  * L'état enregistré du texte légal. **Les deux valeurs se modifient ENSEMBLE.**
@@ -225,7 +238,17 @@ const DERNIERE_REVISION = {
   // post-dater au 27 annoncerait une prise d'effet qui n'a pas lieu.
   // ➡️ Si une révision tombait un AUTRE jour, c'est la date qu'il faudrait bouger
   // d'abord — l'empreinte ne se met à jour qu'après cet arbitrage-là.
-  empreinte: '504ee4c8b129',   // 3e révision du 26 août : coquille « Inc.. » corrigée
+  // ⚠️ **QUATRIÈME RÉVISION DU MÊME JOUR** (2026-08-26) : la mesure d'audience QUITTE
+  // les textes. Décision fondateur, en deux temps le même jour — d'abord « éteindre »,
+  // puis, une fois pesé ce qui avait réellement été collecté (huit jours, son propre
+  // appareil et un testeur, supprimé à la source) : *« juste efface, fais comme si
+  // posthog n'existait pas »*. Les paragraphes des §2, 3, 4, 5, 6, 7 et 9 sont donc
+  // SUPPRIMÉS, pas passés au passé, et les trois constantes `analytics*` avec eux.
+  // ➡️ Un sous-traitant se déclare le jour où il traite (leçon Resend) — et cesse
+  // d'être déclaré le jour où il ne traite plus, données effacées. C'est la même règle
+  // dans l'autre sens ; la garder à sens unique ferait décrire un traitement inexistant.
+  // ➡️ La date ne bouge pas — même jour de livraison.
+  empreinte: '24f62acf55bb',
 };
 
 /**

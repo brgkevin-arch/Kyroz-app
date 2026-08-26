@@ -29,15 +29,13 @@ Photos de progression (facultatives) : elles restent stockées UNIQUEMENT sur vo
 
 Données d’abonnement, uniquement si vous souscrivez à Kyroz+ : l’identifiant technique de votre compte et l’état de votre abonnement. Aucune coordonnée bancaire ne transite par Kyroz.
 
-Mesures d’usage, uniquement si vous les acceptez : des événements techniques (étape d’inscription atteinte, plan ouvert, repas coché, palier de série, échec de génération, erreur technique), des comptes (nombre de jours du plan, nombre de repas) et le rang du jour depuis l’installation. Ils sont rattachés à un identifiant pseudonyme tiré au hasard sur votre appareil, jamais relié à votre compte ni à votre adresse e-mail.
+Aucune statistique d’usage n’est collectée : l’application ne mesure pas comment vous vous en servez.
 
 ---
 
 ## 3. Finalités
 
 Vos données de compte et de santé servent exclusivement à : calculer vos besoins nutritionnels (calories, macros), générer vos plans repas, votre liste de courses et le suivi associé.
-
-Les mesures d’usage, si vous les acceptez, servent uniquement à comprendre comment l’application est utilisée — où l’inscription décroche, si les plans sont suivis, quelles erreurs surviennent — afin de l’améliorer. Aucune donnée de santé et aucun contenu de plan (aliment, recette, quantité, liste de courses) n’y figure. Elles ne servent ni au profilage, ni à la personnalisation de votre plan.
 
 Aucune donnée n’est utilisée à des fins publicitaires.
 
@@ -46,8 +44,6 @@ Aucune donnée n’est utilisée à des fins publicitaires.
 ## 4. Base légale
 
 Le traitement des données de santé repose sur votre consentement explicite (RGPD art. 9-2-a), recueilli à l’inscription. Vous pouvez le retirer à tout moment en supprimant votre compte.
-
-La mesure d’usage repose sur un consentement distinct de celui portant sur vos données de santé. Il vous est demandé avant toute collecte, se refuse sans aucune conséquence sur l’usage de l’application, et se retire à tout moment dans Réglages → Confidentialité → Statistiques d’usage, sans avoir à supprimer votre compte.
 
 ---
 
@@ -58,8 +54,6 @@ Vos données synchronisées sont hébergées par Supabase Inc., sur des serveurs
 L’envoi des e-mails de service (confirmation d’inscription, réinitialisation de mot de passe) est assuré par Resend (Plus Five Five, Inc.). Seules votre adresse e-mail et le contenu de ces messages lui sont transmis — aucune donnée de santé.
 
 Ces e-mails, ainsi que les journaux d’envoi correspondants, sont stockés par Resend aux États-Unis. Ce transfert hors de l’Union européenne est encadré par les clauses contractuelles types de la Commission européenne et par l’adhésion de ce prestataire au cadre de protection des données UE–États-Unis (EU-U.S. Data Privacy Framework).
-
-Si vous acceptez le partage des statistiques d’usage, celles-ci sont traitées par PostHog. Elles sont stockées sur ses serveurs de Francfort, en Allemagne. Lui sont transmis l’identifiant pseudonyme de votre appareil et les événements décrits au point 2 — aucune donnée de santé, aucun contenu de plan, ni votre adresse e-mail, ni l’identifiant de votre compte.
 
 La gestion technique des abonnements Kyroz+ est confiée à RevenueCat, Inc. (États-Unis). Dès que vous êtes connecté, que vous soyez abonné ou non, l’identifiant technique de votre compte lui est transmis pour vérifier si un abonnement est actif ; s’y ajoutent, le cas échéant, l’état de votre abonnement et le reçu d’achat émis par l’App Store ou Google Play. Ne lui sont transmis ni votre adresse email, ni vos données de santé, ni aucune coordonnée bancaire.
 
@@ -75,15 +69,13 @@ Nous ne vendons, ne louons et ne partageons vos données avec aucun tiers à des
 
 Les données synchronisées — profil, objectif, suivi du poids — sont stockées dans l’Union européenne. Une copie de travail réside localement sur votre appareil (fonctionnement hors-ligne).
 
-Deux exceptions, décrites au point 5 : les e-mails de service sont stockés aux États-Unis, et les statistiques d’usage, si vous les avez acceptées, à Francfort, en Allemagne. Aucune donnée de santé ne quitte l’Union européenne.
+Une exception, décrite au point 5 : les e-mails de service sont stockés aux États-Unis. Aucune donnée de santé ne quitte l’Union européenne.
 
 ---
 
 ## 7. Durée de conservation
 
 Vos données sont conservées tant que votre compte est actif. Elles sont supprimées (serveur + appareil) lorsque vous supprimez votre compte.
-
-Les mesures d’usage, si vous les avez acceptées, sont conservées au moins un an par PostHog — la durée garantie par son offre —, sans limite haute fixe au-delà. Vous pouvez à tout moment en demander la suppression (Réglages → Supprimer mes statistiques).
 
 Une exception : si vous avez souscrit un abonnement, l’historique de facturation correspondant est conservé par le store concerné (Apple, Google) et par le prestataire mentionné au point 5, pour la durée qu’imposent leurs obligations légales et comptables. Cet historique ne contient aucune donnée de santé.
 
@@ -102,8 +94,6 @@ Les données stockées localement sur votre appareil ne sont pas chiffrées : pr
 Conformément au RGPD, vous disposez des droits d’accès, de rectification, d’effacement, de limitation, d’opposition et de portabilité, ainsi que du droit de retirer votre consentement.
 
 Le droit à l’effacement s’exerce directement dans l’app (Profil → Supprimer mon compte) ou par email à contact@kyroz.app.
-
-La suppression des statistiques d’usage déjà envoyées se demande depuis l’app (Réglages → Supprimer mes statistiques), qui prépare l’e-mail avec votre identifiant pseudonyme.
 
 Vous pouvez introduire une réclamation auprès de la CNIL (www.cnil.fr).
 
