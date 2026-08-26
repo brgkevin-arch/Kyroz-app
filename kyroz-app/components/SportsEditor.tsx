@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { ThemePalette, useTheme, Radius, Type, Spacing, Trait, Icone } from '../constants/theme';
+import { ThemePalette, useTheme, Radius, Type, Spacing, Trait, Icone, CIBLE_TACTILE_MIN } from '../constants/theme';
 import { SportSession, SportType } from '../lib/types';
 import {
   SPORT_ORDER, SPORT_LABEL, exerciseKcalPerDay,
@@ -128,7 +128,11 @@ function Stepper({
 const makeStyles = (t: ThemePalette) =>
   StyleSheet.create({
     wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
+    // ⚠️ `minHeight` et non le seul padding : à 2 × 8 + une ligne, la puce
+    // mesurait ~36 pt. C'est la valeur de la puce commune (`ui.tsx::Chip`),
+    // que celle-ci répète sans l'employer.
     chip: {
+      minHeight: CIBLE_TACTILE_MIN, justifyContent: 'center',
       paddingVertical: Spacing.sm, paddingHorizontal: Spacing.lg, borderRadius: Radius.pill,
       backgroundColor: t.fill, borderWidth: Trait.fin, borderColor: t.line,
     },
@@ -145,8 +149,11 @@ const makeStyles = (t: ThemePalette) =>
     stepper: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
     stepLabel: { ...Type.bodySmall, color: t.textSecondary },
     stepCtrls: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
+    // ⚠️ 44 et non 34 : ces deux boutons se pressent à répétition pour régler
+    // un nombre de séances, et c'est le geste le plus fin de l'éditeur.
     stepBtn: {
-      width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center',
+      width: CIBLE_TACTILE_MIN, height: CIBLE_TACTILE_MIN, borderRadius: Radius.pill,
+      alignItems: 'center', justifyContent: 'center',
       backgroundColor: t.fill, borderWidth: Trait.fin, borderColor: t.line,
     },
     stepBtnOff: { opacity: 0.5 },

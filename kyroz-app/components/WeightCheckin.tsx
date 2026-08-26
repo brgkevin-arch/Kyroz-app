@@ -351,8 +351,11 @@ export function WeightCheckin({ t, onClose, dragHandlers, sheetScrollProps }: Pr
         ) : pendingPhoto ? (
           <View style={s.photoPreview}>
             <Image source={{ uri: pendingPhoto }} style={s.photoBig} />
-            <Presse onPress={() => setPendingPhoto(null)} style={s.photoRemove} hitSlop={8}>
-              <Ionicons name="close-circle" size={Icone.nav} color={t.text} />
+            {/* La ZONE fait 44, la PASTILLE reste à 26 : cf. `photoRemove`. */}
+            <Presse onPress={() => setPendingPhoto(null)} style={s.photoRemove}>
+              <View style={s.photoRemovePastille}>
+                <Ionicons name="close-circle" size={Icone.nav} color={t.text} />
+              </View>
             </Presse>
           </View>
         ) : (
@@ -489,10 +492,23 @@ function makeStyles(t: ThemePalette) {
     photoBtnTxt: { ...Type.bodyStrong, color: t.text },
     photoPreview: { alignSelf: 'flex-start' },
     photoBig: { width: 150, height: 200, borderRadius: Radius.card, backgroundColor: t.fill },
+    // 🔴 LA ZONE TACTILE FAIT 44, LA PASTILLE VISIBLE EN FAIT 26 (2026-08-26).
+    // Les deux étaient le même carré : 26 pt à viser, rattrapés par un `hitSlop`
+    // de 8 — donc 42, toujours sous la cible, et surtout un bouton qui a l'air
+    // petit reste difficile à viser même quand sa zone est plus large.
+    // ⚠️ Le contenu est aligné en HAUT À DROITE, et l'ancrage `-8 / -8` ne bouge
+    // pas : la pastille occupe donc exactement les mêmes pixels qu'avant, et les
+    // 18 pt gagnés s'étendent vers l'INTÉRIEUR de la photo — pas au-delà du
+    // parent, où un enfant hors cadre cesse d'être touchable sur Android.
+    photoRemove: {
+      position: 'absolute', top: -8, right: -8,
+      width: CIBLE_TACTILE_MIN, height: CIBLE_TACTILE_MIN,
+      alignItems: 'flex-end', justifyContent: 'flex-start',
+    },
     // Pastille de fond DERRIÈRE l'icône « close-circle » de 26 : sa taille est
     // donc dictée par l'icône, et son rayon en est la moitié. Elle valait 14 pour
     // 26 de large — donc pas tout à fait un disque, ce qui se voyait au liseré.
-    photoRemove: { position: 'absolute', top: -8, right: -8, backgroundColor: t.bg, width: 26, height: 26, borderRadius: 13 },
+    photoRemovePastille: { backgroundColor: t.bg, width: 26, height: 26, borderRadius: 13 },
     photoHint: { ...Type.caption, color: t.textTertiary, lineHeight: 16, marginTop: -Spacing.xs },
   });
 }
