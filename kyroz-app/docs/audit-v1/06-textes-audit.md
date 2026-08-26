@@ -1,5 +1,5 @@
 # Audit V1 — Étape 6b : jugement des textes
-Source : **Claude.ai**, sur `06-textes-dump.md` (728 chaînes, commit `e731e80`).
+Source : **Claude.ai**, sur `06-textes-dump.md` (753 chaînes, commit `e731e80`).
 Arbitrage : **Claude Code**, 2026-08-26, commit `83367bd`.
 
 > ⚠️ **Ce document se lit en deux temps.** La partie I est l'**arbitrage** : les dix questions

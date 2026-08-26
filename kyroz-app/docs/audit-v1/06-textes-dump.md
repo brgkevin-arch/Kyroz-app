@@ -1,6 +1,12 @@
-# Textes Kyroz — dump verbatim (commit e731e80)
+# Textes Kyroz — dump verbatim (commit c850512)
 
 > Extraction MÉCANIQUE, sans reformulation ni correction. Commentaires retirés avant extraction.
+>
+> ⚠️ **Compte corrigé le 2026-08-26 : 753 chaînes, et non 728.** L'extracteur imposait un minimum
+> de 12 caractères aux fichiers hors `app/` et `components/`. Trente chaînes passaient dessous, dont
+> **quatre titres de section** (`8. Sécurité`, `10. Mineurs`, `1. Objet`, `5. Compte`) et **les
+> quatorze noms d'auteurs** des citations de rappel — c'est-à-dire précisément la matière des
+> constats 06b-17 et 06b-19. Défaut relevé par l'étape 9.
 > Flag `⚑` (sans jugement) : le texte contient un chiffre, ou l'un des mots de la liste du brief.
 > Rôles : titre · sous-titre · corps · bouton · lien · placeholder · label · aide · erreur · alerte · toast · vide · a11y · notification · légal · store.
 
@@ -770,77 +776,84 @@
 | 1 | `constants/legal.ts:15` | corps | Kyroz est conçu pour des adultes en bonne santé. Ces informations ne remplacent pas l | ⚑ |
 | 2 | `constants/legal.ts:15` | corps | un médecin ou diététicien-nutritionniste. | ⚑ |
 | 3 | `constants/legal.ts:28` | corps | Enceinte, allaitante, ou suivie pour une pathologie chronique ? Parles-en à un médecin avant de suivre un plan. | ⚑ |
-| 4 | `constants/legal.ts:36` | corps | Kévin Berger |  |
-| 5 | `constants/legal.ts:37` | corps | Entrepreneur individuel (micro-entreprise) |  |
-| 6 | `constants/legal.ts:39` | corps | 2 rue du moulin, 64570 Arette | ⚑ |
-| 7 | `constants/legal.ts:42` | corps | Supabase Inc. |  |
-| 8 | `constants/legal.ts:43` | corps | Union européenne (UE) |  |
-| 9 | `constants/legal.ts:49` | vide | Plus Five Five, Inc. |  |
-| 10 | `constants/legal.ts:57` | vide | aux États-Unis |  |
-| 11 | `constants/legal.ts:73` | vide | RevenueCat, Inc. |  |
-| 12 | `constants/legal.ts:75` | vide | aux États-Unis |  |
-| 13 | `constants/legal.ts:95` | corps | 26 août 2026 | ⚑ |
-| 14 | `constants/legal.ts:106` | corps | 1. Responsable de traitement | ⚑ |
-| 15 | `constants/legal.ts:108` | corps | Le responsable du traitement de vos données est ${LEGAL.controllerName}, ${LEGAL.controllerStatus}, SIREN ${LEGAL.siren}, ${LEGAL.address}. |  |
-| 16 | `constants/legal.ts:109` | corps | Pour toute question relative à vos données ou pour exercer vos droits : ${LEGAL.dpoEmail}. |  |
-| 17 | `constants/legal.ts:113` | corps | 2. Données collectées | ⚑ |
-| 18 | `constants/legal.ts:115` | corps | Données de compte : adresse email (lors d’une inscription par email). |  |
-| 19 | `constants/legal.ts:116` | corps | Données de santé : sexe, âge, poids, taille, taux de masse grasse, niveau d’activité et sport pratiqué, objectif, restrictions et préférences alimentaires. Ces informations sont des données de santé au sens de l’article 9 du RGPD. | ⚑ |
-| 20 | `constants/legal.ts:117` | corps | Données d’usage de l’app : plans générés, suivi du poids, série (streak), favoris, réserve alimentaire. |  |
-| 21 | `constants/legal.ts:118` | corps | Photos de progression (facultatives) : elles restent stockées UNIQUEMENT sur votre appareil et ne sont jamais transmises à nos serveurs. | ⚑ |
-| 22 | `constants/legal.ts:119` | corps | Données d’abonnement, uniquement si vous souscrivez à Kyroz+ : l’identifiant technique de votre compte et l’état de votre abonnement. Aucune coordonnée bancaire ne transite par Kyroz. |  |
-| 23 | `constants/legal.ts:120` | corps | Aucune statistique d’usage n’est collectée : l’application ne mesure pas comment vous vous en servez. |  |
-| 24 | `constants/legal.ts:124` | corps | 3. Finalités | ⚑ |
-| 25 | `constants/legal.ts:126` | corps | Vos données de compte et de santé servent exclusivement à : calculer vos besoins nutritionnels (calories, macros), générer vos plans repas, votre liste de courses et le suivi associé. | ⚑ |
-| 26 | `constants/legal.ts:127` | corps | Aucune donnée n’est utilisée à des fins publicitaires. |  |
-| 27 | `constants/legal.ts:131` | corps | 4. Base légale | ⚑ |
-| 28 | `constants/legal.ts:133` | corps | Le traitement des données de santé repose sur votre consentement explicite (RGPD art. 9-2-a), recueilli à l’inscription. Vous pouvez le retirer à tout moment en supprimant votre compte. | ⚑ |
-| 29 | `constants/legal.ts:203` | corps | 5. Destinataires et sous-traitants | ⚑ |
-| 30 | `constants/legal.ts:205` | corps | Vos données synchronisées sont hébergées par ${LEGAL.host}, sur des serveurs situés en ${LEGAL.hostRegion}. |  |
-| 31 | `constants/legal.ts:206` | vide | L’envoi des e-mails de service (confirmation d’inscription, réinitialisation de mot de passe) est assuré par ${LEGAL.emailProvider} (${LEGAL.emailProviderLegalName}). Seules votre adresse e-mail et le contenu de ces messages lui sont transmis — aucune donnée de santé. | ⚑ |
-| 32 | `constants/legal.ts:207` | vide | Ces e-mails, ainsi que les journaux d’envoi correspondants, sont stockés par ${LEGAL.emailProvider} ${LEGAL.emailProviderStorage}. Ce transfert hors de l’Union européenne est encadré par les clauses contractuelles types de la Commission européenne et par l’adhésion de ce prestataire au cadre de protection des données UE–États-Unis (EU-U.S. Data Privacy Framework). |  |
-| 33 | `constants/legal.ts:208` | vide | La gestion technique des abonnements Kyroz+ est confiée à ${LEGAL.subscriptionProvider} (${LEGAL.subscriptionProviderCountry}). Dès que vous êtes connecté, que vous soyez abonné ou non, l’identifiant technique de votre compte lui est transmis pour vérifier si un abonnement est actif ; s’y ajoutent, le cas échéant, l’état de votre abonnement et le reçu d’achat émis par l’App Store ou Google Play. Ne lui sont transmis ni votre adresse email, ni vos données de santé, ni aucune coordonnée bancaire. | ⚑ |
-| 34 | `constants/legal.ts:209` | vide | Ces données sont stockées ${LEGAL.subscriptionProviderStorage}. Ce transfert hors de l’Union européenne est encadré par les clauses contractuelles types de la Commission européenne. |  |
-| 35 | `constants/legal.ts:210` | corps | Le paiement lui-même est traité par l’App Store (Apple) ou Google Play. Kyroz ne voit ni ne conserve aucune coordonnée bancaire. |  |
-| 36 | `constants/legal.ts:211` | corps | Nous ne vendons, ne louons et ne partageons vos données avec aucun tiers à des fins commerciales. Aucun traceur publicitaire n’est utilisé, et aucun suivi ne vous relie à d’autres applications ou sites. |  |
-| 37 | `constants/legal.ts:215` | corps | 6. Hébergement et localisation | ⚑ |
-| 38 | `constants/legal.ts:217` | corps | Les données synchronisées — profil, objectif, suivi du poids — sont stockées dans l’Union européenne. Une copie de travail réside localement sur votre appareil (fonctionnement hors-ligne). |  |
-| 39 | `constants/legal.ts:218` | vide | Une exception, décrite au point 5 : les e-mails de service sont stockés ${LEGAL.emailProviderStorage}. Aucune donnée de santé ne quitte l’Union européenne. | ⚑ |
-| 40 | `constants/legal.ts:222` | corps | 7. Durée de conservation | ⚑ |
-| 41 | `constants/legal.ts:224` | corps | Vos données sont conservées tant que votre compte est actif. Elles sont supprimées (serveur + appareil) lorsque vous supprimez votre compte. |  |
-| 42 | `constants/legal.ts:225` | corps | Une exception : si vous avez souscrit un abonnement, l’historique de facturation correspondant est conservé par le store concerné (Apple, Google) et par le prestataire mentionné au point 5, pour la durée qu’imposent leurs obligations légales et comptables. Cet historique ne contient aucune donnée de santé. | ⚑ |
-| 43 | `constants/legal.ts:231` | corps | Les échanges avec nos serveurs sont chiffrés en transit (HTTPS). L’accès aux données est cloisonné par utilisateur : un utilisateur ne peut accéder qu’à ses propres données. |  |
-| 44 | `constants/legal.ts:232` | corps | Les données stockées localement sur votre appareil ne sont pas chiffrées : protégez l’accès à votre appareil, en particulier sur un ordinateur partagé. |  |
-| 45 | `constants/legal.ts:236` | corps | 9. Vos droits | ⚑ |
-| 46 | `constants/legal.ts:238` | corps | Conformément au RGPD, vous disposez des droits d’accès, de rectification, d’effacement, de limitation, d’opposition et de portabilité, ainsi que du droit de retirer votre consentement. |  |
-| 47 | `constants/legal.ts:239` | corps | Le droit à l’effacement s’exerce directement dans l’app (Profil → Supprimer mon compte) ou par email à ${LEGAL.dpoEmail}. |  |
-| 48 | `constants/legal.ts:240` | corps | Vous pouvez introduire une réclamation auprès de la CNIL (www.cnil.fr). |  |
-| 49 | `constants/legal.ts:246` | corps | Kyroz est réservé aux personnes âgées de 18 ans et plus. Aucun compte ne peut être créé en deçà de cet âge. | ⚑ |
-| 50 | `constants/legal.ts:250` | corps | 11. Modifications | ⚑ |
-| 51 | `constants/legal.ts:252` | corps | La présente politique peut évoluer. Date de dernière mise à jour : ${LEGAL.effectiveDate}. |  |
-| 52 | `constants/legal.ts:262` | corps | Les présentes conditions régissent l’utilisation de l’application ${LEGAL.appName}. En créant un compte ou en utilisant l’app, vous les acceptez. |  |
-| 53 | `constants/legal.ts:266` | corps | 2. Description du service | ⚑ |
-| 54 | `constants/legal.ts:268` | corps | Kyroz génère des plans repas, des listes de courses et des recettes à visée nutritionnelle, à partir des informations que vous fournissez. Le cœur du service est gratuit. |  |
-| 55 | `constants/legal.ts:286` | corps | 3. Abonnement Kyroz+ | ⚑ |
-| 56 | `constants/legal.ts:288` | corps | Le cœur du service reste gratuit : plan de la semaine, liste de courses, recettes, réserve, favoris, série, pesée, réglage du rythme de la semaine et synchronisation. Kyroz+ est un abonnement facultatif qui donne accès à des outils complémentaires — objectif daté et suivi de transformation. |  |
-| 57 | `constants/legal.ts:289` | corps | L’abonnement est vendu par l’App Store ou Google Play, jamais directement par Kyroz. Le prix affiché au moment de l’achat fait foi. Le paiement, le renouvellement et la résiliation se gèrent dans les réglages de votre compte App Store ou Google Play. | ⚑ |
-| 58 | `constants/legal.ts:290` | corps | L’abonnement se renouvelle automatiquement à la fin de chaque période, sauf résiliation au moins 24 heures avant l’échéance. Les demandes de remboursement relèvent du store, pas de Kyroz. | ⚑ |
-| 59 | `constants/legal.ts:291` | corps | Le tarif de votre abonnement est celui affiché au moment où vous souscrivez, et il reste inchangé tant que votre abonnement demeure actif. Une évolution de nos tarifs ne s’applique qu’aux nouvelles souscriptions. En revanche, si vous résiliez puis souscrivez à nouveau plus tard, c’est le tarif en vigueur à cette date qui s’applique. |  |
-| 60 | `constants/legal.ts:292` | corps | Les comptes créés avant la mise en vente de Kyroz+ conservent l’accès à ces outils gratuitement, à vie, sans démarche à effectuer. |  |
-| 61 | `constants/legal.ts:296` | corps | 4. Avertissement santé | ⚑ |
-| 62 | `constants/legal.ts:299` | corps | Kyroz ne s’adresse pas aux personnes atteintes de pathologies (diabète, insuffisance rénale, troubles cardiaques…), aux femmes enceintes ou allaitantes. En cas de doute, consultez un professionnel de santé. Vous restez seul responsable de votre alimentation. | ⚑ |
-| 63 | `constants/legal.ts:305` | corps | Vous vous engagez à fournir des informations exactes et à avoir au moins 18 ans. Vous êtes responsable de la confidentialité de vos identifiants. | ⚑ |
-| 64 | `constants/legal.ts:309` | corps | 6. Propriété intellectuelle | ⚑ |
-| 65 | `constants/legal.ts:311` | corps | Les recettes et contenus de l’app sont la propriété de Kyroz. Les données nutritionnelles sont issues de la table Ciqual (ANSES), réutilisées sous Licence Ouverte 2.0 (Etalab). | ⚑ |
-| 66 | `constants/legal.ts:315` | corps | 7. Données personnelles | ⚑ |
-| 67 | `constants/legal.ts:317` | corps | Le traitement de vos données est décrit dans la Politique de confidentialité ci-dessus, qui fait partie intégrante des présentes conditions. |  |
-| 68 | `constants/legal.ts:321` | corps | 8. Résiliation | ⚑ |
-| 69 | `constants/legal.ts:323` | corps | Vous pouvez supprimer votre compte à tout moment depuis l’app (Profil → Supprimer mon compte), ce qui efface vos données. |  |
-| 70 | `constants/legal.ts:326` | corps | Supprimer votre compte Kyroz n’annule PAS un abonnement en cours : celui-ci continue d’être facturé tant qu’il n’est pas résilié dans les réglages de votre compte App Store ou Google Play. |  |
-| 71 | `constants/legal.ts:330` | corps | 9. Responsabilité | ⚑ |
-| 72 | `constants/legal.ts:332` | corps | Kyroz fournit un outil d’aide à la planification nutritionnelle sans garantie de résultat. Notre responsabilité ne saurait être engagée pour l’usage que vous faites des plans proposés. | ⚑ |
-| 73 | `constants/legal.ts:336` | corps | 10. Droit applicable | ⚑ |
-| 74 | `constants/legal.ts:338` | corps | Les présentes conditions sont soumises au droit français. Contact : ${LEGAL.supportEmail}. En cas de litige, vous pouvez recourir à un médiateur de la consommation ou saisir la CNIL pour les questions relatives aux données. |  |
+| 4 | `constants/legal.ts:35` | corps | Kyroz |  |
+| 5 | `constants/legal.ts:36` | corps | Kévin Berger |  |
+| 6 | `constants/legal.ts:37` | corps | Entrepreneur individuel (micro-entreprise) |  |
+| 7 | `constants/legal.ts:39` | corps | 2 rue du moulin, 64570 Arette | ⚑ |
+| 8 | `constants/legal.ts:42` | corps | Supabase Inc. |  |
+| 9 | `constants/legal.ts:43` | corps | Union européenne (UE) |  |
+| 10 | `constants/legal.ts:48` | vide | Resend |  |
+| 11 | `constants/legal.ts:49` | vide | Plus Five Five, Inc. |  |
+| 12 | `constants/legal.ts:57` | vide | aux États-Unis |  |
+| 13 | `constants/legal.ts:73` | vide | RevenueCat, Inc. |  |
+| 14 | `constants/legal.ts:74` | vide | États-Unis |  |
+| 15 | `constants/legal.ts:75` | vide | aux États-Unis |  |
+| 16 | `constants/legal.ts:95` | corps | 26 août 2026 | ⚑ |
+| 17 | `constants/legal.ts:106` | corps | 1. Responsable de traitement | ⚑ |
+| 18 | `constants/legal.ts:108` | corps | Le responsable du traitement de vos données est ${LEGAL.controllerName}, ${LEGAL.controllerStatus}, SIREN ${LEGAL.siren}, ${LEGAL.address}. |  |
+| 19 | `constants/legal.ts:109` | corps | Pour toute question relative à vos données ou pour exercer vos droits : ${LEGAL.dpoEmail}. |  |
+| 20 | `constants/legal.ts:113` | corps | 2. Données collectées | ⚑ |
+| 21 | `constants/legal.ts:115` | corps | Données de compte : adresse email (lors d’une inscription par email). |  |
+| 22 | `constants/legal.ts:116` | corps | Données de santé : sexe, âge, poids, taille, taux de masse grasse, niveau d’activité et sport pratiqué, objectif, restrictions et préférences alimentaires. Ces informations sont des données de santé au sens de l’article 9 du RGPD. | ⚑ |
+| 23 | `constants/legal.ts:117` | corps | Données d’usage de l’app : plans générés, suivi du poids, série (streak), favoris, réserve alimentaire. |  |
+| 24 | `constants/legal.ts:118` | corps | Photos de progression (facultatives) : elles restent stockées UNIQUEMENT sur votre appareil et ne sont jamais transmises à nos serveurs. | ⚑ |
+| 25 | `constants/legal.ts:119` | corps | Données d’abonnement, uniquement si vous souscrivez à Kyroz+ : l’identifiant technique de votre compte et l’état de votre abonnement. Aucune coordonnée bancaire ne transite par Kyroz. |  |
+| 26 | `constants/legal.ts:120` | corps | Aucune statistique d’usage n’est collectée : l’application ne mesure pas comment vous vous en servez. |  |
+| 27 | `constants/legal.ts:124` | corps | 3. Finalités | ⚑ |
+| 28 | `constants/legal.ts:126` | corps | Vos données de compte et de santé servent exclusivement à : calculer vos besoins nutritionnels (calories, macros), générer vos plans repas, votre liste de courses et le suivi associé. | ⚑ |
+| 29 | `constants/legal.ts:127` | corps | Aucune donnée n’est utilisée à des fins publicitaires. |  |
+| 30 | `constants/legal.ts:131` | corps | 4. Base légale | ⚑ |
+| 31 | `constants/legal.ts:133` | corps | Le traitement des données de santé repose sur votre consentement explicite (RGPD art. 9-2-a), recueilli à l’inscription. Vous pouvez le retirer à tout moment en supprimant votre compte. | ⚑ |
+| 32 | `constants/legal.ts:203` | corps | 5. Destinataires et sous-traitants | ⚑ |
+| 33 | `constants/legal.ts:205` | corps | Vos données synchronisées sont hébergées par ${LEGAL.host}, sur des serveurs situés en ${LEGAL.hostRegion}. |  |
+| 34 | `constants/legal.ts:206` | vide | L’envoi des e-mails de service (confirmation d’inscription, réinitialisation de mot de passe) est assuré par ${LEGAL.emailProvider} (${LEGAL.emailProviderLegalName}). Seules votre adresse e-mail et le contenu de ces messages lui sont transmis — aucune donnée de santé. | ⚑ |
+| 35 | `constants/legal.ts:207` | vide | Ces e-mails, ainsi que les journaux d’envoi correspondants, sont stockés par ${LEGAL.emailProvider} ${LEGAL.emailProviderStorage}. Ce transfert hors de l’Union européenne est encadré par les clauses contractuelles types de la Commission européenne et par l’adhésion de ce prestataire au cadre de protection des données UE–États-Unis (EU-U.S. Data Privacy Framework). |  |
+| 36 | `constants/legal.ts:208` | vide | La gestion technique des abonnements Kyroz+ est confiée à ${LEGAL.subscriptionProvider} (${LEGAL.subscriptionProviderCountry}). Dès que vous êtes connecté, que vous soyez abonné ou non, l’identifiant technique de votre compte lui est transmis pour vérifier si un abonnement est actif ; s’y ajoutent, le cas échéant, l’état de votre abonnement et le reçu d’achat émis par l’App Store ou Google Play. Ne lui sont transmis ni votre adresse email, ni vos données de santé, ni aucune coordonnée bancaire. | ⚑ |
+| 37 | `constants/legal.ts:209` | vide | Ces données sont stockées ${LEGAL.subscriptionProviderStorage}. Ce transfert hors de l’Union européenne est encadré par les clauses contractuelles types de la Commission européenne. |  |
+| 38 | `constants/legal.ts:210` | corps | Le paiement lui-même est traité par l’App Store (Apple) ou Google Play. Kyroz ne voit ni ne conserve aucune coordonnée bancaire. |  |
+| 39 | `constants/legal.ts:211` | corps | Nous ne vendons, ne louons et ne partageons vos données avec aucun tiers à des fins commerciales. Aucun traceur publicitaire n’est utilisé, et aucun suivi ne vous relie à d’autres applications ou sites. |  |
+| 40 | `constants/legal.ts:215` | corps | 6. Hébergement et localisation | ⚑ |
+| 41 | `constants/legal.ts:217` | corps | Les données synchronisées — profil, objectif, suivi du poids — sont stockées dans l’Union européenne. Une copie de travail réside localement sur votre appareil (fonctionnement hors-ligne). |  |
+| 42 | `constants/legal.ts:218` | vide | Une exception, décrite au point 5 : les e-mails de service sont stockés ${LEGAL.emailProviderStorage}. Aucune donnée de santé ne quitte l’Union européenne. | ⚑ |
+| 43 | `constants/legal.ts:222` | corps | 7. Durée de conservation | ⚑ |
+| 44 | `constants/legal.ts:224` | corps | Vos données sont conservées tant que votre compte est actif. Elles sont supprimées (serveur + appareil) lorsque vous supprimez votre compte. |  |
+| 45 | `constants/legal.ts:225` | corps | Une exception : si vous avez souscrit un abonnement, l’historique de facturation correspondant est conservé par le store concerné (Apple, Google) et par le prestataire mentionné au point 5, pour la durée qu’imposent leurs obligations légales et comptables. Cet historique ne contient aucune donnée de santé. | ⚑ |
+| 46 | `constants/legal.ts:229` | corps | 8. Sécurité | ⚑ |
+| 47 | `constants/legal.ts:231` | corps | Les échanges avec nos serveurs sont chiffrés en transit (HTTPS). L’accès aux données est cloisonné par utilisateur : un utilisateur ne peut accéder qu’à ses propres données. |  |
+| 48 | `constants/legal.ts:232` | corps | Les données stockées localement sur votre appareil ne sont pas chiffrées : protégez l’accès à votre appareil, en particulier sur un ordinateur partagé. |  |
+| 49 | `constants/legal.ts:236` | corps | 9. Vos droits | ⚑ |
+| 50 | `constants/legal.ts:238` | corps | Conformément au RGPD, vous disposez des droits d’accès, de rectification, d’effacement, de limitation, d’opposition et de portabilité, ainsi que du droit de retirer votre consentement. |  |
+| 51 | `constants/legal.ts:239` | corps | Le droit à l’effacement s’exerce directement dans l’app (Profil → Supprimer mon compte) ou par email à ${LEGAL.dpoEmail}. |  |
+| 52 | `constants/legal.ts:240` | corps | Vous pouvez introduire une réclamation auprès de la CNIL (www.cnil.fr). |  |
+| 53 | `constants/legal.ts:244` | corps | 10. Mineurs | ⚑ |
+| 54 | `constants/legal.ts:246` | corps | Kyroz est réservé aux personnes âgées de 18 ans et plus. Aucun compte ne peut être créé en deçà de cet âge. | ⚑ |
+| 55 | `constants/legal.ts:250` | corps | 11. Modifications | ⚑ |
+| 56 | `constants/legal.ts:252` | corps | La présente politique peut évoluer. Date de dernière mise à jour : ${LEGAL.effectiveDate}. |  |
+| 57 | `constants/legal.ts:260` | corps | 1. Objet | ⚑ |
+| 58 | `constants/legal.ts:262` | corps | Les présentes conditions régissent l’utilisation de l’application ${LEGAL.appName}. En créant un compte ou en utilisant l’app, vous les acceptez. |  |
+| 59 | `constants/legal.ts:266` | corps | 2. Description du service | ⚑ |
+| 60 | `constants/legal.ts:268` | corps | Kyroz génère des plans repas, des listes de courses et des recettes à visée nutritionnelle, à partir des informations que vous fournissez. Le cœur du service est gratuit. |  |
+| 61 | `constants/legal.ts:286` | corps | 3. Abonnement Kyroz+ | ⚑ |
+| 62 | `constants/legal.ts:288` | corps | Le cœur du service reste gratuit : plan de la semaine, liste de courses, recettes, réserve, favoris, série, pesée, réglage du rythme de la semaine et synchronisation. Kyroz+ est un abonnement facultatif qui donne accès à des outils complémentaires — objectif daté et suivi de transformation. |  |
+| 63 | `constants/legal.ts:289` | corps | L’abonnement est vendu par l’App Store ou Google Play, jamais directement par Kyroz. Le prix affiché au moment de l’achat fait foi. Le paiement, le renouvellement et la résiliation se gèrent dans les réglages de votre compte App Store ou Google Play. | ⚑ |
+| 64 | `constants/legal.ts:290` | corps | L’abonnement se renouvelle automatiquement à la fin de chaque période, sauf résiliation au moins 24 heures avant l’échéance. Les demandes de remboursement relèvent du store, pas de Kyroz. | ⚑ |
+| 65 | `constants/legal.ts:291` | corps | Le tarif de votre abonnement est celui affiché au moment où vous souscrivez, et il reste inchangé tant que votre abonnement demeure actif. Une évolution de nos tarifs ne s’applique qu’aux nouvelles souscriptions. En revanche, si vous résiliez puis souscrivez à nouveau plus tard, c’est le tarif en vigueur à cette date qui s’applique. |  |
+| 66 | `constants/legal.ts:292` | corps | Les comptes créés avant la mise en vente de Kyroz+ conservent l’accès à ces outils gratuitement, à vie, sans démarche à effectuer. |  |
+| 67 | `constants/legal.ts:296` | corps | 4. Avertissement santé | ⚑ |
+| 68 | `constants/legal.ts:299` | corps | Kyroz ne s’adresse pas aux personnes atteintes de pathologies (diabète, insuffisance rénale, troubles cardiaques…), aux femmes enceintes ou allaitantes. En cas de doute, consultez un professionnel de santé. Vous restez seul responsable de votre alimentation. | ⚑ |
+| 69 | `constants/legal.ts:303` | corps | 5. Compte | ⚑ |
+| 70 | `constants/legal.ts:305` | corps | Vous vous engagez à fournir des informations exactes et à avoir au moins 18 ans. Vous êtes responsable de la confidentialité de vos identifiants. | ⚑ |
+| 71 | `constants/legal.ts:309` | corps | 6. Propriété intellectuelle | ⚑ |
+| 72 | `constants/legal.ts:311` | corps | Les recettes et contenus de l’app sont la propriété de Kyroz. Les données nutritionnelles sont issues de la table Ciqual (ANSES), réutilisées sous Licence Ouverte 2.0 (Etalab). | ⚑ |
+| 73 | `constants/legal.ts:315` | corps | 7. Données personnelles | ⚑ |
+| 74 | `constants/legal.ts:317` | corps | Le traitement de vos données est décrit dans la Politique de confidentialité ci-dessus, qui fait partie intégrante des présentes conditions. |  |
+| 75 | `constants/legal.ts:321` | corps | 8. Résiliation | ⚑ |
+| 76 | `constants/legal.ts:323` | corps | Vous pouvez supprimer votre compte à tout moment depuis l’app (Profil → Supprimer mon compte), ce qui efface vos données. |  |
+| 77 | `constants/legal.ts:326` | corps | Supprimer votre compte Kyroz n’annule PAS un abonnement en cours : celui-ci continue d’être facturé tant qu’il n’est pas résilié dans les réglages de votre compte App Store ou Google Play. |  |
+| 78 | `constants/legal.ts:330` | corps | 9. Responsabilité | ⚑ |
+| 79 | `constants/legal.ts:332` | corps | Kyroz fournit un outil d’aide à la planification nutritionnelle sans garantie de résultat. Notre responsabilité ne saurait être engagée pour l’usage que vous faites des plans proposés. | ⚑ |
+| 80 | `constants/legal.ts:336` | corps | 10. Droit applicable | ⚑ |
+| 81 | `constants/legal.ts:338` | corps | Les présentes conditions sont soumises au droit français. Contact : ${LEGAL.supportEmail}. En cas de litige, vous pouvez recourir à un médiateur de la consommation ou saisir la CNIL pour les questions relatives aux données. |  |
 
 ## Notifications (`lib/notifications.ts`)
 
@@ -876,134 +889,152 @@
 | 16 | `lib/reminder.ts:153` | corps | Dernier repas de la journée |  |
 | 17 | `lib/reminder.ts:153` | corps | On finit la journée |  |
 | 18 | `lib/reminder.ts:153` | corps | Ce soir, tout est prêt |  |
-| 19 | `lib/reminder.ts:245` | corps | La Rochefoucauld |  |
-| 20 | `lib/reminder.ts:245` | corps | Vauvenargues |  |
-| 21 | `lib/reminder.ts:251` | corps | Tu n’as pas besoin de motivation aujourd’hui. Tu as un plan. |  |
-| 22 | `lib/reminder.ts:252` | vide | La goutte d’eau creuse la pierre, non par la force, mais en tombant souvent. |  |
-| 23 | `lib/reminder.ts:253` | corps | La régularité bat l’intensité, tous les jours de la semaine. |  |
-| 24 | `lib/reminder.ts:254` | corps | Ce n’est pas le repas parfait qui compte, c’est le suivant. |  |
-| 25 | `lib/reminder.ts:255` | corps | Un voyage de mille lieues commence toujours par un premier pas. | ⚑ |
-| 26 | `lib/reminder.ts:256` | corps | Les résultats viennent des jours ordinaires, pas des jours exceptionnels. |  |
-| 27 | `lib/reminder.ts:257` | corps | Un plan suivi à 80 % vaut mieux qu’un plan parfait abandonné. | ⚑ |
-| 28 | `lib/reminder.ts:258` | vide | Rien n’est plus fort que l’habitude. |  |
-| 29 | `lib/reminder.ts:259` | corps | Ce que tu répètes devient facile. C’est tout le secret. |  |
-| 30 | `lib/reminder.ts:260` | corps | Trois mois passent de toute façon. Autant qu’ils comptent. |  |
-| 31 | `lib/reminder.ts:261` | corps | Regarde au-dedans : au-dedans est la source du bien. |  |
-| 32 | `lib/reminder.ts:262` | corps | Manger comme prévu, c’est déjà une victoire de la journée. |  |
-| 33 | `lib/reminder.ts:263` | corps | Personne ne se transforme en un jour. Tout le monde se transforme en un an. |  |
-| 34 | `lib/reminder.ts:264` | corps | Il n’est pas de vent favorable pour qui ne sait où il va. |  |
-| 35 | `lib/reminder.ts:265` | corps | Une journée ordinaire bien suivie vaut mieux qu’une semaine héroïque. |  |
-| 36 | `lib/reminder.ts:266` | corps | Le plan est déjà fait. Il ne te reste qu’à passer à table. |  |
-| 37 | `lib/reminder.ts:267` | corps | Ajoute peu à peu sur peu, et bientôt cela fera beaucoup. |  |
-| 38 | `lib/reminder.ts:268` | corps | Ce que tu fais souvent compte plus que ce que tu fais parfaitement. |  |
-| 39 | `lib/reminder.ts:269` | corps | Il n’y a pas de journée décisive. Il y a des journées qui s’additionnent. |  |
-| 40 | `lib/reminder.ts:270` | corps | Ce ne sont pas les choses qui troublent les hommes, mais les opinions qu’ils en ont. |  |
-| 41 | `lib/reminder.ts:271` | corps | Reviens au plan quand tu veux. Il t’attend sans rien te demander. |  |
-| 42 | `lib/reminder.ts:272` | corps | Le corps change lentement, puis d’un coup. |  |
-| 43 | `lib/reminder.ts:273` | corps | L’habitude est une seconde nature. |  |
-| 44 | `lib/reminder.ts:274` | corps | Un écart ne défait pas une semaine. Il en fait partie. |  |
-| 45 | `lib/reminder.ts:275` | corps | Le plus dur est déjà derrière toi : décider quoi manger. |  |
-| 46 | `lib/reminder.ts:276` | corps | Ce n’est pas que nous ayons peu de temps, c’est que nous en perdons beaucoup. |  |
-| 47 | `lib/reminder.ts:277` | corps | Avance à ton rythme. Le moteur porte la charge, pas toi. |  |
-| 48 | `lib/reminder.ts:278` | corps | Le progrès n’est pas spectaculaire. Il est régulier. |  |
-| 49 | `lib/reminder.ts:279` | corps | La pratique est le meilleur des maîtres. |  |
-| 50 | `lib/reminder.ts:279` | corps | Publilius Syrus |  |
-| 51 | `lib/reminder.ts:280` | corps | Ce qui est prévu se fait tout seul. Le reste se discute. |  |
-| 52 | `lib/reminder.ts:281` | corps | Les bonnes journées se ressemblent. C’est ce qui les rend faciles. |  |
-| 53 | `lib/reminder.ts:282` | corps | La patience est l’art d’espérer. |  |
-| 54 | `lib/reminder.ts:282` | corps | Vauvenargues |  |
-| 55 | `lib/reminder.ts:283` | corps | Tu n’as rien à prouver aujourd’hui. Juste à manger ce qui est prévu. |  |
-| 56 | `lib/reminder.ts:284` | corps | Ton assiette du jour est déjà calculée. Il reste à en profiter. |  |
-| 57 | `lib/reminder.ts:285` | corps | Qui se vainc soi-même est fort. |  |
-| 58 | `lib/reminder.ts:286` | corps | Prends ton temps. Rien dans ce plan ne se périme. |  |
-| 59 | `lib/reminder.ts:287` | corps | La faim se prévoit. C’est tout l’intérêt d’avoir un plan. |  |
-| 60 | `lib/reminder.ts:288` | corps | Tant que tu vis, apprends à vivre. |  |
-| 61 | `lib/reminder.ts:289` | corps | Chaque semaine ressemble à la précédente. C’est exactement le but. |  |
-| 62 | `lib/reminder.ts:290` | corps | La discipline, c’est surtout de ne plus avoir à choisir. |  |
-| 63 | `lib/reminder.ts:291` | corps | Ce qui fait obstacle à l’action fait avancer l’action. |  |
-| 64 | `lib/reminder.ts:292` | corps | Un plan qu’on suit sans y penser est un plan qui a gagné. |  |
-| 65 | `lib/reminder.ts:293` | corps | La plus grande chose du monde, c’est de savoir être à soi. |  |
-| 66 | `lib/reminder.ts:294` | corps | Deux repas prévus valent mieux qu’une bonne résolution. |  |
-| 67 | `lib/reminder.ts:295` | corps | La parfaite valeur est de faire sans témoins ce qu’on serait capable de faire devant tout le monde. |  |
-| 68 | `lib/reminder.ts:295` | corps | La Rochefoucauld |  |
-| 69 | `lib/reminder.ts:300` | corps | ${c.texte} — ${c.auteur} |  |
-| 70 | `lib/reminder.ts:340` | corps | Ta pesée du jour |  |
-| 71 | `lib/reminder.ts:340` | corps | Note ton poids : Kyroz réajuste tes calories et ton plan tout seul. |  |
-| 72 | `lib/reminder.ts:341` | corps | Un chiffre, rien de plus |  |
-| 73 | `lib/reminder.ts:341` | corps | La pesée sert à caler ton plan, pas à te juger. |  |
-| 74 | `lib/reminder.ts:342` | corps | C’est le jour de la pesée |  |
-| 75 | `lib/reminder.ts:342` | corps | Trente secondes, et ton plan reste aligné sur ta progression. |  |
+| 19 | `lib/reminder.ts:245` | corps | Montaigne |  |
+| 20 | `lib/reminder.ts:245` | corps | La Rochefoucauld |  |
+| 21 | `lib/reminder.ts:245` | corps | Vauvenargues |  |
+| 22 | `lib/reminder.ts:251` | corps | Tu n’as pas besoin de motivation aujourd’hui. Tu as un plan. |  |
+| 23 | `lib/reminder.ts:252` | vide | La goutte d’eau creuse la pierre, non par la force, mais en tombant souvent. |  |
+| 24 | `lib/reminder.ts:252` | vide | Ovide |  |
+| 25 | `lib/reminder.ts:253` | corps | La régularité bat l’intensité, tous les jours de la semaine. |  |
+| 26 | `lib/reminder.ts:254` | corps | Ce n’est pas le repas parfait qui compte, c’est le suivant. |  |
+| 27 | `lib/reminder.ts:255` | corps | Un voyage de mille lieues commence toujours par un premier pas. | ⚑ |
+| 28 | `lib/reminder.ts:255` | corps | Lao Tseu |  |
+| 29 | `lib/reminder.ts:256` | corps | Les résultats viennent des jours ordinaires, pas des jours exceptionnels. |  |
+| 30 | `lib/reminder.ts:257` | corps | Un plan suivi à 80 % vaut mieux qu’un plan parfait abandonné. | ⚑ |
+| 31 | `lib/reminder.ts:258` | vide | Rien n’est plus fort que l’habitude. |  |
+| 32 | `lib/reminder.ts:258` | vide | Ovide |  |
+| 33 | `lib/reminder.ts:259` | corps | Ce que tu répètes devient facile. C’est tout le secret. |  |
+| 34 | `lib/reminder.ts:260` | corps | Trois mois passent de toute façon. Autant qu’ils comptent. |  |
+| 35 | `lib/reminder.ts:261` | corps | Regarde au-dedans : au-dedans est la source du bien. |  |
+| 36 | `lib/reminder.ts:261` | corps | Marc Aurèle |  |
+| 37 | `lib/reminder.ts:262` | corps | Manger comme prévu, c’est déjà une victoire de la journée. |  |
+| 38 | `lib/reminder.ts:263` | corps | Personne ne se transforme en un jour. Tout le monde se transforme en un an. |  |
+| 39 | `lib/reminder.ts:264` | corps | Il n’est pas de vent favorable pour qui ne sait où il va. |  |
+| 40 | `lib/reminder.ts:264` | corps | Sénèque |  |
+| 41 | `lib/reminder.ts:265` | corps | Une journée ordinaire bien suivie vaut mieux qu’une semaine héroïque. |  |
+| 42 | `lib/reminder.ts:266` | corps | Le plan est déjà fait. Il ne te reste qu’à passer à table. |  |
+| 43 | `lib/reminder.ts:267` | corps | Ajoute peu à peu sur peu, et bientôt cela fera beaucoup. |  |
+| 44 | `lib/reminder.ts:267` | corps | Hésiode |  |
+| 45 | `lib/reminder.ts:268` | corps | Ce que tu fais souvent compte plus que ce que tu fais parfaitement. |  |
+| 46 | `lib/reminder.ts:269` | corps | Il n’y a pas de journée décisive. Il y a des journées qui s’additionnent. |  |
+| 47 | `lib/reminder.ts:270` | corps | Ce ne sont pas les choses qui troublent les hommes, mais les opinions qu’ils en ont. |  |
+| 48 | `lib/reminder.ts:270` | corps | Épictète |  |
+| 49 | `lib/reminder.ts:271` | corps | Reviens au plan quand tu veux. Il t’attend sans rien te demander. |  |
+| 50 | `lib/reminder.ts:272` | corps | Le corps change lentement, puis d’un coup. |  |
+| 51 | `lib/reminder.ts:273` | corps | L’habitude est une seconde nature. |  |
+| 52 | `lib/reminder.ts:273` | corps | Cicéron |  |
+| 53 | `lib/reminder.ts:274` | corps | Un écart ne défait pas une semaine. Il en fait partie. |  |
+| 54 | `lib/reminder.ts:275` | corps | Le plus dur est déjà derrière toi : décider quoi manger. |  |
+| 55 | `lib/reminder.ts:276` | corps | Ce n’est pas que nous ayons peu de temps, c’est que nous en perdons beaucoup. |  |
+| 56 | `lib/reminder.ts:276` | corps | Sénèque |  |
+| 57 | `lib/reminder.ts:277` | corps | Avance à ton rythme. Le moteur porte la charge, pas toi. |  |
+| 58 | `lib/reminder.ts:278` | corps | Le progrès n’est pas spectaculaire. Il est régulier. |  |
+| 59 | `lib/reminder.ts:279` | corps | La pratique est le meilleur des maîtres. |  |
+| 60 | `lib/reminder.ts:279` | corps | Publilius Syrus |  |
+| 61 | `lib/reminder.ts:280` | corps | Ce qui est prévu se fait tout seul. Le reste se discute. |  |
+| 62 | `lib/reminder.ts:281` | corps | Les bonnes journées se ressemblent. C’est ce qui les rend faciles. |  |
+| 63 | `lib/reminder.ts:282` | corps | La patience est l’art d’espérer. |  |
+| 64 | `lib/reminder.ts:282` | corps | Vauvenargues |  |
+| 65 | `lib/reminder.ts:283` | corps | Tu n’as rien à prouver aujourd’hui. Juste à manger ce qui est prévu. |  |
+| 66 | `lib/reminder.ts:284` | corps | Ton assiette du jour est déjà calculée. Il reste à en profiter. |  |
+| 67 | `lib/reminder.ts:285` | corps | Qui se vainc soi-même est fort. |  |
+| 68 | `lib/reminder.ts:285` | corps | Lao Tseu |  |
+| 69 | `lib/reminder.ts:286` | corps | Prends ton temps. Rien dans ce plan ne se périme. |  |
+| 70 | `lib/reminder.ts:287` | corps | La faim se prévoit. C’est tout l’intérêt d’avoir un plan. |  |
+| 71 | `lib/reminder.ts:288` | corps | Tant que tu vis, apprends à vivre. |  |
+| 72 | `lib/reminder.ts:288` | corps | Sénèque |  |
+| 73 | `lib/reminder.ts:289` | corps | Chaque semaine ressemble à la précédente. C’est exactement le but. |  |
+| 74 | `lib/reminder.ts:290` | corps | La discipline, c’est surtout de ne plus avoir à choisir. |  |
+| 75 | `lib/reminder.ts:291` | corps | Ce qui fait obstacle à l’action fait avancer l’action. |  |
+| 76 | `lib/reminder.ts:291` | corps | Marc Aurèle |  |
+| 77 | `lib/reminder.ts:292` | corps | Un plan qu’on suit sans y penser est un plan qui a gagné. |  |
+| 78 | `lib/reminder.ts:293` | corps | La plus grande chose du monde, c’est de savoir être à soi. |  |
+| 79 | `lib/reminder.ts:293` | corps | Montaigne |  |
+| 80 | `lib/reminder.ts:294` | corps | Deux repas prévus valent mieux qu’une bonne résolution. |  |
+| 81 | `lib/reminder.ts:295` | corps | La parfaite valeur est de faire sans témoins ce qu’on serait capable de faire devant tout le monde. |  |
+| 82 | `lib/reminder.ts:295` | corps | La Rochefoucauld |  |
+| 83 | `lib/reminder.ts:300` | corps | ${c.texte} — ${c.auteur} |  |
+| 84 | `lib/reminder.ts:340` | corps | Ta pesée du jour |  |
+| 85 | `lib/reminder.ts:340` | corps | Note ton poids : Kyroz réajuste tes calories et ton plan tout seul. |  |
+| 86 | `lib/reminder.ts:341` | corps | Un chiffre, rien de plus |  |
+| 87 | `lib/reminder.ts:341` | corps | La pesée sert à caler ton plan, pas à te juger. |  |
+| 88 | `lib/reminder.ts:342` | corps | C’est le jour de la pesée |  |
+| 89 | `lib/reminder.ts:342` | corps | Trente secondes, et ton plan reste aligné sur ta progression. |  |
 
 ## Méthodologie (contenu) (`lib/methodologie.ts`)
 
 | # | ligne | Rôle | Texte | Flag |
 |---|---|---|---|---|
-| 1 | `lib/methodologie.ts:60` | corps | Ce que Kyroz calcule — et ce qu\ |  |
-| 2 | `lib/methodologie.ts:62` | corps | Kyroz estime une dépense énergétique quotidienne à partir de ce que vous déclarez, puis construit des repas qui s\ |  |
-| 3 | `lib/methodologie.ts:62` | corps | est un outil de bien-être alimentaire pour adultes en bonne santé. | ⚑ |
-| 4 | `lib/methodologie.ts:63` | corps | est pas un dispositif médical. Il ne diagnostique, ne traite, ne guérit ni ne prévient aucune pathologie, et ne remplace pas l\ | ⚑ |
-| 5 | `lib/methodologie.ts:63` | corps | un médecin ou d\ | ⚑ |
-| 6 | `lib/methodologie.ts:64` | corps | app est réservée aux personnes de ${MIN_AGE} ans et plus : les équations utilisées ci-dessous ne sont pas validées chez l |  |
-| 7 | `lib/methodologie.ts:68` | corps | La dépense énergétique (TDEE) |  |
-| 8 | `lib/methodologie.ts:70` | corps | La dépense est la somme de trois termes : le métabolisme de base, multiplié par un facteur d\ |  |
-| 9 | `lib/methodologie.ts:70` | corps | ajoute la dépense des séances déclarées. |  |
-| 10 | `lib/methodologie.ts:71` | corps | Le métabolisme de base est estimé par l\ |  |
-| 11 | `lib/methodologie.ts:71` | corps | âge, du poids et de la taille. |  |
-| 12 | `lib/methodologie.ts:72` | erreur | équation de Katch-McArdle, qui repose sur la masse maigre, est utilisée telle quelle si le taux de masse grasse a été MESURÉ (impédancemétrie, DEXA, plis cutanés) et déclaré comme tel. Un taux estimé à partir d |  |
-| 13 | `lib/methodologie.ts:72` | erreur | ordre de ±${BF_UNCERTAINTY_PTS} points : quand il indique nettement plus de masse maigre que la moyenne du gabarit — au-delà de ce bruit —, le calcul glisse progressivement de Mifflin-St Jeor vers Katch-McArdle. Jamais l | ⚑ |
-| 14 | `lib/methodologie.ts:72` | erreur | est Mifflin-St Jeor qui reste servie. La question de provenance n |  |
-| 15 | `lib/methodologie.ts:72` | erreur | au-delà de ${BF_CHART_MAX.male} % (homme) et ${BF_CHART_MAX.female} % (femme). |  |
-| 16 | `lib/methodologie.ts:73` | corps | Le facteur d |  |
-| 17 | `lib/methodologie.ts:73` | corps | arrête volontairement à ${nb(NEAT_PAL.physical)} : les valeurs plus hautes des tables classiques incluent l |  |
-| 18 | `lib/methodologie.ts:74` | corps | La dépense des séances est calculée par la méthode des équivalents métaboliques (MET), en valeur NETTE : le métabolisme de repos de l\ |  |
-| 19 | `lib/methodologie.ts:74` | corps | il est déjà compté par les deux premiers termes. |  |
-| 20 | `lib/methodologie.ts:78` | corps | Mifflin MD, St Jeor ST, Hill LA, Scott BJ, Daugherty SA, Koh YO |  |
-| 21 | `lib/methodologie.ts:79` | corps | A new predictive equation for resting energy expenditure in healthy individuals |  |
-| 22 | `lib/methodologie.ts:80` | corps | The American Journal of Clinical Nutrition, 1990;51(2):241-247 | ⚑ |
-| 23 | `lib/methodologie.ts:83` | corps | McArdle WD, Katch FI, Katch VL |  |
-| 24 | `lib/methodologie.ts:84` | corps | Exercise Physiology: Nutrition, Energy, and Human Performance |  |
-| 25 | `lib/methodologie.ts:85` | corps | Lippincott Williams & Wilkins (équation dite de Katch-McArdle) |  |
-| 26 | `lib/methodologie.ts:88` | corps | Ainsworth BE, Haskell WL, Herrmann SD, et al. |  |
-| 27 | `lib/methodologie.ts:89` | corps | 2011 Compendium of Physical Activities: a second update of codes and MET values | ⚑ |
-| 28 | `lib/methodologie.ts:90` | corps | Medicine & Science in Sports & Exercise, 2011;43(8):1575-1581 | ⚑ |
-| 29 | `lib/methodologie.ts:95` | corps | La répartition des macronutriments |  |
-| 30 | `lib/methodologie.ts:97` | corps | La cible protéique dépend de l |  |
-| 31 | `lib/methodologie.ts:98` | corps | Les lipides ne descendent jamais sous ${nb(FAT_MIN_PER_KG_BW)} g par kg de poids de corps, seuil en deçà duquel l | ⚑ |
-| 32 | `lib/methodologie.ts:98` | corps | absorption des vitamines liposolubles ne sont plus assurés. |  |
-| 33 | `lib/methodologie.ts:99` | corps | Les glucides reçoivent le budget restant. |  |
-| 34 | `lib/methodologie.ts:103` | corps | Jäger R, Kerksick CM, Campbell BI, et al. |  |
-| 35 | `lib/methodologie.ts:104` | corps | International Society of Sports Nutrition Position Stand: protein and exercise |  |
-| 36 | `lib/methodologie.ts:105` | corps | Journal of the International Society of Sports Nutrition, 2017;14:20 | ⚑ |
-| 37 | `lib/methodologie.ts:108` | corps | Helms ER, Zinn C, Rowlands DS, Brown SR |  |
-| 38 | `lib/methodologie.ts:109` | corps | A systematic review of dietary protein during caloric restriction in resistance trained lean athletes |  |
-| 39 | `lib/methodologie.ts:110` | corps | International Journal of Sport Nutrition and Exercise Metabolism, 2014;24(2):127-138 | ⚑ |
-| 40 | `lib/methodologie.ts:113` | corps | Thomas DT, Erdman KA, Burke LM |  |
-| 41 | `lib/methodologie.ts:114` | corps | Position of the Academy of Nutrition and Dietetics, Dietitians of Canada, and the American College of Sports Medicine: Nutrition and Athletic Performance |  |
-| 42 | `lib/methodologie.ts:115` | corps | Journal of the Academy of Nutrition and Dietetics, 2016;116(3):501-528 | ⚑ |
-| 43 | `lib/methodologie.ts:120` | corps | Les limites de sécurité | ⚑ |
-| 44 | `lib/methodologie.ts:122` | corps | Aucun plan ne peut descendre sous ces limites, quel que soit l\ |  |
-| 45 | `lib/methodologie.ts:123` | corps | Énergie disponible : au moins ${EA_HARD_FLOOR} kcal par kg de masse maigre, une fois la dépense sportive retirée. C |  |
-| 46 | `lib/methodologie.ts:124` | corps | Au-delà de ${LOW_EA_BUDGET_WEEKS} semaines cumulées en zone basse, ce plancher remonte progressivement vers ${EA_OPTIMAL} kcal par kg de masse maigre : l | ⚑ |
-| 47 | `lib/methodologie.ts:125` | corps | Filet absolu : jamais moins de ${millier(MIN_KCAL.male)} kcal par jour chez l | ⚑ |
-| 48 | `lib/methodologie.ts:126` | corps | Déficit plafonné à ${Math.round(MAX_DEFICIT_TDEE_RATIO * 100)} % de la dépense estimée. | ⚑ |
-| 49 | `lib/methodologie.ts:127` | corps | Après ${DIET_BREAK_AFTER_WEEKS} semaines de déficit consécutives, la semaine suivante est servie à la maintenance. |  |
-| 50 | `lib/methodologie.ts:128` | corps | Un déficit est refusé si l\ |  |
-| 51 | `lib/methodologie.ts:132` | corps | Mountjoy M, Sundgot-Borgen JK, Burke LM, et al. |  |
-| 52 | `lib/methodologie.ts:133` | corps | IOC consensus statement on relative energy deficiency in sport (RED-S): 2018 update | ⚑ |
-| 53 | `lib/methodologie.ts:134` | corps | British Journal of Sports Medicine, 2018;52(11):687-697 | ⚑ |
-| 54 | `lib/methodologie.ts:137` | corps | Loucks AB, Thuma JR |  |
-| 55 | `lib/methodologie.ts:138` | corps | Luteinizing hormone pulsatility is disrupted at a threshold of energy availability in regularly menstruating women |  |
-| 56 | `lib/methodologie.ts:139` | corps | The Journal of Clinical Endocrinology & Metabolism, 2003;88(1):297-311 | ⚑ |
-| 57 | `lib/methodologie.ts:144` | corps | Les données nutritionnelles |  |
-| 58 | `lib/methodologie.ts:147` | corps | Les aliments que la table ne couvre pas proprement (produits protéinés, préparations composées) sont saisis à la main, à partir des valeurs déclarées par les fabricants. Aucune source tierce automatique n\ |  |
-| 59 | `lib/methodologie.ts:148` | corps | Les recettes de Kyroz n\ |  |
-| 60 | `lib/methodologie.ts:148` | corps | app ne le prétend nulle part. |  |
-| 61 | `lib/methodologie.ts:153` | corps | Table de composition nutritionnelle des aliments Ciqual |  |
-| 62 | `lib/methodologie.ts:159` | corps | Ce qui relève d\ |  |
-| 63 | `lib/methodologie.ts:161` | corps | Tout ce qui précède ne sort pas de la littérature au même titre, et la distinction est faite ici plutôt que laissée à l\ |  |
-| 64 | `lib/methodologie.ts:162` | corps | Viennent de la littérature : les deux équations de métabolisme de base, les valeurs MET, le seuil de ${EA_HARD_FLOOR} kcal par kg de masse maigre et les fourchettes protéiques. |  |
-| 65 | `lib/methodologie.ts:163` | corps | Sont des choix de Kyroz, prudents par construction : le plafond de ${nb(NEAT_PAL.physical)} sur l |  |
-| 66 | `lib/methodologie.ts:163` | corps | énergie que ces planchers, conçus pour des athlètes maigres, interdisaient d |  |
-| 67 | `lib/methodologie.ts:164` | erreur | Une estimation de dépense reste une estimation : elle porte une marge d\ |  |
-| 68 | `lib/methodologie.ts:164` | erreur | est lui que Kyroz suit. |  |
+| 1 | `lib/methodologie.ts:9` | corps | ./datedGoal |  |
+| 2 | `lib/methodologie.ts:60` | corps | Ce que Kyroz calcule — et ce qu\ |  |
+| 3 | `lib/methodologie.ts:60` | corps | est pas |  |
+| 4 | `lib/methodologie.ts:62` | corps | Kyroz estime une dépense énergétique quotidienne à partir de ce que vous déclarez, puis construit des repas qui s\ |  |
+| 5 | `lib/methodologie.ts:62` | corps | est un outil de bien-être alimentaire pour adultes en bonne santé. | ⚑ |
+| 6 | `lib/methodologie.ts:63` | corps | Kyroz n\ |  |
+| 7 | `lib/methodologie.ts:63` | corps | avis d\ |  |
+| 8 | `lib/methodologie.ts:63` | corps | un diététicien-nutritionniste. |  |
+| 9 | `lib/methodologie.ts:64` | corps | app est réservée aux personnes de ${MIN_AGE} ans et plus : les équations utilisées ci-dessous ne sont pas validées chez l |  |
+| 10 | `lib/methodologie.ts:68` | corps | La dépense énergétique (TDEE) |  |
+| 11 | `lib/methodologie.ts:70` | corps | La dépense est la somme de trois termes : le métabolisme de base, multiplié par un facteur d\ |  |
+| 12 | `lib/methodologie.ts:70` | corps | ajoute la dépense des séances déclarées. |  |
+| 13 | `lib/methodologie.ts:71` | corps | Le métabolisme de base est estimé par l\ |  |
+| 14 | `lib/methodologie.ts:71` | corps | âge, du poids et de la taille. |  |
+| 15 | `lib/methodologie.ts:72` | erreur | équation de Katch-McArdle, qui repose sur la masse maigre, est utilisée telle quelle si le taux de masse grasse a été MESURÉ (impédancemétrie, DEXA, plis cutanés) et déclaré comme tel. Un taux estimé à partir d |  |
+| 16 | `lib/methodologie.ts:72` | erreur | erreur de l |  |
+| 17 | `lib/methodologie.ts:72` | erreur | inverse : si la formule à masse maigre donne une dépense plus basse, c |  |
+| 18 | `lib/methodologie.ts:72` | erreur | est posée qu |  |
+| 19 | `lib/methodologie.ts:73` | corps | Le facteur d |  |
+| 20 | `lib/methodologie.ts:73` | corps | arrête volontairement à ${nb(NEAT_PAL.physical)} : les valeurs plus hautes des tables classiques incluent l |  |
+| 21 | `lib/methodologie.ts:74` | corps | La dépense des séances est calculée par la méthode des équivalents métaboliques (MET), en valeur NETTE : le métabolisme de repos de l\ |  |
+| 22 | `lib/methodologie.ts:74` | corps | il est déjà compté par les deux premiers termes. |  |
+| 23 | `lib/methodologie.ts:78` | corps | Mifflin MD, St Jeor ST, Hill LA, Scott BJ, Daugherty SA, Koh YO |  |
+| 24 | `lib/methodologie.ts:79` | corps | A new predictive equation for resting energy expenditure in healthy individuals |  |
+| 25 | `lib/methodologie.ts:80` | corps | The American Journal of Clinical Nutrition, 1990;51(2):241-247 | ⚑ |
+| 26 | `lib/methodologie.ts:83` | corps | McArdle WD, Katch FI, Katch VL |  |
+| 27 | `lib/methodologie.ts:84` | corps | Exercise Physiology: Nutrition, Energy, and Human Performance |  |
+| 28 | `lib/methodologie.ts:85` | corps | Lippincott Williams & Wilkins (équation dite de Katch-McArdle) |  |
+| 29 | `lib/methodologie.ts:88` | corps | Ainsworth BE, Haskell WL, Herrmann SD, et al. |  |
+| 30 | `lib/methodologie.ts:89` | corps | 2011 Compendium of Physical Activities: a second update of codes and MET values | ⚑ |
+| 31 | `lib/methodologie.ts:90` | corps | Medicine & Science in Sports & Exercise, 2011;43(8):1575-1581 | ⚑ |
+| 32 | `lib/methodologie.ts:95` | corps | La répartition des macronutriments |  |
+| 33 | `lib/methodologie.ts:97` | corps | La cible protéique dépend de l |  |
+| 34 | `lib/methodologie.ts:98` | corps | Les lipides ne descendent jamais sous ${nb(FAT_MIN_PER_KG_BW)} g par kg de poids de corps, seuil en deçà duquel l | ⚑ |
+| 35 | `lib/methodologie.ts:98` | corps | absorption des vitamines liposolubles ne sont plus assurés. |  |
+| 36 | `lib/methodologie.ts:99` | corps | Les glucides reçoivent le budget restant. |  |
+| 37 | `lib/methodologie.ts:103` | corps | Jäger R, Kerksick CM, Campbell BI, et al. |  |
+| 38 | `lib/methodologie.ts:104` | corps | International Society of Sports Nutrition Position Stand: protein and exercise |  |
+| 39 | `lib/methodologie.ts:105` | corps | Journal of the International Society of Sports Nutrition, 2017;14:20 | ⚑ |
+| 40 | `lib/methodologie.ts:108` | corps | Helms ER, Zinn C, Rowlands DS, Brown SR |  |
+| 41 | `lib/methodologie.ts:109` | corps | A systematic review of dietary protein during caloric restriction in resistance trained lean athletes |  |
+| 42 | `lib/methodologie.ts:110` | corps | International Journal of Sport Nutrition and Exercise Metabolism, 2014;24(2):127-138 | ⚑ |
+| 43 | `lib/methodologie.ts:113` | corps | Thomas DT, Erdman KA, Burke LM |  |
+| 44 | `lib/methodologie.ts:114` | corps | Position of the Academy of Nutrition and Dietetics, Dietitians of Canada, and the American College of Sports Medicine: Nutrition and Athletic Performance |  |
+| 45 | `lib/methodologie.ts:115` | corps | Journal of the Academy of Nutrition and Dietetics, 2016;116(3):501-528 | ⚑ |
+| 46 | `lib/methodologie.ts:120` | corps | Les limites de sécurité | ⚑ |
+| 47 | `lib/methodologie.ts:122` | corps | Aucun plan ne peut descendre sous ces limites, quel que soit l\ |  |
+| 48 | `lib/methodologie.ts:123` | corps | Énergie disponible : au moins ${EA_HARD_FLOOR} kcal par kg de masse maigre, une fois la dépense sportive retirée. C |  |
+| 49 | `lib/methodologie.ts:124` | corps | Au-delà de ${LOW_EA_BUDGET_WEEKS} semaines cumulées en zone basse, ce plancher remonte progressivement vers ${EA_OPTIMAL} kcal par kg de masse maigre : l | ⚑ |
+| 50 | `lib/methodologie.ts:125` | corps | Filet absolu : jamais moins de ${millier(MIN_KCAL.male)} kcal par jour chez l | ⚑ |
+| 51 | `lib/methodologie.ts:126` | corps | Déficit plafonné à ${Math.round(MAX_DEFICIT_TDEE_RATIO * 100)} % de la dépense estimée. | ⚑ |
+| 52 | `lib/methodologie.ts:127` | corps | Après ${DIET_BREAK_AFTER_WEEKS} semaines de déficit consécutives, la semaine suivante est servie à la maintenance. |  |
+| 53 | `lib/methodologie.ts:128` | corps | Un déficit est refusé si l\ |  |
+| 54 | `lib/methodologie.ts:132` | corps | Mountjoy M, Sundgot-Borgen JK, Burke LM, et al. |  |
+| 55 | `lib/methodologie.ts:133` | corps | IOC consensus statement on relative energy deficiency in sport (RED-S): 2018 update | ⚑ |
+| 56 | `lib/methodologie.ts:134` | corps | British Journal of Sports Medicine, 2018;52(11):687-697 | ⚑ |
+| 57 | `lib/methodologie.ts:137` | corps | Loucks AB, Thuma JR |  |
+| 58 | `lib/methodologie.ts:138` | corps | Luteinizing hormone pulsatility is disrupted at a threshold of energy availability in regularly menstruating women |  |
+| 59 | `lib/methodologie.ts:139` | corps | The Journal of Clinical Endocrinology & Metabolism, 2003;88(1):297-311 | ⚑ |
+| 60 | `lib/methodologie.ts:144` | corps | Les données nutritionnelles |  |
+| 61 | `lib/methodologie.ts:147` | corps | Les aliments que la table ne couvre pas proprement (produits protéinés, préparations composées) sont saisis à la main, à partir des valeurs déclarées par les fabricants. Aucune source tierce automatique n\ |  |
+| 62 | `lib/methodologie.ts:148` | corps | Les recettes de Kyroz n\ |  |
+| 63 | `lib/methodologie.ts:148` | corps | app ne le prétend nulle part. |  |
+| 64 | `lib/methodologie.ts:152` | corps | ANSES |  |
+| 65 | `lib/methodologie.ts:153` | corps | Table de composition nutritionnelle des aliments Ciqual |  |
+| 66 | `lib/methodologie.ts:159` | corps | Ce qui relève d\ |  |
+| 67 | `lib/methodologie.ts:161` | corps | Tout ce qui précède ne sort pas de la littérature au même titre, et la distinction est faite ici plutôt que laissée à l\ |  |
+| 68 | `lib/methodologie.ts:162` | corps | Viennent de la littérature : les deux équations de métabolisme de base, les valeurs MET, le seuil de ${EA_HARD_FLOOR} kcal par kg de masse maigre et les fourchettes protéiques. |  |
+| 69 | `lib/methodologie.ts:163` | corps | Sont des choix de Kyroz, prudents par construction : le plafond de ${nb(NEAT_PAL.physical)} sur l |  |
+| 70 | `lib/methodologie.ts:163` | corps | énergie que ces planchers, conçus pour des athlètes maigres, interdisaient d |  |
+| 71 | `lib/methodologie.ts:164` | erreur | Une estimation de dépense reste une estimation : elle porte une marge d\ |  |
+| 72 | `lib/methodologie.ts:164` | erreur | est lui que Kyroz suit. |  |
 

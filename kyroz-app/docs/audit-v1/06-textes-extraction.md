@@ -2,7 +2,7 @@
 Date : 2026-08-26 · Commit audité : `e731e80` · Périmètre : les **14 écrans** de `app/`, les **49 composants** de `components/`, `constants/legal.ts`, `lib/notifications.ts`, `lib/reminder.ts`, `lib/methodologie.ts`
 
 > **Aucun i18n dans le dépôt** — tous les textes sont en dur. Le dump est donc extrait du code, mécaniquement, **sans reformulation ni correction**, y compris des fautes éventuelles.
-> Sortie 1 : `docs/audit-v1/06-textes-dump.md` (**728 chaînes**, 53 blocs).
+> Sortie 1 : `docs/audit-v1/06-textes-dump.md` (**753 chaînes**, 53 blocs).
 > Cette sortie-ci ne contient que des faits mécaniques. **Aucun jugement de sens, de ton ou d'honnêteté** — c'est l'objet de l'étape 6b, sur Claude.ai.
 
 ## Reste à couvrir
@@ -65,7 +65,7 @@ Même action, mots différents. Faits, sans arbitrage.
 
 ## Typographie
 
-Mesurée sur les 728 chaînes du dump.
+Mesurée sur les 753 chaînes du dump.
 
 | Catégorie | Nombre | Exemples |
 |---|---|---|
@@ -87,7 +87,7 @@ Mesurée sur les 728 chaînes du dump.
 
 ### 06-01 L'apostrophe et l'espace fine sont irrégulières dans toute l'app
 - **Sévérité : P3** (à corriger en lot, comme le prescrit le brief)
-- **Preuve** : 93 apostrophes droites `'` contre 71 typographiques `’` sur 728 chaînes ; **0** espace insécable avant `: ; ? !` sur **97** occurrences concernées.
+- **Preuve** : 93 apostrophes droites `'` contre 71 typographiques `’` sur 753 chaînes ; **0** espace insécable avant `: ; ? !` sur **97** occurrences concernées.
 - **Reco** : un seul passage, mécanique, puis un test qui compte — le dépôt sait déjà faire ce genre de garde-fou (`fichesOta.test.ts`). Sans test, la dérive reviendra au prochain texte écrit.
 - **Effort : S**
 
@@ -100,7 +100,7 @@ Mesurée sur les 728 chaînes du dump.
 
 ### 06-03 Une seule chaîne anglaise résiduelle
 - **Sévérité : P2** (par la règle du brief ; l'ampleur réelle est d'une occurrence)
-- **Preuve** : `components/HydrationBar.tsx:201` → `OK`. C'est la **seule** correspondance de `\b(Save|Cancel|Loading|Error|Next|Back|Submit|OK|Done|Close|Delete|Edit|Add)\b` dans les 728 chaînes.
+- **Preuve** : `components/HydrationBar.tsx:201` → `OK`. C'est la **seule** correspondance de `\b(Save|Cancel|Loading|Error|Next|Back|Submit|OK|Done|Close|Delete|Edit|Add)\b` dans les 753 chaînes.
 - **Reco** : la remplacer par le verbe retenu en 06-02.
 - **Effort : S**
 
