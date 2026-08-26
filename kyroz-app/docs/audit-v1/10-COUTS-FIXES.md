@@ -9,7 +9,7 @@ Date : 2026-08-26. Débloque le volet business de l'étape 10.
 | **Google Play Console** | **25 $ une fois** (~23 €) | tarif public Google | ✅ certain |
 | **Small Business Program** | commission **15 %** au lieu de 30 % | acquis, [#169](https://github.com/brgkevin-arch/Kyroz-app/pull/169) | ✅ mesuré, dans le dépôt |
 | **RevenueCat** | **0 €** sous 2 500 $ de revenu mensuel suivi | tarification publique | ⚠️ à confirmer au dashboard |
-| **EAS (Expo)** | palier non lisible en CLI | `eas account:view` ne rend que l'identité | 🔴 **à confirmer** — le plan gratuit couvre 30 builds/mois, largement suffisant vu l'usage (5 builds depuis juillet) |
+| **EAS (Expo)** | **0 €** — compte `kevinberger` sur le plan **Free** | ✅ **mesuré** via l'API Expo (`meActor.accounts.subscription`) | ✅ certain. Usage réel : **10 builds en août, 2 en juillet** — le plan Free en couvre 30/mois, la marge est large |
 | **Supabase** | palier non lisible sans le dashboard | — | 🔴 **à confirmer** — le plan gratuit couvre 50 000 utilisateurs actifs mensuels |
 | **Resend** (e-mails) | palier gratuit à 3 000 e-mails/mois | tarification publique | ⚠️ à confirmer |
 | **Domaine `kyroz.app`** | ~15 €/an | — | 🔴 **à confirmer** |
@@ -18,7 +18,8 @@ Date : 2026-08-26. Débloque le volet business de l'étape 10.
 ## Ce que toi seul peux poser
 
 - **Ton temps** — entre-t-il dans le calcul, et à quelle valeur ?
-- **Les paliers réels** des quatre lignes marquées 🔴 : trois se lisent en trente secondes dans les dashboards.
+- **Les paliers réels** des **trois** lignes encore marquées 🔴 : deux se lisent en trente secondes dans les dashboards (Supabase, registrar), la troisième est un devis à demander (médiateur).
+- ✅ **EAS est fermé** : plan Free, mesuré par l'API, et l'usage réel (10 builds en août) tient très largement dans les 30/mois du palier.
 
 ## Le calcul, dès que les trous sont comblés
 
