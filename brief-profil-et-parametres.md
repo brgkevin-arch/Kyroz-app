@@ -225,7 +225,9 @@ n'est pas neutre.
 
 ## 8. Ce qu'on ne sait PAS, et qu'il ne faut pas inventer
 
-- 🔴 **Aucune donnée d'usage.** L'outil d'analytics est câblé mais **éteint** (aucune clé
+- 🔴 **Aucune donnée d'usage.** (⚠️ 2026-08-26 : toujours vrai, mais plus pour cette
+  raison — la mesure est désormais coupée dans le CODE, pas seulement privée de clé.
+  Cf. AGENTS.md E66.) L'outil d'analytics est câblé mais **éteint** (aucune clé
   posée, choix assumé). On ne sait donc **pas** quelles lignes sont ouvertes, ni à quelle
   fréquence, ni où les gens se perdent. Toute réponse qui s'appuie sur « les utilisateurs
   vont surtout dans X » est une supposition — qu'elle le dise.

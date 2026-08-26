@@ -1,5 +1,13 @@
 # Brief — Que mesure-t-on quand la personne accepte ?
 
+> 🔴 **LA MESURE D'AUDIENCE EST ÉTEINTE DEPUIS LE 2026-08-26** (décision fondateur,
+> cf. AGENTS.md E66). Plus aucun événement ne part, la clé PostHog est retirée des trois
+> environnements EAS, et aucun texte légal ne déclare plus de traitement d'analyse.
+> **Ce document reste** parce qu'il porte l'ARBITRAGE, pas l'état : si la mesure revient,
+> c'est ici qu'on reprend — et tout sera à ré-arbitrer (périmètre des événements, adresse
+> IP, DPA, rétention, consentement redemandé à tout le monde).
+> ⚠️ Ne pas le lire comme une description de ce qui tourne aujourd'hui.
+
 > Document de **brainstorm**, pas une spec. Écrit le 2026-08-10 pour être emmené tel quel
 > dans une conversation Claude chat. Rien n'est implémenté à ce jour : le code existant est
 > décrit tel qu'il est, les propositions sont marquées comme telles.
