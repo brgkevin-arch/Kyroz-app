@@ -142,7 +142,7 @@ Le plan est appliqué tel quel, à quatre réserves **mesurées** :
 | 4 | ✅ terminée | 2026-08-26 | `abf39cf` | 0 | **1** | 5 | 5 | 0 |
 | 5 | ✅ terminée | 2026-08-26 | `ad4bf0b` | 0 | **4** | 1 | 2 | 0 |
 | 6a | ✅ terminée | 2026-08-26 | `e731e80` | 0 | 0 | 2 | 1 | 0 |
-| 6b | | | | | | | | |
+| 6b | ✅ terminée (Claude.ai + arbitrage) | 2026-08-26 | `83367bd` | 0 | **4** | 12 | 4 | 0 |
 | 7 | ✅ terminée | 2026-08-26 | `d095397` | 0 | **1** | 2 | 2 | 0 |
 | 8 | | | | | | | | |
 | 9 | | | | | | | | |
