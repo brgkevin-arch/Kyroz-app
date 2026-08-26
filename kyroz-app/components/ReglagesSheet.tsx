@@ -34,6 +34,7 @@ import { TOURS } from '../lib/tours';
 // la suppression des statistiques. On garde donc la source unique, pas la ligne.
 import { SUPPORT_EMAIL, lienSuppressionStats } from '../lib/feedback';
 import { pseudonymeExistant } from '../lib/analytics';
+import { STATISTIQUES_USAGE_ACTIVES } from '../lib/featureFlags';
 import { DISCLAIMER } from '../constants/legal';
 import { CIQUAL_ATTRIBUTION } from '../lib/foods';
 
@@ -306,13 +307,24 @@ export function ReglagesSheet({
         {/* ── Confidentialité ──────────────────────────────────────────────── */}
         <SectionTitle t={t}>Confidentialité</SectionTitle>
 
-        <Text style={s.label}>Statistiques d'usage</Text>
-        <Segmented<'on' | 'off'>
-          t={t}
-          value={analyticsConsent === 'granted' ? 'on' : 'off'}
-          onChange={(v) => chooseConsent(v === 'on' ? 'granted' : 'denied')}
-          options={[{ label: 'Partagées', value: 'on' }, { label: 'Non', value: 'off' }]}
-        />
+        {/* 🔴 ÉTEINT LE 2026-08-26 (décision fondateur) — l'interrupteur disparaît
+            avec la mesure : proposer de « partager » ce qui ne part plus serait un
+            réglage qui ne pilote rien. Il revient tel quel avec la constante
+            (`lib/featureFlags.ts::STATISTIQUES_USAGE_ACTIVES`).
+            ⚠️ La ligne de SUPPRESSION, elle, reste montée plus bas tant qu'un
+            pseudonyme existe : des mesures ont pu partir entre le 2026-08-18 et
+            l'extinction, et le droit à l'effacement ne s'arrête pas avec la collecte. */}
+        {STATISTIQUES_USAGE_ACTIVES && (
+          <>
+            <Text style={s.label}>Statistiques d'usage</Text>
+            <Segmented<'on' | 'off'>
+              t={t}
+              value={analyticsConsent === 'granted' ? 'on' : 'off'}
+              onChange={(v) => chooseConsent(v === 'on' ? 'granted' : 'denied')}
+              options={[{ label: 'Partagées', value: 'on' }, { label: 'Non', value: 'off' }]}
+            />
+          </>
+        )}
         {/* ⚠️ « PSEUDONYME », PAS « ANONYME » — cette ligne disait « anonymes » et c'était
             faux par construction : l'identifiant est stable, donc les mesures d'un même
             téléphone se regroupent, et c'est précisément ce qui rend possible la
@@ -320,7 +332,12 @@ export function ReglagesSheet({
             n'est pas anonyme ; promettre les deux, c'est se contredire dans le même
             écran. Le vocabulaire fait partie de la promesse (synthèse §3.3). */}
         <Text style={s.aide}>
-          {analyticsConsent === 'granted'
+          {!STATISTIQUES_USAGE_ACTIVES
+            // Éteint : la phrase dit l'ÉTAT, pas une préférence. « Aucune statistique
+            // n'est partagée » serait vrai mais se lirait comme un réglage choisi,
+            // alors que le choix n'existe plus.
+            ? 'Kyroz ne mesure plus rien de ton usage. L’app fonctionne entièrement sur ton téléphone.'
+            : analyticsConsent === 'granted'
             ? 'Tu partages comment tu utilises l’app — écrans ouverts, repas cochés, erreurs. Jamais tes données de santé, ton prénom ni ton e-mail. C’est rattaché à un identifiant pseudonyme tiré sur cet appareil, envoyé à PostHog et stocké sur ses serveurs de Francfort au moins un an.'
             : 'Aucune statistique d’usage n’est partagée.'}
         </Text>

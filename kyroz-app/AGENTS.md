@@ -86,6 +86,7 @@ qu'ils étaient périmés.
 | 138 | **Les fiches d'OTA sont COMPTÉES** — un test les compare entre elles, `npm run check:ota` les confronte au canal EAS | E62 |
 | 139 | **Un « + » dans les courses** — la liste n'est plus seulement dérivée, on y ajoute ses propres articles | E63 |
 | 140 | **« Aucun pressable sous 44 pt » était FAUX** — la sonde s'arrêtait sur une flèche ; six boutons dessous | E64 |
+| 142 | **Statistiques d'usage ÉTEINTES** — plus d'écran de consentement, plus d'envoi ; le périmètre reste gardé | E66 |
 
 🔴 **NE PAS RE-PROPOSER LES TÂCHES DU PLAN D'ACTION : elles sont toutes livrées côté
 code.** 4, 6, 7, 8, 9, 10 et 12 sont faites ; 3, 5, 11 et 14 l'étaient **avant** que le
@@ -4036,6 +4037,60 @@ produit en suspens — il ne reste qu'à coder.
 > ➡️ Ce qui EST vérifié ici : `tsc` propre et **1 712 tests verts sur `main`** une fois
 > les deux PR fusionnées, donc les deux chantiers ne se marchent pas dessus (ils
 > touchaient tous les deux `profil.tsx` et `constants/legal.ts`).
+
+- 🤖 **E66 · Les statistiques d'usage sont éteintes — et la garde qui compte n'est pas
+  la clé (2026-08-26)**
+
+  Décision du fondateur, après avoir relu l'écran de consentement : *« on enlève le
+  posthog pour l'instant »*. « Pour l'instant » : donc **éteindre, pas supprimer** —
+  même patron que le parcours hors plan et la banque de calories (`lib/featureFlags.ts`,
+  « ce qui est éteint n'est pas supprimé »).
+
+  🔴 **LA CLÉ ÉTAIT BIEN EN SERVICE.** Vérifié avant de toucher à quoi que ce soit :
+  `EXPO_PUBLIC_POSTHOG_KEY` est posée dans l'environnement **production** d'EAS
+  (`eas env:list`). Les builds TestFlight envoyaient donc réellement, pour qui avait
+  accepté. Ce n'était pas un chantier théorique.
+
+  🔴 **ET LA RETIRER D'EAS N'AURAIT RIEN ARRÊTÉ CHEZ LES TESTEURS.** Une variable
+  `EXPO_PUBLIC_*` est **inlinée dans le bundle à la compilation** : le binaire déjà
+  installé porte la clé en dur. Seule une garde DANS LE CODE arrête ce qui tourne — et
+  elle se publie en OTA. C'est pour ça que la coupure est dans `capture()`, en toute
+  première ligne, **avant même la lecture du consentement** : un « oui » donné en août
+  ne doit plus rien faire partir.
+
+  ⚠️ **CE QUI RESTE MONTÉ, ET CE N'EST PAS UN OUBLI** : « Supprimer mes statistiques »
+  dans les Réglages, tant qu'un pseudonyme existe sur l'appareil. Des mesures ont pu
+  partir entre la pose de la clé (2026-08-18) et aujourd'hui. Retirer ce bouton avec le
+  reste ferait disparaître le seul chemin d'effacement, **pour les seules personnes
+  concernées** — le droit à l'effacement ne s'éteint pas avec la collecte.
+
+  ⚠️ L'interrupteur des Réglages, lui, disparaît : proposer de « partager » ce qui ne
+  part plus serait un réglage qui ne pilote rien. La ligne d'aide dit désormais l'ÉTAT
+  (« Kyroz ne mesure plus rien de ton usage »), pas une préférence.
+
+  📋 **Vérifié à l'écran** : consentement jamais répondu → l'inscription ouvre
+  directement sur « Bienvenue sur Kyroz », plus aucun écran avant le prénom ; Réglages
+  sans pseudonyme → ni interrupteur ni ligne de suppression ; Réglages **avec**
+  pseudonyme → toujours pas d'interrupteur, mais « Supprimer mes statistiques » présent.
+
+  🔒 **`lib/__tests__/extinctionStatistiques.test.ts`** — 7 tests. Le principal est un
+  test de COMPORTEMENT : clé posée, consentement à `granted`, `fetch` espionné → **aucun
+  appel**. Vérifié par mutation (constante à `true` → rouge).
+  🔴 **Et la mutation a démasqué un test CREUX au passage** : « aucun identifiant
+  pseudonyme n'est créé » restait vert avec la constante à `true`. Cause :
+  `vi.resetModules()` reconstruit le registre, donc le mock d'AsyncStorage importé en
+  tête de fichier n'est plus celui qu'écrit le module fraîchement importé — le test
+  interrogeait un stockage vide par construction. Il relit désormais le stockage du
+  MÊME graphe de modules. *Un test qu'on n'a jamais vu rougir ne prouve rien*, et
+  celui-ci l'a prouvé deux fois dans la même passe.
+
+  🔁 **CE QUE CETTE FICHE NE FERME PAS**, et qui appartient au fondateur :
+   · la clé dans l'environnement **EAS production** (à retirer pour les builds futurs) ;
+   · les **données déjà envoyées**, chez PostHog — action hors dépôt, sur le tableau de bord ;
+   · les **textes légaux** : politique in-app (`constants/legal.ts`), politique publique
+     (dépôt `kyroz-site`) et `RGPD-REGISTRE.md` décrivent encore un traitement actif.
+     Ils sur-déclarent, ce qui est le sens prudent — mais ils vont périmer, et ils ont
+     leur propre procédure (date de mise à jour, publication du site).
 
 - 🤖 **E64 · La sonde des cibles tactiles s'arrêtait sur une flèche — six boutons
   vivaient dessous, au vert (2026-08-26)**

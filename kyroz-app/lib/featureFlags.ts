@@ -5,10 +5,11 @@
 // en train de se disperser dans les modules qu'elles éteignent, ce qui rend impossible
 // de répondre à « qu'est-ce qui est éteint aujourd'hui ? » sans lire toute l'app.
 //
-// ⚠️ DEUX CONSTANTES, PAS UNE — et c'est délibéré, contre la formulation initiale
-// (« un feature flag unique »). Les deux parcours ont été arbitrés SÉPARÉMENT, à deux
-// jours d'intervalle ; un interrupteur commun interdirait d'en rallumer un sans
-// l'autre. Le point de vérité est unique, la décision reste divisible.
+// ⚠️ UNE CONSTANTE PAR DÉCISION, PAS UN INTERRUPTEUR COMMUN — délibéré, contre la
+// formulation initiale (« un feature flag unique »). Chaque parcours a été arbitré
+// SÉPARÉMENT ; un interrupteur commun interdirait d'en rallumer un sans les autres. Le
+// point de vérité est unique, la décision reste divisible. (Elles étaient deux le
+// 2026-08-18, trois depuis l'extinction des statistiques d'usage le 2026-08-26.)
 //
 // ⚠️ CE QUI EST ÉTEINT N'EST PAS SUPPRIMÉ. Les moteurs, les modules, les composants et
 // leurs tests restent en place et verts. Repasser une constante à `true` rallume le
@@ -44,3 +45,28 @@ export const PARCOURS_HORS_PLAN_ACTIF = false;
  * banque ne voit strictement rien changer.
  */
 export const RYTHME_HEBDOMADAIRE_ACTIF = false;
+
+/**
+ * **Statistiques d'usage (PostHog)** — l'écran de consentement, l'interrupteur des
+ * Réglages, et l'envoi lui-même. **Éteint le 2026-08-26** (décision fondateur :
+ * « on enlève le posthog pour l'instant »).
+ *
+ * ⚠️ IL COUPE L'ENVOI EN PREMIER, avant même la lecture du consentement. C'est ce
+ * qui rend l'extinction vraie sur un binaire DÉJÀ INSTALLÉ : la clé y est inlinée à
+ * la compilation, donc la retirer de l'environnement EAS ne concerne que les builds
+ * FUTURS. Seul un code qui refuse de partir arrête ce qui est chez les testeurs —
+ * et il se publie en OTA.
+ *
+ * ⚠️ CE QUI RESTE, ET CE N'EST PAS UN OUBLI : la ligne « Supprimer mes statistiques »
+ * des Réglages, tant qu'un pseudonyme existe sur l'appareil. Des mesures ont pu
+ * partir entre la pose de la clé (2026-08-18) et aujourd'hui ; le droit à
+ * l'effacement ne s'éteint pas avec la collecte. Retirer ce bouton en même temps que
+ * le reste ferait disparaître le seul chemin de suppression, pour les seules
+ * personnes qui en ont besoin.
+ *
+ * ⚠️ Le périmètre reste GARDÉ pour le jour où il revient : `lib/analytics.ts`, ses
+ * 15 events et `analyticsPerimetre.test.ts` ne bougent pas. Repasser cette constante
+ * à `true` rallume tout — mais il faudra alors trancher ce que devient un
+ * consentement donné en août pour un périmètre d'events qui aura peut-être changé.
+ */
+export const STATISTIQUES_USAGE_ACTIVES = false;

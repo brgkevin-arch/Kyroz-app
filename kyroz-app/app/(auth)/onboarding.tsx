@@ -38,6 +38,7 @@ import SportsEditor from '../../components/SportsEditor';
 import { useProfile } from '../../hooks/useProfile';
 import { saveFirstName } from '../../lib/profileName';
 import { capture, Events } from '../../lib/analytics';
+import { STATISTIQUES_USAGE_ACTIVES } from '../../lib/featureFlags';
 import { useAnalyticsConsent } from '../../hooks/useAnalyticsConsent';
 import AnalyticsConsentStep from '../../components/AnalyticsConsentStep';
 import { DISCLAIMER, AVERTISSEMENT_MEDICAL } from '../../constants/legal';
@@ -408,8 +409,15 @@ export default function Onboarding() {
   // depuis le 2026-08-11 il ne posait plus aucune question et ne bloquait plus
   // personne, donc il coûtait un tap pour un texte qui n'a pas besoin d'un écran.
   // (Placé APRÈS tous les hooks → règles React respectées.)
-  if (consent === undefined) return null; // lecture du stockage, quasi instantané
-  if (consent === null) return <AnalyticsConsentStep onChoose={chooseConsent} />;
+  // 🔴 ÉTEINT (2026-08-26) : plus aucune question posée. Demander un consentement
+  // pour une mesure qui n'a pas lieu serait la pire des deux options — un écran de
+  // plus avant le prénom, ET une promesse sans objet.
+  // ⚠️ L'écran et son composant ne sont PAS supprimés : rallumer la constante les
+  // remet exactement où ils étaient (`lib/featureFlags.ts`).
+  if (STATISTIQUES_USAGE_ACTIVES) {
+    if (consent === undefined) return null; // lecture du stockage, quasi instantané
+    if (consent === null) return <AnalyticsConsentStep onChoose={chooseConsent} />;
+  }
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'bottom']}>
