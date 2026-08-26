@@ -425,6 +425,12 @@ Avec, il s'applique **dès le premier jour**. C'est purement déclaratif.
 ✅ **Inscription faite le 2026-08-25.** L'équivalent Google Play se fera le jour où le
 compte Play existera.
 
+⚠️ **L'acceptation d'Apple n'a pas été relue** (constaté le 2026-08-26). Le programme est
+purement déclaratif et rien n'indique un refus — décision du fondateur : la marquer faite
+plutôt que la laisser en suspens. ➡️ Un coup d'œil à **App Store Connect → Business** la
+confirme ou la dément ; à faire **avant la première vente**, puisque le taux court à partir
+de l'acceptation et ne se rattrape pas.
+
 🔴 **CE PROGRAMME NE SE VÉRIFIE PAS PAR L'API, et le chercher là induit en erreur.**
 `npm run check:abonnements` affiche deux reversements par prix — ils n'ont **pas** bougé
 après l'inscription, et c'est normal : ce sont des attributs du **palier de prix**, donc
