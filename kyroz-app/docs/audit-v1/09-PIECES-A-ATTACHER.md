@@ -16,7 +16,7 @@ Préparé par Claude Code le 2026-08-26, commit `b478a77`. **L'étape 9 elle-mê
 | 4 | `docs/audit-v1/08-analytics.md` | 13 Ko | l'état d'extinction, et la correction 08-04 qui invalide une prémisse de 6b |
 | 5 | `RGPD-REGISTRE.md` | 34 Ko | le registre |
 | 6 | `constants/legal.ts` | 22 Ko | **politique ET CGU, source unique** — `PRIVACY_POLICY:104`, `TERMS_OF_USE:258`, `LEGAL:34` |
-| 7 | `docs/audit-v1/09-extrait-textes.md` | 20 Ko | **130 chaînes** : légal, paywall, consentement, Réglages, connexion. Préparé pour éviter d'attacher les 728 |
+| 7 | `docs/audit-v1/09-extrait-textes.md` | 14 Ko | écrans paywall, consentement, Réglages, connexion, lecteur légal — **avec l'état de RENDU de chacun**. Le bloc « Textes légaux » en a été RETIRÉ : il s'audite sur la pièce 6 |
 
 **Ne pas attacher `public/legal.html`** : c'est un fichier **généré** depuis la pièce 6, et il a été vérifié synchronisé (étape 6a, constat 06-04 — régénération dans un bac à sable, `git diff` vide). L'attacher ferait croire à deux sources à réconcilier.
 
@@ -80,6 +80,16 @@ Formulées depuis le code, pour qu'elle sache quoi chercher dans les captures :
 | **01-04** | Sauvegardes OS non documentées au registre | P1 | 1 |
 | **01-05** = **06b-07** | L'abonnement continue après suppression, et la modale ne le dit pas | P1 | 1 et 6b, **trouvé deux fois indépendamment** |
 | **06b-03** | « Gratuitement, à vie » : clause irrévocable, non datée | P1 | 6b |
+
+## Corrections apportées après le premier refus de l'étape 9
+
+Elle a refusé d'exécuter avec deux pièces sur sept — le bon geste — et a relevé **trois manques dans ce dossier**. Les trois sont corrigés :
+
+1. **La partie II documentait l'extinction de l'ENVOI, pas celle de l'AFFICHAGE.** Ajouté : ni l'écran de consentement, ni le bloc Réglages, ni la ligne « Supprimer mes statistiques » ne se rendent (`onboarding.tsx:425`, `ReglagesSheet.tsx:323`, `:350`). L'extrait porte désormais cet état **section par section**.
+2. **L'essai 14 jours n'apparaissait nulle part.** Il n'existe pas et n'est plus la stratégie (étape 7) : **06b-05 est sans objet**. C'était dans l'arbitrage de l'étape 6b, pas ici.
+3. **L'extrait sautait des sections de la politique.** Défaut de mon extracteur — seuil de 12 caractères, qui perd `8. Sécurité` **et** `10. Mineurs` (11 chacun). ➡️ Le bloc légal est **retiré de l'extrait** : l'étape 9 travaille sur `constants/legal.ts` en fichier.
+
+➡️ Et **quatre constats fermes** sont déjà sortis de ces deux pièces : `docs/audit-v1/09-conformite.md` (partiel).
 
 ## Comment lancer l'étape 9
 
