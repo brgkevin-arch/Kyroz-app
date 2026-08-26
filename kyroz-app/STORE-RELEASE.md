@@ -48,23 +48,33 @@ installation neuve part du binaire, donc du (6).
 
 - **Binaire** : le dernier build iOS est toujours le **(6)** — `ceec1b17`, commit
   `1047b9f`, terminé le 2026-08-11 à 20 h 37. Il a **62 commits de retard** sur `main` — chiffre RE-MESURÉ le 2026-08-26 (il en annonçait 40, mesurés le 2026-08-23), qui **grandit à chaque merge** : le relire avec `git rev-list --count 1047b9f..origin/main` plutôt que de le recopier (même défaut que le décompte d'OTA tenu à la main).
-- **OTA** : la dernière est la **23ᵉ** (groupe `05baae2a`, 2026-08-26, iOS + Android,
-  runtime 1.0.0), publiée sur le commit `d71c3a2` — contenu PROUVÉ identique à `origin/main`
+- **OTA** : la dernière est la **24ᵉ** (groupe `fe12a794`, 2026-08-26, iOS + Android,
+  runtime 1.0.0), publiée sur le commit `786c281` — contenu PROUVÉ identique à `origin/main`
   (`git diff --stat origin/main HEAD` vide, arbre propre). Contrôlée sur l'artefact avant envoi,
-  témoins comptés **avant ET après** sur les deux bundles (détail : ligne « OTA publiées »
-  d'AGENTS.md). Elle porte les **13 commits** de #151 à #162 : tuto ramené à **2 bulles**, un repas
-  coché qui ne se décoche plus, six écrans épurés (dont la saisie sous le clavier), l'accent des
-  repas devenu multiple, les textes relus avant la V1, la date légale recalée et **RevenueCat nommé**
-  dans la politique et au registre RGPD. 🔴 **Aucune calorie ne bouge** : `ENGINE_REV` reste à 8,
-  donc pas d'avertissement one-shot — contrairement à la 21ᵉ.
-  ⚠️ **Cette fiche avait sauté la 22ᵉ** : elle annonçait encore la 21ᵉ alors que la 22ᵉ était partie
-  le 2026-08-25. Une OTA se publie depuis `kyroz-app/` et se consigne à DEUX endroits — ici et dans
-  la ligne « OTA publiées » d'AGENTS.md ; celle qui n'est écrite qu'à un seul endroit rend l'autre
-  faux en silence. ✅ **Ce n'est plus de la discipline depuis le 2026-08-26** :
-  `lib/__tests__/fichesOta.test.ts` rougit si les deux fiches divergent, et
-  `npm run check:ota` confronte ce qu'elles annoncent au canal EAS réel — la première
-  attrape la dérive entre copies, la seconde l'oubli pur et simple.
-  *(22ᵉ : `2b0a3053`, 2026-08-25, commit `79c3638` — la Réserve, l'auto-coche, Recettes en deux
+  témoins comptés **avant ET après**, sur les deux bundles ET sur les deux plateformes — 5 qui
+  arrivent, 4 qui partent (détail : ligne « OTA publiées » d'AGENTS.md). Elle porte les
+  **7 commits** de #163 à #169 : un **« + » dans les courses** (on ajoute ses propres articles,
+  et ils ne vivent plus dans un cache qui s'efface), **six boutons remontés à 44 pt** (la sonde
+  s'arrêtait sur une flèche), les **jours de repos étendus aux 7 jours de la semaine** dans une
+  seule maison — le cyclage en perdait un tiers —, et les **statistiques d'usage ÉTEINTES** :
+  plus d'écran de consentement, plus d'interrupteur, plus d'envoi. 🔴 **La garde est dans le
+  CODE, pas dans l'environnement EAS** : une clé `EXPO_PUBLIC_*` est inlinée à la compilation,
+  donc la retirer d'EAS ne concerne que les builds FUTURS — seule cette OTA arrête ce qui tourne
+  chez les testeurs. Le texte légal est réécrit en conséquence, et sa date (26 août) devient vraie
+  à CETTE publication, pas au merge. 🔴 **Aucune calorie ne bouge** : `ENGINE_REV` reste à 8,
+  donc pas d'avertissement one-shot.
+  ⚠️ **Publiée DEUX fois** : le premier envoi (groupe `5c59703a`) portait un astérisque sur son
+  empreinte — arbre sale — parce que la copie de l'ancien `dist/`, gardée pour la preuve
+  avant/après, était un dossier non suivi et non ignoré au milieu du dépôt. Le geste qui fabrique
+  la preuve cassait le contrôle qui la vérifie (`check:ota` exige un arbre propre) ; la copie se
+  met désormais HORS du dépôt. Contenu identique — c'est la tête du canal qui compte.
+  ✅ Les deux fiches ne sont plus tenues à la main : `lib/__tests__/fichesOta.test.ts` rougit si
+  elles divergent (rang, groupe, commit, et tout l'historique commun), et `npm run check:ota`
+  confronte ce qu'elles annoncent au canal EAS réel — la première attrape la dérive entre copies,
+  la seconde l'oubli pur et simple.
+  *(23ᵉ : `05baae2a`, 2026-08-26, commit `d71c3a2` — tuto ramené à 2 bulles, un repas coché qui ne
+  se décoche plus, six écrans épurés, textes relus avant la V1, RevenueCat nommé au registre.
+  22ᵉ : `2b0a3053`, 2026-08-25, commit `79c3638` — la Réserve, l'auto-coche, Recettes en deux
   listes. 21ᵉ : `4d38f61c`, 2026-08-24, commit `788ab09` — **A38 « R6 lissée »**, `ENGINE_REV` 7 → 8,
   la première à déplacer des calories depuis la rev 7 : les cibles peuvent MONTER au premier
   recalcul (max +100 en sèche, ~+390 en maintien), aucune ne baisse. 20ᵉ : `a3a119de`, 2026-08-23,
