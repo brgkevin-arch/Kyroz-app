@@ -68,6 +68,22 @@ describe("ce que le texte doit dire avant qu'un abonnement puisse être vendu", 
     expect(TOUS_LES_PARAS).not.toMatch(/Stripe|Adapty|Superwall|Paddle/i);
   });
 
+  // 🔴 Servi en PRODUCTION sur les trois surfaces le 2026-08-26 : « RevenueCat, Inc.. ».
+  // La raison sociale finit par un point, la phrase en ajoutait un. Ça ne se voit pas en
+  // relisant le gabarit — le point est DANS la donnée, pas dans le texte — et ça se voit
+  // très bien à l'écran. Le compte est bête, c'est exactement pour ça qu'il tient.
+  it('aucun signe de ponctuation doublé dans le texte servi', () => {
+    // ⚠️ Le motif vise le MÊME signe répété (`..`, `,,`), pas deux signes différents :
+    // « Supabase Inc., sur des serveurs… » est correct — point d'abréviation suivi
+    // d'une virgule. Une première version interdisait `[.,;:!?]{2}` et accusait cette
+    // phrase-là. Un garde-fou trop large ne se fait pas obéir, il se fait désactiver.
+    const DOUBLE = /([.,;:!?])\1/;
+    for (const par of [...PRIVACY_POLICY, ...TERMS_OF_USE].flatMap((sec) => sec.paragraphs)) {
+      const i = par.search(DOUBLE);
+      expect(par, i < 0 ? '' : `« …${par.slice(Math.max(0, i - 45), i + 25)}… »`).not.toMatch(DOUBLE);
+    }
+  });
+
   it('nomme le cadre du transfert avec le prestataire, jamais l’un sans l’autre', () => {
     // Art. 13-1-f : nommer un destinataire hors UE sans dire ce qui encadre le transfert
     // laisse le lecteur devant un fait brut. Les deux vont ensemble ou pas du tout.
@@ -209,7 +225,7 @@ const DERNIERE_REVISION = {
   // post-dater au 27 annoncerait une prise d'effet qui n'a pas lieu.
   // ➡️ Si une révision tombait un AUTRE jour, c'est la date qu'il faudrait bouger
   // d'abord — l'empreinte ne se met à jour qu'après cet arbitrage-là.
-  empreinte: '67c329629431',
+  empreinte: '504ee4c8b129',   // 3e révision du 26 août : coquille « Inc.. » corrigée
 };
 
 /**
