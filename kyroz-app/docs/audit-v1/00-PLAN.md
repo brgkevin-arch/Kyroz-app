@@ -146,5 +146,5 @@ Le plan est appliqué tel quel, à quatre réserves **mesurées** :
 | 7 | ✅ terminée | 2026-08-26 | `d095397` | 0 | **1** | 2 | 2 | 0 |
 | 8 | ✅ terminée (re-cadrée) | 2026-08-26 | `e6dda33` | 0 | 0 | 2 | 1 | 0 |
 | 9 | 🟡 **PARTIEL** — 5 constats fermes + brouillon des formulaires ; attend 5 pièces | 2026-08-26 | `c850512` | 0 | **4** | 1 | 0 | 2 tiers |
-| 10 | | | | | | | | |
+| 10 | 🟡 **PARTIEL** — 10 allégations vérifiées ; attend Claude.ai + coûts fixes | 2026-08-26 | `98a6335` | 0 | **1** | 1 | 1 | ASO/business/ops |
 | 11 | | | | | | | | |
