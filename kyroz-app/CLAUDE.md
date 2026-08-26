@@ -84,6 +84,22 @@ App mobile React Native (Expo Router, SDK 56) de plans repas macro-précis pour 
 >
 > **Publier un correctif** : `npx eas-cli update --branch production --message "…"`.
 >
+> 🔴 **PUBLIER UNE OTA, C'EST TROIS GESTES, PAS UN** (2026-08-26). Le second est celui
+> qu'on saute : la publication se consigne à **DEUX endroits** — la ligne « OTA publiées »
+> d'`AGENTS.md` **et** la puce « **OTA** : » de `STORE-RELEASE.md`. La 22ᵉ n'a été écrite
+> que dans la première ; la seconde a donc annoncé la 21ᵉ pendant un jour, et c'est
+> précisément la fiche qu'on lit pour décider quoi soumettre à Apple.
+> ➡️ Le troisième geste est **`npm run check:ota`** : il interroge le canal `production`
+> et confronte le groupe, le commit, les plateformes, le runtime et l'arbre propre à ce
+> que les fiches annoncent.
+> ⚠️ **Les deux garde-fous ne couvrent pas la même panne, aucun ne remplace l'autre** :
+> `lib/__tests__/fichesOta.test.ts` tourne dans `npm test` et attrape la DÉRIVE entre les
+> deux copies ; `check:ota` demande le réseau et attrape l'OUBLI pur et simple — deux
+> fiches parfaitement d'accord et fausses toutes les deux. La décision de lecture vit
+> dans `lib/otaFiches.ts`, pur et sans import, pour que le test et le script lisent les
+> fiches avec le MÊME motif : deux analyseurs recopiés seraient exactement le défaut
+> qu'on ferme.
+>
 > ⚠️ **Ce que l'OTA ne peut PAS faire** : livrer du natif. Ajouter ou changer une
 > dépendance native impose un nouveau build ET une nouvelle revue. `runtimeVersion` est
 > le garde-fou : lié à `expo.version`, **monter la version coupe volontairement la ligne

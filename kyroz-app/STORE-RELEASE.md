@@ -60,7 +60,10 @@ installation neuve part du binaire, donc du (6).
   ⚠️ **Cette fiche avait sauté la 22ᵉ** : elle annonçait encore la 21ᵉ alors que la 22ᵉ était partie
   le 2026-08-25. Une OTA se publie depuis `kyroz-app/` et se consigne à DEUX endroits — ici et dans
   la ligne « OTA publiées » d'AGENTS.md ; celle qui n'est écrite qu'à un seul endroit rend l'autre
-  faux en silence.
+  faux en silence. ✅ **Ce n'est plus de la discipline depuis le 2026-08-26** :
+  `lib/__tests__/fichesOta.test.ts` rougit si les deux fiches divergent, et
+  `npm run check:ota` confronte ce qu'elles annoncent au canal EAS réel — la première
+  attrape la dérive entre copies, la seconde l'oubli pur et simple.
   *(22ᵉ : `2b0a3053`, 2026-08-25, commit `79c3638` — la Réserve, l'auto-coche, Recettes en deux
   listes. 21ᵉ : `4d38f61c`, 2026-08-24, commit `788ab09` — **A38 « R6 lissée »**, `ENGINE_REV` 7 → 8,
   la première à déplacer des calories depuis la rev 7 : les cibles peuvent MONTER au premier

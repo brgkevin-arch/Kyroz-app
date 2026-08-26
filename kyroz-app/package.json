@@ -55,6 +55,7 @@
     "check:auth": "node scripts/check-auth.mjs",
     "check:abonnements": "node scripts/check-abonnements.mjs",
     "check:migrations": "node scripts/check-migrations.mjs",
+    "check:ota": "npx tsx scripts/check-ota.ts",
     "check:suspens": "node scripts/check-suspens.mjs",
     "store:assets": "node test/store-assets.mjs",
     "store:assets:ipad": "node test/store-assets.mjs --ipad",
