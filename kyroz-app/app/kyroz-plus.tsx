@@ -73,7 +73,10 @@ export default function KyrozPlusScreen() {
   const layout = useLayout();
   const router = useRouter();
   const dialog = useDialog();
-  const { reason } = usePremium();
+  // L'écran d'achat est le SEUL à forcer l'identification : acheter ou restaurer
+  // exige que RevenueCat sache à quel compte rattacher la transaction. Partout
+  // ailleurs, l'identifiant ne part que si le verdict en dépend (cf. usePremium).
+  const { reason } = usePremium({ forcerIdentification: true });
   // ⚠️ L'ANNUEL EST PRÉSÉLECTIONNÉ (2026-08-25) — une décision, pas un défaut
   // d'écriture. Le mensuel l'était jusque-là, ce qui mettait en avant la seule
   // formule dont l'économie affichée juste en dessous (`annualSavingPct`) ne parle
