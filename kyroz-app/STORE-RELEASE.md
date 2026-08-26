@@ -23,8 +23,8 @@
 |---|---|
 | `main` | `7b0818b` — **1 645 tests verts / 106 fichiers**, `tsc` propre, **0 PR ouverte** |
 | Administratif | comptes, contrats (gratuit + payant), banque, fiscal, **DSA** (27 pays) : **plus aucun verrou** |
-| App Store Connect | fiche créée, **App Privacy publié** (2026-08-18, PostHog compris), URL de politique posée, abonnements Kyroz+ créés |
-| Secrets EAS `production` | `EXPO_PUBLIC_REVIEW_CODE`, RevenueCat iOS, PostHog, Supabase — **posés** |
+| App Store Connect | fiche créée, **App Privacy publié** (2026-08-18), URL de politique posée, abonnements Kyroz+ créés — 🔴 **À CORRIGER : il déclare encore la collecte analytics, éteinte le 2026-08-26** (§4) |
+| Secrets EAS `production` | `EXPO_PUBLIC_REVIEW_CODE`, RevenueCat iOS, Supabase — **posés**. ⚠️ **PostHog RETIRÉ le 2026-08-26** des trois environnements |
 | Revue bêta TestFlight | **approuvée le 2026-08-03** — les builds suivants passent sans y repasser |
 | Accès relecteur | code posé au build, auth anonyme active, notes rédigées (§11) |
 | Migrations Supabase | **rien en attente** — la dernière date du 2026-08-10 et elle est en prod |
@@ -635,10 +635,17 @@ Apple, affiché SOUS le titre avant le « en savoir plus », **manquait à cette
 ## 4. Confidentialité — réponses aux formulaires (fondées sur le vrai flux de données)
 
 > Base factuelle : compte Supabase (UE), profil = données de santé, photos
-> **local-only jamais envoyées**, **mesure d'audience consentie** (PostHog Cloud EU,
-> stockage à Francfort — traitement n°2 du registre), pas de pub, pas de tracking
-> inter-applications. Suppression du compte + données possible **dans l'app**
-> (Profil → supprimer le compte).
+> **local-only jamais envoyées**, **aucune mesure d'audience** (éteinte le 2026-08-26,
+> cf. AGENTS.md E66), pas de pub, pas de tracking inter-applications. Suppression du
+> compte + données possible **dans l'app** (Profil → supprimer le compte).
+>
+> 🔴 **LES DEUX FORMULAIRES SONT PUBLIÉS ET DÉCLARENT ENCORE L'ANALYTICS.** C'est une
+> déclaration publique qui sur-déclare : elle annonce une collecte qui n'a plus lieu.
+> Moins grave que l'inverse, mais faux quand même — et c'est exactement le défaut que
+> ce dépôt traque partout ailleurs. ➡️ **À reprendre dans App Store Connect** (App
+> Privacy → retirer *Product Interaction* / *Analytics*) **et dans Play Console**
+> (Sécurité des données → retirer « actions dans l'app »). Tant que ce n'est pas fait,
+> les tableaux ci-dessous portent la version À DÉCLARER, pas celle qui est en ligne.
 >
 > ⚠️ **Ces deux formulaires se remplissent ENSEMBLE.** Ils décrivent le même flux de
 > données dans deux vocabulaires ; n'en mettre qu'un à jour crée une contradiction que
@@ -651,17 +658,14 @@ Apple, affiché SOUS le titre avant le « en savoir plus », **manquait à cette
 | Santé & forme (poids, objectif, régime) | Oui | Fonctionnement de l'app | Oui | Non |
 | Identifiant utilisateur (ID compte) | Oui | Fonctionnement de l'app | Oui | Non |
 | Photos (progression) | **Non collectée** | — | — | — (restent sur l'appareil) |
-| Données d'usage / analytics | **Oui** — *Product Interaction*, **uniquement si consenti** | **Analytics** | **Non** — identifiant pseudonyme d'appareil, jamais le compte ni l'e-mail | **Non** |
+| Données d'usage / analytics | **Non collectée** (éteint le 2026-08-26) | — | — | — |
 | **Suivi (tracking)** | **NON** — pas d'ATT, pas de pub, pas de partage tiers | | | |
 
 ### Google Play — « Sécurité des données »
-- **Collectées** : e-mail ; infos de santé (poids, objectif, régime) ; ID compte ;
-  **actions dans l'app** (« App interactions »), **uniquement si l'utilisateur les accepte**.
-- **Facultatives** : les actions dans l'app le sont — à la question « la collecte de ces
-  données est-elle obligatoire ? », répondre **non** : l'app fonctionne à l'identique en cas
-  de refus.
-- **Chiffrées en transit** : oui. **Stockage** : Supabase à Francfort (UE) ; les statistiques
-  d'usage sont stockées par PostHog à Francfort également.
+- **Collectées** : e-mail ; infos de santé (poids, objectif, régime) ; ID compte.
+  ⚠️ **Plus d'« actions dans l'app »** (« App interactions ») : la mesure d'usage est
+  éteinte depuis le 2026-08-26, plus aucun événement ne part.
+- **Chiffrées en transit** : oui. **Stockage** : Supabase à Francfort (UE).
 - **Partagées avec des tiers** : **NON**.
 - **L'utilisateur peut demander la suppression** : **OUI, dans l'app** (Profil →
   supprimer le compte → cascade + purge locale). Indiquer aussi `contact@kyroz.app`.

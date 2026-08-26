@@ -39,6 +39,10 @@ dossier les a tous cassés d'un coup, en silence. Ce qui a dû être réparé le
 - la **visite guidée** et la carte de **consentement analytics** interceptent tous les
   clics à l'arrivée sur le plan — les scripts déclaraient chaque écran « introuvable »
   alors qu'ils n'avaient jamais pu quitter l'écran Plan ;
+  ⚠️ **Depuis le 2026-08-26, l'écran de consentement n'existe plus** (mesure éteinte,
+  AGENTS.md E66). Le harnais continue de poser `@kyroz:analyticsConsent = 'denied'` :
+  c'est sans effet, et c'est volontaire — la ligne redeviendra nécessaire si la mesure
+  revient, et la retirer ferait repayer le diagnostic ce jour-là ;
 - les sous-écrans du Profil sont des `Sheet`, pas des routes : `page.goBack()` ne les
   ferme pas.
 

@@ -86,6 +86,7 @@ qu'ils étaient périmés.
 | 138 | **Les fiches d'OTA sont COMPTÉES** — un test les compare entre elles, `npm run check:ota` les confronte au canal EAS | E62 |
 | 139 | **Un « + » dans les courses** — la liste n'est plus seulement dérivée, on y ajoute ses propres articles | E63 |
 | 140 | **« Aucun pressable sous 44 pt » était FAUX** — la sonde s'arrêtait sur une flèche ; six boutons dessous | E64 |
+| 142 | **Statistiques d'usage ÉTEINTES** — plus d'écran de consentement, plus d'envoi ; le périmètre reste gardé | E66 |
 
 🔴 **NE PAS RE-PROPOSER LES TÂCHES DU PLAN D'ACTION : elles sont toutes livrées côté
 code.** 4, 6, 7, 8, 9, 10 et 12 sont faites ; 3, 5, 11 et 14 l'étaient **avant** que le
@@ -4036,6 +4037,115 @@ produit en suspens — il ne reste qu'à coder.
 > ➡️ Ce qui EST vérifié ici : `tsc` propre et **1 712 tests verts sur `main`** une fois
 > les deux PR fusionnées, donc les deux chantiers ne se marchent pas dessus (ils
 > touchaient tous les deux `profil.tsx` et `constants/legal.ts`).
+
+- 🤖 **E66 · Les statistiques d'usage sont éteintes — et la garde qui compte n'est pas
+  la clé (2026-08-26)**
+
+  Décision du fondateur, après avoir relu l'écran de consentement : *« on enlève le
+  posthog pour l'instant »*. « Pour l'instant » : donc **éteindre, pas supprimer** —
+  même patron que le parcours hors plan et la banque de calories (`lib/featureFlags.ts`,
+  « ce qui est éteint n'est pas supprimé »).
+
+  🔴 **LA CLÉ ÉTAIT BIEN EN SERVICE.** Vérifié avant de toucher à quoi que ce soit :
+  `EXPO_PUBLIC_POSTHOG_KEY` est posée dans l'environnement **production** d'EAS
+  (`eas env:list`). Les builds TestFlight envoyaient donc réellement, pour qui avait
+  accepté. Ce n'était pas un chantier théorique.
+
+  🔴 **ET LA RETIRER D'EAS N'AURAIT RIEN ARRÊTÉ CHEZ LES TESTEURS.** Une variable
+  `EXPO_PUBLIC_*` est **inlinée dans le bundle à la compilation** : le binaire déjà
+  installé porte la clé en dur. Seule une garde DANS LE CODE arrête ce qui tourne — et
+  elle se publie en OTA. C'est pour ça que la coupure est dans `capture()`, en toute
+  première ligne, **avant même la lecture du consentement** : un « oui » donné en août
+  ne doit plus rien faire partir.
+
+  ⚠️ **CE QUI RESTE MONTÉ, ET CE N'EST PAS UN OUBLI** : « Supprimer mes statistiques »
+  dans les Réglages, tant qu'un pseudonyme existe sur l'appareil. Des mesures ont pu
+  partir entre la pose de la clé (2026-08-18) et aujourd'hui. Retirer ce bouton avec le
+  reste ferait disparaître le seul chemin d'effacement, **pour les seules personnes
+  concernées** — le droit à l'effacement ne s'éteint pas avec la collecte.
+
+  ⚠️ L'interrupteur des Réglages, lui, disparaît : proposer de « partager » ce qui ne
+  part plus serait un réglage qui ne pilote rien. La ligne d'aide dit désormais l'ÉTAT
+  (« Kyroz ne mesure plus rien de ton usage »), pas une préférence.
+
+  📋 **Vérifié à l'écran** : consentement jamais répondu → l'inscription ouvre
+  directement sur « Bienvenue sur Kyroz », plus aucun écran avant le prénom ; Réglages
+  sans pseudonyme → ni interrupteur ni ligne de suppression ; Réglages **avec**
+  pseudonyme → toujours pas d'interrupteur, mais « Supprimer mes statistiques » présent.
+
+  🔒 **`lib/__tests__/extinctionStatistiques.test.ts`** — 7 tests. Le principal est un
+  test de COMPORTEMENT : clé posée, consentement à `granted`, `fetch` espionné → **aucun
+  appel**. Vérifié par mutation (constante à `true` → rouge).
+  🔴 **Et la mutation a démasqué un test CREUX au passage** : « aucun identifiant
+  pseudonyme n'est créé » restait vert avec la constante à `true`. Cause :
+  `vi.resetModules()` reconstruit le registre, donc le mock d'AsyncStorage importé en
+  tête de fichier n'est plus celui qu'écrit le module fraîchement importé — le test
+  interrogeait un stockage vide par construction. Il relit désormais le stockage du
+  MÊME graphe de modules. *Un test qu'on n'a jamais vu rougir ne prouve rien*, et
+  celui-ci l'a prouvé deux fois dans la même passe.
+
+  ✅ **LA CLÉ EST RETIRÉE D'EAS** (2026-08-26). Elle était posée sur les **trois**
+  environnements — `development`, `preview`, `production` — et non sur la seule
+  production comme le premier relevé le laissait croire : c'est UNE variable liée aux
+  trois, donc `eas env:list production` ne dit pas où elle vit. Une seule suppression
+  les vide toutes (vérifié après : 0 occurrence dans chacune, autres clés intactes).
+
+  🔴 **PUIS LA DÉCISION A CHANGÉ DANS LA JOURNÉE, ET C'EST LE POINT DE CETTE FICHE.**
+  Les textes avaient d'abord été passés au PASSÉ, avec la date d'arrêt — le raisonnement
+  étant que des mesures existaient encore chez PostHog et qu'un texte qui les efface
+  priverait leur propriétaire de la description de ce qu'il peut faire supprimer.
+  Arbitrage du fondateur, quelques minutes plus tard : *« juste efface, on a rien
+  collecté ou juste des données de moi ou un testeur, je vais supprimer et voilà. Fais
+  comme si posthog n'existait pas. »*
+  ➡️ **La prémisse avait changé, pas le raisonnement.** Le passé se justifiait tant que
+  les données SURVIVAIENT ; supprimées à la source, elles rendent la description sans
+  objet. Les sept paragraphes (§2, 3, 4, 5, 6, 7, 9) sont donc **supprimés**, les trois
+  constantes `analytics*` avec eux, et la fiche du traitement n°2 sort du registre —
+  remplacée par une trace datée qui répond à « avez-vous mesuré quelque chose entre le
+  18 et le 26 août ? ».
+  ⚠️ **C'est la RÉCIPROQUE de la leçon Resend**, et elle méritait d'être écrite : *un
+  sous-traitant se déclare le jour où il traite* — et cesse d'être déclaré le jour où il
+  ne traite plus, données effacées. Garder la déclaration « au cas où » décrirait un
+  traitement inexistant, ce qui est le même défaut dans l'autre sens.
+
+  ✅ **L'app n'en montre plus rien non plus** : interrupteur, phrase d'explication ET
+  ligne « Supprimer mes statistiques » passent derrière la constante. Cette dernière
+  serait restée si les données avaient survécu — un droit d'effacement ne se retire pas
+  tant qu'il a un objet. C'est la suppression à la source qui l'a rendue sans objet, pas
+  l'extinction de la collecte : deux faits différents, et seul le premier l'autorise.
+  Le chemin générique demeure (l'adresse de contact RGPD, dans « Confidentialité & CGU »).
+
+  ✅ **Empreinte et miroirs** : 4ᵉ révision du 26 août (`legal.test.ts`), `gen:legal`
+  passé — `public/legal.html`, `docs/politique-confidentialite-kyroz.md`, et **la page
+  publique** (`kyroz-site` PR #7, régénérée depuis la source, jamais éditée à la main).
+  ⚠️ Publiée AVANT l'OTA, sur décision explicite (« exceptionnellement ») : entre les
+  deux, un binaire installé peut encore émettre pour qui avait accepté, alors que la
+  page n'en parle plus. Fenêtre acceptée en connaissance de cause — la collecte réelle
+  se comptait sur deux appareils.
+
+  🔴 **UN GARDE-FOU A CHANGÉ DE SENS, PAS DE CAMP.** `legal.test.ts` exigeait « la
+  politique NOMME PostHog » (lot du 2026-08-18, quand l'app demandait le consentement
+  pour un outil que le texte déclarait inexistant). L'exiger encore imposerait de
+  déclarer un traitement qui n'a plus lieu. L'assertion devient donc un **si et
+  seulement si** branché sur la constante : le texte et le code doivent dire la même
+  chose, **dans les deux sens**. Vérifié par mutation — constante à `true`, le test
+  rougit parce que le texte ne nomme plus personne.
+
+  🔒 **`lib/__tests__/extinctionStatistiques.test.ts`** — 9 tests. Le principal est un
+  test de COMPORTEMENT : clé posée, consentement à `granted`, `fetch` espionné →
+  **aucun appel**. Vérifié par mutation.
+  🔴 **Et la mutation a démasqué DEUX sondes creuses dans la même passe.** (1) « aucun
+  identifiant pseudonyme n'est créé » restait vert avec la constante à `true` :
+  `vi.resetModules()` reconstruit le registre, donc le mock d'AsyncStorage importé en
+  tête de fichier n'est plus celui qu'écrit le module fraîchement importé — le test
+  interrogeait un stockage vide par construction. (2) Les sondes de câblage mesuraient
+  une fenêtre de caractères que la PROSE remplissait : la note expliquant pourquoi un
+  bloc est derrière la constante repoussait la constante hors de la fenêtre, et le test
+  accusait le code qu'il venait de garder. Les deux corrigées, les deux re-mutées.
+  *La « mesure contaminée » se rejoue à chaque test qui lit un fichier.*
+
+  🔁 **Ce qui reste au fondateur** : publier l'OTA (c'est elle qui coupe chez les
+  testeurs), fusionner `kyroz-site` #7, et supprimer les données côté PostHog.
 
 - 🤖 **E64 · La sonde des cibles tactiles s'arrêtait sur une flèche — six boutons
   vivaient dessous, au vert (2026-08-26)**

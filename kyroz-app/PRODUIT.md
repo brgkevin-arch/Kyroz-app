@@ -35,7 +35,6 @@ d'**enregistrer ce que tu as mangé**. Kyroz te dit **quoi manger**.
 
 | Étape | Ce qu'on demande |
 |---|---|
-| — | Consentement aux statistiques d'usage (facultatif, refusable, sans conséquence) |
 | 1 | Le prénom |
 | 2 | Sexe, date de naissance, poids, taille |
 | 3 | Morphologie — on choisit sa silhouette dans une planche, pas un chiffre à deviner |
@@ -266,9 +265,11 @@ le **journal des repas hors plan**, et le **plan lui-même** (il se recalcule à
 profil, donc le stocker n'apporterait rien). Le reste est hébergé en Europe, et le compte se
 supprime depuis l'app.
 
-Les statistiques d'usage, si elles sont acceptées, partent sous un identifiant **pseudonyme**
-tiré sur le téléphone — jamais relié au compte ni à l'e-mail. Aucune donnée de santé, aucun
-texte écrit par l'utilisateur, aucune photo n'y entre.
+🔴 **Aucune statistique d'usage n'est mesurée** (éteint le 2026-08-26, décision fondateur).
+L'app ne demande plus rien à l'inscription et n'envoie plus rien : le moteur de mesure reste
+en place, coupé par une constante (`lib/featureFlags.ts`). Ce qui a pu partir entre le
+2026-08-18 et cette date est chez PostHog, et « Supprimer mes statistiques » reste
+accessible dans les Réglages pour qui a un identifiant sur son téléphone.
 
 ---
 

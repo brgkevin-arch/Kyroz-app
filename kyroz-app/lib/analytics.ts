@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { STATISTIQUES_USAGE_ACTIVES } from './featureFlags';
 
 // ── Analytics (PostHog Cloud EU) — DORMANT tant que non configuré + non consenti ──
 //
@@ -163,6 +164,13 @@ export function noterEcran(chemin: string | undefined): void {
  * l'id de compte Supabase. En cas de doute : ne pas envoyer la propriété.
  */
 export async function capture(event: string, props?: Record<string, unknown>): Promise<void> {
+  // 🔴 ÉTEINT (2026-08-26) — et la garde est ICI, en tout premier. Elle passe AVANT
+  // la lecture du consentement parce qu'elle ne dépend d'aucune réponse : tant que
+  // les statistiques sont coupées, un « oui » donné en août ne fait rien partir.
+  // ⚠️ C'est aussi la seule garde qui vaille sur un binaire DÉJÀ INSTALLÉ : la clé
+  // PostHog y est inlinée à la compilation, donc la retirer d'EAS ne concerne que
+  // les builds futurs. Celle-ci se publie en OTA.
+  if (!STATISTIQUES_USAGE_ACTIVES) return;
   const consent = await getAnalyticsConsent();
   if (consent !== 'granted') return;              // RGPD : rien sans consentement
   const jour = await jourDepuisInstall();

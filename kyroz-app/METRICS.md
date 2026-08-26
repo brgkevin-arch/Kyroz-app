@@ -8,6 +8,20 @@
 > north star » vivaient dans le dépôt sans se savoir (§6). Un indicateur qui a trois
 > définitions n'a pas de définition — il a trois camps qui se croiront d'accord.
 
+> 🔴 **ET DEPUIS LE 2026-08-26, ELLE N'EST PLUS MESURÉE.** Les statistiques d'usage sont
+> éteintes (décision fondateur, cf. AGENTS.md E66) : plus aucun événement ne part, la clé
+> PostHog est retirée des trois environnements EAS, et les textes légaux ne déclarent
+> plus aucun traitement d'analyse. **La north star reste DÉFINIE, elle n'est plus
+> CALCULÉE** — et ce fichier reste la source de sa définition, pour le jour où la mesure
+> revient.
+> ⚠️ **Ne pas lire les recettes de calcul ci-dessous comme un état des lieux** : elles
+> décrivent ce qu'il faudrait faire *si* les événements arrivaient. Aucun tableau de bord
+> ne se remplit aujourd'hui.
+> ⚠️ **Ce qui reste visible dans l'app n'a pas bougé d'un pouce** : la SÉRIE (§2) est un
+> compteur local, affiché à l'utilisateur, indépendant de toute mesure d'audience. Elle
+> n'a jamais été la north star — c'est précisément ce que ce fichier a séparé le
+> 2026-08-20 — et l'extinction ne la touche pas.
+
 ---
 
 ## 1. La north star

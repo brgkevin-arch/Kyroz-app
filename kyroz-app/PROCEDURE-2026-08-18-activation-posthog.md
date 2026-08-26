@@ -1,5 +1,15 @@
 # Procédure — déclarer la mesure d'audience, puis allumer PostHog
 
+> 🔴 **CETTE PROCÉDURE A ÉTÉ EXÉCUTÉE LE 2026-08-18… PUIS DÉFAITE LE 2026-08-26**
+> (décision fondateur : « on enlève le posthog pour l'instant », puis « fais comme si
+> posthog n'existait pas »). Ce qu'elle a allumé est éteint : clé retirée des trois
+> environnements EAS, coupure dans le code, écran de consentement retiré, textes légaux
+> purgés, fiche du traitement n°2 sortie du registre, données supprimées à la source.
+> **Elle reste ici comme mode d'emploi du retour** — les cinq étapes se refont dans le
+> même ordre. ⚠️ Mais le périmètre sera à ré-arbitrer avant de la rejouer : un « oui »
+> donné en août 2026 ne vaut pas pour un périmètre d'événements différent.
+> ➡️ L'état courant se lit dans AGENTS.md **E66**, jamais ici.
+>
 > Écrite le 2026-08-18, après le lot `feat(rgpd)` (PR #115). Les textes, le registre et
 > les garde-fous sont livrés ; **ces cinq étapes-ci ne vivent dans aucun fichier** :
 > elles se font à la main dans des consoles, avec tes comptes. Aucun test ne les

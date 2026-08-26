@@ -72,6 +72,20 @@ Vérifié en générant dans un dossier jetable, sans toucher au dépôt du site
 
 ---
 
+> 🔁 **DEUXIÈME EXÉCUTION, LE 2026-08-26 AU SOIR** — `kyroz-site` PR #7 : la mesure
+> d'audience quitte la page (sept paragraphes retirés). Deux écarts assumés à la
+> procédure, sur décision explicite du fondateur (« exceptionnellement ») :
+> · **l'étape 0 a été contournée** : la page a été générée depuis le WORKTREE de la PR,
+>   pas depuis le dépôt principal sur `main`. Le risque que l'étape 0 couvre est de
+>   générer depuis une source PÉRIMÉE ; ici la source était en AVANCE, ce qui est l'autre
+>   sens du même écart et demande la même vigilance ;
+> · **publiée avant l'OTA** : entre les deux, un binaire installé peut encore émettre
+>   pour qui avait accepté, alors que la page n'en parle plus. Fenêtre acceptée — la
+>   collecte réelle se comptait sur deux appareils.
+> ➡️ Pour toute exécution ORDINAIRE, l'étape 0 reste la règle.
+
+---
+
 ## Étape 0 — 🔴 VÉRIFIER DEPUIS QUOI TU GÉNÈRES
 
 **C'est l'étape qu'on saute, et c'est celle qui fait publier une page fausse en ayant

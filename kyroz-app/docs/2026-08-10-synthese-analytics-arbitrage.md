@@ -1,5 +1,13 @@
 # Kyroz — Analytics : périmètre de mesure, synthèse d'arbitrage
 
+> 🔴 **LA MESURE D'AUDIENCE EST ÉTEINTE DEPUIS LE 2026-08-26** (décision fondateur,
+> cf. AGENTS.md E66). Plus aucun événement ne part, la clé PostHog est retirée des trois
+> environnements EAS, et aucun texte légal ne déclare plus de traitement d'analyse.
+> **Ce document reste** parce qu'il porte l'ARBITRAGE, pas l'état : si la mesure revient,
+> c'est ici qu'on reprend — et tout sera à ré-arbitrer (périmètre des événements, adresse
+> IP, DPA, rétention, consentement redemandé à tout le monde).
+> ⚠️ Ne pas le lire comme une description de ce qui tourne aujourd'hui.
+
 > Sortie du brainstorm du 2026-08-10 sur `2026-08-10-brief-analytics-perimetre.md`.
 > **Ce document n'est pas un ordre d'implémentation immédiat.** Il contient des décisions
 > tranchées (§3), des décisions bloquantes non tranchées (§4), et une liste d'événements
