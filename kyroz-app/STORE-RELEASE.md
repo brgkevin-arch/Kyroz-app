@@ -47,14 +47,28 @@ installation neuve part du binaire, donc du (6).
 **L'état des deux surfaces qui comptent, RELU chez le prestataire :**
 
 - **Binaire** : le dernier build iOS est toujours le **(6)** — `ceec1b17`, commit
-  `1047b9f`, terminé le 2026-08-11 à 20 h 37. Il a **40 commits de retard** sur `main` — chiffre du 2026-08-23, qui **grandit à chaque merge** : le relire avec `git rev-list --count 1047b9f..origin/main` plutôt que de le recopier (même défaut que le décompte d'OTA tenu à la main).
-- **OTA** : la dernière est la **21ᵉ** (groupe `4d38f61c`, 2026-08-24), publiée sur le
-  commit `788ab09` — contenu PROUVÉ identique à `origin/main` (`git diff` vide). Contrôlée sur
-  l'artefact avant envoi. Elle porte **A38, « R6 lissée »** (`ENGINE_REV` 7 → 8) : c'est la
-  **première OTA à déplacer des calories** depuis celle de la rev 7 — les cibles des testeurs
-  peuvent MONTER au premier recalcul (max +100 en sèche, ~+390 en maintien), **aucune ne baisse**,
-  et l'avertissement one-shot de la rev 8 l'explique à l'écran.
-  *(20ᵉ : `a3a119de`, 2026-08-23, commit `5dbef80`.)*
+  `1047b9f`, terminé le 2026-08-11 à 20 h 37. Il a **62 commits de retard** sur `main` — chiffre RE-MESURÉ le 2026-08-26 (il en annonçait 40, mesurés le 2026-08-23), qui **grandit à chaque merge** : le relire avec `git rev-list --count 1047b9f..origin/main` plutôt que de le recopier (même défaut que le décompte d'OTA tenu à la main).
+- **OTA** : la dernière est la **23ᵉ** (groupe `05baae2a`, 2026-08-26, iOS + Android,
+  runtime 1.0.0), publiée sur le commit `d71c3a2` — contenu PROUVÉ identique à `origin/main`
+  (`git diff --stat origin/main HEAD` vide, arbre propre). Contrôlée sur l'artefact avant envoi,
+  témoins comptés **avant ET après** sur les deux bundles (détail : ligne « OTA publiées »
+  d'AGENTS.md). Elle porte les **13 commits** de #151 à #162 : tuto ramené à **2 bulles**, un repas
+  coché qui ne se décoche plus, six écrans épurés (dont la saisie sous le clavier), l'accent des
+  repas devenu multiple, les textes relus avant la V1, la date légale recalée et **RevenueCat nommé**
+  dans la politique et au registre RGPD. 🔴 **Aucune calorie ne bouge** : `ENGINE_REV` reste à 8,
+  donc pas d'avertissement one-shot — contrairement à la 21ᵉ.
+  ⚠️ **Cette fiche avait sauté la 22ᵉ** : elle annonçait encore la 21ᵉ alors que la 22ᵉ était partie
+  le 2026-08-25. Une OTA se publie depuis `kyroz-app/` et se consigne à DEUX endroits — ici et dans
+  la ligne « OTA publiées » d'AGENTS.md ; celle qui n'est écrite qu'à un seul endroit rend l'autre
+  faux en silence. ✅ **Ce n'est plus de la discipline depuis le 2026-08-26** :
+  `lib/__tests__/fichesOta.test.ts` rougit si les deux fiches divergent, et
+  `npm run check:ota` confronte ce qu'elles annoncent au canal EAS réel — la première
+  attrape la dérive entre copies, la seconde l'oubli pur et simple.
+  *(22ᵉ : `2b0a3053`, 2026-08-25, commit `79c3638` — la Réserve, l'auto-coche, Recettes en deux
+  listes. 21ᵉ : `4d38f61c`, 2026-08-24, commit `788ab09` — **A38 « R6 lissée »**, `ENGINE_REV` 7 → 8,
+  la première à déplacer des calories depuis la rev 7 : les cibles peuvent MONTER au premier
+  recalcul (max +100 en sèche, ~+390 en maintien), aucune ne baisse. 20ᵉ : `a3a119de`, 2026-08-23,
+  commit `5dbef80`.)*
 
 **Ce qui reste, dans cet ordre :**
 
