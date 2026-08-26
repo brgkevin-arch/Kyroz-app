@@ -127,6 +127,9 @@ Le plan est appliqué tel quel, à quatre réserves **mesurées** :
 3. **Les étapes 4 et 5 ne fusionnent pas.** Le seuil du plan est 150 fichiers TS/TSX ; il y en a **168** hors tests (`find app components lib constants hooks scripts -name '*.ts*' | grep -v __tests__ | wc -l`), pour 37 059 lignes.
 4. **L'étape 7 est éligible dès maintenant.** `AccessReason` est implémenté (`lib/premium.ts:53`) avec quatre états — `not_launched`, `grandfathered`, `entitled`, `locked`. `PAYWALL_LAUNCH = null` est un **interrupteur**, pas une implémentation manquante.
 
+5. **Le cadrage de l'étape 2 manque un fichier du moteur.** Son motif (`planEngine|calorieBank|recalcProfile|engine|bmr|tdee|macro`) ne trouve pas `lib/datedGoal.ts` (723 lignes), qui porte pourtant trois des dix règles. Ajouté au périmètre.
+6. **Deux règles du brief 02 sont périmées ou fausses**, mesurées contre le code ET contre `AGENTS.md:145` : la règle 5 annonce un seuil de 20 % de MG là où le code et la référence disent **30 % / 40 %** ; la règle 8 décrit des paliers par kg/durée qui n'existent pas, remplacés par une **pause à la maintenance toutes les 8 semaines de déficit consécutives** — un mécanisme qui déclenche plus tôt et couvre plus large. Auditer contre la lettre du brief aurait produit deux faux P0.
+
 ⚠️ Rappel mesuré à l'étape 1 : le dépôt porte déjà **25 scripts de contrôle** (`check:*`, `mesure:*`, `qa:*`) et **1 835 tests**. La règle 5 du plan (« outil avant modèle ») doit se lire au pied de la lettre — plusieurs recouvrent directement le périmètre des étapes 1, 4 et 7.
 
 ## Suivi
@@ -134,7 +137,7 @@ Le plan est appliqué tel quel, à quatre réserves **mesurées** :
 | Étape | Statut | Date | Commit | P0 | P1 | P2 | P3 | Reste à couvrir |
 |---|---|---|---|---|---|---|---|---|
 | 1 | ✅ terminée | 2026-08-26 | `c17e667` | **1** | 4 | 4 | 3 | 0 |
-| 2 | | | | | | | | |
+| 2 | ✅ terminée | 2026-08-26 | `39385dd` | **2** | 1 | 2 | 3 | 0 |
 | 3 | | | | | | | | |
 | 4 | | | | | | | | |
 | 5 | | | | | | | | |
