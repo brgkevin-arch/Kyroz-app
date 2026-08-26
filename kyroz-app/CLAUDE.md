@@ -347,6 +347,26 @@ OUTPUT         → Plan + liste de courses + recettes
 - [x] Génération plan repas 7 jours (moteur local)
 - [x] Affichage recettes + macros
 - [x] Liste de courses
+- [x] **Ajout manuel à la liste de courses** (2026-08-26, demande fondateur : « rajouter
+      des choses à sa liste ») — un « + » dans l'en-tête, à la MÊME place et de la même
+      forme que celui de la Réserve. `lib/shoppingAjouts.ts`, clé `@kyroz:shopping:ajouts`,
+      LOCAL-ONLY. Trois règles, et elles se tiennent :
+      · **la clé est à part**, comme les écartés — le cache `@kyroz:shopping` est effacé à
+        chaque `persistPlan`, donc une saisie rangée dedans serait PERDUE, et personne ne
+        peut deviner ce que l'utilisateur avait tapé ;
+      · **elle survit à « tirer pour rafraîchir »** (contrairement aux écartés) : ce qui
+        vient du plan se refait, ce qui vient de l'utilisateur ne se refait pas. Seule la
+        clôture solde un ajout — coché il est acheté, sinon il suit le choix « garder /
+        retirer » déjà posé pour les restants ;
+      · **la quantité est facultative** (on note « café », pas « café 250 g ») : sans
+        elle l'écran n'affiche RIEN — pas « 0 g » — et l'article n'entre pas en réserve,
+        puisqu'on ne sait pas combien a été acheté.
+      ⚠️ Un nom = une ligne : le nom est la clé de la liste, la cible du cochage et
+      l'identité d'un écarté. Un ajout homonyme d'un article du plan est refusé (message
+      DANS la feuille, jamais un dialogue — modale sur modale = rien sur iOS) ; s'il
+      s'agit d'un article ÉCARTÉ, le retaper le RÉTABLIT. Et l'appui long ne dit pas la
+      même chose selon l'origine : un article du plan est masqué (« tu le retrouveras en
+      tirant »), un ajout manuel est SUPPRIMÉ — le promettre de retour serait faux.
 - [x] Clôture des courses (« Courses terminées ») + historique des listes — LOCAL-ONLY
 - [x] **La RÉSERVE** (ex-« Frigo / garde-manger », renommée le 2026-08-24) — inventaire
       **séparé en frais et en sec**, classé automatiquement d'après la catégorie de

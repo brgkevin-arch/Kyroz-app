@@ -11,17 +11,25 @@ import { useCollapsingTitle, CompactTitleBar } from '../../components/Collapsing
 import { Sheet } from '../../components/Sheet';
 import { useDialog } from '../../components/Dialog';
 import { ShoppingHistory } from '../../components/ShoppingHistory';
+import { ActionSheet } from '../../components/ActionSheet';
+import { PrimaryButton, Chip, Field } from '../../components/ui';
 import { MealPlan, ShoppingItem, ShoppingList } from '../../lib/types';
 import { buildShoppingList } from '../../lib/shoppingList';
-import { formatQuantity } from '../../lib/units';
+import { formatQuantity, toBaseUnit } from '../../lib/units';
+import { searchFoods } from '../../lib/foods';
 import { loadPantry, savePantry, addOrMerge, isStaple } from '../../lib/pantry';
 import {
   ShoppingTrip, loadHistory, saveHistory, recordTrip, removeTrip, historySummary,
 } from '../../lib/shoppingHistory';
 import {
   loadEcartes, saveEcartes, viderEcartes, SortDesRestants,
-  ecarter, appliquerEcartes, nettoyerEcartes, resumeEcartes, ecartesApresCloture,
+  ecarter, retablir, appliquerEcartes, nettoyerEcartes, resumeEcartes, ecartesApresCloture,
 } from '../../lib/shoppingRemoved';
+import {
+  loadAjouts, saveAjouts, UNITES_AJOUT, SANS_QUANTITE,
+  normaliserNom, trouverArticle, creerAjout, ajouterAjout, retirerAjout,
+  basculerAjout, cocherTousAjouts, fusionner, nettoyerAjouts, ajoutsApresCloture,
+} from '../../lib/shoppingAjouts';
 import { pushPantry } from '../../lib/sync';
 import { animerMiseEnPage, Jauge } from '../../components/Mouvement';
 
@@ -62,6 +70,18 @@ export default function CoursesScreen() {
   const [history, setHistory] = useState<ShoppingTrip[]>([]);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [closing, setClosing] = useState(false);
+  // Articles AJOUTÉS à la main (`lib/shoppingAjouts.ts`). Eux aussi vivent HORS de
+  // `list`, et pour une raison plus lourde que les écartés : le cache de la liste
+  // est effacé à chaque changement de plan, donc une saisie rangée dedans serait
+  // PERDUE — et personne ne peut deviner ce que l'utilisateur avait tapé.
+  const [ajouts, setAjouts] = useState<ShoppingItem[]>([]);
+  const [showAdd, setShowAdd] = useState(false);
+  const [nom, setNom] = useState('');
+  const [qty, setQty] = useState('');
+  const [unite, setUnite] = useState('g');
+  const [sugFermees, setSugFermees] = useState(false);
+  // Ce que la feuille d'ajout a à dire — jamais un dialogue : voir `ajouterArticle`.
+  const [note, setNote] = useState<string | null>(null);
 
   // 🔴 CET ÉCRAN N'A PLUS DE VISITE GUIDÉE (2026-08-25, décision fondateur :
   // « supprime le tuto des courses »). Sa dernière bulle, « D'où sort ta liste »,
@@ -84,6 +104,13 @@ export default function CoursesScreen() {
     const gardes = nettoyerEcartes(await loadEcartes(), brut?.items ?? []);
     setEcartes(gardes);
     await saveEcartes(gardes);
+    // Les ajouts se nettoient pour la raison INVERSE : un « Riz » tapé à la main
+    // que le plan propose désormais lui-même resterait stocké derrière lui,
+    // invisible, jusqu'à ressurgir des semaines plus tard (`nettoyerAjouts`).
+    const stockes = await loadAjouts();
+    const tenus = nettoyerAjouts(stockes, brut?.items ?? []);
+    setAjouts(tenus);
+    if (tenus !== stockes) await saveAjouts(tenus);
   };
 
   /** La liste BRUTE : cache s'il existe, sinon reconstruite depuis le plan. */
@@ -112,6 +139,7 @@ export default function CoursesScreen() {
   };
 
   const persist = async (l: ShoppingList) => { setList(l); await AsyncStorage.setItem(LIST_KEY, JSON.stringify(l)); };
+  const persistAjouts = async (next: ShoppingItem[]) => { setAjouts(next); await saveAjouts(next); };
 
   // ── Écarter un article ───────────────────────────────────────────────────
   //
@@ -122,6 +150,22 @@ export default function CoursesScreen() {
   // On le décoche au passage, pour qu'un article rétabli plus tard ne revienne pas
   // coché d'un achat qui n'a pas eu lieu.
   const ecarterArticle = async (item: ShoppingItem) => {
+    // 🔴 UN AJOUT MANUEL NE S'ÉCARTE PAS, IL SE SUPPRIME. Le message ci-dessous
+    // promet « tu le retrouveras en tirant la liste vers le bas » — c'est vrai
+    // d'un article du plan, que la liste sait refaire, et FAUX d'un article que
+    // l'utilisateur a tapé lui-même : rien ne peut le deviner à sa place. Deux
+    // portées différentes derrière le même appui long, donc deux phrases.
+    if (item.manuel) {
+      const oui = await confirm({
+        title: `Supprimer ${item.name} ?`,
+        message: "Tu l'as ajouté toi-même, donc il ne reviendra pas tout seul.",
+        confirmLabel: 'Supprimer',
+        destructive: true,
+      });
+      if (!oui) return;
+      await persistAjouts(retirerAjout(ajouts, item.name));
+      return;
+    }
     const ok = await confirm({
       title: `Retirer ${item.name} ?`,
       message: 'Il quitte ta liste de courses. Ton plan de repas ne change pas — tu le retrouveras en tirant la liste vers le bas.',
@@ -151,8 +195,12 @@ export default function CoursesScreen() {
   // écrivait le stock, donc la réserve suivait les hésitations du magasin — et une
   // réserve qui gonfle fait DISPARAÎTRE des articles de la liste suivante.
   const toggle = async (item: ShoppingItem) => {
-    if (!list) return;
     const willCheck = !item.checked;
+    // ⚠️ DEUX STOCKAGES POUR UNE SEULE CASE. Un ajout manuel ne vit pas dans le
+    // cache de la liste : l'y écrire ne planterait pas, ça se verrait au prochain
+    // chargement — la case serait retombée toute seule.
+    if (item.manuel) return persistAjouts(basculerAjout(ajouts, item.name, willCheck));
+    if (!list) return;
     await persist({ ...list, items: list.items.map((i) => (i.name === item.name ? { ...i, checked: willCheck } : i)) });
   };
 
@@ -161,15 +209,17 @@ export default function CoursesScreen() {
   // l'historique — ni rangé en réserve à la clôture.
   const visible = (i: ShoppingItem) => !ecartes.includes(i.name);
 
-  const checkAll = async () => {
-    if (!list) return;
-    await persist({ ...list, items: list.items.map((i) => (visible(i) ? { ...i, checked: true } : i)) });
+  // ⚠️ Les deux moitiés de la liste, sinon « Tout cocher » laisserait les ajouts
+  // manuels décochés — et la barre de progression n'atteindrait jamais 100 %,
+  // donc « Courses terminées » resterait discret alors que tout est pris.
+  // (Un ajout manuel n'est jamais écarté ; `visible` reste appliqué au plan.)
+  const cocherTout = async (coche: boolean) => {
+    if (list) await persist({ ...list, items: list.items.map((i) => (visible(i) ? { ...i, checked: coche } : i)) });
+    await persistAjouts(cocherTousAjouts(ajouts, coche));
   };
 
-  const reset = async () => {
-    if (!list) return;
-    await persist({ ...list, items: list.items.map((i) => (visible(i) ? { ...i, checked: false } : i)) });
-  };
+  const checkAll = () => cocherTout(true);
+  const reset = () => cocherTout(false);
   // Tirer = « refaire la liste à partir de mon plan et de ma réserve du moment ».
   // Les articles écartés reviennent donc, et c'est le SEUL geste qui les ramène
   // tous d'un coup sans passer par le bandeau — c'est aussi ce que la bulle de
@@ -179,6 +229,14 @@ export default function CoursesScreen() {
     await AsyncStorage.removeItem(LIST_KEY);
     await viderEcartes();
     setEcartes([]);
+    // 🔴 LES AJOUTS MANUELS SURVIVENT AU GESTE. Tirer veut dire « refais ma liste
+    // à partir de mon plan » : ce qui vient du plan se refait, ce qui vient de MOI
+    // ne se refait pas — l'effacer ici serait une suppression déguisée en
+    // actualisation. Seules leurs cases retombent, comme celles des articles du
+    // plan que le recalcul rend décochés.
+    // ⚠️ Relu depuis le stockage, pas depuis l'état : ce `useCallback` a une liste
+    // de dépendances VIDE, donc `ajouts` y serait figé à sa valeur du montage.
+    await saveAjouts(cocherTousAjouts(await loadAjouts(), false));
     await load();
     setRefreshing(false);
   }, []);
@@ -201,9 +259,13 @@ export default function CoursesScreen() {
   //
   // ⚠️ Les condiments (sel, huile, épices) n'entrent jamais en réserve : ils sont
   // supposés toujours présents, donc ils ne sont ni comptés ni déduits nulle part.
+  // ⚠️ Et les AJOUTS MANUELS se soldent à part (`ajoutsApresCloture`) : eux ne se
+  // recalculent pas, donc rien ne les ferait partir de la liste — même achetés.
   const terminer = async () => {
-    if (!list || closing) return;
-    const restants = list.items.filter((i) => visible(i) && !i.checked);
+    if (closing) return;
+    const tous = fusionner(list?.items ?? [], ajouts);
+    if (tous.length === 0) return;
+    const restants = tous.filter((i) => visible(i) && !i.checked);
     // Ce qui n'est pas coché n'est pas acheté. On ne se contente plus de le DIRE
     // avant de les garder d'office : les deux issues sont légitimes et
     // l'utilisateur seul sait laquelle est la sienne — il a renoncé à ces
@@ -225,7 +287,10 @@ export default function CoursesScreen() {
     setClosing(true);
     try {
       // ① Les achats rejoignent la réserve.
-      const achetes = list.items.filter((i) => visible(i) && i.checked && !isStaple(i.name));
+      // ⚠️ `quantity > 0` : un ajout manuel n'a souvent AUCUNE quantité (« café »).
+      // Le ranger quand même y poserait une ligne à 0 g — un chiffre inventé, et un
+      // stock inventé fait disparaître des articles de la liste suivante.
+      const achetes = tous.filter((i) => visible(i) && i.checked && !isStaple(i.name) && i.quantity > 0);
       if (achetes.length) {
         let pantry = await loadPantry();
         for (const it of achetes) {
@@ -236,14 +301,27 @@ export default function CoursesScreen() {
       }
       // ② L'historique n'enregistre que ce que la liste DEMANDAIT vraiment : un
       // article écarté en cours de route n'a pas fait partie de cette sortie.
-      await recordTrip({ ...list, items: list.items.filter(visible) });
+      // `plan_id` sert au seul diagnostic : une sortie qui ne contient que des
+      // ajouts manuels n'a pas de plan derrière elle, et le dire est plus juste
+      // que de recopier l'identifiant d'un plan qui n'a rien demandé.
+      await recordTrip({
+        id: list?.id ?? 'sl-manuel',
+        plan_id: list?.plan_id ?? 'manuel',
+        items: tous.filter(visible),
+      });
       await AsyncStorage.removeItem(LIST_KEY);
+      // Les ajouts cochés ont été achetés : ils quittent la liste (et viennent
+      // d'entrer en réserve à l'étape ①). Les autres suivent le choix ci-dessus.
+      await saveAjouts(ajoutsApresCloture(ajouts, sort));
       // ⚠️ Les écartés se rejouent APRÈS le recalcul, et c'est tout le mécanisme :
       // vider le cache fait revenir les non-cochés depuis le plan (les cochés, eux,
       // viennent d'entrer en réserve à l'étape ① et en sont donc déduits). Pour qu'un
       // « retire-les » tienne, il faut que ces noms soient écartés — sinon la liste
       // les ramènerait aussitôt et le choix n'aurait servi à rien.
-      const suivants = ecartesApresCloture(sort, restants);
+      // ⚠️ Seuls les articles du PLAN s'écartent : un ajout manuel « retiré » vient
+      // d'être supprimé pour de bon, et son nom traînerait ici dans une clé que le
+      // prochain `nettoyerEcartes` viderait de toute façon.
+      const suivants = ecartesApresCloture(sort, restants.filter((i) => !i.manuel));
       await saveEcartes(suivants);
       setEcartes(suivants);
       await load();
@@ -280,31 +358,134 @@ export default function CoursesScreen() {
   // un composant défini dans le corps du rendu change d'identité à chaque rendu,
   // donc React remonterait tout l'écran à chaque frappe — l'exact défaut que ce
   // correctif supprime, réintroduit par la porte d'à côté.
+  // Ce que l'écran montre : le plan, PLUS les ajouts manuels, MOINS les écartés.
+  // ⚠️ `fusionner` d'abord : un nom = une ligne, sinon cocher un homonyme cocherait
+  // les deux (le nom est la clé de la liste, cf. `keyExtractor`).
+  const tous = fusionner(list?.items ?? [], ajouts);
+  const visibles = appliquerEcartes(tous, ecartes);
+  const nbEcartes = tous.length - visibles.length;
+
+  // ── Ajouter un article à la main ─────────────────────────────────────────
+  //
+  // 🔴 RIEN NE S'OUVRE PAR-DESSUS CETTE FEUILLE — pas même un dialogue. Une
+  // `Modal` présentée sur une `Modal` ne donne RIEN sur iOS (mesuré le
+  // 2026-08-14, `feuillesEmpilees.test.ts`), et le web ne le montre pas. Ce qu'il
+  // y a à dire se dit donc DANS la feuille, sous le champ (`note`).
+  const fermerAjout = () => {
+    setShowAdd(false);
+    setNom(''); setQty(''); setUnite('g'); setSugFermees(false); setNote(null);
+  };
+
+  const ajouterArticle = async () => {
+    const propre = normaliserNom(nom);
+    if (!propre) return;
+    const deja = trouverArticle(tous, propre);
+    if (deja) {
+      // Il EST là, mais retiré de la liste : le retaper veut dire « finalement,
+      // je le veux ». Sans ce cas, l'ajout serait avalé par `fusionner` et il ne
+      // se passerait rien du tout — une saisie qui disparaît sans un mot est le
+      // pire des retours.
+      if (ecartes.includes(deja.name)) {
+        const suivants = retablir(ecartes, deja.name);
+        setEcartes(suivants);
+        await saveEcartes(suivants);
+        fermerAjout();
+        return;
+      }
+      setNote(`${deja.name} est déjà dans ta liste.`);
+      return;
+    }
+    // La quantité est FACULTATIVE : on note « café », pas « café 250 g ». Sans
+    // elle, l'article s'affiche sans chiffre plutôt qu'avec un « 0 g » faux.
+    // ⚠️ La virgule est le séparateur décimal du clavier français ; `parseFloat`
+    // ne connaît que le point et lirait « 1,5 » comme 1.
+    const q = parseFloat(qty.replace(',', '.'));
+    const base = q > 0 ? toBaseUnit(q, unite) : null;
+    const article = base ? creerAjout(propre, base.quantity, base.unit) : creerAjout(propre);
+    await persistAjouts(ajouterAjout(ajouts, article));
+    fermerAjout();
+  };
+
+  const feuilleAjout = (
+    <ActionSheet visible={showAdd} onClose={fermerAjout}>
+      <Text style={s.sheetTitle}>Ajouter un article</Text>
+      <Field
+        t={t}
+        label="Nom"
+        value={nom}
+        onChangeText={(v) => { setNom(v); setSugFermees(false); setNote(null); }}
+        placeholder="Café"
+        autoFocus
+      />
+      {/* Les suggestions viennent du catalogue d'aliments — le MÊME que la
+          réserve. Choisir « Blanc de poulet » plutôt que « poulet » n'est pas
+          cosmétique : le rayon est déduit du nom, et la liste reconnaît un
+          article déjà présent par son nom. */}
+      {nom.trim().length >= 2 && !sugFermees && (() => {
+        const sug = searchFoods(nom, 5);
+        if (sug.length === 0) return null;
+        return (
+          <View style={s.suggestions}>
+            {sug.map((f) => (
+              <Presse
+                key={f.id} activeOpacity={OPACITE_PRESSION}
+                onPress={() => { setNom(f.name_fr); setSugFermees(true); setNote(null); }}
+                style={s.suggestion}
+              >
+                <Text style={s.suggestionTxt} numberOfLines={1}>{f.name_fr}</Text>
+              </Presse>
+            ))}
+          </View>
+        );
+      })()}
+      <Field
+        t={t}
+        label="Quantité (facultatif)"
+        suffix={unite}
+        value={qty}
+        onChangeText={setQty}
+        placeholder="500"
+        keyboardType="decimal-pad"
+      />
+      <View style={s.unitRow}>
+        {UNITES_AJOUT.map((u) => <Chip key={u} t={t} label={u} selected={unite === u} onPress={() => setUnite(u)} />)}
+      </View>
+      {/* Une phrase d'aide est une AFFIRMATION SUR LE CODE : sans quantité,
+          `terminer` n'a rien à ranger en réserve, et il ne range rien. */}
+      <Text style={s.sheetNote}>
+        {note ?? "Sans quantité, l'article ne rejoindra pas ta réserve une fois acheté."}
+      </Text>
+      <PrimaryButton t={t} label="Ajouter" onPress={ajouterArticle} disabled={!nom.trim()} />
+      <Presse onPress={fermerAjout} style={s.cancel}><Text style={s.cancelTxt}>Annuler</Text></Presse>
+    </ActionSheet>
+  );
+
   const feuilleHistorique = (
     <Sheet visible={historyOpen} onClose={() => setHistoryOpen(false)}>
       <ShoppingHistory t={t} trips={history} onRemove={retirerSortie} />
     </Sheet>
   );
 
+  // ⚠️ La feuille d'ajout suit la MÊME règle que celle de l'historique, et pour
+  // la même raison : montée ici, elle garde son rang parmi les enfants quel que
+  // soit l'état de l'écran, donc sa `Modal` n'est jamais détruite puis recréée au
+  // moment précis où la liste se vide.
   const ecran = (corps: React.ReactNode) => (
     <SafeAreaView style={s.safe} edges={['top']}>
       {corps}
       {feuilleHistorique}
+      {feuilleAjout}
     </SafeAreaView>
   );
 
-  // Ce que l'écran montre : la liste MOINS les articles écartés.
-  const visibles = list ? appliquerEcartes(list.items, ecartes) : [];
-  const nbEcartes = list ? list.items.length - visibles.length : 0;
-
-  if (!list || visibles.length === 0) {
+  if (visibles.length === 0) {
     // TROIS cas, et le troisième est nouveau : aucun plan · tout est déjà en
     // réserve · tout a été RETIRÉ à la main. Les confondre ferait dire à l'écran
     // « ta réserve couvre déjà tout le plan » à quelqu'un qui vient simplement de
     // vider sa liste — un mensonge, et sans issue puisque l'état vide n'a pas de
     // « tirer pour rafraîchir » (ce n'est pas une liste défilante).
-    const toutEcarte = !!list && visibles.length === 0 && nbEcartes > 0;
-    const covered = !!list && list.items.length === 0;
+    const toutEcarte = nbEcartes > 0;
+    const covered = !!list && tous.length === 0;
     return ecran(
       <View style={[s.center, layout.content]}>
         <View style={[s.emptyIcon, { backgroundColor: t.fill }]}>
@@ -322,6 +503,15 @@ export default function CoursesScreen() {
             ? 'Ta réserve couvre déjà tout le plan de la semaine. La liste réapparaîtra dès qu\'il te manquera quelque chose.'
             : 'Génère un plan repas et ta liste de courses apparaît ici, triée par rayon.'}
         </Text>
+
+        {/* ⚠️ Le « + » de l'en-tête n'existe pas ici : cette branche n'a pas
+            d'en-tête. Sans ce bouton, « Aucune liste » serait un cul-de-sac pour
+            qui veut juste noter du café avant d'avoir un plan de repas — et
+            l'ajout manuel, lui, ne demande aucun plan. */}
+        <Presse style={s.ctrl} onPress={() => setShowAdd(true)} activeOpacity={OPACITE_PRESSION}>
+          <Ionicons name="add" size={Icone.petite} color={t.textSecondary} />
+          <Text style={s.ctrlTxt}>Ajouter un article</Text>
+        </Presse>
 
         {/* La seule sortie de cet état : l'écran vide n'est pas défilant, donc
             « tirer pour rafraîchir » n'y existe pas. Sans ce bouton, retirer le
@@ -388,8 +578,20 @@ export default function CoursesScreen() {
               Celui-ci disait « 36 restants sur 37 » — soit EXACTEMENT ce que le
               « 1 / 37 cochés » de droite dit déjà, à l'envers. Deux fois le même
               fait, dont une au-dessus du nom de l'écran. */}
-          <Text style={[s.h1, { flex: 1 }]}>Courses</Text>
+          <Text style={[s.h1, { flex: 1 }]} numberOfLines={1}>Courses</Text>
           <Text style={s.counter}>{checked}<Text style={s.counterTot}> / {total} cochés</Text></Text>
+          {/* Le « + » est à la MÊME place que celui de la Réserve, et il a la même
+              tête : deux onglets voisins où l'on ajoute une ligne à un inventaire
+              ne peuvent pas demander deux gestes différents. */}
+          <Presse
+            style={s.addBtn}
+            onPress={() => setShowAdd(true)}
+            activeOpacity={OPACITE_PRESSION}
+            accessibilityRole="button"
+            accessibilityLabel="Ajouter un article"
+          >
+            <Ionicons name="add" size={Icone.action} color={t.onAccent} />
+          </Presse>
         </View>
 
         {/* La barre n'a plus besoin de conteneur porteur de colonne : elle est dans
@@ -481,7 +683,16 @@ export default function CoursesScreen() {
         showsVerticalScrollIndicator={false}
         stickySectionHeadersEnabled={false}
         ListHeaderComponent={enTete}
-        ListFooterComponent={<Text style={s.footnote}>Quantités calculées pour tes repas de la semaine.</Text>}
+        // ⚠️ La note de pied AFFIRME d'où sortent les quantités. Dès qu'un article
+        // a été tapé à la main, elle ne vaut plus pour toute la liste — et une
+        // phrase d'aide fausse est pire que pas de phrase du tout.
+        ListFooterComponent={(
+          <Text style={s.footnote}>
+            {visibles.some((i) => i.manuel)
+              ? 'Quantités calculées pour tes repas de la semaine — sauf ce que tu as ajouté toi-même.'
+              : 'Quantités calculées pour tes repas de la semaine.'}
+          </Text>
+        )}
         {...repli.scrollProps}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={t.textTertiary} />}
         renderSectionHeader={({ section }) => (
@@ -531,7 +742,11 @@ export default function CoursesScreen() {
                 {item.checked && <Ionicons name="checkmark" size={Icone.petite} color={t.onAccent} />}
               </View>
               <Text style={[s.name, item.checked && { textDecorationLine: 'line-through', color: t.textTertiary }]} numberOfLines={1}>{item.name}</Text>
-              <Text style={[s.qty, item.checked && { color: t.textQuaternary }]}>{formatQuantity(item.name, item.quantity, item.unit)}</Text>
+              {/* Un ajout manuel n'a souvent pas de quantité : `formatQuantity`
+                  rendrait « 0 g », un chiffre faux là où un blanc dit la vérité. */}
+              {item.quantity > SANS_QUANTITE && (
+                <Text style={[s.qty, item.checked && { color: t.textQuaternary }]}>{formatQuantity(item.name, item.quantity, item.unit)}</Text>
+              )}
             </Presse>
           );
         }}
@@ -554,6 +769,9 @@ function makeStyles(t: ThemePalette) {
     // Plus de padding horizontal ici, ni dans `controls`/`hint`/`track` : ces blocs
     // vivent dans le contentContainer de la liste, qui pose déjà les 20 pt.
     header: { flexDirection: 'row', alignItems: 'flex-end', gap: Spacing.md, paddingTop: Spacing.xl, paddingBottom: Spacing.md },
+    // Même pastille que celle de la Réserve — un « + » qui change de forme d'un
+    // onglet à l'autre se relit comme un autre bouton.
+    addBtn: { width: CIBLE_TACTILE_MIN, height: CIBLE_TACTILE_MIN, borderRadius: Radius.pill, backgroundColor: t.accent, alignItems: 'center', justifyContent: 'center' },
     h1: { color: t.text, ...Type.display, marginTop: Spacing.xs },
     sub: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 19 },
     counter: { ...Type.h2, color: t.text, letterSpacing: -0.6 },
@@ -585,6 +803,18 @@ function makeStyles(t: ThemePalette) {
     section: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginTop: Spacing.xxl, marginBottom: Spacing.sm },
     sectionTxt: { ...Type.overline, color: t.textTertiary },
     sectionCount: { ...Type.caption, color: t.textTertiary },
+
+    // Feuille d'ajout — mêmes valeurs que celle de la Réserve (`reserve.tsx`).
+    sheetTitle: { color: t.text, ...Type.h2 },
+    sheetNote: { ...Type.caption, color: t.textTertiary, lineHeight: 18 },
+    suggestions: { borderWidth: Trait.fin, borderColor: t.line, borderRadius: Radius.sm, overflow: 'hidden' },
+    suggestion: { paddingHorizontal: Spacing.lg, paddingVertical: Spacing.md, borderBottomWidth: Trait.fin, borderBottomColor: t.line },
+    suggestionTxt: { ...Type.bodySmall, color: t.text },
+    unitRow: { flexDirection: 'row', gap: Spacing.sm },
+    // ⚠️ 44 pt PLEINS, pas `paddingVertical: Spacing.sm` : le même bouton copié de
+    // `reserve.tsx` mesure ~36 pt, sous la cible tactile minimale (§8).
+    cancel: { alignItems: 'center', justifyContent: 'center', minHeight: CIBLE_TACTILE_MIN },
+    cancelTxt: { ...Type.bodyStrong, color: t.textSecondary },
 
     row: { flexDirection: 'row', alignItems: 'center', gap: Spacing.lg, paddingHorizontal: Spacing.lg, paddingVertical: Spacing.lg, backgroundColor: t.card },
     dot: { width: 24, height: 24, borderRadius: 12, borderWidth: Trait.controle, alignItems: 'center', justifyContent: 'center' },

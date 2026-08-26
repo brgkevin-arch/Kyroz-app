@@ -88,7 +88,15 @@ export function isStaple(name: string): boolean {
   return STAPLES.some((s) => n.includes(s));
 }
 
-function norm(name: string): string {
+/**
+ * Comparaison de noms d'aliments : sans casse, sans accents, sans ligatures.
+ *
+ * ⚠️ Exporté le 2026-08-26 — il était seulement PRIVÉ. Les ajouts manuels à la
+ * liste de courses (`lib/shoppingAjouts.ts`) comparent des noms saisis au clavier
+ * à ceux du plan ; une seconde normalisation aurait fait diverger deux moitiés de
+ * la même liste (« Poêlée » ≠ « poelee » d'un côté, égal de l'autre).
+ */
+export function norm(name: string): string {
   return name
     .trim()
     .toLowerCase()
