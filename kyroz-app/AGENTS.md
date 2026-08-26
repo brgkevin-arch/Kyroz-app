@@ -85,6 +85,7 @@ qu'ils étaient périmés.
 | 137 | Tuto : **5 → 2 bulles** · Plan et Profil en **pop-up centré** · plus de « ? » de rejeu · 🔴 **un repas coché ne se décoche plus** | E61 |
 | 138 | **Les fiches d'OTA sont COMPTÉES** — un test les compare entre elles, `npm run check:ota` les confronte au canal EAS | E62 |
 | 139 | **Un « + » dans les courses** — la liste n'est plus seulement dérivée, on y ajoute ses propres articles | E63 |
+| 140 | **« Aucun pressable sous 44 pt » était FAUX** — la sonde s'arrêtait sur une flèche ; six boutons dessous | E64 |
 
 🔴 **NE PAS RE-PROPOSER LES TÂCHES DU PLAN D'ACTION : elles sont toutes livrées côté
 code.** 4, 6, 7, 8, 9, 10 et 12 sont faites ; 3, 5, 11 et 14 l'étaient **avant** que le
@@ -4035,6 +4036,66 @@ produit en suspens — il ne reste qu'à coder.
 > ➡️ Ce qui EST vérifié ici : `tsc` propre et **1 712 tests verts sur `main`** une fois
 > les deux PR fusionnées, donc les deux chantiers ne se marchent pas dessus (ils
 > touchaient tous les deux `profil.tsx` et `constants/legal.ts`).
+
+- 🤖 **E64 · La sonde des cibles tactiles s'arrêtait sur une flèche — six boutons
+  vivaient dessous, au vert (2026-08-26)**
+
+  `espacementDA` promet, depuis le 2026-08-06, **« aucun pressable sous 44 pt »**, et
+  `CLAUDE.md` §8 le répétait avec « vérifié par 5 mutations ». C'était **faux**, au vert,
+  depuis des mois : sa capture de balise employait un `>` paresseux
+  (`<Presse\b[\s\S]{0,400}?>`), donc elle s'arrêtait sur la **FLÈCHE** d'un
+  `onPress={() => …}` — l'attribut le plus banal de l'app. Le nom de style qui suivait
+  n'était jamais collecté, et le bouton **jamais mesuré**.
+
+  🔴 **CE QUI L'A DÉNONCÉE EST UN CONTRASTE, PAS UNE RELECTURE.** En écrivant la feuille
+  d'ajout d'E63, le style `cancel` recopié de `reserve.tsx` — 36 pt — a été **signalé
+  immédiatement** dans `courses.tsx` alors qu'il dormait en paix dans son fichier
+  d'origine. Deux sites identiques dont un seul est accusé n'accusent pas le code :
+  **ils accusent la sonde**. La différence tenait à une flèche : `onPress={fermerAjout}`
+  d'un côté, `onPress={() => setShowAdd(false)}` de l'autre.
+
+  ⚠️ **DEUX AUTRES ANGLES MORTS DORMAIENT DANS LA MÊME FONCTION**, trouvés en réparant
+  le premier : la collecte des noms exigeait un objet d'**UNE lettre** (`s.x`, donc jamais
+  `styles.x` — un fichier entier invisible), et une borne de **400 caractères** coupait
+  avant le `style=` de toute balise commentée, or ce dépôt commente **dans** les balises.
+  ➡️ Une balise JSX se lit par **balayage à profondeur d'accolades** (chaînes et
+  commentaires sautés), jamais par une regex.
+
+  📋 **L'ancienne capture rejouée, pour ne pas l'affirmer** : **0 signalement** sur les
+  trois écritures construites et **0** sur les cinq fichiers fautifs, **tout en voyant le
+  cas témoin** écrit sans flèche. Elle n'était pas morte — elle était **borgne**, ce qui
+  est pire : un test qui ne trouve rien ressemble exactement à un test que tout satisfait
+  (même famille qu'E35, où elle avait déjà cessé de voir les `<Presse>`).
+
+  🔴 **RÉPARER UNE SONDE EN FAIT SORTIR DES FAUX POSITIFS — ils s'arbitrent, ils ne se
+  font pas taire.** Deux ici, et chacun a corrigé la VISÉE :
+   1. **un nom de style est une RÉFÉRENCE, pas une valeur de propriété.** La collecte
+      ramassait `t.fill` — une couleur — et `fill` est par ailleurs le remplissage d'une
+      jauge de 4 pt : une jauge accusée d'être un bouton trop petit. On ne lit plus que
+      l'attribut `style`, objets littéraux retirés ;
+   2. **l'estimation « 2 × padding + une ligne » ne vaut que pour UNE ligne.** Le
+      sélecteur de jour du Plan empile trois enfants (pastille de 40 + lune de 16 + gaps)
+      pour **~97 pt réels** et sortait accusé à 28. Une rangée reste sur une ligne quel
+      que soit le nombre d'enfants ; une colonne qui en porte deux tire sa hauteur d'eux,
+      et ce test ne sait pas la calculer — il ne l'estime donc plus.
+
+  ✅ **Six boutons réellement sous la cible, tous en 44 pt PLEINS** (`minHeight`, jamais
+  un `hitSlop` — il élargit la zone au doigt, pas à l'œil) : les « Annuler » de la Réserve
+  et de la suppression de compte (36), « Effacer ma sélection » du sélecteur de masse
+  grasse (28), les puces de sport (36), les boutons ± des séances (34), la croix d'une
+  photo de pesée (26 + `hitSlop` 8). Pour la croix, la **zone** passe à 44 et la
+  **pastille visible reste à 26**, ancrage inchangé : les 18 pt gagnés s'étendent vers
+  l'intérieur de la photo, pas au-delà du parent — où un enfant hors cadre cesse d'être
+  touchable sur Android.
+
+  📋 **Vérifié dans les deux sens.** Mutation sur le vrai chemin de fichiers (remettre
+  l'ancien `cancel` → rouge, avec contrôle que la mutation a pris) ; **deux `it` neufs**
+  font dire **OUI puis NON** à la sonde sur des cas écrits exprès — les trois écritures
+  qui l'aveuglaient, la colonne empilée, la rangée icône + libellé, le token de couleur.
+  Mesuré au navigateur après correction : 327×44 · 44×44 · 132×44 · 118×44, et **plus
+  aucun pressable entre 30 et 43 pt** sur les écrans touchés.
+  ⚠️ **Non vérifiée à l'écran** : la croix de la photo de pesée — elle demande le
+  sélecteur d'images, absent du panneau web. Le changement y est géométrique et commenté.
 
 - 🤖 **E63 · Le « + » des courses — un ajout manuel ne peut pas vivre dans un cache
   qui s'efface tout seul (2026-08-26)**
