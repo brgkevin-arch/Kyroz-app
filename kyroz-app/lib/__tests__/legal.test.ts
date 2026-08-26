@@ -225,7 +225,16 @@ const DERNIERE_REVISION = {
   // post-dater au 27 annoncerait une prise d'effet qui n'a pas lieu.
   // ➡️ Si une révision tombait un AUTRE jour, c'est la date qu'il faudrait bouger
   // d'abord — l'empreinte ne se met à jour qu'après cet arbitrage-là.
-  empreinte: '504ee4c8b129',   // 3e révision du 26 août : coquille « Inc.. » corrigée
+  // ⚠️ **QUATRIÈME RÉVISION DU MÊME JOUR** (2026-08-26) : les statistiques d'usage sont
+  // ÉTEINTES (décision fondateur). Les sept paragraphes qui les décrivaient passent au
+  // passé, avec la date d'arrêt — plutôt que de disparaître : des mesures ont été
+  // collectées entre le 2026-08-18 et cette date, elles existent encore chez PostHog, et
+  // un texte qui les efface priverait leur propriétaire de la description de ce qu'il
+  // peut faire supprimer. L'énumération des événements est complétée au passage : elle
+  // en oubliait QUATRE (plan régénéré, écart hors plan, repas changé, recette refusée).
+  // ➡️ La date ne bouge pas — même jour. ⚠️ Elle ne sera vraie qu'une fois l'OTA publiée :
+  // la clé est inlinée dans les binaires déjà installés, seul le code coupé les arrête.
+  empreinte: '1270f400d22b',
 };
 
 /**

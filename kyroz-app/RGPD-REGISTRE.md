@@ -58,8 +58,24 @@
 
 ## Traitement n°2 — Mesure d'audience (statistiques d'usage)
 
-> **Déclaré le 2026-08-18. Actif à compter de la pose de la clé PostHog**, elle-même
-> conditionnée aux trois verrous du suivi des actions. Traitement séparé du n°1, et
+> 🔴 **ARRÊTÉ LE 2026-08-26** (décision fondateur : « on enlève le posthog pour
+> l'instant »). L'application ne collecte plus rien : la coupure est dans le code
+> (`lib/featureFlags.ts::STATISTIQUES_USAGE_ACTIVES`), en amont même de la lecture du
+> consentement, et l'écran de consentement comme l'interrupteur des réglages ont été
+> retirés. **La fiche RESTE au registre** : le traitement a bien eu lieu du 2026-08-18
+> au 2026-08-26, les mesures existent encore chez le sous-traitant, et les droits des
+> personnes portent sur elles. Une fiche effacée ferait disparaître la description de
+> ce qu'on peut demander à supprimer.
+> ⚠️ **La date d'arrêt n'est vraie qu'une fois l'OTA publiée** : `EXPO_PUBLIC_POSTHOG_KEY`
+> est inlinée dans les binaires à la compilation, donc un binaire déjà installé continue
+> d'émettre tant qu'il n'a pas reçu le bundle qui coupe. La clé a par ailleurs été
+> retirée de l'environnement EAS de production le 2026-08-26, ce qui ne concerne que les
+> builds FUTURS.
+> 🔁 **Reste à trancher** : la suppression des mesures déjà collectées, côté tableau de
+> bord PostHog. Tant qu'elle n'est pas faite, la ligne « Durée de conservation »
+> ci-dessous continue de s'appliquer.
+>
+> **Déclaré le 2026-08-18. Actif de la pose de la clé PostHog au 2026-08-26.** Traitement séparé du n°1, et
 > ce n'est pas une commodité de présentation : la finalité, la base légale, les
 > données, le destinataire et la durée y sont tous différents. Les fondre dans le n°1
 > reviendrait à couvrir une mesure d'audience par un consentement donné pour des
@@ -68,9 +84,9 @@
 | Rubrique | Détail |
 |---|---|
 | **Finalités** | Comprendre comment l'application est utilisée, pour l'améliorer : où le parcours d'inscription décroche, si les plans générés sont réellement suivis, quelles erreurs techniques surviennent. Aucun profilage, aucune personnalisation du plan, aucune publicité. |
-| **Catégories de personnes** | Utilisateurs ayant explicitement accepté le partage des statistiques d'usage. |
-| **Catégories de données** | • Identifiant **pseudonyme** d'appareil (UUID tiré localement, jamais relié au compte ni à l'e-mail).<br>• 13 événements techniques et leurs propriétés (étape d'inscription, plan ouvert, repas coché, palier de série, échec de génération, erreur — type de classe, jamais le message brut).<br>• Comptes (nombre de jours du plan, nombre de repas) et rang du jour depuis l'installation.<br>• **Adresse IP** — voir la ligne dédiée ci-dessous.<br>➡️ **Aucune donnée de santé, aucun contenu de plan** (aliment, recette, quantité, liste de courses), aucun texte libre, aucune photo, ni e-mail ni identifiant de compte. Interdits absolus, tenus par `lib/__tests__/analyticsPerimetre.test.ts`. |
-| **Base légale** | **Consentement** (RGPD art. 6-1-a), **distinct** de celui du traitement n°1. Demandé avant toute collecte, refusable sans conséquence sur l'usage de l'app (deux boutons de même taille), retirable à tout moment dans Réglages → Confidentialité, sans supprimer le compte. |
+| **Catégories de personnes** | Utilisateurs ayant explicitement accepté le partage des statistiques d'usage, entre le 2026-08-18 et le 2026-08-26. |
+| **Catégories de données** | • Identifiant **pseudonyme** d'appareil (UUID tiré localement, jamais relié au compte ni à l'e-mail).<br>• **15** événements techniques et leurs propriétés (étape d'inscription, plan ouvert, plan régénéré, repas coché, repas changé, recette refusée, écart hors plan déclaré, palier de série, échec de génération, erreur — type de classe, jamais le message brut). ⚠️ Cette énumération en oubliait **quatre** jusqu'au 2026-08-26 (plan régénéré, écart hors plan, repas changé, recette refusée) : deux avaient été ajoutés le 2026-08-21 sans que la fiche suive, deux n'y avaient jamais figuré.<br>• Comptes (nombre de jours du plan, nombre de repas) et rang du jour depuis l'installation.<br>• **Adresse IP** — voir la ligne dédiée ci-dessous.<br>➡️ **Aucune donnée de santé, aucun contenu de plan** (aliment, recette, quantité, liste de courses), aucun texte libre, aucune photo, ni e-mail ni identifiant de compte. Interdits absolus, tenus par `lib/__tests__/analyticsPerimetre.test.ts`. |
+| **Base légale** | **Consentement** (RGPD art. 6-1-a), **distinct** de celui du traitement n°1. Demandé avant toute collecte, refusable sans conséquence sur l'usage de l'app (deux boutons de même taille), retirable à tout moment dans Réglages → Confidentialité, sans supprimer le compte. ⚠️ **Depuis l'arrêt du 2026-08-26, il n'est plus demandé** — il n'y a plus rien à accepter. Le droit de faire supprimer ce qui a déjà été collecté, lui, subsiste. |
 | **Destinataire** | **PostHog** (PostHog, Inc.), offre Cloud EU. |
 | **Localisation** | **Stockage à Francfort** (Allemagne) ; **transit routé par Cloudflare sur des points de présence mondiaux**. ⚠️ Cette ligne ne dit ni « hébergement UE » ni « aucun transfert hors UE » : le stockage est en Allemagne, le transit ne l'est pas, et une localisation de serveurs ne se transforme pas en promesse plus large qu'elle. |
 | **Transferts hors UE** | **Cadre trouvé — lu dans le DPA signé le 2026-08-18** (§10.3–10.4), pas supposé. Deux mécanismes cumulés, pas un choix entre les deux : (1) PostHog **auto-certifié au EU-US Data Privacy Framework** (+ extension UK, + Swiss-US DPF) ; (2) **Clauses Contractuelles Types** appliquées *« notwithstanding »* le DPF — EU SCC (module 2, contrôleur → sous-traitant), UK SCC (International Data Transfer Addendum), adaptations FADP pour la Suisse — les signatures et la date du DPA valant signature et date des CCT elles-mêmes. Couvre tout traitement hors UE : Cloudflare (points de présence mondiaux) et Hiberly Ltd. (Royaume-Uni, voir sous-traitants internes ci-dessous). |

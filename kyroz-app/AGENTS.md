@@ -4084,13 +4084,36 @@ produit en suspens — il ne reste qu'à coder.
   MÊME graphe de modules. *Un test qu'on n'a jamais vu rougir ne prouve rien*, et
   celui-ci l'a prouvé deux fois dans la même passe.
 
+  ✅ **LA CLÉ EST RETIRÉE D'EAS** (2026-08-26, sur demande). Elle était posée sur les
+  **trois** environnements — `development`, `preview`, `production` — et non sur la seule
+  production comme le relevé initial le laissait croire : c'est UNE variable liée aux
+  trois, donc une seule suppression les vide toutes (vérifié après coup, 0 occurrence
+  dans chacune). Les autres clés sont intactes.
+  ⚠️ Rappel de ce que ça ne fait pas : les binaires DÉJÀ installés portent la clé en
+  dur. C'est la garde de code, publiée en OTA, qui les arrête.
+
+  ✅ **LES TEXTES LÉGAUX SONT À JOUR** (même jour). Sept paragraphes de
+  `constants/legal.ts` passent au PASSÉ avec la date d'arrêt — §2 données collectées,
+  §3 finalités, §4 base légale, §5 sous-traitants, §6 localisation, §7 durée — plutôt
+  que de disparaître : des mesures ont été collectées entre le 2026-08-18 et le
+  2026-08-26, elles existent encore chez PostHog, et un texte qui les efface priverait
+  leur propriétaire de la description de ce qu'il peut faire supprimer. §9 (le chemin
+  de suppression) est inchangé, parce qu'il reste vrai.
+  ✅ **L'énumération des événements est complétée au passage** — elle en oubliait
+  QUATRE (plan régénéré, écart hors plan, repas changé, recette refusée). Deux avaient
+  été ajoutés le 2026-08-21 sans que le texte suive, deux n'y avaient jamais figuré.
+  Même correction dans `RGPD-REGISTRE.md`, qui annonçait « 13 événements ».
+  ✅ Empreinte et miroirs : 4ᵉ révision du 26 août (`legal.test.ts`), `npm run gen:legal`
+  passé — `public/legal.html` et `docs/politique-confidentialite-kyroz.md` régénérés.
+
   🔁 **CE QUE CETTE FICHE NE FERME PAS**, et qui appartient au fondateur :
-   · la clé dans l'environnement **EAS production** (à retirer pour les builds futurs) ;
    · les **données déjà envoyées**, chez PostHog — action hors dépôt, sur le tableau de bord ;
-   · les **textes légaux** : politique in-app (`constants/legal.ts`), politique publique
-     (dépôt `kyroz-site`) et `RGPD-REGISTRE.md` décrivent encore un traitement actif.
-     Ils sur-déclarent, ce qui est le sens prudent — mais ils vont périmer, et ils ont
-     leur propre procédure (date de mise à jour, publication du site).
+   · la **page publique** `kyroz.app/legal.html` (dépôt `kyroz-site`). Elle ne peut PAS
+     être régénérée maintenant : l'étape 0 de `docs/PROCEDURE-MAJ-LEGAL-SITE.md` exige
+     de générer depuis le dépôt PRINCIPAL sur `main` à jour, et cette PR n'y est pas
+     encore. La publier avant le merge — et avant l'OTA — annoncerait un arrêt de
+     collecte que l'app installée n'applique pas encore. **C'est la dernière étape,
+     après le merge et après l'OTA**, pas la première.
 
 - 🤖 **E64 · La sonde des cibles tactiles s'arrêtait sur une flèche — six boutons
   vivaient dessous, au vert (2026-08-26)**
