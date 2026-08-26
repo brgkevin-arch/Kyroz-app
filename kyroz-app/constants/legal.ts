@@ -55,12 +55,14 @@ export const LEGAL = {
   // ➡️ Donc le §6 ne peut PAS dire « tout est en Europe » : la promesse ne vaut que
   // pour les données synchronisées (Supabase). Vérifié le 2026-08-23.
   emailProviderStorage: 'aux États-Unis',
-  // Mesure d'audience (PostHog Cloud EU) — cf. `lib/analytics.ts`. Le consentement
-  // est demandé séparément à l'onboarding et se retire dans Réglages.
-  // ⚠️ On écrit le STOCKAGE, pas « hébergé dans l'UE » : les données sont stockées à
-  // Francfort, mais le transit est routé par Cloudflare sur des points de présence
-  // mondiaux (liste des sous-traitants PostHog, consultée le 2026-08-18). Une
-  // localisation de serveurs ne se transforme pas en promesse plus large qu'elle.
+  // 🔴 LES CONSTANTES DE MESURE D'AUDIENCE ONT ÉTÉ RETIRÉES LE 2026-08-26
+  // (`analyticsProvider`, `analyticsStorage`, `analyticsRetention`). Les statistiques
+  // d'usage sont éteintes et **aucun texte ne les mentionne plus** : décision
+  // fondateur, « fais comme si posthog n'existait pas ». Ce qui avait été collecté
+  // — quelques jours, son propre appareil et un testeur — est supprimé à la source.
+  // ⚠️ Les garder « au cas où » aurait laissé trois valeurs sans lecteur dans le
+  // fichier qui fait foi pour les textes opposables. Le jour d'un retour, elles se
+  // réécrivent en trois lignes ; c'est l'arbitrage qui coûte, pas la constante.
   // Gestion des abonnements (`lib/purchases.ts`). ⚠️ Nommé depuis le 2026-08-26, après
   // lecture du DPA : ce n'est plus une catégorie mais un sous-traitant identifié, parce
   // que la clé est en PRODUCTION et qu'il traite déjà.
@@ -71,9 +73,6 @@ export const LEGAL = {
   subscriptionProvider: 'RevenueCat, Inc.',
   subscriptionProviderCountry: 'États-Unis',
   subscriptionProviderStorage: 'aux États-Unis',
-  analyticsProvider: 'PostHog',
-  analyticsStorage: 'Francfort, en Allemagne',
-  analyticsRetention: 'au moins un an',
   /**
    * La date que les documents affichent comme leur dernière mise à jour.
    *
@@ -118,15 +117,13 @@ export const PRIVACY_POLICY: LegalSection[] = [
       "Données d’usage de l’app : plans générés, suivi du poids, série (streak), favoris, réserve alimentaire.",
       "Photos de progression (facultatives) : elles restent stockées UNIQUEMENT sur votre appareil et ne sont jamais transmises à nos serveurs.",
       "Données d’abonnement, uniquement si vous souscrivez à Kyroz+ : l’identifiant technique de votre compte et l’état de votre abonnement. Aucune coordonnée bancaire ne transite par Kyroz.",
-      "Mesures d’usage : la collecte est ARRÊTÉE depuis le 26 août 2026. L’application ne mesure plus rien de votre usage et n’envoie plus aucun événement. La question ne vous est plus posée.",
-      "Ce qui a été collecté avant cette date, et uniquement si vous l’aviez accepté : des événements techniques (étape d’inscription atteinte, plan ouvert, plan régénéré, repas coché, repas changé, recette refusée, écart hors plan déclaré, palier de série, échec de génération, erreur technique), des comptes (nombre de jours du plan, nombre de repas) et le rang du jour depuis l’installation. Ils étaient rattachés à un identifiant pseudonyme tiré au hasard sur votre appareil, jamais relié à votre compte ni à votre adresse e-mail. Ces mesures existent encore chez le prestataire décrit au point 5, et leur suppression se demande à tout moment (point 9).",
+      "Aucune statistique d’usage n’est collectée : l’application ne mesure pas comment vous vous en servez.",
     ],
   },
   {
     title: '3. Finalités',
     paragraphs: [
       "Vos données de compte et de santé servent exclusivement à : calculer vos besoins nutritionnels (calories, macros), générer vos plans repas, votre liste de courses et le suivi associé.",
-      "Les mesures d’usage, tant qu’elles ont été collectées, ont servi uniquement à comprendre comment l’application est utilisée — où l’inscription décroche, si les plans sont suivis, quelles erreurs surviennent — afin de l’améliorer. Aucune donnée de santé et aucun contenu de plan (aliment, recette, quantité, liste de courses) n’y figure. Elles n’ont servi ni au profilage, ni à la personnalisation de votre plan. Cette collecte est arrêtée.",
       "Aucune donnée n’est utilisée à des fins publicitaires.",
     ],
   },
@@ -134,7 +131,6 @@ export const PRIVACY_POLICY: LegalSection[] = [
     title: '4. Base légale',
     paragraphs: [
       "Le traitement des données de santé repose sur votre consentement explicite (RGPD art. 9-2-a), recueilli à l’inscription. Vous pouvez le retirer à tout moment en supprimant votre compte.",
-      "La mesure d’usage reposait sur un consentement distinct de celui portant sur vos données de santé, demandé avant toute collecte et refusable sans aucune conséquence sur l’usage de l’application. La collecte étant arrêtée depuis le 26 août 2026, ce consentement n’est plus demandé et l’interrupteur correspondant a été retiré des réglages : il n’y a plus rien à accepter ni à refuser. Votre droit de faire supprimer les mesures déjà envoyées demeure (point 9).",
     ],
   },
   // ✅ **ÉCHÉANCE HONORÉE LE 2026-08-26 : LE PRESTATAIRE D'ABONNEMENT EST NOMMÉ.**
@@ -165,18 +161,17 @@ export const PRIVACY_POLICY: LegalSection[] = [
   // Resend. Ne pas recopier sa phrase : elle affirmerait un cadre inexistant ici.
   // Détail complet et question ouverte (OpenAI / Anthropic en Annexe 3) : RGPD-REGISTRE.md.
   //
-  // ✅ ÉCHÉANCE HONORÉE LE 2026-08-18 : « aucun outil d'analyse tiers » a été retirée,
-  // PostHog est nommé. Le texte est écrit au CONDITIONNEL DE CONSENTEMENT (« si vous
-  // acceptez »), jamais au conditionnel d'existence — il reste donc vrai que la clé
-  // soit posée ou non. Ce qui l'imposait : l'app DEMANDE déjà le consentement en
-  // production (écran d'onboarding + Réglages) pour un outil que ce texte déclarait
-  // inexistant. Deux surfaces se contredisaient ; c'est un énoncé faux qu'on corrige,
-  // pas une anticipation.
-  // ⚠️ CE QUE CE TEXTE NE DIT PAS, ET POURQUOI : l'adresse IP. PostHog la collecte par
-  // défaut côté serveur (géolocalisation comprise) et le client n'envoie rien pour la
-  // neutraliser. Elle est consignée comme collectée au registre, et sa coupure est une
-  // CONDITION DURE à la pose de la clé — coupure et clé partent ensemble. Tant que la
-  // clé n'est pas posée, rien ne part : ce silence n'est donc pas une omission.
+  // 🔴 LA MESURE D'AUDIENCE A QUITTÉ CE FICHIER LE 2026-08-26 (décision fondateur,
+  // « fais comme si posthog n'existait pas »). Les paragraphes qui la décrivaient dans
+  // les §2, 3, 4, 5, 6, 7 et 9 sont SUPPRIMÉS, pas passés au passé : la collecte est
+  // coupée dans le code, la clé retirée d'EAS, et le peu qui avait été collecté en
+  // huit jours — l'appareil du fondateur et un testeur — est supprimé à la source.
+  // ⚠️ LE PRÉCÉDENT QUI S'APPLIQUE ICI EST L'INVERSE DE CELUI DE RESEND, et il vaut
+  // d'être écrit : *un sous-traitant se déclare le jour où il traite* (leçon payée
+  // deux jours durant, plus bas). La réciproque est vraie — un sous-traitant qui ne
+  // traite plus, dont les données sont effacées, cesse d'être déclaré. Le garder
+  // « au cas où » ferait décrire un traitement inexistant, ce qui est le même défaut
+  // dans l'autre sens.
   //
   // 🔴 ET UN SOUS-TRAITANT A MANQUÉ ICI PENDANT DEUX JOURS — ajouté le 2026-08-11.
   // L'expéditeur e-mail (Resend) est en production depuis le 2026-08-09 : il traite
@@ -210,7 +205,6 @@ export const PRIVACY_POLICY: LegalSection[] = [
       `Vos données synchronisées sont hébergées par ${LEGAL.host}, sur des serveurs situés en ${LEGAL.hostRegion}.`,
       `L’envoi des e-mails de service (confirmation d’inscription, réinitialisation de mot de passe) est assuré par ${LEGAL.emailProvider} (${LEGAL.emailProviderLegalName}). Seules votre adresse e-mail et le contenu de ces messages lui sont transmis — aucune donnée de santé.`,
       `Ces e-mails, ainsi que les journaux d’envoi correspondants, sont stockés par ${LEGAL.emailProvider} ${LEGAL.emailProviderStorage}. Ce transfert hors de l’Union européenne est encadré par les clauses contractuelles types de la Commission européenne et par l’adhésion de ce prestataire au cadre de protection des données UE–États-Unis (EU-U.S. Data Privacy Framework).`,
-      `${LEGAL.analyticsProvider} a traité les statistiques d’usage de celles et ceux qui les avaient acceptées, jusqu’à l’arrêt de la collecte le 26 août 2026. Plus rien ne lui est transmis depuis. Ce qui l’a été — l’identifiant pseudonyme de votre appareil et les événements décrits au point 2, à l’exclusion de toute donnée de santé, de tout contenu de plan, de votre adresse e-mail et de l’identifiant de votre compte — reste stocké sur ses serveurs de ${LEGAL.analyticsStorage} tant que vous n’en demandez pas la suppression (point 9).`,
       `La gestion technique des abonnements Kyroz+ est confiée à ${LEGAL.subscriptionProvider} (${LEGAL.subscriptionProviderCountry}). Dès que vous êtes connecté, que vous soyez abonné ou non, l’identifiant technique de votre compte lui est transmis pour vérifier si un abonnement est actif ; s’y ajoutent, le cas échéant, l’état de votre abonnement et le reçu d’achat émis par l’App Store ou Google Play. Ne lui sont transmis ni votre adresse email, ni vos données de santé, ni aucune coordonnée bancaire.`,
       `Ces données sont stockées ${LEGAL.subscriptionProviderStorage}. Ce transfert hors de l’Union européenne est encadré par les clauses contractuelles types de la Commission européenne.`,
       "Le paiement lui-même est traité par l’App Store (Apple) ou Google Play. Kyroz ne voit ni ne conserve aucune coordonnée bancaire.",
@@ -221,14 +215,13 @@ export const PRIVACY_POLICY: LegalSection[] = [
     title: '6. Hébergement et localisation',
     paragraphs: [
       `Les données synchronisées — profil, objectif, suivi du poids — sont stockées dans l’Union européenne. Une copie de travail réside localement sur votre appareil (fonctionnement hors-ligne).`,
-      `Deux exceptions, décrites au point 5 : les e-mails de service sont stockés ${LEGAL.emailProviderStorage}, et les statistiques d’usage collectées jusqu’au 26 août 2026, si vous les aviez acceptées, à ${LEGAL.analyticsStorage}. Aucune donnée de santé ne quitte l’Union européenne.`,
+      `Une exception, décrite au point 5 : les e-mails de service sont stockés ${LEGAL.emailProviderStorage}. Aucune donnée de santé ne quitte l’Union européenne.`,
     ],
   },
   {
     title: '7. Durée de conservation',
     paragraphs: [
       "Vos données sont conservées tant que votre compte est actif. Elles sont supprimées (serveur + appareil) lorsque vous supprimez votre compte.",
-      `Les mesures d’usage collectées jusqu’au 26 août 2026, si vous les aviez acceptées, sont conservées ${LEGAL.analyticsRetention} par ${LEGAL.analyticsProvider} — la durée garantie par son offre —, sans limite haute fixe au-delà. L’arrêt de la collecte ne les efface pas : vous pouvez à tout moment en demander la suppression (Réglages → Supprimer mes statistiques).`,
       "Une exception : si vous avez souscrit un abonnement, l’historique de facturation correspondant est conservé par le store concerné (Apple, Google) et par le prestataire mentionné au point 5, pour la durée qu’imposent leurs obligations légales et comptables. Cet historique ne contient aucune donnée de santé.",
     ],
   },
@@ -244,7 +237,6 @@ export const PRIVACY_POLICY: LegalSection[] = [
     paragraphs: [
       "Conformément au RGPD, vous disposez des droits d’accès, de rectification, d’effacement, de limitation, d’opposition et de portabilité, ainsi que du droit de retirer votre consentement.",
       `Le droit à l’effacement s’exerce directement dans l’app (Profil → Supprimer mon compte) ou par email à ${LEGAL.dpoEmail}.`,
-      "La suppression des statistiques d’usage déjà envoyées se demande depuis l’app (Réglages → Supprimer mes statistiques), qui prépare l’e-mail avec votre identifiant pseudonyme.",
       "Vous pouvez introduire une réclamation auprès de la CNIL (www.cnil.fr).",
     ],
   },

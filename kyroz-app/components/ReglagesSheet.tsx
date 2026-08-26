@@ -307,13 +307,19 @@ export function ReglagesSheet({
         {/* ── Confidentialité ──────────────────────────────────────────────── */}
         <SectionTitle t={t}>Confidentialité</SectionTitle>
 
-        {/* 🔴 ÉTEINT LE 2026-08-26 (décision fondateur) — l'interrupteur disparaît
-            avec la mesure : proposer de « partager » ce qui ne part plus serait un
-            réglage qui ne pilote rien. Il revient tel quel avec la constante
-            (`lib/featureFlags.ts::STATISTIQUES_USAGE_ACTIVES`).
-            ⚠️ La ligne de SUPPRESSION, elle, reste montée plus bas tant qu'un
-            pseudonyme existe : des mesures ont pu partir entre le 2026-08-18 et
-            l'extinction, et le droit à l'effacement ne s'arrête pas avec la collecte. */}
+        {/* 🔴 LA MESURE D'USAGE A QUITTÉ CET ÉCRAN LE 2026-08-26 — interrupteur, phrase
+            d'explication ET ligne de suppression. Décision fondateur en deux temps le
+            même jour : d'abord « on enlève le posthog pour l'instant », puis, une fois
+            pesé ce qui avait réellement été collecté (huit jours, son appareil et un
+            testeur, supprimé à la source) : « fais comme si posthog n'existait pas ».
+            ⚠️ La ligne « Supprimer mes statistiques » part avec le reste PARCE QUE les
+            données sont effacées chez le prestataire. Elle serait restée si elles
+            avaient survécu : un droit d'effacement ne se retire pas tant qu'il a un
+            objet. C'est la suppression à la source qui l'a rendue sans objet, pas
+            l'extinction de la collecte. Le chemin générique demeure de toute façon —
+            « Confidentialité & CGU » porte l'adresse de contact RGPD.
+            ⚠️ Rien n'est supprimé du code : la constante remonte tout le bloc
+            (`lib/featureFlags.ts::STATISTIQUES_USAGE_ACTIVES`). */}
         {STATISTIQUES_USAGE_ACTIVES && (
           <>
             <Text style={s.label}>Statistiques d'usage</Text>
@@ -323,31 +329,25 @@ export function ReglagesSheet({
               onChange={(v) => chooseConsent(v === 'on' ? 'granted' : 'denied')}
               options={[{ label: 'Partagées', value: 'on' }, { label: 'Non', value: 'off' }]}
             />
+            {/* ⚠️ « PSEUDONYME », PAS « ANONYME » — cette ligne disait « anonymes » et
+                c'était faux par construction : l'identifiant est stable, donc les
+                mesures d'un même téléphone se regroupent, et c'est précisément ce qui
+                rend possible la suppression. Une donnée supprimable par individu n'est
+                pas anonyme (synthèse §3.3). */}
+            <Text style={s.aide}>
+              {analyticsConsent === 'granted'
+                ? 'Tu partages comment tu utilises l’app — écrans ouverts, repas cochés, erreurs. Jamais tes données de santé, ton prénom ni ton e-mail. C’est rattaché à un identifiant pseudonyme tiré sur cet appareil, envoyé à PostHog et stocké sur ses serveurs de Francfort au moins un an.'
+                : 'Aucune statistique d’usage n’est partagée.'}
+            </Text>
           </>
         )}
-        {/* ⚠️ « PSEUDONYME », PAS « ANONYME » — cette ligne disait « anonymes » et c'était
-            faux par construction : l'identifiant est stable, donc les mesures d'un même
-            téléphone se regroupent, et c'est précisément ce qui rend possible la
-            suppression proposée juste en dessous. Une donnée supprimable par individu
-            n'est pas anonyme ; promettre les deux, c'est se contredire dans le même
-            écran. Le vocabulaire fait partie de la promesse (synthèse §3.3). */}
-        <Text style={s.aide}>
-          {!STATISTIQUES_USAGE_ACTIVES
-            // Éteint : la phrase dit l'ÉTAT, pas une préférence. « Aucune statistique
-            // n'est partagée » serait vrai mais se lirait comme un réglage choisi,
-            // alors que le choix n'existe plus.
-            ? 'Kyroz ne mesure plus rien de ton usage. L’app fonctionne entièrement sur ton téléphone.'
-            : analyticsConsent === 'granted'
-            ? 'Tu partages comment tu utilises l’app — écrans ouverts, repas cochés, erreurs. Jamais tes données de santé, ton prénom ni ton e-mail. C’est rattaché à un identifiant pseudonyme tiré sur cet appareil, envoyé à PostHog et stocké sur ses serveurs de Francfort au moins un an.'
-            : 'Aucune statistique d’usage n’est partagée.'}
-        </Text>
 
         <View style={s.menu}>
           {/* La ligne n'apparaît QUE si un identifiant existe, c'est-à-dire seulement
               si quelque chose a pu partir. Proposer d'effacer un néant serait une
               fausse réassurance ; et la faire dépendre du consentement COURANT la
               retirerait pile à qui vient de le retirer — le cas où elle sert le plus. */}
-          {pseudonyme && (
+          {STATISTIQUES_USAGE_ACTIVES && pseudonyme && (
             <MenuRow t={t} label="Supprimer mes statistiques" value="Demande par e-mail (RGPD)" onPress={demanderSuppressionStats} />
           )}
           <MenuRow t={t} label="Exporter mes données" value="Télécharger tout (RGPD)" onPress={onExport} />

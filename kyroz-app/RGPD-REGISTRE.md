@@ -56,46 +56,34 @@
 
 ---
 
-## Traitement n°2 — Mesure d'audience (statistiques d'usage)
+## Traitement n°2 — Mesure d'audience — **RETIRÉ DU REGISTRE LE 2026-08-26**
 
-> 🔴 **ARRÊTÉ LE 2026-08-26** (décision fondateur : « on enlève le posthog pour
-> l'instant »). L'application ne collecte plus rien : la coupure est dans le code
-> (`lib/featureFlags.ts::STATISTIQUES_USAGE_ACTIVES`), en amont même de la lecture du
-> consentement, et l'écran de consentement comme l'interrupteur des réglages ont été
-> retirés. **La fiche RESTE au registre** : le traitement a bien eu lieu du 2026-08-18
-> au 2026-08-26, les mesures existent encore chez le sous-traitant, et les droits des
-> personnes portent sur elles. Une fiche effacée ferait disparaître la description de
-> ce qu'on peut demander à supprimer.
-> ⚠️ **La date d'arrêt n'est vraie qu'une fois l'OTA publiée** : `EXPO_PUBLIC_POSTHOG_KEY`
-> est inlinée dans les binaires à la compilation, donc un binaire déjà installé continue
-> d'émettre tant qu'il n'a pas reçu le bundle qui coupe. La clé a par ailleurs été
-> retirée de l'environnement EAS de production le 2026-08-26, ce qui ne concerne que les
-> builds FUTURS.
-> 🔁 **Reste à trancher** : la suppression des mesures déjà collectées, côté tableau de
-> bord PostHog. Tant qu'elle n'est pas faite, la ligne « Durée de conservation »
-> ci-dessous continue de s'appliquer.
+> 🔴 **DÉCLARÉ LE 2026-08-18, ARRÊTÉ ET RETIRÉ LE 2026-08-26** (décision fondateur :
+> *« on enlève le posthog pour l'instant »*, puis *« juste efface, on a rien collecté
+> ou juste des données de moi ou un testeur, je vais supprimer et voilà »*).
 >
-> **Déclaré le 2026-08-18. Actif de la pose de la clé PostHog au 2026-08-26.** Traitement séparé du n°1, et
-> ce n'est pas une commodité de présentation : la finalité, la base légale, les
-> données, le destinataire et la durée y sont tous différents. Les fondre dans le n°1
-> reviendrait à couvrir une mesure d'audience par un consentement donné pour des
-> données de santé.
-
-| Rubrique | Détail |
-|---|---|
-| **Finalités** | Comprendre comment l'application est utilisée, pour l'améliorer : où le parcours d'inscription décroche, si les plans générés sont réellement suivis, quelles erreurs techniques surviennent. Aucun profilage, aucune personnalisation du plan, aucune publicité. |
-| **Catégories de personnes** | Utilisateurs ayant explicitement accepté le partage des statistiques d'usage, entre le 2026-08-18 et le 2026-08-26. |
-| **Catégories de données** | • Identifiant **pseudonyme** d'appareil (UUID tiré localement, jamais relié au compte ni à l'e-mail).<br>• **15** événements techniques et leurs propriétés (étape d'inscription, plan ouvert, plan régénéré, repas coché, repas changé, recette refusée, écart hors plan déclaré, palier de série, échec de génération, erreur — type de classe, jamais le message brut). ⚠️ Cette énumération en oubliait **quatre** jusqu'au 2026-08-26 (plan régénéré, écart hors plan, repas changé, recette refusée) : deux avaient été ajoutés le 2026-08-21 sans que la fiche suive, deux n'y avaient jamais figuré.<br>• Comptes (nombre de jours du plan, nombre de repas) et rang du jour depuis l'installation.<br>• **Adresse IP** — voir la ligne dédiée ci-dessous.<br>➡️ **Aucune donnée de santé, aucun contenu de plan** (aliment, recette, quantité, liste de courses), aucun texte libre, aucune photo, ni e-mail ni identifiant de compte. Interdits absolus, tenus par `lib/__tests__/analyticsPerimetre.test.ts`. |
-| **Base légale** | **Consentement** (RGPD art. 6-1-a), **distinct** de celui du traitement n°1. Demandé avant toute collecte, refusable sans conséquence sur l'usage de l'app (deux boutons de même taille), retirable à tout moment dans Réglages → Confidentialité, sans supprimer le compte. ⚠️ **Depuis l'arrêt du 2026-08-26, il n'est plus demandé** — il n'y a plus rien à accepter. Le droit de faire supprimer ce qui a déjà été collecté, lui, subsiste. |
-| **Destinataire** | **PostHog** (PostHog, Inc.), offre Cloud EU. |
-| **Localisation** | **Stockage à Francfort** (Allemagne) ; **transit routé par Cloudflare sur des points de présence mondiaux**. ⚠️ Cette ligne ne dit ni « hébergement UE » ni « aucun transfert hors UE » : le stockage est en Allemagne, le transit ne l'est pas, et une localisation de serveurs ne se transforme pas en promesse plus large qu'elle. |
-| **Transferts hors UE** | **Cadre trouvé — lu dans le DPA signé le 2026-08-18** (§10.3–10.4), pas supposé. Deux mécanismes cumulés, pas un choix entre les deux : (1) PostHog **auto-certifié au EU-US Data Privacy Framework** (+ extension UK, + Swiss-US DPF) ; (2) **Clauses Contractuelles Types** appliquées *« notwithstanding »* le DPF — EU SCC (module 2, contrôleur → sous-traitant), UK SCC (International Data Transfer Addendum), adaptations FADP pour la Suisse — les signatures et la date du DPA valant signature et date des CCT elles-mêmes. Couvre tout traitement hors UE : Cloudflare (points de présence mondiaux) et Hiberly Ltd. (Royaume-Uni, voir sous-traitants internes ci-dessous). |
-| **Sous-traitants ultérieurs** | Tableau « services de base » publié par PostHog, **consulté le 2026-08-18** — <https://posthog.com/subprocessors> (page datée du 12 juin 2026) :<br>• **Amazon Web Services, Inc.** — stockage cloud — Allemagne (EU Cloud).<br>• **Wiz, Inc.** — détection de vulnérabilités — Allemagne, France.<br>• **PlanetScale, Inc.** — supervision des bases — Allemagne (EU Cloud).<br>• **Modal Labs, Inc.** — calcul serverless isolé — Allemagne (EU Cloud).<br>• **Cloudflare, Inc.** — reverse proxy, CDN, routage — **points de présence mondiaux (dynamique)**.<br>🔁 **À revérifier avant le 2027-02-18** (6 mois), et à chaque évolution du traitement : une liste de sous-traitants recopiée est juste le jour où on la lit. |
-| **Fonctions IA de PostHog** | **Non activées — deux preuves, pas une.** (1) Réglage vérifié dans la console du projet PostHog (case du suivi des actions, à cocher le jour de la pose de la clé) ; (2) l'application n'appelle **que** l'endpoint d'ingestion `/capture/` — `POSTHOG_HOST` n'apparaît qu'une fois dans tout le code (`lib/analytics.ts`), sans `/decide/`, `/flags/` ni `/query/`. Le réglage seul serait révocable d'un clic en console ; le code seul ne dirait rien du serveur. Les deux ensemble tiennent. Le tableau « AI Subprocessors » de PostHog ne s'applique donc pas. |
-| **Sous-traitants internes (PostHog)** | ✅ **Extrait le 2026-08-18** (onglet « Internal Subprocessors » de la même page — les deux premières tentatives avaient manqué un contenu chargé au clic, pas un tableau vide) — **deux entités nommées, plus des « affiliés » présumés** :<br>• **Hiberly Ltd.** — fourniture du service PostHog — **Royaume-Uni**.<br>• **PostHog GmbH** — fourniture du service PostHog — **Allemagne**.<br>Le DPA (§5.1) autorise génériquement l'usage de cette page ; il ne liste pas ces entités lui-même, il y renvoie. |
-| **Adresse IP** | **Écartée — vérifié le 2026-08-18** (capture d'écran du projet EU, `Settings → Products → Privacy → Discard client IP data`, activé). Les projets Cloud EU désactivent ce réglage par défaut à la création ; ce n'était pas encore vérifié pour Kyroz, d'où la ligne précédente qui la consignait par prudence comme collectée. Le client n'envoie de toute façon rien pour l'IP — il n'en a jamais eu besoin. |
-| **Durée de conservation** | **Au moins un an**, garantie par l'offre PostHog souscrite ; **sans limite haute fixe au-delà** (données déplacées en stockage froid, non supprimées). ⚠️ **Arbitrage du 2026-08-18** : PostHog ne propose aucun réglage de rétention automatique, et aucune purge n'est construite côté Kyroz — décision assumée, pour ne pas ajouter une pièce serveur (clé API, tâche planifiée) à surveiller pour une fonctionnalité encore éteinte. Ce que ça veut dire concrètement : les données ne raccourcissent pas de vie, elles n'en ont simplement plus de terme fixe promis — en pratique, rien ne les efface plus tôt qu'avant. Suppression **sur demande individuelle**, à tout moment (Réglages → Supprimer mes statistiques, avec l'identifiant pseudonyme) — ce mécanisme est manuel et existait déjà, indépendant de ce choix. |
-| **Mesures de sécurité** | • Client écrit à la main, **aucun SDK tiers** embarqué.<br>• `capture()` est un **no-op** tant que le consentement n'est pas « granted » — vérifié par test.<br>• Aucun appel `identify`/`alias` vers l'identifiant de compte Supabase : le pseudonyme ne peut pas être rebranché sur le compte.<br>• Périmètre des propriétés d'événement tenu par un test de mutation (`analyticsPerimetre.test.ts`).<br>• Chiffrement en transit (HTTPS). |
+> **Ce qui a été fait, dans cet ordre :**
+> 1. coupure dans le code (`lib/featureFlags.ts::STATISTIQUES_USAGE_ACTIVES`), en amont
+>    de la lecture du consentement — c'est la seule garde qui vaille pour les binaires
+>    déjà installés, la clé y étant inlinée à la compilation ;
+> 2. clé `EXPO_PUBLIC_POSTHOG_KEY` supprimée des **trois** environnements EAS
+>    (`development`, `preview`, `production`) — vérifié : 0 occurrence dans chacun ;
+> 3. écran de consentement, interrupteur et ligne de suppression retirés de l'app ;
+> 4. mentions supprimées des textes opposables (politique in-app, page publique) ;
+> 5. données déjà collectées supprimées à la source, côté tableau de bord PostHog.
+>
+> ⚠️ **POURQUOI LA FICHE PART, ALORS QUE LE TRAITEMENT A EU LIEU.** Un registre décrit
+> les traitements EN COURS. Celui-ci a duré huit jours, n'a concerné que l'appareil du
+> fondateur et un testeur, et ses données sont effacées : il n'a plus ni finalité, ni
+> destinataire, ni personne concernée, ni durée de conservation. Garder la fiche
+> décrirait un traitement inexistant — le même défaut que d'omettre un traitement
+> réel, dans l'autre sens. **Cette trace datée reste** : c'est elle qui permet de
+> répondre à « avez-vous mesuré quelque chose entre le 18 et le 26 août ? », et le
+> détail complet vit dans l'historique git de ce fichier.
+>
+> 🔁 **Si la mesure revient**, la fiche se réécrit entièrement : le périmètre devra être
+> ré-arbitré (les 15 événements, l'adresse IP, le DPA, la rétention), et le consentement
+> redemandé à tout le monde — un « oui » de 2026 ne vaut pas pour un périmètre de 2027.
 
 ---
 
@@ -106,8 +94,7 @@
 | Accès / Portabilité | Bouton « Exporter mes données » (Profil) → fichier JSON complet. |
 | Rectification | Édition du profil dans l'app. |
 | Effacement | « Supprimer mon compte » (Profil) → suppression serveur + locale. |
-| Retrait du consentement | **Données de santé** (traitement n°1) : suppression du compte.<br>**Statistiques d'usage** (traitement n°2) : interrupteur dans Réglages → Confidentialité, sans supprimer le compte ni perdre quoi que ce soit. |
-| Effacement des statistiques d'usage | « Supprimer mes statistiques » (Réglages) → prépare l'e-mail avec l'identifiant pseudonyme, seule clé permettant de retrouver les événements d'un appareil. |
+| Retrait du consentement | **Données de santé** (traitement n°1) : suppression du compte. Aucun autre consentement n'est demandé depuis le retrait du traitement n°2 (2026-08-26). |
 | Réclamation | CNIL — www.cnil.fr. |
 
 ---
