@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { LEGAL, PRIVACY_POLICY, TERMS_OF_USE } from '../../constants/legal';
 import { CIBLES, renderHtml, renderMarkdown } from '../../scripts/gen-legal';
 
@@ -50,15 +51,42 @@ describe("ce que le texte doit dire avant qu'un abonnement puisse être vendu", 
     expect(TOUS_LES_PARAS).toMatch(/identifiant technique de votre compte/);
   });
 
-  it('ne NOMME aucun prestataire tant qu’aucun contrat n’existe', () => {
-    // ⚠️ Ce test protège le sens INVERSE du précédent, et il a une histoire : une
-    // première version nommait « RevenueCat, Inc. » dans un document public alors
-    // qu'aucun contrat n'avait été signé et que le choix technique n'était pas arrêté.
-    // Désigner un sous-traitant qui n'en est pas un est le même mensonge que taire
-    // celui qui l'est. Le RGPD autorise les CATÉGORIES de destinataires (art. 13-1-e).
-    // ➡️ Le jour où le contrat existe : on met le nom ICI et dans le texte, ensemble,
-    // avec le cadre du transfert hors UE (art. 13-1-f) qui ne se lit que dans le contrat.
-    expect(TOUS_LES_PARAS).not.toMatch(/RevenueCat|Stripe|Adapty|Superwall/i);
+  // ⚠️ CE TEST A ÉTÉ RETOURNÉ LE 2026-08-26, en suivant sa propre consigne. Il exigeait
+  // qu'AUCUN prestataire ne soit nommé : une première version (2026-08-02) écrivait
+  // « RevenueCat, Inc. » alors qu'aucun contrat n'existait, et désigner un sous-traitant
+  // qui n'en est pas un est le même mensonge que taire celui qui l'est. Sa note disait
+  // déjà quoi faire ensuite : « le jour où le contrat existe : on met le nom ICI et dans
+  // le texte, ensemble, avec le cadre du transfert hors UE ». Ce jour est arrivé — la clé
+  // est en production, le SDK traite. Ce qu'il garde est donc l'invariant, pas l'état :
+  // **on ne nomme que ce qui est réellement branché, et jamais sans son cadre.**
+  it('ne nomme QUE le prestataire réellement branché', () => {
+    const pkg = JSON.parse(readFileSync(join(__dirname, '..', '..', 'package.json'), 'utf8'));
+    const branche = Object.keys(pkg.dependencies ?? {}).includes('react-native-purchases');
+    expect(branche, 'le SDK d’abonnement n’est plus une dépendance — le nom doit repartir du texte').toBe(true);
+    expect(TOUS_LES_PARAS).toContain(LEGAL.subscriptionProvider);
+    // Les concurrents jamais intégrés n'ont rien à faire dans un document public.
+    expect(TOUS_LES_PARAS).not.toMatch(/Stripe|Adapty|Superwall|Paddle/i);
+  });
+
+  it('nomme le cadre du transfert avec le prestataire, jamais l’un sans l’autre', () => {
+    // Art. 13-1-f : nommer un destinataire hors UE sans dire ce qui encadre le transfert
+    // laisse le lecteur devant un fait brut. Les deux vont ensemble ou pas du tout.
+    expect(TOUS_LES_PARAS).toMatch(/clauses contractuelles types/i);
+  });
+
+  it('ne prête PAS à RevenueCat un cadre qu’il ne revendique pas', () => {
+    // 🔴 Le piège concret : le paragraphe voisin, écrit pour Resend, cumule clauses
+    // contractuelles types ET EU-U.S. Data Privacy Framework. Le DPA de RevenueCat, lu
+    // en entier le 2026-08-26, ne mentionne AUCUN DPF. Recopier la phrase de Resend —
+    // le geste le plus naturel du monde — ferait affirmer une adhésion inexistante.
+    const paraAbonnement = [...PRIVACY_POLICY, ...TERMS_OF_USE]
+      .flatMap((sec) => sec.paragraphs)
+      .filter((par) => par.includes(LEGAL.subscriptionProvider));
+    expect(paraAbonnement.length, 'le prestataire n’apparaît dans aucun paragraphe').toBeGreaterThan(0);
+    for (const par of paraAbonnement) {
+      expect(par, `« ${par.slice(0, 60)}… » revendique un DPF que le DPA ne déclare pas`)
+        .not.toMatch(/Data Privacy Framework/i);
+    }
   });
 
   it('dit que le renouvellement est automatique ET comment y échapper', () => {
@@ -174,7 +202,14 @@ import { createHash } from 'node:crypto';
  */
 const DERNIERE_REVISION = {
   date: '26 août 2026',
-  empreinte: '661057597a8d',
+  // ⚠️ **DEUXIÈME RÉVISION DU MÊME JOUR** (2026-08-26) : le §5 est passé du
+  // conditionnel au réel — RevenueCat nommé, cadre du transfert écrit — quelques
+  // heures après la première publication du 26 août. La DATE ne bouge donc pas, et
+  // c'est un arbitrage, pas un oubli : le texte entre en vigueur le jour même, et
+  // post-dater au 27 annoncerait une prise d'effet qui n'a pas lieu.
+  // ➡️ Si une révision tombait un AUTRE jour, c'est la date qu'il faudrait bouger
+  // d'abord — l'empreinte ne se met à jour qu'après cet arbitrage-là.
+  empreinte: '67c329629431',
 };
 
 /**
