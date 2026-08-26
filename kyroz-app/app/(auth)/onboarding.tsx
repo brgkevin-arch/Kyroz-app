@@ -291,7 +291,12 @@ export default function Onboarding() {
       return 'Remplis ta date de naissance, ton poids et ta taille pour continuer.';
     }
     if (step === 3 && !bodyFatValid)
-      return 'On a besoin de ta masse grasse pour te calculer le plan le plus juste possible — choisis la silhouette la plus proche de toi, ou saisis ton % si tu le connais.';
+      // ⚠️ La phrase s'arrête ICI depuis le 2026-08-26. Elle continuait par
+      // « — choisis la silhouette la plus proche de toi, ou saisis ton % si tu le
+      // connais », qui est MOT POUR MOT le sous-titre de l'étape, déjà affiché deux
+      // centimètres plus haut. Un message de blocage dit ce qui manque ; l'écran
+      // dit déjà comment le donner.
+      return 'On a besoin de ta masse grasse pour te calculer le plan le plus juste possible.';
     if (step === 4 && !trainingValid) {
       if (neat === null) return 'Choisis à quoi ressemblent tes journées, hors sport.';
       return 'Choisis au moins un sport, ou indique que tu n\'en fais pas.';

@@ -54,9 +54,17 @@ describe('streakMessage', () => {
 });
 
 describe('celebrationCopy', () => {
+  // ⚠️ Ce test citait le TEXTE générique (« hors norme »), donc il verrouillait une
+  // formule que la relecture du 2026-08-26 a dû réécrire : « hors norme » comparait
+  // à une norme, ce que CLAUDE.md §5 exclut. Ce qu'il voulait vraiment vérifier,
+  // c'est que les paliers CONNUS ont leur texte à eux et que le générique prend le
+  // relais au-delà — pas les mots employés. Le vocabulaire, lui, est tenu par le
+  // verrou de microcopie en bas de ce fichier.
   it('copy dédiée aux paliers connus, générique au-delà', () => {
-    expect(celebrationCopy(7).body).toContain('Une semaine pleine');
-    expect(celebrationCopy(300).body).toContain('hors norme');
+    const connus = [3, 7, 14, 30, 60].map((n) => celebrationCopy(n).body);
+    expect(new Set(connus).size, 'deux paliers connus partagent le même texte').toBe(connus.length);
+    expect(celebrationCopy(300).body).toBe(celebrationCopy(500).body);   // le générique
+    expect(connus).not.toContain(celebrationCopy(300).body);
   });
   // Ces deux-là vérifiaient `title` quand le titre portait le nombre. Depuis E22
   // c'est le CHIFFRE qui est l'objet visuel, donc l'assertion suit le champ qui
@@ -137,5 +145,80 @@ describe('advanceStreak — bouclier de série', () => {
     expect(nextFreezeRecharge(4)).toBe(7);
     expect(nextFreezeRecharge(7)).toBe(14);
     expect(nextFreezeRecharge(0)).toBe(7);
+  });
+});
+
+// ── VERROU : la microcopie de série ne met pas la pression ───────────────────
+//
+// CLAUDE.md §5 n'autorise la série qu'à une condition, écrite le 2026-07-30 : les
+// mécaniques de rétention passent si elles « rassurent au lieu de mettre la
+// pression », et le test à appliquer est *« est-ce que ça compare l'utilisateur à
+// quelqu'un d'autre, ou est-ce que ça l'aide à ne pas décrocher ? »*
+//
+// Cette règle était écrite et personne ne la comptait. Relecture des textes du
+// 2026-08-26 : trois messages ne la respectaient pas — « Ne casse pas la chaîne »
+// (une injonction), « Tu es dans le club des réguliers » (un club suppose les
+// autres), « Une régularité hors norme. Respect. » (une norme, puis un jugement).
+// Une règle écrite dans le fichier de référence reste décorative tant qu'aucun test
+// ne la compte. Celui-ci la compte.
+describe('la série constate, elle n’exige pas et elle ne compare pas', () => {
+  /** Tous les textes que la série peut servir, paliers compris. */
+  const tousLesTextes = (): string[] => {
+    const out: string[] = [];
+    for (let j = 0; j <= 130; j++) out.push(streakMessage(j));
+    for (const n of [3, 7, 14, 30, 60, 100, 200]) {
+      const c = celebrationCopy(n);
+      out.push(c.body, c.libelle);
+    }
+    return out;
+  };
+
+  // Vocabulaire d'INJONCTION : le texte demande de ne pas échouer.
+  const INJONCTIONS = /ne casse pas|ne rate pas|ne lâche pas|ne perds pas|tiens bon|il faut que|tu dois/i;
+  // Vocabulaire de COMPARAISON : le texte situe l'utilisateur par rapport aux autres.
+  const COMPARAISONS = /club|hors norme|record|classement|mieux que|meilleur que|comme les autres|élite|top \d/i;
+  // Vocabulaire de JUGEMENT : le texte note la personne au lieu de constater le fait.
+  const JUGEMENTS = /respect\b|bravo|félicitations|impressionnant|exceptionnel/i;
+
+  it('aucune injonction', () => {
+    for (const t of tousLesTextes()) expect(INJONCTIONS.test(t), `« ${t} »`).toBe(false);
+  });
+
+  /**
+   * ⚠️ LA SEULE EXCEPTION, et elle est DATÉE. « Une régularité hors norme. Respect. »
+   * a été réécrite par la relecture du 2026-08-26 puis REMISE par le fondateur, en
+   * connaissance de la remarque. C'est le palier des 100 jours et au-delà.
+   *
+   * Elle est inscrite ici plutôt que le vocabulaire retiré de la liste : une règle
+   * qu'on desserre pour faire passer un cas ne garde plus rien, alors qu'une
+   * exception nommée se relit. Et le test ci-dessous vérifie qu'elle correspond
+   * encore à un texte réel — une exception qui survit à sa cause redevient un trou.
+   */
+  const EXCEPTION = 'Une régularité hors norme. Respect.';
+  const saufException = () => tousLesTextes().filter((t) => t !== EXCEPTION);
+
+  it('aucune comparaison aux autres', () => {
+    for (const t of saufException()) expect(COMPARAISONS.test(t), `« ${t} »`).toBe(false);
+  });
+
+  it('aucun jugement de la personne', () => {
+    for (const t of saufException()) expect(JUGEMENTS.test(t), `« ${t} »`).toBe(false);
+  });
+
+  it('l’exception du fondateur existe encore — sinon elle n’a plus à être listée', () => {
+    expect(tousLesTextes(), 'l’exception ne correspond à aucun texte servi').toContain(EXCEPTION);
+    // Et elle ne vaut QUE pour le palier au-delà de 100 : nulle part ailleurs.
+    expect(celebrationCopy(200).body).toBe(EXCEPTION);
+    for (const n of [3, 7, 14, 30, 60]) expect(celebrationCopy(n).body).not.toBe(EXCEPTION);
+  });
+
+  // Le pendant positif : la règle interdit la pression, elle n'interdit pas de
+  // parler. Un test qui ne vérifie que des absences resterait vert si quelqu'un
+  // vidait tous les messages.
+  it('les paliers disent quand même quelque chose', () => {
+    for (const n of [3, 7, 14, 30, 60, 100]) {
+      expect(celebrationCopy(n).body.length, `palier ${n}`).toBeGreaterThan(20);
+    }
+    expect(streakMessage(7)).toContain('7 jours');
   });
 });

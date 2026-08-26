@@ -10,6 +10,7 @@ import { useLayout } from '../constants/layout';
 import { Card, OptionCard, PrimaryButton, SectionLabel } from '../components/ui';
 import { useDialog } from '../components/Dialog';
 import { usePremium } from '../hooks/usePremium';
+import { PHOTOS_NOTICE_LOCALE } from '../lib/photos';
 import { PREMIUM_PRICES, annualSavingPct, paywallBanner, withStorePrices, type StorePrices } from '../lib/premium';
 import { buy, fetchStorePrices, purchasesConfigured, restore } from '../lib/purchases';
 import { DISCLAIMER } from '../constants/legal';
@@ -185,10 +186,7 @@ export default function KyrozPlusScreen() {
               sans jamais dire « et tu les perds en changeant de téléphone ». Sur un
               écran de vente, taire la limite d'une fonctionnalité payante est un
               mensonge par omission — la règle produit ne distingue pas les deux. */}
-          <Text style={s.confid}>
-            Tes photos de progression restent sur ton téléphone. Elles ne sont jamais envoyées —
-            et ne sont pas sauvegardées : un changement de téléphone les perd.
-          </Text>
+          <Text style={s.confid}>{PHOTOS_NOTICE_LOCALE}</Text>
         </View>
 
         <View style={s.block}>

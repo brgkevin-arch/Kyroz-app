@@ -56,7 +56,13 @@ export function streakMessage(streak: number): string {
     const left = 7 - streak;
     return `Plus que ${left} jour${left > 1 ? 's' : ''} pour ton objectif 7 jours`;
   }
-  if (streak === 7) return 'Objectif 7 jours atteint. Ne casse pas la chaîne.';
+  // ⚠️ « Ne casse pas la chaîne. » RETIRÉ le 2026-08-26. C'était une injonction, sur
+  // le seul compteur que l'app montre tous les jours. CLAUDE.md §5 n'autorise la
+  // série qu'à une condition — qu'elle « rassure au lieu de mettre la pression » —
+  // et son propre test est : *est-ce que ça compare, ou est-ce que ça aide à ne pas
+  // décrocher ?* Une consigne de ne pas échouer ne passe ni l'un ni l'autre.
+  // ➡️ Le fait suffit. Il n'y a rien à ajouter au chiffre.
+  if (streak === 7) return 'Objectif 7 jours atteint.';
   const next = nextMilestone(streak);
   const left = next - streak;
   return `${streak} jours d’affilée · prochain palier ${next} (${left} j)`;
@@ -92,10 +98,21 @@ export function celebrationCopy(n: number): { jours: string; libelle: string; bo
     case 14:
       return { jours, libelle, body: 'Deux semaines sans casser la chaîne. C’est devenu une habitude.' };
     case 30:
-      return { jours, libelle, body: 'Un mois complet. Tu es dans le club des réguliers.' };
+      // « Tu es dans le club des réguliers » supposait les AUTRES — un club, donc une
+      // appartenance, donc une comparaison. Retiré le 2026-08-26 (CLAUDE.md §5).
+      return { jours, libelle, body: 'Un mois complet. Le plan fait partie de ta semaine.' };
     case 60:
       return { jours, libelle, body: 'Deux mois pleins. La constance, c’est toi.' };
     default:
+      // ⚠️ **GARDÉ SUR ARBITRAGE DU FONDATEUR (2026-08-26).** La relecture des textes
+      // l'avait réécrit : « hors norme » mesure contre une norme et « Respect »
+      // juge — deux sorties du constat au sens de CLAUDE.md §5. Le fondateur l'a
+      // remis tel quel, en connaissance de la remarque.
+      // ➡️ C'est le palier des 100 jours et au-delà : le seul que presque personne
+      // n'atteint, et le seul où l'app se permet de saluer. Les autres restent des
+      // constats. L'exception est INSCRITE dans `streak.test.ts` — le vocabulaire
+      // reste interdit partout ailleurs, et le test rougit si cette phrase-ci
+      // disparaît, pour qu'on ne perde pas la trace de la décision.
       return { jours, libelle, body: 'Une régularité hors norme. Respect.' };
   }
 }

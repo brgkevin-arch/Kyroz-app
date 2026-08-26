@@ -11,7 +11,7 @@ import { TrackVerdict, PhotoCompare } from './Transformation';
 import { planFlags, trackingTarget } from '../lib/tdee';
 import { useWeightLog } from '../hooks/useWeightLog';
 import { useProfile } from '../hooks/useProfile';
-import { pickProgressPhoto, cameraAvailable, PhotoSource } from '../lib/photos';
+import { pickProgressPhoto, cameraAvailable, PhotoSource, PHOTOS_NOTICE_LOCALE } from '../lib/photos';
 import { todayStamp, localStamp, DEFAULT_WEIGH_IN_FREQUENCY, WEIGH_IN_LABELS, historiquePesees, HISTORIQUE_MAX } from '../lib/weight';
 import { applyWeighInReminder } from '../lib/notifications';
 import { WeighInFrequency } from '../lib/types';
@@ -377,7 +377,7 @@ export function WeightCheckin({ t, onClose, dragHandlers, sheetScrollProps }: Pr
             {/* 🔴 « restent sur ton téléphone » ne dit PAS « tu les perdras en changeant
                 de téléphone » (audit paywall, 2026-08-25) : vendre une fonctionnalité
                 sans annoncer sa fragilité est un mensonge par omission. */}
-            <Text style={[s.photoHint, { flex: 1 }]}>Tes photos restent sur ton téléphone, jamais envoyées — et ne sont pas sauvegardées : un changement de téléphone les perd.</Text>
+            <Text style={[s.photoHint, { flex: 1 }]}>{PHOTOS_NOTICE_LOCALE}</Text>
           </View>
         )}
           </>

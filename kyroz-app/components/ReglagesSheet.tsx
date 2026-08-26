@@ -164,7 +164,10 @@ export function ReglagesSheet({
                 titre: remindersSupported ? 'Notifications désactivées' : 'Indisponible sur le web',
                 message: remindersSupported
                   ? 'Active les notifications de Kyroz dans les réglages de ton téléphone pour recevoir le rappel.'
-                  : 'Le rappel quotidien fonctionne sur l’app mobile (iOS/Android), pas dans le navigateur.',
+                  // ⚠️ Le TITRE dit déjà « Indisponible sur le web », et la ligne
+                  // d'aide juste dessous le redit. Ce message-ci n'a donc pas à
+                  // répéter la plateforme une troisième fois : il dit où ça marche.
+                  : 'Installe Kyroz sur iOS ou Android pour recevoir le rappel.',
               });
             }
           }}

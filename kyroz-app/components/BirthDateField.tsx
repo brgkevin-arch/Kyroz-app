@@ -9,6 +9,7 @@ import { libelleDate } from '../lib/wheelDate';
 import { ageOn, BIRTH_YEAR_MIN } from '../lib/birthday';
 import { todayStamp } from '../lib/weight';
 import { MIN_AGE } from '../lib/safety';
+import { DATE_IMPOSSIBLE } from '../lib/dateLabel';
 
 // ── Saisie de la date de naissance ──────────────────────────────────────────
 //
@@ -57,7 +58,7 @@ export function BirthDateField({ t, value, onChange, fallbackAge }: Props) {
   const anneeAberrante = value != null && parseInt(value.slice(0, 4), 10) < BIRTH_YEAR_MIN;
 
   const probleme = impossible || anneeAberrante
-    ? 'Cette date n’existe pas — vérifie le jour et le mois.'
+    ? DATE_IMPOSSIBLE
     : tropJeune ? `Kyroz est réservé aux ${MIN_AGE} ans et plus.` : null;
   // Repli des comptes sans date : on n'a rien à leur reprocher, ton neutre.
   const repli = !probleme && age == null && fallbackAge != null

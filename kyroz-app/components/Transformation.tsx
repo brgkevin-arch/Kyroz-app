@@ -91,14 +91,16 @@ export function PhotoCompare({ t, photos, entries }: {
           {delta > 0 ? '+' : ''}{delta} kg entre les deux photos
         </Text>
       )}
-      {/* Icône de main (le 🔒 est parti avec tous les émojis), token de la passe DA. */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm }}>
-        <LocalIcon color={t.textTertiary} size={Icone.petite} />
-        <Text style={{ ...Type.micro, color: t.textTertiary, flex: 1 }}>
-          Tes photos restent sur ton téléphone, jamais envoyées — et ne sont pas
-          sauvegardées : un changement de téléphone les perd.
-        </Text>
-      </View>
+      {/* 🔴 LA PHRASE SUR LES PHOTOS A ÉTÉ RETIRÉE D'ICI le 2026-08-26 : elle
+          s'affichait DEUX FOIS dans le même défilement. `PhotoCompare` n'a qu'un
+          seul appelant — `WeightCheckin` — qui pose déjà la même phrase (au
+          caractère près, même icône) une trentaine de lignes plus haut.
+          ➡️ C'est bien CELLE-CI qui part, et pas l'autre : `PhotoCompare` ne se
+          monte qu'à partir de DEUX photos, alors que la phrase doit être lue par
+          l'abonné qui n'en a encore aucune — celui qui s'apprête à prendre la
+          première. Garder celle-ci aurait fait disparaître l'avertissement au
+          moment précis où il sert.
+          ⚠️ Le texte lui-même vit maintenant dans `lib/photos.ts::PHOTOS_NOTICE_LOCALE`. */}
     </View>
   );
 }

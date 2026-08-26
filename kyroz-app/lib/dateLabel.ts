@@ -29,3 +29,14 @@ export function frDateLongue(iso: string, today: string = todayStamp()): string 
   });
   return txt.charAt(0).toUpperCase() + txt.slice(1);
 }
+
+/**
+ * Ce qu'on dit d'un 31 février.
+ *
+ * ⚠️ Écrit en double jusqu'au 2026-08-26 — `BirthDateField` (date de naissance) et
+ * `goalLadder` (échéance d'objectif) validaient chacun sa date avec sa propre copie
+ * de la même phrase. Deux saisies de date, jamais vues ensemble, donc une
+ * divergence n'aurait sauté aux yeux de personne : c'est exactement le cas où une
+ * source unique coûte une ligne et évite deux textes.
+ */
+export const DATE_IMPOSSIBLE = 'Cette date n\u2019existe pas — vérifie le jour et le mois.';

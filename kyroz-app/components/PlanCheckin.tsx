@@ -38,7 +38,12 @@ export function PlanCheckin({
     <View style={{ flex: 1, backgroundColor: t.bg }}>
       <View style={s.header} {...(dragHandlers ?? {})}>
         <Text style={s.title}>Ton plan te convient ?</Text>
-        <Text style={s.intro}>Dis-nous ce qui coince — on ajuste tout de suite.</Text>
+        {/* 🔴 « Dis-nous ce qui coince — on ajuste tout de suite. » RETIRÉ le
+            2026-08-26. Cette feuille n'a qu'une porte d'entrée : la carte de l'écran
+            Plan (`plan.tsx`, `checkinDue`), qui vient de dire « Dis-nous ce qui
+            coince — on ajuste EN UN TAP ». Les deux se lisaient à la suite, à deux
+            secondes d'intervalle, dans deux formulations différentes de la même
+            promesse. Les quatre lignes ci-dessous disent déjà ce qui est ajustable. */}
       </View>
 
       <View style={s.body}>
@@ -60,7 +65,6 @@ function makeStyles(t: ThemePalette) {
   return StyleSheet.create({
     header: { paddingHorizontal: Spacing.xxl, paddingBottom: Spacing.md, gap: Spacing.sm },
     title: { color: t.text, ...Type.h2 },
-    intro: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 20 },
     body: { paddingHorizontal: Spacing.xxl, gap: Spacing.md },
     row: { flexDirection: 'row', alignItems: 'center', gap: Spacing.lg, backgroundColor: t.card, borderRadius: Radius.card, padding: Spacing.lg },
     icon: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
