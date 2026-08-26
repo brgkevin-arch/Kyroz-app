@@ -86,6 +86,7 @@ qu'ils étaient périmés.
 | 138 | **Les fiches d'OTA sont COMPTÉES** — un test les compare entre elles, `npm run check:ota` les confronte au canal EAS | E62 |
 | 139 | **Un « + » dans les courses** — la liste n'est plus seulement dérivée, on y ajoute ses propres articles | E63 |
 | 140 | **« Aucun pressable sous 44 pt » était FAUX** — la sonde s'arrêtait sur une flèche ; six boutons dessous | E64 |
+| 141 | **Les jours de repos portent sur la semaine** — une seule maison (Sport & activité), les 7 jours, plus de filtre | E65 |
 | 142 | **Statistiques d'usage ÉTEINTES** — plus d'écran de consentement, plus d'envoi ; le périmètre reste gardé | E66 |
 
 🔴 **NE PAS RE-PROPOSER LES TÂCHES DU PLAN D'ACTION : elles sont toutes livrées côté
@@ -4146,6 +4147,73 @@ produit en suspens — il ne reste qu'à coder.
 
   🔁 **Ce qui reste au fondateur** : publier l'OTA (c'est elle qui coupe chez les
   testeurs), fusionner `kyroz-site` #7, et supprimer les données côté PostHog.
+- 🤖 **E65 · Les jours de repos étaient demandés deux fois, et bridés aux jours du
+  plan — le cyclage en perdait un tiers (2026-08-26)**
+
+  Signalé par le fondateur, deux captures à l'appui : *« pourquoi il y a deux fois les
+  jours de repos et surtout dans sport et activité tu as que 5 jours possible ? »* Deux
+  moitiés, et elles se tenaient.
+
+  🔴 **UNE DONNÉE, DEUX PORTES — QUI NE MONTRAIENT PAS LA MÊME CHOSE.** `RestDaysPicker`
+  était monté dans les DEUX éditeurs pour le seul `rest_weekdays`, et chacun le
+  nourrissait à sa source : « Paramètres des repas » avec son **BROUILLON** de jours du
+  plan, « Sport & activité » avec le profil **ENREGISTRÉ**. Sept puces d'un côté, cinq
+  de l'autre, au même instant, sans que rien ne soit « cassé ». ⚠️ Et l'écran qui ne
+  décidait pas ÉCRIVAIT quand même : ouvrir les Paramètres des repas puis « Enregistrer »
+  rognait `rest_weekdays` sur les jours du plan, en silence.
+
+  🔴 **ET LE BRIDAGE N'ÉTAIT PAS UN DÉFAUT D'AFFICHAGE — il coûtait des calories.** La
+  règle « on ne se repose que sur un jour planifié » confondait deux choses : les jours
+  que Kyroz PLANIFIE et les jours où l'utilisateur S'ENTRAÎNE. Or le moteur compte déjà
+  sur la semaine entière (`trainingDaysPerWeek` = `7 − jours de repos`). Avec un plan du
+  lundi au vendredi, **personne ne pouvait déclarer qu'il ne s'entraîne pas le week-end**
+  — le moteur en déduisait donc **6 jours d'entraînement pour 4 séances déclarées**, et
+  étalait la dépense sportive hebdomadaire sur 6.
+  📋 **Mesuré** (muscu 4×60 min, 90 kg, plan lun→ven) : l'écart entre un jour
+  d'entraînement et un jour de repos tombait de **378 à 252 kcal**, soit **un tiers du
+  cyclage** — la fonctionnalité que le volume concentré existe pour servir. Cibles
+  servies : jour de repos 2412 au lieu de 2312, jours d'entraînement 2664 au lieu de 2690.
+
+  ➡️ **Décision fondateur, le jour même** : *« je veux que les jours de repos
+  disparaissent des paramètres repas. Et peu importe le nombre de jour de plan que l'user
+  met, il y a 7 jours. Si un jour de repos tombe hors plan, on s'en occupe pas. »* Donc :
+  une seule maison (**Sport & activité**), les **sept** jours toujours proposés, et
+  **aucun filtre** — ni à la saisie, ni à l'enregistrement, aux **trois** endroits qui
+  écrivent (inscription comprise : laisser le défaut là où le réglage se CRÉE aurait
+  seulement retardé son apparition).
+
+  ⚠️ **RIEN À CHANGER DANS LE MOTEUR, et c'est ce qui rend le correctif petit** :
+  `restDaysForProfile` mappe les jours choisis sur les jours du plan et **ignore** ceux
+  qui n'y sont pas. Un jour de repos hors plan ne casse donc rien — il informe le
+  diviseur, il ne déplace aucun repas. Vérifié par test.
+
+  ⚠️ **ET LA DÉDUCTION PRÉ-COCHÉE A SUIVI** — sans quoi le correctif n'aurait servi
+  qu'aux gens qui touchent les puces. Elle projetait les jours de repos sur les seuls
+  jours du plan : à 4 séances et un plan lun→ven, elle en pré-cochait **UN**, donc un
+  compte NEUF naissait avec le cyclage écrasé. Elle porte désormais sur les sept jours
+  (`deducedRestWeekdays(TOUS_LES_JOURS, …)`), aux deux endroits qui pré-cochent.
+
+  📋 **Vérifié à l'écran, pas seulement en test** : « Paramètres des repas » enchaîne
+  désormais JOURS DU PLAN → REPAS INCLUS (plus de bloc repos) ; « Sport & activité »
+  propose Lun→Dim + « Aucun » **avec un plan lun→ven** ; cocher Sam et Dim puis
+  enregistrer laisse `rest_weekdays = [3, 6, 0]` dans le profil — et un « Enregistrer »
+  depuis les Paramètres des repas **ne les rogne plus**. C'est ce dernier contrôle qui
+  vaut : c'était la moitié silencieuse du défaut.
+  ⚠️ **Non ouvert au navigateur : l'étape 7 de l'inscription.** Y arriver demande de
+  franchir six étapes de formulaire, ou une session invité contre Supabase. Le module
+  monte sans erreur, `tsc` est propre et le verrou lit le fichier réel — mais la rangée
+  de puces n'a pas été VUE. Dit ici plutôt que supposé.
+
+  🔒 **`lib/__tests__/joursDeRepos.test.ts`** tient les deux moitiés : la MÉCANIQUE (le
+  diviseur redevient juste dès qu'on peut tout déclarer ; un jour hors plan ne casse
+  rien) et le CÂBLAGE (une seule maison, sept jours, zéro filtre à l'écriture, déduction
+  sur la semaine). **Vérifié par 3 mutations sur les vrais fichiers** — remettre le
+  filtre, remonter le sélecteur dans les repas, re-filtrer les puces de l'inscription :
+  trois rougissements, restauration verte.
+  ⚠️ Et les sondes **écartent les commentaires** avant de chercher : sans ça, le contrôle
+  « cet écran n'écrit plus `rest_weekdays` » rougissait sur la fiche qui explique
+  pourquoi il ne l'écrit plus. La « mesure contaminée » se rejoue à chaque test qui lit
+  un fichier — celui-ci se fait aussi dire OUI **et** NON sur du code fabriqué.
 
 - 🤖 **E64 · La sonde des cibles tactiles s'arrêtait sur une flèche — six boutons
   vivaient dessous, au vert (2026-08-26)**
@@ -8353,7 +8421,7 @@ COMMITS non mergés, la commande est :
 Plancher = énergie disponible (30 kcal/kg de masse maigre + sport, **plafonné au TDEE**), filet absolu 1500 ♂ / 1200 ♀ ; déficit ≤ 25 % du TDEE **sur tous les chemins** ; plancher lipidique 0,8 g/kg de masse maigre ; **pas < 18 ans** (`lib/safety.ts::MIN_AGE`) ; déficit annulé sous IMC 18,5 ; disclaimer affiché ; fallback plan (jamais d'erreur vide).
 
 ## Core loop & moteur
-- **Onboarding** (`app/(auth)/onboarding.tsx`, **7 étapes** — l'écran d'accueil n'est pas numéroté, d'où « ÉTAPE x / 6 » ; précédé du portail de dépistage santé) : prénom (1er, requis, local-only `lib/profileName.ts`) → infos de base + **%MG requis** (`BodyFatPicker`, 6 rendus 3D `assets/bodyfat/{male,female}-N.png`, sources dans `_source/`) → **sports** (`SportsEditor` : type + fréquence + durée, ou « je ne fais pas de sport ») → objectif → **préférences** (régime, protéines préférées, aliments à éviter + saisie libre, temps prépa, **+ variété des repas** — l'écran Variété autonome a été fusionné ici 2026-06-20, −1 étape) → **jours du plan + jours de repos** (carb-cycling, sous-ensemble des jours du plan — ajouté à l'onboarding 2026-06-20) **+ repas inclus** (DERNIÈRE étape, bouton « Générer mon plan » — depuis le 2026-08-07, une LISTE de créneaux avec leur heure, et un bouton **« Ajouter un repas »** : plus de plafond à 4, cf. le point « créneaux libres » plus bas). **L'étape « récap » a été SUPPRIMÉE 2026-06-20** (redondante avec le reveal) → le récap + le **disclaimer** vivent désormais dans le reveal du 1er plan ; le **rappel quotidien** vit UNIQUEMENT dans **Profil → Réglages** (`useReminder`, décision fondateur de ne pas le proposer ailleurs). **Repas fixes (« Je gère ») + emphase des repas RETIRÉS de l'onboarding 2026-06-20** (réglables dans Profil → Paramètres des repas ; l'onboarding pose `meal_emphasis:'even'`, `fixed_meals:undefined`). **Macros TOUJOURS calculées (auto) à l'onboarding** ; le fork « Calculées / Perso % » a été RETIRÉ de l'onboarding (2026-06-20, simplification activation North Star) → l'ajustement perso % vit désormais uniquement dans le **Profil → Calories & macros** (`macro_mode='auto'` posé au finish). **Découvrabilité perso macros (2026-07-03)** : comme le fork a quitté l'onboarding, un lien **« Ma répartition (%) »** sur la carte macros de l'écran Plan **deep-linke** vers l'éditeur (drapeau `@kyroz:openEditor='macros'` consommé au focus du Profil via `useFocusEffect`). Fix au passage : la ligne « Calories & macros » du Profil affiche « Perso % » / « Calculées » (avant : testait `macro_mode==='manual'`, jamais vrai → toujours « Calculées »). ⚠️ Jours du plan **décochés par défaut** (noir = off, blanc = on). Auto-génère le plan à l'arrivée. **Reveal du 1er plan (`components/FirstPlanReveal.tsx`, J1, 2026-06-20)** : à la TOUTE 1re génération (depuis l'onboarding), overlay scrollable « C'est prêt, {prénom} ! » qui révèle la semaine (objectif/kcal/jours + aperçu du jour 1 **EN ENTIER** — un `slice(0, 4)` y traînait, invisible tant que 4 était le maximum, et il coupait le dîner dès le 5ᵉ repas : l'aperçu montrait une journée qui n'était pas celle servie ; corrigé le 2026-08-07) **+ le disclaimer** (absorbé de l'étape récap supprimée ; le rappel quotidien n'y est PAS — uniquement dans Profil) AVANT la visite guidée du Plan ; affiché UNE seule fois (flag `@kyroz:firstPlanSeen`, backfillé dans `load()` pour les profils ayant déjà un plan → jamais montré aux existants). Coordonné avec le tour (l'effet du tour attend `!showReveal`).
+- **Onboarding** (`app/(auth)/onboarding.tsx`, **7 étapes** — l'écran d'accueil n'est pas numéroté, d'où « ÉTAPE x / 6 » ; précédé du portail de dépistage santé) : prénom (1er, requis, local-only `lib/profileName.ts`) → infos de base + **%MG requis** (`BodyFatPicker`, 6 rendus 3D `assets/bodyfat/{male,female}-N.png`, sources dans `_source/`) → **sports** (`SportsEditor` : type + fréquence + durée, ou « je ne fais pas de sport ») → objectif → **préférences** (régime, protéines préférées, aliments à éviter + saisie libre, temps prépa, **+ variété des repas** — l'écran Variété autonome a été fusionné ici 2026-06-20, −1 étape) → **jours du plan + jours de repos** (carb-cycling — ajouté à l'onboarding 2026-06-20 ; ⚠️ les jours de repos portent sur la SEMAINE ENTIÈRE et ne sont **plus** un sous-ensemble des jours du plan depuis le 2026-08-26, cf. E65) **+ repas inclus** (DERNIÈRE étape, bouton « Générer mon plan » — depuis le 2026-08-07, une LISTE de créneaux avec leur heure, et un bouton **« Ajouter un repas »** : plus de plafond à 4, cf. le point « créneaux libres » plus bas). **L'étape « récap » a été SUPPRIMÉE 2026-06-20** (redondante avec le reveal) → le récap + le **disclaimer** vivent désormais dans le reveal du 1er plan ; le **rappel quotidien** vit UNIQUEMENT dans **Profil → Réglages** (`useReminder`, décision fondateur de ne pas le proposer ailleurs). **Repas fixes (« Je gère ») + emphase des repas RETIRÉS de l'onboarding 2026-06-20** (réglables dans Profil → Paramètres des repas ; l'onboarding pose `meal_emphasis:'even'`, `fixed_meals:undefined`). **Macros TOUJOURS calculées (auto) à l'onboarding** ; le fork « Calculées / Perso % » a été RETIRÉ de l'onboarding (2026-06-20, simplification activation North Star) → l'ajustement perso % vit désormais uniquement dans le **Profil → Calories & macros** (`macro_mode='auto'` posé au finish). **Découvrabilité perso macros (2026-07-03)** : comme le fork a quitté l'onboarding, un lien **« Ma répartition (%) »** sur la carte macros de l'écran Plan **deep-linke** vers l'éditeur (drapeau `@kyroz:openEditor='macros'` consommé au focus du Profil via `useFocusEffect`). Fix au passage : la ligne « Calories & macros » du Profil affiche « Perso % » / « Calculées » (avant : testait `macro_mode==='manual'`, jamais vrai → toujours « Calculées »). ⚠️ Jours du plan **décochés par défaut** (noir = off, blanc = on). Auto-génère le plan à l'arrivée. **Reveal du 1er plan (`components/FirstPlanReveal.tsx`, J1, 2026-06-20)** : à la TOUTE 1re génération (depuis l'onboarding), overlay scrollable « C'est prêt, {prénom} ! » qui révèle la semaine (objectif/kcal/jours + aperçu du jour 1 **EN ENTIER** — un `slice(0, 4)` y traînait, invisible tant que 4 était le maximum, et il coupait le dîner dès le 5ᵉ repas : l'aperçu montrait une journée qui n'était pas celle servie ; corrigé le 2026-08-07) **+ le disclaimer** (absorbé de l'étape récap supprimée ; le rappel quotidien n'y est PAS — uniquement dans Profil) AVANT la visite guidée du Plan ; affiché UNE seule fois (flag `@kyroz:firstPlanSeen`, backfillé dans `load()` pour les profils ayant déjà un plan → jamais montré aux existants). Coordonné avec le tour (l'effet du tour attend `!showReveal`).
 - 🍽 **CRÉNEAUX DE REPAS LIBRES (2026-08-07, `lib/mealSlots.ts`)** — le plafond de 4 repas
   par jour est levé. Un créneau est une **donnée** (`MealSlot` : id, libellé, heure, vivier),
   plus une valeur de type : l'utilisateur crée « Shaker post-training », 18h30, vivier

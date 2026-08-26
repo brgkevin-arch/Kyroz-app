@@ -148,10 +148,15 @@ describe('« jours de repos » — la case vide ne doit pas vouloir dire « je m
   // tout nouvel inscrit qui n'avait pas rempli une question facultative. Le Profil, lui,
   // pré-cochait déjà la déduction : deux écrans, deux sens pour le même réglage.
 
-  it('accepter la pré-sélection donne EXACTEMENT ce que le moteur déduisait seul', () => {
+  it('accepter la pré-sélection donne EXACTEMENT le même PLAN que la déduction seule', () => {
     // L'invariant qui rend la pré-sélection honnête : elle ne décide de rien de neuf,
     // elle rend visible ce qui se décidait en silence. Si les deux divergeaient, un
     // utilisateur qui valide sans rien toucher changerait son plan sans le savoir.
+    //
+    // ⚠️ IL SE VÉRIFIE SUR LES DÉPENSES, PAS SUR L'ENSEMBLE DES JOURS DE REPOS — et ce
+    // n'est pas un assouplissement, c'est la promesse elle-même : ce qu'on doit à
+    // l'utilisateur, c'est que son plan ne bouge pas. L'ensemble n'en était qu'un
+    // intermédiaire, et il diverge légitimement dans UN cas (ci-dessous).
     const SEMAINE = [1, 2, 3, 4, 5, 6, 0];
     for (const seances of [0, 1, 2, 3, 4, 5, 6, 7]) {
       const preCoche = deducedRestWeekdays(SEMAINE, seances);
@@ -161,9 +166,40 @@ describe('« jours de repos » — la case vide ne doit pas vouloir dire « je m
       const auto = profil(MUSCU_4x60, {
         training_days_per_week: seances, plan_weekdays: SEMAINE, rest_weekdays: undefined,
       });
-      expect([...restDaysForProfile(p, 7)].sort(), `${seances} séances`)
-        .toEqual([...restDaysForProfile(auto, 7)].sort());
+      expect(dayExpenditures(p, 7).map(Math.round), `${seances} séances`)
+        .toEqual(dayExpenditures(auto, 7).map(Math.round));
+      // À partir d'UNE séance, les deux chemins désignent aussi les mêmes jours.
+      if (seances >= 1) {
+        expect([...restDaysForProfile(p, 7)].sort(), `${seances} séances`)
+          .toEqual([...restDaysForProfile(auto, 7)].sort());
+      }
     }
+  });
+
+  it('🔴 zéro séance déclarée ne pré-coche AUCUN jour — et le plan reste le même', () => {
+    // Signalé par le fondateur le 2026-08-26, capture à l'appui : les sept jours
+    // arrivaient cochés à l'inscription. `restDaySet(n, 0)` rend tous les jours —
+    // arithmétiquement juste, absurde à l'écran : l'app affirmait « je ne m'entraîne
+    // jamais » à la place de quelqu'un qui n'avait encore rien dit.
+    const SEMAINE = [1, 2, 3, 4, 5, 6, 0];
+    expect(deducedRestWeekdays(SEMAINE, 0)).toEqual([]);
+    expect(deducedRestWeekdays(SEMAINE, 1)).not.toEqual([]);   // la sonde sait dire OUI
+
+    // ⚠️ ET CE N'ÉTAIT PAS QU'UN AFFICHAGE : ces sept jours étaient ENREGISTRÉS. Qui
+    // déclare du sport plus tard sans repasser par l'écran garde `7 − 7 = 0` jour
+    // d'entraînement — `dayExpenditures` retombe sur le lissage et son cyclage ne
+    // s'allume jamais. C'est le défaut « paramètre dormant » : posé quand il ne
+    // voulait rien dire, il mord des semaines après.
+    const plat = (d: number[]) => new Set(d.map(Math.round)).size === 1;
+    // Le même profil — 4 séances déclarées — avec les sept jours hérités d'une saisie
+    // faite AVANT que le sport ne soit déclaré…
+    const dormant = profil(MUSCU_4x60, { training_days_per_week: 4, plan_weekdays: SEMAINE, rest_weekdays: SEMAINE });
+    expect(plat(dayExpenditures(dormant, 7)), 'le réglage dormant écrase le cyclage').toBe(true);
+    // …et le même, avec des jours de repos qui veulent dire quelque chose.
+    const vivant = profil(MUSCU_4x60, {
+      training_days_per_week: 4, plan_weekdays: SEMAINE, rest_weekdays: deducedRestWeekdays(SEMAINE, 4),
+    });
+    expect(plat(dayExpenditures(vivant, 7)), 'le cyclage devrait s’allumer').toBe(false);
   });
 
   it('« Aucun » reste une réponse possible — et elle rend le plan plat, à raison', () => {
