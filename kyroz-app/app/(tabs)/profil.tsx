@@ -780,7 +780,9 @@ export default function ProfilScreen() {
           style={{ backgroundColor: t.danger, borderRadius: Radius.button, paddingVertical: Spacing.lg, alignItems: 'center', opacity: deleting ? 0.6 : 1 }}>
           <Text style={{ ...Type.h3, color: t.onDanger }}>{deleting ? 'Suppression…' : 'Supprimer définitivement'}</Text>
         </Presse>
-        <Presse onPress={() => setConfirmDelete(false)} style={{ alignItems: 'center', paddingVertical: Spacing.sm }}>
+        {/* 44 pt PLEINS : `paddingVertical: Spacing.sm` donnait ~36 pt, et ce
+            bouton-là est le seul recours de qui ouvre la feuille par erreur. */}
+        <Presse onPress={() => setConfirmDelete(false)} style={{ alignItems: 'center', justifyContent: 'center', minHeight: CIBLE_TACTILE_MIN }}>
           <Text style={{ ...Type.bodyStrong, color: t.textSecondary }}>Annuler</Text>
         </Presse>
       </ActionSheet>

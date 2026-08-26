@@ -466,7 +466,9 @@ function makeStyles(t: ThemePalette) {
     editName: { ...Type.bodyStrong, color: t.textSecondary, marginTop: -Spacing.sm },
     editLabel: { ...Type.overline, color: t.textTertiary },
     unitRow: { flexDirection: 'row', gap: Spacing.sm },
-    cancel: { alignItems: 'center', paddingVertical: Spacing.sm },
+    // ⚠️ 44 pt PLEINS, pas `paddingVertical: Spacing.sm` : ce style faisait
+    // ~36 pt et sert aux « Annuler » des TROIS feuilles de l'écran.
+    cancel: { alignItems: 'center', justifyContent: 'center', minHeight: CIBLE_TACTILE_MIN },
     cancelTxt: { ...Type.bodyStrong, color: t.textSecondary },
     confirmMsg: { ...Type.body, color: t.textSecondary, lineHeight: 21 },
     confirmBtn: { borderRadius: Radius.button, paddingVertical: Spacing.lg, alignItems: 'center', justifyContent: 'center' },

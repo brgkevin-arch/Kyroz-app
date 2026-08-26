@@ -1706,6 +1706,26 @@ padding natif d'un champ) ; la grille reste un multiple de 4, croissante et sans
 doublon ; aucun pressable sous 44 pt. **Vérifié par 5 mutations**, toutes
 rougissent.
 
+> 🔴 **ET « AUCUN PRESSABLE SOUS 44 PT » ÉTAIT FAUX — pendant des mois, au vert**
+> (2026-08-26). La sonde lisait la balise avec un `>` paresseux, donc elle
+> s'arrêtait sur la **flèche** d'un `onPress={() => …}` : tout bouton dont le
+> premier attribut est une fonction anonyme n'était **jamais mesuré**. Deux
+> angles morts de la même famille l'accompagnaient : la collecte des noms de
+> styles exigeait un objet d'**UNE lettre** (`s.x`, donc pas `styles.x`), et une
+> borne de 400 caractères coupait avant le `style=` de toute balise commentée.
+> **Mesuré** : l'ancienne sonde rendait **0** sur les cinq fichiers fautifs, tout
+> en voyant le même style écrit sans flèche — c'est ce CONTRASTE qui l'a
+> dénoncée, pas une relecture. Six boutons réels dessous : les « Annuler » de la
+> Réserve et de la suppression de compte (36), « Effacer ma sélection » du
+> sélecteur de masse grasse (28), les puces de sport (36), les boutons ± des
+> séances (34), la croix d'une photo de pesée (26 + un `hitSlop`).
+> ➡️ La balise se lit désormais par **balayage à profondeur d'accolades**, jamais
+> par une regex. Et le fichier porte deux `it` qui font dire **OUI puis NON** à la
+> sonde sur des cas écrits exprès — dont la colonne empilée (le sélecteur de jour
+> du Plan : ~97 pt réels) qu'une estimation « 2 × padding + une ligne » accusait à
+> 28 pt. *Un test qui ne trouve rien ressemble exactement à un test que tout
+> satisfait.*
+
 ### Les trois finitions : trait, icône, retour au toucher (2026-08-06)
 
 Même diagnostic que les trois passes précédentes, en plus petit — le token existe

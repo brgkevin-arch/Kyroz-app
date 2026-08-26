@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image, ImageSourcePropType } from 'react-native';
 import { Presse } from './Presse';
-import { ThemePalette, Radius, Type, Spacing, Trait, OPACITE_PRESSION } from '../constants/theme';
+import { ThemePalette, Radius, Type, Spacing, Trait, CIBLE_TACTILE_MIN, OPACITE_PRESSION } from '../constants/theme';
 import { Chip, Field } from './ui';
 import { BodyFatSource, Sex } from '../lib/types';
 import {
@@ -331,6 +331,9 @@ const styles = StyleSheet.create({
   img: { height: 104, aspectRatio: 273 / 479 },
   pct: { ...Type.h3 },
   desc: { ...Type.caption, lineHeight: 16, textAlign: 'center' },
-  clear: { alignSelf: 'flex-start', paddingVertical: Spacing.xs },
+  // ⚠️ 44 pt PLEINS. À `paddingVertical: Spacing.xs` il mesurait ~28 pt : le
+  // libellé est en `captionStrong`, donc il a l'air d'un lien — mais c'est le
+  // seul moyen de revenir en arrière après avoir choisi une silhouette.
+  clear: { alignSelf: 'flex-start', justifyContent: 'center', minHeight: CIBLE_TACTILE_MIN },
   note: { borderWidth: Trait.fin, borderRadius: Radius.card, paddingVertical: Spacing.md, paddingHorizontal: Spacing.md },
 });
