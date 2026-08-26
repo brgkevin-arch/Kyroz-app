@@ -231,6 +231,16 @@ import { STATISTIQUES_USAGE_ACTIVES } from '../featureFlags';
  */
 const DERNIERE_REVISION = {
   date: '26 août 2026',
+  // ⚠️ **TROISIÈME RÉVISION DU MÊME JOUR** (2026-08-26) : la mention du médiateur de
+  // la consommation est retirée du §10 (audit V1, constat 09-04) — elle promettait un
+  // recours qui n'existe pas, l'adhésion n'étant obligatoire (L.612-1) qu'à partir de
+  // la première vente. Même arbitrage que ci-dessous : la date ne bouge pas.
+  // 🔴 **ET UNE RÉSERVE QUI N'AVAIT PAS LIEU D'ÊTRE LES DEUX FOIS PRÉCÉDENTES** : ce
+  // texte-ci n'est PAS ENCORE LIVRÉ. Les deux révisions du 26 sont parties dans la
+  // 24ᵉ OTA ; celle-ci attend la suivante. Tant qu'elle n'est pas publiée, « 26 août »
+  // décrit la dernière version SERVIE, ce qui reste vrai. ➡️ Si l'OTA glisse au-delà
+  // du 26, c'est la DATE qu'il faut bouger avant de publier, pas l'empreinte après.
+  //
   // ⚠️ **DEUXIÈME RÉVISION DU MÊME JOUR** (2026-08-26) : le §5 est passé du
   // conditionnel au réel — RevenueCat nommé, cadre du transfert écrit — quelques
   // heures après la première publication du 26 août. La DATE ne bouge donc pas, et
@@ -248,7 +258,7 @@ const DERNIERE_REVISION = {
   // d'être déclaré le jour où il ne traite plus, données effacées. C'est la même règle
   // dans l'autre sens ; la garder à sens unique ferait décrire un traitement inexistant.
   // ➡️ La date ne bouge pas — même jour de livraison.
-  empreinte: '24f62acf55bb',
+  empreinte: 'eb56e8f6f8c4',
 };
 
 /**

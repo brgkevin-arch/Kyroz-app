@@ -335,7 +335,18 @@ export const TERMS_OF_USE: LegalSection[] = [
   {
     title: '10. Droit applicable',
     paragraphs: [
-      `Les présentes conditions sont soumises au droit français. Contact : ${LEGAL.supportEmail}. En cas de litige, vous pouvez recourir à un médiateur de la consommation ou saisir la CNIL pour les questions relatives aux données.`,
+      // 🔴 LA MENTION DU MÉDIATEUR A ÉTÉ RETIRÉE LE 2026-08-26 (audit V1, constat 09-04),
+      // et le sens du retrait compte : ce n'était pas une phrase de trop, c'était une
+      // phrase FAUSSE. Elle annonçait « vous pouvez recourir à un médiateur de la
+      // consommation » alors qu'aucune adhésion n'existe — donc un recours promis et
+      // introuvable, sur le seul paragraphe que quelqu'un lit quand ça va mal.
+      // ⚠️ L'obligation d'adhésion (L.612-1) ne vise que le professionnel qui VEND.
+      // Kyroz étant intégralement gratuit — `PAYWALL_LAUNCH` est `null` —, elle ne mord
+      // pas encore. Elle mordra à la PREMIÈRE VENTE.
+      // ➡️ À REMETTRE, avec le NOM et l'URL du médiateur (L.616-1 impose ses
+      // coordonnées, pas sa simple existence), dans le même lot que la pose de
+      // `PAYWALL_LAUNCH`. Écrit dans la procédure de mise en vente.
+      `Les présentes conditions sont soumises au droit français. Contact : ${LEGAL.supportEmail}. Pour toute question relative à vos données, vous pouvez saisir la CNIL.`,
     ],
   },
 ];
