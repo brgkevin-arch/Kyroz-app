@@ -103,8 +103,21 @@
 - [x] **2FA** activée sur le compte Supabase.
 - [x] Adresse + email de contact renseignés (2 rue du moulin, 64570 Arette · contact@kyroz.app).
 - [x] **SIREN complété** (106386162) ici, dans `constants/legal.ts` (objet `LEGAL`) et `public/legal.html`.
-- [ ] 🔴 🧑 **LA POLITIQUE DIT ENCORE « POURRA » ALORS QUE ÇA A DÉJÀ LIEU — à corriger
-  avant la soumission.** `constants/legal.ts` §5 sert aujourd'hui : *« Si vous souscrivez
+- [x] ✅ **CORRIGÉ LE 2026-08-26 — la politique ne dit plus « pourra ».** RevenueCat,
+  Inc. est nommé au §5, le transfert est encadré en toutes lettres par les clauses
+  contractuelles types, et le texte dit désormais la vérité mesurée : l'identifiant part
+  **dès que l'utilisateur est connecté, abonné ou non**. Les trois surfaces sont
+  régénérées (app, `public/legal.html`, `kyroz.app/legal.html`).
+  ⚠️ **Deuxième révision du même jour** : `effectiveDate` reste au 26 août — le texte
+  entre en vigueur le jour même, post-dater annoncerait une prise d'effet qui n'a pas
+  lieu. Seule l'empreinte de `legal.test.ts` a bougé.
+  ⚠️ Le test qui interdisait de NOMMER un prestataire a été retourné, en suivant sa
+  propre consigne : il vérifie maintenant qu'on ne nomme **que ce qui est réellement
+  branché** (le SDK doit être une dépendance), que le cadre du transfert accompagne
+  toujours le nom, et qu'aucun **Data Privacy Framework** n'est prêté à RevenueCat —
+  le piège étant de recopier la phrase voisine, écrite pour Resend.
+  Ce qui suit est l'état AVANT correction, gardé parce qu'il explique la mécanique :
+- **CE QUI S'ÉTAIT PASSÉ.** `constants/legal.ts` §5 sert aujourd'hui : *« Si vous souscrivez
   un jour un abonnement Kyroz+, sa gestion technique **pourra** être confiée à un
   prestataire spécialisé. […] Ce prestataire **sera** nommé ici **avant toute mise en
   vente**. »*

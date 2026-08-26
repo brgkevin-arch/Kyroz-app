@@ -61,6 +61,11 @@ export const LEGAL = {
   // Francfort, mais le transit est routé par Cloudflare sur des points de présence
   // mondiaux (liste des sous-traitants PostHog, consultée le 2026-08-18). Une
   // localisation de serveurs ne se transforme pas en promesse plus large qu'elle.
+  // Gestion des abonnements (`lib/purchases.ts`). ⚠️ Nommé depuis le 2026-08-26, après
+  // lecture du DPA : ce n'est plus une catégorie mais un sous-traitant identifié, parce
+  // que la clé est en PRODUCTION et qu'il traite déjà.
+  subscriptionProvider: 'RevenueCat, Inc.',
+  subscriptionProviderStorage: 'aux États-Unis',
   analyticsProvider: 'PostHog',
   analyticsStorage: 'Francfort, en Allemagne',
   analyticsRetention: 'au moins un an',
@@ -126,16 +131,33 @@ export const PRIVACY_POLICY: LegalSection[] = [
       "La mesure d’usage repose sur un consentement distinct de celui portant sur vos données de santé. Il vous est demandé avant toute collecte, se refuse sans aucune conséquence sur l’usage de l’application, et se retire à tout moment dans Réglages → Confidentialité → Statistiques d’usage, sans avoir à supprimer votre compte.",
     ],
   },
-  // ⚠️ **ON NE NOMME AUCUN PRESTATAIRE D'ABONNEMENT, ET C'EST DÉLIBÉRÉ.** Une première
-  // version (2026-08-02) écrivait « RevenueCat, Inc. (États-Unis) » alors qu'AUCUN
-  // contrat n'existe avec eux et que le choix technique n'est pas définitivement
-  // arrêté. Nommer un sous-traitant qui n'en est pas un est le même mensonge que
-  // taire celui qui l'est — juste dans l'autre sens. Le RGPD (art. 13-1-e) autorise
-  // explicitement les **catégories** de destinataires, ce que fait le texte ci-dessous.
-  // ➡️ Le jour où le contrat est signé : remplacer « un prestataire spécialisé » par
-  // le nom, et AJOUTER le cadre du transfert hors UE (clauses contractuelles types /
-  // Data Privacy Framework), exigé par l'art. 13-1-f et qui ne peut se lire que dans
-  // le contrat. Une politique de confidentialité n'est pas l'endroit où supposer.
+  // ✅ **ÉCHÉANCE HONORÉE LE 2026-08-26 : LE PRESTATAIRE D'ABONNEMENT EST NOMMÉ.**
+  // Cette note disait « ON NE NOMME AUCUN PRESTATAIRE, ET C'EST DÉLIBÉRÉ » : une
+  // première version (2026-08-02) écrivait « RevenueCat, Inc. (États-Unis) » alors
+  // qu'aucun contrat n'existait et que le choix technique n'était pas arrêté. Nommer un
+  // sous-traitant qui n'en est pas un est le même mensonge que taire celui qui l'est —
+  // juste dans l'autre sens. Le texte a donc parlé de CATÉGORIE (art. 13-1-e).
+  //
+  // 🔴 **CE QUI A CHANGÉ, ET CE N'EST PAS LA RÉDACTION : LE CÂBLAGE.** Mesuré le
+  // 2026-08-26 — `EXPO_PUBLIC_REVENUECAT_IOS_KEY` est posée dans l'environnement
+  // `production` d'EAS, donc `Purchases.configure()` s'exécute à chaque lancement d'un
+  // build de prod, et `hooks/usePremium.ts` appelle `identifyUser(uid)` **dès qu'un
+  // utilisateur est CONNECTÉ — abonné ou non**.
+  // ➡️ La phrase d'avant était au FUTUR (« pourra être confiée », « sera nommé avant
+  // toute mise en vente »). Elle est devenue fausse toute seule le jour où le futur est
+  // arrivé, et rien ne l'a signalé. **Un texte au conditionnel ne se périme pas moins
+  // qu'un autre — il se périme en silence.**
+  //
+  // Ce que le DPA dit (lu en entier le 2026-08-26, version « Effective: August 2026 »,
+  // page publique) : incorporé par référence aux conditions d'utilisation, donc RIEN À
+  // SIGNER ; clauses contractuelles types 2021/914 incorporées et effectives « from
+  // commencement of the relevant transfer », **module 2** (responsable → sous-traitant),
+  // clause 7 écartée ; 13 sous-traitants ultérieurs, tous aux États-Unis (Annexe 3) ;
+  // « Sensitive data transferred: Not Applicable » (Annexe 1B), ce que le code confirme
+  // — seul l'UUID Supabase part.
+  // ⚠️ **AUCUN Data Privacy Framework n'est revendiqué**, contrairement au DPA de
+  // Resend. Ne pas recopier sa phrase : elle affirmerait un cadre inexistant ici.
+  // Détail complet et question ouverte (OpenAI / Anthropic en Annexe 3) : RGPD-REGISTRE.md.
   //
   // ✅ ÉCHÉANCE HONORÉE LE 2026-08-18 : « aucun outil d'analyse tiers » a été retirée,
   // PostHog est nommé. Le texte est écrit au CONDITIONNEL DE CONSENTEMENT (« si vous
@@ -183,7 +205,8 @@ export const PRIVACY_POLICY: LegalSection[] = [
       `L’envoi des e-mails de service (confirmation d’inscription, réinitialisation de mot de passe) est assuré par ${LEGAL.emailProvider} (${LEGAL.emailProviderLegalName}). Seules votre adresse e-mail et le contenu de ces messages lui sont transmis — aucune donnée de santé.`,
       `Ces e-mails, ainsi que les journaux d’envoi correspondants, sont stockés par ${LEGAL.emailProvider} ${LEGAL.emailProviderStorage}. Ce transfert hors de l’Union européenne est encadré par les clauses contractuelles types de la Commission européenne et par l’adhésion de ce prestataire au cadre de protection des données UE–États-Unis (EU-U.S. Data Privacy Framework).`,
       `Si vous acceptez le partage des statistiques d’usage, celles-ci sont traitées par ${LEGAL.analyticsProvider}. Elles sont stockées sur ses serveurs de ${LEGAL.analyticsStorage}. Lui sont transmis l’identifiant pseudonyme de votre appareil et les événements décrits au point 2 — aucune donnée de santé, aucun contenu de plan, ni votre adresse e-mail, ni l’identifiant de votre compte.`,
-      "Si vous souscrivez un jour un abonnement Kyroz+, sa gestion technique pourra être confiée à un prestataire spécialisé. Ne lui seraient transmis que l’identifiant technique de votre compte et l’état de votre abonnement — ni votre adresse email, ni vos données de santé, ni aucune coordonnée bancaire. Ce prestataire sera nommé ici avant toute mise en vente.",
+      `La gestion technique des abonnements Kyroz+ est confiée à ${LEGAL.subscriptionProvider}. Dès que vous êtes connecté, que vous soyez abonné ou non, l’identifiant technique de votre compte lui est transmis pour vérifier si un abonnement est actif ; s’y ajoutent, le cas échéant, l’état de votre abonnement et le reçu d’achat émis par l’App Store ou Google Play. Ne lui sont transmis ni votre adresse email, ni vos données de santé, ni aucune coordonnée bancaire.`,
+      `Ces données sont stockées par ${LEGAL.subscriptionProvider} ${LEGAL.subscriptionProviderStorage}. Ce transfert hors de l’Union européenne est encadré par les clauses contractuelles types de la Commission européenne.`,
       "Le paiement lui-même est traité par l’App Store (Apple) ou Google Play. Kyroz ne voit ni ne conserve aucune coordonnée bancaire.",
       "Nous ne vendons, ne louons et ne partageons vos données avec aucun tiers à des fins commerciales. Aucun traceur publicitaire n’est utilisé, et aucun suivi ne vous relie à d’autres applications ou sites.",
     ],
