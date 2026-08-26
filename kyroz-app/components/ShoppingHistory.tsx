@@ -164,7 +164,12 @@ function Ligne({ s, item, pale }: { s: ReturnType<typeof makeStyles>; item: Shop
   return (
     <View style={s.ligne}>
       <Text style={[s.nom, pale && s.pale]} numberOfLines={1}>{item.name}</Text>
-      <Text style={[s.qte, pale && s.pale]}>{formatQuantity(item.name, item.quantity, item.unit)}</Text>
+      {/* Une sortie peut contenir un article AJOUTÉ À LA MAIN sans quantité
+          (« café ») : `formatQuantity` rendrait « 0 g » — un chiffre inventé,
+          relu six mois plus tard comme s'il avait été mesuré ce jour-là. */}
+      {item.quantity > 0 && (
+        <Text style={[s.qte, pale && s.pale]}>{formatQuantity(item.name, item.quantity, item.unit)}</Text>
+      )}
     </View>
   );
 }
