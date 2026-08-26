@@ -64,7 +64,26 @@ export const LEGAL = {
   analyticsProvider: 'PostHog',
   analyticsStorage: 'Francfort, en Allemagne',
   analyticsRetention: 'au moins un an',
-  effectiveDate: '23 août 2026',
+  /**
+   * La date que les documents affichent comme leur dernière mise à jour.
+   *
+   * 🔴 **ELLE A MENTI PENDANT TROIS JOURS, ET C'EST CE QUI A FAIT NAÎTRE SON
+   * GARDE-FOU.** Le 2026-08-25, deux paragraphes ont été réécrits (« garde-manger »
+   * → « réserve ») et un paragraphe ENTIER ajouté aux CGU — le blocage du tarif à la
+   * souscription, qui n'est pas une reformulation mais un ENGAGEMENT. Cette date,
+   * elle, était restée au 23 : un lecteur en concluait que l'engagement valait déjà
+   * le 23 août. Il ne valait rien du tout, il n'existait pas.
+   *
+   * ⚠️ Rien ne la forçait à suivre : les cinq mises à jour précédentes ont été faites
+   * à la main, et la sixième a été oubliée sans que rien ne rougisse. C'est
+   * `lib/__tests__/legal.test.ts` qui la tient désormais — une empreinte du texte y
+   * est enregistrée À CÔTÉ de cette date, et elle rougit dès que l'un bouge sans
+   * l'autre.
+   *
+   * ⚠️ Ce n'est PAS la date du commit : c'est celle à laquelle le texte devient
+   * opposable, donc celle de la livraison. Elle s'arbitre, elle ne se déduit pas.
+   */
+  effectiveDate: '26 août 2026',
 } as const;
 
 export interface LegalSection {

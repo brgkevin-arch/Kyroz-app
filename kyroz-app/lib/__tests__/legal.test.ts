@@ -141,3 +141,72 @@ describe('aucun gabarit ne part en production', () => {
     expect(texte as string).not.toMatch(GABARIT);
   });
 });
+
+// ── VERROU : le texte ne bouge pas sans que sa date bouge ────────────────────
+//
+// POURQUOI CE VERROU EXISTE
+//
+// Le 2026-08-25, deux paragraphes ont été réécrits (« garde-manger » → « réserve »)
+// et un paragraphe ENTIER ajouté aux CGU : le blocage du tarif à la souscription.
+// Ce n'est pas une reformulation, c'est un ENGAGEMENT. `LEGAL.effectiveDate`, lui,
+// est resté au 23 août — pendant trois jours, les documents ont annoncé une date de
+// dernière mise à jour ANTÉRIEURE à leur dernière modification, sur un paragraphe
+// qui engage. Un lecteur en concluait que l'engagement valait déjà le 23.
+//
+// Les cinq mises à jour précédentes de cette date ont été faites à la main, et rien
+// ne les imposait. C'est la seule raison pour laquelle la sixième a pu être oubliée :
+// pas une négligence, une absence de cliquet.
+//
+// ⚠️ CE QU'IL NE SAIT PAS FAIRE, et il faut le dire : il ne peut pas VÉRIFIER que la
+// date est juste — elle s'arbitre (c'est celle de la livraison, pas celle du commit).
+// Il ne peut pas non plus empêcher quelqu'un de mettre à jour l'empreinte sans
+// toucher la date. Ce qu'il garantit, c'est qu'on ne peut plus le faire SANS LE
+// SAVOIR : les deux valeurs sont côte à côte, et la seconde ne se met à jour qu'en
+// lisant le message de la première.
+
+import { createHash } from 'node:crypto';
+
+/**
+ * L'état enregistré du texte légal. **Les deux valeurs se modifient ENSEMBLE.**
+ * Quand l'empreinte rougit : arbitre la nouvelle date d'entrée en vigueur, écris-la
+ * dans `constants/legal.ts`, reporte-la ici, puis remplace l'empreinte par celle
+ * que le test affiche. Et régénère les miroirs (`npm run gen:legal`).
+ */
+const DERNIERE_REVISION = {
+  date: '26 août 2026',
+  empreinte: '661057597a8d',
+};
+
+/**
+ * L'empreinte porte la SUBSTANCE, pas la date : le paragraphe « Date de dernière
+ * mise à jour : … » interpole `effectiveDate`, donc sans neutralisation, bouger la
+ * date suffirait à faire bouger l'empreinte — et les deux ne diraient plus rien
+ * l'une de l'autre.
+ */
+function empreinteDuTexte(): string {
+  const brut = [...PRIVACY_POLICY, ...TERMS_OF_USE]
+    .map((s) => `${s.title}\n${s.paragraphs.join('\n')}`)
+    .join('\n\n')
+    .split(LEGAL.effectiveDate).join('«DATE»');
+  return createHash('sha256').update(brut, 'utf8').digest('hex').slice(0, 12);
+}
+
+describe('la date de mise à jour suit le texte', () => {
+  it('la date enregistrée ici est celle que les documents affichent', () => {
+    expect(
+      LEGAL.effectiveDate,
+      'la date a bougé dans constants/legal.ts sans être reportée ici'
+    ).toBe(DERNIERE_REVISION.date);
+  });
+
+  it('le texte n’a pas changé depuis cette date', () => {
+    expect(
+      empreinteDuTexte(),
+      `LE TEXTE LÉGAL A CHANGÉ. Arbitre la date d'entrée en vigueur (celle de la LIVRAISON, pas du commit), écris-la dans constants/legal.ts ET dans DERNIERE_REVISION.date, reporte l'empreinte ci-dessous, puis : npm run gen:legal`
+    ).toBe(DERNIERE_REVISION.empreinte);
+  });
+
+  it('la date est bien servie au lecteur, et pas seulement stockée', () => {
+    expect(TOUS_LES_PARAS).toContain(LEGAL.effectiveDate);
+  });
+});

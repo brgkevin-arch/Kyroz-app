@@ -5,7 +5,7 @@
 
 # Politique de confidentialité — Kyroz
 
-**Dernière mise à jour : 23 août 2026**
+**Dernière mise à jour : 26 août 2026**
 
 ---
 
@@ -115,4 +115,4 @@ Kyroz est réservé aux personnes âgées de 18 ans et plus. Aucun compte ne peu
 
 ## 11. Modifications
 
-La présente politique peut évoluer. Date de dernière mise à jour : 23 août 2026.
+La présente politique peut évoluer. Date de dernière mise à jour : 26 août 2026.
