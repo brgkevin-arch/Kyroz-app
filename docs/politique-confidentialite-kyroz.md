@@ -61,9 +61,9 @@ Ces e-mails, ainsi que les journaux d’envoi correspondants, sont stockés par 
 
 Si vous acceptez le partage des statistiques d’usage, celles-ci sont traitées par PostHog. Elles sont stockées sur ses serveurs de Francfort, en Allemagne. Lui sont transmis l’identifiant pseudonyme de votre appareil et les événements décrits au point 2 — aucune donnée de santé, aucun contenu de plan, ni votre adresse e-mail, ni l’identifiant de votre compte.
 
-La gestion technique des abonnements Kyroz+ est confiée à RevenueCat, Inc.. Dès que vous êtes connecté, que vous soyez abonné ou non, l’identifiant technique de votre compte lui est transmis pour vérifier si un abonnement est actif ; s’y ajoutent, le cas échéant, l’état de votre abonnement et le reçu d’achat émis par l’App Store ou Google Play. Ne lui sont transmis ni votre adresse email, ni vos données de santé, ni aucune coordonnée bancaire.
+La gestion technique des abonnements Kyroz+ est confiée à RevenueCat, Inc. (États-Unis). Dès que vous êtes connecté, que vous soyez abonné ou non, l’identifiant technique de votre compte lui est transmis pour vérifier si un abonnement est actif ; s’y ajoutent, le cas échéant, l’état de votre abonnement et le reçu d’achat émis par l’App Store ou Google Play. Ne lui sont transmis ni votre adresse email, ni vos données de santé, ni aucune coordonnée bancaire.
 
-Ces données sont stockées par RevenueCat, Inc. aux États-Unis. Ce transfert hors de l’Union européenne est encadré par les clauses contractuelles types de la Commission européenne.
+Ces données sont stockées aux États-Unis. Ce transfert hors de l’Union européenne est encadré par les clauses contractuelles types de la Commission européenne.
 
 Le paiement lui-même est traité par l’App Store (Apple) ou Google Play. Kyroz ne voit ni ne conserve aucune coordonnée bancaire.
 

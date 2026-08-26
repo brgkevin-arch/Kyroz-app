@@ -64,7 +64,12 @@ export const LEGAL = {
   // Gestion des abonnements (`lib/purchases.ts`). ⚠️ Nommé depuis le 2026-08-26, après
   // lecture du DPA : ce n'est plus une catégorie mais un sous-traitant identifié, parce
   // que la clé est en PRODUCTION et qu'il traite déjà.
+  // ⚠️ La raison sociale FINIT PAR UN POINT (« Inc. »). Toute phrase qui la place en
+  // fin de proposition écrit « RevenueCat, Inc.. » — coquille servie en production le
+  // 2026-08-26, sur les trois surfaces à la fois. Ne pas la mettre devant un point :
+  // `legal.test.ts` compte désormais la ponctuation doublée.
   subscriptionProvider: 'RevenueCat, Inc.',
+  subscriptionProviderCountry: 'États-Unis',
   subscriptionProviderStorage: 'aux États-Unis',
   analyticsProvider: 'PostHog',
   analyticsStorage: 'Francfort, en Allemagne',
@@ -205,8 +210,8 @@ export const PRIVACY_POLICY: LegalSection[] = [
       `L’envoi des e-mails de service (confirmation d’inscription, réinitialisation de mot de passe) est assuré par ${LEGAL.emailProvider} (${LEGAL.emailProviderLegalName}). Seules votre adresse e-mail et le contenu de ces messages lui sont transmis — aucune donnée de santé.`,
       `Ces e-mails, ainsi que les journaux d’envoi correspondants, sont stockés par ${LEGAL.emailProvider} ${LEGAL.emailProviderStorage}. Ce transfert hors de l’Union européenne est encadré par les clauses contractuelles types de la Commission européenne et par l’adhésion de ce prestataire au cadre de protection des données UE–États-Unis (EU-U.S. Data Privacy Framework).`,
       `Si vous acceptez le partage des statistiques d’usage, celles-ci sont traitées par ${LEGAL.analyticsProvider}. Elles sont stockées sur ses serveurs de ${LEGAL.analyticsStorage}. Lui sont transmis l’identifiant pseudonyme de votre appareil et les événements décrits au point 2 — aucune donnée de santé, aucun contenu de plan, ni votre adresse e-mail, ni l’identifiant de votre compte.`,
-      `La gestion technique des abonnements Kyroz+ est confiée à ${LEGAL.subscriptionProvider}. Dès que vous êtes connecté, que vous soyez abonné ou non, l’identifiant technique de votre compte lui est transmis pour vérifier si un abonnement est actif ; s’y ajoutent, le cas échéant, l’état de votre abonnement et le reçu d’achat émis par l’App Store ou Google Play. Ne lui sont transmis ni votre adresse email, ni vos données de santé, ni aucune coordonnée bancaire.`,
-      `Ces données sont stockées par ${LEGAL.subscriptionProvider} ${LEGAL.subscriptionProviderStorage}. Ce transfert hors de l’Union européenne est encadré par les clauses contractuelles types de la Commission européenne.`,
+      `La gestion technique des abonnements Kyroz+ est confiée à ${LEGAL.subscriptionProvider} (${LEGAL.subscriptionProviderCountry}). Dès que vous êtes connecté, que vous soyez abonné ou non, l’identifiant technique de votre compte lui est transmis pour vérifier si un abonnement est actif ; s’y ajoutent, le cas échéant, l’état de votre abonnement et le reçu d’achat émis par l’App Store ou Google Play. Ne lui sont transmis ni votre adresse email, ni vos données de santé, ni aucune coordonnée bancaire.`,
+      `Ces données sont stockées ${LEGAL.subscriptionProviderStorage}. Ce transfert hors de l’Union européenne est encadré par les clauses contractuelles types de la Commission européenne.`,
       "Le paiement lui-même est traité par l’App Store (Apple) ou Google Play. Kyroz ne voit ni ne conserve aucune coordonnée bancaire.",
       "Nous ne vendons, ne louons et ne partageons vos données avec aucun tiers à des fins commerciales. Aucun traceur publicitaire n’est utilisé, et aucun suivi ne vous relie à d’autres applications ou sites.",
     ],
