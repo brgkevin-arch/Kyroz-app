@@ -90,7 +90,7 @@ Changer le prix d'un produit qui a déjà des abonnés rendrait cette phrase fau
 | 5 | ✅ Le code recopie les identifiants | *fait* |
 | 6 | Build natif + capture de review | 5 |
 | 7 | Bac à sable | 4, **6** — la capture bloque « Prêt à soumettre » |
-| 8 | Apple Small Business Program | — *(en parallèle)* |
+| 8 | ✅ Apple Small Business Program | *fait* |
 | 9 | Médiateur → les trois surfaces légales | — *(en parallèle)* |
 | 10 | Poser la date de lancement | 7, 9, **et revue App Store acquise** |
 
@@ -407,7 +407,7 @@ depuis le build de l'étape 6.
 
 ---
 
-## Étape 8 — Apple Small Business Program *(en parallèle)*
+## Étape 8 — Apple Small Business Program ✅ FAITE le 2026-08-25
 
 **Pourquoi, en chiffres relevés chez Apple** (étape 0) — ce n'est plus un ordre de
 grandeur, c'est ce qu'Apple renvoie pour ces produits :
@@ -422,8 +422,23 @@ Avec, il s'applique **dès le premier jour**. C'est purement déclaratif.
 
 **Où** : App Store Connect → *Business* → App Store Small Business Program.
 
-**Ce que tu dois voir** : l'inscription acceptée. L'équivalent Google Play se fait le
-jour où le compte Play existe.
+✅ **Inscription faite le 2026-08-25.** L'équivalent Google Play se fera le jour où le
+compte Play existera.
+
+⚠️ **L'acceptation d'Apple n'a pas été relue** (constaté le 2026-08-26). Le programme est
+purement déclaratif et rien n'indique un refus — décision du fondateur : la marquer faite
+plutôt que la laisser en suspens. ➡️ Un coup d'œil à **App Store Connect → Business** la
+confirme ou la dément ; à faire **avant la première vente**, puisque le taux court à partir
+de l'acceptation et ne se rattrape pas.
+
+🔴 **CE PROGRAMME NE SE VÉRIFIE PAS PAR L'API, et le chercher là induit en erreur.**
+`npm run check:abonnements` affiche deux reversements par prix — ils n'ont **pas** bougé
+après l'inscription, et c'est normal : ce sont des attributs du **palier de prix**, donc
+de la grille d'Apple (taux standard 70 % / taux réduit 85 %), pas de ton compte. Le
+programme fait basculer le COMPTE sur le taux réduit ; il ne réécrit pas la grille.
+➡️ Son état se lit dans **App Store Connect → Business**. Ne pas conclure de deux chiffres
+inchangés que l'inscription n'a pas pris — le libellé du script disait « net », il a été
+corrigé pour ne plus laisser croire ça.
 
 ⚠️ **À faire avant la première vente.** Le taux s'applique à partir de l'acceptation, il
 ne se rattrape pas sur les mois précédents.
