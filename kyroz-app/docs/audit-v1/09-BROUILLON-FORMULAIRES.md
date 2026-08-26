@@ -85,8 +85,8 @@ Mêmes catégories, plus trois points propres à Android.
 
 ```
 READ_EXTERNAL_STORAGE      injectée par expo-image-picker
-WRITE_EXTERNAL_STORAGE     injectée par expo-image-picker — SANS AUCUN USAGE (constat 03-02)
 INTERNET                   Expo
+✅ WRITE_EXTERNAL_STORAGE retirée le 2026-08-26 (blockedPermissions)
 ```
 
 ➡️ **Un formulaire rempli depuis `app.json` déclarerait zéro permission.** C'est le constat **03-01**, et c'est exactement la forme d'erreur que ce brouillon existe pour éviter. ⚠️ Idéalement, **retirer `WRITE_EXTERNAL_STORAGE`** (une ligne dans `blockedPermissions`) **avant** de remplir : on ne déclare pas une permission qu'on n'utilise pas.
@@ -101,7 +101,7 @@ Trois décisions **précèdent** la saisie. **Une est prise.** Les prendre aprè
 |---|---|---|
 | 1 | ~~`identifyUser` à chaque connexion ?~~ | ✅ **TRANCHÉ le 2026-08-26 : différé.** La ligne « User ID partagé » se coche « uniquement pour les abonnés » |
 | 2 | ~~Sauvegardes OS : exclure quoi ?~~ | ✅ **TRANCHÉ le 2026-08-26.** Android exclu (`allowBackup: false`) ; iOS dans le lot binaire. Les photos n'y étaient pas — prémisse corrigée |
-| 3 | **`WRITE_EXTERNAL_STORAGE` : la retirer ?** (03-02) | change la liste des permissions déclarées à Data Safety |
+| 3 | ~~`WRITE_EXTERNAL_STORAGE` : la retirer ?~~ | ✅ **TRANCHÉ le 2026-08-26 : retirée.** Data Safety ne déclare plus que `READ_EXTERNAL_STORAGE` et `INTERNET` — mesuré par `npm run check:permissions` |
 
 Puis remplir, puis **relancer l'étape 9** avec les captures — qui ne servira plus qu'à comparer ce brouillon à ce qui a été saisi.
 
