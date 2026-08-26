@@ -93,6 +93,21 @@ Section **B** du brouillon. Points de vigilance :
 
 ---
 
+## Étape D bis — avant de publier l'OTA qui portera ces textes
+
+🔴 **Quatre révisions légales sont tombées le 26 août, aucune n'est encore servie.** Une date d'entrée en vigueur est celle de la **livraison**, pas du commit — au 27, « 26 août 2026 » est devenu faux.
+
+⚠️ **`legal.test.ts` ne peut pas l'attraper** : il compare l'empreinte du *texte*, et le texte n'a pas bougé — seul le calendrier. Un garde-fou vert pendant que ce qu'il garde devient faux.
+
+✅ **C'est `npm run check:ota` qui le dit maintenant**, section « Le texte légal » : il compare `constants/legal.ts` du commit **en tête du canal** à celui du dépôt. Tant qu'ils diffèrent, il rappelle de ré-arbitrer la date.
+
+**Le geste, au moment de publier :**
+1. `npm run check:ota` → lire la section « Le texte légal ».
+2. Si elle avertit : mettre `effectiveDate` (`constants/legal.ts`) **et** `DERNIERE_REVISION.date` (`legal.test.ts`) à la date **du jour de publication**.
+3. Reporter l'empreinte, `npm run gen:legal`, puis publier.
+
+---
+
 ## Étape E — je relance l'étape 9
 
 Avec les deux captures, l'étape 9 ne fait plus un audit : elle **compare** le brouillon à ce que tu as saisi. C'est le tiers qui manquait, et il devient mécanique.
