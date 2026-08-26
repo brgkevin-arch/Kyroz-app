@@ -13,7 +13,7 @@ import { ThemeMode, useThemeMode, setThemeMode } from '../../lib/themeMode';
 import { ACCENTS, ACCENT_IDS, useAccentId, setAccentId, readableOn } from '../../lib/accentColor';
 import { DISCLAIMER } from '../../constants/legal';
 import { CIQUAL_ATTRIBUTION } from '../../lib/foods';
-import { Card, PrimaryButton, Chip, OptionCard, Field, SectionLabel, Segmented, SectionTitle, MenuRow } from '../../components/ui';
+import { Card, PrimaryButton, Chip, OptionCard, Field, SectionLabel, Segmented, SectionTitle, MenuRow, clavierScrollProps } from '../../components/ui';
 import { useRepasAuto } from '../../lib/repasAuto';
 import { bankedDailyTargets, offsetsForPlan, servedWeekdays } from '../../lib/calorieBank';
 import { usePremium } from '../../hooks/usePremium';
@@ -54,7 +54,7 @@ import { ReminderTimeField } from '../../components/ReminderTimeField';
 import { deleteAccount, deleteCloudData } from '../../lib/sync';
 import { exportMyData } from '../../lib/exportData';
 import {
-  calculateTDEE, computePlan, goalLabel, planFlags, validateProfile, recalcProfile, DEFAULT_CARB_RATIO, recommendedProteinPerKg,
+  calculateTDEE, computePlan, goalLabel, goalSubtitle, planFlags, validateProfile, recalcProfile, DEFAULT_CARB_RATIO, recommendedProteinPerKg,
   DEFAULT_NEAT_LEVEL, NEAT_SHORT, dismissEngineNotice,
   bankFloorKcal, makeWeeklyProjector, trackingTarget,
 } from '../../lib/tdee';
@@ -68,10 +68,10 @@ import { DatedGoalCard, formatFR } from '../../components/DatedGoalCard';
 import { todayStamp, DEFAULT_WEIGH_IN_FREQUENCY } from '../../lib/weight';
 import { applyWeighInReminder } from '../../lib/notifications';
 import {
-  ActivityLevel, BodyFatSource, DietaryRestriction, EngineNotice, FixedMeals, Goal, GoalTarget, MealEmphasis, MealSlot, MealType, NeatLevel, Sex, SportSession, UserProfile, VarietyPreference,
+  ActivityLevel, BodyFatSource, DietaryRestriction, EngineNotice, FixedMeals, Goal, GoalTarget, MealSlot, MealType, NeatLevel, Sex, SportSession, UserProfile, VarietyPreference,
 } from '../../lib/types';
 import { totalSessionsPerWeek } from '../../lib/sport';
-import { baseDayTargets, deducedRestWeekdays } from '../../lib/planEngine';
+import { baseDayTargets, deducedRestWeekdays, emphasisIds } from '../../lib/planEngine';
 import { getRecipeById } from '../../lib/recipes';
 import SportsEditor from '../../components/SportsEditor';
 import { FixedMealSheet } from '../../components/FixedMealSheet';
@@ -85,7 +85,6 @@ import { FixedMealSheet } from '../../components/FixedMealSheet';
 // proposé ici mais pas là (ou l'inverse) est un réglage que `normalizeGoal` refermerait
 // sous les doigts de la personne au rechargement — un choix qui ne tient pas.
 const GOALS: Goal[] = ['cut', 'recomp', 'maintain', 'lean_bulk'];
-const CUT_GOALS: Goal[] = ['cut', 'recomp'];
 const RESTRICTIONS: { label: string; value: DietaryRestriction }[] = [
   { label: 'Végétarien', value: 'vegetarian' }, { label: 'Vegan', value: 'vegan' },
   { label: 'Pescétarien', value: 'pescatarian' }, { label: 'Halal', value: 'halal' },
@@ -131,27 +130,30 @@ function orderedMeals(sel: MealType[], custom: MealSlot[]): MealType[] {
   return knownSlots({ meal_slots: custom }).filter((s) => sel.includes(s.id)).map((s) => s.id);
 }
 
-// Libellés d'emphase des 4 créneaux intégrés. Un créneau CRÉÉ n'en a pas — il prend
-// son propre nom (« Plus : Shaker post-training »), parce qu'inventer « Plus le soir »
-// pour un créneau que l'utilisateur a nommé lui-même effacerait précisément ce nom.
-const EMPHASIS_BUILTIN: Record<string, { opt: string; court: string }> = {
-  breakfast: { opt: 'Plus le matin', court: 'Matin' },
-  lunch: { opt: 'Plus le midi', court: 'Midi' },
-  dinner: { opt: 'Plus le soir', court: 'Soir' },
+// Le MOMENT de chacun des 4 créneaux intégrés, en un mot.
+// ⚠️ C'est le nom du moment, pas celui du repas : « Matin », et non « Petit-déj »
+// (2026-08-25, décision fondateur : « juste écrit matin midi soir collation et pas
+// plus »). Les libellés portaient « Plus le matin » / « Plus : Collation » tant que
+// le réglage était un choix UNIQUE — la formule disait le comparatif. Depuis qu'on
+// peut en cocher plusieurs, c'est la sélection qui le dit, et le mot suffit.
+// Un créneau CRÉÉ n'a pas de moment : il garde son propre nom, parce qu'en inventer
+// un effacerait précisément celui que l'utilisateur a écrit.
+const EMPHASIS_MOMENT: Record<string, string> = {
+  breakfast: 'Matin',
+  lunch: 'Midi',
+  snack: 'Collation',
+  dinner: 'Soir',
 };
-function emphasisOptions(slots: MealSlot[], sel: MealType[]): { label: string; val: MealEmphasis }[] {
-  return [
-    { label: 'Équilibré', val: 'even' as MealEmphasis },
-    ...slots.filter((s) => sel.includes(s.id)).map((s) => ({
-      label: EMPHASIS_BUILTIN[s.id]?.opt ?? `Plus : ${s.label}`,
-      val: s.id as MealEmphasis,
-    })),
-  ];
+function emphasisOptions(slots: MealSlot[], sel: MealType[]): { label: string; val: MealType }[] {
+  return slots.filter((s) => sel.includes(s.id)).map((s) => ({
+    label: EMPHASIS_MOMENT[s.id] ?? s.label,
+    val: s.id,
+  }));
 }
 function emphasisResume(p: UserProfile): string {
-  const e = p.meal_emphasis ?? 'even';
-  if (e === 'even') return 'Équilibré';
-  return EMPHASIS_BUILTIN[e]?.court ?? slotLabel(knownSlots(p), e);
+  const ids = emphasisIds(p.meal_emphasis, Array.isArray(p.meals) ? p.meals : []);
+  if (ids.length === 0) return 'Équilibré';
+  return ids.map((e) => EMPHASIS_MOMENT[e] ?? slotLabel(knownSlots(p), e)).join(' · ');
 }
 // Recalcule TDEE (toujours) et macros (si mode auto)
 // Délègue à la source unique (lib/tdee) — même calcul partout (profil + check-in).
@@ -819,6 +821,7 @@ function EditorShell({
       <ScrollView
         contentContainerStyle={{ padding: Spacing.xxl, paddingTop: Spacing.md, gap: Spacing.lg }}
         showsVerticalScrollIndicator={false}
+        {...clavierScrollProps}
         {...(sheetScrollProps ?? {})}
       >
         {children}
@@ -1107,18 +1110,22 @@ function GoalEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: Edit
   const submit = () => { if (!blockMsg) onSave(withRecalc({ ...profile, goal })); };
   return (
     <EditorShell t={t} title="Objectif" onSave={submit} canSave={!blockMsg} dragHandlers={dragHandlers} sheetScrollProps={sheetScrollProps}>
-      {GOALS.map((g) => <OptionCard key={g} t={t} title={goalLabel(g)} selected={goal === g} onPress={() => setGoal(g)} />)}
-      {/* « Sèche rapide » a été retiré parce qu'il servait le même plan que « Sèche » :
-          le plancher de sécurité absorbait l'écart. Plutôt que de laisser croire à un
-          choix de rythme qui n'existait pas, on renvoie vers le seul mécanisme qui
-          sache dire honnêtement si un rythme est tenable — l'objectif daté. */}
-      {CUT_GOALS.includes(goal) && !blockMsg && (
-        <Card t={t}>
-          <Text style={{ ...Type.caption, color: t.textSecondary, lineHeight: 19 }}>
-            Tu veux aller plus vite ? Le rythme se règle avec un objectif daté : tu poses un poids et une date, et Kyroz te dit franchement si c'est tenable — plutôt que de creuser un déficit que ton corps refusera.
-          </Text>
-        </Card>
-      )}
+      {/* Chaque objectif porte sa phrase (2026-08-25, décision fondateur). Elle
+          vient de `goalSubtitle` — les MÊMES mots qu'à l'inscription, où la même
+          question est posée. Pas de texte écrit en dur ici, sinon les deux écrans
+          se mettent à décrire le même choix différemment. */}
+      {GOALS.map((g) => (
+        <OptionCard key={g} t={t} title={goalLabel(g)} subtitle={goalSubtitle(g)} selected={goal === g} onPress={() => setGoal(g)} />
+      ))}
+      {/* 🔴 LE PAVÉ « TU VEUX ALLER PLUS VITE ? » A ÉTÉ RETIRÉ LE 2026-08-25
+          (décision fondateur). Il ne paraissait que sur `cut`/`recomp` et poussait
+          vers l'objectif daté. Ce qu'il disait reste VRAI — « Sèche rapide » a été
+          retiré parce qu'il servait le même plan que « Sèche », le plancher de
+          sécurité absorbant l'écart, et le rythme se règle donc par l'objectif daté
+          (cf. `GOAL_CONFIG` dans lib/tdee.ts). Mais il n'est pas la seule porte :
+          la ligne « Objectif daté » du Profil est là en permanence, avec sa valeur
+          ou « Aucun ». ➡️ Ne pas le remettre en croyant réparer un accès perdu.
+          ⚠️ `CUT_GOALS` est parti avec lui : il n'avait pas d'autre lecteur. */}
       {blockMsg && (
         <Card t={t}>
           <Text style={{ ...Type.captionStrong, color: t.danger, lineHeight: 19 }}>{blockMsg}</Text>
@@ -1568,15 +1575,19 @@ function RestDaysPicker({ t, available, value, onToggle, onNone }: { t: ThemePal
   return (
     <>
       <SectionLabel t={t}>Jours de repos</SectionLabel>
-      {/* ⚠️ Ce texte promettait DEUX choses fausses (corrigé le 2026-08-06) :
-          « (mêmes calories) » ne l'est plus depuis la répartition par volume, et
-          « privilégie les recettes récup » ne l'était plus depuis le 2026-08-03,
-          date à laquelle le tag `rest_day_ok` a été supprimé et la sélection a cessé
-          de le lire. Un écran ne promet que ce que le moteur fait AUJOURD'HUI.
-          Le style vient de la passe de DA, le texte du correctif moteur. */}
-      <Text style={{ ...Type.caption, color: t.textTertiary, lineHeight: 17, marginTop: -Spacing.sm }}>
-        Tes jours sans entraînement : Kyroz y sert un peu moins de calories et de glucides, et reporte la différence sur tes jours d'entraînement. Tes protéines ne bougent pas, et ta semaine garde son total.
-      </Text>
+      {/* 🔴 LA NOTICE DES JOURS DE REPOS A ÉTÉ RETIRÉE LE 2026-08-25 (décision
+          fondateur). Elle disait ce que le moteur fait vraiment — moins de calories
+          et de glucides, protéines inchangées, la semaine garde son total — après
+          avoir été corrigée le 2026-08-06 de deux promesses devenues fausses.
+          ⚠️ `RestDaysPicker` est PARTAGÉ avec l'éditeur Sport & activité : la phrase
+          disparaît donc des DEUX écrans, pas seulement des Paramètres des repas.
+          ⚠️ Ce que le moteur fait, lui, n'a pas changé d'un iota — seule la ligne
+          qui le racontait est partie.
+          🔴 ET LE BANDEAU DU PLAN A SUIVI, le même jour : « Jour de repos · un peu
+          moins de calories… » n'existe plus non plus. Plus aucun écran quotidien
+          n'explique donc la bascule ; il reste la lune de la rangée de jours (qui
+          dit QUE, pas POURQUOI) et `FirstPlanReveal`, une fois. C'est un choix
+          d'épure assumé, pas un oubli à rattraper. */}
       <View style={styles.wrap}>
         {opts.map((d) => <Chip key={d.val} t={t} label={d.label} selected={value.includes(d.val)} onPress={() => onToggle(d.val)} />)}
         {/* « Aucun » n'est PAS un état caché : c'est la même donnée (liste vide),
@@ -1603,13 +1614,16 @@ function MealsEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: Edi
   // « non nul », passe le `??`, et fait exploser cet écran au premier `meals.includes`
   // — Error Boundary, réglage inaccessible à vie. `normalizeMeals` (syncGuard) referme
   // la donnée en amont ; ce garde-fou-ci protège les chemins qui ne passent pas par là.
-  const [meals, setMeals] = useState<MealType[]>(
-    Array.isArray(profile.meals) && profile.meals.length > 0 ? profile.meals : BUILTIN_SLOTS.map((s) => s.id)
-  );
+  const mealsInit = Array.isArray(profile.meals) && profile.meals.length > 0 ? profile.meals : BUILTIN_SLOTS.map((s) => s.id);
+  const [meals, setMeals] = useState<MealType[]>(mealsInit);
   const [customSlots, setCustomSlots] = useState<MealSlot[]>(
     Array.isArray(profile.meal_slots) ? profile.meal_slots : []
   );
-  const [emphasis, setEmphasis] = useState<MealEmphasis>(profile.meal_emphasis ?? 'even');
+  // Plusieurs moments possibles depuis le 2026-08-25 (décision fondateur). Le profil
+  // range toujours ça dans `meal_emphasis`, en ids séparés par des virgules —
+  // `emphasisIds` fait la lecture ET le tri, et c'est lui aussi que le moteur appelle.
+  const [emphasis, setEmphasis] = useState<MealType[]>(emphasisIds(profile.meal_emphasis, mealsInit));
+  const togEmphasis = (v: MealType) => setEmphasis((arr) => arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
   const [variety, setVariety] = useState<VarietyPreference>(profile.variety);
   const [fixedMeals, setFixedMeals] = useState<FixedMeals>(profile.fixed_meals ?? {});
   const [definingMeal, setDefiningMeal] = useState<MealType | null>(null);
@@ -1624,7 +1638,7 @@ function MealsEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: Edi
   const togMeal = (v: MealType) => {
     const next = meals.includes(v) ? meals.filter((x) => x !== v) : [...meals, v];
     setMeals(next);
-    if (emphasis !== 'even' && !next.includes(emphasis as MealType)) setEmphasis('even');
+    setEmphasis((e) => e.filter((x) => next.includes(x)));
     // Déselectionner un repas retire aussi sa version « je gère ».
     if (!next.includes(v)) setFixedMeals((prev) => { if (!prev[v]) return prev; const n = { ...prev }; delete n[v]; return n; });
   };
@@ -1643,7 +1657,7 @@ function MealsEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: Edi
   const deleteSlot = (id: MealType) => {
     setCustomSlots((arr) => arr.filter((x) => x.id !== id));
     setMeals((arr) => arr.filter((x) => x !== id));
-    setEmphasis((e) => (e === id ? 'even' : e));
+    setEmphasis((e) => e.filter((x) => x !== id));
     setFixedMeals((prev) => { if (!prev[id]) return prev; const n = { ...prev }; delete n[id]; return n; });
   };
 
@@ -1659,7 +1673,10 @@ function MealsEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: Edi
       ...profile, plan_weekdays: orderedWeekdays(weekdays), plan_days: weekdays.length,
       rest_weekdays: orderedWeekdays(restDays.filter((d) => weekdays.includes(d))),
       meals: retenus, meal_slots: gardes.length ? gardes : undefined,
-      meal_emphasis: retenus.includes(emphasis as MealType) || emphasis === 'even' ? emphasis : 'even',
+      // Rangé en ids joints par des virgules dans la MÊME colonne texte qu'avant
+      // (cf. `emphasisIds`) : aucune migration, et les binaires déjà installés
+      // retombent sur « équilibré » au lieu de casser leur synchro.
+      meal_emphasis: emphasisIds(emphasis, retenus).join(',') || 'even',
       variety,
       fixed_meals: Object.keys(cleaned).length ? cleaned : undefined,
     });
@@ -1683,10 +1700,10 @@ function MealsEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: Edi
       <View style={styles.wrap}>{WEEKDAY_OPTS.map((d) => <Chip key={d.val} t={t} label={d.label} selected={weekdays.includes(d.val)} onPress={() => togDay(d.val)} />)}</View>
       <RestDaysPicker t={t} available={weekdays} value={restDays} onToggle={togRestDay} onNone={() => setRestDays([])} />
       <SectionLabel t={t}>Repas inclus</SectionLabel>
-      <Text style={{ ...Type.caption, color: t.textTertiary, lineHeight: 17, marginTop: -Spacing.sm }}>
-        Tu manges plus de quatre fois par jour ? Ajoute tes propres repas : Kyroz répartit
-        ton budget de la journée sur tous, dans l'ordre où ils arrivent.
-      </Text>
+      {/* 🔴 « Tu manges plus de quatre fois par jour ? … » retiré le 2026-08-25
+          (décision fondateur). Le bouton d'ajout de `MealSlotsPicker` dit déjà ce
+          qu'il fait ; la répartition du budget sur tous les créneaux, elle, est le
+          comportement normal du moteur et n'a pas à être annoncée ici. */}
       <MealSlotsPicker
         t={t} customSlots={customSlots} selected={meals}
         onToggle={togMeal} onSaveSlot={saveSlot} onDeleteSlot={deleteSlot}
@@ -1746,7 +1763,17 @@ function MealsEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: Edi
       </View>
 
       <SectionLabel t={t}>Tu manges plus à quel moment ?</SectionLabel>
-      <View style={styles.wrap}>{emphasisOpts.map((e) => <Chip key={e.val} t={t} label={e.label} selected={emphasis === e.val} onPress={() => setEmphasis(e.val)} />)}</View>
+      <View style={styles.wrap}>
+        {emphasisOpts.map((e) => <Chip key={e.val} t={t} label={e.label} selected={emphasis.includes(e.val)} onPress={() => togEmphasis(e.val)} />)}
+        {/* « Équilibré » n'est PAS un état caché : c'est la même donnée (liste vide),
+            rendue visible — exactement l'argument de la puce « Aucun » des jours de
+            repos, deux sections plus haut. Sans elle, l'écran affiche quatre puces
+            éteintes, et « je n'ai rien choisi » ressemble à « je n'ai pas répondu ».
+            ⚠️ Tout cocher revient au même résultat (le moteur multiplie alors chaque
+            poids par le même facteur, cf. `computeDistribution`) — mais ça se dit en
+            un tap au lieu de quatre. */}
+        <Chip t={t} label="Équilibré" selected={emphasis.length === 0} onPress={() => setEmphasis([])} />
+      </View>
       <SectionLabel t={t}>Variété</SectionLabel>
       <View style={{ gap: Spacing.md }}>{VARIETY.map((v) => <OptionCard key={v.value} t={t} title={v.title} subtitle={v.sub} selected={variety === v.value} onPress={() => setVariety(v.value)} />)}</View>
       <Text style={{ ...Type.caption, color: t.textTertiary, textAlign: 'center', lineHeight: 17 }}>

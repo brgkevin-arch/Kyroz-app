@@ -9,8 +9,10 @@ import { salutation, momentDuJour, SALUTATIONS, SALUTATION_MAX, MomentDuJour } f
 //    a le champ vide) ;
 //  · elle doit rester COURTE, sinon l'en-tête change de hauteur d'un jour à
 //    l'autre en `Type.display` ;
-//  · elle doit être DÉTERMINISTE dans la journée : rouvrir l'app trois fois dans
-//    la matinée ne doit pas faire défiler les bonjours sous les yeux.
+//  · elle doit être DÉTERMINISTE : depuis le retrait de la rotation par jour
+//    (2026-08-25), le mot ne dépend QUE de l'heure — ni du jour, ni du hasard.
+//    Le test qui l'exige est celui qui rougirait si quelqu'un remettait un cycle
+//    sans le dire.
 
 const MOMENTS: MomentDuJour[] = ['matin', 'apresmidi', 'soir'];
 
@@ -74,50 +76,44 @@ describe('salutation', () => {
     expect(salutation('Kévin', le(9, 7))).toBe(salutation('Kévin', le(9, 10)));
   });
 
-  // ⚠️ CE TEST A EU UNE PREMIÈRE VERSION FAUSSE, et elle est instructive : elle
-  // exigeait que matin et soir diffèrent le MÊME jour. C'est faux par
-  // construction — les trois listes partagent « Salut » et « Coucou », donc un
-  // jour sur trois les deux créneaux tombent légitimement sur le même mot. Ce qui
-  // doit être vrai, c'est que le créneau CHANGE bien quelque chose au fil du
-  // cycle, et que chacun garde son mot propre.
-  it('le créneau change le mot au fil du cycle, et chacun garde le sien', () => {
-    const jours = [1, 2, 3, 4, 5, 6, 7];
-    const matins = jours.map((j) => salutation('Kévin', le(j, 9)));
-    const soirs = jours.map((j) => salutation('Kévin', le(j, 21)));
-    expect(matins.some((m, i) => m !== soirs[i])).toBe(true);
-    expect(matins).toContain('Bonjour Kévin');
-    expect(soirs).toContain('Bonsoir Kévin');
-    expect(matins).not.toContain('Bonsoir Kévin');
-    expect(soirs).not.toContain('Bonjour Kévin');
-  });
-
-  it('épuise sa liste avant de se répéter, sur un même créneau', () => {
-    for (const [moment, heure] of [['matin', 9], ['apresmidi', 15], ['soir', 21]] as const) {
-      const taille = SALUTATIONS[moment].length;
-      const vus = new Set<string>();
-      for (let j = 1; j <= taille; j++) vus.add(salutation('Kévin', le(j, heure)));
-      expect(vus.size).toBe(taille);
+  // ⚠️ CE TEST A CHANGÉ DE SENS LE 2026-08-25, et les deux versions valent d'être
+  // sues. Il a d'abord exigé que matin et soir diffèrent le MÊME jour — faux par
+  // construction, les listes partageaient « Salut » et « Coucou ». Il a ensuite
+  // exigé qu'un CYCLE finisse par se voir. La rotation par jour ayant été retirée
+  // (décision fondateur), ce qui doit être vrai est l'inverse du cycle : à heure
+  // égale, le mot ne bouge plus jamais.
+  it('ne tourne plus d’un jour à l’autre : 28 jours à la même heure donnent le même mot', () => {
+    for (const heure of [9, 15, 21]) {
+      const vus = new Set(Array.from({ length: 28 }, (_, i) => salutation('Kévin', le(i + 1, heure))));
+      expect(vus.size, `heure ${heure}`).toBe(1);
     }
   });
 
-  it('reste courte — au-delà, l’en-tête passe à la ligne un jour sur trois', () => {
+  it('le créneau est le SEUL axe : le jour dit Bonjour, le soir dit Bonsoir', () => {
+    for (let j = 1; j <= 7; j++) {
+      expect(salutation('Kévin', le(j, 9))).toBe('Bonjour Kévin');
+      expect(salutation('Kévin', le(j, 15))).toBe('Bonjour Kévin');
+      expect(salutation('Kévin', le(j, 21))).toBe('Bonsoir Kévin');
+    }
+  });
+
+  it('reste courte — au-delà, l’en-tête passe à la ligne en changeant de créneau', () => {
     for (const moment of MOMENTS) {
-      for (const mot of SALUTATIONS[moment]) {
-        expect(mot.length).toBeLessThanOrEqual(SALUTATION_MAX);
-      }
+      expect(SALUTATIONS[moment].length).toBeLessThanOrEqual(SALUTATION_MAX);
     }
   });
 
-  it('ne sort jamais du tableau, même sur une date antérieure à 1970', () => {
-    // `%` garde le signe en JS : sans la garde, l'index négatif rendrait `undefined`.
+  it('tient sur une date antérieure à 1970', () => {
+    // Il n'y a plus d'index de jour à faire déborder, mais l'entrée reste gratuite
+    // à garder : c'est elle qui rougirait si un cycle revenait sans sa garde.
     const vieux = new Date(1963, 4, 12, 9, 0, 0, 0);
     const s = salutation('Kévin', vieux);
     expect(s).not.toContain('undefined');
-    expect(SALUTATIONS.matin.some((m) => s.startsWith(m))).toBe(true);
+    expect(s.startsWith(SALUTATIONS.matin)).toBe(true);
   });
 
   it('ne sert que des mots de la table — aucune salutation écrite en dur dans la fonction', () => {
-    const tous = new Set(MOMENTS.flatMap((m) => SALUTATIONS[m]));
+    const tous = new Set(Object.values(SALUTATIONS));
     for (let j = 1; j <= 40; j++) {
       for (let h = 0; h < 24; h++) {
         expect(tous.has(salutation('', le(j, h)))).toBe(true);

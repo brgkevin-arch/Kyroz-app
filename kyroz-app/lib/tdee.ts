@@ -369,24 +369,48 @@ export function calculateTDEE(b: TdeeBody): number {
 }
 
 // Ajustement calorique + protéines selon l'objectif.
-const GOAL_CONFIG: Record<Goal, { kcalDelta: number; proteinPerKg: number; label: string }> = {
+// ⚠️ `sub` EST LA PHRASE MONTRÉE SOUS LE TITRE, et elle vit ICI parce que DEUX
+// écrans posent la même question : l'inscription (étape « Ton objectif ») et
+// Profil → Objectif. Elle n'existait qu'à l'inscription, en dur dans son fichier ;
+// le jour où l'écran Profil a voulu la même chose (2026-08-25, décision fondateur :
+// « je veux que pour chaque objectif tu mettes une petite phrase »), la recopier
+// aurait donné deux textes pour un seul choix, libres de diverger sans que personne
+// ne le voie. C'est mot pour mot l'histoire du `disclaimer` recopié sept fois
+// (CLAUDE.md §8) et celle de `lib/dateLabel.ts` — sorti AVANT la copie, pas après.
+const GOAL_CONFIG: Record<Goal, { kcalDelta: number; proteinPerKg: number; label: string; sub: string }> = {
   // `cut_aggressive` : LEGACY, plus proposé par l'UI (cf. syncGuard::normalizeGoal).
   // Conservé ici parce que des profils l'ont encore en base au moment où ils sont
   // lus — la normalisation les referme sur `cut`, mais le calcul doit rester
   // possible pour ne jamais crasher sur une ligne cloud non encore normalisée.
-  cut_aggressive: { kcalDelta: -500, proteinPerKg: 2.4, label: 'Sèche rapide' },
+  cut_aggressive: { kcalDelta: -500, proteinPerKg: 2.4, label: 'Sèche rapide', sub: 'Perdre du gras au rythme le plus fort' },   // jamais affichée (legacy)
   // « Sèche progressive » → « Sèche » : il n'y en a plus qu'une, et l'adjectif
   // n'oppose plus rien. Le rythme se règle par l'objectif daté.
-  cut:            { kcalDelta: -300, proteinPerKg: 2.2, label: 'Sèche' },
-  recomp:         { kcalDelta: -150, proteinPerKg: 2.2, label: 'Recomposition' },
-  maintain:       { kcalDelta: 0,    proteinPerKg: 1.8, label: 'Maintien' },
-  lean_bulk:      { kcalDelta: 200,  proteinPerKg: 2.0, label: 'Prise de masse propre' },
-  bulk:           { kcalDelta: 400,  proteinPerKg: 1.8, label: 'Prise de masse' },
+  cut:            { kcalDelta: -300, proteinPerKg: 2.2, label: 'Sèche', sub: 'Perdre du gras en gardant le muscle' },
+  recomp:         { kcalDelta: -150, proteinPerKg: 2.2, label: 'Recomposition', sub: 'Affiner et prendre du muscle en parallèle' },
+  maintain:       { kcalDelta: 0,    proteinPerKg: 1.8, label: 'Maintien', sub: 'Stabiliser poids et composition' },
+  lean_bulk:      { kcalDelta: 200,  proteinPerKg: 2.0, label: 'Prise de masse propre', sub: 'Prendre du muscle avec un surplus propre' },
+  bulk:           { kcalDelta: 400,  proteinPerKg: 1.8, label: 'Prise de masse', sub: 'Prendre du poids sans brider le surplus' },
 };
 
 export function goalLabel(goal: Goal): string {
   return GOAL_CONFIG[goal].label;
 }
+
+/**
+ * La phrase d'une ligne qui accompagne l'objectif dans la liste de choix.
+ *
+ * Elle dit ce que l'objectif FAIT, jamais ce qu'il vaut : aucun des six n'est
+ * meilleur qu'un autre, et une phrase qui vante en dévalorise trois. Elle reste
+ * courte parce qu'elle s'affiche en `Type.caption` sous un `Type.h3` — au-delà
+ * d'une ligne et demie, la carte de choix change de hauteur d'un objectif à
+ * l'autre et la liste ondule. Le plafond est tenu par un test.
+ */
+export function goalSubtitle(goal: Goal): string {
+  return GOAL_CONFIG[goal].sub;
+}
+
+/** Plafond de `goalSubtitle`, en caractères (cf. la note ci-dessus). */
+export const GOAL_SUB_MAX = 48;
 
 // Protéines conseillées (g/kg) pour l'objectif — sert de valeur par défaut ET de
 // repère affiché à l'utilisateur en mode « Perso % ».

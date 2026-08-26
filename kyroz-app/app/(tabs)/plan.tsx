@@ -776,7 +776,6 @@ export default function PlanScreen() {
   // de banque). Avec la cible plate, un jour déclaré « resto +600 » s'affichait comme
   // 600 kcal de dépassement — alors que c'est exactement ce que l'utilisateur a demandé.
   const dayTarget = (plan && profile) ? dayTargetKcal(profile, plan.days, selectedDay) : profile?.target_kcal;
-  const isRestDay = dayMeals.some((m) => m.rest_day);
   const restDayNums = new Set((plan?.meals ?? []).filter((m) => m.rest_day).map((m) => m.day));
   const dayExtraKcal = plan?.day_extras?.[selectedDay]?.kcal ?? 0;
   const dayExtraLabel = plan?.day_extras?.[selectedDay]?.label;
@@ -861,8 +860,10 @@ export default function PlanScreen() {
             {/* Sans émoji (2026-08-06) : chantier de fond, on les retire partout
                 progressivement. Un titre d'écran n'a pas besoin d'être illustré.
                 ⚠️ CE N'EST PLUS UN TITRE D'ÉCRAN depuis le 2026-08-14 (décision
-                fondateur) : c'est une SALUTATION, elle tourne avec le moment de la
-                journée et avec le jour, et elle tient même sans prénom. L'ancien
+                fondateur) : c'est une SALUTATION, elle suit le moment de la journée
+                (« Bonjour » / « Bonsoir ») et elle tient même sans prénom. Elle ne
+                tourne PLUS d'un jour à l'autre depuis le 2026-08-25 — même heure,
+                même mot, c'est voulu et c'est dit dans le module. L'ancien
                 repli « Ton plan » servait un titre à qui n'avait pas renseigné son
                 prénom pendant que les autres recevaient un bonjour. Le mot vient de
                 `lib/salutation.ts` — pas d'en dur ici, sinon il redevient figé. */}
@@ -978,30 +979,24 @@ export default function PlanScreen() {
             {dayMacros && (
               <View>
                 <SectionLabel t={t}>Jour {selectedDay}</SectionLabel>
-                {/* Même symbole que dans la rangée de jours : deux marqueurs différents
-                    pour la même chose sur un même écran, c'est ce qu'on corrige.
-                    ⚠️ Et le TEXTE disait « (mêmes kcal) » — vrai jusqu'au 2026-08-06,
-                    faux depuis : le budget du jour suit la dépense du jour, donc un jour
-                    de repos reçoit MOINS. La phrase contredisait le nombre affiché deux
-                    lignes plus bas. On dit ce qui baisse, et on rassure sur la semaine —
-                    un suivi rassure, il ne met pas la pression.
-                    🔴 ET `moduleParVolume`, ajouté le 2026-08-07 : la phrase n'était
-                    conditionnée qu'à `isRestDay`, donc elle promettait « un peu moins de
-                    calories » à qui n'a déclaré AUCUN sport — or `dayExpenditures` retombe
-                    alors sur une cible plate, et les sept jours valent le même chiffre.
-                    Mesuré sur le moteur (H 30 ans, 83 kg, 18 % MG, sèche, NEAT desk) :
-                    sans sport, 2042 kcal les sept jours, amplitude 0 ; avec 3 séances de
-                    60 min, 2042/2303 alternés, amplitude 261. Le nombre affiché juste en
-                    dessous démentait donc la phrase, sur l'écran le plus regardé de l'app.
-                    ➡️ Trouvé en écrivant la bulle de visite guidée qui parle de la même
-                    chose : elle, elle se conditionnait déjà — c'est la CAPTURE des deux
-                    textes côte à côte qui a montré la contradiction. */}
-                {isRestDay && moduleParVolume && (
-                  <View style={s.restRow}>
-                    <Ionicons name="moon" size={Icone.petite} color={t.textSecondary} />
-                    <Text style={s.restTxt}>Jour de repos · un peu moins de calories et de glucides, tes protéines inchangées. Ta semaine garde son total.</Text>
-                  </View>
-                )}
+                {/* 🔴 LE BANDEAU « JOUR DE REPOS · … » A ÉTÉ RETIRÉ LE 2026-08-25
+                    (décision fondateur). Il disait vrai — il avait même été corrigé
+                    deux fois pour ça : « (mêmes kcal) » était devenu faux avec la
+                    répartition par volume (2026-08-06), et la condition
+                    `moduleParVolume` (2026-08-07) l'empêchait de promettre « un peu
+                    moins de calories » à qui n'a déclaré aucun sport, cas où les sept
+                    jours valent le même chiffre.
+                    🔴 **CE QUI DISPARAÎT AVEC LUI, ET C'EST ASSUMÉ** : plus aucun texte
+                    de cet écran n'explique pourquoi un jour de repos affiche moins de
+                    calories. La bulle de tuto qui en parlait est partie le même jour,
+                    et la notice des Paramètres des repas aussi. Il reste :
+                      · la LUNE de la rangée de jours, qui dit QUE c'est un jour de
+                        repos (avec son `accessibilityLabel`), mais pas pourquoi ;
+                      · `FirstPlanReveal`, une fois, au tout premier plan.
+                    ⚠️ Le moteur, lui, n'a pas changé : `dayTargetKcal` module toujours
+                    le budget sur la dépense du jour. C'est le TEXTE qui part, pas la
+                    mécanique — ne pas « réparer » l'un en croyant l'autre cassé.
+                    ⚠️ `moduleParVolume` reste calculé : `planTour` le reçoit encore. */}
                 <View style={{ height: 12 }} />
                 <MacroBar
                   protein_g={dayMacros.protein_g}
@@ -1310,8 +1305,11 @@ export default function PlanScreen() {
  * parce que les repas restants butent sur leur portion maximale. Ce n'est pas une
  * erreur de calcul, c'est une limite physique du catalogue : elle se DIT.
  *
- * Seuil à 100 kcal = celui de la barre (`MacroBar.onTarget`), pour que les deux ne
- * puissent pas se contredire à l'écran.
+ * Seuil à 100 kcal = `ON_TARGET_TOLERANCE_KCAL`, le même que les options d'adaptation
+ * juste dessous, pour que les deux ne puissent pas se contredire à l'écran.
+ * ⚠️ Il était partagé avec `MacroBar` jusqu'au 2026-08-25 : la barre ne l'emploie plus
+ * (sa ligne de dépassement a été retirée), donc cette note est désormais le SEUL
+ * commentaire de l'écran Plan sur un écart à la cible.
  */
 function SousCibleNote({ t, manque }: { t: ThemePalette; manque: number }) {
   if (manque <= ON_TARGET_TOLERANCE_KCAL) return null;
@@ -1360,8 +1358,6 @@ function makeStyles(t: ThemePalette) {
     // une lune de 16 : la lune était rognée en haut et en bas, et ça ne se voit
     // que sur une capture — un croissant tronqué reste un croissant plausible.
     dayMoon: { height: Icone.petite, alignItems: 'center', justifyContent: 'center' },
-    restRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, marginTop: Spacing.xs },
-    restTxt: { flex: 1, color: t.textSecondary, lineHeight: 19 },
     extraRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: Spacing.md },
     // Les deux actions du jour partagent EXACTEMENT le même gabarit : elles sont de
     // même rang, donc rien ne doit laisser croire que l'une prime sur l'autre.

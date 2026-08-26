@@ -10,7 +10,8 @@ vi.mock('../featureFlags', () => ({
   PARCOURS_HORS_PLAN_ACTIF: false,
   RYTHME_HEBDOMADAIRE_ACTIF: true,
 }));
-import { buildLocalPlan, mealPoolSize, computeDailyTotals, profileSignature, swapMeal, computeDistribution, rebalanceDay, adaptDayOptions, effectiveMacros, resetTracking, mealIngredients, reAdaptMealRecipe, restDaySet, restDaysForProfile, goalDirection, dayTargetKcal, ON_TARGET_TOLERANCE_KCAL } from '../planEngine';
+import { buildLocalPlan, mealPoolSize, computeDailyTotals, profileSignature, swapMeal, computeDistribution, rebalanceDay, adaptDayOptions, effectiveMacros, resetTracking, mealIngredients, reAdaptMealRecipe, restDaySet, restDaysForProfile, goalDirection, dayTargetKcal, ON_TARGET_TOLERANCE_KCAL, emphasisIds } from '../planEngine';
+import { MealType } from '../types';
 import { setRecipeOverrides, RECIPES } from '../recipes';
 import { makeProfile } from './helpers';
 
@@ -371,6 +372,75 @@ describe('computeDistribution', () => {
     const even = computeDistribution(['breakfast', 'lunch', 'dinner'], 'even');
     const dinner = computeDistribution(['breakfast', 'lunch', 'dinner'], 'dinner');
     expect(dinner.dinner).toBeGreaterThan(even.dinner);
+  });
+
+  // ── PLUSIEURS moments à la fois (2026-08-25) ───────────────────────────────
+  const TROIS: MealType[] = ['breakfast', 'lunch', 'dinner'];
+
+  it('deux moments montent tous les deux, et le troisième descend', () => {
+    const even = computeDistribution(TROIS, 'even');
+    const deux = computeDistribution(TROIS, 'breakfast,dinner');
+    expect(deux.breakfast).toBeGreaterThan(even.breakfast);
+    expect(deux.dinner).toBeGreaterThan(even.dinner);
+    expect(deux.lunch).toBeLessThan(even.lunch);
+    expect(TROIS.reduce((acc, m) => acc + deux[m], 0)).toBeCloseTo(1, 5);
+  });
+
+  it('deux moments pèsent moins chacun que le même moment tout seul', () => {
+    const seul = computeDistribution(TROIS, 'dinner');
+    const deux = computeDistribution(TROIS, 'breakfast,dinner');
+    expect(deux.dinner).toBeLessThan(seul.dinner);
+  });
+
+  // ⚠️ Propriété qui n'est PAS une commodité : elle est ce qui rend le réglage
+  // cohérent. Tout cocher multiplie chaque poids par le même facteur — la
+  // répartition retombe exactement sur « équilibré ». Sans elle, il faudrait
+  // interdire de tout cocher, c'est-à-dire expliquer un interdit à l'écran.
+  it('tout mettre en avant = ne rien mettre en avant', () => {
+    const even = computeDistribution(TROIS, 'even');
+    const tout = computeDistribution(TROIS, 'breakfast,lunch,dinner');
+    for (const m of TROIS) expect(tout[m], m).toBeCloseTo(even[m], 10);
+  });
+
+  it("un moment qui n'est pas servi ce jour-là est ignoré, pas propagé", () => {
+    const sansPetitDej = computeDistribution(['lunch', 'dinner'], 'breakfast,dinner');
+    const seulDiner = computeDistribution(['lunch', 'dinner'], 'dinner');
+    for (const m of ['lunch', 'dinner']) expect(sansPetitDej[m], m).toBeCloseTo(seulDiner[m], 10);
+  });
+});
+
+describe('emphasisIds — la liste des moments mis en avant', () => {
+  const SERVIS: MealType[] = ['breakfast', 'lunch', 'snack', 'dinner'];
+
+  it('lit la chaîne stockée comme la liste manipulée par l’écran', () => {
+    expect(emphasisIds('breakfast,dinner', SERVIS)).toEqual(['breakfast', 'dinner']);
+    expect(emphasisIds(['breakfast', 'dinner'], SERVIS)).toEqual(['breakfast', 'dinner']);
+  });
+
+  it('« even », vide, null et absent veulent tous dire « équilibré »', () => {
+    for (const v of ['even', '', null, undefined, [] as MealType[]]) {
+      expect(emphasisIds(v, SERVIS), String(v)).toEqual([]);
+    }
+  });
+
+  // Un ancien profil porte UN id : il doit continuer de dire exactement la même
+  // chose, sinon la bascule vers la liste changerait des plans déjà servis.
+  it('un ancien profil à un seul id est lu à l’identique', () => {
+    expect(emphasisIds('dinner', SERVIS)).toEqual(['dinner']);
+  });
+
+  it('écarte ce qui n’est pas servi, et ne rend jamais de doublon', () => {
+    expect(emphasisIds('breakfast,inconnu,dinner', SERVIS)).toEqual(['breakfast', 'dinner']);
+    expect(emphasisIds('dinner,dinner', SERVIS)).toEqual(['dinner']);
+    expect(emphasisIds('breakfast', ['lunch', 'dinner'])).toEqual([]);
+  });
+
+  it('rend les moments dans l’ordre de la JOURNÉE, pas dans celui de la saisie', () => {
+    expect(emphasisIds('dinner,breakfast', SERVIS)).toEqual(['breakfast', 'dinner']);
+  });
+
+  it('tolère les espaces autour des virgules', () => {
+    expect(emphasisIds(' breakfast , dinner ', SERVIS)).toEqual(['breakfast', 'dinner']);
   });
 });
 

@@ -344,3 +344,33 @@ export function BoutonRevelation({
     </Presse>
   );
 }
+
+/**
+ * Ce qu'il faut à une liste déroulante pour qu'une saisie reste VISIBLE quand le
+ * clavier monte. À spreader sur TOUT `ScrollView` qui contient un champ.
+ *
+ * 🔴 **Signalé par le fondateur le 2026-08-25**, sur le %MG de Profil →
+ * Informations : « ça ne remonte pas la page donc je vois pas ce que j'écris ». Le
+ * champ est bas dans la feuille, sous une grille de six silhouettes ; le clavier le
+ * recouvrait et RIEN ne décalait le contenu. `EditorShell` — l'enveloppe des SIX
+ * éditeurs du Profil — n'avait aucune des deux propriétés ci-dessous.
+ *
+ * · `automaticallyAdjustKeyboardInsets` (iOS) ajoute au bas du contenu la hauteur
+ *   du clavier. C'est ce qui permet à iOS d'amener le champ focalisé à l'écran ;
+ *   sans marge en bas, il n'y a littéralement nulle part où défiler. Android
+ *   l'ignore — il redimensionne déjà la fenêtre.
+ * · `keyboardShouldPersistTaps: 'handled'` — sans lui, clavier ouvert, le premier
+ *   tap sur une puce ou sur « Enregistrer » ne fait QUE refermer le clavier et se
+ *   perd. `WeightCheckin` et `RecipeEditor` l'avaient déjà ; les éditeurs du
+ *   Profil, non. Un tap qu'aucun enfant ne prend referme quand même le clavier :
+ *   c'est la seule sortie du pavé NUMÉRIQUE, qui n'a pas de touche « OK ».
+ *
+ * ⚠️ Volontairement PAS de `keyboardDismissMode` : dans une feuille, le glissement
+ * vers le bas est déjà le geste de fermeture (`Sheet.tsx`). Lui superposer un
+ * second sens se réglerait au doigt, et un navigateur ne peut pas le montrer.
+ * ⚠️ `lib/__tests__/clavierSaisie.test.ts` compte les surfaces qui doivent l'avoir.
+ */
+export const clavierScrollProps = {
+  automaticallyAdjustKeyboardInsets: true,
+  keyboardShouldPersistTaps: 'handled' as const,
+};

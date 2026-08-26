@@ -4,8 +4,9 @@ import {
   leanBodyMass, validateProfile, recommendedProteinPerKg, kcalFromMacros,
   MIN_KCAL, MIN_AGE, DEFAULT_CARB_RATIO, NEAT_PAL, neatPal, proteinTarget, DEFAULT_NEAT_LEVEL,
   ENGINE_REV,
-  computePlan,
+  computePlan, goalLabel, goalSubtitle, GOAL_SUB_MAX,
 } from '../tdee';
+import { Goal } from '../types';
 import { fatFreeMassKg } from '../safety';
 import { exerciseKcalPerDay, totalSessionsPerWeek } from '../sport';
 import { normalizeProfileActivity, reconcileCloudSports } from '../syncGuard';
@@ -397,5 +398,39 @@ describe('BLOQUANT — un avertissement non lu n\'avale pas la bascule suivante'
     const nonLu = { rev: ENGINE_REV, from: 2900, to: 2400, fromRev: 2 };
     const p = recalcProfile(makeProfile({ engine_rev: ENGINE_REV, engine_notice: nonLu }), '2026-07-31');
     expect(p.engine_notice).toEqual(nonLu);
+  });
+});
+
+// ── La phrase d'un objectif ──────────────────────────────────────────────────
+//
+// `goalSubtitle` est SOURCE UNIQUE : l'inscription et Profil → Objectif montrent
+// les mêmes cartes. Une règle écrite dans le commentaire de la fonction et que
+// personne ne compte reste décorative — c'est ce que ces tests comptent.
+describe('goalSubtitle', () => {
+  const TOUS: Goal[] = ['cut_aggressive', 'cut', 'recomp', 'maintain', 'lean_bulk', 'bulk'];
+
+  it('chaque objectif du type en a une, non vide et proprement écrite', () => {
+    for (const g of TOUS) {
+      const sub = goalSubtitle(g);
+      expect(sub, g).toBeTruthy();
+      expect(sub, `${g} : espace en trop`).toBe(sub.trim());
+      expect(sub.endsWith('.'), `${g} : pas de point final, c'est un sous-titre`).toBe(false);
+    }
+  });
+
+  it('reste sur une ligne — au-delà, la carte de choix change de hauteur', () => {
+    for (const g of TOUS) {
+      expect(goalSubtitle(g).length, `${g} : « ${goalSubtitle(g)} »`).toBeLessThanOrEqual(GOAL_SUB_MAX);
+    }
+  });
+
+  it('deux objectifs ne peuvent pas se décrire pareil — sinon le choix est faux', () => {
+    expect(new Set(TOUS.map(goalSubtitle)).size).toBe(TOUS.length);
+  });
+
+  it("ne redit pas le titre : la phrase AJOUTE quelque chose", () => {
+    for (const g of TOUS) {
+      expect(goalSubtitle(g).toLowerCase(), g).not.toBe(goalLabel(g).toLowerCase());
+    }
   });
 });

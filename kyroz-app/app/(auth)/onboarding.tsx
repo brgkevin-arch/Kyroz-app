@@ -12,7 +12,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useTheme, ThemePalette, Spacing, Radius, Type, CIBLE_TACTILE_MIN, Trait, Icone, OPACITE_PRESSION } from '../../constants/theme';
 import { useLayout } from '../../constants/layout';
 import {
-  PrimaryButton, Chip, OptionCard, Field, SectionLabel, Segmented, Card,
+  PrimaryButton, Chip, OptionCard, Field, SectionLabel, Segmented, Card, clavierScrollProps,
 } from '../../components/ui';
 import { BodyFatPicker } from '../../components/BodyFatPicker';
 import { useDialog } from '../../components/Dialog';
@@ -30,7 +30,7 @@ import { MealSlotsPicker } from '../../components/MealSlotsPicker';
 import { NeatPicker } from '../../components/NeatPicker';
 import { knownSlots } from '../../lib/mealSlots';
 import {
-  validateProfile, goalLabel, recalcProfile, DEFAULT_NEAT_LEVEL,
+  validateProfile, goalLabel, goalSubtitle, recalcProfile, DEFAULT_NEAT_LEVEL,
 } from '../../lib/tdee';
 import { totalSessionsPerWeek } from '../../lib/sport';
 import { deducedRestWeekdays } from '../../lib/planEngine';
@@ -58,12 +58,10 @@ const TOTAL_STEPS = 7;
 // ⚠️ `recomp` RESTE, et ce n'est pas une inconséquence : c'est le seul objectif où la
 // personne ne veut PAS que son poids bouge. Il n'a donc pas de poids cible, donc la
 // date n'a rien à piloter — le mécanisme qui absorbe les autres crans ne l'atteint pas.
-const GOALS: { value: Goal; sub: string }[] = [
-  { value: 'cut', sub: 'Perdre du gras en gardant le muscle' },
-  { value: 'recomp', sub: 'Affiner et prendre du muscle en parallèle' },
-  { value: 'maintain', sub: 'Stabiliser poids et composition' },
-  { value: 'lean_bulk', sub: 'Prendre du muscle avec un surplus propre' },
-];
+// ⚠️ Les PHRASES ne sont plus ici : elles sont dans `GOAL_CONFIG` (lib/tdee.ts),
+// lues par `goalSubtitle`. Profil → Objectif pose la même question et montre les
+// mêmes cartes ; deux listes auraient divergé sans que personne ne le voie.
+const GOALS: Goal[] = ['cut', 'recomp', 'maintain', 'lean_bulk'];
 
 const RESTRICTIONS: { label: string; value: DietaryRestriction }[] = [
   { label: 'Végétarien', value: 'vegetarian' },
@@ -420,7 +418,7 @@ export default function Onboarding() {
         <View style={s.track}><View style={[s.fill, { width: `${(step / TOTAL_STEPS) * 100}%` }]} /></View>
       </View>
 
-      <ScrollView contentContainerStyle={[s.content, layout.content]} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={[s.content, layout.content]} {...clavierScrollProps} showsVerticalScrollIndicator={false}>
         {step > 1 && <SectionLabel t={t}>ÉTAPE {step - 1} / {TOTAL_STEPS - 1}</SectionLabel>}
 
         {step === 1 && <NameStep t={t} value={firstName} onChange={setFirstName} />}
@@ -482,7 +480,7 @@ export default function Onboarding() {
             <Text style={s.sub}>Le plan sera calibré précisément pour ça.</Text>
             <View style={{ gap: Spacing.md }}>
               {GOALS.map((g) => (
-                <OptionCard key={g.value} t={t} title={goalLabel(g.value)} subtitle={g.sub} selected={goal === g.value} onPress={() => setGoal(g.value)} />
+                <OptionCard key={g} t={t} title={goalLabel(g)} subtitle={goalSubtitle(g)} selected={goal === g} onPress={() => setGoal(g)} />
               ))}
             </View>
             {/* L'objectif refusé s'explique ICI, avec sa sortie en un tap — c'est ce
