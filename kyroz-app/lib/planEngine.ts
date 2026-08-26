@@ -482,6 +482,17 @@ export function restDaySet(days: number, trainingDaysPerWeek: number): Set<numbe
 export function deducedRestWeekdays(orderedPlanWeekdays: number[], trainingDaysPerWeek: number): number[] {
   const n = orderedPlanWeekdays.length;
   if (!n) return [];
+  // 🔴 AUCUN ENTRAÎNEMENT DÉCLARÉ → AUCUNE CASE PRÉ-COCHÉE (2026-08-26, signalé par
+  // le fondateur : « décoche les jours de repos par défaut, là ils sont tous
+  // cochés »). `restDaySet(n, 0)` rend TOUS les jours — c'est arithmétiquement juste
+  // (zéro entraînement, donc que du repos) et absurde à l'écran : l'app affirmait
+  // « je ne m'entraîne jamais » à la place de quelqu'un qui n'a encore rien dit.
+  // ⚠️ ET ÇA NE S'ARRÊTAIT PAS À L'AFFICHAGE. Ces sept jours étaient ENREGISTRÉS.
+  // Le jour où la personne déclare du sport dans son profil sans repasser par ici,
+  // `trainingDaysPerWeek` vaut `7 − 7 = 0` : `dayExpenditures` retombe alors sur le
+  // lissage, et son cyclage ne s'allume JAMAIS — un réglage posé quand il ne voulait
+  // rien dire, qui mord des semaines plus tard (CLAUDE.md §11, « paramètre dormant »).
+  if (trainingDaysPerWeek <= 0) return [];
   return [...restDaySet(n, trainingDaysPerWeek)]
     .map((i) => orderedPlanWeekdays[i - 1])
     .filter((v): v is number => v !== undefined);
