@@ -31,10 +31,10 @@ et des finalités reste à valider — en particulier la base légale du point 3
 
 | Catégorie | Destinataire | Quand | Mesure |
 |---|---|---|---|
-| **Identifiers → User ID** | **RevenueCat** | **à chaque connexion, abonné ou non** | `hooks/usePremium.ts:52` → `identifyUser(uid)` |
+| **Identifiers → User ID** | **RevenueCat** | ✅ **uniquement quand le verdict d'accès en dépend** — donc, en pratique, pour les comptes postérieurs au paywall ; et à l'ouverture de l'écran d'achat | `hooks/usePremium.ts` → `entitlementNecessaire()` |
 
-⚠️ **Ne pas cocher « uniquement pour les abonnés ».** C'est ce que dit le §2 de la politique (`legal.ts:119`), et c'est **faux** : le §5 (`:208`) et le code disent « que vous soyez abonné ou non ». → constat **09-01**.
-➡️ **Si la reco de 09-01 est appliquée** (différer `identifyUser` à l'ouverture du paywall), cette ligne devient « uniquement pour les abonnés » **et le §2 redevient vrai sans réécriture**. Trancher **avant** de remplir.
+✅ **DÉCISION C1 PRISE ET APPLIQUÉE (2026-08-26)** : `identifyUser` a été **différé**. L'identifiant ne part plus à chaque connexion — seulement si `premiumAccess` doit consulter `entitled` (paywall lancé **et** compte non grand-péré), plus l'écran d'achat qui le force, parce qu'acheter exige de savoir à quel compte rattacher la transaction.
+➡️ **Cocher « uniquement pour les abonnés »** est désormais exact, et **le §2 comme le §5 de la politique disent vrai** — sans qu'une ligne de texte ait été réécrite. Constat **09-01 résolu**.
 
 ### Données NON collectées — à cocher explicitement « non »
 
@@ -85,8 +85,8 @@ Mêmes catégories, plus trois points propres à Android.
 
 ```
 READ_EXTERNAL_STORAGE      injectée par expo-image-picker
-WRITE_EXTERNAL_STORAGE     injectée par expo-image-picker — SANS AUCUN USAGE (constat 03-02)
 INTERNET                   Expo
+✅ WRITE_EXTERNAL_STORAGE retirée le 2026-08-26 (blockedPermissions)
 ```
 
 ➡️ **Un formulaire rempli depuis `app.json` déclarerait zéro permission.** C'est le constat **03-01**, et c'est exactement la forme d'erreur que ce brouillon existe pour éviter. ⚠️ Idéalement, **retirer `WRITE_EXTERNAL_STORAGE`** (une ligne dans `blockedPermissions`) **avant** de remplir : on ne déclare pas une permission qu'on n'utilise pas.
@@ -95,13 +95,13 @@ INTERNET                   Expo
 
 ## C · Ordre de saisie recommandé
 
-Trois décisions **précèdent** la saisie. Les prendre après obligerait à re-remplir.
+Trois décisions **précèdent** la saisie. **Une est prise.** Les prendre après obligerait à re-remplir.
 
 | # | Décision | Effet sur les formulaires |
 |---|---|---|
-| 1 | **`identifyUser` à chaque connexion, ou à l'ouverture du paywall ?** (09-01) | change la ligne « User ID partagé avec un tiers » — et rend le §2 de la politique vrai ou faux |
-| 2 | **Sauvegardes OS : exclure quoi ?** (09-02) | change cinq phrases de la politique, et ajoute ou non Apple et Google au registre |
-| 3 | **`WRITE_EXTERNAL_STORAGE` : la retirer ?** (03-02) | change la liste des permissions déclarées à Data Safety |
+| 1 | ~~`identifyUser` à chaque connexion ?~~ | ✅ **TRANCHÉ le 2026-08-26 : différé.** La ligne « User ID partagé » se coche « uniquement pour les abonnés » |
+| 2 | ~~Sauvegardes OS : exclure quoi ?~~ | ✅ **TRANCHÉ le 2026-08-26.** Android exclu (`allowBackup: false`) ; iOS dans le lot binaire. Les photos n'y étaient pas — prémisse corrigée |
+| 3 | ~~`WRITE_EXTERNAL_STORAGE` : la retirer ?~~ | ✅ **TRANCHÉ le 2026-08-26 : retirée.** Data Safety ne déclare plus que `READ_EXTERNAL_STORAGE` et `INTERNET` — mesuré par `npm run check:permissions` |
 
 Puis remplir, puis **relancer l'étape 9** avec les captures — qui ne servira plus qu'à comparer ce brouillon à ce qui a été saisi.
 

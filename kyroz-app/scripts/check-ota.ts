@@ -126,6 +126,42 @@ if (!connu) {
   ligne('ancêtre d’origin/main', String(git(['merge-base', '--is-ancestor', fiche.commit, 'origin/main'])), 'true');
 }
 
+// ── 4. Le texte LÉGAL servi est-il celui du dépôt ? ──────────────────────────
+//
+// 🔴 POURQUOI CETTE SECTION EXISTE (2026-08-27). Quatre révisions légales sont
+// tombées le 26 août, toutes datées « 26 août 2026 » — et aucune n'était encore
+// publiée quand le jour a changé. Une date d'entrée en vigueur est celle de la
+// LIVRAISON, pas du commit : au 27, la date affichée était devenue fausse.
+//
+// ⚠️ ET `legal.test.ts` NE POUVAIT PAS L'ATTRAPER. Il compare l'empreinte du TEXTE :
+// le texte n'avait pas bougé, seul le calendrier. Un garde-fou parfaitement vert
+// pendant que la chose qu'il garde devient fausse — c'est la panne que ce dépôt
+// connaît déjà (« un contrôle VERT peut répéter un avertissement que personne ne
+// lit »). Il fallait le mesurer AILLEURS : ici, où l'on sait ce qui est publié.
+//
+// La mesure : le texte légal du commit EN TÊTE DU CANAL est-il celui d'aujourd'hui ?
+// S'il diffère, la révision n'est pas servie — donc sa date est à ré-arbitrer AU
+// MOMENT de publier, pas maintenant.
+console.log('\nLe texte légal');
+try {
+  const servi = execFileSync('git', ['show', `${fiche.commit}:kyroz-app/constants/legal.ts`],
+    { cwd: ROOT, encoding: 'utf8', maxBuffer: 8 * 1024 * 1024, stdio: ['ignore', 'pipe', 'ignore'] });
+  const actuel = lire('constants/legal.ts');
+  if (servi === actuel) {
+    console.log('  ✓ le texte du dépôt est celui qui tourne         identique au commit publié');
+  } else {
+    const dateActuelle = actuel.match(/effectiveDate:\s*'([^']+)'/)?.[1] ?? '(illisible)';
+    console.log(`  ⚠ le texte du dépôt N'EST PAS ENCORE SERVI       date affichée : « ${dateActuelle} »`);
+    console.log('     ➡️ Une date d’entrée en vigueur est celle de la LIVRAISON, pas du commit.');
+    console.log('        Avant de publier l’OTA : vérifier que cette date est bien CELLE DU JOUR,');
+    console.log('        la corriger dans constants/legal.ts ET DERNIERE_REVISION.date si besoin,');
+    console.log('        reporter l’empreinte, puis `npm run gen:legal`.');
+    console.log('     ⚠️ Ce n’est pas un échec : c’est normal entre un merge et sa publication.');
+  }
+} catch {
+  console.log('  ⚠ texte légal du commit publié illisible — `git fetch origin` puis relancer.');
+}
+
 // ── Verdict ──────────────────────────────────────────────────────────────────
 if (ko) {
   console.error(`\n✖ ${ko} écart(s) : les fiches ne décrivent PAS ce qui tourne.`);

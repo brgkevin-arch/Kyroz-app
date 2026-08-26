@@ -215,7 +215,19 @@ export const PRIVACY_POLICY: LegalSection[] = [
     title: '6. Hébergement et localisation',
     paragraphs: [
       `Les données synchronisées — profil, objectif, suivi du poids — sont stockées dans l’Union européenne. Une copie de travail réside localement sur votre appareil (fonctionnement hors-ligne).`,
-      `Une exception, décrite au point 5 : les e-mails de service sont stockés ${LEGAL.emailProviderStorage}. Aucune donnée de santé ne quitte l’Union européenne.`,
+      // 🔴 CETTE PHRASE ÉTAIT FAUSSE, et c'est l'audit V1 qui l'a montré (constat 09-02).
+      // Elle est ABSOLUE et VÉRIFIABLE — donc c'était la plus exposée de toute la
+      // politique. Les données locales (profil, pesées) vivent en clair dans
+      // AsyncStorage, et rien ne les excluait des sauvegardes du système : elles
+      // partaient donc vers Apple et Google, hors UE, sans que personne ne l'ait décidé.
+      // ✅ Android : `android.allowBackup: false` (app.json, 2026-08-26) — la sauvegarde
+      //    Google n'emporte plus rien de l'app.
+      // 🟠 iOS : l'exclusion iCloud demande un plugin natif, donc un nouveau binaire.
+      //    Elle est portée par le lot « prochain binaire » (cf. 04-01-CHIFFRAGE-SDK57.md).
+      //    Tant qu'elle n'est pas livrée, cette phrase reste PRUDENTE plutôt qu'absolue.
+      // ⚠️ Ne pas la re-durcir en « aucune » avant que les DEUX plateformes soient
+      //    traitées — c'est exactement l'erreur qu'elle vient de payer.
+      `Une exception, décrite au point 5 : les e-mails de service sont stockés ${LEGAL.emailProviderStorage}. Vos données de santé ne sont transmises à aucun destinataire hors de l’Union européenne ; sur iPhone, une sauvegarde iCloud peut en emporter une copie chiffrée vers les serveurs d’Apple, ce que vous pouvez désactiver dans les réglages de votre appareil.`,
     ],
   },
   {
@@ -335,7 +347,18 @@ export const TERMS_OF_USE: LegalSection[] = [
   {
     title: '10. Droit applicable',
     paragraphs: [
-      `Les présentes conditions sont soumises au droit français. Contact : ${LEGAL.supportEmail}. En cas de litige, vous pouvez recourir à un médiateur de la consommation ou saisir la CNIL pour les questions relatives aux données.`,
+      // 🔴 LA MENTION DU MÉDIATEUR A ÉTÉ RETIRÉE LE 2026-08-26 (audit V1, constat 09-04),
+      // et le sens du retrait compte : ce n'était pas une phrase de trop, c'était une
+      // phrase FAUSSE. Elle annonçait « vous pouvez recourir à un médiateur de la
+      // consommation » alors qu'aucune adhésion n'existe — donc un recours promis et
+      // introuvable, sur le seul paragraphe que quelqu'un lit quand ça va mal.
+      // ⚠️ L'obligation d'adhésion (L.612-1) ne vise que le professionnel qui VEND.
+      // Kyroz étant intégralement gratuit — `PAYWALL_LAUNCH` est `null` —, elle ne mord
+      // pas encore. Elle mordra à la PREMIÈRE VENTE.
+      // ➡️ À REMETTRE, avec le NOM et l'URL du médiateur (L.616-1 impose ses
+      // coordonnées, pas sa simple existence), dans le même lot que la pose de
+      // `PAYWALL_LAUNCH`. Écrit dans la procédure de mise en vente.
+      `Les présentes conditions sont soumises au droit français. Contact : ${LEGAL.supportEmail}. Pour toute question relative à vos données, vous pouvez saisir la CNIL.`,
     ],
   },
 ];

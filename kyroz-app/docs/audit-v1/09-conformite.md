@@ -57,6 +57,12 @@ Date : 2026-08-26 · Commit audité : `7d1c372` · Source : **Claude.ai**, sur d
 
   🔴 **Pour les photos, la sauvegarde OS n'est pas une fuite : c'est leur seul filet.** Une app qui vend le « suivi de transformation » et détruit silencieusement les photos au changement de téléphone commettrait un mensonge par omission **plus coûteux que la phrase qu'il répare** — et la valeur d'une photo de progression est précisément d'être ancienne.
   ➡️ **Sortie honnête** : exclure les trois premières lignes, **garder les photos**, et corriger `:218` et `:118` pour dire le vrai — les photos ne vont jamais sur les serveurs de Kyroz, mais **elles suivent la sauvegarde du téléphone**. Ce qui implique de déclarer Apple et Google au registre **pour ce périmètre restreint**.
+- ✅ **DÉCISION C2 PRISE ET APPLIQUÉE (2026-08-26)** — et la **prémisse de la reco était fausse**, ce qui a simplifié le correctif :
+  - 🔧 **Les photos n'étaient PAS dans la sauvegarde.** `pickProgressPhoto` (`lib/photos.ts:33`) renvoie l'URI d'ImagePicker **sans copie durable** ; `@kyroz:weightPhotos` ne stocke qu'une **carte date → URI**, jamais les octets. La segmentation que l'étape 9 et moi recommandions — « garder les photos dans la sauvegarde, c'est leur seul filet » — portait sur quelque chose qui n'y était pas. **Et l'app le dit déjà** : `PHOTOS_NOTICE_LOCALE` annonce « ne sont pas sauvegardées : un changement de téléphone les perd », en source unique depuis le 2026-08-26.
+  - ✅ **`legal.ts:118`** (« photos stockées UNIQUEMENT sur votre appareil ») est donc **vrai**. Non modifié.
+  - ✅ **Android** : `android.allowBackup: false` posé dans `app.json`, vérifié sur la **config résolue**. La sauvegarde Google n'emporte plus rien.
+  - 🟠 **iOS** : l'exclusion iCloud demande un plugin natif, donc un nouveau binaire → rattaché au lot « prochain binaire ».
+  - ✅ **`legal.ts:218`** cesse d'être une affirmation absolue : elle dit ce qui est vrai, nomme le cas iCloud, et **donne à l'utilisateur le moyen de le couper lui-même**. ⚠️ Écrit dans `legal.test.ts` : **ne pas la re-durcir avant que les deux plateformes soient traitées** — c'est l'erreur qu'elle vient de payer.
 - **Effort : M**
 
 ### 09-03 Les CGU excluent par état de santé une catégorie que le produit a choisi de ne pas filtrer
