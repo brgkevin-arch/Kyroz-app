@@ -88,6 +88,9 @@ const WEEKDAY_OPTS: { label: string; val: number }[] = [
   { label: 'Jeu', val: 4 }, { label: 'Ven', val: 5 }, { label: 'Sam', val: 6 }, { label: 'Dim', val: 0 },
 ];
 
+/** Les sept jours, dans l'ordre d'affichage — les jours de repos les proposent TOUS. */
+const TOUS_LES_JOURS = WEEKDAY_OPTS.map((o) => o.val);
+
 // Renvoie les jours sélectionnés dans l'ordre Lun→Dim
 function orderedWeekdays(selected: number[]): number[] {
   return WEEKDAY_OPTS.map((o) => o.val).filter((v) => selected.includes(v));
@@ -172,7 +175,7 @@ export default function Onboarding() {
   const [neat, setNeat] = useState<NeatLevel | null>(null);
   const [variety, setVariety] = useState<VarietyPreference>('balanced');
   const [planWeekdays, setPlanWeekdays] = useState<number[]>([]); // rien coché par défaut → l'user sélectionne (noir = off, blanc = on)
-  const [restWeekdays, setRestWeekdays] = useState<number[]>([]);  // jours de repos (sous-ensemble des jours du plan) → cyclage
+  const [restWeekdays, setRestWeekdays] = useState<number[]>([]);  // jours SANS entraînement, sur la semaine entière → cyclage
   // ⚠️ Tant que l'utilisateur n'y a pas touché, les jours de repos sont PRÉ-COCHÉS
   // depuis le nombre de séances déclaré (cf. l'effet plus bas). Ce drapeau existe
   // pour que la pré-sélection ne réécrive JAMAIS un choix déjà fait — même règle
@@ -251,12 +254,11 @@ export default function Onboarding() {
     setMeals((arr) => arr.filter((x) => x !== id));
   };
 
-  // Toggle d'un jour du plan : le retirer le retire aussi des jours de repos
-  // (un jour de repos doit rester un jour planifié).
+  // ⚠️ Retirer un jour du plan ne touche PLUS aux jours de repos (2026-08-26) : les
+  // deux réglages ne parlent plus du même objet. Les jours du plan disent ce que
+  // Kyroz planifie ; les jours de repos disent quand l'utilisateur ne s'entraîne pas.
   const togglePlanDay = (v: number) => {
-    const removing = planWeekdays.includes(v);
-    setPlanWeekdays((arr) => removing ? arr.filter((x) => x !== v) : [...arr, v]);
-    if (removing) setRestWeekdays((arr) => arr.filter((x) => x !== v));
+    setPlanWeekdays((arr) => arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
   };
   const toggleRestDay = (v: number) => {
     setRestTouched(true);
@@ -273,12 +275,15 @@ export default function Onboarding() {
   // (`restDaySet`, la MÊME fonction qu'il utilise), projetés sur les jours du plan.
   // On ne devine pas mieux qu'avant — on rend l'hypothèse VISIBLE, donc corrigeable.
   // Un utilisateur ne peut pas rectifier ce qu'on ne lui montre pas.
+  // 🔴 ET LA DÉDUCTION PORTE SUR LA SEMAINE, PLUS SUR LE PLAN (2026-08-26). Projetée
+  // sur les seuls jours du plan, elle pré-cochait UN jour de repos pour 4 séances
+  // déclarées et un plan du lundi au vendredi — le moteur en déduisait alors
+  // `7 − 1 = 6` jours d'entraînement, et le cyclage naissait faux sur un compte
+  // neuf. Sur les sept jours, la même fonction en déduit trois.
   useEffect(() => {
     if (restTouched) return;
-    const ordered = orderedWeekdays(planWeekdays);
-    if (!ordered.length) { setRestWeekdays([]); return; }
-    setRestWeekdays(deducedRestWeekdays(ordered, trainingDaysEq));
-  }, [planWeekdays, trainingDaysEq, restTouched]);
+    setRestWeekdays(deducedRestWeekdays(TOUS_LES_JOURS, trainingDaysEq));
+  }, [trainingDaysEq, restTouched]);
 
   // Les macros (auto) sont calculées par recalcProfile au finish ; plus de calcul
   // en ligne ici depuis la suppression de l'étape récap (le reveal du 1er plan les affiche).
@@ -342,10 +347,13 @@ export default function Onboarding() {
       tdee_kcal: 0, target_kcal: 0, target_protein_g: 0, target_carbs_g: 0, target_fat_g: 0,
       plan_days: planWeekdays.length,
       plan_weekdays: orderedWeekdays(planWeekdays),
-      // Jours de repos choisis (sous-ensemble des jours du plan) → carb-cycling.
-      // On filtre par sécurité contre planWeekdays. Repas fixes + emphase se règlent
-      // dans le profil (MealsEditor) ; l'onboarding pose les valeurs neutres.
-      rest_weekdays: orderedWeekdays(restWeekdays.filter((d) => planWeekdays.includes(d))),
+      // Jours SANS entraînement, sur la semaine entière → carb-cycling.
+      // ⚠️ Plus de filtre contre `planWeekdays` (2026-08-26) : un jour de repos hors
+      // plan n'est pas une erreur à corriger, c'est une information sur la semaine de
+      // l'utilisateur — et c'est elle qui donne au moteur son nombre d'entraînements.
+      // Repas fixes + emphase se règlent dans le profil (MealsEditor) ; l'onboarding
+      // pose les valeurs neutres.
+      rest_weekdays: orderedWeekdays(restWeekdays),
       meals: orderedMeals(meals, customSlots),
       meal_slots: customSlots.length ? customSlots : undefined,
       meal_emphasis: 'even',
@@ -562,7 +570,8 @@ export default function Onboarding() {
             </View>
             <Text style={[s.sub, { marginTop: -Spacing.xs }]}>{planWeekdays.length} jour{planWeekdays.length > 1 ? 's' : ''} par semaine</Text>
 
-            {/* Jours de repos = sous-ensemble des jours du plan → carb-cycling. */}
+            {/* Jours de repos = jours SANS entraînement, sur la semaine entière — ils ne
+                dépendent pas des jours du plan (2026-08-26). */}
             <SectionLabel t={t}>Jours de repos</SectionLabel>
             {/* ⚠️ Ce texte a déjà promis deux choses fausses — « (mêmes calories) », plus
                 vrai depuis la répartition par volume, et « recettes récup », plus vrai
@@ -584,17 +593,15 @@ export default function Onboarding() {
                 ? "Moins de calories et de glucides ces jours-là, reportées sur tes jours d'entraînement. Tes protéines et ton total de la semaine ne bougent pas."
                 : "Tes jours sans entraînement. Ils ne changeront tes calories que si tu déclares du sport."}
             </Text>
+            {/* Les SEPT jours, quels que soient les jours du plan : on peut ne pas
+                s'entraîner un jour que Kyroz ne planifie pas. La note « choisis d'abord
+                tes jours de plan » est partie avec la dépendance qu'elle expliquait. */}
             <View style={s.wrap}>
-              {(planWeekdays.length ? WEEKDAY_OPTS.filter((o) => planWeekdays.includes(o.val)) : []).map((d) => (
+              {WEEKDAY_OPTS.map((d) => (
                 <Chip key={d.val} t={t} label={d.label} selected={restWeekdays.includes(d.val)} onPress={() => toggleRestDay(d.val)} />
               ))}
-              {planWeekdays.length > 0 && (
-                <Chip t={t} label="Aucun" selected={restWeekdays.length === 0} onPress={setNoRestDay} />
-              )}
+              <Chip t={t} label="Aucun" selected={restWeekdays.length === 0} onPress={setNoRestDay} />
             </View>
-            {planWeekdays.length === 0 && (
-              <Text style={[s.sub, { ...Type.caption, marginTop: -Spacing.xs }]}>Choisis d'abord tes jours de plan ci-dessus.</Text>
-            )}
 
             <SectionLabel t={t}>Repas inclus</SectionLabel>
             {/* La deuxième phrase — « Tu en fais plus de quatre ? Ajoute tes propres

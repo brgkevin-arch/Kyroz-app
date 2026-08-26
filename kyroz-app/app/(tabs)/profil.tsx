@@ -113,17 +113,24 @@ function activityFromDays(d: number): ActivityLevel {
 function orderedWeekdays(sel: number[]): number[] {
   return WEEKDAY_OPTS.map((o) => o.val).filter((v) => sel.includes(v));
 }
-// Jours de repos pré-cochés à l'ouverture d'un éditeur : choix explicite de l'user
-// (rest_weekdays) si présent, sinon mapping des jours de repos AUTO (déduits du nb
-// d'entraînements) sur les jours de semaine du plan → enregistrer sans rien changer
-// ne modifie pas le plan.
+/** Les sept jours, dans l'ordre d'affichage. */
+const TOUS_LES_JOURS = WEEKDAY_OPTS.map((o) => o.val);
+
+// Jours de repos pré-cochés à l'ouverture de l'éditeur : choix explicite de l'user
+// (rest_weekdays) si présent, sinon déduction depuis le nombre d'entraînements.
+//
+// 🔴 LA DÉDUCTION PORTE SUR LA SEMAINE, PLUS SUR LE PLAN (2026-08-26, décision
+// fondateur). Elle projetait les jours de repos sur les seuls jours du plan : à
+// 4 séances déclarées et un plan du lundi au vendredi, elle en pré-cochait **UN**,
+// et le moteur en déduisait `7 − 1 = 6` jours d'entraînement pour 4 séances. Le
+// diviseur de la dépense sportive était donc faux **dès l'ouverture de l'écran**,
+// sans que rien ne le dise. Sur les sept jours, la même fonction en déduit trois —
+// c'est-à-dire la vérité que l'utilisateur aurait cochée lui-même.
 function effectiveRestWeekdays(profile: UserProfile): number[] {
   if (Array.isArray(profile.rest_weekdays)) return orderedWeekdays(profile.rest_weekdays);
-  const wd = orderedWeekdays(profile.plan_weekdays ?? []);
-  if (!wd.length) return [];
   // Source unique avec l'onboarding (`deducedRestWeekdays`) : les deux écrans
   // pré-cochent la MÊME chose, sinon le réglage change de sens selon l'endroit.
-  return orderedWeekdays(deducedRestWeekdays(wd, profile.training_days_per_week));
+  return orderedWeekdays(deducedRestWeekdays(TOUS_LES_JOURS, profile.training_days_per_week));
 }
 // Repas retenus, dans l'ordre CHRONOLOGIQUE de la journée — créneaux créés compris.
 function orderedMeals(sel: MealType[], custom: MealSlot[]): MealType[] {
@@ -1080,13 +1087,16 @@ function SportsProfileEditor({ t, profile, onSave, dragHandlers, sheetScrollProp
   const [sports, setSports] = useState<SportSession[]>(profile.sports ?? []);
   const [neat, setNeat] = useState<NeatLevel>(profile.neat_level ?? DEFAULT_NEAT_LEVEL);
   const [restDays, setRestDays] = useState<number[]>(effectiveRestWeekdays(profile));
-  const planWeekdays = profile.plan_weekdays ?? [];
   const togRestDay = (v: number) => setRestDays((arr) => arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
   const trainingDaysEq = Math.min(totalSessionsPerWeek(sports), 7);
+  // ⚠️ AUCUN FILTRE SUR LES JOURS DU PLAN. Il y en avait un, et il mordait : ouvrir
+  // cet écran puis « Enregistrer » suffisait à effacer en silence un jour de repos
+  // tombé hors du plan. Un jour de repos est un fait sur la semaine de
+  // l'utilisateur ; ce que Kyroz planifie ne le contredit pas.
   const submit = () => onSave(withRecalc({
     ...profile, sports, neat_level: neat,
     training_days_per_week: trainingDaysEq, activity_level: activityFromDays(trainingDaysEq),
-    rest_weekdays: orderedWeekdays(restDays.filter((d) => !planWeekdays.length || planWeekdays.includes(d))),
+    rest_weekdays: orderedWeekdays(restDays),
   }));
   return (
     <EditorShell t={t} title="Sport & activité" onSave={submit} dragHandlers={dragHandlers} sheetScrollProps={sheetScrollProps}>
@@ -1098,7 +1108,7 @@ function SportsProfileEditor({ t, profile, onSave, dragHandlers, sheetScrollProp
       <SectionLabel t={t}>TES SÉANCES</SectionLabel>
       <Text style={{ ...Type.caption, color: t.textSecondary, lineHeight: 18, marginBottom: Spacing.xs }}>Tes sports servent à estimer tes calories dépensées. Plus c'est précis, plus ton plan l'est.</Text>
       <SportsEditor sports={sports} weight={profile.weight_kg} onChange={setSports} />
-      <RestDaysPicker t={t} available={planWeekdays} value={restDays} onToggle={togRestDay} onNone={() => setRestDays([])} />
+      <RestDaysPicker t={t} value={restDays} onToggle={togRestDay} onNone={() => setRestDays([])} />
     </EditorShell>
   );
 }
@@ -1569,11 +1579,28 @@ function PrefEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: Edit
   );
 }
 
-// Sélecteur de jours de repos, partagé par les éditeurs Repas et Sports.
-// `available` = jours de semaine du plan (on ne se repose que sur un jour planifié) ;
-// vide → on propose les 7 jours (repli profils sans jours définis).
-function RestDaysPicker({ t, available, value, onToggle, onNone }: { t: ThemePalette; available: number[]; value: number[]; onToggle: (v: number) => void; onNone: () => void }) {
-  const opts = available.length ? WEEKDAY_OPTS.filter((o) => available.includes(o.val)) : WEEKDAY_OPTS;
+// Sélecteur de jours de repos — UNE seule maison : « Sport & activité ».
+//
+// 🔴 IL VIVAIT DANS LES DEUX ÉDITEURS, ET LES DEUX NE MONTRAIENT PAS LA MÊME CHOSE
+// (2026-08-26, signalé par le fondateur, capture à l'appui). Même donnée
+// (`rest_weekdays`), même composant, mais « Paramètres des repas » le nourrissait
+// avec son BROUILLON de jours du plan et « Sport & activité » avec le profil
+// ENREGISTRÉ : sept puces d'un côté, cinq de l'autre, au même instant. Deux portes
+// pour un réglage, et elles ne pouvaient pas être d'accord.
+//
+// 🔴 ET LES SEPT JOURS SONT TOUJOURS PROPOSÉS. La règle d'avant — « on ne se repose
+// que sur un jour planifié » — confondait deux choses : les jours que Kyroz PLANIFIE
+// et les jours où l'utilisateur S'ENTRAÎNE. Le moteur, lui, compte déjà sur la
+// semaine entière (`7 − jours de repos`, `planEngine::trainingDaysPerWeek`). Avec un
+// plan du lundi au vendredi, personne ne pouvait donc déclarer qu'il ne s'entraîne
+// pas le week-end — et le moteur en déduisait 6 jours d'entraînement pour 4 séances.
+// Mesuré : l'écart entre un jour d'entraînement et un jour de repos tombait de
+// 378 à 252 kcal, soit le cyclage écrasé d'un tiers.
+// ⚠️ Un jour de repos hors plan ne casse rien : `restDaysForProfile` mappe les jours
+// choisis sur les jours du plan et ignore simplement les autres. On ne le filtre
+// donc plus nulle part — ni à la saisie, ni à l'enregistrement.
+function RestDaysPicker({ t, value, onToggle, onNone }: { t: ThemePalette; value: number[]; onToggle: (v: number) => void; onNone: () => void }) {
+  const opts = WEEKDAY_OPTS;
   return (
     <>
       <SectionLabel t={t}>Jours de repos</SectionLabel>
@@ -1581,8 +1608,8 @@ function RestDaysPicker({ t, available, value, onToggle, onNone }: { t: ThemePal
           fondateur). Elle disait ce que le moteur fait vraiment — moins de calories
           et de glucides, protéines inchangées, la semaine garde son total — après
           avoir été corrigée le 2026-08-06 de deux promesses devenues fausses.
-          ⚠️ `RestDaysPicker` est PARTAGÉ avec l'éditeur Sport & activité : la phrase
-          disparaît donc des DEUX écrans, pas seulement des Paramètres des repas.
+          ⚠️ (Le sélecteur vivait alors dans les DEUX éditeurs ; il n'en a plus
+          qu'un depuis le 2026-08-26 — voir l'en-tête de ce composant.)
           ⚠️ Ce que le moteur fait, lui, n'a pas changé d'un iota — seule la ligne
           qui le racontait est partie.
           🔴 ET LE BANDEAU DU PLAN A SUIVI, le même jour : « Jour de repos · un peu
@@ -1611,7 +1638,11 @@ function MealsEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: Edi
   // fermait l'éditeur sans enregistrer.
   const [repasAuto, setRepasAuto] = useRepasAuto();
   const [weekdays, setWeekdays] = useState<number[]>(profile.plan_weekdays ?? [1, 2, 3, 4, 5, 6, 0]);
-  const [restDays, setRestDays] = useState<number[]>(effectiveRestWeekdays(profile));
+  // 🔴 PLUS DE JOURS DE REPOS ICI (2026-08-26, décision fondateur : « je veux que les
+  // jours de repos disparaissent des paramètres repas »). Ils vivent dans
+  // « Sport & activité », et cet éditeur ne les LIT plus ni ne les ÉCRIT — un
+  // `rest_weekdays` posé au passage par l'écran qui ne les montre plus était la
+  // moitié silencieuse du doublon.
   // ⚠️ `?? [...]` ne suffit PAS : un `meals` non-tableau (vu en vrai : le NOMBRE 4) est
   // « non nul », passe le `??`, et fait exploser cet écran au premier `meals.includes`
   // — Error Boundary, réglage inaccessible à vie. `normalizeMeals` (syncGuard) referme
@@ -1630,13 +1661,9 @@ function MealsEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: Edi
   const [fixedMeals, setFixedMeals] = useState<FixedMeals>(profile.fixed_meals ?? {});
   const [definingMeal, setDefiningMeal] = useState<MealType | null>(null);
   const slots = knownSlots({ meal_slots: customSlots });
-  // Retirer un jour du plan le retire aussi des jours de repos (un repos doit être un jour planifié).
-  const togDay = (v: number) => {
-    const removing = weekdays.includes(v);
-    setWeekdays((arr) => removing ? arr.filter((x) => x !== v) : [...arr, v]);
-    if (removing) setRestDays((arr) => arr.filter((x) => x !== v));
-  };
-  const togRestDay = (v: number) => setRestDays((arr) => arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
+  // ⚠️ Retirer un jour du plan ne touche plus aux jours de repos : ils ne sont plus
+  // un sous-ensemble de ce qui est planifié.
+  const togDay = (v: number) => setWeekdays((arr) => arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
   const togMeal = (v: MealType) => {
     const next = meals.includes(v) ? meals.filter((x) => x !== v) : [...meals, v];
     setMeals(next);
@@ -1673,7 +1700,6 @@ function MealsEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: Edi
     const gardes = customSlots.filter((s) => retenus.includes(s.id));
     onSave({
       ...profile, plan_weekdays: orderedWeekdays(weekdays), plan_days: weekdays.length,
-      rest_weekdays: orderedWeekdays(restDays.filter((d) => weekdays.includes(d))),
       meals: retenus, meal_slots: gardes.length ? gardes : undefined,
       // Rangé en ids joints par des virgules dans la MÊME colonne texte qu'avant
       // (cf. `emphasisIds`) : aucune migration, et les binaires déjà installés
@@ -1700,7 +1726,6 @@ function MealsEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: Edi
     <EditorShell t={t} title="Paramètres des repas" onSave={submit} canSave={weekdays.length >= 1 && meals.length >= 1} dragHandlers={dragHandlers} sheetScrollProps={sheetScrollProps}>
       <SectionLabel t={t}>Jours du plan</SectionLabel>
       <View style={styles.wrap}>{WEEKDAY_OPTS.map((d) => <Chip key={d.val} t={t} label={d.label} selected={weekdays.includes(d.val)} onPress={() => togDay(d.val)} />)}</View>
-      <RestDaysPicker t={t} available={weekdays} value={restDays} onToggle={togRestDay} onNone={() => setRestDays([])} />
       <SectionLabel t={t}>Repas inclus</SectionLabel>
       {/* 🔴 « Tu manges plus de quatre fois par jour ? … » retiré le 2026-08-25
           (décision fondateur). Le bouton d'ajout de `MealSlotsPicker` dit déjà ce
