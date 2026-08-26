@@ -5,14 +5,14 @@ import { ConfirmationEnLigne } from './ConfirmationEnLigne';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemePalette, Radius, Spacing, Type, Fond, Trait, Icone, CIBLE_TACTILE_MIN, OPACITE_PRESSION } from '../constants/theme';
 import { SHEET_MAX_WIDTH } from '../constants/layout';
-import { Field, PrimaryButton, SectionLabel, Segmented } from './ui';
+import { Field, PrimaryButton, SectionLabel, Segmented, clavierScrollProps } from './ui';
 import { WeightChart } from './WeightChart';
 import { TrackVerdict, PhotoCompare } from './Transformation';
 import { planFlags, trackingTarget } from '../lib/tdee';
 import { useWeightLog } from '../hooks/useWeightLog';
 import { useProfile } from '../hooks/useProfile';
 import { pickProgressPhoto, cameraAvailable, PhotoSource } from '../lib/photos';
-import { todayStamp, localStamp, DEFAULT_WEIGH_IN_FREQUENCY, WEIGH_IN_LABELS } from '../lib/weight';
+import { todayStamp, localStamp, DEFAULT_WEIGH_IN_FREQUENCY, WEIGH_IN_LABELS, historiquePesees, HISTORIQUE_MAX } from '../lib/weight';
 import { applyWeighInReminder } from '../lib/notifications';
 import { WeighInFrequency } from '../lib/types';
 import { LocalIcon } from './Icons';
@@ -223,7 +223,11 @@ export function WeightCheckin({ t, onClose, dragHandlers, sheetScrollProps }: Pr
     setPendingPhoto(null);
   };
 
-  const reversed = [...entries].reverse().slice(0, 10);
+  // Les `HISTORIQUE_MAX` dernières pesées, écart compris. ⚠️ Le calcul de l'écart
+  // est dans `lib/weight.ts`, PAS ici : tant qu'il vivait dans la boucle ci-dessous,
+  // il lisait le voisin dans la liste déjà coupée et la dernière ligne montrait « — »
+  // comme s'il n'y avait rien avant elle. Cf. `historiquePesees`.
+  const reversed = historiquePesees(entries, HISTORIQUE_MAX);
 
   return (
     <View style={{ flex: 1, backgroundColor: t.bg }}>
@@ -239,7 +243,7 @@ export function WeightCheckin({ t, onClose, dragHandlers, sheetScrollProps }: Pr
 
       {/* Seul le ScrollView VERTICAL reçoit `sheetScrollProps` — la timeline
           horizontale juste en dessous ne doit pas fermer la feuille. */}
-      <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" {...(sheetScrollProps ?? {})}>
+      <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false} {...clavierScrollProps} {...(sheetScrollProps ?? {})}>
         {/* ── LA DATE : une LIGNE, pas un sélecteur ─────────────────────────
             La rangée de sept cases était le premier grief du fondateur. Elle
             s'ouvre désormais à la demande : le jour même est le cas de très loin
@@ -411,8 +415,7 @@ export function WeightCheckin({ t, onClose, dragHandlers, sheetScrollProps }: Pr
             <SectionLabel t={t}>Historique</SectionLabel>
             <View style={s.histCard}>
               {reversed.map((e, i) => {
-                const prev = reversed[i + 1];
-                const d = prev ? Math.round((e.weight_kg - prev.weight_kg) * 10) / 10 : null;
+                const d = e.delta;
                 return (
                   <View key={e.date} style={[s.histItem, i < reversed.length - 1 && s.histDivider]}>
                     <View style={s.histRow}>

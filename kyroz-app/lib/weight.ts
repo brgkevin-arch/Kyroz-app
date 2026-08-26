@@ -204,6 +204,50 @@ export function checkinDue(
   return daysBetween(last.date, today) >= intervalDays;
 }
 
+/**
+ * Combien de pesées l'historique de la feuille « Suivi du poids » montre au plus.
+ *
+ * Le plafond n'est PAS une optimisation : sans lui la liste grandit à chaque pesée
+ * et finit par occuper la feuille entière, sous une courbe qui dit déjà la tendance.
+ * Dix, c'est plus de deux mois pour la cadence par défaut (hebdomadaire).
+ */
+export const HISTORIQUE_MAX = 10;
+
+/** Une pesée telle que l'historique la montre : le point, et son écart au précédent. */
+export type LignePesee = WeightEntry & {
+  /** Écart avec la pesée PRÉCÉDENTE (kg). `null` pour la toute première, elle seule. */
+  delta: number | null;
+};
+
+/**
+ * Les `max` dernières pesées, de la plus récente à la plus ancienne, chacune avec
+ * son écart à la précédente.
+ *
+ * 🔴 **L'ÉCART SE CALCULE SUR LA SÉRIE ENTIÈRE ; LE PLAFOND NE S'APPLIQUE QU'APRÈS.**
+ * Ça vivait dans `WeightCheckin` en une ligne — `[...entries].reverse().slice(0, 10)` —
+ * et la boucle d'affichage lisait le voisin dans la liste DÉJÀ coupée. La 10ᵉ ligne
+ * n'avait donc plus de voisin et affichait « — », c'est-à-dire exactement ce que
+ * l'écran réserve à la toute PREMIÈRE pesée. À partir de 11 pesées, l'app annonçait
+ * un début de série qui n'existe pas, sur la seule ligne qu'on ne peut pas recouper
+ * avec la suivante.
+ * ➡️ Le plafond fabriquait lui-même le mensonge : il ne peut pas vivre dans la
+ * boucle qui dessine. C'est pour ça que ce calcul est sorti ici, sous test.
+ *
+ * ⚠️ `list` est attendue triée par date CROISSANTE — invariant tenu par
+ * `upsertEntry` et par `mergeWeightEntries` (syncGuard), les deux seules portes
+ * d'écriture. Même hypothèse que `latest()` juste au-dessus.
+ */
+export function historiquePesees(list: WeightEntry[], max: number = HISTORIQUE_MAX): LignePesee[] {
+  const recentes = [...list].reverse();
+  return recentes.slice(0, Math.max(0, max)).map((e, i) => {
+    const precedente = recentes[i + 1];   // ← la série entière, pas la tranche
+    return {
+      ...e,
+      delta: precedente ? Math.round((e.weight_kg - precedente.weight_kg) * 10) / 10 : null,
+    };
+  });
+}
+
 // Variation entre les deux derniers points (kg). null si < 2 points.
 export function lastDelta(list: WeightEntry[]): number | null {
   if (list.length < 2) return null;

@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useTheme, Type, Spacing } from '../constants/theme';
-import { ON_TARGET_TOLERANCE_KCAL } from '../lib/planEngine';
 
 interface MacroBarProps {
   protein_g: number;
@@ -21,14 +20,21 @@ interface MacroBarProps {
 // Ne pas le « re-promouvoir » sans le dire : deux gros chiffres sur le même écran
 // et personne ne sait lequel compte.
 //
-// 🔴 **CE QU'ON PERD EN LE RETIRANT, ET C'EST ASSUMÉ** : quand le plan ne tombe pas
-// exactement sur la cible, le total réellement servi n'est plus lisible d'un coup
-// d'œil. C'est acceptable pour une seule raison — les deux cas où l'écart compte
-// sont dits en toutes lettres, chacun par une phrase qui n'apparaît que là :
-//   · sous la cible → `plan.tsx::SousCibleNote`, qui explique et rassure ;
-//   · au-dessus → la ligne ci-dessous.
-// ➡️ Si l'une des deux disparaissait, l'écran mentirait par omission. Elles vont
-// avec ce retrait, elles ne sont pas décoratives.
+// 🔴 **CE QU'ON PERD, ET C'EST ASSUMÉ** : quand le plan ne tombe pas exactement sur
+// la cible, le total réellement servi n'est plus lisible d'un coup d'œil. Une ligne
+// le disait encore dans le sens du DÉPASSEMENT (« Ton plan monte N kcal au-dessus de
+// ta cible. ») — RETIRÉE le 2026-08-25 (décision fondateur), après le héros.
+// ➡️ Conséquence, à connaître avant de croire à un oubli : **au-dessus de la cible,
+// plus rien ne le dit sur cet écran**. C'est un choix, pas un trou.
+//
+// ⚠️ Le sens INVERSE, lui, reste dit — et par un seul endroit :
+// `plan.tsx::SousCibleNote` (« ta journée s'arrête N kcal sous ta cible, les portions
+// ne peuvent pas monter plus haut »), qui explique POURQUOI et rassure. Ne pas le
+// retirer « par symétrie » avec celui-ci : il n'énonce pas un écart, il explique une
+// limite du catalogue.
+//
+// ⚠️ Et on ne redit jamais « Cible X kcal » ici : la cible est déjà le dénominateur
+// du chiffre héros.
 export function MacroBar({ protein_g, carbs_g, fat_g, targetKcal, plannedKcal, consumedKcal }: MacroBarProps) {
   const t = useTheme();
   const total = protein_g * 4 + carbs_g * 4 + fat_g * 9;
@@ -39,8 +45,6 @@ export function MacroBar({ protein_g, carbs_g, fat_g, targetKcal, plannedKcal, c
   const consumed = consumedKcal ?? 0;
   const tracking = consumed > 0;
   const remaining = Math.max(0, plannedKcal - consumed);
-
-  const planDelta = plannedKcal - targetKcal;
 
   return (
     <View style={{ gap: Spacing.lg }}>
@@ -56,19 +60,6 @@ export function MacroBar({ protein_g, carbs_g, fat_g, targetKcal, plannedKcal, c
         {tracking && (
           <Text style={[styles.sub, { color: t.text, fontWeight: '700' }]}>
             Reste {remaining.toLocaleString('fr-FR')} kcal
-          </Text>
-        )}
-        {/* Le plan monte AU-DESSUS de la cible : personne d'autre ne le dit.
-            ⚠️ Le sens INVERSE n'est pas oublié — il est dit mieux ailleurs, par
-            `plan.tsx::SousCibleNote` (« ta journée s'arrête N kcal sous ta cible,
-            les portions ne peuvent pas monter plus haut »), qui explique POURQUOI
-            et rassure. Les deux se recouvraient : c'était l'une des « phrases
-            inutiles ». Ne pas remettre le dépassement dans les deux sens.
-            ⚠️ Et on ne redit plus « Cible X kcal » : la cible est déjà le
-            dénominateur du chiffre héros, deux lignes plus haut. */}
-        {planDelta > ON_TARGET_TOLERANCE_KCAL && (
-          <Text style={[styles.sub, { color: t.textTertiary }]}>
-            Ton plan monte {planDelta.toLocaleString('fr-FR')} kcal au-dessus de ta cible.
           </Text>
         )}
       </View>

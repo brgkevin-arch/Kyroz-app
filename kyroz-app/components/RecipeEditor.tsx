@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity } from 
 import { Presse } from './Presse';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemePalette, Radius, Spacing, Type, CIBLE_TACTILE_MIN, Trait, Icone, OPACITE_PRESSION } from '../constants/theme';
-import { Field, PrimaryButton, Segmented } from './ui';
+import { Field, PrimaryButton, Segmented, clavierScrollProps } from './ui';
 import { Recipe, Ingredient } from '../lib/types';
 import { searchFoods, recipeMacrosPerPortion } from '../lib/foods';
 import { AvertissementIcon } from './Icons';
@@ -112,7 +112,7 @@ export function RecipeEditor({ t, recipe, isCustom, onSave, onReset, onCancel, d
         <Text style={s.sub}>Ajuste-la comme TU l'aimes — ta version sera utilisée partout.</Text>
       </View>
 
-      <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" {...(sheetScrollProps ?? {})}>
+      <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false} {...clavierScrollProps} {...(sheetScrollProps ?? {})}>
         <Field t={t} label="Nom" value={name} onChangeText={setName} autoCapitalize="sentences" />
 
         <View style={s.row2}>

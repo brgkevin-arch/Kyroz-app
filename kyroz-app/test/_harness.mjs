@@ -320,14 +320,17 @@ export async function attendrePlan(page, maxMs = 15000) {
   return 0;
 }
 
-// Sous-titre unique par objectif — source : GOALS dans app/(auth)/onboarding.tsx.
+// Sous-titre unique par objectif — source : `sub` dans GOAL_CONFIG (lib/tdee.ts),
+// depuis le 2026-08-25. Les phrases vivaient dans onboarding.tsx ; elles ont déménagé
+// le jour où Profil → Objectif a voulu les mêmes. `harnaisEcrans.test.ts` recolle
+// cette table sur la source à chaque exécution.
 // (« cut_aggressive » a été retiré du catalogue d'objectifs, il n'est plus listé.)
 export const GOAL_SUB = {
   cut: 'Perdre du gras en gardant le muscle',
   recomp: 'Affiner et prendre du muscle en parallèle',
   maintain: 'Stabiliser poids et composition',
   lean_bulk: 'Prendre du muscle avec un surplus propre',
-  bulk: 'Maximiser la prise de masse',
+  bulk: 'Prendre du poids sans brider le surplus',
 };
 
 /**

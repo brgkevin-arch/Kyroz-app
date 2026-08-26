@@ -5443,6 +5443,11 @@ produit en suspens — il ne reste qu'à coder.
      d'écran à qui n'a pas renseigné son prénom pendant que les autres recevaient
      un bonjour. Un « Bonjour » à 22 h serait un texte faux, donc le créneau se
      calcule. Garde-fou : `salutation.test.ts`, 4 mutations.
+     🔴 **LA ROTATION A ÉTÉ ANNULÉE LE 2026-08-25** (décision fondateur : « je n'aime
+     pas trop le mot coucou, on reste sur Bonjour pour l'instant »). Il reste UN mot
+     par créneau — « Bonjour » le jour, « Bonsoir » le soir — et `dayIndex` n'est
+     plus lu par `salutation.ts`. Le reste de ce point (repli « Ton plan » retiré,
+     créneau calculé) tient toujours.
   2. **Les lunes de la rangée de jours étaient ROGNÉES** — conteneur de 13 pt pour
      une icône de 16. Ça ne se voit que sur une capture : un croissant tronqué
      reste un croissant plausible.
@@ -7673,6 +7678,10 @@ produit en suspens — il ne reste qu'à coder.
   `MacroBar` : à zéro, l'écran annonçait « on n'y arrive pas » pour un reliquat de
   **6 kcal** pendant que la barre juste dessous affichait « ✓ dans la cible ». Deux
   seuils = deux écrans qui se contredisent.
+  ⚠️ **Depuis le 2026-08-25, `MacroBar` n'emploie plus ce seuil** : sa ligne « ton
+  plan monte N kcal au-dessus de ta cible » a été retirée (décision fondateur), donc
+  la barre ne compare plus rien. Le seuil reste partagé entre `adaptDayOptions` et
+  `plan.tsx::SousCibleNote`, et l'argument ci-dessus vaut toujours pour eux deux.
   ⚠️ Corrigé au passage : `adaptDayOptions` lisait le CACHE `total_macros_per_day`
   pour sa référence. Un appelant qui oublie de le rafraîchir après un écart faisait
   afficher « reprend 0 kcal » partout. La référence est recalculée. 5 tests.

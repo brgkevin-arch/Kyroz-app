@@ -5,36 +5,35 @@
 // une fonction, l'écran ne fait que la rendre.
 //
 // **Ce que ça remplace** : `firstName ? \`Salut ${firstName}\` : 'Ton plan'`, écrit
-// en dur dans l'en-tête. Un seul mot, pour toujours — donc un titre qu'on ne lit
-// plus au bout de trois jours (décision fondateur, 2026-08-14 : « on peut mettre
-// un bonjour différent à chaque fois »).
+// en dur dans l'en-tête (décision fondateur, 2026-08-14). Ce qui devait partir,
+// c'est le repli « Ton plan » : il servait un TITRE D'ÉCRAN à qui n'avait pas
+// renseigné son prénom pendant que les autres recevaient un bonjour.
+// ⚠️ La même décision demandait aussi « un bonjour différent à chaque fois » — ce
+// second volet, lui, a été ANNULÉ le 2026-08-25 (voir plus bas). Ne pas lire la
+// phrase de 2026-08-14 comme une consigne encore en vigueur.
 //
-// **Deux axes, et le premier n'est pas décoratif** :
+// **UN SEUL AXE : LE MOMENT DE LA JOURNÉE.** Un « Bonjour » à 22 h est faux, au
+// même titre qu'un chiffre faux (CLAUDE.md §10). Le mot est donc CALCULÉ sur
+// l'heure, jamais tiré au sort — c'est exactement le raisonnement qui a fait
+// naître `periodOf` dans `reminder.ts` (« un rappel à 20 h qui annonce prépare ton
+// petit-déjeuner est pire que pas de rappel du tout »).
 //
-//  1. **LE MOMENT DE LA JOURNÉE.** Un « Bonjour » à 22 h est faux, au même titre
-//     qu'un chiffre faux (CLAUDE.md §10). Le créneau est donc calculé, pas tiré au
-//     sort — c'est exactement le raisonnement qui a fait naître `periodOf` dans
-//     `reminder.ts` (« un rappel à 20 h qui annonce prépare ton petit-déjeuner est
-//     pire que pas de rappel du tout »).
-//  2. **LE JOUR**, via `dayIndex` — le MÊME compteur que les notifications, pour
-//     qu'il n'existe qu'une seule définition de « quel jour on est ». Déterministe :
-//     aucun compteur à stocker, aucune part de hasard, donc un test peut le
-//     vérifier, et rouvrir l'app trois fois dans la matinée ne fait pas défiler
-//     les salutations sous les yeux.
-//
-// ⚠️ **LES LISTES SONT COURTES, ET C'EST UNE LIMITE DE LANGUE, PAS UN OUBLI.** Le
-// français compte peu de salutations vraiment interchangeables — au-delà de trois
-// on tombe dans l'anglicisme (« Hey ») ou dans le régionalisme. Allonger la liste
-// pour allonger le cycle ferait dire à l'app des mots qu'un francophone n'emploie
-// pas. Ce qui fait varier l'en-tête, c'est surtout le passage d'un créneau à
-// l'autre DANS la journée : neuf en-têtes distincts, dont trois par créneau.
+// 🔴 **LA ROTATION PAR JOUR A ÉTÉ RETIRÉE LE 2026-08-25** (décision fondateur :
+// « je n'aime pas trop le mot coucou, on reste sur Bonjour pour l'instant »). Elle
+// faisait tourner trois mots par créneau — `Bonjour` / `Salut` / `Coucou` — sur
+// `dayIndex`, le compteur de jours partagé avec les notifications. Ce qui part
+// avec elle :
+//   · `dayIndex` n'est plus lu ici : la salutation ne dépend QUE de l'heure ;
+//   · l'en-tête est le même tous les jours à la même heure. C'est VOULU. Ce n'est
+//     ni un cache, ni un index bloqué : ne pas le « réparer » en rajoutant des mots.
+// ➡️ « pour l'instant » : la table ci-dessous garde une entrée PAR CRÉNEAU, donc
+// remettre une rotation = repasser ses valeurs en tableaux. Le découpage de la
+// journée, lui, n'aura pas à être refait.
 //
 // ⚠️ Et une salutation reste COURTE parce qu'elle s'affiche en `Type.display`
 // (34 pt) à côté du compteur de série : au-delà de `SALUTATION_MAX`, elle passe à
-// la ligne et l'en-tête change de hauteur d'un jour à l'autre. Le plafond est
+// la ligne et l'en-tête change de hauteur d'un créneau à l'autre. Le plafond est
 // tenu par un test, pas par la vigilance.
-
-import { dayIndex } from './reminder';
 
 /**
  * Créneau de journée d'une salutation. Plus grossier que `ReminderPeriod` (qui en
@@ -58,20 +57,19 @@ export function momentDuJour(heure: number): MomentDuJour {
 export const SALUTATION_MAX = 10;
 
 /**
- * ⚠️ **L'ordre du tableau est l'ordre des jours** — même propriété que les
- * citations de `reminder.ts`. Ajouter un mot en fin de liste n'est donc pas
- * neutre : ça décale la rotation de tout le monde une fois, ce qui est sans
- * conséquence ici (personne ne compte les bonjours), mais ça se sait.
+ * Un mot par créneau — plus de liste, plus de cycle (cf. le préambule).
+ *
+ * ⚠️ `matin` et `apresmidi` disent le MÊME mot, et les deux créneaux restent
+ * distincts quand même : « Bonjour » se dit aussi bien à 9 h qu'à 15 h, mais c'est
+ * `apresmidi` qui porte la frontière de midi — celle dont on aura besoin le jour
+ * où l'après-midi voudra son mot à lui. Le seul mot vraiment faux d'un côté comme
+ * de l'autre, c'est « Bonsoir ».
  */
-export const SALUTATIONS: Record<MomentDuJour, string[]> = {
-  matin: ['Bonjour', 'Salut', 'Coucou'],
-  apresmidi: ['Salut', 'Bonjour', 'Coucou'],
-  soir: ['Bonsoir', 'Salut', 'Coucou'],
+export const SALUTATIONS: Record<MomentDuJour, string> = {
+  matin: 'Bonjour',
+  apresmidi: 'Bonjour',
+  soir: 'Bonsoir',
 };
-
-// `%` garde le signe en JS : un index négatif sortirait du tableau et rendrait
-// `undefined`. Même garde que `reminder.ts::rang`.
-const rang = (index: number, taille: number) => ((index % taille) + taille) % taille;
 
 /**
  * L'en-tête de l'écran Plan à cette date, pour ce prénom.
@@ -83,8 +81,7 @@ const rang = (index: number, taille: number) => ((index % taille) + taille) % ta
  * autres reçoivent un bonjour.
  */
 export function salutation(prenom: string, date: Date): string {
-  const mots = SALUTATIONS[momentDuJour(date.getHours())];
-  const mot = mots[rang(dayIndex(date), mots.length)];
+  const mot = SALUTATIONS[momentDuJour(date.getHours())];
   const p = prenom.trim();
   return p ? `${mot} ${p}` : mot;
 }

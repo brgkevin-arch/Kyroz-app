@@ -46,9 +46,38 @@ export type MealDistribution = Record<string, number>;
  * `slots` décrit les créneaux connus ; sans lui, les 4 intégrés — ce qui rend
  * exactement l'ancien comportement pour tout appelant qui n'en a pas.
  */
+/**
+ * Les créneaux MIS EN AVANT, ramenés à ceux qui sont réellement servis.
+ *
+ * 🔴 **`meal_emphasis` PORTE UNE LISTE DEPUIS LE 2026-08-25** (décision fondateur :
+ * « pouvoir sélectionner plusieurs moments »). Elle reste rangée dans la MÊME
+ * colonne `text` qu'avant, en ids joints par des virgules — `'breakfast,dinner'` —
+ * et non dans une colonne tableau. Ce n'est pas un raccourci : cette colonne est lue
+ * ET ÉCRITE par les binaires déjà installés ; en faire un `text[]` ferait échouer
+ * leur synchro de profil au premier enregistrement. En texte, un ancien binaire lit
+ * `'breakfast,dinner'`, n'y reconnaît aucun créneau et retombe sur « équilibré » :
+ * dégradé, jamais cassé, et aucune migration Supabase à jouer avant un build.
+ *
+ * `'even'`, vide ou absent = équilibré. Un id qui ne désigne aucun repas servi est
+ * écarté — l'emphase serait sans effet, et la garder ferait mentir le résumé du
+ * Profil. L'ordre rendu est celui des repas servis, pas celui de la saisie.
+ */
+export function emphasisIds(
+  emphasis: MealEmphasis | readonly MealType[] | null | undefined,
+  servis: readonly MealType[],
+): MealType[] {
+  // Elle prend la CHAÎNE telle qu'elle est stockée comme la LISTE que l'écran
+  // manipule : lecture et écriture passent par le même tri, sinon l'écran pourrait
+  // enregistrer une emphase que le moteur écarterait ensuite en silence.
+  const demandes = (Array.isArray(emphasis) ? [...emphasis] : String(emphasis ?? '').split(','))
+    .map((x) => String(x).trim()).filter((x) => x && x !== 'even');
+  if (demandes.length === 0) return [];
+  return servis.filter((id) => demandes.includes(id));
+}
+
 export function computeDistribution(
   meals: MealType[],
-  emphasis: MealEmphasis,
+  emphasis: MealEmphasis | null | undefined,
   slots: readonly MealSlot[] = BUILTIN_SLOTS,
 ): MealDistribution {
   // Pré-rempli à 0 pour TOUS les créneaux connus, et pas seulement les actifs :
@@ -62,11 +91,15 @@ export function computeDistribution(
   // renvoie une distribution nulle plutôt que de diviser par zéro.
   if (active.length === 0) return dist;
 
+  // ⚠️ Tout mettre en avant revient à ne rien mettre en avant : le boost multiplie
+  // alors CHAQUE poids par le même facteur, et la répartition est identique à
+  // « équilibré ». C'est cohérent, pas un trou — inutile d'interdire ce choix.
+  const misEnAvant = new Set(emphasisIds(emphasis, active));
   const raw: Record<string, number> = {};
   let total = 0;
   for (const m of active) {
     let w = slotWeight(slotOrFallback(slots, m));
-    if (emphasis !== 'even' && emphasis === m) w *= EMPHASIS_BOOST;
+    if (misEnAvant.has(m)) w *= EMPHASIS_BOOST;
     raw[m] = w;
     total += w;
   }
@@ -1256,9 +1289,10 @@ export function buildLocalPlan(profile: UserProfile, seed: number = 0): MealPlan
 
   // Garde : l'emphase doit porter sur un repas réellement PLANIFIÉ (un repas fixe
   // n'est pas mis à l'échelle), sinon elle serait sans effet → repli « équilibré ».
-  const rawEmphasis = profile.meal_emphasis ?? 'even';
-  const emphasis = rawEmphasis !== 'even' && !plannedTypes.includes(rawEmphasis as MealType) ? 'even' : rawEmphasis;
-  const distribution = computeDistribution(plannedTypes, emphasis, slots);
+  // ⚠️ Ce tri était écrit ICI **et** dans `rebalanceCore`, en deux copies libres de
+  // diverger. Il est passé dans `emphasisIds`, appelé par `computeDistribution` :
+  // une liste d'emphase ne se trie plus qu'à un seul endroit.
+  const distribution = computeDistribution(plannedTypes, profile.meal_emphasis, slots);
 
   const variety = profile.variety ?? 'balanced';
   const fiberStrong = isFiberFocusGoal(profile.goal); // sèche → fibres prioritaires
@@ -1567,9 +1601,8 @@ function rebalanceCore(
   // un créneau supprimé depuis la génération doit rester recalable (cf. slotOrFallback).
   const slots = knownSlots(profile);
   const types = orderSlotIds(slots, dayMeals.map((m) => m.meal_type));
-  const rawEmphasis = profile.meal_emphasis ?? 'even';
-  const emphasis = rawEmphasis !== 'even' && !types.includes(rawEmphasis as MealType) ? 'even' : rawEmphasis;
-  const dist = computeDistribution(types, emphasis, types.map((id) => slotOrFallback(slots, id)));
+  // Même garde qu'à la génération, et au même endroit désormais (cf. `emphasisIds`).
+  const dist = computeDistribution(types, profile.meal_emphasis, types.map((id) => slotOrFallback(slots, id)));
 
   const isAdjustable = (m: Meal) => adjustIds.has(m.id) && (m.status ?? 'planned') === 'planned' && !skipIds.has(m.id);
 
@@ -1646,9 +1679,11 @@ export function rebalanceDay(profile: UserProfile, plan: MealPlan, day: number):
 /**
  * « Dans la cible » — tolérance d'AFFICHAGE, en kcal, SOURCE UNIQUE.
  *
- * Vaut pour la barre du jour (`MacroBar`) comme pour les options d'adaptation :
- * les deux se suivent à l'écran, et un seuil différent de chaque côté ferait dire
- * à l'un « on n'y arrive pas » pendant que l'autre affiche « ✓ dans la cible ».
+ * Vaut pour les options d'adaptation comme pour la note « sous la cible » du Plan
+ * (`plan.tsx::SousCibleNote`) : les deux se suivent à l'écran, et un seuil différent
+ * de chaque côté ferait dire à l'un « on n'y arrive pas » pendant que l'autre se tait.
+ * ⚠️ `MacroBar` l'employait aussi jusqu'au 2026-08-25 (ligne « ton plan monte N kcal
+ * au-dessus de ta cible » retirée) : la barre ne compare plus rien à un seuil.
  * 100 kcal, c'est l'ordre de grandeur de l'imprécision des tables alimentaires —
  * annoncer un reliquat de 6 kcal comme un échec serait une alarme pour du bruit,
  * et la règle produit est claire : le pire cas reste neutre, jamais anxiogène.

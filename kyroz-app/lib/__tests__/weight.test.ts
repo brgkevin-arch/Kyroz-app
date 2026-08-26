@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   localStamp, todayStamp, upsertEntry, removeEntry, latest, checkinDue, lastDelta,
   loadWeights, saveWeights, frequencyDays, nextWeighInAt, WEIGH_IN_INTERVALS, WeightEntry,
-  weighInSchedule, WEIGH_IN_AHEAD, WEIGH_IN_HOUR,
+  weighInSchedule, WEIGH_IN_AHEAD, WEIGH_IN_HOUR, historiquePesees, HISTORIQUE_MAX,
 } from '../weight';
 
 const day = (offset: number) => {
@@ -210,5 +210,74 @@ describe('frequencyDays', () => {
   });
   it('repli défaut (hebdo) si non défini', () => {
     expect(frequencyDays(undefined)).toBe(WEIGH_IN_INTERVALS.weekly);
+  });
+});
+
+// ── Historique de la feuille « Suivi du poids » ──────────────────────────────
+//
+// Ce que ces tests tiennent, et pourquoi :
+//  · le plafond existe (la liste ne grandit pas à l'infini) ;
+//  · mais il ne doit RIEN changer aux écarts affichés. C'est le piège qui a
+//    justifié la sortie du calcul hors du composant : couper d'abord, comparer
+//    ensuite, ça fait afficher « — » (= « rien avant ça ») à la dernière ligne
+//    d'un historique qui a pourtant des pesées plus anciennes.
+describe('historiquePesees', () => {
+  /** Série croissante en date, 1 kg d'écart par pesée — comme la stocke `upsertEntry`. */
+  const serie = (n: number): WeightEntry[] =>
+    Array.from({ length: n }, (_, i) => ({ date: day(i - n + 1), weight_kg: 80 + i }));
+
+  it('rend les plus RÉCENTES en premier', () => {
+    const h = historiquePesees(serie(4));
+    expect(h.map((e) => e.weight_kg)).toEqual([83, 82, 81, 80]);
+  });
+
+  it('plafonne — sinon la liste grandit à chaque pesée', () => {
+    expect(historiquePesees(serie(40)).length).toBe(HISTORIQUE_MAX);
+    expect(HISTORIQUE_MAX).toBe(10);
+  });
+
+  it('rend tout quand la série est plus courte que le plafond', () => {
+    expect(historiquePesees(serie(3)).length).toBe(3);
+  });
+
+  // 🔴 LE TEST QUI COMPTE. Sur 11 pesées, la 10ᵉ ligne (la plus ancienne montrée)
+  // a bien une pesée avant elle : son écart doit être un CHIFFRE, jamais « — ».
+  it("l'écart de la dernière ligne montrée se calcule sur la série entière, pas sur la tranche", () => {
+    const h = historiquePesees(serie(11));
+    expect(h.length).toBe(10);
+    expect(h[9].delta).toBe(1);
+    expect(h.every((e) => e.delta !== null)).toBe(true);
+  });
+
+  it('« — » est réservé à la toute PREMIÈRE pesée, et à elle seule', () => {
+    const courte = historiquePesees(serie(3));
+    expect(courte[2].delta).toBeNull();          // la première pesée de la série
+    expect(courte.slice(0, 2).every((e) => e.delta !== null)).toBe(true);
+    // Dès que la série dépasse le plafond, plus AUCUNE ligne ne peut être « — ».
+    expect(historiquePesees(serie(15)).some((e) => e.delta === null)).toBe(false);
+  });
+
+  it('signe et arrondi : une reprise est positive, une perte négative, au dixième', () => {
+    const h = historiquePesees([
+      { date: day(-2), weight_kg: 80 },
+      { date: day(-1), weight_kg: 79.35 },
+      { date: day(0), weight_kg: 79.95 },
+    ]);
+    expect(h[0].delta).toBe(0.6);
+    expect(h[1].delta).toBe(-0.7);
+    expect(h[2].delta).toBeNull();
+  });
+
+  it('série vide ou plafond nul : rien, et pas un plantage', () => {
+    expect(historiquePesees([])).toEqual([]);
+    expect(historiquePesees(serie(5), 0)).toEqual([]);
+    expect(historiquePesees(serie(5), -3)).toEqual([]);
+  });
+
+  it("ne touche pas à la liste qu'on lui passe", () => {
+    const src = serie(4);
+    const copie = [...src];
+    historiquePesees(src);
+    expect(src).toEqual(copie);
   });
 });

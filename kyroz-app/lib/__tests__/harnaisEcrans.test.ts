@@ -304,17 +304,31 @@ describe('harnais Playwright — les tables recopiées suivent la source', () =>
   // GOAL_SUB sert à CLIQUER l'objectif. Cette étape est l'une des deux que l'app ne
   // valide pas : un sous-titre faux ne bloque rien, le persona repart avec
   // l'objectif par défaut et le rapport décrit un profil qu'on n'a pas demandé.
-  it('GOAL_SUB reproduit exactement les sous-titres de GOALS', () => {
-    const goals = Object.fromEntries(
-      [...lire('app/(auth)/onboarding.tsx').matchAll(/\{\s*value:\s*'(\w+)',\s*sub:\s*'([^']+)'\s*\}/g)]
-        .map((m) => [m[1], m[2]]),
+  // ⚠️ LA SOURCE A CHANGÉ DE FICHIER LE 2026-08-25 : les phrases vivaient dans
+  // `GOALS` (onboarding.tsx), elles sont maintenant dans `GOAL_CONFIG.sub`
+  // (lib/tdee.ts), parce que Profil → Objectif montre les mêmes cartes. Ce test
+  // avait été écrit sur l'ANCIEN emplacement — il est tombé au déménagement, et
+  // c'est exactement son travail.
+  it('GOAL_SUB reproduit exactement les sous-titres servis par goalSubtitle', () => {
+    const subs = Object.fromEntries(
+      [...lire('lib/tdee.ts').matchAll(/^\s{2}(\w+):\s*\{[^}]*sub:\s*'([^']+)'/gm)].map((m) => [m[1], m[2]]),
     );
-    const harnais = Object.fromEntries(
-      [...lire(HARNAIS).matchAll(/^\s{2}(\w+):\s*'([^']+)',$/gm)].map((m) => [m[1], m[2]]),
-    );
-    expect(Object.keys(goals).length, 'GOALS introuvable dans onboarding.tsx').toBeGreaterThan(0);
-    for (const [objectif, sous] of Object.entries(goals)) {
-      expect(harnais[objectif], `objectif « ${objectif} » absent de GOAL_SUB (${HARNAIS})`).toBe(sous);
+    const offerts = (/const GOALS: Goal\[\] = \[([^\]]+)\]/.exec(lire('app/(auth)/onboarding.tsx'))?.[1] ?? '')
+      .split(',').map((x) => x.trim().replace(/^'|'$/g, '')).filter(Boolean);
+    const bloc = /export const GOAL_SUB = \{([^}]+)\}/.exec(lire(HARNAIS))?.[1] ?? '';
+    const harnais = Object.fromEntries([...bloc.matchAll(/(\w+):\s*'([^']+)'/g)].map((m) => [m[1], m[2]]));
+
+    expect(Object.keys(subs).length, 'GOAL_CONFIG.sub introuvable dans lib/tdee.ts').toBeGreaterThan(0);
+    expect(offerts.length, 'GOALS introuvable dans onboarding.tsx').toBeGreaterThan(0);
+    // 1. Tout objectif PROPOSÉ doit être cliquable par le harnais, au texte exact.
+    for (const g of offerts) {
+      expect(harnais[g], `objectif « ${g} » absent de GOAL_SUB (${HARNAIS})`).toBe(subs[g]);
+    }
+    // 2. Et aucune entrée du harnais ne doit traîner un texte que l'app ne dit plus
+    //    — `bulk` en portait un depuis son retrait du catalogue, invisible parce que
+    //    la boucle ne regardait que les objectifs proposés.
+    for (const [g, sous] of Object.entries(harnais)) {
+      if (subs[g]) expect(sous, `GOAL_SUB.${g} ne dit plus ce que l'app affiche`).toBe(subs[g]);
     }
   });
 
