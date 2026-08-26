@@ -2,7 +2,8 @@
 
 > **Une étape à la fois.** Chaque étape a une commande et un résultat attendu.
 > Ne passe à la suivante que si le résultat correspond.
-> Écrit le 2026-08-26, après avoir mesuré la dérive.
+> Écrit le 2026-08-26, corrigé le même jour : ma première mesure portait sur un clone
+> périmé. Voir « Correction » ci-dessous — c'est la partie la plus instructive.
 
 ---
 
@@ -10,27 +11,37 @@
 
 `https://kyroz.app/legal.html` est **l'URL de politique de confidentialité exigée par
 l'App Store et Google Play**. Elle vit dans un dépôt séparé (`brgkevin-arch/kyroz-site`),
-donc elle échappe au contrôle automatique du dépôt de l'app — et elle a dérivé.
+donc elle échappe au contrôle automatique du dépôt de l'app.
 
-Mesuré le 2026-08-26 :
+### 🔴 Correction du 2026-08-26 : la première version de ce document était FAUSSE
 
-| point | page en ligne | ce que dit la source |
+Elle annonçait une page « figée au 15 juin 2026 », avec Resend et PostHog non
+déclarés et un âge minimum à 16 ans. **C'était faux.** Ces trois défauts avaient été
+corrigés dans `kyroz-site` entre le 18 et le 23 août (PR #1 à #4 de ce dépôt).
+
+Ce que j'avais mesuré, c'est un **clone local en retard de trois commits** — et je
+l'avais mesuré AVANT de faire l'étape 1. La mesure était juste sur le fichier lu, et
+elle ne répondait pas à la question posée : « que dit la page EN LIGNE ? »
+
+➡️ **C'est la raison d'être de l'ordre des étapes.** L'étape 1 (`git pull` du clone)
+n'est pas une commodité de confort avant de committer : c'est ce qui rend toute mesure
+ultérieure valable. Mesurer un clone périmé, c'est interroger un instrument qui répond
+sur un autre monde.
+
+### L'écart réel, une fois le clone à jour
+
+| point | page en ligne (23 août) | source (26 août) |
 |---|---|---|
-| Date de mise à jour | **15 juin 2026** | 26 août 2026 |
-| **Resend** — sous-traitant depuis le 2026-08-09 | **absent** | déclaré |
-| **PostHog** — actif depuis le 2026-08-18 | **absent** | déclaré |
-| Âge minimum annoncé | **16 ans** | **18 ans** (`lib/safety.ts::MIN_AGE`) |
-| Tarif bloqué à la souscription (CGU) | absent | présent |
-| Volume | 30 paragraphes, 20 sections | **49 paragraphes, 21 sections** |
+| Date de mise à jour | 23 août 2026 | **26 août 2026** |
+| « garde-manger » → « réserve » | ancien terme | **renommé le 2026-08-25** |
+| Clause CGU « tarif bloqué à la souscription » | **absente** | présente |
+| Resend, PostHog, âge minimum 18 ans | ✅ déjà à jour | ✅ |
 
-Deux sous-traitants qui traitent des données réelles ne sont pas déclarés sur la page
-publique, et elle promet un garde-fou d'âge dans une autre valeur que celle appliquée
-par l'app.
+**5 lignes de diff, pas 100.** Trois écarts, tous datés du 2026-08-25 — exactement les
+changements que la source avait reçus ce jour-là.
 
-**Ce n'est pas une négligence de rédaction** : le fichier est un miroir qu'on
-régénère, et rien ne l'a régénéré depuis juin parce qu'il vit ailleurs.
-
----
+**État : CORRIGÉ.** `kyroz-site` PR #5 (`21fec6b`), fusionnée le 2026-08-26. Ce
+document reste la procédure de référence pour la prochaine fois.
 
 ## Ce que la régénération va faire — et ne pas faire
 
@@ -52,8 +63,9 @@ Vérifié en générant dans un dossier jetable, sans toucher au dépôt du site
 
 - Le clone du site est dans **`/Users/kevinberger/Kyroz_Site`** (majuscule,
   underscore) — chercher `kyroz-site` en minuscules ne le trouve pas.
-- Il est **en retard de 3 commits** sur `origin/main` au moment où ce document est
-  écrit. L'étape 1 n'est donc pas facultative.
+- Il **peut être en retard** sur `origin/main` — il l'était de trois commits le
+  2026-08-26, ce qui a suffi à me faire décrire une page qui n'existait plus.
+  L'étape 1 n'est donc pas facultative, et **aucune mesure ne vaut avant elle**.
 - 🔴 **Ne jamais éditer `legal.html` à la main.** La source est
   `kyroz-app/constants/legal.ts`. Une modification manuelle sera écrasée à la
   prochaine génération, sans le dire.
@@ -196,9 +208,20 @@ l'app. Aucune n'est faite.
 
 ## Ce que cette procédure ne couvre PAS
 
-**La clé RevenueCat de production.** Elle vit dans les secrets EAS, pas dans le dépôt.
-Si elle est posée dans le build, la politique — celle de l'app comme celle du site —
-devient **incomplète** : il faut nommer le prestataire d'abonnement et déclarer le
-cadre du transfert hors UE (RGPD art. 13-1-f). Aujourd'hui le texte parle d'« un
-prestataire spécialisé », ce que l'art. 13-1-e autorise tant qu'aucun contrat n'est
-signé. Cette question se tranche avant la mise en vente, pas ici.
+**La clé RevenueCat de production — et elle EST posée.** Vérifié le 2026-08-26 :
+`eas env:list --environment production` rend un `EXPO_PUBLIC_REVENUECAT_IOS_KEY`
+non vide. Un build de production appelle donc `Purchases.configure()`, et RevenueCat,
+Inc. (États-Unis) reçoit au minimum un identifiant d'app et des informations d'achat.
+
+Le texte actuel parle d'« un prestataire spécialisé » — une CATÉGORIE, ce que le RGPD
+art. 13-1-e autorise. Ce n'est donc pas faux. Mais `constants/legal.ts` porte sa
+propre échéance, écrite le 2026-08-02 : « le jour où le contrat est signé : remplacer
+« un prestataire spécialisé » par le nom, et AJOUTER le cadre du transfert hors UE
+(clauses contractuelles types / Data Privacy Framework), exigé par l'art. 13-1-f et
+qui ne peut se lire que dans le contrat ».
+
+➡️ **Le choix technique n'est plus hypothétique — la clé est en production.** Ce qui
+reste inconnu, et que seul le fondateur peut dire : le DPA RevenueCat est-il signé, et
+sur quel cadre de transfert ? Tant que la réponse n'est pas lue dans le contrat, on
+n'écrit rien : une politique de confidentialité n'est pas l'endroit où supposer.
+**À trancher avant la mise en vente.**
