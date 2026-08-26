@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { lireAgents, lireStore, desaccords, ligneOtaAgents, blocOtaStore } from '../otaFiches';
+import { lireAgents, lireStore, desaccords, ligneOtaAgents, blocOtaStore, chaineOta, chaineDivergente } from '../otaFiches';
 
 // ── Les deux fiches racontent-elles la MÊME dernière OTA ? ───────────────────
 //
@@ -116,5 +116,56 @@ describe('les fiches d’OTA — l’instrument ne se verrouille pas sur la mauv
     // plutôt que « à moitié juste », sinon on choisirait un des deux au hasard.
     const bancal = faux.agents(23, '05baae2a', 'd71c3a2').replace('la 23ᵉ', 'la 22ᵉ');
     expect(lireAgents(bancal)).toBeNull();
+  });
+});
+
+// ── L'HISTORIQUE aussi, pas seulement la tête ────────────────────────────────
+//
+// 🔴 Objection du fondateur, le jour même : « fais en sorte que les deux soient
+// cohérentes ». Comparer la dernière OTA ne suffit pas — les deux fiches portent
+// un HISTORIQUE, et il peut diverger SOUS la tête sans que rien ne le dise.
+// `STORE-RELEASE.md` remonte moins loin (4 OTA contre 20) et c'est légitime :
+// l'une décide d'une soumission, l'autre tient le journal. L'invariant est donc
+// le PRÉFIXE, pas l'égalité.
+
+const chaines = () => [chaineOta(ligneOtaAgents(AGENTS)!), chaineOta(blocOtaStore(STORE)!)] as const;
+
+describe('les fiches d’OTA — l’historique commun ne diverge pas', () => {
+  it('la chaîne de STORE-RELEASE.md est un préfixe de celle d’AGENTS.md', () => {
+    const [longue, courte] = chaines();
+    expect(chaineDivergente(longue, courte)).toEqual([]);
+  });
+
+  it('les deux fiches citent réellement plusieurs OTA — sinon on ne compare rien', () => {
+    const [longue, courte] = chaines();
+    expect(courte.groupes.length).toBeGreaterThan(1);
+    expect(longue.groupes.length).toBeGreaterThanOrEqual(courte.groupes.length);
+  });
+
+  it('elle dit NON quand la divergence est SOUS la tête, pas dessus', () => {
+    // Tête identique, 2ᵉ entrée différente : c'est le cas que la comparaison de
+    // la seule dernière OTA laisserait passer.
+    const longue = { groupes: ['05baae2a', '2b0a3053', '4d38f61c'], commits: ['d71c3a2', '79c3638', '788ab09'] };
+    const courte = { groupes: ['05baae2a', 'a3a119de'], commits: ['d71c3a2', '5dbef80'] };
+    const ecarts = chaineDivergente(longue, courte);
+    expect(ecarts).toHaveLength(2);
+    expect(ecarts[0]).toContain('n°2');
+  });
+
+  it('elle dit NON quand la fiche courte remonte plus loin que la longue', () => {
+    const longue = { groupes: ['05baae2a'], commits: ['d71c3a2'] };
+    const courte = { groupes: ['05baae2a', '2b0a3053'], commits: ['d71c3a2', '79c3638'] };
+    expect(chaineDivergente(longue, courte)).toHaveLength(2);
+  });
+
+  it('une chaîne VIDE n’est pas un préfixe valide', () => {
+    const longue = { groupes: ['05baae2a'], commits: ['d71c3a2'] };
+    expect(chaineDivergente(longue, { groupes: [], commits: [] })).toHaveLength(2);
+  });
+
+  it('elle dit OUI : un préfixe strict ne rend aucun écart', () => {
+    const longue = { groupes: ['05baae2a', '2b0a3053', '4d38f61c'], commits: ['d71c3a2', '79c3638', '788ab09'] };
+    const courte = { groupes: ['05baae2a', '2b0a3053'], commits: ['d71c3a2', '79c3638'] };
+    expect(chaineDivergente(longue, courte)).toEqual([]);
   });
 });

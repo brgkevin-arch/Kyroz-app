@@ -63,6 +63,50 @@ export function blocOtaStore(md: string): string | null {
   return md.slice(i, fin < 0 ? undefined : fin);
 }
 
+/**
+ * La CHAÎNE d'OTA citée par une fiche : les groupes puis les commits, dans
+ * l'ordre du texte, la plus récente d'abord.
+ *
+ * 🔴 **COMPARER LA TÊTE NE SUFFIT PAS** (ajouté le 2026-08-26, sur objection du
+ * fondateur : « fais en sorte que les deux soient cohérentes »). Les deux fiches
+ * ne s'accordent pas que sur la dernière OTA — elles portent toutes les deux un
+ * HISTORIQUE, et il peut diverger sous la tête sans que rien ne le dise. Une fiche
+ * juste sur sa première ligne et fausse sur la deuxième est exactement le genre
+ * d'inventaire qui se confirme tout seul.
+ */
+export function chaineOta(bloc: string): { groupes: string[]; commits: string[] } {
+  return {
+    groupes: [...bloc.matchAll(/`([0-9a-f]{8})`/g)].map((m) => m[1]),
+    commits: [...bloc.matchAll(/commit\s*\*{0,2}`([0-9a-f]{7,40})`/g)].map((m) => m[1]),
+  };
+}
+
+/**
+ * `STORE-RELEASE.md` remonte moins loin qu'`AGENTS.md` (4 OTA contre 20), et c'est
+ * légitime : l'une décide d'une soumission, l'autre tient le journal. L'invariant
+ * n'est donc pas l'égalité mais le **PRÉFIXE** — tout ce que la fiche courte
+ * affirme, la longue doit l'affirmer pareil, dans le même ordre.
+ *
+ * ⚠️ Une chaîne VIDE côté `STORE-RELEASE.md` n'est pas un préfixe valide : ce
+ * serait le contrôle qui passe au vert en ne mesurant plus rien.
+ */
+export function chaineDivergente(
+  longue: { groupes: string[]; commits: string[] },
+  courte: { groupes: string[]; commits: string[] },
+): string[] {
+  const out: string[] = [];
+  for (const [quoi, l, c] of [
+    ['groupe', longue.groupes, courte.groupes],
+    ['commit', longue.commits, courte.commits],
+  ] as const) {
+    if (!c.length) { out.push(`aucun ${quoi} lisible dans STORE-RELEASE.md`); continue; }
+    if (c.length > l.length) { out.push(`STORE-RELEASE.md remonte plus loin qu’AGENTS.md (${quoi})`); continue; }
+    const rang = c.findIndex((x, i) => x !== l[i]);
+    if (rang >= 0) out.push(`${quoi} n°${rang + 1} de l’historique : AGENTS.md dit « ${l[rang]} », STORE-RELEASE.md dit « ${c[rang]} »`);
+  }
+  return out;
+}
+
 const premier = (motif: RegExp, texte: string): string | null => texte.match(motif)?.[1] ?? null;
 
 /** `**23 — la 23ᵉ publiée le …** (groupe `…`, …, commit **`…`**` */

@@ -99,6 +99,11 @@ App mobile React Native (Expo Router, SDK 56) de plans repas macro-précis pour 
 > dans `lib/otaFiches.ts`, pur et sans import, pour que le test et le script lisent les
 > fiches avec le MÊME motif : deux analyseurs recopiés seraient exactement le défaut
 > qu'on ferme.
+> ⚠️ **Et la comparaison porte sur TOUT l'historique commun, pas sur la seule dernière
+> OTA** : les deux fiches en portent une chaîne, et elle peut diverger SOUS la tête sans
+> que rien ne le dise. `STORE-RELEASE.md` remonte moins loin qu'`AGENTS.md` (4 OTA contre
+> 20) et c'est légitime — l'une décide d'une soumission, l'autre tient le journal :
+> l'invariant est donc le **PRÉFIXE**, jamais l'égalité.
 >
 > ⚠️ **Ce que l'OTA ne peut PAS faire** : livrer du natif. Ajouter ou changer une
 > dépendance native impose un nouveau build ET une nouvelle revue. `runtimeVersion` est

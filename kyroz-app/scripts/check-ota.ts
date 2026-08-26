@@ -17,7 +17,7 @@ import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { lireAgents, lireStore, desaccords, type FicheOta } from '../lib/otaFiches';
+import { lireAgents, lireStore, desaccords, ligneOtaAgents, blocOtaStore, chaineOta, chaineDivergente, type FicheOta } from '../lib/otaFiches';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const lire = (rel: string) => readFileSync(join(ROOT, rel), 'utf8');
@@ -39,6 +39,22 @@ if (ecarts.length) {
   ko += ecarts.length;
 } else {
   console.log(`  ✓ AGENTS.md et STORE-RELEASE.md racontent la même OTA (la ${agents!.numero}ᵉ)`);
+}
+
+// L'HISTORIQUE aussi : les deux fiches ne s'accordent pas que sur la dernière.
+// `STORE-RELEASE.md` remonte moins loin, donc l'invariant est le PRÉFIXE.
+const ligneAgents = ligneOtaAgents(lire('AGENTS.md'));
+const puce = blocOtaStore(lire('STORE-RELEASE.md'));
+if (ligneAgents && puce) {
+  const longue = chaineOta(ligneAgents);
+  const courte = chaineOta(puce);
+  const divergences = chaineDivergente(longue, courte);
+  if (divergences.length) {
+    divergences.forEach((d) => console.log(`  ✖ ${d}`));
+    ko += divergences.length;
+  } else {
+    console.log(`  ✓ l’historique commun ne diverge pas (${courte.groupes.length} OTA de recouvrement sur ${longue.groupes.length})`);
+  }
 }
 
 // Une fiche illisible ne peut PAS être confrontée à EAS : on s'arrête ici plutôt
