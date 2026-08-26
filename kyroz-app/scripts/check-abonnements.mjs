@@ -167,12 +167,16 @@ const main = async () => {
           // prix sans que rien ne dise lequel est lequel.
           const type = p.attributes?.planType === 'MONTHLY' ? 'payé au mois, engagé sur la période' : 'payé d’avance';
           console.log(`  │    prix FR   ${pt?.customerPrice ?? '?'} €  —  ${type}${debut}`);
-          // Ce qui reste RÉELLEMENT dans la poche, renvoyé par Apple : `proceeds` au taux
-          // courant, `proceedsYear2` au taux réduit (15 %) qui s'applique après un an
-          // d'abonnement continu — et qui s'appliquerait DÈS LA PREMIÈRE ANNÉE avec le
-          // Small Business Program. L'écart entre les deux chiffre ce que ce programme vaut.
+          // 🔴 CES DEUX VALEURS DÉCRIVENT LA GRILLE D'APPLE, PAS TON COMPTE — corrigé le
+          // 2026-08-25, le libellé disait « net » et c'était trompeur. `proceeds` est le
+          // reversement au taux STANDARD (70 %), `proceedsYear2` au taux RÉDUIT (85 %),
+          // qui s'applique de droit après un an d'abonnement continu.
+          // ⚠️ **Le Small Business Program ne change AUCUNE de ces deux valeurs** : il fait
+          // basculer le COMPTE sur le taux réduit dès la première année. Chercher son effet
+          // ici ne rend donc rien, et se lit à tort comme « le programme n'est pas actif ».
+          // Son état se lit dans App Store Connect → Business, pas dans l'API.
           if (pt?.proceeds) {
-            console.log(`  │              net ${pt.proceeds} €  ·  au taux réduit ${pt.proceedsYear2 ?? '?'} €`);
+            console.log(`  │              grille Apple : ${pt.proceeds} € au taux standard  ·  ${pt.proceedsYear2 ?? '?'} € au taux réduit`);
           }
         }
       } catch (e) { console.log(`  │    prix FR   ✖ ${e.message.split('\n')[0]}`); }
