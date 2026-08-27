@@ -1,5 +1,12 @@
 # Kyroz — Dossier de sortie stores (App Store + Google Play)
 
+> 🔴 **LA V1 EST iOS SEULE — décision fondateur du 2026-08-27.** *« Dans tous les cas l'app
+> ne sort pas sur le Google store pour l'instant, ça sera le taff de la semaine pro. »*
+> Tout ce que ce document dit de **Google Play** décrit donc un chantier de la semaine du
+> 2026-08-31, **pas** le chemin critique du build (7). Ce qui reste vrai côté Android : le
+> compte Play Console est payé et vérifié depuis le 2026-07-30, et deux builds existent —
+> du 2026-07-30, donc antérieurs à tout le chantier paywall.
+
 > Playbook de première soumission. **Ce qui est codable est fait** (config, icônes,
 > splash, `eas.json`, URL de confidentialité). Il te reste des actions qui demandent
 > ton **identité, ton argent, ou un device** (comptes, screenshots, build). Tout est
@@ -405,8 +412,16 @@ un identifiant enregistré, puis une fiche d'app. Dans cet ordre, sinon le menu
 > pas de crash, pas d'écran mort, pas de bouton qui échoue — mais Android ne peut rien
 > vendre, et rien à l'écran ne le dit.
 >
-> ✅ **TRANCHÉ LE 2026-08-27 — ANDROID SORT SANS ACHAT IN-APP** (le fondateur a délégué
-> l'arbitrage : « go »). La clé Android n'est pas posée, et elle ne le sera pas pour la V1.
+> ✅ **TRANCHÉ LE 2026-08-27 — ANDROID NE SORT PAS.** Décision fondateur, dite en toutes
+> lettres : *« dans tous les cas l'app ne sort pas sur le Google store pour l'instant, ça
+> sera le taff de la semaine pro »*. La V1 est donc **iOS SEULE**.
+> 🔴 **CETTE FICHE A DIT « Android sort sans achat in-app » PENDANT UNE HEURE, et c'était
+> déjà trop faible.** L'arbitrage écrit plus tôt supposait qu'Android partait quand même,
+> sans bouton d'achat. Il ne part pas du tout : la question de la clé ne se pose donc pas
+> encore, elle est **reportée avec tout le chantier Android**.
+> ⚠️ Conséquence pratique : rien de Google n'est sur le chemin critique du build (7). La
+> fiche store Google, l'abonnement `kyroz_plus`, l'app Play Console et la clé `goog_…`
+> partent ensemble, la semaine du 2026-08-31.
 > ⚠️ **Ce n'était qu'à moitié un choix** : poser la clé n'est pas un geste mais une CHAÎNE
 > dont aucun maillon n'existe — app Play Console, abonnement `kyroz_plus` et ses deux base
 > plans, app Android rattachée dans RevenueCat, puis la clé `goog_…`. Les deux seuls builds

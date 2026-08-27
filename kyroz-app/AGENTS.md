@@ -1357,7 +1357,18 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
   TestFlight · un crash rapporté qu'on ne reproduit pas · un parc au-delà de quelques
   dizaines d'appareils. Le premier des trois suffit — et B demandera **un build de plus**.
 
-  **`01-07` · Android → SORT SANS ACHAT IN-APP.**
+  **`01-07` · Android → NE SORT PAS.** Décision fondateur en toutes lettres : *« dans tous
+  les cas l'app ne sort pas sur le Google store pour l'instant, ça sera le taff de la
+  semaine pro »*. **La V1 est iOS SEULE.**
+  🔴 **CETTE FICHE A ÉCRIT « Android sort sans achat in-app » AVANT LUI, et c'était déjà
+  trop faible.** L'arbitrage supposait qu'Android partait quand même, sans bouton d'achat ;
+  il ne part pas du tout. La question de la clé ne se pose donc pas encore — elle repart
+  avec le chantier Android, semaine du 2026-08-31, où elle sera une CHAÎNE et non un geste
+  (app Play Console, abonnement `kyroz_plus` et ses deux base plans, app Android rattachée
+  dans RevenueCat, puis la clé `goog_…`).
+  ⚠️ *Une décision déléguée se rédige au plus près de ce qui a été dit : « sans achat » et
+  « ne sort pas » désignent deux plans de travail différents, et le second retire Google du
+  chemin critique du build (7).*
   ⚠️ **Ce n'était qu'à moitié un choix, et la mesure le dit** : poser la clé n'est pas un
   geste mais une CHAÎNE dont aucun maillon n'existe — app Play Console, abonnement
   `kyroz_plus` et ses deux base plans, app Android rattachée dans RevenueCat, puis la clé

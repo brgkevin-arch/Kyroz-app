@@ -225,9 +225,17 @@ Aucun bucket Storage n'existe : rien à effacer de ce côté.
 - **Effort : S**
 
 ### 01-07 La clé RevenueCat Android n'existe sur aucun environnement
-> ✅ **TRANCHÉ le 2026-08-27 — ANDROID SORT SANS ACHAT IN-APP.** Le fondateur a délégué
-> l'arbitrage (« go »). La sévérité reste donc **P2** : elle ne monte à P1 que si Android
-> devait vendre, ce que cette décision écarte.
+> ✅ **TRANCHÉ le 2026-08-27 — ANDROID NE SORT PAS.** Décision fondateur, en toutes
+> lettres : *« dans tous les cas l'app ne sort pas sur le Google store pour l'instant, ça
+> sera le taff de la semaine pro »*. La V1 est **iOS seule**.
+> 🔴 **CE CONSTAT EST DONC SANS OBJET POUR LA V1, et il a fallu deux formulations pour y
+> arriver.** La première version de cet arbitrage disait « Android sort sans achat in-app »
+> — elle supposait qu'Android partait quand même. Il ne part pas : la question de la clé ne
+> se pose pas encore. Elle repart avec le chantier Android, semaine du 2026-08-31.
+> ⚠️ **Ce qui ne change pas** : le jour où Android sortira, la chaîne complète devra être
+> faite (app Play Console, abonnement `kyroz_plus` et ses deux base plans, app Android
+> rattachée dans RevenueCat, puis la clé `goog_…`) — sinon l'app sortira sans pouvoir
+> vendre, et **rien à l'écran ne le dira** hors la phrase corrigée ci-dessous.
 >
 > ⚠️ **CE N'ÉTAIT QU'À MOITIÉ UN CHOIX, et la mesure le dit** : poser la clé n'est pas un
 > geste, c'est une CHAÎNE dont aucun maillon n'existe — app dans la Play Console,
