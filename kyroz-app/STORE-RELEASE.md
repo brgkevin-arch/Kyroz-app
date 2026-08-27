@@ -796,6 +796,23 @@ Apple, affiché SOUS le titre avant le « en savoir plus », **manquait à cette
 > copier-coller » depuis juillet. Les 9 champs, les 10 captures, la classification d'âge
 > et les 175 territoires ont été posés sans ouvrir la console. **Le seul point du dossier
 > qui résiste vraiment est App Privacy** (cf. §4) — pas les textes.
+>
+> 🔴 **Correction du 2026-08-28, 02 h 20 : ils sont DEUX.** App Store Connect a levé une
+> bannière « Déclarez votre dispositif médical réglementé » (obligatoire pour distribuer
+> dans l'UE/EEE, au Royaume-Uni et aux États-Unis). Ni `/v1/apps` ni `/v1/appInfos` ne
+> portent d'attribut correspondant : **déclaré à la main, comme App Privacy.**
+> ➡️ Réponse : **NON**. Kyroz calcule des besoins nutritionnels et impose des planchers
+> de sécurité ; il ne revendique aucune finalité médicale. Au sens du règlement européen,
+> c'est la **revendication** qui sépare le bien-être du dispositif, pas la complexité du
+> calcul — et c'est déjà la dernière phrase de la note au relecteur (§11).
+>
+> ⚠️ **Une bannière peut apparaître PARCE QU'on a écrit ailleurs.** Celle sur les
+> « nouvelles questions réseaux sociaux » dit ne pas être obligatoire avant le
+> 2026-09-07 « sauf si vous soumettez une nouvelle app **ou mettez à jour d'autres
+> réponses dans cette section** » — ce que l'écriture du questionnaire d'âge par l'API
+> venait de faire. Le champ manquant était `socialMediaAgeRestricted`, resté **nul**
+> après mon premier envoi parce que je ne l'avais pas listé : le PATCH avait réussi sans
+> le réclamer. **Un lot accepté ne prouve pas qu'il était complet.**
 
 | Élément | Valeur posée | Mesure |
 |---|---|---|
