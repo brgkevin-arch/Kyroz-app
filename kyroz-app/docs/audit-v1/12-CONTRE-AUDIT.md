@@ -373,10 +373,16 @@ le seuil : c'était de rendre la comparaison **exacte**, en générant le bloc d
 au lieu de le comparer à une extraction lossy. ➡️ *Quand une sonde change d'avis à chaque
 réglage, ce n'est pas le réglage qu'il faut ajuster, c'est l'approche qu'il faut changer.*
 
-⚠️ **Ce que ça NE répare PAS** : l'étape 6b a jugé ces textes en morceaux, et son jugement
-n'a pas été rejoué. Le brief pour le faire est écrit —
-`docs/audit-v1/briefs/06b-bis-methodologie.md` — et il est volontairement **borné aux 32
-textes abîmés**, pas au corpus entier : les 711 autres n'étaient pas touchés.
+✅ **ET LE JUGEMENT A ÉTÉ REJOUÉ — cette section disait « pas encore », c'est réparé.**
+Le brief (`docs/audit-v1/briefs/06b-bis-methodologie.md`) était volontairement **borné aux
+32 textes abîmés**, pas au corpus entier : les 711 autres n'étaient pas touchés. Le
+jugement est revenu et a été ARBITRÉ (`docs/audit-v1/06b-bis-textes-audit.md`) —
+**un seul mensonge sur 33 textes**, et sur la surface qui compte le plus : T16 promettait
+« aucun plan ne peut descendre sous ces limites », un plancher QUOTIDIEN que le moteur ne
+tient pas. Corrigé. Trois des quatre P0 candidats étaient des textes JUSTES, et les trois
+arbitrages (tutoiement, T08, taxonomie) sont tranchés.
+⚠️ **`06b-17` est clos à part, et autrement** : au lieu de relire le dump réparé, les seize
+citations ont été SOURCÉES une par une — deux attributions sur seize étaient fausses.
 
 ---
 
@@ -425,7 +431,38 @@ qu'un relecteur de store lit avant d'ouvrir le binaire.
 | ~~**12**~~ | ✅ **Les six garde-fous décoratifs** | §4 — livré (lot 0) | un vert qui ne peut pas rougir est pire que pas de contrôle |
 | ~~**13**~~ | ✅ **Rejouer 6b sur le corpus réel** | livré — corpus réparé, jugement 6b-bis rendu et ARBITRÉ (`06b-bis-textes-audit.md`) | 16 constats reposaient sur un corpus amputé, puis abîmé |
 
-⚠️ **CE TABLEAU N'A PAS ÉTÉ RE-MESURÉ LOT PAR LOT.** Les lots `2′`, `3′` et `7′` y figurent sans marque et leur état est INCONNU — plusieurs de leurs éléments ont pu être livrés en passant. Le re-mesurer avant d'en prendre un : c'est la leçon des 14 orphelins, dont quatre étaient déjà faux ou déjà faits.
+✅ **LES TROIS LOTS SANS MARQUE ONT ÉTÉ MESURÉS LE 2026-08-27** — l'avertissement qui
+tenait cette place disait « leur état est INCONNU », ce qui était honnête et se lit quand
+même comme du travail à faire. Voici l'état, ligne par ligne. ⚠️ **Il se re-mesure aussi :
+il décrit le 2026-08-27.**
+
+| lot | élément | état mesuré |
+|---|---|---|
+| **2′** | `03-02` `WRITE_EXTERNAL_STORAGE` | ✅ **livré en passant** — elle est dans `blockedPermissions` |
+| **2′** | `03-03` `runtimeVersion` | 🔴 **ouvert** — toujours `{policy: 'appVersion'}` |
+| **2′** | `03-04` thème sombre Android | 🔴 **ouvert** — `expo-system-ui` absent des plugins |
+| **2′** | `04-01` SDK 57 | 🔴 **ouvert** — `expo ~56.0.12` |
+| **2′** | `07-01` abonnements · `03-05` crash reporter | ⏸ hors dépôt : se mesurent au store et par décision |
+| **3′** | `legal.ts` §5 sous-traitants | ✅ **livré** — hébergeur, Resend et RevenueCat y sont nommés |
+| **3′** | Expo au registre | ✅ **livré** — 8 mentions dans `RGPD-REGISTRE.md` |
+| **3′** | 🔴 **la mention iCloud** | **OUVERT, et c'est un texte PUBLIÉ qui dit faux** — voir ci-dessous |
+| **7′** | `05-03` appels réseau bornés | 🔴 **ouvert** — `withBudget` a **2** appels (les deux du démarrage), et `hooks/useAuth.tsx` porte **11** appels réseau interactifs sans budget |
+| **7′** | `.replace(',', '.')` | 🔴 **ouvert** — **9** occurrences dans 7 fichiers, toujours recopiées |
+
+🔴 **LE SEUL QUI SOIT UN MENSONGE PUBLIÉ — et sa prémisse est RE-MESURÉE, pas recopiée.**
+La politique de confidentialité, in-app **et** sur `public/legal.html`, sert encore :
+
+> « sur iPhone, une sauvegarde iCloud peut en emporter une copie chiffrée vers les serveurs
+> d'Apple, ce que vous pouvez désactiver dans les réglages de votre appareil »
+
+Or `RNCAsyncStorage.mm:518-527` exclut le dossier d'AsyncStorage de la sauvegarde **par
+défaut** (`// by default, we want to exclude AsyncStorage data from backup`,
+`isExcludedFromBackup = @YES`), et le dépôt ne pose **aucune** surcharge
+`RCTAsyncStorageExcludeFromBackup` — vérifié dans `ios/` et `app.json`. Les photos, elles,
+vivent dans le répertoire de CACHE (`lib/photos.ts:63`), qu'iOS ne sauvegarde pas non plus.
+➡️ **Le texte demande donc à l'utilisateur de couper une sauvegarde pour un risque qui n'a
+pas lieu**, et il le fait sur la phrase des données de santé. C'est une décision de texte
+légal (trois surfaces, dont le dépôt `kyroz-site`), pas un correctif mécanique.
 
 ### 🔴 Les 17 orphelins, nommés — parce qu'un compte n'est pas une liste
 
