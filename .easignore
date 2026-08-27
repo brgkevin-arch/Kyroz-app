@@ -4,8 +4,10 @@
 #    (eas-cli, build/vcs/local.js : « if .easignore exists, .gitignore files are
 #    not used ».) Tout motif qu'on retire d'ici RE-MONTE donc dans l'archive —
 #    les motifs de secrets compris. Ce fichier doit rester l'UNION de :
-#    .gitignore (racine) + kyroz-app/.gitignore + .git/info/exclude
-#    + ce qui est inutile au build.
+#    .gitignore (racine) + kyroz-app/.gitignore + kyroz-app/ios/.gitignore
+#    + .git/info/exclude + ce qui est inutile au build.
+#    Cette union a été vérifiée mécaniquement : 70 motifs sources, un chemin témoin
+#    dérivé de chacun, tous exclus. À refaire après toute modification d'ici.
 #
 # EMPLACEMENT IMPOSÉ : la racine du DÉPÔT GIT — pas kyroz-app/, où vit eas.json.
 #    eas-cli lit `path.join(await getRootPathAsync(), '.easignore')` et
@@ -103,6 +105,8 @@ expo-env.d.ts
 
 # Dossiers natifs générés par prebuild — régénérés par EAS, jamais envoyés.
 # (Ancrés : sans le préfixe kyroz-app/, ces deux lignes ne matcheraient rien.)
+# Ces deux lignes rendent sans objet le 3ᵉ .gitignore du dépôt,
+# kyroz-app/ios/.gitignore : tout le dossier part, son contenu avec.
 /kyroz-app/ios
 /kyroz-app/android
 
