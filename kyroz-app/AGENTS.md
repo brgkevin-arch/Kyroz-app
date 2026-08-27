@@ -1311,6 +1311,36 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
   `.env.local` factice posé pour l'aperçu a été retiré dans la foulée — un aller ET un
   retour, cf. la ligne « Ce qui traîne ».
 
+- ✅ **A47 · `01-05` — LA SUPPRESSION DE COMPTE N'ANNULE PAS L'ABONNEMENT, ET LA FEUILLE
+  LE DIT, le 2026-08-27** (demande fondateur : « règle 01-05 »). Le constat est né
+  « conditionné — sans effet tant que `PAYWALL_LAUNCH` est `null` », est devenu bloquant
+  le matin même quand la date a été posée (A45), et clos le soir.
+  🔴 **CE QUE ÇA ÉVITE** : quelqu'un supprime son compte en croyant arrêter le
+  prélèvement, et continue d'être débité par un service auquel il n'a plus accès. Motif
+  de litige, et de refus en revue.
+  ➡️ Phrase servie : « Un abonnement Kyroz+ n'est pas annulé par cette suppression : il se
+  résilie depuis les réglages de ton compte App Store », **le nom du store lu sur
+  `Platform.OS`** — un texte iOS servi sur Android enverrait chercher un réglage qui
+  n'existe pas.
+  🔴 **AFFICHÉE SANS CONDITION, ET C'EST MESURÉ, pas paresseux.** La conditionner à
+  `premium.entitled` paraît plus propre — mais `entitled` vient de RevenueCat et **hors
+  ligne un abonné est traité comme non abonné** (`07-03`). La garde aurait disparu
+  exactement pour la personne qui en a besoin, **en silence**. C'est la FORMULATION qui
+  porte la condition à la place du code : « un abonnement Kyroz+ » reste vrai pour qui
+  n'en a pas, et ne coûte qu'une ligne lue.
+  ⚠️ **Ça ne contredit pas la décision d'à côté** (« ici on dit ce qui PART », qui renvoie
+  le détail de facturation au §7 de la politique) : celle-là décrit ce qui SUBSISTE, celle-ci
+  annonce un prélèvement **à venir**. On ajoute ce qui CONTINUE, et c'est la seule chose
+  qui coûte de l'argent.
+  📊 Garde-fou : `preuveAvantSuppression.test.ts`, **3 mutations, 3 rouges** (phrase
+  retirée, store écrit en dur, formulation retournée). 2 023 tests, `tsc` 0.
+  ⚠️ **NON VU À L'ÉCRAN, et je le dis plutôt que de le supposer** : la feuille vit derrière
+  la roue dentée du Profil, et l'aperçu web n'a pas voulu l'ouvrir (les pressables de
+  react-native-web n'exposent pas de rôle cliquable ici). Ce que la lecture du code
+  garantit quand même : `ActionSheet` n'a **ni `maxHeight` ni `ScrollView`** et il est
+  ancré en bas — un paragraphe de plus pousse la feuille vers le HAUT, il ne peut pas
+  éloigner le bouton « Supprimer définitivement ». À regarder au build (7).
+
 - ✅ **A38 · SÉLECTION BMR « R6 LISSÉE » — LIVRÉE le 2026-08-24** (décision fondateur,
   handoff « Mifflin vs Katch », `ENGINE_REV` 7 → 8). La règle binaire « %MG estimé ⇒
   toujours Mifflin » devient une bascule asymétrique et continue : le BMR glisse de
