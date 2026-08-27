@@ -7,8 +7,19 @@ import { PRIVACY_POLICY } from '../../constants/legal';
 //
 // 🔴 « TOUTES TES DONNÉES SERONT SUPPRIMÉES » N'ÉTAIT PAS VRAI (constat 01-03).
 //
-// `hooks/usePremium.ts` appelle `identifyUser(uid)` **sans condition** dès qu'un compte
-// existe, et la clé RevenueCat est posée dans l'environnement `production` d'EAS. Tout
+// `hooks/usePremium.ts` appelle `identifyUser(uid)` **sans condition d'abonnement** dès
+// que le hook est monté, et la clé RevenueCat est posée dans l'environnement `production`
+// d'EAS.
+// ⚠️ **« Dès qu'un compte existe » était la formulation d'origine, et elle est trop
+// large — mesuré le 2026-08-27.** `usePremium` n'est monté que par TROIS surfaces (Profil,
+// Kyroz+, la feuille de pesée) : l'abonné naît en visitant l'une d'elles, pas à
+// l'inscription. Ça ne retire rien au constat — le Profil est justement l'écran d'où l'on
+// supprime son compte, donc l'abonné existe forcément au moment qui compte — mais ça
+// change ce qu'un TEST doit faire pour l'exercer, et une procédure écrite sur la
+// formulation large enverrait finir l'onboarding pour rien.
+// ⚠️ Et sur le WEB, `purchases.web.ts::identifyUser` rend `false` sans rien appeler :
+// aucun abonné n'y est jamais créé. Un test de suppression fait depuis le site ne peut
+// donc RIEN prouver — il obtiendrait un 404, c'est-à-dire l'un des états muets. Tout
 // build de prod crée donc un abonné RevenueCat portant l'UUID Supabase — **y compris
 // pour quelqu'un qui n'a jamais rien acheté**, et avant même la mise en vente. La
 // suppression de compte appelait `logOut()`, qui réinitialise l'identité LOCALE et ne
@@ -86,11 +97,22 @@ describe('suppression de compte — elle va jusque chez le sous-traitant', () =>
     // ➡️ On lit la garde elle-même, AVANT le `fetch` : le chemin « pas de secret ».
     const corps = code.slice(code.indexOf('async function supprimerAbonneRevenueCat'));
     const garde = corps.slice(0, corps.indexOf('fetch('));
+    // ⚠️ **CETTE ASSERTION A DÛ ÊTRE RÉÉCRITE le 2026-08-27, et le motif vaut d'être
+    // gardé.** Elle mesurait une DISTANCE (`{0,40}` caractères entre `!cle` et son
+    // `return`) pour dire « le repli est immédiat ». Ajouter le `console.error` qui
+    // manquait — un correctif qui RENFORCE exactement ce qu'elle protège — l'a fait
+    // rougir. Une borne de proximité n'exprimait pas la propriété voulue : elle
+    // interdisait d'écrire du code dans le bloc, quel qu'il soit.
+    // ➡️ La propriété est « dans le chemin sans secret, RIEN n'est tenté et l'état rendu
+    // est `non_configure` ». On lit donc le bloc, et on vérifie ces deux choses.
+    const blocSansCle = /if \(!cle\) \{[\s\S]*?\n  \}/.exec(garde)?.[0] ?? '';
+    expect(blocSansCle, 'le chemin « pas de secret » est introuvable').not.toBe('');
     expect(
-      garde,
+      blocSansCle,
       'sans secret, la fonction doit dire qu’elle n’a rien tenté — jamais faire croire '
       + 'la suppression faite',
-    ).toMatch(/!cle[\s\S]{0,40}'non_configure'/);
+    ).toContain("return 'non_configure';");
+    expect(blocSansCle, 'ce chemin ne doit RIEN appeler à distance').not.toMatch(/fetch\(/);
     // 404 = aucun abonné ne porte cet UUID. Le confondre avec une panne ferait alerter
     // sur le fonctionnement normal.
     expect(code, '404 doit être distingué d’un échec').toContain('404');
@@ -102,6 +124,61 @@ describe('suppression de compte — elle va jusque chez le sous-traitant', () =>
     const code = sansCommentaires(sync);
     expect(code, 'la réponse de la fonction n’est plus lue').toContain('revenuecat');
     expect(code, 'un échec doit être journalisé').toMatch(/console\.warn/);
+  });
+});
+
+describe('le JOURNAL est lisible — le silence ne veut dire qu’une chose', () => {
+  // 🔴 CE BLOC EXISTE PARCE QUE LA VÉRIFICATION ÉTAIT IMPOSSIBLE (2026-08-27).
+  // La fonction ne journalisait que ses ÉCHECS. Or elle a trois façons de ne rien
+  // supprimer, et deux se taisaient : `non_configure` (le secret manque ou porte un autre
+  // nom — arrivé le jour même) et `introuvable` (404, l'abonné n'a jamais existé — ce que
+  // rend tout test fait depuis le web). Un journal muet avait donc TROIS sens, dont
+  // « tout va bien » : c'est-à-dire qu'il ne mesurait rien.
+  // ➡️ Depuis, chaque état qui ne supprime pas écrit. Le silence vaut `supprime`, et
+  // seulement ça. Ce test compte ce contrat — sans lui, la ligne se retire au premier
+  // nettoyage et la procédure redevient invérifiable, sans que rien ne rougisse.
+  // ⚠️ Sur le CODE seul : les commentaires de cette fonction expliquent pourquoi elle
+  // journalise, et un test qui les lirait se satisferait de l'explication.
+  const corps = /async function supprimerAbonneRevenueCat[\s\S]*?\n}/
+    .exec(sansCommentaires(edge))?.[0] ?? '';
+
+  it('la sonde a bien trouvé la fonction', () => {
+    expect(corps).not.toBe('');
+    expect(corps).toContain('REVENUECAT_SECRET_KEY');
+  });
+
+  it('🔴 « pas de secret » se DIT — c’est la panne la plus probable de ce câblage', () => {
+    const bloc = /if \(!cle\) \{[\s\S]*?return 'non_configure';/.exec(corps)?.[0] ?? '';
+    expect(bloc, 'le repli `non_configure` est introuvable').not.toBe('');
+    expect(bloc).toMatch(/console\.(error|warn)\(/);
+  });
+
+  it('🔴 « aucun abonné » se DIT aussi — sinon un test qui n’exerce rien passe pour vert', () => {
+    const bloc = /if \(r\.status === 404\) \{[\s\S]*?return 'introuvable';/.exec(corps)?.[0] ?? '';
+    expect(bloc, 'le cas 404 est introuvable, ou il ne passe plus par un bloc').not.toBe('');
+    expect(bloc).toMatch(/console\.(error|warn)\(/);
+  });
+
+  it('🔴 les TROIS états qui ne suppriment pas parlent — et `supprime` se tait', () => {
+    // Le comptage plutôt que trois assertions séparées : c'est lui qui rougit le jour où
+    // quelqu'un ajoute un quatrième état muet.
+    const muets = ['non_configure', 'introuvable', 'echec'].filter((etat) => {
+      const i = corps.indexOf(`return '${etat}'`);
+      if (i < 0) return true;               // l'état a disparu → à relire
+      // On remonte jusqu'au `{` du bloc et on regarde s'il journalise.
+      return !/console\.(error|warn)\(/.test(corps.slice(Math.max(0, i - 700), i));
+    });
+    expect(muets, 'ces états ne suppriment rien ET ne le disent pas').toEqual([]);
+    // Et le succès, lui, reste SILENCIEUX : c'est ce qui rend « muet = réussi » vrai.
+    // ⚠️ Par LIGNES et non par fenêtre de caractères : une fenêtre attrape le
+    // `console.error` de la branche `!r.ok` qui la précède, et accuse un code sain.
+    const lignes = corps.split('\n');
+    const iOk = lignes.findIndex((l) => l.includes("return 'supprime'"));
+    expect(iOk, "le retour `supprime` est introuvable").toBeGreaterThan(-1);
+    expect(
+      lignes.slice(Math.max(0, iOk - 2), iOk + 1).join('\n'),
+      'le chemin de RÉUSSITE doit rester muet — sinon « muet = réussi » cesse d’être vrai',
+    ).not.toMatch(/console\./);
   });
 });
 
