@@ -33,7 +33,8 @@
 | App Store Connect | fiche créée, URL de politique posée, abonnements Kyroz+ créés, **App Privacy REPUBLIÉ le 2026-08-28** : *Données d'utilisation* retirée, **Achats** ajoutée (la vente commence avec cette soumission), **Forme physique** ajoutée (elle manquait depuis le 18/08) — 5 types, tous liés à l'identité, tracking non (§4) |
 | Secrets EAS `production` | `EXPO_PUBLIC_REVIEW_CODE`, RevenueCat iOS, Supabase — **posés**. ⚠️ **PostHog RETIRÉ le 2026-08-26** des trois environnements |
 | Revue bêta TestFlight | **approuvée le 2026-08-03** — les builds suivants passent sans y repasser |
-| Accès relecteur | code posé au build, auth anonyme active, notes rédigées (§11) |
+| Accès relecteur | code posé au build, auth anonyme active, notes rédigées (§11), **posées dans ASC le 2026-08-28** — reste le mot de passe de démo, à coller à la main |
+| **Fiche App Store** | ✅ **REMPLIE PAR L'API le 2026-08-28** — voir §3-bis |
 | Migrations Supabase | **rien en attente** — la dernière date du 2026-08-10 et elle est en prod |
 
 **✅ LES TROIS CHANTIERS SONT PARTIS EN OTA le 2026-08-23** (groupe `a3a119de`, commit
@@ -785,6 +786,61 @@ Apple, affiché SOUS le titre avant le « en savoir plus », **manquait à cette
 > `kyroz-site`, où rien ne l'écrase.
 
 **Support / contact** : `contact@kyroz.app`
+
+---
+
+## 3-bis. La fiche a été remplie PAR L'API — état au 2026-08-28, 02 h
+
+> **Ce que ce chantier a appris, et qui vaut plus que la fiche elle-même : presque tout
+> App Store Connect s'écrit par l'API.** Ce dossier décrivait §3 comme « textes à
+> copier-coller » depuis juillet. Les 9 champs, les 10 captures, la classification d'âge
+> et les 175 territoires ont été posés sans ouvrir la console. **Le seul point du dossier
+> qui résiste vraiment est App Privacy** (cf. §4) — pas les textes.
+
+| Élément | Valeur posée | Mesure |
+|---|---|---|
+| Nom | `Kyroz` — **inchangé, décision du fondateur le 2026-08-28** | 5/30 |
+| Sous-titre | `Repas calés sur tes macros` | 26/30 |
+| Description | avec le bloc **KYROZ+** (voir plus bas) | 1 406/4 000 |
+| Mots-clés | inchangés | **100/100 — zéro marge** |
+| Texte promotionnel | inchangé | 121/170 |
+| URL assistance + marketing | `https://kyroz.app` | — |
+| Catégories | `HEALTH_AND_FITNESS` + `FOOD_AND_DRINK` | — |
+| Captures | **10** : 5 iPhone (1290×2796) + 5 iPad (2048×2732) | toutes `COMPLETE` |
+| Classification d'âge | **18+** | voir ci-dessous |
+| Droits de contenu | `USES_THIRD_PARTY_CONTENT` | Ciqual/ANSES sous Licence Ouverte 2.0 |
+| Prix de l'app | **gratuite**, territoire de base France | — |
+| Disponibilité | **175 territoires** + les nouveaux | — |
+| Build attaché | le **(8)**, `VALID` | — |
+| Notes de revue | 3 952 caractères | §11 |
+| 🔴 Mot de passe de démo | **VIDE** | seul champ restant |
+
+### Le 18+ a été obtenu SANS fausser une réponse
+
+Le §6 demandait d'« atteindre » le classement adulte, ce qui se lit comme une invitation à
+forcer le questionnaire. **Ce n'était pas nécessaire** : Apple expose `ageRatingOverrideV2`
+(`NONE` · `NINE_PLUS` · `THIRTEEN_PLUS` · `SIXTEEN_PLUS` · `EIGHTEEN_PLUS` · `UNRATED`), un
+relèvement volontaire prévu pour exactement ce cas. Les 21 réponses mécaniques sont à
+`NONE`/`false` ; les deux seules qui relèvent du jugement sont `healthOrWellnessTopics: true`
+et `medicalOrTreatmentInformation: INFREQUENT_OR_MILD` (seuils cliniques et littérature citée
+à l'écran Méthodologie).
+⚠️ `ageRatingOverride` et `ageRatingOverrideV2` **s'excluent** ; poser V2 renseigne l'autre.
+
+### Ce qui a été AJOUTÉ à la description, et pourquoi
+
+La description disait « **100 % gratuit sur le cœur** » et ne mentionnait pas l'abonnement.
+Vrai le 2026-07-17, faux depuis le 2026-08-27. Un bloc **KYROZ+** le remplace : prix des deux
+formules, renouvellement automatique, gestion dans les réglages Apple, lien CGU + politique —
+ce qu'exige la guideline **3.1.2**, et ce qu'impose la règle « pas de mensonge ».
+➡️ **Même défaut que la note au relecteur, au même endroit du dossier** : un texte figé qui
+décrit un produit qui bouge. Les deux ont dû être corrigés le même soir.
+
+### Deux erreurs d'INSTRUMENT, la même nuit
+
+Mon contrôle a dit « aucune catégorie », puis « disponibilité HTTP 400 », alors que les deux
+étaient posées. Cause identique : `GET /v1/apps/{id}` ne rend le `data` d'une relation que si
+on l'`include`, et `limit[…]` plafonne à **50**. ➡️ **Un contrôle qui contredit une écriture
+réussie accuse d'abord la fiche ; c'est l'instrument qu'il faut mesurer en premier.**
 
 ---
 
