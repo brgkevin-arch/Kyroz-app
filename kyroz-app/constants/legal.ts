@@ -373,12 +373,20 @@ export const TERMS_OF_USE: LegalSection[] = [
       // phrase FAUSSE. Elle annonçait « vous pouvez recourir à un médiateur de la
       // consommation » alors qu'aucune adhésion n'existe — donc un recours promis et
       // introuvable, sur le seul paragraphe que quelqu'un lit quand ça va mal.
-      // ⚠️ L'obligation d'adhésion (L.612-1) ne vise que le professionnel qui VEND.
-      // Kyroz étant intégralement gratuit — `PAYWALL_LAUNCH` est `null` —, elle ne mord
-      // pas encore. Elle mordra à la PREMIÈRE VENTE.
-      // ➡️ À REMETTRE, avec le NOM et l'URL du médiateur (L.616-1 impose ses
-      // coordonnées, pas sa simple existence), dans le même lot que la pose de
-      // `PAYWALL_LAUNCH`. Écrit dans la procédure de mise en vente.
+      // 🔴 **LE DÉCLENCHEUR A ÉTÉ ARMÉ LE 2026-08-27 — `PAYWALL_LAUNCH` PORTE UNE DATE.**
+      // Cette note disait « elle ne mord pas encore, Kyroz étant intégralement gratuit ».
+      // La prémisse est tombée : le paywall est posé, et il partira au build (7).
+      // ⚠️ L'obligation d'adhésion (L.612-1) ne vise que le professionnel qui VEND, donc
+      // elle mord à la PREMIÈRE VENTE — pas à la pose de la date, pas au merge. La
+      // fenêtre entre les deux est tout ce qui reste pour s'en occuper.
+      // 🔴 **AUCUNE ADHÉSION N'EXISTE À CE JOUR**, et ce n'est pas une ligne de texte à
+      // écrire : c'est un contrat avec un organisme de médiation, payant, à souscrire.
+      // Les CGU devront ensuite porter son NOM et ses COORDONNÉES (L.616-1 impose les
+      // coordonnées, pas la simple existence).
+      // ➡️ **C'est un préalable à la mise en vente, au même titre que le bac à sable** —
+      // écrit comme tel dans `PROCEDURE-2026-08-25-mise-en-vente-kyroz-plus.md` et dans
+      // `lib/premium.ts`. Ne pas le laisser vivre en commentaire seulement : une inconnue
+      // consignée n'est pas une inconnue traitée.
       `Les présentes conditions sont soumises au droit français. Contact : ${LEGAL.supportEmail}. Pour toute question relative à vos données, vous pouvez saisir la CNIL.`,
     ],
   },

@@ -81,10 +81,21 @@ describe('09-01 — l’identifiant ne part que si le verdict en dépend', () =>
   // voisines. Aucun ne touchait `entitlementNecessaire` — celle dont un mot inversé
   // renvoie l'identifiant de tout le monde à RevenueCat.
   describe('entitlementNecessaire — sa table de vérité', () => {
-    it('🔴 tant que `PAYWALL_LAUNCH` est null, elle est fausse pour TOUT LE MONDE', () => {
-      // C'est l'état d'aujourd'hui, donc l'état de 100 % des comptes.
-      expect(PAYWALL_LAUNCH, 'la date a été posée — relire ce bloc en entier').toBeNull();
-      for (const createdAt of [null, undefined, '2020-01-01T00:00:00Z', '2099-01-01T00:00:00Z']) {
+    // 🔴 CE BLOC A ROUGI LE 2026-08-27 QUAND LA DATE A ÉTÉ POSÉE, comme il était écrit
+    // pour le faire — et relu en entier avant réécriture. Il exigeait « fausse pour TOUT
+    // LE MONDE », ce qui était l'état du paywall dormant. Depuis, elle DISCRIMINE : c'est
+    // le moment où elle compte vraiment, puisqu'un `true` envoie l'UUID chez RevenueCat.
+    it('🔴 depuis la pose de la date, elle discrimine — et c’est là qu’elle compte', () => {
+      expect(PAYWALL_LAUNCH, 'la date a été retirée — relire ce bloc en entier').not.toBeNull();
+      // Antérieur au lancement → grand-péré → on n'interroge personne.
+      expect(entitlementNecessaire('2020-01-01T00:00:00Z'), 'compte ancien').toBe(false);
+      // Postérieur → le verdict dépend de l'abonnement → l'identification est nécessaire.
+      expect(entitlementNecessaire('2099-01-01T00:00:00Z'), 'compte futur').toBe(true);
+      // 🔴 ET SANS DATE, ON N'INTERROGE TOUJOURS PAS : se tromper en DONNANT. C'est la
+      // seule branche dont l'inversion enverrait l'identifiant de TOUT LE MONDE — la
+      // case « Identifiers → User ID … uniquement pour les abonnés » du formulaire App
+      // Privacy repose dessus.
+      for (const createdAt of [null, undefined]) {
         expect(entitlementNecessaire(createdAt), `créé le ${createdAt}`).toBe(false);
       }
     });
@@ -98,9 +109,15 @@ describe('09-01 — l’identifiant ne part que si le verdict en dépend', () =>
     });
   });
 
-  it('témoin : tant que le paywall n’est pas lancé, la question ne se pose pour personne', () => {
-    // Si ce test rougit un jour, c'est que la date a été posée — et il faudra alors
-    // vérifier sur appareil que l'identification part bien pour les comptes verrouillés.
-    expect(PAYWALL_LAUNCH).toBeNull();
+  it('témoin : le paywall EST lancé, donc la question se pose pour les comptes récents', () => {
+    // 🔴 CE TÉMOIN A ROUGI LE 2026-08-27, ET IL PORTAIT UNE DETTE : « il faudra alors
+    // vérifier sur appareil que l'identification part bien pour les comptes verrouillés ».
+    // ⚠️ **CETTE VÉRIFICATION N'EST PAS FAITE, ET ELLE NE PEUT PAS L'ÊTRE ICI** : elle
+    // demande un binaire (le web ne configure aucun SDK d'achat) et un compte postérieur
+    // à la date. Elle est donc portée au build (7) — écrite dans `AGENTS.md` et dans la
+    // procédure de mise en vente, pas seulement en commentaire. *Une inconnue consignée
+    // n'est pas une inconnue traitée* (CLAUDE.md §11).
+    expect(PAYWALL_LAUNCH).not.toBeNull();
+    expect(entitlementNecessaire(new Date(Date.now() + 86_400_000).toISOString())).toBe(true);
   });
 });

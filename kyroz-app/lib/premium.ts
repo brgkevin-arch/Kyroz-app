@@ -22,17 +22,42 @@
 import { UserProfile } from './types';
 
 /**
- * Date de lancement du paywall (ISO). `null` = **pas encore lancé** → personne
- * n'est verrouillé, tout reste gratuit pour tout le monde.
+ * Date de lancement du paywall (ISO). `null` = pas encore lancé.
  *
- * C'est l'interrupteur unique de la mise en vente. Le jour où les comptes stores
- * et RevenueCat sont prêts, on pose une date ici — et rien d'autre ne change :
- * les comptes antérieurs restent grand-pérés, les suivants passent par l'achat.
+ * 🔴 **POSÉE LE 2026-08-27** (décision fondateur : « date-le à aujourd'hui »). C'est
+ * l'interrupteur unique de la mise en vente ; la clé RevenueCat, elle, était déjà là
+ * depuis le 2026-08-03. Les deux sont désormais allumés.
+ *
+ * **Ce que la date fait, et rien d'autre** : tout compte dont `profiles.created_at` est
+ * ANTÉRIEUR reste servi gratuitement **à vie** — c'est une promesse contractuelle, CGU §3,
+ * publiée. Les comptes suivants passent par l'achat pour `dated_goal` et `transformation`.
+ *
+ * ⚠️ **LE FUSEAU EST EXPLICITE, ET IL N'EST PAS DÉCORATIF.** `Date.parse('2026-08-27')`
+ * vaut minuit **UTC**, soit 02 h à Paris : les comptes créés entre minuit et 2 h ce
+ * jour-là seraient tombés du côté grand-péré, offerts à vie par une convention
+ * d'écriture. `+02:00` coupe à minuit heure de Paris, qui est la frontière voulue.
+ * Compté par `premium.test.ts`.
+ *
+ * ⚠️ **ELLE N'ATTEINT ENCORE PERSONNE, et c'est une conséquence du 2026-08-27** : cette
+ * constante voyage dans le bundle JS, et la ligne OTA est **coupée** depuis le passage en
+ * SDK 57 + `runtimeVersion: fingerprint` (A44). Elle ne s'appliquera donc qu'au **build
+ * (7)**, puis aux OTA publiées sur cette même surface native. Poser la date n'ouvre pas
+ * la vente : elle l'ouvrira à la livraison.
+ *
+ * 🔴 **CE QUI RESTE DÛ AVANT QUE LA VENTE S'OUVRE VRAIMENT** — trois choses, aucune n'est
+ * du code :
+ *   1. les quatre produits en « Prêt à soumettre » (capture de review) ;
+ *   2. le bac à sable, jamais passé à ce jour ;
+ *   3. 🔴 **un MÉDIATEUR de la consommation** — l'obligation d'adhésion (L.612-1) ne vise
+ *      que le professionnel qui VEND, donc elle ne mordait pas tant que Kyroz était
+ *      gratuit. Elle mord à la première vente, et les CGU doivent porter son NOM et ses
+ *      coordonnées (L.616-1). Aucune adhésion n'existe. Cf. `constants/legal.ts`, §
+ *      « Droit applicable », et la procédure de mise en vente.
  *
  * ⚠️ Ne JAMAIS reculer cette date une fois posée : ça déverrouillerait des comptes
  * qui payaient, et verrouillerait des comptes à qui on avait promis la gratuité.
  */
-export const PAYWALL_LAUNCH: string | null = null;
+export const PAYWALL_LAUNCH: string | null = '2026-08-27T00:00:00+02:00';
 
 // 🔴 `calorie_bank` A ÉTÉ RETIRÉ D'ICI le 2026-08-18 (décision fondateur). Ce n'est PAS
 // une suppression de fonction : le moteur reste en place et INCHANGÉ (`lib/calorieBank.ts`,
