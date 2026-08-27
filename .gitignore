@@ -24,3 +24,6 @@ graphify-out/
 
 # Livrables/scratch archivés — local, hors git
 /_archive/
+
+# Résidu de la CLI Supabase (`npx supabase …`) — jamais du travail, jamais versionné.
+kyroz-app/supabase/.temp/
