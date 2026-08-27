@@ -11,10 +11,18 @@
 // (étape 5 : « Android bas de gamme, démarrage à froid chronométré, > 3 s = P1 ») et ne
 // se fait pas depuis le dépôt. Un poids qui monte est un signal, pas un verdict.
 //
-// ⚠️ **ET SON CHIFFRE N'EST PAS COMPARABLE À CELUI DE L'AUDIT.** L'audit a mesuré
-// l'artefact PUBLIÉ (`eas update`, avec ses variables et son cache) ; ce script fait un
-// `expo export` LOCAL. Mesuré le 2026-08-27 : **7,03 Mo** en local contre 5,95 Mo publié.
-// L'écart peut venir de la chaîne, pas du code — les deux méthodes ne se soustraient pas.
+// ⚠️ **ET SON CHIFFRE N'EST PAS COMPARABLE À CELUI DE L'AUDIT — C'EST MESURÉ, PAS SUPPOSÉ.**
+// L'audit a mesuré l'artefact PUBLIÉ (`eas update`) ; ce script fait un `expo export`
+// LOCAL. Le 2026-08-27, les deux ont été pris le même jour, sur le même commit :
+//
+//   export local (ce script)      7,03 Mo iOS
+//   export d'`eas update` (25ᵉ)   6,00 Mo iOS · 7,00 Mo Android
+//
+// **1 Mo d'écart sur iOS, à code identique.** L'écart vient donc de la CHAÎNE, pas du
+// produit — et lire le chiffre local comme une régression contre les 5,95 Mo de la 24ᵉ
+// aurait fait chercher une cause dans du code sain.
+// ➡️ La comparaison qui VAUT est publié↔publié : **5,95 → 6,00 Mo** entre la 24ᵉ et la
+// 25ᵉ, soit +0,05 Mo pour six commits dont tout l'audit V1. Le poids ne dérive pas.
 // ➡️ Ce qui vaut, c'est la comparaison de ce script AVEC LUI-MÊME dans le temps. Pour
 // comparer au publié, il faut re-mesurer le publié (cf. CLAUDE.md §2, `strings -a` sur le
 // `.hbc` d'un export EAS).
@@ -32,7 +40,7 @@ import { fileURLToPath } from 'node:url';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 
 /** Le relevé de l'audit V1, sur l'artefact PUBLIÉ. Repère historique, pas une cible. */
-const AUDIT_V1 = { ios: 5.95, android: 6.92, date: '2026-08-26 (24ᵉ OTA)' };
+const AUDIT_V1 = { ios: 6.00, android: 7.00, date: '2026-08-27 (25ᵉ OTA)' };
 
 /** Au-delà, on REGARDE — ce n'est pas un échec, c'est une invitation à mesurer le démarrage. */
 const SEUIL_MO = 8;
@@ -106,8 +114,9 @@ for (const plat of cibles) {
 
 console.log(
   `\n  ℹ️  Repère : ${AUDIT_V1.ios} / ${AUDIT_V1.android} Mo au ${AUDIT_V1.date}, sur l’artefact PUBLIÉ.`
-  + '\n      Un export local pèse plus (7,03 Mo mesuré le 2026-08-27) : les deux méthodes ne'
-  + '\n      se comparent PAS entre elles. Comparer ce script avec lui-même.'
+  + '\n      Un export local pèse ~1 Mo de PLUS à code identique (7,03 contre 6,00 le'
+  + '\n      2026-08-27) : les deux méthodes ne se comparent PAS entre elles. Comparer ce'
+  + '\n      script avec lui-même ; pour le publié, comparer publié à publié.'
   + `\n  ⚠️  ${alerte ? 'Au-delà du seuil de regard' : 'Sous le seuil de regard'} (${SEUIL_MO} Mo) —`
   + ' et ce n’est pas un verdict : le'
   + '\n      constat 04-04 se tranche au DÉMARRAGE À FROID sur Android bas de gamme,'
