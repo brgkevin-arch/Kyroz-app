@@ -522,6 +522,68 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
 
 ### 🔴 A — En retard ou cassé en silence
 
+- ✅ **A39 · CONTRE-AUDIT DE L'AUDIT V1 + LOT 0 — LIVRÉ le 2026-08-27**
+  (`docs/audit-v1/12-CONTRE-AUDIT.md`, branche `contre-audit-lot-0`).
+  **12 agents** : 8 axes en parallèle, puis 4 réfuteurs chargés de DÉTRUIRE les constats.
+  62 bruts → **55 survivants**, 7 tombés (dont un doublon que le contre-audit s'était
+  fabriqué à lui-même). **110 mesures négatives** publiées en annexe, avec les
+  **60 instruments validés sur un témoin** avant de conclure à une absence.
+  ➡️ **Le résultat en une phrase : l'audit raisonnait mieux qu'il ne mesurait, et il a cru
+  ses feux verts.** Ses trois P0 tiennent tous les trois dans leur mécanisme — mais DEUX de
+  leurs trois recommandations ne ferment pas le trou qu'elles visent, et une troisième
+  casserait un cas sain (le `id` d'un profil local est `user-${Date.now()}`, pas un uid :
+  la garde d'identité de 01-01, appliquée à la lettre, JETTE le profil de qui a échoué son
+  push hors ligne).
+  🔴 **SIX GARDE-FOUS SUR HUIT NE GARDENT RIEN**, et c'est le seul résultat obtenu en
+  CASSANT quelque chose : les « 14 assertions » PostHog ne contraignent pas l'ordre
+  (mutation → tout vert) · `check:abonnements` passe au vert sur un périmètre VIDE en
+  changeant des guillemets simples en doubles · `check:auth` rend 0 sur une inscription
+  FERMÉE en prod · `check:permissions` ne regarde que l'Android · la §4 de `check:ota` ne
+  touche jamais son compteur d'écarts · le correctif 09-01 survit à l'inversion de
+  `entitlementNecessaire` avec 1 841 tests verts.
+  🔴 **DEUX FEUX VERTS DU MOTEUR NE TIENNENT PAS** : « aucun plancher contournable » est
+  vrai DANS `computePlan` (274 428 profils, 0 violation) et faux à l'écran — `planEngine`
+  re-plafonne avec `bankFloorKcal`, la cible affichée descend **433 kcal/j** sous le
+  plancher de sécurité ; et le balayage qui certifie la continuité R6 s'arrête EXACTEMENT
+  à `HIGH_ADIPOSITY_PCT.male` (30 %), le décrochage est juste après — **114 kcal/j**, et il
+  ne rétrécit pas quand le pas rétrécit.
+  🔴 **QUATRE DÉFAUTS QUE L'AUDIT N'A JAMAIS REGARDÉS**, dont trois LIVRÉS le jour même :
+  · **notifications éternelles après suppression de compte** (`5a057c9`) — `doDelete` ne
+    contenait aucun `cancelScheduledNotificationAsync`, et `WEIGH_ID-0` est un déclencheur
+    RÉPÉTITIF : le rappel de pesée tombait indéfiniment sur un compte effacé, et
+    `AsyncStorage.clear()` venait d'effacer les réglages par lesquels l'annulation passe.
+    La déconnexion avait le même trou en plus petit (le quotidien survit exprès, la pesée
+    non : sa cadence vit dans le profil qu'on purge) ;
+  · **photos de corps laissées sur l'appareil** (`a796b82`) — `expo-image-picker` écrit
+    dans le répertoire de CACHE, `setPhoto` n'enregistre qu'une carte `date → URI`.
+    ⚠️ **Reste à trancher** : les photos sont donc aussi PURGEABLES par l'OS. Les rendre
+    durables (`documentDirectory`) les ferait entrer dans iCloud/Google Backup —
+    `expo-file-system` 56 n'expose AUCUNE exclusion de sauvegarde (mesuré) — ce qui rendrait
+    `PHOTOS_NOTICE_LOCALE` fausse et rouvrirait la Décision B. Arbitrage produit et légal ;
+  · **le compte se crée avant qu'on demande l'âge** (`7cc5571`) — le §10 de la POLITIQUE
+    (pas des CGU) promettait « aucun compte ne peut être créé en deçà de cet âge ».
+    `canSubmit` = e-mail + mot de passe + consentement. Le blocage existe et il est DUR,
+    mais à l'onboarding (`AGE_BOUNDS[0]` dans `basicsValid`). C'est la clause qui a été
+    réécrite. Le constat 06b-19 l'avait fermée « ✅ RÉSOLU » ;
+  · **le Plan reste sur HIER au réveil** (`da6d994`) — jusqu'à ~14 h : pastille sur hier,
+    repas d'hier cochés, réserve jamais débitée. Minuit ne déclenche rien, et le seul
+    écouteur de réveil n'appelait qu'`autoCocher`, qui sort en early-return. L'étape 5
+    avait coché « [x] K. navigation et reprise » sans produire un seul constat dessus.
+  ⚠️ **SEIZE CONSTATS DE TEXTES REPOSENT SUR UN CORPUS AMPUTÉ** : l'étape 6b n'a jamais
+  été rejouée après la réparation du seuil de 12 caractères — à `98a6335`, le SEUL
+  changement apporté à `06-textes-audit.md` est « 728 chaînes » → « 753 ». Et la réparation
+  en a cassé une autre : l'extracteur découpe sur `\'`, donc la phrase « Kyroz n'est pas un
+  dispositif médical… » a DISPARU du corpus régénéré.
+  ⚠️ **17 constats sont orphelins de tout lot** du §4 de la synthèse, dont trois P1 — dont
+  `02-03`, qui bloque le démarrage.
+  ➡️ **Prochain** : `CA-2-02` (le plancher affiché), puis les six garde-fous décoratifs,
+  puis rejouer 6b sur un corpus réparé.
+  ℹ️ Chaque correctif a été **vu ROUGIR** : 5 + 5 + 4 + 5 mutations. Et l'une d'elles a
+  trouvé un trou dans MON garde-fou (`toContain('AGE_BOUNDS[0]')` restait vert sur un
+  `basicsValid` vidé — la chaîne sert aussi au message d'erreur vingt lignes plus bas).
+  ⚠️ **La 3ᵉ surface légale n'est pas régénérée** : `kyroz.app/legal.html` vit dans le
+  dépôt `kyroz-site`. `KYROZ_SITE=<clone> npm run gen:legal`.
+
 - ✅ **A38 · SÉLECTION BMR « R6 LISSÉE » — LIVRÉE le 2026-08-24** (décision fondateur,
   handoff « Mifflin vs Katch », `ENGINE_REV` 7 → 8). La règle binaire « %MG estimé ⇒
   toujours Mifflin » devient une bascule asymétrique et continue : le BMR glisse de
