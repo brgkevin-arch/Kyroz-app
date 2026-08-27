@@ -21,6 +21,34 @@ Pour tout vérifier d'un coup, demander **toutes** les colonnes de `PROFILE_COLS
 (`lib/sync.ts`) dans un seul `select=` : c'est exactement ce que fait la synchro, donc
 un `200` prouve que l'upsert du profil ne peut pas être rejeté pour colonne manquante.
 
+## 🔴 La CLI Supabase ne voit AUCUN de ces fichiers — mesuré le 2026-08-27
+
+Première connexion de la CLI au projet (`npx supabase migration list --project-ref …`).
+Deux faits, et il faut les deux pour comprendre :
+
+1. **Les 18 fichiers sont TOUS ignorés.** La CLI attend `<timestamp>_nom.sql` — un
+   horodatage de 14 chiffres (`20260614120000_drop_meal_plans.sql`). Nos noms sont
+   datés en ISO (`2026-06-14_drop_meal_plans.sql`), donc elle les saute un par un :
+   `Skipping migration … (file name must match pattern "<timestamp>_name.sql")`, dix-huit
+   fois.
+2. **Le registre distant est VIDE** (`{"migrations":[]}`). Supabase n'a trace d'aucune
+   migration appliquée — normal : elles l'ont toutes été **à la main**, par l'éditeur SQL
+   du tableau de bord, jamais par `supabase db push`.
+
+⚠️ **CE N'EST PAS UN DÉFAUT DE SCHÉMA, et confondre les deux ferait paniquer pour rien.**
+Le schéma est JUSTE : mesuré le même jour par `npm run check:migrations` — six tables à
+200, les 40 colonnes de `PROFILE_COLS` en une requête à 200, et le témoin négatif à 400.
+Le registre vide décrit l'OUTIL, pas la base.
+
+➡️ **Ce que ça coûte, et c'est réel** : `supabase db push` et `supabase migration list`
+sont inutilisables sur ce projet — l'un ne pousserait rien (il ne voit aucun fichier),
+l'autre ne compare rien. Le seul instrument qui dise la vérité est celui du dépôt
+(`npm run check:migrations`), qui interroge les COLONNES et pas un registre.
+➡️ **Le rendre utilisable est un chantier à part, et il n'est pas gratuit** : renommer les
+18 fichiers ne suffit pas — il faudrait ensuite `supabase migration repair` pour marquer
+chacun comme déjà appliqué, sinon le premier `db push` tenterait de tout rejouer sur un
+schéma qui les porte déjà. À décider, pas à improviser.
+
 ## État vérifié
 
 ### 2026-08-07 — ✅ `meal_slots` jouée (17ᵉ migration)
