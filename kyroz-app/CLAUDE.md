@@ -91,7 +91,20 @@ App mobile React Native (Expo Router, **SDK 57** depuis le 2026-08-27) de plans 
 > ⚠️ **CE QUE ÇA COÛTE** : la ligne se coupe désormais à **chaque** changement de surface
 > native — une édition d'`app.json`, un plugin, une dépendance native — et non « une fois
 > par version ». **Éditer `app.json` n'est plus un geste de documentation, c'est un geste
-> de livraison** (`CA-5-03` l'avait annoncé). Et tant qu'aucun binaire SDK 57 n'est
+> de livraison** (`CA-5-03` l'avait annoncé).
+> 🔴 **ET `package.json` EN FAIT PARTIE — Y COMPRIS SES `scripts`. Mesuré le 2026-08-27,
+> entre le build (7) et le (8).** L'empreinte est passée de `3a24b593…` à `16dc5ce9…`
+> alors qu'AUCUNE dépendance native n'avait bougé : le seul changement était l'ajout d'une
+> ligne `"check:easignore"` aux `scripts`. La source responsable se lit noir sur blanc dans
+> `npx expo-updates fingerprint:generate --platform ios` → **`packageJson:scripts`**.
+> ➡️ **C'est bien moins intuitif que `app.json`** : un script de vérification ne part
+> jamais dans l'app, et personne ne pense qu'il touche la surface native. Il a pourtant
+> coupé la ligne OTA entre deux binaires. **Avant d'ajouter un script npm, savoir qu'on
+> vient de rendre les OTA précédentes inatteignables pour le parc d'avant.**
+> ⚠️ **Et le corollaire vaut pour la MESURE** : `npx @expo/fingerprint .` (sans plateforme)
+> rend l'empreinte TOUTES plateformes — 113 sources — et ne correspond à aucun runtime.
+> C'est `--platform ios` (85 sources) qui donne celui du binaire. Une empreinte juste sur
+> le mauvais périmètre se lit comme une divergence, avec l'autorité d'un chiffre. Et tant qu'aucun binaire SDK 57 n'est
 > distribué, **aucune OTA n'atteint personne** : le parc actuel est figé sur la 25ᵉ.
 > ➡️ Garde-fou : `lib/__tests__/ligneOta.test.ts` (3 cas, **3 mutations**) — il refuse le
 > retour à une politique qui ne peut pas couper, et il dit POURQUOI dans son message.
