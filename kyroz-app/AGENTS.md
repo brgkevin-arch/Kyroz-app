@@ -744,14 +744,31 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
   profil local est `user-${Date.now()}`, pas un uid — appliquée à la lettre, elle jette le
   profil de qui a échoué son push hors ligne (`CA-1-04`).
 
-  ⚠️ **Le backlog du §8 de `12-CONTRE-AUDIT.md` n'a PAS été re-mesuré lot par lot.** Les
-  lots `2′`, `3′`, `7′`, `12`, `13` y figurent sans marque, et au moins deux sont livrés
-  (les six garde-fous décoratifs, et le rejeu de 6b). **Ne pas lire ce tableau comme un
-  état** : le re-mesurer avant d'en prendre un — c'est exactement la leçon des 14
-  orphelins, dont quatre étaient déjà faux ou déjà faits.
-  ⚠️ **`06b-17`** est celui que la réparation du corpus concerne : il jugeait les
-  attributions de citations sur un dump amputé de ses quatorze noms d'auteurs. Corpus
-  réparé, constat jamais rejoué.
+  ✅ **LE BACKLOG DU §8 EST RE-MESURÉ LIGNE PAR LIGNE — 2026-08-27.** Il portait
+  l'avertissement « leur état est INCONNU », ce qui était honnête et se lisait quand même
+  comme du travail à faire. La mesure : sur les dix éléments des lots `2′`, `3′` et `7′`,
+  **trois étaient livrés en passant** (`WRITE_EXTERNAL_STORAGE` bloquée · le §5 des
+  sous-traitants nomme bien Resend et RevenueCat · Expo est au registre), **cinq sont
+  ouverts**, deux se mesurent hors dépôt. Tableau chiffré : `12-CONTRE-AUDIT.md` §8.
+  🔴 **Et l'un des cinq est un MENSONGE PUBLIÉ** : la politique — in-app **et** sur
+  `public/legal.html` — demande encore de couper la sauvegarde iCloud « qui peut emporter
+  une copie chiffrée de vos données de santé ». Prémisse re-mesurée dans le paquet, pas
+  recopiée du contre-audit : `RNCAsyncStorage.mm:518-527` exclut le dossier d'AsyncStorage
+  de la sauvegarde **par défaut**, le dépôt ne pose aucune surcharge, et les photos vivent
+  dans le répertoire de CACHE — qu'iOS ne sauvegarde pas non plus. Le texte demande donc un
+  geste pour un risque qui n'a pas lieu. **Décision de texte légal, trois surfaces** (dont
+  le dépôt `kyroz-site`), pas un correctif mécanique.
+  ⚠️ **Ce tableau-là se re-mesure aussi** : il décrit le 2026-08-27.
+  ✅ **`06b-17` EST CLOS — cette ligne disait le contraire, et elle était périmée en
+  écrivant.** Elle annonçait « corpus réparé, constat jamais rejoué » ; or A42 l'avait
+  déjà rejoué le même jour, **et plus fort que le rejeu prévu** : au lieu de relire le
+  dump réparé, les seize citations ont été SOURCÉES une par une. Deux attributions sur
+  seize étaient fausses (« non vi sed saepe cadendo » est un ajout médiéval, pas d'Ovide ;
+  `usus magister est optimus` est de Cicéron, pas de Publilius Syrus), corrigées dans
+  `lib/reminder.ts` avec leur garde-fou. Le rejeu 6b-bis, lui, est également rendu et
+  ARBITRÉ. ➡️ *Une ligne d'avertissement périmée se lit exactement comme du travail à
+  faire* — c'est le même défaut que le tableau de backlog juste au-dessus, dans ma propre
+  fiche, écrit dans le paragraphe qui met en garde contre lui.
   ✅ **Le lot 1′ est LIVRÉ (A43)** — recos corrigées comme annoncé, et une de plus que
   prévu : celle de `02-01` désignait le mauvais critère.
   🔴 **ET UNE LEÇON DE MÉTHODE, PAYÉE SUR MOI-MÊME** : la réfutation avait ramené `CA-2-02`
