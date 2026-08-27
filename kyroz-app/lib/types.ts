@@ -3,7 +3,31 @@
 export type Sex = 'male' | 'female';
 
 // Objectifs étendus (du déficit agressif au surplus)
-export type Goal =
+//
+// 🔴 LISTE D'ABORD, TYPE ENSUITE — et ce n'est pas un détail de style.
+//
+// `Goal` était une union de littéraux : une CLAIM du compilateur, sans existence à
+// l'exécution. Or `goal` est une colonne `text` SANS contrainte (`schema.sql:65`) et
+// `rowToProfile` recopie la colonne brute avant de caster `as UserProfile`
+// (`sync.ts:155-162`). Le compilateur croyait donc à six valeurs là où la donnée peut
+// en porter n'importe laquelle — personne n'a écrit de garde, parce que le type disait
+// qu'elle était inutile.
+//
+// Ce que ça coûtait, mesuré : `GOAL_CONFIG[p.goal]` rendait `undefined`, et
+// `undefined.kcalDelta` LEVAIT. Pas seulement sur `undefined` : sur `null` (la forme
+// réelle d'une colonne cloud vide), sur `''`, et sur toute valeur saisie à la main.
+// Le précédent existe et est documenté deux fonctions plus bas — `variety: 'high'`,
+// trouvé sur un profil RÉEL, saisi hors de l'app. Là, la valeur orpheline donnait un
+// mauvais plan en silence ; ici, elle FIGE l'app (cf. `normalizeGoal`).
+//
+// La liste vit ici plutôt que dans `tdee.ts` parce que `syncGuard.ts` doit la lire
+// aussi et se déclare « logique PURE, sans aucune dépendance runtime » : lui faire
+// importer `tdee` lui ferait tirer `weight.ts`, donc AsyncStorage. `lib/types.ts`
+// n'importe rien — c'est la seule feuille que les deux peuvent partager.
+//
+// ⚠️ `GOAL_CONFIG` est un `Record<Goal, …>` : ajouter une entrée ICI sans l'ajouter
+// LÀ-BAS ne compile pas. L'exhaustivité est tenue par `tsc`, pas par un test.
+export const GOALS = [
   // ⚠️ LEGACY, plus proposé par l'UI depuis le 2026-07-29 — voir `normalizeGoal`.
   // Mesuré sur 2268 profils : il servait EXACTEMENT les mêmes calories que `cut`
   // (0 % d'écart dès que le %MG est déclaré ; 1 à 16 kcal/j quand il est estimé).
@@ -13,12 +37,41 @@ export type Goal =
   // désormais par l'objectif DATÉ, seul mécanisme qui sache dire honnêtement si
   // le rythme demandé est tenable (cf. lib/datedGoal.ts, P1.6).
   // Conservé dans le type et dans GOAL_CONFIG : des profils l'ont en base.
-  | 'cut_aggressive'   // sèche rapide (legacy)
-  | 'cut'              // sèche
-  | 'recomp'           // recomposition
-  | 'maintain'         // maintien
-  | 'lean_bulk'        // prise de masse propre
-  | 'bulk';            // prise de masse
+  'cut_aggressive',   // sèche rapide (legacy)
+  'cut',              // sèche
+  'recomp',           // recomposition
+  'maintain',         // maintien
+  'lean_bulk',        // prise de masse propre
+  'bulk',             // prise de masse
+] as const;
+
+export type Goal = (typeof GOALS)[number];
+
+/**
+ * L'objectif servi quand la valeur stockée n'en est pas un.
+ *
+ * `maintain`, et le motif tient en une phrase : **on peut replier une INTENTION,
+ * jamais une MESURE.** Ne pas connaître l'objectif de quelqu'un laisse tout le reste
+ * calculable — sa dépense est réelle, son plancher aussi ; seul l'ajustement à y
+ * appliquer est inconnu, et `maintain` vaut exactement « aucun ajustement ». Le plan
+ * servi est donc VRAI : c'est le plan de maintien, celui que doit recevoir quelqu'un
+ * qui n'a pas demandé de variation.
+ *
+ * ⚠️ C'est pour ça que le même repli serait un MENSONGE sur `sex`, `age`, `weight_kg`
+ * ou `height_cm` (constat 02-02) : inventer une mesure fabrique un BMR qui n'est celui
+ * de personne. Ces quatre-là doivent être REFUSÉS, pas repliés — deux constats, deux
+ * remèdes opposés, et c'est la nature du champ qui tranche.
+ *
+ * ⚠️ Et le repli n'est pas silencieux : `normalizeGoal` RÉÉCRIT le profil stocké, donc
+ * l'écran Profil affiche « Maintien » et l'utilisateur peut le changer. Un repli qui
+ * ne se voit pas serait un réglage fantôme (cf. `normalizeVariety`, même piège).
+ */
+export const GOAL_FALLBACK: Goal = 'maintain';
+
+/** Garde d'exécution — la seule chose que le type `Goal` ne peut pas fournir. */
+export function isGoal(v: unknown): v is Goal {
+  return typeof v === 'string' && (GOALS as readonly string[]).includes(v);
+}
 
 export type ActivityLevel = 'sedentary' | 'light' | 'moderate' | 'active' | 'very_active';
 

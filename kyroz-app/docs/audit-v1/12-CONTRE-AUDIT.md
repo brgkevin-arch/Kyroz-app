@@ -422,12 +422,32 @@ dépliés), **19** n'apparaissent dans aucun lot. Deux ont un jumeau qui, lui, e
 
 | Sévérité | Constats |
 |---|---|
-| **P1** | `01-03` · **`02-03`** · `03-01` |
+| **P1** | `01-03` · ~~`02-03`~~ ✅ **livré** · `03-01` |
 | **P2** | `01-06` · `01-07` · `01-08` · `01-12` · `02-04` · `02-05` · `04-03` · `04-04` · `05-05` · `06b-01` · `06b-17` · `07-02` · `08-01` · `08-02` |
 
-⚠️ **Le cas coûteux est `02-03`** : un P1 qui **bloque le lancement de l'app** (le moteur
-LÈVE sur une ligne cloud partielle, cf. `CA-6-01`), orphelin de tout lot, et que la
-recommandation du P0 voisin ne couvre pas — elle énumère quatre champs et omet `goal`.
+✅ **`02-03` — LIVRÉ le 2026-08-27** (fiche complète : `AGENTS.md` A40). C'était le cas
+coûteux, et il était **plus large que le constat de trois façons** :
+
+| Ce que l'audit disait | Ce que la mesure a rendu |
+|---|---|
+| « fait lever une exception non rattrapée » | un **GEL DÉFINITIF** — `useProfile` n'avait pas de `.catch()`, donc `setLoading(false)` était sauté et `app/index.tsx` restait sur `<Splash />`. La valeur fautive étant relue à chaque lancement, **redémarrer ne réparait rien** |
+| `goal: undefined` | `undefined` · **`null`** (la forme réelle d'une colonne vide) · `''` · une valeur saisie à la main — les quatre lèvent |
+| sur `computePlan` | sur **quatre** fonctions, dont deux appelées EN RENDU (`profil.tsx:674`, `FirstPlanReveal.tsx:121`) |
+
+🔴 **Et le remède existait déjà, deux fois, dans les mêmes fichiers** : `tdee.ts::neatPal`
+(« Tolérant : une valeur inconnue retombe sur le défaut ») est le patron exact, écrit pour
+le NEAT ; et `normalizeVariety` dit « **même remède que `normalizeGoal`** » en appliquant un
+remède **plus fort**. Le jumeau écrit en second était le bon.
+
+⚠️ **Le repli est `maintain`, pas un refus — on peut replier une INTENTION, jamais une
+MESURE.** C'est ce qui rend le même geste inacceptable sur les quatre champs du BMR
+(`02-02`) : inventer une mesure fabrique un BMR qui n'est celui de personne.
+
+➡️ **Balayage de l'étage suivant** — les huit champs « énumération » du profil × quatre
+formes hors barème, sur le moteur réel : **`goal` était le seul à lever.** Cinq champs sans
+contrainte SQL dégradaient déjà proprement (le résultat négatif compte). Restent **`sex` et
+`macro_mode` → NaN sur les quatre formes**, ce qui confirme la correction du §7 : `macro_mode`
+est bien un vecteur de NaN, il appartient au lot 1′.
 
 ⚠️ **Et `06b-17`** est celui que la réparation du corpus concerne : il jugeait les
 attributions de citations sur un dump amputé de ses quatorze noms d'auteurs. Le corpus est

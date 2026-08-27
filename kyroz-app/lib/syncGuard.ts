@@ -1,4 +1,4 @@
-import { BUILTIN_MEAL_TYPES, MEAL_DEFAULT_PRIORITY, MealSlot, UserProfile, VarietyPreference } from './types';
+import { BUILTIN_MEAL_TYPES, GOAL_FALLBACK, isGoal, MEAL_DEFAULT_PRIORITY, MealSlot, UserProfile, VarietyPreference } from './types';
 import { sanitizeSlot } from './mealSlots';
 import { totalSessionsPerWeek } from './sport';
 import { readLowEaRegistry } from './safety';
@@ -90,10 +90,38 @@ const OBJECTIFS_RETIRES: Partial<Record<NonNullable<UserProfile['goal']>, UserPr
   bulk: 'lean_bulk',
 };
 
+// ── Objectif hors barème (constat 02-03, 2026-08-27) ────────────────────────
+//
+// 🔴 CETTE FONCTION NE REFERMAIT QUE CE QU'ELLE AVAIT ELLE-MÊME RETIRÉ. Une valeur
+// qu'elle n'avait pas prévue — `null`, `undefined`, `''`, ou un `goal` saisi
+// directement en base — traversait intacte, et le moteur LEVAIT dessus.
+//
+// ⚠️ Le plus dur à voir : `normalizeVariety`, vingt lignes plus bas, dit dans son
+// propre commentaire « **même remède que `normalizeGoal`** » — et applique un remède
+// PLUS FORT. Elle referme toute valeur inconnue sur un défaut ; celle qu'elle prétend
+// copier ne le faisait pas. Le jumeau écrit en second était le bon ; l'original est
+// resté incomplet, et sa lecture rassurait sur ce qu'il ne faisait pas.
+//
+// Et l'accident n'est pas hypothétique : `variety: 'high'` a été trouvé sur un profil
+// RÉEL, saisi hors de l'app. Le même geste sur `goal` — colonne `text` sans contrainte
+// (`schema.sql:65`) — ne donne pas un mauvais plan en silence : il FIGE l'app au
+// démarrage, définitivement, sur tous les lancements suivants (cf. `tdee::goalConfig`).
+//
+// ⚠️ Pourquoi ici EN PLUS du filet moteur : le filet fait tourner l'app, il ne répare
+// pas la donnée. Sans cette ligne, la valeur fautive reste en base et dans
+// AsyncStorage à vie, et l'écran Profil affiche un objectif que rien ne sait
+// resélectionner — la situation exacte que la fusion des sèches voulait éviter.
+// Ici, le profil est RÉÉCRIT puis repoussé (`useProfile`), donc le repli se VOIT et
+// se corrige d'un tap.
+//
+// ℹ️ Aucun `ENGINE_REV` : voir la note de `GOAL_FALLBACK`. Les seuls profils touchés
+// sont ceux dont `computePlan` LEVAIT — ils n'ont aucune cible servie, donc aucune
+// cible ne bouge. C'est compté, pas affirmé (`objectifHorsBareme.test.ts`).
 export function normalizeGoal<T extends Partial<UserProfile>>(p: T | null): T | null {
-  if (!p || !p.goal) return p;
-  const vers = OBJECTIFS_RETIRES[p.goal];
-  return vers ? { ...p, goal: vers } : p;
+  if (!p) return p;
+  const vers = p.goal ? OBJECTIFS_RETIRES[p.goal] : undefined;
+  if (vers) return { ...p, goal: vers };
+  return isGoal(p.goal) ? p : { ...p, goal: GOAL_FALLBACK };
 }
 
 // ── Préférence de variété hors barème (2026-08-02) ──────────────────────────

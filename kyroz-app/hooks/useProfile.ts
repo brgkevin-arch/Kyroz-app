@@ -3,10 +3,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { UserProfile } from '../lib/types';
 import { useAuth } from './useAuth';
 import { pushProfile, markProfileDirty, clearProfileDirty } from '../lib/sync';
-import { normalizeCalorieBank, normalizeGoal, normalizeMeals, normalizeMealSlots, normalizeProfileActivity, normalizeVariety } from '../lib/syncGuard';
+import { bootProfile } from '../lib/profileBoot';
 import { recalcProfile } from '../lib/tdee';
 
 const PROFILE_KEY = '@kyroz:profile';
+const LOG_PREFIX = '[kyroz:profil]';
 
 interface ProfileContextValue {
   profile: UserProfile | null;
@@ -45,19 +46,25 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
       // pour que le TDEE ne puisse pas basculer sur un état incohérent hérité.
       // `normalizeGoal` : `cut_aggressive` n'est plus proposé (il servait le même
       // plan que `cut`) → on le referme ici, sinon ces comptes gardent un objectif
-      // qu'aucun écran ne sait plus afficher.
+      // qu'aucun écran ne sait plus afficher. Il referme aussi, depuis le 2026-08-27,
+      // toute valeur HORS BARÈME — celle-là figeait l'app au démarrage (02-03).
       // `normalizeVariety` / `normalizeMeals` : deux champs hors barème trouvés sur un
       // profil RÉEL (`variety: 'high'`, `meals: 4` au lieu d'un tableau). Le moteur les
       // absorbait en silence, mais l'écran « Paramètres des repas » CRASHAIT dessus —
       // donc le réglage était impossible à ouvrir, sans explication. On les referme ici.
-      const stored = raw ? normalizeCalorieBank(normalizeMeals(normalizeMealSlots(normalizeVariety(normalizeGoal(normalizeProfileActivity(JSON.parse(raw))))))) : null;
+      //
       // fix P0.1 : le plancher de sécurité doit être RÉTROACTIF. Les cibles étaient
       // figées en base et ne repassaient par `safetyFloorKcal` qu'à la prochaine
       // édition ou pesée : un profil dormant continuait d'être servi à 1200 kcal
       // (ancien filet absolu) alors que son plancher réel vaut 1463. « Aucun chemin
       // de code ne produit une cible sans passer par le plancher » n'était donc pas
       // vrai pour les comptes existants — c'est le trou que la PR prétend fermer.
-      const healed = stored ? recalcProfile(stored) : null;
+      //
+      // ⚠️ Toute cette décision vit dans `lib/profileBoot.ts` — et pas ici — parce que
+      // la suite de tests ne couvre que `lib/`. C'est le chemin qui pouvait FIGER
+      // l'app définitivement : il devait devenir mesurable. Cf. son en-tête.
+      const { profile: healed, stored, warn, degraded } = bootProfile(raw, recalcProfile);
+      if (warn) { try { console.warn(`${LOG_PREFIX} ${warn}`); } catch {} }
       if (!alive) return;
       const served = JSON.stringify(healed);
       if (served !== servedRef.current) {
@@ -67,13 +74,23 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
       // On ne réécrit QUE si le recalcul a réellement changé quelque chose : un
       // démarrage d'app ne doit pas marquer le profil « dirty » pour rien.
-      if (stored && healed && JSON.stringify(stored) !== JSON.stringify(healed)) {
+      // ⚠️ `!degraded` : quand le recalcul a échoué on sert le profil STOCKÉ tel quel,
+      // donc il n'y a rien de neuf à persister — et le marquer « dirty » pousserait au
+      // cloud un profil que le moteur n'a pas produit.
+      if (!degraded && stored && healed && JSON.stringify(stored) !== JSON.stringify(healed)) {
         try {
           await AsyncStorage.setItem(PROFILE_KEY, JSON.stringify(healed));
           await markProfileDirty();
           pushProfile(healed);
         } catch {}
       }
+    }).catch((e) => {
+      // Dernier filet : quoi qu'il arrive en amont, l'app SORT de l'écran de
+      // démarrage. Sans ce `.catch`, une promesse rejetée laissait `loading` à
+      // `true` pour toujours (cf. `app/index.tsx`) — le gel décrit plus haut.
+      if (!alive) return;
+      try { console.warn(`${LOG_PREFIX} lecture du profil interrompue — démarrage poursuivi sans profil : ${String(e)}`); } catch {}
+      setLoading(false);
     });
     return () => { alive = false; };
   }, [ready, hydrationTick]);

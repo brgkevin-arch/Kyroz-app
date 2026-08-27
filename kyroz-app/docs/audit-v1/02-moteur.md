@@ -220,6 +220,14 @@ Exécutés contre le moteur réel (`npx tsx -e`, aucun fichier créé dans le d�
 - **Effort : M**
 
 ### 02-03 `goal` absent fait lever une exception non rattrapée
+> ✅ **CORRIGÉ le 2026-08-27** — fiche complète : `AGENTS.md` **A40**. Le constat tient,
+> et il était trop étroit de trois façons : ce n'était pas un crash mais un **gel
+> définitif** de l'app (pas de `.catch()` au démarrage, valeur relue à chaque lancement) ·
+> ce n'était pas `undefined` seul mais aussi `null`, `''` et toute valeur saisie en base ·
+> ce n'était pas `computePlan` seul mais aussi `goalLabel` / `goalSubtitle` /
+> `recommendedProteinPerKg`, dont deux sont appelés EN RENDU. Repli sur `maintain`
+> (`GOAL_FALLBACK`), donnée refermée par `normalizeGoal`, et le MÉCANISME rattrapé pour
+> tous les champs (`lib/profileBoot.ts`). Aucun `ENGINE_REV` — prémisse comptée.
 - **Sévérité : P1**
 - **Preuve, exécutée** : `computePlan(makeProfile({ goal: undefined }))` → `TypeError: Cannot read properties of undefined (reading 'kcalDelta')`.
 - **Risque** : `goal` est `text` sans contrainte NOT NULL en base ; une ligne sans objectif fait planter le calcul au lieu de dégrader. Contrairement à 02-02, c'est visible — mais c'est un crash.

@@ -322,6 +322,39 @@ OUTPUT         → Plan + liste de courses + recettes
 - Output crédible dès J1 (crédibilité > gadget)
 - Fallback toujours : jamais d'erreur vide, toujours un plan affiché
 
+> 🔴 **« FALLBACK TOUJOURS » VALAIT AUSSI POUR LE DÉMARRAGE, ET IL ÉTAIT FAUX**
+> (2026-08-27, constat `02-03`, AGENTS.md **A40**). Un `goal` hors barème —
+> colonne `text` sans contrainte — faisait LEVER `GOAL_CONFIG[p.goal]`. La levée
+> partait du `.then()` de la lecture du profil au démarrage, **qui n'avait pas de
+> `.catch()`** : `setLoading(false)` était sauté, `app/index.tsx` restait sur
+> `<Splash />`, et la valeur fautive étant relue d'AsyncStorage à chaque lancement,
+> **redémarrer ne réparait rien**. L'app ne s'ouvrait plus. Jamais.
+>
+> **Deux invariants en sortent, et le second est celui qui servira demain :**
+>
+> 1. **`lib/profileBoot.ts::bootProfile` ne lève jamais** — c'est le contrat de
+>    démarrage, et il vit dans `lib/` parce que la suite ne couvre que `lib/`.
+>    Refermer un champ ferme une porte dans une pièce sans murs : le prochain champ
+>    hors barème refigerait tout à l'identique. ⚠️ Quand le recalcul échoue, il sert
+>    le profil STOCKÉ et le dit (`degraded`) — le plancher rétroactif (P0.1) ne
+>    s'applique pas ce coup-ci, ce qui vaut infiniment mieux qu'une app qui ne
+>    démarre pas, mais l'appelant **ne doit rien réécrire** dans cet état.
+> 2. 🔴 **ON PEUT REPLIER UNE INTENTION, JAMAIS UNE MESURE.** `goal` se replie sur
+>    `maintain` (`GOAL_FALLBACK`) parce que tout le reste reste calculable — la
+>    dépense est réelle, le plancher aussi — et que `maintain` vaut exactement
+>    « aucun ajustement » : le plan servi est VRAI. **Le même repli sur `sex`,
+>    `age`, `weight_kg` ou `height_cm` serait un MENSONGE** : inventer une mesure
+>    fabrique un BMR qui n'est celui de personne. Ces quatre-là se REFUSENT, avec un
+>    état « profil incomplet » explicite (constat `02-02`, encore ouvert). Deux
+>    constats voisins, deux remèdes opposés — c'est la NATURE du champ qui tranche.
+>
+> ⚠️ **Et un repli doit SE VOIR** : `syncGuard::normalizeGoal` réécrit le profil, donc
+> l'écran Profil affiche « Maintien » et la personne peut le changer. Un repli
+> silencieux serait un réglage fantôme (le défaut exact de `variety: 'high'`, §11).
+> ℹ️ La liste des objectifs vit dans `lib/types.ts::GOALS` (`as const`), le type en
+> dérive, et `GOAL_CONFIG` est un `Record<Goal, …>` : **oublier une entrée ne compile
+> pas.** L'exhaustivité est tenue par `tsc`, pas par un test.
+
 ---
 
 ## 5. Règles de développement

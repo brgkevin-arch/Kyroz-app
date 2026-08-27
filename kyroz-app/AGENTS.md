@@ -704,13 +704,14 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
   AUCUN des onze lots du §4 de la synthèse, qui se présente pourtant comme l'inventaire
   complet : ce qui n'est dans aucun lot n'est jamais ordonnancé, donc jamais fait, et rien
   ne le signale. **Nommés** (un compte n'est pas une liste) :
-  · **P1** — `01-03`, **`02-03`**, `03-01`
+  · **P1** — `01-03`, ~~`02-03`~~ ✅, `03-01`
   · **P2** — `01-06`, `01-07`, `01-08`, `01-12`, `02-04`, `02-05`, `04-03`, `04-04`,
     `05-05`, `06b-01`, `06b-17`, `07-02`, `08-01`, `08-02`
-  ⚠️ **Commencer par `02-03`** : c'est le P1 qui BLOQUE LE LANCEMENT de l'app (le moteur
-  lève sur une ligne cloud partielle, `CA-6-01`), orphelin, et que la reco du P0 voisin ne
-  couvre pas — elle énumère quatre champs et omet `goal`. Il se traite dans le même geste
-  que le lot 1′.
+  ✅ **`02-03` est LIVRÉ (2026-08-27, A40)** — c'était le P1 qui bloquait le lancement, et il
+  ne « levait sur une ligne cloud partielle » que dans la lettre du constat : c'était un GEL
+  définitif de l'app, sur quatre valeurs et quatre fonctions, faute de `.catch()` au
+  démarrage. Le mécanisme est refermé pour tous les champs, pas seulement pour `goal`.
+  ➡️ **Reste 16 orphelins.** Suivant conseillé : `01-03` ou `03-01` (les deux P1 restants).
   ⚠️ **`06b-17`** est celui que la réparation du corpus concerne : il jugeait les
   attributions de citations sur un dump amputé de ses quatorze noms d'auteurs. Corpus
   réparé, constat jamais rejoué.
@@ -728,6 +729,94 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
   `basicsValid` vidé — la chaîne sert aussi au message d'erreur vingt lignes plus bas).
   ⚠️ **La 3ᵉ surface légale n'est pas régénérée** : `kyroz.app/legal.html` vit dans le
   dépôt `kyroz-site`. `KYROZ_SITE=<clone> npm run gen:legal`.
+
+- ✅ **A40 · UN `goal` HORS BARÈME FIGEAIT L'APP, DÉFINITIVEMENT — CORRIGÉ le 2026-08-27**
+  (constat `02-03`, P1, **premier des 17 orphelins d'A39**). L'audit disait « `goal` absent
+  fait lever une exception non rattrapée » et le classait P1. C'était juste, et **trois fois
+  trop étroit** — les trois élargissements sont ce qui vaut d'être gardé.
+  🔴 **① CE N'ÉTAIT PAS UN CRASH, C'ÉTAIT UN GEL DÉFINITIF.** `recalcProfile` est appelé
+  dans le `.then()` de la lecture du profil au démarrage (`useProfile`), **qui n'avait pas de
+  `.catch()`**. La levée sautait `setLoading(false)` ; `app/index.tsx` fait
+  `if (!ready || loading) return <Splash />`. L'app restait sur l'écran de démarrage — et
+  comme la valeur fautive est relue d'AsyncStorage à CHAQUE lancement, redémarrer ne
+  réparait rien. Pas de crash visible, pas de message, aucune issue hors réinstallation
+  (qui perd les données locales). ⚠️ Le fichier documente pourtant « c'est le bug *l'app se
+  fige* » — pour le RÉSEAU, corrigé en son temps. Le même gel existait à côté, par une autre
+  porte, et rien ne le rattrapait.
+  🔴 **② QUATRE VALEURS, PAS UNE — ET QUATRE FONCTIONS, PAS UNE.** Mesuré :
+  `undefined` · **`null`** (la forme réelle d'une colonne `text` vide) · `''` ·
+  `'perte_de_poids'` (saisi à la main en base) lèvent tous le même `TypeError`, sur
+  `computePlan` **et** `goalLabel` / `goalSubtitle` / `recommendedProteinPerKg` — dont deux
+  sont appelés EN RENDU (`profil.tsx:674`, `FirstPlanReveal.tsx:121`). La reproduction de
+  l'audit n'employait que `undefined`, la forme la moins atteignable des quatre.
+  🔴 **③ LE REMÈDE EXISTAIT DÉJÀ, DEUX FOIS, DANS LES MÊMES FICHIERS.**
+  · `tdee.ts::neatPal` (ligne 231) : *« Tolérant : une valeur inconnue retombe sur le
+    défaut »* — le patron exact de `goalConfig`, écrit pour le NEAT, jamais appliqué au
+    `goal` ;
+  · `syncGuard::normalizeVariety` dit dans son propre commentaire **« même remède que
+    `normalizeGoal` »** et applique un remède PLUS FORT : elle referme toute valeur
+    inconnue, l'originale ne fermait que les deux qu'elle avait elle-même retirées.
+  ⚠️ **Le jumeau écrit en SECOND était le bon**, et la lecture de l'original rassurait sur
+  ce qu'il ne faisait pas. Et l'accident n'est pas hypothétique : `variety: 'high'` a été
+  trouvé sur un profil RÉEL, saisi hors de l'app — sur le champ où il ne coûtait qu'un
+  mauvais plan silencieux.
+  ➡️ **CE QUI A ÉTÉ LIVRÉ — quatre pièces, et chacune ferme un trou distinct :**
+  1. **`lib/types.ts` : la LISTE d'abord, le type ensuite.** `GOALS` est un `as const`,
+     `Goal` en dérive. `GOAL_CONFIG` étant un `Record<Goal, …>`, ajouter un objectif à la
+     liste sans l'ajouter à la table **ne compile pas** — l'exhaustivité est tenue par
+     `tsc`, pas par un test. Plus `isGoal()` et `GOAL_FALLBACK`.
+  2. **`tdee.ts::goalConfig` — accès UNIQUE à la table**, avec repli. C'est le filet : il
+     est sur le chemin de tout le monde, y compris `useWeightLog`, les éditeurs du Profil
+     et les tests, qui appellent `computePlan` sans passer par aucun normaliseur.
+  3. **`syncGuard::normalizeGoal` referme la DONNÉE.** Le filet fait tourner l'app, il ne
+     répare rien : sans réécriture, la valeur fautive resterait en base et dans AsyncStorage
+     à vie, et l'écran Profil afficherait un objectif que rien ne sait resélectionner.
+     Ici le profil est réécrit puis repoussé — **le repli se VOIT et se corrige d'un tap.**
+  4. **`lib/profileBoot.ts` — le mécanisme, pas seulement le champ.** Refermer `goal` ferme
+     une porte dans une pièce sans murs : le prochain champ hors barème refigerait tout à
+     l'identique. La décision de démarrage (« l'app s'ouvre quoi qu'il arrive ») sort donc
+     du hook vers `lib/` — **la suite ne couvre que `lib/__tests__/**`**, une garantie
+     laissée dans `hooks/` n'aurait été qu'un commentaire que rien ne compte.
+     Trois issues, aucune levée : JSON illisible → profil traité comme ABSENT et **jamais
+     écrasé** ; recalcul en échec → profil stocké servi tel quel, `degraded: true` (donc
+     pas de réécriture, pas de push d'un profil que le moteur n'a pas produit) ; sinon,
+     recalcul normal.
+  🔴 **`maintain` ET PAS UN REFUS — ON PEUT REPLIER UNE INTENTION, JAMAIS UNE MESURE.**
+  Ne pas connaître l'objectif laisse tout le reste calculable : la dépense est réelle, le
+  plancher aussi, seul l'ajustement est inconnu — et `maintain` vaut exactement « aucun
+  ajustement ». Le plan servi est donc VRAI. ⚠️ **C'est ce qui rend le même repli
+  inacceptable sur `sex`, `age`, `weight_kg`, `height_cm` (constat `02-02`, encore ouvert) :
+  inventer une mesure fabrique un BMR qui n'est celui de personne.** Deux constats, deux
+  remèdes opposés, et c'est la NATURE du champ qui tranche.
+  ℹ️ **Aucun `ENGINE_REV`, et la prémisse est COMPTÉE, pas affirmée.** L'argument est « les
+  seuls profils touchés sont ceux dont `computePlan` LEVAIT, donc sans cible servie ». Il
+  tient si et seulement si aucun objectif valide n'est dévié vers le repli — deux tests le
+  vérifient, plus l'identité de référence rendue par `normalizeGoal` sur un objectif sain
+  (donc aucun profil valide n'est marqué « dirty » ni repoussé).
+  ⚠️ **UN TEST A ROUGI À RAISON, ET IL A RE-TROUVÉ UNE MESURE DE 2026-07-29.** Sa première
+  version exigeait six cibles DISTINCTES pour les six objectifs ; mesuré 2263, **2263**,
+  2395, 2545, 2745, 2945 — `cut_aggressive` et `cut` servent la même cible, le plancher de
+  sécurité absorbant l'écart entre −500 et −300. C'est exactement le « choix fantôme » qui
+  avait motivé la fusion des sèches. ➡️ La distinction des cibles mesurait le PLANCHER
+  autant que l'objectif : la bonne sonde est plus étroite (« aucun objectif valide ne sert
+  le plan du repli ») et insensible au plancher.
+  ℹ️ **Vérifié par 8 mutations, aucune survivante** — dont `degraded` qui ment, et le piège
+  du `includes` sur le prototype d'`Array` (`isGoal('length')`).
+  ➡️ **BALAYAGE DE L'ÉTAGE SUIVANT** — les huit champs « énumération » du profil passés aux
+  quatre formes hors barème, sur le moteur réel :
+
+  | champ | contrainte SQL | `undefined` · `null` · `''` · `'zzz'` |
+  |---|---|---|
+  | **`goal`** | ❌ aucune | ✅ replié (était : **LÈVE ×4**) |
+  | `activity_level` · `neat_level` · `variety` · `meal_emphasis` · `body_fat_source` | ❌ aucune (à dessein) | ✅ dégradent proprement, déjà |
+  | **`macro_mode`** | ✓ énumération (mais `NULL` passe) | 🔴 **NaN ×4** |
+  | **`sex`** | ✓ énumération (mais `NULL` passe) | 🔴 **NaN ×4** |
+
+  ➡️ **`goal` était le SEUL à lever** — le résultat négatif compte autant : cinq champs sans
+  contrainte étaient déjà tolérants. Les deux NaN sont le constat `02-02` (P0), et cette
+  mesure confirme la correction du contre-audit : **`macro_mode` est bien un vecteur de NaN**,
+  il appartient au lot 1′ avec les quatre champs du BMR.
+  ℹ️ Restent **16 orphelins** — `01-03`, `03-01` (P1) et les 14 P2 listés en A39.
 
 - ✅ **A38 · SÉLECTION BMR « R6 LISSÉE » — LIVRÉE le 2026-08-24** (décision fondateur,
   handoff « Mifflin vs Katch », `ENGINE_REV` 7 → 8). La règle binaire « %MG estimé ⇒
