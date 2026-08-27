@@ -226,12 +226,27 @@ export const PRIVACY_POLICY: LegalSection[] = [
       // partaient donc vers Apple et Google, hors UE, sans que personne ne l'ait décidé.
       // ✅ Android : `android.allowBackup: false` (app.json, 2026-08-26) — la sauvegarde
       //    Google n'emporte plus rien de l'app.
-      // 🟠 iOS : l'exclusion iCloud demande un plugin natif, donc un nouveau binaire.
-      //    Elle est portée par le lot « prochain binaire » (cf. 04-01-CHIFFRAGE-SDK57.md).
-      //    Tant qu'elle n'est pas livrée, cette phrase reste PRUDENTE plutôt qu'absolue.
-      // ⚠️ Ne pas la re-durcir en « aucune » avant que les DEUX plateformes soient
-      //    traitées — c'est exactement l'erreur qu'elle vient de payer.
-      `Une exception, décrite au point 5 : les e-mails de service sont stockés ${LEGAL.emailProviderStorage}. Vos données de santé ne sont transmises à aucun destinataire hors de l’Union européenne ; sur iPhone, une sauvegarde iCloud peut en emporter une copie chiffrée vers les serveurs d’Apple, ce que vous pouvez désactiver dans les réglages de votre appareil.`,
+      // 🔴 **ET LA MOITIÉ iOS ÉTAIT DÉJÀ VRAIE — la phrase est restée prudente pendant
+      //    un jour en attendant quelque chose qui existait.** Cette ligne disait :
+      //    « l'exclusion iCloud demande un plugin natif, donc un nouveau binaire ».
+      //    C'est FAUX, et c'est la lecture du paquet qui l'a montré (2026-08-27) :
+      //    `RNCAsyncStorage.mm:518-527` — `// by default, we want to exclude AsyncStorage
+      //    data from backup`, `isExcludedFromBackup = @YES`. Aucune surcharge
+      //    `RCTAsyncStorageExcludeFromBackup` dans `ios/` ni `app.json` (vérifié), donc
+      //    le défaut s'applique. Et les photos de progression vivent dans le répertoire
+      //    de CACHE (`lib/photos.ts`), qu'iOS ne sauvegarde pas non plus.
+      // ➡️ La condition que la version précédente posait — « les DEUX plateformes
+      //    traitées » — était donc REMPLIE le jour où elle a été écrite. Durcir la
+      //    phrase aujourd'hui ne l'enfreint pas : ça la satisfait.
+      // ⚠️ **La prudence coûtait quelque chose, et c'est ce qui rendait la correction
+      //    urgente** : le texte demandait à l'utilisateur de couper sa sauvegarde iCloud
+      //    pour protéger ses données de santé — un geste réel, pour un risque qui n'a
+      //    pas lieu. Une politique trop prudente n'est pas neutre : elle fait agir.
+      // ⚠️ Les deux exclusions restent des DÉFAUTS de bibliothèque et de configuration,
+      //    pas des promesses contractuelles. Si `allowBackup` bougeait, ou si
+      //    AsyncStorage changeait son défaut, cette phrase redeviendrait fausse — d'où
+      //    le compteur de `legal.test.ts`, qui lit les deux sources.
+      `Une exception, décrite au point 5 : les e-mails de service sont stockés ${LEGAL.emailProviderStorage}. Vos données de santé ne sont transmises à aucun destinataire hors de l’Union européenne, et les sauvegardes automatiques de votre téléphone ne les emportent pas : sur Android l’application est exclue de la sauvegarde Google, et sur iPhone son stockage local est exclu de la sauvegarde iCloud.`,
     ],
   },
   {

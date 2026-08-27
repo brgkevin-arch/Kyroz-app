@@ -69,7 +69,7 @@ Nous ne vendons, ne louons et ne partageons vos données avec aucun tiers à des
 
 Les données synchronisées — profil, objectif, suivi du poids — sont stockées dans l’Union européenne. Une copie de travail réside localement sur votre appareil (fonctionnement hors-ligne).
 
-Une exception, décrite au point 5 : les e-mails de service sont stockés aux États-Unis. Vos données de santé ne sont transmises à aucun destinataire hors de l’Union européenne ; sur iPhone, une sauvegarde iCloud peut en emporter une copie chiffrée vers les serveurs d’Apple, ce que vous pouvez désactiver dans les réglages de votre appareil.
+Une exception, décrite au point 5 : les e-mails de service sont stockés aux États-Unis. Vos données de santé ne sont transmises à aucun destinataire hors de l’Union européenne, et les sauvegardes automatiques de votre téléphone ne les emportent pas : sur Android l’application est exclue de la sauvegarde Google, et sur iPhone son stockage local est exclu de la sauvegarde iCloud.
 
 ---
 
