@@ -407,12 +407,14 @@ qu'un relecteur de store lit avant d'ouvrir le binaire.
 | ~~**0b**~~ | ✅ **Les mineurs** | `CA-8-03` — **livré** (`7cc5571`) : c'est la clause qui a été réécrite, le blocage à l'onboarding étant réel et dur | |
 | ~~**0d**~~ | ✅ **La bascule de jour** | `CA-3-02` — **livré** (`da6d994`) ; il n'avait aucun lot, comme les 17 orphelins de `CA-6-04` | |
 | ~~**0c**~~ | ✅ **Le plancher affiché** | `CA-2-02` — **aucun code changé, et c'est le résultat** : la prémisse (conservation hebdomadaire) est mesurée pour la première fois sur 75 264 profils, 0 violation. Les phrases reçoivent leur périmètre, la propriété devient comptée (`plancherServi.test.ts`) | ⚠️ j'avais classé ce constat 🔴 alors que ma propre réfutation l'avait rétrogradé en mineur |
-| **1′** | 🔴 **Les trois P0, recos corrigées** | 01-01, 02-01, 02-02 **+ 02-03** — avec `goal` et `macro_mode`, et **sans** la garde d'identité sur le `id` local | les recos publiées ne ferment pas leur trou |
+| **1′** | 🔴 **LES TROIS P0 — PROCHAIN CHANTIER** | 01-01, 02-01, 02-02 (~~02-03~~ ✅ A40). Vérifiés OUVERTS par mesure le 2026-08-27. ⚠️ **La reco « les quatre champs du BMR » est FAUSSE** : seuls `sex` et `macro_mode` rendent `NaN` ; `weight_kg` et `height_cm` rendent un nombre FINI mais absurde (1500 kcal, 0 g de protéines) qu'aucune garde « pas de NaN » n'attraperait ; `age` dégrade proprement. Détail chiffré : `AGENTS.md` A39 | les recos publiées ne ferment pas leur trou, et l'une désigne les mauvais champs |
 | **2′** | 🔨 **Décision A** | inchangée, **moins** la tâche `allowBackup`/iOS qui n'existe pas, **plus** l'avertissement `fingerprint` : la ligne OTA se coupe à **chaque** édition d'`app.json`, pas « une fois » (`CA-5-03`) | |
 | **3′** | ⚖️ **Textes publiés** | `legal.ts:208` (rendu faux **par** le correctif 09-01) + Expo au registre + la mention iCloud à retirer | trois textes publiés faux, aucun dans un lot |
 | **7′** | 🧯 **Décision E, re-dimensionnée** | `withBudget` : **9 appels**, pas 6 · `.replace(',','.')` : **8 occurrences**, **3 manques** · **4ᵉ occurrence du motif** : `frnum()` et « 113.5 kg » sur la courbe de poids | un test écrit sur les chiffres publiés passerait au vert avec trois appels nus |
-| **12** | 🧪 **Les six garde-fous décoratifs** | §4 | un vert qui ne peut pas rougir est pire que pas de contrôle |
-| **13** | 📝 **Rejouer 6b sur le corpus réel** | après avoir réparé l'extracteur (`CA-4-02`) | 16 constats reposent sur un corpus amputé, puis abîmé |
+| ~~**12**~~ | ✅ **Les six garde-fous décoratifs** | §4 — livré (lot 0) | un vert qui ne peut pas rougir est pire que pas de contrôle |
+| ~~**13**~~ | ✅ **Rejouer 6b sur le corpus réel** | livré — corpus réparé, jugement 6b-bis rendu et ARBITRÉ (`06b-bis-textes-audit.md`) | 16 constats reposaient sur un corpus amputé, puis abîmé |
+
+⚠️ **CE TABLEAU N'A PAS ÉTÉ RE-MESURÉ LOT PAR LOT.** Les lots `2′`, `3′` et `7′` y figurent sans marque et leur état est INCONNU — plusieurs de leurs éléments ont pu être livrés en passant. Le re-mesurer avant d'en prendre un : c'est la leçon des 14 orphelins, dont quatre étaient déjà faux ou déjà faits.
 
 ### 🔴 Les 17 orphelins, nommés — parce qu'un compte n'est pas une liste
 

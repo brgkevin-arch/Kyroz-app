@@ -717,6 +717,37 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
   n'existaient plus.*
   ✅ **LES 17 ORPHELINS SONT CLOS** (A40 · A41 · A42). ⚠️ Deux étapes HUMAINES restent :
   la procédure RevenueCat, et l'arbitrage de la clé Android (`01-07`).
+
+  ➡️ **PROCHAIN CHANTIER : LE LOT 1′, C'EST-À-DIRE LES TROIS P0** — `01-01`, `02-01`,
+  `02-02` (`02-03` est parti avec A40). Vérifiés OUVERTS le 2026-08-27, par mesure et non
+  par lecture : `hasCloud` teste toujours le seul `row.sex` (`sync.ts:391`) · `katchEligible`
+  ne mentionne toujours pas `highAdiposity` · et une ligne partielle rend toujours `NaN`.
+
+  🔴 **ET LA MESURE CORRIGE LA RECO DE `02-02`, QUI PARLE DES « QUATRE CHAMPS DU BMR ».**
+  Balayage champ par champ, chacun à `null`, sur le moteur réel :
+
+  | champ à `null` | cible | protéines | |
+  |---|---|---|---|
+  | **`sex`** | **NaN** | 148 | 🔴 |
+  | **`macro_mode`** | **NaN** | `undefined` | 🔴 |
+  | `weight_kg` | 1500 | **0 g** | ⚠️ fini, mais absurde — plancher absolu et zéro protéine |
+  | `height_cm` | 1500 | 195 g | ⚠️ fini, mais absurde |
+  | `age` · `activity_level` · `training_days_per_week` | 2382 · 2154 · 2154 | sains | ✓ dégradent proprement |
+
+  ➡️ **Deux champs seulement produisent du NaN — et ce ne sont pas quatre champs du BMR :
+  c'est `sex` et `macro_mode`.** Deux autres (`weight_kg`, `height_cm`) rendent un nombre
+  FINI mais absurde, ce qu'aucune garde « pas de NaN » n'attraperait. Et `age` n'a pas
+  besoin d'être gardé du tout. Une garde écrite sur la reco publiée protégerait donc un
+  champ qui n'en a pas besoin et laisserait passer les deux cas absurdes.
+  ⚠️ **Et ne PAS reprendre la garde d'identité de `01-01` telle qu'écrite** : le `id` d'un
+  profil local est `user-${Date.now()}`, pas un uid — appliquée à la lettre, elle jette le
+  profil de qui a échoué son push hors ligne (`CA-1-04`).
+
+  ⚠️ **Le backlog du §8 de `12-CONTRE-AUDIT.md` n'a PAS été re-mesuré lot par lot.** Les
+  lots `2′`, `3′`, `7′`, `12`, `13` y figurent sans marque, et au moins deux sont livrés
+  (les six garde-fous décoratifs, et le rejeu de 6b). **Ne pas lire ce tableau comme un
+  état** : le re-mesurer avant d'en prendre un — c'est exactement la leçon des 14
+  orphelins, dont quatre étaient déjà faux ou déjà faits.
   ⚠️ **`06b-17`** est celui que la réparation du corpus concerne : il jugeait les
   attributions de citations sur un dump amputé de ses quatorze noms d'auteurs. Corpus
   réparé, constat jamais rejoué.
