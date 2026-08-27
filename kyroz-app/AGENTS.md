@@ -541,12 +541,23 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
   FERMÉE en prod · `check:permissions` ne regarde que l'Android · la §4 de `check:ota` ne
   touche jamais son compteur d'écarts · le correctif 09-01 survit à l'inversion de
   `entitlementNecessaire` avec 1 841 tests verts.
-  🔴 **DEUX FEUX VERTS DU MOTEUR NE TIENNENT PAS** : « aucun plancher contournable » est
-  vrai DANS `computePlan` (274 428 profils, 0 violation) et faux à l'écran — `planEngine`
-  re-plafonne avec `bankFloorKcal`, la cible affichée descend **433 kcal/j** sous le
-  plancher de sécurité ; et le balayage qui certifie la continuité R6 s'arrête EXACTEMENT
-  à `HIGH_ADIPOSITY_PCT.male` (30 %), le décrochage est juste après — **114 kcal/j**, et il
-  ne rétrécit pas quand le pas rétrécit.
+  🔴 **UN FEU VERT DU MOTEUR NE TIENT PAS** : le balayage qui certifie la continuité R6
+  s'arrête EXACTEMENT à `HIGH_ADIPOSITY_PCT.male` (30 %), le décrochage est juste après —
+  **114 kcal/j**, et il ne rétrécit pas quand le pas rétrécit. *(Le second, `CA-2-02`, a été
+  TRAITÉ le 2026-08-27 et n'en était pas un — voir ci-dessous.)*
+  ✅ **`CA-2-02` — TRAITÉ SANS TOUCHER UNE LIGNE DE MOTEUR, et c'est la mesure qui le dit.**
+  Le fait est vrai et pire que publié : **44,2 %** des profils ont au moins un jour sous le
+  plancher de sécurité, jusqu'à **1 103 kcal/j** (75 264 profils). Mais le correctif qu'il
+  appelait — borner la cible du jour au plancher de sécurité — est le calcul qui a fait
+  **rejeter la spec P2.1** le 2026-07-29, et il aurait détruit la répartition par volume.
+  ➡️ Ce que personne n'avait mesuré : la justification tient sur *« la banque conserve le
+  total de la SEMAINE »*, et les trois passes (audit, contre-audit, réfuteur) avaient toutes
+  mesuré le MINIMUM DU JOUR. Mesuré enfin — conservation **0 violation** (écart max 0 kcal),
+  moyenne hebdomadaire ≥ plancher de sécurité **0 violation**, plancher dur du jour
+  **0 violation**. ➡️ Périmètre rendu à `02-moteur.md:87` et au §5, et la propriété devient
+  **comptée** : `lib/__tests__/plancherServi.test.ts` (20 736 profils, 533 ms), dont le 4ᵉ
+  test **exige que la descente EXISTE** — quiconque « répare » la cible du jour rougit et
+  lit pourquoi. 4 mutations, chacune ne touchant que la promesse qu'elle casse.
   🔴 **QUATRE DÉFAUTS QUE L'AUDIT N'A JAMAIS REGARDÉS**, dont trois LIVRÉS le jour même :
   · **notifications éternelles après suppression de compte** (`5a057c9`) — `doDelete` ne
     contenait aucun `cancelScheduledNotificationAsync`, et `WEIGH_ID-0` est un déclencheur
@@ -576,8 +587,13 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
   dispositif médical… » a DISPARU du corpus régénéré.
   ⚠️ **17 constats sont orphelins de tout lot** du §4 de la synthèse, dont trois P1 — dont
   `02-03`, qui bloque le démarrage.
-  ➡️ **Prochain** : `CA-2-02` (le plancher affiché), puis les six garde-fous décoratifs,
-  puis rejouer 6b sur un corpus réparé.
+  ➡️ **Prochain** : `CA-2-01` (la continuité R6 au-delà de 30 % de MG), puis les six
+  garde-fous décoratifs, puis rejouer 6b sur un corpus réparé.
+  🔴 **ET UNE LEÇON DE MÉTHODE, PAYÉE SUR MOI-MÊME** : la réfutation avait ramené `CA-2-02`
+  de majeur à MINEUR le jour même, avec ses motifs — je l'ai quand même publié en tête du §3
+  et inscrit 🔴 au backlog comme le prochain chantier. Le verdict était dans le document ;
+  la mise en page l'a écrasé. **Une gravité corrigée par la réfutation doit gouverner la
+  PLACE du constat, pas seulement figurer dans son verdict.**
   ℹ️ Chaque correctif a été **vu ROUGIR** : 5 + 5 + 4 + 5 mutations. Et l'une d'elles a
   trouvé un trou dans MON garde-fou (`toContain('AGE_BOUNDS[0]')` restait vert sur un
   `basicsValid` vidé — la chaîne sert aussi au message d'erreur vingt lignes plus bas).
