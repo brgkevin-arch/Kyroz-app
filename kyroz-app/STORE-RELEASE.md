@@ -46,6 +46,15 @@ installation neuve part du binaire, donc du (6).
 
 **L'état des deux surfaces qui comptent, RELU chez le prestataire :**
 
+- 🔴 **LE BUILD (7) EST DEVENU BLOQUANT LE 2026-08-27** — `main` est monté en **SDK 57**
+  et la politique de runtime est passée en **`fingerprint`** (A44). **La ligne OTA est donc
+  coupée** : le parc actuel est figé sur la 25ᵉ et ne recevra plus rien avant qu'un binaire
+  de la nouvelle surface native soit distribué. Ce n'est pas un incident, c'est la coupure
+  voulue — sans elle, un bundle SDK 57 atterrirait sur un binaire SDK 56, qui ne
+  démarrerait plus (`lib/__tests__/ligneOta.test.ts`).
+  ⚠️ **Conséquence directe sur ce playbook** : les trois P0 (`ENGINE_REV` 10) et la phrase
+  iCloud n'atteindront les testeurs **que par ce build**. Ce qui était « publier une OTA »
+  est devenu « compiler, distribuer, attendre l'installation ».
 - **Binaire** : le dernier build iOS est toujours le **(6)** — `ceec1b17`, commit
   `1047b9f`, terminé le 2026-08-11 à 20 h 37. Il a **62 commits de retard** sur `main` — chiffre RE-MESURÉ le 2026-08-26 (il en annonçait 40, mesurés le 2026-08-23), qui **grandit à chaque merge** : le relire avec `git rev-list --count 1047b9f..origin/main` plutôt que de le recopier (même défaut que le décompte d'OTA tenu à la main).
 - **OTA** : la dernière est la **25ᵉ** (groupe `bf9894b4`, 2026-08-27, iOS + Android,

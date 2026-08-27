@@ -118,7 +118,35 @@ console.log(`\nLe canal « production » (mesuré, ${tete.createdAt.slice(0, 10)
 ligne('groupe en tête du canal', tete.group.slice(0, 8), fiche.groupe);
 ligne('commit publié', (tete.gitCommitHash ?? '').slice(0, fiche.commit.length), fiche.commit);
 ligne('plateformes', plateformes.join(' + '), 'android + ios');
-ligne('runtime', tete.runtimeVersion, '1.0.0');
+// 🔴 LE RUNTIME NE SE COMPARE PLUS À UN LITTÉRAL DEPUIS LE PASSAGE EN `fingerprint`
+// (2026-08-27, constat 03-03). Avec `appVersion`, la valeur attendue était lisible dans
+// `app.json` — donc vérifiable ici. Avec `fingerprint`, c'est un hachage de la SURFACE
+// NATIVE de l'arbre publié : le recalculer demanderait de restaurer ce commit-là et ses
+// `node_modules`, ce qu'un contrôle de lecture n'a pas à faire.
+// ➡️ On vérifie donc ce qui EST vérifiable — la FORME — et on DIT ce qui ne l'est pas,
+// plutôt que de comparer à une constante qui redeviendrait fausse à chaque build.
+const appJson = JSON.parse(lire('app.json'));
+const politique = (appJson.expo?.runtimeVersion?.policy ?? '?') as string;
+if (politique !== 'fingerprint') {
+  ligne('runtime', tete.runtimeVersion, String(appJson.expo?.version ?? '?'));
+} else if (/^[0-9a-f]{32,}$/.test(tete.runtimeVersion)) {
+  ligne('runtime (forme fingerprint)', 'hachage', 'hachage');
+  console.log(`    ℹ️  runtime publié : ${tete.runtimeVersion}`);
+  console.log('    ⚠️  NON vérifié : que ce hachage soit celui du commit publié — le');
+  console.log('       recalculer demanderait de restaurer ce commit ET ses node_modules.');
+} else {
+  // ⚠️ CE N'EST PAS UN ÉCART DE FICHE, et les confondre rendrait ce contrôle rouge en
+  // permanence — donc illisible. Les fiches disent le vrai ; c'est la SURFACE NATIVE
+  // qui a bougé sous elles. L'état est transitoire par construction : il dure jusqu'à
+  // ce qu'un binaire de la nouvelle surface soit distribué.
+  console.log(`  ⚠ runtime en tête du canal            ${tete.runtimeVersion} — une VERSION, pas une empreinte`);
+  console.log('     ➡️ Cette OTA a été publiée AVANT la bascule en `fingerprint`, donc depuis');
+  console.log('        un arbre dont la surface native n’est plus celle du dépôt.');
+  console.log('     🔴 CONSÉQUENCE : les binaires que sert cette OTA ne recevront plus RIEN');
+  console.log('        tant qu’un build de la nouvelle surface n’est pas distribué. C’est la');
+  console.log('        coupure VOULUE — sans elle, un bundle SDK 57 atterrirait sur un binaire');
+  console.log('        SDK 56, qui ne démarrerait plus. Cf. lib/__tests__/ligneOta.test.ts.');
+}
 // Publier depuis un arbre SALE veut dire que le bundle envoyé ne correspond à
 // aucun commit — la fiche citerait alors un commit qui n'a jamais été ce qui part.
 ligne('arbre propre à la publication', String(tete.isGitWorkingTreeDirty === false), 'true');

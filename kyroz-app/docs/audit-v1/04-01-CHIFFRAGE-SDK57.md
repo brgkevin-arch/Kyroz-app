@@ -1,6 +1,15 @@
 # 04-01 · Chiffrage de la montée en SDK 57 — **mesuré, pas estimé**
 Date : 2026-08-26 · Base : `c9a53ff` · Méthode : worktree jetable, `npx expo install expo@^57.0.9 --fix`, puis les contrôles du dépôt. Le worktree a été retiré ; **rien n'a été modifié dans l'arbre de travail**.
 
+> ✅ **EXÉCUTÉ LE 2026-08-27 — fiche : `AGENTS.md` **A44**.** Ce chiffrage s'est vérifié sur
+> tous ses points sauf un : il annonçait **13** dépendances déplacées, il y en a **15**
+> (`expo-file-system` et `expo-glass-effect` sont entrés dans le dépôt après la mesure du 26).
+> Les gestes 1 et 2 de l'ordre suggéré sont faits ; les gestes 3 (`WRITE_EXTERNAL_STORAGE`)
+> était déjà livré ; les gestes 4 (`expo-system-ui`), 5 (crash reporting) et 6 (build +
+> captures) sont reportés par le fondateur.
+> ⚠️ **Ce que ce document disait ne pas pouvoir dire reste vrai** : le build natif n'a
+> toujours pas eu lieu, et rien n'a tourné sur un appareil.
+
 ## Le résultat, en une ligne
 
 **La montée est propre côté JavaScript.** Tout ce que le dépôt sait mesurer passe.

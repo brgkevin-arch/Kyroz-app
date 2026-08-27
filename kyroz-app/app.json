@@ -68,7 +68,7 @@
     },
     "owner": "kevinberger",
     "runtimeVersion": {
-      "policy": "appVersion"
+      "policy": "fingerprint"
     },
     "updates": {
       "url": "https://u.expo.dev/28dc4c7e-cace-4fa2-80ba-7b503804d18e",
