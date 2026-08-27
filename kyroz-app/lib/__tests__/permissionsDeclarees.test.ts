@@ -23,9 +23,15 @@ import { join } from 'node:path';
 //
 // ➡️ Le tableau vide a été RETIRÉ le 2026-08-27, après avoir mesuré la config résolue
 // AVANT et APRÈS : identique au caractère près. Il ne portait aucune information.
-// ℹ️ Retrait sans effet sur la ligne OTA : `runtimeVersion.policy` vaut `"appVersion"`,
-// donc la coupure est liée à `expo.version`, pas à l'édition d'`app.json` (l'inverse
-// serait vrai sous la politique `fingerprint` — cf. `CA-5-03`).
+// 🔴 CETTE PHRASE S'EST INVERSÉE LE 2026-08-27, et elle est gardée pour ça. Elle disait :
+// « retrait sans effet sur la ligne OTA — `runtimeVersion.policy` vaut `appVersion`, donc
+// la coupure est liée à `expo.version`, pas à l'édition d'`app.json` ». La politique est
+// passée à **`fingerprint`** (constat 03-03) : c'est désormais l'INVERSE. Toucher aux
+// permissions change la surface native, donc l'empreinte, donc **coupe la ligne OTA** — un
+// binaire déjà installé ne recevra plus rien tant qu'un nouveau build n'est pas distribué.
+// ➡️ Conséquence pratique : une édition d'`app.json` n'est plus un geste de documentation,
+// c'est un geste de LIVRAISON. `CA-5-03` l'avait annoncé (« la ligne se coupe à CHAQUE
+// édition, pas une fois ») ; c'est vrai depuis aujourd'hui.
 //
 // ⚠️ CE TEST NE REMPLACE PAS `npm run check:permissions`, il en ferme la porte
 // d'entrée. Le script LIT la vérité (il résout les plugins, ce qu'un test hors réseau

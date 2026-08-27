@@ -8,7 +8,7 @@
 
 ## Rappel projet (1 ligne)
 
-App mobile React Native (Expo Router, SDK 56) de plans repas macro-précis pour **hommes ET femmes de 18 à 50 ans** pratiquant du sport. *(Élargi le 2026-07-30 — la cible déclarée était « hommes 18–35 », ce qui ne correspondait plus au produit : les garde-fous féminins — plancher d'énergie disponible, escalade de zone basse — et la borne protéine 0,5 existent précisément pour servir les gabarits légers.)* **Phase 2 — core loop en place + déployé en web (GitHub Pages), itérations UX/qualité en cours.**
+App mobile React Native (Expo Router, **SDK 57** depuis le 2026-08-27) de plans repas macro-précis pour **hommes ET femmes de 18 à 50 ans** pratiquant du sport. *(Élargi le 2026-07-30 — la cible déclarée était « hommes 18–35 », ce qui ne correspondait plus au produit : les garde-fous féminins — plancher d'énergie disponible, escalade de zone basse — et la borne protéine 0,5 existent précisément pour servir les gabarits légers.)* **Phase 2 — core loop en place + déployé en web (GitHub Pages), itérations UX/qualité en cours.**
 
 ---
 
@@ -60,7 +60,7 @@ App mobile React Native (Expo Router, SDK 56) de plans repas macro-précis pour 
 
 | Couche | Choix | État |
 |---|---|---|
-| Mobile | **React Native (Expo Router, SDK 56)**, TypeScript strict | En place |
+| Mobile | **React Native (Expo Router, SDK 57)**, TypeScript strict | Monté de 56 → **57** le 2026-08-27 (`expo ^57.0.9`, `react-native 0.86.3`) — `expo-doctor` **21/21**, les deux checks en échec du SDK 56 disparaissent. ⚠️ **Aucun binaire de cette surface n'existe encore** : la ligne OTA est coupée jusqu'au build (7) |
 | Génération repas | **Moteur LOCAL** (`lib/planEngine.ts`) — macro-précis, 0 clé API, **seul chemin** | Moteur unique |
 | Persistance locale | AsyncStorage (clés `@kyroz:*`) | En place |
 | Backend / Auth | **Supabase** (région EU) — création de compte email + suppression de compte (RGPD) | Auth OK |
@@ -74,8 +74,26 @@ App mobile React Native (Expo Router, SDK 56) de plans repas macro-précis pour 
 > **inertes**. Trois choses manquaient, pas une : le paquet, le bloc `updates`, et
 > `runtimeVersion`.
 >
-> **Config retenue, et pourquoi** : `runtimeVersion.policy = "appVersion"` (le bundle JS
-> est lié à `expo.version`) · `checkAutomatically: "ON_LOAD"` · **`fallbackToCacheTimeout: 0`**.
+> **Config retenue, et pourquoi** : `runtimeVersion.policy = "fingerprint"` (le bundle JS
+> est lié à un hachage de la **surface native**) · `checkAutomatically: "ON_LOAD"` ·
+> **`fallbackToCacheTimeout: 0`**.
+>
+> 🔴 **LA POLITIQUE A CHANGÉ LE 2026-08-27 — `appVersion` → `fingerprint` (constat
+> `03-03`), et c'est la moitié SÉCURITÉ de la montée en SDK 57.** Sous `appVersion`, le
+> runtime valait `expo.version`, soit **`1.0.0` depuis le premier commit** : il ne pouvait
+> donc dire non à personne. Une OTA publiée depuis un arbre SDK 57 se serait déclarée
+> compatible avec tous les binaires `1.0.0`, **SDK 56 compris** — un bundle attendant une
+> architecture native absente, poussé à tout le parc en minutes, sans revue pour l'arrêter.
+> Ce n'est pas une dégradation, c'est une app qui ne démarre plus.
+> ➡️ `fingerprint` hache la surface native : un binaire d'une autre surface **ne reçoit
+> plus rien**. La coupure devient explicite au lieu d'être fatale.
+> ⚠️ **CE QUE ÇA COÛTE** : la ligne se coupe désormais à **chaque** changement de surface
+> native — une édition d'`app.json`, un plugin, une dépendance native — et non « une fois
+> par version ». **Éditer `app.json` n'est plus un geste de documentation, c'est un geste
+> de livraison** (`CA-5-03` l'avait annoncé). Et tant qu'aucun binaire SDK 57 n'est
+> distribué, **aucune OTA n'atteint personne** : le parc actuel est figé sur la 25ᵉ.
+> ➡️ Garde-fou : `lib/__tests__/ligneOta.test.ts` (3 cas, **3 mutations**) — il refuse le
+> retour à une politique qui ne peut pas couper, et il dit POURQUOI dans son message.
 > Ce dernier n'est pas un détail : il garantit que l'app **ne bloque JAMAIS au démarrage**
 > pour attendre une mise à jour. Elle part sur le bundle en cache, télécharge en fond, et
 > applique au lancement suivant. Sans ça, la contrainte §4 « latence < 1 seconde » sautait
