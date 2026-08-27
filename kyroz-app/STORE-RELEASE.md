@@ -1,5 +1,12 @@
 # Kyroz — Dossier de sortie stores (App Store + Google Play)
 
+> 🔴 **LA V1 EST iOS SEULE — décision fondateur du 2026-08-27.** *« Dans tous les cas l'app
+> ne sort pas sur le Google store pour l'instant, ça sera le taff de la semaine pro. »*
+> Tout ce que ce document dit de **Google Play** décrit donc un chantier de la semaine du
+> 2026-08-31, **pas** le chemin critique du build (7). Ce qui reste vrai côté Android : le
+> compte Play Console est payé et vérifié depuis le 2026-07-30, et deux builds existent —
+> du 2026-07-30, donc antérieurs à tout le chantier paywall.
+
 > Playbook de première soumission. **Ce qui est codable est fait** (config, icônes,
 > splash, `eas.json`, URL de confidentialité). Il te reste des actions qui demandent
 > ton **identité, ton argent, ou un device** (comptes, screenshots, build). Tout est
@@ -405,12 +412,27 @@ un identifiant enregistré, puis une fiche d'app. Dans cet ordre, sinon le menu
 > pas de crash, pas d'écran mort, pas de bouton qui échoue — mais Android ne peut rien
 > vendre, et rien à l'écran ne le dit.
 >
-> ⚠️ **C'est une décision, pas un correctif** : soit la clé Android est posée
-> (`eas env:create production --name EXPO_PUBLIC_REVENUECAT_ANDROID_KEY`), soit on
-> **acte par écrit qu'Android sort sans achat in-app** — auquel cas la ligne ci-dessous
-> et la fiche store doivent le dire, plutôt que de laisser croire à la parité.
-> ➡️ À trancher **avant** la soumission Android. Tant que ce n'est pas tranché, le
-> point 6 décrit une intention, pas l'état.
+> ✅ **TRANCHÉ LE 2026-08-27 — ANDROID NE SORT PAS.** Décision fondateur, dite en toutes
+> lettres : *« dans tous les cas l'app ne sort pas sur le Google store pour l'instant, ça
+> sera le taff de la semaine pro »*. La V1 est donc **iOS SEULE**.
+> 🔴 **CETTE FICHE A DIT « Android sort sans achat in-app » PENDANT UNE HEURE, et c'était
+> déjà trop faible.** L'arbitrage écrit plus tôt supposait qu'Android partait quand même,
+> sans bouton d'achat. Il ne part pas du tout : la question de la clé ne se pose donc pas
+> encore, elle est **reportée avec tout le chantier Android**.
+> ⚠️ Conséquence pratique : rien de Google n'est sur le chemin critique du build (7). La
+> fiche store Google, l'abonnement `kyroz_plus`, l'app Play Console et la clé `goog_…`
+> partent ensemble, la semaine du 2026-08-31.
+> ⚠️ **Ce n'était qu'à moitié un choix** : poser la clé n'est pas un geste mais une CHAÎNE
+> dont aucun maillon n'existe — app Play Console, abonnement `kyroz_plus` et ses deux base
+> plans, app Android rattachée dans RevenueCat, puis la clé `goog_…`. Les deux seuls builds
+> Android datent du **2026-07-30**, un mois avant le chantier paywall. Ce qui se décidait,
+> c'était de l'ÉCRIRE plutôt que de laisser croire à la parité.
+> ➡️ **Donc le point 6 ci-dessous décrit l'objectif iOS, pas l'état Android** : sur Android
+> `purchasesConfigured()` reste faux, aucun bouton d'achat n'est rendu, et l'écran Kyroz+ le
+> DIT désormais (la phrase qui promettait « tes deux outils restent actifs » était devenue
+> fausse le jour où la date a été posée — corrigée, et comptée par `verrouKyrozPlus.test.ts`).
+> ⚠️ **La fiche store Google doit dire la même chose** : pas d'achat in-app sur Android en
+> V1. Ne pas recopier la description iOS telle quelle.
 
 6. **RevenueCat** → nouveau projet → rattacher l'app iOS **et** l'app Android →
    mapper les produits store → **1 entitlement nommé exactement `premium`** +

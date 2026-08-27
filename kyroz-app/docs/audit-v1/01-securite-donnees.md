@@ -225,7 +225,38 @@ Aucun bucket Storage n'existe : rien à effacer de ce côté.
 - **Effort : S**
 
 ### 01-07 La clé RevenueCat Android n'existe sur aucun environnement
-- **Sévérité : P2** (P1 si Android part en V1 — arbitrage étape 7)
+> ✅ **TRANCHÉ le 2026-08-27 — ANDROID NE SORT PAS.** Décision fondateur, en toutes
+> lettres : *« dans tous les cas l'app ne sort pas sur le Google store pour l'instant, ça
+> sera le taff de la semaine pro »*. La V1 est **iOS seule**.
+> 🔴 **CE CONSTAT EST DONC SANS OBJET POUR LA V1, et il a fallu deux formulations pour y
+> arriver.** La première version de cet arbitrage disait « Android sort sans achat in-app »
+> — elle supposait qu'Android partait quand même. Il ne part pas : la question de la clé ne
+> se pose pas encore. Elle repart avec le chantier Android, semaine du 2026-08-31.
+> ⚠️ **Ce qui ne change pas** : le jour où Android sortira, la chaîne complète devra être
+> faite (app Play Console, abonnement `kyroz_plus` et ses deux base plans, app Android
+> rattachée dans RevenueCat, puis la clé `goog_…`) — sinon l'app sortira sans pouvoir
+> vendre, et **rien à l'écran ne le dira** hors la phrase corrigée ci-dessous.
+>
+> ⚠️ **CE N'ÉTAIT QU'À MOITIÉ UN CHOIX, et la mesure le dit** : poser la clé n'est pas un
+> geste, c'est une CHAÎNE dont aucun maillon n'existe — app dans la Play Console,
+> abonnement `kyroz_plus` avec ses deux base plans, app Android rattachée dans RevenueCat,
+> puis la clé `goog_…`. Les deux seuls builds Android datent du **2026-07-30**, un mois
+> avant tout le chantier paywall. Android ne pouvait pas vendre en V1 quelle qu'eût été la
+> décision ; ce qui se décidait, c'était de **l'écrire** plutôt que de laisser croire à la
+> parité.
+>
+> 🔴 **ET LA DÉCISION A DÉCOUVERT UN MENSONGE À L'ÉCRAN, que la pose de `PAYWALL_LAUNCH`
+> avait armé le matin même.** L'écran Kyroz+ affichait, quand la plateforme ne peut pas
+> encaisser : « L'abonnement n'est pas encore ouvert sur cette version de l'app. **Tes deux
+> outils restent actifs en attendant.** » Ce bloc ne se rend que si `reason === 'locked'` —
+> donc la personne qui lisait cette phrase était exactement celle à qui les deux outils
+> étaient FERMÉS. Vrai tant que rien n'était verrouillé, faux depuis le 2026-08-27, et pour
+> tout Android. ✅ Corrigé le jour même, garde-fou dans `verrouKyrozPlus.test.ts`
+> (**2 mutations**) : cet écran ne promet pas un accès à qui ne l'a pas.
+>
+> ➡️ **Ce que la décision oblige ailleurs** : la fiche store et `STORE-RELEASE.md` doivent
+> dire qu'Android sort sans achat, plutôt que de décrire une parité qui n'existe pas.
+- **Sévérité : P2** (P1 si Android part en V1 — ✅ **arbitré : Android ne vend pas**)
 - **Preuve** : `eas env:list` sur les trois environnements → `EXPO_PUBLIC_REVENUECAT_ANDROID_KEY` **absente partout** ; seule `EXPO_PUBLIC_REVENUECAT_IOS_KEY` existe, en `production` uniquement.
 - **Risque** : sur Android `purchasesConfigured()` (`lib/purchases.ts:67`) est faux, donc **aucun bouton d'achat n'est rendu**. La dégradation est propre — pas de crash, pas d'écran mort — mais Android ne peut rien vendre.
 - **Reco** : poser la clé, ou acter par écrit qu'Android sort sans achat.

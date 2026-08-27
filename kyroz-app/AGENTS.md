@@ -1341,6 +1341,58 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
   ancré en bas — un paragraphe de plus pousse la feuille vers le HAUT, il ne peut pas
   éloigner le bouton « Supprimer définitivement ». À regarder au build (7).
 
+- ✅ **A48 · LES DEUX DÉCISIONS QUI BLOQUAIENT LE BUILD (7) SONT TRANCHÉES, le
+  2026-08-27** (le fondateur a délégué l'arbitrage : « go »). Écrites plutôt que prises —
+  *une décision non écrite se re-prend tous les mois*.
+
+  **`03-05` · crash reporting → OPTION A : la V1 part SANS outil de diagnostic.**
+  Le motif n'est pas « moins de travail » : B coûte un **quatrième sous-traitant** (donc
+  politique, base légale, région EU, DPA, registre), chaîne payée deux fois en deux jours
+  (Resend, RevenueCat) et dont une obligation reste ouverte — le **médiateur**. B est en
+  plus une dépendance **native** : dans le build, et des source maps à téléverser à chaque
+  build. Le parc rend A tenable : une poignée de testeurs qui parlent directement au
+  fondateur, `ErrorBoundary` en filet.
+  🔴 **Ce qu'on accepte** : un crash chez un testeur n'existe que s'il le raconte.
+  ➡️ **Ce qui rouvre la décision, en FAITS et pas en humeur** : une sortie publique hors
+  TestFlight · un crash rapporté qu'on ne reproduit pas · un parc au-delà de quelques
+  dizaines d'appareils. Le premier des trois suffit — et B demandera **un build de plus**.
+
+  **`01-07` · Android → NE SORT PAS.** Décision fondateur en toutes lettres : *« dans tous
+  les cas l'app ne sort pas sur le Google store pour l'instant, ça sera le taff de la
+  semaine pro »*. **La V1 est iOS SEULE.**
+  🔴 **CETTE FICHE A ÉCRIT « Android sort sans achat in-app » AVANT LUI, et c'était déjà
+  trop faible.** L'arbitrage supposait qu'Android partait quand même, sans bouton d'achat ;
+  il ne part pas du tout. La question de la clé ne se pose donc pas encore — elle repart
+  avec le chantier Android, semaine du 2026-08-31, où elle sera une CHAÎNE et non un geste
+  (app Play Console, abonnement `kyroz_plus` et ses deux base plans, app Android rattachée
+  dans RevenueCat, puis la clé `goog_…`).
+  ⚠️ *Une décision déléguée se rédige au plus près de ce qui a été dit : « sans achat » et
+  « ne sort pas » désignent deux plans de travail différents, et le second retire Google du
+  chemin critique du build (7).*
+  ⚠️ **Ce n'était qu'à moitié un choix, et la mesure le dit** : poser la clé n'est pas un
+  geste mais une CHAÎNE dont aucun maillon n'existe — app Play Console, abonnement
+  `kyroz_plus` et ses deux base plans, app Android rattachée dans RevenueCat, puis la clé
+  `goog_…`. Les deux seuls builds Android datent du **2026-07-30**, un mois avant tout le
+  chantier paywall. Android ne pouvait pas vendre en V1 quelle qu'eût été la décision ; ce
+  qui se décidait, c'était de l'**écrire** plutôt que de laisser croire à la parité.
+
+  🔴 **ET LA DÉCISION A DÉCOUVERT UN MENSONGE À L'ÉCRAN — armé le matin même par A45.**
+  L'écran Kyroz+ affichait, quand la plateforme ne peut pas encaisser : « L'abonnement
+  n'est pas encore ouvert sur cette version de l'app. **Tes deux outils restent actifs en
+  attendant.** » Or ce bloc ne se rend que si `reason === 'locked'` : **la personne qui
+  lisait cette phrase était exactement celle à qui les deux outils étaient fermés.** Vrai
+  tant que rien n'était verrouillé, faux depuis la pose de la date, et pour **tout
+  Android**. ✅ Corrigé le jour même — la phrase dit l'indisponibilité de l'achat et la
+  fermeture des deux outils, sans promesse de délai ni « écris-nous ».
+  📊 Garde-fou : `verrouKyrozPlus.test.ts`, **2 mutations, 2 rouges** (l'ancienne promesse
+  qui revient, le bloc entier retiré). *Cet écran ne promet pas un accès à qui ne l'a pas.*
+  ⚠️ **La fiche store Google doit dire la même chose** : pas d'achat in-app sur Android en
+  V1 — ne pas recopier la description iOS.
+
+  ➡️ **Plus rien ne bloque le build (7) côté décisions.** Restent des gestes : le build
+  lui-même, la capture de review, le bac à sable, et — avant la première vente, pas avant
+  le build — l'adhésion à un médiateur.
+
 - ✅ **A38 · SÉLECTION BMR « R6 LISSÉE » — LIVRÉE le 2026-08-24** (décision fondateur,
   handoff « Mifflin vs Katch », `ENGINE_REV` 7 → 8). La règle binaire « %MG estimé ⇒
   toujours Mifflin » devient une bascule asymétrique et continue : le BMR glisse de
