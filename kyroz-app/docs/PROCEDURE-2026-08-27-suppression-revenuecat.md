@@ -184,7 +184,21 @@ l'effacement ne peut pas dépendre de la disponibilité d'un tiers.
 
 ---
 
-## Étape 5 — inscrire au registre
+## ✅ Étape 5 — FAITE le 2026-08-27
+
+Inscrite dans `RGPD-REGISTRE.md`, ligne **RevenueCat** du traitement n°1. Elle porte ce qui
+a été VÉRIFIÉ et comment, pas l'intention : secret relu par la CLI · fonction
+retéléchargée et comparée · suppression réelle d'un compte jetable, journal muet.
+
+➡️ **Le §7 de la politique est exact depuis aujourd'hui.** Il bornait l'exception de
+conservation à « si vous avez souscrit un abonnement » — rédaction juste seulement si
+l'identifiant d'un NON-abonné disparaît. `identifyUser` en créant un pour tout le monde,
+elle ne l'était pas. Elle l'est.
+
+🔁 **Ce qui reste, et qu'aucun correctif n'atteint** : les abonnés orphelins des comptes de
+test supprimés AVANT ce câblage. À retirer à la main.
+
+## Étape 5 (rédaction d'origine) — inscrire au registre
 
 Une fois l'étape 4 verte, ajouter à `RGPD-REGISTRE.md`, dans la ligne **RevenueCat** :
 
