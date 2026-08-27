@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { LEGAL, PRIVACY_POLICY, TERMS_OF_USE } from '../../constants/legal';
+import { MIN_AGE, AGE_BOUNDS } from '../safety';
 import { CIBLES, renderHtml, renderMarkdown } from '../../scripts/gen-legal';
 
 /**
@@ -230,7 +231,22 @@ import { STATISTIQUES_USAGE_ACTIVES } from '../featureFlags';
  * que le test affiche. Et régénère les miroirs (`npm run gen:legal`).
  */
 const DERNIERE_REVISION = {
-  date: '26 août 2026',
+  date: '27 août 2026',
+  // ⚠️ **CINQUIÈME RÉVISION, ET LA PREMIÈRE D'UN AUTRE JOUR** (2026-08-27) : le §10
+  // « Mineurs » cessait d'être vrai. Il affirmait « Aucun compte ne peut être créé en
+  // deçà de cet âge » — or l'écran d'inscription ne demande ni âge ni date de
+  // naissance : `canSubmit` (app/(auth)/login.tsx) vaut e-mail + mot de passe +
+  // consentement. Le blocage existe, il vit à l'ONBOARDING (`AGE_BOUNDS[0]` dans
+  // `basicsValid`, étape 2), et il est dur. C'est donc la phrase qui décrivait un
+  // mécanisme que le code n'a jamais eu. Contre-audit V1, constat CA-8-03 — qui
+  // désignait « les CGU » : la phrase est en réalité dans la POLITIQUE, et le §5 des
+  // CGU (« vous vous engagez à avoir au moins 18 ans ») est un engagement de
+  // l'utilisateur, pas une promesse de mécanisme : il est vrai et il ne bouge pas.
+  // 🔴 **LA DATE BOUGE PARCE QUE LA RÉSERVE CI-DESSOUS LE PRESCRIT** : les révisions
+  // du 26 ne sont toujours pas livrées, l'OTA a glissé au 27. C'est exactement le cas
+  // prévu — « si l'OTA glisse au-delà du 26, c'est la DATE qu'il faut bouger avant de
+  // publier ». Si elle glisse encore, refaire le même geste avant de publier.
+  //
   // ⚠️ **QUATRIÈME RÉVISION DU MÊME JOUR** (2026-08-26) : le §6 cesse d'affirmer
   // « Aucune donnée de santé ne quitte l'Union européenne » — c'était FAUX, les
   // sauvegardes du système emportaient les données locales (audit V1, constat 09-02).
@@ -266,7 +282,7 @@ const DERNIERE_REVISION = {
   // d'être déclaré le jour où il ne traite plus, données effacées. C'est la même règle
   // dans l'autre sens ; la garder à sens unique ferait décrire un traitement inexistant.
   // ➡️ La date ne bouge pas — même jour de livraison.
-  empreinte: '25bf850053c2',
+  empreinte: '3bdbf62f4bd2',
 };
 
 /**
@@ -282,6 +298,67 @@ function empreinteDuTexte(): string {
     .split(LEGAL.effectiveDate).join('«DATE»');
   return createHash('sha256').update(brut, 'utf8').digest('hex').slice(0, 12);
 }
+
+// ── L'ÂGE : LE TEXTE DÉCRIT UN MÉCANISME, DONC IL S'ÉPROUVE SUR LE CODE ─────
+//
+// Le §10 a affirmé pendant des mois « Aucun compte ne peut être créé en deçà de cet
+// âge », alors que l'écran d'inscription ne demande ni âge ni date de naissance. Le
+// blocage existe — il est DUR — mais il vit à l'onboarding, une étape plus loin. Et
+// l'audit V1 avait posé la question puis fermé le constat (06b-19) sur un « RÉSOLU »
+// tiré de trois preuves qui agissent toutes APRÈS la création du compte.
+//
+// ⚠️ Ce bloc n'interdit pas une phrase, il tient un INVARIANT : le texte n'a le droit
+// de promettre un blocage à la création QUE si l'écran d'inscription demande l'âge.
+// Le jour où quelqu'un ajoute le champ, la phrase redevient légitime toute seule.
+describe('l’âge : le texte décrit le code, ou il se tait', () => {
+  const RACINE_APP = join(__dirname, '..', '..');
+  const sansCommentaires = (src: string) =>
+    src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+  const login = sansCommentaires(readFileSync(join(RACINE_APP, 'app', '(auth)', 'login.tsx'), 'utf8'));
+  const onboarding = sansCommentaires(readFileSync(join(RACINE_APP, 'app', '(auth)', 'onboarding.tsx'), 'utf8'));
+
+  /** L'écran d'inscription demande-t-il l'âge, d'une façon ou d'une autre ? */
+  const inscriptionDemandeAge =
+    /BirthDate|naissance|birth|\bageN?\b|MIN_AGE|AGE_BOUNDS/.test(login);
+
+  it('🔴 le texte ne promet un blocage à la CRÉATION que si l’inscription mesure l’âge', () => {
+    const promesse = /compte[^.]*(ne peut|ne peuvent|impossible)[^.]*(créé|création)|(créé|création)[^.]*en deçà/i;
+    const texteLePromet = promesse.test(TOUS_LES_PARAS);
+    expect(
+      texteLePromet && !inscriptionDemandeAge,
+      'Le texte légal promet qu’aucun compte ne peut être créé sous l’âge minimum, ' +
+      'et app/(auth)/login.tsx ne demande ni âge ni date de naissance. Deux issues, ' +
+      'aucun compromis : demander l’âge AVANT signUp, ou écrire où le refus a lieu.',
+    ).toBe(false);
+  });
+
+  it('le blocage que le texte annonce existe vraiment dans le parcours', () => {
+    // ⚠️ On lit DANS `basicsValid`, pas dans le fichier : `AGE_BOUNDS[0]` sert aussi
+    // au message d'erreur vingt lignes plus bas, donc chercher la chaîne dans tout le
+    // fichier laissait passer un `basicsValid` entièrement vidé de sa borne d'âge.
+    // Mesuré : la mutation restait VERTE.
+    const basics = /const basicsValid\s*=([\s\S]*?);/.exec(onboarding)?.[1] ?? '';
+    expect(basics, 'basicsValid introuvable').not.toBe('');
+    expect(basics, 'basicsValid ne borne plus l’âge').toContain('AGE_BOUNDS[0]');
+    expect(onboarding).toMatch(/step === 2 && basicsValid/);
+    expect(AGE_BOUNDS[0]).toBe(MIN_AGE);
+  });
+
+  it('🔴 le seuil écrit dans le texte est celui que le code applique', () => {
+    // Une copie publiée a déjà annoncé 16 ans pendant que l'app bloquait à 18.
+    const seuils = [...TOUS_LES_PARAS.matchAll(/(\d+)\s+ans/g)].map((m) => Number(m[1]));
+    expect(seuils.length, 'plus aucun seuil d’âge dans le texte').toBeGreaterThan(0);
+    expect([...new Set(seuils)]).toEqual([MIN_AGE]);
+  });
+
+  it('le texte dit à un mineur ce qu’il peut faire de son compte', () => {
+    // On refuse le service, donc on doit la sortie : sans adresse, un compte créé par
+    // un mineur n'a aucun recours — l'onboarding n'offre pas de déconnexion.
+    const mineurs = PRIVACY_POLICY.find((s) => s.title.includes('Mineurs'));
+    expect(mineurs, '§ Mineurs introuvable').toBeTruthy();
+    expect(mineurs!.paragraphs.join(' ')).toContain(LEGAL.dpoEmail);
+  });
+});
 
 describe('la date de mise à jour suit le texte', () => {
   it('la date enregistrée ici est celle que les documents affichent', () => {

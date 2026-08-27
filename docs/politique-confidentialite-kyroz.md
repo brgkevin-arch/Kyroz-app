@@ -5,7 +5,7 @@
 
 # Politique de confidentialité — Kyroz
 
-**Dernière mise à jour : 26 août 2026**
+**Dernière mise à jour : 27 août 2026**
 
 ---
 
@@ -101,10 +101,14 @@ Vous pouvez introduire une réclamation auprès de la CNIL (www.cnil.fr).
 
 ## 10. Mineurs
 
-Kyroz est réservé aux personnes âgées de 18 ans et plus. Aucun compte ne peut être créé en deçà de cet âge.
+Kyroz est réservé aux personnes âgées de 18 ans et plus.
+
+Votre date de naissance vous est demandée dès la configuration de votre profil, avant tout calcul : en deçà de 18 ans, aucun plan n’est établi et le service ne peut pas être utilisé. La création du compte, elle, ne demande qu’une adresse email et un mot de passe — elle ne vérifie donc pas votre âge.
+
+Si un compte a été créé par une personne mineure, écrivez à contact@kyroz.app : il sera supprimé, ainsi que les données associées.
 
 ---
 
 ## 11. Modifications
 
-La présente politique peut évoluer. Date de dernière mise à jour : 26 août 2026.
+La présente politique peut évoluer. Date de dernière mise à jour : 27 août 2026.

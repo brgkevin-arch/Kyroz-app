@@ -92,7 +92,7 @@ export const LEGAL = {
    * ⚠️ Ce n'est PAS la date du commit : c'est celle à laquelle le texte devient
    * opposable, donc celle de la livraison. Elle s'arbitre, elle ne se déduit pas.
    */
-  effectiveDate: '26 août 2026',
+  effectiveDate: '27 août 2026',
 } as const;
 
 export interface LegalSection {
@@ -255,7 +255,9 @@ export const PRIVACY_POLICY: LegalSection[] = [
   {
     title: '10. Mineurs',
     paragraphs: [
-      "Kyroz est réservé aux personnes âgées de 18 ans et plus. Aucun compte ne peut être créé en deçà de cet âge.",
+      "Kyroz est réservé aux personnes âgées de 18 ans et plus.",
+      "Votre date de naissance vous est demandée dès la configuration de votre profil, avant tout calcul : en deçà de 18 ans, aucun plan n’est établi et le service ne peut pas être utilisé. La création du compte, elle, ne demande qu’une adresse email et un mot de passe — elle ne vérifie donc pas votre âge.",
+      `Si un compte a été créé par une personne mineure, écrivez à ${LEGAL.dpoEmail} : il sera supprimé, ainsi que les données associées.`,
     ],
   },
   {
