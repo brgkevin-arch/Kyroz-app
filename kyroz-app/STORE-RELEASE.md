@@ -56,8 +56,13 @@ installation neuve part du binaire, donc du (6).
 - ✅ **LE BUILD (7) EST FAIT — le 2026-08-27 à 20 h 09, en 6 min 16 s.** `6a5cd6b0`,
   commit **`0639ecc`**, **1.0.0 (7)**, SDK **57.0.0**, runtime
   **`3a24b5937215c054871565f558325db56289469b`**, profil et canal `production`.
-  ⚠️ **Il est chez EAS, PAS chez Apple** : `eas build` ne téléverse pas — il faut `eas submit`.
-  Et un testeur ne reçoit rien avant la DISTRIBUTION, pas à la fin de la compilation.
+  ✅ **ET IL EST CHEZ APPLE DEPUIS LE MÊME SOIR** — téléversé à **20 h 49**, `VALID` à
+  **20 h 53** (traitement : 3 min 30), non expiré, expire le 2026-11-25. Soit **50 minutes de
+  bout en bout**, du lancement du build au binaire valide chez Apple.
+  ⚠️ **`eas build` ne téléverse pas** : c'est `eas submit` qui l'a fait, et il a pris **24 min
+  en n'écrivant pas un octet**. Le piège n° 3 du dossier s'est rejoué exactement — une sortie
+  vide n'est pas une panne, et la source de vérité est l'API d'App Store Connect, pas le CLI.
+  ⚠️ **Et un testeur ne reçoit rien avant la DISTRIBUTION**, pas à la fin de la compilation.
   ✅ **La ligne OTA rouvre pour de bon**, et ça se mesure : les trois empreintes coïncident —
   celle embarquée dans le binaire (`Payload/Kyroz.app/EXUpdates.bundle/fingerprint`), celle
   qu'EAS déclare, et celle que rend `npx expo-updates fingerprint:generate --platform ios`.
@@ -186,9 +191,15 @@ un SDK officiels** : c'est l'empreinte `BuildMachineOSBuild` du binaire qui trah
   2026-08-03 est un **autre** guichet que la soumission App Store. La soumission du (7) sera
   le premier passage réel — donc **surveiller la boîte mail de l'Apple ID**.
 
-⚠️ **Point ouvert, non tranché depuis le 11 août** : le (6) est visible en **interne**
-mais pas pour les **testeurs externes**. Trois causes possibles, indiscernables sans
-l'écran d'ASC. Ça ne bloque ni la revue, ni la sortie — et le (7) rebattra les cartes.
+✅ **POINT OUVERT DEPUIS LE 11 AOÛT — RÉSOLU LE 2026-08-27, ET CE N'ÉTAIT PAS UNE PANNE.**
+Le (6) était visible en **interne** mais pas pour les **testeurs externes** ; trois causes
+possibles étaient annoncées « indiscernables sans l'écran d'ASC ». Elles étaient discernables
+par l'**API** : `GET /v1/builds/<id>/buildBetaDetail` sur le (7) rend
+`internalBuildState: IN_BETA_TESTING` et `externalBuildState: READY_FOR_BETA_SUBMISSION`.
+➡️ **C'est le fonctionnement normal** : un build part automatiquement en test interne, l'accès
+externe demande un **geste explicite** de soumission au groupe. Rien n'était cassé.
+⚠️ *Une question classée « indiscernable » l'était faute d'avoir interrogé la bonne surface —
+l'écran d'ASC n'était pas le seul instrument disponible.*
 
 ---
 
