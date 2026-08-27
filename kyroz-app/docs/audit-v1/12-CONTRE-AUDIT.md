@@ -423,7 +423,27 @@ dépliés), **19** n'apparaissent dans aucun lot. Deux ont un jumeau qui, lui, e
 | Sévérité | Constats |
 |---|---|
 | **P1** | ~~`01-03`~~ · ~~`02-03`~~ · ~~`03-01`~~ — ✅ **les trois livrés le 2026-08-27** |
-| **P2** | `01-06` · `01-07` · `01-08` · `01-12` · `02-04` · `02-05` · `04-03` · `04-04` · `05-05` · `06b-01` · `06b-17` · `07-02` · `08-01` · `08-02` |
+| **P2** | ~~les quatorze~~ — ✅ **livrés le 2026-08-27** (`AGENTS.md` **A42**) |
+
+✅ **LES 17 ORPHELINS SONT CLOS.** Et le lot P2 confirme ce que ce contre-audit disait
+de lui-même : **sur quatorze constats, quatre étaient déjà faux ou déjà faits.**
+
+| | |
+|---|---|
+| `06b-17` | visait un risque **qui n'existe pas** — `formatCitation` a sa branche sans auteur depuis toujours. Mais en SOURÇANT les attributions, deux sur seize se sont révélées fausses : « non vi sed saepe cadendo » est un ajout médiéval, pas d'Ovide ; `usus magister est optimus` est de Cicéron, pas de Publilius Syrus |
+| `02-04` | « ignoré EN SILENCE » : vrai du moteur, **faux de l'écran** — la carte dit déjà « Échéance passée », et le paywall n'étant pas allumé, tout le monde la voit |
+| `08-01` et `06b-01` | **le même trou par deux bouts** ; un seul garde-fou les ferme |
+| `03-01` | **satisfait à moitié** par un script écrit pendant ce contre-audit, sans que le constat soit coché |
+
+🔴 **Et la vérification À L'ÉCRAN a trouvé deux défauts que ni `tsc` ni 1 960 tests ne
+voyaient** : un champ de mot de passe **invisible** (contraste mesuré **1:1** avec sa
+feuille), et surtout `Presse` qui **écrasait l'opacité de sept appelants** —
+`aria-disabled="true"` avec `opacity: 1`, donc des boutons qui paraissent actifs et ne
+répondent pas, **dont tous les boutons principaux désactivés de l'app**. Défaut antérieur
+au contre-audit ; il attendait qu'on regarde.
+
+⚠️ **Deux étapes HUMAINES restent** : la procédure RevenueCat (A41) et l'arbitrage de la
+clé Android (`01-07`).
 
 ✅ **`02-03` — LIVRÉ le 2026-08-27** (fiche complète : `AGENTS.md` A40). C'était le cas
 coûteux, et il était **plus large que le constat de trois façons** :

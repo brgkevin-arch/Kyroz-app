@@ -705,8 +705,7 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
   complet : ce qui n'est dans aucun lot n'est jamais ordonnancé, donc jamais fait, et rien
   ne le signale. **Nommés** (un compte n'est pas une liste) :
   · **P1** — ~~`01-03`~~ ✅, ~~`02-03`~~ ✅, ~~`03-01`~~ ✅ — **les trois P1 sont livrés**
-  · **P2** — `01-06`, `01-07`, `01-08`, `01-12`, `02-04`, `02-05`, `04-03`, `04-04`,
-    `05-05`, `06b-01`, `06b-17`, `07-02`, `08-01`, `08-02`
+  · **P2** — les **quatorze** sont livrés le 2026-08-27 (**A42**)
   ✅ **`02-03` est LIVRÉ (2026-08-27, A40)** — c'était le P1 qui bloquait le lancement, et il
   ne « levait sur une ligne cloud partielle » que dans la lettre du constat : c'était un GEL
   définitif de l'app, sur quatre valeurs et quatre fonctions, faute de `.catch()` au
@@ -716,7 +715,8 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
   constat soit coché), et la moitié PostHog de `01-03` était **close par les faits depuis la
   veille**. ➡️ *Un constat daté se re-mesure avant d'être traité : deux des quatre moitiés
   n'existaient plus.*
-  ➡️ **Reste 14 orphelins, tous P2.**
+  ✅ **LES 17 ORPHELINS SONT CLOS** (A40 · A41 · A42). ⚠️ Deux étapes HUMAINES restent :
+  la procédure RevenueCat, et l'arbitrage de la clé Android (`01-07`).
   ⚠️ **`06b-17`** est celui que la réparation du corpus concerne : il jugeait les
   attributions de citations sur un dump amputé de ses quatorze noms d'auteurs. Corpus
   réparé, constat jamais rejoué.
@@ -875,6 +875,79 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
   vaut `"appVersion"`, la coupure est liée à `expo.version` (l'inverse serait vrai sous
   `fingerprint`, cf. `CA-5-03`). Garde-fou : `permissionsDeclarees.test.ts`, 3 mutations.
   ℹ️ Restent **14 orphelins** — plus aucun P1. Que des P2.
+
+- ✅ **A42 · LES QUATORZE ORPHELINS P2 — LIVRÉS le 2026-08-27.** Avec A40 et A41, les
+  **17 orphelins de `CA-6-04` sont clos**. ⚠️ **Deux étapes humaines restent**, et elles
+  sont nommées plus bas.
+  🔴 **CE QUE LE LOT APPREND, AVANT LE DÉTAIL : SUR QUATORZE CONSTATS, QUATRE ÉTAIENT
+  DÉJÀ FAUX OU DÉJÀ FAITS.** Un audit daté décrit l'état du jour où il a été écrit, et
+  celui-ci a été rattrapé par ses propres suites.
+  · `06b-17` visait un risque qui **n'existe pas** (`formatCitation` a sa branche sans
+    auteur depuis toujours) ;
+  · `02-04` disait « ignoré EN SILENCE » — vrai du moteur, **faux de l'écran** ;
+  · `08-01` et `06b-01` sont **le même trou par deux bouts**, et un seul garde-fou les
+    ferme ;
+  · `03-01` (A41) était **satisfait à moitié** par un script écrit pendant le
+    contre-audit.
+  ➡️ **Mesurer d'abord, corriger ensuite — même quand le constat vient de soi.**
+
+  **Ce qui a changé le produit**
+  | | |
+  |---|---|
+  | `01-06` | 🔴 un téléphone déverrouillé suffisait à supprimer le compte : la confirmation prouvait une INTENTION, jamais une IDENTITÉ. Le mot de passe est désormais exigé, **et un échec ARRÊTE tout**. ⚠️ La règle n'est pas « toujours demander » : un invité (accès de revue) n'a pas de mot de passe, et lui en demander un fermerait son droit à l'effacement — d'où `lib/suppressionCompte.ts::preuveExigee`. Et `reauthenticate(password)` ne prend **aucune adresse** : la preuve ne peut porter que sur SOI, sinon l'écran devient un formulaire de connexion déguisé |
+  | `02-04` | `DATED_GOAL_EXPIRED`. **Aucune nouvelle carte** : `DatedGoalCard` dit déjà « Échéance passée », et `PAYWALL_LAUNCH` étant `null`, tout le monde la voit. Deux messages pour une même cause se contredisent à l'œil |
+  | `05-05` | l'indicateur « À synchroniser · Repart à la prochaine connexion », **et surtout PAS une bannière « hors ligne »** : elle énoncerait un état réseau dont l'app ne fait rien, et inquiéterait là où tout fonctionne. La diffusion est branchée sur les **deux seules écritures** du drapeau (`markProfileDirty` / `clearProfileDirty`), pas chez les appelants |
+  | `06b-17` | **deux attributions sur seize étaient fausses**, trouvées en les sourçant. « non vi sed saepe cadendo » est un ajout MÉDIÉVAL, pas d'Ovide ; `usus magister est optimus` est de CICÉRON, pas de Publilius Syrus. Vérifié sur sources externes |
+  | `04-03` | `expo-glass-effect` déclaré — il n'était là que par transitivité d'`expo-router` |
+
+  **Ce qui a changé une règle ou un outil**
+  | | |
+  |---|---|
+  | `08-01`+`06b-01` | le couplage manquant : si `STATISTIQUES_USAGE_ACTIVES` repasse à `true` alors que `legal.ts` affirme « Aucune statistique d'usage n'est collectée », un test le dit — **et nomme le paragraphe à corriger**, ce que « la constante doit rester false » ne fait pas |
+  | `07-02` | l'ordre des gestes au changement de palier : **l'OTA D'ABORD**. L'inverse ouvre une fenêtre où personne ne peut acheter, et elle dure jusqu'au **second lancement** de chaque appareil |
+  | `01-08` | `npm run check:migrations:prod`. Le contrôle ne tournait que pour qui connaissait la commande. Lancé : témoin négatif à 400, six tables à 200, les 40 colonnes en prod — **aucune migration en attente** |
+  | `04-04` | `npm run mesure:bundle`. ⚠️ **7,03 Mo en local contre 5,95 Mo publié** — les deux méthodes **ne se comparent pas** (export local ≠ artefact EAS). Ne PAS lire ça comme une régression. Et le constat se tranche au **démarrage à froid sur Android bas de gamme**, pas au poids |
+  | `02-05` | banque × cyclage **composé et mesuré** sans rien rallumer. Total hebdo conservé (±2 kcal) · +600 sur un jour de séance → 2921 contre 2619 de dépense · plancher quotidien tenu · au-delà de ~+2000 le non-repris est DÉCLARÉ. **Aucune borne ajoutée** : le dépôt a déjà rejeté `MAX_DAY_RATIO`, et dépasser la maintenance un jour est ce qu'une banque promet |
+  | `08-02`, `01-07`, `01-12` | rien à corriger, des faits à écrire : la date d'arrêt réel de la mesure (**second lancement**, pas le merge) · l'app Android **n'est pas rattachée** à RevenueCat (`eas env:list`, mesuré) · le code de revue doit **tourner après la revue**, et une OTA ne le retire pas |
+
+  🔴 **ET LA VÉRIFICATION À L'ÉCRAN A TROUVÉ DEUX DÉFAUTS QUE LE CODE NE DISAIT PAS.**
+  C'est le vrai enseignement du lot — `tsc` vert, 1 960 tests verts, et deux choses
+  fausses à l'œil :
+  1. **Le champ de mot de passe était INVISIBLE.** Mesuré dans le navigateur : fond du
+     champ `rgb(28,28,30)`, fond de la feuille `rgb(28,28,30)` — **contraste 1:1**.
+     « Mot de passe » flottait en texte nu, sur la feuille où il FAUT taper. J'avais
+     recopié un style à la main au lieu de reprendre le rôle « champ de saisie » de la
+     DA (`ui.tsx::Field`) — *un style sans nom dérive*.
+  2. 🔴 **`Presse` ÉCRASAIT L'OPACITÉ DE SES APPELANTS, SUR SEPT SITES.**
+     `style={[style, { opacity: opacite }]}` : la valeur animée vient en dernier, donc
+     elle gagne. Mesuré : `aria-disabled="true"` **et** `opacity: 1` — le bouton ne
+     répondait pas tout en ayant l'air actif. **Pire qu'un bouton grisé** : on tape,
+     rien ne se passe, rien ne l'explique.
+     Les sept incluent **`ui.tsx`, donc TOUS les boutons principaux désactivés de
+     l'app**, plus les ± de `MacroSplit` à leurs bornes et le retour de l'onboarding à
+     l'étape 1. Défaut **antérieur à ce lot** ; il attendait qu'on regarde.
+     ➡️ `opacite` redevient un FACTEUR d'appui, MULTIPLIÉ par l'opacité de base
+     (`StyleSheet.flatten` — un `style` est très souvent un tableau ici). Sans opacité
+     déclarée, les 122 autres sites sont identiques au bit près.
+  ➡️ Vérifié de bout en bout au navigateur : champ vide → bouton `0,6` + `aria-disabled` ;
+  champ rempli → `1` + actif.
+
+  ℹ️ **Vérifié par 22 mutations sur ce lot** (5 + 4 + 8 + 3 + 6 + 5 ailleurs), et **trois
+  de mes sondes étaient fausses, chacune d'une façon différente** : la clé de la banque
+  est un JOUR DE SEMAINE et non un index de plan (je lisais un jour de compensation en
+  croyant lire le jour porteur) · mon balayage du plancher ne le TRAVERSAIT jamais, donc
+  le neutraliser laissait le test vert · et `POLITIQUE_CONFIDENTIALITE` n'existe pas,
+  c'est `PRIVACY_POLICY` — l'échec d'import l'a dit tout de suite.
+  ⚠️ **Un test ne peut pas juger qu'une attribution est VRAIE** : remettre « Publilius
+  Syrus » avec une source inventée laisse le garde-fou vert. Il ferme le chemin
+  MÉCANIQUE (une signature sans référence), pas le mensonge. C'est écrit dans le fichier.
+
+  ➡️ **LES DEUX ÉTAPES HUMAINES QUI RESTENT :**
+  1. `docs/PROCEDURE-2026-08-27-suppression-revenuecat.md` (A41) — le secret Supabase et
+     le redéploiement de l'Edge Function. **Tant qu'elle n'est pas faite, le §7 de la
+     politique reste inexact pour les non-abonnés.**
+  2. **`01-07`** — poser la clé RevenueCat Android, ou **acter par écrit qu'Android sort
+     sans achat**. À trancher avant la soumission Android.
 
 - ✅ **A38 · SÉLECTION BMR « R6 LISSÉE » — LIVRÉE le 2026-08-24** (décision fondateur,
   handoff « Mifflin vs Katch », `ENGINE_REV` 7 → 8). La règle binaire « %MG estimé ⇒

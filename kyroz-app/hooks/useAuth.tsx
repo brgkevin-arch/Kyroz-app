@@ -63,6 +63,12 @@ interface AuthValue {
   // Connexion « invité » (anonyme Supabase) : vraie session sans email/mot de passe,
   // pour tester rapidement le parcours (manuel + Playwright). Nécessite l'auth
   // anonyme activée dans le dashboard Supabase (Authentication → Providers → Anonymous).
+  /**
+   * Vérifie le mot de passe du compte COURANT — la preuve exigée avant un geste
+   * destructeur (constat 01-06). Rend une erreur si le compte n'en a pas (invité).
+   * ⚠️ Aucune adresse en paramètre, à dessein : cf. l'implémentation.
+   */
+  reauthenticate: (password: string) => Promise<{ error?: string }>;
   signInGuest: () => Promise<{ error?: string }>;
   signOut: () => Promise<void>;
 }
@@ -231,6 +237,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return error ? { error: error.message } : {};
   };
 
+  // ── Ré-authentification avant un geste destructeur (constat 01-06) ────────
+  //
+  // ⚠️ **`signInWithPassword` SUR SA PROPRE ADRESSE** — Supabase n'expose aucune API
+  // « vérifie ce mot de passe sans toucher à la session » : `auth.reauthenticate()`
+  // envoie un nonce par e-mail, ce qui est un autre geste. Se reconnecter sur le MÊME
+  // compte est donc la seule preuve disponible, et elle est sans effet de bord ici :
+  // l'uid ne change pas, donc l'hydratation qui suit relit le même profil — celui qu'on
+  // s'apprête à supprimer dans la seconde.
+  //
+  // ⚠️ **L'ADRESSE VIENT DE LA SESSION, JAMAIS D'UNE SAISIE.** Laisser l'appelant passer
+  // un e-mail ferait de cet écran un formulaire de connexion déguisé : on pourrait y
+  // tester le mot de passe de n'importe qui. Ici, on ne peut prouver que SA propre
+  // identité — et si la session n'a pas d'adresse (invité, accès de revue), il n'y a
+  // rien à prouver et la fonction le dit.
+  const reauthenticate: AuthValue['reauthenticate'] = async (password) => {
+    const email = session?.user?.email;
+    if (!email) return { error: 'Ce compte n\'a pas de mot de passe.' };
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    return error ? { error: error.message } : {};
+  };
+
   const signInGuest: AuthValue['signInGuest'] = async () => {
     const { error } = await supabase.auth.signInAnonymously();
     return error ? { error: error.message } : {};
@@ -242,7 +269,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     session, ready: authChecked, hydrating, hydrationTick,
     signIn, signUp, confirmEmail, resendConfirmation,
     sendPasswordReset, verifyPasswordReset, setNewPassword,
-    signInGuest, signOut,
+    signInGuest, signOut, reauthenticate,
   };
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

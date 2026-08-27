@@ -37,6 +37,7 @@ import { pseudonymeExistant } from '../lib/analytics';
 import { STATISTIQUES_USAGE_ACTIVES } from '../lib/featureFlags';
 import { DISCLAIMER } from '../constants/legal';
 import { CIQUAL_ATTRIBUTION } from '../lib/foods';
+import { useSyncEnAttente } from '../lib/syncEnAttente';
 
 // ── La feuille « Réglages » — ce qui vivait au fond du Profil ────────────────
 //
@@ -96,6 +97,7 @@ export function ReglagesSheet({
   const router = useRouter();
   const { time: reminderTime, choose: chooseReminder } = useReminder();
   const { enabled: checkinEnabled, setEnabled: setCheckinEnabled } = usePlanCheckin();
+  const syncEnAttente = useSyncEnAttente();
   const themeMode = useThemeMode();
   const accentId = useAccentId();
   const [hydrationOn, setHydrationOn] = useHydrationEnabled();
@@ -360,6 +362,21 @@ export function ReglagesSheet({
         {/* ── Compte ───────────────────────────────────────────────────────── */}
         <SectionTitle t={t}>Compte</SectionTitle>
         <View style={s.menu}>
+          {/* 🔴 KYROZ NE SAVAIT PAS DIRE QUE DES MODIFICATIONS ATTENDAIENT (constat 05-05).
+              L'app est offline-first et le fait BIEN — rien n'est perdu, tout est marqué
+              « à pousser » et repart plus tard. Ce qui manquait n'était pas la robustesse,
+              c'était LE MOT.
+              ⚠️ Et volontairement PAS une bannière « hors ligne » : elle énoncerait un
+              état réseau dont l'app ne fait rien, et inquiéterait pour une situation où
+              tout fonctionne — ce que la règle produit interdit. Cette ligne-ci énonce un
+              fait vérifiable, dit que ça partira tout seul, et DISPARAÎT quand c'est fait.
+              ⚠️ Elle n'apparaît QUE s'il y a quelque chose en attente : une ligne
+              permanente qui dirait « synchronisé » deviendrait du décor, et son absence
+              cesserait d'être un signal. Même raison que « Supprimer mes statistiques ». */}
+          {syncEnAttente && (
+            <MenuRow t={t} label="À synchroniser" value="Repart à la prochaine connexion"
+              onPress={() => {}} readonly />
+          )}
           <MenuRow t={t} label="Version" value={version} onPress={() => {}} readonly last />
         </View>
 

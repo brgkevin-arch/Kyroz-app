@@ -3,6 +3,7 @@ import { supabase } from './supabase';
 import { Recipe, Streak, UserProfile } from './types';
 import { PantryItem } from './pantry';
 import { WeightEntry } from './weight';
+import { relireSyncEnAttente } from './syncEnAttente';
 import { decideProfileHydration, normalizeCalorieBank, normalizeGoal, normalizeMeals, normalizeMealSlots, normalizeProfileActivity, normalizeVariety, reconcileCloudSports, reconcileCloudLowEaWeeks, reconcileCloudNeat, mergeWeightEntries, mergeStreak, mergeRecipeOverrides, PROFILE_PENDING_KEY } from './syncGuard';
 
 /** La fusion a-t-elle produit autre chose que ce que le cloud détenait ? */
@@ -196,11 +197,19 @@ async function currentUserId(): Promise<string | null> {
 // On marque le profil « dirty » à chaque écriture locale ; le flag n'est levé que
 // par un push RÉELLEMENT réussi. Tant qu'il est dirty, le cloud ne peut pas
 // l'écraser à l'hydratation (cf. decideProfileHydration dans syncGuard.ts).
+// ⚠️ LA DIFFUSION EST BRANCHÉE ICI, PAS CHEZ LES APPELANTS (constat 05-05). Ces deux
+// fonctions sont les SEULES à écrire le drapeau : y poser la relecture garantit que
+// l'indicateur « à synchroniser » suit l'état réel, quel que soit l'écran d'où part
+// l'écriture — et que le push de fond, qui n'a aucun écran, le fasse disparaître.
+// Le laisser à l'appelant serait un garde-fou qu'on doit penser à invoquer, donc un
+// garde-fou qui disparaît chez le premier qui l'oublie.
 export async function markProfileDirty(): Promise<void> {
   try { await AsyncStorage.setItem(PROFILE_PENDING_KEY, '1'); } catch {}
+  await relireSyncEnAttente();
 }
 export async function clearProfileDirty(): Promise<void> {
   try { await AsyncStorage.removeItem(PROFILE_PENDING_KEY); } catch {}
+  await relireSyncEnAttente();
 }
 async function isProfileDirty(): Promise<boolean> {
   try { return (await AsyncStorage.getItem(PROFILE_PENDING_KEY)) === '1'; } catch { return false; }

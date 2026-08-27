@@ -9,6 +9,7 @@ import { loadHydrationEnabled } from '../components/HydrationBar';
 import { loadFirstName } from '../lib/profileName';
 import { loadReminder } from '../hooks/useReminder';
 import { loadReduceMotion } from '../lib/reduceMotion';
+import { relireSyncEnAttente } from '../lib/syncEnAttente';
 import { subscribeNotificationTaps } from '../lib/notifications';
 import { poserNotificationIntent } from '../hooks/useNotificationIntent';
 import { loadReduceTransparency } from '../lib/reduceTransparency';
@@ -81,6 +82,11 @@ export default function RootLayout() {
     loadThemeMode(); loadAccentId(); loadHydrationEnabled();
     loadFirstName(); loadReminder(); loadReduceMotion(); loadReduceTransparency();
     loadRepasAuto();
+    // ⚠️ Une valeur oubliée dans ce chargement repart sur son défaut à chaque démarrage,
+    // et ça ne se voit nulle part. Celle-ci vaudrait « rien à synchroniser » — donc
+    // l'indicateur mentirait, dans le sens rassurant, exactement au lancement qui suit
+    // une écriture faite hors ligne (constat 05-05).
+    relireSyncEnAttente();
   }, []);
   return (
     <SafeAreaProvider>

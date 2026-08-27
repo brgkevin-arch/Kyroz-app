@@ -51,6 +51,7 @@
     "qa:settings": "node test/qa-settings.mjs",
     "check:doublons": "npx tsx scripts/check-doublons.ts",
     "check:enveloppe": "npx tsx scripts/mesure-couverture.ts --enveloppe",
+    "mesure:bundle": "node scripts/mesure-bundle.mjs",
     "mesure:couverture": "npx tsx scripts/mesure-couverture.ts",
     "gen:lots": "npx tsx scripts/gen-brief-lot.ts",
     "gen:legal": "npx tsx scripts/gen-legal.ts",
