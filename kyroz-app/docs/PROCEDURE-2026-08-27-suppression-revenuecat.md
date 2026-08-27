@@ -29,40 +29,37 @@ rien tant que les deux étapes ci-dessous ne sont pas faites.
 
 ---
 
-## Étape 1 — confirmer l'endpoint sur la documentation RevenueCat
+## ✅ Étape 1 — l'endpoint est CONFIRMÉ (2026-08-27)
 
-⚠️ **À faire AVANT tout le reste, et c'est la seule étape que je ne peux pas faire.**
-
-La fonction appelle :
+Lu sur la documentation RevenueCat, pas de mémoire. **L'appel écrit dans la fonction est
+le bon** :
 
 ```
 DELETE https://api.revenuecat.com/v1/subscribers/{app_user_id}
-Authorization: Bearer <clé secrète>
+Authorization: Bearer <clé SECRÈTE>
 ```
 
-C'est l'API REST v1 de RevenueCat telle que je la connais — **elle n'a jamais été appelée
-depuis ce dépôt**, donc elle n'est pas vérifiée. Déployer sans confirmer livrerait un
-`echec` permanent qui ressemble à un problème de réseau.
+Succès : **200**, avec `{ "app_user_id": "…", "deleted": true }`.
 
-**Ce qu'il faut lire** : la page « Deleting customer information » / la référence de l'API
-v1 sur `revenuecat.com/docs`. Trois points à confirmer :
+⚠️ **Trois précisions qui changent les étapes suivantes :**
 
 | | |
 |---|---|
-| le chemin | `/v1/subscribers/{app_user_id}` en `DELETE` |
-| l'en-tête | `Authorization: Bearer <clé SECRÈTE>` (pas la clé publique de l'app) |
-| le code de retour quand l'abonné n'existe pas | on attend **404** |
+| **La clé secrète commence par `sk_`** | et c'est le garde-fou le plus utile de toute cette procédure : la clé RevenueCat déjà posée dans EAS commence par **`appl_`** — c'est la clé PUBLIQUE de la plateforme Apple, embarquée dans l'app. Poser celle-là ici donnerait un `401` permanent qui ressemble à une panne réseau |
+| **La suppression est IRRÉVERSIBLE** | « when a subscriber is deleted, it cannot be brought back ». C'est cohérent avec la cascade Supabase qui la précède, mais ça vaut d'être su avant de tester |
+| 🔴 **Le 404 n'est PAS documenté** | la référence ne décrit que le 200. La fonction traite quand même le 404 comme `introuvable` plutôt que comme un échec — c'est le choix sûr (ne pas alerter sur un abonné qui n'a jamais existé), mais **ce n'est pas un comportement promis par RevenueCat**. Si les journaux montrent un code inattendu, c'est ici qu'il faut revenir |
 
-➡️ **Si quelque chose diffère, dis-le moi avant de continuer** : je corrige la fonction,
-et on reprend à l'étape 2.
+*Sources : [Delete Subscriber](https://docs-origin.revenuecat.com/reference/delete-subscriber) · [RevenueCat API v1](https://www.revenuecat.com/docs/api-v1) · [API Keys](https://www.revenuecat.com/docs/projects/authentication).*
 
 ---
 
 ## Étape 2 — poser le secret côté Supabase
 
 ⚠️ **Une clé SECRÈTE RevenueCat, pas la clé publique.** Elle se trouve dans le tableau de
-bord RevenueCat, *Project settings → API keys*, section **Secret keys**. Elle ne doit
-JAMAIS entrer dans l'app, dans `eas.json`, ni dans le dépôt — elle ne vit que côté serveur.
+bord RevenueCat, *Project settings → API keys*, section **Secret keys**, et elle
+**commence par `sk_`**. Celle déjà posée dans EAS commence par `appl_` : c'est la clé
+publique de la plateforme Apple, embarquée dans l'app — la poser ici donnerait un `401`
+permanent. Elle ne doit JAMAIS entrer dans l'app, dans `eas.json`, ni dans le dépôt.
 
 Deux façons, au choix :
 
@@ -108,7 +105,12 @@ supprimer depuis Profil → Supprimer mon compte.
 1. **Les journaux de la fonction** (Supabase → *Edge Functions* → `delete-account` →
    *Logs*). Aucun `[delete-account] RevenueCat …` = tout s'est bien passé.
 2. **Le tableau de bord RevenueCat** → *Customers* → chercher l'UUID du compte supprimé.
-   Il ne doit plus rien rendre.
+   🔴 **MAIS LE JOURNAL FAIT FOI, PAS LE TABLEAU DE BORD.** RevenueCat documente que les
+   abonnés sont supprimés **de façon asynchrone** : le client peut encore apparaître
+   quelques instants après un `200`. Chercher l'UUID tout de suite et le trouver encore
+   là n'est **pas** un échec — c'est l'instrument qui retarde. Si le journal est muet,
+   c'est fait ; re-regarder le tableau de bord plus tard sert de confirmation, pas de
+   verdict.
 
 | Ce que tu vois | Ce que ça veut dire |
 |---|---|
