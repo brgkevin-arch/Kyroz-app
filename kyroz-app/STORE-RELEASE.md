@@ -1299,7 +1299,33 @@ WALKTHROUGH (~2 min)
 
 NOTES
 - App language is French; theme is dark.
-- No payment, no ads. Works offline.
+- No ads, no third-party tracking. The meal-plan engine runs on-device: generating a
+  plan needs no server call.
+- The app offers ONE auto-renewable subscription, "Kyroz+" — see the next section.
+
+IN-APP PURCHASE - "Kyroz+" (auto-renewable subscription)
+Where to find it: "Profil" tab (rightmost) -> scroll to the bottom -> "Kyroz+".
+
+The demo access above opens a NEW guest account every time, so the paywall IS shown.
+(Accounts created before 2026-08-27 keep Kyroz+ free for life - a commitment published
+in our terms - which is why an older test account would not show the purchase screen.)
+
+Two options, French pricing:
+- "Mensuel"  EUR 3.99 / month  (product id: kyroz_plus_monthly_early)
+- "Annuel"   EUR 29.99 / year  (product id: kyroz_plus_yearly_early)
+
+What the subscription unlocks:
+- "Objectif date" - a dated goal: the user sets a target weight and a date, and the app
+  computes a sustainable trajectory, re-adjusting calories at every weigh-in.
+- "Suivi de transformation" - weight curve against the intended trajectory, plus
+  before/after progress photos. Photos never leave the device.
+
+What stays free, permanently: the weekly meal plan with macros, the shopping list, all
+recipes, the pantry, favourites, the streak, weigh-ins and the calorie recalculation,
+and account sync. None of these will ever move behind the subscription.
+
+"Restaurer mes achats" ("Restore purchases") is on the same screen, directly under the
+subscribe button.
 - Health disclaimer shown in-app: Kyroz is for healthy adults and does not replace
   medical or dietitian advice. Users under 18 are blocked during onboarding.
 - Data (email, profile) is stored in the EU (Supabase). Users can delete their
@@ -1341,5 +1367,21 @@ c'est assumé : une note de soumission est un texte figé, collé une fois dans 
 formulaire. ➡️ **Les relire avant de coller**, et se fier à l'écran en cas d'écart —
 lui ne peut pas mentir, il est verrouillé par `lib/__tests__/methodologie.test.ts`.
 
-*Playbook préparé le 2026-07-17. Config technique prête ; le chemin critique = comptes
-développeur (§1) + compte de test reviewer (§9).*
+⚠️ **LA SECTION « IN-APP PURCHASE » A ÉTÉ AJOUTÉE LE 2026-08-28, ET CE QU'ELLE REMPLACE
+VAUT D'ÊTRE GARDÉ** : la note disait « **No payment**, no ads. Works offline. » Elle était
+vraie le 2026-07-17, jour où elle a été écrite ; elle est devenue fausse le 2026-08-27,
+quand `PAYWALL_LAUNCH` a été posée. Le relecteur aurait donc lu « aucun paiement » puis
+trouvé un écran d'achat — une contradiction dans le dossier de soumission, sur la ligne
+qu'il lit en premier.
+➡️ **Une note de soumission est un texte FIGÉ collé dans un formulaire : elle ne se
+périme pas toute seule, et aucun test ne la relit.** Elle décrit un produit qui, lui,
+bouge. À relire intégralement avant CHAQUE soumission, pas seulement à la première.
+✅ Ce qui n'a PAS eu à changer, et c'est le (8) qui l'a sauvé : l'accès relecteur ouvre
+une **session invité créée à l'instant** (`login.tsx` → `isReviewLogin` → `guest()`),
+donc postérieure au lancement du paywall, donc verrouillée — il voit bien l'écran
+d'achat. Avec le (7), ce même compte neuf aurait affiché « Inclus à vie » pendant toute
+sa première session, et le relecteur n'aurait rien eu à tester.
+
+*Playbook préparé le 2026-07-17. Config technique prête ; le chemin critique = le bac à
+sable (`PROCEDURE-2026-08-27-bac-a-sable.md`), les captures à juger, et la fiche à
+remplir.*
