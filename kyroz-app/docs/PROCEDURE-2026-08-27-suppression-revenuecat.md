@@ -53,7 +53,24 @@ Succès : **200**, avec `{ "app_user_id": "…", "deleted": true }`.
 
 ---
 
-## Étape 2 — poser le secret côté Supabase
+## ✅ Étape 2 — FAITE le 2026-08-27, 12:46 UTC
+
+Secret posé par le fondateur depuis le tableau de bord. Vérifié par la CLI
+(`supabase secrets list`) : **`REVENUECAT_SECRET_KEY`** présent, digest SHA-256, et rien
+d'autre de custom sur le projet.
+
+🔴 **UN PIÈGE QUE LA PROCÉDURE N'AVAIT PAS PRÉVU, ET IL A EU LIEU** : le secret a d'abord
+été créé sous le nom **`Revenuecat`**. La procédure disait bien quelle CLÉ poser (`sk_` et
+non `appl_`), elle ne disait nulle part que le NOM devait être recopié au caractère près.
+Or `Deno.env.get('REVENUECAT_SECRET_KEY')` est sensible à la casse : la fonction aurait
+rendu `undefined`, donc l'état `non_configure`, donc **elle n'aurait supprimé aucun abonné
+— sans erreur, sans message, avec un secret bien visible dans le tableau de bord.** Le pire
+des états : celui qui a l'air fait.
+➡️ Corrigé : nouveau secret au bon nom, ancien supprimé.
+⚠️ *Une procédure qui nomme la valeur à poser doit nommer la CLÉ aussi — le nom d'une
+variable d'environnement est un contrat, pas une étiquette.*
+
+## Étape 2 (rédaction d'origine) — poser le secret côté Supabase
 
 ⚠️ **Une clé SECRÈTE RevenueCat, pas la clé publique.** Elle se trouve dans le tableau de
 bord RevenueCat, *Project settings → API keys*, section **Secret keys**, et elle
@@ -81,7 +98,19 @@ cran.
 
 ---
 
-## Étape 3 — redéployer la fonction
+## ✅ Étape 3 — FAITE le 2026-08-27, 14:58:59
+
+`npx supabase functions deploy delete-account --project-ref rgdjsdnqlmfkourrhijv`.
+Vérifié sur l'ARTEFACT et pas sur la sortie de la commande (`supabase functions list`) :
+**version 4 → 5**, statut `ACTIVE`, `verify_jwt: true`.
+
+⚠️ L'arbre était sur `main` (`6633c39`), propre, sans écart avec `origin/main` — vérifié
+AVANT le déploiement. C'est ce qui garantit que le code parti est celui qui a été relu, et
+pas la copie de travail d'une autre session.
+ℹ️ La CLI avertit « Docker is not running » : sans effet ici. Docker ne sert qu'au
+développement local et à `db dump` ; le déploiement passe par l'API.
+
+## Étape 3 (rédaction d'origine) — redéployer la fonction
 
 ⚠️ **Un `git push` ne déploie PAS une Edge Function.** Le code est sur `main`, il ne tourne
 pas tant que cette étape n'est pas faite.
