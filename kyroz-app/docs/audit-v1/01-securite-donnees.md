@@ -167,8 +167,10 @@ Aucun bucket Storage n'existe : rien à effacer de ce côté.
 - **Effort : S**
 
 ### 01-03 « Toutes tes données seront supprimées » n'est pas vrai
-> ✅ **CORRIGÉ le 2026-08-27** — fiche : `AGENTS.md` **A41**, procédure (étape humaine
-> restante) : `docs/PROCEDURE-2026-08-27-suppression-revenuecat.md`.
+> ✅ **CORRIGÉ le 2026-08-27, ET L'ÉTAPE HUMAINE EST FAITE LE MÊME JOUR** — fiche :
+> `AGENTS.md` **A41** ; procédure **close** (secret posé, Edge Function déployée en v8,
+> vérifiée sur un compte jetable, orphelins retirés) :
+> `docs/PROCEDURE-2026-08-27-suppression-revenuecat.md`.
 > · **RevenueCat** : réel, et plus large que le constat — `identifyUser(uid)` étant appelé
 >   SANS CONDITION, un abonné existe pour **tout le monde**, abonné ou non, ce qui met en
 >   défaut le §7 de la politique (« si vous avez souscrit »). `delete-account` supprime

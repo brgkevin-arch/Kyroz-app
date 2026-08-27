@@ -331,7 +331,17 @@ qui compte est **« version : V2 »**. ⚠️ Les clés v1 et v2 portent **le m�
 `sk_`** : impossible de les distinguer en les regardant, et une v1 rend `401 Invalid API
 key` sur les endpoints v2 — un message qui accuse la clé alors que le problème est sa
 VERSION. Droits nécessaires : Products + Entitlements. La clé vit hors du dépôt
-(`~/.revenuecat/`), jamais dans une variable `EXPO_PUBLIC_*` ni dans EAS.
+(`~/.revenuecat/secret-v2`), jamais dans une variable `EXPO_PUBLIC_*` ni dans EAS.
+
+🔴 **ET DEPUIS LE 2026-08-27, UNE SECONDE CLÉ SECRÈTE EXISTE — EN V1, ET AILLEURS.** La
+suppression de compte doit retirer l'abonné chez RevenueCat (`DELETE /v1/subscribers/{uuid}`,
+endpoint **v1**) : sa clé est posée dans le secret Supabase `REVENUECAT_SECRET_KEY`, lu par
+l'Edge Function `delete-account`. Voir
+`docs/PROCEDURE-2026-08-27-suppression-revenuecat.md` (close).
+⚠️ **Les deux clés portent le même préfixe `sk_`, se créent au même endroit, et ne font pas
+le travail l'une de l'autre** — la v2 rend `403` sur l'endpoint v1, la v1 rend `401` sur les
+endpoints v2. **Ne jamais remplacer l'une par l'autre en croyant ranger la bonne** : ce qui
+les distingue, c'est l'endroit où elles sont posées, pas leur apparence.
 
 ℹ️ **Ménage possible, sans urgence** : le projet porte encore deux produits `monthly` et
 `yearly` — les faux produits du Test Store créés par l'onboarding RevenueCat le

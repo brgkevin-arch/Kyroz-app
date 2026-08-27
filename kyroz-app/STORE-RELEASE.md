@@ -71,10 +71,22 @@ installation neuve part du binaire, donc du (6).
   deçà de cet âge »). `kyroz.app/legal.html` a été publiée le même jour (kyroz-site#8) : les
   deux surfaces disent enfin la même chose, et la date du 27 devient vraie à CETTE
   publication, pas au merge.
-  ⚠️ **Ce qu'elle NE porte PAS** : la suppression de l'abonné chez RevenueCat. Le code est
-  dans l'Edge Function `delete-account`, et **un push ne déploie pas une Edge Function** —
-  il faut le secret `sk_…` et un redéploiement
-  (`docs/PROCEDURE-2026-08-27-suppression-revenuecat.md`).
+  ✅ **CE QU'ELLE NE PORTAIT PAS EST CLOS LE MÊME JOUR — et l'OTA n'y était pour rien.** La
+  suppression de l'abonné chez RevenueCat vit dans l'Edge Function `delete-account`, qui se
+  déploie **séparément** : secret posé, fonction déployée en **version 8**, vérifiée sur un
+  vrai compte jetable (journal muet, abonné absent de la liste *Customers*), et les trois
+  abonnés orphelins retirés à la main. ➡️ **Étant côté serveur, elle couvre TOUTES les
+  versions de l'app** — y compris le binaire (6) de TestFlight, qui date du 11 août.
+  Procédure et preuves : `docs/PROCEDURE-2026-08-27-suppression-revenuecat.md` (close).
+  🔴 **CE QUI RESTE HORS DE L'OTA, EN REVANCHE, C'EST CE QUI A ÉTÉ MERGÉ APRÈS ELLE** — sept
+  commits (#176 → #182), dont **deux touchent le bundle** : #178 (les trois P0 du lot 1′,
+  `ENGINE_REV` 9 → 10 — 344 406 profils déplacés vers le haut, 300 397 au-delà du seuil
+  d'avertissement) et #182 (la phrase de la politique sur les sauvegardes du téléphone).
+  ⚠️ **Donc l'app sert aujourd'hui un texte légal daté du 27 août qui n'est plus celui de
+  `kyroz.app`** : la page publique a reçu la correction le jour même (kyroz-site#9). Aucun
+  FAIT ne diffère — l'exclusion de sauvegarde est une propriété du binaire — mais
+  l'ancienne rédaction demande à l'utilisateur un geste inutile (couper iCloud). ➡️ **C'est
+  la première raison de publier la 26ᵉ**, avant même les calories.
 
 **Ce qui reste, dans cet ordre :**
 
