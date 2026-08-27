@@ -91,6 +91,31 @@ const ANCRES: Ancre[] = [
   // autres jours. Ce que l'écran portait est gardé ailleurs, par
   // `lib/__tests__/avertissementMedical.test.ts`.
 
+  // ── Clôture des courses (store-assets : remplirLaReserve) ──
+  //
+  // 🔴 CES DEUX ANCRES EXISTENT PARCE QUE LEUR ABSENCE NE CASSAIT RIEN.
+  // La réserve ne se remplit qu'à « Courses terminées » depuis le 2026-08-24 (E59) ;
+  // le script de captures, lui, se contentait de naviguer vers l'onglet. Résultat :
+  // la capture de fiche montrait « Ta réserve est vide », sans le moindre message —
+  // le script n'échoue pas quand l'écran est vide, il le photographie.
+  // ➡️ Renommer l'un de ces deux boutons rendrait la capture vide À NOUVEAU, en
+  // silence. C'est exactement ce que cette table existe pour empêcher.
+  // ⚠️ `cherche` vise l'APPEL, pas le mot : le script LOGUE ces libellés quand il ne
+  //    les trouve pas (« « Tout cocher » introuvable »), et un message d'erreur est du
+  //    CODE — il survit au filtre des commentaires et se porterait garant d'un clic
+  //    supprimé. Deuxième étage du même piège, trouvé en mutant.
+  { quoi: 'coche tout avant la clôture', texte: 'Tout cocher', dans: 'app/(tabs)/courses.tsx',
+    script: 'test/store-assets.mjs', cherche: "tap(page, 'Tout cocher'" },
+  // ⚠️ Et `motif` vise l'EXPRESSION DU BOUTON, pas le mot : l'écran porte aussi une
+  //    ligne d'aide qui CITE « Courses terminées » (« Coche ce que tu prends… »).
+  //    Elle est rendue, donc c'est du code, donc elle survivait au filtre et se
+  //    portait garante d'un bouton renommé. Troisième étage du même piège.
+  //    *Une ancre qui cherche un MOT trouve n'importe quelle occurrence — y compris
+  //    celle qui le décrit.*
+  { quoi: 'clôt la sortie — SEUL chemin qui remplit la réserve', texte: 'Courses terminées', dans: 'app/(tabs)/courses.tsx',
+    motif: "'Un instant…' : 'Courses terminées'",
+    script: 'test/store-assets.mjs', cherche: "tap(page, 'Courses terminées'" },
+
   // ── Assistant d'onboarding (runOnboarding) ──
   { quoi: 'repère de l\'étape 1', texte: 'Ton prénom', dans: 'app/(auth)/onboarding.tsx' },
   { quoi: 'compteur d\'étapes lu par etapeCourante', texte: 'ÉTAPE n / 6', motif: 'ÉTAPE {step - 1} / {TOTAL_STEPS - 1}', cherche: '[ÉE]TAPE', dans: 'app/(auth)/onboarding.tsx' },
@@ -218,11 +243,18 @@ describe('harnais Playwright — les libellés cherchés existent encore', () =>
   it.each(ANCRES)('« $texte » — $quoi', ({ texte, dans, motif, cherche, script }) => {
     const fichierScript = script ?? HARNAIS;
     expect(
-      contient(lire(dans), motif ?? texte),
+      contient(sansCommentairesJS(lire(dans)), motif ?? texte),
       `${dans} ne rend plus « ${texte} » → ${fichierScript} cliquera dans le vide et le rapport dira « introuvable »`,
     ).toBe(true);
+    // 🔴 LES COMMENTAIRES DU SCRIPT SONT ÉCARTÉS — sinon une NOTE qui cite le libellé
+    // se porte garante d'un clic qui n'existe plus. Mesuré le 2026-08-28 : deux ancres
+    // fraîchement posées sont restées VERTES sous mutation, parce que le commentaire
+    // qui les expliquait contenait les mêmes mots. Le remède existait douze lignes plus
+    // haut (`sansCommentairesJS`), appliqué à l'ÉCRAN et pas au SCRIPT.
+    // *Un garde-fou qu'on n'a jamais vu rougir ne prouve rien — celui-ci l'a prouvé
+    // sur lui-même, le jour de sa pose.*
     expect(
-      contient(lire(fichierScript), cherche ?? texte),
+      contient(sansCommentairesJS(lire(fichierScript)), cherche ?? texte),
       `${fichierScript} ne cherche plus « ${texte} » : mettre à jour cette table, elle ne doit pas devenir une vérité de plus`,
     ).toBe(true);
   });

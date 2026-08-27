@@ -66,15 +66,51 @@ await sleep(1500);
 // Écrans retenus, dans l'ordre où ils racontent le produit : ce qu'on reçoit
 // (le plan), puis ce qui le rend crédible (recettes), puis ce qu'il fait gagner
 // (courses, réserve).
+// 🔴 LA RÉSERVE NE SE REMPLIT QU'À « COURSES TERMINÉES » — depuis le 2026-08-24
+// (décision fondateur, CLAUDE.md §5 / AGENTS.md E59). Avant, cocher un article en
+// magasin l'alimentait ; ce script n'a pas suivi, et il a donc capturé « Ta réserve
+// est vide » pendant trois jours. Une capture de fiche montrant un ÉTAT VIDE ne vend
+// rien — et rien ne le signalait, puisque le script ne fait que naviguer et prendre.
+//
+// ⚠️ ON PASSE PAR LE VRAI GESTE, jamais par un remplissage direct du stockage : une
+// capture doit montrer un état que l'app SAIT atteindre. Écrire la réserve à la main
+// produirait un écran plausible et invérifiable — exactement ce que §10 interdit.
+//
+// ⚠️ ET L'ORDRE COMPTE : clore les courses VIDE la liste (elle se recalcule en « plan
+// moins réserve », donc tout ce qui vient d'être rangé en est déduit). La capture des
+// Courses doit donc être prise AVANT, et celle de la Réserve APRÈS. C'est pour ça que
+// l'étape est accrochée à l'écran qu'elle prépare et non posée en tête de fichier.
+async function remplirLaReserve() {
+  if (!(await tap(page, 'Courses', { which: 'last', timeout: 3000 }))) {
+    console.log('⚠️ Courses introuvable — la réserve restera vide');
+    return;
+  }
+  await sleep(1200);
+  await dismissOverlays(page);
+  if (!(await tap(page, 'Tout cocher', { timeout: 3000 }))) {
+    console.log('⚠️ « Tout cocher » introuvable — la réserve restera vide');
+    return;
+  }
+  await sleep(900);
+  // Tout étant coché, il ne reste AUCUN article non coché : `terminer` ne pose donc
+  // pas la question « garder / retirer », et la clôture passe sans dialogue.
+  if (!(await tap(page, 'Courses terminées', { timeout: 3000 }))) {
+    console.log('⚠️ « Courses terminées » introuvable — la réserve restera vide');
+    return;
+  }
+  await sleep(2000);
+}
+
 const ECRANS = [
   ['1-plan', 'Plan'],
   ['2-recettes', 'Recettes'],
   ['3-courses', 'Courses'],
-  ['4-reserve', 'Réserve'],
+  ['4-reserve', 'Réserve', remplirLaReserve],
   ['5-profil', 'Profil'],
 ];
 
-for (const [nom, onglet] of ECRANS) {
+for (const [nom, onglet, avant] of ECRANS) {
+  if (avant) await avant();
   if (!(await tap(page, onglet, { which: 'last', timeout: 3000 }))) {
     console.log('onglet introuvable : ' + onglet);
     continue;
