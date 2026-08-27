@@ -414,6 +414,25 @@ qu'un relecteur de store lit avant d'ouvrir le binaire.
 | **12** | 🧪 **Les six garde-fous décoratifs** | §4 | un vert qui ne peut pas rougir est pire que pas de contrôle |
 | **13** | 📝 **Rejouer 6b sur le corpus réel** | après avoir réparé l'extracteur (`CA-4-02`) | 16 constats reposent sur un corpus amputé, puis abîmé |
 
+### 🔴 Les 17 orphelins, nommés — parce qu'un compte n'est pas une liste
+
+En croisant les 86 constats avec les identifiants cités au §4 (plages dépliées, « les 24 P3 »
+dépliés), **19** n'apparaissent dans aucun lot. Deux ont un jumeau qui, lui, est planifié
+(`06b-07` = `01-05`, lot 11 · `10-03` = `03-08`, lot 10). **Restent 17 orphelins réels :**
+
+| Sévérité | Constats |
+|---|---|
+| **P1** | `01-03` · **`02-03`** · `03-01` |
+| **P2** | `01-06` · `01-07` · `01-08` · `01-12` · `02-04` · `02-05` · `04-03` · `04-04` · `05-05` · `06b-01` · `06b-17` · `07-02` · `08-01` · `08-02` |
+
+⚠️ **Le cas coûteux est `02-03`** : un P1 qui **bloque le lancement de l'app** (le moteur
+LÈVE sur une ligne cloud partielle, cf. `CA-6-01`), orphelin de tout lot, et que la
+recommandation du P0 voisin ne couvre pas — elle énumère quatre champs et omet `goal`.
+
+⚠️ **Et `06b-17`** est celui que la réparation du corpus concerne : il jugeait les
+attributions de citations sur un dump amputé de ses quatorze noms d'auteurs. Le corpus est
+réparé depuis (§6) ; le constat, lui, n'a jamais été rejoué.
+
 **Et 17 constats orphelins** à réintégrer (`CA-6-04`) : ils ne figurent dans aucun des onze lots
 du §4 — dont trois P1, dont `02-03`.
 

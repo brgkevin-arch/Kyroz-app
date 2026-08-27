@@ -700,6 +700,24 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
   jour où les CGU bougeront pour une autre raison — dette de cohérence, pas de conformité.
   ⚠️ **Au prochain millésime Ciqual** : la date se RE-MESURE sur `MANIFEST.TXT`.
   `convert-ciqual.py` régénère le dataset ; personne ne régénère la phrase.
+  ➡️ **PROCHAIN CHANTIER — LES 17 CONSTATS ORPHELINS (`CA-6-04`).** Ils ne figurent dans
+  AUCUN des onze lots du §4 de la synthèse, qui se présente pourtant comme l'inventaire
+  complet : ce qui n'est dans aucun lot n'est jamais ordonnancé, donc jamais fait, et rien
+  ne le signale. **Nommés** (un compte n'est pas une liste) :
+  · **P1** — `01-03`, **`02-03`**, `03-01`
+  · **P2** — `01-06`, `01-07`, `01-08`, `01-12`, `02-04`, `02-05`, `04-03`, `04-04`,
+    `05-05`, `06b-01`, `06b-17`, `07-02`, `08-01`, `08-02`
+  ⚠️ **Commencer par `02-03`** : c'est le P1 qui BLOQUE LE LANCEMENT de l'app (le moteur
+  lève sur une ligne cloud partielle, `CA-6-01`), orphelin, et que la reco du P0 voisin ne
+  couvre pas — elle énumère quatre champs et omet `goal`. Il se traite dans le même geste
+  que le lot 1′.
+  ⚠️ **`06b-17`** est celui que la réparation du corpus concerne : il jugeait les
+  attributions de citations sur un dump amputé de ses quatorze noms d'auteurs. Corpus
+  réparé, constat jamais rejoué.
+  ➡️ **Puis le lot 1′** : les trois P0 avec leurs recos CORRIGÉES (`goal` et `macro_mode` en
+  plus des quatre champs du BMR ; et surtout **sans** la garde d'identité telle qu'écrite —
+  le `id` d'un profil local est `user-${Date.now()}`, pas un uid, donc elle jetterait le
+  profil de qui a échoué son push hors ligne).
   🔴 **ET UNE LEÇON DE MÉTHODE, PAYÉE SUR MOI-MÊME** : la réfutation avait ramené `CA-2-02`
   de majeur à MINEUR le jour même, avec ses motifs — je l'ai quand même publié en tête du §3
   et inscrit 🔴 au backlog comme le prochain chantier. Le verdict était dans le document ;
