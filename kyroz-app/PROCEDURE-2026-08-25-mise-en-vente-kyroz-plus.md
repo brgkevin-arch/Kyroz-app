@@ -479,9 +479,51 @@ textes de CGU différents en ligne, ça ne peut pas rester ainsi avant la vente.
 
 ---
 
-## Étape 10 — Poser la date de lancement
+## ✅ Étape 10 — LA DATE EST POSÉE le 2026-08-27
 
-**C'est la dernière, et elle ne se recule jamais.**
+`PAYWALL_LAUNCH = '2026-08-27T00:00:00+02:00'` (décision fondateur : « date-le à
+aujourd'hui »). **Elle ne se recule jamais.**
+
+🔴 **ELLE N'OUVRE PAS LA VENTE POUR AUTANT, et l'ordre de cette procédure s'en trouve
+changé.** Deux raisons, mesurées :
+
+1. **La date voyage dans le bundle**, et la ligne OTA est **coupée** depuis le passage en
+   SDK 57 + `runtimeVersion: fingerprint` (`AGENTS.md` A44). Elle ne s'appliquera donc
+   qu'au **build (7)** — poser la date aujourd'hui ne change rien pour personne.
+2. **Elle était un PRÉALABLE à l'étape 6, pas sa suite.** La capture de review qu'Apple
+   exige, c'est l'écran de paywall — or cet écran ne se rend que si
+   `reason === 'locked'` (`kyroz-plus.tsx:90`), donc uniquement quand la date est posée.
+   Sans elle, le binaire n'a **aucun** écran d'achat à capturer, et le relecteur — dont le
+   compte est créé pendant le test, donc postérieur à la date — n'aurait rien trouvé.
+   ➡️ **La rédaction d'origine (« la date se pose en dernier ») se contredisait avec
+   l'étape 6.** C'est l'étape 6 qui avait raison.
+
+🔴 **CE QUI RESTE DÛ AVANT LA PREMIÈRE VENTE — trois choses, aucune n'est du code :**
+
+| | | |
+|---|---|---|
+| 1 | les quatre produits en **« Prêt à soumettre »** | étape 3 — bloquée par la capture de review, elle-même débloquée par la date |
+| 2 | le **bac à sable** | étape 7 — jamais passé à ce jour |
+| 3 | 🔴 un **MÉDIATEUR de la consommation** | **aucune adhésion n'existe** |
+
+⚠️ **Le troisième est nouveau dans cette procédure, et c'est la pose de la date qui l'a
+armé.** L'obligation d'adhésion (L.612-1) ne vise que le professionnel qui **vend** :
+tant que Kyroz était gratuit, elle ne mordait pas. Elle mord à la **première vente**. Et
+ce n'est pas une phrase à écrire dans les CGU — c'est un **contrat à souscrire** auprès
+d'un organisme de médiation, payant ; les CGU doivent ensuite porter son **nom et ses
+coordonnées** (L.616-1). La clause du § « Droit applicable » a été retirée le 2026-08-26
+parce qu'elle promettait un recours introuvable ; elle devra revenir **remplie**.
+➡️ **La fenêtre entre la pose de la date et la première vente est tout le temps
+disponible.** Elle se ferme au moment de la revue App Store.
+
+⚠️ **Et une vérification est DUE, sur appareil, qu'aucun test ne peut rendre** : que
+l'identification RevenueCat parte bien pour un compte verrouillé (`entitlementNecessaire`
+rend `true` pour un compte postérieur à la date). Le web ne configure aucun SDK d'achat,
+donc elle demande le build (7). Portée en `AGENTS.md`.
+
+### Rédaction d'origine — ce que l'étape disait avant d'être exécutée
+
+**C'était la dernière, et elle ne se recule jamais.**
 
 **Ce qui se passe le jour où on la pose** (`PAYWALL_LAUNCH`, `lib/premium.ts`) :
 

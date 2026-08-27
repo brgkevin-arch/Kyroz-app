@@ -8,19 +8,59 @@ const LANCEMENT = '2026-09-01T00:00:00.000Z';
 const AVANT = '2026-07-27T10:00:00.000Z';
 const APRES = '2026-09-15T10:00:00.000Z';
 
-describe('paywall non lancé — l’état actuel', () => {
-  it('PAYWALL_LAUNCH est null tant que les comptes stores ne sont pas prêts', () => {
-    // Interrupteur unique de la mise en vente. S'il n'est plus null, c'est que le
-    // paywall est ACTIF en production : ce test est là pour qu'on le sache.
-    expect(PAYWALL_LAUNCH).toBeNull();
+// 🔴 LA DATE A ÉTÉ POSÉE LE 2026-08-27 (décision fondateur : « date-le à aujourd'hui »).
+// Ce bloc disait « paywall non lancé — l'état actuel » et exigeait `null` ; il a rougi,
+// c'était son travail. Relu en entier avant d'être réécrit — ce qui suit décrit la
+// nouvelle réalité, et garde ce que l'ancien protégeait.
+describe('paywall LANCÉ — l’état actuel', () => {
+  it('PAYWALL_LAUNCH porte une date, et elle est lisible', () => {
+    // L'interrupteur unique de la mise en vente. Repasser à `null` rouvrirait tout à
+    // tout le monde, y compris à des comptes qui paient.
+    expect(PAYWALL_LAUNCH, 'la date a été retirée — relire ce bloc en entier').not.toBeNull();
+    expect(Number.isFinite(Date.parse(PAYWALL_LAUNCH!)), PAYWALL_LAUNCH!).toBe(true);
   });
 
-  it('personne n’est verrouillé, même sans abonnement ni date de compte', () => {
+  it('🔴 elle porte un FUSEAU explicite, sinon elle coupe deux heures trop tôt', () => {
+    // Mesuré le 2026-08-27 : `Date.parse('2026-08-27')` vaut minuit **UTC**, donc
+    // 02 h à Paris. Les comptes créés entre minuit et 2 h ce jour-là tomberaient du
+    // côté GRAND-PÉRÉ — offerts à vie par une convention d'écriture. La CGU §3 promet
+    // la gratuité aux comptes « créés avant la mise en vente » : la frontière doit
+    // être celle que le fondateur a en tête, pas celle de Greenwich.
+    expect(
+      /(Z|[+-]\d{2}:\d{2})$/.test(PAYWALL_LAUNCH!),
+      `${PAYWALL_LAUNCH} n'a pas de fuseau : la coupure ne tombe pas où on croit.`,
+    ).toBe(true);
+  });
+
+  it('🔴 elle est DANS LE PASSÉ — sinon le relecteur Apple ne voit aucun paywall', () => {
+    // Le relecteur crée son compte pendant le test, donc APRÈS la date : c'est ce qui
+    // lui fait voir l'écran d'achat. Une date future le rendrait grand-péré, il ne
+    // trouverait aucun moyen d'acheter, pour une app qui déclare quatre abonnements.
+    expect(Date.parse(PAYWALL_LAUNCH!) <= Date.now(), PAYWALL_LAUNCH!).toBe(true);
+  });
+
+  it('un compte SANS date de création reste servi — se tromper en DONNANT', () => {
+    // La règle ne dépend pas de la date de lancement, et c'est le point : elle doit
+    // tenir maintenant que le paywall MORD, pas seulement quand il dormait.
+    const a = premiumAccess({ entitled: false, createdAt: undefined });
+    expect(a).toEqual({ allowed: true, reason: 'grandfathered' });
+  });
+
+  it('les deux features premium sont les seules concernées', () => {
+    // Une feature hors liste reste gratuite quoi qu'il arrive — c'est ce qui empêche
+    // un ajout à `EDITEURS_PREMIUM` de verrouiller par accident.
+    expect(canUse('libre' as never, { entitled: false, profile: null })).toBe(true);
+    expect(PREMIUM_FEATURES).toEqual(['dated_goal', 'transformation']);
+  });
+});
+
+describe('l’état d’AVANT, gardé — il redevient vrai si la date est retirée', () => {
+  it('sans date, personne n’est verrouillé', () => {
     const a = premiumAccess({ entitled: false, createdAt: undefined, launch: null });
     expect(a).toEqual({ allowed: true, reason: 'not_launched' });
   });
 
-  it('toutes les features premium restent accessibles', () => {
+  it('sans date, toutes les features premium restent accessibles', () => {
     for (const f of PREMIUM_FEATURES) {
       expect(canUse(f, { entitled: false, profile: null, launch: null }), f).toBe(true);
     }

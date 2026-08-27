@@ -228,15 +228,24 @@ core tuerait le North Star — donc interdit.
 ### F. Ordre de bataille
 A (comptes/produits) → B (SDK + init web-safe) → C (hook `usePremium` + points de gate) →
 D (écran paywall) → E (sandbox + review).
-✅ **B, C, D et RevenueCat sont faits, et les clés sont dans EAS.** Il reste, dans l'ordre :
-**créer les produits early bird** → **build natif** → **capture de review** →
-**bac à sable** → **poser `PAYWALL_LAUNCH`**.
+✅ **B, C, D et RevenueCat sont faits, et les clés sont dans EAS.**
+🔴 **L'ORDRE CI-DESSOUS ÉTAIT FAUX D'UN CRAN, et il l'était depuis le début.** Il finissait
+par « poser `PAYWALL_LAUNCH` » — or **l'écran de paywall ne se rend que si la date est
+posée** (`enVente = reason === 'locked'`, `kyroz-plus.tsx:90`) : sans elle, il n'y a
+strictement rien à capturer. La date n'était pas la conclusion de la chaîne, elle en était
+le premier maillon.
+✅ **Elle est posée depuis le 2026-08-27** (`'2026-08-27T00:00:00+02:00'`, décision
+fondateur). Il reste, dans l'ordre : **build natif** → **capture de review** →
+**« Prêt à soumettre »** → **bac à sable** → **médiateur de la consommation** → soumission.
+⚠️ Le dernier est neuf, et c'est la pose de la date qui l'a armé : l'obligation d'adhésion
+(L.612-1) ne vise que le professionnel qui VEND, elle mord à la première vente, et **aucune
+adhésion n'existe**. C'est un contrat à souscrire, pas une ligne à écrire.
 🔴 **Et c'est la CAPTURE qui bloque « Prêt à soumettre », pas les libellés** — mesuré le
 2026-08-25 par `npm run check:abonnements` : les descriptions fr-FR existent depuis
 toujours, `appStoreReviewScreenshot` est vide. Comme elle montre le paywall, elle exige un
 binaire : **le bac à sable ne peut donc pas passer avant le build**, contrairement à ce que
 ce fichier et `STORE-RELEASE.md` ont laissé croire.
-⚠️ La date se pose en DERNIER, et elle ne se recule jamais. Sans impact `ENGINE_VERSION` — le seul
+⚠️ ~~La date se pose en DERNIER~~ — corrigé le 2026-08-27, voir ci-dessus : elle se pose AVANT la capture de review, qui n'existe pas sans elle. **Elle ne se recule jamais**, ça n'a pas changé. Sans impact `ENGINE_VERSION` — le seul
 chantier qui touchait le moteur, la banque de calories, est CLOS (livrée puis éteinte le
 2026-08-18, `lib/featureFlags.ts`). `profiles.stripe_customer_id` = vestige
 (RevenueCat porte l'entitlement) : garder ou renommer au câblage, non bloquant.
