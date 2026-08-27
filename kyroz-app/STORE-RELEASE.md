@@ -1306,15 +1306,15 @@ On the login screen:
 2. Email:    review@kyroz.app
 3. Password: <CODE_EAS>
 4. Tap "Se connecter" ("Sign in").
-→ This opens a guest session and goes straight to onboarding.
+→ Opens a guest session, straight to onboarding.
 
 WALKTHROUGH (~2 min)
 - Onboarding: first name → basic info + body-fat picker → sports → goal →
   preferences (diet) → plan days + meals. Tap "Générer mon plan" ("Generate my plan").
-- Meal plan ("Plan" tab): each day's meals with precise macros.
-- Tap any meal to open the recipe, adjusted quantities and macros.
-- Other tabs: "Courses" (shopping list), "Recettes" (recipes), "Profil" (settings +
-  account deletion).
+- "Plan" tab: each day's meals with precise macros; tap one to open the recipe with
+  adjusted quantities.
+- Other tabs: "Courses" (shopping list), "Recettes", "Profil" (settings + account
+  deletion).
 
 NOTES
 - App language is French; theme is dark.
@@ -1326,8 +1326,8 @@ IN-APP PURCHASE - "Kyroz+" (auto-renewable subscription)
 Where to find it: "Profil" tab (rightmost) -> scroll to the bottom -> "Kyroz+".
 
 The demo access above opens a NEW guest account every time, so the paywall IS shown.
-(Accounts created before 2026-08-27 keep Kyroz+ free for life - a commitment published
-in our terms - which is why an older test account would not show the purchase screen.)
+(Accounts created before 2026-08-27 keep Kyroz+ free for life, per our published
+terms, so an older test account does not show the purchase screen.)
 
 Two options, French pricing:
 - "Mensuel"  EUR 3.99 / month  (product id: kyroz_plus_monthly_early)
@@ -1340,45 +1340,44 @@ What the subscription unlocks:
   before/after progress photos. Photos never leave the device.
 
 What stays free, permanently: the weekly meal plan with macros, the shopping list, all
-recipes, the pantry, favourites, the streak, weigh-ins and the calorie recalculation,
-and account sync. None of these will ever move behind the subscription.
+recipes, the pantry, favourites, the streak, weigh-ins, calorie recalculation and
+account sync. None of these will move behind the subscription.
 
 "Restaurer mes achats" ("Restore purchases") is on the same screen, directly under the
 subscribe button.
 - Health disclaimer shown in-app: Kyroz is for healthy adults and does not replace
   medical or dietitian advice. Users under 18 are blocked during onboarding.
 - Data (email, profile) is stored in the EU (Supabase). Users can delete their
-  account and data in-app (Profil → delete account). Progress photos never leave
-  the device.
+  account and data in-app (Profil → delete account). Photos never leave the device.
 
 METHODOLOGY AND SOURCES (guideline 1.4.1)
-A dedicated in-app screen discloses every formula, threshold and reference behind the
-numbers we display: Profil → gear icon → "Aide et retours" → "Méthodologie & sources".
-Summary of what it documents:
-- Resting metabolic rate: Mifflin-St Jeor (Am J Clin Nutr, 1990;51(2):241-247).
-  Katch-McArdle is used as-is only when the user states their body-fat percentage
-  was MEASURED. When it was estimated from a silhouette, the calculation blends
-  progressively from Mifflin-St Jeor toward Katch-McArdle only if the latter is
-  clearly higher (beyond the ±5-point uncertainty of a silhouette), and never the
-  other way around.
-- Activity factor excludes exercise and is capped at 1.45; training expenditure is
-  computed separately with net MET values (Ainsworth et al., Compendium of Physical
-  Activities, MSSE 2011;43(8):1575-1581).
-- Food composition: Ciqual 2025 table (ANSES, French food safety agency), reused
-  under Open Licence 2.0 (Etalab).
-- Hard safety limits enforced on every calculation, whatever the user asks for:
+An in-app screen discloses every formula, threshold and source behind the numbers we
+display: Profil -> gear icon -> "Aide et retours" -> "Méthodologie & sources".
+- Resting metabolic rate: Mifflin-St Jeor (Am J Clin Nutr 1990;51(2):241-247).
+  Katch-McArdle only when the user states their body fat was MEASURED; if it was
+  estimated from a silhouette the two are blended, and only upward.
+- Activity factor excludes exercise, capped at 1.45; training expenditure computed
+  separately from net MET values (Ainsworth et al., MSSE 2011;43(8):1575-1581).
+- Food composition: Ciqual 2025 (ANSES), reused under Open Licence 2.0 (Etalab).
+- Hard safety limits applied to every calculation, whatever the user asks for:
   energy availability never below 30 kcal/kg fat-free mass (IOC RED-S consensus,
-  BJSM 2018;52(11):687-697), absolute floor of 1500 kcal (men) / 1200 kcal (women),
-  deficit capped at 25% of estimated expenditure, dietary fat never below 0.8 g/kg
-  body weight, and a maintenance week enforced after 8 consecutive deficit weeks.
-- Protein targets are bounded to 1.6-2.6 g/kg fat-free mass (ISSN position stand,
-  JISSN 2017;14:20).
-- The screen states explicitly which values come from the literature and which are
-  Kyroz's own conservative choices, and that recipes are NOT dietitian-validated.
+  BJSM 2018;52(11):687-697); absolute floor 1500 kcal (men) / 1200 kcal (women);
+  deficit capped at 25% of expenditure; fat never below 0.8 g/kg; a maintenance
+  week enforced after 8 consecutive deficit weeks.
+- Protein bounded to 1.6-2.6 g/kg fat-free mass (ISSN, JISSN 2017;14:20).
+- The screen states which values come from the literature and which are Kyroz's own
+  conservative choices, and that recipes are NOT dietitian-validated.
 
 Kyroz is a wellness app. It is not a medical device: it does not diagnose, treat,
 cure or prevent any condition, and makes no such claim anywhere in the app.
 ```
+
+🔴 **LE CHAMP D'APPLE PLAFONNE À 4 000 CARACTÈRES — mesuré le 2026-08-28 en le
+remplissant par l'API, pas en le lisant.** La note en faisait **4 476** : elle était
+impossible à coller, et rien ne le disait. La section « Methodology and sources » a été
+resserrée (sources, seuils et limites tous conservés ; c'est la prose qui a fondu).
+➡️ **Toute addition future doit être payée par une soustraction.** Le contrôle :
+`node -e "..."` sur le bloc, ou l'écriture par l'API qui refuse en `409`.
 
 ⚠️ **Les chiffres ci-dessus sont RECOPIÉS d'un écran qui, lui, les lit dans le moteur**
 (`lib/methodologie.ts`). C'est le seul endroit du dépôt où ils sont écrits à la main, et
