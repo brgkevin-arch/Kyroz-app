@@ -183,9 +183,15 @@ dans laquelle l'étape 4 se glisse.
   mécaniques de la feuille Réglages, elles, sont celles de `Sheet`, déjà éprouvé.
 
 🚫 **CE QU'ON NE TOUCHE PAS, ET CE N'EST PAS UN OUBLI :**
-- **`PAYWALL_LAUNCH` reste `null`.** Poser une date pendant la revue ferait tomber le
-  relecteur sur un paywall : il crée son compte au moment du test, donc APRÈS la date,
-  donc non grand-péré.
+- 🔴 **~~`PAYWALL_LAUNCH` reste `null`~~ — RENVERSÉ LE 2026-08-27 (décision fondateur).**
+  La date est posée au 27 août. Cette ligne disait de ne pas la poser « pour que le
+  relecteur ne tombe pas sur un paywall » — or c'est exactement l'inverse qu'il faut :
+  **sans date, il n'y a AUCUN écran d'achat à lui montrer** (`enVente = reason === 'locked'`),
+  ni aucune capture de review à produire, alors que l'app déclare quatre abonnements.
+  ⚠️ **Le risque que cette ligne nommait reste réel, il a seulement changé de forme** : le
+  relecteur crée son compte pendant le test, donc APRÈS la date, donc il verra le paywall.
+  **Il faut donc qu'il puisse acheter** — produits « Prêt à soumettre » et bac à sable
+  passé. Les deux sont encore à faire. Détail : A45 et la procédure de mise en vente.
 - **L'auth anonyme reste active.** C'est la porte de l'accès relecteur, décrite dans les
   notes de soumission (§11). Son remplacement est daté « le lendemain de la revue passée ».
 - **La vague catalogue vegan / vegan+SG part en OTA**, pas dans ce binaire — décision

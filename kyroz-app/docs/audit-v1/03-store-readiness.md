@@ -96,6 +96,13 @@ NSPrivacyAccessedAPITypes    FileTimestamp   C617.1
 - **Effort : S**
 
 ### 03-03 `runtimeVersion: appVersion` sur une version délibérément figée : une OTA peut atterrir sur le mauvais binaire
+> ✅ **CORRIGÉ le 2026-08-27** — fiche : `AGENTS.md` **A44**. `app.json` porte désormais
+> `{ "policy": "fingerprint" }`, posé **dans le même lot que la montée en SDK 57** — la reco
+> disait « fenêtre de bascule à choisir », la mesure dit qu'il n'y avait pas de choix : le SDK
+> coupe la ligne OTA de toute façon, la politique décide seulement si la coupure se VOIT.
+> ⚠️ Conséquence acceptée : le parc est figé sur la 25ᵉ OTA jusqu'au build (7), et la ligne se
+> coupe désormais à CHAQUE changement de surface native (`CA-5-03`).
+> ➡️ Garde-fou : `lib/__tests__/ligneOta.test.ts` (3 mutations).
 - **Sévérité : P1**
 - **Preuve** : `app.json:73` → `"runtimeVersion": { "policy": "appVersion" }`, et `version: "1.0.0"`. Tout binaire construit sous 1.0.0 partage donc **le même runtime**, quelle que soit sa surface native.
 - **Ce qui rend le risque concret plutôt que théorique** : la consigne de sortie store est explicitement de **ne pas monter `expo.version`**, pour ne pas couper la ligne OTA vers les builds déjà chez les testeurs (`STORE-RELEASE.md:138`). La raison même pour laquelle la version est figée est ce qui empêche la policy `appVersion` de discriminer.

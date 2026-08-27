@@ -547,9 +547,10 @@ circuits différents, ne pas confondre les deux.)
 paient, et verrouillerait des comptes à qui on a promis la gratuité.
 
 ℹ️ **La clé et la date sont deux interrupteurs séparés, et c'est délibéré.** La clé
-RevenueCat est **déjà posée** dans les variables EAS de production : l'app *peut*
-encaisser. La date, elle, est encore `null` : rien n'est verrouillé pour personne. Poser
-la date est le seul geste qui ouvre la vente.
+RevenueCat est posée dans les variables EAS de production depuis le 2026-08-03 : l'app
+*peut* encaisser. ✅ **La date l'est depuis le 2026-08-27** — les deux sont désormais
+allumés. ⚠️ Poser la date n'a pas ouvert la vente pour autant : elle voyage dans le bundle
+et la ligne OTA est coupée (A44), donc elle prendra effet au **build (7)**.
 
 ---
 

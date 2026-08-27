@@ -50,6 +50,9 @@ Date : 2026-08-26 · Commit audité : `abf39cf` · Gestionnaire : **npm** (`pack
 ## Constats
 
 ### 04-01 Le moteur JavaScript embarqué porte une régression mémoire connue
+> ✅ **CORRIGÉ le 2026-08-27** — fiche : `AGENTS.md` **A44**. Montée en **SDK 57**
+> (`expo ^57.0.9`, `react-native 0.86.3`, qui embarque le Hermes corrigé). `expo-doctor`
+> passe de **2 checks en échec à 21/21**, « No issues detected! ».
 - **Sévérité : P1**
 - **Preuve** — `npx expo-doctor`, texte intégral du check en échec :
   ```
@@ -94,6 +97,10 @@ Date : 2026-08-26 · Commit audité : `abf39cf` · Gestionnaire : **npm** (`pack
 - **Effort : M**
 
 ### 04-05 Dix paquets Expo dérivent du SDK 56 installé
+> ✅ **CORRIGÉ le 2026-08-27, dans le même lot que `04-01`** — `expo install --fix` a réaligné
+> l'arbre : **15 dépendances déplacées**, aucune ajoutée, aucune retirée. Le chiffrage en
+> annonçait 13 ; `expo-file-system` et `expo-glass-effect` sont entrés dans le dépôt après sa
+> mesure. Second check `expo-doctor` vert.
 - **Sévérité : P2**
 - **Preuve** : deuxième check `expo-doctor` en échec — « Check that packages match versions required by installed Expo SDK », **10 paquets** hors des versions attendues (`expo` 56.0.12 vs ~56.0.20, `expo-router` 56.2.11 vs ~56.2.19, `expo-updates` 56.0.23 vs ~56.0.25, etc.). **Aucune montée majeure** : c'est de la dérive de patch à l'intérieur du SDK 56.
 - ⚠️ **Deux outils, deux questions — ne pas les additionner** : `npm outdated` ne signale presque rien sur ces paquets, parce qu'il compare aux **plages de `package.json`** ; `expo-doctor` compare à **ce que le SDK 56 exige**. Seule la seconde question concerne un binaire à soumettre.

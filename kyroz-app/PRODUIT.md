@@ -242,11 +242,18 @@ dans le temps* :
 
 ⚠️ **Il y en avait TROIS jusqu'au 2026-08-18** : la banque de calories est sortie de l'offre
 (cf. §6). Ne pas la citer.
-⚠️ **Le paiement n'est pas lancé, et ce sont DEUX interrupteurs séparés** : la clé du
-prestataire d'achat, et la date d'entrée en vigueur du verrou. 🔴 **Cette ligne disait
-« les deux sont éteints » — c'est faux depuis le 2026-08-03** : la clé est posée, l'app
-*peut* encaisser. **Seule la date manque**, donc aujourd'hui tout reste ouvert à tout le
-monde, gratuitement — mais un seul geste sépare désormais de la vente.
+🔴 **LES DEUX INTERRUPTEURS SONT ALLUMÉS DEPUIS LE 2026-08-27.** Cette ligne a dit « les
+deux sont éteints », puis « seule la date manque » ; les deux rédactions ont été vraies à
+leur date. La clé du prestataire d'achat est posée depuis le 2026-08-03, et
+`PAYWALL_LAUNCH` porte désormais le **27 août 2026** (décision fondateur).
+**Ce que ça veut dire pour quelqu'un qui ouvre l'app** :
+· **compte créé AVANT le 27 août** → il garde les deux outils **gratuitement, à vie**, sans
+  aucune démarche. C'est une promesse contractuelle, écrite dans les CGU ;
+· **compte créé APRÈS** → l'objectif daté et le suivi de transformation passent par
+  l'abonnement ; tout le reste est inchangé et gratuit.
+⚠️ **Personne ne le voit encore** : la date voyage dans le code de l'app, et la ligne de
+mise à jour à distance est coupée depuis la montée en SDK 57. Elle prendra effet au
+**prochain binaire**. Ne pas décrire la vente comme ouverte avant ça.
 
 **Tarifs tranchés le 2026-08-25** : un palier de **lancement** (3,99 €/mois ·
 29,99 €/an), retiré à date annoncée, puis le **standard** (4,99 € · 39,99 €). Chaque
