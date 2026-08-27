@@ -67,6 +67,7 @@ import { deadlineLadder, checkEcheance, messageEcheance } from '../../lib/goalLa
 import { DatedGoalCard, formatFR } from '../../components/DatedGoalCard';
 import { todayStamp, DEFAULT_WEIGH_IN_FREQUENCY } from '../../lib/weight';
 import { applyWeighInReminder, cancelAllReminders, cancelWeighInReminder } from '../../lib/notifications';
+import { purgeAllProgressPhotos } from '../../lib/photos';
 import {
   ActivityLevel, BodyFatSource, DietaryRestriction, EngineNotice, FixedMeals, Goal, GoalTarget, MealSlot, MealType, NeatLevel, Sex, SportSession, UserProfile, VarietyPreference,
 } from '../../lib/types';
@@ -334,6 +335,10 @@ export default function ProfilScreen() {
     // Sécurité : sur web, AsyncStorage = localStorage et survivrait à la
     // déconnexion (données de santé + session lisibles sur un poste partagé).
     // On purge tout SAUF les préférences d'appareil non personnelles.
+    // ⚠️ AVANT la purge : les photos sont des FICHIERS, la clé n'en est que la
+    // carte. Purger d'abord, c'est perdre l'adresse des octets. Et elles ne sont
+    // jamais poussées au cloud : elles ne reviendront pas à la reconnexion.
+    await purgeAllProgressPhotos();
     const KEEP = new Set(['@kyroz:theme', '@kyroz:reminder']);
     const keys = await AsyncStorage.getAllKeys();
     const toRemove = keys.filter((k) => !KEEP.has(k));
@@ -359,6 +364,10 @@ export default function ProfilScreen() {
     // répétitif — continue de tomber indéfiniment sur un compte effacé, et la
     // purge vient justement de retirer le seul écran d'où on pourrait le couper.
     await cancelAllReminders();
+    // Idem : la carte `date → URI` ne suffit pas. `expo-image-picker` écrit dans
+    // le répertoire de CACHE ; sans cette ligne, des photos de corps restent en
+    // clair dans le bac à sable après « Supprimer définitivement ».
+    await purgeAllProgressPhotos();
     await AsyncStorage.clear();
     await clearProfile();
     setDeleting(false);

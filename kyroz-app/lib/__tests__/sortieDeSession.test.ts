@@ -29,6 +29,8 @@ const sansCommentaires = (src: string) =>
 
 const profil = sansCommentaires(readFileSync(join(RACINE, 'app', '(tabs)', 'profil.tsx'), 'utf8'));
 const notifs = sansCommentaires(readFileSync(join(RACINE, 'lib', 'notifications.ts'), 'utf8'));
+const photos = sansCommentaires(readFileSync(join(RACINE, 'lib', 'photos.ts'), 'utf8'));
+const weightLog = sansCommentaires(readFileSync(join(RACINE, 'hooks', 'useWeightLog.ts'), 'utf8'));
 
 /** Corps de chaque `const <nom> = async () => { … }`, par appariement d'accolades. */
 function fonctionsFlechees(src: string): { nom: string; corps: string }[] {
@@ -123,5 +125,61 @@ describe('notifications — l’extinction totale est réservée à l’effaceme
     // Et le chemin d'armement passe par lui, il ne re-boucle pas de son côté.
     const armement = /export async function applyWeighInReminder[\s\S]*?\n}/.exec(notifs)?.[0] ?? '';
     expect(armement).toContain('await cancelWeighInReminder()');
+  });
+});
+
+// ── Les photos : la carte ne part pas sans les octets ───────────────────────
+//
+// `expo-image-picker` écrit dans le répertoire de CACHE de l'app, et `setPhoto`
+// n'enregistre qu'une carte `date → URI`. Effacer la carte laisse donc les
+// octets — des photos de corps, en clair, que plus rien ne désigne.
+describe('sortie de session — les photos de progression partent avec le reste', () => {
+  const sorties = fonctionsFlechees(profil).filter((f) => f.corps.includes('clearProfile()'));
+
+  it('🔴 CHAQUE chemin de sortie efface les fichiers, pas seulement la carte', () => {
+    for (const { nom, corps } of sorties) {
+      expect(
+        /await\s+purgeAllProgressPhotos\(\)/.test(corps),
+        `« ${nom} » purge le stockage sans effacer les photos : leurs octets ` +
+        'restent sur l’appareil, et la carte qui les désignait vient de partir. ' +
+        'Même à la déconnexion — les photos ne sont jamais poussées au cloud, ' +
+        'elles ne reviendront pas à la reconnexion.',
+      ).toBe(true);
+    }
+  });
+
+  it('🔴 l’effacement des photos précède la purge du stockage — sinon il n’a plus l’adresse', () => {
+    for (const { nom, corps } of sorties) {
+      const photos = corps.indexOf('purgeAllProgressPhotos');
+      const purge = corps.search(/AsyncStorage\.(clear\(\)|multiRemove)/);
+      expect(photos, `purgeAllProgressPhotos introuvable dans ${nom}`).toBeGreaterThan(-1);
+      expect(purge, `purge du stockage introuvable dans ${nom}`).toBeGreaterThan(-1);
+      expect(photos, `dans « ${nom} », la carte est effacée avant les fichiers`).toBeLessThan(purge);
+    }
+  });
+});
+
+describe('photos — un seul propriétaire pour la carte et pour les octets', () => {
+  it('`PHOTOS_KEY` n’est déclarée qu’une fois, dans le fichier qui efface les fichiers', () => {
+    expect(photos).toMatch(/export const PHOTOS_KEY = '@kyroz:weightPhotos'/);
+    // `useWeightLog` l'IMPORTE ; s'il la redéclarait, la carte pourrait partir
+    // d'un côté sans que l'autre efface quoi que ce soit.
+    expect(weightLog).not.toMatch(/const PHOTOS_KEY\s*=/);
+    expect(weightLog).toMatch(/import \{[^}]*PHOTOS_KEY[^}]*\} from '\.\.\/lib\/photos'/);
+  });
+
+  it('🔴 on n’efface QUE nos fichiers — jamais la photothèque de l’utilisateur', () => {
+    const bloc = /export function deleteProgressPhoto[\s\S]*?\n}/.exec(photos)?.[0] ?? '';
+    expect(bloc, 'deleteProgressPhoto introuvable').not.toBe('');
+    // Un `ph://` désigne la photo dans l'album de l'utilisateur, pas notre copie.
+    // Un `blob:`/`data:` (web) ne désigne aucun fichier.
+    expect(bloc).toContain("startsWith('file://')");
+    expect(bloc).toContain("Platform.OS === 'web'");
+  });
+
+  it('remplacer ou retirer une photo efface l’ancienne', () => {
+    const bloc = /const setPhoto = useCallback[\s\S]*?\n  \}, \[/.exec(weightLog)?.[0] ?? '';
+    expect(bloc, 'setPhoto introuvable').not.toBe('');
+    expect(bloc).toMatch(/deleteProgressPhoto\(ancienne\)/);
   });
 });
