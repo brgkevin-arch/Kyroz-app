@@ -156,6 +156,34 @@ describe('les citations — ce qui porte un nom doit le mériter', () => {
     }
   });
 
+  it('🔴 CHAQUE citation signée porte sa SOURCE en commentaire (constat 06b-17)', () => {
+    // ⚠️ CE TEST LIT LA SOURCE, PAS LES CITATIONS. Une attribution ne se vérifie pas à
+    // l'exécution : le module ne connaît que le NOM de l'auteur. Ce qui se compte, c'est
+    // qu'on ait écrit OÙ aller vérifier — parce qu'une attribution invérifiable se
+    // recopie de site en site, et que c'est exactement ainsi que DEUX fausses sont
+    // arrivées ici (« non vi sed saepe cadendo » n'est pas d'Ovide mais un ajout
+    // médiéval ; « usus magister est optimus » est de Cicéron, pas de Publilius Syrus).
+    const src = readFileSync(join(__dirname, '..', 'reminder.ts'), 'utf8');
+    const signees = src.split('\n').filter((l) => /^\s*\{ texte: .*auteur: '/.test(l));
+    // Témoin : la sonde trouve bien les lignes signées, et autant que le module en porte.
+    expect(signees.length).toBe(CITATIONS.filter((c) => c.auteur).length);
+    expect(signees.length).toBeGreaterThanOrEqual(5);
+    const sansSource = signees
+      .filter((l) => !/\},\s*\/\/ .+/.test(l))
+      .map((l) => (l.match(/auteur: '([^']+)'/) ?? [])[1]);
+    expect(
+      sansSource,
+      `${sansSource.length} citation(s) signées sans référence. Écrire l'œuvre et le `
+      + 'passage en fin de ligne — une attribution qu\'on ne peut pas aller vérifier '
+      + 'finit par être fausse sans que personne ne le sache.',
+    ).toEqual([]);
+    // ⚠️ CE QU'IL NE SAIT PAS FAIRE, et il faut le dire : juger qu'une attribution est
+    // VRAIE. Vérifié par mutation — remettre « Publilius Syrus » avec une source
+    // inventée laisse ce test VERT. Il ferme le chemin MÉCANIQUE (une signature sans
+    // référence), pas le mensonge. Ce qui a trouvé les deux fausses, c'est d'être allé
+    // lire les sources ; aucun `expect` ne remplace ce geste-là.
+  });
+
   it('une maxime sans auteur ne porte AUCUN tiret de signature', () => {
     // Le garde-fou contre l'attribution glissée dans le texte : « … — Hippocrate »
     // écrit à la main passerait sous le radar du champ `auteur`.

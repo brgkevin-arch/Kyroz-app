@@ -197,6 +197,35 @@ export interface PremiumPlan {
  * `storeProductId` (et les deux `price`) vers le palier standard. C'est du
  * JavaScript, donc ça part en **OTA**, sans nouvelle revue.
  *
+ * 🔴 **ET L'ORDRE DES DEUX GESTES N'EST PAS INDIFFÉRENT — L'OTA D'ABORD, TOUJOURS**
+ * (constat 07-02, écrit le 2026-08-27). C'est le seul point qui manquait à ce
+ * paragraphe : il décrivait QUOI basculer, jamais DANS QUEL SENS.
+ *
+ * Retirer le palier chez Apple avant de publier l'OTA ouvre une fenêtre où l'app
+ * demande un produit qui ne se vend plus. Et cette fenêtre n'est pas courte : une OTA
+ * s'applique au **DEUXIÈME lancement** (`fallbackToCacheTimeout: 0`, cf. CLAUDE.md §2),
+ * donc elle dure jusqu'à ce que chaque appareil ait redémarré deux fois.
+ *
+ * **Ce qui se passe pendant, mesuré dans le code** : `getProducts` ne trouve pas
+ * l'identifiant, `fetchStorePrices` rend `{}` **en silence** (`purchases.ts:249`),
+ * l'écran affiche les tarifs de REPLI en les annonçant comme tels, et l'achat rend
+ * « indisponible ». C'est très exactement le mode d'échec des quatre identifiants
+ * inventés dont ce fichier porte déjà la trace — sauf qu'il frapperait tout le monde
+ * en même temps, le jour d'un changement de prix.
+ *
+ * ➡️ **L'ordre, et il ne se déduit pas :**
+ *   1. publier l'OTA qui bascule les identifiants ;
+ *   2. vérifier qu'elle est appliquée (`npm run check:ota`) ;
+ *   3. **seulement ensuite**, retirer le palier de lancement de la vente chez Apple.
+ * ⚠️ Entre 1 et 3, les DEUX paliers sont en vente : c'est voulu, et c'est le seul
+ * état sans trou. Un abonné du palier de lancement, lui, garde son prix quoi qu'il
+ * arrive — un produit hors vente n'est pas supprimé.
+ *
+ * ℹ️ **L'alternative supprimerait la fenêtre**, au prix d'un aller-retour réseau au
+ * chargement du paywall : lire l'OFFERING courant (`getOfferings()`) au lieu de
+ * demander des identifiants en dur. Pas fait — c'est un changement d'architecture pour
+ * un risque que l'ordre des gestes ferme à coût nul.
+ *
  * 🔴 **CES CHAÎNES SE RECOPIENT DEPUIS APPLE, ELLES NE SE CHOISISSENT PAS ICI.**
  * Quatre identifiants faux ont déjà été inventés dans ce fichier, chacun échouant
  * en SILENCE (produit introuvable → achat « indisponible » → prix de repli affiché).
