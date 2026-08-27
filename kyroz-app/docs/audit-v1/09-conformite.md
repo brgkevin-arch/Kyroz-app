@@ -84,7 +84,13 @@ Date : 2026-08-26 · Commit audité : `7d1c372` · Source : **Claude.ai**, sur d
 - **Preuve** : `legal.ts:338` — « En cas de litige, vous pouvez recourir à **un médiateur de la consommation** ou saisir la CNIL pour les questions relatives aux données. » Aucun nom, aucun site.
 - **Ce que la loi demande** : l'article **L.616-1** du code de la consommation impose de communiquer les **coordonnées** du médiateur — nom et adresse du site. Et l'adhésion à un médiateur n'est pas faite.
 - **Risque** : le texte promet aujourd'hui un recours qui **n'existe pas**. C'est aussi une case que les stores et les places de marché européennes regardent.
-- **Nuance qui change la reco : c'est prématuré plutôt que faux.** L'obligation d'adhésion (**L.612-1**) vise le professionnel qui **vend** à des consommateurs. Tant que Kyroz est intégralement gratuit — `PAYWALL_LAUNCH` est `null`, et aucun des quatre abonnements n'est soumissible (constat **07-01**) —, elle ne mord pas.
+> 🔴 **LA NUANCE A EXPIRÉ LE 2026-08-27.** « Prématuré » supposait que Kyroz ne vendait
+> pas ; `PAYWALL_LAUNCH` porte désormais une date (A45), et l'obligation mord à la
+> **première vente**. La phrase a bien été retirée le 2026-08-26 comme le recommandait ce
+> constat ; il reste la moitié chère — **l'adhésion**, qui n'existe pas et qui est un
+> contrat à souscrire, pas un texte à écrire. Devenue un préalable à la mise en vente,
+> écrit comme tel dans `lib/premium.ts`, `constants/legal.ts` et la procédure.
+- **Nuance qui change la reco : c'était prématuré plutôt que faux.** L'obligation d'adhésion (**L.612-1**) vise le professionnel qui **vend** à des consommateurs. Tant que Kyroz est intégralement gratuit — `PAYWALL_LAUNCH` est `null`, et aucun des quatre abonnements n'est soumissible (constat **07-01**) —, elle ne mord pas.
 - **Reco** : **retirer la phrase maintenant**, la remettre avec le nom et l'URL du médiateur **au moment d'activer les abonnements**. Ça évite de payer une adhésion annuelle pour un produit qui ne vend pas encore, tout en supprimant le faux dès aujourd'hui.
 - **Effort : S** (texte) · **M** (adhésion)
 

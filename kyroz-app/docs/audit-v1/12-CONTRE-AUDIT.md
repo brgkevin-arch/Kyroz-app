@@ -439,9 +439,9 @@ il décrit le 2026-08-27.**
 | lot | élément | état mesuré |
 |---|---|---|
 | **2′** | `03-02` `WRITE_EXTERNAL_STORAGE` | ✅ **livré en passant** — elle est dans `blockedPermissions` |
-| **2′** | `03-03` `runtimeVersion` | 🔴 **ouvert** — toujours `{policy: 'appVersion'}` |
+| **2′** | `03-03` `runtimeVersion` | ✅ **CLOS le 2026-08-27 au soir** — `{policy: 'fingerprint'}`, posé avec le SDK 57 |
 | **2′** | `03-04` thème sombre Android | 🔴 **ouvert** — `expo-system-ui` absent des plugins |
-| **2′** | `04-01` SDK 57 | 🔴 **ouvert** — `expo ~56.0.12` |
+| **2′** | `04-01` SDK 57 | ✅ **CLOS le 2026-08-27 au soir** — `expo ^57.0.9`, `react-native 0.86.3`, `expo-doctor` 21/21 (emporte `04-05`) |
 | **2′** | `07-01` abonnements · `03-05` crash reporter | ⏸ hors dépôt : se mesurent au store et par décision |
 | **3′** | `legal.ts` §5 sous-traitants | ✅ **livré** — hébergeur, Resend et RevenueCat y sont nommés |
 | **3′** | Expo au registre | ✅ **livré** — 8 mentions dans `RGPD-REGISTRE.md` |
@@ -454,7 +454,7 @@ contre-audit, et rien d'autre :**
 
 | | ce qui reste | mesure de ce soir |
 |---|---|---|
-| **2′ · Décision A** | `runtimeVersion` → `fingerprint` · `expo-system-ui` · SDK 57 | `app.json` porte toujours `{policy: 'appVersion'}` · `expo-system-ui` absent d'`app.json` et de `package.json` · `expo ~56.0.12` |
+| **2′ · Décision A** | il ne reste qu'`expo-system-ui` | ✅ SDK 57 et `fingerprint` **livrés le soir même** (A44) · 🔴 `expo-system-ui` toujours absent d'`app.json` et de `package.json` |
 | **7′ · Décision E** | `05-03` appels réseau bornés · les duplications `.replace` | `withBudget` n'a que **2** appels, les deux du démarrage (`useAuth.tsx:94` et `:138`) · `.replace(',', '.')` : **9 lignes, 7 fichiers** |
 | **étape humaine** | `01-07` — clé RevenueCat Android | `npm run check:abonnements` : iOS ✅, **Android clé ABSENTE** — donc aucun bouton d'achat rendu |
 | ⏸ hors dépôt | `07-01` abonnements · `03-05` crash reporter | se mesurent au store et par décision |
