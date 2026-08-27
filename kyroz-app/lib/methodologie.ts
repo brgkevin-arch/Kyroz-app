@@ -119,13 +119,33 @@ export function methodologie(): MethodoSection[] {
     {
       titre: 'Les limites de sécurité',
       paragraphes: [
-        'Aucun plan ne peut descendre sous ces limites, quel que soit l\'objectif choisi ou la date visée. Ce ne sont pas des réglages : le code les applique à chaque calcul.',
-        `Énergie disponible : au moins ${EA_HARD_FLOOR} kcal par kg de masse maigre, une fois la dépense sportive retirée. C'est le seuil sous lequel la littérature documente des perturbations hormonales et osseuses (déficit énergétique relatif dans le sport, RED-S).`,
-        `Au-delà de ${LOW_EA_BUDGET_WEEKS} semaines cumulées en zone basse, ce plancher remonte progressivement vers ${EA_OPTIMAL} kcal par kg de masse maigre : l'app force une sortie de déficit au lieu de la laisser durer.`,
+        // 🔴 CETTE PHRASE ÉTAIT FAUSSE, et elle l'était sur la surface qui compte le plus :
+        // un texte SERVI. Elle promettait « aucun plan ne peut descendre sous ces limites ».
+        // Mesuré (contre-audit CA-2-02, 75 264 profils) : **44,2 % des profils ont au moins
+        // un jour dont la cible servie passe sous le plancher d'énergie disponible**, jusqu'à
+        // 1 103 kcal/j. Ce n'est pas un défaut — c'est le budget du jour qui suit la dépense
+        // du jour, et l'énergie disponible est une moyenne SOUTENUE, comptée en semaines. Mais
+        // le texte, lui, annonçait un plancher quotidien. Corrigé le 2026-08-27 (étape 6b-bis).
+        // ⚠️ Les trois propriétés énoncées ci-dessous sont MESURÉES, pas affirmées :
+        // conservation du total hebdomadaire 0 violation · moyenne de la semaine jamais sous
+        // le plancher 0 violation · plancher quotidien dur jamais franchi 0 violation.
+        // Garde-fou : `lib/__tests__/plancherServi.test.ts`.
+        'Ces limites ne sont pas des réglages : le code les applique à chaque calcul, quel que soit l\'objectif choisi ou la date visée.',
+        'Deux d\'entre elles sont infranchissables CHAQUE JOUR : le métabolisme de base et le filet absolu. L\'énergie disponible, elle, se juge sur la SEMAINE — c\'est une moyenne soutenue, et c\'est ainsi que la littérature la définit.',
+        'Le budget d\'un jour suit la dépense de ce jour-là : un jour de séance reçoit plus qu\'un jour de repos, et la semaine conserve son total. Un jour calme peut donc passer sous le seuil d\'énergie disponible sans que la semaine y passe — et le métabolisme de base, lui, reste un plancher quotidien.',
+        // ⚠️ La conséquence est rattachée au PLANCHER, pas au lecteur (6b-bis-06) : la
+        // personne rencontrait le risque avant de rencontrer le fait que Kyroz l'empêche.
+        `Énergie disponible : au moins ${EA_HARD_FLOOR} kcal par kg de masse maigre, une fois la dépense sportive retirée. Ce plancher existe parce que la littérature documente, en dessous, des perturbations hormonales et osseuses (déficit énergétique relatif dans le sport, RED-S) : c'est ce que Kyroz tient à distance.`,
+        `Au-delà de ${LOW_EA_BUDGET_WEEKS} semaines cumulées en zone basse — c'est-à-dire entre ${EA_HARD_FLOOR} et ${EA_OPTIMAL} kcal par kg de masse maigre —, ce plancher remonte progressivement vers ${EA_OPTIMAL} : l'app force une sortie de déficit au lieu de la laisser durer.`,
         `Filet absolu : jamais moins de ${millier(MIN_KCAL.male)} kcal par jour chez l'homme et ${millier(MIN_KCAL.female)} kcal chez la femme.`,
         `Déficit plafonné à ${Math.round(MAX_DEFICIT_TDEE_RATIO * 100)} % de la dépense estimée.`,
-        `Après ${DIET_BREAK_AFTER_WEEKS} semaines de déficit consécutives, la semaine suivante est servie à la maintenance.`,
-        'Un déficit est refusé si l\'indice de masse corporelle de départ est inférieur à 18,5, ainsi que pour tout poids cible sortant de la plage saine.',
+        // ⚠️ Les deux compteurs sont indépendants et se comptent différemment (cumulé vs
+        // consécutif) : deux nombres proches sans cette précision se lisent comme un système
+        // à surveiller (6b-bis-07).
+        `Après ${DIET_BREAK_AFTER_WEEKS} semaines de déficit consécutives, la semaine suivante est servie à la maintenance. Ce compteur-là est indépendant du précédent : l'un compte des semaines qui se suivent, l'autre des semaines cumulées.`,
+        // ⚠️ Seule limite de la page formulée comme un refus opposé à l'utilisateur, sur le
+        // seul point qui touche à un état corporel (6b-bis-03). Kyroz redevient le sujet.
+        'Sous un indice de masse corporelle de départ de 18,5, Kyroz ne creuse aucun déficit et sert un plan complet à la maintenance — de même pour tout poids cible sortant de la plage saine.',
       ],
       sources: [
         {

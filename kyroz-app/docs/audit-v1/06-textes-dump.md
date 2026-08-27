@@ -987,7 +987,7 @@
 >
 > Ce bloc n'est plus extrait par regex : il est **RENDU par `methodologie()`**, donc les
 > interpolations portent leurs vraies valeurs et aucune apostrophe ne coupe rien.
-> 31 textes, contre 72 fragments.
+> 33 textes, contre 72 fragments.
 
 | # | ligne | Rôle | Texte | Flag |
 |---|---|---|---|---|
@@ -1006,19 +1006,21 @@
 | 13 | `lib/methodologie.ts:98` | corps | Les lipides ne descendent jamais sous 0,8 g par kg de poids de corps, seuil en deçà duquel l'apport en acides gras essentiels et l'absorption des vitamines liposolubles ne sont plus assurés. | ⚑ |
 | 14 | `lib/methodologie.ts:99` | corps | Les glucides reçoivent le budget restant. |  |
 | 15 | `lib/methodologie.ts:120` | titre | Les limites de sécurité |  |
-| 16 | `lib/methodologie.ts:122` | corps | Aucun plan ne peut descendre sous ces limites, quel que soit l'objectif choisi ou la date visée. Ce ne sont pas des réglages : le code les applique à chaque calcul. |  |
-| 17 | `lib/methodologie.ts:123` | corps | Énergie disponible : au moins 30 kcal par kg de masse maigre, une fois la dépense sportive retirée. C'est le seuil sous lequel la littérature documente des perturbations hormonales et osseuses (déficit énergétique relatif dans le sport, RED-S). | ⚑ |
-| 18 | `lib/methodologie.ts:0` | corps | Au-delà de 12 semaines cumulées en zone basse, ce plancher remonte progressivement vers 35 kcal par kg de masse maigre : l'app force une sortie de déficit au lieu de la laisser durer. | ⚑ |
-| 19 | `lib/methodologie.ts:125` | corps | Filet absolu : jamais moins de 1 500 kcal par jour chez l'homme et 1 200 kcal chez la femme. | ⚑ |
-| 20 | `lib/methodologie.ts:0` | corps | Déficit plafonné à 25 % de la dépense estimée. | ⚑ |
-| 21 | `lib/methodologie.ts:0` | corps | Après 8 semaines de déficit consécutives, la semaine suivante est servie à la maintenance. | ⚑ |
-| 22 | `lib/methodologie.ts:128` | corps | Un déficit est refusé si l'indice de masse corporelle de départ est inférieur à 18,5, ainsi que pour tout poids cible sortant de la plage saine. | ⚑ |
-| 23 | `lib/methodologie.ts:144` | titre | Les données nutritionnelles |  |
-| 24 | `lib/methodologie.ts:0` | corps | Données nutritionnelles issues de la Table Ciqual® 2025 (ANSES), réutilisée sous Licence Ouverte 2.0 (Etalab). Certaines entrées sont ajoutées ou ajustées par Kyroz et ne proviennent pas de l’ANSES. L’ANSES n’endosse pas Kyroz. | ⚑ |
-| 25 | `lib/methodologie.ts:147` | corps | Les aliments que la table ne couvre pas proprement (produits protéinés, préparations composées) sont saisis à la main, à partir des valeurs déclarées par les fabricants. Aucune source tierce automatique n'alimente le catalogue. |  |
-| 26 | `lib/methodologie.ts:148` | corps | Les recettes de Kyroz n'ont pas été validées par un diététicien-nutritionniste, et l'app ne le prétend nulle part. |  |
-| 27 | `lib/methodologie.ts:159` | titre | Ce qui relève d'un choix de Kyroz |  |
-| 28 | `lib/methodologie.ts:161` | corps | Tout ce qui précède ne sort pas de la littérature au même titre, et la distinction est faite ici plutôt que laissée à l'interprétation. |  |
-| 29 | `lib/methodologie.ts:162` | corps | Viennent de la littérature : les deux équations de métabolisme de base, les valeurs MET, le seuil de 30 kcal par kg de masse maigre et les fourchettes protéiques. | ⚑ |
-| 30 | `lib/methodologie.ts:163` | corps | Sont des choix de Kyroz, prudents par construction : le plafond de 1,45 sur l'activité quotidienne, le déficit borné à 25 %, la pause à la maintenance toutes les 8 semaines, et le retrait des planchers dérivés de la masse maigre au-delà de 30 % (homme) et 40 % (femme) de masse grasse — au-delà, la réserve adipeuse est la source d'énergie que ces planchers, conçus pour des athlètes maigres, interdisaient d'utiliser. | ⚑ |
-| 31 | `lib/methodologie.ts:164` | corps | Une estimation de dépense reste une estimation : elle porte une marge d'erreur individuelle que ces équations ne suppriment pas. Le poids relevé au fil des semaines est le seul juge, et c'est lui que Kyroz suit. |  |
+| 16 | `lib/methodologie.ts:133` | corps | Ces limites ne sont pas des réglages : le code les applique à chaque calcul, quel que soit l'objectif choisi ou la date visée. |  |
+| 17 | `lib/methodologie.ts:134` | corps | Deux d'entre elles sont infranchissables CHAQUE JOUR : le métabolisme de base et le filet absolu. L'énergie disponible, elle, se juge sur la SEMAINE — c'est une moyenne soutenue, et c'est ainsi que la littérature la définit. |  |
+| 18 | `lib/methodologie.ts:135` | corps | Le budget d'un jour suit la dépense de ce jour-là : un jour de séance reçoit plus qu'un jour de repos, et la semaine conserve son total. Un jour calme peut donc passer sous le seuil d'énergie disponible sans que la semaine y passe — et le métabolisme de base, lui, reste un plancher quotidien. |  |
+| 19 | `lib/methodologie.ts:138` | corps | Énergie disponible : au moins 30 kcal par kg de masse maigre, une fois la dépense sportive retirée. Ce plancher existe parce que la littérature documente, en dessous, des perturbations hormonales et osseuses (déficit énergétique relatif dans le sport, RED-S) : c'est ce que Kyroz tient à distance. | ⚑ |
+| 20 | `lib/methodologie.ts:139` | corps | Au-delà de 12 semaines cumulées en zone basse — c'est-à-dire entre 30 et 35 kcal par kg de masse maigre —, ce plancher remonte progressivement vers 35 : l'app force une sortie de déficit au lieu de la laisser durer. | ⚑ |
+| 21 | `lib/methodologie.ts:140` | corps | Filet absolu : jamais moins de 1 500 kcal par jour chez l'homme et 1 200 kcal chez la femme. | ⚑ |
+| 22 | `lib/methodologie.ts:141` | corps | Déficit plafonné à 25 % de la dépense estimée. | ⚑ |
+| 23 | `lib/methodologie.ts:145` | corps | Après 8 semaines de déficit consécutives, la semaine suivante est servie à la maintenance. Ce compteur-là est indépendant du précédent : l'un compte des semaines qui se suivent, l'autre des semaines cumulées. | ⚑ |
+| 24 | `lib/methodologie.ts:148` | corps | Sous un indice de masse corporelle de départ de 18,5, Kyroz ne creuse aucun déficit et sert un plan complet à la maintenance — de même pour tout poids cible sortant de la plage saine. | ⚑ |
+| 25 | `lib/methodologie.ts:164` | titre | Les données nutritionnelles |  |
+| 26 | `lib/foods.ts:15` | corps | Données nutritionnelles issues de la Table Ciqual® 2025 (ANSES), réutilisée sous Licence Ouverte 2.0 (Etalab). Certaines entrées sont ajoutées ou ajustées par Kyroz et ne proviennent pas de l’ANSES. L’ANSES n’endosse pas Kyroz. | ⚑ |
+| 27 | `lib/methodologie.ts:167` | corps | Les aliments que la table ne couvre pas proprement (produits protéinés, préparations composées) sont saisis à la main, à partir des valeurs déclarées par les fabricants. Aucune source tierce automatique n'alimente le catalogue. |  |
+| 28 | `lib/methodologie.ts:168` | corps | Les recettes de Kyroz n'ont pas été validées par un diététicien-nutritionniste, et l'app ne le prétend nulle part. |  |
+| 29 | `lib/methodologie.ts:179` | titre | Ce qui relève d'un choix de Kyroz |  |
+| 30 | `lib/methodologie.ts:181` | corps | Tout ce qui précède ne sort pas de la littérature au même titre, et la distinction est faite ici plutôt que laissée à l'interprétation. |  |
+| 31 | `lib/methodologie.ts:182` | corps | Viennent de la littérature : les deux équations de métabolisme de base, les valeurs MET, le seuil de 30 kcal par kg de masse maigre et les fourchettes protéiques. | ⚑ |
+| 32 | `lib/methodologie.ts:183` | corps | Sont des choix de Kyroz, prudents par construction : le plafond de 1,45 sur l'activité quotidienne, le déficit borné à 25 %, la pause à la maintenance toutes les 8 semaines, et le retrait des planchers dérivés de la masse maigre au-delà de 30 % (homme) et 40 % (femme) de masse grasse — au-delà, la réserve adipeuse est la source d'énergie que ces planchers, conçus pour des athlètes maigres, interdisaient d'utiliser. | ⚑ |
+| 33 | `lib/methodologie.ts:184` | corps | Une estimation de dépense reste une estimation : elle porte une marge d'erreur individuelle que ces équations ne suppriment pas. Le poids relevé au fil des semaines est le seul juge, et c'est lui que Kyroz suit. |  |

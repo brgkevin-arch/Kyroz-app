@@ -12,7 +12,11 @@
 // `npm test` si un fichier généré ne correspond plus — la recopie manuelle avait
 // laissé deux surfaces mentir en production pendant des semaines.
 export const DISCLAIMER =
-  "Kyroz est conçu pour des adultes en bonne santé. Ces informations ne remplacent pas l'avis d'un médecin ou diététicien-nutritionniste.";
+  // ⚠️ « ou D'UN diététicien-nutritionniste » : la même phrase vit dans
+// `lib/methodologie.ts` (avertissement dispositif médical), et les deux seront
+// comparées mot à mot en revue de store et à l'étape 9. Deux variantes d'une phrase
+// obligatoire sont deux occasions de diverger (6b-bis-08, 2026-08-27).
+  "Kyroz est conçu pour des adultes en bonne santé. Ces informations ne remplacent pas l'avis d'un médecin ou d'un diététicien-nutritionniste.";
 
 // Renvoi vers un professionnel de santé exigé par Apple (1.4.1) et Google.
 //

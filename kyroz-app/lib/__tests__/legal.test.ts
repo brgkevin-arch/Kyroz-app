@@ -232,6 +232,14 @@ import { STATISTIQUES_USAGE_ACTIVES } from '../featureFlags';
  */
 const DERNIERE_REVISION = {
   date: '27 août 2026',
+  // ⚠️ **SIXIÈME RÉVISION** (2026-08-27, même jour) : le `DISCLAIMER` disait « l'avis d'un
+  // médecin ou diététicien-nutritionniste » quand `lib/methodologie.ts` dit « ou D'UN
+  // diététicien-nutritionniste ». Deux variantes d'une phrase OBLIGATOIRE (§6, Apple
+  // 1.4.1) sont deux occasions de diverger, et elles seront comparées mot à mot en revue
+  // et à l'étape 9. Alignées (6b-bis-08). ⚠️ Le `DISCLAIMER` entre dans l'empreinte parce
+  // qu'il est injecté dans le §4 des CGU (`:316`) — la date, elle, ne bouge pas : l'OTA
+  // du 27 n'est toujours pas partie.
+  //
   // ⚠️ **CINQUIÈME RÉVISION, ET LA PREMIÈRE D'UN AUTRE JOUR** (2026-08-27) : le §10
   // « Mineurs » cessait d'être vrai. Il affirmait « Aucun compte ne peut être créé en
   // deçà de cet âge » — or l'écran d'inscription ne demande ni âge ni date de
@@ -282,7 +290,7 @@ const DERNIERE_REVISION = {
   // d'être déclaré le jour où il ne traite plus, données effacées. C'est la même règle
   // dans l'autre sens ; la garder à sens unique ferait décrire un traitement inexistant.
   // ➡️ La date ne bouge pas — même jour de livraison.
-  empreinte: '3bdbf62f4bd2',
+  empreinte: 'd0782c2c128d',
 };
 
 /**

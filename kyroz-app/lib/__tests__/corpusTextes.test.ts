@@ -88,6 +88,21 @@ describe('corpus des textes — le bloc `methodologie` correspond au module', ()
     ).toEqual([]);
   });
 
+  it('🔴 aucune entrée n’est ancrée à la ligne `:0`', () => {
+    // Recommandation du jugement 6b-bis (constat 06b-bis-05). `:0` veut dire que le
+    // rendu n'a pas su rattacher un texte à une ligne — et trois des quatre concernés
+    // décrivaient des garde-fous de sécurité, la catégorie où l'écart entre texte
+    // affiché et code servi coûte le plus cher.
+    // ⚠️ La résolution a demandé QUATRE versions : un préfixe du texte rendu ne matche
+    // pas un gabarit commençant par une interpolation · une regex sur les guillemets
+    // casse sur les apostrophes échappées (les `:0` passaient de 4 à 8) · un seuil de
+    // 15 caractères laisse tomber « Après ${…} ». La bonne réponse n'était aucun seuil :
+    // tous les littéraux de la ligne, dans l'ordre. Et le dernier `:0` n'était pas un
+    // défaut d'ancrage mais de FICHIER — l'attribution Ciqual vit dans `lib/foods.ts`.
+    const zero = entrees.filter((l) => /`[^`]*:0`/.test(l)).map((l) => texteDe(l).slice(0, 60));
+    expect(zero, `${zero.length} texte(s) sans ligne source`).toEqual([]);
+  });
+
   it('🔴 les témoins que la coupure avait fait disparaître sont là', () => {
     // Deux phrases nommées, parce qu'elles sont celles dont l'absence coûtait le plus.
     expect(dump, 'l’avertissement « dispositif médical » a de nouveau disparu du corpus')

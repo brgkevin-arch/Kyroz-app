@@ -636,10 +636,33 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
   par le dump. *Quand une sonde change d'avis à chaque réglage, ce n'est pas le réglage
   qu'il faut ajuster, c'est l'approche.* La comparaison est devenue EXACTE en générant le
   bloc depuis le module.
-  ➡️ **Reste à faire, et c'est pour Claude.ai** : rejouer le JUGEMENT de 6b sur les
-  32 textes abîmés. Brief autonome écrit et borné :
-  `docs/audit-v1/briefs/06b-bis-methodologie.md`. Pas tout le corpus — les 711 autres
-  textes n'étaient pas touchés, leur jugement du 26 tient.
+  ✅ **LE JUGEMENT 6b-bis EST REVENU ET ARBITRÉ — `docs/audit-v1/06b-bis-textes-audit.md`.**
+  🔴 **Un seul mensonge sur 33 textes, et il était sur la surface qui compte le plus** :
+  T16 promettait « aucun plan ne peut descendre sous ces limites » — un plancher QUOTIDIEN
+  que le moteur ne tient pas (44,2 % des profils ont un jour dessous, jusqu'à 1 103 kcal/j).
+  Corrigé : trois phrases qui disent le vrai (deux limites infranchissables chaque jour, la
+  troisième jugée sur la SEMAINE), plus un paragraphe neuf sur la variation quotidienne.
+  ⚠️ **C'est MON correctif qui avait laissé cette surface** : j'avais resserré « aucun
+  plancher contournable » dans deux documents d'audit sans jamais chercher où la phrase
+  vivait ailleurs. *Un manque ne se grep pas, il se recense par rôle* — y compris quand
+  c'est son propre correctif qu'on recense.
+  ➡️ **Trois des quatre P0 candidats étaient des textes JUSTES** (le poids relevé recalibre
+  bien · les seuils 30/40 sont ceux du code · la table NEAT 1,3–1,45 aussi · les 18 ans sont
+  bloqués à l'étape 2). La consigne « pose-le comme une QUESTION à mesurer, pas comme un
+  constat » a transformé quatre faux P0 en quatre mesures de trente secondes.
+  ✅ Corrigés aussi : le refus opposé à l'utilisateur sous IMC 18,5 (Kyroz redevient le
+  sujet) · le risque RED-S nommé avant sa protection · « zone basse » définie et les deux
+  compteurs de semaines dits indépendants · les deux variantes de la phrase obligatoire
+  alignées (le `DISCLAIMER` entre dans l'empreinte légale — reportée, date inchangée) · les
+  quatre ancres `:0`, dont TROIS décrivaient des garde-fous, et `:0` est désormais un ÉCHEC
+  de test. ⚠️ La dernière n'était pas un défaut d'ancrage mais **de fichier** : l'attribution
+  Ciqual vit dans `lib/foods.ts`, pas dans `methodologie.ts`.
+  ⚠️ **Le refus initial de juger était la BONNE réponse** : le premier brief référençait le
+  corpus au lieu de le contenir. « Autonome » veut dire *contient*.
+  ➡️ **Restent trois arbitrages qui ne sont pas de ma main** : vouvoiement ou tutoiement
+  (T02 vouvoie, T33 tutoie — décision de VOIX pour toute l'app) · la réécriture de T08 et de
+  la taxonomie T28–T31 (combien on explique, c'est le choix qui a fait la qualité de cette
+  page) · la mention Ciqual au mot près, qui se vérifie hors du dépôt.
   🔴 **ET UNE LEÇON DE MÉTHODE, PAYÉE SUR MOI-MÊME** : la réfutation avait ramené `CA-2-02`
   de majeur à MINEUR le jour même, avec ses motifs — je l'ai quand même publié en tête du §3
   et inscrit 🔴 au backlog comme le prochain chantier. Le verdict était dans le document ;
