@@ -70,6 +70,35 @@ describe('le câblage de l’écran', () => {
     expect(auth).toContain('AuthValue');
   });
 
+  // ── 01-05 · la suppression n'annule pas l'abonnement, et la feuille le DIT ──
+  //
+  // 🔴 Le constat était classé « sans effet tant que `PAYWALL_LAUNCH` est `null` ». La
+  // date a été posée le 2026-08-27 : la condition est tombée, le défaut est devenu réel.
+  // Quelqu'un supprime son compte en croyant arrêter le prélèvement, et continue d'être
+  // débité par un service auquel il n'a plus accès.
+  //
+  // ⚠️ CE TEST NE JUGE PAS QUE LA PHRASE EST BONNE — aucun test ne le peut. Il tient les
+  // deux propriétés qui se perdraient en la « nettoyant » : elle EXISTE, et son store
+  // n'est pas écrit en dur.
+  it('🔴 la feuille dit qu’un abonnement N’EST PAS annulé par la suppression', () => {
+    expect(
+      code,
+      'la phrase du constat 01-05 a disparu de la feuille de suppression : sans elle, '
+      + 'quelqu’un supprime son compte en croyant arrêter le prélèvement.',
+    ).toContain('n’est pas annulé par cette suppression');
+  });
+
+  it('🔴 le nom du store se LIT sur la plateforme, il n’est pas écrit en dur', () => {
+    // Un texte iOS servi sur Android enverrait chercher un réglage qui n'existe pas.
+    // On exige les deux noms ET le branchement : citer « App Store » seul passerait
+    // le test précédent en étant faux pour la moitié du parc.
+    const bloc = code.slice(code.indexOf('n’est pas annulé par cette suppression') - 400,
+      code.indexOf('n’est pas annulé par cette suppression') + 200);
+    expect(bloc, 'le store doit venir de Platform.OS').toContain("Platform.OS === 'android'");
+    expect(bloc).toContain('Google Play');
+    expect(bloc).toContain('App Store');
+  });
+
   it('🔴 `reauthenticate` ne prend aucune adresse — la preuve porte sur SOI', () => {
     // La signature EST la garantie : sans paramètre d'e-mail, aucun appelant ne peut
     // faire tester le mot de passe d'un tiers, même par erreur.

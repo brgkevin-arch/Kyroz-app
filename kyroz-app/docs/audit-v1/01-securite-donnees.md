@@ -196,13 +196,21 @@ Aucun bucket Storage n'existe : rien à effacer de ce côté.
 - **Effort : M**
 
 ### 01-05 Rien ne dit que supprimer son compte n'annule pas l'abonnement
-> 🔴 **LA CONDITION EST TOMBÉE LE 2026-08-27 — CE CONSTAT EST DEVENU BLOQUANT.**
-> `PAYWALL_LAUNCH` porte une date (A45), donc la clause « sans effet tant qu'il est `null` »
-> ne s'applique plus. Le défaut lui-même n'a pas bougé : la feuille de suppression ne dit
-> nulle part que supprimer son compte **n'annule pas** l'abonnement App Store.
-> ⚠️ Ce n'est pas encore servi (la date attend le build 7), mais **ça partira avec lui** —
-> c'est-à-dire dans le binaire soumis à la revue. Le correctif est **une phrase**, avec le
-> chemin réel (Réglages iOS → Abonnements). **Non fait, et non demandé** : à arbitrer.
+> ✅ **CORRIGÉ le 2026-08-27** — fiche : `AGENTS.md` **A47**. La condition était tombée le
+> matin même (`PAYWALL_LAUNCH` porte une date, A45) ; le constat est passé de « sans effet »
+> à bloquant, puis clos dans la journée.
+> La feuille de suppression dit désormais : *« Un abonnement Kyroz+ n'est pas annulé par
+> cette suppression : il se résilie depuis les réglages de ton compte App Store »* — et le
+> nom du store se LIT sur `Platform.OS`, il n'est pas écrit en dur.
+> 🔴 **Affichée SANS CONDITION, et c'est mesuré** : la conditionner à `premium.entitled`
+> paraît plus propre, mais **hors ligne un abonné est traité comme non abonné** (`07-03`).
+> La garde aurait donc disparu pour la personne qui en a besoin, en silence. La
+> FORMULATION porte la condition à la place du code — « un abonnement Kyroz+ » reste vrai
+> pour qui n'en a pas.
+> ⚠️ Ce qu'elle ne dit pas, et c'est voulu : le détail de la facturation qui SUBSISTE chez
+> Apple ou Google vit au §7 de la politique. Ici on annonce un prélèvement **à venir**.
+> ➡️ Garde-fou : `preuveAvantSuppression.test.ts` — **3 mutations, 3 rouges** (phrase
+> retirée, store en dur, formulation retournée).
 - **Sévérité : P1** (~~conditionnée~~ — **ACTIVE depuis le 2026-08-27**)
 - **Preuve** : `grep -niE "abonnement.*(annul|résil)"` sur `app/` et `components/` → aucun résultat. La feuille de confirmation (`profil.tsx:781-783`) n'en parle pas.
 - **Risque** : quelqu'un supprime son compte en croyant arrêter le prélèvement, et continue d'être débité par l'App Store. C'est un motif de litige et de mauvais avis.

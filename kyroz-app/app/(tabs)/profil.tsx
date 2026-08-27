@@ -835,6 +835,26 @@ export default function ProfilScreen() {
         <Text style={{ ...Type.body, color: t.textSecondary, lineHeight: 21 }}>
           Ton compte et ses données seront définitivement supprimés du serveur. Sur cet appareil, tout ce que Kyroz a enregistré sera effacé : profil, plans, pesées, photos, série, favoris, réserve.
         </Text>
+        {/* 🔴 SUPPRIMER SON COMPTE N'ANNULE PAS L'ABONNEMENT, et rien ne le disait
+            (constat `01-05`, ajouté le 2026-08-27). Le prélèvement continue : quelqu'un
+            supprime en croyant l'arrêter, et se fait débiter par un service auquel il n'a
+            plus accès. C'est un motif de litige — et de refus en revue.
+            ⚠️ **CE N'EST PAS LA MÊME CHOSE QUE LE DÉTAIL DE FACTURATION** que le
+            commentaire ci-dessus renvoie au §7 de la politique. Celui-là décrit ce qui
+            SUBSISTE chez Apple ou Google ; celle-ci annonce un prélèvement À VENIR. La
+            décision « ici on dit ce qui PART » n'est donc pas contredite : on ajoute ce
+            qui CONTINUE, et c'est la seule chose qui coûte de l'argent.
+            🔴 **AFFICHÉE SANS CONDITION, ET C'EST MESURÉ, pas paresseux.** La conditionner
+            à `premium.entitled` paraît plus propre — mais `entitled` vient de RevenueCat,
+            et **hors ligne un abonné est traité comme non abonné** (constat `07-03`). La
+            garde aurait donc disparu exactement pour la personne qui en a besoin, en
+            silence. La formulation porte la condition à la place du code : « un abonnement
+            Kyroz+ » reste vrai pour qui n'en a pas, et ne coûte qu'une ligne lue.
+            ⚠️ Le nom du store se lit sur la PLATEFORME, jamais écrit en dur : un texte
+            iOS servi sur Android enverrait chercher un réglage qui n'existe pas. */}
+        <Text style={{ ...Type.body, color: t.textSecondary, lineHeight: 21 }}>
+          Un abonnement Kyroz+ n’est pas annulé par cette suppression : il se résilie depuis les réglages de ton compte {Platform.OS === 'android' ? 'Google Play' : 'App Store'}.
+        </Text>
         {preuve === 'mot_de_passe' && (
           <>
             <Text style={{ ...Type.caption, color: t.textSecondary }}>
