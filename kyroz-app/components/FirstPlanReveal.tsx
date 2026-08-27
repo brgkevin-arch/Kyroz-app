@@ -5,7 +5,6 @@ import { reduceMotionActif } from '../lib/reduceMotion';
 import { useTheme, Radius, Spacing, Type, ThemePalette, Trait , Icone } from '../constants/theme';
 import { PrimaryButton, SectionLabel } from './ui';
 import { goalLabel } from '../lib/tdee';
-import { baseDayTargets } from '../lib/planEngine';
 import { Meal, UserProfile } from '../lib/types';
 import { DISCLAIMER } from '../constants/legal';
 import { ReussiteIcon, IconeRepas } from './Icons';
@@ -64,17 +63,12 @@ export function FirstPlanReveal({ visible, profile, firstName, previewMeals, onC
     }
   }, [visible]);
 
-  // Les jours diffèrent-ils réellement ? Sur un profil sans sport déclaré, non — et
-  // dire « en moyenne » y serait une précaution qui embrouille pour rien.
-  // ⚠️ AVANT le `return null` ci-dessous, et pas après : posé plus bas, ce `useMemo`
-  // n'existait qu'aux rendus visibles → « Rendered more hooks than during the previous
-  // render », et l'écran de bienvenue tombait dans l'ErrorBoundary. Ni `tsc` ni les
-  // 1065 tests ne l'ont vu ; seul le rendu le montre.
-  const modulé = useMemo(() => {
-    const j = baseDayTargets(profile, Math.max(1, Math.min(profile.plan_days ?? 7, 7)));
-    return Math.max(...j) - Math.min(...j) >= 40;
-  }, [profile]);
-
+  // 🔴 TOUT HOOK DE CE FICHIER VA AU-DESSUS DE CE `return null`, JAMAIS EN DESSOUS.
+  // La leçon a été payée par le `useMemo` qui vivait ici (retiré le 2026-08-27 avec la
+  // phrase qu'il choisissait) : posé plus bas, il n'existait qu'aux rendus VISIBLES →
+  // « Rendered more hooks than during the previous render », et l'écran de bienvenue
+  // tombait dans l'ErrorBoundary. Ni `tsc` ni les tests ne l'ont vu ; seul le rendu le
+  // montre. La règle survit à ce qui l'a apprise — c'est pour ça qu'elle reste écrite.
   if (!visible) return null;
 
   return (
@@ -90,21 +84,20 @@ export function FirstPlanReveal({ visible, profile, firstName, previewMeals, onC
           <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
             <ReussiteIcon color={t.accent} size={Icone.fete} />
             <Text style={s.title}>C'est prêt{firstName ? `, ${firstName}` : ''} !</Text>
-            {/* 🔴 CETTE PHRASE PORTE DÉSORMAIS LA NUANCE QUE LE LIBELLÉ « kcal » NE DIT
-                PLUS. Depuis la répartition par volume (2026-08-06), aucune journée ne
-                vaut exactement `target_kcal` quand des séances sont déclarées : un jour
+            {/* 🔴 UNE SEULE PHRASE DEPUIS LE 2026-08-27 (décision fondateur, sur capture :
+                « je veux que la phrase soit juste ta semaine est calée sur ton objectif »).
+                Elle en portait DEUX, choisies par un prédicat `modulé` — retiré avec elles.
+                ⚠️ CE QUE LA NUANCE DISAIT, ET QUI N'EST PLUS DIT NULLE PART SUR CET ÉCRAN.
+                Depuis la répartition par volume (2026-08-06), aucune journée ne vaut
+                exactement `target_kcal` quand des séances sont déclarées : un jour
                 d'entraînement vise plus haut, un jour de repos plus bas. La colonne
-                s'appelait donc « kcal en moyenne » — raccourcie en « kcal » le
-                2026-08-12 (décision fondateur : le libellé cassait la mise en page).
-                ⚠️ Le mot « moyenne » ne pouvait pas simplement DISPARAÎTRE : le premier
-                écran de la relation aurait annoncé un nombre que le plan juste en
-                dessous contredit (CLAUDE.md §10). Il a changé de place, pas de statut —
-                et seulement quand il est vrai, d'où les deux versions. */}
-            <Text style={s.sub}>
-              {modulé
-                ? 'Ta semaine est calée sur ton objectif : un peu plus les jours d’entraînement, un peu moins les jours de repos.'
-                : 'Ta semaine de repas est calée au plus juste sur ton objectif.'}
-            </Text>
+                s'appelait « kcal en moyenne », raccourcie en « kcal » le 2026-08-12 —
+                et le mot « moyenne » avait alors DÉMÉNAGÉ dans cette phrase plutôt que
+                de disparaître, pour que le premier écran de la relation n'annonce pas un
+                nombre que le plan juste en dessous contredit (CLAUDE.md §10).
+                ➡️ Le nombre affiché reste une MOYENNE hebdomadaire pour qui déclare des
+                séances. Si ça doit se redire, ça se redira ailleurs — pas ici. */}
+            <Text style={s.sub}>Ta semaine est calée sur ton objectif.</Text>
 
             {/* Libellé AU-DESSUS de la valeur (2026-08-12, décision fondateur). Ce n'est
                 pas qu'une préférence : en dessous, il fallait réserver deux lignes de
@@ -142,7 +135,19 @@ export function FirstPlanReveal({ visible, profile, firstName, previewMeals, onC
             )}
 
             <View style={{ height: 18 }} />
-            <PrimaryButton t={t} label="Voir mon plan" onPress={onClose} />
+            {/* 🔴 `alignSelf: 'stretch'` — SANS LUI LE BOUTON RÉTRÉCIT SUR SON TEXTE.
+                Le conteneur de cet écran est en `alignItems: 'center'` (cf. `s.scroll`),
+                et `PrimaryButton` ne pose aucune largeur ni padding horizontal : il
+                sortait donc en petit pavé collé à son libellé, là où tous les autres
+                boutons principaux de l'app sont pleine largeur. Les deux blocs voisins
+                (`statRow`, `section`) portaient déjà cette contre-mesure — celui-ci
+                avait été oublié. Vu sur capture, pas en relisant le fichier.
+                ⚠️ La correction est LOCALE à dessein : poser la largeur dans
+                `PrimaryButton` toucherait ses dizaines d'appelants d'un coup, dont
+                aucun n'a été regardé. */}
+            <View style={{ alignSelf: 'stretch' }}>
+              <PrimaryButton t={t} label="Voir mon plan" onPress={onClose} />
+            </View>
 
             <Text style={s.disclaimer}>{DISCLAIMER}</Text>
           </ScrollView>
