@@ -74,14 +74,40 @@ describe('1 — la branche du BMR suit la PROVENANCE, pas la présence du chiffr
   const mifflin = Math.round(10 * 78 + 6.25 * 168 - 5 * 32 - 161);
   const katch = Math.round(370 + 21.6 * leanBodyMass('female', 78, 33));
 
-  it('mesuré → Katch-McArdle', () => {
-    expect(calculateBMR({ ...bf, body_fat_source: 'measured' })).toBe(katch);
+  // ⚠️ **CE CORPS NE SÉPARE PLUS LES DEUX PROVENANCES, ET C'EST LE CORRECTIF 02-01.**
+  // Sur lui, Katch rend 1499 contre 1509 à Mifflin : Katch se TROMPE, vers le bas. Le
+  // chemin « mesuré » servait quand même Katch — c'était le P0. Il sert Mifflin depuis
+  // le 2026-08-27, comme le chemin « estimé ».
+  // ➡️ La provenance décide toujours, mais seulement là où Katch est AU-DESSUS et de
+  // moins d'une demi-bande : le mesuré prend Katch entier, l'estimé attend que l'écart
+  // sorte du bruit de silhouette. Ce corps-là est le `SEPARE` ci-dessous, trouvé par
+  // BALAYAGE (marge 29,4 kcal des deux côtés de la fenêtre), pas au jugé.
+  const SEPARE = { sex: 'male' as const, weight_kg: 110, height_cm: 160, age: 25, body_fat_pct: 31 };
+
+  it('mesuré, Katch au-dessus → Katch-McArdle ENTIER (pas de bande morte)', () => {
+    const k = Math.round(370 + 21.6 * leanBodyMass('male', 110, 31));
+    expect(calculateBMR({ ...SEPARE, body_fat_source: 'measured' })).toBe(k);
+    // …et l'estimé, sur le MÊME corps, reste sur Mifflin : l'écart n'est pas encore
+    // sorti du bruit d'une silhouette tapée au jugé.
+    expect(calculateBMR({ ...SEPARE, body_fat_source: 'estimated' }))
+      .toBe(Math.round(10 * 110 + 6.25 * 160 - 5 * 25 + 5));
+  });
+
+  it('mesuré, Katch EN DESSOUS → Mifflin (constat 02-01, P0)', () => {
+    // Katch compte le tissu adipeux à zéro kcal : son erreur croît avec la masse
+    // grasse. Servir Katch ici retirait des calories à quelqu'un qui en demandait déjà
+    // moins. Mesuré sur ce corps : −10 kcal/j ; sur un H de 120 kg à 45 %MG : −322.
+    expect(katch).toBeLessThan(mifflin);
+    expect(calculateBMR({ ...bf, body_fat_source: 'measured' })).toBe(mifflin);
   });
 
   it('estimé, silhouette côté gras → Mifflin-St Jeor, alors que le %MG est bien là', () => {
     // Sur CE corps (F 33 %), Katch donne MOINS que Mifflin : côté gras, le %MG estimé
     // ne pilote pas le BMR — R6 lissée ne mélange que côté sec (cf. r6Lissee.test.ts).
+    // ⚠️ Depuis le 2026-08-27, le chemin MESURÉ conclut pareil sur ce corps. Les deux
+    // provenances ne divergent plus côté gras : c'est le correctif, pas une régression.
     expect(calculateBMR({ ...bf, body_fat_source: 'estimated' })).toBe(mifflin);
+    expect(calculateBMR({ ...bf, body_fat_source: 'measured' })).toBe(mifflin);
     expect(bf.body_fat_pct).toBeGreaterThan(0);
   });
 
@@ -109,10 +135,16 @@ describe('2 — les cinq chemins du moteur suivent la même branche', () => {
   // passer le %MG en oubliant sa provenance. On le vérifie de bout en bout plutôt
   // qu'en relisant les appels : c'est le résultat servi qui compte.
   it('TDEE, cible servie et plan complet basculent ensemble', () => {
-    const mes = computePlan(corps('measured'), T);
-    const est = computePlan(corps('estimated'), T);
+    // ⚠️ GABARIT CHANGÉ le 2026-08-27 (constat 02-01). Le corps du fichier (F 78 kg,
+    // 33 %MG) est côté GRAS : depuis le correctif, les deux provenances y concluent
+    // pareil, donc il ne peut plus prouver que la bascule se propage. Il faut un corps
+    // où la provenance décide ENCORE — Katch au-dessus de Mifflin, mais de moins d'une
+    // demi-bande. Trouvé par balayage (marge 29,4 kcal des deux côtés), pas au jugé.
+    const SEPARE = { sex: 'male' as const, weight_kg: 110, height_cm: 160, age: 25, body_fat_pct: 31 };
+    const mes = computePlan(corps('measured', SEPARE), T);
+    const est = computePlan(corps('estimated', SEPARE), T);
     expect(mes.profile.tdee_kcal).not.toBe(est.profile.tdee_kcal);
-    expect(est.profile.tdee_kcal).toBe(calculateTDEE(corps('estimated')));
+    expect(est.profile.tdee_kcal).toBe(calculateTDEE(corps('estimated', SEPARE)));
     // La cible suit le TDEE (aucun plancher ne mord sur ce corps).
     expect(est.profile.target_kcal - mes.profile.target_kcal)
       .toBe(est.profile.tdee_kcal - mes.profile.tdee_kcal);
@@ -177,13 +209,20 @@ describe('3 — un profil existant SANS provenance : ce qui bouge, et de combien
           .toBeGreaterThanOrEqual(apres.tdee_kcal - avant.tdee_kcal);
       }
     }
-    // Bornes MESURÉES le 2026-08-24 (moteur, pas réplique) — elles se resserrent si
-    // le moteur change, et c'est voulu : ce sont des chiffres qu'on doit pouvoir
-    // citer au fondateur. R6 lissée les a resserrées d'elle-même : le pire écart vs
-    // `measured` était de −217 kcal de TDEE sous la règle binaire, il est de −64 —
-    // le mélange rend au corps sec l'essentiel de ce que la règle binaire lui prenait.
-    expect([Math.min(...ecartsTdee), Math.max(...ecartsTdee)]).toEqual([-64, 363]);
-    expect([Math.min(...ecartsCible), Math.max(...ecartsCible)]).toEqual([-48, 363]);
+    // Bornes MESURÉES (moteur, pas réplique) — elles se resserrent si le moteur
+    // change, et c'est voulu : ce sont des chiffres qu'on doit pouvoir citer au
+    // fondateur. Historique : −217 kcal de TDEE sous la règle binaire · −64 après R6
+    // lissée (2026-08-24), le mélange rendant au corps sec l'essentiel de ce que la
+    // règle binaire lui prenait.
+    // ⚠️ **LA BORNE HAUTE TOMBE DE +363 À 0 le 2026-08-27** (constat 02-01), et ce zéro
+    // est une propriété, pas un arrondi : le +363 mesurait exactement le défaut. Il
+    // disait qu'un profil SANS provenance recevait jusqu'à 363 kcal/j de PLUS qu'un
+    // profil `measured` au même corps — parce que le mesuré, lui, était condamné à
+    // Katch même là où Katch se trompe. Les deux chemins servant désormais la même
+    // asymétrie, l'estimé ne peut plus dépasser le mesuré : il prend au mieux le
+    // mélange là où le mesuré prend Katch entier.
+    expect([Math.min(...ecartsTdee), Math.max(...ecartsTdee)]).toEqual([-64, 0]);
+    expect([Math.min(...ecartsCible), Math.max(...ecartsCible)]).toEqual([-48, 0]);
   });
 
   it('l\'avertissement one-shot part bien (ENGINE_REV a été incrémenté)', () => {
@@ -244,8 +283,8 @@ describe('4 — OPTION A : le plancher de sécurité ne bouge PAS', () => {
           highAdiposity(p) ? 0 : Math.min(brut(p), p.tdee_kcal);
 
         expect(brut(B.profile), cle).toBe(brut(A.profile));
-        expect(B.clamp.candidates.energy_availability, cle).toBe(attendu(B.profile));
-        expect(A.clamp.candidates.energy_availability, cle).toBe(attendu(A.profile));
+        expect(B.clamp!.candidates.energy_availability, cle).toBe(attendu(B.profile));
+        expect(A.clamp!.candidates.energy_availability, cle).toBe(attendu(A.profile));
       }
     }
   });
@@ -315,7 +354,10 @@ describe('7 — le plafond de déficit à 25 % cesse d\'être dormant', () => {
       neat_level: 'desk', goal: 'cut', macro_mode: 'auto',
       sports: [{ type: 'musculation', sessions_per_week: 3, minutes_per_session: 60 }],
     });
-    const { clamp } = computePlan(p, T);
+    const { clamp: _clamp } = computePlan(p, T);
+    // ⚠️ `clamp` est optionnel depuis 02-02 : `undefined` = le moteur a REFUSÉ de
+    // conclure (profil incomplet). Ce profil-ci est complet, donc il est là.
+    const clamp = _clamp!;
     expect(clamp.source).toBe('deficit_cap');
     expect(clamp.candidates.deficit_cap).toBeGreaterThan(clamp.candidates.energy_availability);
     expect(clamp.candidates.deficit_cap).toBeGreaterThan(clamp.candidates.bmr);

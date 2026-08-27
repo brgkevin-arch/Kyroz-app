@@ -429,19 +429,22 @@ describe('A3 — projection simulée : plus de date flatteuse', () => {
 
     // Côté A15 — objectif hors de portée : les calories DOIVENT bouger, sinon le
     // correctif n'existe pas. C'est l'assertion qui manquait et qui aurait rougi.
-    const { sim: dur, lin: durLin } = deuxDates(
-      // ⚠️ %MG MESURÉ, et ce n'est pas cosmétique : ce gabarit est À 3 kcal DE BMR de
-      // la frontière d'atteignabilité. Mesuré le 2026-08-06 en passant la provenance
-      // à « estimé » (BMR 1516 → 1519, TDEE 2158 → 2162) : `reachableByDate` bascule
-      // false → true et la date projetée avance de 94 jours (2027-03-18 → 2026-12-14).
-      // La falaise est PRÉEXISTANTE — `reachableByDate` est un booléen tiré d'une
-      // simulation semaine par semaine, donc tout corps qui arrive près de l'échéance
-      // y bascule sur un arrondi. Le déclarer mesuré rend au test le cas exact pour
-      // lequel A15 a été écrit.
-      corps({ sex: 'female', weight_kg: 78, height_cm: 168, body_fat_pct: 32, body_fat_source: 'measured' }), 65, 52,
-    );
+    // ⚠️ GABARIT REMPLACÉ le 2026-08-27. Le précédent (F 78 kg → 65 kg en 52 sem) était
+    // **À 3 kcal DE BMR** de la frontière d'atteignabilité : son propre commentaire le
+    // disait, et le déclarer `measured` était la seule chose qui le tenait du bon côté.
+    // Le correctif 02-01 a déplacé le BMR de ce corps de 10 kcal — assez pour le faire
+    // basculer. Un test posé sur une falaise finit toujours par tomber.
+    // ➡️ Le remplaçant est choisi pour sa MARGE, trouvée par balayage : sa date projetée
+    // est à ~110 semaines, donc l'échéance de 40 semaines n'est pas près de tenir. La
+    // marge est VÉRIFIÉE plus bas plutôt que promise en commentaire.
+    const CORPS_DUR = { sex: 'female' as const, weight_kg: 95, height_cm: 165, body_fat_pct: 32, body_fat_source: 'measured' as const };
+    const { sim: dur, lin: durLin } = deuxDates(corps(CORPS_DUR), 82, 40);
     expect(dur.reachableByDate).toBe(false);
     expect(dur.maxRateApplied).toBe(true);
     expect(dur.dailyKcalDelta).toBeLessThan(durLin.dailyKcalDelta);
+    // La MARGE, comptée : il faut encore 30 semaines de plus pour que ça ne tienne
+    // toujours pas. Sans cette ligne, un gabarit revenu au bord de la frontière
+    // repasserait vert et le test recommencerait à ne rien prouver.
+    expect(deuxDates(corps(CORPS_DUR), 82, 70).sim.reachableByDate).toBe(false);
   });
 });

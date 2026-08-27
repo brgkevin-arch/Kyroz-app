@@ -4,6 +4,8 @@ import { Recipe, Streak, UserProfile } from './types';
 import { PantryItem } from './pantry';
 import { WeightEntry } from './weight';
 import { relireSyncEnAttente } from './syncEnAttente';
+import { ligneCloudExploitable, normalizeMacroMode } from './profilComplet';
+import { doitPurgerAvantHydratation } from './sessionLocale';
 import { decideProfileHydration, normalizeCalorieBank, normalizeGoal, normalizeMeals, normalizeMealSlots, normalizeProfileActivity, normalizeVariety, reconcileCloudSports, reconcileCloudLowEaWeeks, reconcileCloudNeat, mergeWeightEntries, mergeStreak, mergeRecipeOverrides, PROFILE_PENDING_KEY } from './syncGuard';
 
 /** La fusion a-t-elle produit autre chose que ce que le cloud détenait ? */
@@ -380,7 +382,65 @@ export async function pushRecipeOverrides(overrides: Record<string, Recipe>): Pr
 
 // ── Hydratation à la connexion ───────────────────────────────────────────────
 
-export async function hydrateFromCloud(uid: string): Promise<void> {
+/**
+ * @param purgerLocal Efface toute la session locale. **Requis** : c'est lui qui referme
+ * l'héritage de compte (01-01), et un paramètre optionnel disparaîtrait chez le premier
+ * appelant qui l'oublie. Il est injecté parce que sa composition réelle
+ * (`lib/effetsPurge.ts`) tire le runtime Expo, qui rendrait ce fichier intestable —
+ * or c'est ICI que vit la garde.
+ */
+export async function hydrateFromCloud(uid: string, purgerLocal: () => Promise<void>): Promise<void> {
+  // ── L'IDENTITÉ, AVANT TOUT LE RESTE (constat 01-01, P0) ────────────────────
+  //
+  // 🔴 Ce point de passage est le seul par lequel TOUTE connexion arrive. C'est donc le
+  // seul endroit où l'on peut garantir qu'un compte n'hérite de rien — y compris quand
+  // la purge de déconnexion n'a pas eu lieu (app tuée en plein milieu, version
+  // antérieure, onglet web resté ouvert).
+  //
+  // 🔴 **ET LE PROFIL N'EST QUE LE PREMIER DE CINQ.** Le contre-audit l'a mesuré
+  // (`:440-500` ci-dessous) : quand la ligne cloud du compte entrant est VIDE, favoris,
+  // réserve, pesées et recettes personnalisées du compte précédent sont **poussés dans
+  // son cloud** — et pesées, série et recettes sont FUSIONNÉES, donc le mélange devient
+  // permanent des deux côtés. Purger ici, en tête, referme les cinq d'un seul geste :
+  // toutes les sections lisent ensuite un local vide.
+  //
+  // ⚠️ **UN PROFIL D'INSCRIPTION N'EST PAS UN PROFIL D'AUTRUI.** `proprietaireLocal`
+  // distingue les deux : un `id` de la forme `user-<horodatage>` n'a jamais été lié à un
+  // compte, et le jeter serait détruire l'inscription de quelqu'un dont le push a échoué
+  // hors ligne (`CA-1-04`). La reco publiée, appliquée à la lettre, faisait exactement ça.
+  let doitPurger = false;
+  try {
+    const brut = await AsyncStorage.getItem(PROFILE_KEY);
+    const idLocal = brut ? (JSON.parse(brut) as Partial<UserProfile>)?.id : null;
+    doitPurger = doitPurgerAvantHydratation(idLocal, uid);
+  } catch {
+    // Un profil local ILLISIBLE ne dit rien de son propriétaire : on ne purge pas sur
+    // une lecture ratée — ce serait détruire pour cause de panne. `bootProfile` traite
+    // déjà le stockage corrompu, et l'hydratation continue.
+  }
+  if (doitPurger) {
+    try {
+      console.warn(`${LOG_PREFIX} données locales d'un AUTRE compte — purge avant `
+        + 'hydratation (elles ne seront ni affichées ici, ni poussées dans ce compte).');
+    } catch {}
+    // ⚠️ **LA PURGE EST HORS DU `try` DE LA LECTURE, ET SON ÉCHEC ARRÊTE TOUT.**
+    // Elle y était, et le `catch` l'avalait : une purge qui jette laissait alors
+    // l'hydratation se dérouler comme si de rien n'était, donc poussait les données de
+    // A dans le compte de B — la garde cessait de garder EN SILENCE. Trouvé parce que
+    // le mock d'AsyncStorage n'avait pas `getAllKeys` : l'appel jetait, et trois
+    // assertions passaient quand même.
+    // ➡️ Une synchro manquée se rattrape à la prochaine ouverture. Une fuite, non.
+    try {
+      await purgerLocal();
+    } catch (e) {
+      try {
+        console.warn(`${LOG_PREFIX} purge IMPOSSIBLE — hydratation ABANDONNÉE pour ne `
+          + `rien pousser d'un autre compte : ${String(e)}`);
+      } catch {}
+      return;
+    }
+  }
+
   // PROFIL — garde-fou : un local non confirmé poussé (dirty) n'est JAMAIS écrasé
   // par le cloud (sinon un push rejeté en silence = onboarding/édition perdus).
   try {
@@ -388,7 +448,15 @@ export async function hydrateFromCloud(uid: string): Promise<void> {
     const raw = await AsyncStorage.getItem(PROFILE_KEY);
     const local: UserProfile | null = raw ? JSON.parse(raw) : null;
     const action = decideProfileHydration({
-      hasCloud: !!(row && row.sex),
+      // 🔴 C'ÉTAIT `!!(row && row.sex)` — la garde exacte du constat 02-02 (P0). Une
+      // ligne où seul `sex` était posé la passait, et le moteur sortait `NaN` sur le
+      // TDEE, la cible, le plancher et les trois macros — en émettant quand même
+      // `LOW_EA_WARNING`. La ligne est atteignable : aucune colonne de `profiles` n'est
+      // `NOT NULL` hors `id`, et `handle_new_user` n'insère que `(id, email)`.
+      // ⚠️ Refuser la ligne ne l'efface pas : `decideProfileHydration` bascule alors sur
+      // `push_local` (le local complet gagne et repart au cloud) ou `noop` (personne n'a
+      // rien → onboarding). C'est un refus d'ÉCRASER, pas une suppression.
+      hasCloud: ligneCloudExploitable(row),
       hasLocal: !!local,
       localDirty: await isProfileDirty(),
     });
@@ -409,7 +477,7 @@ export async function hydrateFromCloud(uid: string): Promise<void> {
         // quels ids de créneau existent, et `normalizeMeals` valide `meals` contre eux.
         // Dans l'autre sens, un créneau abîmé nettoyé après coup laisserait `meals`
         // désigner un id qui vient de disparaître.
-        ...normalizeCalorieBank(normalizeMeals(normalizeMealSlots(normalizeVariety(normalizeGoal(normalizeProfileActivity(cloud)))))),
+        ...normalizeCalorieBank(normalizeMeals(normalizeMealSlots(normalizeVariety(normalizeMacroMode(normalizeGoal(normalizeProfileActivity(cloud))))))),
       }));
     } else if (local && (action === 'keep_local' || action === 'push_local')) {
       await pushProfile(local); // (re)pousse le local ; lève le flag si succès

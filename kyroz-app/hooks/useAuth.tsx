@@ -3,6 +3,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Session } from '@supabase/supabase-js';
 import { supabase, readPersistedSession } from '../lib/supabase';
 import { hydrateFromCloud } from '../lib/sync';
+import { purgerSessionLocale } from '../lib/sessionLocale';
+import { EFFETS_PURGE } from '../lib/effetsPurge';
 import { withBudget, AUTH_BUDGET_MS, HYDRATION_BUDGET_MS } from '../lib/boot';
 import { URL_RETOUR_CONFIRMATION, normaliseCode } from '../lib/emailConfirmation';
 
@@ -96,7 +98,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(fallback);
       setAuthChecked(true);
     });
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event, s) => {
+      // ── Les pertes de session que PERSONNE ne demande (constat 01-01, P0) ────
+      //
+      // 🔴 C'est ici que le trou était le plus large, et c'est ici qu'il ne se voyait
+      // pas : le callback ne faisait que `setSession(s)`. Un jeton révoqué, un mot de
+      // passe changé sur un autre appareil, un compte supprimé à distance, un
+      // rafraîchissement échoué sur un jeton périmé — tous ramènent au login **sans
+      // qu'aucun `signOut()` ne soit appelé**, donc sans qu'aucune purge ne parte. Le
+      // compte suivant héritait alors du corps du précédent.
+      // Vérifié dans `@supabase/auth-js` : les cinq appels à `_removeSession()`
+      // couvrent exactement ces cas, et tous émettent `SIGNED_OUT`.
+      //
+      // ⚠️ **SUR L'ÉVÉNEMENT, JAMAIS SUR `s === null`.** `INITIAL_SESSION` arrive avec
+      // une session nulle à chaque démarrage sans compte : purger là-dessus effacerait
+      // l'inscription en cours de quelqu'un qui n'a pas encore de compte, à chaque
+      // lancement. C'est le même piège que `CA-1-04`, un étage plus haut.
+      if (event === 'SIGNED_OUT') { void purgerSessionLocale(EFFETS_PURGE); }
       setSession(s);
       setAuthChecked(true);
     });
@@ -110,7 +128,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!uid) { setHydrating(false); return; }
     let alive = true;
     setHydrating(true);
-    const pull = hydrateFromCloud(uid).catch(() => {});
+    const pull = hydrateFromCloud(uid, () => purgerSessionLocale(EFFETS_PURGE)).catch(() => {});
     // Deux échéances distinctes, à dessein :
     //  - le BUDGET libère l'écran (il ne l'attend de toute façon que s'il n'a
     //    rien à afficher) ;
@@ -263,7 +281,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return error ? { error: error.message } : {};
   };
 
-  const signOut = async () => { await supabase.auth.signOut(); };
+  /**
+   * Coupe la session **et fait place nette** (constat 01-01 / 01-02, P0).
+   *
+   * 🔴 C'ÉTAIT `await supabase.auth.signOut();`, et rien d'autre. La purge vivait chez
+   * UN appelant (`profil.tsx::doLogout`), recopiée et non partagée — donc le troisième
+   * point de déconnexion l'aurait rouverte sans que rien ne rougisse.
+   *
+   * ℹ️ La purge part aussi depuis `onAuthStateChange('SIGNED_OUT')` ci-dessus, et les
+   * deux sont voulues : celle-ci couvre le geste VOLONTAIRE, l'autre couvre les pertes
+   * de session que personne ne demande. Elles se recouvrent, et c'est sans conséquence —
+   * la purge est idempotente.
+   */
+  const signOut = async () => {
+    await supabase.auth.signOut();
+    await purgerSessionLocale(EFFETS_PURGE);
+  };
 
   const value: AuthValue = {
     session, ready: authChecked, hydrating, hydrationTick,

@@ -139,16 +139,20 @@ describe('isTrainingDay — un profil sans séance n\'a pas de jour de séance',
     // 210 — il ne pouvait plus exercer le drapeau, et le test serait devenu vert
     // pour une mauvaise raison. Gabarit trouvé par balayage, pas au jugé.
     // Au passage : la fréquence du drapeau en sèche baisse de 27,4 % à 21,1 %.
+    // ⚠️ GABARIT CHANGÉ UNE 2ᵉ FOIS le 2026-08-27 (constat 02-01). Le H 60 kg / 30 %MG
+    // avait été trouvé par balayage SOUS KATCH, et son commentaire prévenait qu'en
+    // Mifflin il servait 189 g pour un seuil à 180 — donc plus de drapeau, et un test
+    // vert sans rien vérifier. Le correctif 02-01 fait exactement ça : côté gras, le
+    // %MG mesuré ne sert plus Katch. Le piège annoncé s'est refermé.
+    // ➡️ Nouveau gabarit trouvé par balayage, et choisi ROBUSTE À LA FORMULE : il lève
+    // le drapeau sous Katch comme sous Mifflin, avec 82 g de marge (158 g servis pour
+    // un seuil à 240). Il ne rebasculera pas au prochain changement de sélecteur.
     const p = makeProfile({
-      // %MG mesuré : le gabarit a été trouvé PAR BALAYAGE sous Katch, et sa raison
-      // d'être est d'exercer le drapeau. En Mifflin il sert 189 g pour un seuil à 180
-      // → le drapeau ne se lève plus et le test passerait au vert sans rien vérifier,
-      // exactement le piège que son commentaire du 2026-07-31 documente déjà.
-      sex: 'male', weight_kg: 60, height_cm: 160, age: 30, goal: 'cut', body_fat_pct: 30, body_fat_source: 'measured',
+      sex: 'female', weight_kg: 80, height_cm: 165, age: 30, goal: 'cut', body_fat_pct: 30, body_fat_source: 'measured',
       sports: [{ type: 'marche_rapide', sessions_per_week: 3, minutes_per_session: 45 }],
     });
     const { profile, flags } = computePlan(p, T);
-    expect(profile.target_carbs_g).toBeLessThan(3 * 60);
+    expect(profile.target_carbs_g).toBeLessThan(3 * 80);
     expect(flags).toContain('CARBS_BELOW_TRAINING_FLOOR');
   });
 
@@ -163,7 +167,9 @@ describe('isTrainingDay — un profil sans séance n\'a pas de jour de séance',
     // relèvement NEAT, le H 70 kg reçoit 222 g de glucides pour un seuil à 210, donc
     // la PRÉCONDITION du test (« la condition de grammes est remplie ») n'était plus
     // vraie. Le test serait passé au vert sans rien vérifier du tout.
-    const CORPS = { sex: 'male' as const, weight_kg: 60, height_cm: 160, age: 30, body_fat_pct: 30, body_fat_source: 'measured' as const };
+    // ⚠️ Changé une 2ᵉ fois le 2026-08-27 (constat 02-01) — même gabarit robuste que le
+    // test ci-dessus, et pour la même raison : la précondition dépendait de Katch.
+    const CORPS = { sex: 'female' as const, weight_kg: 80, height_cm: 165, age: 30, body_fat_pct: 30, body_fat_source: 'measured' as const };
     const SEUIL = 3 * CORPS.weight_kg;
     const body = recalcProfile(makeProfile({ ...CORPS, sports: [] }), T);
 

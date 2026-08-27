@@ -382,6 +382,17 @@ textes abîmés**, pas au corpus entier : les 711 autres n'étaient pas touchés
 
 ## 7 · Les recommandations des P0 qui ne ferment pas leur trou
 
+> ✅ **LES TROIS SONT TRAITÉS le 2026-08-27 (`AGENTS.md` A43), ET CE TABLEAU EST
+> INCOMPLET — il manquait la reco de `02-01`.** La réfutation avait conclu « deux des
+> trois recommandations ne ferment pas leur trou » ; la mesure en trouve **trois sur
+> trois**. Celle de `02-01` — « au-dessus du seuil d'adiposité, servir Mifflin » — ne
+> laisse pas passer un cas : elle en CASSE un. Couper à un seuil FIXE introduit une
+> marche de **571 kcal/j vers le BAS** chez les gabarits lourds (un homme de 160 kg à
+> 30,01 % de MG), donc elle retire des calories aux corps mêmes que le constat protège,
+> et rouvre la discontinuité que `CA-2-01` venait de fermer. Le croisement des deux
+> formules court de **6 à 52 %** de MG selon le gabarit : aucun nombre fixe ne le
+> représente. ➡️ *Une reco peut être fausse sans rien laisser passer.*
+
 | Constat | La reco publiée | Ce qu'elle laisse passer |
 |---|---|---|
 | **02-02** | « une garde d'exhaustivité : les quatre champs du BMR » | Une ligne qui **passe** cette garde rend `target_kcal = NaN` dès que `macro_mode` est NULL — colonne nullable sans défaut. Le balayage H10 ne testait que 9 colonnes sur 40 (`CA-1-03`) |
@@ -407,7 +418,7 @@ qu'un relecteur de store lit avant d'ouvrir le binaire.
 | ~~**0b**~~ | ✅ **Les mineurs** | `CA-8-03` — **livré** (`7cc5571`) : c'est la clause qui a été réécrite, le blocage à l'onboarding étant réel et dur | |
 | ~~**0d**~~ | ✅ **La bascule de jour** | `CA-3-02` — **livré** (`da6d994`) ; il n'avait aucun lot, comme les 17 orphelins de `CA-6-04` | |
 | ~~**0c**~~ | ✅ **Le plancher affiché** | `CA-2-02` — **aucun code changé, et c'est le résultat** : la prémisse (conservation hebdomadaire) est mesurée pour la première fois sur 75 264 profils, 0 violation. Les phrases reçoivent leur périmètre, la propriété devient comptée (`plancherServi.test.ts`) | ⚠️ j'avais classé ce constat 🔴 alors que ma propre réfutation l'avait rétrogradé en mineur |
-| **1′** | 🔴 **LES TROIS P0 — PROCHAIN CHANTIER** | 01-01, 02-01, 02-02 (~~02-03~~ ✅ A40). Vérifiés OUVERTS par mesure le 2026-08-27. ⚠️ **La reco « les quatre champs du BMR » est FAUSSE** : seuls `sex` et `macro_mode` rendent `NaN` ; `weight_kg` et `height_cm` rendent un nombre FINI mais absurde (1500 kcal, 0 g de protéines) qu'aucune garde « pas de NaN » n'attraperait ; `age` dégrade proprement. Détail chiffré : `AGENTS.md` A39 | les recos publiées ne ferment pas leur trou, et l'une désigne les mauvais champs |
+| **1′** | ✅ **LES TROIS P0 — LIVRÉS le 2026-08-27 (`AGENTS.md` A43)** | 01-01, 02-01, 02-02 (~~02-03~~ ✅ A40). **25 mutations, 25 rouges.** 🔴 **LES TROIS RECOS ÉTAIENT FAUSSES, pas deux** : celle de 02-01 désigne un SEUIL d'adiposité là où la règle est le SIGNE de `katch − mifflin` — mesuré, couper au seuil introduit une marche de **571 kcal/j VERS LE BAS** chez les gabarits lourds, donc elle aurait fait manger moins aux corps qu'elle prétendait protéger. Celle de 02-02 oublie `macro_mode` **et** suppose que l'échec se voit : sur cinq colonnes fautives, une seule rend du `NaN`. Celle de 01-01 jetait une inscription en cours (`CA-1-04`). | ce que la réfutation avait annoncé à 2/3, la mesure le porte à 3/3 |
 | **2′** | 🔨 **Décision A** | inchangée, **moins** la tâche `allowBackup`/iOS qui n'existe pas, **plus** l'avertissement `fingerprint` : la ligne OTA se coupe à **chaque** édition d'`app.json`, pas « une fois » (`CA-5-03`) | |
 | **3′** | ⚖️ **Textes publiés** | `legal.ts:208` (rendu faux **par** le correctif 09-01) + Expo au registre + la mention iCloud à retirer | trois textes publiés faux, aucun dans un lot |
 | **7′** | 🧯 **Décision E, re-dimensionnée** | `withBudget` : **9 appels**, pas 6 · `.replace(',','.')` : **8 occurrences**, **3 manques** · **4ᵉ occurrence du motif** : `frnum()` et « 113.5 kg » sur la courbe de poids | un test écrit sur les chiffres publiés passerait au vert avec trois appels nus |

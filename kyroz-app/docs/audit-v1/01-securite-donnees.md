@@ -135,6 +135,18 @@ Aucun bucket Storage n'existe : rien à effacer de ce côté.
 ## Constats
 
 ### 01-01 Un compte peut hériter des données du précédent sur le même appareil
+> ✅ **CORRIGÉ le 2026-08-27** — fiche : `AGENTS.md` **A43**, code : `lib/sessionLocale.ts`,
+> garde-fous : `heritageDeCompte.test.ts` + `sync.test.ts` (10 mutations, 10 rouges).
+> · La purge est devenue une propriété de `signOut()` **et** de l'événement `SIGNED_OUT` —
+>   c'est lui, et lui seul, qui voit les pertes de session INVOLONTAIRES que le constat
+>   nomme. ⚠️ Sur l'ÉVÉNEMENT, jamais sur `s === null` : `INITIAL_SESSION` arrive avec une
+>   session nulle à chaque démarrage sans compte, donc purger là-dessus effacerait
+>   l'inscription en cours à chaque lancement.
+> · L'identité entre en tête de `hydrateFromCloud`, ce qui referme **les cinq domaines**
+>   d'un seul geste — le constat était sous-estimé, comme le contre-audit l'avait mesuré.
+> 🔴 **Mais PAS la garde telle qu'écrite** : l'`id` d'un profil local est
+> `user-<horodatage>`, pas un uid. Appliquée à la lettre, la reco jetait le profil de
+> quelqu'un dont le push a échoué hors ligne juste après l'inscription (`CA-1-04`).
 - **Sévérité : P0**
 - **Preuve** :
   - la purge locale n'existe QUE dans `app/(tabs)/profil.tsx:336-341` (`doLogout`), déclenchée par le bouton « Se déconnecter ». `signOut()` lui-même ne purge rien : `hooks/useAuth.tsx:239` → `await supabase.auth.signOut();`

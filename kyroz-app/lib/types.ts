@@ -149,9 +149,16 @@ export interface EngineNotice {
    * davantage. Sans ce champ, l'écran servirait à l'une l'explication de l'autre :
    * exactement le mensonge que le commentaire d'`EngineNoticeCard` interdit.
    *
+   * ⚠️ La rev 10 en ajoute une troisième (`measured_bmr`), pour la MÊME raison, un
+   * cran plus loin : les rev 8 et 10 font toutes deux MONTER la cible en repartant de
+   * la composition corporelle, mais l'une lit une SILHOUETTE et l'autre une MESURE.
+   * Un compte parti de la rev 7 les traverse toutes les deux, et le trajet
+   * `fromRev → rev` ne dit pas laquelle l'a déplacé. Sans ce champ, l'écran servirait
+   * « ta silhouette indique plus de muscle » à quelqu'un qui a saisi un DEXA.
+   *
    * `undefined` = révision antérieure, ou cause non déterminée → texte générique.
    */
-  cause?: 'floor_lifted' | 'goal_merged';
+  cause?: 'floor_lifted' | 'goal_merged' | 'measured_bmr';
 }
 
 // Sports suivis pour estimer la dépense énergétique (méthode MET, cf. lib/sport.ts).
@@ -332,7 +339,8 @@ export type PlanFlag =
   | 'CARBS_BELOW_TRAINING_FLOOR' // glucides < 3 g/kg un jour de séance
   | 'DIET_BREAK_WEEK'            // semaine à la maintenance, prévue après 8 semaines de déficit
   | 'GOAL_DIRECTION_MISMATCH'    // le poids cible contredit la famille de l'objectif
-  | 'DATED_GOAL_EXPIRED';        // un objectif daté est posé, mais sa date est passée → il ne pilote plus rien
+  | 'DATED_GOAL_EXPIRED'         // un objectif daté est posé, mais sa date est passée → il ne pilote plus rien
+  | 'PROFIL_INCOMPLET';          // il manque un champ de CORPS → le moteur REFUSE de conclure (02-02)
 
 /**
  * Qui a fixé le plancher calorique. Vit ICI et non dans `tdee.ts` parce que

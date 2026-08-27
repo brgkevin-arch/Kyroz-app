@@ -36,6 +36,7 @@ import {
   melangeVersKatch, mifflinRaw, recalcProfile,
 } from '../tdee';
 import type { BmrBody } from '../tdee';
+import { highAdiposity } from '../safety';
 import { exerciseKcalPerDay } from '../sport';
 import { makeProfile } from './helpers';
 import { BodyFatSource, NeatLevel, Sex, SportSession } from '../types';
@@ -83,8 +84,12 @@ describe('2 — les 11 vecteurs du handoff §5, au kcal près', () => {
       b: corps('male', 110, 178, 45, 38, 'estimated'), mifflin: 1992.50, katch: 1843.12, w: 0, servi: 1993 },
     { nom: 'F 95 · 165 · 45 a · 43 % estimé — silhouette plafond ⇒ Mifflin',
       b: corps('female', 95, 165, 45, 43, 'estimated'), mifflin: 1595.25, katch: 1539.64, w: 0, servi: 1595 },
-    { nom: 'H 110 · 178 · 45 a · 38 % MESURÉ — non-régression `measured`',
-      b: corps('male', 110, 178, 45, 38, 'measured'), mifflin: 1992.50, katch: 1843.12, w: null, servi: 1843 },
+    // ⚠️ SERVI CHANGÉ 1843 → 1993 le 2026-08-27 (constat 02-01, rev 10). Les formules
+    // BRUTES ne bougent pas d'un centième — c'est la SÉLECTION qui a changé : ce corps
+    // recevait Katch, soit 149 kcal/j sous Mifflin, parce que son %MG était mesuré. Le
+    // vecteur est conservé tel quel pour que l'écart se lise ici même.
+    { nom: 'H 110 · 178 · 45 a · 38 % MESURÉ — Katch sert MOINS ⇒ Mifflin (rev 10)',
+      b: corps('male', 110, 178, 45, 38, 'measured'), mifflin: 1992.50, katch: 1843.12, w: null, servi: 1993 },
     { nom: 'H 75 · 178 · 30 a · 20 % estimé — même corps que le 1er, silhouette + grasse',
       b: corps('male', 75, 178, 30, 20, 'estimated'), mifflin: 1717.50, katch: 1666.00, w: 0, servi: 1718 },
   ];
@@ -147,12 +152,42 @@ describe('3 — invariants §4, balayés sur 1 344 corps', () => {
     }
   });
 
-  it('non-régression `measured` : Katch exactement, sur toute la grille', () => {
+  // ⚠️ CE TEST DISAIT « `measured` → Katch EXACTEMENT », et c'était la formulation du
+  // défaut 02-01 (P0) : Katch était servi quoi qu'il arrive, y compris là où il rend
+  // 452 kcal/j de MOINS que Mifflin. Le chemin « mesuré » reçoit désormais la même
+  // asymétrie que le chemin « estimé » — sans sa bande morte, qui paie un bruit de
+  // silhouette qu'une mesure n'a pas. Trois invariants, pas un.
+  it('`measured` : Katch quand Katch sert PLUS, Mifflin sinon — et jamais de baisse', () => {
+    let katchServi = 0, mifflinServi = 0;
     for (const b of GRILLE) {
       const bb = { ...b, body_fat_source: 'measured' as const };
-      expect(calculateBMR(bb), `${b.sex} ${b.weight_kg}kg ${b.body_fat_pct}%`)
-        .toBe(Math.round(katchRaw(bb)));
+      const servi = calculateBMR(bb);
+      const cle = `${b.sex} ${b.weight_kg}kg ${b.height_cm}cm ${b.age}a ${b.body_fat_pct}%`;
+      const k = Math.round(katchRaw(bb)), m = Math.round(mifflinRaw(bb));
+      // Invariant 1 — le BMR servi ne descend JAMAIS sous Mifflin. C'est la propriété
+      // de sécurité du constat : là où Katch se trompe, il se trompe vers le bas.
+      expect(servi, cle).toBeGreaterThanOrEqual(m);
+      // Invariant 2 — pas de bande morte : dès que Katch est au-dessus, il est servi
+      // ENTIER (c'est ce qui distingue « mesuré » d'« estimé »).
+      if (katchRaw(bb) > mifflinRaw(bb)) { expect(servi, cle).toBe(k); katchServi++; }
+      else { expect(servi, cle).toBe(m); mifflinServi++; }
     }
+    // Les deux branches sont réellement empruntées : sans ça, les invariants
+    // ci-dessus pourraient tenir sur une grille qui n'exerce qu'un seul chemin.
+    expect(katchServi).toBeGreaterThan(100);
+    expect(mifflinServi).toBeGreaterThan(100);
+  });
+
+  // ⚠️ Le contre-exemple qui tue la reco publiée (« au-dessus du seuil d'adiposité,
+  // servir Mifflin ») : un gabarit lourd au-dessus du seuil dont Katch sert PLUS.
+  // Couper au seuil lui retirerait des centaines de kcal — au corps même que le
+  // constat voulait protéger.
+  it('au-dessus du seuil d’adiposité, Katch reste servi quand il sert PLUS', () => {
+    const b = { sex: 'male' as const, weight_kg: 110, height_cm: 160, age: 25,
+      body_fat_pct: 31, body_fat_source: 'measured' as const };
+    expect(highAdiposity(b)).toBe(true);              // au-dessus du seuil…
+    expect(katchRaw(b)).toBeGreaterThan(mifflinRaw(b)); // …mais Katch sert plus…
+    expect(calculateBMR(b)).toBe(Math.round(katchRaw(b))); // …donc Katch est servi.
   });
 });
 
@@ -215,10 +250,15 @@ describe('6 — migration rev 7 → 8 : la cible monte, et l\'avertissement dit 
 
   it('l\'avertissement one-shot part, sans recevoir un texte de la rev 7', () => {
     // ⚠️ Épinglé exprès : un bump doit faire venir quelqu'un LIRE ce test.
-    // 9 depuis le 2026-08-27 — retrait progressif des planchers au seuil
-    // d'adiposité (contre-audit CA-2-01). Le trajet rev 7 → courant testé ici
-    // ne change pas de nature : sa cause reste indéfinie.
-    expect(ENGINE_REV).toBe(9);
+    // 10 depuis le 2026-08-27 — le chemin « %MG MESURÉ » cesse de servir Katch là où
+    // Katch rend moins que Mifflin (constat 02-01, P0). Le corps testé ici est
+    // `estimated` : la rev 10 ne le touche pas, et le trajet rev 7 → courant ne change
+    // pas de nature. ⚠️ Sa cause doit rester INDÉFINIE, et c'est ce qui se vérifie plus
+    // bas : la rev 10 introduit `measured_bmr`, qui ne doit pas déborder sur un profil
+    // dont le %MG est estimé — c'est le moteur qui décide (`katchEligible`), pas le
+    // trajet.
+    // 9 le 2026-08-27 — retrait progressif des planchers au seuil d'adiposité (CA-2-01).
+    expect(ENGINE_REV).toBe(10);
     const apres = recalcProfile(p, T);
     // Sous l'ancienne règle (rev 7), ce corps calculait en Mifflin pur.
     const ancienBmr = Math.round(mifflinRaw(p));

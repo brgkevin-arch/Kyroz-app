@@ -1,4 +1,5 @@
 import { UserProfile } from './types';
+import { champsMesuresManquants, normalizeMacroMode } from './profilComplet';
 import {
   normalizeCalorieBank, normalizeGoal, normalizeMeals, normalizeMealSlots,
   normalizeProfileActivity, normalizeVariety,
@@ -77,7 +78,7 @@ export function bootProfile(
   try {
     stored = raw
       ? normalizeCalorieBank(normalizeMeals(normalizeMealSlots(normalizeVariety(
-          normalizeGoal(normalizeProfileActivity(JSON.parse(raw)))))))
+          normalizeMacroMode(normalizeGoal(normalizeProfileActivity(JSON.parse(raw))))))))
       : null;
   } catch (e) {
     return {
@@ -87,6 +88,27 @@ export function bootProfile(
   }
 
   if (!stored) return { profile: null, stored: null, warn: null, degraded: false };
+
+  // ── Un profil sans CORPS ne se sert pas (constat 02-02, P0) ───────────────
+  //
+  // 🔴 `app/index.tsx` route sur la seule EXISTENCE du profil : `profile ? plan :
+  // onboarding`. Un profil présent mais amputé de son poids ou de son sexe partait donc
+  // vers l'écran Plan, qui affichait `NaN` — ou pire, 1500 kcal et zéro gramme de
+  // protéines, qui ne se voient pas.
+  //
+  // ⚠️ **REFUSER DE SERVIR N'EST PAS EFFACER.** `stored` ressort intact, donc l'appelant
+  // ne réécrit rien, et rien n'est purgé : favoris, pesées, réserve et série survivent.
+  // La personne repasse par l'inscription, qui est exactement l'endroit où l'on redemande
+  // un poids et une taille. C'est la seule destination qui a un sens : il n'existe aucune
+  // valeur par défaut pour un corps.
+  const manquants = champsMesuresManquants(stored);
+  if (manquants.length) {
+    return {
+      profile: null, stored, degraded: false,
+      warn: `profil local INCOMPLET — champs de corps manquants : ${manquants.join(', ')}. `
+        + 'Non servi (et NON écrasé) : le moteur ne peut pas produire de plan sans corps.',
+    };
+  }
 
   try {
     return { profile: recalc(stored), stored, warn: null, degraded: false };

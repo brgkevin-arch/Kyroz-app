@@ -28,9 +28,56 @@ const sansCommentaires = (src: string) =>
   src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
 
 const profil = sansCommentaires(readFileSync(join(RACINE, 'app', '(tabs)', 'profil.tsx'), 'utf8'));
+const sessionLocale = sansCommentaires(readFileSync(join(RACINE, 'lib', 'sessionLocale.ts'), 'utf8'));
+const effetsPurge = sansCommentaires(readFileSync(join(RACINE, 'lib', 'effetsPurge.ts'), 'utf8'));
+const useAuth = sansCommentaires(readFileSync(join(RACINE, 'hooks', 'useAuth.tsx'), 'utf8'));
 const notifs = sansCommentaires(readFileSync(join(RACINE, 'lib', 'notifications.ts'), 'utf8'));
 const photos = sansCommentaires(readFileSync(join(RACINE, 'lib', 'photos.ts'), 'utf8'));
 const weightLog = sansCommentaires(readFileSync(join(RACINE, 'hooks', 'useWeightLog.ts'), 'utf8'));
+
+/**
+ * 🔴 **LA PURGE A DÉMÉNAGÉ LE 2026-08-27 (constat 01-01), ET CE FICHIER LA SUIT.**
+ *
+ * Elle vivait dans `doLogout` — recopiée à l'identique dans `doDelete` — donc `signOut()`
+ * ne purgeait rien, et aucun chemin de perte de session INVOLONTAIRE n'effaçait quoi que
+ * ce soit. Elle est devenue une propriété de `signOut()`, partagée avec l'événement
+ * `SIGNED_OUT` (`lib/sessionLocale.ts::purgerSessionLocale`).
+ *
+ * ⚠️ **Le recensement par RÔLE reste le bon principe — il devait juste apprendre à
+ * suivre la DÉLÉGATION.** Chercher `cancelWeighInReminder` dans `doLogout` après le
+ * déménagement rend `false` : la propriété est intacte, la sonde ne la voit plus. C'est
+ * exactement le défaut « un garde-fou nommé d'après une implémentation meurt le jour où
+ * on en change » (CLAUDE.md §8). Le corps EFFECTIF d'un chemin inclut donc ce que fait
+ * la fonction à laquelle il délègue — et la chaîne est vérifiée maillon par maillon
+ * plus bas, pour qu'un `signOut` vidé de sa purge ne passe pas au travers.
+ */
+function corpsEffectif(corps: string): string {
+  if (!/await\s+signOut\(\)/.test(corps)) return corps;
+  // ⚠️ **ON N'INLINE QUE SI LE MAILLON EXISTE VRAIMENT.** Recopier la purge dès qu'on
+  // voit `signOut()` ferait passer un `signOut` vidé de sa substance — la sonde
+  // affirmerait une propriété qu'elle n'a pas vérifiée, ce qui est pire que de ne rien
+  // affirmer. `signOutPurge` est calculé sur la SOURCE de `hooks/useAuth.tsx`.
+  return signOutPurge ? corps + '\n' + purgeInlinee : corps;
+}
+
+/** `signOut()` appelle-t-il RÉELLEMENT la purge ? Premier maillon de la chaîne. */
+const signOutPurge = (() => {
+  const i = useAuth.indexOf('const signOut =');
+  if (i < 0) throw new Error('signOut INTROUVABLE dans useAuth.tsx — la sonde est cassée');
+  return /purgerSessionLocale\(/.test(useAuth.slice(i, i + 400));
+})();
+
+/** Le corps de `purgerSessionLocale`, ses effets injectés RÉSOLUS en vrais noms. */
+const purgeInlinee = (() => {
+  const bloc = /export async function purgerSessionLocale[\s\S]*?\n}/.exec(sessionLocale)?.[0] ?? '';
+  if (!bloc) throw new Error('purgerSessionLocale INTROUVABLE — la sonde est cassée, pas le code');
+  const photos = /photos:\s*(\w+)/.exec(effetsPurge)?.[1] ?? '';
+  const pesee = /notificationPesee:\s*(\w+)/.exec(effetsPurge)?.[1] ?? '';
+  if (!photos || !pesee) throw new Error('EFFETS_PURGE illisible — la sonde est cassée');
+  return bloc
+    .replace(/effets\.photos\(\)/g, `${photos}()`)
+    .replace(/effets\.notificationPesee\(\)/g, `${pesee}()`);
+})();
 
 /** Corps de chaque `const <nom> = async () => { … }`, par appariement d'accolades. */
 function fonctionsFlechees(src: string): { nom: string; corps: string }[] {
@@ -53,7 +100,9 @@ function fonctionsFlechees(src: string): { nom: string; corps: string }[] {
 describe('sortie de session — aucun chemin ne laisse une notification armée', () => {
   // `clearProfile()` est la signature d'une sortie : c'est le geste qui retire
   // du téléphone la personne à qui les rappels s'adressent.
-  const sorties = fonctionsFlechees(profil).filter((f) => f.corps.includes('clearProfile()'));
+  const sorties = fonctionsFlechees(profil)
+    .filter((f) => f.corps.includes('clearProfile()'))
+    .map((f) => ({ nom: f.nom, corps: corpsEffectif(f.corps) }));
 
   it('les chemins de sortie de `profil.tsx` sont bien ceux qu’on croit', () => {
     // Si ce compte bouge, c'est qu'un chemin est né ou a disparu : le test
@@ -83,7 +132,11 @@ describe('sortie de session — aucun chemin ne laisse une notification armée',
     // Tout éteindre ici l'effacerait sans que personne ne le ré-arme.
     expect(doLogout).toMatch(/await\s+cancelWeighInReminder\(\)/);
     expect(doLogout).not.toMatch(/cancelAllReminders/);
-    expect(doLogout).toMatch(/'@kyroz:reminder'/);
+    // ⚠️ La liste blanche a déménagé avec la purge : elle vit dans
+    // `sessionLocale.ts::CLES_CONSERVEES`, et c'est `heritageDeCompte.test.ts` qui en
+    // fige le contenu. Ici on vérifie seulement que la clé y est — sinon la promesse
+    // « le rappel quotidien survit à la déconnexion » deviendrait fausse en silence.
+    expect(sessionLocale).toMatch(/CLES_CONSERVEES[\s\S]{0,120}'@kyroz:reminder'/);
   });
 
   it('l’extinction précède la purge — l’ordre est ce qui la rend possible', () => {
@@ -134,7 +187,9 @@ describe('notifications — l’extinction totale est réservée à l’effaceme
 // n'enregistre qu'une carte `date → URI`. Effacer la carte laisse donc les
 // octets — des photos de corps, en clair, que plus rien ne désigne.
 describe('sortie de session — les photos de progression partent avec le reste', () => {
-  const sorties = fonctionsFlechees(profil).filter((f) => f.corps.includes('clearProfile()'));
+  const sorties = fonctionsFlechees(profil)
+    .filter((f) => f.corps.includes('clearProfile()'))
+    .map((f) => ({ nom: f.nom, corps: corpsEffectif(f.corps) }));
 
   it('🔴 CHAQUE chemin de sortie efface les fichiers, pas seulement la carte', () => {
     for (const { nom, corps } of sorties) {

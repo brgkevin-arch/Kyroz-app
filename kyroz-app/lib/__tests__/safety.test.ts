@@ -222,7 +222,7 @@ describe('P0.1 — plancher d\'énergie disponible', () => {
       body_fat_pct: 35, body_fat_source: 'measured', goal: 'cut', macro_mode: 'auto', sports: [],
     }), TODAY);
     const plan = computePlan(p, TODAY);
-    const c = plan.clamp.candidates;
+    const c = plan.clamp!.candidates;
     expect(c.bmr).toBe(0);
     expect(c.energy_availability).toBe(0);
     // Ce qui reste, et il en faut DEUX : le filet absolu et le cap à 25 % du TDEE.
@@ -244,7 +244,7 @@ describe('P0.1 — plancher d\'énergie disponible', () => {
       sex: 'male', age: 35, weight_kg: 123, height_cm: 180,
       body_fat_pct: pct, body_fat_source: 'measured', goal: 'cut', macro_mode: 'auto', sports: [],
     }), TODAY);
-    const sous = computePlan(corps(30), TODAY).clamp.candidates;
+    const sous = computePlan(corps(30), TODAY).clamp!.candidates;
     expect(sous.bmr).toBeGreaterThan(0);
     expect(sous.energy_availability).toBeGreaterThan(0);
     // Et la MARGE réellement autorisée s'ouvre en franchissant le seuil : c'est
@@ -1004,7 +1004,10 @@ describe('trace du clamp — quel plancher a gagné, et de combien (2026-07-31)'
   };
 
   it('nomme le plancher retenu et chiffre l\'écart', () => {
-    const { clamp, floor_kcal, profile } = computePlan(makeProfile(contraint), TODAY);
+    const { clamp: _clamp, floor_kcal, profile } = computePlan(makeProfile(contraint), TODAY);
+    // ⚠️ `clamp` est optionnel depuis 02-02 : `undefined` = le moteur a REFUSÉ de
+    // conclure (profil incomplet). Ce profil-ci est complet, donc il est là.
+    const clamp = _clamp!;
     expect(clamp.floorBinding).toBe(true);
     expect(clamp.source).toBe('energy_availability'); // ← ce que le booléen ne disait pas
     expect(clamp.clampedByKcal).toBeGreaterThan(0);   // l'écart, plus jamais silencieux
@@ -1019,7 +1022,10 @@ describe('trace du clamp — quel plancher a gagné, et de combien (2026-07-31)'
     // C'est le profil qui avait fait remonter le sujet : « on sert 2112 pour une
     // demande à 1994 ». Depuis le relèvement de `desk` à 1,30, la demande passe à
     // 2170 et le plancher (2112) ne la rattrape plus.
-    const { clamp, profile } = computePlan(makeProfile({ ...corps, sex: 'female' }), TODAY);
+    const { clamp: _clamp, profile } = computePlan(makeProfile({ ...corps, sex: 'female' }), TODAY);
+    // ⚠️ `clamp` est optionnel depuis 02-02 : `undefined` = le moteur a REFUSÉ de
+    // conclure (profil incomplet). Ce profil-ci est complet, donc il est là.
+    const clamp = _clamp!;
     expect(clamp.floorBinding).toBe(false);
     expect(clamp.clampedByKcal).toBe(0);
     expect(profile.target_kcal - profile.tdee_kcal).toBe(-300);  // les −300 promis, servis
@@ -1029,7 +1035,10 @@ describe('trace du clamp — quel plancher a gagné, et de combien (2026-07-31)'
   });
 
   it('expose TOUS les candidats, y compris les perdants', () => {
-    const { clamp } = computePlan(makeProfile({ ...corps, sex: 'female' }), TODAY);
+    const { clamp: _clamp } = computePlan(makeProfile({ ...corps, sex: 'female' }), TODAY);
+    // ⚠️ `clamp` est optionnel depuis 02-02 : `undefined` = le moteur a REFUSÉ de
+    // conclure (profil incomplet). Ce profil-ci est complet, donc il est là.
+    const clamp = _clamp!;
     expect(clamp.candidates).toEqual({
       bmr: 1752,
       energy_availability: 2112,      // 30 × 64 kg de masse maigre + 192 de sport
@@ -1045,7 +1054,10 @@ describe('trace du clamp — quel plancher a gagné, et de combien (2026-07-31)'
 
   it('quand rien ne mord, la source est null et l\'écart nul', () => {
     // Maintien : aucun déficit demandé, donc aucun plancher à opposer.
-    const { clamp } = computePlan(makeProfile({ ...corps, sex: 'male', goal: 'maintain' }), TODAY);
+    const { clamp: _clamp } = computePlan(makeProfile({ ...corps, sex: 'male', goal: 'maintain' }), TODAY);
+    // ⚠️ `clamp` est optionnel depuis 02-02 : `undefined` = le moteur a REFUSÉ de
+    // conclure (profil incomplet). Ce profil-ci est complet, donc il est là.
+    const clamp = _clamp!;
     expect(clamp.floorBinding).toBe(false);
     expect(clamp.clampedByKcal).toBe(0);
     expect(clamp.servedKcal).toBe(clamp.requestedKcal);
@@ -1055,19 +1067,25 @@ describe('trace du clamp — quel plancher a gagné, et de combien (2026-07-31)'
 
   it('sait nommer un AUTRE plancher que l\'énergie disponible', () => {
     // Gabarit léger : 30 × masse maigre tombe sous le filet absolu, c'est lui qui gagne.
-    const { clamp } = computePlan(makeProfile({
+    const { clamp: _clamp } = computePlan(makeProfile({
       sex: 'female', age: 30, weight_kg: 42, height_cm: 150,
       goal: 'cut', macro_mode: 'auto', training_days_per_week: 0, sports: [],
     }), TODAY);
+    // ⚠️ `clamp` est optionnel depuis 02-02 : `undefined` = le moteur a REFUSÉ de
+    // conclure (profil incomplet). Ce profil-ci est complet, donc il est là.
+    const clamp = _clamp!;
     expect(clamp.source).toBe('min_kcal');
     expect(clamp.servedKcal).toBe(MIN_KCAL.female);
   });
 
   it('la trace reste vraie en mode manual (recharge glucides arrondie au gramme)', () => {
-    const { clamp, profile } = computePlan(makeProfile({
+    const { clamp: _clamp, profile } = computePlan(makeProfile({
       ...corps, sex: 'female', macro_mode: 'manual',
       target_kcal: 1200, target_protein_g: 150, target_carbs_g: 50, target_fat_g: 40,
     }), TODAY);
+    // ⚠️ `clamp` est optionnel depuis 02-02 : `undefined` = le moteur a REFUSÉ de
+    // conclure (profil incomplet). Ce profil-ci est complet, donc il est là.
+    const clamp = _clamp!;
     expect(clamp.servedKcal).toBe(profile.target_kcal);   // le nombre servi, pas un autre
     expect(clamp.clampedByKcal).toBe(clamp.servedKcal - clamp.requestedKcal);
     expect(clamp.source).toBe('energy_availability');
@@ -1120,9 +1138,9 @@ describe('UserProfile.clamp — RETIRÉ du profil (A8, 2026-08-04)', () => {
     // Ce que le retrait ne coûte pas : l'information existe toujours, plus riche
     // (candidats de diagnostic compris), là où l'écran la lit déjà.
     const plan = computePlan(makeProfile({ ...corps, sex: 'male' }), TODAY)!;
-    expect(plan.clamp.floorBinding).toBe(true);
-    expect(plan.clamp.source).toBe('energy_availability');
-    expect(plan.clamp.servedKcal).toBe(plan.profile.target_kcal);
+    expect(plan.clamp!.floorBinding).toBe(true);
+    expect(plan.clamp!.source).toBe('energy_availability');
+    expect(plan.clamp!.servedKcal).toBe(plan.profile.target_kcal);
     expect(plan.clamp).toHaveProperty('candidates');
   });
 
@@ -1155,28 +1173,31 @@ describe('RÉGRESSION — état vs transition : le mode manual (revue adverse 20
     const trois = computePlan(deux.profile, TODAY);
 
     // La transition s'éteint dès le 2e passage — c'est normal et attendu.
-    expect(un.clamp.clampedByKcal).toBeGreaterThan(0);
-    expect(deux.clamp.clampedByKcal).toBe(0);
+    expect(un.clamp!.clampedByKcal).toBeGreaterThan(0);
+    expect(deux.clamp!.clampedByKcal).toBe(0);
 
     // …mais l'ÉTAT ne bouge pas : c'est lui qui pilote l'affichage.
     for (const r of [un, deux, trois]) {
-      expect(r.clamp.floorBinding).toBe(true);
+      expect(r.clamp!.floorBinding).toBe(true);
       expect(r.flags).toContain('FLOOR_APPLIED');
       // Un seul prédicat pour une seule question : l'écran ne peut pas contredire
       // le drapeau, quel que soit le mode de macros.
-      expect(r.clamp.floorBinding).toBe(r.flags.includes('FLOOR_APPLIED'));
+      expect(r.clamp!.floorBinding).toBe(r.flags.includes('FLOOR_APPLIED'));
       // …et le plancher reste NOMMÉ, sinon l'écran tomberait dans sa branche par
       // défaut et annoncerait le mauvais plancher (mensonge, pas imprécision).
-      expect(r.clamp.source).toBe('energy_availability');
+      expect(r.clamp!.source).toBe('energy_availability');
     }
   });
 
   it('`source` est renseignée même sans clamp, et désigne toujours le bon candidat', () => {
     for (const goal of ['cut', 'maintain', 'lean_bulk', 'bulk'] as const) {
-      const { clamp } = computePlan(makeProfile({
+      const { clamp: _clamp } = computePlan(makeProfile({
         sex: 'male', age: 35, weight_kg: 80, height_cm: 178, body_fat_pct: 20,
         goal, macro_mode: 'auto', training_days_per_week: 0, sports: [],
       }), TODAY);
+    // ⚠️ `clamp` est optionnel depuis 02-02 : `undefined` = le moteur a REFUSÉ de
+    // conclure (profil incomplet). Ce profil-ci est complet, donc il est là.
+    const clamp = _clamp!;
       expect(clamp.source, goal).toBeTruthy();
       expect(clamp.candidates[clamp.source], goal).toBe(clamp.floorKcal);
       expect(Math.max(...Object.values(clamp.candidates)), goal).toBe(clamp.floorKcal);
@@ -1197,8 +1218,8 @@ describe('RÉGRESSION — état vs transition : le mode manual (revue adverse 20
     ];
     for (const c of cas) {
       const r = computePlan(makeProfile({ age: 35, macro_mode: 'auto', training_days_per_week: 0, sports: [], ...c }), TODAY);
-      expect(r.clamp.floorBinding, JSON.stringify(c)).toBe(r.flags.includes('FLOOR_APPLIED'));
-      if (r.clamp.floorBinding) expect(r.clamp.servedKcal).toBe(r.profile.target_kcal);
+      expect(r.clamp!.floorBinding, JSON.stringify(c)).toBe(r.flags.includes('FLOOR_APPLIED'));
+      if (r.clamp!.floorBinding) expect(r.clamp!.servedKcal).toBe(r.profile.target_kcal);
       // Et le champ retiré ne revient par aucune porte.
       expect('clamp' in r.profile, JSON.stringify(c)).toBe(false);
     }

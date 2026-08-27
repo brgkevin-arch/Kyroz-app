@@ -135,6 +135,7 @@ function cloudRow(over: Record<string, any> = {}): Record<string, any> {
 
 beforeEach(async () => {
   await AsyncStorage.clear();
+  purges = 0;
   state.uid = 'user-1';
   state.rows = {};
   state.errors = {};
@@ -147,13 +148,29 @@ afterEach(() => vi.clearAllMocks());
 
 const opsOn = (table: string) => state.calls.filter((c) => c.table === table).map((c) => c.op);
 
+/**
+ * La purge locale, injectée dans `hydrateFromCloud` (constat 01-01).
+ *
+ * ⚠️ Elle est un PARAMÈTRE REQUIS et pas un import : sa composition réelle
+ * (`lib/effetsPurge.ts`) tire `expo-notifications` et `expo-file-system`, que cette
+ * suite ne charge pas. C'est ce qui permet à la garde d'identité de vivre DANS
+ * `sync.ts` — donc d'être exercée ici, sur l'orchestration réelle.
+ */
+let purges = 0;
+const purger = async () => {
+  purges++;
+  const cles = await AsyncStorage.getAllKeys();
+  await AsyncStorage.multiRemove(cles.filter((k) => !['@kyroz:theme', '@kyroz:reminder'].includes(k)));
+};
+const hydrate = (uid: string) => hydrateFromCloud(uid, purger);
+
 // ─────────────────────────────────────────────────────────────────────────────
 describe('hydratation du profil — les 4 branches telles qu’orchestrées par sync.ts', () => {
   it('cloud + local NON sale → pull_cloud : le local est remplacé', async () => {
     await write(PROFILE_KEY, profile({ weight_kg: 80 }));
     state.rows.profiles = cloudRow({ weight_kg: 90 });
 
-    await hydrateFromCloud('user-1');
+    await hydrate('user-1');
 
     expect((await read(PROFILE_KEY)).weight_kg).toBe(90);
   });
@@ -163,7 +180,7 @@ describe('hydratation du profil — les 4 branches telles qu’orchestrées par 
     await markProfileDirty();
     state.rows.profiles = cloudRow({ weight_kg: 90 });
 
-    await hydrateFromCloud('user-1');
+    await hydrate('user-1');
 
     expect((await read(PROFILE_KEY)).weight_kg).toBe(80);
     expect(opsOn('profiles')).toContain('upsert');
@@ -173,7 +190,7 @@ describe('hydratation du profil — les 4 branches telles qu’orchestrées par 
     await write(PROFILE_KEY, profile({ weight_kg: 80 }));
     state.rows.profiles = null;
 
-    await hydrateFromCloud('user-1');
+    await hydrate('user-1');
 
     expect((await read(PROFILE_KEY)).weight_kg).toBe(80);
     expect(opsOn('profiles')).toContain('upsert');
@@ -182,22 +199,156 @@ describe('hydratation du profil — les 4 branches telles qu’orchestrées par 
   it('ni cloud ni local → noop : aucune écriture', async () => {
     state.rows.profiles = null;
 
-    await hydrateFromCloud('user-1');
+    await hydrate('user-1');
 
     expect(await read(PROFILE_KEY)).toBeNull();
     expect(opsOn('profiles')).not.toContain('upsert');
   });
 
-  it('une ligne cloud SANS `sex` ne compte pas comme un profil (hasCloud teste row.sex)', async () => {
+  // ⚠️ TITRE CHANGÉ le 2026-08-27 : `hasCloud` ne teste plus `row.sex` mais les quatre
+  // champs de CORPS (constat 02-02). Le comportement décrit ici est inchangé et le
+  // périmètre s'est élargi — cf. le test suivant, qui était le trou.
+  it('une ligne cloud SANS `sex` ne compte pas comme un profil', async () => {
     await write(PROFILE_KEY, profile({ weight_kg: 80 }));
     state.rows.profiles = cloudRow({ sex: null });
 
-    await hydrateFromCloud('user-1');
+    await hydrate('user-1');
 
     // Traité comme « pas de cloud » → push_local, le local est conservé.
     expect((await read(PROFILE_KEY)).weight_kg).toBe(80);
     expect(opsOn('profiles')).toContain('upsert');
   });
+
+  it('🔴 une ligne cloud AVEC `sex` mais SANS corps ne l’est pas non plus (02-02)', async () => {
+    // C'est EXACTEMENT la ligne du constat : elle passait l'ancienne garde, écrasait le
+    // local, et sortait un plan entièrement NaN en émettant `LOW_EA_WARNING`.
+    await write(PROFILE_KEY, profile({ weight_kg: 80 }));
+    state.rows.profiles = cloudRow({ sex: 'male', age: null, weight_kg: null, height_cm: null });
+
+    await hydrate('user-1');
+
+    expect((await read(PROFILE_KEY)).weight_kg).toBe(80);   // le local a survécu
+    expect(opsOn('profiles')).toContain('upsert');          // et il repart au cloud
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+describe('01-01 (P0) — un compte n’hérite JAMAIS des données du précédent', () => {
+  // 🔴 Le constat était SOUS-ESTIMÉ, et le contre-audit l'a mesuré : ce n'est pas le
+  // profil, ce sont CINQ domaines. Quand la ligne cloud du compte entrant est vide,
+  // favoris, réserve, pesées et recettes personnalisées du compte précédent sont
+  // POUSSÉS dans son cloud — et pesées, série et recettes sont FUSIONNÉES, donc le
+  // mélange devient permanent des deux côtés. Le transfert ne demande même pas que le
+  // profil soit marqué « à pousser ».
+
+  const poserToutLeLocal = async (id: string) => {
+    await write(PROFILE_KEY, profile({ id, weight_kg: 80 } as never));
+    await write(FAV_KEY, ['rep1', 'rep2']);
+    await write(PANTRY_KEY, [{ name: 'riz', qty: 1, unit: 'kg' }]);
+    await write(WEIGHT_KEY, [{ date: '2026-08-01', kg: 80 }]);
+    await write(OVERRIDES_KEY, { rep1: { id: 'rep1' } });
+    await write(STREAK_KEY, { current: 12, best: 12 });
+  };
+
+  it('le profil d’un AUTRE compte ne s’affiche pas et ne part pas au cloud', async () => {
+    await poserToutLeLocal('uid-de-A');
+    state.rows.profiles = null;              // le compte B n'a encore rien au cloud
+
+    await hydrate('uid-de-B');
+
+    expect(purges).toBe(1);
+    expect(await read(PROFILE_KEY)).toBeNull();
+    // ⚠️ L'assertion qui compte : RIEN de A n'est monté dans le compte de B.
+    expect(opsOn('profiles')).not.toContain('upsert');
+  });
+
+  it('🔴 et les QUATRE autres domaines non plus — c’est ce que l’audit ratait', async () => {
+    await poserToutLeLocal('uid-de-A');
+    state.rows.profiles = null;
+    state.rows.favorites = null; state.rows.pantry = null;
+    state.rows.weight_logs = null; state.rows.recipe_overrides = null;
+    state.rows.streaks = null;
+
+    await hydrate('uid-de-B');
+
+    for (const table of ['favorites', 'pantry', 'weight_logs', 'recipe_overrides', 'streaks']) {
+      expect(opsOn(table), `${table} : des données de A sont montées chez B`)
+        .not.toContain('upsert');
+      expect(opsOn(table), `${table} : des données de A sont montées chez B`)
+        .not.toContain('insert');
+    }
+  });
+
+  it('🔴 un local marqué « à pousser » ne l’emporte PAS sur l’identité', async () => {
+    // C'était le pire cas du constat : `keep_local` → `pushProfile(local)` → le profil
+    // de A ÉCRIT dans la ligne cloud de B. Les données de A sont perdues, et c'est
+    // assumé : sa session n'existe plus, aucun chemin ne permet de les lui rendre, et
+    // les garder ferait lire ses données de santé par quelqu'un d'autre.
+    await poserToutLeLocal('uid-de-A');
+    await markProfileDirty();
+    state.rows.profiles = null;
+
+    await hydrate('uid-de-B');
+
+    expect(purges).toBe(1);
+    expect(opsOn('profiles')).not.toContain('upsert');
+  });
+
+  it('le MÊME compte ne se fait pas purger — la garde n’est pas un mur', async () => {
+    await poserToutLeLocal('uid-de-A');
+    state.rows.profiles = null;
+
+    await hydrate('uid-de-A');
+
+    expect(purges).toBe(0);
+    expect((await read(PROFILE_KEY)).weight_kg).toBe(80);
+    expect(opsOn('profiles')).toContain('upsert');   // et il repart bien au cloud
+  });
+
+  it('🔴 UNE INSCRIPTION EN COURS SURVIT — la reco publiée la jetait (CA-1-04)', async () => {
+    // « un `@kyroz:profile` dont l'`id` diffère de l'`uid` entrant se jette » : appliqué
+    // à la lettre, ça détruit le profil de quelqu'un dont le push a échoué hors ligne
+    // juste après l'inscription. Son `id` est `user-<horodatage>`, pas un uid.
+    await poserToutLeLocal(`user-${1756300000000}`);
+    await markProfileDirty();
+    state.rows.profiles = null;
+
+    await hydrate('uid-de-A');
+
+    expect(purges).toBe(0);
+    expect((await read(PROFILE_KEY)).weight_kg).toBe(80);
+    expect(opsOn('profiles')).toContain('upsert');   // et l'inscription part enfin au cloud
+  });
+
+  it('🔴 une purge qui ÉCHOUE ARRÊTE l’hydratation, elle ne la laisse pas continuer', async () => {
+    // ⚠️ **CE TEST EXISTE PARCE QUE LE DÉFAUT A EXISTÉ, ici même.** La purge était dans
+    // le `try` de la lecture du profil : quand elle jetait, le `catch` l'avalait et
+    // l'hydratation se déroulait comme si de rien n'était — donc poussait les données de
+    // A dans le compte de B. La garde cessait de garder EN SILENCE. Trouvé parce que le
+    // mock d'AsyncStorage n'avait pas `getAllKeys` : l'appel jetait, et trois assertions
+    // de ce fichier passaient quand même.
+    await poserToutLeLocal('uid-de-A');
+    state.rows.profiles = null;
+    const casse = async () => { throw new Error('purge impossible'); };
+
+    await hydrateFromCloud('uid-de-B', casse);
+
+    // Rien n'est monté nulle part : mieux vaut une synchro manquée qu'une fuite.
+    for (const table of ['profiles', 'favorites', 'pantry', 'weight_logs', 'recipe_overrides', 'streaks']) {
+      expect(opsOn(table), table).not.toContain('upsert');
+      expect(opsOn(table), table).not.toContain('insert');
+    }
+  });
+
+  it('un profil local ILLISIBLE ne déclenche pas de purge — on ne détruit pas sur une panne', async () => {
+    await AsyncStorage.setItem(PROFILE_KEY, '{ ceci n\'est pas du JSON');
+    state.rows.profiles = null;
+
+    await hydrate('uid-de-B');
+
+    expect(purges).toBe(0);
+  });
+
 
   it('les 3 réconciliations repêchent les champs cumulatifs d’une ligne cloud partielle', async () => {
     const sports = [{ type: 'muscu', sessions_per_week: 3, minutes_per_session: 60 }];
@@ -209,7 +360,7 @@ describe('hydratation du profil — les 4 branches telles qu’orchestrées par 
     // Ligne cloud antérieure aux migrations : ces trois colonnes sont nulles.
     state.rows.profiles = cloudRow({ sports: null, neat_level: null, low_ea_weeks: null });
 
-    await hydrateFromCloud('user-1');
+    await hydrate('user-1');
 
     const got = await read(PROFILE_KEY);
     expect(got.sports).toEqual(sports);              // reconcileCloudSports
@@ -226,7 +377,7 @@ describe('hydratation du profil — les 4 branches telles qu’orchestrées par 
     await write(PROFILE_KEY, profile({ is_post_menopausal: true } as any));
     state.rows.profiles = cloudRow();
 
-    await hydrateFromCloud('user-1');
+    await hydrate('user-1');
 
     expect((await read(PROFILE_KEY)).is_post_menopausal).toBe(true);
   });
@@ -235,7 +386,7 @@ describe('hydratation du profil — les 4 branches telles qu’orchestrées par 
     await write(PROFILE_KEY, profile({ weight_kg: 80, is_post_menopausal: true } as any));
     state.rows.profiles = cloudRow({ weight_kg: 90 });
 
-    await hydrateFromCloud('user-1');
+    await hydrate('user-1');
 
     const got = await read(PROFILE_KEY);
     expect(got.weight_kg).toBe(90);          // colonne synchronisée → le cloud gagne
@@ -319,7 +470,7 @@ describe('hydratation des 5 autres domaines — 3 états du cloud chacun', () =>
         await write(d.key, d.local);
         state.rows[d.table] = d.cloudPlein;
 
-        await hydrateFromCloud('user-1');
+        await hydrate('user-1');
 
         d.attenduSiCloudPlein(await read(d.key));
       });
@@ -328,7 +479,7 @@ describe('hydratation des 5 autres domaines — 3 états du cloud chacun', () =>
         await write(d.key, d.local);
         state.rows[d.table] = d.cloudVide;
 
-        await hydrateFromCloud('user-1');
+        await hydrate('user-1');
 
         d.attenduSiLocalGarde(await read(d.key));
         expect(opsOn(d.table)).toContain(d.pushOp);
@@ -338,7 +489,7 @@ describe('hydratation des 5 autres domaines — 3 états du cloud chacun', () =>
         await write(d.key, d.local);
         state.rows[d.table] = null;
 
-        await hydrateFromCloud('user-1');
+        await hydrate('user-1');
 
         d.attenduSiLocalGarde(await read(d.key));
       });
@@ -346,7 +497,7 @@ describe('hydratation des 5 autres domaines — 3 états du cloud chacun', () =>
       it('cloud NON VIDE + local vide → le cloud remplit le local', async () => {
         state.rows[d.table] = d.cloudPlein;
 
-        await hydrateFromCloud('user-1');
+        await hydrate('user-1');
 
         // Sans rien en local, fusionner ou écraser donne le même résultat : le cloud.
         d.attenduSiLocalVide(await read(d.key));
@@ -365,7 +516,7 @@ describe('hydratation des 5 autres domaines — 3 états du cloud chacun', () =>
     });
     state.rows.streaks = { current_streak_days: 3, longest_streak_days: 5, last_active_date: '2026-07-28' };
 
-    await hydrateFromCloud('user-1');
+    await hydrate('user-1');
 
     expect((await read(STREAK_KEY)).freeze_available).toBe(false);
   });
@@ -376,7 +527,7 @@ describe('hydratation des 5 autres domaines — 3 états du cloud chacun', () =>
     await write(STREAK_KEY, { current_streak_days: 9, longest_streak_days: 9, last_active_date: '2026-07-29' });
     state.rows.streaks = { current_streak_days: 3, longest_streak_days: 5, last_active_date: '2026-07-28' };
 
-    await hydrateFromCloud('user-1');
+    await hydrate('user-1');
 
     const got = await read(STREAK_KEY);
     expect(got.current_streak_days).toBe(9);
@@ -387,7 +538,7 @@ describe('hydratation des 5 autres domaines — 3 états du cloud chacun', () =>
     await write(STREAK_KEY, { current_streak_days: 2, longest_streak_days: 4, last_active_date: '2026-07-20' });
     state.rows.streaks = { current_streak_days: 11, longest_streak_days: 11, last_active_date: '2026-07-29' };
 
-    await hydrateFromCloud('user-1');
+    await hydrate('user-1');
 
     const got = await read(STREAK_KEY);
     expect(got.current_streak_days).toBe(11);
@@ -405,7 +556,7 @@ describe('hydratation des 5 autres domaines — 3 états du cloud chacun', () =>
     ]);
     state.rows.weight_logs = { entries: [{ date: '2026-06-01', weight_kg: 84 }] };
 
-    await hydrateFromCloud('user-1');
+    await hydrate('user-1');
 
     const got = await read(WEIGHT_KEY);
     expect(got.map((e: any) => e.date)).toEqual(['2026-06-01', '2026-07-01', '2026-07-15']);
@@ -415,7 +566,7 @@ describe('hydratation des 5 autres domaines — 3 états du cloud chacun', () =>
     await write(WEIGHT_KEY, [{ date: '2026-07-01', weight_kg: 79.4 }]);
     state.rows.weight_logs = { entries: [{ date: '2026-07-01', weight_kg: 84 }] };
 
-    await hydrateFromCloud('user-1');
+    await hydrate('user-1');
 
     expect((await read(WEIGHT_KEY))[0].weight_kg).toBe(79.4);
   });
@@ -424,7 +575,7 @@ describe('hydratation des 5 autres domaines — 3 états du cloud chacun', () =>
     await write(WEIGHT_KEY, [{ date: '2026-07-15', weight_kg: 79 }]);
     state.rows.weight_logs = { entries: [{ date: '2026-06-01', weight_kg: 84 }] };
 
-    await hydrateFromCloud('user-1');
+    await hydrate('user-1');
 
     const push = state.calls.find((c) => c.table === 'weight_logs' && c.op === 'upsert');
     expect(push?.payload.entries.map((e: any) => e.date)).toEqual(['2026-06-01', '2026-07-15']);
@@ -434,7 +585,7 @@ describe('hydratation des 5 autres domaines — 3 états du cloud chacun', () =>
     await write(WEIGHT_KEY, [{ date: '2026-06-01', weight_kg: 84 }]);
     state.rows.weight_logs = { entries: [{ date: '2026-06-01', weight_kg: 84 }] };
 
-    await hydrateFromCloud('user-1');
+    await hydrate('user-1');
 
     expect(opsOn('weight_logs')).not.toContain('upsert');
   });
@@ -445,7 +596,7 @@ describe('hydratation des 5 autres domaines — 3 états du cloud chacun', () =>
     state.throws.add('streaks.select'); // la série explose
     state.rows.pantry = { items: [{ name: 'avoine', quantity: 1000, unit: 'g', category: 'epicerie' }] };
 
-    await hydrateFromCloud('user-1');
+    await hydrate('user-1');
 
     expect((await read(PANTRY_KEY))[0].name).toBe('avoine'); // le garde-manger a bien tourné
   });
@@ -546,7 +697,7 @@ describe('pushProfile — drapeau « sale » et retry', () => {
     await markProfileDirty();
     state.rows.profiles = cloudRow({ neat_level: null, engine_rev: null });
 
-    await hydrateFromCloud('user-1');
+    await hydrate('user-1');
 
     const got = await read(PROFILE_KEY);
     expect(got.neat_level).toBe('active');

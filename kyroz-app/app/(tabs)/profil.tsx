@@ -68,7 +68,7 @@ import { datedGoalStatus, datedGoalKcalDelta, addDaysStamp } from '../../lib/dat
 import { deadlineLadder, checkEcheance, messageEcheance } from '../../lib/goalLadder';
 import { DatedGoalCard, formatFR } from '../../components/DatedGoalCard';
 import { todayStamp, DEFAULT_WEIGH_IN_FREQUENCY } from '../../lib/weight';
-import { applyWeighInReminder, cancelAllReminders, cancelWeighInReminder } from '../../lib/notifications';
+import { applyWeighInReminder, cancelAllReminders } from '../../lib/notifications';
 import { purgeAllProgressPhotos } from '../../lib/photos';
 import {
   ActivityLevel, BodyFatSource, DietaryRestriction, EngineNotice, FixedMeals, Goal, GoalTarget, MealSlot, MealType, NeatLevel, Sex, SportSession, UserProfile, VarietyPreference,
@@ -342,24 +342,16 @@ export default function ProfilScreen() {
   // Déconnexion : couper la session NE redirige pas tout seul l'écran déjà monté
   // (expo-router ne re-route que l'index). On navigue donc explicitement vers le login.
   const doLogout = async () => {
+    // ⚠️ **LA PURGE N'EST PLUS ICI, ET C'EST TOUT L'OBJET DU CORRECTIF 01-01 / 01-02.**
+    // Elle vivait dans cet appelant — recopiée à l'identique dans `doDelete` juste en
+    // dessous, jamais partagée — donc `signOut()` ne purgeait rien, et AUCUN autre
+    // chemin de perte de session n'effaçait quoi que ce soit. Elle est devenue une
+    // propriété de `signOut()` (`hooks/useAuth.tsx`), qui la partage désormais avec
+    // l'événement `SIGNED_OUT` : jeton révoqué, mot de passe changé ailleurs, compte
+    // supprimé à distance. Le détail, l'ordre et le pourquoi : `lib/sessionLocale.ts`.
     await signOut();
-    // Sécurité : sur web, AsyncStorage = localStorage et survivrait à la
-    // déconnexion (données de santé + session lisibles sur un poste partagé).
-    // On purge tout SAUF les préférences d'appareil non personnelles.
-    // ⚠️ AVANT la purge : les photos sont des FICHIERS, la clé n'en est que la
-    // carte. Purger d'abord, c'est perdre l'adresse des octets. Et elles ne sont
-    // jamais poussées au cloud : elles ne reviendront pas à la reconnexion.
-    await purgeAllProgressPhotos();
-    const KEEP = new Set(['@kyroz:theme', '@kyroz:reminder']);
-    const keys = await AsyncStorage.getAllKeys();
-    const toRemove = keys.filter((k) => !KEEP.has(k));
-    if (toRemove.length) await AsyncStorage.multiRemove(toRemove);
-    // Le rappel QUOTIDIEN reste armé, et c'est voulu : sa préférence est dans
-    // `KEEP` — une préférence d'appareil, que le ré-armement au démarrage relit.
-    // La PESÉE, elle, n'a pas cette chance : sa cadence vit dans le profil qu'on
-    // vient de purger. La laisser armée, c'est un déclencheur répétitif que plus
-    // rien ne peut ni ré-armer ni éteindre.
-    await cancelWeighInReminder();
+    // Reste ici : l'état REACT. Le stockage est vide, mais le profil en mémoire ne
+    // s'efface pas tout seul — et le provider ne relit qu'au changement de compte.
     await clearProfile();
     router.replace('/(auth)/login');
   };
@@ -492,7 +484,7 @@ export default function ProfilScreen() {
   //    JAMAIS sur ces comptes — précisément ceux dont la cible ne bouge plus.
   //  • `source` choisit le TEXTE. Chaque plancher a une raison et un avenir
   //    différents ; en nommer un pour un autre est un mensonge, pas une nuance.
-  const clamp = plan.clamp.floorBinding && !underweightCapped ? plan.clamp : null;
+  const clamp = plan.clamp?.floorBinding && !underweightCapped ? plan.clamp : null;
 
   return (
     <SafeAreaView style={s.safe} edges={['top']}>
@@ -1128,6 +1120,18 @@ function EngineNoticeCard({ t, notice, onAdjust, onDismiss }: {
     // règle maintenant par la date. La hausse de protéines est dite, parce que c'est le
     // gain réel et qu'elle explique pourquoi le plan reste bon avec moins de calories.
       ? 'Kyroz n\'a plus qu\'une prise de masse, et elle vise le muscle : un surplus plus mesuré, avec plus de protéines. Pour prendre plus vite, donne-toi un poids à atteindre et une date — c\'est elle qui règle le rythme désormais.'
+      : notice.cause === 'measured_bmr'
+    // rev 10 (2026-08-27, constat 02-01) — le chemin « %MG MESURÉ » cesse de servir
+    // Katch-McArdle là où Katch rend moins que Mifflin. Sur ce trajet la cible ne peut
+    // que MONTER (mesuré : 344 406 profils, aucune baisse), donc le texte prend parti
+    // sur le signe.
+    // ⚠️ CE CAS DOIT PASSER AVANT CELUI DE LA REV 8, et il se lit sur la CAUSE, pas sur
+    // le trajet. Le texte de la rev 8 parle d'une SILHOUETTE (« ta silhouette indique
+    // plus de muscle ») : le servir à quelqu'un qui a saisi un DEXA nommerait la
+    // mauvaise cause et la mauvaise personne. Or les deux trajets se recouvrent — un
+    // compte parti de la rev 7 traverse les rev 8 ET 10 — donc `fromRev → rev` ne peut
+    // pas les séparer. Seul le moteur le sait, et il le dit dans `cause`.
+      ? 'Kyroz partait de ton pourcentage de masse grasse pour estimer ta dépense, et ce calcul devient trop bas pour les corps comme le tien. Il repart maintenant de l\'estimation la plus juste des deux — ton budget remonte d\'autant.'
       : notice.rev >= 8 && depuis >= 7 && monte
     // rev 8 (2026-08-24, « R6 lissée ») — le BMR d'un %MG estimé glisse vers la formule
     // à masse maigre quand la silhouette indique nettement plus de muscle que la moyenne
