@@ -295,6 +295,22 @@ export type AdaptFlag =
 //   LOW_EA_WARNING               33,9 %   NON, volontairement
 //   CARBS_BELOW_TRAINING_FLOOR   10,2 %   NON, volontairement
 //   MACRO_BUDGET_OVERFLOW         0,0 %   NON, volontairement
+//   DATED_GOAL_EXPIRED            rare    déjà dit par `DatedGoalCard` — cf. ci-dessous
+//
+// ⚠️ `DATED_GOAL_EXPIRED` (2026-08-27, constat 02-04) EST LE SEUL À NE PAS AVOIR
+// BESOIN D'UN NOUVEL AFFICHAGE, et c'est une mesure qui l'a établi, pas un principe.
+// Le constat disait « ignoré EN SILENCE ». C'est vrai du MOTEUR — sortie strictement
+// identique au même profil sans objectif daté, aucun drapeau — et **faux de l'écran** :
+// `DatedGoalCard` rend déjà « Échéance passée » quand `!status.active`, et comme
+// `PAYWALL_LAUNCH` vaut `null`, `premium.can('dated_goal')` est vrai pour 100 % des
+// comptes. Tout le monde le voit donc aujourd'hui.
+// ➡️ En ajouter un second serait deux messages pour une même cause — ce que cet écran
+// interdit nommément ailleurs. Le drapeau existe pour que le MOTEUR le dise : il est
+// comptable, et disponible aux surfaces qui n'ont pas cette carte.
+// 🔴 **CE QUI RESTE OUVERT, ET SE RÉVEILLERA LE JOUR DU PAYWALL** : la carte est gardée
+// par `premium.can('dated_goal')`. Un abonnement expiré rend donc l'objectif daté
+// périmé **invisible** — l'utilisateur garde un `goal_target` que plus rien n'affiche
+// et que le moteur n'applique plus. À traiter avec la mise en vente, pas avant.
 //
 // • `LOW_EA_WARNING` — 80,4 % des sèches, 85,7 % des hommes sportifs en sèche. Mais
 //   mesuré sur les 10 080 profils, l'énergie disponible servie n'est JAMAIS sous 30 :
@@ -315,7 +331,8 @@ export type PlanFlag =
   | 'MACRO_BUDGET_OVERFLOW'      // protéines + lipides dépassent le budget du jour
   | 'CARBS_BELOW_TRAINING_FLOOR' // glucides < 3 g/kg un jour de séance
   | 'DIET_BREAK_WEEK'            // semaine à la maintenance, prévue après 8 semaines de déficit
-  | 'GOAL_DIRECTION_MISMATCH';   // le poids cible contredit la famille de l'objectif
+  | 'GOAL_DIRECTION_MISMATCH'    // le poids cible contredit la famille de l'objectif
+  | 'DATED_GOAL_EXPIRED';        // un objectif daté est posé, mais sa date est passée → il ne pilote plus rien
 
 /**
  * Qui a fixé le plancher calorique. Vit ICI et non dans `tdee.ts` parce que

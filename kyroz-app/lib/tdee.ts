@@ -1431,6 +1431,23 @@ export function computePlan(rawProfile: UserProfile, today: string = todayStamp(
     flags.push('UNDERWEIGHT_NO_DEFICIT');
   }
 
+  // ── Objectif daté PÉRIMÉ (constat 02-04, 2026-08-27) ──────────────────────
+  //
+  // 🔴 Mesuré avant correctif : un `goal_target` daté du 2020 produit une sortie
+  // **strictement identique** au même profil sans objectif daté — même cible, mêmes
+  // drapeaux. Rien dans le plan ne disait que l'objectif ne pilotait plus rien.
+  //
+  // ⚠️ `!active` EST le prédicat d'expiration, par contrat : `DatedGoalStatus.active`
+  // se documente « false = pas d'objectif OU échéance passée », et la seule branche qui
+  // le met à `false` est gardée par `daysLeft <= 0` (`datedGoal.ts`). Le cas « objectif
+  // déjà atteint » ressort actif, à delta nul — c'est voulu, il pilote encore.
+  // ➡️ L'équivalence est FIGÉE par un test : si `active` gagne un jour une autre cause
+  // de fausseté, ce drapeau cesserait de dire « périmé » et il faut le savoir.
+  //
+  // ℹ️ Aucune calorie ne bouge (`datedDelta` était déjà `undefined` dans ce cas), donc
+  // pas d'`ENGINE_REV`. Ce drapeau AJOUTE une information, il ne change aucun plan.
+  if (p.goal_target && datedStatus && !datedStatus.active) flags.push('DATED_GOAL_EXPIRED');
+
   // ── Révision du moteur ────────────────────────────────────────────────────
   // Comparé à la cible STOCKÉE, donc à ce que la personne avait réellement sous les
   // yeux. Un avertissement déjà déposé n'est pas écrasé tant qu'il n'a pas été lu
