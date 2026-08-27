@@ -704,14 +704,19 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
   AUCUN des onze lots du §4 de la synthèse, qui se présente pourtant comme l'inventaire
   complet : ce qui n'est dans aucun lot n'est jamais ordonnancé, donc jamais fait, et rien
   ne le signale. **Nommés** (un compte n'est pas une liste) :
-  · **P1** — `01-03`, ~~`02-03`~~ ✅, `03-01`
+  · **P1** — ~~`01-03`~~ ✅, ~~`02-03`~~ ✅, ~~`03-01`~~ ✅ — **les trois P1 sont livrés**
   · **P2** — `01-06`, `01-07`, `01-08`, `01-12`, `02-04`, `02-05`, `04-03`, `04-04`,
     `05-05`, `06b-01`, `06b-17`, `07-02`, `08-01`, `08-02`
   ✅ **`02-03` est LIVRÉ (2026-08-27, A40)** — c'était le P1 qui bloquait le lancement, et il
   ne « levait sur une ligne cloud partielle » que dans la lettre du constat : c'était un GEL
   définitif de l'app, sur quatre valeurs et quatre fonctions, faute de `.catch()` au
   démarrage. Le mécanisme est refermé pour tous les champs, pas seulement pour `goal`.
-  ➡️ **Reste 16 orphelins.** Suivant conseillé : `01-03` ou `03-01` (les deux P1 restants).
+  ✅ **`01-03` et `03-01` livrés le 2026-08-27 (A41)** — `03-01` était **déjà satisfait à
+  moitié** (`npm run check:permissions` existait, écrit pendant le contre-audit sans que le
+  constat soit coché), et la moitié PostHog de `01-03` était **close par les faits depuis la
+  veille**. ➡️ *Un constat daté se re-mesure avant d'être traité : deux des quatre moitiés
+  n'existaient plus.*
+  ➡️ **Reste 14 orphelins, tous P2.**
   ⚠️ **`06b-17`** est celui que la réparation du corpus concerne : il jugeait les
   attributions de citations sur un dump amputé de ses quatorze noms d'auteurs. Corpus
   réparé, constat jamais rejoué.
@@ -817,6 +822,59 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
   mesure confirme la correction du contre-audit : **`macro_mode` est bien un vecteur de NaN**,
   il appartient au lot 1′ avec les quatre champs du BMR.
   ℹ️ Restent **16 orphelins** — `01-03`, `03-01` (P1) et les 14 P2 listés en A39.
+
+- ✅ **A41 · « TOUTES TES DONNÉES SERONT SUPPRIMÉES » N'ÉTAIT PAS VRAI — CORRIGÉ le
+  2026-08-27** (constats `01-03` P1 et `03-01` P1, deux orphelins d'A39). ⚠️ **Il reste
+  UNE étape humaine** : `docs/PROCEDURE-2026-08-27-suppression-revenuecat.md`.
+  🔴 **CE QUI SURVIVAIT, ET POUR QUI.** `hooks/usePremium.ts` appelle `identifyUser(uid)`
+  **sans condition** dès qu'un compte existe, et la clé RevenueCat est posée dans
+  l'environnement `production` d'EAS : tout build de prod crée un abonné RevenueCat portant
+  l'UUID Supabase — **y compris pour quelqu'un qui n'a jamais rien acheté**, et avant même
+  la mise en vente. `doDelete` appelait `logOut()`, qui **détache l'identité localement** et
+  ne supprime rien à distance. Un identifiant restait donc chez un sous-traitant américain
+  après « Supprimer définitivement ».
+  🔴 **LE POINT LE PLUS FIN, ET IL N'ÉTAIT PAS DANS LE CONSTAT** : le §7 de la politique
+  borne l'exception de conservation à « **si vous avez souscrit un abonnement** ». Cette
+  rédaction est JUSTE — mais seulement si l'identifiant d'un NON-abonné disparaît. Le texte
+  décrivait donc un monde plus propre que le code, et **les deux moitiés ne se lisent jamais
+  ensemble** : l'une est dans `constants/legal.ts`, l'autre dans une fonction Deno que la
+  suite n'exécute pas. ➡️ D'où la décision de **ne PAS rouvrir le texte légal** : le §7 est
+  déjà la bonne phrase, c'est au code de la rattraper. Rouvrir aurait coûté empreinte,
+  date d'entrée en vigueur, `gen:legal` et la 3ᵉ surface — pour zéro gain de vérité.
+  ➡️ **LIVRÉ** : `supabase/functions/delete-account` supprime l'abonné
+  (`DELETE /v1/subscribers/{uuid}`) **AVANT** la cascade — après elle, l'UUID n'a plus de
+  porteur et plus personne ne saurait quoi supprimer, ni ne pourrait le retrouver.
+  Best-effort strict, borné à 5 s (`AbortSignal.timeout`) : un droit à l'effacement ne peut
+  pas dépendre de la disponibilité d'un tiers. Sans secret, la fonction **ne tente rien et
+  le DIT** (`non_configure`) — faire semblant aurait été le défaut corrigé, déplacé d'un
+  cran. Et `lib/sync.ts::deleteAccount` **lit** le verdict : un échec journalisé est la
+  seule trace qui restera, l'UUID disparaissant avec le compte.
+  🔴 **LA PHRASE AVAIT DEUX DÉFAUTS OPPOSÉS, ce qui explique qu'aucune relecture ne l'ait
+  attrapée** : elle sur-promettait côté SERVEUR (« toutes tes données ») et **SOUS-disait
+  côté APPAREIL** — sa liste omettait les **pesées** et les **photos de progression**, que
+  `AsyncStorage.clear()` et `purgeAllProgressPhotos()` effacent bel et bien, et qui sont
+  les deux que l'on craint le plus de laisser derrière soi. Les deux sont corrigés : on dit
+  ce qui PART, le §7 dit ce qui subsiste.
+  ℹ️ **LA MOITIÉ POSTHOG DU CONSTAT EST CLOSE PAR LES FAITS, PAS PAR CE CORRECTIF.**
+  `distinctId()` n'est appelé que depuis `capture()`, qui sort **avant tout** sur
+  `STATISTIQUES_USAGE_ACTIVES` (false depuis le 2026-08-26) : plus aucun pseudonyme ne peut
+  naître, et les données ont été supprimées à la source. **Le constat décrivait un état qui
+  avait déjà changé la veille** — un audit daté se re-mesure avant d'être traité.
+  ℹ️ **Vérifié par 7 mutations, aucune survivante** — et **la 4ᵉ a survécu au premier tour** :
+  ma sonde « sans secret, on ne fait pas semblant » lisait `toContain("'non_configure'")`, or
+  la chaîne vit AUSSI dans le type `EtatRevenueCat`. Elle comptait une **déclaration de
+  type**, pas un comportement — le piège exact de `check:abonnements` (`storeProductId: string;`),
+  rejoué. Elle lit désormais la garde elle-même, avant le `fetch`.
+  ➡️ **`03-01` FERMÉ DANS LE MÊME GESTE, et il était DÉJÀ satisfait à moitié.** Sa reco
+  demandait « un `npm run` qui sort les permissions résolues » : `npm run check:permissions`
+  existe et le fait — écrit pendant le contre-audit, sans que le constat soit coché. Restait
+  la déclaration trompeuse : `app.json` portait `"permissions": []`, qui **n'est pas une
+  liste blanche** (le tableau ajoute, il ne retire jamais) et donnait à lire « zéro
+  permission » pour une app qui en a deux. **Retiré**, après avoir mesuré la config résolue
+  AVANT et APRÈS : identique au caractère près. ℹ️ Sans effet OTA — `runtimeVersion.policy`
+  vaut `"appVersion"`, la coupure est liée à `expo.version` (l'inverse serait vrai sous
+  `fingerprint`, cf. `CA-5-03`). Garde-fou : `permissionsDeclarees.test.ts`, 3 mutations.
+  ℹ️ Restent **14 orphelins** — plus aucun P1. Que des P2.
 
 - ✅ **A38 · SÉLECTION BMR « R6 LISSÉE » — LIVRÉE le 2026-08-24** (décision fondateur,
   handoff « Mifflin vs Katch », `ENGINE_REV` 7 → 8). La règle binaire « %MG estimé ⇒

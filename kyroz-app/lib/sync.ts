@@ -503,10 +503,30 @@ export async function hydrateFromCloud(uid: string): Promise<void> {
 // Suppression DÉFINITIVE via l'Edge Function `delete-account` : efface la ligne
 // auth.users + toutes les données en cascade. Renvoie une erreur si la fonction
 // n'est pas (encore) déployée → l'appelant peut alors retomber sur deleteCloudData.
+/**
+ * ⚠️ **LA RÉPONSE PORTE UN SECOND VERDICT, ET IL SE LIT** (constat 01-03, 2026-08-27).
+ * La fonction supprime aussi l'abonné RevenueCat portant l'UUID — best-effort, jamais
+ * bloquant. Son résultat n'est PAS avalé : un `'echec'` veut dire qu'un identifiant
+ * survit chez un sous-traitant américain alors que le compte n'existe plus, et que
+ * **plus personne ne peut le retrouver** (l'UUID vient de disparaître avec le compte).
+ * C'est la seule trace qu'il en restera. `'non_configure'` dit que le secret n'est pas
+ * posé côté Supabase — donc que rien n'a été tenté.
+ * ℹ️ Rien n'est montré à l'utilisateur : il ne peut rien y faire, et la politique §7
+ * décrit déjà ce qui subsiste. Le journal est pour nous.
+ */
 export async function deleteAccount(): Promise<{ error?: string }> {
   try {
-    const { error } = await supabase.functions.invoke('delete-account');
+    const { data, error } = await supabase.functions.invoke('delete-account');
     if (error) return { error: error.message };
+    const rc = (data as { revenuecat?: string } | null)?.revenuecat;
+    if (rc && rc !== 'supprime' && rc !== 'introuvable') {
+      try {
+        console.warn(
+          `${LOG_PREFIX} suppression de compte — l'abonné RevenueCat n'a PAS été supprimé (${rc}). `
+          + 'L\'UUID vient de disparaître avec le compte : il n\'est plus retrouvable.',
+        );
+      } catch {}
+    }
     return {};
   } catch (e: any) {
     return { error: e?.message ?? String(e) };

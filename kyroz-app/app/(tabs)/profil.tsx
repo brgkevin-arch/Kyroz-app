@@ -799,8 +799,24 @@ export default function ProfilScreen() {
       {/* Confirmation suppression de compte (RGPD) */}
       <ActionSheet visible={confirmDelete} onClose={() => setConfirmDelete(false)}>
         <Text style={{ color: t.text, ...Type.h2 }}>Supprimer mon compte ?</Text>
+        {/* 🔴 CETTE PHRASE DISAIT « TOUTES TES DONNÉES », ET C'ÉTAIT FAUX (constat 01-03).
+            Deux défauts opposés dans la même phrase, ce qui explique qu'aucune relecture
+            ne l'ait attrapée :
+            · côté SERVEUR elle promettait « toutes », alors qu'un abonné RevenueCat
+              portant l'UUID Supabase survivait — créé pour TOUT LE MONDE, abonné ou non
+              (`usePremium` appelle `identifyUser(uid)` sans condition), et que
+              `logOut()` ne fait que détacher localement. Refermé côté serveur
+              (`supabase/functions/delete-account`), et la phrase cesse de le promettre
+              à la place du code ;
+            · côté APPAREIL elle SOUS-disait : la liste omettait les pesées et les
+              photos de progression, que `AsyncStorage.clear()` et
+              `purgeAllProgressPhotos()` effacent bel et bien. Or ce sont les deux que
+              l'on craint le plus de laisser derrière soi.
+            ⚠️ Le détail de ce qui subsiste — l'historique de facturation chez Apple ou
+            Google si un abonnement a été souscrit — vit au §7 de la politique. Sa place
+            n'est pas dans un dialogue de confirmation : ici on dit ce qui PART. */}
         <Text style={{ ...Type.body, color: t.textSecondary, lineHeight: 21 }}>
-          Toutes tes données (profil, plans, série, favoris, réserve) seront définitivement supprimées, sur cet appareil et sur le serveur.
+          Ton compte et ses données seront définitivement supprimés du serveur. Sur cet appareil, tout ce que Kyroz a enregistré sera effacé : profil, plans, pesées, photos, série, favoris, réserve.
         </Text>
         <View style={{ height: 6 }} />
         <Presse onPress={doDelete} disabled={deleting} activeOpacity={OPACITE_PRESSION}

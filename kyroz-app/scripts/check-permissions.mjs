@@ -1,9 +1,15 @@
 // Quelles permissions l'app demande-t-elle VRAIMENT ?
 //
-// Pourquoi ce script existe : `app.json` déclare `"permissions": []`, et ça ne veut
-// PAS dire zéro. Les plugins en injectent, et le tableau vide n'en retire aucune —
-// seul `blockedPermissions` retire. L'audit V1 (constat 03-01) a trouvé TROIS
-// permissions dans la config résolue là où le fichier en annonçait zéro.
+// Pourquoi ce script existe : `app.json` DÉCLARAIT `"permissions": []`, et ça ne veut
+// rien dire — le tableau AJOUTE des permissions, il n'en retire aucune, donc vide il ne
+// fait rien sauf donner à lire « zéro permission » (constat 03-01). On trouvait donc
+// deux permissions dans la config résolue là où le fichier en annonçait zéro.
+//
+// ✅ **Le tableau a été RETIRÉ le 2026-08-27**, après avoir mesuré la config résolue
+// avant et après : identique au caractère près. Il ne portait aucune information, et
+// sa présence était la seule chose qui pouvait tromper. `lib/__tests__/permissionsDeclarees.test.ts`
+// empêche son retour ; ce script, lui, reste le SEUL qui lise la vérité — il résout
+// les plugins, ce qu'aucun test hors réseau ne sait faire.
 //
 //   npm run check:permissions
 //

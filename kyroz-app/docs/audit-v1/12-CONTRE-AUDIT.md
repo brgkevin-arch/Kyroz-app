@@ -422,7 +422,7 @@ dépliés), **19** n'apparaissent dans aucun lot. Deux ont un jumeau qui, lui, e
 
 | Sévérité | Constats |
 |---|---|
-| **P1** | `01-03` · ~~`02-03`~~ ✅ **livré** · `03-01` |
+| **P1** | ~~`01-03`~~ · ~~`02-03`~~ · ~~`03-01`~~ — ✅ **les trois livrés le 2026-08-27** |
 | **P2** | `01-06` · `01-07` · `01-08` · `01-12` · `02-04` · `02-05` · `04-03` · `04-04` · `05-05` · `06b-01` · `06b-17` · `07-02` · `08-01` · `08-02` |
 
 ✅ **`02-03` — LIVRÉ le 2026-08-27** (fiche complète : `AGENTS.md` A40). C'était le cas
@@ -433,6 +433,28 @@ coûteux, et il était **plus large que le constat de trois façons** :
 | « fait lever une exception non rattrapée » | un **GEL DÉFINITIF** — `useProfile` n'avait pas de `.catch()`, donc `setLoading(false)` était sauté et `app/index.tsx` restait sur `<Splash />`. La valeur fautive étant relue à chaque lancement, **redémarrer ne réparait rien** |
 | `goal: undefined` | `undefined` · **`null`** (la forme réelle d'une colonne vide) · `''` · une valeur saisie à la main — les quatre lèvent |
 | sur `computePlan` | sur **quatre** fonctions, dont deux appelées EN RENDU (`profil.tsx:674`, `FirstPlanReveal.tsx:121`) |
+
+✅ **`01-03` et `03-01` — LIVRÉS le 2026-08-27** (fiche : `AGENTS.md` A41). Et **deux des
+quatre moitiés n'existaient déjà plus** :
+
+| | |
+|---|---|
+| `03-01`, reco « un `npm run` qui sort les permissions résolues » | **déjà écrit** — `npm run check:permissions`, produit pendant le contre-audit sans que le constat soit coché. Restait la déclaration trompeuse `"permissions": []` dans `app.json`, retirée après mesure AVANT/APRÈS de la config résolue (identique) |
+| `01-03`, moitié **PostHog** | **close par les faits, la veille du constat** — `distinctId()` n'est appelé que depuis `capture()`, qui sort avant tout sur `STATISTIQUES_USAGE_ACTIVES` (false depuis le 2026-08-26). Plus aucun pseudonyme ne peut naître, données supprimées à la source |
+| `01-03`, moitié **RevenueCat** | 🔴 **réelle, et plus large que le constat** — voir ci-dessous |
+
+🔴 **Le point que le constat n'avait pas** : `identifyUser(uid)` est appelé **sans
+condition**, donc un abonné RevenueCat portant l'UUID Supabase existe **pour tout le monde,
+abonné ou non**. Or le §7 de la politique borne l'exception de conservation à « si vous avez
+souscrit un abonnement » — rédaction juste, **mais seulement si l'identifiant d'un
+NON-abonné disparaît**. Le texte décrivait un monde plus propre que le code, et les deux
+moitiés ne se lisent jamais ensemble.
+➡️ **Le texte légal n'a PAS été rouvert** : le §7 est déjà la bonne phrase, c'est au code de
+la rattraper (`delete-account` supprime l'abonné avant la cascade). Rouvrir aurait coûté
+empreinte, date d'entrée en vigueur, `gen:legal` et la 3ᵉ surface — pour zéro gain de vérité.
+⚠️ **Il reste une étape humaine** : `docs/PROCEDURE-2026-08-27-suppression-revenuecat.md`.
+
+---
 
 🔴 **Et le remède existait déjà, deux fois, dans les mêmes fichiers** : `tdee.ts::neatPal`
 (« Tolérant : une valeur inconnue retombe sur le défaut ») est le patron exact, écrit pour
