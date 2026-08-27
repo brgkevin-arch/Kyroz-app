@@ -66,7 +66,7 @@ import { datedGoalStatus, datedGoalKcalDelta, addDaysStamp } from '../../lib/dat
 import { deadlineLadder, checkEcheance, messageEcheance } from '../../lib/goalLadder';
 import { DatedGoalCard, formatFR } from '../../components/DatedGoalCard';
 import { todayStamp, DEFAULT_WEIGH_IN_FREQUENCY } from '../../lib/weight';
-import { applyWeighInReminder } from '../../lib/notifications';
+import { applyWeighInReminder, cancelAllReminders, cancelWeighInReminder } from '../../lib/notifications';
 import {
   ActivityLevel, BodyFatSource, DietaryRestriction, EngineNotice, FixedMeals, Goal, GoalTarget, MealSlot, MealType, NeatLevel, Sex, SportSession, UserProfile, VarietyPreference,
 } from '../../lib/types';
@@ -338,6 +338,12 @@ export default function ProfilScreen() {
     const keys = await AsyncStorage.getAllKeys();
     const toRemove = keys.filter((k) => !KEEP.has(k));
     if (toRemove.length) await AsyncStorage.multiRemove(toRemove);
+    // Le rappel QUOTIDIEN reste armé, et c'est voulu : sa préférence est dans
+    // `KEEP` — une préférence d'appareil, que le ré-armement au démarrage relit.
+    // La PESÉE, elle, n'a pas cette chance : sa cadence vit dans le profil qu'on
+    // vient de purger. La laisser armée, c'est un déclencheur répétitif que plus
+    // rien ne peut ni ré-armer ni éteindre.
+    await cancelWeighInReminder();
     await clearProfile();
     router.replace('/(auth)/login');
   };
@@ -348,6 +354,11 @@ export default function ProfilScreen() {
     const res = await deleteAccount();          // supprime auth.users + cascade
     if (res.error) await deleteCloudData();     // repli : au moins effacer les données
     await signOut();
+    // ⚠️ Avant la purge, pas après : ce qui est armé dans le SYSTÈME ne part pas
+    // avec `AsyncStorage`. Sans cette ligne, le rappel de pesée — déclencheur
+    // répétitif — continue de tomber indéfiniment sur un compte effacé, et la
+    // purge vient justement de retirer le seul écran d'où on pourrait le couper.
+    await cancelAllReminders();
     await AsyncStorage.clear();
     await clearProfile();
     setDeleting(false);

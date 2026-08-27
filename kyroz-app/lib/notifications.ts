@@ -176,11 +176,50 @@ async function programmerQuotidien(time: ReminderTime, now: Date): Promise<void>
  * `weight.ts::weighInSchedule`, qui est pur donc testable ; ici on ne fait que
  * la traduire.
  */
-export async function applyWeighInReminder(freq: WeighInFrequency, lastStamp: string | null): Promise<boolean> {
-  if (!remindersSupported) return false;
+/**
+ * Éteint la série de pesée, et rien d'autre.
+ *
+ * ⚠️ Sa cadence vit dans le PROFIL (`weigh_in_frequency`), pas dans une clé
+ * d'appareil : dès que le profil est purgé, plus personne ne peut ni ré-armer ni
+ * annuler cette notification — et `WEIGH_ID-0` peut être un déclencheur
+ * RÉPÉTITIF (`DAILY`/`WEEKLY`). Il faut donc l'éteindre au moment où son
+ * propriétaire disparaît, jamais compter sur un ré-armement qui ne viendra pas.
+ *
+ * C'est le seul consommateur de `WEIGH_IDS` : `applyWeighInReminder` passe par
+ * ici, pour qu'aucun appelant ne puisse oublier la liste.
+ */
+export async function cancelWeighInReminder(): Promise<void> {
+  if (!remindersSupported) return;
   for (const id of WEIGH_IDS) {
     try { await Notifications.cancelScheduledNotificationAsync(id); } catch {}
   }
+}
+
+/**
+ * Éteint TOUT ce que Kyroz a pu armer sur cet appareil — y compris sous des
+ * identifiants que ce fichier ne connaît plus.
+ *
+ * ⚠️ C'est le SEUL endroit où `cancelAllScheduledNotificationsAsync` est le bon
+ * geste, et pour une raison précise. Ailleurs, tout annuler effacerait l'autre
+ * rappel (cf. l'en-tête). Ici il n'y a plus d'autre rappel à préserver : le
+ * compte n'existe plus. Et une liste d'identifiants connus est exactement ce qui
+ * a DÉJÀ laissé deux fois un déclencheur répétitif survivre à sa version
+ * (`WEIGH_ID` nu, `DAILY_ID` nu, tous deux documentés en haut de ce fichier) —
+ * sur un effacement, elle ne peut que rater les identifiants d'hier. L'appel
+ * système, lui, ne rate rien, et il ne touche que les notifications de CETTE app.
+ *
+ * `dismissAllNotificationsAsync` en plus : ce qui est déjà TOMBÉ dans le centre
+ * de notifications ne se déprogramme pas, il se retire.
+ */
+export async function cancelAllReminders(): Promise<void> {
+  if (!remindersSupported) return;
+  try { await Notifications.cancelAllScheduledNotificationsAsync(); } catch {}
+  try { await Notifications.dismissAllNotificationsAsync(); } catch {}
+}
+
+export async function applyWeighInReminder(freq: WeighInFrequency, lastStamp: string | null): Promise<boolean> {
+  if (!remindersSupported) return false;
+  await cancelWeighInReminder();
 
   const perm = await Notifications.getPermissionsAsync();
   if (!perm.granted) return false;
