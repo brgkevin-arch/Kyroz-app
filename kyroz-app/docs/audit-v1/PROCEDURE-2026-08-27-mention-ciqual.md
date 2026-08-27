@@ -2,9 +2,9 @@
 
 Date : 2026-08-27 · Origine : jugement 6b-bis, question **Q7** (dernier point ouvert du volet textes)
 
-> **Bilan : il ne reste rien à aller chercher.** Tout était mesurable — la moitié sur ton
-> disque, l'autre moitié dans le texte de la licence. Il reste **une décision de rédaction**,
-> et elle tient en une question.
+> **✅ CLOS le 2026-08-27.** Rien n'était à aller chercher dehors : tout était mesurable, la
+> moitié sur le disque. La décision est prise (§6) — l'app et le `®` partout, les CGU et la
+> fiche store à la prochaine révision légale.
 
 ---
 
@@ -86,9 +86,12 @@ corriger dans le même geste.
 
 ---
 
-## 5 · Ce qui reste : une seule décision
+## 5 · La décision qui a été posée — les trois rédactions proposées
 
-Les faits sont clos. Reste à choisir **jusqu'où** la mention va sur chaque surface — l'app
+> ⚠️ Section conservée pour ce qu'elle proposait. **La décision est en §6** : A retenu,
+> B et C reportés. Ne pas lire cette section comme l'état courant.
+
+Les faits sont clos. Restait à choisir **jusqu'où** la mention va sur chaque surface — l'app
 peut être complète, les CGU sont un texte contractuel court, la fiche store est lue par un
 relecteur.
 
@@ -144,7 +147,7 @@ régénère le dataset ; personne ne régénère la phrase.
 
 ---
 
-## 7 · Ce que ça aurait changé au dépôt pour les deux autres surfaces
+## 7 · Ce qu'il faudra faire le jour où B et C seront repris
 
 1. `lib/foods.ts` — nouvelle `CIQUAL_ATTRIBUTION`, sans `®`.
 2. `constants/legal.ts` — §6 amendé · **date d'entrée en vigueur à arbitrer** · empreinte à
