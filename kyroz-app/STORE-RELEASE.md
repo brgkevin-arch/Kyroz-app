@@ -14,7 +14,7 @@
 
 ---
 
-## 0-ter. ▶️ REPRISE — état au 2026-08-23
+## 0-ter. ▶️ REPRISE — état au 2026-08-27
 
 > Bloc réécrit **entièrement** ce jour. Le précédent datait du 2026-08-11 et il a été
 > faux sur ses trois points pendant douze jours : il annonçait le build (6) « à jour »,
@@ -53,16 +53,34 @@ installation neuve part du binaire, donc du (6).
 
 **L'état des deux surfaces qui comptent, RELU chez le prestataire :**
 
-- 🔴 **LE BUILD (7) EST DEVENU BLOQUANT LE 2026-08-27** — `main` est monté en **SDK 57**
-  et la politique de runtime est passée en **`fingerprint`** (A44). **La ligne OTA est donc
-  coupée** : le parc actuel est figé sur la 25ᵉ et ne recevra plus rien avant qu'un binaire
+- ✅ **LE BUILD (7) EST FAIT — le 2026-08-27 à 20 h 09, en 6 min 16 s.** `6a5cd6b0`,
+  commit **`0639ecc`**, **1.0.0 (7)**, SDK **57.0.0**, runtime
+  **`3a24b5937215c054871565f558325db56289469b`**, profil et canal `production`.
+  ⚠️ **Il est chez EAS, PAS chez Apple** : `eas build` ne téléverse pas — il faut `eas submit`.
+  Et un testeur ne reçoit rien avant la DISTRIBUTION, pas à la fin de la compilation.
+  ✅ **La ligne OTA rouvre pour de bon**, et ça se mesure : les trois empreintes coïncident —
+  celle embarquée dans le binaire (`Payload/Kyroz.app/EXUpdates.bundle/fingerprint`), celle
+  qu'EAS déclare, et celle que rend `npx expo-updates fingerprint:generate --platform ios`.
+  ⚠️ **Deux pièges dans cette vérification, tous deux payés le jour même** : la configuration
+  OTA n'est **pas** dans l'`Info.plist` mais dans `Expo.plist` (`EXUpdatesEnabled`, canal
+  `production`, `EXUpdatesRuntimeVersion: file:fingerprint`) ; et l'empreinte se calcule **par
+  plateforme** — `npx @expo/fingerprint .` rend l'empreinte toutes plateformes (113 sources) et
+  ne vaut rien ici, c'est `--platform ios` (85 sources) qui donne le runtime réel. Une empreinte
+  juste sur le mauvais périmètre se lit comme une divergence, avec l'autorité d'un chiffre.
+  *(Rédaction précédente, et elle reste vraie sur la cause :)* 🔴 **LE BUILD (7) ÉTAIT DEVENU
+  BLOQUANT LE 2026-08-27** — `main` est monté en **SDK 57**
+  et la politique de runtime est passée en **`fingerprint`** (A44). **La ligne OTA était donc
+  coupée** : le parc était figé sur la 25ᵉ et ne recevait plus rien avant qu'un binaire
   de la nouvelle surface native soit distribué. Ce n'est pas un incident, c'est la coupure
   voulue — sans elle, un bundle SDK 57 atterrirait sur un binaire SDK 56, qui ne
   démarrerait plus (`lib/__tests__/ligneOta.test.ts`).
   ⚠️ **Conséquence directe sur ce playbook** : les trois P0 (`ENGINE_REV` 10) et la phrase
   iCloud n'atteindront les testeurs **que par ce build**. Ce qui était « publier une OTA »
   est devenu « compiler, distribuer, attendre l'installation ».
-- **Binaire** : le dernier build iOS est toujours le **(6)** — `ceec1b17`, commit
+- **Binaire** : le dernier build iOS est le **(7)** — `6a5cd6b0`, commit `0639ecc`, terminé
+  le 2026-08-27 à 20 h 09, **à jour de `main`** (contrôle de sortie : `origin/main` valait
+  encore `0639ecc` après la compilation, 0 PR ouverte — le piège du 11 août ne s'est pas
+  rejoué). *(Le précédent :)* le **(6)** — `ceec1b17`, commit
   `1047b9f`, terminé le 2026-08-11 à 20 h 37. Il a **62 commits de retard** sur `main` — chiffre RE-MESURÉ le 2026-08-26 (il en annonçait 40, mesurés le 2026-08-23), qui **grandit à chaque merge** : le relire avec `git rev-list --count 1047b9f..origin/main` plutôt que de le recopier (même défaut que le décompte d'OTA tenu à la main).
 - **OTA** : la dernière est la **25ᵉ** (groupe `bf9894b4`, 2026-08-27, iOS + Android,
   runtime 1.0.0), publiée sur le commit `777d9167` — `main`, arbre propre, aucun astérisque
@@ -106,10 +124,14 @@ installation neuve part du binaire, donc du (6).
 
 **Ce qui reste, dans cet ordre :**
 
-1. 🧑 **Décider quand figer le code.** Un build est une PHOTO de `main` : tant que des
-   chantiers arrivent, il périme en naissant. *(Le fondateur a demandé le 2026-08-23
-   d'attendre encore.)*
-2. 🤖 **UN build (7)**, une fois le code figé. Pas deux.
+1. ✅ **Code figé et build (7) fait** — le 2026-08-27, sur décision du fondateur. Un seul
+   build, comme prévu. *(Les deux étapes précédentes de cette liste sont closes.)*
+2. 🤖 **Téléverser le (7) chez Apple** — `eas submit --platform ios --profile production`.
+   `eas build` ne le fait PAS. 🔴 **Et c'est à CETTE étape qu'on surveille la boîte mail de
+   l'Apple ID, pas App Store Connect** : un refus `ITMS-90111` n'apparaît ni dans l'interface
+   ni dans son API, et un binaire peut être `VALID` / `APP_STORE_ELIGIBLE` au téléversement
+   puis basculer en `INVALID_BINARY` à la soumission (leçon importée du projet Kadenz, §
+   « La machine de compilation » ci-dessous).
 3. 🤖 **Regénérer les 10 captures** — elles datent du 2026-08-10 (iPhone 19 h 41, iPad
    11 h 20) et ne montrent donc ni le verre, ni l'inscription actuelle, ni les nouvelles
    silhouettes. À faire **après** le (7), pour qu'elles ne périment pas une fois de plus.
@@ -133,6 +155,36 @@ adresse individuelle chez Resend, et l'usage de l'IA chez deux de ses sous-trait
    a cessé d'être une mesure.
 3. **Une sortie vide n'est pas une panne.** `eas-cli` bufferise hors terminal : un
    `eas submit` en arrière-plan n'a rien écrit pendant des heures et avait réussi.
+
+### La machine de compilation — un quatrième piège, importé d'un autre projet
+
+🔴 **UN REFUS D'APPLE PEUT VISER LA MACHINE, NI LE CODE NI LA FICHE.** Leçon prise sur le
+projet **Kadenz** (post-mortem du 2026-08-24, « Le détour Xcode Cloud ») et vérifiée sur
+Kyroz le 2026-08-27. Compiler un binaire de store sur un **macOS de pré-version** suffit à
+le faire refuser en `ITMS-90111 — Unsupported SDK or Xcode version`, **même avec un Xcode et
+un SDK officiels** : c'est l'empreinte `BuildMachineOSBuild` du binaire qui trahit la machine.
+
+- 🔴 **`VALID` / `APP_STORE_ELIGIBLE` ne prouve RIEN.** Chez Kadenz, les deux binaires refusés
+  étaient VALID au téléversement et passaient `altool` ; ils basculaient en `INVALID_BINARY`
+  **à la soumission**, quelques minutes plus tard.
+- 🔴 **Le motif n'existe que dans un e-mail** envoyé à l'adresse de l'Apple ID — ni dans App
+  Store Connect, ni dans son API. Tant qu'on cherche dans l'interface, il n'y a rien à trouver.
+- ✅ **Kyroz est protégé, mais par EAS et pas par chance** : `eas build` compile sur
+  l'infrastructure Expo, jamais sur le Mac du fondateur — lequel est bien contaminant
+  (macOS **27.0 bêta**, `26A5421a`). ➡️ **Ne JAMAIS archiver un binaire de store depuis cette
+  machine** : `npx expo run:ios` est un outil de DEV.
+- ⚠️ **Ça se vérifie build par build, pas une fois pour toutes** : le (6) a été compilé sur
+  `BuildMachineOSBuild 25E253`, le (7) sur `25F84` — **deux images EAS différentes**, toutes
+  deux stables. Le (7) porte **Xcode 26.6 build 17F113, exactement le même Xcode que le Mac
+  local** : ce qui séparait le binaire refusé du binaire accepté chez Kadenz, c'est la
+  MACHINE, pas l'outil.
+- ➡️ **La mesure se fait sans télécharger l'IPA** : un IPA est un ZIP, et les artefacts EAS
+  acceptent les requêtes `Range` — lire l'index en fin de fichier, puis la seule entrée
+  `Payload/<app>.app/Info.plist`. **89 Ko lus sur 26,4 Mo** pour le (7). Une empreinte sans
+  suffixe de bêta = machine propre.
+- 🔴 **Kyroz n'a jamais franchi ce contrôle** : la revue bêta TestFlight approuvée le
+  2026-08-03 est un **autre** guichet que la soumission App Store. La soumission du (7) sera
+  le premier passage réel — donc **surveiller la boîte mail de l'Apple ID**.
 
 ⚠️ **Point ouvert, non tranché depuis le 11 août** : le (6) est visible en **interne**
 mais pas pour les **testeurs externes**. Trois causes possibles, indiscernables sans
@@ -169,7 +221,7 @@ elles se génèrent **pendant** qu'il tourne : une heure gagnée, gratuitement.
 |---|---|---|---|
 | 1 | ~~🧑~~ | ~~**Trancher la célébration de série**~~ ✅ **DÉJÀ TRANCHÉ le 2026-08-09** — c'est le **nombre de jours** en `Type.hero` (`StreakCelebration.tsx`), et le motif n'était pas esthétique : six emblèmes, un par palier, sont une échelle de badges, donc de la *collection*, que CLAUDE.md §5 interdit. ⚠️ Cette ligne a survécu **un jour** à sa propre décision et annonçait « la seule décision qui bloque la journée » alors qu'elle ne bloquait plus rien | — |
 | 2 | 🧑 | `git checkout main && git pull` **dans le dépôt principal** | il a plusieurs merges de retard, et c'est depuis CET arbre que se prennent les captures **et** le build |
-| 3 | 🤖 | ✅ **(6) FAIT, À JOUR ET TÉLÉVERSÉ le 2026-08-11** (`ceec1b17`, commit `1047b9f`, `finished` à 20 h 37, envoyé à App Store Connect). C'est **le seul des trois** qui contienne E39 (retrait du portail) et E40 (page méthodologie) — donc le seul cohérent avec les notes du relecteur (§11). 🔴 **MAIS IL PÉRIMERA DÈS QUE LE FRONT BOUGERA** : le fondateur a annoncé le 2026-08-11 au soir vouloir retoucher l'interface avant les captures. ➡️ **Un build (7) sera nécessaire APRÈS ces changements, et un seul.** 🔴 **ET C'EST LA LEÇON DE LA JOURNÉE : un binaire se périme PENDANT qu'il compile.** Trois builds ont été lancés le 2026-08-11 ; les deux premiers étaient morts à la naissance — le (4) (`10d6096`, 13 h 18) a été dépassé par #92 **six minutes** après son lancement puis par #94 ; le (5) (`770187d`, 13 h 41) par #96 et #97. La cause n'est pas le système, c'est le contrôle : on vérifiait « l'arbre est propre » sans vérifier « rien n'est en vol ». Les sessions parallèles mergent pendant les ~6 minutes de compilation. ➡️ **DEUX mesures avant tout build, jamais une** : `git status` vide **et** `HEAD == origin/main` **et** `gh pr list --state open` à **0** — plus `git worktree list` pour savoir qui travaille. ➡️ **Et une APRÈS le build** : `git rev-parse origin/main` doit encore valoir le commit du build. C'est ce contrôle qui a validé le (6). ⚠️ **Un build n'est ni gros ni petit** — c'est une PHOTO de `main` à un instant. On n'en « regroupe » pas plusieurs : le bon geste est d'en faire **un seul, quand le code est figé**. ⚠️ Un build se constate avec `npx eas-cli build:list --platform ios` **depuis `kyroz-app/`**, et **on lit son COMMIT, pas sa date** — cette case a annoncé « à faire » alors qu'il était fait, puis « fait » sans voir qu'il était périmé. | premier binaire à porter la clé RevenueCat. **Ne PAS monter `expo.version`** : ça couperait la ligne OTA vers le build 3 des testeurs |
+| 3 | 🤖 | ✅ **(7) FAIT le 2026-08-27** (`6a5cd6b0`, commit `0639ecc`, 1.0.0 (7), SDK 57) — **il remplace le (6) et c'est lui qui part en revue.** ⚠️ **Fait chez EAS ≠ téléversé chez Apple** : `eas submit` reste à faire. *(Historique :)* ✅ **(6) FAIT, À JOUR ET TÉLÉVERSÉ le 2026-08-11** (`ceec1b17`, commit `1047b9f`, `finished` à 20 h 37, envoyé à App Store Connect). C'est **le seul des trois** qui contienne E39 (retrait du portail) et E40 (page méthodologie) — donc le seul cohérent avec les notes du relecteur (§11). 🔴 **MAIS IL PÉRIMERA DÈS QUE LE FRONT BOUGERA** : le fondateur a annoncé le 2026-08-11 au soir vouloir retoucher l'interface avant les captures. ➡️ **Un build (7) sera nécessaire APRÈS ces changements, et un seul.** 🔴 **ET C'EST LA LEÇON DE LA JOURNÉE : un binaire se périme PENDANT qu'il compile.** Trois builds ont été lancés le 2026-08-11 ; les deux premiers étaient morts à la naissance — le (4) (`10d6096`, 13 h 18) a été dépassé par #92 **six minutes** après son lancement puis par #94 ; le (5) (`770187d`, 13 h 41) par #96 et #97. La cause n'est pas le système, c'est le contrôle : on vérifiait « l'arbre est propre » sans vérifier « rien n'est en vol ». Les sessions parallèles mergent pendant les ~6 minutes de compilation. ➡️ **DEUX mesures avant tout build, jamais une** : `git status` vide **et** `HEAD == origin/main` **et** `gh pr list --state open` à **0** — plus `git worktree list` pour savoir qui travaille. ➡️ **Et une APRÈS le build** : `git rev-parse origin/main` doit encore valoir le commit du build. C'est ce contrôle qui a validé le (6). ⚠️ **Un build n'est ni gros ni petit** — c'est une PHOTO de `main` à un instant. On n'en « regroupe » pas plusieurs : le bon geste est d'en faire **un seul, quand le code est figé**. ⚠️ Un build se constate avec `npx eas-cli build:list --platform ios` **depuis `kyroz-app/`**, et **on lit son COMMIT, pas sa date** — cette case a annoncé « à faire » alors qu'il était fait, puis « fait » sans voir qu'il était périmé. | premier binaire à porter la clé RevenueCat. **Ne PAS monter `expo.version`** : ça couperait la ligne OTA vers le build 3 des testeurs |
 | 4 | 🤖 | ✅ **Gabarit iPhone corrigé et captures REFAITES le 2026-08-10** (`430×932` → sortie mesurée **1290×2796**, feature graphic 1024×500). ✅ **Et l'iPad AUSSI : 5 PNG en 2048×2732, mesurés au `sips` le 2026-08-10.** ⚠️ Cette ligne disait « le dossier iPad est toujours vide » — c'était vrai à l'écriture, faux depuis, et c'est le TROISIÈME état successif de cette même case (« générés » → « vide, jamais rien contenu » → « générés, mesurés »). Le disque tranche, pas la fiche | les 5 captures dataient du **30 juillet**, donc d'avant six passes de design **et** d'avant la refonte du Profil ; elles sont désormais prises sur `main` du 10 août. Le dossier iPad est **toujours vide** |
 | 5 | 🧑 | Regarder les 10 captures et dire si elles vendent l'app | le seul jugement que je ne peux pas rendre à ta place |
 | 6 | 🧑 | Formulaires App Store Connect : confidentialité (§4), classification **17+** (§6), fiche FR (§3), note relecteur (§11), et **les captures** | tout est déjà rédigé ci-dessous — c'est du copier-coller, pas de la rédaction |
@@ -224,9 +276,9 @@ dans laquelle l'étape 4 se glisse.
 | URL politique de confidentialité (HTTP 200) | ✅ en ligne |
 | Textes de fiche (FR), réponses confidentialité, classification | ✅ ci-dessous (§3–6) |
 | **Comptes développeur Apple + Google** | ⛔ **toi** (§1) |
-| Screenshots (iPhone + iPad 13") + feature graphic | 🔴 **À REFAIRE, et la dette a encore grandi le 2026-08-23.** Les 6 PNG iPhone sont horodatés **2026-08-10 19 h 41**, les 5 iPad **2026-08-10 11 h 20**. Depuis, l'app a changé sur trois plans qui SE VOIENT : la barre d'onglets est passée au **verre** (E36, le 11), l'**inscription** a gagné la question du NEAT et la bifurcation de la sèche (19-21), et les **12 silhouettes** du sélecteur de %MG sont refaites (A32, le 23). Les captures montrent donc une inscription et des écrans qui n'existent plus. ➡️ Les regénérer **après le build (7)**, jamais avant : c'est la troisième fois qu'elles périment pour avoir été prises trop tôt. *(Historique : iPhone refait le 2026-08-10 — sortie mesurée à 1290×2796 après correction d'un gabarit qui rendait du 6.1" ; iPad généré et mesuré le même jour à 2048×2732. Cette case a porté trois états successifs dont deux faux — c'est `sips` sur les fichiers qui tranche, jamais la fiche.)* |
+| Screenshots (iPhone + iPad 13") + feature graphic | 🔴 **À REFAIRE, et la dette a encore grandi le 2026-08-23.** Les 6 PNG iPhone sont horodatés **2026-08-10 19 h 41**, les 5 iPad **2026-08-10 11 h 20**. Depuis, l'app a changé sur trois plans qui SE VOIENT : la barre d'onglets est passée au **verre** (E36, le 11), l'**inscription** a gagné la question du NEAT et la bifurcation de la sèche (19-21), et les **12 silhouettes** du sélecteur de %MG sont refaites (A32, le 23). Les captures montrent donc une inscription et des écrans qui n'existent plus. ➡️ Les regénérer **après le build (7)**, jamais avant : c'est la troisième fois qu'elles périment pour avoir été prises trop tôt. ✅ **Le (7) est fait depuis le 2026-08-27 — le verrou est levé, elles peuvent être prises.** *(Historique : iPhone refait le 2026-08-10 — sortie mesurée à 1290×2796 après correction d'un gabarit qui rendait du 6.1" ; iPad généré et mesuré le même jour à 2048×2732. Cette case a porté trois états successifs dont deux faux — c'est `sips` sur les fichiers qui tranche, jamais la fiche.)* |
 | Accès reviewer (code) | ✅ code — toi : poser le secret au build (§9) |
-| **Lancer le build EAS** | 🔴 **UN (7) EST REQUIS — le (6) a 40 commits de retard.** Relu chez EAS le 2026-08-23 (40 commits de retard, `git rev-list --count 1047b9f..origin/main`) : le dernier build iOS reste `ceec1b17`, commit `1047b9f`, terminé le 2026-08-11 à 20 h 37 et téléversé à App Store Connect. Il ne porte donc ni le correctif du gel (E45), ni les textes légaux à jour, ni les 12 nouvelles silhouettes. ⚠️ **Le relecteur ouvre l'app UNE fois** : il voit le JS EMBARQUÉ, et une OTA ne s'applique qu'au lancement suivant. Ce qui n'est pas dans le binaire n'existe pas pour lui. 🧑 **En attente d'une décision du fondateur** (2026-08-23) : le code n'est pas figé. ⚠️ Le (5) est aussi chez Apple et ne doit **PAS** partir en revue (notes du relecteur incohérentes). ⚠️ Un build se constate avec `npx eas-cli build:list --platform ios` depuis `kyroz-app/`, **et on lit son COMMIT, pas sa date**. |
+| **Lancer le build EAS** | ✅ **FAIT le 2026-08-27 à 20 h 09** — `6a5cd6b0`, commit `0639ecc`, **1.0.0 (7)**, SDK 57.0.0, `finished` en 6 min 16 s, à jour de `main` au contrôle de sortie. ⚠️ **Fait ≠ téléversé** : `eas build` ne dépose rien chez Apple, il faut `eas submit`. ⚠️ Un build se constate avec `npx eas-cli build:list --platform ios` depuis `kyroz-app/`, **et on lit son COMMIT, pas sa date**. *(Rédaction précédente :)* 🔴 **UN (7) EST REQUIS — le (6) a 40 commits de retard.** Relu chez EAS le 2026-08-23 (40 commits de retard, `git rev-list --count 1047b9f..origin/main`) : le dernier build iOS reste `ceec1b17`, commit `1047b9f`, terminé le 2026-08-11 à 20 h 37 et téléversé à App Store Connect. Il ne porte donc ni le correctif du gel (E45), ni les textes légaux à jour, ni les 12 nouvelles silhouettes. ⚠️ **Le relecteur ouvre l'app UNE fois** : il voit le JS EMBARQUÉ, et une OTA ne s'applique qu'au lancement suivant. Ce qui n'est pas dans le binaire n'existe pas pour lui. 🧑 **En attente d'une décision du fondateur** (2026-08-23) : le code n'est pas figé. ⚠️ Le (5) est aussi chez Apple et ne doit **PAS** partir en revue (notes du relecteur incohérentes). ⚠️ Un build se constate avec `npx eas-cli build:list --platform ios` depuis `kyroz-app/`, **et on lit son COMMIT, pas sa date**. |
 
 ---
 
