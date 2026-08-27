@@ -79,7 +79,8 @@
     "mesure:collisions": "npx tsx scripts/mesure-collisions-ingredients.ts",
     "mesure:vivier": "npx tsx scripts/mesure-couverture.ts --vivier",
     "design:build": "node scripts/design-system.mjs",
-    "check:permissions": "node scripts/check-permissions.mjs"
+    "check:permissions": "node scripts/check-permissions.mjs",
+    "check:easignore": "node scripts/check-easignore.mjs"
   },
   "private": true,
   "homepage": "https://brgkevin-arch.github.io/Kyroz-app"

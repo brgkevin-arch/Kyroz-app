@@ -1036,6 +1036,120 @@ l'image du build portant déjà l'icône qui a désigné le vrai coupable — un
 > commitées.** Ce sont des secrets : les stocker dans les **secrets EAS** et les
 > référencer par variable d'environnement. Une clé dans le dépôt est une clé publiée.
 
+> ### 📦 `.easignore` — l'archive envoyée à EAS faisait **478 Mo pour 18 Mo versionnés**
+> Mesuré et corrigé le **2026-08-27** (eas-cli 20.1.0), après le build (7).
+>
+> **Le symptôme.** À chaque build, EAS affichait `« Your project archive is 478 MB »`.
+> Or le dépôt versionné pèse 18 Mo, et il n'y avait aucun fichier non suivi. L'archive
+> emportait donc des fichiers **ignorés par git** — mais lesquels ? Le fichier n'a pas
+> été écrit contre une supposition : la cause a d'abord été mesurée en exécutant
+> hors-ligne la vraie classe `Ignore` d'eas-cli (`build/vcs/local.js`) sur le dépôt.
+>
+> **La cause, ventilée.** 1337 Mo étaient copiés, dont :
+>
+> | ce qui partait chez EAS | poids |
+> |---|---|
+> | `.claude/worktrees/supabase-confirmation-email-c6b816/kyroz-app` | 1226 Mo |
+> | `.claude/worktrees/aso-ef1e7c/kyroz-app` | 77 Mo |
+> | `.claude/worktrees/external-test-credentials-76d2ec/kyroz-app` | 16 Mo |
+> | `kyroz-app` ← **le seul qui avait à y être** | 17 Mo |
+>
+> Deux angles morts d'eas-cli, qui se cumulent :
+> 1. **`.claude/worktrees/` n'est exclu que par `.git/info/exclude`** — un fichier
+>    local, non versionné. eas-cli ne le lit jamais : il ne cherche que des fichiers
+>    nommés `.gitignore`.
+> 2. **Les `.gitignore` internes aux worktrees ne sont pas chargés non plus** : le glob
+>    `**/.gitignore` d'eas-cli ne traverse pas les dossiers cachés. Le `kyroz-app/ios`
+>    d'un worktree (1,1 Go de Pods + build Xcode) partait donc en entier — alors que le
+>    `kyroz-app/ios` du dépôt principal, lui, était bien exclu. Préfixes d'ignore
+>    réellement chargés : `["", "", "kyroz-app/", "kyroz-app/ios/"]` — aucun sous `.claude/`.
+>
+> **Le résultat**, mesuré en exécutant le pipeline d'archivage réel d'eas-cli :
+>
+> | | contenu | `.git` du clone | archive `.tar.gz` |
+> |---|---|---|---|
+> | avant | 467,2 Mo | 10,4 Mo | **477,6 Mo** → EAS annonçait 478 Mo |
+> | après | 10,2 Mo | 10,4 Mo | **14,1 Mo** |
+>
+> 12 184 fichiers → 503. Confirmé par eas-cli lui-même au build suivant :
+> `Uploading to EAS Build (0 / 14.0 MB)`. L'avertissement de taille (seuil : 150 Mo)
+> a disparu.
+>
+> **Où vit le fichier : à la racine du DÉPÔT GIT**, pas dans `kyroz-app/` où se trouve
+> pourtant `eas.json`. eas-cli lit `path.join(await getRootPathAsync(), '.easignore')`,
+> et `getRootPathAsync()` est `git rev-parse --show-toplevel`. Confirmé dans le log d'un
+> build réel : `.easignore exists … sourceEasignorePath: '<racine du dépôt>/.easignore'`.
+> Dans un worktree, cette racine est celle **du worktree** : le fichier étant versionné,
+> il s'y trouve aussi, et les motifs ancrés `/kyroz-app/…` y mordent pareil. ✔
+>
+> ### 🔒 Les deux pièges à ne jamais oublier en touchant à ce fichier
+>
+> **1. `.easignore` REMPLACE les `.gitignore`, il ne s'y ajoute pas.**
+> (eas-cli : *« if .easignore exists, .gitignore files are not used »*.) Tout motif
+> qu'on en retire **re-monte** dans l'archive — **les motifs de secrets compris**. C'est
+> pour cette raison précise qu'il n'avait pas été écrit à la va-vite avant la
+> soumission : un `.easignore` partiel aurait fait re-monter `.env*`, `*.p8`, `*.p12`,
+> `*.key`, `*.pem`, `*.mobileprovision`, `*.jks`. Le risque n'est pas théorique — un
+> `kyroz-app/.env.local` existe déjà dans un worktree. Ces motifs sont donc vérifiés un
+> par un par un test de chemins témoins (y compris à l'intérieur d'un worktree) avant
+> toute modification du fichier. La clé App Store Connect, elle, vit **hors du dépôt**
+> (`~/.eas-credentials/`, cf. `ascApiKeyPath` dans `eas.json`) : jamais concernée.
+>
+> **2. Pas de barre finale sur un motif de dossier.** Mesuré : avec `dist/`, la
+> bibliothèque `ignore` répond « non ignoré » pour le dossier `dist` lui-même — elle ne
+> sait pas que c'en est un. 14 motifs du fichier étaient dans ce cas. Le contenu
+> finissait exclu quand même, fichier par fichier, mais eas-cli descendait inutilement
+> dans l'arborescence et le motif ne mordait plus sur un dossier remplacé par un lien
+> symbolique. C'est la **même leçon** que celle déjà écrite dans les deux `.gitignore`
+> du dépôt à propos de `node_modules`.
+>
+> **Ce qui sort de l'archive alors que c'est versionné** — 16 fichiers, tous
+> volontaires : `.claude/` (outillage Claude Code) et `kyroz-app/assets/bodyfat/_source/`
+> (7,1 Mo de planches sources ; vérifié : le bundle ne charge que `{male,female}-1..6.png`,
+> par `require()` statiques dans `components/BodyFatPicker.tsx`). Aucun fichier n'**entre**
+> dans l'archive du fait de ce changement.
+>
+> **Aucun effet sur les OTA.** Le `runtimeVersion` est un fingerprint calculé sur des
+> sources précises (`.gitignore`, `eas.json`, `assets/icon.png`, `assets/splash-icon.png`,
+> `ios/`, et les plugins de `node_modules`) — `.easignore` n'en fait pas partie. Vérifié
+> en le calculant avec puis sans le fichier : `16dc5ce9…` dans les deux cas. Les mises à
+> jour OTA déjà publiées restent donc compatibles avec les binaires en circulation.
+>
+> **`.git` n'est volontairement PAS ignoré.** eas-cli le traite en cas spécial : si
+> `.easignore` l'ignore, il supprime le `.git` du clone shallow envoyé. Gain mesuré :
+> 10,4 Mo — sans enjeu une fois l'archive à 14 Mo, pour un changement de comportement
+> non testé. Écarté sciemment.
+>
+> **Le contrôle à refaire** : la ligne `« Your project archive is X MB »` au premier
+> build lancé **depuis le dépôt principal** après le merge. Elle ne doit plus apparaître
+> du tout (seuil d'affichage : 150 Mo). Si elle réapparaît, c'est qu'un nouveau dossier
+> lourd est ignoré par un chemin qu'eas-cli ne lit pas (`.git/info/exclude`, ou un
+> `.gitignore` dans un dossier caché) : le mesurer avec la classe `Ignore` d'eas-cli
+> plutôt que de deviner.
+
+> ### 🧪 Un build lancé depuis un worktree échoue si ses `node_modules` sont périmés
+> Rencontré le 2026-08-27 en vérifiant le `.easignore` ci-dessus. Deux builds `preview`
+> ont échoué sur `« Unknown error. See logs of the Configure expo-updates build phase »`
+> — sans rapport avec l'archive, qui s'était uploadée correctement.
+>
+> **La cause** : le worktree avait `node_modules/expo` en **56.0.12** alors que son
+> `package-lock.json` disait **57.0.17**. eas-cli calcule le `runtimeVersion` (fingerprint)
+> **en local**, avec l'`expo-updates` installé — donc en 56 — pendant que le serveur
+> installe depuis le lock et build en 57. Les deux empreintes divergent et la phase
+> `Configure expo-updates` casse. EAS le disait à qui savait lire : `SDK Version 56.0.0`
+> dans `eas build:view`, pour un projet en SDK 57.
+>
+> **Le réflexe** : après un changement de SDK, `npm ci` **dans chaque worktree** avant
+> d'y lancer un build — les `node_modules` d'un worktree ne suivent pas ceux du dépôt
+> principal. Et pour lire l'erreur réelle d'un build, l'API GraphQL d'Expo donne le
+> détail sans passer par le navigateur :
+> ```bash
+> SESSION=$(node -p "require(require('os').homedir()+'/.expo/state.json').auth.sessionSecret")
+> curl -s -X POST https://api.expo.dev/graphql -H "Content-Type: application/json" \
+>   -H "expo-session: $SESSION" \
+>   -d '{"query":"query { builds { byId(buildId: \"<BUILD_ID>\") { status error { errorCode message } logFiles } } }"}'
+> ```
+
 ```bash
 # 1. Outil EAS (une fois)
 npm i -g eas-cli        # ou préfixer les commandes par: npx eas-cli@latest
