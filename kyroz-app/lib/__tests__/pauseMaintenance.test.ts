@@ -165,7 +165,7 @@ describe('idempotence et chemins', () => {
     let p = LUI();
     for (let i = 0; i < DIET_BREAK_AFTER_WEEKS; i++) p = computePlan(p, addDaysStamp(LUNDI, 7 * i)).profile;
     const r = computePlan(p, addDaysStamp(LUNDI, 7 * DIET_BREAK_AFTER_WEEKS));
-    expect(r.clamp.source).toBe('diet_break');
+    expect(r.clamp!.source).toBe('diet_break');
   });
 });
 

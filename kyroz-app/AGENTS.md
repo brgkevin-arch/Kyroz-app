@@ -718,10 +718,11 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
   ✅ **LES 17 ORPHELINS SONT CLOS** (A40 · A41 · A42). ⚠️ Deux étapes HUMAINES restent :
   la procédure RevenueCat, et l'arbitrage de la clé Android (`01-07`).
 
-  ➡️ **PROCHAIN CHANTIER : LE LOT 1′, C'EST-À-DIRE LES TROIS P0** — `01-01`, `02-01`,
-  `02-02` (`02-03` est parti avec A40). Vérifiés OUVERTS le 2026-08-27, par mesure et non
-  par lecture : `hasCloud` teste toujours le seul `row.sex` (`sync.ts:391`) · `katchEligible`
-  ne mentionne toujours pas `highAdiposity` · et une ligne partielle rend toujours `NaN`.
+  ✅ **LE LOT 1′ EST LIVRÉ — les trois P0 sont clos le 2026-08-27 (A43).** `01-01`,
+  `02-01`, `02-02` ; `02-03` était parti avec A40. **25 mutations, 25 rouges.**
+  🔴 **ET LES TROIS RECOS ÉTAIENT FAUSSES, pas deux** — la mesure va plus loin que la
+  réfutation : celle de `02-01` désigne un SEUIL là où la règle est un SIGNE, et l'aurait
+  fait manger 571 kcal/j de moins à un homme de 160 kg franchissant 30 % de MG.
 
   🔴 **ET LA MESURE CORRIGE LA RECO DE `02-02`, QUI PARLE DES « QUATRE CHAMPS DU BMR ».**
   Balayage champ par champ, chacun à `null`, sur le moteur réel :
@@ -751,10 +752,8 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
   ⚠️ **`06b-17`** est celui que la réparation du corpus concerne : il jugeait les
   attributions de citations sur un dump amputé de ses quatorze noms d'auteurs. Corpus
   réparé, constat jamais rejoué.
-  ➡️ **Puis le lot 1′** : les trois P0 avec leurs recos CORRIGÉES (`goal` et `macro_mode` en
-  plus des quatre champs du BMR ; et surtout **sans** la garde d'identité telle qu'écrite —
-  le `id` d'un profil local est `user-${Date.now()}`, pas un uid, donc elle jetterait le
-  profil de qui a échoué son push hors ligne).
+  ✅ **Le lot 1′ est LIVRÉ (A43)** — recos corrigées comme annoncé, et une de plus que
+  prévu : celle de `02-01` désignait le mauvais critère.
   🔴 **ET UNE LEÇON DE MÉTHODE, PAYÉE SUR MOI-MÊME** : la réfutation avait ramené `CA-2-02`
   de majeur à MINEUR le jour même, avec ses motifs — je l'ai quand même publié en tête du §3
   et inscrit 🔴 au backlog comme le prochain chantier. Le verdict était dans le document ;
@@ -979,6 +978,185 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
      politique reste inexact pour les non-abonnés.**
   2. **`01-07`** — poser la clé RevenueCat Android, ou **acter par écrit qu'Android sort
      sans achat**. À trancher avant la soumission Android.
+
+- ✅ **A43 · LE LOT 1′ — LES TROIS P0 SONT CLOS, le 2026-08-27** (`01-01`, `02-01`,
+  `02-02` ; `02-03` était parti avec A40). **25 mutations, 25 rouges**, chacune vue
+  rougir sur le défaut exact qu'elle rejoue. Suite 2 010 tests, `tsc` 0.
+  🔴 **LE RÉSULTAT EN UNE PHRASE : LES TROIS MÉCANISMES TIENNENT, ET LES TROIS RECOS
+  SONT FAUSSES — deux désignent les mauvais champs, la troisième aurait fait manger
+  MOINS aux corps qu'elle prétendait protéger.** Le contre-audit avait annoncé
+  « deux sur trois » ; la mesure en trouve trois sur trois.
+
+  ### `02-01` — Katch-McArdle servi à forte adiposité
+  ✅ **`tdee.ts::katchRetenu`, `ENGINE_REV` 9 → 10.** Le chemin « %MG **mesuré** »
+  cesse de servir Katch là où Katch rend moins que Mifflin — c'est l'asymétrie que le
+  chemin « estimé » applique depuis toujours, **moins sa bande morte** (les 0,5 bande
+  paient le bruit d'une silhouette tapée au jugé ; une mesure DEXA n'a pas ce bruit).
+  🔴 **LA RECO PUBLIÉE DEMANDAIT DEUX RÈGLES DIFFÉRENTES SANS LE VOIR.** Sa première
+  phrase — « soumettre le chemin mesuré à la même asymétrie que le chemin estimé » —
+  est juste. Sa seconde — « au-dessus du seuil d'adiposité, servir Mifflin » — est une
+  AUTRE règle, et elle est fausse. Mesuré (`npm run mesure:katch`, 40 320 corps) :
+  · le croisement Katch = Mifflin ne tombe **pas** sur le seuil : il court de **6 à
+    52 %** de MG selon le gabarit (médiane 34). Un seuil fixe à 30 / 40 coupe donc au
+    mauvais endroit **dans les deux sens** ;
+  · couper au seuil introduit une marche de **571 kcal/j de BMR, VERS LE BAS** — un
+    homme de 160 kg à 30,01 % de MG passerait de Katch à Mifflin et mangerait 571 kcal
+    de moins qu'à 30,00 %. Elle aurait donc **rouvert la discontinuité que `CA-2-01`
+    venait de fermer trois jours plus tôt**, et retiré des calories aux corps mêmes que
+    le constat voulait protéger. Au SIGNE, la marche vaut **zéro par construction**.
+  ⚠️ **COÛT MESURÉ SUR 645 120 PROFILS** du chemin concerné, avant/après sur le même
+  arbre : **344 406 bougent (53,4 %), TOUS vers le haut, aucun vers le bas** — moyenne
+  +409 kcal/j, max +1 469, dont 300 397 au-dessus du seuil d'avertissement. La grille
+  est UNIFORME de 5 à 60 % de MG, donc elle sur-représente les fortes adiposités ; la
+  ventilation dit où ça mord : **8 %** des corps secs (+140) · 20 % à 16-25 % · 44 % à
+  26-35 % · **90 % au-delà de 36 %** (+475). Le chemin « estimé » ne bouge pas d'un kcal.
+  ⚠️ **Une troisième cause d'avertissement était nécessaire** (`measured_bmr`) : les
+  rev 8 et 10 font toutes deux MONTER la cible en repartant de la composition
+  corporelle, mais l'une lit une SILHOUETTE et l'autre une MESURE — et un compte parti
+  de la rev 7 traverse les deux, donc le trajet `fromRev → rev` ne peut pas les
+  séparer. Sans elle, quelqu'un qui a saisi un DEXA s'entendait dire « ta silhouette
+  indique plus de muscle ». ⚠️ La condition **interroge le moteur** (`katchEligible &&
+  !katchRetenu`), elle ne lit pas `body_fat_source` : un tag posé à la main aurait
+  nommé une cause fausse à tous les %MG mesurés dont la cible monte pour autre chose.
+  🔴 **ET LA REV 10 A RÉVEILLÉ UN PIÈGE DORMANT** : la cause `floor_lifted` — dont le
+  texte à l'écran dit « ton budget baisse » — n'a **jamais** vérifié le signe. Tant
+  qu'un trajet s'arrêtait à la rev 9, une forte adiposité ne pouvait que baisser. La
+  rev 10 remonte ces mêmes corps, donc le signe NET d'un compte parti d'avant la rev 7
+  peut être positif. Garde de signe ajoutée ; la cause se tait alors, et l'écran sert
+  le texte générique — **dire moins vaut mieux que dire faux**.
+  ⚠️ **Quatre tests d'avant encodaient l'ancienne règle et ont été RÉÉCRITS, pas
+  affaiblis.** Le plus instructif : `bodyFatSource` bornait l'écart « sans provenance
+  vs mesuré » à `[-64, +363]`. La borne haute tombe à **0**, et ce zéro est une
+  PROPRIÉTÉ : le +363 mesurait exactement le défaut — il disait qu'un profil sans
+  provenance recevait jusqu'à 363 kcal/j de PLUS qu'un profil `measured` au même corps,
+  parce que le mesuré était condamné à Katch même là où Katch se trompe.
+  ⚠️ Trois gabarits de test ont dû être retrouvés **par balayage** (jamais au jugé), et
+  l'un d'eux était **à 3 kcal de sa falaise** — son propre commentaire le disait. Le
+  remplaçant a ~70 semaines de marge, et **la marge est comptée dans le test**.
+
+  ### `02-02` — une ligne cloud partielle produit un plan entièrement NaN
+  ✅ **`lib/profilComplet.ts` + refus explicite du moteur (`PROFIL_INCOMPLET`).**
+  🔴 **LA RECO PUBLIÉE — « les quatre champs du BMR » — N'AURAIT FERMÉ QU'UN CINQUIÈME
+  DU TROU, et une garde « pas de NaN » n'aurait attrapé QU'UN champ sur cinq.**
+  Balayage des **41 colonnes** synchronisées, une par une à NULL, sur le moteur réel
+  (`npm run mesure:incomplet`) :
+
+  | colonne à `null` | ce que le moteur sert | |
+  |---|---|---|
+  | `sex` | `NaN` partout | 🔴 l'échec SE VOIT |
+  | `weight_kg` | 1500 kcal, **0 g de protéines** | 🔴 absurde, mais FINI |
+  | `height_cm` | 1500 kcal, 191 g | 🔴 absurde, mais FINI |
+  | **`macro_mode`** | 0 g de protéines — ou, sur un profil déjà rempli, **les cibles GÈLENT** (+534 kcal ici) | 🔴 **absent de la reco** |
+  | `age` | 2339 au lieu de 2079 | ⚠️ **PLAUSIBLE**, et faux de 260 |
+  | les 36 autres | aucun effet | ✓ |
+
+  ➡️ **La ligne de partage n'est pas « casse ou pas », c'est « MESURE ou INTENTION »** —
+  la moitié manquante du principe posé par A40. `goal` et `macro_mode` disent ce que la
+  personne VEUT : un repli est honnête. `sex`, `age`, `weight_kg`, `height_cm` disent ce
+  que son CORPS EST : il n'existe aucune valeur par défaut pour un corps, et en inventer
+  une sert un plan à quelqu'un d'autre — c'est `01-01` par un autre chemin.
+  🔴 **ET LE RÉPARTITEUR DE MACROS AVAIT UN `else` PERMISSIF.** `if auto / else if
+  percent / **else** manual` : toute valeur inconnue tombait dans la branche où le
+  moteur **ne recalcule plus rien** et sert des grammes figés. Accesseur unique
+  (`macroMode`), repli sur `auto` — celui qui RECALCULE, donc celui d'où l'on peut
+  encore corriger. Même discipline que `katchEligible` : on teste l'APPARTENANCE,
+  jamais l'absence.
+  ⚠️ **Trois étages, trois pannes différentes** : le moteur REFUSE (plus aucun NaN
+  produit, donc plus aucun NaN persisté ni poussé au cloud) · `bootProfile` ne SERT pas
+  un profil sans corps (`app/index.tsx` route sur la seule EXISTENCE du profil, donc le
+  servir envoyait vers le Plan quelqu'un dont le plan ne peut pas exister) · `hasCloud`
+  teste le corps entier (c'était `!!(row && row.sex)`, la garde exacte du constat).
+  ⚠️ **Refuser n'est pas effacer** : le profil ressort intact, les pesées, favoris,
+  réserve et série survivent, et le journal **NOMME la colonne manquante**. Vérifié à
+  l'écran : `weight_kg` retiré → inscription, avertissement nommé, rien de perdu.
+  ⚠️ `ComputedPlan.clamp` devient **optionnel** — remplir ce dossier de zéros avec un
+  `source` choisi au hasard aurait produit une trace d'arbitrage pour un arbitrage qui
+  n'a pas eu lieu, et `source` se lit à l'écran. Coût : 59 sites de test à visiter,
+  c'est-à-dire `tsc` qui force chaque consommateur à voir le cas. C'est le but.
+
+  ### `01-01` — un compte hérite des données du précédent
+  ✅ **`lib/sessionLocale.ts` — la purge devient une PROPRIÉTÉ de `signOut()`, et
+  l'identité entre dans l'hydratation.** Deux fermetures, deux trous différents :
+  · la **purge**, partagée entre `signOut()` et l'événement **`SIGNED_OUT`** — le seul
+    qui voie les pertes de session INVOLONTAIRES (jeton révoqué, mot de passe changé
+    ailleurs, compte supprimé à distance, rafraîchissement échoué). Vérifié dans
+    `@supabase/auth-js` : les cinq appels à `_removeSession()` couvrent ces cas, et
+    tous émettent `SIGNED_OUT`. ⚠️ **Sur l'ÉVÉNEMENT, jamais sur `s === null`** :
+    `INITIAL_SESSION` arrive avec une session nulle à chaque démarrage sans compte,
+    donc purger là-dessus effacerait l'inscription en cours **à chaque lancement** ;
+  · l'**identité**, en tête de `hydrateFromCloud` — le point de passage unique de toute
+    connexion, donc la seule garantie qui tienne même si la purge n'a pas eu lieu.
+  ⚠️ **C'est ce qui referme les CINQ domaines d'un seul geste**, et pas seulement le
+  profil : le contre-audit avait mesuré que favoris, réserve, pesées et recettes perso
+  du compte précédent sont POUSSÉS dans le cloud du suivant quand sa ligne est vide —
+  et que pesées, série et recettes sont FUSIONNÉES, donc le mélange devient permanent
+  des deux côtés. Purger en tête laisse toutes les sections lire un local vide.
+  🔴 **LA RECO PUBLIÉE, APPLIQUÉE À LA LETTRE, JETAIT UN PROFIL SAIN** (`CA-1-04`).
+  « Un profil dont l'`id` diffère de l'`uid` entrant se jette » : or l'`id` d'un profil
+  local est `user-<horodatage>`, pas un uid. `proprietaireLocal` distingue donc trois
+  cas, et **son défaut n'est pas permissif** — toute forme inconnue compte comme
+  autrui, parce que les deux erreurs ne se valent pas : classer à tort en
+  « sans compte » fait FUIR des données de santé, classer à tort en « autre » fait
+  perdre un profil d'une forme d'`id` qu'aucun producteur de ce dépôt n'écrit.
+  ⚠️ **`autre` l'emporte sur « à pousser »**, et c'est une perte ASSUMÉE : un local sale
+  donnait `keep_local` → `pushProfile(local)` → **le profil de A écrit dans la ligne
+  cloud de B**. Les données de A sont perdues — sa session n'existe plus, aucun chemin
+  ne permet de les lui rendre, et les garder ferait lire ses données de santé par
+  quelqu'un d'autre.
+  🔴 **UN DÉFAUT TROUVÉ EN CHEMIN, ET C'EST LE MOCK QUI L'A DÉNONCÉ** : la purge était
+  dans le `try` de la lecture du profil, donc **une purge qui jette était avalée** et
+  l'hydratation continuait comme si de rien n'était — la garde cessait de garder EN
+  SILENCE. Découvert parce que `test/asyncStorageMock.ts` n'avait ni `getAllKeys` ni
+  `multiRemove` : l'appel jetait, et trois assertions passaient quand même. ➡️ La purge
+  sort du `try`, son échec **ABANDONNE l'hydratation** (mieux vaut une synchro manquée
+  qu'une fuite), et le mock a reçu les deux méthodes. *Un mock incomplet est un
+  instrument qui ment, pas une simplification.*
+  ⚠️ **Le profil en MÉMOIRE se relit au changement de compte** (`useProfile`, dépendance
+  `uid`) : purger le stockage ne vide pas l'état React, et sans ça l'écran continuait
+  d'afficher le profil du compte précédent — donnée effacée, écran qui ment quand même.
+  ⚠️ **Les effets de la purge sont INJECTÉS, sans défaut.** `photos.ts` et
+  `notifications.ts` tirent le runtime Expo : les importer depuis `lib/sessionLocale.ts`
+  rendait INTESTABLE tout fichier de `lib/` qui remonte jusque-là — mesuré, trois suites
+  tombaient sur `__DEV__ is not defined`, dont celle qui couvre `sync.ts`, **qui porte
+  la garde**. La composition vit dans `lib/effetsPurge.ts`, importé par le seul
+  `hooks/useAuth.tsx`, et le couplage est COMPTÉ.
+
+  🔴 **DEUX GARDE-FOUS ONT SURVÉCU À LEUR PREMIÈRE MUTATION — et c'est la même faute
+  deux fois** : vérifier la fonction pure, jamais que l'appelant l'appelle.
+  · remettre `hasCloud: !!(row && row.sex)` dans `sync.ts` laissait `profilIncomplet`
+    entièrement vert ;
+  · vider `signOut()` de sa purge laissait `heritageDeCompte` vert.
+  ➡️ Les deux lisent désormais la SOURCE — et sur le CODE seul, commentaires écartés :
+  celui de `sync.ts` cite l'ancienne garde mot pour mot, donc un test qui lirait les
+  commentaires se satisferait de la citation.
+  ⚠️ **Et un troisième test passait pour une mauvaise raison** : « `floor_lifted` ne
+  peut pas être servi sur une hausse » prenait un corps MESURÉ à 45 % de MG — qui reçoit
+  `measured_bmr`, renvoyée AVANT que `floor_lifted` soit seulement calculée. Il
+  n'atteignait jamais la branche qu'il prétendait garder. Seule la mutation l'a dit.
+  ⚠️ **`sortieDeSession` a dû apprendre à suivre la DÉLÉGATION** : chercher
+  `cancelWeighInReminder` dans `doLogout` rend `false` après le déménagement — la
+  propriété est intacte, la sonde ne la voit plus. C'est « un garde-fou nommé d'après
+  une implémentation meurt le jour où on en change ». Il inline le corps de
+  `purgerSessionLocale` **seulement si `signOut` l'appelle vraiment** : recopier la
+  purge dès qu'on voit `signOut()` ferait passer un `signOut` vidé de sa substance.
+
+  ➡️ **Vérifié à l'écran** (panneau navigateur, `.env.local` factice puis retiré), parce
+  que ces trois correctifs touchent le chemin de DÉMARRAGE — ce que 02-03 a appris au
+  prix d'une app qui ne s'ouvrait plus jamais : l'app s'ouvre, le plan est calculé
+  (2 079 kcal, exactement ce que la mesure annonçait), le Profil rend sa carte
+  d'avertissement avec le bon texte, et un profil amputé de son poids part à
+  l'inscription au lieu de servir 1 500 kcal — profil et pesées intacts.
+
+  ℹ️ **AUCUN `ENGINE_VERSION`, et c'est une prémisse COMPTÉE, pas supposée** :
+  `profileSignature` inclut `target_kcal` et les trois macros (`planEngine.ts:1025`).
+  Une cible qui bouge périme donc le plan en cache toute seule — le bumper aurait
+  régénéré, en plus, les plans de tous ceux que la rev 10 ne déplace pas.
+
+  ⚠️ **CE QUI RESTE OUVERT, ET QUI NE L'ÉTAIT PAS AVANT** : la rev 10 déplace
+  300 397 profils de plus de 100 kcal/j **sur le chemin `measured` uniquement**. Le
+  parc réel de ce chemin n'est pas connu — la question « combien de comptes ont
+  `body_fat_source: 'measured'` » ne se répond qu'en production, et elle décide si
+  l'avertissement one-shot sera vu par trois personnes ou par un tiers du parc.
 
 - ✅ **A38 · SÉLECTION BMR « R6 LISSÉE » — LIVRÉE le 2026-08-24** (décision fondateur,
   handoff « Mifflin vs Katch », `ENGINE_REV` 7 → 8). La règle binaire « %MG estimé ⇒

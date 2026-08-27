@@ -1,4 +1,5 @@
-import { BodyFatSource, EngineNotice, FloorSource, Goal, GOAL_FALLBACK, GoalTarget, NeatLevel, PlanFlag, Sex, SportSession, UserProfile } from './types';
+import { BodyFatSource, EngineNotice, FloorSource, Goal, GOAL_FALLBACK, GoalTarget, MacroMode, NeatLevel, PlanFlag, Sex, SportSession, UserProfile } from './types';
+import { champsMesuresManquants, MACRO_MODE_FALLBACK } from './profilComplet';
 import { exerciseKcalPerDay, totalSessionsPerWeek } from './sport';
 import {
   datedGoalStatus, goalDirectionMismatch, MAX_DEFICIT_TDEE_RATIO, WeekPoint, WeeklyProjector,
@@ -129,6 +130,51 @@ export function melangeVersKatch(b: BmrBody): number {
 }
 
 /**
+ * Katch est-il RÉELLEMENT retenu pour ce corps ? (constat 02-01, P0)
+ *
+ * 🔴 CE PRÉDICAT N'EXISTAIT PAS, ET C'ÉTAIT LE DÉFAUT. `calculateBMR` partait droit
+ * sur Katch dès que `katchEligible` disait oui — c'est-à-dire dès que le %MG était
+ * MESURÉ — sans jamais demander si Katch avait un sens à cette adiposité. Mesuré sur
+ * le moteur : un homme de 120 kg à 45 % de MG recevait un BMR **322 kcal/j SOUS**
+ * Mifflin, et 452 à 50 %. En plus du déficit demandé.
+ *
+ * ⚠️ **LA RÈGLE EST LE SIGNE DE `d`, PAS UN SEUIL D'ADIPOSITÉ — et la reco publiée
+ * demandait les deux à la fois sans voir qu'elles diffèrent.** Sa première phrase dit
+ * « soumettre le chemin *mesuré* à la même asymétrie que le chemin *estimé* » : c'est
+ * exactement ce qui est écrit ici. Sa seconde dit « au-dessus du seuil d'adiposité,
+ * servir Mifflin » : c'est une AUTRE règle, et elle est fausse. Mesuré
+ * (`npm run mesure:katch`, 40 320 corps) :
+ *
+ *  · le croisement Katch = Mifflin ne tombe PAS sur le seuil. Il court de **6 à 52 %**
+ *    de MG selon le gabarit, médiane 34 — un seuil fixe à 30 / 40 coupe donc au
+ *    mauvais endroit **dans les deux sens** ;
+ *  · couper au seuil introduit une MARCHE allant jusqu'à **571 kcal/j de BMR, vers le
+ *    BAS** : un homme de 160 kg à 30,01 % de MG passerait de Katch à Mifflin et
+ *    mangerait 571 kcal de moins qu'à 30,00 %. La reco ferait donc manger moins à des
+ *    gens que le constat voulait protéger, et rouvrirait très exactement la
+ *    discontinuité que `CA-2-01` venait de fermer (`ADIPOSITY_BLEND_PTS`).
+ *
+ * ➡️ Au signe, la marche vaut **zéro par construction** : au point de bascule les deux
+ * formules donnent le même nombre. Il n'y a pas de falaise à lisser parce qu'il n'y a
+ * pas de falaise.
+ *
+ * ⚠️ **Pas de bande morte ici, contrairement à `melangeVersKatch`.** Les 0,5 bande du
+ * chemin « estimé » paient le bruit d'une silhouette tapée au jugé (±5 pts). Une
+ * mesure DEXA n'a pas ce bruit — c'est même la seule raison pour laquelle ce chemin
+ * existe. Lui appliquer une bande d'incertitude qu'elle n'a pas serait recopier la
+ * forme de la règle en oubliant son motif.
+ *
+ * ⚠️ Le résultat coïncide avec `max(katch, mifflin)`, et ce n'est PAS un choix de
+ * prendre le plus généreux des deux : c'est que le biais de Katch est
+ * UNIDIRECTIONNEL. Il compte le tissu adipeux à zéro kcal, donc il ne peut
+ * sur-estimer que du côté sec, où il est justement la plus juste des deux. Là où il
+ * sert moins que Mifflin, c'est son erreur qu'on lit, pas une prudence.
+ */
+export function katchRetenu(b: BmrBody): boolean {
+  return katchEligible(b) && katchRaw(b) > mifflinRaw(b);
+}
+
+/**
  * BMR — trois chemins, dans cet ordre :
  *  1. %MG **MESURÉ** → Katch-McArdle directement (règle du 2026-08-06, inchangée) ;
  *  2. %MG estimé — ou provenance absente — dont Katch dépasse Mifflin AU-DELÀ du
@@ -157,7 +203,11 @@ export function melangeVersKatch(b: BmrBody): number {
  * `bodyFatSource.test.ts`, bloc 4).
  */
 export function calculateBMR(b: BmrBody): number {
-  if (katchEligible(b)) return Math.round(katchRaw(b));
+  if (katchRetenu(b)) return Math.round(katchRaw(b));
+  // ⚠️ Un %MG MESURÉ dont Katch sert moins que Mifflin tombe ici, et c'est voulu :
+  // `melangeVersKatch` rend alors 0 (`d ≤ 0 ≤ 0,5 bande`), donc Mifflin. Les deux
+  // chemins convergent sur la même sortie au lieu de la calculer deux fois — mais la
+  // DÉCISION, elle, reste dans `katchRetenu`, seul endroit où elle se lit et se teste.
   const w = melangeVersKatch(b);
   if (w === 0) return Math.round(mifflinRaw(b));
   return Math.round(mifflinRaw(b) + w * (katchRaw(b) - mifflinRaw(b)));
@@ -1026,13 +1076,13 @@ function servedTargetAt(
   // Avec un delta IMPOSÉ (A15), on ne consulte même pas la politique : le simulateur
   // veut savoir où mène CE rythme-là, pas celui que l'échéance déduirait.
   const dated = kcalDeltaOverride == null ? datedGoalStatus(
-    p.goal_target, body, stamp, tdee, p.macro_mode === 'manual' ? null : baseFloor, null,
+    p.goal_target, body, stamp, tdee, macroMode(p) === 'manual' ? null : baseFloor, null,
   ) : null;
   const kcalDelta = kcalDeltaOverride ?? (dated?.active ? dated.dailyKcalDelta : goalConfig(p.goal).kcalDelta);
 
   // En mode `manual`, la cible vient des GRAMMES saisis, pas de `tdee + delta`
   // (cf. computePlan). Le plancher s'y applique de la même façon.
-  const requested = p.macro_mode === 'manual'
+  const requested = macroMode(p) === 'manual'
     ? kcalFromMacros(p.target_protein_g, p.target_carbs_g, p.target_fat_g)
     : tdee + kcalDelta;
 
@@ -1076,7 +1126,7 @@ export function trackingTarget(p: UserProfile, today: string): GoalTarget | unde
   if (!gt) return undefined;
   const st = datedGoalStatus(
     gt, p, today, p.tdee_kcal,
-    p.macro_mode === 'manual' ? null : planFloorKcal(p, today),
+    macroMode(p) === 'manual' ? null : planFloorKcal(p, today),
     makeWeeklyProjector(p),
   );
   // Date tenue, pilotage arrêté, ou aucune date crédible → on garde l'objectif saisi :
@@ -1129,6 +1179,23 @@ export const ENGINE_REV_LEGACY = 1;
  * ⚠️ Le %MG suit désormais le poids DANS LA PROJECTION (`safety.bodyAtWeight`) : ça
  * change les dates annoncées, pas la cible du jour.
  *
+ * rev 9 → 10 (2026-08-27, constat 02-01, P0) : le chemin « %MG **mesuré** » cesse de
+ * servir Katch-McArdle quand Katch rend MOINS que Mifflin-St Jeor. C'est l'asymétrie
+ * que le chemin « estimé » appliquait déjà et que celui-ci n'avait jamais reçue : un
+ * homme de 120 kg à 45 % de MG recevait un BMR **322 kcal/j sous** Mifflin, 452 à 50 %.
+ * Mesuré sur **645 120 profils** du chemin concerné : **344 406 bougent (53,4 %),
+ * TOUS vers le haut, aucun vers le bas** — écart moyen +409 kcal/j, max +1 469, dont
+ * 300 397 au-dessus du seuil d'avertissement. ⚠️ La grille est UNIFORME de 5 à 60 % de
+ * MG, donc elle sur-représente les fortes adiposités ; la ventilation dit où ça mord :
+ * 8 % des corps secs (+140 kcal/j en moyenne) · 20 % à 16-25 % · 44 % à 26-35 % ·
+ * **90 % au-delà de 36 %** (+475). ⚠️ Ne concerne QUE `body_fat_source: 'measured'` —
+ * le chemin « estimé » ne bouge pas d'un kcal.
+ * 🔴 **La reco publiée demandait de couper au SEUIL d'adiposité, et c'était faux** :
+ * mesuré, ça introduisait une marche de **571 kcal/j vers le BAS** à 30,01 % de MG chez
+ * les gabarits lourds — donc ça faisait manger MOINS les gens que le constat voulait
+ * protéger, et rouvrait la discontinuité que `CA-2-01` venait de fermer. Au SIGNE, la
+ * marche vaut zéro par construction. Détail : `npm run mesure:katch`.
+ *
  * rev 5 → 6 (2026-08-06) : Katch-McArdle exige désormais un %MG **MESURÉ**. Un %MG
  * estimé (silhouette tapée, chiffre au jugé) repasse sur Mifflin-St Jeor. Déplace
  * TOUS les profils dont la provenance n'est pas `measured` — c'est-à-dire, au
@@ -1160,7 +1227,7 @@ export const ENGINE_REV_LEGACY = 1;
  * l'explication de la rev 2 à quelqu'un dont la cible a bougé pour une autre raison
  * serait un mensonge, pas une approximation.
  */
-export const ENGINE_REV = 9;
+export const ENGINE_REV = 10;
 
 /**
  * Seuil d'affichage (kcal/j, en valeur absolue). En dessous, l'écart tient dans le
@@ -1190,7 +1257,7 @@ function engineNoticeFor(
    * il attrape aussi quelques `lean_bulk` d'origine — dont la cible, elle, n'a pas
    * bougé, donc qui ne reçoivent aucune notice. L'indice est imprécis, la notice non.
    */
-  b?: BodyInput & { goal?: Goal },
+  b?: BodyInput & { goal?: Goal; body_fat_source?: BodyFatSource },
 ): EngineNotice | undefined {
   const depuis = prevRev ?? ENGINE_REV_LEGACY;
   if (depuis === ENGINE_REV) return undefined;
@@ -1200,13 +1267,57 @@ function engineNoticeFor(
   // valent rien pour qui vient de la rev 7 ou plus : sa cible n'a bougé que par la
   // rev 8 (R6 lissée), et lui servir « la limite de sécurité ne s'applique plus »
   // ou « une seule prise de masse » serait un mensonge, pas une approximation.
+  // ⚠️ `floor_lifted` EXIGE UNE BAISSE, et ce garde n'existait pas avant la rev 10.
+  // Son texte à l'écran dit « ton budget baisse » : le servir sur une hausse serait le
+  // mensonge exact que le commentaire d'`EngineNoticeCard` interdit. C'était latent —
+  // sur un trajet s'arrêtant à la rev 9, une forte adiposité ne pouvait que baisser.
+  // La rev 10 remonte ces mêmes corps : un compte parti d'avant la rev 7 traverse donc
+  // les deux, et le SIGNE NET peut être positif. La cause se tait alors, et l'écran
+  // sert le texte générique — dire moins vaut mieux que dire faux.
+  // `measured_bmr` se décide AVANT le garde `depuis >= 7` : c'est la seule cause qui
+  // concerne aussi les trajets récents (7 → 10, 8 → 10, 9 → 10), et c'est justement là
+  // que la révision seule ne suffit plus à départager les rev 8 et 10.
+  //
+  // ⚠️ **La condition INTERROGE LE MOTEUR, elle ne déduit rien du trajet.** Le corps
+  // déplacé par la rev 10 est exactement celui dont le %MG a le droit d'alimenter Katch
+  // (`katchEligible`) mais que Katch ne sert plus (`katchRetenu`). « `body_fat_source`
+  // vaut measured et la cible monte » aurait été un tag posé à la main : il aurait
+  // attrapé tous les %MG mesurés dont la cible remonte pour une AUTRE raison, et leur
+  // aurait nommé une cause fausse.
+  if (b && depuis < ENGINE_REV && nextTarget > prevTarget
+      && katchEligible(b) && !katchRetenu(b)) {
+    return { rev: ENGINE_REV, from: prevTarget, to: nextTarget, fromRev: depuis, cause: 'measured_bmr' };
+  }
   const cause: EngineNotice['cause'] | undefined = (!b || depuis >= 7) ? undefined
-    : highAdiposity(b) ? 'floor_lifted'
+    : (highAdiposity(b) && nextTarget < prevTarget) ? 'floor_lifted'
       : b.goal === 'lean_bulk' ? 'goal_merged'
         : undefined;
   // `fromRev` est indispensable à l'écran : `rev` seul dit où l'on ARRIVE, jamais
   // d'où l'on vient — or c'est le trajet qui doit être expliqué.
   return { rev: ENGINE_REV, from: prevTarget, to: nextTarget, fromRev: depuis, cause };
+}
+
+/**
+ * Le mode de macros RÉELLEMENT applicable — accesseur unique (constat 02-02).
+ *
+ * 🔴 LE DÉFAUT ÉTAIT UN `else`. Le répartiteur s'écrivait `if (auto) … else if (percent)
+ * … else → manual`, donc toute valeur inconnue — `null`, `undefined`, une chaîne d'une
+ * version future — tombait dans la branche la PLUS PERMISSIVE : celle où le moteur ne
+ * recalcule rien et sert les grammes figés du profil. Mesuré : `macro_mode: null` sur un
+ * profil aux cibles remplies gèle la cible (+534 kcal d'écart au moteur ici) ; sur des
+ * cibles à zéro, il sert **0 g de protéines**, tout en glucides.
+ *
+ * ⚠️ C'est le même motif que `katchEligible` : on teste l'APPARTENANCE, jamais une
+ * négation, et le repli va vers le mode qui RECALCULE. `manual` ne s'obtient plus que
+ * si la base le dit explicitement — c'est un mode que l'UI ne propose plus depuis
+ * longtemps, il ne doit pas s'attraper par accident.
+ * ⚠️ Lecture seule, comme `goalConfig` : le repli ne se persiste pas ici. La donnée est
+ * refermée côté stockage par `normalizeMacroMode` (démarrage + hydratation).
+ */
+function macroMode(p: Pick<UserProfile, 'macro_mode'>): MacroMode {
+  return p.macro_mode === 'auto' || p.macro_mode === 'percent' || p.macro_mode === 'manual'
+    ? p.macro_mode
+    : MACRO_MODE_FALLBACK;
 }
 
 // ── Producteur unique du profil calculé ──────────────────────────────────────
@@ -1219,8 +1330,13 @@ export interface ComputedPlan {
    * Pourquoi la cible servie n'est pas celle qui était demandée. Producteur unique :
    * l'écran ne redéduit RIEN (il ne peut pas — il faudrait rejouer les cinq
    * candidats), il lit `clamp.source` et `clamp.clampedByKcal`.
+   *
+   * ⚠️ **`undefined` QUAND LE MOTEUR A REFUSÉ DE CONCLURE** (`PROFIL_INCOMPLET`, 02-02).
+   * Il est optionnel exprès : remplir ce dossier avec des zéros et un `source` choisi au
+   * hasard aurait produit une trace d'arbitrage pour un arbitrage qui n'a pas eu lieu —
+   * et `source` se lit à l'écran. L'absence force l'appelant à voir le cas.
    */
-  clamp: ClampRecord;
+  clamp?: ClampRecord;
   /**
    * De quoi EXPLIQUER une cible qui remonte toute seule, ou `undefined` s'il n'y a
    * rien à dire. Exposé ici et pas recalculé par l'écran : le nombre de semaines en
@@ -1249,6 +1365,33 @@ export function computePlan(rawProfile: UserProfile, today: string = todayStamp(
   const p: UserProfile = (derivedAge != null && derivedAge !== rawProfile.age)
     ? { ...rawProfile, age: derivedAge }
     : rawProfile;
+
+  // ── Le moteur REFUSE plutôt que d'inventer (constat 02-02, P0) ─────────────
+  //
+  // 🔴 Une ligne cloud partielle sortait `NaN` sur le TDEE, la cible, le plancher et
+  // les trois macros — **en émettant quand même `LOW_EA_WARNING`**. Un état d'échec
+  // total ressortait habillé en diagnostic de sécurité.
+  //
+  // ⚠️ **ON REFUSE, ON NE LÈVE PAS.** Lever ici referait 02-03 à l'identique : la
+  // valeur fautive étant relue d'AsyncStorage à chaque lancement, l'app ne s'ouvrirait
+  // plus jamais. Le contrat devient « `computePlan` rend toujours un objet, et il dit
+  // quand il n'a pas conclu ».
+  //
+  // ⚠️ **LE PROFIL RESSORT INTACT.** Pas de cible à zéro, pas de macro inventée : ce
+  // qui entre ressort. C'est ce qui rend `recalcProfile` sûr sur un profil incomplet —
+  // il ne peut plus écrire de `NaN` dans le stockage ni au cloud.
+  //
+  // ⚠️ `floor_kcal: 0` veut dire « aucun plancher n'a pu être calculé », pas « le
+  // plancher vaut zéro ». Tout consommateur doit lire le drapeau AVANT le nombre —
+  // c'est pour ça que le drapeau est le seul du tableau, et pas un parmi d'autres.
+  const manquants = champsMesuresManquants(p);
+  if (manquants.length) {
+    return {
+      profile: p,
+      flags: ['PROFIL_INCOMPLET'],
+      floor_kcal: 0,
+    };
+  }
 
   const tdee = calculateTDEE(p);
   const sportKcalPerDay = exerciseKcalPerDay(p.sports, p.weight_kg);
@@ -1306,7 +1449,7 @@ export function computePlan(rawProfile: UserProfile, today: string = todayStamp(
   // et un appel sans projecteur ne simule rien.
   const datedStatus = datedGoalStatus(
     p.goal_target, p, today, tdee,
-    p.macro_mode === 'manual' ? null : baseFloor,
+    macroMode(p) === 'manual' ? null : baseFloor,
     p.goal_target ? makeWeeklyProjector(p) : null,
   );
   const datedDelta = datedStatus?.active ? datedStatus.dailyKcalDelta : undefined;
@@ -1319,9 +1462,9 @@ export function computePlan(rawProfile: UserProfile, today: string = todayStamp(
   const opts: MacroOptions = { kcalDeltaOverride: kcalDelta, sportKcalPerDay, lowEaWeeks, dietBreak };
 
   let m: MacroPlan;
-  if (p.macro_mode === 'auto') {
+  if (macroMode(p) === 'auto') {
     m = calculateMacros(tdee, p.goal, p, opts);
-  } else if (p.macro_mode === 'percent') {
+  } else if (macroMode(p) === 'percent') {
     // `clampCarbRatio` et pas `?? DEFAULT` : une valeur PERSISTÉE hors bornes (90,
     // ou 100 que la base accepte) doit être ramenée, pas servie telle quelle.
     m = macrosPercent(tdee, p.goal, p, clampCarbRatio(p.carb_ratio), {

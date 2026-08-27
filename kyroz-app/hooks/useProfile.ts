@@ -23,7 +23,19 @@ interface ProfileContextValue {
 export const ProfileContext = createContext<ProfileContextValue | null>(null);
 
 export function ProfileProvider({ children }: { children: React.ReactNode }) {
-  const { ready, hydrationTick } = useAuth();
+  const { ready, hydrationTick, session } = useAuth();
+  /**
+   * L'identité du compte connecté — **dépendance de la relecture** (constat 01-01, P0).
+   *
+   * 🔴 Sans elle, le profil en MÉMOIRE survit à un changement de compte. Le stockage,
+   * lui, est bien purgé (`purgerSessionLocale`), mais cet effet ne se rejouait que sur
+   * `ready` et `hydrationTick` : entre la purge et la première hydratation, l'app
+   * continuait d'afficher le profil du compte précédent — poids, %MG, cibles. La donnée
+   * était effacée et l'ÉCRAN mentait quand même.
+   * ⚠️ Une déconnexion la fait passer à `undefined`, donc l'effet se rejoue aussi vers
+   * l'écran de connexion : c'est voulu, c'est le même besoin dans l'autre sens.
+   */
+  const uid = session?.user?.id;
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   // Dernier profil servi, sérialisé : sert à ne PAS remplacer l'objet en mémoire
@@ -93,7 +105,7 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
     });
     return () => { alive = false; };
-  }, [ready, hydrationTick]);
+  }, [ready, hydrationTick, uid]);
 
   const saveProfile = useCallback(async (p: UserProfile) => {
     setProfile(p);

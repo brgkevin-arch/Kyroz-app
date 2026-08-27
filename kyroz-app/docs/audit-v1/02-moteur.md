@@ -186,6 +186,19 @@ Exécutés contre le moteur réel (`npx tsx -e`, aucun fichier créé dans le d�
 ## Constats
 
 ### 02-01 Katch-McArdle est servi à adiposité élevée dès que le %MG est *mesuré*
+> ✅ **CORRIGÉ le 2026-08-27** — fiche : `AGENTS.md` **A43**, `tdee.ts::katchRetenu`,
+> `ENGINE_REV` 9 → 10, garde-fou `katchAdiposite.test.ts` (7 mutations, 7 rouges).
+> Le mécanisme tient exactement comme décrit — et **la reco demandait deux règles
+> différentes sans le voir** :
+> · sa 1ʳᵉ phrase (« la même asymétrie que le chemin estimé ») est ce qui a été appliqué ;
+> · sa 2ᵉ (« au-dessus du seuil d'adiposité, servir Mifflin ») est une AUTRE règle, et
+>   elle est **fausse**. Mesuré sur 40 320 corps : le croisement Katch = Mifflin court de
+>   **6 à 52 %** de MG selon le gabarit — un seuil fixe coupe au mauvais endroit dans les
+>   deux sens — et couper au seuil introduit une marche de **571 kcal/j VERS LE BAS**
+>   chez les gabarits lourds. Elle aurait fait manger moins aux corps que ce constat
+>   voulait protéger, et rouvert la discontinuité fermée par `CA-2-01`.
+> ⚠️ Coût mesuré sur **645 120 profils** du chemin concerné : 344 406 bougent, **tous vers
+> le haut**, moyenne +409 kcal/j. Ventilation par %MG et détail : A43.
 - **Sévérité : P0** — la section B du brief est explicite : « Le sélecteur peut-il retenir Katch pour un profil à MG élevée ? Oui = P0 ».
 - **Preuve** : `calculateBMR` (`lib/tdee.ts:159`) commence par `if (katchEligible(b)) return Math.round(katchRaw(b));`. `katchEligible` (`:65`) ne teste que `body_fat_source === 'measured'` et `body_fat_pct > 0` — **aucune garde d'adiposité**, alors que le prédicat `highAdiposity` existe et est utilisé ailleurs (`safety.ts:281`).
 - **Mesuré sur le moteur** (homme 120 kg, 178 cm, 40 ans, `body_fat_source: 'measured'`, cut) :
@@ -205,6 +218,18 @@ Exécutés contre le moteur réel (`npx tsx -e`, aucun fichier créé dans le d�
 - **Effort : S** (le correctif) · **M** (avec la mesure d'impact sur le parc, qui est le vrai coût — cf. A38 : « un tableau d'impact se re-mesure, il ne se recopie pas »)
 
 ### 02-02 Une ligne cloud partielle produit un plan entièrement NaN
+> ✅ **CORRIGÉ le 2026-08-27** — fiche : `AGENTS.md` **A43**, `lib/profilComplet.ts`,
+> drapeau `PROFIL_INCOMPLET`, garde-fou `profilIncomplet.test.ts` (8 mutations, 8 rouges).
+> 🔴 **La reco n'aurait fermé qu'un cinquième du trou**, et une garde « pas de NaN »
+> n'aurait attrapé qu'UN champ sur cinq. Balayage des 41 colonnes sur le moteur réel
+> (`npm run mesure:incomplet`) : seul `sex` rend du `NaN` · `weight_kg` et `height_cm`
+> rendent un nombre **fini et absurde** (1500 kcal, 0 g de protéines) · **`macro_mode`,
+> absent de la liste des quatre**, sert 0 g de protéines ou fait GELER les cibles ·
+> et `age` rend un nombre **plausible** et faux de 260 kcal, ce qui est pire.
+> ➡️ La ligne de partage n'est pas « casse ou pas », c'est **« MESURE ou INTENTION »** —
+> `goal` et `macro_mode` se replient, le CORPS se refuse.
+> ⚠️ Trois étages, trois pannes : le moteur REFUSE · `bootProfile` ne sert pas un profil
+> sans corps · `hasCloud` teste le corps entier. Et refuser n'est pas effacer.
 - **Sévérité : P0** — « `NaN`, `Infinity` ou `undefined` en sortie sur un cas = P0 ».
 - **Preuve, exécutée** : une ligne `profiles` où seul `sex` est posé (`age`, `weight_kg`, `height_cm` à NULL) passe la garde d'hydratation — `hasCloud: !!(row && row.sex)`, `lib/sync.ts:382` — puis :
 

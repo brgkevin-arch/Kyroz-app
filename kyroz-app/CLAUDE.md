@@ -345,8 +345,20 @@ OUTPUT         → Plan + liste de courses + recettes
 >    « aucun ajustement » : le plan servi est VRAI. **Le même repli sur `sex`,
 >    `age`, `weight_kg` ou `height_cm` serait un MENSONGE** : inventer une mesure
 >    fabrique un BMR qui n'est celui de personne. Ces quatre-là se REFUSENT, avec un
->    état « profil incomplet » explicite (constat `02-02`, encore ouvert). Deux
->    constats voisins, deux remèdes opposés — c'est la NATURE du champ qui tranche.
+>    état « profil incomplet » explicite. Deux constats voisins, deux remèdes
+>    opposés — c'est la NATURE du champ qui tranche.
+>    ✅ **LA SECONDE MOITIÉ EST LIVRÉE le 2026-08-27** (constat `02-02`, A43) —
+>    `lib/profilComplet.ts` + drapeau `PROFIL_INCOMPLET`. Trois précisions que la
+>    mesure a apportées, et qu'on ne devinait pas :
+>    · **`macro_mode` est une INTENTION de plus**, absente de la reco publiée, et son
+>      absence est la plus silencieuse de toutes : elle fait passer le moteur en mode
+>      « manuel », où il ne recalcule plus rien et sert des cibles GELÉES ;
+>    · **une garde « pas de NaN » n'aurait attrapé qu'un champ sur cinq.** `weight_kg`
+>      et `height_cm` rendent 1500 kcal et 0 g de protéines — finis, donc servables ;
+>      `age` rend un nombre **plausible** et faux de 260 kcal, ce qui est pire ;
+>    · **refuser n'est pas lever, et surtout pas effacer.** `computePlan` rend toujours
+>      un objet (lever referait 02-03 à l'identique), le profil ressort intact, et
+>      `bootProfile` ne le SERT pas — il part à l'inscription, pesées et favoris saufs.
 >
 > ⚠️ **Et un repli doit SE VOIR** : `syncGuard::normalizeGoal` réécrit le profil, donc
 > l'écran Profil affiche « Maintien » et la personne peut le changer. Un repli
@@ -488,8 +500,31 @@ OUTPUT         → Plan + liste de courses + recettes
 
 `TDEE = BMR × NEAT + dépense sportive/jour`, **pour tous les profils sans exception**.
 
-- **BMR** : Katch-McArdle si le %MG est **MESURÉ**, sinon Mifflin-St Jeor —
+- **BMR** : Katch-McArdle si le %MG est **MESURÉ *et que Katch sert plus que
+  Mifflin*** (amendé le 2026-08-27, cf. ci-dessous), sinon Mifflin-St Jeor —
   **avec, depuis le 2026-08-24, un glissement progressif vers Katch côté sec**.
+  🔴 **AMENDÉ LE 2026-08-27 — constat `02-01` (P0), `ENGINE_REV` 9 → 10,
+  `tdee.ts::katchRetenu`.** Le « si le %MG est mesuré » n'était pas conditionnel :
+  `calculateBMR` partait droit sur Katch, sans jamais demander si Katch avait un sens
+  à cette adiposité. Mesuré : un homme de 120 kg à 45 % de MG recevait un BMR
+  **322 kcal/j SOUS** Mifflin, **452 à 50 %** — en plus du déficit demandé, et sans
+  qu'aucun plancher ne le voie. Le chemin « mesuré » reçoit donc **la même asymétrie
+  que le chemin estimé**, moins sa bande morte : les 0,5 bande paient le bruit d'une
+  silhouette tapée au jugé, et une mesure DEXA n'a pas ce bruit.
+  🔴 **LA RÈGLE EST LE SIGNE DE `katch − mifflin`, PAS UN SEUIL D'ADIPOSITÉ — et
+  c'est mesuré, pas préféré.** Le croisement des deux formules court de **6 à 52 %**
+  de MG selon le gabarit (médiane 34) : un seuil fixe à 30 / 40 coupe donc au mauvais
+  endroit **dans les deux sens**, et couper au seuil introduit une marche de
+  **571 kcal/j de BMR, vers le BAS** (un homme de 160 kg à 30,01 %) — c'est-à-dire la
+  discontinuité que `CA-2-01` venait de fermer, rouverte sur les corps mêmes que le
+  constat protège. Au signe, la marche vaut **zéro par construction**.
+  ⚠️ **`highAdiposity` n'entre PAS dans cette décision**, et ce n'est pas un oubli :
+  il reste le prédicat binaire des planchers, de la bande de rythme et du registre.
+  Le lier au choix de formule ferait deux définitions de « grasse » qui divergeraient.
+  ⚠️ **Coût mesuré sur 645 120 profils** du chemin concerné : **344 406 bougent, TOUS
+  vers le haut, aucun vers le bas** — moyenne +409 kcal/j. Le chemin « estimé » ne
+  bouge pas d'un kcal. Ventilation par tranche de %MG : `npm run mesure:katch`, détail
+  et garde-fous en AGENTS.md **A43**.
   🔴 **AMENDÉ LE 2026-08-24 — « R6 lissée » (décision fondateur, `ENGINE_REV` 7 → 8,
   `tdee.ts::melangeVersKatch`).** Le « sinon Mifflin » n'est plus absolu : pour un
   %MG estimé (ou sans provenance), quand Katch dépasse Mifflin **au-delà du bruit
@@ -534,9 +569,13 @@ OUTPUT         → Plan + liste de courses + recettes
   pas uniformément appliquée sur le parc**. La rendre uniforme demanderait `ENGINE_REV` 7
   et un avertissement one-shot. Écrit ici pour que la prochaine session n'en déduise pas
   que le seuil est vrai partout.
-  ➡️ Prédicat unique : **`tdee.ts::katchEligible`**, et `calculateBMR` prend le
-  CORPS entier (pas un `%MG` positionnel) pour qu'aucun appelant ne puisse passer
-  le chiffre en oubliant sa provenance. Garde-fou : `bodyFatSource.test.ts`.
+  ➡️ **DEUX prédicats, et ils ne répondent pas à la même question** :
+  `tdee.ts::katchEligible` dit si le %MG a le DROIT d'alimenter Katch (provenance +
+  valeur) ; `tdee.ts::katchRetenu` dit si Katch est effectivement SERVI. Les fondre
+  ferait perdre la question « ce %MG est-il mesuré ? », que trois écrans posent.
+  `calculateBMR` prend le CORPS entier (pas un `%MG` positionnel) pour qu'aucun
+  appelant ne puisse passer le chiffre en oubliant sa provenance. Garde-fous :
+  `bodyFatSource.test.ts` et `katchAdiposite.test.ts`.
   ⚠️ **La masse maigre, elle, continue de lire le %MG DÉCLARÉ quelle que soit sa
   provenance** — c'est une décision, pas un oubli. Le plancher d'énergie disponible,
   la base protéique et le rythme de perte maximal ne bougent donc pas d'un kcal.

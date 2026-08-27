@@ -67,6 +67,8 @@
     "mesure:creneaux": "npx tsx scripts/mesure-creneaux.ts",
     "mesure:volume": "npx tsx scripts/mesure-volume.ts",
     "mesure:adiposite": "npx tsx scripts/mesure-adiposite.ts",
+    "mesure:katch": "npx tsx scripts/mesure-katch-adiposite.ts",
+    "mesure:incomplet": "npx tsx scripts/mesure-profil-incomplet.ts",
     "mesure:plancher": "npx tsx scripts/mesure-plancher-adiposite.ts",
     "mesure:paliers": "npx tsx scripts/mesure-paliers.ts",
     "mesure:reroll": "npx tsx scripts/mesure-reroll.ts",
