@@ -74,9 +74,24 @@ type EtatRevenueCat = 'supprime' | 'introuvable' | 'non_configure' | 'echec';
  * le client a déjà disparu du tableau de bord. C'est le code de retour qui fait foi,
  * jamais une recherche faite dans la seconde.
  */
+// ⚠️ **CONTRAT DE JOURNALISATION : LE SILENCE VEUT DIRE RÉUSSI, ET RIEN D'AUTRE.**
+// Chacun des trois états qui ne suppriment pas écrit quelque chose. C'est ce qui rend la
+// procédure de vérification lisible : l'invocation elle-même laisse toujours une trace
+// (`booted`), donc une invocation SANS message de cette fonction ne peut plus vouloir dire
+// que `supprime`. Quiconque retire une de ces lignes rend le journal muet à nouveau — et
+// muet, il avait trois sens (`suppressionSousTraitants.test.ts` le compte).
 async function supprimerAbonneRevenueCat(uid: string): Promise<EtatRevenueCat> {
   const cle = Deno.env.get('REVENUECAT_SECRET_KEY');
-  if (!cle) return 'non_configure';
+  if (!cle) {
+    // ⚠️ CE JOURNAL EST LA MOITIÉ QUI MANQUAIT, et son absence a failli valider un test
+    // qui ne prouvait rien (2026-08-27). Sans lui, « pas de secret » se tait exactement
+    // comme « suppression réussie » — or c'est la panne la plus probable de tout ce
+    // câblage : elle s'obtient en renommant une variable, ce qui est arrivé le jour même.
+    console.error('[delete-account] RevenueCat NON CONFIGURÉ — aucune tentative de '
+      + 'suppression. Le secret REVENUECAT_SECRET_KEY est absent (ou porte un autre nom : '
+      + 'Deno.env.get est sensible à la casse).');
+    return 'non_configure';
+  }
   try {
     // Borné dans le temps : un tiers qui ne répond pas ne doit pas retarder d'une
     // seconde un droit à l'effacement.
@@ -84,7 +99,16 @@ async function supprimerAbonneRevenueCat(uid: string): Promise<EtatRevenueCat> {
       `https://api.revenuecat.com/v1/subscribers/${encodeURIComponent(uid)}`,
       { method: 'DELETE', headers: { Authorization: `Bearer ${cle}` }, signal: AbortSignal.timeout(5000) },
     );
-    if (r.status === 404) return 'introuvable';
+    if (r.status === 404) {
+      // Pas une erreur : un compte qui n'a jamais joint RevenueCat n'y a pas d'abonné.
+      // Mais ça doit se VOIR — c'est le signal qu'`identifyUser` n'a jamais tourné, et
+      // sur un test c'est la différence entre « ça marche » et « on n'a rien exercé ».
+      // Volontairement en `warn` et pas en `error` : rien n'est cassé, il n'y a rien à
+      // corriger, et un faux rouge use l'attention qu'un vrai rouge réclame.
+      console.warn('[delete-account] RevenueCat : aucun abonné pour cet identifiant (404). '
+        + 'Rien à supprimer — normal si l\'app n\'a jamais appelé identifyUser pour ce compte.');
+      return 'introuvable';
+    }
     if (!r.ok) {
       console.error(`[delete-account] RevenueCat a refusé la suppression : ${r.status}`);
       return 'echec';

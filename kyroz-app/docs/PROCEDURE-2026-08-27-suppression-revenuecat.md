@@ -70,6 +70,37 @@ des états : celui qui a l'air fait.
 ⚠️ *Une procédure qui nomme la valeur à poser doit nommer la CLÉ aussi — le nom d'une
 variable d'environnement est un contrat, pas une étiquette.*
 
+## 🔴 Étape 2 bis — LA CLÉ DOIT ÊTRE EN **V1**, et la procédure ne le disait pas
+
+Trouvé le 2026-08-27 en lisant le journal du premier vrai test :
+
+```
+[delete-account] RevenueCat a refusé la suppression : 403
+```
+
+**403, pas 401 — et la nuance porte tout le diagnostic.** Un 401 aurait voulu dire « clé
+refusée » (le piège `appl_` que l'étape 2 anticipe). Un 403 veut dire que RevenueCat a
+**accepté** la clé et refusé l'**opération** : le secret est posé, lu, l'appel part, la
+réponse revient. Toute la plomberie fonctionne.
+
+La cause : les clés secrètes récentes se créent en **v2** par défaut, avec des permissions
+à cocher — or `DELETE /v1/subscribers/{id}` est un endpoint **v1**. Une clé v2
+s'authentifie et se fait refuser l'endpoint.
+
+➡️ **Créer la clé secrète en sélectionnant la version V1.** Elle se repose sous le MÊME nom
+`REVENUECAT_SECRET_KEY` (le formulaire du tableau de bord remplace), et **aucun
+redéploiement n'est nécessaire** : `Deno.env.get` relit le secret à chaque invocation.
+
+⚠️ **Et il faut un compte jetable NEUF à chaque essai.** Le seul chemin qui appelle cette
+fonction est « Supprimer mon compte » depuis le Profil ; une fois le compte parti, il n'y a
+plus rien à supprimer. Un essai raté laisse donc un abonné orphelin chez RevenueCat **et**
+consomme le compte de test.
+
+⚠️ *La procédure nommait la SECTION du tableau de bord (« Secret keys ») et le PRÉFIXE
+(`sk_`). Ni l'un ni l'autre ne distingue une v1 d'une v2 : les deux vivent au même endroit
+et portent le même préfixe. Une procédure qui désigne un endroit doit désigner ce qu'on y
+choisit.*
+
 ## Étape 2 (rédaction d'origine) — poser le secret côté Supabase
 
 ⚠️ **Une clé SECRÈTE RevenueCat, pas la clé publique.** Elle se trouve dans le tableau de
@@ -153,7 +184,21 @@ l'effacement ne peut pas dépendre de la disponibilité d'un tiers.
 
 ---
 
-## Étape 5 — inscrire au registre
+## ✅ Étape 5 — FAITE le 2026-08-27
+
+Inscrite dans `RGPD-REGISTRE.md`, ligne **RevenueCat** du traitement n°1. Elle porte ce qui
+a été VÉRIFIÉ et comment, pas l'intention : secret relu par la CLI · fonction
+retéléchargée et comparée · suppression réelle d'un compte jetable, journal muet.
+
+➡️ **Le §7 de la politique est exact depuis aujourd'hui.** Il bornait l'exception de
+conservation à « si vous avez souscrit un abonnement » — rédaction juste seulement si
+l'identifiant d'un NON-abonné disparaît. `identifyUser` en créant un pour tout le monde,
+elle ne l'était pas. Elle l'est.
+
+🔁 **Ce qui reste, et qu'aucun correctif n'atteint** : les abonnés orphelins des comptes de
+test supprimés AVANT ce câblage. À retirer à la main.
+
+## Étape 5 (rédaction d'origine) — inscrire au registre
 
 Une fois l'étape 4 verte, ajouter à `RGPD-REGISTRE.md`, dans la ligne **RevenueCat** :
 
