@@ -53,7 +53,28 @@ installation neuve part du binaire, donc du (6).
 
 **L'état des deux surfaces qui comptent, RELU chez le prestataire :**
 
-- ✅ **LE BUILD (7) EST FAIT — le 2026-08-27 à 20 h 09, en 6 min 16 s.** `6a5cd6b0`,
+- ✅ **LE BUILD (8) REMPLACE LE (7) — le 2026-08-27 à 22 h 20, en 6 min 39 s.**
+  `70b2e757`, commit **`12215a7`**, **1.0.0 (8)**, SDK **57.0.0**, runtime
+  **`16dc5ce92f7677b6b3568210670792fb26417d7b`**, machine `BuildMachineOSBuild 25F84`
+  (stable), empreinte embarquée = runtime EAS. **C'est LUI qui part en revue.**
+  🔴 **POURQUOI IL A FALLU UN (8) — un défaut vu à l'écran, pas dans le code.** Un compte
+  créé onze minutes plus tôt affichait « Kyroz+ · Inclus à vie » et ne se verrouillait
+  qu'au lancement SUIVANT : `usePremium` lisait `profile.created_at`, colonne écrite
+  uniquement à la LECTURE du miroir Supabase, donc absente d'un compte neuf. Le repli
+  « date absente → on donne » couvrait alors TOUS les nouveaux inscrits.
+  ⚠️ **Ce n'était pas un manque à gagner, c'était un motif de rejet** : le relecteur crée
+  un compte neuf et ouvre l'app UNE fois — il n'atteignait donc jamais l'écran d'achat.
+  Une OTA n'y pouvait rien (elle ne s'applique qu'au lancement suivant), d'où le binaire.
+  Correctif : `premium.ts::dateCreationCompte`, la session avant le profil ; garde-fou
+  `dateCreationCompte.test.ts`, 10 cas, **3 mutations, 3 rouges**.
+  ✅ **L'archive envoyée est passée de 478 Mo à 14,5 Mo** (`.easignore`, PR #193) — 2 s
+  d'envoi au lieu de 27. ⚠️ Et l'erreur `Failed to upload metadata` (400) du (7) **n'est
+  pas réapparue** : j'avais soupçonné nos longs messages de commit, c'était le poids.
+  ⚠️ **L'EMPREINTE A CHANGÉ entre le (7) et le (8)** — `3a24b593…` → `16dc5ce9…` — sans
+  qu'aucune dépendance native ne bouge : l'ajout d'un **script npm** suffit
+  (`packageJson:scripts`). Cf. CLAUDE.md §2. Sans conséquence ici (le (7) n'a jamais
+  dépassé les testeurs internes), mais une OTA ne vise désormais que `16dc5ce9…`.
+  *(Le précédent :)* ✅ **LE BUILD (7) — le 2026-08-27 à 20 h 09, en 6 min 16 s.** `6a5cd6b0`,
   commit **`0639ecc`**, **1.0.0 (7)**, SDK **57.0.0**, runtime
   **`3a24b5937215c054871565f558325db56289469b`**, profil et canal `production`.
   ✅ **ET IL EST CHEZ APPLE DEPUIS LE MÊME SOIR** — téléversé à **20 h 49**, `VALID` à
@@ -287,9 +308,9 @@ dans laquelle l'étape 4 se glisse.
 | URL politique de confidentialité (HTTP 200) | ✅ en ligne |
 | Textes de fiche (FR), réponses confidentialité, classification | ✅ ci-dessous (§3–6) |
 | **Comptes développeur Apple + Google** | ⛔ **toi** (§1) |
-| Screenshots (iPhone + iPad 13") + feature graphic | 🔴 **À REFAIRE, et la dette a encore grandi le 2026-08-23.** Les 6 PNG iPhone sont horodatés **2026-08-10 19 h 41**, les 5 iPad **2026-08-10 11 h 20**. Depuis, l'app a changé sur trois plans qui SE VOIENT : la barre d'onglets est passée au **verre** (E36, le 11), l'**inscription** a gagné la question du NEAT et la bifurcation de la sèche (19-21), et les **12 silhouettes** du sélecteur de %MG sont refaites (A32, le 23). Les captures montrent donc une inscription et des écrans qui n'existent plus. ➡️ Les regénérer **après le build (7)**, jamais avant : c'est la troisième fois qu'elles périment pour avoir été prises trop tôt. ✅ **Le (7) est fait depuis le 2026-08-27 — le verrou est levé, elles peuvent être prises.** *(Historique : iPhone refait le 2026-08-10 — sortie mesurée à 1290×2796 après correction d'un gabarit qui rendait du 6.1" ; iPad généré et mesuré le même jour à 2048×2732. Cette case a porté trois états successifs dont deux faux — c'est `sips` sur les fichiers qui tranche, jamais la fiche.)* |
+| Screenshots (iPhone + iPad 13") + feature graphic | 🔴 **À REFAIRE, et la dette a encore grandi le 2026-08-23.** Les 6 PNG iPhone sont horodatés **2026-08-10 19 h 41**, les 5 iPad **2026-08-10 11 h 20**. Depuis, l'app a changé sur trois plans qui SE VOIENT : la barre d'onglets est passée au **verre** (E36, le 11), l'**inscription** a gagné la question du NEAT et la bifurcation de la sèche (19-21), et les **12 silhouettes** du sélecteur de %MG sont refaites (A32, le 23). Les captures montrent donc une inscription et des écrans qui n'existent plus. ➡️ Les regénérer **après le build (7)**, jamais avant : c'est la troisième fois qu'elles périment pour avoir été prises trop tôt. ✅ **FAITES le 2026-08-27** — 5 iPhone **1290×2796** + 5 iPad **2048×2732** + feature graphic **1024×500**, dimensions MESURÉES au `sips` sur les PNG produits, jamais relues dans la config. 🔴 **Deux fichiers ne s'étaient PAS régénérés et ont été supprimés** : `4-frigo.png` (iPhone et iPad), datés du 10 août, montraient un écran « Frigo » qui n'existe plus depuis son renommage en « Réserve » le 2026-08-24. *Rien ne les distinguait des bons au moment du téléversement.* *(Historique : iPhone refait le 2026-08-10 — sortie mesurée à 1290×2796 après correction d'un gabarit qui rendait du 6.1" ; iPad généré et mesuré le même jour à 2048×2732. Cette case a porté trois états successifs dont deux faux — c'est `sips` sur les fichiers qui tranche, jamais la fiche.)* |
 | Accès reviewer (code) | ✅ code — toi : poser le secret au build (§9) |
-| **Lancer le build EAS** | ✅ **FAIT le 2026-08-27 à 20 h 09** — `6a5cd6b0`, commit `0639ecc`, **1.0.0 (7)**, SDK 57.0.0, `finished` en 6 min 16 s, à jour de `main` au contrôle de sortie. ⚠️ **Fait ≠ téléversé** : `eas build` ne dépose rien chez Apple, il faut `eas submit`. ⚠️ Un build se constate avec `npx eas-cli build:list --platform ios` depuis `kyroz-app/`, **et on lit son COMMIT, pas sa date**. *(Rédaction précédente :)* 🔴 **UN (7) EST REQUIS — le (6) a 40 commits de retard.** Relu chez EAS le 2026-08-23 (40 commits de retard, `git rev-list --count 1047b9f..origin/main`) : le dernier build iOS reste `ceec1b17`, commit `1047b9f`, terminé le 2026-08-11 à 20 h 37 et téléversé à App Store Connect. Il ne porte donc ni le correctif du gel (E45), ni les textes légaux à jour, ni les 12 nouvelles silhouettes. ⚠️ **Le relecteur ouvre l'app UNE fois** : il voit le JS EMBARQUÉ, et une OTA ne s'applique qu'au lancement suivant. Ce qui n'est pas dans le binaire n'existe pas pour lui. 🧑 **En attente d'une décision du fondateur** (2026-08-23) : le code n'est pas figé. ⚠️ Le (5) est aussi chez Apple et ne doit **PAS** partir en revue (notes du relecteur incohérentes). ⚠️ Un build se constate avec `npx eas-cli build:list --platform ios` depuis `kyroz-app/`, **et on lit son COMMIT, pas sa date**. |
+| **Lancer le build EAS** | ✅ **(8) FAIT le 2026-08-27 à 22 h 20** — `70b2e757`, commit `12215a7`, **1.0.0 (8)**, SDK 57.0.0, 6 min 39 s, à jour de `main` au contrôle de sortie, machine EAS `25F84` (stable). Il remplace le (7), qui portait un défaut bloquant pour la revue (cf. §0-ter). ⚠️ **Fait ≠ téléversé** : `eas submit` reste à faire. *(Le précédent :)* ✅ **FAIT le 2026-08-27 à 20 h 09** — `6a5cd6b0`, commit `0639ecc`, **1.0.0 (7)**, SDK 57.0.0, `finished` en 6 min 16 s, à jour de `main` au contrôle de sortie. ⚠️ **Fait ≠ téléversé** : `eas build` ne dépose rien chez Apple, il faut `eas submit`. ⚠️ Un build se constate avec `npx eas-cli build:list --platform ios` depuis `kyroz-app/`, **et on lit son COMMIT, pas sa date**. *(Rédaction précédente :)* 🔴 **UN (7) EST REQUIS — le (6) a 40 commits de retard.** Relu chez EAS le 2026-08-23 (40 commits de retard, `git rev-list --count 1047b9f..origin/main`) : le dernier build iOS reste `ceec1b17`, commit `1047b9f`, terminé le 2026-08-11 à 20 h 37 et téléversé à App Store Connect. Il ne porte donc ni le correctif du gel (E45), ni les textes légaux à jour, ni les 12 nouvelles silhouettes. ⚠️ **Le relecteur ouvre l'app UNE fois** : il voit le JS EMBARQUÉ, et une OTA ne s'applique qu'au lancement suivant. Ce qui n'est pas dans le binaire n'existe pas pour lui. 🧑 **En attente d'une décision du fondateur** (2026-08-23) : le code n'est pas figé. ⚠️ Le (5) est aussi chez Apple et ne doit **PAS** partir en revue (notes du relecteur incohérentes). ⚠️ Un build se constate avec `npx eas-cli build:list --platform ios` depuis `kyroz-app/`, **et on lit son COMMIT, pas sa date**. |
 
 ---
 
