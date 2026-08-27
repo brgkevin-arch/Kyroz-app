@@ -263,6 +263,20 @@ const DERNIERE_REVISION = {
   // couper lui-même. 🔴 **Ne pas la re-durcir avant que les DEUX plateformes soient
   // traitées** : c'est l'erreur qu'elle vient de payer.
   //
+  // ✅ **RÉVISION DU 2026-08-27 — LA CONDITION CI-DESSUS ÉTAIT DÉJÀ REMPLIE.** La phrase
+  // est durcie, et ce n'est pas une entorse à la consigne : c'est elle qui est satisfaite.
+  // La moitié iOS était réputée « demander un plugin natif, donc un nouveau binaire » —
+  // FAUX, mesuré dans le paquet : `RNCAsyncStorage.mm:518-527` exclut le dossier
+  // d'AsyncStorage de la sauvegarde **par défaut**, et le dépôt ne pose aucune surcharge.
+  // Les photos, elles, vivent dans le répertoire de CACHE, qu'iOS ne sauvegarde pas.
+  // 🔴 **CE QUE LA PRUDENCE COÛTAIT** : le texte demandait à l'utilisateur de couper sa
+  // sauvegarde iCloud pour protéger ses données de santé — un geste réel, pour un risque
+  // qui n'existe pas. *Une politique trop prudente n'est pas neutre : elle fait agir.*
+  // ➡️ Et la leçon de méthode : une réserve écrite (« en attendant le prochain binaire »)
+  // se re-mesure comme n'importe quelle prémisse. Celle-ci a survécu un jour à sa
+  // péremption parce que personne n'a rouvert le paquet — le contre-audit l'avait pourtant
+  // signalé (`CA-5-01`), et le texte, lui, n'avait pas suivi.
+  //
   // ⚠️ **TROISIÈME RÉVISION DU MÊME JOUR** (2026-08-26) : la mention du médiateur de
   // la consommation est retirée du §10 (audit V1, constat 09-04) — elle promettait un
   // recours qui n'existe pas, l'adhésion n'étant obligatoire (L.612-1) qu'à partir de
@@ -290,7 +304,7 @@ const DERNIERE_REVISION = {
   // d'être déclaré le jour où il ne traite plus, données effacées. C'est la même règle
   // dans l'autre sens ; la garder à sens unique ferait décrire un traitement inexistant.
   // ➡️ La date ne bouge pas — même jour de livraison.
-  empreinte: 'd0782c2c128d',
+  empreinte: '69a2771dadba',
 };
 
 /**
