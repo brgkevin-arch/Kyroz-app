@@ -33,7 +33,8 @@
 | App Store Connect | fiche créée, URL de politique posée, abonnements Kyroz+ créés, **App Privacy REPUBLIÉ le 2026-08-28** : *Données d'utilisation* retirée, **Achats** ajoutée (la vente commence avec cette soumission), **Forme physique** ajoutée (elle manquait depuis le 18/08) — 5 types, tous liés à l'identité, tracking non (§4) |
 | Secrets EAS `production` | `EXPO_PUBLIC_REVIEW_CODE`, RevenueCat iOS, Supabase — **posés**. ⚠️ **PostHog RETIRÉ le 2026-08-26** des trois environnements |
 | Revue bêta TestFlight | **approuvée le 2026-08-03** — les builds suivants passent sans y repasser |
-| Accès relecteur | code posé au build, auth anonyme active, notes rédigées (§11) |
+| Accès relecteur | code posé au build, auth anonyme active, notes rédigées (§11), **posées dans ASC le 2026-08-28** — reste le mot de passe de démo, à coller à la main |
+| **Fiche App Store** | ✅ **REMPLIE PAR L'API le 2026-08-28** — voir §3-bis |
 | Migrations Supabase | **rien en attente** — la dernière date du 2026-08-10 et elle est en prod |
 
 **✅ LES TROIS CHANTIERS SONT PARTIS EN OTA le 2026-08-23** (groupe `a3a119de`, commit
@@ -788,6 +789,78 @@ Apple, affiché SOUS le titre avant le « en savoir plus », **manquait à cette
 
 ---
 
+## 3-bis. La fiche a été remplie PAR L'API — état au 2026-08-28, 02 h
+
+> **Ce que ce chantier a appris, et qui vaut plus que la fiche elle-même : presque tout
+> App Store Connect s'écrit par l'API.** Ce dossier décrivait §3 comme « textes à
+> copier-coller » depuis juillet. Les 9 champs, les 10 captures, la classification d'âge
+> et les 175 territoires ont été posés sans ouvrir la console. **Le seul point du dossier
+> qui résiste vraiment est App Privacy** (cf. §4) — pas les textes.
+>
+> 🔴 **Correction du 2026-08-28, 02 h 20 : ils sont DEUX.** App Store Connect a levé une
+> bannière « Déclarez votre dispositif médical réglementé » (obligatoire pour distribuer
+> dans l'UE/EEE, au Royaume-Uni et aux États-Unis). Ni `/v1/apps` ni `/v1/appInfos` ne
+> portent d'attribut correspondant : **déclaré à la main, comme App Privacy.**
+> ➡️ Réponse : **NON**. Kyroz calcule des besoins nutritionnels et impose des planchers
+> de sécurité ; il ne revendique aucune finalité médicale. Au sens du règlement européen,
+> c'est la **revendication** qui sépare le bien-être du dispositif, pas la complexité du
+> calcul — et c'est déjà la dernière phrase de la note au relecteur (§11).
+>
+> ⚠️ **Une bannière peut apparaître PARCE QU'on a écrit ailleurs.** Celle sur les
+> « nouvelles questions réseaux sociaux » dit ne pas être obligatoire avant le
+> 2026-09-07 « sauf si vous soumettez une nouvelle app **ou mettez à jour d'autres
+> réponses dans cette section** » — ce que l'écriture du questionnaire d'âge par l'API
+> venait de faire. Le champ manquant était `socialMediaAgeRestricted`, resté **nul**
+> après mon premier envoi parce que je ne l'avais pas listé : le PATCH avait réussi sans
+> le réclamer. **Un lot accepté ne prouve pas qu'il était complet.**
+
+| Élément | Valeur posée | Mesure |
+|---|---|---|
+| Nom | `Kyroz` — **inchangé, décision du fondateur le 2026-08-28** | 5/30 |
+| Sous-titre | `Repas calés sur tes macros` | 26/30 |
+| Description | avec le bloc **KYROZ+** (voir plus bas) | 1 406/4 000 |
+| Mots-clés | inchangés | **100/100 — zéro marge** |
+| Texte promotionnel | inchangé | 121/170 |
+| URL assistance + marketing | `https://kyroz.app` | — |
+| Catégories | `HEALTH_AND_FITNESS` + `FOOD_AND_DRINK` | — |
+| Captures | **10** : 5 iPhone (1290×2796) + 5 iPad (2048×2732) | toutes `COMPLETE` |
+| Classification d'âge | **18+** | voir ci-dessous |
+| Droits de contenu | `USES_THIRD_PARTY_CONTENT` | Ciqual/ANSES sous Licence Ouverte 2.0 |
+| Prix de l'app | **gratuite**, territoire de base France | — |
+| Disponibilité | **175 territoires** + les nouveaux | — |
+| Build attaché | le **(8)**, `VALID` | — |
+| Notes de revue | 3 952 caractères | §11 |
+| 🔴 Mot de passe de démo | **VIDE** | seul champ restant |
+
+### Le 18+ a été obtenu SANS fausser une réponse
+
+Le §6 demandait d'« atteindre » le classement adulte, ce qui se lit comme une invitation à
+forcer le questionnaire. **Ce n'était pas nécessaire** : Apple expose `ageRatingOverrideV2`
+(`NONE` · `NINE_PLUS` · `THIRTEEN_PLUS` · `SIXTEEN_PLUS` · `EIGHTEEN_PLUS` · `UNRATED`), un
+relèvement volontaire prévu pour exactement ce cas. Les 21 réponses mécaniques sont à
+`NONE`/`false` ; les deux seules qui relèvent du jugement sont `healthOrWellnessTopics: true`
+et `medicalOrTreatmentInformation: INFREQUENT_OR_MILD` (seuils cliniques et littérature citée
+à l'écran Méthodologie).
+⚠️ `ageRatingOverride` et `ageRatingOverrideV2` **s'excluent** ; poser V2 renseigne l'autre.
+
+### Ce qui a été AJOUTÉ à la description, et pourquoi
+
+La description disait « **100 % gratuit sur le cœur** » et ne mentionnait pas l'abonnement.
+Vrai le 2026-07-17, faux depuis le 2026-08-27. Un bloc **KYROZ+** le remplace : prix des deux
+formules, renouvellement automatique, gestion dans les réglages Apple, lien CGU + politique —
+ce qu'exige la guideline **3.1.2**, et ce qu'impose la règle « pas de mensonge ».
+➡️ **Même défaut que la note au relecteur, au même endroit du dossier** : un texte figé qui
+décrit un produit qui bouge. Les deux ont dû être corrigés le même soir.
+
+### Deux erreurs d'INSTRUMENT, la même nuit
+
+Mon contrôle a dit « aucune catégorie », puis « disponibilité HTTP 400 », alors que les deux
+étaient posées. Cause identique : `GET /v1/apps/{id}` ne rend le `data` d'une relation que si
+on l'`include`, et `limit[…]` plafonne à **50**. ➡️ **Un contrôle qui contredit une écriture
+réussie accuse d'abord la fiche ; c'est l'instrument qu'il faut mesurer en premier.**
+
+---
+
 ## 4. Confidentialité — réponses aux formulaires (fondées sur le vrai flux de données)
 
 > Base factuelle : compte Supabase (UE), profil = données de santé, photos
@@ -1306,15 +1379,15 @@ On the login screen:
 2. Email:    review@kyroz.app
 3. Password: <CODE_EAS>
 4. Tap "Se connecter" ("Sign in").
-→ This opens a guest session and goes straight to onboarding.
+→ Opens a guest session, straight to onboarding.
 
 WALKTHROUGH (~2 min)
 - Onboarding: first name → basic info + body-fat picker → sports → goal →
   preferences (diet) → plan days + meals. Tap "Générer mon plan" ("Generate my plan").
-- Meal plan ("Plan" tab): each day's meals with precise macros.
-- Tap any meal to open the recipe, adjusted quantities and macros.
-- Other tabs: "Courses" (shopping list), "Recettes" (recipes), "Profil" (settings +
-  account deletion).
+- "Plan" tab: each day's meals with precise macros; tap one to open the recipe with
+  adjusted quantities.
+- Other tabs: "Courses" (shopping list), "Recettes", "Profil" (settings + account
+  deletion).
 
 NOTES
 - App language is French; theme is dark.
@@ -1326,8 +1399,8 @@ IN-APP PURCHASE - "Kyroz+" (auto-renewable subscription)
 Where to find it: "Profil" tab (rightmost) -> scroll to the bottom -> "Kyroz+".
 
 The demo access above opens a NEW guest account every time, so the paywall IS shown.
-(Accounts created before 2026-08-27 keep Kyroz+ free for life - a commitment published
-in our terms - which is why an older test account would not show the purchase screen.)
+(Accounts created before 2026-08-27 keep Kyroz+ free for life, per our published
+terms, so an older test account does not show the purchase screen.)
 
 Two options, French pricing:
 - "Mensuel"  EUR 3.99 / month  (product id: kyroz_plus_monthly_early)
@@ -1340,45 +1413,44 @@ What the subscription unlocks:
   before/after progress photos. Photos never leave the device.
 
 What stays free, permanently: the weekly meal plan with macros, the shopping list, all
-recipes, the pantry, favourites, the streak, weigh-ins and the calorie recalculation,
-and account sync. None of these will ever move behind the subscription.
+recipes, the pantry, favourites, the streak, weigh-ins, calorie recalculation and
+account sync. None of these will move behind the subscription.
 
 "Restaurer mes achats" ("Restore purchases") is on the same screen, directly under the
 subscribe button.
 - Health disclaimer shown in-app: Kyroz is for healthy adults and does not replace
   medical or dietitian advice. Users under 18 are blocked during onboarding.
 - Data (email, profile) is stored in the EU (Supabase). Users can delete their
-  account and data in-app (Profil → delete account). Progress photos never leave
-  the device.
+  account and data in-app (Profil → delete account). Photos never leave the device.
 
 METHODOLOGY AND SOURCES (guideline 1.4.1)
-A dedicated in-app screen discloses every formula, threshold and reference behind the
-numbers we display: Profil → gear icon → "Aide et retours" → "Méthodologie & sources".
-Summary of what it documents:
-- Resting metabolic rate: Mifflin-St Jeor (Am J Clin Nutr, 1990;51(2):241-247).
-  Katch-McArdle is used as-is only when the user states their body-fat percentage
-  was MEASURED. When it was estimated from a silhouette, the calculation blends
-  progressively from Mifflin-St Jeor toward Katch-McArdle only if the latter is
-  clearly higher (beyond the ±5-point uncertainty of a silhouette), and never the
-  other way around.
-- Activity factor excludes exercise and is capped at 1.45; training expenditure is
-  computed separately with net MET values (Ainsworth et al., Compendium of Physical
-  Activities, MSSE 2011;43(8):1575-1581).
-- Food composition: Ciqual 2025 table (ANSES, French food safety agency), reused
-  under Open Licence 2.0 (Etalab).
-- Hard safety limits enforced on every calculation, whatever the user asks for:
+An in-app screen discloses every formula, threshold and source behind the numbers we
+display: Profil -> gear icon -> "Aide et retours" -> "Méthodologie & sources".
+- Resting metabolic rate: Mifflin-St Jeor (Am J Clin Nutr 1990;51(2):241-247).
+  Katch-McArdle only when the user states their body fat was MEASURED; if it was
+  estimated from a silhouette the two are blended, and only upward.
+- Activity factor excludes exercise, capped at 1.45; training expenditure computed
+  separately from net MET values (Ainsworth et al., MSSE 2011;43(8):1575-1581).
+- Food composition: Ciqual 2025 (ANSES), reused under Open Licence 2.0 (Etalab).
+- Hard safety limits applied to every calculation, whatever the user asks for:
   energy availability never below 30 kcal/kg fat-free mass (IOC RED-S consensus,
-  BJSM 2018;52(11):687-697), absolute floor of 1500 kcal (men) / 1200 kcal (women),
-  deficit capped at 25% of estimated expenditure, dietary fat never below 0.8 g/kg
-  body weight, and a maintenance week enforced after 8 consecutive deficit weeks.
-- Protein targets are bounded to 1.6-2.6 g/kg fat-free mass (ISSN position stand,
-  JISSN 2017;14:20).
-- The screen states explicitly which values come from the literature and which are
-  Kyroz's own conservative choices, and that recipes are NOT dietitian-validated.
+  BJSM 2018;52(11):687-697); absolute floor 1500 kcal (men) / 1200 kcal (women);
+  deficit capped at 25% of expenditure; fat never below 0.8 g/kg; a maintenance
+  week enforced after 8 consecutive deficit weeks.
+- Protein bounded to 1.6-2.6 g/kg fat-free mass (ISSN, JISSN 2017;14:20).
+- The screen states which values come from the literature and which are Kyroz's own
+  conservative choices, and that recipes are NOT dietitian-validated.
 
 Kyroz is a wellness app. It is not a medical device: it does not diagnose, treat,
 cure or prevent any condition, and makes no such claim anywhere in the app.
 ```
+
+🔴 **LE CHAMP D'APPLE PLAFONNE À 4 000 CARACTÈRES — mesuré le 2026-08-28 en le
+remplissant par l'API, pas en le lisant.** La note en faisait **4 476** : elle était
+impossible à coller, et rien ne le disait. La section « Methodology and sources » a été
+resserrée (sources, seuils et limites tous conservés ; c'est la prose qui a fondu).
+➡️ **Toute addition future doit être payée par une soustraction.** Le contrôle :
+`node -e "..."` sur le bloc, ou l'écriture par l'API qui refuse en `409`.
 
 ⚠️ **Les chiffres ci-dessus sont RECOPIÉS d'un écran qui, lui, les lit dans le moteur**
 (`lib/methodologie.ts`). C'est le seul endroit du dépôt où ils sont écrits à la main, et
