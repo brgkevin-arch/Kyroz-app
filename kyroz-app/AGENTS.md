@@ -615,7 +615,31 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
   TYPE — comme une demande du code. ⚠️ Une troisième ne PEUT pas rougir sur les deux clés
   actuelles (le plugin d'`expo-image-picker` réinjecte son texte) : elle garde les clés
   ajoutées à la main, et c'est écrit dans le script plutôt que laissé croire.
-  ➡️ **Prochain** : rejouer 6b sur un corpus réparé — c'est le lot qui porte seize constats.
+  ✅ **LE CORPUS DES TEXTES EST RÉPARÉ — 2026-08-27, et le défaut était pire que mesuré.**
+  Le contre-audit disait « 30 ajouts mais 5 retraits ». La mesure exacte : l'extracteur
+  coupait **chaque chaîne sur l'apostrophe échappée**, et `lib/methodologie.ts` est le seul
+  fichier du corpus à en employer. Sur 753 entrées — **14 coupées net**, **7 fragments
+  orphelins**, et le bloc entier de la page Méthodologie (**72 entrées**) n'était fait que
+  de morceaux. « Ce que Kyroz calcule — et ce qu'il n'est pas » était DEUX entrées, et
+  `grep "dispositif médical"` rendait **0** sur tout le dump : la phrase la plus lourde
+  juridiquement de l'app n'a jamais été lue par 6b. Le `DISCLAIMER` était coupé pareil.
+  ➡️ Ce bloc **n'est plus extrait par regex** : il est RENDU par `methodologie()` — même
+  geste que `gen:legal` pour les surfaces légales. **31 textes réels pour 72 fragments**,
+  « dispositif médical » 0 → 3, entrées coupées 14 → 0, orphelins 7 → 0. Compteurs corrigés
+  (`CA-4-03` : le tableau disait 728 pendant que l'en-tête disait 753 ; `CA-4-06` : les
+  « 560 `<Text>` » comptaient 17 `<TextInput>`). Garde-fou :
+  `lib/__tests__/corpusTextes.test.ts`.
+  🔴 **TROIS SONDES FLOUES ÉCRITES ET JETÉES AVANT LA BONNE**, et c'est la leçon : le
+  compteur a annoncé successivement **10, 4, 17 puis 27** absences selon le seuil de
+  fragment, et aucun n'était juste — 25 caractères laissait passer l'avertissement médical
+  (il partage sa queue avec le `DISCLAIMER`), 60 accusait des textes présents mais tronqués
+  par le dump. *Quand une sonde change d'avis à chaque réglage, ce n'est pas le réglage
+  qu'il faut ajuster, c'est l'approche.* La comparaison est devenue EXACTE en générant le
+  bloc depuis le module.
+  ➡️ **Reste à faire, et c'est pour Claude.ai** : rejouer le JUGEMENT de 6b sur les
+  32 textes abîmés. Brief autonome écrit et borné :
+  `docs/audit-v1/briefs/06b-bis-methodologie.md`. Pas tout le corpus — les 711 autres
+  textes n'étaient pas touchés, leur jugement du 26 tient.
   🔴 **ET UNE LEÇON DE MÉTHODE, PAYÉE SUR MOI-MÊME** : la réfutation avait ramené `CA-2-02`
   de majeur à MINEUR le jour même, avec ses motifs — je l'ai quand même publié en tête du §3
   et inscrit 🔴 au backlog comme le prochain chantier. Le verdict était dans le document ;

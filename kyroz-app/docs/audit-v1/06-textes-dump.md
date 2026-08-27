@@ -2,11 +2,26 @@
 
 > Extraction MÉCANIQUE, sans reformulation ni correction. Commentaires retirés avant extraction.
 >
-> ⚠️ **Compte corrigé le 2026-08-26 : 753 chaînes, et non 728.** L'extracteur imposait un minimum
+> ⚠️ **Compte corrigé le 2026-08-27 : 711 textes, en 53 blocs.** Deux corrections successives,
+> et la seconde n'avait jamais été mesurée.
+>
+> **① 2026-08-26 — le seuil de 12 caractères.** L'extracteur imposait un minimum
 > de 12 caractères aux fichiers hors `app/` et `components/`. Trente chaînes passaient dessous, dont
 > **quatre titres de section** (`8. Sécurité`, `10. Mineurs`, `1. Objet`, `5. Compte`) et **les
 > quatorze noms d'auteurs** des citations de rappel — c'est-à-dire précisément la matière des
 > constats 06b-17 et 06b-19. Défaut relevé par l'étape 9.
+>
+> 🔴 **② 2026-08-27 — CETTE RÉPARATION AVAIT CASSÉ AUTRE CHOSE** (contre-audit `CA-4-02`).
+> L'extracteur régénéré coupait chaque chaîne sur l'**apostrophe échappée**. Mesuré :
+> **14 entrées finissant par une barre oblique inverse** et **7 fragments orphelins**.
+> « Ce que Kyroz calcule — et ce qu'il n'est pas » devenait DEUX entrées, et la phrase la
+> plus lourde juridiquement de l'app — « Kyroz n'est pas un dispositif médical… » —
+> n'apparaissait NULLE PART : `grep "dispositif médical"` rendait **0** sur tout le dump.
+> Le `DISCLAIMER` de `constants/legal.ts:15` était coupé de la même façon.
+> ➡️ Le bloc `lib/methodologie.ts` n'est plus extrait par regex : il est **RENDU** par
+> `methodologie()`. **31 textes réels remplacent 72 fragments.** Garde-fou :
+> `lib/__tests__/corpusTextes.test.ts`.
+> ⚠️ **C'est exactement ce que l'étape 6b doit relire** : elle a jugé ces textes en morceaux.
 > Flag `⚑` (sans jugement) : le texte contient un chiffre, ou l'un des mots de la liste du brief.
 > Rôles : titre · sous-titre · corps · bouton · lien · placeholder · label · aide · erreur · alerte · toast · vide · a11y · notification · légal · store.
 
@@ -773,87 +788,86 @@
 
 | # | ligne | Rôle | Texte | Flag |
 |---|---|---|---|---|
-| 1 | `constants/legal.ts:15` | corps | Kyroz est conçu pour des adultes en bonne santé. Ces informations ne remplacent pas l | ⚑ |
-| 2 | `constants/legal.ts:15` | corps | un médecin ou diététicien-nutritionniste. | ⚑ |
-| 3 | `constants/legal.ts:28` | corps | Enceinte, allaitante, ou suivie pour une pathologie chronique ? Parles-en à un médecin avant de suivre un plan. | ⚑ |
-| 4 | `constants/legal.ts:35` | corps | Kyroz |  |
-| 5 | `constants/legal.ts:36` | corps | Kévin Berger |  |
-| 6 | `constants/legal.ts:37` | corps | Entrepreneur individuel (micro-entreprise) |  |
-| 7 | `constants/legal.ts:39` | corps | 2 rue du moulin, 64570 Arette | ⚑ |
-| 8 | `constants/legal.ts:42` | corps | Supabase Inc. |  |
-| 9 | `constants/legal.ts:43` | corps | Union européenne (UE) |  |
-| 10 | `constants/legal.ts:48` | vide | Resend |  |
-| 11 | `constants/legal.ts:49` | vide | Plus Five Five, Inc. |  |
-| 12 | `constants/legal.ts:57` | vide | aux États-Unis |  |
-| 13 | `constants/legal.ts:73` | vide | RevenueCat, Inc. |  |
-| 14 | `constants/legal.ts:74` | vide | États-Unis |  |
-| 15 | `constants/legal.ts:75` | vide | aux États-Unis |  |
-| 16 | `constants/legal.ts:95` | corps | 26 août 2026 | ⚑ |
-| 17 | `constants/legal.ts:106` | corps | 1. Responsable de traitement | ⚑ |
-| 18 | `constants/legal.ts:108` | corps | Le responsable du traitement de vos données est ${LEGAL.controllerName}, ${LEGAL.controllerStatus}, SIREN ${LEGAL.siren}, ${LEGAL.address}. |  |
-| 19 | `constants/legal.ts:109` | corps | Pour toute question relative à vos données ou pour exercer vos droits : ${LEGAL.dpoEmail}. |  |
-| 20 | `constants/legal.ts:113` | corps | 2. Données collectées | ⚑ |
-| 21 | `constants/legal.ts:115` | corps | Données de compte : adresse email (lors d’une inscription par email). |  |
-| 22 | `constants/legal.ts:116` | corps | Données de santé : sexe, âge, poids, taille, taux de masse grasse, niveau d’activité et sport pratiqué, objectif, restrictions et préférences alimentaires. Ces informations sont des données de santé au sens de l’article 9 du RGPD. | ⚑ |
-| 23 | `constants/legal.ts:117` | corps | Données d’usage de l’app : plans générés, suivi du poids, série (streak), favoris, réserve alimentaire. |  |
-| 24 | `constants/legal.ts:118` | corps | Photos de progression (facultatives) : elles restent stockées UNIQUEMENT sur votre appareil et ne sont jamais transmises à nos serveurs. | ⚑ |
-| 25 | `constants/legal.ts:119` | corps | Données d’abonnement, uniquement si vous souscrivez à Kyroz+ : l’identifiant technique de votre compte et l’état de votre abonnement. Aucune coordonnée bancaire ne transite par Kyroz. |  |
-| 26 | `constants/legal.ts:120` | corps | Aucune statistique d’usage n’est collectée : l’application ne mesure pas comment vous vous en servez. |  |
-| 27 | `constants/legal.ts:124` | corps | 3. Finalités | ⚑ |
-| 28 | `constants/legal.ts:126` | corps | Vos données de compte et de santé servent exclusivement à : calculer vos besoins nutritionnels (calories, macros), générer vos plans repas, votre liste de courses et le suivi associé. | ⚑ |
-| 29 | `constants/legal.ts:127` | corps | Aucune donnée n’est utilisée à des fins publicitaires. |  |
-| 30 | `constants/legal.ts:131` | corps | 4. Base légale | ⚑ |
-| 31 | `constants/legal.ts:133` | corps | Le traitement des données de santé repose sur votre consentement explicite (RGPD art. 9-2-a), recueilli à l’inscription. Vous pouvez le retirer à tout moment en supprimant votre compte. | ⚑ |
-| 32 | `constants/legal.ts:203` | corps | 5. Destinataires et sous-traitants | ⚑ |
-| 33 | `constants/legal.ts:205` | corps | Vos données synchronisées sont hébergées par ${LEGAL.host}, sur des serveurs situés en ${LEGAL.hostRegion}. |  |
-| 34 | `constants/legal.ts:206` | vide | L’envoi des e-mails de service (confirmation d’inscription, réinitialisation de mot de passe) est assuré par ${LEGAL.emailProvider} (${LEGAL.emailProviderLegalName}). Seules votre adresse e-mail et le contenu de ces messages lui sont transmis — aucune donnée de santé. | ⚑ |
-| 35 | `constants/legal.ts:207` | vide | Ces e-mails, ainsi que les journaux d’envoi correspondants, sont stockés par ${LEGAL.emailProvider} ${LEGAL.emailProviderStorage}. Ce transfert hors de l’Union européenne est encadré par les clauses contractuelles types de la Commission européenne et par l’adhésion de ce prestataire au cadre de protection des données UE–États-Unis (EU-U.S. Data Privacy Framework). |  |
-| 36 | `constants/legal.ts:208` | vide | La gestion technique des abonnements Kyroz+ est confiée à ${LEGAL.subscriptionProvider} (${LEGAL.subscriptionProviderCountry}). Dès que vous êtes connecté, que vous soyez abonné ou non, l’identifiant technique de votre compte lui est transmis pour vérifier si un abonnement est actif ; s’y ajoutent, le cas échéant, l’état de votre abonnement et le reçu d’achat émis par l’App Store ou Google Play. Ne lui sont transmis ni votre adresse email, ni vos données de santé, ni aucune coordonnée bancaire. | ⚑ |
-| 37 | `constants/legal.ts:209` | vide | Ces données sont stockées ${LEGAL.subscriptionProviderStorage}. Ce transfert hors de l’Union européenne est encadré par les clauses contractuelles types de la Commission européenne. |  |
-| 38 | `constants/legal.ts:210` | corps | Le paiement lui-même est traité par l’App Store (Apple) ou Google Play. Kyroz ne voit ni ne conserve aucune coordonnée bancaire. |  |
-| 39 | `constants/legal.ts:211` | corps | Nous ne vendons, ne louons et ne partageons vos données avec aucun tiers à des fins commerciales. Aucun traceur publicitaire n’est utilisé, et aucun suivi ne vous relie à d’autres applications ou sites. |  |
-| 40 | `constants/legal.ts:215` | corps | 6. Hébergement et localisation | ⚑ |
-| 41 | `constants/legal.ts:217` | corps | Les données synchronisées — profil, objectif, suivi du poids — sont stockées dans l’Union européenne. Une copie de travail réside localement sur votre appareil (fonctionnement hors-ligne). |  |
-| 42 | `constants/legal.ts:218` | vide | Une exception, décrite au point 5 : les e-mails de service sont stockés ${LEGAL.emailProviderStorage}. Aucune donnée de santé ne quitte l’Union européenne. | ⚑ |
-| 43 | `constants/legal.ts:222` | corps | 7. Durée de conservation | ⚑ |
-| 44 | `constants/legal.ts:224` | corps | Vos données sont conservées tant que votre compte est actif. Elles sont supprimées (serveur + appareil) lorsque vous supprimez votre compte. |  |
-| 45 | `constants/legal.ts:225` | corps | Une exception : si vous avez souscrit un abonnement, l’historique de facturation correspondant est conservé par le store concerné (Apple, Google) et par le prestataire mentionné au point 5, pour la durée qu’imposent leurs obligations légales et comptables. Cet historique ne contient aucune donnée de santé. | ⚑ |
-| 46 | `constants/legal.ts:229` | corps | 8. Sécurité | ⚑ |
-| 47 | `constants/legal.ts:231` | corps | Les échanges avec nos serveurs sont chiffrés en transit (HTTPS). L’accès aux données est cloisonné par utilisateur : un utilisateur ne peut accéder qu’à ses propres données. |  |
-| 48 | `constants/legal.ts:232` | corps | Les données stockées localement sur votre appareil ne sont pas chiffrées : protégez l’accès à votre appareil, en particulier sur un ordinateur partagé. |  |
-| 49 | `constants/legal.ts:236` | corps | 9. Vos droits | ⚑ |
-| 50 | `constants/legal.ts:238` | corps | Conformément au RGPD, vous disposez des droits d’accès, de rectification, d’effacement, de limitation, d’opposition et de portabilité, ainsi que du droit de retirer votre consentement. |  |
-| 51 | `constants/legal.ts:239` | corps | Le droit à l’effacement s’exerce directement dans l’app (Profil → Supprimer mon compte) ou par email à ${LEGAL.dpoEmail}. |  |
-| 52 | `constants/legal.ts:240` | corps | Vous pouvez introduire une réclamation auprès de la CNIL (www.cnil.fr). |  |
-| 53 | `constants/legal.ts:244` | corps | 10. Mineurs | ⚑ |
-| 54 | `constants/legal.ts:246` | corps | Kyroz est réservé aux personnes âgées de 18 ans et plus. Aucun compte ne peut être créé en deçà de cet âge. | ⚑ |
-| 55 | `constants/legal.ts:250` | corps | 11. Modifications | ⚑ |
-| 56 | `constants/legal.ts:252` | corps | La présente politique peut évoluer. Date de dernière mise à jour : ${LEGAL.effectiveDate}. |  |
-| 57 | `constants/legal.ts:260` | corps | 1. Objet | ⚑ |
-| 58 | `constants/legal.ts:262` | corps | Les présentes conditions régissent l’utilisation de l’application ${LEGAL.appName}. En créant un compte ou en utilisant l’app, vous les acceptez. |  |
-| 59 | `constants/legal.ts:266` | corps | 2. Description du service | ⚑ |
-| 60 | `constants/legal.ts:268` | corps | Kyroz génère des plans repas, des listes de courses et des recettes à visée nutritionnelle, à partir des informations que vous fournissez. Le cœur du service est gratuit. |  |
-| 61 | `constants/legal.ts:286` | corps | 3. Abonnement Kyroz+ | ⚑ |
-| 62 | `constants/legal.ts:288` | corps | Le cœur du service reste gratuit : plan de la semaine, liste de courses, recettes, réserve, favoris, série, pesée, réglage du rythme de la semaine et synchronisation. Kyroz+ est un abonnement facultatif qui donne accès à des outils complémentaires — objectif daté et suivi de transformation. |  |
-| 63 | `constants/legal.ts:289` | corps | L’abonnement est vendu par l’App Store ou Google Play, jamais directement par Kyroz. Le prix affiché au moment de l’achat fait foi. Le paiement, le renouvellement et la résiliation se gèrent dans les réglages de votre compte App Store ou Google Play. | ⚑ |
-| 64 | `constants/legal.ts:290` | corps | L’abonnement se renouvelle automatiquement à la fin de chaque période, sauf résiliation au moins 24 heures avant l’échéance. Les demandes de remboursement relèvent du store, pas de Kyroz. | ⚑ |
-| 65 | `constants/legal.ts:291` | corps | Le tarif de votre abonnement est celui affiché au moment où vous souscrivez, et il reste inchangé tant que votre abonnement demeure actif. Une évolution de nos tarifs ne s’applique qu’aux nouvelles souscriptions. En revanche, si vous résiliez puis souscrivez à nouveau plus tard, c’est le tarif en vigueur à cette date qui s’applique. |  |
-| 66 | `constants/legal.ts:292` | corps | Les comptes créés avant la mise en vente de Kyroz+ conservent l’accès à ces outils gratuitement, à vie, sans démarche à effectuer. |  |
-| 67 | `constants/legal.ts:296` | corps | 4. Avertissement santé | ⚑ |
-| 68 | `constants/legal.ts:299` | corps | Kyroz ne s’adresse pas aux personnes atteintes de pathologies (diabète, insuffisance rénale, troubles cardiaques…), aux femmes enceintes ou allaitantes. En cas de doute, consultez un professionnel de santé. Vous restez seul responsable de votre alimentation. | ⚑ |
-| 69 | `constants/legal.ts:303` | corps | 5. Compte | ⚑ |
-| 70 | `constants/legal.ts:305` | corps | Vous vous engagez à fournir des informations exactes et à avoir au moins 18 ans. Vous êtes responsable de la confidentialité de vos identifiants. | ⚑ |
-| 71 | `constants/legal.ts:309` | corps | 6. Propriété intellectuelle | ⚑ |
-| 72 | `constants/legal.ts:311` | corps | Les recettes et contenus de l’app sont la propriété de Kyroz. Les données nutritionnelles sont issues de la table Ciqual (ANSES), réutilisées sous Licence Ouverte 2.0 (Etalab). | ⚑ |
-| 73 | `constants/legal.ts:315` | corps | 7. Données personnelles | ⚑ |
-| 74 | `constants/legal.ts:317` | corps | Le traitement de vos données est décrit dans la Politique de confidentialité ci-dessus, qui fait partie intégrante des présentes conditions. |  |
-| 75 | `constants/legal.ts:321` | corps | 8. Résiliation | ⚑ |
-| 76 | `constants/legal.ts:323` | corps | Vous pouvez supprimer votre compte à tout moment depuis l’app (Profil → Supprimer mon compte), ce qui efface vos données. |  |
-| 77 | `constants/legal.ts:326` | corps | Supprimer votre compte Kyroz n’annule PAS un abonnement en cours : celui-ci continue d’être facturé tant qu’il n’est pas résilié dans les réglages de votre compte App Store ou Google Play. |  |
-| 78 | `constants/legal.ts:330` | corps | 9. Responsabilité | ⚑ |
-| 79 | `constants/legal.ts:332` | corps | Kyroz fournit un outil d’aide à la planification nutritionnelle sans garantie de résultat. Notre responsabilité ne saurait être engagée pour l’usage que vous faites des plans proposés. | ⚑ |
-| 80 | `constants/legal.ts:336` | corps | 10. Droit applicable | ⚑ |
-| 81 | `constants/legal.ts:338` | corps | Les présentes conditions sont soumises au droit français. Contact : ${LEGAL.supportEmail}. En cas de litige, vous pouvez recourir à un médiateur de la consommation ou saisir la CNIL pour les questions relatives aux données. |  |
+| 1 | `constants/legal.ts:15` | corps | Kyroz est conçu pour des adultes en bonne santé. Ces informations ne remplacent pas l'avis d'un médecin ou diététicien-nutritionniste. | ⚑ |
+| 2 | `constants/legal.ts:28` | corps | Enceinte, allaitante, ou suivie pour une pathologie chronique ? Parles-en à un médecin avant de suivre un plan. | ⚑ |
+| 3 | `constants/legal.ts:35` | corps | Kyroz |  |
+| 4 | `constants/legal.ts:36` | corps | Kévin Berger |  |
+| 5 | `constants/legal.ts:37` | corps | Entrepreneur individuel (micro-entreprise) |  |
+| 6 | `constants/legal.ts:39` | corps | 2 rue du moulin, 64570 Arette | ⚑ |
+| 7 | `constants/legal.ts:42` | corps | Supabase Inc. |  |
+| 8 | `constants/legal.ts:43` | corps | Union européenne (UE) |  |
+| 9 | `constants/legal.ts:48` | vide | Resend |  |
+| 10 | `constants/legal.ts:49` | vide | Plus Five Five, Inc. |  |
+| 11 | `constants/legal.ts:57` | vide | aux États-Unis |  |
+| 12 | `constants/legal.ts:73` | vide | RevenueCat, Inc. |  |
+| 13 | `constants/legal.ts:74` | vide | États-Unis |  |
+| 14 | `constants/legal.ts:75` | vide | aux États-Unis |  |
+| 15 | `constants/legal.ts:95` | corps | 26 août 2026 | ⚑ |
+| 16 | `constants/legal.ts:106` | corps | 1. Responsable de traitement | ⚑ |
+| 17 | `constants/legal.ts:108` | corps | Le responsable du traitement de vos données est ${LEGAL.controllerName}, ${LEGAL.controllerStatus}, SIREN ${LEGAL.siren}, ${LEGAL.address}. |  |
+| 18 | `constants/legal.ts:109` | corps | Pour toute question relative à vos données ou pour exercer vos droits : ${LEGAL.dpoEmail}. |  |
+| 19 | `constants/legal.ts:113` | corps | 2. Données collectées | ⚑ |
+| 20 | `constants/legal.ts:115` | corps | Données de compte : adresse email (lors d’une inscription par email). |  |
+| 21 | `constants/legal.ts:116` | corps | Données de santé : sexe, âge, poids, taille, taux de masse grasse, niveau d’activité et sport pratiqué, objectif, restrictions et préférences alimentaires. Ces informations sont des données de santé au sens de l’article 9 du RGPD. | ⚑ |
+| 22 | `constants/legal.ts:117` | corps | Données d’usage de l’app : plans générés, suivi du poids, série (streak), favoris, réserve alimentaire. |  |
+| 23 | `constants/legal.ts:118` | corps | Photos de progression (facultatives) : elles restent stockées UNIQUEMENT sur votre appareil et ne sont jamais transmises à nos serveurs. | ⚑ |
+| 24 | `constants/legal.ts:119` | corps | Données d’abonnement, uniquement si vous souscrivez à Kyroz+ : l’identifiant technique de votre compte et l’état de votre abonnement. Aucune coordonnée bancaire ne transite par Kyroz. |  |
+| 25 | `constants/legal.ts:120` | corps | Aucune statistique d’usage n’est collectée : l’application ne mesure pas comment vous vous en servez. |  |
+| 26 | `constants/legal.ts:124` | corps | 3. Finalités | ⚑ |
+| 27 | `constants/legal.ts:126` | corps | Vos données de compte et de santé servent exclusivement à : calculer vos besoins nutritionnels (calories, macros), générer vos plans repas, votre liste de courses et le suivi associé. | ⚑ |
+| 28 | `constants/legal.ts:127` | corps | Aucune donnée n’est utilisée à des fins publicitaires. |  |
+| 29 | `constants/legal.ts:131` | corps | 4. Base légale | ⚑ |
+| 30 | `constants/legal.ts:133` | corps | Le traitement des données de santé repose sur votre consentement explicite (RGPD art. 9-2-a), recueilli à l’inscription. Vous pouvez le retirer à tout moment en supprimant votre compte. | ⚑ |
+| 31 | `constants/legal.ts:203` | corps | 5. Destinataires et sous-traitants | ⚑ |
+| 32 | `constants/legal.ts:205` | corps | Vos données synchronisées sont hébergées par ${LEGAL.host}, sur des serveurs situés en ${LEGAL.hostRegion}. |  |
+| 33 | `constants/legal.ts:206` | vide | L’envoi des e-mails de service (confirmation d’inscription, réinitialisation de mot de passe) est assuré par ${LEGAL.emailProvider} (${LEGAL.emailProviderLegalName}). Seules votre adresse e-mail et le contenu de ces messages lui sont transmis — aucune donnée de santé. | ⚑ |
+| 34 | `constants/legal.ts:207` | vide | Ces e-mails, ainsi que les journaux d’envoi correspondants, sont stockés par ${LEGAL.emailProvider} ${LEGAL.emailProviderStorage}. Ce transfert hors de l’Union européenne est encadré par les clauses contractuelles types de la Commission européenne et par l’adhésion de ce prestataire au cadre de protection des données UE–États-Unis (EU-U.S. Data Privacy Framework). |  |
+| 35 | `constants/legal.ts:208` | vide | La gestion technique des abonnements Kyroz+ est confiée à ${LEGAL.subscriptionProvider} (${LEGAL.subscriptionProviderCountry}). Dès que vous êtes connecté, que vous soyez abonné ou non, l’identifiant technique de votre compte lui est transmis pour vérifier si un abonnement est actif ; s’y ajoutent, le cas échéant, l’état de votre abonnement et le reçu d’achat émis par l’App Store ou Google Play. Ne lui sont transmis ni votre adresse email, ni vos données de santé, ni aucune coordonnée bancaire. | ⚑ |
+| 36 | `constants/legal.ts:209` | vide | Ces données sont stockées ${LEGAL.subscriptionProviderStorage}. Ce transfert hors de l’Union européenne est encadré par les clauses contractuelles types de la Commission européenne. |  |
+| 37 | `constants/legal.ts:210` | corps | Le paiement lui-même est traité par l’App Store (Apple) ou Google Play. Kyroz ne voit ni ne conserve aucune coordonnée bancaire. |  |
+| 38 | `constants/legal.ts:211` | corps | Nous ne vendons, ne louons et ne partageons vos données avec aucun tiers à des fins commerciales. Aucun traceur publicitaire n’est utilisé, et aucun suivi ne vous relie à d’autres applications ou sites. |  |
+| 39 | `constants/legal.ts:215` | corps | 6. Hébergement et localisation | ⚑ |
+| 40 | `constants/legal.ts:217` | corps | Les données synchronisées — profil, objectif, suivi du poids — sont stockées dans l’Union européenne. Une copie de travail réside localement sur votre appareil (fonctionnement hors-ligne). |  |
+| 41 | `constants/legal.ts:218` | vide | Une exception, décrite au point 5 : les e-mails de service sont stockés ${LEGAL.emailProviderStorage}. Aucune donnée de santé ne quitte l’Union européenne. | ⚑ |
+| 42 | `constants/legal.ts:222` | corps | 7. Durée de conservation | ⚑ |
+| 43 | `constants/legal.ts:224` | corps | Vos données sont conservées tant que votre compte est actif. Elles sont supprimées (serveur + appareil) lorsque vous supprimez votre compte. |  |
+| 44 | `constants/legal.ts:225` | corps | Une exception : si vous avez souscrit un abonnement, l’historique de facturation correspondant est conservé par le store concerné (Apple, Google) et par le prestataire mentionné au point 5, pour la durée qu’imposent leurs obligations légales et comptables. Cet historique ne contient aucune donnée de santé. | ⚑ |
+| 45 | `constants/legal.ts:229` | corps | 8. Sécurité | ⚑ |
+| 46 | `constants/legal.ts:231` | corps | Les échanges avec nos serveurs sont chiffrés en transit (HTTPS). L’accès aux données est cloisonné par utilisateur : un utilisateur ne peut accéder qu’à ses propres données. |  |
+| 47 | `constants/legal.ts:232` | corps | Les données stockées localement sur votre appareil ne sont pas chiffrées : protégez l’accès à votre appareil, en particulier sur un ordinateur partagé. |  |
+| 48 | `constants/legal.ts:236` | corps | 9. Vos droits | ⚑ |
+| 49 | `constants/legal.ts:238` | corps | Conformément au RGPD, vous disposez des droits d’accès, de rectification, d’effacement, de limitation, d’opposition et de portabilité, ainsi que du droit de retirer votre consentement. |  |
+| 50 | `constants/legal.ts:239` | corps | Le droit à l’effacement s’exerce directement dans l’app (Profil → Supprimer mon compte) ou par email à ${LEGAL.dpoEmail}. |  |
+| 51 | `constants/legal.ts:240` | corps | Vous pouvez introduire une réclamation auprès de la CNIL (www.cnil.fr). |  |
+| 52 | `constants/legal.ts:244` | corps | 10. Mineurs | ⚑ |
+| 53 | `constants/legal.ts:246` | corps | Kyroz est réservé aux personnes âgées de 18 ans et plus. Aucun compte ne peut être créé en deçà de cet âge. | ⚑ |
+| 54 | `constants/legal.ts:250` | corps | 11. Modifications | ⚑ |
+| 55 | `constants/legal.ts:252` | corps | La présente politique peut évoluer. Date de dernière mise à jour : ${LEGAL.effectiveDate}. |  |
+| 56 | `constants/legal.ts:260` | corps | 1. Objet | ⚑ |
+| 57 | `constants/legal.ts:262` | corps | Les présentes conditions régissent l’utilisation de l’application ${LEGAL.appName}. En créant un compte ou en utilisant l’app, vous les acceptez. |  |
+| 58 | `constants/legal.ts:266` | corps | 2. Description du service | ⚑ |
+| 59 | `constants/legal.ts:268` | corps | Kyroz génère des plans repas, des listes de courses et des recettes à visée nutritionnelle, à partir des informations que vous fournissez. Le cœur du service est gratuit. |  |
+| 60 | `constants/legal.ts:286` | corps | 3. Abonnement Kyroz+ | ⚑ |
+| 61 | `constants/legal.ts:288` | corps | Le cœur du service reste gratuit : plan de la semaine, liste de courses, recettes, réserve, favoris, série, pesée, réglage du rythme de la semaine et synchronisation. Kyroz+ est un abonnement facultatif qui donne accès à des outils complémentaires — objectif daté et suivi de transformation. |  |
+| 62 | `constants/legal.ts:289` | corps | L’abonnement est vendu par l’App Store ou Google Play, jamais directement par Kyroz. Le prix affiché au moment de l’achat fait foi. Le paiement, le renouvellement et la résiliation se gèrent dans les réglages de votre compte App Store ou Google Play. | ⚑ |
+| 63 | `constants/legal.ts:290` | corps | L’abonnement se renouvelle automatiquement à la fin de chaque période, sauf résiliation au moins 24 heures avant l’échéance. Les demandes de remboursement relèvent du store, pas de Kyroz. | ⚑ |
+| 64 | `constants/legal.ts:291` | corps | Le tarif de votre abonnement est celui affiché au moment où vous souscrivez, et il reste inchangé tant que votre abonnement demeure actif. Une évolution de nos tarifs ne s’applique qu’aux nouvelles souscriptions. En revanche, si vous résiliez puis souscrivez à nouveau plus tard, c’est le tarif en vigueur à cette date qui s’applique. |  |
+| 65 | `constants/legal.ts:292` | corps | Les comptes créés avant la mise en vente de Kyroz+ conservent l’accès à ces outils gratuitement, à vie, sans démarche à effectuer. |  |
+| 66 | `constants/legal.ts:296` | corps | 4. Avertissement santé | ⚑ |
+| 67 | `constants/legal.ts:299` | corps | Kyroz ne s’adresse pas aux personnes atteintes de pathologies (diabète, insuffisance rénale, troubles cardiaques…), aux femmes enceintes ou allaitantes. En cas de doute, consultez un professionnel de santé. Vous restez seul responsable de votre alimentation. | ⚑ |
+| 68 | `constants/legal.ts:303` | corps | 5. Compte | ⚑ |
+| 69 | `constants/legal.ts:305` | corps | Vous vous engagez à fournir des informations exactes et à avoir au moins 18 ans. Vous êtes responsable de la confidentialité de vos identifiants. | ⚑ |
+| 70 | `constants/legal.ts:309` | corps | 6. Propriété intellectuelle | ⚑ |
+| 71 | `constants/legal.ts:311` | corps | Les recettes et contenus de l’app sont la propriété de Kyroz. Les données nutritionnelles sont issues de la table Ciqual (ANSES), réutilisées sous Licence Ouverte 2.0 (Etalab). | ⚑ |
+| 72 | `constants/legal.ts:315` | corps | 7. Données personnelles | ⚑ |
+| 73 | `constants/legal.ts:317` | corps | Le traitement de vos données est décrit dans la Politique de confidentialité ci-dessus, qui fait partie intégrante des présentes conditions. |  |
+| 74 | `constants/legal.ts:321` | corps | 8. Résiliation | ⚑ |
+| 75 | `constants/legal.ts:323` | corps | Vous pouvez supprimer votre compte à tout moment depuis l’app (Profil → Supprimer mon compte), ce qui efface vos données. |  |
+| 76 | `constants/legal.ts:326` | corps | Supprimer votre compte Kyroz n’annule PAS un abonnement en cours : celui-ci continue d’être facturé tant qu’il n’est pas résilié dans les réglages de votre compte App Store ou Google Play. |  |
+| 77 | `constants/legal.ts:330` | corps | 9. Responsabilité | ⚑ |
+| 78 | `constants/legal.ts:332` | corps | Kyroz fournit un outil d’aide à la planification nutritionnelle sans garantie de résultat. Notre responsabilité ne saurait être engagée pour l’usage que vous faites des plans proposés. | ⚑ |
+| 79 | `constants/legal.ts:336` | corps | 10. Droit applicable | ⚑ |
+| 80 | `constants/legal.ts:338` | corps | Les présentes conditions sont soumises au droit français. Contact : ${LEGAL.supportEmail}. En cas de litige, vous pouvez recourir à un médiateur de la consommation ou saisir la CNIL pour les questions relatives aux données. |  |
 
 ## Notifications (`lib/notifications.ts`)
 
@@ -963,78 +977,48 @@
 
 ## Méthodologie (contenu) (`lib/methodologie.ts`)
 
+> 🔴 **BLOC RÉGÉNÉRÉ LE 2026-08-27 — contre-audit `CA-4-02`.** Les 72 entrées précédentes
+> étaient des MORCEAUX : l'extraction coupait chaque chaîne sur l'apostrophe échappée
+> (`\'`), et ce fichier est le seul du corpus à en employer. « Ce que Kyroz calcule — et
+> ce qu'il n'est pas » devenait deux entrées (« …et ce qu\ » puis « est pas »), et la
+> phrase « Kyroz n'est pas un dispositif médical… » — la plus lourde juridiquement de
+> l'app — n'apparaissait NULLE PART : `grep "dispositif médical"` rendait **0** sur tout
+> le dump. C'est exactement la matière que le §5 de la synthèse cite comme modèle.
+>
+> Ce bloc n'est plus extrait par regex : il est **RENDU par `methodologie()`**, donc les
+> interpolations portent leurs vraies valeurs et aucune apostrophe ne coupe rien.
+> 31 textes, contre 72 fragments.
+
 | # | ligne | Rôle | Texte | Flag |
 |---|---|---|---|---|
-| 1 | `lib/methodologie.ts:9` | corps | ./datedGoal |  |
-| 2 | `lib/methodologie.ts:60` | corps | Ce que Kyroz calcule — et ce qu\ |  |
-| 3 | `lib/methodologie.ts:60` | corps | est pas |  |
-| 4 | `lib/methodologie.ts:62` | corps | Kyroz estime une dépense énergétique quotidienne à partir de ce que vous déclarez, puis construit des repas qui s\ |  |
-| 5 | `lib/methodologie.ts:62` | corps | est un outil de bien-être alimentaire pour adultes en bonne santé. | ⚑ |
-| 6 | `lib/methodologie.ts:63` | corps | Kyroz n\ |  |
-| 7 | `lib/methodologie.ts:63` | corps | avis d\ |  |
-| 8 | `lib/methodologie.ts:63` | corps | un diététicien-nutritionniste. |  |
-| 9 | `lib/methodologie.ts:64` | corps | app est réservée aux personnes de ${MIN_AGE} ans et plus : les équations utilisées ci-dessous ne sont pas validées chez l |  |
-| 10 | `lib/methodologie.ts:68` | corps | La dépense énergétique (TDEE) |  |
-| 11 | `lib/methodologie.ts:70` | corps | La dépense est la somme de trois termes : le métabolisme de base, multiplié par un facteur d\ |  |
-| 12 | `lib/methodologie.ts:70` | corps | ajoute la dépense des séances déclarées. |  |
-| 13 | `lib/methodologie.ts:71` | corps | Le métabolisme de base est estimé par l\ |  |
-| 14 | `lib/methodologie.ts:71` | corps | âge, du poids et de la taille. |  |
-| 15 | `lib/methodologie.ts:72` | erreur | équation de Katch-McArdle, qui repose sur la masse maigre, est utilisée telle quelle si le taux de masse grasse a été MESURÉ (impédancemétrie, DEXA, plis cutanés) et déclaré comme tel. Un taux estimé à partir d |  |
-| 16 | `lib/methodologie.ts:72` | erreur | erreur de l |  |
-| 17 | `lib/methodologie.ts:72` | erreur | inverse : si la formule à masse maigre donne une dépense plus basse, c |  |
-| 18 | `lib/methodologie.ts:72` | erreur | est posée qu |  |
-| 19 | `lib/methodologie.ts:73` | corps | Le facteur d |  |
-| 20 | `lib/methodologie.ts:73` | corps | arrête volontairement à ${nb(NEAT_PAL.physical)} : les valeurs plus hautes des tables classiques incluent l |  |
-| 21 | `lib/methodologie.ts:74` | corps | La dépense des séances est calculée par la méthode des équivalents métaboliques (MET), en valeur NETTE : le métabolisme de repos de l\ |  |
-| 22 | `lib/methodologie.ts:74` | corps | il est déjà compté par les deux premiers termes. |  |
-| 23 | `lib/methodologie.ts:78` | corps | Mifflin MD, St Jeor ST, Hill LA, Scott BJ, Daugherty SA, Koh YO |  |
-| 24 | `lib/methodologie.ts:79` | corps | A new predictive equation for resting energy expenditure in healthy individuals |  |
-| 25 | `lib/methodologie.ts:80` | corps | The American Journal of Clinical Nutrition, 1990;51(2):241-247 | ⚑ |
-| 26 | `lib/methodologie.ts:83` | corps | McArdle WD, Katch FI, Katch VL |  |
-| 27 | `lib/methodologie.ts:84` | corps | Exercise Physiology: Nutrition, Energy, and Human Performance |  |
-| 28 | `lib/methodologie.ts:85` | corps | Lippincott Williams & Wilkins (équation dite de Katch-McArdle) |  |
-| 29 | `lib/methodologie.ts:88` | corps | Ainsworth BE, Haskell WL, Herrmann SD, et al. |  |
-| 30 | `lib/methodologie.ts:89` | corps | 2011 Compendium of Physical Activities: a second update of codes and MET values | ⚑ |
-| 31 | `lib/methodologie.ts:90` | corps | Medicine & Science in Sports & Exercise, 2011;43(8):1575-1581 | ⚑ |
-| 32 | `lib/methodologie.ts:95` | corps | La répartition des macronutriments |  |
-| 33 | `lib/methodologie.ts:97` | corps | La cible protéique dépend de l |  |
-| 34 | `lib/methodologie.ts:98` | corps | Les lipides ne descendent jamais sous ${nb(FAT_MIN_PER_KG_BW)} g par kg de poids de corps, seuil en deçà duquel l | ⚑ |
-| 35 | `lib/methodologie.ts:98` | corps | absorption des vitamines liposolubles ne sont plus assurés. |  |
-| 36 | `lib/methodologie.ts:99` | corps | Les glucides reçoivent le budget restant. |  |
-| 37 | `lib/methodologie.ts:103` | corps | Jäger R, Kerksick CM, Campbell BI, et al. |  |
-| 38 | `lib/methodologie.ts:104` | corps | International Society of Sports Nutrition Position Stand: protein and exercise |  |
-| 39 | `lib/methodologie.ts:105` | corps | Journal of the International Society of Sports Nutrition, 2017;14:20 | ⚑ |
-| 40 | `lib/methodologie.ts:108` | corps | Helms ER, Zinn C, Rowlands DS, Brown SR |  |
-| 41 | `lib/methodologie.ts:109` | corps | A systematic review of dietary protein during caloric restriction in resistance trained lean athletes |  |
-| 42 | `lib/methodologie.ts:110` | corps | International Journal of Sport Nutrition and Exercise Metabolism, 2014;24(2):127-138 | ⚑ |
-| 43 | `lib/methodologie.ts:113` | corps | Thomas DT, Erdman KA, Burke LM |  |
-| 44 | `lib/methodologie.ts:114` | corps | Position of the Academy of Nutrition and Dietetics, Dietitians of Canada, and the American College of Sports Medicine: Nutrition and Athletic Performance |  |
-| 45 | `lib/methodologie.ts:115` | corps | Journal of the Academy of Nutrition and Dietetics, 2016;116(3):501-528 | ⚑ |
-| 46 | `lib/methodologie.ts:120` | corps | Les limites de sécurité | ⚑ |
-| 47 | `lib/methodologie.ts:122` | corps | Aucun plan ne peut descendre sous ces limites, quel que soit l\ |  |
-| 48 | `lib/methodologie.ts:123` | corps | Énergie disponible : au moins ${EA_HARD_FLOOR} kcal par kg de masse maigre, une fois la dépense sportive retirée. C |  |
-| 49 | `lib/methodologie.ts:124` | corps | Au-delà de ${LOW_EA_BUDGET_WEEKS} semaines cumulées en zone basse, ce plancher remonte progressivement vers ${EA_OPTIMAL} kcal par kg de masse maigre : l | ⚑ |
-| 50 | `lib/methodologie.ts:125` | corps | Filet absolu : jamais moins de ${millier(MIN_KCAL.male)} kcal par jour chez l | ⚑ |
-| 51 | `lib/methodologie.ts:126` | corps | Déficit plafonné à ${Math.round(MAX_DEFICIT_TDEE_RATIO * 100)} % de la dépense estimée. | ⚑ |
-| 52 | `lib/methodologie.ts:127` | corps | Après ${DIET_BREAK_AFTER_WEEKS} semaines de déficit consécutives, la semaine suivante est servie à la maintenance. |  |
-| 53 | `lib/methodologie.ts:128` | corps | Un déficit est refusé si l\ |  |
-| 54 | `lib/methodologie.ts:132` | corps | Mountjoy M, Sundgot-Borgen JK, Burke LM, et al. |  |
-| 55 | `lib/methodologie.ts:133` | corps | IOC consensus statement on relative energy deficiency in sport (RED-S): 2018 update | ⚑ |
-| 56 | `lib/methodologie.ts:134` | corps | British Journal of Sports Medicine, 2018;52(11):687-697 | ⚑ |
-| 57 | `lib/methodologie.ts:137` | corps | Loucks AB, Thuma JR |  |
-| 58 | `lib/methodologie.ts:138` | corps | Luteinizing hormone pulsatility is disrupted at a threshold of energy availability in regularly menstruating women |  |
-| 59 | `lib/methodologie.ts:139` | corps | The Journal of Clinical Endocrinology & Metabolism, 2003;88(1):297-311 | ⚑ |
-| 60 | `lib/methodologie.ts:144` | corps | Les données nutritionnelles |  |
-| 61 | `lib/methodologie.ts:147` | corps | Les aliments que la table ne couvre pas proprement (produits protéinés, préparations composées) sont saisis à la main, à partir des valeurs déclarées par les fabricants. Aucune source tierce automatique n\ |  |
-| 62 | `lib/methodologie.ts:148` | corps | Les recettes de Kyroz n\ |  |
-| 63 | `lib/methodologie.ts:148` | corps | app ne le prétend nulle part. |  |
-| 64 | `lib/methodologie.ts:152` | corps | ANSES |  |
-| 65 | `lib/methodologie.ts:153` | corps | Table de composition nutritionnelle des aliments Ciqual |  |
-| 66 | `lib/methodologie.ts:159` | corps | Ce qui relève d\ |  |
-| 67 | `lib/methodologie.ts:161` | corps | Tout ce qui précède ne sort pas de la littérature au même titre, et la distinction est faite ici plutôt que laissée à l\ |  |
-| 68 | `lib/methodologie.ts:162` | corps | Viennent de la littérature : les deux équations de métabolisme de base, les valeurs MET, le seuil de ${EA_HARD_FLOOR} kcal par kg de masse maigre et les fourchettes protéiques. |  |
-| 69 | `lib/methodologie.ts:163` | corps | Sont des choix de Kyroz, prudents par construction : le plafond de ${nb(NEAT_PAL.physical)} sur l |  |
-| 70 | `lib/methodologie.ts:163` | corps | énergie que ces planchers, conçus pour des athlètes maigres, interdisaient d |  |
-| 71 | `lib/methodologie.ts:164` | erreur | Une estimation de dépense reste une estimation : elle porte une marge d\ |  |
-| 72 | `lib/methodologie.ts:164` | erreur | est lui que Kyroz suit. |  |
-
+| 1 | `lib/methodologie.ts:60` | titre | Ce que Kyroz calcule — et ce qu'il n'est pas |  |
+| 2 | `lib/methodologie.ts:62` | corps | Kyroz estime une dépense énergétique quotidienne à partir de ce que vous déclarez, puis construit des repas qui s'en approchent. C'est un outil de bien-être alimentaire pour adultes en bonne santé. |  |
+| 3 | `lib/methodologie.ts:63` | corps | Kyroz n'est pas un dispositif médical. Il ne diagnostique, ne traite, ne guérit ni ne prévient aucune pathologie, et ne remplace pas l'avis d'un médecin ou d'un diététicien-nutritionniste. |  |
+| 4 | `lib/methodologie.ts:64` | corps | L'app est réservée aux personnes de 18 ans et plus : les équations utilisées ci-dessous ne sont pas validées chez l'adolescent. | ⚑ |
+| 5 | `lib/methodologie.ts:68` | titre | La dépense énergétique (TDEE) |  |
+| 6 | `lib/methodologie.ts:70` | corps | La dépense est la somme de trois termes : le métabolisme de base, multiplié par un facteur d'activité quotidienne hors sport, auquel s'ajoute la dépense des séances déclarées. |  |
+| 7 | `lib/methodologie.ts:71` | corps | Le métabolisme de base est estimé par l'équation de Mifflin-St Jeor, à partir du sexe, de l'âge, du poids et de la taille. |  |
+| 8 | `lib/methodologie.ts:72` | corps | L'équation de Katch-McArdle, qui repose sur la masse maigre, est utilisée telle quelle si le taux de masse grasse a été MESURÉ (impédancemétrie, DEXA, plis cutanés) et déclaré comme tel. Un taux estimé à partir d'une silhouette porte une marge d'erreur de l'ordre de ±5 points : quand il indique nettement plus de masse maigre que la moyenne du gabarit — au-delà de ce bruit —, le calcul glisse progressivement de Mifflin-St Jeor vers Katch-McArdle. Jamais l'inverse : si la formule à masse maigre donne une dépense plus basse, c'est Mifflin-St Jeor qui reste servie. La question de provenance n'est posée qu'au-delà de 35 % (homme) et 43 % (femme). | ⚑ |
+| 9 | `lib/methodologie.ts:73` | corps | Le facteur d'activité hors sport va de 1,3 (travail assis) à 1,45 (métier physique). La table s'arrête volontairement à 1,45 : les valeurs plus hautes des tables classiques incluent l'exercice, qui est déjà compté à part. | ⚑ |
+| 10 | `lib/methodologie.ts:74` | corps | La dépense des séances est calculée par la méthode des équivalents métaboliques (MET), en valeur NETTE : le métabolisme de repos de l'heure de séance est retiré, parce qu'il est déjà compté par les deux premiers termes. |  |
+| 11 | `lib/methodologie.ts:95` | titre | La répartition des macronutriments |  |
+| 12 | `lib/methodologie.ts:97` | corps | La cible protéique dépend de l'objectif et se calcule sur un poids ajusté à la composition corporelle. Elle est ensuite bornée entre 1,6 et 2,6 g par kg de MASSE MAIGRE, quelle que soit la corpulence. | ⚑ |
+| 13 | `lib/methodologie.ts:98` | corps | Les lipides ne descendent jamais sous 0,8 g par kg de poids de corps, seuil en deçà duquel l'apport en acides gras essentiels et l'absorption des vitamines liposolubles ne sont plus assurés. | ⚑ |
+| 14 | `lib/methodologie.ts:99` | corps | Les glucides reçoivent le budget restant. |  |
+| 15 | `lib/methodologie.ts:120` | titre | Les limites de sécurité |  |
+| 16 | `lib/methodologie.ts:122` | corps | Aucun plan ne peut descendre sous ces limites, quel que soit l'objectif choisi ou la date visée. Ce ne sont pas des réglages : le code les applique à chaque calcul. |  |
+| 17 | `lib/methodologie.ts:123` | corps | Énergie disponible : au moins 30 kcal par kg de masse maigre, une fois la dépense sportive retirée. C'est le seuil sous lequel la littérature documente des perturbations hormonales et osseuses (déficit énergétique relatif dans le sport, RED-S). | ⚑ |
+| 18 | `lib/methodologie.ts:0` | corps | Au-delà de 12 semaines cumulées en zone basse, ce plancher remonte progressivement vers 35 kcal par kg de masse maigre : l'app force une sortie de déficit au lieu de la laisser durer. | ⚑ |
+| 19 | `lib/methodologie.ts:125` | corps | Filet absolu : jamais moins de 1 500 kcal par jour chez l'homme et 1 200 kcal chez la femme. | ⚑ |
+| 20 | `lib/methodologie.ts:0` | corps | Déficit plafonné à 25 % de la dépense estimée. | ⚑ |
+| 21 | `lib/methodologie.ts:0` | corps | Après 8 semaines de déficit consécutives, la semaine suivante est servie à la maintenance. | ⚑ |
+| 22 | `lib/methodologie.ts:128` | corps | Un déficit est refusé si l'indice de masse corporelle de départ est inférieur à 18,5, ainsi que pour tout poids cible sortant de la plage saine. | ⚑ |
+| 23 | `lib/methodologie.ts:144` | titre | Les données nutritionnelles |  |
+| 24 | `lib/methodologie.ts:0` | corps | Données nutritionnelles issues de la Table Ciqual® 2025 (ANSES), réutilisée sous Licence Ouverte 2.0 (Etalab). Certaines entrées sont ajoutées ou ajustées par Kyroz et ne proviennent pas de l’ANSES. L’ANSES n’endosse pas Kyroz. | ⚑ |
+| 25 | `lib/methodologie.ts:147` | corps | Les aliments que la table ne couvre pas proprement (produits protéinés, préparations composées) sont saisis à la main, à partir des valeurs déclarées par les fabricants. Aucune source tierce automatique n'alimente le catalogue. |  |
+| 26 | `lib/methodologie.ts:148` | corps | Les recettes de Kyroz n'ont pas été validées par un diététicien-nutritionniste, et l'app ne le prétend nulle part. |  |
+| 27 | `lib/methodologie.ts:159` | titre | Ce qui relève d'un choix de Kyroz |  |
+| 28 | `lib/methodologie.ts:161` | corps | Tout ce qui précède ne sort pas de la littérature au même titre, et la distinction est faite ici plutôt que laissée à l'interprétation. |  |
+| 29 | `lib/methodologie.ts:162` | corps | Viennent de la littérature : les deux équations de métabolisme de base, les valeurs MET, le seuil de 30 kcal par kg de masse maigre et les fourchettes protéiques. | ⚑ |
+| 30 | `lib/methodologie.ts:163` | corps | Sont des choix de Kyroz, prudents par construction : le plafond de 1,45 sur l'activité quotidienne, le déficit borné à 25 %, la pause à la maintenance toutes les 8 semaines, et le retrait des planchers dérivés de la masse maigre au-delà de 30 % (homme) et 40 % (femme) de masse grasse — au-delà, la réserve adipeuse est la source d'énergie que ces planchers, conçus pour des athlètes maigres, interdisaient d'utiliser. | ⚑ |
+| 31 | `lib/methodologie.ts:164` | corps | Une estimation de dépense reste une estimation : elle porte une marge d'erreur individuelle que ces équations ne suppriment pas. Le poids relevé au fil des semaines est le seul juge, et c'est lui que Kyroz suit. |  |

@@ -51,6 +51,7 @@ foi d'un agent.
 | `CA-3-03` — les photos de corps survivent à « Supprimer définitivement » | `purgeAllProgressPhotos()` sur les deux sorties, avant la purge du stockage ; `deleteProgressPhoto` borné à `file://` | `a796b82` | **5 mutations** |
 | `CA-8-03` — le compte est créé avant qu'on demande l'âge | le §10 de la politique dit ce que le code fait, y compris qu'il ne vérifie pas l'âge à la création ; un test tient l'invariant texte ↔ `login.tsx` | `7cc5571` | **4 mutations** |
 | `CA-3-02` — au réveil, le Plan reste sur hier | `jourCivil` relu aux trois moments de réveil, déclaré par `todayIdx` et par le solde de la veille | `da6d994` | **5 mutations** |
+| `CA-4-01` à `CA-4-03`, `CA-4-06` — **le corpus des textes** | l'extraction coupait chaque chaîne sur l'apostrophe échappée : **14 entrées coupées net, 7 fragments orphelins**, et « dispositif médical » à **0** dans tout le dump. Bloc `methodologie` régénéré depuis le module — 31 textes réels pour 72 fragments — compteurs corrigés, brief 6b-bis écrit | *§6* | **2 mutations** |
 | `CA-2-04` + `CA-7-01` à `CA-7-06` — **six garde-fous décoratifs** | deux sondes d'ordre PostHog · périmètre compté dans `check:abonnements` · verdicts qui échouent dans `check:auth` · côté iOS ouvert dans `check:permissions` · §4 de `check:ota` qui confronte enfin la date · `entitlementNecessaire` déplacée dans le module pur et sa table de vérité testée | *§4* | **11 mutations** |
 | `CA-2-01` — la continuité R6 certifiée sur une fenêtre qui s'arrête au seuil | retrait des planchers rendu **progressif** sur 5 pt (`ENGINE_REV` 8 → 9) : le saut passe de 115 à 34 kcal/j au pas de 0,05, et il RÉTRÉCIT désormais avec le pas | *ci-dessous* | **3 mutations** |
 | `CA-2-02` — « aucun plancher contournable » | **aucune ligne de moteur changée** : la prémisse est mesurée (75 264 profils, 0 violation), les phrases reçoivent leur périmètre, la propriété devient comptée | *ci-dessous* | **4 mutations** |
@@ -319,7 +320,7 @@ un témoin. Ce qui suit n'en est qu'un choix.
 
 ---
 
-## 6 · Ce que l'audit s'est fait à lui-même : la chaîne 6a → 6b → 9
+## 6 · Ce que l'audit s'est fait à lui-même : la chaîne 6a → 6b → 9 — ✅ corpus réparé
 
 Un seul défaut, mais il porte **seize constats**.
 
@@ -340,6 +341,42 @@ textes longs de `methodologie.ts`** — les seuls que le §5 cite comme modèles
 
 Et le diagnostic du seuil s'est arrêté à deux titres alors qu'il en mangeait **quatre** : `1. Objet`
 et `5. Compte` sont des titres des **CGU**, jamais vus (`CA-4-07`).
+
+### ✅ Réparé le 2026-08-27 — et le défaut était pire que mesuré
+
+Le contre-audit disait « 30 ajouts mais 5 retraits ». La mesure exacte est plus dure :
+l'extracteur coupait **chaque chaîne sur l'apostrophe échappée**, et `lib/methodologie.ts`
+est le seul fichier du corpus à en employer. Sur les 753 entrées : **14 finissaient net sur
+une barre oblique inverse**, **7 étaient des fragments orphelins**, et le bloc entier de la
+page Méthodologie — **72 entrées** — n'était fait que de morceaux.
+
+| | |
+|---|---|
+| « dispositif médical » dans le dump | **0** → **3** |
+| entrées coupées net | **14** → **0** |
+| fragments orphelins | **7** → **0** |
+| bloc `lib/methodologie.ts` | 72 fragments → **31 textes réels** |
+| `DISCLAIMER` (`legal.ts:15`) | coupé en deux, « l'avis d' » perdu → **entier** |
+
+➡️ Ce bloc **n'est plus extrait par une regex** : il est RENDU par `methodologie()`. C'est
+le même geste que `npm run gen:legal` pour les surfaces légales — une copie générée ne peut
+pas diverger. Garde-fou : `lib/__tests__/corpusTextes.test.ts` (aucune entrée finissant par
+une barre oblique · aucun fragment orphelin · chaque texte rendu présent VERBATIM · deux
+témoins nommés).
+
+⚠️ **Trois sondes floues ont été écrites et jetées avant celle-ci**, et c'est la leçon la
+plus utile de cette étape. Un seuil de 25 caractères laissait passer l'avertissement médical
+(il partage sa queue avec le `DISCLAIMER`) ; un seuil de 60 accusait des textes présents mais
+tronqués par le dump ; entre les deux, le compteur a annoncé successivement **10, 4, 17 puis
+27** absences. Aucun de ces chiffres n'était le bon. La bonne réponse n'était pas de régler
+le seuil : c'était de rendre la comparaison **exacte**, en générant le bloc depuis le module
+au lieu de le comparer à une extraction lossy. ➡️ *Quand une sonde change d'avis à chaque
+réglage, ce n'est pas le réglage qu'il faut ajuster, c'est l'approche qu'il faut changer.*
+
+⚠️ **Ce que ça NE répare PAS** : l'étape 6b a jugé ces textes en morceaux, et son jugement
+n'a pas été rejoué. Le brief pour le faire est écrit —
+`docs/audit-v1/briefs/06b-bis-methodologie.md` — et il est volontairement **borné aux 32
+textes abîmés**, pas au corpus entier : les 711 autres n'étaient pas touchés.
 
 ---
 

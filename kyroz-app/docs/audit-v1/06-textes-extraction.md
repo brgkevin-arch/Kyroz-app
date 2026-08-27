@@ -2,7 +2,8 @@
 Date : 2026-08-26 · Commit audité : `e731e80` · Périmètre : les **14 écrans** de `app/`, les **49 composants** de `components/`, `constants/legal.ts`, `lib/notifications.ts`, `lib/reminder.ts`, `lib/methodologie.ts`
 
 > **Aucun i18n dans le dépôt** — tous les textes sont en dur. Le dump est donc extrait du code, mécaniquement, **sans reformulation ni correction**, y compris des fautes éventuelles.
-> Sortie 1 : `docs/audit-v1/06-textes-dump.md` (**753 chaînes**, 53 blocs).
+> Sortie 1 : `docs/audit-v1/06-textes-dump.md` (**711 textes**, 53 blocs — *compte du
+> 2026-08-27, après la réparation `CA-4-02` : 31 textes rendus remplacent 72 fragments*).
 > Cette sortie-ci ne contient que des faits mécaniques. **Aucun jugement de sens, de ton ou d'honnêteté** — c'est l'objet de l'étape 6b, sur Claude.ai.
 
 ## Reste à couvrir
@@ -19,7 +20,9 @@ Date : 2026-08-26 · Commit audité : `e731e80` · Périmètre : les **14 écran
 
 | Mesure | Valeur |
 |---|---|
-| **Chaînes extraites, au total** | **728** |
+| **Chaînes extraites, au total** | **711** *(ce tableau annonçait 728 pendant que l'en-tête
+  du même document disait 753 — deux époques côte à côte, contre-audit `CA-4-03`. Re-compté
+  le 2026-08-27.)* |
 | dont marquées `⚑` | **93** (12,8 %) |
 | Fichier de chaînes (i18n) | **aucun** — 100 % des textes sont en dur |
 | Clés inutilisées | *sans objet* (pas d'i18n) |
@@ -121,7 +124,9 @@ Mesurée sur les 753 chaînes du dump.
 
 ## Hors périmètre / non couvert
 
-**La couverture de l'extraction, mesurée plutôt qu'affirmée** : `app/` et `components/` contiennent **560** éléments `<Text>` ; le dump en tire **504 chaînes** depuis ces fichiers, soit **~90 %**. Le manque vient de trois formes que l'extraction mécanique ne prend pas :
+**La couverture de l'extraction, mesurée plutôt qu'affirmée** : `app/` et `components/` contiennent **541** éléments `<Text>` *(le **560** annoncé comptait les **17** `<TextInput>` —
+motif `<Text` sans frontière de mot, contre-audit `CA-4-06`. C'est la faute que le §6 de la
+synthèse dit justement avoir apprise avec la regex `xit\(`.)* ; le dump en tire **504 chaînes** depuis ces fichiers, soit **~90 %**. Le manque vient de trois formes que l'extraction mécanique ne prend pas :
 - les textes composés de plusieurs `<Text>` imbriqués (un mot en gras au milieu d'une phrase) — la phrase est capturée, l'imbrication apparaît en clair dans le texte ;
 - les textes assemblés par des fonctions (`copy.title`, `pickCitation(index)`) — le dump contient la **table de copie** (`lib/reminder.ts`, `lib/notifications.ts`), pas chaque combinaison ;
 - les interpolations, remplacées par `…` — `Il te reste {n} kcal` apparaît comme `Il te reste … kcal`.
