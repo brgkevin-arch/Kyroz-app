@@ -124,6 +124,31 @@ NSPrivacyAccessedAPITypes    FileTimestamp   C617.1
 - **Effort : S**
 
 ### 03-05 Aucun outil de diagnostic post-lancement — décision à prendre, pas défaut à corriger
+> ✅ **TRANCHÉ le 2026-08-27 — OPTION A : la V1 part SANS outil de diagnostic.** Le
+> fondateur a délégué l'arbitrage (« go ») ; le motif est écrit ici pour qu'il puisse être
+> contredit d'un mot, et pour que la décision ne se re-prenne pas tous les mois.
+>
+> **Pourquoi A plutôt que B, et ce n'est pas « moins de travail » :**
+> · **B coûte un quatrième sous-traitant**, donc toute la chaîne — politique de
+>   confidentialité, base légale, région EU, DPA à lire, entrée au registre. Cette chaîne
+>   vient d'être payée deux fois en deux jours (Resend, RevenueCat), et une obligation
+>   ouverte l'attend déjà (le **médiateur**, `09-04`). En ajouter une troisième la semaine
+>   où l'on veut soumettre, c'est déplacer la date de sortie pour un outil dont personne
+>   n'a encore eu besoin ;
+> · **B est aussi une dépendance NATIVE** : elle doit être dans le build (7), et impose de
+>   téléverser des source maps à **chaque** build — un geste de plus dans une chaîne qui
+>   en compte déjà trop ;
+> · **le parc rend A tenable, et c'est mesuré, pas supposé** : les testeurs sont une
+>   poignée, et ils parlent directement au fondateur. `ErrorBoundary` reste le filet.
+>
+> 🔴 **CE QU'ON ACCEPTE, ET IL FAUT LE DIRE** : un crash chez un testeur n'existe que s'il
+> le raconte. Sur un parc hétérogène, c'est précisément ce qu'on ne saura pas.
+>
+> ➡️ **CE QUI ROUVRE LA DÉCISION — écrit pour que le déclencheur soit un FAIT, pas une
+> humeur** : (1) une sortie publique hors TestFlight, (2) un crash rapporté qu'on ne
+> reproduit pas, ou (3) un parc au-delà de quelques dizaines d'appareils. Le premier des
+> trois suffit. Et comme B est une dépendance native, elle demandera **un build de plus**
+> — c'est le coût assumé de A.
 - **Sévérité : P1** (le brief la classe ainsi : c'est une décision qui doit être prise **avant** le lancement public)
 - **Preuve** : `git ls-files | xargs grep -IlE 'sentry|bugsnag|crashlytics|firebase'` → **0 fichier**. Aucune dépendance de report d'erreur. Le seul filet est `components/ErrorBoundary.tsx:42`, qui fait un `console.error` — visible nulle part en production.
 - **Les deux branches, et leurs conséquences documentaires** : détaillées au tableau « Décisions à prendre » ci-dessus. Le point qui tranche n'est pas technique : poser un outil ajoute un **quatrième sous-traitant**, avec sa base légale, sa région et son entrée au registre RGPD — donc du travail à l'étape 9 ; ne pas en poser signifie qu'un crash chez un testeur n'existe que s'il le raconte.

@@ -405,12 +405,19 @@ un identifiant enregistré, puis une fiche d'app. Dans cet ordre, sinon le menu
 > pas de crash, pas d'écran mort, pas de bouton qui échoue — mais Android ne peut rien
 > vendre, et rien à l'écran ne le dit.
 >
-> ⚠️ **C'est une décision, pas un correctif** : soit la clé Android est posée
-> (`eas env:create production --name EXPO_PUBLIC_REVENUECAT_ANDROID_KEY`), soit on
-> **acte par écrit qu'Android sort sans achat in-app** — auquel cas la ligne ci-dessous
-> et la fiche store doivent le dire, plutôt que de laisser croire à la parité.
-> ➡️ À trancher **avant** la soumission Android. Tant que ce n'est pas tranché, le
-> point 6 décrit une intention, pas l'état.
+> ✅ **TRANCHÉ LE 2026-08-27 — ANDROID SORT SANS ACHAT IN-APP** (le fondateur a délégué
+> l'arbitrage : « go »). La clé Android n'est pas posée, et elle ne le sera pas pour la V1.
+> ⚠️ **Ce n'était qu'à moitié un choix** : poser la clé n'est pas un geste mais une CHAÎNE
+> dont aucun maillon n'existe — app Play Console, abonnement `kyroz_plus` et ses deux base
+> plans, app Android rattachée dans RevenueCat, puis la clé `goog_…`. Les deux seuls builds
+> Android datent du **2026-07-30**, un mois avant le chantier paywall. Ce qui se décidait,
+> c'était de l'ÉCRIRE plutôt que de laisser croire à la parité.
+> ➡️ **Donc le point 6 ci-dessous décrit l'objectif iOS, pas l'état Android** : sur Android
+> `purchasesConfigured()` reste faux, aucun bouton d'achat n'est rendu, et l'écran Kyroz+ le
+> DIT désormais (la phrase qui promettait « tes deux outils restent actifs » était devenue
+> fausse le jour où la date a été posée — corrigée, et comptée par `verrouKyrozPlus.test.ts`).
+> ⚠️ **La fiche store Google doit dire la même chose** : pas d'achat in-app sur Android en
+> V1. Ne pas recopier la description iOS telle quelle.
 
 6. **RevenueCat** → nouveau projet → rattacher l'app iOS **et** l'app Android →
    mapper les produits store → **1 entitlement nommé exactement `premium`** +

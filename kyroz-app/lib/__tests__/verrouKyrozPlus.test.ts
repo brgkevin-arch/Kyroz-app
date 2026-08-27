@@ -115,6 +115,31 @@ describe('chaque feature de PREMIUM_FEATURES est réellement interrogée', () =>
     ).toBe(true);
   });
 
+  // ── 01-07 · ce que voit une plateforme qui ne peut pas encaisser ──────────
+  //
+  // 🔴 UNE PHRASE DE CET ÉCRAN S'EST RETOURNÉE LE 2026-08-27, sans que personne n'y
+  // touche : la pose de `PAYWALL_LAUNCH` l'a rendue fausse. Elle disait « tes deux
+  // outils restent actifs en attendant » — vrai tant que rien n'était verrouillé, faux
+  // dès que quelqu'un l'est. Or le bloc qui la porte ne se rend QUE pour un compte
+  // verrouillé (`enVente = reason === 'locked'`), et sans clé de plateforme — donc, en
+  // production, un compte Android créé après la date.
+  // ⚠️ Ce test ne juge pas la rédaction. Il tient l'invariant : **cet écran ne promet
+  // pas un accès à qui ne l'a pas.**
+  it('🔴 la mention « pas d’achat ici » ne promet AUCUN accès', () => {
+    const ecran = readFileSync(join(process.cwd(), 'app', 'kyroz-plus.tsx'), 'utf8')
+      .split('\n').filter((l) => !/^\s*(\/\/|\*|\/\*)/.test(l)).join('\n');
+    const i = ecran.indexOf('{!encaissable && (');
+    expect(i, 'le bloc « sans encaissement » a disparu de l’écran').toBeGreaterThan(-1);
+    const bloc = ecran.slice(i, i + 600);
+    for (const promesse of ['restent actifs', 'restent ouverts', 'restent accessibles']) {
+      expect(
+        bloc.includes(promesse),
+        `« ${promesse} » est promis à un compte VERROUILLÉ : ce bloc ne se rend que si `
+        + 'reason === "locked", donc la personne qui le lit n’a justement pas l’accès.',
+      ).toBe(false);
+    }
+  });
+
   it('ne verrouille rien qui ne soit pas vendu', () => {
     // Le sens inverse, et il compte autant : un `can('x')` sur une feature absente de
     // `PREMIUM_FEATURES` renvoie toujours `true` (cf. `canUse`). Le code aurait l'air

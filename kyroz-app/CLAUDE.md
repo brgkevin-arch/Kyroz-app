@@ -67,6 +67,7 @@ App mobile React Native (Expo Router, **SDK 57** depuis le 2026-08-27) de plans 
 | Base nutritionnelle | **Ciqual (ANSES) + table maison** — voir la note ci-dessous | En place |
 | Analytics | PostHog (cloud EU) | **Actif depuis le 2026-08-18** — `lib/analytics.ts`, consent-gated RGPD ; clé posée (secret GitHub + variable EAS), rien ne part sans consentement |
 | Achats in-app | **RevenueCat** (`react-native-purchases`) | **Câblé, clé POSÉE** (2026-08-03, variable EAS `production`) — `lib/purchases.ts`. L'encaissement est donc armé ; le verrou, lui, dépend de `PAYWALL_LAUNCH` (`null`) : deux interrupteurs séparés, un seul reste éteint. Entitlement `premium` = **4 produits** (2 paliers × 2 durées) |
+| Crash reporting | **AUCUN — décision du 2026-08-27** | Option A du constat `03-05` : pas de quatrième sous-traitant, donc rien à ajouter à la politique, au registre ni aux DPA — et pas de dépendance native de plus dans le build. ⚠️ **Ce qu'on accepte** : un crash chez un testeur n'existe que s'il le raconte ; `ErrorBoundary` est le seul filet. **Rouvrir si** : sortie publique hors TestFlight · un crash rapporté non reproduit · un parc au-delà de quelques dizaines d'appareils. B demandera **un build de plus** |
 | Mises à jour OTA | **`expo-updates`** — correctifs JS sans repasser par la revue des stores | **Actif** (2026-08-01) — voir la note ci-dessous |
 
 > **Mises à jour OTA — installées le 2026-08-01 (C4).** `eas.json` déclarait trois

@@ -245,10 +245,25 @@ export default function KyrozPlusScreen() {
                     Restaurer mes achats
                   </Text>
                 </Presse>
+                {/* 🔴 CETTE PHRASE EST DEVENUE UN MENSONGE LE 2026-08-27, et c'est la pose
+                    de `PAYWALL_LAUNCH` qui l'a retournée. Elle disait « tes deux outils
+                    restent actifs en attendant » — vrai tant que RIEN n'était verrouillé.
+                    Or ce bloc ne se rend que si `enVente`, c'est-à-dire
+                    `reason === 'locked'` : la personne qui la lit est justement celle à
+                    qui les deux outils sont FERMÉS. Elle promettait le contraire de ce
+                    qu'elle voyait à l'écran d'à côté.
+                    ⚠️ **QUI LA VOIT, MESURÉ** : `purchasesConfigured()` est faux sans clé
+                    de plateforme — donc, en production, **Android** (constat `01-07`, la
+                    clé Android n'existe sur aucun environnement). Sur iOS la clé est
+                    posée, ce chemin n'y est atteignable qu'en build de développement.
+                    ➡️ Elle dit désormais ce qui est vrai, et rien de plus : l'achat est
+                    indisponible ici, donc les deux outils ne peuvent pas s'ouvrir. Aucune
+                    promesse de délai, aucun « écris-nous » — on ne s'engage pas à la
+                    place de quelqu'un. */}
                 {!encaissable && (
                   <Text style={s.mentions}>
-                    L'abonnement n'est pas encore ouvert sur cette version de l'app. Tes deux
-                    outils restent actifs en attendant.
+                    L'achat n'est pas disponible sur cette plateforme. L'objectif daté et le suivi
+                    de transformation ne peuvent donc pas être ouverts ici pour le moment.
                   </Text>
                 )}
               </View>
