@@ -146,6 +146,16 @@ Exécutés contre le moteur réel (`npx tsx -e`, aucun fichier créé dans le d�
 | H6 | prise de masse (`lean_bulk`) | TDEE 2444 → **cible 2644** (+200) | surplus plafonné | ✅ (`MAX_GAIN_RATE_PCT = 0,5 %/sem`) |
 | H7 | profil **sans MG** | `katchEligible: false` · MG estimée 24,0 % · FFM 68,4 kg · Mifflin · cible 2144 | Mifflin, floors désactivés, protéines fallback | ✅ |
 | H8 | balayage MG 10 → 30 % par 0,5 pt (estimée) | **saut maximal 28 kcal/j**, au voisinage de 15,5 % | continuité, < 100 kcal/j | ✅ **le lissage R6 fait son travail** |
+
+> 🔴 **CETTE FENÊTRE S'ARRÊTE SUR LE POINT DE RUPTURE — contre-audit `CA-2-01`,
+> 2026-08-27.** 30 %, c'est exactement `HIGH_ADIPOSITY_PCT.male`. Le balayage se fermait
+> donc au seuil au lieu de le franchir. Mesuré au-delà : **115 kcal/j**, au-dessus du
+> critère « < 100 » que cette ligne se donne elle-même — et le saut ne rétrécissait PAS
+> quand le pas rétrécissait (137 · 115 · 112 aux pas 0,5 · 0,05 · 0,005 pt), donc c'était
+> une discontinuité et non une pente. **Corrigé** : retrait progressif sur 5 points
+> (`ADIPOSITY_BLEND_PTS`, `ENGINE_REV` 8 → 9). Après : 137 · 34 · 4.
+> ➡️ Une fenêtre de continuité doit FRANCHIR les seuils du moteur, jamais s'y arrêter.
+> La propriété est désormais comptée : `lib/__tests__/continuiteSeuilAdiposite.test.ts`.
 | H9a | date objectif **passée** (2020) | cible 2144, identique au profil sans objectif daté · **aucun drapeau, aucun message** | erreur propre | ⚠️ pas de NaN, mais **silencieux** — 02-04 |
 | H9b | date objectif = **aujourd'hui** (durée 0) | idem, pas de NaN ni division par zéro | erreur propre | ✅ |
 | H10 | chaque champ à `undefined`, un à la fois | `sex`, `age`, `weight_kg`, `height_cm` → 🔴 **NaN** sur TDEE, cible, plancher et les 3 macros · `goal` → 🔴 **THROW** · `activity_level`, `training_days_per_week`, `plan_days`, `meals` → sains | erreur propre, pas NaN | 🔴 **NON — 02-02, 02-03** |

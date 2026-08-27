@@ -51,6 +51,7 @@ foi d'un agent.
 | `CA-3-03` — les photos de corps survivent à « Supprimer définitivement » | `purgeAllProgressPhotos()` sur les deux sorties, avant la purge du stockage ; `deleteProgressPhoto` borné à `file://` | `a796b82` | **5 mutations** |
 | `CA-8-03` — le compte est créé avant qu'on demande l'âge | le §10 de la politique dit ce que le code fait, y compris qu'il ne vérifie pas l'âge à la création ; un test tient l'invariant texte ↔ `login.tsx` | `7cc5571` | **4 mutations** |
 | `CA-3-02` — au réveil, le Plan reste sur hier | `jourCivil` relu aux trois moments de réveil, déclaré par `todayIdx` et par le solde de la veille | `da6d994` | **5 mutations** |
+| `CA-2-01` — la continuité R6 certifiée sur une fenêtre qui s'arrête au seuil | retrait des planchers rendu **progressif** sur 5 pt (`ENGINE_REV` 8 → 9) : le saut passe de 115 à 34 kcal/j au pas de 0,05, et il RÉTRÉCIT désormais avec le pas | *ci-dessous* | **3 mutations** |
 | `CA-2-02` — « aucun plancher contournable » | **aucune ligne de moteur changée** : la prémisse est mesurée (75 264 profils, 0 violation), les phrases reçoivent leur périmètre, la propriété devient comptée | *ci-dessous* | **4 mutations** |
 
 **Ce qu'ils N'ONT PAS déplacé**, re-mesuré après coup : les cinq fichiers moteur sont
@@ -146,7 +147,7 @@ sur ce critère (cf. `CA-3-04` : douze critères cochés, six instruits).
 
 ---
 
-## 3 · Les feux verts du moteur — un qui ne tient pas, un que j'avais sur-vendu
+## 3 · Les feux verts du moteur — un vrai défaut (corrigé), un que j'avais sur-vendu
 
 Le §5 est la zone la plus dangereuse d'un audit : personne ne revérifie un vert avant la vente.
 Et c'est aussi celle où un **contre**-audit se trompe le plus facilement, parce qu'il a été
@@ -198,15 +199,44 @@ couvert par les tests (`volumeConcentre`, `mealProteinFloor`, `safety`), et la p
 `02-moteur.md:87` est exacte **dans sa section**, qui décrit l'intérieur de `computePlan` —
 seul son recopiage nu en §5 sur-généralisait.
 
-### CA-2-01 · Le balayage qui certifie la continuité R6 s'arrête exactement au point de rupture
+### CA-2-01 · Le balayage qui certifie la continuité R6 s'arrête exactement au point de rupture — ✅ CORRIGÉ
 
-La borne haute du balayage (30 % de MG) **est** la valeur de `HIGH_ADIPOSITY_PCT.male`
-(`lib/safety.ts:274`). Le décrochage est juste après. Sur une grille large, franchissement
-compris : **saut de 114 kcal/j au pas de 0,5 pt, et 98 kcal/j au pas de 0,05 pt.** Un saut qui
-ne rétrécit pas quand le pas rétrécit est une **discontinuité**, pas un artefact de maillage.
+La borne haute du balayage (30 % de MG) **est** la valeur de `HIGH_ADIPOSITY_PCT.male`.
+Le décrochage est juste après. Le « saut maximal 28 kcal/j » était donc vrai sur 10–30 % —
+c'est-à-dire partout **sauf** au seuil que l'audit avait lui-même désigné comme la règle 5.
 
-Le « saut maximal 28 kcal/j » est donc vrai sur 10–30 % — c'est-à-dire partout **sauf** au seuil
-que l'audit avait lui-même désigné comme la règle 5.
+**Ce qui distingue une pente d'une falaise, et c'est la seule chose qui compte ici** : un
+saut qui **ne rétrécit pas** quand le pas rétrécit est une discontinuité. Re-mesuré sur le
+moteur réel, aux trois pas :
+
+| pas | avant | après |
+|---|---|---|
+| 0,5 pt | 137 kcal/j | **137** |
+| 0,05 pt | 115 kcal/j | **34** |
+| 0,005 pt | 112 kcal/j | **4** |
+
+Avant, il ne bougeait pas. Après, il rétrécit proportionnellement.
+
+**Le correctif (2026-08-27, `ENGINE_REV` 8 → 9)** : le retrait des planchers dérivés de la
+masse maigre devient **progressif sur cinq points de %MG** au lieu d'un interrupteur au
+seuil. Cinq points n'est pas un réglage — c'est le pas du sélecteur de silhouettes ET la
+bande de bruit que R6 lissée s'était donnée.
+
+⚠️ **Ce qui NE change pas, et il fallait le vérifier avant de livrer** : le seuil lui-même,
+et `highAdiposity`, qui reste le prédicat **binaire** partagé par la bande de rythme, le
+registre de zone basse et l'escalade — deux définitions de « grasse » finiraient par
+diverger, l'en-tête de `HIGH_ADIPOSITY_PCT` prévient contre exactement ça. Seule la
+transition du PLANCHER s'adoucit.
+
+**Ce que ça coûte, avec le moteur réel des deux côtés** : sur **225 600 profils**, 28 cibles
+bougent (**0,01 %**), maximum **53 kcal/j**, et **aucune** n'atteint les 100 kcal/j qui
+déclenchent l'avertissement — personne ne verra rien. Les quatre corps que la décision du
+2026-08-10 cite nommément servent le même déficit **au kcal près**. 1 873 tests verts.
+
+⚠️ **Et la marche entre deux SILHOUETTES adjacentes (30 → 35) est inchangée : 314 kcal/j.**
+C'est correct — cinq points de %MG, c'est un autre corps. Le lissage retire la falaise, pas
+la descente. Ce que gagne le correctif, c'est la personne qui saisit 30,1 % au clavier et
+tombait d'une falaise que rien de physiologique ne justifiait.
 
 ### CA-2-03 · « Aucun SDK hors des trois sous-traitants déclarés » : il y en a un quatrième
 

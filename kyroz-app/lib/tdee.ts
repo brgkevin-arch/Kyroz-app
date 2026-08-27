@@ -1132,7 +1132,7 @@ export const ENGINE_REV_LEGACY = 1;
  * l'explication de la rev 2 à quelqu'un dont la cible a bougé pour une autre raison
  * serait un mensonge, pas une approximation.
  */
-export const ENGINE_REV = 8;
+export const ENGINE_REV = 9;
 
 /**
  * Seuil d'affichage (kcal/j, en valeur absolue). En dessous, l'écart tient dans le

@@ -274,6 +274,16 @@ export function fatFreeMassKg(b: BodyInput): number {
 export const HIGH_ADIPOSITY_PCT: Record<Sex, number> = { male: 30, female: 40 };
 
 /**
+ * Largeur de la fenêtre sur laquelle les planchers dérivés de la masse maigre se
+ * retirent, en POINTS de %MG au-dessus de `HIGH_ADIPOSITY_PCT`.
+ *
+ * ⚠️ Ce n'est pas un réglage : c'est le pas du sélecteur de silhouettes et la bande
+ * de bruit de R6 lissée, qui valent tous deux 5 points. Le détail et la mesure
+ * vivent dans `safetyFloorBreakdown`, au point où la fenêtre s'applique.
+ */
+export const ADIPOSITY_BLEND_PTS = 5;
+
+/**
  * Adiposité assez haute pour que les planchers dérivés de la masse maigre (BMR,
  * énergie disponible) cessent de décider ? Prédicat UNIQUE — `safetyFloorBreakdown`,
  * `countsAsLowEaWeek` et `maxWeeklyLossPct` le partagent.
@@ -600,13 +610,46 @@ export function safetyFloorBreakdown(
   // ⚠️ Ce qui protège au-dessus du seuil, et il faut les DEUX : `MIN_KCAL` (ci-dessous)
   // et le cap à 25 % du TDEE (`tdee.ts::floorAndFlags`, `deficitCapFloor`), qui devient
   // la contrainte active. Retirer l'un des deux laisserait le déficit sans borne haute.
-  const grasse = highAdiposity(b);
+  // ── LE RETRAIT DES PLANCHERS EST PROGRESSIF, PAS UN INTERRUPTEUR ───────────
+  //
+  // 🔴 LE DÉFAUT MESURÉ le 2026-08-27 (contre-audit `CA-2-01`). Au seuil, les deux
+  // candidats dérivés de la masse maigre passaient de leur pleine valeur à ZÉRO d'un
+  // coup. Un homme de 140 kg à 30,00 % puis 30,05 % voyait sa cible tomber de
+  // **115 kcal/j** et son plancher de **659**. Ce n'était pas une pente raide : le
+  // saut **ne rétrécissait pas** quand le pas rétrécissait (137 · 115 · 112 kcal/j
+  // aux pas 0,5 · 0,05 · 0,005 pt) — la signature d'une discontinuité. Il dépassait
+  // aussi le critère que l'audit s'était donné pour la continuité R6 : « < 100 kcal/j ».
+  //
+  // ⚠️ CE QUI NE CHANGE PAS, ET C'EST L'ESSENTIEL : le seuil lui-même. Il reste
+  // arbitré (2026-08-10, `ENGINE_REV` 6 → 7), il reste UN seul nombre, et
+  // `highAdiposity` reste le prédicat binaire partagé par la bande de rythme
+  // (`datedGoal::maxWeeklyLossPct`), le registre de zone basse et l'escalade — sinon
+  // on créerait les deux définitions de « grasse » contre lesquelles l'en-tête de
+  // `HIGH_ADIPOSITY_PCT` prévient. Seule la TRANSITION du plancher s'adoucit, parce
+  // que c'est elle qui produit la falaise visible dans la cible servie.
+  //
+  // ⚠️ POURQUOI CINQ POINTS. Ce n'est pas un réglage : c'est le pas du sélecteur de
+  // silhouettes (`BodyFatPicker` : 10/15/20/25/30/35 · 18/23/28/33/38/43) ET la bande
+  // de bruit que R6 lissée s'était donnée pour la même raison (« ±5 pts de %MG »).
+  // Une fenêtre plus étroite reproduirait la falaise, une plus large mordrait sur des
+  // corps que la décision de 2026-08-10 voulait précisément libérer.
+  //
+  // CE QUE ÇA COÛTE, MESURÉ AVEC LE MOTEUR RÉEL DES DEUX CÔTÉS : sur 225 600 profils
+  // balayés de −2 à +12 pt autour du seuil, **28 cibles bougent (0,01 %)**, déplacement
+  // maximal **53 kcal/j**, et **aucune** n'atteint les 100 kcal/j de
+  // `ENGINE_NOTICE_MIN_DELTA` — personne ne reçoit d'avertissement. Le gain de la
+  // décision de 2026-08-10 est intact : les quatre corps qu'elle cite servent le même
+  // déficit au kcal près. Après : 137 · 34 · 4 kcal/j aux trois pas — le saut rétrécit
+  // avec le pas, donc c'est devenu une pente. Garde-fou : `continuiteSeuilAdiposite.test.ts`.
+  const retrait = Math.max(0, Math.min(1,
+    (resolvedBodyFatPct(b) - HIGH_ADIPOSITY_PCT[b.sex]) / ADIPOSITY_BLEND_PTS));
+  const garde = 1 - retrait;
   // Le plafond à la maintenance fait partie du candidat, pas d'un post-traitement :
   // sinon `candidates.energy_availability` annoncerait une valeur qui n'a jamais
   // concouru (cf. l'invariant « jamais de surplus » ci-dessus).
   const candidates: Record<SafetyFloorSource, number> = {
-    bmr: grasse ? 0 : Math.round(bmr),
-    energy_availability: grasse ? 0 : Math.round(Math.min(eaFloor, maintenanceKcal)),
+    bmr: Math.round(bmr * garde),
+    energy_availability: Math.round(Math.min(eaFloor, maintenanceKcal) * garde),
     min_kcal: MIN_KCAL[b.sex],
   };
   const floorKcal = Math.max(candidates.bmr, candidates.energy_availability, candidates.min_kcal);

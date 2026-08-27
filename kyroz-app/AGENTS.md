@@ -541,10 +541,21 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
   FERMÉE en prod · `check:permissions` ne regarde que l'Android · la §4 de `check:ota` ne
   touche jamais son compteur d'écarts · le correctif 09-01 survit à l'inversion de
   `entitlementNecessaire` avec 1 841 tests verts.
-  🔴 **UN FEU VERT DU MOTEUR NE TIENT PAS** : le balayage qui certifie la continuité R6
-  s'arrête EXACTEMENT à `HIGH_ADIPOSITY_PCT.male` (30 %), le décrochage est juste après —
-  **114 kcal/j**, et il ne rétrécit pas quand le pas rétrécit. *(Le second, `CA-2-02`, a été
-  TRAITÉ le 2026-08-27 et n'en était pas un — voir ci-dessous.)*
+  ✅ **`CA-2-01` — CORRIGÉ le 2026-08-27, `ENGINE_REV` 8 → 9.** Le balayage qui certifiait
+  la continuité R6 s'arrêtait EXACTEMENT à `HIGH_ADIPOSITY_PCT.male` (30 %) : le décrochage
+  était juste après, et il **ne rétrécissait pas** quand le pas rétrécissait (137 · 115 ·
+  112 kcal/j aux pas 0,5 · 0,05 · 0,005) — donc une discontinuité, pas une pente. Le retrait
+  des planchers de masse maigre devient **progressif sur 5 points de %MG**
+  (`ADIPOSITY_BLEND_PTS` — le pas du sélecteur de silhouettes, et la bande de bruit de R6).
+  Après : 137 · 34 · 4. ⚠️ Le SEUIL ne bouge pas et `highAdiposity` reste BINAIRE : il reste
+  la définition unique de « grasse » pour la bande de rythme, le registre et l'escalade.
+  Coût mesuré des deux côtés sur **225 600 profils** : 28 cibles bougent (0,01 %), max
+  **53 kcal/j**, **aucune** au-dessus des 100 qui déclenchent l'avertissement. Les quatre
+  corps cités par la décision du 2026-08-10 servent le même déficit au kcal près. Garde-fou :
+  `lib/__tests__/continuiteSeuilAdiposite.test.ts`, 3 mutations.
+  ⚠️ **La marche entre deux SILHOUETTES adjacentes (30 → 35) est inchangée, 314 kcal/j** —
+  et c'est correct : cinq points de %MG, c'est un autre corps. On retire la falaise, pas la
+  descente. *(`CA-2-02`, l'autre « feu vert », n'en était pas un — voir ci-dessous.)*
   ✅ **`CA-2-02` — TRAITÉ SANS TOUCHER UNE LIGNE DE MOTEUR, et c'est la mesure qui le dit.**
   Le fait est vrai et pire que publié : **44,2 %** des profils ont au moins un jour sous le
   plancher de sécurité, jusqu'à **1 103 kcal/j** (75 264 profils). Mais le correctif qu'il
@@ -587,8 +598,7 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
   dispositif médical… » a DISPARU du corpus régénéré.
   ⚠️ **17 constats sont orphelins de tout lot** du §4 de la synthèse, dont trois P1 — dont
   `02-03`, qui bloque le démarrage.
-  ➡️ **Prochain** : `CA-2-01` (la continuité R6 au-delà de 30 % de MG), puis les six
-  garde-fous décoratifs, puis rejouer 6b sur un corpus réparé.
+  ➡️ **Prochain** : les six garde-fous décoratifs, puis rejouer 6b sur un corpus réparé.
   🔴 **ET UNE LEÇON DE MÉTHODE, PAYÉE SUR MOI-MÊME** : la réfutation avait ramené `CA-2-02`
   de majeur à MINEUR le jour même, avec ses motifs — je l'ai quand même publié en tête du §3
   et inscrit 🔴 au backlog comme le prochain chantier. Le verdict était dans le document ;
