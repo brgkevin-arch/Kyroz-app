@@ -77,12 +77,41 @@ Constat **03-02**. Elle est déclarée sans **aucun** usage : `lib/photos.ts` n'
 
 Ouvre `docs/audit-v1/09-BROUILLON-FORMULAIRES.md` : il est écrit **depuis le code**, ligne par ligne, avec la mesure de chacune. C'est ta checklist de saisie.
 
-### D1 · App Store Connect → App Privacy
-Section **A** du brouillon. Points de vigilance :
-- **Health & Fitness**, collectée et **liée à l'identité** ;
-- **Identifiers → User ID partagé avec un tiers** (RevenueCat) — la case dépend de **C1** ;
-- **Usage Data : non** (la mesure est éteinte) ;
-- **Tracking : non**.
+### D1 · App Store Connect → App Privacy — ✅ **FAIT le 2026-08-28, republié**
+
+**État publié** : 5 types, **tous liés à l'identité**, finalité *Fonctionnalité de l'app*, **tracking non** —
+Santé · **Forme physique** · Historique d'achats · Identifiant de l'utilisateur · Adresse e-mail.
+Aucune section « données non liées à vous », aucune section « utilisées pour vous suivre ».
+
+🔴 **Ce que cette saisie a appris, et qui vaut pour Play :** la console coupe *Santé et activité
+physique* en **deux** cases. Le brouillon écrivait la CATÉGORIE ; le formulaire a donc pris la
+première (*Santé*) et laissé *Forme physique* vide — alors que `profiles` stocke `activity_level`,
+`training_days_per_week`, `sports` et `neat_level`. **Écrire une catégorie là où l'écran demande un
+sous-type, c'est laisser l'écran choisir.** Les deux sections du brouillon sont corrigées.
+
+<details><summary>La consigne d'origine (conservée)</summary>
+
+
+⚠️ **Le formulaire est DÉJÀ publié (2026-08-18) — il ne s'agit donc pas de le remplir, mais de le
+CORRIGER.** Chemin : App Store Connect → *Kyroz* → barre latérale, au niveau de l'APP (pas de la
+version) → **Confidentialité de l'app** → *Types de données collectées* → **Modifier**.
+
+Section **A** du brouillon. **Trois écarts, et trois seulement** :
+
+| # | Geste | Pourquoi, mesuré |
+|---|---|---|
+| 1 | 🔴 **RETIRER** *Données d'utilisation* (« Usage Data » / *Product Interaction*) | `eas env:list production` ne contient **aucune** `EXPO_PUBLIC_POSTHOG_KEY` (mesuré le 2026-08-28) — le binaire **(8)** parti chez Apple ne peut rien émettre. Déclarer une collecte qui n'a pas lieu est faux, même dans le sens prudent |
+| 2 | 🔴 **AJOUTER *Achats*** (« Purchases ») — collectée, **liée à l'identité**, finalité *Fonctionnalité de l'app* | Le brouillon la marquait « le jour de la mise en vente » — **ce jour, c'est cette soumission**. RevenueCat détient l'historique d'abonnement rattaché à l'UUID Supabase |
+| 3 | ✅ **VÉRIFIER *Identifiants → ID utilisateur*** : collecté, lié, et **transmis à un tiers** (RevenueCat) | **C1 est tranchée** (2026-08-26) : `identifyUser` est différé, l'identifiant ne part que si le verdict d'accès en dépend, plus l'écran d'achat |
+
+**Ne touche à rien d'autre** : *Santé & forme* et *Adresse e-mail* restent collectées et liées ;
+*Photos* reste **non collectée** ; **Tracking : non** (aucun ATT, aucun IDFA, `NSPrivacyTracking: false`).
+
+🔴 **L'API n'expose pas ce formulaire** — quatre chemins essayés le 2026-08-28
+(`appDataUsagesPublishState`, `appDataUsages`, la relation, le filtre) : **404 sur les quatre**.
+Personne ne peut donc le relire à ta place. C'est ce qui rend la capture ci-dessous non négociable.
+
+</details>
 
 ### D2 · Play Console → Data Safety
 Section **B** du brouillon. Points de vigilance :

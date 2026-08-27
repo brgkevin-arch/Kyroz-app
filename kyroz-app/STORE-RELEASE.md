@@ -30,7 +30,7 @@
 |---|---|
 | `main` | `7b0818b` — **1 645 tests verts / 106 fichiers**, `tsc` propre, **0 PR ouverte** |
 | Administratif | comptes, contrats (gratuit + payant), banque, fiscal, **DSA** (27 pays) : **plus aucun verrou** |
-| App Store Connect | fiche créée, **App Privacy publié** (2026-08-18), URL de politique posée, abonnements Kyroz+ créés — 🔴 **À CORRIGER : il déclare encore la collecte analytics, éteinte le 2026-08-26** (§4) |
+| App Store Connect | fiche créée, URL de politique posée, abonnements Kyroz+ créés, **App Privacy REPUBLIÉ le 2026-08-28** : *Données d'utilisation* retirée, **Achats** ajoutée (la vente commence avec cette soumission), **Forme physique** ajoutée (elle manquait depuis le 18/08) — 5 types, tous liés à l'identité, tracking non (§4) |
 | Secrets EAS `production` | `EXPO_PUBLIC_REVIEW_CODE`, RevenueCat iOS, Supabase — **posés**. ⚠️ **PostHog RETIRÉ le 2026-08-26** des trois environnements |
 | Revue bêta TestFlight | **approuvée le 2026-08-03** — les builds suivants passent sans y repasser |
 | Accès relecteur | code posé au build, auth anonyme active, notes rédigées (§11) |
@@ -811,11 +811,30 @@ Apple, affiché SOUS le titre avant le « en savoir plus », **manquait à cette
 | Donnée | Collectée ? | Usage | Liée à l'identité ? | Tracking ? |
 |---|---|---|---|---|
 | Adresse e-mail | Oui | Fonctionnement de l'app (compte) | Oui | Non |
-| Santé & forme (poids, objectif, régime) | Oui | Fonctionnement de l'app | Oui | Non |
+| Santé & forme → **Santé** (poids, taille, %MG, objectif, régime, pesées) | Oui | Fonctionnement de l'app | Oui | Non |
+| Santé & forme → **Forme physique** (niveau d'activité, jours d'entraînement, sports) | Oui | Fonctionnement de l'app | Oui | Non |
 | Identifiant utilisateur (ID compte) | Oui | Fonctionnement de l'app | Oui | Non |
 | Photos (progression) | **Non collectée** | — | — | — (restent sur l'appareil) |
 | Données d'usage / analytics | **Non collectée** (éteint le 2026-08-26) | — | — | — |
 | **Suivi (tracking)** | **NON** — pas d'ATT, pas de pub, pas de partage tiers | | | |
+
+> 🟠 **Le manifeste embarqué ne dit PAS la même chose que le formulaire — relevé le 2026-08-28.**
+> `ios/Kyroz/PrivacyInfo.xcprivacy` (généré par `prebuild`, donc jamais relu à la main) porte :
+>
+> | Clé | Valeur dans le (8) | Verdict |
+> |---|---|---|
+> | `NSPrivacyTracking` | `false` | ✅ juste |
+> | `NSPrivacyAccessedAPITypes` | 3 entrées (FileTimestamp, UserDefaults, SystemBootTime) | ✅ c'est ce qui évite les avertissements `ITMS-91053` |
+> | `NSPrivacyCollectedDataTypes` | **tableau VIDE** | 🟠 le formulaire en déclare **quatre** (santé, e-mail, ID utilisateur, achats) |
+>
+> **Ce n'est pas bloquant et ça ne se corrige pas ce soir** : les contrôles automatiques d'Apple
+> portent aujourd'hui sur les *API à motif obligatoire* et les *domaines de suivi*, pas sur la
+> cohérence de ce tableau — et il est **déjà dans le binaire parti chez Apple**. ➡️ À reprendre
+> au prochain binaire, via `app.json` → `ios.privacyManifests` (le dossier `ios/` est ignoré par
+> git et régénéré : le corriger sur place ne survivrait pas à un `prebuild`).
+>
+> ⚠️ Ce défaut est de la famille « personne ne relit ce qui est généré » : il ne se voit ni dans
+> le dépôt, ni dans App Store Connect, seulement en ouvrant le fichier produit.
 
 ### Google Play — « Sécurité des données »
 - **Collectées** : e-mail ; infos de santé (poids, objectif, régime) ; ID compte.
