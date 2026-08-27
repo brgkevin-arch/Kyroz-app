@@ -86,6 +86,24 @@ birth_date → age (dérivé, computePlan tdee.ts:1212)
 
 **Qui gagne quand un plancher contredit un plafond ?** Le plancher — et il gagne **en dernier**, ce qui est le bon ordre. `safetyFloorKcal` renvoie le **maximum** des candidats (`min_kcal`, `energy_availability`, `underweight_maintenance`, `deficit_cap`), et `ComputedPlan.clamp.source` **nomme celui qui a mordu**. Les 11 cas de la section H confirment : `clamp` est toujours renseigné et cohérent avec la valeur servie. **Aucun plancher contournable trouvé** — un plancher appliqué n'est jamais ré-écrasé en aval, l'arrondi étant le seul maillon après lui.
 
+> 🔴 **PÉRIMÈTRE, ajouté le 2026-08-27 (contre-audit `CA-2-02`).** Cette phrase est vraie
+> **à l'intérieur de `computePlan`**, et elle a été re-vérifiée : sur 274 428 profils, la
+> cible n'est jamais sous son plancher, écart max 0 kcal. Elle **ne vaut pas** du nombre
+> que l'écran affiche. Deux maillons suivent : `planEngine.baseDayTargets` et
+> `bankedTargets` re-plafonnent avec `bankFloorKcal` = `max(BMR, filet absolu)`,
+> strictement plus bas que le plancher de sécurité, et c'est `dayTargetKcal` que lit
+> `plan.tsx`. **Mesuré sur 75 264 profils : 44,2 % ont au moins un jour sous le plancher
+> de sécurité, jusqu'à 1 103 kcal/j.**
+> ⚠️ **Ce n'est pas un défaut, et il ne faut PAS le « corriger ».** L'énergie disponible
+> est une moyenne soutenue — le produit la compte en semaines. La répartition par volume
+> conserve le total hebdomadaire, donc l'exposition est inchangée : re-mesuré, **0
+> violation** sur la conservation ET sur la moyenne hebdomadaire face au plancher.
+> Borner la cible du jour au plancher de sécurité, c'est appliquer jour par jour un seuil
+> qui ne l'est pas — le calcul exact qui a fait rejeter la spec P2.1 le 2026-07-29.
+> ➡️ La propriété est désormais **comptée** : `lib/__tests__/plancherServi.test.ts`.
+> Tout futur constat de sécurité calorique se mesure sur `dayTargetKcal`, jamais sur
+> `computePlan`.
+
 ⚠️ Un point d'architecture qui mérite d'être noté comme une **qualité** : `ClampRecord` est produit **une seule fois**, par le moteur, et l'écran ne redéduit rien (`tdee.ts:1191-1196` le dit explicitement). C'est ce qui rend la section K propre.
 
 ## F. Réponse à la question calorie bank vs cycling
@@ -128,6 +146,16 @@ Exécutés contre le moteur réel (`npx tsx -e`, aucun fichier créé dans le d�
 | H6 | prise de masse (`lean_bulk`) | TDEE 2444 → **cible 2644** (+200) | surplus plafonné | ✅ (`MAX_GAIN_RATE_PCT = 0,5 %/sem`) |
 | H7 | profil **sans MG** | `katchEligible: false` · MG estimée 24,0 % · FFM 68,4 kg · Mifflin · cible 2144 | Mifflin, floors désactivés, protéines fallback | ✅ |
 | H8 | balayage MG 10 → 30 % par 0,5 pt (estimée) | **saut maximal 28 kcal/j**, au voisinage de 15,5 % | continuité, < 100 kcal/j | ✅ **le lissage R6 fait son travail** |
+
+> 🔴 **CETTE FENÊTRE S'ARRÊTE SUR LE POINT DE RUPTURE — contre-audit `CA-2-01`,
+> 2026-08-27.** 30 %, c'est exactement `HIGH_ADIPOSITY_PCT.male`. Le balayage se fermait
+> donc au seuil au lieu de le franchir. Mesuré au-delà : **115 kcal/j**, au-dessus du
+> critère « < 100 » que cette ligne se donne elle-même — et le saut ne rétrécissait PAS
+> quand le pas rétrécissait (137 · 115 · 112 aux pas 0,5 · 0,05 · 0,005 pt), donc c'était
+> une discontinuité et non une pente. **Corrigé** : retrait progressif sur 5 points
+> (`ADIPOSITY_BLEND_PTS`, `ENGINE_REV` 8 → 9). Après : 137 · 34 · 4.
+> ➡️ Une fenêtre de continuité doit FRANCHIR les seuils du moteur, jamais s'y arrêter.
+> La propriété est désormais comptée : `lib/__tests__/continuiteSeuilAdiposite.test.ts`.
 | H9a | date objectif **passée** (2020) | cible 2144, identique au profil sans objectif daté · **aucun drapeau, aucun message** | erreur propre | ⚠️ pas de NaN, mais **silencieux** — 02-04 |
 | H9b | date objectif = **aujourd'hui** (durée 0) | idem, pas de NaN ni division par zéro | erreur propre | ✅ |
 | H10 | chaque champ à `undefined`, un à la fois | `sex`, `age`, `weight_kg`, `height_cm` → 🔴 **NaN** sur TDEE, cible, plancher et les 3 macros · `goal` → 🔴 **THROW** · `activity_level`, `training_days_per_week`, `plan_days`, `meals` → sains | erreur propre, pas NaN | 🔴 **NON — 02-02, 02-03** |
@@ -192,6 +220,14 @@ Exécutés contre le moteur réel (`npx tsx -e`, aucun fichier créé dans le d�
 - **Effort : M**
 
 ### 02-03 `goal` absent fait lever une exception non rattrapée
+> ✅ **CORRIGÉ le 2026-08-27** — fiche complète : `AGENTS.md` **A40**. Le constat tient,
+> et il était trop étroit de trois façons : ce n'était pas un crash mais un **gel
+> définitif** de l'app (pas de `.catch()` au démarrage, valeur relue à chaque lancement) ·
+> ce n'était pas `undefined` seul mais aussi `null`, `''` et toute valeur saisie en base ·
+> ce n'était pas `computePlan` seul mais aussi `goalLabel` / `goalSubtitle` /
+> `recommendedProteinPerKg`, dont deux sont appelés EN RENDU. Repli sur `maintain`
+> (`GOAL_FALLBACK`), donnée refermée par `normalizeGoal`, et le MÉCANISME rattrapé pour
+> tous les champs (`lib/profileBoot.ts`). Aucun `ENGINE_REV` — prémisse comptée.
 - **Sévérité : P1**
 - **Preuve, exécutée** : `computePlan(makeProfile({ goal: undefined }))` → `TypeError: Cannot read properties of undefined (reading 'kcalDelta')`.
 - **Risque** : `goal` est `text` sans contrainte NOT NULL en base ; une ligne sans objectif fait planter le calcul au lieu de dégrader. Contrairement à 02-02, c'est visible — mais c'est un crash.

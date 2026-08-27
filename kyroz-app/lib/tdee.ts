@@ -1,4 +1,4 @@
-import { BodyFatSource, EngineNotice, FloorSource, Goal, GoalTarget, NeatLevel, PlanFlag, Sex, SportSession, UserProfile } from './types';
+import { BodyFatSource, EngineNotice, FloorSource, Goal, GOAL_FALLBACK, GoalTarget, NeatLevel, PlanFlag, Sex, SportSession, UserProfile } from './types';
 import { exerciseKcalPerDay, totalSessionsPerWeek } from './sport';
 import {
   datedGoalStatus, goalDirectionMismatch, MAX_DEFICIT_TDEE_RATIO, WeekPoint, WeeklyProjector,
@@ -392,8 +392,36 @@ const GOAL_CONFIG: Record<Goal, { kcalDelta: number; proteinPerKg: number; label
   bulk:           { kcalDelta: 400,  proteinPerKg: 1.8, label: 'Prise de masse', sub: 'Prendre du poids sans brider le surplus' },
 };
 
-export function goalLabel(goal: Goal): string {
-  return GOAL_CONFIG[goal].label;
+/**
+ * Le réglage d'un objectif — **le seul accès à `GOAL_CONFIG`**, et la raison est
+ * écrite trois lignes plus haut par le code lui-même.
+ *
+ * Le commentaire de `cut_aggressive` dit garder cette entrée « pour ne jamais crasher
+ * sur une ligne cloud non encore normalisée ». L'intention était juste ; la garantie,
+ * elle, ne couvrait que les valeurs auxquelles on avait PENSÉ. Toute autre —
+ * `null` (la forme réelle d'une colonne `text` vide), `undefined`, `''`, ou un
+ * `goal` saisi à la main en base — rendait `undefined`, et `undefined.kcalDelta`
+ * levait. Mesuré sur les quatre : `TypeError` identique à chaque fois.
+ *
+ * 🔴 Ce que ça coûtait n'était pas un crash, c'était un GEL DÉFINITIF. `recalcProfile`
+ * est appelé dans le `.then()` de la lecture du profil au démarrage (`useProfile.ts`),
+ * qui n'avait pas de `.catch()` : la levée sautait `setLoading(false)`, `app/index.tsx`
+ * restait sur `<Splash />`, et la valeur fautive étant relue d'AsyncStorage à chaque
+ * lancement, redémarrer ne réparait rien. L'app ne s'ouvrait plus. Jamais.
+ *
+ * ⚠️ Le repli est un FILET, pas le remède : c'est `syncGuard::normalizeGoal` qui
+ * répare la donnée et la repousse. Les deux sont nécessaires et ne ferment pas le
+ * même trou — le normaliseur doit être APPELÉ (et `useWeightLog`, les éditeurs du
+ * Profil et les tests appellent `computePlan` sans passer par lui), alors que cet
+ * accesseur est sur le chemin de tout le monde. Un garde-fou qu'il faut penser à
+ * invoquer disparaît chez l'appelant qui l'oublie.
+ */
+function goalConfig(goal: Goal | null | undefined) {
+  return GOAL_CONFIG[goal as Goal] ?? GOAL_CONFIG[GOAL_FALLBACK];
+}
+
+export function goalLabel(goal: Goal | null | undefined): string {
+  return goalConfig(goal).label;
 }
 
 /**
@@ -405,8 +433,8 @@ export function goalLabel(goal: Goal): string {
  * d'une ligne et demie, la carte de choix change de hauteur d'un objectif à
  * l'autre et la liste ondule. Le plafond est tenu par un test.
  */
-export function goalSubtitle(goal: Goal): string {
-  return GOAL_CONFIG[goal].sub;
+export function goalSubtitle(goal: Goal | null | undefined): string {
+  return goalConfig(goal).sub;
 }
 
 /** Plafond de `goalSubtitle`, en caractères (cf. la note ci-dessus). */
@@ -414,8 +442,8 @@ export const GOAL_SUB_MAX = 48;
 
 // Protéines conseillées (g/kg) pour l'objectif — sert de valeur par défaut ET de
 // repère affiché à l'utilisateur en mode « Perso % ».
-export function recommendedProteinPerKg(goal: Goal): number {
-  return GOAL_CONFIG[goal].proteinPerKg;
+export function recommendedProteinPerKg(goal: Goal | null | undefined): number {
+  return goalConfig(goal).proteinPerKg;
 }
 
 // Bornes de la cible protéique, en g/kg de MASSE MAIGRE. Encadrent la littérature
@@ -443,7 +471,7 @@ export type MacroBody = BodyInput & { sports?: SportSession[] };
 export function proteinTarget(body: BodyInput, goal: Goal): number {
   const ffm = fatFreeMassKg(body);
   const adjustedWeight = ffm + 0.25 * (body.weight_kg - ffm);
-  const raw = adjustedWeight * GOAL_CONFIG[goal].proteinPerKg;
+  const raw = adjustedWeight * goalConfig(goal).proteinPerKg;
   return Math.round(clamp(raw, ffm * PROTEIN_MIN_PER_KG_FFM, ffm * PROTEIN_MAX_PER_KG_FFM));
 }
 
@@ -817,7 +845,7 @@ export function calculateMacros(
   body: MacroBody,
   opts: MacroOptions = {},
 ): MacroPlan {
-  const kcalDelta = opts.kcalDeltaOverride ?? GOAL_CONFIG[goal].kcalDelta;
+  const kcalDelta = opts.kcalDeltaOverride ?? goalConfig(goal).kcalDelta;
   const { target_kcal, floor_kcal, flags, clamp } = floorAndFlags(body, tdee, tdee + kcalDelta, opts);
 
   const protein_g = proteinTarget(body, goal);
@@ -867,7 +895,7 @@ export function macrosPercent(
   carbRatio: number,
   opts: MacroOptions & { proteinPerKg?: number } = {},
 ): MacroPlan {
-  const cfg = GOAL_CONFIG[goal];
+  const cfg = goalConfig(goal);
   const kcalDelta = opts.kcalDeltaOverride ?? cfg.kcalDelta;
   const { target_kcal, floor_kcal, flags, clamp } = floorAndFlags(body, tdee, tdee + kcalDelta, opts);
 
@@ -1000,7 +1028,7 @@ function servedTargetAt(
   const dated = kcalDeltaOverride == null ? datedGoalStatus(
     p.goal_target, body, stamp, tdee, p.macro_mode === 'manual' ? null : baseFloor, null,
   ) : null;
-  const kcalDelta = kcalDeltaOverride ?? (dated?.active ? dated.dailyKcalDelta : GOAL_CONFIG[p.goal].kcalDelta);
+  const kcalDelta = kcalDeltaOverride ?? (dated?.active ? dated.dailyKcalDelta : goalConfig(p.goal).kcalDelta);
 
   // En mode `manual`, la cible vient des GRAMMES saisis, pas de `tdee + delta`
   // (cf. computePlan). Le plancher s'y applique de la même façon.
@@ -1132,7 +1160,7 @@ export const ENGINE_REV_LEGACY = 1;
  * l'explication de la rev 2 à quelqu'un dont la cible a bougé pour une autre raison
  * serait un mensonge, pas une approximation.
  */
-export const ENGINE_REV = 8;
+export const ENGINE_REV = 9;
 
 /**
  * Seuil d'affichage (kcal/j, en valeur absolue). En dessous, l'écart tient dans le
@@ -1282,7 +1310,7 @@ export function computePlan(rawProfile: UserProfile, today: string = todayStamp(
     p.goal_target ? makeWeeklyProjector(p) : null,
   );
   const datedDelta = datedStatus?.active ? datedStatus.dailyKcalDelta : undefined;
-  const kcalDelta = datedDelta ?? GOAL_CONFIG[p.goal].kcalDelta;
+  const kcalDelta = datedDelta ?? goalConfig(p.goal).kcalDelta;
 
   // `dietBreak` entre ici, donc il traverse les TROIS modes de macros (`auto`,
   // `percent`, `manual`) par le même chemin que les autres planchers. Un mode oublié
@@ -1402,6 +1430,23 @@ export function computePlan(rawProfile: UserProfile, today: string = todayStamp(
   if (datedStatus?.underweightBlocked && !flags.includes('UNDERWEIGHT_NO_DEFICIT')) {
     flags.push('UNDERWEIGHT_NO_DEFICIT');
   }
+
+  // ── Objectif daté PÉRIMÉ (constat 02-04, 2026-08-27) ──────────────────────
+  //
+  // 🔴 Mesuré avant correctif : un `goal_target` daté du 2020 produit une sortie
+  // **strictement identique** au même profil sans objectif daté — même cible, mêmes
+  // drapeaux. Rien dans le plan ne disait que l'objectif ne pilotait plus rien.
+  //
+  // ⚠️ `!active` EST le prédicat d'expiration, par contrat : `DatedGoalStatus.active`
+  // se documente « false = pas d'objectif OU échéance passée », et la seule branche qui
+  // le met à `false` est gardée par `daysLeft <= 0` (`datedGoal.ts`). Le cas « objectif
+  // déjà atteint » ressort actif, à delta nul — c'est voulu, il pilote encore.
+  // ➡️ L'équivalence est FIGÉE par un test : si `active` gagne un jour une autre cause
+  // de fausseté, ce drapeau cesserait de dire « périmé » et il faut le savoir.
+  //
+  // ℹ️ Aucune calorie ne bouge (`datedDelta` était déjà `undefined` dans ce cas), donc
+  // pas d'`ENGINE_REV`. Ce drapeau AJOUTE une information, il ne change aucun plan.
+  if (p.goal_target && datedStatus && !datedStatus.active) flags.push('DATED_GOAL_EXPIRED');
 
   // ── Révision du moteur ────────────────────────────────────────────────────
   // Comparé à la cible STOCKÉE, donc à ce que la personne avait réellement sous les

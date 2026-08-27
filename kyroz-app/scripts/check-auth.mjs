@@ -66,21 +66,46 @@ const s = await r.json();
 // C'est le piège de lecture de ce réglage, et il fait conclure l'exact contraire.
 const confirmation = s.mailer_autoconfirm === false;
 
-console.log('\nInscription');
-console.log(`  ${s.external?.email ? '✓' : '✖'} provider e-mail                    ${s.external?.email ? 'ouvert' : 'FERMÉ'}`);
-console.log(`  ${s.disable_signup === false ? '✓' : '✖'} création de compte                 ${s.disable_signup ? 'FERMÉE' : 'ouverte'}`);
-console.log(`  ${confirmation ? '✓' : '✖'} confirmation e-mail                ${confirmation ? 'EXIGÉE' : 'désactivée (mailer_autoconfirm: true)'}`);
-console.log(`  · connexion invité (anonyme)        ${s.external?.anonymous_users ? 'ouverte' : 'fermée'}`);
+// 🔴 UN ✖ QUI NE FAIT PAS ÉCHOUER EST UN ✖ DÉCORATIF — corrigé le 2026-08-27
+// (contre-audit CA-7-04). Ce bloc imprimait quatre lignes et n'avait qu'UN chemin
+// d'échec : la confirmation e-mail. Mesuré contre un endpoint de test rendant
+// `external.email: false` et `disable_signup: true` — c'est-à-dire PERSONNE NE PEUT
+// CRÉER DE COMPTE, l'état qui bloque net un relecteur Apple — le script imprimait
+// deux ✖, puis « ✅ La confirmation e-mail est active. », et sortait en CODE 0.
+// Le lecteur pressé lit la dernière ligne.
+const echecs = [];
+const ligne = (ok, libelle, etat, quoi) => {
+  console.log(`  ${ok ? '✓' : '✖'} ${libelle.padEnd(34)} ${etat}`);
+  if (!ok) echecs.push(quoi);
+};
 
-if (!confirmation) {
-  console.error('\n✖ La confirmation e-mail est DÉSACTIVÉE : aucun e-mail n\'est envoyé,');
-  console.error('  et tout compte créé est actif immédiatement.');
-  console.error('  → Dashboard → Authentication → Sign In / Providers → Email → cocher');
-  console.error('    « Confirm email ». Procédure complète :');
-  console.error('    supabase/PROCEDURE-2026-08-07-confirmation-email.md\n');
+console.log('\nInscription');
+ligne(s.external?.email === true, 'provider e-mail', s.external?.email ? 'ouvert' : 'FERMÉ',
+  'le provider e-mail est FERMÉ : plus aucune inscription par e-mail.\n'
+  + '     → Dashboard → Authentication → Sign In / Providers → Email → activer.');
+ligne(s.disable_signup === false, 'création de compte', s.disable_signup ? 'FERMÉE' : 'ouverte',
+  'la création de compte est DÉSACTIVÉE : un relecteur Apple ne peut pas ouvrir de\n'
+  + '     compte de test, et la fiche store « sans compte requis » devient fausse.\n'
+  + '     → Dashboard → Authentication → Sign In / Providers → « Allow new users to sign up ».');
+ligne(confirmation, 'confirmation e-mail', confirmation ? 'EXIGÉE' : 'désactivée (mailer_autoconfirm: true)',
+  'la confirmation e-mail est DÉSACTIVÉE : aucun e-mail n\'est envoyé, et tout\n'
+  + '     compte créé est actif immédiatement.\n'
+  + '     → Dashboard → Authentication → Sign In / Providers → Email → cocher\n'
+  + '       « Confirm email ». Procédure : supabase/PROCEDURE-2026-08-07-confirmation-email.md');
+
+// ⚠️ ÉTAT, PAS VERDICT — et c'est délibéré. L'auth anonyme est ACTIVE exprès : c'est
+// le chemin du relecteur Apple (`EXPO_PUBLIC_REVIEW_CODE`), et son remplacement est
+// daté APRÈS la soumission. La faire échouer dans un sens ou dans l'autre figerait
+// une décision qui n'est pas encore prise. On l'imprime pour qu'elle soit VUE.
+console.log(`  · connexion invité (anonyme)        ${s.external?.anonymous_users ? 'ouverte' : 'fermée'}  (état, pas verdict)`);
+
+if (echecs.length) {
+  console.error(`\n✖ ${echecs.length} réglage(s) d'authentification bloquent l'inscription :`);
+  for (const e of echecs) console.error(`   • ${e}`);
+  console.error('');
   process.exit(1);
 }
 
-console.log('\n✅ La confirmation e-mail est active.');
+console.log('\n✅ L\'inscription est ouverte, et la confirmation e-mail est active.');
 console.log('   ⚠️ Ce résultat périme : ces réglages se pilotent hors du dépôt.');
 console.log('      Re-mesurer, ne jamais se fier à une note écrite.\n');

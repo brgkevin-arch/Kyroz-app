@@ -3,6 +3,7 @@ import { supabase } from './supabase';
 import { Recipe, Streak, UserProfile } from './types';
 import { PantryItem } from './pantry';
 import { WeightEntry } from './weight';
+import { relireSyncEnAttente } from './syncEnAttente';
 import { decideProfileHydration, normalizeCalorieBank, normalizeGoal, normalizeMeals, normalizeMealSlots, normalizeProfileActivity, normalizeVariety, reconcileCloudSports, reconcileCloudLowEaWeeks, reconcileCloudNeat, mergeWeightEntries, mergeStreak, mergeRecipeOverrides, PROFILE_PENDING_KEY } from './syncGuard';
 
 /** La fusion a-t-elle produit autre chose que ce que le cloud détenait ? */
@@ -196,11 +197,19 @@ async function currentUserId(): Promise<string | null> {
 // On marque le profil « dirty » à chaque écriture locale ; le flag n'est levé que
 // par un push RÉELLEMENT réussi. Tant qu'il est dirty, le cloud ne peut pas
 // l'écraser à l'hydratation (cf. decideProfileHydration dans syncGuard.ts).
+// ⚠️ LA DIFFUSION EST BRANCHÉE ICI, PAS CHEZ LES APPELANTS (constat 05-05). Ces deux
+// fonctions sont les SEULES à écrire le drapeau : y poser la relecture garantit que
+// l'indicateur « à synchroniser » suit l'état réel, quel que soit l'écran d'où part
+// l'écriture — et que le push de fond, qui n'a aucun écran, le fasse disparaître.
+// Le laisser à l'appelant serait un garde-fou qu'on doit penser à invoquer, donc un
+// garde-fou qui disparaît chez le premier qui l'oublie.
 export async function markProfileDirty(): Promise<void> {
   try { await AsyncStorage.setItem(PROFILE_PENDING_KEY, '1'); } catch {}
+  await relireSyncEnAttente();
 }
 export async function clearProfileDirty(): Promise<void> {
   try { await AsyncStorage.removeItem(PROFILE_PENDING_KEY); } catch {}
+  await relireSyncEnAttente();
 }
 async function isProfileDirty(): Promise<boolean> {
   try { return (await AsyncStorage.getItem(PROFILE_PENDING_KEY)) === '1'; } catch { return false; }
@@ -503,10 +512,30 @@ export async function hydrateFromCloud(uid: string): Promise<void> {
 // Suppression DÉFINITIVE via l'Edge Function `delete-account` : efface la ligne
 // auth.users + toutes les données en cascade. Renvoie une erreur si la fonction
 // n'est pas (encore) déployée → l'appelant peut alors retomber sur deleteCloudData.
+/**
+ * ⚠️ **LA RÉPONSE PORTE UN SECOND VERDICT, ET IL SE LIT** (constat 01-03, 2026-08-27).
+ * La fonction supprime aussi l'abonné RevenueCat portant l'UUID — best-effort, jamais
+ * bloquant. Son résultat n'est PAS avalé : un `'echec'` veut dire qu'un identifiant
+ * survit chez un sous-traitant américain alors que le compte n'existe plus, et que
+ * **plus personne ne peut le retrouver** (l'UUID vient de disparaître avec le compte).
+ * C'est la seule trace qu'il en restera. `'non_configure'` dit que le secret n'est pas
+ * posé côté Supabase — donc que rien n'a été tenté.
+ * ℹ️ Rien n'est montré à l'utilisateur : il ne peut rien y faire, et la politique §7
+ * décrit déjà ce qui subsiste. Le journal est pour nous.
+ */
 export async function deleteAccount(): Promise<{ error?: string }> {
   try {
-    const { error } = await supabase.functions.invoke('delete-account');
+    const { data, error } = await supabase.functions.invoke('delete-account');
     if (error) return { error: error.message };
+    const rc = (data as { revenuecat?: string } | null)?.revenuecat;
+    if (rc && rc !== 'supprime' && rc !== 'introuvable') {
+      try {
+        console.warn(
+          `${LOG_PREFIX} suppression de compte — l'abonné RevenueCat n'a PAS été supprimé (${rc}). `
+          + 'L\'UUID vient de disparaître avec le compte : il n\'est plus retrouvable.',
+        );
+      } catch {}
+    }
     return {};
   } catch (e: any) {
     return { error: e?.message ?? String(e) };

@@ -319,6 +319,33 @@ export default function PlanScreen() {
   // a besoin de la vérité : sur un plan du lundi au vendredi, un samedi ferait pointer
   // `todayIdx` vers le lundi SUIVANT — et l'auto-coche aurait mangé les repas de lundi
   // pendant le week-end.
+  // ── LE JOUR CIVIL CHANGE SANS QUE RIEN DANS L'APP NE BOUGE ─────────────────
+  //
+  // 🔴 LE DÉFAUT MESURÉ (2026-08-27). À minuit, ni `plan` ni `profile` ne changent.
+  // L'effet qui solde la veille a pour dépendances `[plan, profile]` : il ne se
+  // rejoue donc pas. `todayIdx` est un `useMemo` qui lit `new Date().getDay()` : il
+  // garde la valeur d'hier. Et l'écouteur de réveil n'appelait qu'`autoCocher`, qui
+  // sort en early-return tant qu'aucun repas n'est échu. Résultat, jusqu'à la
+  // première heure de repas passée — soit **jusqu'à 14 h** sur un plan qui démarre
+  // au déjeuner : pastille sur HIER, repas d'hier encore cochés, total d'hier, et la
+  // réserve jamais débitée des repas de la veille.
+  //
+  // ⚠️ Ce n'est pas `autoCocher` qu'il fallait corriger. La bascule de jour est une
+  // valeur d'APPAREIL — comme le thème ou l'accent (CLAUDE.md §11) : elle ne se
+  // déduit d'aucune donnée de l'app, donc elle se RELIT aux moments où le temps a pu
+  // passer sans que personne ne regarde. Ce sont les trois mêmes moments
+  // qu'`autoCocher`, et ce n'est pas un hasard : c'est la même question.
+  //
+  // ⚠️ Le comparateur est ce qui évite la tempête de rendus : relire renvoie la
+  // valeur PRÉCÉDENTE quand le jour n'a pas changé, donc React ne re-rend pas.
+  const [jourCivil, setJourCivil] = useState(todayStamp);
+  const relireLeJour = useCallback(() => {
+    setJourCivil((precedent) => {
+      const jour = todayStamp();
+      return jour === precedent ? precedent : jour;
+    });
+  }, []);
+
   const idxDuJour = useCallback((wd: number): number | null => {
     if (!plan) return null;
     const wds = profile?.plan_weekdays;
@@ -343,7 +370,7 @@ export default function PlanScreen() {
       if (delta < bestDelta) { bestDelta = delta; best = idx + 1; }
     });
     return best;
-  }, [profile, plan]);
+  }, [profile, plan, jourCivil]);
   useEffect(() => { setSelectedDay(todayIdx); }, [todayIdx]);
 
   // Répercute les recettes personnalisées (overrides) sur le plan déjà affiché :
@@ -397,7 +424,7 @@ export default function PlanScreen() {
       await solderLaVeille(plan);
       persistPlan(resetTracking(profile, plan), false);
     })();
-  }, [plan, profile]);
+  }, [plan, profile, jourCivil]);
 
   /** Retire de la réserve les repas non tranchés d'une journée écoulée. */
   const solderLaVeille = async (p: MealPlan) => {
@@ -624,11 +651,17 @@ export default function PlanScreen() {
 
   // Au montage, à chaque retour sur l'onglet, et au réveil de l'app : les trois
   // moments où l'heure a pu franchir une limite sans que personne ne regarde.
-  useFocusEffect(useCallback(() => { autoCocher(); }, [autoCocher]));
+  //
+  // ⚠️ On relit le JOUR d'abord, et l'ordre n'est pas cosmétique : `autoCocher` sort
+  // en early-return tant qu'aucun repas n'est échu, donc il ne peut pas servir de
+  // déclencheur de bascule. Une limite franchie, c'est soit une heure de repas, soit
+  // MINUIT — et seul le second change la journée affichée.
+  const auReveil = useCallback(() => { relireLeJour(); autoCocher(); }, [relireLeJour, autoCocher]);
+  useFocusEffect(auReveil);
   useEffect(() => {
-    const sub = AppState.addEventListener('change', (st) => { if (st === 'active') autoCocher(); });
+    const sub = AppState.addEventListener('change', (st) => { if (st === 'active') auReveil(); });
     return () => sub.remove();
-  }, [autoCocher]);
+  }, [auReveil]);
 
   // « Je l'ai sauté » : le repas ne compte pas, son budget bascule sur les
   // repas restants (qui grossissent). On garde la fiche ouverte (état + annuler).

@@ -1,5 +1,5 @@
-import React, { forwardRef, useCallback, useRef } from 'react';
-import { Animated, Pressable, PressableProps, StyleProp, ViewStyle } from 'react-native';
+import React, { forwardRef, useCallback, useMemo, useRef } from 'react';
+import { Animated, Pressable, PressableProps, StyleProp, StyleSheet, ViewStyle } from 'react-native';
 import { OPACITE_PRESSION } from '../constants/theme';
 import {
   RESSORT, ECHELLE_APPUI, ressortRN, ressortReduit,
@@ -79,6 +79,33 @@ export const Presse = forwardRef<any, PresseProps>(function Presse(
   const opacite = useRef(new Animated.Value(1)).current;
   const inerte = activeOpacity === 1 || !!disabled;
 
+  // 🔴 L'OPACITÉ DE L'APPELANT ÉTAIT ÉCRASÉE, EN SILENCE, SUR SEPT SITES.
+  // `style={[style, { opacity: opacite }]}` : la valeur animée vient EN DERNIER, donc
+  // elle gagne. Tout `opacity` posé par un appelant ne servait à rien — et c'est
+  // toujours le même usage, l'état DÉSACTIVÉ. Mesuré dans le navigateur le 2026-08-27
+  // sur « Supprimer définitivement » : `aria-disabled="true"` (il ne réagit pas) et
+  // `opacity: 1` (il a l'air actif). **Un bouton qui paraît vivant et ne répond pas est
+  // pire qu'un bouton grisé** : on tape, rien ne se passe, rien ne l'explique.
+  //
+  // Les sept : `ui.tsx` (donc TOUS les boutons principaux désactivés de l'app),
+  // `profil.tsx` (suppression de compte), `MacroSplit` ×2 (les ± à leurs bornes),
+  // `onboarding.tsx` (le retour à l'étape 1), `MealCard`, `MealSlotsPicker`.
+  //
+  // ➡️ `opacite` redevient ce qu'elle aurait dû être : un FACTEUR D'APPUI (1 ou
+  // `activeOpacity`), MULTIPLIÉ par l'opacité de base de l'appelant. Sans opacité
+  // déclarée — les 122 autres sites — le comportement est identique au bit près, et
+  // aucun nœud animé supplémentaire n'est créé.
+  // ⚠️ `StyleSheet.flatten` parce qu'un `style` est très souvent un TABLEAU ici : lire
+  // `style.opacity` directement rendrait `undefined` sur la moitié des appelants, et le
+  // correctif aurait l'air posé sans rien corriger.
+  const opaciteBase = (StyleSheet.flatten(style) as ViewStyle | undefined)?.opacity;
+  const opaciteRendue = useMemo(
+    () => (typeof opaciteBase === 'number' && opaciteBase !== 1
+      ? Animated.multiply(opacite, opaciteBase)
+      : opacite),
+    [opacite, opaciteBase],
+  );
+
   const animer = useCallback((vers: number, ressort: typeof RESSORT.appui) => {
     // ⚠️ Le réglage d'accessibilité se lit À CHAQUE APPUI, depuis le store — pas
     // capturé au montage. Un bouton monté avant que l'utilisateur ne bascule
@@ -121,7 +148,7 @@ export const Presse = forwardRef<any, PresseProps>(function Presse(
       // L'opacité RESTE en plus de l'échelle, elle ne la remplace pas : sur un
       // fond sombre, 3 % d'échelle se remarquent peu, et c'est justement le
       // contexte de Kyroz. Les deux ensemble donnent un retour lisible partout.
-      style={[style, { opacity: opacite, transform: [{ scale: echelle }] }]}
+      style={[style, { opacity: opaciteRendue, transform: [{ scale: echelle }] }]}
       {...rest}
     />
   );

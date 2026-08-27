@@ -43,6 +43,27 @@ export const PARCOURS_HORS_PLAN_ACTIF = false;
  * entre dans `profileSignature` (`cb`), qui passe donc de la banque à `null` pour
  * les comptes concernés — leur plan en cache s'invalide tout seul. Un compte sans
  * banque ne voit strictement rien changer.
+ *
+ * 🔴 **AVANT DE REPASSER CECI À `true`, LIRE `lib/__tests__/banqueEtCyclage.test.ts`**
+ * (constat 02-05, écrit le 2026-08-27). La banque et la répartition par volume
+ * déplacent TOUTES DEUX des calories entre les jours, et leur composition n'était
+ * mesurée nulle part — un mécanisme éteint ne se teste pas tout seul.
+ *
+ * Ce que la mesure dit, sur le moteur réel (H 83 kg, 4 séances, sèche) :
+ *  · le total de la SEMAINE reste conservé (±2 kcal d'arrondi) — c'est ce qui laisse
+ *    l'exposition hebdomadaire à l'énergie disponible inchangée, et ce qui maintient
+ *    ce constat en P2 ;
+ *  · les deux mécanismes s'**ADDITIONNENT** : +600 sur un jour de séance donne 2921
+ *    contre 2619 de dépense ce jour-là, soit **+302 au-dessus de la dépense** ;
+ *  · le plancher QUOTIDIEN tient (1800 ici), et au-delà de ~+2000 le non-repris est
+ *    **déclaré** (`uncompensatedKcal`) au lieu d'être avalé.
+ *
+ * ⚠️ **AUCUNE BORNE N'A ÉTÉ AJOUTÉE, ET C'EST UNE DÉCISION.** L'audit recommandait de
+ * borner la cible du jour à la dépense du jour. Le dépôt a déjà rejeté un plafond de
+ * cette famille (`MAX_DAY_RATIO = 1,35`, spec P2.1) — « le rapport entre les jours
+ * n'est pas un réglage, c'est celui des dépenses réelles » — et dépasser la maintenance
+ * un jour est précisément ce qu'une banque promet. L'arbitrage appartient au jour du
+ * rallumage ; le test lui donne les chiffres plutôt qu'une découverte.
  */
 export const RYTHME_HEBDOMADAIRE_ACTIF = false;
 

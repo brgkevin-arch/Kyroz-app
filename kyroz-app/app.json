@@ -23,7 +23,6 @@
       },
       "allowBackup": false,
       "predictiveBackGestureEnabled": false,
-      "permissions": [],
       "package": "app.kyroz.mobile",
       "blockedPermissions": [
         "android.permission.RECORD_AUDIO",

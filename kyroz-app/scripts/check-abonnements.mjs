@@ -104,7 +104,41 @@ function attendusDuCode() {
   const src = readFileSync(join(ROOT, 'lib', 'premium.ts'), 'utf8')
     .replace(/\/\*[\s\S]*?\*\//g, '')
     .split('\n').map((l) => l.replace(/(?<!:)\/\/.*$/, '')).join('\n');
-  return [...src.matchAll(/storeProductId:\s*'([^']+)'/g)].map((m) => m[1]);
+
+  // 🔴 CE SCRIPT PASSAIT AU VERT SUR UN PÉRIMÈTRE VIDE — corrigé le 2026-08-27
+  // (contre-audit CA-7-03). La capture était ancrée sur les guillemets SIMPLES.
+  // Remplacer les deux `'` de `lib/premium.ts` par des `"` — un changement de
+  // FORMATAGE, zéro changement de sens, ce qu'un passage de Prettier fait tout seul —
+  // vidait cette fonction : la boucle de confrontation ne tournait plus, le compteur
+  // d'erreurs restait à 0, et le script imprimait « ✅ Chaque identifiant demandé par
+  // le code existe chez Apple » APRÈS AVOIR COMPARÉ ZÉRO IDENTIFIANT.
+  //
+  // Deux gardes, et il faut les deux :
+  //  1. on accepte les trois quotages (`'`, `"`, backtick) ;
+  //  2. on compte d'abord les DÉCLARATIONS, puis les captures, et on échoue si
+  //     l'écart n'est pas nul. Accepter trois quotages ne suffit pas — le prochain
+  //     changement de forme (un identifiant construit, une constante extraite) ferait
+  //     retomber le même silence. C'est le garde-fou que `check-migrations.mjs` porte
+  //     déjà : « si le format change, on ÉCHOUE bruyamment plutôt que de rendre 0 ».
+  // ⚠️ La négation écarte la DÉCLARATION DE TYPE (`storeProductId: string;`, :146),
+  // qui n'est pas une demande du code. Première version sans elle : 3 déclarés pour
+  // 2 valeurs, donc un faux positif sur la source saine — trouvé en mutant.
+  const declares = (src.match(/storeProductId\s*:(?!\s*(?:string|number|boolean)\s*[;,)])/g) ?? []).length;
+  const captures = [...src.matchAll(/storeProductId\s*:\s*(['"`])([^'"`]+)\1/g)].map((m) => m[2]);
+
+  if (declares === 0) {
+    console.error('\n✖ Aucun `storeProductId` dans lib/premium.ts. Ce script ne mesure RIEN :');
+    console.error('  ne pas lire son résultat comme un feu vert.\n');
+    process.exit(2);
+  }
+  if (captures.length !== declares) {
+    console.error(`\n✖ ${declares} \`storeProductId\` déclaré(s) dans lib/premium.ts, ${captures.length} lu(s).`);
+    console.error('  La forme du code a changé et cette extraction ne la suit plus — donc la');
+    console.error('  confrontation avec App Store Connect serait PARTIELLE, en silence.');
+    console.error('  → corriger la capture de `attendusDuCode()`, pas ce message.\n');
+    process.exit(2);
+  }
+  return captures;
 }
 
 const ETATS = {

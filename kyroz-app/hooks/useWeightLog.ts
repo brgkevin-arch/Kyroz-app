@@ -7,10 +7,11 @@ import { recalcProfile } from '../lib/tdee';
 import { useProfile } from './useProfile';
 import { pushWeights } from '../lib/sync';
 import { applyWeighInReminder } from '../lib/notifications';
-
 // Photos de progression : RGPD → LOCAL ONLY, jamais poussées au cloud. Stockées
 // séparément des points de poids (qui, eux, sont synchronisés). Map date → URI.
-const PHOTOS_KEY = '@kyroz:weightPhotos';
+// ⚠️ La clé ET l'effacement des fichiers vivent dans `lib/photos.ts` : la carte
+// ne doit jamais pouvoir partir sans les octets qu'elle désigne.
+import { PHOTOS_KEY, deleteProgressPhoto } from '../lib/photos';
 
 // ── LES PESÉES SE DIFFUSENT, ELLES NE SE RELISENT PAS ───────────────────────
 //
@@ -80,9 +81,14 @@ export function useWeightLog() {
   // Attache/retire une photo à une date (local-only, jamais synchronisée).
   const setPhoto = useCallback(async (date: string, uri: string | null) => {
     setPhotos((prev) => {
+      const ancienne = prev[date];
       const next = { ...prev };
       if (uri) next[date] = uri; else delete next[date];
       AsyncStorage.setItem(PHOTOS_KEY, JSON.stringify(next));
+      // Le fichier ne part pas avec la carte. Sans cette ligne, remplacer ou
+      // retirer une photo laisse ses octets sur l'appareil — plus rien ne les
+      // désigne, donc plus rien ne pourra les effacer.
+      if (ancienne && ancienne !== uri) deleteProgressPhoto(ancienne);
       return next;
     });
   }, []);

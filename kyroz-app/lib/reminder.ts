@@ -247,52 +247,78 @@ export const AUTEURS_DE_LANGUE_FRANCAISE = ['Montaigne', 'La Rochefoucauld', 'Va
 /** Longueur maximale d'une citation TRADUITE. Voir le raisonnement ci-dessus. */
 export const TRADUCTION_MAX = 90;
 
+// ── CHAQUE SIGNATURE PORTE SA SOURCE (constat 06b-17, 2026-08-27) ───────────
+//
+// 🔴 DEUX ATTRIBUTIONS SUR SEIZE ÉTAIENT FAUSSES, ET C'EST EN LES SOURÇANT QU'ON L'A VU.
+// Le constat d'origine visait un autre risque — « `formatCitation` n'a pas de branche
+// sans auteur » — et ce risque-là N'EXISTE PAS (`reminder.ts` a la branche depuis
+// toujours). Restait le point qu'aucune mesure n'avait touché : les attributions
+// elles-mêmes. Un auteur faux est un mensonge affiché, au même titre qu'un chiffre faux.
+//
+//  ① « La goutte d'eau creuse la pierre, **non par la force, mais en tombant souvent** »
+//     n'est pas d'Ovide. `Gutta cavat lapidem` l'est (Pontiques IV, 10, 5) ; le
+//     `non vi sed saepe cadendo` est un AJOUT MÉDIÉVAL de commentateurs. La phrase
+//     entière prêtait donc à Ovide des mots qu'il n'a pas écrits.
+//     ➡️ On lui rend ce qu'il a écrit : `Gutta cavat lapidem, consumitur anulus usu`.
+//     ⚠️ **Retirer la signature aurait été plus simple et plus faux** : `auteur` absent
+//     veut dire « maxime maison » (cf. le type), or ce proverbe n'est pas de nous. Et
+//     ça aurait cassé l'alternance signées/maximes, qu'un test tient.
+//
+//  ② « La pratique est le meilleur des maîtres » n'est pas de Publilius Syrus.
+//     `Usus magister est optimus` est de CICÉRON (Pro Rabirio Postumo IV, 9).
+//
+// ➡️ **Les seize portent désormais leur référence en fin de ligne.** Ce n'est pas de la
+// décoration : une attribution qu'on ne peut pas aller vérifier se recopie de site en
+// site, et c'est exactement ainsi que les deux fausses sont arrivées ici.
+// ⚠️ Vérifié sur des sources externes, pas de mémoire — les deux corrections viennent de
+// là. Les quatorze autres sont sourcées d'après le passage cité ; si l'une est prise en
+// défaut, c'est la RÉFÉRENCE qui doit être corrigée, pas effacée.
 export const CITATIONS: Citation[] = [
   { texte: 'Tu n’as pas besoin de motivation aujourd’hui. Tu as un plan.' },
-  { texte: 'La goutte d’eau creuse la pierre, non par la force, mais en tombant souvent.', auteur: 'Ovide' },
+  { texte: 'La goutte creuse la pierre, et l’anneau s’use à l’usage.', auteur: 'Ovide' },   // Pontiques IV, 10, 5
   { texte: 'La régularité bat l’intensité, tous les jours de la semaine.' },
   { texte: 'Ce n’est pas le repas parfait qui compte, c’est le suivant.' },
-  { texte: 'Un voyage de mille lieues commence toujours par un premier pas.', auteur: 'Lao Tseu' },
+  { texte: 'Un voyage de mille lieues commence toujours par un premier pas.', auteur: 'Lao Tseu' },   // Tao Te King, ch. 64
   { texte: 'Les résultats viennent des jours ordinaires, pas des jours exceptionnels.' },
   { texte: 'Un plan suivi à 80 % vaut mieux qu’un plan parfait abandonné.' },
-  { texte: 'Rien n’est plus fort que l’habitude.', auteur: 'Ovide' },
+  { texte: 'Rien n’est plus fort que l’habitude.', auteur: 'Ovide' },   // L’Art d’aimer II, 345
   { texte: 'Ce que tu répètes devient facile. C’est tout le secret.' },
   { texte: 'Trois mois passent de toute façon. Autant qu’ils comptent.' },
-  { texte: 'Regarde au-dedans : au-dedans est la source du bien.', auteur: 'Marc Aurèle' },
+  { texte: 'Regarde au-dedans : au-dedans est la source du bien.', auteur: 'Marc Aurèle' },   // Pensées VII, 59
   { texte: 'Manger comme prévu, c’est déjà une victoire de la journée.' },
   { texte: 'Personne ne se transforme en un jour. Tout le monde se transforme en un an.' },
-  { texte: 'Il n’est pas de vent favorable pour qui ne sait où il va.', auteur: 'Sénèque' },
+  { texte: 'Il n’est pas de vent favorable pour qui ne sait où il va.', auteur: 'Sénèque' },   // Lettres à Lucilius 71, 3
   { texte: 'Une journée ordinaire bien suivie vaut mieux qu’une semaine héroïque.' },
   { texte: 'Le plan est déjà fait. Il ne te reste qu’à passer à table.' },
-  { texte: 'Ajoute peu à peu sur peu, et bientôt cela fera beaucoup.', auteur: 'Hésiode' },
+  { texte: 'Ajoute peu à peu sur peu, et bientôt cela fera beaucoup.', auteur: 'Hésiode' },   // Les Travaux et les Jours, 361-362
   { texte: 'Ce que tu fais souvent compte plus que ce que tu fais parfaitement.' },
   { texte: 'Il n’y a pas de journée décisive. Il y a des journées qui s’additionnent.' },
-  { texte: 'Ce ne sont pas les choses qui troublent les hommes, mais les opinions qu’ils en ont.', auteur: 'Épictète' },
+  { texte: 'Ce ne sont pas les choses qui troublent les hommes, mais les opinions qu’ils en ont.', auteur: 'Épictète' },   // Manuel, 5
   { texte: 'Reviens au plan quand tu veux. Il t’attend sans rien te demander.' },
   { texte: 'Le corps change lentement, puis d’un coup.' },
-  { texte: 'L’habitude est une seconde nature.', auteur: 'Cicéron' },
+  { texte: 'L’habitude est une seconde nature.', auteur: 'Cicéron' },   // Des termes extrêmes V, 25, 74
   { texte: 'Un écart ne défait pas une semaine. Il en fait partie.' },
   { texte: 'Le plus dur est déjà derrière toi : décider quoi manger.' },
-  { texte: 'Ce n’est pas que nous ayons peu de temps, c’est que nous en perdons beaucoup.', auteur: 'Sénèque' },
+  { texte: 'Ce n’est pas que nous ayons peu de temps, c’est que nous en perdons beaucoup.', auteur: 'Sénèque' },   // De la brièveté de la vie I, 3
   { texte: 'Avance à ton rythme. Le moteur porte la charge, pas toi.' },
   { texte: 'Le progrès n’est pas spectaculaire. Il est régulier.' },
-  { texte: 'La pratique est le meilleur des maîtres.', auteur: 'Publilius Syrus' },
+  { texte: 'La pratique est le meilleur des maîtres.', auteur: 'Cicéron' },   // Pro Rabirio Postumo IV, 9
   { texte: 'Ce qui est prévu se fait tout seul. Le reste se discute.' },
   { texte: 'Les bonnes journées se ressemblent. C’est ce qui les rend faciles.' },
-  { texte: 'La patience est l’art d’espérer.', auteur: 'Vauvenargues' },
+  { texte: 'La patience est l’art d’espérer.', auteur: 'Vauvenargues' },   // Réflexions et maximes, 251
   { texte: 'Tu n’as rien à prouver aujourd’hui. Juste à manger ce qui est prévu.' },
   { texte: 'Ton assiette du jour est déjà calculée. Il reste à en profiter.' },
-  { texte: 'Qui se vainc soi-même est fort.', auteur: 'Lao Tseu' },
+  { texte: 'Qui se vainc soi-même est fort.', auteur: 'Lao Tseu' },   // Tao Te King, ch. 33
   { texte: 'Prends ton temps. Rien dans ce plan ne se périme.' },
   { texte: 'La faim se prévoit. C’est tout l’intérêt d’avoir un plan.' },
-  { texte: 'Tant que tu vis, apprends à vivre.', auteur: 'Sénèque' },
+  { texte: 'Tant que tu vis, apprends à vivre.', auteur: 'Sénèque' },   // Lettres à Lucilius 76, 3
   { texte: 'Chaque semaine ressemble à la précédente. C’est exactement le but.' },
   { texte: 'La discipline, c’est surtout de ne plus avoir à choisir.' },
-  { texte: 'Ce qui fait obstacle à l’action fait avancer l’action.', auteur: 'Marc Aurèle' },
+  { texte: 'Ce qui fait obstacle à l’action fait avancer l’action.', auteur: 'Marc Aurèle' },   // Pensées V, 20
   { texte: 'Un plan qu’on suit sans y penser est un plan qui a gagné.' },
-  { texte: 'La plus grande chose du monde, c’est de savoir être à soi.', auteur: 'Montaigne' },
+  { texte: 'La plus grande chose du monde, c’est de savoir être à soi.', auteur: 'Montaigne' },   // Essais I, 39
   { texte: 'Deux repas prévus valent mieux qu’une bonne résolution.' },
-  { texte: 'La parfaite valeur est de faire sans témoins ce qu’on serait capable de faire devant tout le monde.', auteur: 'La Rochefoucauld' },
+  { texte: 'La parfaite valeur est de faire sans témoins ce qu’on serait capable de faire devant tout le monde.', auteur: 'La Rochefoucauld' },   // Maximes, 216
 ];
 
 /** Le corps affiché : la citation, suivie de son auteur s'il y en a un. */

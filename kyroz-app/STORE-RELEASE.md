@@ -372,6 +372,23 @@ un identifiant enregistré, puis une fiche d'app. Dans cet ordre, sinon le menu
    après le câblage, ou une maquette provisoire).
 5. **Google Play Console** → *Monétisation* → *Abonnements* : créer **un** abonnement
    `kyroz_plus` avec **deux base plans** (mensuel / annuel), mêmes prix.
+> 🔴 **MESURÉ LE 2026-08-27 : L'APP ANDROID N'EST PAS RATTACHÉE** (constat 01-07).
+> `eas env:list production` ne rend que `EXPO_PUBLIC_REVENUECAT_IOS_KEY` —
+> `EXPO_PUBLIC_REVENUECAT_ANDROID_KEY` est **absente des trois environnements**.
+> L'étape 6 ci-dessous est donc écrite au futur alors qu'elle décrit une moitié faite.
+>
+> **Ce que ça fait, exactement** : sur Android `purchasesConfigured()` (`lib/purchases.ts:67`)
+> vaut `false`, donc **aucun bouton d'achat n'est rendu**. La dégradation est PROPRE —
+> pas de crash, pas d'écran mort, pas de bouton qui échoue — mais Android ne peut rien
+> vendre, et rien à l'écran ne le dit.
+>
+> ⚠️ **C'est une décision, pas un correctif** : soit la clé Android est posée
+> (`eas env:create production --name EXPO_PUBLIC_REVENUECAT_ANDROID_KEY`), soit on
+> **acte par écrit qu'Android sort sans achat in-app** — auquel cas la ligne ci-dessous
+> et la fiche store doivent le dire, plutôt que de laisser croire à la parité.
+> ➡️ À trancher **avant** la soumission Android. Tant que ce n'est pas tranché, le
+> point 6 décrit une intention, pas l'état.
+
 6. **RevenueCat** → nouveau projet → rattacher l'app iOS **et** l'app Android →
    mapper les produits store → **1 entitlement nommé exactement `premium`** +
    **1 offering** contenant les deux packages. Récupérer les 2 clés SDK publiques
@@ -963,6 +980,28 @@ eas submit --platform android --latest    # 1re fois : créer l'app dans Play Co
       confirmation e-mail. **Ne mets JAMAIS ce code dans le repo** ni dans
       `deploy.yml` (sinon le web rouvrirait l'accès anonyme). Implémentation :
       `lib/reviewAccess.ts` (+ test `reviewAccess.test.ts` : « fermé si pas de code »).
+- [ ] 🔴 **APRÈS LA REVUE : FAIRE TOURNER LE CODE** (constat 01-12, écrit le 2026-08-27).
+      Le point ci-dessus dit comment POSER le code ; rien ne disait quand le retirer, et
+      un accès de revue qu'on n'a pas prévu de refermer ne se referme jamais.
+      **Ce qui est mesuré, et assumé** : `EXPO_PUBLIC_REVIEW_CODE` est une variable
+      `EXPO_PUBLIC_*`, donc **inlinée à la compilation** — elle est bel et bien **dans le
+      binaire publié** (relevée sur le `.hbc` de la 24ᵉ OTA : 1 occurrence, avec
+      `review@kyroz.app`). Quiconque extrait les chaînes du binaire peut donc ouvrir une
+      session invité. **La RLS tient** — aucun accès aux données d'autrui — le risque est
+      une création d'invités non maîtrisée, pas une fuite.
+      ⚠️ **La surface scriptable, elle, reste fermée**, et c'est ce qui maintient ce point
+      en P2 : le bundle WEB déployé contient l'e-mail sentinelle mais **pas le code**
+      (mesuré, témoin de contrôle `supabase` à 13). `deploy.yml` ne pose pas la variable —
+      **ne jamais l'y ajouter**.
+      ➡️ **Deux gestes, une fois la revue passée :**
+      1. `eas env:delete production --name EXPO_PUBLIC_REVIEW_CODE` (ou une nouvelle
+         valeur aléatoire si une revue reste à venir) — **puis un nouveau build** : le
+         code vit dans le binaire, une OTA ne le retire pas ;
+      2. remplacer par le mécanisme **daté et chiffré** déjà décidé (mémoire
+         « Compte invité : après la revue »), pour que le prochain accès de revue expire
+         tout seul au lieu de dépendre d'un geste qu'on doit se rappeler.
+      ⚠️ Ne rien toucher **avant** la soumission : l'auth anonyme est active et le code
+      est ce qui permet au reviewer d'entrer. C'est un geste d'APRÈS, pas un correctif.
 - [ ] Disclaimer santé visible (déjà le cas).
 - [ ] URL de confidentialité renvoie 200 (déjà le cas).
 - [ ] Screenshots aux bonnes dimensions uploadés (§7).

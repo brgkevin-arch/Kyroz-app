@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useCallback, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, TextInput } from 'react-native';
 import { Presse } from '../../components/Presse';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -25,6 +25,8 @@ import { BirthDateField } from '../../components/BirthDateField';
 import { DateInput } from '../../components/DateInput';
 import { ageOn } from '../../lib/birthday';
 import { ActionSheet } from '../../components/ActionSheet';
+import { MessageEnLigne } from '../../components/MessageEnLigne';
+import { preuveExigee, messageEchecReauth } from '../../lib/suppressionCompte';
 import { WeightSummaryCard } from '../../components/WeightSummaryCard';
 import { useScreenTour, resetAllTours } from '../../components/GuidedTour';
 import { profilTour, TOURS } from '../../lib/tours';
@@ -66,7 +68,8 @@ import { datedGoalStatus, datedGoalKcalDelta, addDaysStamp } from '../../lib/dat
 import { deadlineLadder, checkEcheance, messageEcheance } from '../../lib/goalLadder';
 import { DatedGoalCard, formatFR } from '../../components/DatedGoalCard';
 import { todayStamp, DEFAULT_WEIGH_IN_FREQUENCY } from '../../lib/weight';
-import { applyWeighInReminder } from '../../lib/notifications';
+import { applyWeighInReminder, cancelAllReminders, cancelWeighInReminder } from '../../lib/notifications';
+import { purgeAllProgressPhotos } from '../../lib/photos';
 import {
   ActivityLevel, BodyFatSource, DietaryRestriction, EngineNotice, FixedMeals, Goal, GoalTarget, MealSlot, MealType, NeatLevel, Sex, SportSession, UserProfile, VarietyPreference,
 } from '../../lib/types';
@@ -235,7 +238,7 @@ export default function ProfilScreen() {
   const { entries: weightEntries, delta: weightDelta, due: weighInDue } = useWeightLog();
   const { time: reminderTime, choose: chooseReminder } = useReminder();
   const { enabled: checkinEnabled, setEnabled: setCheckinEnabled } = usePlanCheckin();
-  const { signOut } = useAuth();
+  const { session, signOut, reauthenticate } = useAuth();
   const { confirm, notify } = useDialog();
   const themeMode = useThemeMode();
   const accentId = useAccentId();
@@ -249,6 +252,15 @@ export default function ProfilScreen() {
   const [offPlanOpen, setOffPlanOpen] = useState(false);
   const openOffPlan = () => { journal.reload(); setOffPlanOpen(true); };
   const [confirmDelete, setConfirmDelete] = useState(false);
+  // ── Preuve avant destruction (constat 01-06) ──────────────────────────────
+  // La double confirmation prouvait une INTENTION, jamais une IDENTITÉ : un téléphone
+  // déverrouillé laissé deux minutes suffisait à détruire le compte et toutes les
+  // données de santé, irréversiblement. `preuveExigee` décide selon le compte — un
+  // invité (accès de revue) n'a pas de mot de passe, et lui en demander un lui
+  // fermerait le droit à l'effacement.
+  const preuve = preuveExigee(session?.user?.email);
+  const [motDePasse, setMotDePasse] = useState('');
+  const [echecReauth, setEchecReauth] = useState<string | null>(null);
   // Ce qu'il faudra ouvrir UNE FOIS la feuille Réglages démontée (cf. son `onClosed`).
   const [apresReglages, setApresReglages] = useState<'supprimer' | null>(null);
   // 🔴 MÊME MÉCANIQUE POUR L'ÉDITEUR, et elle manquait — « Me peser » était MORT sur
@@ -334,10 +346,20 @@ export default function ProfilScreen() {
     // Sécurité : sur web, AsyncStorage = localStorage et survivrait à la
     // déconnexion (données de santé + session lisibles sur un poste partagé).
     // On purge tout SAUF les préférences d'appareil non personnelles.
+    // ⚠️ AVANT la purge : les photos sont des FICHIERS, la clé n'en est que la
+    // carte. Purger d'abord, c'est perdre l'adresse des octets. Et elles ne sont
+    // jamais poussées au cloud : elles ne reviendront pas à la reconnexion.
+    await purgeAllProgressPhotos();
     const KEEP = new Set(['@kyroz:theme', '@kyroz:reminder']);
     const keys = await AsyncStorage.getAllKeys();
     const toRemove = keys.filter((k) => !KEEP.has(k));
     if (toRemove.length) await AsyncStorage.multiRemove(toRemove);
+    // Le rappel QUOTIDIEN reste armé, et c'est voulu : sa préférence est dans
+    // `KEEP` — une préférence d'appareil, que le ré-armement au démarrage relit.
+    // La PESÉE, elle, n'a pas cette chance : sa cadence vit dans le profil qu'on
+    // vient de purger. La laisser armée, c'est un déclencheur répétitif que plus
+    // rien ne peut ni ré-armer ni éteindre.
+    await cancelWeighInReminder();
     await clearProfile();
     router.replace('/(auth)/login');
   };
@@ -345,13 +367,36 @@ export default function ProfilScreen() {
   // Droit à l'effacement (RGPD §12) : données serveur + locales + déconnexion.
   const doDelete = async () => {
     setDeleting(true);
+    setEchecReauth(null);
+    // ⚠️ LA PREUVE D'ABORD, ET ELLE BLOQUE. Sur un compte à mot de passe, un échec
+    // ARRÊTE tout — rien n'est supprimé, ni au serveur ni sur l'appareil. Le message
+    // reste EN LIGNE : un `notify` serait une seconde `Modal` par-dessus cette feuille,
+    // et iOS n'en présenterait aucune (CLAUDE.md §11) — le bouton paraîtrait mort.
+    if (preuve === 'mot_de_passe') {
+      const r = await reauthenticate(motDePasse);
+      if (r.error) {
+        setEchecReauth(messageEchecReauth(r.error, true));
+        setDeleting(false);
+        return;
+      }
+    }
     const res = await deleteAccount();          // supprime auth.users + cascade
     if (res.error) await deleteCloudData();     // repli : au moins effacer les données
     await signOut();
+    // ⚠️ Avant la purge, pas après : ce qui est armé dans le SYSTÈME ne part pas
+    // avec `AsyncStorage`. Sans cette ligne, le rappel de pesée — déclencheur
+    // répétitif — continue de tomber indéfiniment sur un compte effacé, et la
+    // purge vient justement de retirer le seul écran d'où on pourrait le couper.
+    await cancelAllReminders();
+    // Idem : la carte `date → URI` ne suffit pas. `expo-image-picker` écrit dans
+    // le répertoire de CACHE ; sans cette ligne, des photos de corps restent en
+    // clair dans le bac à sable après « Supprimer définitivement ».
+    await purgeAllProgressPhotos();
     await AsyncStorage.clear();
     await clearProfile();
     setDeleting(false);
     setConfirmDelete(false);
+    setMotDePasse('');
     router.replace('/(auth)/login');
   };
 
@@ -779,17 +824,69 @@ export default function ProfilScreen() {
       {/* Confirmation suppression de compte (RGPD) */}
       <ActionSheet visible={confirmDelete} onClose={() => setConfirmDelete(false)}>
         <Text style={{ color: t.text, ...Type.h2 }}>Supprimer mon compte ?</Text>
+        {/* 🔴 CETTE PHRASE DISAIT « TOUTES TES DONNÉES », ET C'ÉTAIT FAUX (constat 01-03).
+            Deux défauts opposés dans la même phrase, ce qui explique qu'aucune relecture
+            ne l'ait attrapée :
+            · côté SERVEUR elle promettait « toutes », alors qu'un abonné RevenueCat
+              portant l'UUID Supabase survivait — créé pour TOUT LE MONDE, abonné ou non
+              (`usePremium` appelle `identifyUser(uid)` sans condition), et que
+              `logOut()` ne fait que détacher localement. Refermé côté serveur
+              (`supabase/functions/delete-account`), et la phrase cesse de le promettre
+              à la place du code ;
+            · côté APPAREIL elle SOUS-disait : la liste omettait les pesées et les
+              photos de progression, que `AsyncStorage.clear()` et
+              `purgeAllProgressPhotos()` effacent bel et bien. Or ce sont les deux que
+              l'on craint le plus de laisser derrière soi.
+            ⚠️ Le détail de ce qui subsiste — l'historique de facturation chez Apple ou
+            Google si un abonnement a été souscrit — vit au §7 de la politique. Sa place
+            n'est pas dans un dialogue de confirmation : ici on dit ce qui PART. */}
         <Text style={{ ...Type.body, color: t.textSecondary, lineHeight: 21 }}>
-          Toutes tes données (profil, plans, série, favoris, réserve) seront définitivement supprimées, sur cet appareil et sur le serveur.
+          Ton compte et ses données seront définitivement supprimés du serveur. Sur cet appareil, tout ce que Kyroz a enregistré sera effacé : profil, plans, pesées, photos, série, favoris, réserve.
         </Text>
+        {preuve === 'mot_de_passe' && (
+          <>
+            <Text style={{ ...Type.caption, color: t.textSecondary }}>
+              Saisis ton mot de passe pour confirmer.
+            </Text>
+            <TextInput
+              value={motDePasse}
+              onChangeText={(v: string) => { setMotDePasse(v); setEchecReauth(null); }}
+              secureTextEntry
+              autoCapitalize="none"
+              autoComplete="current-password"
+              textContentType="password"
+              placeholder="Mot de passe"
+              placeholderTextColor={t.textSecondary}
+              // 🔴 `t.card` RENDAIT LE CHAMP INVISIBLE, et seule la capture l'a montré.
+              // Mesuré dans le navigateur : fond du champ `rgb(28,28,30)`, fond de la
+              // feuille `rgb(28,28,30)` — contraste **1:1**. « Mot de passe » flottait en
+              // texte nu, sans rien qui dise qu'on peut taper dedans, sur la feuille où
+              // il FAUT taper pour continuer. Le code était juste, la hauteur (44) et le
+              // rayon (14) aussi : c'est la SURFACE qui manquait.
+              // ➡️ On reprend le style de `ui.tsx::Field`, qui est le rôle « champ de
+              // saisie » de la DA — fond `fill` en sombre, plus un trait. Le recopier à
+              // la main était déjà l'erreur : un style sans nom dérive.
+              style={{
+                ...Type.input, color: t.text,
+                backgroundColor: t.scheme === 'dark' ? t.fill : t.card,
+                borderRadius: Radius.button, borderWidth: Trait.fin, borderColor: t.line,
+                paddingHorizontal: Spacing.lg, minHeight: CIBLE_TACTILE_MIN,
+              }}
+            />
+          </>
+        )}
+        {echecReauth && (
+          <MessageEnLigne t={t} titre="Vérification impossible" message={echecReauth}
+            onFermer={() => setEchecReauth(null)} />
+        )}
         <View style={{ height: 6 }} />
-        <Presse onPress={doDelete} disabled={deleting} activeOpacity={OPACITE_PRESSION}
-          style={{ backgroundColor: t.danger, borderRadius: Radius.button, paddingVertical: Spacing.lg, alignItems: 'center', opacity: deleting ? 0.6 : 1 }}>
+        <Presse onPress={doDelete} disabled={deleting || (preuve === 'mot_de_passe' && !motDePasse)} activeOpacity={OPACITE_PRESSION}
+          style={{ backgroundColor: t.danger, borderRadius: Radius.button, paddingVertical: Spacing.lg, alignItems: 'center', opacity: deleting || (preuve === 'mot_de_passe' && !motDePasse) ? 0.6 : 1 }}>
           <Text style={{ ...Type.h3, color: t.onDanger }}>{deleting ? 'Suppression…' : 'Supprimer définitivement'}</Text>
         </Presse>
         {/* 44 pt PLEINS : `paddingVertical: Spacing.sm` donnait ~36 pt, et ce
             bouton-là est le seul recours de qui ouvre la feuille par erreur. */}
-        <Presse onPress={() => setConfirmDelete(false)} style={{ alignItems: 'center', justifyContent: 'center', minHeight: CIBLE_TACTILE_MIN }}>
+        <Presse onPress={() => { setConfirmDelete(false); setMotDePasse(''); setEchecReauth(null); }} style={{ alignItems: 'center', justifyContent: 'center', minHeight: CIBLE_TACTILE_MIN }}>
           <Text style={{ ...Type.bodyStrong, color: t.textSecondary }}>Annuler</Text>
         </Presse>
       </ActionSheet>

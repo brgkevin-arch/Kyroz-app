@@ -522,6 +522,433 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
 
 ### 🔴 A — En retard ou cassé en silence
 
+- ✅ **A39 · CONTRE-AUDIT DE L'AUDIT V1 + LOT 0 — LIVRÉ le 2026-08-27**
+  (`docs/audit-v1/12-CONTRE-AUDIT.md`, branche `contre-audit-lot-0`).
+  **12 agents** : 8 axes en parallèle, puis 4 réfuteurs chargés de DÉTRUIRE les constats.
+  62 bruts → **55 survivants**, 7 tombés (dont un doublon que le contre-audit s'était
+  fabriqué à lui-même). **110 mesures négatives** publiées en annexe, avec les
+  **60 instruments validés sur un témoin** avant de conclure à une absence.
+  ➡️ **Le résultat en une phrase : l'audit raisonnait mieux qu'il ne mesurait, et il a cru
+  ses feux verts.** Ses trois P0 tiennent tous les trois dans leur mécanisme — mais DEUX de
+  leurs trois recommandations ne ferment pas le trou qu'elles visent, et une troisième
+  casserait un cas sain (le `id` d'un profil local est `user-${Date.now()}`, pas un uid :
+  la garde d'identité de 01-01, appliquée à la lettre, JETTE le profil de qui a échoué son
+  push hors ligne).
+  🔴 **SIX GARDE-FOUS SUR HUIT NE GARDENT RIEN**, et c'est le seul résultat obtenu en
+  CASSANT quelque chose : les « 14 assertions » PostHog ne contraignent pas l'ordre
+  (mutation → tout vert) · `check:abonnements` passe au vert sur un périmètre VIDE en
+  changeant des guillemets simples en doubles · `check:auth` rend 0 sur une inscription
+  FERMÉE en prod · `check:permissions` ne regarde que l'Android · la §4 de `check:ota` ne
+  touche jamais son compteur d'écarts · le correctif 09-01 survit à l'inversion de
+  `entitlementNecessaire` avec 1 841 tests verts.
+  ✅ **`CA-2-01` — CORRIGÉ le 2026-08-27, `ENGINE_REV` 8 → 9.** Le balayage qui certifiait
+  la continuité R6 s'arrêtait EXACTEMENT à `HIGH_ADIPOSITY_PCT.male` (30 %) : le décrochage
+  était juste après, et il **ne rétrécissait pas** quand le pas rétrécissait (137 · 115 ·
+  112 kcal/j aux pas 0,5 · 0,05 · 0,005) — donc une discontinuité, pas une pente. Le retrait
+  des planchers de masse maigre devient **progressif sur 5 points de %MG**
+  (`ADIPOSITY_BLEND_PTS` — le pas du sélecteur de silhouettes, et la bande de bruit de R6).
+  Après : 137 · 34 · 4. ⚠️ Le SEUIL ne bouge pas et `highAdiposity` reste BINAIRE : il reste
+  la définition unique de « grasse » pour la bande de rythme, le registre et l'escalade.
+  Coût mesuré des deux côtés sur **225 600 profils** : 28 cibles bougent (0,01 %), max
+  **53 kcal/j**, **aucune** au-dessus des 100 qui déclenchent l'avertissement. Les quatre
+  corps cités par la décision du 2026-08-10 servent le même déficit au kcal près. Garde-fou :
+  `lib/__tests__/continuiteSeuilAdiposite.test.ts`, 3 mutations.
+  ⚠️ **La marche entre deux SILHOUETTES adjacentes (30 → 35) est inchangée, 314 kcal/j** —
+  et c'est correct : cinq points de %MG, c'est un autre corps. On retire la falaise, pas la
+  descente. *(`CA-2-02`, l'autre « feu vert », n'en était pas un — voir ci-dessous.)*
+  ✅ **`CA-2-02` — TRAITÉ SANS TOUCHER UNE LIGNE DE MOTEUR, et c'est la mesure qui le dit.**
+  Le fait est vrai et pire que publié : **44,2 %** des profils ont au moins un jour sous le
+  plancher de sécurité, jusqu'à **1 103 kcal/j** (75 264 profils). Mais le correctif qu'il
+  appelait — borner la cible du jour au plancher de sécurité — est le calcul qui a fait
+  **rejeter la spec P2.1** le 2026-07-29, et il aurait détruit la répartition par volume.
+  ➡️ Ce que personne n'avait mesuré : la justification tient sur *« la banque conserve le
+  total de la SEMAINE »*, et les trois passes (audit, contre-audit, réfuteur) avaient toutes
+  mesuré le MINIMUM DU JOUR. Mesuré enfin — conservation **0 violation** (écart max 0 kcal),
+  moyenne hebdomadaire ≥ plancher de sécurité **0 violation**, plancher dur du jour
+  **0 violation**. ➡️ Périmètre rendu à `02-moteur.md:87` et au §5, et la propriété devient
+  **comptée** : `lib/__tests__/plancherServi.test.ts` (20 736 profils, 533 ms), dont le 4ᵉ
+  test **exige que la descente EXISTE** — quiconque « répare » la cible du jour rougit et
+  lit pourquoi. 4 mutations, chacune ne touchant que la promesse qu'elle casse.
+  🔴 **QUATRE DÉFAUTS QUE L'AUDIT N'A JAMAIS REGARDÉS**, dont trois LIVRÉS le jour même :
+  · **notifications éternelles après suppression de compte** (`5a057c9`) — `doDelete` ne
+    contenait aucun `cancelScheduledNotificationAsync`, et `WEIGH_ID-0` est un déclencheur
+    RÉPÉTITIF : le rappel de pesée tombait indéfiniment sur un compte effacé, et
+    `AsyncStorage.clear()` venait d'effacer les réglages par lesquels l'annulation passe.
+    La déconnexion avait le même trou en plus petit (le quotidien survit exprès, la pesée
+    non : sa cadence vit dans le profil qu'on purge) ;
+  · **photos de corps laissées sur l'appareil** (`a796b82`) — `expo-image-picker` écrit
+    dans le répertoire de CACHE, `setPhoto` n'enregistre qu'une carte `date → URI`.
+    ⚠️ **Reste à trancher** : les photos sont donc aussi PURGEABLES par l'OS. Les rendre
+    durables (`documentDirectory`) les ferait entrer dans iCloud/Google Backup —
+    `expo-file-system` 56 n'expose AUCUNE exclusion de sauvegarde (mesuré) — ce qui rendrait
+    `PHOTOS_NOTICE_LOCALE` fausse et rouvrirait la Décision B. Arbitrage produit et légal ;
+  · **le compte se crée avant qu'on demande l'âge** (`7cc5571`) — le §10 de la POLITIQUE
+    (pas des CGU) promettait « aucun compte ne peut être créé en deçà de cet âge ».
+    `canSubmit` = e-mail + mot de passe + consentement. Le blocage existe et il est DUR,
+    mais à l'onboarding (`AGE_BOUNDS[0]` dans `basicsValid`). C'est la clause qui a été
+    réécrite. Le constat 06b-19 l'avait fermée « ✅ RÉSOLU » ;
+  · **le Plan reste sur HIER au réveil** (`da6d994`) — jusqu'à ~14 h : pastille sur hier,
+    repas d'hier cochés, réserve jamais débitée. Minuit ne déclenche rien, et le seul
+    écouteur de réveil n'appelait qu'`autoCocher`, qui sort en early-return. L'étape 5
+    avait coché « [x] K. navigation et reprise » sans produire un seul constat dessus.
+  ⚠️ **SEIZE CONSTATS DE TEXTES REPOSENT SUR UN CORPUS AMPUTÉ** : l'étape 6b n'a jamais
+  été rejouée après la réparation du seuil de 12 caractères — à `98a6335`, le SEUL
+  changement apporté à `06-textes-audit.md` est « 728 chaînes » → « 753 ». Et la réparation
+  en a cassé une autre : l'extracteur découpe sur `\'`, donc la phrase « Kyroz n'est pas un
+  dispositif médical… » a DISPARU du corpus régénéré.
+  ⚠️ **17 constats sont orphelins de tout lot** du §4 de la synthèse, dont trois P1 — dont
+  `02-03`, qui bloque le démarrage.
+  ✅ **LES SIX GARDE-FOUS DÉCORATIFS SONT CORRIGÉS — 2026-08-27, 11 mutations.** Chacun a
+  été vu rougir sur la mutation exacte qui l'avait trouvé : les deux sondes d'ordre PostHog
+  (inverser l'ordre → les deux rougissent) · `check:abonnements` compte les DÉCLARATIONS
+  avant les captures, donc un identifiant construit sort en `EXIT 2` au lieu d'un ✅ sur
+  zéro comparaison · `check:auth` fait échouer ses trois verdicts (inscription fermée →
+  EXIT 1, était 0) · `check:permissions` ouvre le côté **iOS** (`*UsageDescription`) et
+  garde son périmètre · la §4 de `check:ota` **confronte** enfin la date d'entrée en vigueur
+  (« 15 juin 2026 » → EXIT 1, était 0) · `entitlementNecessaire` déménage dans le module PUR,
+  est exportée, sa table de vérité est testée, et la liste de deux fichiers écrite à la main
+  devient un RECENSEMENT du dépôt.
+  🔴 **ET DEUX DE MES PROPRES SONDES ÉTAIENT DÉCORATIVES** — seule la mutation l'a dit :
+  l'espion PostHog surveillait un AsyncStorage d'un AUTRE registre que le module
+  (`vi.resetModules()`), donc vert quoi qu'il arrive ; et le garde de `check:abonnements`
+  rougissait sur la source SAINE, comptant `storeProductId: string;` — la déclaration de
+  TYPE — comme une demande du code. ⚠️ Une troisième ne PEUT pas rougir sur les deux clés
+  actuelles (le plugin d'`expo-image-picker` réinjecte son texte) : elle garde les clés
+  ajoutées à la main, et c'est écrit dans le script plutôt que laissé croire.
+  ✅ **LE CORPUS DES TEXTES EST RÉPARÉ — 2026-08-27, et le défaut était pire que mesuré.**
+  Le contre-audit disait « 30 ajouts mais 5 retraits ». La mesure exacte : l'extracteur
+  coupait **chaque chaîne sur l'apostrophe échappée**, et `lib/methodologie.ts` est le seul
+  fichier du corpus à en employer. Sur 753 entrées — **14 coupées net**, **7 fragments
+  orphelins**, et le bloc entier de la page Méthodologie (**72 entrées**) n'était fait que
+  de morceaux. « Ce que Kyroz calcule — et ce qu'il n'est pas » était DEUX entrées, et
+  `grep "dispositif médical"` rendait **0** sur tout le dump : la phrase la plus lourde
+  juridiquement de l'app n'a jamais été lue par 6b. Le `DISCLAIMER` était coupé pareil.
+  ➡️ Ce bloc **n'est plus extrait par regex** : il est RENDU par `methodologie()` — même
+  geste que `gen:legal` pour les surfaces légales. **31 textes réels pour 72 fragments**,
+  « dispositif médical » 0 → 3, entrées coupées 14 → 0, orphelins 7 → 0. Compteurs corrigés
+  (`CA-4-03` : le tableau disait 728 pendant que l'en-tête disait 753 ; `CA-4-06` : les
+  « 560 `<Text>` » comptaient 17 `<TextInput>`). Garde-fou :
+  `lib/__tests__/corpusTextes.test.ts`.
+  🔴 **TROIS SONDES FLOUES ÉCRITES ET JETÉES AVANT LA BONNE**, et c'est la leçon : le
+  compteur a annoncé successivement **10, 4, 17 puis 27** absences selon le seuil de
+  fragment, et aucun n'était juste — 25 caractères laissait passer l'avertissement médical
+  (il partage sa queue avec le `DISCLAIMER`), 60 accusait des textes présents mais tronqués
+  par le dump. *Quand une sonde change d'avis à chaque réglage, ce n'est pas le réglage
+  qu'il faut ajuster, c'est l'approche.* La comparaison est devenue EXACTE en générant le
+  bloc depuis le module.
+  ✅ **LE JUGEMENT 6b-bis EST REVENU ET ARBITRÉ — `docs/audit-v1/06b-bis-textes-audit.md`.**
+  🔴 **Un seul mensonge sur 33 textes, et il était sur la surface qui compte le plus** :
+  T16 promettait « aucun plan ne peut descendre sous ces limites » — un plancher QUOTIDIEN
+  que le moteur ne tient pas (44,2 % des profils ont un jour dessous, jusqu'à 1 103 kcal/j).
+  Corrigé : trois phrases qui disent le vrai (deux limites infranchissables chaque jour, la
+  troisième jugée sur la SEMAINE), plus un paragraphe neuf sur la variation quotidienne.
+  ⚠️ **C'est MON correctif qui avait laissé cette surface** : j'avais resserré « aucun
+  plancher contournable » dans deux documents d'audit sans jamais chercher où la phrase
+  vivait ailleurs. *Un manque ne se grep pas, il se recense par rôle* — y compris quand
+  c'est son propre correctif qu'on recense.
+  ➡️ **Trois des quatre P0 candidats étaient des textes JUSTES** (le poids relevé recalibre
+  bien · les seuils 30/40 sont ceux du code · la table NEAT 1,3–1,45 aussi · les 18 ans sont
+  bloqués à l'étape 2). La consigne « pose-le comme une QUESTION à mesurer, pas comme un
+  constat » a transformé quatre faux P0 en quatre mesures de trente secondes.
+  ✅ Corrigés aussi : le refus opposé à l'utilisateur sous IMC 18,5 (Kyroz redevient le
+  sujet) · le risque RED-S nommé avant sa protection · « zone basse » définie et les deux
+  compteurs de semaines dits indépendants · les deux variantes de la phrase obligatoire
+  alignées (le `DISCLAIMER` entre dans l'empreinte légale — reportée, date inchangée) · les
+  quatre ancres `:0`, dont TROIS décrivaient des garde-fous, et `:0` est désormais un ÉCHEC
+  de test. ⚠️ La dernière n'était pas un défaut d'ancrage mais **de fichier** : l'attribution
+  Ciqual vit dans `lib/foods.ts`, pas dans `methodologie.ts`.
+  ⚠️ **Le refus initial de juger était la BONNE réponse** : le premier brief référençait le
+  corpus au lieu de le contenir. « Autonome » veut dire *contient*.
+  ✅ **LES TROIS ARBITRAGES SONT TRANCHÉS (2026-08-27, décisions fondateur).**
+  · **TUTOIEMENT.** Mesuré avant d'appliquer : l'app tutoie DÉJÀ partout, le vouvoiement se
+    réduisait à DEUX occurrences, toutes deux sur la page Méthodologie. Corrigées — surface
+    produit à 0 vouvoiement. ⚠️ Les 55 occurrences de `constants/legal.ts` ne sont PAS
+    touchées : documents CONTRACTUELS, autre registre, autre décision. Le constat visait
+    deux textes produit, cette incohérence-là est fermée.
+  · **T08 découpé** : quatre règles empilées deviennent quatre phrases dans l'ordre
+    d'application, avec le CAS PAR DÉFAUT en tête (« par défaut, c'est Mifflin-St Jeor ») —
+    il n'était renseigné pour personne, alors qu'il concerne la quasi-totalité des comptes.
+    Le fond ne bouge pas d'un kcal.
+  · **Taxonomie T28–T31** : le jugement voyait 5 éléments non classés ; mesuré sur la SOURCE
+    plutôt que sur le rendu, il y en avait **12 sur 18** — il sous-comptait parce que les
+    constantes perdent leur nom au rendu. Les douze sont classées, plus une troisième liste
+    pour ce qui s'écarte le plus de la littérature (glissement Mifflin↔Katch, marge ±5 pts,
+    seuils de provenance, retrait progressif des planchers).
+    🔴 **La promesse « tout » est désormais COMPTÉE** — `corpusTextes.test.ts` : chaque
+    constante interpolée sur la page doit l'être aussi dans la taxonomie. 18 citées,
+    0 absente, vu rougir. *Une promesse d'exhaustivité non tenue est pire qu'une sélection
+    annoncée : elle fait croire que ce qui manque n'existe pas.*
+  ✅ **LA MENTION CIQUAL EST CLOSE — et rien n'était à aller chercher dehors** (2026-08-27,
+  `PROCEDURE-2026-08-27-mention-ciqual.md`). La Licence Ouverte 2.0 n'exige qu'UNE chose, en
+  deux moitiés : le **nom du producteur** ET la **date de dernière mise à jour** — plus une
+  interdiction de suggérer une caution. 🔴 **La date manquait sur les trois surfaces**, donc
+  la moitié de l'unique obligation. Elle était pourtant sur le disque :
+  `data/ciqual/MANIFEST.TXT` (fichiers du 2025-11-03) et le jeu publié (v1.0, **19 novembre
+  2025**, DOI `10.57745/RDMHWY`). Ajoutées à `CIQUAL_ATTRIBUTION`, avec le DOI — qui emprunte
+  la modalité alternative que la licence autorise (l'URL).
+  🔴 **ET LE `®` EST PARTI.** Mesuré sur la documentation officielle de l'ANSES, celle du
+  disque : **37 occurrences de « Ciqual », ZÉRO avec `®`**, alors que ce même document en
+  emploie **157** par ailleurs pour des marques d'aliments. Le titulaire ne marque pas son
+  propre nom. Ce n'était pas de la typographie : apposer un symbole d'enregistrement sur le
+  nom d'un tiers qui ne le revendique pas est une affirmation factuelle fausse.
+  ⚠️ C'était **le seul `®` réel du code**, et `emojiInterface.test.ts` s'en servait comme
+  EXEMPLE du `®` légitime. L'exemption reste (elle est juste), son témoin devient construit,
+  et le fichier le dit — plutôt que de laisser croire qu'un cas réel l'éprouve encore.
+  ⏸️ **Non touchées, et c'est un choix mesuré** : les CGU §6 et la fiche store citent Ciqual
+  sans date. La licence se satisfait d'UNE mention effective, et c'est celle de l'app. Les
+  enrichir aurait rouvert l'empreinte légale pour une conformité déjà acquise. À reprendre le
+  jour où les CGU bougeront pour une autre raison — dette de cohérence, pas de conformité.
+  ⚠️ **Au prochain millésime Ciqual** : la date se RE-MESURE sur `MANIFEST.TXT`.
+  `convert-ciqual.py` régénère le dataset ; personne ne régénère la phrase.
+  ➡️ **PROCHAIN CHANTIER — LES 17 CONSTATS ORPHELINS (`CA-6-04`).** Ils ne figurent dans
+  AUCUN des onze lots du §4 de la synthèse, qui se présente pourtant comme l'inventaire
+  complet : ce qui n'est dans aucun lot n'est jamais ordonnancé, donc jamais fait, et rien
+  ne le signale. **Nommés** (un compte n'est pas une liste) :
+  · **P1** — ~~`01-03`~~ ✅, ~~`02-03`~~ ✅, ~~`03-01`~~ ✅ — **les trois P1 sont livrés**
+  · **P2** — les **quatorze** sont livrés le 2026-08-27 (**A42**)
+  ✅ **`02-03` est LIVRÉ (2026-08-27, A40)** — c'était le P1 qui bloquait le lancement, et il
+  ne « levait sur une ligne cloud partielle » que dans la lettre du constat : c'était un GEL
+  définitif de l'app, sur quatre valeurs et quatre fonctions, faute de `.catch()` au
+  démarrage. Le mécanisme est refermé pour tous les champs, pas seulement pour `goal`.
+  ✅ **`01-03` et `03-01` livrés le 2026-08-27 (A41)** — `03-01` était **déjà satisfait à
+  moitié** (`npm run check:permissions` existait, écrit pendant le contre-audit sans que le
+  constat soit coché), et la moitié PostHog de `01-03` était **close par les faits depuis la
+  veille**. ➡️ *Un constat daté se re-mesure avant d'être traité : deux des quatre moitiés
+  n'existaient plus.*
+  ✅ **LES 17 ORPHELINS SONT CLOS** (A40 · A41 · A42). ⚠️ Deux étapes HUMAINES restent :
+  la procédure RevenueCat, et l'arbitrage de la clé Android (`01-07`).
+  ⚠️ **`06b-17`** est celui que la réparation du corpus concerne : il jugeait les
+  attributions de citations sur un dump amputé de ses quatorze noms d'auteurs. Corpus
+  réparé, constat jamais rejoué.
+  ➡️ **Puis le lot 1′** : les trois P0 avec leurs recos CORRIGÉES (`goal` et `macro_mode` en
+  plus des quatre champs du BMR ; et surtout **sans** la garde d'identité telle qu'écrite —
+  le `id` d'un profil local est `user-${Date.now()}`, pas un uid, donc elle jetterait le
+  profil de qui a échoué son push hors ligne).
+  🔴 **ET UNE LEÇON DE MÉTHODE, PAYÉE SUR MOI-MÊME** : la réfutation avait ramené `CA-2-02`
+  de majeur à MINEUR le jour même, avec ses motifs — je l'ai quand même publié en tête du §3
+  et inscrit 🔴 au backlog comme le prochain chantier. Le verdict était dans le document ;
+  la mise en page l'a écrasé. **Une gravité corrigée par la réfutation doit gouverner la
+  PLACE du constat, pas seulement figurer dans son verdict.**
+  ℹ️ Chaque correctif a été **vu ROUGIR** : 5 + 5 + 4 + 5 mutations. Et l'une d'elles a
+  trouvé un trou dans MON garde-fou (`toContain('AGE_BOUNDS[0]')` restait vert sur un
+  `basicsValid` vidé — la chaîne sert aussi au message d'erreur vingt lignes plus bas).
+  ⚠️ **La 3ᵉ surface légale n'est pas régénérée** : `kyroz.app/legal.html` vit dans le
+  dépôt `kyroz-site`. `KYROZ_SITE=<clone> npm run gen:legal`.
+
+- ✅ **A40 · UN `goal` HORS BARÈME FIGEAIT L'APP, DÉFINITIVEMENT — CORRIGÉ le 2026-08-27**
+  (constat `02-03`, P1, **premier des 17 orphelins d'A39**). L'audit disait « `goal` absent
+  fait lever une exception non rattrapée » et le classait P1. C'était juste, et **trois fois
+  trop étroit** — les trois élargissements sont ce qui vaut d'être gardé.
+  🔴 **① CE N'ÉTAIT PAS UN CRASH, C'ÉTAIT UN GEL DÉFINITIF.** `recalcProfile` est appelé
+  dans le `.then()` de la lecture du profil au démarrage (`useProfile`), **qui n'avait pas de
+  `.catch()`**. La levée sautait `setLoading(false)` ; `app/index.tsx` fait
+  `if (!ready || loading) return <Splash />`. L'app restait sur l'écran de démarrage — et
+  comme la valeur fautive est relue d'AsyncStorage à CHAQUE lancement, redémarrer ne
+  réparait rien. Pas de crash visible, pas de message, aucune issue hors réinstallation
+  (qui perd les données locales). ⚠️ Le fichier documente pourtant « c'est le bug *l'app se
+  fige* » — pour le RÉSEAU, corrigé en son temps. Le même gel existait à côté, par une autre
+  porte, et rien ne le rattrapait.
+  🔴 **② QUATRE VALEURS, PAS UNE — ET QUATRE FONCTIONS, PAS UNE.** Mesuré :
+  `undefined` · **`null`** (la forme réelle d'une colonne `text` vide) · `''` ·
+  `'perte_de_poids'` (saisi à la main en base) lèvent tous le même `TypeError`, sur
+  `computePlan` **et** `goalLabel` / `goalSubtitle` / `recommendedProteinPerKg` — dont deux
+  sont appelés EN RENDU (`profil.tsx:674`, `FirstPlanReveal.tsx:121`). La reproduction de
+  l'audit n'employait que `undefined`, la forme la moins atteignable des quatre.
+  🔴 **③ LE REMÈDE EXISTAIT DÉJÀ, DEUX FOIS, DANS LES MÊMES FICHIERS.**
+  · `tdee.ts::neatPal` (ligne 231) : *« Tolérant : une valeur inconnue retombe sur le
+    défaut »* — le patron exact de `goalConfig`, écrit pour le NEAT, jamais appliqué au
+    `goal` ;
+  · `syncGuard::normalizeVariety` dit dans son propre commentaire **« même remède que
+    `normalizeGoal` »** et applique un remède PLUS FORT : elle referme toute valeur
+    inconnue, l'originale ne fermait que les deux qu'elle avait elle-même retirées.
+  ⚠️ **Le jumeau écrit en SECOND était le bon**, et la lecture de l'original rassurait sur
+  ce qu'il ne faisait pas. Et l'accident n'est pas hypothétique : `variety: 'high'` a été
+  trouvé sur un profil RÉEL, saisi hors de l'app — sur le champ où il ne coûtait qu'un
+  mauvais plan silencieux.
+  ➡️ **CE QUI A ÉTÉ LIVRÉ — quatre pièces, et chacune ferme un trou distinct :**
+  1. **`lib/types.ts` : la LISTE d'abord, le type ensuite.** `GOALS` est un `as const`,
+     `Goal` en dérive. `GOAL_CONFIG` étant un `Record<Goal, …>`, ajouter un objectif à la
+     liste sans l'ajouter à la table **ne compile pas** — l'exhaustivité est tenue par
+     `tsc`, pas par un test. Plus `isGoal()` et `GOAL_FALLBACK`.
+  2. **`tdee.ts::goalConfig` — accès UNIQUE à la table**, avec repli. C'est le filet : il
+     est sur le chemin de tout le monde, y compris `useWeightLog`, les éditeurs du Profil
+     et les tests, qui appellent `computePlan` sans passer par aucun normaliseur.
+  3. **`syncGuard::normalizeGoal` referme la DONNÉE.** Le filet fait tourner l'app, il ne
+     répare rien : sans réécriture, la valeur fautive resterait en base et dans AsyncStorage
+     à vie, et l'écran Profil afficherait un objectif que rien ne sait resélectionner.
+     Ici le profil est réécrit puis repoussé — **le repli se VOIT et se corrige d'un tap.**
+  4. **`lib/profileBoot.ts` — le mécanisme, pas seulement le champ.** Refermer `goal` ferme
+     une porte dans une pièce sans murs : le prochain champ hors barème refigerait tout à
+     l'identique. La décision de démarrage (« l'app s'ouvre quoi qu'il arrive ») sort donc
+     du hook vers `lib/` — **la suite ne couvre que `lib/__tests__/**`**, une garantie
+     laissée dans `hooks/` n'aurait été qu'un commentaire que rien ne compte.
+     Trois issues, aucune levée : JSON illisible → profil traité comme ABSENT et **jamais
+     écrasé** ; recalcul en échec → profil stocké servi tel quel, `degraded: true` (donc
+     pas de réécriture, pas de push d'un profil que le moteur n'a pas produit) ; sinon,
+     recalcul normal.
+  🔴 **`maintain` ET PAS UN REFUS — ON PEUT REPLIER UNE INTENTION, JAMAIS UNE MESURE.**
+  Ne pas connaître l'objectif laisse tout le reste calculable : la dépense est réelle, le
+  plancher aussi, seul l'ajustement est inconnu — et `maintain` vaut exactement « aucun
+  ajustement ». Le plan servi est donc VRAI. ⚠️ **C'est ce qui rend le même repli
+  inacceptable sur `sex`, `age`, `weight_kg`, `height_cm` (constat `02-02`, encore ouvert) :
+  inventer une mesure fabrique un BMR qui n'est celui de personne.** Deux constats, deux
+  remèdes opposés, et c'est la NATURE du champ qui tranche.
+  ℹ️ **Aucun `ENGINE_REV`, et la prémisse est COMPTÉE, pas affirmée.** L'argument est « les
+  seuls profils touchés sont ceux dont `computePlan` LEVAIT, donc sans cible servie ». Il
+  tient si et seulement si aucun objectif valide n'est dévié vers le repli — deux tests le
+  vérifient, plus l'identité de référence rendue par `normalizeGoal` sur un objectif sain
+  (donc aucun profil valide n'est marqué « dirty » ni repoussé).
+  ⚠️ **UN TEST A ROUGI À RAISON, ET IL A RE-TROUVÉ UNE MESURE DE 2026-07-29.** Sa première
+  version exigeait six cibles DISTINCTES pour les six objectifs ; mesuré 2263, **2263**,
+  2395, 2545, 2745, 2945 — `cut_aggressive` et `cut` servent la même cible, le plancher de
+  sécurité absorbant l'écart entre −500 et −300. C'est exactement le « choix fantôme » qui
+  avait motivé la fusion des sèches. ➡️ La distinction des cibles mesurait le PLANCHER
+  autant que l'objectif : la bonne sonde est plus étroite (« aucun objectif valide ne sert
+  le plan du repli ») et insensible au plancher.
+  ℹ️ **Vérifié par 8 mutations, aucune survivante** — dont `degraded` qui ment, et le piège
+  du `includes` sur le prototype d'`Array` (`isGoal('length')`).
+  ➡️ **BALAYAGE DE L'ÉTAGE SUIVANT** — les huit champs « énumération » du profil passés aux
+  quatre formes hors barème, sur le moteur réel :
+
+  | champ | contrainte SQL | `undefined` · `null` · `''` · `'zzz'` |
+  |---|---|---|
+  | **`goal`** | ❌ aucune | ✅ replié (était : **LÈVE ×4**) |
+  | `activity_level` · `neat_level` · `variety` · `meal_emphasis` · `body_fat_source` | ❌ aucune (à dessein) | ✅ dégradent proprement, déjà |
+  | **`macro_mode`** | ✓ énumération (mais `NULL` passe) | 🔴 **NaN ×4** |
+  | **`sex`** | ✓ énumération (mais `NULL` passe) | 🔴 **NaN ×4** |
+
+  ➡️ **`goal` était le SEUL à lever** — le résultat négatif compte autant : cinq champs sans
+  contrainte étaient déjà tolérants. Les deux NaN sont le constat `02-02` (P0), et cette
+  mesure confirme la correction du contre-audit : **`macro_mode` est bien un vecteur de NaN**,
+  il appartient au lot 1′ avec les quatre champs du BMR.
+  ℹ️ Restent **16 orphelins** — `01-03`, `03-01` (P1) et les 14 P2 listés en A39.
+
+- ✅ **A41 · « TOUTES TES DONNÉES SERONT SUPPRIMÉES » N'ÉTAIT PAS VRAI — CORRIGÉ le
+  2026-08-27** (constats `01-03` P1 et `03-01` P1, deux orphelins d'A39). ⚠️ **Il reste
+  UNE étape humaine** : `docs/PROCEDURE-2026-08-27-suppression-revenuecat.md`.
+  🔴 **CE QUI SURVIVAIT, ET POUR QUI.** `hooks/usePremium.ts` appelle `identifyUser(uid)`
+  **sans condition** dès qu'un compte existe, et la clé RevenueCat est posée dans
+  l'environnement `production` d'EAS : tout build de prod crée un abonné RevenueCat portant
+  l'UUID Supabase — **y compris pour quelqu'un qui n'a jamais rien acheté**, et avant même
+  la mise en vente. `doDelete` appelait `logOut()`, qui **détache l'identité localement** et
+  ne supprime rien à distance. Un identifiant restait donc chez un sous-traitant américain
+  après « Supprimer définitivement ».
+  🔴 **LE POINT LE PLUS FIN, ET IL N'ÉTAIT PAS DANS LE CONSTAT** : le §7 de la politique
+  borne l'exception de conservation à « **si vous avez souscrit un abonnement** ». Cette
+  rédaction est JUSTE — mais seulement si l'identifiant d'un NON-abonné disparaît. Le texte
+  décrivait donc un monde plus propre que le code, et **les deux moitiés ne se lisent jamais
+  ensemble** : l'une est dans `constants/legal.ts`, l'autre dans une fonction Deno que la
+  suite n'exécute pas. ➡️ D'où la décision de **ne PAS rouvrir le texte légal** : le §7 est
+  déjà la bonne phrase, c'est au code de la rattraper. Rouvrir aurait coûté empreinte,
+  date d'entrée en vigueur, `gen:legal` et la 3ᵉ surface — pour zéro gain de vérité.
+  ➡️ **LIVRÉ** : `supabase/functions/delete-account` supprime l'abonné
+  (`DELETE /v1/subscribers/{uuid}`) **AVANT** la cascade — après elle, l'UUID n'a plus de
+  porteur et plus personne ne saurait quoi supprimer, ni ne pourrait le retrouver.
+  Best-effort strict, borné à 5 s (`AbortSignal.timeout`) : un droit à l'effacement ne peut
+  pas dépendre de la disponibilité d'un tiers. Sans secret, la fonction **ne tente rien et
+  le DIT** (`non_configure`) — faire semblant aurait été le défaut corrigé, déplacé d'un
+  cran. Et `lib/sync.ts::deleteAccount` **lit** le verdict : un échec journalisé est la
+  seule trace qui restera, l'UUID disparaissant avec le compte.
+  🔴 **LA PHRASE AVAIT DEUX DÉFAUTS OPPOSÉS, ce qui explique qu'aucune relecture ne l'ait
+  attrapée** : elle sur-promettait côté SERVEUR (« toutes tes données ») et **SOUS-disait
+  côté APPAREIL** — sa liste omettait les **pesées** et les **photos de progression**, que
+  `AsyncStorage.clear()` et `purgeAllProgressPhotos()` effacent bel et bien, et qui sont
+  les deux que l'on craint le plus de laisser derrière soi. Les deux sont corrigés : on dit
+  ce qui PART, le §7 dit ce qui subsiste.
+  ℹ️ **LA MOITIÉ POSTHOG DU CONSTAT EST CLOSE PAR LES FAITS, PAS PAR CE CORRECTIF.**
+  `distinctId()` n'est appelé que depuis `capture()`, qui sort **avant tout** sur
+  `STATISTIQUES_USAGE_ACTIVES` (false depuis le 2026-08-26) : plus aucun pseudonyme ne peut
+  naître, et les données ont été supprimées à la source. **Le constat décrivait un état qui
+  avait déjà changé la veille** — un audit daté se re-mesure avant d'être traité.
+  ℹ️ **Vérifié par 7 mutations, aucune survivante** — et **la 4ᵉ a survécu au premier tour** :
+  ma sonde « sans secret, on ne fait pas semblant » lisait `toContain("'non_configure'")`, or
+  la chaîne vit AUSSI dans le type `EtatRevenueCat`. Elle comptait une **déclaration de
+  type**, pas un comportement — le piège exact de `check:abonnements` (`storeProductId: string;`),
+  rejoué. Elle lit désormais la garde elle-même, avant le `fetch`.
+  ➡️ **`03-01` FERMÉ DANS LE MÊME GESTE, et il était DÉJÀ satisfait à moitié.** Sa reco
+  demandait « un `npm run` qui sort les permissions résolues » : `npm run check:permissions`
+  existe et le fait — écrit pendant le contre-audit, sans que le constat soit coché. Restait
+  la déclaration trompeuse : `app.json` portait `"permissions": []`, qui **n'est pas une
+  liste blanche** (le tableau ajoute, il ne retire jamais) et donnait à lire « zéro
+  permission » pour une app qui en a deux. **Retiré**, après avoir mesuré la config résolue
+  AVANT et APRÈS : identique au caractère près. ℹ️ Sans effet OTA — `runtimeVersion.policy`
+  vaut `"appVersion"`, la coupure est liée à `expo.version` (l'inverse serait vrai sous
+  `fingerprint`, cf. `CA-5-03`). Garde-fou : `permissionsDeclarees.test.ts`, 3 mutations.
+  ℹ️ Restent **14 orphelins** — plus aucun P1. Que des P2.
+
+- ✅ **A42 · LES QUATORZE ORPHELINS P2 — LIVRÉS le 2026-08-27.** Avec A40 et A41, les
+  **17 orphelins de `CA-6-04` sont clos**. ⚠️ **Deux étapes humaines restent**, et elles
+  sont nommées plus bas.
+  🔴 **CE QUE LE LOT APPREND, AVANT LE DÉTAIL : SUR QUATORZE CONSTATS, QUATRE ÉTAIENT
+  DÉJÀ FAUX OU DÉJÀ FAITS.** Un audit daté décrit l'état du jour où il a été écrit, et
+  celui-ci a été rattrapé par ses propres suites.
+  · `06b-17` visait un risque qui **n'existe pas** (`formatCitation` a sa branche sans
+    auteur depuis toujours) ;
+  · `02-04` disait « ignoré EN SILENCE » — vrai du moteur, **faux de l'écran** ;
+  · `08-01` et `06b-01` sont **le même trou par deux bouts**, et un seul garde-fou les
+    ferme ;
+  · `03-01` (A41) était **satisfait à moitié** par un script écrit pendant le
+    contre-audit.
+  ➡️ **Mesurer d'abord, corriger ensuite — même quand le constat vient de soi.**
+
+  **Ce qui a changé le produit**
+  | | |
+  |---|---|
+  | `01-06` | 🔴 un téléphone déverrouillé suffisait à supprimer le compte : la confirmation prouvait une INTENTION, jamais une IDENTITÉ. Le mot de passe est désormais exigé, **et un échec ARRÊTE tout**. ⚠️ La règle n'est pas « toujours demander » : un invité (accès de revue) n'a pas de mot de passe, et lui en demander un fermerait son droit à l'effacement — d'où `lib/suppressionCompte.ts::preuveExigee`. Et `reauthenticate(password)` ne prend **aucune adresse** : la preuve ne peut porter que sur SOI, sinon l'écran devient un formulaire de connexion déguisé |
+  | `02-04` | `DATED_GOAL_EXPIRED`. **Aucune nouvelle carte** : `DatedGoalCard` dit déjà « Échéance passée », et `PAYWALL_LAUNCH` étant `null`, tout le monde la voit. Deux messages pour une même cause se contredisent à l'œil |
+  | `05-05` | l'indicateur « À synchroniser · Repart à la prochaine connexion », **et surtout PAS une bannière « hors ligne »** : elle énoncerait un état réseau dont l'app ne fait rien, et inquiéterait là où tout fonctionne. La diffusion est branchée sur les **deux seules écritures** du drapeau (`markProfileDirty` / `clearProfileDirty`), pas chez les appelants |
+  | `06b-17` | **deux attributions sur seize étaient fausses**, trouvées en les sourçant. « non vi sed saepe cadendo » est un ajout MÉDIÉVAL, pas d'Ovide ; `usus magister est optimus` est de CICÉRON, pas de Publilius Syrus. Vérifié sur sources externes |
+  | `04-03` | `expo-glass-effect` déclaré — il n'était là que par transitivité d'`expo-router` |
+
+  **Ce qui a changé une règle ou un outil**
+  | | |
+  |---|---|
+  | `08-01`+`06b-01` | le couplage manquant : si `STATISTIQUES_USAGE_ACTIVES` repasse à `true` alors que `legal.ts` affirme « Aucune statistique d'usage n'est collectée », un test le dit — **et nomme le paragraphe à corriger**, ce que « la constante doit rester false » ne fait pas |
+  | `07-02` | l'ordre des gestes au changement de palier : **l'OTA D'ABORD**. L'inverse ouvre une fenêtre où personne ne peut acheter, et elle dure jusqu'au **second lancement** de chaque appareil |
+  | `01-08` | `npm run check:migrations:prod`. Le contrôle ne tournait que pour qui connaissait la commande. Lancé : témoin négatif à 400, six tables à 200, les 40 colonnes en prod — **aucune migration en attente** |
+  | `04-04` | `npm run mesure:bundle`. ⚠️ **7,03 Mo en local contre 5,95 Mo publié** — les deux méthodes **ne se comparent pas** (export local ≠ artefact EAS). Ne PAS lire ça comme une régression. Et le constat se tranche au **démarrage à froid sur Android bas de gamme**, pas au poids |
+  | `02-05` | banque × cyclage **composé et mesuré** sans rien rallumer. Total hebdo conservé (±2 kcal) · +600 sur un jour de séance → 2921 contre 2619 de dépense · plancher quotidien tenu · au-delà de ~+2000 le non-repris est DÉCLARÉ. **Aucune borne ajoutée** : le dépôt a déjà rejeté `MAX_DAY_RATIO`, et dépasser la maintenance un jour est ce qu'une banque promet |
+  | `08-02`, `01-07`, `01-12` | rien à corriger, des faits à écrire : la date d'arrêt réel de la mesure (**second lancement**, pas le merge) · l'app Android **n'est pas rattachée** à RevenueCat (`eas env:list`, mesuré) · le code de revue doit **tourner après la revue**, et une OTA ne le retire pas |
+
+  🔴 **ET LA VÉRIFICATION À L'ÉCRAN A TROUVÉ DEUX DÉFAUTS QUE LE CODE NE DISAIT PAS.**
+  C'est le vrai enseignement du lot — `tsc` vert, 1 960 tests verts, et deux choses
+  fausses à l'œil :
+  1. **Le champ de mot de passe était INVISIBLE.** Mesuré dans le navigateur : fond du
+     champ `rgb(28,28,30)`, fond de la feuille `rgb(28,28,30)` — **contraste 1:1**.
+     « Mot de passe » flottait en texte nu, sur la feuille où il FAUT taper. J'avais
+     recopié un style à la main au lieu de reprendre le rôle « champ de saisie » de la
+     DA (`ui.tsx::Field`) — *un style sans nom dérive*.
+  2. 🔴 **`Presse` ÉCRASAIT L'OPACITÉ DE SES APPELANTS, SUR SEPT SITES.**
+     `style={[style, { opacity: opacite }]}` : la valeur animée vient en dernier, donc
+     elle gagne. Mesuré : `aria-disabled="true"` **et** `opacity: 1` — le bouton ne
+     répondait pas tout en ayant l'air actif. **Pire qu'un bouton grisé** : on tape,
+     rien ne se passe, rien ne l'explique.
+     Les sept incluent **`ui.tsx`, donc TOUS les boutons principaux désactivés de
+     l'app**, plus les ± de `MacroSplit` à leurs bornes et le retour de l'onboarding à
+     l'étape 1. Défaut **antérieur à ce lot** ; il attendait qu'on regarde.
+     ➡️ `opacite` redevient un FACTEUR d'appui, MULTIPLIÉ par l'opacité de base
+     (`StyleSheet.flatten` — un `style` est très souvent un tableau ici). Sans opacité
+     déclarée, les 122 autres sites sont identiques au bit près.
+  ➡️ Vérifié de bout en bout au navigateur : champ vide → bouton `0,6` + `aria-disabled` ;
+  champ rempli → `1` + actif.
+
+  ℹ️ **Vérifié par 22 mutations sur ce lot** (5 + 4 + 8 + 3 + 6 + 5 ailleurs), et **trois
+  de mes sondes étaient fausses, chacune d'une façon différente** : la clé de la banque
+  est un JOUR DE SEMAINE et non un index de plan (je lisais un jour de compensation en
+  croyant lire le jour porteur) · mon balayage du plancher ne le TRAVERSAIT jamais, donc
+  le neutraliser laissait le test vert · et `POLITIQUE_CONFIDENTIALITE` n'existe pas,
+  c'est `PRIVACY_POLICY` — l'échec d'import l'a dit tout de suite.
+  ⚠️ **Un test ne peut pas juger qu'une attribution est VRAIE** : remettre « Publilius
+  Syrus » avec une source inventée laisse le garde-fou vert. Il ferme le chemin
+  MÉCANIQUE (une signature sans référence), pas le mensonge. C'est écrit dans le fichier.
+
+  ➡️ **LES DEUX ÉTAPES HUMAINES QUI RESTENT :**
+  1. `docs/PROCEDURE-2026-08-27-suppression-revenuecat.md` (A41) — le secret Supabase et
+     le redéploiement de l'Edge Function. **Tant qu'elle n'est pas faite, le §7 de la
+     politique reste inexact pour les non-abonnés.**
+  2. **`01-07`** — poser la clé RevenueCat Android, ou **acter par écrit qu'Android sort
+     sans achat**. À trancher avant la soumission Android.
+
 - ✅ **A38 · SÉLECTION BMR « R6 LISSÉE » — LIVRÉE le 2026-08-24** (décision fondateur,
   handoff « Mifflin vs Katch », `ENGINE_REV` 7 → 8). La règle binaire « %MG estimé ⇒
   toujours Mifflin » devient une bascule asymétrique et continue : le BMR glisse de

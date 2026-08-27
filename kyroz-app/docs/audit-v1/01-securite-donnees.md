@@ -155,6 +155,17 @@ Aucun bucket Storage n'existe : rien à effacer de ce côté.
 - **Effort : S**
 
 ### 01-03 « Toutes tes données seront supprimées » n'est pas vrai
+> ✅ **CORRIGÉ le 2026-08-27** — fiche : `AGENTS.md` **A41**, procédure (étape humaine
+> restante) : `docs/PROCEDURE-2026-08-27-suppression-revenuecat.md`.
+> · **RevenueCat** : réel, et plus large que le constat — `identifyUser(uid)` étant appelé
+>   SANS CONDITION, un abonné existe pour **tout le monde**, abonné ou non, ce qui met en
+>   défaut le §7 de la politique (« si vous avez souscrit »). `delete-account` supprime
+>   désormais l'abonné **avant** la cascade, best-effort borné, jamais bloquant.
+> · **PostHog** : **close par les faits, la veille du constat** — `distinctId()` n'est appelé
+>   que depuis `capture()`, qui sort avant tout sur `STATISTIQUES_USAGE_ACTIVES` (false depuis
+>   le 2026-08-26). Aucun pseudonyme ne peut plus naître, données supprimées à la source.
+> · **La phrase** avait DEUX défauts opposés : « toutes » côté serveur, et une liste qui
+>   TAISAIT les pesées et les photos côté appareil — que le code efface pourtant.
 - **Sévérité : P1**
 - **Preuve** : le texte de confirmation promet « Toutes tes données (profil, plans, série, favoris, réserve) […] définitivement supprimées, sur cet appareil et sur le serveur » (`app/(tabs)/profil.tsx:782`). Or :
   - **RevenueCat** : `identifyUser(null)` → `logOut()` réinitialise l'identité (`hooks/usePremium.ts:52`, `lib/purchases.ts:201`), le **client n'est pas supprimé**. Aucun appel de suppression, aucune procédure manuelle écrite.

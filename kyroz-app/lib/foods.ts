@@ -9,11 +9,43 @@ import { applyCuration } from './foods.curation';
 // officiel par scripts/convert-ciqual.py → lib/foods.generated.ts (ne pas éditer
 // à la main). ~3300 aliments courants en France.
 
-// Mention légale obligatoire (Licence Ouverte 2.0 : attribution de la source,
-// sans dénaturation ni suggestion d'endossement). À afficher dans l'app.
+// ── Mention légale obligatoire — Licence Ouverte 2.0 (Etalab) ──────────────
+//
+// La licence n'exige qu'UNE chose, et elle a deux moitiés : **le nom du producteur**
+// ET **la date de dernière mise à jour** de l'information réutilisée. Plus une
+// restriction : la mention ne doit ni conférer un caractère officiel à la
+// réutilisation, ni suggérer une reconnaissance du producteur.
+//
+// 🔴 LA DATE MANQUAIT — donc la moitié de l'unique obligation (jugement 6b-bis, Q7,
+// corrigé le 2026-08-27). « 2025 » est un MILLÉSIME de table, pas une date de mise à
+// jour. Elle était pourtant à portée : `data/ciqual/MANIFEST.TXT` et les noms de
+// fichiers la portent (`…_FR_2025_11_03.xlsx`), et le jeu publié porte un DOI et une
+// date de publication — 19 novembre 2025, v1.0. Le DOI emprunte en plus la modalité
+// alternative que la licence autorise explicitement : l'URL qui renvoie vers
+// l'information.
+//
+// 🔴 ET LE `®` EST PARTI. Mesuré sur la documentation officielle de l'ANSES
+// (`Table Ciqual 2025 doc FR_2025_11_19.pdf`) : **37 occurrences de « Ciqual », ZÉRO
+// avec `®`** — alors que ce même document emploie `®` **157 fois** par ailleurs, pour
+// des marques commerciales d'aliments. Le titulaire ne marque pas son propre nom, et
+// la page du jeu de données non plus. Apposer un symbole d'enregistrement sur le nom
+// d'un tiers qui ne le revendique pas n'est pas de la typographie : c'est une
+// affirmation factuelle fausse sur la propriété de quelqu'un d'autre.
+//
+// ⚠️ Les deux phrases sur les modifications et la non-caution ne sont exigées par
+// AUCUNE clause. Elles restent : c'est ce qui rend la restriction « pas de caution »
+// crédible plutôt que déclarative.
+//
+// ⚠️ Deux autres surfaces citent Ciqual SANS date — les CGU §6 (`constants/legal.ts`)
+// et la fiche store (`STORE-RELEASE.md`). Elles n'ont pas été touchées, et c'est un
+// choix mesuré : la licence se satisfait d'UNE mention effective de la paternité, et
+// c'est celle-ci — affichée dans les Réglages et sur la page Méthodologie. Les
+// enrichir rouvrirait l'empreinte du texte légal pour rien. Procédure et arbitrage :
+// `docs/audit-v1/PROCEDURE-2026-08-27-mention-ciqual.md`.
 export const CIQUAL_ATTRIBUTION =
-  'Données nutritionnelles issues de la Table Ciqual® 2025 (ANSES), réutilisée sous ' +
-  'Licence Ouverte 2.0 (Etalab). Certaines entrées sont ajoutées ou ajustées par Kyroz ' +
+  'Données nutritionnelles issues de la Table Ciqual 2025 (ANSES), mise à jour du ' +
+  '19 novembre 2025, réutilisée sous Licence Ouverte 2.0 (Etalab) — ' +
+  'doi.org/10.57745/RDMHWY. Certaines entrées sont ajoutées ou ajustées par Kyroz ' +
   'et ne proviennent pas de l’ANSES. L’ANSES n’endosse pas Kyroz.';
 
 // Base d'aliments effective = Ciqual brut (ANSES) + curation Kyroz (cf. foods.curation.ts).

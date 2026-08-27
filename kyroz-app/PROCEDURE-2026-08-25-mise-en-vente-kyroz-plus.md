@@ -501,6 +501,47 @@ la date est le seul geste qui ouvre la vente.
 
 ---
 
+## 🔴 Le jour du retrait de l'offre de lancement — L'OTA D'ABORD, TOUJOURS
+
+*(constat 07-02, écrit le 2026-08-27 — ce n'est pas dans les étapes ci-dessus, et c'est
+précisément ce qui manquait : la doc disait QUOI basculer, jamais dans quel sens.)*
+
+Basculer du palier de lancement au palier standard demande **deux gestes**, et les
+inverser ouvre une fenêtre où **personne ne peut acheter**.
+
+Retirer le palier chez Apple en premier fait demander à l'app un produit qui ne se vend
+plus. Et la fenêtre n'est pas brève : une OTA s'applique au **DEUXIÈME lancement** de
+chaque appareil (`fallbackToCacheTimeout: 0`), donc elle dure tant que les gens n'ont
+pas redémarré l'app deux fois.
+
+**Ce qui se passe pendant, mesuré dans le code** : `getProducts` ne trouve pas
+l'identifiant, `fetchStorePrices` rend `{}` **en silence** (`lib/purchases.ts:249`),
+l'écran montre les tarifs de repli en les annonçant comme tels, et l'achat rend
+« indisponible ». C'est le mode d'échec exact des quatre identifiants inventés dont
+`lib/premium.ts` porte la trace — sauf qu'il frapperait tout le monde le même jour.
+
+| # | Geste | Vérification |
+|---|---|---|
+| 1 | Basculer les deux `storeProductId` et les deux `price` de `PREMIUM_PRICES` (`lib/premium.ts`) vers le palier standard | `npm run check:abonnements` — il mesure l'état RÉEL des produits chez Apple |
+| 2 | Publier l'OTA | `npm run check:ota` — il confronte le canal `production` aux fiches |
+| 3 | **Seulement ensuite**, retirer le palier de lancement de la vente dans App Store Connect | — |
+
+⚠️ **Entre 2 et 3, les DEUX paliers sont en vente.** C'est voulu : c'est le seul état
+sans trou. Laisser deux paliers achetables quelques jours coûte moins qu'une heure
+d'achats impossibles.
+
+⚠️ **Un abonné du palier de lancement garde son prix quoi qu'il arrive** — un produit
+retiré de la vente n'est pas supprimé, ses abonnés se renouvellent à leur tarif. C'est
+le comportement natif d'Apple et de Google, et c'est ce qui tient la promesse des
+CGU §3. Ne rien « nettoyer » chez Apple tant qu'un abonné y est rattaché.
+
+ℹ️ **L'alternative supprimerait la fenêtre entièrement** : lire l'OFFERING courant
+(`getOfferings()`) plutôt que des identifiants en dur, au prix d'un aller-retour réseau
+au chargement du paywall. Pas fait — c'est un changement d'architecture pour un risque
+que l'ordre des gestes ferme à coût nul.
+
+---
+
 ## Ce qui doit rester vrai, quoi qu'il arrive
 
 - **Le calcul, les planchers et les avertissements restent gratuits.** Sans pesée

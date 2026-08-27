@@ -79,6 +79,29 @@ export function isGrandfathered(createdAt: string | null | undefined, launch = P
 }
 
 /**
+ * Faut-il interroger le fournisseur d'abonnement pour rendre le verdict d'accès ?
+ *
+ * 🔴 DÉPLACÉE ICI ET EXPORTÉE LE 2026-08-27 (contre-audit CA-7-02). Elle vivait
+ * privée dans `hooks/usePremium.ts` et n'était nommée dans AUCUN test : inverser son
+ * `return false` en `return true` la rendait vraie pour TOUT LE MONDE tant que
+ * `PAYWALL_LAUNCH` est `null` — c'est-à-dire aujourd'hui, pour 100 % des comptes —
+ * donc `identifyUser(uid)` repartait à chaque connexion, exactement le défaut 09-01
+ * qu'on venait de corriger. 1 841 tests restaient verts. La case « Identifiers →
+ * User ID … uniquement pour les abonnés » du formulaire App Privacy reposait sur
+ * trois lignes que rien ne mesurait.
+ * ➡️ Une DÉCISION pure vit dans le module pur, testable — même motif que `tours.ts`,
+ * `visee.ts` et `accentColor.ts`. Le hook ne fait plus que l'appeler.
+ *
+ * ⚠️ **Prudence dans le sens qui protège l'accès** : une date de création absente rend
+ * `isGrandfathered` vrai, donc `necessaire` faux, donc l'accès est accordé sans
+ * interroger personne. Se tromper en DONNANT, jamais en retirant.
+ */
+export function entitlementNecessaire(createdAt: string | null | undefined): boolean {
+  if (!PAYWALL_LAUNCH) return false;
+  return !isGrandfathered(createdAt);
+}
+
+/**
  * Verdict d'accès à une feature premium.
  *
  * `entitled` vient du fournisseur de paiement (RevenueCat). Tant qu'il n'est pas
@@ -173,6 +196,35 @@ export interface PremiumPlan {
  * ➡️ **Le jour du retrait de l'offre de lancement**, on bascule les deux
  * `storeProductId` (et les deux `price`) vers le palier standard. C'est du
  * JavaScript, donc ça part en **OTA**, sans nouvelle revue.
+ *
+ * 🔴 **ET L'ORDRE DES DEUX GESTES N'EST PAS INDIFFÉRENT — L'OTA D'ABORD, TOUJOURS**
+ * (constat 07-02, écrit le 2026-08-27). C'est le seul point qui manquait à ce
+ * paragraphe : il décrivait QUOI basculer, jamais DANS QUEL SENS.
+ *
+ * Retirer le palier chez Apple avant de publier l'OTA ouvre une fenêtre où l'app
+ * demande un produit qui ne se vend plus. Et cette fenêtre n'est pas courte : une OTA
+ * s'applique au **DEUXIÈME lancement** (`fallbackToCacheTimeout: 0`, cf. CLAUDE.md §2),
+ * donc elle dure jusqu'à ce que chaque appareil ait redémarré deux fois.
+ *
+ * **Ce qui se passe pendant, mesuré dans le code** : `getProducts` ne trouve pas
+ * l'identifiant, `fetchStorePrices` rend `{}` **en silence** (`purchases.ts:249`),
+ * l'écran affiche les tarifs de REPLI en les annonçant comme tels, et l'achat rend
+ * « indisponible ». C'est très exactement le mode d'échec des quatre identifiants
+ * inventés dont ce fichier porte déjà la trace — sauf qu'il frapperait tout le monde
+ * en même temps, le jour d'un changement de prix.
+ *
+ * ➡️ **L'ordre, et il ne se déduit pas :**
+ *   1. publier l'OTA qui bascule les identifiants ;
+ *   2. vérifier qu'elle est appliquée (`npm run check:ota`) ;
+ *   3. **seulement ensuite**, retirer le palier de lancement de la vente chez Apple.
+ * ⚠️ Entre 1 et 3, les DEUX paliers sont en vente : c'est voulu, et c'est le seul
+ * état sans trou. Un abonné du palier de lancement, lui, garde son prix quoi qu'il
+ * arrive — un produit hors vente n'est pas supprimé.
+ *
+ * ℹ️ **L'alternative supprimerait la fenêtre**, au prix d'un aller-retour réseau au
+ * chargement du paywall : lire l'OFFERING courant (`getOfferings()`) au lieu de
+ * demander des identifiants en dur. Pas fait — c'est un changement d'architecture pour
+ * un risque que l'ordre des gestes ferme à coût nul.
  *
  * 🔴 **CES CHAÎNES SE RECOPIENT DEPUIS APPLE, ELLES NE SE CHOISISSENT PAS ICI.**
  * Quatre identifiants faux ont déjà été inventés dans ce fichier, chacun échouant

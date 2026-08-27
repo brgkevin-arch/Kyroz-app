@@ -33,8 +33,13 @@ const DOSSIERS = ['app', 'components', 'lib', 'constants', 'hooks'];
 // `®`, `©` et `™` sont Extended_Pictographic pour Unicode, mais ce ne sont pas
 // des émojis : ce sont des signes TYPOGRAPHIQUES, ils n'ont pas de couleur
 // propre, ils suivent la fonte et donc le thème. C'est exactement le critère qui
-// condamne les autres. `lib/foods.ts` en porte un légitime — « Table Ciqual® 2025
-// (ANSES) », une mention de source qu'on n'a pas le droit de réécrire.
+// condamne les autres.
+// ⚠️ IL N'EN RESTE AUCUN DANS LE CODE depuis le 2026-08-27 : le seul, « Table Ciqual®
+// 2025 », a été retiré — l'ANSES n'emploie jamais `®` pour son propre nom (37 mentions,
+// 0 avec `®`, dans sa documentation officielle). L'exemption reste, parce qu'elle est
+// juste et qu'un `©` ou un `™` légitime peut arriver ; mais elle n'est plus éprouvée
+// par un cas réel, seulement par la sonde construite plus bas. C'est écrit ici pour que
+// personne ne croie le contraire.
 const SIGNES_TYPOGRAPHIQUES = new Set(['®', '©', '™']);
 
 const PICTO = /\p{Extended_Pictographic}/gu;
@@ -103,12 +108,14 @@ describe('Aucun émoji dans l’interface (CLAUDE.md §8)', () => {
   // Vérification de l'INSTRUMENT, pas du produit. Un compteur qu'on n'a jamais vu
   // rougir ne prouve rien : celui-ci a déjà eu deux versions fausses (l'une
   // aveugle aux commentaires de fin de ligne, l'autre qui condamnait le `®` de
-  // Ciqual). Les deux rendaient un résultat parfaitement plausible.
+  // Ciqual — qui, lui, n'aurait de toute façon pas dû être là). Les deux rendaient un résultat parfaitement plausible.
   it('l’instrument sait dire OUI — il voit un émoji, et il ignore ce qu’il doit ignorer', () => {
     expect('Bravo 🎉'.match(PICTO)).toHaveLength(1);
     expect(sansCommentaires('const x = 1; // 🔥 note').match(PICTO)).toBeNull();
     expect(sansCommentaires('const u = "https://kyroz.app"; // 🔥').match(PICTO)).toBeNull();
     expect(sansCommentaires('const u = "https://kyroz.app/🔥";').match(PICTO)).toHaveLength(1);
-    expect('Ciqual®'.match(PICTO)!.every((c) => SIGNES_TYPOGRAPHIQUES.has(c))).toBe(true);
+    // Cas CONSTRUIT — plus aucun `®` réel dans le code depuis le retrait de celui de
+    // Ciqual. La sonde doit quand même savoir le reconnaître comme typographique.
+    expect('Marque®'.match(PICTO)!.every((c) => SIGNES_TYPOGRAPHIQUES.has(c))).toBe(true);
   });
 });

@@ -71,6 +71,12 @@ NSPrivacyAccessedAPITypes    FileTimestamp   C617.1
 ## Constats
 
 ### 03-01 `"permissions": []` ne vide rien — la config résolue en porte trois
+> ✅ **CORRIGÉ le 2026-08-27** — et **la moitié de la reco était déjà écrite** :
+> `npm run check:permissions` existait (produit pendant le contre-audit, sans que ce constat
+> soit coché). Restait la déclaration trompeuse : `"permissions": []` a été retiré d'`app.json`
+> après avoir mesuré la config résolue AVANT et APRÈS — identique au caractère près, il ne
+> portait aucune information. Sans effet OTA (`runtimeVersion.policy` = `"appVersion"`).
+> Garde-fou : `lib/__tests__/permissionsDeclarees.test.ts` (3 mutations). Fiche : `AGENTS.md` **A41**.
 - **Sévérité : P1**
 - **Preuve** : `app.json:26` déclare `"permissions": []`. La config **résolue** (`npx expo config --type introspect --json`) rend :
   ```

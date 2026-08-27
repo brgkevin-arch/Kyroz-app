@@ -322,6 +322,39 @@ OUTPUT         → Plan + liste de courses + recettes
 - Output crédible dès J1 (crédibilité > gadget)
 - Fallback toujours : jamais d'erreur vide, toujours un plan affiché
 
+> 🔴 **« FALLBACK TOUJOURS » VALAIT AUSSI POUR LE DÉMARRAGE, ET IL ÉTAIT FAUX**
+> (2026-08-27, constat `02-03`, AGENTS.md **A40**). Un `goal` hors barème —
+> colonne `text` sans contrainte — faisait LEVER `GOAL_CONFIG[p.goal]`. La levée
+> partait du `.then()` de la lecture du profil au démarrage, **qui n'avait pas de
+> `.catch()`** : `setLoading(false)` était sauté, `app/index.tsx` restait sur
+> `<Splash />`, et la valeur fautive étant relue d'AsyncStorage à chaque lancement,
+> **redémarrer ne réparait rien**. L'app ne s'ouvrait plus. Jamais.
+>
+> **Deux invariants en sortent, et le second est celui qui servira demain :**
+>
+> 1. **`lib/profileBoot.ts::bootProfile` ne lève jamais** — c'est le contrat de
+>    démarrage, et il vit dans `lib/` parce que la suite ne couvre que `lib/`.
+>    Refermer un champ ferme une porte dans une pièce sans murs : le prochain champ
+>    hors barème refigerait tout à l'identique. ⚠️ Quand le recalcul échoue, il sert
+>    le profil STOCKÉ et le dit (`degraded`) — le plancher rétroactif (P0.1) ne
+>    s'applique pas ce coup-ci, ce qui vaut infiniment mieux qu'une app qui ne
+>    démarre pas, mais l'appelant **ne doit rien réécrire** dans cet état.
+> 2. 🔴 **ON PEUT REPLIER UNE INTENTION, JAMAIS UNE MESURE.** `goal` se replie sur
+>    `maintain` (`GOAL_FALLBACK`) parce que tout le reste reste calculable — la
+>    dépense est réelle, le plancher aussi — et que `maintain` vaut exactement
+>    « aucun ajustement » : le plan servi est VRAI. **Le même repli sur `sex`,
+>    `age`, `weight_kg` ou `height_cm` serait un MENSONGE** : inventer une mesure
+>    fabrique un BMR qui n'est celui de personne. Ces quatre-là se REFUSENT, avec un
+>    état « profil incomplet » explicite (constat `02-02`, encore ouvert). Deux
+>    constats voisins, deux remèdes opposés — c'est la NATURE du champ qui tranche.
+>
+> ⚠️ **Et un repli doit SE VOIR** : `syncGuard::normalizeGoal` réécrit le profil, donc
+> l'écran Profil affiche « Maintien » et la personne peut le changer. Un repli
+> silencieux serait un réglage fantôme (le défaut exact de `variety: 'high'`, §11).
+> ℹ️ La liste des objectifs vit dans `lib/types.ts::GOALS` (`as const`), le type en
+> dérive, et `GOAL_CONFIG` est un `Record<Goal, …>` : **oublier une entrée ne compile
+> pas.** L'exhaustivité est tenue par `tsc`, pas par un test.
+
 ---
 
 ## 5. Règles de développement
@@ -889,7 +922,8 @@ composant. Audit complet des réglages : `npm run mesure:reglages`.
   Plancher = `max(BMR, min(30 kcal/kg de masse maigre + dépense sportive, TDEE), 1500 H / 1200 F)`.
   🔴 **SAUF AU-DELÀ DE 30 % DE MG CHEZ L'HOMME / 40 % CHEZ LA FEMME** — les deux
   planchers dérivés de la masse maigre (BMR **et** énergie disponible) se retirent
-  alors, et le cap à 25 % du TDEE prend le relais (`safety.ts::highAdiposity`,
+  alors **PROGRESSIVEMENT, sur cinq points de %MG** (`ADIPOSITY_BLEND_PTS`, amendé le
+  2026-08-27, `ENGINE_REV` 8 → 9), et le cap à 25 % du TDEE prend le relais (`safety.ts::highAdiposity`,
   `HIGH_ADIPOSITY_PCT`). Décision fondateur du 2026-08-10, `ENGINE_REV` 6 → 7.
   **Le défaut, mesuré** (`npm run mesure:plancher`) : le plancher d'énergie disponible
   gagnait sur les deux autres contraintes **15 fois sur 15**, de 15 à 45 % de MG, chez
@@ -902,6 +936,27 @@ composant. Audit complet des réglages : `npm run mesure:reglages`.
   inversion (« plus on est gras, moins le moteur autorise »). Il n'y en a pas — le
   déficit permis monte même légèrement avec l'adiposité (318 → 375 kcal/j). Le défaut
   était **uniforme**, donc bien plus gros que celui qu'on croyait corriger.
+  🔴 **POURQUOI PROGRESSIVEMENT — amendé le 2026-08-27 (contre-audit `CA-2-01`).** Le
+  retrait était un INTERRUPTEUR : un homme de 140 kg passant de 30,00 à 30,05 % de MG
+  voyait sa cible tomber de **115 kcal/j** et son plancher de **659**. Ce n'était pas une
+  pente raide mais une DISCONTINUITÉ, et la preuve est que le saut ne rétrécissait pas
+  quand le pas rétrécissait : 137 · 115 · 112 kcal/j aux pas 0,5 · 0,05 · 0,005 pt. Après :
+  137 · 34 · 4 — il rétrécit, donc c'est une pente.
+  ⚠️ **Le SEUIL ne bouge pas, et `highAdiposity` reste BINAIRE** : il continue d'être la
+  définition unique de « grasse » pour la bande de rythme, le registre de zone basse et
+  l'escalade. Deux définitions finiraient par diverger. Seule la transition du PLANCHER
+  s'adoucit — c'est elle qui produisait la falaise dans la cible servie.
+  ⚠️ **Cinq points n'est pas un réglage** : c'est le pas du sélecteur de silhouettes
+  (10/15/20/25/30/35 · 18/23/28/33/38/43) ET la bande de bruit que R6 lissée s'était
+  donnée (« ±5 pts de %MG »). Plus étroit, la falaise revient ; plus large, on mord sur
+  les corps que la décision du 2026-08-10 voulait libérer.
+  ⚠️ **CE QUE ÇA COÛTE, mesuré avec le moteur réel des deux côtés** : sur 225 600 profils
+  balayés autour du seuil, **28 cibles bougent (0,01 %)**, maximum **53 kcal/j**, et
+  **aucune** n'atteint les 100 kcal/j de `ENGINE_NOTICE_MIN_DELTA` — personne ne reçoit
+  d'avertissement. Les quatre corps que la décision du 2026-08-10 cite servent le même
+  déficit au kcal près. Garde-fou : `lib/__tests__/continuiteSeuilAdiposite.test.ts`
+  (vérifié par 3 mutations), et la marche entre deux SILHOUETTES adjacentes (30 → 35) est
+  inchangée à 314 kcal/j : cinq points de %MG, c'est un autre corps.
   ⚠️ **Justification physiologique** : 30 kcal/kg de masse maigre est un seuil conçu
   pour des athlètes maigres, chez qui l'énergie DOIT venir de l'assiette faute de
   réserve. Chez quelqu'un qui porte 43 kg de graisse, la réserve EST la source d'énergie
@@ -1580,8 +1635,11 @@ payé par une mesure en l'écrivant :
   du code. Un compteur qui crie au loup 47 fois ne sera pas lu ;
 - il **autorise `®`, `©`, `™`**. Unicode les classe `Extended_Pictographic`, mais ce
   sont des signes typographiques : ils suivent la fonte, donc le thème — le critère
-  même qui condamne les émojis. `lib/foods.ts` en porte un légitime (« Table
-  Ciqual® 2025 »), qu'on n'a pas le droit de réécrire ;
+  même qui condamne les émojis. ⚠️ **Il n'en reste AUCUN dans le code depuis le
+  2026-08-27** : le seul, « Table Ciqual® 2025 », a été retiré — l'ANSES n'emploie
+  jamais `®` pour son propre nom (37 mentions, 0 avec `®`, dans sa documentation
+  officielle, alors que ce document en emploie 157 par ailleurs). L'exemption reste
+  parce qu'elle est juste, mais elle n'est plus éprouvée que par une sonde construite ;
 - il **vérifie qu'il sait dire OUI** avant de dire non. Un compteur qu'on n'a jamais
   vu rougir ne prouve rien, et celui-ci a eu deux versions fausses — l'une aveugle
   aux commentaires de fin de ligne, l'autre condamnant le `®` de Ciqual. **Vérifié

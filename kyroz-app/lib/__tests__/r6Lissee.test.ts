@@ -214,7 +214,11 @@ describe('6 — migration rev 7 → 8 : la cible monte, et l\'avertissement dit 
   });
 
   it('l\'avertissement one-shot part, sans recevoir un texte de la rev 7', () => {
-    expect(ENGINE_REV).toBe(8);
+    // ⚠️ Épinglé exprès : un bump doit faire venir quelqu'un LIRE ce test.
+    // 9 depuis le 2026-08-27 — retrait progressif des planchers au seuil
+    // d'adiposité (contre-audit CA-2-01). Le trajet rev 7 → courant testé ici
+    // ne change pas de nature : sa cause reste indéfinie.
+    expect(ENGINE_REV).toBe(9);
     const apres = recalcProfile(p, T);
     // Sous l'ancienne règle (rev 7), ce corps calculait en Mifflin pur.
     const ancienBmr = Math.round(mifflinRaw(p));
@@ -224,7 +228,7 @@ describe('6 — migration rev 7 → 8 : la cible monte, et l\'avertissement dit 
     );
     expect(migre.target_kcal).toBeGreaterThan(ancienTdee);
     expect(migre.engine_notice).toBeDefined();
-    expect(migre.engine_notice!.rev).toBe(8);
+    expect(migre.engine_notice!.rev).toBe(ENGINE_REV);
     expect(migre.engine_notice!.fromRev).toBe(7);
     // Pas de cause rev 7 : les textes « floor_lifted » / « goal_merged » seraient
     // des mensonges pour quelqu'un dont la cible n'a bougé que par R6.

@@ -29,6 +29,22 @@ const ligne = (quoi: string, vu: string, attendu: string) => {
   console.log(`  ${ok ? '✓' : '✖'} ${quoi.padEnd(34)} ${vu}${ok ? '' : `   ≠ ${attendu}`}`);
 };
 
+/**
+ * « 26 août 2026 » → `2026-08-26`. `null` si la forme n'est pas reconnue.
+ *
+ * ⚠️ Rendre `null` plutôt que d'inventer : une date illisible doit faire ÉCHOUER la
+ * confrontation, jamais la faire passer. C'est le défaut que ce bloc corrige.
+ */
+const MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin',
+  'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+const jourFr = (t: string): string | null => {
+  const m = /^(\d{1,2})\s+([a-zéûôA-Z]+)\s+(\d{4})$/.exec(t.trim());
+  if (!m) return null;
+  const i = MOIS.indexOf(m[2].toLowerCase());
+  if (i < 0) return null;
+  return `${m[3]}-${String(i + 1).padStart(2, '0')}-${m[1].padStart(2, '0')}`;
+};
+
 // ── 1. Les deux fiches sont-elles d'accord entre elles ? ─────────────────────
 console.log('\nLes deux fiches');
 const agents = lireAgents(lire('AGENTS.md'));
@@ -147,16 +163,44 @@ try {
   const servi = execFileSync('git', ['show', `${fiche.commit}:kyroz-app/constants/legal.ts`],
     { cwd: ROOT, encoding: 'utf8', maxBuffer: 8 * 1024 * 1024, stdio: ['ignore', 'pipe', 'ignore'] });
   const actuel = lire('constants/legal.ts');
-  if (servi === actuel) {
+  // 🔴 CE BLOC NE TOUCHAIT JAMAIS LE COMPTEUR — corrigé le 2026-08-27 (contre-audit
+  // CA-7-01). Il n'imprimait que des `console.log` : sur les 35 lignes de la section,
+  // zéro `ko++`. Poussé à l'absurde, `effectiveDate` réécrite en « 15 juin 2026 » —
+  // 73 jours dans le PASSÉ, donc démontrablement pas une date de livraison — la sortie
+  // était identique, ✅ et EXIT=0. Le script IMPRIMAIT la fausse date sans jamais la
+  // confronter à quoi que ce soit, alors qu'il a `tete.createdAt` en main.
+  //
+  // Ce qu'on peut affirmer sans se tromper, et rien de plus :
+  //  • texte SERVI → sa date ne peut pas être ANTÉRIEURE au jour où il a été publié,
+  //    sinon le document opposable prétend avoir pris effet avant d'exister ;
+  //  • texte PAS ENCORE SERVI → sa date ne peut pas être déjà PASSÉE, sinon publier
+  //    demain servira une date fausse. Le reste (« est-ce bien le jour du jour ? »)
+  //    ne se décide qu'au moment de publier — ça, on ne peut que le rappeler.
+  const dateTexte = actuel.match(/effectiveDate:\s*'([^']+)'/)?.[1] ?? '(illisible)';
+  const jourTexte = jourFr(dateTexte);
+  const jourPublication = tete.createdAt.slice(0, 10);
+  const aujourdHui = new Date().toISOString().slice(0, 10);
+
+  if (jourTexte === null) {
+    ligne('date d’entrée en vigueur lisible', `« ${dateTexte} »`, 'JJ mois AAAA');
+  } else if (servi === actuel) {
+    // Le texte du dépôt EST celui qui tourne : sa date est donc opposable dès
+    // maintenant, et elle ne peut pas précéder sa mise en service.
+    ligne('date d’entrée en vigueur ≥ publication',
+      jourTexte >= jourPublication ? 'oui' : `NON (« ${dateTexte} » < ${jourPublication})`, 'oui');
     console.log('  ✓ le texte du dépôt est celui qui tourne         identique au commit publié');
   } else {
-    const dateActuelle = actuel.match(/effectiveDate:\s*'([^']+)'/)?.[1] ?? '(illisible)';
-    console.log(`  ⚠ le texte du dépôt N'EST PAS ENCORE SERVI       date affichée : « ${dateActuelle} »`);
+    // Pas encore servi : légitime entre un merge et sa publication. Mais une date
+    // déjà passée ne PEUT pas être celle de la livraison à venir.
+    ligne('date d’entrée en vigueur pas déjà passée',
+      jourTexte >= aujourdHui ? 'oui' : `NON (« ${dateTexte} » < ${aujourdHui})`, 'oui');
+    console.log(`  ⚠ le texte du dépôt N'EST PAS ENCORE SERVI       date affichée : « ${dateTexte} »`);
     console.log('     ➡️ Une date d’entrée en vigueur est celle de la LIVRAISON, pas du commit.');
     console.log('        Avant de publier l’OTA : vérifier que cette date est bien CELLE DU JOUR,');
     console.log('        la corriger dans constants/legal.ts ET DERNIERE_REVISION.date si besoin,');
     console.log('        reporter l’empreinte, puis `npm run gen:legal`.');
-    console.log('     ⚠️ Ce n’est pas un échec : c’est normal entre un merge et sa publication.');
+    console.log('     ⚠️ Que le texte ne soit pas encore servi n’est PAS un échec : c’est normal');
+    console.log('        entre un merge et sa publication. Sa DATE, elle, est confrontée ci-dessus.');
   }
 } catch {
   console.log('  ⚠ texte légal du commit publié illisible — `git fetch origin` puis relancer.');
