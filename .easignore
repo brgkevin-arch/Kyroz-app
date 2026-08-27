@@ -1,0 +1,155 @@
+# .easignore — ce que l'archive envoyée à EAS Build ne doit PAS contenir.
+#
+# ⚠️ RÈGLE CAPITALE : ce fichier REMPLACE les .gitignore, il ne s'y ajoute pas.
+#    (eas-cli, build/vcs/local.js : « if .easignore exists, .gitignore files are
+#    not used ».) Tout motif qu'on retire d'ici RE-MONTE donc dans l'archive —
+#    les motifs de secrets compris. Ce fichier doit rester l'UNION de :
+#    .gitignore (racine) + kyroz-app/.gitignore + .git/info/exclude
+#    + ce qui est inutile au build.
+#
+# EMPLACEMENT IMPOSÉ : la racine du DÉPÔT GIT — pas kyroz-app/, où vit eas.json.
+#    eas-cli lit `path.join(await getRootPathAsync(), '.easignore')` et
+#    getRootPathAsync() = `git rev-parse --show-toplevel`. Dans un worktree, c'est
+#    la racine DU WORKTREE : ce fichier étant versionné, il y est aussi. ✔
+#
+# POURQUOI (mesuré le 2026-08-27, eas-cli 20.1.0) : l'archive faisait 478 Mo alors
+#    que le dépôt versionné pèse 18 Mo. Reproduit hors-ligne en exécutant la vraie
+#    classe Ignore d'eas-cli : 1337 Mo copiés → 467 Mo gzippés (les ~11 Mo d'écart
+#    sont le .git du clone shallow, cf. plus bas). Ventilation :
+#      1226 Mo  .claude/worktrees/supabase-confirmation-email-c6b816/kyroz-app
+#        77 Mo  .claude/worktrees/aso-ef1e7c/kyroz-app
+#        16 Mo  .claude/worktrees/external-test-credentials-76d2ec/kyroz-app
+#        17 Mo  kyroz-app  ← le seul dossier qui avait à y être
+#    Deux angles morts d'eas-cli, cumulés :
+#    1. `.claude/worktrees/` n'est exclu que par .git/info/exclude — un fichier
+#       LOCAL, non versionné, qu'eas-cli ne lit jamais : il ne cherche que des
+#       fichiers nommés `.gitignore`.
+#    2. Les .gitignore INTERNES aux worktrees ne sont pas chargés non plus : le
+#       glob `**/.gitignore` d'eas-cli ne traverse pas les dossiers cachés
+#       (fast-glob, dot:false), donc rien sous `.claude/`. Le `kyroz-app/ios` d'un
+#       worktree (1,1 Go de Pods + build Xcode) partait donc en ENTIER, alors que
+#       le `kyroz-app/ios` du dépôt principal, lui, était bien exclu.
+#    Mesuré : les préfixes d'ignore chargés par eas-cli étaient exactement
+#    ["", "", "kyroz-app/", "kyroz-app/ios/"] — aucun sous `.claude/`.
+
+
+#
+# ⚠️ PAS DE BARRE FINALE sur les motifs de dossier. Mesuré : avec `dist/`, la
+#    bibliothèque `ignore` répond « non ignoré » pour le dossier `dist` lui-même
+#    (elle ne sait pas que c'en est un) — 14 des motifs de ce fichier étaient dans
+#    ce cas. Le contenu finissait exclu quand même, fichier par fichier, mais
+#    eas-cli descendait inutilement dans l'arborescence et un motif ne mordait
+#    plus sur un dossier remplacé par un lien symbolique. C'est la même leçon que
+#    celle déjà écrite dans les deux .gitignore du dépôt à propos de node_modules.
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 1. SECRETS — à ne jamais laisser partir chez EAS.
+#    Repris de kyroz-app/.gitignore. Sans ce bloc, un `.env.local` posé demain
+#    sur le disque partirait dans l'archive : c'est le risque n°1 de ce fichier.
+#    (Il existe déjà un kyroz-app/.env.local dans au moins un worktree.)
+#    Motifs volontairement NON ancrés : ils doivent mordre à tous les niveaux.
+# ─────────────────────────────────────────────────────────────────────────────
+.env
+.env*
+!.env.example
+*.p8
+*.p12
+*.key
+*.pem
+*.mobileprovision
+*.jks
+# La clé App Store Connect (.p8) vit hors du dépôt (~/.eas-credentials/), cf.
+# `ascApiKeyPath` dans eas.json — elle n'est donc pas concernée. Le motif reste,
+# pour le jour où une clé serait déposée dans le dépôt par erreur.
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 2. OUTILLAGE LOCAL — la cause mesurée des 478 Mo.
+#    Couvre d'un seul motif tous les `**/.claude/...` de .git/info/exclude
+#    (worktrees, checkpoints, mailbox, agent-memory-local, scheduled_tasks…)
+#    et le `.claude/settings.local.json` du .gitignore racine.
+#    Rien sous .claude/ n'est utile à un build Expo.
+# ─────────────────────────────────────────────────────────────────────────────
+.claude
+graphify-out
+/_archive
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 3. Repris de .gitignore (racine) — motifs déjà ancrés à la racine du dépôt.
+# ─────────────────────────────────────────────────────────────────────────────
+.DS_Store
+node_modules
+/Table Ciqual*
+docs/Table Ciqual*
+docs/dataverse_files
+kyroz-app/supabase/.temp
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 4. Repris de kyroz-app/.gitignore.
+#    ⚠️ Les motifs ANCRÉS (ceux qui contiennent un `/` ailleurs qu'à la fin) sont
+#    relatifs au .gitignore qui les porte : ils doivent être re-préfixés
+#    `kyroz-app/` ici, sinon ils ne mordent plus rien. Les motifs sans `/`
+#    interne matchent à tous les niveaux et sont recopiés tels quels.
+# ─────────────────────────────────────────────────────────────────────────────
+# Expo
+.expo
+dist
+web-build
+expo-env.d.ts
+.metro-health-check*
+
+# Dossiers natifs générés par prebuild — régénérés par EAS, jamais envoyés.
+# (Ancrés : sans le préfixe kyroz-app/, ces deux lignes ne matcheraient rien.)
+/kyroz-app/ios
+/kyroz-app/android
+
+# Natif divers
+.kotlin
+*.orig.*
+*.jsbundle
+
+# Debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# TypeScript
+*.tsbuildinfo
+
+# Source brute Ciqual (ANSES), 78 Mo — convertie en lib/foods.generated.ts, qui
+# est versionné et part bien dans l'archive. Motif ANCRÉ : le préfixe est
+# indispensable, sans lui les 78 Mo remontent.
+kyroz-app/[Dd]ata/[Cc]iqual
+
+# QA Playwright et visuels de fiche store — générés, lourds, jamais importés.
+kyroz-app/test/qa/session.json
+kyroz-app/test/video
+kyroz-app/test/qa/*.png
+kyroz-app/test/qa/report*.json
+kyroz-app/test/store/*.png
+kyroz-app/test/store-ipad/*.png
+
+# Miroir HTML du design system — généré (npm run design:build).
+design-system
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 5. Inutile au build, mais versionné (donc absent des .gitignore).
+# ─────────────────────────────────────────────────────────────────────────────
+# Planches sources des silhouettes (7,1 Mo). Vérifié : le bundle ne charge que
+# assets/bodyfat/{male,female}-1..6.png, par `require()` statiques explicites
+# dans components/BodyFatPicker.tsx. Rien ne pointe vers _source/.
+kyroz-app/assets/bodyfat/_source
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# NE PAS AJOUTER `.git` ICI.
+#    eas-cli le traite en cas spécial : si .easignore ignore `.git`, il SUPPRIME
+#    le .git du clone shallow envoyé à EAS (« We don't want to ignore anything by
+#    default »). Gain mesuré : ~11 Mo — sans enjeu une fois l'archive à ~15 Mo,
+#    pour un changement de comportement non testé. Écarté sciemment.
+#    À savoir : `.git` et `node_modules` restent ignorés d'office par eas-cli,
+#    en plus de ce fichier (defaultIgnore de build/vcs/local.js).
