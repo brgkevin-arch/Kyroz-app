@@ -86,6 +86,29 @@ Vérifié en générant dans un dossier jetable, sans toucher au dépôt du site
 
 ---
 
+> 🔁 **TROISIÈME ET QUATRIÈME EXÉCUTIONS, LE 2026-08-27 — deux dans la même journée.**
+> · **`kyroz-site` PR #8** (07:40) : la page rattrapait la source après l'audit V1 — deux
+>   affirmations qui étaient **FAUSSES en production** (« aucune donnée de santé ne quitte
+>   l'UE », « aucun compte ne peut être créé en deçà de cet âge ») ;
+> · **`kyroz-site` PR #9** (17:04) : la politique ne demande plus de couper la sauvegarde
+>   iCloud — un geste réel réclamé à l'utilisateur pour un risque qui n'a pas lieu
+>   (`RNCAsyncStorage` exclut son dossier de la sauvegarde par défaut, et les photos vivent
+>   dans le cache).
+> ✅ **Les deux ont suivi l'étape 0 cette fois** : page générée depuis le dépôt principal, sur
+> `main`, APRÈS le merge côté app — le générateur a répondu « à jour », ce qui prouve que ce
+> qui est publié vient de la source et non de la branche.
+> ✅ **Et le contrôle final a été fait sur la PAGE SERVIE, pas sur le run** (cf. l'avertissement
+> plus bas) : `curl https://kyroz.app/legal.html` rend la nouvelle phrase, et l'ancienne
+> tournure y compte **0 occurrence** — les deux moitiés, la présence ET l'absence.
+> ⚠️ **Ce que ces deux exécutions NE règlent pas** : l'app, elle, sert toujours le texte
+> d'avant — il ne bougera qu'à la prochaine OTA. Deux surfaces, deux publications, et rien
+> ne le signale (cf. `AGENTS.md`, ligne « OTA publiées »).
+> ⚠️ **Quatre exécutions en deux jours** : cette page bouge plus vite que ce document ne le
+> laisse croire. Le rythme lui-même est l'information — chacune corrigeait une phrase qui
+> avait été juste le jour où elle a été écrite.
+
+---
+
 ## Étape 0 — 🔴 VÉRIFIER DEPUIS QUOI TU GÉNÈRES
 
 **C'est l'étape qu'on saute, et c'est celle qui fait publier une page fausse en ayant
@@ -101,8 +124,21 @@ aurait remplacé une page de juin par une page d'août périmée.
 cd /Users/kevinberger/Kyroz_Code && git status --short --branch | head -1 && grep -o "effectiveDate: '[^']*'" kyroz-app/constants/legal.ts
 ```
 
-**Attendu :** `## main...origin/main` (PAS `## HEAD (no branch)`) **et**
-`effectiveDate: '26 août 2026'`.
+**Attendu :** `## main...origin/main` (PAS `## HEAD (no branch)`) **et** la date
+d'entrée en vigueur de la SOURCE — `'27 août 2026'` au 2026-08-27.
+
+🔴 **CETTE DATE-LÀ NE SE RECOPIE PAS, ELLE SE LIT SUR `origin/main`.** Écrite en dur, elle a
+péri le jour suivant : ce document annonçait `'26 août 2026'` alors que la source portait
+déjà le 27. Un attendu périmé fait échouer l'étape qui devait protéger, et pousse à
+« corriger » une source parfaitement juste.
+
+```bash
+git -C /Users/kevinberger/Kyroz_Code show origin/main:kyroz-app/constants/legal.ts | grep -o "effectiveDate: '[^']*'"
+```
+
+➡️ **Ce que l'étape 0 vérifie vraiment, c'est l'ÉGALITÉ des deux** : la date de l'arbre où
+tu lances le générateur doit être celle d'`origin/main`. Un écart, quel qu'en soit le sens,
+veut dire que tu génères depuis autre chose que la source publiée.
 
 Si ce n'est pas le cas :
 

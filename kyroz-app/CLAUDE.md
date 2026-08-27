@@ -1446,9 +1446,21 @@ Profil (poids, objectif, régime) = **données de santé** au sens RGPD.
 > ⚠️ **Ce qui RESTE monté** : « Supprimer mes statistiques » dans les Réglages, tant
 > qu'un pseudonyme existe sur l'appareil. Des mesures ont pu partir entre le 2026-08-18
 > et l'extinction ; le droit à l'effacement ne s'arrête pas avec la collecte.
-> 🔁 **Restent à trancher** : la clé dans l'environnement EAS, le sort des données déjà
-> chez PostHog, et les textes légaux (politique in-app, politique publique, registre)
-> qui décrivent encore un traitement actif.
+> ✅ **LES TROIS POINTS QUI « RESTAIENT À TRANCHER » SONT CLOS — et ils l'étaient déjà
+> quand cette ligne a été relue le 2026-08-27.** Elle listait : la clé dans l'environnement
+> EAS, le sort des données déjà chez PostHog, et les textes légaux qui décriraient encore un
+> traitement actif. Mesuré, un par un :
+> · **la clé** est absente des **trois** environnements EAS — `eas env:list`, 0 occurrence,
+>   re-vérifié le 2026-08-27 ;
+> · **les données** collectées (quelques jours, l'appareil du fondateur et un testeur) ont
+>   été supprimées à la source, côté tableau de bord PostHog ;
+> · **les textes** ne mentionnent plus rien : les trois constantes de mesure d'audience ont
+>   été retirées de `constants/legal.ts` le 2026-08-26, et la fiche du registre a été sortie.
+> Chronologie complète, dont la date d'arrêt EFFECTIF — qui n'est ni le merge ni le retrait
+> de la clé, mais le **second lancement de chaque appareil** — dans `RGPD-REGISTRE.md`.
+> ⚠️ *Cette ligne est restée « à trancher » un jour de trop après la fin du travail. Une
+> liste de restes ne se relit pas toute seule : c'est le défaut qu'elle décrivait, appliqué
+> à elle-même.*
 
 Deux consentements distincts, à ne pas confondre : celui aux **données de santé** (case
 cochée à l'inscription, base légale du produit) et celui aux **statistiques d'usage**
