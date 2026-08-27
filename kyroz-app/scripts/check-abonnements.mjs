@@ -28,6 +28,7 @@
 // secrets : ils vivent déjà en clair dans `eas.json`, versionné.
 
 import { readFileSync, existsSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { createSign, createPrivateKey } from 'node:crypto';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -258,7 +259,58 @@ const main = async () => {
   } else {
     console.log('  ✅ Chaque identifiant demandé par le code existe chez Apple.\n');
   }
+
+  await platesFormesQuiPeuventVendre();
 };
+
+// ── SUR QUELLES PLATEFORMES L'APP PEUT-ELLE ENCAISSER ? (constat 01-07) ───────
+//
+// 🔴 Le reste de ce script répond à « ces produits existent-ils chez Apple ? ». Il ne
+// répondait PAS à « l'app peut-elle les vendre ? » — et sur Android, la réponse est NON.
+// `EXPO_PUBLIC_REVENUECAT_ANDROID_KEY` n'existe dans aucun environnement EAS, donc
+// `purchasesConfigured()` (`lib/purchases.ts:67`) vaut `false` et **aucun bouton d'achat
+// n'est rendu**. La dégradation est propre — pas de crash, pas de bouton mort — ce qui
+// est exactement ce qui la rend invisible.
+//
+// ⚠️ Et `STORE-RELEASE.md` écrit « rattacher l'app iOS **et** l'app Android » comme si
+// c'était fait. Une note dans un document se relit une fois ; une mesure se relance.
+//
+// 🔴 **ON NE LIT QUE LA PRÉSENCE, JAMAIS LA VALEUR.** `eas env:list` imprime les
+// variables non sensibles EN CLAIR : filtrer sur le NOM et n'afficher qu'un ✅/🔴 est ce
+// qui empêche ce script de recracher une clé dans un journal ou une capture d'écran.
+//
+// ⚠️ Ce n'est PAS un échec — c'est une décision à prendre : poser la clé, ou acter par
+// écrit qu'Android sort sans achat in-app. Le script ne met donc pas `exitCode` à 1 : il
+// dit ce qui est, et laisse le fondateur trancher.
+async function platesFormesQuiPeuventVendre() {
+  const PLATEFORMES = [
+    ['iOS', 'EXPO_PUBLIC_REVENUECAT_IOS_KEY'],
+    ['Android', 'EXPO_PUBLIC_REVENUECAT_ANDROID_KEY'],
+  ];
+  let sortie;
+  try {
+    sortie = execFileSync('npx', ['eas-cli', 'env:list', 'production'],
+      { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], timeout: 120_000 });
+  } catch {
+    console.log('  ℹ️  Clés RevenueCat par plateforme : non mesurées (eas-cli indisponible'
+      + ' ou non authentifié).\n');
+    return;
+  }
+  // ⚠️ On teste `NOM=` et non `NOM` seul : sans le `=`, une variable ABSENTE dont le nom
+  // apparaîtrait dans un message d'aide serait comptée comme posée.
+  console.log('  Qui peut encaisser, aujourd’hui (environnement EAS `production`) :\n');
+  for (const [nom, cle] of PLATEFORMES) {
+    const posee = sortie.includes(`${cle}=`);
+    console.log(`    ${posee ? '✅' : '🔴'} ${nom.padEnd(8)} ${posee ? 'clé posée' : 'clé ABSENTE → aucun bouton d’achat n’est rendu'}`);
+  }
+  if (!PLATEFORMES.every(([, c]) => sortie.includes(`${c}=`))) {
+    console.log('\n  ⚠️  Ce n’est pas un défaut à corriger : c’est une DÉCISION (constat 01-07).');
+    console.log('     Soit la clé est posée, soit on acte par écrit qu’Android sort sans');
+    console.log('     achat in-app — et la fiche store doit alors le dire.\n');
+  } else {
+    console.log('');
+  }
+}
 
 main().catch((e) => {
   console.error(`\n✖ ${e.message}\n`);

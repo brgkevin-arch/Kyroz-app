@@ -55,14 +55,24 @@ type EtatRevenueCat = 'supprime' | 'introuvable' | 'non_configure' | 'echec';
  * ferait croire la suppression faite sur toute installation où le secret manque — ce
  * qui est exactement le défaut qu'on corrige, déplacé d'un cran.
  *
- * ⚠️ **L'ENDPOINT EST À CONFIRMER SUR LA DOCUMENTATION AVANT DÉPLOIEMENT** (étape 1 de
- * la procédure). Il est écrit ici d'après l'API REST v1 de RevenueCat ; il n'a pas été
- * appelé pour de vrai depuis ce dépôt, et une session qui le déploierait sans vérifier
- * livrerait un `echec` permanent qui a l'air d'un problème de réseau.
+ * ✅ **ENDPOINT CONFIRMÉ SUR LA DOCUMENTATION (2026-08-27)** : `DELETE
+ * /v1/subscribers/{app_user_id}`, `Authorization: Bearer <clé sk_…>`, succès **200**
+ * avec `{ app_user_id, deleted: true }`. Il n'a toujours pas été appelé pour de vrai
+ * depuis ce dépôt — c'est l'étape 4 de la procédure qui le fera.
  *
- * ⚠️ **404 N'EST PAS UN ÉCHEC** : il veut dire qu'aucun abonné ne porte cet UUID — le
- * cas de quelqu'un dont l'app n'a jamais joint RevenueCat. Le confondre avec une panne
- * ferait remonter des alertes sur le fonctionnement normal.
+ * ⚠️ **LA CLÉ EST CELLE QUI COMMENCE PAR `sk_`**, pas celle en `appl_` déjà posée dans
+ * EAS : cette dernière est la clé PUBLIQUE de la plateforme Apple, embarquée dans l'app.
+ * La poser dans le secret donnerait un `401` permanent qui ressemble à une panne réseau.
+ *
+ * ⚠️ **404 EST TRAITÉ COMME « AUCUN ABONNÉ », ET CE N'EST PAS UN COMPORTEMENT PROMIS.**
+ * La référence v1 ne documente que le 200 ; le 404 n'y figure pas. On choisit de ne PAS
+ * l'appeler échec — quelqu'un dont l'app n'a jamais joint RevenueCat n'a rien à
+ * supprimer, et alerter là-dessus ferait crier au loup sur le fonctionnement normal.
+ * Si les journaux rendent un code inattendu, c'est cette hypothèse-ci qu'il faut revoir.
+ *
+ * ⚠️ **LA SUPPRESSION EST ASYNCHRONE côté RevenueCat** : un `200` ne veut pas dire que
+ * le client a déjà disparu du tableau de bord. C'est le code de retour qui fait foi,
+ * jamais une recherche faite dans la seconde.
  */
 async function supprimerAbonneRevenueCat(uid: string): Promise<EtatRevenueCat> {
   const cle = Deno.env.get('REVENUECAT_SECRET_KEY');
