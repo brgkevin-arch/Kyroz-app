@@ -79,6 +79,29 @@ export function isGrandfathered(createdAt: string | null | undefined, launch = P
 }
 
 /**
+ * Faut-il interroger le fournisseur d'abonnement pour rendre le verdict d'accès ?
+ *
+ * 🔴 DÉPLACÉE ICI ET EXPORTÉE LE 2026-08-27 (contre-audit CA-7-02). Elle vivait
+ * privée dans `hooks/usePremium.ts` et n'était nommée dans AUCUN test : inverser son
+ * `return false` en `return true` la rendait vraie pour TOUT LE MONDE tant que
+ * `PAYWALL_LAUNCH` est `null` — c'est-à-dire aujourd'hui, pour 100 % des comptes —
+ * donc `identifyUser(uid)` repartait à chaque connexion, exactement le défaut 09-01
+ * qu'on venait de corriger. 1 841 tests restaient verts. La case « Identifiers →
+ * User ID … uniquement pour les abonnés » du formulaire App Privacy reposait sur
+ * trois lignes que rien ne mesurait.
+ * ➡️ Une DÉCISION pure vit dans le module pur, testable — même motif que `tours.ts`,
+ * `visee.ts` et `accentColor.ts`. Le hook ne fait plus que l'appeler.
+ *
+ * ⚠️ **Prudence dans le sens qui protège l'accès** : une date de création absente rend
+ * `isGrandfathered` vrai, donc `necessaire` faux, donc l'accès est accordé sans
+ * interroger personne. Se tromper en DONNANT, jamais en retirant.
+ */
+export function entitlementNecessaire(createdAt: string | null | undefined): boolean {
+  if (!PAYWALL_LAUNCH) return false;
+  return !isGrandfathered(createdAt);
+}
+
+/**
  * Verdict d'accès à une feature premium.
  *
  * `entitled` vient du fournisseur de paiement (RevenueCat). Tant qu'il n'est pas

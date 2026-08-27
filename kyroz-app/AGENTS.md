@@ -598,7 +598,24 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
   dispositif médical… » a DISPARU du corpus régénéré.
   ⚠️ **17 constats sont orphelins de tout lot** du §4 de la synthèse, dont trois P1 — dont
   `02-03`, qui bloque le démarrage.
-  ➡️ **Prochain** : les six garde-fous décoratifs, puis rejouer 6b sur un corpus réparé.
+  ✅ **LES SIX GARDE-FOUS DÉCORATIFS SONT CORRIGÉS — 2026-08-27, 11 mutations.** Chacun a
+  été vu rougir sur la mutation exacte qui l'avait trouvé : les deux sondes d'ordre PostHog
+  (inverser l'ordre → les deux rougissent) · `check:abonnements` compte les DÉCLARATIONS
+  avant les captures, donc un identifiant construit sort en `EXIT 2` au lieu d'un ✅ sur
+  zéro comparaison · `check:auth` fait échouer ses trois verdicts (inscription fermée →
+  EXIT 1, était 0) · `check:permissions` ouvre le côté **iOS** (`*UsageDescription`) et
+  garde son périmètre · la §4 de `check:ota` **confronte** enfin la date d'entrée en vigueur
+  (« 15 juin 2026 » → EXIT 1, était 0) · `entitlementNecessaire` déménage dans le module PUR,
+  est exportée, sa table de vérité est testée, et la liste de deux fichiers écrite à la main
+  devient un RECENSEMENT du dépôt.
+  🔴 **ET DEUX DE MES PROPRES SONDES ÉTAIENT DÉCORATIVES** — seule la mutation l'a dit :
+  l'espion PostHog surveillait un AsyncStorage d'un AUTRE registre que le module
+  (`vi.resetModules()`), donc vert quoi qu'il arrive ; et le garde de `check:abonnements`
+  rougissait sur la source SAINE, comptant `storeProductId: string;` — la déclaration de
+  TYPE — comme une demande du code. ⚠️ Une troisième ne PEUT pas rougir sur les deux clés
+  actuelles (le plugin d'`expo-image-picker` réinjecte son texte) : elle garde les clés
+  ajoutées à la main, et c'est écrit dans le script plutôt que laissé croire.
+  ➡️ **Prochain** : rejouer 6b sur un corpus réparé — c'est le lot qui porte seize constats.
   🔴 **ET UNE LEÇON DE MÉTHODE, PAYÉE SUR MOI-MÊME** : la réfutation avait ramené `CA-2-02`
   de majeur à MINEUR le jour même, avec ses motifs — je l'ai quand même publié en tête du §3
   et inscrit 🔴 au backlog comme le prochain chantier. Le verdict était dans le document ;

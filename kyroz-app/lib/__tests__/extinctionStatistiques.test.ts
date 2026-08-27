@@ -72,6 +72,51 @@ describe('Les statistiques d’usage sont éteintes', () => {
       vi.restoreAllMocks();
     });
 
+    // ── L'ORDRE DES TROIS REMPARTS, ENFIN COMPTÉ ─────────────────────────
+    //
+    // 🔴 LE DÉFAUT MESURÉ (contre-audit CA-2-04, 2026-08-27). Le §5 de la synthèse
+    // affirmait « trois remparts dans le bon ordre, la garde passant AVANT la lecture
+    // du consentement, et 14 assertions qui la tiennent ». AUCUNE des 14 ne
+    // contraignait l'ordre : inverser `lib/analytics.ts` pour lire le consentement
+    // d'abord laissait tout vert, y compris les deux tests ci-dessous — ils posent le
+    // consentement à `granted`, donc la seconde garde les sauve. La propriété qui a
+    // rendu l'OTA d'extinction obligatoire n'était gardée par rien d'exécutable.
+    //
+    // ⚠️ Deux sondes, et il faut les deux. La comportementale ne vaut que tant que la
+    // constante est à `false` ; celle qui lit la source vaut dans les deux états, donc
+    // elle survivra au jour où la mesure revient. Une seule des deux serait une
+    // protection qui s'éteint avec le drapeau qu'elle garde.
+    it('🔴 éteint, le consentement n’est même pas LU — la garde passe avant', async () => {
+      // Sans consentement posé, `getAnalyticsConsent` doit lire AsyncStorage. Si la
+      // garde du drapeau est première, on n'y arrive jamais. Déplacer la garde d'une
+      // ligne fait apparaître cette lecture — et ce test rougit.
+      // ⚠️ L'ESPION SE POSE SUR LE MÊME REGISTRE QUE LE MODULE. `vi.resetModules()`
+      // en `beforeEach` fait que `../analytics` réimporte un AsyncStorage FRAIS :
+      // espionner celui du haut de ce fichier surveille un autre objet, et la sonde
+      // reste verte quoi qu'il arrive. Mesuré — la première version l'était.
+      const mod = await import('../analytics');
+      const AS = (await import('@react-native-async-storage/async-storage')).default;
+      const lu = vi.spyOn(AS, 'getItem');
+      await mod.capture(mod.Events.planOpened, { x: 1 });
+      const consentLu = lu.mock.calls.some(([k]) => String(k).includes('analyticsConsent'));
+      expect(consentLu, 'le consentement a été lu alors que la mesure est éteinte : la garde n’est plus la première').toBe(false);
+    });
+
+    it('🔴 dans la SOURCE, le drapeau est testé avant la lecture du consentement', async () => {
+      // Vaut quel que soit l'état du drapeau — c'est ce qui rend cette sonde utile
+      // le jour où la mesure revient, là où la précédente cessera de mesurer.
+      const corps = /export async function capture\([\s\S]*?\n}/.exec(lire('lib/analytics.ts'))?.[0] ?? '';
+      expect(corps, 'corps de capture() introuvable').not.toBe('');
+      const drapeau = corps.indexOf('STATISTIQUES_USAGE_ACTIVES');
+      const consentement = corps.indexOf('getAnalyticsConsent');
+      const reseau = corps.indexOf('fetch(');
+      expect(drapeau, 'la garde du drapeau a disparu de capture()').toBeGreaterThan(-1);
+      expect(consentement, 'la lecture du consentement a disparu de capture()').toBeGreaterThan(-1);
+      expect(reseau, 'l’appel réseau a disparu de capture()').toBeGreaterThan(-1);
+      expect(drapeau, 'le consentement est lu AVANT la garde du drapeau').toBeLessThan(consentement);
+      expect(consentement, 'le réseau est atteint AVANT la lecture du consentement').toBeLessThan(reseau);
+    });
+
     it('aucun appel réseau', async () => {
       const appels = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response('{}'));
       const mod = await import('../analytics');

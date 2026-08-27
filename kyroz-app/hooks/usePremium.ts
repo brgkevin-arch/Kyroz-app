@@ -17,7 +17,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from './useAuth';
 import { useProfile } from './useProfile';
-import { PremiumFeature, PremiumAccess, premiumAccess, grandfatheredNotice, isGrandfathered, PAYWALL_LAUNCH } from '../lib/premium';
+import { PremiumFeature, PremiumAccess, premiumAccess, grandfatheredNotice, isGrandfathered, PAYWALL_LAUNCH, entitlementNecessaire } from '../lib/premium';
 import { identifyUser, onEntitlementChange, purchasesConfigured } from '../lib/purchases';
 
 /**
@@ -83,10 +83,6 @@ function useEntitlement(necessaire: boolean): boolean {
  * est accordé sans interroger personne. C'est déjà le comportement voulu — se tromper
  * en DONNANT, jamais en retirant.
  */
-function entitlementNecessaire(createdAt: string | null | undefined): boolean {
-  if (!PAYWALL_LAUNCH) return false;
-  return !isGrandfathered(createdAt);
-}
 
 export interface PremiumState extends PremiumAccess {
   /** L'abonnement lui-même, indépendamment du grand-père. */

@@ -51,6 +51,7 @@ foi d'un agent.
 | `CA-3-03` — les photos de corps survivent à « Supprimer définitivement » | `purgeAllProgressPhotos()` sur les deux sorties, avant la purge du stockage ; `deleteProgressPhoto` borné à `file://` | `a796b82` | **5 mutations** |
 | `CA-8-03` — le compte est créé avant qu'on demande l'âge | le §10 de la politique dit ce que le code fait, y compris qu'il ne vérifie pas l'âge à la création ; un test tient l'invariant texte ↔ `login.tsx` | `7cc5571` | **4 mutations** |
 | `CA-3-02` — au réveil, le Plan reste sur hier | `jourCivil` relu aux trois moments de réveil, déclaré par `todayIdx` et par le solde de la veille | `da6d994` | **5 mutations** |
+| `CA-2-04` + `CA-7-01` à `CA-7-06` — **six garde-fous décoratifs** | deux sondes d'ordre PostHog · périmètre compté dans `check:abonnements` · verdicts qui échouent dans `check:auth` · côté iOS ouvert dans `check:permissions` · §4 de `check:ota` qui confronte enfin la date · `entitlementNecessaire` déplacée dans le module pur et sa table de vérité testée | *§4* | **11 mutations** |
 | `CA-2-01` — la continuité R6 certifiée sur une fenêtre qui s'arrête au seuil | retrait des planchers rendu **progressif** sur 5 pt (`ENGINE_REV` 8 → 9) : le saut passe de 115 à 34 kcal/j au pas de 0,05, et il RÉTRÉCIT désormais avec le pas | *ci-dessous* | **3 mutations** |
 | `CA-2-02` — « aucun plancher contournable » | **aucune ligne de moteur changée** : la prémisse est mesurée (75 264 profils, 0 violation), les phrases reçoivent leur périmètre, la propriété devient comptée | *ci-dessous* | **4 mutations** |
 
@@ -251,7 +252,7 @@ un destinataire que le tableau de l'étape 3 a classé « s. o. » sans mesurer 
 
 ---
 
-## 4 · Six garde-fous sur huit ne gardent rien
+## 4 · Six garde-fous sur huit ne gardaient rien — ✅ les six sont corrigés
 
 C'est le résultat le plus transférable du contre-audit, et le seul obtenu **par mutation** —
 casser exprès ce que le garde-fou protège, dans un worktree jetable, et regarder s'il crie.
@@ -267,6 +268,26 @@ casser exprès ce que le garde-fou protège, dans un worktree jetable, et regard
 
 **Ce qui a rougi**, et qui vaut donc quelque chose : `fichesOta.test.ts`, la non-régression
 `measured` sur les 1 344 corps, et le `check:permissions` sur son périmètre Android.
+
+### ✅ Les six, corrigés le 2026-08-27 — chacun vu rougir sur la mutation qui l'avait trouvé
+
+| Garde-fou | Ce qui a changé | La mutation, maintenant |
+|---|---|---|
+| Les « 14 assertions » PostHog | **deux** sondes d'ordre : l'une comportementale (éteint, le consentement n'est même pas LU), l'autre sur la source (elle vaut aussi le jour où la mesure revient) | inverser l'ordre → **les deux rougissent** |
+| `check:abonnements` | les trois quotages acceptés, **et** les déclarations comptées avant les captures : écart non nul → `EXIT 2` | `"` → 2 comparés (était 0) · identifiant construit → **EXIT 2** |
+| `check:auth` | les trois verdicts alimentent un compteur, chaque échec porte son geste de réparation | inscription fermée → **EXIT 1** (était 0) |
+| `check:permissions` | le côté **iOS** ouvert (`*UsageDescription`), plus une garde de périmètre vide | trois demandes iOS injectées → **2 rougissent** (la 3ᵉ n'existe pas dans la config résolue) |
+| §4 de `check:ota` | la date d'entrée en vigueur est **confrontée** : servie → pas antérieure à sa publication ; pas servie → pas déjà passée | « 15 juin 2026 » → **EXIT 1** (était 0) · date illisible → EXIT 1 |
+| Le correctif 09-01 | `entitlementNecessaire` **déplacée dans le module pur et exportée**, sa table de vérité testée ; et la liste de deux fichiers écrite à la main devient un **recensement** du dépôt | `return false` → `return true` → **2 rougissent** · un 3ᵉ écran qui force → **1 rougit** |
+
+⚠️ **Deux de mes propres sondes étaient décoratives, et seule la mutation l'a dit.** La
+sonde comportementale PostHog espionnait un AsyncStorage d'un autre registre que celui du
+module (`vi.resetModules()`) : verte quoi qu'il arrive. Et la ligne « le texte de la demande
+d'autorisation est écrit » de `check:permissions` **ne peut pas** rougir sur les deux clés
+actuelles — le plugin d'`expo-image-picker` réinjecte son défaut. Elle garde les clés
+ajoutées à la main ; c'est écrit dans le script plutôt que laissé croire.
+⚠️ Et **mon garde-fou de `check:abonnements` rougissait sur la source SAINE** : il comptait
+`storeProductId: string;`, la déclaration de TYPE, comme une demande du code.
 
 ---
 

@@ -132,7 +132,9 @@ Un backlog de 86 lignes donne une image fausse s'il est lu seul. Ce qui a été 
 - **Affichage** : sur 96 profils, l'écart entre les macros affichées et les kcal affichées plafonne à **0,13 %**.
 - **Store** : aucun tracking, ATS intact, aucun Firebase, icône 1024 sans canal alpha, **aucun SDK hors des trois sous-traitants déclarés**.
 - **Textes** : Claude.ai qualifie le corpus de « **globalement bien meilleur que la moyenne du secteur** » et cite treize textes comme modèles — dont `methodologie.ts:159-164`, dont elle écrit n'avoir « pas vu d'équivalent dans une app grand public ».
-- **Extinction PostHog** : trois remparts dans le bon ordre, la garde passant **avant** la lecture du consentement, et **14 assertions** qui la tiennent.
+- **Extinction PostHog** : trois remparts dans le bon ordre, la garde passant **avant** la lecture du consentement, et **14 assertions** qui la tiennent *(faux dans les deux termes — contre-audit `CA-2-04` :
+  ce sont 14 TESTS pour 24 assertions, et AUCUNE ne contraignait l'ordre. Deux sondes
+  d'ordre posées le 2026-08-27, l'une comportementale, l'autre sur la source)*.
 
 ---
 
