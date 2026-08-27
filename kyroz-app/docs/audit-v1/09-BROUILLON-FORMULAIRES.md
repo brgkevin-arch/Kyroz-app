@@ -23,7 +23,14 @@ et des finalités reste à valider — en particulier la base légale du point 3
 
 | Catégorie Apple | Ce que c'est, concrètement | Finalité | Mesure |
 |---|---|---|---|
-| **Health & Fitness** | sexe, âge, date de naissance, poids, taille, %MG et sa provenance, niveau d'activité, sport pratiqué, objectif, cibles caloriques et macros, restrictions alimentaires, historique de pesées, registres d'exposition | Fonctionnalité de l'app | tableau A de `01-securite-donnees.md` — colonnes de `profiles` et `weight_logs` |
+| **Health & Fitness → Santé** | sexe, âge, date de naissance, poids, taille, %MG et sa provenance, objectif, cibles caloriques et macros, restrictions alimentaires, historique de pesées, registres d'exposition | Fonctionnalité de l'app | tableau A de `01-securite-donnees.md` — colonnes de `profiles` et `weight_logs` |
+| **Health & Fitness → Forme physique** 🔴 | `activity_level`, `training_days_per_week`, `sports` (`[{type, sessions_per_week, minutes_per_session}]`), `neat_level` | Fonctionnalité de l'app | `supabase/schema.sql`, table `profiles` |
+
+> 🔴 **La console coupe cette catégorie en DEUX cases, ce tableau n'en donnait qu'une** (relevé le
+> 2026-08-28, après publication : seul *Santé* était coché). Écrire la catégorie plutôt que ses
+> sous-types laisse le formulaire choisir à ta place — et il choisit celui qui vient en premier.
+> **Sous-déclarer est le sens dangereux** : c'est la Guideline 5.1.1(i), et l'écart se voit à l'œil
+> nu dès l'onboarding, qui demande le nombre de séances par semaine.
 | **Contact Info → Email Address** | l'adresse est dans `auth.users` **et dupliquée** dans `profiles.email` | Fonctionnalité de l'app · Authentification | `supabase/schema.sql:274` (`handle_new_user`) |
 | **Identifiers → User ID** | l'identifiant de compte Supabase | Fonctionnalité de l'app | `lib/supabase.ts`, `profiles.id` |
 
@@ -66,6 +73,7 @@ Mêmes catégories, plus trois points propres à Android.
 | Type Play | Collectée | Partagée | Obligatoire | Finalité |
 |---|---|---|---|---|
 | **Health and fitness → Health info** | oui | non | oui | App functionality |
+| **Health and fitness → Fitness info** 🔴 | oui | non | oui | App functionality | *(même angle mort qu'Apple — `activity_level`, `training_days_per_week`, `sports`)* |
 | **Personal info → Email address** | oui | non | oui | App functionality · Account management |
 | **Personal info → User IDs** | oui | **OUI → RevenueCat** | oui | App functionality |
 | **Photos and videos → Photos** | **non** (jamais transmises) | non | non | — |

@@ -64,11 +64,38 @@ depuis ~30 min et les 175 prix depuis ~20 min. Apple met de quelques dizaines de
 quelques heures à les servir au bac à sable.
 ➡️ **Geste : réessayer plus tard. Ne rien corriger.**
 
-🔴 **Si ça échoue encore demain, le suspect suivant est le contrat**, pas le code :
-App Store Connect → **Business** → *Paid Applications*. Un contrat signé mais **pas
-ACTIF** (coordonnées bancaires ou fiscales incomplètes) coupe les achats en sandbox
-exactement de cette façon. Le dossier annonce « banque, fiscal : plus aucun verrou » —
-mais c'est une fiche qui le dit, et une fiche non re-mesurée se trompe.
+### 2026-08-28, 00 h 45 — le contrat est ACTIF, et le côté Apple est ENTIÈREMENT mesuré
+
+Le suspect « contrat *Paid Applications* inactif » est **éliminé** (vérifié par le fondateur).
+Tout ce que l'API expose a été relevé, et tout est vert :
+
+| Mesure | Résultat |
+|---|---|
+| Les 4 identifiants produits | exacts, **`READY_TO_SUBMIT`** tous les quatre |
+| Disponibilité territoriale (ressource SÉPARÉE des prix) | **FRA = OUI** sur les 4, `availableInNewTerritories: true` |
+| Bundle ID | `app.kyroz.mobile` — identique côté ASC et côté `app.json` |
+| Le pod dans le binaire | `RNPurchases 10.6.0` → `PurchasesHybridCommon 18.28.0` → `RevenueCat 5.83.0` |
+| La clé publique iOS | `appl_xBxmQspW…`, présente dans le bundle Hermes **et** dans `eas env production` |
+
+⏱️ **Et le temps n'a pas encore parlé** : les 175 prix ont été posés vers 00 h 05, le nouvel
+essai a eu lieu vers 00 h 40. **Trente-cinq minutes.** Apple annonce « jusqu'à plusieurs
+heures » pour servir un produit neuf au bac à sable ; « toujours pareil » à +35 min n'infirme
+donc rien.
+
+🔴 **Le seul maillon jamais mesuré, c'est RevenueCat** — et une seule page le tranche :
+
+| Ce qu'on voit dans *Customers* | Ce que ça prouve |
+|---|---|
+| **un client créé ce soir**, portant l'UUID Supabase | `configure()` **et** `logIn()` ont tourné → le SDK parle à RevenueCat → la panne est en aval, chez Apple → **attendre** |
+| **aucun client** | le SDK n'a **jamais** joint RevenueCat → c'est la clé ou la fiche d'app → **attendre ne réparera rien** |
+
+*(L'écran Kyroz+ force `identifyUser(uid)` — cf. `hooks/usePremium.ts`, décision C1 — donc
+l'avoir ouvert suffit à créer le client. S'il n'y en a aucun, c'est un fait, pas un délai.)*
+
+Deux vérifications à faire dans la même visite :
+1. **Project → Apps → l'app iOS** : bundle ID `app.kyroz.mobile`, clé publique `appl_xBxmQspW…` ;
+2. **App-Specific Shared Secret** renseigné — RevenueCat valide les reçus avec. Absent, l'achat
+   échoue **après** la feuille Apple, pas avant : ce n'est pas notre symptôme, c'est le mur suivant.
 
 ---
 
@@ -128,6 +155,15 @@ des gestes que je ne pose jamais, même avec les identifiants sous la main.
 compte neuf recevait Kyroz+ gratuitement pendant toute sa première session.
 
 **Ce que tu dois voir** : Kyroz s'ouvre, et *Profil → Réglages → Version* affiche `1.0.0`.
+
+> 🟠 **Réserve sur le point 1, ajoutée le 2026-08-28.** Un binaire installé par **TestFlight**
+> encaisse déjà en environnement bac à sable, avec l'Apple ID connecté à l'App Store — le
+> *Compte Sandbox* des réglages iOS ne concerne que les builds posés par **Xcode**. Le testeur
+> créé à l'étape 2 n'est donc probablement pas celui qui sera débité, et c'est sans conséquence :
+> en TestFlight les achats sont **gratuits**. ➡️ Ça n'explique PAS l'échec du 4.1 — aller
+> chercher les produits ne dépend d'aucun compte — mais la feuille Apple affichera le compte
+> employé, et c'est là qu'on le vérifiera plutôt que de le supposer.
+
 
 ---
 
