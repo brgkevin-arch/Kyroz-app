@@ -426,7 +426,7 @@ qu'un relecteur de store lit avant d'ouvrir le binaire.
 | ~~**0c**~~ | ✅ **Le plancher affiché** | `CA-2-02` — **aucun code changé, et c'est le résultat** : la prémisse (conservation hebdomadaire) est mesurée pour la première fois sur 75 264 profils, 0 violation. Les phrases reçoivent leur périmètre, la propriété devient comptée (`plancherServi.test.ts`) | ⚠️ j'avais classé ce constat 🔴 alors que ma propre réfutation l'avait rétrogradé en mineur |
 | **1′** | ✅ **LES TROIS P0 — LIVRÉS le 2026-08-27 (`AGENTS.md` A43)** | 01-01, 02-01, 02-02 (~~02-03~~ ✅ A40). **25 mutations, 25 rouges.** 🔴 **LES TROIS RECOS ÉTAIENT FAUSSES, pas deux** : celle de 02-01 désigne un SEUIL d'adiposité là où la règle est le SIGNE de `katch − mifflin` — mesuré, couper au seuil introduit une marche de **571 kcal/j VERS LE BAS** chez les gabarits lourds, donc elle aurait fait manger moins aux corps qu'elle prétendait protéger. Celle de 02-02 oublie `macro_mode` **et** suppose que l'échec se voit : sur cinq colonnes fautives, une seule rend du `NaN`. Celle de 01-01 jetait une inscription en cours (`CA-1-04`). | ce que la réfutation avait annoncé à 2/3, la mesure le porte à 3/3 |
 | **2′** | 🔨 **Décision A** | inchangée, **moins** la tâche `allowBackup`/iOS qui n'existe pas, **plus** l'avertissement `fingerprint` : la ligne OTA se coupe à **chaque** édition d'`app.json`, pas « une fois » (`CA-5-03`) | |
-| **3′** | ⚖️ **Textes publiés** | `legal.ts:208` (rendu faux **par** le correctif 09-01) + Expo au registre + la mention iCloud à retirer | trois textes publiés faux, aucun dans un lot |
+| ~~**3′**~~ | ✅ **Textes publiés — CLOS le 2026-08-27** | `legal.ts:208` ✅ · Expo au registre ✅ · **la mention iCloud ✅ retirée le soir même** (app #182, page publique kyroz-site#9) | trois textes publiés faux, aucun dans un lot — le dernier est parti le jour où il a été mesuré |
 | **7′** | 🧯 **Décision E, re-dimensionnée** | `withBudget` : **9 appels**, pas 6 · `.replace(',','.')` : **8 occurrences**, **3 manques** · **4ᵉ occurrence du motif** : `frnum()` et « 113.5 kg » sur la courbe de poids | un test écrit sur les chiffres publiés passerait au vert avec trois appels nus |
 | ~~**12**~~ | ✅ **Les six garde-fous décoratifs** | §4 — livré (lot 0) | un vert qui ne peut pas rougir est pire que pas de contrôle |
 | ~~**13**~~ | ✅ **Rejouer 6b sur le corpus réel** | livré — corpus réparé, jugement 6b-bis rendu et ARBITRÉ (`06b-bis-textes-audit.md`) | 16 constats reposaient sur un corpus amputé, puis abîmé |
@@ -445,12 +445,37 @@ il décrit le 2026-08-27.**
 | **2′** | `07-01` abonnements · `03-05` crash reporter | ⏸ hors dépôt : se mesurent au store et par décision |
 | **3′** | `legal.ts` §5 sous-traitants | ✅ **livré** — hébergeur, Resend et RevenueCat y sont nommés |
 | **3′** | Expo au registre | ✅ **livré** — 8 mentions dans `RGPD-REGISTRE.md` |
-| **3′** | 🔴 **la mention iCloud** | **OUVERT, et c'est un texte PUBLIÉ qui dit faux** — voir ci-dessous |
+| **3′** | ✅ **la mention iCloud** | **FERMÉ le 2026-08-27 au soir**, quelques heures après cette mesure — voir ci-dessous |
 | **7′** | `05-03` appels réseau bornés | 🔴 **ouvert** — `withBudget` a **2** appels (les deux du démarrage), et `hooks/useAuth.tsx` porte **11** appels réseau interactifs sans budget |
 | **7′** | `.replace(',', '.')` | 🔴 **ouvert** — **9** occurrences dans 7 fichiers, toujours recopiées |
 
-🔴 **LE SEUL QUI SOIT UN MENSONGE PUBLIÉ — et sa prémisse est RE-MESURÉE, pas recopiée.**
-La politique de confidentialité, in-app **et** sur `public/legal.html`, sert encore :
+✅ **RE-MESURÉ LE 2026-08-27 AU SOIR, APRÈS LES LOTS DE LA JOURNÉE — voici ce qui RESTE du
+contre-audit, et rien d'autre :**
+
+| | ce qui reste | mesure de ce soir |
+|---|---|---|
+| **2′ · Décision A** | `runtimeVersion` → `fingerprint` · `expo-system-ui` · SDK 57 | `app.json` porte toujours `{policy: 'appVersion'}` · `expo-system-ui` absent d'`app.json` et de `package.json` · `expo ~56.0.12` |
+| **7′ · Décision E** | `05-03` appels réseau bornés · les duplications `.replace` | `withBudget` n'a que **2** appels, les deux du démarrage (`useAuth.tsx:94` et `:138`) · `.replace(',', '.')` : **9 lignes, 7 fichiers** |
+| **étape humaine** | `01-07` — clé RevenueCat Android | `npm run check:abonnements` : iOS ✅, **Android clé ABSENTE** — donc aucun bouton d'achat rendu |
+| ⏸ hors dépôt | `07-01` abonnements · `03-05` crash reporter | se mesurent au store et par décision |
+
+✅ **Tout le reste est clos** : lots **0a · 0b · 0c · 0d** (le compte supprimé, les mineurs,
+la bascule de jour, le plancher affiché), **1′** (les trois P0), **3′** (les textes publiés,
+fermé par la mention iCloud le soir du 27), **12** (les six garde-fous décoratifs), **13**
+(le corpus rejoué), et **les 17 orphelins**.
+⚠️ **Ce tableau se re-mesure aussi** — les quatre commandes sont dans ses cases.
+
+✅ **LE SEUL QUI ÉTAIT UN MENSONGE PUBLIÉ — CORRIGÉ LE SOIR MÊME.** La source
+(`constants/legal.ts`), la page publique `kyroz.app/legal.html` (kyroz-site#9) et les deux
+copies générées disent désormais l'inverse : *« les sauvegardes automatiques de votre
+téléphone ne les emportent pas »*. Vérifié sur la page SERVIE — nouvelle phrase présente,
+ancienne tournure à **0 occurrence**.
+⚠️ **Une surface reste en retard, et ce n'est pas un oubli** : **l'app**, qui sert le texte
+de la 25ᵉ OTA. Elle affiche donc un texte daté du 27 août qui n'est plus celui du site,
+jusqu'à la prochaine publication. Aucun FAIT ne diffère entre les deux — l'exclusion de
+sauvegarde est une propriété du binaire — mais l'ancienne rédaction demande un geste inutile.
+*(Ce qui suit est la mesure d'origine, gardée parce que c'est elle qui a tranché.)*
+La politique de confidentialité, in-app **et** sur `public/legal.html`, servait :
 
 > « sur iPhone, une sauvegarde iCloud peut en emporter une copie chiffrée vers les serveurs
 > d'Apple, ce que vous pouvez désactiver dans les réglages de votre appareil »
@@ -460,9 +485,16 @@ défaut** (`// by default, we want to exclude AsyncStorage data from backup`,
 `isExcludedFromBackup = @YES`), et le dépôt ne pose **aucune** surcharge
 `RCTAsyncStorageExcludeFromBackup` — vérifié dans `ios/` et `app.json`. Les photos, elles,
 vivent dans le répertoire de CACHE (`lib/photos.ts:63`), qu'iOS ne sauvegarde pas non plus.
-➡️ **Le texte demande donc à l'utilisateur de couper une sauvegarde pour un risque qui n'a
-pas lieu**, et il le fait sur la phrase des données de santé. C'est une décision de texte
-légal (trois surfaces, dont le dépôt `kyroz-site`), pas un correctif mécanique.
+➡️ **Le texte demandait donc à l'utilisateur de couper une sauvegarde pour un risque qui
+n'a pas lieu**, et il le faisait sur la phrase des données de santé. C'était une décision de
+texte légal (trois surfaces, dont le dépôt `kyroz-site`), pas un correctif mécanique — d'où
+son passage par un arbitrage plutôt que par un patch.
+🔴 **ET LA CONDITION QUE LA VERSION PRUDENTE POSAIT ÉTAIT DÉJÀ REMPLIE.** Le commentaire du
+code disait « ne pas re-durcir en *aucune* avant que les DEUX plateformes soient traitées »
+et renvoyait l'exclusion iOS au prochain binaire, « parce qu'elle demande un plugin natif ».
+C'est faux : le défaut d'`RNCAsyncStorage` fait le travail depuis toujours, et Android était
+déjà couvert (`allowBackup: false`, posé le 2026-08-26). La phrase est donc restée prudente
+**en attendant quelque chose qui existait**. *Une prudence a un coût quand elle fait agir.*
 
 ### 🔴 Les 17 orphelins, nommés — parce qu'un compte n'est pas une liste
 
@@ -492,8 +524,10 @@ feuille), et surtout `Presse` qui **écrasait l'opacité de sept appelants** —
 répondent pas, **dont tous les boutons principaux désactivés de l'app**. Défaut antérieur
 au contre-audit ; il attendait qu'on regarde.
 
-⚠️ **Deux étapes HUMAINES restent** : la procédure RevenueCat (A41) et l'arbitrage de la
-clé Android (`01-07`).
+✅ **UNE SEULE ÉTAPE HUMAINE RESTE.** Elles étaient deux : la procédure RevenueCat (A41)
+a été **faite et close le 2026-08-27** — secret posé en v1, Edge Function déployée en v8,
+vérifiée sur un compte jetable, trois abonnés orphelins retirés. Reste **l'arbitrage de la
+clé Android (`01-07`)** : la poser, ou acter par écrit qu'Android sort sans achat in-app.
 
 ✅ **`02-03` — LIVRÉ le 2026-08-27** (fiche complète : `AGENTS.md` A40). C'était le cas
 coûteux, et il était **plus large que le constat de trois façons** :
@@ -522,7 +556,9 @@ moitiés ne se lisent jamais ensemble.
 ➡️ **Le texte légal n'a PAS été rouvert** : le §7 est déjà la bonne phrase, c'est au code de
 la rattraper (`delete-account` supprime l'abonné avant la cascade). Rouvrir aurait coûté
 empreinte, date d'entrée en vigueur, `gen:legal` et la 3ᵉ surface — pour zéro gain de vérité.
-⚠️ **Il reste une étape humaine** : `docs/PROCEDURE-2026-08-27-suppression-revenuecat.md`.
+✅ **L'étape humaine est FAITE le même jour** : `docs/PROCEDURE-2026-08-27-suppression-revenuecat.md`
+est close (six étapes, deux signaux indépendants à la vérification). **Le §7 de la politique
+est exact depuis ce jour-là, y compris pour les non-abonnés.**
 
 ---
 
@@ -541,12 +577,15 @@ contrainte SQL dégradaient déjà proprement (le résultat négatif compte). Re
 `macro_mode` → NaN sur les quatre formes**, ce qui confirme la correction du §7 : `macro_mode`
 est bien un vecteur de NaN, il appartient au lot 1′.
 
-⚠️ **Et `06b-17`** est celui que la réparation du corpus concerne : il jugeait les
-attributions de citations sur un dump amputé de ses quatorze noms d'auteurs. Le corpus est
-réparé depuis (§6) ; le constat, lui, n'a jamais été rejoué.
+✅ **Et `06b-17` EST CLOS** — cette phrase disait « le constat n'a jamais été rejoué », et
+elle était périmée en l'écrivant. Il jugeait les attributions de citations sur un dump amputé
+de ses quatorze noms d'auteurs ; le corpus est réparé (§6) et le constat a été **rejoué
+autrement** — les seize citations ont été SOURCÉES une par une plutôt que relues sur le dump,
+et **deux attributions se sont révélées fausses** (§7, `AGENTS.md` A42).
 
-**Et 17 constats orphelins** à réintégrer (`CA-6-04`) : ils ne figurent dans aucun des onze lots
-du §4 — dont trois P1, dont `02-03`.
+✅ **Et les 17 constats orphelins (`CA-6-04`) SONT RÉINTÉGRÉS ET CLOS** — les trois P1 le
+2026-08-27 (A40, A41), les quatorze P2 le même jour (A42). Le tableau du §8 le dit ligne par
+ligne ; cette phrase-ci décrivait l'état du jour où le contre-audit a été rendu.
 
 ---
 
