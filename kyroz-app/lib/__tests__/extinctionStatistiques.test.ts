@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { STATISTIQUES_USAGE_ACTIVES } from '../featureFlags';
+import { PRIVACY_POLICY } from '../../constants/legal';
 
 // ── VERROU : éteint veut dire ÉTEINT — rien ne part, rien n'est demandé ─────
 //
@@ -47,9 +48,56 @@ function sansCommentaires(src: string): string {
 
 const lire = (rel: string) => sansCommentaires(brut(rel));
 
+// ── LE SENS QUI MANQUAIT (constats 08-01 et 06b-01, 2026-08-27) ─────────────
+//
+// 🔴 CE FICHIER NE COMPTAIT QU'UNE MOITIÉ DU COUPLAGE. Il vérifiait « éteint → les
+// textes se taisent ». L'autre sens n'était compté nulle part : **le jour où
+// quelqu'un repasse la constante à `true`, trois écrans se rallument et
+// `constants/legal.ts` devient FAUX au même commit** — il affirme « Aucune
+// statistique d'usage n'est collectée ».
+//
+// Ce n'est pas une hypothèse d'école : le périmètre entier est délibérément
+// CONSERVÉ dans le bundle (15 événements, 16 points d'appel, l'écran de
+// consentement, le bloc Réglages), tous derrière cette seule constante. Rallumer
+// est donc un geste d'UN caractère — et c'est exactement ce qui rend le texte
+// publié fragile.
+//
+// ⚠️ **CE N'EST PAS « LA CONSTANTE DOIT RESTER FALSE ».** Cette assertion-là existe
+// déjà au-dessus, et elle dit au développeur « tu as cassé ce fichier » — pas « ta
+// politique de confidentialité vient de devenir fausse ». Le jour où la mesure
+// revient légitimement, c'est cette phrase-ci qu'il faut lire : elle nomme LE
+// paragraphe à corriger, et elle ne se contourne pas en changeant la constante.
+//
+// ℹ️ Deux constats se rejoignent ici, par les deux bouts : `08-01` l'a trouvé côté
+// périmètre dormant, `06b-01` côté texte publié. Un seul garde-fou les ferme —
+// c'est le couplage qui manquait, pas deux contrôles.
+const PHRASE_AUCUNE_MESURE = 'Aucune statistique d’usage n’est collectée';
+
 describe('Les statistiques d’usage sont éteintes', () => {
   it('la constante est bien à false — le reste de ce fichier en dépend', () => {
     expect(STATISTIQUES_USAGE_ACTIVES).toBe(false);
+  });
+
+  it('🔴 la constante et le texte publié ne peuvent pas se contredire', () => {
+    // Le témoin d'abord : la phrase existe VRAIMENT dans le texte servi. Sans lui,
+    // le jour où elle serait reformulée, l'invariant deviendrait vide et se
+    // déclarerait tenu tout seul.
+    const texte = PRIVACY_POLICY.flatMap((s) => s.paragraphs ?? []).join(' ');
+    const leTexteNieTouteMesure = texte.includes(PHRASE_AUCUNE_MESURE);
+    expect(
+      leTexteNieTouteMesure || STATISTIQUES_USAGE_ACTIVES,
+      `la phrase « ${PHRASE_AUCUNE_MESURE} » a disparu de la politique alors que la `
+      + 'mesure est toujours éteinte — soit elle revient, soit cet invariant ne garde plus rien.',
+    ).toBe(true);
+
+    expect(
+      !(STATISTIQUES_USAGE_ACTIVES && leTexteNieTouteMesure),
+      'STATISTIQUES_USAGE_ACTIVES vient de passer à `true` alors que la politique de '
+      + `confidentialité affirme encore « ${PHRASE_AUCUNE_MESURE} ». Ce texte est OPPOSABLE : `
+      + 'il devient faux au même commit. Corriger `constants/legal.ts` (§2), reporter '
+      + 'l’empreinte de `legal.test.ts`, arbitrer la date d’entrée en vigueur, puis '
+      + '`npm run gen:legal` — et republier les trois surfaces.',
+    ).toBe(true);
   });
 
   // ── Le comportement : même tout allumé par ailleurs, rien ne part ────────

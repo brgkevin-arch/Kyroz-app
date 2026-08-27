@@ -7,7 +7,8 @@
 // session l'a répété au fondateur comme un blocage. La vérification tenait en
 // une requête HTTP : elle tient désormais en une commande.
 //
-//   npm run check:migrations
+//   npm run check:migrations        (lit `.env.local` — voir l'avertissement plus bas)
+//   npm run check:migrations:prod   (à travers les variables EAS — LA bonne)
 //
 // Lecture seule, clé anonyme, aucun compte créé, aucune écriture.
 // Méthode (cf. supabase/JOURNAL-MIGRATIONS.md) : PostgREST répond 400 pour une
@@ -37,8 +38,29 @@ function env() {
 const E = env();
 const URL_ = E.EXPO_PUBLIC_SUPABASE_URL;
 const KEY = E.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+// 🔴 CE CONTRÔLE NE TOURNAIT QUE POUR QUI CONNAISSAIT LA COMMANDE (constat 01-08).
+// Deux façons d'échouer, et aucune des deux ne disait quoi faire :
+//  · **pas de `.env.local`** (un clone frais, un worktree, la CI) → « introuvables »,
+//    point final ;
+//  · **un `.env.local` PÉRIMÉ** → pire, parce que ça part : la clé locale (39
+//    caractères) est refusée par la prod (`Invalid API key`, 401) là où celle d'EAS
+//    (46) répond `400`. Le script s'arrête alors sur son témoin négatif — c'est le
+//    bon comportement, il refuse de conclure — mais l'utilisateur lit « colonne
+//    inexistante → doit être 400 · HTTP 401 » et cherche une cause côté schéma.
+//
+// La seule invocation qui MESURE VRAIMENT la prod passe par les variables d'EAS, et
+// elle n'était écrite nulle part. Elle a maintenant un nom : `npm run check:migrations:prod`.
+// ➡️ Un garde-fou dont l'exécution demande de deviner une commande ne garde rien.
+const COMMANDE_PROD = 'npm run check:migrations:prod';
 if (!URL_ || !KEY) {
-  console.error('✖ EXPO_PUBLIC_SUPABASE_URL / _ANON_KEY introuvables (.env.local).');
+  console.error(
+    '\n✖ EXPO_PUBLIC_SUPABASE_URL / _ANON_KEY introuvables.\n\n'
+    + `  ➡️  Pour interroger la PROD :  ${COMMANDE_PROD}\n`
+    + '      (il exécute ce script à travers les variables EAS de `production`)\n\n'
+    + '  ℹ️  Un `.env.local` peut suffire, mais SA CLÉ N\'EST PAS CELLE DE LA PROD :\n'
+    + '      elle est refusée en 401, le témoin négatif échoue, et le script s\'arrête\n'
+    + '      sur un message qui a l\'air de parler du schéma.\n',
+  );
   process.exit(2);
 }
 
@@ -75,7 +97,12 @@ console.log(`\nProd : ${URL_.replace(/https:\/\/([a-z0-9]{4}).*/, 'https://$1…
 console.log('Témoin — la mesure sait-elle discriminer ?');
 line('colonne inexistante → doit être 400', await head('profiles?select=zzz_colonne_bidon&limit=1'), 400);
 if (ko) {
-  console.error('\n✖ Le témoin négatif a échoué : la mesure ne prouve RIEN. Arrêt.\n');
+  console.error(
+    '\n✖ Le témoin négatif a échoué : la mesure ne prouve RIEN. Arrêt.\n\n'
+    + '  ℹ️  Cause la plus courante : la clé lue n\'est pas celle de la prod (401\n'
+    + '      « Invalid API key » plutôt que 400). Ce n\'est PAS un problème de schéma.\n'
+    + `  ➡️  ${COMMANDE_PROD}\n`,
+  );
   process.exit(2);
 }
 

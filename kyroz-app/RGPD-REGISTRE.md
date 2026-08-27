@@ -72,6 +72,21 @@
 > 4. mentions supprimées des textes opposables (politique in-app, page publique) ;
 > 5. données déjà collectées supprimées à la source, côté tableau de bord PostHog.
 >
+> 🔴 **6. LA DATE D'ARRÊT EFFECTIF N'EST AUCUNE DES DATES ÉVIDENTES** (constat 08-02,
+> écrit ici le 2026-08-27). Ce n'est ni la date du merge, ni celle du retrait de la clé
+> d'EAS : c'est celle du **SECOND LANCEMENT de chaque appareil**.
+> Le motif est mécanique. `EXPO_PUBLIC_POSTHOG_KEY` est **inlinée à la compilation** :
+> la retirer d'EAS ne concerne que les builds FUTURS, et le binaire déjà installé chez
+> un testeur la contient toujours, en dur. Ce qui coupe réellement sur ce parc, c'est la
+> **garde publiée en OTA** — le premier `if` de `capture()`. Or `fallbackToCacheTimeout: 0`
+> fait qu'une OTA s'applique au **deuxième** démarrage : entre la publication et ce
+> démarrage-là, un appareil ayant consenti en août tournait encore sur le code d'avant.
+> ⚠️ Vérifié le 2026-08-27, `eas env:list production` : `EXPO_PUBLIC_POSTHOG_KEY` est
+> bien absente des trois environnements. La prémisse tient ; c'est la CHRONOLOGIE qui
+> devait être écrite, pas le fait.
+> ➡️ Conséquence pratique : devant une demande d'effacement portant sur une période,
+> ne jamais borner au merge. La fenêtre réelle court jusqu'au second lancement.
+>
 > ⚠️ **POURQUOI LA FICHE PART, ALORS QUE LE TRAITEMENT A EU LIEU.** Un registre décrit
 > les traitements EN COURS. Celui-ci a duré huit jours, n'a concerné que l'appareil du
 > fondateur et un testeur, et ses données sont effacées : il n'a plus ni finalité, ni
