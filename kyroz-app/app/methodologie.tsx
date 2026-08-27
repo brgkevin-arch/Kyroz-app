@@ -35,7 +35,7 @@ export default function MethodologieScreen() {
 
       <ScrollView contentContainerStyle={[s.content, layout.content]} showsVerticalScrollIndicator={false}>
         <Text style={s.intro}>
-          Comment Kyroz calcule ce qu'il vous propose, et sur quoi il s'appuie.
+          Comment Kyroz calcule ce qu'il te propose, et sur quoi il s'appuie.
         </Text>
 
         {sections.map((sec) => <Section key={sec.titre} s={s} sec={sec} />)}

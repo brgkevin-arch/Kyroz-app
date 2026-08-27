@@ -64,6 +64,44 @@ describe('corpus des textes — aucune phrase coupée en morceaux', () => {
   });
 });
 
+// ── LA TAXONOMIE PROMET « TOUT » : ON LE COMPTE ─────────────────────────────
+//
+// 🔴 La section « Ce qui relève d'un choix de Kyroz » annonce ranger chaque valeur de
+// la page d'un côté (littérature) ou de l'autre (choix maison). Elle en classait SIX
+// sur DIX-HUIT (jugement 6b-bis, constat 01) — dont aucune des règles où Kyroz
+// s'écarte le plus de la littérature : le glissement Mifflin↔Katch, la marge de
+// ±5 points, les seuils de provenance.
+//
+// ⚠️ Une promesse d'exhaustivité non tenue est PIRE qu'une sélection annoncée : elle
+// fait croire que ce qui manque n'existe pas. Et une promesse qu'aucun test ne compte
+// se déclare tenue toute seule — c'est la règle du dépôt, appliquée ici.
+describe('page Méthodologie — la taxonomie range VRAIMENT tout', () => {
+  const src = readFileSync(join(__dirname, '..', 'methodologie.ts'), 'utf8')
+    .replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/^\s*\/\/.*$/gm, ' ');
+  const corps = src.slice(src.indexOf('export function methodologie'));
+  const taxo = corps.slice(corps.indexOf('Ce qui rel'));
+  /** Les CONSTANTES citées dans les interpolations d'un bloc de source. */
+  const constantes = (t: string) => new Set(
+    [...t.matchAll(/\$\{([^}]*)\}/g)]
+      .flatMap((m) => [...m[1].matchAll(/\b([A-Z][A-Z0-9_]{2,}(?:\.\w+)?)\b/g)].map((x) => x[1])),
+  );
+
+  it('la sonde trouve bien des constantes — sinon elle ne mesure rien', () => {
+    expect(constantes(corps).size).toBeGreaterThan(10);
+    expect(taxo.length, 'section taxonomie introuvable').toBeGreaterThan(200);
+  });
+
+  it('🔴 CHAQUE constante citée sur la page est classée dans la taxonomie', () => {
+    const absentes = [...constantes(corps)].filter((c) => !constantes(taxo).has(c)).sort();
+    expect(
+      absentes,
+      `${absentes.length} valeur(s) citées sur la page et rangées dans aucune des deux listes. `
+      + 'La section promet « chaque valeur citée sur cette page » : soit on les classe, soit '
+      + 'la promesse doit être retirée.',
+    ).toEqual([]);
+  });
+});
+
 describe('corpus des textes — le bloc `methodologie` correspond au module', () => {
   const rendus = (methodologie() as { titre: string; paragraphes?: string[]; paragraphs?: string[] }[])
     .flatMap((s) => [s.titre, ...(s.paragraphes ?? s.paragraphs ?? [])])

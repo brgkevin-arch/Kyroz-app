@@ -62,10 +62,10 @@ plancher 0 violation · plancher quotidien dur 0 violation (`plancherServi.test.
 
 | # | Constat | Arbitrage |
 |---|---|---|
-| **01** | La taxonomie littérature / choix Kyroz promet « tout » et ne classe pas cinq éléments | 🟠 **Retenu, mais c'est un chantier de rédaction** — voir §3 |
-| **02** | T08 empile quatre règles sans ordre, et ne dit pas le cas par défaut | 🟠 **Retenu, même chantier** — c'est le paragraphe le plus consulté et le plus dense |
+| **01** | La taxonomie promet « tout » et ne classe pas cinq éléments | ✅ **Corrigé** (§3 bis). Mesuré sur la source : c'était **12 sur 18**, pas 5. Tous classés, et la promesse est comptée par un test |
+| **02** | T08 empile quatre règles sans ordre, et ne dit pas le cas par défaut | ✅ **Corrigé** (§3 bis). Quatre phrases dans l'ordre d'application, le cas par défaut en tête |
 | **03** | T22 est la seule limite formulée comme un refus opposé à l'utilisateur | ✅ **Corrigé.** Kyroz redevient le sujet, et la porte de sortie est nommée : « sert un plan complet à la maintenance » |
-| **04** | Vouvoiement (T02) et tutoiement (T33) coexistent | 🔴 **Renvoyé au fondateur** — voir §3 |
+| **04** | Vouvoiement (T02) et tutoiement (T33) coexistent | ✅ **Tranché : TUTOIEMENT** (décision fondateur, §3 bis). Deux occurrences seulement — l'app tutoyait déjà partout |
 | **05** | Quatre textes sans ligne source (`:0`), dont trois garde-fous | ✅ **Corrigé, et la reco du jugement appliquée** : `:0` est désormais un ÉCHEC de test |
 | **06** | T17 nomme le risque avant de nommer la protection | ✅ **Corrigé.** La conséquence est rattachée au plancher, pas au lecteur |
 | **07** | « Zone basse » non définie, deux compteurs de semaines sans lien | ✅ **Corrigé.** La zone est définie à sa première occurrence, et les deux compteurs sont dits indépendants |
@@ -97,13 +97,73 @@ l'utilisatrice enceinte **sans recueillir sa réponse** : conforme à la décisi
 
 ---
 
-## 3 · Ce qui reste, et qui n'est pas de ma main
+## 3 · Ce qui était renvoyé au fondateur — **tranché le jour même**
+
+> ⚠️ Cette section est conservée pour ce qu'elle expliquait : **pourquoi** ces trois points
+> n'étaient pas des correctifs. Les décisions sont en §3 bis. Ne pas la lire comme l'état
+> courant — un document qui porte deux époques côte à côte est exactement le défaut
+> `CA-4-03` que cette passe vient de corriger ailleurs.
 
 | # | Ce qu'il faut trancher | Pourquoi ce n'est pas un correctif |
 |---|---|---|
 | **06b-bis-04** | **Vouvoiement ou tutoiement ?** T02 dit « ce que **vous** déclarez », T33 dit « **Parles**-en à un médecin ». Ce sont deux des textes les plus lus de l'app, et ils s'adressent à la même personne de deux façons | C'est une décision de VOIX pour toute l'app, pas pour ces deux phrases. La trancher ici la trancherait par accident, et il faudrait ensuite propager sur les 711 autres textes |
 | **06b-bis-01 + 02** | **Réécrire T08 et la taxonomie T28–T31.** T08 empile quatre règles (usage direct, glissement, asymétrie, seuils de provenance) sans dire le cas par défaut — celui de la quasi-totalité des utilisateurs. T28 promet « tout » et omet cinq éléments chiffrés | Ce n'est pas une correction de phrase mais une réécriture de la partie la plus technique de la page. Elle demande de décider **combien** on explique — et c'est le choix qui a fait la qualité de cette page |
-| **Q7** | La mention Ciqual est-elle celle qu'exige la Licence Ouverte 2.0, au mot près ? Et le `®` est-il justifié par un dépôt réel ? | Se vérifie hors du dépôt, sur le site de l'ANSES et auprès d'Etalab. Checklist humaine |
+| **Q7** | La mention Ciqual est-elle celle qu'exige la Licence Ouverte 2.0, au mot près ? Et le `®` est-il justifié par un dépôt réel ? | ⏸️ **Toujours ouvert** — se vérifie hors du dépôt, sur le site de l'ANSES et auprès d'Etalab. Seule chose qui reste |
+
+---
+
+## 3 bis · Les trois arbitrages, tranchés le 2026-08-27
+
+### ✅ **04 — TUTOIEMENT** (décision fondateur)
+
+Mesuré avant d'appliquer, et le résultat a réduit le chantier à presque rien : **l'app
+tutoie déjà partout**. Le vouvoiement se réduisait à **deux occurrences**, toutes deux sur
+la page Méthodologie — `lib/methodologie.ts:62` (« ce que **vous** déclarez ») et
+`app/methodologie.tsx:38` (« ce qu'il **vous** propose »). Le reste de la page est écrit à
+l'impersonnel. Corrigées. Surface produit : **0 vouvoiement**.
+
+⚠️ **Restent 55 occurrences dans `constants/legal.ts`, et je ne les ai PAS touchées.** Ce
+n'est pas la même question : les CGU et la politique de confidentialité sont des documents
+**contractuels**, lus dans un autre contexte, et le vouvoiement y est la convention
+française. Les basculer coûterait un bump de date et d'empreinte, la régénération des trois
+surfaces (dont le dépôt du site), et surtout un changement de registre sur un document
+opposable — que personne n'a demandé. Le constat 04 visait T02 contre T33, deux textes
+**produit** : cette incohérence-là est fermée.
+➡️ Si le tutoiement doit s'étendre au contractuel, c'est une décision à part.
+
+### ✅ **02 — T08 découpé, le cas par défaut en tête**
+
+Le paragraphe empilait quatre règles et ne disait pas ce qui s'applique par défaut —
+c'est-à-dire à la quasi-totalité des utilisateurs. Il en fait quatre, dans l'ordre
+d'application :
+
+1. **Par défaut, c'est Mifflin-St Jeor** — quatre entrées certaines.
+2. Une silhouette porte ±5 points ; au-delà de ce bruit, le calcul **glisse** vers Katch.
+3. **Jamais l'inverse.**
+4. Katch **telle quelle** dans un seul cas : un taux mesuré et déclaré comme tel — et la
+   question n'est posée qu'au-delà de 35 % / 43 %, **en dessous le taux est toujours traité
+   comme une estimation**.
+
+Le fond ne bouge pas d'un kcal ; c'est l'ordre et le cas par défaut qui manquaient.
+
+### ✅ **01 — la taxonomie range VRAIMENT tout, et un test le compte**
+
+Le jugement disait « cinq éléments ne figurent dans aucune des deux listes ». Mesuré sur la
+**source** plutôt que sur le rendu : **douze sur dix-huit**. Le jugement sous-comptait parce
+qu'il lisait le texte rendu, où les constantes ont perdu leur nom.
+
+Les douze sont classées. Et une troisième liste apparaît, pour ce qui le mérite : *« Sont
+aussi des choix de Kyroz, et ce sont ceux qui s'écartent le plus de la littérature »* — le
+glissement Mifflin↔Katch, la marge de ±5 points, les seuils de provenance, le retrait
+progressif des planchers. C'est précisément ce que le jugement demandait de classer en
+priorité.
+
+🔴 **La promesse est désormais COMPTÉE** : `corpusTextes.test.ts` vérifie que chaque
+constante interpolée ailleurs sur la page l'est aussi dans la taxonomie. **18 citées,
+0 absente.** Vu rougir en sortant une constante de la liste.
+➡️ *Une promesse d'exhaustivité non tenue est pire qu'une sélection annoncée : elle fait
+croire que ce qui manque n'existe pas.* Et une promesse qu'aucun test ne compte se déclare
+tenue toute seule.
 
 ---
 

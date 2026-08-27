@@ -659,10 +659,27 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
   Ciqual vit dans `lib/foods.ts`, pas dans `methodologie.ts`.
   ⚠️ **Le refus initial de juger était la BONNE réponse** : le premier brief référençait le
   corpus au lieu de le contenir. « Autonome » veut dire *contient*.
-  ➡️ **Restent trois arbitrages qui ne sont pas de ma main** : vouvoiement ou tutoiement
-  (T02 vouvoie, T33 tutoie — décision de VOIX pour toute l'app) · la réécriture de T08 et de
-  la taxonomie T28–T31 (combien on explique, c'est le choix qui a fait la qualité de cette
-  page) · la mention Ciqual au mot près, qui se vérifie hors du dépôt.
+  ✅ **LES TROIS ARBITRAGES SONT TRANCHÉS (2026-08-27, décisions fondateur).**
+  · **TUTOIEMENT.** Mesuré avant d'appliquer : l'app tutoie DÉJÀ partout, le vouvoiement se
+    réduisait à DEUX occurrences, toutes deux sur la page Méthodologie. Corrigées — surface
+    produit à 0 vouvoiement. ⚠️ Les 55 occurrences de `constants/legal.ts` ne sont PAS
+    touchées : documents CONTRACTUELS, autre registre, autre décision. Le constat visait
+    deux textes produit, cette incohérence-là est fermée.
+  · **T08 découpé** : quatre règles empilées deviennent quatre phrases dans l'ordre
+    d'application, avec le CAS PAR DÉFAUT en tête (« par défaut, c'est Mifflin-St Jeor ») —
+    il n'était renseigné pour personne, alors qu'il concerne la quasi-totalité des comptes.
+    Le fond ne bouge pas d'un kcal.
+  · **Taxonomie T28–T31** : le jugement voyait 5 éléments non classés ; mesuré sur la SOURCE
+    plutôt que sur le rendu, il y en avait **12 sur 18** — il sous-comptait parce que les
+    constantes perdent leur nom au rendu. Les douze sont classées, plus une troisième liste
+    pour ce qui s'écarte le plus de la littérature (glissement Mifflin↔Katch, marge ±5 pts,
+    seuils de provenance, retrait progressif des planchers).
+    🔴 **La promesse « tout » est désormais COMPTÉE** — `corpusTextes.test.ts` : chaque
+    constante interpolée sur la page doit l'être aussi dans la taxonomie. 18 citées,
+    0 absente, vu rougir. *Une promesse d'exhaustivité non tenue est pire qu'une sélection
+    annoncée : elle fait croire que ce qui manque n'existe pas.*
+  ➡️ **Reste une seule chose, et elle se vérifie hors du dépôt** : la mention Ciqual au mot
+  près (Licence Ouverte 2.0 / Etalab) et le `®`. Checklist humaine.
   🔴 **ET UNE LEÇON DE MÉTHODE, PAYÉE SUR MOI-MÊME** : la réfutation avait ramené `CA-2-02`
   de majeur à MINEUR le jour même, avec ses motifs — je l'ai quand même publié en tête du §3
   et inscrit 🔴 au backlog comme le prochain chantier. Le verdict était dans le document ;
