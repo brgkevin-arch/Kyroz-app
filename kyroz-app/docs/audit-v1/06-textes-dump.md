@@ -1019,7 +1019,7 @@
 | 26 | `lib/methodologie.ts:155` | corps | Après 8 semaines de déficit consécutives, la semaine suivante est servie à la maintenance. Ce compteur-là est indépendant du précédent : l'un compte des semaines qui se suivent, l'autre des semaines cumulées. | ⚑ |
 | 27 | `lib/methodologie.ts:158` | corps | Sous un indice de masse corporelle de départ de 18,5, Kyroz ne creuse aucun déficit et sert un plan complet à la maintenance — de même pour tout poids cible sortant de la plage saine. | ⚑ |
 | 28 | `lib/methodologie.ts:174` | titre | Les données nutritionnelles |  |
-| 29 | `lib/foods.ts:15` | corps | Données nutritionnelles issues de la Table Ciqual® 2025 (ANSES), réutilisée sous Licence Ouverte 2.0 (Etalab). Certaines entrées sont ajoutées ou ajustées par Kyroz et ne proviennent pas de l’ANSES. L’ANSES n’endosse pas Kyroz. | ⚑ |
+| 29 | `lib/foods.ts:46` | corps | Données nutritionnelles issues de la Table Ciqual 2025 (ANSES), mise à jour du 19 novembre 2025, réutilisée sous Licence Ouverte 2.0 (Etalab) — doi.org/10.57745/RDMHWY. Certaines entrées sont ajoutées ou ajustées par Kyroz et ne proviennent pas de l’ANSES. L’ANSES n’endosse pas Kyroz. | ⚑ |
 | 30 | `lib/methodologie.ts:177` | corps | Les aliments que la table ne couvre pas proprement (produits protéinés, préparations composées) sont saisis à la main, à partir des valeurs déclarées par les fabricants. Aucune source tierce automatique n'alimente le catalogue. |  |
 | 31 | `lib/methodologie.ts:178` | corps | Les recettes de Kyroz n'ont pas été validées par un diététicien-nutritionniste, et l'app ne le prétend nulle part. |  |
 | 32 | `lib/methodologie.ts:189` | titre | Ce qui relève d'un choix de Kyroz |  |

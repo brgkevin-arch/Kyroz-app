@@ -678,8 +678,28 @@ les gros volumes, où c'est la variété éditoriale qui coûte, pas le calage.
     constante interpolée sur la page doit l'être aussi dans la taxonomie. 18 citées,
     0 absente, vu rougir. *Une promesse d'exhaustivité non tenue est pire qu'une sélection
     annoncée : elle fait croire que ce qui manque n'existe pas.*
-  ➡️ **Reste une seule chose, et elle se vérifie hors du dépôt** : la mention Ciqual au mot
-  près (Licence Ouverte 2.0 / Etalab) et le `®`. Checklist humaine.
+  ✅ **LA MENTION CIQUAL EST CLOSE — et rien n'était à aller chercher dehors** (2026-08-27,
+  `PROCEDURE-2026-08-27-mention-ciqual.md`). La Licence Ouverte 2.0 n'exige qu'UNE chose, en
+  deux moitiés : le **nom du producteur** ET la **date de dernière mise à jour** — plus une
+  interdiction de suggérer une caution. 🔴 **La date manquait sur les trois surfaces**, donc
+  la moitié de l'unique obligation. Elle était pourtant sur le disque :
+  `data/ciqual/MANIFEST.TXT` (fichiers du 2025-11-03) et le jeu publié (v1.0, **19 novembre
+  2025**, DOI `10.57745/RDMHWY`). Ajoutées à `CIQUAL_ATTRIBUTION`, avec le DOI — qui emprunte
+  la modalité alternative que la licence autorise (l'URL).
+  🔴 **ET LE `®` EST PARTI.** Mesuré sur la documentation officielle de l'ANSES, celle du
+  disque : **37 occurrences de « Ciqual », ZÉRO avec `®`**, alors que ce même document en
+  emploie **157** par ailleurs pour des marques d'aliments. Le titulaire ne marque pas son
+  propre nom. Ce n'était pas de la typographie : apposer un symbole d'enregistrement sur le
+  nom d'un tiers qui ne le revendique pas est une affirmation factuelle fausse.
+  ⚠️ C'était **le seul `®` réel du code**, et `emojiInterface.test.ts` s'en servait comme
+  EXEMPLE du `®` légitime. L'exemption reste (elle est juste), son témoin devient construit,
+  et le fichier le dit — plutôt que de laisser croire qu'un cas réel l'éprouve encore.
+  ⏸️ **Non touchées, et c'est un choix mesuré** : les CGU §6 et la fiche store citent Ciqual
+  sans date. La licence se satisfait d'UNE mention effective, et c'est celle de l'app. Les
+  enrichir aurait rouvert l'empreinte légale pour une conformité déjà acquise. À reprendre le
+  jour où les CGU bougeront pour une autre raison — dette de cohérence, pas de conformité.
+  ⚠️ **Au prochain millésime Ciqual** : la date se RE-MESURE sur `MANIFEST.TXT`.
+  `convert-ciqual.py` régénère le dataset ; personne ne régénère la phrase.
   🔴 **ET UNE LEÇON DE MÉTHODE, PAYÉE SUR MOI-MÊME** : la réfutation avait ramené `CA-2-02`
   de majeur à MINEUR le jour même, avec ses motifs — je l'ai quand même publié en tête du §3
   et inscrit 🔴 au backlog comme le prochain chantier. Le verdict était dans le document ;

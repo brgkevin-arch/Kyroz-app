@@ -1602,8 +1602,11 @@ payé par une mesure en l'écrivant :
   du code. Un compteur qui crie au loup 47 fois ne sera pas lu ;
 - il **autorise `®`, `©`, `™`**. Unicode les classe `Extended_Pictographic`, mais ce
   sont des signes typographiques : ils suivent la fonte, donc le thème — le critère
-  même qui condamne les émojis. `lib/foods.ts` en porte un légitime (« Table
-  Ciqual® 2025 »), qu'on n'a pas le droit de réécrire ;
+  même qui condamne les émojis. ⚠️ **Il n'en reste AUCUN dans le code depuis le
+  2026-08-27** : le seul, « Table Ciqual® 2025 », a été retiré — l'ANSES n'emploie
+  jamais `®` pour son propre nom (37 mentions, 0 avec `®`, dans sa documentation
+  officielle, alors que ce document en emploie 157 par ailleurs). L'exemption reste
+  parce qu'elle est juste, mais elle n'est plus éprouvée que par une sonde construite ;
 - il **vérifie qu'il sait dire OUI** avant de dire non. Un compteur qu'on n'a jamais
   vu rougir ne prouve rien, et celui-ci a eu deux versions fausses — l'une aveugle
   aux commentaires de fin de ligne, l'autre condamnant le `®` de Ciqual. **Vérifié
