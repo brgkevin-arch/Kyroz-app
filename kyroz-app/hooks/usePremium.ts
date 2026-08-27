@@ -17,7 +17,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from './useAuth';
 import { useProfile } from './useProfile';
-import { PremiumFeature, PremiumAccess, premiumAccess, grandfatheredNotice, isGrandfathered, PAYWALL_LAUNCH, entitlementNecessaire } from '../lib/premium';
+import { PremiumFeature, PremiumAccess, premiumAccess, grandfatheredNotice, isGrandfathered, PAYWALL_LAUNCH, entitlementNecessaire, dateCreationCompte } from '../lib/premium';
 import { identifyUser, onEntitlementChange, purchasesConfigured } from '../lib/purchases';
 
 /**
@@ -95,13 +95,19 @@ export interface PremiumState extends PremiumAccess {
 
 export function usePremium(options?: { forcerIdentification?: boolean }): PremiumState {
   const { profile } = useProfile();
+  const { session } = useAuth();
+  // 🔴 LA SESSION D'ABORD, LE PROFIL EN REPLI — cf. `dateCreationCompte`. Lire la
+  // seule `profile.created_at` donnait Kyroz+ à TOUT nouvel inscrit pendant sa
+  // première session : cette colonne n'arrive qu'à la lecture du miroir Supabase,
+  // donc jamais avant le lancement suivant. Vu à l'écran le 2026-08-27.
+  const createdAt = dateCreationCompte(session?.user?.created_at, profile?.created_at);
   // `forcerIdentification` : l'écran Kyroz+ le pose, parce qu'ACHETER exige que le
   // fournisseur sache à quel compte rattacher l'achat — même sur un compte grand-péré
   // qui voudrait s'abonner quand même. Partout ailleurs, on laisse le verdict décider.
   const necessaire = options?.forcerIdentification === true
-    || entitlementNecessaire(profile?.created_at);
+    || entitlementNecessaire(createdAt);
   const entitled = useEntitlement(necessaire);
-  const access = premiumAccess({ entitled, createdAt: profile?.created_at });
+  const access = premiumAccess({ entitled, createdAt });
 
   return {
     ...access,

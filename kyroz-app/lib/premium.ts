@@ -104,6 +104,41 @@ export function isGrandfathered(createdAt: string | null | undefined, launch = P
 }
 
 /**
+ * Date de création du COMPTE, prise à la meilleure source disponible.
+ *
+ * 🔴 POSÉE LE 2026-08-27, APRÈS AVOIR VU LE DÉFAUT À L'ÉCRAN — un compte créé onze
+ * minutes plus tôt affichait « Kyroz+ · Inclus à vie », et redevenait verrouillé au
+ * lancement SUIVANT. La cause n'était pas le repli mais sa SOURCE : `usePremium`
+ * lisait `profile.created_at`, qui n'est écrit qu'en UN endroit (`sync.ts`, à la
+ * LECTURE du miroir Supabase). Un compte tout juste créé ne l'a donc pas encore, et
+ * `isGrandfathered` — qui donne l'accès quand la date manque — s'appliquait à
+ * l'intégralité des nouveaux inscrits, pendant toute leur première session.
+ *
+ * ⚠️ **Le repli « date absente → on donne » n'est pas en cause et ne bouge pas.** Il
+ * vise celui dont on a PERDU la date. Ce qui était faux, c'est de le laisser couvrir
+ * celui dont on ne l'a pas ENCORE demandée. *Un repli de sécurité juste peut servir
+ * une population qu'il ne visait pas — c'est la source qu'il faut regarder, pas la
+ * règle.*
+ *
+ * ⚠️ **La session PASSE DEVANT le profil, et c'est deux fois le bon sens :**
+ * · `auth.users.created_at` EST la date du compte — c'est elle que promettent les
+ *   CGU §3 (« tout compte créé avant cette date »), là où `profiles.created_at`
+ *   date la LIGNE MIROIR, créée au premier envoi, donc plus tard ou jamais ;
+ * · elle est donc toujours ≤ l'autre, donc la préférer se trompe **en DONNANT**,
+ *   dans le sens que la décision protège.
+ *
+ * ⚠️ **Le profil reste en repli, il ne devient pas décoratif** : la session peut
+ * manquer là où le profil est en cache (démarrage hors ligne, hydratation en cours).
+ * Retirer l'un des deux rouvrirait le défaut par l'autre porte.
+ */
+export function dateCreationCompte(
+  sessionCreatedAt: string | null | undefined,
+  profilCreatedAt: string | null | undefined,
+): string | undefined {
+  return sessionCreatedAt ?? profilCreatedAt ?? undefined;
+}
+
+/**
  * Faut-il interroger le fournisseur d'abonnement pour rendre le verdict d'accès ?
  *
  * 🔴 DÉPLACÉE ICI ET EXPORTÉE LE 2026-08-27 (contre-audit CA-7-02). Elle vivait
@@ -148,12 +183,26 @@ export function premiumAccess(opts: {
 /** Raccourci : cette feature est-elle accessible à ce profil ? */
 export function canUse(
   feature: PremiumFeature,
-  opts: { entitled: boolean; profile?: UserProfile | null; launch?: string | null },
+  opts: {
+    entitled: boolean;
+    profile?: UserProfile | null;
+    launch?: string | null;
+    /**
+     * ⚠️ **À passer dès qu'une session existe** — `auth.users.created_at`. Sans lui,
+     * cette fonction ne connaît que `profiles.created_at`, absent pendant toute la
+     * première session d'un compte neuf : elle rendrait alors « accessible » ce qui
+     * doit être verrouillé. C'est le défaut vu à l'écran le 2026-08-27, et cette
+     * porte-ci resterait ouverte si on ne fermait que `usePremium`.
+     * *Aucun code de production n'appelle `canUse` aujourd'hui — raison de plus pour
+     * ne pas l'y laisser en piège : un jour quelqu'un la branchera.*
+     */
+    sessionCreatedAt?: string | null;
+  },
 ): boolean {
   if (!PREMIUM_FEATURES.includes(feature)) return true; // feature gratuite
   return premiumAccess({
     entitled: opts.entitled,
-    createdAt: opts.profile?.created_at,
+    createdAt: dateCreationCompte(opts.sessionCreatedAt, opts.profile?.created_at),
     launch: opts.launch,
   }).allowed;
 }
