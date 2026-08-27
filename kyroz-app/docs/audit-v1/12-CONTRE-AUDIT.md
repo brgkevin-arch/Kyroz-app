@@ -51,6 +51,7 @@ foi d'un agent.
 | `CA-3-03` — les photos de corps survivent à « Supprimer définitivement » | `purgeAllProgressPhotos()` sur les deux sorties, avant la purge du stockage ; `deleteProgressPhoto` borné à `file://` | `a796b82` | **5 mutations** |
 | `CA-8-03` — le compte est créé avant qu'on demande l'âge | le §10 de la politique dit ce que le code fait, y compris qu'il ne vérifie pas l'âge à la création ; un test tient l'invariant texte ↔ `login.tsx` | `7cc5571` | **4 mutations** |
 | `CA-3-02` — au réveil, le Plan reste sur hier | `jourCivil` relu aux trois moments de réveil, déclaré par `todayIdx` et par le solde de la veille | `da6d994` | **5 mutations** |
+| `CA-2-02` — « aucun plancher contournable » | **aucune ligne de moteur changée** : la prémisse est mesurée (75 264 profils, 0 violation), les phrases reçoivent leur périmètre, la propriété devient comptée | *ci-dessous* | **4 mutations** |
 
 **Ce qu'ils N'ONT PAS déplacé**, re-mesuré après coup : les cinq fichiers moteur sont
 **inchangés au caractère près** (`git diff` vide → couverture et « 0 `any` » tiennent par
@@ -145,19 +146,57 @@ sur ce critère (cf. `CA-3-04` : douze critères cochés, six instruits).
 
 ---
 
-## 3 · Les deux feux verts du moteur qui ne tiennent pas
+## 3 · Les feux verts du moteur — un qui ne tient pas, un que j'avais sur-vendu
 
 Le §5 est la zone la plus dangereuse d'un audit : personne ne revérifie un vert avant la vente.
+Et c'est aussi celle où un **contre**-audit se trompe le plus facilement, parce qu'il a été
+payé pour trouver.
 
-### CA-2-02 · « Aucun plancher contournable » est vrai dans `computePlan`, et faux à l'écran
+### CA-2-02 · La phrase est sur-généralisée. Le code, lui, a raison — et je l'avais mal dit
 
-Le balayage de confirmation est solide — **274 428 profils, zéro violation** dans `computePlan`.
-Mais l'arrondi n'est pas le dernier maillon : `planEngine.baseDayTargets` (`lib/planEngine.ts:1158-1164`)
-et `planEngine.bankedTargets` (`:1186-1200`) re-plafonnent par le bas avec `bankFloorKcal`
-(`= max(BMR, MIN_KCAL)`), **strictement plus bas** que `safetyFloorKcal`.
+**⚠️ CE CONSTAT A ÉTÉ RÉTROGRADÉ, ET C'EST MOI QUI L'AVAIS SUR-CLASSÉ.** La réfutation
+adverse l'avait ramené de **majeur à MINEUR** le jour même, et je l'ai quand même publié ici
+sous « les feux verts qui ne tiennent pas », puis inscrit **🔴 au backlog comme le prochain
+chantier**. Corrigé le 2026-08-27, après mesure.
 
-**La cible affichée jour par jour descend jusqu'à 433 kcal/j sous le plancher de sécurité.**
-C'est celle-là que la personne voit et suit.
+**Ce qui est vrai.** `planEngine.baseDayTargets` (`lib/planEngine.ts:1158-1164`) et
+`bankedTargets` (`:1186-1200`) re-plafonnent par le bas avec `bankFloorKcal`
+(`= max(BMR, filet absolu)`), **strictement plus bas** que le plancher de sécurité — et
+c'est `dayTargetKcal` que lit `plan.tsx`. Re-mesuré sur **75 264 profils** : **44,2 %** ont
+au moins un jour sous le plancher de sécurité, **jusqu'à 1 103 kcal/j** (le « 433 » publié
+ici la veille venait d'une grille de cinq profils).
+
+**Ce qui est faux, c'était ma conclusion.** J'en avais fait un risque santé. C'est un
+mécanisme délibéré, argumenté deux fois dans le code (`lib/dailyBudget.ts:24-38` et la
+docstring de `bankFloorKcal`), et **CLAUDE.md §6 écrit noir sur blanc : « Ne pas le remonter
+comme un danger »**. L'énergie disponible est une moyenne soutenue — le produit la compte en
+SEMAINES (`low_ea_weeks`), jamais en jours. Borner la cible du jour au plancher de sécurité,
+c'est appliquer jour par jour un seuil qui ne l'est pas : **exactement le calcul qui a fait
+rejeter la spec P2.1 le 2026-07-29**, et ça détruirait la répartition par volume livrée le
+2026-08-06. Mon §3 rejouait donc, mot pour mot, l'erreur que le dépôt avait déjà refusée.
+
+**Ce que personne n'avait jamais mesuré — et qui est le vrai apport.** Toute la
+justification tient sur une phrase : *« la banque conserve le total de la SEMAINE, donc
+l'exposition hebdomadaire est inchangée »*. L'audit, le contre-audit et le réfuteur ont tous
+les trois mesuré le **minimum du jour**. Personne n'avait mesuré la **semaine**. Fait, sur
+75 264 profils, par le moteur réel :
+
+| | |
+|---|---|
+| **P1 · Conservation** — Σ servi == jours × cible plate | **0 violation**, écart max **0 kcal/semaine** |
+| **P2 · Exposition hebdo** — moyenne servie ≥ plancher de sécurité | **0 violation** |
+| **P3 · Plancher dur du jour** — min servi ≥ `max(BMR, filet absolu)` | **0 violation** |
+
+➡️ **La prémisse tient exactement. Aucune ligne de moteur ne change.** Ce qui change : la
+phrase de `02-moteur.md` reçoit son périmètre, celle du §5 de la synthèse est resserrée, et
+la propriété devient **comptée** — `lib/__tests__/plancherServi.test.ts`, dont le quatrième
+test **exige que la descente existe**. Quiconque « répare » la cible du jour le fait rougir
+et lit pourquoi. Vu rougir sur 4 mutations, chacune ne touchant que la promesse qu'elle casse.
+
+⚠️ **Deux affirmations du constat d'origine sont retirées** : `lib/dailyBudget.ts` **est**
+couvert par les tests (`volumeConcentre`, `mealProteinFloor`, `safety`), et la phrase de
+`02-moteur.md:87` est exacte **dans sa section**, qui décrit l'intérieur de `computePlan` —
+seul son recopiage nu en §5 sur-généralisait.
 
 ### CA-2-01 · Le balayage qui certifie la continuité R6 s'arrête exactement au point de rupture
 
@@ -279,7 +318,7 @@ qu'un relecteur de store lit avant d'ouvrir le binaire.
 | ~~**0a**~~ | ✅ **Le compte supprimé** | `CA-3-01` + `CA-3-03` — **livré** (`5a057c9`, `a796b82`) | les deux se corrigeaient bien dans `doDelete`, et la déconnexion avait le même trou en plus petit |
 | ~~**0b**~~ | ✅ **Les mineurs** | `CA-8-03` — **livré** (`7cc5571`) : c'est la clause qui a été réécrite, le blocage à l'onboarding étant réel et dur | |
 | ~~**0d**~~ | ✅ **La bascule de jour** | `CA-3-02` — **livré** (`da6d994`) ; il n'avait aucun lot, comme les 17 orphelins de `CA-6-04` | |
-| **0c** | 🔴 **Le plancher affiché** | `CA-2-02` — 433 kcal/j sous le plancher de sécurité | santé, et ça dément le §5. **C'est le prochain.** |
+| ~~**0c**~~ | ✅ **Le plancher affiché** | `CA-2-02` — **aucun code changé, et c'est le résultat** : la prémisse (conservation hebdomadaire) est mesurée pour la première fois sur 75 264 profils, 0 violation. Les phrases reçoivent leur périmètre, la propriété devient comptée (`plancherServi.test.ts`) | ⚠️ j'avais classé ce constat 🔴 alors que ma propre réfutation l'avait rétrogradé en mineur |
 | **1′** | 🔴 **Les trois P0, recos corrigées** | 01-01, 02-01, 02-02 **+ 02-03** — avec `goal` et `macro_mode`, et **sans** la garde d'identité sur le `id` local | les recos publiées ne ferment pas leur trou |
 | **2′** | 🔨 **Décision A** | inchangée, **moins** la tâche `allowBackup`/iOS qui n'existe pas, **plus** l'avertissement `fingerprint` : la ligne OTA se coupe à **chaque** édition d'`app.json`, pas « une fois » (`CA-5-03`) | |
 | **3′** | ⚖️ **Textes publiés** | `legal.ts:208` (rendu faux **par** le correctif 09-01) + Expo au registre + la mention iCloud à retirer | trois textes publiés faux, aucun dans un lot |
@@ -312,7 +351,24 @@ aurait trouvés : `check:abonnements` tombe sur un changement de **guillemets**.
 12 caractères a été réparé, la réparation a cassé autre chose, et le document qui dépendait du
 corpus n'a pas été rejoué — seul son en-tête a été réécrit. Le chiffre a changé, pas le jugement.
 
-**⑤ La réfutation adverse paie.** Sept constats sur soixante-deux sont tombés, dont un doublon
+**⑤ 🔴 UN CONTRE-AUDIT SUR-CLASSE CONTRE SA PROPRE RÉFUTATION.** `CA-2-02` avait été
+ramené de **majeur à mineur** par le réfuteur, le jour même, avec ses motifs. Je l'ai
+publié quand même en tête du §3, puis inscrit **🔴 au backlog comme le prochain chantier** —
+et le correctif qu'il appelait était le calcul exact que le dépôt avait déjà refusé
+(spec P2.1, 2026-07-29), sous une ligne de CLAUDE.md qui dit littéralement « ne pas le
+remonter comme un danger ». Le verdict était dans le document ; c'est la mise en page qui
+l'a écrasé. ➡️ **Une gravité corrigée par la réfutation doit gouverner la place du constat
+dans le document, pas seulement figurer dans son verdict.** Sinon la passe adverse coûte
+son prix et ne sert à rien.
+
+**⑥ Et le vrai apport n'était pas là où le constat le disait.** L'audit, le contre-audit
+et le réfuteur ont tous les trois mesuré le **minimum du jour**. La justification du
+mécanisme, elle, tient sur la **semaine** — et personne ne l'avait jamais mesurée. Elle
+tient (0 violation sur 75 264 profils), et elle est désormais comptée. ➡️ Devant un constat
+qui attaque une justification, **mesurer la justification**, pas le symptôme qu'elle
+explique.
+
+**⑦ La réfutation adverse paie.** Sept constats sur soixante-deux sont tombés, dont un doublon
 que le contre-audit s'était fabriqué à lui-même, et trois dont la mesure était juste mais la
 conclusion sur-vendue. Sans cette passe, ils seraient dans ce document.
 

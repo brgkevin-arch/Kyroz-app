@@ -86,6 +86,24 @@ birth_date → age (dérivé, computePlan tdee.ts:1212)
 
 **Qui gagne quand un plancher contredit un plafond ?** Le plancher — et il gagne **en dernier**, ce qui est le bon ordre. `safetyFloorKcal` renvoie le **maximum** des candidats (`min_kcal`, `energy_availability`, `underweight_maintenance`, `deficit_cap`), et `ComputedPlan.clamp.source` **nomme celui qui a mordu**. Les 11 cas de la section H confirment : `clamp` est toujours renseigné et cohérent avec la valeur servie. **Aucun plancher contournable trouvé** — un plancher appliqué n'est jamais ré-écrasé en aval, l'arrondi étant le seul maillon après lui.
 
+> 🔴 **PÉRIMÈTRE, ajouté le 2026-08-27 (contre-audit `CA-2-02`).** Cette phrase est vraie
+> **à l'intérieur de `computePlan`**, et elle a été re-vérifiée : sur 274 428 profils, la
+> cible n'est jamais sous son plancher, écart max 0 kcal. Elle **ne vaut pas** du nombre
+> que l'écran affiche. Deux maillons suivent : `planEngine.baseDayTargets` et
+> `bankedTargets` re-plafonnent avec `bankFloorKcal` = `max(BMR, filet absolu)`,
+> strictement plus bas que le plancher de sécurité, et c'est `dayTargetKcal` que lit
+> `plan.tsx`. **Mesuré sur 75 264 profils : 44,2 % ont au moins un jour sous le plancher
+> de sécurité, jusqu'à 1 103 kcal/j.**
+> ⚠️ **Ce n'est pas un défaut, et il ne faut PAS le « corriger ».** L'énergie disponible
+> est une moyenne soutenue — le produit la compte en semaines. La répartition par volume
+> conserve le total hebdomadaire, donc l'exposition est inchangée : re-mesuré, **0
+> violation** sur la conservation ET sur la moyenne hebdomadaire face au plancher.
+> Borner la cible du jour au plancher de sécurité, c'est appliquer jour par jour un seuil
+> qui ne l'est pas — le calcul exact qui a fait rejeter la spec P2.1 le 2026-07-29.
+> ➡️ La propriété est désormais **comptée** : `lib/__tests__/plancherServi.test.ts`.
+> Tout futur constat de sécurité calorique se mesure sur `dayTargetKcal`, jamais sur
+> `computePlan`.
+
 ⚠️ Un point d'architecture qui mérite d'être noté comme une **qualité** : `ClampRecord` est produit **une seule fois**, par le moteur, et l'écran ne redéduit rien (`tdee.ts:1191-1196` le dit explicitement). C'est ce qui rend la section K propre.
 
 ## F. Réponse à la question calorie bank vs cycling

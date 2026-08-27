@@ -123,7 +123,10 @@ Un lot = une décision ou un thème. L'ordre est celui des dépendances, pas des
 Un backlog de 86 lignes donne une image fausse s'il est lu seul. Ce qui a été **mesuré** et qui tient :
 
 - **Sécurité Supabase** : RLS `enable` **et** `force` sur les six tables, policies `for all` avec `using` et `with check`, cascade partout, `anon` sans le moindre droit de table, une seule fonction `security definer` (avec `search_path`), **aucun secret dans tout l'historique git**, et une Edge Function de suppression qui n'accepte aucun identifiant du client.
-- **Moteur** : l'ordre floors/plafonds est le bon — **aucun plancher contournable**. Le lissage R6 tient (saut maximal **28 kcal/j**). Couverture des cinq fichiers moteur : **96,35 % à 100 %** de lignes. **0** `any`, **0** erreur `tsc`, **1 835 tests verts**.
+- **Moteur** : l'ordre floors/plafonds est le bon — **aucun plancher contournable dans
+  `computePlan`** *(périmètre resserré le 2026-08-27, contre-audit `CA-2-02` : la cible
+  SERVIE jour par jour descend sous le plancher de sécurité, délibérément et sans danger
+  — voir la note de `02-moteur.md`. Ne pas le « corriger »)*. Le lissage R6 tient (saut maximal **28 kcal/j**). Couverture des cinq fichiers moteur : **96,35 % à 100 %** de lignes. **0** `any`, **0** erreur `tsc`, **1 835 tests verts**.
 - **Affichage** : sur 96 profils, l'écart entre les macros affichées et les kcal affichées plafonne à **0,13 %**.
 - **Store** : aucun tracking, ATS intact, aucun Firebase, icône 1024 sans canal alpha, **aucun SDK hors des trois sous-traitants déclarés**.
 - **Textes** : Claude.ai qualifie le corpus de « **globalement bien meilleur que la moyenne du secteur** » et cite treize textes comme modèles — dont `methodologie.ts:159-164`, dont elle écrit n'avoir « pas vu d'équivalent dans une app grand public ».
