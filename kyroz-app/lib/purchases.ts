@@ -220,8 +220,13 @@ export async function identifyUser(userId: string | null): Promise<boolean> {
 
 // ── Prix ─────────────────────────────────────────────────────────────────────
 
-/** Prix LOCALISÉS renvoyés par le store, par formule. */
-export type StorePrices = Partial<Record<'monthly' | 'annual', string>>;
+// ⚠️ Le TYPE vit dans `lib/premium.ts`, qui est pur et testable, et il est importé
+// ici — il était DUPLIQUÉ dans les deux fichiers jusqu'au 2026-08-28. Deux
+// définitions d'une même forme, c'est une seule qui se met à jour le jour où elle
+// change (`CLAUDE.md` §10). `import type` est effacé à la compilation : rien de natif
+// ne remonte dans `premium.ts`.
+export type { StorePrice, StorePrices } from './premium';
+import type { StorePrices } from './premium';
 
 /**
  * Prix réels du store, localisés (`priceString`).
@@ -241,8 +246,12 @@ export async function fetchStorePrices(ids: { monthly: string; annual: string })
     const produits = await sdk.default.getProducts([ids.monthly, ids.annual]);
     const prix: StorePrices = {};
     for (const p of produits) {
-      if (p.identifier === ids.monthly) prix.monthly = p.priceString;
-      if (p.identifier === ids.annual) prix.annual = p.priceString;
+      // `montant` et `devise` viennent du MÊME produit que `priceString` : c'est ce
+      // qui garantit que la mensualité dérivée parle de la même monnaie que le prix
+      // affiché juste au-dessus (cf. `mensualiteEquivalente`).
+      const servi = { priceString: p.priceString, montant: p.price, devise: p.currencyCode };
+      if (p.identifier === ids.monthly) prix.monthly = servi;
+      if (p.identifier === ids.annual) prix.annual = servi;
     }
     return prix;
   } catch {
