@@ -41,7 +41,28 @@ comme un diagnostic complet.***
 | 4.1b · l'achat aboutit et débloque | ✅ **le 2026-08-28** |
 | 4.2 · l'abonnement survit à une réinstallation | ✅ **et SANS toucher au bouton** — voir ci-dessous |
 | 4.3a · le droit REVIENT à la reconnexion | ✅ inclus dans 4.2 |
-| 4.3b · le droit PART à la déconnexion | 🔴 **PAS FAIT — et c'est la moitié qui compte** |
+| 4.3b · un compte NEUF n'hérite de rien | ✅ **PROUVÉ le 2026-08-28 — troisième compte, verrouillé** |
+| 4.2-bis · le BOUTON « Restaurer » lui-même | 🔶 jamais appuyé — un tap suffit |
+
+> ✅ **4.3b est bouclé, et c'est la preuve la plus difficile des trois.** Un compte créé
+> à l'instant, sur le MÊME appareil et le MÊME Apple ID que l'abonné, affiche l'écran
+> d'achat. L'abonnement reste donc attaché au compte qui a payé — la propriété cassée le
+> 2026-08-02, et refermée.
+>
+> 🔴 **CE QUI A FAILLI FAIRE CONCLURE À TORT : aucun des deux premiers comptes ne pouvait
+> répondre.** Le compte A est grand-péré — il affiche Kyroz+ **quoi qu'il arrive**. Le
+> compte B est le payeur. Voir « Kyroz+ actif » sur l'un ou l'autre après une déconnexion
+> ne dit RIEN sur la fuite. **Un témoin qui dit toujours oui ne prouve rien** : il fallait
+> un TROISIÈME compte, neuf, seul capable de distinguer.
+> ⚠️ Et si ce troisième compte avait été actif, la cause n'aurait pas été dans le code
+> Kyroz mais dans un réglage : RevenueCat → *Project settings* → **Restore Behavior**
+> (`Transfer` / `Keep with original` / `Share`). C'est le seul endroit qui en décide.
+
+> 🟠 **Relevé sans être corrigé** : déconnecté, `createdAt` est inconnue et
+> `isGrandfathered` rend `true` (`lib/premium.ts:99`, « se tromper en DONNANT »). L'état
+> n'est pas atteignable — la déconnexion renvoie à l'écran de connexion — sauf pendant la
+> **fenêtre d'hydratation de la session** au lancement. Purement JS, donc **corrigeable en
+> OTA** : « déconnecté » n'est pas « date inconnue », c'est « pas de compte ».
 
 > ✅ **4.2 a donné mieux que ce qu'il demandait.** Après suppression de l'app,
 > réinstallation et reconnexion, **Kyroz+ était déjà actif** : il n'a pas fallu appuyer sur
