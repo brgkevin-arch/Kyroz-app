@@ -37,11 +37,37 @@ comme un diagnostic complet.***
 | 1 · prix sur tous les territoires | ✅ **FAITE par l'API** — 175 territoires sur les deux produits « lancement », grille d'équivalence d'Apple depuis le prix français. **Les 4 produits sont `READY_TO_SUBMIT`** |
 | 2 · testeur sandbox | ✅ **CRÉÉ** — `Test Sandbox`, territoire **FRA**, `interruptPurchases: false` |
 | 3 · téléphone | ✅ compte sandbox connecté, **(8) installé**, version 1.0.0 |
-| 4.1 · l'achat aboutit | ✅ **RÉUSSI le 2026-08-28 vers 02 h** — c'était bien la propagation |
-| 4.2 · « Restaurer mes achats » | 🔴 **PAS FAIT** — et c'est un motif de rejet (Guideline 3.1.1) |
-| 4.3 · l'abonnement suit le compte | 🔴 **PAS FAIT** |
+| 4.1a · la feuille d'Apple s'ouvre | ✅ **le 2026-08-28 vers 02 h** — le produit est servi, c'était bien la propagation |
+| 4.1b · l'achat aboutit et débloque | ✅ **le 2026-08-28** |
+| 4.2 · l'abonnement survit à une réinstallation | ✅ **et SANS toucher au bouton** — voir ci-dessous |
+| 4.3a · le droit REVIENT à la reconnexion | ✅ inclus dans 4.2 |
+| 4.3b · le droit PART à la déconnexion | 🔴 **PAS FAIT — et c'est la moitié qui compte** |
 
-> ✅ **4.1 a fini par passer**, sans qu'on touche à rien : les 175 prix avaient été posés
+> ✅ **4.2 a donné mieux que ce qu'il demandait.** Après suppression de l'app,
+> réinstallation et reconnexion, **Kyroz+ était déjà actif** : il n'a pas fallu appuyer sur
+> « Restaurer mes achats ». C'est `usePremium` → `identifyUser(uid)` → `Purchases.logIn`
+> qui rend un client RevenueCat portant déjà le droit. **L'abonnement est donc rattaché à
+> l'UUID Supabase, pas à l'appareil** — exactement la propriété cassée le 2026-08-02.
+>
+> 🔶 **Mais le BOUTON n'a pas été exercé**, et Apple exige qu'il existe et fonctionne
+> (Guideline 3.1.1). Son code a été relu : il distingue « Abonnement retrouvé » de
+> « Aucun abonnement à restaurer » et gère l'échec — un relecteur qui appuie obtient une
+> réponse sensée. **Un tap suffit à le prouver.**
+>
+> 🔴 **4.3b reste, et c'est la moitié dangereuse.** Que le droit REVIENNE est confortable ;
+> qu'il PARTE à la déconnexion est ce qui empêche la personne suivante, sur un téléphone
+> partagé, d'hériter de l'abonnement de la précédente. C'était le défaut du 2026-08-02, et
+> il ne se prouve que dans ce sens-là.
+
+> 🔴 **CORRECTION DU 2026-08-28, 04 h : « la feuille s'ouvre » N'EST PAS « l'achat
+> aboutit ».** Ce fichier a annoncé 4.1 réussi alors que la feuille avait seulement été
+> OUVERTE. La confusion n'est pas cosmétique : **4.2 est intestable tant que rien n'a été
+> acheté** — « Restaurer mes achats » n'a rien à restaurer. Une étape déclarée verte trop
+> vite bloque la suivante en silence.
+> ➡️ **L'ordre est contraint** : valider l'achat (4.1b), PUIS restaurer (4.2), PUIS
+> changer de compte (4.3). Aucune des deux dernières n'a de sens avant la première.
+>
+> ✅ **Ce que 4.1a a prouvé**, sans qu'on touche à rien : les 175 prix avaient été posés
 > vers 00 h 05, l'essai qui a marché est de ~02 h. **Le premier « toujours pareil » était à
 > +27 minutes** — trop tôt pour compter comme un résultat. Un essai qui échoue trop tôt ne
 > dit rien, et il coûte plus qu'il ne rapporte : il envoie chercher un défaut ailleurs.
@@ -188,6 +214,11 @@ compte neuf recevait Kyroz+ gratuitement pendant toute sa première session.
 Elles ne se prouvent QUE là. Dans cet ordre.
 
 ### 4.1 — L'achat aboutit et débloque
+
+⚠️ **Va jusqu'à la VALIDATION.** Ouvrir la feuille d'Apple ne prouve que la disponibilité
+du produit. En TestFlight l'achat est **gratuit** — la feuille le dit elle-même : « à des
+fins de test uniquement, vous ne serez pas débité ». Sans validation, 4.2 et 4.3 sont
+intestables.
 
 1. Crée un **compte neuf** dans l'app (« Continuer en invité » suffit).
 2. Va dans *Profil → Kyroz+*. Tu dois voir **« Piloter ton objectif dans le temps »** et
