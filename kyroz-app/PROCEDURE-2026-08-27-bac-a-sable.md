@@ -37,7 +37,23 @@ comme un diagnostic complet.***
 | 1 · prix sur tous les territoires | ✅ **FAITE par l'API** — 175 territoires sur les deux produits « lancement », grille d'équivalence d'Apple depuis le prix français. **Les 4 produits sont `READY_TO_SUBMIT`** |
 | 2 · testeur sandbox | ✅ **CRÉÉ** — `Test Sandbox`, territoire **FRA**, `interruptPurchases: false` |
 | 3 · téléphone | ✅ compte sandbox connecté, **(8) installé**, version 1.0.0 |
-| 4.1 · l'achat aboutit | 🔴 **ÉCHOUE — et la cause est chez Apple, pas chez nous** |
+| 4.1 · l'achat aboutit | ✅ **RÉUSSI le 2026-08-28 vers 02 h** — c'était bien la propagation |
+| 4.2 · « Restaurer mes achats » | 🔴 **PAS FAIT** — et c'est un motif de rejet (Guideline 3.1.1) |
+| 4.3 · l'abonnement suit le compte | 🔴 **PAS FAIT** |
+
+> ✅ **4.1 a fini par passer**, sans qu'on touche à rien : les 175 prix avaient été posés
+> vers 00 h 05, l'essai qui a marché est de ~02 h. **Le premier « toujours pareil » était à
+> +27 minutes** — trop tôt pour compter comme un résultat. Un essai qui échoue trop tôt ne
+> dit rien, et il coûte plus qu'il ne rapporte : il envoie chercher un défaut ailleurs.
+>
+> 🔶 **Et l'achat a révélé autre chose que ce qu'on testait** : l'écran affichait
+> « Annuel — 24,99 $US » puis « soit 2,50 € par mois ». Deux devises voisines, dont une
+> écrite en dur. Corrigé dans le **(9)** ; la part restante — pourquoi TestFlight sert les
+> prix USA — est une **question ouverte consignée dans `STORE-RELEASE.md` §0-quater**, avec
+> le geste daté qui la tranche le jour de la sortie.
+>
+> ⚠️ **Le binaire à employer pour 4.2 et 4.3 est le (9)**, pas le (8) : c'est lui qui est
+> attaché à la version 1.0, et lui seul porte le correctif d'affichage.
 
 ### ✅ Ce que 4.1 a DÉJÀ prouvé, et c'est le plus important
 
