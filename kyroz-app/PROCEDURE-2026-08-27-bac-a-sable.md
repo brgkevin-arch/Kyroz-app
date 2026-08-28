@@ -42,7 +42,13 @@ comme un diagnostic complet.***
 | 4.2 · l'abonnement survit à une réinstallation | ✅ **et SANS toucher au bouton** — voir ci-dessous |
 | 4.3a · le droit REVIENT à la reconnexion | ✅ inclus dans 4.2 |
 | 4.3b · un compte NEUF n'hérite de rien | ✅ **PROUVÉ le 2026-08-28 — troisième compte, verrouillé** |
-| 4.2-bis · le BOUTON « Restaurer » lui-même | 🔶 jamais appuyé — un tap suffit |
+| 4.2-bis · le BOUTON « Restaurer » lui-même | ✅ **« Abonnement retrouvé »** — Guideline 3.1.1 satisfaite |
+
+> ✅ **LE BAC À SABLE EST CLOS le 2026-08-28.** Les quatre preuves sont faites sur le **(9)**.
+> ⚠️ L'étape 5 (« je vérifie chez RevenueCat que l'abonné est rattaché à l'UUID Supabase »)
+> n'a PAS eu besoin d'une requête API : **le troisième compte l'a prouvé mieux**. Si
+> l'abonnement avait été collé à l'appareil, ce compte en aurait hérité. Une preuve par le
+> COMPORTEMENT bat une preuve par la configuration — elle ne peut pas se tromper de champ.
 
 > ✅ **4.3b est bouclé, et c'est la preuve la plus difficile des trois.** Un compte créé
 > à l'instant, sur le MÊME appareil et le MÊME Apple ID que l'abonné, affiche l'écran

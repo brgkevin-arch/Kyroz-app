@@ -35,7 +35,8 @@
 | Revue bêta TestFlight | **approuvée le 2026-08-03** — les builds suivants passent sans y repasser |
 | Accès relecteur | code posé au build, auth anonyme active, notes rédigées (§11), **posées dans ASC le 2026-08-28** — reste le mot de passe de démo, à coller à la main |
 | **Fiche App Store** | ✅ **REMPLIE PAR L'API le 2026-08-28** — voir §3-bis |
-| **Binaire** | 🔴 **le (9) remplace le (8)** — voir §0-quater. Le (8) porte un paywall qui affiche deux devises |
+| **Binaire** | ✅ **le (9)**, attaché à la version 1.0 — voir §0-quater |
+| **Bac à sable** | ✅ **CLOS le 2026-08-28** : achat, désinstallation, compte neuf verrouillé, bouton Restaurer — les quatre sur le (9) |
 | Migrations Supabase | **rien en attente** — la dernière date du 2026-08-10 et elle est en prod |
 
 **✅ LES TROIS CHANTIERS SONT PARTIS EN OTA le 2026-08-23** (groupe `a3a119de`, commit
