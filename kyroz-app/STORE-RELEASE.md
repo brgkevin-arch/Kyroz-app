@@ -263,6 +263,37 @@ Témoin lu dans `main.jsbundle` de l'IPA (lecture partielle, 25 Ko sur 26,4 Mo) 
 correctif. ⚠️ Elle ne sort qu'en **UTF-16** : Hermes bascule une chaîne dès UN accent.
 `currencyCode`, lui, sort en UTF-8. **Chercher les deux encodages, toujours.**
 
+### 🟠 QUESTION OUVERTE, À TRANCHER LE JOUR DE LA SORTIE — les prix en dollars
+
+En TestFlight, le paywall affiche **exactement les prix USA** (`3,99 $US` / `24,99 $US`)
+alors qu'Apple facture **exactement le prix français** (29,99 €, feuille d'achat à l'appui).
+
+**Ce qui est MESURÉ, et ce que ça élimine :**
+
+| Mesure | Ce qu'elle écarte |
+|---|---|
+| App Store de l'appareil en **euros**, compte **France** | ce n'est pas la vitrine de production |
+| Prix ASC : FRA 29,99 · USA 24,99, **effectifs immédiatement**, sans date | ce n'est pas la fiche |
+| Déconnexion du compte sandbox, autre compte, **réinstallation** : aucun effet | ça ne vit pas dans l'app |
+| Pont natif lu : `getProducts` → `RCCommonFunctionality getProductInfo` → **StoreKit**, aucun chemin vers un prix servi par le serveur RevenueCat | RevenueCat n'invente rien, il relaie |
+| Le code n'a **aucune** logique de devise — `priceString` est affiché tel quel | ce n'est pas Kyroz |
+
+➡️ **Reste : la vitrine que StoreKit résout en environnement BAC À SABLE**, distincte de
+celle de l'App Store. **NON PROUVÉ** — et ça ne peut pas l'être avant la production.
+
+**Ce qui protège l'utilisateur en attendant** : la feuille d'Apple est le dernier mot et
+affiche le vrai montant **avant** toute confirmation. Personne ne peut être débité d'un
+montant qu'il n'a pas vu. C'est aussi ce que dit la mention sous le bouton.
+
+🔴 **PREMIER GESTE LE JOUR DE LA SORTIE, avant toute communication** : installer Kyroz
+**depuis l'App Store** (pas TestFlight), ouvrir *Profil → Kyroz+*, et lire la devise.
+- **Euros** → c'était le bac à sable, dossier clos.
+- **Dollars** → défaut réel et visible par tous les Français. Il ne se corrige PAS en OTA
+  (c'est la vitrine, pas le JS) : ouvrir un ticket RevenueCat avec cette section.
+
+⚠️ Ne pas laisser cette vérification à « quand on y pensera » : c'est la seule mesure qui
+tranche, elle prend trente secondes, et elle n'existe qu'à ce moment-là.
+
 ### 🔴 Le geste qui reste, et qu'on oublie
 
 La version 1.0 d'App Store Connect a le **(8)** attaché. Il faut **rattacher le (9)** avant
