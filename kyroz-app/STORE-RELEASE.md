@@ -264,6 +264,44 @@ Témoin lu dans `main.jsbundle` de l'IPA (lecture partielle, 25 Ko sur 26,4 Mo) 
 correctif. ⚠️ Elle ne sort qu'en **UTF-16** : Hermes bascule une chaîne dès UN accent.
 `currencyCode`, lui, sort en UTF-8. **Chercher les deux encodages, toujours.**
 
+### ⏸️ OÙ EN EST LA SOUMISSION — 2026-08-28, 03 h 40
+
+| | |
+|---|---|
+| Version 1.0 + build **(9)** | **`WAITING_FOR_REVIEW`** (soumission `3ac9083c`, partie à 03 h 33) |
+| Sortie | **MANUELLE** — Apple ne publiera pas tout seul |
+| Les 4 abonnements + le **groupe** | 🔴 **PAS en revue** |
+
+🔴 **L'API NE SAIT PAS ajouter un abonnement à une soumission.** Sondé le 2026-08-28 :
+`reviewSubmissionItems` n'accepte que `appStoreVersion` — `subscriptionGroup`,
+`subscriptionGroups`, `subscriptionGroupLocalization` renvoient tous *« is not a
+relationship on the resource »*. Et `POST /v1/subscriptionSubmissions` refuse les quatre
+en 409, *« This subscription cannot be reviewed »*, **sans exposer les erreurs qu'il dit
+d'aller consulter**. C'est un geste de CONSOLE, et il n'y a pas de contournement.
+
+**Les deux erreurs que la console affiche, elles, disent tout :**
+1. *« Les nouveaux groupes d'abonnements doivent être soumis avec un abonnement à
+   renouvellement automatique appartenant à ce groupe. »* → c'est le **groupe** qui n'a
+   jamais été soumis (`subscriptionGroupLocalizations` : `PREPARE_FOR_SUBMISSION`).
+2. *« Pour soumettre vos éléments, ajoutez une version de l'app. »* → **une version ne
+   peut être que dans UNE soumission à la fois**, et elle est déjà dans celle qui est
+   partie.
+
+⚠️ **Ce que ça coûte de se tromper ici** : l'app a été retirée DEUX fois cette nuit sur
+une alerte formulée avant vérification — « les abonnements ne sont pas dans la
+soumission » était juste, « je peux les y ajouter par l'API » ne l'était pas. **Ne pas
+annoncer un geste avant d'avoir vérifié qu'on sait le faire.**
+
+**Deux sorties, à trancher tête reposée :**
+- **Tout resoumettre ensemble** : retirer l'app une 3ᵉ fois, construire dans la console
+  UNE soumission portant version + groupe + abonnements. Coûte la place dans la file.
+- **Laisser la revue aller au bout** : si Apple approuve sans les abonnements, la sortie
+  manuelle empêche toute publication ; on soumet les abonnements ensuite et on publie
+  quand les deux sont approuvés. Coûte zéro place dans la file.
+  ➡️ *C'est la voie par défaut tant que rien n'est décidé — le filet est déjà posé.*
+
+---
+
 ### 🟠 QUESTION OUVERTE, À TRANCHER LE JOUR DE LA SORTIE — les prix en dollars
 
 En TestFlight, le paywall affiche **exactement les prix USA** (`3,99 $US` / `24,99 $US`)
