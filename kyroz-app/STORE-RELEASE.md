@@ -264,7 +264,59 @@ Témoin lu dans `main.jsbundle` de l'IPA (lecture partielle, 25 Ko sur 26,4 Mo) 
 correctif. ⚠️ Elle ne sort qu'en **UTF-16** : Hermes bascule une chaîne dès UN accent.
 `currencyCode`, lui, sort en UTF-8. **Chercher les deux encodages, toujours.**
 
-### ⏸️ OÙ EN EST LA SOUMISSION — 2026-08-28, 03 h 40
+### ✅ SOUMIS — 2026-08-28, 17 h 44 : 6 éléments, ensemble
+
+| | |
+|---|---|
+| Soumission | `4fa9c18a` — **`WAITING_FOR_REVIEW`** |
+| Contenu | version 1.0 (**build 9**) · le **groupe Kyroz+** · les **4 abonnements** |
+| Preuve | les 4 abonnements sont passés de `READY_TO_SUBMIT` à **`WAITING_FOR_REVIEW`** |
+| Sortie | **MANUELLE** — Apple ne publiera pas sans un clic |
+
+#### La règle qu'Apple n'expose que dans sa console
+
+> *« Votre premier groupe d'abonnements doit être soumis avec une nouvelle version de l'app. »*
+
+**Ce n'est pas une préférence, c'est une contrainte de forme.** Elle invalide le plan
+« laisser l'app partir seule, soumettre les abonnements après » : il aurait fallu une
+version *supplémentaire*. Personne ne pouvait le savoir depuis l'API.
+
+#### 🔴 CE QUI SE FAIT À LA CONSOLE, ET SEULEMENT LÀ
+
+L'API **ne sait pas** soumettre un abonnement. Vérifié exhaustivement le 2026-08-28 :
+- `reviewSubmissionItems` n'accepte **que** `appStoreVersion` — neuf autres noms de
+  relation essayés (`subscription`, `subscriptions`, `inAppPurchaseV2`, `inAppPurchase`,
+  `subscriptionV2`, `subscriptionGroup`, `subscriptionGroups`,
+  `subscriptionGroupLocalization`, `subscriptionAppStoreReviewScreenshot`) : *« is not a
+  relationship on the resource »* ;
+- `POST /v1/subscriptionSubmissions` refuse en `409` *« This subscription cannot be
+  reviewed, please check associated errors »* — **dans toutes les configurations** :
+  version en revue, version libre, groupe présent, groupe absent, noms dédupliqués. Et
+  ces « erreurs associées », l'API ne les publie **nulle part** ;
+- `POST /v1/subscriptionGroupSubmissions` refuse en `409` *« You cannot submit this
+  subscription group »*.
+
+**Le chemin qui marche, dans cet ordre :**
+1. *Monétisation → Abonnements →* **le GROUPE** (pas un produit) ;
+2. cocher les abonnements dans le tableau, puis **« Ajouter pour vérification »** — le
+   bouton de la SECTION, pas celui du titre ;
+3. **« Ajouter pour vérification »** du titre pour le groupe lui-même ;
+4. la version de l'app doit être **libre** — elle ne peut être que dans UNE soumission ;
+   l'ajouter (l'API sait le faire) ;
+5. *Brouillons de soumissions* → **« Envoyer pour vérification »**.
+
+⚠️ **Le contrôle qui tranche n'est pas l'écran, c'est l'état des abonnements** : tant
+qu'ils affichent `READY_TO_SUBMIT`, ils ne sont PAS partis, quoi que dise la console.
+
+#### Ce que l'épisode a coûté, et pourquoi
+
+L'app a été retirée **deux fois pour rien** avant celle-ci, sur des plans annoncés avant
+d'avoir été vérifiés. ➡️ **Ne pas annoncer un geste avant d'avoir vérifié qu'on sait le
+faire** — et quand une API refuse sans dire pourquoi, aller lire l'écran qui, lui, le dit.
+
+---
+
+### ⏸️ L'ÉTAT D'AVANT — 2026-08-28, 03 h 40 (conservé)
 
 | | |
 |---|---|
