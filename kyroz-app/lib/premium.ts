@@ -345,19 +345,86 @@ export const PREMIUM_PRICES: PremiumPlan[] = [
 export function withStorePrices(
   store: StorePrices,
   plans: PremiumPlan[] = PREMIUM_PRICES,
+  locale?: string,
 ): { plans: PremiumPlan[]; fallback: boolean } {
   let fallback = false;
   const out = plans.map((p) => {
-    const prix = store[p.id];
-    if (typeof prix === 'string' && prix.trim() !== '') return { ...p, price: prix.trim() };
-    fallback = true;
-    return p;
+    const servi = store[p.id];
+    const chaine = servi?.priceString?.trim();
+    if (!chaine) {
+      fallback = true;
+      return p;
+    }
+    if (p.id !== 'annual') return { ...p, price: chaine };
+    // 🔴 LA PHRASE QUI RÉPÈTE LE PRIX DOIT VENIR DU MÊME PRIX. Voir l'en-tête de
+    // `mensualiteEquivalente` : c'est ici que le défaut du 2026-08-28 vivait.
+    const parMois = mensualiteEquivalente(servi, locale);
+    return {
+      ...p,
+      price: chaine,
+      billed: parMois
+        ? `Débité une fois par an, soit ${parMois} par mois.`
+        : 'Débité une fois par an.',
+    };
   });
   return { plans: out, fallback };
 }
 
+/**
+ * Un prix SERVI par le store : la chaîne à afficher, et de quoi dériver.
+ *
+ * ⚠️ `priceString` est la SEULE chose qu'on affiche telle quelle — elle est déjà
+ * localisée par le store. `montant` et `devise` existent pour CALCULER (la mensualité
+ * équivalente), jamais pour être rendus bruts : reformater un prix nous-mêmes, c'est
+ * risquer d'afficher autre chose que ce qu'Apple facturera.
+ */
+export interface StorePrice {
+  priceString: string;
+  montant: number;
+  /** Code ISO 4217 réellement facturé (`EUR`, `USD`, `JPY`…). */
+  devise: string;
+}
+
 /** Prix localisés renvoyés par le store, par formule (cf. `lib/purchases.ts`). */
-export type StorePrices = Partial<Record<PremiumPlan['id'], string>>;
+export type StorePrices = Partial<Record<PremiumPlan['id'], StorePrice>>;
+
+/**
+ * « Soit X par mois » — DÉRIVÉ du prix annuel réellement servi.
+ *
+ * 🔴 CETTE FONCTION EXISTE PARCE QUE LA PHRASE ÉTAIT ÉCRITE EN DUR (2026-08-28).
+ * `withStorePrices` remplaçait `price` par le prix du store, mais laissait `billed`
+ * intact — or `billed` RÉPÈTE le prix. Sur un magasin américain, l'écran affichait
+ * « Annuel — 24,99 $US » suivi de « soit 2,50 € par mois » : deux devises dans deux
+ * lignes voisines, dont une qui n'était dérivée de rien.
+ * ⚠️ Invisible en France, et c'est ce qui l'a fait vivre : 29,99 / 12 = 2,4991 → 2,50 €.
+ * La phrase était juste sur exactement UN magasin, celui où on la relisait.
+ *
+ * **Arrondi vers le HAUT**, à l'unité de la devise près. « Soit X par mois » est un
+ * argument de vente : sous-estimer le coût mensuel est le seul sens qui trompe. C'est
+ * la même discipline qu'`annualSavingPct`, qui arrondit vers le bas pour ne jamais
+ * annoncer une économie plus grande que la vraie.
+ *
+ * Renvoie `null` si le montant ou la devise sont inexploitables — l'appelant retire
+ * alors le montant de la phrase plutôt que d'en inventer un.
+ */
+export function mensualiteEquivalente(annuel: StorePrice | undefined, locale?: string): string | null {
+  if (!annuel || !Number.isFinite(annuel.montant) || annuel.montant <= 0) return null;
+  // ⚠️ PAS de contrôle de forme sur la devise, et c'est mesuré : une vérification
+  // `/^[A-Za-z]{3}$/` a été écrite ici puis RETIRÉE le 2026-08-28 — la mutation qui la
+  // supprimait laissait la suite VERTE. `Intl.NumberFormat` lève un `RangeError` sur
+  // tout code qui n'est pas un ISO 4217 bien formé, donc le `catch` ci-dessous garde
+  // déjà exactement les mêmes cas. Un garde qui ne sépare aucun cas est décoratif, et
+  // il coûte : il fait croire que la protection est là où elle n'est pas.
+  const parMois = Math.ceil((annuel.montant / 12) * 100) / 100;
+  try {
+    return new Intl.NumberFormat(locale, {
+      style: 'currency',
+      currency: annuel.devise.toUpperCase(),
+    }).format(parMois);
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Économie de l'annuel par rapport à 12 mensualités, en pourcentage ENTIER

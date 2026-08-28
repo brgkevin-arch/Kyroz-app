@@ -21,7 +21,8 @@
 
 export const ENTITLEMENT_ID = 'premium';
 
-export type StorePrices = Partial<Record<'monthly' | 'annual', string>>;
+export type { StorePrice, StorePrices } from './premium';
+import type { StorePrices } from './premium';
 
 export type PurchaseOutcome =
   | { statut: 'ok'; entitled: boolean }
