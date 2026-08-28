@@ -38,9 +38,26 @@ comme un diagnostic complet.***
 | 2 · testeur sandbox | ✅ **CRÉÉ** — `Test Sandbox`, territoire **FRA**, `interruptPurchases: false` |
 | 3 · téléphone | ✅ compte sandbox connecté, **(8) installé**, version 1.0.0 |
 | 4.1a · la feuille d'Apple s'ouvre | ✅ **le 2026-08-28 vers 02 h** — le produit est servi, c'était bien la propagation |
-| 4.1b · l'achat aboutit et débloque | 🔴 **PAS FAIT — la feuille a été ouverte, pas validée** |
-| 4.2 · « Restaurer mes achats » | 🔴 **PAS FAIT** — et c'est un motif de rejet (Guideline 3.1.1) |
-| 4.3 · l'abonnement suit le compte | 🔴 **PAS FAIT** |
+| 4.1b · l'achat aboutit et débloque | ✅ **le 2026-08-28** |
+| 4.2 · l'abonnement survit à une réinstallation | ✅ **et SANS toucher au bouton** — voir ci-dessous |
+| 4.3a · le droit REVIENT à la reconnexion | ✅ inclus dans 4.2 |
+| 4.3b · le droit PART à la déconnexion | 🔴 **PAS FAIT — et c'est la moitié qui compte** |
+
+> ✅ **4.2 a donné mieux que ce qu'il demandait.** Après suppression de l'app,
+> réinstallation et reconnexion, **Kyroz+ était déjà actif** : il n'a pas fallu appuyer sur
+> « Restaurer mes achats ». C'est `usePremium` → `identifyUser(uid)` → `Purchases.logIn`
+> qui rend un client RevenueCat portant déjà le droit. **L'abonnement est donc rattaché à
+> l'UUID Supabase, pas à l'appareil** — exactement la propriété cassée le 2026-08-02.
+>
+> 🔶 **Mais le BOUTON n'a pas été exercé**, et Apple exige qu'il existe et fonctionne
+> (Guideline 3.1.1). Son code a été relu : il distingue « Abonnement retrouvé » de
+> « Aucun abonnement à restaurer » et gère l'échec — un relecteur qui appuie obtient une
+> réponse sensée. **Un tap suffit à le prouver.**
+>
+> 🔴 **4.3b reste, et c'est la moitié dangereuse.** Que le droit REVIENNE est confortable ;
+> qu'il PARTE à la déconnexion est ce qui empêche la personne suivante, sur un téléphone
+> partagé, d'hériter de l'abonnement de la précédente. C'était le défaut du 2026-08-02, et
+> il ne se prouve que dans ce sens-là.
 
 > 🔴 **CORRECTION DU 2026-08-28, 04 h : « la feuille s'ouvre » N'EST PAS « l'achat
 > aboutit ».** Ce fichier a annoncé 4.1 réussi alors que la feuille avait seulement été
