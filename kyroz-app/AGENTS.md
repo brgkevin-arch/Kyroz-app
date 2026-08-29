@@ -16,7 +16,7 @@ listes contradictoires.
 
 ## Carte des docs — lire ceci d'abord (rangé le 2026-07-30)
 
-**Les 21 docs VIVANTS, et rien d'autre** (recomptés le 2026-07-30 : la carte en annonçait
+**Les 20 docs VIVANTS, et rien d'autre** (recomptés le 2026-07-30 : la carte en annonçait
 6, en listait 8 et en oubliait 4 — `TESTFLIGHT.md` ajouté le 2026-08-03, `METRICS.md` le
 2026-08-20, `PRODUIT.md` le 2026-08-21 ; **recomptés à nouveau le 2026-08-30** : elle en
 listait 15 et en oubliait 6, tous vivants et tous invisibles) :
@@ -27,6 +27,7 @@ listait 15 et en oubliait 6, tous vivants et tous invisibles) :
 > jouant : **22 documents, 259 Ko, ni carte ni étagère.** Onze étaient morts depuis des
 > semaines (dont une procédure *défaite*, qu'un lecteur pressé aurait rejouée), six
 > étaient bel et bien vivants mais introuvables, et quatre traînaient à la racine.
+> ⚠️ **Un douzième est parti à l'étagère le 2026-08-30** (décision fondateur) : `INVENTAIRE-CODE-2026-07-30.md`, que cette carte annonçait VIVANT alors que son propre en-tête prévenait qu'il périmait — **571 commits** le séparent de `main`, et il compte 563 tests quand il y en a 2 043.
 > ➡️ La cause n'est pas la négligence : **la règle n'avait que deux cases pour trois
 > états** (cf. la 3ᵉ étagère, plus bas). Une procédure en cours n'entrait nulle part.
 
@@ -36,7 +37,6 @@ listait 15 et en oubliait 6, tous vivants et tous invisibles) :
 |---|---|
 | `CLAUDE.md` | **Spec stable** — décisions de fond, garde-fous §6 non négociables. Le *pourquoi*. |
 | `AGENTS.md` | **Ce fichier** — état d'avancement, chantiers ouverts, pièges. Le *où on en est*. |
-| `docs/INVENTAIRE-CODE-2026-07-30.md` | **Photo factuelle du code** — duplications, points d'écriture, zones risquées. Mesurée. |
 | `PRODUIT.md` | **Le produit vu par l'utilisateur** (2026-08-21) — les sept étapes, les cinq écrans, le ton, gratuit/payant, et **ce qui est éteint**. Autonome : c'est LUI qu'on colle dans un brief ou une fiche store, jamais un doc daté de `docs/`. ⚠️ Il remplace `docs/2026-08-15-synthese-…` (archivé), faux sur **6 sections sur 9** en cinq jours. Toute fonction retirée ou renommée y passe le jour même — `produitDoc.test.ts` compte ce qui est vérifiable. |
 
 *Chantiers spécialisés — à ouvrir quand on touche au domaine*

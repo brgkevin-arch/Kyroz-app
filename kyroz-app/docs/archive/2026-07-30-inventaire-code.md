@@ -1,4 +1,32 @@
-# Inventaire du code Kyroz — photo du 2026-07-30
+# ARCHIVÉ — PÉRIMÉ · Inventaire du code Kyroz, photo du 2026-07-30
+
+> # 🛑 NE PAS CITER SES CHIFFRES COMME COURANTS.
+>
+> **Archivé le 2026-08-30, sur décision du fondateur.** Ce document faisait ce qu'il
+> annonçait : une **photo**, prise à `main = f03f738`. Son propre en-tête prévenait —
+> *« elle vieillira : ne pas la lire comme une vérité courante passé quelques semaines,
+> et ne jamais l'amender — en refaire une »*. La carte des docs, elle, continuait de la
+> lister comme **vivante**. C'est cette contradiction qui est close ici.
+>
+> **571 commits séparent cette photo de `main`.** L'écart n'est pas une nuance :
+>
+> | Ce qu'elle mesure | Au 2026-07-30 | Au 2026-08-30 |
+> |---|---|---|
+> | Tests | **563**, en 33 fichiers | **2 043**, en 135 fichiers |
+> | Catalogue de recettes | **314** | **512** |
+> | Composants | **28** | **49** |
+> | `lib/generatePlan.ts` | cité comme existant | **supprimé le 2026-07-31** (fiche E1) |
+>
+> ⚠️ **Ce qui reste utile, et c'est pour ça qu'elle n'est pas jetée** : sa **méthode**
+> (tout chiffre obtenu en exécutant une mesure, jamais en relisant du texte ; une doc
+> traitée comme une revendication à vérifier) et son **§6**, la liste des divergences
+> doc/code — trois d'entre elles ont motivé la création de cette étagère.
+>
+> ➡️ **Une photo ne se met pas à jour, on en refait une.** État courant → `../../AGENTS.md`.
+> Spec stable → `../../CLAUDE.md`. Le produit vu par l'utilisateur → `../../PRODUIT.md`.
+
+---
+
 
 > **C'est une PHOTO, pas une spec.** Elle décrit l'état du code au 2026-07-30
 > (`main` = `f03f738`). Elle vieillira : ne pas la lire comme une vérité courante

@@ -5,7 +5,7 @@
 > reste-à-faire.
 >
 > État courant → `../../AGENTS.md`. Spec stable → `../../CLAUDE.md`.
-> Photo du code → `../INVENTAIRE-CODE-2026-07-30.md`.
+> *(La « photo du code » du 2026-07-30 est **ici**, plus dans `../` : elle est périmée.)*
 
 ## Pourquoi cette étagère existe
 
@@ -41,6 +41,7 @@ activement trompeurs :
 | `2026-08-18-procedure-domaine-legal.md` | SANS OBJET | Se déclarait déjà close le 2026-08-18 (« rien à faire ») — elle n'était restée à la racine que faute d'étagère |
 | `2026-08-26-relecture-textes.md` | FAITE | Sections 1 à 4 arbitrées et faites, section 5 hors périmètre. Reste cité par `lib/__tests__/textesUniques.test.ts` comme origine de la règle |
 | `2026-08-27-procedure-suppression-revenuecat.md` | CLOSE | Six étapes faites et vérifiées le 2026-08-27 (constat 01-03, fiche A41) |
+| `2026-07-30-inventaire-code.md` | **PÉRIMÉ** | Une PHOTO du code à `f03f738`, **571 commits** avant `main`. Elle compte 563 tests (il y en a 2 043), 314 recettes (512), et cite `lib/generatePlan.ts`, supprimé le 2026-07-31. ⚠️ Sa **méthode** et son **§6** (divergences doc/code) restent utiles — trois d'entre elles ont créé cette étagère. Archivée le 2026-08-30, décision fondateur |
 
 ## La règle, pour ne pas refaire le désordre
 
