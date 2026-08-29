@@ -1,4 +1,14 @@
-# Procédure — jouer la migration `body_fat_source` (2026-08-06)
+# ARCHIVÉ — FAITE · Jouer la migration `body_fat_source` (2026-08-06)
+
+> **Archivé le 2026-08-30.** La migration a été **jouée le 2026-08-06** (16ᵉ), par le
+> fondateur dans le SQL Editor — consigné dans `../../supabase/JOURNAL-MIGRATIONS.md`.
+> Ce document reste la trace du *pourquoi* : l'app envoie le profil en une seule ligne,
+> donc une colonne manquante fait rejeter l'upsert ENTIER. **Ne pas le rejouer.**
+>
+> Ce qui tourne vraiment en prod → `../../supabase/JOURNAL-MIGRATIONS.md`, jamais ce fichier.
+
+---
+
 
 > Une seule étape à la fois. Fais l'étape, dis-moi le résultat, je te donne la suivante.
 > Rien ici n'est faisable depuis le dépôt : le SQL demande l'accès au projet Supabase.

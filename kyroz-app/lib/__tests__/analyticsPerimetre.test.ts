@@ -5,7 +5,7 @@ import { Events } from '../analytics';
 
 // ── Le périmètre de mesure — LE COMPTEUR ─────────────────────────────────────
 //
-// L'arbitrage du 2026-08-10 (`docs/2026-08-10-synthese-analytics-arbitrage.md`)
+// L'arbitrage du 2026-08-10 (`../../docs/archive/2026-08-10-synthese-analytics-arbitrage.md`)
 // pose un §6 « interdits absolus » : aucune donnée de santé, aucun texte libre,
 // aucune photo, ni e-mail ni prénom ni id de compte dans une propriété d'event.
 // Ce fichier est ce qui lui manquait pour être autre chose qu'un paragraphe.
@@ -109,7 +109,7 @@ describe('Périmètre de mesure — les interdits du §6 sont COMPTÉS', () => {
     expect(
       fautes,
       `Propriété(s) interdite(s) dans un event :\n${fautes.join('\n')}\n\n` +
-        `§6 de docs/2026-08-10-synthese-analytics-arbitrage.md : aucune donnée de santé ` +
+        `§6 de ../../docs/archive/2026-08-10-synthese-analytics-arbitrage.md : aucune donnée de santé ` +
         `(poids, taille, %MG, sexe, âge, objectif, régime, restrictions, sport, IMC, et ` +
         `aucun motif de blocage lié à l'un d'eux), aucun texte libre, aucune photo, ni ` +
         `e-mail ni prénom ni id de compte. En cas de doute : ne pas envoyer la propriété.`,

@@ -1,4 +1,16 @@
-# Relecture des textes de Kyroz — inventaire avant figeage V1
+# ARCHIVÉ — FAITE · Relecture des textes, inventaire avant figeage V1 (2026-08-26)
+
+> **Archivé le 2026-08-30.** Les sections **1, 2, 3 et 4 sont arbitrées et faites**
+> (décisions fondateur) ; la section 5 était hors périmètre. L'inventaire a rempli son rôle.
+>
+> ⚠️ **Il reste cité par `lib/__tests__/textesUniques.test.ts`**, comme origine de la règle qu'il a
+> produite — pas comme reste-à-faire.
+>
+> Les textes vivants sont dans le code, gardés par `lib/__tests__/corpusTextes.test.ts` et
+> `lib/__tests__/textesUniques.test.ts`. État courant → `../../AGENTS.md`.
+
+---
+
 
 > **ÉTAT au 2026-08-26** : sections **1, 2, 3 et 4 ARBITRÉES ET FAITES** (décisions
 > fondateur). Section 5 hors périmètre — rien à y toucher.

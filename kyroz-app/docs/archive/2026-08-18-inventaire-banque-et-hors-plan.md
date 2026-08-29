@@ -1,4 +1,14 @@
-# Inventaire — banque de calories & déclaration hors plan
+# ARCHIVÉ — ARBITRÉ · Inventaire banque de calories & hors plan (2026-08-18)
+
+> **Archivé le 2026-08-30.** Il a été écrit *avant arbitrage*, à la demande du fondateur,
+> pour que rien ne soit supprimé sans décision. L'arbitrage est rendu : **les deux parcours
+> sont ÉTEINTS** depuis le 2026-08-18 (`lib/featureFlags.ts`), moteurs intacts.
+>
+> ⚠️ `lib/calorieBank.ts` renvoie encore à sa « question ouverte n°1 » — c'est une trace
+> de raisonnement, pas un reste-à-faire. État courant → `../../AGENTS.md`.
+
+---
+
 
 > Écrit le 2026-08-18 à la demande du fondateur, **avant arbitrage**. Rien n'a été supprimé
 > au moment de l'écriture. État de référence à cette date-là : branche

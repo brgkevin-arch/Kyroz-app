@@ -34,7 +34,7 @@
 //
 // ⚠️ Aucune de ces trois n'est corrigeable sans DÉCIDER d'abord ce que la donnée
 // doit être (un rythme permanent, une date, ou les deux). Cf. le brief
-// `docs/2026-08-18-inventaire-banque-et-hors-plan.md`, question ouverte n°1.
+// `../docs/archive/2026-08-18-inventaire-banque-et-hors-plan.md`, question ouverte n°1.
 //
 // CE QUE CE MODULE FAIT : répartir un écart déclaré sur les autres jours du plan,
 // sans jamais descendre sous le plancher de sécurité.

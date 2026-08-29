@@ -1,5 +1,5 @@
 # Audit V1 — Étape 7 : Monétisation & entitlement
-Date : 2026-08-26 · Commit audité : `d095397` · Périmètre : `lib/premium.ts` (295 l.), `lib/purchases.ts`, `lib/purchases.web.ts`, `hooks/usePremium.ts`, `app/kyroz-plus.tsx`, les trois écrans porteurs d'un verrou, `MONETISATION.md`, `PROCEDURE-2026-08-25-mise-en-vente-kyroz-plus.md`
+Date : 2026-08-26 · Commit audité : `d095397` · Périmètre : `lib/premium.ts` (295 l.), `lib/purchases.ts`, `lib/purchases.web.ts`, `hooks/usePremium.ts`, `app/kyroz-plus.tsx`, les trois écrans porteurs d'un verrou, `MONETISATION.md`, `../procedures/PROCEDURE-2026-08-25-mise-en-vente-kyroz-plus.md`
 **Entitlement 3 états : ⚠️ le produit n'en a pas trois, il en a quatre — et aucun ne s'appelle `trial`.** Voir « Hors périmètre ».
 
 > Audit, pas fix. Aucun fichier de code modifié. `npm run check:abonnements` a été **exécuté** (lecture seule, API App Store Connect).
@@ -73,7 +73,7 @@ Date : 2026-08-26 · Commit audité : `d095397` · Périmètre : `lib/premium.ts
   ├─ kyroz_plus_monthly_early  état ⚠️ Métadonnées manquantes · capture 🔴 ABSENTE
   ✅ Chaque identifiant demandé par le code existe chez Apple.
   ```
-- **Ce n'est PAS une découverte, et il faut le dire** : `PROCEDURE-2026-08-25-mise-en-vente-kyroz-plus.md` le porte déjà — ligne 28 (« Capture de review : 🔴 absente | 🔴 absente »), ligne 92 (« la capture bloque *Prêt à soumettre* ») et toute son étape 6. Ce constat **confirme** le playbook par la mesure au lieu de le recopier ; il ne l'augmente pas.
+- **Ce n'est PAS une découverte, et il faut le dire** : `../procedures/PROCEDURE-2026-08-25-mise-en-vente-kyroz-plus.md` le porte déjà — ligne 28 (« Capture de review : 🔴 absente | 🔴 absente »), ligne 92 (« la capture bloque *Prêt à soumettre* ») et toute son étape 6. Ce constat **confirme** le playbook par la mesure au lieu de le recopier ; il ne l'augmente pas.
 - **Risque** : aucun produit ne peut être soumis tant que la capture manque, donc aucune vente. Et la capture exige un **build natif** montrant le paywall — ce qui rattache cette tâche à la décision de binaire de **04-01** (SDK 57 / Hermes) et **03-03** (`runtimeVersion`).
 - **Reco** : la traiter dans le même binaire que ces deux-là. Trois raisons de faire un build, un seul build.
 - **Effort : M**

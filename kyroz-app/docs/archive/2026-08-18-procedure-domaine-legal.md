@@ -1,4 +1,14 @@
-# Le domaine `legal.kyroz.app` — épisode CLOS le 2026-08-18
+# ARCHIVÉ — SANS OBJET · Le domaine `legal.kyroz.app` (2026-08-18)
+
+> **Archivé le 2026-08-30.** L'épisode était déjà déclaré **CLOS le 2026-08-18** dans son
+> propre en-tête — « il n'y a rien à faire ». Il n'était resté à la racine que faute
+> d'étagère où le poser.
+>
+> La chaîne légale vivante → `../procedures/PROCEDURE-MAJ-LEGAL-SITE.md`.
+> État courant → `../../AGENTS.md`.
+
+---
+
 
 > ⚠️ **Ce document n'est plus une procédure : il n'y a rien à faire.** Il est gardé
 > parce qu'un domaine posé, retiré, et une panne de plusieurs heures ne laissent aucune

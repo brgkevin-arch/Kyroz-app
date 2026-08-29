@@ -1,4 +1,14 @@
-# Procédure — les e-mails d'authentification (2026-08-07)
+# ARCHIVÉ — FAITE · Les e-mails d'authentification (2026-08-07)
+
+> **Archivé le 2026-08-30.** Posée et **éprouvée en prod le 2026-08-09** — e-mail reçu en
+> boîte, zéro Insight Resend (`../../AGENTS.md`, fiche A29). Les gabarits vivants sont
+> `../../supabase/emails/confirmation.html` et `../../supabase/emails/reinitialisation.html`, et c'est
+> `lib/__tests__/emailConfirmation.test.ts` qui les garde, pas ce document.
+>
+> État courant → `../../AGENTS.md`. **Ne pas rejouer ces étapes de dashboard.**
+
+---
+
 
 > Une seule étape à la fois. Fais l'étape, dis-moi le résultat, je te donne la suivante.
 > Rien ici n'est faisable depuis le dépôt : tout demande l'accès au dashboard Supabase,

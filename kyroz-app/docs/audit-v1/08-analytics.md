@@ -82,7 +82,7 @@ Le dépôt **compte ses propres événements** — c'est `analyticsPerimetre.tes
 
 ### 08-03 Deux documents de spec annoncent 13 événements, le produit en compte 15
 - **Sévérité : P3**
-- **Preuve** : `docs/2026-08-10-brief-analytics-perimetre.md` et `docs/2026-08-10-synthese-analytics-arbitrage.md` portent le chiffre 13, repris tel quel par le brief d'audit. `analyticsPerimetre.test.ts:132` compte **15**, et `AGENTS.md` documente l'ajout (« Deux événements de diagnostic — 13 → 15 events »).
+- **Preuve** : `../archive/2026-08-10-brief-analytics-perimetre.md` et `../archive/2026-08-10-synthese-analytics-arbitrage.md` portent le chiffre 13, repris tel quel par le brief d'audit. `analyticsPerimetre.test.ts:132` compte **15**, et `AGENTS.md` documente l'ajout (« Deux événements de diagnostic — 13 → 15 events »).
 - **Risque** : faible, mais c'est la forme d'inventaire qui se confirme tout seul — deux documents d'accord entre eux et périmés tous les deux. Le test, lui, est exécuté.
 - **Reco** : dater les deux documents comme archives, ou reporter le chiffre. Ne jamais laisser un document non exécuté porter un compte que le code tient.
 - **Effort : S**

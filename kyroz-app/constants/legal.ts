@@ -384,7 +384,7 @@ export const TERMS_OF_USE: LegalSection[] = [
       // Les CGU devront ensuite porter son NOM et ses COORDONNÉES (L.616-1 impose les
       // coordonnées, pas la simple existence).
       // ➡️ **C'est un préalable à la mise en vente, au même titre que le bac à sable** —
-      // écrit comme tel dans `PROCEDURE-2026-08-25-mise-en-vente-kyroz-plus.md` et dans
+      // écrit comme tel dans `../docs/procedures/PROCEDURE-2026-08-25-mise-en-vente-kyroz-plus.md` et dans
       // `lib/premium.ts`. Ne pas le laisser vivre en commentaire seulement : une inconnue
       // consignée n'est pas une inconnue traitée.
       `Les présentes conditions sont soumises au droit français. Contact : ${LEGAL.supportEmail}. Pour toute question relative à vos données, vous pouvez saisir la CNIL.`,

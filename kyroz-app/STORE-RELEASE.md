@@ -140,7 +140,7 @@ installation neuve part du binaire, donc du (6).
   vrai compte jetable (journal muet, abonné absent de la liste *Customers*), et les trois
   abonnés orphelins retirés à la main. ➡️ **Étant côté serveur, elle couvre TOUTES les
   versions de l'app** — y compris le binaire (6) de TestFlight, qui date du 11 août.
-  Procédure et preuves : `docs/PROCEDURE-2026-08-27-suppression-revenuecat.md` (close).
+  Procédure et preuves : `docs/archive/2026-08-27-procedure-suppression-revenuecat.md` (close).
   🔴 **CE QUI RESTE HORS DE L'OTA, EN REVANCHE, C'EST CE QUI A ÉTÉ MERGÉ APRÈS ELLE** — sept
   commits (#176 → #182), dont **deux touchent le bundle** : #178 (les trois P0 du lot 1′,
   `ENGINE_REV` 9 → 10 — 344 406 profils déplacés vers le haut, 300 397 au-delà du seuil
@@ -1641,5 +1641,5 @@ d'achat. Avec le (7), ce même compte neuf aurait affiché « Inclus à vie » p
 sa première session, et le relecteur n'aurait rien eu à tester.
 
 *Playbook préparé le 2026-07-17. Config technique prête ; le chemin critique = le bac à
-sable (`PROCEDURE-2026-08-27-bac-a-sable.md`), les captures à juger, et la fiche à
+sable (`docs/procedures/PROCEDURE-2026-08-27-bac-a-sable.md`), les captures à juger, et la fiche à
 remplir.*

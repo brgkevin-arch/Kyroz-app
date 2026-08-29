@@ -19,7 +19,7 @@
 //
 // ⚠️ CE QU'IL NE SAIT PAS FAIRE : trouver une phrase RÉÉCRITE (mêmes faits, autres
 // mots). Celle-là ne se voit qu'en relisant — c'est ce que fait
-// `docs/RELECTURE-TEXTES-2026-08-26.md`.
+// `../../docs/archive/2026-08-26-relecture-textes.md`.
 
 import { describe, expect, it } from 'vitest';
 import { readFileSync, readdirSync } from 'node:fs';

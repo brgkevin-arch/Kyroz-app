@@ -1,4 +1,12 @@
-# Procédure — jouer la migration `meal_slots` (2026-08-07)
+# ARCHIVÉ — FAITE · Jouer la migration `meal_slots` (2026-08-07)
+
+> **Archivé le 2026-08-30.** La migration a été **jouée le 2026-08-07** (17ᵉ) et vérifiée
+> (`npm run check:migrations`) — consigné dans `../../supabase/JOURNAL-MIGRATIONS.md`.
+>
+> Ce qui tourne vraiment en prod → `../../supabase/JOURNAL-MIGRATIONS.md`. **Ne pas rejouer.**
+
+---
+
 
 > ✅ **TERMINÉE le 2026-08-07.** SQL joué par le fondateur, vérifié (`check:migrations` :
 > 39 colonnes en une requête, `400` → `200`), PR #46 mergée, déploiement vert, bundle en

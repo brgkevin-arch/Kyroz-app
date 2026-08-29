@@ -1,4 +1,15 @@
-# Faire aller la suppression de compte jusque chez RevenueCat
+# ARCHIVÉ — CLOSE · La suppression de compte va jusque chez RevenueCat (2026-08-27)
+
+> **Archivé le 2026-08-30.** Son propre en-tête la déclarait déjà **close le 2026-08-27** :
+> les six étapes sont faites et vérifiées (contre-audit V1, constat 01-03 — fiche A41).
+>
+> ⚠️ Elle reste citée par `supabase/functions/delete-account/index.ts` et par
+> `lib/__tests__/suppressionSousTraitants.test.ts` — comme trace de *pourquoi* l'appel existe.
+>
+> État courant → `../../AGENTS.md`. Registre → `../../RGPD-REGISTRE.md`.
+
+---
+
 
 Date : 2026-08-27 · Origine : contre-audit V1, constat **01-03** (P1) · Fiche : `AGENTS.md` **A41**
 
@@ -116,7 +127,7 @@ ne pas remplacer l'une par l'autre :**
 | | version | où elle vit | à quoi elle sert |
 |---|---|---|---|
 | celle de CETTE procédure | **v1** | secret Supabase `REVENUECAT_SECRET_KEY` | supprimer un abonné (`DELETE /v1/subscribers/{uuid}`) |
-| celle de la mise en vente | **v2** | `~/.revenuecat/secret-v2`, **hors du dépôt**, sur la machine du fondateur | déclarer les produits et l'entitlement (`PROCEDURE-2026-08-25-mise-en-vente-kyroz-plus.md`, étape 4) |
+| celle de la mise en vente | **v2** | `~/.revenuecat/secret-v2`, **hors du dépôt**, sur la machine du fondateur | déclarer les produits et l'entitlement (`../procedures/PROCEDURE-2026-08-25-mise-en-vente-kyroz-plus.md`, étape 4) |
 
 ⚠️ **Aucune des deux ne fait le travail de l'autre**, et l'erreur ne se voit pas : une v1 sur
 un endpoint v2 rend `401 Invalid API key` (le message accuse la clé, pas sa version), une v2

@@ -1,4 +1,14 @@
-# Brief — La banque de calories sert-elle à quelque chose ?
+# ARCHIVÉ — ARBITRÉ · La banque de calories sert-elle à quelque chose ? (2026-08-15)
+
+> **Archivé le 2026-08-30.** La question a été tranchée le **2026-08-18** : la banque est
+> **sortie de Kyroz+** (elle en était le 3ᵉ pilier), renommée « Jours plus copieux », puis
+> **éteinte le même jour** (`lib/featureFlags.ts::RYTHME_HEBDOMADAIRE_ACTIF = false`).
+> Son moteur (`lib/calorieBank.ts`) est intact et branché — éteint n'est pas supprimé.
+>
+> L'offre courante → `../../MONETISATION.md` (**deux** piliers). État → `../../AGENTS.md`.
+
+---
+
 
 > Document de **brainstorm**, pas une spec. Écrit le 2026-08-15 pour être emmené tel quel dans
 > une conversation Claude chat. Tout ce qui est décrit dans les sections 2 à 6 est le code

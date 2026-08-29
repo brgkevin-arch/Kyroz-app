@@ -1,4 +1,17 @@
-# Procédure — déclarer la mesure d'audience, puis allumer PostHog
+# ARCHIVÉ — DÉFAITE · Activer PostHog (2026-08-18)
+
+> **Archivé le 2026-08-30.** Cas particulier : cette procédure a été **exécutée le
+> 2026-08-18, puis DÉFAITE le 2026-08-26** (décision fondateur, fiche E66). La clé a été
+> retirée des trois environnements EAS ; plus aucun événement ne part.
+>
+> 🛑 **Ne pas la rejouer pour « remettre en état ».** L'état voulu est *éteint*.
+> Elle est gardée pour une seule raison : si la mesure est un jour rallumée, elle dit
+> exactement quels gestes avaient été faits et où.
+>
+> État courant → `../../AGENTS.md`.
+
+---
+
 
 > 🔴 **CETTE PROCÉDURE A ÉTÉ EXÉCUTÉE LE 2026-08-18… PUIS DÉFAITE LE 2026-08-26**
 > (décision fondateur : « on enlève le posthog pour l'instant », puis « fais comme si
