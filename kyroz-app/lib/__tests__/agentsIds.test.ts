@@ -31,7 +31,16 @@ import { join } from 'node:path';
 // la dérive arrive vraiment : deux fois le même numéro.
 
 const RACINE = join(__dirname, '..', '..');
-const AGENTS = 'AGENTS.md';
+
+// 🔴 DEUX FICHIERS DEPUIS LE 2026-08-30 — et les lire ENSEMBLE est la raison d'être
+//    de cette liste, pas un détail d'implémentation.
+//    Le Journal est sorti d'`AGENTS.md` (693 Ko sur 983 : de l'histoire qu'on ne relit
+//    jamais pour décider quoi faire). Or scinder le fichier scindait l'ESPACE DES
+//    NUMÉROS : un `E67` pouvait naître dans `AGENTS.md` pendant qu'un `E67` dormait
+//    dans le Journal, et ce test serait resté VERT — exactement les cinq collisions du
+//    2026-08-08 qu'il avait fermées, rouvertes par un rangement.
+//    ⚠️ Ajouter un fichier ici dès qu'une fiche peut y vivre.
+const FICHIERS = ['AGENTS.md', 'docs/JOURNAL.md'] as const;
 
 /**
  * Les identifiants de chantier, tels qu'ils sont DÉCLARÉS en tête d'entrée.
@@ -41,17 +50,23 @@ const AGENTS = 'AGENTS.md';
  * renvois en pleine phrase (« cf. E16 », « depuis A15 ») ne déclarent rien et ne
  * doivent pas compter comme des doublons.
  */
-function identifiantsDeclares(md: string): { id: string; ligne: number; titre: string }[] {
-  const out: { id: string; ligne: number; titre: string }[] = [];
+function identifiantsDeclares(
+  md: string,
+  fichier: string,
+): { id: string; ligne: number; titre: string; fichier: string }[] {
+  const out: { id: string; ligne: number; titre: string; fichier: string }[] = [];
   md.split('\n').forEach((l, i) => {
     const m = l.match(/^-\s+(?:[^\w\s]*\s*)*(?:~~)?\*\*([A-Z]\d+)\s·\s*(.{0,60})/u);
-    if (m) out.push({ id: m[1], ligne: i + 1, titre: m[2].replace(/\*+/g, '').trim() });
+    if (m) out.push({ id: m[1], ligne: i + 1, titre: m[2].replace(/\*+/g, '').trim(), fichier });
   });
   return out;
 }
 
-const MD = readFileSync(join(RACINE, AGENTS), 'utf8');
-const DECLARES = identifiantsDeclares(MD);
+// ⚠️ Le motif n'attrape QUE la ligne de DÉCLARATION. Un marqueur glissé entre le `-` et
+//    le `**` (essayé le 2026-08-30 : `*(reclassée par mesure)*`) rend la fiche invisible
+//    ICI — donc hors du contrôle des doublons — sans rien casser à l'œil. Le geste qui
+//    documente une fiche peut donc la sortir de son garde-fou : marqueur en émoji seul.
+const DECLARES = FICHIERS.flatMap((f) => identifiantsDeclares(readFileSync(join(RACINE, f), 'utf8'), f));
 
 describe('AGENTS.md — la liste unique n\'a pas deux chantiers sous le même numéro', () => {
   it('trouve bien les entrées (sinon le test ne prouve rien)', () => {
@@ -61,14 +76,14 @@ describe('AGENTS.md — la liste unique n\'a pas deux chantiers sous le même nu
   });
 
   it('aucun identifiant n\'est déclaré deux fois', () => {
-    const parId = new Map<string, { ligne: number; titre: string }[]>();
+    const parId = new Map<string, { fichier: string; ligne: number; titre: string }[]>();
     for (const d of DECLARES) {
       if (!parId.has(d.id)) parId.set(d.id, []);
-      parId.get(d.id)!.push({ ligne: d.ligne, titre: d.titre });
+      parId.get(d.id)!.push({ fichier: d.fichier, ligne: d.ligne, titre: d.titre });
     }
     const doublons = [...parId.entries()]
       .filter(([, v]) => v.length > 1)
-      .map(([id, v]) => `${id} → ${v.map((x) => `ligne ${x.ligne} « ${x.titre} »`).join('  ET  ')}`);
+      .map(([id, v]) => `${id} → ${v.map((x) => `${x.fichier}:${x.ligne} « ${x.titre} »`).join('  ET  ')}`);
 
     expect(
       doublons,
@@ -95,7 +110,7 @@ describe('AGENTS.md — la liste unique n\'a pas deux chantiers sous le même nu
       for (let n = tries[0]; n < tries[tries.length - 1]; n++) {
         if (!tries.includes(n)) trous.push(`${p}${n}`);
       }
-      if (trous.length) console.warn(`[AGENTS.md] série ${p} — numéros absents : ${trous.join(', ')}`);
+      if (trous.length) console.warn(`[AGENTS.md + docs/JOURNAL.md] série ${p} — numéros absents : ${trous.join(', ')}`);
     }
     expect(parPrefixe.size).toBeGreaterThan(0);
   });

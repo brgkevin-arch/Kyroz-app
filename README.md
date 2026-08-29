@@ -45,6 +45,7 @@ Rangé le **2026-08-30**. Trois états, trois endroits — et on ne laisse rien 
 | Endroit | Ce qu'on y met |
 |---|---|
 | **Carte des docs**, en tête de `kyroz-app/AGENTS.md` | Les **21 docs vivants**. Relus, jamais datés dans leur nom. C'est la porte d'entrée : on la lit avant de chercher un fichier |
+| `kyroz-app/docs/JOURNAL.md` | **L'histoire** — ce qui a été livré, avec le raisonnement. Sorti d'`AGENTS.md` le 2026-08-30 : il en pesait 70 % pour quelque chose qu'on ne relit jamais afin de décider |
 | `kyroz-app/docs/procedures/` | Les procédures **en cours** — celles qui demandent un accès Apple, un dashboard, une décision. Une étape à la fois |
 | `kyroz-app/docs/archive/` | Les **traces** : travail livré, décision annulée, question devenue sans objet. Date en préfixe + en-tête `ARCHIVÉ` |
 
