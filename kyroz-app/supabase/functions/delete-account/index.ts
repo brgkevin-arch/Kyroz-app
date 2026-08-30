@@ -35,7 +35,7 @@
 // ⚠️ **Ce fichier n'est PAS déployé par un push.** Une modification ici ne prend effet
 // qu'après un redéploiement, et le secret `REVENUECAT_SECRET_KEY` doit être posé côté
 // Supabase. Procédure, une étape à la fois :
-//   `docs/PROCEDURE-2026-08-27-suppression-revenuecat.md`
+//   `../../../docs/archive/2026-08-27-procedure-suppression-revenuecat.md`
 // ════════════════════════════════════════════════════════════════════════════
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 

@@ -1,4 +1,15 @@
-# Brief — Que mesure-t-on quand la personne accepte ?
+# ARCHIVÉ — SANS OBJET · Que mesure-t-on quand la personne accepte ? (2026-08-10)
+
+> **Archivé le 2026-08-30.** La question qu'il pose n'existe plus : **la mesure d'audience
+> est éteinte depuis le 2026-08-26** (décision fondateur, fiche E66). Plus aucun événement
+> ne part, la clé PostHog est retirée des trois environnements EAS, et aucun texte légal
+> ne déclare plus de traitement d'analyse.
+>
+> ⚠️ Les formulaires App Privacy et Data Safety la déclarent ENCORE — c'est un écart
+> ouvert, suivi dans `../../AGENTS.md`, pas ici. État courant → `../../AGENTS.md`.
+
+---
+
 
 > 🔴 **LA MESURE D'AUDIENCE EST ÉTEINTE DEPUIS LE 2026-08-26** (décision fondateur,
 > cf. AGENTS.md E66). Plus aucun événement ne part, la clé PostHog est retirée des trois

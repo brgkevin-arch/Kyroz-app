@@ -82,7 +82,7 @@ en le journalisant (`[kyroz:sync] … MIGRATION NON JOUÉE en production`), au l
 le push profil entier en silence — le mode de panne qui s'est produit trois fois. Il a
 donc fonctionné comme prévu ; il ne dispense toujours pas de jouer le SQL.
 
-➡️ Procédure suivie : `supabase/PROCEDURE-2026-08-07-meal-slots.md`.
+➡️ Procédure suivie : `../docs/archive/2026-08-07-procedure-meal-slots.md`.
 
 ### 2026-08-06 — ✅ `body_fat_source` jouée (16ᵉ migration)
 

@@ -293,7 +293,7 @@ Exécutés contre le moteur réel (`npx tsx -e`, aucun fichier créé dans le d�
 
 ### 02-08 Il n'existe pas de brief consolidé des règles moteur — mais la traçabilité, elle, existe
 - **Sévérité : P3** (le brief prescrit P2 ; je descends d'un cran et je dis pourquoi — règle 6)
-- **Preuve** : `git ls-files | xargs grep -IlE 'Alpert|Katch|R6'` ne rend, hors code et tests, que des documents **archivés** (`docs/archive/2026-07-29-moteur-v2-corrections.md`, `…2026-06-18-brief-macros-calories.md`, `…2026-07-28-audit-p1-mesures.md`) et un **brainstorm** explicitement non-spec (`docs/2026-08-15-brief-banque-de-calories.md`).
+- **Preuve** : `git ls-files | xargs grep -IlE 'Alpert|Katch|R6'` ne rend, hors code et tests, que des documents **archivés** (`docs/archive/2026-07-29-moteur-v2-corrections.md`, `…2026-06-18-brief-macros-calories.md`, `…2026-07-28-audit-p1-mesures.md`) et un **brainstorm** explicitement non-spec (`../archive/2026-08-15-brief-banque-de-calories.md`).
 - **Pourquoi P3 et non P2** : la traçabilité n'est pas absente, elle a une autre forme — la ligne `ENGINE_REV` d'`AGENTS.md:145` tient l'historique daté et motivé des révisions 5 → 8, chacune reliée à sa mesure. C'est ce qui a permis de trancher les règles 5 et 8 de ce brief. Le manque réel est qu'elle est **répartie**, pas qu'elle n'existe pas.
 - **Reco** : si un document consolidé est voulu, le **dériver** de la ligne `ENGINE_REV` plutôt que de le réécrire — sinon il y aura deux vérités.
 - **Effort : M**

@@ -91,7 +91,7 @@ ligne(confirmation, 'confirmation e-mail', confirmation ? 'EXIGÉE' : 'désactiv
   'la confirmation e-mail est DÉSACTIVÉE : aucun e-mail n\'est envoyé, et tout\n'
   + '     compte créé est actif immédiatement.\n'
   + '     → Dashboard → Authentication → Sign In / Providers → Email → cocher\n'
-  + '       « Confirm email ». Procédure : supabase/PROCEDURE-2026-08-07-confirmation-email.md');
+  + '       « Confirm email ». Procédure : ../docs/archive/2026-08-07-procedure-confirmation-email.md');
 
 // ⚠️ ÉTAT, PAS VERDICT — et c'est délibéré. L'auth anonyme est ACTIVE exprès : c'est
 // le chemin du relecteur Apple (`EXPO_PUBLIC_REVIEW_CODE`), et son remplacement est

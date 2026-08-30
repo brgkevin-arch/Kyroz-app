@@ -18,7 +18,7 @@
 > ✅ **LE PAYWALL EST LIVRÉ** — écran, verrou, SDK, prix du store. ⚠️ Cette ligne a annoncé
 > « le seul chantier encore ouvert » longtemps après sa livraison. **Ce qui reste n'est plus
 > du code** : les fiches produits chez Apple, un build pour la capture de review, le bac à
-> sable, puis la date. Procédure : `PROCEDURE-2026-08-25-mise-en-vente-kyroz-plus.md`.
+> sable, puis la date. Procédure : `docs/procedures/PROCEDURE-2026-08-25-mise-en-vente-kyroz-plus.md`.
 > ⚠️ **La banque de calories N'EST PLUS ce 4ᵉ pilier attendu** : elle a été livrée,
 > puis retirée de Kyroz+ ET éteinte le 2026-08-18 (cf. la note tout en haut de ce fichier).
 > **Paiement TRANCHÉ = achat in-app via les

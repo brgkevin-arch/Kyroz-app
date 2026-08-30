@@ -37,7 +37,7 @@ import { PRIVACY_POLICY } from '../../constants/legal';
 // `identificationDifferee.test.ts` et `feuillesEmpilees.test.ts` le font pour des
 // propriétés qu'aucun runtime de test n'atteint. Il garantit que le code dit la bonne
 // chose, jamais qu'il tourne : le déploiement et le secret sont une étape humaine
-// (`docs/PROCEDURE-2026-08-27-suppression-revenuecat.md`).
+// (`../../docs/archive/2026-08-27-procedure-suppression-revenuecat.md`).
 //
 // ℹ️ **La moitié PostHog du constat est CLOSE PAR LES FAITS, pas par ce correctif.**
 // `distinctId()` n'est appelé que depuis `capture()`, qui sort avant tout sur

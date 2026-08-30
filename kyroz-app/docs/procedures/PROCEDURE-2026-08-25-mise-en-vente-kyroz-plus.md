@@ -337,7 +337,7 @@ VERSION. Droits nécessaires : Products + Entitlements. La clé vit hors du dép
 suppression de compte doit retirer l'abonné chez RevenueCat (`DELETE /v1/subscribers/{uuid}`,
 endpoint **v1**) : sa clé est posée dans le secret Supabase `REVENUECAT_SECRET_KEY`, lu par
 l'Edge Function `delete-account`. Voir
-`docs/PROCEDURE-2026-08-27-suppression-revenuecat.md` (close).
+`../archive/2026-08-27-procedure-suppression-revenuecat.md` (close).
 ⚠️ **Les deux clés portent le même préfixe `sk_`, se créent au même endroit, et ne font pas
 le travail l'une de l'autre** — la v2 rend `403` sur l'endpoint v1, la v1 rend `401` sur les
 endpoints v2. **Ne jamais remplacer l'une par l'autre en croyant ranger la bonne** : ce qui

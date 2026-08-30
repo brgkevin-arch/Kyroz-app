@@ -1,4 +1,16 @@
-# Kyroz — Analytics : périmètre de mesure, synthèse d'arbitrage
+# ARCHIVÉ — SANS OBJET · Analytics : périmètre de mesure, synthèse d'arbitrage (2026-08-10)
+
+> **Archivé le 2026-08-30.** L'arbitrage a été rendu, puis **la mesure d'audience a été
+> éteinte le 2026-08-26** (fiche E66) : son périmètre ne décrit plus rien de vivant.
+>
+> ⚠️ **Il reste cité par deux tests**, et c'est volontaire : `lib/__tests__/analyticsPerimetre.test.ts`
+> s'appuie sur son §6 — *aucune donnée de santé ne part* — qui est une règle **toujours
+> appliquée**. Ce document en est l'origine, pas la source courante.
+>
+> État courant → `../../AGENTS.md`. Ce que chaque chiffre mesure → `../../METRICS.md`.
+
+---
+
 
 > 🔴 **LA MESURE D'AUDIENCE EST ÉTEINTE DEPUIS LE 2026-08-26** (décision fondateur,
 > cf. AGENTS.md E66). Plus aucun événement ne part, la clé PostHog est retirée des trois

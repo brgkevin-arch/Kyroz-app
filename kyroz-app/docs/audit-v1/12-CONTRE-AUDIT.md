@@ -556,7 +556,7 @@ moitiés ne se lisent jamais ensemble.
 ➡️ **Le texte légal n'a PAS été rouvert** : le §7 est déjà la bonne phrase, c'est au code de
 la rattraper (`delete-account` supprime l'abonné avant la cascade). Rouvrir aurait coûté
 empreinte, date d'entrée en vigueur, `gen:legal` et la 3ᵉ surface — pour zéro gain de vérité.
-✅ **L'étape humaine est FAITE le même jour** : `docs/PROCEDURE-2026-08-27-suppression-revenuecat.md`
+✅ **L'étape humaine est FAITE le même jour** : `../archive/2026-08-27-procedure-suppression-revenuecat.md`
 est close (six étapes, deux signaux indépendants à la vérification). **Le §7 de la politique
 est exact depuis ce jour-là, y compris pour les non-abonnés.**
 

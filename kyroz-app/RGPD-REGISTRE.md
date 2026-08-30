@@ -304,7 +304,7 @@
 Ces actions ne vivent dans aucun fichier : personne ne les verra en relisant le code, et
 aucun test ne les attrapera. Elles font pourtant partie du même lot.
 
-📄 **Procédure détaillée, étape par étape** : `PROCEDURE-2026-08-18-activation-posthog.md`
+📄 **Procédure détaillée, étape par étape** : `docs/archive/2026-08-18-procedure-activation-posthog.md`
 (libellés exacts des champs, ordre, et ce qui bloque quoi).
 
 - [x] **App Store Connect** → App Privacy : **publié le 2026-08-18**. Première déclaration

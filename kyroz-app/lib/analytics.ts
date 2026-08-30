@@ -206,7 +206,7 @@ export function captureErreur(err: unknown): void {
 // ── Les 13 events, et pas un de plus ─────────────────────────────────────────
 //
 // Chaque bloc sert UNE décision, et chaque décision porte un seuil écrit d'avance
-// (docs/2026-08-10-synthese-analytics-arbitrage.md §10). Un event sans décision
+// (../docs/archive/2026-08-10-synthese-analytics-arbitrage.md §10). Un event sans décision
 // associée est du bruit qu'on paye en complexité, en surface juridique et en
 // promesse faite à l'utilisateur : ne pas en ajouter sans écrire le seuil d'abord.
 export const Events = {

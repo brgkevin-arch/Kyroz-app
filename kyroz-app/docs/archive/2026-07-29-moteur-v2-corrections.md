@@ -12,7 +12,7 @@
 > `id` et ses dates (`lib/planEngine.ts:740-743`).
 >
 > État courant → `AGENTS.md`. Spec stable → `CLAUDE.md`. Photo du code →
-> `docs/INVENTAIRE-CODE-2026-07-30.md`.
+> `2026-07-30-inventaire-code.md` *(archivé)*.
 
 ---
 
