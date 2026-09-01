@@ -139,7 +139,15 @@ export default function Onboarding() {
 
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
-  const [hint, setHint] = useState<string | null>(null); // message affiché si on tente d'avancer sans tout remplir
+  // 🔴 ON MÉMORISE LE GESTE, PAS LA PHRASE. C'était `useState<string | null>` : le
+  // motif était gelé au moment du tap, donc il MENTAIT dès que la personne corrigeait.
+  // Vu à l'écran le 2026-09-01 — « Indique si tu es un homme ou une femme » restait
+  // affiché après avoir touché « Femme », parce que l'étape 2 restait incomplète pour
+  // une AUTRE raison. Un état vrai à un instant et faux la seconde d'après est pire
+  // qu'un silence : il envoie corriger ce qui l'est déjà.
+  // ➡️ Le booléen dit « quelqu'un a tenté d'avancer » ; la phrase, elle, se recalcule
+  // à chaque rendu par `blockReason()` et suit donc la saisie en direct.
+  const [avanceTentee, setAvanceTentee] = useState(false);
 
   // D1 : l'étape ATTEINTE. C'est la seule mesure qui dise OÙ l'assistant fait
   // abandonner — `onboarding_completed` seul ne compte que ceux qui sont allés au
@@ -153,7 +161,16 @@ export default function Onboarding() {
 
   // État formulaire
   const [firstName, setFirstName] = useState('');
-  const [sex, setSex] = useState<Sex>('male');
+  // 🔴 AUCUN SEXE PRÉSÉLECTIONNÉ — il l'était sur `'male'` jusqu'au 2026-09-01.
+  // C'est le défaut du NEAT (fermé le 2026-08-19) dans sa version GRAVE : un NEAT par
+  // défaut sert le cran le plus prudent, un sexe par défaut sert un plan FAUX. Le sexe
+  // entre dans Mifflin-St Jeor à ±166 kcal (`lib/tdee.ts:95`), dans les bornes de %MG
+  // (`lib/safety.ts:43`) et dans les silhouettes du sélecteur. Une femme qui ne
+  // touchait pas au segmenté n'était jamais bloquée : elle recevait, en silence, un
+  // plan calculé sur un métabolisme d'homme.
+  // ⚠️ Et il n'y a PAS de repli `?? 'male'` en fin de parcours, contrairement au NEAT :
+  // ici, deviner, c'est se tromper.
+  const [sex, setSex] = useState<Sex | null>(null);
   // Date de naissance et NON âge : un âge saisi pourrit au premier anniversaire,
   // et il entre dans Mifflin-St Jeor donc dans les calories servies (lib/birthday.ts).
   const [birthDate, setBirthDate] = useState<string | undefined>(undefined);
@@ -195,6 +212,7 @@ export default function Onboarding() {
   // n'est pas validée sous 19 ans, et un moteur de déficit calorique n'a pas à être
   // servi à un mineur (sécurité ET conformité). Cf. lib/safety.ts.
   const basicsValid =
+    sex !== null &&
     ageN >= AGE_BOUNDS[0] && ageN <= AGE_BOUNDS[1] &&
     wN >= WEIGHT_BOUNDS[0] && wN <= WEIGHT_BOUNDS[1] &&
     hN >= HEIGHT_BOUNDS[0] && hN <= HEIGHT_BOUNDS[1]; // étape 2 — infos
@@ -225,7 +243,11 @@ export default function Onboarding() {
   // ⚠️ On ne passe PAS les séances : elles se déclarent à l'étape 4, mais faire
   // remonter ici « plus de 20 h d'entraînement » brouillerait l'écran de l'objectif
   // avec un reproche qui ne le concerne pas. Ce blocage-là reste au filet de `finish()`.
-  const objectifBloque = profileReady
+  // `sex !== null` est déjà dans `basicsValid`, donc dans `profileReady` : le test est
+  // là pour que TypeScript le VOIE, pas pour couvrir un cas. Le supprimer ne changerait
+  // rien à l'exécution et casserait la compilation — ce qui est la bonne façon d'être
+  // redondant.
+  const objectifBloque = profileReady && sex !== null
     ? eligibilityMessage(checkEligibility({ sex, age: ageN, weight_kg: wN, height_cm: hN, goal }))
     : null;
 
@@ -294,6 +316,10 @@ export default function Onboarding() {
     if (step === 1 && !firstNameValid) return 'Dis-nous comment t\'appeler pour commencer';
     if (step === 2 && !basicsValid) {
       if (ageN >= 1 && ageN < AGE_BOUNDS[0]) return `Kyroz est réservé aux ${AGE_BOUNDS[0]} ans et plus.`;
+      // Un choix manquant se dit à part d'un champ vide : l'écran montre déjà POURQUOI
+      // on le demande (« pour calculer ton métabolisme »), le blocage dit seulement
+      // CE QUI MANQUE — la règle posée le 2026-08-26 sur l'étape 3.
+      if (sex === null) return 'Indique si tu es un homme ou une femme pour continuer.';
       return 'Remplis ta date de naissance, ton poids et ta taille pour continuer.';
     }
     if (step === 3 && !bodyFatValid)
@@ -319,14 +345,20 @@ export default function Onboarding() {
 
   const next = () => {
     if (saving) return;
-    if (!canProceed) { setHint(blockReason()); return; }
-    setHint(null);
+    if (!canProceed) { setAvanceTentee(true); return; }
+    setAvanceTentee(false);
     if (step < TOTAL_STEPS) setStep(step + 1);
     else finish();
   };
-  const back = () => { if (step > 1) { setHint(null); setStep(step - 1); } };
+  const back = () => { if (step > 1) { setAvanceTentee(false); setStep(step - 1); } };
 
   const finish = async () => {
+    // 🔴 LE SEXE NE SE DEVINE PAS. L'étape 2 interdit d'arriver ici sans lui, donc ce
+    // filet ne se déclenche pas — et s'il se déclenchait, il RENVOIE à l'étape qui
+    // manque au lieu de choisir à la place de quelqu'un. C'est la différence assumée
+    // avec le `neat ?? DEFAULT_NEAT_LEVEL` vingt lignes plus bas : un repli n'est
+    // acceptable que quand la valeur de repli est défendable.
+    if (sex === null) { setStep(2); setAvanceTentee(true); return; }
     // Profil « brut » (inputs uniquement). recalcProfile est l'UNIQUE producteur
     // de tdee_kcal + macros — pas de calcul en ligne parallèle ici (cohérence
     // garantie avec le check-in poids et les éditeurs du profil).
@@ -455,7 +487,11 @@ export default function Onboarding() {
           </View>
         )}
 
-        {step === 3 && (
+        {/* ⚠️ `&& sex` : le sélecteur de %MG est SEXUÉ — planches de silhouettes
+            (`components/BodyFatPicker.tsx:88`) et bornes (`lib/safety.ts:43`). L'étape 2
+            garantit déjà le sexe ; la garde rend cette dépendance visible ici, là où on
+            la lirait, plutôt que dans le type d'un composant deux fichiers plus loin. */}
+        {step === 3 && sex && (
           <View style={s.block}>
             <Text style={s.title}>Ta masse grasse</Text>
             <Text style={s.sub}>
@@ -642,7 +678,7 @@ export default function Onboarding() {
       </ScrollView>
 
       <View style={[s.footer, layout.header]}>
-        {hint && !canProceed && <Text style={s.hint}>{hint}</Text>}
+        {avanceTentee && !canProceed && <Text style={s.hint}>{blockReason()}</Text>}
         {/* `muted` et non `disabled` : le bouton reste cliquable, c'est lui qui
             affiche `blockReason()`. Il est simplement atténué pour ne plus
             promettre d'avancer quand l'étape est incomplète. */}

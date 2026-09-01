@@ -173,28 +173,47 @@ const RETRAIT_CURSEUR = 4;
  */
 export function Segmented<T extends string | number>({
   t, options, value, onChange,
-}: { t: ThemePalette; options: { label: string; value: T }[]; value: T; onChange: (v: T) => void }) {
+}: { t: ThemePalette; options: { label: string; value: T }[]; value: T | null; onChange: (v: T) => void }) {
   const reduire = useReduceMotion();
   const [larg, setLarg] = React.useState(0);
+  // 🔴 `value === null` = RIEN N'EST CHOISI, ET ÇA SE VOIT : pas de curseur, aucun
+  // libellé à l'accent. Sans cet état, un segmenté MENT — il désigne toujours une
+  // option, donc un défaut auquel personne n'a touché a l'exacte apparence d'une
+  // réponse donnée. C'est le défaut que `neatOnboarding.test.ts` a fermé pour le NEAT
+  // le 2026-08-19 ; le sexe l'a gardé jusqu'au 2026-09-01, et lui produisait un plan
+  // faux plutôt qu'un cran prudent (cf. `sexeOnboarding.test.ts`).
+  const vide = value === null;
   const index = Math.max(0, options.findIndex((o) => o.value === value));
   const position = React.useRef(new Animated.Value(index)).current;
   const pose = React.useRef(false);
+  const etaitVide = React.useRef(vide);
 
   // Chaque option occupe une part égale du rail, moins les gouttières.
   const utile = Math.max(0, larg - Spacing.xs * 2 - Spacing.xs * (options.length - 1));
   const pas = options.length > 0 ? utile / options.length : 0;
 
-  React.useEffect(() => {
-    if (!pose.current) { pose.current = true; position.setValue(index); return; }
+  // ⚠️ `useLayoutEffect` ET PAS `useEffect`. Au premier choix, `glissant` passe à vrai
+  // dans le rendu, mais `position` vaut encore 0 : un effet PASSIF laisserait peindre
+  // une frame où le curseur apparaît sur l'option 0 avant de sauter à la bonne — un
+  // éclair de « Homme » sélectionné pour qui vient de toucher « Femme ».
+  React.useLayoutEffect(() => {
+    // Première pose, ou sortie de l'état vide : on POSE le curseur, on ne l'y fait pas
+    // glisser. Il ne vient pas d'une option précédente — il n'y en avait aucune.
+    if (!pose.current || etaitVide.current) {
+      pose.current = true; etaitVide.current = vide; position.setValue(index); return;
+    }
+    etaitVide.current = vide;
     Animated.spring(position, {
       toValue: index,
       useNativeDriver: false,
       ...ressortRN(ressortReduit(RESSORT.pose, reduire)),
     }).start();
-  }, [index, reduire, position]);
+  }, [index, vide, reduire, position]);
 
-  // Une seule option : rien à départager, donc rien à faire glisser.
-  const glissant = options.length > 1 && larg > 0;
+  // Une seule option : rien à départager, donc rien à faire glisser. Rien de choisi :
+  // rien à désigner — et `on` reste faux partout, donc tous les libellés restent
+  // secondaires sans autre changement plus bas.
+  const glissant = options.length > 1 && larg > 0 && !vide;
 
   return (
     <View
