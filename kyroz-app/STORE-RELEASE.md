@@ -264,6 +264,43 @@ Témoin lu dans `main.jsbundle` de l'IPA (lecture partielle, 25 Ko sur 26,4 Mo) 
 correctif. ⚠️ Elle ne sort qu'en **UTF-16** : Hermes bascule une chaîne dès UN accent.
 `currencyCode`, lui, sort en UTF-8. **Chercher les deux encodages, toujours.**
 
+### 🔴 LE MOT DE PASSE DE DÉMO ÉTAIT FAUX — depuis le 2026-07-17
+
+Trouvé le 2026-09-02, **pendant que l'app était en revue**, et non par une relecture :
+le fondateur a dit « j'sais pas si le mdp est juste ».
+
+| | |
+|---|---|
+| Champ *App Review Information* | `060324` — **6 chiffres** |
+| `EXPO_PUBLIC_REVIEW_CODE` réel | **29 caractères**, non numérique |
+| Dans le bundle du **(9)** | le vrai code : **présent** · `060324` : **absent** |
+
+`060324` ressemble à une date tapée de mémoire. Le relecteur qui tentait de se connecter
+était renvoyé sur une erreur, et l'accès démo était **fermé depuis la création du champ**.
+
+⚠️ **Aucun test ne pouvait l'attraper** : cette valeur ne vit ni dans le code, ni dans le
+dépôt, ni dans aucun contrôle automatique. C'est une chaîne **recopiée à la main dans un
+formulaire**, jamais confrontée à sa source — la même famille que la note au relecteur
+trop longue de 476 caractères, et que les prix « à copier-coller » du §3.
+
+✅ **LE CONTRÔLE EXISTE MAINTENANT**, hors dépôt (il lit un secret) :
+
+```bash
+source ~/.eas-credentials/asc.env && node ~/.eas-credentials/kyroz-verif-demo.mjs
+```
+
+Il compare le champ ASC à la variable EAS `production` et n'affiche **jamais** la valeur.
+➡️ **À lancer avant CHAQUE soumission.** Le contrôle décisif reste la présence de la
+chaîne dans le `main.jsbundle` de l'IPA — c'est le binaire qui décide, pas la variable.
+
+🟠 **Relevé au passage, non bloquant** : `app/(auth)/onboarding.tsx` n'offre **aucune
+sortie** — la flèche ne recule que d'une étape et disparaît à la première (`:436`), la
+seule issue est d'aller au bout (`:407`). Quelqu'un qui se connecte et ne veut pas faire
+l'onboarding est piégé ; il doit désinstaller l'app. Purement JS, donc **corrigeable en
+OTA** une fois l'app approuvée.
+
+---
+
 ### 🔁 REJET 2.1 PUIS RENVOI — 2026-09-01 / 02
 
 **Rejet le 2026-09-01 : `Guideline 2.1 — Information Needed`.** Une seule question, aucun
