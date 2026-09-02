@@ -1,7 +1,8 @@
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { Presse } from '../../components/Presse';
+import { lireBrouillon, ecrireBrouillon, effacerBrouillon, type OnboardingDraft } from '../../lib/onboardingDraft';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, Easing,
+  View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, Easing, AppState,
 } from 'react-native';
 import { DUREE, dureeReduite } from '../../lib/motion';
 import { reduceMotionActif } from '../../lib/reduceMotion';
@@ -209,6 +210,73 @@ export default function Onboarding() {
   // Créneaux CRÉÉS à l'onboarding (« Shaker post-training », 18h30). Vide par défaut :
   // les 4 intégrés couvrent la majorité, et qui mange 6 fois par jour l'ajoute ici.
   const [customSlots, setCustomSlots] = useState<MealSlot[]>([]);
+
+  // ── L'INSCRIPTION SURVIT À UNE FERMETURE DE L'APP ──────────────────────────
+  //
+  // 🔴 Rien n'était persisté : sept étapes, et un appel entrant, une bascule d'app ou
+  // un manque de mémoire renvoyaient au prénom. Le brouillon vit dans
+  // `lib/onboardingDraft.ts` — clé `@kyroz:`, donc exporté et purgé avec le reste,
+  // sans rien à brancher ailleurs.
+  const brouillon: OnboardingDraft = {
+    step, firstName, sex, birthDate, weight, height, bodyFat, bodyFatSource,
+    sports, noSport, goal, restrictions, proteins, dislikes, neat, variety,
+    planWeekdays, restWeekdays, restTouched, meals, customSlots,
+  };
+  // ⚠️ La dépendance de l'effet est la forme SÉRIALISÉE, pas l'objet : `brouillon` est
+  // recréé à chaque rendu, donc le passer en dépendance déclencherait une écriture par
+  // rendu. La ref porte la valeur, la chaîne porte le changement.
+  const brouillonSerialise = JSON.stringify(brouillon);
+  const brouillonRef = useRef(brouillon);
+  brouillonRef.current = brouillon;
+
+  // 🔴 `brouillonLu` GARDE L'ÉCRITURE, et c'est le point délicat : sans lui, le premier
+  // rendu (état initial, étape 1) écraserait le brouillon qu'on est justement en train
+  // de lire — l'écran effacerait la sauvegarde qu'il vient de restaurer, et le défaut
+  // ressemblerait à « la persistance ne marche pas » alors qu'elle marcherait deux fois.
+  const [brouillonLu, setBrouillonLu] = useState(false);
+  useEffect(() => {
+    let vivant = true;
+    lireBrouillon(TOTAL_STEPS).then((d) => {
+      if (!vivant) return;
+      if (d) {
+        setStep(d.step); setFirstName(d.firstName); setSex(d.sex);
+        setBirthDate(d.birthDate); setWeight(d.weight); setHeight(d.height);
+        setBodyFat(d.bodyFat); setBodyFatSource(d.bodyFatSource);
+        setSports(d.sports); setNoSport(d.noSport); setGoal(d.goal);
+        setRestrictions(d.restrictions); setProteins(d.proteins); setDislikes(d.dislikes);
+        setNeat(d.neat); setVariety(d.variety);
+        setPlanWeekdays(d.planWeekdays); setRestWeekdays(d.restWeekdays);
+        // ⚠️ `restTouched` se restaure AVEC le reste : sans lui, l'effet qui pré-coche
+        // les jours de repos depuis le nombre de séances repartirait au premier rendu
+        // et écraserait un choix déjà fait — la restauration défaisant la saisie
+        // qu'elle vient de rendre.
+        setRestTouched(d.restTouched);
+        setMeals(d.meals); setCustomSlots(d.customSlots);
+      }
+      setBrouillonLu(true);
+    });
+    return () => { vivant = false; };
+  }, []);
+
+  // ⚠️ Écriture DIFFÉRÉE : une frappe de poids vaut trois rendus, et trois écritures
+  // pour une valeur qu'on est en train de taper ne servent à rien. Le délai est court
+  // — ce qu'on protège, c'est une app tuée, pas une session longue.
+  useEffect(() => {
+    if (!brouillonLu) return;
+    const t = setTimeout(() => { void ecrireBrouillon(brouillonRef.current); }, 400);
+    return () => clearTimeout(t);
+  }, [brouillonLu, brouillonSerialise]);
+
+  // …et une écriture IMMÉDIATE quand l'app passe en arrière-plan. C'est là que le
+  // système tue, et c'est le seul instant où le délai ci-dessus coûterait la dernière
+  // réponse donnée.
+  useEffect(() => {
+    if (!brouillonLu) return;
+    const sub = AppState.addEventListener('change', (st) => {
+      if (st !== 'active') void ecrireBrouillon(brouillonRef.current);
+    });
+    return () => sub.remove();
+  }, [brouillonLu]);
 
   const ageN = ageOn(birthDate, todayStamp()) ?? NaN;
   const wN = parseFloat(weight), hN = parseFloat(height);
@@ -436,6 +504,9 @@ export default function Onboarding() {
     setSaving(true);
     await saveFirstName(firstName);
     await saveProfile(profile);
+    // ⚠️ ICI, et pas au démarrage suivant : tant que le profil n'est pas écrit, le
+    // brouillon est la seule copie de ce qui a été saisi.
+    await effacerBrouillon();
     // ⚠️ `goal`, `restrictions` et `has_sport` ONT ÉTÉ RETIRÉS le 2026-08-10. Ce sont
     // l'objectif, le régime et la pratique sportive — trois données de santé au sens
     // de l'art. 9, nommées une par une dans l'interdit absolu (§6). Elles partaient
@@ -468,6 +539,12 @@ export default function Onboarding() {
     if (consent === undefined) return null; // lecture du stockage, quasi instantané
     if (consent === null) return <AnalyticsConsentStep onChoose={chooseConsent} />;
   }
+
+  // ⚠️ RIEN NE S'AFFICHE AVANT D'AVOIR LU LE BROUILLON. Sans cette garde, l'écran
+  // montrerait l'étape 1 vide puis sauterait à l'étape 5 une frame plus tard : une
+  // restauration correcte qui a l'air d'un bug. Même geste que la ligne de consentement
+  // au-dessus — une lecture de stockage local, quasi instantanée.
+  if (!brouillonLu) return null;
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'bottom']}>
