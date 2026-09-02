@@ -264,6 +264,53 @@ Témoin lu dans `main.jsbundle` de l'IPA (lecture partielle, 25 Ko sur 26,4 Mo) 
 correctif. ⚠️ Elle ne sort qu'en **UTF-16** : Hermes bascule une chaîne dès UN accent.
 `currencyCode`, lui, sort en UTF-8. **Chercher les deux encodages, toujours.**
 
+### 🔁 REJET 2.1 PUIS RENVOI — 2026-09-01 / 02
+
+**Rejet le 2026-09-01 : `Guideline 2.1 — Information Needed`.** Une seule question, aucun
+défaut de code, aucun nouveau build. Relecture faite sur **iPad Air 11" (M3)**, donc sur
+la vitrine **américaine** :
+
+> *« You submitted two monthly and two yearly plans with same or similar prices. Is this
+> intentional? If yes, what is the difference between each plan? »*
+
+#### 🔴 La question était FONDÉE — mesuré, pas supposé
+
+| | FRA | USA |
+|---|---|---|
+| `kyroz_plus_monthly` (réserve) | 4,99 | **3,99 $** |
+| `kyroz_plus_monthly_early` (en vente) | 3,99 | **3,99 $** |
+
+Même nom affiché, même prix. Et ce n'était pas une anomalie américaine : **l'échelle est
+plate dans 150 territoires sur 175** pour le mensuel (l'annuel tient partout, 0 collision).
+Elle n'était juste qu'en France — le seul endroit où on l'avait regardée.
+
+➡️ **Conséquence directe sur la réponse** : impossible d'écrire à Apple « ils diffèrent par
+le prix », ce serait faux dans 150 pays. La réponse a donc été construite sur ce qui EST
+vrai — deux vendus, deux réservés, l'app n'en demande que deux — et elle NOMME les deux
+défauts au lieu d'attendre qu'on les trouve.
+
+#### Ce que le renvoi a appris
+
+✅ **Répondre dans le Centre de résolution REARME la soumission entière** : version,
+groupe et les 4 abonnements sont repassés en `WAITING_FOR_REVIEW`, sans perdre la place
+dans la file. Un rejet 2.1 ne se paye donc pas d'une nouvelle soumission.
+
+🔴 **Une soumission envoyée est GELÉE, console comprise.** Tentative de retirer les deux
+produits de réserve : `DELETE /v1/reviewSubmissionItems` → `409 « Item was already
+submitted »`, et `POST /v1/subscriptionSubmissions` → `409 « Subscription … has no pending
+version for submission »`. Le fondateur n'y est pas arrivé non plus depuis l'écran. Retirer
+un élément exige de sortir la version de la revue et de tout reconstruire.
+➡️ **Composer la soumission AVANT de l'envoyer, pas après.**
+
+#### ⏳ Travail en attente, à NE PAS faire pendant la revue
+
+Reprendre la grille du palier réservé : prix au-dessus du lancement sur les 175 territoires,
+et noms affichés distincts (« … (standard) »). ⚠️ **Pas maintenant** : ces produits sont en
+cours d'examen, les modifier pendant la revue la perturberait. À faire une fois l'app
+approuvée, et de toute façon **avant** la fin du tarif de lancement.
+
+---
+
 ### ✅ SOUMIS — 2026-08-28, 17 h 44 : 6 éléments, ensemble
 
 | | |
