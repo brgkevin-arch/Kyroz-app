@@ -88,7 +88,7 @@ export function BirthDateField({ t, value, onChange, fallbackAge }: Props) {
       >
         {/* ⚠️ « À renseigner » et pas une date grisée : la ligne dit ce que le
             moteur A, jamais ce que la roulette PROPOSERAIT. */}
-        <Text style={{ ...Type.h3, color: value ? t.text : t.textQuaternary }}>
+        <Text style={{ ...Type.h3, color: value ? t.text : t.textTertiary }}>
           {value ? libelleDate(value) : 'À renseigner'}
         </Text>
         <Ionicons name="chevron-forward" size={Icone.standard} color={t.textTertiary} />

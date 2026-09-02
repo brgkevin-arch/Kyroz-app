@@ -120,7 +120,7 @@ export function ReminderTimeField({ t, value, onChange }: Props) {
           maxLength={2}
           accessibilityLabel="Heure du rappel"
           placeholder={pad(value.hour)}
-          placeholderTextColor={t.textQuaternary}
+          placeholderTextColor={t.textTertiary}
           style={saisie}
         />
       </View>
@@ -135,7 +135,7 @@ export function ReminderTimeField({ t, value, onChange }: Props) {
           maxLength={2}
           accessibilityLabel="Minutes du rappel"
           placeholder={pad(value.minute)}
-          placeholderTextColor={t.textQuaternary}
+          placeholderTextColor={t.textTertiary}
           style={saisie}
         />
       </View>

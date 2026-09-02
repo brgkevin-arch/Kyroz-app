@@ -84,7 +84,7 @@ export function OffPlanHistory({
                     // d'avoir à accorder un article avec une date variable.
                     accessibilityLabel={`Retirer cette ligne — ${frDate(e.date)}`}
                   >
-                    <Ionicons name="close" size={Icone.standard} color={t.textQuaternary} />
+                    <Ionicons name="close" size={Icone.standard} color={t.textTertiary} />
                   </Presse>
                 </View>
                 {/* Décision inconnue (app quittée avant l'arbitrage) → on se tait.
@@ -130,6 +130,6 @@ function makeStyles(t: ThemePalette) {
     videCard: { borderWidth: Trait.fin, borderColor: t.line, borderRadius: Radius.card, padding: Spacing.xl, gap: Spacing.sm },
     videTitre: { ...Type.label, color: t.text },
     videTexte: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 20 },
-    note: { ...Type.caption, color: t.textQuaternary, lineHeight: 17 },
+    note: { ...Type.caption, color: t.textTertiary, lineHeight: 17 },
   });
 }

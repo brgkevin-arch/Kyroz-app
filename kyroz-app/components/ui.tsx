@@ -129,7 +129,7 @@ export function Field({
         paddingHorizontal: Spacing.lg,
       }}>
         <TextInput
-          placeholderTextColor={t.textQuaternary}
+          placeholderTextColor={t.textTertiary}
           autoComplete="off"
           autoCorrect={false}
           autoCapitalize="none"
@@ -328,7 +328,7 @@ export function MenuRow({
         <Text style={{ ...Type.h3, color: t.text, letterSpacing: -0.3 }}>{label}</Text>
         <Text style={{ ...Type.bodySmall, color: t.textTertiary, marginTop: Spacing.xs }} numberOfLines={1}>{value}</Text>
       </View>
-      {!readonly && <Ionicons name="chevron-forward" size={Icone.standard} color={t.textQuaternary} />}
+      {!readonly && <Ionicons name="chevron-forward" size={Icone.standard} color={t.textTertiary} />}
     </Presse>
   );
 }

@@ -148,7 +148,7 @@ export default function MotDePasseOublie({
           <PrimaryButton t={t} label="Valider le code" onPress={validerCode} disabled={!codeComplet(code)} loading={busy} />
 
           <Presse onPress={renvoyer} disabled={renvoiDans > 0 || busy} activeOpacity={OPACITE_PRESSION} style={s.lien}>
-            <Text style={[s.lienTxt, renvoiDans > 0 && { color: t.textQuaternary }]}>
+            <Text style={[s.lienTxt, renvoiDans > 0 && { color: t.textTertiary }]}>
               {renvoiDans > 0 ? `Renvoyer un code (${renvoiDans} s)` : 'Renvoyer un code'}
             </Text>
           </Presse>

@@ -116,7 +116,7 @@ export default function AvisScreen() {
             textAlignVertical="top"
             maxLength={AVIS_MAX}
             placeholder="Ce que tu veux nous dire…"
-            placeholderTextColor={t.textQuaternary}
+            placeholderTextColor={t.textTertiary}
           />
           {/* Le compteur n'apparaît qu'à l'approche du plafond : affiché en
               permanence, il transforme une invitation à écrire en examen. */}

@@ -130,12 +130,12 @@ export function RecipeEditor({ t, recipe, isCustom, onSave, onReset, onCancel, d
                   style={[s.input, ing.food_id ? s.inputLinked : null]} value={ing.name}
                   onChangeText={(v) => { setIng(i, { name: v }); setSearchRow(v.trim() ? i : null); }}
                   onFocus={() => setSearchRow(ing.name.trim() ? i : null)}
-                  placeholder="Cherche un aliment…" placeholderTextColor={t.textQuaternary}
+                  placeholder="Cherche un aliment…" placeholderTextColor={t.textTertiary}
                 />
               </View>
               <TextInput
                 style={[s.input, s.qty]} value={ing.quantity_g} onChangeText={(v) => setIng(i, { quantity_g: v })}
-                placeholder="g" placeholderTextColor={t.textQuaternary} keyboardType="decimal-pad"
+                placeholder="g" placeholderTextColor={t.textTertiary} keyboardType="decimal-pad"
               />
               <Presse onPress={() => removeIng(i)} style={s.del} hitSlop={8}>
                 <Ionicons name="close-circle" size={Icone.action} color={t.textTertiary} />
@@ -209,7 +209,7 @@ export function RecipeEditor({ t, recipe, isCustom, onSave, onReset, onCancel, d
             <View style={s.stepN}><Text style={s.stepNTxt}>{i + 1}</Text></View>
             <TextInput
               style={[s.input, { flex: 1 }]} value={step} onChangeText={(v) => setStep(i, v)}
-              placeholder="Étape…" placeholderTextColor={t.textQuaternary} multiline
+              placeholder="Étape…" placeholderTextColor={t.textTertiary} multiline
             />
             <Presse onPress={() => removeStep(i)} style={s.del} hitSlop={8}>
               <Ionicons name="close-circle" size={Icone.action} color={t.textTertiary} />

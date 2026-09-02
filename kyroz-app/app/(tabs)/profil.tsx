@@ -1042,7 +1042,7 @@ function InfoEditor({ t, profile, onSave, onWeighIn, dragHandlers, sheetScrollPr
           <Text style={{ ...Type.h3, color: t.text, marginTop: Spacing.xs }}>{profile.weight_kg} kg</Text>
         </View>
         <Text style={{ ...Type.captionStrong, color: t.accent }}>Me peser</Text>
-        <Ionicons name="chevron-forward" size={Icone.standard} color={t.textQuaternary} />
+        <Ionicons name="chevron-forward" size={Icone.standard} color={t.textTertiary} />
       </Presse>
       <Text style={{ ...Type.caption, color: t.textTertiary, lineHeight: 17, marginTop: -Spacing.sm }}>
         Ton poids se met à jour en te pesant : c'est ce qui garde ta courbe et ton suivi justes.
