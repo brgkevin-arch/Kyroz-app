@@ -182,7 +182,13 @@ export default function Onboarding() {
   const [bodyFatSource, setBodyFatSource] = useState<BodyFatSource | undefined>(undefined);
   const [sports, setSports] = useState<SportSession[]>([]);
   const [noSport, setNoSport] = useState(false); // « je ne fais pas de sport » → calcul base seule
-  const [goal, setGoal] = useState<Goal>('cut');
+  // 🔴 AUCUN OBJECTIF PRÉSÉLECTIONNÉ — il l'était sur `'cut'` jusqu'au 2026-09-01,
+  // trouvé en remontant la même famille que le sexe (le défaut du NEAT, 2026-08-19).
+  // Celui-ci servait un DÉFICIT CALORIQUE à qui n'avait touché à rien : l'étape 5 ne
+  // validait que l'absence de refus (`!objectifBloque`), donc « Sèche » — la première
+  // carte, visiblement cochée — passait d'un seul tap sur Continuer. Un déficit est
+  // une décision de santé ; il se choisit, il ne s'hérite pas d'un ordre d'affichage.
+  const [goal, setGoal] = useState<Goal | null>(null);
   const [restrictions, setRestrictions] = useState<DietaryRestriction[]>([]);
   const [proteins, setProteins] = useState<string[]>([]);
   const [dislikes, setDislikes] = useState<string[]>([]);
@@ -247,7 +253,7 @@ export default function Onboarding() {
   // là pour que TypeScript le VOIE, pas pour couvrir un cas. Le supprimer ne changerait
   // rien à l'exécution et casserait la compilation — ce qui est la bonne façon d'être
   // redondant.
-  const objectifBloque = profileReady && sex !== null
+  const objectifBloque = profileReady && sex !== null && goal !== null
     ? eligibilityMessage(checkEligibility({ sex, age: ageN, weight_kg: wN, height_cm: hN, goal }))
     : null;
 
@@ -256,7 +262,7 @@ export default function Onboarding() {
     (step === 2 && basicsValid) ||
     (step === 3 && bodyFatValid) ||
     (step === 4 && trainingValid) ||
-    (step === 5 && !objectifBloque) ||
+    (step === 5 && goal !== null && !objectifBloque) ||
     (step === 7 && mealsValid) ||
     ![1, 2, 3, 4, 5, 7].includes(step);
 
@@ -338,6 +344,7 @@ export default function Onboarding() {
     // DEUX fois : dans la carte, et en accent juste au-dessus du bouton, où il
     // recouvrait la carte qu'il répétait. Le bandeau dit l'ACTION, la carte dit le
     // POURQUOI — et le pourquoi n'a toujours qu'une seule rédaction.
+    if (step === 5 && goal === null) return 'Choisis ton objectif pour continuer.';
     if (step === 5 && objectifBloque) return 'Sèche n\'est pas disponible ici — choisis Maintien, ou un autre objectif.';
     if (step === 7 && !mealsValid) return 'Choisis au moins un jour et un repas.';
     return null;
@@ -359,6 +366,9 @@ export default function Onboarding() {
     // avec le `neat ?? DEFAULT_NEAT_LEVEL` vingt lignes plus bas : un repli n'est
     // acceptable que quand la valeur de repli est défendable.
     if (sex === null) { setStep(2); setAvanceTentee(true); return; }
+    // Même règle pour l'objectif : l'étape 5 le verrouille, et il n'y a pas d'objectif
+    // « prudent » sur lequel se rabattre — le maintien lui-même est un choix.
+    if (goal === null) { setStep(5); setAvanceTentee(true); return; }
     // Profil « brut » (inputs uniquement). recalcProfile est l'UNIQUE producteur
     // de tdee_kcal + macros — pas de calcul en ligne parallèle ici (cohérence
     // garantie avec le check-in poids et les éditeurs du profil).

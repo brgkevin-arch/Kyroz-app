@@ -69,6 +69,37 @@ describe('la question du sexe est posée, pas présupposée', () => {
   });
 });
 
+// L'APPLICATION DE LA LEÇON, LE JOUR MÊME : en remontant la famille, l'objectif
+// portait le même défaut. `useState<Goal>('cut')` cochait « Sèche » — la première
+// carte — et l'étape 5 ne validait que l'ABSENCE de refus, jamais la présence d'un
+// choix. Un tap sur Continuer suffisait donc à repartir avec un déficit calorique
+// que personne n'avait demandé. Le sexe fausse le calcul ; l'objectif engage une
+// décision de santé. Aucun des deux n'a de valeur de repli défendable.
+describe('l\'objectif est choisi, jamais hérité de l\'ordre d\'affichage', () => {
+  it('rien n\'est présélectionné', () => {
+    expect(onboarding).toMatch(/useState<Goal \| null>\(null\)/);
+  });
+
+  it('on ne peut pas passer l\'étape 5 sans avoir choisi', () => {
+    expect(onboarding).toMatch(/step === 5 && goal !== null/);
+  });
+
+  it('l\'étape dit ce qui manque — et le CHOIX manquant se dit avant le REFUS', () => {
+    // L'ordre compte : un refus (« Sèche n'est pas disponible ici ») suppose un
+    // objectif choisi. Le motif « choisis ton objectif » doit donc être testé en
+    // premier, sinon il ne sort jamais.
+    const choix = onboarding.indexOf('Choisis ton objectif pour continuer.');
+    const refus = onboarding.indexOf('step === 5 && objectifBloque');
+    expect(choix).toBeGreaterThan(-1);
+    expect(refus).toBeGreaterThan(-1);
+    expect(choix).toBeLessThan(refus);
+  });
+
+  it('la fin de parcours ne se rabat sur AUCUN objectif par défaut', () => {
+    expect(onboarding).toMatch(/if \(goal === null\) \{ setStep\(5\)/);
+  });
+});
+
 describe('un segmenté sait montrer qu\'il n\'a rien reçu', () => {
   it('Segmented accepte l\'état vide', () => {
     expect(ui).toMatch(/value: T \| null/);
