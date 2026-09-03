@@ -16,6 +16,13 @@
 
 ## 0-ter. ▶️ REPRISE — état au 2026-08-27
 
+> 🔴 **ÉTAT AU 2026-09-03** — l'app a été **rejetée deux fois**, jamais sur le code :
+> `2.1` (question sur les paliers de prix, le 01/09) puis **`2.1(b)`** (deux produits
+> d'abonnement absents du binaire, le 03/09). Le binaire (9) n'a pas bougé et reste bon.
+> Les deux produits de réserve sont **retirés de la soumission** et la stratégie à deux
+> paliers est **abandonnée** — voir la section « REJET 2.1(b) » plus bas, qui prime sur
+> tout ce que ce bloc-ci dit des abonnements.
+
 > Bloc réécrit **entièrement** ce jour. Le précédent datait du 2026-08-11 et il a été
 > faux sur ses trois points pendant douze jours : il annonçait le build (6) « à jour »,
 > les captures à refaire « après les retouches front du 11 », et A32 comme le chantier
@@ -332,19 +339,109 @@ défauts au lieu d'attendre qu'on les trouve.
 groupe et les 4 abonnements sont repassés en `WAITING_FOR_REVIEW`, sans perdre la place
 dans la file. Un rejet 2.1 ne se paye donc pas d'une nouvelle soumission.
 
-🔴 **Une soumission envoyée est GELÉE, console comprise.** Tentative de retirer les deux
-produits de réserve : `DELETE /v1/reviewSubmissionItems` → `409 « Item was already
-submitted »`, et `POST /v1/subscriptionSubmissions` → `409 « Subscription … has no pending
-version for submission »`. Le fondateur n'y est pas arrivé non plus depuis l'écran. Retirer
-un élément exige de sortir la version de la revue et de tout reconstruire.
-➡️ **Composer la soumission AVANT de l'envoyer, pas après.**
+🔴 ~~**Une soumission envoyée est GELÉE, console comprise.**~~ **FAUX — corrigé le
+2026-09-03.** Le constat de départ était juste : `DELETE /v1/reviewSubmissionItems` rend
+`409 « Item was already submitted »`, et `POST /v1/subscriptionSubmissions` rend
+`409 « Subscription … has no pending version for submission »`. La CONCLUSION ne l'était
+pas. Un élément se retire très bien d'une soumission envoyée — avec l'autre verbe :
+`PATCH /v1/reviewSubmissionItems/{id}` `{"removed": true}` → `200`, état `REMOVED`
+(cf. la section du rejet 2.1(b)). Deux refus concordants ont fait passer « ce geste-ci
+échoue » pour « ce geste est impossible ».
+➡️ Reste vrai malgré tout : **composer la soumission AVANT de l'envoyer** coûte
+moins cher que la corriger après.
 
-#### ⏳ Travail en attente, à NE PAS faire pendant la revue
+#### ❌ CE CHANTIER EST ANNULÉ — voir le rejet 2.1(b) ci-dessous
 
-Reprendre la grille du palier réservé : prix au-dessus du lancement sur les 175 territoires,
-et noms affichés distincts (« … (standard) »). ⚠️ **Pas maintenant** : ces produits sont en
-cours d'examen, les modifier pendant la revue la perturberait. À faire une fois l'app
-approuvée, et de toute façon **avant** la fin du tarif de lancement.
+Il y avait ici un travail en attente : refaire la grille du palier réservé. Il n'a plus
+d'objet. Le palier réservé lui-même a été abandonné le 2026-09-03, sur un second rejet.
+
+---
+
+### 🔴 REJET 2.1(b) — 2026-09-03 : LE PALIER DE RÉSERVE ÉTAIT LE DÉFAUT
+
+**Second rejet, `Guideline 2.1(b) — Performance — App Completeness`.** Relecture sur
+**iPad Air 11" (M3)**, build 1.0 (9), 33 h après le renvoi.
+
+> *« In-app purchase products associated with the app version submitted for review, such
+> as "Kyroz+ mensuel" and "Kyroz+ annuel", could not be found in the submitted binary. »*
+>
+> *« If these In-App Purchase products are not intended to be available at this time,
+> remove them from App Store Connect before resubmitting. »*
+
+#### ✅ La question était FONDÉE — mesurée dans l'IPA, pas dans le code
+
+L'IPA (9) téléchargée depuis EAS, `Payload/Kyroz.app/main.jsbundle` (7 257 408 octets),
+occurrences des quatre identifiants :
+
+| identifiant | dans le binaire (9) |
+|---|---|
+| `kyroz_plus_monthly_early` | ✅ présent |
+| `kyroz_plus_yearly_early` | ✅ présent |
+| `kyroz_plus_monthly` (réserve) | ❌ **absent** |
+| `kyroz_plus_yearly` (réserve) | ❌ **absent** |
+
+⚠️ **Le piège du comptage** : `kyroz_plus_monthly` sort à 1 occurrence — mais c'est celle
+contenue dans `kyroz_plus_monthly_early`. Un préfixe n'est pas une présence. Ce sont les
+comptages ÉGAUX (1 et 1) qui prouvent l'absence de la chaîne autonome.
+
+➡️ **Un produit créé chez Apple mais absent du binaire n'est pas une réserve inerte :
+c'est un motif de rejet.** Toute la stratégie à deux paliers reposait sur l'idée inverse.
+
+#### La stratégie abandonnée, et la prémisse fausse qui la portait
+
+`premium.ts` justifiait le second palier ainsi : les CGU §3 promettent que le tarif reste
+celui de la souscription, donc « changer le prix d'un produit qui a des abonnés rendrait
+cette phrase fausse ». **Cette prémisse n'a jamais été vérifiée** : le flux de changement
+de prix d'Apple offre « préserver le prix des abonnés existants ». Les CGU sont honorées
+sans second produit. La hausse se fera donc sur les identifiants `_early`.
+
+#### 🔧 Ce qui a marché, et le verbe qui manquait
+
+🔴 **`DELETE /v1/reviewSubmissionItems/{id}` → `409 « Item was already submitted »`,
+même après le rejet.** C'est le refus déjà noté le 2026-09-02, et il avait fait conclure à
+tort qu'une soumission envoyée est définitivement gelée.
+
+✅ **`PATCH /v1/reviewSubmissionItems/{id}` avec `{"removed": true}` → `200`, état
+`REMOVED`.** Ce n'était pas l'état qui bloquait, c'était le VERBE.
+
+🔑 **La carte manquante** : les éléments de soumission sont opaques (`base64` de
+`{soumission}|18|{uuid}`), et `reviewSubmissionItems` n'expose **aucune** relation vers un
+abonnement (testé : `subscription`, `inAppPurchase`, `subscriptionGroup` → tous `400`).
+L'appariement se lit ailleurs — `GET /v1/subscriptions/{id}/versions` rend un
+`subscriptionVersions` **dont l'`id` est exactement l'uuid de l'élément**.
+
+#### ⚠️ UN ABONNEMENT CONFIGURÉ NE SE SUPPRIME PAS — JAMAIS
+
+Trois refus mesurés, après la décision de retirer les deux produits :
+
+| geste | réponse |
+|---|---|
+| `DELETE /v1/subscriptions/{id}` | `409 SUBSCRIPTION_DELETE_NOT_ALLOWED` |
+| idem, une fois la version en `DEVELOPER_REJECTED` | `409` — identique |
+| `DELETE /v1/subscriptionLocalizations/{id}` | `409 « Cannot delete last localization. »` |
+
+➡️ **Un produit passé en `READY_TO_SUBMIT` est permanent chez Apple.** On ne peut ni le
+supprimer, ni le vider pour le rendre supprimable. Le seul état atteignable est
+`DEVELOPER_REJECTED` : hors de toute revue, invendable, et **il le reste tant que personne
+ne le remet à la main dans une soumission**.
+
+🔴 **La leçon, et elle vaut au-delà d'Apple** : créer un produit « pour plus tard »
+n'est pas gratuit et n'est pas réversible. Ces deux-là resteront dans le tableau de bord
+pour toujours, sans jamais être vendus.
+
+#### État de la soumission après correction
+
+```
+REMOVED            kyroz_plus_yearly (RÉSERVE)
+REMOVED            kyroz_plus_monthly (RÉSERVE)
+READY_FOR_REVIEW   kyroz_plus_yearly_early (VENTE)
+READY_FOR_REVIEW   kyroz_plus_monthly_early (VENTE)
+READY_FOR_REVIEW   groupe Kyroz+
+REJECTED           version 1.0 (9)
+```
+
+Aucun défaut de code, **aucun nouveau build** : le binaire (9) est correct, c'est la fiche
+Apple qui promettait des produits qu'il ne contient pas.
 
 ---
 
