@@ -154,12 +154,11 @@ describe('tarifs Kyroz+', () => {
     // `MONETISATION.md` §A). Le test protégeait donc le bug au lieu du produit.
     // La source de vérité est le DASHBOARD, jamais le code : ces chaînes se recopient
     // depuis App Store Connect, elles ne se choisissent pas ici.
-    // ⚠️ Ce sont les identifiants du PALIER EN VENTE — celui de lancement depuis le
-    // 2026-08-25. Le palier standard (`kyroz_plus_monthly` / `_yearly`) existe chez
-    // Apple et reste hors vente : ses abonnés s'y renouvelleront à leur prix le jour
-    // où on basculera. Ce test rougit donc VOLONTAIREMENT à chaque changement de
-    // palier — c'est le rappel d'aller recopier les chaînes depuis le dashboard, et
-    // non de les retaper de mémoire.
+    // ⚠️ Ce sont les DEUX SEULS produits vendus, et il ne doit pas y en avoir d'autres
+    // dans une soumission : `kyroz_plus_monthly` / `_yearly` existent encore chez Apple
+    // mais sont ABSENTS du binaire, ce qui a valu un rejet `Guideline 2.1(b)` le
+    // 2026-09-03 (cf. le bloc de doc de `PREMIUM_PRICES`). La hausse de prix se fera
+    // sur ces identifiants-ci, pas par bascule vers un second palier.
     expect(PREMIUM_PRICES.map((p) => p.storeProductId)).toEqual([
       'kyroz_plus_monthly_early', 'kyroz_plus_yearly_early',
     ]);

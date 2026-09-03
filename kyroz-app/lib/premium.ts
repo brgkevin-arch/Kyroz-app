@@ -249,56 +249,40 @@ export interface PremiumPlan {
 }
 
 /**
- * ── LE PALIER EN VENTE ───────────────────────────────────────────────────────
+ * ── LE SEUL PALIER, ET POURQUOI IL N'Y EN A PLUS DEUX ────────────────────────
  *
- * Kyroz+ se vend par PALIERS tarifaires, et chaque palier a ses PROPRES identifiants
- * produits. Ce tableau désigne celui qui est en vente aujourd'hui — le palier de
- * lancement (« early bird »), créé chez Apple le 2026-08-25.
+ * Ce tableau désigne les deux produits vendus — le palier de lancement
+ * (« early bird »), créé chez Apple le 2026-08-25 :
+ * `kyroz_plus_monthly_early` et `kyroz_plus_yearly_early`.
  *
- * | palier   | mensuel                    | annuel                    |
- * |----------|----------------------------|---------------------------|
- * | lancement| `kyroz_plus_monthly_early` | `kyroz_plus_yearly_early` |
- * | standard | `kyroz_plus_monthly`       | `kyroz_plus_yearly`       |
+ * 🔴 **LA STRATÉGIE À DEUX PALIERS A ÉTÉ ABANDONNÉE LE 2026-09-03, SUR REJET
+ * D'APPLE.** Ce bloc décrivait jusque-là un second jeu d'identifiants
+ * (`kyroz_plus_monthly` / `kyroz_plus_yearly`) créés à l'avance chez Apple, sur
+ * lesquels on aurait basculé en OTA le jour d'une hausse. C'est précisément ce
+ * qui a coûté un rejet :
  *
- * ⚠️ **POURQUOI UN PALIER = DES IDENTIFIANTS NEUFS, et pas un prix qu'on change.**
- * Les CGU §3 promettent que le tarif reste celui de la souscription tant que
- * l'abonnement est actif. Changer le prix d'un produit qui a des abonnés rendrait
- * cette phrase fausse. Un produit qui sort de la vente n'est PAS supprimé : ses
- * abonnés continuent de se renouveler à leur prix, sans une ligne de code — c'est
- * le comportement natif d'Apple et de Google.
+ * > `Guideline 2.1(b)` — *« In-app purchase products associated with the app
+ * > version submitted for review, such as "Kyroz+ mensuel" and "Kyroz+ annuel",
+ * > could not be found in the submitted binary. »*
  *
- * ➡️ **Le jour du retrait de l'offre de lancement**, on bascule les deux
- * `storeProductId` (et les deux `price`) vers le palier standard. C'est du
- * JavaScript, donc ça part en **OTA**, sans nouvelle revue.
+ * Et Apple avait raison, c'est mesurable dans l'IPA (9) : les deux `_early` sont
+ * présents dans `main.jsbundle`, les deux autres non. **Un produit créé chez
+ * Apple mais absent du binaire est un motif de rejet**, pas une réserve inerte.
  *
- * 🔴 **ET L'ORDRE DES DEUX GESTES N'EST PAS INDIFFÉRENT — L'OTA D'ABORD, TOUJOURS**
- * (constat 07-02, écrit le 2026-08-27). C'est le seul point qui manquait à ce
- * paragraphe : il décrivait QUOI basculer, jamais DANS QUEL SENS.
+ * ➡️ **La hausse de prix se fera donc sur CES produits-là**, avec l'option
+ * « préserver le prix des abonnés existants » du flux de changement de prix
+ * d'Apple. Les CGU §3 (le tarif reste celui de la souscription tant que
+ * l'abonnement est actif) sont honorées par ce mécanisme, sans second produit —
+ * c'était la prémisse fausse du bloc précédent : il tenait pour acquis qu'un
+ * changement de prix frappe les abonnés en place.
  *
- * Retirer le palier chez Apple avant de publier l'OTA ouvre une fenêtre où l'app
- * demande un produit qui ne se vend plus. Et cette fenêtre n'est pas courte : une OTA
- * s'applique au **DEUXIÈME lancement** (`fallbackToCacheTimeout: 0`, cf. CLAUDE.md §2),
- * donc elle dure jusqu'à ce que chaque appareil ait redémarré deux fois.
- *
- * **Ce qui se passe pendant, mesuré dans le code** : `getProducts` ne trouve pas
- * l'identifiant, `fetchStorePrices` rend `{}` **en silence** (`purchases.ts:249`),
- * l'écran affiche les tarifs de REPLI en les annonçant comme tels, et l'achat rend
- * « indisponible ». C'est très exactement le mode d'échec des quatre identifiants
- * inventés dont ce fichier porte déjà la trace — sauf qu'il frapperait tout le monde
- * en même temps, le jour d'un changement de prix.
- *
- * ➡️ **L'ordre, et il ne se déduit pas :**
- *   1. publier l'OTA qui bascule les identifiants ;
- *   2. vérifier qu'elle est appliquée (`npm run check:ota`) ;
- *   3. **seulement ensuite**, retirer le palier de lancement de la vente chez Apple.
- * ⚠️ Entre 1 et 3, les DEUX paliers sont en vente : c'est voulu, et c'est le seul
- * état sans trou. Un abonné du palier de lancement, lui, garde son prix quoi qu'il
- * arrive — un produit hors vente n'est pas supprimé.
- *
- * ℹ️ **L'alternative supprimerait la fenêtre**, au prix d'un aller-retour réseau au
- * chargement du paywall : lire l'OFFERING courant (`getOfferings()`) au lieu de
- * demander des identifiants en dur. Pas fait — c'est un changement d'architecture pour
- * un risque que l'ordre des gestes ferme à coût nul.
+ * ⚠️ **Les deux identifiants de réserve existent encore chez Apple et ne peuvent
+ * PAS être supprimés** — `DELETE /v1/subscriptions/{id}` rend
+ * `SUBSCRIPTION_DELETE_NOT_ALLOWED`, et on ne peut pas non plus les vider
+ * (`Cannot delete last localization`). Un abonnement passé en `READY_TO_SUBMIT`
+ * est permanent. Ils sont donc en `DEVELOPER_REJECTED` : hors de toute revue,
+ * invendables tant que personne ne les y remet à la main. **Ne pas les remettre
+ * dans une soumission.**
  *
  * 🔴 **CES CHAÎNES SE RECOPIENT DEPUIS APPLE, ELLES NE SE CHOISISSENT PAS ICI.**
  * Quatre identifiants faux ont déjà été inventés dans ce fichier, chacun échouant
