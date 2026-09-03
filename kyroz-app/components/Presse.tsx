@@ -37,6 +37,25 @@ import type { RoleHaptique } from '../lib/haptique';
 // absente est écartée EN SILENCE, donc le tour se jouerait plus court en ayant
 // l'air complet.
 
+// 🔴 ET `accessibilityRole` N'AVAIT PAS DE DÉFAUT — trouvé le 2026-09-02, en
+// confrontant l'audit UX du 01 à ce dépôt. Son diagnostic (« tout est un `<div>`
+// sans rôle ») décrivait le rendu WEB, pas VoiceOver ; mais l'incohérence sous-jacente
+// était réelle : sur 144 sites, 132 ne déclaraient AUCUN rôle, 12 déclaraient
+// `"button"` à la main. Le composant qui existe PRÉCISÉMENT pour unifier ces 129
+// pressables (cf. plus haut) laissait donc son attribut le plus élémentaire
+// d'accessibilité à la discrétion de chaque appelant.
+//
+// ➡️ `accessibilityRole` par défaut à `'button'` — c'est ce que fait CHAQUE site qui
+// passe par `Presse` : il répond à un `onPress`. Un appelant qui a besoin d'un rôle
+// différent (`MealCard` sert `"link"` pour un renvoi vers une fiche recette) le
+// déclare toujours explicitement, et son choix gagne — la valeur par défaut
+// n'intervient que si `rest.accessibilityRole` est absent.
+//
+// ⚠️ RIEN D'AUTRE NE MANQUAIT. `Pressable` (RN) fait déjà le reste tout seul :
+// `accessible` vaut `true` sauf refus explicite, et `disabled` se fond automatiquement
+// dans `accessibilityState.disabled` — les deux dans `Pressable.js`, pas dans ce
+// fichier. Le seul trou était le rôle.
+
 export interface PresseProps extends Omit<PressableProps, 'style'> {
   style?: StyleProp<ViewStyle>;
   /**
@@ -72,7 +91,10 @@ export interface PresseProps extends Omit<PressableProps, 'style'> {
 const PressableAnime = Animated.createAnimatedComponent(Pressable);
 
 export const Presse = forwardRef<any, PresseProps>(function Presse(
-  { style, activeOpacity = OPACITE_PRESSION, disabled, retour, onPressIn, onPressOut, ...rest },
+  {
+    style, activeOpacity = OPACITE_PRESSION, disabled, retour, onPressIn, onPressOut,
+    accessibilityRole = 'button', ...rest
+  },
   ref,
 ) {
   const echelle = useRef(new Animated.Value(1)).current;
@@ -124,6 +146,7 @@ export const Presse = forwardRef<any, PresseProps>(function Presse(
     <PressableAnime
       ref={ref}
       disabled={disabled}
+      accessibilityRole={accessibilityRole}
       onPressIn={(e: any) => {
         if (!inerte) {
           animer(ECHELLE_APPUI, RESSORT.appui);
