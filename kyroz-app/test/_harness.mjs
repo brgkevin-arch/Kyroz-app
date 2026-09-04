@@ -130,6 +130,12 @@ export async function neutralizeFirstRun(context) {
         localStorage.setItem(`@kyroz:tour:${id}`, 'done');
       }
       localStorage.setItem('@kyroz:analyticsConsent', 'denied');
+      // L'accueil (carrousel) se montre une fois par appareil. Sans cette ligne,
+      // TOUS les scripts buteraient sur un écran qu'ils ne connaissent pas — et le
+      // diagnostic serait « champ e-mail introuvable », c'est-à-dire le pire :
+      // il accuserait le formulaire au lieu de l'écran posé devant.
+      // Clé verrouillée contre `lib/introVu.ts` par `introCarrousel.test.ts`.
+      localStorage.setItem('@kyroz:introVue', '1');
     } catch {}
   });
 }
