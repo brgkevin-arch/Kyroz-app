@@ -119,7 +119,13 @@ const ANCRES: Ancre[] = [
   // ── Assistant d'onboarding (runOnboarding) ──
   { quoi: 'repère de l\'étape 1', texte: 'Ton prénom', dans: 'app/(auth)/onboarding.tsx' },
   { quoi: 'compteur d\'étapes lu par etapeCourante', texte: 'ÉTAPE n / 6', motif: 'ÉTAPE {step - 1} / {TOTAL_STEPS - 1}', cherche: '[ÉE]TAPE', dans: 'app/(auth)/onboarding.tsx' },
-  { quoi: 'sexe féminin (seule branche des personas F)', texte: 'Femme', motif: "label: 'Femme'", dans: 'app/(auth)/onboarding.tsx' },
+  // ⚠️ LES DEUX SEXES SONT DES ANCRES DEPUIS LE 2026-09-02, et « Homme » est le cas
+  // qui a mordu. Tant que l'écran ouvrait sur « Homme » présélectionné, le harnais ne
+  // tapait que pour les personas féminins — « Femme » seule suffisait donc ici. En
+  // retirant la présélection (`sexeOnboarding.test.ts`), le persona PAR DÉFAUT (Marc,
+  // masculin) s'est mis à mourir à l'étape 2, et rien dans `npm test` ne l'a dit.
+  { quoi: 'sexe masculin (personas M)', texte: 'Homme', motif: "label: 'Homme'", dans: 'app/(auth)/onboarding.tsx' },
+  { quoi: 'sexe féminin (personas F)', texte: 'Femme', motif: "label: 'Femme'", dans: 'app/(auth)/onboarding.tsx' },
   { quoi: 'activité — au moins un choix exigé', texte: 'Je ne fais pas de sport', dans: 'app/(auth)/onboarding.tsx' },
   // ⚠️ Le libellé du NEAT ne vit PAS dans l'écran : `NEAT_LABEL` est la source unique
   // (lib/tdee.ts), rendue par `components/NeatPicker.tsx` à l'inscription ET dans le
