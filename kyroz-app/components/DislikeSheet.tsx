@@ -59,7 +59,7 @@ export function DislikeSheet({
         <View style={[s.inputBox, { borderColor: t.line }]}>
           <TextInput
             value={custom} onChangeText={(v) => { setCustom(v); setSel(null); }}
-            placeholder="Ex. coriandre…" placeholderTextColor={t.textQuaternary}
+            placeholder="Ex. coriandre…" placeholderTextColor={t.textTertiary}
             autoCapitalize="none" style={s.input}
           />
         </View>

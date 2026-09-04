@@ -110,7 +110,7 @@ export function FixedMealSheet({
               <Text style={s.gramsLabel}>Quantité</Text>
               <View style={[s.inputBox, { borderColor: t.line, width: 120 }]}>
                 <TextInput value={grams} onChangeText={setGrams} keyboardType="number-pad"
-                  placeholder="100" placeholderTextColor={t.textQuaternary} style={s.input} />
+                  placeholder="100" placeholderTextColor={t.textTertiary} style={s.input} />
                 <Text style={s.inputSuffix}>g</Text>
               </View>
             </View>
@@ -123,7 +123,7 @@ export function FixedMealSheet({
             <View style={[s.inputBox, { borderColor: t.line }]}>
               <Ionicons name="search" size={Icone.petite} color={t.textTertiary} />
               <TextInput value={query} onChangeText={setQuery} autoFocus
-                placeholder="Ex. flocons d'avoine…" placeholderTextColor={t.textQuaternary}
+                placeholder="Ex. flocons d'avoine…" placeholderTextColor={t.textTertiary}
                 style={[s.input, { marginLeft: Spacing.sm }]} />
             </View>
             {query.trim().length > 0 && (
@@ -145,7 +145,7 @@ export function FixedMealSheet({
         <View style={{ gap: Spacing.md }}>
           <View style={[s.inputBox, { borderColor: t.line }]}>
             <TextInput value={name} onChangeText={setName}
-              placeholder="Nom (ex. Mon shaker + flocons)" placeholderTextColor={t.textQuaternary} style={s.input} />
+              placeholder="Nom (ex. Mon shaker + flocons)" placeholderTextColor={t.textTertiary} style={s.input} />
           </View>
           <View style={s.macroInputs}>
             <MacroInput t={t} label="Protéines" value={p} onChange={setP} suffix="g" />
@@ -172,7 +172,7 @@ function MacroInput({ t, label, value, onChange, suffix }: { t: ThemePalette; la
       <Text style={s.macroLabel}>{label}</Text>
       <View style={[s.inputBox, { borderColor: t.line }]}>
         <TextInput value={value} onChangeText={onChange} keyboardType="number-pad"
-          placeholder="0" placeholderTextColor={t.textQuaternary} style={s.input} />
+          placeholder="0" placeholderTextColor={t.textTertiary} style={s.input} />
         <Text style={s.inputSuffix}>{suffix}</Text>
       </View>
     </View>

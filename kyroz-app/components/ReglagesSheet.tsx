@@ -416,6 +416,6 @@ function makeStyles(t: ThemePalette) {
     decoTxt: { ...Type.label, color: t.text },
     suppr: { alignItems: 'center', justifyContent: 'center', minHeight: CIBLE_TACTILE_MIN },
     supprTxt: { ...Type.bodySmallStrong, color: t.danger },
-    mention: { ...Type.micro, color: t.textQuaternary, lineHeight: 16, textAlign: 'center' },
+    mention: { ...Type.micro, color: t.textTertiary, lineHeight: 16, textAlign: 'center' },
   });
 }

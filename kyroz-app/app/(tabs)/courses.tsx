@@ -745,7 +745,7 @@ export default function CoursesScreen() {
               {/* Un ajout manuel n'a souvent pas de quantité : `formatQuantity`
                   rendrait « 0 g », un chiffre faux là où un blanc dit la vérité. */}
               {item.quantity > SANS_QUANTITE && (
-                <Text style={[s.qty, item.checked && { color: t.textQuaternary }]}>{formatQuantity(item.name, item.quantity, item.unit)}</Text>
+                <Text style={[s.qty, item.checked && { color: t.textTertiary }]}>{formatQuantity(item.name, item.quantity, item.unit)}</Text>
               )}
             </Presse>
           );
@@ -764,7 +764,7 @@ function makeStyles(t: ThemePalette) {
     emptyIcon: { width: 72, height: 72, borderRadius: 24, alignItems: 'center', justifyContent: 'center', marginBottom: Spacing.sm },
     emptyT: { color: t.text, ...Type.h2 },
     emptyS: { ...Type.body, color: t.textSecondary, textAlign: 'center', lineHeight: 21 },
-    emptyNote: { ...Type.caption, color: t.textQuaternary, textAlign: 'center' },
+    emptyNote: { ...Type.caption, color: t.textTertiary, textAlign: 'center' },
 
     // Plus de padding horizontal ici, ni dans `controls`/`hint`/`track` : ces blocs
     // vivent dans le contentContainer de la liste, qui pose déjà les 20 pt.
@@ -797,7 +797,7 @@ function makeStyles(t: ThemePalette) {
     hint: { ...Type.caption, color: t.textTertiary, lineHeight: 18, paddingTop: Spacing.md },
     // Note de pied présente dans la maquette et absente de l'app : elle dit d'où
     // sortent les quantités, ce qu'aucun autre élément de l'écran n'explique.
-    footnote: { ...Type.caption, color: t.textQuaternary, lineHeight: 17, paddingTop: Spacing.xl },
+    footnote: { ...Type.caption, color: t.textTertiary, lineHeight: 17, paddingTop: Spacing.xl },
 
     list: { paddingHorizontal: Spacing.xl, paddingBottom: Fond.barreOnglets, paddingTop: Spacing.xs },
     section: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginTop: Spacing.xxl, marginBottom: Spacing.sm },

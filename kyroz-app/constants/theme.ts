@@ -50,7 +50,6 @@ export interface ThemePalette {
   text: string;
   textSecondary: string;
   textTertiary: string;
-  textQuaternary: string;
 
   // Accent monochrome (CTA, état actif)
   accent: string;        // fond du bouton principal / jour actif
@@ -83,9 +82,9 @@ const dark: ThemePalette = {
   lineStrong: 'rgba(255,255,255,0.18)',
 
   text: '#FFFFFF',
-  textSecondary: 'rgba(235,235,245,0.60)',   // iOS secondaryLabel (sombre)
-  textTertiary: 'rgba(235,235,245,0.40)',
-  textQuaternary: 'rgba(235,235,245,0.25)',
+  // ⚠️ CES OPACITÉS NE SONT PLUS CELLES D'iOS — voir l'encadré au-dessus de `light`.
+  textSecondary: 'rgba(235,235,245,0.72)',   // 5,87:1 au pire fond (était 0,60 → 5,27)
+  textTertiary: 'rgba(235,235,245,0.62)',    // 4,80:1 au pire fond (était 0,40 → 3,19)
 
   // Défaut MONOCHROME — remplacé à l'exécution par la couleur choisie (cf. `paletteFor`).
   accent: '#FFFFFF',
@@ -116,9 +115,22 @@ const light: ThemePalette = {
   lineStrong: 'rgba(0,0,0,0.14)',
 
   text: '#1C1C1E',
-  textSecondary: 'rgba(60,60,67,0.60)',      // iOS secondaryLabel (clair)
-  textTertiary: 'rgba(60,60,67,0.42)',
-  textQuaternary: 'rgba(60,60,67,0.26)',
+  // 🔴 LE THÈME CLAIR ÉTAIT LE PLUS ILLISIBLE DES DEUX, et c'est celui que l'audit UX
+  // du 2026-09-01 a mesuré : `textTertiary` à 2,18:1 et `textQuaternary` à 1,58:1 —
+  // ses deux chiffres, exacts. Le secondaire lui-même échouait, à 3,30:1.
+  //
+  // ⚠️ LA CAUSE N'ÉTAIT PAS UNE ERREUR DE SAISIE : ce sont les VRAIES valeurs d'iOS
+  // (`secondaryLabel` = rgba(60,60,67,0.60)). Apple dessine à son standard, pas à
+  // WCAG, et ses gris de label ne passent pas AA sur fond clair. Recopier la palette
+  // système paraissait le choix sûr — il posait un plancher à 1,58:1 sur des mentions
+  // légales qu'Apple exige par ailleurs d'afficher.
+  //
+  // ➡️ La base passe du gris iOS (60,60,67) à la couleur de TEXTE (28,28,30) : même
+  // modèle — « le texte, atténué » — mais une base plus sombre laisse des opacités
+  // basses tenir AA. Avec le gris iOS, il aurait fallu monter à 0,72 pour atteindre
+  // 4,5:1, et le secondaire aurait été presque noir.
+  textSecondary: 'rgba(28,28,30,0.82)',      // 8,39:1 au pire fond (était 3,30)
+  textTertiary: 'rgba(28,28,30,0.70)',       // 5,71:1 au pire fond (était 2,18)
 
   // Défaut MONOCHROME — remplacé à l'exécution par la couleur choisie (cf. `paletteFor`).
   accent: '#1C1C1E',
@@ -165,6 +177,16 @@ const light: ThemePalette = {
 // Règle d'absorption appliquée : **le cran le plus proche, et on monte en cas
 // d'égalité** (2→4, 6→8, 10→12, 14→16, 18→20). L'app s'aère de 1 à 2 points par
 // endroit, jamais plus.
+/**
+ * Les deux palettes, exposées pour la MESURE — l'app, elle, passe par `useTheme()`.
+ *
+ * ⚠️ Sans cet export, la règle de contraste resterait une phrase dans un commentaire :
+ * `lib/__tests__/contrastes.test.ts` la COMPTE, sur tous les fonds et les deux thèmes.
+ * Une règle qu'aucun test ne mesure est décorative — le dépôt a déjà payé pour
+ * l'apprendre ailleurs.
+ */
+export const PALETTES = { sombre: dark, clair: light } as const;
+
 export const Spacing = {
   xs: 4,
   sm: 8,

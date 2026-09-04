@@ -194,9 +194,9 @@ function makeStyles(t: ThemePalette) {
     ligne: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
     nom: { ...Type.bodySmall, flex: 1, color: t.text },
     qte: { ...Type.bodySmall, color: t.textSecondary },
-    pale: { color: t.textQuaternary },
+    pale: { color: t.textTertiary },
     groupe: { ...Type.overline, color: t.textTertiary, marginTop: Spacing.sm },
-    precision: { ...Type.caption, color: t.textQuaternary, lineHeight: 17, marginTop: Spacing.sm },
+    precision: { ...Type.caption, color: t.textTertiary, lineHeight: 17, marginTop: Spacing.sm },
 
     retirer: {
       flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm,

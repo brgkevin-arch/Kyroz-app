@@ -89,7 +89,7 @@ export function OffPlanSheet({
               <View style={[s.inputBox, { borderColor: t.line, width: 120 }]}>
                 <TextInput
                   value={grams} onChangeText={setGrams} keyboardType="number-pad"
-                  placeholder="100" placeholderTextColor={t.textQuaternary} style={s.input}
+                  placeholder="100" placeholderTextColor={t.textTertiary} style={s.input}
                 />
                 <Text style={s.inputSuffix}>g</Text>
               </View>
@@ -102,7 +102,7 @@ export function OffPlanSheet({
               <Ionicons name="search" size={Icone.petite} color={t.textTertiary} />
               <TextInput
                 value={query} onChangeText={setQuery} autoFocus
-                placeholder="Ex. tarte aux fraises…" placeholderTextColor={t.textQuaternary}
+                placeholder="Ex. tarte aux fraises…" placeholderTextColor={t.textTertiary}
                 style={[s.input, { marginLeft: Spacing.sm }]}
               />
             </View>
@@ -144,7 +144,7 @@ export function OffPlanSheet({
             <View style={[s.inputBox, { borderColor: t.line }]}>
               <TextInput
                 value={custom} onChangeText={(v) => { setCustom(v); setSel(null); }}
-                placeholder="0" placeholderTextColor={t.textQuaternary} keyboardType="number-pad" style={s.input}
+                placeholder="0" placeholderTextColor={t.textTertiary} keyboardType="number-pad" style={s.input}
               />
               <Text style={s.inputSuffix}>kcal</Text>
             </View>

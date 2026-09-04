@@ -80,7 +80,11 @@ describe('l’inscription refuse à l’étape 5, pas au dernier tap', () => {
   });
 
   it('l’étape 5 ne se passe pas tant que l’objectif est refusé', () => {
-    expect(onboarding).toContain('(step === 5 && !objectifBloque)');
+    // ⚠️ La sonde ne cite plus la ligne ENTIÈRE : le 2026-09-01, l'étape 5 a gagné
+    // une seconde garde (`goal !== null` — plus d'objectif présélectionné, cf.
+    // `sexeOnboarding.test.ts`). Ce qui est gardé ici, c'est que le REFUS bloque
+    // encore l'étape, pas le nombre de conditions qui l'accompagnent.
+    expect(onboarding).toMatch(/\(step === 5 &&[^)]*!objectifBloque\)/);
     // …et l'étape doit RESTER dans la liste des étapes gardées : l'oublier ici
     // laisserait `canProceed` retomber sur son `!includes` fourre-tout, donc passer.
     expect(onboarding).toMatch(/!\[1, 2, 3, 4, 5, 7\]\.includes\(step\)/);

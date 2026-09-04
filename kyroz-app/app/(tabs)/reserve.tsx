@@ -445,7 +445,7 @@ function makeStyles(t: ThemePalette) {
       minHeight: CIBLE_TACTILE_MIN, marginTop: Spacing.sm,
     },
     catLabel: { ...Type.overline, color: t.textTertiary, flex: 1 },
-    catCount: { ...Type.caption, color: t.textQuaternary },
+    catCount: { ...Type.caption, color: t.textTertiary },
     invCard: { backgroundColor: t.card, borderRadius: Radius.card, paddingHorizontal: Spacing.lg },
     invRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.md, paddingVertical: Spacing.lg },
     invName: { ...Type.body, flex: 1, color: t.text },

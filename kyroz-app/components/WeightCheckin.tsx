@@ -428,7 +428,7 @@ export function WeightCheckin({ t, onClose, dragHandlers, sheetScrollProps }: Pr
                         {d == null ? '—' : `${d > 0 ? '+' : ''}${d}`}
                       </Text>
                       <Presse onPress={() => setAConfirmer(e.date)} hitSlop={8} style={s.histDel}>
-                        <Ionicons name="close" size={Icone.petite} color={t.textQuaternary} />
+                        <Ionicons name="close" size={Icone.petite} color={t.textTertiary} />
                       </Presse>
                     </View>
                     {aConfirmer === e.date && (

@@ -72,6 +72,6 @@ function makeStyles(t: ThemePalette) {
     sub: { ...Type.caption, color: t.textSecondary, marginTop: Spacing.xs },
     optOut: { alignItems: 'center', paddingVertical: Spacing.lg, marginTop: Spacing.sm },
     optOutTxt: { ...Type.bodySmallStrong, color: t.textTertiary },
-    optOutHint: { ...Type.caption, color: t.textQuaternary, textAlign: 'center', marginTop: -Spacing.sm },
+    optOutHint: { ...Type.caption, color: t.textTertiary, textAlign: 'center', marginTop: -Spacing.sm },
   });
 }

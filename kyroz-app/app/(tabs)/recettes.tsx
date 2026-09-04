@@ -219,7 +219,7 @@ export default function RecettesScreen() {
               value={query}
               onChangeText={setQuery}
               placeholder="Rechercher une recette"
-              placeholderTextColor={t.textQuaternary}
+              placeholderTextColor={t.textTertiary}
               autoCorrect={false}
               returnKeyType="search"
               style={s.searchInput}
@@ -321,7 +321,7 @@ export default function RecettesScreen() {
               <View style={s.rTop}>
                 <Text style={s.rName}>{item.name_fr}</Text>
                 <Presse onPress={() => toggle(item.id)} hitSlop={10} style={s.heart}>
-                  <Ionicons name={fav ? 'heart' : 'heart-outline'} size={Icone.standard} color={fav ? t.text : t.textQuaternary} />
+                  <Ionicons name={fav ? 'heart' : 'heart-outline'} size={Icone.standard} color={fav ? t.text : t.textTertiary} />
                 </Presse>
               </View>
               {/* Une seule ligne grise, durée comprise : dans une liste il n'y a

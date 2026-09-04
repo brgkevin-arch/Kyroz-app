@@ -186,7 +186,7 @@ export default function LoginScreen() {
                 onPress={renvoyer} disabled={renvoiDans > 0 || busy}
                 activeOpacity={OPACITE_PRESSION} style={s.lienSecondaire}
               >
-                <Text style={[s.lienSecondaireTxt, renvoiDans > 0 && { color: t.textQuaternary }]}>
+                <Text style={[s.lienSecondaireTxt, renvoiDans > 0 && { color: t.textTertiary }]}>
                   {renvoiDans > 0 ? `Renvoyer l'e-mail (${renvoiDans} s)` : 'Renvoyer l\'e-mail'}
                 </Text>
               </Presse>
@@ -320,7 +320,7 @@ function makeStyles(t: ThemePalette) {
     guestLine: { flex: 1, height: 1, backgroundColor: t.line },
     guestOr: { ...Type.caption, color: t.textTertiary },
     guest: { ...Type.bodyStrong, color: t.textSecondary, textAlign: 'center', marginTop: Spacing.lg },
-    disclaimer: { ...Type.micro, color: t.textQuaternary, lineHeight: 16, textAlign: 'center', marginTop: Spacing.xl },
+    disclaimer: { ...Type.micro, color: t.textTertiary, lineHeight: 16, textAlign: 'center', marginTop: Spacing.xl },
     legalLink: { ...Type.captionStrong, color: t.textTertiary, textAlign: 'center', marginTop: Spacing.md, textDecorationLine: 'underline' },
   });
 }

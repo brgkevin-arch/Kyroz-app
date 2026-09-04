@@ -1,7 +1,8 @@
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { Presse } from '../../components/Presse';
+import { lireBrouillon, ecrireBrouillon, effacerBrouillon, type OnboardingDraft } from '../../lib/onboardingDraft';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, Easing,
+  View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, Easing, AppState,
 } from 'react-native';
 import { DUREE, dureeReduite } from '../../lib/motion';
 import { reduceMotionActif } from '../../lib/reduceMotion';
@@ -139,7 +140,15 @@ export default function Onboarding() {
 
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
-  const [hint, setHint] = useState<string | null>(null); // message affiché si on tente d'avancer sans tout remplir
+  // 🔴 ON MÉMORISE LE GESTE, PAS LA PHRASE. C'était `useState<string | null>` : le
+  // motif était gelé au moment du tap, donc il MENTAIT dès que la personne corrigeait.
+  // Vu à l'écran le 2026-09-01 — « Indique si tu es un homme ou une femme » restait
+  // affiché après avoir touché « Femme », parce que l'étape 2 restait incomplète pour
+  // une AUTRE raison. Un état vrai à un instant et faux la seconde d'après est pire
+  // qu'un silence : il envoie corriger ce qui l'est déjà.
+  // ➡️ Le booléen dit « quelqu'un a tenté d'avancer » ; la phrase, elle, se recalcule
+  // à chaque rendu par `blockReason()` et suit donc la saisie en direct.
+  const [avanceTentee, setAvanceTentee] = useState(false);
 
   // D1 : l'étape ATTEINTE. C'est la seule mesure qui dise OÙ l'assistant fait
   // abandonner — `onboarding_completed` seul ne compte que ceux qui sont allés au
@@ -153,7 +162,16 @@ export default function Onboarding() {
 
   // État formulaire
   const [firstName, setFirstName] = useState('');
-  const [sex, setSex] = useState<Sex>('male');
+  // 🔴 AUCUN SEXE PRÉSÉLECTIONNÉ — il l'était sur `'male'` jusqu'au 2026-09-01.
+  // C'est le défaut du NEAT (fermé le 2026-08-19) dans sa version GRAVE : un NEAT par
+  // défaut sert le cran le plus prudent, un sexe par défaut sert un plan FAUX. Le sexe
+  // entre dans Mifflin-St Jeor à ±166 kcal (`lib/tdee.ts:95`), dans les bornes de %MG
+  // (`lib/safety.ts:43`) et dans les silhouettes du sélecteur. Une femme qui ne
+  // touchait pas au segmenté n'était jamais bloquée : elle recevait, en silence, un
+  // plan calculé sur un métabolisme d'homme.
+  // ⚠️ Et il n'y a PAS de repli `?? 'male'` en fin de parcours, contrairement au NEAT :
+  // ici, deviner, c'est se tromper.
+  const [sex, setSex] = useState<Sex | null>(null);
   // Date de naissance et NON âge : un âge saisi pourrit au premier anniversaire,
   // et il entre dans Mifflin-St Jeor donc dans les calories servies (lib/birthday.ts).
   const [birthDate, setBirthDate] = useState<string | undefined>(undefined);
@@ -165,7 +183,13 @@ export default function Onboarding() {
   const [bodyFatSource, setBodyFatSource] = useState<BodyFatSource | undefined>(undefined);
   const [sports, setSports] = useState<SportSession[]>([]);
   const [noSport, setNoSport] = useState(false); // « je ne fais pas de sport » → calcul base seule
-  const [goal, setGoal] = useState<Goal>('cut');
+  // 🔴 AUCUN OBJECTIF PRÉSÉLECTIONNÉ — il l'était sur `'cut'` jusqu'au 2026-09-01,
+  // trouvé en remontant la même famille que le sexe (le défaut du NEAT, 2026-08-19).
+  // Celui-ci servait un DÉFICIT CALORIQUE à qui n'avait touché à rien : l'étape 5 ne
+  // validait que l'absence de refus (`!objectifBloque`), donc « Sèche » — la première
+  // carte, visiblement cochée — passait d'un seul tap sur Continuer. Un déficit est
+  // une décision de santé ; il se choisit, il ne s'hérite pas d'un ordre d'affichage.
+  const [goal, setGoal] = useState<Goal | null>(null);
   const [restrictions, setRestrictions] = useState<DietaryRestriction[]>([]);
   const [proteins, setProteins] = useState<string[]>([]);
   const [dislikes, setDislikes] = useState<string[]>([]);
@@ -187,6 +211,73 @@ export default function Onboarding() {
   // les 4 intégrés couvrent la majorité, et qui mange 6 fois par jour l'ajoute ici.
   const [customSlots, setCustomSlots] = useState<MealSlot[]>([]);
 
+  // ── L'INSCRIPTION SURVIT À UNE FERMETURE DE L'APP ──────────────────────────
+  //
+  // 🔴 Rien n'était persisté : sept étapes, et un appel entrant, une bascule d'app ou
+  // un manque de mémoire renvoyaient au prénom. Le brouillon vit dans
+  // `lib/onboardingDraft.ts` — clé `@kyroz:`, donc exporté et purgé avec le reste,
+  // sans rien à brancher ailleurs.
+  const brouillon: OnboardingDraft = {
+    step, firstName, sex, birthDate, weight, height, bodyFat, bodyFatSource,
+    sports, noSport, goal, restrictions, proteins, dislikes, neat, variety,
+    planWeekdays, restWeekdays, restTouched, meals, customSlots,
+  };
+  // ⚠️ La dépendance de l'effet est la forme SÉRIALISÉE, pas l'objet : `brouillon` est
+  // recréé à chaque rendu, donc le passer en dépendance déclencherait une écriture par
+  // rendu. La ref porte la valeur, la chaîne porte le changement.
+  const brouillonSerialise = JSON.stringify(brouillon);
+  const brouillonRef = useRef(brouillon);
+  brouillonRef.current = brouillon;
+
+  // 🔴 `brouillonLu` GARDE L'ÉCRITURE, et c'est le point délicat : sans lui, le premier
+  // rendu (état initial, étape 1) écraserait le brouillon qu'on est justement en train
+  // de lire — l'écran effacerait la sauvegarde qu'il vient de restaurer, et le défaut
+  // ressemblerait à « la persistance ne marche pas » alors qu'elle marcherait deux fois.
+  const [brouillonLu, setBrouillonLu] = useState(false);
+  useEffect(() => {
+    let vivant = true;
+    lireBrouillon(TOTAL_STEPS).then((d) => {
+      if (!vivant) return;
+      if (d) {
+        setStep(d.step); setFirstName(d.firstName); setSex(d.sex);
+        setBirthDate(d.birthDate); setWeight(d.weight); setHeight(d.height);
+        setBodyFat(d.bodyFat); setBodyFatSource(d.bodyFatSource);
+        setSports(d.sports); setNoSport(d.noSport); setGoal(d.goal);
+        setRestrictions(d.restrictions); setProteins(d.proteins); setDislikes(d.dislikes);
+        setNeat(d.neat); setVariety(d.variety);
+        setPlanWeekdays(d.planWeekdays); setRestWeekdays(d.restWeekdays);
+        // ⚠️ `restTouched` se restaure AVEC le reste : sans lui, l'effet qui pré-coche
+        // les jours de repos depuis le nombre de séances repartirait au premier rendu
+        // et écraserait un choix déjà fait — la restauration défaisant la saisie
+        // qu'elle vient de rendre.
+        setRestTouched(d.restTouched);
+        setMeals(d.meals); setCustomSlots(d.customSlots);
+      }
+      setBrouillonLu(true);
+    });
+    return () => { vivant = false; };
+  }, []);
+
+  // ⚠️ Écriture DIFFÉRÉE : une frappe de poids vaut trois rendus, et trois écritures
+  // pour une valeur qu'on est en train de taper ne servent à rien. Le délai est court
+  // — ce qu'on protège, c'est une app tuée, pas une session longue.
+  useEffect(() => {
+    if (!brouillonLu) return;
+    const t = setTimeout(() => { void ecrireBrouillon(brouillonRef.current); }, 400);
+    return () => clearTimeout(t);
+  }, [brouillonLu, brouillonSerialise]);
+
+  // …et une écriture IMMÉDIATE quand l'app passe en arrière-plan. C'est là que le
+  // système tue, et c'est le seul instant où le délai ci-dessus coûterait la dernière
+  // réponse donnée.
+  useEffect(() => {
+    if (!brouillonLu) return;
+    const sub = AppState.addEventListener('change', (st) => {
+      if (st !== 'active') void ecrireBrouillon(brouillonRef.current);
+    });
+    return () => sub.remove();
+  }, [brouillonLu]);
+
   const ageN = ageOn(birthDate, todayStamp()) ?? NaN;
   const wN = parseFloat(weight), hN = parseFloat(height);
   // Étapes à validation requise (les autres sont libres) :
@@ -195,6 +286,7 @@ export default function Onboarding() {
   // n'est pas validée sous 19 ans, et un moteur de déficit calorique n'a pas à être
   // servi à un mineur (sécurité ET conformité). Cf. lib/safety.ts.
   const basicsValid =
+    sex !== null &&
     ageN >= AGE_BOUNDS[0] && ageN <= AGE_BOUNDS[1] &&
     wN >= WEIGHT_BOUNDS[0] && wN <= WEIGHT_BOUNDS[1] &&
     hN >= HEIGHT_BOUNDS[0] && hN <= HEIGHT_BOUNDS[1]; // étape 2 — infos
@@ -225,7 +317,11 @@ export default function Onboarding() {
   // ⚠️ On ne passe PAS les séances : elles se déclarent à l'étape 4, mais faire
   // remonter ici « plus de 20 h d'entraînement » brouillerait l'écran de l'objectif
   // avec un reproche qui ne le concerne pas. Ce blocage-là reste au filet de `finish()`.
-  const objectifBloque = profileReady
+  // `sex !== null` est déjà dans `basicsValid`, donc dans `profileReady` : le test est
+  // là pour que TypeScript le VOIE, pas pour couvrir un cas. Le supprimer ne changerait
+  // rien à l'exécution et casserait la compilation — ce qui est la bonne façon d'être
+  // redondant.
+  const objectifBloque = profileReady && sex !== null && goal !== null
     ? eligibilityMessage(checkEligibility({ sex, age: ageN, weight_kg: wN, height_cm: hN, goal }))
     : null;
 
@@ -234,7 +330,7 @@ export default function Onboarding() {
     (step === 2 && basicsValid) ||
     (step === 3 && bodyFatValid) ||
     (step === 4 && trainingValid) ||
-    (step === 5 && !objectifBloque) ||
+    (step === 5 && goal !== null && !objectifBloque) ||
     (step === 7 && mealsValid) ||
     ![1, 2, 3, 4, 5, 7].includes(step);
 
@@ -294,6 +390,10 @@ export default function Onboarding() {
     if (step === 1 && !firstNameValid) return 'Dis-nous comment t\'appeler pour commencer';
     if (step === 2 && !basicsValid) {
       if (ageN >= 1 && ageN < AGE_BOUNDS[0]) return `Kyroz est réservé aux ${AGE_BOUNDS[0]} ans et plus.`;
+      // Un choix manquant se dit à part d'un champ vide : l'écran montre déjà POURQUOI
+      // on le demande (« pour calculer ton métabolisme »), le blocage dit seulement
+      // CE QUI MANQUE — la règle posée le 2026-08-26 sur l'étape 3.
+      if (sex === null) return 'Indique si tu es un homme ou une femme pour continuer.';
       return 'Remplis ta date de naissance, ton poids et ta taille pour continuer.';
     }
     if (step === 3 && !bodyFatValid)
@@ -312,6 +412,7 @@ export default function Onboarding() {
     // DEUX fois : dans la carte, et en accent juste au-dessus du bouton, où il
     // recouvrait la carte qu'il répétait. Le bandeau dit l'ACTION, la carte dit le
     // POURQUOI — et le pourquoi n'a toujours qu'une seule rédaction.
+    if (step === 5 && goal === null) return 'Choisis ton objectif pour continuer.';
     if (step === 5 && objectifBloque) return 'Sèche n\'est pas disponible ici — choisis Maintien, ou un autre objectif.';
     if (step === 7 && !mealsValid) return 'Choisis au moins un jour et un repas.';
     return null;
@@ -319,14 +420,23 @@ export default function Onboarding() {
 
   const next = () => {
     if (saving) return;
-    if (!canProceed) { setHint(blockReason()); return; }
-    setHint(null);
+    if (!canProceed) { setAvanceTentee(true); return; }
+    setAvanceTentee(false);
     if (step < TOTAL_STEPS) setStep(step + 1);
     else finish();
   };
-  const back = () => { if (step > 1) { setHint(null); setStep(step - 1); } };
+  const back = () => { if (step > 1) { setAvanceTentee(false); setStep(step - 1); } };
 
   const finish = async () => {
+    // 🔴 LE SEXE NE SE DEVINE PAS. L'étape 2 interdit d'arriver ici sans lui, donc ce
+    // filet ne se déclenche pas — et s'il se déclenchait, il RENVOIE à l'étape qui
+    // manque au lieu de choisir à la place de quelqu'un. C'est la différence assumée
+    // avec le `neat ?? DEFAULT_NEAT_LEVEL` vingt lignes plus bas : un repli n'est
+    // acceptable que quand la valeur de repli est défendable.
+    if (sex === null) { setStep(2); setAvanceTentee(true); return; }
+    // Même règle pour l'objectif : l'étape 5 le verrouille, et il n'y a pas d'objectif
+    // « prudent » sur lequel se rabattre — le maintien lui-même est un choix.
+    if (goal === null) { setStep(5); setAvanceTentee(true); return; }
     // Profil « brut » (inputs uniquement). recalcProfile est l'UNIQUE producteur
     // de tdee_kcal + macros — pas de calcul en ligne parallèle ici (cohérence
     // garantie avec le check-in poids et les éditeurs du profil).
@@ -394,6 +504,9 @@ export default function Onboarding() {
     setSaving(true);
     await saveFirstName(firstName);
     await saveProfile(profile);
+    // ⚠️ ICI, et pas au démarrage suivant : tant que le profil n'est pas écrit, le
+    // brouillon est la seule copie de ce qui a été saisi.
+    await effacerBrouillon();
     // ⚠️ `goal`, `restrictions` et `has_sport` ONT ÉTÉ RETIRÉS le 2026-08-10. Ce sont
     // l'objectif, le régime et la pratique sportive — trois données de santé au sens
     // de l'art. 9, nommées une par une dans l'interdit absolu (§6). Elles partaient
@@ -427,6 +540,12 @@ export default function Onboarding() {
     if (consent === null) return <AnalyticsConsentStep onChoose={chooseConsent} />;
   }
 
+  // ⚠️ RIEN NE S'AFFICHE AVANT D'AVOIR LU LE BROUILLON. Sans cette garde, l'écran
+  // montrerait l'étape 1 vide puis sauterait à l'étape 5 une frame plus tard : une
+  // restauration correcte qui a l'air d'un bug. Même geste que la ligne de consentement
+  // au-dessus — une lecture de stockage local, quasi instantanée.
+  if (!brouillonLu) return null;
+
   return (
     <SafeAreaView style={s.safe} edges={['top', 'bottom']}>
       <StatusBar style={t.scheme === 'dark' ? 'light' : 'dark'} />
@@ -455,7 +574,11 @@ export default function Onboarding() {
           </View>
         )}
 
-        {step === 3 && (
+        {/* ⚠️ `&& sex` : le sélecteur de %MG est SEXUÉ — planches de silhouettes
+            (`components/BodyFatPicker.tsx:88`) et bornes (`lib/safety.ts:43`). L'étape 2
+            garantit déjà le sexe ; la garde rend cette dépendance visible ici, là où on
+            la lirait, plutôt que dans le type d'un composant deux fichiers plus loin. */}
+        {step === 3 && sex && (
           <View style={s.block}>
             <Text style={s.title}>Ta masse grasse</Text>
             <Text style={s.sub}>
@@ -642,7 +765,7 @@ export default function Onboarding() {
       </ScrollView>
 
       <View style={[s.footer, layout.header]}>
-        {hint && !canProceed && <Text style={s.hint}>{hint}</Text>}
+        {avanceTentee && !canProceed && <Text style={s.hint}>{blockReason()}</Text>}
         {/* `muted` et non `disabled` : le bouton reste cliquable, c'est lui qui
             affiche `blockReason()`. Il est simplement atténué pour ne plus
             promettre d'avancer quand l'étape est incomplète. */}

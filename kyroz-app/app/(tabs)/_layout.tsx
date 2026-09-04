@@ -71,7 +71,7 @@ export default function TabLayout() {
         // c'est ce qu'attend quelqu'un qui vient de choisir une couleur. En
         // monochrome, `accent` vaut déjà l'encre — le rendu ne bouge pas d'un pixel.
         tabBarActiveTintColor: t.accent,
-        tabBarInactiveTintColor: t.textQuaternary,
+        tabBarInactiveTintColor: t.textTertiary,
         tabBarLabelStyle: { ...Type.microStrong },
       }}
     >
