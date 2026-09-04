@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useCallback, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, TextInput } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform } from 'react-native';
 import { Presse } from '../../components/Presse';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -860,7 +860,17 @@ export default function ProfilScreen() {
             <Text style={{ ...Type.caption, color: t.textSecondary }}>
               Saisis ton mot de passe pour confirmer.
             </Text>
-            <TextInput
+            {/* 🔴 CE CHAMP RECOPIAIT `ui.tsx::Field` À LA MAIN, et son propre commentaire
+                disait déjà que c'était l'erreur (« un style sans nom dérive »). Il PASSE
+                désormais par le composant partagé — donc il hérite du bouton « afficher »
+                comme les deux autres champs masqués de l'app, au lieu d'être le seul à en
+                être privé. `label` est optionnel : la consigne au-dessus tient ce rôle ici,
+                et un second libellé la répéterait.
+                ⚠️ Le fond `fill`/`card` du cadre vient de `Field` : c'est ce qui avait été
+                recopié pour corriger le contraste 1:1 avec la feuille, et c'est conservé
+                puisque c'est la même source. */}
+            <Field
+              t={t}
               value={motDePasse}
               onChangeText={(v: string) => { setMotDePasse(v); setEchecReauth(null); }}
               secureTextEntry
@@ -868,22 +878,6 @@ export default function ProfilScreen() {
               autoComplete="current-password"
               textContentType="password"
               placeholder="Mot de passe"
-              placeholderTextColor={t.textSecondary}
-              // 🔴 `t.card` RENDAIT LE CHAMP INVISIBLE, et seule la capture l'a montré.
-              // Mesuré dans le navigateur : fond du champ `rgb(28,28,30)`, fond de la
-              // feuille `rgb(28,28,30)` — contraste **1:1**. « Mot de passe » flottait en
-              // texte nu, sans rien qui dise qu'on peut taper dedans, sur la feuille où
-              // il FAUT taper pour continuer. Le code était juste, la hauteur (44) et le
-              // rayon (14) aussi : c'est la SURFACE qui manquait.
-              // ➡️ On reprend le style de `ui.tsx::Field`, qui est le rôle « champ de
-              // saisie » de la DA — fond `fill` en sombre, plus un trait. Le recopier à
-              // la main était déjà l'erreur : un style sans nom dérive.
-              style={{
-                ...Type.input, color: t.text,
-                backgroundColor: t.scheme === 'dark' ? t.fill : t.card,
-                borderRadius: Radius.button, borderWidth: Trait.fin, borderColor: t.line,
-                paddingHorizontal: Spacing.lg, minHeight: CIBLE_TACTILE_MIN,
-              }}
             />
           </>
         )}
