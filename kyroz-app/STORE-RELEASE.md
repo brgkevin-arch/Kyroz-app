@@ -28,8 +28,11 @@
 >
 > 🔴 **CE QUI BLOQUE : la vidéo qu'Apple exige**, et pas pour une raison de code — le bac
 > à sable du fondateur porte un abonnement de test qui **redonne Kyroz+ à tout compte
-> neuf**, donc il n'y a rien à acheter, donc rien à filmer. Il expire seul le **06/09 à
-> 03:04 UTC (05:04 Paris)**. Diagnostic complet, pistes éliminées et marche à suivre :
+> neuf**, donc il n'y a rien à acheter, donc rien à filmer. Sa période s'achève le **06/09
+> à 01:04 UTC (03:04 Paris)** — mais RevenueCat le marque **`will_renew`** (re-mesuré le
+> 05/09 à 19:50) : il ne s'éteindra tout seul que si le renouvellement est **résilié
+> depuis le téléphone** (Réglages → App Store → Compte Sandbox → Gérer). Diagnostic
+> complet, pistes éliminées et marche à suivre :
 > `docs/procedures/PROCEDURE-2026-09-05-video-achat-sandbox.md`, bloc de tête.
 >
 > ⚠️ Deux défauts d'affichage relevés en répétant le parcours, **volontairement non

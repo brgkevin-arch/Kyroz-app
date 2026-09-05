@@ -28,7 +28,7 @@ La cause, trouvée en interrogeant l'API RevenueCat (clé secrète dans
 
 ```
 24342d5c-…   apparu 05/09 19:33   MAIS first_seen_at = 01/08 07:00
-             2 abonnements · 1 ACTIF · fin 06/09 03:04 UTC (05:04 Paris)
+             2 abonnements · 1 ACTIF · fin 06/09 01:04 UTC (03:04 Paris)
 ```
 
 🔴 **Un client supprimé REVIENT, avec sa date d'origine.** RevenueCat ne le recrée pas
@@ -48,26 +48,64 @@ connexion suivante, en quelques secondes.
 | Supprimer les clients RevenueCat | ❌ inutile | le reçu de l'appareil les reconstruit |
 | Se déconnecter du compte sandbox dans les Réglages | ❌ insuffisant | le reçu reste dans le conteneur de l'app |
 | Créer un second testeur sandbox | ❌ impossible ce soir | le formulaire d'App Store Connect rend *« Une erreur s'est produite »* sur **trois** adresses différentes (`@kyroz.app`, `sandbox@gmail.com`, `brgkevinpro+sandbox1@gmail.com`). Ce n'est donc pas l'adresse. Les incidents de la page d'état d'Apple dataient du 1ᵉʳ septembre, résolus — donc pas une panne déclarée. **Cause non trouvée**, pistes non éprouvées : le mot de passe (règles Apple ID : 8 caractères, majuscule, minuscule, chiffre) et l'accent de « Kévin » |
+| Contourner ce formulaire par l'API App Store Connect | ❌ **impossible, ce n'est pas une panne** | mesuré le 05/09 au soir : `GET /v2/sandboxTesters` répond, `PATCH /v2/sandboxTesters/{id}` et `POST /v2/sandboxTestersClearPurchaseHistoryRequest` existent — **il n'y a AUCUN endpoint de création**. Apple l'écrit : *« Use App Store Connect to create or delete Sandbox Apple Account »*. Le formulaire web est la seule porte, donc l'erreur doit se résoudre là |
+
+### 🔎 RE-MESURÉ LE 05/09 À 19:50 — DEUX FAITS QUI CHANGENT LE PLAN
+
+**1. L'abonnement est marqué « will_renew ».** Le plan « attendre » supposait qu'il
+s'éteindrait seul parce que l'historique d'achats avait été effacé. RevenueCat dit le
+contraire : `auto_renewal_status = will_renew`, sur `kyroz_plus_yearly_early`, période
+du 29/08 01:04 au **06/09 01:04 UTC**. À cette heure-là, il peut donc **repartir pour une
+période** au lieu d'expirer. ➡️ Le geste qui rend l'attente fiable est de **résilier
+depuis le téléphone** (étape 0 ci-dessous).
+
+**2. L'heure exacte est 03:04 heure de Paris, pas 05:04.** L'expiration est à
+`2026-09-06 01:04:30 UTC`, soit **03:04 à Paris** (UTC+2). La ligne « (05:04 Paris) »
+plus haut convertissait dans le mauvais sens.
+
+**3. Il n'existe AUCUN testeur sandbox sur le compte** — `GET /v2/sandboxTesters` rend
+`total: 0`, avec une clé `ACCOUNT_HOLDER / ADMIN` qui voit toutes les apps (donc ce n'est
+pas un défaut de droits). Conséquences : « créer un **second** testeur » est en réalité
+« créer **le premier** » ; et `POST /v2/sandboxTestersClearPurchaseHistoryRequest` n'a
+personne à nettoyer. L'achat en cours vient donc d'un compte Apple qui n'est pas dans
+cette liste — ce qui explique que rien de ce qu'on a tenté côté App Store Connect n'ait
+mordu.
 
 ### 🟢 CE QU'IL FAUT FAIRE À LA PROCHAINE SESSION
 
-**Le plus simple : attendre.** L'abonnement expire le **06/09 à 03:04 UTC (05:04 heure de
-Paris)** et ne se renouvellera plus — l'historique d'achats a été effacé. Après cette
-heure, l'environnement est propre tout seul.
+**Étape 0 — couper le renouvellement, ce soir, sur le téléphone.** Sans ça, l'attente
+n'est pas garantie. Réglages → App Store → descendre tout en bas → **Compte Sandbox** →
+*Gérer* → l'abonnement Kyroz+ → **Annuler l'abonnement**.
+➡️ Ce qu'on doit voir à la fin : l'abonnement affiché comme *expirant le 6 septembre*
+et non *renouvelable*. La résiliation n'écourte PAS la période en cours — elle garantit
+seulement qu'il n'y en aura pas une autre.
+➡️ Vérifiable à distance : le champ passe à `will_not_renew` (commande ci-dessous).
 
-1. Vérifier que c'est bien fini, sans toucher au téléphone :
+1. **Après 03:05 heure de Paris**, vérifier que c'est bien fini, sans toucher au téléphone :
    ```bash
-   K=$(cat ~/.eas-credentials/revenuecat-secret); P=proj7396660e
+   K=$(tr -d '\r\n' < ~/.eas-credentials/revenuecat-secret); P=proj7396660e
    curl -s -H "Authorization: Bearer $K" \
      "https://api.revenuecat.com/v2/projects/$P/customers?limit=50"
    ```
    puis `…/customers/<id>/active_entitlements` sur chaque client. **Zéro droit actif = feu vert.**
+   ⚠️ **`K=$(cat …)` NE MARCHE PAS** — le fichier de clé contient trois lignes, donc
+   l'en-tête `Authorization` contient un saut de ligne, donc curl rend `HTTP 000` sans
+   rien dire d'utile. C'est `tr -d '\r\n'` qui répare, et l'erreur ressemble à une panne
+   réseau alors que c'est la clé qui est mal lue.
+   ℹ️ L'état du renouvellement se lit sur
+   `…/customers/<id>/subscriptions` → `auto_renewal_status`.
 2. Sur le téléphone : tuer l'app, la rouvrir, se connecter avec les identifiants de revue.
 3. L'écran Kyroz+ doit s'ouvrir sur **« Piloter ton objectif dans le temps »**.
 4. Filmer (§5).
 
 ⚠️ **Si le droit revient encore après expiration** : la seule piste restante est un
-**second testeur sandbox**, donc résoudre d'abord l'erreur de création du formulaire.
+testeur sandbox neuf — et comme l'API ne sait pas en créer, il faut faire passer le
+formulaire web. La contrainte qu'Apple documente et qui explique le mieux un refus
+générique : **l'adresse ne doit JAMAIS avoir été un compte Apple, ni avoir servi à
+acheter sur l'App Store ou iTunes**. `sandbox@gmail.com` est certainement déjà pris ;
+une adresse en sous-adressage (`…+sandbox1@`) peut être rattachée à sa base. Essayer une
+adresse **entièrement neuve** sur `@kyroz.app`, un prénom **sans accent**, et un mot de
+passe respectant les règles Apple ID (8 caractères, majuscule, minuscule, chiffre).
 
 ### Le titre de l'écran est le seul diagnostic fiable
 
