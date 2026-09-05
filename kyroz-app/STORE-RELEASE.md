@@ -504,6 +504,53 @@ le même rejet, ou un autre motif de forme.
 
 ---
 
+### 🍎 Sign in with Apple — implémenté le 2026-09-05, à VÉRIFIER sur appareil
+
+Décision fondateur : puisqu'un nouveau binaire (10) est de toute façon nécessaire pour le
+correctif du timeout d'achat, [[project-sign-in-with-apple-a-faire]] entre dans ce build —
+exactement la fenêtre que cette fiche prévoyait (« si Apple rejette, un build repart de
+toute façon : Apple Sign In y entre gratuitement »).
+
+**Ce qui est écrit et vert (`tsc` + 2095 tests)** :
+- `lib/appleAuth.ts` / `.web.ts` — même patron que `lib/purchases.ts` : le SDK natif
+  (`expo-apple-authentication`) chargé en `require` paresseux, la version web écartée
+  par résolution de plateforme (Metro l'embarquerait sinon, même piège mesuré deux fois).
+- `components/AppleSignInButton.tsx` / `.web.tsx` — le bouton **officiel** Apple
+  (`AppleAuthenticationButton`), pas un bouton maison : les Human Interface Guidelines
+  l'exigent, et c'est aussi ce qui donne la localisation et l'accessibilité gratuitement.
+- `hooks/useAuth.tsx::signInWithApple` — flux natif → `supabase.auth.signInWithIdToken`.
+  Nonce transmis **brut**, ni côté Apple ni côté Supabase (vérifié contre la doc Supabase
+  courante pour Expo — contre-intuitif si on connaît le Swift natif, où on le hache).
+- **Le trou RGPD des parcours OAuth, fermé** (déjà nommé dans
+  [[project-sign-in-with-apple-a-faire]]) : l'inscription e-mail fait cocher la case de
+  consentement AVANT d'ouvrir une session ; Apple, lui, authentifie D'ABORD. La session
+  Apple s'ouvre donc, mais l'écran reste sciemment sur `/(auth)/login` (aucun
+  `router.replace('/')`) tant que `consentSanteManquant()` — prédicat PUR, testé — dit
+  vrai : la même case, le même texte, juste après. Annuler referme la session
+  (`signOut()`) plutôt que de laisser une session sans consentement traîner.
+- **Le scope `FULL_NAME` n'est PAS demandé**, délibérément : Kyroz demande déjà le
+  prénom à l'onboarding, et réclamer le nom à Apple ajouterait un type de donnée
+  collectée que la fiche App Privacy ne déclare pas — fiche qui ne s'écrit PAS par
+  l'API ([[reference-asc-api-fiche]]), donc un aller-retour console de plus pour rien.
+
+**Ce qui reste, et que je ne peux pas faire moi-même :**
+1. **Activer le fournisseur Apple dans le tableau de bord Supabase** — Authentication →
+   Providers → Apple → activer, « Client IDs » = `app.kyroz.mobile`. Sans ce réglage,
+   `signInWithIdToken` refusera le jeton même si tout le reste est juste.
+2. **Vérifier sur un appareil ou le simulateur**, avec un vrai identifiant Apple : le
+   flux natif ne se simule pas sous vitest, et `expo-apple-authentication` avertit
+   lui-même que `getCredentialStateAsync` échoue toujours sur simulateur (sans
+   conséquence ici, cette fonction n'est pas utilisée).
+3. **La capability est déjà cochée sur l'App ID** (anticipée le 2026-08-31, avant même
+   ce chantier) — normalement rien à faire côté Apple Developer, à confirmer au premier
+   `eas build` si le provisionnement râle.
+
+⚠️ **Ne pas confondre avec le point 2 du rejet ci-dessus** (l'enregistrement d'écran) :
+celui-là ne montre QUE le parcours d'achat, pas Sign in with Apple — Apple ne l'exige
+pas pour cette fonctionnalité.
+
+---
+
 ### ✅ SOUMIS — 2026-08-28, 17 h 44 : 6 éléments, ensemble
 
 | | |
