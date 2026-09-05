@@ -160,8 +160,17 @@ tu changes de compte dans Réglages au lieu d'être bloqué.
 
 ### Le tournage
 
+🔴 **AVANT DE LANCER L'ENREGISTREMENT : DÉCONNECTE-TOI.** Profil → roue dentée →
+Compte → Déconnexion. Sans ça l'app s'ouvre sur TON plan et le plan 3 est injouable —
+on ne peut pas filmer une connexion quand on est déjà connecté. Et c'est le parcours du
+RELECTEUR qu'il faut montrer : il installe l'app, elle s'ouvre sur l'écran de connexion,
+il saisit les identifiants qu'on lui a fournis.
+⚠️ Ça vaut en particulier juste après avoir testé Sign in with Apple (§4) — ce test
+laisse une session ouverte.
+
 | # | Ce que tu fais | Ce qui doit être VISIBLE |
 |---|---|---|
+| 0 | **Déconnecte-toi**, enregistrement PAS encore lancé | l'écran de connexion Kyroz |
 | 1 | Lance l'enregistrement, puis va sur l'**écran d'accueil** de l'iPhone | les icônes de ton iPhone, ~2 s |
 | 2 | Appuie sur l'icône **Kyroz** | l'app se lance depuis l'accueil |
 | 3 | Onglet **Connexion**, saisis `review@kyroz.app` + le code de revue | les champs, puis « Se connecter » |
