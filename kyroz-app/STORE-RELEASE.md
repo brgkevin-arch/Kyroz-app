@@ -16,14 +16,25 @@
 
 ## 0-ter. ▶️ REPRISE — état au 2026-08-27
 
-> 🔴 **ÉTAT AU 2026-09-04** — l'app a été **rejetée trois fois**. Les deux premières
-> jamais sur le code (`2.1` le 01/09, `2.1(b)` — produits absents du binaire — le 03/09).
-> **La troisième, le 04/09, est le premier vrai défaut** : un achat qui ne répond pas
-> bloquait l'écran pour toujours (« l'app charge indéfiniment »). Corrigé
-> (`lib/purchases.ts`, timeout de 30 s) — voir la section « REJET 2.1(b) — le premier vrai
-> défaut de code » plus bas. **Un NOUVEAU binaire (10) est nécessaire**, et Apple exige
-> désormais un **enregistrement d'écran sur appareil physique** avant tout renvoi — point
-> bloquant que seul le fondateur peut lever.
+> 🔴 **ÉTAT AU 2026-09-05, 19 h 30** — **tout est prêt sauf la vidéo.**
+>
+> Trois rejets : `2.1` (01/09, question sur les paliers), `2.1(b)` (03/09, produits absents
+> du binaire), `2.1(b)` (04/09, **le premier vrai défaut de code** — un achat qui ne répond
+> pas bloquait l'écran pour toujours).
+>
+> ✅ **Le binaire à soumettre est le (16)** — sur TestFlight, `VALID`, commit `4de16d7`. Il
+> porte le **timeout d'achat de 30 s** (le correctif du rejet) et **Sign in with Apple**,
+> essayé sur appareil et fonctionnel. Tout est vérifié dans l'artefact, pas supposé.
+>
+> 🔴 **CE QUI BLOQUE : la vidéo qu'Apple exige**, et pas pour une raison de code — le bac
+> à sable du fondateur porte un abonnement de test qui **redonne Kyroz+ à tout compte
+> neuf**, donc il n'y a rien à acheter, donc rien à filmer. Il expire seul le **06/09 à
+> 03:04 UTC (05:04 Paris)**. Diagnostic complet, pistes éliminées et marche à suivre :
+> `docs/procedures/PROCEDURE-2026-09-05-video-achat-sandbox.md`, bloc de tête.
+>
+> ⚠️ Deux défauts d'affichage relevés en répétant le parcours, **volontairement non
+> corrigés** pour ne pas rebâtir le binaire : `E67` et `E68` (défilement de l'assistant
+> d'inscription). Ils partiront en **OTA** après l'approbation.
 
 > Bloc réécrit **entièrement** ce jour. Le précédent datait du 2026-08-11 et il a été
 > faux sur ses trois points pendant douze jours : il annonçait le build (6) « à jour »,
@@ -501,6 +512,45 @@ un **enregistrement d'écran sur un appareil PHYSIQUE**, joint aux notes de revu
 téléphone du fondateur, le compte Apple sandbox déjà configuré, et un geste humain devant
 la caméra. À faire avant tout renvoi — renvoyer sans la vidéo rejouerait très probablement
 le même rejet, ou un autre motif de forme.
+
+---
+
+### 🔴 UN BAC À SABLE NE SE NETTOIE PAS PAR LE HAUT — 2026-09-05
+
+**Le reçu App Store de l'appareil est la SOURCE ; la base de RevenueCat n'en est que le
+miroir.** Trouvé en cherchant pendant deux heures pourquoi tout compte Kyroz neuf
+affichait « Abonnement actif » alors qu'il n'y avait, littéralement, plus un seul client
+chez RevenueCat.
+
+**La preuve, en un relevé** : après avoir supprimé TOUS les clients (0 restant), la
+connexion suivante en a fait réapparaître un — avec `first_seen_at` au **1ᵉʳ août**, et
+ses deux abonnements. Un client supprimé ne « revient » pas : il est **reconstruit depuis
+le reçu**, avec son passé.
+
+➡️ **Ce qui NE nettoie pas un environnement de test** :
+- supprimer les clients RevenueCat (fait deux fois : 30, puis 2 — sans effet) ;
+- se déconnecter du compte sandbox dans les Réglages ;
+- désinstaller et réinstaller l'app ;
+- « Effacer l'historique d'achats » **seul** — il arrête les renouvellements, il ne tue
+  pas la période en cours.
+
+➡️ **Ce qui nettoie vraiment** : que la période d'abonnement **expire** (durées
+compressées par Apple : 5 min pour un mensuel, 1 h pour un annuel, 6 renouvellements au
+maximum), ou un **autre Apple ID sandbox**.
+
+⚠️ **Corollaire pour toute session future** : avant de promettre une manipulation qui
+« remet à zéro », se demander **où vit la source**. Ici elle était sur l'appareil, et
+j'ai passé deux heures à effacer son reflet.
+
+⚠️ **Et un mot d'utilisateur ne suffit pas à nommer un état** : « j'ai Kyroz+ » recouvre
+trois motifs sans rien en commun (`entitled`, `grandfathered`, `not_launched`). Le titre
+de l'écran Kyroz+ les distingue sans ambiguïté (`paywallBanner`) — c'est LUI qu'il faut
+demander, dès la première question.
+
+**Outillage installé ce jour** : clé secrète RevenueCat dans
+`~/.eas-credentials/revenuecat-secret` (hors dépôt, `chmod 600`). Elle donne l'état réel
+des clients, abonnements et droits — `api.revenuecat.com/v2/projects/proj7396660e/…`.
+C'est elle qui a tranché là où le raisonnement tournait en rond.
 
 ---
 
