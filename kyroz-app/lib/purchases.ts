@@ -32,6 +32,7 @@
 // nouvelle revue store (`CLAUDE.md` §2).
 
 import { Platform } from 'react-native';
+import { withBudget } from './boot';
 
 /**
  * Identifiant de l'entitlement côté RevenueCat. C'est LUI qui décide, pas
@@ -265,7 +266,39 @@ export type PurchaseOutcome =
   | { statut: 'ok'; entitled: boolean }
   | { statut: 'annule' }
   | { statut: 'indisponible' }   // dormant, ou produit introuvable côté store
-  | { statut: 'echec'; message: string };
+  | { statut: 'echec'; message: string }
+  | { statut: 'sansreponse' };  // le store n'a pas répondu à temps — issue réelle INCONNUE
+
+// ── Le store ne répond pas toujours, et §4 du CLAUDE.md l'interdit déjà ─────
+//
+// 🔴 REJET APPLE 2.1(b) DU 2026-09-04 : « your app started loading indefinitely
+// after we purchased the subscription ». `buy()` et `restore()` n'avaient AUCUNE
+// borne de temps — exactement le défaut que `lib/boot.ts::withBudget` a été écrit
+// pour fermer ailleurs (« le réseau ne décide jamais du premier rendu »), jamais
+// généralisé ici. Si `purchaseStoreProduct` ou `restorePurchases` ne répond pas
+// (réseau, validation de reçu lente côté Apple/RevenueCat), la promesse ne se
+// résout NI en succès NI en échec : `enCours` reste vrai pour toujours, les deux
+// boutons de l'écran restent désactivés, et il n'y a AUCUNE sortie — c'est très
+// exactement « l'app charge indéfiniment ».
+//
+// ⚠️ **`sansreponse` n'est PAS `echec`, et la distinction est un point « pas de
+// mensonge » (CLAUDE.md §10).** `withBudget` n'annule rien : la tentative continue
+// en arrière-plan, et peut très bien aboutir après qu'on a cessé de l'attendre.
+// Dire « rien ne t'a été débité » à cet instant serait un mensonge si l'achat
+// aboutit une seconde plus tard. Le SEUL fait qu'on peut affirmer est qu'on n'a
+// pas de réponse — l'écran doit dire ÇA, et rien de plus. Si l'achat aboutit
+// malgré tout, `onEntitlementChange` (déjà câblé dans `usePremium`) le rattrape.
+export const PURCHASE_BUDGET_MS = 30_000;
+
+/**
+ * Traduit le résultat de `withBudget` en verdict d'achat. Extraite en fonction
+ * PURE — comme `applyIdentity` plus haut — pour être testable sans dépendre du
+ * SDK natif, que vitest ne peut pas charger.
+ */
+export async function avecBudget(tentative: Promise<PurchaseOutcome>, ms: number): Promise<PurchaseOutcome> {
+  const r = await withBudget(tentative, ms);
+  return r.ok ? r.value : { statut: 'sansreponse' };
+}
 
 /**
  * Achat d'une formule. Ne lève jamais : l'annulation par l'utilisateur est un cas
@@ -274,19 +307,22 @@ export type PurchaseOutcome =
 export async function buy(storeProductId: string): Promise<PurchaseOutcome> {
   const sdk = await configurePurchases();
   if (!sdk) return { statut: 'indisponible' };
-  try {
-    const produits = await sdk.default.getProducts([storeProductId]);
-    const produit = produits.find((p) => p.identifier === storeProductId);
-    if (!produit) return { statut: 'indisponible' };
-    const { customerInfo } = await sdk.default.purchaseStoreProduct(produit);
-    return { statut: 'ok', entitled: customerInfo.entitlements.active[ENTITLEMENT_ID] !== undefined };
-  } catch (e) {
-    if (e && typeof e === 'object' && (e as { userCancelled?: boolean }).userCancelled) {
-      return { statut: 'annule' };
+  const tentative = (async (): Promise<PurchaseOutcome> => {
+    try {
+      const produits = await sdk.default.getProducts([storeProductId]);
+      const produit = produits.find((p) => p.identifier === storeProductId);
+      if (!produit) return { statut: 'indisponible' };
+      const { customerInfo } = await sdk.default.purchaseStoreProduct(produit);
+      return { statut: 'ok', entitled: customerInfo.entitlements.active[ENTITLEMENT_ID] !== undefined };
+    } catch (e) {
+      if (e && typeof e === 'object' && (e as { userCancelled?: boolean }).userCancelled) {
+        return { statut: 'annule' };
+      }
+      const message = e && typeof e === 'object' && 'message' in e ? String((e as Error).message) : 'Erreur inconnue';
+      return { statut: 'echec', message };
     }
-    const message = e && typeof e === 'object' && 'message' in e ? String((e as Error).message) : 'Erreur inconnue';
-    return { statut: 'echec', message };
-  }
+  })();
+  return avecBudget(tentative, PURCHASE_BUDGET_MS);
 }
 
 /**
@@ -299,11 +335,14 @@ export async function buy(storeProductId: string): Promise<PurchaseOutcome> {
 export async function restore(): Promise<PurchaseOutcome> {
   const sdk = await configurePurchases();
   if (!sdk) return { statut: 'indisponible' };
-  try {
-    const info = await sdk.default.restorePurchases();
-    return { statut: 'ok', entitled: info.entitlements.active[ENTITLEMENT_ID] !== undefined };
-  } catch (e) {
-    const message = e && typeof e === 'object' && 'message' in e ? String((e as Error).message) : 'Erreur inconnue';
-    return { statut: 'echec', message };
-  }
+  const tentative = (async (): Promise<PurchaseOutcome> => {
+    try {
+      const info = await sdk.default.restorePurchases();
+      return { statut: 'ok', entitled: info.entitlements.active[ENTITLEMENT_ID] !== undefined };
+    } catch (e) {
+      const message = e && typeof e === 'object' && 'message' in e ? String((e as Error).message) : 'Erreur inconnue';
+      return { statut: 'echec', message };
+    }
+  })();
+  return avecBudget(tentative, PURCHASE_BUDGET_MS);
 }

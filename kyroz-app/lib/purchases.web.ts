@@ -28,7 +28,8 @@ export type PurchaseOutcome =
   | { statut: 'ok'; entitled: boolean }
   | { statut: 'annule' }
   | { statut: 'indisponible' }
-  | { statut: 'echec'; message: string };
+  | { statut: 'echec'; message: string }
+  | { statut: 'sansreponse' };
 
 /** Toujours faux sur web : rien n'est encaissable ici. */
 export function purchasesConfigured(): boolean {
