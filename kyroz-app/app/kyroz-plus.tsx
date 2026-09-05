@@ -127,6 +127,17 @@ export default function KyrozPlusScreen() {
       });
       return;
     }
+    // ⚠️ `sansreponse` n'est PAS un échec : l'issue réelle est INCONNUE (le store
+    // n'a pas répondu à temps, cf. `lib/purchases.ts::PURCHASE_BUDGET_MS`). Dire
+    // « rien ne t'a été débité » ici serait un mensonge si l'achat aboutit malgré
+    // tout une seconde plus tard — Kyroz+ s'activerait alors tout seul.
+    if (r.statut === 'sansreponse') {
+      await dialog.notify({
+        title: 'Pas de réponse du store',
+        message: "On n'a pas de réponse pour l'instant. Si l'achat aboutit, Kyroz+ s'active automatiquement. Sinon, réessaie dans un instant.",
+      });
+      return;
+    }
     await dialog.notify({
       title: "L'achat n'a pas abouti",
       message: r.statut === 'indisponible'
@@ -146,6 +157,13 @@ export default function KyrozPlusScreen() {
         message: r.entitled
           ? 'Ton Kyroz+ est de nouveau actif sur cet appareil.'
           : `Aucun achat Kyroz+ n'est associé à ce compte ${store}.`,
+      });
+      return;
+    }
+    if (r.statut === 'sansreponse') {
+      await dialog.notify({
+        title: 'Pas de réponse du store',
+        message: "On n'a pas de réponse pour l'instant. Réessaie dans un instant.",
       });
       return;
     }

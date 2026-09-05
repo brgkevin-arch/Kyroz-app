@@ -16,12 +16,14 @@
 
 ## 0-ter. ▶️ REPRISE — état au 2026-08-27
 
-> 🔴 **ÉTAT AU 2026-09-03** — l'app a été **rejetée deux fois**, jamais sur le code :
-> `2.1` (question sur les paliers de prix, le 01/09) puis **`2.1(b)`** (deux produits
-> d'abonnement absents du binaire, le 03/09). Le binaire (9) n'a pas bougé et reste bon.
-> Les deux produits de réserve sont **retirés de la soumission** et la stratégie à deux
-> paliers est **abandonnée** — voir la section « REJET 2.1(b) » plus bas, qui prime sur
-> tout ce que ce bloc-ci dit des abonnements.
+> 🔴 **ÉTAT AU 2026-09-04** — l'app a été **rejetée trois fois**. Les deux premières
+> jamais sur le code (`2.1` le 01/09, `2.1(b)` — produits absents du binaire — le 03/09).
+> **La troisième, le 04/09, est le premier vrai défaut** : un achat qui ne répond pas
+> bloquait l'écran pour toujours (« l'app charge indéfiniment »). Corrigé
+> (`lib/purchases.ts`, timeout de 30 s) — voir la section « REJET 2.1(b) — le premier vrai
+> défaut de code » plus bas. **Un NOUVEAU binaire (10) est nécessaire**, et Apple exige
+> désormais un **enregistrement d'écran sur appareil physique** avant tout renvoi — point
+> bloquant que seul le fondateur peut lever.
 
 > Bloc réécrit **entièrement** ce jour. Le précédent datait du 2026-08-11 et il a été
 > faux sur ses trois points pendant douze jours : il annonçait le build (6) « à jour »,
@@ -442,6 +444,63 @@ REJECTED           version 1.0 (9)
 
 Aucun défaut de code, **aucun nouveau build** : le binaire (9) est correct, c'est la fiche
 Apple qui promettait des produits qu'il ne contient pas.
+
+---
+
+### 🔴 REJET 2.1(b) — 2026-09-04 : LE PREMIER VRAI DÉFAUT DE CODE
+
+**Troisième rejet, sur le MÊME build (9)**, relu sur **iPad Air 11" (M3) et iPhone 17
+Pro Max**, iOS/iPadOS 26.6, 33 h après le renvoi du 03/09.
+
+> *« The In-App Purchase products in the app exhibited one or more bugs which create a
+> poor user experience. Specifically, your app started loading indefinitely after we
+> purchased the subscription. »*
+
+**Et pour la première fois sur ces trois rejets, c'était vrai — dans le code, pas dans
+la fiche.** `lib/purchases.ts::buy()` et `::restore()` n'avaient **aucune borne de
+temps**. Si `purchaseStoreProduct` ou `restorePurchases` ne se résolvait ni en succès ni
+en échec (réseau, validation de reçu lente côté Apple/RevenueCat), la promesse restait
+en suspens **pour toujours** : `enCours` ne repassait jamais à faux, les deux boutons de
+l'écran (« S'abonner » et « Restaurer mes achats ») restaient désactivés, sans la
+moindre sortie. Exactement « l'app charge indéfiniment ».
+
+🔴 **CE DÉFAUT ÉTAIT DÉJÀ FERMÉ AILLEURS, ET LA LEÇON N'AVAIT PAS ÉTÉ GÉNÉRALISÉE.**
+`lib/boot.ts::withBudget` existe depuis le 2026-08-02 pour fermer très exactement cette
+classe de bug sur le démarrage de l'app (« le réseau ne décide jamais du premier
+rendu »). Le paywall parlait au même genre de réseau non fiable et n'en avait pas hérité.
+
+**Correctif** (`lib/purchases.ts`) : `buy()` et `restore()` passent désormais par
+`avecBudget(tentative, PURCHASE_BUDGET_MS)` — 30 secondes, `withBudget` réutilisé tel
+quel. Au-delà, un nouveau verdict `{ statut: 'sansreponse' }`.
+
+⚠️ **`sansreponse` N'EST PAS `echec`, et ce n'est pas un détail de typage — c'est un
+point « pas de mensonge » (`CLAUDE.md` §10).** `withBudget` n'annule rien : la tentative
+continue en arrière-plan et peut très bien aboutir après qu'on a cessé de l'attendre.
+L'écran affiche « Rien ne t'a été débité » sur un `echec` — l'affirmer sur un timeout
+serait un mensonge si l'achat aboutit une seconde plus tard. Le seul fait qu'on peut
+affirmer est qu'on n'a pas de réponse ; `onEntitlementChange`, déjà câblé dans
+`usePremium`, rattrape l'entitlement si l'achat finit par aboutir malgré tout.
+
+⚠️ **Vérifié par MUTATION** : remplacer `sansreponse` par `echec` dans le code fait
+rougir deux tests d'un coup (`purchases.test.ts`) — dont un écrit précisément pour
+dénoncer ce mensonge-là.
+
+🔴 **CE QUE ÇA VEUT DIRE POUR LA RESOUMISSION — un NOUVEAU binaire est nécessaire.** Le
+correctif est du JavaScript pur, publiable en OTA en théorie — mais `fallbackToCacheTimeout:
+0` (§2 de `CLAUDE.md`) fait qu'une OTA ne s'applique qu'au **second** lancement, et un
+relecteur n'en ouvre qu'un. Même raisonnement que pour le build (7) et le (8) : ce
+correctif exige un binaire (10).
+
+🔴 **ET APPLE DEMANDE DÉSORMAIS UN ÉLÉMENT NOUVEAU, QUE JE NE PEUX PAS PRODUIRE MOI-MÊME** :
+un **enregistrement d'écran sur un appareil PHYSIQUE**, joint aux notes de revue, qui doit :
+- partir de l'écran d'accueil, lancer l'app, montrer le parcours complet avec le compte de démo ;
+- montrer un **achat sandbox réussi**, preuve que les produits sont actifs et aboutissent ;
+- montrer tous les autres parcours d'achat.
+
+➡️ **Ce point est bloquant et hors de portée d'une session Claude Code** : il faut le
+téléphone du fondateur, le compte Apple sandbox déjà configuré, et un geste humain devant
+la caméra. À faire avant tout renvoi — renvoyer sans la vidéo rejouerait très probablement
+le même rejet, ou un autre motif de forme.
 
 ---
 
