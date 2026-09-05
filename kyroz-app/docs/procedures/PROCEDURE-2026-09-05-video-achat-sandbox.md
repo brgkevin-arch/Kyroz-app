@@ -77,21 +77,30 @@ C'est ce qui manquait aux quatre builds ratés.
      envoie rien). Mot de passe : **note-le tout de suite**, il ne se réaffiche jamais.
      Territoire : **France**.
 
-**Tu dois voir à la fin** : un compte sandbox actif, e-mail et mot de passe sous les yeux.
+💡 **Crée-en un SECOND dans la foulée.** L'achat sandbox n'est « neuf » qu'une fois par
+compte (cf. §5) : un compte de rechange transforme une prise ratée en simple changement
+de compte dans les Réglages, au lieu d'un blocage.
+
+**Tu dois voir à la fin** : un compte sandbox actif, e-mail et mot de passe sous les yeux
+— idéalement deux.
 
 ---
 
 ## Étape 2 — installer le (15) et connecter le sandbox sur le téléphone
 
-1. **TestFlight** → Kyroz → installer la version **1.0.0 (15)**. Vérifie le numéro de
-   build : une vidéo tournée sur le (9) ne vaut rien.
+1. **TestFlight** → Kyroz → installer **le dernier build**. Vérifie le numéro : une
+   vidéo tournée sur le (9) ne vaut rien.
+   ⚠️ **Le (15) a un défaut connu** : Sign in with Apple y répond « Nonces mismatch »
+   (corrigé par la PR #219). Le parcours d'ACHAT, lui, y est intact — mais comme un
+   achat sandbox ne se filme qu'une fois, autant attendre le build qui porte le
+   correctif plutôt que d'avoir à refaire la prise.
 2. **Réglages → App Store** → tout en bas, **Compte Sandbox** → connecte-toi avec le
    compte de l'étape 1.
 
 ⚠️ Si un ancien compte sandbox y est déjà connecté, déconnecte-le d'abord.
 
-**Tu dois voir à la fin** : « Compte Sandbox » affiche l'e-mail du testeur, et TestFlight
-affiche `1.0.0 (15)`.
+**Tu dois voir à la fin** : « Compte Sandbox » affiche l'e-mail du testeur, et le
+numéro de build de TestFlight correspond à celui qu'on soumettra.
 
 ---
 
@@ -132,33 +141,67 @@ pas ce qu'Apple demande de prouver ici.
 
 ---
 
-## Étape 5 — la vidéo
+## Étape 5 — la vidéo, plan par plan
 
-**Ce qu'Apple veut voir, dans cet ordre :**
+🔴 **LA PREMIÈRE PRISE EST LA VRAIE PRISE.** Un achat sandbox n'est « neuf » qu'UNE fois
+par compte de test : une fois l'abonnement pris, StoreKit répond « vous êtes déjà
+abonné » au lieu de rejouer un achat propre. **Ne répète donc jamais le bouton
+« S'abonner » pour t'entraîner.**
+➡️ Répète la NAVIGATION sans acheter, puis lance l'enregistrement et va au bout.
+➡️ Filet : crée un **second testeur sandbox** avant de commencer (§1). Si la prise rate,
+tu changes de compte dans Réglages au lieu d'être bloqué.
 
-1. **Démarre l'enregistrement** (Centre de contrôle → bouton d'enregistrement), puis
-   reviens à **l'écran d'accueil de l'iPhone**. La vidéo doit commencer là, Apple
-   l'écrit noir sur blanc.
-2. **Ouvre Kyroz** depuis l'écran d'accueil.
-3. **Connecte-toi** avec le compte de démo (`review@kyroz.app` + le code de revue).
-4. **Montre l'app** — 15 à 20 secondes suffisent : le Plan, une recette, les Courses.
-   Apple demande « the complete user flow through the app's core features ».
-5. **Profil → Kyroz+** → l'écran d'achat.
-6. **Appuie sur « S'abonner »** → la feuille Apple s'ouvre. Elle doit afficher
-   **« [Environnement Sandbox] »** : c'est la preuve que c'est bien un achat de test.
-7. **Valide l'achat** (Face ID ou mot de passe du compte sandbox).
-8. **Attends l'écran de confirmation** — « Kyroz+ est actif ». ⚠️ **Ne coupe pas avant** :
-   c'est exactement ce qu'Apple accuse de ne jamais arriver.
-9. Reviens sur l'écran Kyroz+ et appuie sur **« Restaurer mes achats »** → « Abonnement
-   retrouvé ». C'est le « demonstrate all other purchase flows » de leur message.
-10. **Arrête l'enregistrement.**
+### Ce qu'Apple demande, mot pour mot
 
-**Tu dois voir à la fin** : une vidéo dans Photos, où l'achat aboutit et l'app continue
-de répondre.
+> - Begin from the Home Screen, launch the app, and demonstrate the complete user flow
+>   through the app's core features **using the demo account you provided**.
+> - Show a **successful sandbox purchase**.
+> - Demonstrate **all other purchase flows**.
 
-⚠️ **Si l'app se fige après l'achat** : c'est le défaut d'origine, et le correctif n'a
-pas marché. Garde la vidéo quand même et dis-le à Claude — elle devient une preuve de
-diagnostic, pas une preuve à envoyer.
+### Le tournage
+
+| # | Ce que tu fais | Ce qui doit être VISIBLE |
+|---|---|---|
+| 1 | Lance l'enregistrement, puis va sur l'**écran d'accueil** de l'iPhone | les icônes de ton iPhone, ~2 s |
+| 2 | Appuie sur l'icône **Kyroz** | l'app se lance depuis l'accueil |
+| 3 | Onglet **Connexion**, saisis `review@kyroz.app` + le code de revue | les champs, puis « Se connecter » |
+| 4 | L'assistant d'inscription s'ouvre — **complète-le** | les 7 étapes, ~1 à 2 min |
+| 5 | Tu arrives sur le **Plan** | les repas du jour, les calories |
+| 6 | Ouvre **une recette**, reviens | la fiche et ses ingrédients |
+| 7 | Onglet **Courses**, puis **Recettes** | ~5 s chacun |
+| 8 | Onglet **Profil** | poids et cibles |
+| 9 | Appuie sur la ligne **Kyroz+** | l'écran de vente, les deux formules et leurs prix |
+| 10 | Appuie sur **« S'abonner »** | la feuille Apple s'ouvre |
+| 11 | **Ne coupe pas** — vérifie la mention | **« [Environnement Sandbox] »** sur la feuille |
+| 12 | Valide (Face ID ou mot de passe sandbox) | la feuille traite l'achat |
+| 13 | **ATTENDS** la confirmation | le message **« Kyroz+ est actif »** |
+| 14 | Ferme le message | l'écran Kyroz+ a changé d'état |
+| 15 | Appuie sur **« Restaurer mes achats »** | le message **« Abonnement retrouvé »** |
+| 16 | Arrête l'enregistrement | — |
+
+### Les trois plans qui décident
+
+🔴 **Le plan 1.** Commencer ailleurs que sur l'écran d'accueil suffit à faire refuser la
+vidéo : c'est la première phrase de leur demande.
+
+🔴 **Le plan 13 — c'est LE plan de toute la vidéo.** Apple affirme que l'app « charge
+indéfiniment après l'achat ». Couper avant « Kyroz+ est actif » ne prouve rien ; attendre
+et le montrer démonte l'accusation. Laisse tourner 3 ou 4 secondes de plus.
+
+🔴 **Le plan 15.** « Demonstrate all other purchase flows » : c'est le bouton « Restaurer
+mes achats », qu'Apple exige de toute façon (Guideline 3.1.1).
+
+### Ce qui n'est PAS dans la vidéo
+
+- **Sign in with Apple** — Apple ne demande pas de le prouver, et un essai raté au milieu
+  brouillerait le message. Il se teste à part (§4).
+- Les réglages, la suppression de compte, les mentions légales.
+
+**Tu dois voir à la fin** : une vidéo qui commence sur l'écran d'accueil, et où l'on voit
+« Kyroz+ est actif » après un achat marqué sandbox.
+
+⚠️ **Si l'app se fige après l'achat** : le correctif n'a pas marché. Garde la vidéo et
+dis-le à Claude — elle devient une preuve de diagnostic, pas une preuve à envoyer.
 
 ---
 
