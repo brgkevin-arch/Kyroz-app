@@ -697,6 +697,33 @@ produit en suspens — il ne reste qu'à coder.
 > les deux PR fusionnées, donc les deux chantiers ne se marchent pas dessus (ils
 > touchaient tous les deux `profil.tsx` et `constants/legal.ts`).
 
+- **E68 · Cocher son niveau d'activité ne descend pas jusqu'aux séances**
+  🔴 **SIGNALÉ PAR LE FONDATEUR le 2026-09-05**, dans la même répétition que E67 :
+  *« quand tu coches ton activité, il faudrait que la page atterrisse direct après sur
+  tes séances »*.
+
+  **L'étape 4 empile deux blocs** (`app/(auth)/onboarding.tsx`, `{step === 4 && …}`) :
+  « Ton activité » — le `NeatPicker` et ses quatre niveaux, chacun avec son libellé
+  d'ancrage — puis `SectionLabel` **« TES SÉANCES »** et le `SportsEditor`. Le premier
+  est haut : le second est sous le pli. Rien ne conduit de l'un à l'autre, donc on coche
+  son niveau et l'écran ne bouge pas — il faut deviner qu'il reste quelque chose dessous.
+
+  ⚠️ **C'est la même famille qu'E67, mais un cas DISTINCT, et les confondre laisserait
+  l'un des deux ouvert** : E67 est « remonter en haut quand on change d'ÉTAPE », celui-ci
+  est « descendre au bloc suivant après un CHOIX, dans la même étape ». Le premier se
+  corrige par un effet sur `step`, le second par un `onChange` qui vise une position —
+  deux mécanismes, deux endroits.
+
+  ⚠️ **L'ordre des deux blocs, lui, ne se touche pas.** L'en-tête de `NeatPicker`
+  l'explique : le NEAT AVANT les séances est un garde-fou contre le double-comptage
+  sport/journées, pas une mise en page. Ce constat porte sur le DÉFILEMENT, jamais sur
+  l'ordre.
+
+  🟠 **Même arbitrage qu'E67** : non corrigé pendant la revue, JavaScript pur, donc
+  publiable en **OTA** dès l'app approuvée. Les deux se traitent ensemble — ils tiennent
+  au même `ScrollView` et se vérifient dans le même parcours.
+
+
 - **E67 · L'assistant d'inscription ne remonte pas en haut quand on change d'étape**
   🔴 **SIGNALÉ PAR LE FONDATEUR le 2026-09-05**, en répétant la navigation pour la vidéo
   d'achat : *« quand je suis à l'étape 6, on n'est pas en haut de la page par défaut et
