@@ -13,17 +13,31 @@
 // et ce n'est pas un défaut à corriger. `appleSignInAvailable()` y répond
 // `false`, l'écran n'affiche simplement pas le bouton.
 //
-// ⚠️ **Le NONCE n'est PAS pré-haché** — vérifié contre la documentation Supabase
-// courante pour le flux natif Expo (2026-09-05). Contrairement au Swift natif
-// (`ASAuthorizationAppleIDProvider`, où on hache soi-même en SHA-256 avant de le
-// transmettre à Apple), le flux `expo-apple-authentication` + Supabase transmet
-// la MÊME chaîne brute aux deux bouts : à `signInAsync` côté Apple, et à
-// `supabase.auth.signInWithIdToken` côté vérification. C'est Supabase qui gère
-// la validation. Une divergence ici romprait l'authentification en SILENCE
-// (jeton refusé), donc ne pas « corriger » ce choix sans re-vérifier la doc.
+// 🔴 **LE NONCE PART HACHÉ CHEZ APPLE, ET BRUT CHEZ SUPABASE — et se tromper de
+// sens coûte un « Nonces mismatch » qu'aucun test ne peut voir.**
+//
+// La chaîne, dans l'ordre :
+//   1. on tire un nonce BRUT (`randomId()`) ;
+//   2. Apple reçoit son **SHA-256** et le recopie tel quel dans la revendication
+//      `nonce` du jeton d'identité — Apple ne hache RIEN lui-même ;
+//   3. Supabase reçoit le nonce **BRUT**, le hache, et compare au jeton.
+// Les deux hachages doivent donc tomber sur la même valeur, et c'est le cas parce
+// qu'ils portent sur la même chaîne brute.
+//
+// ⚠️ **CETTE LIGNE A DIT LE CONTRAIRE, ET LA DOCUMENTATION AUSSI.** La première
+// version transmettait la valeur brute des deux côtés, sur la foi de la
+// documentation Supabase pour Expo — qui écrit noir sur blanc que le nonce n'est
+// pas pré-haché. Résultat sur un vrai téléphone, build (15) : **« Nonces
+// mismatch »**, systématiquement. Supabase compare `SHA-256(ce qu'on lui donne)` à
+// `ce qu'Apple a mis` : donner le brut aux deux rend la comparaison
+// mathématiquement impossible à satisfaire.
+// ➡️ Aucun test unitaire ne pouvait l'attraper : les deux bouts sont distants. Il a
+// fallu un build, une soumission TestFlight et un essai à la main. C'est le coût
+// d'une documentation crue sur parole — cf. `feedback-mesurer-l-instrument`.
 
 import { Platform } from 'react-native';
 import { randomId } from './randomId';
+import { sha256Hex } from './sha256';
 
 type Sdk = typeof import('expo-apple-authentication');
 let sdkCache: Sdk | null | undefined;
@@ -52,6 +66,19 @@ export async function appleSignInAvailable(): Promise<boolean> {
   }
 }
 
+/**
+ * Les DEUX formes du nonce, et laquelle va où.
+ *
+ * Fonction pure, exportée et testée pour une seule raison : la relation entre les
+ * deux valeurs est l'invariant que le défaut du build (15) avait rompu, et elle ne
+ * se lit nulle part à l'exécution. Écrire `nonce` au lieu de `pourApple` dans
+ * `signInAsync` est un « nettoyage » d'apparence anodine qui casse la connexion
+ * Apple pour tout le monde, sans qu'aucune ligne ne rougisse.
+ */
+export function paireNonce(brut: string): { pourApple: string; pourSupabase: string } {
+  return { pourApple: sha256Hex(brut), pourSupabase: brut };
+}
+
 export type AppleSignInResult =
   | { statut: 'ok'; identityToken: string; nonce: string; email: string | null }
   | { statut: 'annule' }
@@ -74,15 +101,20 @@ export async function signInWithAppleNative(): Promise<AppleSignInResult> {
   const sdk = loadSdk();
   if (!sdk || Platform.OS !== 'ios') return { statut: 'indisponible' };
   try {
-    const nonce = randomId();
+    const { pourApple, pourSupabase } = paireNonce(randomId());
     const credential = await sdk.signInAsync({
       requestedScopes: [sdk.AppleAuthenticationScope.EMAIL],
-      nonce,
+      nonce: pourApple,
     });
     if (!credential.identityToken) {
       return { statut: 'echec', message: "Apple n'a renvoyé aucun jeton d'identité." };
     }
-    return { statut: 'ok', identityToken: credential.identityToken, nonce, email: credential.email };
+    return {
+      statut: 'ok',
+      identityToken: credential.identityToken,
+      nonce: pourSupabase,
+      email: credential.email,
+    };
   } catch (e) {
     if (e && typeof e === 'object' && (e as { code?: string }).code === 'ERR_REQUEST_CANCELED') {
       return { statut: 'annule' };
