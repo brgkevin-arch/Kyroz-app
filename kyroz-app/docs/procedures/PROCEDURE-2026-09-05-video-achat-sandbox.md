@@ -3,6 +3,88 @@
 > **Une étape à la fois.** Chaque étape dit ce que tu dois VOIR à la fin. On ne passe à
 > la suivante que quand tu le vois.
 
+## 🔴 OÙ ÇA EN EST — 2026-09-05 au soir, LIRE EN PREMIER
+
+**Tout est prêt sauf la vidéo, et la vidéo est bloquée par un environnement de test
+contaminé.** Rien à corriger dans l'app : le blocage est côté bac à sable Apple.
+
+| | |
+|---|---|
+| Build **(16)** | ✅ sur TestFlight, `VALID / IN_BETA_TESTING`, commit `4de16d7` |
+| Correctif du timeout d'achat | ✅ dedans, vérifié dans le bundle (`sansreponse`) |
+| Sign in with Apple | ✅ dedans, **essayé sur appareil et fonctionnel** |
+| Fournisseur Apple chez Supabase | ✅ activé par API |
+| Profil de signature | ✅ `8FNNKYG5WV`, entitlement vérifié dans son contenu |
+| **La vidéo** | 🔴 **bloquée — voir ci-dessous** |
+| Soumission | ⏸️ attend la vidéo |
+
+### Le blocage, et sa cause MESURÉE
+
+L'écran Kyroz+ affiche **« Abonnement actif »** sur tout compte Kyroz neuf, donc il n'y a
+**rien à acheter** — donc rien à filmer.
+
+La cause, trouvée en interrogeant l'API RevenueCat (clé secrète dans
+`~/.eas-credentials/revenuecat-secret`, hors dépôt) :
+
+```
+24342d5c-…   apparu 05/09 19:33   MAIS first_seen_at = 01/08 07:00
+             2 abonnements · 1 ACTIF · fin 06/09 03:04 UTC (05:04 Paris)
+```
+
+🔴 **Un client supprimé REVIENT, avec sa date d'origine.** RevenueCat ne le recrée pas
+depuis rien : il le **reconstruit depuis le reçu App Store stocké sur l'appareil**. Le
+reçu est la source, la base de RevenueCat n'en est que le miroir.
+
+➡️ **Conséquence directe** : supprimer les clients chez RevenueCat ne sert à RIEN pour
+ce problème. Ça a été fait deux fois (30 clients, puis 2), et le droit est revenu à la
+connexion suivante, en quelques secondes.
+
+### Ce qui a été essayé, et pourquoi chaque piste est tombée
+
+| Piste | Résultat | Ce qu'on en retient |
+|---|---|---|
+| « RevenueCat transfère l'abonnement aux comptes neufs » (*Restore Behavior*) | ❌ faux | deux comptes créés dans l'après-midi n'avaient **aucun** droit — mais **aucun compte sandbox n'était connecté à ce moment-là**. La mesure était juste, la conclusion trop large |
+| Effacer l'historique d'achats du testeur | ❌ insuffisant | arrête les RENOUVELLEMENTS, ne tue pas la période en cours |
+| Supprimer les clients RevenueCat | ❌ inutile | le reçu de l'appareil les reconstruit |
+| Se déconnecter du compte sandbox dans les Réglages | ❌ insuffisant | le reçu reste dans le conteneur de l'app |
+| Créer un second testeur sandbox | ❌ impossible ce soir | le formulaire d'App Store Connect rend *« Une erreur s'est produite »* sur **trois** adresses différentes (`@kyroz.app`, `sandbox@gmail.com`, `brgkevinpro+sandbox1@gmail.com`). Ce n'est donc pas l'adresse. Les incidents de la page d'état d'Apple dataient du 1ᵉʳ septembre, résolus — donc pas une panne déclarée. **Cause non trouvée**, pistes non éprouvées : le mot de passe (règles Apple ID : 8 caractères, majuscule, minuscule, chiffre) et l'accent de « Kévin » |
+
+### 🟢 CE QU'IL FAUT FAIRE À LA PROCHAINE SESSION
+
+**Le plus simple : attendre.** L'abonnement expire le **06/09 à 03:04 UTC (05:04 heure de
+Paris)** et ne se renouvellera plus — l'historique d'achats a été effacé. Après cette
+heure, l'environnement est propre tout seul.
+
+1. Vérifier que c'est bien fini, sans toucher au téléphone :
+   ```bash
+   K=$(cat ~/.eas-credentials/revenuecat-secret); P=proj7396660e
+   curl -s -H "Authorization: Bearer $K" \
+     "https://api.revenuecat.com/v2/projects/$P/customers?limit=50"
+   ```
+   puis `…/customers/<id>/active_entitlements` sur chaque client. **Zéro droit actif = feu vert.**
+2. Sur le téléphone : tuer l'app, la rouvrir, se connecter avec les identifiants de revue.
+3. L'écran Kyroz+ doit s'ouvrir sur **« Piloter ton objectif dans le temps »**.
+4. Filmer (§5).
+
+⚠️ **Si le droit revient encore après expiration** : la seule piste restante est un
+**second testeur sandbox**, donc résoudre d'abord l'erreur de création du formulaire.
+
+### Le titre de l'écran est le seul diagnostic fiable
+
+`paywallBanner` (`lib/premium.ts`) rend un titre différent par motif, et ils ne se
+confondent pas — c'est ce qu'il faut demander, jamais « est-ce que tu as Kyroz+ » :
+
+| Titre en haut de l'écran Kyroz+ | Motif | Ce que ça dit |
+|---|---|---|
+| « Ton abonnement Kyroz+ est actif » | `entitled` | RevenueCat a répondu « abonné » |
+| « C'est déjà à toi » | `grandfathered` | l'app croit le compte antérieur au 27/08 |
+| « Piloter ton objectif dans le temps » | `locked` | **l'état qu'on veut pour filmer** |
+
+⚠️ *Deux heures ont été perdues le 2026-09-05 faute d'avoir obtenu ce mot-là : « j'ai
+Kyroz+ » recouvre trois causes sans rien en commun.*
+
+---
+
 ## Pourquoi cette vidéo
 
 Rejet Apple `2.1(b)` du 2026-09-04 (build 9) : *« your app started loading indefinitely
@@ -14,18 +96,19 @@ d'écran sur **appareil physique** joint aux notes de revue, montrant :
 - un **achat sandbox réussi** ;
 - les autres parcours d'achat (le bouton « Restaurer mes achats »).
 
-⚠️ **La vidéo se tourne sur le build (15)**, pas sur le (9). Elle doit montrer l'app
+⚠️ **La vidéo se tourne sur le build (16)**, pas sur le (9). Elle doit montrer l'app
 corrigée — sinon elle prouve le contraire de ce qu'on affirme.
 
-ℹ️ **Pourquoi (15) et pas (10)** : quatre tentatives de build ont échoué avant que le
+ℹ️ **Pourquoi (16) et pas (10)** : quatre tentatives de build ont échoué avant que le
 profil de signature ne soit réparé, et EAS incrémente son compteur à CHAQUE tentative,
-réussie ou non. Le numéro n'a aucune signification technique — mais chercher un « (10) »
-sur TestFlight ferait perdre du temps, il n'existera jamais.
+réussie ou non — puis le (15) a été remplacé par le (16) qui porte le correctif du nonce.
+Le numéro n'a aucune signification technique, mais chercher un « (10) » sur TestFlight
+ferait perdre du temps : il n'existera jamais.
 
 ## Deux choses à faire dans la MÊME session sur le téléphone
 
-Le build (15) porte aussi **Sign in with Apple**, jamais essayé sur un appareil. Autant
-tout vérifier d'un coup : le bouton Apple d'abord (§4), l'achat ensuite (§5).
+Le build (16) porte aussi **Sign in with Apple**. ✅ Le bouton a été essayé sur appareil
+le 2026-09-05 et il fonctionne — il ne reste donc que l'achat à filmer (§5).
 
 ---
 
@@ -86,14 +169,13 @@ de compte dans les Réglages, au lieu d'un blocage.
 
 ---
 
-## Étape 2 — installer le (15) et connecter le sandbox sur le téléphone
+## Étape 2 — installer le (16) et connecter le sandbox sur le téléphone
 
-1. **TestFlight** → Kyroz → installer **le dernier build**. Vérifie le numéro : une
-   vidéo tournée sur le (9) ne vaut rien.
-   ⚠️ **Le (15) a un défaut connu** : Sign in with Apple y répond « Nonces mismatch »
-   (corrigé par la PR #219). Le parcours d'ACHAT, lui, y est intact — mais comme un
-   achat sandbox ne se filme qu'une fois, autant attendre le build qui porte le
-   correctif plutôt que d'avoir à refaire la prise.
+1. **TestFlight** → Kyroz → installer **1.0.0 (16)**. C'est le binaire qu'on soumet :
+   la vidéo doit montrer celui-là, pas un autre.
+   ℹ️ Le **(15)** avait un défaut connu — Sign in with Apple y répondait « Nonces
+   mismatch » (corrigé par la PR #219, présent dans le (16), **essayé sur appareil et
+   fonctionnel**).
 2. **Réglages → App Store** → tout en bas, **Compte Sandbox** → connecte-toi avec le
    compte de l'étape 1.
 
@@ -118,7 +200,7 @@ sinon il est grand-péré et l'écran d'achat ne s'affiche même pas.
 
 ---
 
-## Étape 4 — le bouton Sign in with Apple (nouveau, jamais testé)
+## Étape 4 — le bouton Sign in with Apple ✅ VÉRIFIÉ le 2026-09-05
 
 ⚠️ **À faire AVANT de lancer l'enregistrement** : ce n'est pas ce qu'Apple demande de
 filmer, et un essai raté dans la vidéo brouillerait le message.
@@ -134,6 +216,10 @@ filmer, et un essai raté dans la vidéo brouillerait le message.
 **Tu dois voir à la fin** : une session ouverte via Apple, sans jamais avoir tapé de
 mot de passe Kyroz.
 
+✅ **FAIT le 2026-09-05 sur le (16)** : le bouton s'affiche, la connexion aboutit. C'est
+ce qui a validé le correctif du nonce — un défaut que seul un appareil pouvait montrer,
+les deux bouts de la comparaison étant chez Apple et chez Supabase.
+
 🔴 **Si le bouton n'apparaît pas** ou si la connexion échoue : arrête-toi et dis-le à
 Claude AVANT de faire la vidéo — c'est un défaut de code, pas une manipulation ratée.
 La vidéo, elle, peut se faire avec le compte e-mail de démo : Sign in with Apple n'est
@@ -143,13 +229,15 @@ pas ce qu'Apple demande de prouver ici.
 
 ## Étape 5 — la vidéo, plan par plan
 
-🔴 **LA PREMIÈRE PRISE EST LA VRAIE PRISE.** Un achat sandbox n'est « neuf » qu'UNE fois
-par compte de test : une fois l'abonnement pris, StoreKit répond « vous êtes déjà
-abonné » au lieu de rejouer un achat propre. **Ne répète donc jamais le bouton
-« S'abonner » pour t'entraîner.**
-➡️ Répète la NAVIGATION sans acheter, puis lance l'enregistrement et va au bout.
-➡️ Filet : crée un **second testeur sandbox** avant de commencer (§1). Si la prise rate,
-tu changes de compte dans Réglages au lieu d'être bloqué.
+🔴 **LA PREMIÈRE PRISE EST LA VRAIE PRISE, et le 2026-09-05 l'a prouvé de la pire
+façon.** Un achat sandbox rend l'environnement inutilisable pour la prise suivante — non
+pas parce que StoreKit dit « déjà abonné », mais parce que **le reçu de l'appareil
+redonne le droit à tout compte Kyroz qui se connecte**, y compris neuf, y compris après
+réinstallation (cf. le bloc « OÙ ÇA EN EST » en tête).
+➡️ **Répète la NAVIGATION sans jamais toucher « S'abonner »**, puis enregistre et va au
+bout d'une traite.
+➡️ Et **avant** de commencer, vérifie par API qu'aucun droit n'est actif — la commande
+est dans le bloc de tête. Trente secondes qui évitent une soirée.
 
 ### Ce qu'Apple demande, mot pour mot
 
