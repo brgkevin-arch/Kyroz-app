@@ -1,5 +1,51 @@
 import { describe, it, expect } from 'vitest';
-import { consentSanteManquant } from '../appleAuth';
+import { consentSanteManquant, paireNonce } from '../appleAuth';
+import { sha256Hex } from '../sha256';
+
+/**
+ * Le nonce — le défaut du build (15), corrigé le 2026-09-05.
+ *
+ * 🔴 La première version transmettait la valeur BRUTE à Apple ET à Supabase, sur la
+ * foi de la documentation Supabase pour Expo. Résultat sur un vrai téléphone :
+ * « Nonces mismatch », systématiquement. Supabase compare `SHA-256(ce qu'on lui
+ * donne)` à `ce qu'Apple a mis dans le jeton` — donner le brut aux deux rend la
+ * comparaison impossible à satisfaire, par construction.
+ *
+ * ⚠️ **Ces tests n'auraient PAS attrapé le défaut d'origine** : écrits sous la
+ * croyance fausse, ils auraient vérifié la mauvaise chose. Ils servent à autre
+ * chose — empêcher le RETOUR du défaut, parce que remplacer `pourApple` par le
+ * nonce brut est un « nettoyage » d'apparence anodine que rien d'autre ne signale.
+ */
+describe('paireNonce — ce qui part chez Apple n\'est pas ce qui part chez Supabase', () => {
+  const brut = '4c3028e1-30ca-44e6-9aca-c265c8f72051';
+
+  it('Apple reçoit l\'EMPREINTE du nonce, Supabase reçoit le BRUT', () => {
+    const { pourApple, pourSupabase } = paireNonce(brut);
+    expect(pourSupabase).toBe(brut);
+    expect(pourApple).toBe(sha256Hex(brut));
+  });
+
+  it('les deux valeurs ne sont JAMAIS égales — c\'est exactement le défaut du (15)', () => {
+    for (const n of [brut, 'a', '', 'kyroz-nonce-2026']) {
+      const { pourApple, pourSupabase } = paireNonce(n);
+      expect(pourApple).not.toBe(pourSupabase);
+    }
+  });
+
+  it('la relation est vérifiable dans le sens où Supabase la vérifie', () => {
+    // C'est le calcul que fait le serveur : il hache ce qu'on lui donne et compare
+    // à la revendication `nonce` du jeton d'identité, qu'Apple a recopiée telle
+    // quelle depuis ce qu'on lui avait transmis.
+    const { pourApple, pourSupabase } = paireNonce(brut);
+    const revendicationDansLeJeton = pourApple;          // Apple recopie, ne hache pas
+    expect(sha256Hex(pourSupabase)).toBe(revendicationDansLeJeton);
+  });
+
+  it('deux appels rendent des nonces différents', () => {
+    // Un nonce réutilisé n'est plus un nonce : il n'empêche plus le rejeu.
+    expect(paireNonce('a').pourApple).not.toBe(paireNonce('b').pourApple);
+  });
+});
 
 /**
  * Sign in with Apple (2026-09-05) — ce qui est TESTABLE, et pourquoi c'est ça.
