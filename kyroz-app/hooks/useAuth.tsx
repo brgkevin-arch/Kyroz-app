@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Session } from '@supabase/supabase-js';
 import { supabase, readPersistedSession } from '../lib/supabase';
@@ -7,6 +7,7 @@ import { purgerSessionLocale } from '../lib/sessionLocale';
 import { EFFETS_PURGE } from '../lib/effetsPurge';
 import { withBudget, AUTH_BUDGET_MS, HYDRATION_BUDGET_MS } from '../lib/boot';
 import { URL_RETOUR_CONFIRMATION, normaliseCode } from '../lib/emailConfirmation';
+import { signInWithAppleNative, consentSanteManquant } from '../lib/appleAuth';
 
 /**
  * Consentement RGPD coché à l'inscription, EN ATTENTE d'une session pour être écrit.
@@ -72,6 +73,19 @@ interface AuthValue {
    */
   reauthenticate: (password: string) => Promise<{ error?: string }>;
   signInGuest: () => Promise<{ error?: string }>;
+  // Sign in with Apple, flux natif iOS (cf. `lib/appleAuth.ts`). Ouvre une
+  // session dès qu'Apple valide le jeton — `consentRequis` dit si c'est la
+  // PREMIÈRE fois sur ce compte : l'appelant DOIT alors recueillir le
+  // consentement santé (`confirmAppleConsent`) AVANT de naviguer dans l'app,
+  // sinon un compte signé sans consentement partirait en silence.
+  signInWithApple: () => Promise<
+    | { statut: 'ok'; consentRequis: boolean }
+    | { statut: 'annule' }
+    | { statut: 'indisponible' }
+    | { statut: 'echec'; message: string }
+  >;
+  /** Écrit le consentement santé pour le compte Apple qui vient de s'ouvrir. */
+  confirmAppleConsent: (consent: boolean) => Promise<{ error?: string }>;
   signOut: () => Promise<void>;
 }
 
@@ -281,6 +295,61 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return error ? { error: error.message } : {};
   };
 
+  // ── Sign in with Apple ───────────────────────────────────────────────────
+  //
+  // ⚠️ **La ref, pas `session` — le compte qui vient de s'ouvrir doit être
+  // identifiable SANS dépendre du prochain rendu.** `session` n'est mis à jour
+  // que par l'écouteur `onAuthStateChange` plus haut, de façon asynchrone :
+  // `confirmAppleConsent`, appelé juste après `signInWithApple`, ne peut pas
+  // compter sur lui pour savoir de QUI il écrit le consentement.
+  const compteAppleEnAttente = useRef<{ id: string; email: string | null } | null>(null);
+
+  const signInWithApple: AuthValue['signInWithApple'] = async () => {
+    const r = await signInWithAppleNative();
+    if (r.statut !== 'ok') return r;
+    const { data, error } = await supabase.auth.signInWithIdToken({
+      provider: 'apple',
+      token: r.identityToken,
+      nonce: r.nonce,
+    });
+    if (error) return { statut: 'echec', message: error.message };
+    const id = data.user?.id;
+    if (!id) return { statut: 'echec', message: "Aucune identité renvoyée par Supabase." };
+    const email = data.user?.email ?? r.email ?? null;
+    let manquant = true;
+    try {
+      const { data: profil } = await supabase.from('profiles').select('consent_health_data').eq('id', id).maybeSingle();
+      manquant = consentSanteManquant(profil);
+    } catch {
+      // Réseau coupé au pire moment : prudence dans le sens qui NE DONNE PAS
+      // accès sans consentement plutôt que l'inverse (même sens que le repli
+      // `applyIdentity`, cf. lib/purchases.ts).
+      manquant = true;
+    }
+    if (manquant) compteAppleEnAttente.current = { id, email };
+    return { statut: 'ok', consentRequis: manquant };
+  };
+
+  const confirmAppleConsent: AuthValue['confirmAppleConsent'] = async (consent) => {
+    const compte = compteAppleEnAttente.current;
+    if (!compte) return { error: 'Aucune connexion Apple en attente de consentement.' };
+    try {
+      await supabase.from('profiles').upsert({
+        id: compte.id,
+        email: compte.email,
+        consent_health_data: consent,
+        consent_at: consent ? new Date().toISOString() : null,
+      });
+    } catch (e) {
+      return { error: e instanceof Error ? e.message : 'Erreur inconnue' };
+    }
+    // Retiré seulement après une écriture réussie — même précaution que le
+    // consentement e-mail en attente, plus haut : un échec réseau doit pouvoir
+    // être rejoué, jamais perdre le compte qu'il concernait.
+    compteAppleEnAttente.current = null;
+    return {};
+  };
+
   /**
    * Coupe la session **et fait place nette** (constat 01-01 / 01-02, P0).
    *
@@ -302,7 +371,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     session, ready: authChecked, hydrating, hydrationTick,
     signIn, signUp, confirmEmail, resendConfirmation,
     sendPasswordReset, verifyPasswordReset, setNewPassword,
-    signInGuest, signOut, reauthenticate,
+    signInGuest, signInWithApple, confirmAppleConsent, signOut, reauthenticate,
   };
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
