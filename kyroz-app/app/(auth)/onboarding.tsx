@@ -29,6 +29,7 @@ import {
 } from '../../lib/types';
 import { MealSlotsPicker } from '../../components/MealSlotsPicker';
 import { NeatPicker } from '../../components/NeatPicker';
+import { animerMiseEnPage } from '../../components/Mouvement';
 import { knownSlots } from '../../lib/mealSlots';
 import {
   validateProfile, goalLabel, goalSubtitle, recalcProfile, DEFAULT_NEAT_LEVEL,
@@ -567,10 +568,26 @@ export default function Onboarding() {
           <View style={s.block}>
             <Text style={s.title}>Tes infos de base</Text>
             <Text style={s.sub}>Pour calculer ton métabolisme et tes macros au plus juste.</Text>
-            <Segmented t={t} options={[{ label: 'Homme', value: 'male' }, { label: 'Femme', value: 'female' }]} value={sex} onChange={setSex} />
-            <BirthDateField t={t} value={birthDate} onChange={setBirthDate} />
-            <Field t={t} label="Poids" suffix="kg" value={weight} onChangeText={setWeight} placeholder="80" keyboardType="decimal-pad" />
-            <Field t={t} label="Taille" suffix="cm" value={height} onChangeText={setHeight} placeholder="178" keyboardType="number-pad" />
+            {/* Le sexe OUVRE l'étape : les trois champs suivants n'apparaissent qu'une
+                fois répondu (demande fondateur, 2026-09-06). Une seule question à
+                l'écran, donc un seul geste à faire — et le sexe est déjà ce qui
+                conditionne l'étape 3 (sélecteur de %MG sexué, cf. la garde `&& sex`).
+                ⚠️ C'est un dévoilement, PAS une étape de plus : les quatre champs
+                restent dans la même étape 2, donc `TOTAL_STEPS` ne bouge pas et le
+                brouillon (`lireBrouillon`) se relit tel quel. */}
+            <Segmented
+              t={t}
+              options={[{ label: 'Homme', value: 'male' }, { label: 'Femme', value: 'female' }]}
+              value={sex}
+              onChange={(v) => { animerMiseEnPage(); setSex(v); }}
+            />
+            {sex && (
+              <>
+                <BirthDateField t={t} value={birthDate} onChange={setBirthDate} />
+                <Field t={t} label="Poids" suffix="kg" value={weight} onChangeText={setWeight} placeholder="80" keyboardType="decimal-pad" />
+                <Field t={t} label="Taille" suffix="cm" value={height} onChangeText={setHeight} placeholder="178" keyboardType="number-pad" />
+              </>
+            )}
           </View>
         )}
 
@@ -598,7 +615,9 @@ export default function Onboarding() {
         {step === 4 && (
           <View style={s.block}>
             <Text style={s.title}>Ton activité</Text>
-            <Text style={s.sub}>Deux choses, comptées séparément : ce que tu dépenses dans une journée ordinaire, et ce que tes séances y ajoutent.</Text>
+            {/* Pas de sous-titre ici (décision fondateur, 2026-09-06) : l'écran est
+                allégé, les deux intertitres « TES JOURNÉES, HORS SPORT » et « TES
+                SÉANCES » portent seuls la distinction que la phrase expliquait. */}
             {/* Le NEAT AVANT les séances, et le composant est partagé avec le Profil :
                 voir l'en-tête de `NeatPicker` — l'ordre et la rédaction sont des
                 garde-fous contre le double-comptage sport/journées, pas une mise en page. */}
