@@ -28,12 +28,16 @@
 >
 > 🔴 **CE QUI BLOQUE : la vidéo qu'Apple exige**, et pas pour une raison de code — le bac
 > à sable du fondateur porte un abonnement de test qui **redonne Kyroz+ à tout compte
-> neuf**, donc il n'y a rien à acheter, donc rien à filmer. Sa période s'achève le **06/09
-> à 01:04 UTC (03:04 Paris)** — mais RevenueCat le marque **`will_renew`** (re-mesuré le
-> 05/09 à 19:50) : il ne s'éteindra tout seul que si le renouvellement est **résilié
-> depuis le téléphone** (Réglages → App Store → Compte Sandbox → Gérer). Diagnostic
-> complet, pistes éliminées et marche à suivre :
-> `docs/procedures/PROCEDURE-2026-09-05-video-achat-sandbox.md`, bloc de tête.
+> neuf**, donc il n'y avait rien à acheter, donc rien à filmer.
+> ✅ **LEVÉ le 2026-09-06** : l'app désinstallée a emporté le reçu, la période s'est
+> achevée, et RevenueCat est mesuré à **0 client**. L'environnement est propre.
+> 🔴 **Et la chasse au compte sandbox était un détour** : `GET /v2/sandboxTesters` rend
+> **0** testeur avec une clé `ACCOUNT_HOLDER`, alors que l'abonnement était bien en
+> `environment: sandbox` — un build TestFlight passe ses achats en bac à sable avec le
+> compte Apple ORDINAIRE, sans testeur. Le formulaire d'App Store Connect qui refuse
+> depuis deux jours n'est pas sur le chemin critique.
+> ➡️ Séquence jusqu'à la vidéo :
+> `docs/procedures/PROCEDURE-2026-09-05-video-achat-sandbox.md`, bloc de tête §0.
 >
 > ⚠️ Deux défauts d'affichage relevés en répétant le parcours, **volontairement non
 > corrigés** pour ne pas rebâtir le binaire : `E67` et `E68` (défilement de l'assistant
