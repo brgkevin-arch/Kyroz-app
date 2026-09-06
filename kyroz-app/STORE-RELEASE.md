@@ -26,16 +26,24 @@
 > porte le **timeout d'achat de 30 s** (le correctif du rejet) et **Sign in with Apple**,
 > essayé sur appareil et fonctionnel. Tout est vérifié dans l'artefact, pas supposé.
 >
-> 🔴 **CE QUI BLOQUE : la vidéo qu'Apple exige**, et pas pour une raison de code — le bac
-> à sable du fondateur porte un abonnement de test qui **redonne Kyroz+ à tout compte
-> neuf**, donc il n'y avait rien à acheter, donc rien à filmer.
-> ✅ **LEVÉ le 2026-09-06** : l'app désinstallée a emporté le reçu, la période s'est
-> achevée, et RevenueCat est mesuré à **0 client**. L'environnement est propre.
-> 🔴 **Et la chasse au compte sandbox était un détour** : `GET /v2/sandboxTesters` rend
-> **0** testeur avec une clé `ACCOUNT_HOLDER`, alors que l'abonnement était bien en
-> `environment: sandbox` — un build TestFlight passe ses achats en bac à sable avec le
-> compte Apple ORDINAIRE, sans testeur. Le formulaire d'App Store Connect qui refuse
-> depuis deux jours n'est pas sur le chemin critique.
+> ⏸️ **CE QUI RESTE : la vidéo qu'Apple exige**, et pas pour une raison de code. Le compte
+> Apple du fondateur portait un abonnement sandbox **ACTIF qui se renouvelait tous les
+> jours** (dix renouvellements du 28/08 au 07/09, lus dans l'historique d'Apple), donc
+> StoreKit refusait tout achat — « Vous êtes déjà abonné » — donc rien à filmer.
+> ✅ **Résilié le 2026-09-06** (« Gérer » dans la boîte d'Apple → Annuler) :
+> `autoRenewStatus` est passé à *désactivé*, vérifié dans l'App Store Server API.
+> ➡️ **L'achat redevient possible le 2026-09-07 à 03:04:30 heure de Paris** — annuler
+> coupe la suite, pas la période en cours. Ensuite, ça reste expiré : aucun créneau à
+> attraper.
+> 🔴 **NE PAS SE FIER À REVENUECAT SUR CETTE QUESTION.** Il affichait **0 droit actif**
+> pendant tout le blocage — vrai, et sans rapport : la fiche client avait été supprimée.
+> La source d'un abonnement est l'**App Store Server API**
+> (`~/.eas-credentials/kyroz-abo-sandbox.mjs`), jamais le miroir.
+> ℹ️ Et **aucun compte sandbox n'est requis** : `GET /v2/sandboxTesters` rend **0** testeur
+> avec une clé `ACCOUNT_HOLDER` alors que l'abonnement était bien en `environment:
+> sandbox` — un build TestFlight facture en bac à sable sur le compte Apple ORDINAIRE.
+> Le formulaire d'App Store Connect qui refuse depuis deux jours n'est pas sur le chemin
+> critique.
 > ➡️ Séquence jusqu'à la vidéo :
 > `docs/procedures/PROCEDURE-2026-09-05-video-achat-sandbox.md`, bloc de tête §0.
 >
