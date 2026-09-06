@@ -123,11 +123,27 @@ de revue. Aller jusqu'à l'écran Kyroz+.
 ⚠️ **Pas « un compte neuf au choix »** : le relecteur d'Apple tapera ces identifiants-là,
 donc la vidéo doit montrer SON parcours. Un autre compte prouverait que l'app marche pour
 nous, pas pour lui — sur le point précis qu'il conteste.
-ℹ️ **Et ce compte est propre par construction** : `review@kyroz.app` n'est PAS une ligne
-Supabase (`lib/reviewAccess.ts`) — c'est une adresse sentinelle qui, avec le code du
-binaire, ouvre une **session invité NEUVE**. Donc vider Supabase ne l'atteint pas, et
-comme la session naît au moment de la connexion, elle est toujours postérieure au 27/08 :
-jamais `grandfathered`, le paywall s'affiche toujours.
+🔴 **TAPE LE CODE DE REVUE (29 caractères), PAS UN MOT DE PASSE — deux mots de passe
+ouvrent deux comptes DIFFÉRENTS sous la même adresse.** `login.tsx:74` teste le code
+AVANT d'appeler Supabase :
+
+| Ce qu'on tape | Ce qui se passe | Titre de l'écran Kyroz+ |
+|---|---|---|
+| `review@kyroz.app` + **le code de revue** | court-circuit `isReviewLogin` → **session invité NEUVE**, créée à l'instant | ✅ « Piloter ton objectif dans le temps » |
+| `review@kyroz.app` + **le mot de passe de la ligne Supabase** | connexion normale → compte du **2026-08-03** | 🔴 « C'est déjà à toi » — grand-péré, rien à acheter |
+
+⚠️ **La ligne Supabase existe bel et bien** — vérifié le 2026-09-06 :
+`review@kyroz.app`, `created_at = 2026-08-03`, non anonyme. Donc **antérieure à
+`PAYWALL_LAUNCH`**, donc offerte à vie. Se tromper de mot de passe ne donne pas une
+erreur de connexion : ça donne un écran parfaitement plausible qui fait croire que le bac
+à sable est encore contaminé, et on repart chercher un défaut qui n'existe pas.
+
+ℹ️ Le chemin du code, lui, est propre par construction : `guest()` crée une session
+anonyme datée de l'instant, donc toujours postérieure au 27/08 — l'ancre du droit est
+`auth.users.created_at` (`lib/premium.ts`), pas ce qui traîne ailleurs en base.
+✅ **Le relecteur d'Apple tombera forcément sur la bonne branche** : le mot de passe de
+démo déclaré dans les notes de revue et le code embarqué dans le build sont IDENTIQUES
+(29 caractères, vérifié le 2026-09-06 — `node ~/.eas-credentials/kyroz-verif-demo.mjs`).
 ➡️ Ce qu'on doit voir à la fin — **c'est LE feu vert, et le seul diagnostic fiable** :
 le titre en haut de l'écran Kyroz+ doit être **« Piloter ton objectif dans le temps »**.
 ⚠️ Si c'est « Ton abonnement Kyroz+ est actif » ou « C'est déjà à toi », **s'arrêter et
