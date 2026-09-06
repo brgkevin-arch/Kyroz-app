@@ -18,8 +18,12 @@ import { NEAT_ORDER, NEAT_LABEL } from '../lib/tdee';
 //
 // · le texte d'introduction (« Ce que tu dépenses sans y penser : boulot, trajets,
 //   courses. Ne compte pas tes séances ici, elles sont comptées juste en dessous. »)
-//   était la SEULE phrase qui interdisait le double-comptage sport / journées. Sans
-//   elle, plus rien à l'écran ne dit de ne pas penser à ses séances en répondant ;
+//   était la seule PHRASE qui interdisait le double-comptage sport / journées.
+//   ⚠️ Arbitrage du fondateur, et c'est lui qui fait foi : « si l'app amène aux
+//   séances quand on choisit l'activité, ils vont comprendre » — la SÉQUENCE porte
+//   désormais ce que la phrase disait. D'où la conséquence directe : l'ordre NEAT
+//   puis séances n'est plus une préférence de mise en page, c'est le dernier
+//   support de la distinction. L'inverser la supprimerait, sans casser un test ;
 // · les descriptions (`NEAT_HINT`) portaient l'ancrage MÉTIER (« Bureau, télétravail,
 //   conduite, études », « Commerce, soins, enseignement, restauration »). Il ne reste
 //   que l'ancrage POSTURE, celui des `NEAT_LABEL`.
