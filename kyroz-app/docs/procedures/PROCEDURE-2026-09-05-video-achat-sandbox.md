@@ -3,10 +3,79 @@
 > **Une étape à la fois.** Chaque étape dit ce que tu dois VOIR à la fin. On ne passe à
 > la suivante que quand tu le vois.
 
-## 🔴 OÙ ÇA EN EST — 2026-09-05 au soir, LIRE EN PREMIER
+## 🔴 OÙ ÇA EN EST — 2026-09-06 à 17:10, LIRE EN PREMIER
 
-**Tout est prêt sauf la vidéo, et la vidéo est bloquée par un environnement de test
-contaminé.** Rien à corriger dans l'app : le blocage est côté bac à sable Apple.
+**La cause est trouvée, elle est résolue, et l'achat redevient possible le 2026-09-07 à
+03:04:30 heure de Paris** (01:04:30 UTC). Rien à faire d'ici là.
+
+### La cause, dite par le fondateur pendant deux jours
+
+> « Quand j'appuie sur S'abonner, ça me dit que **je suis déjà abonné**. »
+
+C'était l'énoncé exact du problème, et il a été traité comme un symptôme d'environnement
+contaminé pendant deux jours. La boîte de dialogue d'Apple, lue sur l'enregistrement
+d'écran du 06/09 à 16:25, dit tout :
+
+> **Vous êtes déjà abonné.** Votre abonnement à Kyroz+ annuel sera renouvelé le 7 sept.
+> 2026 au prix de 29,99 €. Pour consulter les options de l'abonnement ou le résilier,
+> touchez Gérer. *Les bêta-testeurs ne sont pas facturés pour cet achat intégré.*
+
+Puis l'app rend « L'achat n'a pas abouti — *There was a problem with the App Store* ».
+
+🔴 **Le compte Apple portait un abonnement sandbox ACTIF qui se renouvelait TOUS LES
+JOURS.** Historique complet lu chez Apple (`GET /inApps/v1/history/`) : **dix
+renouvellements quotidiens**, du 28/08 au 07/09, tous automatiques. Chaque matin, la
+chose repoussait — d'où l'impression que rien de ce qu'on faisait ne servait à rien.
+
+### Pourquoi toutes nos mesures disaient le contraire
+
+RevenueCat affichait **0 droit actif**, et c'est ce chiffre qui a été cru. Il était vrai
+et sans rapport : la fiche client avait été SUPPRIMÉE. **Supprimer le miroir ne résilie
+rien chez Apple.** C'est mot pour mot la leçon du 05/09 — *le reçu est la source,
+RevenueCat n'en est que le reflet* — rejouée un cran plus haut : la source n'était même
+plus le reçu de l'appareil, c'était l'abonnement sur le compte Apple.
+
+➡️ **LA SOURCE POUR UN ABONNEMENT, C'EST L'APP STORE SERVER API, PAS REVENUECAT.**
+Elle répond en sandbox avec la clé ASC ordinaire (JWT `aud: appstoreconnect-v1` **+ champ
+`bid`**), et elle donne le statut, la période, et surtout `autoRenewStatus` :
+```
+https://api.storekit-sandbox.itunes.apple.com/inApps/v1/subscriptions/<originalTransactionId>
+https://api.storekit-sandbox.itunes.apple.com/inApps/v1/history/<originalTransactionId>
+```
+Les charges utiles sont des JWS : le corps se lit en décodant le segment du milieu en
+base64url, sans vérifier la signature (lecture seule, pour diagnostic).
+
+### Ce qui a résolu, et ce qui n'a rien donné
+
+| Geste | Résultat |
+|---|---|
+| **« Gérer » dans la boîte d'Apple → Annuler l'abonnement** | ✅ **c'est ÇA** — `autoRenewStatus` est passé à *désactivé*, vérifié dans l'API d'Apple |
+| Supprimer les clients RevenueCat | ❌ sans effet — le miroir, pas la source |
+| Désinstaller l'app | ❌ enlève le reçu local, ne touche pas l'abonnement |
+| Vider Supabase | ❌ sans rapport |
+| Créer un testeur sandbox | ❌ 4 refus du formulaire — **et hors sujet** : les achats TestFlight passent par le compte Apple ORDINAIRE (« les bêta-testeurs ne sont pas facturés »), pas par un testeur |
+| Attendre l'expiration | ❌ **tant que le renouvellement était actif** — il repartait chaque nuit |
+
+⚠️ **« Gérer » a d'abord rendu « connexion impossible », puis a fonctionné au second
+essai.** Ne pas conclure de la première tentative que la porte est fermée.
+
+⚠️ **Annuler n'écourte pas la période en cours** : Apple la laisse courir jusqu'à son
+terme. L'attente est structurelle, et l'API ne sait qu'**allonger** une échéance
+(`extend`, 1 à 90 jours), jamais l'avancer.
+
+### Trois leçons de méthode
+
+1. **Quand l'utilisateur dit ce que l'écran affiche, c'est la donnée la plus fiable de
+   toute la session.** « Ça dit que je suis déjà abonné » nommait la cause exacte dès le
+   premier jour ; deux journées ont été passées à mesurer autre chose.
+2. **Demander une CAPTURE avant de mesurer des API.** La vidéo a tranché en trois minutes
+   ce que quinze appels d'API n'avaient pas su dire — parce que le message n'existe qu'à
+   l'écran.
+3. **Un `0` mesuré n'est une bonne nouvelle que si l'on sait de quelle source il vient.**
+   Zéro droit chez RevenueCat a été lu comme « environnement propre » alors qu'il ne
+   voulait dire que « nous avons effacé notre copie ».
+
+### L'état du dossier
 
 | | |
 |---|---|
@@ -15,9 +84,23 @@ contaminé.** Rien à corriger dans l'app : le blocage est côté bac à sable A
 | Sign in with Apple | ✅ dedans, **essayé sur appareil et fonctionnel** |
 | Fournisseur Apple chez Supabase | ✅ activé par API |
 | Profil de signature | ✅ `8FNNKYG5WV`, entitlement vérifié dans son contenu |
-| **La vidéo** | 🔴 **bloquée — voir ci-dessous** |
+| Abonnement sandbox bloquant | ✅ **résilié** — expire le 07/09 à 03:04:30 Paris |
+| **La vidéo** | ⏸️ **filmable à partir du 07/09 03:05** — §0 |
 | Soumission | ⏸️ attend la vidéo |
 
+ℹ️ **Aucun compte sandbox n'est requis, et c'est mesuré** : `GET /v2/sandboxTesters` rend
+`total: 0` avec une clé `ACCOUNT_HOLDER`, alors que l'abonnement était bien en
+`environment: sandbox`. Un build TestFlight passe ses achats en bac à sable **avec le
+compte Apple ordinaire** — la boîte d'Apple le dit elle-même (« les bêta-testeurs ne sont
+pas facturés »). Le compte sandbox ne servirait qu'à un build installé par Xcode ou par un
+profil de développement.
+
+### ⬇️ HISTORIQUE du diagnostic — conservé, mais PÉRIMÉ
+
+> Ce qui suit est ce qu'on a cru comprendre les 05 et 06 septembre, avant de lire la
+> boîte de dialogue d'Apple. **La cause réelle est en tête de ce fichier, et la marche à
+> suivre est au §0.** Conservé parce qu'un diagnostic abandonné sans trace se refait :
+> chacune de ces pistes a coûté des heures et mérite de rester éliminée par écrit.
 ### Le blocage, et sa cause MESURÉE
 
 L'écran Kyroz+ affiche **« Abonnement actif »** sur tout compte Kyroz neuf, donc il n'y a
@@ -28,7 +111,7 @@ La cause, trouvée en interrogeant l'API RevenueCat (clé secrète dans
 
 ```
 24342d5c-…   apparu 05/09 19:33   MAIS first_seen_at = 01/08 07:00
-             2 abonnements · 1 ACTIF · fin 06/09 03:04 UTC (05:04 Paris)
+             2 abonnements · 1 ACTIF · fin 06/09 01:04 UTC (03:04 Paris)
 ```
 
 🔴 **Un client supprimé REVIENT, avec sa date d'origine.** RevenueCat ne le recrée pas
@@ -48,26 +131,118 @@ connexion suivante, en quelques secondes.
 | Supprimer les clients RevenueCat | ❌ inutile | le reçu de l'appareil les reconstruit |
 | Se déconnecter du compte sandbox dans les Réglages | ❌ insuffisant | le reçu reste dans le conteneur de l'app |
 | Créer un second testeur sandbox | ❌ impossible ce soir | le formulaire d'App Store Connect rend *« Une erreur s'est produite »* sur **trois** adresses différentes (`@kyroz.app`, `sandbox@gmail.com`, `brgkevinpro+sandbox1@gmail.com`). Ce n'est donc pas l'adresse. Les incidents de la page d'état d'Apple dataient du 1ᵉʳ septembre, résolus — donc pas une panne déclarée. **Cause non trouvée**, pistes non éprouvées : le mot de passe (règles Apple ID : 8 caractères, majuscule, minuscule, chiffre) et l'accent de « Kévin » |
+| Contourner ce formulaire par l'API App Store Connect | ❌ **impossible, ce n'est pas une panne** | mesuré le 05/09 au soir : `GET /v2/sandboxTesters` répond, `PATCH /v2/sandboxTesters/{id}` et `POST /v2/sandboxTestersClearPurchaseHistoryRequest` existent — **il n'y a AUCUN endpoint de création**. Apple l'écrit : *« Use App Store Connect to create or delete Sandbox Apple Account »*. Le formulaire web est la seule porte, donc l'erreur doit se résoudre là |
 
-### 🟢 CE QU'IL FAUT FAIRE À LA PROCHAINE SESSION
+### 🔎 RE-MESURÉ LE 05/09 À 19:50 — DEUX FAITS QUI CHANGENT LE PLAN
 
-**Le plus simple : attendre.** L'abonnement expire le **06/09 à 03:04 UTC (05:04 heure de
-Paris)** et ne se renouvellera plus — l'historique d'achats a été effacé. Après cette
-heure, l'environnement est propre tout seul.
+**1. L'abonnement est marqué « will_renew ».** Le plan « attendre » supposait qu'il
+s'éteindrait seul parce que l'historique d'achats avait été effacé. RevenueCat dit le
+contraire : `auto_renewal_status = will_renew`, sur `kyroz_plus_yearly_early`, période
+du 29/08 01:04 au **06/09 01:04 UTC**. À cette heure-là, il peut donc **repartir pour une
+période** au lieu d'expirer. ➡️ Le geste qui rend l'attente fiable est de **résilier
+depuis le téléphone** (étape 0 ci-dessous).
 
-1. Vérifier que c'est bien fini, sans toucher au téléphone :
-   ```bash
-   K=$(cat ~/.eas-credentials/revenuecat-secret); P=proj7396660e
-   curl -s -H "Authorization: Bearer $K" \
-     "https://api.revenuecat.com/v2/projects/$P/customers?limit=50"
-   ```
-   puis `…/customers/<id>/active_entitlements` sur chaque client. **Zéro droit actif = feu vert.**
-2. Sur le téléphone : tuer l'app, la rouvrir, se connecter avec les identifiants de revue.
-3. L'écran Kyroz+ doit s'ouvrir sur **« Piloter ton objectif dans le temps »**.
-4. Filmer (§5).
+**2. L'heure exacte est 03:04 heure de Paris, pas 05:04.** L'expiration est à
+`2026-09-06 01:04:30 UTC`, soit **03:04 à Paris** (UTC+2). La ligne « (05:04 Paris) »
+plus haut convertissait dans le mauvais sens.
 
-⚠️ **Si le droit revient encore après expiration** : la seule piste restante est un
-**second testeur sandbox**, donc résoudre d'abord l'erreur de création du formulaire.
+**3. Il n'existe AUCUN testeur sandbox sur le compte** — `GET /v2/sandboxTesters` rend
+`total: 0`, avec une clé `ACCOUNT_HOLDER / ADMIN` qui voit toutes les apps (donc ce n'est
+pas un défaut de droits). Conséquences : « créer un **second** testeur » est en réalité
+« créer **le premier** » ; et `POST /v2/sandboxTestersClearPurchaseHistoryRequest` n'a
+personne à nettoyer. L'achat en cours vient donc d'un compte Apple qui n'est pas dans
+cette liste — ce qui explique que rien de ce qu'on a tenté côté App Store Connect n'ait
+mordu.
+
+---
+
+## 🟢 §0 — LA SÉQUENCE, DE L'ÉTAT ACTUEL JUSQU'À LA VIDÉO
+
+> **Une étape à la fois.** Chacune dit ce qu'on doit VOIR à la fin. On ne passe à la
+> suivante que quand on le voit. **Rien de tout ceci ne demande de compte sandbox.**
+
+**A. Vérifier chez APPLE que l'abonnement est bien éteint** — après le 07/09 03:05 heure
+de Paris, et sans toucher au téléphone :
+```bash
+source ~/.eas-credentials/asc.env
+node ~/.eas-credentials/kyroz-abo-sandbox.mjs 2000001228051837
+```
+➡️ Ce qu'on doit voir : `statut = expiré`. **C'est cette ligne-là qui fait foi, pas
+RevenueCat** — RevenueCat n'a plus de fiche pour cet abonnement, il affichera 0 quoi
+qu'il arrive.
+⚠️ Ne toucher à **aucun** réglage de compte sandbox : les achats TestFlight passent par
+le compte Apple ordinaire, il n'y a rien à créer ni à connecter.
+⚠️ Et **ne pas appuyer sur « Restaurer mes achats »** avant la prise : ça donnerait le
+droit à l'app et ferait disparaître le paywall qu'on doit filmer.
+
+**B. Réinstaller Kyroz depuis TestFlight** (pas depuis l'App Store — l'app n'y est pas
+encore). Ouvrir TestFlight, Kyroz, *Installer*.
+➡️ Ce qu'on doit voir à la fin : dans TestFlight, sous le nom de l'app, **« 1.0.0 (16) »**.
+⚠️ Si c'est un autre numéro, s'arrêter et le dire : la vidéo doit se tourner sur le (16),
+qui porte le correctif du timeout. Un autre binaire prouverait le contraire de ce qu'on
+affirme à Apple.
+
+**C. Ouvrir l'app et se connecter avec le COMPTE DE DÉMO** — `review@kyroz.app` + le code
+de revue. Aller jusqu'à l'écran Kyroz+.
+⚠️ **Pas « un compte neuf au choix »** : le relecteur d'Apple tapera ces identifiants-là,
+donc la vidéo doit montrer SON parcours. Un autre compte prouverait que l'app marche pour
+nous, pas pour lui — sur le point précis qu'il conteste.
+🔴 **TAPE LE CODE DE REVUE (29 caractères), PAS UN MOT DE PASSE — deux mots de passe
+ouvrent deux comptes DIFFÉRENTS sous la même adresse.** `login.tsx:74` teste le code
+AVANT d'appeler Supabase :
+
+| Ce qu'on tape | Ce qui se passe | Titre de l'écran Kyroz+ |
+|---|---|---|
+| `review@kyroz.app` + **le code de revue** | court-circuit `isReviewLogin` → **session invité NEUVE**, créée à l'instant | ✅ « Piloter ton objectif dans le temps » |
+| `review@kyroz.app` + **le mot de passe de la ligne Supabase** | connexion normale → compte du **2026-08-03** | 🔴 « C'est déjà à toi » — grand-péré, rien à acheter |
+
+⚠️ **La ligne Supabase existe bel et bien** — vérifié le 2026-09-06 :
+`review@kyroz.app`, `created_at = 2026-08-03`, non anonyme. Donc **antérieure à
+`PAYWALL_LAUNCH`**, donc offerte à vie. Se tromper de mot de passe ne donne pas une
+erreur de connexion : ça donne un écran parfaitement plausible qui fait croire que le bac
+à sable est encore contaminé, et on repart chercher un défaut qui n'existe pas.
+
+ℹ️ Le chemin du code, lui, est propre par construction : `guest()` crée une session
+anonyme datée de l'instant, donc toujours postérieure au 27/08 — l'ancre du droit est
+`auth.users.created_at` (`lib/premium.ts`), pas ce qui traîne ailleurs en base.
+✅ **Le relecteur d'Apple tombera forcément sur la bonne branche** : le mot de passe de
+démo déclaré dans les notes de revue et le code embarqué dans le build sont IDENTIQUES
+(29 caractères, vérifié le 2026-09-06 — `node ~/.eas-credentials/kyroz-verif-demo.mjs`).
+➡️ Ce qu'on doit voir à la fin — **c'est LE feu vert, et le seul diagnostic fiable** :
+le titre en haut de l'écran Kyroz+ doit être **« Piloter ton objectif dans le temps »**.
+⚠️ Si c'est « Ton abonnement Kyroz+ est actif » ou « C'est déjà à toi », **s'arrêter et
+dire lequel** — les trois titres ont trois causes sans rien en commun (tableau ci-dessous),
+et deux heures ont déjà été perdues faute d'avoir demandé ce mot-là.
+
+**D. NE PAS appuyer sur « S'abonner » pour essayer.** Un achat sandbox n'est neuf
+qu'**une fois** par compte : StoreKit répondrait ensuite « vous êtes déjà abonné » au lieu
+de rejouer un achat propre, et la vraie prise serait détruite. On répète la NAVIGATION
+sans acheter, jamais l'achat.
+
+**E. Filmer (§5), en une seule prise.** Au moment de l'achat, iOS demande un compte Apple :
+c'est le compte Apple **ordinaire**, celui du téléphone. Rien n'est débité — TestFlight
+place l'achat en bac à sable tout seul.
+
+➡️ **Vérification à distance, à tout moment, sans toucher au téléphone :**
+```bash
+K=$(tr -d '\r\n' < ~/.eas-credentials/revenuecat-secret); P=proj7396660e
+curl -s -H "Authorization: Bearer $K" \
+  "https://api.revenuecat.com/v2/projects/$P/customers?limit=50"
+```
+puis `…/customers/<id>/active_entitlements` sur chaque client. **Zéro droit actif = feu
+vert** ; après l'achat filmé, **un droit actif = l'achat a bien abouti**, ce qui est très
+exactement ce qu'Apple accuse de ne jamais arriver.
+⚠️ **`K=$(cat …)` NE MARCHE PAS** — le fichier de clé contient trois lignes, donc l'en-tête
+`Authorization` contient un saut de ligne, donc curl rend `HTTP 000` sans rien dire d'utile.
+C'est `tr -d '\r\n'` qui répare, et l'erreur ressemble à une panne réseau alors que c'est la
+clé qui est mal lue.
+
+⚠️ **Si le titre de l'étape C n'est pas le bon**, la piste n'est PAS le compte sandbox :
+c'est que quelque chose redonne le droit. Les trois causes possibles, dans l'ordre où on
+les élimine — (1) un reçu resté sur l'appareil : désinstaller l'app, redémarrer le
+téléphone, réinstaller ; (2) `PAYWALL_LAUNCH` : un compte créé avant le 27/08 est
+`grandfathered` à vie, donc il faut un compte VRAIMENT neuf ; (3) un client réapparu chez
+RevenueCat, que la commande ci-dessus montre en deux secondes.
 
 ### Le titre de l'écran est le seul diagnostic fiable
 
@@ -142,7 +317,18 @@ C'est ce qui manquait aux quatre builds ratés.
 
 ---
 
-## Étape 1 — le compte sandbox Apple
+## Étape 1 — le compte sandbox Apple 🚫 SANS OBJET depuis le 2026-09-06
+
+> 🔴 **CETTE ÉTAPE EST ANNULÉE — un build TestFlight n'a besoin d'AUCUN compte sandbox.**
+> Mesuré : `GET /v2/sandboxTesters` rend `total: 0` avec une clé `ACCOUNT_HOLDER`, alors
+> que l'abonnement de test était bien réel et bien en `environment: sandbox`. Les achats
+> se faisaient donc avec le compte Apple ordinaire du téléphone, comme TestFlight le fait
+> tout seul. Le formulaire d'App Store Connect qui refuse depuis deux jours n'est **pas**
+> sur le chemin critique.
+> ➡️ Suivre **§0** (bloc de tête). Ce qui suit est conservé pour l'histoire : c'est ce
+> qu'on a cru devoir faire, et ça a coûté deux journées.
+> ⚠️ *Ce serait vrai à nouveau le jour où on testerait un build installé par Xcode ou par
+> un profil de développement — là, le compte sandbox redevient obligatoire.*
 
 ⚠️ **Ce n'est PAS le compte de démo Kyroz.** Deux comptes différents :
 
@@ -176,13 +362,13 @@ de compte dans les Réglages, au lieu d'un blocage.
    ℹ️ Le **(15)** avait un défaut connu — Sign in with Apple y répondait « Nonces
    mismatch » (corrigé par la PR #219, présent dans le (16), **essayé sur appareil et
    fonctionnel**).
-2. **Réglages → App Store** → tout en bas, **Compte Sandbox** → connecte-toi avec le
-   compte de l'étape 1.
+2. ~~**Réglages → App Store** → tout en bas, **Compte Sandbox** → connecte-toi avec le
+   compte de l'étape 1.~~ 🚫 **ANNULÉ le 2026-09-06** — voir l'étape 1. Il n'y a rien à
+   connecter : TestFlight met l'achat en bac à sable avec le compte Apple ordinaire.
+   Laisser ce réglage tel qu'il est.
 
-⚠️ Si un ancien compte sandbox y est déjà connecté, déconnecte-le d'abord.
-
-**Tu dois voir à la fin** : « Compte Sandbox » affiche l'e-mail du testeur, et le
-numéro de build de TestFlight correspond à celui qu'on soumettra.
+**Tu dois voir à la fin** : le numéro de build affiché par TestFlight est **1.0.0 (16)**,
+celui qu'on soumettra.
 
 ---
 
