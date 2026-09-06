@@ -118,8 +118,16 @@ encore). Ouvrir TestFlight, Kyroz, *Installer*.
 qui porte le correctif du timeout. Un autre binaire prouverait le contraire de ce qu'on
 affirme à Apple.
 
-**C. Ouvrir l'app et créer un compte Kyroz neuf** (ou se connecter avec les identifiants
-de revue). Aller jusqu'à l'écran Kyroz+.
+**C. Ouvrir l'app et se connecter avec le COMPTE DE DÉMO** — `review@kyroz.app` + le code
+de revue. Aller jusqu'à l'écran Kyroz+.
+⚠️ **Pas « un compte neuf au choix »** : le relecteur d'Apple tapera ces identifiants-là,
+donc la vidéo doit montrer SON parcours. Un autre compte prouverait que l'app marche pour
+nous, pas pour lui — sur le point précis qu'il conteste.
+ℹ️ **Et ce compte est propre par construction** : `review@kyroz.app` n'est PAS une ligne
+Supabase (`lib/reviewAccess.ts`) — c'est une adresse sentinelle qui, avec le code du
+binaire, ouvre une **session invité NEUVE**. Donc vider Supabase ne l'atteint pas, et
+comme la session naît au moment de la connexion, elle est toujours postérieure au 27/08 :
+jamais `grandfathered`, le paywall s'affiche toujours.
 ➡️ Ce qu'on doit voir à la fin — **c'est LE feu vert, et le seul diagnostic fiable** :
 le titre en haut de l'écran Kyroz+ doit être **« Piloter ton objectif dans le temps »**.
 ⚠️ Si c'est « Ton abonnement Kyroz+ est actif » ou « C'est déjà à toi », **s'arrêter et
