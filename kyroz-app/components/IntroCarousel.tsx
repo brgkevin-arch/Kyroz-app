@@ -46,7 +46,7 @@ const DIAPOS: Diapo[] = [
   {
     cle: 'plan',
     titre: 'Ton plan, décidé pour toi',
-    texte: 'Tes calories et tes macros du jour, déjà calculées. Tu n\'as rien à compter.',
+    texte: 'Tes calories et tes macros du jour. Tu n\'as rien à compter.',
     images: {
       sombre: require('../assets/intro/sombre/1-plan.png'),
       clair: require('../assets/intro/clair/1-plan.png'),
@@ -55,7 +55,7 @@ const DIAPOS: Diapo[] = [
   {
     cle: 'poids',
     titre: 'Ton poids, suivi sans pression',
-    texte: 'Une courbe, pas un verdict. Le plan se recale tout seul sur ce qu\'elle dit.',
+    texte: 'Une courbe, pas un verdict.',
     images: {
       sombre: require('../assets/intro/sombre/2-poids.png'),
       clair: require('../assets/intro/clair/2-poids.png'),
@@ -64,7 +64,7 @@ const DIAPOS: Diapo[] = [
   {
     cle: 'courses',
     titre: 'Ta liste de courses, prête',
-    texte: 'Tout ce qu\'il te faut pour la semaine, rangé par rayon, avec les quantités.',
+    texte: 'Tout ce qu\'il te faut pour ton plan de la semaine.',
     images: {
       sombre: require('../assets/intro/sombre/3-courses.png'),
       clair: require('../assets/intro/clair/3-courses.png'),
@@ -73,7 +73,7 @@ const DIAPOS: Diapo[] = [
   {
     cle: 'recettes',
     titre: 'Des recettes qui s\'adaptent',
-    texte: 'Les quantités s\'ajustent à TES macros — pas à toi de t\'ajuster aux leurs.',
+    texte: 'Les quantités s\'ajustent à tes macros.',
     images: {
       sombre: require('../assets/intro/sombre/4-recettes.png'),
       clair: require('../assets/intro/clair/4-recettes.png'),
