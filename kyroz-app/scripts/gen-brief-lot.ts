@@ -157,7 +157,7 @@ const LOTS: Lot[] = [
   {
     cle: 'b10-pdj', titre: 'B10 — 15 petits-dejeuners du quotidien francais, format genereux',
     volume: 15, categorie: 'petit_dej', prefixe: 'pd', idDebut: 123, idFin: 137,
-    wave: '2026-09-07-b10-registre-francais',
+    wave: '2026-09-07-b10-registre-francais', livre: '2026-09-07',
     // Bande HAUTE, et la protéine monte AVEC les calories : `DENSITE_CIBLE` dit qu un
     // repas plus gros à protéine constante DÉGRADE le catalogue (`adaptRecipe` doit
     // alors gonfler toute la recette et lève `over_target_kcal`). 520–640 kcal pour
@@ -178,7 +178,7 @@ const LOTS: Lot[] = [
   {
     cle: 'b10-col', titre: 'B10 — 10 collations salees du quotidien, dont les premieres carnees',
     volume: 10, categorie: 'collation', prefixe: 'col', idDebut: 111, idFin: 120,
-    wave: '2026-09-07-b10-registre-francais',
+    wave: '2026-09-07-b10-registre-francais', livre: '2026-09-07',
     kcal: [200, 300], prot: [14, 22], carb: [18, 34], fat: [7, 12],
     regimes: { libre: 4, vegetarien: 6, vegan: 0, sansGluten: 2 },
     etapes: [1, 3],

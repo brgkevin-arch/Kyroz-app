@@ -102,6 +102,15 @@ describe('plancher protéique par repas', () => {
     // à 0 laisse les deux bornes vertes. Le cyclage glucidique ne déplace pas les
     // protéines — c'est même sa définition. Noté pour que personne ne la retente.)
     const p = gabarit();
+    // ⚠️ RE-BASELINÉE le 2026-09-07 (vague B10), de 1,10 à 1,11 — mesuré 1,104.
+    // La cause est la COMMANDE, pas une dérive : B10 ajoute 15 petits-déjeuners à
+    // 592 kcal de base en moyenne, contre 483 pour les 122 d'avant (+23 %), à densité
+    // protéique comparable (6,48 contre 6,07 g/100 kcal). Un petit-déjeuner plus gros
+    // porte mécaniquement plus de protéines, et ce gabarit-ci est justement celui qui
+    // en demande le MOINS par calorie (F 70 en prise de masse : 597 kcal pour 25 g,
+    // soit 4,2 g/100 kcal — sous le plancher de 5,0 que le brief du lot impose).
+    // VÉRIFIÉ PAR MUTATION APRÈS RE-BASELINAGE, sur le catalogue à 537 : porter
+    // `PROT_SHARE_FLOOR` de 0,7 à 0,9 donne 1,125 et rougit toujours.
     const ratios: number[] = [];
     for (const seed of [0, 1, 2]) {
       for (const m of buildLocalPlan(p, seed).total_macros_per_day) {
@@ -113,6 +122,6 @@ describe('plancher protéique par repas', () => {
     ratios.sort((a, b) => a - b);
     const mediane = ratios[Math.floor(ratios.length / 2)];
     expect(ratios.length, 'jours mesurés').toBe(21);
-    expect(mediane, `médiane=${mediane.toFixed(3)}`).toBeLessThan(1.10);
+    expect(mediane, `médiane=${mediane.toFixed(3)}`).toBeLessThan(1.11);
   });
 });

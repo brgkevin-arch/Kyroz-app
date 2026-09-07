@@ -647,64 +647,99 @@ produit en suspens — il ne reste qu'à coder.
 
 ### 🍽 D — Catalogue
 
-- 🤖 **D24 · VAGUE B10 — écrire les 25 recettes du registre quotidien français.**
-  **COMMANDÉE le 2026-09-07, PAS ÉCRITE.** Les deux briefs sont générés et à jour :
-  `Recette/lots/b10-pdj.md` (15 petits-déj, `pd123`–`pd137`) et `Recette/lots/b10-col.md`
-  (10 collations salées, `col111`–`col120`). `verifieCoherence` a validé les deux lots.
+- ✅ **D24 · VAGUE B10 — LIVRÉE le 2026-09-07 : les 25 recettes sont écrites et mergées.**
+  15 petits-déjeuners (`pd123`–`pd137`) et 10 collations salées (`col111`–`col120`),
+  écrites EN LOCAL comme B7→B9, catalogue **512 → 537**. Drop :
+  `Recette/drops/2026-09-07-b10-registre-francais/`.
+  🔴 **Mais elles ne corrigent pas le défaut visé — cf. D25, qui est la vraie suite.**
 
-  **Le défaut mesuré** (2026-09-07, moteur réel, profils de `PROFILS_REF`) : sept
-  petits-déjeuners d'affilée pour un H 80 maintien — porridge avoine-whey, porridge
-  millet-cacao, pancakes sarrasin vegan, **bol d'edamame au millet**, galettes de riz aux
-  edamame, polenta au soja texturé, riz au lait coco-chia. Une F 60 maintien reçoit au
-  jour 3 des « nouilles de riz sautées au tofu fumé », au réveil. Composition du créneau :
-  30 % porridge/avoine · 28 % « superaliments » · 12 % whey, contre **18 % de pain et 3 %
-  de jambon**.
+  **Ce qui a été livré, mesuré :**
+  · R8 sur le lot petit-déj : **11,2 profils sur 12 en moyenne** (attendu 9,9), 15/15 au-dessus
+    du seuil ; 14 des 15 au-dessus de 560 kcal (le brief en demandait 10).
+  · Collations : union **12/12** — les quatre premières collations CARNÉES du créneau
+    (`jambon_blanc` et `thon_naturel`, 0 recette chacun avant), et 6 salées végétariennes.
+    « Poulet »/« Bœuf » à l'inscription trouvent enfin des collations.
+  · `check:doublons` (les deux lots ENSEMBLE, contrôle croisé) : 0 violation.
+  · 9 ancres protéiques distinctes au petit-déj, 7 ancres grasses, aucune poudre.
 
-  🔴 **CE N'EST PAS UN PROBLÈME DE VÉGÉTAL, et le traiter comme tel serait une faute.**
-  Les repas complets sont à **63 % animaux** — le vivier des plats va bien. Et viser
-  « 0 recette poulet au petit-déjeuner » serait absurde : personne n'en mange au réveil.
-  Ce qui manque est le **REGISTRE**.
+  ⚠️ **Deux réécritures au contrôle, sur trois enseignements réutilisables :**
+  1. `pd127` (tartine sans gluten au thon) échouait R8 à 7/12 : **le pain sans gluten
+     porte 6,6 g de lipides aux 100 g**, donc le féculent portait le gras. Le moteur cale
+     le carb sur la cible glucides, le gras arrive déjà servi, l'huile tombe à sa borne
+     basse et les calories ne descendent plus → `over_target_kcal` sur tous les maintiens.
+     Réécrite sur pomme de terre (0,1 g de lipides) : **12/12**.
+     ➡️ **Un féculent gras est un féculent qui ne s'étire pas.**
+  2. `col116` doublait `col119` (Jaccard 0,60) et son nom collisionnait avec `col03` :
+     réécrite sur `haricots_rouges_conserve`, ancre jamais employée en collation.
+  3. Sur les trois collations à base de légumineuses, **descendre la base dans la bande
+     ne va pas toujours dans le même sens** : mesuré, `col120` passe de 3 à 6 profils
+     servis, `col115` de 3 à 4, mais `col116` **recule de 4 à 3**. Les deux gains ont été
+     gardés, la perte non — un recalage se MESURE recette par recette, il ne se déduit pas.
 
-  🔴 **ET LA FENÊTRE EST LE VRAI SUJET, PAS LE NOMBRE.** Les 24 petits-déj de registre
-  français existants vont de 338 à 626 kcal, et **DEUX SEULEMENT dépassent 580**. Les
-  fenêtres visées, elles, montent à **612** (H 80 maintien), **768** (H 95 masse) et
-  **830 kcal** (H 110 masse). Écrire dix tartines de 400 kcal de plus ne changerait RIEN
-  à ces trois profils. D'où la bande commandée — 520–640 kcal pour 32–44 g, dont **10 des
-  15 au-dessus de 560 kcal**.
+  ⚠️ **Deux cliquets du moteur ont bougé, et c'est la vague qui les a fait bouger** —
+  re-baselinés avec leur mesure et leur mutation-témoin dans les tests :
+  · `mealProteinFloor` : médiane protéines/cible 1,083 → **1,104** (seuil 1,10 → 1,11).
+    Cause : B10 ajoute des petits-déjeuners de **592 kcal de base contre 483** pour les 122
+    d'avant — c'était la commande — et le gabarit du test est celui qui demande le moins de
+    protéines par calorie. Mutation-témoin revérifiée sur le catalogue à 537 : `PROT_SHARE_FLOOR`
+    porté à 0,9 donne 1,125 et rougit toujours.
+  · `dayTotalTightness` : un jour sur 84 à +91 kcal (seuil 80 → 100), médiane inchangée.
+    🔴 **Et en le vérifiant on a découvert que ce test ne garde PAS `DAILY_SMOOTH_CAP`** :
+    à 150 ou 300 le max ne bouge pas (au-delà de 50 le cap n'est plus atteint), et à **0**
+    — lissage supprimé — les quatre cas du fichier restent VERTS. Le nom du test promettait
+    un mécanisme, il borne un résultat. Renommé et documenté ; le cap reste sans garde-fou.
 
-  ⚠️ **La densité monte AVEC les calories** (5,6–7,1 g/100 kcal, dans `DENSITE_CIBLE`) :
-  `gen-brief-lot.ts` documente qu'un repas plus gros à protéine constante DÉGRADE le
-  catalogue — `adaptRecipe` doit alors gonfler toute la recette et lève `over_target_kcal`.
+  ℹ️ Le brief `refsEnPlus` a bien ouvert les ancres neuves : `thon_naturel` et
+  `haricots_rouges_conserve`, jamais employés, portent 4 des 25 recettes.
 
-  ⚠️ **AUCUNE des 110 collations n'est carnée.** Les deux options carnées de l'écran
-  d'inscription (`Poulet`, `Bœuf`) y trouvent **0 recette**, et « Œufs » **3 sur 110**.
-  Le format salé avait été identifié comme ouvert lors de la vague B2 — et jamais écrit.
+- 🔴 **D25 · LE REGISTRE EXISTE ET LE MOTEUR LE SERT EN DERNIER.**
+  **TROUVÉ EN MESURANT LE RÉSULTAT DE D24, le 2026-09-07 — et ça change le diagnostic
+  de D24, pas seulement son reste-à-faire.** Les 25 recettes de B10 sont écrites,
+  conformes et servables (R8 : 11,2 profils sur 12 en moyenne au petit-déj, contre 9,9
+  attendus). Elles ne changent quasiment RIEN à ce que voit l'utilisateur.
 
-  **Méthode, arrêtée et non re-litigée** : écriture **LOCALE**, comme B7→B9 — les
-  contraintes sont arithmétiques (bandes de macros, plafond de 3 par ancre, 19 couples
-  interdits calculés par le brief), donc la boucle écrire → contrôler → recaler pèse plus
-  que la rédaction. Prévoir du recalage : **sur B7, 2 recettes sur 3 étaient hors bandes
-  au premier jet et 6 sur 30 ont été réécrites**.
+  **Mesuré** (`npm run mesure:registre`, 12 profils × 4 semaines = 336 petits-déjeuners
+  servis) : **10 des 336 viennent de B10**. Pour le H 80 maintien que citait D24, la
+  semaine servie est **identique à celle d'avant la vague** — porridge avoine-whey,
+  châtaigne au soja texturé, bol d'edamame, galettes aux edamame, bowl yaourt soja —
+  et la part « poudres et soja » MONTE de 75 % à 82 %.
 
-  ⚠️ **Piège de l'écriture locale : la MONOCULTURE d'ingrédient.** Le solveur choisit
-  toujours le gras le mieux noté — sur B7, une même ancre grasse s'est retrouvée dans 6
-  recettes sur 8 et a produit 4 des 11 quasi-clones rattrapés au contrôle. Varier l'ancre
-  grasse ET le fruit dès l'écriture.
+  🔴 **LA CAUSE N'EST PAS LE CATALOGUE, C'EST LE TRI.** Toujours pour ce profil, sur les
+  137 petits-déjeuners du catalogue classés par `fitScore` :
 
-  **Au retour** : `npm run check:doublons -- <f>`, `npm run check:enveloppe -- <f>`,
-  `npm test`. **Ce qui échoue repart en RÉÉCRITURE, pas en retouche** — une correction
-  locale déplace le clone au lieu de le supprimer.
-  ⚠️ Et **régénérer le second brief après le merge du premier** : c'est ce qui donne le
-  contrôle croisé entre lots.
+  | famille de registre | recettes | rang médian | dans le top 12 |
+  |---|---|---|---|
+  | **pain (tartine, œufs, jambon)** | 27 | **86** | **0** |
+  | porridge / bol laitier | 46 | 70 | 5 |
+  | végétal (soja, edamame, tofu) | 32 | 71 | 5 |
+  | poudres (whey, protéine végétale) | 32 | 53 | 2 |
 
-  ⚠️ **Numérotée D24 et pas D23 : D23 existait déjà**, et c'est
-  `lib/__tests__/agentsIds.test.ts` qui l'a dit, pas la relecture. Prendre le prochain
-  numéro libre en regardant `main` ET les branches en aval.
+  **Aucune des 27 recettes à base de pain n'entre dans le panier de ce profil**, les
+  neuves comme les anciennes. Écrire des tartines ne pouvait donc pas corriger le défaut :
+  D24 lisait « il manque du registre » là où il fallait lire « le registre est trié
+  dernier ».
 
-  ℹ️ **La moitié « plats » du même chantier est LIVRÉE** (commit `79b0631`) : la question
-  des protéines est désormais exigée à l'étape 6, avec une case « Peu importe ». Mesuré :
-  déclarer « Poulet » fait passer un H 80 sèche de 3 à 7 plats animaux sur 14. Ce levier
-  ne peut RIEN pour le petit-déjeuner — d'où cette vague.
+  ⚠️ **Le mécanisme, mesuré ingrédient par ingrédient.** La cible de ce profil est
+  653 kcal · 32 g P · **84 g de glucides** · 21 g L — soit 51 % des calories en glucides.
+  Atteindre 84 g avec du pain complet demande ~195 g de pain, qui apportent **17 g de
+  protéines en plus de l'ancre** : le repas sort à 710 kcal et le score le sanctionne.
+  Le gagnant, lui, gagne **en RATANT sa cible** : `pd15` sert 655 kcal pour **72 g de
+  glucides au lieu de 84** — juste au-dessus du seuil qui lèverait `carbs_below_target`,
+  donc invisible. `fitScore` note l'écart CALORIQUE et les drapeaux ; il ne note pas
+  l'écart aux glucides tant qu'il reste sous 15 %.
+  ➡️ Une recette qui tient sa cible glucides est battue par une qui la manque de 12 g.
+
+  ⚠️ **Ne pas « corriger » en écrivant des tartines plus légères** : le problème est le
+  RATIO, pas la taille. Et ne pas toucher `fitScore` sans mesurer les trois créneaux —
+  c'est le classement de TOUS les plans de TOUS les utilisateurs, pas un réglage local.
+  Le chantier commence par une décision : accepte-t-on de servir 12 g de glucides de
+  moins pour du pain, ou pénalise-t-on l'écart aux glucides dans le score ?
+
+  ℹ️ La mesure est reproductible : `npm run mesure:registre` (ajouté avec cette fiche)
+  imprime, profil par profil, la part de registre français, la part de poudres/soja et
+  ce qui est réellement servi au réveil. **Sans elle, une vague de recettes se déclare
+  livrée sur ses contrôles d'entrée** (`check:doublons`, `check:enveloppe`) — qui disent
+  qu'une recette est *servable*, jamais qu'elle est *servie*.
 
 - **D4-bis · la photo du catalogue au 2026-08-02 — 14 groupes saturés.**
   Un couple (protéines × féculent) est « saturé » au-delà de 2 recettes. Les 14 groupes,

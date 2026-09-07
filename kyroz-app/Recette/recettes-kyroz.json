@@ -1,7 +1,7 @@
 {
   "_meta": {
     "version": "2.0",
-    "count": 512,
+    "count": 537,
     "source_macros": "CIQUAL 2025 (ANSES) pour 108 des 125 ref, via lib/recipeFoodMap.ts → la table officielle est INTÉGRÉE (lib/foods.generated.ts), ce n'est plus une estimation. Les 17 ref restants portent une valeur manuelle assumée, listée dans recipeFoodMap (protéines en poudre, mélanges, haricots noirs — Ciqual n'a pas d'entrée). ⚠️ Ce champ a longtemps dit « remplacer par le CSV officiel avant prod » : c'est FAIT depuis le 2026-08-01.",
     "precision": "±5-10%.",
     "poids_basis": "basis=dry -> poids cru/sec (riz, pâtes, légumineuses sèches) ; basis=raw -> viande/poisson cru ; aucun basis -> poids PRÊT À CONSOMMER (conserve égouttée, aliment cuit). ⚠️ La cohérence n'est pas qu'une convention de pesée : les INSTRUCTIONS doivent correspondre. Une légumineuse pesée sèche ne se cuisine pas en 18 minutes — 47 recettes le faisaient jusqu'au 2026-08-03. Verrouillé par lib/__tests__/legumineuses.test.ts.",
@@ -31,7 +31,8 @@
         "2026-08-02-b7-repas-vegan": 10,
         "2026-08-02-b7-collations-vegan": 8,
         "2026-08-03-b8-collations-vegan-sg": 8,
-        "2026-08-03-b9-collations-grand-format": 8
+        "2026-08-03-b9-collations-grand-format": 8,
+        "2026-09-07-b10-registre-francais": 25
       },
       "convention": "Toute nouvelle vague reprend le NOM DU DOSSIER de son drop (AAAA-MM-JJ-<bloc>), pour qu'on retrouve la matière première d'une recette sans fouiller l'historique git."
     }
@@ -31547,6 +31548,1428 @@
         "fat": 13.1
       },
       "wave": "2026-08-03-b9-collations-grand-format"
+    },
+    {
+      "id": "pd123",
+      "name": "Tartines de jambon, feta et tomate",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 8
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "pain_complet",
+          "qty": 145,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "jambon_blanc",
+          "qty": 100,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "feta",
+          "qty": 40,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "tomate",
+          "qty": 80,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Fais griller les tranches de pain complet 2 à 3 minutes : elles doivent être fermes sous le doigt et à peine colorées, sinon elles ploient sous la garniture.",
+        "Coupe la tomate en rondelles fines, sale-les et laisse-les 2 minutes sur du papier absorbant — c'est ce qui évite que la tartine détrempe.",
+        "Dépose le jambon en couches souples sur le pain, émiette la feta par-dessus, couronne des rondelles de tomate et donne un tour de moulin à poivre."
+      ],
+      "why": "Protéines franches et pain complet : de la satiété jusqu'au déjeuner.",
+      "macros_per_serving": {
+        "kcal": 578.9,
+        "protein": 39.6,
+        "carbs": 63.8,
+        "fat": 15.4
+      },
+      "wave": "2026-09-07-b10-registre-francais"
+    },
+    {
+      "id": "pd124",
+      "name": "Œufs brouillés au jambon, pain grillé",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 12
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "oeuf_entier",
+          "qty": 100,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "jambon_blanc",
+          "qty": 70,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "pain_complet",
+          "qty": 130,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "noix",
+          "qty": 8,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "tomate",
+          "qty": 80,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Coupe le jambon en lanières larges et fais-le tiédir 1 minute à la poêle, sans le colorer : chauffé plus longtemps il durcit.",
+        "Casse les œufs dans un bol, sale, poivre et bats-les à la fourchette juste assez pour mélanger jaunes et blancs.",
+        "Verse les œufs dans la poêle sur feu DOUX et remue sans arrêt 3 à 4 minutes : retire du feu quand ils sont encore brillants, ils finissent de cuire tout seuls.",
+        "Fais griller le pain, dépose les œufs et le jambon dessus, ajoute la tomate en rondelles et les noix concassées."
+      ],
+      "why": "Deux sources de protéines et des lipides de noix pour tenir la matinée.",
+      "macros_per_serving": {
+        "kcal": 597.3,
+        "protein": 39.9,
+        "carbs": 57.5,
+        "fat": 20.3
+      },
+      "wave": "2026-09-07-b10-registre-francais"
+    },
+    {
+      "id": "pd125",
+      "name": "Seigle, saumon fumé et fromage blanc",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 8
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "pain_seigle",
+          "qty": 130,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "saumon_fume",
+          "qty": 80,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "fromage_blanc_0",
+          "qty": 150,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "avocat",
+          "qty": 30,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "concombre",
+          "qty": 60,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Fouette le fromage blanc avec une pincée de sel et beaucoup de poivre jusqu'à ce qu'il devienne lisse et un peu mousseux.",
+        "Écrase l'avocat à la fourchette en gardant des morceaux, puis incorpore-le au fromage blanc sans trop mélanger.",
+        "Fais griller le pain de seigle 2 minutes, tartine-le de cette crème, pose les tranches de saumon en les repliant sur elles-mêmes et termine par le concombre en fines lamelles."
+      ],
+      "why": "Poisson gras, laitage maigre et pain de seigle : protéines et fibres au réveil.",
+      "macros_per_serving": {
+        "kcal": 627.9,
+        "protein": 40.5,
+        "carbs": 75.1,
+        "fat": 16.1
+      },
+      "wave": "2026-09-07-b10-registre-francais"
+    },
+    {
+      "id": "pd126",
+      "name": "Galette de sarrasin à la dinde",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 18
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "sarrasin",
+          "qty": 95,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "dinde_escalope",
+          "qty": 120,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "huile_olive",
+          "qty": 8,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "champignons",
+          "qty": 100,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Mixe le sarrasin en farine fine, puis délaye-la avec de l'eau salée jusqu'à obtenir une pâte fluide qui nappe la cuillère.",
+        "Coupe l'escalope en lanières et saisis-les 4 à 5 minutes à feu vif dans la moitié de l'huile avec les champignons émincés : attends que l'eau des champignons soit évaporée pour saler.",
+        "Chauffe le reste de l'huile dans une grande poêle, verse une louche de pâte et étale-la vite : 2 minutes d'un côté, 1 minute de l'autre, les bords doivent se décoller seuls.",
+        "Garnis la galette de dinde et de champignons, replie les quatre côtés et sers aussitôt."
+      ],
+      "why": "Le sarrasin apporte des glucides complexes et la dinde une protéine maigre.",
+      "macros_per_serving": {
+        "kcal": 566.9,
+        "protein": 43.1,
+        "carbs": 65.9,
+        "fat": 13.4
+      },
+      "wave": "2026-09-07-b10-registre-francais"
+    },
+    {
+      "id": "pd127",
+      "name": "Poêlée de thon aux pommes de terre",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 25
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "pomme_de_terre",
+          "qty": 400,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "thon_naturel",
+          "qty": 110,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "huile_olive",
+          "qty": 10,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "tomate",
+          "qty": 80,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Coupe les pommes de terre en cubes de 2 cm sans les peler et rince-les à l'eau froide : c'est l'amidon de surface qui les fait coller à la poêle.",
+        "Sèche-les dans un torchon, puis fais-les revenir 18 à 20 minutes à feu moyen dans l'huile bien chaude, en secouant la poêle toutes les 4 minutes — attends la croûte dorée avant de saler.",
+        "Égoutte le thon en pressant la boîte contre le couvercle, écrase-le à la fourchette et mélange-le hors du feu aux pommes de terre, avec la tomate en dés."
+      ],
+      "why": "Thon au naturel et pommes de terre : beaucoup de protéines pour peu de lipides.",
+      "macros_per_serving": {
+        "kcal": 580.9,
+        "protein": 37.9,
+        "carbs": 67.5,
+        "fat": 15.1
+      },
+      "wave": "2026-09-07-b10-registre-francais"
+    },
+    {
+      "id": "pd128",
+      "name": "Pain perdu au lait et noisettes",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 12
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "pain_complet",
+          "qty": 130,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "oeuf_entier",
+          "qty": 90,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "blanc_oeuf",
+          "qty": 80,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "lait_demi_ecreme",
+          "qty": 150,
+          "macro_role": "dairy",
+          "scalable": true
+        },
+        {
+          "ref": "noisettes",
+          "qty": 12,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Bats les œufs entiers et les blancs avec le lait et une pincée de sel dans une assiette creuse.",
+        "Trempe chaque tranche de pain 20 secondes par face : elle doit être imbibée à cœur mais tenir encore droite quand tu la soulèves.",
+        "Cuis les tranches 3 minutes de chaque côté à feu moyen, sans les bouger, jusqu'à ce que la surface soit dorée et ferme.",
+        "Concasse les noisettes et parsème-les au moment de servir pour qu'elles restent croquantes."
+      ],
+      "why": "Œufs et lait couvrent les protéines, le pain complet les glucides lents.",
+      "macros_per_serving": {
+        "kcal": 615.8,
+        "protein": 38.5,
+        "carbs": 62.7,
+        "fat": 20.4
+      },
+      "wave": "2026-09-07-b10-registre-francais"
+    },
+    {
+      "id": "pd129",
+      "name": "Omelette aux champignons et feta",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 14
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "oeuf_entier",
+          "qty": 130,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "blanc_oeuf",
+          "qty": 100,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "pain_seigle",
+          "qty": 110,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "feta",
+          "qty": 28,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "champignons",
+          "qty": 100,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Émince les champignons et fais-les cuire 5 minutes à feu vif dans une poêle sèche : ils rendent leur eau, puis se mettent à dorer — c'est ce moment-là qu'il faut attendre pour saler.",
+        "Bats les œufs entiers avec les blancs, sale, poivre, verse sur les champignons et baisse à feu moyen-doux.",
+        "Ramène les bords vers le centre à la spatule pendant 3 minutes, puis émiette la feta sur le dessus et plie l'omelette en deux : le cœur doit rester baveux.",
+        "Sers avec le pain de seigle grillé."
+      ],
+      "why": "Beaucoup de protéines pour peu de calories, avec du pain de seigle pour l'énergie.",
+      "macros_per_serving": {
+        "kcal": 613.0,
+        "protein": 43.0,
+        "carbs": 59.6,
+        "fat": 20.7
+      },
+      "wave": "2026-09-07-b10-registre-francais"
+    },
+    {
+      "id": "pd130",
+      "name": "Crêpes de sarrasin, fromage blanc et framboises",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 15
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "sarrasin",
+          "qty": 90,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "fromage_blanc_0",
+          "qty": 250,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "framboises",
+          "qty": 100,
+          "macro_role": "fruit",
+          "scalable": true
+        },
+        {
+          "ref": "noisettes",
+          "qty": 18,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Mixe le sarrasin en farine, délaye-le avec de l'eau et une pincée de sel jusqu'à une pâte lisse un peu plus épaisse que de l'eau.",
+        "Cuis trois crêpes dans une poêle bien chaude, 2 minutes d'un côté et 1 minute de l'autre : retourne quand les bords se décollent seuls.",
+        "Fouette le fromage blanc pour l'alléger, étale-le sur les crêpes tièdes, ajoute les framboises et les noisettes concassées, puis roule-les."
+      ],
+      "why": "Sarrasin et fruits rouges pour les glucides, fromage blanc pour les protéines.",
+      "macros_per_serving": {
+        "kcal": 608.0,
+        "protein": 34.1,
+        "carbs": 78.4,
+        "fat": 14.4
+      },
+      "wave": "2026-09-07-b10-registre-francais"
+    },
+    {
+      "id": "pd131",
+      "name": "Salade de fruits au fromage blanc",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 8
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "fromage_blanc_0",
+          "qty": 350,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "pomme",
+          "qty": 150,
+          "macro_role": "fruit",
+          "scalable": true
+        },
+        {
+          "ref": "kiwi",
+          "qty": 120,
+          "macro_role": "fruit",
+          "scalable": true
+        },
+        {
+          "ref": "amandes",
+          "qty": 25,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "miel",
+          "qty": 15,
+          "macro_role": "flavor",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Coupe la pomme en petits dés en gardant la peau et le kiwi en demi-rondelles : des morceaux de même taille se mangent mieux à la cuillère.",
+        "Verse le fromage blanc dans un bol large, creuse un puits au centre et fais-y couler le miel.",
+        "Dispose les fruits autour, parsème les amandes concassées juste avant de manger — ajoutées à l'avance, elles ramollissent."
+      ],
+      "why": "Laitage maigre, fruits frais et amandes : un petit-déjeuner léger mais protéiné.",
+      "macros_per_serving": {
+        "kcal": 530.4,
+        "protein": 32.5,
+        "carbs": 59.8,
+        "fat": 14.5
+      },
+      "wave": "2026-09-07-b10-registre-francais"
+    },
+    {
+      "id": "pd132",
+      "name": "Bol de cottage cheese aux châtaignes",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 6
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "cottage_cheese",
+          "qty": 260,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "chataigne",
+          "qty": 120,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "raisins",
+          "qty": 80,
+          "macro_role": "fruit",
+          "scalable": true
+        },
+        {
+          "ref": "noix",
+          "qty": 10,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Écrase grossièrement les châtaignes à la fourchette : en morceaux irréguliers elles gardent du mâche, en purée elles se noient dans le fromage.",
+        "Mélange-les au cottage cheese avec un tour de moulin à poivre — le poivre relève le sucré des châtaignes.",
+        "Ajoute les raisins et les cerneaux de noix cassés en deux au moment de servir."
+      ],
+      "why": "Châtaignes et raisins pour les glucides, cottage cheese pour les protéines.",
+      "macros_per_serving": {
+        "kcal": 609.9,
+        "protein": 32.9,
+        "carbs": 65.7,
+        "fat": 20.3
+      },
+      "wave": "2026-09-07-b10-registre-francais"
+    },
+    {
+      "id": "pd133",
+      "name": "Skyr, fruits rouges et pain de seigle",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 6
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "skyr",
+          "qty": 250,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "pain_seigle",
+          "qty": 90,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "fruits_rouges",
+          "qty": 100,
+          "macro_role": "fruit",
+          "scalable": true
+        },
+        {
+          "ref": "amandes",
+          "qty": 22,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Fais griller le pain de seigle 2 minutes et coupe-le en gros dés une fois refroidi : chaud, il s'écrase au couteau.",
+        "Verse le skyr dans un bol, ajoute les fruits rouges et mélange une seule fois, pour garder des veines blanches.",
+        "Parsème les dés de pain et les amandes concassées juste avant de manger, sinon le pain ramollit."
+      ],
+      "why": "Le skyr concentre les protéines, le pain de seigle apporte des fibres.",
+      "macros_per_serving": {
+        "kcal": 580.7,
+        "protein": 40.7,
+        "carbs": 67.3,
+        "fat": 13.4
+      },
+      "wave": "2026-09-07-b10-registre-francais"
+    },
+    {
+      "id": "pd134",
+      "name": "Semoule au lait, raisins et noisettes",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 12
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "lait_demi_ecreme",
+          "qty": 400,
+          "macro_role": "dairy",
+          "scalable": true
+        },
+        {
+          "ref": "semoule_couscous",
+          "qty": 70,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "skyr",
+          "qty": 100,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "noisettes",
+          "qty": 12,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "raisins",
+          "qty": 40,
+          "macro_role": "fruit",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Porte le lait à frémissement avec les raisins, puis verse la semoule en pluie en fouettant sans arrêt pour éviter les grumeaux.",
+        "Laisse cuire 4 minutes à feu doux en remuant : la semoule est prête quand la cuillère laisse un sillon qui se referme lentement.",
+        "Hors du feu, laisse tiédir 5 minutes puis incorpore le skyr — versé dans le lait bouillant, il tranche.",
+        "Parsème les noisettes concassées."
+      ],
+      "why": "Un classique du goûter revu au skyr pour monter en protéines.",
+      "macros_per_serving": {
+        "kcal": 604.2,
+        "protein": 35.3,
+        "carbs": 80.3,
+        "fat": 14.4
+      },
+      "wave": "2026-09-07-b10-registre-francais"
+    },
+    {
+      "id": "pd135",
+      "name": "Riz au lait aux amandes",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 25
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "riz_basmati",
+          "qty": 60,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "lait_demi_ecreme",
+          "qty": 300,
+          "macro_role": "dairy",
+          "scalable": true
+        },
+        {
+          "ref": "skyr",
+          "qty": 200,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "amandes",
+          "qty": 15,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Rince le riz sous l'eau froide jusqu'à ce qu'elle sorte claire, puis mets-le dans le lait froid et porte doucement à frémissement.",
+        "Laisse cuire 20 minutes à feu très doux en remuant toutes les 3 ou 4 minutes : c'est prêt quand le riz est tendre et le lait à peine crémeux, il épaissira encore en refroidissant.",
+        "Laisse tiédir 5 minutes, puis mélange le skyr hors du feu et parsème les amandes effilées."
+      ],
+      "why": "Riz et lait pour l'énergie, skyr pour la charge protéique du matin.",
+      "macros_per_serving": {
+        "kcal": 576.2,
+        "protein": 40.0,
+        "carbs": 71.3,
+        "fat": 13.5
+      },
+      "wave": "2026-09-07-b10-registre-francais"
+    },
+    {
+      "id": "pd136",
+      "name": "Millet au lait et framboises",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 20
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "millet",
+          "qty": 50,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "lait_demi_ecreme",
+          "qty": 300,
+          "macro_role": "dairy",
+          "scalable": true
+        },
+        {
+          "ref": "cottage_cheese",
+          "qty": 170,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "framboises",
+          "qty": 100,
+          "macro_role": "fruit",
+          "scalable": true
+        },
+        {
+          "ref": "amandes",
+          "qty": 11,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Fais chauffer le millet 2 minutes à sec dans la casserole en remuant : il doit sentir la noisette, c'est ce qui lui enlève son amertume.",
+        "Verse le lait, porte à frémissement et laisse cuire 15 minutes à couvert et à feu doux, jusqu'à ce que les grains soient tendres sous la dent.",
+        "Hors du feu, mélange le cottage cheese, puis dépose les framboises et les amandes concassées sans les enfoncer."
+      ],
+      "why": "Millet et lait pour les glucides lents, cottage cheese pour les protéines.",
+      "macros_per_serving": {
+        "kcal": 608.0,
+        "protein": 38.3,
+        "carbs": 63.4,
+        "fat": 20.7
+      },
+      "wave": "2026-09-07-b10-registre-francais"
+    },
+    {
+      "id": "pd137",
+      "name": "Cottage cheese, quinoa et kiwi",
+      "category": "petit_dej",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 18
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "quinoa",
+          "qty": 60,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "cottage_cheese",
+          "qty": 250,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "kiwi",
+          "qty": 120,
+          "macro_role": "fruit",
+          "scalable": true
+        },
+        {
+          "ref": "graines_courge",
+          "qty": 8,
+          "macro_role": "fat",
+          "scalable": true
+        }
+      ],
+      "instructions": [
+        "Rince le quinoa à l'eau froide, puis fais-le cuire 12 minutes dans deux fois son volume d'eau salée : il est prêt quand le germe blanc se détache du grain.",
+        "Égoutte-le et étale-le sur une assiette froide 3 minutes — c'est ce qui l'empêche de continuer à cuire et de coller.",
+        "Mélange le quinoa tiède au cottage cheese, ajoute le kiwi en demi-rondelles et les graines de courge."
+      ],
+      "why": "Le quinoa complète les protéines du cottage cheese et apporte des glucides.",
+      "macros_per_serving": {
+        "kcal": 582.0,
+        "protein": 38.9,
+        "carbs": 56.0,
+        "fat": 19.0
+      },
+      "wave": "2026-09-07-b10-registre-francais"
+    },
+    {
+      "id": "col111",
+      "name": "Pain de seigle au jambon et concombre",
+      "category": "collation",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 5
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "jambon_blanc",
+          "qty": 70,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "pain_seigle",
+          "qty": 45,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "avocat",
+          "qty": 20,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "concombre",
+          "qty": 60,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Écrase l'avocat à la fourchette avec du sel et du poivre, puis étale-le sur le pain de seigle : c'est lui qui isole la mie de l'humidité du concombre.",
+        "Coupe le concombre en lamelles très fines à l'économe et sèche-les rapidement dans un torchon.",
+        "Pose le jambon replié sur l'avocat, couvre des lamelles de concombre et mange dans la foulée — montée à l'avance, la tartine ramollit."
+      ],
+      "why": "Une collation salée à protéine franche, sans matière grasse ajoutée.",
+      "macros_per_serving": {
+        "kcal": 250.0,
+        "protein": 18.8,
+        "carbs": 25.5,
+        "fat": 7.1
+      },
+      "wave": "2026-09-07-b10-registre-francais"
+    },
+    {
+      "id": "col112",
+      "name": "Œuf dur, carotte et galettes de riz",
+      "category": "collation",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 12
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "oeuf_entier",
+          "qty": 75,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "galette_riz",
+          "qty": 28,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "graines_courge",
+          "qty": 7,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "carotte",
+          "qty": 70,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Plonge les œufs dans l'eau déjà bouillante et compte 9 minutes exactement, puis refroidis-les sous l'eau froide : c'est le choc de froid qui décolle la coquille.",
+        "Coupe la carotte en bâtonnets et les œufs en quartiers, sale-les et poivre-les.",
+        "Sers avec les galettes de riz et les graines de courge, en gardant les galettes à part jusqu'à la dernière minute."
+      ],
+      "why": "Un œuf dur couvre les protéines, la galette de riz apporte les glucides.",
+      "macros_per_serving": {
+        "kcal": 276.0,
+        "protein": 14.7,
+        "carbs": 25.9,
+        "fat": 11.9
+      },
+      "wave": "2026-09-07-b10-registre-francais"
+    },
+    {
+      "id": "col113",
+      "name": "Galettes de riz au thon",
+      "category": "collation",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 5
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "thon_naturel",
+          "qty": 65,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "galette_riz",
+          "qty": 30,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "avocat",
+          "qty": 25,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "roquette",
+          "qty": 20,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Égoutte le thon en pressant la boîte contre son couvercle, puis écrase-le à la fourchette avec l'avocat, du sel et beaucoup de poivre.",
+        "Étale ce mélange sur les galettes de riz au dernier moment : posé à l'avance, il les détrempe en quelques minutes.",
+        "Couvre de roquette."
+      ],
+      "why": "Thon au naturel et avocat : des protéines et de bons lipides, sans gluten.",
+      "macros_per_serving": {
+        "kcal": 264.0,
+        "protein": 20.8,
+        "carbs": 23.8,
+        "fat": 8.7
+      },
+      "wave": "2026-09-07-b10-registre-francais"
+    },
+    {
+      "id": "col114",
+      "name": "Pita garni au jambon",
+      "category": "collation",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 6
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "pain_pita_complet",
+          "qty": 45,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "jambon_blanc",
+          "qty": 65,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "huile_olive",
+          "qty": 5,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "tomate",
+          "qty": 70,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Passe le pita 1 minute au grille-pain avant de l'ouvrir : tiède, la mie se sépare sans déchirer le pain.",
+        "Coupe la tomate en dés, sale-les et laisse-les 2 minutes dans une passoire pour qu'ils rendent leur eau.",
+        "Garnis le pita de jambon et de tomate, arrose d'un filet d'huile d'olive et poivre."
+      ],
+      "why": "Pain complet et jambon : un en-cas salé rassasiant qui se mange à la main.",
+      "macros_per_serving": {
+        "kcal": 245.6,
+        "protein": 17.0,
+        "carbs": 24.9,
+        "fat": 8.4
+      },
+      "wave": "2026-09-07-b10-registre-francais"
+    },
+    {
+      "id": "col115",
+      "name": "Salade de pois chiches au thon",
+      "category": "collation",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 7
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "pois_chiches_conserve",
+          "qty": 110,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "thon_naturel",
+          "qty": 40,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "huile_olive",
+          "qty": 4,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "poivron",
+          "qty": 60,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Rince les pois chiches à l'eau froide et égoutte-les à fond : c'est le jus de conserve qui donne le goût métallique.",
+        "Coupe le poivron en petits dés, mélange-le aux pois chiches avec l'huile, du sel et du poivre, puis écrase quelques pois à la fourchette pour lier la salade.",
+        "Ajoute le thon égoutté en gros morceaux et mélange une dernière fois, sans l'émietter."
+      ],
+      "why": "Légumineuses et thon : protéines, fibres et glucides lents sans gluten.",
+      "macros_per_serving": {
+        "kcal": 240.8,
+        "protein": 18.6,
+        "carbs": 18.6,
+        "fat": 8.8
+      },
+      "wave": "2026-09-07-b10-registre-francais"
+    },
+    {
+      "id": "col116",
+      "name": "Haricots rouges au cottage cheese",
+      "category": "collation",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 6
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "haricots_rouges_conserve",
+          "qty": 110,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "cottage_cheese",
+          "qty": 90,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "graines_courge",
+          "qty": 7,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "poivron",
+          "qty": 60,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Rince les haricots rouges à l'eau froide jusqu'à ce qu'elle sorte claire, puis égoutte-les à fond : le jus de conserve suffit à rendre la salade farineuse.",
+        "Écrase-en un tiers à la fourchette et mélange-les au cottage cheese avec le poivron en petits dés — ce sont les haricots écrasés qui lient l'ensemble.",
+        "Sale, poivre et parsème les graines de courge au dernier moment."
+      ],
+      "why": "Légumineuse et fromage frais : protéines, fibres et glucides lents, sans gluten.",
+      "macros_per_serving": {
+        "kcal": 264.0,
+        "protein": 21.6,
+        "carbs": 19.5,
+        "fat": 8.6
+      },
+      "wave": "2026-09-07-b10-registre-francais"
+    },
+    {
+      "id": "col117",
+      "name": "Tartine de cottage cheese à la tomate",
+      "category": "collation",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 5
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "cottage_cheese",
+          "qty": 120,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "pain_complet",
+          "qty": 50,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "noix",
+          "qty": 6,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "tomate",
+          "qty": 70,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Fais griller le pain 2 minutes : une tranche molle s'affaisse sous le cottage cheese.",
+        "Étale le cottage cheese en couche épaisse, sale et poivre, puis couvre de rondelles de tomate.",
+        "Casse les cerneaux de noix en gros morceaux et pose-les dessus."
+      ],
+      "why": "Fromage frais maigre et pain complet : des protéines et des fibres.",
+      "macros_per_serving": {
+        "kcal": 290.9,
+        "protein": 18.7,
+        "carbs": 27.0,
+        "fat": 10.5
+      },
+      "wave": "2026-09-07-b10-registre-francais"
+    },
+    {
+      "id": "col118",
+      "name": "Fromage blanc aux herbes et bâtonnets de concombre",
+      "category": "collation",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 6
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "fromage_blanc_0",
+          "qty": 180,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "pain_seigle",
+          "qty": 42,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "noisettes",
+          "qty": 12,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "concombre",
+          "qty": 60,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Fouette le fromage blanc avec du sel, du poivre et les herbes fraîches que tu as sous la main, jusqu'à ce qu'il devienne lisse et mousseux.",
+        "Coupe le concombre en bâtonnets et le pain de seigle en mouillettes, puis fais griller ces dernières 2 minutes.",
+        "Concasse les noisettes et parsème-les sur la crème : trempe les bâtonnets et les mouillettes au fur et à mesure."
+      ],
+      "why": "Laitage maigre à tremper : beaucoup de protéines pour peu de calories.",
+      "macros_per_serving": {
+        "kcal": 280.9,
+        "protein": 18.7,
+        "carbs": 31.8,
+        "fat": 7.5
+      },
+      "wave": "2026-09-07-b10-registre-francais"
+    },
+    {
+      "id": "col119",
+      "name": "Bol de fromage blanc, maïs et poivron",
+      "category": "collation",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 5
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "fromage_blanc_0",
+          "qty": 190,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "mais",
+          "qty": 85,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "amandes",
+          "qty": 12,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "poivron",
+          "qty": 60,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Sale le fromage blanc et poivre-le franchement avant d'y ajouter quoi que ce soit : salé après coup, il reste fade sous les légumes.",
+        "Égoutte le maïs, coupe le poivron en dés et mélange les deux au fromage blanc.",
+        "Ajoute les amandes concassées au moment de manger."
+      ],
+      "why": "Une base protéinée maigre relevée par des légumes croquants.",
+      "macros_per_serving": {
+        "kcal": 270.0,
+        "protein": 19.3,
+        "carbs": 26.8,
+        "fat": 8.1
+      },
+      "wave": "2026-09-07-b10-registre-francais"
+    },
+    {
+      "id": "col120",
+      "name": "Lentilles à l'œuf dur et à la carotte",
+      "category": "collation",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 12
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "lentilles_cuites",
+          "qty": 90,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "oeuf_entier",
+          "qty": 55,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "tahini",
+          "qty": 5,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "carotte",
+          "qty": 60,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Plonge l'œuf dans l'eau bouillante pour 9 minutes, puis refroidis-le sous l'eau froide avant de l'écaler.",
+        "Rince et égoutte les lentilles, râpe la carotte par-dessus, puis détends le tahini avec une cuillère d'eau froide et du sel — pur, il fige la salade au lieu de l'enrober.",
+        "Mélange le tout et pose l'œuf coupé en quatre sur le dessus."
+      ],
+      "why": "Lentilles et œuf : protéines complètes, fibres et glucides lents.",
+      "macros_per_serving": {
+        "kcal": 239.3,
+        "protein": 17.5,
+        "carbs": 18.4,
+        "fat": 8.9
+      },
+      "wave": "2026-09-07-b10-registre-francais"
     }
   ],
   "config": {

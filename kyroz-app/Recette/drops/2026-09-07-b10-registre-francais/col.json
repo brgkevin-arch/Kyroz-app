@@ -1,0 +1,554 @@
+{
+  "recipes": [
+    {
+      "id": "col111",
+      "name": "Pain de seigle au jambon et concombre",
+      "category": "collation",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 5
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "jambon_blanc",
+          "qty": 70,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "pain_seigle",
+          "qty": 45,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "avocat",
+          "qty": 20,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "concombre",
+          "qty": 60,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Écrase l'avocat à la fourchette avec du sel et du poivre, puis étale-le sur le pain de seigle : c'est lui qui isole la mie de l'humidité du concombre.",
+        "Coupe le concombre en lamelles très fines à l'économe et sèche-les rapidement dans un torchon.",
+        "Pose le jambon replié sur l'avocat, couvre des lamelles de concombre et mange dans la foulée — montée à l'avance, la tartine ramollit."
+      ],
+      "why": "Une collation salée à protéine franche, sans matière grasse ajoutée.",
+      "macros_per_serving": {
+        "kcal": 250.0,
+        "protein": 18.8,
+        "carbs": 25.5,
+        "fat": 7.1
+      },
+      "wave": "2026-09-07-b10-registre-francais"
+    },
+    {
+      "id": "col112",
+      "name": "Œuf dur, carotte et galettes de riz",
+      "category": "collation",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 12
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "oeuf_entier",
+          "qty": 75,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "galette_riz",
+          "qty": 28,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "graines_courge",
+          "qty": 7,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "carotte",
+          "qty": 70,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Plonge les œufs dans l'eau déjà bouillante et compte 9 minutes exactement, puis refroidis-les sous l'eau froide : c'est le choc de froid qui décolle la coquille.",
+        "Coupe la carotte en bâtonnets et les œufs en quartiers, sale-les et poivre-les.",
+        "Sers avec les galettes de riz et les graines de courge, en gardant les galettes à part jusqu'à la dernière minute."
+      ],
+      "why": "Un œuf dur couvre les protéines, la galette de riz apporte les glucides.",
+      "macros_per_serving": {
+        "kcal": 276.0,
+        "protein": 14.7,
+        "carbs": 25.9,
+        "fat": 11.9
+      },
+      "wave": "2026-09-07-b10-registre-francais"
+    },
+    {
+      "id": "col113",
+      "name": "Galettes de riz au thon",
+      "category": "collation",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 5
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "thon_naturel",
+          "qty": 65,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "galette_riz",
+          "qty": 30,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "avocat",
+          "qty": 25,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "roquette",
+          "qty": 20,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Égoutte le thon en pressant la boîte contre son couvercle, puis écrase-le à la fourchette avec l'avocat, du sel et beaucoup de poivre.",
+        "Étale ce mélange sur les galettes de riz au dernier moment : posé à l'avance, il les détrempe en quelques minutes.",
+        "Couvre de roquette."
+      ],
+      "why": "Thon au naturel et avocat : des protéines et de bons lipides, sans gluten.",
+      "macros_per_serving": {
+        "kcal": 264.0,
+        "protein": 20.8,
+        "carbs": 23.8,
+        "fat": 8.7
+      },
+      "wave": "2026-09-07-b10-registre-francais"
+    },
+    {
+      "id": "col114",
+      "name": "Pita garni au jambon",
+      "category": "collation",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 6
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "pain_pita_complet",
+          "qty": 45,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "jambon_blanc",
+          "qty": 65,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "huile_olive",
+          "qty": 5,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "tomate",
+          "qty": 70,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Passe le pita 1 minute au grille-pain avant de l'ouvrir : tiède, la mie se sépare sans déchirer le pain.",
+        "Coupe la tomate en dés, sale-les et laisse-les 2 minutes dans une passoire pour qu'ils rendent leur eau.",
+        "Garnis le pita de jambon et de tomate, arrose d'un filet d'huile d'olive et poivre."
+      ],
+      "why": "Pain complet et jambon : un en-cas salé rassasiant qui se mange à la main.",
+      "macros_per_serving": {
+        "kcal": 245.6,
+        "protein": 17.0,
+        "carbs": 24.9,
+        "fat": 8.4
+      },
+      "wave": "2026-09-07-b10-registre-francais"
+    },
+    {
+      "id": "col115",
+      "name": "Salade de pois chiches au thon",
+      "category": "collation",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 7
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "pois_chiches_conserve",
+          "qty": 110,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "thon_naturel",
+          "qty": 40,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "huile_olive",
+          "qty": 4,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "poivron",
+          "qty": 60,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Rince les pois chiches à l'eau froide et égoutte-les à fond : c'est le jus de conserve qui donne le goût métallique.",
+        "Coupe le poivron en petits dés, mélange-le aux pois chiches avec l'huile, du sel et du poivre, puis écrase quelques pois à la fourchette pour lier la salade.",
+        "Ajoute le thon égoutté en gros morceaux et mélange une dernière fois, sans l'émietter."
+      ],
+      "why": "Légumineuses et thon : protéines, fibres et glucides lents sans gluten.",
+      "macros_per_serving": {
+        "kcal": 240.8,
+        "protein": 18.6,
+        "carbs": 18.6,
+        "fat": 8.8
+      },
+      "wave": "2026-09-07-b10-registre-francais"
+    },
+    {
+      "id": "col116",
+      "name": "Haricots rouges au cottage cheese",
+      "category": "collation",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 6
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "haricots_rouges_conserve",
+          "qty": 110,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "cottage_cheese",
+          "qty": 90,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "graines_courge",
+          "qty": 7,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "poivron",
+          "qty": 60,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Rince les haricots rouges à l'eau froide jusqu'à ce qu'elle sorte claire, puis égoutte-les à fond : le jus de conserve suffit à rendre la salade farineuse.",
+        "Écrase-en un tiers à la fourchette et mélange-les au cottage cheese avec le poivron en petits dés — ce sont les haricots écrasés qui lient l'ensemble.",
+        "Sale, poivre et parsème les graines de courge au dernier moment."
+      ],
+      "why": "Légumineuse et fromage frais : protéines, fibres et glucides lents, sans gluten.",
+      "macros_per_serving": {
+        "kcal": 264.0,
+        "protein": 21.6,
+        "carbs": 19.5,
+        "fat": 8.6
+      },
+      "wave": "2026-09-07-b10-registre-francais"
+    },
+    {
+      "id": "col117",
+      "name": "Tartine de cottage cheese à la tomate",
+      "category": "collation",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 5
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "cottage_cheese",
+          "qty": 120,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "pain_complet",
+          "qty": 50,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "noix",
+          "qty": 6,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "tomate",
+          "qty": 70,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Fais griller le pain 2 minutes : une tranche molle s'affaisse sous le cottage cheese.",
+        "Étale le cottage cheese en couche épaisse, sale et poivre, puis couvre de rondelles de tomate.",
+        "Casse les cerneaux de noix en gros morceaux et pose-les dessus."
+      ],
+      "why": "Fromage frais maigre et pain complet : des protéines et des fibres.",
+      "macros_per_serving": {
+        "kcal": 290.9,
+        "protein": 18.7,
+        "carbs": 27.0,
+        "fat": 10.5
+      },
+      "wave": "2026-09-07-b10-registre-francais"
+    },
+    {
+      "id": "col118",
+      "name": "Fromage blanc aux herbes et bâtonnets de concombre",
+      "category": "collation",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 6
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "fromage_blanc_0",
+          "qty": 180,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "pain_seigle",
+          "qty": 42,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "noisettes",
+          "qty": 12,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "concombre",
+          "qty": 60,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Fouette le fromage blanc avec du sel, du poivre et les herbes fraîches que tu as sous la main, jusqu'à ce qu'il devienne lisse et mousseux.",
+        "Coupe le concombre en bâtonnets et le pain de seigle en mouillettes, puis fais griller ces dernières 2 minutes.",
+        "Concasse les noisettes et parsème-les sur la crème : trempe les bâtonnets et les mouillettes au fur et à mesure."
+      ],
+      "why": "Laitage maigre à tremper : beaucoup de protéines pour peu de calories.",
+      "macros_per_serving": {
+        "kcal": 280.9,
+        "protein": 18.7,
+        "carbs": 31.8,
+        "fat": 7.5
+      },
+      "wave": "2026-09-07-b10-registre-francais"
+    },
+    {
+      "id": "col119",
+      "name": "Bol de fromage blanc, maïs et poivron",
+      "category": "collation",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 5
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "fromage_blanc_0",
+          "qty": 190,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "mais",
+          "qty": 85,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "amandes",
+          "qty": 12,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "poivron",
+          "qty": 60,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Sale le fromage blanc et poivre-le franchement avant d'y ajouter quoi que ce soit : salé après coup, il reste fade sous les légumes.",
+        "Égoutte le maïs, coupe le poivron en dés et mélange les deux au fromage blanc.",
+        "Ajoute les amandes concassées au moment de manger."
+      ],
+      "why": "Une base protéinée maigre relevée par des légumes croquants.",
+      "macros_per_serving": {
+        "kcal": 270.0,
+        "protein": 19.3,
+        "carbs": 26.8,
+        "fat": 8.1
+      },
+      "wave": "2026-09-07-b10-registre-francais"
+    },
+    {
+      "id": "col120",
+      "name": "Lentilles à l'œuf dur et à la carotte",
+      "category": "collation",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 12
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "lentilles_cuites",
+          "qty": 90,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "oeuf_entier",
+          "qty": 55,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "tahini",
+          "qty": 5,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "carotte",
+          "qty": 60,
+          "macro_role": "vegetable",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Plonge l'œuf dans l'eau bouillante pour 9 minutes, puis refroidis-le sous l'eau froide avant de l'écaler.",
+        "Rince et égoutte les lentilles, râpe la carotte par-dessus, puis détends le tahini avec une cuillère d'eau froide et du sel — pur, il fige la salade au lieu de l'enrober.",
+        "Mélange le tout et pose l'œuf coupé en quatre sur le dessus."
+      ],
+      "why": "Lentilles et œuf : protéines complètes, fibres et glucides lents.",
+      "macros_per_serving": {
+        "kcal": 239.3,
+        "protein": 17.5,
+        "carbs": 18.4,
+        "fat": 8.9
+      },
+      "wave": "2026-09-07-b10-registre-francais"
+    }
+  ]
+}

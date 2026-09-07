@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { RECIPE_INGREDIENTS, RECIPE_CONFIG, RAW_RECIPES, macrosForRefIngredients } from '../recipeData';
 
 describe('recipeData', () => {
-  it('charge 512 recettes brutes', () => {
-    expect(RAW_RECIPES).toHaveLength(512);
+  it('charge 537 recettes brutes', () => {
+    expect(RAW_RECIPES).toHaveLength(537);
   });
   it('chaque recette déclare sa vague de livraison', () => {
     // Sans `wave`, une vague ne sait pas contre quoi se comparer : impossible d'expliquer
@@ -28,6 +28,11 @@ describe('recipeData', () => {
       // n'avait jamais eu — les gros gabarits n'étaient servis que par étirement. 504 → 512.
       '2026-08-03-b8-collations-vegan-sg': 8,
       '2026-08-03-b9-collations-grand-format': 8,
+      // B10 : 25 recettes du REGISTRE quotidien français — 15 petits-déjeuners
+      // (pd123 → pd137) et 10 collations SALÉES (col111 → col120), dont les 4 premières
+      // carnées du créneau : aucune des 110 collations d'avant ne l'était, si bien que
+      // « Poulet » et « Bœuf » à l'inscription n'y trouvaient rien. 512 → 537.
+      '2026-09-07-b10-registre-francais': 25,
       fondation: 92, '2026-06-19-vegan': 156, '2026-07-22-sans-gluten': 46,
       '2026-08-01-b2-collations': 10, '2026-08-01-b1-lot1-repas': 20,
       '2026-08-01-b1-lot2-repas': 20, '2026-08-01-b1-lot3-repas': 20,

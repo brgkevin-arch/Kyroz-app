@@ -2,7 +2,7 @@
 
 ```
 Recette/
-├── recettes-kyroz.json          ← LE CATALOGUE LIVE (importé par lib/recipeData.ts) — 512 recettes
+├── recettes-kyroz.json          ← LE CATALOGUE LIVE (importé par lib/recipeData.ts) — 537 recettes
 ├── README.md                    ← ce fichier
 ├── BRIEF-GENERATION-RECETTES.md ← la SPEC : mesures, enveloppes, raisonnement. Ne pas transmettre tel quel.
 ├── lots/                        ← la COMMANDE, générée (npm run gen:lots). Un fichier = une conversation.
@@ -25,7 +25,8 @@ Recette/
     ├── 2026-08-02-b7-repas-vegan/          (+10 repas complets végétaux, mergé)
     ├── 2026-08-02-b7-collations-vegan/     (+8 collations végétales, mergé)
     ├── 2026-08-03-b8-collations-vegan-sg/  (+8 collations vegan + sans gluten, mergé)
-    └── 2026-08-03-b9-collations-grand-format/ (+8 collations GRAND FORMAT 380–460 kcal, mergé)
+    ├── 2026-08-03-b9-collations-grand-format/ (+8 collations GRAND FORMAT 380–460 kcal, mergé)
+    └── 2026-09-07-b10-registre-francais/    (+15 petits-déj + 10 collations SALÉES, mergé)
 ```
 
 ⚠️ **Une vague peut RÉÉCRIRE au lieu d'ajouter** (première fois : `b5`, 2026-08-02). Les ids
@@ -44,6 +45,17 @@ impossible à honorer, et le générateur refuse d'ailleurs de l'écrire. Leur d
 Les vagues **B7** (30 recettes végétales), **B8** (8 collations vegan + sans gluten) et **B9**
 (8 collations grand format) sont
 livrées — motivation, mesures et leçons dans `AGENTS.md`, fiche **B7**.
+La vague **B10** (25 recettes du registre français : 15 petits-déj, 10 collations salées) est
+livrée elle aussi — fiche **D24**.
+
+🔴 **ET B10 A MONTRÉ QUE CETTE CHECKLIST NE SUFFIT PAS.** Ses 25 recettes sont passées vertes
+partout (`check:doublons` 0 violation, R8 à 11,2/12 — au-dessus de la moyenne du catalogue) et,
+mesuré après merge, **10 petits-déjeuners servis sur 336** venaient d'elles : le profil que la
+commande visait reçoit exactement la semaine d'avant. Les deux contrôles d'entrée disent qu'une
+recette est **servable** ; aucun ne dit qu'elle sera **servie**. ➡️ `npm run mesure:registre`
+(ajouté avec la fiche **D25**) le mesure, et se lance APRÈS le merge, au même titre que
+`mesure:couverture`. Une vague qui n'y bouge rien n'a pas atteint son but, quels que soient
+ses contrôles.
 
 ⚠️ **Les vagues B7 à B9 ont été écrites ICI et non en conversation externe**, et c'est une exception
 assumée, pas un changement de convention. Ce qui l'a justifié : leurs contraintes sont
@@ -149,6 +161,9 @@ fichiers de `lots/` en sont la projection opérationnelle.
    ⚠️ `npm run mesure:variete` mesure autre chose et il faut le lancer aussi après une
    vague : les quasi-doublons SERVIS (deux recettes du même couple protéine × féculent
    dans la même semaine), que ni R4 ni la couverture ne voient.
+   ⚠️ `npm run mesure:registre` mesure ce que les autres ne regardent pas : **ce qui est
+   réellement SERVI** au petit-déjeuner, profil par profil, sur 4 semaines. C'est le seul
+   contrôle qui juge une vague sur son effet (cf. **D25**).
    ⚠️ `npm run mesure:vivier` mesure une TROISIÈME chose, et c'est celle qui dit où
    commander la vague suivante : le vivier croisé **gabarit × RÉGIME × créneau**, c'est-à-dire
    ce que voit un utilisateur réel — qui porte les deux à la fois. `mesure:couverture` compte

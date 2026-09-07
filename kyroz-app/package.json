@@ -79,6 +79,7 @@
     "mesure:proteine": "npx tsx scripts/mesure-proteine-jour.ts",
     "mesure:seuils": "npx tsx scripts/mesure-couverture.ts --seuils",
     "mesure:collisions": "npx tsx scripts/mesure-collisions-ingredients.ts",
+    "mesure:registre": "npx tsx scripts/mesure-registre.ts",
     "mesure:vivier": "npx tsx scripts/mesure-couverture.ts --vivier",
     "design:build": "node scripts/design-system.mjs",
     "check:permissions": "node scripts/check-permissions.mjs",
