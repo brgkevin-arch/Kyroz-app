@@ -419,6 +419,35 @@ export default function Onboarding() {
     return null;
   };
 
+  // ── E67 · l'assistant remonte en haut à CHAQUE changement d'étape ───────────
+  //
+  // Un SEUL `ScrollView` enveloppe les sept étapes, donc la position de défilement
+  // leur survit : qui avait fait défiler l'étape 5 atterrissait au milieu de
+  // l'étape 6, titre et premiers champs hors champ. Ça frappe d'autant plus fort
+  // que l'étape précédente était longue.
+  // ⚠️ `animated: false` : le contenu a DÉJÀ changé quand l'effet part. Animer le
+  // retour montrerait l'étape suivante en train de remonter — ça se lit comme un
+  // défaut, pas comme une transition.
+  // ⚠️ L'effet est sur `step`, pas dans `next()` : `back()` et toute autre voie qui
+  // change d'étape doivent remonter aussi. Un correctif posé dans `next()` seul
+  // laisserait le bouton retour avec le défaut.
+  const defilement = useRef<ScrollView>(null);
+  useEffect(() => { defilement.current?.scrollTo({ y: 0, animated: false }); }, [step]);
+
+  // ── E68 · choisir son niveau d'activité descend jusqu'aux séances ───────────
+  //
+  // L'étape 4 empile deux blocs et le second est sous le pli : on cochait son
+  // niveau et l'écran ne bougeait pas, donc rien ne disait qu'il restait quelque
+  // chose dessous. La position visée est MESURÉE (`onLayout`), jamais écrite en
+  // dur — elle dépend de la hauteur des quatre libellés, donc de la police et de
+  // la largeur de l'appareil.
+  // ⚠️ Deux offsets à additionner : `onLayout` rend une position relative au PARENT.
+  // Le bloc de l'étape est enfant du conteneur de contenu, les séances sont enfant
+  // du bloc — seule la somme est une position de défilement valable.
+  const yBlocEtape = useRef(0);
+  const ySeances = useRef(0);
+  const versLesSeances = () => defilement.current?.scrollTo({ y: yBlocEtape.current + ySeances.current, animated: true });
+
   const next = () => {
     if (saving) return;
     if (!canProceed) { setAvanceTentee(true); return; }
@@ -559,7 +588,7 @@ export default function Onboarding() {
         <View style={s.track}><View style={[s.fill, { width: `${(step / TOTAL_STEPS) * 100}%` }]} /></View>
       </View>
 
-      <ScrollView contentContainerStyle={[s.content, layout.content]} {...clavierScrollProps} showsVerticalScrollIndicator={false}>
+      <ScrollView ref={defilement} contentContainerStyle={[s.content, layout.content]} {...clavierScrollProps} showsVerticalScrollIndicator={false}>
         {step > 1 && <SectionLabel t={t}>ÉTAPE {step - 1} / {TOTAL_STEPS - 1}</SectionLabel>}
 
         {step === 1 && <NameStep t={t} value={firstName} onChange={setFirstName} />}
@@ -613,7 +642,7 @@ export default function Onboarding() {
         )}
 
         {step === 4 && (
-          <View style={s.block}>
+          <View style={s.block} onLayout={(e) => { yBlocEtape.current = e.nativeEvent.layout.y; }}>
             <Text style={s.title}>Ton activité</Text>
             {/* Pas de sous-titre ici (décision fondateur, 2026-09-06) : l'écran est
                 allégé, les deux intertitres « TES JOURNÉES, HORS SPORT » et « TES
@@ -621,19 +650,21 @@ export default function Onboarding() {
             {/* Le NEAT AVANT les séances, et le composant est partagé avec le Profil :
                 voir l'en-tête de `NeatPicker` — l'ordre et la rédaction sont des
                 garde-fous contre le double-comptage sport/journées, pas une mise en page. */}
-            <NeatPicker t={t} value={neat} onChange={setNeat} />
+            <NeatPicker t={t} value={neat} onChange={(n) => { setNeat(n); versLesSeances(); }} />
 
-            <SectionLabel t={t}>TES SÉANCES</SectionLabel>
-            <SportsEditor
-              sports={sports}
-              weight={profileReady ? wN : undefined}
-              onChange={(next) => { setSports(next); if (next.length) setNoSport(false); }}
-            />
-            <Chip
-              t={t} label="Je ne fais pas de sport"
-              selected={noSport}
-              onPress={() => { const v = !noSport; setNoSport(v); if (v) setSports([]); }}
-            />
+            <View onLayout={(e) => { ySeances.current = e.nativeEvent.layout.y; }}>
+              <SectionLabel t={t}>TES SÉANCES</SectionLabel>
+              <SportsEditor
+                sports={sports}
+                weight={profileReady ? wN : undefined}
+                onChange={(next) => { setSports(next); if (next.length) setNoSport(false); }}
+              />
+              <Chip
+                t={t} label="Je ne fais pas de sport"
+                selected={noSport}
+                onPress={() => { const v = !noSport; setNoSport(v); if (v) setSports([]); }}
+              />
+            </View>
           </View>
         )}
 
