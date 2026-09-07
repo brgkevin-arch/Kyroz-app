@@ -50,6 +50,8 @@ export type OnboardingDraft = {
   goal: Goal | null;
   restrictions: DietaryRestriction[];
   proteins: string[];
+  /** « Peu importe » — une RÉPONSE, distincte d'une liste vide non renseignée. */
+  proteinesEgales: boolean;
   dislikes: string[];
   neat: NeatLevel | null;
   variety: VarietyPreference;
@@ -171,6 +173,11 @@ export function analyser(raw: string | null, totalEtapes: number): OnboardingDra
       return l && l.every((x) => dans(REGIMES, x)) ? (l as DietaryRestriction[]) : echoue;
     }, []),
     proteins: lire('proteins', chaines, [] as string[]),
+    // ⚠️ Sans ce champ, quelqu'un qui répond « Peu importe » puis ferme l'app revient
+    // sur une étape 6 de nouveau bloquée, sans comprendre pourquoi — la réponse existe
+    // mais elle n'a pas été relue. Le défaut serait invisible tant que le brouillon
+    // n'est pas éprouvé sur CETTE étape.
+    proteinesEgales: lire('proteinesEgales', booleen, false),
     dislikes: lire('dislikes', chaines, [] as string[]),
     neat: lire<NeatLevel | null>('neat', (v) => dansOuVide(NEATS, v), null),
     variety: lire<VarietyPreference>('variety', (v) => dans(VARIETES, v), 'balanced'),

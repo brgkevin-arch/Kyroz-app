@@ -87,7 +87,14 @@ describe('l’inscription refuse à l’étape 5, pas au dernier tap', () => {
     expect(onboarding).toMatch(/\(step === 5 &&[^)]*!objectifBloque\)/);
     // …et l'étape doit RESTER dans la liste des étapes gardées : l'oublier ici
     // laisserait `canProceed` retomber sur son `!includes` fourre-tout, donc passer.
-    expect(onboarding).toMatch(/!\[1, 2, 3, 4, 5, 7\]\.includes\(step\)/);
+    // ⚠️ La sonde ne cite plus la liste ENTIÈRE. Elle l'a fait jusqu'au 2026-09-07, et
+    // elle a rougi le jour où l'étape 6 a rejoint les étapes gardées (la question des
+    // protéines exige désormais une réponse) — un changement qui ne touche EN RIEN ce
+    // qu'elle protège. Ce qu'elle garde, c'est que l'étape 5 figure dans la liste :
+    // l'en retirer ferait retomber `canProceed` sur son `!includes` fourre-tout.
+    const gardees = onboarding.match(/!\[([\d, ]+)\]\.includes\(step\)/)?.[1] ?? '';
+    expect(gardees, 'liste des étapes gardées introuvable').not.toBe('');
+    expect(gardees.split(',').map((n) => n.trim())).toContain('5');
   });
 
   it('la sortie tient en UN tap, et elle est écrite à l’écran', () => {
