@@ -791,6 +791,29 @@ produit en suspens — il ne reste qu'à coder.
 > les deux PR fusionnées, donc les deux chantiers ne se marchent pas dessus (ils
 > touchaient tous les deux `profil.tsx` et `constants/legal.ts`).
 
+- **E69 · `DAILY_SMOOTH_CAP` n'est gardé par AUCUN test — le nom du garde-fou promettait
+  un mécanisme, le test bornait un résultat.**
+  **TROUVÉ EN RE-BASELINANT, le 2026-09-07** (vague B10), pas en relisant le code : le cas
+  `dayTotalTightness` s'appelait « lissage borné : aucun jour ne dépasse la cible de plus de
+  ~80 kcal (**cap +50** + tolérance) ». Vérification par mutation, sur le catalogue à 537 :
+
+  | `DAILY_SMOOTH_CAP` | écart max mesuré (84 jours) | le fichier de test |
+  |---|---|---|
+  | 50 (réel) | +91 kcal | 4 cas verts |
+  | 150 | +91 kcal — identique | idem |
+  | 300 | +91 kcal — identique | idem |
+  | **0** (lissage SUPPRIMÉ) | +66 kcal | **4 cas verts** |
+
+  Au-delà de 50 le cap n'est plus atteint sur ce profil, donc l'augmenter est indétectable ;
+  et le supprimer **améliore** la borne mesurée, donc le retirer ne rougit rien. La constante
+  peut être changée dans les deux sens sans qu'un seul test bouge.
+  ⚠️ Le seuil a été porté à 100 et le test renommé pour dire ce qu'il borne vraiment (le
+  résultat d'un jour) — **ce n'est pas un correctif**, juste la fin d'une promesse fausse.
+  ➡️ Reste à écrire : un cas qui mesure le LISSAGE lui-même (la convergence de la semaine
+  quand un jour déborde), sinon la valeur 50 n'est plus qu'une préférence.
+  Cf. le principe : un cliquet qu'on ne resserre plus ne garde rien.
+
+
 - **E68 · Cocher son niveau d'activité ne descend pas jusqu'aux séances**
   🔴 **SIGNALÉ PAR LE FONDATEUR le 2026-09-05**, dans la même répétition que E67 :
   *« quand tu coches ton activité, il faudrait que la page atterrisse direct après sur
