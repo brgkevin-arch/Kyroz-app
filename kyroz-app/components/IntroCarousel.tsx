@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { useTheme, ThemePalette, Spacing, Radius, Type, Trait } from '../constants/theme';
+import { useTheme, ThemePalette, Spacing, Radius, Type, Trait, cardShadow } from '../constants/theme';
 import { useLayout } from '../constants/layout';
 import { PrimaryButton } from './ui';
 import { Presse } from './Presse';
@@ -35,8 +35,6 @@ type Diapo = {
   titre: string;
   texte: string;
   images: { sombre: ImageSourcePropType; clair: ImageSourcePropType };
-  /** Ratio largeur/hauteur de la capture — fixe la place à réserver sans la mesurer. */
-  ratio: number;
 };
 
 // ⚠️ `require` ne prend QUE des chemins littéraux : Metro résout ces images à la
@@ -52,7 +50,6 @@ const DIAPOS: Diapo[] = [
       sombre: require('../assets/intro/sombre/1-plan.png'),
       clair: require('../assets/intro/clair/1-plan.png'),
     },
-    ratio: 414 / 230,
   },
   {
     cle: 'poids',
@@ -62,7 +59,6 @@ const DIAPOS: Diapo[] = [
       sombre: require('../assets/intro/sombre/2-poids.png'),
       clair: require('../assets/intro/clair/2-poids.png'),
     },
-    ratio: 414 / 356,
   },
   {
     cle: 'courses',
@@ -72,7 +68,6 @@ const DIAPOS: Diapo[] = [
       sombre: require('../assets/intro/sombre/3-courses.png'),
       clair: require('../assets/intro/clair/3-courses.png'),
     },
-    ratio: 414 / 430,
   },
   {
     cle: 'recettes',
@@ -82,12 +77,26 @@ const DIAPOS: Diapo[] = [
       sombre: require('../assets/intro/sombre/4-recettes.png'),
       clair: require('../assets/intro/clair/4-recettes.png'),
     },
-    ratio: 414 / 470,
   },
 ];
 
 /** Toutes les 4 s : assez pour lire un titre, assez peu pour que ça « défile ». */
 const CADENCE_MS = 4000;
+
+// Les captures montrent l'écran ENTIER (`test/intro-captures.mjs`, gabarit 430 × 932
+// — le rendu téléphone garanti, cf. `lib/layout.ts`). Un seul ratio pour les quatre.
+const RATIO_ECRAN = 430 / 932;
+
+// La diapo occupe ~62 % de la hauteur : assez pour qu'on reconnaisse un écran d'app,
+// assez peu pour que le titre et le bouton restent posés autour sans se serrer.
+const PART_HAUTEUR = 0.62;
+
+// ⚠️ …mais jamais au point d'écraser le reste. Sur un écran court (SE, 667 pt), 62 %
+// ne laisserait pas la place au logo, au titre, aux points et au bouton : on retire
+// donc leur encombrement mesuré avant de prendre la part. Sans ce plancher, la diapo
+// pousserait le bouton hors de l'écran — un accueil dont on ne peut plus sortir, ce
+// que ce fichier existe justement pour interdire.
+const ENCOMBREMENT_AUTOUR = 330;
 
 export function IntroCarousel({ onTermine }: { onTermine: () => void }) {
   const t = useTheme();
@@ -127,8 +136,21 @@ export function IntroCarousel({ onTermine }: { onTermine: () => void }) {
     if (i !== index) setIndex(i);
   };
 
-  // Largeur utile d'une image : la diapo, moins les marges de contenu.
-  const largeurImage = Math.min(width, layout.width) - Spacing.xl * 2;
+  // ── Taille de l'aperçu : on part de la HAUTEUR, pas de la largeur ──────────
+  //
+  // Une capture d'écran de téléphone est très verticale (430 × 932). La dimensionner
+  // par la largeur disponible la ferait déborder en hauteur sur n'importe quel
+  // appareil ; c'est la hauteur qui est la ressource rare ici.
+  const { height } = useWindowDimensions();
+  const largeurMax = Math.min(width, layout.width) - Spacing.xl * 2;
+  const hauteurVoulue = Math.min(height * PART_HAUTEUR, height - ENCOMBREMENT_AUTOUR);
+  // …et si la largeur venait à manquer malgré tout (écran très court et large, ou
+  // grande police système), c'est elle qui décide : l'image se contente de rétrécir.
+  const hauteurImage = Math.max(
+    120,
+    Math.min(hauteurVoulue, largeurMax / RATIO_ECRAN),
+  );
+  const largeurImage = hauteurImage * RATIO_ECRAN;
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'bottom']}>
@@ -159,8 +181,20 @@ export function IntroCarousel({ onTermine }: { onTermine: () => void }) {
               source={t.scheme === 'dark' ? d.images.sombre : d.images.clair}
               style={{
                 width: largeurImage,
-                height: largeurImage / d.ratio,
+                height: hauteurImage,
                 borderRadius: Radius.card,
+                overflow: 'hidden',
+                // 🔴 UNE ARÊTE, DANS LES DEUX THÈMES — et c'est l'inverse de ce que
+                // j'avais écrit ici. J'avais retiré la bordure en jugeant qu'un cadre
+                // « colle l'aperçu à la page ». Vu à l'écran le 2026-09-07 : c'est
+                // faux quand l'image montre la PAGE ENTIÈRE, parce que son fond est
+                // alors exactement celui de l'écran qui l'accueille. Sans arête,
+                // l'aperçu ne flotte pas — il se dissout, et on ne voit plus où l'app
+                // commence.
+                // `cardShadow` d'abord (ombre en clair, où elle se voit ; rien à
+                // ajouter en sombre, où elle serait invisible), le filet ENSUITE pour
+                // qu'il gagne dans les deux cas.
+                ...cardShadow(t),
                 borderWidth: Trait.fin,
                 borderColor: t.line,
               }}
@@ -220,17 +254,22 @@ export function IntroCarousel({ onTermine }: { onTermine: () => void }) {
 function makeStyles(t: ThemePalette) {
   return StyleSheet.create({
     safe: { flex: 1, backgroundColor: t.bg, justifyContent: 'space-between' },
+    // KYROZ au même rang que sur l'écran suivant (`login.tsx` : `Type.display`,
+    // interlettrage 6) — l'accueil et le formulaire ne sont pas deux applications, et
+    // c'est le NOM qui doit tenir le haut de l'écran, pas le titre de la diapo.
     logo: {
-      ...Type.h2, color: t.text, letterSpacing: 5, textAlign: 'center',
-      marginTop: Spacing.xl, marginBottom: Spacing.lg,
+      ...Type.display, color: t.text, letterSpacing: 6, textAlign: 'center',
+      marginTop: Spacing.lg, marginBottom: Spacing.md,
     },
-    diapo: { paddingHorizontal: Spacing.xl, alignItems: 'center', justifyContent: 'center', gap: Spacing.md },
-    titre: { ...Type.h1, color: t.text, textAlign: 'center' },
+    diapo: { paddingHorizontal: Spacing.xl, alignItems: 'center', justifyContent: 'center', gap: Spacing.sm },
+    // `h2` et non `h1` : le titre accompagne l'aperçu, il ne lui dispute pas la
+    // place. C'est l'image qui porte la démonstration.
+    titre: { ...Type.h2, color: t.text, textAlign: 'center' },
     texte: {
       ...Type.body, color: t.textSecondary, textAlign: 'center',
       lineHeight: 21, marginBottom: Spacing.sm,
     },
-    points: { flexDirection: 'row', justifyContent: 'center', gap: Spacing.sm, paddingVertical: Spacing.lg },
+    points: { flexDirection: 'row', justifyContent: 'center', gap: Spacing.sm, paddingVertical: Spacing.md },
     point: { width: 7, height: 7, borderRadius: 4, backgroundColor: t.textTertiary },
     pied: { paddingHorizontal: Spacing.xl, paddingBottom: Spacing.lg },
   });

@@ -81,11 +81,21 @@ describe('les images existent, dans les DEUX thèmes', () => {
   });
 
   it('elles se REGÉNÈRENT par script — une capture faite à la main ne se refait jamais', () => {
-    const script = lire('test/intro-captures.mjs');
+    const script = sansCommentaires(lire('test/intro-captures.mjs'));
     expect(script).toContain('assets');
-    // Le cadrage vise des TEXTES de l'écran, pas des pixels en dur : des coordonnées
-    // figées périmeraient au premier ajustement de mise en page, en silence.
-    expect(script).toContain('boundingBox');
-    expect(sansCommentaires(script)).not.toMatch(/clip:\s*\{\s*x:\s*\d+\s*,\s*y:\s*\d+/);
+
+    // 🔴 CHAQUE DIAPO PROUVE SON ÉCRAN AVANT D'ÊTRE PHOTOGRAPHIÉE. Les captures
+    // montrent la page entière depuis le 2026-09-07 : il n'y a plus de cadrage à
+    // vérifier, mais la vérification qui compte reste celle-ci. Un onglet qui ne
+    // bascule pas ne lève AUCUNE erreur — la page reste celle d'avant et la capture
+    // l'immortalise sous un autre nom. C'est la panne exacte de `store-assets.mjs`
+    // le 2026-09-02 : quatre visuels de fiche App Store identiques, code de sortie 0.
+    expect(script).toMatch(/ancre[\s\S]{0,400}isVisible/);
+    expect(script).toMatch(/l'écran n'est pas celui attendu/);
+
+    // …et une diapo manquante fait ÉCHOUER le script, elle ne le laisse pas finir
+    // en silence sur un jeu d'images incomplet.
+    expect(script).toMatch(/manques\+\+/);
+    expect(script).toMatch(/process\.exit\(1\)/);
   });
 });

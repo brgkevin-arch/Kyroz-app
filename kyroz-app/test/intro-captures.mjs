@@ -7,6 +7,13 @@
 // faite à la main ne se regénère pas, donc elle ne se regénère jamais.
 //
 // Usage : KYROZ_URL=http://localhost:8097 node test/intro-captures.mjs
+//
+// 🔴 NE JAMAIS VIDER `assets/intro/` AVANT DE LANCER CE SCRIPT. Il pilote l'app pour
+// la photographier, et l'app IMPORTE ces images (`components/IntroCarousel.tsx`,
+// `require` résolu par Metro à la compilation). Sans elles le bundle ne se construit
+// plus, l'écran ne s'ouvre pas, et le script échoue sur « l'écran Plan n'a pas été
+// atteint » — un diagnostic qui accuse le parcours alors que la cause est le ménage
+// qu'on vient de faire. Les captures s'ÉCRASENT en place, il n'y a rien à nettoyer.
 // Sortie : assets/intro/ — versionnée, elle, parce que le code l'importe.
 //
 // ⚠️ LE CADRAGE N'EST PAS EN PIXELS EN DUR. Chaque diapo vise un TEXTE de l'écran
@@ -30,23 +37,24 @@ mkdirSync(OUT, { recursive: true });
 // (le seuil tablette est à 700, cf. lib/layout.ts) et la densité suffit pour un
 // affichage plein écran sur n'importe quel appareil.
 const PHONE = { width: 430, height: 932 };
-const SCALE = 3;
+// ⚠️ ×2 ET PAS ×3 (2026-09-07). Les diapos montrent désormais l'ÉCRAN ENTIER, pas un
+// détail : une capture pleine page pèse trois fois plus qu'un recadrage. Elle est
+// affichée sur ~230 pt de large, soit 690 px sur un écran ×3 — 860 px de capture
+// suffisent largement, et le jeu complet reste léger. Capturer plus, c'est alourdir
+// le bundle pour des pixels que personne ne verra.
+const SCALE = 2;
 
-// `marge` : ce qu'on ajoute autour de la boîte visée, en px CSS. `remonte` : de
-// combien de parents on remonte avant de mesurer — un texte seul ne cadre rien,
-// c'est le bloc qui le contient qu'on photographie.
-// `bande` : hauteur imposée (px CSS) quand le bloc visé n'est pas un conteneur
-// mesurable — une liste n'a pas de « carte » à photographier, on en prend une
-// tranche sous son titre. Sans elle, `3-courses` rendait 72 px de haut : le titre
-// de catégorie SEUL, sans un seul article dessous.
+// 🔴 L'ANCRE NE CADRE PLUS RIEN, ELLE PROUVE QU'ON EST SUR LE BON ÉCRAN. Les diapos
+// montrent la page entière ; il n'y a donc plus de recadrage à calculer. Mais la
+// vérification, elle, RESTE — et elle est plus nécessaire que jamais : c'est
+// exactement ce qui manquait à `store-assets.mjs` le 2026-09-02, quand un onglet qui
+// ne changeait pas lui a fait produire quatre captures identiques en annonçant quatre
+// écrans différents, avec un code de sortie 0.
 const DIAPOS = [
-  { nom: '1-plan',     onglet: 'Plan',     ancre: 'Ma répartition (%)',  remonte: 3, marge: 12 },
-  { nom: '2-poids',    onglet: 'Profil',   ancre: 'Suivi du poids',      remonte: 1, marge: 12 },
-  { nom: '3-courses',  onglet: 'Courses',  ancre: 'Viandes & poissons',  remonte: 1, marge: 12, bande: 430 },
-  // `margeHaut: 0` — la marge de 12 px faisait entrer une rangée de filtres coupée
-  // en haut de l'image. Une diapo qui commence par un élément tronqué a l'air d'un
-  // bug d'affichage, pas d'un extrait.
-  { nom: '4-recettes', onglet: 'Recettes', ancre: 'Toutes les recettes', remonte: 1, marge: 12, margeHaut: 0, bande: 470 },
+  { nom: '1-plan',     onglet: 'Plan',     ancre: 'Ma répartition (%)' },
+  { nom: '2-poids',    onglet: 'Profil',   ancre: 'Suivi du poids' },
+  { nom: '3-courses',  onglet: 'Courses',  ancre: 'Viandes & poissons' },
+  { nom: '4-recettes', onglet: 'Recettes', ancre: 'Toutes les recettes' },
 ];
 
 // 🔴 LES DEUX THÈMES, PAS UN. Une image est un pixel figé : elle ne suit pas le
@@ -106,7 +114,7 @@ for (const theme of THEMES) {
   await dismissOverlays(page);
   console.log(`[${theme}] session prête`);
 
-  for (const { nom, onglet, ancre, remonte, marge, margeHaut, bande } of DIAPOS) {
+  for (const { nom, onglet, ancre } of DIAPOS) {
     if (!(await tap(page, onglet, { which: 'last', timeout: 3000 }))) {
       console.error(`❌ [${theme}] onglet introuvable : ${onglet}`);
       manques++;
@@ -117,30 +125,20 @@ for (const theme of THEMES) {
     await page.mouse.wheel(0, -3000);
     await sleep(700);
 
-    let cible = page.getByText(ancre, { exact: false }).first();
-    for (let i = 0; i < remonte; i++) cible = cible.locator('..');
-
-    const boite = await cible.boundingBox().catch(() => null);
-    if (!boite) {
-      // 🔴 UN CADRAGE QUI ÉCHOUE SE NOMME. Sans ça le script garderait l'image
-      // précédente, et le carrousel montrerait autre chose que ce qu'il annonce —
-      // sans que personne ne l'apprenne. C'est ce que `store-assets.mjs` a fait le
-      // 2026-09-02 : quatre captures identiques, code de sortie 0.
-      console.error(`❌ [${theme}] ancre introuvable sur ${onglet} : « ${ancre} »`);
+    // 🔴 ON PROUVE QU'ON EST SUR LE BON ÉCRAN AVANT DE PHOTOGRAPHIER. Un onglet qui
+    // ne bascule pas ne lève aucune erreur : la page reste celle d'avant, et la
+    // capture suivante l'immortalise sous un autre nom. C'est la panne exacte de
+    // `store-assets.mjs` le 2026-09-02 — quatre fiches App Store identiques, code 0.
+    const present = await page.getByText(ancre, { exact: false }).first()
+      .isVisible({ timeout: 3000 }).catch(() => false);
+    if (!present) {
+      console.error(`❌ [${theme}] ${onglet} : « ${ancre} » absent — l'écran n'est pas celui attendu`);
       manques++;
       continue;
     }
 
-    const haut = margeHaut ?? marge;
-    const hauteur = bande ?? boite.height + marge + haut;
-    const clip = {
-      x: Math.max(0, boite.x - marge),
-      y: Math.max(0, boite.y - haut),
-      width: Math.min(PHONE.width, boite.width + marge * 2),
-      height: Math.min(PHONE.height - Math.max(0, boite.y - haut), hauteur),
-    };
-    await page.screenshot({ path: join(dossier, `${nom}.png`), clip });
-    console.log(`[${theme}] capture : ${nom} (${Math.round(clip.width)}×${Math.round(clip.height)} CSS)`);
+    await page.screenshot({ path: join(dossier, `${nom}.png`) });
+    console.log(`[${theme}] capture : ${nom} (page entière)`);
   }
   await ctx.close();
 }
