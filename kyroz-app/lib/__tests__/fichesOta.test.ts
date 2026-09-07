@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { lireAgents, lireStore, desaccords, ligneOtaAgents, blocOtaStore, chaineOta, chaineDivergente } from '../otaFiches';
+import { lireAgents, lireStore, desaccords, ligneOtaAgents, blocOtaStore, chaineOta, chaineDivergente, publicationEnTete } from '../otaFiches';
 
 // ── Les deux fiches racontent-elles la MÊME dernière OTA ? ───────────────────
 //
@@ -167,5 +167,48 @@ describe('les fiches d’OTA — l’historique commun ne diverge pas', () => {
     const longue = { groupes: ['05baae2a', '2b0a3053', '4d38f61c'], commits: ['d71c3a2', '79c3638', '788ab09'] };
     const courte = { groupes: ['05baae2a', '2b0a3053'], commits: ['d71c3a2', '79c3638'] };
     expect(chaineDivergente(longue, courte)).toEqual([]);
+  });
+});
+
+// ── Une publication n'est plus un groupe ─────────────────────────────────────
+//
+// 🔴 CE QUE CE BLOC FERME, écrit le 2026-09-07 après l'avoir payé une fois.
+// Sous `runtimeVersion: fingerprint`, `eas update` dépose UN GROUPE PAR
+// PLATEFORME. `check:ota` lisait le premier et en déduisait les plateformes : il
+// a donc rendu « plateformes : android ≠ android + ios » et « mauvais groupe »
+// sur la 26ᵉ OTA, qui était parfaitement correcte. Un contrôle rouge sur du vrai
+// pousse à corriger les fiches jusqu'à ce qu'elles mentent — c'est pire que pas
+// de contrôle du tout.
+const entree = (group: string, platforms: string, runtimeVersion: string, message: string) =>
+  ({ group, platforms, runtimeVersion, message });
+
+const VINGT_SIXIEME = [
+  entree('f364ba3c-38b5-4543-93f4-9439a467e52e', 'ios', 'dfe034fd', '"26e OTA" (5 minutes ago)'),
+  entree('4ced0969-4cae-482b-b17e-d00dbfa27a90', 'android', 'e3c4baca', '"26e OTA" (5 minutes ago)'),
+  entree('bf9894b4-1111-2222-3333-444444444444', 'android, ios', '1.0.0', '"25e OTA" (11 days ago)'),
+];
+
+describe('publicationEnTete', () => {
+  it('elle réunit les DEUX groupes d’une même publication', () => {
+    const p = publicationEnTete(VINGT_SIXIEME)!;
+    expect(p.groupes).toEqual(['f364ba3c', '4ced0969']);
+    expect(p.plateformes).toEqual(['android', 'ios']);
+    expect(p.runtimes).toEqual(['dfe034fd', 'e3c4baca']);
+  });
+
+  it('elle s’ARRÊTE au message suivant — la 25ᵉ ne déborde pas dans la 26ᵉ', () => {
+    // La mutation qui l'a vérifié : une borne à `rupture + 1` avalait la ligne
+    // suivante, et « bf9894b4 » se retrouvait dans la publication du jour.
+    expect(publicationEnTete(VINGT_SIXIEME)!.groupes).not.toContain('bf9894b4');
+  });
+
+  it('elle lit encore l’ANCIEN régime : un seul groupe, deux plateformes', () => {
+    const p = publicationEnTete([VINGT_SIXIEME[2]])!;
+    expect(p.groupes).toEqual(['bf9894b4']);
+    expect(p.plateformes).toEqual(['android', 'ios']);
+  });
+
+  it('un canal vide rend `null` — jamais une publication vide qui passerait au vert', () => {
+    expect(publicationEnTete([])).toBeNull();
   });
 });
