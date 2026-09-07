@@ -5,6 +5,7 @@ import { ThemePalette, Radius, Type, Spacing } from '../constants/theme';
 import { WeightEntry } from '../lib/weight';
 import { GoalTarget } from '../lib/types';
 import { daysBetween, TRACK_TOLERANCE_KG, zoneHalfWidthKg } from '../lib/datedGoal';
+import { frnum } from '../lib/units';
 
 // Mini-courbe de poids (vectorielle). Temps de gauche (ancien) à droite (récent).
 // ⚠️ Les bornes kg (min/max) sont des repères d'ÉCHELLE : elles annotent les
@@ -97,8 +98,8 @@ export function WeightChart({ t, entries, width, height = 130, goalTarget }: Pro
         {/* lignes de repère, annotées avec les bornes d'échelle (haut = max, bas = min) */}
         <Line x1={padX} y1={padY} x2={chartW - padX} y2={padY} stroke={t.line} strokeWidth={1} />
         <Line x1={padX} y1={height - padY} x2={chartW - padX} y2={height - padY} stroke={t.line} strokeWidth={1} />
-        <SvgText x={padX} y={padY - 5} fontSize={10} fill={t.textTertiary}>{max.toFixed(1)} kg</SvgText>
-        <SvgText x={padX} y={height - padY + 13} fontSize={10} fill={t.textTertiary}>{min.toFixed(1)} kg</SvgText>
+        <SvgText x={padX} y={padY - 5} fontSize={10} fill={t.textTertiary}>{frnum(max)} kg</SvgText>
+        <SvgText x={padX} y={height - padY + 13} fontSize={10} fill={t.textTertiary}>{frnum(min)} kg</SvgText>
 
         {/* ZONE repère SEULE (couloir ombré ± tolérance) : ni ligne « à suivre » ni
             marqueur — juste une bande où il suffit de rester → zéro charge mentale. */}
@@ -127,12 +128,12 @@ export function WeightChart({ t, entries, width, height = 130, goalTarget }: Pro
       <View style={styles.axis}>
         <Text style={[styles.axisTxt, { color: t.textTertiary }]}>{frDate(first.date)}</Text>
         <Text style={[styles.axisTxt, { color: t.textSecondary, fontWeight: '700' }]}>
-          {frDate(lastE.date)} · {lastE.weight_kg} kg
+          {frDate(lastE.date)} · {frnum(lastE.weight_kg)} kg
         </Text>
       </View>
       {goalTarget && (
         <Text style={[styles.axisTxt, { color: t.textTertiary, marginTop: Spacing.xs }]}>
-          ▚ Ta zone vers {goalTarget.target_weight_kg} kg le {frDate(goalTarget.target_date)} · rester dedans suffit
+          ▚ Ta zone vers {frnum(goalTarget.target_weight_kg)} kg le {frDate(goalTarget.target_date)} · rester dedans suffit
         </Text>
       )}
     </View>

@@ -5,6 +5,7 @@ import { WeightEntry, todayStamp } from '../lib/weight';
 import { GoalTarget } from '../lib/types';
 import { trackStatus } from '../lib/datedGoal';
 import { LocalIcon } from './Icons';
+import { frnum } from '../lib/units';
 
 // ── Module « Transformation » (premium « Kyroz+ ») ───────────────────────────
 // La PREUVE que l'objectif daté avance : le verdict de pente (courbe réelle vs
@@ -58,7 +59,7 @@ export function TrackVerdict({ t, goalTarget, currentWeightKg, paused = false }:
       <Text style={{ ...Type.caption, color: t.textTertiary, lineHeight: 17 }}>
         {st.state === 'paused'
           ? 'Kyroz ne pilote plus cette trajectoire pour le moment — ton plan est au maintien. Ton objectif reste enregistré.'
-          : `La pente est un repère, pas une règle — à chaque pesée, Kyroz réajuste tes calories pour viser ${goalTarget.target_weight_kg} kg le ${frDate(goalTarget.target_date)}.`}
+          : `La pente est un repère, pas une règle — à chaque pesée, Kyroz réajuste tes calories pour viser ${frnum(goalTarget.target_weight_kg)} kg le ${frDate(goalTarget.target_date)}.`}
       </Text>
     </View>
   );
@@ -88,7 +89,7 @@ export function PhotoCompare({ t, photos, entries }: {
       </View>
       {delta != null && (
         <Text style={{ ...Type.bodySmallStrong, color: t.text }}>
-          {delta > 0 ? '+' : ''}{delta} kg entre les deux photos
+          {delta > 0 ? '+' : ''}{frnum(delta)} kg entre les deux photos
         </Text>
       )}
       {/* 🔴 LA PHRASE SUR LES PHOTOS A ÉTÉ RETIRÉE D'ICI le 2026-08-26 : elle
