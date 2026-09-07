@@ -7,6 +7,13 @@
 // faite à la main ne se regénère pas, donc elle ne se regénère jamais.
 //
 // Usage : KYROZ_URL=http://localhost:8097 node test/intro-captures.mjs
+//
+// 🔴 NE JAMAIS VIDER `assets/intro/` AVANT DE LANCER CE SCRIPT. Il pilote l'app pour
+// la photographier, et l'app IMPORTE ces images (`components/IntroCarousel.tsx`,
+// `require` résolu par Metro à la compilation). Sans elles le bundle ne se construit
+// plus, l'écran ne s'ouvre pas, et le script échoue sur « l'écran Plan n'a pas été
+// atteint » — un diagnostic qui accuse le parcours alors que la cause est le ménage
+// qu'on vient de faire. Les captures s'ÉCRASENT en place, il n'y a rien à nettoyer.
 // Sortie : assets/intro/ — versionnée, elle, parce que le code l'importe.
 //
 // ⚠️ LE CADRAGE N'EST PAS EN PIXELS EN DUR. Chaque diapo vise un TEXTE de l'écran
@@ -30,23 +37,39 @@ mkdirSync(OUT, { recursive: true });
 // (le seuil tablette est à 700, cf. lib/layout.ts) et la densité suffit pour un
 // affichage plein écran sur n'importe quel appareil.
 const PHONE = { width: 430, height: 932 };
-const SCALE = 3;
+// ⚠️ ×2 ET PAS ×3 (2026-09-07). Les diapos montrent désormais l'ÉCRAN ENTIER, pas un
+// détail : une capture pleine page pèse trois fois plus qu'un recadrage. Elle est
+// affichée sur ~230 pt de large, soit 690 px sur un écran ×3 — 860 px de capture
+// suffisent largement, et le jeu complet reste léger. Capturer plus, c'est alourdir
+// le bundle pour des pixels que personne ne verra.
+const SCALE = 2;
 
-// `marge` : ce qu'on ajoute autour de la boîte visée, en px CSS. `remonte` : de
-// combien de parents on remonte avant de mesurer — un texte seul ne cadre rien,
-// c'est le bloc qui le contient qu'on photographie.
-// `bande` : hauteur imposée (px CSS) quand le bloc visé n'est pas un conteneur
-// mesurable — une liste n'a pas de « carte » à photographier, on en prend une
-// tranche sous son titre. Sans elle, `3-courses` rendait 72 px de haut : le titre
-// de catégorie SEUL, sans un seul article dessous.
+// 🔴 L'ANCRE NE CADRE PLUS RIEN, ELLE PROUVE QU'ON EST SUR LE BON ÉCRAN. Les diapos
+// montrent la page entière ; il n'y a donc plus de recadrage à calculer. Mais la
+// vérification, elle, RESTE — et elle est plus nécessaire que jamais : c'est
+// exactement ce qui manquait à `store-assets.mjs` le 2026-09-02, quand un onglet qui
+// ne changeait pas lui a fait produire quatre captures identiques en annonçant quatre
+// écrans différents, avec un code de sortie 0.
+//
+// `preparer` : un geste à faire AVANT de photographier, quand l'écran par défaut ne
+// montre pas ce que la diapo prétend vendre.
+// `refuser` : un texte qui ne doit PAS s'y trouver. C'est la règle « un chiffre
+// affiché est celui qui sera servi » appliquée à l'image de vente : une diapo qui
+// annonce le contraire de ce qu'elle montre est un mensonge, même sans code fautif.
 const DIAPOS = [
-  { nom: '1-plan',     onglet: 'Plan',     ancre: 'Ma répartition (%)',  remonte: 3, marge: 12 },
-  { nom: '2-poids',    onglet: 'Profil',   ancre: 'Suivi du poids',      remonte: 1, marge: 12 },
-  { nom: '3-courses',  onglet: 'Courses',  ancre: 'Viandes & poissons',  remonte: 1, marge: 12, bande: 430 },
-  // `margeHaut: 0` — la marge de 12 px faisait entrer une rangée de filtres coupée
-  // en haut de l'image. Une diapo qui commence par un élément tronqué a l'air d'un
-  // bug d'affichage, pas d'un extrait.
-  { nom: '4-recettes', onglet: 'Recettes', ancre: 'Toutes les recettes', remonte: 1, marge: 12, margeHaut: 0, bande: 470 },
+  {
+    nom: '1-plan', onglet: 'Plan', ancre: 'Ma répartition (%)',
+    // 🔴 SANS CE GESTE, LA DIAPO DU PLAN AFFICHE « 0 / 2183 kcal », barre vide.
+    // Le persona vient de s'inscrire : son premier jour n'a rien de consommé. La
+    // diapo qui vend le plan montrait donc une journée où rien n'a encore eu lieu.
+    // On coche un repas — le VRAI geste (`cookMeal` → `setMealStatus 'eaten'`), pas
+    // une valeur posée dans le stockage.
+    preparer: async (page) => tap(page, 'J\'ai cuisiné', { which: 'first', timeout: 3000 }),
+    refuser: '0 / ',
+  },
+  { nom: '2-poids', onglet: 'Profil', ancre: 'Suivi du poids', refuser: '0 kg depuis' },
+  { nom: '3-courses',  onglet: 'Courses',  ancre: 'Viandes & poissons' },
+  { nom: '4-recettes', onglet: 'Recettes', ancre: 'Toutes les recettes' },
 ];
 
 // 🔴 LES DEUX THÈMES, PAS UN. Une image est un pixel figé : elle ne suit pas le
@@ -59,15 +82,33 @@ const SCHEMA = { sombre: 'dark', clair: 'light' };
 // Des pesées SEMÉES, pour que la carte de suivi montre une COURBE. Sans elles, le
 // persona n'a que son poids d'inscription et la carte affiche « Encore une pesée et
 // ta courbe apparaît ici » — une diapo qui vend le suivi du poids en montrant qu'il
-// n'y en a pas. Valeurs déterministes : la capture doit être la même à chaque
-// lancement, sinon le diff d'un fichier versionné devient illisible.
-// ⚠️ La DERNIÈRE valeur diffère de l'avant-dernière à dessein. Avec 82,0 partout en
-// fin de série, la carte affichait « 0 kg depuis la pesée précédente » — une diapo
-// qui vend le suivi du poids en montrant qu'il ne bouge pas.
+// n'y en a pas.
+//
+// 🔴 LA SÉRIE S'ARRÊTE AVANT AUJOURD'HUI, ET C'EST TOUT LE POINT. L'app pose
+// elle-même une pesée du JOUR au poids du profil (`useWeightLog` : `upsertEntry`
+// quand la liste est vide). Ma première série finissait à 82,0 — exactement le poids
+// du profil — donc les deux dernières pesées étaient identiques : la courbe finissait
+// À PLAT et la carte annonçait « 0 kg depuis la pesée précédente », juste au-dessus
+// d'une courbe qui descend de 84,4 à 82. Mesuré sur l'image le 2026-09-07.
+// ➡️ On laisse l'app poser le dernier point (aujourd'hui, 82 kg) et on s'arrête à
+// 82,6 : l'écart affiché devient −0,6 kg, cohérent avec la pente.
+//
+// ⚠️ DATES RELATIVES, et c'est un arbitrage assumé contre la stabilité du diff : des
+// dates fixes vieillissent (« 8 août » à côté d'un aujourd'hui de décembre), et une
+// courbe dont le dernier point est à trois mois du précédent ne vend plus un suivi.
+// L'image change donc à chaque regénération — mais un PNG entier change de toute
+// façon dès qu'on le refait.
+const ilYA = (jours) => {
+  const d = new Date();
+  d.setDate(d.getDate() - jours);
+  return d.toISOString().slice(0, 10);
+};
 const PESEES = [
-  { date: '2026-08-08', weight_kg: 84.4 }, { date: '2026-08-13', weight_kg: 84.0 },
-  { date: '2026-08-18', weight_kg: 83.5 }, { date: '2026-08-23', weight_kg: 83.1 },
-  { date: '2026-08-28', weight_kg: 82.6 }, { date: '2026-09-03', weight_kg: 82.0 },
+  { date: ilYA(30), weight_kg: 84.4 },
+  { date: ilYA(24), weight_kg: 84.0 },
+  { date: ilYA(18), weight_kg: 83.5 },
+  { date: ilYA(12), weight_kg: 83.1 },
+  { date: ilYA(6),  weight_kg: 82.6 },
 ];
 
 const browser = await chromium.launch();
@@ -106,7 +147,7 @@ for (const theme of THEMES) {
   await dismissOverlays(page);
   console.log(`[${theme}] session prête`);
 
-  for (const { nom, onglet, ancre, remonte, marge, margeHaut, bande } of DIAPOS) {
+  for (const { nom, onglet, ancre, preparer, refuser } of DIAPOS) {
     if (!(await tap(page, onglet, { which: 'last', timeout: 3000 }))) {
       console.error(`❌ [${theme}] onglet introuvable : ${onglet}`);
       manques++;
@@ -117,30 +158,48 @@ for (const theme of THEMES) {
     await page.mouse.wheel(0, -3000);
     await sleep(700);
 
-    let cible = page.getByText(ancre, { exact: false }).first();
-    for (let i = 0; i < remonte; i++) cible = cible.locator('..');
-
-    const boite = await cible.boundingBox().catch(() => null);
-    if (!boite) {
-      // 🔴 UN CADRAGE QUI ÉCHOUE SE NOMME. Sans ça le script garderait l'image
-      // précédente, et le carrousel montrerait autre chose que ce qu'il annonce —
-      // sans que personne ne l'apprenne. C'est ce que `store-assets.mjs` a fait le
-      // 2026-09-02 : quatre captures identiques, code de sortie 0.
-      console.error(`❌ [${theme}] ancre introuvable sur ${onglet} : « ${ancre} »`);
+    // 🔴 ON PROUVE QU'ON EST SUR LE BON ÉCRAN AVANT DE PHOTOGRAPHIER. Un onglet qui
+    // ne bascule pas ne lève aucune erreur : la page reste celle d'avant, et la
+    // capture suivante l'immortalise sous un autre nom. C'est la panne exacte de
+    // `store-assets.mjs` le 2026-09-02 — quatre fiches App Store identiques, code 0.
+    const present = await page.getByText(ancre, { exact: false }).first()
+      .isVisible({ timeout: 3000 }).catch(() => false);
+    if (!present) {
+      console.error(`❌ [${theme}] ${onglet} : « ${ancre} » absent — l'écran n'est pas celui attendu`);
       manques++;
       continue;
     }
 
-    const haut = margeHaut ?? marge;
-    const hauteur = bande ?? boite.height + marge + haut;
-    const clip = {
-      x: Math.max(0, boite.x - marge),
-      y: Math.max(0, boite.y - haut),
-      width: Math.min(PHONE.width, boite.width + marge * 2),
-      height: Math.min(PHONE.height - Math.max(0, boite.y - haut), hauteur),
-    };
-    await page.screenshot({ path: join(dossier, `${nom}.png`), clip });
-    console.log(`[${theme}] capture : ${nom} (${Math.round(clip.width)}×${Math.round(clip.height)} CSS)`);
+    if (preparer) {
+      // Un geste de préparation qui ÉCHOUE ne se laisse pas passer : la capture
+      // sortirait, muette, en montrant l'écran par défaut — c'est-à-dire exactement
+      // ce que la préparation existe pour éviter.
+      if (!(await preparer(page))) {
+        console.error(`❌ [${theme}] ${nom} : la préparation n'a pas abouti`);
+        manques++;
+        continue;
+      }
+      await sleep(1400);
+      await dismissOverlays(page);
+      await page.mouse.wheel(0, -3000);
+      await sleep(600);
+    }
+
+    // 🔴 CE QUE L'ÉCRAN NE DOIT PAS DIRE. Un écran valide peut afficher le contraire
+    // de ce que sa diapo annonce — « 0 kg depuis la pesée précédente » au-dessus
+    // d'une courbe qui descend, « 0 / 2183 kcal » pour vendre un plan. Aucun test de
+    // code ne voit ça : la faute est dans la DONNÉE servie, pas dans le rendu.
+    if (refuser) {
+      const texte = await page.evaluate(() => document.body.innerText || '');
+      if (texte.includes(refuser)) {
+        console.error(`❌ [${theme}] ${nom} : l'écran affiche « ${refuser} » — la diapo dirait le contraire de ce qu'elle montre`);
+        manques++;
+        continue;
+      }
+    }
+
+    await page.screenshot({ path: join(dossier, `${nom}.png`) });
+    console.log(`[${theme}] capture : ${nom} (page entière)`);
   }
   await ctx.close();
 }

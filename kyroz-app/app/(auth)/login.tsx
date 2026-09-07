@@ -1,8 +1,9 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Presse } from '../../components/Presse';
 import { retour } from '../../lib/retourHaptique';
 import {
   View, Text, StyleSheet, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView,
+  Animated, Easing,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -24,6 +25,8 @@ import { useCompteARebours } from '../../hooks/useCompteARebours';
 import MotDePasseOublie from '../../components/MotDePasseOublie';
 import { IntroCarousel } from '../../components/IntroCarousel';
 import { introDejaVue, marquerIntroVue } from '../../lib/introVu';
+import { DUREE, dureeReduite } from '../../lib/motion';
+import { useReduceMotion } from '../../lib/reduceMotion';
 
 type Mode = 'signin' | 'signup';
 
@@ -54,6 +57,38 @@ export default function LoginScreen() {
   // carrousel une frame plus tard — un écran qui s'ouvre sur un clignotement.
   // C'est la même garde que `brouillonLu` dans l'inscription.
   const [introVue, setIntroVue] = useState<boolean | undefined>(undefined);
+
+  // ── L'ARRIVÉE, ET SEULEMENT DEPUIS L'ACCUEIL ───────────────────────────────
+  //
+  // 🔴 CET ÉCRAN N'EST PAS ANIMÉ À CHAQUE VISITE. On y revient à chaque connexion,
+  // après une déconnexion, après un mot de passe refusé — c'est un écran ORDINAIRE,
+  // et un écran ordinaire qui se rejoue à chaque fois devient une attente. Le
+  // mouvement n'existe que sur le passage depuis l'accueil, qui n'arrive qu'une fois
+  // par appareil.
+  const reduire = useReduceMotion();
+  const [vientDeLIntro, setVientDeLIntro] = useState(false);
+  const entree = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    if (!vientDeLIntro) return;
+    entree.setValue(0);
+    Animated.timing(entree, {
+      toValue: 1,
+      duration: dureeReduite(DUREE.moyen, reduire),
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+  }, [vientDeLIntro, entree, reduire]);
+
+  // Le formulaire grandit de 0,96 à 1 — le MÊME sens que l'accueil qui s'efface en
+  // s'agrandissant. Deux mouvements de sens contraire se liraient comme un
+  // croisement ; de même sens, ils se lisent comme une avancée.
+  const styleEntree = {
+    opacity: entree,
+    transform: reduire ? [] : [{
+      scale: entree.interpolate({ inputRange: [0, 1], outputRange: [0.96, 1] }),
+    }],
+  };
   useEffect(() => {
     let vivant = true;
     introDejaVue().then((vue) => { if (vivant) setIntroVue(vue); });
@@ -227,6 +262,7 @@ export default function LoginScreen() {
         onTermine={() => {
           // L'écran passe TOUT DE SUITE : le drapeau part en arrière-plan, il ne
           // retient pas le tap. Une écriture ratée ne coûte qu'un défilement de plus.
+          setVientDeLIntro(true);
           setIntroVue(true);
           void marquerIntroVue();
         }}
@@ -237,6 +273,7 @@ export default function LoginScreen() {
   return (
     <SafeAreaView style={s.safe} edges={['top', 'bottom']}>
       <StatusBar style={t.scheme === 'dark' ? 'light' : 'dark'} />
+      <Animated.View style={[{ flex: 1 }, styleEntree]}>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={[s.content, layout.content]} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
           <Text style={s.logo}>KYROZ</Text>
@@ -426,6 +463,7 @@ export default function LoginScreen() {
           </Presse>
         </ScrollView>
       </KeyboardAvoidingView>
+      </Animated.View>
     </SafeAreaView>
   );
 }
