@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, Image, useWindowDimensions,
+  View, Text, StyleSheet, ScrollView, Image, useWindowDimensions, Animated, Easing,
   type NativeSyntheticEvent, type NativeScrollEvent, type ImageSourcePropType,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -10,6 +10,7 @@ import { useLayout } from '../constants/layout';
 import { PrimaryButton } from './ui';
 import { Presse } from './Presse';
 import { useReduceMotion } from '../lib/reduceMotion';
+import { DUREE, dureeReduite } from '../lib/motion';
 
 // ── CE QUE KYROZ FAIT, MONTRÉ AVANT DE DEMANDER QUOI QUE CE SOIT ─────────────
 //
@@ -112,6 +113,50 @@ export function IntroCarousel({ onTermine }: { onTermine: () => void }) {
   // mains : le geste de l'utilisateur doit gagner, et gagner pour de bon.
   const mainPrise = useRef(false);
 
+  // ── LA SORTIE : ON ENTRE DANS L'APP, ON NE COUPE PAS AU MONTAGE ────────────
+  //
+  // 0 = en place, 1 = parti. L'accueil s'AGRANDIT en s'effaçant (1 → 1,04) et le
+  // formulaire arrive en grandissant lui aussi (0,96 → 1) : deux mouvements dans le
+  // MÊME sens, ce qui se lit comme une avancée. L'inverse — l'accueil qui rétrécit —
+  // se lirait comme un retour en arrière.
+  //
+  // ⚠️ Ce budget de mouvement se justifie parce que cet écran est vu UNE FOIS par
+  // appareil (`@kyroz:introVue`). Le formulaire, lui, est revu à chaque connexion :
+  // il n'est animé QUE lorsqu'on arrive d'ici, jamais sur une visite ordinaire.
+  const sortie = useRef(new Animated.Value(0)).current;
+  const enSortie = useRef(false);
+
+  const partir = () => {
+    // Un second tap pendant la sortie relancerait l'animation depuis le début et
+    // rappellerait `onTermine`. Le geste est unique, la garde aussi.
+    if (enSortie.current) return;
+    enSortie.current = true;
+    Animated.timing(sortie, {
+      toValue: 1,
+      duration: dureeReduite(DUREE.court, reduire),
+      // `Easing.out` : l'écran part vite puis s'apaise. `Easing.in` retarderait
+      // l'instant exact que l'œil regarde — le départ.
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start(({ finished }) => {
+      // 🔴 ON PASSE LA MAIN MÊME SI L'ANIMATION EST INTERROMPUE. `finished` est faux
+      // quand la vue se démonte en cours de route ; ne rendre la main que sur `true`
+      // laisserait quelqu'un coincé sur un accueil à demi effacé, sans bouton — le
+      // défaut exact que ce composant existe pour interdire.
+      void finished;
+      onTermine();
+    });
+  };
+
+  // En mouvement réduit, l'échelle disparaît et le fondu reste : « moins et plus
+  // doux », jamais « rien » — un saut sec est ce que le réglage cherche à éviter.
+  const styleSortie = {
+    opacity: sortie.interpolate({ inputRange: [0, 1], outputRange: [1, 0] }),
+    transform: reduire ? [] : [{
+      scale: sortie.interpolate({ inputRange: [0, 1], outputRange: [1, 1.04] }),
+    }],
+  };
+
   useEffect(() => {
     // `reduceMotion` coupe l'avance automatique, il ne la ralentit pas : un
     // mouvement qu'on n'a pas demandé est exactement ce que ce réglage refuse.
@@ -156,6 +201,11 @@ export function IntroCarousel({ onTermine }: { onTermine: () => void }) {
     <SafeAreaView style={s.safe} edges={['top', 'bottom']}>
       <StatusBar style={t.scheme === 'dark' ? 'light' : 'dark'} />
 
+      {/* ⚠️ La vue animée est À L'INTÉRIEUR de la `SafeAreaView`, et elle porte
+          `justifyContent: 'space-between'` à sa place : animer la `SafeAreaView`
+          elle-même ferait entrer les encoches dans l'échelle, et le contenu
+          déborderait sous la barre d'état pendant la sortie. */}
+      <Animated.View style={[s.corps, styleSortie]}>
       <Text style={s.logo}>KYROZ</Text>
 
       <ScrollView
@@ -245,15 +295,17 @@ export function IntroCarousel({ onTermine }: { onTermine: () => void }) {
             questions répondues : il est devenu INFRANCHISSABLE et a été retiré le
             2026-08-12 (cf. la note `passScreening` dans `test/_harness.mjs`). Un
             écran d'accueil qui retient quelqu'un n'accueille pas, il barre. */}
-        <PrimaryButton t={t} label="Commencer" onPress={onTermine} />
+        <PrimaryButton t={t} label="Commencer" onPress={partir} />
       </View>
+      </Animated.View>
     </SafeAreaView>
   );
 }
 
 function makeStyles(t: ThemePalette) {
   return StyleSheet.create({
-    safe: { flex: 1, backgroundColor: t.bg, justifyContent: 'space-between' },
+    safe: { flex: 1, backgroundColor: t.bg },
+    corps: { flex: 1, justifyContent: 'space-between' },
     // KYROZ au même rang que sur l'écran suivant (`login.tsx` : `Type.display`,
     // interlettrage 6) — l'accueil et le formulaire ne sont pas deux applications, et
     // c'est le NOM qui doit tenir le haut de l'écran, pas le titre de la diapo.

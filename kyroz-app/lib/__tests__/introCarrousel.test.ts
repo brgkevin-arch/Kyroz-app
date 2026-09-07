@@ -31,8 +31,32 @@ describe('l\'accueil ne barre pas la route', () => {
     // La forme fautive serait `disabled={index < DIAPOS.length - 1}` ou un rendu
     // conditionnel du bouton. On vérifie que le bouton existe sans condition, et
     // qu'aucun `disabled` ne s'appuie sur l'index.
-    expect(carrousel).toMatch(/<PrimaryButton[^>]*label="Commencer"[^>]*onPress=\{onTermine\}/s);
+    expect(carrousel).toMatch(/<PrimaryButton[^>]*label="Commencer"[^>]*onPress=\{partir\}/s);
     expect(carrousel).not.toMatch(/disabled=\{[^}]*index/);
+  });
+
+  it('une animation de sortie INTERROMPUE passe quand même la main', () => {
+    // 🔴 LE RISQUE QUE L'ANIMATION A INTRODUIT (2026-09-07). Le bouton ne rend plus
+    // la main directement : il joue une sortie, puis appelle `onTermine` dans le
+    // rappel de fin. Or `finished` est FAUX quand la vue se démonte ou que
+    // l'animation est coupée — n'appeler `onTermine` que sur `finished === true`
+    // laisserait quelqu'un sur un accueil à demi effacé, sans bouton pour en sortir.
+    // C'est la panne de l'écran « Avant de commencer » (2026-08-12) sous une autre
+    // forme : un portail qui ne s'ouvre pas.
+    const rappel = carrousel.match(/\.start\(\(\{ finished \}\) => \{[\s\S]*?\}\);/)?.[0] ?? '';
+    expect(rappel, 'le rappel de fin doit exister').not.toBe('');
+    expect(rappel).toContain('onTermine()');
+    // …et il ne doit PAS être gardé par `finished`.
+    expect(rappel).not.toMatch(/if \(\s*finished\s*\)/);
+    expect(rappel).not.toMatch(/finished\s*&&/);
+  });
+
+  it('le formulaire n\'est animé QUE depuis l\'accueil', () => {
+    // Cet écran est revu à chaque connexion, chaque déconnexion, chaque mot de passe
+    // refusé. L'animer à chaque visite transformerait un écran ordinaire en attente
+    // — c'est le premier filtre de toute décision d'animation : la fréquence.
+    expect(login).toMatch(/if \(!vientDeLIntro\) return;/);
+    expect(login).toMatch(/useRef\(new Animated\.Value\(1\)\)/);
   });
 
   it('un tap sur la sortie fait AVANCER l\'écran sans attendre l\'écriture disque', () => {
