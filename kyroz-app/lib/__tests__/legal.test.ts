@@ -231,7 +231,15 @@ import { STATISTIQUES_USAGE_ACTIVES } from '../featureFlags';
  * que le test affiche. Et régénère les miroirs (`npm run gen:legal`).
  */
 const DERNIERE_REVISION = {
-  date: '27 août 2026',
+  // 🔴 **SEPTIÈME RÉVISION — ET C'EST LA DATE SEULE QUI BOUGE** (2026-09-07). Le texte
+  // n'a pas changé depuis le 27 août : son empreinte est donc INCHANGÉE. Mais il n'a
+  // jamais été SERVI — la ligne OTA est coupée depuis la bascule en `fingerprint`
+  // (SDK 57), et la 25ᵉ OTA du 27 août est antérieure à cette bascule. Une date d'entrée
+  // en vigueur au 27 août annonçait donc une opposabilité qui n'a jamais existé.
+  // ➡️ Elle suit la LIVRAISON : la 26ᵉ OTA de ce jour, et le build (17) qui la porte
+  // réellement jusqu'au parc. ⚠️ Si ce build glisse d'un jour, cette date glisse avec
+  // lui — c'est exactement le geste que la réserve du 26 août avait déjà décrit.
+  date: '7 septembre 2026',
   // ⚠️ **SIXIÈME RÉVISION** (2026-08-27, même jour) : le `DISCLAIMER` disait « l'avis d'un
   // médecin ou diététicien-nutritionniste » quand `lib/methodologie.ts` dit « ou D'UN
   // diététicien-nutritionniste ». Deux variantes d'une phrase OBLIGATOIRE (§6, Apple

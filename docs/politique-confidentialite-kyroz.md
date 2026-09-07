@@ -5,7 +5,7 @@
 
 # Politique de confidentialité — Kyroz
 
-**Dernière mise à jour : 27 août 2026**
+**Dernière mise à jour : 7 septembre 2026**
 
 ---
 
@@ -111,4 +111,4 @@ Si un compte a été créé par une personne mineure, écrivez à contact@kyroz.
 
 ## 11. Modifications
 
-La présente politique peut évoluer. Date de dernière mise à jour : 27 août 2026.
+La présente politique peut évoluer. Date de dernière mise à jour : 7 septembre 2026.

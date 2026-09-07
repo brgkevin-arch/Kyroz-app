@@ -96,7 +96,7 @@ export const LEGAL = {
    * ⚠️ Ce n'est PAS la date du commit : c'est celle à laquelle le texte devient
    * opposable, donc celle de la livraison. Elle s'arbitre, elle ne se déduit pas.
    */
-  effectiveDate: '27 août 2026',
+  effectiveDate: '7 septembre 2026',
 } as const;
 
 export interface LegalSection {
