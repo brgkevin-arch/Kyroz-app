@@ -17,7 +17,7 @@ import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { lireAgents, lireStore, desaccords, ligneOtaAgents, blocOtaStore, chaineOta, chaineDivergente, type FicheOta } from '../lib/otaFiches';
+import { lireAgents, lireStore, desaccords, ligneOtaAgents, blocOtaStore, chaineOta, chaineDivergente, publicationEnTete, type EntreeCanal, type FicheOta } from '../lib/otaFiches';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const lire = (rel: string) => readFileSync(join(ROOT, rel), 'utf8');
@@ -83,10 +83,18 @@ if (!agents) {
 const fiche: FicheOta = agents;
 
 // ── 2. Ce que dit EAS ────────────────────────────────────────────────────────
+// 🔴 `channel:view` NOMME CE CHAMP `runtime`, PAS `runtimeVersion` — corrigé le
+// 2026-09-07. Le type mentait, donc `tete.runtimeVersion` valait `undefined` à
+// CHAQUE exécution, et le script concluait « une VERSION, pas une empreinte » en ne
+// lisant rien du tout. L'avertissement était juste par accident : il décrivait bien
+// la 25ᵉ OTA, mais il l'aurait dit d'une publication `fingerprint` impeccable.
+// ⚠️ Les deux commandes ne parlent pas la même langue : `update:list` rend bien un
+// `runtimeVersion` plat (cf. `EntreeCanal`), `channel:view` un objet `runtime`.
 type UpdateEas = {
   group: string;
   platform: string;
-  runtimeVersion: string;
+  runtime?: { version?: string };
+  fingerprint?: { hash?: string };
   gitCommitHash?: string;
   isGitWorkingTreeDirty?: boolean;
   createdAt: string;
@@ -112,12 +120,40 @@ try {
 }
 
 const tete = groupe[0];
-const plateformes = [...new Set(groupe.map((u) => u.platform))].sort();
+
+// 🔴 `channel:view` NE REND QU'UN SEUL GROUPE, et depuis la bascule en `fingerprint`
+// une publication en dépose DEUX (un par plateforme) — d'où une seconde requête.
+// Sans elle, le script lisait « android » seul et accusait une publication saine.
+let publication: ReturnType<typeof publicationEnTete> = null;
+try {
+  const brut = execFileSync(
+    'npx',
+    ['eas-cli', 'update:list', '--branch', 'production', '--json', '--non-interactive', '--limit', '6'],
+    { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], maxBuffer: 32 * 1024 * 1024 },
+  );
+  const json = JSON.parse(brut.slice(brut.indexOf('{')));
+  publication = publicationEnTete(Object.values(json.currentPage) as EntreeCanal[]);
+} catch (e) {
+  console.error(`\n✖ Impossible de lister les updates du canal : ${(e as Error).message}`);
+  process.exit(2);
+}
+if (!publication) {
+  console.error('\n✖ Le canal « production » est vide — rien à confronter.\n');
+  process.exit(2);
+}
 
 console.log(`\nLe canal « production » (mesuré, ${tete.createdAt.slice(0, 10)})`);
-ligne('groupe en tête du canal', tete.group.slice(0, 8), fiche.groupe);
+// ⚠️ La fiche cite UN groupe ; la publication en porte un par plateforme. Exiger
+// celui de tête ferait dépendre le contrôle de l'ordre de retour d'EAS — donc
+// l'appartenance, en DISANT lesquels, pour qu'une fiche périmée reste visible.
+const groupes = publication.groupes;
+ligne(
+  groupes.length > 1 ? `groupe cité (parmi ${groupes.length} : ${groupes.join(', ')})` : 'groupe en tête du canal',
+  groupes.includes(fiche.groupe) ? fiche.groupe : groupes[0],
+  fiche.groupe,
+);
 ligne('commit publié', (tete.gitCommitHash ?? '').slice(0, fiche.commit.length), fiche.commit);
-ligne('plateformes', plateformes.join(' + '), 'android + ios');
+ligne('plateformes', publication.plateformes.join(' + '), 'android + ios');
 // 🔴 LE RUNTIME NE SE COMPARE PLUS À UN LITTÉRAL DEPUIS LE PASSAGE EN `fingerprint`
 // (2026-08-27, constat 03-03). Avec `appVersion`, la valeur attendue était lisible dans
 // `app.json` — donc vérifiable ici. Avec `fingerprint`, c'est un hachage de la SURFACE
@@ -127,11 +163,12 @@ ligne('plateformes', plateformes.join(' + '), 'android + ios');
 // plutôt que de comparer à une constante qui redeviendrait fausse à chaque build.
 const appJson = JSON.parse(lire('app.json'));
 const politique = (appJson.expo?.runtimeVersion?.policy ?? '?') as string;
+const runtime = tete.runtime?.version ?? tete.fingerprint?.hash ?? '(illisible)';
 if (politique !== 'fingerprint') {
-  ligne('runtime', tete.runtimeVersion, String(appJson.expo?.version ?? '?'));
-} else if (/^[0-9a-f]{32,}$/.test(tete.runtimeVersion)) {
+  ligne('runtime', runtime, String(appJson.expo?.version ?? '?'));
+} else if (/^[0-9a-f]{32,}$/.test(runtime)) {
   ligne('runtime (forme fingerprint)', 'hachage', 'hachage');
-  console.log(`    ℹ️  runtime publié : ${tete.runtimeVersion}`);
+  console.log(`    ℹ️  runtimes publiés : ${publication.runtimes.join(', ')}`);
   console.log('    ⚠️  NON vérifié : que ce hachage soit celui du commit publié — le');
   console.log('       recalculer demanderait de restaurer ce commit ET ses node_modules.');
 } else {
@@ -139,7 +176,7 @@ if (politique !== 'fingerprint') {
   // permanence — donc illisible. Les fiches disent le vrai ; c'est la SURFACE NATIVE
   // qui a bougé sous elles. L'état est transitoire par construction : il dure jusqu'à
   // ce qu'un binaire de la nouvelle surface soit distribué.
-  console.log(`  ⚠ runtime en tête du canal            ${tete.runtimeVersion} — une VERSION, pas une empreinte`);
+  console.log(`  ⚠ runtime en tête du canal            ${runtime} — une VERSION, pas une empreinte`);
   console.log('     ➡️ Cette OTA a été publiée AVANT la bascule en `fingerprint`, donc depuis');
   console.log('        un arbre dont la surface native n’est plus celle du dépôt.');
   console.log('     🔴 CONSÉQUENCE : les binaires que sert cette OTA ne recevront plus RIEN');

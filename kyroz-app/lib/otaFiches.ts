@@ -152,3 +152,61 @@ export function desaccords(agents: FicheOta | null, store: FicheOta | null): str
     (c) => `${c} : AGENTS.md dit « ${agents[c] as string | number} », STORE-RELEASE.md dit « ${store[c] as string | number} »`,
   );
 }
+
+/**
+ * Une entrée de `eas-cli update:list --branch … --json`, réduite à ce qu'on lit.
+ * `platforms` y est une CHAÎNE (« android, ios »), pas un tableau.
+ */
+export type EntreeCanal = {
+  group: string;
+  platforms: string;
+  runtimeVersion: string;
+  message: string;
+};
+
+/** Ce qu'UNE publication a réellement déposé sur le canal. */
+export type Publication = {
+  /** Les identifiants de groupe, tronqués à 8, dans l'ordre du canal. */
+  groupes: string[];
+  /** Les plateformes couvertes, réunies et triées. */
+  plateformes: string[];
+  /** Les runtimes, un par groupe, dans le même ordre que `groupes`. */
+  runtimes: string[];
+};
+
+/**
+ * 🔴 **UNE PUBLICATION N'EST PLUS UN GROUPE — mesuré le 2026-09-07, 26ᵉ OTA.**
+ * Sous `runtimeVersion: appVersion`, les deux plateformes partageaient le même
+ * runtime, donc `eas update` déposait UN groupe portant « android, ios ». Sous
+ * `fingerprint`, chaque plateforme a son propre hachage : la MÊME commande dépose
+ * désormais **deux groupes**, un par plateforme.
+ *
+ * `check:ota` lisait « le premier groupe du canal » et en tirait les plateformes :
+ * il a donc annoncé « android ≠ android + ios » et « mauvais groupe » sur une
+ * publication parfaitement correcte. Un contrôle rouge sur du vrai est pire qu'un
+ * contrôle absent — il pousse à corriger les fiches jusqu'à ce qu'elles mentent.
+ *
+ * ➡️ Ce qui réunit les groupes d'une même publication, c'est le **message** : EAS
+ * le recopie à l'identique sur chaque groupe déposé par une commande. On prend
+ * donc les entrées de TÊTE tant qu'elles portent le même message, et pas une de
+ * plus — deux publications successives au message identique resteraient
+ * indiscernables, ce qui est acceptable : elles portent alors le même contenu.
+ */
+export function publicationEnTete(entrees: EntreeCanal[]): Publication | null {
+  if (!entrees.length) return null;
+  const message = entrees[0].message;
+  const rupture = entrees.findIndex((e) => e.message !== message);
+  const tete = rupture === -1 ? entrees : entrees.slice(0, rupture);
+  const plateformes = new Set<string>();
+  for (const e of tete) {
+    for (const p of e.platforms.split(',')) {
+      const net = p.trim();
+      if (net) plateformes.add(net);
+    }
+  }
+  return {
+    groupes: tete.map((e) => e.group.slice(0, 8)),
+    plateformes: [...plateformes].sort(),
+    runtimes: tete.map((e) => e.runtimeVersion),
+  };
+}

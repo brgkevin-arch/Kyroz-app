@@ -146,7 +146,25 @@ installation neuve part du binaire, donc du (6).
   encore `0639ecc` après la compilation, 0 PR ouverte — le piège du 11 août ne s'est pas
   rejoué). *(Le précédent :)* le **(6)** — `ceec1b17`, commit
   `1047b9f`, terminé le 2026-08-11 à 20 h 37. Il a **62 commits de retard** sur `main` — chiffre RE-MESURÉ le 2026-08-26 (il en annonçait 40, mesurés le 2026-08-23), qui **grandit à chaque merge** : le relire avec `git rev-list --count 1047b9f..origin/main` plutôt que de le recopier (même défaut que le décompte d'OTA tenu à la main).
-- **OTA** : la dernière est la **25ᵉ** (groupe `bf9894b4`, 2026-08-27, iOS + Android,
+- **OTA** : la dernière est la **26ᵉ** (groupe `f364ba3c` pour iOS et groupe `4ced0969` pour
+  Android, 2026-09-07), publiée sur le commit `5ea21dde` — `main`, arbre propre, aucun
+  astérisque EAS. Elle porte les **54 commits** de #176 à #231.
+  🔴 **CE QU'IL FAUT SAVOIR AVANT DE S'APPUYER DESSUS POUR UNE SOUMISSION : elle n'atteint
+  personne.** Depuis la bascule en `runtimeVersion: fingerprint` (SDK 57), chaque plateforme
+  a son runtime — d'où deux groupes au lieu d'un — et celui d'iOS
+  (`dfe034fd7336740f8e98e474afd2450d378c800e`) ne correspond PAS au binaire (16) distribué le
+  5 septembre (`54c473f29494189d8c54ef53e7170d8050c8c671`). Cause unique, vérifiée par
+  mutation : la ligne `"captures:intro"` ajoutée aux `scripts` de `package.json` par #226 —
+  `packageJson:scripts` est une source d'empreinte. ➡️ **C'est le build (17) qui livre**, pas
+  cette OTA. Ne rien promettre à Apple sur la foi de cette ligne.
+  ✅ Contrôlée sur l'artefact avant d'être annoncée (`.hbc` iOS) : URL Supabase **1**,
+  `sb_publishable_` **1**, `sk-ant-` **0**, témoin de chantier `adaptent` (carrousel d'accueil,
+  #226) **1**, contrôle négatif `entoure` **0**. ⚠️ Sans `dist/` de la 25ᵉ sous la main, ce
+  relevé prouve une présence, pas une arrivée.
+  ⚠️ **Elle emporte la date légale au 7 septembre** (#231) : le texte du 27 août n'avait
+  jamais été servi, la ligne OTA ayant été coupée le jour même. Si le build (17) glisse d'un
+  jour, cette date doit glisser avec lui.
+  **La 25ᵉ** (groupe `bf9894b4`, 2026-08-27, iOS + Android,
   runtime 1.0.0), publiée sur le commit `777d9167` — `main`, arbre propre, aucun astérisque
   EAS (`git diff --stat origin/main HEAD` vide). Contrôlée sur l'artefact avant d'être
   annoncée, sur les DEUX bundles Hermes : `GOAL_FALLBACK`, `DATED_GOAL_EXPIRED`,
