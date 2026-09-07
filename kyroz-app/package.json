@@ -64,6 +64,7 @@
     "check:suspens": "node scripts/check-suspens.mjs",
     "store:assets": "node test/store-assets.mjs",
     "store:assets:ipad": "node test/store-assets.mjs --ipad",
+    "captures:intro": "node test/intro-captures.mjs",
     "mesure:variete": "npx tsx scripts/mesure-variete.ts",
     "mesure:creneaux": "npx tsx scripts/mesure-creneaux.ts",
     "mesure:volume": "npx tsx scripts/mesure-volume.ts",

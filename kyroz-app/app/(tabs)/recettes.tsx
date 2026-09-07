@@ -316,8 +316,17 @@ export default function RecettesScreen() {
         renderItem={({ item, index }) => {
           const fav = isFavorite(item.id);
           const premier = index === 0;
+          // `accessibilityRole="none"` : la carte contient son bouton « favori », et un
+          // bouton dans un bouton n'est ni du HTML valide ni lisible par un lecteur
+          // d'écran. Explication longue dans `components/MealCard.tsx` — même défaut,
+          // même correction, gardés ensemble par `presseImbriquee.test.ts`.
           return (
-            <Presse style={[s.recipe, layout.columns > 1 && s.recipeGrid, cardShadow(t)]} onPress={() => setSelected(item)} activeOpacity={OPACITE_PRESSION}>
+            <Presse
+              style={[s.recipe, layout.columns > 1 && s.recipeGrid, cardShadow(t)]}
+              onPress={() => setSelected(item)}
+              activeOpacity={OPACITE_PRESSION}
+              accessibilityRole="none"
+            >
               <View style={s.rTop}>
                 <Text style={s.rName}>{item.name_fr}</Text>
                 <Presse onPress={() => toggle(item.id)} hitSlop={10} style={s.heart}>

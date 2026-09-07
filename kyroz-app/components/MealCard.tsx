@@ -53,6 +53,20 @@ export function MealCard({
     <Presse
       onPress={onPress}
       activeOpacity={OPACITE_PRESSION}
+      // 🔴 `accessibilityRole="none"` — ET C'EST UNE CORRECTION, PAS UN RENONCEMENT.
+      // Cette carte CONTIENT ses propres boutons. Depuis que `Presse` pose
+      // `accessibilityRole="button"` par défaut (2026-09-02), la carte et ses boutons
+      // devenaient tous des `<button>`, donc un bouton DANS un bouton : HTML invalide
+      // sur le web (« <button> cannot contain a nested <button> »), et surtout un
+      // anti-pattern d'accessibilité sur les DEUX plateformes — un lecteur d'écran ne
+      // sait pas exprimer une commande imbriquée dans une commande.
+      // ⚠️ Ce que ça a coûté avant d'être vu : le bandeau d'erreur React recouvrait la
+      // barre d'onglets, `test/store-assets.mjs` ne pouvait plus changer d'onglet, et
+      // il a produit QUATRE captures de fiche store identiques en affichant
+      // « capture : 2-recettes », « capture : 3-courses »… et en sortant avec le code 0.
+      // ➡️ Les boutons INTÉRIEURS gardent leur rôle ; c'est le conteneur qui cède le
+      // sien. Garde-fou : `lib/__tests__/presseImbriquee.test.ts`.
+      accessibilityRole="none"
       style={[{ backgroundColor: t.card, borderRadius: Radius.card, padding: Spacing.xl, opacity: muted ? 0.6 : 1 }, cardShadow(t)]}
     >
       {/* Un seul surtitre « TYPE · DURÉE » au lieu de deux coins opposés : le nom

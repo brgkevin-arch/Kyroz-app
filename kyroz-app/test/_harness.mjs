@@ -130,6 +130,12 @@ export async function neutralizeFirstRun(context) {
         localStorage.setItem(`@kyroz:tour:${id}`, 'done');
       }
       localStorage.setItem('@kyroz:analyticsConsent', 'denied');
+      // L'accueil (carrousel) se montre une fois par appareil. Sans cette ligne,
+      // TOUS les scripts buteraient sur un écran qu'ils ne connaissent pas — et le
+      // diagnostic serait « champ e-mail introuvable », c'est-à-dire le pire :
+      // il accuserait le formulaire au lieu de l'écran posé devant.
+      // Clé verrouillée contre `lib/introVu.ts` par `introCarrousel.test.ts`.
+      localStorage.setItem('@kyroz:introVue', '1');
     } catch {}
   });
 }
@@ -381,7 +387,17 @@ export async function runOnboarding(page, p = DEFAULT_PERSONA) {
   if (!(await suivant(1))) return { ok: false, etape: 1, repas: 0 };
 
   // 2 — sexe + infos de base (date de naissance, poids, taille)
-  if (p.sex === 'female') { await tap(page, 'Femme', { exact: true }); await sleep(250); }
+  //
+  // 🔴 LE SEXE SE CHOISIT TOUJOURS, POUR LES DEUX. Ce fut `if (p.sex === 'female')`
+  // pendant des mois, et c'était juste : l'écran ouvrait sur « Homme » présélectionné,
+  // donc un persona masculin n'avait rien à toucher. Depuis le 2026-09-02, plus rien
+  // n'est présélectionné (`sexeOnboarding.test.ts` : un sexe deviné produit un plan
+  // faux). Ne taper que pour les femmes laissait donc `basicsValid` faux pour Marc —
+  // le persona PAR DÉFAUT — et le parcours mourait à l'étape 2.
+  // ⚠️ `npm test` était VERT pendant ce temps : ce harnais n'en fait pas partie. Un
+  // correctif d'écran qui rend un champ obligatoire doit se relire ICI, toujours.
+  await tap(page, p.sex === 'female' ? 'Femme' : 'Homme', { exact: true });
+  await sleep(250);
   if (!(await choisirDateNaissance(page, p.birth))) return { ok: false, etape: 2, repas: 0 };
   await fillPh(page, '80', p.weight);
   await fillPh(page, '178', p.height);
@@ -428,11 +444,14 @@ export async function runOnboarding(page, p = DEFAULT_PERSONA) {
     return { ok: false, etape: 7, repas: 0 };
   }
 
-  // ⚠️ L'étape 5 (objectif) et l'étape 6 (préférences) sont les SEULES que l'app
-  // ne valide pas : `canProceed` les laisse toujours passer. Un sous-titre de
-  // GOAL_SUB devenu faux ne bloquerait donc rien — le persona recevrait l'objectif
-  // par défaut (« cut ») et le rapport parlerait d'un profil qu'on n'a pas demandé.
-  // C'est le dernier chemin muet du parcours : on le vérifie sur ce qui est SERVI.
+  // ⚠️ CE CONTRÔLE RESTE, SA RAISON A CHANGÉ (2026-09-02). Il disait : « l'étape 5
+  // est l'une des seules que l'app ne valide pas, un GOAL_SUB devenu faux ne
+  // bloquerait rien et le persona recevrait l'objectif par défaut (cut) ». L'étape 5
+  // EXIGE désormais un choix, et il n'y a plus d'objectif par défaut — un sous-titre
+  // faux bloque maintenant le parcours au lieu de le fausser en silence.
+  // ➡️ Le contrôle garde pourtant toute sa valeur, et c'est ce qui compte : il ne
+  // vérifie pas qu'on a cliqué, il vérifie ce qui est SERVI. Un sous-titre qui
+  // désigne le MAUVAIS objectif passerait encore l'étape sans rien casser.
   const servi = await page.evaluate(() => {
     try { return JSON.parse(localStorage.getItem('@kyroz:profile')).goal; } catch { return null; }
   }).catch(() => null);

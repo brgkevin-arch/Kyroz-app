@@ -22,6 +22,8 @@ import {
 } from '../../lib/emailConfirmation';
 import { useCompteARebours } from '../../hooks/useCompteARebours';
 import MotDePasseOublie from '../../components/MotDePasseOublie';
+import { IntroCarousel } from '../../components/IntroCarousel';
+import { introDejaVue, marquerIntroVue } from '../../lib/introVu';
 
 type Mode = 'signin' | 'signup';
 
@@ -39,6 +41,24 @@ export default function LoginScreen() {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  // ── L'ACCUEIL, AVANT LE FORMULAIRE ─────────────────────────────────────────
+  //
+  // 🔴 Le tout premier écran d'un utilisateur réel était e-mail + mot de passe, à
+  // froid : « Continuer en invité » est encadré `__DEV__`, donc invisible en
+  // production, et le plan n'apparaissait qu'après le compte créé ET les sept
+  // étapes d'inscription.
+  //
+  // ⚠️ `undefined` = ON NE SAIT PAS ENCORE. Trois états, pas deux : sans le
+  // troisième, le premier rendu montrerait le formulaire puis sauterait sur le
+  // carrousel une frame plus tard — un écran qui s'ouvre sur un clignotement.
+  // C'est la même garde que `brouillonLu` dans l'inscription.
+  const [introVue, setIntroVue] = useState<boolean | undefined>(undefined);
+  useEffect(() => {
+    let vivant = true;
+    introDejaVue().then((vue) => { if (vivant) setIntroVue(vue); });
+    return () => { vivant = false; };
+  }, []);
 
   /**
    * Pose un message d'erreur ET le fait sentir. Un seul point d'entrée, pour deux
@@ -192,6 +212,27 @@ export default function LoginScreen() {
     setAppleConsentEnAttente(false);
     setConsent(false);
   };
+
+  // ⚠️ CE RETOUR ANTICIPÉ VIENT APRÈS TOUS LES HOOKS, ET CE N'EST PAS UN DÉTAIL DE
+  // MISE EN FORME. Les `useState`/`useEffect` de la connexion Apple sont déclarés
+  // juste au-dessus : les placer APRÈS un `return` conditionnel en ferait des appels
+  // de hooks conditionnels — React changerait d'ordre de hooks entre deux rendus,
+  // et l'écran casserait au premier passage du carrousel au formulaire.
+  // Lecture de stockage local, quasi instantanée — même geste que la ligne de
+  // consentement de l'inscription.
+  if (introVue === undefined) return null;
+  if (!introVue) {
+    return (
+      <IntroCarousel
+        onTermine={() => {
+          // L'écran passe TOUT DE SUITE : le drapeau part en arrière-plan, il ne
+          // retient pas le tap. Une écriture ratée ne coûte qu'un défilement de plus.
+          setIntroVue(true);
+          void marquerIntroVue();
+        }}
+      />
+    );
+  }
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'bottom']}>
