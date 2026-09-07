@@ -10,6 +10,7 @@ import { CONTENT_MAX_WIDTH } from '../constants/layout';
 import { WeightChart } from './WeightChart';
 import { GoalTarget } from '../lib/types';
 import { WeightEntry } from '../lib/weight';
+import { frnum } from '../lib/units';
 
 interface Props {
   t: ThemePalette;
@@ -78,12 +79,12 @@ export function WeightSummaryCard({
       {/* Le chiffre seul sur sa ligne : c'est le sujet de la carte. L'écart passe
           DESSOUS plutôt qu'à côté — accolé, il se lisait comme une unité de plus. */}
       <View style={s.valueRow}>
-        <Text style={s.value}>{poids}</Text>
+        <Text style={s.value}>{frnum(poids)}</Text>
         <Text style={s.unit}>kg</Text>
       </View>
       {delta != null && (
         <Text style={s.delta}>
-          {delta > 0 ? '+' : ''}{delta} kg depuis la pesée précédente
+          {delta > 0 ? '+' : ''}{frnum(delta)} kg depuis la pesée précédente
         </Text>
       )}
 

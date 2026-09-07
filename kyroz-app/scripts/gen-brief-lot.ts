@@ -127,6 +127,69 @@ const KCAL_PDJ: [number, number] = [430, 480];
 const DENSITE_CIBLE: [number, number] = [5.4, 7.1];
 
 const LOTS: Lot[] = [
+  // ── B10 — LE REGISTRE DU QUOTIDIEN FRANCAIS (2026-09-07) ──────────────────
+  //
+  // 🔴 CE QUE CETTE VAGUE CORRIGE, et ce n est PAS un trou de couverture. Mesuré le
+  // 2026-09-07 : le petit-déjeuner sert 30 % de porridge/avoine, 28 % de
+  // « superaliments » (chia, edamame, millet, seitan) et 12 % de whey — contre 18 %
+  // de pain et 3 % de jambon. Sept petits-déjeuners d affilée servis à un homme de
+  // 80 kg au maintien : porridge avoine-whey, porridge millet-cacao, pancakes
+  // sarrasin vegan, BOL D EDAMAME AU MILLET, galettes de riz aux edamame, polenta au
+  // soja texturé, riz au lait coco-chia. Et une femme de 60 kg reçoit, au jour 3, des
+  // « nouilles de riz sautées au tofu fumé » — au réveil.
+  //
+  // ⚠️ CE N EST PAS UN PROBLÈME DE VÉGÉTAL, ET IL NE FAUT PAS LE TRAITER COMME TEL.
+  // Les plats complets sont à 63 % animaux, et personne ne mange de poulet au
+  // petit-déjeuner : viser « 0 recette poulet au réveil » serait absurde. Ce qui
+  // manque est le REGISTRE — pain, jambon, œufs, fromage blanc — et il manque surtout
+  // DANS LE HAUT de la gamme calorique.
+  //
+  // 🔴 LA FENÊTRE EST LE VRAI SUJET. Les 24 petits-déj de registre français du
+  // catalogue vont de 338 à 626 kcal, et DEUX SEULEMENT dépassent 580. Or les fenêtres
+  // visées montent à 612 (H 80 maintien), 768 (H 95 masse) et 830 kcal (H 110 masse).
+  // Au-dessus de 580, il n y a plus rien de français à servir — donc le moteur prend
+  // ce qui reste. Écrire dix tartines de 400 kcal de plus ne changerait RIEN à ces
+  // trois profils.
+  //
+  // ⚠️ Et le levier est le RATIO, pas la présence : 24 recettes de registre français
+  // sur 122 (20 %). La rotation par famille tire dans ce vivier ; tant que quatre
+  // recettes sur cinq sont d un autre registre, la semaine le sera aussi.
+  {
+    cle: 'b10-pdj', titre: 'B10 — 15 petits-dejeuners du quotidien francais, format genereux',
+    volume: 15, categorie: 'petit_dej', prefixe: 'pd', idDebut: 123, idFin: 137,
+    wave: '2026-09-07-b10-registre-francais',
+    // Bande HAUTE, et la protéine monte AVEC les calories : `DENSITE_CIBLE` dit qu un
+    // repas plus gros à protéine constante DÉGRADE le catalogue (`adaptRecipe` doit
+    // alors gonfler toute la recette et lève `over_target_kcal`). 520–640 kcal pour
+    // 32–44 g → densité 5,6 à 7,1 g/100 kcal, dans la bande.
+    kcal: [520, 640], prot: [32, 44], carb: [55, 82], fat: [12, 21],
+    regimes: { libre: 5, vegetarien: 10, vegan: 0, sansGluten: 3 },
+    etapes: [2, 4],
+    refsEnPlus: ['jambon_blanc', 'thon_naturel', 'saumon_fume', 'pain_complet', 'pain_seigle', 'pain_pita_complet', 'fromage_blanc_0', 'cottage_cheese', 'oeuf_entier', 'blanc_oeuf'],
+    specifique: [
+      "🔴 **LE REGISTRE EST LA COMMANDE.** Chaque recette doit se décrire en une phrase qui sonne comme un petit-déjeuner français ordinaire : une tartine garnie, des œufs avec du pain, du fromage blanc avec un fruit. **Aucun bol de superaliments, aucune poudre**, aucun nom qui commence par « bowl ».",
+      "⚠️ **AUCUNE de ces 15 recettes ne doit employer** `whey`, `proteine_vegetale`, `edamame`, `seitan`, `tempeh` ni `soja_texture`. Ce sont exactement les ancres qui saturent le créneau aujourd hui — les réemployer reviendrait à écrire la quinzième variante de ce qu on cherche à équilibrer.",
+      "🔴 **VISE LE HAUT DE LA BANDE.** Le catalogue a DÉJÀ 22 petits-déj français sous 580 kcal. Au moins **10 des 15** doivent écrire une base au-dessus de 560 kcal : c est la seule zone où elles serviront les gabarits masculins au maintien et en prise de masse, et c est la zone vide.",
+      "**L ancre protéique est franche, jamais une poudre** : `jambon_blanc`, `oeuf_entier`, `blanc_oeuf`, `fromage_blanc_0`, `cottage_cheese`, `skyr`, `thon_naturel`, `saumon_fume`. Le volume vient du `pain_complet`, `pain_seigle` ou `pain_pita_complet`, jamais de l ancre.",
+      "⚠️ **Varie l ancre GRASSE et le fruit dès l écriture.** Piège mesuré sur la vague B7 : le solveur choisit toujours le gras le mieux noté, une même ancre grasse s est retrouvée dans 6 recettes sur 8 et a produit 4 des 11 quasi-clones rattrapés au contrôle.",
+      "**5 recettes carnées** (`jambon_blanc`, `thon_naturel`, `saumon_fume` — plafond 3 par ancre), **10 végétariennes** (œufs et laitages). **Aucune vegan** : ce lot ne vise pas la couverture des régimes mais un registre ; le créneau vegan a ses propres trous, mesurés ailleurs, et les mélanger produirait un lot qui ne corrige ni l un ni l autre.",
+    ],
+  },
+  {
+    cle: 'b10-col', titre: 'B10 — 10 collations salees du quotidien, dont les premieres carnees',
+    volume: 10, categorie: 'collation', prefixe: 'col', idDebut: 111, idFin: 120,
+    wave: '2026-09-07-b10-registre-francais',
+    kcal: [200, 300], prot: [14, 22], carb: [18, 34], fat: [7, 12],
+    regimes: { libre: 4, vegetarien: 6, vegan: 0, sansGluten: 2 },
+    etapes: [1, 3],
+    refsEnPlus: ['jambon_blanc', 'thon_naturel', 'oeuf_entier', 'pain_complet', 'pain_seigle', 'cottage_cheese', 'fromage_blanc_0'],
+    specifique: [
+      "🔴 **AUCUNE des 110 collations du catalogue n est carnée** — mesuré le 2026-09-07, et déjà signalé lors de la vague B2 sans être corrigé. Les deux options carnées de l écran d inscription (`Poulet`, `Bœuf`) trouvent donc **0 collation**, et « Œufs » n en trouve que 3 sur 110.",
+      "**Le format est SALÉ et tenable à la main** : une tartine garnie, un œuf dur avec du pain, du thon sur du pain de seigle, du cottage cheese avec des crudités. C est le format ouvert que la vague B2 avait identifié et pas écrit.",
+      "⚠️ **N essaie PAS d atteindre 6 g de protéines pour 100 kcal.** C est la règle qui a rendu inutilisables les collations d avant B2 : la collation est servie en dernier, le plancher protéique du jour est déjà couvert. Vise 5 à 7,5 g/100 kcal sans t y contraindre.",
+      "**4 carnées** (`jambon_blanc`, `thon_naturel` — plafond 2 par ancre), **6 végétariennes** (`oeuf_entier`, `cottage_cheese`, `fromage_blanc_0`).",
+    ],
+  },
   {
     cle: 'b2', titre: 'B2 — 13 collations, deux formats', volume: 13, categorie: 'collation',
     prefixe: 'col', idDebut: 67, idFin: 79,

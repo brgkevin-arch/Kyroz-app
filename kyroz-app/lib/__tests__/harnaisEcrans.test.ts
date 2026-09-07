@@ -127,6 +127,10 @@ const ANCRES: Ancre[] = [
   { quoi: 'sexe masculin (personas M)', texte: 'Homme', motif: "label: 'Homme'", dans: 'app/(auth)/onboarding.tsx' },
   { quoi: 'sexe féminin (personas F)', texte: 'Femme', motif: "label: 'Femme'", dans: 'app/(auth)/onboarding.tsx' },
   { quoi: 'activité — au moins un choix exigé', texte: 'Je ne fais pas de sport', dans: 'app/(auth)/onboarding.tsx' },
+  // ⚠️ Ancre AJOUTÉE le 2026-09-07 avec la réponse exigée à l'étape 6. Sans elle, un
+  // renommage de cette puce arrêterait TOUS les scripts Playwright à l'étape 6, et
+  // `npm test` resterait vert — le harnais n'en fait pas partie.
+  { quoi: 'protéines — « aucune préférence » est une RÉPONSE', texte: 'Peu importe', dans: 'app/(auth)/onboarding.tsx' },
   // ⚠️ Le libellé du NEAT ne vit PAS dans l'écran : `NEAT_LABEL` est la source unique
   // (lib/tdee.ts), rendue par `components/NeatPicker.tsx` à l'inscription ET dans le
   // Profil. C'est donc lui que cette ancre garde. Qu'il soit rendu à l'étape 4, et

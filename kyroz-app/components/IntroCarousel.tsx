@@ -64,7 +64,7 @@ const DIAPOS: Diapo[] = [
   {
     cle: 'courses',
     titre: 'Ta liste de courses, prête',
-    texte: 'Tout ce qu\'il te faut pour ton plan de la semaine.',
+    texte: 'Tout ce qu\'il faut pour ton plan de la semaine.',
     images: {
       sombre: require('../assets/intro/sombre/3-courses.png'),
       clair: require('../assets/intro/clair/3-courses.png'),

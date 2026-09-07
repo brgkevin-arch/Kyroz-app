@@ -18,6 +18,7 @@ import { WeighInFrequency } from '../lib/types';
 import { LocalIcon } from './Icons';
 import { useRouter } from 'expo-router';
 import { usePremium } from '../hooks/usePremium';
+import { frnum } from '../lib/units';
 
 interface Props {
   t: ThemePalette;
@@ -296,7 +297,7 @@ export function WeightCheckin({ t, onClose, dragHandlers, sheetScrollProps }: Pr
           <View style={s.confirm}>
             <Text style={s.confirmTitle}>
               {`✓ ${saved.label} — point ${saved.updated ? 'mis à jour' : 'enregistré'}`}
-              {saved.delta != null ? `  ·  ${saved.delta > 0 ? '+' : ''}${saved.delta} kg` : ''}
+              {saved.delta != null ? `  ·  ${saved.delta > 0 ? '+' : ''}${frnum(saved.delta)} kg` : ''}
             </Text>
             <Text style={s.confirmSub}>{planStatusMsg(saved.date)}</Text>
           </View>
@@ -423,9 +424,9 @@ export function WeightCheckin({ t, onClose, dragHandlers, sheetScrollProps }: Pr
                   <View key={e.date} style={[s.histItem, i < reversed.length - 1 && s.histDivider]}>
                     <View style={s.histRow}>
                       <Text style={s.histDate}>{frDate(e.date)}</Text>
-                      <Text style={s.histW}>{e.weight_kg} kg</Text>
+                      <Text style={s.histW}>{frnum(e.weight_kg)} kg</Text>
                       <Text style={[s.histD, { color: d == null ? t.textTertiary : d <= 0 ? t.success : t.warning }]}>
-                        {d == null ? '—' : `${d > 0 ? '+' : ''}${d}`}
+                        {d == null ? '—' : `${d > 0 ? '+' : ''}${frnum(d)}`}
                       </Text>
                       <Presse onPress={() => setAConfirmer(e.date)} hitSlop={8} style={s.histDel}>
                         <Ionicons name="close" size={Icone.petite} color={t.textTertiary} />
@@ -434,7 +435,7 @@ export function WeightCheckin({ t, onClose, dragHandlers, sheetScrollProps }: Pr
                     {aConfirmer === e.date && (
                       <ConfirmationEnLigne
                         t={t}
-                        question={`Supprimer cette pesée ? ${frDate(e.date)} · ${e.weight_kg} kg. Tes cibles se recalculent sur les pesées restantes.`}
+                        question={`Supprimer cette pesée ? ${frDate(e.date)} · ${frnum(e.weight_kg)} kg. Tes cibles se recalculent sur les pesées restantes.`}
                         confirmLabel="Supprimer"
                         onCancel={() => setAConfirmer(null)}
                         onConfirm={() => supprimerPesee(e.date)}

@@ -647,6 +647,65 @@ produit en suspens — il ne reste qu'à coder.
 
 ### 🍽 D — Catalogue
 
+- 🤖 **D24 · VAGUE B10 — écrire les 25 recettes du registre quotidien français.**
+  **COMMANDÉE le 2026-09-07, PAS ÉCRITE.** Les deux briefs sont générés et à jour :
+  `Recette/lots/b10-pdj.md` (15 petits-déj, `pd123`–`pd137`) et `Recette/lots/b10-col.md`
+  (10 collations salées, `col111`–`col120`). `verifieCoherence` a validé les deux lots.
+
+  **Le défaut mesuré** (2026-09-07, moteur réel, profils de `PROFILS_REF`) : sept
+  petits-déjeuners d'affilée pour un H 80 maintien — porridge avoine-whey, porridge
+  millet-cacao, pancakes sarrasin vegan, **bol d'edamame au millet**, galettes de riz aux
+  edamame, polenta au soja texturé, riz au lait coco-chia. Une F 60 maintien reçoit au
+  jour 3 des « nouilles de riz sautées au tofu fumé », au réveil. Composition du créneau :
+  30 % porridge/avoine · 28 % « superaliments » · 12 % whey, contre **18 % de pain et 3 %
+  de jambon**.
+
+  🔴 **CE N'EST PAS UN PROBLÈME DE VÉGÉTAL, et le traiter comme tel serait une faute.**
+  Les repas complets sont à **63 % animaux** — le vivier des plats va bien. Et viser
+  « 0 recette poulet au petit-déjeuner » serait absurde : personne n'en mange au réveil.
+  Ce qui manque est le **REGISTRE**.
+
+  🔴 **ET LA FENÊTRE EST LE VRAI SUJET, PAS LE NOMBRE.** Les 24 petits-déj de registre
+  français existants vont de 338 à 626 kcal, et **DEUX SEULEMENT dépassent 580**. Les
+  fenêtres visées, elles, montent à **612** (H 80 maintien), **768** (H 95 masse) et
+  **830 kcal** (H 110 masse). Écrire dix tartines de 400 kcal de plus ne changerait RIEN
+  à ces trois profils. D'où la bande commandée — 520–640 kcal pour 32–44 g, dont **10 des
+  15 au-dessus de 560 kcal**.
+
+  ⚠️ **La densité monte AVEC les calories** (5,6–7,1 g/100 kcal, dans `DENSITE_CIBLE`) :
+  `gen-brief-lot.ts` documente qu'un repas plus gros à protéine constante DÉGRADE le
+  catalogue — `adaptRecipe` doit alors gonfler toute la recette et lève `over_target_kcal`.
+
+  ⚠️ **AUCUNE des 110 collations n'est carnée.** Les deux options carnées de l'écran
+  d'inscription (`Poulet`, `Bœuf`) y trouvent **0 recette**, et « Œufs » **3 sur 110**.
+  Le format salé avait été identifié comme ouvert lors de la vague B2 — et jamais écrit.
+
+  **Méthode, arrêtée et non re-litigée** : écriture **LOCALE**, comme B7→B9 — les
+  contraintes sont arithmétiques (bandes de macros, plafond de 3 par ancre, 19 couples
+  interdits calculés par le brief), donc la boucle écrire → contrôler → recaler pèse plus
+  que la rédaction. Prévoir du recalage : **sur B7, 2 recettes sur 3 étaient hors bandes
+  au premier jet et 6 sur 30 ont été réécrites**.
+
+  ⚠️ **Piège de l'écriture locale : la MONOCULTURE d'ingrédient.** Le solveur choisit
+  toujours le gras le mieux noté — sur B7, une même ancre grasse s'est retrouvée dans 6
+  recettes sur 8 et a produit 4 des 11 quasi-clones rattrapés au contrôle. Varier l'ancre
+  grasse ET le fruit dès l'écriture.
+
+  **Au retour** : `npm run check:doublons -- <f>`, `npm run check:enveloppe -- <f>`,
+  `npm test`. **Ce qui échoue repart en RÉÉCRITURE, pas en retouche** — une correction
+  locale déplace le clone au lieu de le supprimer.
+  ⚠️ Et **régénérer le second brief après le merge du premier** : c'est ce qui donne le
+  contrôle croisé entre lots.
+
+  ⚠️ **Numérotée D24 et pas D23 : D23 existait déjà**, et c'est
+  `lib/__tests__/agentsIds.test.ts` qui l'a dit, pas la relecture. Prendre le prochain
+  numéro libre en regardant `main` ET les branches en aval.
+
+  ℹ️ **La moitié « plats » du même chantier est LIVRÉE** (commit `79b0631`) : la question
+  des protéines est désormais exigée à l'étape 6, avec une case « Peu importe ». Mesuré :
+  déclarer « Poulet » fait passer un H 80 sèche de 3 à 7 plats animaux sur 14. Ce levier
+  ne peut RIEN pour le petit-déjeuner — d'où cette vague.
+
 - **D4-bis · la photo du catalogue au 2026-08-02 — 14 groupes saturés.**
   Un couple (protéines × féculent) est « saturé » au-delà de 2 recettes. Les 14 groupes,
   par taille (`npm run check:doublons` les réaffiche) :

@@ -425,7 +425,17 @@ export async function runOnboarding(page, p = DEFAULT_PERSONA) {
   await sleep(300);
   if (!(await suivant(5))) return { ok: false, etape: 5, repas: 0 };
 
-  // 6 — préférences / protéines / variété → défauts
+  // 6 — préférences. La question des PROTÉINES exige une réponse depuis le
+  // 2026-09-07 : l'étape ne se passe plus « aux défauts ». On répond « Peu importe »,
+  // qui enregistre une préférence VIDE — donc les plans des scripts en aval sont
+  // identiques au bit près à ce qu'ils étaient avant ce changement.
+  // ⚠️ Même famille que le sexe (#214) : un correctif d'écran qui rend un champ
+  // obligatoire casse ce harnais, et `npm test` reste vert — il n'en fait pas partie.
+  if (!(await tap(page, 'Peu importe', { exact: true, timeout: 3000 }))) {
+    await panne(page, 'onboarding-proteines', 'l\'étape 6 exige une réponse et « Peu importe » est introuvable');
+    return { ok: false, etape: 6, repas: 0 };
+  }
+  await sleep(300);
   if (!(await suivant(6))) return { ok: false, etape: 6, repas: 0 };
 
   // 7 — jours de plan (AUCUN coché par défaut → obligatoire) ; repas déjà tous cochés

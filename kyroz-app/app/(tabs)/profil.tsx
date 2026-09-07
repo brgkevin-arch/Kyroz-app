@@ -78,6 +78,7 @@ import { baseDayTargets, deducedRestWeekdays, emphasisIds } from '../../lib/plan
 import { getRecipeById } from '../../lib/recipes';
 import SportsEditor from '../../components/SportsEditor';
 import { FixedMealSheet } from '../../components/FixedMealSheet';
+import { frnum } from '../../lib/units';
 
 // ── Options ──────────────────────────────────────────────────────────────────
 // `cut_aggressive` retiré le 2026-07-29 (cf. lib/syncGuard.ts::normalizeGoal) : il
@@ -679,7 +680,7 @@ export default function ProfilScreen() {
             adresse. */}
         <SectionLabel t={t} sub="ce qui calcule ta dépense">TOI</SectionLabel>
         <View style={s.menu}>
-          <MenuRow t={t} label="Informations" value={`${SEX_LABELS[profile.sex]} · ${profile.age} ans · ${profile.weight_kg} kg${profile.body_fat_pct != null ? ` · ${profile.body_fat_pct}% MG` : ''}`} onPress={() => setEditor('info')} />
+          <MenuRow t={t} label="Informations" value={`${SEX_LABELS[profile.sex]} · ${profile.age} ans · ${frnum(profile.weight_kg)} kg${profile.body_fat_pct != null ? ` · ${frnum(profile.body_fat_pct)}% MG` : ''}`} onPress={() => setEditor('info')} />
           <MenuRow t={t} label="Sport & activité" value={`${profile.sports?.length ? `${profile.sports.length} sport${profile.sports.length > 1 ? 's' : ''}` : 'Aucun sport'} · ${NEAT_SHORT[profile.neat_level ?? DEFAULT_NEAT_LEVEL]}`} onPress={() => setEditor('sports')} last />
         </View>
 
@@ -689,7 +690,7 @@ export default function ProfilScreen() {
         <SectionLabel t={t} sub="ce qui fixe tes cibles">TON OBJECTIF</SectionLabel>
         <View style={s.menu}>
           <MenuRow t={t} label="Objectif" value={goalLabel(profile.goal)} onPress={() => setEditor('goal')} />
-          <MenuRow t={t} label="Objectif daté" value={profile.goal_target ? `${profile.goal_target.target_weight_kg} kg · ${formatFR(profile.goal_target.target_date)}` : (premium.can('dated_goal') ? 'Aucun' : 'Inclus dans Kyroz+')} onPress={() => openEditor('dated_goal')} />
+          <MenuRow t={t} label="Objectif daté" value={profile.goal_target ? `${frnum(profile.goal_target.target_weight_kg)} kg · ${formatFR(profile.goal_target.target_date)}` : (premium.can('dated_goal') ? 'Aucun' : 'Inclus dans Kyroz+')} onPress={() => openEditor('dated_goal')} />
           <MenuRow t={t} label="Calories & macros" value={profile.macro_mode === 'percent' ? 'Perso %' : 'Calculées'} onPress={() => setEditor('macros')} last />
         </View>
 
@@ -1033,7 +1034,7 @@ function InfoEditor({ t, profile, onSave, onWeighIn, dragHandlers, sheetScrollPr
         style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md, backgroundColor: t.card, borderRadius: Radius.card, padding: Spacing.lg, minHeight: CIBLE_TACTILE_MIN }}>
         <View style={{ flex: 1 }}>
           <Text style={{ ...Type.bodySmall, color: t.textSecondary }}>Poids</Text>
-          <Text style={{ ...Type.h3, color: t.text, marginTop: Spacing.xs }}>{profile.weight_kg} kg</Text>
+          <Text style={{ ...Type.h3, color: t.text, marginTop: Spacing.xs }}>{frnum(profile.weight_kg)} kg</Text>
         </View>
         <Text style={{ ...Type.captionStrong, color: t.accent }}>Me peser</Text>
         <Ionicons name="chevron-forward" size={Icone.standard} color={t.textTertiary} />
@@ -1548,7 +1549,7 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }:
       {!goalBlockMsg && status?.clamped && !status.reachableByDate && !status.directionMismatch && !status.floorCapped && (
         <Card t={t}>
           <Text style={{ ...Type.caption, color: t.text, lineHeight: 19 }}>
-            Objectif ambitieux : au rythme le plus sûr tu atteins {status.targetWeightKg} kg
+            Objectif ambitieux : au rythme le plus sûr tu atteins {frnum(status.targetWeightKg)} kg
             {dateAuPlusTot ? ` le ${formatFR(dateAuPlusTot)}` : ' plus tard que prévu'}, après ta date.{' '}
             {status.maxRateApplied
               ? 'Kyroz avance au maximum de ce qui reste sûr, et cette date-là, il la tient.'
@@ -1570,7 +1571,7 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }:
             {status.reachableByDate ? (
               <>Ta date reste dans les clous : Kyroz ne creusera simplement pas plus que ça.</>
             ) : dateAuPlusTot ? (
-              <>Au rythme qu'il autorise, tu atteins {status.targetWeightKg} kg le {formatFR(dateAuPlusTot)}. Tu peux viser cette date-là, ou choisir un poids cible plus proche : Kyroz ne creusera pas davantage.</>
+              <>Au rythme qu'il autorise, tu atteins {frnum(status.targetWeightKg)} kg le {formatFR(dateAuPlusTot)}. Tu peux viser cette date-là, ou choisir un poids cible plus proche : Kyroz ne creusera pas davantage.</>
             ) : (
               <>À ce rythme, ce poids cible n'est pas atteignable quelle que soit la date. Choisis une cible plus proche, ou laisse le temps faire : ton poids qui baisse fera baisser le plancher avec lui.</>
             )}

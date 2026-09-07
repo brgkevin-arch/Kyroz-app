@@ -192,7 +192,20 @@ export default function Onboarding() {
   // une décision de santé ; il se choisit, il ne s'hérite pas d'un ordre d'affichage.
   const [goal, setGoal] = useState<Goal | null>(null);
   const [restrictions, setRestrictions] = useState<DietaryRestriction[]>([]);
+  // 🔴 « PEU IMPORTE » EST UNE RÉPONSE, PAS UNE ABSENCE DE RÉPONSE — et c'est tout le
+  // point de l'étape (2026-09-07). Mesuré : déclarer « Poulet » fait passer un homme de
+  // 80 kg en sèche de 3 à 7 plats animaux sur 14, et met du poulet à ses deux premiers
+  // repas. Le mécanisme est puissant (`planEngine::preferredRecipeIds` : priorité
+  // ABSOLUE, filtre dur) — il n'était simplement JAMAIS renseigné, parce que l'étape se
+  // passait d'un tap sans rien cocher.
+  // ⚠️ Sans cette case, rendre la question obligatoire forcerait à mentir : quelqu'un
+  // qui n'a vraiment pas de préférence doit pouvoir le DIRE, pas cocher au hasard.
+  // ⚠️ Elle ne s'enregistre PAS comme une protéine : `preferred_proteins` reste vide,
+  // ce que le moteur lit déjà comme « aucune préférence ». Y ranger « peu importe »
+  // ferait chercher une clé inexistante dans `PROTEIN_KEYWORDS` — un réglage qui ne
+  // pilote rien, exactement ce que ce correctif ferme.
   const [proteins, setProteins] = useState<string[]>([]);
+  const [proteinesEgales, setProteinesEgales] = useState(false);
   const [dislikes, setDislikes] = useState<string[]>([]);
   // ⚠️ `null` ET PAS `DEFAULT_NEAT_LEVEL` : rien n'est présélectionné, et l'étape ne
   // se valide pas tant que la réponse manque. Pré-cocher « journées assises » aurait
@@ -220,7 +233,7 @@ export default function Onboarding() {
   // sans rien à brancher ailleurs.
   const brouillon: OnboardingDraft = {
     step, firstName, sex, birthDate, weight, height, bodyFat, bodyFatSource,
-    sports, noSport, goal, restrictions, proteins, dislikes, neat, variety,
+    sports, noSport, goal, restrictions, proteins, proteinesEgales, dislikes, neat, variety,
     planWeekdays, restWeekdays, restTouched, meals, customSlots,
   };
   // ⚠️ La dépendance de l'effet est la forme SÉRIALISÉE, pas l'objet : `brouillon` est
@@ -244,7 +257,8 @@ export default function Onboarding() {
         setBirthDate(d.birthDate); setWeight(d.weight); setHeight(d.height);
         setBodyFat(d.bodyFat); setBodyFatSource(d.bodyFatSource);
         setSports(d.sports); setNoSport(d.noSport); setGoal(d.goal);
-        setRestrictions(d.restrictions); setProteins(d.proteins); setDislikes(d.dislikes);
+        setRestrictions(d.restrictions); setProteins(d.proteins);
+        setProteinesEgales(d.proteinesEgales); setDislikes(d.dislikes);
         setNeat(d.neat); setVariety(d.variety);
         setPlanWeekdays(d.planWeekdays); setRestWeekdays(d.restWeekdays);
         // ⚠️ `restTouched` se restaure AVEC le reste : sans lui, l'effet qui pré-coche
@@ -303,6 +317,10 @@ export default function Onboarding() {
   // plate — sept jours identiques.
   const sportDeclare = !noSport && sports.length > 0;
   const trainingDaysEq = noSport ? 0 : Math.min(totalSessionsPerWeek(sports), 7);          // repli legacy (activity_level / training_days)
+  // Étape 6 — la question des protéines EXIGE une réponse, « peu importe » comprise.
+  // Le reste de l'étape (régime, aliments à éviter, variété) garde ses défauts : ce
+  // sont des réglages, pas des questions restées sans réponse.
+  const preferencesValid = proteinesEgales || proteins.length >= 1;
   const mealsValid = planWeekdays.length >= 1 && meals.length >= 1;                        // étape 7 — jours + repas
   const profileReady = basicsValid && bodyFatValid; // suffisant pour les calculs TDEE/macros
 
@@ -332,8 +350,9 @@ export default function Onboarding() {
     (step === 3 && bodyFatValid) ||
     (step === 4 && trainingValid) ||
     (step === 5 && goal !== null && !objectifBloque) ||
+    (step === 6 && preferencesValid) ||
     (step === 7 && mealsValid) ||
-    ![1, 2, 3, 4, 5, 7].includes(step);
+    ![1, 2, 3, 4, 5, 6, 7].includes(step);
 
   const toggle = <T,>(arr: T[], v: T, set: (x: T[]) => void) =>
     set(arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
@@ -415,6 +434,7 @@ export default function Onboarding() {
     // POURQUOI — et le pourquoi n'a toujours qu'une seule rédaction.
     if (step === 5 && goal === null) return 'Choisis ton objectif pour continuer.';
     if (step === 5 && objectifBloque) return 'Sèche n\'est pas disponible ici — choisis Maintien, ou un autre objectif.';
+    if (step === 6 && !preferencesValid) return 'Choisis tes protéines préférées, ou « Peu importe ».';
     if (step === 7 && !mealsValid) return 'Choisis au moins un jour et un repas.';
     return null;
   };
@@ -502,7 +522,9 @@ export default function Onboarding() {
       fixed_meals: undefined,
       dietary_restrictions: restrictions,
       disliked_foods: dislikes,
-      preferred_proteins: proteins.map((p) => p.toLowerCase()),
+      // `proteinesEgales` ne s'écrit nulle part : le moteur lit une liste VIDE comme
+      // « aucune préférence », ce qui est exactement la réponse donnée.
+      preferred_proteins: proteinesEgales ? [] : proteins.map((p) => p.toLowerCase()),
     };
     const profile = recalcProfile(draft); // ← source unique du TDEE et des macros
     // Éligibilité (P0.4) : mineur, IMC de départ, volume d'entraînement. La grossesse
@@ -713,10 +735,22 @@ export default function Onboarding() {
             </View>
 
             <SectionLabel t={t}>Protéines préférées</SectionLabel>
+            <Text style={[s.sub, { marginTop: -Spacing.xs }]}>
+              Ce que tu choisis ici passe avant tout le reste dans tes repas.
+            </Text>
             <View style={s.wrap}>
               {PROTEINS.map((p) => (
-                <Chip key={p} t={t} label={p} selected={proteins.includes(p)} onPress={() => toggle(proteins, p, setProteins)} />
+                <Chip
+                  key={p} t={t} label={p} selected={proteins.includes(p)}
+                  // Cocher une protéine annule « Peu importe » : les deux réponses ne
+                  // peuvent pas coexister sans que l'une des deux soit ignorée.
+                  onPress={() => { setProteinesEgales(false); toggle(proteins, p, setProteins); }}
+                />
               ))}
+              <Chip
+                t={t} label="Peu importe" selected={proteinesEgales}
+                onPress={() => { setProteinesEgales((v) => !v); setProteins([]); }}
+              />
             </View>
 
             <DislikedFoodsField t={t} value={dislikes} onChange={setDislikes} />
