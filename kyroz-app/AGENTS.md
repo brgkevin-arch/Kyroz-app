@@ -759,12 +759,33 @@ produit en suspens — il ne reste qu'à coder.
   600 ne changera rien non plus.** Tout ce qui n'est pas dans le top ~15 d'un profil est
   du catalogue mort pour lui.
 
-  ➡️ **Le chantier n'est donc pas « écrire mieux », c'est « constituer le panier
-  autrement ».** La piste non testée, et la seule qui reste : faire tourner le REGISTRE sur
-  la semaine comme `familyUsage` fait déjà tourner les couples protéine × féculent —
-  une contrainte de DIVERSITÉ, pas un meilleur score. C'est une décision produit (elle
-  échange de la précision calorique contre de la variété de format) et elle touche tous
-  les plans de tous les utilisateurs : à arbitrer avant d'écrire une ligne.
+  ✅ **CORRIGÉ le 2026-09-07 par une ROTATION DE REGISTRE** (`registreKey` +
+  `REGISTRE_SELECT_W`, `ENGINE_VERSION` 49) : un registre déjà servi dans la semaine pousse
+  le suivant hors du panier, exactement comme `familyUsage` le fait pour les couples
+  protéine × féculent depuis la v38. Ce n'est pas un meilleur score, c'est une contrainte de
+  DIVERSITÉ — et c'est pour ça que ça marche là où les trois réglages de score ont échoué.
+
+  | mesuré, 12 profils × 4 semaines | avant | après |
+  |---|---|---|
+  | petits-déjeuners au pain servis | 12 % | **23 %** |
+  | H 80 maintien — part « poudres et soja » | 82 % | **61 %** |
+  | H 80 maintien — part registre français | 54 % | **68 %** |
+  | quasi-doublons servis | 8,3 % | 8,3 % — inchangés |
+  | écart calorique moyen du jour | 0,65 % | **0,78 %** (20 kcal au lieu de 17) |
+  | R8 moyen du créneau petit-déj | 9,09/12 | **9,18/12** |
+
+  **Le prix est de 3 kcal par jour, et c'est le seul.** La semaine du H 80 maintien perd ses
+  deux edamame d'affilée et gagne une poêlée de thon et un pita œuf-houmous.
+  ⚠️ Poids calibré au balayage (0 · 0,02 · 0,04 · 0,08) ; 0,08 retenu. Il est plus grand que
+  `FAMILY_SELECT_W_*` (0,04) parce qu'il y a **5 registres pour ~120 familles** : un registre
+  revient bien plus souvent, il faut un cran plus ferme pour l'éjecter de la bande.
+  ⚠️ Garde-fou `lib/__tests__/registreRotation.test.ts`, **vérifié par mutation** : à
+  `REGISTRE_SELECT_W = 0` il rougit en imprimant la semaine fautive
+  (« poudre, poudre, vegetal, pain, vegetal, poudre, vegetal »). Il mesure le RÉSULTAT — les
+  registres distincts de la semaine — pas la constante.
+  ⚠️ Un second cas garde la table de `registreKey` : si une vague introduit un féculent
+  qu'elle ne connaît pas, ses recettes tombent dans « autre », cessent d'être mises en
+  rotation, et le défaut redevient invisible.
 
   ℹ️ La mesure est reproductible : `npm run mesure:registre` (ajouté avec cette fiche)
   imprime, profil par profil, la part de registre français, la part de poudres/soja et
