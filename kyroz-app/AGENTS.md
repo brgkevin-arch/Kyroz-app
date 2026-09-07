@@ -735,6 +735,37 @@ produit en suspens — il ne reste qu'à coder.
   Le chantier commence par une décision : accepte-t-on de servir 12 g de glucides de
   moins pour du pain, ou pénalise-t-on l'écart aux glucides dans le score ?
 
+  🔴 **QUATRE CORRECTIFS ONT ÉTÉ TESTÉS ET MESURÉS LE MÊME JOUR. LES QUATRE SONT
+  INEFFICACES** — et c'est le résultat le plus utile de la fiche, parce qu'il ferme les
+  pistes évidentes. Référence : **12 % de petits-déjeuners au pain servis, 10 recettes B10
+  sur 336**.
+
+  | piste testée | comment | résultat |
+  |---|---|---|
+  | pénaliser l'écart aux GLUCIDES dans `fitScore` | terme continu, poids 0,25 · 0,5 · 1 | pain **12 % → 10 %** — ça EMPIRE |
+  | élargir la bande de variété | `TIE_BAND_MAX` 0,022 → 0,035 · 0,05 · 0,08 | pain 12 % → **13–14 %**, B10 inchangé (10/336) |
+  | réécrire la tartine moins protéinée | densité 6,8 → 5,3 g/100 kcal, 5 variantes | rang **77 → 91 sur 137** : R8 monte (8/12 → 12/12), le rang NON |
+  | (implicite) écrire plus de recettes | 15 ajoutées par B10 | 10 servies sur 336 |
+
+  🔴 **CE QUE LA MESURE A VRAIMENT TROUVÉ — et ça dépasse le petit-déjeuner : le catalogue
+  a un VIVIER EFFECTIF d'environ 15 recettes par profil, quel que soit son volume.** Le
+  panier (`pickable`, bande 0,022 autour du meilleur score) fait **8 à 29 recettes sur
+  137** selon le profil, et il faut y être pour être servi une seule fois. Or les 137
+  recettes tiennent dans **5 % d'écart** les unes des autres : le classement se joue sur
+  1 %, c'est-à-dire sur du bruit d'arrondi de portion.
+  ⚠️ Et les recettes de B10 ne sont PAS mal notées — **rang médian 57 contre 71 pour le
+  reste du catalogue**. Elles sont meilleures que la moyenne et n'entrent quand même pas
+  dans le panier. ➡️ **Passer de 512 à 537 recettes ne pouvait rien changer, et passer à
+  600 ne changera rien non plus.** Tout ce qui n'est pas dans le top ~15 d'un profil est
+  du catalogue mort pour lui.
+
+  ➡️ **Le chantier n'est donc pas « écrire mieux », c'est « constituer le panier
+  autrement ».** La piste non testée, et la seule qui reste : faire tourner le REGISTRE sur
+  la semaine comme `familyUsage` fait déjà tourner les couples protéine × féculent —
+  une contrainte de DIVERSITÉ, pas un meilleur score. C'est une décision produit (elle
+  échange de la précision calorique contre de la variété de format) et elle touche tous
+  les plans de tous les utilisateurs : à arbitrer avant d'écrire une ligne.
+
   ℹ️ La mesure est reproductible : `npm run mesure:registre` (ajouté avec cette fiche)
   imprime, profil par profil, la part de registre français, la part de poudres/soja et
   ce qui est réellement servi au réveil. **Sans elle, une vague de recettes se déclare
