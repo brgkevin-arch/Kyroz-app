@@ -12,6 +12,8 @@ import { useTheme, ThemePalette, Spacing, Radius, Type, Fond, Trait, Icone, OPAC
 import { useLayout } from '../../constants/layout';
 import { Field, PrimaryButton, Segmented } from '../../components/ui';
 import { useAuth } from '../../hooks/useAuth';
+import { appleSignInAvailable } from '../../lib/appleAuth';
+import { AppleSignInButton } from '../../components/AppleSignInButton';
 import { DISCLAIMER } from '../../constants/legal';
 import { isReviewLogin } from '../../lib/reviewAccess';
 import {
@@ -30,7 +32,7 @@ export default function LoginScreen() {
   const s = useMemo(() => makeStyles(t), [t]);
   const layout = useLayout();
   const router = useRouter();
-  const { signIn, signUp, confirmEmail, resendConfirmation, signInGuest } = useAuth();
+  const { signIn, signUp, confirmEmail, resendConfirmation, signInGuest, signInWithApple, confirmAppleConsent, signOut } = useAuth();
 
   const [mode, setMode] = useState<Mode>('signup');
   const [email, setEmail] = useState('');
@@ -154,6 +156,68 @@ export default function LoginScreen() {
     router.replace('/'); // session anonyme ouverte → l'index route vers l'onboarding
   };
 
+  // ── Sign in with Apple ───────────────────────────────────────────────────
+  //
+  // Faux tant qu'on n'a pas la réponse d'`appleSignInAvailable()` — un `useState`
+  // à part plutôt que de dériver `purchasesConfigured()`-like, parce que la
+  // disponibilité dépend de l'APPAREIL (compte enfant, restriction), pas
+  // seulement de la plateforme ou d'une clé posée.
+  const [appleDispo, setAppleDispo] = useState(false);
+  useEffect(() => { appleSignInAvailable().then(setAppleDispo); }, []);
+
+  // Non nul UNIQUEMENT pendant la fenêtre entre l'ouverture de la session Apple
+  // et le consentement recueilli : l'écran affiche alors le même bloc de
+  // consentement que l'inscription par e-mail, plutôt que le formulaire.
+  const [appleConsentEnAttente, setAppleConsentEnAttente] = useState(false);
+
+  const connecterApple = async () => {
+    if (busy) return;
+    setBusy(true); setError(null); setNotice(null);
+    const r = await signInWithApple();
+    setBusy(false);
+    if (r.statut === 'annule') return;           // l'utilisateur a renoncé : rien à dire
+    if (r.statut === 'indisponible') { refuser('Connexion Apple indisponible sur cet appareil.'); return; }
+    if (r.statut === 'echec') { refuser(translate(r.message)); return; }
+    // r.statut === 'ok'
+    if (r.consentRequis) {
+      // ⚠️ Une session Supabase est DÉJÀ ouverte à cet instant (Apple a validé
+      // le jeton) — mais on reste volontairement sur cet écran : `router.replace`
+      // n'est appelé qu'après le consentement, jamais avant. Sans ce verrou,
+      // l'index routerait vers l'onboarding avec `consent_health_data` resté à
+      // `false` en silence — le trou RGPD des parcours OAuth (cf. lib/appleAuth.ts).
+      setConsent(false);
+      setAppleConsentEnAttente(true);
+      return;
+    }
+    router.replace('/');
+  };
+
+  const validerConsentApple = async () => {
+    if (!consent || busy) return;
+    setBusy(true); setError(null);
+    const res = await confirmAppleConsent(true);
+    setBusy(false);
+    if (res.error) { refuser(res.error); return; }
+    setAppleConsentEnAttente(false);
+    router.replace('/');
+  };
+
+  // Refuser le consentement referme la session ouverte par Apple : on ne
+  // laisse jamais une session sans consentement traîner sur l'appareil.
+  const annulerConsentApple = async () => {
+    if (busy) return;
+    setBusy(true);
+    await signOut();
+    setBusy(false);
+    setAppleConsentEnAttente(false);
+    setConsent(false);
+  };
+
+  // ⚠️ CE RETOUR ANTICIPÉ VIENT APRÈS TOUS LES HOOKS, ET CE N'EST PAS UN DÉTAIL DE
+  // MISE EN FORME. Les `useState`/`useEffect` de la connexion Apple sont déclarés
+  // juste au-dessus : les placer APRÈS un `return` conditionnel en ferait des appels
+  // de hooks conditionnels — React changerait d'ordre de hooks entre deux rendus,
+  // et l'écran casserait au premier passage du carrousel au formulaire.
   // Lecture de stockage local, quasi instantanée — même geste que la ligne de
   // consentement de l'inscription.
   if (introVue === undefined) return null;
@@ -180,7 +244,40 @@ export default function LoginScreen() {
 
           <View style={{ height: 28 }} />
 
-          {oubli ? (
+          {appleConsentEnAttente ? (
+            <>
+              {/* ── Consentement santé pour un compte Apple neuf ────────────
+                  Même case, même texte que l'inscription par e-mail — c'est le
+                  MÊME consentement RGPD, seul le chemin qui y mène diffère. */}
+              <Text style={s.titreConfirmation}>Avant de continuer</Text>
+              <Text style={s.texteConfirmation}>
+                Apple a confirmé ton identité. Il reste une case à cocher pour ouvrir ton compte Kyroz.
+              </Text>
+
+              <View style={{ height: 18 }} />
+
+              <Presse style={s.consent} onPress={() => setConsent((c) => !c)} activeOpacity={OPACITE_PRESSION}>
+                <View style={[s.check, { borderColor: consent ? t.accent : t.lineStrong, backgroundColor: consent ? t.accent : 'transparent' }]}>
+                  {consent && <Ionicons name="checkmark" size={Icone.petite} color={t.onAccent} />}
+                </View>
+                <Text style={s.consentTxt}>
+                  J'accepte que mes données (poids, taille, composition corporelle, objectif, régime) — des <Text style={{ fontWeight: '700', color: t.textSecondary }}>données de santé</Text> — soient traitées pour générer mes plans. Stockage en Europe, supprimables à tout moment.
+                </Text>
+              </Presse>
+
+              {error && <Text style={s.error}>{error}</Text>}
+
+              <View style={{ height: 10 }} />
+              <PrimaryButton
+                t={t} label="Continuer" onPress={validerConsentApple}
+                disabled={!consent} loading={busy}
+              />
+
+              <Presse onPress={annulerConsentApple} disabled={busy} activeOpacity={OPACITE_PRESSION} style={s.lienSecondaire}>
+                <Text style={s.lienSecondaireTxt}>Annuler</Text>
+              </Presse>
+            </>
+          ) : oubli ? (
             <MotDePasseOublie
               emailInitial={email}
               onAnnuler={() => { setOubli(false); setError(null); setNotice(null); }}
@@ -291,7 +388,18 @@ export default function LoginScreen() {
             </Presse>
           )}
 
-          <Text style={s.social}>Connexion Apple & Google bientôt — avec l'app iOS.</Text>
+          {appleDispo && (
+            <>
+              <View style={s.guestRow}>
+                <View style={s.guestLine} />
+                <Text style={s.guestOr}>ou</Text>
+                <View style={s.guestLine} />
+              </View>
+              <View style={{ marginTop: Spacing.lg }}>
+                <AppleSignInButton onPress={connecterApple} disabled={busy} />
+              </View>
+            </>
+          )}
 
           {/* Connexion invité : outil de test (manuel + Playwright). Masquée en
               PROD pour fermer le vecteur d'abus (création anonyme de comptes en

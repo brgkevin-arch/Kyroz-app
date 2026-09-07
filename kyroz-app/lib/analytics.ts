@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { STATISTIQUES_USAGE_ACTIVES } from './featureFlags';
+import { randomId } from './randomId';
 
 // ── Analytics (PostHog Cloud EU) — DORMANT tant que non configuré + non consenti ──
 //
@@ -87,15 +88,6 @@ async function distinctId(): Promise<string> {
 export async function pseudonymeExistant(): Promise<string | null> {
   if (idCache) return idCache;
   try { return await AsyncStorage.getItem(ID_KEY); } catch { return null; }
-}
-
-function randomId(): string {
-  const c = (globalThis as { crypto?: { randomUUID?: () => string } }).crypto;
-  if (c?.randomUUID) return c.randomUUID();
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (ch) => {
-    const r = (Math.random() * 16) | 0;
-    return (ch === 'x' ? r : (r & 0x3) | 0x8).toString(16);
-  });
 }
 
 // ── Cohortes : `jour_depuis_install` ─────────────────────────────────────────

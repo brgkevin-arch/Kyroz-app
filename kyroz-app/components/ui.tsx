@@ -116,23 +116,56 @@ export function OptionCard({
   );
 }
 
+/**
+ * 🔴 **UN CHAMP DE MOT DE PASSE SE RÉVÈLE — ET LE BOUTON VIT ICI, PAS CHEZ
+ * L'APPELANT** (2026-09-04). Les trois champs masqués de l'app n'offraient
+ * AUCUN moyen de relire ce qu'on venait de taper : `secureTextEntry` nu, sur
+ * l'inscription, la connexion et la réinitialisation. C'est la friction la plus
+ * chère de l'app — elle tombe sur l'écran où l'on perd le plus de monde, et le
+ * seul recours d'une faute de frappe y est de tout reprendre à l'aveugle.
+ *
+ * ⚠️ **Le bouton appartient au CHAMP, pas à ses appelants.** Le poser dans
+ * `login.tsx` puis dans `MotDePasseOublie.tsx` aurait fait deux copies d'un même
+ * rôle — le défaut déjà payé par `Disclaimer` et `SectionLabel` (§8), et celui
+ * que le champ de `profil.tsx` commentait lui-même (« le recopier à la main
+ * était déjà l'erreur : un style sans nom dérive »). Ici, l'appelant écrit
+ * `secureTextEntry` et n'a rien d'autre à savoir.
+ *
+ * ⚠️ **`revele` est LOCAL et repart masqué à chaque montage.** Un mot de passe
+ * révélé qui survivrait à la fermeture de l'écran serait un réglage que personne
+ * n'a demandé, sur la donnée la plus sensible du parcours.
+ */
 export function Field({
-  t, label, suffix, ...props
-}: { t: ThemePalette; label: string; suffix?: string } & TextInputProps) {
+  t, label, suffix, secureTextEntry, ...props
+}: { t: ThemePalette; label?: string; suffix?: string } & TextInputProps) {
+  const [revele, setRevele] = React.useState(false);
+  // Le bouton n'existe que pour un champ RÉELLEMENT masqué : `secureTextEntry`
+  // absent (un e-mail, un poids) ne doit pas se voir offrir un œil qui ne
+  // masquerait rien.
+  const masquable = secureTextEntry === true;
+
   return (
     <View style={{ gap: Spacing.sm }}>
-      <Text style={{ ...Type.captionStrong, color: t.textSecondary }}>{label}</Text>
+      {label ? <Text style={{ ...Type.captionStrong, color: t.textSecondary }}>{label}</Text> : null}
       <View style={{
         flexDirection: 'row', alignItems: 'center',
         backgroundColor: t.scheme === 'dark' ? t.fill : t.card,
         borderRadius: Radius.button, borderWidth: Trait.fin, borderColor: t.line,
-        paddingHorizontal: Spacing.lg,
+        paddingLeft: Spacing.lg,
+        // Le bouton fait sa propre marge : il mesure `CIBLE_TACTILE_MIN` de large
+        // et centre son icône, donc ajouter le retrait du cadre l'éloignerait du
+        // bord de deux marges empilées.
+        paddingRight: masquable ? 0 : Spacing.lg,
       }}>
         <TextInput
           placeholderTextColor={t.textTertiary}
           autoComplete="off"
           autoCorrect={false}
           autoCapitalize="none"
+          // ⚠️ `secureTextEntry` est PILOTÉ, pas transmis : c'est lui que le bouton
+          // bascule. Le laisser dans `props` le figerait à la valeur de l'appelant
+          // et rendrait l'œil décoratif — un contrôle qui ne pilote rien (§11).
+          secureTextEntry={masquable && !revele}
           // minWidth: 0 → indispensable pour que l'input en flex:1 puisse RÉTRÉCIR
           // dans le cadre (sinon, surtout sur web, sa largeur intrinsèque pousse
           // l'unité hors de la bordure). Avec un suffixe, valeur alignée à droite
@@ -141,6 +174,19 @@ export function Field({
           {...props}
         />
         {suffix ? <Text style={{ ...Type.body, color: t.textTertiary, marginLeft: Spacing.sm }}>{suffix}</Text> : null}
+        {masquable ? (
+          <Presse
+            onPress={() => setRevele((v) => !v)}
+            activeOpacity={OPACITE_PRESSION}
+            // Le libellé annonce ce que l'appui VA faire, jamais l'état courant :
+            // VoiceOver lit déjà l'état par `accessibilityState.selected`.
+            accessibilityLabel={revele ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+            accessibilityState={{ selected: revele }}
+            style={{ width: CIBLE_TACTILE_MIN, height: CIBLE_TACTILE_MIN, alignItems: 'center', justifyContent: 'center' }}
+          >
+            <Ionicons name={revele ? 'eye-off-outline' : 'eye-outline'} size={Icone.standard} color={t.textTertiary} />
+          </Presse>
+        ) : null}
       </View>
     </View>
   );

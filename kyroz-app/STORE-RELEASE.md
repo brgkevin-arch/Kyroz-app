@@ -16,12 +16,40 @@
 
 ## 0-ter. ▶️ REPRISE — état au 2026-08-27
 
-> 🔴 **ÉTAT AU 2026-09-03** — l'app a été **rejetée deux fois**, jamais sur le code :
-> `2.1` (question sur les paliers de prix, le 01/09) puis **`2.1(b)`** (deux produits
-> d'abonnement absents du binaire, le 03/09). Le binaire (9) n'a pas bougé et reste bon.
-> Les deux produits de réserve sont **retirés de la soumission** et la stratégie à deux
-> paliers est **abandonnée** — voir la section « REJET 2.1(b) » plus bas, qui prime sur
-> tout ce que ce bloc-ci dit des abonnements.
+> 🔴 **ÉTAT AU 2026-09-05, 19 h 30** — **tout est prêt sauf la vidéo.**
+>
+> Trois rejets : `2.1` (01/09, question sur les paliers), `2.1(b)` (03/09, produits absents
+> du binaire), `2.1(b)` (04/09, **le premier vrai défaut de code** — un achat qui ne répond
+> pas bloquait l'écran pour toujours).
+>
+> ✅ **Le binaire à soumettre est le (16)** — sur TestFlight, `VALID`, commit `4de16d7`. Il
+> porte le **timeout d'achat de 30 s** (le correctif du rejet) et **Sign in with Apple**,
+> essayé sur appareil et fonctionnel. Tout est vérifié dans l'artefact, pas supposé.
+>
+> ⏸️ **CE QUI RESTE : la vidéo qu'Apple exige**, et pas pour une raison de code. Le compte
+> Apple du fondateur portait un abonnement sandbox **ACTIF qui se renouvelait tous les
+> jours** (dix renouvellements du 28/08 au 07/09, lus dans l'historique d'Apple), donc
+> StoreKit refusait tout achat — « Vous êtes déjà abonné » — donc rien à filmer.
+> ✅ **Résilié le 2026-09-06** (« Gérer » dans la boîte d'Apple → Annuler) :
+> `autoRenewStatus` est passé à *désactivé*, vérifié dans l'App Store Server API.
+> ➡️ **L'achat redevient possible le 2026-09-07 à 03:04:30 heure de Paris** — annuler
+> coupe la suite, pas la période en cours. Ensuite, ça reste expiré : aucun créneau à
+> attraper.
+> 🔴 **NE PAS SE FIER À REVENUECAT SUR CETTE QUESTION.** Il affichait **0 droit actif**
+> pendant tout le blocage — vrai, et sans rapport : la fiche client avait été supprimée.
+> La source d'un abonnement est l'**App Store Server API**
+> (`~/.eas-credentials/kyroz-abo-sandbox.mjs`), jamais le miroir.
+> ℹ️ Et **aucun compte sandbox n'est requis** : `GET /v2/sandboxTesters` rend **0** testeur
+> avec une clé `ACCOUNT_HOLDER` alors que l'abonnement était bien en `environment:
+> sandbox` — un build TestFlight facture en bac à sable sur le compte Apple ORDINAIRE.
+> Le formulaire d'App Store Connect qui refuse depuis deux jours n'est pas sur le chemin
+> critique.
+> ➡️ Séquence jusqu'à la vidéo :
+> `docs/procedures/PROCEDURE-2026-09-05-video-achat-sandbox.md`, bloc de tête §0.
+>
+> ⚠️ Deux défauts d'affichage relevés en répétant le parcours, **volontairement non
+> corrigés** pour ne pas rebâtir le binaire : `E67` et `E68` (défilement de l'assistant
+> d'inscription). Ils partiront en **OTA** après l'approbation.
 
 > Bloc réécrit **entièrement** ce jour. Le précédent datait du 2026-08-11 et il a été
 > faux sur ses trois points pendant douze jours : il annonçait le build (6) « à jour »,
@@ -442,6 +470,149 @@ REJECTED           version 1.0 (9)
 
 Aucun défaut de code, **aucun nouveau build** : le binaire (9) est correct, c'est la fiche
 Apple qui promettait des produits qu'il ne contient pas.
+
+---
+
+### 🔴 REJET 2.1(b) — 2026-09-04 : LE PREMIER VRAI DÉFAUT DE CODE
+
+**Troisième rejet, sur le MÊME build (9)**, relu sur **iPad Air 11" (M3) et iPhone 17
+Pro Max**, iOS/iPadOS 26.6, 33 h après le renvoi du 03/09.
+
+> *« The In-App Purchase products in the app exhibited one or more bugs which create a
+> poor user experience. Specifically, your app started loading indefinitely after we
+> purchased the subscription. »*
+
+**Et pour la première fois sur ces trois rejets, c'était vrai — dans le code, pas dans
+la fiche.** `lib/purchases.ts::buy()` et `::restore()` n'avaient **aucune borne de
+temps**. Si `purchaseStoreProduct` ou `restorePurchases` ne se résolvait ni en succès ni
+en échec (réseau, validation de reçu lente côté Apple/RevenueCat), la promesse restait
+en suspens **pour toujours** : `enCours` ne repassait jamais à faux, les deux boutons de
+l'écran (« S'abonner » et « Restaurer mes achats ») restaient désactivés, sans la
+moindre sortie. Exactement « l'app charge indéfiniment ».
+
+🔴 **CE DÉFAUT ÉTAIT DÉJÀ FERMÉ AILLEURS, ET LA LEÇON N'AVAIT PAS ÉTÉ GÉNÉRALISÉE.**
+`lib/boot.ts::withBudget` existe depuis le 2026-08-02 pour fermer très exactement cette
+classe de bug sur le démarrage de l'app (« le réseau ne décide jamais du premier
+rendu »). Le paywall parlait au même genre de réseau non fiable et n'en avait pas hérité.
+
+**Correctif** (`lib/purchases.ts`) : `buy()` et `restore()` passent désormais par
+`avecBudget(tentative, PURCHASE_BUDGET_MS)` — 30 secondes, `withBudget` réutilisé tel
+quel. Au-delà, un nouveau verdict `{ statut: 'sansreponse' }`.
+
+⚠️ **`sansreponse` N'EST PAS `echec`, et ce n'est pas un détail de typage — c'est un
+point « pas de mensonge » (`CLAUDE.md` §10).** `withBudget` n'annule rien : la tentative
+continue en arrière-plan et peut très bien aboutir après qu'on a cessé de l'attendre.
+L'écran affiche « Rien ne t'a été débité » sur un `echec` — l'affirmer sur un timeout
+serait un mensonge si l'achat aboutit une seconde plus tard. Le seul fait qu'on peut
+affirmer est qu'on n'a pas de réponse ; `onEntitlementChange`, déjà câblé dans
+`usePremium`, rattrape l'entitlement si l'achat finit par aboutir malgré tout.
+
+⚠️ **Vérifié par MUTATION** : remplacer `sansreponse` par `echec` dans le code fait
+rougir deux tests d'un coup (`purchases.test.ts`) — dont un écrit précisément pour
+dénoncer ce mensonge-là.
+
+🔴 **CE QUE ÇA VEUT DIRE POUR LA RESOUMISSION — un NOUVEAU binaire est nécessaire.** Le
+correctif est du JavaScript pur, publiable en OTA en théorie — mais `fallbackToCacheTimeout:
+0` (§2 de `CLAUDE.md`) fait qu'une OTA ne s'applique qu'au **second** lancement, et un
+relecteur n'en ouvre qu'un. Même raisonnement que pour le build (7) et le (8) : ce
+correctif exige un binaire (10).
+
+🔴 **ET APPLE DEMANDE DÉSORMAIS UN ÉLÉMENT NOUVEAU, QUE JE NE PEUX PAS PRODUIRE MOI-MÊME** :
+un **enregistrement d'écran sur un appareil PHYSIQUE**, joint aux notes de revue, qui doit :
+- partir de l'écran d'accueil, lancer l'app, montrer le parcours complet avec le compte de démo ;
+- montrer un **achat sandbox réussi**, preuve que les produits sont actifs et aboutissent ;
+- montrer tous les autres parcours d'achat.
+
+➡️ **Ce point est bloquant et hors de portée d'une session Claude Code** : il faut le
+téléphone du fondateur, le compte Apple sandbox déjà configuré, et un geste humain devant
+la caméra. À faire avant tout renvoi — renvoyer sans la vidéo rejouerait très probablement
+le même rejet, ou un autre motif de forme.
+
+---
+
+### 🔴 UN BAC À SABLE NE SE NETTOIE PAS PAR LE HAUT — 2026-09-05
+
+**Le reçu App Store de l'appareil est la SOURCE ; la base de RevenueCat n'en est que le
+miroir.** Trouvé en cherchant pendant deux heures pourquoi tout compte Kyroz neuf
+affichait « Abonnement actif » alors qu'il n'y avait, littéralement, plus un seul client
+chez RevenueCat.
+
+**La preuve, en un relevé** : après avoir supprimé TOUS les clients (0 restant), la
+connexion suivante en a fait réapparaître un — avec `first_seen_at` au **1ᵉʳ août**, et
+ses deux abonnements. Un client supprimé ne « revient » pas : il est **reconstruit depuis
+le reçu**, avec son passé.
+
+➡️ **Ce qui NE nettoie pas un environnement de test** :
+- supprimer les clients RevenueCat (fait deux fois : 30, puis 2 — sans effet) ;
+- se déconnecter du compte sandbox dans les Réglages ;
+- désinstaller et réinstaller l'app ;
+- « Effacer l'historique d'achats » **seul** — il arrête les renouvellements, il ne tue
+  pas la période en cours.
+
+➡️ **Ce qui nettoie vraiment** : que la période d'abonnement **expire** (durées
+compressées par Apple : 5 min pour un mensuel, 1 h pour un annuel, 6 renouvellements au
+maximum), ou un **autre Apple ID sandbox**.
+
+⚠️ **Corollaire pour toute session future** : avant de promettre une manipulation qui
+« remet à zéro », se demander **où vit la source**. Ici elle était sur l'appareil, et
+j'ai passé deux heures à effacer son reflet.
+
+⚠️ **Et un mot d'utilisateur ne suffit pas à nommer un état** : « j'ai Kyroz+ » recouvre
+trois motifs sans rien en commun (`entitled`, `grandfathered`, `not_launched`). Le titre
+de l'écran Kyroz+ les distingue sans ambiguïté (`paywallBanner`) — c'est LUI qu'il faut
+demander, dès la première question.
+
+**Outillage installé ce jour** : clé secrète RevenueCat dans
+`~/.eas-credentials/revenuecat-secret` (hors dépôt, `chmod 600`). Elle donne l'état réel
+des clients, abonnements et droits — `api.revenuecat.com/v2/projects/proj7396660e/…`.
+C'est elle qui a tranché là où le raisonnement tournait en rond.
+
+---
+
+### 🍎 Sign in with Apple — implémenté le 2026-09-05, à VÉRIFIER sur appareil
+
+Décision fondateur : puisqu'un nouveau binaire (10) est de toute façon nécessaire pour le
+correctif du timeout d'achat, [[project-sign-in-with-apple-a-faire]] entre dans ce build —
+exactement la fenêtre que cette fiche prévoyait (« si Apple rejette, un build repart de
+toute façon : Apple Sign In y entre gratuitement »).
+
+**Ce qui est écrit et vert (`tsc` + 2095 tests)** :
+- `lib/appleAuth.ts` / `.web.ts` — même patron que `lib/purchases.ts` : le SDK natif
+  (`expo-apple-authentication`) chargé en `require` paresseux, la version web écartée
+  par résolution de plateforme (Metro l'embarquerait sinon, même piège mesuré deux fois).
+- `components/AppleSignInButton.tsx` / `.web.tsx` — le bouton **officiel** Apple
+  (`AppleAuthenticationButton`), pas un bouton maison : les Human Interface Guidelines
+  l'exigent, et c'est aussi ce qui donne la localisation et l'accessibilité gratuitement.
+- `hooks/useAuth.tsx::signInWithApple` — flux natif → `supabase.auth.signInWithIdToken`.
+  Nonce transmis **brut**, ni côté Apple ni côté Supabase (vérifié contre la doc Supabase
+  courante pour Expo — contre-intuitif si on connaît le Swift natif, où on le hache).
+- **Le trou RGPD des parcours OAuth, fermé** (déjà nommé dans
+  [[project-sign-in-with-apple-a-faire]]) : l'inscription e-mail fait cocher la case de
+  consentement AVANT d'ouvrir une session ; Apple, lui, authentifie D'ABORD. La session
+  Apple s'ouvre donc, mais l'écran reste sciemment sur `/(auth)/login` (aucun
+  `router.replace('/')`) tant que `consentSanteManquant()` — prédicat PUR, testé — dit
+  vrai : la même case, le même texte, juste après. Annuler referme la session
+  (`signOut()`) plutôt que de laisser une session sans consentement traîner.
+- **Le scope `FULL_NAME` n'est PAS demandé**, délibérément : Kyroz demande déjà le
+  prénom à l'onboarding, et réclamer le nom à Apple ajouterait un type de donnée
+  collectée que la fiche App Privacy ne déclare pas — fiche qui ne s'écrit PAS par
+  l'API ([[reference-asc-api-fiche]]), donc un aller-retour console de plus pour rien.
+
+**Ce qui reste, et que je ne peux pas faire moi-même :**
+1. **Activer le fournisseur Apple dans le tableau de bord Supabase** — Authentication →
+   Providers → Apple → activer, « Client IDs » = `app.kyroz.mobile`. Sans ce réglage,
+   `signInWithIdToken` refusera le jeton même si tout le reste est juste.
+2. **Vérifier sur un appareil ou le simulateur**, avec un vrai identifiant Apple : le
+   flux natif ne se simule pas sous vitest, et `expo-apple-authentication` avertit
+   lui-même que `getCredentialStateAsync` échoue toujours sur simulateur (sans
+   conséquence ici, cette fonction n'est pas utilisée).
+3. **La capability est déjà cochée sur l'App ID** (anticipée le 2026-08-31, avant même
+   ce chantier) — normalement rien à faire côté Apple Developer, à confirmer au premier
+   `eas build` si le provisionnement râle.
+
+⚠️ **Ne pas confondre avec le point 2 du rejet ci-dessus** (l'enregistrement d'écran) :
+celui-là ne montre QUE le parcours d'achat, pas Sign in with Apple — Apple ne l'exige
+pas pour cette fonctionnalité.
 
 ---
 

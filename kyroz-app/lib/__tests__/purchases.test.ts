@@ -1,7 +1,7 @@
 import { describe, it, expect, afterEach } from 'vitest';
 import { Platform } from 'react-native';
 import { withStorePrices, annualSavingPct, mensualiteEquivalente, PREMIUM_PRICES } from '../premium';
-import { ENTITLEMENT_ID, purchasesConfigured, applyIdentity, identifyUser, IdentityApi } from '../purchases';
+import { ENTITLEMENT_ID, purchasesConfigured, applyIdentity, identifyUser, IdentityApi, avecBudget, PurchaseOutcome } from '../purchases';
 
 /**
  * Câblage RevenueCat (2026-08-02) — ce qui est TESTABLE, et pourquoi c'est ça.
@@ -259,5 +259,42 @@ describe('la phrase qui répète le prix vient du MÊME prix', () => {
   it('sans prix du store, la phrase de repli française est CONSERVÉE', () => {
     // Elle est juste : le prix de repli est 29,99 €, et l'écran dit que c'en est un.
     expect(annuel({}).billed).toBe('Débité une fois par an, soit 2,50 € par mois.');
+  });
+});
+
+// ── Le store ne répond pas toujours — rejet Apple 2.1(b) du 2026-09-04 ──────
+//
+// « your app started loading indefinitely after we purchased the subscription ».
+// `buy()` et `restore()` n'avaient aucune borne : une tentative qui ne se résout
+// JAMAIS laissait `enCours` vrai pour toujours, boutons désactivés, aucune sortie.
+// `avecBudget` est la traduction pure de `withBudget` (déjà testé dans
+// `boot.test.ts`) en verdict d'achat — testable sans dépendre du SDK natif,
+// exactement comme `applyIdentity` plus haut.
+describe('avecBudget — un achat qui ne répond jamais ne bloque plus l\'écran', () => {
+  it('une tentative qui ne se résout JAMAIS rend "sansreponse", pas un blocage', async () => {
+    const jamais = new Promise<PurchaseOutcome>(() => {});
+    const r = await avecBudget(jamais, 20);
+    expect(r).toEqual({ statut: 'sansreponse' });
+  });
+
+  it('une tentative qui répond avant le budget rend sa VRAIE réponse', async () => {
+    const ok: PurchaseOutcome = { statut: 'ok', entitled: true };
+    const r = await avecBudget(Promise.resolve(ok), 200);
+    expect(r).toEqual(ok);
+  });
+
+  it('une annulation avant le budget reste une annulation, pas un "sansreponse"', () => {
+    // ⚠️ Distinction qui a un sens produit : annuler ne doit jamais afficher un
+    // message d'erreur (cf. `kyroz-plus.tsx::acheter`, "rien à dire").
+    const annule: PurchaseOutcome = { statut: 'annule' };
+    return expect(avecBudget(Promise.resolve(annule), 200)).resolves.toEqual(annule);
+  });
+
+  it('"sansreponse" n\'est jamais confondu avec "echec" — la phrase qui suit ment sinon', () => {
+    // `kyroz-plus.tsx` affiche « Rien ne t'a été débité » sur un `echec`. Si un
+    // timeout rendait `echec`, cette phrase pourrait être FAUSSE : la tentative
+    // continue en arrière-plan et peut aboutir après qu'on a cessé de l'attendre.
+    const jamais = new Promise<PurchaseOutcome>(() => {});
+    return expect(avecBudget(jamais, 20)).resolves.not.toMatchObject({ statut: 'echec' });
   });
 });
