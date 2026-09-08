@@ -210,3 +210,57 @@ export function publicationEnTete(entrees: EntreeCanal[]): Publication | null {
     runtimes: tete.map((e) => e.runtimeVersion),
   };
 }
+
+export type EtatTexteLegal = {
+  /** La date d'entrée en vigueur écrite dans le texte, en `AAAA-MM-JJ`. */
+  jourTexte: string;
+  /** Le jour de la publication en tête du canal. */
+  jourPublication: string;
+  /** Le jour où l'on mesure. */
+  aujourdHui: string;
+  /** Le texte du dépôt est-il celui du commit publié ? */
+  servi: boolean;
+  /** Le texte était-il DÉJÀ celui de l'OTA d'avant ? */
+  dejaServiAvant: boolean;
+};
+
+/**
+ * 🔴 **POURQUOI CETTE RÈGLE A TROIS BRANCHES ET NON UNE — mesuré le 2026-09-08.**
+ * Le contrôle exigeait, pour un texte servi, que sa date ne PRÉCÈDE pas la
+ * publication en tête du canal. C'est juste quand cette publication est la
+ * PREMIÈRE à porter ce texte. Ça devient faux dès la suivante : la 27ᵉ OTA a
+ * republié, sans le changer, un texte entré en vigueur le 7 — et le contrôle a
+ * exigé le 8. Le suivre aurait fait DÉCALER une date d'entrée en vigueur d'un jour
+ * pour satisfaire un instrument, c'est-à-dire mentir dans un document opposable.
+ *
+ * ⚠️ C'est le même défaut que celui corrigé la veille dans ce script (un groupe par
+ * plateforme lu comme « la publication ») : **un contrôle rouge sur du VRAI pousse
+ * à falsifier ce qu'il garde.** Il est plus nuisible qu'un contrôle absent.
+ *
+ * Ce qu'on peut affirmer, et rien de plus :
+ *  · texte PAS ENCORE servi → sa date ne peut pas être déjà passée ;
+ *  · texte servi pour la PREMIÈRE fois → sa date ne peut pas précéder ce jour-là ;
+ *  · texte DÉJÀ servi auparavant → on ne sait plus dater sa première mise en
+ *    service ici, mais il reste vrai qu'il ne peut pas prendre effet dans le FUTUR.
+ */
+export function verdictDateLegale(e: EtatTexteLegal): { regle: string; ok: boolean; vu: string } {
+  if (!e.servi) {
+    return {
+      regle: 'date d’entrée en vigueur pas déjà passée',
+      ok: e.jourTexte >= e.aujourdHui,
+      vu: e.jourTexte >= e.aujourdHui ? 'oui' : `NON (« ${e.jourTexte} » < ${e.aujourdHui})`,
+    };
+  }
+  if (e.dejaServiAvant) {
+    return {
+      regle: 'date d’entrée en vigueur pas dans le futur',
+      ok: e.jourTexte <= e.jourPublication,
+      vu: e.jourTexte <= e.jourPublication ? 'oui' : `NON (« ${e.jourTexte} » > ${e.jourPublication})`,
+    };
+  }
+  return {
+    regle: 'date d’entrée en vigueur ≥ publication',
+    ok: e.jourTexte >= e.jourPublication,
+    vu: e.jourTexte >= e.jourPublication ? 'oui' : `NON (« ${e.jourTexte} » < ${e.jourPublication})`,
+  };
+}

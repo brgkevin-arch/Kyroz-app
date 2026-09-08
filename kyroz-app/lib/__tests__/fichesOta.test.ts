@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { lireAgents, lireStore, desaccords, ligneOtaAgents, blocOtaStore, chaineOta, chaineDivergente, publicationEnTete } from '../otaFiches';
+import { lireAgents, lireStore, desaccords, ligneOtaAgents, blocOtaStore, chaineOta, chaineDivergente, publicationEnTete, verdictDateLegale } from '../otaFiches';
 
 // ── Les deux fiches racontent-elles la MÊME dernière OTA ? ───────────────────
 //
@@ -210,5 +210,55 @@ describe('publicationEnTete', () => {
 
   it('un canal vide rend `null` — jamais une publication vide qui passerait au vert', () => {
     expect(publicationEnTete([])).toBeNull();
+  });
+});
+
+// ── « Servi » ≠ « servi pour la PREMIÈRE fois » ──────────────────────────────
+//
+// 🔴 CE QUE CE BLOC FERME, écrit le 2026-09-08 après l'avoir vu. Le contrôle
+// exigeait, pour un texte servi, que sa date d'entrée en vigueur ne précède pas la
+// publication EN TÊTE du canal. Juste quand cette publication est la première à
+// porter ce texte ; faux dès la suivante. La 27ᵉ OTA a republié sans le changer un
+// texte entré en vigueur le 7 — et le contrôle a réclamé le 8.
+//
+// ⚠️ Le suivre aurait fait décaler d'un jour une date d'entrée en vigueur pour
+// satisfaire un instrument : mentir dans un document opposable. Un contrôle rouge
+// sur du VRAI est plus nuisible qu'un contrôle absent — c'est le deuxième de la
+// même famille en deux jours, après « un groupe par plateforme ».
+const etat = (o: Partial<Parameters<typeof verdictDateLegale>[0]>) => verdictDateLegale({
+  jourTexte: '2026-09-07', jourPublication: '2026-09-08', aujourdHui: '2026-09-08',
+  servi: true, dejaServiAvant: true, ...o,
+});
+
+describe('verdictDateLegale', () => {
+  it('LE CAS DE LA 27ᵉ : republier un texte déjà servi ne redate rien', () => {
+    const v = etat({});
+    expect(v.ok).toBe(true);
+    expect(v.regle).toContain('pas dans le futur');
+  });
+
+  it('…mais un texte déjà servi ne peut pas prendre effet DEMAIN', () => {
+    expect(etat({ jourTexte: '2026-09-09' }).ok).toBe(false);
+  });
+
+  it('première mise en service : la date ne peut pas PRÉCÉDER la publication', () => {
+    expect(etat({ dejaServiAvant: false }).ok).toBe(false);
+    expect(etat({ dejaServiAvant: false, jourTexte: '2026-09-08' }).ok).toBe(true);
+    expect(etat({ dejaServiAvant: false }).regle).toContain('≥ publication');
+  });
+
+  it('texte pas encore servi : sa date ne peut pas être déjà passée', () => {
+    expect(etat({ servi: false }).ok).toBe(false);
+    expect(etat({ servi: false, jourTexte: '2026-09-08' }).ok).toBe(true);
+    expect(etat({ servi: false }).regle).toContain('pas déjà passée');
+  });
+
+  it('les trois branches sont DISTINCTES — aucune ne recouvre l’autre', () => {
+    const regles = new Set([
+      etat({ servi: false }).regle,
+      etat({ dejaServiAvant: false }).regle,
+      etat({}).regle,
+    ]);
+    expect(regles.size).toBe(3);
   });
 });
