@@ -5,7 +5,7 @@
 
 # Politique de confidentialité — Kyroz
 
-**Dernière mise à jour : 7 septembre 2026**
+**Dernière mise à jour : 8 septembre 2026**
 
 ---
 
@@ -51,7 +51,7 @@ Le traitement des données de santé repose sur votre consentement explicite (RG
 
 Vos données synchronisées sont hébergées par Supabase Inc., sur des serveurs situés en Union européenne (UE).
 
-L’envoi des e-mails de service (confirmation d’inscription, réinitialisation de mot de passe) est assuré par Resend (Plus Five Five, Inc.). Seules votre adresse e-mail et le contenu de ces messages lui sont transmis — aucune donnée de santé.
+L’envoi des e-mails de service (confirmation d’inscription, réinitialisation de mot de passe) est assuré par Resend (Plus Five Five, Inc.). Seules votre adresse e-mail et le contenu de ces messages lui sont transmis, à l’exclusion de toute donnée de santé.
 
 Ces e-mails, ainsi que les journaux d’envoi correspondants, sont stockés par Resend aux États-Unis. Ce transfert hors de l’Union européenne est encadré par les clauses contractuelles types de la Commission européenne et par l’adhésion de ce prestataire au cadre de protection des données UE–États-Unis (EU-U.S. Data Privacy Framework).
 
@@ -67,7 +67,7 @@ Nous ne vendons, ne louons et ne partageons vos données avec aucun tiers à des
 
 ## 6. Hébergement et localisation
 
-Les données synchronisées — profil, objectif, suivi du poids — sont stockées dans l’Union européenne. Une copie de travail réside localement sur votre appareil (fonctionnement hors-ligne).
+Les données synchronisées (profil, objectif, suivi du poids) sont stockées dans l’Union européenne. Une copie de travail réside localement sur votre appareil (fonctionnement hors-ligne).
 
 Une exception, décrite au point 5 : les e-mails de service sont stockés aux États-Unis. Vos données de santé ne sont transmises à aucun destinataire hors de l’Union européenne, et les sauvegardes automatiques de votre téléphone ne les emportent pas : sur Android l’application est exclue de la sauvegarde Google, et sur iPhone son stockage local est exclu de la sauvegarde iCloud.
 
@@ -103,7 +103,7 @@ Vous pouvez introduire une réclamation auprès de la CNIL (www.cnil.fr).
 
 Kyroz est réservé aux personnes âgées de 18 ans et plus.
 
-Votre date de naissance vous est demandée dès la configuration de votre profil, avant tout calcul : en deçà de 18 ans, aucun plan n’est établi et le service ne peut pas être utilisé. La création du compte, elle, ne demande qu’une adresse email et un mot de passe — elle ne vérifie donc pas votre âge.
+Votre date de naissance vous est demandée dès la configuration de votre profil, avant tout calcul : en deçà de 18 ans, aucun plan n’est établi et le service ne peut pas être utilisé. La création du compte, elle, ne demande qu’une adresse email et un mot de passe : elle ne vérifie donc pas votre âge.
 
 Si un compte a été créé par une personne mineure, écrivez à contact@kyroz.app : il sera supprimé, ainsi que les données associées.
 
@@ -111,4 +111,4 @@ Si un compte a été créé par une personne mineure, écrivez à contact@kyroz.
 
 ## 11. Modifications
 
-La présente politique peut évoluer. Date de dernière mise à jour : 7 septembre 2026.
+La présente politique peut évoluer. Date de dernière mise à jour : 8 septembre 2026.
