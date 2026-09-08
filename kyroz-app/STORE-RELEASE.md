@@ -160,7 +160,19 @@ installation neuve part du binaire, donc du (6).
   encore `0639ecc` après la compilation, 0 PR ouverte — le piège du 11 août ne s'est pas
   rejoué). *(Le précédent :)* le **(6)** — `ceec1b17`, commit
   `1047b9f`, terminé le 2026-08-11 à 20 h 37. Il a **62 commits de retard** sur `main` — chiffre RE-MESURÉ le 2026-08-26 (il en annonçait 40, mesurés le 2026-08-23), qui **grandit à chaque merge** : le relire avec `git rev-list --count 1047b9f..origin/main` plutôt que de le recopier (même défaut que le décompte d'OTA tenu à la main).
-- **OTA** : la dernière est la **29ᵉ** (groupe `0e8ae888` pour iOS et groupe `14856979` pour
+- **OTA** : la dernière est la **30ᵉ** (groupe `2f0233ea` pour iOS et groupe `6246f3c9` pour
+  Android, 2026-09-08), publiée sur le commit `1acf646b` — `main`, arbre propre, aucun
+  astérisque EAS. Runtime iOS `dfe034fd…` = l'empreinte du binaire **(17)**.
+  Elle ne porte qu'une chose : le titre d'accueil qui se coupait **une fois sur deux** (#240).
+  🔴 **Le correctif du matin était incomplet.** La 27ᵉ réparait le CALCUL ; il restait une
+  COURSE — un `useEffect` de montage effaçait la mesure d'en-tête que l'`onLayout` venait de
+  poser. Un « un coup oui, un coup non » est la signature d'une course, jamais d'un calcul
+  faux.
+  ⚠️ Et le repli du premier correctif ÉTAIT l'ancien bug (`hauteurFenetre × 0,62`). Un repli
+  qui reproduit le défaut qu'on répare est le bug avec un délai.
+  ✅ Relevé : `hauteurFenetre` **1 → 0**, une disparition qui prouve la livraison. Clés 1/1/0.
+  Vérifié à l'écran : six lancements à froid, six fois le titre entier.
+  **La 29ᵉ** (groupe `0e8ae888` pour iOS et groupe `14856979` pour
   Android, 2026-09-08), publiée sur le commit `7dcf1b21` — `main`, arbre propre, aucun
   astérisque EAS. Runtime iOS `dfe034fd…` = l'empreinte du binaire **(17)**.
   Elle porte l'attente d'achat rendue visible et le prix débité aligné sur le prix affiché
