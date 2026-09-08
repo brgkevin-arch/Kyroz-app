@@ -79,9 +79,19 @@ describe('eas.json ne peut pas réintroduire la divergence de clés', () => {
 describe('eas.json ne publie aucun identifiant Apple', () => {
   const brut = readFileSync(join(__dirname, '../../eas.json'), 'utf8');
 
-  it('aucun champ de clé App Store Connect', () => {
+  it('les champs de clé ne portent que des RÉFÉRENCES, jamais des valeurs', () => {
+    // 🔴 PREMIÈRE VERSION FAUSSE, corrigée le 2026-09-08 dans l'heure : elle interdisait
+    // les NOMS de champs. Or `eas submit --non-interactive` en a besoin — sans eux il
+    // part chercher des credentials sur le serveur EAS et échoue net. Retirer les champs
+    // avait donc cassé la soumission, découvert au premier usage réel.
+    // ➡️ Ce qui ne doit pas être publié, ce sont les VALEURS. Les champs restent, et ne
+    //    contiennent qu'une référence `$VARIABLE` résolue depuis `~/.eas-credentials`.
+    const ios = (EAS as unknown as { submit?: { production?: { ios?: Record<string, string> } } })
+      .submit?.production?.ios ?? {};
     for (const champ of ['ascApiKeyId', 'ascApiKeyIssuerId', 'ascApiKeyPath']) {
-      expect(brut, `${champ} ne doit plus figurer dans un dépôt public`).not.toContain(champ);
+      const v = ios[champ];
+      if (v === undefined) continue;
+      expect(v, `${champ} doit être une référence, pas une valeur`).toMatch(/^\$[A-Z0-9_]+$/);
     }
   });
 

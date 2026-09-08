@@ -42,7 +42,10 @@
     "production": {
       "ios": {
         "ascAppId": "6796427402",
-        "appleTeamId": "8F2ZSM5NSY"
+        "appleTeamId": "8F2ZSM5NSY",
+        "ascApiKeyPath": "$EXPO_ASC_API_KEY_PATH",
+        "ascApiKeyId": "$EXPO_ASC_KEY_ID",
+        "ascApiKeyIssuerId": "$EXPO_ASC_ISSUER_ID"
       },
       "android": {
         "track": "internal"
