@@ -17,7 +17,7 @@ import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { lireAgents, lireStore, desaccords, ligneOtaAgents, blocOtaStore, chaineOta, chaineDivergente, publicationEnTete, type EntreeCanal, type FicheOta } from '../lib/otaFiches';
+import { lireAgents, lireStore, desaccords, ligneOtaAgents, blocOtaStore, chaineOta, chaineDivergente, publicationEnTete, verdictDateLegale, type EntreeCanal, type FicheOta } from '../lib/otaFiches';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const lire = (rel: string) => readFileSync(join(ROOT, rel), 'utf8');
@@ -246,14 +246,30 @@ try {
   const jourPublication = tete.createdAt.slice(0, 10);
   const aujourdHui = new Date().toISOString().slice(0, 10);
 
+  // 🔴 « SERVI » NE VEUT PAS DIRE « SERVI POUR LA PREMIÈRE FOIS » — et confondre les
+  // deux a rendu ce contrôle rouge sur du vrai le 2026-09-08 (cf. `verdictDateLegale`).
+  // L'OTA d'avant est lue dans la chaîne de la fiche : si elle portait DÉJÀ ce texte,
+  // la date de mise en service est plus ancienne que la publication en tête.
+  const precedent = chaineOta(ligneOtaAgents(lire('AGENTS.md')) ?? '').commits[1];
+  let dejaServiAvant = false;
+  if (precedent) {
+    try {
+      dejaServiAvant = execFileSync('git', ['show', `${precedent}:kyroz-app/constants/legal.ts`],
+        { cwd: ROOT, encoding: 'utf8', maxBuffer: 8 * 1024 * 1024, stdio: ['ignore', 'pipe', 'ignore'] }) === actuel;
+    } catch { dejaServiAvant = false; }
+  }
+
   if (jourTexte === null) {
     ligne('date d’entrée en vigueur lisible', `« ${dateTexte} »`, 'JJ mois AAAA');
   } else if (servi === actuel) {
-    // Le texte du dépôt EST celui qui tourne : sa date est donc opposable dès
-    // maintenant, et elle ne peut pas précéder sa mise en service.
-    ligne('date d’entrée en vigueur ≥ publication',
-      jourTexte >= jourPublication ? 'oui' : `NON (« ${dateTexte} » < ${jourPublication})`, 'oui');
+    const v = verdictDateLegale({ jourTexte, jourPublication, aujourdHui, servi: true, dejaServiAvant });
+    ligne(v.regle, v.vu, 'oui');
     console.log('  ✓ le texte du dépôt est celui qui tourne         identique au commit publié');
+    if (dejaServiAvant) {
+      console.log(`     ℹ️  ce texte était DÉJÀ celui de l'OTA précédente (${precedent}) : sa mise en`);
+      console.log('        service est antérieure à cette publication, donc sa date ne se confronte');
+      console.log('        plus qu’au futur. La décaler pour satisfaire ce contrôle serait mentir.');
+    }
   } else {
     // Pas encore servi : légitime entre un merge et sa publication. Mais une date
     // déjà passée ne PEUT pas être celle de la livraison à venir.

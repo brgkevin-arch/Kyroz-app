@@ -160,7 +160,19 @@ installation neuve part du binaire, donc du (6).
   encore `0639ecc` après la compilation, 0 PR ouverte — le piège du 11 août ne s'est pas
   rejoué). *(Le précédent :)* le **(6)** — `ceec1b17`, commit
   `1047b9f`, terminé le 2026-08-11 à 20 h 37. Il a **62 commits de retard** sur `main` — chiffre RE-MESURÉ le 2026-08-26 (il en annonçait 40, mesurés le 2026-08-23), qui **grandit à chaque merge** : le relire avec `git rev-list --count 1047b9f..origin/main` plutôt que de le recopier (même défaut que le décompte d'OTA tenu à la main).
-- **OTA** : la dernière est la **26ᵉ** (groupe `f364ba3c` pour iOS et groupe `4ced0969` pour
+- **OTA** : la dernière est la **27ᵉ** (groupe `2931d9a7` pour iOS et groupe `e5179f0c` pour
+  Android, 2026-09-08), publiée sur le commit `6844f89f` — `main`, arbre propre, aucun
+  astérisque EAS.
+  🟢 **PREMIÈRE OTA DEPUIS LE SDK 57 QUI ATTEINT RÉELLEMENT LE PARC** : son runtime iOS est
+  exactement l'empreinte du binaire **(17)**, distribué la veille. Un correctif JS peut de
+  nouveau partir sans build — tant que personne ne touche `app.json`, une dépendance native,
+  ou une ligne de `scripts`.
+  Elle porte **un seul correctif** (#233) : le titre de la diapo d'accueil n'est plus coupé
+  en deux. Défaut vu sur le (17), reproduit puis corrigé au simulateur.
+  ✅ Couple AVANT/APRÈS sur les deux `.hbc` iOS (le `dist/` de la 26ᵉ copié hors du dépôt) :
+  `tailleApercu` **0 → 1**, `hauteurEntete` **0 → 1**. Clés inchangées : URL Supabase 1 → 1,
+  `sb_publishable_` 1 → 1, `sk-ant-` 0 → 0.
+  **La 26ᵉ** (groupe `f364ba3c` pour iOS et groupe `4ced0969` pour
   Android, 2026-09-07), publiée sur le commit `5ea21dde` — `main`, arbre propre, aucun
   astérisque EAS. Elle porte les **54 commits** de #176 à #231.
   🔴 **CE QU'IL FAUT SAVOIR AVANT DE S'APPUYER DESSUS POUR UNE SOUMISSION : elle n'atteint
