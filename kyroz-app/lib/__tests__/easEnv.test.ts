@@ -57,3 +57,46 @@ describe('eas.json ne peut pas réintroduire la divergence de clés', () => {
     }
   });
 });
+
+// ── `eas.json` NE PORTE AUCUN IDENTIFIANT DE CLÉ APPLE ──────────────────────
+//
+// 🔴 CHANTIER SÉCURITÉ, marqué prioritaire par le fondateur le 2026-09-03, fait le
+// 2026-09-08. Ce dépôt est PUBLIC (`gh repo view` → PUBLIC), et `eas.json` y portait
+// `ascApiKeyId` et `ascApiKeyIssuerId` en clair, plus le chemin du `.p8`.
+//
+// ⚠️ CE QUE ÇA VALAIT EXACTEMENT, sans dramatiser : le `.p8` — la partie SECRÈTE —
+// n'a jamais été dans le dépôt (il vit dans `~/.eas-credentials/`, hors arbre). Un
+// identifiant de clé et un issuer ID ne sont pas des credentials : sans la clé
+// privée, ils n'ouvrent rien. Ils désignent en revanche le compte, et ils sont la
+// moitié d'une paire — les publier n'a aucun bénéfice et un coût non nul.
+// ⚠️ ET LES RETIRER NE RÉÉCRIT PAS L'HISTOIRE : les valeurs restent dans les commits
+// passés. Seule une révocation de la clé dans App Store Connect ferme complètement,
+// et c'est un geste humain dans le portail Apple.
+//
+// ➡️ Les trois champs vivent désormais dans `~/.eas-credentials/asc.env`, sous les
+//    noms que l'eas-cli lit lui-même : `EXPO_ASC_API_KEY_PATH`, `EXPO_ASC_KEY_ID`,
+//    `EXPO_ASC_ISSUER_ID`. Une soumission commence donc par `source` de ce fichier.
+describe('eas.json ne publie aucun identifiant Apple', () => {
+  const brut = readFileSync(join(__dirname, '../../eas.json'), 'utf8');
+
+  it('aucun champ de clé App Store Connect', () => {
+    for (const champ of ['ascApiKeyId', 'ascApiKeyIssuerId', 'ascApiKeyPath']) {
+      expect(brut, `${champ} ne doit plus figurer dans un dépôt public`).not.toContain(champ);
+    }
+  });
+
+  it('aucune valeur en forme d’identifiant de clé ou d’issuer', () => {
+    // Une clé ASC fait 10 caractères majuscules/chiffres, un issuer est un UUID.
+    // Chercher les FORMES et pas les noms de champs : renommer la clé ne doit pas
+    // suffire à repasser au vert.
+    expect(brut).not.toMatch(/"[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}"/i);
+    expect(brut).not.toMatch(/"\.\.\/\.\.\/\.eas-credentials/);
+  });
+
+  it('…mais garde ce qui n’est pas secret, sinon la soumission ne sait plus où aller', () => {
+    // `ascAppId` et `appleTeamId` sont publics (visibles dans une URL App Store et
+    // dans tout profil de provisioning). Les retirer coûterait sans rien fermer.
+    expect(brut).toContain('ascAppId');
+    expect(brut).toContain('appleTeamId');
+  });
+});

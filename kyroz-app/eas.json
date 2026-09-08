@@ -14,30 +14,35 @@
       "distribution": "internal",
       "channel": "preview",
       "environment": "preview",
-      "ios": { "simulator": true },
-      "android": { "buildType": "apk" }
+      "ios": {
+        "simulator": true
+      },
+      "android": {
+        "buildType": "apk"
+      }
     },
     "device": {
       "distribution": "internal",
       "channel": "preview",
       "environment": "preview",
-      "android": { "buildType": "apk" }
+      "android": {
+        "buildType": "apk"
+      }
     },
     "production": {
       "channel": "production",
       "autoIncrement": true,
       "environment": "production",
-      "android": { "buildType": "app-bundle" }
+      "android": {
+        "buildType": "app-bundle"
+      }
     }
   },
   "submit": {
     "production": {
       "ios": {
         "ascAppId": "6796427402",
-        "appleTeamId": "8F2ZSM5NSY",
-        "ascApiKeyPath": "../../.eas-credentials/asc-api-key.p8",
-        "ascApiKeyId": "4X64252VGX",
-        "ascApiKeyIssuerId": "df98f779-6aaf-4339-9e78-c7dddfe9f302"
+        "appleTeamId": "8F2ZSM5NSY"
       },
       "android": {
         "track": "internal"
