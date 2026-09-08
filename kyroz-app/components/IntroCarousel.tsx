@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, Image, useWindowDimensions, Animated, Easing,
-  type NativeSyntheticEvent, type NativeScrollEvent, type ImageSourcePropType,
+  type NativeSyntheticEvent, type NativeScrollEvent, type ImageSourcePropType, type LayoutChangeEvent,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -11,6 +11,7 @@ import { PrimaryButton } from './ui';
 import { Presse } from './Presse';
 import { useReduceMotion } from '../lib/reduceMotion';
 import { DUREE, dureeReduite } from '../lib/motion';
+import { tailleApercu, RATIO_ECRAN } from '../lib/apercuIntro';
 
 // ── CE QUE KYROZ FAIT, MONTRÉ AVANT DE DEMANDER QUOI QUE CE SOIT ─────────────
 //
@@ -84,20 +85,11 @@ const DIAPOS: Diapo[] = [
 /** Toutes les 4 s : assez pour lire un titre, assez peu pour que ça « défile ». */
 const CADENCE_MS = 4000;
 
-// Les captures montrent l'écran ENTIER (`test/intro-captures.mjs`, gabarit 430 × 932
-// — le rendu téléphone garanti, cf. `lib/layout.ts`). Un seul ratio pour les quatre.
-const RATIO_ECRAN = 430 / 932;
-
-// La diapo occupe ~62 % de la hauteur : assez pour qu'on reconnaisse un écran d'app,
-// assez peu pour que le titre et le bouton restent posés autour sans se serrer.
-const PART_HAUTEUR = 0.62;
-
-// ⚠️ …mais jamais au point d'écraser le reste. Sur un écran court (SE, 667 pt), 62 %
-// ne laisserait pas la place au logo, au titre, aux points et au bouton : on retire
-// donc leur encombrement mesuré avant de prendre la part. Sans ce plancher, la diapo
-// pousserait le bouton hors de l'écran — un accueil dont on ne peut plus sortir, ce
-// que ce fichier existe justement pour interdire.
-const ENCOMBREMENT_AUTOUR = 330;
+// 🔴 LA TAILLE DE L'APERÇU NE SE DEVINE PLUS — elle vit dans `lib/apercuIntro.ts`,
+// pure et testée. Il y avait ici une part de hauteur (62 %) et une constante
+// `ENCOMBREMENT_AUTOUR = 330` censée représenter « le logo, le titre, les points et
+// le bouton ». Elle ne comptait ni les encoches, ni le titre : sur le build (17), le
+// haut du titre passait sous le logo, tranché net. Cf. l'en-tête du module.
 
 export function IntroCarousel({ onTermine }: { onTermine: () => void }) {
   const t = useTheme();
@@ -181,21 +173,36 @@ export function IntroCarousel({ onTermine }: { onTermine: () => void }) {
     if (i !== index) setIndex(i);
   };
 
-  // ── Taille de l'aperçu : on part de la HAUTEUR, pas de la largeur ──────────
+  // ── Taille de l'aperçu : MESURÉE, plus devinée ────────────────────────────
   //
-  // Une capture d'écran de téléphone est très verticale (430 × 932). La dimensionner
-  // par la largeur disponible la ferait déborder en hauteur sur n'importe quel
-  // appareil ; c'est la hauteur qui est la ressource rare ici.
+  // Une capture d'écran de téléphone est très verticale (430 × 932) : c'est la
+  // hauteur qui est la ressource rare. On lit donc ce que le rail offre vraiment et
+  // ce que le titre prend vraiment, au lieu de retrancher une constante.
   const { height } = useWindowDimensions();
   const largeurMax = Math.min(width, layout.width) - Spacing.xl * 2;
-  const hauteurVoulue = Math.min(height * PART_HAUTEUR, height - ENCOMBREMENT_AUTOUR);
-  // …et si la largeur venait à manquer malgré tout (écran très court et large, ou
-  // grande police système), c'est elle qui décide : l'image se contente de rétrécir.
-  const hauteurImage = Math.max(
-    120,
-    Math.min(hauteurVoulue, largeurMax / RATIO_ECRAN),
-  );
-  const largeurImage = hauteurImage * RATIO_ECRAN;
+  const [hauteurRail, setHauteurRail] = useState(0);
+  const [hauteurEntete, setHauteurEntete] = useState(0);
+
+  // ⚠️ On garde le PLUS HAUT des quatre en-têtes, pas celui de la diapo courante :
+  // sinon l'aperçu changerait de taille d'une diapo à l'autre, et le carrousel
+  // sauterait à chaque glissement.
+  const surEntete = (e: LayoutChangeEvent) => {
+    const h = e.nativeEvent.layout.height;
+    setHauteurEntete((prev) => (h > prev + 0.5 ? h : prev));
+  };
+  // ⚠️ …mais ce maximum se REMET À ZÉRO quand la fenêtre change (rotation d'iPad,
+  // réglage de police système). Sans ça, un en-tête haut mesuré en portrait
+  // rapetisserait l'aperçu pour toujours en paysage — un maximum monotone est ce
+  // qui empêche la boucle de mesure, pas une vérité éternelle.
+  useEffect(() => { setHauteurEntete(0); }, [width, height]);
+
+  const { largeur: largeurImage, hauteur: hauteurImage } = tailleApercu({
+    hauteurRail,
+    hauteurEntete,
+    ecart: Spacing.sm,
+    largeurMax,
+    hauteurFenetre: height,
+  });
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'bottom']}>
@@ -221,12 +228,15 @@ export function IntroCarousel({ onTermine }: { onTermine: () => void }) {
         onMomentumScrollEnd={surDefilement}
         scrollEventThrottle={16}
         style={{ flex: 1 }}
+        onLayout={(e) => setHauteurRail(e.nativeEvent.layout.height)}
         contentContainerStyle={{ alignItems: 'center' }}
       >
         {DIAPOS.map((d) => (
           <View key={d.cle} style={[s.diapo, { width }]}>
-            <Text style={s.titre}>{d.titre}</Text>
-            <Text style={s.texte}>{d.texte}</Text>
+            <View style={s.entete} onLayout={surEntete}>
+              <Text style={s.titre}>{d.titre}</Text>
+              <Text style={s.texte}>{d.texte}</Text>
+            </View>
             <Image
               source={t.scheme === 'dark' ? d.images.sombre : d.images.clair}
               style={{
@@ -314,6 +324,7 @@ function makeStyles(t: ThemePalette) {
       marginTop: Spacing.lg, marginBottom: Spacing.md,
     },
     diapo: { paddingHorizontal: Spacing.xl, alignItems: 'center', justifyContent: 'center', gap: Spacing.sm },
+    entete: { alignItems: 'center', alignSelf: 'stretch' },
     // `h2` et non `h1` : le titre accompagne l'aperçu, il ne lui dispute pas la
     // place. C'est l'image qui porte la démonstration.
     titre: { ...Type.h2, color: t.text, textAlign: 'center' },

@@ -22,9 +22,23 @@
 > du binaire), `2.1(b)` (04/09, **le premier vrai défaut de code** — un achat qui ne répond
 > pas bloquait l'écran pour toujours).
 >
-> ✅ **Le binaire à soumettre est le (16)** — sur TestFlight, `VALID`, commit `4de16d7`. Il
-> porte le **timeout d'achat de 30 s** (le correctif du rejet) et **Sign in with Apple**,
-> essayé sur appareil et fonctionnel. Tout est vérifié dans l'artefact, pas supposé.
+> ✅ **Le binaire à soumettre est le (17)** — téléversé le 2026-09-07 à 22 h 15,
+> `processingState: VALID`, `internalBuildState: IN_BETA_TESTING` (donc **sur TestFlight**),
+> commit `4801e3f`, SDK 57, empreinte `dfe034fd…` — celle de la 26ᵉ OTA, donc il l'écoute.
+> Mesuré par l'API d'App Store Connect, pas déduit d'une sortie d'EAS.
+> ⚠️ `eas submit` a écrit « No complete App Store Connect credentials, skipping TestFlight
+> setup » : ça n'a **rien bloqué**. Le groupe « Équipe interne » a `hasAccessToAllBuilds:
+> true`, donc il reçoit chaque build sans rattachement — le (16) n'était rattaché à aucun
+> groupe non plus. Le groupe externe « Bêta », lui, reste en `READY_FOR_BETA_SUBMISSION`
+> (il demanderait une revue bêta) : là non plus rien n'a changé depuis le (16).
+> 🔴 **MAIS IL PORTE UN DÉFAUT VU À L'ÉCRAN** (capture du fondateur, 22 h 29) : sur l'accueil,
+> le **titre de la diapo est coupé en deux dans la hauteur**, son haut passant sous le logo.
+> L'aperçu était dimensionné depuis la hauteur de FENÊTRE moins une constante devinée qui ne
+> comptait pas les encoches (~93 pt). Corrigé par mesure (`lib/apercuIntro.ts`), livrable en
+> **OTA** — l'empreinte ne bouge pas. ⚠️ **Le navigateur ne pouvait pas le montrer** : sans
+> encoches, la constante suffit sur le web. Le contrôle qui l'attrape est arithmétique.
+> *(Le précédent :)* le **(16)**, commit `4de16d7`, portait le **timeout d'achat de 30 s**
+> (le correctif du rejet) et **Sign in with Apple**, essayé sur appareil et fonctionnel.
 >
 > ⏸️ **CE QUI RESTE : la vidéo qu'Apple exige**, et pas pour une raison de code. Le compte
 > Apple du fondateur portait un abonnement sandbox **ACTIF qui se renouvelait tous les
