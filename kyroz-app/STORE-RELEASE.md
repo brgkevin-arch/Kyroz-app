@@ -160,7 +160,20 @@ installation neuve part du binaire, donc du (6).
   encore `0639ecc` après la compilation, 0 PR ouverte — le piège du 11 août ne s'est pas
   rejoué). *(Le précédent :)* le **(6)** — `ceec1b17`, commit
   `1047b9f`, terminé le 2026-08-11 à 20 h 37. Il a **62 commits de retard** sur `main` — chiffre RE-MESURÉ le 2026-08-26 (il en annonçait 40, mesurés le 2026-08-23), qui **grandit à chaque merge** : le relire avec `git rev-list --count 1047b9f..origin/main` plutôt que de le recopier (même défaut que le décompte d'OTA tenu à la main).
-- **OTA** : la dernière est la **28ᵉ** (groupe `0622c01b` pour iOS et groupe `7039a467` pour
+- **OTA** : la dernière est la **29ᵉ** (groupe `0e8ae888` pour iOS et groupe `14856979` pour
+  Android, 2026-09-08), publiée sur le commit `7dcf1b21` — `main`, arbre propre, aucun
+  astérisque EAS. Runtime iOS `dfe034fd…` = l'empreinte du binaire **(17)**.
+  Elle porte l'attente d'achat rendue visible et le prix débité aligné sur le prix affiché
+  (#237), plus le retrait des tirets cadratins de 69 phrases (#238).
+  🔴 **Le relevé a menti à la première lecture** : `strings` rendait 0 partout sur les témoins
+  accentués, ce qui se lit à la fois « le correctif n'est pas passé » et « il n'y avait rien à
+  corriger ». Hermes range en UTF-16 toute chaîne non ASCII, et le contournement documenté
+  (`strings -e l`) **n'existe pas sur macOS**. L'instrument juste : lire les OCTETS et chercher
+  dans les DEUX encodages.
+  ✅ Relevé alors : « Repas sauté — journée recalée » **1 → 0** et « Repas sauté, journée
+  recalée » **0 → 1** ; « Série protégée — » **1 → 0** et « Série protégée : » **0 → 1** ;
+  « Validation auprès de » **0 → 1** ; `choisirProduit` **0 → 1**. Clés inchangées, 1/1/0.
+  **La 28ᵉ** (groupe `0622c01b` pour iOS et groupe `7039a467` pour
   Android, 2026-09-08), publiée sur le commit `9fbdeed9` — `main`, arbre propre, aucun
   astérisque EAS. Runtime iOS `dfe034fd…` = l'empreinte du binaire **(17)** : elle atteint le
   parc. Elle porte les quatre demandes du fondateur sur l'inscription (#235), plus l'indice
