@@ -5,6 +5,7 @@ import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, Easing, AppState,
 } from 'react-native';
 import { DUREE, dureeReduite } from '../../lib/motion';
+import { resteAScroller } from '../../lib/apercuIntro';
 import { reduceMotionActif } from '../../lib/reduceMotion';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -44,6 +45,11 @@ import { STATISTIQUES_USAGE_ACTIVES } from '../../lib/featureFlags';
 import { useAnalyticsConsent } from '../../hooks/useAnalyticsConsent';
 import AnalyticsConsentStep from '../../components/AnalyticsConsentStep';
 import { DISCLAIMER, AVERTISSEMENT_MEDICAL } from '../../constants/legal';
+
+// En dessous de cette hauteur, ce qui reste sous le pli ne vaut pas un indice — et à
+// moins de cette distance de la fin, on est arrivé. Une seule valeur pour les deux :
+// deux seuils distincts feraient clignoter la flèche dans la bande entre eux.
+const MARGE_BAS = 24;
 
 const TOTAL_STEPS = 7;
 
@@ -206,6 +212,7 @@ export default function Onboarding() {
   // pilote rien, exactement ce que ce correctif ferme.
   const [proteins, setProteins] = useState<string[]>([]);
   const [proteinesEgales, setProteinesEgales] = useState(false);
+  const [regimeLibre, setRegimeLibre] = useState(false);
   const [dislikes, setDislikes] = useState<string[]>([]);
   // ⚠️ `null` ET PAS `DEFAULT_NEAT_LEVEL` : rien n'est présélectionné, et l'étape ne
   // se valide pas tant que la réponse manque. Pré-cocher « journées assises » aurait
@@ -233,7 +240,7 @@ export default function Onboarding() {
   // sans rien à brancher ailleurs.
   const brouillon: OnboardingDraft = {
     step, firstName, sex, birthDate, weight, height, bodyFat, bodyFatSource,
-    sports, noSport, goal, restrictions, proteins, proteinesEgales, dislikes, neat, variety,
+    sports, noSport, goal, restrictions, regimeLibre, proteins, proteinesEgales, dislikes, neat, variety,
     planWeekdays, restWeekdays, restTouched, meals, customSlots,
   };
   // ⚠️ La dépendance de l'effet est la forme SÉRIALISÉE, pas l'objet : `brouillon` est
@@ -257,7 +264,7 @@ export default function Onboarding() {
         setBirthDate(d.birthDate); setWeight(d.weight); setHeight(d.height);
         setBodyFat(d.bodyFat); setBodyFatSource(d.bodyFatSource);
         setSports(d.sports); setNoSport(d.noSport); setGoal(d.goal);
-        setRestrictions(d.restrictions); setProteins(d.proteins);
+        setRestrictions(d.restrictions); setRegimeLibre(d.regimeLibre); setProteins(d.proteins);
         setProteinesEgales(d.proteinesEgales); setDislikes(d.dislikes);
         setNeat(d.neat); setVariety(d.variety);
         setPlanWeekdays(d.planWeekdays); setRestWeekdays(d.restWeekdays);
@@ -452,6 +459,28 @@ export default function Onboarding() {
   // change d'étape doivent remonter aussi. Un correctif posé dans `next()` seul
   // laisserait le bouton retour avec le défaut.
   const defilement = useRef<ScrollView>(null);
+
+  // ── L'indice « ça continue en dessous » ────────────────────────────────────
+  const [hauteurVue, setHauteurVue] = useState(0);
+  const [hauteurContenu, setHauteurContenu] = useState(0);
+  const [position, setPosition] = useState(0);
+  // ⚠️ La position, PAS un booléen « on est en bas » : un choix qui ajoute du contenu
+  // sous le pli ne déclenche aucun défilement, donc aucun événement — un booléen y
+  // resterait figé et la flèche resterait éteinte devant une carte coupée. Vu au
+  // simulateur le 2026-09-08. Cf. `resteAScroller`.
+  const resteDessous = resteAScroller({ position, hauteurVue, hauteurContenu, marge: MARGE_BAS });
+  const opaciteFleche = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.timing(opaciteFleche, {
+      toValue: resteDessous ? 1 : 0,
+      duration: dureeReduite(DUREE.court, reduceMotionActif()),
+      easing: Easing.out(Easing.quad),
+      useNativeDriver: true,
+    }).start();
+  }, [resteDessous, opaciteFleche]);
+  // Changer d'étape remet le rail en haut : sans cette remise à zéro, l'indice
+  // resterait éteint sur une étape longue parce que la PRÉCÉDENTE était finie.
+  useEffect(() => { setPosition(0); }, [step]);
   useEffect(() => { defilement.current?.scrollTo({ y: 0, animated: false }); }, [step]);
 
   // ── E68 · choisir son niveau d'activité descend jusqu'aux séances ───────────
@@ -610,7 +639,18 @@ export default function Onboarding() {
         <View style={s.track}><View style={[s.fill, { width: `${(step / TOTAL_STEPS) * 100}%` }]} /></View>
       </View>
 
-      <ScrollView ref={defilement} contentContainerStyle={[s.content, layout.content]} {...clavierScrollProps} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        ref={defilement}
+        contentContainerStyle={[s.content, layout.content]}
+        {...clavierScrollProps}
+        showsVerticalScrollIndicator={false}
+        onLayout={(e) => setHauteurVue(e.nativeEvent.layout.height)}
+        onContentSizeChange={(_, h) => setHauteurContenu(h)}
+        onScroll={(e) => {
+          setPosition(e.nativeEvent.contentOffset.y);
+        }}
+        scrollEventThrottle={16}
+      >
         {step > 1 && <SectionLabel t={t}>ÉTAPE {step - 1} / {TOTAL_STEPS - 1}</SectionLabel>}
 
         {step === 1 && <NameStep t={t} value={firstName} onChange={setFirstName} />}
@@ -674,7 +714,16 @@ export default function Onboarding() {
                 garde-fous contre le double-comptage sport/journées, pas une mise en page. */}
             <NeatPicker t={t} value={neat} onChange={(n) => { setNeat(n); versLesSeances(); }} />
 
-            <View onLayout={(e) => { ySeances.current = e.nativeEvent.layout.y; }}>
+            {/* 🔴 `gap` — ce bloc était le SEUL de l'écran à n'en avoir aucun (vu sur le
+                build (17), 2026-09-08). Tous les autres l'héritent de `s.block` ; celui-ci,
+                imbriqué pour porter son `onLayout`, repartait à zéro. Résultat : l'intertitre
+                collait aux bulles et la ligne « ≈ N kcal/jour » collait au bouton en dessous,
+                au point qu'on lisait les deux comme un seul objet. ⚠️ Un `View` ajouté pour
+                MESURER hérite de sa position, jamais de l'espacement de celui qu'il remplace. */}
+            <View
+              style={{ gap: Spacing.lg }}
+              onLayout={(e) => { ySeances.current = e.nativeEvent.layout.y; }}
+            >
               <SectionLabel t={t}>TES SÉANCES</SectionLabel>
               <SportsEditor
                 sports={sports}
@@ -730,14 +779,26 @@ export default function Onboarding() {
             <SectionLabel t={t}>Régime</SectionLabel>
             <View style={s.wrap}>
               {RESTRICTIONS.map((r) => (
-                <Chip key={r.value} t={t} label={r.label} selected={restrictions.includes(r.value)} onPress={() => toggle(restrictions, r.value, setRestrictions)} />
+                <Chip
+                  key={r.value} t={t} label={r.label} selected={restrictions.includes(r.value)}
+                  // Cocher un régime annule « Peu importe », exactement comme pour les
+                  // protéines juste en dessous : les deux réponses ne peuvent pas coexister.
+                  onPress={() => { setRegimeLibre(false); toggle(restrictions, r.value, setRestrictions); }}
+                />
               ))}
+              {/* 🔴 « PEU IMPORTE » EST UNE RÉPONSE, PAS UN VIDE (demande fondateur,
+                  2026-09-08). Sans lui, ne rien cocher voulait dire deux choses à la fois —
+                  « je n'ai aucun régime » et « je n'ai pas encore répondu » — et rien à
+                  l'écran ne les distinguait. Il ne change AUCUNE donnée : la liste reste
+                  vide dans les deux cas. C'est la lecture de l'écran qu'il répare, pas le
+                  moteur. Même forme que la réponse jumelle des protéines. */}
+              <Chip
+                t={t} label="Peu importe" selected={regimeLibre}
+                onPress={() => { setRegimeLibre((v) => !v); setRestrictions([]); }}
+              />
             </View>
 
             <SectionLabel t={t}>Protéines préférées</SectionLabel>
-            <Text style={[s.sub, { marginTop: -Spacing.xs }]}>
-              Ce que tu choisis ici passe avant tout le reste dans tes repas.
-            </Text>
             <View style={s.wrap}>
               {PROTEINS.map((p) => (
                 <Chip
@@ -848,6 +909,20 @@ export default function Onboarding() {
             sans recours. */}
       </ScrollView>
 
+      {/* 🔴 UN INDICE, PAS UNE COMMANDE (demande fondateur, 2026-09-08). La proposition
+          d'origine était d'amener automatiquement au choix suivant ; le fondateur l'a
+          écartée — « cela va créer des frictions » — et a préféré « une petite flèche qui
+          montre le bas pour inciter à scroll ». Elle ne bouge donc rien à sa place.
+          ⚠️ Elle est NON TACTILE (`pointerEvents: 'none'`) : une flèche qui a l'air d'un
+          bouton et n'en est pas est un mensonge de plus petite taille, mais un mensonge.
+          Et elle ne s'affiche QUE s'il reste réellement à défiler — sinon c'est un décor
+          permanent, que l'œil cesse de voir en trois écrans.
+          ⚠️ Elle existe parce que ce `ScrollView` porte `showsVerticalScrollIndicator=
+          {false}` : rien, absolument rien, ne disait qu'il restait du contenu. */}
+      <Animated.View pointerEvents="none" style={[s.indiceBas, { opacity: opaciteFleche }]}>
+        <Ionicons name="chevron-down" size={Icone.action} color={t.textTertiary} />
+      </Animated.View>
+
       <View style={[s.footer, layout.header]}>
         {avanceTentee && !canProceed && <Text style={s.hint}>{blockReason()}</Text>}
         {/* `muted` et non `disabled` : le bouton reste cliquable, c'est lui qui
@@ -944,6 +1019,7 @@ function makeStyles(t: ThemePalette) {
     daysRow: { flexDirection: 'row', gap: Spacing.sm, justifyContent: 'space-between' },
     dayCircle: { flex: 1, height: 52, borderRadius: Radius.button, borderWidth: Trait.fin, alignItems: 'center', justifyContent: 'center' },
     footer: { padding: Spacing.xl, paddingTop: Spacing.sm, backgroundColor: t.bg },
+    indiceBas: { alignItems: 'center', paddingBottom: Spacing.xs },
     hint: { ...Type.captionStrong, color: t.warning, lineHeight: 18, marginBottom: Spacing.md, textAlign: 'center' },
     mentions: { gap: Spacing.xs, marginTop: Spacing.md },
     disclaimer: { ...Type.micro, color: t.textTertiary, lineHeight: 16, textAlign: 'center' },
