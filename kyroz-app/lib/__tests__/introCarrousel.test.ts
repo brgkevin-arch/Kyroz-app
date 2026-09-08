@@ -123,3 +123,35 @@ describe('les images existent, dans les DEUX thèmes', () => {
     expect(script).toMatch(/process\.exit\(1\)/);
   });
 });
+
+// ── L'aperçu ne se dessine pas avant d'être mesuré ──────────────────────────
+//
+// 🔴 CE QUE CE BLOC FERME, et il a fallu DEUX tours pour y arriver. Le premier
+// correctif du titre coupé (2026-09-08) gardait un repli qui était l'ancienne
+// formule fautive, et il dessinait l'aperçu dès que le rail était connu — même si
+// l'en-tête, mesurée par un AUTRE `onLayout`, valait encore 0. D'où : « un coup
+// j'ouvre l'app et le premier texte est coupé, un coup il est comme il doit être ».
+//
+// ⚠️ ET `apercuIntro.test.ts` NE POUVAIT PAS L'ATTRAPER : il tient la fonction pure,
+// pas le CÂBLAGE. Vérifié par mutation — retirer la garde du composant laissait tous
+// ses tests verts. Une décision juste, non branchée, ne protège personne.
+describe('l’aperçu attend ses deux mesures', () => {
+  it('l’image est conditionnée à `pret`, jamais dessinée par défaut', () => {
+    expect(carrousel).toMatch(/\{pret && \(\s*<Image/);
+  });
+
+  it('…et `pret` vient bien du module mesuré, pas d’un booléen local', () => {
+    expect(carrousel).toMatch(/hauteur: hauteurImage, pret \} = tailleApercu\(/);
+  });
+  it('🔴 la mesure d’en-tête ne s’efface PAS au montage', () => {
+    // LA CAUSE RACINE du « un coup coupé, un coup non ». Un `useEffect` avec des
+    // dépendances s'exécute AUSSI à la première passe : il effaçait la hauteur que
+    // l'`onLayout` venait de poser, et selon l'ordre du commit on repartait avec un
+    // en-tête à 0 pendant que le rail était mesuré. La forme fautive tient en une
+    // ligne — `useEffect(() => { setHauteurEntete(0); }, [width, height])` — et elle
+    // a l'air parfaitement raisonnable.
+    expect(carrousel).not.toMatch(/useEffect\(\(\) => \{ setHauteurEntete\(0\); \}/);
+    // Ce qui doit rester : une remise à zéro gardée par un premier passage.
+    expect(carrousel).toMatch(/fenetreVue\.current !== null && fenetreVue\.current !== taille/);
+  });
+});

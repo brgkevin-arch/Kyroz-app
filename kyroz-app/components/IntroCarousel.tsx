@@ -190,18 +190,32 @@ export function IntroCarousel({ onTermine }: { onTermine: () => void }) {
     const h = e.nativeEvent.layout.height;
     setHauteurEntete((prev) => (h > prev + 0.5 ? h : prev));
   };
-  // ⚠️ …mais ce maximum se REMET À ZÉRO quand la fenêtre change (rotation d'iPad,
+  // ⚠️ …mais ce maximum se REMET À ZÉRO quand la fenêtre CHANGE (rotation d'iPad,
   // réglage de police système). Sans ça, un en-tête haut mesuré en portrait
   // rapetisserait l'aperçu pour toujours en paysage — un maximum monotone est ce
   // qui empêche la boucle de mesure, pas une vérité éternelle.
-  useEffect(() => { setHauteurEntete(0); }, [width, height]);
+  //
+  // 🔴 **ET « QUAND ELLE CHANGE » VEUT DIRE PAS AU MONTAGE — c'est ÇA qui coupait le
+  // titre une fois sur deux** (2026-09-08, second tour, vu au simulateur). Un
+  // `useEffect` avec des dépendances s'exécute AUSSI à la première passe. Il effaçait
+  // donc la hauteur d'en-tête que l'`onLayout` venait de poser, et selon l'ordre du
+  // commit on repartait avec un en-tête à 0 pendant que le rail, lui, était mesuré :
+  // 583 pt d'aperçu là où 501 tiennent. D'où l'intermittence — la signature d'une
+  // course, jamais d'un calcul faux.
+  // ➡️ Le premier passage se saute. La remise à zéro ne sert qu'aux changements
+  //    RÉELS de fenêtre, qui sont les seuls qu'elle a jamais eu à couvrir.
+  const fenetreVue = useRef<string | null>(null);
+  useEffect(() => {
+    const taille = `${width}×${height}`;
+    if (fenetreVue.current !== null && fenetreVue.current !== taille) setHauteurEntete(0);
+    fenetreVue.current = taille;
+  }, [width, height]);
 
-  const { largeur: largeurImage, hauteur: hauteurImage } = tailleApercu({
+  const { largeur: largeurImage, hauteur: hauteurImage, pret } = tailleApercu({
     hauteurRail,
     hauteurEntete,
     ecart: Spacing.sm,
     largeurMax,
-    hauteurFenetre: height,
   });
 
   return (
@@ -237,6 +251,10 @@ export function IntroCarousel({ onTermine }: { onTermine: () => void }) {
               <Text style={s.titre}>{d.titre}</Text>
               <Text style={s.texte}>{d.texte}</Text>
             </View>
+            {/* ⚠️ `pret` — pas de dessin tant que le rail ET l'en-tête ne sont pas
+                mesurés. Cf. `tailleApercu` : c'est le rendu intermédiaire (rail connu,
+                en-tête encore à 0) qui coupait le titre une fois sur deux. */}
+            {pret && (
             <Image
               source={t.scheme === 'dark' ? d.images.sombre : d.images.clair}
               style={{
@@ -265,6 +283,7 @@ export function IntroCarousel({ onTermine }: { onTermine: () => void }) {
               accessible
               accessibilityLabel={`Aperçu de l'écran : ${d.titre}`}
             />
+            )}
           </View>
         ))}
       </ScrollView>
