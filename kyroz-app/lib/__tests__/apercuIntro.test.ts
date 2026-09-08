@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { tailleApercu, RATIO_ECRAN, HAUTEUR_MIN, type MesuresApercu } from '../apercuIntro';
+import { tailleApercu, resteAScroller, RATIO_ECRAN, HAUTEUR_MIN, type MesuresApercu } from '../apercuIntro';
 
 // ── L'APERÇU CÈDE DEVANT LE TITRE, JAMAIS L'INVERSE ──────────────────────────
 //
@@ -77,5 +77,40 @@ describe('tailleApercu', () => {
   it('un rail minuscule ne rend jamais un aperçu négatif', () => {
     const minuscule = { ...IPHONE, hauteurRail: 100, hauteurEntete: 82 };
     expect(tailleApercu(minuscule).hauteur).toBe(HAUTEUR_MIN);
+  });
+});
+
+// ── L'indice « ⌄ » : il doit REVENIR quand du contenu apparaît ───────────────
+//
+// 🔴 CE QUE CE BLOC FERME, vu au simulateur le 2026-09-08. Première version : un
+// booléen `enBas` posé par `onScroll`. Il marchait, jusqu'à ce que cocher un sport
+// AJOUTE une carte sous le pli : le rail n'ayant pas bougé, aucun événement ne
+// partait, le booléen restait vrai, et la flèche restait éteinte devant un contenu
+// visiblement coupé. Le code s'exécutait — le résultat était mort.
+describe('resteAScroller', () => {
+  const base = { position: 0, hauteurVue: 600, hauteurContenu: 900, marge: 24 };
+
+  it('oui quand il reste du contenu sous le pli', () => {
+    expect(resteAScroller(base)).toBe(true);
+  });
+
+  it('non une fois arrivé en bas', () => {
+    expect(resteAScroller({ ...base, position: 300 })).toBe(false);
+  });
+
+  it('LE DÉFAUT : arrivé en bas, du contenu s’ajoute — la flèche REVIENT', () => {
+    const enBas = { ...base, position: 300 };
+    expect(resteAScroller(enBas)).toBe(false);
+    // Une carte de 200 pt s'ouvre sous le pli, sans le moindre défilement.
+    expect(resteAScroller({ ...enBas, hauteurContenu: 1100 })).toBe(true);
+  });
+
+  it('non quand tout tient à l’écran', () => {
+    expect(resteAScroller({ ...base, hauteurContenu: 610 })).toBe(false);
+  });
+
+  it('non tant que rien n’est mesuré — pas de flèche sur un écran inconnu', () => {
+    expect(resteAScroller({ ...base, hauteurVue: 0 })).toBe(false);
+    expect(resteAScroller({ ...base, hauteurContenu: 0 })).toBe(false);
   });
 });

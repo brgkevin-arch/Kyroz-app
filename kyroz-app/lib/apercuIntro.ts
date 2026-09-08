@@ -58,3 +58,27 @@ export function tailleApercu(m: MesuresApercu): { largeur: number; hauteur: numb
   const hauteur = Math.max(HAUTEUR_MIN, Math.min(dispo, parLaLargeur));
   return { hauteur, largeur: hauteur * RATIO_ECRAN };
 }
+
+/**
+ * Reste-t-il quelque chose à faire défiler ? — utilisé par l'indice « ⌄ » de
+ * l'inscription.
+ *
+ * 🔴 **POURQUOI C'EST DÉRIVÉ ET NON UN ÉTAT** (mesuré au simulateur, 2026-09-08).
+ * Première version : un booléen `enBas` posé par `onScroll`. Il marchait — jusqu'à
+ * ce qu'un choix AJOUTE du contenu sous le pli. Le rail n'ayant pas bougé, aucun
+ * `onScroll` ne partait, `enBas` restait vrai, et la flèche restait éteinte devant
+ * une carte visiblement coupée. Le code s'exécutait ; le résultat était mort.
+ * ➡️ En repartant de la POSITION, la réponse se recalcule dès que la hauteur du
+ * contenu change, sans qu'aucun événement n'ait à survenir.
+ */
+export function resteAScroller(
+  { position, hauteurVue, hauteurContenu, marge }:
+  { position: number; hauteurVue: number; hauteurContenu: number; marge: number },
+): boolean {
+  if (!hauteurVue || !hauteurContenu) return false;
+  // ⚠️ Il n'y a PAS de second seuil « et si tout tient à l'écran ». Il y en avait un ;
+  // une mutation l'a montré décoratif — il est impliqué par la ligne ci-dessous, la
+  // position ne pouvant pas être négative. Un garde-fou qu'aucun test ne peut faire
+  // rougir n'en est pas un : il donne l'impression d'une deuxième protection.
+  return position + hauteurVue < hauteurContenu - marge;
+}
