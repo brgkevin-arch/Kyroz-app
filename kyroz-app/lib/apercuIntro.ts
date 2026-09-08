@@ -35,8 +35,6 @@ export type MesuresApercu = {
   ecart: number;
   /** Largeur utilisable, marges de page déduites. */
   largeurMax: number;
-  /** Repli tant que rien n'est mesuré : la hauteur de la fenêtre. */
-  hauteurFenetre: number;
 };
 
 /**
@@ -45,18 +43,34 @@ export type MesuresApercu = {
  * toujours devant le texte — jamais l'inverse. Le titre est ce qui dit à quoi on
  * regarde ; un aperçu qui le pousse dehors se prive de sa propre légende.
  */
-export function tailleApercu(m: MesuresApercu): { largeur: number; hauteur: number } {
-  // Le repli ne sert qu'avant la première mesure. Il reste volontairement
-  // grossier : le corriger ne servirait à rien, il est remplacé à la frame d'après.
-  const dispo = m.hauteurRail > 0
-    ? m.hauteurRail - m.hauteurEntete - m.ecart
-    : m.hauteurFenetre * 0.62;
+export function tailleApercu(m: MesuresApercu): { largeur: number; hauteur: number; pret: boolean } {
+  // 🔴 **IL N'Y A PLUS DE REPLI, ET C'EST LE CORRECTIF** (2026-09-08, second tour).
+  // La version précédente retombait sur `hauteurFenetre × 0,62` tant que rien n'était
+  // mesuré, en se disant « remplacé à la frame d'après ». Deux choses fausses là-dedans :
+  //
+  //  ① ce repli EST l'ancienne formule, celle qui coupait le titre. Un repli qui
+  //     reproduit exactement le défaut qu'on répare n'est pas un repli, c'est le bug
+  //     avec un délai ;
+  //  ② les deux mesures n'arrivent PAS ensemble. Le rail et l'en-tête sont deux vues
+  //     distinctes, donc deux `onLayout` : il existe un rendu où le rail vaut 613 et
+  //     l'en-tête encore 0, ce qui donne 605 pt d'aperçu là où 528 tiennent. Ce
+  //     rendu-là est PEINT, et c'est très exactement la capture du fondateur — un
+  //     coup coupé, un coup non, selon l'ordre où les deux mesures atterrissent.
+  //
+  // ➡️ Tant que les DEUX ne sont pas là, on ne dessine pas l'aperçu. Une frame sans
+  //    image vaut mieux qu'une frame avec un titre tranché : l'absence se rattrape à
+  //    l'œil suivant, le titre coupé se photographie.
+  // ⚠️ Aucune boucle possible : le rail est `flex: 1` et l'en-tête ne contient que du
+  //    texte — ni l'un ni l'autre ne dépend de la taille de l'image. Les deux se
+  //    mesurent donc parfaitement avec l'aperçu encore absent.
+  const pret = m.hauteurRail > 0 && m.hauteurEntete > 0;
+  const dispo = m.hauteurRail - m.hauteurEntete - m.ecart;
 
   // La largeur décide quand c'est ELLE qui manque (écran court et large, iPad en
   // paysage) : l'aperçu rétrécit alors sans jamais déborder de sa colonne.
   const parLaLargeur = m.largeurMax / RATIO_ECRAN;
   const hauteur = Math.max(HAUTEUR_MIN, Math.min(dispo, parLaLargeur));
-  return { hauteur, largeur: hauteur * RATIO_ECRAN };
+  return { hauteur, largeur: hauteur * RATIO_ECRAN, pret };
 }
 
 /**

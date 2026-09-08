@@ -27,8 +27,11 @@ const IPHONE: MesuresApercu = {
   hauteurEntete: 82, // titre sur une ligne + texte sur deux + marge basse
   ecart: 8,
   largeurMax: 393 - 20 * 2,
-  hauteurFenetre: 852,
 };
+
+/** La fenêtre de cet appareil. Elle ne sert plus au calcul, seulement à rejouer
+ *  l'ANCIENNE formule dans le test de non-régression ci-dessous. */
+const HAUTEUR_FENETRE = 852;
 
 const tientDansLeRail = (m: MesuresApercu) =>
   tailleApercu(m).hauteur + m.hauteurEntete + m.ecart <= m.hauteurRail + 0.001;
@@ -40,7 +43,7 @@ describe('tailleApercu', () => {
 
   it('LE DÉFAUT DU BUILD (17) : l’ancienne formule débordait de 27 pt en haut', () => {
     // Ce que l'ancien code calculait : min(852 × 0,62 ; 852 − 330) = 522.
-    const ancienne = Math.min(IPHONE.hauteurFenetre * 0.62, IPHONE.hauteurFenetre - 330);
+    const ancienne = Math.min(HAUTEUR_FENETRE * 0.62, HAUTEUR_FENETRE - 330);
     const deborde = ancienne + IPHONE.hauteurEntete + IPHONE.ecart - IPHONE.hauteurRail;
     expect(deborde).toBeGreaterThan(0);
     // Centrée, la diapo perd la MOITIÉ du débordement par le haut : le titre fait
@@ -69,9 +72,27 @@ describe('tailleApercu', () => {
     expect(largeur / hauteur).toBeCloseTo(RATIO_ECRAN, 6);
   });
 
-  it('avant toute mesure, le repli rend une taille utilisable', () => {
-    const avant = { ...IPHONE, hauteurRail: 0, hauteurEntete: 0 };
-    expect(tailleApercu(avant).hauteur).toBeGreaterThan(HAUTEUR_MIN);
+  // 🔴 LE SECOND TOUR, 2026-09-08 : « un coup j'ouvre l'app et le premier texte est
+  // coupé, un coup il est comme il doit être ». Le premier correctif gardait un REPLI
+  // — `hauteurFenetre × 0,62`, c'est-à-dire l'ancienne formule fautive — en supposant
+  // qu'il serait « remplacé à la frame d'après ». Supposition jamais vérifiée, et
+  // fausse deux fois : ce repli EST le bug, et les deux mesures n'atterrissent pas
+  // ensemble. D'où l'intermittence, qui est la signature d'une course.
+  it('rien n’est PRÊT tant que les deux mesures ne sont pas là', () => {
+    expect(tailleApercu({ ...IPHONE, hauteurRail: 0, hauteurEntete: 0 }).pret).toBe(false);
+    expect(tailleApercu({ ...IPHONE, hauteurRail: 0 }).pret).toBe(false);
+    expect(tailleApercu(IPHONE).pret).toBe(true);
+  });
+
+  it('🔴 LE RENDU INTERMÉDIAIRE : rail mesuré, en-tête pas encore', () => {
+    // C'est CE rendu qui coupait le titre une fois sur deux — 591 − 0 − 8 = 583 pt
+    // d'aperçu là où 501 tiennent. Il ne doit plus jamais être dessiné.
+    const entreDeux = { ...IPHONE, hauteurEntete: 0 };
+    expect(entreDeux.hauteurRail).toBeGreaterThan(0);
+    expect(tailleApercu(entreDeux).pret).toBe(false);
+    // …et la preuve qu'il débordait vraiment, si on l'avait dessiné :
+    expect(tailleApercu(entreDeux).hauteur + IPHONE.hauteurEntete + IPHONE.ecart)
+      .toBeGreaterThan(IPHONE.hauteurRail);
   });
 
   it('un rail minuscule ne rend jamais un aperçu négatif', () => {
