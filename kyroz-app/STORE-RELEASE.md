@@ -16,13 +16,27 @@
 
 ## 0-ter. ▶️ REPRISE — état au 2026-08-27
 
-> 🔴 **ÉTAT AU 2026-09-05, 19 h 30** — **tout est prêt sauf la vidéo.**
+> 🟢 **ÉTAT AU 2026-09-08, 23 h 41 — C'EST SOUMIS.** Soumission `fddc0394`,
+> `WAITING_FOR_REVIEW`, quatre éléments ensemble : version 1.0 (**build 20**, commit
+> `b41dd92d`), groupe Kyroz+, et les deux abonnements de lancement. Vidéo de l'achat
+> sandbox jointe. Les deux paliers de réserve sont restés dehors.
+>
+> *(L'état précédent, conservé parce qu'il explique le chemin :)* au 2026-09-05,
+> **tout était prêt sauf la vidéo.**
 >
 > Trois rejets : `2.1` (01/09, question sur les paliers), `2.1(b)` (03/09, produits absents
 > du binaire), `2.1(b)` (04/09, **le premier vrai défaut de code** — un achat qui ne répond
 > pas bloquait l'écran pour toujours).
 >
-> ✅ **Le binaire à soumettre est le (17)** — téléversé le 2026-09-07 à 22 h 15,
+> 🔴 **CE N'EST PLUS LE (17) — et trois binaires ont été nécessaires pour arriver au
+> (20).** Le (18) a été ANNULÉ en vol (il compilait déjà quand le texte légal a changé) ;
+> le (19) est MORT-NÉ (construit entre deux modifications d'`eas.json`, jamais téléversé,
+> plus aucune ligne OTA) ; le **(20)** est celui qui est en revue. ⚠️ Un build ANNULÉ
+> CONSOMME SON NUMÉRO : `autoIncrement` incrémente à la création, pas à la réussite.
+> ⚠️ Et `eas.json` est une SOURCE D'EMPREINTE : le chantier sécurité du 8 septembre a
+> coupé la ligne OTA deux fois. Un travail de sécurité était un geste de LIVRAISON.
+>
+> *(Le (17), pour mémoire :)* téléversé le 2026-09-07 à 22 h 15,
 > `processingState: VALID`, `internalBuildState: IN_BETA_TESTING` (donc **sur TestFlight**),
 > commit `4801e3f`, SDK 57, empreinte `dfe034fd…` — celle de la 26ᵉ OTA, donc il l'écoute.
 > Mesuré par l'API d'App Store Connect, pas déduit d'une sortie d'EAS.
@@ -40,7 +54,16 @@
 > *(Le précédent :)* le **(16)**, commit `4de16d7`, portait le **timeout d'achat de 30 s**
 > (le correctif du rejet) et **Sign in with Apple**, essayé sur appareil et fonctionnel.
 >
-> ⏸️ **CE QUI RESTE : la vidéo qu'Apple exige**, et pas pour une raison de code. Le compte
+> ✅ **LA VIDÉO EST JOINTE ET LA SOUMISSION EST PARTIE** (2026-09-08, 23 h 41) :
+> `ScreenRecording_09-08-2026 17-35-59_1.mp4`, état `COMPLETE`, vérifié par l'API.
+> ⚠️ **Elle a été tournée sur le (17), pas sur le (20) soumis — décision fondateur**, après
+> avoir pesé ce qu'Apple demande de PROUVER (l'achat aboutit) contre ce qui diffère entre
+> les deux binaires (de la mise en page). L'app n'affiche PAS son numéro de build — seulement
+> « 1.0.0 » — donc rien à l'écran ne trahit l'écart. Le seul argument pour refilmer aurait
+> été un temps mort visible après le paiement, puisque c'est le motif du rejet du 04/09.
+>
+> *(L'état d'avant, conservé pour la cause :)* ⏸️ **CE QUI RESTAIT : la vidéo qu'Apple
+> exige**, et pas pour une raison de code. Le compte
 > Apple du fondateur portait un abonnement sandbox **ACTIF qui se renouvelait tous les
 > jours** (dix renouvellements du 28/08 au 07/09, lus dans l'historique d'Apple), donc
 > StoreKit refusait tout achat — « Vous êtes déjà abonné » — donc rien à filmer.
@@ -284,15 +307,23 @@ installation neuve part du binaire, donc du (6).
 1. ✅ **Code figé et build (7) fait** — le 2026-08-27, sur décision du fondateur. Un seul
    build, comme prévu. *(Les deux étapes précédentes de cette liste sont closes.)*
 2. 🤖 **Téléverser chez Apple** — `eas submit --platform ios --profile production`.
-   🔴 **DEPUIS LE 2026-09-08, LA COMMANDE COMMENCE PAR UNE AUTRE** : `eas.json` ne porte
-   plus `ascApiKeyId`, `ascApiKeyIssuerId` ni `ascApiKeyPath` — ce dépôt est PUBLIC. Les
-   trois vivent dans `~/.eas-credentials/asc.env`, sous les noms que l'eas-cli lit
-   lui-même. Une soumission s'ouvre donc par :
+   🔴 **DEPUIS LE 2026-09-08, LA COMMANDE COMMENCE PAR UNE AUTRE.** Ce dépôt est PUBLIC :
+   `eas.json` ne porte plus les VALEURS des identifiants Apple, mais des RÉFÉRENCES —
+   `"ascApiKeyId": "$EXPO_ASC_KEY_ID"` et ses deux jumelles. Elles se résolvent depuis
+   `~/.eas-credentials/asc.env`. Une soumission s'ouvre donc par :
    ```
    set -a; . ~/.eas-credentials/asc.env; set +a
    ```
-   ⚠️ Sans ça, `eas submit --non-interactive` échoue faute de credentials — et il échoue
-   APRÈS avoir téléversé l'archive, donc tard. Garde-fou : `lib/__tests__/easEnv.test.ts`.
+   🔴 **ET LA PREMIÈRE RÉDACTION DE CE PARAGRAPHE ÉTAIT FAUSSE — écrite le matin, démentie
+   le soir.** Elle disait que les champs avaient été RETIRÉS d'`eas.json` et que poser les
+   variables suffisait. C'est faux : sans les champs, `eas submit` ne regarde pas
+   l'environnement, il va chercher des credentials côté serveur EAS et rend
+   `App Store Connect API Keys cannot be set up in --non-interactive mode`. Il échoue
+   AVANT de téléverser, pas après — l'autre moitié de la phrase était fausse aussi.
+   ➡️ **Une procédure écrite sans avoir été jouée une fois n'est pas une procédure.**
+   Garde-fou : `lib/__tests__/easEnv.test.ts`, qui exige que ces champs existent ET qu'ils
+   ne contiennent qu'un `$VARIABLE` — sa première version interdisait les NOMS de champs,
+   donc elle cassait l'outil qu'elle prétendait protéger.
    ⚠️ Le `.p8` n'a JAMAIS été dans le dépôt : un identifiant de clé et un issuer ID
    n'ouvrent rien sans lui. Les retirer ne réécrit pas l'histoire non plus — seule une
    révocation dans App Store Connect ferme complètement, et c'est un geste humain.
@@ -414,6 +445,16 @@ le fondateur a dit « j'sais pas si le mdp est juste ».
 | Champ *App Review Information* | `060324` — **6 chiffres** |
 | `EXPO_PUBLIC_REVIEW_CODE` réel | **29 caractères**, non numérique |
 | Dans le bundle du **(9)** | le vrai code : **présent** · `060324` : **absent** |
+
+⚠️ **CE TABLEAU DÉCRIT LE 2026-09-02, ET LE CODE A TOURNÉ DEPUIS** (2026-09-08, chantier
+sécurité). Les « 29 caractères » ne sont plus la bonne longueur. Le code courant vit dans
+`~/.eas-credentials/review-code`, hors dépôt, et il est écrit dans le champ *Demo Account*
+d'App Store Connect — vérifié en relisant l'API après l'avoir posé.
+🔴 **Et il en existait DEUX du même nom sur EAS** : une variable SHARED (compte, 17 juillet)
+et une PROJECT. `env:list` les affiche côte à côte sans dire laquelle gagne ; il faut
+`--format long` pour voir le scope. L'ancienne est supprimée.
+➡️ Ne jamais lire une LONGUEUR ou une valeur dans cette fiche : la source est
+`eas env:list --environment production --include-sensitive`, et la preuve est le bundle.
 
 `060324` ressemble à une date tapée de mémoire. Le relecteur qui tentait de se connecter
 était renvoyé sur une erreur, et l'accès démo était **fermé depuis la création du champ**.
@@ -628,7 +669,12 @@ un **enregistrement d'écran sur un appareil PHYSIQUE**, joint aux notes de revu
 - montrer un **achat sandbox réussi**, preuve que les produits sont actifs et aboutissent ;
 - montrer tous les autres parcours d'achat.
 
-➡️ **Ce point est bloquant et hors de portée d'une session Claude Code** : il faut le
+✅ **FAIT LE 2026-09-08** — vidéo tournée par le fondateur et jointe aux notes de revue.
+⚠️ **Et le téléversement de la pièce jointe est resté hors de portée de l'API** : le flux
+d'Apple demande une réservation, un envoi binaire et une confirmation, et le fichier n'a
+jamais quitté le téléphone. C'est la console qui l'a fait, en deux minutes.
+
+*(Rédaction précédente :)* ➡️ **Ce point est bloquant et hors de portée d'une session Claude Code** : il faut le
 téléphone du fondateur, le compte Apple sandbox déjà configuré, et un geste humain devant
 la caméra. À faire avant tout renvoi — renvoyer sans la vidéo rejouerait très probablement
 le même rejet, ou un autre motif de forme.

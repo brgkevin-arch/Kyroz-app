@@ -104,8 +104,19 @@ App mobile React Native (Expo Router, **SDK 57** depuis le 2026-08-27) de plans 
 > ⚠️ **Et le corollaire vaut pour la MESURE** : `npx @expo/fingerprint .` (sans plateforme)
 > rend l'empreinte TOUTES plateformes — 113 sources — et ne correspond à aucun runtime.
 > C'est `--platform ios` (85 sources) qui donne celui du binaire. Une empreinte juste sur
-> le mauvais périmètre se lit comme une divergence, avec l'autorité d'un chiffre. Et tant qu'aucun binaire SDK 57 n'est
-> distribué, **aucune OTA n'atteint personne** : le parc actuel est figé sur la 25ᵉ.
+> le mauvais périmètre se lit comme une divergence, avec l'autorité d'un chiffre.
+> ✅ **RÉSOLU LE 2026-09-08** : la 31ᵉ OTA vise l'empreinte du **build (20)**, qui est
+> distribué. La ligne est ouverte, sur ce binaire-là et pas sur un autre.
+> 🔴 **ET `eas.json` COUPE AUSSI, ce qui n'était pas écrit ici.** La ligne a été coupée
+> DEUX fois le 8 septembre, les deux fois par ce fichier : en retirant les identifiants
+> Apple d'un dépôt public, puis en les remettant sous forme de références. **Un chantier
+> SÉCURITÉ était un geste de LIVRAISON**, et rien ne le disait. Sources d'empreinte
+> connues à ce jour : `app.json`, `eas.json`, `packageJson:scripts`, les dépendances
+> natives, `assets/icon.png`, `assets/splash-icon.png`.
+> ➡️ **Avant tout `eas build`, comparer l'empreinte de `main` à celle du dernier binaire
+>    distribué.** Deux secondes, et c'est ce qui manquait ce jour-là.
+> ⚠️ Corollaire administratif : un build **ANNULÉ consomme son numéro** (`autoIncrement`
+>    incrémente à la CRÉATION). Annuler le 18 a fait sortir un 19, puis un 20.
 > ➡️ Garde-fou : `lib/__tests__/ligneOta.test.ts` (3 cas, **3 mutations**) — il refuse le
 > retour à une politique qui ne peut pas couper, et il dit POURQUOI dans son message.
 > Ce dernier n'est pas un détail : il garantit que l'app **ne bloque JAMAIS au démarrage**
