@@ -170,7 +170,7 @@ export default function RecettesScreen() {
     await savePantry(next);
     pushPantry(next);
     setSelected(null);
-    setToast(`${recipe.name_fr} — ingrédients retirés de ta réserve`);
+    setToast(`${recipe.name_fr} : ingrédients retirés de ta réserve`);
     setTimeout(() => setToast(null), 2400);
   };
 

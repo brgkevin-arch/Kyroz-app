@@ -91,7 +91,7 @@ describe('Avis — ce qui part, et ce qu’on en dit', () => {
   it('le sujet trie la boîte de réception, et chaque entrée a le sien', () => {
     const sujets = AVIS_SUJETS.map((s) => composerAvis('un retour bien assez long', s.id, CTX).sujet);
     expect(new Set(sujets).size).toBe(AVIS_SUJETS.length);
-    for (const s of sujets) expect(s.startsWith('Kyroz — ')).toBe(true);
+    for (const s of sujets) expect(s.startsWith('Kyroz · ')).toBe(true);
   });
 });
 

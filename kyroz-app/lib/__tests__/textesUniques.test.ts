@@ -8,7 +8,7 @@
 //   · l'avertissement sur les photos de progression, en TROIS exemplaires — et
 //     deux d'entre eux s'affichaient dans le MÊME défilement de « Suivi du poids »,
 //     au caractère près, même icône comprise ;
-//   · « Cette date n'existe pas — vérifie le jour et le mois. », en deux copies
+//   · « Cette date n'existe pas. Vérifie le jour et le mois. », en deux copies
 //     (date de naissance et échéance d'objectif) qui ne sont jamais vues ensemble,
 //     donc dont la divergence n'aurait sauté aux yeux de personne.
 //
@@ -56,7 +56,7 @@ const UNIQUES: { nom: string; fragment: string; source: string }[] = [
   },
   {
     nom: 'date impossible',
-    fragment: 'vérifie le jour et le mois',
+    fragment: 'érifie le jour et le mois',
     source: 'lib/dateLabel.ts',
   },
 ];

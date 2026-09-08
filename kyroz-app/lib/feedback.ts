@@ -106,7 +106,7 @@ export function composerAvis(
 ): { sujet: string; corps: string } {
   const prefixe = AVIS_SUJETS.find((s) => s.id === sujet)?.prefixe ?? 'Retour';
   return {
-    sujet: `Kyroz — ${prefixe}`,
+    sujet: `Kyroz · ${prefixe}`,
     corps: `${mentionContexte(ctx)}\n\n${texte.trim()}\n`,
   };
 }
@@ -145,7 +145,7 @@ export function lienAvis(texte: string, sujet: AvisSujet, ctx: AvisContexte): st
  * dans le bundle — ce serait pire que le problème résolu.
  */
 export function lienSuppressionStats(pseudonyme: string): string {
-  const sujet = 'Kyroz — suppression de mes statistiques d’usage';
+  const sujet = 'Kyroz · suppression de mes statistiques d’usage';
   const corps = `Bonjour,\n\nJe demande la suppression des statistiques d’usage associées à mon appareil.\n\nIdentifiant pseudonyme : ${pseudonyme}\n\nMerci.\n`;
   return `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(sujet)}&body=${encodeURIComponent(corps)}`;
 }

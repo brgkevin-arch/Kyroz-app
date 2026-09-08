@@ -58,8 +58,8 @@ export function TrackVerdict({ t, goalTarget, currentWeightKg, paused = false }:
       )}
       <Text style={{ ...Type.caption, color: t.textTertiary, lineHeight: 17 }}>
         {st.state === 'paused'
-          ? 'Kyroz ne pilote plus cette trajectoire pour le moment — ton plan est au maintien. Ton objectif reste enregistré.'
-          : `La pente est un repère, pas une règle — à chaque pesée, Kyroz réajuste tes calories pour viser ${frnum(goalTarget.target_weight_kg)} kg le ${frDate(goalTarget.target_date)}.`}
+          ? 'Kyroz ne pilote plus cette trajectoire pour le moment : ton plan est au maintien. Ton objectif reste enregistré.'
+          : `La pente est un repère, pas une règle : à chaque pesée, Kyroz réajuste tes calories pour viser ${frnum(goalTarget.target_weight_kg)} kg le ${frDate(goalTarget.target_date)}.`}
       </Text>
     </View>
   );

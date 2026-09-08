@@ -39,4 +39,4 @@ export function frDateLongue(iso: string, today: string = todayStamp()): string 
  * divergence n'aurait sauté aux yeux de personne : c'est exactement le cas où une
  * source unique coûte une ligne et évite deux textes.
  */
-export const DATE_IMPOSSIBLE = 'Cette date n\u2019existe pas — vérifie le jour et le mois.';
+export const DATE_IMPOSSIBLE = 'Cette date n\u2019existe pas. Vérifie le jour et le mois.';

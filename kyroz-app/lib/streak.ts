@@ -94,7 +94,7 @@ export function celebrationCopy(n: number): { jours: string; libelle: string; bo
     case 3:
       return { jours, libelle, body: 'Tu prends le rythme. Encore 4 jours pour ton premier vrai palier.' };
     case 7:
-      return { jours, libelle, body: 'Une semaine pleine — tu as bouclé le cap qui compte. Continue sur ta lancée.' };
+      return { jours, libelle, body: 'Une semaine pleine : tu as bouclé le cap qui compte. Continue sur ta lancée.' };
     case 14:
       return { jours, libelle, body: 'Deux semaines sans casser la chaîne. C’est devenu une habitude.' };
     case 30:

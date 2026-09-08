@@ -66,7 +66,7 @@ export default function AvisScreen() {
     // On ne perd pas le texte et on ne fait pas la leçon — on donne l'adresse.
     notify({
       title: 'Pas de messagerie sur cet appareil',
-      message: `Écris-nous directement à ${SUPPORT_EMAIL} — ton texte est resté à l'écran, tu peux le copier.`,
+      message: `Écris-nous directement à ${SUPPORT_EMAIL}. Ton texte est resté à l'écran, tu peux le copier.`,
     });
   };
 

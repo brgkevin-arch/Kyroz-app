@@ -578,7 +578,7 @@ export default function ProfilScreen() {
           <Presse activeOpacity={OPACITE_PRESSION} onPress={() => setEditor('goal')}>
             <Card t={t}>
               <Text style={{ ...Type.caption, color: t.text, lineHeight: 19 }}>
-                Ton poids est descendu sous la plage de référence pour ta taille. Kyroz a ramené ton plan à ta maintenance : plus de déficit tant que tu es dans cette zone. Tu n'as rien à faire dans l'immédiat — touche ici quand tu veux choisir un autre objectif.
+                Ton poids est descendu sous la plage de référence pour ta taille. Kyroz a ramené ton plan à ta maintenance : plus de déficit tant que tu es dans cette zone. Tu n'as rien à faire dans l'immédiat, touche ici quand tu veux choisir un autre objectif.
               </Text>
             </Card>
           </Presse>
@@ -1088,7 +1088,7 @@ function LowEaRiseCard({ t, rise, onPress }: {
           </Text>
         ) : (
           <Text style={{ ...Type.caption, color: t.text, lineHeight: 19 }}>
-            Après un long déficit, Kyroz t'a ramenée à un niveau qui protège ton énergie : tes calories ne baisseront plus tant que tu restes ici. Tu n'as rien à faire dans l'immédiat — touche ici quand tu veux choisir un autre objectif.
+            Après un long déficit, Kyroz t'a ramenée à un niveau qui protège ton énergie : tes calories ne baisseront plus tant que tu restes ici. Tu n'as rien à faire dans l'immédiat, touche ici quand tu veux choisir un autre objectif.
           </Text>
         )}
       </Card>
@@ -1128,13 +1128,13 @@ function EngineNoticeCard({ t, notice, onAdjust, onDismiss }: {
     // le déficit demandé (0,30 kg/semaine maximum, quel que soit le corps). Le texte le
     // dit sans jargon (« énergie disponible », « masse maigre ») et surtout SANS
     // reproche : ce n'est pas la personne qui allait trop lentement, c'est le moteur.
-    ? 'Kyroz te retenait : sa limite de sécurité était calculée pour des gabarits secs, et elle t\'empêchait de creuser un vrai déficit. Elle ne s\'applique plus à toi — ton budget baisse, et ta perte de poids va enfin suivre le rythme que tu as demandé.'
+    ? 'Kyroz te retenait : sa limite de sécurité était calculée pour des gabarits secs, et elle t\'empêchait de creuser un vrai déficit. Elle ne s\'applique plus à toi : ton budget baisse, et ta perte de poids va enfin suivre le rythme que tu as demandé.'
     : notice.cause === 'goal_merged'
     // rev 7 (2026-08-10) — `bulk` refermé sur `lean_bulk`. Ne JAMAIS présenter ça comme
     // une perte d'option : ce qui a disparu est un cran de vitesse, et la vitesse se
     // règle maintenant par la date. La hausse de protéines est dite, parce que c'est le
     // gain réel et qu'elle explique pourquoi le plan reste bon avec moins de calories.
-      ? 'Kyroz n\'a plus qu\'une prise de masse, et elle vise le muscle : un surplus plus mesuré, avec plus de protéines. Pour prendre plus vite, donne-toi un poids à atteindre et une date — c\'est elle qui règle le rythme désormais.'
+      ? 'Kyroz n\'a plus qu\'une prise de masse, et elle vise le muscle : un surplus plus mesuré, avec plus de protéines. Pour prendre plus vite, donne-toi un poids à atteindre et une date : c\'est elle qui règle le rythme désormais.'
       : notice.cause === 'measured_bmr'
     // rev 10 (2026-08-27, constat 02-01) — le chemin « %MG MESURÉ » cesse de servir
     // Katch-McArdle là où Katch rend moins que Mifflin. Sur ce trajet la cible ne peut
@@ -1146,7 +1146,7 @@ function EngineNoticeCard({ t, notice, onAdjust, onDismiss }: {
     // mauvaise cause et la mauvaise personne. Or les deux trajets se recouvrent — un
     // compte parti de la rev 7 traverse les rev 8 ET 10 — donc `fromRev → rev` ne peut
     // pas les séparer. Seul le moteur le sait, et il le dit dans `cause`.
-      ? 'Kyroz partait de ton pourcentage de masse grasse pour estimer ta dépense, et ce calcul devient trop bas pour les corps comme le tien. Il repart maintenant de l\'estimation la plus juste des deux — ton budget remonte d\'autant.'
+      ? 'Kyroz partait de ton pourcentage de masse grasse pour estimer ta dépense, et ce calcul devient trop bas pour les corps comme le tien. Il repart maintenant de l\'estimation la plus juste des deux, et ton budget remonte d\'autant.'
       : notice.rev >= 8 && depuis >= 7 && monte
     // rev 8 (2026-08-24, « R6 lissée ») — le BMR d'un %MG estimé glisse vers la formule
     // à masse maigre quand la silhouette indique nettement plus de muscle que la moyenne
@@ -1162,7 +1162,7 @@ function EngineNoticeCard({ t, notice, onAdjust, onDismiss }: {
     // Aucun jargon (« Katch », « métabolisme de base ») et aucun reproche — la personne
     // n'a rien fait de mal, c'est le moteur qui cesse de prétendre à une précision
     // qu'un chiffre estimé n'a pas.
-    ? 'Kyroz s\'appuyait sur ton pourcentage de masse grasse comme s\'il était mesuré. Tant qu\'il est estimé, il repart d\'un calcul plus prudent — ton pourcentage reste affiché, il ne sert simplement plus de base à ta dépense.'
+    ? 'Kyroz s\'appuyait sur ton pourcentage de masse grasse comme s\'il était mesuré. Tant qu\'il est estimé, il repart d\'un calcul plus prudent. Ton pourcentage reste affiché, il ne sert simplement plus de base à ta dépense.'
     : notice.rev >= 5 && depuis >= 4 && !monte
     // rev 5 (A15) — la cible BAISSE, et pour une raison précise : la date visée ne
     // tenait pas et Kyroz servait quand même le rythme « juste requis », donc il
@@ -1488,8 +1488,8 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }:
         <Text style={{ ...Type.caption, color: t.textSecondary, lineHeight: 18 }}>
           {!goalBlockMsg && status && !status.reachableByDate && !status.directionMismatch
             ? (dateAuPlusTot
-              ? `Cible le ${formatFR(dateVisee)} — c'est plus tôt que ce que Kyroz peut tenir : au rythme sûr, ce sera le ${formatFR(dateAuPlusTot)}.`
-              : `Cible le ${formatFR(dateVisee)} — ce poids n'est pas atteignable au rythme sûr, quelle que soit la date.`)
+              ? `Cible le ${formatFR(dateVisee)} : c'est plus tôt que ce que Kyroz peut tenir : au rythme sûr, ce sera le ${formatFR(dateAuPlusTot)}.`
+              : `Cible le ${formatFR(dateVisee)} : ce poids n'est pas atteignable au rythme sûr, quelle que soit la date.`)
             : `Cible le ${formatFR(dateVisee)}.`}
         </Text>
       )}
@@ -1593,7 +1593,7 @@ function DatedGoalEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }:
       {!goalBlockMsg && floored && preview && !status?.floorCapped && (
         <Card t={t}>
           <Text style={{ ...Type.caption, color: t.text, lineHeight: 19 }}>
-            Ton plancher de sécurité est à {preview.target_kcal} kcal/jour : en dessous, ton corps n'a plus assez d'énergie pour fonctionner correctement. Plus tu t'entraînes, plus ce plancher monte — c'est normal, l'énergie de tes séances ne compte pas comme énergie disponible.
+            Ton plancher de sécurité est à {preview.target_kcal} kcal/jour : en dessous, ton corps n'a plus assez d'énergie pour fonctionner correctement. Plus tu t'entraînes, plus ce plancher monte, et c'est normal, l'énergie de tes séances ne compte pas comme énergie disponible.
           </Text>
         </Card>
       )}
@@ -1877,7 +1877,7 @@ function MealsEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: Edi
           // la règle du DERNIER repas (sans elle on croit qu'il ne se coche jamais),
           // la sortie de réserve, et l'irréversibilité. Taire l'un d'eux sur une
           // action irréversible serait un mensonge par omission.
-          ? "Un repas non marqué passe en « mangé » une heure après le début du suivant — le dernier, en fin de journée. Ses ingrédients quittent ta réserve, et un repas coché ne revient pas en arrière."
+          ? "Un repas non marqué passe en « mangé » une heure après le début du suivant, et le dernier en fin de journée. Ses ingrédients quittent ta réserve, et un repas coché ne revient pas en arrière."
           : "Tes repas ne se cochent que si tu tapes « J'ai cuisiné ». Ta journée n'est recalée que sur ce que tu as marqué toi-même."}
       </Text>
 

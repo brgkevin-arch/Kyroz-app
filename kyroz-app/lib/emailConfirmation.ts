@@ -163,7 +163,7 @@ export function traduitErreurReinitialisation(msg: string): string {
     return 'Ce mot de passe est déjà le tien. Choisis-en un autre.';
   }
   if (m.includes('expired') || m.includes('invalid')) {
-    return 'Code refusé. Vérifie les six chiffres — ou demande un nouveau code, celui-ci a peut-être expiré.';
+    return 'Code refusé. Vérifie les six chiffres, ou demande un nouveau code, celui-ci a peut-être expiré.';
   }
   if (m.includes('rate limit') || m.includes('after')) {
     return 'Trop de demandes d\'affilée. Attends une minute avant de redemander un code.';

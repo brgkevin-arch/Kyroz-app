@@ -58,7 +58,7 @@ export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adapted
     if (fl === 'protein_below_target') {
       const miss = adaptGap ? Math.max(0, -Math.round(adaptGap.protein_g)) : 0;
       return miss > 0
-        ? `~${miss} g de protéines sous ta cible — ajoute un side protéiné.`
+        ? `~${miss} g de protéines sous ta cible : ajoute un side protéiné.`
         : 'Repas un peu pauvre en protéines.';
     }
     if (fl === 'under_target_kcal') return 'Repas un peu en dessous de ta cible.';
@@ -98,7 +98,7 @@ export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adapted
               <Ionicons name={fav ? 'heart' : 'heart-outline'} size={Icone.standard} color={fav ? t.text : t.textSecondary} />
             </Presse>
             {onDislike && (
-              <Presse onPress={onDislike} style={s.close} accessibilityLabel="Je n'aime pas — changer">
+              <Presse onPress={onDislike} style={s.close} accessibilityLabel="Je n'aime pas, changer">
                 <Ionicons name="thumbs-down-outline" size={Icone.petite} color={t.textSecondary} />
               </Presse>
             )}
@@ -189,7 +189,7 @@ export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adapted
             <Text style={s.statusTxt}>
               {/* Mêmes signes retirés qu'en `MealCard` (2026-08-20) : deux états de
                   suivi, deux faits, aucune médaille et aucun panneau d'interdiction. */}
-              {status === 'eaten' ? 'Marqué comme mangé' : 'Repas sauté — journée recalée'}
+              {status === 'eaten' ? 'Marqué comme mangé' : 'Repas sauté, journée recalée'}
             </Text>
           </View>
         )}
@@ -217,7 +217,7 @@ export function RecipeDetail({ recipe, portions = 1, adaptedIngredients, adapted
                 <Text style={s.swapTxt}>Je l'ai sauté</Text>
               </Presse>
             )}
-            {onCook && <PrimaryButton t={t} label="J'ai mangé — retirer de ma réserve" onPress={onCook} />}
+            {onCook && <PrimaryButton t={t} label="J'ai mangé, retirer de ma réserve" onPress={onCook} />}
           </View>
         )}
       </ScrollView>

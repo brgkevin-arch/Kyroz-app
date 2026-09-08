@@ -286,9 +286,9 @@ export function BodyFatPicker({ t, sex, value, source, onChange, body }: Props) 
               // silhouette qui la rattrapera. Mesuré : les deux lèvent `lean_mass`.
               ? auPlafond
                 ? `C'est au-dessus de ce que porte la quasi-totalité des ${sex === 'female' ? 'femmes' : 'hommes'} de ta taille. Si tu penses être au-delà, saisis un pourcentage à la main juste en dessous.`
-                : `C'est au-dessus de ce que porte la quasi-totalité des ${sex === 'female' ? 'femmes' : 'hommes'} de ta taille. Kyroz calcule ta dépense sur cette masse${impactKcal != null && impactKcal > 0 ? `, et la relève de ${impactKcal} kcal/jour` : ''} — autant de déficit en moins si le % est trop bas. La silhouette la plus proche sera plus juste.`
+                : `C'est au-dessus de ce que porte la quasi-totalité des ${sex === 'female' ? 'femmes' : 'hommes'} de ta taille. Kyroz calcule ta dépense sur cette masse${impactKcal != null && impactKcal > 0 ? `, et la relève de ${impactKcal} kcal/jour` : ''}. Autant de déficit en moins si le % est trop bas. La silhouette la plus proche sera plus juste.`
               : impactKcal != null && impactKcal > 0
-                ? `Ce chiffre relève ta dépense estimée de ${impactKcal} kcal/jour — autant de déficit en moins si tu te trompes. En cas de doute, la silhouette la plus proche sera plus juste.`
+                ? `Ce chiffre relève ta dépense estimée de ${impactKcal} kcal/jour, autant de déficit en moins si tu te trompes. En cas de doute, la silhouette la plus proche sera plus juste.`
                 : 'En cas de doute, la silhouette la plus proche sera plus juste : le moteur estime alors ta masse grasse, et une estimation vaut mieux qu\'un chiffre faux.'}
           </Text>
         </View>

@@ -1156,7 +1156,7 @@ export function eligibilityMessage(blocks: EligibilityBlock[]): string | null {
     // renvoi vers un professionnel — conditionné à la DURÉE, parce qu'un IMC bas
     // n'est pas en soi un problème médical et qu'un signal alarmant est interdit
     // (CLAUDE.md §10).
-    return 'Ton poids est sous la plage de référence pour ta taille : Kyroz ne propose pas de sèche dans cette zone. Les autres objectifs restent ouverts — Maintien te donne un plan complet, sans déficit. Si cette situation dure, parles-en à un médecin ou à un diététicien-nutritionniste.';
+    return 'Ton poids est sous la plage de référence pour ta taille : Kyroz ne propose pas de sèche dans cette zone. Les autres objectifs restent ouverts : Maintien te donne un plan complet, sans déficit. Si cette situation dure, parles-en à un médecin ou à un diététicien-nutritionniste.';
   }
   if (blocks.includes('TARGET_BMI_OUT_OF_RANGE')) {
     return 'Ce poids cible sort de la plage saine pour ta taille. Choisis une cible intermédiaire.';

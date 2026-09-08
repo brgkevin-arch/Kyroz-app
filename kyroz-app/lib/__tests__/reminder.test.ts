@@ -185,16 +185,16 @@ describe('les citations — ce qui porte un nom doit le mériter', () => {
   });
 
   it('une maxime sans auteur ne porte AUCUN tiret de signature', () => {
-    // Le garde-fou contre l'attribution glissée dans le texte : « … — Hippocrate »
+    // Le garde-fou contre l'attribution glissée dans le texte : « … · Hippocrate »
     // écrit à la main passerait sous le radar du champ `auteur`.
     for (const c of CITATIONS.filter((x) => !x.auteur)) {
-      expect(formatCitation(c), c.texte).not.toMatch(/—/);
+      expect(formatCitation(c), c.texte).not.toMatch(/·/);
     }
   });
 
   it('la signature s’affiche quand il y en a une', () => {
     const signee = CITATIONS.find((c) => c.auteur)!;
-    expect(formatCitation(signee)).toBe(`${signee.texte} — ${signee.auteur}`);
+    expect(formatCitation(signee)).toBe(`${signee.texte} · ${signee.auteur}`);
     expect(CITATIONS.filter((c) => c.auteur).length).toBeGreaterThanOrEqual(5);
   });
 

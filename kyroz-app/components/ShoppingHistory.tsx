@@ -91,7 +91,7 @@ export function ShoppingHistory({
                   onPress={() => setOuverte(ouvert ? null : tr.at)}
                   activeOpacity={OPACITE_PRESSION}
                   accessibilityRole="button"
-                  accessibilityLabel={`${frDateLongue(tr.date)}, ${tripHeadline(tr)}${ouvert ? ' — replier' : ' — voir le détail'}`}
+                  accessibilityLabel={`${frDateLongue(tr.date)}, ${tripHeadline(tr)}${ouvert ? ', replier' : ', voir le détail'}`}
                 >
                   <View style={s.headTexte}>
                     <Text style={s.date}>{frDateLongue(tr.date)}</Text>
@@ -122,7 +122,7 @@ export function ShoppingHistory({
                     {aConfirmer === tr.at ? (
                       <ConfirmationEnLigne
                         t={t}
-                        question="Retirer ces courses de l'historique ? Ta réserve n'y touche pas — seule la trace disparaît."
+                        question="Retirer ces courses de l'historique ? Ta réserve n'y touche pas : seule la trace disparaît."
                         confirmLabel="Retirer"
                         onCancel={() => setAConfirmer(null)}
                         onConfirm={() => { setAConfirmer(null); onRemove(tr.at); }}

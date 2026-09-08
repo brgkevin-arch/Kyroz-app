@@ -82,7 +82,7 @@ export function OffPlanHistory({
                     accessibilityRole="button"
                     // « du ${date} » donnait « du Aujourd'hui » : le tiret évite
                     // d'avoir à accorder un article avec une date variable.
-                    accessibilityLabel={`Retirer cette ligne — ${frDate(e.date)}`}
+                    accessibilityLabel={`Retirer cette ligne du ${frDate(e.date)}`}
                   >
                     <Ionicons name="close" size={Icone.standard} color={t.textTertiary} />
                   </Presse>
@@ -93,7 +93,7 @@ export function OffPlanHistory({
                 {aConfirmer === i && (
                   <ConfirmationEnLigne
                     t={t}
-                    question={`Retirer cette ligne ? ${frDate(e.date)}${e.label ? ` · ${e.label}` : ''} · +${e.kcal} kcal. Ton plan ne change pas — seule la trace disparaît.`}
+                    question={`Retirer cette ligne ? ${frDate(e.date)}${e.label ? ` · ${e.label}` : ''} · +${e.kcal} kcal. Ton plan ne change pas : seule la trace disparaît.`}
                     confirmLabel="Retirer"
                     onCancel={() => setAConfirmer(null)}
                     onConfirm={() => { setAConfirmer(null); onRemove(i); }}
