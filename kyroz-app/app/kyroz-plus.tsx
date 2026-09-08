@@ -12,7 +12,7 @@ import { useDialog } from '../components/Dialog';
 import { usePremium } from '../hooks/usePremium';
 import { PHOTOS_NOTICE_LOCALE } from '../lib/photos';
 import { PREMIUM_PRICES, annualSavingPct, paywallBanner, withStorePrices, type StorePrices } from '../lib/premium';
-import { buy, fetchStorePrices, purchasesConfigured, restore } from '../lib/purchases';
+import { buy, fetchStorePrices, purchasesConfigured, restore, PURCHASE_BUDGET_MS } from '../lib/purchases';
 import { DISCLAIMER } from '../constants/legal';
 
 // ── Écran Kyroz+ — route racine /kyroz-plus ──────────────────────────────────
@@ -248,12 +248,30 @@ export default function KyrozPlusScreen() {
               <View style={{ marginTop: Spacing.lg, gap: Spacing.md }}>
                 {/* Désactivé tant que la clé RevenueCat n'est pas posée. On le DIT
                     plus bas au lieu de laisser un bouton mort sans explication. */}
+                {/* 🔴 UN LIBELLÉ QUI CHANGE N'EST PAS UN SIGNE DE VIE (2026-09-08, signalé
+                    par le fondateur : « l'abonnement a mis de longues secondes avant de se
+                    mettre, laissant penser que ça ne fonctionnait pas »). Le bouton passait
+                    à « Un instant… » et n'a plus jamais bougé pendant que le store validait
+                    le reçu — un texte figé quinze secondes se lit comme une app plantée, et
+                    c'est très exactement ce que `PrimaryButton` sait éviter : il porte un
+                    `loading` avec son indicateur, employé partout ailleurs, jamais ici.
+                    ⚠️ Mais le seul indicateur ne dit pas COMBIEN de temps. D'où la phrase
+                    en dessous : elle borne l'attente sur la SEULE valeur qu'on tient
+                    vraiment, `PURCHASE_BUDGET_MS` — au-delà, on rend la main. Promettre
+                    une durée qu'on ne contrôle pas serait un mensonge de plus. */}
                 <PrimaryButton
                   t={t}
-                  label={enCours ? 'Un instant…' : "S'abonner"}
+                  label="S'abonner"
+                  loading={enCours}
                   onPress={acheter}
-                  disabled={!encaissable || enCours}
+                  disabled={!encaissable}
                 />
+                {enCours && (
+                  <Text style={s.attente}>
+                    Validation auprès de {store} — jusqu'à {Math.round(PURCHASE_BUDGET_MS / 1000)} secondes.
+                    Tu peux laisser l'app ouverte, Kyroz+ s'active tout seul.
+                  </Text>
+                )}
                 <Presse
                   onPress={restaurer}
                   activeOpacity={OPACITE_PRESSION}
@@ -326,6 +344,7 @@ function makeStyles(t: ThemePalette) {
     briqueCorps: { ...Type.bodySmall, color: t.textSecondary, lineHeight: 21 },
     confid: { ...Type.caption, color: t.textTertiary, lineHeight: 18, marginTop: Spacing.md },
     lienSecondaire: { ...Type.bodySmallStrong, color: t.textSecondary, textAlign: 'center' },
+    attente: { ...Type.caption, color: t.textTertiary, textAlign: 'center', lineHeight: 18 },
     mentions: { ...Type.caption, color: t.textTertiary, lineHeight: 18, marginTop: Spacing.lg },
     disclaimer: { ...Type.micro, color: t.textTertiary, lineHeight: 17, marginTop: Spacing.xxl, borderTopWidth: Trait.fin, borderTopColor: t.line, paddingTop: Spacing.lg },
   });
