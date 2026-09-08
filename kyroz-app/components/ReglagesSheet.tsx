@@ -268,7 +268,7 @@ export function ReglagesSheet({
         <Text style={s.aide}>
           {accentId === 'mono'
             ? 'Monochrome : encre sur fond clair, blanc sur fond sombre.'
-            : `${ACCENTS[accentId].label} — appliqué aux boutons et aux éléments actifs.`}
+            : `${ACCENTS[accentId].label}, appliqué aux boutons et aux éléments actifs.`}
         </Text>
 
         <Text style={s.label}>Suivi d'hydratation</Text>
@@ -338,7 +338,7 @@ export function ReglagesSheet({
                 pas anonyme (synthèse §3.3). */}
             <Text style={s.aide}>
               {analyticsConsent === 'granted'
-                ? 'Tu partages comment tu utilises l’app — écrans ouverts, repas cochés, erreurs. Jamais tes données de santé, ton prénom ni ton e-mail. C’est rattaché à un identifiant pseudonyme tiré sur cet appareil, envoyé à PostHog et stocké sur ses serveurs de Francfort au moins un an.'
+                ? 'Tu partages comment tu utilises l’app : écrans ouverts, repas cochés, erreurs. Jamais tes données de santé, ton prénom ni ton e-mail. C’est rattaché à un identifiant pseudonyme tiré sur cet appareil, envoyé à PostHog et stocké sur ses serveurs de Francfort au moins un an.'
                 : 'Aucune statistique d’usage n’est partagée.'}
             </Text>
           </>

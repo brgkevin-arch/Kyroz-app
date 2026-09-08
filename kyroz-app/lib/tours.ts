@@ -244,7 +244,7 @@ export function profilTour({ objectifDateDisponible }: ProfilTourContext): TourS
       // l'enregistrement d'une pesée, et le « Me peser » de WeightSummaryCard
       // n'apparaît qu'à l'échéance de la cadence choisie.
       title: 'Ta pesée met tout à jour',
-      text: "Note ton poids quand tu veux : tes calories, tes macros et ton plan se recalent dans la foulée. Et si le bouton passe à « Me peser », c'est juste que le moment est venu — rien de plus.",
+      text: "Note ton poids quand tu veux : tes calories, tes macros et ton plan se recalent dans la foulée. Et si le bouton passe à « Me peser », c'est juste que le moment est venu, rien de plus.",
     },
   ];
 }

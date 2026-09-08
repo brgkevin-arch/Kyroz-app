@@ -52,7 +52,7 @@ describe('les deux états de suivi sont rendus de la même façon', () => {
 
   it('la fiche repas sert les mêmes deux phrases, sans signe', () => {
     expect(fiche).toContain("'Marqué comme mangé'");
-    expect(fiche).toContain("'Repas sauté — journée recalée'");
+    expect(fiche).toContain("'Repas sauté, journée recalée'");
   });
 });
 

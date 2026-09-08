@@ -213,7 +213,7 @@ export function canUse(
  */
 export function grandfatheredNotice(reason: AccessReason): string | null {
   return reason === 'grandfathered'
-    ? 'Inclus dans ton compte, à vie — tu étais là avant Kyroz+.'
+    ? 'Inclus dans ton compte, à vie : tu étais là avant Kyroz+.'
     : null;
 }
 
@@ -455,7 +455,7 @@ export function paywallBanner(reason: AccessReason): { title: string; body: stri
       return {
         title: "C'est déjà à toi",
         body:
-          'Inclus dans ton compte, à vie — tu étais là avant Kyroz+. ' +
+          'Inclus dans ton compte, à vie : tu étais là avant Kyroz+. ' +
           "Tu n'as rien à faire, et rien à payer.",
       };
     case 'entitled':
@@ -466,7 +466,7 @@ export function paywallBanner(reason: AccessReason): { title: string; body: stri
     case 'locked':
       return {
         title: 'Piloter ton objectif dans le temps',
-        body: 'Ton plan, tes courses et tes recettes ne changent pas — ils restent gratuits.',
+        body: 'Ton plan, tes courses et tes recettes ne changent pas : ils restent gratuits.',
       };
   }
 }

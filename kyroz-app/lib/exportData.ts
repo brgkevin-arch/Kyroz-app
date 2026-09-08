@@ -25,7 +25,7 @@ export async function buildExport(): Promise<Record<string, unknown>> {
   return {
     app: 'Kyroz',
     exported_at: new Date().toISOString(),
-    note: 'Export de tes données personnelles (RGPD — droit à la portabilité, art. 20).',
+    note: 'Export de tes données personnelles (RGPD, droit à la portabilité, art. 20).',
     data,
   };
 }

@@ -160,7 +160,7 @@ export function MealCard({
               chevauchent au spotlight ne s'expliquent plus l'une l'autre. */}
           <View style={styles.iconGroup}>
             <ActionIcon t={t} name={fav ? 'heart' : 'heart-outline'} active={fav} onPress={() => toggle(meal.recipe.id)} label="J'aime cette recette" />
-            {onDislike && <ActionIcon t={t} name="thumbs-down-outline" onPress={onDislike} label="Je n'aime pas — changer" />}
+            {onDislike && <ActionIcon t={t} name="thumbs-down-outline" onPress={onDislike} label="Je n'aime pas, changer" />}
             {onReload && <ActionIcon t={t} name="refresh" onPress={onReload} label="Changer de recette" />}
           </View>
         </View>

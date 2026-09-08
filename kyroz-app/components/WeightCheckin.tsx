@@ -296,7 +296,7 @@ export function WeightCheckin({ t, onClose, dragHandlers, sheetScrollProps }: Pr
         {saved && (
           <View style={s.confirm}>
             <Text style={s.confirmTitle}>
-              {`✓ ${saved.label} — point ${saved.updated ? 'mis à jour' : 'enregistré'}`}
+              {`✓ ${saved.label}, point ${saved.updated ? 'mis à jour' : 'enregistré'}`}
               {saved.delta != null ? `  ·  ${saved.delta > 0 ? '+' : ''}${frnum(saved.delta)} kg` : ''}
             </Text>
             <Text style={s.confirmSub}>{planStatusMsg(saved.date)}</Text>

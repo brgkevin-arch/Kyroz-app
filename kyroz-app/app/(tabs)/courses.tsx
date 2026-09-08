@@ -168,7 +168,7 @@ export default function CoursesScreen() {
     }
     const ok = await confirm({
       title: `Retirer ${item.name} ?`,
-      message: 'Il quitte ta liste de courses. Ton plan de repas ne change pas — tu le retrouveras en tirant la liste vers le bas.',
+      message: 'Il quitte ta liste de courses. Ton plan de repas ne change pas : tu le retrouveras en tirant la liste vers le bas.',
       confirmLabel: 'Retirer',
       destructive: true,
     });
@@ -689,7 +689,7 @@ export default function CoursesScreen() {
         ListFooterComponent={(
           <Text style={s.footnote}>
             {visibles.some((i) => i.manuel)
-              ? 'Quantités calculées pour tes repas de la semaine — sauf ce que tu as ajouté toi-même.'
+              ? 'Quantités calculées pour tes repas de la semaine, sauf ce que tu as ajouté toi-même.'
               : 'Quantités calculées pour tes repas de la semaine.'}
           </Text>
         )}

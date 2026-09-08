@@ -254,8 +254,8 @@ export default function ReserveScreen() {
                       variable, ce sont deux mots que le français décline différemment
                       selon la phrase. Les écrire en entier, c'est pouvoir les corriger. */}
                   {vue === 'frais'
-                    ? 'Rien au frais pour l\'instant — tout ce que tu as est rangé au sec.'
-                    : 'Rien au sec pour l\'instant — tout ce que tu as est rangé au frais.'}
+                    ? 'Rien au frais pour l\'instant. Tout ce que tu as est rangé au sec.'
+                    : 'Rien au sec pour l\'instant. Tout ce que tu as est rangé au frais.'}
                 </Text>
               </View>
             ) : (
@@ -276,7 +276,7 @@ export default function ReserveScreen() {
                       onPress={() => basculerRayon(g.cat)}
                       activeOpacity={OPACITE_PRESSION}
                       accessibilityRole="button"
-                      accessibilityLabel={`${CATEGORY_LABELS[g.cat]}, ${g.list.length} aliment${g.list.length > 1 ? 's' : ''} — ${ferme ? 'déplier' : 'replier'}`}
+                      accessibilityLabel={`${CATEGORY_LABELS[g.cat]}, ${g.list.length} aliment${g.list.length > 1 ? 's' : ''}, ${ferme ? 'déplier' : 'replier'}`}
                     >
                       <Text style={s.catLabel}>{CATEGORY_LABELS[g.cat].toUpperCase()}</Text>
                       {/* Le compte reste visible RAYON FERMÉ : replié, c'est la seule

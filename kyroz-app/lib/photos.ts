@@ -53,7 +53,7 @@ export const cameraAvailable = Platform.OS !== 'web';
  * et c'était incomplet.
  */
 export const PHOTOS_NOTICE_LOCALE =
-  'Tes photos de progression restent sur ton téléphone, jamais envoyées — et ne sont pas sauvegardées : un changement de téléphone les perd.';
+  'Tes photos de progression restent sur ton téléphone, jamais envoyées, et ne sont pas sauvegardées : un changement de téléphone les perd.';
 
 
 // ── La carte et les OCTETS ne partaient pas ensemble ─────────────────────────

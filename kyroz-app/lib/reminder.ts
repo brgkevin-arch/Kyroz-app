@@ -323,7 +323,7 @@ export const CITATIONS: Citation[] = [
 
 /** Le corps affiché : la citation, suivie de son auteur s'il y en a un. */
 export function formatCitation(c: Citation): string {
-  return c.auteur ? `${c.texte} — ${c.auteur}` : c.texte;
+  return c.auteur ? `${c.texte} · ${c.auteur}` : c.texte;
 }
 
 // ── Une notification demande un GESTE : elle doit y conduire ──────────────────

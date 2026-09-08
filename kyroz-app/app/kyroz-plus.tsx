@@ -57,7 +57,7 @@ const BRIQUES = [
     titre: 'Suivi de transformation',
     corps:
       "Ta courbe de poids avec, par-dessus, la trajectoire visée. Un mot honnête sur ta pente " +
-      "à chaque pesée — un repère, jamais une alarme. Et l'avant/après en photo.",
+      "à chaque pesée : un repère, jamais une alarme. Et l'avant/après en photo.",
   },
 ];
 
@@ -225,7 +225,7 @@ export default function KyrozPlusScreen() {
                 <OptionCard
                   key={p.id}
                   t={t}
-                  title={`${p.label} — ${p.price}`}
+                  title={`${p.label} · ${p.price}`}
                   subtitle={
                     p.id === 'annual' && economie != null
                       ? `${p.billed} Soit ${economie} % de moins que le mensuel.`

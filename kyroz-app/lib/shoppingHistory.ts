@@ -138,7 +138,7 @@ export function tripHeadline(trip: ShoppingTrip): string {
 export function skippedNote(trip: ShoppingTrip): string | null {
   const n = skippedItems(trip).length;
   if (n === 0) return null;
-  return `${n} non pris — resté${n > 1 ? 's' : ''} dans ta liste`;
+  return `${n} non pris, resté${n > 1 ? 's' : ''} dans ta liste`;
 }
 
 /**

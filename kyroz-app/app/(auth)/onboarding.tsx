@@ -440,7 +440,7 @@ export default function Onboarding() {
     // recouvrait la carte qu'il répétait. Le bandeau dit l'ACTION, la carte dit le
     // POURQUOI — et le pourquoi n'a toujours qu'une seule rédaction.
     if (step === 5 && goal === null) return 'Choisis ton objectif pour continuer.';
-    if (step === 5 && objectifBloque) return 'Sèche n\'est pas disponible ici — choisis Maintien, ou un autre objectif.';
+    if (step === 5 && objectifBloque) return 'Sèche n\'est pas disponible ici. Choisis Maintien, ou un autre objectif.';
     if (step === 6 && !preferencesValid) return 'Choisis tes protéines préférées, ou « Peu importe ».';
     if (step === 7 && !mealsValid) return 'Choisis au moins un jour et un repas.';
     return null;

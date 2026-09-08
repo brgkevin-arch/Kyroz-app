@@ -86,7 +86,7 @@ export function DislikedFoodsField({
       {compteBrouillon !== null ? (
         <Text style={{ ...Type.caption, color: compteBrouillon === 0 ? t.textTertiary : t.textSecondary }}>
           {compteBrouillon === 0
-            ? `Aucun ingrédient ne correspond à « ${draft.trim()} » — ce mot n'écartera aucune recette.`
+            ? `Aucun ingrédient ne correspond à « ${draft.trim()} » : ce mot n'écartera aucune recette.`
             : `« ${draft.trim()} » écarte ${compteBrouillon} recette${compteBrouillon > 1 ? 's' : ''} du catalogue.`}
         </Text>
       ) : null}

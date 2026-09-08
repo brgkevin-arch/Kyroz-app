@@ -57,7 +57,7 @@ describe('Historique des courses — ce qui est archivé', () => {
   it('le titre ne compte que ce qui a été pris', () => {
     const tr = tripFromList(liste([art('Riz', 500, true), art('Tofu', 200, false)]), 'x', '2026-08-07');
     expect(tripHeadline(tr)).toBe('1 article');
-    expect(skippedNote(tr)).toBe('1 non pris — resté dans ta liste');
+    expect(skippedNote(tr)).toBe('1 non pris, resté dans ta liste');
   });
 
   it('la note des non-pris se tait quand tout a été pris', () => {
@@ -72,7 +72,7 @@ describe('Historique des courses — ce qui est archivé', () => {
       'x', '2026-08-07',
     );
     expect(tripHeadline(tr)).toBe('2 articles');
-    expect(skippedNote(tr)).toBe('2 non pris — restés dans ta liste');
+    expect(skippedNote(tr)).toBe('2 non pris, restés dans ta liste');
   });
 });
 

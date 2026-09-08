@@ -547,7 +547,7 @@ export default function PlanScreen() {
 
   // Bouclier de série : un jour manqué vient d'être pardonné → on rassure l'utilisateur.
   useEffect(() => {
-    if (froze) { toast('Série protégée — un jour manqué pardonné. Reviens demain'); capture(Events.streakFrozen); clearFroze(); }
+    if (froze) { toast('Série protégée : un jour manqué pardonné. Reviens demain'); capture(Events.streakFrozen); clearFroze(); }
   }, [froze]);
 
   // Persiste un plan modifié + invalide les courses (portions/repas changés) et
@@ -597,7 +597,7 @@ export default function PlanScreen() {
     // se trompe un jour.
     capture(Events.mealCooked, { meal_type: meal.meal_type, auto: false });
     setSelectedMeal(null);
-    toast('✓ Mangé — journée recalée');
+    toast('✓ Mangé, journée recalée');
   };
 
   // ── L'AUTO-COCHE : un repas dont l'heure est passée est réputé mangé ────────
@@ -645,8 +645,8 @@ export default function PlanScreen() {
     // retrait du bouton « Annuler » (2026-08-25), il n'y a plus rien à proposer. Un
     // bandeau qui suggérerait un retour arrière décrirait une app qui n'existe pas.
     toast(dus.length > 1
-      ? `${dus.length} repas cochés — leur heure était passée`
-      : 'Repas coché — son heure était passée');
+      ? `${dus.length} repas cochés, leur heure était passée`
+      : 'Repas coché, son heure était passée');
   }, [plan, profile, repasAuto, idxDuJour]);
 
   // Au montage, à chaque retour sur l'onglet, et au réveil de l'app : les trois
@@ -668,7 +668,7 @@ export default function PlanScreen() {
   const skipMeal = async (meal: Meal) => {
     animerMiseEnPage();
     await setMealStatus(meal, 'skipped');
-    toast('Repas sauté — journée recalée');
+    toast('Repas sauté, journée recalée');
   };
 
   // 🔴 `resetMealStatus` A ÉTÉ RETIRÉ LE 2026-08-25 (décision fondateur : « enlève le
@@ -767,14 +767,14 @@ export default function PlanScreen() {
     const r = await dislikeMealCore(selectedMeal);
     if (r === 'elicit') { setSelectedMeal(null); return; }
     setSelectedMeal(r);
-    toast('C\'est noté — on te change ça');
+    toast('C\'est noté, on te change ça');
   };
 
   // ── Actions directement sur la CARTE (fiche fermée → on ne touche pas selectedMeal) ──
   const reloadMealOnCard = async (meal: Meal) => { await swapMealCore(meal); toast('Recette changée'); };
   const dislikeMealOnCard = async (meal: Meal) => {
     const r = await dislikeMealCore(meal);
-    if (r !== 'elicit') toast('C\'est noté — on te change ça');
+    if (r !== 'elicit') toast('C\'est noté, on te change ça');
   };
 
   // L'utilisateur a nommé l'ingrédient gênant : on l'évite partout (disliked_foods,
@@ -784,7 +784,7 @@ export default function PlanScreen() {
     if (!profile) return;
     await saveProfile(applyDislikedIngredient(profile, kw));
     setDislikeElicit(null);
-    toast('Compris — on évite ça et on te ramène le reste');
+    toast('Compris, on évite ça et on te ramène le reste');
   };
 
   // Met la fiche ouverte à jour après personnalisation (le plan, lui, est
@@ -864,7 +864,7 @@ export default function PlanScreen() {
   // le filtre de temps le 2026-07-29 : elle abaissait le curseur d'un cran sans le
   // moindre garde-fou et pouvait, en un clic, faire tomber le pool de repas à 0.
   const checkinSatisfied = () => { snoozeCheckin(); setCheckinOpen(false); toast('Parfait, on continue'); };
-  const checkinMoreVariety = () => { if (profile) saveProfile({ ...profile, variety: 'max' }); snoozeCheckin(); setCheckinOpen(false); toast('Variété au max — nouveau plan en route'); };
+  const checkinMoreVariety = () => { if (profile) saveProfile({ ...profile, variety: 'max' }); snoozeCheckin(); setCheckinOpen(false); toast('Variété au max, nouveau plan en route'); };
   const checkinNewPlan = () => { snoozeCheckin(); setCheckinOpen(false); generate(true); };
   const checkinAdjustProfile = () => { snoozeCheckin(); setCheckinOpen(false); router.push('/(tabs)/profil'); };
   const checkinOptOut = () => { optOutCheckin(); setCheckinOpen(false); toast('Ok. Réactivable dans Profil.'); };
@@ -1276,7 +1276,7 @@ export default function PlanScreen() {
               <Text style={{ ...Type.bodySmall, color: t.textSecondary, lineHeight: 20 }}>
                 {rentreDansLaCible
                   ? 'Comment tu veux rentrer dans ta cible ? Tes protéines restent pleines dans tous les cas.'
-                  : 'Une seule journée ne peut pas tout reprendre — tes repas restants ont une taille minimale. Voilà ce qu\'on peut faire aujourd\'hui ; le reste ne se rattrape pas, et une journée ne fait pas ta semaine. Tes protéines restent pleines dans tous les cas.'}
+                  : 'Une seule journée ne peut pas tout reprendre : tes repas restants ont une taille minimale. Voilà ce qu\'on peut faire aujourd\'hui ; le reste ne se rattrape pas, et une journée ne fait pas ta semaine. Tes protéines restent pleines dans tous les cas.'}
               </Text>
               {opts.map((o) => (
                 <Presse
