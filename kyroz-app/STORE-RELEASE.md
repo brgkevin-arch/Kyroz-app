@@ -160,7 +160,21 @@ installation neuve part du binaire, donc du (6).
   encore `0639ecc` après la compilation, 0 PR ouverte — le piège du 11 août ne s'est pas
   rejoué). *(Le précédent :)* le **(6)** — `ceec1b17`, commit
   `1047b9f`, terminé le 2026-08-11 à 20 h 37. Il a **62 commits de retard** sur `main` — chiffre RE-MESURÉ le 2026-08-26 (il en annonçait 40, mesurés le 2026-08-23), qui **grandit à chaque merge** : le relire avec `git rev-list --count 1047b9f..origin/main` plutôt que de le recopier (même défaut que le décompte d'OTA tenu à la main).
-- **OTA** : la dernière est la **30ᵉ** (groupe `2f0233ea` pour iOS et groupe `6246f3c9` pour
+- **OTA** : la dernière est la **31ᵉ** (groupe `d519f48f` pour iOS et groupe `2223407e` pour
+  Android, 2026-09-08), publiée sur le commit `b41dd92d` — `main`, arbre propre, aucun
+  astérisque EAS.
+  🔴 **Runtime iOS `5118d1bd…` = le build (20)**, pas le (17). La ligne OTA a été coupée
+  DEUX fois dans la journée, les deux fois par `eas.json` — en retirant les identifiants
+  Apple, puis en les remettant sous forme de références. Un chantier sécurité était donc
+  un geste de LIVRAISON sans que rien ne le dise.
+  ⚠️ Un téléphone resté sur le (17) ne reçoit plus rien. Le (19), construit entre les deux
+  coupures, n'a jamais été téléversé : il est mort-né.
+  ✅ Relevé AVANT/APRÈS, trois PAIRES avec départ ET arrivée : ancien code de revue 1 → 0 /
+  nouveau 0 → 1 ; « 7 septembre 2026 » 1 → 0 / « 8 septembre 2026 » 0 → 1 ; le tiret légal
+  1 → 0 / les parenthèses 0 → 1. Clés 1/1/0.
+  ➡️ Elle confirme que la rotation du code de revue a atteint le BUNDLE, pas seulement la
+  configuration EAS.
+  **La 30ᵉ** (groupe `2f0233ea` pour iOS et groupe `6246f3c9` pour
   Android, 2026-09-08), publiée sur le commit `1acf646b` — `main`, arbre propre, aucun
   astérisque EAS. Runtime iOS `dfe034fd…` = l'empreinte du binaire **(17)**.
   Elle ne porte qu'une chose : le titre d'accueil qui se coupait **une fois sur deux** (#240).
