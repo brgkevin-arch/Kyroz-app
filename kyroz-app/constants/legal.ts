@@ -96,7 +96,7 @@ export const LEGAL = {
    * ⚠️ Ce n'est PAS la date du commit : c'est celle à laquelle le texte devient
    * opposable, donc celle de la livraison. Elle s'arbitre, elle ne se déduit pas.
    */
-  effectiveDate: '7 septembre 2026',
+  effectiveDate: '8 septembre 2026',
 } as const;
 
 export interface LegalSection {
@@ -207,7 +207,7 @@ export const PRIVACY_POLICY: LegalSection[] = [
     title: '5. Destinataires et sous-traitants',
     paragraphs: [
       `Vos données synchronisées sont hébergées par ${LEGAL.host}, sur des serveurs situés en ${LEGAL.hostRegion}.`,
-      `L’envoi des e-mails de service (confirmation d’inscription, réinitialisation de mot de passe) est assuré par ${LEGAL.emailProvider} (${LEGAL.emailProviderLegalName}). Seules votre adresse e-mail et le contenu de ces messages lui sont transmis — aucune donnée de santé.`,
+      `L’envoi des e-mails de service (confirmation d’inscription, réinitialisation de mot de passe) est assuré par ${LEGAL.emailProvider} (${LEGAL.emailProviderLegalName}). Seules votre adresse e-mail et le contenu de ces messages lui sont transmis, à l’exclusion de toute donnée de santé.`,
       `Ces e-mails, ainsi que les journaux d’envoi correspondants, sont stockés par ${LEGAL.emailProvider} ${LEGAL.emailProviderStorage}. Ce transfert hors de l’Union européenne est encadré par les clauses contractuelles types de la Commission européenne et par l’adhésion de ce prestataire au cadre de protection des données UE–États-Unis (EU-U.S. Data Privacy Framework).`,
       `La gestion technique des abonnements Kyroz+ est confiée à ${LEGAL.subscriptionProvider} (${LEGAL.subscriptionProviderCountry}). Dès que vous êtes connecté, que vous soyez abonné ou non, l’identifiant technique de votre compte lui est transmis pour vérifier si un abonnement est actif ; s’y ajoutent, le cas échéant, l’état de votre abonnement et le reçu d’achat émis par l’App Store ou Google Play. Ne lui sont transmis ni votre adresse email, ni vos données de santé, ni aucune coordonnée bancaire.`,
       `Ces données sont stockées ${LEGAL.subscriptionProviderStorage}. Ce transfert hors de l’Union européenne est encadré par les clauses contractuelles types de la Commission européenne.`,
@@ -218,7 +218,7 @@ export const PRIVACY_POLICY: LegalSection[] = [
   {
     title: '6. Hébergement et localisation',
     paragraphs: [
-      `Les données synchronisées — profil, objectif, suivi du poids — sont stockées dans l’Union européenne. Une copie de travail réside localement sur votre appareil (fonctionnement hors-ligne).`,
+      `Les données synchronisées (profil, objectif, suivi du poids) sont stockées dans l’Union européenne. Une copie de travail réside localement sur votre appareil (fonctionnement hors-ligne).`,
       // 🔴 CETTE PHRASE ÉTAIT FAUSSE, et c'est l'audit V1 qui l'a montré (constat 09-02).
       // Elle est ABSOLUE et VÉRIFIABLE — donc c'était la plus exposée de toute la
       // politique. Les données locales (profil, pesées) vivent en clair dans
@@ -275,7 +275,7 @@ export const PRIVACY_POLICY: LegalSection[] = [
     title: '10. Mineurs',
     paragraphs: [
       "Kyroz est réservé aux personnes âgées de 18 ans et plus.",
-      "Votre date de naissance vous est demandée dès la configuration de votre profil, avant tout calcul : en deçà de 18 ans, aucun plan n’est établi et le service ne peut pas être utilisé. La création du compte, elle, ne demande qu’une adresse email et un mot de passe — elle ne vérifie donc pas votre âge.",
+      "Votre date de naissance vous est demandée dès la configuration de votre profil, avant tout calcul : en deçà de 18 ans, aucun plan n’est établi et le service ne peut pas être utilisé. La création du compte, elle, ne demande qu’une adresse email et un mot de passe : elle ne vérifie donc pas votre âge.",
       `Si un compte a été créé par une personne mineure, écrivez à ${LEGAL.dpoEmail} : il sera supprimé, ainsi que les données associées.`,
     ],
   },
@@ -318,7 +318,7 @@ export const TERMS_OF_USE: LegalSection[] = [
   {
     title: '3. Abonnement Kyroz+',
     paragraphs: [
-      "Le cœur du service reste gratuit : plan de la semaine, liste de courses, recettes, réserve, favoris, série, pesée, réglage du rythme de la semaine et synchronisation. Kyroz+ est un abonnement facultatif qui donne accès à des outils complémentaires — objectif daté et suivi de transformation.",
+      "Le cœur du service reste gratuit : plan de la semaine, liste de courses, recettes, réserve, favoris, série, pesée, réglage du rythme de la semaine et synchronisation. Kyroz+ est un abonnement facultatif qui donne accès à des outils complémentaires : objectif daté et suivi de transformation.",
       "L’abonnement est vendu par l’App Store ou Google Play, jamais directement par Kyroz. Le prix affiché au moment de l’achat fait foi. Le paiement, le renouvellement et la résiliation se gèrent dans les réglages de votre compte App Store ou Google Play.",
       "L’abonnement se renouvelle automatiquement à la fin de chaque période, sauf résiliation au moins 24 heures avant l’échéance. Les demandes de remboursement relèvent du store, pas de Kyroz.",
       "Le tarif de votre abonnement est celui affiché au moment où vous souscrivez, et il reste inchangé tant que votre abonnement demeure actif. Une évolution de nos tarifs ne s’applique qu’aux nouvelles souscriptions. En revanche, si vous résiliez puis souscrivez à nouveau plus tard, c’est le tarif en vigueur à cette date qui s’applique.",

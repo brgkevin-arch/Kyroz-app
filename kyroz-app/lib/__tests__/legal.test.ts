@@ -239,7 +239,16 @@ const DERNIERE_REVISION = {
   // ➡️ Elle suit la LIVRAISON : la 26ᵉ OTA de ce jour, et le build (17) qui la porte
   // réellement jusqu'au parc. ⚠️ Si ce build glisse d'un jour, cette date glisse avec
   // lui — c'est exactement le geste que la réserve du 26 août avait déjà décrit.
-  date: '7 septembre 2026',
+  // 🔴 **HUITIÈME RÉVISION — DE LA PONCTUATION, ET RIEN D'AUTRE** (2026-09-08).
+  // Quatre tirets cadratins retirés, sur demande du fondateur (« ça fait beaucoup trop
+  // IA »). Aucune phrase ne change de SENS, aucun engagement n'est ajouté ni retiré.
+  // ⚠️ La date bouge quand même, et c'est volontaire : l'empreinte ne sait pas
+  // distinguer une virgule d'un engagement, et c'est très bien ainsi — un garde-fou qui
+  // trierait lui-même le « cosmétique » du « substantiel » laisserait passer le jour où
+  // on se trompe. Le prix à payer est une date qui avance pour une virgule ; le prix de
+  // l'inverse est un engagement qui passe inaperçu.
+  // ➡️ Ce texte-ci est livré le 8 : 31ᵉ OTA + le binaire qui la suit.
+  date: '8 septembre 2026',
   // ⚠️ **SIXIÈME RÉVISION** (2026-08-27, même jour) : le `DISCLAIMER` disait « l'avis d'un
   // médecin ou diététicien-nutritionniste » quand `lib/methodologie.ts` dit « ou D'UN
   // diététicien-nutritionniste ». Deux variantes d'une phrase OBLIGATOIRE (§6, Apple
@@ -312,7 +321,7 @@ const DERNIERE_REVISION = {
   // d'être déclaré le jour où il ne traite plus, données effacées. C'est la même règle
   // dans l'autre sens ; la garder à sens unique ferait décrire un traitement inexistant.
   // ➡️ La date ne bouge pas — même jour de livraison.
-  empreinte: '69a2771dadba',
+  empreinte: '547e680ee305',
 };
 
 /**

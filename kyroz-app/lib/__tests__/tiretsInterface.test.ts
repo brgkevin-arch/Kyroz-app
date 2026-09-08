@@ -35,13 +35,14 @@ const TOLERE: Record<string, { combien: number; pourquoi: string }> = {
     combien: 1,
     pourquoi: 'le tiret SEUL de la colonne « écart » : il ne remplace pas une conjonction, il dit « pas de valeur »',
   },
-  'constants/legal.ts': {
-    combien: 4,
-    pourquoi:
-      'textes légaux — les toucher déplace l’empreinte de `legal.test.ts` ET impose de ré-arbitrer la date '
-      + 'd’entrée en vigueur. Une virgule ne vaut pas de faire croire que les conditions ont changé ce jour-là. '
-      + 'À traiter à part, le jour où le texte bouge pour une vraie raison.',
-  },
+  // 🔴 `constants/legal.ts` A QUITTÉ CETTE LISTE LE 2026-09-08, quelques heures après
+  // y être entré. L'exception disait « à traiter à part, le jour où le texte bouge pour
+  // une vraie raison » ; le fondateur a tranché le jour même. Les quatre tirets sont
+  // partis, la date d'entrée en vigueur a suivi la livraison (8 septembre), l'empreinte
+  // a été reportée et les TROIS miroirs régénérés — app, markdown, et le site public,
+  // qui affichait encore le 27 août.
+  // ⚠️ Une exception qui n'a plus d'objet ne se garde pas « au cas où » : elle rouvre en
+  // silence la porte qu'elle décrivait. C'est ce test qui l'a signalé, en comptant.
 };
 
 const sansCommentaires = (src: string) =>
