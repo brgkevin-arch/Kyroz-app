@@ -240,6 +240,52 @@ import type { StorePrices } from './premium';
  * Renvoie `{}` si on est dormant ou si l'offre n'est pas encore publiée — l'appelant
  * retombe alors sur les tarifs de repli, et l'écran DIT que c'en sont.
  */
+/**
+ * Les produits déjà rapportés par `fetchStorePrices`, rangés par identifiant.
+ *
+ * 🔴 **POURQUOI CE CACHE EXISTE — ET LA RAISON N'EST PAS LA VITESSE** (2026-09-08,
+ * après un signalement du fondateur : « l'abonnement a mis de longues secondes avant
+ * de se mettre, laissant penser que ça ne fonctionnait pas »).
+ *
+ * `buy()` rappelait `getProducts` pour retrouver le produit à acheter, alors que
+ * l'écran venait de le rapporter pour AFFICHER SON PRIX. Deux conséquences :
+ *  · un aller-retour StoreKit s'insérait entre le tap et l'ouverture de la feuille —
+ *    la fenêtre exacte où l'utilisateur ne voit rien se passer ;
+ *  · et surtout **rien ne garantissait que le produit acheté soit celui dont le prix
+ *    est à l'écran**. Deux appels, deux réponses, potentiellement deux prix. La règle
+ *    « un chiffre affiché est celui qui sera servi » (CLAUDE.md §10) vaut ici comme
+ *    ailleurs, et elle vaut sur de l'ARGENT.
+ * ➡️ On achète donc l'objet PRODUIT qui a servi à écrire le prix, et le repli reste
+ *    en place pour le cas où l'écran n'aurait rien pu rapporter.
+ */
+const produitsVus = new Map<string, unknown>();
+
+/** Le produit dont le prix est affiché, s'il a été rapporté. Testable sans le SDK. */
+export function produitVu(id: string): unknown | undefined {
+  return produitsVus.get(id);
+}
+
+/** ⚠️ Réservé aux tests : le cache est un état de module, il doit pouvoir repartir. */
+export function oublierProduitsVus(): void {
+  produitsVus.clear();
+}
+
+/**
+ * Lequel des deux produits achète-t-on ? Extraite en fonction PURE — comme
+ * `avecBudget` et `applyIdentity` — parce que le SDK est natif et que vitest ne
+ * peut pas le charger : sans elle, la PRIORITÉ (le produit vu d'abord) ne serait
+ * vérifiable que par une expression régulière sur la source.
+ *
+ * ⚠️ L'ordre est l'invariant : le produit VU gagne. L'inverser rendrait le cache
+ * décoratif — il serait rempli, jamais lu, et le prix affiché pourrait de nouveau
+ * différer de celui débité.
+ */
+export function choisirProduit<T extends { identifier: string }>(
+  id: string, vu: T | undefined, rapportes: readonly T[],
+): T | undefined {
+  return vu ?? rapportes.find((p) => p.identifier === id);
+}
+
 export async function fetchStorePrices(ids: { monthly: string; annual: string }): Promise<StorePrices> {
   const sdk = await configurePurchases();
   if (!sdk) return {};
@@ -251,6 +297,7 @@ export async function fetchStorePrices(ids: { monthly: string; annual: string })
       // qui garantit que la mensualité dérivée parle de la même monnaie que le prix
       // affiché juste au-dessus (cf. `mensualiteEquivalente`).
       const servi = { priceString: p.priceString, montant: p.price, devise: p.currencyCode };
+      produitsVus.set(p.identifier, p);
       if (p.identifier === ids.monthly) prix.monthly = servi;
       if (p.identifier === ids.annual) prix.annual = servi;
     }
@@ -309,8 +356,15 @@ export async function buy(storeProductId: string): Promise<PurchaseOutcome> {
   if (!sdk) return { statut: 'indisponible' };
   const tentative = (async (): Promise<PurchaseOutcome> => {
     try {
-      const produits = await sdk.default.getProducts([storeProductId]);
-      const produit = produits.find((p) => p.identifier === storeProductId);
+      // Le produit dont le prix est à l'écran, s'il existe — sinon on le demande,
+      // comme avant. Cf. `produitsVus` : c'est une garantie de cohérence du PRIX
+      // avant d'être un gain de temps.
+      type Produit = Awaited<ReturnType<typeof sdk.default.getProducts>>[number];
+      const vu = produitVu(storeProductId) as Produit | undefined;
+      // ⚠️ On ne demande le catalogue QUE si rien n'a été vu : c'est l'aller-retour
+      // qu'on retire du chemin critique, entre le tap et l'ouverture de la feuille.
+      const rapportes = vu ? [] : await sdk.default.getProducts([storeProductId]);
+      const produit = choisirProduit<Produit>(storeProductId, vu, rapportes);
       if (!produit) return { statut: 'indisponible' };
       const { customerInfo } = await sdk.default.purchaseStoreProduct(produit);
       return { statut: 'ok', entitled: customerInfo.entitlements.active[ENTITLEMENT_ID] !== undefined };
