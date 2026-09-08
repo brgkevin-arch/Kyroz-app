@@ -269,7 +269,19 @@ installation neuve part du binaire, donc du (6).
 
 1. ✅ **Code figé et build (7) fait** — le 2026-08-27, sur décision du fondateur. Un seul
    build, comme prévu. *(Les deux étapes précédentes de cette liste sont closes.)*
-2. 🤖 **Téléverser le (7) chez Apple** — `eas submit --platform ios --profile production`.
+2. 🤖 **Téléverser chez Apple** — `eas submit --platform ios --profile production`.
+   🔴 **DEPUIS LE 2026-09-08, LA COMMANDE COMMENCE PAR UNE AUTRE** : `eas.json` ne porte
+   plus `ascApiKeyId`, `ascApiKeyIssuerId` ni `ascApiKeyPath` — ce dépôt est PUBLIC. Les
+   trois vivent dans `~/.eas-credentials/asc.env`, sous les noms que l'eas-cli lit
+   lui-même. Une soumission s'ouvre donc par :
+   ```
+   set -a; . ~/.eas-credentials/asc.env; set +a
+   ```
+   ⚠️ Sans ça, `eas submit --non-interactive` échoue faute de credentials — et il échoue
+   APRÈS avoir téléversé l'archive, donc tard. Garde-fou : `lib/__tests__/easEnv.test.ts`.
+   ⚠️ Le `.p8` n'a JAMAIS été dans le dépôt : un identifiant de clé et un issuer ID
+   n'ouvrent rien sans lui. Les retirer ne réécrit pas l'histoire non plus — seule une
+   révocation dans App Store Connect ferme complètement, et c'est un geste humain.
    `eas build` ne le fait PAS. 🔴 **Et c'est à CETTE étape qu'on surveille la boîte mail de
    l'Apple ID, pas App Store Connect** : un refus `ITMS-90111` n'apparaît ni dans l'interface
    ni dans son API, et un binaire peut être `VALID` / `APP_STORE_ELIGIBLE` au téléversement
