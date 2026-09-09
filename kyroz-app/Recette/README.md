@@ -5,6 +5,7 @@ Recette/
 ├── recettes-kyroz.json          ← LE CATALOGUE LIVE (importé par lib/recipeData.ts) — 512 recettes
 ├── README.md                    ← ce fichier
 ├── BRIEF-GENERATION-RECETTES.md ← la SPEC : mesures, enveloppes, raisonnement. Ne pas transmettre tel quel.
+├── PLAN-REECRITURE-INSTRUCTIONS.md ← chantier des recettes MUETTES : mesure, lots L1→L6, pièges. L1 livré.
 ├── lots/                        ← la COMMANDE, générée (npm run gen:lots). Un fichier = une conversation.
 │   └── annexe-collations-existantes.md
 └── drops/                       ← livraisons brutes REÇUES (archives, JAMAIS importées par le code)
@@ -140,6 +141,13 @@ fichiers de `lots/` en sont la projection opérationnelle.
      `restrictions_ok` est **dérivé**, jamais écrit dans la recette.
 3. **Compteurs de test** : `recipeMap.test.ts`, `recipes.test.ts`, `recipeData.test.ts` (`toHaveLength(N)`).
 4. **`ENGINE_VERSION`** (`lib/planEngine.ts`) → +1, sinon les plans en cache ignorent les nouvelles recettes.
+   ⚠️ **Mais un changement de TEXTE seul ne bumpe pas** (précédent du 2026-09-09, lot L1 des
+   instructions muettes). Rien ne change dans l'assiette — ni composition, ni macros, ni
+   sélection — et bumper régénérerait la semaine de tout le monde, suivi du jour compris, pour
+   des phrases. L'écran Plan rafraîchit déjà la copie de recette d'un plan en cache quand elle
+   diffère du catalogue (`sameRecipe` → `reAdaptMealRecipe`, `app/(tabs)/plan.tsx`). ⚠️ Ce
+   rafraîchissement comparait le **nombre** d'étapes et non leur texte : une recette réécrite au
+   même nombre d'étapes n'atteignait jamais un plan en cache. Corrigé le 2026-09-09.
 5. `npm test` puis `npx tsc --noEmit`.
 6. `npm run mesure:couverture` → vérité terrain sur 12 profils (règle R8),
    `npm run mesure:seuils` → distribution R8 du catalogue LIVE créneau par créneau
@@ -156,6 +164,14 @@ fichiers de `lots/` en sont la projection opérationnelle.
    Aucun des deux n'aurait montré qu'une femme de 55 kg en sèche, vegan et sans gluten,
    dispose de **3 collations sur 86**. Il imprime aussi le nombre de FAMILLES distinctes par
    cellule : dix recettes du même couple ne font pas dix repas différents.
+   ⚠️ `npm run mesure:instructions` mesure une QUATRIÈME chose : la qualité du TEXTE, que
+   tous les contrôles précédents ignorent. Une recette peut tenir toutes les enveloppes,
+   n'avoir aucun doublon, servir tous les profils — et dire « Cuire le riz. » pour seule
+   consigne. Mesuré le 2026-09-09 : **139 recettes sur 512 demandent une cuisson et n'en
+   donnent aucun repère**, portant 15,7 % des repas servis. Le chantier, ses lots et son
+   garde-fou vivent dans `PLAN-REECRITURE-INSTRUCTIONS.md`.
+   ⚠️ Et ce n'est PAS le « nombre d'étapes » : cet indicateur accuse 68 assemblages à froid
+   qui sont complets en deux phrases, et rate 37 recettes bavardes mais muettes.
    *(L'ancienne étape « `npm run gen:validation` → dossier diététicienne » a disparu le
    2026-07-30 : la validation diététicienne est écartée (`CLAUDE.md` §6), le script est
    supprimé et le dossier figé dans `docs/archive/2026-07-29-validation-recettes.md`.)*
@@ -171,6 +187,10 @@ fichiers de `lots/` en sont la projection opérationnelle.
 - **Similarité** (`doublons.test.ts`) : cliquet sur les paires trop proches — Jaccard des `ref`,
   refs communs, triplet (catégorie, protéine, féculent), noms. Les compteurs actuels sont des
   plafonds : une vague qui les fait monter casse `npm test`. Les baisser après nettoyage est attendu.
+- **Recettes muettes** (`instructionsMuettes.test.ts`) : cliquet sur les recettes qui demandent une
+  cuisson (déduite des `basis`, pas du texte) sans donner ni durée, ni température, ni repère
+  sensoriel. Plus une règle ABSOLUE : **aucune recette d'une vague `2026-08*` ou postérieure ne
+  peut être muette** — le cliquet garde l'ancien, la règle verrouille le neuf.
 
 ## Conventions de contenu
 
