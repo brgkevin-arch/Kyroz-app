@@ -36,6 +36,14 @@ pour un ajout, sinon un plan en cache sert l'ancienne recette sous le nouveau no
 Conséquence sur la partition de `recipeData.test.ts` : les vagues d'origine PERDENT les
 recettes reprises (`fondation` 100 → 92, etc.), le total ne bouge pas.
 
+ℹ️ **Un simple RENOMMAGE ne bump PAS `ENGINE_VERSION`** (tranché le 2026-09-09, 9 titres
+corrigés). La composition, les macros et la sélection sont identiques : bumper régénérerait
+la semaine de tout le monde — et le suivi du jour avec — pour neuf chaînes de caractères.
+⚠️ Le prix est réel et il faut le connaître : `Meal.recipe` est une COPIE de la recette, donc
+un plan déjà en cache garde l'ancien titre jusqu'à sa prochaine génération. Le catalogue, lui
+(onglet Recettes, tout nouveau plan), dit la vérité immédiatement. C'est le seul cas où l'on
+accepte l'écart, parce que rien dans l'assiette ne change.
+
 ℹ️ **Un brief disparaît de `lots/` dès que son lot est livré**, et c'est volontaire
 (2026-08-01) : les huit premiers lots — `b2`, `b1-lot1` à `b1-lot4`, `b3`, `b4-repas`, `b4-pdej` —
 sont mergés, donc leurs ids sont pris. Un brief qui les recommanderait serait une commande

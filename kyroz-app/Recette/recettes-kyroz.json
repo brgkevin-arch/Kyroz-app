@@ -7051,7 +7051,7 @@
     },
     {
       "id": "rep55",
-      "name": "Saumon – riz complet – brocoli – sésame",
+      "name": "Saumon – riz complet – brocoli – graines de courge",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -8086,7 +8086,7 @@
     },
     {
       "id": "pd33",
-      "name": "Smoothie bowl protéine pois – mangue – coco",
+      "name": "Smoothie bowl protéine pois – mangue – chia",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -8556,7 +8556,7 @@
     },
     {
       "id": "pd41",
-      "name": "Tartines beurre cacahuète – banane – chia",
+      "name": "Tartines beurre cacahuète – banane – yaourt soja",
       "category": "petit_dej",
       "tags": {
         "objectif": [
@@ -9047,7 +9047,7 @@
     },
     {
       "id": "col26",
-      "name": "Shake yaourt soja – banane – cacao",
+      "name": "Shake yaourt soja – banane – cacahuète",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -10150,7 +10150,7 @@
     },
     {
       "id": "rep63",
-      "name": "Pâtes – thon – citron – câpres",
+      "name": "Pâtes complètes – thon – tomate",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -10447,7 +10447,7 @@
     },
     {
       "id": "rep68",
-      "name": "Nouilles de riz – tofu – sésame – brocoli",
+      "name": "Nouilles de riz – tofu – brocoli – lait de coco",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -11303,7 +11303,7 @@
     },
     {
       "id": "rep83",
-      "name": "Riz – poulet – ananas – cajou",
+      "name": "Riz – poulet – ananas – poivron",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -13443,7 +13443,7 @@
     },
     {
       "id": "rep119",
-      "name": "Tacos poisson – chou – citron vert",
+      "name": "Tacos poisson – chou-fleur – avocat",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -13483,7 +13483,7 @@
       ],
       "instructions": [
         "Poêler le cabillaud épicé.",
-        "Garnir les tortillas de poisson, chou émincé et avocat."
+        "Garnir les tortillas de poisson, chou-fleur émincé et avocat."
       ],
       "why": "Pescatarien : fish tacos, poisson maigre + bons lipides.",
       "macros_per_serving": {
@@ -14082,7 +14082,7 @@
     },
     {
       "id": "rep130",
-      "name": "Nouilles de riz – bœuf – brocoli – sésame",
+      "name": "Nouilles de riz – bœuf – brocoli",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -14123,7 +14123,7 @@
       ],
       "instructions": [
         "Cuire les nouilles.",
-        "Saisir le bœuf, sauter avec brocoli et sésame, mélanger."
+        "Saisir le bœuf, sauter avec le brocoli, mélanger."
       ],
       "why": "Muscu sans gluten : sauté riche en fer, capacité élevée.",
       "macros_per_serving": {
