@@ -39,10 +39,17 @@ recettes reprises (`fondation` 100 → 92, etc.), le total ne bouge pas.
 ℹ️ **Un simple RENOMMAGE ne bump PAS `ENGINE_VERSION`** (tranché le 2026-09-09, 9 titres
 corrigés). La composition, les macros et la sélection sont identiques : bumper régénérerait
 la semaine de tout le monde — et le suivi du jour avec — pour neuf chaînes de caractères.
-⚠️ Le prix est réel et il faut le connaître : `Meal.recipe` est une COPIE de la recette, donc
-un plan déjà en cache garde l'ancien titre jusqu'à sa prochaine génération. Le catalogue, lui
-(onglet Recettes, tout nouveau plan), dit la vérité immédiatement. C'est le seul cas où l'on
-accepte l'écart, parce que rien dans l'assiette ne change.
+⚠️ **La phrase qui était ici était FAUSSE et a tenu une demi-journée** : « un plan déjà en
+cache garde l'ancien titre jusqu'à sa prochaine génération ». Non. `Meal.recipe` est bien une
+COPIE, mais l'écran Plan la RAFRAÎCHIT à chaque montage quand elle diffère du catalogue
+(`sameRecipe` → `reAdaptMealRecipe`, `app/(tabs)/plan.tsx`), et `sameRecipe` compare `name_fr`.
+Un titre corrigé atteint donc un plan en cache tout seul, sans régénérer la semaine de
+personne. Ne pas bumper reste le bon choix — mais pour cette raison-là, pas pour un prix
+qu'on aurait payé.
+⚠️ Ce qui a produit l'erreur mérite d'être retenu : le champ existe dans le plan enregistré,
+donc j'ai conclu que le plan servait la copie. Personne n'avait mesuré le chemin qui la
+remet à jour. Une COPIE n'est périmée que si rien ne la rafraîchit — chercher le
+rafraîchissement AVANT d'annoncer un écart à l'utilisateur.
 
 ℹ️ **Un brief disparaît de `lots/` dès que son lot est livré**, et c'est volontaire
 (2026-08-01) : les huit premiers lots — `b2`, `b1-lot1` à `b1-lot4`, `b3`, `b4-repas`, `b4-pdej` —
