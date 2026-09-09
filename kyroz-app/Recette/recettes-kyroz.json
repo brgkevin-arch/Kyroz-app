@@ -10,7 +10,7 @@
       "scalable": "true = quantité ajustable par l'algo ; false = fixe (légumes)"
     },
     "priorite_sport": "Muscu prioritaire, puis Endurance, peu de Combats (cf. distribution).",
-    "corrections_kyroz": "rep57 +8g huile_olive (équilibre lipidique). | 2026-07-29 : sauce_soja déclarée dans rep05/rep46/rep80 (citée en instruction, invisible du dérivé régime) ; levure_maltee + falafel + pesto ajoutés à recipeDiet.VIOLATIONS ; why de rep80/pd52/pd77/rep152/rep155 : « sans gluten » retiré (devenu faux) ; +9 ingrédients (légumineuses prêtes à consommer, tofu fumé, falafel, tahini, boisson soja, pain/wrap sans gluten). recomp_flag SUPPRIMÉ (champ mort : aucun code ne le lisait, et il marquait 5 recettes quand ~40 avaient une densité protéique équivalente ou pire). | yaourt_grec DÉMAPPÉ de ciqual-19860 (« yaourt à la grecque » = dessert à 3 g de protéines, pas un grec égoutté à 9 g) → valeur manuelle, comme skyr ; nom précisé « égoutté (type Fage) » ; macro_role dairy→protein sur pd10/col07/col17, où le yaourt est la seule source de protéines. | 8 recettes sans ancre protéine (pd02/pd06/pd08/pd15/col01/col03/col13/col19) : le laitier qui porte 58 à 89 % de leurs protéines passe de dairy à protein. | Nettoyage des doublons 2026-07-29 : 7 clones stricts et 2 noms identiques différenciés (rep37 tajine aux olives, rep64 papillote, rep165 pho sans mélange wok, col64 houmous, col50/col65 edamame distincts, pd38 tartine de seigle, col45 pudding framboise) — aucune suppression. | 2026-08-03 : les 47 recettes qui pesaient une légumineuse à cuisson longue au poids SEC tout en la cuisinant en moins de 40 min. 44 passent sur un `ref` prêt à consommer (quantité × le rendement de cuisson : ×2,4 pois chiches, ×2,5 haricots et lentilles), instructions réécrites (« égoutte et rince » au lieu de « cuis »). 3 gardent la pesée sèche parce que la cuisson longue EST le plat et qu’aucune ne demande de trempage (rep107, rep108, rep112) : seul leur `temps_min` était faux, il passe à 50 min. +2 `ref` : haricots_blancs_conserve (Ciqual 20511) et haricots_noirs_conserve (déduit du rapport sec→appertisé du haricot rouge, Ciqual n’ayant pas d’entrée pour le haricot noir). | 2026-08-03 (2) : `tags.objectif` et `tags.sport` RECALCULÉS mécaniquement depuis les macros du moteur, pour les 512 recettes — ils sont AFFICHÉS sur la fiche et 192 (objectif) et 116 (endurance) contredisaient les calories de leur propre recette. `recup_jour_repos` SUPPRIMÉ des 512 : champ mort depuis le 2026-07-29 (le jour de repos agit sur la cible, pas par un tag), faux sur 152 recettes sans que personne puisse le voir — même sort que `recomp_flag`.",
+    "corrections_kyroz": "rep57 +8g huile_olive (équilibre lipidique). | 2026-07-29 : sauce_soja déclarée dans rep05/rep46/rep80 (citée en instruction, invisible du dérivé régime) ; levure_maltee + falafel + pesto ajoutés à recipeDiet.VIOLATIONS ; why de rep80/pd52/pd77/rep152/rep155 : « sans gluten » retiré (devenu faux) ; +9 ingrédients (légumineuses prêtes à consommer, tofu fumé, falafel, tahini, boisson soja, pain/wrap sans gluten). recomp_flag SUPPRIMÉ (champ mort : aucun code ne le lisait, et il marquait 5 recettes quand ~40 avaient une densité protéique équivalente ou pire). | yaourt_grec DÉMAPPÉ de ciqual-19860 (« yaourt à la grecque » = dessert à 3 g de protéines, pas un grec égoutté à 9 g) → valeur manuelle, comme skyr ; nom précisé « égoutté (type Fage) » ; macro_role dairy→protein sur pd10/col07/col17, où le yaourt est la seule source de protéines. | 8 recettes sans ancre protéine (pd02/pd06/pd08/pd15/col01/col03/col13/col19) : le laitier qui porte 58 à 89 % de leurs protéines passe de dairy à protein. | Nettoyage des doublons 2026-07-29 : 7 clones stricts et 2 noms identiques différenciés (rep37 tajine aux olives, rep64 papillote, rep165 pho sans mélange wok, col64 houmous, col50/col65 edamame distincts, pd38 tartine de seigle, col45 pudding framboise) — aucune suppression. | 2026-08-03 : les 47 recettes qui pesaient une légumineuse à cuisson longue au poids SEC tout en la cuisinant en moins de 40 min. 44 passent sur un `ref` prêt à consommer (quantité × le rendement de cuisson : ×2,4 pois chiches, ×2,5 haricots et lentilles), instructions réécrites (« égoutte et rince » au lieu de « cuis »). 3 gardent la pesée sèche parce que la cuisson longue EST le plat et qu’aucune ne demande de trempage (rep107, rep108, rep112) : seul leur `temps_min` était faux, il passe à 50 min. +2 `ref` : haricots_blancs_conserve (Ciqual 20511) et haricots_noirs_conserve (déduit du rapport sec→appertisé du haricot rouge, Ciqual n’ayant pas d’entrée pour le haricot noir). | 2026-08-03 (2) : `tags.objectif` et `tags.sport` RECALCULÉS mécaniquement depuis les macros du moteur, pour les 512 recettes — ils sont AFFICHÉS sur la fiche et 192 (objectif) et 116 (endurance) contredisaient les calories de leur propre recette. `recup_jour_repos` SUPPRIMÉ des 512 : champ mort depuis le 2026-07-29 (le jour de repos agit sur la cible, pas par un tag), faux sur 152 recettes sans que personne puisse le voir — même sort que `recomp_flag`. | 2026-09-09 : 17 recettes citaient dans leurs INSTRUCTIONS une denrée que la recette ne fournit pas — bouillon (rep47, rep122, rep126, rep153, rep154, rep155, rep156), miso (rep47), sauce teriyaki (rep50, rep73, rep147), vinaigrette (rep109, rep140, rep160), yaourt (rep139), granola (col13), croûtons (rep112), compote (col54). Toutes réécrites SANS toucher aux ingrédients : la denrée manquante est remplacée par ce que la recette sert vraiment. 3 noms suivent (rep47 « Soupe miso » → « Soupe japonaise », rep73 et rep147 perdent « teriyaki ») parce qu'ils promettaient la denrée retirée. Aucune macro ne bouge, donc pas de bump d'ENGINE_VERSION. Verrouillé par lib/__tests__/ingredientsCites.test.ts.",
     "waves": {
       "role": "Vague de livraison d'origine de chaque recette (champ `wave`). Rétro-rempli le 2026-07-29 depuis les dossiers de Recette/drops/ ; « fondation » = le lot initial, antérieur aux drops.",
       "valeurs": {
@@ -3306,7 +3306,7 @@
         "sport": [
           "muscu"
         ],
-        "temps_min": 3
+        "temps_min": 8
       },
       "base_servings": 1,
       "ingredients": [
@@ -3336,8 +3336,9 @@
         }
       ],
       "instructions": [
+        "Fais griller les flocons d'avoine et les graines de courge 4 minutes à sec dans une poêle, en remuant : c'est ce qui fait le granola.",
         "Verse le skyr.",
-        "Ajoute granola, mangue, graines."
+        "Ajoute le granola tiède et la mangue en dés."
       ],
       "why": "Muscu maintien : protéines élevées, sucres des fruits, simple.",
       "macros_per_serving": {
@@ -6549,7 +6550,7 @@
     },
     {
       "id": "rep47",
-      "name": "Soupe miso – tofu – nouilles – edamame",
+      "name": "Soupe japonaise – tofu – nouilles – edamame",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -6601,7 +6602,7 @@
         }
       ],
       "instructions": [
-        "Chauffe un bouillon miso.",
+        "Porte 400 ml d'eau à frémissement avec la sauce soja.",
         "Ajoute nouilles + légumes.",
         "Tofu et edamame en fin.",
         "Ajoute l'avocat en lamelles."
@@ -6786,7 +6787,7 @@
       ],
       "instructions": [
         "Cuis le riz.",
-        "Glace le tempeh à la sauce teriyaki.",
+        "Glace le tempeh à la sauce soja, à feu vif, jusqu'à ce qu'elle nappe et brille.",
         "Brocoli vapeur, assemble."
       ],
       "why": "Muscu/endurance prise de masse végétal : protéine complète, glucides.",
@@ -10728,7 +10729,7 @@
     },
     {
       "id": "rep73",
-      "name": "Riz complet – poulet teriyaki – brocoli",
+      "name": "Riz complet – poulet grillé – brocoli",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -10769,7 +10770,7 @@
       ],
       "instructions": [
         "Cuire le riz.",
-        "Glacer le poulet à la sauce teriyaki, servir avec brocoli vapeur."
+        "Griller le poulet à l'huile d'olive jusqu'à ce qu'il soit doré, servir avec brocoli vapeur."
       ],
       "why": "Muscu : sans gluten, protéines maigres, capacité solide.",
       "macros_per_serving": {
@@ -12887,7 +12888,7 @@
       ],
       "instructions": [
         "Rince les lentilles cuites et laisse-les s’égoutter.",
-        "Mélange avec la feta, la tomate, le concombre et la vinaigrette."
+        "Mélange avec la feta, la tomate et le concombre, assaisonne d’huile d’olive, de vinaigre et de poivre."
       ],
       "why": "Végétarien sans gluten : froid, protéiné, fibres et fraîcheur.",
       "macros_per_serving": {
@@ -13073,7 +13074,7 @@
       ],
       "instructions": [
         "Mijote les pois cassés avec la carotte et l’oignon 45 min à couvert, sans trempage, puis mixe.",
-        "Sers avec les croûtons et les graines de courge."
+        "Taille le pain complet en cubes, fais-les dorer à sec dans une poêle, et sers-les sur la soupe avec les graines de courge."
       ],
       "why": "Vegan combats : velouté-repas dense en protéines, peu de lipides.",
       "macros_per_serving": {
@@ -13668,7 +13669,7 @@
       ],
       "instructions": [
         "Cuis la semoule.",
-        "Égoutte et rince les pois chiches, mijote-les avec le poulet et les légumes en bouillon épicé."
+        "Égoutte et rince les pois chiches, mijote-les 12 min avec le poulet et les légumes dans un fond d'eau salée et épicée : les légumes rendent leur jus et le lient."
       ],
       "why": "Muscu : couscous complet, double protéine, capacité haute.",
       "macros_per_serving": {
@@ -13908,7 +13909,7 @@
       ],
       "instructions": [
         "Cuis la semoule.",
-        "Égoutte et rince les pois chiches, mijote-les avec la PST et les légumes en bouillon."
+        "Égoutte et rince les pois chiches, mijote-les 12 min avec la PST et les légumes dans un fond d'eau salée et épicée : les légumes rendent leur jus et le lient."
       ],
       "why": "Vegan endurance : couscous complet, capacité protéique élevée.",
       "macros_per_serving": {
@@ -14641,7 +14642,7 @@
       ],
       "instructions": [
         "Cuire le quinoa.",
-        "Mélanger salade, poulet grillé, quinoa, parmesan et sauce yaourt-citron."
+        "Mélanger salade, poulet grillé et quinoa, assaisonner d'huile d'olive et de jus de citron, finir au parmesan râpé."
       ],
       "why": "Muscu sans gluten : César revisitée, protéinée et fraîche.",
       "macros_per_serving": {
@@ -14701,7 +14702,7 @@
       ],
       "instructions": [
         "Cuire le riz, refroidir.",
-        "Mélanger thon, œuf dur, maïs et vinaigrette légère."
+        "Mélanger thon, œuf dur et maïs, assaisonner d'huile d'olive, de vinaigre et de poivre."
       ],
       "why": "Pescatarien sans gluten : salade complète à emporter, double protéine.",
       "macros_per_serving": {
@@ -16389,7 +16390,7 @@
         }
       ],
       "instructions": [
-        "Mélanger compote de pomme et chia.",
+        "Couper la pomme en dés, la cuire 3 min à couvert au micro-ondes, l'écraser à la fourchette et mélanger au chia.",
         "Ajouter les noix concassées, servir avec le yaourt de soja."
       ],
       "why": "Vegan & sans gluten : léger, fibres et oméga-3.",
@@ -16403,7 +16404,7 @@
     },
     {
       "id": "rep147",
-      "name": "Riz – soja_texture teriyaki – edamame – brocoli",
+      "name": "Riz – PST sautée – edamame – brocoli",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -16450,7 +16451,7 @@
       ],
       "instructions": [
         "Cuire le riz, réhydrater la PST.",
-        "Laquer la PST teriyaki, sauter avec edamame et brocoli."
+        "Sauter la PST à l'huile d'olive avec edamame et brocoli, jusqu'à ce qu'elle dore."
       ],
       "why": "Vegan & sans gluten : double ancre (PST + edamame), forte capacité protéique.",
       "macros_per_serving": {
@@ -18590,7 +18591,7 @@
         }
       ],
       "instructions": [
-        "Nacrer le riz, mouiller au bouillon louche par louche.",
+        "Nacrer le riz, puis mouiller à l'eau chaude salée, louche par louche, en attendant que chaque louche soit absorbée.",
         "Ajouter poulet et champignons poêlés, finir au parmesan."
       ],
       "why": "Sans gluten : risotto protéiné, capacité élevée pour la masse.",
@@ -18643,7 +18644,7 @@
         }
       ],
       "instructions": [
-        "Nacrer le riz, mouiller au bouillon progressivement.",
+        "Nacrer le riz, puis mouiller progressivement à l'eau chaude salée, louche par louche.",
         "Ajouter crevettes et courgette, finir au citron."
       ],
       "why": "Pescatarien sans gluten : protéiné, lipides maîtrisés.",
@@ -18703,7 +18704,7 @@
         }
       ],
       "instructions": [
-        "Nacrer le riz, mouiller au bouillon.",
+        "Nacrer le riz, puis mouiller à l'eau chaude salée, louche par louche.",
         "Ajouter la PST réhydratée et les petits pois, finir crème de soja et levure."
       ],
       "why": "Vegan : risotto crémeux sans laitier, forte capacité protéique.",
@@ -18770,7 +18771,7 @@
       ],
       "instructions": [
         "Saisir poulet et crevettes, réserver.",
-        "Cuire le riz au bouillon safrané avec poivron et petits pois, remettre les protéines."
+        "Cuire le riz à l'eau chaude salée et safranée avec poivron et petits pois, remettre les protéines."
       ],
       "why": "Sans gluten : plat unique convivial, double protéine, capacité haute.",
       "macros_per_serving": {
@@ -19001,7 +19002,7 @@
       ],
       "instructions": [
         "Cuire pommes de terre et haricots verts.",
-        "Assembler tiède avec thon, œuf dur et vinaigrette."
+        "Assembler tiède avec thon et œuf dur, assaisonner d'huile d'olive, de vinaigre et de poivre."
       ],
       "why": "Pescatarien sans gluten combats : niçoise complète, protéinée.",
       "macros_per_serving": {
