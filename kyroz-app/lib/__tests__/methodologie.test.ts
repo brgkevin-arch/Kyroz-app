@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { methodologie, nb, millier } from '../methodologie';
+import { methodologie, nb, millier, LIBELLE_SOURCES } from '../methodologie';
 import {
   MIN_AGE, MIN_KCAL, EA_HARD_FLOOR, EA_OPTIMAL, LOW_EA_BUDGET_WEEKS,
   HIGH_ADIPOSITY_PCT, DIET_BREAK_AFTER_WEEKS, BF_CHART_MAX,
@@ -174,5 +174,102 @@ describe('Méthodologie & sources — les chiffres viennent du moteur', () => {
     const EMOJI = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/u;
     expect(EMOJI.test(TEXTE)).toBe(false);
     for (const s of methodologie()) expect(EMOJI.test(s.titre)).toBe(false);
+  });
+});
+
+// ── VERROU : les citations sont OUVRABLES, et FACILES À TROUVER ──────────────
+//
+// 🔴 POURQUOI CE BLOC EXISTE : rejet Apple du 2026-09-10, guideline 1.4.1 —
+// *« provides health or medical recommendations in the binary without citations, such
+// as links to sources for this information »* et *« the citations to the sources should
+// be easy for the user to find »*.
+//
+// ⚠️ **Les huit références étaient DÉJÀ là, exactes et complètes.** Le test juste
+// au-dessus (« chaque source est complète ») était vert le jour du rejet, et il avait
+// raison — il mesurait la COMPLÉTUDE de la citation, pas son ACCESSIBILITÉ. Deux
+// propriétés distinctes, un seul test : c'est exactement le motif « une règle qu'aucun
+// test ne compte se déclare tenue toute seule », appliqué à la moitié qu'on n'avait pas
+// pensé à compter.
+//
+// ⚠️ **Ce que ce bloc NE SAIT PAS FAIRE** : dire qu'un DOI pointe sur le bon article.
+// Ça ne se vérifie qu'en réseau, contre Crossref — fait à la main le 2026-09-10 sur les
+// sept DOI (titre, revue, volume, numéro, pages, année : sept correspondances exactes).
+// **À REFAIRE À LA MAIN pour toute référence ajoutée** :
+//   curl -s "https://api.crossref.org/works/<doi>" | python3 -m json.tool | head -30
+describe('Citations — ouvrables (Apple 1.4.1)', () => {
+  const SOURCES = methodologie().flatMap((s) => s.sources ?? []);
+
+  it('toute référence d\'ARTICLE porte un lien, et c\'est un DOI', () => {
+    // Un DOI est l'adresse PÉRENNE d'un article : il survit au changement de plateforme
+    // ou de propriétaire de la revue. Une URL d'éditeur casse, et une citation cassée
+    // est pire qu'absente — elle a l'air vérifiée.
+    const avecLien = SOURCES.filter((s) => s.lien);
+    expect(avecLien.length, 'aucune source ne porte de lien').toBeGreaterThanOrEqual(8);
+    for (const src of avecLien) {
+      expect(src.lien, `lien non sécurisé : ${src.titre}`).toMatch(/^https:\/\//);
+      const estDoi = src.lien!.startsWith('https://doi.org/10.');
+      const estInstitutionnel = src.lien!.startsWith('https://ciqual.anses.fr/');
+      expect(
+        estDoi || estInstitutionnel,
+        `« ${src.titre} » : ni DOI ni source institutionnelle — ${src.lien}`,
+      ).toBe(true);
+    }
+  });
+
+  it('la SEULE référence sans lien est un ouvrage, qui n\'a pas de DOI', () => {
+    // Un livre n'a pas d'adresse pérenne. Lui coller un lien de librairie donnerait
+    // l'apparence d'une source vérifiée là où il n'y a qu'un lien commercial qui cassera.
+    // Le compter ici empêche qu'une SECONDE référence rejoigne l'exception par
+    // négligence : l'exception est une, et elle est nommée.
+    const sansLien = SOURCES.filter((s) => !s.lien);
+    expect(sansLien.map((s) => s.titre)).toEqual(['Exercise Physiology: Nutrition, Energy, and Human Performance']);
+  });
+
+  it('l\'écran OUVRE le lien, et le MONTRE', () => {
+    // Deux propriétés, et il faut les deux. Un lien actif mais invisible laisserait un
+    // relecteur passer à côté : rien ne dit qu'un texte gris est tapable.
+    const ecran = sansCommentaires(lire('app/methodologie.tsx'));
+    expect(ecran, 'le lien ne s\'ouvre pas').toContain('Linking.openURL');
+    expect(ecran, 'openURL sans canOpenURL échoue en silence').toContain('canOpenURL');
+    expect(ecran, 'le lien n\'est pas rendu à l\'écran').toContain('lienLisible(src.lien)');
+    expect(ecran, 'un lien doit s\'annoncer comme tel aux lecteurs d\'écran').toContain("accessibilityRole=\"link\"");
+  });
+});
+
+// ── VERROU : les sources sont FACILES À TROUVER ──────────────────────────────
+//
+// 🔴 Elles vivaient à TROIS taps, sous « Aide et retours » — l'endroit où l'on va quand
+// quelque chose ne marche pas, pas où l'on cherche une bibliographie. C'était une erreur
+// de CLASSEMENT, et c'est la seconde moitié du rejet 1.4.1.
+//
+// ⚠️ Même raisonnement, même remède et même fichier de garde que
+// `avertissementMedical.test.ts` : ce qui est exigé vit SUR LE PARCOURS. Sans ce test,
+// un nettoyage d'écran emporterait le lien sans que rien ne rougisse, et personne ne
+// s'en apercevrait avant la revue suivante.
+describe('Citations — faciles à trouver (Apple 1.4.1)', () => {
+  it('le libellé a une source UNIQUE — trois copies sont trois occasions de diverger', () => {
+    expect(LIBELLE_SOURCES).toMatch(/sources/i);
+    const composant = sansCommentaires(lire('components/LienMethodologie.tsx'));
+    expect(composant).toContain('/methodologie');
+    expect(composant).toContain('{LIBELLE_SOURCES}');
+  });
+
+  it('le lien est servi LÀ OÙ LA RECOMMANDATION EST SERVIE', () => {
+    // Le Plan sert les cibles caloriques et protéiques ; l'étape 1 de l'inscription est
+    // le seul écran que TOUT LE MONDE traverse. Ce sont les deux surfaces qui portent
+    // déjà le disclaimer §6 pour exactement la même raison.
+    for (const ecran of ['app/(tabs)/plan.tsx', 'app/(auth)/onboarding.tsx']) {
+      const src = sansCommentaires(lire(ecran));
+      expect(src, `${ecran} n'importe pas le lien vers les sources`).toContain('LienMethodologie');
+      expect(src, `${ecran} importe le lien sans le RENDRE`).toContain('<LienMethodologie />');
+    }
+  });
+
+  it('la ligne des réglages RESTE — deux publics, pas un doublon', () => {
+    // Celui qui CHERCHE passe par les réglages ; celui qui ne cherchait pas tombe sur le
+    // lien du parcours. Retirer l'une en ajoutant l'autre serait un déplacement, pas une
+    // correction.
+    const reglages = sansCommentaires(lire('components/ReglagesSheet.tsx'));
+    expect(reglages).toContain('/methodologie');
   });
 });

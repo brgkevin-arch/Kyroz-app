@@ -5,6 +5,7 @@ Recette/
 ├── recettes-kyroz.json          ← LE CATALOGUE LIVE (importé par lib/recipeData.ts) — 512 recettes
 ├── README.md                    ← ce fichier
 ├── BRIEF-GENERATION-RECETTES.md ← la SPEC : mesures, enveloppes, raisonnement. Ne pas transmettre tel quel.
+├── PLAN-REECRITURE-INSTRUCTIONS.md ← chantier des recettes MUETTES : mesure, lots L1→L6, pièges. L1 livré.
 ├── lots/                        ← la COMMANDE, générée (npm run gen:lots). Un fichier = une conversation.
 │   └── annexe-collations-existantes.md
 └── drops/                       ← livraisons brutes REÇUES (archives, JAMAIS importées par le code)
@@ -39,10 +40,17 @@ recettes reprises (`fondation` 100 → 92, etc.), le total ne bouge pas.
 ℹ️ **Un simple RENOMMAGE ne bump PAS `ENGINE_VERSION`** (tranché le 2026-09-09, 9 titres
 corrigés). La composition, les macros et la sélection sont identiques : bumper régénérerait
 la semaine de tout le monde — et le suivi du jour avec — pour neuf chaînes de caractères.
-⚠️ Le prix est réel et il faut le connaître : `Meal.recipe` est une COPIE de la recette, donc
-un plan déjà en cache garde l'ancien titre jusqu'à sa prochaine génération. Le catalogue, lui
-(onglet Recettes, tout nouveau plan), dit la vérité immédiatement. C'est le seul cas où l'on
-accepte l'écart, parce que rien dans l'assiette ne change.
+⚠️ **La phrase qui était ici était FAUSSE et a tenu une demi-journée** : « un plan déjà en
+cache garde l'ancien titre jusqu'à sa prochaine génération ». Non. `Meal.recipe` est bien une
+COPIE, mais l'écran Plan la RAFRAÎCHIT à chaque montage quand elle diffère du catalogue
+(`sameRecipe` → `reAdaptMealRecipe`, `app/(tabs)/plan.tsx`), et `sameRecipe` compare `name_fr`.
+Un titre corrigé atteint donc un plan en cache tout seul, sans régénérer la semaine de
+personne. Ne pas bumper reste le bon choix — mais pour cette raison-là, pas pour un prix
+qu'on aurait payé.
+⚠️ Ce qui a produit l'erreur mérite d'être retenu : le champ existe dans le plan enregistré,
+donc j'ai conclu que le plan servait la copie. Personne n'avait mesuré le chemin qui la
+remet à jour. Une COPIE n'est périmée que si rien ne la rafraîchit — chercher le
+rafraîchissement AVANT d'annoncer un écart à l'utilisateur.
 
 ℹ️ **Un brief disparaît de `lots/` dès que son lot est livré**, et c'est volontaire
 (2026-08-01) : les huit premiers lots — `b2`, `b1-lot1` à `b1-lot4`, `b3`, `b4-repas`, `b4-pdej` —
@@ -148,6 +156,13 @@ fichiers de `lots/` en sont la projection opérationnelle.
      `restrictions_ok` est **dérivé**, jamais écrit dans la recette.
 3. **Compteurs de test** : `recipeMap.test.ts`, `recipes.test.ts`, `recipeData.test.ts` (`toHaveLength(N)`).
 4. **`ENGINE_VERSION`** (`lib/planEngine.ts`) → +1, sinon les plans en cache ignorent les nouvelles recettes.
+   ⚠️ **Mais un changement de TEXTE seul ne bumpe pas** (précédent du 2026-09-09, lot L1 des
+   instructions muettes). Rien ne change dans l'assiette — ni composition, ni macros, ni
+   sélection — et bumper régénérerait la semaine de tout le monde, suivi du jour compris, pour
+   des phrases. L'écran Plan rafraîchit déjà la copie de recette d'un plan en cache quand elle
+   diffère du catalogue (`sameRecipe` → `reAdaptMealRecipe`, `app/(tabs)/plan.tsx`). ⚠️ Ce
+   rafraîchissement comparait le **nombre** d'étapes et non leur texte : une recette réécrite au
+   même nombre d'étapes n'atteignait jamais un plan en cache. Corrigé le 2026-09-09.
 5. `npm test` puis `npx tsc --noEmit`.
 6. `npm run mesure:couverture` → vérité terrain sur 12 profils (règle R8),
    `npm run mesure:seuils` → distribution R8 du catalogue LIVE créneau par créneau
@@ -164,6 +179,14 @@ fichiers de `lots/` en sont la projection opérationnelle.
    Aucun des deux n'aurait montré qu'une femme de 55 kg en sèche, vegan et sans gluten,
    dispose de **3 collations sur 86**. Il imprime aussi le nombre de FAMILLES distinctes par
    cellule : dix recettes du même couple ne font pas dix repas différents.
+   ⚠️ `npm run mesure:instructions` mesure une QUATRIÈME chose : la qualité du TEXTE, que
+   tous les contrôles précédents ignorent. Une recette peut tenir toutes les enveloppes,
+   n'avoir aucun doublon, servir tous les profils — et dire « Cuire le riz. » pour seule
+   consigne. Mesuré le 2026-09-09 : **139 recettes sur 512 demandent une cuisson et n'en
+   donnent aucun repère**, portant 15,7 % des repas servis. Le chantier, ses lots et son
+   garde-fou vivent dans `PLAN-REECRITURE-INSTRUCTIONS.md`.
+   ⚠️ Et ce n'est PAS le « nombre d'étapes » : cet indicateur accuse 68 assemblages à froid
+   qui sont complets en deux phrases, et rate 37 recettes bavardes mais muettes.
    *(L'ancienne étape « `npm run gen:validation` → dossier diététicienne » a disparu le
    2026-07-30 : la validation diététicienne est écartée (`CLAUDE.md` §6), le script est
    supprimé et le dossier figé dans `docs/archive/2026-07-29-validation-recettes.md`.)*
@@ -179,6 +202,10 @@ fichiers de `lots/` en sont la projection opérationnelle.
 - **Similarité** (`doublons.test.ts`) : cliquet sur les paires trop proches — Jaccard des `ref`,
   refs communs, triplet (catégorie, protéine, féculent), noms. Les compteurs actuels sont des
   plafonds : une vague qui les fait monter casse `npm test`. Les baisser après nettoyage est attendu.
+- **Recettes muettes** (`instructionsMuettes.test.ts`) : cliquet sur les recettes qui demandent une
+  cuisson (déduite des `basis`, pas du texte) sans donner ni durée, ni température, ni repère
+  sensoriel. Plus une règle ABSOLUE : **aucune recette d'une vague `2026-08*` ou postérieure ne
+  peut être muette** — le cliquet garde l'ancien, la règle verrouille le neuf.
 
 ## Conventions de contenu
 
@@ -189,6 +216,14 @@ fichiers de `lots/` en sont la projection opérationnelle.
 - Un ingrédient cité dans `instructions` mais absent de `ingredients[]` est **invisible du
   dérivé régime et de la liste de courses**. Trois recettes citaient une sauce soja non
   déclarée et revendiquaient le sans gluten (corrigé le 2026-07-29). Sel/poivre/herbes exceptés.
+  ⚠️ La règle était écrite ici depuis toujours et **rien ne la mesurait** : 17 recettes la
+  violaient encore le 2026-09-09 (bouillon ×7, sauce teriyaki ×3, vinaigrette ×3, miso,
+  yaourt, granola, croûtons, compote). Elle est désormais tenue par
+  `lib/__tests__/ingredientsCites.test.ts`, qui garde l'honnêteté de la LISTE DE COURSES —
+  pas la complétude du mode d'emploi : une recette qui déclare des flocons d'avoine et
+  écrit « ajoute le granola » sans dire de les griller lui échappe encore.
+  Les acides et aromates sans `ref` (citron, vinaigre, ail, épices) restent libres, comme
+  le sel et le poivre : ils ne portent pas de macros et ne pèsent pas dans les courses.
 - Aucune allégation santé dans `name` / `why` ; `validated_by_dietitian` reste `false` tant que
   la validation diététicienne n'est pas faite (CLAUDE.md §6).
 - Une recette a besoin d'une **ancre protéine `scalable`** pour que le moteur puisse l'adapter.

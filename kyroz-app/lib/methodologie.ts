@@ -31,11 +31,34 @@ import { CIQUAL_ATTRIBUTION } from './foods';
  * les sources restent vagues. Il sert aussi les notes de soumission (STORE-RELEASE §11).
  */
 
-/** Une référence citable — séparée du texte pour qu'on ne puisse pas en inventer une au fil d'une phrase. */
+/** Une référence citable — séparée du texte pour qu'on ne puisse pas en inventer une au fil d'une phrase.
+ *
+ * 🔴 `lien` A ÉTÉ AJOUTÉ LE 2026-09-10, SUR REJET D'APPLE (guideline 1.4.1, revue du
+ * même jour) : *« the app provides health or medical recommendations in the binary
+ * without citations, such as links to sources for this information. »* Les huit
+ * références étaient déjà là, complètes et exactes — mais en TEXTE MORT. Une citation
+ * qu'on ne peut pas ouvrir oblige le lecteur à recopier un titre dans un moteur de
+ * recherche pour vérifier ; Apple ne considère pas ça comme une citation.
+ *
+ * ⚠️ **Un DOI, pas une URL d'éditeur.** `https://doi.org/<doi>` est l'adresse
+ * PÉRENNE d'un article : elle survit à un changement de plateforme, de nom de revue ou
+ * de propriétaire. Une URL `sciencedirect.com/...` casse, et une citation cassée est
+ * pire qu'absente — elle a l'air vérifiée.
+ *
+ * ⚠️ **Chaque DOI de ce fichier a été CONFRONTÉ à Crossref** (titre, revue, volume,
+ * numéro, pages, année) le 2026-09-10, pas recopié de mémoire. Le garde-fou
+ * `lib/__tests__/methodologie.test.ts` vérifie la FORME ; seule une requête réseau
+ * vérifie le FOND, et c'est un geste à refaire si une référence est ajoutée.
+ *
+ * ℹ️ **Optionnel, et ce n'est pas une négligence** : un OUVRAGE n'a pas de DOI. Lui
+ * inventer une URL d'éditeur ou de librairie serait fabriquer une source. La citation
+ * bibliographique complète reste, sans lien — c'est ce que fait une bibliographie. */
 export interface MethodoSource {
   auteurs: string;
   titre: string;
   publication: string;
+  /** Adresse pérenne (DOI de préférence). Absente pour les ouvrages, qui n'en ont pas. */
+  lien?: string;
 }
 
 export interface MethodoSection {
@@ -43,6 +66,17 @@ export interface MethodoSection {
   paragraphes: string[];
   sources?: MethodoSource[];
 }
+
+/**
+ * Le libellé du lien qui MÈNE à cette page, depuis les écrans qui servent une
+ * recommandation (`components/LienMethodologie.tsx`).
+ *
+ * Il vit ICI, dans le fichier PUR, et non dans le composant : `constants/theme.ts` tire
+ * react-native, donc tout ce qui l'importe est invérifiable sous vitest. C'est le même
+ * procédé que `lib/tours.ts` et `lib/collapsingTitle.ts` — la décision est une donnée
+ * testable, l'écran ne fait que la rendre.
+ */
+export const LIBELLE_SOURCES = "D'où viennent ces chiffres ? Méthodologie & sources";
 
 /** Nombre à la française : séparateur décimal virgule, et pas de zéro inutile. */
 export function nb(n: number): string {
@@ -88,8 +122,14 @@ export function methodologie(): MethodoSection[] {
           auteurs: 'Mifflin MD, St Jeor ST, Hill LA, Scott BJ, Daugherty SA, Koh YO',
           titre: 'A new predictive equation for resting energy expenditure in healthy individuals',
           publication: 'The American Journal of Clinical Nutrition, 1990;51(2):241-247',
+          lien: 'https://doi.org/10.1093/ajcn/51.2.241',
         },
         {
+          // ℹ️ SEULE RÉFÉRENCE SANS LIEN DE TOUTE LA PAGE, et c'est assumé : un ouvrage
+          // n'a pas de DOI. Lui coller une URL d'éditeur ou de librairie donnerait
+          // l'apparence d'une source vérifiée là où il n'y a qu'un lien commercial qui
+          // cassera. La citation bibliographique complète suffit — c'est ce que fait
+          // une bibliographie depuis toujours.
           auteurs: 'McArdle WD, Katch FI, Katch VL',
           titre: 'Exercise Physiology: Nutrition, Energy, and Human Performance',
           publication: 'Lippincott Williams & Wilkins (équation dite de Katch-McArdle)',
@@ -98,6 +138,7 @@ export function methodologie(): MethodoSection[] {
           auteurs: 'Ainsworth BE, Haskell WL, Herrmann SD, et al.',
           titre: '2011 Compendium of Physical Activities: a second update of codes and MET values',
           publication: 'Medicine & Science in Sports & Exercise, 2011;43(8):1575-1581',
+          lien: 'https://doi.org/10.1249/MSS.0b013e31821ece12',
         },
       ],
     },
@@ -113,16 +154,19 @@ export function methodologie(): MethodoSection[] {
           auteurs: 'Jäger R, Kerksick CM, Campbell BI, et al.',
           titre: 'International Society of Sports Nutrition Position Stand: protein and exercise',
           publication: 'Journal of the International Society of Sports Nutrition, 2017;14:20',
+          lien: 'https://doi.org/10.1186/s12970-017-0177-8',
         },
         {
           auteurs: 'Helms ER, Zinn C, Rowlands DS, Brown SR',
           titre: 'A systematic review of dietary protein during caloric restriction in resistance trained lean athletes',
           publication: 'International Journal of Sport Nutrition and Exercise Metabolism, 2014;24(2):127-138',
+          lien: 'https://doi.org/10.1123/ijsnem.2013-0054',
         },
         {
           auteurs: 'Thomas DT, Erdman KA, Burke LM',
           titre: 'Position of the Academy of Nutrition and Dietetics, Dietitians of Canada, and the American College of Sports Medicine: Nutrition and Athletic Performance',
           publication: 'Journal of the Academy of Nutrition and Dietetics, 2016;116(3):501-528',
+          lien: 'https://doi.org/10.1016/j.jand.2015.12.006',
         },
       ],
     },
@@ -162,11 +206,13 @@ export function methodologie(): MethodoSection[] {
           auteurs: 'Mountjoy M, Sundgot-Borgen JK, Burke LM, et al.',
           titre: 'IOC consensus statement on relative energy deficiency in sport (RED-S): 2018 update',
           publication: 'British Journal of Sports Medicine, 2018;52(11):687-697',
+          lien: 'https://doi.org/10.1136/bjsports-2018-099193',
         },
         {
           auteurs: 'Loucks AB, Thuma JR',
           titre: 'Luteinizing hormone pulsatility is disrupted at a threshold of energy availability in regularly menstruating women',
           publication: 'The Journal of Clinical Endocrinology & Metabolism, 2003;88(1):297-311',
+          lien: 'https://doi.org/10.1210/jc.2002-020369',
         },
       ],
     },
@@ -182,6 +228,7 @@ export function methodologie(): MethodoSection[] {
           auteurs: 'ANSES',
           titre: 'Table de composition nutritionnelle des aliments Ciqual',
           publication: 'ciqual.anses.fr',
+          lien: 'https://ciqual.anses.fr/',
         },
       ],
     },

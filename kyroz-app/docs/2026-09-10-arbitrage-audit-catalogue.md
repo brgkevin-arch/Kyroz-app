@@ -14,7 +14,7 @@ Mesures refaites ici sur `Recette/recettes-kyroz.json` (512 recettes, 125 refs),
 | # | Point de l'audit | Verdict mesuré | Suite |
 |---|---|---|---|
 | 1 | Deux tables nutritionnelles désynchronisées — « bloquant » | ❌ **Faux problème** : c'est l'architecture, connue et documentée | Rien à corriger. Un nettoyage cosmétique possible (§3.1) |
-| 2 | 11 recettes citent un ingrédient inexistant | ✅ **Confirmé, ouvert** | À faire (§2.1) |
+| 2 | 11 recettes citent un ingrédient inexistant | ✅ Confirmé — **et réglé le 2026-09-09** (PR #248), en **17** recettes et non 11 | Rien (§2.1) |
 | 3 | 7 noms qui promettent un aliment absent | ✅ **Déjà fait** — PR #247, le 2026-09-09 | Rien |
 | 4 | ~200 assemblages « bout à bout » | ✅ **Confirmé : 197 recettes ≤ 2 étapes** | Le vrai chantier (§2.2) |
 | 5 | ~25 recettes « étranges » | ⚠️ **Partiellement faux** : maladie A quasi inexistante, B et C réelles mais mal diagnostiquées | Réduit (§2.3) |
@@ -25,7 +25,35 @@ Mesures refaites ici sur `Recette/recettes-kyroz.json` (512 recettes, 125 refs),
 
 ## 2. Ce qui est réel
 
-### 2.1 — Les 11 recettes qui citent un ingrédient absent · **P0, petit, à faire**
+### 2.1 — Les 11 recettes qui citent un ingrédient absent · ✅ **RÉGLÉ le 2026-09-09**
+
+> 🔴 **Ce paragraphe a été écrit alors que le travail était déjà fait, et il l'ignorait.**
+> La PR #248 a livré le correctif le 2026-09-09 — le même jour que l'audit, avant que cet
+> arbitrage ne soit rédigé. Ce qui suit est donc conservé pour deux raisons : mon compte
+> était **incomplet**, et l'arbitrage que je recommandais a été **tranché dans l'autre
+> sens**. Les deux méritent d'être lus.
+>
+> **Le compte réel est 17, pas 11.** Mon balayage testait 18 mots choisis à la main ; il a
+> trouvé bouillon, miso, vinaigre. Il a raté **sauce teriyaki** (rep50, rep73, rep147),
+> **yaourt** (rep139), **granola** (col13), **croûtons** (rep112), **compote** (col54) —
+> six denrées qui n'étaient dans aucune de mes listes. ➡️ *Une liste de mots écrite à la
+> main mesure ce à quoi on a pensé, pas ce qui existe.* Le test livré (`ingredientsCites`)
+> part de la **liste d'ingrédients** et cherche ce que les instructions citent en plus :
+> il n'a pas de liste à oublier.
+>
+> **Et c'est l'option B qui a été retenue, pas mon option A.** Je recommandais de créer
+> `bouillon_legumes`, `miso`, `vinaigre` (« retirer le bouillon casse le risotto »). La
+> PR a réécrit les 17 recettes **sans toucher aux ingrédients**, en remplaçant la denrée
+> manquante par ce que la recette sert vraiment. C'est plus honnête que ma proposition :
+> ajouter un ref pour justifier une instruction, c'est faire entrer un aliment dans la
+> liste de courses de quelqu'un pour couvrir une phrase — l'inverse du sens de lecture.
+> Trois noms ont suivi (rep47 « Soupe miso » → « Soupe japonaise »), ce que mon option A
+> n'aurait pas fait, et qui était nécessaire.
+>
+> ⚠️ Le vinaigre, lui, est traité comme un **assaisonnement libre** — même périmètre que
+> `nomsHonnetes`. Mon option A voulait lui donner un ref : c'était sur-appliquer la règle.
+
+*Ce qui suit est le constat d'origine, conservé daté.*
 
 Confirmé au mot près. Le balayage refait (18 mots-condiments testés) ne trouve **rien de plus** :
 
@@ -200,7 +228,7 @@ est « Purée de sésame (tahini) ». Rien à refaire.
 
 | | Chantier | Volume réel | Effort |
 |---|---|---|---|
-| 1 | 3 refs condiment + 11 recettes + test ciblé | 11 recettes | ~1 session |
+| ~~1~~ | ~~3 refs condiment + 11 recettes + test ciblé~~ | ✅ **fait** — PR #248, autrement et mieux (§2.1) | — |
 | 2 | Réaffecter/réécrire les ~6 plats salés servis en pdj/collation | 6 recettes | ~1 session |
 | 3 | **Décision produit** : détendre la cible protéique vegan ? | — | ta décision |
 | 4 | Réécrire sans-gluten (40), avec le cliquet en place d'abord | 40 recettes | 1 vague |

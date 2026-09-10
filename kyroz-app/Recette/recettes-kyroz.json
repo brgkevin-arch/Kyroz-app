@@ -10,7 +10,7 @@
       "scalable": "true = quantité ajustable par l'algo ; false = fixe (légumes)"
     },
     "priorite_sport": "Muscu prioritaire, puis Endurance, peu de Combats (cf. distribution).",
-    "corrections_kyroz": "rep57 +8g huile_olive (équilibre lipidique). | 2026-07-29 : sauce_soja déclarée dans rep05/rep46/rep80 (citée en instruction, invisible du dérivé régime) ; levure_maltee + falafel + pesto ajoutés à recipeDiet.VIOLATIONS ; why de rep80/pd52/pd77/rep152/rep155 : « sans gluten » retiré (devenu faux) ; +9 ingrédients (légumineuses prêtes à consommer, tofu fumé, falafel, tahini, boisson soja, pain/wrap sans gluten). recomp_flag SUPPRIMÉ (champ mort : aucun code ne le lisait, et il marquait 5 recettes quand ~40 avaient une densité protéique équivalente ou pire). | yaourt_grec DÉMAPPÉ de ciqual-19860 (« yaourt à la grecque » = dessert à 3 g de protéines, pas un grec égoutté à 9 g) → valeur manuelle, comme skyr ; nom précisé « égoutté (type Fage) » ; macro_role dairy→protein sur pd10/col07/col17, où le yaourt est la seule source de protéines. | 8 recettes sans ancre protéine (pd02/pd06/pd08/pd15/col01/col03/col13/col19) : le laitier qui porte 58 à 89 % de leurs protéines passe de dairy à protein. | Nettoyage des doublons 2026-07-29 : 7 clones stricts et 2 noms identiques différenciés (rep37 tajine aux olives, rep64 papillote, rep165 pho sans mélange wok, col64 houmous, col50/col65 edamame distincts, pd38 tartine de seigle, col45 pudding framboise) — aucune suppression. | 2026-08-03 : les 47 recettes qui pesaient une légumineuse à cuisson longue au poids SEC tout en la cuisinant en moins de 40 min. 44 passent sur un `ref` prêt à consommer (quantité × le rendement de cuisson : ×2,4 pois chiches, ×2,5 haricots et lentilles), instructions réécrites (« égoutte et rince » au lieu de « cuis »). 3 gardent la pesée sèche parce que la cuisson longue EST le plat et qu’aucune ne demande de trempage (rep107, rep108, rep112) : seul leur `temps_min` était faux, il passe à 50 min. +2 `ref` : haricots_blancs_conserve (Ciqual 20511) et haricots_noirs_conserve (déduit du rapport sec→appertisé du haricot rouge, Ciqual n’ayant pas d’entrée pour le haricot noir). | 2026-08-03 (2) : `tags.objectif` et `tags.sport` RECALCULÉS mécaniquement depuis les macros du moteur, pour les 512 recettes — ils sont AFFICHÉS sur la fiche et 192 (objectif) et 116 (endurance) contredisaient les calories de leur propre recette. `recup_jour_repos` SUPPRIMÉ des 512 : champ mort depuis le 2026-07-29 (le jour de repos agit sur la cible, pas par un tag), faux sur 152 recettes sans que personne puisse le voir — même sort que `recomp_flag`. | 2026-09-10 : +7 refs SIMILI-CARNÉS VÉGÉTAUX (steak_soja, emince_vegetal, hache_vegetal, galette_vegetale, boulette_vegetale, nuggets_vegetal, saucisse_vegetale), tous mappés Ciqual — l'ANSES publie l'aliment MOYEN du marché français pour chacun, donc la moyenne est mesurée, pas estimée. Motif : le vegan n'avait aucune PIÈCE hors tofu/tempeh/seitan, et 121 recettes sur 512 étaient ancrées sur un yaourt, une poudre ou du soja texturé. ⚠️ 4 des 7 sont au BLÉ : ils n'ouvrent RIEN au créneau vegan+sans gluten (le plus pauvre du catalogue). Aucune recette ne les emploie encore — un ref seul ne sert personne.",
+    "corrections_kyroz": "rep57 +8g huile_olive (équilibre lipidique). | 2026-07-29 : sauce_soja déclarée dans rep05/rep46/rep80 (citée en instruction, invisible du dérivé régime) ; levure_maltee + falafel + pesto ajoutés à recipeDiet.VIOLATIONS ; why de rep80/pd52/pd77/rep152/rep155 : « sans gluten » retiré (devenu faux) ; +9 ingrédients (légumineuses prêtes à consommer, tofu fumé, falafel, tahini, boisson soja, pain/wrap sans gluten). recomp_flag SUPPRIMÉ (champ mort : aucun code ne le lisait, et il marquait 5 recettes quand ~40 avaient une densité protéique équivalente ou pire). | yaourt_grec DÉMAPPÉ de ciqual-19860 (« yaourt à la grecque » = dessert à 3 g de protéines, pas un grec égoutté à 9 g) → valeur manuelle, comme skyr ; nom précisé « égoutté (type Fage) » ; macro_role dairy→protein sur pd10/col07/col17, où le yaourt est la seule source de protéines. | 8 recettes sans ancre protéine (pd02/pd06/pd08/pd15/col01/col03/col13/col19) : le laitier qui porte 58 à 89 % de leurs protéines passe de dairy à protein. | Nettoyage des doublons 2026-07-29 : 7 clones stricts et 2 noms identiques différenciés (rep37 tajine aux olives, rep64 papillote, rep165 pho sans mélange wok, col64 houmous, col50/col65 edamame distincts, pd38 tartine de seigle, col45 pudding framboise) — aucune suppression. | 2026-08-03 : les 47 recettes qui pesaient une légumineuse à cuisson longue au poids SEC tout en la cuisinant en moins de 40 min. 44 passent sur un `ref` prêt à consommer (quantité × le rendement de cuisson : ×2,4 pois chiches, ×2,5 haricots et lentilles), instructions réécrites (« égoutte et rince » au lieu de « cuis »). 3 gardent la pesée sèche parce que la cuisson longue EST le plat et qu’aucune ne demande de trempage (rep107, rep108, rep112) : seul leur `temps_min` était faux, il passe à 50 min. +2 `ref` : haricots_blancs_conserve (Ciqual 20511) et haricots_noirs_conserve (déduit du rapport sec→appertisé du haricot rouge, Ciqual n’ayant pas d’entrée pour le haricot noir). | 2026-08-03 (2) : `tags.objectif` et `tags.sport` RECALCULÉS mécaniquement depuis les macros du moteur, pour les 512 recettes — ils sont AFFICHÉS sur la fiche et 192 (objectif) et 116 (endurance) contredisaient les calories de leur propre recette. `recup_jour_repos` SUPPRIMÉ des 512 : champ mort depuis le 2026-07-29 (le jour de repos agit sur la cible, pas par un tag), faux sur 152 recettes sans que personne puisse le voir — même sort que `recomp_flag`. | 2026-09-09 : 17 recettes citaient dans leurs INSTRUCTIONS une denrée que la recette ne fournit pas — bouillon (rep47, rep122, rep126, rep153, rep154, rep155, rep156), miso (rep47), sauce teriyaki (rep50, rep73, rep147), vinaigrette (rep109, rep140, rep160), yaourt (rep139), granola (col13), croûtons (rep112), compote (col54). Toutes réécrites SANS toucher aux ingrédients : la denrée manquante est remplacée par ce que la recette sert vraiment. 3 noms suivent (rep47 « Soupe miso » → « Soupe japonaise », rep73 et rep147 perdent « teriyaki ») parce qu'ils promettaient la denrée retirée. Aucune macro ne bouge, donc pas de bump d'ENGINE_VERSION. Verrouillé par lib/__tests__/ingredientsCites.test.ts. | 2026-09-10 : +7 refs SIMILI-CARNÉS VÉGÉTAUX (steak_soja, emince_vegetal, hache_vegetal, galette_vegetale, boulette_vegetale, nuggets_vegetal, saucisse_vegetale), tous mappés Ciqual — l'ANSES publie l'aliment MOYEN du marché français pour chacun, donc la moyenne est mesurée, pas estimée. Motif : le vegan n'avait aucune PIÈCE hors tofu/tempeh/seitan, et 121 recettes sur 512 étaient ancrées sur un yaourt, une poudre ou du soja texturé. ⚠️ 4 des 7 sont au BLÉ : ils n'ouvrent RIEN au créneau vegan+sans gluten (le plus pauvre du catalogue). Aucune recette ne les emploie encore — un ref seul ne sert personne.",
     "waves": {
       "role": "Vague de livraison d'origine de chaque recette (champ `wave`). Rétro-rempli le 2026-07-29 depuis les dossiers de Recette/drops/ ; « fondation » = le lot initial, antérieur aux drops.",
       "valeurs": {
@@ -3154,7 +3154,7 @@
           "muscu",
           "combats"
         ],
-        "temps_min": 4
+        "temps_min": 10
       },
       "base_servings": 1,
       "ingredients": [
@@ -3190,8 +3190,9 @@
         }
       ],
       "instructions": [
+        "Fais cuire l'escalope de dinde 6 minutes à la poêle à feu moyen, 3 minutes par face, jusqu'à ce qu'elle soit blanche à cœur, puis laisse-la tiédir et émince-la.",
         "Tartine les galettes.",
-        "Dépose dinde et concombre.",
+        "Dépose la dinde et le concombre.",
         "Ajoute l'avocat en lamelles."
       ],
       "why": "Muscu/combats perte de gras : protéines maigres, croquant, faible en gras.",
@@ -3383,7 +3384,7 @@
         "sport": [
           "muscu"
         ],
-        "temps_min": 3
+        "temps_min": 8
       },
       "base_servings": 1,
       "ingredients": [
@@ -3413,8 +3414,9 @@
         }
       ],
       "instructions": [
+        "Fais griller les flocons d'avoine et les graines de courge 4 minutes à sec dans une poêle, en remuant : c'est ce qui fait le granola.",
         "Verse le skyr.",
-        "Ajoute granola, mangue, graines."
+        "Ajoute le granola tiède et la mangue en dés."
       ],
       "why": "Muscu maintien : protéines élevées, sucres des fruits, simple.",
       "macros_per_serving": {
@@ -6275,7 +6277,7 @@
         "sport": [
           "muscu"
         ],
-        "temps_min": 25
+        "temps_min": 35
       },
       "base_servings": 1,
       "ingredients": [
@@ -6305,9 +6307,12 @@
         }
       ],
       "instructions": [
-        "Patate douce rôtie.",
-        "Saisis le seitan.",
-        "Brocoli vapeur."
+        "Préchauffe le four à 210 °C.",
+        "Épluche la patate douce, coupe-la en cubes de deux centimètres, mélange-les avec la moitié de l'huile d'olive, du sel et du poivre, puis étale-les sur une plaque sans les superposer : entassés, ils cuisent à la vapeur au lieu de rôtir.",
+        "Enfourne 25 minutes en remuant à mi-cuisson : les cubes doivent être dorés aux angles et fondants au centre.",
+        "Détaille le brocoli en petits bouquets et fais-le cuire 5 minutes à la vapeur : il doit rester vert vif et croquant.",
+        "Coupe le seitan en tranches épaisses et saisis-les 2 minutes par face dans le reste d'huile bien chaude, jusqu'à ce que les bords soient croustillants.",
+        "Dresse la patate douce, le brocoli et le seitan, sale, poivre et ajoute du thym si tu en as."
       ],
       "why": "Muscu prise de masse végétal : seitan très protéiné, glucides récup.",
       "macros_per_serving": {
@@ -6626,7 +6631,7 @@
     },
     {
       "id": "rep47",
-      "name": "Soupe miso – tofu – nouilles – edamame",
+      "name": "Soupe japonaise – tofu – nouilles – edamame",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -6678,7 +6683,7 @@
         }
       ],
       "instructions": [
-        "Chauffe un bouillon miso.",
+        "Porte 400 ml d'eau à frémissement avec la sauce soja.",
         "Ajoute nouilles + légumes.",
         "Tofu et edamame en fin.",
         "Ajoute l'avocat en lamelles."
@@ -6863,7 +6868,7 @@
       ],
       "instructions": [
         "Cuis le riz.",
-        "Glace le tempeh à la sauce teriyaki.",
+        "Glace le tempeh à la sauce soja, à feu vif, jusqu'à ce qu'elle nappe et brille.",
         "Brocoli vapeur, assemble."
       ],
       "why": "Muscu/endurance prise de masse végétal : protéine complète, glucides.",
@@ -7493,9 +7498,12 @@
         }
       ],
       "instructions": [
-        "Cuis le riz.",
-        "Saisis le bœuf, fais un œuf au plat.",
-        "Égoutte et rince les haricots rouges, dresse avec l’avocat."
+        "Rince le riz basmati jusqu'à ce que l'eau soit claire, puis fais-le cuire 11 minutes dans un grand volume d'eau salée et égoutte-le.",
+        "Pendant ce temps, égoutte et rince les haricots rouges sous l'eau froide.",
+        "Fais chauffer la moitié de l'huile d'olive à feu vif, ajoute le bœuf haché, écrase-le à la spatule et laisse-le colorer 5 minutes sans trop remuer : il doit brunir, pas bouillir. Sale et poivre.",
+        "Dans une seconde poêle avec le reste d'huile à feu moyen, casse l'œuf et laisse-le cuire 3 minutes : le blanc doit être pris et le jaune encore coulant.",
+        "Écrase l'avocat à la fourchette avec une pincée de sel, en gardant des morceaux.",
+        "Dresse le riz au fond du bol, ajoute le bœuf, les haricots rouges et l'avocat, puis pose l'œuf au plat par-dessus."
       ],
       "why": "Muscu/combats prise de masse : bowl très calorique, triple protéine pour le bulk.",
       "macros_per_serving": {
@@ -10564,8 +10572,12 @@
         }
       ],
       "instructions": [
-        "Cuire les nouilles.",
-        "Sauter tofu et brocoli, lier au lait de coco."
+        "Presse le tofu 5 minutes entre deux feuilles de papier absorbant sous une assiette lestée : moins il est gorgé d'eau, mieux il dore.",
+        "Détaille le brocoli en petits bouquets et plonge-le 4 minutes dans l'eau bouillante, puis récupère-le à l'écumoire : il doit rester vert vif et croquant.",
+        "Dans la même eau, plonge les nouilles de riz, coupe le feu et laisse-les gonfler 4 minutes, puis égoutte et rince à l'eau froide.",
+        "Coupe le tofu en cubes et fais-les colorer 8 minutes dans une poêle très chaude, en ne les retournant que lorsqu'une face est franchement dorée.",
+        "Verse le lait de coco sur le tofu, ajoute le brocoli, sale et poivre, puis laisse réduire 2 minutes à feu moyen.",
+        "Mélange les nouilles à la poêle hors du feu et sers aussitôt."
       ],
       "why": "Vegan & sans gluten : sauté complet, forte capacité protéique.",
       "macros_per_serving": {
@@ -10805,7 +10817,7 @@
     },
     {
       "id": "rep73",
-      "name": "Riz complet – poulet teriyaki – brocoli",
+      "name": "Riz complet – poulet grillé – brocoli",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -10846,7 +10858,7 @@
       ],
       "instructions": [
         "Cuire le riz.",
-        "Glacer le poulet à la sauce teriyaki, servir avec brocoli vapeur."
+        "Griller le poulet à l'huile d'olive jusqu'à ce qu'il soit doré, servir avec brocoli vapeur."
       ],
       "why": "Muscu : sans gluten, protéines maigres, capacité solide.",
       "macros_per_serving": {
@@ -10905,8 +10917,12 @@
         }
       ],
       "instructions": [
-        "Cuire le riz, laisser tiédir.",
-        "Dresser en bowl avec saumon, avocat, edamame et concombre."
+        "Rince le riz basmati jusqu'à ce que l'eau soit claire, puis fais-le cuire 11 minutes dans un grand volume d'eau salée et égoutte-le.",
+        "Étale le riz dans une assiette et laisse-le tiédir 3 minutes : brûlant, il ramollit le concombre et noircit l'avocat.",
+        "Fais cuire les edamame 5 minutes à l'eau bouillante salée, puis égoutte-les et écosse-les si besoin.",
+        "Sale et poivre le pavé de saumon, puis saisis-le 4 minutes côté peau dans une poêle très chaude sans y toucher : il doit se décoller seul.",
+        "Retourne le saumon et compte 2 minutes de plus, jusqu'à ce que la chair s'effeuille à la fourchette.",
+        "Coupe le concombre en fines rondelles et l'avocat en lamelles, puis dresse le riz tiède en bol avec le saumon détaillé en gros morceaux, les edamame, le concombre et l'avocat."
       ],
       "why": "Poke pescatarien : oméga-3 + double protéine, sans gluten.",
       "macros_per_serving": {
@@ -11018,8 +11034,12 @@
         }
       ],
       "instructions": [
-        "Cuis le riz.",
-        "Égoutte et rince les haricots rouges, mijote-les avec le tofu émietté, la tomate et les épices chili, finis au lait de coco."
+        "Rince le riz complet, puis fais-le cuire 25 minutes à couvert et à feu doux dans deux fois et demie son volume d'eau salée.",
+        "Pendant ce temps, égoutte et rince les haricots rouges sous l'eau froide, puis laisse-les s'égoutter dans une passoire.",
+        "Émiette le tofu à la main en gros morceaux irréguliers : ils accrochent mieux la sauce que des cubes réguliers.",
+        "Fais colorer le tofu émietté 5 minutes à feu vif dans une poêle très chaude, jusqu'à ce que les bords soient dorés.",
+        "Ajoute la tomate concassée, les haricots rouges et les épices chili, puis laisse mijoter 10 minutes à feu doux et à découvert : la sauce doit épaissir.",
+        "Verse le lait de coco, mélange, et sers sur le riz égoutté."
       ],
       "why": "Vegan combats : plat complet équilibré, double protéine végétale.",
       "macros_per_serving": {
@@ -11773,8 +11793,12 @@
         }
       ],
       "instructions": [
-        "Cuire le sarrasin.",
-        "Poêler tempeh et champignons, mélanger au sarrasin."
+        "Rince le sarrasin, fais-le cuire 12 minutes dans deux fois son volume d'eau salée, puis égoutte-le.",
+        "Pendant ce temps, coupe le tempeh en tranches d'un demi-centimètre et émince les champignons.",
+        "Fais dorer le tempeh 3 minutes par face dans une poêle chaude avec l'huile d'olive, jusqu'à ce qu'il soit bien coloré, puis réserve.",
+        "Jette les champignons dans la poêle encore très chaude et laisse-les rendre leur eau 5 minutes sans remuer, jusqu'à ce qu'ils soient dorés.",
+        "Remets le tempeh, sale, poivre, ajoute du thym si tu en as, et mélange 1 minute hors du feu.",
+        "Sers sur le sarrasin égoutté."
       ],
       "why": "Vegan jour repos sans gluten : sarrasin rustique + tempeh.",
       "macros_per_serving": {
@@ -12651,8 +12675,12 @@
         }
       ],
       "instructions": [
-        "Égoutte et rince les pois chiches, mijote-les avec la PST et la patate douce en curry.",
-        "Finis au lait de coco."
+        "Couvre la protéine de soja texturée d'eau bouillante salée, laisse-la gonfler 5 minutes puis presse-la pour l'essorer.",
+        "Épluche la patate douce et coupe-la en cubes de deux centimètres : plus gros, ils resteront fermes au cœur.",
+        "Égoutte et rince les pois chiches sous l'eau froide.",
+        "Fais revenir la protéine de soja et la patate douce 4 minutes à feu vif dans une casserole, avec du sel, du poivre et des épices à curry.",
+        "Ajoute la tomate concassée et les pois chiches, couvre et laisse mijoter 15 minutes à feu doux : la patate douce doit s'écraser sous la fourchette.",
+        "Verse le lait de coco, laisse épaissir 3 minutes à découvert et sers."
       ],
       "why": "Vegan endurance sans gluten : glucides patate + capacité protéique.",
       "macros_per_serving": {
@@ -12964,7 +12992,7 @@
       ],
       "instructions": [
         "Rince les lentilles cuites et laisse-les s’égoutter.",
-        "Mélange avec la feta, la tomate, le concombre et la vinaigrette."
+        "Mélange avec la feta, la tomate et le concombre, assaisonne d’huile d’olive, de vinaigre et de poivre."
       ],
       "why": "Végétarien sans gluten : froid, protéiné, fibres et fraîcheur.",
       "macros_per_serving": {
@@ -13150,7 +13178,7 @@
       ],
       "instructions": [
         "Mijote les pois cassés avec la carotte et l’oignon 45 min à couvert, sans trempage, puis mixe.",
-        "Sers avec les croûtons et les graines de courge."
+        "Taille le pain complet en cubes, fais-les dorer à sec dans une poêle, et sers-les sur la soupe avec les graines de courge."
       ],
       "why": "Vegan combats : velouté-repas dense en protéines, peu de lipides.",
       "macros_per_serving": {
@@ -13268,8 +13296,12 @@
         }
       ],
       "instructions": [
-        "Réhydrate la PST, mijote-la façon chili.",
-        "Égoutte et rince les haricots noirs, garnis les tortillas avec le maïs et l’avocat."
+        "Couvre la protéine de soja texturée d'eau bouillante salée, laisse-la gonfler 5 minutes puis presse-la pour l'essorer : mal essorée, elle rend son eau dans la poêle.",
+        "Égoutte et rince les haricots noirs et le maïs sous l'eau froide.",
+        "Fais colorer la protéine de soja 4 minutes à feu vif dans une poêle chaude, avec du sel, du poivre et des épices chili.",
+        "Ajoute les haricots noirs, écrase-en une partie à la fourchette pour lier la sauce, et laisse mijoter 5 minutes à feu doux.",
+        "Passe les tortillas 20 secondes par face dans une poêle sèche et chaude : elles se plieront sans casser.",
+        "Garnis-les du chili, du maïs et de l'avocat en lamelles, puis plie en deux."
       ],
       "why": "Vegan combats : tacos très protéinés, capacité élevée.",
       "macros_per_serving": {
@@ -13506,8 +13538,12 @@
         }
       ],
       "instructions": [
-        "Égoutte et rince les pois chiches, sèche-les bien, mixe-les avec la PST en falafels et cuis-les au four.",
-        "Garnis la tortilla de falafels, de houmous et de salade."
+        "Préchauffe le four à 210 °C.",
+        "Couvre la protéine de soja texturée d'eau bouillante salée, laisse-la gonfler 5 minutes puis presse-la pour l'essorer.",
+        "Égoutte et rince les pois chiches, puis sèche-les bien dans un torchon : c'est ce qui fait tenir les falafels.",
+        "Mixe les pois chiches avec la protéine de soja, du sel, du poivre et du cumin, jusqu'à obtenir une pâte grossière qui se tient à la main.",
+        "Forme des boulettes de la taille d'une noix, étale-les sur une plaque, badigeonne-les d'huile d'olive et enfourne 12 minutes : elles doivent être dorées et fermes.",
+        "Passe la tortilla 20 secondes à la poêle chaude pour l'assouplir, garnis-la de houmous, des falafels écrasés du plat de la main et de la salade, puis roule fermement."
       ],
       "why": "Vegan endurance : falafels protéinés, glucides du wrap.",
       "macros_per_serving": {
@@ -13745,7 +13781,7 @@
       ],
       "instructions": [
         "Cuis la semoule.",
-        "Égoutte et rince les pois chiches, mijote-les avec le poulet et les légumes en bouillon épicé."
+        "Égoutte et rince les pois chiches, mijote-les 12 min avec le poulet et les légumes dans un fond d'eau salée et épicée : les légumes rendent leur jus et le lient."
       ],
       "why": "Muscu : couscous complet, double protéine, capacité haute.",
       "macros_per_serving": {
@@ -13985,7 +14021,7 @@
       ],
       "instructions": [
         "Cuis la semoule.",
-        "Égoutte et rince les pois chiches, mijote-les avec la PST et les légumes en bouillon."
+        "Égoutte et rince les pois chiches, mijote-les 12 min avec la PST et les légumes dans un fond d'eau salée et épicée : les légumes rendent leur jus et le lient."
       ],
       "why": "Vegan endurance : couscous complet, capacité protéique élevée.",
       "macros_per_serving": {
@@ -14091,8 +14127,12 @@
         }
       ],
       "instructions": [
-        "Cuire la polenta.",
-        "Griller le tofu, servir sur polenta avec ratatouille."
+        "Presse le tofu 5 minutes entre deux feuilles de papier absorbant sous une assiette lestée : moins il est gorgé d'eau, mieux il grille.",
+        "Verse la polenta en pluie dans quatre fois son volume d'eau salée frémissante et remue 5 minutes à feu doux, jusqu'à ce qu'elle nappe la cuillère.",
+        "Coupe le tofu en tranches épaisses d'un centimètre, sale et poivre les deux faces.",
+        "Fais chauffer l'huile d'olive à feu vif et grille les tranches 4 minutes par face sans y toucher : elles doivent se décoller seules et être franchement dorées.",
+        "Réchauffe la ratatouille 3 minutes à feu doux dans la même poêle, pour récupérer les sucs.",
+        "Dresse la polenta, pose le tofu grillé dessus et sers la ratatouille à côté."
       ],
       "why": "Vegan endurance sans gluten : méditerranéen, ancre protéique haute.",
       "macros_per_serving": {
@@ -14145,8 +14185,12 @@
         }
       ],
       "instructions": [
-        "Cuire les nouilles.",
-        "Sauter tofu et légumes, lier à la sauce cacahuète."
+        "Presse le tofu 5 minutes entre deux feuilles de papier absorbant sous une assiette lestée : moins il est gorgé d'eau, mieux il dore.",
+        "Plonge les nouilles de riz dans un grand volume d'eau bouillante, coupe le feu et laisse-les gonfler 4 minutes, puis égoutte et rince à l'eau froide pour qu'elles ne collent pas.",
+        "Coupe le tofu en cubes de deux centimètres et fais-les colorer 8 minutes dans une poêle très chaude, en ne les retournant que lorsqu'une face est franchement dorée.",
+        "Ajoute les légumes wok et saute-les 4 minutes à feu vif en remuant : ils doivent rester croquants.",
+        "Délaye le beurre de cacahuète avec trois cuillères d'eau chaude, du sel et du poivre, jusqu'à obtenir une sauce fluide.",
+        "Verse les nouilles et la sauce dans la poêle, mélange 1 minute hors du feu et sers aussitôt."
       ],
       "why": "Vegan & sans gluten : pad thaï végétal, énergie pour l'endurance.",
       "macros_per_serving": {
@@ -14259,8 +14303,11 @@
         }
       ],
       "instructions": [
-        "Cuire la polenta.",
-        "Mijoter PST + tomate, dresser sur polenta, râper le parmesan."
+        "Couvre la protéine de soja texturée d'eau bouillante salée, laisse-la gonfler 5 minutes puis presse-la pour l'essorer.",
+        "Fais chauffer l'huile d'olive à feu moyen et fais revenir la protéine de soja 4 minutes, jusqu'à ce qu'elle colore sur les bords.",
+        "Ajoute la tomate concassée, sale, poivre, ajoute de l'origan si tu en as, et laisse mijoter 10 minutes à feu doux : la sauce doit épaissir et ne plus rendre d'eau.",
+        "Pendant ce temps, verse la polenta en pluie dans quatre fois son volume d'eau salée frémissante et remue 5 minutes à feu doux, jusqu'à ce qu'elle nappe la cuillère.",
+        "Dresse la polenta au fond de l'assiette, verse la sauce dessus, puis râpe le parmesan hors du feu : posé sur une sauce bouillante, il file au lieu de fondre."
       ],
       "why": "Végétarien sans gluten : bolognaise végétale + parmesan, haute protéine.",
       "macros_per_serving": {
@@ -14605,8 +14652,12 @@
         }
       ],
       "instructions": [
-        "Cuire le riz.",
-        "Cuire l'omelette blancs + œuf avec champignons, servir avec le riz."
+        "Rince le riz basmati jusqu'à ce que l'eau soit claire, puis fais-le cuire 11 minutes dans un grand volume d'eau salée et égoutte-le.",
+        "Pendant ce temps, émince les champignons et jette-les dans une poêle très chaude avec la moitié de l'huile d'olive : laisse-les rendre leur eau 5 minutes sans remuer, jusqu'à ce qu'ils soient dorés, puis réserve.",
+        "Bats les blancs et l'œuf entier à la fourchette avec du sel et du poivre, jusqu'à ce que le mélange soit homogène et mousseux.",
+        "Verse le reste d'huile dans la poêle à feu doux, ajoute les œufs et laisse prendre 3 minutes sans remuer : le dessous doit être pris, le dessus encore brillant.",
+        "Répartis les champignons sur une moitié, plie l'omelette et coupe le feu : elle finit de cuire dans la poêle.",
+        "Sers l'omelette avec le riz."
       ],
       "why": "Sèche végétarienne sans gluten : très haute protéine, peu de gras.",
       "macros_per_serving": {
@@ -14718,7 +14769,7 @@
       ],
       "instructions": [
         "Cuire le quinoa.",
-        "Mélanger salade, poulet grillé, quinoa, parmesan et sauce yaourt-citron."
+        "Mélanger salade, poulet grillé et quinoa, assaisonner d'huile d'olive et de jus de citron, finir au parmesan râpé."
       ],
       "why": "Muscu sans gluten : César revisitée, protéinée et fraîche.",
       "macros_per_serving": {
@@ -14778,7 +14829,7 @@
       ],
       "instructions": [
         "Cuire le riz, refroidir.",
-        "Mélanger thon, œuf dur, maïs et vinaigrette légère."
+        "Mélanger thon, œuf dur et maïs, assaisonner d'huile d'olive, de vinaigre et de poivre."
       ],
       "why": "Pescatarien sans gluten : salade complète à emporter, double protéine.",
       "macros_per_serving": {
@@ -15927,8 +15978,11 @@
         }
       ],
       "instructions": [
-        "Cuire le quinoa, laisser tiédir.",
-        "Mélanger au yaourt de soja, garnir fruits rouges, amandes et coco."
+        "Rince le quinoa sous l'eau froide 30 secondes pour retirer son amertume, puis fais-le cuire 12 minutes à couvert dans deux fois son volume d'eau.",
+        "Égoutte le quinoa, étale-le dans une assiette et laisse-le tiédir 3 minutes : versé brûlant sur le yaourt, il le liquéfie.",
+        "Mélange le quinoa tiède au yaourt de soja et au lait de coco, jusqu'à obtenir une texture crémeuse.",
+        "Ajoute les fruits rouges entiers sans les écraser, pour qu'ils ne colorent pas tout le bol.",
+        "Concasse grossièrement les amandes et parsème juste avant de manger, sinon elles ramollissent."
       ],
       "why": "Vegan & sans gluten : bowl complet, protéines complètes du quinoa.",
       "macros_per_serving": {
@@ -16466,7 +16520,7 @@
         }
       ],
       "instructions": [
-        "Mélanger compote de pomme et chia.",
+        "Couper la pomme en dés, la cuire 3 min à couvert au micro-ondes, l'écraser à la fourchette et mélanger au chia.",
         "Ajouter les noix concassées, servir avec le yaourt de soja."
       ],
       "why": "Vegan & sans gluten : léger, fibres et oméga-3.",
@@ -16480,7 +16534,7 @@
     },
     {
       "id": "rep147",
-      "name": "Riz – soja_texture teriyaki – edamame – brocoli",
+      "name": "Riz – PST sautée – edamame – brocoli",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -16490,7 +16544,7 @@
         "sport": [
           "muscu"
         ],
-        "temps_min": 22
+        "temps_min": 30
       },
       "base_servings": 1,
       "ingredients": [
@@ -16526,8 +16580,12 @@
         }
       ],
       "instructions": [
-        "Cuire le riz, réhydrater la PST.",
-        "Laquer la PST teriyaki, sauter avec edamame et brocoli."
+        "Rince le riz complet, puis fais-le cuire 25 minutes à couvert et à feu doux dans deux fois et demie son volume d'eau salée.",
+        "Couvre la protéine de soja texturée d'eau bouillante salée, laisse-la gonfler 5 minutes puis presse-la pour l'essorer.",
+        "Détaille le brocoli en petits bouquets et fais-le cuire 5 minutes à la vapeur : il doit rester vert vif.",
+        "Fais cuire les edamame 5 minutes à l'eau bouillante salée, puis égoutte-les et écosse-les si besoin.",
+        "Fais chauffer l'huile d'olive à feu vif et saute la protéine de soja 5 minutes en remuant : elle doit brunir et croustiller sur les bords.",
+        "Ajoute les edamame et le brocoli, saute 2 minutes de plus et sers sur le riz égoutté."
       ],
       "why": "Vegan & sans gluten : double ancre (PST + edamame), forte capacité protéique.",
       "macros_per_serving": {
@@ -16604,7 +16662,7 @@
         "sport": [
           "combats"
         ],
-        "temps_min": 28
+        "temps_min": 35
       },
       "base_servings": 1,
       "ingredients": [
@@ -16640,8 +16698,12 @@
         }
       ],
       "instructions": [
-        "Rôtis la patate douce.",
-        "Égoutte et rince les haricots noirs, mijote-les avec la PST façon chili, dresse avec le maïs et l’avocat."
+        "Préchauffe le four à 210 °C.",
+        "Épluche la patate douce, coupe-la en cubes de deux centimètres et étale-les sur une plaque sans les superposer.",
+        "Enfourne 25 minutes en remuant à mi-cuisson : les cubes doivent être dorés aux angles et fondants au centre.",
+        "Pendant ce temps, couvre la protéine de soja texturée d'eau bouillante salée, laisse-la gonfler 5 minutes puis presse-la pour l'essorer.",
+        "Égoutte et rince les haricots noirs, puis fais-les mijoter 10 minutes à feu doux avec la protéine de soja, du sel, du poivre et des épices chili : le mélange doit être sec, pas soupeux.",
+        "Dresse la patate douce et le chili, ajoute le maïs égoutté et l'avocat coupé en lamelles."
       ],
       "why": "Vegan combats & sans gluten : protéines complètes, très haute capacité.",
       "macros_per_serving": {
@@ -16664,7 +16726,7 @@
         "sport": [
           "endurance"
         ],
-        "temps_min": 22
+        "temps_min": 30
       },
       "base_servings": 1,
       "ingredients": [
@@ -16694,8 +16756,12 @@
         }
       ],
       "instructions": [
-        "Cuire le riz.",
-        "Sauter le tempeh et les légumes, lier au lait de coco."
+        "Rince le riz complet, puis fais-le cuire 25 minutes à couvert et à feu doux dans deux fois et demie son volume d'eau salée.",
+        "Pendant ce temps, coupe le tempeh en tranches d'un demi-centimètre, puis en bâtonnets.",
+        "Fais dorer le tempeh 3 minutes par face dans une poêle chaude à sec : c'est cette croûte qui lui enlève son amertume.",
+        "Ajoute les légumes wok et saute-les 4 minutes à feu vif en remuant : ils doivent rester croquants.",
+        "Verse le lait de coco, sale, poivre, et laisse réduire 3 minutes à feu moyen jusqu'à ce que la sauce nappe la cuillère.",
+        "Sers sur le riz égoutté."
       ],
       "why": "Vegan & sans gluten : tempeh fermenté très protéiné, sauté complet.",
       "macros_per_serving": {
@@ -16814,8 +16880,12 @@
         }
       ],
       "instructions": [
-        "Cuire le sarrasin.",
-        "Griller le tofu, poêler les champignons, parsemer de levure maltée."
+        "Presse le tofu 5 minutes entre deux feuilles de papier absorbant sous une assiette lestée : moins il est gorgé d'eau, mieux il grille.",
+        "Rince le sarrasin, fais-le cuire 12 minutes dans deux fois son volume d'eau salée, puis égoutte-le.",
+        "Coupe le tofu en tranches épaisses d'un centimètre, sale et poivre les deux faces.",
+        "Fais chauffer l'huile d'olive à feu vif et grille les tranches 4 minutes par face sans y toucher : elles doivent se décoller seules et être franchement dorées, puis réserve.",
+        "Émince les champignons et jette-les dans la poêle encore très chaude : laisse-les rendre leur eau 5 minutes sans remuer, jusqu'à ce qu'ils soient dorés.",
+        "Dresse le sarrasin, pose le tofu et les champignons dessus, et parsème de levure maltée hors du feu."
       ],
       "why": "Vegan : umami du tofu + champignons, ancre protéique haute.",
       "macros_per_serving": {
@@ -17355,8 +17425,12 @@
         }
       ],
       "instructions": [
-        "Mixer sarrasin, protéine, lait d'amande et demi-banane.",
-        "Cuire en pancakes, napper de beurre de cacahuète."
+        "Mixe le sarrasin seul 1 minute, jusqu'à obtenir une farine fine : en grains entiers, la pâte reste sableuse.",
+        "Ajoute la protéine végétale, le lait d'amande et la moitié de la banane, puis mixe 30 secondes de plus jusqu'à obtenir une pâte lisse et coulante.",
+        "Laisse reposer la pâte 5 minutes : le sarrasin absorbe le liquide et elle épaissit toute seule.",
+        "Fais chauffer une poêle antiadhésive à feu moyen et verse des petites louches de pâte.",
+        "Laisse cuire 2 minutes par face : retourne quand des bulles crèvent à la surface et que les bords se décollent.",
+        "Nappe de beurre de cacahuète et dépose le reste de la banane en rondelles."
       ],
       "why": "Vegan & sans gluten : pancakes énergétiques avant un effort long.",
       "macros_per_serving": {
@@ -18667,7 +18741,7 @@
         }
       ],
       "instructions": [
-        "Nacrer le riz, mouiller au bouillon louche par louche.",
+        "Nacrer le riz, puis mouiller à l'eau chaude salée, louche par louche, en attendant que chaque louche soit absorbée.",
         "Ajouter poulet et champignons poêlés, finir au parmesan."
       ],
       "why": "Sans gluten : risotto protéiné, capacité élevée pour la masse.",
@@ -18720,7 +18794,7 @@
         }
       ],
       "instructions": [
-        "Nacrer le riz, mouiller au bouillon progressivement.",
+        "Nacrer le riz, puis mouiller progressivement à l'eau chaude salée, louche par louche.",
         "Ajouter crevettes et courgette, finir au citron."
       ],
       "why": "Pescatarien sans gluten : protéiné, lipides maîtrisés.",
@@ -18780,7 +18854,7 @@
         }
       ],
       "instructions": [
-        "Nacrer le riz, mouiller au bouillon.",
+        "Nacrer le riz, puis mouiller à l'eau chaude salée, louche par louche.",
         "Ajouter la PST réhydratée et les petits pois, finir crème de soja et levure."
       ],
       "why": "Vegan : risotto crémeux sans laitier, forte capacité protéique.",
@@ -18847,7 +18921,7 @@
       ],
       "instructions": [
         "Saisir poulet et crevettes, réserver.",
-        "Cuire le riz au bouillon safrané avec poivron et petits pois, remettre les protéines."
+        "Cuire le riz à l'eau chaude salée et safranée avec poivron et petits pois, remettre les protéines."
       ],
       "why": "Sans gluten : plat unique convivial, double protéine, capacité haute.",
       "macros_per_serving": {
@@ -19078,7 +19152,7 @@
       ],
       "instructions": [
         "Cuire pommes de terre et haricots verts.",
-        "Assembler tiède avec thon, œuf dur et vinaigrette."
+        "Assembler tiède avec thon et œuf dur, assaisonner d'huile d'olive, de vinaigre et de poivre."
       ],
       "why": "Pescatarien sans gluten combats : niçoise complète, protéinée.",
       "macros_per_serving": {
@@ -19429,8 +19503,12 @@
         }
       ],
       "instructions": [
-        "Cuire les nouilles.",
-        "Sauter le tempeh au curry rouge, ajouter légumes et lait de coco."
+        "Coupe le tempeh en tranches d'un demi-centimètre, puis en bâtonnets.",
+        "Plonge les nouilles de riz dans un grand volume d'eau bouillante, coupe le feu et laisse-les gonfler 4 minutes, puis égoutte et rince à l'eau froide.",
+        "Fais dorer le tempeh 3 minutes par face dans une poêle chaude à sec : c'est cette croûte qui lui enlève son amertume.",
+        "Ajoute le curry rouge et les légumes wok, et saute 4 minutes à feu vif.",
+        "Verse le lait de coco, baisse à feu moyen et laisse réduire 3 minutes, jusqu'à ce que la sauce nappe la cuillère.",
+        "Mélange les nouilles à la sauce hors du feu et sers aussitôt."
       ],
       "why": "Vegan & sans gluten : sauté crémeux, forte capacité protéique.",
       "macros_per_serving": {
