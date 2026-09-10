@@ -170,22 +170,43 @@ peut avoir mergé entre-temps.
 
 ---
 
-## Étape 4 — répondre au relecteur
+## Étape 4 — répondre au relecteur ✅ la capture est FAITE, reste à l'envoyer
 
-Apple demande **explicitement** un enregistrement d'écran pour 3.1.2(c) :
+**Tournée le 2026-09-10 à 15 h 56** — 40 s, iPhone, build (20), un seul plan continu.
+Vérifiée image par image : les deux formules avec titre, durée et prix (plus le prix par
+unité de l'annuel), les mentions de renouvellement, « Restaurer mes achats », **le lien
+légal TAPÉ** et l'écran « Confidentialité & CGU » parcouru, **un achat sandbox qui
+aboutit**, puis l'écran une fois le droit accordé.
+
+✅ Elle couvre donc `3.1.2(c)` **et** éteint tout reste de `2.1(b)`.
+✅ Les prix en dollars ne sont pas un défaut : mêmes paliers Apple, autre territoire —
+la démonstration et le paragraphe d'explication sont dans `STORE-RELEASE.md` §11-bis.
+
+### 🧑 Ce qui reste, et c'est à toi — je ne peux pas le faire
+
+**La Resolution Center n'existe pas dans l'API App Store Connect.** Aucun point d'entrée
+ne permet de lire le message d'Apple ni d'y répondre : c'est le seul geste de ce dossier
+que je ne peux poser ni vérifier.
+
+1. App Store Connect → l'app → **Resolution Center** (le fil du rejet du 10/09).
+2. **Coller le texte de réponse** — `STORE-RELEASE.md` §11-bis, bloc « Texte de réponse ».
+3. **Joindre la vidéo** (`~/Desktop/ScreenRecording_09-10-2026 15-56-05_1.mp4`, 30 Mo).
+4. Envoyer.
+
+> **Ce que tu dois voir** : ta réponse dans le fil, avec la pièce jointe visible.
+
+⚠️ **Répondre ne resoumet PAS l'app.** Les motifs 4 et 1.4.1 attendent le binaire
+(étape 3) ; la réponse ne les couvre pas, elle ne couvre que `3.1.2(c)`.
+⚠️ **Et le lien vidéo n'a pas sa place dans les notes de revue** : elles sont à
+3 926 / 4 000, il reste 74 caractères, et Apple demande une réponse au MESSAGE, pas une
+note.
+
+---
+
+### Ce qu'Apple demande, mot pour mot
 
 > *« reply to this message with a screen recording to confirm. Include this information
 > in the Notes field of the App Review Information section »*
 
-Le texte de réponse et le script de la capture vivent dans `STORE-RELEASE.md` §11-bis.
-
-✅ **ELLE SE TOURNE SUR LE (20), ET DONC ELLE N'ATTEND PAS L'ÉTAPE 3.** Cette ligne
-disait le contraire par réflexe. Mesuré : **la PR #252 n'a pas touché `app/kyroz-plus.tsx`**
-— l'écran de vente est identique au bit près dans le (20) et dans le prochain build.
-
-🔴 **Et ce n'est pas la vidéo du 05/09.** Celle-là prouvait qu'un achat ABOUTIT (motif
-`2.1(b)`, achat sandbox sur appareil physique) ; celle-ci prouve que l'écran **DIT** le
-titre, la durée, le prix et porte les liens — **aucun achat n'est nécessaire**, le
-simulateur suffit. ✅ Le motif du 05/09 est éteint : la vidéo n'a jamais été tournée, la
-soumission du 08/09 est partie sans elle, et la revue du 10/09 n'a pas re-soulevé
-`2.1(b)`. Comparaison complète : `STORE-RELEASE.md` §11-bis.
+*(La seconde phrase est faite : les liens sont dans les notes depuis le 2026-09-10.
+La première attend ton envoi ci-dessus.)*
