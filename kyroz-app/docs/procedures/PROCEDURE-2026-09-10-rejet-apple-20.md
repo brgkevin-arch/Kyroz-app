@@ -7,14 +7,19 @@
 **Soumission** `fddc0394-b69a-41c5-b2cd-0edc471eb610` · révisée le **10 septembre 2026**
 sur **iPad Air 11" (M3)** · version **1.0 (20)**.
 
-Trois motifs. **Deux sont déjà corrigés dans le code** et n'attendent qu'un binaire ; le
-troisième ne se corrige pas dans le dépôt du tout — c'est une **métadonnée**.
+Trois motifs. **Les deux premiers sont corrigés dans le code** (PR #252, mergée) et
+n'attendent qu'un binaire ; le troisième ne se corrigeait pas dans le dépôt du tout —
+c'est une **métadonnée**, et elle est **posée depuis le 2026-09-10**.
+
+> ✅ **ÉTAPES 1 ET 2 FAITES.** Voie A tranchée par le fondateur ; description et notes
+> de revue écrites par l'API et **relues après écriture**. Il reste les étapes 3 et 4 :
+> un build, puis la réponse au relecteur avec sa capture vidéo.
 
 | Motif | Nature | Où ça se règle |
 |---|---|---|
 | **4 — Design** · Sign in with Apple redemande le prénom | code | ✅ fait — attend un build |
 | **1.4.1 — Physical Harm** · citations sans lien, et introuvables | code | ✅ fait — attend un build |
-| **3.1.2(c) — Subscriptions** · pas de lien vers les CGU (EULA) dans les métadonnées | **fiche App Store** | 🔴 étapes 1 et 2 ci-dessous |
+| **3.1.2(c) — Subscriptions** · pas de lien vers les CGU (EULA) dans les métadonnées | **fiche App Store** | ✅ **posé le 2026-09-10** (voie A) |
 
 ---
 
@@ -54,7 +59,7 @@ n'est pas celui qu'Apple attend.**
 
 ---
 
-## Étape 1 — choisir la forme (décision fondateur)
+## ✅ Étape 1 — la forme est choisie : VOIE A (2026-09-10)
 
 **Deux voies, et elles ne coûtent pas la même chose.**
 
@@ -95,15 +100,29 @@ la fiche produit.
 « Contrat de licence » sur la fiche — c'est un chantier juridique, pas un correctif de
 rejet.
 
-> **Ce que tu dois faire** : me dire **A** ou **B**. Rien d'autre à cette étape.
+> ✅ **TRANCHÉ : voie A.** L'EULA standard d'Apple, lien ajouté à la description.
+> La voie B reste ouverte pour plus tard — elle n'est pas un correctif de rejet mais un
+> chantier juridique, et rien ne presse.
 
 ---
 
-## Étape 2 — poser la description corrigée
+## ✅ Étape 2 — la description est posée (2026-09-10)
 
-*(À faire une fois l'étape 1 tranchée. Je peux l'écrire par l'API, ou tu la colles à la
-main — dis-moi lequel.)*
+**Écrite par l'API, et relue après écriture** — version 1.0 `REJECTED`, locale `fr-FR`,
+**1 301 → 1 386 caractères**, les deux liens présents.
 
+⚠️ **Elle n'a pas été retapée depuis le dépôt** : elle a été RELUE chez Apple puis
+modifiée par substitution du seul bloc concerné. Recopier le texte d'ici aurait été
+exactement le défaut que ce chantier venait de corriger — le dossier annonçait une
+description périmée depuis treize jours.
+
+✅ **Et les notes de revue ont suivi**, parce qu'Apple le demande nommément et parce
+qu'une de leurs lignes était devenue FAUSSE : elle donnait le chemin enterré vers les
+sources, celui-là même que le rejet 1.4.1 refuse. **3 952 → 3 926 / 4 000.** Ce qu'il a
+fallu retrancher pour faire entrer les liens — 301 caractères, tous du doublon ou de la
+mise en forme — est détaillé dans `STORE-RELEASE.md` §11.
+
+*(Historique — ce qu'il fallait faire :)*
 **À la main** : App Store Connect → l'app → la version **1.0** → **Description**.
 
 Le texte complet à servir vit dans `STORE-RELEASE.md` §3, bloc « Description ». La seule

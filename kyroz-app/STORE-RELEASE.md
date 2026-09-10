@@ -1422,6 +1422,12 @@ Kyroz est conçu pour des adultes en bonne santé. Ces informations ne remplacen
 pas l'avis d'un médecin ou d'un diététicien-nutritionniste.
 ```
 
+> ✅ **POSÉE CHEZ APPLE LE 2026-09-10** (voie A, décision fondateur), par l'API et
+> **relue après écriture** : version 1.0 `REJECTED`, locale `fr-FR`, **1 301 → 1 386
+> caractères**, deux liens présents. La description n'a PAS été retapée depuis ce
+> document — elle a été relue chez Apple et modifiée par substitution, parce que
+> recopier d'ici est exactement le défaut corrigé plus haut.
+>
 > 🔴 **LES DEUX DERNIÈRES LIGNES DE LIENS SONT LE CORRECTIF DU REJET 3.1.2(c)**
 > (2026-09-10). La fiche en ligne ne portait que la seconde, et c'est ce qui a été
 > refusé — **pas parce que le lien était cassé** (`kyroz.app/legal.html` répond 200 et
@@ -2074,9 +2080,15 @@ eas submit --platform android --latest    # 1re fois : créer l'app dans Play Co
 ## 11. Note pour le reviewer (à coller dans App Store Connect + Play Console)
 
 > Rédigée en anglais (les reviewers ne lisent pas forcément le français) avec les
-> libellés FR des boutons entre guillemets. **Remplace `<CODE_EAS>` par le code que
-> tu as posé dans `EXPO_PUBLIC_REVIEW_CODE`** (⚠️ ne PAS committer le vrai code ici —
-> ce fichier est dans le repo public). Colle-la dans :
+> libellés FR des boutons entre guillemets.
+>
+> ✅ **CE BLOC EST LE TEXTE RÉELLEMENT EN LIGNE**, relu chez Apple le 2026-09-10 après
+> écriture (**3 926 / 4 000**). Il ne se recopie donc plus à la main : il se relit.
+> ✅ **Et le mot de passe n'y figure plus** : la note renvoie au champ « Demo Account »
+> du même formulaire. Un `<CODE_EAS>` à substituer était une occasion de plus de coller
+> un secret dans un dépôt public — cf. la fiche sécurité du 2026-09-03.
+>
+> Où elle vit :
 > - **Apple** : App Store Connect → ta version → *App Review Information* → *Notes* +
 >   coche *Sign-In required* et mets l'e-mail/mot de passe dans les champs dédiés.
 > - **Google** : Play Console → *App content* → *App access* → *All functionality
@@ -2086,12 +2098,9 @@ eas submit --platform android --latest    # 1re fois : créer l'app dans Play Co
 DEMO ACCESS
 The app opens on a sign-in screen. Use the demo access below to review the full app.
 
-On the login screen:
-1. Tap the "Connexion" tab (right tab = "Sign in").
-2. Email:    review@kyroz.app
-3. Password: <CODE_EAS>
-4. Tap "Se connecter" ("Sign in").
-→ Opens a guest session, straight to onboarding.
+On the login screen, tap the "Connexion" tab (right tab = "Sign in"), enter
+review@kyroz.app with the password in the Demo Account field of this form, then tap
+"Se connecter". This opens a guest session, straight to onboarding.
 
 WALKTHROUGH (~2 min)
 - Onboarding: first name → basic info + body-fat picker → sports → goal →
@@ -2105,7 +2114,6 @@ NOTES
 - App language is French; theme is dark.
 - No ads, no third-party tracking. The meal-plan engine runs on-device: generating a
   plan needs no server call.
-- The app offers ONE auto-renewable subscription, "Kyroz+" — see the next section.
 
 IN-APP PURCHASE - "Kyroz+" (auto-renewable subscription)
 Where to find it: "Profil" tab (rightmost) -> scroll to the bottom -> "Kyroz+".
@@ -2124,20 +2132,23 @@ What the subscription unlocks:
 - "Suivi de transformation" - weight curve against the intended trajectory, plus
   before/after progress photos. Photos never leave the device.
 
-What stays free, permanently: the weekly meal plan with macros, the shopping list, all
-recipes, the pantry, favourites, the streak, weigh-ins, calorie recalculation and
-account sync. None of these will move behind the subscription.
-
 "Restaurer mes achats" ("Restore purchases") is on the same screen, directly under the
 subscribe button.
+
 - Health disclaimer shown in-app: Kyroz is for healthy adults and does not replace
   medical or dietitian advice. Users under 18 are blocked during onboarding.
 - Data (email, profile) is stored in the EU (Supabase). Users can delete their
-  account and data in-app (Profil → delete account). Photos never leave the device.
+  account and data in-app (Profil → delete account).
+
+Terms of Use (EULA), the standard Apple EULA:
+https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+Our terms and privacy policy: https://kyroz.app/legal.html
+Both are linked from the Kyroz+ screen, above the subscribe button.
 
 METHODOLOGY AND SOURCES (guideline 1.4.1)
 An in-app screen discloses every formula, threshold and source behind the numbers we
-display: Profil -> gear icon -> "Aide et retours" -> "Méthodologie & sources".
+display. One tap from where the recommendation is shown: under the daily plan, and
+under the medical notice on onboarding step 1. Also Profil -> gear -> "Aide et retours".
 - Resting metabolic rate: Mifflin-St Jeor (Am J Clin Nutr 1990;51(2):241-247).
   Katch-McArdle only when the user states their body fat was MEASURED; if it was
   estimated from a silhouette the two are blended, and only upward.
@@ -2156,6 +2167,29 @@ display: Profil -> gear icon -> "Aide et retours" -> "Méthodologie & sources".
 Kyroz is a wellness app. It is not a medical device: it does not diagnose, treat,
 cure or prevent any condition, and makes no such claim anywhere in the app.
 ```
+
+🔴 **LE 2026-09-10, IL A FALLU PAYER 301 CARACTÈRES POUR EN AJOUTER.** Le rejet
+3.1.2(c) demandait nommément d'inscrire les liens ici — *« Include this information in
+the Notes field »* — et la note était à **3 952 / 4 000**. Ce qui est parti, et rien
+d'autre :
+
+| Retranché | Coût | Pourquoi c'est sans perte |
+|---|---|---|
+| « What stays free, permanently » | 231 | Dit **mot pour mot dans la description** de la fiche, que le relecteur lit aussi. Un doublon entre deux surfaces, pas une information |
+| Les 4 étapes numérotées de l'accès démo | ~90 | Devenues une phrase. Aucun fait perdu |
+| « Photos never leave the device. » | 31 | Écrit **deux fois** ; il reste là où il porte du sens |
+| « — see the next section » | 72 | Une flèche vers le paragraphe qui suit, sous son propre titre |
+
+⚠️ **Rien de ce qu'exige une guideline n'a été touché** : prix, durées, identifiants
+produits, ce que l'abonnement ouvre, la restauration d'achats, les sept puces de
+méthodologie et la clause « pas un dispositif médical » sont intacts — vérifiés un par
+un après relecture. Marge restante : **74 caractères**.
+
+🔴 **ET UNE LIGNE ÉTAIT DEVENUE FAUSSE, ce qui comptait plus que la place.** Elle
+donnait le chemin vers les sources comme *« Profil -> gear icon -> Aide et retours »* —
+c'est-à-dire exactement le chemin enterré qu'Apple venait de refuser. Elle nomme
+désormais les deux accès en un tap. *Une note de soumission ne se périme pas toute
+seule : elle décrit un produit qui, lui, bouge.*
 
 🔴 **LE CHAMP D'APPLE PLAFONNE À 4 000 CARACTÈRES — mesuré le 2026-08-28 en le
 remplissant par l'API, pas en le lisant.** La note en faisait **4 476** : elle était
@@ -2264,21 +2298,15 @@ Un seul plan continu, sans coupe — une capture montée est une capture qu'on r
 ➡️ Enregistrement : `xcrun simctl io booted recordVideo capture-3.1.2c.mp4`
 (⚠️ la capture d'écran par MCP plante sur ce simulateur, cf. `reference-ios-native-build-kyroz`).
 
-### Et le mettre dans les Notes, comme Apple le demande
+### ✅ Et c'est dans les Notes, comme Apple le demande
 
 > *« Include this information in the Notes field of the App Review Information section
 > in App Store Connect for future submissions. »*
 
-À ajouter au bloc de §11, section `IN-APP PURCHASE` :
-
-```
-SUBSCRIPTION DISCLOSURES
-Kyroz+ is an auto-renewable subscription: 3,99 EUR/month or 29,99 EUR/year (FR tier).
-Title, length and localized price are shown on the Kyroz+ screen before purchase,
-together with the auto-renewal notice and a link to our terms and privacy policy.
-Terms of Use (EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
-Kyroz terms + privacy policy: https://kyroz.app/legal.html
-```
+**FAIT le 2026-09-10**, par l'API et relu après écriture. Le texte intégral est le bloc
+de §11 ci-dessus — il porte désormais les deux liens, et le chemin vers les sources y
+est celui d'aujourd'hui. Ce qu'il a fallu retrancher pour tenir sous les 4 000 est
+détaillé sous ce bloc.
 
 *Playbook préparé le 2026-07-17. Config technique prête ; le chemin critique = le bac à
 sable (`docs/procedures/PROCEDURE-2026-08-27-bac-a-sable.md`), les captures à juger, et la fiche à

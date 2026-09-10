@@ -655,9 +655,21 @@ produit en suspens — il ne reste qu'à coder.
   |---|---|---|
   | **4 — Design** · SIWA redemande le prénom | code | ✅ livré, attend un build |
   | **1.4.1 — Physical Harm** · citations sans lien et introuvables | code | ✅ livré, attend un build |
-  | **3.1.2(c) — Subscriptions** · lien CGU (EULA) absent des métadonnées | **fiche App Store** | 🔴 **décision fondateur en attente** |
+  | **3.1.2(c) — Subscriptions** · lien CGU (EULA) absent des métadonnées | **fiche App Store** | ✅ **posé le 2026-09-10** (voie A) |
 
-  🔴 **CE QUI RESTE TIENT EN UNE QUESTION, ET ELLE N'EST PAS TECHNIQUE.** Apple ne
+  ✅ **LE VOLET MÉTADONNÉES EST CLOS — voie A, 2026-09-10** (décision fondateur). La
+  description porte le lien de l'EULA standard d'Apple à côté des CGU Kyroz (1 301 →
+  1 386 caractères), et les notes de revue portent les deux liens (3 952 → 3 926 / 4 000).
+  Les deux écrites par l'API et **relues après écriture**.
+  🔴 **ET LES NOTES PORTAIENT UNE LIGNE DEVENUE FAUSSE**, ce qui comptait plus que la
+  place : elles donnaient le chemin vers les sources comme « Profil → roue → Aide et
+  retours » — le chemin enterré que le rejet 1.4.1 refuse justement. Corrigée.
+  ⚠️ **Faire entrer les liens a coûté 301 caractères**, tous pris sur du doublon ou de
+  la mise en forme (le détail est en `STORE-RELEASE.md` §11) : aucune exigence de
+  guideline n'a été touchée, vérifiée une par une après relecture. Marge : 74 caractères.
+
+  *(Ce que la mesure avait trouvé, et qui reste la leçon :)*
+  🔴 **CE QUI RESTAIT TENAIT EN UNE QUESTION, ET ELLE N'ÉTAIT PAS TECHNIQUE.** Apple ne
   reconnaît que deux formes d'EULA : le **standard**, dont le lien va dans la
   description, ou un **personnalisé** déclaré dans App Store Connect. Mesuré le
   2026-09-10 — `GET /v1/apps/6796427402/endUserLicenseAgreement` rend `data: null`, donc
@@ -683,6 +695,11 @@ produit en suspens — il ne reste qu'à coder.
   ✅ **Empreinte OTA mesurée, pas supposée** : `5118d1bd…`, 85 sources, aucune des 9
   sources hors `node_modules` n'est touchée par ce chantier. **La ligne vers le (20) reste
   ouverte** — mais elle ne dispense pas du build, le relecteur voyant le JS EMBARQUÉ.
+
+  🔴 **CE QU'IL RESTE, ET RIEN D'AUTRE** : **(1)** lancer le build — les correctifs des
+  motifs 4 et 1.4.1 n'atteignent le relecteur que par le binaire ; **(2)** répondre au
+  relecteur avec la capture vidéo qu'Apple réclame nommément pour 3.1.2(c), sur ce
+  nouveau binaire (texte de réponse et script de la capture : `STORE-RELEASE.md` §11-bis).
 
 ### 🍽 D — Catalogue
 
