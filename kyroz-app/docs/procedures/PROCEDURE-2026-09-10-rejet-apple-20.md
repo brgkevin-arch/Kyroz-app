@@ -11,9 +11,11 @@ Trois motifs. **Les deux premiers sont corrigés dans le code** (PR #252, mergé
 n'attendent qu'un binaire ; le troisième ne se corrigeait pas dans le dépôt du tout —
 c'est une **métadonnée**, et elle est **posée depuis le 2026-09-10**.
 
-> ✅ **ÉTAPES 1 ET 2 FAITES.** Voie A tranchée par le fondateur ; description et notes
-> de revue écrites par l'API et **relues après écriture**. Il reste les étapes 3 et 4 :
-> un build, puis la réponse au relecteur avec sa capture vidéo.
+> ✅ **ÉTAPES 1 À 4 FAITES — il ne reste qu'un geste, et il est dans la console.**
+> Voie A tranchée ; description et notes écrites par l'API et relues ; capture tournée
+> et envoyée par le fondateur dans la Resolution Center ; **build (22) compilé, vérifié
+> DANS SON IPA, téléversé et `VALID` chez Apple**.
+> 🔴 **RESTE : attacher le (22) à la version 1.0 et RENVOYER EN REVUE** — cf. l'étape 5.
 
 | Motif | Nature | Où ça se règle |
 |---|---|---|
@@ -148,63 +150,56 @@ https://kyroz.app/legal.html
 
 ---
 
-## Étape 3 — un build, et il en faut un  🔴 LE (21) A ÉTÉ ANNULÉ
+## ✅ Étape 3 — le build (22) est fait, vérifié et téléversé
 
-Les motifs **4** et **1.4.1** sont corrigés et mergés, mais **le relecteur ouvre le
-binaire, pas le dépôt** — une OTA ne l'atteint pas (il lance l'app une fois, et une mise
-à jour ne s'applique qu'au lancement **suivant**).
+| | |
+|---|---|
+| Build | **(22)** · `FINISHED` · commit `2529c2c` · runtime `823c89db…` |
+| Pré-vol | vert sur six points ; **et le contrôle d'APRÈS-build** a confirmé que `origin/main` valait toujours `2529c2c` — le binaire n'est pas né périmé |
+| Correctifs dans l'IPA | ✅ vérifiés (voir ci-dessous) |
+| Chez Apple | **`(22) VALID`**, téléversé le 2026-09-10 |
 
-🔴 **Le (21) a été lancé le 2026-09-10 à 16 h 18 sur le commit `8d25047`, puis ANNULÉ
-sur décision fondateur.** Son numéro est **consommé** — `autoIncrement` s'incrémente à la
-CRÉATION : **le prochain sortira en (22)**, et aucun (21) valide n'existera jamais.
-Chercher un « (21) » sur TestFlight ferait perdre du temps.
+🔴 **LE (21) A ÉTÉ ANNULÉ ET SON NUMÉRO EST CONSOMMÉ** — `autoIncrement` s'incrémente à
+la CRÉATION. Aucun (21) valide n'existera jamais.
 
-### Le pré-vol, à REFAIRE avant de relancer
+### La vérification qui compte : DANS l'IPA, pas dans le dépôt
 
-Il avait été passé et il était vert. Il se refait quand même, parce que `main` bouge :
-**quatre PR ont été mergées par d'autres sessions pendant ce chantier**, et cinq
-worktrees étaient actifs.
-
-```
-git status --short                 # vide
-git fetch origin && git rev-parse HEAD origin/main   # identiques
-gh pr list --state open            # rien en vol
-git worktree list                  # qui travaille en parallèle
-npx tsc --noEmit && npm test       # muet, et tout au vert
-```
-
-Puis, **et c'est celle qu'on saute** :
+Le relecteur ouvre le binaire. Recette employée :
 
 ```
-npx expo-updates fingerprint:generate --platform ios      # l'empreinte de main
-npx eas-cli build:list --platform ios --limit 2 --json --non-interactive
-  → build.runtime.version                                  # celle du binaire
+curl -sSL -o app.ipa "<artifacts.applicationArchiveUrl>"     # eas build:list --json
+unzip -q app.ipa -d x
+strings -a x/Payload/Kyroz.app/main.jsbundle | grep -c "<témoin>"
 ```
 
-🔴 **ÉTAT MESURÉ LE 2026-09-10 : la ligne OTA vers le (20) est COUPÉE.** Le (20) tourne
-sur `5118d1bd…`, `main` vaut `823c89db…`. **Ce n'est pas ce chantier** — l'empreinte lui
-était restée identique. C'est **#249**, qui a ajouté `"mesure:instructions"` aux `scripts`
-de `package.json`. Un script de mesure qui ne part jamais dans l'app, et qui coupe la
-ligne. Sans conséquence ici (on fabrique un binaire neuf), mais **aucune OTA n'atteint
-les testeurs du (20) d'ici là**.
+| Témoin | Attendu | Trouvé |
+|---|---|---|
+| les 7 DOI + `ciqual.anses.fr` | présents | **8 / 8** |
+| `FULL_NAME`, `AppleAuthenticationScope` | présents | ✅ |
+| `app_metadata`, `providers` | présents | ✅ |
+| « Renseigné par ton compte Apple » *(UTF-16)* | présent | ✅ |
+| « reportées sur tes jours » *(paragraphe retiré)* | **absent** | **0** |
+| un faux DOI | **absent** | **0** — la sonde sait dire non |
 
-### Lancer
+⚠️ **Piège d'encodage, commis puis corrigé** : Hermes range en **UTF-16** toute chaîne
+portant un seul accent. `strings` rend donc 0 sur « reportées sur tes jours » **quoi
+qu'il arrive** — un témoin de contrôle qui ne prouve rien. Refait en `utf-16le`/`be`,
+avec un témoin POSITIF du même encodage pour prouver que la mesure fonctionne.
 
-```
-npx eas-cli build --platform ios --profile production --non-interactive
-```
+### Le téléversement — 42 minutes perdues sur un faux diagnostic
 
-> **Ce que tu dois voir** : `FINISHED`, et **le COMMIT du build égal à `origin/main`** —
-> pas sa date. Un binaire se périme PENDANT qu'il compile ; c'est ce contrôle-là, APRÈS
-> le build, qui a sauvé le (6) en août.
-
-⚠️ **Et à la soumission** : les deux produits `_early` partent (`READY_FOR_REVIEW`), les
-deux du palier standard restent dehors (`DEVELOPER_REJECTED`) — les recocher rejouerait
-le rejet `2.1(b)` du 03/09. Cf. `STORE-RELEASE.md` §11-bis.
+`eas submit` **planifie le travail chez EAS** : le processus local n'a ni socket ni CPU,
+et ressemble trait pour trait à un processus mort. Il ne l'était pas — la soumission
+`27e64181` était `IN_QUEUE`, et elle a fini. En la croyant morte, j'ai tué et relancé,
+donc créé un **doublon** (`8dd07372`, annulé depuis avec `eas submit:cancel`).
+➡️ Le seul juge d'un travail distant est `npx eas-cli submit:list --platform ios` —
+**pas** `build.submissions`, qui rend `[]` même quand une soumission tourne.
+➡️ Et ne jamais canaliser une commande longue dans `tail` : il ne rend rien avant la
+fin. Détail : CLAUDE.md §11.
 
 ---
 
-## Étape 4 — répondre au relecteur ✅ la capture est FAITE, reste à l'envoyer
+## ✅ Étape 4 — la réponse et la capture sont ENVOYÉES (2026-09-10)
 
 **Tournée le 2026-09-10 à 15 h 56** — 40 s, iPhone, build (20), un seul plan continu.
 Vérifiée image par image : les deux formules avec titre, durée et prix (plus le prix par
@@ -216,7 +211,7 @@ aboutit**, puis l'écran une fois le droit accordé.
 ✅ Les prix en dollars ne sont pas un défaut : mêmes paliers Apple, autre territoire —
 la démonstration et le paragraphe d'explication sont dans `STORE-RELEASE.md` §11-bis.
 
-### 🧑 Ce qui reste, et c'est à toi — je ne peux pas le faire
+### ✅ Envoyé par le fondateur — et c'est le seul geste que l'API ne permet pas
 
 **La Resolution Center n'existe pas dans l'API App Store Connect.** Aucun point d'entrée
 ne permet de lire le message d'Apple ni d'y répondre : c'est le seul geste de ce dossier
@@ -244,3 +239,27 @@ note.
 
 *(La seconde phrase est faite : les liens sont dans les notes depuis le 2026-09-10.
 La première attend ton envoi ci-dessus.)*
+
+---
+
+## Étape 5 — attacher le (22) et renvoyer en revue  🧑 À FAIRE
+
+C'est le dernier geste, et il est dans la console.
+
+1. App Store Connect → l'app → version **1.0** → section **Build** → choisir le **(22)**.
+2. Vérifier les abonnements joints à la soumission :
+
+   | Produit | Doit |
+   |---|---|
+   | `kyroz_plus_monthly_early` · `kyroz_plus_yearly_early` | **partir** (`READY_FOR_REVIEW`) |
+   | `kyroz_plus_monthly` · `kyroz_plus_yearly` | **rester dehors** (`DEVELOPER_REJECTED`) |
+
+   🔴 Les recocher rejouerait le rejet `2.1(b)` du 03/09 — produits créés chez Apple,
+   **absents du binaire**. Un abonnement configuré ne se supprime jamais : ils resteront
+   là, à ne pas cocher, indéfiniment.
+3. **Envoyer pour vérification.**
+
+> **Ce que tu dois voir** : la version en `WAITING_FOR_REVIEW`, avec le build (22).
+
+⚠️ **L'API sait attacher la version à une soumission, pas les abonnements** — le chemin
+console est obligatoire pour l'étape 2 (`STORE-RELEASE.md` §3-bis).

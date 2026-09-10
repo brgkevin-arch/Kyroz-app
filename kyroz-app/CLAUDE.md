@@ -2838,6 +2838,46 @@ téléphone.
 
 ## 11. Pièges connus (redécouverts au moins une fois chacun)
 
+- 🔴 **`eas submit` PLANIFIE CHEZ EAS — le processus local ne fait qu'ATTENDRE, et il
+  ressemble à un processus mort.** Payé 42 minutes le 2026-09-10. Le client local n'a
+  **aucune socket ouverte**, **aucun CPU** (4,6 s en 42 min) et sa boucle d'événements
+  dort en `kevent` : les trois signaux qui, sur un travail LOCAL, prouvent un blocage.
+  Ici ils décrivent un client qui attend correctement. La lenteur venait de la **file
+  d'attente d'EAS**, pas d'un défaut.
+  ➡️ **La première question n'est pas « le processus vit-il ? » mais « OÙ le travail
+  a-t-il lieu ? »** Local (compilation, export, `curl`) → `ps`/`lsof`/`sample`
+  tranchent. Distant (`eas submit`, `eas build`, un CI) → **ils ne disent rien**, et le
+  seul juge est l'état du job côté serveur : `npx eas-cli submit:list --platform ios`.
+  ⚠️ **Et interroger le BON objet** : `build.submissions` rend `[]` même quand une
+  soumission tourne — j'en ai conclu qu'aucune n'existait. *Un champ vide n'est une
+  absence que si c'est le champ qui la porte.*
+  ⚠️ **Ce que l'erreur a coûté** : tuer puis relancer crée une **seconde soumission du
+  même binaire**. Rattrapable — `eas submit:cancel <id>` existe.
+  🔴 **ET LA CAUSE PREMIÈRE ÉTAIT UN PIPE** : la commande tournait dans
+  `… 2>&1 | tail -40`, et **`tail` ne rend rien avant la fin**. Zéro octet lisible
+  pendant 42 minutes, puis le message parti avec le processus tué — on ne saura jamais
+  ce qu'il disait. ➡️ **Une commande longue se redirige vers un FICHIER**
+  (`> /tmp/x.log 2>&1`), qui se lit au fur et à mesure. La relance sans `tail` a
+  affiché en trois secondes ce que 42 minutes de silence cachaient.
+  ℹ️ Avertissement normal et sans conséquence pour une revue :
+  *« App Store Connect credentials are incomplete, skipping TestFlight setup »* — le
+  binaire part, seuls les groupes de testeurs ne sont pas configurés.
+
+- ✅ **VÉRIFIER QU'UN CORRECTIF EST DANS LE BINAIRE, pas seulement dans le dépôt** — le
+  relecteur ouvre l'IPA. La recette, employée sur le (22) :
+  ```
+  curl -sSL -o app.ipa "<artifacts.applicationArchiveUrl>"   # eas build:list --json
+  unzip -q app.ipa -d x
+  strings -a x/Payload/*.app/main.jsbundle | grep -c "<témoin>"
+  ```
+  ⚠️ **Le témoin doit être ASCII de bout en bout** (un DOI, un identifiant) : Hermes
+  range en **UTF-16** toute chaîne portant un seul accent, donc `strings` rend 0 sur une
+  phrase française — et ce 0 se lit comme une absence. Pour un texte accenté, compter
+  les octets en `utf-16le` **et** `utf-16be`.
+  🔴 **Et toujours un témoin qui doit valoir ZÉRO** (une chaîne qu'on sait absente) :
+  sans lui, une série de « 1 » ne prouve pas que la sonde sait dire non.
+
+
 - 🔴 **SIGN IN WITH APPLE NE DONNE LE NOM QU'UNE FOIS DANS LA VIE DU COMPTE — et c'est
   ce qui rend un correctif « vérifié » faux.** `fullName` (et `email`) ne sont renvoyés
   qu'à la **toute première autorisation** ; toute connexion suivante rend `null`
