@@ -2494,6 +2494,47 @@ se lit comme une absence. Pour un texte accentué, compter les octets en `utf-16
 🔴 **Toujours un témoin qui doit valoir ZÉRO.** Sans lui, une série de « 1 » ne prouve
 pas que la sonde sait dire non.
 
+## 11-quinquies. Renvoyer en revue — les trois mesures qui tranchent
+
+> Écrit le 2026-09-10, après avoir renvoyé le (22) et vérifié ce qui était vraiment parti.
+
+Téléverser n'est pas soumettre, et attacher n'est pas soumettre non plus. **Trois gestes
+distincts**, et seul le dernier met la version devant un relecteur.
+
+| Ce qu'on veut savoir | Où ça se lit | Ce qu'on doit voir |
+|---|---|---|
+| La version est-elle partie ? | `GET /v1/apps/{id}/appStoreVersions?limit=1` | `appStoreState` = `WAITING_FOR_REVIEW` |
+| Avec quel binaire ? | `GET /v1/appStoreVersions/{id}/build` | le bon `version` |
+| Avec quels achats ? | l'`state` de **chaque abonnement** | `WAITING_FOR_REVIEW` pour ceux qui partent, `READY_TO_SUBMIT` pour ceux qui restent |
+
+🔴 **NE PAS CHERCHER LES ACHATS DANS `reviewSubmissions/{id}/items`.** Ces objets n'ont ni
+attribut nommé ni relation exploitable — `include=subscription` répond
+`400 « 'subscription' is not a valid relationship name »` — et leur id en base64 se
+décode en `<soumission>|<code>|<id INTERNE>`, lequel rend `404` sur
+`/v1/subscriptions/{id}`. J'ai bâti un recoupement là-dessus : **quatre lignes fausses**,
+et surtout un **« 0 abonnement interdit parti »** qui était zéro faute d'avoir résolu quoi
+que ce soit. *Un contrôle qui ne résout rien rend zéro, et ce zéro rassure.*
+
+🔴 **Un abonnement rejeté par le développeur peut redevenir cochable.** Les deux du palier
+standard, notés `DEVELOPER_REJECTED` dans la procédure du 10/09, étaient repassés à
+`READY_TO_SUBMIT` au moment de soumettre — donc **proposés, pas grisés**. Le garde-fou
+n'était pas chez Apple, il était dans l'attention du fondateur.
+➡️ La preuve qui ne bouge pas est **dans le binaire** : compter les identifiants produits
+dans le bytecode, en excluant le piège du préfixe (`kyroz_plus_monthly` est contenu dans
+`kyroz_plus_monthly_early` — un `grep` naïf en trouve un là où il n'y en a pas).
+
+🕐 **Les dates de l'API sont en heure du PACIFIQUE.** `uploadedDate` vaut
+`2026-09-10T09:19:07-07:00` : tronquer la chaîne jette le fuseau et **décale de neuf
+heures**. Passer la chaîne entière à `new Date()` et afficher en `Europe/Paris`.
+
+⚠️ **`eas submit:list` n'existe pas sur le `eas` installé globalement** (23.x au
+2026-09-10) : il répond `Error: command submit:list not found`, ce qui se lit comme « la
+doc ment ». Il faut **`npx eas-cli submit:list --platform ios`**. Utile pour recouper :
+la soumission du (22) s'est terminée à 18 h 18, le build est passé `VALID` chez Apple à
+18 h 19 — deux sources indépendantes, une minute d'écart.
+
+---
+
 *Playbook préparé le 2026-07-17. Config technique prête ; le chemin critique = le bac à
 sable (`docs/procedures/PROCEDURE-2026-08-27-bac-a-sable.md`), les captures à juger, et la fiche à
 remplir.*
