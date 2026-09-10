@@ -3077,7 +3077,7 @@
           "muscu",
           "combats"
         ],
-        "temps_min": 4
+        "temps_min": 10
       },
       "base_servings": 1,
       "ingredients": [
@@ -3113,8 +3113,9 @@
         }
       ],
       "instructions": [
+        "Fais cuire l'escalope de dinde 6 minutes à la poêle à feu moyen, 3 minutes par face, jusqu'à ce qu'elle soit blanche à cœur, puis laisse-la tiédir et émince-la.",
         "Tartine les galettes.",
-        "Dépose dinde et concombre.",
+        "Dépose la dinde et le concombre.",
         "Ajoute l'avocat en lamelles."
       ],
       "why": "Muscu/combats perte de gras : protéines maigres, croquant, faible en gras.",
