@@ -2838,6 +2838,30 @@ téléphone.
 
 ## 11. Pièges connus (redécouverts au moins une fois chacun)
 
+- 🔴 **CE QUI EST PARTI EN REVUE NE SE LIT PAS DANS LES `items` DE LA SOUMISSION.**
+  Mesuré le 2026-09-10, juste après avoir renvoyé le (22). `GET
+  /v1/reviewSubmissions/{id}/items` rend des objets **sans attribut nommé et sans
+  relation exploitable** — `include=subscription` répond `400 « 'subscription' is not a
+  valid relationship name »` — et leur id, décodé de base64, donne
+  `<soumission>|<code>|<id INTERNE>` : cet id interne rend `404` aussi bien sur
+  `/v1/subscriptions/{id}` que sur `/v1/appStoreVersions/{id}`.
+  ➡️ **Le juge est le champ `state` de la ressource elle-même** : un abonnement parti en
+  revue passe à `WAITING_FOR_REVIEW`, celui resté dehors garde `READY_TO_SUBMIT`.
+  ⚠️ **Le vrai coût n'était pas l'échec, c'est sa FORME** : mon recoupement par
+  identifiants n'a rien résolu, donc il a compté **« 0 abonnement interdit parti »** — et
+  ce zéro se lit comme une bonne nouvelle. *Un contrôle qui ne résout rien rend zéro ; un
+  zéro n'est une absence que si on a prouvé que l'instrument sait trouver.* Toujours lui
+  adjoindre un témoin positif. Cf. [[feedback-mesurer-l-instrument]].
+
+- 🔴 **L'API App Store Connect rend ses dates en heure du PACIFIQUE, jamais en UTC.**
+  `uploadedDate` vaut `2026-09-10T09:19:07-07:00`. Un `slice(0, 19)` bien intentionné
+  jette le `-07:00` et **décale tout de neuf heures** : le 2026-09-10 j'ai annoncé
+  « téléversé ce matin à 9 h » un binaire parti à **18 h 19**, une heure et demie plus
+  tôt. C'est le fondateur qui a corrigé, parce qu'il se souvenait de l'avoir fait.
+  ➡️ Passer la chaîne ENTIÈRE à `new Date()`, afficher avec
+  `toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })`, et ajouter un « il y a N h » —
+  invérifiable de tête, donc contrôlable.
+
 - 🔴 **`eas submit` PLANIFIE CHEZ EAS — le processus local ne fait qu'ATTENDRE, et il
   ressemble à un processus mort.** Payé 42 minutes le 2026-09-10. Le client local n'a
   **aucune socket ouverte**, **aucun CPU** (4,6 s en 42 min) et sa boucle d'événements

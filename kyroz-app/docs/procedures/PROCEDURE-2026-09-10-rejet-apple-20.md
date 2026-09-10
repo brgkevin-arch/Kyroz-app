@@ -1,4 +1,4 @@
-# Rejet Apple du 2026-09-10 (build 20) — ce qui reste à faire à la main
+# Rejet Apple du 2026-09-10 (build 20) — ✅ CLOS, renvoyé en revue le 2026-09-10
 
 > **Une étape à la fois.** Chaque étape se termine par *« ce que tu dois voir »* : tant
 > que tu ne le vois pas, on ne passe pas à la suivante. Reviens me dire ce que tu as vu,
@@ -11,11 +11,13 @@ Trois motifs. **Les deux premiers sont corrigés dans le code** (PR #252, mergé
 n'attendent qu'un binaire ; le troisième ne se corrigeait pas dans le dépôt du tout —
 c'est une **métadonnée**, et elle est **posée depuis le 2026-09-10**.
 
-> ✅ **ÉTAPES 1 À 4 FAITES — il ne reste qu'un geste, et il est dans la console.**
+> ✅ **LES CINQ ÉTAPES SONT FAITES. RIEN N'ATTEND PLUS PERSONNE.**
 > Voie A tranchée ; description et notes écrites par l'API et relues ; capture tournée
 > et envoyée par le fondateur dans la Resolution Center ; **build (22) compilé, vérifié
-> DANS SON IPA, téléversé et `VALID` chez Apple**.
-> 🔴 **RESTE : attacher le (22) à la version 1.0 et RENVOYER EN REVUE** — cf. l'étape 5.
+> DANS SON IPA, téléversé et `VALID` chez Apple** ; (22) attaché à la version 1.0 et
+> **renvoyé en revue le 2026-09-10 à 19 h 58** (heure de Paris).
+> ➡️ **La balle est chez Apple.** Ce fichier n'est plus une carte, c'est une trace :
+> il part à l'archive dès le verdict rendu.
 
 | Motif | Nature | Où ça se règle |
 |---|---|---|
@@ -242,24 +244,49 @@ La première attend ton envoi ci-dessus.)*
 
 ---
 
-## Étape 5 — attacher le (22) et renvoyer en revue  🧑 À FAIRE
+## ✅ Étape 5 — le (22) est attaché et renvoyé en revue (2026-09-10)
 
-C'est le dernier geste, et il est dans la console.
+Fait par le fondateur dans la console, le dernier geste du dossier.
 
 1. App Store Connect → l'app → version **1.0** → section **Build** → choisir le **(22)**.
 2. Vérifier les abonnements joints à la soumission :
 
-   | Produit | Doit |
-   |---|---|
-   | `kyroz_plus_monthly_early` · `kyroz_plus_yearly_early` | **partir** (`READY_FOR_REVIEW`) |
-   | `kyroz_plus_monthly` · `kyroz_plus_yearly` | **rester dehors** (`DEVELOPER_REJECTED`) |
+   | Produit | Doit | Mesuré après envoi |
+   |---|---|---|
+   | `kyroz_plus_monthly_early` · `kyroz_plus_yearly_early` | **partir** | ✅ `WAITING_FOR_REVIEW` |
+   | `kyroz_plus_monthly` · `kyroz_plus_yearly` | **rester dehors** | ✅ `READY_TO_SUBMIT` |
 
    🔴 Les recocher rejouerait le rejet `2.1(b)` du 03/09 — produits créés chez Apple,
    **absents du binaire**. Un abonnement configuré ne se supprime jamais : ils resteront
    là, à ne pas cocher, indéfiniment.
+
+   🔴 **ET CETTE LIGNE ANNONÇAIT `DEVELOPER_REJECTED` POUR LES DEUX DU BAS — C'ÉTAIT
+   PÉRIMÉ**, mesuré le 2026-09-10 juste avant l'envoi : ils étaient repassés à
+   `READY_TO_SUBMIT`, donc **proposés à la coche, pas grisés**. Le conseil ne change pas,
+   le danger si : je le croyais rendu impossible par Apple, il ne tenait qu'à un clic.
+   ➡️ *Ne jamais déduire « c'est verrouillé » de l'état d'hier.* Le binaire, lui, ne
+   connaît QUE les deux `_early` — comptage strict dans le bytecode du (22), en excluant
+   le piège du préfixe (`kyroz_plus_monthly` est contenu dans `kyroz_plus_monthly_early`) :
+   0 occurrence pour chacun des deux du palier standard.
 3. **Envoyer pour vérification.**
 
 > **Ce que tu dois voir** : la version en `WAITING_FOR_REVIEW`, avec le build (22).
+
+### ✅ Ce qui a été vu, et mesuré par l'API (2026-09-10, 19 h 58, heure de Paris)
+
+| | |
+|---|---|
+| version 1.0 | `WAITING_FOR_REVIEW` |
+| build attaché | **(22)** — commit `2529c2c`, runtime `823c89db…` |
+| soumission | `fddc0394-b69a-41c5-b2cd-0edc471eb610` |
+| abonnements partis | les deux `_early`, et eux seuls |
+
+⚠️ **Le contenu d'une soumission ne se lit PAS dans ses `items`.** Ils n'ont ni attribut
+nommé ni relation exploitable (`include=subscription` → `400 'subscription' is not a
+valid relationship name`), et leur id en base64 se décode en `<soumission>|<code>|<id
+INTERNE>` — cet id rend `404` sur `/v1/subscriptions/{id}`. J'ai bâti un recoupement sur
+cette hypothèse et il a rendu **quatre lignes fausses**, dont deux rassurantes.
+➡️ **Le juge est le champ `state` de l'abonnement lui-même.** Cf. `CLAUDE.md` §11.
 
 ⚠️ **L'API sait attacher la version à une soumission, pas les abonnements** — le chemin
 console est obligatoire pour l'étape 2 (`STORE-RELEASE.md` §3-bis).
