@@ -1531,6 +1531,24 @@ Apple, affiché SOUS le titre avant le « en savoir plus », **manquait à cette
 > venait de faire. Le champ manquant était `socialMediaAgeRestricted`, resté **nul**
 > après mon premier envoi parce que je ne l'avais pas listé : le PATCH avait réussi sans
 > le réclamer. **Un lot accepté ne prouve pas qu'il était complet.**
+>
+> 🔴 **Correction du 2026-09-10 : ils sont TROIS, et le troisième est celui qui bloque
+> une réponse à un rejet — la RESOLUTION CENTER.** Aucun point d'entrée de l'API ne
+> permet de lire le message d'App Review, d'y répondre, ni d'y joindre un fichier. C'est
+> le seul geste de tout le dossier de sortie qui ne peut être ni posé ni **vérifié** par
+> ce dépôt : quand Apple écrit *« reply to this message »*, la réponse part à la main.
+> ➡️ Corollaire de méthode : tout ce qui se prépare pour ce fil (texte, capture) doit
+> vivre ÉCRIT dans le dépôt, prêt à coller — c'est le seul relais possible.
+>
+> ✅ **Ce que l'API sait faire, et qui n'était pas écrit** : la **description** et les
+> **notes de revue** s'écrivent et se RELISENT (`appStoreVersionLocalizations`,
+> `appStoreReviewDetails`), le champ **EULA** se lit
+> (`GET /v1/apps/{id}/endUserLicenseAgreement` → `data: null` = aucun EULA personnalisé),
+> et les **prix par territoire** se lisent
+> (`GET /v1/subscriptions/{id}/prices?include=subscriptionPricePoint,territory`).
+> ⚠️ **Toujours RELIRE après avoir écrit** : un `200` dit que la requête est passée, pas
+> ce qui est en base. Les deux écritures du 2026-09-10 ont été relues, et c'est cette
+> relecture qui a servi de preuve, pas le code de retour.
 
 | Élément | Valeur posée | Mesure |
 |---|---|---|
@@ -1546,7 +1564,7 @@ Apple, affiché SOUS le titre avant le « en savoir plus », **manquait à cette
 | Droits de contenu | `USES_THIRD_PARTY_CONTENT` | Ciqual/ANSES sous Licence Ouverte 2.0 |
 | Prix de l'app | **gratuite**, territoire de base France | — |
 | Disponibilité | **175 territoires** + les nouveaux | — |
-| Build attaché | le **(8)**, `VALID` | — |
+| Build attaché | le **(8)**, `VALID` | — *(le (20) aujourd'hui — cf. §11-bis)* |
 | Notes de revue | 3 952 caractères | §11 |
 | 🔴 Mot de passe de démo | **VIDE** | seul champ restant |
 
@@ -2378,6 +2396,47 @@ filtre avait l'air de marcher et rendait un produit de trop.
 de §11 ci-dessus — il porte désormais les deux liens, et le chemin vers les sources y
 est celui d'aujourd'hui. Ce qu'il a fallu retrancher pour tenir sous les 4 000 est
 détaillé sous ce bloc.
+
+---
+
+## 11-ter. Lire un rejet Apple — la méthode, tirée de trois motifs le même jour
+
+> **À lire AVANT d'ouvrir un correctif**, quel que soit le motif. Écrit le 2026-09-10,
+> après un rejet à trois motifs où **le diagnostic évident était faux sur les trois**.
+
+🔴 **Un rejet est rédigé par quelqu'un qui a constaté un SYMPTÔME, pas diagnostiqué une
+cause.** Le lire comme un diagnostic fait ajouter ce qui existe déjà, et laisse le vrai
+trou ouvert — donc un second rejet, sur le même numéro de guideline.
+
+| Motif reçu | La lecture naturelle | Ce que la mesure a dit |
+|---|---|---|
+| `3.1.2(c)` « pas de lien Terms of Use » | il manque le prix / la durée / les liens | **tout était présent** sur la fiche vivante ; c'est la **nature** du lien qui cloche |
+| `1.4.1` « pas de citations » | il manque des sources | **les 9 étaient là**, exactes — et le test qui les gardait était **VERT** |
+| `4` « redemande le nom » | retirer l'étape prénom | il fallait **trois** gestes, dont un que le premier essai ne peut pas révéler |
+
+**Les quatre questions à poser, dans cet ordre :**
+
+1. **Est-ce vraiment ABSENT ?** Mesurer l'état RÉEL avant d'écrire une ligne. La fiche se
+   relit **chez Apple**, jamais dans le dépôt qui la recopie (§3-bis) — ce dossier
+   annonçait une description périmée depuis treize jours.
+2. **Si c'est présent, est-ce la bonne FORME ?** L'EULA est le cas d'école : Apple n'en
+   admet que **deux** — le standard, lien dans la description ; ou un personnalisé,
+   déclaré dans App Store Connect. Lier ses PROPRES CGU dans la description n'est **ni
+   l'une ni l'autre**. Le lien répondait 200, la page portait bien les CGU, et c'est
+   refusé quand même.
+3. **Que voit un relecteur qui RECOMMENCE ?** Beaucoup de correctifs ne se vérifient
+   qu'au deuxième passage : Sign in with Apple ne rend le nom qu'à la première
+   autorisation, un compte ancien n'est pas servi comme un compte neuf. **Refaire le
+   geste deux fois** (CLAUDE.md §11).
+4. **Mon contrôle mesure-t-il vraiment CE point ?** Le test des citations était vert et
+   honnête : il comptait la complétude, jamais l'accessibilité. *La moitié qu'on n'a pas
+   pensé à compter se déclare tenue toute seule.*
+
+⚠️ **Et une fois le correctif écrit, se demander où il ATTERRIT** : dans le binaire (le
+relecteur ouvre l'app une fois, une OTA ne s'applique qu'au lancement suivant) ou dans la
+fiche (qui se change seule, sans build ni revue). Les deux ne coûtent pas le même délai,
+et les confondre fait attendre un build pour une métadonnée — ou l'inverse, ce qui est
+pire.
 
 *Playbook préparé le 2026-07-17. Config technique prête ; le chemin critique = le bac à
 sable (`docs/procedures/PROCEDURE-2026-08-27-bac-a-sable.md`), les captures à juger, et la fiche à

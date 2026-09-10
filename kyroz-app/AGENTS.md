@@ -696,10 +696,30 @@ produit en suspens — il ne reste qu'à coder.
   sources hors `node_modules` n'est touchée par ce chantier. **La ligne vers le (20) reste
   ouverte** — mais elle ne dispense pas du build, le relecteur voyant le JS EMBARQUÉ.
 
-  🔴 **CE QU'IL RESTE, ET RIEN D'AUTRE** : **(1)** lancer le build — les correctifs des
-  motifs 4 et 1.4.1 n'atteignent le relecteur que par le binaire ; **(2)** répondre au
-  relecteur avec la capture vidéo qu'Apple réclame nommément pour 3.1.2(c), sur ce
-  nouveau binaire (texte de réponse et script de la capture : `STORE-RELEASE.md` §11-bis).
+  🔴 **CE QU'IL RESTE, ET RIEN D'AUTRE — état au 2026-09-10 au soir :**
+
+  | | État |
+  |---|---|
+  | **La capture vidéo `3.1.2(c)`** | ✅ **tournée** (40 s, build 20), vérifiée image par image |
+  | **L'envoyer + coller la réponse** | 🧑 **à toi** — la Resolution Center n'existe dans AUCUN point d'entrée de l'API. Texte prêt : `STORE-RELEASE.md` §11-bis, et sur le Bureau |
+  | **Le build** | 🔴 **à relancer** — le (21) a été **ANNULÉ** le 2026-09-10 sur décision fondateur. Son numéro est consommé : le prochain sortira en **(22)** |
+
+  ⚠️ **La capture n'attend PAS le build**, contrairement à ce que ce dossier a d'abord
+  écrit : `app/kyroz-plus.tsx` n'a pas été touché par #252, donc l'écran de vente est
+  identique au bit près dans le (20) et dans le prochain binaire. Répondre à Apple sur
+  3.1.2(c) est donc possible **tout de suite** ; seuls les motifs 4 et 1.4.1 attendent le
+  binaire, parce que le relecteur voit le JS EMBARQUÉ.
+
+  🔴 **ET LA LIGNE OTA VERS LE (20) EST COUPÉE DEPUIS LE 2026-09-10, par une source que
+  personne ne surveille.** Le (20) tourne sur `5118d1bd…` ; `main` vaut `823c89db…`. La
+  cause tient en une ligne de diff : **#249 a ajouté `"mesure:instructions"` aux `scripts`
+  de `package.json`** — un script de mesure, qui ne part jamais dans l'app. Aucun test ne
+  rougit, aucune sortie ne le signale. ➡️ Détail, et **comment lire l'empreinte d'un
+  BINAIRE** (`build:list --json` → `runtime.version`, PAS `runtimeVersion`) : CLAUDE.md §2.
+
+  ⚠️ **Avant de relancer le build** : refaire le pré-vol (arbre propre · `HEAD ==
+  origin/main` · `tsc` · `npm test` · aucune PR en vol) — **cinq worktrees étaient actifs
+  ce jour-là**, et quatre PR ont été mergées par d'autres sessions pendant ce chantier.
 
 ### 🍽 D — Catalogue
 

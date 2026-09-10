@@ -148,25 +148,59 @@ https://kyroz.app/legal.html
 
 ---
 
-## Étape 3 — un build, et il en faut un
+## Étape 3 — un build, et il en faut un  🔴 LE (21) A ÉTÉ ANNULÉ
 
-Les motifs **4** et **1.4.1** sont corrigés dans le code, mais **le relecteur ouvre le
+Les motifs **4** et **1.4.1** sont corrigés et mergés, mais **le relecteur ouvre le
 binaire, pas le dépôt** — une OTA ne l'atteint pas (il lance l'app une fois, et une mise
 à jour ne s'applique qu'au lancement **suivant**).
 
-✅ **L'EMPREINTE A ÉTÉ MESURÉE, PAS SUPPOSÉE** (2026-09-10, sur la branche du
-correctif) : `npx expo-updates fingerprint:generate --platform ios` → **85 sources**,
-`5118d1bd3d6a59cda2c64aa4cf96012498945c5c`. Les 9 sources hors `node_modules` sont
-`.gitignore`, `eas.json`, `assets/icon.png`, `assets/splash-icon.png`,
-`expoAutolinkingConfig:ios`, `expoConfig`, `package:react-native`,
-`packageJson:scripts`, `rncoreAutolinkingConfig:ios` — **et ce chantier n'en touche
-aucune** (que des `.ts`, `.tsx` et `.md`).
-➡️ **La ligne OTA vers le (20) reste donc ouverte**, et ces correctifs sont publiables en
-OTA pour le parc existant. ⚠️ **Ça ne remplace PAS le build pour la revue** : le
-relecteur ouvre l'app une fois, il voit le JS EMBARQUÉ.
-⚠️ Refaire la mesure juste avant `eas build` quand même : `eas.json`, `app.json` et les
-`scripts` de `package.json` ont déjà coupé cette ligne trois fois, et une autre session
-peut avoir mergé entre-temps.
+🔴 **Le (21) a été lancé le 2026-09-10 à 16 h 18 sur le commit `8d25047`, puis ANNULÉ
+sur décision fondateur.** Son numéro est **consommé** — `autoIncrement` s'incrémente à la
+CRÉATION : **le prochain sortira en (22)**, et aucun (21) valide n'existera jamais.
+Chercher un « (21) » sur TestFlight ferait perdre du temps.
+
+### Le pré-vol, à REFAIRE avant de relancer
+
+Il avait été passé et il était vert. Il se refait quand même, parce que `main` bouge :
+**quatre PR ont été mergées par d'autres sessions pendant ce chantier**, et cinq
+worktrees étaient actifs.
+
+```
+git status --short                 # vide
+git fetch origin && git rev-parse HEAD origin/main   # identiques
+gh pr list --state open            # rien en vol
+git worktree list                  # qui travaille en parallèle
+npx tsc --noEmit && npm test       # muet, et tout au vert
+```
+
+Puis, **et c'est celle qu'on saute** :
+
+```
+npx expo-updates fingerprint:generate --platform ios      # l'empreinte de main
+npx eas-cli build:list --platform ios --limit 2 --json --non-interactive
+  → build.runtime.version                                  # celle du binaire
+```
+
+🔴 **ÉTAT MESURÉ LE 2026-09-10 : la ligne OTA vers le (20) est COUPÉE.** Le (20) tourne
+sur `5118d1bd…`, `main` vaut `823c89db…`. **Ce n'est pas ce chantier** — l'empreinte lui
+était restée identique. C'est **#249**, qui a ajouté `"mesure:instructions"` aux `scripts`
+de `package.json`. Un script de mesure qui ne part jamais dans l'app, et qui coupe la
+ligne. Sans conséquence ici (on fabrique un binaire neuf), mais **aucune OTA n'atteint
+les testeurs du (20) d'ici là**.
+
+### Lancer
+
+```
+npx eas-cli build --platform ios --profile production --non-interactive
+```
+
+> **Ce que tu dois voir** : `FINISHED`, et **le COMMIT du build égal à `origin/main`** —
+> pas sa date. Un binaire se périme PENDANT qu'il compile ; c'est ce contrôle-là, APRÈS
+> le build, qui a sauvé le (6) en août.
+
+⚠️ **Et à la soumission** : les deux produits `_early` partent (`READY_FOR_REVIEW`), les
+deux du palier standard restent dehors (`DEVELOPER_REJECTED`) — les recocher rejouerait
+le rejet `2.1(b)` du 03/09. Cf. `STORE-RELEASE.md` §11-bis.
 
 ---
 
