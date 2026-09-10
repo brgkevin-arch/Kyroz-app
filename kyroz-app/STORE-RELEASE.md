@@ -2257,11 +2257,14 @@ continue without typing anything. The app never asks for an email address after
 Sign in with Apple.
 
 Guideline 1.4.1 — Citations
-The "Méthodologie & sources" screen already listed the 8 peer-reviewed references
-behind every calculation. They are now tappable links (DOI, plus the ANSES Ciqual
-food-composition database), and the screen is reachable in one tap from the two
-places where recommendations are shown: under the daily plan, and under the medical
-notice on the first onboarding step. It remains available from Settings as well.
+The "Méthodologie & sources" screen already listed the 9 references behind the
+numbers we display. They are now citations that can be opened: each of the 7 journal
+articles carries its DOI as a tappable link, and the ANSES Ciqual food-composition
+database links to its official site. The one exception is a physiology textbook,
+which has no DOI and keeps its full bibliographic citation.
+The screen is also much easier to find. It is now one tap from where the
+recommendations are shown: under the daily plan, and under the medical notice on the
+first onboarding step. It remains available from Settings as well.
 
 Guideline 3.1.2(c) — Subscription information
 The App Store description already listed the subscription name, duration, price,
@@ -2270,12 +2273,31 @@ functional link to the standard Apple Terms of Use (EULA) as requested:
 https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
 Our own terms of service remain linked at https://kyroz.app/legal.html
 Inside the app, the Kyroz+ screen shows the subscription title, the length and the
-localized price of each plan, the auto-renewal notice, and a link to both documents
-before any purchase. A screen recording is attached.
+localized price of each plan, the price per unit for the yearly plan, the auto-renewal
+notice, and a link to both documents before any purchase.
+
+The attached 40-second screen recording (build 20, iPhone) shows, in one unbroken take:
+the two plans with their title, duration and price; the auto-renewal terms; a tap on
+"Conditions d'utilisation · Confidentialité" opening our terms and privacy policy in
+the app; a completed sandbox purchase; and the screen after the entitlement is granted.
+
+Please note the recording was made with an account on the US storefront, so StoreKit
+returns USD (3.99 / 24.99). These are the same Apple price points as the EUR prices in
+our French App Store description (3,99 EUR / 29,99 EUR) — the app always displays the
+price returned by the store for the viewer's own storefront, never a hard-coded amount.
 
 Best regards,
 Kévin Berger
 ```
+
+⚠️ **LE COMPTE DE RÉFÉRENCES A ÉTÉ RE-MESURÉ AVANT ENVOI, ET IL ÉTAIT FAUX.** Ce texte
+a d'abord annoncé « the 8 peer-reviewed references ». Mesuré sur `lib/methodologie.ts` :
+**9 références — 7 articles relus par les pairs, 1 ouvrage, 1 base de données publique**,
+dont 8 portent un lien. Un chiffre faux dans la réponse à un rejet qui porte PRÉCISÉMENT
+sur les citations est le pire endroit possible pour une approximation.
+➡️ **Ce compte se re-mesure à chaque fois**, il ne se recopie pas d'ici :
+`npx tsx -e "import { methodologie } from './lib/methodologie'; …"` — comme le nombre de
+recettes de la fiche, qui a dérivé deux fois pour la même raison.
 
 ### 🔴 Ce n'est PAS la vidéo du 2026-09-05 — ce motif-là est éteint
 
@@ -2297,33 +2319,55 @@ du **08/09 21:41** est partie sans elle, et la revue du 10/09 **n'a pas re-soule
 ➡️ `docs/procedures/PROCEDURE-2026-09-05-video-achat-sandbox.md` est donc **périmée** :
 elle annonce « soumission ⏸️ attend la vidéo », ce qui est faux depuis le 08/09.
 
-### Script de la capture d'écran (motif 3.1.2(c))
+### ✅ La capture est TOURNÉE — 2026-09-10, 15 h 56
 
-✅ **ELLE SE TOURNE SUR LE (20), CELUI QUI EST DÉJÀ CHEZ APPLE — corrigé le 2026-09-10.**
-Cette ligne disait « sur le NOUVEAU binaire, jamais sur le (20) », par réflexe. C'est
-faux, et c'est mesurable : **la PR #252 n'a pas touché `app/kyroz-plus.tsx`** (`git show
---stat` → 0 occurrence). L'écran de vente que cette capture doit prouver est donc
-**identique au bit près** dans le (20) et dans le prochain build.
-➡️ **Conséquence de séquencement** : répondre à Apple sur 3.1.2(c) **n'attend pas le
-build**. Les deux autres motifs, eux, l'attendent — le relecteur voit le JS embarqué.
+**40 s · iPhone · build (20) · un seul plan continu.** Elle couvre plus que le motif :
 
-⚠️ Le compte doit être **postérieur au 2026-08-27**, sinon il est servi gratuitement à
-vie (CGU §3) et l'écran ne vend rien — c'est ce que l'accès relecteur garantit déjà
-(session invité créée à l'instant, cf. §11).
+| Ce qu'elle montre | Sert à |
+|---|---|
+| Les deux formules, titre + durée + prix, et le prix par unité de l'annuel | `3.1.2(c)` |
+| Débit à la confirmation · renouvellement · 24 h · gestion dans le compte | `3.1.2(c)` |
+| « Restaurer mes achats » visible | `3.1.1` |
+| **Le lien légal TAPÉ**, et l'écran « Confidentialité & CGU » parcouru | `3.1.2(c)` — le point du rejet |
+| **Un achat sandbox qui ABOUTIT**, puis l'écran sans bloc d'achat | éteint tout reste de `2.1(b)` |
 
-Un seul plan continu, sans coupe — une capture montée est une capture qu'on relit deux fois :
+🔴 **LES PRIX SONT EN DOLLARS, ET CE N'EST PAS UN DÉFAUT — mesuré chez Apple.**
+`3,99 $US` et `24,99 $US` à l'écran, contre `3,99 €` et `29,99 €` dans la description.
+Ce sont **les mêmes paliers Apple**, déclinés par territoire — le net le prouve :
 
-1. Profil → **Kyroz+**.
-2. S'arrêter 3 s sur « Choisis ta formule » : les deux cartes portent **le nom, la durée
-   et le prix localisé** (`Mensuel · 3,99 €` / `Annuel · 29,99 €`, et « Débité chaque mois »).
-3. Descendre lentement sur le bloc de mentions : débit à la confirmation, renouvellement
-   automatique, résiliation 24 h avant, gestion dans le compte App Store.
-4. **Taper « Conditions d'utilisation · Confidentialité »** → l'écran `/legal` s'ouvre.
-   Faire défiler jusqu'au titre « Conditions générales d'utilisation ».
-5. Revenir en arrière — montrer que l'écran d'achat est toujours là.
+| Produit | France | États-Unis | Net |
+|---|---|---|---|
+| `kyroz_plus_monthly_early` | 3,99 € | 3,99 $ | 2,33 / 2,80 |
+| `kyroz_plus_yearly_early` | 29,99 € | 24,99 $ | **17,49 / 17,50** |
 
-➡️ Enregistrement : `xcrun simctl io booted recordVideo capture-3.1.2c.mp4`
-(⚠️ la capture d'écran par MCP plante sur ce simulateur, cf. `reference-ios-native-build-kyroz`).
+➡️ **C'est même une preuve DANS LE BON SENS** pour 3.1.2(c) : l'app affiche le prix
+**rendu par le store** pour la boutique du spectateur, jamais un montant en dur. Le repli
+« tarifs français » n'apparaît pas dans la vidéo, précisément parce que le store a
+répondu.
+⚠️ **Mais un relecteur qui compare la vidéo à la fiche voit deux chiffres.** La réponse
+ci-dessus le dit donc AVANT qu'il ne se pose la question — un paragraphe qui coûte trois
+lignes et évite un aller-retour.
+ℹ️ Ça ne clôt pas [[project-prix-dollars-testflight]] : on sait maintenant que les deux
+prix sont cohérents, **pas** pourquoi ce compte est sur la boutique US. Le geste reste le
+même le jour de la sortie — installer depuis l'App Store et lire la devise.
+
+### ⚠️ Ce qui NE doit PAS repartir dans la soumission
+
+Mesuré le 2026-09-10 :
+
+| Produit | État de version |
+|---|---|
+| `kyroz_plus_monthly_early` · `kyroz_plus_yearly_early` | `READY_FOR_REVIEW` — **ils partent** |
+| `kyroz_plus_monthly` · `kyroz_plus_yearly` | `DEVELOPER_REJECTED` — **ils restent dehors** |
+
+Les deux derniers sont le palier de réserve qui a valu le rejet `2.1(b)` du 2026-09-03 :
+créés chez Apple, absents du binaire. Les rajouter rejouerait ce rejet à l'identique.
+⚠️ Un abonnement configuré **ne se supprime jamais** — ils resteront donc là, à ne pas
+cocher, indéfiniment.
+
+⚠️ **Piège de mesure rencontré en les listant** : filtrer les identifiants sur la
+sous-chaîne `early` attrape aussi `y-early-y`. **« yearly » contient « early ».** Le
+filtre avait l'air de marcher et rendait un produit de trop.
 
 ### ✅ Et c'est dans les Notes, comme Apple le demande
 
