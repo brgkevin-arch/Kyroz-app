@@ -39,12 +39,15 @@ import { totalSessionsPerWeek } from '../../lib/sport';
 import { deducedRestWeekdays } from '../../lib/planEngine';
 import SportsEditor from '../../components/SportsEditor';
 import { useProfile } from '../../hooks/useProfile';
-import { saveFirstName } from '../../lib/profileName';
+import { saveFirstName, getFirstName } from '../../lib/profileName';
+import { estIdentiteApple } from '../../lib/identiteApple';
+import { useAuth } from '../../hooks/useAuth';
 import { capture, Events } from '../../lib/analytics';
 import { STATISTIQUES_USAGE_ACTIVES } from '../../lib/featureFlags';
 import { useAnalyticsConsent } from '../../hooks/useAnalyticsConsent';
 import AnalyticsConsentStep from '../../components/AnalyticsConsentStep';
 import { DISCLAIMER, AVERTISSEMENT_MEDICAL } from '../../constants/legal';
+import { LienMethodologie } from '../../components/LienMethodologie';
 
 // En dessous de cette hauteur, ce qui reste sous le pli ne vaut pas un indice — et à
 // moins de cette distance de la fin, on est arrivé. Une seule valeur pour les deux :
@@ -168,7 +171,17 @@ export default function Onboarding() {
   }, [step, assistantActif]);
 
   // État formulaire
-  const [firstName, setFirstName] = useState('');
+  // 🔴 **SEMÉ DEPUIS LE STORE, PAS VIDE** (2026-09-10, rejet Apple guideline 4).
+  // `hooks/useAuth.tsx` a déjà écrit le prénom qu'Apple a donné, au moment exact où
+  // Apple le donnait — c'est-à-dire avant que cet écran n'existe. Partir de `''` ici
+  // le jetterait, et l'app redemanderait à la main ce que le système avait tendu.
+  // ⚠️ `getFirstName()` est synchrone : le store est chargé une fois au layout racine
+  // (`lib/profileName.ts`, patron obligatoire des valeurs d'appareil, CLAUDE.md §11).
+  const [firstName, setFirstName] = useState(() => getFirstName());
+  // Le compte vient-il de Sign in with Apple ? Décide si l'étape 1 BLOQUE — cf.
+  // `lib/identiteApple.ts` pour le pourquoi complet.
+  const { session } = useAuth();
+  const parApple = estIdentiteApple(session?.user);
   // 🔴 AUCUN SEXE PRÉSÉLECTIONNÉ — il l'était sur `'male'` jusqu'au 2026-09-01.
   // C'est le défaut du NEAT (fermé le 2026-08-19) dans sa version GRAVE : un NEAT par
   // défaut sert le cran le plus prudent, un sexe par défaut sert un plan FAUX. Le sexe
@@ -260,7 +273,11 @@ export default function Onboarding() {
     lireBrouillon(TOTAL_STEPS).then((d) => {
       if (!vivant) return;
       if (d) {
-        setStep(d.step); setFirstName(d.firstName); setSex(d.sex);
+        // ⚠️ `|| getFirstName()` — un brouillon écrit AVANT que le prénom d'Apple
+        // n'arrive porte une chaîne vide, et la restaurer telle quelle effacerait ce
+        // qu'Apple vient de donner. Même famille que `restTouched` juste en dessous :
+        // une restauration ne doit jamais défaire ce qu'elle n'a pas écrit.
+        setStep(d.step); setFirstName(d.firstName || getFirstName()); setSex(d.sex);
         setBirthDate(d.birthDate); setWeight(d.weight); setHeight(d.height);
         setBodyFat(d.bodyFat); setBodyFatSource(d.bodyFatSource);
         setSports(d.sports); setNoSport(d.noSport); setGoal(d.goal);
@@ -303,7 +320,17 @@ export default function Onboarding() {
   const ageN = ageOn(birthDate, todayStamp()) ?? NaN;
   const wN = parseFloat(weight), hN = parseFloat(height);
   // Étapes à validation requise (les autres sont libres) :
-  const firstNameValid = firstName.trim().length > 0;                                    // étape 1 — prénom
+  // 🔴 **L'ÉTAPE 1 NE BLOQUE PLUS UN COMPTE APPLE** (2026-09-10, rejet guideline 4 :
+  // *« users are required to provide their name … even though that information is
+  // already provided by the Authentication Services framework »*).
+  // ⚠️ Ce n'est PAS redondant avec le pré-remplissage : Apple ne rend `fullName` qu'à
+  // la TOUTE PREMIÈRE autorisation du compte. Une deuxième connexion — réinstall,
+  // second appareil, **relecteur Apple qui recommence** — rend `null`, et le champ
+  // redeviendrait un mur sur le chemin le plus probable d'une contre-vérification.
+  // ⚠️ Le champ RESTE affiché et modifiable : on retire l'obligation, pas la
+  // possibilité. Et la salutation sans prénom est déjà un cas servi depuis toujours
+  // (« Ton plan », cf. `lib/profileName.ts`) — il n'y a rien à réparer en aval.
+  const firstNameValid = parApple || firstName.trim().length > 0;                        // étape 1 — prénom
   // Bornes de saisie (P0.4). L'âge minimum est passé de 16 à 18 ans : Mifflin-St Jeor
   // n'est pas validée sous 19 ans, et un moteur de déficit calorique n'a pas à être
   // servi à un mineur (sécurité ET conformité). Cf. lib/safety.ts.
@@ -414,7 +441,7 @@ export default function Onboarding() {
 
   // Pourquoi on ne peut pas avancer (message affiché au tap sur « Continuer »).
   const blockReason = (): string | null => {
-    if (step === 1 && !firstNameValid) return 'Dis-nous comment t\'appeler pour commencer';
+    if (step === 1 && !firstNameValid) return 'Dis-nous comment t\'appeler pour commencer';  // inatteignable si `parApple`
     if (step === 2 && !basicsValid) {
       if (ageN >= 1 && ageN < AGE_BOUNDS[0]) return `Kyroz est réservé aux ${AGE_BOUNDS[0]} ans et plus.`;
       // Un choix manquant se dit à part d'un champ vide : l'écran montre déjà POURQUOI
@@ -653,7 +680,7 @@ export default function Onboarding() {
       >
         {step > 1 && <SectionLabel t={t}>ÉTAPE {step - 1} / {TOTAL_STEPS - 1}</SectionLabel>}
 
-        {step === 1 && <NameStep t={t} value={firstName} onChange={setFirstName} />}
+        {step === 1 && <NameStep t={t} value={firstName} onChange={setFirstName} venuDApple={parApple && firstName.trim().length > 0} />}
 
         {step === 2 && (
           <View style={s.block}>
@@ -945,6 +972,11 @@ export default function Onboarding() {
           <View style={s.mentions}>
             <Text style={s.disclaimer}>{AVERTISSEMENT_MEDICAL}</Text>
             <Text style={s.disclaimer}>{DISCLAIMER}</Text>
+            {/* 🔴 Apple 1.4.1 (rejet du 2026-09-10) : les citations doivent être faciles
+                à trouver. L'avertissement médical est déjà servi ICI parce que c'est le
+                seul endroit que TOUT LE MONDE traverse — les sources le sont donc au même
+                endroit, pour la même raison. Cf. components/LienMethodologie. */}
+            <LienMethodologie />
           </View>
         )}
       </View>
@@ -956,7 +988,7 @@ export default function Onboarding() {
 
 // Écran d'accueil : la toute première chose que voit l'utilisateur. Entrée animée
 // (fondu + montée du titre, puis apparition du champ) → première impression soignée.
-function NameStep({ t, value, onChange }: { t: ThemePalette; value: string; onChange: (s: string) => void }) {
+function NameStep({ t, value, onChange, venuDApple }: { t: ThemePalette; value: string; onChange: (s: string) => void; venuDApple: boolean }) {
   const fade = useRef(new Animated.Value(0)).current;   // opacité du bloc titre
   const lift = useRef(new Animated.Value(22)).current;  // léger glissement vers le haut
   const field = useRef(new Animated.Value(0)).current;  // apparition différée du champ
@@ -990,15 +1022,31 @@ function NameStep({ t, value, onChange }: { t: ThemePalette; value: string; onCh
       <Animated.Text style={[{ color: t.text, ...Type.display, lineHeight: 40 }, enter]}>
         Bienvenue sur Kyroz
       </Animated.Text>
+      {/* 🔴 LA QUESTION NE SE POSE PLUS QUAND APPLE Y A RÉPONDU (2026-09-10, rejet
+          guideline 4). Laisser « comment on t'appelle ? » au-dessus d'un champ déjà
+          rempli du bon prénom, c'est encore DEMANDER — le champ était pré-rempli, mais
+          l'écran continuait de réclamer. Ce que voit le relecteur, c'est la phrase. */}
       <Animated.Text style={[{ ...Type.body, color: t.textSecondary, lineHeight: 23 }, enter]}>
-        On va te bâtir un plan nutrition sur-mesure en moins d'une minute. D'abord, comment on t'appelle ?
+        {venuDApple
+          ? "On va te bâtir un plan nutrition sur-mesure en moins d'une minute."
+          : "On va te bâtir un plan nutrition sur-mesure en moins d'une minute. D'abord, comment on t'appelle ?"}
       </Animated.Text>
       <Animated.View style={{ opacity: field, marginTop: Spacing.sm }}>
         {/* ⚠️ Le placeholder REPREND le libellé, il ne donne pas d'exemple. C'était
             « Kévin » — le prénom du fondateur, servi comme suggestion à tout le monde.
             Décision du 2026-08-12 : aucun prénom réel dans un champ vide. Même
             correction dans Profil → Prénom, qui portait le même. */}
-        <Field t={t} label="Ton prénom" value={value} onChangeText={onChange} placeholder="Ton prénom" autoCapitalize="words" autoFocus />
+        {/* ⚠️ `autoFocus` seulement si le champ est VIDE : ouvrir le clavier sur un
+            champ déjà rempli invite à le corriger — l'inverse du message. */}
+        <Field t={t} label="Ton prénom" value={value} onChangeText={onChange} placeholder="Ton prénom" autoCapitalize="words" autoFocus={!venuDApple} />
+        {/* Le DIRE, et pas seulement le pré-remplir : sans cette ligne, un prénom qui
+            apparaît tout seul dans un champ se lit comme une donnée qu'on a devinée.
+            Elle dit aussi qu'il reste modifiable — on retire l'obligation, pas le choix. */}
+        {venuDApple && (
+          <Text style={{ ...Type.micro, color: t.textTertiary, lineHeight: 16, marginTop: Spacing.sm }}>
+            Renseigné par ton compte Apple. Modifiable si tu préfères un autre prénom.
+          </Text>
+        )}
       </Animated.View>
     </View>
   );

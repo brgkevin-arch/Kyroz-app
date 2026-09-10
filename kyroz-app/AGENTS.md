@@ -645,6 +645,45 @@ produit en suspens — il ne reste qu'à coder.
 
 ### 📱 C — Sortie stores
 
+- 🧑 **C-REJET-20 · RÉPONDRE AU REJET APPLE DU 2026-09-10** (soumission
+  `fddc0394-b69a-41c5-b2cd-0edc471eb610`, build **1.0 (20)**, relu sur **iPad Air 11" M3**).
+  Trois motifs. **Le code des deux premiers est livré ; le troisième ne se corrige pas
+  dans le dépôt.** Procédure une-étape-à-la-fois :
+  `docs/procedures/PROCEDURE-2026-09-10-rejet-apple-20.md`.
+
+  | Motif | Nature | État |
+  |---|---|---|
+  | **4 — Design** · SIWA redemande le prénom | code | ✅ livré, attend un build |
+  | **1.4.1 — Physical Harm** · citations sans lien et introuvables | code | ✅ livré, attend un build |
+  | **3.1.2(c) — Subscriptions** · lien CGU (EULA) absent des métadonnées | **fiche App Store** | 🔴 **décision fondateur en attente** |
+
+  🔴 **CE QUI RESTE TIENT EN UNE QUESTION, ET ELLE N'EST PAS TECHNIQUE.** Apple ne
+  reconnaît que deux formes d'EULA : le **standard**, dont le lien va dans la
+  description, ou un **personnalisé** déclaré dans App Store Connect. Mesuré le
+  2026-09-10 — `GET /v1/apps/6796427402/endUserLicenseAgreement` rend `data: null`, donc
+  Kyroz est réputé employer le standard, **mais sa description renvoie vers ses PROPRES
+  CGU**. Ni l'une ni l'autre forme : rejet. ➡️ **Voie A** (recommandée) : ajouter le lien
+  de l'EULA standard à la description — gratuit, aucune rédaction juridique, aucune revue
+  de binaire. **Voie B** : déclarer les CGU comme EULA personnalisé — elles ne portent pas
+  les *Minimum Terms* d'Apple, donc c'est un chantier juridique, pas un correctif.
+
+  ⚠️ **LE DIAGNOSTIC NATUREL ÉTAIT FAUX SUR LES TROIS MOTIFS**, et c'est ce qui vaut
+  d'être gardé :
+  · **3.1.2(c)** se lit « il manque le prix / la durée / les liens ». La fiche vivante dit
+    que **tout ça est présent** — c'est la NATURE du lien CGU qui cloche, pas son absence ;
+  · **1.4.1** se lit « il manque des sources ». **Les 8 étaient là**, exactes et complètes,
+    et `methodologie.test.ts` était VERT le jour du rejet — il mesurait la COMPLÉTUDE de
+    la citation, jamais son ACCESSIBILITÉ. Une règle qu'aucun test ne compte se déclare
+    tenue toute seule, appliqué à la moitié qu'on n'avait pas pensé à compter ;
+  · **4** se lit « retirer l'étape prénom ». Il en fallait **trois** moitiés : demander le
+    scope `FULL_NAME`, le persister à l'instant (Apple ne le rend qu'à la 1ʳᵉ
+    autorisation), **et** cesser de bloquer l'étape — sans la troisième, le rejet revient
+    au 2ᵉ essai du relecteur, qui est le chemin le plus probable d'une contre-vérification.
+
+  ✅ **Empreinte OTA mesurée, pas supposée** : `5118d1bd…`, 85 sources, aucune des 9
+  sources hors `node_modules` n'est touchée par ce chantier. **La ligne vers le (20) reste
+  ouverte** — mais elle ne dispense pas du build, le relecteur voyant le JS EMBARQUÉ.
+
 ### 🍽 D — Catalogue
 
 - 🤖 **D24 · VAGUE B10 — écrire les 25 recettes du registre quotidien français.**
