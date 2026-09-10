@@ -153,13 +153,42 @@ describe('Le réglage n’a qu’UNE maison, et elle propose les sept jours', ()
     }
   });
 
-  it('la déduction pré-cochée porte sur les sept jours, pas sur le plan', () => {
+  it('la déduction pré-cochée du PROFIL porte sur les sept jours, pas sur le plan', () => {
     // Sinon un compte NEUF naît avec le cyclage écrasé, sans que personne n'y touche.
-    for (const src of [profilSrc, onboardingSrc]) {
-      const appels = [...src.matchAll(/deducedRestWeekdays\(([^,]+),/g)].map((m) => m[1].trim());
-      expect(appels.length).toBeGreaterThan(0);
-      for (const a of appels) expect(a, `déduction sur ${a}`).toBe('TOUS_LES_JOURS');
-    }
+    // ⚠️ L'ONBOARDING N'EST PLUS DANS CETTE BOUCLE depuis le 2026-09-10 : il ne
+    // pré-coche plus rien (décision fondateur). Le Profil, lui, pré-coche toujours —
+    // il édite un profil qui EXISTE, donc l'hypothèse y est corrigeable en contexte.
+    const appels = [...profilSrc.matchAll(/deducedRestWeekdays\(([^,]+),/g)].map((m) => m[1].trim());
+    expect(appels.length).toBeGreaterThan(0);
+    for (const a of appels) expect(a, `déduction sur ${a}`).toBe('TOUS_LES_JOURS');
+  });
+
+  // ── 🔴 LE VERROU QUI REMPLACE LE PRÉ-COCHAGE, ET QUI PORTE PLUS LOURD ──────
+  //
+  // Retirer le pré-cochage de l'inscription (2026-09-10) était sans danger à UNE
+  // condition, et elle n'est pas dans l'écran mais dans la SAUVEGARDE. Le moteur lit
+  // trois états (`planEngine::restDaysOfPlan`) :
+  //   · `rest_weekdays` défini, MÊME VIDE → « j'ai choisi : aucun repos » → 7 jours
+  //     d'entraînement → dépense relissée → PLAN PLAT pour tout nouvel inscrit ;
+  //   · `rest_weekdays` ABSENT → « pas répondu » → le moteur déduit lui-même.
+  // Enregistrer `[]` parce que l'écran part vide rejouerait donc, au caractère près,
+  // le défaut corrigé le 2026-08-06 — et il ne se verrait que dans les plans servis.
+  it('🔴 sans geste de l\'utilisateur, l\'inscription n\'écrit RIEN — pas `[]`', () => {
+    expect(onboardingSrc).toMatch(/rest_weekdays:\s*restTouched\s*\?/);
+  });
+
+  it('🔴 « Aucun » ne s\'allume pas tout seul — ce serait une présélection de plus', () => {
+    // Sur un écran où rien n'est coché, `restWeekdays.length === 0` est vrai au
+    // premier rendu : la puce affirmerait « je n'ai aucun jour de repos » à la place
+    // de quelqu'un qui n'a rien dit — le pire des trois états à poser par défaut.
+    expect(onboardingSrc).toMatch(/label="Aucun"[^/]*selected=\{restTouched && restWeekdays\.length === 0\}/);
+  });
+
+  it('🔴 l\'inscription ne pré-coche plus AUCUN jour', () => {
+    // La garde est le point d'entrée par lequel le pré-cochage reviendrait : un
+    // `setRestWeekdays(...)` dans un effet, sans geste de l'utilisateur.
+    expect(onboardingSrc, 'la déduction est revenue pré-cocher l\'inscription')
+      .not.toMatch(/deducedRestWeekdays\(/);
   });
 });
 

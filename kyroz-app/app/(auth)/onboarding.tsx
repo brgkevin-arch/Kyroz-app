@@ -349,7 +349,6 @@ export default function Onboarding() {
   // quoi que ce soit (cf. le texte de l'étape 7) : `saveProfile` envoie
   // `sports: noSport ? [] : sports`, et sans séance `dayExpenditures` rend une cible
   // plate — sept jours identiques.
-  const sportDeclare = !noSport && sports.length > 0;
   const trainingDaysEq = noSport ? 0 : Math.min(totalSessionsPerWeek(sports), 7);          // repli legacy (activity_level / training_days)
   // Étape 6 — la question des protéines EXIGE une réponse, « peu importe » comprise.
   // Le reste de l'étape (régime, aliments à éviter, variété) garde ses défauts : ce
@@ -431,10 +430,23 @@ export default function Onboarding() {
   // déclarées et un plan du lundi au vendredi — le moteur en déduisait alors
   // `7 − 1 = 6` jours d'entraînement, et le cyclage naissait faux sur un compte
   // neuf. Sur les sept jours, la même fonction en déduit trois.
-  useEffect(() => {
-    if (restTouched) return;
-    setRestWeekdays(deducedRestWeekdays(TOUS_LES_JOURS, trainingDaysEq));
-  }, [trainingDaysEq, restTouched]);
+// 🔴 PLUS AUCUN JOUR N'EST PRÉ-COCHÉ (2026-09-10, décision fondateur : « ne
+  // présélectionne aucun jour de repos à l'avance »). L'effet qui posait
+  // `deducedRestWeekdays(...)` est retiré.
+  //
+  // 🔴 MAIS RETIRER LE PRÉ-COCHAGE SEUL AURAIT REJOUÉ LE DÉFAUT DU 2026-08-06, et
+  // c'est la moitié qui compte. Le moteur lit TROIS états, pas deux
+  // (`planEngine::restDaysOfPlan`) :
+  //   · `rest_weekdays` défini, MÊME VIDE  → « j'ai choisi : aucun jour de repos »,
+  //     donc sept jours d'entraînement, donc dépense relissée, donc PLAN PLAT ;
+  //   · `rest_weekdays` ABSENT             → « pas répondu » → le moteur déduit
+  //     lui-même, avec `restDaySet`, la même fonction que celle qui pré-cochait ici.
+  // Partir de `[]` et l'enregistrer tel quel aurait donc servi un plan plat à tout
+  // nouvel inscrit — exactement ce qui avait été corrigé en août.
+  // ➡️ D'où `restTouched` à la SAUVEGARDE (cf. `rest_weekdays` plus bas) : sans geste
+  // de l'utilisateur, on n'écrit rien, et le repli du moteur s'applique. Le plan servi
+  // est le MÊME qu'avec le pré-cochage ; ce qu'on perd, c'est la VISIBILITÉ de
+  // l'hypothèse — elle reste corrigeable dans Profil → Paramètres des repas.
 
   // Les macros (auto) sont calculées par recalcProfile au finish ; plus de calcul
   // en ligne ici depuis la suppression de l'étape récap (le reveal du 1er plan les affiche).
@@ -570,7 +582,10 @@ export default function Onboarding() {
       // l'utilisateur — et c'est elle qui donne au moteur son nombre d'entraînements.
       // Repas fixes + emphase se règlent dans le profil (MealsEditor) ; l'onboarding
       // pose les valeurs neutres.
-      rest_weekdays: orderedWeekdays(restWeekdays),
+      // ⚠️ `undefined` quand l'utilisateur n'a rien touché — PAS `[]`. Les deux sont
+      // des réponses différentes pour le moteur : `[]` dit « aucun jour de repos »,
+      // l'absence dit « pas répondu » et laisse la déduction s'appliquer.
+      rest_weekdays: restTouched ? orderedWeekdays(restWeekdays) : undefined,
       meals: orderedMeals(meals, customSlots),
       meal_slots: customSlots.length ? customSlots : undefined,
       meal_emphasis: 'even',
@@ -876,26 +891,27 @@ export default function Onboarding() {
             {/* Jours de repos = jours SANS entraînement, sur la semaine entière — ils ne
                 dépendent pas des jours du plan (2026-08-26). */}
             <SectionLabel t={t}>Jours de repos</SectionLabel>
-            {/* ⚠️ Ce texte a déjà promis deux choses fausses — « (mêmes calories) », plus
-                vrai depuis la répartition par volume, et « recettes récup », plus vrai
-                depuis la suppression du tag `rest_day_ok` le 2026-08-03.
+            {/* 🔴 LE PARAGRAPHE D'EXPLICATION A ÉTÉ RETIRÉ LE 2026-09-10 (décision
+                fondateur, sur capture de l'étape 6). Il tenait trois lignes sous le
+                sur-titre, sur un écran qui porte déjà les jours de plan, les jours de
+                repos ET les repas.
 
-                🔴 IL EN PROMETTAIT UNE TROISIÈME, ET C'EST LE MÊME DÉFAUT QUE SUR
-                L'ÉCRAN PLAN (CLAUDE.md §8, corrigé là-bas le 2026-08-08) : la modulation
-                par volume n'existe QUE si du sport est déclaré — sans lui,
-                `dayExpenditures` retombe sur une cible plate et les sept jours sont
-                identiques. La phrase annonçait pourtant « moins de calories les jours de
-                repos » à tout le monde, y compris à qui vient de cocher « Je ne fais pas
-                de sport » deux étapes plus tôt.
-                ➡️ Le prédicat est ici la DÉCLARATION de sport, et non le seuil de 40 kcal
-                de `moduleParVolume` : à cette étape le profil n'existe pas encore, donc
-                aucune amplitude n'est calculable. C'est le même fait, lu à la seule
-                source disponible à ce moment-là. */}
-            <Text style={[s.sub, { ...Type.caption, marginTop: -Spacing.sm }]}>
-              {sportDeclare
-                ? "Moins de calories et de glucides ces jours-là, reportées sur tes jours d'entraînement. Tes protéines et ton total de la semaine ne bougent pas."
-                : "Tes jours sans entraînement. Ils ne changeront tes calories que si tu déclares du sport."}
-            </Text>
+                ⚠️ CE QU'ON ACCEPTE EN LE RETIRANT — c'est la moitié qui servait
+                vraiment : quelqu'un ayant coché « Je ne fais pas de sport » deux étapes
+                plus tôt lisait ici que ce réglage ne changerait PAS ses calories (la
+                modulation par volume n'existe pas sans sport déclaré : `dayExpenditures`
+                retombe sur une cible plate). Sans la phrase, il coche des jours de repos
+                qui, pour lui, ne déplacent rien — un réglage sans effet et sans
+                explication, c'est-à-dire le défaut A23.
+                ➡️ Si ça se signale, le remède n'est PAS de remettre le paragraphe :
+                c'est de ne pas proposer le bloc du tout quand aucun sport n'est déclaré.
+                Le prédicat existait ici (`!noSport && sports.length > 0`) et il est plus
+                honnête en GARDE qu'en légende.
+
+                *(Historique : ce texte avait déjà promis deux choses fausses — « mêmes
+                calories », plus vrai depuis la répartition par volume, et « recettes
+                récup », plus vrai depuis le retrait du tag `rest_day_ok`. Puis il avait
+                été conditionné le 2026-08-08, même défaut que l'écran Plan, CLAUDE.md §8.)* */}
             {/* Les SEPT jours, quels que soient les jours du plan : on peut ne pas
                 s'entraîner un jour que Kyroz ne planifie pas. La note « choisis d'abord
                 tes jours de plan » est partie avec la dépendance qu'elle expliquait. */}
@@ -903,7 +919,11 @@ export default function Onboarding() {
               {WEEKDAY_OPTS.map((d) => (
                 <Chip key={d.val} t={t} label={d.label} selected={restWeekdays.includes(d.val)} onPress={() => toggleRestDay(d.val)} />
               ))}
-              <Chip t={t} label="Aucun" selected={restWeekdays.length === 0} onPress={setNoRestDay} />
+              {/* ⚠️ `restTouched &&` : sans lui, « Aucun » s'allumerait au premier rendu,
+                  puisque rien n'est coché. Ce serait une présélection de plus — celle
+                  qui affirme « je n'ai aucun jour de repos » à la place de quelqu'un qui
+                  n'a rien dit, et c'est le pire des trois états à poser par défaut. */}
+              <Chip t={t} label="Aucun" selected={restTouched && restWeekdays.length === 0} onPress={setNoRestDay} />
             </View>
 
             <SectionLabel t={t}>Repas inclus</SectionLabel>
