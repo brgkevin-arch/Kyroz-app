@@ -22,7 +22,7 @@ pas qu'elle a été *lancée*.
 | `PROCEDURE-2026-08-25-mise-en-vente-kyroz-plus.md` | **EN COURS** | Mettre Kyroz+ en vente. 🔴 Son étape 10 (la date de lancement) se pose **en dernier**, après le bac à sable *et* après que la revue App Store est acquise |
 | `PROCEDURE-2026-08-27-bac-a-sable.md` | **EN COURS** | Éprouver l'achat en bac à sable Apple avant la première vente réelle |
 | `PROCEDURE-MAJ-LEGAL-SITE.md` | **REJOUABLE** | Remettre `kyroz.app/legal.html` à jour. Sans date : elle se rejoue à chaque évolution du texte légal |
-| `PROCEDURE-2026-09-05-video-achat-sandbox.md` | **EN COURS** | Filmer l'achat en bac à sable pour la capture de review des deux produits |
+| `PROCEDURE-2026-09-05-video-achat-sandbox.md` | 🟢 **SANS OBJET** (2026-09-10) | Son motif `2.1(b)` est éteint : la soumission du 08/09 est partie sans la vidéo et la revue du 10/09 ne l'a pas re-soulevé. Gardée pour son diagnostic sandbox, à archiver |
 | `PROCEDURE-2026-09-10-rejet-apple-20.md` | **EN COURS** | Répondre au rejet du 2026-09-10 (guidelines 4, 1.4.1 et 3.1.2(c)). 🔴 Son étape 1 est une **décision fondateur** : EULA standard d'Apple, ou CGU déclarées comme EULA personnalisé |
 
 > 🔴 **CE TABLEAU EN ANNONÇAIT TROIS POUR CINQ FICHIERS** — relevé le 2026-09-10 en y

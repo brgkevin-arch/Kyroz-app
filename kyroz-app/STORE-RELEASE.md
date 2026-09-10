@@ -2277,12 +2277,39 @@ Best regards,
 Kévin Berger
 ```
 
+### 🔴 Ce n'est PAS la vidéo du 2026-09-05 — ce motif-là est éteint
+
+Deux enregistrements ont été demandés par Apple à deux semaines d'écart, et il ne faut
+pas les confondre :
+
+| | Vidéo du **2026-09-05** | Capture du **2026-09-10** |
+|---|---|---|
+| Motif | `2.1(b)` — *« started loading indefinitely after we purchased »* | `3.1.2(c)` — les informations d'abonnement |
+| Ce qu'elle prouve | que l'achat **aboutit** | que l'écran **DIT** titre, durée, prix et porte les liens |
+| Achat sandbox | **oui**, obligatoire | **non**, inutile |
+| Appareil physique | oui, Apple l'exigeait | non, le simulateur suffit |
+| Binaire | le (16) | le **(20)**, déjà chez Apple |
+
+✅ **La vidéo du 05/09 n'a JAMAIS été tournée, et elle n'est plus demandée** — mesuré le
+2026-09-10 : les notes de revue n'ont jamais porté le moindre lien vidéo, la soumission
+du **08/09 21:41** est partie sans elle, et la revue du 10/09 **n'a pas re-soulevé
+`2.1(b)`**. Apple a exercé l'achat sur le (20) sans se plaindre du gel.
+➡️ `docs/procedures/PROCEDURE-2026-09-05-video-achat-sandbox.md` est donc **périmée** :
+elle annonce « soumission ⏸️ attend la vidéo », ce qui est faux depuis le 08/09.
+
 ### Script de la capture d'écran (motif 3.1.2(c))
 
-⚠️ **Sur le NOUVEAU binaire**, jamais sur le (20) : la capture doit montrer ce qui sera
-livré. Et le compte doit être **postérieur au 2026-08-27**, sinon il est servi
-gratuitement à vie (CGU §3) et l'écran ne vend rien — c'est ce que l'accès relecteur
-garantit déjà (session invité créée à l'instant, cf. §11).
+✅ **ELLE SE TOURNE SUR LE (20), CELUI QUI EST DÉJÀ CHEZ APPLE — corrigé le 2026-09-10.**
+Cette ligne disait « sur le NOUVEAU binaire, jamais sur le (20) », par réflexe. C'est
+faux, et c'est mesurable : **la PR #252 n'a pas touché `app/kyroz-plus.tsx`** (`git show
+--stat` → 0 occurrence). L'écran de vente que cette capture doit prouver est donc
+**identique au bit près** dans le (20) et dans le prochain build.
+➡️ **Conséquence de séquencement** : répondre à Apple sur 3.1.2(c) **n'attend pas le
+build**. Les deux autres motifs, eux, l'attendent — le relecteur voit le JS embarqué.
+
+⚠️ Le compte doit être **postérieur au 2026-08-27**, sinon il est servi gratuitement à
+vie (CGU §3) et l'écran ne vend rien — c'est ce que l'accès relecteur garantit déjà
+(session invité créée à l'instant, cf. §11).
 
 Un seul plan continu, sans coupe — une capture montée est une capture qu'on relit deux fois :
 
