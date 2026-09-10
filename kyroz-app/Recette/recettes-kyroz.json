@@ -1,8 +1,8 @@
 {
   "_meta": {
     "version": "2.0",
-    "count": 512,
-    "source_macros": "CIQUAL 2025 (ANSES) pour 108 des 125 ref, via lib/recipeFoodMap.ts → la table officielle est INTÉGRÉE (lib/foods.generated.ts), ce n'est plus une estimation. Les 17 ref restants portent une valeur manuelle assumée, listée dans recipeFoodMap (protéines en poudre, mélanges, haricots noirs — Ciqual n'a pas d'entrée). ⚠️ Ce champ a longtemps dit « remplacer par le CSV officiel avant prod » : c'est FAIT depuis le 2026-08-01.",
+    "count": 516,
+    "source_macros": "CIQUAL 2025 (ANSES) pour 115 des 132 ref, via lib/recipeFoodMap.ts → la table officielle est INTÉGRÉE (lib/foods.generated.ts), ce n'est plus une estimation. Les 17 ref restants portent une valeur manuelle assumée, listée dans recipeFoodMap (protéines en poudre, mélanges, haricots noirs — Ciqual n'a pas d'entrée). ⚠️ Ce champ a longtemps dit « remplacer par le CSV officiel avant prod » : c'est FAIT depuis le 2026-08-01.",
     "precision": "±5-10%.",
     "poids_basis": "basis=dry -> poids cru/sec (riz, pâtes, légumineuses sèches) ; basis=raw -> viande/poisson cru ; aucun basis -> poids PRÊT À CONSOMMER (conserve égouttée, aliment cuit). ⚠️ La cohérence n'est pas qu'une convention de pesée : les INSTRUCTIONS doivent correspondre. Une légumineuse pesée sèche ne se cuisine pas en 18 minutes — 47 recettes le faisaient jusqu'au 2026-08-03. Verrouillé par lib/__tests__/legumineuses.test.ts.",
     "adaptation_fields": {
@@ -10,7 +10,7 @@
       "scalable": "true = quantité ajustable par l'algo ; false = fixe (légumes)"
     },
     "priorite_sport": "Muscu prioritaire, puis Endurance, peu de Combats (cf. distribution).",
-    "corrections_kyroz": "rep57 +8g huile_olive (équilibre lipidique). | 2026-07-29 : sauce_soja déclarée dans rep05/rep46/rep80 (citée en instruction, invisible du dérivé régime) ; levure_maltee + falafel + pesto ajoutés à recipeDiet.VIOLATIONS ; why de rep80/pd52/pd77/rep152/rep155 : « sans gluten » retiré (devenu faux) ; +9 ingrédients (légumineuses prêtes à consommer, tofu fumé, falafel, tahini, boisson soja, pain/wrap sans gluten). recomp_flag SUPPRIMÉ (champ mort : aucun code ne le lisait, et il marquait 5 recettes quand ~40 avaient une densité protéique équivalente ou pire). | yaourt_grec DÉMAPPÉ de ciqual-19860 (« yaourt à la grecque » = dessert à 3 g de protéines, pas un grec égoutté à 9 g) → valeur manuelle, comme skyr ; nom précisé « égoutté (type Fage) » ; macro_role dairy→protein sur pd10/col07/col17, où le yaourt est la seule source de protéines. | 8 recettes sans ancre protéine (pd02/pd06/pd08/pd15/col01/col03/col13/col19) : le laitier qui porte 58 à 89 % de leurs protéines passe de dairy à protein. | Nettoyage des doublons 2026-07-29 : 7 clones stricts et 2 noms identiques différenciés (rep37 tajine aux olives, rep64 papillote, rep165 pho sans mélange wok, col64 houmous, col50/col65 edamame distincts, pd38 tartine de seigle, col45 pudding framboise) — aucune suppression. | 2026-08-03 : les 47 recettes qui pesaient une légumineuse à cuisson longue au poids SEC tout en la cuisinant en moins de 40 min. 44 passent sur un `ref` prêt à consommer (quantité × le rendement de cuisson : ×2,4 pois chiches, ×2,5 haricots et lentilles), instructions réécrites (« égoutte et rince » au lieu de « cuis »). 3 gardent la pesée sèche parce que la cuisson longue EST le plat et qu’aucune ne demande de trempage (rep107, rep108, rep112) : seul leur `temps_min` était faux, il passe à 50 min. +2 `ref` : haricots_blancs_conserve (Ciqual 20511) et haricots_noirs_conserve (déduit du rapport sec→appertisé du haricot rouge, Ciqual n’ayant pas d’entrée pour le haricot noir). | 2026-08-03 (2) : `tags.objectif` et `tags.sport` RECALCULÉS mécaniquement depuis les macros du moteur, pour les 512 recettes — ils sont AFFICHÉS sur la fiche et 192 (objectif) et 116 (endurance) contredisaient les calories de leur propre recette. `recup_jour_repos` SUPPRIMÉ des 512 : champ mort depuis le 2026-07-29 (le jour de repos agit sur la cible, pas par un tag), faux sur 152 recettes sans que personne puisse le voir — même sort que `recomp_flag`. | 2026-09-09 : 17 recettes citaient dans leurs INSTRUCTIONS une denrée que la recette ne fournit pas — bouillon (rep47, rep122, rep126, rep153, rep154, rep155, rep156), miso (rep47), sauce teriyaki (rep50, rep73, rep147), vinaigrette (rep109, rep140, rep160), yaourt (rep139), granola (col13), croûtons (rep112), compote (col54). Toutes réécrites SANS toucher aux ingrédients : la denrée manquante est remplacée par ce que la recette sert vraiment. 3 noms suivent (rep47 « Soupe miso » → « Soupe japonaise », rep73 et rep147 perdent « teriyaki ») parce qu'ils promettaient la denrée retirée. Aucune macro ne bouge, donc pas de bump d'ENGINE_VERSION. Verrouillé par lib/__tests__/ingredientsCites.test.ts.",
+    "corrections_kyroz": "rep57 +8g huile_olive (équilibre lipidique). | 2026-07-29 : sauce_soja déclarée dans rep05/rep46/rep80 (citée en instruction, invisible du dérivé régime) ; levure_maltee + falafel + pesto ajoutés à recipeDiet.VIOLATIONS ; why de rep80/pd52/pd77/rep152/rep155 : « sans gluten » retiré (devenu faux) ; +9 ingrédients (légumineuses prêtes à consommer, tofu fumé, falafel, tahini, boisson soja, pain/wrap sans gluten). recomp_flag SUPPRIMÉ (champ mort : aucun code ne le lisait, et il marquait 5 recettes quand ~40 avaient une densité protéique équivalente ou pire). | yaourt_grec DÉMAPPÉ de ciqual-19860 (« yaourt à la grecque » = dessert à 3 g de protéines, pas un grec égoutté à 9 g) → valeur manuelle, comme skyr ; nom précisé « égoutté (type Fage) » ; macro_role dairy→protein sur pd10/col07/col17, où le yaourt est la seule source de protéines. | 8 recettes sans ancre protéine (pd02/pd06/pd08/pd15/col01/col03/col13/col19) : le laitier qui porte 58 à 89 % de leurs protéines passe de dairy à protein. | Nettoyage des doublons 2026-07-29 : 7 clones stricts et 2 noms identiques différenciés (rep37 tajine aux olives, rep64 papillote, rep165 pho sans mélange wok, col64 houmous, col50/col65 edamame distincts, pd38 tartine de seigle, col45 pudding framboise) — aucune suppression. | 2026-08-03 : les 47 recettes qui pesaient une légumineuse à cuisson longue au poids SEC tout en la cuisinant en moins de 40 min. 44 passent sur un `ref` prêt à consommer (quantité × le rendement de cuisson : ×2,4 pois chiches, ×2,5 haricots et lentilles), instructions réécrites (« égoutte et rince » au lieu de « cuis »). 3 gardent la pesée sèche parce que la cuisson longue EST le plat et qu’aucune ne demande de trempage (rep107, rep108, rep112) : seul leur `temps_min` était faux, il passe à 50 min. +2 `ref` : haricots_blancs_conserve (Ciqual 20511) et haricots_noirs_conserve (déduit du rapport sec→appertisé du haricot rouge, Ciqual n’ayant pas d’entrée pour le haricot noir). | 2026-08-03 (2) : `tags.objectif` et `tags.sport` RECALCULÉS mécaniquement depuis les macros du moteur, pour les 512 recettes — ils sont AFFICHÉS sur la fiche et 192 (objectif) et 116 (endurance) contredisaient les calories de leur propre recette. `recup_jour_repos` SUPPRIMÉ des 512 : champ mort depuis le 2026-07-29 (le jour de repos agit sur la cible, pas par un tag), faux sur 152 recettes sans que personne puisse le voir — même sort que `recomp_flag`. | 2026-09-09 : 17 recettes citaient dans leurs INSTRUCTIONS une denrée que la recette ne fournit pas — bouillon (rep47, rep122, rep126, rep153, rep154, rep155, rep156), miso (rep47), sauce teriyaki (rep50, rep73, rep147), vinaigrette (rep109, rep140, rep160), yaourt (rep139), granola (col13), croûtons (rep112), compote (col54). Toutes réécrites SANS toucher aux ingrédients : la denrée manquante est remplacée par ce que la recette sert vraiment. 3 noms suivent (rep47 « Soupe miso » → « Soupe japonaise », rep73 et rep147 perdent « teriyaki ») parce qu'ils promettaient la denrée retirée. Aucune macro ne bouge, donc pas de bump d'ENGINE_VERSION. Verrouillé par lib/__tests__/ingredientsCites.test.ts. | 2026-09-10 : +7 refs SIMILI-CARNÉS VÉGÉTAUX (steak_soja, emince_vegetal, hache_vegetal, galette_vegetale, boulette_vegetale, nuggets_vegetal, saucisse_vegetale), tous mappés Ciqual — l'ANSES publie l'aliment MOYEN du marché français pour chacun, donc la moyenne est mesurée, pas estimée. Motif : le vegan n'avait aucune PIÈCE hors tofu/tempeh/seitan, et 121 recettes sur 512 étaient ancrées sur un yaourt, une poudre ou du soja texturé. ⚠️ 4 des 7 sont au BLÉ : ils n'ouvrent RIEN au créneau vegan+sans gluten (le plus pauvre du catalogue). Aucune recette ne les emploie encore — un ref seul ne sert personne.",
     "waves": {
       "role": "Vague de livraison d'origine de chaque recette (champ `wave`). Rétro-rempli le 2026-07-29 depuis les dossiers de Recette/drops/ ; « fondation » = le lot initial, antérieur aux drops.",
       "valeurs": {
@@ -31,7 +31,8 @@
         "2026-08-02-b7-repas-vegan": 10,
         "2026-08-02-b7-collations-vegan": 8,
         "2026-08-03-b8-collations-vegan-sg": 8,
-        "2026-08-03-b9-collations-grand-format": 8
+        "2026-08-03-b9-collations-grand-format": 8,
+        "2026-09-10-b11-pieces-vegetales": "4 repas complets vegan bâtis sur les PIÈCES végétales ajoutées le même jour (haché, émincé, boulettes, galette) plutôt que sur un yaourt ou une poudre."
       },
       "convention": "Toute nouvelle vague reprend le NOM DU DOSSIER de son drop (AAAA-MM-JJ-<bloc>), pour qu'on retrouve la matière première d'une recette sans fouiller l'historique git."
     }
@@ -1317,6 +1318,83 @@
         "carbs": 2.9,
         "fat": 9.5
       }
+    },
+    "steak_soja": {
+      "name": "Steak / pavé de soja",
+      "unit": "g",
+      "per_100": {
+        "kcal": 252,
+        "protein": 15.5,
+        "carbs": 8.5,
+        "fat": 14.7
+      },
+      "abs_max_qty": 200
+    },
+    "emince_vegetal": {
+      "name": "Émincé végétal (soja et blé)",
+      "unit": "g",
+      "per_100": {
+        "kcal": 157,
+        "protein": 19.5,
+        "carbs": 6.8,
+        "fat": 3.7
+      },
+      "abs_max_qty": 200
+    },
+    "hache_vegetal": {
+      "name": "Haché végétal de soja",
+      "unit": "g",
+      "per_100": {
+        "kcal": 143,
+        "protein": 11.5,
+        "carbs": 7,
+        "fat": 5.8
+      },
+      "abs_max_qty": 200
+    },
+    "galette_vegetale": {
+      "name": "Galette végétale (blé et soja)",
+      "unit": "g",
+      "per_100": {
+        "kcal": 215,
+        "protein": 16,
+        "carbs": 8.2,
+        "fat": 11
+      },
+      "abs_max_qty": 200
+    },
+    "boulette_vegetale": {
+      "name": "Boulettes végétales",
+      "unit": "g",
+      "per_100": {
+        "kcal": 211,
+        "protein": 17.6,
+        "carbs": 8,
+        "fat": 10.6
+      },
+      "abs_max_qty": 200
+    },
+    "nuggets_vegetal": {
+      "name": "Nuggets végétaux panés",
+      "unit": "g",
+      "per_100": {
+        "kcal": 251,
+        "protein": 15.5,
+        "carbs": 19.7,
+        "fat": 10.9
+      },
+      "abs_max_qty": 180
+    },
+    "saucisse_vegetale": {
+      "name": "Saucisse végétale au tofu",
+      "unit": "g",
+      "per_100": {
+        "kcal": 228,
+        "protein": 13.4,
+        "carbs": 5.7,
+        "fat": 16.3
+      },
+      "abs_max_qty": 150
     },
     "falafel": {
       "name": "Falafel prêt à consommer",
@@ -31625,6 +31703,306 @@
         "fat": 13.1
       },
       "wave": "2026-08-03-b9-collations-grand-format"
+    },
+    {
+      "id": "rep281",
+      "name": "Chili de haché végétal aux lentilles, millet et graines de courge",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 35
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "hache_vegetal",
+          "qty": 145,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "lentilles_cuites",
+          "qty": 110,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "millet",
+          "qty": 40,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "graines_courge",
+          "qty": 8,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "tomate_concassee",
+          "qty": 110,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "poivron",
+          "qty": 80,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "oignon",
+          "qty": 40,
+          "macro_role": "flavor",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Fais griller le millet sec 2 minutes à sec dans une casserole, jusqu'à ce qu'il sente le noisette, puis couvre de deux fois son volume d'eau salée et cuis 15 minutes à couvert.",
+        "Émince l'oignon et le poivron, puis fais-les suer 5 minutes à feu moyen dans une poêle large, jusqu'à ce que le poivron s'assouplisse.",
+        "Ajoute le haché végétal et écrase-le à la cuillère : laisse-le colorer 4 minutes à feu vif sans remuer au début, pour qu'il accroche au fond et prenne du goût.",
+        "Verse la tomate concassée avec du cumin, du paprika fumé et une pincée de piment, puis laisse mijoter 8 minutes à feu doux : la sauce doit napper la cuillère.",
+        "Ajoute les lentilles cuites et poursuis 3 minutes, juste le temps qu'elles soient chaudes — remuées trop longtemps, elles se défont en purée.",
+        "Fais torréfier les graines de courge 2 minutes à sec dans une petite poêle, jusqu'à ce qu'elles commencent à éclater.",
+        "Égrène le millet, sers le chili dessus et parsème des graines de courge, avec de la coriandre ciselée si tu en as."
+      ],
+      "why": "Le haché végétal fait le liant du chili et les lentilles portent la protéine : ni poudre ni yaourt dans un plat qui tient au corps.",
+      "macros_per_serving": {
+        "kcal": 597.6,
+        "protein": 36.9,
+        "carbs": 66.8,
+        "fat": 15.6
+      },
+      "wave": "2026-09-10-b11-pieces-vegetales"
+    },
+    {
+      "id": "rep282",
+      "name": "Émincé végétal sauté au sésame, nouilles et brocoli",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 25
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "emince_vegetal",
+          "qty": 130,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "nouilles_completes",
+          "qty": 100,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "tahini",
+          "qty": 6,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "brocoli",
+          "qty": 140,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "carotte",
+          "qty": 60,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "sauce_soja",
+          "qty": 12,
+          "macro_role": "flavor",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Fais cuire les nouilles complètes dans un grand volume d'eau bouillante salée selon le temps du paquet, puis égoutte-les et rince-les à l'eau froide pour stopper la cuisson.",
+        "Détaille le brocoli en petits bouquets et la carotte en fines rondelles, puis fais-les sauter 5 minutes à feu vif dans une poêle très chaude : ils doivent se marquer et rester croquants.",
+        "Ajoute l'émincé végétal et laisse-le colorer 4 minutes sans le remuer au début, jusqu'à ce qu'il dore franchement sur une face.",
+        "Délie le tahini avec la sauce soja et trois cuillères d'eau chaude, en fouettant jusqu'à obtenir une sauce lisse et nappante.",
+        "Verse la sauce dans la poêle hors du feu, ajoute les nouilles et mélange 1 minute pour que tout s'enrobe sans que la sauce ne tranche.",
+        "Poivre et sers aussitôt, tant que les légumes ont encore du mordant."
+      ],
+      "why": "L'émincé végétal est la pièce la plus protéinée du rayon et la plus maigre : il tient le wok à lui seul.",
+      "macros_per_serving": {
+        "kcal": 662.6,
+        "protein": 43.6,
+        "carbs": 83.5,
+        "fat": 11.1
+      },
+      "wave": "2026-09-10-b11-pieces-vegetales"
+    },
+    {
+      "id": "rep283",
+      "name": "Boulettes végétales à la tomate, boulgour et edamame",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 30
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "boulette_vegetale",
+          "qty": 110,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "edamame",
+          "qty": 120,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "boulgour",
+          "qty": 55,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "huile_olive",
+          "qty": 4,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "tomate_concassee",
+          "qty": 150,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "courgette",
+          "qty": 110,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "oignon",
+          "qty": 40,
+          "macro_role": "flavor",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Verse le boulgour dans une fois et demie son volume d'eau bouillante salée, couvre et laisse gonfler 10 minutes hors du feu, puis égrène-le à la fourchette.",
+        "Fais cuire les edamame 6 minutes à la vapeur, ils doivent rester fermes sous la dent.",
+        "Fais revenir l'oignon émincé 4 minutes à feu moyen dans l'huile d'olive, jusqu'à ce qu'il devienne translucide, puis ajoute la courgette en demi-lunes et laisse-la colorer 5 minutes à feu vif.",
+        "Verse la tomate concassée avec de l'origan, sale, et laisse réduire 8 minutes à feu doux : la sauce doit devenir brillante et perdre son eau.",
+        "Pendant ce temps, fais dorer les boulettes 6 minutes à feu moyen dans une seconde poêle sèche, en les roulant pour qu'elles prennent couleur sur tout le tour.",
+        "Dépose les boulettes dans la sauce et laisse-les s'imprégner 2 minutes, puis sers sur le boulgour avec les edamame, et poivre."
+      ],
+      "why": "Les boulettes finissent leur cuisson dans la sauce, ce qui les empêche d'être sèches ; les edamame relèvent la protéine sans ajouter de gras.",
+      "macros_per_serving": {
+        "kcal": 677.7,
+        "protein": 42.6,
+        "carbs": 65.7,
+        "fat": 23.7
+      },
+      "wave": "2026-09-10-b11-pieces-vegetales"
+    },
+    {
+      "id": "rep284",
+      "name": "Galette végétale, quinoa aux lentilles, betterave et graines de courge",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 30
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "galette_vegetale",
+          "qty": 120,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "lentilles_cuites",
+          "qty": 120,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "quinoa",
+          "qty": 40,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "graines_courge",
+          "qty": 10,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "betterave",
+          "qty": 80,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "roquette",
+          "qty": 40,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "oignon",
+          "qty": 30,
+          "macro_role": "flavor",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Rince le quinoa à l'eau froide en le frottant entre les mains pour retirer son amertume, puis fais-le cuire 12 minutes dans deux fois son volume d'eau salée : il est prêt quand le germe se détache en spirale.",
+        "Émince l'oignon en fines lamelles et laisse-le tremper 10 minutes dans de l'eau froide pour qu'il perde son piquant, puis égoutte-le.",
+        "Fais torréfier les graines de courge 2 minutes à sec dans une petite poêle, jusqu'à ce qu'elles commencent à éclater, et réserve-les.",
+        "Râpe la betterave cuite et mélange-la au quinoa encore tiède avec les lentilles, du sel et du poivre — tiède, le quinoa prend mieux le goût.",
+        "Fais cuire la galette végétale 4 minutes par face à feu moyen dans une poêle sèche : attends qu'une croûte se forme et qu'elle se décolle toute seule avant de la retourner.",
+        "Ajoute la roquette et l'oignon au quinoa au dernier moment, pour qu'ils ne retombent pas.",
+        "Dresse le quinoa, pose la galette coupée en deux dessus, parsème des graines de courge et sers aussitôt, tant qu'elle croustille."
+      ],
+      "why": "La galette est saisie à sec pour faire croûte ; le quinoa et les lentilles complètent la protéine que la galette seule n'atteint pas.",
+      "macros_per_serving": {
+        "kcal": 669.5,
+        "protein": 42,
+        "carbs": 61.4,
+        "fat": 22.1
+      },
+      "wave": "2026-09-10-b11-pieces-vegetales"
     }
   ],
   "config": {

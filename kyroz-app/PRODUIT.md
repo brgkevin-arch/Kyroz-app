@@ -141,7 +141,7 @@ sous la liste « Réalisable » : c'est une question de recettes, pas d'inventai
 ### Recettes
 
 **Deux listes, choisies par un sélecteur en haut de l'écran** (2026-08-25) :
-· **Catalogue** — les **512 recettes** (compté le 2026-08-21), filtrables par créneau ou
+· **Catalogue** — les **516 recettes** (compté le 2026-09-10), filtrables par créneau ou
   par favori, dévoilées par paliers plutôt qu'en un mur ;
 · **Réalisable** — seulement ce qui est faisable avec ce qu'on a : d'abord les recettes
   réalisables maintenant, puis celles où il manque un ou deux ingrédients (annoncés avec

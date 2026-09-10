@@ -53,6 +53,23 @@ export const REF_FOOD_ID: Record<string, string> = {
   // Végétal protéiné PRÊT À CONSOMMER (2026-07-29) — poids servi = poids acheté, à l'inverse
   // des entrées sèches ci-dessus. Sans elles, une recette de 10 min aux pois chiches affichait
   // le poids SEC en liste de courses : non achetable pour un plat sans trempage ni cuisson.
+  // Simili-carnés végétaux (2026-09-10) — les 7 « pièces » qui manquaient au vegan.
+  // ⚠️ POURQUOI CIQUAL PLUTÔT QU'UNE MOYENNE MAISON. Ces produits n'ont pas de valeur
+  // « naturelle » : elle dépend de la marque, et un audit proposait de créer ces refs
+  // avec des macros « indicatives, à valider ». L'ANSES a déjà fait ce travail : ses
+  // entrées « préemballé » SONT l'aliment moyen du marché français, mesuré. On prend
+  // sa moyenne, pas la nôtre — et le ref redevient vérifiable comme les 108 autres.
+  // ⚠️ Aucun ref sur les entrées « ne convient pas aux véganes » (elles contiennent
+  // œuf ou lait) ni sur « Fines tranches végétales » (ciqual-1030, 29,7 g P — aucune
+  // mention de composition ni de compatibilité végane : ambiguë, donc écartée, comme
+  // yaourt_grec l'a été). La règle du fichier ne bouge pas : sans ambiguïté, ou rien.
+  steak_soja: 'ciqual-20914',        // « Galette ou pavé au soja » (soja seul)
+  emince_vegetal: 'ciqual-25223',    // « …végétal au soja et blé (convient aux véganes) »
+  hache_vegetal: 'ciqual-30181',     // « Haché végétal à base de soja »
+  galette_vegetale: 'ciqual-25593',  // « …au blé et soja (convient aux véganes) »
+  boulette_vegetale: 'ciqual-25589', // « Boulette végétale au soja et/ou blé »
+  nuggets_vegetal: 'ciqual-25227',   // « Nuggets…soja et blé (convient aux véganes) »
+  saucisse_vegetale: 'ciqual-20337', // « Saucisse végétale au tofu (convient aux véganes) »
   pois_chiches_conserve: 'ciqual-20532',    // « Pois chiche, appertisé, égoutté »
   haricots_rouges_conserve: 'ciqual-20524', // « Haricot rouge, appertisé, égoutté »
   haricots_blancs_conserve: 'ciqual-20511', // « Haricot blanc, appertisé, égoutté » (2026-08-03)

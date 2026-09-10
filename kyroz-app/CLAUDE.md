@@ -250,14 +250,39 @@ App mobile React Native (Expo Router, **SDK 57** depuis le 2026-08-27) de plans 
 > Cette ligne annonçait « Ciqual primaire + **Open Food Facts** secondaire », en statut
 > « Cible ». Open Food Facts **n'a jamais été branché** : zéro ligne de code, zéro appel.
 > La réalité, mesurée : la table `Recette/recettes-kyroz.json > ingredients_reference`
-> porte **125 refs**, dont **117 réellement utilisées** par une recette. **108/125 sont
+> porte **132 refs** (2026-09-10), dont **117 réellement utilisées** par une recette.
+> **115/132 sont
 > sourcées Ciqual** (`lib/recipeFoodMap.ts::REF_FOOD_ID` → base ANSES convertie dans
 > `lib/foods.generated.ts`), soit **102/117** en ne comptant que les utilisées, et
-> **15 sont saisies à la main** — celles que Ciqual ne couvre pas proprement : `whey`,
+> **17 sont saisies à la main** — celles que Ciqual ne couvre pas proprement : `whey`,
 > `skyr`, `yaourt_grec`, `cottage_cheese`, `proteine_vegetale`, `soja_texture`,
-> `yaourt_soja_proteine`, `levure_maltee`, `edamame`, `haricots_noirs_conserve`,
-> `millet`, `wrap_sans_gluten`, et trois mélanges (`legumes_wok`, `ratatouille`,
-> `fruits_rouges`).
+> `yaourt_soja`, `yaourt_soja_proteine`, `levure_maltee`, `edamame`, `haricots_noirs`,
+> `haricots_noirs_conserve`, `millet`, `wrap_sans_gluten`, et trois mélanges
+> (`legumes_wok`, `ratatouille`, `fruits_rouges`).
+> ⚠️ **Cette liste en comptait QUINZE pour un total qui en annonçait dix-sept** — elle
+> a été recopiée telle quelle depuis le 2026-08-05, ici et dans `docs/JOURNAL.md`, sans
+> que personne ne fasse la soustraction. Les deux absents étaient `haricots_noirs` et
+> `yaourt_soja`. Elle se RE-MESURE (`RECIPE_INGREDIENTS`, entrées sans `food_id`), elle
+> ne se recopie pas.
+>
+> 🔴 **+7 PIÈCES VÉGÉTALES LE 2026-09-10** (décision fondateur : *« on fait la moyenne
+> des macros de tous les produits végétaux et on les ajoute à notre table, sinon l'appli
+> est inutilisable par un végane »*). `steak_soja`, `emince_vegetal`, `hache_vegetal`,
+> `galette_vegetale`, `boulette_vegetale`, `nuggets_vegetal`, `saucisse_vegetale` — tous
+> **mappés Ciqual**, aucun en valeur manuelle. **Cette moyenne existait déjà et elle est
+> mesurée** : les entrées ANSES « préemballé » SONT l'aliment moyen du marché français,
+> agrégé sur les références du commerce. Un audit proposait de créer ces refs avec des
+> macros « indicatives, à valider contre le fournisseur » — c'est-à-dire dépendant de la
+> marque achetée, donc invérifiables ; la question n'était pas *faut-il ces pièces* mais
+> *d'où vient leur chiffre*, et Ciqual y répond.
+> ⚠️ **QUATRE DES SEPT SONT AU BLÉ**, donc ils n'ouvrent RIEN au créneau vegan+sans
+> gluten — le plus pauvre du catalogue (12 repas complets servables à une femme de 55 kg
+> en sèche, sur 280). Seuls `steak_soja`, `hache_vegetal` et `saucisse_vegetale` (soja
+> seul) l'atteignent, et ce sont les moins protéinés. Compté par `similiVegetal.test.ts`.
+> ⚠️ **Aucune recette ne les emploie encore** : un ref seul ne sert personne, il rend une
+> vague possible. Écartée à dessein : `ciqual-1030` « Fines tranches végétales » (29,7 g
+> P/100 g, le meilleur du lot) — aucune mention de composition ni de compatibilité
+> végane, donc ambiguë, donc non mappée. Même arbitrage que `yaourt_grec` le 2026-07-29.
 > ⚠️ **Ces chiffres bougent à chaque vague de catalogue** — la version précédente
 > (« 123 / 107 / 16 ») était périmée, et AGENTS.md en citait trois autres qui se
 > contredisaient. Les recompter fait partie d'une vague, sinon ils vieillissent seuls.

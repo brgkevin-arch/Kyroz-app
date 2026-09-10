@@ -58,7 +58,7 @@ core tuerait le North Star — donc interdit.
 > - **Carb cycling / jours de repos** → livré (`rest_weekdays`, moteur v5+).
 > - **Ajustement des macros au poids** → livré (`recalcProfile` + check-in poids).
 > - **Recettes personnalisées** → livré (`RecipeEditor` + table `recipe_overrides`).
-> - **« Base étendue : 50 → +100 »** → sans objet : le catalogue est à **512 recettes**
+> - **« Base étendue : 50 → +100 »** → sans objet : le catalogue est à **516 recettes**
 >   (314 quand cette ligne a été écrite), toutes gratuites. Le rationner *a posteriori*
 >   serait une régression — et l'écart entre les deux chiffres montre à quel point
 >   l'argument s'est renforcé depuis.
@@ -77,7 +77,7 @@ core tuerait le North Star — donc interdit.
 | **Historique des plans** (semaines passées) | semaine en cours | ✅ illimité | **non construit** → monétisable |
 | **Export liste de courses** (PDF / impression / Notes) | — | ✅ | **non construit** → monétisable |
 | ~~Recettes personnalisées~~ | ✅ | — | ⚠️ **déjà livré gratuit** |
-| ~~Base de recettes étendue (50 / +100)~~ | ✅ 512 | — | ⚠️ **sans objet** (512 recettes, gratuites) |
+| ~~Base de recettes étendue (50 / +100)~~ | ✅ 516 | — | ⚠️ **sans objet** (516 recettes, gratuites) |
 | ~~Ajustement auto des macros au poids~~ | ✅ | — | ⚠️ **déjà livré gratuit** |
 | ~~Modes objectifs avancés (carb cycling)~~ | ✅ | — | ⚠️ **déjà livré gratuit** |
 
