@@ -1380,33 +1380,81 @@ c'est du JavaScript, donc une **OTA**, sans nouvelle revue.
 `Ton plan de repas hebdo, précis au gramme, adapté à ton objectif et ton sport. Gratuit, sans compte requis pour démarrer.`
 
 **Description** (App Store + Google Play) :
+
+> 🔴 **CE BLOC A ÉTÉ RE-MESURÉ SUR LA FICHE VIVANTE LE 2026-09-10, ET IL MENTAIT.** Ce
+> qu'il annonçait n'était PAS ce qu'Apple servait : il ne portait pas le bloc **KYROZ+**
+> (posé en ligne le 2026-08-28, §3-bis le dit pourtant deux pages plus bas), annonçait
+> « 512 recettes » là où la fiche dit « +500 », et listait deux puces qui n'y sont plus.
+> ➡️ **Une fiche de store se RELIT chez Apple, elle ne se recopie pas d'ici** —
+> `GET /v1/apps/{id}/appStoreVersions?include=appStoreVersionLocalizations`. C'est le
+> même défaut que le nombre de recettes, deux fois corrigé, et pour la même raison : ce
+> document est une carte, la fiche est le terrain.
+> ⚠️ Le texte ci-dessous est celui **relevé en ligne**, plus la seule modification que
+> le rejet 3.1.2(c) impose (bloc « Conditions d'utilisation », voir juste après).
+
 ```
 Kyroz calcule ton plan de repas de la semaine, précis à la macro près, à partir
 de ton profil : objectif (sèche, maintien, prise de masse), sport, préférences et
 régime. Pas de blabla : un plan crédible dès le premier jour.
 
 • Plan 7 jours généré automatiquement, ajusté à tes calories et tes protéines
-• 512 recettes, adaptées à ton régime (végétarien, vegan, sans gluten, sans
+• +500 recettes, adaptées à ton régime (végétarien, vegan, sans gluten, sans
   lactose, sans porc, halal, pescétarien)
 • Quantités ajustées automatiquement pour tomber sur tes macros
-• Liste de courses (qui déduit ce que tu as déjà) + réserve, le frais et le sec
-• « Recale ma journée » : un imprévu, un repas sauté ? Le plan se réajuste
+• Liste de courses + réserve, le frais et le sec
 • Suivi de série pour tenir le rythme
-• 100 % gratuit sur le cœur, fonctionne hors-ligne
+• Fonctionne hors-ligne
+
+KYROZ+ (FACULTATIF)
+Le cœur de Kyroz est gratuit et le reste : profil, plan de la semaine, recettes,
+liste de courses, réserve et recalage. Kyroz+ ouvre en plus l'objectif daté et le
+suivi de transformation.
+Abonnement à renouvellement automatique : 3,99 €/mois ou 29,99 €/an. Le paiement
+est débité sur ton compte Apple à la confirmation. Il se renouvelle sauf
+résiliation au moins 24 h avant la fin de la période en cours, et se gère dans
+les réglages de ton compte Apple.
+Conditions d'utilisation (EULA) :
+https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+CGU Kyroz et politique de confidentialité :
+https://kyroz.app/legal.html
 
 Kyroz est conçu pour des adultes en bonne santé. Ces informations ne remplacent
 pas l'avis d'un médecin ou d'un diététicien-nutritionniste.
 ```
 
-⚠️ **Le nombre de recettes est écrit À LA MAIN ici** — c'est du texte que tu colles dans
+> ✅ **POSÉE CHEZ APPLE LE 2026-09-10** (voie A, décision fondateur), par l'API et
+> **relue après écriture** : version 1.0 `REJECTED`, locale `fr-FR`, **1 301 → 1 386
+> caractères**, deux liens présents. La description n'a PAS été retapée depuis ce
+> document — elle a été relue chez Apple et modifiée par substitution, parce que
+> recopier d'ici est exactement le défaut corrigé plus haut.
+>
+> 🔴 **LES DEUX DERNIÈRES LIGNES DE LIENS SONT LE CORRECTIF DU REJET 3.1.2(c)**
+> (2026-09-10). La fiche en ligne ne portait que la seconde, et c'est ce qui a été
+> refusé — **pas parce que le lien était cassé** (`kyroz.app/legal.html` répond 200 et
+> porte bien les CGU), mais parce qu'Apple ne reconnaît que deux formes : l'**EULA
+> standard** dont le lien va dans la description, ou un **EULA personnalisé** déclaré
+> dans App Store Connect. Kyroz était entre les deux — champ « Contrat de licence »
+> VIDE chez Apple (mesuré : `GET /v1/apps/{id}/endUserLicenseAgreement` → `data: null`),
+> donc EULA standard réputé applicable, mais description renvoyant vers ses PROPRES CGU.
+> ➡️ Les deux liens coexistent sans se contredire : l'EULA standard régit la licence du
+> LOGICIEL, les CGU régissent le SERVICE (tarif bloqué à la souscription, gratuité à vie
+> des comptes d'avant le 2026-08-27). L'EULA standard d'Apple prévoit lui-même de céder
+> la place à un accord passé avec l'éditeur.
+> ⚠️ L'autre voie — déclarer les CGU comme EULA personnalisé — est ouverte mais coûte
+> une relecture juridique : un EULA personnalisé doit respecter les *Minimum Terms*
+> d'Apple, que les CGU ne portent pas. Arbitrage et procédure :
+> `docs/procedures/PROCEDURE-2026-09-10-rejet-apple-20.md`.
+
+⚠️ **Le nombre de recettes est écrit À LA MAIN** — c'est du texte que tu colles dans
 la fiche, rien ne peut le calculer. **Il a déjà dérivé DEUX fois** : annoncé **314** pour
 un catalogue de **466** (corrigé le 2026-08-01), puis **466** pour un catalogue de **512**
-(corrigé le 2026-08-03, après les vagues B7→B9). L'avertissement « à revérifier après
-CHAQUE vague » était déjà écrit ici la première fois — et il n'a pas suffi.
+(corrigé le 2026-08-03, après les vagues B7→B9).
+✅ **La fiche dit désormais « +500 », et c'est la bonne réponse au problème** : une borne
+basse vraie ne périme pas à la vague suivante, là où un compte exact périme au premier
+ajout. Re-mesuré le 2026-09-10 : catalogue à **512**, donc « +500 » est vrai.
 ➡️ **Le mesurer, pas le relire** : `npm run mesure:couverture`, ou
 `node -e "console.log(require('./Recette/recettes-kyroz.json').recipes.length)"`.
 Un chiffre faux dans une fiche de store est une allégation fausse, pas une coquille.
-✅ **Re-mesuré le 2026-08-18** : toujours **512**. Rien n'a dérivé depuis le 2026-08-03.
 
 **Description courte Google Play** (80 car. max — champ distinct du texte promotionnel
 Apple, affiché SOUS le titre avant le « en savoir plus », **manquait à cette fiche**) :
@@ -2032,9 +2080,15 @@ eas submit --platform android --latest    # 1re fois : créer l'app dans Play Co
 ## 11. Note pour le reviewer (à coller dans App Store Connect + Play Console)
 
 > Rédigée en anglais (les reviewers ne lisent pas forcément le français) avec les
-> libellés FR des boutons entre guillemets. **Remplace `<CODE_EAS>` par le code que
-> tu as posé dans `EXPO_PUBLIC_REVIEW_CODE`** (⚠️ ne PAS committer le vrai code ici —
-> ce fichier est dans le repo public). Colle-la dans :
+> libellés FR des boutons entre guillemets.
+>
+> ✅ **CE BLOC EST LE TEXTE RÉELLEMENT EN LIGNE**, relu chez Apple le 2026-09-10 après
+> écriture (**3 926 / 4 000**). Il ne se recopie donc plus à la main : il se relit.
+> ✅ **Et le mot de passe n'y figure plus** : la note renvoie au champ « Demo Account »
+> du même formulaire. Un `<CODE_EAS>` à substituer était une occasion de plus de coller
+> un secret dans un dépôt public — cf. la fiche sécurité du 2026-09-03.
+>
+> Où elle vit :
 > - **Apple** : App Store Connect → ta version → *App Review Information* → *Notes* +
 >   coche *Sign-In required* et mets l'e-mail/mot de passe dans les champs dédiés.
 > - **Google** : Play Console → *App content* → *App access* → *All functionality
@@ -2044,12 +2098,9 @@ eas submit --platform android --latest    # 1re fois : créer l'app dans Play Co
 DEMO ACCESS
 The app opens on a sign-in screen. Use the demo access below to review the full app.
 
-On the login screen:
-1. Tap the "Connexion" tab (right tab = "Sign in").
-2. Email:    review@kyroz.app
-3. Password: <CODE_EAS>
-4. Tap "Se connecter" ("Sign in").
-→ Opens a guest session, straight to onboarding.
+On the login screen, tap the "Connexion" tab (right tab = "Sign in"), enter
+review@kyroz.app with the password in the Demo Account field of this form, then tap
+"Se connecter". This opens a guest session, straight to onboarding.
 
 WALKTHROUGH (~2 min)
 - Onboarding: first name → basic info + body-fat picker → sports → goal →
@@ -2063,7 +2114,6 @@ NOTES
 - App language is French; theme is dark.
 - No ads, no third-party tracking. The meal-plan engine runs on-device: generating a
   plan needs no server call.
-- The app offers ONE auto-renewable subscription, "Kyroz+" — see the next section.
 
 IN-APP PURCHASE - "Kyroz+" (auto-renewable subscription)
 Where to find it: "Profil" tab (rightmost) -> scroll to the bottom -> "Kyroz+".
@@ -2082,20 +2132,23 @@ What the subscription unlocks:
 - "Suivi de transformation" - weight curve against the intended trajectory, plus
   before/after progress photos. Photos never leave the device.
 
-What stays free, permanently: the weekly meal plan with macros, the shopping list, all
-recipes, the pantry, favourites, the streak, weigh-ins, calorie recalculation and
-account sync. None of these will move behind the subscription.
-
 "Restaurer mes achats" ("Restore purchases") is on the same screen, directly under the
 subscribe button.
+
 - Health disclaimer shown in-app: Kyroz is for healthy adults and does not replace
   medical or dietitian advice. Users under 18 are blocked during onboarding.
 - Data (email, profile) is stored in the EU (Supabase). Users can delete their
-  account and data in-app (Profil → delete account). Photos never leave the device.
+  account and data in-app (Profil → delete account).
+
+Terms of Use (EULA), the standard Apple EULA:
+https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+Our terms and privacy policy: https://kyroz.app/legal.html
+Both are linked from the Kyroz+ screen, above the subscribe button.
 
 METHODOLOGY AND SOURCES (guideline 1.4.1)
 An in-app screen discloses every formula, threshold and source behind the numbers we
-display: Profil -> gear icon -> "Aide et retours" -> "Méthodologie & sources".
+display. One tap from where the recommendation is shown: under the daily plan, and
+under the medical notice on onboarding step 1. Also Profil -> gear -> "Aide et retours".
 - Resting metabolic rate: Mifflin-St Jeor (Am J Clin Nutr 1990;51(2):241-247).
   Katch-McArdle only when the user states their body fat was MEASURED; if it was
   estimated from a silhouette the two are blended, and only upward.
@@ -2114,6 +2167,29 @@ display: Profil -> gear icon -> "Aide et retours" -> "Méthodologie & sources".
 Kyroz is a wellness app. It is not a medical device: it does not diagnose, treat,
 cure or prevent any condition, and makes no such claim anywhere in the app.
 ```
+
+🔴 **LE 2026-09-10, IL A FALLU PAYER 301 CARACTÈRES POUR EN AJOUTER.** Le rejet
+3.1.2(c) demandait nommément d'inscrire les liens ici — *« Include this information in
+the Notes field »* — et la note était à **3 952 / 4 000**. Ce qui est parti, et rien
+d'autre :
+
+| Retranché | Coût | Pourquoi c'est sans perte |
+|---|---|---|
+| « What stays free, permanently » | 231 | Dit **mot pour mot dans la description** de la fiche, que le relecteur lit aussi. Un doublon entre deux surfaces, pas une information |
+| Les 4 étapes numérotées de l'accès démo | ~90 | Devenues une phrase. Aucun fait perdu |
+| « Photos never leave the device. » | 31 | Écrit **deux fois** ; il reste là où il porte du sens |
+| « — see the next section » | 72 | Une flèche vers le paragraphe qui suit, sous son propre titre |
+
+⚠️ **Rien de ce qu'exige une guideline n'a été touché** : prix, durées, identifiants
+produits, ce que l'abonnement ouvre, la restauration d'achats, les sept puces de
+méthodologie et la clause « pas un dispositif médical » sont intacts — vérifiés un par
+un après relecture. Marge restante : **74 caractères**.
+
+🔴 **ET UNE LIGNE ÉTAIT DEVENUE FAUSSE, ce qui comptait plus que la place.** Elle
+donnait le chemin vers les sources comme *« Profil -> gear icon -> Aide et retours »* —
+c'est-à-dire exactement le chemin enterré qu'Apple venait de refuser. Elle nomme
+désormais les deux accès en un tap. *Une note de soumission ne se périme pas toute
+seule : elle décrit un produit qui, lui, bouge.*
 
 🔴 **LE CHAMP D'APPLE PLAFONNE À 4 000 CARACTÈRES — mesuré le 2026-08-28 en le
 remplissant par l'API, pas en le lisant.** La note en faisait **4 476** : elle était
@@ -2142,6 +2218,122 @@ une **session invité créée à l'instant** (`login.tsx` → `isReviewLogin` �
 donc postérieure au lancement du paywall, donc verrouillée — il voit bien l'écran
 d'achat. Avec le (7), ce même compte neuf aurait affiché « Inclus à vie » pendant toute
 sa première session, et le relecteur n'aurait rien eu à tester.
+
+
+---
+
+## 11-bis. Répondre au rejet du 2026-09-10 (soumission `fddc0394…`, build 20)
+
+> **Procédure fondateur** — une étape à la fois :
+> `docs/procedures/PROCEDURE-2026-09-10-rejet-apple-20.md`.
+> Ce qui suit est le **texte à coller** et le **script de la capture** qu'Apple réclame
+> nommément pour 3.1.2(c) : *« reply to this message with a screen recording to confirm ».*
+
+### Ce que le rejet dit, et ce que la mesure a corrigé
+
+Trois motifs. **Deux se corrigent dans le binaire, un seul dans la fiche** — et c'est le
+troisième qui se lit de travers si on ne mesure pas.
+
+| Motif | Diagnostic naturel (faux) | Ce que la mesure a dit |
+|---|---|---|
+| **4** — SIWA redemande le prénom | « il faut retirer l'étape prénom » | Il faut **demander le scope `FULL_NAME`**, le persister **à l'instant** (Apple ne le rend qu'à la 1ʳᵉ autorisation) **et** cesser de BLOQUER l'étape — les trois, sinon le rejet revient au 2ᵉ essai du relecteur |
+| **1.4.1** — citations sans lien | « il manque des sources » | Les **8 sources étaient là**, exactes et complètes. Il manquait le **lien** (DOI) et la **trouvabilité** — elles vivaient à 3 taps, sous « Aide et retours » |
+| **3.1.2(c)** — pas de lien CGU | « il manque le prix / la durée / les liens » | Prix, durée, renouvellement, lien confidentialité : **tous présents**, relevés en ligne. Le seul trou est la **NATURE** du lien CGU — cf. §3 |
+
+### Texte de réponse (à coller dans le fil App Store Connect)
+
+```
+Hello,
+
+Thank you for the detailed review. All three points are addressed.
+
+Guideline 4 — Sign in with Apple
+The app now requests the fullName scope from ASAuthorization and stores the given
+name immediately, at the moment Apple returns it. The onboarding name field is
+pre-filled with it and clearly labelled as coming from the Apple account. Because
+Apple only returns fullName on the very first authorization, the field is also no
+longer required for accounts signed in with Apple: a returning Apple user can
+continue without typing anything. The app never asks for an email address after
+Sign in with Apple.
+
+Guideline 1.4.1 — Citations
+The "Méthodologie & sources" screen already listed the 8 peer-reviewed references
+behind every calculation. They are now tappable links (DOI, plus the ANSES Ciqual
+food-composition database), and the screen is reachable in one tap from the two
+places where recommendations are shown: under the daily plan, and under the medical
+notice on the first onboarding step. It remains available from Settings as well.
+
+Guideline 3.1.2(c) — Subscription information
+The App Store description already listed the subscription name, duration, price,
+auto-renewal terms and a link to our privacy policy and terms. We have added a
+functional link to the standard Apple Terms of Use (EULA) as requested:
+https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+Our own terms of service remain linked at https://kyroz.app/legal.html
+Inside the app, the Kyroz+ screen shows the subscription title, the length and the
+localized price of each plan, the auto-renewal notice, and a link to both documents
+before any purchase. A screen recording is attached.
+
+Best regards,
+Kévin Berger
+```
+
+### 🔴 Ce n'est PAS la vidéo du 2026-09-05 — ce motif-là est éteint
+
+Deux enregistrements ont été demandés par Apple à deux semaines d'écart, et il ne faut
+pas les confondre :
+
+| | Vidéo du **2026-09-05** | Capture du **2026-09-10** |
+|---|---|---|
+| Motif | `2.1(b)` — *« started loading indefinitely after we purchased »* | `3.1.2(c)` — les informations d'abonnement |
+| Ce qu'elle prouve | que l'achat **aboutit** | que l'écran **DIT** titre, durée, prix et porte les liens |
+| Achat sandbox | **oui**, obligatoire | **non**, inutile |
+| Appareil physique | oui, Apple l'exigeait | non, le simulateur suffit |
+| Binaire | le (16) | le **(20)**, déjà chez Apple |
+
+✅ **La vidéo du 05/09 n'a JAMAIS été tournée, et elle n'est plus demandée** — mesuré le
+2026-09-10 : les notes de revue n'ont jamais porté le moindre lien vidéo, la soumission
+du **08/09 21:41** est partie sans elle, et la revue du 10/09 **n'a pas re-soulevé
+`2.1(b)`**. Apple a exercé l'achat sur le (20) sans se plaindre du gel.
+➡️ `docs/procedures/PROCEDURE-2026-09-05-video-achat-sandbox.md` est donc **périmée** :
+elle annonce « soumission ⏸️ attend la vidéo », ce qui est faux depuis le 08/09.
+
+### Script de la capture d'écran (motif 3.1.2(c))
+
+✅ **ELLE SE TOURNE SUR LE (20), CELUI QUI EST DÉJÀ CHEZ APPLE — corrigé le 2026-09-10.**
+Cette ligne disait « sur le NOUVEAU binaire, jamais sur le (20) », par réflexe. C'est
+faux, et c'est mesurable : **la PR #252 n'a pas touché `app/kyroz-plus.tsx`** (`git show
+--stat` → 0 occurrence). L'écran de vente que cette capture doit prouver est donc
+**identique au bit près** dans le (20) et dans le prochain build.
+➡️ **Conséquence de séquencement** : répondre à Apple sur 3.1.2(c) **n'attend pas le
+build**. Les deux autres motifs, eux, l'attendent — le relecteur voit le JS embarqué.
+
+⚠️ Le compte doit être **postérieur au 2026-08-27**, sinon il est servi gratuitement à
+vie (CGU §3) et l'écran ne vend rien — c'est ce que l'accès relecteur garantit déjà
+(session invité créée à l'instant, cf. §11).
+
+Un seul plan continu, sans coupe — une capture montée est une capture qu'on relit deux fois :
+
+1. Profil → **Kyroz+**.
+2. S'arrêter 3 s sur « Choisis ta formule » : les deux cartes portent **le nom, la durée
+   et le prix localisé** (`Mensuel · 3,99 €` / `Annuel · 29,99 €`, et « Débité chaque mois »).
+3. Descendre lentement sur le bloc de mentions : débit à la confirmation, renouvellement
+   automatique, résiliation 24 h avant, gestion dans le compte App Store.
+4. **Taper « Conditions d'utilisation · Confidentialité »** → l'écran `/legal` s'ouvre.
+   Faire défiler jusqu'au titre « Conditions générales d'utilisation ».
+5. Revenir en arrière — montrer que l'écran d'achat est toujours là.
+
+➡️ Enregistrement : `xcrun simctl io booted recordVideo capture-3.1.2c.mp4`
+(⚠️ la capture d'écran par MCP plante sur ce simulateur, cf. `reference-ios-native-build-kyroz`).
+
+### ✅ Et c'est dans les Notes, comme Apple le demande
+
+> *« Include this information in the Notes field of the App Review Information section
+> in App Store Connect for future submissions. »*
+
+**FAIT le 2026-09-10**, par l'API et relu après écriture. Le texte intégral est le bloc
+de §11 ci-dessus — il porte désormais les deux liens, et le chemin vers les sources y
+est celui d'aujourd'hui. Ce qu'il a fallu retrancher pour tenir sous les 4 000 est
+détaillé sous ce bloc.
 
 *Playbook préparé le 2026-07-17. Config technique prête ; le chemin critique = le bac à
 sable (`docs/procedures/PROCEDURE-2026-08-27-bac-a-sable.md`), les captures à juger, et la fiche à

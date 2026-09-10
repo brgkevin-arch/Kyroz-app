@@ -79,8 +79,37 @@ export function paireNonce(brut: string): { pourApple: string; pourSupabase: str
   return { pourApple: sha256Hex(brut), pourSupabase: brut };
 }
 
+/**
+ * Le PRÉNOM à afficher, tiré de ce qu'Apple renvoie.
+ *
+ * Fonction PURE et exportée, pour la même raison que `paireNonce` : c'est une
+ * décision, pas un accès de champ, et elle est invérifiable à l'exécution — le SDK
+ * natif n'existe ni sous vitest ni sur le web, et Apple ne rend ce champ **qu'une
+ * seule fois dans la vie du compte**. Un défaut ici ne se verrait donc qu'en créant
+ * un compte neuf sur un vrai téléphone : le coût exact déjà payé pour le nonce.
+ *
+ * Trois cas, et ils arrivent tous :
+ *   · `givenName` renseigné — le cas nominal, première autorisation ;
+ *   · `null` — toute connexion SUIVANTE. Ce n'est PAS une erreur ;
+ *   · un objet présent mais vide / blanc — Apple laisse la personne effacer les
+ *     champs dans sa feuille avant de valider. `''` doit alors se lire comme
+ *     « rien », jamais comme un prénom vide qui écraserait celui déjà connu.
+ *
+ * ⚠️ On ne garde QUE le prénom. `familyName` n'a aucun emploi dans Kyroz — la seule
+ * chose qui s'affiche est la salutation de l'écran Plan — et la règle de
+ * minimisation d'Apple est explicite (WWDC22 : *« if you just need a unique
+ * identifier to identify the user, don't collect name or email »*). Demander le
+ * scope est une chose, garder ce qu'on n'emploie pas en est une autre.
+ */
+export function prenomApple(
+  fullName: { givenName?: string | null } | null | undefined,
+): string | null {
+  const brut = fullName?.givenName?.trim() ?? '';
+  return brut.length > 0 ? brut : null;
+}
+
 export type AppleSignInResult =
-  | { statut: 'ok'; identityToken: string; nonce: string; email: string | null }
+  | { statut: 'ok'; identityToken: string; nonce: string; email: string | null; prenom: string | null }
   | { statut: 'annule' }
   | { statut: 'indisponible' }
   | { statut: 'echec'; message: string };
@@ -89,13 +118,36 @@ export type AppleSignInResult =
  * Déclenche la feuille système Apple. Ne lève jamais : l'annulation par
  * l'utilisateur est un cas NORMAL, distingué du SDK par son code d'erreur.
  *
- * ⚠️ **Le scope `FULL_NAME` n'est PAS demandé, et c'est délibéré.** Kyroz demande
- * déjà le prénom à l'onboarding (identique pour tout le monde, y compris qui
- * arrive par Apple — `app/index.tsx` y renvoie tout compte sans profil). Le
- * réclamer ICI ajouterait un type de donnée collectée (« Nom ») que la fiche
- * App Privacy ne déclare pas — et cette fiche ne s'écrit PAS par l'API
- * (`reference-asc-api-fiche`), donc l'ajouter coûterait un aller-retour console
- * de plus, pour une information que l'onboarding recueille de toute façon.
+ * 🔴 **`FULL_NAME` EST DEMANDÉ DEPUIS LE 2026-09-10, ET LE RAISONNEMENT D'AVANT
+ * A ÉTÉ RETOURNÉ PAR UN REJET D'APPLE** (guideline 4, revue du même jour) :
+ *
+ * > *« users are required to provide their name and/or email address after using
+ * > Sign in with Apple even though that information is already provided by the
+ * > Authentication Services framework. »*
+ *
+ * Ce bloc disait le contraire, et son argument se tenait : ne pas demander le
+ * scope évitait d'ajouter un type de donnée (« Nom ») à la fiche App Privacy, pour
+ * une information que l'onboarding recueillait de toute façon. **C'est précisément
+ * ce « de toute façon » qui est le défaut** — l'étape 1 de l'inscription redemandait
+ * un prénom qu'Apple venait de proposer de donner. Du point de vue d'Apple, l'app
+ * fait retaper à la main ce que le système lui tendait.
+ *
+ * ⚠️ **Et l'objection App Privacy tombe à la mesure** : `saveFirstName` écrit dans
+ * AsyncStorage, hors du profil synchronisé (`lib/profileName.ts` : « purement
+ * cosmétique, stocké en LOCAL uniquement »). Au sens d'Apple, « collecter » c'est
+ * TRANSMETTRE hors de l'appareil — un prénom qui ne quitte jamais le téléphone n'est
+ * pas une donnée collectée. **Rien à déclarer, donc aucun aller-retour console.**
+ * ➡️ Si un jour le prénom rejoint `profiles`, cette phrase devient fausse et la
+ * fiche App Privacy doit gagner « Nom » AVANT le déploiement.
+ *
+ * 🔴 **LE NOM N'ARRIVE QU'À LA TOUTE PREMIÈRE AUTORISATION.** Apple le dit
+ * explicitement (WWDC22, « Enhance your Sign in with Apple experience ») : *« properties
+ * like fullName, email, and realUserStatus are only returned when an account is created
+ * for the very first time. They're not returned upon subsequent sign-ins. »* Une
+ * deuxième connexion — un réinstall, un autre appareil, et **le relecteur Apple qui
+ * réessaie** — rend `fullName: null`. C'est pour ça que l'appelant le persiste
+ * IMMÉDIATEMENT (`hooks/useAuth.tsx`) et que l'étape 1 de l'onboarding ne BLOQUE plus
+ * sur un compte Apple : les deux moitiés sont nécessaires, une seule ne suffit pas.
  */
 export async function signInWithAppleNative(): Promise<AppleSignInResult> {
   const sdk = loadSdk();
@@ -103,7 +155,7 @@ export async function signInWithAppleNative(): Promise<AppleSignInResult> {
   try {
     const { pourApple, pourSupabase } = paireNonce(randomId());
     const credential = await sdk.signInAsync({
-      requestedScopes: [sdk.AppleAuthenticationScope.EMAIL],
+      requestedScopes: [sdk.AppleAuthenticationScope.FULL_NAME, sdk.AppleAuthenticationScope.EMAIL],
       nonce: pourApple,
     });
     if (!credential.identityToken) {
@@ -114,6 +166,7 @@ export async function signInWithAppleNative(): Promise<AppleSignInResult> {
       identityToken: credential.identityToken,
       nonce: pourSupabase,
       email: credential.email,
+      prenom: prenomApple(credential.fullName),
     };
   } catch (e) {
     if (e && typeof e === 'object' && (e as { code?: string }).code === 'ERR_REQUEST_CANCELED') {

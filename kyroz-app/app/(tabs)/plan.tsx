@@ -10,6 +10,7 @@ import { useTheme, ThemePalette, Radius, Spacing, Type, Trait, Icone, OPACITE_PR
 import { useCollapsingTitle, CompactTitleBar } from '../../components/CollapsingTitle';
 import { useLayout } from '../../constants/layout';
 import { DISCLAIMER } from '../../constants/legal';
+import { LienMethodologie } from '../../components/LienMethodologie';
 import { MacroBar } from '../../components/MacroBar';
 import { MealCard } from '../../components/MealCard';
 import { RecipeDetail } from '../../components/RecipeDetail';
@@ -1153,6 +1154,12 @@ export default function PlanScreen() {
         )}
 
         <Text style={s.disclaimer}>{DISCLAIMER}</Text>
+        {/* 🔴 Apple 1.4.1, rejet du 2026-09-10 : les citations doivent être FACILES À
+            TROUVER. C'est l'écran qui SERT la recommandation — cibles caloriques,
+            protéines, planchers — donc c'est ici que la question « d'où sortent ces
+            chiffres ? » se pose. Elle ne se posait nulle part : les sources vivaient
+            derrière trois taps, sous « Aide et retours ». Cf. components/LienMethodologie. */}
+        <LienMethodologie />
       </ScrollView>
 
       {/* ⚠️ « Plan » et non « Salut Kévin 👋 » : la barre compacte reprend le mot

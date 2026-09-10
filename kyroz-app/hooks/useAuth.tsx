@@ -8,6 +8,7 @@ import { EFFETS_PURGE } from '../lib/effetsPurge';
 import { withBudget, AUTH_BUDGET_MS, HYDRATION_BUDGET_MS } from '../lib/boot';
 import { URL_RETOUR_CONFIRMATION, normaliseCode } from '../lib/emailConfirmation';
 import { signInWithAppleNative, consentSanteManquant } from '../lib/appleAuth';
+import { getFirstName, saveFirstName } from '../lib/profileName';
 
 /**
  * Consentement RGPD coché à l'inscription, EN ATTENTE d'une session pour être écrit.
@@ -316,6 +317,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const id = data.user?.id;
     if (!id) return { statut: 'echec', message: "Aucune identité renvoyée par Supabase." };
     const email = data.user?.email ?? r.email ?? null;
+
+    // ── LE PRÉNOM SE POSE ICI, ET NULLE PART AILLEURS ──────────────────────
+    //
+    // 🔴 Apple ne renvoie `fullName` **qu'à la toute première autorisation** du
+    // compte (WWDC22 : *« only returned when an account is created for the very
+    // first time »*). Il n'y a donc aucun « plus tard » : ni au montage de
+    // l'onboarding, ni à la fin de l'inscription, ni dans le Profil. Le différer,
+    // c'est le perdre — et redemander à la main ce qu'Apple avait donné, ce qui
+    // est très exactement le motif du rejet du 2026-09-10 (guideline 4).
+    //
+    // ⚠️ **Écrit AVANT le premier `await` qui peut échouer.** Ce qui suit interroge
+    // le réseau (`profiles`), et un échec y est explicitement toléré (repli
+    // `manquant = true`). Poser le prénom après aurait fait dépendre une donnée
+    // non-rejouable d'une requête qu'on s'autorise à rater.
+    //
+    // ⚠️ **On n'écrase JAMAIS un prénom déjà connu.** Une reconnexion rend
+    // `prenom: null` — le garde `r.prenom` suffit pour ça. Mais quelqu'un qui a
+    // corrigé son prénom dans Profil → Informations puis se reconnecte sur un
+    // appareil où Apple redonne le nom d'origine doit garder SA correction :
+    // `getFirstName()` est la valeur courante du store, chargée au layout racine.
+    if (r.prenom && !getFirstName()) {
+      await saveFirstName(r.prenom);
+    }
+
     let manquant = true;
     try {
       const { data: profil } = await supabase.from('profiles').select('consent_health_data').eq('id', id).maybeSingle();

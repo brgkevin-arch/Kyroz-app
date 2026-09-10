@@ -37,6 +37,21 @@ pour un ajout, sinon un plan en cache sert l'ancienne recette sous le nouveau no
 Conséquence sur la partition de `recipeData.test.ts` : les vagues d'origine PERDENT les
 recettes reprises (`fondation` 100 → 92, etc.), le total ne bouge pas.
 
+ℹ️ **Un simple RENOMMAGE ne bump PAS `ENGINE_VERSION`** (tranché le 2026-09-09, 9 titres
+corrigés). La composition, les macros et la sélection sont identiques : bumper régénérerait
+la semaine de tout le monde — et le suivi du jour avec — pour neuf chaînes de caractères.
+⚠️ **La phrase qui était ici était FAUSSE et a tenu une demi-journée** : « un plan déjà en
+cache garde l'ancien titre jusqu'à sa prochaine génération ». Non. `Meal.recipe` est bien une
+COPIE, mais l'écran Plan la RAFRAÎCHIT à chaque montage quand elle diffère du catalogue
+(`sameRecipe` → `reAdaptMealRecipe`, `app/(tabs)/plan.tsx`), et `sameRecipe` compare `name_fr`.
+Un titre corrigé atteint donc un plan en cache tout seul, sans régénérer la semaine de
+personne. Ne pas bumper reste le bon choix — mais pour cette raison-là, pas pour un prix
+qu'on aurait payé.
+⚠️ Ce qui a produit l'erreur mérite d'être retenu : le champ existe dans le plan enregistré,
+donc j'ai conclu que le plan servait la copie. Personne n'avait mesuré le chemin qui la
+remet à jour. Une COPIE n'est périmée que si rien ne la rafraîchit — chercher le
+rafraîchissement AVANT d'annoncer un écart à l'utilisateur.
+
 ℹ️ **Un brief disparaît de `lots/` dès que son lot est livré**, et c'est volontaire
 (2026-08-01) : les huit premiers lots — `b2`, `b1-lot1` à `b1-lot4`, `b3`, `b4-repas`, `b4-pdej` —
 sont mergés, donc leurs ids sont pris. Un brief qui les recommanderait serait une commande
@@ -201,6 +216,14 @@ fichiers de `lots/` en sont la projection opérationnelle.
 - Un ingrédient cité dans `instructions` mais absent de `ingredients[]` est **invisible du
   dérivé régime et de la liste de courses**. Trois recettes citaient une sauce soja non
   déclarée et revendiquaient le sans gluten (corrigé le 2026-07-29). Sel/poivre/herbes exceptés.
+  ⚠️ La règle était écrite ici depuis toujours et **rien ne la mesurait** : 17 recettes la
+  violaient encore le 2026-09-09 (bouillon ×7, sauce teriyaki ×3, vinaigrette ×3, miso,
+  yaourt, granola, croûtons, compote). Elle est désormais tenue par
+  `lib/__tests__/ingredientsCites.test.ts`, qui garde l'honnêteté de la LISTE DE COURSES —
+  pas la complétude du mode d'emploi : une recette qui déclare des flocons d'avoine et
+  écrit « ajoute le granola » sans dire de les griller lui échappe encore.
+  Les acides et aromates sans `ref` (citron, vinaigre, ail, épices) restent libres, comme
+  le sel et le poivre : ils ne portent pas de macros et ne pèsent pas dans les courses.
 - Aucune allégation santé dans `name` / `why` ; `validated_by_dietitian` reste `false` tant que
   la validation diététicienne n'est pas faite (CLAUDE.md §6).
 - Une recette a besoin d'une **ancre protéine `scalable`** pour que le moteur puisse l'adapter.

@@ -32,9 +32,17 @@ import {
  *              repas servis par une recette muette tombe de 15,7 % à 5,3 %.
  *              Aucune composition ni macro touchée — seul le texte, plus `temps_min` sur
  *              4 recettes dont la durée réelle dépassait le temps annoncé.
+ *   119 → 114  RESSERRAGE au merge du 2026-09-10, sans réécrire une seule recette de
+ *              plus. Deux chantiers voisins ont fait descendre le compteur sans le
+ *              savoir : les 17 recettes qui citaient une denrée non servie (#248) ont
+ *              gagné leurs repères de cuisson au passage, et col09 s'est vu ajouter
+ *              l'étape qui manquait à son escalope de dinde CRUE (#251).
+ *              ⚠️ Un cliquet ne se resserre pas tout seul : le laisser à 119 rendait
+ *              5 points de mou à la prochaine vague, qui aurait pu rajouter cinq
+ *              recettes muettes sans faire rougir un test.
  *   Le reste est planifié par lots dans `Recette/PLAN-REECRITURE-INSTRUCTIONS.md`.
  */
-const MUETTES_MAX = 119;
+const MUETTES_MAX = 114;
 
 const muettes = RAW_RECIPES.filter((r) => estMuette(r, RECIPE_INGREDIENTS));
 
