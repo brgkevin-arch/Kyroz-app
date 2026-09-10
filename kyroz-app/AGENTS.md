@@ -696,30 +696,51 @@ produit en suspens — il ne reste qu'à coder.
   sources hors `node_modules` n'est touchée par ce chantier. **La ligne vers le (20) reste
   ouverte** — mais elle ne dispense pas du build, le relecteur voyant le JS EMBARQUÉ.
 
-  🔴 **CE QU'IL RESTE, ET RIEN D'AUTRE — état au 2026-09-10 au soir :**
+  ✅ **ÉTAT AU 2026-09-10, 18 h — LE BINAIRE EST CHEZ APPLE.**
 
   | | État |
   |---|---|
-  | **La capture vidéo `3.1.2(c)`** | ✅ **tournée** (40 s, build 20), vérifiée image par image |
-  | **L'envoyer + coller la réponse** | 🧑 **à toi** — la Resolution Center n'existe dans AUCUN point d'entrée de l'API. Texte prêt : `STORE-RELEASE.md` §11-bis, et sur le Bureau |
-  | **Le build** | 🔴 **à relancer** — le (21) a été **ANNULÉ** le 2026-09-10 sur décision fondateur. Son numéro est consommé : le prochain sortira en **(22)** |
+  | Description + notes de revue (`3.1.2(c)`, voie A) | ✅ posées par l'API et **relues** |
+  | Capture vidéo `3.1.2(c)` | ✅ tournée, vérifiée image par image |
+  | Réponse + vidéo envoyées dans la Resolution Center | ✅ **par le fondateur** — l'API ne le permet pas |
+  | Build **(22)** | ✅ `FINISHED`, commit `2529c2c`, runtime `823c89db…` |
+  | Correctifs DANS l'IPA | ✅ **vérifiés dans le binaire**, pas dans le dépôt (voir ci-dessous) |
+  | Téléversement chez Apple | ✅ `(22) VALID`, téléversé le 2026-09-10 |
+  | **Attacher le (22) à la version 1.0 et RESOUMETTRE** | 🔴 **reste à faire** |
 
-  ⚠️ **La capture n'attend PAS le build**, contrairement à ce que ce dossier a d'abord
-  écrit : `app/kyroz-plus.tsx` n'a pas été touché par #252, donc l'écran de vente est
-  identique au bit près dans le (20) et dans le prochain binaire. Répondre à Apple sur
-  3.1.2(c) est donc possible **tout de suite** ; seuls les motifs 4 et 1.4.1 attendent le
-  binaire, parce que le relecteur voit le JS EMBARQUÉ.
+  ⚠️ **À la resoumission, le piège du 03/09** : les deux produits `_early` partent
+  (`READY_FOR_REVIEW`), les deux du palier standard restent dehors
+  (`DEVELOPER_REJECTED`). Les recocher rejouerait le rejet `2.1(b)` — produits créés
+  chez Apple, absents du binaire.
 
-  🔴 **ET LA LIGNE OTA VERS LE (20) EST COUPÉE DEPUIS LE 2026-09-10, par une source que
-  personne ne surveille.** Le (20) tourne sur `5118d1bd…` ; `main` vaut `823c89db…`. La
-  cause tient en une ligne de diff : **#249 a ajouté `"mesure:instructions"` aux `scripts`
-  de `package.json`** — un script de mesure, qui ne part jamais dans l'app. Aucun test ne
-  rougit, aucune sortie ne le signale. ➡️ Détail, et **comment lire l'empreinte d'un
-  BINAIRE** (`build:list --json` → `runtime.version`, PAS `runtimeVersion`) : CLAUDE.md §2.
+  ✅ **CE QUI A ÉTÉ VÉRIFIÉ DANS L'IPA (22), et c'est la seule preuve qui compte** —
+  le relecteur ouvre le binaire, pas le dépôt. IPA téléchargée, dézippée,
+  `strings -a Payload/Kyroz.app/main.jsbundle` :
+  · les **7 DOI + le lien ANSES** : 8/8 présents (ASCII pur, donc lisibles tels quels) ;
+  · `FULL_NAME`, `AppleAuthenticationScope`, `app_metadata`, `providers` : présents ;
+  · « Renseigné par ton compte Apple » : présent (cherché en **UTF-16**) ;
+  · « reportées sur tes jours » (le paragraphe retiré) : **0** ;
+  · **et la sonde sait dire NON** : un faux DOI rend 0. Sans ce témoin, huit « 1 » ne
+    prouveraient rien.
+  ⚠️ **Piège d'encodage rencontré** : mon premier témoin de contrôle était faux —
+  « reportées » porte un accent, donc Hermes range la chaîne en UTF-16 et `strings`
+  rend 0 **quoi qu'il arrive**. Refait dans le bon encodage, avec un témoin POSITIF du
+  même encodage pour prouver que la mesure fonctionne. CLAUDE.md §2 le disait déjà ;
+  je l'ai quand même commis.
 
-  ⚠️ **Avant de relancer le build** : refaire le pré-vol (arbre propre · `HEAD ==
-  origin/main` · `tsc` · `npm test` · aucune PR en vol) — **cinq worktrees étaient actifs
-  ce jour-là**, et quatre PR ont été mergées par d'autres sessions pendant ce chantier.
+  🔴 **LE (21) A ÉTÉ ANNULÉ et son numéro est CONSOMMÉ** — `autoIncrement` s'incrémente
+  à la CRÉATION. Aucun (21) valide n'existera jamais ; chercher un « (21) » sur
+  TestFlight ferait perdre du temps.
+
+  🔴 **LA LIGNE OTA VERS LE (20) EST COUPÉE depuis #249** (`"mesure:instructions"`
+  ajouté aux `scripts` de `package.json`). Le (22) rouvre la ligne sur `823c89db…`
+  **une fois distribué**. Détail et méthode de lecture : CLAUDE.md §2.
+
+  ⚠️ **Le pré-vol se refait à chaque build** : quatre PR ont été mergées par d'autres
+  sessions pendant ce chantier, et cinq worktrees étaient actifs. Celui du (22) était
+  vert sur six points (arbre propre · `HEAD == origin/main` · 0 PR en vol · `tsc` ·
+  2222/2222 · empreinte mesurée), et le contrôle d'APRÈS-build l'a confirmé :
+  `origin/main` valait toujours `2529c2c` à la sortie.
 
 ### 🍽 D — Catalogue
 

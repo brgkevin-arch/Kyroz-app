@@ -2438,6 +2438,62 @@ fiche (qui se change seule, sans build ni revue). Les deux ne coûtent pas le m�
 et les confondre fait attendre un build pour une métadonnée — ou l'inverse, ce qui est
 pire.
 
+---
+
+## 11-quater. Téléverser un binaire — ce que `eas submit` fait vraiment
+
+> Écrit le 2026-09-10, après 42 minutes perdues sur un faux diagnostic.
+
+🔴 **`eas submit` PLANIFIE LE TRAVAIL CHEZ EAS.** Le processus local n'a **aucune socket
+ouverte**, **aucun CPU** (4,6 s en 42 min), et sa boucle d'événements dort. Sur un
+travail LOCAL, ces trois signaux prouvent un blocage. Ici ils décrivent un client qui
+attend correctement.
+
+| Question | Travail LOCAL | Travail DISTANT |
+|---|---|---|
+| Le processus vit-il ? | `ps -o pid,etime,time` | ne dit rien |
+| Travaille-t-il ? | CPU **cumulé** | ne dit rien |
+| Réseau ? | `lsof -p <pid> -a -i -n` | ne dit rien |
+| **Le seul juge** | — | **`npx eas-cli submit:list --platform ios`** |
+
+⚠️ **Interroger le BON objet** : `build.submissions` rend `[]` même quand une soumission
+tourne. J'en ai conclu qu'aucune n'existait, alors qu'elle était `IN_QUEUE`.
+*Un champ vide n'est une absence que si c'est le champ qui la porte.*
+
+⚠️ **Ce que l'erreur coûte** : tuer puis relancer crée une **seconde soumission du même
+binaire**. Rattrapable — **`eas submit:cancel <id>` existe**.
+
+🔴 **ET LA CAUSE PREMIÈRE ÉTAIT UN PIPE.** La commande tournait dans `… 2>&1 | tail -40`,
+et **`tail` ne rend rien avant la fin** : zéro octet lisible pendant 42 minutes, puis le
+message parti avec le processus tué — on ne saura jamais ce qu'il disait. ➡️ **Une
+commande longue se redirige vers un FICHIER**, qui se lit au fur et à mesure. La relance
+sans `tail` a affiché en trois secondes ce que le silence cachait.
+
+ℹ️ **Avertissement normal, sans conséquence pour une revue** :
+*« App Store Connect credentials are incomplete, skipping TestFlight setup »* — le
+binaire part ; seuls les groupes de testeurs ne sont pas configurés.
+
+⚠️ **Et « téléversé » n'est pas « traité »** : le (22) a mis quelques minutes à passer
+`VALID` côté Apple après la fin de la soumission. La mesure qui tranche est
+`GET /v1/builds?filter[app]={id}&sort=-uploadedDate`, chez Apple — pas l'état EAS.
+
+### Vérifier qu'un correctif est DANS le binaire
+
+Le relecteur ouvre l'IPA, pas le dépôt.
+
+```
+curl -sSL -o app.ipa "<artifacts.applicationArchiveUrl>"   # eas build:list --json
+unzip -q app.ipa -d x
+strings -a x/Payload/*.app/main.jsbundle | grep -c "<témoin>"
+```
+
+⚠️ **Le témoin doit être ASCII de bout en bout** — Hermes range en **UTF-16** toute
+chaîne portant un seul accent, donc `strings` rend 0 sur une phrase française, et ce 0
+se lit comme une absence. Pour un texte accentué, compter les octets en `utf-16le`
+**et** `utf-16be`.
+🔴 **Toujours un témoin qui doit valoir ZÉRO.** Sans lui, une série de « 1 » ne prouve
+pas que la sonde sait dire non.
+
 *Playbook préparé le 2026-07-17. Config technique prête ; le chemin critique = le bac à
 sable (`docs/procedures/PROCEDURE-2026-08-27-bac-a-sable.md`), les captures à juger, et la fiche à
 remplir.*
