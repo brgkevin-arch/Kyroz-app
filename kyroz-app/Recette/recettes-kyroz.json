@@ -1,7 +1,7 @@
 {
   "_meta": {
     "version": "2.0",
-    "count": 512,
+    "count": 516,
     "source_macros": "CIQUAL 2025 (ANSES) pour 115 des 132 ref, via lib/recipeFoodMap.ts → la table officielle est INTÉGRÉE (lib/foods.generated.ts), ce n'est plus une estimation. Les 17 ref restants portent une valeur manuelle assumée, listée dans recipeFoodMap (protéines en poudre, mélanges, haricots noirs — Ciqual n'a pas d'entrée). ⚠️ Ce champ a longtemps dit « remplacer par le CSV officiel avant prod » : c'est FAIT depuis le 2026-08-01.",
     "precision": "±5-10%.",
     "poids_basis": "basis=dry -> poids cru/sec (riz, pâtes, légumineuses sèches) ; basis=raw -> viande/poisson cru ; aucun basis -> poids PRÊT À CONSOMMER (conserve égouttée, aliment cuit). ⚠️ La cohérence n'est pas qu'une convention de pesée : les INSTRUCTIONS doivent correspondre. Une légumineuse pesée sèche ne se cuisine pas en 18 minutes — 47 recettes le faisaient jusqu'au 2026-08-03. Verrouillé par lib/__tests__/legumineuses.test.ts.",
@@ -31,7 +31,8 @@
         "2026-08-02-b7-repas-vegan": 10,
         "2026-08-02-b7-collations-vegan": 8,
         "2026-08-03-b8-collations-vegan-sg": 8,
-        "2026-08-03-b9-collations-grand-format": 8
+        "2026-08-03-b9-collations-grand-format": 8,
+        "2026-09-10-b11-pieces-vegetales": "4 repas complets vegan bâtis sur les PIÈCES végétales ajoutées le même jour (haché, émincé, boulettes, galette) plutôt que sur un yaourt ou une poudre."
       },
       "convention": "Toute nouvelle vague reprend le NOM DU DOSSIER de son drop (AAAA-MM-JJ-<bloc>), pour qu'on retrouve la matière première d'une recette sans fouiller l'historique git."
     }
@@ -1346,7 +1347,7 @@
       "per_100": {
         "kcal": 143,
         "protein": 11.5,
-        "carbs": 7.0,
+        "carbs": 7,
         "fat": 5.8
       },
       "abs_max_qty": 200
@@ -1356,9 +1357,9 @@
       "unit": "g",
       "per_100": {
         "kcal": 215,
-        "protein": 16.0,
+        "protein": 16,
         "carbs": 8.2,
-        "fat": 11.0
+        "fat": 11
       },
       "abs_max_qty": 200
     },
@@ -1368,7 +1369,7 @@
       "per_100": {
         "kcal": 211,
         "protein": 17.6,
-        "carbs": 8.0,
+        "carbs": 8,
         "fat": 10.6
       },
       "abs_max_qty": 200
@@ -31702,6 +31703,306 @@
         "fat": 13.1
       },
       "wave": "2026-08-03-b9-collations-grand-format"
+    },
+    {
+      "id": "rep281",
+      "name": "Chili de haché végétal aux lentilles, millet et graines de courge",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "perte_de_gras",
+          "maintien"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 35
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "hache_vegetal",
+          "qty": 145,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "lentilles_cuites",
+          "qty": 110,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "millet",
+          "qty": 40,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "graines_courge",
+          "qty": 8,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "tomate_concassee",
+          "qty": 110,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "poivron",
+          "qty": 80,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "oignon",
+          "qty": 40,
+          "macro_role": "flavor",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Fais griller le millet sec 2 minutes à sec dans une casserole, jusqu'à ce qu'il sente le noisette, puis couvre de deux fois son volume d'eau salée et cuis 15 minutes à couvert.",
+        "Émince l'oignon et le poivron, puis fais-les suer 5 minutes à feu moyen dans une poêle large, jusqu'à ce que le poivron s'assouplisse.",
+        "Ajoute le haché végétal et écrase-le à la cuillère : laisse-le colorer 4 minutes à feu vif sans remuer au début, pour qu'il accroche au fond et prenne du goût.",
+        "Verse la tomate concassée avec du cumin, du paprika fumé et une pincée de piment, puis laisse mijoter 8 minutes à feu doux : la sauce doit napper la cuillère.",
+        "Ajoute les lentilles cuites et poursuis 3 minutes, juste le temps qu'elles soient chaudes — remuées trop longtemps, elles se défont en purée.",
+        "Fais torréfier les graines de courge 2 minutes à sec dans une petite poêle, jusqu'à ce qu'elles commencent à éclater.",
+        "Égrène le millet, sers le chili dessus et parsème des graines de courge, avec de la coriandre ciselée si tu en as."
+      ],
+      "why": "Le haché végétal fait le liant du chili et les lentilles portent la protéine : ni poudre ni yaourt dans un plat qui tient au corps.",
+      "macros_per_serving": {
+        "kcal": 597.6,
+        "protein": 36.9,
+        "carbs": 66.8,
+        "fat": 15.6
+      },
+      "wave": "2026-09-10-b11-pieces-vegetales"
+    },
+    {
+      "id": "rep282",
+      "name": "Émincé végétal sauté au sésame, nouilles et brocoli",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 25
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "emince_vegetal",
+          "qty": 130,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "nouilles_completes",
+          "qty": 100,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "tahini",
+          "qty": 6,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "brocoli",
+          "qty": 140,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "carotte",
+          "qty": 60,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "sauce_soja",
+          "qty": 12,
+          "macro_role": "flavor",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Fais cuire les nouilles complètes dans un grand volume d'eau bouillante salée selon le temps du paquet, puis égoutte-les et rince-les à l'eau froide pour stopper la cuisson.",
+        "Détaille le brocoli en petits bouquets et la carotte en fines rondelles, puis fais-les sauter 5 minutes à feu vif dans une poêle très chaude : ils doivent se marquer et rester croquants.",
+        "Ajoute l'émincé végétal et laisse-le colorer 4 minutes sans le remuer au début, jusqu'à ce qu'il dore franchement sur une face.",
+        "Délie le tahini avec la sauce soja et trois cuillères d'eau chaude, en fouettant jusqu'à obtenir une sauce lisse et nappante.",
+        "Verse la sauce dans la poêle hors du feu, ajoute les nouilles et mélange 1 minute pour que tout s'enrobe sans que la sauce ne tranche.",
+        "Poivre et sers aussitôt, tant que les légumes ont encore du mordant."
+      ],
+      "why": "L'émincé végétal est la pièce la plus protéinée du rayon et la plus maigre : il tient le wok à lui seul.",
+      "macros_per_serving": {
+        "kcal": 662.6,
+        "protein": 43.6,
+        "carbs": 83.5,
+        "fat": 11.1
+      },
+      "wave": "2026-09-10-b11-pieces-vegetales"
+    },
+    {
+      "id": "rep283",
+      "name": "Boulettes végétales à la tomate, boulgour et edamame",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 30
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "boulette_vegetale",
+          "qty": 110,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "edamame",
+          "qty": 120,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "boulgour",
+          "qty": 55,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "huile_olive",
+          "qty": 4,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "tomate_concassee",
+          "qty": 150,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "courgette",
+          "qty": 110,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "oignon",
+          "qty": 40,
+          "macro_role": "flavor",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Verse le boulgour dans une fois et demie son volume d'eau bouillante salée, couvre et laisse gonfler 10 minutes hors du feu, puis égrène-le à la fourchette.",
+        "Fais cuire les edamame 6 minutes à la vapeur, ils doivent rester fermes sous la dent.",
+        "Fais revenir l'oignon émincé 4 minutes à feu moyen dans l'huile d'olive, jusqu'à ce qu'il devienne translucide, puis ajoute la courgette en demi-lunes et laisse-la colorer 5 minutes à feu vif.",
+        "Verse la tomate concassée avec de l'origan, sale, et laisse réduire 8 minutes à feu doux : la sauce doit devenir brillante et perdre son eau.",
+        "Pendant ce temps, fais dorer les boulettes 6 minutes à feu moyen dans une seconde poêle sèche, en les roulant pour qu'elles prennent couleur sur tout le tour.",
+        "Dépose les boulettes dans la sauce et laisse-les s'imprégner 2 minutes, puis sers sur le boulgour avec les edamame, et poivre."
+      ],
+      "why": "Les boulettes finissent leur cuisson dans la sauce, ce qui les empêche d'être sèches ; les edamame relèvent la protéine sans ajouter de gras.",
+      "macros_per_serving": {
+        "kcal": 677.7,
+        "protein": 42.6,
+        "carbs": 65.7,
+        "fat": 23.7
+      },
+      "wave": "2026-09-10-b11-pieces-vegetales"
+    },
+    {
+      "id": "rep284",
+      "name": "Galette végétale, quinoa aux lentilles, betterave et graines de courge",
+      "category": "repas_complet",
+      "tags": {
+        "objectif": [
+          "maintien",
+          "prise_de_masse"
+        ],
+        "sport": [
+          "muscu"
+        ],
+        "temps_min": 30
+      },
+      "base_servings": 1,
+      "ingredients": [
+        {
+          "ref": "galette_vegetale",
+          "qty": 120,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "lentilles_cuites",
+          "qty": 120,
+          "macro_role": "protein",
+          "scalable": true
+        },
+        {
+          "ref": "quinoa",
+          "qty": 40,
+          "macro_role": "carb",
+          "scalable": true
+        },
+        {
+          "ref": "graines_courge",
+          "qty": 10,
+          "macro_role": "fat",
+          "scalable": true
+        },
+        {
+          "ref": "betterave",
+          "qty": 80,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "roquette",
+          "qty": 40,
+          "macro_role": "vegetable",
+          "scalable": false
+        },
+        {
+          "ref": "oignon",
+          "qty": 30,
+          "macro_role": "flavor",
+          "scalable": false
+        }
+      ],
+      "instructions": [
+        "Rince le quinoa à l'eau froide en le frottant entre les mains pour retirer son amertume, puis fais-le cuire 12 minutes dans deux fois son volume d'eau salée : il est prêt quand le germe se détache en spirale.",
+        "Émince l'oignon en fines lamelles et laisse-le tremper 10 minutes dans de l'eau froide pour qu'il perde son piquant, puis égoutte-le.",
+        "Fais torréfier les graines de courge 2 minutes à sec dans une petite poêle, jusqu'à ce qu'elles commencent à éclater, et réserve-les.",
+        "Râpe la betterave cuite et mélange-la au quinoa encore tiède avec les lentilles, du sel et du poivre — tiède, le quinoa prend mieux le goût.",
+        "Fais cuire la galette végétale 4 minutes par face à feu moyen dans une poêle sèche : attends qu'une croûte se forme et qu'elle se décolle toute seule avant de la retourner.",
+        "Ajoute la roquette et l'oignon au quinoa au dernier moment, pour qu'ils ne retombent pas.",
+        "Dresse le quinoa, pose la galette coupée en deux dessus, parsème des graines de courge et sers aussitôt, tant qu'elle croustille."
+      ],
+      "why": "La galette est saisie à sec pour faire croûte ; le quinoa et les lentilles complètent la protéine que la galette seule n'atteint pas.",
+      "macros_per_serving": {
+        "kcal": 669.5,
+        "protein": 42,
+        "carbs": 61.4,
+        "fat": 22.1
+      },
+      "wave": "2026-09-10-b11-pieces-vegetales"
     }
   ],
   "config": {

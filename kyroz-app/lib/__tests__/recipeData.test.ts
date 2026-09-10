@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { RECIPE_INGREDIENTS, RECIPE_CONFIG, RAW_RECIPES, macrosForRefIngredients } from '../recipeData';
 
 describe('recipeData', () => {
-  it('charge 512 recettes brutes', () => {
-    expect(RAW_RECIPES).toHaveLength(512);
+  it('charge 516 recettes brutes', () => {
+    expect(RAW_RECIPES).toHaveLength(516);
   });
   it('chaque recette déclare sa vague de livraison', () => {
     // Sans `wave`, une vague ne sait pas contre quoi se comparer : impossible d'expliquer
@@ -26,6 +26,9 @@ describe('recipeData', () => {
       // B8 : 8 collations vegan + SANS GLUTEN, sur des familles neuves. 496 → 504.
       // B9 : 8 collations GRAND FORMAT (380–460 kcal), un format que le catalogue
       // n'avait jamais eu — les gros gabarits n'étaient servis que par étirement. 504 → 512.
+      // B11 : 4 repas complets vegan bâtis sur les PIÈCES végétales (haché, émincé,
+      // boulettes, galette) ajoutées le 2026-09-10. 512 → 516.
+      '2026-09-10-b11-pieces-vegetales': 4,
       '2026-08-03-b8-collations-vegan-sg': 8,
       '2026-08-03-b9-collations-grand-format': 8,
       fondation: 92, '2026-06-19-vegan': 156, '2026-07-22-sans-gluten': 46,
