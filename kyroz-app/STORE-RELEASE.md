@@ -2257,11 +2257,14 @@ continue without typing anything. The app never asks for an email address after
 Sign in with Apple.
 
 Guideline 1.4.1 — Citations
-The "Méthodologie & sources" screen already listed the 8 peer-reviewed references
-behind every calculation. They are now tappable links (DOI, plus the ANSES Ciqual
-food-composition database), and the screen is reachable in one tap from the two
-places where recommendations are shown: under the daily plan, and under the medical
-notice on the first onboarding step. It remains available from Settings as well.
+The "Méthodologie & sources" screen already listed the 9 references behind the
+numbers we display. They are now citations that can be opened: each of the 7 journal
+articles carries its DOI as a tappable link, and the ANSES Ciqual food-composition
+database links to its official site. The one exception is a physiology textbook,
+which has no DOI and keeps its full bibliographic citation.
+The screen is also much easier to find. It is now one tap from where the
+recommendations are shown: under the daily plan, and under the medical notice on the
+first onboarding step. It remains available from Settings as well.
 
 Guideline 3.1.2(c) — Subscription information
 The App Store description already listed the subscription name, duration, price,
@@ -2286,6 +2289,15 @@ price returned by the store for the viewer's own storefront, never a hard-coded 
 Best regards,
 Kévin Berger
 ```
+
+⚠️ **LE COMPTE DE RÉFÉRENCES A ÉTÉ RE-MESURÉ AVANT ENVOI, ET IL ÉTAIT FAUX.** Ce texte
+a d'abord annoncé « the 8 peer-reviewed references ». Mesuré sur `lib/methodologie.ts` :
+**9 références — 7 articles relus par les pairs, 1 ouvrage, 1 base de données publique**,
+dont 8 portent un lien. Un chiffre faux dans la réponse à un rejet qui porte PRÉCISÉMENT
+sur les citations est le pire endroit possible pour une approximation.
+➡️ **Ce compte se re-mesure à chaque fois**, il ne se recopie pas d'ici :
+`npx tsx -e "import { methodologie } from './lib/methodologie'; …"` — comme le nombre de
+recettes de la fiche, qui a dérivé deux fois pour la même raison.
 
 ### 🔴 Ce n'est PAS la vidéo du 2026-09-05 — ce motif-là est éteint
 
