@@ -106,6 +106,13 @@ const clampDays = (n?: number) => Math.min(Math.max(n ?? 0, 1), 7);
 
 // Égalité « de contenu » sur les champs qu'une personnalisation peut changer
 // (évite de réécrire le plan à chaque montage quand rien n'a bougé).
+//
+// ⚠️ Les étapes se comparent par leur TEXTE, pas par leur nombre (corrigé le 2026-09-09).
+// `Meal.recipe` est une COPIE figée dans le plan enregistré : tant que ce comparateur
+// disait « identique », un plan en cache continuait d'afficher l'ancien texte. Une
+// recette réécrite au même nombre d'étapes ne serait donc jamais arrivée jusqu'à
+// l'utilisateur — la réécriture aurait été faite sans que personne la lise. Comparer le
+// contenu ne peut que déclencher PLUS de rafraîchissements, jamais moins.
 const sameRecipe = (a: Recipe, b: Recipe): boolean =>
   a.name_fr === b.name_fr &&
   a.prep_time_min === b.prep_time_min &&
@@ -114,7 +121,8 @@ const sameRecipe = (a: Recipe, b: Recipe): boolean =>
   a.macros_per_portion.carbs_g === b.macros_per_portion.carbs_g &&
   a.macros_per_portion.fat_g === b.macros_per_portion.fat_g &&
   a.ingredients.length === b.ingredients.length &&
-  a.steps.length === b.steps.length;
+  a.steps.length === b.steps.length &&
+  a.steps.every((s, i) => s === b.steps[i]);
 
 // Lundi 00:00 de la semaine contenant `d` (semaine FR lun→dim).
 function startOfWeekMonday(d: Date): Date {

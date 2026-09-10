@@ -91,6 +91,15 @@ const ACHETEES_TOLEREES: Record<string, { mot: string; raison: string }> = {
     raison: "« farine de sarrasin » désigne le `ref` sarrasin, simplement moulu : même "
       + 'aliment, même pesée sèche, même ligne de courses.',
   },
+  // Ajoutée au merge du 2026-09-10 : la réécriture des instructions muettes a fait
+  // dire à pd67 ce que pd66 disait déjà, et l'a rendu PLUS explicite — « Mixe le
+  // sarrasin seul 1 minute, jusqu'à obtenir une farine fine ». La mouture est
+  // décrite dans l'étape elle-même : rien n'est acheté tout fait.
+  pd67: {
+    mot: 'farine',
+    raison: 'la farine est MOULUE dans la recette, à partir du `ref` sarrasin que pd67 '
+      + 'déclare (étape 1). Même aliment, même pesée, même ligne de courses.',
+  },
 };
 
 /**
