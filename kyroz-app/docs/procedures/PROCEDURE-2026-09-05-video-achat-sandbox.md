@@ -3,6 +3,29 @@
 > **Une étape à la fois.** Chaque étape dit ce que tu dois VOIR à la fin. On ne passe à
 > la suivante que quand tu le vois.
 
+> # 🟢 SANS OBJET DEPUIS LE 2026-09-10 — NE PAS REJOUER
+>
+> **Le motif que cette vidéo devait éteindre est éteint tout seul.** Mesuré le
+> 2026-09-10 chez Apple :
+> - les notes de revue n'ont **jamais** porté le moindre lien vidéo ;
+> - la soumission du **08/09 à 21 h 41** est partie **sans elle**, sur le build **(20)** ;
+> - et la revue du **10/09 n'a PAS re-soulevé `2.1(b)`** — Apple a exercé l'achat sans se
+>   plaindre du gel. Le correctif du timeout a donc fait son travail.
+>
+> ⚠️ **Le tableau « L'état du dossier » ci-dessous dit encore « Soumission ⏸️ attend la
+> vidéo ». C'est faux depuis le 08/09.** Une procédure est une carte, pas une source :
+> celle-ci a vieilli pendant qu'on regardait ailleurs.
+>
+> 🔴 **NE PAS LA CONFONDRE avec la capture demandée le 2026-09-10** (motif `3.1.2(c)`) :
+> celle-là ne prouve pas qu'un achat aboutit, elle prouve que l'écran DIT le titre, la
+> durée et le prix, et qu'il porte les liens. **Aucun achat n'y est nécessaire.**
+> Script et comparaison : `STORE-RELEASE.md` §11-bis.
+>
+> *Ce qui suit est conservé pour son diagnostic — dix renouvellements sandbox quotidiens,
+> et « supprimer le miroir ne résilie rien chez Apple ». Ça, ça resservira.*
+
+---
+
 ## 🔴 OÙ ÇA EN EST — 2026-09-06 à 17:10, LIRE EN PREMIER
 
 **La cause est trouvée, elle est résolue, et l'achat redevient possible le 2026-09-07 à

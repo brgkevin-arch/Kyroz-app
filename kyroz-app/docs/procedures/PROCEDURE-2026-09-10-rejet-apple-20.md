@@ -179,5 +179,13 @@ Apple demande **explicitement** un enregistrement d'écran pour 3.1.2(c) :
 
 Le texte de réponse et le script de la capture vivent dans `STORE-RELEASE.md` §11-bis.
 
-⚠️ **La capture se fait sur le NOUVEAU binaire**, pas sur le (20) : elle doit montrer
-l'écran Kyroz+ tel qu'il sera livré.
+✅ **ELLE SE TOURNE SUR LE (20), ET DONC ELLE N'ATTEND PAS L'ÉTAPE 3.** Cette ligne
+disait le contraire par réflexe. Mesuré : **la PR #252 n'a pas touché `app/kyroz-plus.tsx`**
+— l'écran de vente est identique au bit près dans le (20) et dans le prochain build.
+
+🔴 **Et ce n'est pas la vidéo du 05/09.** Celle-là prouvait qu'un achat ABOUTIT (motif
+`2.1(b)`, achat sandbox sur appareil physique) ; celle-ci prouve que l'écran **DIT** le
+titre, la durée, le prix et porte les liens — **aucun achat n'est nécessaire**, le
+simulateur suffit. ✅ Le motif du 05/09 est éteint : la vidéo n'a jamais été tournée, la
+soumission du 08/09 est partie sans elle, et la revue du 10/09 n'a pas re-soulevé
+`2.1(b)`. Comparaison complète : `STORE-RELEASE.md` §11-bis.
