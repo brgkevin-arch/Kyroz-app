@@ -196,6 +196,14 @@ fichiers de `lots/` en sont la projection opérationnelle.
 - Un ingrédient cité dans `instructions` mais absent de `ingredients[]` est **invisible du
   dérivé régime et de la liste de courses**. Trois recettes citaient une sauce soja non
   déclarée et revendiquaient le sans gluten (corrigé le 2026-07-29). Sel/poivre/herbes exceptés.
+  ⚠️ La règle était écrite ici depuis toujours et **rien ne la mesurait** : 17 recettes la
+  violaient encore le 2026-09-09 (bouillon ×7, sauce teriyaki ×3, vinaigrette ×3, miso,
+  yaourt, granola, croûtons, compote). Elle est désormais tenue par
+  `lib/__tests__/ingredientsCites.test.ts`, qui garde l'honnêteté de la LISTE DE COURSES —
+  pas la complétude du mode d'emploi : une recette qui déclare des flocons d'avoine et
+  écrit « ajoute le granola » sans dire de les griller lui échappe encore.
+  Les acides et aromates sans `ref` (citron, vinaigre, ail, épices) restent libres, comme
+  le sel et le poivre : ils ne portent pas de macros et ne pèsent pas dans les courses.
 - Aucune allégation santé dans `name` / `why` ; `validated_by_dietitian` reste `false` tant que
   la validation diététicienne n'est pas faite (CLAUDE.md §6).
 - Une recette a besoin d'une **ancre protéine `scalable`** pour que le moteur puisse l'adapter.
