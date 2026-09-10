@@ -42,6 +42,21 @@ const VIOLATIONS: Record<string, DietaryRestriction[]> = {
   // falafel prêt à consommer : liant à la farine de blé sur la plupart des références
   // industrielles. Même arbitrage prudent que ci-dessus.
   falafel: ['gluten_free'],
+  // ── Simili-carnés végétaux (2026-09-10) ────────────────────────────────────
+  // Tous VÉGANES (entrées Ciqual qui le déclarent, ou soja seul) : aucun ne viole
+  // vegan/vegetarian/pescatarian/halal/lactose_free. Le seul axe qui les sépare est
+  // le GLUTEN, et c'est celui qui décide de leur utilité :
+  //   • 4 sur 7 sont au BLÉ — ils n'ouvrent rien au créneau vegan+sans gluten, qui
+  //     est justement le plus pauvre du catalogue (12 repas complets servables à une
+  //     femme de 55 kg en sèche). Ils servent le vegan tout court.
+  //   • 3 sur 7 sont au soja seul (steak_soja, hache_vegetal, saucisse_vegetale) :
+  //     eux seuls atteignent vegan+SG, et ce sont les moins protéinés des sept.
+  // `boulette_vegetale` est déclarée au gluten par PRUDENCE : Ciqual dit « soja
+  // ET/OU blé », donc la composition n'est pas tranchée — même arbitrage que
+  // l'avoine non certifiée et la levure maltée (un faux négatif retire une recette,
+  // un faux positif sert du gluten à un cœliaque).
+  emince_vegetal: ['gluten_free'], galette_vegetale: ['gluten_free'],
+  nuggets_vegetal: ['gluten_free'], boulette_vegetale: ['gluten_free'],
   // note : tofu/tempeh/quinoa/riz/maïs/polenta/nouilles_riz/galette_riz = sans gluten ;
   // lait_amande/lait_coco/creme_soja/boisson_soja = NON laitiers (compatibles lactose_free) ;
   // tahini = sésame → allergène, mais aucun des 7 régimes ne l'exclut (cf. champ allergènes, absent).

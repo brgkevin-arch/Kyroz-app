@@ -2,7 +2,7 @@
   "_meta": {
     "version": "2.0",
     "count": 512,
-    "source_macros": "CIQUAL 2025 (ANSES) pour 108 des 125 ref, via lib/recipeFoodMap.ts → la table officielle est INTÉGRÉE (lib/foods.generated.ts), ce n'est plus une estimation. Les 17 ref restants portent une valeur manuelle assumée, listée dans recipeFoodMap (protéines en poudre, mélanges, haricots noirs — Ciqual n'a pas d'entrée). ⚠️ Ce champ a longtemps dit « remplacer par le CSV officiel avant prod » : c'est FAIT depuis le 2026-08-01.",
+    "source_macros": "CIQUAL 2025 (ANSES) pour 115 des 132 ref, via lib/recipeFoodMap.ts → la table officielle est INTÉGRÉE (lib/foods.generated.ts), ce n'est plus une estimation. Les 17 ref restants portent une valeur manuelle assumée, listée dans recipeFoodMap (protéines en poudre, mélanges, haricots noirs — Ciqual n'a pas d'entrée). ⚠️ Ce champ a longtemps dit « remplacer par le CSV officiel avant prod » : c'est FAIT depuis le 2026-08-01.",
     "precision": "±5-10%.",
     "poids_basis": "basis=dry -> poids cru/sec (riz, pâtes, légumineuses sèches) ; basis=raw -> viande/poisson cru ; aucun basis -> poids PRÊT À CONSOMMER (conserve égouttée, aliment cuit). ⚠️ La cohérence n'est pas qu'une convention de pesée : les INSTRUCTIONS doivent correspondre. Une légumineuse pesée sèche ne se cuisine pas en 18 minutes — 47 recettes le faisaient jusqu'au 2026-08-03. Verrouillé par lib/__tests__/legumineuses.test.ts.",
     "adaptation_fields": {
@@ -10,7 +10,7 @@
       "scalable": "true = quantité ajustable par l'algo ; false = fixe (légumes)"
     },
     "priorite_sport": "Muscu prioritaire, puis Endurance, peu de Combats (cf. distribution).",
-    "corrections_kyroz": "rep57 +8g huile_olive (équilibre lipidique). | 2026-07-29 : sauce_soja déclarée dans rep05/rep46/rep80 (citée en instruction, invisible du dérivé régime) ; levure_maltee + falafel + pesto ajoutés à recipeDiet.VIOLATIONS ; why de rep80/pd52/pd77/rep152/rep155 : « sans gluten » retiré (devenu faux) ; +9 ingrédients (légumineuses prêtes à consommer, tofu fumé, falafel, tahini, boisson soja, pain/wrap sans gluten). recomp_flag SUPPRIMÉ (champ mort : aucun code ne le lisait, et il marquait 5 recettes quand ~40 avaient une densité protéique équivalente ou pire). | yaourt_grec DÉMAPPÉ de ciqual-19860 (« yaourt à la grecque » = dessert à 3 g de protéines, pas un grec égoutté à 9 g) → valeur manuelle, comme skyr ; nom précisé « égoutté (type Fage) » ; macro_role dairy→protein sur pd10/col07/col17, où le yaourt est la seule source de protéines. | 8 recettes sans ancre protéine (pd02/pd06/pd08/pd15/col01/col03/col13/col19) : le laitier qui porte 58 à 89 % de leurs protéines passe de dairy à protein. | Nettoyage des doublons 2026-07-29 : 7 clones stricts et 2 noms identiques différenciés (rep37 tajine aux olives, rep64 papillote, rep165 pho sans mélange wok, col64 houmous, col50/col65 edamame distincts, pd38 tartine de seigle, col45 pudding framboise) — aucune suppression. | 2026-08-03 : les 47 recettes qui pesaient une légumineuse à cuisson longue au poids SEC tout en la cuisinant en moins de 40 min. 44 passent sur un `ref` prêt à consommer (quantité × le rendement de cuisson : ×2,4 pois chiches, ×2,5 haricots et lentilles), instructions réécrites (« égoutte et rince » au lieu de « cuis »). 3 gardent la pesée sèche parce que la cuisson longue EST le plat et qu’aucune ne demande de trempage (rep107, rep108, rep112) : seul leur `temps_min` était faux, il passe à 50 min. +2 `ref` : haricots_blancs_conserve (Ciqual 20511) et haricots_noirs_conserve (déduit du rapport sec→appertisé du haricot rouge, Ciqual n’ayant pas d’entrée pour le haricot noir). | 2026-08-03 (2) : `tags.objectif` et `tags.sport` RECALCULÉS mécaniquement depuis les macros du moteur, pour les 512 recettes — ils sont AFFICHÉS sur la fiche et 192 (objectif) et 116 (endurance) contredisaient les calories de leur propre recette. `recup_jour_repos` SUPPRIMÉ des 512 : champ mort depuis le 2026-07-29 (le jour de repos agit sur la cible, pas par un tag), faux sur 152 recettes sans que personne puisse le voir — même sort que `recomp_flag`.",
+    "corrections_kyroz": "rep57 +8g huile_olive (équilibre lipidique). | 2026-07-29 : sauce_soja déclarée dans rep05/rep46/rep80 (citée en instruction, invisible du dérivé régime) ; levure_maltee + falafel + pesto ajoutés à recipeDiet.VIOLATIONS ; why de rep80/pd52/pd77/rep152/rep155 : « sans gluten » retiré (devenu faux) ; +9 ingrédients (légumineuses prêtes à consommer, tofu fumé, falafel, tahini, boisson soja, pain/wrap sans gluten). recomp_flag SUPPRIMÉ (champ mort : aucun code ne le lisait, et il marquait 5 recettes quand ~40 avaient une densité protéique équivalente ou pire). | yaourt_grec DÉMAPPÉ de ciqual-19860 (« yaourt à la grecque » = dessert à 3 g de protéines, pas un grec égoutté à 9 g) → valeur manuelle, comme skyr ; nom précisé « égoutté (type Fage) » ; macro_role dairy→protein sur pd10/col07/col17, où le yaourt est la seule source de protéines. | 8 recettes sans ancre protéine (pd02/pd06/pd08/pd15/col01/col03/col13/col19) : le laitier qui porte 58 à 89 % de leurs protéines passe de dairy à protein. | Nettoyage des doublons 2026-07-29 : 7 clones stricts et 2 noms identiques différenciés (rep37 tajine aux olives, rep64 papillote, rep165 pho sans mélange wok, col64 houmous, col50/col65 edamame distincts, pd38 tartine de seigle, col45 pudding framboise) — aucune suppression. | 2026-08-03 : les 47 recettes qui pesaient une légumineuse à cuisson longue au poids SEC tout en la cuisinant en moins de 40 min. 44 passent sur un `ref` prêt à consommer (quantité × le rendement de cuisson : ×2,4 pois chiches, ×2,5 haricots et lentilles), instructions réécrites (« égoutte et rince » au lieu de « cuis »). 3 gardent la pesée sèche parce que la cuisson longue EST le plat et qu’aucune ne demande de trempage (rep107, rep108, rep112) : seul leur `temps_min` était faux, il passe à 50 min. +2 `ref` : haricots_blancs_conserve (Ciqual 20511) et haricots_noirs_conserve (déduit du rapport sec→appertisé du haricot rouge, Ciqual n’ayant pas d’entrée pour le haricot noir). | 2026-08-03 (2) : `tags.objectif` et `tags.sport` RECALCULÉS mécaniquement depuis les macros du moteur, pour les 512 recettes — ils sont AFFICHÉS sur la fiche et 192 (objectif) et 116 (endurance) contredisaient les calories de leur propre recette. `recup_jour_repos` SUPPRIMÉ des 512 : champ mort depuis le 2026-07-29 (le jour de repos agit sur la cible, pas par un tag), faux sur 152 recettes sans que personne puisse le voir — même sort que `recomp_flag`. | 2026-09-10 : +7 refs SIMILI-CARNÉS VÉGÉTAUX (steak_soja, emince_vegetal, hache_vegetal, galette_vegetale, boulette_vegetale, nuggets_vegetal, saucisse_vegetale), tous mappés Ciqual — l'ANSES publie l'aliment MOYEN du marché français pour chacun, donc la moyenne est mesurée, pas estimée. Motif : le vegan n'avait aucune PIÈCE hors tofu/tempeh/seitan, et 121 recettes sur 512 étaient ancrées sur un yaourt, une poudre ou du soja texturé. ⚠️ 4 des 7 sont au BLÉ : ils n'ouvrent RIEN au créneau vegan+sans gluten (le plus pauvre du catalogue). Aucune recette ne les emploie encore — un ref seul ne sert personne.",
     "waves": {
       "role": "Vague de livraison d'origine de chaque recette (champ `wave`). Rétro-rempli le 2026-07-29 depuis les dossiers de Recette/drops/ ; « fondation » = le lot initial, antérieur aux drops.",
       "valeurs": {
@@ -1317,6 +1317,83 @@
         "carbs": 2.9,
         "fat": 9.5
       }
+    },
+    "steak_soja": {
+      "name": "Steak / pavé de soja",
+      "unit": "g",
+      "per_100": {
+        "kcal": 252,
+        "protein": 15.5,
+        "carbs": 8.5,
+        "fat": 14.7
+      },
+      "abs_max_qty": 200
+    },
+    "emince_vegetal": {
+      "name": "Émincé végétal (soja et blé)",
+      "unit": "g",
+      "per_100": {
+        "kcal": 157,
+        "protein": 19.5,
+        "carbs": 6.8,
+        "fat": 3.7
+      },
+      "abs_max_qty": 200
+    },
+    "hache_vegetal": {
+      "name": "Haché végétal de soja",
+      "unit": "g",
+      "per_100": {
+        "kcal": 143,
+        "protein": 11.5,
+        "carbs": 7.0,
+        "fat": 5.8
+      },
+      "abs_max_qty": 200
+    },
+    "galette_vegetale": {
+      "name": "Galette végétale (blé et soja)",
+      "unit": "g",
+      "per_100": {
+        "kcal": 215,
+        "protein": 16.0,
+        "carbs": 8.2,
+        "fat": 11.0
+      },
+      "abs_max_qty": 200
+    },
+    "boulette_vegetale": {
+      "name": "Boulettes végétales",
+      "unit": "g",
+      "per_100": {
+        "kcal": 211,
+        "protein": 17.6,
+        "carbs": 8.0,
+        "fat": 10.6
+      },
+      "abs_max_qty": 200
+    },
+    "nuggets_vegetal": {
+      "name": "Nuggets végétaux panés",
+      "unit": "g",
+      "per_100": {
+        "kcal": 251,
+        "protein": 15.5,
+        "carbs": 19.7,
+        "fat": 10.9
+      },
+      "abs_max_qty": 180
+    },
+    "saucisse_vegetale": {
+      "name": "Saucisse végétale au tofu",
+      "unit": "g",
+      "per_100": {
+        "kcal": 228,
+        "protein": 13.4,
+        "carbs": 5.7,
+        "fat": 16.3
+      },
+      "abs_max_qty": 150
     },
     "falafel": {
       "name": "Falafel prêt à consommer",
