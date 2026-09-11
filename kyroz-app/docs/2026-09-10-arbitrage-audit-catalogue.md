@@ -1,11 +1,23 @@
 # Arbitrage — audit du catalogue de recettes (plan-correction-kyroz.md)
 
 Date : 2026-09-10 · Source arbitrée : `plan-correction-kyroz.md` (daté 2026-09-09).
-Mesures refaites ici sur `Recette/recettes-kyroz.json` (512 recettes, 125 refs), commit `9315df9`.
+Mesures refaites sur `Recette/recettes-kyroz.json` — **512 recettes / 125 refs au commit
+`9315df9`** pour la rédaction d'origine ; les mesures ajoutées le 2026-09-11 portent sur
+**516 recettes / 132 refs** (après les PR #248, #255 et la vague B11), et le disent.
 
 > Ce document **arbitre** l'audit, il ne l'applique pas. Trois de ses sept points sont
 > déjà réglés ou reposent sur une mesure fausse ; deux sont réels et petits ; deux sont
 > réels et gros. Ce qui suit dit lesquels, avec le chiffre qui le prouve.
+>
+> 🔴 **RELU ET CORRIGÉ LE 2026-09-11, sur trois points, tous à mon désavantage** — les
+> corrections sont dans le corps du texte, datées, l'erreur d'origine conservée à côté :
+> · **§2.1** était déjà livré la veille par la PR #248, en **17** recettes et non 11, et
+>   par l'option que je n'avais PAS recommandée — la meilleure des deux ;
+> · **§2.4** refusait les simili-carnés au motif qu'aucune valeur vérifiable n'existait.
+>   **Ciqual les porte**, et ses entrées « préemballé » sont l'aliment moyen du marché
+>   français. Le fondateur a tranché l'inverse de ma reco, et il avait raison ;
+> · **§2.4** encore : le levier « détendre la cible protéique » est désormais CHIFFRÉ,
+>   après deux mesures fausses. C'est la seule décision qui reste ouverte.
 
 ---
 
@@ -161,24 +173,78 @@ Recompté sur les 512 (ancre = l'ingrédient `protein` qui porte le plus de prot
 Le constat de l'audit tient. Son analyse de la cause aussi : la cible protéique est
 intenable en vegan sans poudre ni yaourt, et le seitan est du gluten.
 
-**Arbitrage : détendre la cible, ne PAS ajouter de simili-carnés.**
+**Arbitrage d'origine (2026-09-10) : détendre la cible, ne PAS ajouter de simili-carnés.**
+🔴 **Le fondateur a tranché l'inverse le même jour, et il avait raison sur le fait qui
+comptait.** Les deux moitiés ont été rejugées depuis ; le paragraphe barré ci-dessous est
+conservé parce que son erreur est instructive.
 
-L'audit recommande les deux. Je n'en recommande qu'un, et voici pourquoi le second est un
-piège. `steak_soja`, `emince_vegetal`, `poulet_vegetal` sont des **produits de marque** :
-leurs macros varient de 30 % d'un fabricant à l'autre, et l'audit lui-même écrit « valeurs
-indicatives, à valider ». Kyroz sert des chiffres qui doivent être ceux de l'assiette
-(`CLAUDE.md`, et c'est la règle qui a coûté le plus cher à tenir). Un ref dont la valeur
-dépend de la marque achetée est un **mensonge structurel** qu'aucun test ne peut attraper —
-il n'a pas d'entrée Ciqual, donc il rejoindrait les 15 valeurs manuelles, celles qu'on ne
-peut vérifier contre rien.
+> ~~`steak_soja`, `emince_vegetal`, `poulet_vegetal` sont des **produits de marque** :
+> leurs macros varient de 30 % d'un fabricant à l'autre… un ref dont la valeur dépend de
+> la marque achetée est un **mensonge structurel** qu'aucun test ne peut attraper — il n'a
+> pas d'entrée Ciqual, donc il rejoindrait les valeurs manuelles.~~
+>
+> **FAUX, et vérifiable en dix secondes.** Ciqual porte ces produits, sous des entrées
+> « préemballé » qui SONT l'aliment moyen du marché français, agrégé par l'ANSES sur les
+> références du commerce — exactement la moyenne qu'on aurait voulu calculer, en mieux :
+> mesurée. Mon « il n'existe aucune valeur vérifiable » était un « il n'existe aucun… »
+> que je n'avais jamais mesuré. Les 7 refs sont entrés le 2026-09-10, tous mappés Ciqual
+> (PR #255).
 
-Détendre la cible sur les créneaux vegan est en revanche **mesurable** : `mesure:vivier` et
-`mesure:seuils` disent exactement ce que ça ouvre, avant d'écrire une recette. C'est le
-levier qui se prouve.
+### Ce que chaque levier rapporte VRAIMENT — mesuré le 2026-09-11
 
-> À trancher par toi, c'est une décision produit, pas technique : **accepter 25-30 g de
-> protéines sur un repas vegan au lieu de 40**, ou garder la cible et vivre avec les
-> béquilles. Il n'y a pas de troisième porte honnête.
+**Levier A — les pièces (fait).** Vague B11, 4 repas complets bâtis sur les pièces plutôt
+que sur un yaourt ou une poudre. Le vivier `vegan` des petits gabarits monte (F 55 sèche
+27 → 29 repas complets, F 65 sèche 38 → 42, H 80 sèche 51 → 54). Le vivier **vegan + sans
+gluten ne bouge pas** : sur les 7 pièces, 4 sont au blé, et des 3 restantes deux
+(`steak_soja`, `saucisse_vegetale`) sont trop grasses pour passer R8 à n'importe quelle
+quantité. Il ne reste que `hache_vegetal`.
+
+**Levier B — détendre la cible protéique du repas.** C'est LE levier, et voici son prix
+exact. Vivier vegan + sans gluten du midi (50 repas complets), recettes réellement
+servables selon le relâchement appliqué à la cible protéique :
+
+| profil | cible actuelle | −0 % | −10 % | −20 % | −30 % |
+|---|---|---|---|---|---|
+| F 55 sèche | 458 kcal / 31 g P | **20** | **39** | 42 | 47 |
+| F 65 sèche | 518 kcal / 35 g P | **32** | **43** | 46 | 44 |
+| H 65 sèche | 603 kcal / 40 g P | **37** | **47** | 47 | 44 |
+| H 80 sèche | 694 kcal / 47 g P | **35** | **45** | 41 | 39 |
+| F 80 sèche | 587 kcal / 41 g P | **36** | **41** | 41 | 38 |
+
+➡️ **−10 % suffit, et c'est le meilleur rapport partout.** Pour une femme de 55 kg en
+sèche, le vivier vegan+SG **double** (20 → 39) pour 3 g de protéines en moins sur le repas
+(31 → 28). Au-delà, ça ne rapporte plus grand-chose et ça se dégrade même sur trois profils
+sur cinq — les recettes deviennent trop petites au lieu d'être trop grosses.
+
+> **La décision produit, une fois posée sur ses vrais chiffres** : accepter **−3 g de
+> protéines par repas sur les créneaux vegan** (soit ~10 %) pour doubler le choix des
+> petits gabarits, ou garder la cible au gramme près et laisser ces personnes devant
+> 20 recettes sur 50. C'est ta décision, et c'est la seule qui reste sur ce sujet.
+
+⚠️ **CETTE MESURE A DEMANDÉ TROIS INSTRUMENTS, ET LES DEUX PREMIERS MENTAIENT — dans des
+sens opposés.** C'est la partie à retenir, plus que le chiffre.
+
+1. **L'audit affirmait** que la cible protéique était le goulot. Prémisse reprise sans
+   mesure, des deux côtés.
+2. **Premier test (faux) : « et si on ignorait le drapeau `protein_below_target` ? »**
+   Réponse : +0 recette pour F 55 sèche. J'en ai conclu que la protéine n'était pas le
+   problème, et que les plats étaient simplement trop gros. **L'erreur** : retirer le
+   DRAPEAU ne change pas le comportement du moteur. `adaptRecipe` continue de viser la
+   pleine cible protéique, donc il garde les quantités hautes, donc la recette reste trop
+   grosse — et sort par `over_target_kcal`. Je mesurais le symptôme en laissant la cause
+   en place.
+3. **Deuxième test (faux dans l'autre sens) : le plancher de rétrécissement.** Les facteurs
+   d'échelle vont jusqu'à 0,5× : les 50 repas vegan+SG peuvent TOUS descendre sous 458 kcal
+   (plancher médian 337). Donc « trop gros » ne pouvait pas être une fatalité de format. Ce
+   test-là est juste, mais il ne prouve rien tout seul : il dit que la place existe, pas que
+   le moteur a le droit d'y aller.
+4. **Troisième test (le bon) : baisser la CIBLE elle-même**, et laisser le moteur
+   réoptimiser. C'est le seul qui reproduit la décision qu'on veut prendre.
+
+➡️ **Les deux contraintes sont COUPLÉES** : le moteur ne choisit pas entre « assez petit »
+et « assez protéiné », il cherche les deux à la fois. Mesurer l'une en neutralisant son
+drapeau laisse l'autre tirer les quantités — et rend un résultat propre, cohérent, et faux.
+**Pour mesurer un réglage, il faut bouger le réglage, pas masquer son alarme.**
 
 ---
 
@@ -230,7 +296,8 @@ est « Purée de sésame (tahini) ». Rien à refaire.
 |---|---|---|---|
 | ~~1~~ | ~~3 refs condiment + 11 recettes + test ciblé~~ | ✅ **fait** — PR #248, autrement et mieux (§2.1) | — |
 | 2 | Réaffecter/réécrire les ~6 plats salés servis en pdj/collation | 6 recettes | ~1 session |
-| 3 | **Décision produit** : détendre la cible protéique vegan ? | — | ta décision |
+| ~~2b~~ | ~~Ajouter les simili-carnés~~ | ✅ **fait** — 7 pièces, PR #255, toutes sourcées Ciqual (§2.4) | — |
+| 3 | **Décision produit** : −10 % sur la cible protéique des créneaux vegan ? Chiffré en §2.4 : le vivier vegan+SG des petits gabarits **double** (20 → 39) pour 3 g de protéines en moins par repas | — | **ta décision, la seule qui reste** |
 | 4 | Réécrire sans-gluten (40), avec le cliquet en place d'abord | 40 recettes | 1 vague |
 | 5 | Réécrire vegan (144) en 3 vagues, ancres refondues dans le même passage | 144 recettes | 3 vagues |
 | 6 | Réécrire fondation (13) | 13 recettes | ~1 session |
