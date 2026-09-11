@@ -2,8 +2,9 @@
 
 > Ce document tient tout seul. Une session qui l'ouvre sans rien savoir du chantier doit
 > pouvoir livrer le lot suivant sans reposer une question.
-> Ouvert le 2026-09-09. **L1 à L4 livrés. Plus aucune recette muette n'arrive dans une
-> assiette.** Restent L5 et L6, les 55 recettes que le moteur ne sert jamais.
+> Ouvert le 2026-09-09, **CLOS le 2026-09-11**. Les six lots sont livrés : sur les
+> 516 recettes du catalogue, **plus une seule ne demande une cuisson sans l'expliquer**.
+> Ce document reste comme mémoire de la méthode et des pièges, pas comme une file d'attente.
 
 ---
 
@@ -253,48 +254,47 @@ retirer. C'est le contrôle des denrées citées qui l'a vu. Écrire « l'eau fr
 ⚠️ `rep140` et `rep47` sont traitées en parallèle par le chantier « ingrédient fantôme »
 (bouillon, miso, vinaigre) : **vérifier l'état du catalogue avant de les toucher.**
 
-### L5 et L6 — les 55 jamais servies
+### L5 et L6 — LIVRÉS le 2026-09-11, fusionnés (55 recettes)
 
-Aucune urgence pour l'utilisateur : sur 240 semaines simulées, le moteur ne les sert jamais.
-Mais elles pèsent sur le vivier des régimes minoritaires et deviendraient servables si la
-sélection changeait. À traiter en deux lots d'environ 28, **après L4**, ou à considérer comme
-candidates à la suppression si `mesure:vivier` montre qu'elles n'apportent aucune famille.
+Solde : 55 → **0**. Le découpage en deux lots d'environ 28 était une précaution prise quand
+l'effort était inconnu ; une fois la méthode rodée sur L1 à L4, le second aller-retour ne
+payait plus rien.
 
-Liste : `npm run mesure:instructions -- --liste`, tout ce qui est à `0×`.
+Ces 55 recettes ne sont jamais servies par le moteur, donc leur réécriture ne change **rien**
+pour l'utilisateur aujourd'hui. Elle a été faite quand même, pour deux raisons : elles
+deviennent servables dès que la sélection bouge (un régime, un créneau, une vague de plus),
+et **tant qu'il en restait une, le garde-fou gardait du mou**.
+
+⚠️ Deux reformulations imposées par le contrôle des denrées citées, toutes deux justes :
+`rep47` où j'avais réintroduit « bouillon », et `rep83` où « c'est son sucre qui fait le
+liant » se lisait comme un sucre acheté. Écrire « l'eau frémissante » et « c'est ce qui fait
+le liant ».
+
+⚠️ `temps_min` corrigé partout où il mentait : `rep84` (15 → 30, riz complet), `rep18`
+(15 → 25, pommes de terre vapeur), `col38` (6 → 12, œuf dur). Avec les cinq cas des lots
+précédents, cela fait **huit recettes** dont le temps annoncé ne tenait pas la cuisson
+prescrite. Ce n'est pas une étourderie, c'est une habitude des vagues `fondation` et
+`2026-06-19-vegan`.
+
+### Le compteur, lot par lot
+
+| lot | muettes | repas muets sur 6 720 |
+|---|---|---|
+| départ (2026-09-09) | 139 | 1 053 (15,7 %) |
+| L1 | 119 | 359 |
+| L2 | 94 | 145 |
+| L3 | 74 | 36 |
+| L4 | 55 | **0** |
+| L5+L6 | **0** | 0 |
+
+⚠️ **`MUETTES_MAX` vaut désormais 0, et ce n'est plus un cliquet : c'est une règle.** Il n'y a
+plus de mou à consommer. Toute recette ajoutée qui n'expliquerait pas sa cuisson fait échouer
+la suite de tests.
 
 ---
 
-## 7. La procédure d'un lot
+## 8. Ce qui reste, et qui n'est pas ce chantier
 
-1. `npm run mesure:instructions -- --liste` → confirmer la liste et les compteurs.
-2. Lire les recettes visées avec leurs ingrédients (`ref`, `qty`, `basis`) et leur `temps_min`.
-3. Réécrire les instructions **par remplacement de chaînes ciblé** dans
-   `Recette/recettes-kyroz.json` (Python ou sed). **Jamais `json.dump` sur tout le
-   fichier** : le diff deviendrait illisible.
-4. Ne toucher **ni les ingrédients, ni les quantités, ni les macros**. Seul `temps_min`
-   bouge, et seulement quand il ment.
-5. `npx vitest run` depuis `kyroz-app/` — tout doit rester vert.
-6. `npm run mesure:instructions` → **descendre `MUETTES_MAX`** au nouveau constaté et
-   ajouter une ligne au journal des mouvements du test.
-7. Mettre à jour ce fichier : marquer le lot livré, avec sa date et son solde.
-
-### `ENGINE_VERSION` : NON, et voici pourquoi
-
-Réécrire des instructions **sans toucher aux ingrédients ni aux macros** ne bumpe pas
-`ENGINE_VERSION` (précédent du 2026-09-09, même famille que le renommage de la PR #247).
-Trois raisons :
-
-- rien ne change dans l'assiette : ni composition, ni macros, ni sélection ;
-- bumper **régénère la semaine de tout le monde**, suivi du jour compris, pour un
-  changement de texte ;
-- l'écran Plan **rafraîchit déjà** la copie de recette d'un plan en cache quand elle diffère
-  du catalogue (`sameRecipe` → `reAdaptMealRecipe`, `app/(tabs)/plan.tsx`). Le nouveau texte
-  arrive donc chez les utilisateurs existants sans régénérer quoi que ce soit.
-
-⚠️ **Ce troisième point a demandé une correction** (2026-09-09) : `sameRecipe` comparait le
-**nombre** d'étapes, pas leur texte. Une recette réécrite au même nombre d'étapes n'aurait
-jamais atteint un plan en cache — réécrite pour personne. La comparaison porte désormais sur
-le contenu.
-
-**En revanche, si un lot change une composition** (le cas « dinde crue » pourrait justifier
-d'ajouter un ingrédient), le bump redevient obligatoire, avec son entrée de changelog.
+- Les **27 tirets cadratins** qui subsistent dans les instructions des vagues B1-B9.
+- Les recettes dont le NOM promet autre chose que ce qu'elles servent : traité à part, avec
+  son propre garde-fou (`lib/__tests__/nomsHonnetes.test.ts`).
