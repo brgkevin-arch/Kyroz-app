@@ -2276,10 +2276,11 @@
         }
       ],
       "instructions": [
-        "Cuis l'œuf brouillé et la dinde émincée.",
-        "Réchauffe la tortilla.",
-        "Garnis et roule.",
-        "Ajoute l'avocat en lamelles."
+        "Coupe l'escalope de dinde en lanières fines et fais-les cuire 6 minutes à la poêle à feu moyen, jusqu'à ce qu'elles soient blanches à cœur.",
+        "Ajoute le poivron en lamelles et laisse-le s'attendrir 4 minutes avec la dinde.",
+        "Bats les œufs avec du sel et du poivre, verse-les dans la poêle et remue sans arrêt 2 minutes à feu doux : c'est la lenteur qui les rend crémeux.",
+        "Passe la tortilla 20 secondes à la poêle chaude pour l'assouplir : elle roulera sans casser.",
+        "Garnis-la du mélange et de l'avocat en lamelles, replie les côtés et roule serré."
       ],
       "why": "Muscu/combats maintien : transportable, double source de protéines maigres.",
       "macros_per_serving": {
@@ -5834,9 +5835,11 @@
         }
       ],
       "instructions": [
-        "Saisis le bœuf épicé.",
-        "Égoutte et rince les haricots rouges, ajoute-les avec le poivron.",
-        "Sers sur le riz."
+        "Rince le riz basmati jusqu'à ce que l'eau soit claire, puis fais-le cuire 11 minutes dans un grand volume d'eau salée et égoutte-le.",
+        "Fais chauffer l'huile d'olive à feu très vif, ajoute le bœuf haché, écrase-le à la spatule et laisse-le colorer 5 minutes sans trop remuer : il doit brunir, pas bouillir.",
+        "Sale, poivre, ajoute du paprika fumé, du thym, de l'ail en poudre et du piment de Cayenne, et mélange 1 minute : la chaleur ouvre les épices.",
+        "Ajoute le poivron en lamelles et laisse-le s'attendrir 5 minutes à feu moyen.",
+        "Égoutte et rince les haricots rouges, ajoute-les pour 3 minutes le temps qu'ils se réchauffent, et sers sur le riz."
       ],
       "why": "Combats/muscu prise de masse : double protéine, fer élevé, dense.",
       "macros_per_serving": {
@@ -6632,9 +6635,11 @@
         }
       ],
       "instructions": [
-        "Cuis le riz à l'avance.",
-        "Saisis œufs + jambon + petits pois.",
-        "Ajoute le riz, sauce soja."
+        "Rince le riz basmati jusqu'à ce que l'eau soit claire, fais-le cuire 11 minutes dans un grand volume d'eau salée, puis égoutte-le et étale-le pour qu'il refroidisse : un riz encore chaud colle et bout au lieu de sauter.",
+        "Bats les œufs, verse-les dans une poêle chaude avec la moitié de l'huile d'olive et brouille-les 1 minute à feu vif, puis réserve-les.",
+        "Verse le reste d'huile, jette le jambon en dés et les petits pois dans la poêle brûlante et saute-les 3 minutes.",
+        "Ajoute le riz froid et saute 3 minutes à feu vif en l'écrasant à la spatule pour le décoller.",
+        "Remets les œufs, verse la sauce soja et mélange 1 minute hors du feu."
       ],
       "why": "Muscu maintien : anti-gaspi du riz de la veille, protéiné, rapide.",
       "macros_per_serving": {
@@ -6700,9 +6705,10 @@
       ],
       "instructions": [
         "Porte 400 ml d'eau à frémissement avec la sauce soja.",
-        "Ajoute nouilles + légumes.",
-        "Tofu et edamame en fin.",
-        "Ajoute l'avocat en lamelles."
+        "Plonge les nouilles de riz dans l'eau frémissante et laisse-les gonfler 4 minutes.",
+        "Ajoute les légumes et laisse-les cuire 3 minutes : ils doivent rester croquants.",
+        "Coupe le tofu soyeux en gros cubes et ajoute-le avec les edamame, puis coupe le feu et laisse infuser 2 minutes : le tofu soyeux se défait si on le fait bouillir.",
+        "Verse dans le bol et ajoute l'avocat en lamelles au dernier moment."
       ],
       "why": "Endurance/combats perte de gras : léger, chaud, double protéine végétale.",
       "macros_per_serving": {
@@ -8767,8 +8773,10 @@
         }
       ],
       "instructions": [
-        "Égoutte et rince les pois chiches, écrase-les avec un filet d’huile.",
-        "Garnis le pita d’œuf dur, de houmous et de tomate."
+        "Plonge l'œuf dans l'eau bouillante et compte 9 minutes pour un jaune ferme, puis passe-le sous l'eau froide avant de l'écaler.",
+        "Égoutte et rince les pois chiches, puis écrase-les à la fourchette avec l'huile d'olive, du sel, du poivre et du jus de citron, jusqu'à obtenir une pâte épaisse.",
+        "Passe le pita 1 minute par face dans une poêle chaude, puis ouvre-le en poche.",
+        "Garnis-le du houmous, de l'œuf en rondelles et de la tomate, et sers aussitôt."
       ],
       "why": "Végétarien complet : double source protéique pour le muscle.",
       "macros_per_serving": {
@@ -11097,7 +11105,7 @@
         "sport": [
           "muscu"
         ],
-        "temps_min": 22
+        "temps_min": 30
       },
       "base_servings": 1,
       "ingredients": [
@@ -11133,8 +11141,11 @@
         }
       ],
       "instructions": [
-        "Réhydrater la PST, mijoter avec la tomate.",
-        "Servir sur riz avec maïs."
+        "Rince le riz complet, puis fais-le cuire 25 minutes à couvert et à feu doux dans deux fois et demie son volume d'eau salée.",
+        "Couvre la protéine de soja texturée d'eau bouillante salée, laisse-la gonfler 5 minutes puis presse-la pour l'essorer.",
+        "Fais chauffer l'huile d'olive à feu vif et fais revenir la protéine de soja 5 minutes, jusqu'à ce qu'elle colore et croustille sur les bords.",
+        "Verse la tomate concassée, sale, poivre, ajoute de l'origan, et laisse mijoter 10 minutes à feu doux : la sauce doit épaissir et napper.",
+        "Dresse le riz au fond du bol, verse la bolognaise dessus et ajoute le maïs égoutté."
       ],
       "why": "Vegan prise de masse : la PST monte très haut en protéines, sans gluten.",
       "macros_per_serving": {
@@ -11187,8 +11198,11 @@
         }
       ],
       "instructions": [
-        "Cuire le riz.",
-        "Poêler la dinde au curry, ajouter petits pois et lait de coco."
+        "Rince le riz basmati jusqu'à ce que l'eau soit claire, puis fais-le cuire 11 minutes dans un grand volume d'eau salée et égoutte-le.",
+        "Coupe l'escalope de dinde en lanières et fais-les cuire 7 minutes à la poêle à feu moyen, jusqu'à ce qu'elles soient blanches à cœur.",
+        "Ajoute du sel, du poivre et des épices à curry, et mélange 1 minute pour les enrober.",
+        "Verse le lait de coco et les petits pois, et laisse mijoter 5 minutes à feu doux : la sauce doit épaissir et napper la dinde.",
+        "Sers sur le riz."
       ],
       "why": "Endurance : recharge glucidique + protéine maigre.",
       "macros_per_serving": {
@@ -11211,7 +11225,7 @@
         "sport": [
           "endurance"
         ],
-        "temps_min": 18
+        "temps_min": 30
       },
       "base_servings": 1,
       "ingredients": [
@@ -11247,8 +11261,11 @@
         }
       ],
       "instructions": [
-        "Cuire le riz.",
-        "Mijoter thon, poivron et tomate, servir sur le riz."
+        "Rince le riz complet, puis fais-le cuire 25 minutes à couvert et à feu doux dans deux fois et demie son volume d'eau salée.",
+        "Coupe le poivron en lamelles et fais-le revenir 6 minutes dans l'huile d'olive à feu moyen, jusqu'à ce qu'il s'attendrisse et commence à colorer.",
+        "Verse la tomate concassée, sale, poivre, et laisse réduire 8 minutes à feu doux : la sauce doit épaissir.",
+        "Ajoute le thon égoutté en gros morceaux et réchauffe 2 minutes sans mélanger fort, pour qu'il reste en miettes.",
+        "Sers la sauce sur le riz."
       ],
       "why": "Pescatarien sans gluten, protéiné, glucides pour l'endurance.",
       "macros_per_serving": {
@@ -12140,8 +12157,11 @@
         }
       ],
       "instructions": [
-        "Cuis le quinoa.",
-        "Égoutte et rince les haricots blancs, mijote-les avec la PST, la tomate et le romarin."
+        "Rince le quinoa sous l'eau froide 30 secondes pour retirer son amertume, puis fais-le cuire 12 minutes à couvert dans deux fois son volume d'eau salée.",
+        "Couvre la protéine de soja texturée d'eau bouillante salée, laisse-la gonfler 5 minutes puis presse-la pour l'essorer.",
+        "Fais chauffer l'huile d'olive à feu moyen et fais revenir la protéine de soja 4 minutes avec du sel, du poivre et du romarin.",
+        "Égoutte et rince les haricots blancs, ajoute-les avec la tomate concassée et laisse mijoter 10 minutes à feu doux : la sauce doit épaissir et les haricots s'imprégner.",
+        "Sers sur le quinoa égrené."
       ],
       "why": "Vegan combats sans gluten : haricots blancs = capacité protéique élevée.",
       "macros_per_serving": {
@@ -12246,8 +12266,11 @@
         }
       ],
       "instructions": [
-        "Cuire les pommes de terre.",
-        "Poêler le steak, servir avec haricots verts."
+        "Épluche les pommes de terre, coupe-les en gros morceaux et fais-les cuire 20 minutes à l'eau bouillante salée : la pointe d'un couteau doit y entrer sans résistance.",
+        "Équeute les haricots verts et fais-les cuire 8 minutes à l'eau bouillante salée : ils doivent rester vert vif.",
+        "Fais chauffer l'huile d'olive à feu très vif et saisis le steak 3 minutes par face, sans jamais le presser : c'est son jus qui le garde tendre.",
+        "Laisse-le reposer 2 minutes hors du feu avant de servir, le temps que le jus se répartisse.",
+        "Sers le steak avec les pommes de terre et les haricots verts, sel et poivre."
       ],
       "why": "Prise de masse classique sans gluten : fer + glucides + protéines.",
       "macros_per_serving": {
@@ -12300,8 +12323,12 @@
         }
       ],
       "instructions": [
-        "Rôtir la patate douce.",
-        "Poêler le tofu, ajouter épinards et lait de coco."
+        "Préchauffe le four à 210 °C.",
+        "Épluche la patate douce, coupe-la en cubes de deux centimètres et étale-les sur une plaque sans les superposer : entassés, ils cuisent à la vapeur au lieu de rôtir.",
+        "Enfourne 25 minutes en remuant à mi-cuisson.",
+        "Presse le tofu 5 minutes entre deux feuilles de papier absorbant sous une assiette lestée, puis coupe-le en cubes.",
+        "Fais-les colorer 8 minutes dans une poêle antiadhésive très chaude, en ne les retournant que lorsqu'une face est franchement dorée, avec du sel, du poivre et du curcuma.",
+        "Jette les épinards, mélange 1 minute le temps qu'ils tombent, verse le lait de coco et laisse épaissir 2 minutes, puis sers avec la patate douce."
       ],
       "why": "Vegan endurance sans gluten : énergie durable, ancre protéique haute.",
       "macros_per_serving": {
@@ -13177,8 +13204,12 @@
         }
       ],
       "instructions": [
-        "Cuis le boulgour.",
-        "Égoutte et rince les pois chiches, écrase-en la moitié en houmous, assemble avec la PST et le poivron grillé."
+        "Rince le boulgour, verse-le dans une fois et demie son volume d'eau bouillante salée, couvre et laisse cuire 10 minutes à feu doux, puis égrène-le à la fourchette.",
+        "Couvre la protéine de soja texturée d'eau bouillante salée, laisse-la gonfler 5 minutes puis presse-la pour l'essorer.",
+        "Coupe le poivron en larges lanières et fais-les griller 6 minutes à feu vif dans la moitié de l'huile d'olive, jusqu'à ce que la peau cloque et noircisse par endroits.",
+        "Égoutte et rince les pois chiches, mets-en la moitié de côté et écrase-les avec le reste d'huile, du sel et du jus de citron, jusqu'à obtenir un houmous épais.",
+        "Fais revenir l'autre moitié des pois chiches avec la protéine de soja 4 minutes à feu vif, avec du sel, du poivre et du cumin, jusqu'à ce qu'ils croustillent.",
+        "Dresse le boulgour au fond du bol, étale le houmous sur un côté et ajoute les pois chiches chauds et le poivron grillé."
       ],
       "why": "Vegan endurance : levantin protéiné, glucides du boulgour.",
       "macros_per_serving": {
@@ -13302,8 +13333,11 @@
         }
       ],
       "instructions": [
-        "Poêler le poulet émincé.",
-        "Garnir la tortilla de poulet, avocat et crudités, rouler."
+        "Coupe le poulet en lanières fines et frotte-les de sel, de poivre et de paprika.",
+        "Fais-les saisir 7 minutes à feu vif dans une poêle antiadhésive très chaude, en ne les retournant qu'une fois : elles doivent être dorées dehors et blanches à cœur.",
+        "Passe la tortilla 20 secondes à la poêle chaude pour l'assouplir : elle roulera sans casser.",
+        "Garnis-la de salade, de tomate en rondelles, du poulet tiède et de l'avocat en lamelles.",
+        "Replie les deux côtés avant de rouler serré, sinon la garniture ressort à la première bouchée."
       ],
       "why": "Muscu nomade : protéiné, bons lipides, à emporter.",
       "macros_per_serving": {
@@ -13547,8 +13581,11 @@
         }
       ],
       "instructions": [
-        "Griller le poulet, préparer le tzatziki au yaourt.",
-        "Garnir le pita de poulet, sauce et crudités."
+        "Coupe le poulet en lanières et frotte-les de sel, de poivre et d'origan.",
+        "Fais-les griller 7 minutes à feu vif dans la moitié de l'huile d'olive, en ne les retournant qu'une fois : elles doivent être dorées dehors et blanches à cœur.",
+        "Râpe le concombre, presse-le dans tes mains pour en chasser l'eau, puis mélange-le au yaourt grec avec le reste d'huile, du sel et du poivre : c'est l'eau du concombre qui rend un tzatziki liquide.",
+        "Passe le pita 1 minute par face dans une poêle chaude, puis ouvre-le en poche.",
+        "Garnis-le du poulet et du tzatziki, et sers aussitôt pour que le pain reste moelleux."
       ],
       "why": "Muscu : kebab maison sain, protéiné, sauce légère.",
       "macros_per_serving": {
@@ -13724,8 +13761,11 @@
         }
       ],
       "instructions": [
-        "Réhydrater et poêler la PST façon shawarma.",
-        "Garnir le pita avec sauce yaourt de soja et légumes."
+        "Couvre la protéine de soja texturée d'eau bouillante salée, laisse-la gonfler 5 minutes puis presse-la pour l'essorer.",
+        "Fais chauffer l'huile d'olive à feu vif et fais-la revenir 6 minutes avec du sel, du poivre, du cumin, du paprika et de la cannelle, jusqu'à ce qu'elle croustille sur les bords : c'est cette texture qui fait le shawarma.",
+        "Mélange le yaourt de soja avec du sel, du poivre et du jus de citron, jusqu'à obtenir une sauce qui nappe la cuillère.",
+        "Passe le pita 1 minute par face dans une poêle chaude, puis ouvre-le en poche.",
+        "Garnis-le de la protéine de soja, de la tomate en rondelles et de la sauce, et sers aussitôt."
       ],
       "why": "Vegan combats : shawarma végétal très protéiné, pas trop lourd.",
       "macros_per_serving": {
@@ -13910,8 +13950,11 @@
         }
       ],
       "instructions": [
-        "Cuire le boulgour.",
-        "Poêler le bœuf, servir avec ratatouille et yaourt."
+        "Rince le boulgour, verse-le dans une fois et demie son volume d'eau bouillante salée, couvre et laisse cuire 10 minutes à feu doux, puis égrène-le à la fourchette.",
+        "Fais chauffer l'huile d'olive à feu très vif, ajoute le bœuf haché, écrase-le à la spatule et laisse-le colorer 5 minutes sans trop remuer : il doit brunir, pas bouillir.",
+        "Sale, poivre, ajoute du cumin et du paprika, et mélange 1 minute.",
+        "Réchauffe la ratatouille 5 minutes à feu moyen dans une seconde poêle.",
+        "Sers le bœuf et la ratatouille sur le boulgour, avec le yaourt grec en cuillerées froides sur le dessus."
       ],
       "why": "Combats : plat oriental protéiné, sauce yaourt fraîche.",
       "macros_per_serving": {
@@ -14319,8 +14362,11 @@
         }
       ],
       "instructions": [
-        "Cuire les nouilles.",
-        "Saisir le bœuf, sauter avec le brocoli, mélanger."
+        "Plonge les nouilles de riz dans un grand volume d'eau bouillante, coupe le feu et laisse-les gonfler 4 minutes, puis égoutte et rince à l'eau froide pour qu'elles ne collent pas.",
+        "Détaille le brocoli en petits bouquets et plonge-le 4 minutes dans l'eau bouillante, puis récupère-le à l'écumoire : il doit rester vert vif et croquant.",
+        "Taille la bavette en fines lanières dans le sens contraire des fibres : c'est ce qui la rend tendre.",
+        "Saisis-les 2 minutes à feu très vif dans l'huile d'olive brûlante, sans les superposer, puis réserve-les : trop cuites, elles durcissent.",
+        "Remets le brocoli et les nouilles dans la poêle, saute 2 minutes à feu vif, puis ajoute le bœuf et mélange hors du feu."
       ],
       "why": "Muscu sans gluten : sauté riche en fer, capacité élevée.",
       "macros_per_serving": {
@@ -14844,8 +14890,11 @@
         }
       ],
       "instructions": [
-        "Cuire le quinoa.",
-        "Mélanger salade, poulet grillé et quinoa, assaisonner d'huile d'olive et de jus de citron, finir au parmesan râpé."
+        "Rince le quinoa sous l'eau froide 30 secondes pour retirer son amertume, puis fais-le cuire 12 minutes à couvert dans deux fois son volume d'eau salée, et laisse-le refroidir.",
+        "Coupe le poulet en lanières et frotte-les de sel et de poivre.",
+        "Fais-les griller 7 minutes à feu vif dans la moitié de l'huile d'olive, en ne les retournant qu'une fois : elles doivent être dorées dehors et blanches à cœur.",
+        "Taille la salade verte en larges lanières et mélange-la au quinoa froid.",
+        "Assaisonne du reste d'huile, de jus de citron, de sel et de poivre, ajoute le poulet tiède et termine par le parmesan râpé."
       ],
       "why": "Muscu sans gluten : César revisitée, protéinée et fraîche.",
       "macros_per_serving": {
@@ -14904,8 +14953,11 @@
         }
       ],
       "instructions": [
-        "Cuire le riz, refroidir.",
-        "Mélanger thon, œuf dur et maïs, assaisonner d'huile d'olive, de vinaigre et de poivre."
+        "Rince le riz basmati jusqu'à ce que l'eau soit claire, fais-le cuire 11 minutes dans un grand volume d'eau salée, puis égoutte-le et laisse-le refroidir : tiède, il détremperait la salade.",
+        "Plonge les œufs dans l'eau bouillante et compte 9 minutes pour un jaune ferme, puis passe-les sous l'eau froide avant de les écaler.",
+        "Égoutte le thon et le maïs, et coupe les œufs en quartiers.",
+        "Mélange le riz froid, le thon et le maïs, assaisonne d'huile d'olive, de vinaigre, de sel et de poivre.",
+        "Dépose les quartiers d'œuf sur le dessus au moment de servir, pour qu'ils ne s'écrasent pas."
       ],
       "why": "Pescatarien sans gluten : salade complète à emporter, double protéine.",
       "macros_per_serving": {

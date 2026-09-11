@@ -50,9 +50,14 @@ import {
  *              SAISIT son saumon au lieu de le servir cru, et `pd76` annonçait 15 minutes
  *              pour une polenta qui doit prendre 20 minutes avant d'être grillée
  *              (`temps_min` → 30, comme `rep80` → 30 pour son riz complet).
+ *   74 → 55   lot L4 (2026-09-11) : les 19 dernières muettes que le moteur SERT.
+ *              **Plus une seule recette muette parmi celles qui arrivent dans une
+ *              assiette** : 0 repas muet sur 6 720. Les 55 qui restent ne sont jamais
+ *              servies (L5/L6). `rep79` et `rep77` annonçaient 18 et 22 minutes pour un
+ *              riz complet qui en prend 25 : `temps_min` → 30.
  *   Le reste est planifié par lots dans `Recette/PLAN-REECRITURE-INSTRUCTIONS.md`.
  */
-const MUETTES_MAX = 74;
+const MUETTES_MAX = 55;
 
 const muettes = RAW_RECIPES.filter((r) => estMuette(r, RECIPE_INGREDIENTS));
 
