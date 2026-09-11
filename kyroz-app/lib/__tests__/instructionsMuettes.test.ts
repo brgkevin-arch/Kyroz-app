@@ -40,9 +40,14 @@ import {
  *              ⚠️ Un cliquet ne se resserre pas tout seul : le laisser à 119 rendait
  *              5 points de mou à la prochaine vague, qui aurait pu rajouter cinq
  *              recettes muettes sans faire rougir un test.
+ *   114 → 94   lot L2 (2026-09-11) : les 20 muettes les plus SERVIES restantes, réécrites
+ *              au format B1-B9. La part de repas servis par une recette muette tombe de
+ *              5,2 % à **2,2 %** (352 repas sur 6 720 → 145). `rep82` annonçait 18 minutes
+ *              pour un riz complet qui en prend 25 : `temps_min` corrigé à 30, la durée
+ *              n'a pas été rabotée.
  *   Le reste est planifié par lots dans `Recette/PLAN-REECRITURE-INSTRUCTIONS.md`.
  */
-const MUETTES_MAX = 114;
+const MUETTES_MAX = 94;
 
 const muettes = RAW_RECIPES.filter((r) => estMuette(r, RECIPE_INGREDIENTS));
 

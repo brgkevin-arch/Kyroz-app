@@ -2,7 +2,7 @@
 
 > Ce document tient tout seul. Une session qui l'ouvre sans rien savoir du chantier doit
 > pouvoir livrer le lot suivant sans reposer une question.
-> Ouvert le 2026-09-09. **L1 livré, L2 → L6 à faire.**
+> Ouvert le 2026-09-09. **L1 et L2 livrés, L3 → L6 à faire.**
 
 ---
 
@@ -200,7 +200,13 @@ figées au 2026-09-09 ; `npm run mesure:instructions -- --liste` les régénère
 `rep129` `rep166` `rep76` `rep68` `rep137` `rep131` `rep128` `rep147` `pd58` `rep89`
 `rep60` `rep118` `pd67` `rep104` `rep150` `rep152` `rep41` `rep149` `rep74` `rep114`
 
-### L2 — les 20 suivantes (≈ 200 repas muets)
+### L2 — LIVRÉ le 2026-09-11 (20 recettes)
+
+Solde : 114 → **94** muettes ; la part de repas servis par une muette tombe de **5,2 % à 2,2 %**
+(352 repas sur 6 720 → 145). `rep82` annonçait 18 minutes pour un riz complet qui en prend 25 :
+`temps_min` corrigé à 30. ⚠️ `pd68` s'appelle « Pancakes banane – œuf – sans farine » : écrire
+« sans farine » dans une étape fait rougir le contrôle des denrées citées, à raison. Reformuler
+(« rien ne vient lier cette pâte »), ne pas ajouter d'exception.
 
 `rep162` `pd11` `pd68` `rep09` `rep91` `rep55` `rep42` `rep82` `rep71` `rep04`
 `rep85` `rep145` `rep81` `rep23` `rep102` `rep141` `rep124` `rep164` `rep161` `rep148`
