@@ -258,7 +258,8 @@ describe('6 — migration rev 7 → 8 : la cible monte, et l\'avertissement dit 
     // dont le %MG est estimé — c'est le moteur qui décide (`katchEligible`), pas le
     // trajet.
     // 9 le 2026-08-27 — retrait progressif des planchers au seuil d'adiposité (CA-2-01).
-    expect(ENGINE_REV).toBe(10);
+    // Cliquet, pas valeur figée : cf. la note de `katchAdiposite.test.ts`.
+    expect(ENGINE_REV).toBeGreaterThanOrEqual(10);
     const apres = recalcProfile(p, T);
     // Sous l'ancienne règle (rev 7), ce corps calculait en Mifflin pur.
     const ancienBmr = Math.round(mifflinRaw(p));
