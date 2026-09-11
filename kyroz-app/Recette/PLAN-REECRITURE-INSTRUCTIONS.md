@@ -2,7 +2,7 @@
 
 > Ce document tient tout seul. Une session qui l'ouvre sans rien savoir du chantier doit
 > pouvoir livrer le lot suivant sans reposer une question.
-> Ouvert le 2026-09-09. **L1 et L2 livrés, L3 → L6 à faire.**
+> Ouvert le 2026-09-09. **L1, L2 et L3 livrés, L4 → L6 à faire.**
 
 ---
 
@@ -214,7 +214,18 @@ Solde : 114 → **94** muettes ; la part de repas servis par une muette tombe de
 ⚠️ `rep55` porte aussi un nom qui promet du sésame absent : ne pas en parler dans les
 instructions.
 
-### L3 — les 20 suivantes (≈ 110 repas muets)
+### L3 — LIVRÉ le 2026-09-11 (20 recettes)
+
+Solde : 94 → **74** muettes. Deux décisions de fond, pas de rédaction :
+`rep20` (poke) suit le précédent de `rep74` et **saisit** son saumon au lieu de le servir cru
+(le poisson du commerce n'est pas prévu pour être mangé cru), et `pd76` annonçait 15 minutes
+pour une polenta qui doit prendre 20 minutes avant d'être grillée → `temps_min` 30.
+⚠️ `col09` a disparu de la liste : l'étape de cuisson ajoutée en urgence (PR #251) l'a rendue
+non muette au passage.
+⚠️ Pour les galettes de sarrasin (`rep116`, `rep167`), écrire « une poudre fine » plutôt que
+« une farine » : le contrôle des denrées citées voit « farine » comme un produit acheté, et
+une reformulation vaut mieux qu'une exception. `pd66` et `pd67` gardent le mot, leurs
+exceptions existent déjà.
 
 `rep80` `rep110` `rep88` `rep125` `rep116` `pd52` `pd36` `pd66` `rep51` `rep50`
 `col09` `rep72` `rep167` `rep169` `pd77` `pd76` `rep106` `rep54` `rep65` `rep20`
