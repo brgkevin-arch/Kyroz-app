@@ -45,9 +45,14 @@ import {
  *              5,2 % à **2,2 %** (352 repas sur 6 720 → 145). `rep82` annonçait 18 minutes
  *              pour un riz complet qui en prend 25 : `temps_min` corrigé à 30, la durée
  *              n'a pas été rabotée.
+ *   94 → 74   lot L3 (2026-09-11) : les 20 muettes servies suivantes. Deux décisions de
+ *              fond, pas de rédaction : `rep20` (poke) suit le précédent de `rep74` et
+ *              SAISIT son saumon au lieu de le servir cru, et `pd76` annonçait 15 minutes
+ *              pour une polenta qui doit prendre 20 minutes avant d'être grillée
+ *              (`temps_min` → 30, comme `rep80` → 30 pour son riz complet).
  *   Le reste est planifié par lots dans `Recette/PLAN-REECRITURE-INSTRUCTIONS.md`.
  */
-const MUETTES_MAX = 94;
+const MUETTES_MAX = 74;
 
 const muettes = RAW_RECIPES.filter((r) => estMuette(r, RECIPE_INGREDIENTS));
 
