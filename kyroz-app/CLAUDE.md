@@ -913,6 +913,55 @@ neutraliser tout le filtre de vivier le laissait vert, parce que sur une cible d
 collation le moteur choisit une collation même quand le catalogue entier lui est ouvert.
 Il mesure désormais le VIVIER, pas la sortie.
 
+### La cible protéique est DÉTENDUE de 10 % en végane (2026-09-11)
+
+Décision fondateur, `tdee.ts::facteurProteineVegetal`, **`ENGINE_REV` 10 → 11** et
+**`ENGINE_VERSION` 48 → 49**. Un profil déclarant `vegan` voit sa cible protéique
+automatique multipliée par **0,9**. Personne d'autre n'est touché, et le mode « Perso % »
+non plus : un g/kg saisi à la main est une intention explicite, elle passe devant.
+
+**Le défaut mesuré** : le moteur demandait à un végane exactement la même densité
+protéique qu'à un omnivore — 6,8 g de protéines pour 100 kcal sur un repas de sèche, au
+gramme près. Le garde-manger végétal sans gluten ne peut pas la produire. Vivier vegan +
+sans gluten du midi, sur 50 repas complets : une femme de 55 kg en sèche en recevait
+**20**. Après : **38**. En vegan seul, 47 → 70.
+
+🔴 **CE N'EST PAS LA PROTÉINE QUI REJETAIT CES RECETTES, ET C'EST TOUT LE PIÈGE.** Les 30
+écartées sortaient sur `over_target_kcal`. La cause était pourtant bien la protéine :
+`adaptRecipe` gonfle l'ancre pour atteindre `proteinMeal`, donc le plat grossit, donc il
+déborde. **Les deux contraintes sont couplées.** Deux correctifs évidents ont été mesurés
+et rendent **zéro** recette de plus :
+- neutraliser le drapeau `protein_below_target` ;
+- détendre `protein_floor_tolerance` (0,95 → 0,86).
+
+Les deux retirent l'ALARME sans changer ce que le moteur VISE. ➡️ **Pour mesurer un
+réglage, il faut bouger le réglage, pas masquer son alarme.** C'est la leçon qui dépasse
+ce correctif : trois instruments ont été employés, les deux premiers mentaient — l'un en
+disant que la protéine n'y était pour rien, l'autre en disant que la place existait
+(vrai : les 50 recettes peuvent descendre sous 458 kcal) sans dire que le moteur n'avait
+pas le droit d'y aller.
+
+⚠️ **0,9 EST UN OPTIMUM MESURÉ, PAS UN CURSEUR.** À −20 % et −30 % le gain s'arrête et se
+RETOURNE sur trois profils sur cinq : les plats passent de « trop gros » à « trop petits ».
+Ne pas la creuser sans refaire la mesure.
+
+⚠️ **CE QUE ÇA COÛTE, et pourquoi c'était prenable** : −3 g de protéines sur un repas de
+F 55 sèche (31 → 28). Sur les 12 profils de référence, la cible détendue reste **dans la
+bande clinique du fichier** (`PROTEIN_MIN/MAX_PER_KG_FFM`, 1,6–2,6 g/kg de masse maigre) —
+pire cas 1,71, plancher 1,60. C'est la condition qui a permis la décision, et elle est
+comptée : à 0,7 le gabarit H 110 tombe à 1,53 et le test rougit.
+⚠️ **L'ARGUMENT CONTRAIRE EXISTE et n'est pas tranché** : les protéines végétales sont
+moins biodisponibles, donc on peut soutenir qu'un végane en aurait besoin de PLUS. Ce
+qu'on échange est explicite — un peu de marge protéique contre un choix de repas qui
+double. Rouvrir l'arbitrage veut dire remesurer ce COUPLE, pas la seule valeur 0,9.
+
+ℹ️ **Aucune calorie ne bouge** : `target_kcal` est inchangé, ce sont les glucides et les
+lipides qui reprennent la place cédée. L'avertissement one-shot (seuil en kcal/jour) ne
+part donc pour personne — c'est voulu, et c'est testé.
+
+➡️ Garde-fou : `lib/__tests__/detenteProteineVegetal.test.ts`, **vérifié par 2 mutations**
+(facteur débranché du calcul ; détente creusée à 0,7).
+
 ### Répartition entre repas — plancher protéique (`lib/planEngine.ts`)
 
 La cible d'un repas est une part du budget **restant** du jour : le report de repas en
