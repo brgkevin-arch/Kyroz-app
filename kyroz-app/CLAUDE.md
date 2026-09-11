@@ -115,8 +115,35 @@ App mobile React Native (Expo Router, **SDK 57** depuis le 2026-08-27) de plans 
 > natives, `assets/icon.png`, `assets/splash-icon.png`.
 > ➡️ **Avant tout `eas build`, comparer l'empreinte de `main` à celle du dernier binaire
 >    distribué.** Deux secondes, et c'est ce qui manquait ce jour-là.
+>
+> 🔴 **ET ÇA A RECOMMENCÉ LE 2026-09-10, PAR LES `scripts`, ALORS QUE L'AVERTISSEMENT
+> ÉTAIT DÉJÀ ÉCRIT ICI.** Mesuré dans la même heure : le chantier du rejet Apple laissait
+> l'empreinte **inchangée** (`5118d1bd…`, celle du build (20) — vérifié, aucune des 9
+> sources touchée) ; deux heures plus tard `main` valait **`823c89db…`**. La cause, en
+> une ligne de diff : la PR #249 avait ajouté `"mesure:instructions"` aux `scripts` de
+> `package.json`. **Un script de mesure, qui ne part jamais dans l'app.**
+> ⚠️ **La ligne OTA vers le (20) est donc COUPÉE depuis ce merge**, et rien ne l'a dit :
+> aucun test ne rougit, aucune sortie ne le signale, et l'auteur de la PR n'avait aucune
+> raison d'y penser. ➡️ *Un avertissement écrit dans un fichier de spec n'empêche rien —
+> il ne se lit qu'après coup, quand on cherche déjà la cause.* Le seul remède qui marche
+> est la MESURE avant build, pas la vigilance.
+>
+> ➡️ **ET LA MOITIÉ QUI MANQUAIT À CETTE CONSIGNE : comment lire l'empreinte d'un
+> BINAIRE.** « Comparer à celle du dernier binaire distribué » n'était pas actionnable —
+> rien ici ne disait où elle se lit. Elle est dans EAS, sous une clé imbriquée que la
+> sortie humaine n'affiche pas :
+> ```
+> npx eas-cli build:list --platform ios --limit 2 --json --non-interactive
+>   → build.runtime.version     ← l'empreinte du binaire
+> ```
+> ⚠️ **Pas `runtimeVersion`** : ce champ n'existe pas au premier niveau, il rend
+> `undefined` et se lit comme « ce build n'a pas d'empreinte ». C'est un instrument
+> muet qui ment dans le sens rassurant (§11).
+>
 > ⚠️ Corollaire administratif : un build **ANNULÉ consomme son numéro** (`autoIncrement`
->    incrémente à la CRÉATION). Annuler le 18 a fait sortir un 19, puis un 20.
+>    incrémente à la CRÉATION). Annuler le 18 a fait sortir un 19, puis un 20 ; annuler
+>    le **21** le 2026-09-10 fait que le prochain sortira en **(22)**, et qu'aucun (21)
+>    valide n'existera jamais.
 > ➡️ Garde-fou : `lib/__tests__/ligneOta.test.ts` (3 cas, **3 mutations**) — il refuse le
 > retour à une politique qui ne peut pas couper, et il dit POURQUOI dans son message.
 > Ce dernier n'est pas un détail : il garantit que l'app **ne bloque JAMAIS au démarrage**
@@ -1453,6 +1480,34 @@ composant. Audit complet des réglages : `npm run mesure:reglages`.
 > ➡️ Garde-fou : `lib/__tests__/avertissementMedical.test.ts` (vérifié par 3 mutations).
 > Sans lui, un nettoyage d'écran emporterait la phrase sans qu'aucun test ne rougisse,
 > et personne ne s'en apercevrait avant une revue de store.
+>
+> 🔴 **ET LA MÊME RÈGLE S'APPLIQUE AUX CITATIONS — payée par un rejet le 2026-09-10**
+> (guideline 1.4.1) : *« the citations to the sources should be easy for the user to
+> find »*, et *« such as links to those sources »*. Apple en exige **TROIS** propriétés,
+> pas une :
+> 1. **exister** — les 9 références de `lib/methodologie.ts` ;
+> 2. **s'OUVRIR** — chacune porte son DOI, cliquable ET visible (`doi.org/10.…` souligné).
+>    L'unique exception est un OUVRAGE, qui n'a pas de DOI : lui coller une URL de
+>    librairie serait fabriquer une source ;
+> 3. **se TROUVER** — le lien vit là où la recommandation est SERVIE : sous le plan du
+>    jour, et sous l'avertissement médical de l'étape 1 (`components/LienMethodologie.tsx`).
+>
+> ⚠️ **Elles vivaient sous « Aide et retours », et c'était une erreur de CLASSEMENT, pas
+> de profondeur.** « Aide » est l'endroit où l'on va quand quelque chose ne MARCHE PAS ;
+> personne n'y cherche une bibliographie. La ligne des réglages RESTE — elle sert celui
+> qui cherche, quand les deux nouvelles servent celui qui ne cherchait pas.
+>
+> 🔴 **CE QUI REND CE CAS INSTRUCTIF : le test qui gardait les sources était VERT ce
+> jour-là**, et il avait raison — il mesurait la COMPLÉTUDE de la citation, jamais son
+> ACCESSIBILITÉ. Deux propriétés distinctes, un seul compteur : *la moitié qu'on n'a pas
+> pensé à compter se déclare tenue toute seule.*
+> ➡️ Garde-fou : `lib/__tests__/methodologie.test.ts`, blocs « Citations — ouvrables » et
+> « Citations — faciles à trouver » (vérifiés par mutation, dont « un DOI disparaît » et
+> « le lien quitte le Plan »).
+> ⚠️ **Ce qu'aucun test ne sait faire** : dire qu'un DOI pointe sur le bon article. Ça se
+> confronte à Crossref, en réseau, à la main — fait le 2026-09-10 sur les sept, titre,
+> revue, volume, numéro, pages et année. **À refaire pour toute référence ajoutée :**
+> `curl -s "https://api.crossref.org/works/<doi>" | python3 -m json.tool | head -30`
 > ➡️ Une déclaration cochée n'a jamais rien prouvé de personne — ce qui protège
 > réellement, ce sont les blocages qui **MESURENT** : l'âge (`MIN_AGE`), l'IMC de
 > départ, le volume d'entraînement, les planchers caloriques. Eux ne demandent rien.
@@ -2831,6 +2886,103 @@ téléphone.
 ---
 
 ## 11. Pièges connus (redécouverts au moins une fois chacun)
+
+- 🔴 **CE QUI EST PARTI EN REVUE NE SE LIT PAS DANS LES `items` DE LA SOUMISSION.**
+  Mesuré le 2026-09-10, juste après avoir renvoyé le (22). `GET
+  /v1/reviewSubmissions/{id}/items` rend des objets **sans attribut nommé et sans
+  relation exploitable** — `include=subscription` répond `400 « 'subscription' is not a
+  valid relationship name »` — et leur id, décodé de base64, donne
+  `<soumission>|<code>|<id INTERNE>` : cet id interne rend `404` aussi bien sur
+  `/v1/subscriptions/{id}` que sur `/v1/appStoreVersions/{id}`.
+  ➡️ **Le juge est le champ `state` de la ressource elle-même** : un abonnement parti en
+  revue passe à `WAITING_FOR_REVIEW`, celui resté dehors garde `READY_TO_SUBMIT`.
+  ⚠️ **Le vrai coût n'était pas l'échec, c'est sa FORME** : mon recoupement par
+  identifiants n'a rien résolu, donc il a compté **« 0 abonnement interdit parti »** — et
+  ce zéro se lit comme une bonne nouvelle. *Un contrôle qui ne résout rien rend zéro ; un
+  zéro n'est une absence que si on a prouvé que l'instrument sait trouver.* Toujours lui
+  adjoindre un témoin positif. Cf. [[feedback-mesurer-l-instrument]].
+
+- 🔴 **L'API App Store Connect rend ses dates en heure du PACIFIQUE, jamais en UTC.**
+  `uploadedDate` vaut `2026-09-10T09:19:07-07:00`. Un `slice(0, 19)` bien intentionné
+  jette le `-07:00` et **décale tout de neuf heures** : le 2026-09-10 j'ai annoncé
+  « téléversé ce matin à 9 h » un binaire parti à **18 h 19**, une heure et demie plus
+  tôt. C'est le fondateur qui a corrigé, parce qu'il se souvenait de l'avoir fait.
+  ➡️ Passer la chaîne ENTIÈRE à `new Date()`, afficher avec
+  `toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })`, et ajouter un « il y a N h » —
+  invérifiable de tête, donc contrôlable.
+
+- 🔴 **`eas submit` PLANIFIE CHEZ EAS — le processus local ne fait qu'ATTENDRE, et il
+  ressemble à un processus mort.** Payé 42 minutes le 2026-09-10. Le client local n'a
+  **aucune socket ouverte**, **aucun CPU** (4,6 s en 42 min) et sa boucle d'événements
+  dort en `kevent` : les trois signaux qui, sur un travail LOCAL, prouvent un blocage.
+  Ici ils décrivent un client qui attend correctement. La lenteur venait de la **file
+  d'attente d'EAS**, pas d'un défaut.
+  ➡️ **La première question n'est pas « le processus vit-il ? » mais « OÙ le travail
+  a-t-il lieu ? »** Local (compilation, export, `curl`) → `ps`/`lsof`/`sample`
+  tranchent. Distant (`eas submit`, `eas build`, un CI) → **ils ne disent rien**, et le
+  seul juge est l'état du job côté serveur : `npx eas-cli submit:list --platform ios`.
+  ⚠️ **Et interroger le BON objet** : `build.submissions` rend `[]` même quand une
+  soumission tourne — j'en ai conclu qu'aucune n'existait. *Un champ vide n'est une
+  absence que si c'est le champ qui la porte.*
+  ⚠️ **Ce que l'erreur a coûté** : tuer puis relancer crée une **seconde soumission du
+  même binaire**. Rattrapable — `eas submit:cancel <id>` existe.
+  🔴 **ET LA CAUSE PREMIÈRE ÉTAIT UN PIPE** : la commande tournait dans
+  `… 2>&1 | tail -40`, et **`tail` ne rend rien avant la fin**. Zéro octet lisible
+  pendant 42 minutes, puis le message parti avec le processus tué — on ne saura jamais
+  ce qu'il disait. ➡️ **Une commande longue se redirige vers un FICHIER**
+  (`> /tmp/x.log 2>&1`), qui se lit au fur et à mesure. La relance sans `tail` a
+  affiché en trois secondes ce que 42 minutes de silence cachaient.
+  ℹ️ Avertissement normal et sans conséquence pour une revue :
+  *« App Store Connect credentials are incomplete, skipping TestFlight setup »* — le
+  binaire part, seuls les groupes de testeurs ne sont pas configurés.
+
+- ✅ **VÉRIFIER QU'UN CORRECTIF EST DANS LE BINAIRE, pas seulement dans le dépôt** — le
+  relecteur ouvre l'IPA. La recette, employée sur le (22) :
+  ```
+  curl -sSL -o app.ipa "<artifacts.applicationArchiveUrl>"   # eas build:list --json
+  unzip -q app.ipa -d x
+  strings -a x/Payload/*.app/main.jsbundle | grep -c "<témoin>"
+  ```
+  ⚠️ **Le témoin doit être ASCII de bout en bout** (un DOI, un identifiant) : Hermes
+  range en **UTF-16** toute chaîne portant un seul accent, donc `strings` rend 0 sur une
+  phrase française — et ce 0 se lit comme une absence. Pour un texte accenté, compter
+  les octets en `utf-16le` **et** `utf-16be`.
+  🔴 **Et toujours un témoin qui doit valoir ZÉRO** (une chaîne qu'on sait absente) :
+  sans lui, une série de « 1 » ne prouve pas que la sonde sait dire non.
+
+
+- 🔴 **SIGN IN WITH APPLE NE DONNE LE NOM QU'UNE FOIS DANS LA VIE DU COMPTE — et c'est
+  ce qui rend un correctif « vérifié » faux.** `fullName` (et `email`) ne sont renvoyés
+  qu'à la **toute première autorisation** ; toute connexion suivante rend `null`
+  (WWDC22, *« not returned upon subsequent sign-ins »*). Donc :
+  · un correctif essayé UNE fois marche toujours ;
+  · il retombe au **deuxième** essai — réinstall, second appareil, **et le relecteur
+    Apple qui contre-vérifie**, c'est-à-dire le chemin le plus probable d'un contrôle.
+  ➡️ **Le seul essai qui prouve quelque chose : se connecter DEUX fois avec le même
+  Apple ID.** Vaut pour tout ce qui dépend d'une donnée servie une seule fois.
+  🔴 **Rejeté le 2026-09-10 (guideline 4) pour ça** : *« users are required to provide
+  their name … even though that information is already provided by the Authentication
+  Services framework. »* Le correctif tient en **TROIS moitiés, et la troisième est
+  celle qu'on oublie** — demander le scope (`lib/appleAuth.ts`), **le persister à
+  l'instant** (`hooks/useAuth.tsx`, avant le premier `await` qui peut échouer), **et
+  cesser de BLOQUER le champ** pour un compte Apple (`lib/identiteApple.ts`). Les deux
+  premières sans la troisième rejouent le rejet à l'identique.
+  ⚠️ **Le refus du scope était DOCUMENTÉ comme délibéré**, au motif qu'il ajouterait
+  « Nom » à la fiche App Privacy. L'argument tombe à la mesure : `saveFirstName` écrit
+  dans AsyncStorage, hors profil synchronisé, et « collecter » au sens d'Apple c'est
+  **TRANSMETTRE hors de l'appareil**. *Un argument de conformité non mesuré a coûté un
+  rejet.* ➡️ Si le prénom rejoint un jour `profiles`, cette phrase devient fausse et la
+  fiche App Privacy doit gagner « Nom » AVANT le déploiement.
+  ➡️ Garde-fou : `lib/__tests__/appleAuth.test.ts`, bloc « le prénom vient d'Apple, pas
+  d'un formulaire » (vérifié par mutation, dont « l'étape 1 rebloque un compte Apple »).
+  ℹ️ `lib/identiteApple.ts` est à part de `lib/appleAuth.ts` **à dessein** : ce dernier
+  est résolu PAR PLATEFORME (`.web.ts`), donc toute fonction qu'on y ajoute doit être
+  recopiée côté web sous peine de valoir `undefined` en production, sans rien qui le dise.
+
+- ⚠️ **`yearly` CONTIENT `early`.** Filtrer des identifiants de produits sur la
+  sous-chaîne `early` attrape aussi `kyroz_plus_yearly`. Le filtre a l'air de marcher et
+  rend un produit de trop — mesuré le 2026-09-10 en listant les abonnements.
+
 
 - 🔴 **Depuis un worktree, le serveur de preview sert l'app du dépôt PRINCIPAL.**
   `node_modules` y est un lien symbolique vers le dépôt principal ; expo-router résout

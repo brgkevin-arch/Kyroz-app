@@ -696,10 +696,51 @@ produit en suspens — il ne reste qu'à coder.
   sources hors `node_modules` n'est touchée par ce chantier. **La ligne vers le (20) reste
   ouverte** — mais elle ne dispense pas du build, le relecteur voyant le JS EMBARQUÉ.
 
-  🔴 **CE QU'IL RESTE, ET RIEN D'AUTRE** : **(1)** lancer le build — les correctifs des
-  motifs 4 et 1.4.1 n'atteignent le relecteur que par le binaire ; **(2)** répondre au
-  relecteur avec la capture vidéo qu'Apple réclame nommément pour 3.1.2(c), sur ce
-  nouveau binaire (texte de réponse et script de la capture : `STORE-RELEASE.md` §11-bis).
+  ✅ **ÉTAT AU 2026-09-10, 18 h — LE BINAIRE EST CHEZ APPLE.**
+
+  | | État |
+  |---|---|
+  | Description + notes de revue (`3.1.2(c)`, voie A) | ✅ posées par l'API et **relues** |
+  | Capture vidéo `3.1.2(c)` | ✅ tournée, vérifiée image par image |
+  | Réponse + vidéo envoyées dans la Resolution Center | ✅ **par le fondateur** — l'API ne le permet pas |
+  | Build **(22)** | ✅ `FINISHED`, commit `2529c2c`, runtime `823c89db…` |
+  | Correctifs DANS l'IPA | ✅ **vérifiés dans le binaire**, pas dans le dépôt (voir ci-dessous) |
+  | Téléversement chez Apple | ✅ `(22) VALID`, téléversé le 2026-09-10 |
+  | **Attacher le (22) à la version 1.0 et RESOUMETTRE** | 🔴 **reste à faire** |
+
+  ⚠️ **À la resoumission, le piège du 03/09** : les deux produits `_early` partent
+  (`READY_FOR_REVIEW`), les deux du palier standard restent dehors
+  (`DEVELOPER_REJECTED`). Les recocher rejouerait le rejet `2.1(b)` — produits créés
+  chez Apple, absents du binaire.
+
+  ✅ **CE QUI A ÉTÉ VÉRIFIÉ DANS L'IPA (22), et c'est la seule preuve qui compte** —
+  le relecteur ouvre le binaire, pas le dépôt. IPA téléchargée, dézippée,
+  `strings -a Payload/Kyroz.app/main.jsbundle` :
+  · les **7 DOI + le lien ANSES** : 8/8 présents (ASCII pur, donc lisibles tels quels) ;
+  · `FULL_NAME`, `AppleAuthenticationScope`, `app_metadata`, `providers` : présents ;
+  · « Renseigné par ton compte Apple » : présent (cherché en **UTF-16**) ;
+  · « reportées sur tes jours » (le paragraphe retiré) : **0** ;
+  · **et la sonde sait dire NON** : un faux DOI rend 0. Sans ce témoin, huit « 1 » ne
+    prouveraient rien.
+  ⚠️ **Piège d'encodage rencontré** : mon premier témoin de contrôle était faux —
+  « reportées » porte un accent, donc Hermes range la chaîne en UTF-16 et `strings`
+  rend 0 **quoi qu'il arrive**. Refait dans le bon encodage, avec un témoin POSITIF du
+  même encodage pour prouver que la mesure fonctionne. CLAUDE.md §2 le disait déjà ;
+  je l'ai quand même commis.
+
+  🔴 **LE (21) A ÉTÉ ANNULÉ et son numéro est CONSOMMÉ** — `autoIncrement` s'incrémente
+  à la CRÉATION. Aucun (21) valide n'existera jamais ; chercher un « (21) » sur
+  TestFlight ferait perdre du temps.
+
+  🔴 **LA LIGNE OTA VERS LE (20) EST COUPÉE depuis #249** (`"mesure:instructions"`
+  ajouté aux `scripts` de `package.json`). Le (22) rouvre la ligne sur `823c89db…`
+  **une fois distribué**. Détail et méthode de lecture : CLAUDE.md §2.
+
+  ⚠️ **Le pré-vol se refait à chaque build** : quatre PR ont été mergées par d'autres
+  sessions pendant ce chantier, et cinq worktrees étaient actifs. Celui du (22) était
+  vert sur six points (arbre propre · `HEAD == origin/main` · 0 PR en vol · `tsc` ·
+  2222/2222 · empreinte mesurée), et le contrôle d'APRÈS-build l'a confirmé :
+  `origin/main` valait toujours `2529c2c` à la sortie.
 
 ### 🍽 D — Catalogue
 

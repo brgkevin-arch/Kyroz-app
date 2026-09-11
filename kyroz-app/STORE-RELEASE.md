@@ -1531,6 +1531,24 @@ Apple, affiché SOUS le titre avant le « en savoir plus », **manquait à cette
 > venait de faire. Le champ manquant était `socialMediaAgeRestricted`, resté **nul**
 > après mon premier envoi parce que je ne l'avais pas listé : le PATCH avait réussi sans
 > le réclamer. **Un lot accepté ne prouve pas qu'il était complet.**
+>
+> 🔴 **Correction du 2026-09-10 : ils sont TROIS, et le troisième est celui qui bloque
+> une réponse à un rejet — la RESOLUTION CENTER.** Aucun point d'entrée de l'API ne
+> permet de lire le message d'App Review, d'y répondre, ni d'y joindre un fichier. C'est
+> le seul geste de tout le dossier de sortie qui ne peut être ni posé ni **vérifié** par
+> ce dépôt : quand Apple écrit *« reply to this message »*, la réponse part à la main.
+> ➡️ Corollaire de méthode : tout ce qui se prépare pour ce fil (texte, capture) doit
+> vivre ÉCRIT dans le dépôt, prêt à coller — c'est le seul relais possible.
+>
+> ✅ **Ce que l'API sait faire, et qui n'était pas écrit** : la **description** et les
+> **notes de revue** s'écrivent et se RELISENT (`appStoreVersionLocalizations`,
+> `appStoreReviewDetails`), le champ **EULA** se lit
+> (`GET /v1/apps/{id}/endUserLicenseAgreement` → `data: null` = aucun EULA personnalisé),
+> et les **prix par territoire** se lisent
+> (`GET /v1/subscriptions/{id}/prices?include=subscriptionPricePoint,territory`).
+> ⚠️ **Toujours RELIRE après avoir écrit** : un `200` dit que la requête est passée, pas
+> ce qui est en base. Les deux écritures du 2026-09-10 ont été relues, et c'est cette
+> relecture qui a servi de preuve, pas le code de retour.
 
 | Élément | Valeur posée | Mesure |
 |---|---|---|
@@ -1546,7 +1564,7 @@ Apple, affiché SOUS le titre avant le « en savoir plus », **manquait à cette
 | Droits de contenu | `USES_THIRD_PARTY_CONTENT` | Ciqual/ANSES sous Licence Ouverte 2.0 |
 | Prix de l'app | **gratuite**, territoire de base France | — |
 | Disponibilité | **175 territoires** + les nouveaux | — |
-| Build attaché | le **(8)**, `VALID` | — |
+| Build attaché | le **(8)**, `VALID` | — *(le (20) aujourd'hui — cf. §11-bis)* |
 | Notes de revue | 3 952 caractères | §11 |
 | 🔴 Mot de passe de démo | **VIDE** | seul champ restant |
 
@@ -2378,6 +2396,144 @@ filtre avait l'air de marcher et rendait un produit de trop.
 de §11 ci-dessus — il porte désormais les deux liens, et le chemin vers les sources y
 est celui d'aujourd'hui. Ce qu'il a fallu retrancher pour tenir sous les 4 000 est
 détaillé sous ce bloc.
+
+---
+
+## 11-ter. Lire un rejet Apple — la méthode, tirée de trois motifs le même jour
+
+> **À lire AVANT d'ouvrir un correctif**, quel que soit le motif. Écrit le 2026-09-10,
+> après un rejet à trois motifs où **le diagnostic évident était faux sur les trois**.
+
+🔴 **Un rejet est rédigé par quelqu'un qui a constaté un SYMPTÔME, pas diagnostiqué une
+cause.** Le lire comme un diagnostic fait ajouter ce qui existe déjà, et laisse le vrai
+trou ouvert — donc un second rejet, sur le même numéro de guideline.
+
+| Motif reçu | La lecture naturelle | Ce que la mesure a dit |
+|---|---|---|
+| `3.1.2(c)` « pas de lien Terms of Use » | il manque le prix / la durée / les liens | **tout était présent** sur la fiche vivante ; c'est la **nature** du lien qui cloche |
+| `1.4.1` « pas de citations » | il manque des sources | **les 9 étaient là**, exactes — et le test qui les gardait était **VERT** |
+| `4` « redemande le nom » | retirer l'étape prénom | il fallait **trois** gestes, dont un que le premier essai ne peut pas révéler |
+
+**Les quatre questions à poser, dans cet ordre :**
+
+1. **Est-ce vraiment ABSENT ?** Mesurer l'état RÉEL avant d'écrire une ligne. La fiche se
+   relit **chez Apple**, jamais dans le dépôt qui la recopie (§3-bis) — ce dossier
+   annonçait une description périmée depuis treize jours.
+2. **Si c'est présent, est-ce la bonne FORME ?** L'EULA est le cas d'école : Apple n'en
+   admet que **deux** — le standard, lien dans la description ; ou un personnalisé,
+   déclaré dans App Store Connect. Lier ses PROPRES CGU dans la description n'est **ni
+   l'une ni l'autre**. Le lien répondait 200, la page portait bien les CGU, et c'est
+   refusé quand même.
+3. **Que voit un relecteur qui RECOMMENCE ?** Beaucoup de correctifs ne se vérifient
+   qu'au deuxième passage : Sign in with Apple ne rend le nom qu'à la première
+   autorisation, un compte ancien n'est pas servi comme un compte neuf. **Refaire le
+   geste deux fois** (CLAUDE.md §11).
+4. **Mon contrôle mesure-t-il vraiment CE point ?** Le test des citations était vert et
+   honnête : il comptait la complétude, jamais l'accessibilité. *La moitié qu'on n'a pas
+   pensé à compter se déclare tenue toute seule.*
+
+⚠️ **Et une fois le correctif écrit, se demander où il ATTERRIT** : dans le binaire (le
+relecteur ouvre l'app une fois, une OTA ne s'applique qu'au lancement suivant) ou dans la
+fiche (qui se change seule, sans build ni revue). Les deux ne coûtent pas le même délai,
+et les confondre fait attendre un build pour une métadonnée — ou l'inverse, ce qui est
+pire.
+
+---
+
+## 11-quater. Téléverser un binaire — ce que `eas submit` fait vraiment
+
+> Écrit le 2026-09-10, après 42 minutes perdues sur un faux diagnostic.
+
+🔴 **`eas submit` PLANIFIE LE TRAVAIL CHEZ EAS.** Le processus local n'a **aucune socket
+ouverte**, **aucun CPU** (4,6 s en 42 min), et sa boucle d'événements dort. Sur un
+travail LOCAL, ces trois signaux prouvent un blocage. Ici ils décrivent un client qui
+attend correctement.
+
+| Question | Travail LOCAL | Travail DISTANT |
+|---|---|---|
+| Le processus vit-il ? | `ps -o pid,etime,time` | ne dit rien |
+| Travaille-t-il ? | CPU **cumulé** | ne dit rien |
+| Réseau ? | `lsof -p <pid> -a -i -n` | ne dit rien |
+| **Le seul juge** | — | **`npx eas-cli submit:list --platform ios`** |
+
+⚠️ **Interroger le BON objet** : `build.submissions` rend `[]` même quand une soumission
+tourne. J'en ai conclu qu'aucune n'existait, alors qu'elle était `IN_QUEUE`.
+*Un champ vide n'est une absence que si c'est le champ qui la porte.*
+
+⚠️ **Ce que l'erreur coûte** : tuer puis relancer crée une **seconde soumission du même
+binaire**. Rattrapable — **`eas submit:cancel <id>` existe**.
+
+🔴 **ET LA CAUSE PREMIÈRE ÉTAIT UN PIPE.** La commande tournait dans `… 2>&1 | tail -40`,
+et **`tail` ne rend rien avant la fin** : zéro octet lisible pendant 42 minutes, puis le
+message parti avec le processus tué — on ne saura jamais ce qu'il disait. ➡️ **Une
+commande longue se redirige vers un FICHIER**, qui se lit au fur et à mesure. La relance
+sans `tail` a affiché en trois secondes ce que le silence cachait.
+
+ℹ️ **Avertissement normal, sans conséquence pour une revue** :
+*« App Store Connect credentials are incomplete, skipping TestFlight setup »* — le
+binaire part ; seuls les groupes de testeurs ne sont pas configurés.
+
+⚠️ **Et « téléversé » n'est pas « traité »** : le (22) a mis quelques minutes à passer
+`VALID` côté Apple après la fin de la soumission. La mesure qui tranche est
+`GET /v1/builds?filter[app]={id}&sort=-uploadedDate`, chez Apple — pas l'état EAS.
+
+### Vérifier qu'un correctif est DANS le binaire
+
+Le relecteur ouvre l'IPA, pas le dépôt.
+
+```
+curl -sSL -o app.ipa "<artifacts.applicationArchiveUrl>"   # eas build:list --json
+unzip -q app.ipa -d x
+strings -a x/Payload/*.app/main.jsbundle | grep -c "<témoin>"
+```
+
+⚠️ **Le témoin doit être ASCII de bout en bout** — Hermes range en **UTF-16** toute
+chaîne portant un seul accent, donc `strings` rend 0 sur une phrase française, et ce 0
+se lit comme une absence. Pour un texte accentué, compter les octets en `utf-16le`
+**et** `utf-16be`.
+🔴 **Toujours un témoin qui doit valoir ZÉRO.** Sans lui, une série de « 1 » ne prouve
+pas que la sonde sait dire non.
+
+## 11-quinquies. Renvoyer en revue — les trois mesures qui tranchent
+
+> Écrit le 2026-09-10, après avoir renvoyé le (22) et vérifié ce qui était vraiment parti.
+
+Téléverser n'est pas soumettre, et attacher n'est pas soumettre non plus. **Trois gestes
+distincts**, et seul le dernier met la version devant un relecteur.
+
+| Ce qu'on veut savoir | Où ça se lit | Ce qu'on doit voir |
+|---|---|---|
+| La version est-elle partie ? | `GET /v1/apps/{id}/appStoreVersions?limit=1` | `appStoreState` = `WAITING_FOR_REVIEW` |
+| Avec quel binaire ? | `GET /v1/appStoreVersions/{id}/build` | le bon `version` |
+| Avec quels achats ? | l'`state` de **chaque abonnement** | `WAITING_FOR_REVIEW` pour ceux qui partent, `READY_TO_SUBMIT` pour ceux qui restent |
+
+🔴 **NE PAS CHERCHER LES ACHATS DANS `reviewSubmissions/{id}/items`.** Ces objets n'ont ni
+attribut nommé ni relation exploitable — `include=subscription` répond
+`400 « 'subscription' is not a valid relationship name »` — et leur id en base64 se
+décode en `<soumission>|<code>|<id INTERNE>`, lequel rend `404` sur
+`/v1/subscriptions/{id}`. J'ai bâti un recoupement là-dessus : **quatre lignes fausses**,
+et surtout un **« 0 abonnement interdit parti »** qui était zéro faute d'avoir résolu quoi
+que ce soit. *Un contrôle qui ne résout rien rend zéro, et ce zéro rassure.*
+
+🔴 **Un abonnement rejeté par le développeur peut redevenir cochable.** Les deux du palier
+standard, notés `DEVELOPER_REJECTED` dans la procédure du 10/09, étaient repassés à
+`READY_TO_SUBMIT` au moment de soumettre — donc **proposés, pas grisés**. Le garde-fou
+n'était pas chez Apple, il était dans l'attention du fondateur.
+➡️ La preuve qui ne bouge pas est **dans le binaire** : compter les identifiants produits
+dans le bytecode, en excluant le piège du préfixe (`kyroz_plus_monthly` est contenu dans
+`kyroz_plus_monthly_early` — un `grep` naïf en trouve un là où il n'y en a pas).
+
+🕐 **Les dates de l'API sont en heure du PACIFIQUE.** `uploadedDate` vaut
+`2026-09-10T09:19:07-07:00` : tronquer la chaîne jette le fuseau et **décale de neuf
+heures**. Passer la chaîne entière à `new Date()` et afficher en `Europe/Paris`.
+
+⚠️ **`eas submit:list` n'existe pas sur le `eas` installé globalement** (23.x au
+2026-09-10) : il répond `Error: command submit:list not found`, ce qui se lit comme « la
+doc ment ». Il faut **`npx eas-cli submit:list --platform ios`**. Utile pour recouper :
+la soumission du (22) s'est terminée à 18 h 18, le build est passé `VALID` chez Apple à
+18 h 19 — deux sources indépendantes, une minute d'écart.
+
+---
 
 *Playbook préparé le 2026-07-17. Config technique prête ; le chemin critique = le bac à
 sable (`docs/procedures/PROCEDURE-2026-08-27-bac-a-sable.md`), les captures à juger, et la fiche à

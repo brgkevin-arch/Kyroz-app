@@ -1,4 +1,4 @@
-# Rejet Apple du 2026-09-10 (build 20) — ce qui reste à faire à la main
+# Rejet Apple du 2026-09-10 (build 20) — ✅ CLOS, renvoyé en revue le 2026-09-10
 
 > **Une étape à la fois.** Chaque étape se termine par *« ce que tu dois voir »* : tant
 > que tu ne le vois pas, on ne passe pas à la suivante. Reviens me dire ce que tu as vu,
@@ -11,9 +11,13 @@ Trois motifs. **Les deux premiers sont corrigés dans le code** (PR #252, mergé
 n'attendent qu'un binaire ; le troisième ne se corrigeait pas dans le dépôt du tout —
 c'est une **métadonnée**, et elle est **posée depuis le 2026-09-10**.
 
-> ✅ **ÉTAPES 1 ET 2 FAITES.** Voie A tranchée par le fondateur ; description et notes
-> de revue écrites par l'API et **relues après écriture**. Il reste les étapes 3 et 4 :
-> un build, puis la réponse au relecteur avec sa capture vidéo.
+> ✅ **LES CINQ ÉTAPES SONT FAITES. RIEN N'ATTEND PLUS PERSONNE.**
+> Voie A tranchée ; description et notes écrites par l'API et relues ; capture tournée
+> et envoyée par le fondateur dans la Resolution Center ; **build (22) compilé, vérifié
+> DANS SON IPA, téléversé et `VALID` chez Apple** ; (22) attaché à la version 1.0 et
+> **renvoyé en revue le 2026-09-10 à 19 h 58** (heure de Paris).
+> ➡️ **La balle est chez Apple.** Ce fichier n'est plus une carte, c'est une trace :
+> il part à l'archive dès le verdict rendu.
 
 | Motif | Nature | Où ça se règle |
 |---|---|---|
@@ -148,29 +152,56 @@ https://kyroz.app/legal.html
 
 ---
 
-## Étape 3 — un build, et il en faut un
+## ✅ Étape 3 — le build (22) est fait, vérifié et téléversé
 
-Les motifs **4** et **1.4.1** sont corrigés dans le code, mais **le relecteur ouvre le
-binaire, pas le dépôt** — une OTA ne l'atteint pas (il lance l'app une fois, et une mise
-à jour ne s'applique qu'au lancement **suivant**).
+| | |
+|---|---|
+| Build | **(22)** · `FINISHED` · commit `2529c2c` · runtime `823c89db…` |
+| Pré-vol | vert sur six points ; **et le contrôle d'APRÈS-build** a confirmé que `origin/main` valait toujours `2529c2c` — le binaire n'est pas né périmé |
+| Correctifs dans l'IPA | ✅ vérifiés (voir ci-dessous) |
+| Chez Apple | **`(22) VALID`**, téléversé le 2026-09-10 |
 
-✅ **L'EMPREINTE A ÉTÉ MESURÉE, PAS SUPPOSÉE** (2026-09-10, sur la branche du
-correctif) : `npx expo-updates fingerprint:generate --platform ios` → **85 sources**,
-`5118d1bd3d6a59cda2c64aa4cf96012498945c5c`. Les 9 sources hors `node_modules` sont
-`.gitignore`, `eas.json`, `assets/icon.png`, `assets/splash-icon.png`,
-`expoAutolinkingConfig:ios`, `expoConfig`, `package:react-native`,
-`packageJson:scripts`, `rncoreAutolinkingConfig:ios` — **et ce chantier n'en touche
-aucune** (que des `.ts`, `.tsx` et `.md`).
-➡️ **La ligne OTA vers le (20) reste donc ouverte**, et ces correctifs sont publiables en
-OTA pour le parc existant. ⚠️ **Ça ne remplace PAS le build pour la revue** : le
-relecteur ouvre l'app une fois, il voit le JS EMBARQUÉ.
-⚠️ Refaire la mesure juste avant `eas build` quand même : `eas.json`, `app.json` et les
-`scripts` de `package.json` ont déjà coupé cette ligne trois fois, et une autre session
-peut avoir mergé entre-temps.
+🔴 **LE (21) A ÉTÉ ANNULÉ ET SON NUMÉRO EST CONSOMMÉ** — `autoIncrement` s'incrémente à
+la CRÉATION. Aucun (21) valide n'existera jamais.
+
+### La vérification qui compte : DANS l'IPA, pas dans le dépôt
+
+Le relecteur ouvre le binaire. Recette employée :
+
+```
+curl -sSL -o app.ipa "<artifacts.applicationArchiveUrl>"     # eas build:list --json
+unzip -q app.ipa -d x
+strings -a x/Payload/Kyroz.app/main.jsbundle | grep -c "<témoin>"
+```
+
+| Témoin | Attendu | Trouvé |
+|---|---|---|
+| les 7 DOI + `ciqual.anses.fr` | présents | **8 / 8** |
+| `FULL_NAME`, `AppleAuthenticationScope` | présents | ✅ |
+| `app_metadata`, `providers` | présents | ✅ |
+| « Renseigné par ton compte Apple » *(UTF-16)* | présent | ✅ |
+| « reportées sur tes jours » *(paragraphe retiré)* | **absent** | **0** |
+| un faux DOI | **absent** | **0** — la sonde sait dire non |
+
+⚠️ **Piège d'encodage, commis puis corrigé** : Hermes range en **UTF-16** toute chaîne
+portant un seul accent. `strings` rend donc 0 sur « reportées sur tes jours » **quoi
+qu'il arrive** — un témoin de contrôle qui ne prouve rien. Refait en `utf-16le`/`be`,
+avec un témoin POSITIF du même encodage pour prouver que la mesure fonctionne.
+
+### Le téléversement — 42 minutes perdues sur un faux diagnostic
+
+`eas submit` **planifie le travail chez EAS** : le processus local n'a ni socket ni CPU,
+et ressemble trait pour trait à un processus mort. Il ne l'était pas — la soumission
+`27e64181` était `IN_QUEUE`, et elle a fini. En la croyant morte, j'ai tué et relancé,
+donc créé un **doublon** (`8dd07372`, annulé depuis avec `eas submit:cancel`).
+➡️ Le seul juge d'un travail distant est `npx eas-cli submit:list --platform ios` —
+**pas** `build.submissions`, qui rend `[]` même quand une soumission tourne.
+➡️ Et ne jamais canaliser une commande longue dans `tail` : il ne rend rien avant la
+fin. Détail : CLAUDE.md §11.
 
 ---
 
-## Étape 4 — répondre au relecteur ✅ la capture est FAITE, reste à l'envoyer
+## ✅ Étape 4 — la réponse et la capture sont ENVOYÉES (2026-09-10)
 
 **Tournée le 2026-09-10 à 15 h 56** — 40 s, iPhone, build (20), un seul plan continu.
 Vérifiée image par image : les deux formules avec titre, durée et prix (plus le prix par
@@ -182,7 +213,7 @@ aboutit**, puis l'écran une fois le droit accordé.
 ✅ Les prix en dollars ne sont pas un défaut : mêmes paliers Apple, autre territoire —
 la démonstration et le paragraphe d'explication sont dans `STORE-RELEASE.md` §11-bis.
 
-### 🧑 Ce qui reste, et c'est à toi — je ne peux pas le faire
+### ✅ Envoyé par le fondateur — et c'est le seul geste que l'API ne permet pas
 
 **La Resolution Center n'existe pas dans l'API App Store Connect.** Aucun point d'entrée
 ne permet de lire le message d'Apple ni d'y répondre : c'est le seul geste de ce dossier
@@ -210,3 +241,52 @@ note.
 
 *(La seconde phrase est faite : les liens sont dans les notes depuis le 2026-09-10.
 La première attend ton envoi ci-dessus.)*
+
+---
+
+## ✅ Étape 5 — le (22) est attaché et renvoyé en revue (2026-09-10)
+
+Fait par le fondateur dans la console, le dernier geste du dossier.
+
+1. App Store Connect → l'app → version **1.0** → section **Build** → choisir le **(22)**.
+2. Vérifier les abonnements joints à la soumission :
+
+   | Produit | Doit | Mesuré après envoi |
+   |---|---|---|
+   | `kyroz_plus_monthly_early` · `kyroz_plus_yearly_early` | **partir** | ✅ `WAITING_FOR_REVIEW` |
+   | `kyroz_plus_monthly` · `kyroz_plus_yearly` | **rester dehors** | ✅ `READY_TO_SUBMIT` |
+
+   🔴 Les recocher rejouerait le rejet `2.1(b)` du 03/09 — produits créés chez Apple,
+   **absents du binaire**. Un abonnement configuré ne se supprime jamais : ils resteront
+   là, à ne pas cocher, indéfiniment.
+
+   🔴 **ET CETTE LIGNE ANNONÇAIT `DEVELOPER_REJECTED` POUR LES DEUX DU BAS — C'ÉTAIT
+   PÉRIMÉ**, mesuré le 2026-09-10 juste avant l'envoi : ils étaient repassés à
+   `READY_TO_SUBMIT`, donc **proposés à la coche, pas grisés**. Le conseil ne change pas,
+   le danger si : je le croyais rendu impossible par Apple, il ne tenait qu'à un clic.
+   ➡️ *Ne jamais déduire « c'est verrouillé » de l'état d'hier.* Le binaire, lui, ne
+   connaît QUE les deux `_early` — comptage strict dans le bytecode du (22), en excluant
+   le piège du préfixe (`kyroz_plus_monthly` est contenu dans `kyroz_plus_monthly_early`) :
+   0 occurrence pour chacun des deux du palier standard.
+3. **Envoyer pour vérification.**
+
+> **Ce que tu dois voir** : la version en `WAITING_FOR_REVIEW`, avec le build (22).
+
+### ✅ Ce qui a été vu, et mesuré par l'API (2026-09-10, 19 h 58, heure de Paris)
+
+| | |
+|---|---|
+| version 1.0 | `WAITING_FOR_REVIEW` |
+| build attaché | **(22)** — commit `2529c2c`, runtime `823c89db…` |
+| soumission | `fddc0394-b69a-41c5-b2cd-0edc471eb610` |
+| abonnements partis | les deux `_early`, et eux seuls |
+
+⚠️ **Le contenu d'une soumission ne se lit PAS dans ses `items`.** Ils n'ont ni attribut
+nommé ni relation exploitable (`include=subscription` → `400 'subscription' is not a
+valid relationship name`), et leur id en base64 se décode en `<soumission>|<code>|<id
+INTERNE>` — cet id rend `404` sur `/v1/subscriptions/{id}`. J'ai bâti un recoupement sur
+cette hypothèse et il a rendu **quatre lignes fausses**, dont deux rassurantes.
+➡️ **Le juge est le champ `state` de l'abonnement lui-même.** Cf. `CLAUDE.md` §11.
+
+⚠️ **L'API sait attacher la version à une soumission, pas les abonnements** — le chemin
+console est obligatoire pour l'étape 2 (`STORE-RELEASE.md` §3-bis).
