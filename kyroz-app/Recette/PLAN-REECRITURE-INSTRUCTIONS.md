@@ -2,7 +2,8 @@
 
 > Ce document tient tout seul. Une session qui l'ouvre sans rien savoir du chantier doit
 > pouvoir livrer le lot suivant sans reposer une question.
-> Ouvert le 2026-09-09. **L1, L2 et L3 livrés, L4 → L6 à faire.**
+> Ouvert le 2026-09-09. **L1 à L4 livrés. Plus aucune recette muette n'arrive dans une
+> assiette.** Restent L5 et L6, les 55 recettes que le moteur ne sert jamais.
 
 ---
 
@@ -233,7 +234,17 @@ exceptions existent déjà.
 ⚠️ `col09` est le cas « dinde crue » du §4.5. `rep20` est un poke : trancher cru ou cuit,
 comme `rep74`.
 
-### L4 — la fin des recettes servies (24 recettes, ≈ 49 repas muets)
+### L4 — LIVRÉ le 2026-09-11 (19 recettes)
+
+Solde : 74 → **55** muettes, et surtout **0 repas muet sur 6 720**. Le chantier a atteint son
+but pour l'utilisateur : plus aucune recette servie par le moteur ne demande une cuisson sans
+l'expliquer. Les 55 restantes ne sont jamais servies.
+Le lot annonçait 24 recettes : cinq avaient déjà été soldées par les lots voisins (`col09`,
+`rep47`, `rep130`, `rep140`, `rep19`) ou par le chantier des ingrédients fantômes.
+⚠️ `rep79` et `rep77` annonçaient 18 et 22 minutes pour un riz complet qui en prend 25 :
+`temps_min` → 30.
+⚠️ En réécrivant `rep47` j'ai réintroduit le mot « bouillon » que la PR #248 venait d'en
+retirer. C'est le contrôle des denrées citées qui l'a vu. Écrire « l'eau frémissante ».
 
 `rep19` `rep79` `rep97` `rep48` `rep130` `rep113` `rep117` `rep33` `pd13` `rep77`
 `rep120` `rep94` `rep123` `rep96` `rep78` `rep140` `rep62` `rep73` `rep46` `rep139`
