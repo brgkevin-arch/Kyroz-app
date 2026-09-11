@@ -3262,7 +3262,7 @@
     },
     {
       "id": "col11",
-      "name": "Shake récup riz – whey – miel",
+      "name": "Shake récup avoine – whey – miel",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -5105,9 +5105,11 @@
         }
       ],
       "instructions": [
-        "Marine le poulet dans yaourt + épices.",
-        "Saisis 8 min.",
-        "Sers avec sauce tomate et riz."
+        "Mélange le yaourt grec avec du sel, du poivre et des épices tikka, enrobe-en le poulet coupé en cubes et laisse mariner 10 minutes : l'acidité du yaourt attendrit la chair.",
+        "Rince le riz basmati jusqu'à ce que l'eau soit claire, puis fais-le cuire 11 minutes dans un grand volume d'eau salée et égoutte-le.",
+        "Fais chauffer l'huile d'olive à feu vif et saisis les cubes de poulet 8 minutes en les retournant à mi-cuisson : ils doivent être dorés dehors et blancs à cœur.",
+        "Verse la tomate concassée dans la poêle, gratte les sucs avec la cuillère et laisse réduire 5 minutes à feu moyen, jusqu'à ce que la sauce nappe le poulet.",
+        "Sers le poulet et sa sauce sur le riz égoutté."
       ],
       "why": "Muscu prise de masse : épicé, protéiné, glucides pour la performance.",
       "macros_per_serving": {
@@ -12630,7 +12632,7 @@
     },
     {
       "id": "rep104",
-      "name": "Curry pois chiches – patate – riz",
+      "name": "Curry pois chiches – patate douce – lait de coco",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -13542,7 +13544,8 @@
         "Préchauffe le four à 210 °C.",
         "Couvre la protéine de soja texturée d'eau bouillante salée, laisse-la gonfler 5 minutes puis presse-la pour l'essorer.",
         "Égoutte et rince les pois chiches, puis sèche-les bien dans un torchon : c'est ce qui fait tenir les falafels.",
-        "Mixe les pois chiches avec la protéine de soja, du sel, du poivre et du cumin, jusqu'à obtenir une pâte grossière qui se tient à la main.",
+        "Mets 55 g de pois chiches de côté et écrase-les à la fourchette avec un filet d'huile d'olive, du sel, du poivre et du jus de citron, jusqu'à obtenir une pâte épaisse : c'est le houmous du wrap.",
+        "Mixe le reste des pois chiches avec la protéine de soja, du sel, du poivre et du cumin, jusqu'à obtenir une pâte grossière qui se tient à la main.",
         "Forme des boulettes de la taille d'une noix, étale-les sur une plaque, badigeonne-les d'huile d'olive et enfourne 12 minutes : elles doivent être dorées et fermes.",
         "Passe la tortilla 20 secondes à la poêle chaude pour l'assouplir, garnis-la de houmous, des falafels écrasés du plat de la main et de la salade, puis roule fermement."
       ],
@@ -21848,7 +21851,7 @@
     },
     {
       "id": "rep194",
-      "name": "Semoule au bœuf, carottes et pois chiches grillés",
+      "name": "Semoule au bœuf, carottes et petits pois",
       "category": "repas_complet",
       "tags": {
         "objectif": [
