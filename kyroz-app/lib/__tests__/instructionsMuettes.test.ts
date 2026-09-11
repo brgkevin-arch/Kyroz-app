@@ -40,9 +40,32 @@ import {
  *              ⚠️ Un cliquet ne se resserre pas tout seul : le laisser à 119 rendait
  *              5 points de mou à la prochaine vague, qui aurait pu rajouter cinq
  *              recettes muettes sans faire rougir un test.
- *   Le reste est planifié par lots dans `Recette/PLAN-REECRITURE-INSTRUCTIONS.md`.
+ *   114 → 94   lot L2 (2026-09-11) : les 20 muettes les plus SERVIES restantes, réécrites
+ *              au format B1-B9. La part de repas servis par une recette muette tombe de
+ *              5,2 % à **2,2 %** (352 repas sur 6 720 → 145). `rep82` annonçait 18 minutes
+ *              pour un riz complet qui en prend 25 : `temps_min` corrigé à 30, la durée
+ *              n'a pas été rabotée.
+ *   94 → 74   lot L3 (2026-09-11) : les 20 muettes servies suivantes. Deux décisions de
+ *              fond, pas de rédaction : `rep20` (poke) suit le précédent de `rep74` et
+ *              SAISIT son saumon au lieu de le servir cru, et `pd76` annonçait 15 minutes
+ *              pour une polenta qui doit prendre 20 minutes avant d'être grillée
+ *              (`temps_min` → 30, comme `rep80` → 30 pour son riz complet).
+ *   74 → 55   lot L4 (2026-09-11) : les 19 dernières muettes que le moteur SERT.
+ *              **Plus une seule recette muette parmi celles qui arrivent dans une
+ *              assiette** : 0 repas muet sur 6 720. Les 55 qui restent ne sont jamais
+ *              servies (L5/L6). `rep79` et `rep77` annonçaient 18 et 22 minutes pour un
+ *              riz complet qui en prend 25 : `temps_min` → 30.
+ *   55 → 0    lots L5 et L6 FUSIONNÉS et livrés (2026-09-11) : les 55 recettes que le
+ *              moteur ne sert jamais. Le découpage en deux lots était une précaution
+ *              prise quand l'effort était inconnu, pas une contrainte.
+ *
+ * ⚠️ LE CLIQUET VAUT DÉSORMAIS ZÉRO, et ce n'est plus un cliquet : c'est une RÈGLE.
+ * Aucune recette du catalogue ne demande une cuisson sans en donner le moindre repère.
+ * Toute recette ajoutée ou modifiée qui en introduirait une fait échouer la suite —
+ * il n'y a plus de mou à consommer, et c'est le but. Si un jour ce plafond doit
+ * remonter, c'est que quelque chose a été livré à moitié.
  */
-const MUETTES_MAX = 114;
+const MUETTES_MAX = 0;
 
 const muettes = RAW_RECIPES.filter((r) => estMuette(r, RECIPE_INGREDIENTS));
 

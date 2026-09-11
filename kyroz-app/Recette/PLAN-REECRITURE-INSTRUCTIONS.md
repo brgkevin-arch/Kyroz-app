@@ -2,7 +2,9 @@
 
 > Ce document tient tout seul. Une session qui l'ouvre sans rien savoir du chantier doit
 > pouvoir livrer le lot suivant sans reposer une question.
-> Ouvert le 2026-09-09. **L1 livré, L2 → L6 à faire.**
+> Ouvert le 2026-09-09, **CLOS le 2026-09-11**. Les six lots sont livrés : sur les
+> 516 recettes du catalogue, **plus une seule ne demande une cuisson sans l'expliquer**.
+> Ce document reste comme mémoire de la méthode et des pièges, pas comme une file d'attente.
 
 ---
 
@@ -200,7 +202,13 @@ figées au 2026-09-09 ; `npm run mesure:instructions -- --liste` les régénère
 `rep129` `rep166` `rep76` `rep68` `rep137` `rep131` `rep128` `rep147` `pd58` `rep89`
 `rep60` `rep118` `pd67` `rep104` `rep150` `rep152` `rep41` `rep149` `rep74` `rep114`
 
-### L2 — les 20 suivantes (≈ 200 repas muets)
+### L2 — LIVRÉ le 2026-09-11 (20 recettes)
+
+Solde : 114 → **94** muettes ; la part de repas servis par une muette tombe de **5,2 % à 2,2 %**
+(352 repas sur 6 720 → 145). `rep82` annonçait 18 minutes pour un riz complet qui en prend 25 :
+`temps_min` corrigé à 30. ⚠️ `pd68` s'appelle « Pancakes banane – œuf – sans farine » : écrire
+« sans farine » dans une étape fait rougir le contrôle des denrées citées, à raison. Reformuler
+(« rien ne vient lier cette pâte »), ne pas ajouter d'exception.
 
 `rep162` `pd11` `pd68` `rep09` `rep91` `rep55` `rep42` `rep82` `rep71` `rep04`
 `rep85` `rep145` `rep81` `rep23` `rep102` `rep141` `rep124` `rep164` `rep161` `rep148`
@@ -208,7 +216,18 @@ figées au 2026-09-09 ; `npm run mesure:instructions -- --liste` les régénère
 ⚠️ `rep55` porte aussi un nom qui promet du sésame absent : ne pas en parler dans les
 instructions.
 
-### L3 — les 20 suivantes (≈ 110 repas muets)
+### L3 — LIVRÉ le 2026-09-11 (20 recettes)
+
+Solde : 94 → **74** muettes. Deux décisions de fond, pas de rédaction :
+`rep20` (poke) suit le précédent de `rep74` et **saisit** son saumon au lieu de le servir cru
+(le poisson du commerce n'est pas prévu pour être mangé cru), et `pd76` annonçait 15 minutes
+pour une polenta qui doit prendre 20 minutes avant d'être grillée → `temps_min` 30.
+⚠️ `col09` a disparu de la liste : l'étape de cuisson ajoutée en urgence (PR #251) l'a rendue
+non muette au passage.
+⚠️ Pour les galettes de sarrasin (`rep116`, `rep167`), écrire « une poudre fine » plutôt que
+« une farine » : le contrôle des denrées citées voit « farine » comme un produit acheté, et
+une reformulation vaut mieux qu'une exception. `pd66` et `pd67` gardent le mot, leurs
+exceptions existent déjà.
 
 `rep80` `rep110` `rep88` `rep125` `rep116` `pd52` `pd36` `pd66` `rep51` `rep50`
 `col09` `rep72` `rep167` `rep169` `pd77` `pd76` `rep106` `rep54` `rep65` `rep20`
@@ -216,7 +235,17 @@ instructions.
 ⚠️ `col09` est le cas « dinde crue » du §4.5. `rep20` est un poke : trancher cru ou cuit,
 comme `rep74`.
 
-### L4 — la fin des recettes servies (24 recettes, ≈ 49 repas muets)
+### L4 — LIVRÉ le 2026-09-11 (19 recettes)
+
+Solde : 74 → **55** muettes, et surtout **0 repas muet sur 6 720**. Le chantier a atteint son
+but pour l'utilisateur : plus aucune recette servie par le moteur ne demande une cuisson sans
+l'expliquer. Les 55 restantes ne sont jamais servies.
+Le lot annonçait 24 recettes : cinq avaient déjà été soldées par les lots voisins (`col09`,
+`rep47`, `rep130`, `rep140`, `rep19`) ou par le chantier des ingrédients fantômes.
+⚠️ `rep79` et `rep77` annonçaient 18 et 22 minutes pour un riz complet qui en prend 25 :
+`temps_min` → 30.
+⚠️ En réécrivant `rep47` j'ai réintroduit le mot « bouillon » que la PR #248 venait d'en
+retirer. C'est le contrôle des denrées citées qui l'a vu. Écrire « l'eau frémissante ».
 
 `rep19` `rep79` `rep97` `rep48` `rep130` `rep113` `rep117` `rep33` `pd13` `rep77`
 `rep120` `rep94` `rep123` `rep96` `rep78` `rep140` `rep62` `rep73` `rep46` `rep139`
@@ -225,48 +254,47 @@ comme `rep74`.
 ⚠️ `rep140` et `rep47` sont traitées en parallèle par le chantier « ingrédient fantôme »
 (bouillon, miso, vinaigre) : **vérifier l'état du catalogue avant de les toucher.**
 
-### L5 et L6 — les 55 jamais servies
+### L5 et L6 — LIVRÉS le 2026-09-11, fusionnés (55 recettes)
 
-Aucune urgence pour l'utilisateur : sur 240 semaines simulées, le moteur ne les sert jamais.
-Mais elles pèsent sur le vivier des régimes minoritaires et deviendraient servables si la
-sélection changeait. À traiter en deux lots d'environ 28, **après L4**, ou à considérer comme
-candidates à la suppression si `mesure:vivier` montre qu'elles n'apportent aucune famille.
+Solde : 55 → **0**. Le découpage en deux lots d'environ 28 était une précaution prise quand
+l'effort était inconnu ; une fois la méthode rodée sur L1 à L4, le second aller-retour ne
+payait plus rien.
 
-Liste : `npm run mesure:instructions -- --liste`, tout ce qui est à `0×`.
+Ces 55 recettes ne sont jamais servies par le moteur, donc leur réécriture ne change **rien**
+pour l'utilisateur aujourd'hui. Elle a été faite quand même, pour deux raisons : elles
+deviennent servables dès que la sélection bouge (un régime, un créneau, une vague de plus),
+et **tant qu'il en restait une, le garde-fou gardait du mou**.
+
+⚠️ Deux reformulations imposées par le contrôle des denrées citées, toutes deux justes :
+`rep47` où j'avais réintroduit « bouillon », et `rep83` où « c'est son sucre qui fait le
+liant » se lisait comme un sucre acheté. Écrire « l'eau frémissante » et « c'est ce qui fait
+le liant ».
+
+⚠️ `temps_min` corrigé partout où il mentait : `rep84` (15 → 30, riz complet), `rep18`
+(15 → 25, pommes de terre vapeur), `col38` (6 → 12, œuf dur). Avec les cinq cas des lots
+précédents, cela fait **huit recettes** dont le temps annoncé ne tenait pas la cuisson
+prescrite. Ce n'est pas une étourderie, c'est une habitude des vagues `fondation` et
+`2026-06-19-vegan`.
+
+### Le compteur, lot par lot
+
+| lot | muettes | repas muets sur 6 720 |
+|---|---|---|
+| départ (2026-09-09) | 139 | 1 053 (15,7 %) |
+| L1 | 119 | 359 |
+| L2 | 94 | 145 |
+| L3 | 74 | 36 |
+| L4 | 55 | **0** |
+| L5+L6 | **0** | 0 |
+
+⚠️ **`MUETTES_MAX` vaut désormais 0, et ce n'est plus un cliquet : c'est une règle.** Il n'y a
+plus de mou à consommer. Toute recette ajoutée qui n'expliquerait pas sa cuisson fait échouer
+la suite de tests.
 
 ---
 
-## 7. La procédure d'un lot
+## 8. Ce qui reste, et qui n'est pas ce chantier
 
-1. `npm run mesure:instructions -- --liste` → confirmer la liste et les compteurs.
-2. Lire les recettes visées avec leurs ingrédients (`ref`, `qty`, `basis`) et leur `temps_min`.
-3. Réécrire les instructions **par remplacement de chaînes ciblé** dans
-   `Recette/recettes-kyroz.json` (Python ou sed). **Jamais `json.dump` sur tout le
-   fichier** : le diff deviendrait illisible.
-4. Ne toucher **ni les ingrédients, ni les quantités, ni les macros**. Seul `temps_min`
-   bouge, et seulement quand il ment.
-5. `npx vitest run` depuis `kyroz-app/` — tout doit rester vert.
-6. `npm run mesure:instructions` → **descendre `MUETTES_MAX`** au nouveau constaté et
-   ajouter une ligne au journal des mouvements du test.
-7. Mettre à jour ce fichier : marquer le lot livré, avec sa date et son solde.
-
-### `ENGINE_VERSION` : NON, et voici pourquoi
-
-Réécrire des instructions **sans toucher aux ingrédients ni aux macros** ne bumpe pas
-`ENGINE_VERSION` (précédent du 2026-09-09, même famille que le renommage de la PR #247).
-Trois raisons :
-
-- rien ne change dans l'assiette : ni composition, ni macros, ni sélection ;
-- bumper **régénère la semaine de tout le monde**, suivi du jour compris, pour un
-  changement de texte ;
-- l'écran Plan **rafraîchit déjà** la copie de recette d'un plan en cache quand elle diffère
-  du catalogue (`sameRecipe` → `reAdaptMealRecipe`, `app/(tabs)/plan.tsx`). Le nouveau texte
-  arrive donc chez les utilisateurs existants sans régénérer quoi que ce soit.
-
-⚠️ **Ce troisième point a demandé une correction** (2026-09-09) : `sameRecipe` comparait le
-**nombre** d'étapes, pas leur texte. Une recette réécrite au même nombre d'étapes n'aurait
-jamais atteint un plan en cache — réécrite pour personne. La comparaison porte désormais sur
-le contenu.
-
-**En revanche, si un lot change une composition** (le cas « dinde crue » pourrait justifier
-d'ajouter un ingrédient), le bump redevient obligatoire, avec son entrée de changelog.
+- Les **27 tirets cadratins** qui subsistent dans les instructions des vagues B1-B9.
+- Les recettes dont le NOM promet autre chose que ce qu'elles servent : traité à part, avec
+  son propre garde-fou (`lib/__tests__/nomsHonnetes.test.ts`).

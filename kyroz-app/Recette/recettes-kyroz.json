@@ -1753,9 +1753,11 @@
         }
       ],
       "instructions": [
-        "Brouille les œufs à feu doux.",
-        "Toaste le pain, écrase l'avocat dessus.",
-        "Sers avec les épinards."
+        "Fais griller le pain complet jusqu'à ce qu'il soit ferme sous le doigt : mou, il s'effondre sous l'avocat.",
+        "Bats les œufs avec du sel et du poivre, verse-les dans une poêle froide et remue sans arrêt 3 minutes à feu doux : c'est la lenteur qui les rend crémeux.",
+        "Coupe le feu quand ils sont encore un peu coulants : ils finissent de prendre dans l'assiette.",
+        "Écrase l'avocat à la fourchette sur le pain grillé, avec du sel et du poivre.",
+        "Sers les œufs sur la tartine, avec les épinards crus à côté."
       ],
       "why": "Muscu maintien : bons lipides de l'avocat + protéines, équilibré pour un jour off.",
       "macros_per_serving": {
@@ -2138,10 +2140,11 @@
         }
       ],
       "instructions": [
-        "Fais tomber les épinards.",
-        "Verse blancs + 1 œuf.",
-        "Émiette la feta, plie.",
-        "Sers avec le pain complet grillé."
+        "Fais chauffer l'huile d'olive à feu moyen et fais tomber les épinards 2 minutes, jusqu'à ce qu'ils rendent leur eau et réduisent de moitié.",
+        "Bats les blancs d'œufs avec l'œuf entier, du sel et du poivre, puis verse-les sur les épinards.",
+        "Laisse prendre 3 minutes à feu doux sans remuer : les bords doivent se décoller quand tu inclines la poêle.",
+        "Émiette la feta sur une moitié, plie l'omelette et coupe le feu : la chaleur de la poêle finit de la cuire sans la dessécher.",
+        "Fais griller le pain complet et sers-le avec."
       ],
       "why": "Muscu/combats perte de gras : protéines maximales, calories basses pour le poids de catégorie.",
       "macros_per_serving": {
@@ -2275,10 +2278,11 @@
         }
       ],
       "instructions": [
-        "Cuis l'œuf brouillé et la dinde émincée.",
-        "Réchauffe la tortilla.",
-        "Garnis et roule.",
-        "Ajoute l'avocat en lamelles."
+        "Coupe l'escalope de dinde en lanières fines et fais-les cuire 6 minutes à la poêle à feu moyen, jusqu'à ce qu'elles soient blanches à cœur.",
+        "Ajoute le poivron en lamelles et laisse-le s'attendrir 4 minutes avec la dinde.",
+        "Bats les œufs avec du sel et du poivre, verse-les dans la poêle et remue sans arrêt 2 minutes à feu doux : c'est la lenteur qui les rend crémeux.",
+        "Passe la tortilla 20 secondes à la poêle chaude pour l'assouplir : elle roulera sans casser.",
+        "Garnis-la du mélange et de l'avocat en lamelles, replie les côtés et roule serré."
       ],
       "why": "Muscu/combats maintien : transportable, double source de protéines maigres.",
       "macros_per_serving": {
@@ -3262,7 +3266,7 @@
     },
     {
       "id": "col11",
-      "name": "Shake récup riz – whey – miel",
+      "name": "Shake récup avoine – whey – miel",
       "category": "collation",
       "tags": {
         "objectif": [
@@ -4044,9 +4048,11 @@
         }
       ],
       "instructions": [
-        "Cuis les nouilles.",
-        "Saisis le bœuf, réserve.",
-        "Sauté légumes + nouilles + bœuf."
+        "Fais cuire les nouilles complètes 8 minutes à l'eau bouillante salée, puis égoutte-les et rince-les à l'eau froide pour stopper la cuisson.",
+        "Fais chauffer la moitié de l'huile d'olive à feu très vif, ajoute le bœuf haché, écrase-le à la spatule et laisse-le colorer 5 minutes sans trop remuer : il doit brunir, pas bouillir.",
+        "Réserve le bœuf et verse le reste d'huile d'olive dans le wok.",
+        "Jette les légumes dans le wok brûlant et saute-les 5 minutes en remuant : ils doivent rester croquants.",
+        "Remets le bœuf et les nouilles, verse la sauce soja et mélange 1 minute à feu vif."
       ],
       "why": "Combats/muscu prise de masse : fer héminique et créatine du bœuf maigre.",
       "macros_per_serving": {
@@ -4173,9 +4179,11 @@
         }
       ],
       "instructions": [
-        "Cuis le boulgour.",
-        "Égoutte et rince les pois chiches, poêle-les avec les courgettes.",
-        "Cuis le cabillaud, arrose de citron."
+        "Rince le boulgour, verse-le dans une fois et demie son volume d'eau bouillante salée, couvre et laisse cuire 10 minutes à feu doux, puis égrène-le à la fourchette.",
+        "Coupe les courgettes en rondelles épaisses et fais-les dorer 8 minutes à feu vif dans la moitié de l'huile d'olive, sans les remuer sans arrêt.",
+        "Égoutte et rince les pois chiches, ajoute-les aux courgettes avec du sel, du poivre et du cumin, et laisse-les croustiller 3 minutes.",
+        "Sèche le cabillaud avec du papier absorbant, puis fais-le cuire 8 minutes dans le reste d'huile à feu moyen, 4 minutes par face : sa chair doit se détacher en lamelles.",
+        "Arrose-le de jus de citron hors du feu et sers-le sur le boulgour, avec les légumes."
       ],
       "why": "Endurance/combats perte de gras : meilleur profil recomp, poisson maigre + légumineuse.",
       "macros_per_serving": {
@@ -4350,9 +4358,11 @@
         }
       ],
       "instructions": [
-        "Cuis le riz complet.",
-        "Saisis le poulet épicé.",
-        "Dresse en bowl avec avocat et maïs."
+        "Rince le riz complet, puis fais-le cuire 25 minutes à couvert et à feu doux dans deux fois et demie son volume d'eau salée.",
+        "Coupe le poulet en lanières et frotte-les de sel, de poivre, de paprika et de cumin.",
+        "Fais-les saisir 8 minutes à feu vif dans une poêle antiadhésive très chaude, en ne les retournant qu'une fois : elles doivent être dorées dehors et blanches à cœur.",
+        "Fais revenir le poivron en lamelles 4 minutes dans la même poêle, pour récupérer les sucs.",
+        "Dresse le riz au fond du bol, pose le poulet et le poivron, ajoute le maïs égoutté et termine par l'avocat en lamelles."
       ],
       "why": "Muscu prise de masse : dense, savoureux, bons lipides de l'avocat.",
       "macros_per_serving": {
@@ -4596,10 +4606,11 @@
         }
       ],
       "instructions": [
-        "Cuis le poulet émincé.",
-        "Garnis la tortilla.",
-        "Roule serré.",
-        "Ajoute l'huile d'olive."
+        "Coupe le poulet en lanières fines et frotte-les de sel, de poivre et de paprika.",
+        "Fais-les saisir 7 minutes à feu vif dans l'huile d'olive, en ne les retournant qu'une fois : elles doivent être dorées dehors et blanches à cœur.",
+        "Passe la tortilla 20 secondes à la poêle chaude pour l'assouplir : elle roulera sans casser.",
+        "Étale le cottage cheese dessus, ajoute la salade, la tomate en rondelles et le poulet tiède.",
+        "Replie les deux côtés avant de rouler serré, sinon la garniture ressort à la première bouchée."
       ],
       "why": "Muscu perte de gras : repas rapide protéiné, transportable.",
       "macros_per_serving": {
@@ -4725,9 +4736,11 @@
         }
       ],
       "instructions": [
-        "Cuis les nouilles.",
-        "Saisis la dinde.",
-        "Sauté légumes + nouilles + sauce."
+        "Plonge les nouilles de riz dans un grand volume d'eau bouillante, coupe le feu et laisse-les gonfler 4 minutes, puis égoutte et rince à l'eau froide pour qu'elles ne collent pas.",
+        "Coupe l'escalope de dinde en lanières fines et fais-les saisir 6 minutes à feu très vif dans la moitié de l'huile d'olive, puis réserve-les.",
+        "Verse le reste d'huile, jette les légumes dans le wok brûlant et saute-les 5 minutes en remuant : ils doivent rester croquants.",
+        "Remets la dinde et les nouilles, verse la sauce soja et mélange 2 minutes à feu vif.",
+        "Sers aussitôt : les nouilles de riz collent en refroidissant."
       ],
       "why": "Combats/muscu perte de gras : protéine très maigre, repas léger et rapide.",
       "macros_per_serving": {
@@ -4779,9 +4792,11 @@
         }
       ],
       "instructions": [
-        "Cuis les pommes de terre.",
-        "Mijote la ratatouille.",
-        "Cuis le cabillaud vapeur."
+        "Épluche les pommes de terre, coupe-les en gros morceaux et fais-les cuire 20 minutes à la vapeur : la pointe d'un couteau doit y entrer sans résistance.",
+        "Réchauffe la ratatouille 10 minutes à feu doux avec l'huile d'olive, à couvert, pour qu'elle réduise sans attacher.",
+        "Pose le cabillaud dans un panier vapeur, sale et poivre.",
+        "Fais-le cuire 10 minutes : sa chair doit devenir opaque et se détacher en lamelles sous la fourchette.",
+        "Sers le cabillaud sur la ratatouille, les pommes de terre à côté."
       ],
       "why": "Endurance perte de gras : poisson maigre + légumes, parfait jour off.",
       "macros_per_serving": {
@@ -4871,7 +4886,7 @@
         "sport": [
           "muscu"
         ],
-        "temps_min": 15
+        "temps_min": 25
       },
       "base_servings": 1,
       "ingredients": [
@@ -4913,10 +4928,11 @@
         }
       ],
       "instructions": [
-        "Saisis poulet + épinards.",
-        "Verse les œufs.",
-        "Ajoute mozzarella, plie.",
-        "Sers avec les pommes de terre vapeur."
+        "Épluche les pommes de terre, coupe-les en gros morceaux et fais-les cuire 20 minutes à la vapeur : la pointe d'un couteau doit y entrer sans résistance.",
+        "Coupe le poulet en petits dés et fais-les saisir 6 minutes à feu vif dans la moitié de l'huile d'olive, jusqu'à ce qu'ils soient dorés et blancs à cœur.",
+        "Jette les épinards et mélange 1 minute le temps qu'ils tombent.",
+        "Bats les œufs avec du sel et du poivre, verse le reste d'huile et les œufs dans la poêle, et laisse prendre 4 minutes à feu doux sans remuer : les bords doivent se décoller.",
+        "Ajoute la mozzarella en morceaux sur une moitié, plie l'omelette, coupe le feu et laisse-la fondre 2 minutes, puis sers avec les pommes de terre."
       ],
       "why": "Muscu perte de gras : très haute protéine, glucides quasi nuls.",
       "macros_per_serving": {
@@ -4976,9 +4992,11 @@
         }
       ],
       "instructions": [
-        "Cuis les pâtes.",
-        "Chauffe tomate + thon + olives.",
-        "Mélange."
+        "Fais cuire les pâtes complètes dans un grand volume d'eau bouillante salée, 2 minutes de moins que le temps du paquet : elles finiront dans la sauce.",
+        "Fais chauffer l'huile d'olive à feu moyen, verse la tomate concassée et laisse-la réduire 8 minutes, jusqu'à ce qu'elle épaississe et fonce.",
+        "Ajoute les olives et le thon égoutté en gros morceaux, et réchauffe 2 minutes sans mélanger fort : le thon doit rester en miettes, pas se défaire en purée.",
+        "Prélève une louche d'eau de cuisson avant d'égoutter les pâtes.",
+        "Mélange les pâtes à la sauce hors du feu, en détendant avec l'eau de cuisson jusqu'à ce qu'elle nappe, puis poivre."
       ],
       "why": "Endurance/muscu maintien : rapide, protéines + glucides, placard-friendly.",
       "macros_per_serving": {
@@ -5044,9 +5062,11 @@
         }
       ],
       "instructions": [
-        "Cuis le riz, laisse tiédir.",
-        "Coupe le saumon cru en dés.",
-        "Dresse avec edamame, concombre, avocat."
+        "Rince le riz basmati jusqu'à ce que l'eau soit claire, puis fais-le cuire 11 minutes dans un grand volume d'eau salée et laisse-le tiédir à couvert.",
+        "Fais cuire les edamame 5 minutes à l'eau bouillante salée, puis égoutte-les et écosse-les si besoin.",
+        "Coupe le saumon en gros cubes et fais-les saisir 3 minutes à feu très vif dans une poêle antiadhésive brûlante, 1 minute par face : le cœur reste rosé, et le poisson du commerce n'est pas prévu pour être mangé cru.",
+        "Arrose les cubes de sauce soja hors du feu et laisse-les tiédir.",
+        "Dresse le riz tiède au fond du bol, ajoute les edamame, le concombre en demi-lunes et le saumon, et termine par l'avocat en lamelles."
       ],
       "why": "Muscu/endurance prise de masse : oméga-3, double protéine, frais.",
       "macros_per_serving": {
@@ -5105,9 +5125,11 @@
         }
       ],
       "instructions": [
-        "Marine le poulet dans yaourt + épices.",
-        "Saisis 8 min.",
-        "Sers avec sauce tomate et riz."
+        "Mélange le yaourt grec avec du sel, du poivre et des épices tikka, enrobe-en le poulet coupé en cubes et laisse mariner 10 minutes : l'acidité du yaourt attendrit la chair.",
+        "Rince le riz basmati jusqu'à ce que l'eau soit claire, puis fais-le cuire 11 minutes dans un grand volume d'eau salée et égoutte-le.",
+        "Fais chauffer l'huile d'olive à feu vif et saisis les cubes de poulet 8 minutes en les retournant à mi-cuisson : ils doivent être dorés dehors et blancs à cœur.",
+        "Verse la tomate concassée dans la poêle, gratte les sucs avec la cuillère et laisse réduire 5 minutes à feu moyen, jusqu'à ce que la sauce nappe le poulet.",
+        "Sers le poulet et sa sauce sur le riz égoutté."
       ],
       "why": "Muscu prise de masse : épicé, protéiné, glucides pour la performance.",
       "macros_per_serving": {
@@ -5225,9 +5247,11 @@
         }
       ],
       "instructions": [
-        "Cuis et écrase la patate douce.",
-        "Brocoli vapeur.",
-        "Saisis le steak."
+        "Épluche la patate douce, coupe-la en cubes et fais-la cuire 15 minutes à l'eau bouillante salée : la pointe d'un couteau doit y entrer sans résistance.",
+        "Égoutte-la bien et écrase-la à la fourchette avec la moitié de l'huile d'olive, du sel et du poivre : mal égouttée, la purée reste liquide.",
+        "Détaille le brocoli en petits bouquets et fais-le cuire 5 minutes à la vapeur : il doit rester vert vif.",
+        "Fais chauffer le reste d'huile à feu très vif et saisis le steak 3 minutes par face, sans jamais le presser : c'est son jus qui le garde tendre.",
+        "Sers le steak sur la purée, le brocoli à côté."
       ],
       "why": "Muscu prise de masse : protéine + fer, glucides récup.",
       "macros_per_serving": {
@@ -5286,9 +5310,11 @@
         }
       ],
       "instructions": [
-        "Cuis les nouilles.",
-        "Saisis les crevettes.",
-        "Sauté avec légumes + sauce cacahuète."
+        "Plonge les nouilles de riz dans un grand volume d'eau bouillante, coupe le feu et laisse-les gonfler 4 minutes, puis égoutte et rince à l'eau froide.",
+        "Délaie le beurre de cacahuète avec la sauce soja et trois cuillères d'eau chaude, jusqu'à obtenir une sauce qui nappe la cuillère.",
+        "Sèche les crevettes avec du papier absorbant et fais-les saisir 3 minutes à feu très vif dans un wok brûlant, jusqu'à ce qu'elles deviennent opaques, puis réserve-les.",
+        "Jette les légumes dans le wok et saute-les 5 minutes en remuant : ils doivent rester croquants.",
+        "Remets les crevettes et les nouilles, verse la sauce et mélange 1 minute hors du feu."
       ],
       "why": "Combats/endurance perte de gras : protéine ultra maigre, saveurs asiatiques légères.",
       "macros_per_serving": {
@@ -5456,9 +5482,11 @@
         }
       ],
       "instructions": [
-        "Cuis le riz.",
-        "Saisis le poulet.",
-        "Sauté légumes + amandes + sauce."
+        "Rince le riz basmati jusqu'à ce que l'eau soit claire, puis fais-le cuire 11 minutes dans un grand volume d'eau salée et égoutte-le.",
+        "Fais griller les amandes 3 minutes à sec dans une poêle, en remuant : elles doivent brunir et sentir.",
+        "Coupe le poulet en lanières et fais-les saisir 7 minutes à feu très vif dans le wok, en ne les retournant qu'une fois, puis réserve-les.",
+        "Jette les légumes dans le wok brûlant et saute-les 5 minutes en remuant : ils doivent rester croquants.",
+        "Remets le poulet, verse la sauce soja, mélange 1 minute à feu vif, puis sers sur le riz et parsème les amandes."
       ],
       "why": "Muscu prise de masse : croquant, protéiné, lipides des amandes.",
       "macros_per_serving": {
@@ -5637,9 +5665,11 @@
         }
       ],
       "instructions": [
-        "Patate douce rôtie.",
-        "Saisis la dinde.",
-        "Épinards tombés."
+        "Préchauffe le four à 210 °C.",
+        "Épluche la patate douce, coupe-la en cubes de deux centimètres et étale-les sur une plaque avec la moitié de l'huile d'olive, sans les superposer : entassés, ils cuisent à la vapeur au lieu de rôtir.",
+        "Enfourne 25 minutes en remuant à mi-cuisson.",
+        "Fais cuire l'escalope de dinde 8 minutes dans le reste d'huile à feu moyen, 4 minutes par face, jusqu'à ce qu'elle soit blanche à cœur, puis laisse-la reposer 2 minutes et taille-la en lanières.",
+        "Jette les épinards dans la poêle chaude, mélange 1 minute le temps qu'ils tombent, et sers le tout avec la patate douce."
       ],
       "why": "Muscu maintien : protéine très maigre, glucides à index modéré.",
       "macros_per_serving": {
@@ -5692,9 +5722,11 @@
         }
       ],
       "instructions": [
-        "Cuis les pâtes.",
-        "Saisis le poulet.",
-        "Mélange pesto + tomates."
+        "Fais cuire les pâtes dans un grand volume d'eau bouillante salée, 2 minutes de moins que le temps du paquet : elles finiront dans la sauce.",
+        "Coupe le poulet en lanières et frotte-les de sel et de poivre.",
+        "Fais-les saisir 7 minutes à feu vif dans une poêle antiadhésive très chaude, en ne les retournant qu'une fois : elles doivent être dorées dehors et blanches à cœur.",
+        "Prélève une louche d'eau de cuisson avant d'égoutter les pâtes.",
+        "Mélange les pâtes, le pesto et la tomate en dés hors du feu, en détendant avec l'eau de cuisson : chauffé, le pesto perd son parfum. Ajoute le poulet et sers."
       ],
       "why": "Muscu prise de masse : rapide, calorique, savoureux.",
       "macros_per_serving": {
@@ -5821,9 +5853,11 @@
         }
       ],
       "instructions": [
-        "Saisis le bœuf épicé.",
-        "Égoutte et rince les haricots rouges, ajoute-les avec le poivron.",
-        "Sers sur le riz."
+        "Rince le riz basmati jusqu'à ce que l'eau soit claire, puis fais-le cuire 11 minutes dans un grand volume d'eau salée et égoutte-le.",
+        "Fais chauffer l'huile d'olive à feu très vif, ajoute le bœuf haché, écrase-le à la spatule et laisse-le colorer 5 minutes sans trop remuer : il doit brunir, pas bouillir.",
+        "Sale, poivre, ajoute du paprika fumé, du thym, de l'ail en poudre et du piment de Cayenne, et mélange 1 minute : la chaleur ouvre les épices.",
+        "Ajoute le poivron en lamelles et laisse-le s'attendrir 5 minutes à feu moyen.",
+        "Égoutte et rince les haricots rouges, ajoute-les pour 3 minutes le temps qu'ils se réchauffent, et sers sur le riz."
       ],
       "why": "Combats/muscu prise de masse : double protéine, fer élevé, dense.",
       "macros_per_serving": {
@@ -5877,9 +5911,11 @@
         }
       ],
       "instructions": [
-        "Réchauffe les lentilles cuites.",
-        "Poêle le saumon.",
-        "Fais tomber les épinards."
+        "Fais chauffer l'huile d'olive à feu moyen et réchauffe les lentilles cuites 4 minutes avec du sel, du poivre et du thym, sans les écraser.",
+        "Jette les épinards dans la casserole et mélange 1 minute le temps qu'ils tombent.",
+        "Sèche le saumon côté peau avec du papier absorbant : gorgée d'eau, la peau ne croustille jamais.",
+        "Pose-le côté peau dans une poêle antiadhésive très chaude et laisse-le cuire 5 minutes sans y toucher, puis retourne-le 2 minutes : le cœur doit rester rosé.",
+        "Sers le saumon sur les lentilles aux épinards."
       ],
       "why": "Endurance/muscu maintien : oméga-3 + fer végétal, récup complète.",
       "macros_per_serving": {
@@ -6254,9 +6290,11 @@
         }
       ],
       "instructions": [
-        "Cuis le quinoa, laisse refroidir.",
-        "Émince le poulet cuit.",
-        "Mélange tout."
+        "Rince le quinoa sous l'eau froide 30 secondes pour retirer son amertume, fais-le cuire 12 minutes à couvert dans deux fois son volume d'eau salée, puis laisse-le refroidir.",
+        "Coupe le poulet en lanières et fais-les saisir 7 minutes à feu vif dans une poêle antiadhésive très chaude, en ne les retournant qu'une fois : elles doivent être dorées dehors et blanches à cœur.",
+        "Laisse-les tiédir 2 minutes : posées brûlantes, elles cuiraient la salade.",
+        "Mélange le quinoa froid, la salade verte et la tomate en quartiers, sale et poivre.",
+        "Ajoute le poulet, la feta émiettée et l'avocat en lamelles au moment de servir."
       ],
       "why": "Muscu maintien : fraîche, complète, bons lipides, repas d'été.",
       "macros_per_serving": {
@@ -6379,9 +6417,11 @@
         }
       ],
       "instructions": [
-        "Saisis le bœuf épicé.",
-        "Cuis le riz.",
-        "Égoutte et rince les haricots rouges, dresse en bowl avec le maïs et l’avocat."
+        "Rince le riz basmati jusqu'à ce que l'eau soit claire, puis fais-le cuire 11 minutes dans un grand volume d'eau salée et égoutte-le.",
+        "Ajoute le bœuf haché dans une poêle très chaude, écrase-le à la spatule et laisse-le colorer 5 minutes sans trop remuer : il doit brunir, pas bouillir.",
+        "Sale, poivre, ajoute du cumin et du paprika, et mélange 1 minute : la chaleur ouvre les épices.",
+        "Égoutte et rince les haricots rouges, puis réchauffe-les 2 minutes avec le bœuf.",
+        "Dresse le riz au fond du bol, ajoute le bœuf aux haricots, le maïs égoutté et la tomate en dés, et termine par l'avocat en lamelles."
       ],
       "why": "Muscu/combats prise de masse : dense, double protéine, fer élevé.",
       "macros_per_serving": {
@@ -6434,9 +6474,11 @@
         }
       ],
       "instructions": [
-        "Cuis le quinoa.",
-        "Poêle les courgettes.",
-        "Cuis le cabillaud, citron."
+        "Rince le quinoa sous l'eau froide 30 secondes pour retirer son amertume, puis fais-le cuire 12 minutes à couvert dans deux fois son volume d'eau salée.",
+        "Coupe les courgettes en rondelles épaisses et fais-les dorer 8 minutes à feu vif dans la moitié de l'huile d'olive, sans les remuer sans arrêt : c'est ce qui les colore au lieu de les détremper.",
+        "Sèche le cabillaud avec du papier absorbant, puis fais-le cuire 8 minutes dans le reste d'huile à feu moyen, 4 minutes par face : sa chair doit se détacher en lamelles.",
+        "Arrose-le de jus de citron hors du feu, sale et poivre.",
+        "Sers le cabillaud et les courgettes sur le quinoa égrené."
       ],
       "why": "Endurance/combats perte de gras : très protéiné/léger, idéal séchage.",
       "macros_per_serving": {
@@ -6489,9 +6531,11 @@
         }
       ],
       "instructions": [
-        "Cuis les pâtes.",
-        "Émiette le saumon poêlé.",
-        "Mélange avec épinards + crème."
+        "Fais cuire les pâtes complètes dans un grand volume d'eau bouillante salée, 2 minutes de moins que le temps du paquet : elles finiront dans la sauce.",
+        "Sèche le saumon avec du papier absorbant et fais-le cuire 6 minutes à la poêle à feu moyen, 3 minutes par face.",
+        "Émiette-le grossièrement à la fourchette, en retirant la peau et les arêtes.",
+        "Prélève une louche d'eau de cuisson, égoutte les pâtes, puis jette les épinards dans la casserole chaude et mélange 1 minute le temps qu'ils tombent.",
+        "Verse la crème de soja hors du feu, ajoute les pâtes et le saumon, et détends avec l'eau de cuisson jusqu'à ce que la sauce nappe."
       ],
       "why": "Endurance prise de masse : crémeux, oméga-3, glucides complets.",
       "macros_per_serving": {
@@ -6617,9 +6661,11 @@
         }
       ],
       "instructions": [
-        "Cuis le riz à l'avance.",
-        "Saisis œufs + jambon + petits pois.",
-        "Ajoute le riz, sauce soja."
+        "Rince le riz basmati jusqu'à ce que l'eau soit claire, fais-le cuire 11 minutes dans un grand volume d'eau salée, puis égoutte-le et étale-le pour qu'il refroidisse : un riz encore chaud colle et bout au lieu de sauter.",
+        "Bats les œufs, verse-les dans une poêle chaude avec la moitié de l'huile d'olive et brouille-les 1 minute à feu vif, puis réserve-les.",
+        "Verse le reste d'huile, jette le jambon en dés et les petits pois dans la poêle brûlante et saute-les 3 minutes.",
+        "Ajoute le riz froid et saute 3 minutes à feu vif en l'écrasant à la spatule pour le décoller.",
+        "Remets les œufs, verse la sauce soja et mélange 1 minute hors du feu."
       ],
       "why": "Muscu maintien : anti-gaspi du riz de la veille, protéiné, rapide.",
       "macros_per_serving": {
@@ -6685,9 +6731,10 @@
       ],
       "instructions": [
         "Porte 400 ml d'eau à frémissement avec la sauce soja.",
-        "Ajoute nouilles + légumes.",
-        "Tofu et edamame en fin.",
-        "Ajoute l'avocat en lamelles."
+        "Plonge les nouilles de riz dans l'eau frémissante et laisse-les gonfler 4 minutes.",
+        "Ajoute les légumes et laisse-les cuire 3 minutes : ils doivent rester croquants.",
+        "Coupe le tofu soyeux en gros cubes et ajoute-le avec les edamame, puis coupe le feu et laisse infuser 2 minutes : le tofu soyeux se défait si on le fait bouillir.",
+        "Verse dans le bol et ajoute l'avocat en lamelles au dernier moment."
       ],
       "why": "Endurance/combats perte de gras : léger, chaud, double protéine végétale.",
       "macros_per_serving": {
@@ -6746,9 +6793,11 @@
         }
       ],
       "instructions": [
-        "Rôtis le poulet.",
-        "Cuis la polenta crémeuse + parmesan.",
-        "Poêle les champignons."
+        "Préchauffe le four à 200 °C et fais rôtir le poulet 20 minutes avec la moitié de l'huile d'olive, du sel et du poivre : le jus doit ressortir clair quand tu le piques.",
+        "Jette les champignons dans une poêle très chaude avec le reste d'huile et laisse-les rendre leur eau 5 minutes sans remuer, jusqu'à ce qu'ils soient dorés.",
+        "Verse la polenta en pluie dans cinq fois son volume d'eau salée frémissante : plus d'eau que pour une polenta à trancher, c'est ce qui la rend crémeuse.",
+        "Remue 5 minutes à feu doux, jusqu'à ce qu'elle nappe la cuillère, puis incorpore le parmesan râpé hors du feu.",
+        "Laisse reposer le poulet 3 minutes avant de le trancher, et sers-le sur la polenta avec les champignons."
       ],
       "why": "Muscu prise de masse : réconfortant, protéiné, sans gluten.",
       "macros_per_serving": {
@@ -6929,10 +6978,11 @@
         }
       ],
       "instructions": [
-        "Réchauffe les lentilles cuites avec la tomate.",
-        "Cuis le cabillaud.",
-        "Dresse ensemble.",
-        "Sers avec les pommes de terre vapeur."
+        "Épluche les pommes de terre, coupe-les en gros morceaux et fais-les cuire 20 minutes à la vapeur : la pointe d'un couteau doit y entrer sans résistance.",
+        "Fais chauffer la moitié de l'huile d'olive dans une casserole et verse la tomate concassée, sale, poivre, et laisse réduire 5 minutes à feu moyen.",
+        "Ajoute les lentilles cuites et réchauffe-les 3 minutes à feu doux, sans les écraser.",
+        "Sèche le cabillaud avec du papier absorbant, puis fais-le cuire 8 minutes dans le reste d'huile à feu moyen, 4 minutes par face : sa chair doit se détacher en lamelles sous la fourchette.",
+        "Dresse le cabillaud sur les lentilles à la tomate, les pommes de terre à côté."
       ],
       "why": "Endurance perte de gras : poisson maigre + fer végétal, jour off.",
       "macros_per_serving": {
@@ -7119,9 +7169,11 @@
         }
       ],
       "instructions": [
-        "Poêle la patate douce en dés.",
-        "Égoutte et rince les pois chiches, ajoute-les avec les épinards.",
-        "Casse les œufs dessus."
+        "Épluche la patate douce et coupe-la en dés d'un centimètre et demi.",
+        "Fais chauffer l'huile d'olive à feu moyen et fais rissoler les dés 14 minutes à couvert, en remuant deux fois : la pointe d'un couteau doit y entrer sans résistance.",
+        "Égoutte et rince les pois chiches, puis ajoute-les à la poêle avec du sel, du poivre et du cumin, et laisse-les croustiller 3 minutes à feu vif.",
+        "Jette les épinards et mélange 1 minute le temps qu'ils tombent.",
+        "Creuse deux puits dans la poêlée, casse-y les œufs, couvre et laisse cuire 4 minutes à feu doux : le blanc doit être pris et le jaune encore coulant."
       ],
       "why": "Endurance maintien : végétarien complet, double protéine, fibres.",
       "macros_per_serving": {
@@ -7181,9 +7233,11 @@
         }
       ],
       "instructions": [
-        "Cuis le riz complet.",
-        "Poêle le saumon.",
-        "Brocoli vapeur, parsème de graines."
+        "Rince le riz complet, puis fais-le cuire 25 minutes à couvert et à feu doux dans deux fois et demie son volume d'eau salée.",
+        "Détaille le brocoli en petits bouquets et plonge-le 4 minutes dans l'eau bouillante, puis récupère-le à l'écumoire : il doit rester vert vif et croquant.",
+        "Sèche le saumon côté peau avec du papier absorbant : gorgée d'eau, la peau ne croustille jamais.",
+        "Fais chauffer l'huile d'olive à feu vif, pose le saumon côté peau et laisse-le cuire 5 minutes sans y toucher, puis retourne-le 2 minutes : le cœur doit rester rosé.",
+        "Sers le saumon sur le riz avec le brocoli, et parsème les graines de courge."
       ],
       "why": "Muscu/endurance prise de masse : oméga-3, glucides complets, récup.",
       "macros_per_serving": {
@@ -7431,9 +7485,11 @@
         }
       ],
       "instructions": [
-        "Écrase la patate douce cuite.",
-        "Cuis le cabillaud vapeur.",
-        "Asperges rôties."
+        "Préchauffe le four à 210 °C.",
+        "Épluche la patate douce, coupe-la en gros morceaux et fais-la cuire 15 minutes à l'eau bouillante salée, jusqu'à ce qu'elle s'écrase sous la fourchette.",
+        "Casse le pied dur des asperges là où il plie tout seul, étale-les sur une plaque avec l'huile d'olive et enfourne 12 minutes.",
+        "Pose le cabillaud dans un panier vapeur et fais-le cuire 10 minutes : sa chair doit devenir opaque et se détacher en lamelles.",
+        "Égoutte bien la patate douce et écrase-la à la fourchette avec du sel et du poivre, puis sers-la avec le cabillaud et les asperges."
       ],
       "why": "Endurance perte de gras : digeste, protéine maigre, repas récup off.",
       "macros_per_serving": {
@@ -8396,8 +8452,11 @@
         }
       ],
       "instructions": [
-        "Mixer flocons, œufs, banane et skyr.",
-        "Cuire en petits pancakes, napper de sirop d'érable."
+        "Mixe les flocons d'avoine 30 secondes pour les réduire en poudre : entiers, ils laissent les pancakes granuleux.",
+        "Ajoute les œufs, la banane et le skyr, et mixe 30 secondes de plus, jusqu'à obtenir une pâte lisse et coulante.",
+        "Laisse reposer la pâte 3 minutes, le temps que l'avoine boive le liquide et que la pâte épaississe.",
+        "Fais chauffer une poêle antiadhésive à feu moyen et verse de petites louches de pâte : compte 2 minutes par face, et retourne quand la surface ne brille plus.",
+        "Nappe de sirop d'érable au moment de servir."
       ],
       "why": "Végétarien prise de masse : protéines complètes + glucides.",
       "macros_per_serving": {
@@ -8455,9 +8514,11 @@
         }
       ],
       "instructions": [
-        "Battre blancs + œuf, cuire en omelette avec la tomate.",
-        "Servir avec pain de seigle.",
-        "Ajoute l'huile d'olive."
+        "Coupe la tomate en dés et fais-la revenir 3 minutes dans la moitié de l'huile d'olive à feu vif, pour qu'elle rende son eau : sinon elle détremperait l'omelette.",
+        "Bats les blancs d'œufs avec l'œuf entier, du sel et du poivre, et verse-les sur la tomate.",
+        "Laisse prendre 4 minutes à feu doux sans remuer : les blancs seuls sèchent vite, coupe le feu dès que le dessus n'est plus liquide.",
+        "Fais griller le pain de seigle.",
+        "Plie l'omelette, sers-la avec le pain et arrose du reste d'huile d'olive."
       ],
       "why": "Sèche : très haute protéine, lipides minimaux.",
       "macros_per_serving": {
@@ -8574,9 +8635,11 @@
         }
       ],
       "instructions": [
-        "Mixer flocons, whey et blancs.",
-        "Cuire en pancakes, garnir de myrtilles.",
-        "Parsème les cerneaux de noix."
+        "Mixe les flocons d'avoine 30 secondes pour les réduire en poudre : entiers, ils laissent les pancakes granuleux.",
+        "Ajoute la whey et les blancs d'œufs, et mixe 30 secondes de plus jusqu'à obtenir une pâte lisse et coulante.",
+        "Laisse reposer la pâte 3 minutes, le temps que l'avoine boive le liquide.",
+        "Fais chauffer une poêle antiadhésive à feu MOYEN et verse de petites louches : la whey brûle vite, un feu vif les noircirait avant que le cœur soit cuit.",
+        "Compte 2 minutes par face, retourne quand la surface ne brille plus, puis garnis de myrtilles et de cerneaux de noix."
       ],
       "why": "Capacité protéique élevée pour le muscle, peu de lipides.",
       "macros_per_serving": {
@@ -8742,8 +8805,10 @@
         }
       ],
       "instructions": [
-        "Égoutte et rince les pois chiches, écrase-les avec un filet d’huile.",
-        "Garnis le pita d’œuf dur, de houmous et de tomate."
+        "Plonge l'œuf dans l'eau bouillante et compte 9 minutes pour un jaune ferme, puis passe-le sous l'eau froide avant de l'écaler.",
+        "Égoutte et rince les pois chiches, puis écrase-les à la fourchette avec l'huile d'olive, du sel, du poivre et du jus de citron, jusqu'à obtenir une pâte épaisse.",
+        "Passe le pita 1 minute par face dans une poêle chaude, puis ouvre-le en poche.",
+        "Garnis-le du houmous, de l'œuf en rondelles et de la tomate, et sers aussitôt."
       ],
       "why": "Végétarien complet : double source protéique pour le muscle.",
       "macros_per_serving": {
@@ -9777,7 +9842,7 @@
         "sport": [
           "muscu"
         ],
-        "temps_min": 6
+        "temps_min": 12
       },
       "base_servings": 1,
       "ingredients": [
@@ -9807,8 +9872,10 @@
         }
       ],
       "instructions": [
-        "Écraser l'avocat sur le pain.",
-        "Ajouter l'œuf dur en rondelles et la roquette."
+        "Plonge l'œuf dans l'eau bouillante et compte 9 minutes pour un jaune ferme, puis passe-le sous l'eau froide avant de l'écaler.",
+        "Fais griller le pain complet jusqu'à ce qu'il soit ferme sous le doigt : mou, il s'effondre sous l'avocat.",
+        "Écrase l'avocat à la fourchette sur le pain, avec du sel et du poivre.",
+        "Ajoute l'œuf en rondelles et la roquette au moment de servir."
       ],
       "why": "Végétarien jour repos : lipides de qualité + protéines complètes.",
       "macros_per_serving": {
@@ -10222,8 +10289,11 @@
         }
       ],
       "instructions": [
-        "Faire revenir oignon et bœuf.",
-        "Ajouter la tomate, mijoter, servir sur les pâtes."
+        "Fais cuire les pâtes dans un grand volume d'eau bouillante salée, 2 minutes de moins que le temps du paquet : elles finiront dans la sauce.",
+        "Émince l'oignon et fais-le blondir 4 minutes dans l'huile d'olive à feu moyen.",
+        "Ajoute le bœuf haché, écrase-le à la spatule et laisse-le colorer 5 minutes sans trop remuer : il doit brunir, pas bouillir.",
+        "Verse la tomate concassée, sale, poivre, ajoute de l'origan, et laisse mijoter 10 minutes à feu doux jusqu'à ce que la sauce nappe.",
+        "Égoutte les pâtes et mélange-les à la sauce hors du feu."
       ],
       "why": "Bolognaise protéinée : grosse capacité énergétique pour la masse.",
       "macros_per_serving": {
@@ -10275,8 +10345,11 @@
         }
       ],
       "instructions": [
-        "Cuire les pâtes.",
-        "Mélanger thon égoutté, tomate, huile et zeste de citron."
+        "Fais cuire les pâtes complètes dans un grand volume d'eau bouillante salée, selon le temps du paquet.",
+        "Pendant ce temps, coupe la tomate en dés et égoutte bien le thon.",
+        "Mélange-les dans un saladier avec l'huile d'olive, du sel, du poivre et du zeste de citron : cette sauce ne se cuit pas, elle se monte à froid.",
+        "Égoutte les pâtes et laisse-les tiédir 2 minutes, sinon elles cuiraient la tomate.",
+        "Mélange le tout et sers tiède."
       ],
       "why": "Pescatarien rapide, protéiné, glucides pour l'endurance.",
       "macros_per_serving": {
@@ -10399,8 +10472,11 @@
         }
       ],
       "instructions": [
-        "Cuire les pâtes.",
-        "Poêler tofu et poivron au curry, ajouter coco et levure maltée."
+        "Fais cuire les pâtes complètes dans un grand volume d'eau bouillante salée, 2 minutes de moins que le temps du paquet : elles finiront dans la sauce.",
+        "Presse le tofu 5 minutes entre deux feuilles de papier absorbant sous une assiette lestée : moins il est gorgé d'eau, mieux il dore.",
+        "Coupe le tofu en cubes et fais-les colorer 8 minutes dans une poêle antiadhésive très chaude, en ne les retournant que lorsqu'une face est franchement dorée.",
+        "Ajoute le poivron en lamelles, du sel, du poivre et des épices à curry, et fais revenir 4 minutes de plus.",
+        "Verse le lait de coco, laisse épaissir 3 minutes à feu doux, puis ajoute les pâtes égouttées et la levure maltée hors du feu."
       ],
       "why": "Vegan prise de masse : ancre tofu généreuse + lait de coco.",
       "macros_per_serving": {
@@ -10465,8 +10541,11 @@
         }
       ],
       "instructions": [
-        "Cuire lentilles et pâtes.",
-        "Mijoter la tomate avec oignon, mélanger le tout."
+        "Rince les lentilles corail, puis fais-les cuire 12 minutes à feu doux dans trois fois leur volume d'eau salée : elles doivent se défaire.",
+        "Couvre la protéine de soja texturée d'eau bouillante salée, laisse-la gonfler 5 minutes puis presse-la pour l'essorer.",
+        "Émince l'oignon et fais-le blondir 4 minutes dans l'huile d'olive, puis ajoute la protéine de soja et laisse-la colorer 3 minutes.",
+        "Verse la tomate concassée, sale, poivre, et laisse mijoter 10 minutes à feu doux jusqu'à ce que la sauce épaississe, puis ajoute les lentilles égouttées.",
+        "Fais cuire les pâtes complètes dans un grand volume d'eau bouillante salée, égoutte-les, mélange-les à la sauce et ajoute le basilic ciselé hors du feu."
       ],
       "why": "Vegan : bolognaise de lentilles, glucides + protéines pour l'endurance.",
       "macros_per_serving": {
@@ -10519,8 +10598,11 @@
         }
       ],
       "instructions": [
-        "Cuire les nouilles de riz.",
-        "Sauter poulet et légumes, mélanger aux nouilles."
+        "Plonge les nouilles de riz dans un grand volume d'eau bouillante, coupe le feu et laisse-les gonfler 4 minutes, puis égoutte et rince à l'eau froide pour qu'elles ne collent pas.",
+        "Coupe le poulet en lanières fines et fais-les saisir 7 minutes à feu très vif dans la moitié de l'huile d'olive, en ne les retournant qu'une fois, puis réserve-les.",
+        "Verse le reste d'huile, jette les légumes dans le wok brûlant et saute-les 5 minutes en remuant : ils doivent rester croquants.",
+        "Remets le poulet et les nouilles, sale, poivre, et mélange 2 minutes à feu vif.",
+        "Sers aussitôt : les nouilles de riz collent en refroidissant."
       ],
       "why": "Sans gluten, sauté équilibré, recharge glucidique pour l'endurance.",
       "macros_per_serving": {
@@ -10630,8 +10712,11 @@
         }
       ],
       "instructions": [
-        "Cuire les pâtes.",
-        "Sauter crevettes, ail et courgette à l'huile, mélanger."
+        "Fais cuire les pâtes complètes dans un grand volume d'eau bouillante salée, 2 minutes de moins que le temps du paquet : elles finiront dans la sauce.",
+        "Coupe la courgette en rondelles fines et fais-les dorer 6 minutes à feu vif dans la moitié de l'huile d'olive.",
+        "Sèche les crevettes avec du papier absorbant, puis fais-les saisir 3 minutes à feu très vif avec le reste d'huile et de l'ail émincé, jusqu'à ce qu'elles deviennent opaques : au-delà, elles caoutchoutent.",
+        "Prélève une louche d'eau de cuisson avant d'égoutter les pâtes.",
+        "Mélange les pâtes, la courgette et les crevettes hors du feu, en détendant avec l'eau de cuisson jusqu'à ce que la sauce nappe, et poivre."
       ],
       "why": "Pescatarien léger et protéiné, lipides maîtrisés.",
       "macros_per_serving": {
@@ -10690,8 +10775,11 @@
         }
       ],
       "instructions": [
-        "Cuire les pâtes.",
-        "Saisir le seitan, ajouter tomate, oignon et olives, mijoter."
+        "Fais cuire les pâtes dans un grand volume d'eau bouillante salée, 2 minutes de moins que le temps du paquet : elles finiront dans la sauce.",
+        "Coupe le seitan en tranches et fais-les dorer 4 minutes par face dans une poêle chaude : sans croûte, il reste caoutchouteux.",
+        "Émince l'oignon et fais-le blondir 4 minutes dans la même poêle.",
+        "Verse la tomate concassée et les olives, sale, poivre, ajoute de l'origan, et laisse mijoter 8 minutes à feu doux jusqu'à ce que la sauce épaississe.",
+        "Égoutte les pâtes, mélange-les à la sauce et remets le seitan par-dessus."
       ],
       "why": "Vegan combats : seitan très protéiné, plat complet pas trop lourd.",
       "macros_per_serving": {
@@ -10744,8 +10832,11 @@
         }
       ],
       "instructions": [
-        "Cuire les nouilles.",
-        "Saisir le bœuf émincé, ajouter poivron, curry et coco."
+        "Plonge les nouilles de riz dans un grand volume d'eau bouillante, coupe le feu et laisse-les gonfler 4 minutes, puis égoutte et rince à l'eau froide pour qu'elles ne collent pas.",
+        "Taille la bavette en fines lanières dans le sens contraire des fibres : c'est ce qui la rend tendre.",
+        "Saisis-les 2 minutes à feu très vif dans une poêle brûlante, sans les superposer, puis réserve-les : trop cuites, elles durcissent.",
+        "Fais revenir le poivron en lamelles 4 minutes dans la même poêle, avec du sel, du poivre et des épices à curry.",
+        "Verse le lait de coco et laisse épaissir 3 minutes à feu doux, puis remets le bœuf et les nouilles et mélange hors du feu."
       ],
       "why": "Sans gluten, prise de masse : capacité élevée, riche en fer.",
       "macros_per_serving": {
@@ -10804,8 +10895,11 @@
         }
       ],
       "instructions": [
-        "Cuire les pâtes.",
-        "Mixer tofu soyeux + ferme en crème, mélanger aux épinards et pâtes."
+        "Fais cuire les pâtes complètes dans un grand volume d'eau bouillante salée, 2 minutes de moins que le temps du paquet : elles finiront dans la sauce.",
+        "Presse le tofu ferme 5 minutes sous une assiette lestée, puis coupe-le en morceaux.",
+        "Mixe le tofu soyeux et le tofu ferme avec du sel, du poivre et l'huile d'olive, jusqu'à obtenir une crème lisse : c'est la ricotta.",
+        "Prélève une louche d'eau de cuisson avant d'égoutter les pâtes, puis jette les épinards dans la casserole chaude et mélange 1 minute le temps qu'ils tombent.",
+        "Mélange les pâtes, les épinards et la ricotta de tofu hors du feu, en détendant avec l'eau de cuisson jusqu'à ce que la sauce nappe."
       ],
       "why": "Vegan : sauce crémeuse double-tofu, protéiné et léger.",
       "macros_per_serving": {
@@ -10975,8 +11069,11 @@
         }
       ],
       "instructions": [
-        "Cuire le riz et les haricots.",
-        "Poêler le cabillaud au citron, dresser."
+        "Rince le riz basmati jusqu'à ce que l'eau soit claire, puis fais-le cuire 11 minutes dans un grand volume d'eau salée et égoutte-le.",
+        "Équeute les haricots verts et fais-les cuire 8 minutes à l'eau bouillante salée : ils doivent rester vert vif.",
+        "Sèche le cabillaud avec du papier absorbant : mouillé, il rend son eau et bout au lieu de dorer.",
+        "Fais-le cuire 8 minutes dans l'huile d'olive à feu moyen, 4 minutes par face : sa chair doit se détacher en lamelles sous la fourchette.",
+        "Arrose-le de jus de citron hors du feu et sers-le sur le riz, les haricots verts à côté."
       ],
       "why": "Sèche pescatarienne : poisson maigre, très protéiné, faible en gras.",
       "macros_per_serving": {
@@ -11063,7 +11160,7 @@
         "sport": [
           "muscu"
         ],
-        "temps_min": 22
+        "temps_min": 30
       },
       "base_servings": 1,
       "ingredients": [
@@ -11099,8 +11196,11 @@
         }
       ],
       "instructions": [
-        "Réhydrater la PST, mijoter avec la tomate.",
-        "Servir sur riz avec maïs."
+        "Rince le riz complet, puis fais-le cuire 25 minutes à couvert et à feu doux dans deux fois et demie son volume d'eau salée.",
+        "Couvre la protéine de soja texturée d'eau bouillante salée, laisse-la gonfler 5 minutes puis presse-la pour l'essorer.",
+        "Fais chauffer l'huile d'olive à feu vif et fais revenir la protéine de soja 5 minutes, jusqu'à ce qu'elle colore et croustille sur les bords.",
+        "Verse la tomate concassée, sale, poivre, ajoute de l'origan, et laisse mijoter 10 minutes à feu doux : la sauce doit épaissir et napper.",
+        "Dresse le riz au fond du bol, verse la bolognaise dessus et ajoute le maïs égoutté."
       ],
       "why": "Vegan prise de masse : la PST monte très haut en protéines, sans gluten.",
       "macros_per_serving": {
@@ -11153,8 +11253,11 @@
         }
       ],
       "instructions": [
-        "Cuire le riz.",
-        "Poêler la dinde au curry, ajouter petits pois et lait de coco."
+        "Rince le riz basmati jusqu'à ce que l'eau soit claire, puis fais-le cuire 11 minutes dans un grand volume d'eau salée et égoutte-le.",
+        "Coupe l'escalope de dinde en lanières et fais-les cuire 7 minutes à la poêle à feu moyen, jusqu'à ce qu'elles soient blanches à cœur.",
+        "Ajoute du sel, du poivre et des épices à curry, et mélange 1 minute pour les enrober.",
+        "Verse le lait de coco et les petits pois, et laisse mijoter 5 minutes à feu doux : la sauce doit épaissir et napper la dinde.",
+        "Sers sur le riz."
       ],
       "why": "Endurance : recharge glucidique + protéine maigre.",
       "macros_per_serving": {
@@ -11177,7 +11280,7 @@
         "sport": [
           "endurance"
         ],
-        "temps_min": 18
+        "temps_min": 30
       },
       "base_servings": 1,
       "ingredients": [
@@ -11213,8 +11316,11 @@
         }
       ],
       "instructions": [
-        "Cuire le riz.",
-        "Mijoter thon, poivron et tomate, servir sur le riz."
+        "Rince le riz complet, puis fais-le cuire 25 minutes à couvert et à feu doux dans deux fois et demie son volume d'eau salée.",
+        "Coupe le poivron en lamelles et fais-le revenir 6 minutes dans l'huile d'olive à feu moyen, jusqu'à ce qu'il s'attendrisse et commence à colorer.",
+        "Verse la tomate concassée, sale, poivre, et laisse réduire 8 minutes à feu doux : la sauce doit épaissir.",
+        "Ajoute le thon égoutté en gros morceaux et réchauffe 2 minutes sans mélanger fort, pour qu'il reste en miettes.",
+        "Sers la sauce sur le riz."
       ],
       "why": "Pescatarien sans gluten, protéiné, glucides pour l'endurance.",
       "macros_per_serving": {
@@ -11237,7 +11343,7 @@
         "sport": [
           "muscu"
         ],
-        "temps_min": 22
+        "temps_min": 30
       },
       "base_servings": 1,
       "ingredients": [
@@ -11273,8 +11379,12 @@
         }
       ],
       "instructions": [
-        "Cuire le riz, rôtir le chou-fleur.",
-        "Laquer le tempeh à la sauce soja-érable, dresser."
+        "Rince le riz complet, puis fais-le cuire 25 minutes à couvert et à feu doux dans deux fois et demie son volume d'eau salée.",
+        "Préchauffe le four à 210 °C, détaille le chou-fleur en petits bouquets et étale-les sur une plaque avec la moitié de l'huile d'olive, sans les superposer : entassés, ils cuisent à la vapeur au lieu de rôtir.",
+        "Enfourne 20 minutes en remuant à mi-cuisson : les pointes doivent brunir.",
+        "Fais dorer le tempeh 3 minutes par face dans une poêle chaude avec le reste d'huile : c'est cette croûte qui lui enlève son amertume.",
+        "Verse la sauce soja sur le tempeh et laisse-la réduire 1 minute à feu vif, jusqu'à ce qu'elle le laque et brille.",
+        "Dresse le riz au fond du bol, ajoute le chou-fleur rôti et le tempeh laqué."
       ],
       "why": "Vegan : tempeh fermenté très protéiné, laqué à la sauce soja.",
       "macros_per_serving": {
@@ -11327,8 +11437,11 @@
         }
       ],
       "instructions": [
-        "Cuire le riz.",
-        "Brouiller les œufs, sauter avec riz et légumes."
+        "Rince le riz basmati jusqu'à ce que l'eau soit claire, puis fais-le cuire 11 minutes dans un grand volume d'eau salée et égoutte-le.",
+        "Étale-le pour qu'il refroidisse : un riz encore chaud colle et bout au lieu de sauter.",
+        "Bats les œufs, verse-les dans une poêle chaude avec la moitié de l'huile d'olive et brouille-les 1 minute à feu vif, puis réserve-les.",
+        "Verse le reste d'huile, jette les légumes dans la poêle brûlante et saute-les 4 minutes : ils doivent rester croquants.",
+        "Ajoute le riz, saute 3 minutes à feu vif en l'écrasant à la spatule pour le décoller, puis remets les œufs et mélange hors du feu."
       ],
       "why": "Végétarien : riz sauté complet, protéines des œufs.",
       "macros_per_serving": {
@@ -11351,7 +11464,7 @@
         "sport": [
           "combats"
         ],
-        "temps_min": 18
+        "temps_min": 30
       },
       "base_servings": 1,
       "ingredients": [
@@ -11387,8 +11500,11 @@
         }
       ],
       "instructions": [
-        "Cuis le riz.",
-        "Réhydrate la PST, égoutte et rince les haricots noirs, assemble en bowl tex-mex avec le maïs et l’avocat."
+        "Rince le riz complet, puis fais-le cuire 25 minutes à couvert et à feu doux dans deux fois et demie son volume d'eau salée.",
+        "Couvre la protéine de soja texturée d'eau bouillante salée, laisse-la gonfler 5 minutes puis presse-la pour l'essorer.",
+        "Fais-la revenir 4 minutes à feu vif dans une poêle antiadhésive, avec du sel, du poivre, du cumin et du paprika, jusqu'à ce qu'elle croustille sur les bords.",
+        "Égoutte et rince les haricots noirs, puis réchauffe-les 3 minutes avec la protéine de soja.",
+        "Dresse le riz au fond du bol, ajoute le mélange chaud et le maïs égoutté, et termine par l'avocat en lamelles."
       ],
       "why": "Vegan combats : protéines complètes (haricots + PST), sans gluten.",
       "macros_per_serving": {
@@ -11447,8 +11563,11 @@
         }
       ],
       "instructions": [
-        "Cuire le riz.",
-        "Sauter poulet, poivron et ananas, servir sur le riz."
+        "Rince le riz basmati jusqu'à ce que l'eau soit claire, puis fais-le cuire 11 minutes dans un grand volume d'eau salée et égoutte-le.",
+        "Coupe le poulet en dés et fais-les saisir 6 minutes à feu vif dans l'huile d'olive, jusqu'à ce qu'ils soient dorés sur toutes les faces.",
+        "Ajoute le poivron en lamelles et laisse-le s'attendrir 4 minutes.",
+        "Ajoute l'ananas en morceaux et laisse-le caraméliser 3 minutes à feu vif, sans remuer : c'est ce qui fait le liant de la sauce.",
+        "Sale, poivre, et sers sur le riz."
       ],
       "why": "Endurance : sucré-salé, recharge rapide + protéines.",
       "macros_per_serving": {
@@ -11471,7 +11590,7 @@
         "sport": [
           "muscu"
         ],
-        "temps_min": 15
+        "temps_min": 30
       },
       "base_servings": 1,
       "ingredients": [
@@ -11507,8 +11626,11 @@
         }
       ],
       "instructions": [
-        "Cuire le riz.",
-        "Servir avec sardines, tomate et oignon émincé."
+        "Rince le riz complet, puis fais-le cuire 25 minutes à couvert et à feu doux dans deux fois et demie son volume d'eau salée.",
+        "Émince l'oignon très fin et laisse-le dégorger 5 minutes dans de l'eau froide : il perd son mordant et ne couvre plus les sardines.",
+        "Coupe la tomate en dés et mélange-la à l'oignon égoutté, avec l'huile d'olive, du sel et du poivre.",
+        "Égoutte les sardines et pose-les entières sur le riz chaud, pour ne pas les casser.",
+        "Ajoute la salade de tomate et d'oignon par-dessus et sers aussitôt."
       ],
       "why": "Pescatarien économique, oméga-3 et calcium, sans gluten.",
       "macros_per_serving": {
@@ -11567,8 +11689,11 @@
         }
       ],
       "instructions": [
-        "Cuis le riz.",
-        "Égoutte et rince les pois chiches, assemble en bowl grec avec la feta émiettée et le concombre."
+        "Rince le riz basmati jusqu'à ce que l'eau soit claire, puis fais-le cuire 11 minutes dans un grand volume d'eau salée et égoutte-le.",
+        "Étale-le sur une assiette et laisse-le tiédir 5 minutes : brûlant, il ferait fondre la feta et ramollirait le concombre.",
+        "Égoutte et rince les pois chiches sous l'eau froide, puis sèche-les.",
+        "Coupe le concombre en demi-lunes et émiette la feta.",
+        "Mélange le tout, assaisonne d'huile d'olive, de poivre et d'origan, et sers frais."
       ],
       "why": "Végétarien méditerranéen : protéines végétales + feta, sans gluten.",
       "macros_per_serving": {
@@ -11621,8 +11746,11 @@
         }
       ],
       "instructions": [
-        "Cuire le riz.",
-        "Mijoter crevettes et légumes au curry vert et lait de coco."
+        "Rince le riz basmati jusqu'à ce que l'eau soit claire, puis fais-le cuire 11 minutes dans un grand volume d'eau salée et égoutte-le.",
+        "Sèche les crevettes avec du papier absorbant : mouillées, elles bouillent au lieu de saisir.",
+        "Fais-les saisir 3 minutes à feu très vif dans une poêle brûlante, jusqu'à ce qu'elles deviennent opaques, puis réserve-les.",
+        "Jette les légumes dans la poêle avec du sel, du poivre et des épices à curry vert, et saute-les 5 minutes.",
+        "Verse le lait de coco, laisse épaissir 3 minutes à feu doux, remets les crevettes et sers sur le riz."
       ],
       "why": "Pescatarien : curry crémeux, sans gluten, glucides pour l'endurance.",
       "macros_per_serving": {
@@ -11674,8 +11802,11 @@
         }
       ],
       "instructions": [
-        "Cuire le quinoa.",
-        "Poêler poulet et courgette, lier au pesto."
+        "Rince le quinoa sous l'eau froide 30 secondes pour retirer son amertume, puis fais-le cuire 12 minutes à couvert dans deux fois son volume d'eau salée.",
+        "Coupe le poulet en lanières et fais-les saisir 7 minutes à feu vif dans une poêle antiadhésive très chaude, en ne les retournant qu'une fois.",
+        "Ajoute la courgette en rondelles épaisses et laisse-la dorer 6 minutes, sans remuer sans arrêt : c'est ce qui la colore.",
+        "Égrène le quinoa à la fourchette.",
+        "Mélange le quinoa, le poulet et la courgette avec le pesto hors du feu : chauffé, il perd son parfum."
       ],
       "why": "Muscu sans gluten : quinoa = protéines complètes + poulet.",
       "macros_per_serving": {
@@ -11740,8 +11871,12 @@
         }
       ],
       "instructions": [
-        "Cuis le quinoa.",
-        "Réhydrate la PST, égoutte et rince les pois chiches, dresse avec l’avocat, la betterave et la roquette."
+        "Rince le quinoa sous l'eau froide 30 secondes pour retirer son amertume, puis fais-le cuire 12 minutes à couvert dans deux fois son volume d'eau salée.",
+        "Couvre la protéine de soja texturée d'eau bouillante salée, laisse-la gonfler 5 minutes puis presse-la pour l'essorer.",
+        "Égoutte et rince les pois chiches sous l'eau froide, puis sèche-les bien.",
+        "Fais revenir les pois chiches et la protéine de soja 5 minutes à feu vif dans une poêle antiadhésive, avec du sel, du poivre et du cumin, jusqu'à ce qu'ils croustillent.",
+        "Égrène le quinoa et laisse-le tiédir, puis dresse-le au fond du bol avec la betterave en dés et la roquette.",
+        "Ajoute les pois chiches chauds et l'avocat en lamelles au dernier moment."
       ],
       "why": "Vegan & sans gluten : triple protéine végétale, riche en fibres.",
       "macros_per_serving": {
@@ -11852,8 +11987,11 @@
         }
       ],
       "instructions": [
-        "Cuire le sarrasin.",
-        "Rôtir saumon et asperges, dresser."
+        "Rince le sarrasin, fais-le cuire 12 minutes dans deux fois son volume d'eau salée, puis égoutte-le.",
+        "Casse le pied dur des asperges là où il plie tout seul, puis fais-les cuire 6 minutes à l'eau bouillante salée : elles doivent rester fermes.",
+        "Sèche le saumon côté peau avec du papier absorbant : gorgée d'eau, la peau ne croustille jamais.",
+        "Fais chauffer l'huile d'olive à feu vif, pose le saumon côté peau et laisse-le cuire 5 minutes sans y toucher, puis retourne-le 2 minutes : le cœur doit rester rosé.",
+        "Sers le saumon sur le sarrasin avec les asperges, sel et poivre."
       ],
       "why": "Pescatarien sans gluten : oméga-3 + glucides lents du sarrasin.",
       "macros_per_serving": {
@@ -11912,8 +12050,12 @@
         }
       ],
       "instructions": [
-        "Cuis le millet.",
-        "Égoutte et rince les pois chiches, mijote-les avec la PST au curry et au lait de coco, ajoute les épinards."
+        "Rince le millet, fais-le cuire 15 minutes à couvert dans deux fois son volume d'eau salée, puis laisse-le gonfler 5 minutes hors du feu.",
+        "Couvre la protéine de soja texturée d'eau bouillante salée, laisse-la gonfler 5 minutes puis presse-la pour l'essorer.",
+        "Égoutte et rince les pois chiches sous l'eau froide.",
+        "Fais revenir la protéine de soja 3 minutes à feu vif dans une casserole antiadhésive, avec du sel, du poivre et des épices à curry, jusqu'à ce qu'elle colore.",
+        "Ajoute les pois chiches et le lait de coco, et laisse mijoter 8 minutes à feu doux : la sauce doit épaissir et napper la cuillère.",
+        "Jette les épinards dans la casserole, mélange 1 minute le temps qu'ils tombent, et sers sur le millet."
       ],
       "why": "Vegan endurance sans gluten : capacité protéique haute, crémeux.",
       "macros_per_serving": {
@@ -11965,8 +12107,11 @@
         }
       ],
       "instructions": [
-        "Cuire le quinoa.",
-        "Poêler le cabillaud, servir avec ratatouille."
+        "Rince le quinoa sous l'eau froide 30 secondes pour retirer son amertume, puis fais-le cuire 12 minutes à couvert dans deux fois son volume d'eau salée.",
+        "Réchauffe la ratatouille 5 minutes à feu moyen.",
+        "Sèche le cabillaud avec du papier absorbant : mouillé, il rend son eau et bout au lieu de dorer.",
+        "Fais-le cuire 8 minutes dans l'huile d'olive à feu moyen, 4 minutes par face : sa chair doit se détacher en lamelles sous la fourchette.",
+        "Sers le cabillaud sur le quinoa égrené, la ratatouille à côté."
       ],
       "why": "Sèche pescatarienne / combats : poisson maigre, légumes, sans gluten.",
       "macros_per_serving": {
@@ -12025,8 +12170,11 @@
         }
       ],
       "instructions": [
-        "Cuire le millet.",
-        "Poêler la dinde, ajouter petits pois et carotte."
+        "Rince le millet, fais-le cuire 15 minutes à couvert dans deux fois son volume d'eau salée, puis laisse-le gonfler 5 minutes hors du feu.",
+        "Coupe la carotte en petits dés : plus gros, ils resteraient crus quand la dinde sera cuite.",
+        "Fais chauffer l'huile d'olive à feu moyen et fais revenir la carotte 6 minutes, jusqu'à ce qu'elle s'attendrisse.",
+        "Coupe l'escalope de dinde en lanières, ajoute-les et laisse-les cuire 7 minutes, jusqu'à ce qu'elles soient blanches à cœur.",
+        "Ajoute les petits pois pour 3 minutes, sale, poivre, et sers sur le millet égrené."
       ],
       "why": "Endurance sans gluten : protéine maigre + glucides du millet.",
       "macros_per_serving": {
@@ -12085,8 +12233,11 @@
         }
       ],
       "instructions": [
-        "Cuis le quinoa.",
-        "Égoutte et rince les haricots blancs, mijote-les avec la PST, la tomate et le romarin."
+        "Rince le quinoa sous l'eau froide 30 secondes pour retirer son amertume, puis fais-le cuire 12 minutes à couvert dans deux fois son volume d'eau salée.",
+        "Couvre la protéine de soja texturée d'eau bouillante salée, laisse-la gonfler 5 minutes puis presse-la pour l'essorer.",
+        "Fais chauffer l'huile d'olive à feu moyen et fais revenir la protéine de soja 4 minutes avec du sel, du poivre et du romarin.",
+        "Égoutte et rince les haricots blancs, ajoute-les avec la tomate concassée et laisse mijoter 10 minutes à feu doux : la sauce doit épaissir et les haricots s'imprégner.",
+        "Sers sur le quinoa égrené."
       ],
       "why": "Vegan combats sans gluten : haricots blancs = capacité protéique élevée.",
       "macros_per_serving": {
@@ -12191,8 +12342,11 @@
         }
       ],
       "instructions": [
-        "Cuire les pommes de terre.",
-        "Poêler le steak, servir avec haricots verts."
+        "Épluche les pommes de terre, coupe-les en gros morceaux et fais-les cuire 20 minutes à l'eau bouillante salée : la pointe d'un couteau doit y entrer sans résistance.",
+        "Équeute les haricots verts et fais-les cuire 8 minutes à l'eau bouillante salée : ils doivent rester vert vif.",
+        "Fais chauffer l'huile d'olive à feu très vif et saisis le steak 3 minutes par face, sans jamais le presser : c'est son jus qui le garde tendre.",
+        "Laisse-le reposer 2 minutes hors du feu avant de servir, le temps que le jus se répartisse.",
+        "Sers le steak avec les pommes de terre et les haricots verts, sel et poivre."
       ],
       "why": "Prise de masse classique sans gluten : fer + glucides + protéines.",
       "macros_per_serving": {
@@ -12245,8 +12399,12 @@
         }
       ],
       "instructions": [
-        "Rôtir la patate douce.",
-        "Poêler le tofu, ajouter épinards et lait de coco."
+        "Préchauffe le four à 210 °C.",
+        "Épluche la patate douce, coupe-la en cubes de deux centimètres et étale-les sur une plaque sans les superposer : entassés, ils cuisent à la vapeur au lieu de rôtir.",
+        "Enfourne 25 minutes en remuant à mi-cuisson.",
+        "Presse le tofu 5 minutes entre deux feuilles de papier absorbant sous une assiette lestée, puis coupe-le en cubes.",
+        "Fais-les colorer 8 minutes dans une poêle antiadhésive très chaude, en ne les retournant que lorsqu'une face est franchement dorée, avec du sel, du poivre et du curcuma.",
+        "Jette les épinards, mélange 1 minute le temps qu'ils tombent, verse le lait de coco et laisse épaissir 2 minutes, puis sers avec la patate douce."
       ],
       "why": "Vegan endurance sans gluten : énergie durable, ancre protéique haute.",
       "macros_per_serving": {
@@ -12298,8 +12456,11 @@
         }
       ],
       "instructions": [
-        "Cuire les pommes de terre vapeur.",
-        "Cuire le cabillaud au four, servir."
+        "Préchauffe le four à 200 °C.",
+        "Épluche les pommes de terre, coupe-les en gros morceaux et fais-les cuire 20 minutes à la vapeur : la pointe d'un couteau doit y entrer sans résistance.",
+        "Équeute les haricots verts et fais-les cuire 8 minutes à l'eau bouillante salée : ils doivent rester vert vif.",
+        "Pose le cabillaud dans un plat, arrose-le d'huile d'olive, sale, poivre, et enfourne 12 minutes : sa chair doit devenir opaque et se détacher en lamelles.",
+        "Sers le cabillaud avec les pommes de terre et les haricots verts."
       ],
       "why": "Sèche pescatarienne : poisson maigre + féculent, faible en gras.",
       "macros_per_serving": {
@@ -12364,8 +12525,11 @@
         }
       ],
       "instructions": [
-        "Rôtis la patate douce.",
-        "Égoutte et rince les haricots rouges, mijote-les avec la PST en chili, dresse avec le maïs."
+        "Préchauffe le four à 210 °C.",
+        "Épluche la patate douce, coupe-la en cubes de deux centimètres et étale-les sur une plaque avec la moitié de l'huile d'olive, sans les superposer, puis enfourne 25 minutes en remuant à mi-cuisson.",
+        "Couvre la protéine de soja texturée d'eau bouillante salée, laisse-la gonfler 5 minutes puis presse-la pour l'essorer.",
+        "Fais-la revenir 4 minutes dans le reste d'huile avec du sel, du poivre, du cumin, du paprika et du piment, jusqu'à ce qu'elle croustille.",
+        "Égoutte et rince les haricots rouges, ajoute-les avec la tomate concassée et laisse mijoter 10 minutes à feu doux, puis sers sur la patate douce avec le maïs égoutté."
       ],
       "why": "Vegan combats sans gluten : très haute capacité protéique.",
       "macros_per_serving": {
@@ -12424,8 +12588,11 @@
         }
       ],
       "instructions": [
-        "Cuire pommes de terre et asperges.",
-        "Rôtir le saumon, servir avec sauce yaourt-aneth."
+        "Préchauffe le four à 200 °C.",
+        "Épluche les pommes de terre, coupe-les en gros morceaux et fais-les cuire 20 minutes à la vapeur : la pointe d'un couteau doit y entrer sans résistance.",
+        "Casse le pied dur des asperges là où il plie tout seul et fais-les cuire 6 minutes à l'eau bouillante salée : elles doivent rester fermes.",
+        "Pose le saumon dans un plat, arrose-le d'huile d'olive, sale, poivre, et enfourne 12 minutes : le cœur doit rester rosé.",
+        "Mélange le yaourt grec avec de l'aneth ciselé, du jus de citron, du sel et du poivre, et sers cette sauce froide avec le saumon et les légumes."
       ],
       "why": "Pescatarien jour repos : oméga-3, sauce protéinée légère.",
       "macros_per_serving": {
@@ -12550,8 +12717,11 @@
         }
       ],
       "instructions": [
-        "Mijoter lentilles + PST + tomate.",
-        "Lier au lait de coco, servir avec le riz."
+        "Rince le riz complet, puis fais-le cuire 25 minutes à couvert et à feu doux dans deux fois et demie son volume d'eau salée.",
+        "Couvre la protéine de soja texturée d'eau bouillante salée, laisse-la gonfler 5 minutes puis presse-la pour l'essorer.",
+        "Rince les lentilles corail, puis fais-les cuire 12 minutes à feu doux dans trois fois leur volume d'eau salée, avec du curcuma et du cumin : elles doivent se défaire complètement.",
+        "Ajoute la tomate concassée et la protéine de soja, et laisse mijoter 5 minutes de plus.",
+        "Verse le lait de coco, laisse épaissir 2 minutes à découvert et sers sur le riz."
       ],
       "why": "Vegan muscu : double protéine (lentilles + PST), forte capacité.",
       "macros_per_serving": {
@@ -12616,8 +12786,11 @@
         }
       ],
       "instructions": [
-        "Égoutte et rince les haricots rouges, mijote-les avec la PST, la tomate et les épices.",
-        "Ajoute le maïs, sers sur le riz."
+        "Rince le riz complet, puis fais-le cuire 25 minutes à couvert et à feu doux dans deux fois et demie son volume d'eau salée.",
+        "Couvre la protéine de soja texturée d'eau bouillante salée, laisse-la gonfler 5 minutes puis presse-la pour l'essorer.",
+        "Fais-la revenir 4 minutes dans l'huile d'olive à feu vif, avec du sel, du poivre, du cumin, du paprika, de l'origan et du piment : les épices doivent accrocher au fond.",
+        "Égoutte et rince les haricots rouges, ajoute-les avec la tomate concassée et un verre d'eau, et laisse mijoter 15 minutes à couvert et à feu doux.",
+        "Ajoute le maïs égoutté pour les 2 dernières minutes et sers sur le riz."
       ],
       "why": "Vegan combats sans gluten : protéines complètes, plat réconfortant.",
       "macros_per_serving": {
@@ -12630,7 +12803,7 @@
     },
     {
       "id": "rep104",
-      "name": "Curry pois chiches – patate – riz",
+      "name": "Curry pois chiches – patate douce – lait de coco",
       "category": "repas_complet",
       "tags": {
         "objectif": [
@@ -12805,8 +12978,12 @@
         }
       ],
       "instructions": [
-        "Égoutte et rince les haricots noirs, mijote-les avec la PST, l’oignon et les épices.",
-        "Sers sur le riz."
+        "Rince le riz complet, puis fais-le cuire 25 minutes à couvert et à feu doux dans deux fois et demie son volume d'eau salée.",
+        "Couvre la protéine de soja texturée d'eau bouillante salée, laisse-la gonfler 5 minutes puis presse-la pour l'essorer.",
+        "Émince l'oignon et fais-le blondir 4 minutes à feu moyen dans l'huile d'olive.",
+        "Ajoute la protéine de soja, du sel, du poivre, du cumin et une feuille de laurier, et laisse colorer 4 minutes à feu vif.",
+        "Égoutte et rince les haricots noirs, ajoute-les avec un verre d'eau et laisse mijoter 12 minutes à couvert : le jus doit devenir sirupeux et les haricots commencer à s'écraser.",
+        "Sers la feijoada sur le riz."
       ],
       "why": "Vegan muscu sans gluten : haricots noirs riches en protéines et fer.",
       "macros_per_serving": {
@@ -13052,8 +13229,11 @@
         }
       ],
       "instructions": [
-        "Égoutte et rince les haricots rouges, mijote-les avec le poulet émincé, la tomate et les épices.",
-        "Sers sur le riz."
+        "Rince le riz complet, puis fais-le cuire 25 minutes à couvert et à feu doux dans deux fois et demie son volume d'eau salée.",
+        "Coupe le poulet en dés et fais-les saisir 5 minutes à feu vif dans l'huile d'olive, jusqu'à ce qu'ils soient dorés sur toutes les faces.",
+        "Ajoute du sel, du poivre, du cumin, du paprika et du piment, et mélange 1 minute : la chaleur ouvre les épices.",
+        "Égoutte et rince les haricots rouges, ajoute-les avec la tomate concassée et laisse mijoter 12 minutes à feu doux, à couvert : la sauce doit épaissir et le poulet s'effilocher.",
+        "Sers le chili sur le riz."
       ],
       "why": "Muscu sans gluten : double protéine animale + végétale, capacité haute.",
       "macros_per_serving": {
@@ -13112,8 +13292,12 @@
         }
       ],
       "instructions": [
-        "Cuis le boulgour.",
-        "Égoutte et rince les pois chiches, écrase-en la moitié en houmous, assemble avec la PST et le poivron grillé."
+        "Rince le boulgour, verse-le dans une fois et demie son volume d'eau bouillante salée, couvre et laisse cuire 10 minutes à feu doux, puis égrène-le à la fourchette.",
+        "Couvre la protéine de soja texturée d'eau bouillante salée, laisse-la gonfler 5 minutes puis presse-la pour l'essorer.",
+        "Coupe le poivron en larges lanières et fais-les griller 6 minutes à feu vif dans la moitié de l'huile d'olive, jusqu'à ce que la peau cloque et noircisse par endroits.",
+        "Égoutte et rince les pois chiches, mets-en la moitié de côté et écrase-les avec le reste d'huile, du sel et du jus de citron, jusqu'à obtenir un houmous épais.",
+        "Fais revenir l'autre moitié des pois chiches avec la protéine de soja 4 minutes à feu vif, avec du sel, du poivre et du cumin, jusqu'à ce qu'ils croustillent.",
+        "Dresse le boulgour au fond du bol, étale le houmous sur un côté et ajoute les pois chiches chauds et le poivron grillé."
       ],
       "why": "Vegan endurance : levantin protéiné, glucides du boulgour.",
       "macros_per_serving": {
@@ -13237,8 +13421,11 @@
         }
       ],
       "instructions": [
-        "Poêler le poulet émincé.",
-        "Garnir la tortilla de poulet, avocat et crudités, rouler."
+        "Coupe le poulet en lanières fines et frotte-les de sel, de poivre et de paprika.",
+        "Fais-les saisir 7 minutes à feu vif dans une poêle antiadhésive très chaude, en ne les retournant qu'une fois : elles doivent être dorées dehors et blanches à cœur.",
+        "Passe la tortilla 20 secondes à la poêle chaude pour l'assouplir : elle roulera sans casser.",
+        "Garnis-la de salade, de tomate en rondelles, du poulet tiède et de l'avocat en lamelles.",
+        "Replie les deux côtés avant de rouler serré, sinon la garniture ressort à la première bouchée."
       ],
       "why": "Muscu nomade : protéiné, bons lipides, à emporter.",
       "macros_per_serving": {
@@ -13420,8 +13607,11 @@
         }
       ],
       "instructions": [
-        "Préparer une pâte à galette de sarrasin, cuire.",
-        "Garnir d'œuf et champignons poêlés."
+        "Mixe le sarrasin 1 minute jusqu'à obtenir une poudre fine : en grains entiers, la pâte reste sableuse.",
+        "Mélange-la avec un œuf, une pincée de sel et l'équivalent d'un verre d'eau, jusqu'à obtenir une pâte lisse et liquide, puis laisse-la reposer 5 minutes.",
+        "Fais chauffer une poêle antiadhésive à feu moyen avec un peu d'huile d'olive et verse une louche de pâte en l'étalant fin : compte 2 minutes par face.",
+        "Fais sauter les champignons dans le reste d'huile à feu vif 5 minutes sans remuer, jusqu'à ce qu'ils aient rendu leur eau et doré.",
+        "Casse les œufs restants sur les galettes chaudes, couvre 3 minutes pour que le blanc prenne sans que le jaune durcisse, puis garnis de champignons."
       ],
       "why": "Végétarien sans gluten : galette bretonne protéinée.",
       "macros_per_serving": {
@@ -13479,8 +13669,11 @@
         }
       ],
       "instructions": [
-        "Griller le poulet, préparer le tzatziki au yaourt.",
-        "Garnir le pita de poulet, sauce et crudités."
+        "Coupe le poulet en lanières et frotte-les de sel, de poivre et d'origan.",
+        "Fais-les griller 7 minutes à feu vif dans la moitié de l'huile d'olive, en ne les retournant qu'une fois : elles doivent être dorées dehors et blanches à cœur.",
+        "Râpe le concombre, presse-le dans tes mains pour en chasser l'eau, puis mélange-le au yaourt grec avec le reste d'huile, du sel et du poivre : c'est l'eau du concombre qui rend un tzatziki liquide.",
+        "Passe le pita 1 minute par face dans une poêle chaude, puis ouvre-le en poche.",
+        "Garnis-le du poulet et du tzatziki, et sers aussitôt pour que le pain reste moelleux."
       ],
       "why": "Muscu : kebab maison sain, protéiné, sauce légère.",
       "macros_per_serving": {
@@ -13542,7 +13735,8 @@
         "Préchauffe le four à 210 °C.",
         "Couvre la protéine de soja texturée d'eau bouillante salée, laisse-la gonfler 5 minutes puis presse-la pour l'essorer.",
         "Égoutte et rince les pois chiches, puis sèche-les bien dans un torchon : c'est ce qui fait tenir les falafels.",
-        "Mixe les pois chiches avec la protéine de soja, du sel, du poivre et du cumin, jusqu'à obtenir une pâte grossière qui se tient à la main.",
+        "Mets 55 g de pois chiches de côté et écrase-les à la fourchette avec un filet d'huile d'olive, du sel, du poivre et du jus de citron, jusqu'à obtenir une pâte épaisse : c'est le houmous du wrap.",
+        "Mixe le reste des pois chiches avec la protéine de soja, du sel, du poivre et du cumin, jusqu'à obtenir une pâte grossière qui se tient à la main.",
         "Forme des boulettes de la taille d'une noix, étale-les sur une plaque, badigeonne-les d'huile d'olive et enfourne 12 minutes : elles doivent être dorées et fermes.",
         "Passe la tortilla 20 secondes à la poêle chaude pour l'assouplir, garnis-la de houmous, des falafels écrasés du plat de la main et de la salade, puis roule fermement."
       ],
@@ -13596,8 +13790,11 @@
         }
       ],
       "instructions": [
-        "Poêler le cabillaud épicé.",
-        "Garnir les tortillas de poisson, chou-fleur émincé et avocat."
+        "Détaille le chou-fleur en très petits bouquets, puis émince-les finement au couteau : c'est ce qui lui donne le croquant d'une salade de chou.",
+        "Coupe le cabillaud en gros morceaux, sèche-les avec du papier absorbant et frotte-les de sel, de poivre, de paprika et de cumin.",
+        "Fais-les cuire 6 minutes dans une poêle antiadhésive à feu moyen, 3 minutes par face : la chair doit devenir opaque et se détacher en lamelles.",
+        "Passe les tortillas 20 secondes à la poêle chaude pour les assouplir : elles se plieront sans casser.",
+        "Garnis-les du poisson, du chou-fleur émincé et de l'avocat en lamelles, et arrose de jus de citron vert."
       ],
       "why": "Pescatarien : fish tacos, poisson maigre + bons lipides.",
       "macros_per_serving": {
@@ -13655,8 +13852,11 @@
         }
       ],
       "instructions": [
-        "Réhydrater et poêler la PST façon shawarma.",
-        "Garnir le pita avec sauce yaourt de soja et légumes."
+        "Couvre la protéine de soja texturée d'eau bouillante salée, laisse-la gonfler 5 minutes puis presse-la pour l'essorer.",
+        "Fais chauffer l'huile d'olive à feu vif et fais-la revenir 6 minutes avec du sel, du poivre, du cumin, du paprika et de la cannelle, jusqu'à ce qu'elle croustille sur les bords : c'est cette texture qui fait le shawarma.",
+        "Mélange le yaourt de soja avec du sel, du poivre et du jus de citron, jusqu'à obtenir une sauce qui nappe la cuillère.",
+        "Passe le pita 1 minute par face dans une poêle chaude, puis ouvre-le en poche.",
+        "Garnis-le de la protéine de soja, de la tomate en rondelles et de la sauce, et sers aussitôt."
       ],
       "why": "Vegan combats : shawarma végétal très protéiné, pas trop lourd.",
       "macros_per_serving": {
@@ -13715,8 +13915,11 @@
         }
       ],
       "instructions": [
-        "Hydrate la semoule.",
-        "Égoutte et rince les pois chiches, mélange avec la PST réhydratée, la tomate, la menthe et le citron."
+        "Couvre la protéine de soja texturée d'eau bouillante salée, laisse-la gonfler 5 minutes puis presse-la pour l'essorer.",
+        "Verse la semoule dans un saladier, couvre-la d'une fois et demie son volume d'eau bouillante salée, couvre et laisse gonfler 5 minutes.",
+        "Égrène-la à la fourchette et laisse-la refroidir 5 minutes : tiède, elle ramollirait la tomate.",
+        "Égoutte et rince les pois chiches, et coupe la tomate en petits dés.",
+        "Mélange le tout avec l'huile d'olive, du jus de citron, du sel, du poivre et beaucoup de menthe ciselée, et sers frais."
       ],
       "why": "Vegan endurance : taboulé enrichi en protéines, froid.",
       "macros_per_serving": {
@@ -13841,8 +14044,11 @@
         }
       ],
       "instructions": [
-        "Cuire le boulgour.",
-        "Poêler le bœuf, servir avec ratatouille et yaourt."
+        "Rince le boulgour, verse-le dans une fois et demie son volume d'eau bouillante salée, couvre et laisse cuire 10 minutes à feu doux, puis égrène-le à la fourchette.",
+        "Fais chauffer l'huile d'olive à feu très vif, ajoute le bœuf haché, écrase-le à la spatule et laisse-le colorer 5 minutes sans trop remuer : il doit brunir, pas bouillir.",
+        "Sale, poivre, ajoute du cumin et du paprika, et mélange 1 minute.",
+        "Réchauffe la ratatouille 5 minutes à feu moyen dans une seconde poêle.",
+        "Sers le bœuf et la ratatouille sur le boulgour, avec le yaourt grec en cuillerées froides sur le dessus."
       ],
       "why": "Combats : plat oriental protéiné, sauce yaourt fraîche.",
       "macros_per_serving": {
@@ -13901,8 +14107,11 @@
         }
       ],
       "instructions": [
-        "Cuire la semoule.",
-        "Poêler tofu + PST épicés façon merguez, servir avec ratatouille."
+        "Couvre la protéine de soja texturée d'eau bouillante salée, laisse-la gonfler 5 minutes puis presse-la pour l'essorer.",
+        "Presse le tofu 5 minutes sous une assiette lestée, puis émiette-le grossièrement à la main.",
+        "Fais chauffer l'huile d'olive à feu vif et fais revenir le tofu et la protéine de soja 6 minutes avec du sel, du poivre, du paprika fumé, du cumin et du piment : laisse-les accrocher, c'est ce qui les fait croustiller.",
+        "Verse la semoule dans un saladier, couvre-la d'une fois et demie son volume d'eau bouillante salée, couvre et laisse gonfler 5 minutes, puis égrène-la à la fourchette.",
+        "Réchauffe la ratatouille 4 minutes à feu moyen et sers-la sur la semoule, avec le tofu épicé."
       ],
       "why": "Vegan combats : couscous végétal très protéiné, pas trop lourd.",
       "macros_per_serving": {
@@ -13955,8 +14164,11 @@
         }
       ],
       "instructions": [
-        "Cuire le boulgour.",
-        "Rôtir saumon et courgette, dresser au citron."
+        "Rince le boulgour, verse-le dans une fois et demie son volume d'eau bouillante salée, couvre et laisse cuire 10 minutes à feu doux, puis égrène-le à la fourchette.",
+        "Coupe la courgette en rondelles épaisses et fais-les dorer 6 minutes à feu vif dans la moitié de l'huile d'olive, sans les remuer sans arrêt : c'est ce qui les colore.",
+        "Sèche le saumon avec du papier absorbant et coupe-le en gros cubes.",
+        "Fais chauffer le reste d'huile à feu vif et saisis les cubes 4 minutes en les retournant une fois : le cœur doit rester rosé.",
+        "Mélange le boulgour, la courgette et le saumon, assaisonne de sel, de poivre et de jus de citron, et sers tiède."
       ],
       "why": "Pescatarien jour repos : oméga-3 + glucides complets.",
       "macros_per_serving": {
@@ -14074,8 +14286,11 @@
         }
       ],
       "instructions": [
-        "Cuire la polenta crémeuse.",
-        "Poêler poulet et champignons, dresser sur la polenta."
+        "Coupe le poulet en lanières et fais-les saisir 7 minutes à feu vif dans la moitié de l'huile d'olive, en ne les retournant qu'une fois, puis réserve-les.",
+        "Jette les champignons dans la poêle très chaude avec le reste d'huile et laisse-les rendre leur eau 5 minutes sans remuer, jusqu'à ce qu'ils soient dorés.",
+        "Verse la polenta en pluie dans cinq fois son volume d'eau salée frémissante : plus d'eau que pour une polenta à trancher, c'est ce qui la rend crémeuse.",
+        "Remue 5 minutes à feu doux, jusqu'à ce qu'elle nappe la cuillère.",
+        "Sers la polenta dans l'assiette creuse, avec le poulet et les champignons par-dessus."
       ],
       "why": "Muscu sans gluten : polenta réconfortante + protéines maigres.",
       "macros_per_serving": {
@@ -14244,8 +14459,11 @@
         }
       ],
       "instructions": [
-        "Cuire les nouilles.",
-        "Saisir le bœuf, sauter avec le brocoli, mélanger."
+        "Plonge les nouilles de riz dans un grand volume d'eau bouillante, coupe le feu et laisse-les gonfler 4 minutes, puis égoutte et rince à l'eau froide pour qu'elles ne collent pas.",
+        "Détaille le brocoli en petits bouquets et plonge-le 4 minutes dans l'eau bouillante, puis récupère-le à l'écumoire : il doit rester vert vif et croquant.",
+        "Taille la bavette en fines lanières dans le sens contraire des fibres : c'est ce qui la rend tendre.",
+        "Saisis-les 2 minutes à feu très vif dans l'huile d'olive brûlante, sans les superposer, puis réserve-les : trop cuites, elles durcissent.",
+        "Remets le brocoli et les nouilles dans la poêle, saute 2 minutes à feu vif, puis ajoute le bœuf et mélange hors du feu."
       ],
       "why": "Muscu sans gluten : sauté riche en fer, capacité élevée.",
       "macros_per_serving": {
@@ -14361,8 +14579,11 @@
         }
       ],
       "instructions": [
-        "Cuire les nouilles.",
-        "Sauter crevettes et légumes, lier au lait de coco."
+        "Plonge les nouilles de riz dans un grand volume d'eau bouillante, coupe le feu et laisse-les gonfler 4 minutes, puis égoutte et rince à l'eau froide pour qu'elles ne collent pas.",
+        "Sèche les crevettes avec du papier absorbant : mouillées, elles bouillent au lieu de saisir.",
+        "Fais-les saisir 3 minutes à feu très vif dans un wok brûlant, jusqu'à ce qu'elles deviennent opaques et se recroquevillent, puis réserve-les : au-delà, elles caoutchoutent.",
+        "Jette les légumes dans le wok et saute-les 5 minutes en remuant : ils doivent rester croquants.",
+        "Verse le lait de coco, laisse épaissir 3 minutes à feu doux, puis remets les crevettes et les nouilles et mélange hors du feu."
       ],
       "why": "Pescatarien sans gluten : laksa léger, glucides pour l'endurance.",
       "macros_per_serving": {
@@ -14414,8 +14635,11 @@
         }
       ],
       "instructions": [
-        "Cuire les pommes de terre en dés.",
-        "Verser les œufs battus avec épinards, cuire l'omelette."
+        "Coupe les pommes de terre en dés d'un centimètre, sans les éplucher : la peau tient le dé à la cuisson.",
+        "Fais-les rissoler 14 minutes à couvert dans l'huile d'olive à feu moyen, en remuant deux fois, jusqu'à ce qu'elles soient dorées et tendres au couteau.",
+        "Jette les épinards et mélange 1 minute le temps qu'ils tombent.",
+        "Bats les œufs avec du sel et du poivre et verse-les dans la poêle, en répartissant bien les pommes de terre.",
+        "Laisse prendre 5 minutes à feu doux et à couvert : le dessus doit être juste pris, plus tremblotant."
       ],
       "why": "Végétarien : tortilla espagnole protéinée, complète.",
       "macros_per_serving": {
@@ -14480,8 +14704,11 @@
         }
       ],
       "instructions": [
-        "Égoutte et rince les pois chiches, mijote-les avec la tomate et le poivron.",
-        "Casse les œufs dessus, cuis à couvert, sers avec le pain."
+        "Coupe le poivron en lamelles et fais-le revenir 6 minutes dans l'huile d'olive à feu moyen, jusqu'à ce qu'il s'attendrisse.",
+        "Verse la tomate concassée avec du sel, du poivre, du cumin et du paprika, et laisse mijoter 8 minutes à feu doux : la sauce doit épaissir, sinon les œufs s'y noieront.",
+        "Égoutte et rince les pois chiches et ajoute-les pour 2 minutes.",
+        "Creuse des puits dans la sauce, casse-y les œufs, couvre et laisse cuire 6 minutes à feu doux : le blanc doit être pris et le jaune encore coulant.",
+        "Fais griller le pain complet et sers-le avec, pour saucer."
       ],
       "why": "Végétarien : plat mijoté riche en protéines, glucides du pain.",
       "macros_per_serving": {
@@ -14540,8 +14767,11 @@
         }
       ],
       "instructions": [
-        "Cuire le quinoa.",
-        "Mélanger œufs, feta, courgette et quinoa, cuire en frittata."
+        "Rince le quinoa sous l'eau froide 30 secondes pour retirer son amertume, puis fais-le cuire 12 minutes à couvert dans deux fois son volume d'eau salée.",
+        "Coupe la courgette en rondelles fines et fais-les dorer 6 minutes dans l'huile d'olive à feu vif, puis étale-les au fond de la poêle.",
+        "Bats les œufs avec du sel et du poivre, incorpore le quinoa égrené et la feta émiettée.",
+        "Verse le mélange sur les courgettes et laisse cuire 10 minutes à feu doux et à couvert : le dessus doit être juste pris, plus tremblotant.",
+        "Laisse tiédir 2 minutes avant de démouler, sinon la frittata se casse."
       ],
       "why": "Végétarien sans gluten : frittata protéinée + quinoa.",
       "macros_per_serving": {
@@ -14593,8 +14823,11 @@
         }
       ],
       "instructions": [
-        "Rôtir la patate douce.",
-        "Cuire les œufs cocotte sur lit d'épinards et crème de soja."
+        "Préchauffe le four à 200 °C.",
+        "Épluche la patate douce et coupe-la en petits dés d'un centimètre, puis fais-les rissoler 12 minutes à couvert dans une poêle antiadhésive à feu moyen, en remuant deux fois.",
+        "Jette les épinards dans la poêle et mélange 1 minute le temps qu'ils tombent, puis sale et poivre.",
+        "Répartis les épinards et la patate douce dans deux ramequins, verse la crème de soja et casse un œuf sur chacun.",
+        "Enfourne 12 minutes : le blanc doit être pris et le jaune encore coulant. Sers dans le ramequin, la cuisson continue hors du four."
       ],
       "why": "Végétarien jour repos sans gluten : onctueux et protéiné.",
       "macros_per_serving": {
@@ -14710,8 +14943,11 @@
         }
       ],
       "instructions": [
-        "Rôtir la patate douce.",
-        "Brouiller les œufs, dresser avec avocat et maïs."
+        "Épluche la patate douce et coupe-la en petits dés d'un centimètre : plus gros, ils ne cuiraient pas en 12 minutes.",
+        "Fais-les rissoler 12 minutes à couvert dans une poêle antiadhésive à feu moyen, en remuant deux fois : la pointe d'un couteau doit y entrer sans résistance.",
+        "Bats les œufs avec du sel et du poivre, verse-les dans une poêle froide et remue sans arrêt 3 minutes à feu doux : c'est la lenteur qui les rend crémeux.",
+        "Coupe le feu quand ils sont encore un peu coulants : ils finissent de prendre dans l'assiette.",
+        "Dresse les œufs avec les dés de patate douce, le maïs égoutté et l'avocat en lamelles."
       ],
       "why": "Végétarien sans gluten : brunch complet, bons lipides.",
       "macros_per_serving": {
@@ -14769,8 +15005,11 @@
         }
       ],
       "instructions": [
-        "Cuire le quinoa.",
-        "Mélanger salade, poulet grillé et quinoa, assaisonner d'huile d'olive et de jus de citron, finir au parmesan râpé."
+        "Rince le quinoa sous l'eau froide 30 secondes pour retirer son amertume, puis fais-le cuire 12 minutes à couvert dans deux fois son volume d'eau salée, et laisse-le refroidir.",
+        "Coupe le poulet en lanières et frotte-les de sel et de poivre.",
+        "Fais-les griller 7 minutes à feu vif dans la moitié de l'huile d'olive, en ne les retournant qu'une fois : elles doivent être dorées dehors et blanches à cœur.",
+        "Taille la salade verte en larges lanières et mélange-la au quinoa froid.",
+        "Assaisonne du reste d'huile, de jus de citron, de sel et de poivre, ajoute le poulet tiède et termine par le parmesan râpé."
       ],
       "why": "Muscu sans gluten : César revisitée, protéinée et fraîche.",
       "macros_per_serving": {
@@ -14829,8 +15068,11 @@
         }
       ],
       "instructions": [
-        "Cuire le riz, refroidir.",
-        "Mélanger thon, œuf dur et maïs, assaisonner d'huile d'olive, de vinaigre et de poivre."
+        "Rince le riz basmati jusqu'à ce que l'eau soit claire, fais-le cuire 11 minutes dans un grand volume d'eau salée, puis égoutte-le et laisse-le refroidir : tiède, il détremperait la salade.",
+        "Plonge les œufs dans l'eau bouillante et compte 9 minutes pour un jaune ferme, puis passe-les sous l'eau froide avant de les écaler.",
+        "Égoutte le thon et le maïs, et coupe les œufs en quartiers.",
+        "Mélange le riz froid, le thon et le maïs, assaisonne d'huile d'olive, de vinaigre, de sel et de poivre.",
+        "Dépose les quartiers d'œuf sur le dessus au moment de servir, pour qu'ils ne s'écrasent pas."
       ],
       "why": "Pescatarien sans gluten : salade complète à emporter, double protéine.",
       "macros_per_serving": {
@@ -14889,8 +15131,11 @@
         }
       ],
       "instructions": [
-        "Cuire le quinoa.",
-        "Poêler le tofu fumé, assembler avec edamame, avocat et roquette."
+        "Rince le quinoa sous l'eau froide 30 secondes pour retirer son amertume, puis fais-le cuire 12 minutes à couvert dans deux fois son volume d'eau salée.",
+        "Presse le tofu 5 minutes entre deux feuilles de papier absorbant sous une assiette lestée : moins il est gorgé d'eau, mieux il dore.",
+        "Fais cuire les edamame 5 minutes à l'eau bouillante salée, puis égoutte-les et écosse-les si besoin.",
+        "Coupe le tofu en cubes et fais-les colorer 8 minutes dans une poêle antiadhésive très chaude, en ne les retournant que lorsqu'une face est franchement dorée.",
+        "Égrène le quinoa, laisse-le tiédir, puis mélange-le au tofu, aux edamame et à la roquette, et termine par l'avocat en lamelles."
       ],
       "why": "Vegan & sans gluten : salade protéinée complète, bons lipides.",
       "macros_per_serving": {
@@ -14949,8 +15194,11 @@
         }
       ],
       "instructions": [
-        "Cuis le boulgour.",
-        "Égoutte et rince les pois chiches, mélange avec la feta, le concombre et la menthe."
+        "Rince le boulgour, verse-le dans une fois et demie son volume d'eau bouillante salée, couvre et laisse cuire 10 minutes à feu doux.",
+        "Égrène-le à la fourchette et laisse-le refroidir 5 minutes : tiède, il ferait fondre la feta.",
+        "Égoutte et rince les pois chiches sous l'eau froide, puis sèche-les.",
+        "Coupe le concombre en demi-lunes et émiette la feta.",
+        "Mélange le tout avec l'huile d'olive, du sel, du poivre et de la menthe ciselée, et sers frais."
       ],
       "why": "Végétarien combats : salade levantine fraîche et protéinée.",
       "macros_per_serving": {
@@ -15135,8 +15383,12 @@
         }
       ],
       "instructions": [
-        "Cuis le quinoa.",
-        "Égoutte et rince les haricots noirs, mélange avec la PST, le maïs et l’avocat, assaisonne au citron vert."
+        "Rince le quinoa sous l'eau froide 30 secondes pour retirer son amertume, puis fais-le cuire 12 minutes à couvert dans deux fois son volume d'eau salée.",
+        "Égrène-le à la fourchette et laisse-le refroidir 5 minutes : encore chaud, il détremperait l'avocat.",
+        "Couvre la protéine de soja texturée d'eau bouillante salée, laisse-la gonfler 5 minutes puis presse-la pour l'essorer.",
+        "Égoutte et rince les haricots noirs sous l'eau froide.",
+        "Mélange le quinoa, les haricots, la protéine de soja et le maïs égoutté, puis assaisonne de sel, de poivre et de jus de citron vert.",
+        "Ajoute l'avocat en dés au dernier moment, pour qu'il ne s'écrase pas dans la salade."
       ],
       "why": "Vegan combats sans gluten : salade tex-mex, protéines complètes.",
       "macros_per_serving": {
@@ -15194,8 +15446,11 @@
         }
       ],
       "instructions": [
-        "Rôtir la patate douce en dés.",
-        "Assembler avec poulet grillé, épinards et graines de courge."
+        "Préchauffe le four à 210 °C.",
+        "Épluche la patate douce, coupe-la en cubes de deux centimètres et étale-les sur une plaque avec l'huile d'olive, sans les superposer : entassés, ils cuisent à la vapeur au lieu de rôtir.",
+        "Enfourne 25 minutes en remuant à mi-cuisson.",
+        "Coupe le poulet en lanières et fais-les griller 7 minutes à feu vif dans une poêle antiadhésive très chaude, en ne les retournant qu'une fois.",
+        "Laisse tiédir la patate douce 3 minutes, puis mélange-la aux épinards et au poulet, et parsème les graines de courge : brûlante, elle ferait faner les épinards."
       ],
       "why": "Muscu sans gluten : salade tiède complète, protéinée.",
       "macros_per_serving": {
@@ -15647,8 +15902,12 @@
         }
       ],
       "instructions": [
-        "Rôtir la patate douce en dés.",
-        "Émietter le tofu, poêler avec épinards et levure maltée."
+        "Épluche la patate douce et coupe-la en petits dés d'un centimètre : plus gros, ils ne cuiraient pas en 12 minutes.",
+        "Fais chauffer la moitié de l'huile d'olive à feu moyen et fais rissoler les dés 12 minutes à couvert, en remuant deux fois : la pointe d'un couteau doit y entrer sans résistance.",
+        "Presse le tofu 5 minutes sous une assiette lestée, puis émiette-le grossièrement à la main.",
+        "Verse le reste d'huile dans une seconde poêle et fais revenir le tofu 5 minutes à feu vif avec du sel, du poivre et du curcuma, en le laissant accrocher un peu.",
+        "Jette les épinards, mélange 1 minute le temps qu'ils tombent, puis saupoudre la levure maltée hors du feu : chauffée trop fort, elle devient amère.",
+        "Sers le tofu brouillé avec les dés de patate douce."
       ],
       "why": "Vegan salé : brunch protéiné, sans œuf ni pain.",
       "macros_per_serving": {
@@ -16202,8 +16461,10 @@
         }
       ],
       "instructions": [
-        "Toaster puis mixer le sarrasin avec dattes et beurre de cacahuète.",
-        "Incorporer la protéine, former des boules, réfrigérer."
+        "Fais griller le sarrasin 3 minutes à sec dans une poêle, en remuant : il doit brunir et sentir la noisette, c'est ce qui donne son goût aux boules.",
+        "Mixe-le avec les dattes dénoyautées et le beurre de cacahuète, jusqu'à obtenir une pâte qui se tient quand tu la presses.",
+        "Incorpore la protéine végétale et mixe 30 secondes de plus : si la pâte s'effrite, ajoute une cuillère d'eau.",
+        "Forme des boules de la taille d'une noix et laisse-les raffermir 10 minutes au frais avant de les manger."
       ],
       "why": "Vegan & sans gluten : énergie dense transportable, ancre protéique.",
       "macros_per_serving": {
@@ -16639,8 +16900,12 @@
         }
       ],
       "instructions": [
-        "Cuire le quinoa.",
-        "Poêler le tofu, lier à la sauce curry-cacahuète, ajouter épinards."
+        "Rince le quinoa sous l'eau froide 30 secondes pour retirer son amertume, puis fais-le cuire 12 minutes à couvert dans deux fois son volume d'eau salée.",
+        "Presse le tofu 5 minutes entre deux feuilles de papier absorbant sous une assiette lestée : moins il est gorgé d'eau, mieux il dore.",
+        "Coupe le tofu en cubes et fais-les colorer 8 minutes dans une poêle antiadhésive très chaude, en ne les retournant que lorsqu'une face est franchement dorée.",
+        "Délaie le beurre de cacahuète avec quatre cuillères d'eau chaude, du sel et des épices à curry, jusqu'à obtenir une sauce lisse et nappante.",
+        "Jette les épinards dans la poêle, mélange 1 minute le temps qu'ils tombent, verse la sauce et mélange hors du feu.",
+        "Sers sur le quinoa égrené."
       ],
       "why": "Vegan & sans gluten : ancre tofu généreuse, sauce satay énergétique.",
       "macros_per_serving": {
@@ -16821,8 +17086,11 @@
         }
       ],
       "instructions": [
-        "Cuis la polenta crémeuse.",
-        "Égoutte et rince les haricots blancs, mijote-les avec la PST, la tomate et le romarin, dresse sur la polenta."
+        "Couvre la protéine de soja texturée d'eau bouillante salée, laisse-la gonfler 5 minutes puis presse-la pour l'essorer.",
+        "Fais-la revenir 4 minutes dans l'huile d'olive à feu vif, avec du sel, du poivre et du romarin.",
+        "Égoutte et rince les haricots blancs, ajoute-les avec la tomate concassée et laisse mijoter 15 minutes à feu doux : le ragoût doit épaissir et les haricots commencer à s'écraser.",
+        "Verse la polenta en pluie dans cinq fois son volume d'eau salée frémissante : plus d'eau que pour une polenta à trancher, c'est ce qui la rend crémeuse.",
+        "Remue 5 minutes à feu doux jusqu'à ce qu'elle nappe la cuillère, puis sers le ragoût dessus."
       ],
       "why": "Vegan combats & sans gluten : ragoût rustique, capacité protéique élevée.",
       "macros_per_serving": {
@@ -17366,8 +17634,11 @@
         }
       ],
       "instructions": [
-        "Mixer farine de sarrasin, œufs et skyr en pâte lisse.",
-        "Cuire en pancakes, napper de sirop et myrtilles."
+        "Mixe la farine de sarrasin avec les œufs et le skyr 1 minute, jusqu'à obtenir une pâte lisse et coulante.",
+        "Laisse reposer la pâte 5 minutes : le sarrasin absorbe le liquide et elle épaissit toute seule.",
+        "Fais chauffer une poêle antiadhésive à feu moyen et verse de petites louches de pâte.",
+        "Laisse cuire 2 minutes par face et retourne quand des bulles crèvent à la surface et que les bords se décollent.",
+        "Nappe de sirop d'érable et parsème les myrtilles."
       ],
       "why": "Sans gluten : pancakes protéinés, glucides du sarrasin.",
       "macros_per_serving": {
@@ -17490,9 +17761,11 @@
         }
       ],
       "instructions": [
-        "Écraser la banane, mélanger aux œufs battus et au skyr.",
-        "Cuire en petits pancakes, garnir de framboises.",
-        "Parsème les amandes concassées."
+        "Écrase la banane à la fourchette jusqu'à obtenir une purée lisse : les morceaux empêchent les pancakes de tenir.",
+        "Bats les œufs, incorpore la banane et la moitié du skyr, jusqu'à obtenir une pâte coulante.",
+        "Fais chauffer une poêle antiadhésive à feu moyen et verse de petites louches de pâte : rien ne vient lier cette pâte, elle est fragile, ne les fais pas plus larges qu'une paume.",
+        "Laisse cuire 2 minutes par face et retourne quand la surface ne brille plus et que les bords se décollent.",
+        "Sers avec le reste de skyr, les framboises et les amandes concassées."
       ],
       "why": "Sans gluten sans farine : 3 ingrédients, très protéiné.",
       "macros_per_serving": {
@@ -17888,7 +18161,7 @@
         "sport": [
           "muscu"
         ],
-        "temps_min": 15
+        "temps_min": 30
       },
       "base_servings": 1,
       "ingredients": [
@@ -17918,8 +18191,11 @@
         }
       ],
       "instructions": [
-        "Griller des tranches de polenta refroidie.",
-        "Brouiller les œufs, servir avec la polenta et la tomate."
+        "Verse la polenta en pluie dans quatre fois son volume d'eau salée frémissante et remue 5 minutes à feu doux, jusqu'à ce qu'elle nappe la cuillère.",
+        "Étale-la sur un centimètre d'épaisseur dans un plat huilé et laisse-la prendre 20 minutes : froide et ferme, elle se tranche sans s'effriter.",
+        "Coupe-la en tranches et fais-les griller 4 minutes par face dans une poêle très chaude avec la moitié de l'huile d'olive, jusqu'à ce qu'une croûte dorée se forme.",
+        "Bats les œufs avec du sel et du poivre, verse-les dans une poêle froide avec le reste d'huile et remue sans arrêt 3 minutes à feu doux : c'est la lenteur qui les rend crémeux.",
+        "Coupe la tomate en quartiers et sers-la avec les œufs brouillés et les tranches de polenta."
       ],
       "why": "Sans gluten : brunch salé protéiné, remplace le pain grillé.",
       "macros_per_serving": {
@@ -17978,8 +18254,12 @@
         }
       ],
       "instructions": [
-        "Rissoler les pommes de terre en dés.",
-        "Émietter le tofu, poêler avec champignons et levure maltée."
+        "Coupe les pommes de terre en dés d'un centimètre, sans les éplucher : la peau tient le dé à la cuisson.",
+        "Fais chauffer la moitié de l'huile d'olive à feu moyen et fais-les rissoler 15 minutes à couvert, en remuant deux fois, jusqu'à ce qu'elles soient dorées et tendres au couteau.",
+        "Presse le tofu 5 minutes sous une assiette lestée, puis émiette-le grossièrement à la main.",
+        "Fais sauter les champignons dans le reste d'huile à feu vif 5 minutes sans remuer, jusqu'à ce qu'ils aient rendu leur eau et doré.",
+        "Ajoute le tofu émietté, du sel, du poivre et du curcuma, et laisse-le colorer 4 minutes, puis saupoudre la levure maltée hors du feu : chauffée trop fort, elle devient amère.",
+        "Sers le tofu brouillé avec les pommes de terre rissolées."
       ],
       "why": "Vegan : petit-déj salé très protéiné, sans œuf.",
       "macros_per_serving": {
@@ -18038,8 +18318,11 @@
         }
       ],
       "instructions": [
-        "Rôtir la patate douce en dés.",
-        "Cuire l'omelette avec épinards, patate et feta émiettée."
+        "Épluche la patate douce et coupe-la en petits dés d'un centimètre : plus gros, ils ne cuiraient pas en 12 minutes.",
+        "Fais-les rissoler 12 minutes à couvert dans la moitié de l'huile d'olive à feu moyen, en remuant deux fois.",
+        "Jette les épinards et mélange 1 minute le temps qu'ils tombent.",
+        "Bats les œufs avec du sel et du poivre, verse-les dans la poêle avec le reste d'huile et laisse prendre 4 minutes à feu doux, sans remuer.",
+        "Émiette la feta sur le dessus, couvre 2 minutes pour qu'elle ramollisse, puis plie l'omelette et sers."
       ],
       "why": "Sans gluten : omelette complète, double protéine.",
       "macros_per_serving": {
@@ -18921,8 +19204,11 @@
         }
       ],
       "instructions": [
-        "Saisir poulet et crevettes, réserver.",
-        "Cuire le riz à l'eau chaude salée et safranée avec poivron et petits pois, remettre les protéines."
+        "Coupe le poulet en dés et fais-les saisir 6 minutes à feu vif dans l'huile d'olive, jusqu'à ce qu'ils soient dorés, puis réserve-les.",
+        "Sèche les crevettes avec du papier absorbant et saisis-les 2 minutes dans la même poêle, jusqu'à ce qu'elles deviennent opaques, puis réserve-les avec le poulet : elles finiront de cuire dans la chaleur du riz.",
+        "Fais revenir le poivron en lamelles 5 minutes, pour récupérer les sucs du fond.",
+        "Ajoute le riz basmati rincé, les petits pois, du safran, du sel et une fois et demie le volume du riz en eau chaude, puis laisse cuire 15 minutes à feu doux sans jamais remuer : c'est l'immobilité qui forme la croûte du fond.",
+        "Remets le poulet et les crevettes sur le dessus, coupe le feu et laisse reposer 3 minutes à couvert."
       ],
       "why": "Sans gluten : plat unique convivial, double protéine, capacité haute.",
       "macros_per_serving": {
@@ -19033,8 +19319,11 @@
         }
       ],
       "instructions": [
-        "Râper les pommes de terre, former des rösti, dorer à la poêle.",
-        "Servir avec le saumon, la sauce fromage blanc-aneth et la roquette."
+        "Râpe les pommes de terre sans les éplucher, puis presse-les fort dans un torchon pour en chasser l'eau : c'est la seule étape qui décide si le rösti tient ou se défait.",
+        "Sale, poivre, et étale la râpée en galettes fines dans l'huile d'olive bien chaude.",
+        "Laisse-les dorer 6 minutes par face sans y toucher, jusqu'à ce qu'une croûte brune se forme.",
+        "Sèche le saumon et fais-le cuire 6 minutes à la poêle à feu moyen, 3 minutes par face : le cœur doit rester rosé.",
+        "Mélange le fromage blanc avec de l'aneth ciselé, du jus de citron, du sel et du poivre, et sers cette sauce avec les rösti, le saumon et la roquette."
       ],
       "why": "Pescatarien sans gluten : oméga-3, glucides, sauce légère.",
       "macros_per_serving": {
@@ -19152,8 +19441,11 @@
         }
       ],
       "instructions": [
-        "Cuire pommes de terre et haricots verts.",
-        "Assembler tiède avec thon et œuf dur, assaisonner d'huile d'olive, de vinaigre et de poivre."
+        "Épluche les pommes de terre, coupe-les en gros morceaux et fais-les cuire 20 minutes à l'eau bouillante salée : la pointe d'un couteau doit y entrer sans résistance.",
+        "Équeute les haricots verts et fais-les cuire 8 minutes à l'eau bouillante salée : ils doivent rester vert vif.",
+        "Plonge l'œuf dans l'eau bouillante et compte 9 minutes pour un jaune ferme, puis passe-le sous l'eau froide avant de l'écaler.",
+        "Assaisonne les pommes de terre ENCORE CHAUDES d'huile d'olive, de vinaigre, de sel et de poivre : froides, elles n'absorbent plus rien.",
+        "Ajoute les haricots verts, le thon égoutté et l'œuf en quartiers, et sers tiède."
       ],
       "why": "Pescatarien sans gluten combats : niçoise complète, protéinée.",
       "macros_per_serving": {
@@ -19212,8 +19504,11 @@
         }
       ],
       "instructions": [
-        "Cuire la polenta, étaler et laisser prendre.",
-        "Mijoter le bœuf à la tomate, napper la polenta, gratiner au parmesan."
+        "Verse la polenta en pluie dans quatre fois son volume d'eau salée frémissante et remue 5 minutes à feu doux, jusqu'à ce qu'elle nappe la cuillère.",
+        "Étale-la sur deux centimètres d'épaisseur dans un plat huilé et laisse-la prendre 20 minutes : froide et ferme, elle tient au gratin.",
+        "Fais chauffer l'huile d'olive à feu vif, ajoute le bœuf haché, écrase-le à la spatule et laisse-le colorer 5 minutes sans trop remuer : il doit brunir, pas bouillir.",
+        "Verse la tomate concassée, sale, poivre, et laisse mijoter 10 minutes à feu doux, jusqu'à ce que la sauce épaississe.",
+        "Préchauffe le gril du four, nappe la polenta du ragoût, parsème de parmesan râpé et enfourne 6 minutes : le dessus doit être doré et cloqué."
       ],
       "why": "Sans gluten jour repos : plat mijoté riche en fer, capacité haute.",
       "macros_per_serving": {
@@ -19266,8 +19561,11 @@
         }
       ],
       "instructions": [
-        "Cuire la polenta, laisser prendre, griller en tranches.",
-        "Poêler le tempeh, servir avec la ratatouille."
+        "Verse la polenta en pluie dans quatre fois son volume d'eau salée frémissante et remue 5 minutes à feu doux, jusqu'à ce qu'elle nappe la cuillère.",
+        "Étale-la sur deux centimètres d'épaisseur dans un plat huilé et laisse-la prendre 20 minutes : froide et ferme, elle se tranche sans s'effriter.",
+        "Coupe-la en tranches et fais-les griller 4 minutes par face dans une poêle très chaude avec la moitié de l'huile d'olive, jusqu'à ce qu'une croûte dorée se forme.",
+        "Fais dorer le tempeh 3 minutes par face dans une poêle chaude à sec : c'est cette croûte qui lui enlève son amertume.",
+        "Réchauffe la ratatouille 5 minutes à feu moyen avec le reste d'huile d'olive, et sers-la sur les tranches de polenta avec le tempeh."
       ],
       "why": "Vegan & sans gluten : tempeh très protéiné, méditerranéen.",
       "macros_per_serving": {
@@ -19319,8 +19617,11 @@
         }
       ],
       "instructions": [
-        "Cuire la polenta crémeuse.",
-        "Poêler le cabillaud, servir sur la polenta avec les épinards."
+        "Sèche le cabillaud avec du papier absorbant : mouillé, il rend son eau et bout au lieu de dorer.",
+        "Fais-le cuire 8 minutes dans l'huile d'olive à feu moyen, 4 minutes par face, puis réserve-le au chaud.",
+        "Jette les épinards dans la poêle et mélange 1 minute le temps qu'ils tombent, avec du sel et du poivre.",
+        "Verse la polenta en pluie dans cinq fois son volume d'eau salée frémissante : plus d'eau que pour une polenta à trancher, c'est ce qui la rend crémeuse.",
+        "Remue 5 minutes à feu doux jusqu'à ce qu'elle nappe la cuillère, puis sers-la avec les épinards et le cabillaud."
       ],
       "why": "Sèche pescatarienne sans gluten : poisson maigre, très protéiné.",
       "macros_per_serving": {
@@ -19379,8 +19680,12 @@
         }
       ],
       "instructions": [
-        "Cuire les nouilles, refroidir.",
-        "Saisir le bœuf mariné, dresser avec crudités et sauce cacahuète."
+        "Plonge les nouilles de riz dans un grand volume d'eau bouillante, coupe le feu et laisse-les gonfler 4 minutes, puis égoutte et rince à l'eau froide pour qu'elles ne collent pas.",
+        "Taille la bavette en fines lanières dans le sens contraire des fibres, et frotte-les de sel, de poivre et d'ail.",
+        "Saisis-les 2 minutes à feu très vif dans une poêle brûlante, sans les superposer : trop cuites, elles durcissent.",
+        "Râpe la carotte et taille la salade verte en lanières.",
+        "Délaie le beurre de cacahuète avec trois cuillères d'eau chaude, du jus de citron et du poivre, jusqu'à obtenir une sauce qui nappe la cuillère.",
+        "Dresse les nouilles froides au fond du bol, ajoute les crudités et le bœuf tiède, et verse la sauce au moment de servir."
       ],
       "why": "Sans gluten combats : plat frais et complet, pas trop lourd.",
       "macros_per_serving": {
@@ -19568,8 +19873,11 @@
         }
       ],
       "instructions": [
-        "Préparer la pâte à galette de sarrasin, cuire.",
-        "Garnir de jambon, œuf et champignons poêlés."
+        "Mixe le sarrasin 1 minute jusqu'à obtenir une poudre fine : en grains entiers, la pâte reste sableuse.",
+        "Mélange-la avec une pincée de sel et l'équivalent d'un verre d'eau, jusqu'à obtenir une pâte lisse et liquide, puis laisse-la reposer 5 minutes.",
+        "Fais chauffer une poêle antiadhésive à feu moyen avec un peu d'huile d'olive et verse une louche de pâte en l'étalant fin : compte 2 minutes par face.",
+        "Fais sauter les champignons dans le reste d'huile à feu vif 5 minutes sans remuer, jusqu'à ce qu'ils aient rendu leur eau et doré.",
+        "Casse les œufs sur les galettes chaudes, ajoute le jambon, couvre 3 minutes pour que le blanc prenne sans que le jaune durcisse, puis garnis de champignons et replie les bords."
       ],
       "why": "Sans gluten : galette complète bretonne, double protéine.",
       "macros_per_serving": {
@@ -19682,8 +19990,12 @@
         }
       ],
       "instructions": [
-        "Cuire le quinoa, rôtir la patate douce.",
-        "Poêler la dinde, assembler avec épinards et amandes."
+        "Préchauffe le four à 210 °C.",
+        "Épluche la patate douce, coupe-la en cubes de deux centimètres et étale-les sur une plaque sans les superposer : entassés, ils cuisent à la vapeur au lieu de rôtir.",
+        "Enfourne 25 minutes en remuant à mi-cuisson.",
+        "Rince le quinoa sous l'eau froide 30 secondes pour retirer son amertume, puis fais-le cuire 12 minutes à couvert dans deux fois son volume d'eau salée.",
+        "Fais cuire l'escalope de dinde 8 minutes à la poêle à feu moyen, 4 minutes par face, jusqu'à ce qu'elle soit blanche à cœur, puis laisse-la reposer 2 minutes et taille-la en lanières.",
+        "Jette les épinards dans la poêle chaude, mélange 1 minute le temps qu'ils tombent, puis sers le tout sur le quinoa et parsème les amandes concassées."
       ],
       "why": "Sans gluten : double féculent, capacité élevée pour la masse.",
       "macros_per_serving": {
@@ -19742,8 +20054,11 @@
         }
       ],
       "instructions": [
-        "Cuis le sarrasin.",
-        "Égoutte et rince les haricots blancs, mijote-les avec la PST, la tomate et les olives."
+        "Rince le sarrasin, fais-le cuire 12 minutes dans deux fois son volume d'eau salée, puis égoutte-le.",
+        "Couvre la protéine de soja texturée d'eau bouillante salée, laisse-la gonfler 5 minutes puis presse-la pour l'essorer.",
+        "Fais-la revenir 4 minutes à feu vif dans une casserole antiadhésive, avec du sel, du poivre et du romarin.",
+        "Égoutte et rince les haricots blancs, ajoute-les avec la tomate concassée et les olives, et laisse mijoter 12 minutes à feu doux : la sauce doit épaissir.",
+        "Sers le ragoût sur le sarrasin."
       ],
       "why": "Vegan & sans gluten combats : rustique, capacité protéique élevée.",
       "macros_per_serving": {
@@ -21848,7 +22163,7 @@
     },
     {
       "id": "rep194",
-      "name": "Semoule au bœuf, carottes et pois chiches grillés",
+      "name": "Semoule au bœuf, carottes et petits pois",
       "category": "repas_complet",
       "tags": {
         "objectif": [
