@@ -178,12 +178,33 @@ installation neuve part du binaire, donc du (6).
   ⚠️ **Conséquence directe sur ce playbook** : les trois P0 (`ENGINE_REV` 10) et la phrase
   iCloud n'atteindront les testeurs **que par ce build**. Ce qui était « publier une OTA »
   est devenu « compiler, distribuer, attendre l'installation ».
-- **Binaire** : le dernier build iOS est le **(7)** — `6a5cd6b0`, commit `0639ecc`, terminé
+- **Binaire** : le dernier build iOS est le **(22)** — commit `2529c2c3` (#259), terminé le
+  2026-09-10 à 14 h 51, **soumis** (submission FINISHED le même jour à 16 h 18), runtime
+  `823c89db…`. *(Avant lui :)* le **(20)** — commit `b41dd92d`, runtime `5118d1bd…`, qui ne
+  reçoit plus les OTA depuis la 32ᵉ. Le **(21)** a été ANNULÉ (un build annulé consomme son
+  numéro). ⚠️ Cette puce annonçait encore le **(7)** le 2026-09-12, soit quinze binaires de
+  retard : elle n'est fiable que re-mesurée (`eas build:list --platform ios --json`).
+  *(Historique :)* le **(7)** — `6a5cd6b0`, commit `0639ecc`, terminé
   le 2026-08-27 à 20 h 09, **à jour de `main`** (contrôle de sortie : `origin/main` valait
   encore `0639ecc` après la compilation, 0 PR ouverte — le piège du 11 août ne s'est pas
   rejoué). *(Le précédent :)* le **(6)** — `ceec1b17`, commit
   `1047b9f`, terminé le 2026-08-11 à 20 h 37. Il a **62 commits de retard** sur `main` — chiffre RE-MESURÉ le 2026-08-26 (il en annonçait 40, mesurés le 2026-08-23), qui **grandit à chaque merge** : le relire avec `git rev-list --count 1047b9f..origin/main` plutôt que de le recopier (même défaut que le décompte d'OTA tenu à la main).
-- **OTA** : la dernière est la **31ᵉ** (groupe `d519f48f` pour iOS et groupe `2223407e` pour
+- **OTA** : la dernière est la **33ᵉ** (groupe `f887185e` pour iOS et groupe `13114a6e`
+  pour Android, 2026-09-12), publiée sur le commit `e800069` — `main`, arbre propre.
+  ✅ **Runtime iOS `823c89db…` = le build (22)**, empreinte comparée AVANT publication.
+  🔴 **Ces fiches annonçaient le (7) comme dernier binaire et la 31ᵉ citait le (20) — les
+  deux étaient FAUX.** Le **(22)** existe depuis le 2026-09-10 (commit `2529c2c3`, #259) et
+  il est SOUMIS (submission FINISHED le 2026-09-10 à 16 h 18). S'y fier aurait fait viser le
+  (20), qui n'aurait atteint personne. ➡️ **Le runtime se lit sur EAS, jamais dans une fiche.**
+  ⚠️ Un téléphone resté sur le (20) ne reçoit rien : il doit installer le (22).
+  🔴 **La 32ᵉ (`42563c0b`, quinze minutes plus tôt) est un doublon remplacé** : même contenu,
+  mais publiée depuis un commit de MERGE LOCAL que le squash-merge ne fera jamais entrer dans
+  `main` — donc irretrouvable. `check:ota` l'a signalé. Une OTA se publie depuis un arbre
+  détaché SUR `origin/main`.
+  Contenu : catalogue à 516 recettes (7 pièces végétales + vague B11), plus aucune recette
+  muette (lots L1→L6), titres honnêtes, tirets du catalogue, et la détente protéique végane
+  de 10 % (`ENGINE_REV` 11, `ENGINE_VERSION` 49).
+  **La 31ᵉ** (groupe `d519f48f` pour iOS et groupe `2223407e` pour
   Android, 2026-09-08), publiée sur le commit `b41dd92d` — `main`, arbre propre, aucun
   astérisque EAS.
   🔴 **Runtime iOS `5118d1bd…` = le build (20)**, pas le (17). La ligne OTA a été coupée
