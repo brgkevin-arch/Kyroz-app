@@ -49,6 +49,40 @@ const PROMESSES: Record<string, string[]> = {
   mozzarella: ['mozzarella'],
   avocat: ['avocat'],
   olive: ['olive'],
+
+  // ── ÉLARGISSEMENT DU 2026-09-11 : les FÉCULENTS et les PROTÉINES ──────────
+  // La première version ne couvrait que les aliments « remarquables » (sésame,
+  // cajou, cacao), en supposant qu'un titre ne pouvait pas se tromper sur sa base.
+  // ⚠️ Faux, et c'est le contraire : trois titres promettaient une base absente,
+  // et personne ne les avait vus parce que personne ne cherchait là. « Curry pois
+  // chiches – patate – riz » sans riz, « Shake récup riz » sans riz, « Semoule au
+  // bœuf, carottes et pois chiches grillés » qui sert des PETITS POIS.
+  // Une limite qu'on déclare n'est pas une limite qu'on garde : celle-ci a tenu
+  // deux jours.
+  riz: ['riz'],
+  pates: ['pates'],
+  quinoa: ['quinoa'],
+  boulgour: ['boulgour'],
+  // `polenta` s'appelle aussi « semoule de maïs » dans trois titres (col17, pd110,
+  // col96) : le mot « semoule » y est honoré par la polenta, pas par le couscous.
+  semoule: ['semoule', 'polenta'],
+  millet: ['millet'],
+  sarrasin: ['sarrasin'],
+  lentille: ['lentille'],
+  'pois chiche': ['pois_chiche'],
+  'patate douce': ['patate_douce'],
+  'pomme de terre': ['pomme_de_terre'],
+  nouille: ['nouille'],
+  tofu: ['tofu'],
+  tempeh: ['tempeh'],
+  seitan: ['seitan'],
+  poulet: ['poulet'],
+  boeuf: ['boeuf'],
+  dinde: ['dinde'],
+  saumon: ['saumon'],
+  thon: ['thon'],
+  cabillaud: ['cabillaud'],
+  crevette: ['crevette'],
 };
 
 interface Recette {
@@ -68,7 +102,8 @@ export const promessesNonTenues = (r: Recette): string[] => {
   const titre = norm(r.name);
   const assiette = servi(r);
   return Object.entries(PROMESSES)
-    .filter(([mot, frs]) => new RegExp(`\\b${mot}`).test(titre) && !frs.some((f) => assiette.includes(f)))
+    .filter(([mot, frs]) => new RegExp(`\\b${mot.replace(/ /g, '\\s+')}`).test(titre)
+      && !frs.some((f) => assiette.includes(norm(f))))
     .map(([mot]) => mot);
 };
 
@@ -77,6 +112,7 @@ export const promessesNonTenues = (r: Recette): string[] => {
 // prochaine recette vraiment fautive du même mot passerait sous l'exception.
 const TOLERE: Record<string, string> = {
   rep136: '« Œufs cocotte » — nom de préparation, le « coco » n’est pas un aliment promis',
+  rep36: '« Tortilla pommes de terre » — la tortilla espagnole EST une omelette (œuf + pomme de terre), pas une galette de blé',
 };
 
 describe('le nom d’une recette ne promet pas un aliment absent', () => {
