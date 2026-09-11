@@ -295,6 +295,9 @@ la suite de tests.
 
 ## 8. Ce qui reste, et qui n'est pas ce chantier
 
-- Les **27 tirets cadratins** qui subsistent dans les instructions des vagues B1-B9.
+- ~~Les 27 tirets cadratins des vagues B1-B9~~ — **FAIT le 2026-09-11.** Ils étaient
+  **28**, pas 27 : le comptage datait d'avant les dernières recettes ajoutées. 25 dans des
+  instructions, 3 dans des `why`. Et le vrai défaut n'était pas les tirets : c'était que
+  `tiretsInterface.test.ts` ne regardait que les `.ts`/`.tsx`. Il lit désormais le catalogue.
 - Les recettes dont le NOM promet autre chose que ce qu'elles servent : traité à part, avec
   son propre garde-fou (`lib/__tests__/nomsHonnetes.test.ts`).

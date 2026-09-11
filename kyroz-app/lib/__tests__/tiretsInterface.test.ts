@@ -82,6 +82,56 @@ describe('les phrases de l’app ne portent pas de tiret cadratin', () => {
     ).toEqual([]);
   });
 
+  // ── LE CATALOGUE DE RECETTES EST LU PAR L'UTILISATEUR, LUI AUSSI ──────────
+  //
+  // 🔴 LE TROU MESURÉ (2026-09-11). Ce test ne regardait que les `.ts`/`.tsx`, et
+  // pendant ce temps 28 tirets cadratins vivaient dans `recettes-kyroz.json` : 25 dans
+  // des instructions de cuisine, 3 dans des `why`. Ce sont exactement les phrases que
+  // la consigne visait, affichées sur la fiche d'une recette. La règle était juste,
+  // son PÉRIMÈTRE était faux : elle avait été écrite en regardant le code, parce que
+  // c'est là qu'on avait trouvé le problème la première fois.
+  //
+  // ⚠️ Les NOMS de recettes portent un tiret DEMI-cadratin (« Riz – poulet – ananas »),
+  // qui n'est pas visé : la consigne du fondateur porte sur le « — » au milieu d'une
+  // phrase, pas sur le séparateur d'une énumération.
+  //
+  // ⚠️ `_meta` est EXCLU, et nommé plutôt qu'oublié : c'est le journal des corrections
+  // du catalogue, lu par nous seuls, jamais affiché — même statut que le changelog
+  // d'`ENGINE_VERSION` dans la liste ci-dessus.
+  describe('le catalogue de recettes non plus', () => {
+    const cat = JSON.parse(
+      readFileSync(join(RACINE, 'Recette', 'recettes-kyroz.json'), 'utf8'),
+    ) as { recipes: { id: string; name: string; why?: string; instructions: string[] }[];
+           ingredients_reference: Record<string, { name: string }> };
+
+    const fautives = () => {
+      const out: string[] = [];
+      for (const r of cat.recipes) {
+        if (r.name.includes('—')) out.push(`${r.id} (name)`);
+        if (r.why?.includes('—')) out.push(`${r.id} (why)`);
+        r.instructions.forEach((s, i) => { if (s.includes('—')) out.push(`${r.id} (étape ${i + 1})`); });
+      }
+      for (const [ref, v] of Object.entries(cat.ingredients_reference)) {
+        if (v.name.includes('—')) out.push(`ingrédient ${ref}`);
+      }
+      return out;
+    };
+
+    it('la sonde lit vraiment le catalogue', () => {
+      // Témoin : sans lui, un chemin cassé ou un JSON vide rendrait « aucun tiret »
+      // et le test serait vert en ne mesurant rien.
+      expect(cat.recipes.length).toBeGreaterThan(500);
+      expect(cat.recipes.some((r) => r.instructions.length > 0)).toBe(true);
+    });
+
+    it('aucune recette n’en porte, ni dans son nom, ni dans ses étapes, ni dans son « pourquoi »', () => {
+      expect(
+        fautives(),
+        'un tiret cadratin dans une phrase affichée : le remplacer par « , », « : » ou un point',
+      ).toEqual([]);
+    });
+  });
+
   it('et les exceptions n’enflent pas', () => {
     const enfles = Object.entries(TOLERE)
       .map(([f, { combien }]) => ({ f, attendu: combien, vu: chainesAvecTiret(f).length }))
