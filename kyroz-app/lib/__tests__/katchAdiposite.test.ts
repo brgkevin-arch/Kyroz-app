@@ -168,9 +168,13 @@ describe('5 — l’avertissement one-shot part, et il ne ment pas', () => {
   const T = '2026-08-27';
 
   it('ENGINE_REV a été incrémenté', () => {
-    // ⚠️ Épinglé : la rev 10 déplace 344 406 profils du chemin « mesuré », dont
-    // 300 397 de plus de 100 kcal/j. Sans bump, ils seraient servis SANS un mot.
-    expect(ENGINE_REV).toBe(10);
+    // ⚠️ CLIQUET, et non valeur figée : la rev 10 déplace 344 406 profils du chemin
+    // « mesuré », dont 300 397 de plus de 100 kcal/j. Sans bump, ils seraient servis SANS
+    // un mot. Ce qui doit être gardé, c'est que ce bump a eu lieu et n'a jamais été
+    // annulé — pas que le compteur reste à 10 : `toBe(10)` faisait rougir ce test à
+    // CHAQUE révision suivante, pour une raison qui ne le concerne pas (rev 11, détente
+    // protéique végétale, 2026-09-11).
+    expect(ENGINE_REV).toBeGreaterThanOrEqual(10);
   });
 
   it('un profil déplacé par la rev 10 reçoit la cause `measured_bmr`', () => {

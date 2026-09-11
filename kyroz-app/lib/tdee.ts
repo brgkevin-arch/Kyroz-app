@@ -525,6 +525,53 @@ export function proteinTarget(body: BodyInput, goal: Goal): number {
   return Math.round(clamp(raw, ffm * PROTEIN_MIN_PER_KG_FFM, ffm * PROTEIN_MAX_PER_KG_FFM));
 }
 
+/**
+ * Détente de la cible protéique sur les régimes VÉGÉTAUX (décision fondateur, 2026-09-11).
+ *
+ * 🔴 LE DÉFAUT MESURÉ. Le moteur demande à un végane exactement la même densité
+ * protéique qu'à un omnivore — 6,8 g de protéines pour 100 kcal sur un repas de sèche,
+ * au gramme près, quel que soit le régime. Le garde-manger végétal sans gluten ne peut
+ * pas la produire. Résultat compté le 2026-09-11 sur le vivier vegan + sans gluten du
+ * midi (50 repas complets) : une femme de 55 kg en sèche n'en reçoit que **20**.
+ *
+ * ⚠️ ET CE N'EST PAS LA PROTÉINE QUI LES REJETTE — c'est ce qui rend le correctif
+ * contre-intuitif. Les 30 écartées sortent sur `over_target_kcal`. La cause est
+ * pourtant bien la protéine : `adaptRecipe` gonfle l'ancre pour atteindre
+ * `proteinMeal`, donc le plat grossit, donc il déborde. Les deux contraintes sont
+ * COUPLÉES. Mesuré, et les deux fausses pistes valent d'être connues :
+ *   • neutraliser le DRAPEAU `protein_below_target` → +0 recette. Retirer l'alarme ne
+ *     change pas ce que le moteur vise : il gonfle toujours, il déborde toujours.
+ *   • détendre la TOLÉRANCE (`protein_floor_tolerance` 0,95 → 0,86) → +0 également sur
+ *     les petits gabarits. Même raison.
+ * Seul le fait de baisser la VISÉE laisse le moteur rétrécir le plat. Pour mesurer un
+ * réglage, il faut bouger le réglage, pas masquer son alarme.
+ *
+ * **Ce que −10 % rapporte** (vivier vegan+SG servable, midi) : F 55 sèche 20 → **39**,
+ * F 65 sèche 32 → 43, H 65 sèche 37 → 47, H 80 sèche 35 → 45. Au-delà de −10 % le gain
+ * s'arrête et se RETOURNE sur trois profils sur cinq (les plats deviennent trop petits) :
+ * la valeur n'est pas un curseur qu'on pousse, c'est un optimum mesuré.
+ *
+ * ⚠️ CE QUE ÇA COÛTE À L'ASSIETTE, et pourquoi c'est défendable : −3 g de protéines sur
+ * un repas de F 55 sèche (31 → 28). Sur les 12 profils de référence, la cible détendue
+ * reste DANS la bande clinique du fichier (`PROTEIN_MIN/MAX_PER_KG_FFM`, 1,6–2,6 g/kg de
+ * masse maigre) — pire cas 1,71, plancher 1,60. Aucun profil n'en sort, et c'est la
+ * condition qui a permis de prendre la décision.
+ * ⚠️ L'ARGUMENT CONTRAIRE EXISTE et n'est pas tranché ici : les protéines végétales sont
+ * moins biodisponibles, donc on peut soutenir qu'un végane en aurait besoin de PLUS, pas
+ * de moins. Ce qu'on échange est explicite — un peu de marge protéique contre un choix
+ * de repas qui double. Si cet arbitrage est rouvert, c'est ce couple qu'il faut remesurer,
+ * pas la seule valeur 0,9.
+ *
+ * ⚠️ Ne s'applique QU'AU CHEMIN AUTOMATIQUE. Un `protein_per_kg` saisi à la main en
+ * « Perso % » est une intention explicite de l'utilisateur : elle passe devant.
+ */
+export const DETENTE_PROTEINE_VEGETAL = 0.9;
+
+/** Facteur à appliquer à la cible protéique auto selon les restrictions du profil. */
+export function facteurProteineVegetal(restrictions: readonly string[] | undefined): number {
+  return restrictions?.includes('vegan') ? DETENTE_PROTEINE_VEGETAL : 1;
+}
+
 // Glucides minimum un jour de séance (g/kg de poids) — sous ce seuil, la qualité
 // de séance et la récupération décrochent. Signalé, pas corrigé (le rééquilibrage
 // entre jours relève du cyclage, hors périmètre de cette PR).
@@ -659,6 +706,11 @@ export interface MacroPlan {
 export interface MacroOptions {
   /** Delta calorique signé qui REMPLACE celui de l'objectif (point d'entrée de l'objectif daté). */
   kcalDeltaOverride?: number;
+  /**
+   * Restrictions alimentaires du profil — lues UNIQUEMENT par `facteurProteineVegetal`.
+   * Absentes = aucune détente : le défaut est le comportement d'avant, jamais l'inverse.
+   */
+  restrictions?: readonly string[];
   /** Dépense d'exercice moyenne (kcal/j). Défaut : dérivée des sports du profil. */
   sportKcalPerDay?: number;
   /** Semaines déjà passées en zone d'énergie disponible basse (fenêtre 12 mois). */
@@ -898,7 +950,9 @@ export function calculateMacros(
   const kcalDelta = opts.kcalDeltaOverride ?? goalConfig(goal).kcalDelta;
   const { target_kcal, floor_kcal, flags, clamp } = floorAndFlags(body, tdee, tdee + kcalDelta, opts);
 
-  const protein_g = proteinTarget(body, goal);
+  // Détente végétale : cf. `facteurProteineVegetal`. Le clamp de `proteinTarget` a déjà
+  // joué, donc on applique le facteur APRÈS — il ne peut que descendre, jamais remonter.
+  const protein_g = Math.round(proteinTarget(body, goal) * facteurProteineVegetal(opts.restrictions));
   const fat_g = fatTargetG(target_kcal, body);
   const carbs_g = carbsFromRemaining(target_kcal - protein_g * 4 - fat_g * 9, body, opts, flags);
 
@@ -1217,6 +1271,13 @@ export const ENGINE_REV_LEGACY = 1;
  * Aucun garde-fou n'est franchi (rythme sûr, plafond 25 % du TDEE, plancher d'énergie
  * disponible), et un test le balaie sur toute la grille.
  *
+ * rev 10 → 11 (2026-09-11) : détente de la cible protéique de 10 % sur les profils
+ * VÉGANES (`facteurProteineVegetal`, décision fondateur). Les calories ne bougent pas
+ * d'un kcal — ce sont les glucides et les lipides qui reprennent la place cédée par les
+ * protéines, donc l'avertissement one-shot ne se déclenchera pour personne (le seuil est
+ * en kcal/jour). Ne touche QUE les profils déclarant `vegan` ET en mode automatique.
+ * Motif et chiffres : `facteurProteineVegetal`.
+ *
  * rev 3 → 4 (2026-08-01) : la cible lipidique vise désormais 15 % au-dessus du
  * plancher de carence (`FAT_FLOOR_AIM_MARGIN`), pour que le plan SERVI le franchisse.
  * Ne déplace que les profils dont la cible ÉTAIT le plancher — sèche et maintien.
@@ -1227,7 +1288,7 @@ export const ENGINE_REV_LEGACY = 1;
  * l'explication de la rev 2 à quelqu'un dont la cible a bougé pour une autre raison
  * serait un mensonge, pas une approximation.
  */
-export const ENGINE_REV = 10;
+export const ENGINE_REV = 11;
 
 /**
  * Seuil d'affichage (kcal/j, en valeur absolue). En dessous, l'écart tient dans le
@@ -1459,7 +1520,9 @@ export function computePlan(rawProfile: UserProfile, today: string = todayStamp(
   // `percent`, `manual`) par le même chemin que les autres planchers. Un mode oublié
   // serait un mode où la pause n'a jamais lieu — et `manual` est justement celui qui
   // a déjà servi à contourner un plancher par le passé.
-  const opts: MacroOptions = { kcalDeltaOverride: kcalDelta, sportKcalPerDay, lowEaWeeks, dietBreak };
+  // `restrictions` n'est lu que par `facteurProteineVegetal` (détente végétale). Il part
+  // d'ICI et pas du mode « Perso % » : là-bas, le g/kg saisi par l'utilisateur gagne.
+  const opts: MacroOptions = { kcalDeltaOverride: kcalDelta, sportKcalPerDay, lowEaWeeks, dietBreak, restrictions: p.dietary_restrictions };
 
   let m: MacroPlan;
   if (macroMode(p) === 'auto') {
