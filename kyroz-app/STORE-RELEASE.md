@@ -26,9 +26,10 @@
 > ✅ **L'accès de revue est fermé** : *Anonymous Sign-Ins* coupé côté Supabase, vérifié
 > `anonymous_users: false` à 14 h 16. 🟠 Fait **43 minutes après** la publication, pas
 > avant — fenêtre bornée, un contrôle reste ouvert dans la procédure.
-> 🧑 **Ce qui reste** : lire la devise dans l'app installée **depuis l'App Store**
-> (*Profil → Kyroz+*) — le geste attendu depuis le 2026-08-28, seul à clore le dossier
-> des dollars ; et compter les éventuels comptes anonymes créés dans la fenêtre.
+> ✅ **LA DEVISE EST EN EUROS** — lue par le fondateur dans *Profil → Kyroz+* sur l'app
+> installée depuis l'App Store, le 2026-09-12. Le dossier ouvert le 2026-08-28 est **CLOS**.
+> 🧑 **Ce qui reste** : compter les éventuels comptes anonymes créés dans la fenêtre de
+> 43 minutes (Supabase → Authentication → Users).
 >
 > ℹ️ **Les prix sont vérifiés** (API, 2026-09-12) : France **EUR 3,99 / 29,99**, Belgique
 > idem, Suisse CHF 3 / 20, États-Unis USD 3,99 / 24,99. Les dollars vus en TestFlight
@@ -901,10 +902,26 @@ annoncer un geste avant d'avoir vérifié qu'on sait le faire.**
 
 ---
 
-### 🟠 QUESTION OUVERTE, À TRANCHER LE JOUR DE LA SORTIE — les prix en dollars
+### ✅ TRANCHÉ LE 2026-09-12 — c'était bien la vitrine du bac à sable
 
-En TestFlight, le paywall affiche **exactement les prix USA** (`3,99 $US` / `24,99 $US`)
-alors qu'Apple facture **exactement le prix français** (29,99 €, feuille d'achat à l'appui).
+> 🟢 **LA DEVISE EST EN EUROS EN PRODUCTION.** Lue par le fondateur dans *Profil → Kyroz+*
+> sur l'app installée **depuis l'App Store**, le 2026-09-12, après la mise en vente de
+> 13 h 33. La seule hypothèse restée debout — **StoreKit résout une vitrine différente en
+> environnement BAC À SABLE** — est celle qui était juste. Rien à corriger, aucun ticket
+> RevenueCat à ouvrir.
+>
+> ⚠️ **Ce qui a coûté du temps, et qui vaut au-delà** : un défaut qui n'existe QUE dans
+> l'environnement de test se diagnostique en production, et pas avant. Trois hypothèses
+> ont été avancées avant de lire le pont natif ; aucune des trois n'était vérifiable dans
+> le bac à sable. ➡️ **Quand toutes les mesures possibles sont faites et qu'il reste une
+> hypothèse non testable, l'écrire comme telle et ATTENDRE le bon environnement** — au
+> lieu d'énumérer de nouvelles causes plausibles. Cf. la mémoire
+> `project-prix-dollars-testflight`.
+
+*Le diagnostic d'origine, gardé pour sa méthode :*
+
+En TestFlight, le paywall affichait **exactement les prix USA** (`3,99 $US` / `24,99 $US`)
+alors qu'Apple facturait **exactement le prix français** (29,99 €, feuille d'achat à l'appui).
 
 **Ce qui est MESURÉ, et ce que ça élimine :**
 
@@ -2430,9 +2447,9 @@ répondu.
 ⚠️ **Mais un relecteur qui compare la vidéo à la fiche voit deux chiffres.** La réponse
 ci-dessus le dit donc AVANT qu'il ne se pose la question — un paragraphe qui coûte trois
 lignes et évite un aller-retour.
-ℹ️ Ça ne clôt pas [[project-prix-dollars-testflight]] : on sait maintenant que les deux
-prix sont cohérents, **pas** pourquoi ce compte est sur la boutique US. Le geste reste le
-même le jour de la sortie — installer depuis l'App Store et lire la devise.
+✅ **CLOS LE 2026-09-12** : le geste a été fait — app installée depuis l'App Store,
+*Profil → Kyroz+*, **devise en euros**. Le compte de la vidéo était bien sur la boutique
+US par le bac à sable, pas par un défaut de la fiche.
 
 ### ⚠️ Ce qui NE doit PAS repartir dans la soumission
 
