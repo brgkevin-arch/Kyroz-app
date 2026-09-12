@@ -645,6 +645,27 @@ produit en suspens — il ne reste qu'à coder.
 
 ### 📱 C — Sortie stores
 
+- 🧑 **C-REVUE-FERMER · RENDRE LE CODE DE REVUE INERTE AVANT DE PUBLIER** (2026-09-12).
+  Apple a approuvé le (22) ; la diffusion est `MANUAL`, donc **rien n'est public tant que
+  le fondateur n'a pas publié**. `EXPO_PUBLIC_REVIEW_CODE` est inlinée à la compilation,
+  donc **dans le binaire** : le jour de la publication, n'importe qui peut l'extraire.
+  🟢 **Le geste ne coûte rien, et ce n'est PAS un build.** En production, le code n'ouvre
+  qu'un chemin — `isReviewLogin()` → `guest()` → `signInAnonymously()` — car
+  « Continuer en invité » est derrière `__DEV__`. ➡️ **Couper *Anonymous Sign-Ins* dans
+  Supabase suffit** : le serveur refuse, quel que soit le binaire installé.
+  Contrôle public, sans effet de bord :
+  `curl -s "$EXPO_PUBLIC_SUPABASE_URL/auth/v1/settings" -H "apikey: $EXPO_PUBLIC_SUPABASE_ANON_KEY" | grep anonymous_users`
+  → `true` = ouvert, `false` = fermé.
+  🔴 **À chaque soumission suivante** : rallumer l'interrupteur **et poser une valeur
+  NEUVE** (un binaire public expose la sienne), puis recouper une fois approuvé. Un code
+  neuf exige un build — une OTA ne remplace pas une variable inlinée.
+  Procédure : `docs/procedures/PROCEDURE-2026-09-12-fermer-acces-revue.md`.
+  ⚠️ **Ne pas toucher à la date de lancement** : le fondateur la gère (2026-09-12).
+
+- 🟢 **C-REJET-20 · CLOS — APPLE A APPROUVÉ LE 2026-09-12.** Version 1.0 en
+  `PENDING_DEVELOPER_RELEASE` avec le build (22), les deux abonnements `_early`
+  `APPROVED`. Gardé ci-dessous pour la méthode, plus pour l'action.
+
 - 🧑 **C-REJET-20 · RÉPONDRE AU REJET APPLE DU 2026-09-10** (soumission
   `fddc0394-b69a-41c5-b2cd-0edc471eb610`, build **1.0 (20)**, relu sur **iPad Air 11" M3**).
   Trois motifs. **Le code des deux premiers est livré ; le troisième ne se corrige pas

@@ -16,6 +16,29 @@
 
 ## 0-ter. ▶️ REPRISE — état au 2026-08-27
 
+> 🟢 **ÉTAT AU 2026-09-12 — APPLE A APPROUVÉ. Tout ce qui suit est de l'histoire.**
+> Version **1.0** · `PENDING_DEVELOPER_RELEASE` · build **(22)** · diffusion `MANUAL`.
+> `kyroz_plus_monthly_early` et `kyroz_plus_yearly_early` : **`APPROVED`**.
+> Verdict rendu **40 h 42** après l'envoi du 10/09 à 19 h 58, sur la soumission
+> `fddc0394` — la même que celle du rejet, Apple réutilise l'objet.
+>
+> **Rien n'est public** : `MANUAL` veut dire que la publication attend un geste humain.
+> Trois suites, chacune à sa place :
+> | Quoi | Où | Qui |
+> |---|---|---|
+> | Fermer l'accès de revue — **AVANT de publier** | `docs/procedures/PROCEDURE-2026-09-12-fermer-acces-revue.md` | 🧑 un interrupteur Supabase |
+> | La date de lancement | `docs/procedures/PROCEDURE-2026-08-25-mise-en-vente-kyroz-plus.md` §10 | 🧑 le fondateur la gère |
+> | Lire la devise le jour J | même procédure | 🧑 depuis un compte français |
+>
+> ℹ️ **Les prix sont vérifiés** (API, 2026-09-12) : France **EUR 3,99 / 29,99**, Belgique
+> idem, Suisse CHF 3 / 20, États-Unis USD 3,99 / 24,99. Les dollars vus en TestFlight
+> venaient de la **région du compte StoreKit**, pas du produit — le contrôle du jour J
+> confirme un runtime, il ne cherche plus un défaut.
+> ⚠️ **« Publier puis repasser en privé » n'est pas un aller-retour de cinq minutes** :
+> *Pricing and Availability* → retrait de tous les territoires est réversible et sans
+> nouvelle revue, mais la propagation prend des **heures dans les deux sens**. Préférer
+> publier, ne rien annoncer quelques heures, vérifier, puis annoncer.
+
 > 🟢 **ÉTAT AU 2026-09-08, 23 h 41 — C'EST SOUMIS.** Soumission `fddc0394`,
 > `WAITING_FOR_REVIEW`, quatre éléments ensemble : version 1.0 (**build 20**, commit
 > `b41dd92d`), groupe Kyroz+, et les deux abonnements de lancement. Vidéo de l'achat
@@ -2085,13 +2108,34 @@ eas submit --platform android --latest    # 1re fois : créer l'app dans Play Co
       en P2 : le bundle WEB déployé contient l'e-mail sentinelle mais **pas le code**
       (mesuré, témoin de contrôle `supabase` à 13). `deploy.yml` ne pose pas la variable —
       **ne jamais l'y ajouter**.
-      ➡️ **Deux gestes, une fois la revue passée :**
-      1. `eas env:delete production --name EXPO_PUBLIC_REVIEW_CODE` (ou une nouvelle
-         valeur aléatoire si une revue reste à venir) — **puis un nouveau build** : le
-         code vit dans le binaire, une OTA ne le retire pas ;
-      2. remplacer par le mécanisme **daté et chiffré** déjà décidé (mémoire
-         « Compte invité : après la revue »), pour que le prochain accès de revue expire
-         tout seul au lieu de dépendre d'un geste qu'on doit se rappeler.
+      🟢 **ET IL EXISTE UN GESTE À COÛT NUL — mesuré le 2026-09-12, il change ce point.**
+      Ce paragraphe cherchait le verrou dans le binaire, donc toute fermeture coûtait un
+      build **et** une revue : assez cher pour être remise à plus tard indéfiniment. Or le
+      code n'ouvre qu'UN chemin, et ce chemin n'est pas local :
+      ```
+      signInAnonymously()  ←  guest()  ←  isReviewLogin()   ← le SEUL chemin en prod
+                                  ↑
+                    « Continuer en invité » est derrière __DEV__
+      ```
+      ➡️ **Couper *Authentication → Anonymous Sign-Ins* dans Supabase rend le code inerte
+      immédiatement** : c'est le serveur qui refuse, quel que soit le binaire installé.
+      Pas de build, pas de revue, réversible d'un clic.
+      **Le contrôle est public et ne crée rien** (pas besoin de droits admin) :
+      ```bash
+      curl -s "$EXPO_PUBLIC_SUPABASE_URL/auth/v1/settings" \
+        -H "apikey: $EXPO_PUBLIC_SUPABASE_ANON_KEY" | grep anonymous_users
+      ```
+      `"anonymous_users": true` = ouvert · `false` = fermé.
+      ➡️ **Le cycle qui remplace « supprimer la variable » :** rallumer l'interrupteur
+      **et poser une valeur NEUVE** avant chaque build de soumission, le recouper une fois
+      la version approuvée. Le secret ne vit alors que le temps d'une revue — et il DOIT
+      changer à chaque fois, puisqu'un binaire public expose le sien.
+      ⚠️ Un code neuf exige quand même **un build** : `EXPO_PUBLIC_*` est inlinée à la
+      compilation, une OTA ne la remplace pas.
+      ➡️ Ça ne remplace pas le mécanisme **daté et chiffré** déjà décidé (mémoire
+      « Compte invité : après la revue ») : l'interrupteur déplace la décision du binaire
+      vers le serveur, mais il reste un geste manuel.
+      📄 Procédure complète : `docs/procedures/PROCEDURE-2026-09-12-fermer-acces-revue.md`.
       ⚠️ Ne rien toucher **avant** la soumission : l'auth anonyme est active et le code
       est ce qui permet au reviewer d'entrer. C'est un geste d'APRÈS, pas un correctif.
 - [ ] Disclaimer santé visible (déjà le cas).

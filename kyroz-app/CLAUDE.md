@@ -2887,6 +2887,20 @@ téléphone.
 
 ## 11. Pièges connus (redécouverts au moins une fois chacun)
 
+- 🔴 **UN SECRET DANS LE BINAIRE N'EST DANGEREUX QUE SI LE SERVEUR L'HONORE.** Mesuré le
+  2026-09-12 sur `EXPO_PUBLIC_REVIEW_CODE`. La doc cherchait le verrou là où le secret
+  était — dans l'app — donc toute fermeture coûtait **un build et une revue**, assez cher
+  pour être remise indéfiniment. Or ce code n'ouvre qu'un chemin, et son dernier maillon
+  est **distant** : `isReviewLogin()` → `guest()` → `signInAnonymously()`, le bouton
+  invité étant derrière `__DEV__`. Couper *Anonymous Sign-Ins* côté Supabase le rend
+  inerte **sans rien reconstruire**, et c'est réversible d'un clic.
+  ➡️ **Devant un secret compilé, ne pas demander « comment le retirer ? » mais « qui
+  l'honore, et puis-je le désarmer LÀ ? »** Un secret n'a de pouvoir que délégué.
+  ⚠️ Corollaire de contrôle : l'état se lit **publiquement**, sans droits admin et sans
+  créer de compte —
+  `curl -s "$EXPO_PUBLIC_SUPABASE_URL/auth/v1/settings" | grep anonymous_users`. Chercher
+  la sonde qui n'a pas d'effet de bord AVANT d'en écrire une qui en a.
+
 - 🔴 **CE QUI EST PARTI EN REVUE NE SE LIT PAS DANS LES `items` DE LA SOUMISSION.**
   Mesuré le 2026-09-10, juste après avoir renvoyé le (22). `GET
   /v1/reviewSubmissions/{id}/items` rend des objets **sans attribut nommé et sans
