@@ -2887,6 +2887,30 @@ téléphone.
 
 ## 11. Pièges connus (redécouverts au moins une fois chacun)
 
+- 🔴 **ON N'EXTRAIT RIEN D'UN FICHIER DE SECRET — PAS MÊME POUR LE MASQUER.** Payé le
+  2026-09-12 : pour décrire la structure d'un fichier de clé API sans la révéler, un `sed`
+  imprimait les *noms de variables*. Le fichier était malformé (`<clé>=…` au lieu de
+  `CLÉ=<valeur>`), donc il a imprimé **la clé entière**, qui a dû être révoquée. La
+  précaution elle-même a fait la fuite, parce qu'elle supposait une forme de fichier qui
+  n'était pas garantie.
+  ➡️ **Sorties admises** : tailles (`wc -c`, `wc -l`), empreintes
+  (`shasum -a 256 | cut -c1-16` — suffit pour comparer deux fichiers), comptages
+  (`grep -c`, `grep -l`), et le **résultat** d'un appel qui utilise le secret (`401 ✅`).
+  🔴 **Interdits** : `sed -n 's/…/…/p'`, `awk` qui imprime un champ, `cut`, `head`, `cat`,
+  toute regex de capture. Un masquage se fait DANS le programme qui lit le fichier.
+  ➡️ **Et quand c'est arrivé** : le dire en premier, sans enrobage, puis donner le seul
+  geste qui répare — **révoquer**. Une clé morte rend l'historique inoffensif.
+
+- 🔴 **UN CHAMP ABSENT N'EST PAS « FAUX », C'EST UNE QUESTION SANS RÉPONSE.** Même jour,
+  API RevenueCat : mon script dérivait l'environnement de `ab.sandbox`, un champ **qui
+  n'existe pas** — il s'appelle `environment`. Absent donc *falsy*, donc **toutes** les
+  lignes s'affichaient `PRODUCTION`, y compris l'unique abonnement qui était en
+  `"environment": "sandbox"`. J'ai annoncé le contraire de la vérité, avec une mise en
+  page soignée. ➡️ **Avant de dériver une étiquette d'un champ, prouver que le champ
+  existe** — vider le JSON brut UNE fois coûte moins cher qu'une conclusion inversée. Même
+  famille que le `slice(0,19)` qui jetait le fuseau : *un défaut de lecture ne se signale
+  jamais, il rend une valeur plausible.*
+
 - 🔴 **UN SECRET DANS LE BINAIRE N'EST DANGEREUX QUE SI LE SERVEUR L'HONORE.** Mesuré le
   2026-09-12 sur `EXPO_PUBLIC_REVIEW_CODE`. La doc cherchait le verrou là où le secret
   était — dans l'app — donc toute fermeture coûtait **un build et une revue**, assez cher
