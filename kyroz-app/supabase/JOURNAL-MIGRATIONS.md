@@ -172,6 +172,13 @@ date — les colonnes qu'elles ajoutent répondent toutes `200`.
 > (`205132cb…`). Sa ligne `profiles` a été **supprimée** (`DELETE` → `204`, relecture
 > vide), mais la ligne `auth.users` ne peut pas l'être avec la clé anonyme. À purger
 > depuis le dashboard, Authentication → Users.
+> ✅ **PURGÉE le 2026-09-12**, six semaines plus tard, dans la suppression des 190 comptes
+> anonymes (`S-03`). Identifiant complet retrouvé : `205132cb-f5c3-4fc7-8298-f57f0cd6905c`,
+> créé le 2026-07-30 à 23 h 26 UTC — soit 01 h 26 à Paris le 31, la date de cette entrée.
+> ℹ️ **Cette note a servi**, et voilà comment : elle était le seul document à expliquer
+> pourquoi le comptage rendait **190 comptes pour 189 profils**. Sans elle, cet écart de un
+> aurait fait suspecter la cascade avant de supprimer. *Une ligne de journal qui nomme un
+> reste à faire vaut une enquête six semaines plus tard.*
 
 > ⚠️ **Au passage, E3 est tranché par les faits** : le provider **Anonymous est ACTIF**
 > en production. Un `POST /auth/v1/signup` avec un corps vide, sans authentification et

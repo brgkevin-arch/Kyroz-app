@@ -28,8 +28,14 @@
 > avant — fenêtre bornée, un contrôle reste ouvert dans la procédure.
 > ✅ **LA DEVISE EST EN EUROS** — lue par le fondateur dans *Profil → Kyroz+* sur l'app
 > installée depuis l'App Store, le 2026-09-12. Le dossier ouvert le 2026-08-28 est **CLOS**.
-> 🧑 **Ce qui reste** : compter les éventuels comptes anonymes créés dans la fenêtre de
-> 43 minutes (Supabase → Authentication → Users).
+> ✅ **LA FENÊTRE ÉTAIT VIDE, et le stock est purgé** : le compte anonyme le plus récent
+> de toute la base datait du 2026-09-10, deux jours avant l'ouverture. Les **190 comptes
+> anonymes** de mise au point ont été supprimés dans la foulée (189 profils, 162 pesées) —
+> `S-03` de l'audit Supabase est réglé. Il reste **17** comptes, tous réels.
+>
+> 🟢 **PLUS RIEN N'EST EN ATTENTE SUR CE DOSSIER.** Le seul geste qui se rejouera est
+> l'**étape 3** de `PROCEDURE-2026-09-12-fermer-acces-revue.md` : rouvrir l'auth anonyme et
+> poser un code NEUF avant chaque soumission, la recouper une fois approuvé.
 >
 > ℹ️ **Les prix sont vérifiés** (API, 2026-09-12) : France **EUR 3,99 / 29,99**, Belgique
 > idem, Suisse CHF 3 / 20, États-Unis USD 3,99 / 24,99. Les dollars vus en TestFlight

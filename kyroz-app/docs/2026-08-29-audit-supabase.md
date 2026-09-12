@@ -35,7 +35,7 @@ précédent, elle se ferme ici.
 |---|---|---|
 | `S-01` | `schema.sql` ne sait plus recréer la base — `birth_date` manque, et le verrou est aveugle à ce cas précis | **P2** |
 | `S-02` | Un seul projet Supabase pour les 3 environnements **et** le poste local : la QA écrit dans la base des vrais utilisateurs | **P2** |
-| `S-03` | Aucune purge des comptes invités abandonnés — données de santé conservées sans limite, et irréclamables | **P2** |
+| `S-03` | ✅ **RÉGLÉ le 2026-09-12** — robinet fermé (auth anonyme coupée) **et** bassin vidé (190 comptes purgés). Reste sans objet tant qu'on ne rallume pas | ~~P2~~ |
 | `S-04` | `RUNBOOK-PROD.md` : le journal qui devait dire ce qui tourne en prod est **vide**, à côté d'un autre qui est rempli | **P3** |
 | `S-05` | `set_updated_at` sans `search_path` figé ; `auth.uid()` ré-évalué à chaque ligne dans les 6 policies | **P3** |
 
@@ -202,6 +202,11 @@ d'ailleurs la seule chose qui limite aujourd'hui le volume.
 - **mesure contaminée** — tout comptage futur (utilisateurs, profils complets, rétention)
   additionne des vrais comptes et des personas de test, sans moyen de les distinguer : ni
   colonne `is_test`, ni convention de nommage, et un invité n'a même pas d'e-mail ;
+  ✅ **Assaini le 2026-09-12** par la purge des 190 anonymes : le compteur de la page Users
+  affiche enfin 17, et 17 est le nombre de vrais comptes. ⚠️ **Mais le défaut de forme
+  demeure** — c'est *l'absence d'e-mail* qui a permis de trier, pas un marqueur de test.
+  Le jour où un compte de recette aura un e-mail, rien ne le distinguera d'un vrai. La
+  reco ci-dessous (un second projet Supabase) reste entière.
 - **pas de filet** — aucune base où éprouver une migration avant de la jouer sur la vraie.
   Le mode de panne « migration non jouée » a coupé la synchro **trois fois** ; son cousin
   « migration jouée et fausse » n'a, lui, aucun garde-fou.
@@ -214,9 +219,29 @@ et son URL posée sur les environnements `development` et `preview` d'EAS ainsi 
 
 ---
 
-### S-03 — Les comptes invités abandonnés gardent des données de santé, sans limite et sans recours
+### ✅ S-03 — RÉGLÉ le 2026-09-12 : robinet fermé, bassin vidé
 
-- **Sévérité : P2** · **Effort : M**
+- ~~**Sévérité : P2** · **Effort : M**~~ · **clos**
+
+> 🟢 **Ce que la purge a mesuré puis emporté**, le 2026-09-12, après la mise en vente :
+> **190 comptes anonymes** (partition sans ambiguïté — les 190 sont sans e-mail *et* sans
+> provider ; les 17 autres ont les deux), **189 lignes `profiles`**, **162 pesées**, 1
+> favori. Les six tables portent `on delete cascade` sur `auth.users(id)` : aucun orphelin
+> derrière. Reste **17** comptes, tous réels.
+> ⚠️ **Le stock n'était que la moitié du défaut.** L'autre est le robinet, et il a été
+> fermé le même jour : *Anonymous Sign-Ins* coupé chez Supabase (`anonymous_users: false`).
+> Sans ça la purge se serait remplie à nouveau. Cf.
+> `docs/procedures/PROCEDURE-2026-09-12-fermer-acces-revue.md`.
+> 🔴 **Et il se rouvre à chaque soumission** : l'accès de revue exige de rallumer l'auth
+> anonyme le temps d'une revue. Chaque cycle recrée donc quelques comptes invités — peu,
+> mais le mécanisme de purge n'existe toujours pas. *`S-03` est vidé, pas résolu par
+> construction* : c'est une purge à la main, pas un `pg_cron`.
+> ℹ️ **Un dernier compte est tombé au passage** : l'orpheline `205132cb…` du 2026-07-30,
+> dont `JOURNAL-MIGRATIONS.md` demandait la purge depuis six semaines — sa ligne `profiles`
+> avait été supprimée mais pas sa ligne `auth.users`, faute de droits. C'était exactement
+> le 190ᵉ compte pour 189 profils.
+
+*Le constat d'origine, gardé pour son raisonnement :*
 
 **Preuve.** Trois faits qui ne se lisent jamais ensemble :
 
