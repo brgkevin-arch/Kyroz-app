@@ -2623,6 +2623,96 @@ la soumission du (22) s'est terminée à 18 h 18, le build est passé `VALID` ch
 
 ---
 
+## 11-sexies. Lire les chiffres de RevenueCat — 120 $ de MRR sans un euro encaissé
+
+> Écrit le 2026-09-12, le jour de la mise en vente, après que le tableau de bord a annoncé
+> **120 $ de MRR** et « 3 abonnements » antérieurs à la sortie. Mesuré par l'API v2
+> (`proj7396660e`), pas lu dans le dashboard.
+
+### Ce que l'API rend, et qui n'est pas ce que le dashboard montre
+
+```
+Active Subscriptions   0        MRR       0 $
+Revenue (28 j)         0 $      New Customers  19
+                                Active Users   19
+```
+
+**L'API `metrics/overview` ne compte QUE la production.** Le dashboard, lui, affiche le
+bac à sable tant que « View sandbox data » est coché. Les deux ne se contredisent pas :
+ils ne regardent pas le même monde.
+
+### Les « 3 abonnements » sont UN abonnement renouvelé trois fois
+
+Un seul objet existe dans tout le projet :
+
+| champ | valeur |
+|---|---|
+| produit | `kyroz_plus_monthly_early` |
+| `environment` | **`sandbox`** |
+| `country` | **`US`** |
+| `status` / `auto_renewal_status` | `active` / `will_renew` |
+| `total_revenue_in_usd` | gross **11,97**, commission 3,59, proceeds 8,38 |
+
+`11,97 ÷ 3,99 = 3` : trois prélèvements, pas trois abonnements. RevenueCat calcule même la
+commission d'Apple sur de l'argent qui n'existe pas.
+
+### D'où sort exactement 120 $
+
+La période en cours dure **86 400 000 ms — vingt-quatre heures**, pas un mois : Apple
+renouvelle quotidiennement sur ce compte sandbox (déjà relevé au §0-ter : *dix
+renouvellements du 28/08 au 07/09*).
+
+> **3,99 $ × 30 jours = 119,70 $** → affiché **120 $**.
+
+Ce n'est pas un défaut de RevenueCat : c'est un abonnement à 3,99 $ **par jour**, et le
+revenu récurrent mensuel d'un tel abonnement vaut bien cela. Le `$` plutôt que `€` vient
+du `country: US` — même racine que l'affaire des dollars du §0-quater.
+
+### Ce qui l'arrête, et ce qui ne l'arrête pas
+
+🔴 **Supprimer les clients RevenueCat ne sert à rien** : ils sont reconstruits depuis le
+reçu, avec leur passé (essayé deux fois, cf. §7). La source est le reçu sur l'appareil.
+✅ **Ce qui arrête le robinet** : annuler l'abonnement sandbox — *Réglages → App Store →
+Compte Sandbox → Gérer → Annuler*. Annuler coupe la suite, **pas la période en cours**.
+✅ **Ce qui nettoie l'affichage** : décocher **« View sandbox data »** sur l'**Overview**.
+
+⚠️ **Deux pièges d'affichage, tous deux documentés par RevenueCat :**
+- **Les Charts n'ont AUCUN filtre sandbox** — ils n'affichent que la production, par
+  construction. Chercher la bascule là est une perte de temps ; elle est sur l'Overview.
+- **Décocher le sandbox ne change ni « Installs » ni « Active Users »** : RevenueCat ne
+  classe pas les *utilisateurs* par environnement, un même App User ID pouvant porter les
+  deux types de reçus. Voir le revenu tomber à 0 pendant que les utilisateurs restent à 19
+  est le comportement attendu, pas une incohérence.
+
+### Charts V3 — la bascule en haut à droite d'un graphique
+
+| | V2 | V3 |
+|---|---|---|
+| Fraîcheur | lots toutes les **2 à 12 h** | quasi **temps réel** |
+| Remboursements | réappliqués à la période d'origine, le passé change après coup | déduits **le jour du traitement**, le passé reste figé |
+
+➡️ **Et elle décide aussi de la source des chiffres de l'Overview.** À laisser sur **V3** :
+des chiffres d'hier qui se réécrivent tout seuls font douter de l'instrument sans raison.
+
+### 🔴 Deux leçons d'instrument, payées le même jour
+
+**Un champ absent ne vaut pas « faux ».** Mon premier script dérivait l'environnement de
+`ab.sandbox` — un champ **qui n'existe pas** : il s'appelle `environment`. Absent donc
+*falsy*, donc chaque ligne s'affichait `PRODUCTION`. J'ai annoncé un abonnement de
+production avant de vider le JSON brut et de lire `"environment": "sandbox"`.
+*Avant de dériver une étiquette d'un champ, vérifier que le champ existe — sinon
+l'instrument répond toujours la même chose, avec aplomb.*
+
+**Et on n'extrait RIEN d'un fichier de secret.** Pour décrire la structure d'un fichier de
+clé sans la révéler, j'ai lancé un `sed` qui imprime les noms de variables. Le fichier
+était malformé (`<clé>=…` au lieu de `CLÉ=<valeur>`), donc il a imprimé **la clé entière**.
+Elle a dû être révoquée. ➡️ Sur un fichier de secret, seules des **tailles** (`wc`), des
+**empreintes** (`shasum | cut`), des **comptages** (`grep -c`) et le **résultat** d'un
+appel qui l'utilise (`401 ✅`) peuvent sortir. Jamais `sed`, `awk`, `cut`, `head`, `cat`
+— *y compris quand l'intention est de masquer*, car la forme du fichier est une hypothèse.
+
+---
+
 *Playbook préparé le 2026-07-17. Config technique prête ; le chemin critique = le bac à
 sable (`docs/procedures/PROCEDURE-2026-08-27-bac-a-sable.md`), les captures à juger, et la fiche à
 remplir.*
