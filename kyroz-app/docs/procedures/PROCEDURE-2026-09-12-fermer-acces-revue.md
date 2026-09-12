@@ -117,21 +117,27 @@ redemande pas de revue, mais la propagation prend des **heures dans les deux sen
 
 ---
 
-## 🧑 Ce qui reste à vérifier — une fois, et c'est fini
+## ✅ La fenêtre était vide — et le stock a été purgé (2026-09-12)
 
-La fenêtre de 43 minutes n'a probablement rien laissé, mais « probablement » se mesure.
+**Aucun compte anonyme n'est né dans les 43 minutes.** Prouvé deux fois, et la seconde
+preuve est la plus forte : le compte anonyme **le plus récent de toute la base** datait du
+**2026-09-10**, deux jours avant l'ouverture. Ce n'est pas « je n'en vois pas », c'est
+« le dernier est antérieur ».
 
-**Supabase → Authentication → Users**, trier par date de création : y a-t-il des comptes
-**anonymes** créés le 2026-09-12 entre **13 h 33** et **14 h 16** ?
+🟢 **Et le stock est parti avec.** La question « d'où viennent 207 comptes pour 17
+actifs ? » a ouvert la mesure, qui a rendu une partition sans ambiguïté — **190 anonymes,
+tous sans e-mail *et* sans provider ; 17 réels, tous avec les deux** — puis la purge :
+190 comptes, 189 profils, **162 pesées**, 1 favori. Les six tables portent
+`on delete cascade`, donc aucun orphelin. Reste **17**.
+➡️ C'est le point **`S-03`** de `docs/2026-08-29-audit-supabase.md`, ouvert depuis le
+2026-08-29 : **robinet fermé et bassin vidé le même jour.**
 
-> **Ce que tu dois voir** : aucun. Alors le dossier se ferme sans réserve.
-> S'il y en a : ce ne sont pas des comptes qui ont accès aux données d'autrui (la RLS
-> tient), ce sont des lignes à supprimer. Les compter d'abord, décider ensuite.
-
-⚠️ **Couper le provider ne supprime pas les comptes anonymes déjà créés** — ni leurs
-sessions en cours. C'est une porte fermée, pas une expulsion. Les comptes de test
-antérieurs sont dans le même cas ; leur purge est le point `S-03` de
-`docs/2026-08-29-audit-supabase.md`, qui reste ouvert.
+⚠️ **Couper le provider ne supprime pas les comptes déjà créés** — c'est une porte fermée,
+pas une expulsion. C'est bien pour ça qu'il a fallu les deux gestes, et que fermer sans
+vider aurait laissé les données de santé en place.
+🔴 **Et l'étape 3 rouvre le robinet le temps de chaque revue** : quelques comptes invités
+renaîtront à chaque soumission. Il n'existe toujours aucune purge automatique — c'est un
+geste à la main, à refaire après chaque cycle.
 
 ---
 
