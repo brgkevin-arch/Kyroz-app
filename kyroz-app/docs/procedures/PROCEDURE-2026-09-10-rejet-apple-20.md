@@ -1,4 +1,4 @@
-# Rejet Apple du 2026-09-10 (build 20) — ✅ CLOS, renvoyé en revue le 2026-09-10
+# Rejet Apple du 2026-09-10 (build 20) — 🟢 APPROUVÉ PAR APPLE le 2026-09-12
 
 > **Une étape à la fois.** Chaque étape se termine par *« ce que tu dois voir »* : tant
 > que tu ne le vois pas, on ne passe pas à la suivante. Reviens me dire ce que tu as vu,
@@ -11,13 +11,22 @@ Trois motifs. **Les deux premiers sont corrigés dans le code** (PR #252, mergé
 n'attendent qu'un binaire ; le troisième ne se corrigeait pas dans le dépôt du tout —
 c'est une **métadonnée**, et elle est **posée depuis le 2026-09-10**.
 
-> ✅ **LES CINQ ÉTAPES SONT FAITES. RIEN N'ATTEND PLUS PERSONNE.**
+> 🟢 **APPLE A ACCEPTÉ — 2026-09-12.** Version 1.0 en `PENDING_DEVELOPER_RELEASE`
+> avec le build **(22)**, diffusion `MANUAL` ; `kyroz_plus_monthly_early` et
+> `kyroz_plus_yearly_early` sont **`APPROVED`**. Verdict rendu **40 h 42** après l'envoi.
+> Les trois motifs sont éteints d'un coup, et les abonnements early bird passent pour la
+> première fois.
+> ➡️ **Rien n'est public** tant que la version n'est pas publiée à la main. Deux suites,
+> chacune ailleurs : la **date de lancement** (`PROCEDURE-2026-08-25-mise-en-vente-kyroz-plus.md`,
+> étape 10 — le fondateur la gère) et la **fermeture de l'accès de revue**
+> (`PROCEDURE-2026-09-12-fermer-acces-revue.md`, **à faire AVANT de publier**).
+>
+> ✅ **LES CINQ ÉTAPES SONT FAITES. RIEN N'ATTEND PLUS PERSONNE ICI.**
 > Voie A tranchée ; description et notes écrites par l'API et relues ; capture tournée
 > et envoyée par le fondateur dans la Resolution Center ; **build (22) compilé, vérifié
 > DANS SON IPA, téléversé et `VALID` chez Apple** ; (22) attaché à la version 1.0 et
 > **renvoyé en revue le 2026-09-10 à 19 h 58** (heure de Paris).
-> ➡️ **La balle est chez Apple.** Ce fichier n'est plus une carte, c'est une trace :
-> il part à l'archive dès le verdict rendu.
+> Ce fichier n'est plus une carte, c'est une **trace** : il part à l'archive.
 
 | Motif | Nature | Où ça se règle |
 |---|---|---|
