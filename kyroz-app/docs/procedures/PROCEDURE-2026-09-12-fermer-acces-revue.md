@@ -93,9 +93,10 @@ https://apps.apple.com/fr/app/kyroz/id6796427402 · fiche FR en **EUR**, « Grat
 La date de lancement était **hors de cette procédure** : elle appartient au fondateur et
 elle est suivie dans `PROCEDURE-2026-08-25-mise-en-vente-kyroz-plus.md` (son étape 10).
 
-🧑 **Le geste attendu depuis le 2026-08-28 est maintenant possible, et lui seul clôt le
-dossier des dollars** : installer Kyroz **depuis l'App Store** (pas TestFlight), ouvrir
-*Profil → Kyroz+*, **lire la devise**.
+✅ **LE GESTE ATTENDU DEPUIS LE 2026-08-28 EST FAIT — LA DEVISE EST EN EUROS.** App
+installée depuis l'App Store, *Profil → Kyroz+*, lue par le fondateur le 2026-09-12. Le
+dossier des dollars est **clos** : c'était bien la vitrine du bac à sable de StoreKit, et
+rien d'autre.
 
 ℹ️ **La configuration, elle, est déjà vérifiée** (2026-09-12, par l'API) :
 

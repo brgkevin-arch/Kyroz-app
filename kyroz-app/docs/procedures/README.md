@@ -24,7 +24,7 @@ pas qu'elle a été *lancée*.
 | `PROCEDURE-MAJ-LEGAL-SITE.md` | **REJOUABLE** | Remettre `kyroz.app/legal.html` à jour. Sans date : elle se rejoue à chaque évolution du texte légal |
 | `PROCEDURE-2026-09-05-video-achat-sandbox.md` | 🟢 **SANS OBJET** (2026-09-10) | Son motif `2.1(b)` est éteint : la soumission du 08/09 est partie sans la vidéo et la revue du 10/09 ne l'a pas re-soulevé. Gardée pour son diagnostic sandbox, à archiver |
 | `PROCEDURE-2026-09-10-rejet-apple-20.md` | 🟢 **CLOSE — APPROUVÉE** (2026-09-12) | Répondre au rejet du 2026-09-10 (guidelines 4, 1.4.1 et 3.1.2(c)). **Apple a accepté le 2026-09-12** : version 1.0 en `PENDING_DEVELOPER_RELEASE` avec le build (22), les deux abonnements `_early` `APPROVED`. À archiver |
-| `PROCEDURE-2026-09-12-fermer-acces-revue.md` | 🟡 **PRESQUE CLOSE** (2026-09-12) | Accès reviewer **fermé** (`anonymous_users: false`), mais 43 min APRÈS la publication. Restent : compter les comptes anonymes de la fenêtre, et lire la devise dans l'app installée. Son **étape 3** se rejoue à CHAQUE soumission |
+| `PROCEDURE-2026-09-12-fermer-acces-revue.md` | 🟡 **PRESQUE CLOSE** (2026-09-12) | Accès reviewer **fermé** (`anonymous_users: false`), mais 43 min APRÈS la publication. Reste : compter les comptes anonymes de la fenêtre (la devise, elle, est vérifiée en EUR). Son **étape 3** se rejoue à CHAQUE soumission |
 
 > 🔴 **CE TABLEAU EN ANNONÇAIT TROIS POUR CINQ FICHIERS** — relevé le 2026-09-10 en y
 > ajoutant la ligne du bas. `PROCEDURE-2026-09-05-video-achat-sandbox.md` existait depuis
