@@ -16,19 +16,19 @@
 
 ## 0-ter. ▶️ REPRISE — état au 2026-08-27
 
-> 🟢 **ÉTAT AU 2026-09-12 — APPLE A APPROUVÉ. Tout ce qui suit est de l'histoire.**
-> Version **1.0** · `PENDING_DEVELOPER_RELEASE` · build **(22)** · diffusion `MANUAL`.
+> 🟢 **ÉTAT AU 2026-09-12 — KYROZ EST EN VENTE. Tout ce qui suit est de l'histoire.**
+> Version **1.0** · `READY_FOR_SALE` · build **(22)** · en ligne depuis **13 h 33** ·
+> https://apps.apple.com/fr/app/kyroz/id6796427402 · fiche FR en **EUR**.
 > `kyroz_plus_monthly_early` et `kyroz_plus_yearly_early` : **`APPROVED`**.
-> Verdict rendu **40 h 42** après l'envoi du 10/09 à 19 h 58, sur la soumission
-> `fddc0394` — la même que celle du rejet, Apple réutilise l'objet.
+> Apple avait rendu son verdict **40 h 42** après l'envoi du 10/09 à 19 h 58, sur la
+> soumission `fddc0394` — la même que celle du rejet, Apple réutilise l'objet.
 >
-> **Rien n'est public** : `MANUAL` veut dire que la publication attend un geste humain.
-> Trois suites, chacune à sa place :
-> | Quoi | Où | Qui |
-> |---|---|---|
-> | Fermer l'accès de revue — **AVANT de publier** | `docs/procedures/PROCEDURE-2026-09-12-fermer-acces-revue.md` | 🧑 un interrupteur Supabase |
-> | La date de lancement | `docs/procedures/PROCEDURE-2026-08-25-mise-en-vente-kyroz-plus.md` §10 | 🧑 le fondateur la gère |
-> | Lire la devise le jour J | même procédure | 🧑 depuis un compte français |
+> ✅ **L'accès de revue est fermé** : *Anonymous Sign-Ins* coupé côté Supabase, vérifié
+> `anonymous_users: false` à 14 h 16. 🟠 Fait **43 minutes après** la publication, pas
+> avant — fenêtre bornée, un contrôle reste ouvert dans la procédure.
+> 🧑 **Ce qui reste** : lire la devise dans l'app installée **depuis l'App Store**
+> (*Profil → Kyroz+*) — le geste attendu depuis le 2026-08-28, seul à clore le dossier
+> des dollars ; et compter les éventuels comptes anonymes créés dans la fenêtre.
 >
 > ℹ️ **Les prix sont vérifiés** (API, 2026-09-12) : France **EUR 3,99 / 29,99**, Belgique
 > idem, Suisse CHF 3 / 20, États-Unis USD 3,99 / 24,99. Les dollars vus en TestFlight

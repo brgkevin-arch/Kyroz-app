@@ -645,9 +645,9 @@ produit en suspens — il ne reste qu'à coder.
 
 ### 📱 C — Sortie stores
 
-- 🧑 **C-REVUE-FERMER · RENDRE LE CODE DE REVUE INERTE AVANT DE PUBLIER** (2026-09-12).
-  Apple a approuvé le (22) ; la diffusion est `MANUAL`, donc **rien n'est public tant que
-  le fondateur n'a pas publié**. `EXPO_PUBLIC_REVIEW_CODE` est inlinée à la compilation,
+- 🧑 **C-REVUE-FERMER · L'ACCÈS DE REVUE SE ROUVRE ET SE REFERME À CHAQUE SOUMISSION**
+  (2026-09-12). ✅ **Fermé aujourd'hui** (`anonymous_users: false`), 43 min après la mise
+  en vente ; Kyroz est `READY_FOR_SALE` depuis 13 h 33. `EXPO_PUBLIC_REVIEW_CODE` est inlinée à la compilation,
   donc **dans le binaire** : le jour de la publication, n'importe qui peut l'extraire.
   🟢 **Le geste ne coûte rien, et ce n'est PAS un build.** En production, le code n'ouvre
   qu'un chemin — `isReviewLogin()` → `guest()` → `signInAnonymously()` — car
@@ -657,7 +657,10 @@ produit en suspens — il ne reste qu'à coder.
   `curl -s "$EXPO_PUBLIC_SUPABASE_URL/auth/v1/settings" -H "apikey: $EXPO_PUBLIC_SUPABASE_ANON_KEY" | grep anonymous_users`
   → `true` = ouvert, `false` = fermé.
   🔴 **À chaque soumission suivante** : rallumer l'interrupteur **et poser une valeur
-  NEUVE** (un binaire public expose la sienne), puis recouper une fois approuvé. Un code
+  NEUVE** (un binaire public expose la sienne), puis recouper une fois approuvé. Rouvrir
+  en gardant l'ANCIENNE valeur annulerait la fermeture — la clé du (22) est en vitrine.
+  ⚠️ **Et sans réouverture, la prochaine soumission est REJETÉE** : le relecteur ne peut
+  plus entrer. Un code
   neuf exige un build — une OTA ne remplace pas une variable inlinée.
   Procédure : `docs/procedures/PROCEDURE-2026-09-12-fermer-acces-revue.md`.
   ⚠️ **Ne pas toucher à la date de lancement** : le fondateur la gère (2026-09-12).
