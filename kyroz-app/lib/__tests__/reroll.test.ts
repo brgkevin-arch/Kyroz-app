@@ -243,14 +243,20 @@ describe('« Régénérer » doit suivre le réglage de variété', () => {
     expect(renouvellementMoyen('repetitive')).toBeGreaterThan(0.4);
   }, 60_000);
 
-  it('« repetitive » garde le droit de servir le même plat toute la semaine', () => {
-    // L'inverse du cas « aucun créneau monopolisé » plus haut : ici c'est DEMANDÉ.
-    // Ce test existe pour qu'on ne « corrige » pas un jour ce comportement voulu.
+  it('« repetitive » sert souvent les mêmes plats — mais jamais un seul toute la semaine', () => {
+    // L'inverse du cas « aucun créneau monopolisé » plus haut : ici la répétition est
+    // DEMANDÉE, donc un créneau garde le droit de n'avoir que 2 plats.
+    // 🔴 AMENDÉ le 2026-09-12 (décision fondateur, `ENGINE_VERSION` 50). Ce test disait
+    // « le droit de servir le même plat toute la semaine », et le moteur en usait : le
+    // même bol d'edamame 6 jours sur 7. « Au moins deux avec la même base » — d'où le
+    // plafond `ceil(jours/2)` services par recette, vérifié ici sur ce même profil.
     const p = makeProfile({ plan_days: 7, plan_weekdays: [0, 1, 2, 3, 4, 5, 6], variety: 'repetitive' });
     const plan = buildLocalPlan(p, 3);
-    const parCreneau = ['breakfast', 'lunch', 'dinner', 'snack'].map((c) =>
+    const creneaux = ['breakfast', 'lunch', 'dinner', 'snack'];
+    const parCreneau = creneaux.map((c) =>
       new Set(plan.meals.filter((m) => m.meal_type === c).map((m) => m.recipe.id)).size);
     expect(Math.min(...parCreneau), `distinctes par créneau : ${parCreneau.join(', ')}`).toBeLessThanOrEqual(2);
+    expect(Math.min(...parCreneau), `distinctes par créneau : ${parCreneau.join(', ')}`).toBeGreaterThanOrEqual(2);
   });
 
   it('le plan CANONIQUE ne dépend pas de ce câblage — il n’a pas changé', () => {
