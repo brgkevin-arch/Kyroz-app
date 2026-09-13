@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { Presse } from '../../components/Presse';
 import { lireBrouillon, ecrireBrouillon, effacerBrouillon, type OnboardingDraft } from '../../lib/onboardingDraft';
+import { GOUT_CHOIX, goutEnregistre, type GoutChoix } from '../../lib/gout';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, Easing, AppState,
 } from 'react-native';
@@ -225,6 +226,12 @@ export default function Onboarding() {
   // pilote rien, exactement ce que ce correctif ferme.
   const [proteins, setProteins] = useState<string[]>([]);
   const [proteinesEgales, setProteinesEgales] = useState(false);
+  // Goût du matin et de la collation (D28, demande fondateur du 2026-09-12). `null` =
+  // pas encore répondu, et l'étape 6 ne se valide pas tant que ça dure : même règle que
+  // les protéines, pour la même raison mesurée — une question qu'on peut sauter reste
+  // vide chez presque tout le monde, et le réglage ne pilote alors rien.
+  const [goutPdj, setGoutPdj] = useState<GoutChoix | null>(null);
+  const [goutCollation, setGoutCollation] = useState<GoutChoix | null>(null);
   const [regimeLibre, setRegimeLibre] = useState(false);
   const [dislikes, setDislikes] = useState<string[]>([]);
   // ⚠️ `null` ET PAS `DEFAULT_NEAT_LEVEL` : rien n'est présélectionné, et l'étape ne
@@ -253,7 +260,7 @@ export default function Onboarding() {
   // sans rien à brancher ailleurs.
   const brouillon: OnboardingDraft = {
     step, firstName, sex, birthDate, weight, height, bodyFat, bodyFatSource,
-    sports, noSport, goal, restrictions, regimeLibre, proteins, proteinesEgales, dislikes, neat, variety,
+    sports, noSport, goal, restrictions, regimeLibre, proteins, proteinesEgales, goutPdj, goutCollation, dislikes, neat, variety,
     planWeekdays, restWeekdays, restTouched, meals, customSlots,
   };
   // ⚠️ La dépendance de l'effet est la forme SÉRIALISÉE, pas l'objet : `brouillon` est
@@ -283,6 +290,7 @@ export default function Onboarding() {
         setSports(d.sports); setNoSport(d.noSport); setGoal(d.goal);
         setRestrictions(d.restrictions); setRegimeLibre(d.regimeLibre); setProteins(d.proteins);
         setProteinesEgales(d.proteinesEgales); setDislikes(d.dislikes);
+        setGoutPdj(d.goutPdj); setGoutCollation(d.goutCollation);
         setNeat(d.neat); setVariety(d.variety);
         setPlanWeekdays(d.planWeekdays); setRestWeekdays(d.restWeekdays);
         // ⚠️ `restTouched` se restaure AVEC le reste : sans lui, l'effet qui pré-coche
@@ -354,6 +362,7 @@ export default function Onboarding() {
   // Le reste de l'étape (régime, aliments à éviter, variété) garde ses défauts : ce
   // sont des réglages, pas des questions restées sans réponse.
   const preferencesValid = proteinesEgales || proteins.length >= 1;
+  const goutsValid = goutPdj !== null && goutCollation !== null;
   const mealsValid = planWeekdays.length >= 1 && meals.length >= 1;                        // étape 7 — jours + repas
   const profileReady = basicsValid && bodyFatValid; // suffisant pour les calculs TDEE/macros
 
@@ -383,7 +392,7 @@ export default function Onboarding() {
     (step === 3 && bodyFatValid) ||
     (step === 4 && trainingValid) ||
     (step === 5 && goal !== null && !objectifBloque) ||
-    (step === 6 && preferencesValid) ||
+    (step === 6 && preferencesValid && goutsValid) ||
     (step === 7 && mealsValid) ||
     ![1, 2, 3, 4, 5, 6, 7].includes(step);
 
@@ -481,6 +490,7 @@ export default function Onboarding() {
     if (step === 5 && goal === null) return 'Choisis ton objectif pour continuer.';
     if (step === 5 && objectifBloque) return 'Sèche n\'est pas disponible ici. Choisis Maintien, ou un autre objectif.';
     if (step === 6 && !preferencesValid) return 'Choisis tes protéines préférées, ou « Peu importe ».';
+    if (step === 6 && !goutsValid) return 'Dis-nous si tu préfères sucré ou salé, le matin et en collation.';
     if (step === 7 && !mealsValid) return 'Choisis au moins un jour et un repas.';
     return null;
   };
@@ -596,6 +606,9 @@ export default function Onboarding() {
       // `proteinesEgales` ne s'écrit nulle part : le moteur lit une liste VIDE comme
       // « aucune préférence », ce qui est exactement la réponse donnée.
       preferred_proteins: proteinesEgales ? [] : proteins.map((p) => p.toLowerCase()),
+      // « Peu importe » s'écrit `null` (répondu), jamais une clé absente (jamais demandé).
+      gout_petit_dej: goutEnregistre(goutPdj),
+      gout_collation: goutEnregistre(goutCollation),
     };
     const profile = recalcProfile(draft); // ← source unique du TDEE et des macros
     // Éligibilité (P0.4) : mineur, IMC de départ, volume d'entraînement. La grossesse
@@ -854,6 +867,21 @@ export default function Onboarding() {
                 t={t} label="Peu importe" selected={proteinesEgales}
                 onPress={() => { setProteinesEgales((v) => !v); setProteins([]); }}
               />
+            </View>
+
+            {/* Goût du matin et de la collation (D28). Une seule réponse par rangée :
+                ce sont des choix exclusifs, pas des cases à cumuler. */}
+            <SectionLabel t={t}>Petit-déjeuner</SectionLabel>
+            <View style={s.wrap}>
+              {GOUT_CHOIX.map((g) => (
+                <Chip key={g.value} t={t} label={g.label} selected={goutPdj === g.value} onPress={() => setGoutPdj(g.value)} />
+              ))}
+            </View>
+            <SectionLabel t={t}>Collations</SectionLabel>
+            <View style={s.wrap}>
+              {GOUT_CHOIX.map((g) => (
+                <Chip key={g.value} t={t} label={g.label} selected={goutCollation === g.value} onPress={() => setGoutCollation(g.value)} />
+              ))}
             </View>
 
             <DislikedFoodsField t={t} value={dislikes} onChange={setDislikes} />

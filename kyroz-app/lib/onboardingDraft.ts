@@ -3,6 +3,7 @@ import type {
   BodyFatSource, DietaryRestriction, Goal, MealSlot, MealType,
   NeatLevel, Sex, SportSession, VarietyPreference,
 } from './types';
+import type { GoutChoix } from './gout';
 
 // ── L'INSCRIPTION SURVIT À UNE FERMETURE DE L'APP ─────────────────────────────
 //
@@ -54,6 +55,9 @@ export type OnboardingDraft = {
   proteins: string[];
   /** « Peu importe » — une RÉPONSE, distincte d'une liste vide non renseignée. */
   proteinesEgales: boolean;
+  /** Goût du matin et de la collation (D28). `null` = pas encore répondu ; `egal` = « peu importe ». */
+  goutPdj: GoutChoix | null;
+  goutCollation: GoutChoix | null;
   dislikes: string[];
   neat: NeatLevel | null;
   variety: VarietyPreference;
@@ -74,6 +78,7 @@ const SEXES: Record<Sex, true> = { male: true, female: true };
 const SOURCES: Record<BodyFatSource, true> = { measured: true, estimated: true };
 const NEATS: Record<NeatLevel, true> = { desk: true, light: true, active: true, physical: true };
 const VARIETES: Record<VarietyPreference, true> = { repetitive: true, balanced: true, max: true };
+const GOUTS: Record<GoutChoix, true> = { sucre: true, sale: true, egal: true };
 const REGIMES: Record<DietaryRestriction, true> = {
   vegetarian: true, pescatarian: true, no_pork: true, lactose_free: true,
   gluten_free: true, vegan: true, halal: true,
@@ -181,6 +186,10 @@ export function analyser(raw: string | null, totalEtapes: number): OnboardingDra
     // mais elle n'a pas été relue. Le défaut serait invisible tant que le brouillon
     // n'est pas éprouvé sur CETTE étape.
     proteinesEgales: lire('proteinesEgales', booleen, false),
+    // Même raison que `proteinesEgales` : une réponse donnée puis perdue à la fermeture
+    // rebloquerait l'étape 6 sans explication. Absents d'un brouillon d'avant = `null`.
+    goutPdj: lire<GoutChoix | null>('goutPdj', (v) => dansOuVide(GOUTS, v), null),
+    goutCollation: lire<GoutChoix | null>('goutCollation', (v) => dansOuVide(GOUTS, v), null),
     dislikes: lire('dislikes', chaines, [] as string[]),
     neat: lire<NeatLevel | null>('neat', (v) => dansOuVide(NEATS, v), null),
     variety: lire<VarietyPreference>('variety', (v) => dans(VARIETES, v), 'balanced'),

@@ -768,6 +768,57 @@ produit en suspens — il ne reste qu'à coder.
 
 ### 🍽 D — Catalogue
 
+- ✅ **D28 · Sucré ou salé, le matin et en collation — livré le 2026-09-13**
+  (`lib/gout.ts`, `ENGINE_VERSION` 51 → 52, **migration `2026-09-13_profiles_gouts.sql` à
+  jouer AVANT l'OTA**, procédure `docs/procedures/PROCEDURE-2026-09-13-migration-gouts.md`).
+  **Demande fondateur** : « qui mange un bol d'edamame avec du millet et du poivron à 8 h
+  du matin ? » **Arbitrages du 2026-09-13** : deux réponses séparées (petit-déjeuner,
+  collations) · « majorité garantie » · posée à l'inscription (étape 6, exigée, « Peu
+  importe » compris) ET dans Profil → Préférences · comptes existants = « peu importe ».
+  **Le goût d'une recette se CALCULE sur ses refs, il ne se tague pas** : marqueurs forts
+  (fruits, miel, cacao / légumes, viande, poisson, légumineuses) et FAIBLES (châtaigne,
+  lait / épinards, avocat, tahini), un fort l'emporte sur un faible. En marqueurs forts
+  seuls, trois smoothies aux épinards ou à l'avocat sortaient « mixtes » : c'est ce qui a
+  fait naître les faibles. Catalogue : 137 petits-déj = 83 sucrés · 54 salés · 0 ambigu ;
+  120 collations = 68 · 50 · 2 mixtes. Six recettes ne sont classées que par un marqueur
+  faible (pd05, pd104 salés ; pd128, pd135, col56, col60 sucrés) — montrées au fondateur.
+  **Moteur** : pénalité `GOUT_HORS_W = 0,15` hors goût + **forçage** du goût quand la part
+  de 70 % (`quotaGout`, 5 sur 7) ne tiendrait plus sans ce service, jamais vers un repas à
+  drapeau.
+  🔴 **DEUX RÈGLES SONT NÉES DE LA MESURE, AUCUNE N'ÉTAIT DANS LE PLAN :**
+  1. **Une fois la part tenue, le goût cesse de peser.** Laissé toute la semaine, « salé »
+     servait 92 % de salé et les repas mal calibrés DOUBLAIENT (17 → 36).
+  2. **Pas de forçage pour un profil vegan** (`goutGarantiPour`). Même avec la règle 1,
+     « salé partout » coûtait 35 repas mal calibrés, 32 chez les véganes — et PAS au
+     petit-déjeuner : au dîner et à la collation qui suivent. Un petit-déjeuner salé vegan
+     consomme la protéine et le budget du jour, et leur vivier ne remplit plus le soir. Le
+     contrôle « il reste une recette propre du bon goût » ne pouvait pas le voir : il
+     regarde le créneau servi, pas le ricochet. Isolé par variantes : c'est le FORÇAGE qui
+     coûte (sans lui : 18), et le petit-déj salé (44), pas la collation salée (19).
+  **Mesuré, 12 gabarits × 5 régimes × 4 tirages** :
+  | réponse | repas mal calibrés | semaines sous 70 % | part servie |
+  |---|---|---|---|
+  | peu importe | 17 | — | — |
+  | salé / salé | **18** | 0 hors véganes · vegan 8/48 et vegan+SG 8/48 au matin | 75–80 % (véganes 68–70 %) |
+  | sucré / sucré | **15** | 0 au matin · 2/48 en collation chez les véganes | 74–83 % |
+  Écart calorique du jour inchangé. Gabarit du fondateur réglé « salé » le matin : 6
+  petits-déjeuners salés sur 7 (omelette jambon-champignons, poêlée de thon, wrap œuf-dinde…).
+  ⚠️ **Trois états en base, et c'est voulu** : absent = jamais demandé ; `null` = « peu
+  importe » RÉPONDU ; `'sucre' | 'sale'`. « Peu importe » s'écrit `null` et jamais
+  `undefined` : une clé `undefined` ne part pas à Supabase, et repasser de « Salé » à
+  « Peu importe » aurait laissé « sale » en base.
+  🔴 **Le harnais QA était DÉJÀ cassé à l'étape 6** : il touchait le premier « Peu
+  importe », celui du RÉGIME depuis le 2026-09-08, et laissait les protéines sans réponse.
+  Il répond désormais aux quatre.
+  ➡️ Garde-fous : `lib/__tests__/gout.test.ts`, **vérifié par 5 mutations** (forçage coupé ·
+  pénalité à 0 · arrêt aux 70 % retiré · exception vegan retirée · « peu importe » écrit
+  `undefined`), toutes rouges. ⚠️ **Les trois premières étaient VERTES au premier jet** :
+  sur un omnivore la pénalité suffit à tenir 70 %, donc le forçage ne mord jamais. Il se
+  prouve sur un **végétarien sans gluten** (3 semaines sur 12 ratées sans lui), la
+  pénalité sur un **vegan sans gluten** (36 → 73 % de salé), l'arrêt sur la part servie
+  (81 % contre ~92 %). *Un garde-fou se teste là où il mord, pas sur le profil par défaut.*
+  ⚠️ **Non traité** : « Remplacer ce repas » (`swapMeal`) ignore le goût déclaré.
+
 - ✅ **D26 · Les goûts déclarés passent dans l'assiette — étape 1 livrée le 2026-09-12**
   (`ENGINE_VERSION` 49 → 50, moteur seul, aucun changement de catalogue).
   **Signalé par le fondateur sur son propre plan** : poulet/bœuf/poisson/œufs/whey cochés,
@@ -805,12 +856,9 @@ produit en suspens — il ne reste qu'à coder.
   (pénalité à 0 · plafond retiré · sortie anticipée remise). La 3ᵉ passait d'abord : avec
   du sport, les cibles des jours diffèrent et le même plat ne dépasse pas 4 par hasard —
   seul un profil SANS sport (7 jours identiques) la voit.
-  **Reste, dans l'ordre arbitré** : (2) sucré/salé au petit-déj et aux collations — tag
-  catalogue + question d'inscription + migration Supabase ; ⚠️ D24 et D25 sont **livrées
-  depuis le 2026-09-13** : le petit-déjeuner tourne désormais entre registres, et une
-  préférence sucré/salé devra s'y brancher (sinon elle ne sera qu'un départage de plus,
-  le défaut exact de cette fiche) ; (3) critère « collation sur le pouce » à trancher
-  par le fondateur ; (4) cohérence de la journée à RE-MESURER après cette étape.
+  **Reste, dans l'ordre arbitré** : (2) ✅ sucré/salé — **D28, 2026-09-13** ;
+  (3) critère « collation sur le pouce » à trancher par le fondateur ; (4) cohérence de
+  la journée à RE-MESURER maintenant que D25 et D28 sont en place.
 
 - ✅ **D24 · VAGUE B10 — les 25 recettes du registre quotidien français. LIVRÉES le 2026-09-13.**
   🔴 **Écrites le 2026-09-07 (PR #229), fermées SANS merge le soir même, sans un mot**, et

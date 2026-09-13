@@ -95,6 +95,10 @@ describe('la réponse survit à ce qui l\'entoure', () => {
   it('le harnais QA sait répondre — sinon tous les scripts meurent à l\'étape 6', () => {
     // `npm test` resterait VERT : ce harnais n'en fait pas partie. C'est exactement ce
     // qui s'est produit avec le sexe (#214), découvert deux jours plus tard.
-    expect(harnais).toContain("tap(page, 'Peu importe'");
+    // ⚠️ Forme changée le 2026-09-13 (D28) : l'étape porte QUATRE « Peu importe »
+    // (régime, protéines, petit-déjeuner, collations) et le harnais les répond tous.
+    // L'ancien `tap(page, 'Peu importe'` touchait le premier — celui du régime depuis
+    // le 2026-09-08 — et laissait la question des protéines sans réponse.
+    expect(harnais).toContain("getByText('Peu importe', { exact: true })");
   });
 });

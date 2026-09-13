@@ -431,9 +431,20 @@ export async function runOnboarding(page, p = DEFAULT_PERSONA) {
   // identiques au bit près à ce qu'ils étaient avant ce changement.
   // ⚠️ Même famille que le sexe (#214) : un correctif d'écran qui rend un champ
   // obligatoire casse ce harnais, et `npm test` reste vert — il n'en fait pas partie.
-  if (!(await tap(page, 'Peu importe', { exact: true, timeout: 3000 }))) {
-    await panne(page, 'onboarding-proteines', 'l\'étape 6 exige une réponse et « Peu importe » est introuvable');
+  // 🔴 L'ÉTAPE PORTE QUATRE « PEU IMPORTE » depuis le 2026-09-13 : régime, protéines,
+  // petit-déjeuner, collations (D28). L'ancien `tap` touchait le PREMIER — celui du
+  // régime depuis le 2026-09-08, pas celui des protéines — et laissait l'étape bloquée.
+  // On les répond tous : chacun enregistre l'absence de préférence, donc les plans des
+  // scripts en aval restent ceux d'avant.
+  const peuImporte = page.getByText('Peu importe', { exact: true });
+  const nPeuImporte = await peuImporte.count().catch(() => 0);
+  if (nPeuImporte < 4) {
+    await panne(page, 'onboarding-preferences', `l'étape 6 exige quatre réponses et ${nPeuImporte} « Peu importe » seulement sont visibles`);
     return { ok: false, etape: 6, repas: 0 };
+  }
+  for (let i = 0; i < nPeuImporte; i++) {
+    await peuImporte.nth(i).click({ timeout: 2000 }).catch(() => {});
+    await sleep(150);
   }
   await sleep(300);
   if (!(await suivant(6))) return { ok: false, etape: 6, repas: 0 };
