@@ -691,6 +691,10 @@ export interface Meal {
   restriction_relaxed?: boolean;      // repli régime : recette servie hors restriction
   rest_day?: boolean;                 // jour de repos (carb-cycling : glucides ↓ / lipides ↑)
   fixed?: boolean;                    // repas géré par l'user (FixedMeal) : verrouillé, non planifié/swappé/recalé
+  // RESTES (« Équilibré », D30) : le dîner d'un soir revient au déjeuner du lendemain.
+  // Les deux marqueurs vont par paire ; « Remplacer ce repas » les efface tous les deux.
+  cook_for_tomorrow?: boolean;        // dîner : prévoir une part de plus pour le déjeuner du lendemain
+  leftover_from_prev?: boolean;       // déjeuner : restes du dîner de la veille
 }
 
 export interface MealPlan {

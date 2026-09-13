@@ -768,6 +768,86 @@ produit en suspens — il ne reste qu'à coder.
 
 ### 🍽 D — Catalogue
 
+- ✅ **D30 · Un plan qu'un humain mangerait — livré le 2026-09-14**
+  (`lib/repasHumain.ts`, `ENGINE_VERSION` 53 → 54, moteur + une ligne d'écran, aucune
+  migration). **Lu dans le carnet des menus** (D29) sur un moteur aux indicateurs verts :
+  poêlée de thon aux pommes de terre à 8 h, millet dans 7 repas par semaine, semoule le
+  matin puis semoule à 16 h, collations de 15 min à la poêle, et 28 recettes neuves par
+  semaine en « Équilibré » (≈ 60 articles de courses, ≈ 75 min de cuisine par jour).
+  **Arbitrages du fondateur du 2026-09-14**, et tous se CALCULENT sur la recette :
+  · **petit-déjeuner** : un plat SALÉ bâti sur un féculent de plat (millet, polenta,
+    sarrasin, quinoa, riz, nouilles, pâtes, pomme de terre, patate douce, semoule,
+    boulgour, châtaigne) n'est plus servi le matin — 27 des 54 petits-déjeuners salés ;
+  · **collation « sur le pouce »** : 10 min au plus, sans cuisson (lue sur les étapes,
+    frontières de mot Unicode ; griller le pain, un œuf dur, de l'eau bouillante
+    comptent) — 51 collations sur 120 ;
+  · **répétition** : le même féculent au plus une fois par jour ; un ingrédient de base
+    courant dans 5 repas par semaine au plus, rare (millet, polenta, sarrasin, quinoa,
+    châtaigne ; protéines végétales travaillées chez l'omnivore) dans 2 ;
+  · **« Équilibré » = restes** : le dîner des jours 1, 3 et 5 revient au déjeuner du
+    lendemain (adapté à sa cible, si le lendemain est le jour calendaire suivant et si
+    l'adaptation reste propre). La carte dit « Prévois une part de plus » au dîner et
+    « Restes du dîner d'hier » au déjeuner ; « Remplacer ce repas » casse la paire.
+  **Mécanisme** : des COUCHES d'exclusion dans `selectMealAdapted`, la plus importante
+  d'abord (même recette le jour · plafond végétal · plat du midi · sur le pouce · même
+  féculent · plafond d'ingrédient), chacune appliquée seulement s'il reste un candidat
+  propre. Couche par couche et pas d'un bloc : sur un vivier mince, tout lâcher d'un coup
+  rendrait « deux fois le même plat » pour ne pas tenir « ingrédient rare ».
+  🔴 **LA RÈGLE APPLIQUÉE TELLE QUELLE FAISAIT PASSER LES REPAS MAL CALIBRÉS DE 83 À 202.**
+  Retirer UNE couche à la fois sur des copies du moteur a désigné le plafond d'ingrédient
+  (93 sans lui), et dans le plafond, deux cibles : les **poudres** (sans lactose 1 → 65,
+  vegan 2 → 18) et les **protéines végétales des végétariens et véganes** (tofu et soja
+  sont la base de leur assiette). D'où deux exceptions mesurées : poudres non plafonnées,
+  et chez le végétarien ou le vegan seuls les féculents rares le sont (94). Plafonner les
+  seuls féculents rendait 93 : écart nul, la règle garde donc le « courant 5 » sur les
+  protéines choisi par le fondateur.
+  🔴 **« RÉPÉTITIF » EST EXEMPTÉ** du même féculent par jour et du plafond d'ingrédient : ils
+  portaient le créneau le plus répétitif de 2 à 5 plats distincts (`reroll.test.ts` rouge),
+  et son plafond par recette (D26) gouverne déjà la répétition (88).
+  **Mesuré, même script sur `main` et sur la branche** (10 profils × 3 corps × 3 objectifs
+  × 3 variétés × 4 tirages) :
+  | | `main` | branche |
+  |---|---|---|
+  | petits-déjeuners « plat du midi » | 20–51 % | **0 %** |
+  | collations pas « sur le pouce » | 53–82 % | **0 %** |
+  | jours avec le même féculent deux fois | 30–49 % | **0 %** en « Équilibré », **0,1 %** en « Variété max » (« Répétitif » exempté : 39 %) |
+  | « Équilibré » : restes par semaine | 0 | **1,9–2,5** |
+  | « Équilibré » : recettes distinctes par semaine | 27,4–28 | **23,2–25,8** |
+  | « Équilibré » : cuisine par jour | 71–79 min | **57–65 min** |
+  | repas mal calibrés (10 profils) | 83 | **88** |
+  Écart calorique du jour inchangé (3,52 → 3,53 %). Drapeaux : pescétarien 5 → 11,
+  végétarien sans gluten 10 → 15 ; en baisse ailleurs (sans gluten 3 → 0, omnivore « Peu
+  importe » 5 → 3, vegan sans gluten 49 → 47). Les articles de courses ne baissent presque
+  pas (65,5 → 65,0 pour l'omnivore) : les restes économisent de la CUISINE, pas des achats.
+  🔴 **SIX TESTS EXISTANTS ONT ROUGI, ATTRIBUÉS UN PAR UN** (copie « sans D30 » : les six
+  verts), et aucun n'a été relevé sans cette preuve :
+  1. `reroll` (« Répétitif ») → **corrigé dans le moteur** (exemption ci-dessus) ;
+  2. `gout` vegan sans gluten « salé », 73 → 37 % de salé : ses petits-déjeuners salés
+     étaient presque tous des plats du midi. **Conflit entre deux décisions, rendu au
+     fondateur** : la règle du matin passe devant. Le test garde l'écart « salé » contre
+     « peu importe » (36,9 contre 15,5 %). ➡️ **Vague de catalogue à commander** :
+     petits-déjeuners salés vegan « à la française » (tartines tofu fumé, houmous, wraps) ;
+  3. `gout` régime mince : « salé » vaut 6 repas mal calibrés AVANT comme APRÈS — c'est le
+     témoin qui s'est amélioré (6 → 3). Écart toléré +1 → +3 ;
+  4. `varieteFamille` : 21 des 31 « jumelles » étaient deux collations au yaourt de soja
+     différentes. **Question de produit posée** (CLAUDE.md §6 la réservait) : « non,
+     c'est normal ». Le test ne compte plus que les vraies jumelles (même protéine ET même
+     féculent) ; `familyKey` et le moteur n'ont pas bougé. Sans la rotation par famille,
+     il rougit toujours (10 semaines sur 16) ;
+  5. `dayTotalTightness` +81 kcal pour 80 : cause « sur le pouce » (+41 sans elle), borne 85 ;
+  6. `mealProteinFloor` médiane 1,104 pour 1,10 : 1,094 sans D30, le plancher n'y est pour
+     rien, borne 1,11 (la mutation de référence rend 1,125).
+  ⚠️ **Non traité** : « Remplacer ce repas » ignore ces règles (comme le goût et D29) ; un
+  repas « mangé » reporté par `carryTracking` garde sa mention de restes même si le plan
+  régénéré n'a plus la paire ; la mention n'a pas été regardée à l'écran (moteur testé,
+  texte relu). Et le carnet a encore montré des noms de recettes en listes
+  (« Bœuf 5% – wok – nouilles complètes ») — chantier des noms humains, déjà noté.
+  ➡️ Garde-fous : `lib/__tests__/coherenceHumaine.test.ts` et `repasHumain.test.ts`,
+  **vérifiés par 10 mutations** (plat du midi admis · collation qui cuit admise · même
+  féculent admis · plafond retiré · restes coupés · « Remplacer » ne casse plus la paire ·
+  jour calendaire ignoré · « Répétitif » plus exempté · poudres plafonnées · « sans
+  cuisson » plus retiré), toutes rouges.
+
 - ✅ **D29 · Une journée qui ressemble à une journée — livré le 2026-09-13**
   (`planEngine::regleVegetal`, `ENGINE_VERSION` 52 → 53, moteur seul, aucune migration).
   **Lu dans le carnet des menus** (9 profils alimentaires × 3 variétés × 4 semaines, publié

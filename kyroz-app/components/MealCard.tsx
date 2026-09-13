@@ -106,6 +106,15 @@ export function MealCard({
       {isFixed && (
         <Text style={[styles.fixedNote, { color: t.textTertiary }]}>Tu gères ce repas — compté dans ton total</Text>
       )}
+      {/* RESTES (D30) : sans ces deux lignes, la personne cuisinerait deux fois le même plat
+          et « Équilibré » ne lui ferait rien gagner. La liste de courses, elle, compte déjà
+          les deux parts. */}
+      {!isFixed && meal.cook_for_tomorrow && (
+        <Text style={[styles.fixedNote, { color: t.textTertiary }]}>Prévois une part de plus : elle sert à ton déjeuner de demain</Text>
+      )}
+      {!isFixed && meal.leftover_from_prev && (
+        <Text style={[styles.fixedNote, { color: t.textTertiary }]}>Restes du dîner d'hier, rien à cuisiner</Text>
+      )}
       {/* Macros : une ligne grise, plus quatre pastilles colorées. Ici il n'y a
           aucune proportion à comparer — c'est le nom du plat qu'on lit. */}
       {!skipped && (
