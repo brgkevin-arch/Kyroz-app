@@ -78,6 +78,9 @@ export const PROFILE_COLS = [
   'calorie_bank',
   // Étape 3 du moteur — migration 2026-07-28_profiles_neat_engine_rev.sql.
   'neat_level', 'engine_rev', 'engine_notice',
+  // Goût déclaré au petit-déjeuner et à la collation (D28) — migration
+  // 2026-09-13_profiles_gouts.sql. `null` = « peu importe » répondu, ce qui EFFACE en base.
+  'gout_petit_dej', 'gout_collation',
 ] as const;
 
 // Colonnes de la DERNIÈRE migration. Si elle n'a pas encore été jouée côté Supabase,
@@ -88,7 +91,7 @@ export const PROFILE_COLS = [
 // transforme juste « synchro morte » en « tout passe sauf ces champs-là ».
 // Exporté pour que les TESTS lisent cette liste au lieu de la recopier : une
 // nouvelle migration ne doit pas faire rougir un test qui décrit l'ancienne.
-export const PROFILE_COLS_LAST_MIGRATION: string[] = ['meal_slots'];
+export const PROFILE_COLS_LAST_MIGRATION: string[] = ['gout_petit_dej', 'gout_collation'];
 
 // ── Signal d'échec de synchro ────────────────────────────────────────────────
 //

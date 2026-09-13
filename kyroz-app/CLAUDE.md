@@ -363,7 +363,9 @@ profiles                        ← s'appelle « profiles », PAS « user_profil
       plan (plan_days, plan_weekdays, rest_weekdays, meals, meal_emphasis,
       variety, fixed_meals, max_prep_time_min, weigh_in_frequency) ·
       goûts (dietary_restrictions, disliked_foods, preferred_proteins,
-      hidden_recipes — « j'aime pas » 👎, masquées, SOUPLE/réversible).
+      hidden_recipes — « j'aime pas » 👎, masquées, SOUPLE/réversible ·
+      gout_petit_dej, gout_collation — sucré/salé, `null` = « peu importe » répondu,
+      absent = jamais demandé ; migration 2026-09-13, cf. AGENTS.md D28).
       LOCAL-ONLY volontaire : `is_post_menopausal` (l'onboarding ne pose pas
       la question → inerte tant qu'elle n'est pas posée).
       ⚠️ `age` est DÉRIVÉ de `birth_date` par `computePlan` dès qu'elle existe — il ne

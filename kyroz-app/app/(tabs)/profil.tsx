@@ -14,6 +14,7 @@ import { ACCENTS, ACCENT_IDS, useAccentId, setAccentId, readableOn } from '../..
 import { DISCLAIMER } from '../../constants/legal';
 import { CIQUAL_ATTRIBUTION } from '../../lib/foods';
 import { Card, PrimaryButton, Chip, OptionCard, Field, SectionLabel, Segmented, SectionTitle, MenuRow, clavierScrollProps } from '../../components/ui';
+import { GOUT_CHOIX, goutEnregistre, goutLu, type GoutChoix } from '../../lib/gout';
 import { useRepasAuto } from '../../lib/repasAuto';
 import { bankedDailyTargets, offsetsForPlan, servedWeekdays } from '../../lib/calorieBank';
 import { usePremium } from '../../hooks/usePremium';
@@ -1669,18 +1670,31 @@ function MacroEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: Edi
 function PrefEditor({ t, profile, onSave, dragHandlers, sheetScrollProps }: EditorProps) {
   const [restrictions, setRestrictions] = useState<DietaryRestriction[]>(profile.dietary_restrictions);
   const [proteins, setProteins] = useState<string[]>(profile.preferred_proteins);
+  // Goût du matin et de la collation (D28). Un compte d'avant la question s'ouvre sur
+  // « Peu importe » : c'est ce que le moteur lui sert déjà, donc c'est la vérité.
+  const [goutPdj, setGoutPdj] = useState<GoutChoix>(goutLu(profile.gout_petit_dej) ?? 'egal');
+  const [goutCol, setGoutCol] = useState<GoutChoix>(goutLu(profile.gout_collation) ?? 'egal');
   const [dislikes, setDislikes] = useState<string[]>(profile.disliked_foods);
   // Recettes masquées (👎) : on retire l'id pour la ré-afficher (rien n'est définitif).
   const [hidden, setHidden] = useState<string[]>(profile.hidden_recipes ?? []);
   const hiddenNamed = hidden.map((id) => ({ id, name: getRecipeById(id)?.name_fr ?? 'Recette' }));
   const tog = <T,>(arr: T[], v: T, set: (x: T[]) => void) => set(arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
-  const submit = () => onSave({ ...profile, dietary_restrictions: restrictions, preferred_proteins: proteins, disliked_foods: dislikes, hidden_recipes: hidden });
+  const submit = () => onSave({
+    ...profile, dietary_restrictions: restrictions, preferred_proteins: proteins, disliked_foods: dislikes, hidden_recipes: hidden,
+    // ⚠️ `goutEnregistre` écrit `null` pour « Peu importe », jamais `undefined` : une clé
+    // `undefined` ne part pas à Supabase, et l'ancien « Salé » reviendrait.
+    gout_petit_dej: goutEnregistre(goutPdj), gout_collation: goutEnregistre(goutCol),
+  });
   return (
     <EditorShell t={t} title="Préférences" onSave={submit} dragHandlers={dragHandlers} sheetScrollProps={sheetScrollProps}>
       <SectionLabel t={t}>Régime</SectionLabel>
       <View style={styles.wrap}>{RESTRICTIONS.map((r) => <Chip key={r.value} t={t} label={r.label} selected={restrictions.includes(r.value)} onPress={() => tog(restrictions, r.value, setRestrictions)} />)}</View>
       <SectionLabel t={t}>Protéines préférées</SectionLabel>
       <View style={styles.wrap}>{PROTEINS.map((p) => <Chip key={p} t={t} label={p} selected={proteins.includes(p.toLowerCase())} onPress={() => tog(proteins, p.toLowerCase(), setProteins)} />)}</View>
+      <SectionLabel t={t}>Petit-déjeuner</SectionLabel>
+      <View style={styles.wrap}>{GOUT_CHOIX.map((g) => <Chip key={g.value} t={t} label={g.label} selected={goutPdj === g.value} onPress={() => setGoutPdj(g.value)} />)}</View>
+      <SectionLabel t={t}>Collations</SectionLabel>
+      <View style={styles.wrap}>{GOUT_CHOIX.map((g) => <Chip key={g.value} t={t} label={g.label} selected={goutCol === g.value} onPress={() => setGoutCol(g.value)} />)}</View>
       <DislikedFoodsField t={t} value={dislikes} onChange={setDislikes} />
       {hiddenNamed.length > 0 && (
         <>

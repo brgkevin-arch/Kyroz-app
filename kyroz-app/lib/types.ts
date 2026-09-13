@@ -1,5 +1,7 @@
 // ── Types Kyroz ──────────────────────────────────────────────────────────────
 
+import type { GoutPreference } from './gout';
+
 export type Sex = 'male' | 'female';
 
 // Objectifs étendus (du déficit agressif au surplus)
@@ -533,6 +535,18 @@ export interface UserProfile {
   dietary_restrictions: DietaryRestriction[];
   disliked_foods: string[];     // mots-clés d'ingrédients à éviter (filtre DUR)
   preferred_proteins: string[]; // sources de protéines préférées
+  // Goût déclaré au petit-déjeuner et à la collation (D28, 2026-09-13). Trois états,
+  // et ils ne se confondent pas :
+  //  · absent (`undefined`) → question jamais posée : tous les comptes d'avant, PAS
+  //    backfillés ;
+  //  · `null` → « peu importe », RÉPONDU. C'est `null` et pas `undefined` parce qu'une
+  //    clé `undefined` n'est pas envoyée à Supabase : repasser de « Salé » à « Peu
+  //    importe » laisserait « sale » en base (cf. `gout.ts::goutEnregistre`) ;
+  //  · 'sucre' | 'sale'.
+  // Colonnes `text` sans contrainte : toute valeur se relit par `gout.ts::goutLu`, qui
+  // referme l'inconnu sur « peu importe ».
+  gout_petit_dej?: GoutPreference | null;
+  gout_collation?: GoutPreference | null;
   // Temps de prépa max par repas. ⚠️ INERTE depuis le 2026-07-29 : plus aucune UI ne le
   // règle, il ne filtre plus les recettes et il est sorti de `profileSignature`. Conservé
   // dans le type et dans PROFILE_COLS pour ne PAS effacer la valeur des comptes déjà
